@@ -64,7 +64,7 @@ function (x, n, p.adjust.method = p.adjust.methods, ...)
         if (ncol(x) != 2)
             stop("x must have 2 columns")
          l <- nrow(x)
-        n <- rowSums(x)
+        n <- apply(x, 1, sum)
         x <- x[, 1]
     }
     else {

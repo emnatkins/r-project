@@ -58,7 +58,6 @@ WizardSmallImageFile=R.bmp
 UsePreviousAppDir=no
 ChangesAssociations=yes
 DiskSpanning=yes
-Compression=bzip
 
 [Types]
 Name: "minimal"; Description: "Minimal user installation"

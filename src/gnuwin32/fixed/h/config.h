@@ -250,9 +250,6 @@
 /* Define if you have the isnan function.  */
 #define HAVE_ISNAN 1
 
-/* Define if you have the log1p function.  */
-#undef HAVE_LOG1P
-
 /* Define if you have the matherr function.  */
 #undef HAVE_MATHERR
 
@@ -366,9 +363,6 @@
 
 /* Define if you have the <rpc/xdr.h> header file.  */
 #define HAVE_RPC_XDR_H 1
-
-/* Define if you have the <stdargs.h> header file.  */
-#define HAVE_STDARG_H 1
 
 /* Define if you have the <string.h> header file.  */
 #define HAVE_STRING_H 1

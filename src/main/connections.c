@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000-2   The R Development Core Team.
+ *  Copyright (C) 2000, 2001   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,11 +19,6 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
-/* override for this file only */
-#ifndef HAVE_ZLIB
-# define HAVE_ZLIB 1
 #endif
 
 #include <Defn.h>
@@ -136,6 +131,7 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
     char buf[BUFSIZE], *b = buf, *vmax = vmaxget();
     int res, usedRalloc = FALSE;
 
+#ifdef HAVE_VSNPRINTF
     res = vsnprintf(buf, BUFSIZE, format, ap);
     if(res >= BUFSIZE) { /* res is the desired output length */
 	usedRalloc = TRUE;
@@ -152,6 +148,12 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 	}
     }
     con->write(b, 1, res, con);
+#else
+    /* allocate a large buffer and hope */
+    b = R_alloc(10*BUFSIZE, sizeof(char));
+    res = vsprintf(b, format, ap);
+    con->write(b, 1, res, con);
+#endif
     if(usedRalloc) vmaxset(vmax);
     return res;
 }
@@ -328,8 +330,8 @@ static long file_seek(Rconnection con, int where, int origin, int rw)
     if(where == NA_INTEGER) return pos;
 
     switch(origin) {
-    case 2: whence = SEEK_CUR;
-    case 3: whence = SEEK_END;
+    case 2: whence = SEEK_CUR; break;
+    case 3: whence = SEEK_END; break;
     default: whence = SEEK_SET;
     }
     fseek(fp, where, whence);
@@ -1154,6 +1156,7 @@ static int text_vfprintf(Rconnection con, const char *format, va_list ap)
     p = b + already;
     buffree = BUFSIZE - already;
 
+#ifdef HAVE_VSNPRINTF
     res = vsnprintf(p, buffree, format, ap);
     if(res >= buffree) { /* res is the desired output length */
 	usedRalloc = TRUE;
@@ -1172,6 +1175,13 @@ static int text_vfprintf(Rconnection con, const char *format, va_list ap)
 	    warning("printing of extremely long output is truncated");
 	}
     }
+#else
+    /* allocate a large buffer and hope */
+    b = R_alloc(10*BUFSIZE, sizeof(char));
+    strcpy(b, this->lastline);
+    p = b + already;
+    res = vsprintf(p, format, ap);
+#endif
 
     /* copy buf line-by-line to object */
     for(p = buf; ; p = q+1) {

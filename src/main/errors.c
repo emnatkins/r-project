@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2002  The R Development Core Team.
+ *  Copyright (C) 1997--2001  The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -146,8 +146,12 @@ static void setupwarnings(void)
 static int Rvsnprintf(char *buf, size_t size, const char  *format, va_list ap)
 {
     int val;
+#ifdef HAVE_VSNPRINTF
     val = vsnprintf(buf, size, format, ap);
     buf[size-1] = '\0';
+#else
+    val = vsprintf(buf, format, ap);
+#endif
     return val;
 }
 
@@ -573,27 +577,19 @@ SEXP do_stop(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_warning(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     RCNTXT *cptr;
-    SEXP c_call;
 
-    if(asLogical(CAR(args))) {/* find context -> "... in: ..:" */
-	cptr = R_GlobalContext->nextcontext;
-	while ( !(cptr->callflag & CTXT_FUNCTION) && 
-		cptr->nextcontext != NULL)
-	    cptr = cptr->nextcontext;
-	c_call = cptr->call;
-    } else
-	c_call = R_NilValue;
-
-    args = CDR(args);
+    cptr = R_GlobalContext->nextcontext;
+    while ( !(cptr->callflag & CTXT_FUNCTION) && cptr->nextcontext != NULL)
+	cptr = cptr->nextcontext;
     if (CAR(args) != R_NilValue) {
 	SETCAR(args, coerceVector(CAR(args), STRSXP));
 	if(!isValidString(CAR(args)))
-	    warningcall(c_call, " [invalid string in warning(.)]");
+	    warningcall(cptr->call, " [invalid string in warning(.)]");
 	else
-	    warningcall(c_call, "%s", CHAR(STRING_ELT(CAR(args), 0)));
+	    warningcall(cptr->call,"%s", CHAR(STRING_ELT(CAR(args), 0)));
     }
     else
-	warningcall(c_call, "");
+	warningcall(cptr->call,"");
     return CAR(args);
 }
 

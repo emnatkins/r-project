@@ -19,7 +19,7 @@ glm <- function(formula, family=gaussian, data=list(), weights=NULL,
     }
 
     ## extract x, y, etc from the model formula and frame
-#    mt <- terms(formula, data=data)
+    mt <- terms(formula, data=data)
     if(missing(data)) data <- environment(formula)
     mf <- match.call(expand.dots = FALSE)
     mf$family <- mf$start <- mf$control <- mf$maxit <- NULL
@@ -34,7 +34,6 @@ glm <- function(formula, family=gaussian, data=list(), weights=NULL,
 	   "glm.fit.null"= 1,
 	   ## else
 	   stop(paste("invalid `method':", method)))
-    mt <- attr(mf, "terms") # allow model.frame to update it
     na.act <- attr(mf, "na.action")
     xvars <- as.character(attr(mt, "variables"))[-1]
     if((yvar <- attr(mt, "response")) > 0) xvars <- xvars[-yvar]

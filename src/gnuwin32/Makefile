@@ -1,31 +1,25 @@
 include MkRules
 include RWVERSION
 
-ifneq ($(strip $(BUILD)),CROSS)
-ifneq ($(strip $(wildcard Rpwd.exe)),)
-all: Rpwd.exe rbuild rpackage rdocs
-else
-all: Rpwd.exe
-	$(MAKE) rbuild rpackage rdocs
-endif
-else
-all: Rpwd.exe rbuild rpackage rdocs
-endif
+all: rbuild rpackage rdocs
+
+## configuration macros
+HELP = YES
+WINHELP = CHM# NO, CHM, BOTH
+
+LEA_MALLOC=YES
+
+# Set to YES and specify the path if you want to use the ATLAS BLAS.
+USE_ATLAS=NO
+ATLAS_PATH=/R/ATLAS/lib/WinNT_PII
 
 PACKAGES = base ctest eda lqs methods modreg mva nls splines stepfun tools ts
 ALLPACKAGES = $(PACKAGES) tcltk
 
-## must be absolute and space-free paths
-ifneq ($(strip $(BUILD)),CROSS)
-RHOME = $(shell Rpwd.exe ../..)
-PKGD = $(shell Rpwd.exe $(PKGDIR))
-else
-RHOME = $(shell perl pwd.pl ../..)
-PKGD = $(shell perl pwd.pl $(PKGDIR))
-endif
-
+RHOME = $(shell perl pwd.pl ../..)# must be absolute path
 RLIB = $(RHOME)/library
 PKGDIR = $(RHOME)/src/library
+PKGD = $(shell perl pwd.pl $(PKGDIR))# must be absolute path
 
 OPTFLAGS=-O2 -Wall -pedantic
 ## use FOPTFLAGS where complex*16 is used.
@@ -40,11 +34,13 @@ endif
 
 R-DLLFLAGS = -mwindows
 R-DLLLIBS =-L. $(FLIBS) -lcomctl32 -lversion
-FLIBS+=-lRblas
-SOURCES = $(filter-out malloc.c blas00.c,$(wildcard *.c *.f))
+ifeq ($(strip $(USE_ATLAS)),YES)
+FLIBS +=-L$(ATLAS_PATH) -lcblas -lf77blas -latlas
+endif
+SOURCES = $(filter-out malloc.c,$(wildcard *.c *.f))
 OBJS = $(SOURCES:.c=.o)
 MAINLIBS = libmain.a libappl.a libmath.a
-EXTRALIBS = ga.a gl.a xdr.a em.a ../extra/zlib/libz.a
+EXTRALIBS = ga.a gl.a xdr.a em.a bitmap/zlib/libz.a
 
 LIBFILES = $(foreach i, $(ALLPACKAGES), ../../library/$i) ../../library/R.css
 PKGS = $(foreach i,$(PACKAGES),pkg-$i)
@@ -66,15 +62,8 @@ tcl:
 CFLAGS = $(OPTFLAGS) -I../include -I. -DHAVE_CONFIG_H -DR_DLL_BUILD
 FFLAGS = $(OPTFLAGS)
 
-Rpwd.exe: front-ends/Rpwd.exe
-	$(CP) $< $@
-
-front-ends/Rpwd.exe:
-	$(MAKE) -C front-ends Rpwd
-
-## watch out: R.dll and Rblas.dll depend on each other.
-rbuild: fixfiles rlibs makeMakedeps libRblas.a ../../bin/R.dll libR.a \
-	 ../../bin/Rblas.dll CHTML front-ends COPYRIGHTS rmodules
+rbuild: fixfiles rlibs makeMakedeps ../../bin/R.dll libR.a \
+	 CHTML front-ends COPYRIGHTS rmodules
 
 rpackage: fixed/fixdesc ../../library/R.css
 	$(MAKE) STAMP=NO $(PKGS)
@@ -83,17 +72,17 @@ rinstaller:
 	$(MAKE) -C installer RPREFIX=$(RPREFIX)
 
 rlibs:
-	$(MAKE) -C ../appl  OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
+	$(MAKE) -C ../appl  OPTFLAGS='$(OPTFLAGS)' USE_ATLAS=$(USE_ATLAS) -f Makefile.win
 	$(MAKE) -C ../main  OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
 	$(MAKE) -C ../nmath OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
 	$(MAKE) -C ./graphapp
 	$(MAKE) -C ./getline
-	$(MAKE) -C ../extra/xdr -f Makefile.win
+	$(MAKE) -C ../extra/xdr
 	$(MAKE) -C ./math
 
 rmodules: libRm.a
 	$(MAKE) -C ../modules OPTFLAGS='$(OPTFLAGS)' FOPTFLAGS='$(FOPTFLAGS)' \
-	  -f Makefile.win
+	  USE_ATLAS=$(USE_ATLAS) ATLAS_PATH=$(ATLAS_PATH) -f Makefile.win
 
 COPYRIGHTS: $(RHOME)/COPYRIGHTS COPYRIGHTS.win
 	cat $^ > $@
@@ -118,7 +107,7 @@ Rdll: makeMakedeps ../../bin/R.dll
 	$(MKDIR) -p ../../bin
 	$(CP) R.dll ../../bin/
 
-front-ends: libR.a
+front-ends: libRm.a
 	$(MAKE) -C front-ends
 
 R.a: $(OBJS)
@@ -143,16 +132,17 @@ R.exp1: R.a $(MAINLIBS) $(EXTRALIBS) exported-vars
 	$(CAT) exported-vars >> $@
 	$(RM) RDefs
 
-# An additional import library needed for the modules that uses R.dll's malloc/.../free
+# A version needed for the modules that uses R.dll's malloc/.../free
+
 libRm.a:  Rm.exp
 	$(DLLTOOL) $(DLLTOOLFLAGS) $(R-DLLTOOLFLAGS) --dllname R.dll --def Rm.exp --output-lib libRm.a
 
 Rm.exp: Rm.exp1
 	(diff Rm.exp Rm.exp1 > /dev/null) || $(CP) Rm.exp1 Rm.exp
 
-Rm.exp1: $(OBJS-EXTRA)
+Rm.exp1: R.a $(OBJS-EXTRA) $(MAINLIBS) $(EXTRALIBS) exported-vars
 	$(ECHO) EXPORTS > $@
-	$(NM) $(OBJS-EXTRA) > RDefs
+	$(NM) R.a $(OBJS-EXTRA) $(MAINLIBS) $(EXTRALIBS) > RDefs
 	$(SED) -n '/^........ [T] _/s/^........ [T] _/ /p' RDefs >> $@
 	$(CAT) exported-vars >> $@
 	$(RM) RDefs
@@ -160,46 +150,11 @@ Rm.exp1: $(OBJS-EXTRA)
 ../../library/R.css: ../../doc/html/R.css
 	$(CP) $< $@
 
-../extra/zlib/libz.a:
-	$(MAKE) -C ../extra/zlib -f Makefile.win
+bitmap/zlib/libz.a:
+	$(MAKE) -C bitmap buildzlib
 
 rdocs:
 	@$(MAKE) -C ../../doc/manual -f Makefile.win html
-
-
-#                          ===== BLAS ======
-
-Rblas: ../../bin/Rblas.dll
-
-Rblas-clean:
-	$(RM) ../../bin/Rblas.dll blas00.o blas00.d blas.o blas2.o cmplxblas.o
-
-Rblas-DLLLIBS=-L. -lR
-
-libRblas.a:  Rblas.def
-	$(DLLTOOL) $(DLLTOOLFLAGS) $(R-DLLTOOLFLAGS) --dllname Rblas.dll \
-	  --def Rblas.def --output-lib libRblas.a
-
-ifeq ($(strip $(USE_ATLAS)),YES)
-../../bin/Rblas.dll: blas00.o dllversion.o
-	@$(ECHO) -------- Building $@ --------
-	$(DLL) -shared -o $@ $^ Rblas.def -L $(ATLAS_PATH) \
-	   -L. -lR -lg2c -lf77blas -lcblas -latlas
-## suppress lots of warnings: this is a dummy
-blas00.o: blas00.c
-	$(CC) -O2  -c $< -o $@
-else
-../../bin/Rblas.dll: blas.o blas2.o cmplxblas.o dllversion.o
-	@$(ECHO) -------- Building $@ --------
-	$(DLL) -shared -o $@ Rblas.def $^ -L. -lR
-
-blas.o: ../appl/blas.f
-	$(F77) $(FFLAGS) -c $< -o $@
-blas2.o: ../modules/lapack/blas2.f
-	$(F77) $(FFLAGS) -c $< -o $@
-cmplxblas.o: ../modules/lapack/cmplxblas.f
-	$(F77) $(FOPTFLAGS) -c $< -o $@
-endif
 
 
 #                          ===== Packages ======
@@ -227,7 +182,7 @@ bundle-%:
 	$(PERL) fixed/dobundle.pl $* $(PKGD) $(RLIB)
 
 pkg-%:
-	$(MAKE) DLLNM=$($*-DLLNM)  FLIBS="$(FLIBS)" BUILD=$(BUILD) \
+	$(MAKE) DLLNM=$($*-DLLNM)  FLIBS="$(FLIBS)" \
 	  -C $(PKGDIR)/$* PKG=$* RHOME=$(RHOME) RLIB=$(RLIB) \
 	  -f $(RHOME)/src/gnuwin32/MakePkg
 	@if test -d $(RLIB)/$*/data ; then \
@@ -245,7 +200,7 @@ endif
 endif
 
 pkgclean-%:
-	$(MAKE) DLLNM=$($*-DLLNM) RHOME=$(RHOME) BUILD=$(BUILD) \
+	$(MAKE) DLLNM=$($*-DLLNM) RHOME=$(RHOME) \
 	  -C $(PKGDIR)/$* PKG=$* -f $(RHOME)/src/gnuwin32/MakePkg clean
 
 pkgcheck-%:
@@ -289,35 +244,34 @@ clean: cleanwin $(PKGCLEAN)
 	$(RM) -f ../library/methods/R/methods
 
 distclean veryclean: clean
+	$(RM) COPYRIGHTS R.exp Rm.exp 
 	$(RM) -r ../../bin ../../library ../../modules
 	$(RM) ../include/config.h ../include/psignal.h \
-	../include/Rconfig.h ../include/Rversion.h ../include/Rmath.h
+	../include/Rconfig.h ../include/version.h 
 	$(RM) ../library/*/src/*.o ../library/*/src/*.a
 	$(RM) ../library/*/src/*.dll
 	$(RM) -r ../library/*/check
-	$(RM) R.exp Rm.exp COPYRIGHTS
 	$(RM) ../../doc/html/search/index.txt ../../doc/html/index.html \
 	../../doc/html/packages.html ../../doc/html/rwin.html \
 	../../doc/html/rw-FAQ.html ../../doc/html/search/SearchEngine.html
 	$(RM) ../../etc/Rconsole ../../etc/Rdevga ../../etc/Rprofile \
-	../../etc/rgb.txt ../../share/make/wintests.mk \
+	../../etc/rgb.txt ../../share/make/tests.mk \
 	../include/Platform.h ../../tests/*.Rout ../../tests/*.Rout.fail
 	$(MAKE) -C fixed distclean
 	-$(MAKE) -C installer ISdistclean
 	@for pkg in $(ALLPACKAGES); do \
 	  $(RM) ../library/$${pkg}/DESCRIPTION; \
 	done
-	$(RM) Rpwd.exe # do this last of all
 
 cleanwin:
-	$(RM) *.o *.dll *.a *~ \#*\# rw*.zip R.def R.exp1 Rm.exp1\
+	$(RM) *.o *.exe *.dll *.a *~ \#*\# rw*.zip R.def R.exp1 Rm.exp1\
 	   .RData .Rhistory Makedeps *.d
 	$(MAKE) -C graphapp clean
 	$(MAKE) -C fixed clean
 	$(MAKE) -C getline clean
 	$(MAKE) -C help clean
 	$(MAKE) -C front-ends clean
-	$(MAKE) -C ../extra/xdr -f Makefile.win clean
+	$(MAKE) -C ../extra/xdr clean
 	$(MAKE) -C math clean
 	$(MAKE) -C bitmap clean
 	-$(MAKE) -C installer clean ISclean
@@ -449,7 +403,7 @@ packagedist:
 	$(CP) ../../doc/html/logo.jpg $(RPREFIX)/doc/html
 	$(CP) ../../doc/KEYWORDS* $(RPREFIX)/doc
 	$(CP) -p exported-vars R.exp MkRules MakePkg MakeDll \
-	  Rpwd.exe makeDllRes.pl install-save.sh $(RPREFIX)/src/gnuwin32
+	  pwd.pl makeDllRes.pl install-save.sh $(RPREFIX)/src/gnuwin32
 	$(CP) -p Makefile.packages $(RPREFIX)/src/gnuwin32/Makefile
 	$(CP) fixed/dobundle.pl $(RPREFIX)/src/gnuwin32/fixed
 	$(CP) -pr help check $(RPREFIX)/src/gnuwin32
@@ -469,7 +423,7 @@ packagedist:
 	  ../../bin/Rdindex ../../bin/Rdiff.sh \
 	  ../../bin/Sd2Rd ../../bin/Rprof ../../bin/Rcmd.exe \
           $(RPREFIX)/bin
-	$(CP) ../../share/make/wintests.mk $(RPREFIX)/share/make
+	$(CP) ../../share/make/tests.mk $(RPREFIX)/share/make
 	$(CP) -p graphapp/graphapp.h graphapp/ga.h $(RPREFIX)/src/include
 	$(MAKE) PKGDIR=. pkgclean-windlgs
 	$(CP) -pr windlgs $(RPREFIX)/src/library
@@ -486,11 +440,6 @@ docsdist: docs
 	zip -rm9X $(RPREFIX)d1.zip $(RPREFIX)/doc/manual \
 	  -x $(RPREFIX)/doc/manual/R-FAQ.pdf
 	$(RM) -r $(RPREFIX)
-
-install:
-	cp *.zip /pub/bdr/RWin/Rpre
-
-
 
 ## ============= End of maintainer targets ========================
 

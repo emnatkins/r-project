@@ -40,7 +40,7 @@ SOURCES_F = \
 	xxxpr.f
 ## <FIXME>
 ## Need better names ...
-EXTRA_SOURCES_C = alloca.c snprintf.c strdup.c vsnprintf.c
+EXTRA_SOURCES_C = alloca.c strdup.c
 ## </FIXME>
 DEPENDS = $(SOURCES_C:.c=.d) $(EXTRA_SOURCES_C:.c=.d)
 SOURCES = $(SOURCES_C) $(SOURCES_F)
@@ -57,15 +57,9 @@ DISTFILES = Makefile.in Makefile.win \
 	$(SOURCES_F) \
 	gram.y
 
-## these are build with CPICFLAGS so safe to use in libR.so
-ZLIB_CPPFLAGS = @BUILD_ZLIB_TRUE@ -I$(top_srcdir)/src/extra/zlib
-## use an explicit library: there might be an unsatisfactory -lz around
-R_ZLIBS = @BUILD_ZLIB_TRUE@ ../extra/zlib/libz.a
-R_XDR = @BUILD_XDR_TRUE@ ../extra/xdr/libxdr.a
-
 ## <FIXME>
 ## Names in here should use `$(top_builddir)' instead ...
-RLIBS = ../unix/libunix.a ../appl/libappl.a ../nmath/libnmath.a $(R_XDR)
+RLIBS = ../unix/libunix.a ../appl/libappl.a ../nmath/libnmath.a 
 ## </FIXME>
 
 Rexecbin_PROGRAMS = R.bin
@@ -76,7 +70,7 @@ R_bin_OBJECTS = $(OBJECTS)
 ## -export-symbols SYMFILE.
 @USE_LIBTOOL_TRUE@R_bin_LDFLAGS = -export-dynamic
 ## </FIXME>
-R_bin_LDADD = @LIBOBJS@ @ALLOCA@ $(RLIBS) $(BLAS_LIBS) $(FLIBS) $(R_XTRA_LIBS) $(R_ZLIBS)
+R_bin_LDADD = @LIBOBJS@ @ALLOCA@ $(RLIBS) $(BLAS_LIBS) $(FLIBS) $(R_XTRA_LIBS)
 ## <NOTE>
 ## Automake would figure this out itself.
 R_bin_DEPENDENCIES = @LIBOBJS@ @ALLOCA@ $(RLIBS) @EXPORTFILE@
@@ -94,7 +88,7 @@ libR_la_OBJECTS = $(OBJECTS:.o=.lo)
 ## <FIXME>
 ## This should also have `ls ../appl/*.lo ../nmath/*.lo ../unix/*.lo`, but
 ## of course this will not work when the files do not exist yet :-)
-libR_la_LIBADD = @LTLIBOBJS@ @LTALLOCA@ $(BLAS_LIBS) $(FLIBS) $(R_XTRA_LIBS) $(R_ZLIBS) $(R_XDR)
+libR_la_LIBADD = @LTLIBOBJS@ @LTALLOCA@ $(BLAS_LIBS) $(FLIBS) $(R_XTRA_LIBS)
 libR_la_DEPENDENCIES = @LTLIBOBJS@ @LTALLOCA@ ../appl/stamp-lo ../nmath/stamp-lo ../unix/stamp-lo
 ## </FIXME>
 @USE_LIBTOOL_TRUE@libR_la_LDFLAGS = -avoid-version -rpath $(Rexeclibdir)
@@ -106,7 +100,9 @@ Makefile: $(srcdir)/Makefile.in \
   ../include/config.h \
   ../include/Rversion.h \
   $(SOURCES_C)
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 Makedeps: Makefile $(DEPENDS)
 	@cat $(DEPENDS) >> Makefile
@@ -155,9 +151,6 @@ $(srcdir)/gram.c: @MAINTAINER_MODE_TRUE@ $(srcdir)/gram.y
 	@echo "re-making gram.c"
 	$(YACC) $(YFLAGS) $(srcdir)/gram.y
 	$(top_srcdir)/tools/move-if-change y.tab.c $(srcdir)/gram.c
-
-connections.o: $(srcdir)/connections.c
-	$(CC) $(ZLIB_CPPFLAGS) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c $< -o $@
 
 install: installdirs
 	@$(MAKE) install-bin

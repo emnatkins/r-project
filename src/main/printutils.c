@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1999--2002  The R Development Core Team
+ *  Copyright (C) 1999--2000  The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -418,6 +418,7 @@ void REprintf(char *format, ...)
 void Rcons_vprintf(const char *format, va_list arg)
 {
     char buf[BUFSIZE], *p = buf, *vmax = vmaxget();
+#ifdef HAVE_VSNPRINTF
     int res;
 
     res = vsnprintf(p, BUFSIZE, format, arg);
@@ -432,6 +433,11 @@ void Rcons_vprintf(const char *format, va_list arg)
 	    warning("printing of extremely long output is truncated");
 	}
     }
+#else
+    /* allocate a large buffer and hope */
+    p = R_alloc(10*BUFSIZE, sizeof(char));
+    vsprintf(p, format, arg);
+#endif
     R_WriteConsole(p, strlen(buf));
     vmaxset(vmax);
 }

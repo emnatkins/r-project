@@ -36,8 +36,7 @@
 \alias{__MethodMetaData}
 \title{RMethodUtils}
 \usage{
-makeGeneric(f, fdef, keepMethods=TRUE, useAsDefault=NA,
-            group=character(), valueClass=character())
+makeGeneric(f, fdef, keepMethods=TRUE, useAsDefault=NA, group=character(), valueClass=character())
 
 makeStandardGeneric(f, fdef)
 

@@ -1,6 +1,6 @@
 # -*- Makefile -*-
 #
-# ${R_HOME}/share/make/wintests.mk
+# ${R_HOME}/share/make/tests.mk
 
 ECHO_C =
 ECHO_N = -n

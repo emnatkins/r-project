@@ -87,7 +87,7 @@ for further details and examples.
   John Chambers
 }
 \examples{
-\testonly{  if(!exists("smooth.spline")) library(modreg)
+\testonly{  library(modreg)
   setClass("track",
     representation(x="numeric", y = "numeric"))
   setClass("trackCurve", representation("track",
@@ -183,16 +183,9 @@ ISOdate(1990, 12, 1)- ISOdate(1980, 12, 1)
 
 ## verify we can remove methods and generic
 
-removeMethods("-")
-removeMethods("length")
-
-## repeat the test one more time on the primitives
-
-length(ISOdate(1990, 12, 1)- ISOdate(1980, 12, 1))
-
-removeMethods("plot")
-
-stopifnot(existsFunction("plot", FALSE) && !isGeneric("plot", 1))
+stopifnot(removeMethods("-"))
+stopifnot(removeMethods("length"))
+stopifnot(removeMethods("plot"))
 
 ## methods for plotData
 plotData <- function(x, y, ...) plot(x, y, ...)
@@ -203,8 +196,7 @@ setMethod("plotData", signature(x="track", y="missing"),
   function(x,  y, ...) plot(slot(x, "x"), slot(x, "y"), ...)
 )
 ## and now remove the whole generic
-removeGeneric("plotData")
-
+stopifnot(removeGeneric("plotData"))
 stopifnot(!exists("plotData", 1))
 
 }

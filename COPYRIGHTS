@@ -59,7 +59,7 @@ afm/*l.afm
 afm/CM_*.afm
 
 	are derived from afms which are copyright by the American
-	Mathematical Society, but `the AMS does require that the
+	Mathematical Society, but `the AMS does require that the 
 	AMS copyright notice be removed from any derivative versions
 	of the fonts which have been altered in any way'.
 
@@ -81,24 +81,26 @@ src/library/base/R/expand.grid.R
 src/library/base/R/predict.glm.R
 src/library/base/R/update.R
 src/library/base/*/max.col.R*
-src/library/mva/R/biplot.R
-src/library/mva/R/princomp-add.R
 src/appl/bandwidths.c
 src/appl/maxcol.c
 
 	Copyright (C) various dates W. N. Venables and B. D. Ripley
 
 
-src/appl/interv.c : moved to API from code originally in
-		    src/library/modreg/src/bvalue.f, see the following
 src/library/modreg:
 
-	See the file src/library/modreg/COPYRIGHTS for details
+	See the file library/modreg/COPYRIGHTS for details
 
       src/loessc.c
       src/loessf.f
 
 	Copyright (c) 1989, 1992 by AT&T.
+
+
+src/library/mva/R/biplot.R
+src/library/mva/R/princomp-add.R
+
+	Copyright (C) 1998 W. N. Venables and B. D. Ripley
 
 
 src/library/ts/R/diffinv.R
@@ -125,7 +127,7 @@ src/library/ctest/src/nscor.c
 src/library/ctest/src/prho.c
 src/library/ctest/src/swilk.c
 src/library/mva/src/kmns.f
-src/library/ts/src/starma.c
+src/library/ts/src/starma.f
 src/nmath/pgamma.c
 src/nmath/pnbeta.c
 src/nmath/pnchisq.c
@@ -168,7 +170,6 @@ src/main/RNG.c
 
   and is used unchanged.
 
-
 src/modules/lapack/double.f, cmplx.f
 
   Extracted from
@@ -181,28 +182,3 @@ src/modules/lapack/double.f, cmplx.f
     It is freely-available software, and is copyrighted.
 
   although no actual copyright statement appears in the code.
-
-
-src/main/vsnprintf.c
-
-  Taken from the wget 1.8.1 distribution: only used on platforms
-  without vnsprintf.
-  /*
-   * Copyright Patrick Powell 1995
-   * This code is based on code written by Patrick Powell (papowell@astart.com)
-   * It may be used for any purpose as long as this notice remains intact
-   * on all source code distributions
-   */
-
-src/extra/xdr/*
-
-	Copyright (undated) Sun Microsystems, Inc.
-
-	See the file src/extra/xdr/copyrght.txt
-
-src/extra/zlib/README, *.c, *.h
-
-  Taken from zlib-1.1.3. (C) 1995-1998 Jean-loup Gailly and Mark Adler
-  See src/extra/zlib/README for the licence.
-
-

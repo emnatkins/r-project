@@ -13,15 +13,15 @@ include $(top_builddir)/Makeconf
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 
 ## API(1): for .C() and .Call() writers, ...:
-SRC_HEADERS = R.h S.h Rdefines.h Rgraphics.h Rinternals.h
+SRC_HEADERS = R.h S.h Rdefines.h Rgraphics.h Rinternals.h Rmath.h
 ## API(2) {these are built, system-dependently}:
-OBJ_HEADERS = Rconfig.h Rmath.h Rversion.h
+OBJ_HEADERS = Rconfig.h Rversion.h
 ## Non-API internal ones:
 INT_HEADERS = Defn.h Rdevices.h Errormsg.h Fileio.h Graphics.h IOStuff.h \
   Internal.h Parse.h Print.h Rconnections.h Rdynpriv.h Startup.h
 
 DISTFILES = Makefile.in README $(INT_HEADERS) $(SRC_HEADERS) \
-  config.h.in stamp-h.in Rmath.h.in
+  config.h.in stamp-h.in
 
 SUBDIRS = R_ext
 
@@ -37,7 +37,9 @@ TIMESTAMPS = $(SRC_HEADERS:.h=.ts) $(OBJ_HEADERS:.h=.ts)
 all: Makefile R
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 R: Makefile stamp-R $(TIMESTAMPS)
 	@for d in $(SUBDIRS); do \
@@ -49,18 +51,18 @@ stamp-R:
 
 config.h: stamp-h
 stamp-h: $(srcdir)/config.h.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/config.h
+	@cd $(top_builddir) && \
+	  CONFIG_FILES= CONFIG_HEADERS=$(subdir)/config.h \
+	  $(SHELL) ./config.status
 	@echo timestamp > $@ 2> /dev/null
 $(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/stamp-h.in
-$(srcdir)/stamp-h.in: @MAINTAINER_MODE_TRUE@ $(top_srcdir)/configure.ac $(top_srcdir)/aclocal.m4
+$(srcdir)/stamp-h.in: @MAINTAINER_MODE_TRUE@ $(top_srcdir)/configure.in $(top_srcdir)/acconfig.h $(top_srcdir)/aclocal.m4
 	@cd $(top_srcdir) && $(AUTOHEADER)
 	@echo timestamp > $@ 2> /dev/null
 Rconfig.h: $(top_srcdir)/VERSION config.h
 	@$(top_srcdir)/tools/GETCONFIG > $@
 Rversion.h: $(top_srcdir)/VERSION $(top_srcdir)/date-stamp
 	@$(top_srcdir)/tools/GETVERSION > $@
-Rmath.h: $(srcdir)/Rmath.h.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 
 install: installdirs
 	@for d in $(SUBDIRS); do \

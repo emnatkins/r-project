@@ -1125,20 +1125,14 @@ static SEXP listAssign1(SEXP call, SEXP x, SEXP subs, SEXP y)
 static void SubAssignArgs(SEXP args, SEXP *x, SEXP *s, SEXP *y)
 {
     SEXP p;
-    if (length(args) < 2)
+    if (length(args) < 3)
 	error("SubAssignArgs: invalid number of arguments");
     *x = CAR(args);
-    if(length(args) == 2) {
-	*s = R_NilValue;
-	*y = CADR(args);
-    }
-    else {
-	*s = p = CDR(args);
-	while (CDDR(p) != R_NilValue)
-	    p = CDR(p);
-	*y = CADR(p);
-	SETCDR(p, R_NilValue);
-    }
+    *s = p = CDR(args);
+    while (CDDR(p) != R_NilValue)
+	p = CDR(p);
+    *y = CADR(p);
+    SETCDR(p, R_NilValue);
 }
 
 
@@ -1210,7 +1204,6 @@ SEXP do_subassign_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
     case VECSXP:
 	switch (nsubs) {
 	case 0:
-	    x = VectorAssign(call, x, R_MissingArg, y);
 	    break;
 	case 1:
 	    x = VectorAssign(call, x, CAR(subs), y);

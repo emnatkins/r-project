@@ -2,10 +2,10 @@
 
 #warning <- function(message = NULL).Internal(warning(message))
 
-warning <- function(..., call. = TRUE)
+warning <- function(...)
 {
     if(nargs() == 0) message <- NULL else message <- paste(..., sep="")
-    .Internal(warning(as.logical(call.), message))
+    .Internal(warning(message))
 }
 
 restart <- function(on = TRUE).Internal(restart(on))
@@ -26,7 +26,7 @@ comment <- function(x).Internal(comment(x))
 
 round <- function(x, digits = 0).Internal(round(x,digits))
 signif <- function(x, digits = 6).Internal(signif(x,digits))
-logb <- log <- function(x, base=exp(1))
+log <- function(x, base=exp(1))
     if(missing(base)).Internal(log(x)) else .Internal(log(x,base))
 log1p <- function(x).Internal(log1p(x))
 

@@ -64,11 +64,10 @@ DISTFILES = Makefile.in Makefile.win README \
 	$(test-src-random) p-r-random-tests.Rout.save \
 	$(test-src-reg) reg-IO.Rout.save reg-IO2.Rout.save \
 	  reg-plot.Rout.save reg-tests-2.Rout.save \
-	gct-foot.R \
-	nanbug.rda
+	gct-foot.R
 SUBDIRS = Embedding Examples
 
-R = LC_ALL=C SRCDIR=$(srcdir) $(top_builddir)/bin/R --vanilla
+R = LC_ALL=C $(top_builddir)/bin/R --vanilla
 RDIFF = $(top_builddir)/bin/Rdiff
 
 test-out-strict = $(test-src-strict:.R=.Rout)
@@ -93,7 +92,9 @@ test-out = $(test-src:.R=.Rout) $(test-out-gct) \
 all check: Makefile test-all-basics
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 Makedeps: Makefile
 	@(for f in $(test-src) $(test-src-reg); do \

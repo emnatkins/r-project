@@ -40,7 +40,9 @@ LIBR = -L`cd $(top_builddir) && $(GETWD)`/bin -lR
 all: Makefile R-sources tests
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 R-sources:
 	@if test "$(BUILDDIR_IS_SRCDIR)" = no ; then \

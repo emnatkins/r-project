@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2002  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--2001  Robert Gentleman, Ross Ihaka and the
  *                            R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -85,8 +85,8 @@ FUNTAB R_FunTab[] =
 {"break",	do_break, CTXT_BREAK,	0,	-1,	PP_BREAK},
 {"next",	do_break, CTXT_NEXT,	0,	-1,	PP_NEXT},
 {"return",	do_return,	0,	0,	-1,	PP_RETURN},
-{"stop",	do_stop,	0,	11,	2,	PP_FUNCALL},
-{"warning",	do_warning,	0,	111,	2,	PP_FUNCALL},
+{"stop",	do_stop,	0,	11,	1,	PP_FUNCALL},
+{"warning",	do_warning,	0,	111,	1,	PP_FUNCALL},
 {"geterrmessage",do_geterrmessage, 0,	11,	0,	PP_FUNCALL},
 {"restart",	do_restart,	0,	11,	1,	PP_FUNCALL},
 {"function",	do_function,	0,	0,	-1,	PP_FUNCTION},
@@ -114,7 +114,7 @@ FUNTAB R_FunTab[] =
 {"on.exit",	do_onexit,	0,	100,	1,	PP_FUNCALL},
 {"Recall",	do_recall,	0,	10,	-1,	PP_FUNCALL},
 {"delay",	do_delay,	0,	11,	2,	PP_FUNCALL},
-/*{".Alias",	do_alias,	0,	1,	1,	PP_FUNCALL},*/
+{".Alias",	do_alias,	0,	1,	1,	PP_FUNCALL},
 {".Primitive",	do_primitive,	0,	1,	1,	PP_FUNCALL},
 {"identical",	do_ident,	0,	11,	2,	PP_FUNCALL}, 
 
@@ -614,10 +614,6 @@ FUNTAB R_FunTab[] =
 {"pos.to.env",	do_pos2env,	0,	1,	1,	PP_FUNCALL},
 {"lapply",	do_lapply,	0,	10,	2,	PP_FUNCALL},
 {"apply",	do_apply,	0,	11,	3,	PP_FUNCALL},
-{"colSums",	do_colsum,	0,	11,	4,	PP_FUNCALL},
-{"colMeans",	do_colsum,	1,	11,	4,	PP_FUNCALL},
-{"rowSums",	do_colsum,	2,	11,	4,	PP_FUNCALL},
-{"rowMeans",	do_colsum,	3,	11,	4,	PP_FUNCALL},
 {"Rprof",	do_Rprof,	0,	11,	3,	PP_FUNCALL},
 {"object.size",	do_objectsize,	0,	11,	1,	PP_FUNCALL},
 {"mem.limits",	do_memlimits,	0,	11,	2,	PP_FUNCALL},

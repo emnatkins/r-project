@@ -24,9 +24,8 @@ SED4='s/C_FUNCTION(\(.*\))/{ "\1",	\1 },/'
 	$(SED) -e $(SED0) -e $(SED01) -e $(SED3) -e $(SED4) $< > $@
 
 
-version: ../../include/Rversion.h
-fixh: version h/config.h ../FFDecl.h ../FFTab.h \
-  ../../include/Rconfig.h  ../../include/Rmath.h
+fixh: h/config.h ../FFDecl.h ../FFTab.h \
+  ../../include/Rconfig.h ../../include/Rversion.h
 	$(CP) -p ./h/config.h ./h/psignal.h ../../include
 	$(ECHO) done > fixh
 
@@ -39,9 +38,6 @@ fixh: version h/config.h ../FFDecl.h ../FFTab.h \
 	$(SED) -e 1d ../../../tools/GETVERSION > ../../../tools/GV
 	sh ../../../tools/GV > $@
 	$(RM) ../../../tools/GV
-
-../../include/Rmath.h: ../../include/Rmath.h.in
-	$(SED) -e  /@RMATH_HAVE_LOG1P@/d $< > $@
 
 ../../../bin/massage-Examples: ../../../share/perl/massage-Examples.pl
 	$(SED) -e 's/"contr.poly")/"contr.poly"), pager="console"/' $< > $@
@@ -88,7 +84,7 @@ fixetc: $(filter-out ./etc/CVS, $(wildcard ./etc/*))
 
 fixshare: ./share/tests.mk
 	$(MKDIR) -p ../../../share/make
-	$(CP) -p $^ ../../../share/make/wintests.mk
+	$(CP) -p $^ ../../../share/make
 	$(ECHO) done > fixshare	
 
 clean:

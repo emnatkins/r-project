@@ -216,19 +216,12 @@ setMethod <-
     }
     allMethods <- getMethodsMetaData(f, where = where) # may be NULL
     fnames <- formalArgs(fdef)
-    snames <- names(signature)
-    if(length(snames)>0)
-        signature <- matchSignature(fnames, signature, fdef)
+    signature <- matchSignature(fnames, signature, fdef)
     switch(typeof(definition),
            closure = {
                mnames <- formalArgs(definition)
-               if(!identical(mnames, fnames)) {
-                   ## omitted classes in method => "missing"
+               if(!identical(mnames, fnames)) 
                    signature <- conformMethod(signature, mnames, fnames)
-                   ## extra classes in method => use "..." to rematch
-                   definition <- rematchDefinition(definition, fdef,
-                                                   mnames, fnames)
-               }
            },
            builtin = , special = {
              ## the only primitive methods allowed are those equivalent
@@ -340,7 +333,7 @@ selectMethod <-
             stop(paste("\"", f, "\" has no methods defined", sep=""))
     }
     selection <- .Call("R_selectMethod", f, env, mlist, PACKAGE = "methods")
-    if(is.null(selection)) {
+    if(is.null(selection) && !identical(useInherited, FALSE)) {
       ## do the inheritance computations to update the methods list, try again.
       ##
       ## assign the updated information to the method environment

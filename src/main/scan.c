@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2002   The R Development Core Team.
+ *  Copyright (C) 1998-2001   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -346,8 +346,6 @@ static void extractItem(char *buffer, SEXP ans, int i)
 {
     char *endp;
     switch(TYPEOF(ans)) {
-    case NILSXP:
-	break;
     case LGLSXP:
 	if (isNAstring(buffer, 0))
 	    LOGICAL(ans)[i] = NA_INTEGER;
@@ -513,13 +511,11 @@ static SEXP scanFrame(SEXP what, int maxitems, int maxlines, int flush,
     PROTECT(ans = allocVector(VECSXP, nc));
     for (i = 0; i < nc; i++) {
 	w = VECTOR_ELT(what, i);
-	if (!isNull(w)) {
-	    if (!isVector(w)) {
-		if (!ttyflag & !wasopen) con->close(con);
-		error("invalid `what=' specified");
-	    }
-	    SET_VECTOR_ELT(ans, i, allocVector(TYPEOF(w), blksize));
+	if (!isVector(w)) {
+	    if (!ttyflag & !wasopen) con->close(con);
+	    error("invalid `what=' specified");
 	}
+	SET_VECTOR_ELT(ans, i, allocVector(TYPEOF(w), blksize));
     }
     setAttrib(ans, R_NamesSymbol, getAttrib(what, R_NamesSymbol));
 
@@ -565,11 +561,9 @@ static SEXP scanFrame(SEXP what, int maxitems, int maxlines, int flush,
 	    blksize = 2 * blksize;
 	    for (i = 0; i < nc; i++) {
 		old = VECTOR_ELT(ans, i);
-		if(!isNull(old)) {
-		    new = allocVector(TYPEOF(old), blksize);
-		    copyVector(new, old);
-		    SET_VECTOR_ELT(ans, i, new);
-		}
+		new = allocVector(TYPEOF(old), blksize);
+		copyVector(new, old);
+		SET_VECTOR_ELT(ans, i, new);
 	    }
 	}
 

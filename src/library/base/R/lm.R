@@ -5,7 +5,7 @@ lm <- function (formula, data = list(), subset, weights, na.action,
 {
     ret.x <- x
     ret.y <- y
-#    mt <- terms(formula, data = data)
+    mt <- terms(formula, data = data)
     cl <- match.call()
     mf <- match.call(expand.dots = FALSE)
     mf$singular.ok <- mf$model <- mf$method <- NULL
@@ -18,7 +18,6 @@ lm <- function (formula, data = list(), subset, weights, na.action,
     else if (method != "qr")
 	warning(paste("method =", method,
 		      "is not supported. Using \"qr\"."))
-    mt <- attr(mf, "terms") # allow model.frame to update it
     na.act <- attr(mf, "na.action")
     xvars <- as.character(attr(mt, "variables"))[-1]
     if((yvar <- attr(mt, "response")) > 0) xvars <- xvars[-yvar]

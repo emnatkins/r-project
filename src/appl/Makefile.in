@@ -18,7 +18,7 @@ SOURCES_C = \
 	approx.c \
 	bakslv.c bandwidths.c binning.c \
 	chull.c cpoly.c cumsum.c \
-	fft.c fmin.c integrate.c interv.c \
+	fft.c fmin.c integrate.c\
 	lbfgsb.c loglin.c lowess.c \
 	machar.c maxcol.c massdist.c \
 	pretty.c \
@@ -61,7 +61,9 @@ libappl_la_OBJECTS = $(OBJECTS:.o=.lo)
 all: Makefile Makedeps R
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(SOURCES_C)
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 Makedeps: Makefile $(DEPENDS)
 	@cat $(DEPENDS) >> Makefile
@@ -69,7 +71,7 @@ Makedeps: Makefile $(DEPENDS)
 
 R: Makefile
 	@$(MAKE) Makedeps
-	@$(MAKE) $(noinst_LIBRARIES)
+	@$(MAKE) $(noinst_LIBRARIES) 
 @WANT_R_SHLIB_TRUE@	@$(MAKE) stamp-lo
 
 libappl.a: $(libappl_a_OBJECTS)

@@ -5,14 +5,15 @@ all: makeMakedeps ../gnuwin32/libmain.a
 
 CFLAGS=$(OPTFLAGS) -I../include -DHAVE_CONFIG_H -DR_DLL_BUILD
 FFLAGS=$(OPTFLAGS)
-CSOURCES=$(filter-out snprintf.c strdup.c vsnprintf.c, $(wildcard *.c))
+CSOURCES=$(filter-out strdup.c, $(wildcard *.c))
 FSOURCES=$(wildcard *.f)
 OBJS=$(CSOURCES:.c=.o) $(FSOURCES:.f=.o) 
 
 gram.c: ;
 
 saveload-CFLAGS=-I../extra/xdr
-connections-CFLAGS=-I../extra/zlib
+connections-CFLAGS=-I../gnuwin32/bitmap/zlib
+#internet-CFLAGS=-I../gnuwin32
 
 ../gnuwin32/libmain.a: $(OBJS)
 

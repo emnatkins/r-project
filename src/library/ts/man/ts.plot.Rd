@@ -5,10 +5,9 @@
 ts.plot(..., gpars = list())
 }
 \arguments{
-  \item{\dots}{one or more univariate or multivariate time series.}
+  \item{\dots}{one or more univariate or multivariate time series}
   \item{gpars}{list of named graphics parameters to be passed to the
-    plotting functions.  Those commonly used can be supplied directly in
-    \code{\dots}.}
+    plotting functions}
 }
 \description{
   Plot several time series on a common plot. Unlike

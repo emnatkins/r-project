@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-2  The R Development Core Team.
+ *  Copyright (C) 2001   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,11 +26,6 @@
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
-/* we have a substitute snprintf */
-#ifndef HAVE_SNPRINTF
-#define HAVE_SNPRINTF 1
 #endif
 
 #if !defined(Unix) || defined(HAVE_BSD_NETWORKING)

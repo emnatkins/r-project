@@ -21,7 +21,7 @@ acf <-
         lag.max <- floor(10 * (log10(sampleT) - log10(nser)))
     lag.max <- min(lag.max, sampleT - 1)
     if (lag.max < 1) stop("lag.max must be at least 1")
-    if(demean) x <- sweep(x, 2, colMeans(x))
+    if(demean) x <- sweep(x, 2, apply(x, 2, mean))
     lag <- matrix(1, nser, nser)
     lag[lower.tri(lag)] <- -1
     acf <- array(NA, c(lag.max + 1, nser, nser))
@@ -92,7 +92,7 @@ pacf.mts <- function(x, lag.max = NULL, plot = TRUE, na.action = na.fail, ...)
         lag.max <- floor(10 * (log10(sampleT) - log10(nser)))
     lag.max <- min(lag.max, sampleT - 1)
     if (lag.max < 1) stop("lag.max must be at least 1")
-    x <- sweep(x, 2, colMeans(x))
+    x <- sweep(x, 2, apply(x, 2, mean))
     lag <- matrix(1, nser, nser)
     lag[lower.tri(lag)] <- -1
     acf <- ar.yw(x, order.max = lag.max)$partialacf

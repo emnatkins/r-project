@@ -93,7 +93,7 @@ aov <- function(formula, data = NULL, projections = FALSE, qr = TRUE,
             if(!ni) next
             ## helpful to drop constant columns.
             xi <- qtx[select, , drop = FALSE]
-            cols <- colSums(xi^2) > 1e-5
+            cols <- apply(xi^2, 2, sum) > 1e-5
             if(any(cols)) {
                 xi <- xi[, cols, drop = FALSE]
                 attr(xi, "assign") <- asgn.t[cols]
@@ -143,7 +143,7 @@ function(x, intercept = FALSE, tol = .Machine$double.eps^0.5, ...)
             ai <- asgn==uasgn[i]
             df[i] <- sum(ai)
             ef <- effects[ai,, drop=FALSE]
-            ss[i,] <- if(sum(ai) > 1) colSums(ef^2) else ef^2
+            ss[i,] <- if(sum(ai) > 1) apply(ef^2, 2, sum) else ef^2
         }
         keep <- df > 0
         if(!intercept && uasgn[1] == 0) keep[1] <- FALSE
@@ -156,7 +156,7 @@ function(x, intercept = FALSE, tol = .Machine$double.eps^0.5, ...)
     if(nterms == 0) {
         ## empty model
         if(rdf > 0) {
-            ss <- colSums(as.matrix(x$residuals)^2)
+            ss <- apply(as.matrix(x$residuals)^2,2,sum)
             ssp <- sapply(ss, format)
             if(!is.matrix(ssp)) ssp <- t(ssp)
             tmp <- as.matrix(c(ssp, format(rdf)))
@@ -177,7 +177,7 @@ function(x, intercept = FALSE, tol = .Machine$double.eps^0.5, ...)
             resid <- as.matrix(x$residuals)
             nterms <- nterms + 1
             df <- c(df, rdf)
-            ss <- rbind(ss, colSums(resid^2))
+            ss <- rbind(ss, apply(resid^2, 2, sum))
             nmeffect <- c(nmeffect, "Residuals")
         }
         ssp <- apply(zapsmall(ss), 2, format)
@@ -193,7 +193,7 @@ function(x, intercept = FALSE, tol = .Machine$double.eps^0.5, ...)
         nobs <- NROW(x$residuals) - !(is.null(int) || int == 0)
         cat("\n")
         if(rdf > 0) {
-            rs <- sqrt(colSums(as.matrix(x$residuals)^2)/rdf)
+            rs <- sqrt(apply(as.matrix(x$residuals)^2,2,sum)/rdf)
             cat("Residual standard error:", sapply(rs, format), "\n")
         }
         coef <- as.matrix(x$coef)[,1]
@@ -213,49 +213,8 @@ function(x, intercept = FALSE, tol = .Machine$double.eps^0.5, ...)
     invisible(x)
 }
 
-summary.aov <- function(object, intercept = FALSE, split,
-                        expand.split = TRUE, keep.zero.df = TRUE, ...)
+summary.aov <- function(object, intercept = FALSE, keep.zero.df = TRUE, ...)
 {
-    splitInteractions <- function(split, factors, names, asgn, df.names)
-    {
-        ns <- names(split)
-        for(i in unique(asgn)) {
-            if(i == 0 || names[i+1] %in% ns) next
-            f <- rownames(factors)[factors[, i] > 0]
-            sp <- f %in% ns
-            if(any(sp)) {              # some marginal terms are split
-                if(sum(sp) > 1) {
-                    old <- split[ f[sp] ]
-                    nn <- f[sp]
-                    names(nn) <- nn
-                    marg <- lapply(nn, function(x)
-                                   df.names[asgn == (match(x, names) - 1)])
-                    term.coefs <- strsplit(df.names[asgn == i], ":")
-                    ttc <- sapply(term.coefs, function(x) x[sp])
-                    rownames(ttc) <- nn
-                    splitnames <- apply(expand.grid(lapply(old, names)), 1,
-                                        function(x) paste(x, collapse="."))
-                    names(splitnames) <- splitnames
-                    tmp <- sapply(nn, function(i)
-                                  names(old[[i]])[match(ttc[i, ], marg[[i]])] )
-                    tmp <- apply(tmp, 1, function(x) paste(x, collapse="."))
-                    new <- lapply(splitnames, function(x) match(x, tmp))
-                    split[[ names[i+1] ]] <-
-                        new[sapply(new, function(x) length(x) > 0)]
-                } else {
-                    old <- split[[ f[sp] ]]
-                    marg.coefs <- df.names[asgn == (match(f[sp], names) - 1)]
-                    term.coefs <- strsplit(df.names[asgn == i], ":")
-                    ttc <- sapply(term.coefs, function(x) x[sp])
-                    new <- lapply(old, function(x)
-                                  seq(along=ttc)[ttc %in% marg.coefs[x]])
-                    split[[ names[i+1] ]] <- new
-                }
-            }
-        }
-        split
-    }
-
     asgn <- object$assign[object$qr$pivot[1:object$rank]]
     uasgn <- unique(asgn)
     nterms <- length(uasgn)
@@ -278,55 +237,29 @@ summary.aov <- function(object, intercept = FALSE, split,
             names(ans)[y] <- paste(" Response", cn)
         }
     }
-
-    if(!is.null(effects) && !missing(split)) {
-        ns <- names(split)
-        if(!is.null(Terms <- object$terms)) {
-            if(!is.list(split))
-                stop("The split argument must be a list")
-            if(!all(ns %in% nmeffect))
-                stop("Unknown name(s) in the split list")
-        }
-        if(expand.split) {
-            df.names <- names(coef(object))
-            split <- splitInteractions(split, attr(Terms, "factors"),
-                                       nmeffect, asgn, df.names)
-            ns <- names(split)
-        }
-    }
-
     for (y in 1:nresp) {
         if(is.null(effects)) {
-            nterms <- neff <- 0
-            df <- ss <- ms <- numeric(0)
+            df <- nterms <- neff <- 0
+            ss <- ms <- numeric(0)
             nmrows <- character(0)
         } else {
             nobs <- length(resid[, y])
-            df <- ss <- numeric(0)
-            nmrows <- character(0)
+            df <- ss <- numeric(nterms)
+            nmrows <- character(nterms)
             for(i in seq(nterms)) {
                 ai <- (asgn == uasgn[i])
-                df <- c(df, sum(ai))
-                ss <- c(ss, sum(effects[ai, y]^2))
-                nmi <- nmeffect[1 + uasgn[i]]
-                nmrows <- c(nmrows, nmi)
-                if(!missing(split) && !is.na(int <- match(nmi, ns))) {
-                    df <- c(df, unlist(lapply(split[[int]], length)))
-                    if(is.null(nms <- names(split[[int]])))
-                        nms <- paste("C", seq(along = split[[int]]), sep = "")
-                    ss <- c(ss, unlist(lapply(split[[int]],
-                                              function(i, e)
-                                              sum(e[i]^2), effects[ai, y])))
-                    nmrows <- c(nmrows, paste("  ", nmi, ": ", nms, sep = ""))
-                }
+                df[i] <- sum(ai)
+                ss[i] <- sum(effects[ai, y]^2)
+                nmrows[i] <- nmeffect[1 + uasgn[i]]
             }
         }
+        nt <- nterms
         if(rdf > 0) {
-            df <- c(df, rdf)
-            ss <- c(ss, sum(resid[, y]^2))
-            nmrows <- c(nmrows,  "Residuals")
+            nt <- nterms + 1
+            df[nt] <- rdf
+            ss[nt] <- sum(resid[,y]^2)
+            nmrows[nt] <- "Residuals"
         }
-        nt <- length(df)
         ms <- ifelse(df > 0, ss/df, NA)
         x <- list(Df = df, "Sum Sq" = ss, "Mean Sq" = ms)
         if(rdf > 0) {

@@ -27,7 +27,7 @@ rowsum(x, group, reorder = TRUE)
 }
 \author{Terry Therneau}
 \seealso{
-  \code{\link{tapply}}, \code{\link{rowSums}}
+  \code{\link{tapply}}
 }
 \examples{
 x <- matrix(runif(100), ncol=5)
