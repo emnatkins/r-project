@@ -1,0 +1,69 @@
+#-*- Makefile -*-
+#
+# ${RHOME}/src/gnuwin32/check/Maketests
+
+srcdir = .
+
+R= $(RHOME)/bin/Rterm  --vanilla
+RDIFF = $(RHOME)/src/scripts/Rdiff
+RVAL_IF_DIFF=0
+
+TESTsrc-strict-1 = \
+	arith-true.R \
+	arith.R \
+	d-p-q-r-tests.R \
+	eval-etc.R \
+	is-things.R \
+	lm-tests.R \
+	primitive-funs.R \
+	method-dispatch.R \
+	simple-true.R
+TESTsrc-strict-auto = \
+	isas-tests.R
+TESTsrc-sloppy-1 = \
+	print-tests.R
+TESTsrc-sloppy-auto = \
+	no-segfault.R
+
+TESTsrc-strict = $(TESTsrc-strict-1) $(TESTsrc-strict-auto)
+TESTsrc-sloppy = $(TESTsrc-sloppy-1) #$(TESTsrc-sloppy-auto)
+TESTsrc = $(TESTsrc-strict) $(TESTsrc-sloppy)
+TESTsrc-auto = $(TESTsrc-strict-auto) $(TESTsrc-sloppy-auto)
+
+TESTout-strict = $(TESTsrc-strict:.R=.Rout)
+TESTout-sloppy = $(TESTsrc-sloppy:.R=.Rout)
+
+.SUFFIXES:
+.SUFFIXES: .R .Rin .Rout
+
+
+.Rin.R:
+	@echo "creating \`$@'"
+	@$(R) < $< > /dev/null
+
+.R.Rout:
+	@rm -f $@ $@.fail
+	@echo "running \`$<'"
+	@$(R) < $< > $@
+	@if [ -f $(srcdir)/$@.save ] ; then \
+	  mv $@ $@.fail; \
+	  echo -n \
+	    "Comparing \`$@' to \`$(srcdir)/$@.save' ..."; \
+	  $(RDIFF) $@.fail $(srcdir)/$@.save $(RVAL_IF_DIFF) || exit 1; \
+	  mv $@.fail $@; \
+	  echo "OK"; \
+	fi
+
+all: test-Specific
+test-Specific-strict: $(TESTout-strict)
+test-Specific-sloppy: $(TESTout-sloppy)
+test-Specific:
+	@echo "running strict specific tests"
+	@$(MAKE) -f $(RHOME)/src/gnuwin32/check/Maketests \
+	  test-Specific-strict RVAL_IF_DIFF=1
+	@echo "running sloppy specific tests"
+	@$(MAKE) -f $(RHOME)/src/gnuwin32/check/Maketests \
+	  test-Specific-sloppy RVAL_IF_DIFF=0
+
+clean:
+	@rm -f *.Rout *.Rout.fail $(TESTsrc-auto)
