@@ -1,0 +1,24 @@
+		Macintosh-specific changes to R
+		===============================
+
+rm140
+=====
+* Added the item "Link Packages Help" to the "Help" menu.
+* fixed a big that leaves help menu items ghosted after
+  using them.
+* some MRC Apple's Compiler speficif fixing.
+
+rm131
+=====
+* Added the "Config" menu
+* Fixed a bug in the lapack module. Complex functions are now
+  available.
+* Added MPW makefiles to build standard libraries and modules 
+* Added experimental script to build R via Apple's MRC compiler
+* Now R needs a new shared library "f2c" lib that will increase
+  portability for all fortran based packages
+* Added support for apple events. R begins to be a scriptable
+  application. Very limited support by now but will increase soon.
+  Some demo scripts have been added.
+* link.html.help() function has been added by picking windows code.
+
