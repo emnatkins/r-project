@@ -1,39 +1,48 @@
 				Dear Emacs, please make this -*-Text-*- mode!
 	**************************************************
 	*						 *
-	*	       1.3 SERIES NEWS			 *
-	*						 *
-	**************************************************
-
-
-		CHANGES IN R VERSION 1.3.0
-
-
-NEW FEATURES
-
-     o	New components in .Machine give the sizes of long, long long
-	and long double C types (or 0 if they do not exist).
-
-     o	postscript() allows user-specified encoding, with encoding
-	files supplied for Windows, Mac, Unicode and various others.
-
-     o	pdf() graphics driver (not yet operational).
-
-     o	eigen() tests for symmetry with a numerical tolerance.
-
-
-BUG FIXES
-
-
-
-	**************************************************
-	*						 *
 	*	       1.2 SERIES NEWS			 *
 	*						 *
 	**************************************************
 
 
+		CHANGES IN R VERSION 1.2.2
+
+
+BUG FIXES
+
+    o	readBin() and writeBin() were not always making good use of
+	long types (such as long double) when available.
+
+    o	postscript() and xfig() devices now make use of genuine Adobe
+	afm files, and warn if characters are used in string width or
+	height calculations that are not in afm files.
+
+    o	The C function fprec was not handling very small denormalized
+	numbers correctly.  This affected the way they were printed on
+	Windows, for example.
+
+    o	legend() now draws points after lines allowing "empty dots on
+	lines" thanks to Ben Bolker.
+
+    o	Setting row/column names preserves the names of the dimnames
+	(PR#809). 
+
+    o	Using help() after help.start() on Unix was failing to find
+	the linked help files if more than one package was loaded (as
+	now happens by default).
+
+    o	scan now sets the maximal sizes internally when `what' is a list
+	from `nmax' and failing that `nlines'.  This uses memory much more
+	efficiently if `nmax' is specified.  read.table() makes use of this.
+
+    o	The Fortran code used is now much closer to ANSI compliance.
+
+    o	cov.rob() gives useful error message on nearly-degenerate matrices.
+
+
 		CHANGES IN R VERSION 1.2.1
+
 
 NEW FEATURES
 

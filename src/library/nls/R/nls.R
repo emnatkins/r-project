@@ -1,4 +1,4 @@
-### $Id: nls.R,v 1.9 2001/01/15 14:51:58 pd Exp $
+### $Id: nls.R,v 1.8.4.1 2001/01/08 22:26:33 bates Exp $
 ###
 ###            Nonlinear least squares for R
 ###

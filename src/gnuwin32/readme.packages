@@ -46,6 +46,8 @@ perl5, available via http://www.activestate.com/Products/ActivePerl/
 If you want to make compiled html (.chm) files you will need the
 Microsoft HTML Help Workshop, available for download at 
 http://msdn.microsoft.com/library/tools/htmlhelp/wkshp/download.htm.
+You may need this on the same drive as the other tools (although we
+have successfully used it elsewhere, others have reported problems).
 
 If you want to make Window help files you will need hcrtf.exe from a
 Windows compiler installation (this has been available for download at
@@ -82,7 +84,7 @@ At this point there are two approaches:
 
 1) Streamlined way
 
-Assuming that ...\rw1030\bin is in your path, use
+Assuming that ...\rw1021\bin is in your path, use
 
 	Rcmd INSTALL package
 

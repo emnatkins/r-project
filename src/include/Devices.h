@@ -51,7 +51,7 @@ Rboolean
 PicTeXDeviceDriver(DevDesc*, char*, char*, char*, double, double, Rboolean);
 
 Rboolean 
-PSDeviceDriver(DevDesc*, char*, char*, char*, char**, char*,
+PSDeviceDriver(DevDesc*, char*, char*, char*, char**,
 	       char*, char*, double, double, Rboolean, double, 
 	       Rboolean, Rboolean, Rboolean, char*);
 Rboolean 
@@ -59,9 +59,6 @@ XFigDeviceDriver(DevDesc*, char*, char*, char*,
 		 char*, char*, double, double, 
 		 Rboolean, double, Rboolean, Rboolean);
 
-Rboolean 
-PDFDeviceDriver(DevDesc*, char*, char*, char*,
-		char*, char*, double, double, double);
 
 #ifdef OLD_Macintosh
 Rboolean MacDeviceDriver(char**, int, double*, int);
