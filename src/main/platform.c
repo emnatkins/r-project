@@ -276,6 +276,7 @@ SEXP do_fileremove(SEXP call, SEXP op, SEXP args, SEXP rho)
 #endif
 #include "regex.h"
 
+#define DIRNAMEBUFSIZE 256
 
 static SEXP filename(char *dir, char *file)
 {
@@ -298,9 +299,8 @@ SEXP do_listfiles(SEXP call, SEXP op, SEXP args, SEXP rho)
     struct dirent *de;
     int allfiles, fullnames, count, pattern;
     int i, ndir;
-    char *dnp, dirname[PATH_MAX];
+    char *dnp, dirname[DIRNAMEBUFSIZE];
     regex_t reg;
-
     checkArity(op, args);
     d = CAR(args);  args = CDR(args);
     if (!isString(d))
@@ -319,50 +319,47 @@ SEXP do_listfiles(SEXP call, SEXP op, SEXP args, SEXP rho)
     count = 0;
     for (i = 0; i < ndir ; i++) {
 	dnp = R_ExpandFileName(CHAR(STRING(d)[i]));
-	if (strlen(dnp) >= PATH_MAX)  /* should not happen! */
+	if (strlen(dnp) >= DIRNAMEBUFSIZE)
 	    error("directory/folder path name too long");
 	strcpy(dirname, dnp);
-	if ((dir = opendir(dirname)) == NULL) {
-	    /* errorcall(call, "invalid directory/folder name");*/
-	    warning("list.files: %s is not a readable directory", dirname);
-	} else {  
-	    while ((de = readdir(dir))) {
-		if (allfiles || !R_HiddenFile(de->d_name)) {
-		    if (pattern) {
-			if(regexec(&reg, de->d_name, 0, NULL, 0) == 0)
-			    count++;
-		    }
-		    else
+	if ((dir = opendir(dirname)) == NULL)
+	    errorcall(call, "invalid directory/folder name");
+	while ((de = readdir(dir))) {
+	    if (allfiles || !R_HiddenFile(de->d_name)) {
+		if (pattern) {
+		    if(regexec(&reg, de->d_name, 0, NULL, 0) == 0)
 			count++;
 		}
+		else
+		  count++;
 	    }
-	    closedir(dir);
 	}
+	closedir(dir);
     }
     PROTECT(ans = allocVector(STRSXP, count));
     count = 0;
     for (i = 0; i < ndir ; i++) {
 	dnp = R_ExpandFileName(CHAR(STRING(d)[i]));
-/*	if (strlen(dnp) >= PATH_MAX) We've already checked!
-	error("directory/folder path name too long"); */
+	if (strlen(dnp) >= DIRNAMEBUFSIZE)
+	    error("directory/folder path name too long");
 	strcpy(dirname, dnp);
 	if (fullnames)
 	    dnp = dirname;
 	else
 	    dnp = NULL;
-	if ((dir = opendir(dirname)) != NULL) {
-	    while ((de = readdir(dir))) {
-		if (allfiles || !R_HiddenFile(de->d_name)) {
-		    if (pattern) {
-			if (regexec(&reg, de->d_name, 0, NULL, 0) == 0)
-			    STRING(ans)[count++] = filename(dnp, de->d_name);
-		    }
-		    else
+	if ((dir = opendir(dirname)) == NULL)
+	    errorcall(call, "invalid directory/folder name");
+	while ((de = readdir(dir))) {
+	    if (allfiles || !R_HiddenFile(de->d_name)) {
+		if (pattern) {
+		    if (regexec(&reg, de->d_name, 0, NULL, 0) == 0)
 			STRING(ans)[count++] = filename(dnp, de->d_name);
 		}
+		else
+		  STRING(ans)[count++] = filename(dnp, de->d_name);
 	    }
-	    closedir(dir);
 	}
+	closedir(dir);
     }
     if (pattern)
 	regfree(&reg);

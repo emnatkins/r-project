@@ -23,7 +23,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double pchisq(double x, double df, int lower_tail, int log_p)
 {

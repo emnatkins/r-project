@@ -19,7 +19,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double qnchisq(double p, double n, double lambda, int lower_tail, int log_p)
 {

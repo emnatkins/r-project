@@ -66,13 +66,14 @@ summary.stepfun <- function(Fn){
 ##	      1990, U.Washington, Seattle; improved, Dec.1993
 ##	      Ported to R :  Sept.1997.
 plot.stepfun <-
-    function(Fn, xval, xlim, xlab = "x", ylab = "f(x)", main = NULL,
-             add = FALSE, verticals = TRUE, do.points = TRUE,
+    function(Fn, x, xlim, xlab = "x", ylab = "f(x)", main = NULL, add = FALSE,
+	     verticals = TRUE, do.points = TRUE,
 	     pch = par("pch"), col.points=par("col"), cex.points=par("cex"),
 	     col.hor = par("col"), col.vert= par("col"),
              lty = par("lty"), lwd = par("lwd"),
              ...)
 {
+
     if(!is.stepfun(Fn)) { #- make it work when called explicitly with data
 	if(is.numeric(Fn)) {
 	    sarg <- substitute(Fn)
@@ -87,10 +88,10 @@ plot.stepfun <-
 	}
 
     knF <- knots(Fn)
-    xval <- if (missing(xval)) knF else sort(xval)
+    x <- if (missing(x)) knF else sort(x)
     if (missing(xlim)) {
-	dr <- diff(rx <- range(xval))
-	dr <- max(0.08 * dr,  median(diff(xval)))
+	dr <- diff(rx <- range(x))
+	dr <- max(0.08 * dr,  median(diff(x)))
 	xlim <- rx +  dr * c(-1,1)
     } else dr <- diff(xlim)
 

@@ -337,7 +337,7 @@ static void menuact(control m)
 static void readconsolecfg()
 {
     int   consoler, consolec, pagerrow, pagercol, multiplewin, widthonresize;
-    rgb   consolebg, consolefg, consoleuser, highlight ;
+    rgb   consolebg, consolefg, consoleuser;
     int   ok, fnchanged, done, cfgerr;
     char  fn[128] = "FixedFont";
     int   sty = Plain;
@@ -350,7 +350,6 @@ static void readconsolecfg()
     consolebg = White;
     consolefg = Black;
     consoleuser = Red;
-    highlight = DarkRed;
     pagerrow = 25;
     pagercol = 80;
     multiplewin = 0;
@@ -455,11 +454,6 @@ static void readconsolecfg()
 		if (consoleuser != Transparent)
 		    done = 1;
 	    }
-	    if (!strcmp(opt[0], "highlight")) {
-		highlight = nametorgb(opt[1]);
-		if (highlight != Transparent)
-		    done = 1;
-	    }
 	    if (!strcmp(opt[0], "setwidthonresize")) {
 		if (!strcmp(opt[1], "yes"))
 		    widthonresize = 1;
@@ -481,7 +475,7 @@ static void readconsolecfg()
 	exit(10);
     }
     setconsoleoptions(fn, sty, pointsize, consoler, consolec, consolefg,
-		      consoleuser, consolebg, highlight,
+		      consoleuser, consolebg,
 		      pagerrow, pagercol, multiplewin, widthonresize);
 }
 

@@ -23,7 +23,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double qunif(double p, double a, double b, int lower_tail, int log_p)
 {

@@ -54,7 +54,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double dnbeta(double x, double a, double b, double lambda, int give_log)
 {

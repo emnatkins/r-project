@@ -36,7 +36,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 static double **w;
 

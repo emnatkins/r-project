@@ -14,7 +14,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double pnbeta(double x, double a, double b, double lambda,
 	      int lower_tail, int log_p)

@@ -35,6 +35,5 @@ prompt.data.frame(object, filename = paste(name, ".Rd", sep = ""))
 \examples{
 data(women)
 prompt(women)
-unlink("women.Rd")
 }
 \keyword{documentation}

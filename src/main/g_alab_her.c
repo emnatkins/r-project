@@ -18,7 +18,12 @@
 /* PAUL MURRELL
    sys-defines.h not used
 */
-/* #include "sys-defines.h" */
+// #include "sys-defines.h"
+
+/* PAUL MURRELL
+   Added this to replace definition in sys-defines.h with R one
+*/
+//#include "Mathlib.h"
 
 /* PAUL MURRELL
    extern.h renamed g_extern.h
@@ -161,7 +166,7 @@ double GVStrWidth (const unsigned char *s, int typeface, int fontindex,
   label_width = _label_width_hershey (dd, codestring);
 
   vmaxset(vmax);
-  /*  free (codestring); */
+  //  free (codestring);
   
   return label_width;
 }
@@ -276,9 +281,9 @@ void GVText (double x, double y, int unit, char *s,
 
   srtsave = dd->gp.srt;
   dd->gp.srt = rotation;
-  /* dd->gp.lwd set in _draw_hershey_string */
+  // dd->gp.lwd set in _draw_hershey_string
   lwdsave = dd->gp.lwd;
-  /* When drawing vector font, always use "solid" lines */
+  // When drawing vector font, always use "solid" lines
   ltysave = dd->gp.lty;
   dd->gp.lty = LTY_SOLID;
   
@@ -325,7 +330,7 @@ void GVText (double x, double y, int unit, char *s,
 		    GConvertYUnits(y_offset * label_height, g_unit, INCHES, dd));
     /* call stroker on the sequence of strokes obtained from each char (the
        stroker may manipulate the line width) */
-      /* _draw_hershey_stroke (dd, true, 0, HERSHEY_EM);     */
+//_draw_hershey_stroke (dd, true, 0, HERSHEY_EM);      
       _draw_hershey_string (dd, codestring);
     
     /* Restore original values of relevant drawing attributes, free
@@ -343,7 +348,7 @@ void GVText (double x, double y, int unit, char *s,
     free (old_join_mode);
 */
     /* return to original position */
-      /*    _plotter->fmove (R___(_plotter) oldposx, oldposy); */
+//    _plotter->fmove (R___(_plotter) oldposx, oldposy);
   }
 
   dd->gp.srt = srtsave;
@@ -363,12 +368,12 @@ void GVText (double x, double y, int unit, char *s,
 */
 
   vmaxset(vmax);
-  /*  free (codestring); */
+  //  free (codestring);
 
   /* PAUL MURRELL
      No return value 
   */
-  /* return label_width;		 user units */
+  // return label_width;		/* user units */
 }
 
 /* In addition to scaling the character sizes and the `width', we perform
@@ -703,15 +708,15 @@ void _draw_hershey_string (DevDesc *dd, const unsigned short *string)
 	    break;
 		
 	  case C_PUSH_LOCATION:
-	      /* saved_charsize = charsize;
-		 saved_position_x = _plotter->drawstate->pos.x;
-		 saved_position_y = _plotter->drawstate->pos.y; */
+	      // saved_charsize = charsize;
+	      // saved_position_x = _plotter->drawstate->pos.x;
+	      // saved_position_y = _plotter->drawstate->pos.y;
 	    break;
 		
 	  case C_POP_LOCATION:
-	      /* charsize = saved_charsize;
-		 _plotter->fmove (R___(_plotter)
-		 saved_position_x, saved_position_y); */
+	      // charsize = saved_charsize;
+	      // _plotter->fmove (R___(_plotter)
+	      //	     saved_position_x, saved_position_y);
 	    break;
 		
 	  case C_RIGHT_ONE_EM:

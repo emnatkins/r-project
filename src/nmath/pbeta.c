@@ -41,7 +41,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 /* This is called from	qbeta(.) in a root-finding loop --- be FAST! */
 

@@ -23,7 +23,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double qlnorm(double p, double logmean, double logsd, int lower_tail, int log_p)
 {

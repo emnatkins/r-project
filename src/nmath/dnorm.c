@@ -28,7 +28,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double dnorm4(double x, double mu, double sigma, int give_log)
 {
@@ -46,7 +45,6 @@ double dnorm4(double x, double mu, double sigma, int give_log)
     /* M_1_SQRT_2PI = 1 / sqrt(2 * pi) */
 }
 
-#define NEW_NORM_ONLY
 #ifndef NEW_NORM_ONLY
 /* These are defined in Mathlib.h */
 #undef dnorm
@@ -62,6 +60,6 @@ double pnorm(double x, double mu, double sigma)
 }
 double qnorm(double x, double mu, double sigma)
 {
-    return qnorm5(x, mu, sigma, 1, 0);
+    return qnorm5(x, mu, sigma, 1, 0);    
 }
 #endif

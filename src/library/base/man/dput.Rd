@@ -27,7 +27,6 @@ dget(file)
 dput(mean, "foo")
 ## And read it back into `bar'
 bar <- dget("foo")
-unlink("foo")
 }
 \keyword{file}
 \keyword{programming}

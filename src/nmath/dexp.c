@@ -23,7 +23,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double dexp(double x, double scale, int give_log)
 {

@@ -19,7 +19,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double qlogis(double p, double location, double scale, int lower_tail, int log_p)
 {
@@ -37,9 +36,9 @@ double qlogis(double p, double location, double scale, int lower_tail, int log_p
     /* p := logit(p) = log( p / (1-p) )	 : */
     if(log_p) {
 	if(lower_tail)
-	    p = p - log1p(- exp(p));
+	    p = p - logrelerr(- exp(p));
 	else
-	    p = log1p(- exp(p)) - p;
+	    p = logrelerr(- exp(p)) - p;
     }
     else
 	p = log(lower_tail ? (p / (1. - p)) : ((1. - p) / p));

@@ -23,7 +23,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double ppois(double x, double lambda, int lower_tail, int log_p)
 {

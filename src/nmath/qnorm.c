@@ -42,7 +42,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 #ifdef DEBUG_qnorm
 # include "PrtUtil.h"
