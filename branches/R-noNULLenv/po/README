@@ -1,0 +1,34 @@
+The Makefile.in.in here was originally produced by gettextize, but has
+since been modified extensively.
+
+If you convert a C file for use with gettext, add it to POTFILES.in and
+then run
+
+make update-po
+
+to recreate R.pot and update the automated `translations'.
+
+Target
+
+make update-pkg-po
+
+updates the message catalogs for the C and R code in the standard packages.
+
+
+To add a new translation, add the lang.po file to this directory and add
+the language to LINGUAS.  Hopefully `make' will do the rest 
+(create lang.gmo and install it as required).
+
+
+Windows RGui translations
+=========================
+
+These are contained in RGui.pot, created by running 'make RGui.pot-update'
+(called by make update-po).
+
+Translations should be called RGui-ll.po for language 'll'.
+
+To add a translation, add its .gmo file to the RGUI-CATALOGS macro
+Makefile.win, and both the .po and .gmo files to the RGUI-CATALOGS
+macro in Makefile.in.in: it will then be automatically distributed and
+installed.
