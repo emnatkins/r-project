@@ -14,9 +14,10 @@ allNames <-
         value
 }
 
-getFunction <-  function(name, generic = TRUE, mustFind = TRUE,
+getFunction <-
+  ## find the object as a function.
+  function(name, generic = TRUE, mustFind = TRUE,
            where = -1)
-      ## find the object as a function.
 {
     isGenericFunction <- function(obj) exists(".Generic", envir = environment(obj), inherits=FALSE)
     found <- FALSE

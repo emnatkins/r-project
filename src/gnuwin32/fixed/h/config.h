@@ -46,7 +46,7 @@
 /* #undef HAVE_BSD_NETWORKING */
 
 /* Define if you have the bzip2 headers and libraries. */
-#define HAVE_BZLIB 1
+/* #undef HAVE_BZLIB */
 
 /* Define to 1 if you have the `chdir' function. */
 #define HAVE_CHDIR 1
@@ -65,7 +65,7 @@
 
 /* Define to 1 if you have the declaration of `isfinite', and to 0 if you
    don't. */
-#define HAVE_DECL_ISFINITE 1
+#define HAVE_DECL_ISFINITE 0
 
 /* Define to 1 if you have the declaration of `isnan', and to 0 if you don't.
    */
@@ -167,7 +167,7 @@
 #define HAVE_INTERNET 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#define HAVE_INTTYPES_H 1
+/* #undef HAVE_INTTYPES_H */
 
 /* Define to 1 if you have the `isascii' function. */
 #define HAVE_ISASCII 1
@@ -227,15 +227,6 @@
    external names. */
 #define HAVE_NO_SYMBOL_UNDERSCORE 1
 
-/* Define if you have the PCRE headers and libraries. */
-#define HAVE_PCRE 1
-
-/* Define to 1 if you have the <pcre.h> header file. */
-#define HAVE_PCRE_H 1
-
-/* Define to 1 if you have the <pcre/pcre.h> header file. */
-/* #undef HAVE_PCRE_PCRE_H */
-
 /* Define if you have the PNG headers and libraries. */
 #define HAVE_PNG 1
 
@@ -262,7 +253,10 @@
 /* #undef HAVE_READLINE_READLINE_H */
 
 /* Define to 1 if you have the `rint' function. */
-#define HAVE_RINT 1
+/* #undef HAVE_RINT */
+
+/* Define to 1 if you have the <rpc/rpc.h> header file. */
+/* #undef HAVE_RPC_RPC_H */
 
 /* Define to 1 if you have the `setenv' function. */
 /* #undef HAVE_SETENV */
@@ -348,7 +342,7 @@
    to be built. */
 #define HAVE_TCLTK 1
 
-/* Define to 1 if you have the `times' function. */
+/* Define to 1if you have the `times' function. */
 /* #undef HAVE_TIMES */
 
 /* Define to 1 if you have the <unistd.h> header file. */
@@ -375,6 +369,9 @@
 /* Define if you have the X11 headers and libraries, and want the X11 GUI to
    be built. */
 /* #undef HAVE_X11 */
+
+/* Define if you have the XDR headers and library routines. */
+/* #undef HAVE_XDR */
 
 /* Define if you have the zlib headers and libraries. */
 /* #undef HAVE_ZLIB */
@@ -404,13 +401,13 @@
 #define PACKAGE_NAME "R"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "R 1.6.0"
+#define PACKAGE_STRING "R 1.5.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "r"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.6.0"
+#define PACKAGE_VERSION "1.5.0"
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
@@ -484,7 +481,7 @@
 /* #undef Unix */
 
 /* Version number of package */
-#define VERSION "1.6.0"
+#define VERSION "1.5.0"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */

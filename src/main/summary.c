@@ -40,13 +40,16 @@
 #define DbgP3(s,a,b)
 #endif
 
+/* These GLOBALS are set/initialized in do_summary: */
+static int narm;
+static int updated;
+	/* updated := 1 , as soon as (i)tmp (do_summary),
+	   or *value ([ir]min / max) is assigned */
 
-static Rboolean isum(int *x, int n, int *value, Rboolean narm)
+static void isum(int *x, int n, int *value)
 {
     double s;
     int i;
-    Rboolean updated = FALSE;
-
     for (i = 0, s = 0; i < n; i++) {
 	if (x[i] != NA_INTEGER) {
 	    if(!updated) updated = 1;
@@ -54,7 +57,7 @@ static Rboolean isum(int *x, int n, int *value, Rboolean narm)
 	} else if (!narm) {
 	    if(!updated) updated = 1;
 	    *value = NA_INTEGER;
-	    return(updated);
+	    return;
 	}
     }
     if(s > INT_MAX || s < R_INT_MIN){
@@ -62,15 +65,12 @@ static Rboolean isum(int *x, int n, int *value, Rboolean narm)
 	*value = NA_INTEGER;
     }
     else *value = s;
-
-    return(updated);
 }
 
-static Rboolean rsum(double *x, int n, double *value, Rboolean narm)
+static void rsum(double *x, int n, double *value)
 {
     double s;
     int i;
-    Rboolean updated = FALSE;
     for (i = 0, s = 0; i < n; i++) {
 	if (!ISNAN(x[i])) {
 	    if(!updated) updated = 1;
@@ -87,16 +87,12 @@ static Rboolean rsum(double *x, int n, double *value, Rboolean narm)
 	}
     }
     *value = s;
-
-    return(updated);
 }
 
-static Rboolean csum(Rcomplex *x, int n, Rcomplex *value, Rboolean narm)
+static void csum(Rcomplex *x, int n, Rcomplex *value)
 {
     Rcomplex s;
     int i;
-    Rboolean updated = FALSE;
-
     s.r = s.i = 0;
     for (i = 0; i < n; i++) {
 	if ((!ISNAN(x[i].r) && !ISNAN(x[i].i))
@@ -118,15 +114,11 @@ static Rboolean csum(Rcomplex *x, int n, Rcomplex *value, Rboolean narm)
     }
     value->r = s.r;
     value->i = s.i;
-
-    return(updated);
 }
 
-static Rboolean imin(int *x, int n, int *value, Rboolean narm)
+static void imin(int *x, int n, int *value)
 {
     int i, s;
-    Rboolean updated = FALSE;
-
     s = INT_MAX;
     for (i = 0; i < n; i++) {
 	if (x[i] != NA_INTEGER) {
@@ -138,20 +130,16 @@ static Rboolean imin(int *x, int n, int *value, Rboolean narm)
 	else if (!narm) {
 	    if(!updated) updated = 1;
 	    *value = NA_INTEGER;
-	    return(updated);
+	    return;
 	}
     }
     *value = s;
-
-    return(updated);
 }
 
-static Rboolean  rmin(double *x, int n, double *value, Rboolean narm)
+static void rmin(double *x, int n, double *value)
 {
     double s;
     int i;
-    Rboolean updated = FALSE;
-
 #ifdef IEEE_754
     s = R_PosInf;
     for (i = 0; i < n; i++) {
@@ -184,14 +172,11 @@ static Rboolean  rmin(double *x, int n, double *value, Rboolean narm)
     }
     *value = s;
 #endif
-
-    return(updated);
 }
 
-static Rboolean imax(int *x, int n, int *value, Rboolean narm)
+static void imax(int *x, int n, int *value)
 {
     int i, s;
-    Rboolean updated = FALSE;
     s = R_INT_MIN;
     for (i = 0; i < n; i++) {
 	if (x[i] != NA_INTEGER) {
@@ -202,19 +187,16 @@ static Rboolean imax(int *x, int n, int *value, Rboolean narm)
 	} else if (!narm) {
 	    if(!updated) updated = 1;
 	    *value = NA_INTEGER;
-	    return(updated);
+	    return;
 	}
     }
     *value = s;
-
-    return(updated);
 }
 
-static Rboolean rmax(double *x, int n, double *value, Rboolean narm)
+static void rmax(double *x, int n, double *value)
 {
     double s;
     int i;
-    Rboolean updated = FALSE;
 #ifdef IEEE_754
     s = R_NegInf;
     for (i = 0; i < n; i++) {
@@ -246,15 +228,12 @@ static Rboolean rmax(double *x, int n, double *value, Rboolean narm)
     }
     *value = s;
 #endif
-
-    return(updated);
 }
 
-static Rboolean iprod(int *x, int n, double *value, Rboolean narm)
+static void iprod(int *x, int n, double *value)
 {
     double s;
     int i;
-    Rboolean updated = FALSE;
     s = 1;
     for (i = 0; i < n; i++) {
 	if (x[i] != NA_INTEGER) {
@@ -264,24 +243,21 @@ static Rboolean iprod(int *x, int n, double *value, Rboolean narm)
 	else if (!narm) {
 	    if(!updated) updated = 1;
 	    *value = NA_REAL;
-	    return(updated);
+	    return;
 	}
 
 	if(ISNAN(s)) {
 	    *value = NA_REAL;
-	    return(updated);
+	    return;
 	}
     }
     *value = s;
-
-    return(updated);
 }
 
-static Rboolean rprod(double *x, int n, double *value, Rboolean narm)
+static void rprod(double *x, int n, double *value)
 {
     double s;
     int i;
-    Rboolean updated = FALSE;
     for (i = 0, s = 1; i < n; i++) {
 	if (!ISNAN(x[i])) {
 	    if(!updated) updated = 1;
@@ -298,15 +274,12 @@ static Rboolean rprod(double *x, int n, double *value, Rboolean narm)
 	}
     }
     *value = s;
-
-    return(updated);
 }
 
-static Rboolean cprod(Rcomplex *x, int n, Rcomplex *value, Rboolean narm)
+static void cprod(Rcomplex *x, int n, Rcomplex *value)
 {
     Rcomplex s, t;
     int i;
-    Rboolean updated = FALSE;
     s.r = 1;
     s.i = 0;
     for (i = 0; i < n; i++) {
@@ -335,8 +308,6 @@ static Rboolean cprod(Rcomplex *x, int n, Rcomplex *value, Rboolean narm)
     }
     value->r = s.r;
     value->i = s.i;
-
-    return(updated);
 }
 
 
@@ -353,12 +324,6 @@ SEXP do_summary(SEXP call, SEXP op, SEXP args, SEXP env)
     int itmp, icum=0, int_a, empty;
     short iop;
     SEXPTYPE ans_type;/* only INTEGER, REAL, or COMPLEX here */
-
-    Rboolean narm;
-    int updated;
-	/* updated := 1 , as soon as (i)tmp (do_summary),
-	   or *value ([ir]min / max) is assigned */
-
 
     if(DispatchGroup("Summary",call, op, args, env, &ans))
 	return ans;
@@ -434,16 +399,16 @@ SEXP do_summary(SEXP call, SEXP op, SEXP args, SEXP env)
 		switch(TYPEOF(a)) {
 		case LGLSXP:
 		case INTSXP: int_a = 1;
-		    if (iop == 2) updated = imin(INTEGER(a), length(a), &itmp, narm);
-		    else	  updated = imax(INTEGER(a), length(a), &itmp, narm);
+		    if (iop == 2) imin(INTEGER(a), length(a), &itmp);
+		    else	  imax(INTEGER(a), length(a), &itmp);
 		    break;
 		case REALSXP:
 		    if(ans_type == INTSXP) {/* change to REAL */
 			ans_type = REALSXP;
 			if(!empty) zcum.r = Int2Real(icum);
 		    }
-		    if (iop == 2) updated = rmin(REAL(a), length(a), &tmp, narm);
-		    else	  updated = rmax(REAL(a), length(a), &tmp, narm);
+		    if (iop == 2) rmin(REAL(a), length(a), &tmp);
+		    else	  rmax(REAL(a), length(a), &tmp);
 		    break;
 		default:
 		    goto badmode;
@@ -485,7 +450,7 @@ SEXP do_summary(SEXP call, SEXP op, SEXP args, SEXP env)
 		switch(TYPEOF(a)) {
 		case LGLSXP:
 		case INTSXP:
-		    updated = isum(INTEGER(a), length(a), &itmp, narm);
+		    isum(INTEGER(a), length(a), &itmp);
 		    if(updated) {
 			if(itmp == NA_INTEGER) goto na_answer;
 			if(ans_type == INTSXP) {
@@ -504,7 +469,7 @@ SEXP do_summary(SEXP call, SEXP op, SEXP args, SEXP env)
 			ans_type = REALSXP;
 			if(!empty) zcum.r = Int2Real(icum);
 		    }
-		    updated = rsum(REAL(a), length(a), &tmp, narm);
+		    rsum(REAL(a), length(a), &tmp);
 		    if(updated) {
 #ifndef IEEE_754
 			if(ISNAN(tmp)) goto na_answer;
@@ -518,7 +483,7 @@ SEXP do_summary(SEXP call, SEXP op, SEXP args, SEXP env)
 			if(!empty) zcum.r = Int2Real(icum);
 		    } else if (ans_type == REALSXP)
 			ans_type = CPLXSXP;
-		    updated = csum(COMPLEX(a), length(a), &ztmp, narm);
+		    csum(COMPLEX(a), length(a), &ztmp);
 		    if(updated) {
 #ifndef IEEE_754
 			if(ISNAN(ztmp.r)) goto na_answer;
@@ -540,9 +505,9 @@ SEXP do_summary(SEXP call, SEXP op, SEXP args, SEXP env)
 		case INTSXP:
 		case REALSXP:
 		    if(TYPEOF(a) == REALSXP)
-			updated = rprod(REAL(a), length(a), &tmp, narm);
+			rprod(REAL(a), length(a), &tmp);
 		    else
-			updated = iprod(INTEGER(a), length(a), &tmp, narm);
+			iprod(INTEGER(a), length(a), &tmp);
 		    if(updated) {
 #ifndef IEEE_754
 			if(ISNAN(tmp)) goto na_answer;
@@ -553,7 +518,7 @@ SEXP do_summary(SEXP call, SEXP op, SEXP args, SEXP env)
 		    break;
 		case CPLXSXP:
 		    ans_type = CPLXSXP;
-		    updated = cprod(COMPLEX(a), length(a), &ztmp, narm);
+		    cprod(COMPLEX(a), length(a), &ztmp);
 		    if(updated) {
 #ifndef IEEE_754
 			if(ISNAN(ztmp.r)) goto na_answer;

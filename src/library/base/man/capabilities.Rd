@@ -39,9 +39,6 @@ capabilities(what = NULL)
       that this is more correctly known by the international standard
       IEC 60559.}
     \item{bzip2}{Is \code{\link{bzfile}} available?}
-    \item{PCRE}{Is the Perl-Compatible Regular Expression library
-      available?  This is needed for the \code{perl = TRUE} option to
-      \code{\link{grep}} are related function.}
     }
 }
 \seealso{\code{\link{.Platform}}}

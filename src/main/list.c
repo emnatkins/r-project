@@ -160,16 +160,14 @@ SEXP lang4(SEXP s, SEXP t, SEXP u, SEXP v)
 /* The following code is used to recursive traverse a block */
 /* of code and extract all the symbols present in that code. */
 
-typedef struct {
- SEXP	ans;
- int	UniqueNames;
- int	IncludeFunctions;
- int	StoreValues;
- int	ItemCounts;
- int	MaxCount;
-} NameWalkData;
+static SEXP	ans;
+static int	UniqueNames;
+static int	IncludeFunctions;
+static int	StoreValues;
+static int	ItemCounts;
+static int	MaxCount;
 
-static void namewalk(SEXP s, NameWalkData *d)
+static void namewalk(SEXP s)
 {
     int i, j, n;
     SEXP name;
@@ -179,31 +177,31 @@ static void namewalk(SEXP s, NameWalkData *d)
 	name = PRINTNAME(s);
 	/* skip blank symbols */
 	if(strlen(CHAR(name)) == 0) goto ignore;
-	if(d->ItemCounts < d->MaxCount) {
-	    if(d->StoreValues) {
-		if(d->UniqueNames) {
-		    for(j = 0 ; j < d->ItemCounts ; j++) {
-			if(STRING_ELT(d->ans, j) == name)
+	if(ItemCounts < MaxCount) {
+	    if(StoreValues) {
+		if(UniqueNames) {
+		    for(j = 0 ; j < ItemCounts ; j++) {
+			if(STRING_ELT(ans, j) == name)
 			    goto ignore;
 		    }
 		}
-		SET_STRING_ELT(d->ans, d->ItemCounts, name);
+		SET_STRING_ELT(ans, ItemCounts, name);
 	    }
-	    d->ItemCounts += 1;
+	    ItemCounts += 1;
 	}
     ignore:
 	break;
     case LANGSXP:
-	if(!d->IncludeFunctions) s = CDR(s);
+	if(!IncludeFunctions) s = CDR(s);
 	while(s != R_NilValue) {
-	    namewalk(CAR(s), d);
+	    namewalk(CAR(s));
 	    s = CDR(s);
 	}
 	break;
     case EXPRSXP:
 	n = length(s);
 	for(i=0 ; i<n ; i++)
-	    namewalk(VECTOR_ELT(s, i), d);
+	    namewalk(VECTOR_ELT(s, i));
 	break;
     }
 }
@@ -214,43 +212,44 @@ SEXP do_allnames(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP expr;
     int i, savecount;
-    NameWalkData data = {NULL, 0, 0, 0, 0, 0};
 
     checkArity(op, args);
 
     expr = CAR(args);
     args = CDR(args);
 
-    data.IncludeFunctions = asLogical(CAR(args));
-    if(data.IncludeFunctions == NA_LOGICAL)
-	data.IncludeFunctions = 0;
+    IncludeFunctions = asLogical(CAR(args));
+    if(IncludeFunctions == NA_LOGICAL)
+	IncludeFunctions = 0;
     args = CDR(args);
 
-    data.MaxCount = asInteger(CAR(args));
-    if(data.MaxCount < 0 || data.MaxCount == NA_INTEGER)
-	data.MaxCount = 0;
+    MaxCount = asInteger(CAR(args));
+    if(MaxCount < 0 || MaxCount == NA_INTEGER)
+	MaxCount = 0;
     args = CDR(args);
 
-    data.UniqueNames = asLogical(CAR(args));
-    if(data.UniqueNames == NA_LOGICAL)
-	data.UniqueNames = 1;
+    UniqueNames = asLogical(CAR(args));
+    if(UniqueNames == NA_LOGICAL)
+	UniqueNames = 1;
 
-    namewalk(expr, &data);
-    savecount = data.ItemCounts;
+    StoreValues = 0;
+    ItemCounts = 0;
+    namewalk(expr);
+    savecount = ItemCounts;
 
-    data.ans = allocVector(STRSXP, data.ItemCounts);
+    ans = allocVector(STRSXP, ItemCounts);
 
-    data.StoreValues = 1;
-    data.ItemCounts = 0;
-    namewalk(expr, &data);
+    StoreValues = 1;
+    ItemCounts = 0;
+    namewalk(expr);
 
-    if(data.ItemCounts != savecount) {
-	PROTECT(expr = data.ans);
-	data.ans = allocVector(STRSXP, data.ItemCounts);
-	for(i = 0 ; i < data.ItemCounts ; i++)
-	    SET_STRING_ELT(data.ans, i, STRING_ELT(expr, i));
+    if(ItemCounts != savecount) {
+	PROTECT(expr = ans);
+	ans = allocVector(STRSXP, ItemCounts);
+	for(i = 0 ; i < ItemCounts ; i++)
+	    SET_STRING_ELT(ans, i, STRING_ELT(expr, i));
 	UNPROTECT(1);
     }
 
-    return data.ans;
+    return ans;
 }

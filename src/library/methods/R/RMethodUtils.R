@@ -1,97 +1,39 @@
-## The real version of makeGeneric, to be installed after there are some
-## generic functions to boot the definition (in particular, coerce and coerce<-)
 
-.makeGeneric <-
+makeGeneric <-
 ## Makes a generic function object corresponding to the given function name.
 ## and definition.
   function(f, fdef,
            fdefault = getFunction(f, generic = FALSE, mustFind = FALSE),
-           group = list(), valueClass = character(), package, signature = NULL) {
-      ## give the function a new environment, to cache methods later
-      ev <- new.env()
-      parent.env(ev) <- environment(fdef)
-      environment(fdef) <- ev
-      assign(".Generic", f, envir = ev)
-      assign(".Methods", NULL, envir = ev)
-      if(length(valueClass)>0)
-          fdef <- .ValidateValueClass(fdef, f, valueClass)
-      group <- .asGroupArgument(group)
-      value <- new("genericFunction")
-      value@.Data <- fdef
-      value@generic <- f
-      value@group <- group
-      value@valueClass <- valueClass
-      value@package <- package
-      args <- formalArgs(fdef)
-      if(is.null(signature))
-          signature <- args
-      else if(any(is.na(match(signature, args))))
-          stop(paste("Non-arguments found in the signature:",
-                     paste(signature[is.na(match(signature, args))], collapse = ", ")))
-      dots <- match("...", signature)
-      if(!is.na(dots)) ## ... is not currently supported in method signatures
-          signature <- signature[-dots]
-      if(length(signature) == 0)
-          stop("No suitable arguments to dispatch methods in this function")
-      value@signature <- signature
-      name <- signature[[1]]
-      if(is.null(fdefault))
-          methods <- MethodsList(name)
-      else
-          methods <- MethodsList(name, asMethodDefinition(fdefault))
-      value@default <- methods
-      value@skeleton <- generic.skeleton(f, fdef, fdefault)
-      value
+           group = character(), valueClass = character(), myDispatch = FALSE) {
+  if(!myDispatch)
+      fdef <- makeStandardGeneric(f, fdef)
+  generic <- isGeneric(f, fdef = fdef)
+  anames <- formalArgs(fdef)
+  if(length(anames) == 0 || (length(anames) == 1 && el(anames, 1) == "..."))
+    stop("must have a named argument for a generic function.")
+  name <- el(anames, 1)
+  if(name == "...")
+    name <- el(anames, 2)
+  if(!generic) {
+    env <- new.env()
+    assign(".Generic", f, envir=env)
+    assign(".Group", group, envir=env)
+    assign(".ValueClass", valueClass, envir=env)
+    ## the .Arguments object provides a template of the formal arguments
+    ## in a call object, for use in dispatching primitive or internal code.
+    assign(".Arguments", generic.skeleton(f, fdef, fdefault), envir=env)
+    environment(fdef) <- env
   }
-
-## the bootstrap version: "#----" brackets lines that replace parts of the real version
-makeGeneric <-
-      function(f, fdef,
-           fdefault = getFunction(f, generic = FALSE, mustFind = FALSE),
-           group = list(), valueClass = character(), package, signature = NULL) {
-      ## give the function a new environment, to cache methods later
-      ev <- new.env()
-      parent.env(ev) <- environment(fdef)
-      environment(fdef) <- ev
-      assign(".Generic", f, envir = ev)
-      assign(".Methods", NULL, envir = ev)
-      if(length(valueClass)>0)
-          fdef <- .ValidateValueClass(fdef, f, valueClass)
-      group <- .asGroupArgument(group)
-###--------
-      value <- fdef
-      class(value) <- "genericFunction"
-      slot(value, "generic", FALSE) <- f
-      slot(value, "group", FALSE) <- group
-      slot(value, "valueClass", FALSE) <- valueClass
-      slot(value, "package", FALSE) <- package
-###--------
-      args <- formalArgs(fdef)
-      if(is.null(signature))
-          signature <- args
-      else if(any(is.na(match(signature, args))))
-          stop(paste("Non-arguments found in the signature:",
-                     paste(signature[is.na(match(signature, args))], collapse = ", ")))
-      dots <- match("...", signature)
-      if(!is.na(dots)) ## ... is not currently supported in method signatures
-          signature <- signature[-dots]
-      if(length(signature) == 0)
-          stop("No suitable arguments to dispatch methods in this function")
-###--------
-      slot(value, "signature", FALSE) <- signature
-###--------
-      name <- signature[[1]]
-      if(is.null(fdefault))
-          methods <- MethodsList(name)
-      else
-          methods <- MethodsList(name, asMethodDefinition(fdefault))
-###--------
-      slot(value, "default", FALSE) <- methods
-      slot(value, "skeleton", FALSE) <- generic.skeleton(f, fdef, fdefault)
-###--------
-      value
+  else {
+    env <- copyEnvironment(fdef, exceptions = ".Methods")
   }
-    
+  if(is.null(fdefault))
+    methods <- MethodsList(name)
+  else
+    methods <- MethodsList(name, asMethodDefinition(fdefault))
+  assign(".Methods", methods, envir=env)
+  fdef
+}
 
 makeStandardGeneric <-
   ## a utility function that makes a valid function calling standardGeneric for name f
@@ -174,42 +116,39 @@ getAllMethods <-
   ##
   ## The slot "allMethods" of the merged methods list is set to a copy of the methods slot;
   ## this is the slot where inherited methods are stored.
-  function(f, fdef = getGeneric(f, TRUE), libs = search()) {
-      if(is(fdef, "genericFunction"))
-         deflt <- finalDefaultMethod(fdef@default)
-      else if(is.primitive(fdef)) {
-          deflt <- fdef
-          fdef <- getGeneric(f, TRUE)
-      }
-      else
-        return(NULL) # or error?
+  function(f, libs = search()) {
+    fdef <- getGeneric(f, TRUE)
     groups <- getGroup(fdef, TRUE)
     ## when this function is called from methodsListDispatch (via C code),
-    ## a skeleton version is assigned to prevent recursive loops:  remove this
-    ## in case of errros in getAllMethods
-    on.exit(resetGeneric(f, fdef))
+    ## a barrier version of the function is put into the metadata to prevent
+    ## recursive loops.  Must remove this, if an error occurs in getAllMethods
+    on.exit(removeFromMethodMetaData(f))
     methods <- NULL
-    funs <- c(fdef, groups)
+    funs <- c(f, groups)
     for(fun in rev(funs))
       for(where in rev(libs)) {
         mw <- getMethodsMetaData(fun, where)
         if(!is.null(mw))
           methods <- mergeMethods(methods, mw)
       }
-    ev <- environment(fdef)
+    ev <- copyEnvironment(fdef)
     if(is.null(methods)) ## after removeMethods, e.g.
-        methods <- fdef@default
-    if(!is(methods, "EmptyMethodsList")) {
+        methods <- get(".Methods", ev)
+    if(!is.null(methods)) {
         methods <- setAllMethodsSlot(methods)
         assign(".Methods", methods, ev)
     }
+    environment(fdef) <- ev
+    assignToMethodMetaData(f, fdef)
+    ## in the current version of this function,
     ## primitives are pre-cached in the method metadata (because
     ## they are not visible as generic functions from the C code).
-    if(is.primitive(deflt))
-      setPrimitiveMethods(f, deflt, "set", fdef)
+    fun <- getFunction(f)
+    if(is.primitive(fun))
+      setPrimitiveMethods(f, fun, "set", fdef)
     ## cancel the error cleanup
     on.exit()
-    methods
+    fdef
   }
 
 
@@ -279,10 +218,7 @@ doPrimitiveMethod <-
 conformMethod <-
   function(signature, mnames, fnames)
 {
-    ## TO DO:  arrange for "missing" to be a valid for "..." in a signature
-    ## until then, allow an omitted "..." w/o checking
-    if(is.na(match("...", mnames)) && !is.na(match("...", fnames)))
-        fnames <- fnames[-match("...", fnames)]
+    ## note that fnames is assumed to be the formal args with "..." omitted
     omitted <- is.na(match(fnames, mnames))
     if(!any(omitted))
         return(signature)
@@ -306,7 +242,8 @@ conformMethod <-
     signature
 }
 
-rematchDefinition <- function(definition, generic, mnames, fnames) {
+rematchDefinition <- function(definition, generic, mnames) {
+    fnames <- formalArgs(generic)
     added <- is.na(match(mnames, fnames))
     if(!any(added))
         return(definition)
@@ -365,22 +302,13 @@ getGeneric <-
   ##
   ## If there is no definition in the current search list, throws an error or returns
   ## NULL according to the value of mustFind.
-### TO BE CHANGED:  Needs a package argument, which should be passed down to R_getGeneric
   function(f, mustFind = FALSE) {
-    if(is(f, "genericFunction"))
-        return(f)
     value <- .Call("R_getGeneric", f, FALSE, PACKAGE = "methods")
-    if(is.null(value) && exists(f, "package:base", inherits = FALSE)) {
+    if(is.null(value) && exists(f, "package:base")) {
       ## check for primitives
       baseDef <- get(f, "package:base")
-      if(is.primitive(baseDef)) {
-          value <- elNamed(.BasicFunsList, f)
-          if(is.function(value) && !is(value, "genericFunction")) {
-              ## initialize the generic function in the list on base
-              value <- makeGeneric(f, makeStandardGeneric(f, value), value, package = "base")
-              elNamed(.BasicFunsList, f) <<- value
-          }
-      }
+      if(is.primitive(baseDef))
+        value <- elNamed(.BasicFunsList, f)
     }
     if(is.function(value))
       value
@@ -397,25 +325,20 @@ getGroup <-
 {
     if(is.character(fdef))
         fdef <- getGeneric(fdef)
-    if(is(fdef, "genericFunction"))
-        group <- fdef@group
+    if(is.function(fdef)) {
+        group <- get(".Group", envir = environment(fdef))
+        ## compatibility w. S-Plus allows "" for empty group
+        group <- group[nchar(group)>0]
+      }
     else
-        group <- list()
+        group <- character()
     if(recursive && length(group) > 0) {
         allGroups <- group
-        for(gp in group) {
-            fgp <- getGeneric(gp)
-            if(is(fgp, "groupGenericFunction"))
-                allGroups <- c(allGroups, Recall(fgp, TRUE))
-        }
-        if(length(allGroups)>1) {
-            ids <- sapply(allGroups, mlistMetaName)
-            allGroups <- allGroups[!duplicated(ids)]
-        }
-        allGroups
+        for(gp in group)
+            allGroups <- c(allGroups, Recall(gp, TRUE))
+        group <- unique(allGroups)
     }
-    else
-        group
+    group
 }
 
 getMethodsMetaData <-
@@ -438,36 +361,30 @@ getMethodsMetaData <-
 
 assignMethodsMetaData <-
   ## assign value to be the methods metadata for generic f on database where.
-  ## Also resets the generic to force recomputation of session information.
-  function(f, value, fdef, where, deflt = finalDefaultMethod(fdef@default)) {
-    assign(mlistMetaName(fdef), value, where)
-    resetGeneric(f, fdef)
-    if(is.primitive(deflt))
-        setPrimitiveMethods(f, deflt, "reset", fdef, NULL)
+  ## Also updates cached information about this generic.
+  function(f, value, where) {
+    assign(mlistMetaName(f), value, where)
+    resetGeneric(f)
   }
 
 mlistMetaName <-
   ## name mangling to simulate metadata for a methods definition.
-  function(name = "") {
-      if(is(name, "genericFunction"))
-          methodsMetaName("M", paste(name@generic, name@package, sep=":"))
-      else if(missing(name))
-          methodsMetaName("M","")
-      else if(is.character(name))
-          Recall(getGeneric(name))
-      else
-          stop(paste("No way to associate a generic function with an object of class \"",
-                     class(name), "\"", sep=""))
-  }
+  function(name)
+  methodsMetaName("M", name)
 
 getGenerics <-
-  function(where = seq(along=search()), searchForm = FALSE) {
+  function(where = seq(along=search())) {
+    pattern <- mlistMetaName("")
+    n <- nchar(pattern)
+    value <- character()
     if(is.environment(where)) where <- list(where)
-    these <- character()
     for(i in where) {
-      these <- c(these, objects(i, all=TRUE))
+      these <- objects(i, all=TRUE)
+      ## string match the pattern (NOT by a regexp in grep)
+      these <- these[substr(these, 1, n) == pattern]
+      value <- c(value, these)
     }
-    metaNameUndo(unique(these), prefix = "M", searchForm = searchForm)
+    substring(unique(value), n+1)
   }
 
 allGenerics <- getGenerics
@@ -490,25 +407,10 @@ cacheMetaData <-
 
 cacheGenericsMetaData <-
   function(generics, attach = TRUE, envir = NULL) {
-      if(is(generics, "ObjectsWithPackage"))
-          packages <- generics@package
-      else
-          packages <- rep("<unknown>", length(generics))
-    for(i in seq(along=generics)) {
-        f <- generics[[i]]
-        pkg <- packages[[i]]
-        if(nchar(pkg) == 0){
-            lib <- getPackageName(envir)
-            warning("The methods object stored for \"", f,
-                    "\" has no package name in the metadata name (may need to re-install ",
-                    lib, ")")
-        }
+    for(f in generics) {
         ## Some tests: don't cache generic if no methods defined
-        fdef <- getGeneric(f)
-        if(!is(fdef, "genericFunction"))
-            next
         if(attach) {
-            if(!isGeneric(fdef@generic))
+            if(!isGeneric(f))
                 next
             methods <- getMethods(f)
             if(is.null(methods))
@@ -517,12 +419,14 @@ cacheGenericsMetaData <-
             if(length(methods)==0)
                 next
         }
+        if(!is.null(getFromMethodMetaData(f)))
+            removeFromMethodMetaData(f)
       ## find the function.  It may be a generic, but will be a primitive
       ## if the internal C code is being used to dispatch methods for primitives.
       ## It may also be NULL, if no function is found (when detaching the only
       ## package defining this function, for example).
-      deflt <- finalDefaultMethod(fdef@default)
-      if(is.primitive(deflt)) {
+      fdef <- getFunction(f, mustFind = FALSE)
+      if(is.primitive(fdef)) {
         if(attach) code <- "reset"
         else {
           code <- "clear"
@@ -535,18 +439,15 @@ cacheGenericsMetaData <-
           }
         }
         switch(code,
-               reset = setPrimitiveMethods(f, deflt, code, fdef, NULL),
-               clear = setPrimitiveMethods(f, deflt, code, NULL, NULL))
+               reset = setPrimitiveMethods(f, fdef, code, getGeneric(f), NULL),
+               clear = setPrimitiveMethods(f, fdef, code, NULL, NULL))
       }
-      else {
-          resetGeneric(f, fdef)
-          if(isGroup(f, fdef = fdef)) {
-              members <- fdef@groupMembers
-              ## do the computations for the members as well; important if the
-              ## members are primitive functions.
-              if(length(members)>0)
-                  Recall(members, attach, envir)
-          }
+      else if(isGroup(f, fdef = fdef)) {
+        members <- getGroupMembers(f, fdef = fdef)
+        ## do the computations for the members as well; important if the
+        ## members are primitive functions.
+        if(length(members)>0)
+          Recall(members, attach, envir)
       }
     }
   }
@@ -556,6 +457,15 @@ setPrimitiveMethods <-
     .Call("R_M_setPrimitiveMethods", f, fdef, code, generic, mlist, PACKAGE="methods")
 
 
+setGroupMembers <-
+  function(f, members, fdef = getGeneric(f))
+{
+  assign(".GroupMembers", members, envir = environment(fdef))
+}
+
+getGroupMembers <-
+  function(f, fdef = getGeneric(f))
+  get(".GroupMembers", envir = environment(fdef))
 
 findUnique <- function(what, doFind = find, message)
 {
@@ -660,7 +570,7 @@ sigToEnv <- function(signature) {
     value
 }
 
-.methodSignatureMatrix <- function(object, sigSlots = c("target", "defined")) {
+methodSignatureMatrix <- function(object, sigSlots = c("target", "defined")) {
     if(length(sigSlots)>0) {
         allSlots <- lapply(sigSlots, slot, object = object)
         mm <- unlist(allSlots)
@@ -687,16 +597,21 @@ sigToEnv <- function(signature) {
 }
 
     
-.getOrMakeMethodsList <- function(f, where, genericFun) {
+.getOrMakeMethodsList <- function(f, fnames, where) {
     allMethods <- getMethodsMetaData(f, where = where)
+    argName <- ""
+    for(i in fnames)
+        if(!identical(i, "..."))
+        { argName <- i; break}
+    if(nchar(argName) == 0)
+        stop(paste("\"", f, "\" can't be a generic; no valid argument name", sep=""))
     if(is.null(allMethods)) {
-        argName <- genericFun@signature[[1]]
         allMethods <- new("MethodsList", argument = as.name(argName))
         other <- getMethodsMetaData(f)
         if(is.null(other))
             ## this utility is called AFTER ensuring the existence of a generic for f
             ## Therefore, the case below can only happen for a primitive for which
-            ## no methods currently are attached.  Make the primitive the default
+            ## no methods currently are attached.  Make the prmitive the default
             deflt <- getFunction(f, generic = FALSE, mustFind = FALSE)
         else
             ## inherit the default method, if any
@@ -707,7 +622,7 @@ sigToEnv <- function(signature) {
     allMethods
 }
 
-.makeCallString <- function(def, name = substitute(def), args = formalArgs(def)) {
+makeCallString <- function(def, name = substitute(def), args = formalArgs(def)) {
     if(is.character(def)) {
         if(missing(name))
             name <- def
@@ -718,43 +633,3 @@ sigToEnv <- function(signature) {
     else
         ""
 }
-
-.ValidateValueClass <- function(fdef, name, valueClass)
-{
-    ## include tests for value
-    fbody <- body(fdef)
-    body(fdef, envir = environment(fdef)) <-
-        substitute(.valueClassTest(EXPR, VALUECLASS, FNAME),
-                   list(EXPR = fbody, VALUECLASS = valueClass, FNAME = name))
-}
-
-## interpret the group= argument to makeGeneric, allowing for char. argument
-## and "" for compatibility.
-## TO DO:  make it possible for this argument to be a group generic function
-## (it may in fact work now).
-.asGroupArgument <- function(group) {
-    if(is.character(group)) {
-        if(identical(group, ""))
-            list()
-        else
-          as.list(group) ## should we allow c(group, package) ?
-    }
-    else
-        group
-}
-
-metaNameUndo <- function(strings, prefix = "M", searchForm = FALSE) {
-    pattern <- methodsMetaName(prefix, "")
-    n <- nchar(pattern)
-    matched <- substr(strings, 1, n) == pattern
-    value <- substring(strings[matched], n+1)
-    pkg <- sub("^[^:]*", "", value) # will be "" if no : in the name
-    if(searchForm)
-        pkg <- paste("package", pkg, sep="")
-    else
-        pkg <- substring(pkg, 2)
-    value <- sub(":.*","", value)
-    new("ObjectsWithPackage", value, package = pkg)
-}
-
-    

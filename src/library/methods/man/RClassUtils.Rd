@@ -1,4 +1,4 @@
-\name{RClassUtils}
+\name{ClassUtils}
 \alias{testVirtual}
 \alias{SessionClassMetaData}
 \alias{makePrototypeFromClassDef}
@@ -33,7 +33,9 @@
 \alias{empty.dump}
 \alias{showClass}
 \alias{showExtends}
+\alias{showNonVector}
 \alias{print.classRepEnvironment}
+\alias{print.environment}
 \alias{getFromClassMetaData}
 \alias{assignToClassMetaData}
 \alias{removeFromClassMetaData}
@@ -43,15 +45,12 @@
 \alias{completeExtends}
 \alias{classMetaName}
 \alias{methodsMetaName}
-\alias{metaNameUndo}
 \alias{as.data.frame}
 \alias{requireMethods}
 \alias{checkSlotAssignment}
 \alias{defaultPrototype}
 \alias{isClassDef}
 \alias{validSlotNames}
-\alias{getDataPart}
-\alias{setDataPart}
 %% not explicitly documented here
 \alias{.BasicClasses}
 \alias{.BasicVectorClasses}
@@ -120,7 +119,7 @@ assignClassDef(Class, def, where=.GlobalEnv)
 newClassEnvironment(name, properties, extends, prototype, subclasses,
                  virtual, validity, access)
 
-newBasic(Class, ...)
+newBasic(Class, ..., .Force=FALSE)
 
 makeExtends(extends)
 
@@ -136,6 +135,8 @@ showExtends(ext, printTo = stdout())
 
 print.classRepEnvironment(x, ...)
 
+print.environment(x, ...)
+
 getFromClassMetaData(name)
 
 assignToClassMetaData(name, value)
@@ -148,13 +149,11 @@ extendsReplace(objectClass, Class)
 
 findExtends(class1, class2)
 
-completeExtends(ClassDef, breadthFirst = TRUE)
+completeExtends(ClassDef, soFar)
 
 classMetaName(name)
 
 methodsMetaName(prefix, name)
-
-metaNameUndo(strings, prefix = "M", searchForm = FALSE)
 
 as.data.frame(x, row.names=NULL, optional=FALSE)
 
@@ -167,9 +166,6 @@ defaultPrototype()
 isClassDef(object)
 
 validSlotNames(names)
-
-getDataPart(object)
-setDataPart(object, value)
 
 }
 
@@ -408,6 +404,13 @@ setDataPart(object, value)
       and how for the extensions.)
     }
     
+    \item{\code{print.environment}, \code{showNonVector}:}{
+      These routines provide a default printing mechanism for objects
+      from non-vector classes, implemented as environments.  The
+      \code{print.environment} function exists to intercept printing
+      based on S3-style methods; it calls \code{showNonVector} to do the
+      work.
+    }
     
     \item{\code{extendsCoerce}, \code{extendsReplace}:}{ 
       Returns the function to perform coercion or replacement,
@@ -438,6 +441,20 @@ setDataPart(object, value)
       relation with an unconditional one, or by adding indirect
       relations.
       
+      The resulting extends list is presented in depth-first order; that
+      is, the first immediate superclass followed by all the indirect
+      relations through it, then the next immediate superclass, etc.
+      
+      Depth first order is required for consistent elaboration of
+      inherited methods during dispatch, because the method dispatcher
+      stores the inherited method under the immediate class name.  Under
+      rather obscure situations of multiple inheritance, the result could
+      be ambiguous (depending on the order in which signatures are seen
+      by the dispatcher for a particular generic function), unless
+      searching is done depth first.
+      
+      Used recursively, with \code{soFar} defining what has been included
+      in previous calls at this level.
     }
     
     \item{\code{classMetaName}:}{ 
@@ -447,10 +464,6 @@ setDataPart(object, value)
     \item{\code{methodsMetaName}:}{ 
       a name mangling device to simulate the meta-data in S4
     }
-  \item{metaNameUndo}{ As its name implies, this function undoes the
-      name-mangling used to produce meta-data object names, and
-      returns a object of class \code{\link{ObjectsWithPackage-class}}.
-      }
     
     \item{\code{requireMethods}:}{
       Require a subclass to implement methods for the generic functions,
@@ -507,9 +520,6 @@ setDataPart(object, value)
       case there is an error.  (As of writing, \code{"class"} is the
       only reserved slot name.)
     }
-  \item{\code{getDataPart}, \code{setDataPart}:}{ Utilities called from the base C code
-      to implement \code{object@.Data}.
-      }
     
   }
 }

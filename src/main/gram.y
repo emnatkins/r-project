@@ -133,7 +133,6 @@ static int	xxvalue(SEXP, int);
 %token		LEFT_ASSIGN EQ_ASSIGN RIGHT_ASSIGN LBB
 %token		FOR IN IF ELSE WHILE NEXT BREAK REPEAT
 %token		GT GE LT LE EQ NE AND OR
-%token		NS_GET
 
 %left		'?'
 %left		LOW WHILE FOR REPEAT
@@ -154,7 +153,6 @@ static int	xxvalue(SEXP, int);
 %left		UMINUS UPLUS
 %right		'^'
 %left		'$' '@'
-%left		NS_GET
 %nonassoc	'(' '[' LBB
 
 %%
@@ -218,10 +216,6 @@ expr	: 	NUM_CONST			{ $$ = $1; }
 	|	REPEAT expr_or_assign			{ $$ = xxrepeat($1,$2); }
 	|	expr LBB sublist ']' ']'	{ $$ = xxsubscript($1,$2,$3); }
 	|	expr '[' sublist ']'		{ $$ = xxsubscript($1,$2,$3); }
-	|	SYMBOL NS_GET SYMBOL		{ $$ = xxbinary($2,$1,$3); }
-	|	SYMBOL NS_GET STR_CONST		{ $$ = xxbinary($2,$1,$3); }
-	|	STR_CONST NS_GET SYMBOL		{ $$ = xxbinary($2,$1,$3); }
-	|	STR_CONST NS_GET STR_CONST	{ $$ = xxbinary($2,$1,$3); }
 	|	expr '$' SYMBOL			{ $$ = xxbinary($2,$1,$3); }
 	|	expr '$' STR_CONST		{ $$ = xxbinary($2,$1,$3); }
 	|	expr '@' SYMBOL			{ $$ = xxbinary($2,$1,$3); }
@@ -1677,8 +1671,6 @@ static int SymbolValue(int c)
     return SYMBOL;
 }
 
-static int not_warned_on_underline = 1;
-
 /* Split the input stream into tokens. */
 /* This is the lowest of the parsing levels. */
 
@@ -1733,9 +1725,6 @@ static int token()
 
     if (c == '_') {
 	yylval = install("<-");
-	if(not_warned_on_underline) 
-	    warning("The use of _ is deprecated: you will be warned only once per session");
-	not_warned_on_underline = 0;
 	return LEFT_ASSIGN;
     }
 
@@ -1796,10 +1785,6 @@ static int token()
 	yylval = install("=");
 	return EQ_ASSIGN;
     case ':':
-	if (nextchar(':')) {
-	    yylval = install("::");
-	    return NS_GET;
-	}
 	if (nextchar('=')) {
 	    yylval = install(":=");
 	    return LEFT_ASSIGN;

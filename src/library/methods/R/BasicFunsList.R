@@ -341,13 +341,9 @@ list("!" = function(e1)
 ## functions.
 
 .addBasicGeneric <-
-    function(funslist, f, fdef, group = list(), env)
+    function(funslist, f, fdef, group = "", env)
 {
-    deflt <- get(f, "package:base")
-    body(fdef, envir = NULL) <- if(is.primitive(deflt))
-        substitute(standardGeneric(FNAME, DEFLT), list(FNAME=f, DEFLT=deflt)) else
-        substitute(standardGeneric(FNAME), list(FNAME=f))
-    elNamed(funslist, f) <- makeGeneric(f, fdef, group = group, package = "base")
+    elNamed(funslist, f) <- makeGeneric(f, fdef, group = group)
     funslist
 }
 

@@ -4,7 +4,6 @@
 \alias{complex-class}
 \alias{double-class}
 \alias{expression-class}
-\alias{externalptr-class}
 \alias{integer-class}
 \alias{list-class}
 \alias{logical-class}
@@ -42,7 +41,6 @@
 ### The following are additional basic classes
 "NULL"     #  NULL objects
 "function" #  function objects, including primitives
-"externalptr" # raw external pointers for use in C code
 
 "ANY"  # virtual classes used by the methods package itself
 "VIRTUAL"

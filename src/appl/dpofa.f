@@ -1,5 +1,3 @@
-C  Modified 2002-05-20 for R to add a tolerance of positive definiteness.
-C
 c
 c     dpofa factors a double precision symmetric positive definite
 c     matrix.
@@ -46,11 +44,9 @@ c
 c
 c     internal variables
 c
-      double precision ddot,t,eps
+      double precision ddot,t
       double precision s
       integer j,jm1,k
-      data eps/1.d-14/
-
 c     begin block with ...exits to 40
 c
 c
@@ -68,8 +64,7 @@ c
    20       continue
             s = a(j,j) - s
 c     ......exit
-c            if (s .le. 0.0d0) go to 40
-            if (s .le. eps * abs(a(j,j))) go to 40
+            if (s .le. 0.0d0) go to 40
             a(j,j) = dsqrt(s)
    30    continue
          info = 0

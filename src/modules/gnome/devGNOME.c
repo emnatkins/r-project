@@ -35,6 +35,8 @@
 #define MM_PER_INCH	25.4			/* mm -> inch conversion */
 
 /* routines from here */
+//Rboolean GnomeDeviceDriver(NewDevDesc *dd, char *display, 
+//			   double width, double height, double pointsize);
 
 /* Device driver actions */
 static void GNOME_Activate(NewDevDesc *dd);
@@ -910,6 +912,8 @@ static void GNOME_Text(double x, double y, char *str,
   gnomeDesc *gd = (gnomeDesc *) dd->deviceSpecific;
   int size;
 
+  //FIXME: Tidy up GConvert(&x, &y, coords, DEVICE, dd);
+
   size = cex * ps + 0.5;
   SetFont(dd, font, size);
   
@@ -1005,7 +1009,7 @@ Rboolean GnomeDeviceDriver(DevDesc *odd, char *display,
     if(!(gd = (gnomeDesc *) malloc(sizeof(gnomeDesc))))
 	return FALSE;
 
-    dd = (NewDevDesc*) odd;  
+    dd = (NewDevDesc*) odd;  //How safe is this?
     dd->deviceSpecific = (void *) gd;
 
     /* FIXME: font loading */
@@ -1076,6 +1080,8 @@ Rboolean GnomeDeviceDriver(DevDesc *odd, char *display,
     dd->canClip = FALSE;/* FIXME: really? */
     dd->canHAdj = 0;/* not better? {0, 0.5, 1} */
     dd->canChangeGamma = FALSE;
+
+    dd->ask = FALSE;
 
     /* x11 device description stuff */
     gd->cex = 1.0;

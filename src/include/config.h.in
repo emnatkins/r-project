@@ -229,15 +229,6 @@
    external names. */
 #undef HAVE_NO_SYMBOL_UNDERSCORE
 
-/* Define if you have the PCRE headers and libraries. */
-#undef HAVE_PCRE
-
-/* Define to 1 if you have the <pcre.h> header file. */
-#undef HAVE_PCRE_H
-
-/* Define to 1 if you have the <pcre/pcre.h> header file. */
-#undef HAVE_PCRE_PCRE_H
-
 /* Define if you have the PNG headers and libraries. */
 #undef HAVE_PNG
 
@@ -265,6 +256,9 @@
 
 /* Define to 1 if you have the `rint' function. */
 #undef HAVE_RINT
+
+/* Define to 1 if you have the <rpc/rpc.h> header file. */
+#undef HAVE_RPC_RPC_H
 
 /* Define to 1 if you have the `setenv' function. */
 #undef HAVE_SETENV
@@ -377,6 +371,9 @@
 /* Define if you have the X11 headers and libraries, and want the X11 GUI to
    be built. */
 #undef HAVE_X11
+
+/* Define if you have the XDR headers and library routines. */
+#undef HAVE_XDR
 
 /* Define if you have the zlib headers and libraries. */
 #undef HAVE_ZLIB

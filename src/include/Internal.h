@@ -35,9 +35,6 @@ SEXP do_Gnome(SEXP, SEXP, SEXP, SEXP);
 SEXP do_GTK(SEXP, SEXP, SEXP, SEXP);
 SEXP do_XFig(SEXP, SEXP, SEXP, SEXP);
 SEXP do_PDF(SEXP, SEXP, SEXP, SEXP);
-SEXP do_Quartz(SEXP, SEXP, SEXP, SEXP);
-
-
 #ifdef Macintosh
 SEXP do_Macintosh(SEXP, SEXP, SEXP, SEXP);
 SEXP do_applescript(SEXP, SEXP, SEXP, SEXP);
@@ -79,7 +76,6 @@ SEXP do_selectlist(SEXP, SEXP, SEXP, SEXP);
 SEXP do_abbrev(SEXP, SEXP, SEXP, SEXP);
 SEXP do_abline(SEXP, SEXP, SEXP, SEXP);
 SEXP do_abs(SEXP, SEXP, SEXP, SEXP);
-SEXP do_agrep(SEXP, SEXP, SEXP, SEXP);
 SEXP do_alias(SEXP, SEXP, SEXP, SEXP);
 SEXP do_allnames(SEXP, SEXP, SEXP, SEXP);
 SEXP do_anydf(SEXP, SEXP, SEXP, SEXP);
@@ -295,8 +291,6 @@ SEXP do_paste(SEXP, SEXP, SEXP, SEXP);
 SEXP do_pathexpand(SEXP, SEXP, SEXP, SEXP);
 SEXP do_pause(SEXP, SEXP, SEXP, SEXP);
 SEXP do_persp(SEXP, SEXP, SEXP, SEXP);
-SEXP do_pgrep(SEXP, SEXP, SEXP, SEXP);
-SEXP do_pgsub(SEXP, SEXP, SEXP, SEXP);
 SEXP do_Platform(SEXP, SEXP, SEXP, SEXP);
 SEXP do_plot_new(SEXP, SEXP, SEXP, SEXP);
 SEXP do_plot_window(SEXP, SEXP, SEXP, SEXP);
@@ -305,7 +299,6 @@ SEXP do_pmatch(SEXP, SEXP, SEXP, SEXP);
 SEXP do_polygon(SEXP, SEXP, SEXP, SEXP);
 SEXP do_polyroot(SEXP, SEXP, SEXP, SEXP);
 SEXP do_pos2env(SEXP, SEXP, SEXP, SEXP);
-SEXP do_pregexpr(SEXP, SEXP, SEXP, SEXP);
 SEXP do_primitive(SEXP, SEXP, SEXP, SEXP);
 SEXP do_printdefault(SEXP, SEXP, SEXP, SEXP);
 SEXP do_printdf(SEXP, SEXP, SEXP, SEXP);

@@ -63,28 +63,15 @@
  *		 itself.
  */
 
-/*
-* The code here used to use static variables to share values
-* across the different routines. These have now been collected
-* into a struct named  LocalParseData and this is explicitly
-* passed between the different routines. This avoids the needs
-* for the global variables and allows multiple evaluators, potentially
-* in different threads, to work on their own independent copies
-* that are local to their call stacks. This avoids any issues
-* with interrupts, etc. not restoring values.
 
-* The previous issue with the global "cutoff" variable is now implemented
-* by creating a deparse1WithCutoff() routine which takes the cutoff from
-* the caller and passes this to the different routines as a member of the
-* LocalParseData struct. Access to the deparse1() routine remains unaltered.
-* This is exactly as Ross had suggested ...
-*
-* One possible fix is to restructure the code with another function which
-* takes a cutoff value as a parameter.	 Then "do_deparse" and "deparse1"
-* could each call this deeper function with the appropriate argument.
-* I wonder why I didn't just do this? -- it would have been quicker than
-* writing this note.  I guess it needs a bit more thought ...
-*/
+/* FIXME : The code below saves and restores the value of the global */
+/* variable "cutoff".  This could create a problem if a user interrupts */
+/* the deparse before there is a chance to restore the value.  One */
+/* possible fix is to restructure the code with another function which */
+/* takes a cutoff value as a parameter.	 Then "do_deparse" and "deparse1" */
+/* could each call this deeper function with the appropriate argument. */
+/* I wonder why I didn't just do this? -- it would have been quicker than */
+/* writing this note.  I guess it needs a bit more thought ... */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -101,66 +88,47 @@
 #define MAX_Cutoff (BUFSIZE - 12)
 /* ----- MAX_Cutoff  <	BUFSIZE !! */
 
+static int cutoff = DEFAULT_Cutoff;
 extern int isValidName(char*);
 
-#include "RBufferUtils.h"
+/*static char buff[BUFSIZE];*/
+static int linenumber;
+static int len;
+static int incurly = 0;
+static int inlist = 0;
+static Rboolean startline = TRUE;
+static int indent = 0;
+static SEXP strvec;
 
-typedef R_StringBuffer DeparseBuffer;
+static void args2buff(SEXP, int, int);
+static void deparse2buff(SEXP);
+static void print2buff(char *);
+static void printtab2buff(int);
+static void scalar2buff(SEXP);
+static void writeline(void);
+static void vector2buff(SEXP);
+static void vec2buff(SEXP);
+static void linebreak();
+static void deparse2(SEXP, SEXP);
 
-typedef struct {
- int linenumber;
- int len;
- int incurly;
- int inlist;
- Rboolean startline; /* = TRUE; */
- int indent;
- SEXP strvec;
 
- DeparseBuffer buffer;
+static char *buff=NULL;
 
- int cutoff;
-} LocalParseData;
-
-static SEXP deparse1WithCutoff(SEXP call, Rboolean abbrev, int cutoff);
-static void args2buff(SEXP, int, int, LocalParseData *);
-static void deparse2buff(SEXP, LocalParseData *);
-static void print2buff(char *, LocalParseData *);
-static void printtab2buff(int, LocalParseData *);
-static void scalar2buff(SEXP, LocalParseData *);
-static void writeline(LocalParseData *);
-static void vector2buff(SEXP, LocalParseData *);
-static void vec2buff(SEXP, LocalParseData *);
-static void linebreak(Rboolean *lbreak, LocalParseData *);
-static void deparse2(SEXP, SEXP, LocalParseData *);
-
-/*
-  Perhaps we can consolidate all the AllocBuffers into a single
-  routine across the files that provide something like this:
-    character.c,
-    saveload.c & scan.c (are identical modulo variable names.)
-    deparse.c, printutils.c (identical and merged)
- */
-void R_AllocStringBuffer(int blen, DeparseBuffer *buf)
+static void AllocBuffer(int blen)
 {
-    if(blen >= 0) {
-	if(blen*sizeof(char) < buf->bufsize) return;
-	blen = (blen+1)*sizeof(char);
-	if(blen < buf->defaultSize) blen = buf->defaultSize;
-	if(buf->data == NULL){
-		buf->data = (char *) malloc(blen);
-		buf->data[0] = '\0';
-	} else
-		buf->data = (char *) realloc(buf->data, blen);
-	buf->bufsize = blen;
-	if(!buf->data) {
-		buf->bufsize = 0;
-		error("Could not allocate memory for Encodebuf");
-	}
-    } else {
-	if(buf->bufsize == buf->defaultSize) return;
-	free(buf->data);
-	buf->data = (char *) malloc(buf->defaultSize);
-	buf->bufsize = buf->defaultSize;
+    static int bufsize = 0;
+    if(blen*sizeof(char) < bufsize) return;
+    blen = (blen+1)*sizeof(char);
+    if(blen < BUFSIZE) blen = BUFSIZE;
+    if(buff == NULL){
+	buff = (char *) malloc(blen);
+	buff[0] = '\0';
+    } else
+	buff = (char *) realloc(buff, blen);
+    bufsize = blen;
+    if(!buff) {
+	bufsize = 0;
+	error("Could not allocate memory for Encodebuf");
     }
 }
 
@@ -168,29 +136,26 @@ void R_AllocStringBuffer(int blen, DeparseBuffer *buf)
 SEXP do_deparse(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ca1;
-    int  cut0;
+    int savecutoff, cut0;
     /*checkArity(op, args);*/
     if(length(args) < 1) errorcall(call, "too few arguments");
 
     ca1 = CAR(args); args = CDR(args);
-    cut0 = DEFAULT_Cutoff;
+    savecutoff = cutoff;
+    cutoff = DEFAULT_Cutoff;
     if(!isNull(CAR(args))) {
 	cut0 = asInteger(CAR(args));
 	if(cut0 == NA_INTEGER|| cut0 < MIN_Cutoff || cut0 > MAX_Cutoff)
 	    warning("invalid `cutoff' for deparse, using default");
 	else
-	    cut0 = DEFAULT_Cutoff;
+	    cutoff = cut0;
     }
-    ca1 = deparse1WithCutoff(ca1, 0, cut0);
+    ca1 = deparse1(ca1, 0);
+    cutoff = savecutoff;
     return ca1;
 }
 
 SEXP deparse1(SEXP call, Rboolean abbrev)
-{
-    return(deparse1WithCutoff(call, abbrev, DEFAULT_Cutoff));
-}
-
-static SEXP deparse1WithCutoff(SEXP call, Rboolean abbrev, int cutoff)
 {
 /* Arg. abbrev:
 	If abbrev is TRUE, then the returned value
@@ -199,36 +164,23 @@ static SEXP deparse1WithCutoff(SEXP call, Rboolean abbrev, int cutoff)
 */
     SEXP svec;
     int savedigits;
-    /* The following gives warning (when "-pedantic" is used):
-       In function `deparse1WithCutoff': initializer element
-       is not computable at load time -- and its because of R_NilValue
-       (RH 7.1 gcc 2.96  wrongly gives an error with "-pedantic")
-    */
-    LocalParseData localData =
-	    {0, 0, 0, 0, /*startline = */TRUE, 0,
-	     NULL,
-	     /*DeparseBuffer=*/{NULL, 0, BUFSIZE},
-	     DEFAULT_Cutoff};
-    DeparseBuffer *buffer = &localData.buffer;
-    localData.cutoff = cutoff;
-    localData.strvec = R_NilValue;
 
     PrintDefaults(R_NilValue);/* from global options() */
     savedigits = R_print.digits;
     R_print.digits = DBL_DIG;/* MAX precision */
 
     svec = R_NilValue;
-    deparse2(call, svec, &localData);/* just to determine linenumber..*/
-    PROTECT(svec = allocVector(STRSXP, localData.linenumber));
-    deparse2(call, svec, &localData);
+    deparse2(call, svec);/* just to determine linenumber..*/
+    PROTECT(svec = allocVector(STRSXP, linenumber));
+    deparse2(call, svec);
     UNPROTECT(1);
     if (abbrev) {
-	R_AllocStringBuffer(0, buffer);
-	buffer->data[0] = '\0';
-	strncat(buffer->data, CHAR(STRING_ELT(svec, 0)), 10);
+	AllocBuffer(0);
+	buff[0] = '\0';
+	strncat(buff, CHAR(STRING_ELT(svec, 0)), 10);
 	if (strlen(CHAR(STRING_ELT(svec, 0))) > 10)
-	    strcat(buffer->data, "...");
-	svec = mkString(buffer->data);
+	    strcat(buff, "...");
+	svec = mkString(buff);
     }
     R_print.digits = savedigits;
     return svec;
@@ -240,9 +192,13 @@ static SEXP deparse1WithCutoff(SEXP call, Rboolean abbrev, int cutoff)
 /* that it can be reparsed correctly */
 SEXP deparse1line(SEXP call, Rboolean abbrev)
 {
+   int savecutoff;
    SEXP temp;
 
-   temp = deparse1WithCutoff(call, abbrev, MAX_Cutoff);
+   savecutoff = cutoff;
+   cutoff = MAX_Cutoff;
+   temp = deparse1(call, abbrev);
+   cutoff = savecutoff;
    return(temp);
 }
 
@@ -274,7 +230,7 @@ SEXP do_dput(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (ifile != 1) {
 	con = getConnection(ifile);
 	wasopen = con->isopen;
-	if(!wasopen)
+	if(!wasopen) 
 	    if(!con->open(con)) error("cannot open the connection");
     }/* else: "Stdout" */
     for (i = 0; i < LENGTH(tval); i++)
@@ -346,24 +302,24 @@ SEXP do_dump(SEXP call, SEXP op, SEXP args, SEXP rho)
     return names;
 }
 
-static void linebreak(Rboolean *lbreak, LocalParseData *d)
+static void linebreak(Rboolean *lbreak)
 {
-    if (d->len > d->cutoff) {
+    if (len > cutoff) {
 	if (!*lbreak) {
 	    *lbreak = TRUE;
-	    d->indent++;
+	    indent++;
 	}
-	writeline(d);
+	writeline();
     }
 }
 
-static void deparse2(SEXP what, SEXP svec, LocalParseData *d)
+static void deparse2(SEXP what, SEXP svec)
 {
-    d->strvec = svec;
-    d->linenumber = 0;
-    d->indent = 0;
-    deparse2buff(what, d);
-    writeline(d);
+    strvec = svec;
+    linenumber = 0;
+    indent = 0;
+    deparse2buff(what);
+    writeline();
 }
 
 
@@ -379,54 +335,54 @@ curlyahead(SEXP s)
     return FALSE;
 }
 
-static void attr1(SEXP s, LocalParseData *d)
+static void attr1(SEXP s)
 {
     if(ATTRIB(s) != R_NilValue)
-	print2buff("structure(", d);
+	print2buff("structure(");
 }
 
-static void attr2(SEXP s, LocalParseData *d)
+static void attr2(SEXP s)
 {
     if(ATTRIB(s) != R_NilValue) {
 	SEXP a = ATTRIB(s);
 	while(!isNull(a)) {
-	    print2buff(", ", d);
+	    print2buff(", ");
 	    if(TAG(a) == R_DimSymbol) {
-		print2buff(".Dim", d);
+		print2buff(".Dim");
 	    }
 	    else if(TAG(a) == R_DimNamesSymbol) {
-		print2buff(".Dimnames", d);
+		print2buff(".Dimnames");
 	    }
 	    else if(TAG(a) == R_NamesSymbol) {
-		print2buff(".Names", d);
+		print2buff(".Names");
 	    }
 	    else if(TAG(a) == R_TspSymbol) {
-		print2buff(".Tsp", d);
+		print2buff(".Tsp");
 	    }
 	    else if(TAG(a) == R_LevelsSymbol) {
-		print2buff(".Label", d);
+		print2buff(".Label");
 	    }
 	    else {
 		/* TAG(a) might contain spaces etc */
 		char *tag = CHAR(PRINTNAME(TAG(a)));
 		if(isValidName(tag))
-		    deparse2buff(TAG(a), d);
+		    deparse2buff(TAG(a));
 		else {
-		    print2buff("\"", d);
-		    deparse2buff(TAG(a), d);
-		    print2buff("\"", d);
+		    print2buff("\"");
+		    deparse2buff(TAG(a));
+		    print2buff("\"");
 		}
 	    }
-	    print2buff(" = ", d);
-	    deparse2buff(CAR(a), d);
+	    print2buff(" = ");
+	    deparse2buff(CAR(a));
 	    a = CDR(a);
 	}
-	print2buff(")", d);
+	print2buff(")");
     }
 }
 
 
-static void printcomment(SEXP s, LocalParseData *d)
+static void printcomment(SEXP s)
 {
     SEXP cmt;
     int i, ncmt;
@@ -435,23 +391,23 @@ static void printcomment(SEXP s, LocalParseData *d)
 
     if(isList(TAG(s)) && !isNull(TAG(s))) {
 	for (s = TAG(s); s != R_NilValue; s = CDR(s)) {
-	    print2buff(CHAR(STRING_ELT(CAR(s), 0)), d);
-	    writeline(d);
+	    print2buff(CHAR(STRING_ELT(CAR(s), 0)));
+	    writeline();
 	}
     }
     else {
 	cmt = getAttrib(s, R_CommentSymbol);
 	ncmt = length(cmt);
 	for(i = 0 ; i < ncmt ; i++) {
-	    print2buff(CHAR(STRING_ELT(cmt, i)), d);
-	    writeline(d);
+	    print2buff(CHAR(STRING_ELT(cmt, i)));
+	    writeline();
 	}
     }
 }
 
 	/* This is the recursive part of deparsing. */
 
-static void deparse2buff(SEXP s, LocalParseData *d)
+static void deparse2buff(SEXP s)
 {
     PPinfo fop;
     Rboolean lookahead = FALSE, lbreak = FALSE;
@@ -460,11 +416,11 @@ static void deparse2buff(SEXP s, LocalParseData *d)
 
     switch (TYPEOF(s)) {
     case NILSXP:
-	print2buff("NULL", d);
+	print2buff("NULL");
 	break;
     case SYMSXP:
 #if 1
-	print2buff(CHAR(PRINTNAME(s)), d);
+	print2buff(CHAR(PRINTNAME(s)));
 #else
 	/* I'm pretty sure this is WRONG:
 	   Blindly putting special symbols in ""s causes more trouble
@@ -488,65 +444,65 @@ static void deparse2buff(SEXP s, LocalParseData *d)
 #endif
 	break;
     case CHARSXP:
-	print2buff(CHAR(s), d);
+	print2buff(CHAR(s));
 	break;
     case SPECIALSXP:
     case BUILTINSXP:
 	sprintf(tpb, ".Primitive(\"%s\")", PRIMNAME(s));
-	print2buff(tpb, d);
+	print2buff(tpb);
 	break;
     case PROMSXP:
-	deparse2buff(PREXPR(s), d);
+	deparse2buff(PREXPR(s));
 	break;
     case CLOSXP:
-	print2buff("function (", d);
-	args2buff(FORMALS(s), 0, 1, d);
-	print2buff(") ", d);
-	writeline(d);
-	deparse2buff(BODY(s), d);
+	print2buff("function (");
+	args2buff(FORMALS(s), 0, 1);
+	print2buff(") ");
+	writeline();
+	deparse2buff(BODY(s));
 	break;
     case ENVSXP:
-	print2buff("<environment>", d);
+	print2buff("<environment>");
 	break;
     case VECSXP:
-	attr1(s, d);
-	print2buff("list(", d);
-	vec2buff(s, d);
-	print2buff(")", d);
-	attr2(s, d);
+	attr1(s);
+	print2buff("list(");
+	vec2buff(s);
+	print2buff(")");
+	attr2(s);
 	break;
     case EXPRSXP:
 	if(length(s) <= 0)
-	    print2buff("expression()", d);
+	    print2buff("expression()");
 	else {
-	    print2buff("expression(", d);
-	    vec2buff(s, d);
-	    print2buff(")", d);
+	    print2buff("expression(");
+	    vec2buff(s);
+	    print2buff(")");
 	}
 	break;
     case LISTSXP:
-	attr1(s, d);
-	print2buff("list(", d);
-	d->inlist++;
+	attr1(s);
+	print2buff("list(");
+	inlist++;
 	for (t=s ; CDR(t) != R_NilValue ; t=CDR(t) ) {
 	    if( TAG(t) != R_NilValue ) {
-		deparse2buff(TAG(t), d);
-		print2buff(" = ", d);
+		deparse2buff(TAG(t));
+		print2buff(" = ");
 	    }
-	    deparse2buff(CAR(t), d);
-	    print2buff(", ", d);
+	    deparse2buff(CAR(t));
+	    print2buff(", ");
 	}
 	if( TAG(t) != R_NilValue ) {
-	    deparse2buff(TAG(t), d);
-	    print2buff(" = ", d);
+	    deparse2buff(TAG(t));
+	    print2buff(" = ");
 	}
-	deparse2buff(CAR(t), d);
-	print2buff(")", d);
-	d->inlist--;
-	attr2(s, d);
+	deparse2buff(CAR(t));
+	print2buff(")" );
+	inlist--;
+	attr2(s);
 	break;
     case LANGSXP:
-	printcomment(s, d);
+	printcomment(s);
 	if (TYPEOF(CAR(s)) == SYMSXP) {
 	    if ((TYPEOF(SYMVALUE(CAR(s))) == BUILTINSXP) ||
 		(TYPEOF(SYMVALUE(CAR(s))) == SPECIALSXP)) {
@@ -571,167 +527,167 @@ static void deparse2buff(SEXP s, LocalParseData *d)
 		}
 		switch (fop) {
 		case PP_IF:
-		    print2buff("if (", d);
+		    print2buff("if (");
 		    /* print the predicate */
-		    deparse2buff(CAR(s), d);
-		    print2buff(") ", d);
-		    if (d->incurly && !d->inlist ) {
+		    deparse2buff(CAR(s));
+		    print2buff(") ");
+		    if (incurly && !inlist ) {
 			lookahead = curlyahead(CAR(CDR(s)));
 			if (!lookahead) {
-			    writeline(d);
-			    d->indent++;
+			    writeline();
+			    indent++;
 			}
 		    }
 		    /* need to find out if there is an else */
 		    if (length(s) > 2) {
-			deparse2buff(CAR(CDR(s)), d);
-			if (d->incurly && !d->inlist) {
-			    writeline(d);
+			deparse2buff(CAR(CDR(s)));
+			if (incurly && !inlist) {
+			    writeline();
 			    if (!lookahead)
-				d->indent--;
+				indent--;
 			}
 			else
-			    print2buff(" ", d);
-			print2buff("else ", d);
-			deparse2buff(CAR(CDDR(s)), d);
+			    print2buff(" ");
+			print2buff("else ");
+			deparse2buff(CAR(CDDR(s)));
 		    }
 		    else {
-			deparse2buff(CAR(CDR(s)), d);
-			if (d->incurly && !lookahead && !d->inlist )
-			    d->indent--;
+			deparse2buff(CAR(CDR(s)));
+			if (incurly && !lookahead && !inlist )
+			    indent--;
 		    }
 		    break;
 		case PP_WHILE:
-		    print2buff("while (", d);
-		    deparse2buff(CAR(s), d);
-		    print2buff(") ", d);
-		    deparse2buff(CADR(s), d);
+		    print2buff("while (");
+		    deparse2buff(CAR(s));
+		    print2buff(") ");
+		    deparse2buff(CADR(s));
 		    break;
 		case PP_FOR:
-		    print2buff("for (", d);
-		    deparse2buff(CAR(s), d);
-		    print2buff(" in ", d);
-		    deparse2buff(CADR(s), d);
-		    print2buff(") ", d);
-		    deparse2buff(CADR(CDR(s)), d);
+		    print2buff("for (");
+		    deparse2buff(CAR(s));
+		    print2buff(" in ");
+		    deparse2buff(CADR(s));
+		    print2buff(") ");
+		    deparse2buff(CADR(CDR(s)));
 		    break;
 		case PP_REPEAT:
-		    print2buff("repeat ", d);
-		    deparse2buff(CAR(s), d);
+		    print2buff("repeat ");
+		    deparse2buff(CAR(s));
 		    break;
 		case PP_CURLY:
-		    print2buff("{", d);
-		    d->incurly += 1;
-		    d->indent++;
-		    writeline(d);
+		    print2buff("{");
+		    incurly += 1;
+		    indent++;
+		    writeline();
 		    while (s != R_NilValue) {
-			deparse2buff(CAR(s), d);
-			writeline(d);
+			deparse2buff(CAR(s));
+			writeline();
 			s = CDR(s);
 		    }
-		    d->indent--;
-		    print2buff("}", d);
-		    d->incurly -= 1;
+		    indent--;
+		    print2buff("}");
+		    incurly -= 1;
 		    break;
 		case PP_PAREN:
-		    print2buff("(", d);
-		    deparse2buff(CAR(s), d);
-		    print2buff(")", d);
+		    print2buff("(");
+		    deparse2buff(CAR(s));
+		    print2buff(")");
 		    break;
 		case PP_SUBSET:
-		    deparse2buff(CAR(s), d);
+		    deparse2buff(CAR(s));
 		    if (PRIMVAL(SYMVALUE(op)) == 1)
-			print2buff("[", d);
+			print2buff("[");
 		    else
-			print2buff("[[", d);
-		    args2buff(CDR(s), 0, 0, d);
+			print2buff("[[");
+		    args2buff(CDR(s), 0, 0);
 		    if (PRIMVAL(SYMVALUE(op)) == 1)
-			print2buff("]", d);
+			print2buff("]");
 		    else
-			print2buff("]]", d);
+			print2buff("]]");
 		    break;
 		case PP_FUNCALL:
 		case PP_RETURN:
 		    if (isValidName(CHAR(PRINTNAME(op))))
-			print2buff(CHAR(PRINTNAME(op)), d);
+			print2buff(CHAR(PRINTNAME(op)));
 		    else {
-			print2buff("\"", d);
-			print2buff(CHAR(PRINTNAME(op)), d);
-			print2buff("\"", d);
+			print2buff("\"");
+			print2buff(CHAR(PRINTNAME(op)));
+			print2buff("\"");
 		    }
-		    print2buff("(", d);
-		    d->inlist++;
-		    args2buff(s, 0, 0, d);
-		    d->inlist--;
-		    print2buff(")", d);
+		    print2buff("(");
+		    inlist++;
+		    args2buff(s, 0, 0);
+		    inlist--;
+		    print2buff(")");
 		    break;
 		case PP_FOREIGN:
-		    print2buff(CHAR(PRINTNAME(op)), d);
-		    print2buff("(", d);
-		    d->inlist++;
-		    args2buff(s, 1, 0, d);
-		    d->inlist--;
-		    print2buff(")", d);
+		    print2buff(CHAR(PRINTNAME(op)));
+		    print2buff("(");
+		    inlist++;
+		    args2buff(s, 1, 0);
+		    inlist--;
+		    print2buff(")");
 		    break;
 		case PP_FUNCTION:
-		    printcomment(s, d);
-		    print2buff(CHAR(PRINTNAME(op)), d);
-		    print2buff("(", d);
-		    args2buff(FORMALS(s), 0, 1, d);
-		    print2buff(") ", d);
-		    deparse2buff(CADR(s), d);
+		    printcomment(s);
+		    print2buff(CHAR(PRINTNAME(op)));
+		    print2buff("(");
+		    args2buff(FORMALS(s), 0, 1);
+		    print2buff(") ");
+		    deparse2buff(CADR(s));
 		    break;
 		case PP_ASSIGN:
 		case PP_ASSIGN2:
-		    deparse2buff(CAR(s), d);
-		    print2buff(" ", d);
-		    print2buff(CHAR(PRINTNAME(op)), d);
-		    print2buff(" ", d);
-		    deparse2buff(CADR(s), d);
+		    deparse2buff(CAR(s));
+		    print2buff(" ");
+		    print2buff(CHAR(PRINTNAME(op)));
+		    print2buff(" ");
+		    deparse2buff(CADR(s));
 		    break;
 		case PP_DOLLAR:
-		    deparse2buff(CAR(s), d);
-		    deparse2buff(op, d);
+		    deparse2buff(CAR(s));
+		    deparse2buff(op);
 		    /*temp fix to handle printing of x$a's */
 		    if( isString(CADR(s)) &&
 			isValidName(CHAR(STRING_ELT(CADR(s), 0))))
-			deparse2buff(STRING_ELT(CADR(s), 0), d);
+			deparse2buff(STRING_ELT(CADR(s), 0));
 		    else
-			deparse2buff(CADR(s), d);
+			deparse2buff(CADR(s));
 		    break;
 		case PP_BINARY:
-		    deparse2buff(CAR(s), d);
-		    print2buff(" ", d);
-		    print2buff(CHAR(PRINTNAME(op)), d);
-		    print2buff(" ", d);
-		    linebreak(&lbreak, d);
-		    deparse2buff(CADR(s), d);
+		    deparse2buff(CAR(s));
+		    print2buff(" ");
+		    print2buff(CHAR(PRINTNAME(op)));
+		    print2buff(" ");
+		    linebreak(&lbreak);
+		    deparse2buff(CADR(s));
 		    if (lbreak) {
-			d->indent--;
+			indent--;
 			lbreak = FALSE;
 		    }
 		    break;
 		case PP_BINARY2:	/* no space between op and args */
-		    deparse2buff(CAR(s), d);
-		    print2buff(CHAR(PRINTNAME(op)), d);
-		    deparse2buff(CADR(s), d);
+		    deparse2buff(CAR(s));
+		    print2buff(CHAR(PRINTNAME(op)));
+		    deparse2buff(CADR(s));
 		    break;
 		case PP_UNARY:
-		    print2buff(CHAR(PRINTNAME(op)), d);
-		    deparse2buff(CAR(s), d);
+		    print2buff(CHAR(PRINTNAME(op)));
+		    deparse2buff(CAR(s));
 		    break;
 		case PP_BREAK:
-		    print2buff("break", d);
+		    print2buff("break");
 		    break;
 		case PP_NEXT:
-		    print2buff("next", d);
+		    print2buff("next");
 		    break;
 		case PP_SUBASS:
-		    print2buff("\"", d);
-		    print2buff(CHAR(PRINTNAME(op)), d);
-		    print2buff("\"(", d);
-		    args2buff(s, 0, 0, d);
-		    print2buff(")", d);
+		    print2buff("\"");
+		    print2buff(CHAR(PRINTNAME(op)));
+		    print2buff("\"(");
+		    args2buff(s, 0, 0);
+		    print2buff(")");
 		    break;
 		default:
 		    UNIMPLEMENTED("deparse2buff");
@@ -741,14 +697,14 @@ static void deparse2buff(SEXP s, LocalParseData *d)
 		if(isSymbol(CAR(s)) && isUserBinop(CAR(s))) {
 		    op = CAR(s);
 		    s = CDR(s);
-		    deparse2buff(CAR(s), d);
-		    print2buff(" ", d);
-		    print2buff(CHAR(PRINTNAME(op)), d);
-		    print2buff(" ", d);
-		    linebreak(&lbreak, d);
-		    deparse2buff(CADR(s), d);
+		    deparse2buff(CAR(s));
+		    print2buff(" ");
+		    print2buff(CHAR(PRINTNAME(op)));
+		    print2buff(" ");
+		    linebreak(&lbreak);
+		    deparse2buff(CADR(s));
 		    if (lbreak) {
-			d->indent--;
+			indent--;
 			lbreak = FALSE;
 		    }
 		    break;
@@ -756,31 +712,31 @@ static void deparse2buff(SEXP s, LocalParseData *d)
 		else {
 		    if ( isSymbol(CAR(s)) )
 			if ( !isValidName(CHAR(PRINTNAME(CAR(s)))) ){
-			    print2buff("\"", d);
-			    print2buff(CHAR(PRINTNAME(CAR(s))), d);
-			    print2buff("\"", d);
+			    print2buff("\"");
+			    print2buff(CHAR(PRINTNAME(CAR(s))));
+			    print2buff("\"");
 			} else
-			    print2buff(CHAR(PRINTNAME(CAR(s))), d);
+			    print2buff(CHAR(PRINTNAME(CAR(s))));
 		    else
-			deparse2buff(CAR(s), d);
-		    print2buff("(", d);
-		    args2buff(CDR(s), 0, 0, d);
-		    print2buff(")", d);
+			deparse2buff(CAR(s));
+		    print2buff("(");
+		    args2buff(CDR(s), 0, 0);
+		    print2buff(")");
 		}
 	    }
 	}
 	else if (TYPEOF(CAR(s)) == CLOSXP || TYPEOF(CAR(s)) == SPECIALSXP
 		 || TYPEOF(CAR(s)) == BUILTINSXP) {
-	    deparse2buff(CAR(s), d);
-	    print2buff("(", d);
-	    args2buff(CDR(s), 0, 0, d);
-	    print2buff(")", d);
+	    deparse2buff(CAR(s));
+	    print2buff("(");
+	    args2buff(CDR(s), 0, 0);
+	    print2buff(")");
 	}
 	else { /* we have a lambda expression */
-	    deparse2buff(CAR(s), d);
-	    print2buff("(", d);
-	    args2buff(CDR(s), 0, 0, d);
-	    print2buff(")", d);
+	    deparse2buff(CAR(s));
+	    print2buff("(");
+	    args2buff(CDR(s), 0, 0);
+	    print2buff(")");
 	}
 	break;
     case STRSXP:
@@ -788,17 +744,17 @@ static void deparse2buff(SEXP s, LocalParseData *d)
     case INTSXP:
     case REALSXP:
     case CPLXSXP:
-	attr1(s, d);
-	vector2buff(s, d);
-	attr2(s, d);
+	attr1(s);
+	vector2buff(s);
+	attr2(s);
 	break;
     case EXTPTRSXP:
 	sprintf(tpb, "<pointer: %p>\n", R_ExternalPtrAddr(s));
-	print2buff(tpb, d);
+	print2buff(tpb);
 	break;
     case WEAKREFSXP:
 	sprintf(tpb, "<weak reference>\n");
-	print2buff(tpb, d);
+	print2buff(tpb);
 	break;
     default:
 	UNIMPLEMENTED("deparse2buff");
@@ -809,45 +765,45 @@ static void deparse2buff(SEXP s, LocalParseData *d)
 /* If there is a string array active point to that, and */
 /* otherwise we are counting lines so don't do anything. */
 
-static void writeline(LocalParseData *d)
+static void writeline()
 {
-    if (d->strvec != R_NilValue)
-	SET_STRING_ELT(d->strvec, d->linenumber, mkChar(d->buffer.data));
-    d->linenumber++;
+    if (strvec != R_NilValue)
+	SET_STRING_ELT(strvec, linenumber, mkChar(buff));
+    linenumber++;
     /* reset */
-    d->len = 0;
-    d->buffer.data[0] = '\0';
-    d->startline = TRUE;
+    len = 0;
+    buff[0] = '\0';
+    startline = TRUE;
 }
 
-static void print2buff(char *strng, LocalParseData *d)
+static void print2buff(char *strng)
 {
     int tlen, bufflen;
 
-    if (d->startline) {
-	d->startline = FALSE;
-	printtab2buff(d->indent, d);	/*if at the start of a line tab over */
+    if (startline) {
+	startline = FALSE;
+	printtab2buff(indent);	/*if at the start of a line tab over */
     }
     tlen = strlen(strng);
-    R_AllocStringBuffer(0, &(d->buffer));
-    bufflen = strlen(d->buffer.data);
+    AllocBuffer(0);
+    bufflen = strlen(buff);
     /*if (bufflen + tlen > BUFSIZE) {
 	buff[0] = '\0';
 	error("string too long in deparse");
 	}*/
-    R_AllocStringBuffer(bufflen + tlen, &(d->buffer));
-    strcat(d->buffer.data, strng);
-    d->len += tlen;
+    AllocBuffer(bufflen + tlen);
+    strcat(buff, strng);
+    len += tlen;
 }
 
-static void scalar2buff(SEXP inscalar, LocalParseData *d)
+static void scalar2buff(SEXP inscalar)
 {
     char *strp;
     strp = EncodeElement(inscalar, 0, '"');
-    print2buff(strp, d);
+    print2buff(strp);
 }
 
-static void vector2buff(SEXP vector, LocalParseData *d)
+static void vector2buff(SEXP vector)
 {
     int tlen, i, quote;
     char *strp;
@@ -859,27 +815,27 @@ static void vector2buff(SEXP vector, LocalParseData *d)
 	quote=0;
     if (tlen == 0) {
 	switch(TYPEOF(vector)) {
-	case LGLSXP: print2buff("logical(0)", d); break;
-	case INTSXP: print2buff("numeric(0)", d); break;
-	case REALSXP: print2buff("numeric(0)", d); break;
-	case CPLXSXP: print2buff("complex(0)", d); break;
-	case STRSXP: print2buff("character(0)", d); break;
+	case LGLSXP: print2buff("logical(0)"); break;
+	case INTSXP: print2buff("numeric(0)"); break;
+	case REALSXP: print2buff("numeric(0)"); break;
+	case CPLXSXP: print2buff("complex(0)"); break;
+	case STRSXP: print2buff("character(0)"); break;
 	}
     }
     else if (tlen == 1) {
-	scalar2buff(vector, d);
+	scalar2buff(vector);
     }
     else {
-	print2buff("c(", d);
+	print2buff("c(");
 	for (i = 0; i < tlen; i++) {
 	    strp = EncodeElement(vector, i, quote);
-	    print2buff(strp, d);
+	    print2buff(strp);
 	    if (i < (tlen - 1))
-		print2buff(", ", d);
-	    if (d->len > d->cutoff)
-		writeline(d);
+		print2buff(", ");
+	    if (len > cutoff)
+		writeline();
 	}
-	print2buff(")", d);
+	print2buff(")");
     }
 
 }
@@ -888,7 +844,7 @@ static void vector2buff(SEXP vector, LocalParseData *d)
 /* Deparse vectors of S-expressions. */
 /* In particular, this deparses objects of mode expression. */
 
-static void vec2buff(SEXP v, LocalParseData *d)
+static void vec2buff(SEXP v)
 {
     SEXP nv;
     int i, n;
@@ -900,26 +856,26 @@ static void vec2buff(SEXP v, LocalParseData *d)
 
     for(i = 0 ; i < n ; i++) {
 	if (i > 0)
-	    print2buff(", ", d);
-	linebreak(&lbreak, d);
+	    print2buff(", ");
+	linebreak(&lbreak);
 	if (!isNull(nv) && !isNull(STRING_ELT(nv, i))
 	    && *CHAR(STRING_ELT(nv, i))) {
 	    if( isValidName(CHAR(STRING_ELT(nv, i))) )
-		deparse2buff(STRING_ELT(nv, i), d);
+		deparse2buff(STRING_ELT(nv, i));
 	    else {
-		print2buff("\"", d);
-		deparse2buff(STRING_ELT(nv, i), d);
-		print2buff("\"", d);
+		print2buff("\"");
+		deparse2buff(STRING_ELT(nv, i));
+		print2buff("\"");
 	    }
-	    print2buff(" = ", d);
+	    print2buff(" = ");
 	}
-	deparse2buff(VECTOR_ELT(v, i), d);
+	deparse2buff(VECTOR_ELT(v, i));
     }
     if (lbreak)
-	d->indent--;
+	indent--;
 }
 
-static void args2buff(SEXP arglist, int lineb, int formals, LocalParseData *d)
+static void args2buff(SEXP arglist, int lineb, int formals)
 {
     Rboolean lbreak = FALSE;
 
@@ -932,55 +888,55 @@ static void args2buff(SEXP arglist, int lineb, int formals, LocalParseData *d)
 	    SEXP s = TAG(arglist);
 
 	    if( s == R_DotsSymbol || isValidName(CHAR(PRINTNAME(s))) )
-		print2buff(CHAR(PRINTNAME(s)), d);
+		print2buff(CHAR(PRINTNAME(s)));
 	    else {
 		if( strlen(CHAR(PRINTNAME(s)))< 117 ) {
 		    sprintf(tpb,"\"%s\"",CHAR(PRINTNAME(s)));
-		    print2buff(tpb, d);
+		    print2buff(tpb);
 		}
 		else {
 		    sprintf(tpb,"\"");
 		    strncat(tpb, CHAR(PRINTNAME(s)), 117);
 		    strcat(tpb, "\"");
-		    print2buff(tpb, d);
+		    print2buff(tpb);
 		}
 	    }
 #endif
 	    if(formals) {
 		if (CAR(arglist) != R_MissingArg) {
-		    print2buff(" = ", d);
-		    deparse2buff(CAR(arglist), d);
+		    print2buff(" = ");
+		    deparse2buff(CAR(arglist));
 		}
 	    }
 	    else {
-		print2buff(" = ", d);
+		print2buff(" = ");
 		if (CAR(arglist) != R_MissingArg) {
-		    deparse2buff(CAR(arglist), d);
+		    deparse2buff(CAR(arglist));
 		}
 	    }
 	}
-	else deparse2buff(CAR(arglist), d);
+	else deparse2buff(CAR(arglist));
 	arglist = CDR(arglist);
 	if (arglist != R_NilValue) {
-	    print2buff(", ", d);
-	    linebreak(&lbreak, d);
+	    print2buff(", ");
+	    linebreak(&lbreak);
 	}
     }
     if (lbreak)
-	d->indent--;
+	indent--;
 }
 
 /* This code controls indentation.  Used to follow the S style, */
 /* (print 4 tabs and then start printing spaces only) but I */
 /* modified it to be closer to emacs style (RI). */
 
-static void printtab2buff(int ntab, LocalParseData *d)
+static void printtab2buff(int ntab)
 {
     int i;
 
     for (i = 1; i <= ntab; i++)
 	if (i <= 4)
-	    print2buff("    ", d);
+	    print2buff("    ");
 	else
-	    print2buff("  ", d);
+	    print2buff("  ");
 }

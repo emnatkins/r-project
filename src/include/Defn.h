@@ -86,11 +86,7 @@ void R_ProcessEvents(void);
 
 /*  Heap and Pointer Protection Stack Sizes.  */
 
-typedef unsigned long R_size_t;
-#define R_SIZE_T_MAX ULONG_MAX
-
 #define Mega 1048576. /* 1 Mega Byte := 2^20 (= 1048576) Bytes */
-#define Giga 1073741824. /* 1 Giga Byte := 2^30 Bytes */
 
 /*	R_PPSSIZE  The pointer protection stack size  */
 /*	R_NSIZE	   The number of cons cells	 */
@@ -178,7 +174,7 @@ extern int vsnprintf (char *str, size_t count, const char *fmt, va_list arg);
 # define _R_HAVE_TIMING_ 1
 #endif
 
-#include <R_ext/Rdynload.h>
+#include "R_ext/Rdynload.h"
 
 #define HSIZE	   4119	/* The size of the hash table for symbols */
 #define MAXELTSIZE 8192 /* The largest string size */
@@ -412,11 +408,11 @@ extern int	gc_inhibit_torture INI_as(1);
 extern char*	R_Home;		    /* Root of the R tree */
 
 /* Memory Management */
-extern R_size_t	R_NSize		INI_as(R_NSIZE);/* Size of cons cell heap */
-extern R_size_t	R_VSize		INI_as(R_VSIZE);/* Size of the vector heap */
+extern int	R_NSize		INI_as(R_NSIZE);/* Size of cons cell heap */
+extern int	R_VSize		INI_as(R_VSIZE);/* Size of the vector heap */
 extern SEXP	R_NHeap;	    /* Start of the cons cell heap */
 extern SEXP	R_FreeSEXP;	    /* Cons cell free list */
-extern R_size_t	R_Collected;	    /* Number of free cons cells (after gc) */
+extern long	R_Collected;	    /* Number of free cons cells (after gc) */
 LibExtern SEXP	R_PreciousList;	    /* List of Persistent Objects */
 LibExtern int	R_Is_Running;	    /* for Windows memory manager */
 
@@ -440,9 +436,8 @@ extern int	R_BrowseLevel	INI_as(0);	/* how deep the browser is */
 extern int	R_Expressions	INI_as(500);	/* options(expressions) */
 extern Rboolean	R_KeepSource	INI_as(FALSE);	/* options(keep.source) */
 #ifdef EXPERIMENTAL_NAMESPACES
-extern int	R_UseNamespaceDispatch INI_as(TRUE);
+extern int	R_UseNamespaceDispatch INI_as(FALSE);
 #endif
-extern int	R_WarnLength	INI_as(1000);	/* Error/warning max length */
 
 /* File Input/Output */
 LibExtern Rboolean R_Interactive	INI_as(TRUE);	/* TRUE during interactive use*/
@@ -479,14 +474,13 @@ extern int	R_ShowErrorMessages INI_as(1);	/* show error messages? */
 extern char*	R_GUIType	INI_as("unknown");
 
 /* Pointer  type and utilities for dispatch in the methods package */
-typedef SEXP (*R_stdGen_ptr_t)(SEXP, SEXP, SEXP); /* typedef */
+typedef SEXP (*R_stdGen_ptr_t)(SEXP, SEXP); /* typedef */
 R_stdGen_ptr_t R_get_standardGeneric_ptr(); /* get method */
 R_stdGen_ptr_t R_set_standardGeneric_ptr(R_stdGen_ptr_t new); /* set method */
 SEXP R_deferred_default_method();
 SEXP R_set_prim_method(SEXP fname, SEXP op, SEXP code_vec, SEXP fundef, SEXP mlist);
 SEXP do_set_prim_method(SEXP op, char *code_string, SEXP fundef, SEXP mlist);
 void R_set_quick_method_check(R_stdGen_ptr_t);
-SEXP R_primitive_methods(SEXP op);
 
 /* slot management (in attrib.c) */
 SEXP R_do_slot(SEXP obj, SEXP name);
@@ -734,11 +728,10 @@ void warningcall(SEXP, const char*,...);
 void ErrorMessage(SEXP, int, ...);
 void WarningMessage(SEXP, R_WARNING, ...);
 
-R_size_t R_GetMaxVSize(void);
-void R_SetMaxVSize(R_size_t);
-R_size_t R_GetMaxNSize(void);
-void R_SetMaxNSize(R_size_t);
-R_size_t R_Decode2Long(char *p, int *ierr);
+int R_GetMaxVSize(void);
+void R_SetMaxVSize(int);
+int R_GetMaxNSize(void);
+void R_SetMaxNSize(int);
 
 void R_run_onexits(RCNTXT *);
 void R_restore_globals(RCNTXT *);

@@ -18,7 +18,6 @@ DISTFILES = $(INSTFILES) \
 	config.site configure configure.ac \
 	date-stamp
 SUBDIRS = m4 tools afm doc etc share src tests
-SUBDIRS_WITH_NO_BUILD = debian
 
 GZIP = --best
 
@@ -63,8 +62,9 @@ R: Makefile
 	@for d in $(SUBDIRS); do \
 	  (cd $${d} && $(MAKE) R) || exit 1; \
 	done
-	@test -f src/library/stamp-docs || \
-	  echo "you should 'make docs' now ..."
+	@if [ ! -f src/library/stamp-docs ]; then \
+	  echo "you should 'make docs' now ..."; \
+	fi
 
 docs: FORCE
 	-@(cd doc && $(MAKE) $@)
@@ -112,7 +112,6 @@ maintainer-clean: distclean
 	@echo "deletes files that may need special rules to rebuild"
 	@(for d in $(SUBDIRS); do rsd="$${d} $${rsd}"; done; \
 	  for d in $${rsd}; do (cd $${d} && $(MAKE) $@); done)
-	-@(cd $(srcdir) && rm -rf autom4te.cache)
 
 dist: dist-unix
 dist-unix: distdir
@@ -137,9 +136,9 @@ distdir: $(DISTFILES)
 	  (cd $${d} && $(MAKE) distdir) \
 	    || exit 1; \
 	done
-	@for d in $(SUBDIRS_WITH_NO_BUILD); do \
+	@for d in debian; do \
 	  ((cd $(srcdir); $(TAR) -c -f - --exclude=CVS $${d}) \
-	      | (cd $(distdir); $(TAR) -x -f -)) \
+	    | (cd $(distdir); $(TAR) -x -f -)) \
 	    || exit 1; \
 	done
 

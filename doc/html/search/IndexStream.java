@@ -22,11 +22,11 @@
 
   $Source: /scratch/CVS-ARCHIVE/R/doc/html/search/IndexStream.java,v $
   
-  $Revision: 1.4 $
+  $Revision: 1.3 $
 
-  $Date: 2002/05/05 22:34:52 $
+  $Date: 1999/08/10 09:56:03 $
   
-  $Author: pd $
+  $Author: ripley $
 
 ==============================================================================*/
 
@@ -364,9 +364,6 @@ public class IndexStream extends Object
   HISTORY:
   
   $Log: IndexStream.java,v $
-  Revision 1.4  2002/05/05 22:34:52  pd
-  .subset/.subset2, perfomace tweak in [[.data.frame
-
   Revision 1.3  1999/08/10 09:56:03  ripley
   change FSF address in copyrights
   add some copyrights in src/gnome and elsewhere

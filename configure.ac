@@ -110,20 +110,8 @@ fi
 
 ## We provide these defaults so that headers and libraries in
 ## '/usr/local' are found (by the native tools, mostly).
-## <FIXME>
-## We try to determine whether fink is used (on Darwin, mostly) by 
-## looking for '/sw/etc/fink.conf'.  Should be ok but needs to be
-## documented ...
-## Also, GCC 3.1 seems to be very unhappy about '/usr/local/include'
-## to the header search path seems ...
-if test -f "/sw/etc/fink.conf"; then
-  : ${CPPFLAGS="-I/sw/include -I/usr/local/include"}
-  : ${LDFLAGS="-L/sw/lib -L/usr/local/lib"}
-else
-  : ${CPPFLAGS="-I/usr/local/include"}
-  : ${LDFLAGS="-L/usr/local/lib"}
-fi
-## </FIXME>
+: ${CPPFLAGS="-I/usr/local/include"}
+: ${LDFLAGS="-L/usr/local/lib"}
 
 ### ** Handle arguments to configure.
 
@@ -448,7 +436,7 @@ AC_HEADER_SYS_WAIT
 ## includes.
 AC_CHECK_HEADERS(arpa/inet.h dl.h dlfcn.h elf.h fcntl.h floatingpoint.h \
   fpu_control.h grp.h ieee754.h ieeefp.h locale.h netdb.h netinet/in.h \
-  pwd.h readline/history.h readline/readline.h strings.h \
+  pwd.h readline/history.h readline/readline.h rpc/rpc.h strings.h \
   sys/param.h sys/select.h sys/socket.h sys/stat.h sys/time.h \
   sys/times.h sys/utsname.h unistd.h)
 ## </NOTE>
@@ -540,8 +528,6 @@ case "${host_cpu}" in
     R_PROG_CC_FLAG_D__NO_MATH_INLINES
     R_PROG_CC_FLAG([-mieee-fp],
                    [R_XTRA_CFLAGS="${R_XTRA_CFLAGS} -mieee-fp"])
-    R_PROG_F77_FLAG([-mieee-fp],
-                   [R_XTRA_FFLAGS="${R_XTRA_FFLAGS} -mieee-fp"])
     R_PROG_CXX_FLAG([-mieee-fp],
                     [R_XTRA_CXXFLAGS="${R_XTRA_CXXFLAGS} -mieee-fp"])
     ;;
@@ -764,11 +750,6 @@ case "${host_os}" in
     cpicflags="-fno-common"
     cxxpicflags="-fno-common"
     fpicflags="-fno-common"
-    ## <FIXME>
-    ## Needed because currently the Quartz device driver gets linked to
-    ## the main binary.  Change once the driver is modularized.
-    main_ldflags="-framework Carbon"
-    ## </FIXME>
     case "${host_os}" in
       darwin1.[[012]])
 	shlib_ldflags="-bundle -undefined suppress" ;;
@@ -975,12 +956,7 @@ LIBR_LDFLAGS="${SHLIB_LDFLAGS}"
 case "${host_os}" in
   darwin*)
     LIBR_EXT=".dylib"
-    ## <FIXME>
-    ## We need '-framework Carbon' because currently the Quartz device
-    ## driver gets linked to the main binary and hence also the R dylib.
-    ##  Change once the driver is modularized.
-    LIBR_LDFLAGS="-dynamiclib -framework Carbon"
-    ## </FIXME>
+    LIBR_LDFLAGS="-dynamiclib"
     ;;
 esac
 
@@ -1105,9 +1081,6 @@ R_ZLIB
 ## bzlib headers and libraries.
 R_BZLIB
 
-## PCRE headers and libraries.
-R_PCRE
-
 ## POSIX times.
 R_SYS_POSIX_LEAPSECONDS
 
@@ -1184,7 +1157,6 @@ case "${host_os}" in
     AC_DEFINE(HAVE_INTERNET, 1)
     AC_DEFINE(HAVE_JPEG, 1)
     AC_DEFINE(SUPPORT_LIBXML, 1)
-    AC_DEFINE(HAVE_PCRE, 1)
     AC_DEFINE(HAVE_PNG, 1)
     AC_DEFINE(HAVE_POSIX_SETJMP, 1)
     AC_DEFINE(HAVE_SOCKETS, 1)

@@ -18,8 +18,7 @@ all: Makefile DESCRIPTION
 	@echo "building package '$(pkg)'"
 	@$(MKINSTALLDIRS) $(top_builddir)/library/$(pkg)/R
 	@(f=$${TMPDIR:-/tmp}/R$$$$; \
-          echo ".packageName <- \"$(pkg)\"" >  $${f}; \
-	  cat `ls $(srcdir)/R/*.R` >> $${f}; \
+	  cat `ls $(srcdir)/R/*.R` > $${f}; \
 	  $(top_srcdir)/tools/move-if-change $${f} all.R)
 	@for f in COPYRIGHTS INDEX TITLE; do \
 	if test -f $(srcdir)/$${f}; then \

@@ -28,7 +28,7 @@
 #include "Print.h"
 #include "arithmetic.h"
 
-#include <R_ext/RConverters.h>
+#include "R_ext/RConverters.h"
 
 /* Table of  .Internal(.) and .Primitive(.)  R functions
  * =====     =========	      ==========
@@ -96,8 +96,6 @@ FUNTAB R_FunTab[] =
 {"<<-",		do_set,		2,	100,	-1,	PP_ASSIGN2},
 {"{",		do_begin,	0,	0,	-1,	PP_CURLY},
 {"(",		do_paren,	0,	1,	1,	PP_PAREN},
-{".subset",	do_subset_dflt,	1,	1,	-1,	PP_FUNCALL},
-{".subset2",	do_subset2_dflt,2,	1,	2,	PP_FUNCALL},
 {"[",		do_subset,	1,	0,	-1,	PP_SUBSET},
 {"[[",		do_subset2,	2,	0,	2,	PP_SUBSET},
 {"$",		do_subset3,	3,	0,	2,	PP_DOLLAR},
@@ -446,11 +444,6 @@ FUNTAB R_FunTab[] =
 {"sub",		do_gsub,	0,	11,	5,	PP_FUNCALL},
 {"gsub",	do_gsub,	1,	11,	5,	PP_FUNCALL},
 {"regexpr",	do_regexpr,	1,	11,	3,	PP_FUNCALL},
-{"grep.perl",	do_pgrep,	1,	11,	4,	PP_FUNCALL},
-{"sub.perl",    do_pgsub,	0,	11,	4,	PP_FUNCALL},
-{"gsub.perl",	do_pgsub,	1,	11,	4,	PP_FUNCALL},
-{"regexpr.perl",do_pregexpr,	1,	11,	2,	PP_FUNCALL},
-{"agrep",	do_agrep,	1,	11,	8,	PP_FUNCALL},
 {"tolower",	do_tolower,	1,	11,	1,	PP_FUNCALL},
 {"toupper",	do_toupper,	1,	11,	1,	PP_FUNCALL},
 {"chartr",	do_chartr,	1,	11,	3,	PP_FUNCALL},
@@ -688,12 +681,10 @@ FUNTAB R_FunTab[] =
 {"X11",		do_X11,		0,	111,	8,	PP_FUNCALL},
 {"gnome",	do_Gnome,	0,	111,	4,	PP_FUNCALL},
 {"GTK",		do_GTK,		0,	111,	4,	PP_FUNCALL},
-{"Quartz",	do_Quartz,	0,	111,	7,	PP_FUNCALL},
 #endif
 #ifdef Macintosh
 {"Macintosh",	do_Macintosh,	0,	111,	4,	PP_FUNCALL},
 {"applescript",	do_applescript,	0,	111,	2,	PP_FUNCALL},
-{"Quartz",	do_Quartz,	0,	111,	7,	PP_FUNCALL},
 #endif
 
 /* Graphics */
@@ -716,7 +707,7 @@ FUNTAB R_FunTab[] =
 {"palette",	do_palette,	0,	11,	1,	PP_FUNCALL},
 {"plot.new",	do_plot_new,	0,	111,	0,	PP_FUNCALL},
 {"plot.window",	do_plot_window,	0,	111,	3,	PP_FUNCALL},
-{"axis",	do_axis,	0,	111,   12,	PP_FUNCALL},
+{"axis",	do_axis,	0,	111,	7,	PP_FUNCALL},
 {"plot.xy",	do_plot_xy,	0,	111,	6,	PP_FUNCALL},
 {"text",	do_text,	0,	111,	7,	PP_FUNCALL},
 {"mtext",	do_mtext,	0,	111,	5,	PP_FUNCALL},
@@ -740,7 +731,7 @@ FUNTAB R_FunTab[] =
 {"dend.window",	do_dendwindow,	0,	111,	6,	PP_FUNCALL},
 {"replay",	do_replay,	0,	111,	0,	PP_FUNCALL},
 {"erase",	do_erase,	0,	111,	1,	PP_FUNCALL},
-/*{"dotplot",	do_dotplot,	0,	111,	1,	PP_FUNCALL},*/
+{"dotplot",	do_dotplot,	0,	111,	1,	PP_FUNCALL},
 {"persp",	do_persp,	0,	111,	4,	PP_FUNCALL},
 {"filledcontour",do_filledcontour,0,	111,	5,	PP_FUNCALL},
 /* {"getDL",	do_getDL,	0,	111,	0,	PP_FUNCALL},
@@ -755,7 +746,7 @@ FUNTAB R_FunTab[] =
 {"inherits",	do_inherits,	0,	11,	3,	PP_FUNCALL},
 {"UseMethod",	do_usemethod,	0,	 0,	-1,	PP_FUNCALL},
 {"NextMethod",	do_nextmethod,	0,	10,	-1,	PP_FUNCALL},
-{"standardGeneric",do_standardGeneric,0, 1,	-1,	PP_FUNCALL},
+{"standardGeneric",do_standardGeneric,0, 1,	1,	PP_FUNCALL},
 
 /* Modelling Functionality */
 
@@ -980,7 +971,7 @@ void InitNames()
 /*  If "name" is not found, it is installed in the symbol table.
     The symbol corresponding to the string "name" is returned. */
 
-SEXP install(char const *name)
+SEXP install(char *name)
 {
     char buf[MAXIDSIZE+1];
     SEXP sym;

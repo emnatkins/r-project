@@ -114,9 +114,9 @@ for a list), navigate to the @code{bin/windows/base}
 directory and collect the files you need.  There are three versions of
 the distribution.
 
-1) @code{SetupR.exe} is about 19Mb and gives a complete installation.
+1) @code{SetupR.exe} is about 18Mb and gives a complete installation.
 
-2) Directory @code{miniR} contains @code{miniR.exe} and eight files
+2) Directory @code{miniR} contains @code{miniR.exe} and seven files
 @code{miniR-?.bin}.  You can put  @code{miniR.exe} and @code{miniR-1.bin}
 on one floppy and the remaining @code{miniR-?.bin} on a floppy each.
 

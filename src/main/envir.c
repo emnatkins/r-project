@@ -94,7 +94,7 @@
 #endif
 
 #include "Defn.h"
-#include <R_ext/Callbacks.h>
+#include "R_ext/Callbacks.h"
 
 #define IS_USER_DATABASE(rho)  OBJECT((rho)) && inherits((rho), "UserDefinedDatabase")
 
@@ -1675,13 +1675,8 @@ static int isMissing(SEXP symbol, SEXP rho)
     else
 	s = symbol;
 
-#ifdef EXPERIMENTAL_NAMESPACES
-    if (rho == R_NilValue || rho == R_BaseNamespace)
-	return 0;  /* is this really the right thing to do? LT */
-#else
-    if (rho == R_NilValue)
-	return 0;  /* is this really the right thing to do? LT */
-#endif
+    if (rho == R_NilValue)  /* is this really the right thing to do? LT */
+	return 0;
 
     vl = findVarLocInFrame(rho, s, NULL);
     if (vl != R_NilValue) {

@@ -174,18 +174,12 @@ form[1]
 ## S3 arithmetic methods
 ISOdate(1990, 12, 1)- ISOdate(1980, 12, 1)
 
-## group methods
+## arithmetic:  switch to an "Arith" method when this automatically
+## generates methods for its member functions.
 
-setMethod("Arith", c("track", "numeric"), function(e1, e2){e1@y <-
-  callGeneric(e1@y , e2); e1})
-
-setGroupGeneric("Arith")
-
+setMethod("-", c("track", "numeric"), function(e1, e2){e1@y <- e1@y -e2; e1})
 
 t1  - 100.
-
-t1/2
-
 
 ## check it hasn't screwed up S3 methods
 ISOdate(1990, 12, 1)- ISOdate(1980, 12, 1)
@@ -262,22 +256,6 @@ for(.cl in c("A0", "A1", "B0", "B1", "B2"))
 
 removeGeneric("f1")
 
-## test of nonstandard generic definition
-
-setGeneric("doubleAnything", function(x) {
-  methodValue <- standardGeneric("doubleAnything")
-  c(methodValue, methodValue)
-})
-
-setMethod("doubleAnything", "ANY", function(x)x)
-
-setMethod("doubleAnything", "character",
-function(x)paste("<",x,">",sep=""))
-
-mustEqual(doubleAnything(1:10), c(1:10, 1:10))
-mustEqual(doubleAnything("junk"), rep("<junk>",2))
-
-removeGeneric("doubleAnything")
 
 
 }

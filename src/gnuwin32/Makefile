@@ -44,8 +44,7 @@ FLIBS+=-lRblas
 SOURCES = $(filter-out malloc.c blas00.c,$(wildcard *.c *.f))
 OBJS = $(SOURCES:.c=.o)
 MAINLIBS = libmain.a libappl.a libmath.a
-EXTRALIBS = ga.a gl.a xdr.a ../extra/zlib/libz.a ../extra/pcre/libRpcre.a\
-   ../extra/bzip2/libbz2.a
+EXTRALIBS = ga.a gl.a xdr.a ../extra/zlib/libz.a
 
 LIBFILES = $(foreach i, $(ALLPACKAGES), ../../library/$i) ../../library/R.css
 PKGS = $(foreach i,$(PACKAGES),pkg-$i)
@@ -84,8 +83,6 @@ rinstaller:
 	$(MAKE) -C installer RPREFIX=$(RPREFIX)
 
 rlibs:
-	# need pcre.h built before main is built
-	$(MAKE) -C ../extra/pcre -f Makefile.win
 	$(MAKE) -C ../appl  OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
 	$(MAKE) -C ../main  OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
 	$(MAKE) -C ../nmath OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
@@ -162,12 +159,6 @@ Rm.exp1: $(OBJS-EXTRA)
 
 ../extra/zlib/libz.a:
 	$(MAKE) -C ../extra/zlib -f Makefile.win
-
-../extra/pcre/libRpcre.a:
-	$(MAKE) -C ../extra/pcre -f Makefile.win
-
-../extra/bzip2/libbz2.a:
-	$(MAKE) -C ../extra/bzip2  -f Makefile.win libbz2.a
 
 rdocs:
 	@$(MAKE) -C ../../doc/manual -f Makefile.win html BUILD=$(BUILD)
@@ -323,8 +314,6 @@ cleanwin:
 	$(MAKE) -C help clean
 	$(MAKE) -C front-ends clean
 	$(MAKE) -C ../extra/xdr -f Makefile.win clean
-	$(MAKE) -C ../extra/pcre -f Makefile.win distclean
-	$(MAKE) -C ../extra/bzip2 -f Makefile.win clean
 	$(MAKE) -C bitmap clean
 	-$(MAKE) -C installer clean ISclean
 

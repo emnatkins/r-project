@@ -2284,7 +2284,8 @@ SEXP do_persp(SEXP call, SEXP op, SEXP args, SEXP env)
 
     GSetState(1, dd);
     GSavePars(dd);
-    ProcessInlinePars(args, dd, call);
+    RecordGraphicsCall(call);
+    ProcessInlinePars(args, dd);
     if (length(border) > 1)
 	Rf_gpptr(dd)->fg = INTEGER(border)[0];
     Rf_gpptr(dd)->xlog = Rf_gpptr(dd)->ylog = FALSE;

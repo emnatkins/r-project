@@ -67,11 +67,15 @@ typedef enum {
     GE_ScalePS = 8
 } GEevent;
 
-typedef struct _GEDevDesc GEDevDesc;
+/* The full definition should be ...
+ *    typedef SEXP (* GEcallback)(GEvent, *GEDevDesc, SEXP);
+ *
+ * ... but I could not figure out how to use *GEDevDesc before
+ * the definition of GEDevDesc.
+ */
+typedef SEXP (* GEcallback)();
 
-typedef SEXP (* GEcallback)(GEevent, GEDevDesc *, SEXP);
-
-typedef struct { 
+typedef struct {
     /* An array of information about each graphics system that
      * has registered with the graphics engine.
      * This is used to store graphics state for each graphics
@@ -94,14 +98,14 @@ typedef struct {
     GEcallback callback;
 } GESystemDesc;
 
-struct _GEDevDesc {
+typedef struct {
     int newDevStruct;
     NewDevDesc *dev;
     /* Information about a device which has nothing to do with
      * R's concept of a graphics engine.
      */
     GESystemDesc *gesd[MAX_GRAPHICS_SYSTEMS];
-};
+} GEDevDesc;
 
 GEDevDesc* GEcreateDevDesc(NewDevDesc* dev);
 void GEdestroyDevDesc(GEDevDesc* dd);
@@ -195,21 +199,6 @@ void GEMetricInfo(int c, int font, double cex, double ps,
 		  GEDevDesc *dd);
 double GEStrWidth(char *str, int font, double cex, double ps, GEDevDesc *dd);
 double GEStrHeight(char *str, int font, double cex, double ps, GEDevDesc *dd);
-
-/* From plotmath.c 
- */
-double GEExpressionWidth(SEXP expr, 
-			 int font, double cex, double ps,
-			 GEDevDesc *dd);
-double GEExpressionHeight(SEXP expr, 
-			  int font, double cex, double ps,
-			  GEDevDesc *dd);
-void GEMathText(double x, double y, SEXP expr,
-		double xc, double yc, double rot, 
-		int col, double gamma, int font, double cex, double ps,
-		GEDevDesc *dd);
-/* (End from plotmath.c)
- */
 
 #define	DEG2RAD 0.01745329251994329576
 

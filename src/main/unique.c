@@ -30,17 +30,12 @@
 #define SET_ARGUSED(x,v) SETLEVELS(x,v)
 
 /* Hash function and equality test for keys */
-typedef struct _HashData HashData;
+static int K, M;
+static int(*hash) (SEXP, int);
+static int(*equal) (SEXP, int, SEXP, int);
+static SEXP HashTable;
 
-struct _HashData {
-  int K, M;
-  int(*hash) (SEXP, int, HashData *);
-  int(*equal) (SEXP, int, SEXP, int);
-  SEXP HashTable;
-
-  int nomatch;
-};
-
+static int nomatch;
 
 /* Integer keys are hashed via a random number generator */
 /* based on Knuth's recommendations.  The high order K bits */
@@ -49,23 +44,23 @@ struct _HashData {
 /* WARNING / FIXME : this doesn't work if K = 0 so some */
 /* fixes/warnings probably need to be installed somewhere. (RG) */
 
-static int scatter(unsigned int key, HashData *d)
+static int scatter(unsigned int key)
 {
-    return 3141592653U * key >> (32 - d->K);
+    return 3141592653U * key >> (32 - K);
 }
 
-static int lhash(SEXP x, int indx, HashData *d)
+static int lhash(SEXP x, int indx)
 {
     if (LOGICAL(x)[indx] == NA_LOGICAL)
 	return 2;
     return LOGICAL(x)[indx];
 }
 
-static int ihash(SEXP x, int indx, HashData *d)
+static int ihash(SEXP x, int indx)
 {
     if (INTEGER(x)[indx] == NA_INTEGER)
 	return 0;
-    return scatter((unsigned int) (INTEGER(x)[indx]), d);
+    return scatter((unsigned int) (INTEGER(x)[indx]));
 }
 
 /* We use unions here because Solaris gcc -O2 has trouble with
@@ -75,7 +70,7 @@ union foo {
     unsigned int u[2];
 };
 
-static int rhash(SEXP x, int indx, HashData *d)
+static int rhash(SEXP x, int indx)
 {
     /* There is a problem with signed 0s under IEEE */
     double tmp = (REAL(x)[indx] == 0.0) ? 0.0 : REAL(x)[indx];
@@ -86,12 +81,12 @@ static int rhash(SEXP x, int indx, HashData *d)
     if (sizeof(double) >= sizeof(unsigned int)*2) {
 	union foo tmpu;
 	tmpu.d = tmp;
-	return scatter(tmpu.u[0] + tmpu.u[1], d);
+	return scatter(tmpu.u[0] + tmpu.u[1]);
     } else
-	return scatter(*((unsigned int *) (&tmp)), d);
+	return scatter(*((unsigned int *) (&tmp)));
 }
 
-static int chash(SEXP x, int indx, HashData *d)
+static int chash(SEXP x, int indx)
 {
     Rcomplex tmp;
     unsigned int u;
@@ -107,20 +102,20 @@ static int chash(SEXP x, int indx, HashData *d)
 	u = tmpu.u[0] ^ tmpu.u[1];
 	tmpu.d = tmp.i;
 	u ^= tmpu.u[0] ^ tmpu.u[1];
-	return scatter(u, d);
+	return scatter(u);
     } else
 	return scatter((*((unsigned int *)(&tmp.r)) ^
-			(*((unsigned int *)(&tmp.i)))), d);
+			(*((unsigned int *)(&tmp.i)))));
 }
 
-static int shash(SEXP x, int indx, HashData *d)
+static int shash(SEXP x, int indx)
 {
     unsigned int k;
     char *p = CHAR(STRING_ELT(x, indx));
     k = 0;
     while (*p++)
 	    k = 11 * k + *p; /* was 8 but 11 isn't a power of 2 */
-    return scatter(k, d);
+    return scatter(k);
 }
 
 static int iequal(SEXP x, int i, SEXP y, int j)
@@ -168,63 +163,63 @@ static int sequal(SEXP x, int i, SEXP y, int j)
 
 /* Choose M to be the smallest power of 2 */
 /* not less than 4*n and set K = log2(M) */
-static void MKsetup(int n, HashData *d)
+static void MKsetup(int n)
 {
     int n4 = 4 * n;
-    d->M = 1;
-    d->K = 0;
-    while (d->M < n4) {
-	d->M *= 2;
-	d->K += 1;
+    M = 1;
+    K = 0;
+    while (M < n4) {
+	M *= 2;
+	K += 1;
     }
 }
 
-static void HashTableSetup(SEXP x, HashData *d)
+static void HashTableSetup(SEXP x)
 {
     switch (TYPEOF(x)) {
     case LGLSXP:
-	d->hash = lhash;
-	d->equal = iequal;
-	MKsetup(3, d);
+	hash = lhash;
+	equal = iequal;
+	MKsetup(3);
 	break;
     case INTSXP:
-	d->hash = ihash;
-	d->equal = iequal;
-	MKsetup(LENGTH(x), d);
+	hash = ihash;
+	equal = iequal;
+	MKsetup(LENGTH(x));
 	break;
     case REALSXP:
-	d->hash = rhash;
-	d->equal = requal;
-	MKsetup(LENGTH(x), d);
+	hash = rhash;
+	equal = requal;
+	MKsetup(LENGTH(x));
 	break;
     case CPLXSXP:
-	d->hash = chash;
-	d->equal = cequal;
-	MKsetup(LENGTH(x), d);
+	hash = chash;
+	equal = cequal;
+	MKsetup(LENGTH(x));
 	break;
     case STRSXP:
-	d->hash = shash;
-	d->equal = sequal;
-	MKsetup(LENGTH(x), d);
+	hash = shash;
+	equal = sequal;
+	MKsetup(LENGTH(x));
 	break;
     }
-    d->HashTable = allocVector(INTSXP, d->M);
+    HashTable = allocVector(INTSXP, M);
 }
 
 /* Open address hashing */
 /* Collision resolution is by linear probing */
 /* The table is guaranteed large so this is sufficient */
 
-static int isDuplicated(SEXP x, int indx, HashData *d)
+static int isDuplicated(SEXP x, int indx)
 {
     int i, *h;
 
-    h = INTEGER(d->HashTable);
-    i = d->hash(x, indx, d);
+    h = INTEGER(HashTable);
+    i = hash(x, indx);
     while (h[i] != NIL) {
-	if (d->equal(x, h[i], x, indx))
+	if (equal(x, h[i], x, indx))
 	    return 1;
-	i = (i + 1) % d->M;
+	i = (i + 1) % M;
     }
     h[i] = indx;
     return 0;
@@ -235,21 +230,20 @@ SEXP duplicated(SEXP x)
     SEXP ans;
     int *h, *v;
     int i, n;
-    HashData data;
 
     n = LENGTH(x);
-    HashTableSetup(x, &data);
-    PROTECT(data.HashTable);
+    HashTableSetup(x);
+    PROTECT(HashTable);
     ans = allocVector(LGLSXP, n);
     UNPROTECT(1);
-    h = INTEGER(data.HashTable);
+    h = INTEGER(HashTable);
     v = LOGICAL(ans);
 
-    for (i = 0; i < data.M; i++)
+    for (i = 0; i < M; i++)
 	h[i] = NIL;
 
     for (i = 0; i < n; i++)
-	v[i] = isDuplicated(x, i, &data);
+	v[i] = isDuplicated(x, i);
 
     return ans;
 }
@@ -320,36 +314,36 @@ SEXP do_duplicated(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 /* Build a hash table, ignoring information on duplication */
-static void DoHashing(SEXP table, HashData *d)
+static void DoHashing(SEXP table)
 {
     int *h, i, n;
 
     n = LENGTH(table);
-    h = INTEGER(d->HashTable);
+    h = INTEGER(HashTable);
 
-    for (i = 0; i < d->M; i++)
+    for (i = 0; i < M; i++)
 	h[i] = NIL;
 
     for (i = 0; i < n; i++)
-	(void) isDuplicated(table, i, d);
+	(void) isDuplicated(table, i);
 }
 
-static int Lookup(SEXP table, SEXP x, int indx, HashData *d)
+static int Lookup(SEXP table, SEXP x, int indx)
 {
     int i, *h;
 
-    h = INTEGER(d->HashTable);
-    i = d->hash(x, indx, d);
+    h = INTEGER(HashTable);
+    i = hash(x, indx);
     while (h[i] != NIL) {
-	if (d->equal(table, h[i], x, indx))
+	if (equal(table, h[i], x, indx))
 	    return h[i] + 1;
-	i = (i + 1) % d->M;
+	i = (i + 1) % M;
     }
-    return d->nomatch;
+    return nomatch;
 }
 
 /* Now do the table lookup */
-static SEXP HashLookup(SEXP table, SEXP x, HashData *d)
+static SEXP HashLookup(SEXP table, SEXP x)
 {
     SEXP ans;
     int i, n;
@@ -357,7 +351,7 @@ static SEXP HashLookup(SEXP table, SEXP x, HashData *d)
     n = LENGTH(x);
     ans = allocVector(INTSXP, n);
     for (i = 0; i < n; i++) {
-	INTEGER(ans)[i] = Lookup(table, x, i, d);
+	INTEGER(ans)[i] = Lookup(table, x, i);
     }
     return ans;
 }
@@ -367,7 +361,6 @@ SEXP do_match(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP x, table, ans;
     SEXPTYPE type;
     int n, i;
-    HashData data;
 
     checkArity(op, args);
 
@@ -385,7 +378,7 @@ SEXP do_match(SEXP call, SEXP op, SEXP args, SEXP env)
 	     TYPEOF(CADR(args)) : TYPEOF(CAR(args));
     x = SETCAR(args, coerceVector(CAR(args), type));
     table = SETCADR(args, coerceVector(CADR(args), type));
-    data.nomatch = asInteger(CAR(CDDR(args)));
+    nomatch = asInteger(CAR(CDDR(args)));
     n = length(x);
 
     /* handle zero length arrays */
@@ -393,14 +386,14 @@ SEXP do_match(SEXP call, SEXP op, SEXP args, SEXP env)
     if (length(table) == 0) {
 	ans = allocVector(INTSXP, n);
 	for (i = 0; i < n; i++)
-	    INTEGER(ans)[i] = data.nomatch;
+	    INTEGER(ans)[i] = nomatch;
 	return ans;
     }
 
-    HashTableSetup(table, &data);
-    PROTECT(data.HashTable);
-    DoHashing(table, &data);
-    ans = HashLookup(table, x, &data);
+    HashTableSetup(table);
+    PROTECT(HashTable);
+    DoHashing(table);
+    ans = HashLookup(table, x);
     UNPROTECT(1);
     return ans;
 }
@@ -408,13 +401,12 @@ SEXP do_match(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP match(SEXP table, SEXP x, int nmatch)
 {
     SEXP ans;
-    HashData data;
 
-    data.nomatch=nmatch;
-    HashTableSetup(table, &data);
-    PROTECT(data.HashTable);
-    DoHashing(table, &data);
-    ans = HashLookup(table, x, &data);
+    nomatch=nmatch;
+    HashTableSetup(table);
+    PROTECT(HashTable);
+    DoHashing(table);
+    ans = HashLookup(table, x);
     UNPROTECT(1);
     return ans;
 }
@@ -782,127 +774,3 @@ SEXP do_matchcall(SEXP call, SEXP op, SEXP args, SEXP env)
     return rval;
 }
 
-
-#if defined(IEEE_754) & defined(HAVE_STRING_H)
-#  include <string.h>
-#  ifdef _AIX  /*some people just have to be different */
-#    include <memory.h>
-#  endif
-/* int and double zeros are all bits off */
-#  define ZEROINT(X,N,I) do{memset(INTEGER(X),0,N*sizeof(int));}while(0)
-#  define ZERODBL(X,N,I) do{memset(REAL(X),0,N*sizeof(double));}while(0)
-#else
-#  define ZEROINT(X,N,I) for(I=0;I<N;I++) INTEGER(X)[I]=0
-#  define ZERODBL(X,N,I) for(I=0;I<N;I++) REAL(X)[I]=0
-#endif
-
-SEXP Rrowsum_matrix(SEXP x, SEXP ncol, SEXP g, SEXP uniqueg)
-{
-    SEXP matches,ans;
-    int i, j, n, p,ng=0,offset,offsetg;
-    HashData data;
-    data.nomatch = 0;
-
-    n = LENGTH(g);
-    p= INTEGER(ncol)[0];
-    ng=length(uniqueg);
-
-    HashTableSetup(uniqueg, &data);
-    PROTECT(data.HashTable);
-    DoHashing(uniqueg, &data);
-    PROTECT(matches = HashLookup(uniqueg ,g, &data));
-    
-    PROTECT(ans=allocMatrix(TYPEOF(x),ng,p)); 
-    
-    offset=0; offsetg=0;
-
-    switch(TYPEOF(x)){
-    case REALSXP:    
-	ZERODBL(ans,ng*p,i);
-	for(i=0;i<p;i++){
-	    for(j=0;j<n;j++){
-		REAL(ans)[INTEGER(matches)[j]-1+offsetg]+=REAL(x)[j+offset];
-	    }
-	    offset+=n;
-	    offsetg+=ng;
-	}
-	break;
-    case INTSXP: 
-	ZEROINT(ans,ng*p,i);
-	for(i=0;i<p;i++){
-	    for(j=0;j<n;j++){
-		if (INTEGER(x)[j+offset]==NA_INTEGER)
-		    INTEGER(ans)[INTEGER(matches)[j]-1+offsetg]=NA_INTEGER;
-		else if  (INTEGER(ans)[INTEGER(matches)[j]-1+offsetg]!=NA_INTEGER)
-		    INTEGER(ans)[INTEGER(matches)[j]-1+offsetg]+=INTEGER(x)[j+offset];
-	    }
-	    offset+=n;
-	    offsetg+=ng;
-	}
-	break;
-    default:
-	error("non-numeric matrix in rowsum: this can't happen");
-    }
-
-    UNPROTECT(2); /*HashTable, matches*/
-    UNPROTECT(1); /*ans*/
-    return ans;
-}
-
-SEXP Rrowsum_df(SEXP x, SEXP ncol, SEXP g, SEXP uniqueg)
-{
-    SEXP matches,ans,col,xcol;
-    int i, j, n, p,ng=0,offset,offsetg;
-    HashData data;
-    data.nomatch = 0;
-
-    n = LENGTH(g);
-    p= INTEGER(ncol)[0];
-    ng=length(uniqueg);
-
-    HashTableSetup(uniqueg, &data);
-    PROTECT(data.HashTable);
-    DoHashing(uniqueg, &data);
-    PROTECT(matches = HashLookup(uniqueg ,g, &data));
-    
-    PROTECT(ans=allocVector(VECSXP,p)); 
-    
-    offset=0; offsetg=0;
-
-    for(i=0; i<p;i++){
-	xcol=VECTOR_ELT(x,i);
-	if (!isNumeric(xcol))
-	    error("non-numeric dataframe in rowsum");
-	switch(TYPEOF(xcol)){
-	case REALSXP:    
-	    PROTECT(col=allocVector(REALSXP,ng));
-	    ZERODBL(col,ng,i);
-	    for(j=0;j<n;j++){
-		REAL(col)[INTEGER(matches)[j]-1]+=REAL(xcol)[j];
-	    }
-	    SET_VECTOR_ELT(ans,i,col);
-	    UNPROTECT(1);
-	    break;
-	case INTSXP: 
-	    PROTECT(col=allocVector(INTSXP,ng));
-	    ZEROINT(col,ng,i);
-	    for(j=0;j<n;j++){
-		if (INTEGER(xcol)[j]==NA_INTEGER)
-		    INTEGER(col)[INTEGER(matches)[j]-1]=NA_INTEGER;
-		else if (INTEGER(col)[INTEGER(matches)[j]-1]!=NA_INTEGER)
-		    INTEGER(col)[INTEGER(matches)[j]-1]+=INTEGER(xcol)[j];
-	    }
-	    SET_VECTOR_ELT(ans,i,col);
-	    UNPROTECT(1);
-	    break;
-
-	default:
-	    error("this can't happen");
-	}
-    }
-    namesgets(ans,getAttrib(x,R_NamesSymbol));
-
-    UNPROTECT(2); /*HashTable, matches*/
-    UNPROTECT(1); /*ans*/
-    return ans;
-}

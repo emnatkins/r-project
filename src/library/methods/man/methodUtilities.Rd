@@ -34,7 +34,7 @@ Quote()
 
 message(...)
 
-showDefault(object, oldMethods = TRUE)
+showDefault(object, printTo = stdout(), oldMethods = TRUE)
 }
 \section{Summary of Functions}{
   \describe{

@@ -21,13 +21,13 @@
 #ifndef _R_INTERNALS_H_
 #define _R_INTERNALS_H_
 
-#include <R_ext/Arith.h>
-#include <R_ext/Boolean.h>
-#include <R_ext/Complex.h>
-#include <R_ext/Error.h>
-#include <R_ext/Memory.h>
-#include <R_ext/PrtUtil.h>
-#include <R_ext/Utils.h>
+#include "R_ext/Arith.h"
+#include "R_ext/Boolean.h"
+#include "R_ext/Complex.h"
+#include "R_ext/Error.h"
+#include "R_ext/Memory.h"
+#include "R_ext/PrtUtil.h"
+#include "R_ext/Utils.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -663,7 +663,7 @@ SEXP GetPar(char*, SEXP);
 SEXP GetRowNames(SEXP);
 void gsetVar(SEXP, SEXP, SEXP);
 Rboolean inherits(SEXP, char*);
-SEXP install(char const *);
+SEXP install(char*);
 Rboolean isArray(SEXP);
 Rboolean isComplex(SEXP);
 Rboolean isEnvironment(SEXP);
@@ -997,9 +997,4 @@ void R_InitConnInPStream(R_inpstream_t stream,  Rconnection con,
 
 void R_Serialize(SEXP s, R_outpstream_t ops);
 SEXP R_Unserialize(R_inpstream_t ips);
-
-/* slot management */
-SEXP R_do_slot(SEXP obj, SEXP name);
-SEXP R_do_slot_assign(SEXP obj, SEXP name, SEXP value);
-
 #endif /* _R_INTERNALS_H_ */

@@ -1075,7 +1075,7 @@ AC_EGREP_CPP([yes],
 AC_DEFUN([_R_PATH_TCL_CONFIG],
 [AC_MSG_CHECKING([for tclConfig.sh in library (sub)directories])
 AC_CACHE_VAL([r_cv_path_TCL_CONFIG],
-[for ldir in /opt/lib /sw/lib /usr/local/lib /usr/lib /lib; do
+[for ldir in /opt/lib /usr/local/lib /usr/lib /lib; do
   for dir in \
       ${ldir} \
       `ls -d ${ldir}/tcl[[8-9]].[[0-9]]* 2>/dev/null | sort -r`; do
@@ -1095,7 +1095,7 @@ fi
 AC_DEFUN([_R_PATH_TK_CONFIG],
 [AC_MSG_CHECKING([for tkConfig.sh in library (sub)directories])
 AC_CACHE_VAL([r_cv_path_TK_CONFIG],
-[for ldir in /opt/lib /sw/lib /usr/local/lib /usr/lib /lib; do
+[for ldir in /opt/lib /usr/local/lib /usr/lib /lib; do
   for dir in \
       ${ldir} \
       `ls -d ${ldir}/tk[[8-9]].[[0-9]]* 2>/dev/null | sort -r`; do
@@ -1454,20 +1454,18 @@ AC_SUBST(BLAS_LIBS)
 ])# R_BLAS_LIBS
 
 AC_DEFUN([R_XDR],
-[AC_CHECK_HEADER(rpc/types.h)
-if test "${ac_cv_header_rpc_types_h}" = yes ; then
-  AC_CHECK_HEADER(rpc/xdr.h, , , [#include <rpc/types.h>])
-fi
-AC_CACHE_CHECK([for XDR support],
+[AC_CACHE_CHECK([for XDR support],
                 [r_cv_xdr],
-[if test "${ac_cv_header_rpc_types_h}" = yes \
-     && test "${ac_cv_header_rpc_xdr_h}" = yes \
-     && test "${ac_cv_search_xdr_string}" != no ; then
+[if test "${ac_cv_header_rpc_rpc_h}" = yes \
+    && test "${ac_cv_search_xdr_string}" != no ; then
   r_cv_xdr=yes
 else
   r_cv_xdr=no
+fi])
+if test "${r_cv_xdr}" = yes; then
+  AC_DEFINE(HAVE_XDR, 1,
+            [Define if you have the XDR headers and library routines.])
 fi
-])
 AM_CONDITIONAL(BUILD_XDR, [test "x${r_cv_xdr}" = xno])
 ])# R_XDR
 
@@ -1527,23 +1525,6 @@ caddr_t hello() {
 	       [r_cv_zlib_mmap=yes],
 	       [r_cv_zlib_mmap=yes]))
 ])# _R_ZLIB_MMAP
-
-
-AC_DEFUN([R_PCRE],
-[AC_CHECK_LIB(pcre, pcre_fullinfo, [have_pcre=yes], [have_pcre=no])
-if test "${have_pcre}" = yes; then
-  AC_CHECK_HEADERS(pcre.h pcre/pcre.h)
-  if test "${ac_cv_header_pcre_h}" = no \
-      && test "${ac_cv_header_pcre_pcre_h}" = no; then
-    have_pcre=no
-  fi
-fi
-if test "${have_pcre}" = yes; then
-  AC_DEFINE(HAVE_PCRE, 1,
-            [Define if you have the PCRE headers and libraries.])
-  LIBS="-lpcre ${LIBS}"
-fi
-])# R_PCRE
 
 
 AC_DEFUN([R_BZLIB],

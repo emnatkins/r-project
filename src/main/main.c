@@ -393,10 +393,10 @@ void setup_Rmainloop(void)
     R_Warnings = R_NilValue;
 
 #ifdef EXPERIMENTAL_NAMESPACES
-    if (getenv("R_NO_BASE_NAMESPACE") != NULL)
-	baseEnv = R_NilValue;
-    else
+    if (getenv("R_USE_BASE_NAMESPACE") != NULL)
 	baseEnv = R_BaseNamespace;
+    else
+	baseEnv = R_NilValue;
 #else
     baseEnv = R_NilValue;
 #endif
@@ -702,7 +702,7 @@ SEXP do_quit(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 
 
-#include <R_ext/Callbacks.h>
+#include "R_ext/Callbacks.h"
 
 static R_ToplevelCallbackEl *Rf_ToplevelTaskHandlers = NULL;
 

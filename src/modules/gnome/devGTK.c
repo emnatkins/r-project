@@ -42,6 +42,7 @@ typedef struct {
     double cex;				/* Character expansion */
     double srt;				/* String rotation */
 
+  //gint bg;				/* Background */
     int fill;
     int col;
 
@@ -253,7 +254,7 @@ static void SetColor(GdkColor *gcol, int color)
 /* set the line type */
 static void SetLineType(NewDevDesc *dd, int newlty, double nlwd)
 {
-    static gint8 dashlist[8];
+    static gchar dashlist[8];
     gint i, j, newlwd;
     gtkDesc *gtkd = (gtkDesc *) dd->deviceSpecific;
 
@@ -455,7 +456,8 @@ static Rboolean GTK_Open(NewDevDesc *dd, gtkDesc *gtkd, char *dsp, double w, dou
     gtk_widget_set_usize(gtkd->drawing, iw, ih);
 
     /* setup background color */
-    SetColor(&gtkd->gcol_bg, R_RGB(255, 255, 255)); /* FIXME canvas color */
+    //gtkd->bg = dd->bg = R_RGB(255, 255, 255);
+    SetColor(&gtkd->gcol_bg, R_RGB(255, 255, 255)); //FIXME canvas color
 
     /* place and realize the drawing area */
     gnome_app_set_contents(GNOME_APP(gtkd->window), gtkd->drawing);

@@ -30,14 +30,6 @@
                                                 target = "signature", defined = "signature"), where = envir)
     setClass("MethodWithNext",
              representation("MethodDefinition", nextMethod = "PossibleMethod", excluded = "list"), where = envir)
-    setClass("genericFunction",
-             representation("function", generic = "character", package = "character",
-                            group = "list", valueClass = "character",
-                            signature = "character", default = "OptionalMethods",
-                            skeleton = "call"))
-    setClass("groupGenericFunction",
-             representation("genericFunction", groupMembers = "list"))
-    setClass("ObjectsWithPackage", representation("character", package = "character"))
 
     TRUE
 }
@@ -103,7 +95,7 @@
                            class(value), "\" instead of the required class \"",
                            class(object), "\"", sep=""))
             value
-        }, where = envir, useAsDefault = TRUE)
+        }, where = envir, myDispatch = TRUE, useAsDefault = TRUE)
     }
     .InitTraceFunctions(envir)
     setMethod("initialize", "signature",
@@ -135,10 +127,7 @@
     if(length(signature)>0) {
         classes <- as.character(signature)
         sigArgs <- names(signature)
-        if(is(def, "genericFunction"))
-            formalNames <- def@signature
-        else if(is(def, "function"))
-            formalNames <- formalArgs(def)
+        formalNames <- formalArgs(def)
         if(length(sigArgs)< length(signature))
             names(signature) <- formalNames[seq(along = classes)]
         else if(length(sigArgs) > 0 && any(is.na(match(sigArgs, formalNames))))

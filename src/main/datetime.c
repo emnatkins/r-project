@@ -227,13 +227,15 @@ static double mktime0 (struct tm *tm, const int local)
     } else return guess_offset(tm) + mktime00(tm);
 }
 
+static struct tm ltm;
+
 /* Interface for localtime or gmtime or internal substitute */
-static struct tm * localtime0(const double *tp, const int local, struct tm *ltm)
+static struct tm * localtime0(const double *tp, const int local)
 {
     double d = *tp;
     long day;
     int y, tmp, mon, left, diff;
-    struct tm *res= ltm;
+    struct tm *res= &ltm;
     time_t t;
 
     if(d < 2147483647.0 &&
@@ -330,6 +332,10 @@ extern char *tzname[2];
 # endif
 #endif
 
+#ifndef Macintosh
+static char buff[20]; /* for putenv */
+#endif
+
 static int set_tz(char *tz, char *oldtz)
 {
 #ifdef Macintosh
@@ -338,7 +344,6 @@ static int set_tz(char *tz, char *oldtz)
 #else
     char *p = NULL;
     int settz = 0;
-    char buff[20];
 
     strcpy(oldtz, "");
     p = getenv("TZ");
@@ -367,7 +372,6 @@ static void reset_tz(char *tz)
 #else
     if(strlen(tz)) {
 #ifdef HAVE_PUTENV
-        char buff[20];
 	strcpy(buff, "TZ="); strcat(buff, tz);
 	putenv(buff);
 #else
@@ -389,7 +393,7 @@ static void reset_tz(char *tz)
 }
 
 
-static const char ltnames [][6] =
+static char ltnames[][6] =
 { "sec", "min", "hour", "mday", "mon", "year", "wday", "yday", "isdst" };
 
 
@@ -420,6 +424,7 @@ SEXP do_asPOSIXlt(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP stz, x, ans, ansnames, class, tzone;
     int i, n, isgmt = 0, valid, settz = 0;
     char *tz = NULL, oldtz[20] = "";
+    struct tm *ptm = NULL;
 
     checkArity(op, args);
     PROTECT(x = coerceVector(CAR(args), REALSXP));
@@ -442,10 +447,9 @@ SEXP do_asPOSIXlt(SEXP call, SEXP op, SEXP args, SEXP env)
 	SET_STRING_ELT(ansnames, i, mkChar(ltnames[i]));
 
     for(i = 0; i < n; i++) {
-        struct tm dummy, *ptm = &dummy;
 	if(R_FINITE(REAL(x)[i])){
 	    double d = REAL(x)[i];
-	    ptm = localtime0(&d, 1 - isgmt, &dummy);
+	    ptm = localtime0(&d, 1 - isgmt);
 	    /* in theory localtime/gmtime always return a valid
 	       struct tm pointer, but Windows uses NULL for error
 	       conditions (like negative times). */

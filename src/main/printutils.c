@@ -60,42 +60,47 @@
 #include <Defn.h>
 #include <Rmath.h>
 #include <Print.h>
-#include <R_ext/RS.h>
+#include "R_ext/RS.h"
 #include <Rconnections.h>
-
-#include "RBufferUtils.h"
-
 extern int R_OutputCon; /* from connections.c */
 
-
 #define BUFSIZE 8192  /* used by Rprintf etc */
-static R_StringBuffer gBuffer = {NULL, 0, BUFSIZE};
-static R_StringBuffer *buffer = &gBuffer; /*XX Add appropriate const here 
-                                            and in the routines that use it. */
+static char *Encodebuf=NULL;
 
-
-R_size_t R_Decode2Long(char *p, int *ierr)
+static void AllocBuffer(int len)
 {
-    R_size_t v = strtol(p, &p, 10);
+    static int bufsize = 0;
+    if(len*sizeof(char) < bufsize) return;
+    len = (len+1)*sizeof(char);
+    if(len < BUFSIZE) len = BUFSIZE;
+    /* Protect against broken realloc */
+    if(Encodebuf) Encodebuf = (char *) realloc(Encodebuf, len);
+    else Encodebuf = (char *) malloc(len);
+    bufsize = len;
+    if(!Encodebuf) {
+	bufsize = 0;
+	error("Could not allocate memory for Encodebuf");
+    }
+}
+
+long Decode2Long(char *p, int *ierr)
+{
+    long v = strtol(p, &p, 10);
     *ierr = 0;
     if(p[0] == '\0') return v;
     /* else look for letter-code ending : */
     if(R_Verbose)
-	REprintf("R_Decode2Long(): v=%ld\n", v);
-    if(p[0] == 'G') {
-	if((Giga * (double)v) > R_SIZE_T_MAX) { *ierr = 1; return(v); }
-	return (Giga*v);
-    }
-    else if(p[0] == 'M') {
-	if((Mega * (double)v) > R_SIZE_T_MAX) { *ierr = 1; return(v); }
+	REprintf("Decode2Long(): v=%ld\n", v);
+    if(p[0] == 'M') {
+	if((Mega * (double)v) > LONG_MAX) { *ierr = 1; return(v); }
 	return (Mega*v);
     }
     else if(p[0] == 'K') {
-	if((1024 * (double)v) > R_SIZE_T_MAX) { *ierr = 2; return(v); }
+	if((1024 * (double)v) > LONG_MAX) { *ierr = 2; return(v); }
 	return (1024*v);
     }
     else if(p[0] == 'k') {
-	if((1000 * (double)v) > R_SIZE_T_MAX) { *ierr = 3; return(v); }
+	if((1000 * (double)v) > LONG_MAX) { *ierr = 3; return(v); }
 	return (1000*v);
     }
     else {
@@ -106,45 +111,45 @@ R_size_t R_Decode2Long(char *p, int *ierr)
 
 char *EncodeLogical(int x, int w)
 {
-    R_AllocStringBuffer(0, buffer);
-    if(x == NA_LOGICAL) sprintf(buffer->data, "%*s", w, CHAR(R_print.na_string));
-    else if(x) sprintf(buffer->data, "%*s", w, "TRUE");
-    else sprintf(buffer->data, "%*s", w, "FALSE");
-    return buffer->data;
+    AllocBuffer(0);
+    if(x == NA_LOGICAL) sprintf(Encodebuf, "%*s", w, CHAR(R_print.na_string));
+    else if(x) sprintf(Encodebuf, "%*s", w, "TRUE");
+    else sprintf(Encodebuf, "%*s", w, "FALSE");
+    return Encodebuf;
 }
 
 char *EncodeInteger(int x, int w)
 {
-    R_AllocStringBuffer(0, buffer);
-    if(x == NA_INTEGER) sprintf(buffer->data, "%*s", w, CHAR(R_print.na_string));
-    else sprintf(buffer->data, "%*d", w, x);
-    return buffer->data;
+    AllocBuffer(0);
+    if(x == NA_INTEGER) sprintf(Encodebuf, "%*s", w, CHAR(R_print.na_string));
+    else sprintf(Encodebuf, "%*d", w, x);
+    return Encodebuf;
 }
 
 char *EncodeReal(double x, int w, int d, int e)
 {
     char fmt[20];
 
-    R_AllocStringBuffer(0, buffer);
+    AllocBuffer(0);
     /* IEEE allows signed zeros (yuck!) */
     if (x == 0.0) x = 0.0;
     if (!R_FINITE(x)) {
-	if(ISNA(x)) sprintf(buffer->data, "%*s", w, CHAR(R_print.na_string));
+	if(ISNA(x)) sprintf(Encodebuf, "%*s", w, CHAR(R_print.na_string));
 #ifdef IEEE_754
-	else if(ISNAN(x)) sprintf(buffer->data, "%*s", w, "NaN");
+	else if(ISNAN(x)) sprintf(Encodebuf, "%*s", w, "NaN");
 #endif
-	else if(x > 0) sprintf(buffer->data, "%*s", w, "Inf");
-	else sprintf(buffer->data, "%*s", w, "-Inf");
+	else if(x > 0) sprintf(Encodebuf, "%*s", w, "Inf");
+	else sprintf(Encodebuf, "%*s", w, "-Inf");
     }
     else if (e) {
 #ifndef Win32
 	if(d) {
 	    sprintf(fmt,"%%#%d.%de", w, d);
-	    sprintf(buffer->data, fmt, x);
+	    sprintf(Encodebuf, fmt, x);
 	}
 	else {
 	    sprintf(fmt,"%%%d.%de", w, d);
-	    sprintf(buffer->data, fmt, x);
+	    sprintf(Encodebuf, fmt, x);
 	}
 #else
 	/* Win32 libraries always use e+xxx format so avoid them */
@@ -158,19 +163,19 @@ char *EncodeReal(double x, int w, int d, int e)
 	if(abs(kp) >= 100) {
 	    if(d) sprintf(fmt,"%%#%d.%de", w, d);
 	    else sprintf(fmt,"%%%d.%de", w, d);
-	    sprintf(buffer->data, fmt, X);
+	    sprintf(Encodebuf, fmt, X);
 	} else {
 	    if(d) sprintf(fmt, "%%#%d.%dfe%%+0%dd", w-ee-3, d, ee+2);
 	    else sprintf(fmt, "%%%d.%dfe%%+0%dd", w-ee-3, d, ee+2);
-	    sprintf(buffer->data, fmt, x, kp);
+	    sprintf(Encodebuf, fmt, x, kp);
 	}
 #endif
     }
     else {
 	sprintf(fmt,"%%%d.%df", w, d);
-	sprintf(buffer->data, fmt, x);
+	sprintf(Encodebuf, fmt, x);
     }
-    return buffer->data;
+    return Encodebuf;
 }
 
 char *EncodeComplex(Rcomplex x, int wr, int dr, int er, int wi, int di, int ei)
@@ -182,13 +187,13 @@ char *EncodeComplex(Rcomplex x, int wr, int dr, int er, int wi, int di, int ei)
     int  flagNegIm = 0;
 #endif
 
-    R_AllocStringBuffer(0, buffer);
+    AllocBuffer(0);
     /* IEEE allows signed zeros; strip these here */
     if (x.r == 0.0) x.r = 0.0;
     if (x.i == 0.0) x.i = 0.0;
 
     if (ISNA(x.r) || ISNA(x.i)) {
-	sprintf(buffer->data, "%*s%*s", R_print.gap, "", wr+wi+2,
+	sprintf(Encodebuf, "%*s%*s", R_print.gap, "", wr+wi+2,
 		CHAR(R_print.na_string));
     }
     else {
@@ -196,7 +201,7 @@ char *EncodeComplex(Rcomplex x, int wr, int dr, int er, int wi, int di, int ei)
 	if(er) efr = "e"; else efr = "f";
 	if(ei) efi = "e"; else efi = "f";
 	sprintf(fmt,"%%%d.%d%s%%+%d.%d%si", wr, dr, efr, wi, di, efi);
-	sprintf(buffer->data, fmt, x.r, x.i);
+	sprintf(Encodebuf, fmt, x.r, x.i);
 #else
 
 	/* EncodeReal returns pointer to static storage so copy */
@@ -211,12 +216,12 @@ char *EncodeComplex(Rcomplex x, int wr, int dr, int er, int wi, int di, int ei)
 	Im = Calloc(strlen(tmp)+1, char);
 	strcpy(Im, tmp);
 
-	sprintf(buffer->data, "%s%s%si", Re, flagNegIm ? "-" : "+", Im);
+	sprintf(Encodebuf, "%s%s%si", Re, flagNegIm ? "-" : "+", Im);
 
 	Free(Re); Free(Im);
     }
 #endif
-    return buffer->data;
+    return Encodebuf;
 }
 
 	/* There is a heavy ASCII emphasis here */
@@ -288,8 +293,8 @@ char *EncodeString(char *s, int w, int quote, int right)
 	i = Rstrlen(s, quote);
     }
     
-    R_AllocStringBuffer((i+2 >= w)?(i+2):w, buffer); /* +2 allows for quotes */
-    q = buffer->data;
+    AllocBuffer((i+2 >= w)?(i+2):w); /* +2 allows for quotes */
+    q = Encodebuf;
     if(right) { /* Right justifying */
 	b = w - i - (quote ? 2 : 0);
 	for(i=0 ; i<b ; i++) *q++ = ' ';
@@ -341,11 +346,11 @@ char *EncodeString(char *s, int w, int quote, int right)
     if(quote) *q++ = quote;
     if(!right) { /* Left justifying */
 	*q = '\0';
-	b = w - strlen(buffer->data);
+	b = w - strlen(Encodebuf);
 	for(i=0 ; i<b ; i++) *q++ = ' ';
     }
     *q = '\0';
-    return buffer->data;
+    return Encodebuf;
 }
 
 char *EncodeElement(SEXP x, int indx, int quote)
@@ -376,19 +381,19 @@ char *EncodeElement(SEXP x, int indx, int quote)
 		      w, d, e, wi, di, ei);
 	break;
     }
-    return buffer->data;
+    return Encodebuf;
 }
 
 char *Rsprintf(char *format, ...)
 {
     va_list(ap);
 
-    R_AllocStringBuffer(0, buffer); /* unsafe, as assuming length, but all internal
- 		                       uses are for a few characters */
+    AllocBuffer(0); /* unsafe, as assuming length, but all internal
+		       uses are for a few characters */
     va_start(ap, format);
-    vsprintf(buffer->data, format, ap);
+    vsprintf(Encodebuf, format, ap);
     va_end(ap);
-    return buffer->data;
+    return Encodebuf;
 }
 
 void Rprintf(char *format, ...)

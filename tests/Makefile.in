@@ -159,13 +159,6 @@ test-Specific:
 	@$(MAKE) test-Specific-sloppy RVAL_IF_DIFF=0
 	@rm -f data F.Rd c0.Rd df0.Rd l0.Rd
 
-test-Packages:
-	@for p in $(R_PKGS); do \
-	  echo "* checking package '$${p}'"; \
-	  $(top_builddir)/bin/R CMD check \
-	    $(top_srcdir)/src/library/$${p} || echo; \
-	done
-
 test-Gct: $(test-out-gct)
 
 test-all-extras: Makefile
@@ -307,7 +300,6 @@ distclean: clean
 	-@(cd Examples; $(MAKE) $@)
 	-@(cd Embedding; $(MAKE) $@)
 	-@rm -f Makefile $(test-out) $(test-src-auto) .RData
-	-@rm -rf *.Rcheck
 maintainer-clean: distclean
 
 R install install-strip uninstall TAGS info dvi:

@@ -487,9 +487,10 @@ R CMD INSTALL -l /path/to/library @var{pkg1} @var{pkg2} @dots{}
 @end smallexample
 
 @noindent
-The part @samp{-l /path/to/library} can be omitted, when the first
-library in @env{R_LIBS} is used if set, otherwise the main library
-@file{@var{R_HOME}/library}.
+The part @samp{-l /path/to/library} can be omitted, in which case the
+first library in @env{R_LIBS} is used if set, otherwise the main
+library @file{@var{R_HOME}/library} is used.  (@env{R_LIBS} is looked
+for in the environment: @file{.Renviron} is not read by @command{R CMD}.)
 
 The Windows equivalent is@footnote{if you have the source-code package
 files installed}
@@ -640,12 +641,6 @@ The @code{bitmap} and @code{dev2bitmap} devices make use of ghostscript
 
 @code{bzfile} connections make use of @code{libbz2}, part of
 @code{bzip2} (@uref{http://sources.redhat.com/bzip2}).
-
-@code{grep} and related functions will make use of PCRE if installed.
-The sources are at
-@uref{ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/}; the
-Debian package is @code{libpcre3-dev} and the RPM something like
-@code{pcre-devel-3.4-2}.
 
 @menu
 * Tcl/Tk::                      

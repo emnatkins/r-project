@@ -10,16 +10,14 @@
 sprintf(fmt, \dots)
 }
 \arguments{
-  \item{fmt}{a format string.}
-  \item{\dots}{values to be passed into \code{fmt}. Only logical,
-    integer, real and character vectors are accepted, and only the first
-    value is read from each vector.}
+  \item{fmt}{a format string}
+  \item{\dots}{values to be passed into \code{fmt}}
 }
 \details{
-  This is a wrapper for the system's C call.  Attempts are made to
+  This is just a wrapper for the system's C call.  No attempt is made to
   check that the mode of the values passed match the format supplied,
-  and \R's special values (\code{NA}, \code{Inf}, \code{-Inf} and
-  \code{NaN}) are handled correctly.
+  and \R's special values (\code{NA}, \code{Inf}, \code{-Inf} and on
+  most platforms \code{NaN}) are unlikely to be handled correctly.
   
   The following is abstracted from K&R (see References, below).  The
   string \code{fmt} contains normal characters, which are passed through
@@ -59,12 +57,13 @@ sprintf(fmt, \dots)
     \item{a space}{Prefix a space if the first number is not a sign}
     \item{\code{0}}{For numbers, pad to the field width with leading zeros}
   }
+  Note that the arguments are simply passed through to \code{sprintf},
+  and so any formatting errors, e.g. passing a float to the conversion
+  character \code{i}, are replicated in the resulting string.  See the
+  examples for an illustration.
 }
 
-\value{
-  A character vector of length one.  Character \code{NA}s are converted
-  to \code{"NA"}.
-}
+\value{A character vector of length one.}
 
 \references{
   Kernighan, B. W. and Ritchie, D. M. (1988)
@@ -72,13 +71,12 @@ sprintf(fmt, \dots)
   describes the format options in table B-1 in the Appendix.
 }
 
-\author{
-  Original code by Jonathan Rougier, \email{J.C.Rougier@durham.ac.uk}
-}
+\author{Jonathan Rougier, \email{J.C.Rougier@durham.ac.uk}}
 
 \seealso{
   \code{\link{formatC}} for a way of formatting vectors of
-  numbers in a similar fashion.
+  numbers in a similar fashion but with more error-checking and with
+  handling of special values.
 
   \code{\link{paste}} for another way of
   creating a vector combining text and values.
@@ -89,7 +87,7 @@ sprintf(fmt, \dots)
 ## be careful with the format: most things in R are floats
 
 sprintf("\%s is \%f feet tall\n", "Sven", 7) # OK
-try(sprintf("\%s is \%i feet tall\n", "Sven", 7)) # not OK
+sprintf("\%s is \%i feet tall\n", "Sven", 7) # not OK
 sprintf("\%s is \%i feet tall\n", "Sven", as.integer(7)) # OK again
 
 ## use a literal \% :

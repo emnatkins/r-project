@@ -75,9 +75,7 @@
 
 #include "Defn.h"
 
-#if 0
 static SEXP gcall;
-#endif
 
 /* EnlargeVector() takes a vector "x" and changes its length to "newlen".  
    This allows to assign values "past the end" of the vector or list.
@@ -127,7 +125,7 @@ static SEXP EnlargeVector(SEXP x, int newlen)
 	for (i = 0; i < len; i++)
 	    SET_STRING_ELT(newx, i, STRING_ELT(x, i));
 	for (i = len; i < newlen; i++)
-	    SET_STRING_ELT(newx, i, NA_STRING); /* was R_BlankString  < 1.6.0 */
+	    SET_STRING_ELT(newx, i, R_BlankString);
 	break;
     case EXPRSXP:
     case VECSXP:
@@ -154,7 +152,7 @@ static SEXP EnlargeVector(SEXP x, int newlen)
     return newx;
 }
 
-static int SubassignTypeFix(SEXP *x, SEXP *y, int stretch, int level, SEXP call)
+static int SubassignTypeFix(SEXP *x, SEXP *y, int stretch, int level)
 {
     Rboolean redo_which =  (level == 1);
     int which = 100 * TYPEOF(*x) + TYPEOF(*y);
@@ -267,7 +265,7 @@ static int SubassignTypeFix(SEXP *x, SEXP *y, int stretch, int level, SEXP call)
 	break;
 
     default:
-	errorcall(call, "incompatible types");
+	errorcall(gcall, "incompatible types");
 
     }
 
@@ -359,7 +357,7 @@ static SEXP VectorAssign(SEXP call, SEXP x, SEXP s, SEXP y)
     /* Here we make sure that the LHS has */
     /* been coerced into a form which can */
     /* accept elements from the RHS. */
-    which = SubassignTypeFix(&x, &y, stretch, 1, call);
+    which = SubassignTypeFix(&x, &y, stretch, 1);
     /* = 100 * TYPEOF(x) + TYPEOF(y);*/
     ny = length(y);
     nx = length(x);
@@ -619,7 +617,7 @@ static SEXP MatrixAssign(SEXP call, SEXP x, SEXP s, SEXP y)
     if (n > 0 && n % ny)
 	errorcall(call, "number of items to replace is not a multiple of replacement length");
 
-    which = SubassignTypeFix(&x, &y, 0, 1, call);
+    which = SubassignTypeFix(&x, &y, 0, 1);
 
     PROTECT(x);
 
@@ -871,7 +869,7 @@ static SEXP ArrayAssign(SEXP call, SEXP x, SEXP s, SEXP y)
     /* Here we make sure that the LHS has been coerced into */
     /* a form which can accept elements from the RHS. */
 
-    which = SubassignTypeFix(&x, &y, 0, 1, call);/* = 100 * TYPEOF(x) + TYPEOF(y);*/
+    which = SubassignTypeFix(&x, &y, 0, 1);/* = 100 * TYPEOF(x) + TYPEOF(y);*/
 
     if (ny == 0) {
 	UNPROTECT(1);
@@ -1194,6 +1192,7 @@ SEXP do_subassign_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP subs, x, y;
     int nsubs, oldtype;
 
+    gcall = call;
     PROTECT(args);
 
     /* If there are multiple references to an object we must */
@@ -1318,6 +1317,8 @@ SEXP do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP dims, indx, names, newname, subs, x, y;
     int i, ndims, nsubs, offset, stretch, which;
 
+    gcall = call;
+
     PROTECT(args);
 
     SubAssignArgs(args, &x, &subs, &y);
@@ -1386,7 +1387,7 @@ SEXP do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    UNPROTECT(1);
 	}
 
-	which = SubassignTypeFix(&x, &y, stretch, 2, call);
+	which = SubassignTypeFix(&x, &y, stretch, 2);
 	PROTECT(x);
 
 	switch (which) {
@@ -1555,7 +1556,7 @@ SEXP do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	UNPROTECT(1);
     }
-    else errorcall(call, "object is not subsetable");
+    else errorcall(gcall, "object is not subsetable");
 
     UNPROTECT(1);
     SET_NAMED(x, 0);
@@ -1604,6 +1605,8 @@ SEXP R_subassign3_dflt(SEXP call, SEXP x, SEXP nlist, SEXP val)
 {
     SEXP t;
     PROTECT_INDEX pvalidx;
+
+    gcall = call;
 
     PROTECT(x);
     PROTECT_WITH_INDEX(val, &pvalidx);

@@ -1,6 +1,6 @@
 #-*- perl -*-
 
-## Copyright (C) 2001-2002 R Development Core Team
+## Copyright (C) 2001 R Development Core Team
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 ## Usage: perl massage-Examples.pl pkgname files
 
 ## Given a list of files of the form .../.../<name>.R, produce one large
-## file, i.e., write to stdout, concatenating the files together with
+## file, i.e. write to stdout, `cat'ting the files together with
 ## 1) Putting a HEADER in front
 ## 2) Wrapping every file in order to be more order independent
 ## 3) appending a FOOTER ...
@@ -60,7 +60,7 @@ assign("plot.new",
                      outer = outer, adj = 1, cex = .8, col = "orchid")
 	   }
        },
-       env = environment(plot))
+       env = .CheckExEnv)
 assign("cleanEx",
        function(env = .GlobalEnv) {
 	   rm(list = ls(envir = env, all.names = TRUE), envir = env)

@@ -149,7 +149,7 @@ completeClassDefinition <-
             }
             properties <- unlist(superProps, recursive = FALSE)
             ## check for conflicting slot names
-            if(any(duplicated(allNames(properties)))) {
+            if(any(duplicated(names(properties)))) {
                 duped <- duplicated(names(properties))
                 dupNames <- unique(names(properties)[duped])
                 if(!is.na(match(".Data", dupNames))) {
@@ -194,7 +194,7 @@ completeClassDefinition <-
         ## now process the subclasses to add extends information
         subClassNames <- names(subClasses)
         for(i in seq(along = subClasses))
-            .completeSubClass(Class, subClassNames[[i]], subClasses[[i]])
+            completeSubClass(Class, subClassNames[[i]], subClasses[[i]])
     }
     else {
         ## create a class definition of an empty virtual class
@@ -205,7 +205,7 @@ completeClassDefinition <-
     ClassDef
 }
 
-.completeSubClass <- function(fromClass, subClass, extendsHow = NULL, byClass = NULL) {
+completeSubClass <- function(fromClass, subClass, extendsHow = NULL, byClass = NULL) {
     if(!isClass(subClass))
         return(FALSE)
     classDef <- getClass(subClass)
@@ -221,7 +221,7 @@ completeClassDefinition <-
     ## now add extensions to all this class's subclasses
     subsubs <- names(getSubclasses(classDef))
     for(what in subsubs)
-        .completeSubClass(fromClass, what, byClass = subClass)
+        completeSubClass(fromClass, what, byClass = subClass)
     return(TRUE)
 }
     
@@ -461,11 +461,6 @@ newBasic <-
                "double" =,
                "list" =  as.vector(c(...), Class),
                "expression" = eval(substitute(expression(...))),
-               "externalptr" = {
-                   if(nargs() > 1)
-                       stop("externalptr objects cannot be initialized from new()")
-                   .newExternalptr()
-               },
                "single" = as.single(c(...)),
                   ## note on array, matrix:  not possible to be compatible with
                   ## S-Plus on array, unless R allows 0-length .Dim attribute
@@ -991,13 +986,13 @@ completeExtends <-
     ## direct superclasses precede indirect).
     function(ClassDef, breadthFirst = TRUE) {
         if(breadthFirst)
-            .completeExtBreadth(ClassDef)$exts
+            completeExtBreadth(ClassDef)$exts
         else
-            .completeExtDepth(ClassDef)
+            completeExtDepth(ClassDef)
     }
 
 
-.completeExtDepth <-  function(ClassDef, soFar = getClassName(ClassDef))
+completeExtDepth <-  function(ClassDef, soFar = getClassName(ClassDef))
 {
     ext <- getExtends(ClassDef)
     what <- names(ext)
@@ -1014,7 +1009,7 @@ completeExtends <-
         valueEl <- ext[i]               ## note: an extra level of list, to be unlisted later
         if(isClass(by))
         {
-            more <- .completeExtDepth(getClass(by), c(soFar, what))
+            more <- completeExtDepth(getClass(by), c(soFar, what))
             whatMore <- names(more)
             for(j in seq(along=more)) {
                 cl <- el(whatMore, j)
@@ -1052,7 +1047,7 @@ completeExtends <-
     unlist(value, recursive=FALSE)
 }
 
-.completeExtBreadth <-  function(ClassDef, soFar = getClassName(ClassDef), level = 1)
+completeExtBreadth <-  function(ClassDef, soFar = getClassName(ClassDef), level = 1)
 {
     ext <- getExtends(ClassDef)
     what <- names(ext)
@@ -1068,7 +1063,7 @@ completeExtends <-
         by <- el(what, i)
         if(isClass(by))
         {
-            valuei <- .completeExtBreadth(getClass(by), soFar, level+1)
+            valuei <- completeExtBreadth(getClass(by), soFar, level+1)
             exti <-  valuei$exts
             ## mark them all as extensions by this direct extension
             exti[] <- list(list(by = by))
@@ -1229,6 +1224,3 @@ setDataPart <- function(object, value) {
     }
     value
 }
-
-.newExternalptr <- function()
-    .Call("R_externalptr_prototype_object", PACKAGE = "methods")

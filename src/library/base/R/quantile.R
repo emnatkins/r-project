@@ -39,7 +39,6 @@ quantile.default <-
     }
     if(na.p) { # do this more elegantly (?!)
         o.pr[p.ok] <- qs
-        names(o.pr) <- rep("", length(o.pr)) # suppress <NA> names
         names(o.pr)[p.ok] <- names(qs)
         o.pr
     } else qs

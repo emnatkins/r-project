@@ -10,6 +10,8 @@
 \alias{conformMethod}
 \alias{getGeneric}
 \alias{getGroup}
+\alias{getGroupMembers}
+\alias{setGroupMembers}
 \alias{getMethodsMetaData}
 \alias{assignMethodsMetaData}
 \alias{matchSignature}
@@ -33,8 +35,6 @@
 \alias{sigToEnv}
 \alias{rematchDefinition}
 \alias{unRematchDefinition}
-\allias{asMethodDefinition}
-\alias{findNextMethod}
 \alias{.valueClassTest}
 %% Not for the user to know about!
 \alias{.ShortPrimitiveSkeletons} %% used from C code
@@ -47,8 +47,8 @@
   by the user.
 }
 \usage{
-makeGeneric(f, fdef, fdefault, group=character(),
-            valueClass=character(), package, signature)
+makeGeneric(f, fdef, keepMethods=TRUE, useAsDefault=NA,
+            group=character(), valueClass=character())
 
 makeStandardGeneric(f, fdef)
 
@@ -56,7 +56,7 @@ generic.skeleton(name, fdef, fdefault)
 
 defaultDumpName(generic, signature)
 
-getAllMethods(f, fdef, libs=search())
+getAllMethods(f, libs=search())
 
 setAllMethodsSlot(mlist)
 
@@ -68,7 +68,10 @@ getGeneric(f, mustFind=FALSE)
 
 getGroup(fdef, recursive=FALSE)
 
-matchSignature(signature, fun)
+getGroupMembers(f, fdef = getGeneric(f))
+setGroupMembers(f, members, fdef = getGeneric(f))
+
+matchSignature(names, signature, fun)
 
 ## manage method metadata
 getFromMethodMetaData(name)
@@ -97,7 +100,7 @@ printNoClass(x, digits, quote, na.print, print.gap, right, ...)
 
 print.default(x, ...)
 
-missingArg(symbol, envir = parent.frame(), eval)
+missingArg(symbol, envir = parent.frame())
 
 balanceMethodsList(mlist, args, check = TRUE)
 
@@ -106,10 +109,6 @@ sigToEnv(signature)
 rematchDefinition(definition, generic, mnames, fnames)
 unRematchDefinition(definition)
 
-asMethodDefinition(def, signature)
-
-findNextMethod(method, f, mlist, optional = FALSE)
-
 }
 \section{Summary of Functions}{
  
@@ -117,8 +116,7 @@ findNextMethod(method, f, mlist, optional = FALSE)
    
     \item{\code{makeGeneric}:}{ 
       Makes a generic function object corresponding to the given
-      function name, optional definition and optional default method.  Other arguments supply optional
-      elements for the slots of \code{\link{genericFunction-class}}.
+      function name and optional definition.
     }
 
     \item{\code{makeStandardGeneric}:}{ 
@@ -207,19 +205,23 @@ findNextMethod(method, f, mlist, optional = FALSE)
       If \code{recursive=TRUE}, also all the group(s) of these groups.
     }
 
+    \item{\code{getGroupMembers}, \code{setGroupMembers}:}{
+      Get or set the known members of the group generic function \code{f}.
+    }
+  
     \item{\code{matchSignature}}{
       Matches the signature object (a partially or completely named
-      subset of the signature arguments of the generic function object
-      \code{fun}), and return a vector of all
-      the classes in the order specified by \code{fun@signature}.  The classes
+      subset of the arguments of \code{fun}), and return a vector of all
+      the classes in the order specified by \code{names}.  The classes
       not specified by `signature' will be \code{"ANY"} in the value,
       but extra trailing \code{"ANY"}'s are removed.  When the input
       signature is empty, the returned signature is a single
       \code{"ANY"} matching the first formal argument (so the returned
       value is always non-empty).
   
-      Generates an error if any of the supplied signature names are
-      not legal; that is, not in the signature slot of the generic function.
+      The formal arguments of \code{fun} must agree with \code{names}
+      (usually the formal arguments of the generic function) as well,
+      and \code{matchSignature} checks this.
     }
 
     \item{\code{getMethodsMetaData}, \code{assignMethodsMetaData}, \code{mlistMetaName}:}{
@@ -332,15 +334,5 @@ findNextMethod(method, f, mlist, optional = FALSE)
  reverses the procedure; if given a function or method definition that
  does not correspond to this form, it just returns its argument.
 }
-  \item{\code{asMethodDefinition}:}{ Turn a function definition into a
-      \code{\link{MethodDefiniton-class}} object, corresponding to the
-      given \code{signature} (by default generates a default method
-      with empty signature).
-      }
-  \item{\code{findNextMethod}:}{ A generic function that finds the
-      next method in \code{mlist} corresponding the method definition
-      \code{method}. It uses methods defined suitably for ordinary
-      methods and for methods with calls to \code{\link{callNextMethod}}.
-      }
 }
 \keyword{internal}

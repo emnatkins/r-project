@@ -11,7 +11,7 @@ if(.Platform$OS.type == "unix" &&
    is.null(nsl("cran.r-project.org"))) q()
 
 # test do_download.
-nrow(CRAN.packages())
+CRAN.packages()[, 1]
 
 # test url connections on http
 zz <- url("http://cran.r-project.org/")

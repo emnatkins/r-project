@@ -2210,7 +2210,6 @@ static double	mkhsave;	/* mark height */
 static int	pchsave;	/* plotting character */
 static double	srtsave;	/* string rotation */
 static double	tcksave;	/* tick mark length */
-static double	tclsave;	/* tick mark length in LINES */
 static double	xaxpsave[3];	/* x axis parameters */
 static int	xaxssave;	/* x axis calculation style */
 static int	xaxtsave;	/* x axis type */
@@ -2260,7 +2259,6 @@ void GSavePars(DevDesc *dd)
     pchsave = Rf_gpptr(dd)->pch;
     srtsave = Rf_gpptr(dd)->srt;
     tcksave = Rf_gpptr(dd)->tck;
-    tclsave = Rf_gpptr(dd)->tcl;
     xaxpsave[0] = Rf_gpptr(dd)->xaxp[0];
     xaxpsave[1] = Rf_gpptr(dd)->xaxp[1];
     xaxpsave[2] = Rf_gpptr(dd)->xaxp[2];
@@ -2315,7 +2313,6 @@ void GRestorePars(DevDesc *dd)
     Rf_gpptr(dd)->pch = pchsave;
     Rf_gpptr(dd)->srt = srtsave;
     Rf_gpptr(dd)->tck = tcksave;
-    Rf_gpptr(dd)->tcl = tclsave;
     Rf_gpptr(dd)->xaxp[0] = xaxpsave[0];
     Rf_gpptr(dd)->xaxp[1] = xaxpsave[1];
     Rf_gpptr(dd)->xaxp[2] = xaxpsave[2];
@@ -4468,10 +4465,6 @@ void hsv2rgb(double *h, double *s, double *v, double *r, double *g, double *b)
  */
 
 /* Default Color Palette */
-/* Paul Murrell 05/06/02
- * Changed "white" to "grey" in the default palette
- * in response to user suggestion
- */
 
 char *DefaultPalette[] = {
     "black",
@@ -4481,7 +4474,7 @@ char *DefaultPalette[] = {
     "cyan",
     "magenta",
     "yellow",
-    "grey",
+    "white",
     NULL
 };
 
@@ -5911,7 +5904,6 @@ void restoredpSaved(DevDesc *dd)
     Rf_dpptr(dd)->smo = Rf_dpSavedptr(dd)->smo;
     Rf_dpptr(dd)->srt = Rf_dpSavedptr(dd)->srt;
     Rf_dpptr(dd)->tck = Rf_dpSavedptr(dd)->tck;
-    Rf_dpptr(dd)->tcl = Rf_dpSavedptr(dd)->tcl;
     Rf_dpptr(dd)->tmag = Rf_dpSavedptr(dd)->tmag;
     Rf_dpptr(dd)->type = Rf_dpSavedptr(dd)->type;
     Rf_dpptr(dd)->xaxp[0] = Rf_dpSavedptr(dd)->xaxp[0];
