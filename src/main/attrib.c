@@ -128,8 +128,7 @@ SEXP setAttrib(SEXP vec, SEXP name, SEXP val)
 
     PROTECT(vec);
     PROTECT(name);
-    if (NAMED(val)) val = duplicate(val);
-    SET_NAMED(val, NAMED(val) | NAMED(vec));
+    val = duplicate(val);
     UNPROTECT(2);
 
     if (name == R_NamesSymbol)

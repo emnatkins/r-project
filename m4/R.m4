@@ -2264,6 +2264,8 @@ fi
 AC_MSG_CHECKING([whether zlib support needs to be compiled])
 if test "${have_zlib}" = yes; then
   AC_MSG_RESULT([no])
+  AC_DEFINE(HAVE_ZLIB, 1,
+	    [Define if you have the zlib headers and libraries.])
   LIBS="-lz ${LIBS}"
 else
   AC_MSG_RESULT([yes])
@@ -2332,35 +2334,18 @@ AC_DEFUN([R_PCRE],
 else
   have_pcre=no
 fi
-if test "x${have_pcre}" = xyes; then
-AC_CACHE_CHECK([if PCRE version >= 4.0], [r_have_pcre4],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#ifdef HAVE_PCRE_PCRE_H
-#include <pcre/pcre.h>
-#else
-#ifdef HAVE_PCRE_H
-#include <pcre.h>
-#endif
-#endif
-int main() {
-#ifdef PCRE_MAJOR
-  exit(PCRE_MAJOR<4);
-#else
-  exit(1);
-#endif
-}
-]])], [r_have_pcre4=yes], [r_have_pcre4=no], [r_have_pcre4=no])])
-fi
-if test "x${r_have_pcre4}" = xyes; then
+if test "${have_pcre}" = yes; then
+  AC_DEFINE(HAVE_PCRE, 1,
+            [Define if you have the PCRE headers and libraries.])
   LIBS="-lpcre ${LIBS}"
 fi
 AC_MSG_CHECKING([whether PCRE support needs to be compiled])
-if test "x${r_have_pcre4}" = xyes; then
+if test "x${have_pcre}" = xyes; then
   AC_MSG_RESULT([no])
 else
   AC_MSG_RESULT([yes])
 fi
-AM_CONDITIONAL(BUILD_PCRE, [test "x${r_have_pcre4}" != xyes])
+AM_CONDITIONAL(BUILD_PCRE, [test "x${have_pcre}" = xno])
 ])# R_PCRE
 
 ## R_BZLIB

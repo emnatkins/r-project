@@ -4,27 +4,6 @@
 See the file NEWS for changes that affect all versions of R.
 
 
-rw1090
-======
-
-The fast bmp/png/jpeg code introduced in R 1.8.0 is used even for
-256-color displays (as we have now been able to test it on such).
-
-R's internal malloc etc are now remapped to Rm_malloc etc and only
-used in allocating memory for R objects.
-
-Improved malloc routines from the current version of Doug Lea's malloc
-(as suggested by David Teller) should enable large memory areas to be
-used more effectively, in particular those over 2Gb where OS support
-has been enabled.  The initially requested memory is no longer
-reserved, but as this malloc is able to work with non-contiguous
-memory chunks that should not matter.
-
-Both Rterm and Rgui now give usage information via the --help
-command-line flag.
-
-
-
 rw1081
 ======
 

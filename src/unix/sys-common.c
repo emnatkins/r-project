@@ -323,7 +323,6 @@ void R_DefParams(Rstart Rp)
     Rp->nsize = R_NSIZE;
     Rp->max_vsize = R_SIZE_T_MAX;
     Rp->max_nsize = R_SIZE_T_MAX;
-    Rp->ppsize = R_PPSSIZE;
     Rp->NoRenviron = FALSE;
 }
 
@@ -395,7 +394,6 @@ void R_SetParams(Rstart Rp)
     SetSize(Rp->vsize, Rp->nsize);
     R_SetMaxNSize(Rp->max_nsize);
     R_SetMaxVSize(Rp->max_vsize);
-    R_SetPPSize(Rp->ppsize);
     CommandLineArgs = Rp->CommandLineArgs;
     NumCommandLineArgs = Rp->NumCommandLineArgs;
 #ifdef Win32
@@ -453,7 +451,6 @@ R_common_command_line(int *pac, char **argv, Rstart Rp)
 {
     int ac = *pac, newac = 1;	/* argv[0] is process name */
     int ierr;
-    long lval;
     R_size_t value;
     char *p, **av = argv, msg[1024];
     Rboolean processing = TRUE;
@@ -540,8 +537,6 @@ R_common_command_line(int *pac, char **argv, Rstart Rp)
 		     !strcmp(*av, "-norestore") ||
 		     !strcmp(*av, "-noreadline") ||
 		     !strcmp(*av, "-quiet") ||
-		     !strcmp(*av, "-nsize") ||
-		     !strcmp(*av, "-vsize") ||
 		     !strcmp(*av, "-V") ||
 		     !strcmp(*av, "-n") ||
 		     !strcmp(*av, "-v")) {
@@ -580,25 +575,6 @@ R_common_command_line(int *pac, char **argv, Rstart Rp)
 		    if(!strncmp(*av, "--max-vsize", 11)) Rp->max_vsize = value;
 		}
 	    }
-	    else if(strncmp(*av, "--max-ppsize", 12) == 0) {
-		if(strlen(*av) < 14) {
-		    ac--; av++; p = *av;
-		} else p = &(*av)[13];
-		if (p == NULL) {
-		    R_ShowMessage("WARNING: no value given for -max-ppsize given\n");
-		    break;
-		}
-		lval = strtol(p, &p, 10);
-		if (lval < 0)
-		    R_ShowMessage("WARNING: -max-ppsize value is negative: ignored\n");
-		else if (lval < 10000)
-		    R_ShowMessage("WARNING: -max-ppsize value is too small: ignored\n");
-
-		else if (lval > 100000)
-		    R_ShowMessage("WARNING: -max-ppsize value is too large: ignored\n");
-		else Rp->ppsize = lval;
-	    }
-#if 0
 	    else if(strncmp(*av, "--vsize", 7) == 0) {
 		if(strlen(*av) < 9) {
 		    ac--; av++; p = *av;
@@ -644,7 +620,6 @@ R_common_command_line(int *pac, char **argv, Rstart Rp)
 		} else
 		    Rp->nsize = value;
 	    }
-#endif
 	    else { /* unknown -option */
 		argv[newac++] = *av;
 	    }

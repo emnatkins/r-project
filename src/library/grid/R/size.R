@@ -33,23 +33,27 @@
 # WIDTHS
 #########
 
-# We are just setting graphical parameters (so that things like
-# "strwidth" and "lines" units are evaluated correctly)
+# NOTE that I have to do this in R rather than C code because
+# I can't set par() values from C (yet !)
+# ALSO NOTE that I have to set par() values for "strwidth" and 
+# "strheight" units to work;  they rely on GStrWidth/Height which
+# refer to par() values
+# We are just setting graphical parameters
 # We do NOT push any viewports !!
-# We are doing this in R code to provide generics like width.pre.details
-# so that users can customise the behaviour for complex grobs by
-# writing their own (R code!) methods
 width.pre <- function(x) {
   list.struct <- get.value(x)
+  # If the grob has a viewport, then we treat it as if we want
+  # the width of the viewport rather than width of the grob
   if (!is.null(list.struct$vp))
-    # NOTE: The vp slot in a grob could be more than just a standard viewport
-    # i.e., it could be a vpStack/List/Tree
-    # NOTE also that the unsetting is less problematic because
-    # the previous gpar setting is just saved and reset in C code
-    setvpgpar(list.struct$vp)
-  if (!is.null(list.struct$gp))
-    set.gpar(list.struct$gp)
-  width.pre.details(list.struct)
+    gp <- list.struct$vp$gp
+  else
+    gp <- list.struct$gp
+  if (!is.null(gp))
+    set.gpar(gp)
+  if (!is.null(list.struct$vp))
+    width.pre.details(list.struct$vp)
+  else
+    width.pre.details(list.struct)
 }
 
 width.pre.details <- function(x) {
@@ -60,7 +64,12 @@ width.pre.details.default <- function(x) {}
 
 width <- function(x) {
   list.struct <- get.value(x)
-  width.details(list.struct)
+  # If the grob has a viewport, then we treat it as if we want
+  # the width of the viewport rather than width of the grob
+  if (!is.null(list.struct$vp))
+    width.details(list.struct$vp)
+  else
+    width.details(list.struct)
 }
 
 width.details <- function(x) {
@@ -71,11 +80,22 @@ width.details.default <- function(x) {
   unit(1, "null")
 }
 
-# graphical parameters are saved/restored in C-level code
-# so should be nothing to do here
+# We are just unsetting graphical parameters
+# We do NOT pop any viewports !!
 width.post <- function(x) {
   list.struct <- get.value(x)
-  width.post.details(list.struct)
+  # If the grob has a viewport, then we treat it as if we want
+  # the width of the viewport rather than width of the grob
+  if (!is.null(list.struct$vp))
+    width.post.details(list.struct$vp)
+  else
+    width.post.details(list.struct)
+  if (!is.null(list.struct$vp))
+    gp <- list.struct$vp$gp
+  else
+    gp <- list.struct$gp
+  if (!is.null(gp))
+    unset.gpar(gp)
 }
 
 width.post.details <- function(x) {
@@ -92,15 +112,18 @@ width.post.details.default <- function(x) {}
 # We do NOT push any viewports !!
 height.pre <- function(x) {
   list.struct <- get.value(x)
+  # If the grob has a viewport, then we treat it as if we want
+  # the height of the viewport rather than height of the grob
   if (!is.null(list.struct$vp))
-    # NOTE: The vp slot in a grob could be more than just a standard viewport
-    # i.e., it could be a vpStack/List/Tree
-    # NOTE also that the unsetting is less problematic because
-    # the previous gpar setting is just saved and reset in C code
-    setvpgpar(list.struct$vp)
-  if (!is.null(list.struct$gp))
-    set.gpar(list.struct$gp)
-  height.pre.details(list.struct)
+    gp <- list.struct$vp$gp
+  else
+    gp <- list.struct$gp
+  if (!is.null(gp))
+    set.gpar(gp)
+  if (!is.null(list.struct$vp))
+    height.pre.details(list.struct$vp)
+  else
+    height.pre.details(list.struct)
 }
 
 height.pre.details <- function(x) {
@@ -111,7 +134,12 @@ height.pre.details.default <- function(x) {}
 
 height <- function(x) {
   list.struct <- get.value(x)
-  height.details(list.struct)
+  # If the grob has a viewport, then we treat it as if we want
+  # the height of the viewport rather than height of the grob
+  if (!is.null(list.struct$vp))
+    height.details(list.struct$vp)
+  else
+    height.details(list.struct)
 }
 
 height.details <- function(x) {
@@ -126,7 +154,18 @@ height.details.default <- function(x) {
 # We do NOT pop any viewports !!
 height.post <- function(x) {
   list.struct <- get.value(x)
-  height.post.details(list.struct)
+  # If the grob has a viewport, then we treat it as if we want
+  # the height of the viewport rather than height of the grob
+  if (!is.null(list.struct$vp))
+    height.post.details(list.struct$vp)
+  else
+    height.post.details(list.struct)
+  if (!is.null(list.struct$vp))
+    gp <- list.struct$vp$gp
+  else
+    gp <- list.struct$gp
+  if (!is.null(gp))
+    unset.gpar(gp)
 }
 
 height.post.details <- function(x) {

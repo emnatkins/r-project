@@ -18,7 +18,7 @@
 ppr(x, \dots)
 
 \method{ppr}{formula}(formula, data = sys.parent(), weights,
-    subset, na.action, contrasts = NULL, \dots, model = FALSE)
+    subset, na.action, contrasts = NULL, \dots)
 
 \method{ppr}{default}(x, y, weights = rep(1,n),
     ww = rep(1,q), nterms, max.terms = nterms, optlevel = 2,
@@ -94,7 +94,6 @@ ppr(x, \dots)
     in the GCV selection for each degree of freedom used.
   }
   \item{\dots}{arguments to be passed to or from other methods.}
-  \item{model}{logical.  If true, the model frame is returned.}
 }
 \value{
 A list with the following components, many of which are for use by the
@@ -126,7 +125,6 @@ method functions.
 \item{residuals}{the residuals, as a matrix if \code{q > 1}.}
 \item{smod}{internal work array, which includes the ridge functions
   evaluated at the training set points.}
-\item{model}{(only if \code{model=TRUE}) the model frame.}
 }
 \details{
   The basic method is given by Friedman (1984), and is essentially the

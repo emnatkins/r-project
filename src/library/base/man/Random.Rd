@@ -217,10 +217,9 @@ set.seed(seed, kind = NULL)
 \seealso{\code{\link{runif}}, \code{\link{rnorm}}, \ldots.}
 %	this is ./Uniform.Rd
 \examples{
-## the default random seed is 626 integers, so only print a few
-runif(1); .Random.seed[1:6]; runif(1); .Random.seed[1:6]
+runif(1); .Random.seed; runif(1); .Random.seed
 ## If there is no seed, a "random" new one is created:
-rm(.Random.seed); runif(1); .Random.seed[1:6]
+rm(.Random.seed); runif(1); .Random.seed
 
 RNGkind("Wich")# (partial string matching on 'kind')
 

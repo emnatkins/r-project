@@ -25,12 +25,9 @@ glm <- function(formula, family=gaussian, data=list(), weights=NULL,
 #    mt <- terms(formula, data=data)
     if(missing(data)) data <- environment(formula)
     mf <- match.call(expand.dots = FALSE)
-#     mf$family <- mf$start <- mf$control <- mf$maxit <- NULL
-#     mf$model <- mf$method <- mf$x <- mf$y <- mf$contrasts <- NULL
-#     mf$... <- NULL
-    m <- match(c("formula", "data", "subset", "weights", "na.action",
-                 "etastart", "mustart", "offset"), names(mf), 0)
-    mf <- mf[c(1, m)]
+    mf$family <- mf$start <- mf$control <- mf$maxit <- NULL
+    mf$model <- mf$method <- mf$x <- mf$y <- mf$contrasts <- NULL
+    mf$... <- NULL
     mf$drop.unused.levels <- TRUE
     mf[[1]] <- as.name("model.frame")
     mf <- eval(mf, parent.frame())
@@ -41,6 +38,13 @@ glm <- function(formula, family=gaussian, data=list(), weights=NULL,
 	   ## else
 	   stop("invalid `method': ", method))
     mt <- attr(mf, "terms") # allow model.frame to update it
+    na.act <- attr(mf, "na.action")
+    xvars <- as.character(attr(mt, "variables"))[-1]
+    if((yvar <- attr(mt, "response")) > 0) xvars <- xvars[-yvar]
+    xlev <- if(length(xvars) > 0) {
+	xlev <- lapply(mf[xvars], levels)
+	xlev[!sapply(xlev, is.null)]
+    } # else NULL
 
     Y <- model.response(mf, "numeric")
     ## null model support
@@ -53,9 +57,6 @@ glm <- function(formula, family=gaussian, data=list(), weights=NULL,
     if(!is.null(offset) && length(offset) != NROW(Y))
 	stop("Number of offsets is ", length(offset),
 	     ", should equal ", NROW(Y), " (number of observations)")
-    ## these allow starting values to be expressed in terms of other vars.
-    mustart <- model.extract(mf, "mustart")
-    etastart <- model.extract(mf, "etastart")
 
     ## fit model via iterative reweighted least squares
     fit <- glm.fit(x=X, y=Y, weights=weights, start=start,
@@ -71,14 +72,13 @@ glm <- function(formula, family=gaussian, data=list(), weights=NULL,
                     control=control, intercept=TRUE)$deviance
     }
     if(model) fit$model <- mf
-    fit$na.action <- attr(mf, "na.action")
+    if(!is.null(na.act)) fit$na.action <- na.act
     if(x) fit$x <- X
     if(!y) fit$y <- NULL
     fit <- c(fit, list(call=call, formula=formula,
 		       terms=mt, data=data,
 		       offset=offset, control=control, method=method,
-		       contrasts = attr(X, "contrasts"),
-                       xlevels = .getXlevels(mt, mf)))
+		       contrasts = attr(X, "contrasts"), xlevels = xlev))
     class(fit) <- c("glm", "lm")
     fit
 }
@@ -716,18 +716,15 @@ residuals.glm <-
 
 ## KH on 1998/06/22: update.default() is now used ...
 
-model.frame.glm <- function (formula, ...)
+model.frame.glm <-
+    function (formula, data, na.action, ...)
 {
-    dots <- list(...)
-    nargs <- dots[match(c("data", "na.action", "subset"), names(dots), 0)]
-    if (any(nargs > 0) || is.null(formula$model)) {
+    if (is.null(formula$model)) {
 	fcall <- formula$call
 	fcall$method <- "model.frame"
 	fcall[[1]] <- as.name("glm")
-        fcall[names(nargs)] <- nargs
-#	env <- environment(fcall$formula)  # always NULL
-        env <- environment(formula$terms)
-	if (is.null(env)) env <- parent.frame()
+	env<-environment(fcall$formula)
+	if (is.null(env)) env<-parent.frame()
 	eval(fcall, env)
     }
     else formula$model

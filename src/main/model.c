@@ -983,13 +983,11 @@ SEXP do_termsform(SEXP call, SEXP op, SEXP args, SEXP rho)
        the framenames joined by + */
 
     if (haveDot && LENGTH(framenames)) {
-	PROTECT_INDEX ind;
-	PROTECT_WITH_INDEX(rhs = install(CHAR(STRING_ELT(framenames, 0))), 
-			   &ind);
+	PROTECT(rhs = install(CHAR(STRING_ELT(framenames, 0))));
 	for (i = 1; i < LENGTH(framenames); i++) {
-	    REPROTECT(rhs = lang3(plusSymbol, rhs, 
-				  install(CHAR(STRING_ELT(framenames, i)))),
-		      ind);
+	    UNPROTECT(1);
+	    PROTECT(rhs = lang3(plusSymbol, rhs, 
+				install(CHAR(STRING_ELT(framenames, i)))));
 	}
 	if (!isNull(CADDR(ans)))
 	    SETCADDR(ans, ExpandDots(CADDR(ans), rhs));
@@ -1385,9 +1383,9 @@ SEXP do_modelframe(SEXP call, SEXP op, SEXP args, SEXP rho)
     UNPROTECT(1);
     PROTECT(ans);
 
-    /* Finally, tack on a terms attribute
-       Now done at R level.
-       setAttrib(ans, install("terms"), terms); */
+    /* Finally, tack on a terms attribute */
+
+    setAttrib(ans, install("terms"), terms);
     UNPROTECT(1);
     return ans;
 }
@@ -1606,8 +1604,6 @@ SEXP do_modelmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    INTEGER(columns)[i] = ncols(var_i);
 	}
 	else if (isLogical(var_i)) {
-	    /* currently this cannot happen as R code turns 
-	       logical into factor when setting contrasts */ 
 	    LOGICAL(ordered)[i] = 0;
 	    INTEGER(nlevs)[i] = 2;
 	    INTEGER(columns)[i] = ncols(var_i);

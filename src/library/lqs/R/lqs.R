@@ -16,16 +16,25 @@ lqs.formula <-
     mf <- eval(mf, parent.frame())
     if (method == "model.frame") return(mf)
     mt <- attr(mf, "terms")
+    na.act <- attr(mf, "na.action")
     y <- model.extract(mf, "response")
     x <- model.matrix(mt, mf, contrasts)
+    xvars <- as.character(attr(mt, "variables"))[-1]
+    if(yvar <- attr(mt, "response") > 0)
+	xvars <- xvars[-yvar]
+    xlev <-
+	if(length(xvars) > 0) {
+	    xlev <- lapply(mf[xvars], levels)
+	    xlev[!sapply(xlev, is.null)]
+	}
     xint <- match("(Intercept)", colnames(x), nomatch = 0)
     if(xint) x <- x[, -xint, drop = FALSE]
-    fit <- lqs.default(x, y, intercept = (xint > 0), method = method, ...)
+    fit <- lqs.default(x, y, intercept = (xint>0), method = method, ...)
     fit$terms <- mt
     fit$call <- match.call()
     fit$contrasts <- attr(x, "contrasts")
-    fit$xlevels <- .getXlevels(mt, mf)
-    fit$na.action <- attr(mf, "na.action")
+    fit$xlevels <- xlev
+    if(!is.null(na.act)) fit$na.action <- na.act
     if(model) fit$model <- mf
     if(x.ret) fit$x <- x
     if(y.ret) fit$y <- y
@@ -168,7 +177,6 @@ predict.lqs <- function (object, newdata, na.action = na.pass, ...)
     Terms <- delete.response(terms(object))
     m <- model.frame(Terms, newdata, na.action = na.action,
                      xlev = object$xlevels)
-    if(!is.null(cl <- attr(Terms, "dataClasses"))) .checkMFClasses(cl, m)
     X <- model.matrix(Terms, m, contrasts = object$contrasts)
     drop(X %*% object$coefficients)
 }

@@ -1,22 +1,15 @@
 \name{gpar}
 \alias{gpar}
-\alias{get.gpar}
-\title{Handling Grid Graphical Parameters}
+\title{Function to produce a Graphical Parameter Object}
 \description{
-  \code{gpar()} should be used to create a set of graphical
-  parameter settings.  It returns an object of class \code{"gpar"}.  This is
+  This function returns an object of class \code{"gpar"}.  This is
   basically a list of name-value pairs.
-
-  \code{get.gpar()} can be used to query the current
-  graphical parameter settings.
 }
 \usage{
 gpar(...)
-get.gpar(names = NULL)
 }
 \arguments{
   \item{\dots}{ Any number of named arguments. }
-  \item{names}{A character vector of valid graphical parameter names.}
 }
 \details{
   All grid viewports and (predefined) graphical objects have a slot
@@ -66,8 +59,6 @@ get.gpar(names = NULL)
   All parameter values can be vectors of multiple values.  (This will
   not always make sense -- for example, viewports will only take
   notice of the first parameter value.)
-
-  \code{get.gpar()} returns all current graphical parameter settings.
 }
 \value{
   An object of class \code{"gpar"}.
@@ -77,10 +68,8 @@ get.gpar(names = NULL)
 }
 \author{Paul Murrell}
 \examples{
-get.gpar()
 gpar(col = "red")
 gpar(col = "blue", lty = "solid", lwd = 3, fontsize = 16)
-get.gpar(c("col", "lty"))
 grid.newpage()
 vp <- viewport(w = .8, h = .8, gp = gpar(col="blue"))
 grid.collection(grid.rect(gp = gpar(col="red"), draw = FALSE),
@@ -94,8 +83,8 @@ grid.text("This text is the colour set by the viewport (blue)",
           gp = gpar(fontsize=20), vp = vp)
 grid.newpage()
 ## example with multiple values for a parameter
-pushViewport(viewport())
+push.viewport(viewport())
 grid.points(1:10/11, 1:10/11, gp = gpar(col=1:10))
-popViewport()
+pop.viewport()
 }
 \keyword{ dplot }

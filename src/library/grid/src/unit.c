@@ -328,9 +328,10 @@ int pureNullUnitArithmetic(SEXP unit, int index) {
  */
 
 /* NOTE:  this code calls back to R code to perform 
- * set.gpar operations, which will impact on grid state variables
- * BUT that's ok(ish) because we save and restore the relevant state
- * variables in here so that the overall effect is NULL.
+ * set.gpar operations, which will impact on grid global variables
+ * BUT that's ok(ish) because it subsequently calls back to R code to perform
+ * corresponding unset.gpar operations which will
+ * undo the changes to the grid globals
  */
 
 double evaluateGrobWidthUnit(SEXP grob, 
@@ -338,15 +339,10 @@ double evaluateGrobWidthUnit(SEXP grob,
 			     GEDevDesc *dd) 
 {
     SEXP widthPreFn, widthFn, widthPostFn, R_fcall1, R_fcall2, R_fcall3;
-    SEXP savedgpar;
     SEXP width;
     LViewportContext vpc;
     LGContext gc;
     double resultINCHES, result;
-    /* 
-     * Save the current gpar state and restore it at the end
-     */
-    PROTECT(savedgpar = gridStateElement(dd, GSS_GPAR));
     PROTECT(widthPreFn = findFun(install("width.pre"), R_gridEvalEnv));
     PROTECT(widthFn = findFun(install("width"), R_gridEvalEnv));
     PROTECT(widthPostFn = findFun(install("width.post"), R_gridEvalEnv));
@@ -404,11 +400,7 @@ double evaluateGrobWidthUnit(SEXP grob,
      */
     PROTECT(R_fcall3 = lang2(widthPostFn, grob));
     eval(R_fcall3, R_gridEvalEnv);
-    /* 
-     * Restore the saved gpar state 
-     */
-    setGridStateElement(dd, GSS_GPAR, savedgpar);
-    UNPROTECT(8);
+    UNPROTECT(7);
     /* Return the transformed width
      */
     return result;
@@ -425,15 +417,10 @@ double evaluateGrobHeightUnit(SEXP grob,
      * Ditto in three eval()s below.
      */
     SEXP heightPreFn, heightFn, heightPostFn, R_fcall1, R_fcall2, R_fcall3;
-    SEXP savedgpar;
     SEXP height;
     LViewportContext vpc;
     LGContext gc;
     double resultINCHES, result;
-    /* 
-     * Save the current gpar state and restore it at the end
-     */
-    PROTECT(savedgpar = gridStateElement(dd, GSS_GPAR));
     PROTECT(heightPreFn = findFun(install("height.pre"), R_gridEvalEnv));
     PROTECT(heightFn = findFun(install("height"), R_gridEvalEnv));
     PROTECT(heightPostFn = findFun(install("height.post"), R_gridEvalEnv));
@@ -468,11 +455,7 @@ double evaluateGrobHeightUnit(SEXP grob,
      */
     PROTECT(R_fcall3 = lang2(heightPostFn, grob));
     eval(R_fcall3, R_gridEvalEnv);
-    /* 
-     * Restore the saved gpar state 
-     */
-    setGridStateElement(dd, GSS_GPAR, savedgpar);
-    UNPROTECT(8);
+    UNPROTECT(7);
     /* Return the transformed height
      */
     return result;
@@ -510,6 +493,8 @@ double transform(double value, int unit, SEXP data,
      * or somesuch.
      */
     case L_CHAR:
+	result = result*gc->fontsize*gc->cex/(72*thisCM/2.54);
+	break;	
     case L_MYCHAR:  /* FIXME: Remove this when I can */
 	result = result*gc->fontsize*gc->cex/(72*thisCM/2.54);
 	break;	

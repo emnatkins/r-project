@@ -1077,9 +1077,8 @@ attributes(terms(y ~ offset(c) + a + b + a:b))[c("offset", "term.labels")]
 
 
 ## 0-level factors gave nonsensical answers in model.matrix
-m <- model.frame(~x, data.frame(x=NA), na.action=na.pass)
-model.matrix(~x, m)
+try(model.matrix(~x, data.frame(x=NA), na.action=na.pass))
 lm.fit <- lm(y ~ x, data.frame(x=1:10, y=1:10))
 try(predict(lm.fit, data.frame(x=NA)))
-## wrong answers in 1.8.0, refused to run in 1.8.1
+## wrong in 1.8.0
 

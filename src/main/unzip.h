@@ -45,7 +45,9 @@
 extern "C" {
 #endif
 
+#ifndef _ZLIB_H
 #include "zlib.h"
+#endif
 
 /* workaround for NetBSD vandalism on zconf.h */
 #ifndef OF /* function prototypes */

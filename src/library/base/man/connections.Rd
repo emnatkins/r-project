@@ -243,11 +243,13 @@ close(zz)
 readLines(gzfile("ex.gz"))
 unlink("ex.gz")
 
-zz <- bzfile("ex.bz2", "w")  # bzip2-ed file
-cat("TITLE extra line", "2 3 5 7", "", "11 13 17", file = zz, sep = "\n")
-close(zz)
-print(readLines(bzfile("ex.bz2")))
-unlink("ex.bz2")
+if(capabilities("bzip2")) {
+  zz <- bzfile("ex.bz2", "w")  # bzip2-ed file
+  cat("TITLE extra line", "2 3 5 7", "", "11 13 17", file = zz, sep = "\n")
+  close(zz)
+  print(readLines(bzfile("ex.bz2")))
+  unlink("ex.bz2")
+}
 
 ## An example of a file open for reading and writing
 Tfile <- file("test1", "w+")

@@ -14,11 +14,10 @@ png(filename ="Rplot\%03d.png", width = 480, height = 480,
 \synopsis{
 jpeg(filename = "Rplot\%03d.jpeg", width = 480, height = 480, pointsize = 12,
      quality = 75, gamma = 1,
-     colortype = getOption("X11colortype"), maxcubesize = 256, bg = "white",
-    fonts = getOption("X11fonts"))
+     colortype = getOption("X11colortype"), maxcubesize = 256, bg = "white")
 png(filename ="Rplot\%03d.png", width = 480, height = 480, pointsize = 12,
     gamma = 1, colortype = getOption("X11colortype"), maxcubesize = 256,
-    bg = "white", fonts = getOption("X11fonts"))
+    bg = "white")
 }
 \arguments{
   \item{filename}{the name of the output file.

@@ -437,9 +437,10 @@ variables.  The set of symbols which can be used in @R{} names depends
 on the operating system and country within which @R{} is being run
 (technically on the @emph{locale} in use).  Normally all alphanumeric
 symbols are allowed (and in some countries this includes accented
-letters) plus @samp{@code{.}} and @samp{@code{_}}, with the restriction
-that a name must start with @samp{@code{.}} or a letter, and if it
-starts with @samp{@code{.}} the second character must not be a digit.
+letters) plus @samp{@code{.}}@footnote{C programmers should note that
+@samp{@code{_}} is not available, but @samp{@code{.}} is and is often
+used to separate words in @R{} names.}, with the restriction that a name
+cannot start with a digit.
 
 Elementary commands consist of either @emph{expressions} or
 @emph{assignments}.  If an expression is given as a command, it is
@@ -6577,12 +6578,6 @@ number of ``cons cells'' to @var{N}.  See the previous option for
 details on @var{N}.  A cons cell takes 28 bytes on a 32-bit machine, and
 usually 56 bytes on a 64-bit machine.
 
-@item --max-ppsize=@var{N}
-Specify the maximum size of the pointer protection stack as @var{N}
-locations.  This defaults to 10000, but can be increased to allow 
-large and complicated calculations to be done.  Currently the maximum
-value accepted is 100000.
-
 @item --quiet
 @itemx --silent
 @itemx -q
@@ -6747,10 +6742,6 @@ which by default does limit the memory usage of an @R{} process.
 @R{} for Windows accepts the following command line options.
 
 @table @option
-@item --help
-@itemx -h
-Print usage message and exit.
-
 @item --version
 Print version info and exit.
 
@@ -6815,11 +6806,6 @@ Specify a limit for the amount of memory to be used both for @R{}
 objects and working areas (`@code{malloc}-ed' memory).  This is set by
 default to the smaller of 256Mb and the amount of physical RAM in the machine.
 
-@item --max-ppsize=@var{N}
-Specify the maximum size of the pointer protection stack as @var{N}
-locations.  This defaults to 10000, but can be increased to allow 
-large and complicated calculations to be done.  Currently the maximum
-value accepted is 100000.
 
 @item --quiet
 @itemx --silent

@@ -1,51 +1,3 @@
-Changes from grid_1.8.0 to grid_1.9.0:
-------------------------------------
-
-1.  Renamed push/pop.viewport() to push/popViewport().
-
-2.  Added upViewport(), downViewport(), and seekViewport() to 
-    allow creation and navigation of viewport tree 
-    (rather than just viewport stack).
-
-3.  Added id and id.lengths arguments to grid.polygon() to allow
-    multiple polygons within single grid.polygon() call.
-
-4.  Added vpList(), vpStack(), vpTree(), and current.vpTree()
-    to allow creation of viewport "bundles" that may be pushed
-    at once (lists are pushed in parallel, stacks in series).
-
-    current.vpTree() returns the current viewport tree.
-
-5.  Added vpPath() to allow specification of viewport path
-    in downViewport() and seekViewport().
-    
-    See ?viewports for an example of its use.
-
-    NOTE: it is also possible to specify a path directly,
-    e.g., something like "vp1::vp2", but this is only
-    advised for interactive use (in case I decide to change the
-    separator :: in later versions).
-
-6.  Added "just" argument to grid.layout() to allow justification
-    of layout relative to parent viewport *IF* the layout is not
-    the same size as the viewport.  There's an example in
-    help(grid.layout).
-
-7.  Allowed the "vp" slot in a grob to be a viewport name or a
-    vpPath.  The interpretation of these new alternatives is to
-    call downViewport() with the name or vpPath before drawing the
-    grob and upViewport() the appropriate amount after drawing the
-    grob.  Here's an example of the possible usage:
-
-        pushViewport(viewport(w=.5, h=.5, name="A"))
-	grid.rect()
-	pushViewport(viewport(w=.5, h=.5, name="B"))
-	grid.rect(gp=gpar(col="grey"))
-	upViewport(2)
-	grid.rect(vp="A", gp=gpar(fill="red"))
-	grid.rect(vp=vpPath("A", "B"), gp=gpar(fill="blue"))
-
-
 Changes from grid_1.8.0 to grid_1.8.1:
 ------------------------------------
 
@@ -202,8 +154,6 @@ Changes from grid_0.7-4 to grid_1.8.0:
 12. There is a new grid.arrows() primitive.  
 
     See the help file for example usage.
-
-13. Grid is now a base package (hence version number leap!)
 
 
 Changes from grid_0.7-3 to grid_0.7-4:

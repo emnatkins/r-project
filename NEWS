@@ -1,129 +1,6 @@
 				Dear Emacs, please make this -*-Text-*- mode!
 	**************************************************
 	*						 *
-	*	       1.9 SERIES NEWS			 *
-	*						 *
-	**************************************************
-
-
-		CHANGES IN R VERSION 1.9.0
-
-
-USER-VISIBLE CHANGES
-
-    o	Underscore '_' is now allowed in syntactically valid names, and
-	make.names() no longer changes underscores.  Very old code
-	that makes use of underscore for assignment may now give
-	confusing error messages.
-
-
-NEW FEATURES
-
-    o	The perl=TRUE argument to grep/regexpr/(g)sub() now uses
-	character tables prepared for the locale currently in use each
-	time it is used, rather than those of the C locale.
-
-    o	The `package' argument to data() is no longer allowed to be a
-	(unquoted) name and so can be a variable name or a quoted
-	character string.
-
-    o	Deparsing (including using dump() and dput()) an integer
-	vector now wraps it in as.integer() so it will be source()d
-	correctly.  (Related to PR#4361.)
-
-    o	Model fits now add a "dataClasses" attribute to the terms, which
-	can be used to check that the variables supplied for
-	prediction are of the same type as those used for fitting.
-	(It is currently used by predict() methods for classes "lm",
-	"mlm", "glm", "lqs" and "ppr".)
-
-    o	read.table() now allows embedded newlines in quoted fields. (PR#4555)
-
-    o	New command-line argument --max-ppsize allows the size of the
-	pointer protection stack to be set higher than the previous
-	limit of 10000.
-
-    o	The fonts on an X11() device (also jpeg() and png() on Unix)
-	can be specified by a new argument `fonts' defaulting to the
-	value of a new option "X11fonts".
-
-    o	strsplit() now has a `fixed' argument and split="" is optimized.
-
-    o	findInterval(x, v) now allows +/-Inf values, and NAs in x.
-
-    o   subset() now allows a `drop' argument to remove unused factor
-        levels.  The default is still to keep them. 
-
-    o	model.frame() methods, for example those for "lm" and "glm", pass
-	relevant parts of ... onto the default method.  (This has
-	long been documented but not done.)  The default method is now
-	able to cope with model classes such as "lqs" and "ppr".
-
-    o	ppr() has a `model' argument to allow the model frame to be
-	returned as part of the fitted object.
-
-    o	glm() arguments `etastart' and `mustart' are now evaluated in
-	the same way as `subset' and `weights'.
-
-
-UTILITIES
-
-    o	R CMD check  now runs the (Rd) examples with default RNGkind
-	(uniform & normal) and set.seed(1).
-	example(*, setRNG = TRUE) does the same.
-
-    o	undoc() in `tools' has a new default of `use.values = NULL'
-	which produces a warning whenever the default values of function
-	arguments differ between documentation and code.
-	Note that this affects "R CMD check" as well.
-
-
-DEPRECATED & DEFUNCT
-
-    o	print.coefmat() is defunct, replaced by printCoefmat().
-
-    o	codes() and codes<-() are defunct.
-
-    o	anovalist.lm (replaced in 1.2.0) is now defunct.
-
-    o	glm.fit.null(), lm.fit.null() and lm.wfit.null() are defunct.
-
-    o	print.atomic() is defunct.
-
-    o	The command-line arguments --nsize and --vsize are no longer
-	recognized as synonyms for --min-nsize and --min-vsize (which
-	replaced them in 1.2.0).
-
-
-INSTALLATION CHANGES
-
-    o	The defaults for configure are now --without-zlib
-	--without-bzlib --without-pcre.  PCRE >= 4.0 is now required:
-	the included PCRE sources have been updated to version 4.4.
-
-    o	configure no longer lists bzip2 and PCRE as `additional
-	capabilities' as all builds of R have had them since 1.7.0.
-
-
-BUG FIXES
-
-    o	contrasts() turns a logical variable into a factor.  This now
-	always has levels c("FALSE", "TRUE") even if only one (or
-	none) of these occur in the variable.
-
-    o	model.frame()'s lm and glm methods had 'data' and 'na.action'
-	arguments which they ignored and have been removed.
-
-    o	When lm.{w}fit() disregarded arguments in ... they reported
-	the values and not the names.
-
-    o	lm(singular.ok=FALSE) was looking for 0 rank, not rank < p. 
-
-
-
-
-	**************************************************
-	*						 *
 	*	       1.8 SERIES NEWS			 *
 	*						 *
 	**************************************************
@@ -198,7 +75,7 @@ BUG FIXES
 	row i and col j.
 
     o	Even more user errors in recursive indexing of lists are now
-	caught.  (PR#4486)
+	caught.	 (PR#4486)
 
     o	cor(<matrix>, use = "pairwise") gave wrong result in 1.8.0 (only).
 	(PR#4646)
@@ -206,7 +83,7 @@ BUG FIXES
     o	merge.data.frame() could give incorrect names when one of the
 	arguments had only one column.	(PR#4299)
 
-    o   Subsetting a one-dimensional array dropped dimensions even when
+    o	Subsetting a one-dimensional array dropped dimensions even when
 	they were not of length one.  (Related to PR#4110)
 
     o	The plot() method for `ecdf' objects, plot.ecdf(), now allows to

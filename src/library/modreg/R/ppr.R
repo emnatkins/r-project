@@ -6,7 +6,7 @@ ppr <- function(x, ...) UseMethod("ppr")
 
 ppr.formula <-
 function(formula, data=sys.parent(), weights, subset,
-	 na.action, contrasts = NULL, ..., model = FALSE)
+	 na.action, contrasts=NULL, ...)
 {
     call <- match.call()
     m <- match.call(expand = FALSE)
@@ -26,7 +26,6 @@ function(formula, data=sys.parent(), weights, subset,
     ## fix up call to refer to the generic, but leave arg name as `formula'
     call[[1]] <- as.name("ppr")
     fit$call <- call
-    if(model) fit$model <- m
     structure(fit, class=c("ppr.form", "ppr"))
 }
 
@@ -177,7 +176,6 @@ predict.ppr <- function(object, newdata, ...)
 # work hard to predict NA for rows with missing data
         Terms <- delete.response(object$terms)
         m <- model.frame(Terms, newdata, na.action = na.omit)
-        if(!is.null(cl <- attr(Terms, "dataClasses"))) .checkMFClasses(cl, m)
         keep <- match(row.names(m), rn)
         x <- model.matrix(Terms, m, contrasts = object$contrasts)
     } else {

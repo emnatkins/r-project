@@ -5,13 +5,11 @@ lm <- function (formula, data = list(), subset, weights, na.action,
 {
     ret.x <- x
     ret.y <- y
+##    mt <- terms(formula, data = data)
     cl <- match.call()
     mf <- match.call(expand.dots = FALSE)
-#    mf$singular.ok <- mf$model <- mf$method <- NULL
-#    mf$x <- mf$y <- mf$qr <- mf$contrasts <- mf$... <- NULL
-    m <- match(c("formula", "data", "subset", "weights", "na.action",
-                 "offset"), names(mf), 0)
-    mf <- mf[c(1, m)]
+    mf$singular.ok <- mf$model <- mf$method <- NULL
+    mf$x <- mf$y <- mf$qr <- mf$contrasts <- mf$... <- NULL
     mf$drop.unused.levels <- TRUE
     mf[[1]] <- as.name("model.frame")
     mf <- eval(mf, parent.frame())
@@ -20,6 +18,16 @@ lm <- function (formula, data = list(), subset, weights, na.action,
     else if (method != "qr")
 	warning("method = ", method, " is not supported. Using \"qr\".")
     mt <- attr(mf, "terms") # allow model.frame to update it
+    na.act <- attr(mf, "na.action")
+    xvars <- as.character(attr(mt, "variables"))[-1]
+    if((yvar <- attr(mt, "response")) > 0) xvars <- xvars[-yvar]
+    xlev <-
+	if(length(xvars) > 0) {
+	    xlev <- lapply(mf[xvars], levels)
+	    xlev[!sapply(xlev, is.null)]
+	}
+    if (!singular.ok)
+	warning("only `singular.ok = TRUE' is currently implemented.")
     y <- model.response(mf, "numeric")
     w <- model.weights(mf)
     offset <- model.offset(mf)
@@ -41,10 +49,10 @@ lm <- function (formula, data = list(), subset, weights, na.action,
 	else lm.wfit(x, y, w, offset = offset, singular.ok=singular.ok, ...)
     }
     class(z) <- c(if(is.matrix(y)) "mlm", "lm")
-    z$na.action <- attr(mf, "na.action")
+    if(!is.null(na.act)) z$na.action <- na.act
     z$offset <- offset
     z$contrasts <- attr(x, "contrasts")
-    z$xlevels <- .getXlevels(mt, mf)
+    z$xlevels <- xlev
     z$call <- cl
     z$terms <- mt
     if (model)
@@ -80,7 +88,7 @@ lm.fit <- function (x, y, offset = NULL, method = "qr", tol = 1e-07,
     if(method != "qr")
 	warning("method = ",method, " is not supported. Using \"qr\".")
     if(length(list(...)))
-	warning("Extra arguments ", paste(names(list(...)), sep=", "),
+	warning("Extra arguments ", deparse(substitute(...)),
                 " are just disregarded.")
     storage.mode(x) <- "double"
     storage.mode(y) <- "double"
@@ -92,7 +100,8 @@ lm.fit <- function (x, y, offset = NULL, method = "qr", tol = 1e-07,
 		  residuals = y, effects = y, rank = integer(1),
 		  pivot = 1:p, qraux = double(p), work = double(2*p),
                   PACKAGE="base")
-    if(!singular.ok && z$rank < p) stop("singular fit encountered")
+    if(!singular.ok && z$rank == 0)
+        stop("singular fit encountered")
     coef <- z$coefficients
     pivot <- z$pivot
     ## careful here: the rank might be 0
@@ -139,7 +148,7 @@ lm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-7,
     if(method != "qr")
 	warning("method = ",method, " is not supported. Using \"qr\".")
     if(length(list(...)))
-	warning("Extra arguments ", paste(names(list(...)), sep=", "),
+	warning("Extra arguments ", deparse(substitute(...)),
                 " are just disregarded.")
     x.asgn <- attr(x, "assign")# save
     zero.weights <- any(w == 0)
@@ -174,7 +183,8 @@ lm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-7,
 		  rank = integer(1), pivot = 1:p, qraux = double(p),
 		  work = double(2 * p),
                   PACKAGE="base")
-    if(!singular.ok && z$rank < p) stop("singular fit encountered")
+    if(!singular.ok && z$rank == 0)
+        stop("singular fit encountered")
     coef <- z$coefficients
     pivot <- z$pivot
     r1 <- seq(len=z$rank)
@@ -407,17 +417,24 @@ residuals.lm <-
                   if(is.null(object$weights)) r else r * sqrt(object$weights),
                   partial = r + predict(object,type="terms")
            )
-    naresid(object$na.action, res)
+    if(is.null(object$na.action)) res
+    else naresid(object$na.action, res)
 }
 
-#fitted.lm <- function(object, ...)
-#    napredict(object$na.action, object$fitted.values)
+fitted.lm <- function(object, ...)
+{
+    if(is.null(object$na.action)) object$fitted.values
+    else napredict(object$na.action, object$fitted.values)
+}
 
 coef.lm <- function(object, ...) object$coefficients
 
 ## need this for results of lm.fit() in drop1():
 weights.default <- function(object, ...)
-    naresid(object$na.action, object$weights)
+{
+    if(is.null(object$na.action)) object$weights
+    else naresid(object$na.action, object$weights)
+}
 
 
 deviance.lm <- function(object, ...)
@@ -433,31 +450,26 @@ formula.lm <- function(x, ...)
 
 family.lm <- function(object, ...) { gaussian() }
 
-model.frame.lm <- function(formula, ...)
-{
-    dots <- list(...)
-    nargs <- dots[match(c("data", "na.action", "subset"), names(dots), 0)]
-    if (any(nargs > 0) || is.null(formula$model)) {
+model.frame.lm <- function(formula, data, na.action, ...) {
+    if (is.null(formula$model)) {
         fcall <- formula$call
         fcall$method <- "model.frame"
         fcall[[1]] <- as.name("lm")
-        fcall[names(nargs)] <- nargs
-#	env <- environment(fcall$formula)  # always NULL
-        env <- environment(formula$terms)
+	env <- environment(fcall$formula)
 	if (is.null(env)) env <- parent.frame()
-        eval(fcall, env, parent.frame())
+        eval(fcall, env)
     }
     else formula$model
 }
 
-variable.names.lm <- function(object, full = FALSE, ...)
+variable.names.lm <- function(object, full=FALSE, ...)
 {
     if(full)	dimnames(object$qr$qr)[[2]]
     else if(object$rank) dimnames(object$qr$qr)[[2]][seq(len=object$rank)]
     else character(0)
 }
 
-case.names.lm <- function(object, full = FALSE, ...)
+case.names.lm <- function(object, full=FALSE, ...)
 {
     w <- weights(object)
     dn <- names(residuals(object))
@@ -552,6 +564,7 @@ anova.lmlist <- function (object, ..., scale = 0, test = "F")
               class = c("anova", "data.frame"))
 }
 
+
 ## code originally from John Maindonald 26Jul2000
 predict.lm <-
     function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf,
@@ -569,7 +582,6 @@ predict.lm <-
         Terms <- delete.response(tt)
         m <- model.frame(Terms, newdata, na.action = na.action,
                          xlev = object$xlevels)
-        if(!is.null(cl <- attr(Terms, "dataClasses"))) .checkMFClasses(cl, m)
         X <- model.matrix(Terms, m, contrasts = object$contrasts)
 	offset <- if (!is.null(off.num <- attr(tt, "offset")))
 	    eval(attr(tt, "variables")[[off.num+1]], newdata)
@@ -731,10 +743,17 @@ effects.lm <- function(object, set.sign = FALSE, ...)
 
 model.matrix.lm <- function(object, ...)
 {
-    if(n_match <- match("x", names(object), 0)) object[[n_match]]
+    if(n <- match("x", names(object), 0)) object[[n]]
     else {
-        data <- model.frame(object, xlev = object$xlevels, ...)
-        NextMethod("model.matrix", data = data, contrasts = object$contrasts)
+#         if(length(object$coefficients) == 0) {
+#             rval <- matrix(ncol=0, nrow=length(object$residuals))
+#             attr(rval,"assign") <- integer(0)
+#             rval
+#         } else {
+            data <- model.frame(object, xlev = object$xlevels, ...)
+            NextMethod("model.matrix", data = data,
+                       contrasts = object$contrasts)
+#        }
     }
 }
 
@@ -754,7 +773,6 @@ predict.mlm <-
         Terms <- delete.response(tt)
         m <- model.frame(Terms, newdata, na.action = na.action,
                          xlev = object$xlevels)
-        if(!is.null(cl <- attr(Terms, "dataClasses"))) .checkMFClasses(cl, m)
         X <- model.matrix(Terms, m, contrasts = object$contrasts)
 	offset <- if (!is.null(off.num <- attr(tt, "offset")))
 	    eval(attr(tt, "variables")[[off.num+1]], newdata)

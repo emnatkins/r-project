@@ -27,7 +27,7 @@ use R::Rdconv;
 use R::Utils;
 use R::Vars;
 
-my $revision = ' $Revision: 1.25 $ ';
+my $revision = ' $Revision: 1.24.6.1 $ ';
 my $version;
 my $name;
 

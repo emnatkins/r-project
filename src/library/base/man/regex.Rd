@@ -179,17 +179,19 @@
 }
 \section{Perl Regular Expressions}{
   The \code{perl = TRUE} argument to \code{grep}, \code{regexpr}, \code{sub}
-  and \code{gsub} switches to the PCRE library that \sQuote{implements regular
-    expression pattern matching using the same syntax and semantics as Perl
-    5.6 or later, with just a few differences}.
+  and \code{gsub} switches to the PCRE library that implements regular
+  expression pattern matching using the same syntax and semantics as Perl
+  5, with just a few differences.  Character tables created in the C locale
+  at compile time are used in this version, but locale-specific tables
+  will be used in later versions of \R.
 
-  For complete details please consult the man pages for PCRE, especially
-  \code{man pcrepattern} and \code{man pcreapi}) on your system or from
-  the sources at
-  \url{ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/}. If PCRE
-  support was compiled from the sources within \R, the PCRE version is 4.4
-  as described here (version \eqn{\ge}{>=} 4.0 is required even if \R is
-  configured to use the system's PCRE library).
+  For complete details please consult the man pages for PCRE (especially
+  \code{man pcrepattern} or if that does not exist, \code{man pcre}) on
+  your system or from the sources at
+  \url{ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/}.
+  If PCRE support was compiled from the sources within \R, the PCRE
+  version is 3.9 as described here: PCRE \eqn{\ge}{>=} 4.0 supports more
+  of the Perl regular expressions.
 
   All the regular expressions described for extended regular expressions
   are accepted except \code{\\<} and \code{\\>}: in Perl all backslashed
@@ -216,19 +218,13 @@
   \sQuote{ungreedy} mode (so matching is minimal unless \code{?} is used,
   when it is greedy).  Initially none of these options are set.
 
-  If you want to remove the special meaning from a sequence of
-  characters, you can do so by putting them between \code{\\Q} and
-  \code{\\E}. This is different from Perl in that \code{$} and \code{@} are
-  handled as literals in \code{\\Q...\\E} sequences in PCRE, whereas in
-  Perl, \code{$} and \code{@} cause variable interpolation.
-
   The escape sequences \code{\\d}, \code{\\s} and \code{\\w} represent any
-  decimal digit, space character and \sQuote{word} character
+  decimal digit, space character and and \sQuote{word} character
   (letter, digit or underscore in the current locale) respectively, and
-  their upper-case versions represent their negation.
-  Unlike POSIX and earlier versions of Perl and PCRE, vertical tab is
-  not regarded as a whitespace character.
-
+  their upper-case versions represent their negation.  In PCRE 3.9 the
+  vertical tab is not regarded as a whitespace character, but it is in
+  PCRE \eqn{\ge}{>=} 4.0.  (Perl itself changed around version 5.004.)
+  
   Escape sequence \code{\\a} is \code{BEL}, \code{\\e} is \code{ESC},
   \code{\\f} is \code{FF}, \code{\\n} is \code{LF}, \code{\\r} is
   \code{CR} and \code{\\t} is \code{TAB}.  In addition \code{\\cx} is

@@ -117,10 +117,12 @@ function(package, dir, lib.loc = NULL)
         ## </FIXME>
         for(f in files) {
             ## <NOTE>
-            ## Non-standard evaluation for argument 'package' to data()
-            ## gone in R 1.9.0.
-            yy <- try(data(list = f, package = packageName,
-                           lib.loc = libPath, envir = dataEnv),)
+            ## Non-standard evaluation for argument 'package' to data().
+            yy <- try(eval(substitute(data(list = f,
+                                           package = packageName,
+                                           lib.loc = libPath,
+                                           envir = dataEnv),
+                                      list(packageName = packageName))))
             ## </NOTE>
             if(inherits(yy, "try-error"))
                 stop(paste("cannot load data set", sQuote(f)))
@@ -170,7 +172,7 @@ function(package, dir, lib.loc = NULL)
                                                  where = topenv(environment(fdef)))
                         if(is.null(fOther))
                             TRUE
-                        else
+                        else 
                             !methods::is(methods::finalDefaultMethod(methods::getMethodsMetaData(f, codeEnv)),
                                          "derivedDefaultMethod")
                     }
@@ -282,7 +284,9 @@ function(x, ...)
 
 codoc <-
 function(package, dir, lib.loc = NULL,
-         use.values = NULL, verbose = getOption("verbose"))
+         use.values = FALSE, use.positions = TRUE,
+         ignore.generic.functions = FALSE,
+         verbose = getOption("verbose"))
 {
     ## <FIXME>
     ## Improvements worth considering:
@@ -297,6 +301,15 @@ function(package, dir, lib.loc = NULL,
     hasNamespace <- FALSE
 
     ## Argument handling.
+    ## <FIXME>
+    ## Remove these arguments for 2.0.
+    if(!missing(use.positions))
+        warning("argument", sQuote("use.positions"),
+                "is deprecated")
+    if(!missing(ignore.generic.functions))
+        warning("argument", sQuote("ignore.generic.functions"),
+                "is deprecated")
+    ## </FIXME>
     if(!missing(package)) {
         if(length(package) != 1)
             stop(paste("argument", sQuote("package"),
@@ -388,6 +401,15 @@ function(package, dir, lib.loc = NULL,
                                  f <- get(f, envir = codeEnv)
                                  is.function(f) && (length(formals(f)) > 0)
                              }) == TRUE]
+    if(ignore.generic.functions) {
+        ## Ignore all generics, whatever name they dispatch on.
+        functionsInCode <-
+            functionsInCode[sapply(functionsInCode,
+                                   .isS3Generic,
+                                   codeEnv,
+                                   FALSE)
+                            == FALSE]
+    }
     ## <FIXME>
     ## Sourcing all R code files in the package is a problem for base,
     ## where this misses the .Primitive functions.  Hence, when checking
@@ -440,6 +462,10 @@ function(package, dir, lib.loc = NULL,
         ## Compare the formals of the function in the code named 'fName'
         ## and formals 'ffd' obtained from the documentation.
         ffc <- functionArgsInCode[[fName]]
+        if(identical(use.positions, FALSE)) {
+            ffc <- ffc[sort(names(ffc))]
+            ffd <- ffc[sort(names(ffd))]
+        }
         if(identical(use.values, FALSE)) {
             ffc <- names(ffc)
             ffd <- names(ffd)
@@ -662,9 +688,9 @@ function(x, ...)
     ## E.g., for generic functions with just a default and a formula
     ## method we typically do not have \usage for the generic itself.
     ## (This will change now with the new \method{}{} transformation.)
-    ## Also, earlier versions of codoc() based on the defunct Perl code
-    ## in extract-usage.pl (now removed) only dealt with the *functions*
-    ## so all variables would come out as 'without usage information' ...
+    ## Also, earlier versions od codoc() based on extract-usage.pl only
+    ## dealt with the *functions* so all variables would come out as
+    ## 'without usage information' ...
     ## As we can always access the information via
     ##    attr(codoc("foo"), "codeNotInUsages")
     ## disable reporting this for the time being ...
@@ -920,7 +946,7 @@ function(package, lib.loc = NULL)
     if(length(package) != 1)
         stop(paste("argument", sQuote("package"),
                    "must be of length 1"))
-
+    
     dir <- .find.package(package, lib.loc)
     if(!fileTest("-d", file.path(dir, "man")))
        stop(paste("directory", sQuote(dir),
@@ -2082,7 +2108,7 @@ function(package, dir, lib.loc = NULL)
             .checkLastFormalArg(f)
         }) == FALSE]
 
-    if(.isMethodsDispatchOn()) {
+    if(.isMethodsDispatchOn()) { 
         S4generics <- methods::getGenerics(codeEnv)
         ## Assume that the ones with names ending in '<-' are always
         ## replacement functions.

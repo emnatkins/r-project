@@ -162,7 +162,10 @@ coefficients <- coef
 
 residuals <- function(object, ...) UseMethod("residuals")
 residuals.default <- function(object, ...)
-    naresid(object$na.action, object$residuals)
+{
+    if(is.null(object$na.action)) object$residuals
+    else naresid(object$na.action, object$residuals)
+}
 resid <- residuals
 
 deviance <- function(object, ...) UseMethod("deviance")
@@ -170,7 +173,10 @@ deviance.default <- function(object, ...) object$deviance
 
 fitted <- function(object, ...) UseMethod("fitted")
 fitted.default <- function(object, ...)
-    napredict(object$na.action, object$fitted)
+{
+    if(is.null(object$na.action)) object$fitted
+    else napredict(object$na.action, object$fitted)
+}
 fitted.values <- fitted
 
 anova <- function(object, ...)UseMethod("anova")
@@ -191,65 +197,12 @@ case.names.default <- function(object, ...) rownames(object)
 offset <- function(object) object
 ## ?
 
-.checkMFClasses <- function(cl, m, ordNotOK = FALSE)
-{
-    new <- sapply(m, .MFclass)
-    if(length(new) == 0) return()
-    old <- cl[names(new)]
-    if(!ordNotOK) {
-        old[old == "ordered"] <- "factor"
-        new[new == "ordered"] <- "factor"
-    }
-    ## ordered is OK as a substitute for factor, but not v.v.
-    new[new == "ordered" && old == "factor"] <- "factor"
-    if(!identical(old, new)) {
-        wrong <- old != new
-        if(sum(wrong) == 1)
-            stop(paste("variable", sQuote(names(old)[wrong]),
-                       "was fitted with", old[wrong], "but",
-                       new[wrong], "was supplied"), call.=FALSE)
-        else
-            stop(paste("variables",
-                       paste(sQuote(names(old)[wrong]), collapse=", "),
-                       "were specified differently from the fit"),
-                 call.=FALSE)
-    }
-}
-
-.MFclass <- function(x)
-{
-    ## the idea is to identify the relevant classes that model.matrix
-    ## will handle differently
-    ## logical, factor, ordered vs numeric, and other for future proofing
-    if(is.logical(x)) return("logical")
-    if(is.ordered(x)) return("ordered")
-    if(is.factor(x))  return("factor")
-    if(is.matrix(x) && is.numeric(x))
-        return(paste("nmatrix", ncol(x), sep="."))
-    if(is.vector(x) && is.numeric(x)) return("numeric")
-    return("other")
-}
 
 model.frame <- function(formula, ...) UseMethod("model.frame")
 model.frame.default <-
-    function(formula, data = NULL, subset = NULL, na.action = na.fail,
+    function(formula, data = NULL, subset=NULL, na.action = na.fail,
 	     drop.unused.levels = FALSE, xlev = NULL,...)
 {
-    ## were we passed just a fitted model object?
-    if(!missing(formula) && nargs() == 1 && is.list(formula)
-       && all(c("terms", "call") %in% names(formula))) {
-        ## the fit might have a saved model object
-        if(!is.null(m <- formula$model)) return(m)
-        ## if not use the saved call.
-        fcall <- formula$call
-        m <- match(c("formula", "data", "subset", "weights", "na.action"),
-                   names(fcall), 0)
-        fcall <- fcall[c(1, m)]
-        fcall[[1]] <- as.name("model.frame")
-        env <- environment(formula$terms)
-	if (is.null(env)) env <- parent.frame()
-        return(eval(fcall, env, parent.frame()))
-    }
     if(missing(formula)) {
 	if(!missing(data) && inherits(data, "data.frame") &&
 	   length(attr(data, "terms")) > 0)
@@ -275,9 +228,9 @@ model.frame.default <-
         data <- as.data.frame(data)
     else if (is.array(data))
         stop("`data' must be a data.frame, not a matrix or  array")
+    env <- environment(formula)
     if(!inherits(formula, "terms"))
 	formula <- terms(formula, data = data)
-    env <- environment(formula)
     rownames <- attr(data, "row.names")
     vars <- attr(formula, "variables")
     predvars <- attr(formula, "predvars")
@@ -322,8 +275,6 @@ model.frame.default <-
 		data[[nm]] <- data[[nm]][, drop = TRUE]
 	}
     }
-    attr(formula, "dataClasses") <- sapply(data, .MFclass)
-    attr(data, "terms") <- formula
     data
 }
 
@@ -415,9 +366,12 @@ model.extract <- function (frame, component)
     component <- as.character(substitute(component))
     rval <- switch(component,
 		   response = model.response(frame),
-		   offset = model.offset(frame),
-                   frame[[paste("(", component, ")", sep = "")]]
-                   )
+		   offset = model.offset(frame), weights = frame$"(weights)",
+		   start = frame$"(start)")
+    if (is.null(rval)) {
+	name <- paste("frame$\"(", component, ")\"", sep = "")
+	rval <- eval(parse(text = name)[1])
+    }
     if(!is.null(rval)){
 	if (length(rval) == nrow(frame))
 	    names(rval) <- attr(frame, "row.names")
@@ -446,14 +400,4 @@ makepredictcall.default  <- function(var, call)
     if(!is.null(z <- attr(var, "scaled:center"))) call$center <- z
     if(!is.null(z <- attr(var, "scaled:scale"))) call$scale <- z
     call
-}
-
-.getXlevels <- function(Terms, m)
-{
-    xvars <- as.character(attr(Terms, "variables"))[-1]
-    if((yvar <- attr(Terms, "response")) > 0) xvars <- xvars[-yvar]
-    if(length(xvars) > 0) {
-        xlev <- lapply(m[xvars], levels)
-        xlev[!sapply(xlev, is.null)]
-    } else NULL
 }

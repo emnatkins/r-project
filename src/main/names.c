@@ -457,7 +457,7 @@ FUNTAB R_FunTab[] =
 {"nchar",	do_nchar,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"substr",	do_substr,	1,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"substrgets",	do_substrgets,	1,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
-{"strsplit",	do_strsplit,	1,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
+{"strsplit",	do_strsplit,	1,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"abbreviate",	do_abbrev,	1,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"make.names",	do_makenames,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"grep",	do_grep,	1,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
@@ -619,7 +619,7 @@ FUNTAB R_FunTab[] =
 {"nargs",	do_nargs,	1,	0,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"scan",	do_scan,	0,	11,	16,	{PP_FUNCALL, PREC_FN,	0}},
 {"count.fields",do_countfields,	0,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
-{"readTableHead",do_readtablehead,0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
+{"readTableHead",do_readtablehead,0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"t.default",	do_transpose,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"aperm",	do_aperm,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"builtins",	do_builtins,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -705,7 +705,7 @@ FUNTAB R_FunTab[] =
 {"devga",	do_devga,	0,	111,   13,	{PP_FUNCALL, PREC_FN,	0}},
 #endif
 #ifdef Unix
-{"X11",		do_X11,		0,	111,	9,	{PP_FUNCALL, PREC_FN,	0}},
+{"X11",		do_X11,		0,	111,	8,	{PP_FUNCALL, PREC_FN,	0}},
 {"gnome",	do_Gnome,	0,	111,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"GTK",		do_GTK,		0,	111,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"Quartz",	do_Quartz,	0,	111,	7,	{PP_FUNCALL, PREC_FN,	0}},

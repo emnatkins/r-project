@@ -126,7 +126,8 @@ regexpr("en", txt)
 str = 'Now is the time      '
 sub(' +$', '', str)  ## spaces only
 sub('[[:space:]]+$', '', str) ## white space, POSIX-style
-sub('\\\\s+$', '', str, perl = TRUE) ## Perl-style white space
+if(capabilities("PCRE"))
+  sub('\\\\s+$', '', str, perl = TRUE) ## perl-style white space
 }
 \keyword{character}
 \keyword{utilities}

@@ -671,17 +671,18 @@ SEXP do_syssleep(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 #ifdef LEA_MALLOC
 struct mallinfo {
-  int arena;    /* non-mmapped space allocated from system */
-  int ordblks;  /* number of free chunks */
-  int smblks;   /* number of fastbin blocks */
+  int arena;    /* total space allocated from system */
+  int ordblks;  /* number of non-inuse chunks */
+  int smblks;   /* unused -- always zero */
   int hblks;    /* number of mmapped regions */
-  int hblkhd;   /* space in mmapped regions */
-  int usmblks;  /* maximum total allocated space */
-  int fsmblks;  /* space available in freed fastbin blocks */
+  int hblkhd;   /* total space in mmapped regions */
+  int usmblks;  /* unused -- always zero */
+  int fsmblks;  /* unused -- always zero */
   int uordblks; /* total allocated space */
-  int fordblks; /* total free space */
+  int fordblks; /* total non-inuse space */
   int keepcost; /* top-most, releasable (via malloc_trim) space */
 };
+extern unsigned long max_total_mem;
 extern unsigned int R_max_memory;
 
 struct mallinfo mallinfo();
@@ -701,7 +702,7 @@ SEXP do_memsize(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if(maxmem == NA_LOGICAL)
 	    REAL(ans)[0] = R_max_memory;
 	else if(maxmem)
-	    REAL(ans)[0] = mallinfo().usmblks;
+	    REAL(ans)[0] = max_total_mem;
 	else
 	    REAL(ans)[0] = mallinfo().uordblks;
 #else

@@ -333,13 +333,6 @@ stopifnot(it[c(1,203)] == c(0, 100),
 	  findInterval(tt,X) ==	 apply( outer(tt, X, ">="), 1, sum)
 	  )
 ## end of moved from findint.Rd
-## NA & Inf's :
-tt[ina <- c(2,3,5,7)] <- NA
-tt[300] <- Inf
-X <- c(-Inf, X, Inf)
-it <- findInterval(tt,X)
-stopifnot(identical(it, as.integer(rowSums(outer(tt, X, ">=")))),
-	  is.na(it[ina]))
 
 
 ## fix
@@ -2781,35 +2774,3 @@ unlink(tf)
 x <- round(matrix(0, 0, 3))
 stopifnot(identical(dim(x), as.integer(c(0, 3))))
 ## numeric(0) in 1.8.0
-
-
-## PR#4955 now allow embedded newlines in quoted fields in read.table
-temp <- tempfile()
-data <- data.frame(a=c("c", "e\nnewline"))
-write.table(data, sep=",", row.names=FALSE, file=temp)
-data2 <- read.csv(temp)
-unlink(temp)
-# attributes get a different order here
-stopifnot(identical(data$a, data2$a))
-## not allowed prior to 1.9.0
-
-
-## scoping problems with model.frame methods
-foo <- c(1,1,0,0,1,1)
-rep <- 1:6
-m <- lm(foo ~ rep, model=FALSE)
-model.matrix(m)
-n <- 1:6
-m <- lm(foo ~ n, model=FALSE)
-model.matrix(m)
-## failed in 1.8.0 because the wrong n or rep was found.
-rm(foo, rep)
-func <- function()
-{
-    foo <- c(1,1,0,0,1,1)
-    rep <- 1:6
-    m <- lm(foo ~ rep, model=FALSE)
-    model.matrix(m)
-}
-func()
-##

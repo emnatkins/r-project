@@ -14,16 +14,16 @@ model.frame(formula, \dots)
 
 \method{model.frame}{aovlist}(formula, data = NULL, \dots)
 
-\method{model.frame}{glm}(formula, \dots)
+\method{model.frame}{glm}(formula, data, na.action, \dots)
 
-\method{model.frame}{lm}(formula, \dots)
+\method{model.frame}{lm}(formula, data, na.action, \dots)
 }
 \arguments{
-  \item{formula}{a model formula or an \R object.}
+  \item{formula}{a model formula}
 
   \item{data}{\code{data.frame}, list, \code{environment} or object
     coercible to \code{data.frame} containing the variables in
-    \code{formula}.  Neither a matrix nor an array will be accepted.}
+    \code{formula}.}
 
   \item{subset}{a specification of the rows to be used: defaults to all
     rows. This can be any valid indexing vector (see
@@ -42,11 +42,8 @@ model.frame(formula, \dots)
   \item{xlev}{a named list of character vectors giving the full set of levels
     to be assumed for each factor.}
 
-  \item{\dots}{further arguments such as \code{data}, \code{na.action},
-    \code{subset}.  Any additional arguments such as \code{offset} and
-    \code{weights} which reach the default method are used to create
-    further columns in the model frame, with parenthesised names such as
-    \code{"(offset)"}.}
+  \item{\dots}{further arguments such as \code{subset}, \code{offset} and
+    \code{weights}. \code{NULL} arguments are treated as missing.}
 }
 \description{
   \code{model.frame} (a generic function) and its methods return a
@@ -54,26 +51,13 @@ model.frame(formula, \dots)
   \code{formula} and any \code{\dots} arguments.
 }
 \details{
-  Exactly what happens depends on the class and attributes of the object
-  \code{formula}.  If this is an object of fitted-model class such as
-  \code{"lm"}, the method will either returned the saved model frame
-  used when fitting the model (if any, often selected by argument
-  \code{model = TRUE}) or pass the call used when fitting on to the
-  default method.  The default method itself can cope with rather
-  standard model objects such as those of classes
-  \code{"\link[lqs]{lqs}"} and \code{"\link[ppr]{ppr}"} if no other
-  arguments are supplied.
-  
-  The rest of this section applies only to the default method.
+  Variables in the formula, \code{subset} and in \code{\dots} are looked
+  for first in \code{data} and then in the environment of
+  \code{formula}: see the help for \code{\link{formula}()} for further
+  details.
 
-  If either \code{formula} or \code{data} is already a model frame (a
-  data frame with a \code{"terms"} attribute and the other is missing,
-  the model frame is returned.
-
-  All the variables in \code{formula}, \code{subset} and in \code{\dots}
-  are looked for first in \code{data} and then in the environment of
-  \code{formula} (see the help for \code{\link{formula}()} for further
-  details) and collected into a data frame. Then the \code{subset}
+  First all the variables needed are collected into a data frame.
+  Then \code{subset}
   expression is evaluated, and it is is used as a row index to the data
   frame. Then the \code{na.action} function is applied to the data frame
   (and may well add attributes).  The levels of any factors in the data
