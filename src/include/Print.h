@@ -1,7 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997-2003   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,9 +20,10 @@
 #ifndef PRINT_H_
 #define PRINT_H_
 
-#include <R_ext/PrtUtil.h>
+#include "R_ext/PrtUtil.h"
 #include "Defn.h"
 
+#ifndef R_NO_REMAP
 #define formatFactor        Rf_formatFactor
 #define formatString        Rf_formatString
 #define EncodeFactor        Rf_EncodeFactor
@@ -32,17 +32,16 @@
 #define printMatrix         Rf_printMatrix
 #define printNamedVector    Rf_printNamedVector
 #define printVector         Rf_printVector
+#endif
 
 typedef struct {
     int width;
     int na_width;
-    int na_width_noquote;
     int digits;
     int gap;
     int quote;
     int right;
     SEXP na_string;
-    SEXP na_string_noquote;
 } R_print_par_t;
 extern R_print_par_t R_print;
 
@@ -60,7 +59,7 @@ void RightMatrixColumnLabel(SEXP, int, int);
 void LeftMatrixColumnLabel(SEXP, int, int);
 void MatrixRowLabel(SEXP, int, int, int);
 
-/* In Rinternals.h (and MUST be there):
+/* In Defn.h (and MUST be there):
    CustomPrintValue,  PrintValue, PrintValueRec */
 void printArray(SEXP, SEXP, int, SEXP);
 void printMatrix(SEXP, int, SEXP, int, int, SEXP, SEXP, char*, char*);

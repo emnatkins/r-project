@@ -1,6 +1,9 @@
 \name{sd}
-\alias{sd}
 \title{Standard Deviation}
+\usage{
+sd(x, na.rm = FALSE)
+}
+\alias{sd}
 \description{
   This function computes the standard deviation of the values in
   \code{x}.
@@ -8,13 +11,6 @@
   computation proceeds.
   If \code{x} is a matrix or a dataframe, a vector of the standard
   deviation of the columns is returned.
-}
-\usage{
-sd(x, na.rm = FALSE)
-}
-\arguments{
-  \item{x}{a numeric vector, matrix or data frame.}
-  \item{na.rm}{logical. Should missing values be removed?}
 }
 \seealso{
   \code{\link{var}} for its square, and \code{\link{mad}}, the most

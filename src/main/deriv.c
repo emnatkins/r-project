@@ -43,8 +43,6 @@ static SEXP SinhSymbol;
 static SEXP CoshSymbol;
 static SEXP TanhSymbol;
 static SEXP SqrtSymbol;
-static SEXP PnormSymbol;
-static SEXP DnormSymbol;
 
 static void InitDerivSymbols()
 {
@@ -65,8 +63,6 @@ static void InitDerivSymbols()
     CoshSymbol = install("cosh");
     TanhSymbol = install("tanh");
     SqrtSymbol = install("sqrt");
-    PnormSymbol = install("pnorm");
-    DnormSymbol = install("dnorm");
 }
 
 static SEXP Constant(double x)
@@ -242,12 +238,6 @@ static SEXP simplify(SEXP fun, SEXP arg1, SEXP arg2)
     }
     else if (fun == TanhSymbol) {
 	ans = lang2(TanhSymbol, arg1);
-    }
-    else if (fun == PnormSymbol) {
-	ans = lang2(PnormSymbol, arg1);
-    }
-    else if (fun == DnormSymbol) {
-	ans = lang2(DnormSymbol, arg1);
     }
     else ans = Constant(NA_REAL);
     /* FIXME */
@@ -435,26 +425,8 @@ static SEXP D(SEXP expr, SEXP var)
 	    ans = D(expr1, var);
 	    UNPROTECT(1);
 	}
-	else if (CAR(expr) == PnormSymbol) {
-	    ans = simplify(TimesSymbol,
-			   PP(simplify(DnormSymbol, CADR(expr), R_MissingArg)),
-			   PP(D(CADR(expr), var))),
-		UNPROTECT(2);
-	}
-	else if (CAR(expr) == DnormSymbol) {
-	    ans = simplify(TimesSymbol,
-			   PP(simplify(MinusSymbol, CADR(expr), R_MissingArg)),
-			   PP(simplify(TimesSymbol,
-			   PP(simplify(DnormSymbol, CADR(expr), R_MissingArg)),
-			   PP(D(CADR(expr), var))))),
-		UNPROTECT(4);
-	}
-	else {
-	    SEXP u = deparse1(CAR(expr), 0);
-	    error("Function `%s' is not in the derivatives table",
-		  CHAR(STRING_ELT(u, 0)));
-	}
-	
+	else error("Function %s is not in the derivatives table",
+		   PRINTNAME(CAR(expr)));
 	break;
     default:
 	ans = Constant(NA_REAL);
@@ -600,7 +572,9 @@ static int equal(SEXP expr1, SEXP expr2)
     return 0;
 }
 
-static int Accumulate(SEXP expr, SEXP exprlist)
+static SEXP exprlist;
+
+static int Accumulate(SEXP expr)
 {
     SEXP e;
     int k;
@@ -616,7 +590,7 @@ static int Accumulate(SEXP expr, SEXP exprlist)
     return k + 1;
 }
 
-static int Accumulate2(SEXP expr, SEXP exprlist)
+static int Accumulate2(SEXP expr)
 {
     SEXP e;
     int k;
@@ -630,14 +604,16 @@ static int Accumulate2(SEXP expr, SEXP exprlist)
     return k + 1;
 }
 
-static SEXP MakeVariable(int k, SEXP tag)
+static SEXP tag;
+
+static SEXP MakeVariable(int k)
 {
     char buf[64];
     sprintf(buf, "%s%d", CHAR(STRING_ELT(tag, 0)), k);
     return install(buf);
 }
 
-static int FindSubexprs(SEXP expr, SEXP exprlist, SEXP tag)
+static int FindSubexprs(SEXP expr)
 {
     SEXP e;
     int k;
@@ -651,21 +627,21 @@ static int FindSubexprs(SEXP expr, SEXP exprlist, SEXP tag)
 	break;
     case LISTSXP:
 	if (inherits(expr, "expression"))
-	    return FindSubexprs(CAR(expr), exprlist, tag);
+	    return FindSubexprs(CAR(expr));
 	else { InvalidExpression("FindSubexprs"); return -1/*-Wall*/; }
 	break;
     case LANGSXP:
 	if (CAR(expr) == install("(")) {
-	    return FindSubexprs(CADR(expr), exprlist, tag);
+	    return FindSubexprs(CADR(expr));
 	}
 	else {
 	    e = CDR(expr);
 	    while(e != R_NilValue) {
-		if ((k = FindSubexprs(CAR(e), exprlist, tag)) != 0)
-		    SETCAR(e, MakeVariable(k, tag));
+		if ((k = FindSubexprs(CAR(e))) != 0)
+		    SETCAR(e, MakeVariable(k));
 		e = CDR(e);
 	    }
-	    return Accumulate(expr, exprlist);
+	    return Accumulate(expr);
 	}
 	break;
     default:
@@ -853,7 +829,6 @@ SEXP do_deriv(SEXP call, SEXP op, SEXP args, SEXP env)
     int f_index, *d_index, *d2_index;
     int i, j, k, nexpr, nderiv=0, hessian;
     char *vmax;
-    SEXP exprlist, tag;
     checkArity(op, args);
     vmax = vmaxget();
     InitDerivSymbols();
@@ -881,7 +856,7 @@ SEXP do_deriv(SEXP call, SEXP op, SEXP args, SEXP env)
     hessian = asLogical(CAR(args));
     /* NOTE: FindSubexprs is destructive, hence the duplication */
     PROTECT(ans = duplicate(expr));
-    f_index = FindSubexprs(ans, exprlist, tag);
+    f_index = FindSubexprs(ans);
     d_index = (int*)R_alloc(nderiv, sizeof(int));
     if (hessian) 
 	d2_index = (int*)R_alloc((nderiv * (1 + nderiv))/2, sizeof(int));
@@ -891,13 +866,13 @@ SEXP do_deriv(SEXP call, SEXP op, SEXP args, SEXP env)
 	PROTECT(ans = duplicate(expr));
 	PROTECT(ans = D(ans, install(CHAR(STRING_ELT(names, i)))));
 	ans2 = duplicate(ans);	/* keep a temporary copy */
-	d_index[i] = FindSubexprs(ans, exprlist, tag); /* examine the derivative first */
+	d_index[i] = FindSubexprs(ans); /* examine the derivative first */
 	ans = duplicate(ans2);	/* restore the copy */
 	if (hessian) {
 	    for(j = i; j < nderiv; j++) {
 		PROTECT(ans2 = duplicate(ans));
 		PROTECT(ans2 = D(ans2, install(CHAR(STRING_ELT(names, j)))));
-		d2_index[k] = FindSubexprs(ans2, exprlist, tag);
+		d2_index[k] = FindSubexprs(ans2);
 		k++;
 		UNPROTECT(2);
 	    }
@@ -906,29 +881,29 @@ SEXP do_deriv(SEXP call, SEXP op, SEXP args, SEXP env)
     }
     nexpr = length(exprlist) - 1;
     if (f_index) {
-	Accumulate2(MakeVariable(f_index, tag), exprlist);
+	Accumulate2(MakeVariable(f_index));
     }
     else {
 	PROTECT(ans = duplicate(expr));
-	Accumulate2(expr, exprlist);
+	Accumulate2(expr);
 	UNPROTECT(1);
     }
-    Accumulate2(R_NilValue, exprlist);
-    if (hessian) { Accumulate2(R_NilValue, exprlist); }
+    Accumulate2(R_NilValue);
+    if (hessian) { Accumulate2(R_NilValue); }
     for (i = 0, k = 0; i < nderiv ; i++) {
 	if (d_index[i]) {
-	    Accumulate2(MakeVariable(d_index[i], tag), exprlist);
+	    Accumulate2(MakeVariable(d_index[i]));
 	    if (hessian) {
 		PROTECT(ans = duplicate(expr));
 		PROTECT(ans = D(ans, install(CHAR(STRING_ELT(names, i)))));
 		for (j = i; j < nderiv; j++) {
 		    if (d2_index[k]) {
-			Accumulate2(MakeVariable(d2_index[k], tag), exprlist);
+			Accumulate2(MakeVariable(d2_index[k]));
 		    } else {
 			PROTECT(ans2 = duplicate(ans));
 			PROTECT(ans2 = D(ans2,
 					 install(CHAR(STRING_ELT(names, j)))));
-			Accumulate2(ans2, exprlist);
+			Accumulate2(ans2);
 			UNPROTECT(2);
 		    }
 		    k++;
@@ -938,28 +913,28 @@ SEXP do_deriv(SEXP call, SEXP op, SEXP args, SEXP env)
 	} else {			/* the first derivative is a constant */
 	    PROTECT(ans = duplicate(expr));
 	    PROTECT(ans = D(ans, install(CHAR(STRING_ELT(names, i)))));
-	    Accumulate2(ans, exprlist);
+	    Accumulate2(ans);
 	    UNPROTECT(2);
 	    if (hessian) {
 		for (j = i; j < nderiv; j++) { /* hessians are skipped */
-		    Accumulate2(R_MissingArg, exprlist); /* these are placeholders */
+		    Accumulate2(R_MissingArg); /* these are placeholders */
 		    k++;
 		}
 	    }
 	}
     }
-    Accumulate2(R_NilValue, exprlist);
-    Accumulate2(R_NilValue, exprlist);
-    if (hessian) { Accumulate2(R_NilValue, exprlist); }
+    Accumulate2(R_NilValue);
+    Accumulate2(R_NilValue);
+    if (hessian) { Accumulate2(R_NilValue); }
 
     i = 0;
     ans = CDR(exprlist);
     while (i < nexpr) {
-	if (CountOccurrences(MakeVariable(i+1, tag), CDR(ans)) < 2) {
-	    SETCDR(ans, Replace(MakeVariable(i+1, tag), CAR(ans), CDR(ans)));
+	if (CountOccurrences(MakeVariable(i+1), CDR(ans)) < 2) {
+	    SETCDR(ans, Replace(MakeVariable(i+1), CAR(ans), CDR(ans)));
 	    SETCAR(ans, R_MissingArg);
 	}
-	else SETCAR(ans, lang3(install("<-"), MakeVariable(i+1, tag), AddParens(CAR(ans))));
+	else SETCAR(ans, lang3(install("<-"), MakeVariable(i+1), AddParens(CAR(ans))));
 	i = i + 1;
 	ans = CDR(ans);
     }

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2003   The R Development Core Team.
+ *  Copyright (C) 1998-2001   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -269,14 +269,8 @@ SEXP do_drop(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_length(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans;
-
     if (length(args) != 1)
 	error("incorrect number of args to length");
-
-    if( isObject(CAR(args)) && DispatchOrEval(call, op, "length", args,
-					      rho, &ans, 0, 1))
-      return(ans);
-
     ans = allocVector(INTSXP, 1);
     INTEGER(ans)[0] = length(CAR(args));
     return ans;
@@ -322,10 +316,11 @@ static void matprod(double *x, int nrx, int ncx,
     double one = 1.0, zero = 0.0;
     if (nrx > 0 && ncx > 0 && nry > 0 && ncy > 0) {
         F77_CALL(dgemm)(transa, transb, &nrx, &ncy, &ncx, &one,
-			x, &nrx, y, &nry, &zero, z, &nrx);
+		    x, &nrx, y, &nry, &zero, z, &nrx);
     }
     else { /* zero-extent operations should return zeroes */
-	for(i = 0; i < nrx*ncy; i++) z[i] = 0;
+	for(i=0;i<nrx*ncy;i++) 
+	    z[i]=0;
     }
 #else
 
@@ -353,33 +348,9 @@ static void matprod(double *x, int nrx, int ncx,
 #endif
 }
 
-#ifdef HAVE_DOUBLE_COMPLEX
-/* ZGEMM - perform one of the matrix-matrix operations    */
-/* C := alpha*op( A )*op( B ) + beta*C */
-extern void 
-F77_NAME(zgemm)(const char *transa, const char *transb, const int *m,
-		const int *n, const int *k, const Rcomplex *alpha,
-		const Rcomplex *a, const int *lda,
-		const Rcomplex *b, const int *ldb,
-		const Rcomplex *beta, Rcomplex *c, const int *ldc);
-#endif
-
 static void cmatprod(Rcomplex *x, int nrx, int ncx,
-		     Rcomplex *y, int nry, int ncy, Rcomplex *z)
+		Rcomplex *y, int nry, int ncy, Rcomplex *z)
 {
-#if defined(HAVE_DOUBLE_COMPLEX) && defined(IEEE_754)
-    char *transa = "N", *transb = "N";
-    int i;
-    Rcomplex one, zero;
-
-    one.r = 1.0; one.i = zero.r = zero.i = 0.0;
-    if (nrx > 0 && ncx > 0 && nry > 0 && ncy > 0) {
-        F77_CALL(zgemm)(transa, transb, &nrx, &ncy, &ncx, &one,
-			x, &nrx, y, &nry, &zero, z, &nrx);
-    } else { /* zero-extent operations should return zeroes */
-	for(i = 0; i < nrx*ncy; i++) z[i].r = z[i].i = 0;
-    }
-#else
     int i, j, k;
     double xij_r, xij_i, yjk_r, yjk_i, sum_i, sum_r;
 
@@ -394,30 +365,21 @@ static void cmatprod(Rcomplex *x, int nrx, int ncx,
 		xij_i = x[i + j * nrx].i;
 		yjk_r = y[j + k * nry].r;
 		yjk_i = y[j + k * nry].i;
+#ifndef IEEE_754
 		if (ISNAN(xij_r) || ISNAN(xij_i)
 		    || ISNAN(yjk_r) || ISNAN(yjk_i))
 		    goto next_ik;
+#endif
 		sum_r += (xij_r * yjk_r - xij_i * yjk_i);
 		sum_i += (xij_r * yjk_i + xij_i * yjk_r);
 	    }
 	    z[i + k * nrx].r = sum_r;
 	    z[i + k * nrx].i = sum_i;
+#ifndef IEEE_754
 	next_ik:
 	    ;
-	}
 #endif
-}
-
-static void symcrossprod(double *x, int nr, int nc, double *z)
-{
-    char *trans = "T", *uplo = "U";
-    double one = 1.0, zero = 0.0;
-    int i, j;
-    if (nr > 0 && nc > 0) {
-        F77_CALL(dsyrk)(uplo, trans, &nc, &nr, &one, x, &nr, &zero, z, &nc);
-	for (i = 1; i < nc; i++) 
-	    for (j = 0; j < i; j++) z[i + nc *j] = z[j + nc * i];
-    }
+	}
 }
 
 static void crossprod(double *x, int nrx, int ncx,
@@ -428,7 +390,7 @@ static void crossprod(double *x, int nrx, int ncx,
     double one = 1.0, zero = 0.0;
     if (nrx > 0 && ncx > 0 && nry > 0 && ncy > 0) {
         F77_CALL(dgemm)(transa, transb, &ncx, &ncy, &nrx, &one,
-			x, &nrx, y, &nry, &zero, z, &ncx);
+		    x, &nrx, y, &nry, &zero, z, &ncx);
     }
 #else
     int i, j, k;
@@ -455,16 +417,6 @@ static void crossprod(double *x, int nrx, int ncx,
 static void ccrossprod(Rcomplex *x, int nrx, int ncx,
 		       Rcomplex *y, int nry, int ncy, Rcomplex *z)
 {
-#ifdef IEEE_754
-    char *transa = "T", *transb = "N";
-    Rcomplex one, zero;
-
-    one.r = 1.0; one.i = zero.r = zero.i = 0.0;
-    if (nrx > 0 && ncx > 0 && nry > 0 && ncy > 0) {
-        F77_CALL(zgemm)(transa, transb, &ncx, &ncy, &nrx, &one,
-			x, &nrx, y, &nry, &zero, z, &ncx);
-    }
-#else
     int i, j, k;
     double xji_r, xji_i, yjk_r, yjk_i, sum_r, sum_i;
 
@@ -494,25 +446,19 @@ static void ccrossprod(Rcomplex *x, int nrx, int ncx,
 	    ;
 #endif
 	}
-#endif
 }
+
 SEXP do_matprod(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     int ldx, ldy, nrx, ncx, nry, ncy, mode;
-    SEXP x = CAR(args), y = CADR(args), xdims, ydims, ans;
-    Rboolean sym;
+    SEXP x, y, xdims, ydims, ans;
 
-    if(R_has_methods(op)) {
-      SEXP value;
-      value = R_possible_dispatch(call, op, args, rho);
-      if(value) return value;
-    }
-
-    sym = isNull(y);
-    if (sym && (PRIMVAL(op) == 1)) y = x;
-    if ( !(isNumeric(x) || isComplex(x)) || !(isNumeric(y) || isComplex(y)) )
+    if (!(isNumeric(CAR(args)) || isComplex(CAR(args))) ||
+	!(isNumeric(CADR(args)) || isComplex(CADR(args))))
 	errorcall(call, "requires numeric matrix/vector arguments");
 
+    x = CAR(args);
+    y = CADR(args);
     xdims = getAttrib(x, R_DimSymbol);
     ydims = getAttrib(y, R_DimSymbol);
     ldx = length(xdims);
@@ -640,26 +586,13 @@ SEXP do_matprod(SEXP call, SEXP op, SEXP args, SEXP rho)
     else {
 	PROTECT(ans = allocMatrix(mode, ncx, ncy));
 	if (mode == CPLXSXP)
-	    if(sym)
-		ccrossprod(COMPLEX(CAR(args)), nrx, ncx,
-			   COMPLEX(CAR(args)), nry, ncy, COMPLEX(ans));
-	    else
-		ccrossprod(COMPLEX(CAR(args)), nrx, ncx,
-			   COMPLEX(CADR(args)), nry, ncy, COMPLEX(ans));
-	else {
-#ifdef IEEE_754
-	    if(sym)
-		symcrossprod(REAL(CAR(args)), nrx, ncx, REAL(ans));
-	    else
-#endif
-		crossprod(REAL(CAR(args)), nrx, ncx,
-			  REAL(CADR(args)), nry, ncy, REAL(ans));
-	}
-	PROTECT(xdims = getAttrib(CAR(args), R_DimNamesSymbol));
-	if(sym)
-	    PROTECT(ydims = xdims);
+	    ccrossprod(COMPLEX(CAR(args)), nrx, ncx,
+		       COMPLEX(CADR(args)), nry, ncy, COMPLEX(ans));
 	else
-	    PROTECT(ydims = getAttrib(CADR(args), R_DimNamesSymbol));
+	    crossprod(REAL(CAR(args)), nrx, ncx,
+		      REAL(CADR(args)), nry, ncy, REAL(ans));
+	PROTECT(xdims = getAttrib(CAR(args), R_DimNamesSymbol));
+	PROTECT(ydims = getAttrib(CADR(args), R_DimNamesSymbol));
 	if (xdims != R_NilValue || ydims != R_NilValue) {
 	    SEXP dimnames, dimnamesnames, dnx=R_NilValue, dny=R_NilValue;
 	    PROTECT(dimnames = allocVector(VECSXP, 2));
@@ -837,7 +770,7 @@ static int swap(int ival, SEXP dims1, SEXP dims2, SEXP perm,
 	}						\
     for (j=0, itmp=0; itmp<n; itmp++)			\
 	j += iip[itmp] * stride[itmp];
-
+	    
 /* aperm (a, perm, resize = TRUE) */
 SEXP do_aperm(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -952,7 +885,7 @@ SEXP do_aperm(SEXP call, SEXP op, SEXP args, SEXP rho)
     default:
 	errorcall(call, "unsupported type of array");
     }
-
+ 
     /* handle the resize */
     PROTECT(resize = coerceVector(CADDR(args), INTSXP));
     if (LOGICAL(resize)[0])
@@ -985,157 +918,7 @@ SEXP do_aperm(SEXP call, SEXP op, SEXP args, SEXP rho)
     }
     /* free temporary memory */
     vmaxset(vmax);
-
+  
     UNPROTECT(6); /* dimsa, perm, r, dimsr, resize, dna */
     return r;
-}
-
-/* colSums(x, n, p, na.rm) and friends */
-SEXP do_colsum(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP x, ans = R_NilValue;
-    int OP, n, p, cnt = 0, i, j, type;
-    Rboolean NaRm, keepNA;
-    int *ix;
-    double *rx, sum = 0.0;
-
-    checkArity(op, args);
-    x = CAR(args); args = CDR(args);
-    n = asInteger(CAR(args)); args = CDR(args);
-    p = asInteger(CAR(args)); args = CDR(args);
-    NaRm = asLogical(CAR(args));
-    if (n == NA_INTEGER || n <= 0)
-	errorcall(call, "invalid value of n");
-    if (p == NA_INTEGER || p <= 0)
-	errorcall(call, "invalid value of p");
-    if (NaRm == NA_LOGICAL) errorcall(call, "invalid value of na.rm");
-    keepNA = !NaRm;
-
-    OP = PRIMVAL(op);
-    switch (type = TYPEOF(x)) {
-    case LGLSXP: break;
-    case INTSXP: break;
-    case REALSXP: break;
-    default:
-	errorcall(call, "`x' must be numeric");
-    }
-
-    if (OP == 0 || OP == 1) { /* columns */
-	cnt = n;
-	PROTECT(ans = allocVector(REALSXP, p));
-	for (j = 0; j < p; j++) {
-	    switch (type) {
-	    case REALSXP:
-		rx = REAL(x) + n*j;
-#ifdef IEEE_754
-		if (keepNA)
-		    for (sum = 0., i = 0; i < n; i++) sum += *rx++;
-		else {
-		    for (cnt = 0, sum = 0., i = 0; i < n; i++, rx++)
-			if (!ISNAN(*rx)) {cnt++; sum += *rx;}
-			else if (keepNA) {sum = NA_REAL; break;}
-		}
-#else
-		for (cnt = 0, sum = 0., i = 0; i < n; i++, rx++)
-		    if (!ISNAN(*rx)) {cnt++; sum += *rx;}
-		    else if (keepNA) {sum = NA_REAL; break;}
-#endif
-		break;
-	    case INTSXP:
-		ix = INTEGER(x) + n*j;
-		for (cnt = 0, sum = 0., i = 0; i < n; i++, ix++)
-		    if (*ix != NA_INTEGER) {cnt++; sum += *ix;}
-		    else if (keepNA) {sum = NA_REAL; break;}
-		break;
-	    case LGLSXP:
-		ix = LOGICAL(x) + n*j;
-		for (cnt = 0, sum = 0., i = 0; i < n; i++, ix++)
-		    if (*ix != NA_LOGICAL) {cnt++; sum += *ix;}
-		    else if (keepNA) {sum = NA_REAL; break;}
-		break;
-	    }
-	    if (OP == 1) {
-		if (cnt > 0) sum /= cnt; else sum = NA_REAL;
-	    }
-	    REAL(ans)[j] = sum;
-	}
-    }
-
-    if (OP == 2 || OP == 3) { /* rows */
-	cnt = p;
-	PROTECT(ans = allocVector(REALSXP, n));
-
-#ifdef IEEE_754
-	/* reverse summation order to improve cache hits */
-	if (type == REALSXP) {
-	    double *rans = REAL(ans), *ra = rans, *cnt = NULL, *c;
-	    rx = REAL(x);
-	    if (!keepNA && OP == 3) cnt = Calloc(n, double);
-	    for (ra = rans, i = 0; i < n; i++) *ra++ = 0.0;
-	    for (j = 0; j < p; j++) {
-		ra = rans;
-		if (keepNA)
-		    for (i = 0; i < n; i++) *ra++ += *rx++;
-		else
-		    for (c = cnt, i = 0; i < n; i++, ra++, rx++, c++) 
-			if (!ISNAN(*rx)) {
-			    *ra += *rx;
-			    if (OP == 3) (*c)++;
-			}
-	    }
-	    if (OP == 3) {
-		if (keepNA)
-		    for (ra = rans, i = 0; i < n; i++) 
-			*ra++ /= p;
-		else {
-		    for (ra = rans, c = cnt, i = 0; i < n; i++, c++) 
-			if (*c > 0) *ra++ /= *c; else *ra++ = NA_REAL;
-		    Free(cnt);
-		}
-	    }
-	    UNPROTECT(1);
-	    return ans;
-	}
-#endif
-
-	for (i = 0; i < n; i++) {
-	    switch (type) {
-	    case REALSXP:
-		rx = REAL(x) + i;
-#ifdef IEEE_754
-		if (keepNA)
-		    for (sum = 0., j = 0; j < p; j++, rx += n) sum += *rx;
-		else {
-		    for (cnt = 0, sum = 0., j = 0; j < p; j++, rx += n)
-			if (!ISNAN(*rx)) {cnt++; sum += *rx;}
-			else if (keepNA) {sum = NA_REAL; break;}
-		}
-#else
-		for (cnt = 0, sum = 0., j = 0; j < p; j++, rx += n)
-		    if (!ISNAN(*rx)) {cnt++; sum += *rx;}
-		    else if (keepNA) {sum = NA_REAL; break;}
-#endif
-		break;
-	    case INTSXP:
-		ix = INTEGER(x) + i;
-		for (cnt = 0, sum = 0., j = 0; j < p; j++, ix += n)
-		    if (*ix != NA_INTEGER) {cnt++; sum += *ix;}
-		    else if (keepNA) {sum = NA_REAL; break;}
-		break;
-	    case LGLSXP:
-		ix = LOGICAL(x) + i;
-		for (cnt = 0, sum = 0., j = 0; j < p; j++, ix += n)
-		    if (*ix != NA_LOGICAL) {cnt++; sum += *ix;}
-		    else if (keepNA) {sum = NA_REAL; break;}
-		break;
-	    }
-	    if (OP == 3) {
-		if (cnt > 0) sum /= cnt; else sum = NA_REAL;
-	    }
-	    REAL(ans)[i] = sum;
-	}
-    }
-
-    UNPROTECT(1);
-    return ans;
 }

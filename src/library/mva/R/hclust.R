@@ -34,25 +34,21 @@ hclust <- function(d, method="complete", members=NULL)
     if(method == -1)
 	stop("ambiguous clustering method")
 
-    n <- as.integer(attr(d, "Size"))
+    n <- attr(d, "Size")
     if(is.null(n))
 	stop("invalid dissimilarities")
-    if(n < 2)
-        stop("Must have n >= 2 objects to cluster")
-    len <- as.integer(n*(n-1)/2)
-    if(length(d) != len)
-        (if (length(d) < len) stop else warning
-         )("dissimilarities of improper length")
-
     labels <- attr(d, "Labels")
+
+    len <- n*(n-1)/2
+
     if(is.null(members))
         members <- rep(1, n)
-    else if(length(members) != n)
+    if(length(members)!=n)
         stop("Invalid length of members")
 
     hcl <- .Fortran("hclust",
-		    n = n,
-		    len = len,
+		    n = as.integer(n),
+		    len = as.integer(len),
 		    method = as.integer(method),
 		    ia = integer(n),
 		    ib = integer(n),
@@ -70,57 +66,61 @@ hclust <- function(d, method="complete", members=NULL)
 		      n = as.integer(n),
 		      ia = as.integer(hcl$ia),
 		      ib = as.integer(hcl$ib),
-  		      order = integer(n),
+		      order = integer(n),
 		      iia = integer(n),
 		      iib = integer(n), PACKAGE="mva")
 
-    tree <- list(merge = cbind(hcass$iia[1:(n-1)], hcass$iib[1:(n-1)]),
-		 height= hcl$crit[1:(n-1)],
-		 order = hcass$order,
+    tree <- list(merge=cbind(hcass$iia[1:(n-1)], hcass$iib[1:(n-1)]),
+		 height=hcl$crit[1:(n-1)],
+		 order=hcass$order,
 		 labels=attr(d, "Labels"),
                  method=METHODS[method],
-                 call = match.call(),
-                 dist.method = attr(d, "method"))
+                 call=match.call())
+
+    if(!is.null(attr(d, "method"))){
+        tree$dist.method <- attr(d, "method")
+    }
+
     class(tree) <- "hclust"
     tree
 }
 
 plot.hclust <-
-    function (x, labels = NULL, hang = 0.1,
+    function (tree, labels = NULL, hang = 0.1,
               axes = TRUE, frame.plot = FALSE, ann = TRUE,
               main = "Cluster Dendrogram",
               sub = NULL, xlab = NULL, ylab = "Height", ...)
 {
-    merge <- x$merge
+    merge <- tree$merge
     if (!is.matrix(merge) || ncol(merge) != 2)
 	stop("invalid dendrogram")
     n <- nrow(merge)
-    height <- as.double(x$height)
-    order <- as.double(order(x$order))
-
+    height <- as.double(tree$height)
+    order <- as.double(order(tree$order))
+    
     labels <-
-	if(missing(labels) || is.null(labels)) {
-	    if (is.null(x$labels))
+	if(missing(labels)){
+	    if (is.null(tree$labels))
 		paste(1:(n+1))
 	    else
-		as.character(x$labels)
+		as.character(tree$labels)
 	} else {
-	    if(is.logical(labels) && !labels)# FALSE
+	    if(labels==FALSE)
 		character(n+1)
 	    else
 		as.character(labels)
 	}
-
+    
     plot.new()
     .Internal(dend.window(n, merge, height, order, hang, labels, ...))
-    .Internal(dend       (n, merge, height, order, hang, labels, ...))
+    .Internal(dend(n, merge, height, order, hang, labels, ...))
     if(axes)
         axis(2, at=pretty(range(height)))
-    if (frame.plot)
+    if (frame.plot) 
         box(...)
     if (ann) {
-        if(!is.null(cl <- x$call) && is.null(sub))
-            sub <- paste(deparse(cl[[1]])," (*, \"", x$method,"\")",sep="")
+        if(!is.null(cl <- tree$call) && is.null(sub))
+            sub <- paste(deparse(cl[[1]])," (*, \"", tree$method,"\")",sep="")
         if(is.null(xlab) && !is.null(cl))
             xlab <- deparse(cl[[2]])
         title(main = main, sub = sub, xlab = xlab, ylab = ylab, ...)
@@ -128,78 +128,31 @@ plot.hclust <-
     invisible()
 }
 
-## For S ``compatibility'': was in cluster just as
-## plclust <- plot.hclust ## .Alias
-plclust <- function(tree, hang = 0.1, unit = FALSE, level = FALSE, hmin = 0,
-                    square = TRUE, labels = NULL, plot. = TRUE,
-                    axes = TRUE, frame.plot = FALSE, ann = TRUE,
-                    main = "", sub = NULL, xlab = NULL, ylab = "Height")
-{
-    if(!missing(unit) && unit)		.NotYetUsed("unit", error = FALSE)
-    if(!missing(level) && level)	.NotYetUsed("level", error = FALSE)
-    if(!missing(hmin) && hmin != 0)	.NotYetUsed("hmin",  error = FALSE)
-    if(!missing(square) && !square)	.NotYetUsed("square",error = FALSE)
-    if(!missing(plot.) && !plot.)	.NotYetUsed("plot.", error = TRUE)
-    plot.hclust(x = tree, labels = labels, hang = hang,
-                axes = axes, frame.plot = frame.plot, ann = ann,
-                main = main, sub = sub, xlab = xlab, ylab = ylab)
-}
-
-
 as.hclust <- function(x, ...) UseMethod("as.hclust")
-## need *.default for idempotency:
-as.hclust.default <- function(x, ...) {
-    if(inherits(x, "hclust")) x
-    else
-	stop("argument `x' cannot be coerced to class `hclust'.",
-             if(!is.null(class(x)))
-             "\n Consider providing an as.hclust.",class(x)[1],"() method")
+
+as.hclust.twins <- function(x)
+{
+    retval <- list(merge = x$merge,
+                   height = sort(x$height),
+                   order = x$order,
+                   call = match.call(),
+                   method = NA,
+                   dist.method = attr(x$diss, "Metric"),
+                   labels = rownames(x$data))
+    class(retval) <- "hclust"
+    retval
 }
 
-as.hclust.twins <- function(x, ...)
+print.hclust <- function(tree)
 {
-    r <- list(merge = x$merge,
-	      height = sort(x$height),
-	      order = x$order,
-	      labels = if(!is.null(lb <- x$order.lab)) {
-                  lb[sort.list(x$order)] } else rownames(x$data),# may be NULL
-	      call = if(!is.null(cl <- x$call)) cl else match.call(),
-	      method = if(!is.null(mt <- x$method)) mt else NA,
-	      dist.method = attr(x$diss, "Metric"))
-    class(r) <- "hclust"
-    r
-}
-
-print.hclust <- function(x, ...)
-{
-    if(!is.null(x$call))
-        cat("\nCall:\n",deparse(x$call),"\n\n",sep="")
-    if(!is.null(x$method))
-        cat("Cluster method   :", x$method, "\n")
-    if(!is.null(x$dist.method))
-        cat("Distance         :", x$dist.method, "\n")
-    cat("Number of objects:", length(x$height)+1, "\n")
+    if(!is.null(tree$call))
+        cat("\nCall:\n",deparse(tree$call),"\n\n",sep="")
+    if(!is.null(tree$method))
+        cat("Cluster method   :", tree$method, "\n")
+    if(!is.null(tree$dist.method))
+        cat("Distance         :", tree$dist.method, "\n")
+        cat("Number of objects:", length(tree$height)+1, "\n")
     cat("\n")
 }
 
-cophenetic <- function(x) {
-    x <- as.hclust(x)
-    nobs <- length(x$order)
-    ilist <- vector("list", length=nobs)
-    names(ilist) <- 1:nobs # FIXME: do better when you can!
-    rmat <- matrix(NA, nr=nobs, nc=nobs)
-    for( i in 1:(nobs-1)) {
-        inds <- x$merge[i,]
-        ids1 <- if(inds[1] < 0) -inds[1] else ilist[[inds[1]]]
-        ids2 <- if(inds[2] < 0) -inds[2] else ilist[[inds[2]]]
-        ilist[[i]] <- c(ids1, ids2)
-        for( ival1 in ids1)
-            for( ival2 in ids2 ){
-                if( ival1 > ival2 )
-                    rmat[ival1, ival2] <- x$height[i]
-                else
-                    rmat[ival2, ival1] <- x$height[i]
-            }
-    }
-    return(as.dist(rmat))
-}
+

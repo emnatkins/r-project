@@ -7,9 +7,9 @@ all: makeMakedeps ../../../modules/internet.dll ../../../modules/internet2.dll
 CSOURCES=internet.c sockconn.c Rsock.c sock.c
 CSOURCES2=nanoftp.c nanohttp.c
 
-CFLAGS=$(OPTFLAGS) -I../../include -I../../gnuwin32 -DHAVE_CONFIG_H
+CFLAGS=$(OPTFLAGS) -I../../include -I../../gnuwin32 -DHAVE_CONFIG_H -include ../../include/globalvar.h
 
-DLLLIBS=-L../../gnuwin32 -lRm -lR -lwsock32
+DLLLIBS=-L../../gnuwin32 -lRm -lwsock32
 internet2-DLLLIBS=-lwininet
 
 ../../../modules/internet.dll: internet.dll
@@ -26,8 +26,6 @@ internet2.dll: internet2.o sockconn.o Rsock.o sock.o dllversion.o
 
 internet2.o: internet.c
 	$(CC)  $(CFLAGS) -DUSE_WININET -c $< -o $@
-
-dllversion.o: ../../include/Rversion.h
 
 clean:
 	@$(RM) Makedeps *.d *.o *.def *.dll

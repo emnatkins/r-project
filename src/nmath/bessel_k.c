@@ -1,7 +1,6 @@
 /*
  *  Mathlib : A C Library of Special Functions
  *  Copyright (C) 1998-2001 Ross Ihaka and the R Development Core team.
- *  Copyright (C) 2002-3    The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,10 +26,6 @@
 #include "bessel.h"
 #include "nmath.h"
 
-#ifndef MATHLIB_STANDALONE
-#include <R_ext/Memory.h>
-#endif
-
 static void K_bessel(double *x, double *alpha, long *nb,
 		     long *ize, double *bk, long *ncalc);
 
@@ -38,10 +33,6 @@ double bessel_k(double x, double alpha, double expo)
 {
     long nb, ncalc, ize;
     double *bk;
-#ifndef MATHLIB_STANDALONE
-    char *vmax;
-#endif
-
 #ifdef IEEE_754
     /* NaNs propagated correctly */
     if (ISNAN(x) || ISNAN(alpha)) return x + alpha;
@@ -55,13 +46,7 @@ double bessel_k(double x, double alpha, double expo)
 	alpha = -alpha;
     nb = 1+ (long)floor(alpha);/* nb-1 <= |alpha| < nb */
     alpha -= (nb-1);
-#ifdef MATHLIB_STANDALONE
     bk = (double *) calloc(nb, sizeof(double));
-    if (!bk) MATHLIB_ERROR("%s", "bessel_k allocation error");
-#else
-    vmax = vmaxget();
-    bk = (double *) R_alloc(nb, sizeof(double));
-#endif
     K_bessel(&x, &alpha, &nb, &ize, bk, &ncalc);
     if(ncalc != nb) {/* error input */
       if(ncalc < 0)
@@ -72,11 +57,7 @@ double bessel_k(double x, double alpha, double expo)
 			 x, alpha+nb-1);
     }
     x = bk[nb-1];
-#ifdef MATHLIB_STANDALONE
     free(bk);
-#else
-    vmaxset(vmax);
-#endif
     return x;
 }
 
@@ -216,14 +197,10 @@ static void K_bessel(double *x, double *alpha, long *nb,
     *ncalc = imin2(*nb,0) - 2;
     if (*nb > 0 && (0. <= nu && nu < 1.) && (1 <= *ize && *ize <= 2)) {
 	if(ex <= 0 || (*ize == 1 && ex > xmax_BESS_K)) {
-	    if(ex <= 0) {
-		ML_ERROR(ME_RANGE);
-		for(i=0; i < *nb; i++)
-		    bk[i] = ML_POSINF;
-	    } else /* would only have underflow */
-		for(i=0; i < *nb; i++)
-		    bk[i] = 0.;
+	    ML_ERROR(ME_RANGE);
 	    *ncalc = *nb;
+	    for(i=0; i < *nb; i++)
+		bk[i] = ML_POSINF;
 	    return;
 	}
 	k = 0;

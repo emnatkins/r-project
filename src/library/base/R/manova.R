@@ -6,12 +6,12 @@ manova <- function(...)
     if(inherits(result, "aovlist")) {
         for(i in seq(along=result)) {
             if(!inherits(result[[i]], "maov")) stop("need multiple response")
-            class(result[[i]]) <- c("manova", oldClass(result[[i]]))
+            class(result[[i]]) <- c("manova", class(result[[i]]))
         }
         attr(result, "call") <- Call
     } else {
         if(!inherits(result, "maov")) stop("need multiple response")
-        class(result) <- c("manova", oldClass(result))
+        class(result) <- c("manova", class(result))
         result$call <- Call
     }
     result
@@ -20,7 +20,7 @@ manova <- function(...)
 summary.manova <-
     function(object,
              test = c("Pillai", "Wilks", "Hotelling-Lawley", "Roy"),
-             intercept = FALSE, ...)
+             intercept = FALSE)
 {
     Pillai <- function(eig, q, df.res)
     {
@@ -116,7 +116,7 @@ summary.manova <-
         nt <- nterms + 1
         df[nt] <- rdf
         ss[[nt]] <- crossprod(resid)
-        names(ss)[nt] <- nmrows[nt] <- "Residuals"
+        nmrows[nt] <- "Residuals"
         ok <- df[-nt] > 0
         eigs <- array(NA, c(nterms, nresp))
         dimnames(eigs) <- list(nmrows[-nt], NULL)
@@ -141,15 +141,16 @@ summary.manova <-
                 stats[ok, 5] <- pf(stats[ok, 2], stats[ok, 3], stats[ok, 4],
                                    lower.tail = FALSE)
 
+                x <- list(row.names = nmrows, SS = ss,
+                          Eigenvalues = eigs,
+                          stats = cbind(Df=df, stats=stats))
             }
-        x <- list(row.names = nmrows, SS = ss,
-                  Eigenvalues = eigs, stats = cbind(Df=df, stats=stats))
     } else x <- list(row.names = nmrows, SS = ss, Df = df)
     class(x) <- "summary.manova"
     x
 }
 
-print.summary.manova <- function(x, digits = getOption("digits"), ...)
+print.summary.manova <- function(x, digits = getOption("digits"))
 {
     if(length(stats <- x$stats)) {
         print.anova(stats)

@@ -50,11 +50,6 @@ typedef struct callinfo  callinfo;
 typedef struct objinfo   objinfo;
 typedef objinfo *object;
 
-/* in w32api this needs to be before ga.h */
-#ifndef __WINDOWS_H     /* prevent multiple includes */
-#include <windows.h>
-#endif
-
 #ifndef __GA__VERSION__
 #define objptr object
 #include "ga.h"
@@ -76,6 +71,9 @@ extern "C" {
 #include <ctype.h>
 #include <math.h>
 
+#ifndef __WINDOWS_H     /* prevent multiple includes */
+#include <windows.h>
+#endif
 
 #include <commdlg.h>
 

@@ -1,14 +1,14 @@
 help <-
     function(topic, offline = FALSE, package = .packages(),
-             lib.loc = NULL, verbose = getOption("verbose"),
+             lib.loc = .lib.loc, verbose = getOption("verbose"),
              try.all.packages = getOption("help.try.all.packages"),
              chmhelp = getOption("chmhelp"), htmlhelp = getOption("htmlhelp"),
              winhelp = getOption("winhelp"),
              pager = getOption("pager"))
 {
     chmhelp <- is.logical(chmhelp) && chmhelp
-    htmlhelp <- !chmhelp && is.logical(htmlhelp) && htmlhelp
-    winhelp <- !chmhelp && !htmlhelp && is.logical(winhelp) && winhelp
+    htmlhelp <- is.logical(htmlhelp) && htmlhelp
+    winhelp <- is.logical(winhelp) && winhelp
     if (!missing(package))
         if (is.name(y <- substitute(package)))
             package <- as.character(y)
@@ -30,7 +30,8 @@ help <-
         else if (!is.na(match(topic, c("%*%"))))
             topic <- "matmult"
         type <- if(offline) "latex" else if (htmlhelp) "html" else "help"
-        INDICES <- .find.package(package, lib.loc, verbose = verbose)
+        INDICES <- .find.package(package, lib.loc, missing(lib.loc),
+                                 quiet = TRUE)
         file <- index.search(topic, INDICES, "AnIndex", type)
         if (length(file) && file != "") {
             if (verbose)
@@ -50,8 +51,7 @@ help <-
                                      sep = "")
                     if(verbose) print(hlpfile)
                     if(file.exists(hlpfile)) {
-                        err <- .C("Rchtml", hlpfile, topic,
-                                  err = integer(1), PACKAGE = "")$err
+                        err <- .C("Rchtml", hlpfile, topic, err=integer(1))$err
                         if(verbose)
                             cat("help() for `", topic,
                                 "' is shown in Compiled HTML\n",
@@ -64,9 +64,9 @@ help <-
                     }
                 }
                 if(htmlhelp) {
-                    file <- chartr("/", "\\", file)
+                    file <- gsub("/", "\\\\", file)
                     if(file.exists(file)) {
-                        browseURL(file)
+                        .Internal(show.help.item(file, 1, ""))
                         cat("help() for `", topic, "' is shown in browser\n",
                             sep="")
                         return(invisible())
@@ -82,7 +82,7 @@ help <-
                     thispkg <- sub(".*/([^/]*)$", "\\1", wfile)
                     hlpfile <- paste(wfile, "/winhlp/", thispkg, ".hlp",
                                      sep = "")
-                    hlpfile <- chartr("/", "\\", hlpfile)
+                    hlpfile <- gsub("/", "\\\\", hlpfile)
                     topic <- sub("(.*/help/)([^/]*)$", "\\2", file)
                     if(verbose) print(hlpfile)
                     if(file.exists(hlpfile)) {
@@ -101,8 +101,8 @@ help <-
                 zfile <- zip.file.extract(file, "Rhelp.zip")
                 ## end of experimental code
                 if(file.exists(zfile))
-                    file.show(zfile, title = "",
-                              header = paste("`", topic, "' help", sep=""),
+                    file.show(zfile,
+                              header = paste("Help for `", topic, "'", sep=""),
                               delete.file = (zfile!=file), pager = pager)
                 else
                     stop(paste("The help file for `", topic, "' is missing",
@@ -133,8 +133,8 @@ help <-
                     cmd <- paste('"',
                                  paste(R.home(), "bin", "helpPRINT", sep="/"),
                                  '"', sep="")
-                    texpath <- chartr("\\", "/",
-                                      file.path(R.home(), "share", "texmf"))
+                    texpath <- gsub("\\\\", "/",
+                                    file.path(R.home(), "share", "texmf"))
                     system(paste(cmd, FILE, topic, texpath), wait = FALSE)
                     return(invisible())
                 }
@@ -148,7 +148,6 @@ help <-
                 try.all.packages <- FALSE
             if(try.all.packages && missing(package) && missing(lib.loc)) {
                 ## try all the remaining packages
-                lib.loc <- .libPaths()
                 packages <- .packages(all.available = TRUE, lib.loc = lib.loc)
                 packages <- packages[is.na(match(packages, .packages()))]
                 pkgs <- libs <- character(0)
@@ -171,7 +170,7 @@ help <-
                         sep="")
                     A <- cbind(package=pkgs, library=libs)
                     rownames(A) <- 1:nrow(A)
-                    print(A, quote=FALSE)
+                    print(A, quote=F)
                 } else {
                     stop(paste("No documentation for `", topic,
                                "' in specified packages and libraries:\n",
@@ -189,8 +188,8 @@ help <-
         }
     }
     else if (!missing(package))
-        library(help = package, lib.loc = lib.loc, character.only = TRUE)
+        library(help = package, lib = lib.loc, character.only = TRUE)
     else if (!missing(lib.loc))
-        library(lib.loc = lib.loc)
+        library(lib = lib.loc)
     else help("help", package = "base", lib.loc = .Library)
 }

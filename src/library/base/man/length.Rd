@@ -19,9 +19,6 @@ length(x) <- n
   \code{length} returns \code{NA}.
 }
 \details{
-  \code{length} is generic: you can write methods to handle
-  of specific classes of objects, see \link{InternalMethods}.
-
   The replacement form can be used to reset
   the length of a vector.
   If a vector is shortened, extra values are discarded
@@ -30,7 +27,7 @@ length(x) <- n
 }
 \examples{
 length(diag(4))# = 16 (4 x 4)
-length(options())# 12 or more
+length(options())# 12 or more..
 length(y ~ x1 + x2 + x3)# 3
 length(expression(x, {y <- x^2; y+2}, x^y)) # 3
 }

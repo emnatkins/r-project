@@ -1,7 +1,7 @@
 if(dev.cur() <= 1) get(getOption("device"))()
 
 opar <- par(ask = interactive() &&
-            (.Device %in% c("X11", "GTK", "gnome", "windows")))
+            (.Device %in% c("X11", "GTK", "windows", "Macintosh")))
 # For source
 
 ## Here is some code which illustrates some of the differences between
@@ -32,7 +32,7 @@ title(main="Simple Use of Color In a Plot",
 ## effect is near perfect.
 
 par(bg="gray")
-pie(rep(1,24), col=rainbow(24), radius=0.9)
+piechart(rep(1,24), col=rainbow(24), radius=0.9)
 title(main="A Sample Color Wheel", cex.main=1.4, font.main=3)
 title(xlab="(Use this as a test of monitor linearity)", cex.lab=0.8, font.lab=3)
 
@@ -43,8 +43,8 @@ title(xlab="(Use this as a test of monitor linearity)", cex.lab=0.8, font.lab=3)
 pie.sales <- c(0.12, 0.3, 0.26, 0.16, 0.04, 0.12)
 names(pie.sales) <- c("Blueberry", "Cherry",
 		      "Apple", "Boston Cream", "Other", "Vanilla Cream")
-pie(pie.sales,
-    col=c("purple","violetred1","green3","cornsilk","cyan","white"))
+piechart(pie.sales,
+	 col=c("purple","violetred1","green3","cornsilk","cyan","white"))
 title(main="January Pie Sales", cex.main=1.8, font.main=1)
 title(xlab="(Don't try this at home kids)", cex.lab=0.8, font.lab=3)
 
@@ -143,6 +143,9 @@ mtext("10 Meter Contour Spacing", side=3, line=0.35, outer=FALSE,
 
 par(bg="cornsilk")
 data(quakes)
-coplot(lat ~ long | depth, data=quakes, pch=21, bg="green3")
+coplot(long ~ lat | depth, data=quakes, pch=21, bg="green3")
+
+## --- "math annotation" in plots :
+example(plotmath)
 
 par(opar)

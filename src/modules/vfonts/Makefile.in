@@ -13,18 +13,18 @@ include $(top_builddir)/Makeconf
 
 SOURCES = g_alab_her.c g_cntrlify.c g_fontdb.c g_her_glyph.c
 DEPENDS = $(SOURCES:.c=.d)
-OBJECTS = $(SOURCES:.c=.lo)
+OBJECTS = $(SOURCES:.c=.o)
 HEADERS = g_cntrlify.h g_control.h g_extern.h g_her_metr.h g_jis.h
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 DISTFILES = \
 	Makefile.in Makefile.win $(SOURCES) $(HEADERS) \
-	dllversion.rc
+	dllversion.rc vfonts.mcp.hqx
 
-## <FIXME>
-## Change to 'vfonts.la' when using libtool for shlibs.
-## Remove when using automake ... also fix target 'install' then.
-vfonts_la = vfonts$(SHLIB_EXT)
+## FIXME:
+## Change to `vfonts.la' when using libtool for shlibs.
+## Remove when using automake ... also fix install then.
+vfonts_la = vfonts.$(SHLIB_EXT)
 ## </FIXME>
 Rexecmodulesdir_LTLIBRARIES = $(vfonts_la)
 vfonts_la_SOURCES = $(SOURCES)
@@ -37,7 +37,9 @@ all: Makefile Makedeps R
 Makefile: $(srcdir)/Makefile.in \
   $(top_builddir)/config.status \
   $(SOURCES)
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 Makedeps: Makefile $(DEPENDS)
 	@cat $(DEPENDS) >> Makefile
@@ -49,25 +51,24 @@ R: Makefile
 
 $(vfonts_la): $(vfonts_la_OBJECTS) $(vfonts_la_DEPENDENCIES)
 	$(SHLIB_LINK) -o $@ $(vfonts_la_LDFLAGS) $(vfonts_la_OBJECTS) $(vfonts_la_LIBADD) $(LIBS)
-## <FIXME>
-## Not sure if we want to do this ...
+## FIXME: Not sure if we want to do this ...
 	@$(MAKE) rhome=`cd $(top_builddir); pwd` install
 ## </FIXME>
 
 install: installdirs
-@USE_LIBTOOL_FALSE@	@$(top_srcdir)/tools/copy-if-change $(vfonts_la) $(Rexecmodulesdir)/vfonts$(SHLIB_EXT)
+@USE_LIBTOOL_FALSE@	@$(top_srcdir)/tools/copy-if-change $(vfonts_la) $(Rexecmodulesdir)/vfonts.$(SHLIB_EXT)
 @USE_LIBTOOL_TRUE@	@$(LIBTOOL) --mode=install $(INSTALL) $(vfonts_la) $(Rexecmodulesdir)
 installdirs:
 	@$(MKINSTALLDIRS) $(Rexecmodulesdir)
 install-strip:
 	$(MAKE) INSTALL_PROGRAM="${INSTALL_PROGRAM} -s" install
 uninstall:
-	@rm -f $(Rexecmodulesdir)/vfonts$(SHLIB_EXT)
+	@rm -f $(Rexecmodulesdir)/vfonts.$(SHLIB_EXT)
 
 mostlyclean: clean
 clean:
 	@-rm -rf .libs _libs
-	@-rm -f Makedeps *.d *.o *.a *.lo *.la *$(SHLIB_EXT)
+	@-rm -f Makedeps *.d *.o *.a *.lo *.la *.$(SHLIB_EXT)
 distclean: clean
 	@-rm -f Makefile
 maintainer-clean: distclean

@@ -19,7 +19,7 @@
  *
  *  SYNOPSIS
  *
- * #include <Rmath.h>
+ * #include "Rmath.h"
  *
  * double pbeta_raw(double x, double pin, double qin, int lower_tail)
  * double pbeta	   (double x, double pin, double qin, int lower_tail, int log_p)
@@ -73,12 +73,12 @@ double pbeta_raw(double x, double pin, double qin, int lower_tail)
 
 	/* tail approximation */
 
+	ans = 0;
 	xb = p * log(fmax2(y, sml)) - log(p) - lbeta(p, q);
-	if (xb > lnsml && y != 0) {
-	    ans = (swap_tail == lower_tail) ? -expm1(xb) : exp(xb);
-	} else {
-	    ans = (swap_tail == lower_tail) ? 1. : 0;
-	}
+	if (xb > lnsml && y != 0)
+	    ans = exp(xb);
+	if (swap_tail == lower_tail)
+	    ans = 1 - ans;
     }
     else {
 	/*___ FIXME ___:  This takes forever (or ends wrongly)
@@ -109,7 +109,7 @@ double pbeta_raw(double x, double pin, double qin, int lower_tail)
 	/* now evaluate the finite sum, maybe. */
 
 	if (q > 1) {
-	    xb = p * log(y) + q * log1p(-y) - lbeta(p, q) - log(q);
+	    xb = p * log(y) + q * log(1 - y) - lbeta(p, q) - log(q);
 	    ib = fmax2(xb / lnsml, 0.0);
 	    term = exp(xb - ib * lnsml);
 	    c = 1 / (1 - y);

@@ -10,7 +10,7 @@
   Predict from an resistant regression fitted by \code{lqs}.
 }
 \usage{
-\method{predict}{lqs}(object, newdata, \dots)
+predict.lqs(object, newdata, \dots)
 }
 \arguments{
   \item{object}{
@@ -37,7 +37,7 @@
   class of the object.
 
   Missing values in \code{newdata} are handled by returning \code{NA} if the
-  linear fit cannot be evaluated. If \code{newdata} is omitted and
+  linear discriminants cannot be evaluated. If \code{newdata} is omitted and
   the \code{na.action} of the fit omitted cases, these will be omitted on the
   prediction.
 }

@@ -5,32 +5,22 @@ predict.princomp <- function(object, newdata, ...) {
     scale(newdata, object$center, object$scale) %*% object$loadings
 }
 
-summary.princomp <- function(object, loadings = FALSE, cutoff = 0.1, ...)
-{
-    object$cutoff <- cutoff
-    object$print.loadings <- loadings
-    class(object) <- "summary.princomp"
-    object
-}
-
-print.summary.princomp <-
-    function(x, digits = 3, loadings = x$print.loadings, cutoff = x$cutoff,
-             ...)
-{
-    vars <- x$sdev^2
+summary.princomp <-
+function(object, loadings = FALSE, cutoff = 0.1, digits = 3, ...) {
+    vars <- object$sdev^2
     vars <- vars/sum(vars)
     cat("Importance of components:\n")
-    print(rbind("Standard deviation" = x$sdev,
+    print(rbind("Standard deviation" = object$sdev,
                 "Proportion of Variance" = vars,
                 "Cumulative Proportion" = cumsum(vars)))
     if(loadings) {
         cat("\nLoadings:\n")
-        cx <- format(round(x$loadings, digits = digits))
-        cx[abs(x$loadings) < cutoff] <-
+        cx <- format(round(object$loadings, digits = digits))
+        cx[abs(object$loadings) < cutoff] <-
             substring("       ", 1, nchar(cx[1,1]))
         print(cx, quote = FALSE, ...)
     }
-    invisible(x)
+    invisible(object)
 }
 
 plot.princomp <- function(x, main = deparse(substitute(x)), ...)
@@ -41,7 +31,7 @@ function(x, npcs = min(10, length(x$sdev)),
          type = c("barplot", "lines"),
          main = deparse(substitute(x)), ...)
 {
-    main
+    eval(main)
     type <- match.arg(type)
     pcs <- x$sdev^2
     xp <- seq(length=npcs)

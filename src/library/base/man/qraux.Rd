@@ -19,8 +19,7 @@ qr.R(qr, complete = FALSE)
     square upper triangle.}
   \item{ncol}{integer in the range \code{1:nrow(qr$qr)}.  The number
     of columns to be in the reconstructed \eqn{\bold{X}}.  The default
-    when \code{complete} is \code{FALSE} is the first
-    \code{min(ncol(X), nrow(X))} columns of the original \eqn{\bold{X}}
+    when \code{complete} is \code{FALSE} is the original \eqn{\bold{X}}
     from which the qr object was constructed.  The default when
     \code{complete} is \code{TRUE} is a square matrix with the original
     \eqn{\bold{X}} in the first \code{ncol(X)} columns and an arbitrary
@@ -34,10 +33,9 @@ qr.R(qr, complete = FALSE)
   Returns the original matrix from which the object was constructed or
   the components of the decomposition.
 }
-\value{
-  \code{qr.X} returns \eqn{\bold{X}}, the original matrix from
-  which the qr object was constructed, provided \code{ncol(X) <= nrow(X)}.
-  If \code{complete} is \code{TRUE} or the argument \code{ncol} is greater than
+\value{\code{qr.X} returns \eqn{\bold{X}}, the original matrix from
+  which the qr object was constructed.  If \code{complete} is
+  \code{TRUE} or the argument \code{ncol} is greater than
   \code{ncol(X)}, additional columns from an arbitrary orthogonal
   (unitary) completion of \code{X} are returned.
 
@@ -66,8 +64,18 @@ Q <- qr.Q(qrstr) # dim(Q) == dim(x)
 R <- qr.R(qrstr) # dim(R) == ncol(x)
 X <- qr.X(qrstr) # X == x
 range(X - as.matrix(x))# ~ < 6e-12
+
 ## X == Q \%*\% R :
-Q \%*\% R
+all((1 - X /( Q \%*\% R))< 100*.Machine$double.eps)#TRUE
+
+dim(Qc <- qr.Q(qrstr, complete=TRUE)) # Square: dim(Qc) == rep(nrow(x),2)
+all((crossprod(Qc) - diag(nrow(x))) < 10*.Machine $double.eps)
+
+QD <- qr.Q(qrstr, D=1:p)      # QD == Q \%*\% diag(1:p)
+all(QD - Q \%*\% diag(1:p)  < 8* .Machine$double.eps)
+
+dim(Rc <- qr.R(qrstr, complete=TRUE)) # == dim(x)
+dim(Xc <- qr.X(qrstr, complete=TRUE)) # square: nrow(x) ^ 2
+all(Xc[,1:p] == X)
 }
 \keyword{algebra}
-\keyword{array}

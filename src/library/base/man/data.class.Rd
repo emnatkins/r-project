@@ -13,21 +13,16 @@ data.class(x)
 \value{
   character string giving the ``class'' of \code{x}.
 
-  The ``class'' is the (first element) of the \code{\link[base]{class}}
+  The ``class'' is the (first element) of the \code{\link{class}}
   attribute if this is non-\code{NULL}, or inferred from the object's
   \code{dim} attribute if this is non-\code{NULL}, or \code{mode(x)}.
 
   Simply speaking, \code{data.class(x)} returns what is typically useful
-  for method dispatching.  (Or, what the basic creator functions already
+ for method dispatching.  (Or, what the basic creator functions already
   and maybe eventually all will attach as a class attribute.)
 }
-\note{
-  For compatibility reasons, there is one exception to the rule above:
-  When \code{x} is \code{\link{integer}}, the result of
-  \code{data.class(x)} is \code{"numeric"} even when \code{x} is classed.
-}
 \seealso{
-  \code{\link[base]{class}}
+  \code{\link{class}}
 }
 \examples{
 x <- LETTERS
@@ -35,8 +30,6 @@ data.class(factor(x))                 # has a class attribute
 data.class(matrix(x, nc = 13))        # has a dim attribute
 data.class(list(x))                   # the same as mode(x)
 data.class(x)                         # the same as mode(x)
-
-stopifnot(data.class(1:2) == "numeric")# compatibility "rule"
 }
 \keyword{classes}
 \keyword{methods}

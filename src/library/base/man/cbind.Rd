@@ -14,7 +14,7 @@ cbind(\dots, deparse.level = 1)
 rbind(\dots, deparse.level = 1)
 }
 \arguments{
-  \item{\dots}{vectors or matrices.  These can be given as named arguments.}
+  \item{\dots}{vectors or matrices.}
   \item{deparse.level}{integer controlling the construction of labels;
     currently, \code{1} is the only possible value.}
 }
@@ -22,40 +22,21 @@ rbind(\dots, deparse.level = 1)
   The functions \code{cbind} and \code{rbind} are generic, with methods
   for data frames.  The data frame method will be used if an argument is
   a data frame and the rest are vectors or matrices.  There can be other
-  methods; in particular, there is one for time series objects.
-
-  The data frame method takes the classes of the columns from the first
-  data frame.  Factors are have their levels expanded as necessary (in
-  the order of the levels of the levelsets of the factors encountered)
-  and the result is an ordered factor if and only if all the components
-  were ordered factors.  (The last point differs from S-PLUS.)
+  methods, for example \code{\link[ts:ts.union]{cbind.ts}} in package
+  \code{ts}.
 
   If there are several matrix arguments, they must all have the same
   number of columns (or rows) and this will be the number of columns (or
   rows) of the result.  If all the arguments are vectors, the number of
   columns (rows) in the result is equal to the length of the longest
   vector.  Values in shorter arguments are recycled to achieve this
-  length (with a \code{\link{warning}} if they are recycled only
+  length (with a \code{\link{warning}} when they are recycled only
   \emph{fractionally}).
 
   When the arguments consist of a mix of matrices and vectors the number
   of columns (rows) of the result is determined by the number of columns
   (rows) of the matrix arguments.  Any vectors have their values
   recycled or subsetted to achieve this length.
-
-  For \code{cbind} (\code{rbind}), vectors of zero length are ignored
-  unless the result would have zero rows (columns), for S compatibility.
-  (Zero-extent matrices do not occur in S and are not ignored in \R.)
-}
-\value{
-  A matrix or data frame combining the \code{\dots} arguments
-  column-wise or row-wise.
-
-  For \code{cbind} (\code{rbind}) the column (row) names are taken from
-  the names of the arguments, or where those are not supplied by
-  deparsing the expressions given (if that gives a sensible name).
-  The names will depend on whether data frames are included:
-  see the examples.
 }
 \note{
   The method dispatching is \emph{not} done via
@@ -90,9 +71,6 @@ cbind(1, 1:7) # the `1' (= shorter vector) is recycled
 cbind(1:7, diag(3))# vector is subset -> warning
 
 cbind(0, rbind(1, 1:3))
-cbind(I=0, X=rbind(a=1, b=1:3))  # use some names
-xx <- data.frame(I=rep(0,2))
-cbind(xx, X=rbind(a=1, b=1:3))   # named differently
 
 cbind(0, matrix(1, nrow=0, ncol=4))#> Warning (making sense)
 dim(cbind(0, matrix(1, nrow=2, ncol=0)))#-> 2 x 1

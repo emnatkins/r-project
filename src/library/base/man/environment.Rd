@@ -5,9 +5,6 @@
 \alias{globalenv}
 \alias{is.environment}
 \alias{new.env}
-\alias{parent.env}
-\alias{parent.env<-}
-\alias{.BaseNamespaceEnv}
 \title{Environment Access}
 \description{
   Get, set, test for and create environments.
@@ -18,19 +15,13 @@ environment(fun) <- value
 is.environment(obj)
 .GlobalEnv
 globalenv()
-new.env(hash=FALSE, parent=parent.frame())
-parent.env(env)
-parent.env(env) <- value
+new.env()
 }
 \arguments{
   \item{fun}{a \code{\link{function}}, a \code{\link{formula}}, or
     \code{NULL}, which is the default.}
-  \item{value}{an environment to associate with the function}
+  \item{value}{}
   \item{obj}{an arbitrary \R object.}
-  \item{hash}{a logical, if \code{TRUE} the environment will be hashed}
-  \item{parent}{an environment to be used as the parent of the
-    environment created.}
-  \item{env}{an environment}
 }
 \value{
   If \code{fun} is a function or a formula then \code{environment(fun)}
@@ -45,27 +36,12 @@ parent.env(env) <- value
   \code{environment}.
 
   \code{new.env} returns a new (empty) environment enclosed in the
-  parent's environment, by default.
-
-  \code{parent.env} returns the parent environment of its argument.
-
-  \code{parent.env<-} sets the parent environment of its first argument.
+  parent's environment.
 }
 \details{
   The global environment \code{.GlobalEnv} is the first item on the
   search path, more often known as the user's workspace.  It can also be
   accessed by \code{globalenv()}.
-
-  The variable \code{.BaseNamespaceEnv} is part of some experimental
-  support for name space management.
-
-  The replacement function \code{parent.env<-} is extremely dangerous as
-  it can be used to destructively change environments in ways that
-  violate assumptions made by the internal C code.  It may be removed
-  in the near future.
-
-  \code{is.environment} is generic: you can write methods to handle
-  of specific classes of objects, see \link{InternalMethods}.
 }
 \seealso{
   The \code{envir} argument of \code{\link{eval}}.
@@ -79,13 +55,6 @@ environment(environment)
 ls(envir=environment(approxfun(1:2,1:2, method="const")))
 
 is.environment(.GlobalEnv)# TRUE
-
-e1 <- new.env(TRUE, NULL)
-e2 <- new.env(FALSE, NULL)
-assign("a", 3, env=e2)
-parent.env(e1) <- e2
-get("a", env=e1)
-
 }
 \keyword{data}
 \keyword{programming}

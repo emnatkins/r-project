@@ -14,22 +14,22 @@ acf <-
     x <- na.action(as.ts(x))
     x.freq <- frequency(x)
     x <- as.matrix(x)
-    if(!is.numeric(x))
-        stop("`x' must be numeric")
+    if(any(is.na(x))) stop("NAs in x")
     sampleT <- nrow(x)
     nser <- ncol(x)
     if (is.null(lag.max))
         lag.max <- floor(10 * (log10(sampleT) - log10(nser)))
     lag.max <- min(lag.max, sampleT - 1)
     if (lag.max < 1) stop("lag.max must be at least 1")
-    if(demean) x <- sweep(x, 2, colMeans(x, na.rm = TRUE))
+    if(demean) x <- sweep(x, 2, apply(x, 2, mean))
     lag <- matrix(1, nser, nser)
     lag[lower.tri(lag)] <- -1
+    acf <- array(NA, c(lag.max + 1, nser, nser))
     acf <- array(.C("acf",
                     as.double(x), as.integer(sampleT), as.integer(nser),
                     as.integer(lag.max), as.integer(type=="correlation"),
-                    acf=double((lag.max+1) * nser * nser), NAOK = TRUE,
-                    PACKAGE = "ts")$acf, c(lag.max + 1, nser, nser))
+                    acf=double((lag.max+1) * nser * nser), PACKAGE="ts"
+                    )$acf, c(lag.max + 1, nser, nser))
     lag <- outer(0:lag.max, lag/x.freq)
     acf.out <- structure(.Data = list(acf = acf, type = type,
         n.used = sampleT, lag = lag, series = series, snames = colnames(x)),
@@ -46,13 +46,14 @@ pacf.default <- function(x, lag.max = NULL, plot = TRUE,
                          na.action = na.fail, ...)
 {
     series <- deparse(substitute(x))
-    if(is.matrix(x))
-        return(pacf(as.ts(x), lag.max=lag.max, plot=plot,
-                    na.action=na.action, ...))
+    if(is.matrix(x)) {
+        m <- match.call()
+        m[[1]] <- as.name("pacf.mts")
+        return(eval(m, parent.frame()))
+    }
     x <- na.action(as.ts(x))
-    if(!is.numeric(x))
-        stop("`x' must be numeric")
     x.freq <- frequency(x)
+    if(any(is.na(x))) stop("NAs in x")
     if(is.matrix(x))
         if(ncol(x) > 1) stop("univariate ts method")
         else x <- drop(x)
@@ -62,8 +63,7 @@ pacf.default <- function(x, lag.max = NULL, plot = TRUE,
     lag.max <- min(lag.max, sampleT - 1)
     if (lag.max < 1) stop("lag.max must be at least 1")
     x <- scale(x, TRUE, FALSE)
-    acf <- drop(acf(x, lag.max = lag.max, plot = FALSE,
-                    na.action = na.action)$acf)
+    acf <- drop(acf(x, lag.max = lag.max, plot = FALSE)$acf)
     pacf <- array(.C("uni_pacf",
                as.double(acf),
                pacf = double(lag.max),
@@ -92,7 +92,7 @@ pacf.mts <- function(x, lag.max = NULL, plot = TRUE, na.action = na.fail, ...)
         lag.max <- floor(10 * (log10(sampleT) - log10(nser)))
     lag.max <- min(lag.max, sampleT - 1)
     if (lag.max < 1) stop("lag.max must be at least 1")
-    x <- sweep(x, 2, colMeans(x))
+    x <- sweep(x, 2, apply(x, 2, mean))
     lag <- matrix(1, nser, nser)
     lag[lower.tri(lag)] <- -1
     acf <- ar.yw(x, order.max = lag.max)$partialacf
@@ -116,7 +116,6 @@ plot.acf <-
               mar = if(nser > 2) c(3,2,2,0.8) else par("mar"),
               oma = if(nser > 2) c(1,1.2,1,1) else par("oma"),
               mgp = if(nser > 2) c(1.5,0.6,0) else par("mgp"),
-              xpd = par("xpd"),
               cex.main = if(nser > 2) 1 else par("cex.main"),
               verbose = getOption("verbose"),
               ...)
@@ -138,25 +137,25 @@ plot.acf <-
     Npgs <- 1 ## we will do [ Npgs x Npgs ] pages !
     nr <- nser
     if(nser > 1) { ## at most m x m (m := max.mfrow)  panels per page
-        sn.abbr <- if(nser > 2) abbreviate(snames) else snames
+        sn.abbr <- if(nser > 2) abbreviate(snames) else .Alias(snames)
 
         if(nser > max.mfrow) {
             ##  We need more than one page: The plots are laid out
             ##  such that we can manually paste the paper pages and get a
-            ##  nice square layout with diagonal !
+            ##  nice square layout with diagonal !   
             ## NB: The same applies to pairs() where we'd want several pages
             Npgs <- ceiling(nser / max.mfrow)
             nr <- ceiling(nser / Npgs)  # <= max.mfrow
         }
         opar <- par(mfrow = rep(nr, 2), mar = mar, oma = oma, mgp = mgp,
-                    ask = ask, xpd = xpd, cex.main = cex.main)
+                    ask = ask, xpd = NA, cex.main = cex.main)
         on.exit(par(opar))
         if(verbose) {
             cat("par(*) : ")
             str(par("mfrow","cex", "cex.main","cex.axis","cex.lab","cex.sub"))
         }
     }
-
+    
     for (I in 1:Npgs) for (J in 1:Npgs) {
         ## Page [ I , J ] : Now do   nr x nr  `panels' on this page
         iind <- (I-1)*nr + 1:nr
@@ -207,11 +206,11 @@ ccf <- function(x, y, lag.max = NULL,
     type <- match.arg(type)
     if(is.matrix(x) || is.matrix(y))
         stop("univariate time series only")
-    X <- na.action(ts.union(as.ts(x), as.ts(y)))
+    X <- na.action(ts.union(x, y))
     colnames(X) <- c(deparse(substitute(x)), deparse(substitute(y)))
     acf.out <- acf(X, lag.max = lag.max, plot = FALSE, type = type)
-    lag <- c(rev(acf.out$lag[-1,2,1]), acf.out$lag[,1,2])
-    y   <- c(rev(acf.out$acf[-1,2,1]), acf.out$acf[,1,2])
+    lag <- c(rev(acf.out$lag[-1,2,1]), 0, acf.out$lag[,1,2])
+    y   <- c(rev(acf.out$acf[-1,2,1]), 0, acf.out$acf[,1,2])
     acf.out$acf <- array(y, dim=c(length(y),1,1))
     acf.out$lag <- array(lag, dim=c(length(y),1,1))
     acf.out$snames <- paste(acf.out$snames, collapse = " & ")

@@ -1,13 +1,5 @@
 \name{Palettes}
-\alias{rainbow}
-\alias{heat.colors}
-\alias{terrain.colors}
-\alias{topo.colors}
-\alias{cm.colors}
 \title{Color Palettes}
-\description{
-  Create a vector of \code{n} ``contiguous'' colors.
-}
 \usage{
 rainbow(n, s = 1, v = 1, start = 0, end = max(1,n - 1)/n, gamma = 1)
 heat.colors(n)
@@ -15,16 +7,21 @@ terrain.colors(n)
 topo.colors(n)
 cm.colors(n)
 }
+\alias{rainbow}
+\alias{heat.colors}
+\alias{terrain.colors}
+\alias{topo.colors}
+\alias{cm.colors}
 \arguments{
-  \item{n}{the number of colors (\eqn{\ge 1}{>= 1}) to be in the
-    palette.}
-  \item{s,v}{the ``saturation'' and ``value'' to be used to complete the
-    HSV color descriptions.}
-  \item{start}{the (corrected) hue in [0,1] at which the rainbow
-    begins.}
-  \item{end}{the (corrected) hue in [0,1] at which the rainbow ends.}
-  \item{gamma}{the gamma correction, see argument \code{gamma} in
-    \code{\link{hsv}}.}
+\item{n}{the number of colors (\eqn{\ge 1}{>= 1}) to be in the palette.}
+\item{s,v}{the ``saturation'' and ``value'' to be used to
+  complete the HSV color descriptions.}
+\item{start}{the (corrected) hue in [0,1] at which the rainbow begins.}
+\item{end}{the (corrected) hue in [0,1] at which the rainbow ends.}
+\item{gamma}{the gamma correction, see \code{\link{hsv}(.., gamma)}.}
+}
+\description{
+These functions create a vector of \code{n} ``contiguous'' colors.
 }
 \details{
   Conceptually, all of these functions actually use (parts of) a line
@@ -57,27 +54,21 @@ cm.colors(n)
 }
 \examples{
 # A Color Wheel
-pie(rep(1,12), col=rainbow(12))
+piechart(rep(1,12), col=rainbow(12))
 
 ##------ Some palettes ------------
-demo.pal <-
-  function(n, border = if (n<32) "light gray" else NA,
-           main = paste("color palettes;  n=",n),
-           ch.col = c("rainbow(n, start=.7, end=.1)", "heat.colors(n)",
-                      "terrain.colors(n)", "topo.colors(n)", "cm.colors(n)"))
-{
-    nt <- length(ch.col)
-    i <- 1:n; j <- n / nt; d <- j/6; dy <- 2*d
-    plot(i,i+d, type="n", yaxt="n", ylab="", main=main)
-    for (k in 1:nt) {
-        rect(i-.5, (k-1)*j+ dy, i+.4, k*j,
-             col = eval(parse(text=ch.col[k])), border = border)
-        text(2*j,  k * j +dy/4, ch.col[k])
-    }
-}
+ch.col <- c("rainbow(n, start=.7, end=.1)", "heat.colors(n)",
+            "terrain.colors(n)", "topo.colors(n)", "cm.colors(n)")
+
 n <- if(.Device == "postscript") 64 else 16
      # Since for screen, larger n may give color allocation problem
-demo.pal(n)
+nt <- length(ch.col)
+i <- 1:n; j <- n / nt; d <- j/6; dy <- 2*d
+plot(i,i+d, type="n", yaxt="n", ylab="", main=paste("color palettes;  n=",n))
+for (k in 1:nt) {
+  rect(i-.5,(k-1)*j+ dy, i+.4,  k*j, col=eval(parse(text=ch.col[k])))
+  text(2*j,  k * j +dy/4, ch.col[k])
+}
 }
 \keyword{color}
 \keyword{dplot}

@@ -25,12 +25,8 @@ alist(\dots)
 \description{
   Functions to construct, coerce and check for all kinds of \R lists.
 }
-\arguments{
-  \item{\dots}{objects.}
-  \item{x}{object to be coerced or tested.}
-}
 \details{
-  Most lists in \R internally are \emph{Generic
+  Since version 0.63, most lists in \R internally are \emph{Generic
     Vectors}, whereas traditional \emph{dotted pair} lists (as in LISP)
   are still available.
 
@@ -53,9 +49,6 @@ alist(\dots)
   \code{is.list} returns \code{TRUE} iff its argument
   is a \code{list} \emph{or} a \code{pairlist} of \code{length}\eqn{> 0},
   whereas \code{is.pairlist} only returns \code{TRUE} in the latter case.
-
-  \code{is.list} and \code{is.pairlist} are generic: you can write
-  methods to handle of specific classes of objects, see \link{InternalMethods}.
 
   An empty pairlist, \code{pairlist()} is the same as \code{NULL}.  This
   is different from \code{list()}.

@@ -1,5 +1,4 @@
 \name{Geometric}
-\alias{Geometric}
 \alias{dgeom}
 \alias{pgeom}
 \alias{qgeom}
@@ -48,7 +47,11 @@ rgeom(n, prob)
   the geometric distribution.
 }
 \examples{
-qgeom((1:9)/10, prob = .2)
+pp <- sort(c((1:9)/10, 1 - .2^(2:8)))
+print(qg <- qgeom(pp, prob = .2))
+## test that qgeom is an inverse of pgeom
+print(qg1 <- qgeom(pgeom(qg, prob=.2), prob =.2))
+all(qg == qg1)
 Ni <- rgeom(20, prob = 1/4); table(factor(Ni, 0:max(Ni)))
 }
 \keyword{distribution}

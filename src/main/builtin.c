@@ -81,7 +81,7 @@ SEXP do_onexit(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    {
 		PROTECT(tmp=allocList(1));
 		SETCAR(tmp, code);
-		ctxt->conexit = listAppend(duplicate(oldcode),tmp);
+		ctxt->conexit = listAppend(oldcode,tmp);
 		UNPROTECT(1);
 	    }
 	}
@@ -147,49 +147,6 @@ SEXP do_envirgets(SEXP call, SEXP op, SEXP args, SEXP rho)
     else
 	errorcall(call, "replacement object is not an environment");
     return CAR(args);
-}
-
-
-SEXP do_newenv(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP enclos;
-    int hash;
-
-    checkArity(op, args);
-
-    hash = asInteger(CAR(args));
-    enclos = CADR(args);
-    if( !isEnvironment(enclos) )
-	errorcall(call, "enclos needs to be an environment");
-
-    if( hash )
-	return R_NewHashedEnv(enclos);
-    else
-	return NewEnvironment(R_NilValue, R_NilValue, enclos);
-}
-
-SEXP do_parentenv(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    checkArity(op, args);
-
-    if( !isEnvironment(CAR(args)) )
-	errorcall(call, "argument is not an environment");
-
-    return( ENCLOS(CAR(args)) );
-}
-
-SEXP do_parentenvgets(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    checkArity(op, args);
-
-    if( !isEnvironment(CAR(args)) )
-	errorcall(call, "argument is not an environment");
-    if( !isEnvironment(CADR(args)) )
-	errorcall(call, "parent is not an environment");
-
-    SET_ENCLOS(CAR(args), CADR(args));
-
-    return( CAR(args) );
 }
 
 static void cat_newline(SEXP labels, int *width, int lablen, int ntot)
@@ -296,14 +253,14 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     ci.wasopen = con->isopen;
 
-    ci.changedcon = switch_stdout(ifile, 0);
+    ci.changedcon = switch_stdout(ifile, 0); 
     /* will open new connection if required */
 
     ci.con = con;
 
     /* set up a context which will close the window if there is an error */
     begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_NilValue, R_NilValue,
-		 R_NilValue, R_NilValue);
+		 R_NilValue);
     cntxt.cend = &cat_cleanup;
     cntxt.cenddata = &ci;
 
@@ -492,19 +449,13 @@ SEXP do_makevector(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    INTEGER(s)[i] = 0;
     else if (mode == REALSXP)
 	for (i = 0; i < len; i++)
-	    REAL(s)[i] = 0.;
-    else if (mode == CPLXSXP)
-	for (i = 0; i < len; i++) {
-	    COMPLEX(s)[i].r = 0.;
-	    COMPLEX(s)[i].i = 0.;
-	}
+	    REAL(s)[i] = 0.0;
 #ifdef OLD
     else if (mode == STRSXP) {
 	for (i = 0; i < len; i++)
 	    SET_STRING_ELT(s, i, R_BlankString);
     }
 #endif
-    /* other cases: list/expression have "NULL", ok */
     return s;
 }
 

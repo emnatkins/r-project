@@ -26,14 +26,14 @@ abbreviate <-
     function(names.arg, minlength = 4, use.classes = TRUE, dot = FALSE)
 {
     ## we just ignore use.classes
-    if(minlength <= 0)
-	return(rep.int("", length(names.arg)))
+    if(minlength<=0)
+	return(rep("",length(names.arg)))
     names.arg <- as.character(names.arg)
     dups <- duplicated(names.arg)
     old <- names.arg
     if(any(dups))
 	names.arg <- names.arg[!dups]
-    dup2 <- rep.int(TRUE, length(names.arg))
+    dup2 <- rep(TRUE, length(names.arg))
     x <- these <- names.arg
     repeat {
 	ans <- .Internal(abbreviate(these,minlength,use.classes))
@@ -42,20 +42,18 @@ abbreviate <-
 	if(!any(dup2))
 	    break
 	minlength <- minlength+1
-	dup2 <- dup2 | match(x, x[dup2], 0)
+	dup2 <- dup2 | match(x, x[duplicated(x)], 0)
 	these <- names.arg[dup2]
     }
     if(any(dups))
 	x <- x[match(old,names.arg)]
-    if(dot) { # add "." where we did abbreviate:
-        chgd <- x != old
-	x[chgd] <- paste(x[chgd],".",sep = "")
-    }
+    if(dot)
+	x <- paste(x,".",sep="")
     names(x) <- old
     x
 }
 
-make.names <- function(names, unique = FALSE)
+make.names <- function(names, unique=FALSE)
 {
     names <- .Internal(make.names(as.character(names)))
     if(unique) {
@@ -70,6 +68,3 @@ make.names <- function(names, unique = FALSE)
 chartr <- function(old, new, x) .Internal(chartr(old, new, x))
 tolower <- function(x) .Internal(tolower(x))
 toupper <- function(x) .Internal(toupper(x))
-
-casefold <- function(x, upper = FALSE)
-    if(upper) toupper(x) else tolower(x)

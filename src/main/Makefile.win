@@ -3,20 +3,17 @@ include ../gnuwin32/MkRules
 
 all: makeMakedeps ../gnuwin32/libmain.a
 
-CFLAGS=$(OPTFLAGS) -I../include -DHAVE_CONFIG_H -DR_DLL_BUILD
+CFLAGS=$(OPTFLAGS) -I../include -DHAVE_CONFIG_H
 FFLAGS=$(OPTFLAGS)
-CSOURCES=$(filter-out alloca.c par-common.c qsort-body.c snprintf.c strdup.c \
-           strncasecmp.c vsnprintf.c, $(wildcard *.c))
+CSOURCES=$(filter-out strdup.c, $(wildcard *.c))
 FSOURCES=$(wildcard *.f)
 OBJS=$(CSOURCES:.c=.o) $(FSOURCES:.f=.o) 
 
 gram.c: ;
 
 saveload-CFLAGS=-I../extra/xdr
-connections-CFLAGS=-I../extra/zlib -I../extra/bzip2
-dounzip-CFLAGS=-I../extra/zlib
-pcre-CFLAGS=-I../extra/pcre -DSTATIC
-
+connections-CFLAGS=-I../gnuwin32/bitmap/zlib
+#internet-CFLAGS=-I../gnuwin32
 
 ../gnuwin32/libmain.a: $(OBJS)
 

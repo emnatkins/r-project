@@ -1,6 +1,6 @@
 require(tcltk) || stop("tcltk support is absent")
 local({
-
+    
     tkfilefind<-function(path=getwd(), all.names=FALSE, multiple=FALSE){
         tclRequire("::Utility")
         tclRequire("Hierarchy")
@@ -19,17 +19,19 @@ local({
 
         .tclfilename <- NULL
         selected <- function(){
-            index <- as.integer(tkcurselection(dirtree))
-            fnamelist <- as.character(tkget(dirtree, index))
+            index <- tkcurselection(dirtree)
+            index <- strsplit(index," ")[[1]] # multiple selections
+            fname <- tkget(dirtree, index)
             tkdestroy(base)
-            if (identical(fnamelist,"")){
+            if (fname==""){
                 .tclfilename <<- NULL
                 return()
             }
+            fnamelist<-strsplit(fname,"}")[[1]]
             for (i in seq(along=fnamelist)){
-                                fnamelist[i] <-
-                                    paste(strsplit(fnamelist[i]," ")[[1]],
-                                          collapse=.Platform$file.sep)
+                fnamelist[i] <- gsub("[ ]*{","",fnamelist[i])
+                fnamelist[i] <- paste(strsplit(fnamelist[i]," ")[[1]],
+                                      collapse=Platform()$file.sep)
             }
             .tclfilename <<- fnamelist
         }

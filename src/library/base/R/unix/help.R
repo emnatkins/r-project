@@ -1,7 +1,7 @@
 ### NOTE: This is for Unix only (cf. ../{mac,windows}/help.R)
 
 help <- function(topic, offline = FALSE, package = .packages(),
-                 lib.loc = NULL, verbose = getOption("verbose"),
+                 lib.loc = .lib.loc, verbose = getOption("verbose"),
                  try.all.packages = getOption("help.try.all.packages"),
                  htmlhelp = getOption("htmlhelp"),
                  pager = getOption("pager"))
@@ -28,7 +28,8 @@ help <- function(topic, offline = FALSE, package = .packages(),
         else if (!is.na(match(topic, c("%*%"))))
             topic <- "matmult"
         type <- if(offline) "latex" else if (htmlhelp) "html" else "help"
-        INDICES <- .find.package(package, lib.loc, verbose = verbose)
+        INDICES <- .find.package(package, lib.loc, missing(lib.loc),
+                                 quiet = TRUE)
         file <- index.search(topic, INDICES, "AnIndex", type)
         if (length(file) && file != "") {
             if (verbose)
@@ -39,23 +40,30 @@ help <- function(topic, offline = FALSE, package = .packages(),
                     if(file.exists(file)) {
                         ofile <- file
                         base.pos <- match("package:base", search())
-                        ## We need to use the version in per-session dir
-                        ## if we can.
-                        lnkfile <-
-                            file.path(tempdir(), ".R",
-                                      "library", package, "html",
-                                      paste(topic, "html", sep="."))
-                        if (any(ex <- file.exists(lnkfile))) {
-                            lnkfile <- lnkfile[ex]
-                            file <- lnkfile[1] # could be more than one
+                        if (exists("help.start.has.been.run",
+                                   where=base.pos, mode="logical") &&
+                            get("help.start.has.been.run",
+                                   pos=base.pos, mode="logical")) {
+                        ## we need to use the version in ~/.R if we can.
+                            lnkfile <-
+                                file.path(Sys.getenv("HOME"), ".R",
+                                          "library", package, "html",
+                                          paste(topic, "html", sep="."))
+                            if (any(ex <- file.exists(lnkfile))) {
+                                lnkfile <- lnkfile[ex]
+                                file <- lnkfile[1] # could be more than one
+                            }
                         }
                         if (file == ofile) {
                             warning("Using non-linked HTML file: style sheet and hyperlinks may be incorrect")
                         }
-                        file <- paste("file://", file, sep = "")
-                        if(is.null(browser <- getOption("browser")))
+                        file <- paste("file:", file, sep="")
+                        if (is.null(getOption("browser")))
                             stop("options(\"browser\") not set")
-                        browseURL(file)
+                        browser <- getOption("browser")
+                        system(paste(browser, " -remote \"openURL(",
+                                     file, ")\" 2>/dev/null || ", browser, " ",
+                                     file, " &", sep = ""))
                         cat("help() for",topic, " is shown in browser",browser,
                             "...\nUse\t help(",topic,", htmlhelp=FALSE)\nor\t",
                             "options(htmlhelp = FALSE)\nto revert.\n")
@@ -102,25 +110,18 @@ help <- function(topic, offline = FALSE, package = .packages(),
                     file.append(FILE, zfile)
                     cat("\\end{document}\n",
                         file = FILE, append = TRUE)
-                    ## <NOTE>
-                    ## We now have help-print.sh in share/sh but we do
-                    ## not use the .Script mechanism because we play
-                    ## with the TEXINPUTS environment variable and not
-                    ## all systems can be assumed to support Sys.putenv().
                     system(paste(paste("TEXINPUTS=",
                                        file.path(R.home(), "share",
                                                  "texmf"),
                                        ":",
                                        "$TEXINPUTS",
                                        sep = ""),
-                                 "/bin/sh",
-                                 file.path(R.home(), "share", "sh",
-                                           "help-print.sh"),
+                                 file.path(R.home(), "bin", "help"),
+                                 "PRINT",
                                  FILE,
                                  topic,
                                  getOption("latexcmd"),
                                  getOption("dvipscmd")))
-                    ## </NOTE>
                     return(invisible())
                 }
                 else
@@ -133,9 +134,7 @@ help <- function(topic, offline = FALSE, package = .packages(),
                 try.all.packages <- FALSE
             if(try.all.packages && missing(package) && missing(lib.loc)) {
                 ## try all the remaining packages
-                lib.loc <- .libPaths()
-                packages <- .packages(all.available = TRUE,
-                                      lib.loc = lib.loc)
+                packages <- .packages(all.available = TRUE, lib.loc = lib.loc)
                 packages <- packages[is.na(match(packages, .packages()))]
                 pkgs <- libs <- character(0)
                 for (lib in lib.loc)
@@ -157,7 +156,7 @@ help <- function(topic, offline = FALSE, package = .packages(),
                         sep="")
                     A <- cbind(package=pkgs, library=libs)
                     rownames(A) <- 1:nrow(A)
-                    print(A, quote=FALSE)
+                    print(A, quote=F)
                 } else {
                     stop(paste("No documentation for `", topic,
                                "' in specified packages and libraries:\n",
@@ -175,8 +174,8 @@ help <- function(topic, offline = FALSE, package = .packages(),
         }
     }
     else if (!missing(package))
-        library(help = package, lib.loc = lib.loc, character.only = TRUE)
+        library(help = package, lib = lib.loc, character.only = TRUE)
     else if (!missing(lib.loc))
-        library(lib.loc = lib.loc)
+        library(lib = lib.loc)
     else help("help", package = "base", lib.loc = .Library)
 }

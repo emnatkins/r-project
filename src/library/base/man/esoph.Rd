@@ -1,5 +1,4 @@
 \name{esoph}
-\docType{data}
 \alias{esoph}
 \title{Smoking, Alcohol and (O)esophageal Cancer}
 \description{
@@ -7,8 +6,7 @@
   Ile-et-Vilaine, France.
 }
 \usage{data(esoph)}
-\format{
-  A data frame with records for 88 age/alcohol/tobacco combinations.
+\format{data frame with records for 88 age/alcohol/tobacco combinations.
 
   \tabular{rlll}{
     [,1] \tab "agegp" \tab Age group \tab 1  25--34 years\cr

@@ -1,13 +1,11 @@
 \name{contour}
 \alias{contour}
-\alias{contour.default}
 \title{Display Contours}
 \description{
   Create a contour plot, or add contour lines to an existing plot.
 }
 \usage{
-contour(x, \dots)
-\method{contour}{default}(x = seq(0, 1, len = nrow(z)), y = seq(0, 1, len = ncol(z)),
+contour(x = seq(0, 1, len = nrow(z)), y = seq(0, 1, len = ncol(z)),
         z,
         nlevels = 10, levels = pretty(zlim, nlevels), labels = NULL,
         xlim = range(x, finite = TRUE),
@@ -56,9 +54,6 @@ contour(x, \dots)
     and the arguments to \code{\link{title}} may also be supplied.}
 }
 \details{
-  \code{contour} is a generic function with only a default method in
-  base \R.
-  
   There is currently no documentation about the algorithm.
   The source code is in \file{\$R\_HOME/src/main/plot3d.c}.
 

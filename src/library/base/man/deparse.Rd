@@ -29,7 +29,7 @@
 }
 \examples{
 deparse(args(lm))
-deparse(args(lm), width = 500)
+deparse(args(lm), width = 100)
 myplot <-
 function(x, y)
     plot(x, y, xlab=deparse(substitute(x)),

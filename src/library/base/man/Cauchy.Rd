@@ -1,5 +1,4 @@
 \name{Cauchy}
-\alias{Cauchy}
 \alias{dcauchy}
 \alias{pcauchy}
 \alias{qcauchy}
@@ -48,6 +47,6 @@ rcauchy(n, location = 0, scale = 1)
   \code{dcauchy(*, l = 0, s = 1)}.
 }
 \examples{
-dcauchy(-1:4)
+all.equal(dcauchy(-1:4), 1 / (pi*(1 + (-1:4)^2)))
 }
 \keyword{distribution}

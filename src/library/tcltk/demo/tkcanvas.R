@@ -105,7 +105,8 @@ local({
     plotLine <- function(){
         coords <- lapply(point.items,
                          function(item)
-                         as.double(tkcoords(canvas,item)))
+                         as.numeric(strsplit(tkcoords(canvas,item),
+                                             " ")[[1]]))
         x <- sapply(coords, function(z) (z[1]+z[3])/2)
         y <- sapply(coords, function(z) (z[2]+z[4])/2)
         lm.out <- lm(y~x)

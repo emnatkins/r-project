@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2003  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--2000  Robert Gentleman, Ross Ihaka and the
  *                            R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -25,7 +25,6 @@
 
 #include <Defn.h>
 #include <Rmath.h>
-#include <Rdefines.h>
 
 static void checkNames(SEXP, SEXP);
 static SEXP installAttrib(SEXP, SEXP, SEXP);
@@ -251,8 +250,6 @@ SEXP tspgets(SEXP vec, SEXP val)
     if (frequency <= 0) badtsp();
     n = nrows(vec);
     if (n == 0) error("cannot assign `tsp' to zero-length vector");
-
-    /* FIXME:  1.e-5 should rather be == option('ts.eps') !! */
     if (fabs(end - start - (n - 1)/frequency) > 1.e-5)
 	badtsp();
 
@@ -271,7 +268,7 @@ static SEXP commentgets(SEXP vec, SEXP comment)
 {
     if (isNull(comment) || isString(comment)) {
 	if (length(comment) <= 0) {
-	    SET_ATTRIB(vec, stripAttrib(R_CommentSymbol, ATTRIB(vec)));
+	    SET_ATTRIB(vec, stripAttrib(R_CommentSymbol, vec));
 	}
 	else {
 	    installAttrib(vec, R_CommentSymbol, comment);
@@ -301,7 +298,7 @@ SEXP classgets(SEXP vec, SEXP class)
 {
     if (isNull(class) || isString(class)) {
 	if (length(class) <= 0) {
-	    SET_ATTRIB(vec, stripAttrib(R_ClassSymbol, ATTRIB(vec)));
+	    SET_ATTRIB(vec, stripAttrib(R_ClassSymbol, vec));
 	    SET_OBJECT(vec, 0);
 	}
 	else {
@@ -331,96 +328,6 @@ SEXP do_class(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     checkArity(op, args);
     return getAttrib(CAR(args), R_ClassSymbol);
-}
-
-/* character elements corresponding to the syntactic types in the
-   grammar */
-static SEXP lang2str(SEXP obj, SEXPTYPE t)
-{
-  SEXP symb = CAR(obj);
-  static SEXP if_sym = 0, while_sym, for_sym, eq_sym, gets_sym,
-    lpar_sym, lbrace_sym, call_sym;
-  if(!if_sym) {
-    /* initialize:  another place for a hash table */
-    if_sym = install("if");
-    while_sym = install("while");
-    for_sym = install("for");
-    eq_sym = install("=");
-    gets_sym = install("<-");
-    lpar_sym = install("(");
-    lbrace_sym = install("{");
-    call_sym = install("call");
-  }
-  if(isSymbol(symb)) {
-    if(symb == if_sym || symb == for_sym || symb == while_sym ||
-       symb == lpar_sym || symb == lbrace_sym ||
-       symb == eq_sym || symb == gets_sym)
-      return PRINTNAME(symb);
-  }
-  return PRINTNAME(call_sym);
-}
-
-/* the S4-style class: for dispatch  required to be a single string;
-   for the newClass function, keeps S3-style multiple classes.
-
- */
-
-SEXP R_data_class(SEXP obj, int singleString)
-{
-    SEXP class, value; int n;
-    class = getAttrib(obj, R_ClassSymbol);
-    n = length(class);
-    if(n == 1 || (n > 0 && !singleString))
-	return(class);
-    if(n == 0) {
-	SEXP dim; int n;
-	dim = getAttrib(obj, R_DimSymbol);
-	n = length(dim);
-	if(n > 0) {
-	    if(n == 2)
-		class = mkChar("matrix");
-	    else
-		class = mkChar("array");
-	}
-	else {
-	  SEXPTYPE t = TYPEOF(obj);
-	  switch(t) {
-	  case CLOSXP: case SPECIALSXP: case BUILTINSXP:
-	    class = mkChar("function");
-	    break;
-	  case REALSXP:
-	    class = mkChar("numeric");
-	    break;
-	  case SYMSXP:
-	    class = mkChar("name");
-	    break;
-	  case LANGSXP:
-	    class = lang2str(obj, t);
-	    break;
-	  default:
-	    class = type2str(t);
-	  }
-	}
-    }
-    else
-	class = asChar(class);
-    PROTECT(class);
-    PROTECT(value = allocVector(STRSXP, 1));
-    SET_STRING_ELT(value, 0, class);
-    UNPROTECT(2);
-    return value;
-}
-
-SEXP R_do_data_class(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-  checkArity(op, args);
-  return R_data_class(CAR(args), FALSE);
-}
-
-SEXP R_do_set_class(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-  checkArity(op, args);
-  return R_set_class(CAR(args), CADR(args), call);
 }
 
 /* names(object) <- name */
@@ -471,12 +378,6 @@ SEXP namesgets(SEXP vec, SEXP val)
 
     /* Check that the lengths and types are compatible */
 
-    if (length(val) < length(vec)) {
-	val = lengthgets(val, length(vec));
-	UNPROTECT(1);
-	PROTECT(val);
-    }
-
     checkNames(vec, val);
 
     /* Special treatment for one dimensional arrays */
@@ -524,7 +425,7 @@ SEXP do_names(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP do_dimnamesgets(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans;
-    if (DispatchOrEval(call, op, "dimnames<-", args, env, &ans, 0, 0))
+    if (DispatchOrEval(call, "dimnames<-", args, env, &ans, 0))
 	return(ans);
     PROTECT(args = ans);
     checkArity(op, args);
@@ -592,7 +493,7 @@ SEXP dimnamesgets(SEXP vec, SEXP val)
 SEXP do_dimnames(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans;
-    if (DispatchOrEval(call, op, "dimnames", args, env, &ans, 0, 0))
+    if (DispatchOrEval(call, "dimnames", args, env, &ans, 0))
 	return(ans);
     PROTECT(args = ans);
     checkArity(op, args);
@@ -604,7 +505,7 @@ SEXP do_dimnames(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP do_dim(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans;
-    if (DispatchOrEval(call, op, "dim", args, env, &ans, 0, 0))
+    if (DispatchOrEval(call, "dim", args, env, &ans, 0))
 	return(ans);
     PROTECT(args = ans);
     checkArity(op, args);
@@ -616,7 +517,7 @@ SEXP do_dim(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP do_dimgets(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans;
-    if (DispatchOrEval(call, op, "dim<-", args, env, &ans, 0, 0))
+    if (DispatchOrEval(call, "dim<-", args, env, &ans, 0))
 	return(ans);
     PROTECT(args = ans);
     checkArity(op, args);
@@ -770,11 +671,11 @@ SEXP do_attributesgets(SEXP call, SEXP op, SEXP args, SEXP env)
 
 /*  This code replaces an R function defined as
 
-    attr <- function (x, which)
+    attr <- function (x, which) 
     {
-        if (!is.character(which))
+        if (!is.character(which)) 
             stop("attribute name must be of mode character")
-        if (length(which) != 1)
+        if (length(which) != 1) 
             stop("exactly one attribute name must be given")
         attributes(x)[[which]]
    }
@@ -790,7 +691,7 @@ SEXP do_attr(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP s, t, tag = R_NilValue, alist;
     char *str;
     int n;
-    enum { NONE, PARTIAL, PARTIAL2, FULL } match = NONE;
+    enum { NONE, PARTIAL, FULL } match = NONE;
 
     s = CAR(args);
     t = CADR(args);
@@ -812,17 +713,16 @@ SEXP do_attr(SEXP call, SEXP op, SEXP args, SEXP env)
 		match = FULL;
 		break;
 	    }
-	    else if (match == PARTIAL) {
+	    else if (match == PARTIAL)
 		/* this match is partial and we already have a partial match,
 		   so the query is ambiguous and we return R_NilValue */
-		match = PARTIAL2;
-	    } else {
+		return R_NilValue;
+	    else {
 		tag = tmp;
 		match = PARTIAL;
 	    }
 	}
     }
-    if (match == PARTIAL2) return R_NilValue;
 
     /* unless a full match has been found, check for a "names" attribute */
     if (match != FULL && ! strncmp(CHAR(PRINTNAME(R_NamesSymbol)), str, n)) {
@@ -849,7 +749,7 @@ SEXP do_attr(SEXP call, SEXP op, SEXP args, SEXP env)
 
     if (match == NONE)
 	return R_NilValue;
-    else
+    else 
 	return getAttrib(s, tag);
 }
 
@@ -911,236 +811,4 @@ SEXP GetArrayDimnames(SEXP x)
 {
     return getAttrib(x, R_DimNamesSymbol);
 }
-
-
-/* the code to manage slots in formal classes. These are attributes,
-   but without partial matching and enforcing legal slot names (it's
-   an error to get a slot that doesn't exist. */
-
-
-static SEXP pseudo_NULL = 0;
-
-static SEXP s_dot_Data;
-static SEXP s_getDataPart;
-static SEXP s_setDataPart;
-
-static void init_slot_handling() {
-    s_dot_Data = install(".Data");
-    s_getDataPart = install("getDataPart");
-    s_setDataPart = install("setDataPart");
-    /* create and preserve an object that is NOT R_NilValue, and is used
-       to represent slots that are NULL (which an attribute can not
-       be).  The point is not just to store NULL as a slot, but also to
-       provide a check on invalid slot names (see get_slot below).
-
-       The object has to be a symbol if we're going to check identity by
-       just looking at referential equality. */
-    pseudo_NULL = install("\001NULL\001");
-}
-
-static SEXP data_part(SEXP obj) {
-    SEXP e, val;
-    if(!s_getDataPart)
-	init_slot_handling();
-    PROTECT(e = allocVector(LANGSXP, 2));
-    SETCAR(e, s_getDataPart);
-    val = CDR(e);
-    SETCAR(val, obj);
-    val = eval(e, R_GlobalEnv);
-    UNPROTECT(1);
-    return(val);
-}
-
-static SEXP set_data_part(SEXP obj,  SEXP rhs) {
-    SEXP e, val;
-    if(!s_setDataPart)
-	init_slot_handling();
-    PROTECT(e = allocVector(LANGSXP, 3));
-    SETCAR(e, s_setDataPart);
-    val = CDR(e);
-    SETCAR(val, obj);
-    val = CDR(val);
-    SETCAR(val, rhs);
-    val = eval(e, R_GlobalEnv);
-    UNPROTECT(1);
-    return(val);
-}
-
-SEXP R_do_slot(SEXP obj, SEXP name) {
-  /* Slots are stored as attributes to
-     provide some back-compatibility
-  */
-    SEXP value = NULL; int nprotect = 0;
-    if(!(isSymbol(name) || (isString(name) && LENGTH(name) == 1)))
-	error("invalid type or length for slot name");
-    if(!s_dot_Data)
-	init_slot_handling();
-    if(isString(name)) name = install(CHAR(STRING_ELT(name, 0)));
-    if(name == s_dot_Data)
-	return data_part(obj);
-    value = getAttrib(obj, name);
-    if(value == R_NilValue) {
-	SEXP input = name, classString;
-	classString = GET_CLASS(obj);
-	if(isNull(classString))
-	    error("Can't get a slot (\"%s\") from an object of type \"%s\"",
-		  CHAR(asChar(classString)), CHAR(type2str(TYPEOF(obj))));
-	if(isSymbol(name) ) {
-	    input = PROTECT(allocVector(STRSXP, 1));  nprotect++;
-	    SET_STRING_ELT(input, 0, PRINTNAME(name));
-	}
- 	/* not there.  But since even NULL really does get stored, this
-	   implies that there is no slot of this name.  Or somebody
-	   screwed up by using atttr(..) <- NULL */
-	
-	error("No slot of name \"%s\" for this object of class \"%s\"",
-	      CHAR(asChar(input)), CHAR(asChar(classString)));
-    }
-    else if(value == pseudo_NULL)
-	value = R_NilValue;
-    UNPROTECT(nprotect);
-    return value;
-}
-
-SEXP R_do_slot_assign(SEXP obj, SEXP name, SEXP value) {
-    SEXP input = name; int nprotect = 0;
-    if(isSymbol(name) ) {
-	input = PROTECT(allocVector(STRSXP, 1)); nprotect++;
-	SET_STRING_ELT(input, 0, PRINTNAME(name));
-    }
-    else if(!(isString(name) && LENGTH(name) == 1))
-	error("invalid type or length for slot name");
-    if(!s_dot_Data)
-	init_slot_handling();
-    if(isString(name)) name = install(CHAR(STRING_ELT(name, 0)));
-    if(name == s_dot_Data)
-	return set_data_part(obj, value);
-    if(isNull(value))
-	/* slots, but not attributes, can be NULL.  Store a special symbol
-	   instead. */
-	value = pseudo_NULL;
-    PROTECT(obj); nprotect++;
-    setAttrib(obj, input, value);
-    UNPROTECT(nprotect);
-    return obj;
-}
-
-SEXP R_pseudo_null() {
-    if(pseudo_NULL == 0)
-	init_slot_handling();
-    return pseudo_NULL;
-}
-
-
-/* the @ operator, and its assignment form.  Processed much like $
-   (see do_subset3) but without S3-style methods.
-*/
-#ifdef noSlotCheck
-SEXP do_AT(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP  nlist, object, ans;
- 
-    nlist = CADR(args);
-    PROTECT(object = eval(CAR(args), env));
-    ans = R_do_slot(object, nlist);
-    UNPROTECT(1);
-    return ans;
-}
-#endif
- 
-
-#ifndef noSlotCheck
-
-static SEXP class_meta_data_env = NULL;
-
-static int make_class_meta_data_env()
-{
-    class_meta_data_env = findVar(install("__ClassMetaData"), R_GlobalEnv);
-    if(class_meta_data_env == R_UnboundValue) {
-	class_meta_data_env = NULL;
-	return 0;
-    }
-    else
-	return 1;
-}
-
-/* check for a class definition from the internal table -- will not get
- * classes whose definition has not been completed for this session,
- * so any code relying on this routine should call the S language
- * function comleteClassDefinition after a failed call. */
-static Rboolean has_class_definition(SEXP class_name)
-{
-    /* In case we're called before initialization, try to find the
-     * class metadata environment but don't insist on it. */
-/*    if(class_meta_data_env || make_class_meta_data_env())
-	return (findVarInFrame3(class_meta_data_env, class_name, FALSE) != R_UnboundValue);
-	else */
-	return FALSE;
-}
-
-
-SEXP do_AT(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP  nlist, object, ans, class;
-
-    if(!isMethodsDispatchOn()) 
-	error("formal classes cannot be used without the methods package");
-    nlist = CADR(args);
-    /* Do some checks here -- repeated in R_do_slot, but on repeat the
-     * test expression should kick out on the first element. */
-    if(!(isSymbol(nlist) || (isString(nlist) && LENGTH(nlist) == 1)))
-	error("invalid type or length for slot name");
-    if(isString(nlist)) nlist = install(CHAR(STRING_ELT(nlist, 0)));
-    PROTECT(object = eval(CAR(args), env));
-    /* do some testing here where we can give a better error message */
-    class = getAttrib(object, R_ClassSymbol);
-    if(length(class) == 1)
-    {
-	/* internal version of isClass().
-	*  should eventually be able to grab class definition pointer
-	from the object itself.  At least the code below usually only
-	does the has_class_definition step (a single lookup); the
-	findVar part is only in the case that the check will fail OR
-	that the class definition has not yet been completed.*/
-	char str[201]; SEXP class_name; Rboolean quick;
-	snprintf(str, 200, ".__C__%s", CHAR(STRING_ELT(class, 0)));
-	class_name = install(str);
-	quick = has_class_definition(class_name);
-	if(!quick &&
-	   (findVar(class_name, env) == R_UnboundValue))
-	    error("Trying to get slot \"%s\" from an object whose class (\"%s\") is not defined ",
-		  CHAR(PRINTNAME(nlist)), CHAR(STRING_ELT(class, 0)));
-    }
-    else if(length(class) == 0)
-	    error("Trying to get slot \"%s\" from an object of a basic class (\"%s\") with no slots",
-		  CHAR(PRINTNAME(nlist)), CHAR(STRING_ELT(R_data_class(object, FALSE), 0)));
-    else
-	    error("Trying to get slot \"%s\" from an object with S3 class c(\"%s\", \"%s\", ...) (not a formally defined class)",
-		  CHAR(PRINTNAME(nlist)), CHAR(STRING_ELT(class, 0)), 
-		  CHAR(STRING_ELT(class, 1)));
-    ans = R_do_slot(object, nlist);
-    UNPROTECT(1);
-    return ans;
-}
-
-#endif
-
-#if 0
-/* Was a .Primitive implementation for @<-; no longer needed? */
-SEXP do_AT_assign(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP nlist, object, ans, value;
-    PROTECT(object = eval(CAR(args), env));
-    nlist = CADR(args);
-    if(!(isSymbol(nlist) || isString(nlist)))
-	errorcall_return(call, "invalid slot type");
-    /* The code for "$<-" claims that the RHS is already evaluated, but
-       this is not quite right.  It can, at the least, be a promise
-       for the "@" case. */
-    value = eval(CADDR(args), env);
-    ans = R_do_slot_assign(object, nlist, value);
-    UNPROTECT(1);
-    return ans;
-}
-#endif
 

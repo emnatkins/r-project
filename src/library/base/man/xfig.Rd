@@ -1,6 +1,6 @@
 \name{xfig}
-\alias{xfig}
 \title{XFig Graphics Device}
+\alias{xfig}
 \description{
   \code{xfig} starts the graphics device driver for producing XFig
   (version 3.2) graphics.
@@ -10,8 +10,7 @@
   \code{xfig} and \code{postscript}.
 }
 \usage{
-xfig(file = ifelse(onefile, "Rplots.fig", "Rplot%03d.fig"),
-     onefile = FALSE, \dots)
+xfig(file = "Rplots.fig", onefile = FALSE, \dots)
 }
 \arguments{
   \item{file}{a character string giving the name of the file.  If it is
@@ -19,7 +18,7 @@ xfig(file = ifelse(onefile, "Rplots.fig", "Rplot%03d.fig"),
     \code{command}.  For use with \code{onefile=FALSE} give a
     \code{printf} format such as \code{"Rplot\%d.fig"} (the default in
     that case).}
-  \item{onefile}{logical: if true allow multiple figures
+  \item{onefile}{logical: if true (the default) allow multiple figures
     in one file. If false, assume only one page per file and generate a
     file number containing the page number.}
   \item{\dots}{further options for \code{xfig()}, such as:}
@@ -51,7 +50,7 @@ xfig(file = ifelse(onefile, "Rplots.fig", "Rplot%03d.fig"),
   \code{onefile=FALSE} is the default.
 }
 \note{
-  On some line textures (\code{0 <= lty > 4}) are used.  Eventually this
+  One some line textures (\code{0 <= lty > 4}) are used. Eventually this
   will be partially remedied, but the XFig file format does not allow as
   general line textures as the \R model.  Unimplemented line textures
   are displayed as \emph{dash-double-dotted}.

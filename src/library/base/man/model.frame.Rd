@@ -1,19 +1,19 @@
 \name{model.frame}
-\alias{model.frame}
-\alias{model.frame.default}
-\alias{model.frame.lm}
-\alias{model.frame.glm}
-\alias{model.frame.aovlist}
 \title{Extracting the ``Environment'' of a Model Formula}
 \usage{
 model.frame(formula, \dots)
-model.frame.default(formula, data = NULL,
-                    subset = NULL, na.action = na.fail,
+model.frame.default(formula, data = parent.frame(),
+                    subset = NULL, na.action,
                     drop.unused.levels = FALSE, xlev = NULL, \dots)
 
 Methods for
         lm      glm     aovlist
 }
+\alias{model.frame}
+\alias{model.frame.default}
+\alias{model.frame.lm}
+\alias{model.frame.glm}
+\alias{model.frame.aovlist}
 \arguments{
   \item{formula}{a model formula}
 
@@ -21,10 +21,7 @@ Methods for
     coercible to \code{data.frame} containing the variables in
     \code{formula}.}
 
-  \item{subset}{a specification of the rows to be used: defaults to all
-    rows. This can be any valid indexing vector (see
-    \code{\link{[.data.frame}} for the rows of \code{data} or if that is not
-    supplied, a data frame made up of the variables used in \code{formula}.}
+  \item{subset}{a specification of the rows to be used. Defaults to all rows.}
 
   \item{na.action}{how \code{NA}s are treated. The default is first,
     any \code{na.action} attribute of \code{data}, second
@@ -42,27 +39,12 @@ Methods for
     \code{weights}. \code{NULL} arguments are treated as missing.}
 }
 \description{
-  \code{model.frame} (a generic function) and its methods return a
-  \code{\link{data.frame}} with the variables needed to use
-  \code{formula} and any \code{\dots} arguments.
-}
-\details{
-  Variables in the formula, \code{subset} and in \code{\dots} are looked
-  for first in \code{data} and then in the environment of
-  \code{formula}: see the help for \code{\link{formula}()} for further
-  details.
-
-  First all the variables needed are collected into a data frame.
-  Then \code{subset}
-  expression is evaluated, and it is is used as a row index to the data
-  frame. Then the \code{na.action} function is applied to the data frame
-  (and may well add attributes).  The levels of any factors in the data
-  frame are adjusted according to the \code{drop.unused.levels} and
-  \code{xlev} arguments.
+  \code{model.frame} (generic function) and its methods return a
+  \code{\link{data.frame}} with the variables from \code{formula}.
 }
 \value{
   A \code{\link{data.frame}} containing the variables used in
-  \code{formula} plus those specified \code{\dots}.
+  \code{formula}.
 }
 \seealso{\code{\link{model.matrix}} for the ``design matrix'',
   \code{\link{formula}} for formulas  and

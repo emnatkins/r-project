@@ -9,12 +9,12 @@ textConnection(object, open = "r")
 }
 \arguments{
   \item{object}{character.  A description of the connection. 
-    For an input this is an \R character vector object, and for an output
+    For an input is an \R character vector object, and for an output
     connection the name for the \R character vector to receive the
     output.
   }
   \item{open}{character.  Either \code{"r"} (or equivalently \code{""})
-    for an input connection or \code{"w"} or \code{"a"} for an output
+    for an input connection or \code{"w"} or \code{"a"}for an output
     connection.}
 }
 \details{
@@ -27,8 +27,7 @@ textConnection(object, open = "r")
   times hold the completed lines of output to the connection, and
   \code{\link{isIncomplete}} will indicate if there is an incomplete
   final line.  Closing the connection will output the final line,
-  complete or not.  (A line is complete once it has been terminated by
-  end-of-line, represented by \code{"\n"} in \R.)
+  complete or not.
 
   Opening a text connection with \code{mode = "a"} will attempt to
   append to an existing character vector with the given name in the
@@ -39,27 +38,14 @@ textConnection(object, open = "r")
   You cannot \code{seek} on a text connection, and \code{seek} will
   always return zero as the position.
 }
-
 \value{
   A connection object of class \code{"textConnection"} which inherits
   from class \code{"connection"}.
 }
 
-\note{
-  As output text connections keep the character vector up to date
-  line-by-line, they are relatively expensive to use, and it is often
-  better to use an anonymous \code{\link{file}()} connection to collect
-  output.
-
-  On platforms where \code{vsnprintf} does not return the needed length
-  of output (e.g. Windows) there is a 100,000 character limit on the
-  length of line for output connections: longer lines will be truncated
-  with a warning.
-}
- 
 \seealso{
   \code{\link{connections}}, \code{\link{showConnections}},
-  \code{\link{pushBack}}, \code{\link{capture.output}}.
+  \code{\link{pushBack}}
 }
 
 \examples{

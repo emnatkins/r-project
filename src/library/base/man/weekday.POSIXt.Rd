@@ -16,14 +16,13 @@
 \usage{
 \method{weekdays}{POSIXt}(x, abbreviate = FALSE)
 \method{months}{POSIXt}(x, abbreviate = FALSE)
-\method{quarters}{POSIXt}(x, \dots)
-\method{julian}{POSIXt}(x, origin = as.POSIXct("1970-01-01", tz="GMT"), \dots)
+\method{quarters}{POSIXt}(x)
+\method{julian}{POSIXt}(x, origin = as.POSIXct("1970-01-01", tz="GMT"))
 }
 \arguments{
   \item{x}{an object inheriting from class \code{"POSIXt"}.}
   \item{abbreviate}{logical.  Should the names be abbreviated?}
   \item{origin}{an length-one object inheriting from class \code{"POSIXt"}.}
-  \item{\dots}{arguments for other methods.}
 }
 \value{
   \code{weekdays} and \code{months} return a character

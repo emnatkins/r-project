@@ -1,11 +1,6 @@
-START-INFO-DIR-ENTRY
-* R FAQ: (R-FAQ).               The R statistical system FAQ.
-END-INFO-DIR-ENTRY
-
-   R FAQ
+R FAQ
 Frequently Asked Questions on R
-Version 1.7-7, 2003-05-02
-ISBN 3-901167-51-X
+Version 1.3-2, 2001-06-20
 Kurt Hornik
 
 
@@ -36,7 +31,6 @@ R FAQ
   2.8 Citing R
   2.9 What mailing lists exist for R?
   2.10 What is CRAN?
-  2.11 Can I use R for commercial purposes?
 
 3 R and S
   3.1 What is S?
@@ -75,18 +69,15 @@ R FAQ
   7.9 How should I set options?
   7.10 How do file names work in Windows?
   7.11 Why does plotting give a color allocation error?
-  7.12 How do I convert factors to numeric?
-  7.13 Are Trellis displays implemented in R?
-  7.14 What are the enclosing and parent environments?
-  7.15 How can I substitute into a plot label?
-  7.16 What are valid names?
-  7.17 Are GAMs implemented in R?
-  7.18 Why is the output not printed when I source() a file?
-  7.19 Why does outer() behave strangely with my function?
-  7.20 Why does the output from anova() depend on the order of factors in the model?
-  7.21 How do I produce PNG graphics in batch mode?
-  7.22 How can I get command line editing to work?
-  7.23 How can I turn a string into a variable?
+  7.12 Is R Y2K-compliant?
+  7.13 How do I convert factors to numeric?
+  7.14 Are Trellis displays implemented in R?
+  7.15 What are the enclosing and parent environments?
+  7.16 How can I substitute into a plot label?
+  7.17 What are valid names?
+  7.18 Are GAMs implemented in R?
+  7.19 Why is the output not printed when I source() a file?
+  7.20 Why does outer() behave strangely with my function?
 
 8 R Programming
   8.1 How should I write summary methods?
@@ -112,8 +103,6 @@ questions about R.
 
 1.1 Legalese
 ============
-
-   This document is copyright (C) 1998-2003 by Kurt Hornik.
 
    This document is free software; you can redistribute it and/or modify it
 under the terms of the GNU General Public License as published by the Free
@@ -150,8 +139,8 @@ site (*note What is CRAN?::).
 1.3 Citing this document
 ========================
 
-   In publications, please refer to this FAQ as Hornik (2003), "The R FAQ",
-and give the above, _official_ URL and the ISBN 3-901167-51-X.
+   In publications, please refer to this FAQ as Hornik (2001), "The R FAQ"
+and give the above, _official_ URL.
 
 1.4 Notation
 ============
@@ -167,10 +156,9 @@ and a `$' for the shell prompt (where applicable).
    In particular, note that I do not have access to Windows or Mac systems.
 Features specific to the Windows and Mac OS ports of R are described in the
 "R for Windows FAQ" (http://www.stats.ox.ac.uk/pub/R/rw-FAQ.html) and the
-"R for Macintosh FAQ/DOC"
-(http://cran.r-project.org/bin/macos/rmac-FAQ.html).  If you have
-information on Mac or Windows systems that you think should be added to
-this document, please let me know.
+"R for Macintosh FAQ/DOC" (http://www.eco-dip.unimi.it/R/rmac-FAQ.html).
+If you have information on Mac or Windows systems that you think should be
+added to this document, please let me know.
 
 2 R Basics
 **********
@@ -224,26 +212,21 @@ project ("GNU S").
 ================================
 
    R is being developed for the Unix, Windows and Mac families of operating
-systems.  Support for Mac OS Classic will end with the 1.7 series.
+systems.
 
    The current version of R will configure and build under a number of
-common Unix platforms including i386-freebsd, CPU-linux-gnu for the i386,
-alpha, arm, hppa, ia64, m68k, powerpc, and sparc CPUs (see e.g.
-`http://buildd.debian.org/build.php?&pkg=r-base'), i386-sun-solaris,
-powerpc-apple-darwin, mips-sgi-irix, alpha-dec-osf4, rs6000-ibm-aix,
-hppa-hp-hpux, and sparc-sun-solaris.
+common Unix platforms including i386-freebsd, i386-linux, i386-sun-solaris,
+ppc-linux, mips-sgi-irix, alpha-linux, alpha-dec-osf4, rs6000-ibm-aix,
+hppa-hp-hpux, sparc-linux, and sparc-sun-solaris.
 
    If you know about other platforms, please drop us a note.
 
 2.3 What is the current version of R?
 =====================================
 
-   The current released version is 1.7.0.  Based on this
-`major.minor.patchlevel' numbering scheme, there are two development
-versions of R, working towards the next patch (`r-patched') and minor or
-eventually major (`r-devel') releases of R, respectively.  Version
-r-patched is for bug fixes mostly.  New features are typically introduced
-in r-devel.
+   The current stable version is 1.3.0, the unstable one is 1.4.0.
+Typically, new features are introduced in the development versions; updates
+of stable versions are for bug fixes mostly.
 
 2.4 How can R be obtained?
 ==========================
@@ -257,12 +240,13 @@ in r-devel.
 
 to create a copy of the source tree specified by MODULE in the subdirectory
 `R' of the current directory, where MODULE specifies one of the three
-existing flavors of the R sources, and can be one of `r-release' (current
-released version), `r-patched' (patched released version), and `r-devel'
-(development version).  The rsync trees are created directly from the
-master CVS archive and are updated hourly.  The `-C' option in the `rsync'
-command is to cause it to skip the CVS directories.  Further information on
-`rsync' is available at `http://rsync.samba.org/rsync/'.
+existing flavors of the R sources, and can be one of `r-release' (latest
+released version), `r-release-patched' (latest released version with
+patches applied), and `r-devel' (current development version).  The rsync
+trees are created directly from the master CVS archive and are updated
+hourly.  The `-C' option in the rsync command is to cause it to skip the
+CVS directories.  Further information on rsync is available at
+`http://rsync.samba.org/rsync/'.
 
 2.5 How can R be installed?
 ===========================
@@ -293,8 +277,8 @@ thus created, and issue the following commands (at the shell prompt):
      $ make
 
    If these commands execute successfully, the R binary and a shell script
-front-end called `R' are created and copied to the `bin' directory.  You
-can copy the script to a place where users can invoke it, for example to
+font-end called `R' are created and copied to the `bin' directory.  You can
+copy the script to a place where users can invoke it, for example to
 `/usr/local/bin'.  In addition, plain text help pages as well as HTML and
 LaTeX versions of the documentation are built.
 
@@ -341,12 +325,13 @@ install-dvi', `make install-info' and `make install-pdf', respectively.
 
    The `bin/windows' directory of a CRAN site contains binaries for a base
 distribution and a large number of add-on packages from CRAN to run on
-Windows 95, 98, ME, NT4, 2000, and XP (at least) on Intel and clones (but
-not on other platforms).  The Windows version of R was created by Robert
-Gentleman, and is now being developed and maintained by Duncan Murdoch
-<murdoch@stats.uwo.ca> and Brian D. Ripley <Brian.Ripley@r-project.org>.
+Windows 95, 98, NT4, 2000 and ME (at least) on Intel and clones (but not on
+other platforms).  The Windows version of R was created by Robert
+Gentleman, and is now being developed and maintained by Guido Masarotto
+<Guido.Masarotto@r-project.org> and Brian D. Ripley
+<Brian.Ripley@r-project.org>.
 
-   For most installations the Windows installer program will be the easiest
+   For most installations the installer `rwinst.exe' will be the easiest
 tool to use.
 
    See the "R for Windows FAQ"
@@ -356,39 +341,42 @@ tool to use.
 ----------------------------------------
 
    The `bin/macos' directory of a CRAN site contains bin-hexed (`hqx') and
-stuffit (`sit') archives for a base distribution and a large number of
-add-on packages to run under MacOS 8.6 to MacOS 9.1 or MacOS X natively.
-The Mac version of R and the Mac binaries are maintained by Stefano Iacus
-<Stefano.Iacus@r-project.org>.
+stuffit (`sit') self-extracting binaries for a base distribution and a
+large number of add-on packages to run under MacOS 8.6 to MacOS 9.1 or
+MacOS X under Classic Environment.  The Mac version of R and the Mac
+binaries are maintained by Stefano Iacus <Stefano.Iacus@r-project.org>.
 
    The "R for Macintosh FAQ/DOC"
 (http://www.eco-dip.unimi.it/R/rmac-FAQ.html) has more details.
 
    Binaries of base distributions for MacOS X (Darwin) with X11 are made
-available by Jan de Leeuw <deleeuw@stat.ucla.edu> in the `bin/macosx'
-directory of a CRAN site.
+available by Jan de Leeuw <deleeuw@stat.ucla.edu> at
+`http://www.stat.ucla.edu/~deleeuw/R/'.
 
 2.6 Are there Unix binaries for R?
 ==================================
 
-   The `bin/linux' directory of a CRAN site contains Debian stable/testing
+   The `bin/linux' directory of a CRAN site contains Debian 2.2/2.3
 packages for the i386 platform (now part of the Debian distribution and
-maintained by Dirk Eddelbuettel), Mandrake 8.0/8.1/8.2/9.0/9.1 i386
-packages by Michele Alzetta, Red Hat 7.x/8.x/9 i386 and 7.x alpha packages
-(maintained by Martyn Plummer and Naoki Takebayashi, respectively), SuSE
-7.3/8.0/8.1/8.2 i386 packages by Detlef Steuer, and VineLinux 2.6 i386
-packages by Susunu Tanimura.
+maintained by Doug Bates), Red Hat 6.x/7.x packages for the alpha and i386
+platforms (maintained by Naoki Takebayashi and Martyn Plummer,
+respectively), SuSE 7.0 i386 packages by Albrecht Gebhardt, Mandrake
+7.2/8.0 i386 packages by Michele Alzetta, and LinuxPPC 5.0 RPMs by Alex
+Buerkle.
 
    The Debian packages can be accessed through APT, the Debian package
 maintenance tool.  Simply add the line
 
      deb http://cran.r-project.org/bin/linux/debian DISTRIBUTION main
 
-(where DISTRIBUTION is either `stable' or `testing'; feel free to use a
+(where DISTRIBUTION is either `stable' or `unstable'; feel free to use a
 CRAN mirror instead of the master) to the file `/etc/apt/sources.list'.
 Once you have added that line the programs `apt-get', `apt-cache', and
 `dselect' (using the apt access method) will automatically detect and
 install updates of the R packages.
+
+   The `bin/osf' directory of a CRAN site contains RPMs by Albrecht
+Gebhardt for alpha systems running Digital Unix 4.0.
 
    No other binary distributions have thus far been made publically
 available.
@@ -405,7 +393,7 @@ name may need to be be quoted.)
    This documentation can also be made available as one reference manual
 for on-line reading in HTML and PDF formats, and as hardcopy via LaTeX, see
 *Note How can R be installed?::.  An up-to-date HTML version is always
-available for web browsing at `http://stat.ethz.ch/R-manual/'.
+available for web browsing at `http://stat.ethz.ch/R/manual/'.
 
    The R distribution also comes with the following manuals.
 
@@ -427,40 +415,32 @@ available for web browsing at `http://stat.ethz.ch/R-manual/'.
 
    * "R Installation and Administration" (`R-admin').
 
-   Books on R include
+   In addition to material written specifically for R, documentation for
+S/S-PLUS (see *Note R and S::) can be used in combination with this FAQ
+(*note What are the differences between R and S?::).  We recommend
 
-     Peter Dalgaard (2002), "Introductory Statistics with R", Springer: New
-     York, ISBN 0-387-95475-9.
+     W. N. Venables and B. D. Ripley (1999), "Modern Applied Statistics with
+     S-PLUS.  Third Edition".  Springer, ISBN 0-387-98825-4.
 
-     J. Fox (2002), "An R and S-PLUS Companion to Applied Regression", Sage
-     Publications, ISBN 0-761-92280-6 (softcover) or 0-761-92279-2
-     (hardcover), `http://www.socsci.mcmaster.ca/jfox/Books/Companion/'.
-
-The book
-
-     W. N. Venables and B. D. Ripley (2002), "Modern Applied Statistics with
-     S.  Fourth Edition".  Springer, ISBN 0-387-95457-0
-
-has a home page at `http://www.stats.ox.ac.uk/pub/MASS4/' providing
-additional material.  Its companion is
+This has a home page at `http://www.stats.ox.ac.uk/pub/MASS3/' providing
+additional material, in particular "R Complements" which describe how to
+use the book with R.  These complements contain both descriptions of some
+of the differences between R and S-PLUS, and the modifications needed to
+run the examples in the book.  Its companion is
 
      W. N. Venables and B. D. Ripley (2000), "S Programming".  Springer,
-     ISBN 0-387-98966-8
+     ISBN 0-387-98966-8.
 
-and provides an in-depth guide to writing software in the S language which
+This provides an in-depth guide to writing software in the S language which
 forms the basis of both the commercial S-PLUS and the Open Source R data
 analysis software systems.  See
 `http://www.stats.ox.ac.uk/pub/MASS3/Sprog/' for more information.
 
-   In addition to material written specifically or explicitly for R,
-documentation for S/S-PLUS (see *Note R and S::) can be used in combination
-with this FAQ (*note What are the differences between R and S?::).
-Introductory books include
+   More introductory books are
 
      P. Spector (1994), "An introduction to S and S-PLUS", Duxbury Press.
 
-     A. Krause and M. Olsen (2002), "The Basics of S-PLUS" (Third Edition).
-     Springer, ISBN 0-387-95456-2
+     A. Krause and M. Olsen (1997), "The Basics of S and S-PLUS", Springer.
 
    The book
 
@@ -542,9 +522,6 @@ list can be obtained by sending an email with `info' as its contents to
    Subscription and posting to the other lists is done analogously, with
 `r-help' replaced by `r-announce' and `r-devel', respectively.
 
-   Subscriptions to `r-help' and `r-devel' are also available in digest
-format, see the `doc/html/mail.html' file in CRAN for more information.
-
    It is recommended that you send mail to r-help rather than only to the R
 Core developers (who are also subscribed to the list, of course).  This may
 save them precious time they can use for constantly improving R, and will
@@ -558,7 +535,7 @@ Bugs:: for more details.
    Archives of the above three mailing lists are made available on the net
 in a monthly schedule via the `doc/html/mail.html' file in CRAN.
 Searchable archives of the lists are available via
-`http://maths.newcastle.edu.au/~rking/R/'.
+`http://www.ens.gu.edu.au/robertk/R/'.
 
    The R Core Team can be reached at <r-core@lists.r-project.org> for
 comments and reports.
@@ -576,18 +553,14 @@ contributed extensions, documentation for R, and binaries.
 
 and is currently being mirrored daily at
 
-     `http://cran.at.r-project.org/'  (TU Wien, Austria)
-     `http://cran.au.r-project.org/'  (PlanetMirror, Australia)
-     `http://cran.br.r-project.org/'  (Universidade Federal de
-                                      Paraná, Brazil)
-     `http://cran.ch.r-project.org/'  (ETH Zürich, Switzerland)
-     `http://cran.de.r-project.org/'  (APP, Germany)
-     `http://cran.dk.r-project.org/'  (SunSITE, Denmark)
-     `http://cran.hu.r-project.org/'  (Semmelweis U, Hungary)
-     `http://cran.uk.r-project.org/'  (U of Bristol, United
-                                      Kingdom)
-     `http://cran.us.r-project.org/'  (U of Wisconsin, USA)
-     `http://cran.za.r-project.org/'  (Rhodes U, South Africa)
+     `http://cran.at.r-project.org/'(TU Wien, Austria)
+     `http://cran.au.r-project.org/'(PlanetMirror, Australia)
+     `http://cran.ch.r-project.org/'(ETH Zu"rich, Switzerland)
+     `http://cran.dk.r-project.org/'(SunSITE, Denmark)
+     `http://cran.hu.r-project.org/'(Semmelweis U, Hungary)
+     `http://cran.uk.r-project.org/'(U of Bristol, United
+                                  Kingdom)
+     `http://cran.us.r-project.org/'(U of Wisconsin, USA)
 
 Please use the CRAN site closest to you to reduce network load.
 
@@ -600,48 +573,12 @@ mailing lists and the R Bug Tracking system.
 
    To "submit" to CRAN, simply upload to
 `ftp://cran.r-project.org/incoming/' and send an email to
-<cran@r-project.org>.  Note that CRAN generally does not accept submissions
-of precompiled binaries due to security reasons.
+<wwwadmin@cran.r-project.org>.
 
      *Note:*  It is very important that you indicate the copyright
      (license) information (GPL, BSD, Artistic, ...)  in your submission.
 
    Please always use the URL of the master site when referring to CRAN.
-
-2.11 Can I use R for commercial purposes?
-=========================================
-
-   R is released under the GNU General Public License (GPL).  If you have
-any questions regarding the legality of using R in any particular situation
-you should bring it up with your legal counsel.  We are in no position to
-offer legal advice.
-
-   It is the opinion of the R Core Team that one can use R for commercial
-purposes (e.g., in business or in consulting).  The GPL, like all Open
-Source licenses, permits all and any use of the package.  It only restricts
-distribution of R or of other programs containing code from R.  This is
-made clear in clause 6 ("No Discrimination Against Fields of Endeavor") of
-the Open Source Definition (http://www.opensource.org/docs/definition.html):
-
-     The license must not restrict anyone from making use of the program in
-     a specific field of endeavor.  For example, it may not restrict the
-     program from being used in a business, or from being used for genetic
-     research.
-
-It is also explicitly stated in clause 0 of the GPL, which says in part
-
-     Activities other than copying, distribution and modification are not
-     covered by this License; they are outside its scope.  The act of
-     running the Program is not restricted, and the output from the Program
-     is covered only if its contents constitute a work based on the Program.
-
-   Most add-on packages, including all recommended ones, also explicitly
-allow commercial use in this way.  A few packages are restricted to
-"non-commercial use"; you should contact the author to clarify whether
-these may be used or seek the advice of your legal counsel.
-
-   None of the discussion in this section constitutes legal advice.  The R
-Core Team does not provide legal advice under any circumstances.
 
 3 R and S
 *********
@@ -719,7 +656,7 @@ models, and design of experiments.
 engine" (S version 4; S-PLUS 5.x and above), and R.  Given this
 understanding, asking for "the differences between R and S" really amounts
 to asking for the specifics of the R implementation of the S language,
-i.e., the difference between the R and S _engines_.
+i.e., the difference between the R and S engines.
 
    For the remainder of this section, "S" refers to the S engines and not
 the S language.
@@ -952,13 +889,12 @@ the same time being as compatible as possible with S.
      for a site-wide startup profile unless the command line option
      `--no-site-file' was given.  The name of this file is taken from the
      value of the `R_PROFILE' environment variable.  If that variable is
-     unset, the default is ``$R_HOME'/etc/Rprofile.site'
-     (``$R_HOME'/etc/Rprofile' in versions prior to 1.4.0).  This code is
-     loaded in package *base*.  Then, unless `--no-init-file' was given, R
+     unset, the default is ``$R_HOME'/etc/Rprofile'.  This code is loaded
+     in package *base*.  Then, unless `--no-init-file' was given, R
      searches for a file called `.Rprofile' in the current directory or in
      the user's home directory (in that order) and sources it into the user
      workspace.  It then loads a saved image of the user workspace from
-     `.RData' in case there is one (unless `--no-restore' was specified).
+     `.RData'  in case there is one (unless `--no-restore' was specified).
      If needed, the functions `.First()' and `.Last()' should be defined in
      the appropriate startup profiles.
 
@@ -1019,10 +955,9 @@ the same time being as compatible as possible with S.
      uses the Helmert ones.  This is a deliberate difference reflecting the
      opinion that treatment contrasts are more natural.
 
-   * In R, the argument of a replacement function which corresponds to the
-     right hand side must be named `value'.  E.g., `f(a) <- b' is evaluated
-     as `a <- "f<-"(a, value = b)'.  S always takes the last argument,
-     irrespective of its name.
+   * In R, the last argument (which corresponds to the right hand side) of
+     an assignment function must be named `value'.  E.g., `fun(a) <- b' is
+     evaluated as `(fun<-)(a, value = b)'.
 
    * In S, `substitute()' searches for names for substitution in the given
      expression in three places: the actual and the default arguments of
@@ -1031,6 +966,11 @@ the same time being as compatible as possible with S.
      variable is not evaluated.  Since the local frame is initialized with
      the actual arguments or the default expressions, this is usually
      equivalent to S, until assignment takes place.
+
+   * In R, `eval(EXPR, sys.parent())' does not work.  Instead, one should
+     use either `eval(EXPR, sys.frame(sys.parent())),' which also works in
+     S, or `eval(EXPR, parent.frame())', which is more efficient but does
+     not work in S.
 
    * In S, the index variable in a `for()' loop is local to the inside of
      the loop.  In R it is local to the environment where the `for()'
@@ -1052,12 +992,6 @@ the same time being as compatible as possible with S.
 
    * From R version 1.3.0, `data.frame' strips `I()' when creating (column)
      names.
-
-   * In R, the string `"NA"' is not treated as a missing value in a
-     character variable.  Use `as.character(NA)' to create a missing
-     character value.
-
-   * R disallows repeated formal arguments in function calls.
 
 
    There are also differences which are not intentional, and result from
@@ -1099,7 +1033,8 @@ users without writing CGI scripts.  Graphical output is possible in
 PostScript or GIF formats and the executed code is presented to the user
 for revision.
 
-   See `http://stats.mth.uea.ac.uk/Rcgi/' for more information.
+   Demo and download are available from
+`http://www.mth.uea.ac.uk/~h089/Rcgi/'.
 
    *Rweb* is developed and maintained by Jeff Banfield
 <jeff@math.montana.edu>.  The Rweb Home Page
@@ -1115,13 +1050,6 @@ provided.
 explanation of the different versions of Rweb and an overview of how Rweb
 works, was published in the Journal of Statistical Software
 (`http://www.stat.ucla.edu/journals/jss/v04/i01/').
-
-   Ulf Bartel <ulfi@cs.tu-berlin.de> is working on *R-Online*, a simple
-on-line programming environment for R which intends to make the first steps
-in statistical programming with R (especially with time series) as easy as
-possible.  There is no need for a local installation since the only
-requirement for the user is a JavaScript capable browser.  See
-`http://osvisions.com/r-online/' for more information.
 
 5 R Add-On Packages
 *******************
@@ -1142,10 +1070,6 @@ requirement for the user is a JavaScript capable browser.  See
 
 *lqs*
      Resistant regression and covariance estimation.
-
-*methods*
-     Formally defined methods and classes for R objects, plus other
-     programming tools, as described in the Green Book.
 
 *modreg*
      MODern REGression: smoothing and local methods.
@@ -1168,58 +1092,23 @@ requirement for the user is a JavaScript capable browser.  See
 *tcltk*
      Interface and language bindings to Tcl/Tk GUI elements.
 
-*tools*
-     Tools for package development and administration.
-
 *ts*
      Time Series.
 
    The following packages are available from the CRAN `src/contrib' area.
-(Packages denoted as _Recommended_ are to be included in all binary
-distributions of R.)
 
-*AnalyzeFMRI*
-     Functions for I/O, visualisation and analysis of functional Magnetic
-     Resonance Imaging (fMRI) datasets stored in the ANALYZE format.
-
-*Bhat*
-     Functions for general likelihood exploration (MLE, MCMC, CIs).
-
-*CGIwithR*
-     Facilities for the use of R to write CGI scripts.
-
-*CircStats*
-     Circular Statistics, from "Topics in Circular Statistics" by S. Rao
-     Jammalamadaka and A. SenGupta, 2001, World Scientific.
+*AnalyzeIO*
+     Functions for I/O of ANALYZE format `.img' and `.hdr' image files.
 
 *CoCoAn*
      Constrained Correspondence Analysis.
-
-*DBI*
-     A common database interface (DBI) class and method definitions.  All
-     classes in this package are virtual and need to be extended by the
-     various DBMS implementations.
-
-*Davies*
-     Functions for the Davies quantile function and the Generalized Lambda
-     distribution.
 
 *Devore5*
      Data sets and sample analyses from "Probability and Statistics for
      Engineering and the Sciences (5th ed)" by Jay L. Devore, 2000, Duxbury.
 
-*EMV*
-     Estimation of missing values in a matrix by a k-th nearest neighboors
-     algorithm.
-
 *GLMMGibbs*
      Generalised Linear Mixed Models by Gibbs sampling.
-
-*GRASS*
-     An interface between the GRASS geographical information system and R,
-     based on starting R from within the GRASS environment and chosen
-     LOCATION_NAME and MAPSET.  Wrapper and helper functions are provided
-     for a range of R functions to match the interface metadata structures.
 
 *GenKern*
      Functions for generating and manipulating generalised binned kernel
@@ -1228,32 +1117,13 @@ distributions of R.)
 *GeneSOM*
      Clustering genes using Self-Organizing Maps (SOMs).
 
-*ISwR*
-     Data sets for "Introductory Statistics with R" by Peter Dalgaard,
-     2002, Springer.
-
-*KMsurv*
-     Data sets and functions for "Survival Analysis, Techniques for Censored
-     and Truncated Data" by Klein and Moeschberger, 1997, Springer.
-
 *KernSmooth*
      Functions for kernel smoothing (and density estimation) corresponding
      to the book "Kernel Smoothing" by M. P. Wand and M. C. Jones, 1995.
-     _Recommended_.
 
 *MASS*
      Functions and datasets from the main package of Venables and Ripley,
-     "Modern Applied Statistics with S".  Contained in the `VR' bundle.
-     _Recommended_.
-
-*MCMCpack*
-     Markov chain Monte Carlo (MCMC) package: functions for posterior
-     simulation for a number of statistical models.
-
-*MPV*
-     Data sets from the book "Introduction to Linear Regression Analysis"
-     by D. C. Montgomery, E. A. Peck, and C. G. Vining, 2001, John Wiley and
-     Sons.
+     "Modern Applied Statistics with S-PLUS".  Contained in the `VR' bundle.
 
 *Matrix*
      A Matrix package.
@@ -1265,20 +1135,21 @@ distributions of R.)
 *Oarray*
      Arrays with arbitrary offsets.
 
+*PHYLOGR*
+     Manipulation and analysis of phylogenetically simulated data sets (as
+     obtained from PDSIMUL in package PDAP) and phylogenetically-based
+     analyses using GLS.
+
 *PTAk*
      A multiway method to decompose a tensor (array) of any order, as a
      generalisation of SVD also supporting non-identity metrics and
      penalisations.  Also includes some other multiway methods.
 
-*R2HTML*
-     Functions for exporting R objects & graphics in an HTML document.
-
 *RArcInfo*
      Functions to import Arc/Info V7.x coverages and data.
 
-*RColorBrewer*
-     ColorBrewer palettes for drawing nice maps shaded according to a
-     variable.
+*RandomFields*
+     Creating random fields using various methods.
 
 *RMySQL*
      An interface between R and the MySQL database system.
@@ -1286,61 +1157,19 @@ distributions of R.)
 *RODBC*
      An ODBC database interface.
 
-*ROracle*
-     Oracle Database Interface driver for R.  Uses the ProC/C++ embedded
-     SQL.
-
-*RQuantLib*
-     Provides access to (some) of the QuantLib functions from within R;
-     currently limited to some Option pricing and analysis functions.  The
-     QuantLib project aims to provide a comprehensive software framework for
-     quantitative finance.
-
-*RSQLite*
-     Database Interface R driver for SQLite.  Embeds the SQLite database
-     engine in R.
-
-*RSvgDevice*
-     A graphics device for R that uses the new w3.org XML standard for
-     Scalable Vector Graphics.
-
-*RadioSonde*
-     A collection of programs for reading and plotting SKEW-T,log p diagrams
-     and wind profiles for data collected by radiosondes (the typical
-     weather balloon-borne instrument).
-
-*RandomFields*
-     Creating random fields using various methods.
+*RPgSQL*
+     Provides methods for accessing data stored in PostgreSQL tables.
 
 *RmSQL*
      An interface between R and the mSQL database system.
 
-*Rmpi*
-     an interface (wrapper) to MPI (Message-Passing Interface) APIs.  It
-     also provides interactive R slave functionalities to make MPI
-     programming easier in R than in C(++) or FORTRAN.
-
-*Rwave*
-     An environment for the time-frequency analysis of 1-D signals (and
-     especially for the wavelet and Gabor transforms of noisy signals),
-     based on the book "Practical Time-Frequency Analysis: Gabor and Wavelet
-     Transforms with an Implementation in S" by Rene Carmona, Wen L. Hwang
-     and Bruno Torresani, 1998, Academic Press.
+*Rstreams*
+     Binary file stream support functions.
 
 *SASmixed*
      Data sets and sample linear mixed effects analyses corresponding to the
      examples in "SAS System for Mixed Models" by R. C. Littell, G. A.
      Milliken, W. W. Stroup and R. D. Wolfinger, 1996, SAS Institute.
-
-*SenSrivastava*
-     Collection of datasets from "Regression Analysis, Theory, Methods and
-     Applications" by A. Sen and M. Srivastava, 1990, Springer-Verlag.
-
-*SparseM*
-     Basic linear algebra for sparse matrices.
-
-*StatDataML*
-     Read and write StatDataML.
 
 *SuppDists*
      Ten distributions supplementing those built into R (Inverse Gauss,
@@ -1349,54 +1178,19 @@ distributions of R.)
      Johnson distributions, normal scores and generalized hypergeometric
      distributions).
 
-*VLMC*
-     Functions, classes & methods for estimation, prediction, and simulation
-     (bootstrap) of VLMC (Variable Length Markov Chain) models.
-
 *XML*
      Facilities for reading XML documents and DTDs.
-
-*abind*
-     Combine multi-dimensional arrays.
 
 *acepack*
      ACE (Alternating Conditional Expectations) and AVAS (Additivity and
      VAriance Stabilization for regression) methods for selecting regression
      transformations.
 
-*adapt*
-     Adaptive quadrature in up to 20 dimensions.
-
-*ade4*
-     Multivariate data analysis and graphical display.
-
-*agce*
-     Analysis of growth curve experiments.
-
 *akima*
      Linear or cubic spline interpolation for irregularly gridded data.
 
-*amap*
-     Another Multidimensional Analysis Package.
-
-*anm*
-     Analog model for statistical/empirical downscaling.
-
-*ape*
-     Analyses of Phylogenetics and Evolution, providing functions for
-     reading and plotting phylogenetic trees in parenthetic format
-     (standard Newick format), analyses of comparative data in a
-     phylogenetic framework, analyses of diversification and
-     macroevolution, computing distances from allelic and nucleotide data,
-     reading nucleotide sequences from GenBank via internet, and several
-     tools such as Mantel's test, computation of minimum spanning tree, or
-     the population parameter theta based on various approaches.
-
 *ash*
      David Scott's ASH routines for 1D and 2D density estimation.
-
-*aws*
-     Functions to perform adaptive weights smoothing.
 
 *bindata*
      Generation of correlated artificial binary data.
@@ -1407,7 +1201,7 @@ distributions of R.)
 *boot*
      Functions and datasets for bootstrapping from the book "Bootstrap
      Methods and Their Applications" by A. C. Davison and D. V. Hinkley,
-     1997, Cambridge University Press.  _Recommended_.
+     1997, Cambridge University Press.
 
 *bootstrap*
      Software (bootstrap, cross-validation, jackknife), data and errata for
@@ -1417,16 +1211,6 @@ distributions of R.)
 *bqtl*
      QTL mapping toolkit for inbred crosses and recombinant inbred lines.
      Includes maximum likelihood and Bayesian tools.
-
-*brlr*
-     Bias-reduced logistic regression: fits logistic regression models by
-     maximum penalized likelihood.
-
-*car*
-     Companion to Applied Regression, containing functions for applied
-     regession, linear models, and generalized linear models, with an
-     emphasis on regression diagnostics, particularly graphical diagnostic
-     methods.
 
 *cclust*
      Convex clustering methods, including k-means algorithm, on-line update
@@ -1442,28 +1226,18 @@ distributions of R.)
 
 *class*
      Functions for classification (k-nearest neighbor and LVQ).  Contained
-     in the `VR' bundle.  _Recommended_.
-
-*clim.pact*
-     Climate analysis and downscaling for monthly and daily data.
+     in the `VR' bundle.
 
 *cluster*
-     Functions for cluster analysis.  _Recommended_.
+     Functions for cluster analysis.
 
 *cmprsk*
      Estimation, testing and regression modeling of subdistribution
      functions in competing risks.
 
-*cobs*
-     Constrained B-splines: qualitatively constrained (regression) smoothing
-     via linear programming.
-
 *coda*
      Output analysis and diagnostics for Markov Chain Monte Carlo (MCMC)
      simulations.
-
-*combinat*
-     Combinatorics utilities.
 
 *conf.design*
      A series of simple tools for constructing and manipulating confounded
@@ -1477,222 +1251,66 @@ distributions of R.)
      vector of input dates in any of the forms `8/30/53', `30Aug53', `30
      August 1953', ..., `August 30 53', or any mixture of these.
 
-*dblcens*
-     Calculates the NPMLE of the survival distribution for doubly censored
-     data.
-
-*deal*
-     Bayesian networks with continuous and/or discrete variables can be
-     learned and compared from data.
-
-*deldir*
-     Calculates the  Delaunay triangulation and the Dirichlet or Voronoi
-     tesselation (with respect to the entire plane) of a planar point set.
-
-*diamonds*
-     Functions for illustrating aperture-4 diamond partitions in the plane,
-     or on the surface of an octahedron or icosahedron, for use as analysis
-     or sampling grids.
-
-*dichromat*
-     Color schemes for dichromats: collapse red-green distinctions to
-     simulate the effects of colour-blindness.
-
-*dispmod*
-     Functions for modelling dispersion in GLMs.
-
-*dr*
-     Functions, methods, and datasets for fitting dimension reduction
-     regression, including pHd and inverse regression methods SIR and SAVE.
-
 *dse*
      Dynamic System Estimation, a multivariate time series package.
-     Contains *dse1* (the base system, including multivariate ARMA and state
-     space models), *dse2* (extensions for evaluating estimation
-     techniques, forecasting, and for evaluating forecasting model),
-     *tframe* (functions for writing code that is independent of the
-     representation of time). and *setRNG* (a mechanism for generating the
-     same random numbers in S and R).
+     Contains *dse1* (DSE kernel plus ARMA and state space models), *dse2*
+     (DSE extensions), *syskern* (functions for writing code that is
+     operating system and R/S independent), and *tframe* (functions for
+     writing code that is independent of the representation of time).
 
 *e1071*
      Miscellaneous functions used at the Department of Statistics at TU Wien
      (E1071), including moments, short-time Fourier transforms, Independent
-     Component Analysis, Latent Class Analysis, support vector machines, and
-     fuzzy clustering, shortest path computation, bagged clustering, and
-     some more.
-
-*effects*
-     Graphical and tabular effect displays, e.g., of interactions, for
-     linear and generalised linear models.
+     Component Analysis, Latent Class Analysis, reading and writing of
+     images in portable anymap format, simulation of a Wiener process,
+     support vector machines, and fuzzy clustering.
 
 *ellipse*
      Package for drawing ellipses and ellipse-like confidence regions.
 
-*emplik*
-     Empirical likelihood ratio for means/quantiles/hazards from possibly
-     right censored data.
-
-*evd*
-     Functions for extreme value distributions.  Extends simulation,
-     distribution, quantile and density functions to univariate, bivariate
-     and (for simulation) multivariate parametric extreme value
-     distributions, and provides fitting functions which calculate maximum
-     likelihood estimates for univariate and bivariate models.
+*event.chart*
+     Package for creating event charts.
 
 *exactRankTests*
      Computes exact p-values and quantiles using an implementation of the
      Streitberg/Roehmel shift algorithm.
 
-*fastICA*
-     Implementation of FastICA algorithm to perform Independent Component
-     Analysis (ICA) and Projection Pursuit.
-
 *fdim*
      Functions for calculating fractal dimension.
 
-*fields*
-     A collection of programs for curve and function fitting with an
-     emphasis on spatial data.  The major methods implemented include cubic
-     and thin plate splines, universal Kriging and Kriging for large data
-     sets.  The main feature is that any covariance function implemented in
-     R can be used for spatial prediction.
-
 *foreign*
      Functions for reading and writing data stored by statistical software
-     like Minitab, SAS, SPSS, Stata, etc.  _Recommended_.
+     like Minitab, SAS, SPSS, Stata, etc.
 
 *fracdiff*
      Maximum likelihood estimation of the parameters of a fractionally
      differenced ARIMA(p,d,q) model (Haslett and Raftery, Applied
      Statistics, 1989).
 
-*g.data*
-     Create and maintain delayed-data packages (DDP's).
-
 *gafit*
      Genetic algorithm for curve fitting.
-
-*gbm*
-     Generalized Boosted Regression Models: implements extensions to Freund
-     and Schapire's AdaBoost algorithm and J. Friedman's gradient boosting
-     machine.  Includes regression methods for least squares, absolute loss,
-     logistic, Poisson, Cox proportional hazards partial likelihood, and
-     AdaBoost exponential loss.
 
 *gee*
      An implementation of the Liang/Zeger generalized estimating equation
      approach to GLMs for dependent data.
 
-*geepack*
-     Generalized estimating equations solver for parameters in mean, scale,
-     and correlation structures, through mean link, scale link, and
-     correlation link.  Can also handle clustered categorical responses.
-
-*genetics*
-     Classes and methods for handling genetic data.  Includes classes to
-     represent genotypes and haplotypes at single markers up to multiple
-     markers on multiple chromosomes, and functions for allele frequencies,
-     flagging homo/heterozygotes, flagging carriers of certain alleles,
-     computing disequlibrium, testing Hardy-Weinberg equilibrium, ...
-
 *geoR*
      Functions to perform geostatistical data analysis including model-based
      methods.
 
-*geoRglm*
-     Functions for inference in generalised linear spatial models.
-
 *gld*
      Basic functions for the generalised (Tukey) lambda distribution.
 
-*gllm*
-     Routines for log-linear models of incomplete contingency tables,
-     including some latent class models via EM and Fisher scoring
-     approaches.
-
-*glmmML*
-     A Maximum Likelihood approach to generalized linear models with random
-     intercept.
-
-*gpclib*
-     General polygon clipping routines for R based on Alan Murta's C
-     library.
-
-*grasper*
-     Generalized Regression Analysis and Spatial Predictions for R.
-
 *gregmisc*
      Miscellaneous functions written/maintained by Gregory R. Warnes.
-
-*grid*
-     The Grid graphics package, a rewrite of the graphics layout
-     capabilities, plus some support for interaction.  _Recommended_.
 
 *gss*
      A comprehensive package for structural multivariate function estimation
      using smoothing splines.
 
-*gstat*
-     multivariable geostatistical modelling, prediction and simulation.
-     Includes code for variogram modelling; simple, ordinary and universal
-     point or block (co)kriging, sequential Gaussian or indicator
-     (co)simulation, and map plotting functions.
-
-*gtkDevice*
-     GTK graphics device driver that may be used independently of the
-     R-GNOME interface and can be used to create R devices as embedded
-     components in a GUI using a Gtk drawing area widget, e.g., using RGtk.
-
-*haplo.score*
-     Score tests for association of traits with haplotypes when linkage
-     phase is ambiguous.
-
-*hdf5*
-     Interface to the NCSA HDF5 library.
-
-*hier.part*
-     Hierarchical Partitioning: variance partition of a multivariate data
-     set.
-
-*hwde*
-     Models and tests for departure from Hardy-Weinberg equilibrium and
-     independence between loci.
-
-*ifs*
-     Iterated Function Systems distribution function estimator.
-
 *ineq*
      Inequality, concentration and poverty measures, and Lorenz curves
      (empirical and theoretic).
-
-*ipred*
-     Improved predictive models by direct and indirect bootstrap aggregation
-     in classification and regression as well as resampling based estimators
-     of prediction error.
-
-*ismev*
-     Functions to support the computations carried out in "An Introduction
-     to Statistical Modeling of Extreme Values;' by S. Coles, 2001,
-     Springer.  The functions may be divided into the following groups;
-     maxima/minima, order statistics, peaks over thresholds and point
-     processes.
-
-*knnTree*
-     Construct or predict with k-nearest-neighbor classifiers, using
-     cross-validation to select k, choose variables (by forward or
-     backwards selection), and choose scaling (from among no scaling,
-     scaling each column by its SD, or scaling each column by its MAD).
-     The finished classifier will consist of a classification tree with one
-     such k-nn classifier in each leaf.
-
-*lasso2*
-     Routines and documentation for solving regression problems while
-     imposing an L1 constraint on the estimates, based on the algorithm of
-     Osborne et al. (1998)
-
-*lattice*
-     Lattice graphics, an implementation of Trellis Graphics functions.
-     _Recommended_.
 
 *leaps*
      A package which performs an exhaustive search for the best subsets of a
@@ -1725,15 +1343,8 @@ distributions of R.)
      Functions with example data for graphing and mapping models from
      hierarchical clustering and classification and regression trees.
 
-*maxstat*
-     Maximally selected rank and Gauss statistics with several p-value
-     approximations.
-
 *mclust*
-     Model-based cluster analysis: the 2002 version of MCLUST.
-
-*mclust1998*
-     Model-based cluster analysis: the 1998 version of MCLUST.
+     Model-based cluster analysis.
 
 *mda*
      Code for mixture discriminant analysis (MDA), flexible discriminant
@@ -1747,38 +1358,14 @@ distributions of R.)
 
 *mgcv*
      Routines for GAMs and other genralized ridge regression problems with
-     multiple smoothing parameter selection by GCV or UBRE.  _Recommended_.
-
-*mimR*
-     An R interface to MIM for graphical modeling in R.
-
-*mix*
-     Estimation/multiple imputation programs for mixed categorical and
-     continuous data.
+     multiple smoothing parameter selection by GCV or UBRE.
 
 *mlbench*
      A collection of artificial and real-world machine learning benchmark
      problems, including the Boston housing data.
 
-*moc*
-     Fits a variety of mixtures models for multivariate observations with
-     user-difined distributions and curves.
-
-*msm*
-     Functions for fitting continuous-time Markov multi-state models to
-     categorical processes observed at arbitrary times, optionally with
-     misclassified responses, and covariates on transition or
-     misclassification rates.
-
 *muhaz*
      Hazard function estimation in survival analysis.
-
-*multcomp*
-     Multiple comparison procedures for the one-way layout.
-
-*multidim*
-     Multidimensional descriptive statistics: factorial methods and
-     classification.
 
 *multiv*
      Functions for hierarchical clustering, partitioning, bond energy
@@ -1795,7 +1382,6 @@ distributions of R.)
 
 *nlme*
      Fit and compare Gaussian linear and nonlinear mixed-effects models.
-     _Recommended_.
 
 *nlrq*
      Nonlinear quantile regression.
@@ -1803,24 +1389,10 @@ distributions of R.)
 *nnet*
      Software for single hidden layer perceptrons ("feed-forward neural
      networks"), and for multinomial log-linear models.  Contained in the
-     `VR' bundle.  _Recommended_.
+     `VR' bundle.
 
 *norm*
      Analysis of multivariate normal datasets with missing values.
-
-*normalp*
-     A collection of utilities for normal of order p distributions (General
-     Error Distributions).
-
-*normix*
-     One-dimensional normal mixture models classes, for, e.g., density
-     estimation or clustering algorithms research and teaching; providing
-     the widely used Marron-Wand densities.
-
-*npmc*
-     Nonparametric Multiple Comparisons:  provides simultaneous rank test
-     procedures for the one-way layout without presuming a certain
-     distribution.
 
 *odesolve*
      An interface for the Ordinary Differential Equation (ODE) solver lsoda.
@@ -1832,18 +1404,6 @@ distributions of R.)
 *panel*
      Functions and datasets for fitting models to Panel data.
 
-*pastecs*
-     Package for Analysis of Space-Time Ecological Series.
-
-*pcurve*
-     Fits a principal curve to a numeric multivariate dataset in arbitrary
-     dimensions.  Produces diagnostic plots.  Also calculates Bray-Curtis
-     and other distance matrices and performs multi-dimensional scaling and
-     principal component analyses.
-
-*pear*
-     Periodic Autoregression Analysis.
-
 *permax*
      Functions intended to facilitate certain basic analyses of DNA array
      data, especially with regard to comparing expression levels between two
@@ -1852,17 +1412,12 @@ distributions of R.)
 *pinktoe*
      Converts S trees to HTML/Perl files for interactive tree traversal.
 
-*pixmap*
-     Functions for import, export, plotting and other manipulations of
-     bitmapped images.
+*pls*
+     Univariate Partial Least Squares Regression.
 
-*pls.pcr*
-     Multivariate regression by PLS and PCR.
-
-*polspline*
-     Routines for the polynomial spline fitting routines hazard regression,
-     hazard estimation with flexible tails, logspline, lspec, polyclass, and
-     polymars, by C. Kooperberg and co-authors.
+*polymars*
+     Polychotomous regression based on Multivariate Adaptive Regression
+     Splines.
 
 *polynom*
      A collection of functions to implement a class for univariate
@@ -1874,61 +1429,21 @@ distributions of R.)
 *pspline*
      Smoothing splines with penalties on order m derivatives.
 
-*qtl*
-     Analysis of experimental crosses to identify QTLs.
-
 *quadprog*
      For solving quadratic programming problems.
 
 *quantreg*
-     Quantile regression and related methods.
-
-*qvcalc*
-     Functions to compute quasi-variances and associated measures of
-     approximation error.
-
-*randomForest*
-     Breiman's random forest classifier.
-
-*relimp*
-     Functions to facilitate inference on the relative importance of
-     predictors in a linear or generalized linear model.
-
-*rgenoud*
-     R version of GENetic Optimization Using Derivatives.
-
-*rimage*
-     Functions for image processing, including Sobel filter, rank filters,
-     fft, histogram equalization, and reading JPEG files.
+     Quantile  regression and related methods.
 
 *rmeta*
      Functions for simple fixed and random effects meta-analysis for
      two-sample comparison of binary outcomes.
 
 *rpart*
-     Recursive PARTitioning and regression trees.  _Recommended_.
-
-*rpvm*
-     R interface to PVM (Parallel Virtual Machine).  Provides interface to
-     PVM APIs, and examples and documentation for its use.
-
-*rsprng*
-     Provides interface to SPRNG (Scalable Parallel Random Number
-     Generators) APIs, and examples and documentation for its use.
+     Recursive PARTitioning and regression trees.
 
 *scatterplot3d*
      Plots a three dimensional (3D) point cloud perspectively.
-
-*sem*
-     Functions for fitting general linear Structural Equation Models (with
-     observed and unobserved variables) by the method of maximum likelihood
-     using the RAM approach.
-
-*serialize*
-     Simple interfce for serializing to connections.
-
-*session*
-     Functions for interacting with, saving and restoring R sessions.
 
 *sgeostat*
      An object-oriented framework for geostatistical modeling.
@@ -1951,69 +1466,19 @@ distributions of R.)
      structural equivalence detection, p* modeling, and network
      visualization.
 
-*snow*
-     Simple Network of Workstations: support for simple parallel computing
-     in R.
-
-*sound*
-     A sound interface for R: Basic functions for dealing with `.wav' files
-     and sound samples.
-
 *spatial*
      Functions for kriging and point pattern analysis from "Modern Applied
-     Statistics with S" by W. Venables and B. Ripley.  Contained in the
-     `VR' bundle.  _Recommended_.
-
-*spatstat*
-     Data analysis and modelling of two-dimensional point patterns,
-     including multitype points and spatial covariates.
-
-*spdep*
-     A collection of functions to create spatial weights matrix objects from
-     polygon contiguities, from point patterns by distance and tesselations,
-     for summarising these objects, and for permitting their use in spatial
-     data analysis; a collection of tests for spatial autocorrelation,
-     including global Moran's I and Geary's C, local Moran's I, saddlepoint
-     approximations for global and local Moran's I; and functions for
-     estimating spatial simultaneous autoregressive (SAR) models.  (Was
-     formerly the three packages: *spweights*, *sptests*, and *spsarlm*.)
+     Statistics with S-PLUS" by W. Venables and B. Ripley.  Contained in
+     the `VR' bundle.
 
 *splancs*
      Spatial and space-time point pattern analysis functions.
 
-*statmod*
-     Miscellaneous biostatistical modelling functions.
-
-*strucchange*
-     Various tests on structural change in linear regression models.
-
-*subselect*
-     A collection of functions which assess the quality of variable subsets
-     as surrogates for a full data set, and search for subsets which are
-     optimal under various criteria.
-
-*survey*
-     Summary statistics, generalized linear models, and general maximum
-     likelihood estimation for stratified, cluster-sampled, unequally
-     weighted survey samples.
-
 *survival*
      Functions for survival analysis, including penalised likelihood.
-     _Recommended_.
-
-*survrec*
-     Survival analysis for recurrent event data.
-
-*systemfit*
-     Contains functions for fitting simultaneous systems of equations using
-     Ordinary Least Sqaures (OLS), Two-Stage Least Squares (2SLS), and
-     Three-Stage Least Squares (3SLS).
 
 *tensor*
      Tensor product of arrays.
-
-*tkrplot*
-     Simple mechanism for placing R graphics in a Tk widget.
 
 *tree*
      Classification and regression trees.
@@ -2028,17 +1493,6 @@ distributions of R.)
      Functions for optimal design of two-stage-studies using the Mean Score
      method.
 
-*vcd*
-     Functions and data sets based on the book "Visualizing Categorical
-     Data" by Michael Friendly.
-
-*vegan*
-     Various help functions for vegetation scientists and community
-     ecologists.
-
-*waveslim*
-     Basic wavelet routines for time series analysis.
-
 *wavethresh*
      Software to perform 1-d and 2-d wavelet statistics and transforms.
 
@@ -2051,6 +1505,9 @@ distributions of R.)
 *xtable*
      Export data to LaTeX and HTML tables.
 
+*zmatrix*
+     Matrices with numeric indices starting at zero rather than one.
+
 See CRAN `src/contrib/PACKAGES' for more information.
 
    There is also a CRAN `src/contrib/Devel' directory which contains
@@ -2058,16 +1515,29 @@ packages still "under development" or depending on features only present in
 the current development versions of R.  Volunteers are invited to give
 these a try, of course.  This area of CRAN currently contains
 
-*Dopt*
+*GRASS*
+     Interface between the GRASS geographical information system and R,
+     based on starting R from within the GRASS environment and chosen
+     LOCATION and MAPSET.  Wrapper and helper functions are provided for a
+     range of R functions to match the interface metadata structures.
+
+*R2HTML*
+     Functions for exporting R objects & graphics in an HTML document.
+
+*StatDataML*
+     Read and write StatDataML.
+
+*car*
+     Companion to Applied Regression, containing functions for applied
+     regession, linear models, and generalized linear models, with an
+     emphasis on regression diagnostics, particularly graphical diagnostic
+     methods.
+
+*cxx*
+     A small C++ test package.
+
+*dopt*
      Finding D-optimal experimental designs.
-
-*PHYLOGR*
-     Manipulation and analysis of phylogenetically simulated data sets (as
-     obtained from PDSIMUL in package PDAP) and phylogenetically-based
-     analyses using GLS.
-
-*RPgSQL*
-     Provides methods for accessing data stored in PostgreSQL tables.
 
 *dseplus*
      Extensions to *dse*, the Dynamic Systems Estimation multivariate time
@@ -2076,11 +1546,49 @@ these a try, of course.  This area of CRAN currently contains
 *ensemble*
      Ensembles of tree classifiers.
 
-*pls*
-     Univariate Partial Least Squares Regression.
+*funfits*
+     An integrated set of functions for fitting curves and surfaces
+     including thin plate splines, kriging and neural networks.
 
-*runStat*
-     Running median and mean.
+*grid*
+     The Grid graphics package, a rewrite of the graphics layout
+     capabilities, plus some support for interaction.
+
+*hdf5*
+     Interface to the NCSA HDF5 library.
+
+*hpower*
+     A suite of functions to compute power and sample size for tests of the
+     general linear hypothesis.
+
+*lattice*
+     Lattice graphics, an implementation of Trellis Graphics functions.
+
+*maxstat*
+     Maximally selected rank and Gauss statistics with several p-value
+     approximations.
+
+*multidim*
+     Code for correspondence analysis and other multidimensional descriptive
+     statistics.
+
+*multilm*
+     A basic method for fitting and testing multivariate linear models,
+     including stabilized test procedures by Laeuter et. al.
+
+*npConfRatio*
+     Nonparametric confidence intervals for the ratios of medians.
+
+*regexp*
+     Simple regular expression interface.
+
+*sem*
+     Functions for fitting general linear Structural Equation Models (with
+     observed and unobserved variables) by the method of maximum likelihood
+     using the RAM approach.
+
+*strucchange*
+     Various tests on structural change in linear regression models.
 
 *write.snns*
      Function for writing a SNNS pattern file from a data frame or matrix.
@@ -2104,57 +1612,13 @@ Currently, there are
      Allows R functions and objects to be used to implement SQL functions --
      per-record, aggregate and trigger functions.
 
-*REventLoop*
-     An abstract event loop mechanism that is toolkit independent and can be
-     used to to replace the R event loop.
-
-*RGdkPixbuf*
-     S language functions to access the facilities in the GdkPixbuf library
-     for manipulating images.
-
 *RGnumeric*
      A plugin for the Gnumeric spreadsheet that allows R functions to be
      called from cells within the sheet, automatic recalculation, etc.
 
-*RGtk*
-     Facilities in the S language for programming graphical interfaces using
-     Gtk, the Gnome GUI toolkit.
-
-*RGtkBindingGenerator*
-     A meta-package which generates C and R code to provide bindings to a
-     Gtk-based library.
-
-*RGtkExtra*
-     A collection of S functions that provide an interface to the widgets in
-     the gtk+extra library such as the GtkSheet data-grid display, icon
-     list, file list and directory tree.
-
-*RGtkGlade*
-     S language bindings providing an interface to Glade, the interactive
-     Gnome GUI creator.
-
-*RGtkHTML*
-     A collection of S functions that provide an interface to creating and
-     controlling an HTML widget which can be used to display HTML documents
-     from files or content generated dynamically in S.
-
-*RGtkViewers*
-     A collection of tools for viewing different S objects, databases, class
-     and widget hierarchies, S source file contents, etc.
-
-*RJavaDevice*
-     A graphics device for R that uses Java components and graphics.  APIs.
-
-*RObjectTables*
-     The C and S code allows one to define R objects to be used as elements
-     of the search path with their own semantics and facilities for reading
-     and writing variables.  The objects implement a simple interface via R
-     functions (either methods or closures) and can access external data,
-     e.g., in other applications, languages, formats, ...
-
 *RSMethods*
      An implementation of S version 4 methods and classes for R, consistent
-     with the basic material in "Programming with Data" by John M.
+     with the basic material in "Programming with data" by John M.
      Chambers, 1998, Springer NY.
 
 *RSPerl*
@@ -2164,12 +1628,6 @@ Currently, there are
 *RSPython*
      Allows Python programs to invoke S functions, methods, etc., and S code
      to call Python functionality.
-
-*RXLisp*
-     An interface to call XLisp-Stat functions from within R.
-
-*SASXML*
-     Example for reading XML files in SAS 8.2 manner.
 
 *SJava*
      An interface from R to Java to create and call Java objects and
@@ -2182,14 +1640,6 @@ Currently, there are
 *SNetscape*
      Plugin for Netscape and JavaScript.
 
-*SWinRegistry*
-     Provides access from within R to read and write the Windows registry.
-
-*SWinTypeLibs*
-     Provides ways to extract type information from type libraries and/or
-     DCOM objects that describes the methods, properties, etc. of an
-     interface.
-
 *SXalan*
      Process XML documents using XSL functions implemented in R and
      dynamically substituting output from R.
@@ -2199,82 +1649,6 @@ Currently, there are
      generate interfaces from S to that code, including the table of
      S-accessible native symbols, parameter count and type information, S
      constructors from C objects, call graphs, etc.
-
-*Sxslt*
-     An extension module for libxslt, the XML-XSL document translator, that
-     allows XSL functions to be implemented via R functions.
-
-   The Bioconductor Project (http://www.bioconductor.org) produces an open
-source software framework that will assist biologists and statisticians
-working in bioinformatics, with primary emphasis on inference using DNA
-microarrays.  Currently, the following R packages can be obtained from
-<http://www.bioconductor.org/packages/devel/html/>, with more packages
-under development.
-
-*AnnBuilder*
-     Processing information from Unigene, LocusLink, and Gene Ontology
-     Consortium, storing the data to tables in a local database, and
-     generating XML annotation files.
-
-*Biobase*
-     Base functions for Bioconductor.
-
-*ROC*
-     Utilities for ROC, with uarray focus.
-
-*affy*
-     Methods for Affymetrix Oligonucleotide Arrays.
-
-*annotate*
-     Annotation for microarrays.
-
-*edd*
-     Expression density diagnostics.
-
-*genefilter*
-     Basic functions for filtering genes.
-
-*geneplotter*
-     Basic functions for plotting genetic data.
-
-*marrayClasses*
-     Class definitions for pre-normalized and normalized cDNA microarray
-     data.  Basic methods for accessing/replacing, printing, and subsetting.
-
-*marrayInput*
-     Functions for reading microarray data into R from different image
-     analysis output files, and probe and target description files.  Widgets
-     are supplied to facilitate and automate data input and the creation of
-     microarray specific R objects for storing these data.
-
-*marrayNorm*
-     Functions for location and scale normalization procedures based on
-     robust local regression.
-
-*marrayPlots*
-     Functions for diagnostic plots for pre- and post-normalization cDNA
-     microarray intensity data: boxplots, scatter-plots, color images.
-
-*multtest*
-     Multiple testing procedures.  Includes resampling-based multiple
-     testing procedures for controlling the family-wise error rate (FWER):
-     Bonferroni, Hochberg (1988), Holm (1979), Sidak, Westfall & Young
-     (1993) (referred to as minP and maxT).  Also includes procedures for
-     controlling the false discovery rate (FDR): Benjamini & Hochberg
-     (1995), Benjamini & Yekutieli (2001) step-up procedures.  These
-     procedures are implemented for tests based on t-statistics,
-     F-statistics, paired t-statistics,  block F-statistics, Wilcoxon
-     statistics.  Results are reported in terms of adjusted p-values.  The
-     procedures are directly applicable to identify differentially
-     expressed genes in DNA microarray experiments.
-
-*rhdf5*
-     An HDF5 interface for R.
-
-*tkWidgets*
-     R based Tk widgets to provide user interfaces.
-
-   These packages will soon be made available via CRAN as well.
 
    Jim Lindsey <jlindsey@luc.ac.be> has written a collection of R packages
 for nonlinear regression and repeated measurements, consisting of *event*
@@ -2289,10 +1663,6 @@ analyses in the new edition of his book "Models for Repeated Measurements"
 has also started *dna*, a package with procedures for the analysis of DNA
 sequences.  Jim's packages can be obtained from
 `http://www.luc.ac.be/~jlindsey/rcode.html'.
-
-   Frank Harrell <fharrell@virginia.edu> has made R ports of his *Design*
-and *Hmisc* packages available via
-`http://hesweb1.med.virginia.edu/biostat/s/library/r/'.
 
    More code has been posted to the r-help mailing list, and can be
 obtained from the mailing list archive.
@@ -2309,7 +1679,7 @@ system, type
 
 at the shell prompt to install to the library tree rooted at the first
 directory given in `R_LIBS' (see below) if this is set and non-null, and to
-the default library (the `library' subdirectory of ``R_HOME'') otherwise.
+the default library (the `library' subdirectory of `R_HOME') otherwise.
 (Versions of R prior to 1.3.0 installed to the default library by default.)
 
    To install to another tree (e.g., your private one), use
@@ -2365,8 +1735,6 @@ at the R prompt.
      ctest         Classical Tests
      eda           Exploratory Data Analysis
      foreign       Read data stored by Minitab, S, SAS, SPSS, Stata, ...
-     grid          The Grid Graphics Package
-     lattice       Lattice Graphics
      lqs           Resistant Regression and Covariance Estimation
      mgcv          Multiple smoothing parameter estimation and GAMs by GCV
      modreg        Modern Regression: Smoothing and Local Methods
@@ -2381,7 +1749,6 @@ at the R prompt.
      stepfun       Step Functions, including Empirical Distributions
      survival      Survival analysis, including penalised likelihood
      tcltk         Interface to Tcl/Tk
-     tools         Tools for Package Development and Administration
      ts            Time series functions
 
    You can "load" the installed package PKG by
@@ -2468,8 +1835,7 @@ provides a standard interface between statistical programs and statistical
 processes.  It is intended to provide assistance for interactive
 statistical programming and data analysis.  Languages supported include: S
 dialects (S 3/4, S-PLUS 3.x/4.x/5.x, and R), LispStat dialects (XLispStat,
-ViSta) and SAS.  Stata and SPSS dialect (SPSS, PSPP) support is being
-examined for possible future implementation
+ViSta), SAS, Stata, SPSS dialects (SPSS, Fiasco) and SCA.
 
    ESS grew out of the need for bug fixes and extensions to S-mode 4.8
 (which was a GNU Emacs interface to S/S-PLUS version 3 only).  The current
@@ -2492,9 +1858,10 @@ to the help system), and transcript manipulation (recording and saving
 transcript files, manipulating and editing saved transcripts, and
 re-evaluating commands from transcript files).
 
-   The latest stable version of ESS are available via CRAN or the ESS web
-page (http://software.biostat.washington.edu/statsoft/ess/).  The HTML
-version of the documentation can be found at `http://stat.ethz.ch/ESS/'.
+   The latest versions of ESS are available from
+`http://ess.stat.wisc.edu/pub/ESS/' or `ftp://ess.stat.wisc.edu/pub/ESS/',
+or via CRAN.  The HTML version of the documentation can be found at
+`http://stat.ethz.ch/ESS/'.
 
    ESS comes with detailed installation instructions.
 
@@ -2532,10 +1899,9 @@ M-x R' for starting R.
    To debug R "from within Emacs", there are several possibilities.  To use
 the Emacs GUD (Grand Unified Debugger) library with the recommended
 debugger GDB, type `M-x gdb' and give the path to the R _binary_ as
-argument.  At the `gdb' prompt, set `R_HOME' and other environment
-variables as needed (using e.g.  `set env R_HOME /path/to/R/', but see also
-below), and start the binary with the desired arguments (e.g., `run
---vsize=12M').
+argument.  At the gdb prompt, set `R_HOME' and other environment variables
+as needed (using e.g. `set env R_HOME /path/to/R/', but see also below),
+and start the binary with the desired arguments (e.g., `run --vsize=12M').
 
    If you have ESS, you can do `C-u M-x R <RET> - d <SPC> g d b <RET>' to
 start an inferior R process with arguments `-d gdb'.
@@ -2582,11 +1948,6 @@ and `--vsize'.
 will increase the memory available to R as needed.  Hence, user
 intervention is no longer necessary for ensuring that enough memory is
 available.
-
-   The new garbage collector does not move objects in memory, meaning that
-it is possible for the free memory to become fragmented so that large
-objects cannot be allocated even when there is apparently enough memory for
-them.
 
 7.2 Why does sourcing a correct file fail?
 ==========================================
@@ -2761,7 +2122,18 @@ either the `-no-install' (to use the default colormap) or the `-install'
 than the default `"pseudo"'.  See the help page for `X11()' for more
 information.
 
-7.12 How do I convert factors to numeric?
+7.12 Is R Y2K-compliant?
+========================
+
+   We expect R to be Y2K compliant when compiled and run on a Y2K compliant
+system.  In particular R does not internally represent or manipulate dates
+as two-digit quantities.  However, no guarantee of Y2K compliance is
+provided for R.  R is free software and comes with _no warranty whatsoever_.
+
+   R, like any other programming language, can be used to write programs
+and manipulate data in ways that are not Y2K compliant.
+
+7.13 How do I convert factors to numeric?
 =========================================
 
    It may happen that when reading numeric data into R (usually, when
@@ -2776,12 +2148,16 @@ to get the numbers back.  More efficient, but harder to remember, is
 
    In any case, do not call `as.numeric()' or their likes directly.
 
-7.13 Are Trellis displays implemented in R?
+7.14 Are Trellis displays implemented in R?
 ===========================================
 
-   The recommended package *lattice* (which is based on another recommended
-package, *grid*) provides graphical functionality that is compatible with
-most Trellis commands.
+   An R package called *lattice*, which provides graphical functionality
+that is compatible with most Trellis commands, is under development.  The
+latest version of the package may be downloaded from the `contrib/Devel'
+area of CRAN.  *lattice* currently relies on another package called *grid*
+(also under development) so you will need to download that as well.
+Because these packages are under active development, they might only work
+with the latest development version of R.
 
    You could also look at `coplot()' and `dotchart()' which might do at
 least some of what you want.  Note also that the R version of `pairs()' is
@@ -2790,9 +2166,9 @@ that R's default plot method has an argument `asp' allowing to specify (and
 fix against device resizing) the aspect ratio of the plot.
 
    (Because the word "Trellis" has been claimed as a trademark we do not
-use it in R.  The name "lattice" has been chosen for the R equivalent.)
+use it in R.  The name "lattice" has been proposed for the R equivalent.)
 
-7.14 What are the enclosing and parent environments?
+7.15 What are the enclosing and parent environments?
 ====================================================
 
    Inside a function you may want to access variables in two additional
@@ -2838,7 +2214,7 @@ and S is to say that in S the enclosing environment is _always_ the global
 workspace, but in R the enclosing environment is wherever the function was
 created.
 
-7.15 How can I substitute into a plot label?
+7.16 How can I substitute into a plot label?
 ============================================
 
    Often, it is desired to use the value of an R object in a plot label,
@@ -2854,7 +2230,7 @@ interest, use
 (note that it is `==' and not `=').  There are more worked examples in the
 mailing list achives.
 
-7.16 What are valid names?
+7.17 What are valid names?
 ==========================
 
    When creating data frames using `data.frame()' or `read.table()', R by
@@ -2894,7 +2270,7 @@ language:
      with names in the language, but it is traditional to call these
      strings file "names".
 
-7.17 Are GAMs implemented in R?
+7.18 Are GAMs implemented in R?
 ===============================
 
    There is a `gam()' function for Generalized Additive Models in package
@@ -2903,7 +2279,7 @@ language:
 if you can accept regression splines you can use `glm()'.  For gaussian
 GAMs you can use `bruto()' from package *mda*.
 
-7.18 Why is the output not printed when I source() a file?
+7.19 Why is the output not printed when I source() a file?
 ==========================================================
 
    Most R commands do not generate any output. The command
@@ -2933,7 +2309,7 @@ or
 
 instead, or use `source(FILE, echo=TRUE)'.
 
-7.19 Why does outer() behave strangely with my function?
+7.20 Why does outer() behave strangely with my function?
 ========================================================
 
    As the help for `outer()' indicates, it does not work on arbitrary
@@ -2944,118 +2320,13 @@ possible combination of elements of `x' and `y' and then passes this to
 `FUN' all at once.  Your function probably cannot handle two large vectors
 as parameters.
 
-   If you have a function that cannot handle two vectors but can handle two
-scalars, then you can still use `outer()' but you will need to wrap your
-function up first, to simulate vectorized behavior.  Suppose your function
-is
-
-     foo <- function(x, y, happy) {
-       stopifnot(length(x) == 1, length(y) == 1) # scalars only!
-       (x + y) * happy
-     }
-
-If you define the general function
-
-     wrapper <- function(x, y, my.fun, ...) {
-       sapply(seq(along=x), FUN = function(i) my.fun(x[i], y[i], ...))
-     }
-
-then you can use `outer()' by writing, e.g.,
-
-     outer(1:4, 1:2, FUN = wrapper, my.fun = foo, happy = 10)
-
-7.20 Why does the output from anova() depend on the order of factors in the model?
-==================================================================================
-
-   In a model such as `~A+B+A:B', R will report the difference in sums of
-squares between the models `~1', `~A', `~A+B' and `~A+B+A:B'.  If the model
-were `~B+A+A:B', R would report differences between `~1', `~B', `~A+B', and
-`~A+B+A:B' . In the first case the sum of squares for `A' is comparing `~1'
-and `~A', in the second case it is comparing `~B' and `~B+A'.  In a
-non-orthogonal design (i.e., most unbalanced designs) these comparisons are
-(conceptually and numerically) different.
-
-   Some packages report instead the sums of squares based on comparing the
-full model to the models with each factor removed one at a time (the famous
-`Type III sums of squares' from SAS, for example).  These do not depend on
-the order of factors in the model.  The question of which set of sums of
-squares is the Right Thing provokes low-level holy wars on r-help from time
-to time.
-
-   There is no need to be agitated about the particular sums of squares
-that R reports.  You can compute your favorite sums of squares quite
-easily.  Any two models can be compared with `anova(MODEL1, MODEL2)', and
-`drop1(MODEL1)' will show the sums of squares resulting from dropping
-single terms.
-
-7.21 How do I produce PNG graphics in batch mode?
-=================================================
-
-   Under Unix, the `png()' device uses the X11 driver, which is a problem
-in batch mode or for remote operation.  If you have ghostscript you can use
-`bitmap()', which produces a PostScript file then converts it to any bitmap
-format supported by ghostscript.  On some installations this produces ugly
-output, on others it is perfectly satisfactory.  In theory one could also
-use Xvfb, which provides an X server with no display.
-
-7.22 How can I get command line editing to work?
-================================================
-
-   The Unix command-line interface to R can only provide the inbuilt
-command line editor which allows recall, editing and re-submission of prior
-commands provided that the GNU readline library is available at the time R
-is configured for compilation.  Note that the `development' version of
-readline including the appropriate headers is needed: users of Linux binary
-distributions will need to install packages such as `libreadline-dev'
-(Debian) or `readline-devel' (Red Hat).
-
-7.23 How can I turn a string into a variable?
-=============================================
-
-   If you have
-
-     varname <- c("a", "b", "d")
-
-you can do
-
-     get(varname[1]) + 2
-
-for
-
-     a + 2
-
-or
-
-     assign(varname[1], 2 + 2)
-
-for
-
-     a <- 2 + 2
-
-or
-
-     eval(substitute(lm(y ~ x + variable),
-                     list(variable = as.name(varname[1]))
-
-for
-
-     lm(y ~ x + a)
-
-   At least in the first two cases it is often easier to just use a list,
-and then you can easily index it by name
-
-     vars <- list(a = 1:10, b = rnorm(100), d = LETTERS)
-     vars[["a"]]
-
-without any of this messing about.
-
 8 R Programming
 ***************
 
 8.1 How should I write summary methods?
 =======================================
 
-   Suppose you want to provide a summary method for class `"foo"'.  Then
+   Suppose you want to provide a summary method for class `foo'.  Then
 `summary.foo()' should not print anything, but return an object of class
 `"summary.foo"', _and_ you should write a method `print.summary.foo()'
 which nicely prints the summary information and invisibly returns its
@@ -3201,10 +2472,10 @@ package maintainer rather than to r-bugs.
    Of course, many many thanks to Robert and Ross for the R system, and to
 the package writers and porters for adding to it.
 
-   Special thanks go to Doug Bates, Peter Dalgaard, Paul Gilbert, Stefano
-Iacus, Fritz Leisch, Jim Lindsey, Thomas Lumley, Martin Maechler, Brian D.
-Ripley, Anthony Rossini, and Andreas Weingessel for their comments which
-helped me improve this FAQ.
+   Special thanks go to Doug Bates, Peter Dalgaard, Paul Gilbert, Fritz
+Leisch, Jim Lindsey, Thomas Lumley, Martin Maechler, Brian D. Ripley,
+Anthony Rossini, and Andreas Weingessel for their comments which helped me
+improve this FAQ.
 
    More to some soon ...
 

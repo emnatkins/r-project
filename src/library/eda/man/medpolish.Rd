@@ -1,22 +1,23 @@
 \name{medpolish}
-\alias{medpolish}
-%\alias{plot.medpolish}
-%\alias{print.medpolish}
 \title{Median Polish of a Matrix}
-\description{
-  Fits an additive model using Tukey's \emph{median polish} procedure.
-}
 \usage{
-medpolish(x, eps = 0.01, maxiter = 10, trace.iter = TRUE,
-          na.rm = FALSE)
+medpolish(x, eps = 0.01, maxiter = 10, trace.iter = TRUE)
+
+plot(medpolish.obj)
+print(medpolish.obj)
 }
+\alias{plot.medpolish}
+\alias{print.medpolish}
 \arguments{
   \item{x}{a numeric matrix.}
   \item{eps}{real number greater than 0. A tolerance for convergence:
     see \bold{Details}.}
   \item{maxiter}{the maximum number of iterations}
   \item{trace.iter}{logical. Should progress in convergence be reported?}
-  \item{na.rm}{logical. Should missing values be removed?}
+  \item{medpolish.obj}{object of class \code{medpolish}.}
+}
+\description{
+  Fits an additive model using Tukey's \emph{median polish} procedure.
 }
 \details{
   The model fitted is additive (constant + rows + columns). The
@@ -26,8 +27,6 @@ medpolish(x, eps = 0.01, maxiter = 10, trace.iter = TRUE,
   or until there have been \code{maxiter} iterations.
   The sum of absolute residuals is printed at
   each iteration of the fitting process, if \code{trace.iter} is \code{TRUE}.
-  If \code{na.rm} is \code{FALSE} the presence of any \code{NA} value in
-  \code{x} will cause an error, otherwise \code{NA} values are ignored.
 
   \code{medpolish} returns an object of class \code{medpolish} (see below).
   There are printing and plotting methods for this

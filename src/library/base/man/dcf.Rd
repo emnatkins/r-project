@@ -34,8 +34,7 @@ write.dcf(x, file = "", append = FALSE,
   The DCF rules as implemented in R are:
   \enumerate{
     \item A database consists of one or more records, each with one or
-    more named fields. Not every record must contain each field, a
-    field may appear only once in a record.
+    more named fields. Not every record must contain each field.
     \item Regular lines start with a non-whitespace character.
     \item Regular lines are of form \code{tag:value}, i.e.,
     have a name tag and a value for the field, seperated

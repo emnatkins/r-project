@@ -6,7 +6,7 @@ else
   DEBUGFLAG=
 endif
 
-CFLAGS=-I. -I.. -I../../include -Wall $(DEBUGFLAG)  -O2 -DINDLL -DR_DLL_BUILD
+CFLAGS=-I. -I.. -Wall $(DEBUGFLAG)  -O2 -DINDLL
 SOURCES=$(filter-out graphappmain.c, $(wildcard *.c))
 OBJS=$(foreach i, $(SOURCES), $(basename $i).o)
 

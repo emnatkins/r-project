@@ -7,13 +7,13 @@
   or a function performing the linear (or constant) interpolation.
 }
 \usage{
-approx   (x, y = NULL, xout, method="linear", n=50,
+approx   (x, y, xout, method="linear", n=50,
           yleft, yright, rule = 1, f=0, ties = mean)
-approxfun(x, y = NULL,       method="linear",
+approxfun(x, y,       method="linear",
           yleft, yright, rule = 1, f=0, ties = mean)
 }
 \arguments{
-  \item{x, y}{vectors giving the coordinates of the points to be
+  \item{x,y}{vectors giving the coordinates of the points to be
     interpolated.  Alternatively a single plotting structure can be
     specified: see \code{\link{xy.coords}}.}
   \item{xout}{an optional set of values specifying where interpolation
@@ -38,7 +38,7 @@ approxfun(x, y = NULL,       method="linear",
     inclusive, indicating a compromise between left- and
     right-continuous step functions. If \code{y0} and \code{y1} are the
     values to the left and right of the point then the value is
-    \code{y0*(1-f)+y1*f} so that \code{f=0} is right-continuous and
+    \code{y0*f+y1*(1-f)} so that \code{f=0} is right-continuous and
     \code{f=1} is left-continuous.}
   \item{ties}{Handling of tied \code{x} values. Either a function
     with a single vector argument returning a single number result or
@@ -89,7 +89,7 @@ x <- c(2,2:4,4,4,5,5,7,7,7)
 y <- c(1:6, 5:4, 3:1)
 approx(x,y, xout=x)$y # warning
 (ay <- approx(x,y, xout=x, ties = "ordered")$y)
-stopifnot(ay == c(2,2,3,6,6,6,4,4,1,1,1))
+stopifnot(ay == c(2,2,3,6,6,6,4,4,1,1,1))  
 approx(x,y, xout=x, ties = min)$y
 approx(x,y, xout=x, ties = max)$y
 

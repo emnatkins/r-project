@@ -7,7 +7,7 @@ function(x, method="overplot", jitter=0.1, offset=1/3, vertical=FALSE,
 {
     method <- pmatch(method, c("overplot", "jitter", "stack"))[1]
     if(is.na(method) || method==0)
-	stop("invalid plotting method")
+	error("invalid plotting method")
     groups <-
 	if(is.language(x)) {
 	    if (inherits(x, "formula") && length(x) == 3) {
@@ -24,7 +24,7 @@ function(x, method="overplot", jitter=0.1, offset=1/3, vertical=FALSE,
 	attr(groups, "names") <- group.names
     else if(is.null(attr(groups, "names")))
 	attr(groups, "names") <- 1:n
-    dlim <- rep.int(NA, 2)
+    dlim <- rep(NA, 2)
     for(i in groups)
 	dlim <- range(dlim, i[is.finite(i)], na.rm = TRUE)
     glim <- c(1, n)
@@ -55,15 +55,14 @@ function(x, method="overplot", jitter=0.1, offset=1/3, vertical=FALSE,
     f <- function(x) seq(length=length(x))
     for(i in 1:n) {
 	x <- groups[[i]]
-	y <- rep.int(i,length(x))
+	y <- rep(i,length(x))
 	if(method == 2)
 	    y <- y + runif(length(y), -jitter, jitter)
 	else if(method == 3) {
 	    xg <- split(x, factor(x))
 	    xo <- lapply(xg, f)
 	    x <- unlist(xg, use.names=FALSE)
-	    y <- rep.int(i,length(x)) +
-                (unlist(xo, use.names=FALSE) - 1) * offset * csize
+	    y <- y + (unlist(xo, use.names=FALSE) - 1) * offset * csize
 	}
 	if(vertical) points(y, x, col=col[(i - 1)%%length(col) + 1],
 			    pch=pch[(i - 1)%%length(pch) + 1], cex=cex)

@@ -1,26 +1,18 @@
 \name{plot.stepfun}
-\alias{plot.stepfun}
-\alias{lines.stepfun}
 \title{Plot Step Functions}
-\description{
-  Method of the generic \code{\link{plot}} for \code{\link{stepfun}}
-  objects and utility for plotting piecewise constant functions.
-}
 \usage{
-\method{plot}{stepfun}(x, xval, xlim, ylim,
-     xlab = "x", ylab = "f(x)", main = NULL,
+plot.stepfun(Fn, xval, xlim, xlab = "x", ylab = "f(x)", main = NULL,
      add = FALSE, verticals = TRUE, do.points = TRUE,
      pch = par("pch"), col.points=par("col"), cex.points=par("cex"),
      col.hor = par("col"), col.vert= par("col"),
      lty = par("lty"), lwd = par("lwd"), \dots)
-\method{lines}{stepfun}(x, \dots)
 }
+\alias{plot.stepfun}
 \arguments{
-  \item{x}{an \R object inheriting from \code{"stepfun"}.}
+  \item{Fn}{an \R object inheriting from \code{"stepfun"}.}
   \item{xval}{numeric vector of abscissa values at which to evaluate
-    \code{x}.  Defaults to \code{\link{knots}(x)} restricted to \code{xlim}.}
-  \item{xlim,ylim}{numeric(2) each; range of \code{x} or \code{y} values
-    to use.  Both have sensible defaults.}
+    \code{Fn}.  Defaults to \code{\link{knots}(Fn)} restricted to \code{xlim}.}
+  \item{xlim}{numeric(2); range of \code{x} values to use.}
   \item{xlab,ylab}{labels of x and y axis.}
   \item{main}{main title.}
   \item{add}{logical; if \code{TRUE} only \emph{add} to an existing plot.}
@@ -37,6 +29,10 @@
   \item{\dots}{further arguments of \code{\link{plot}(.)}, or if\code{(add)}
     \code{\link{segments}(.)}.}
 }
+\description{
+  Method of the generic \code{\link{plot}} for \code{\link{stepfun}}
+  objects and utility for plotting piecewise constant functions.
+}
 \value{
   A list with two components
   \item{t}{abscissa (x) values, including the two outermost ones.}
@@ -52,23 +48,19 @@
 y0 <- c(1,2,4,3)
 sfun0  <- stepfun(1:3, y0, f = 0)
 sfun.2 <- stepfun(1:3, y0, f = .2)
-sfun1  <- stepfun(1:3, y0, right = TRUE)
+sfun1  <- stepfun(1:3, y0, f = 1)
 
 tt <- seq(0,3, by=0.1)
 op <- par(mfrow=c(2,2))
 plot(sfun0); plot(sfun0, xval=tt, add=TRUE, col.h="bisque")
 plot(sfun.2);plot(sfun.2,xval=tt, add=TRUE, col.h="orange")
-plot(sfun1);lines(sfun1, xval=tt, col.h="coral")
+plot(sfun1); plot(sfun1, xval=tt, add=TRUE, col.h="coral")
 ##-- This is  revealing :
 plot(sfun0, verticals= FALSE,
      main = "stepfun(x, y0, f=f)  for f = 0, .2, 1")
 for(i in 1:3)
-  lines(list(sfun0,sfun.2,stepfun(1:3,y0,f = 1))[[i]], col.h=i, col.v=i)
+  plot(list(sfun0,sfun.2,sfun1)[[i]], add=TRUE, col.h=i, col.v=i)
 legend(2.5, 1.9, paste("f =", c(0,0.2,1)), col=1:3, lty=1, y.inter=1); par(op)
-
-# Extend and/or restrict `viewport':
-plot(sfun0, xlim = c(0,5), ylim = c(0, 3.5),
-     main = "plot(stepfun(*), xlim= . , ylim = .)")
 
 ##-- this works too (automatic call to  ecdf(.)):
 plot.stepfun(rt(50, df=3), col.vert = "gray20")

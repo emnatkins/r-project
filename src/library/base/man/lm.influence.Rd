@@ -1,21 +1,11 @@
 \name{lm.influence}
 \title{Regression Diagnostics}
 \usage{
-influence(model, \dots)
-influence.lm (model, do.coef = TRUE, \dots)
-influence.glm(model, do.coef = TRUE, \dots)
-
-lm.influence(model, do.coef = TRUE)
+lm.influence(lm.obj)
 }
 \alias{lm.influence}
-\alias{influence}
-\alias{influence.lm}
-\alias{influence.glm}
 \arguments{
-  \item{model}{an object as returned by \code{\link{lm}}.}
-  \item{do.coef}{logical indicating if the changed \code{coefficients}
-    (see below) are desired.  These need \eqn{O(n^2 p)} computing time.}
-  \item{\dots}{further arguments passed to or from other methods.}
+\item{lm.obj}{an object as returned by \code{\link{lm}}.}
 }
 \description{
   This function provides the basic quantities which are
@@ -25,40 +15,32 @@ lm.influence(model, do.coef = TRUE)
 \details{
   The \code{\link{influence.measures}()} and other functions listed in
   \bold{See Also} provide a more user oriented way of computing a
-  variety of regression diagnostics.  These all build on
-  \code{lm.influence}.
+  variety of regression diagnostics.
 }
 \value{
-  A list containing the following components of the same length or
-  number of rows \eqn{n}, which is the number of non-zero weights.
+  A list containing the following components:
   \item{hat}{a vector containing the diagonal of the ``hat'' matrix.}
-  \item{coefficients}{(unless \code{do.coef} is false) a matrix whose
-    i-th row contains the change in the estimated coefficients which
-    results when the i-th case is dropped from the regression.}
+  \item{coefficients}{the change in the estimated coefficients which results
+    when the i-th case is dropped from the regression is contained in
+    the i-th row of this matrix.}
   \item{sigma}{a vector whose i-th element contains the estimate
     of the residual standard deviation obtained when the i-th
     case is dropped from the regression.}
-  \item{wt.res}{a vector of \emph{weighted} (or for class \code{glm}
-    rather \emph{deviance}) residuals.}
 }
 \note{
   The \code{coefficients} returned by the \R version
   of \code{lm.influence} differ from those computed by S.
   Rather than returning the coefficients which result
   from dropping each case, we return the changes in the coefficients.
-  This is more directly useful in many diagnostic measures.\cr
-  Since these need \eqn{O(n^2 p)} computing time, they can be omitted by
-  \code{do.coef = FALSE}.
+  This is more directly useful in many diagnostic measures.
 
   Note that cases with \code{weights == 0} are \emph{dropped} (contrary
   to the situation in S).
-
-  If a model has been fitted with \code{na.action=na.exclude} (see
-  \code{\link{na.exclude}}), cases excluded in the fit \emph{are}
-  considered here.
 }
 \references{
-  see the list in the documentation for \code{\link{influence.measures}}.
+  Belsley, D. A., Kuh, E. and Welsch, R. E. (1980)
+  \emph{Regression Diagnostics.}
+  New York: Wiley.
 }
 \seealso{
 \code{\link{summary.lm}} for \code{\link{summary}} and related methods;\cr

@@ -1,12 +1,11 @@
-quade.test <- function(y, ...) UseMethod("quade.test")
+quade.test <- function(x, ...) UseMethod("quade.test")
 
-quade.test.default <-
-function(y, groups, blocks, ...)
+quade.test.default <- function(y, groups, blocks)
 {
     DNAME <- deparse(substitute(y))
     if(is.matrix(y)) {
-        groups <- factor(c(col(y)))
-        blocks <- factor(c(row(y)))
+        groups <- as.factor(c(col(y)))
+        blocks <- as.factor(c(row(y)))
     }
     else {
         if(any(is.na(groups)) || any(is.na(blocks))) 
@@ -18,8 +17,8 @@ function(y, groups, blocks, ...)
                        deparse(substitute(blocks)), sep = "")
         if(any(table(groups, blocks) != 1))
             stop("Not an unreplicated complete block design")
-        groups <- factor(groups)
-        blocks <- factor(blocks)
+        groups <- as.factor(groups)
+        blocks <- as.factor(blocks)
     }
     k <- nlevels(groups)
     b <- nlevels(blocks)
@@ -56,9 +55,7 @@ function(y, groups, blocks, ...)
               class = "htest")
 }
 
-quade.test.formula <-
-function(formula, data, subset, na.action, ...)
-{
+quade.test.formula <- function(formula, data, subset, na.action) {
     if(missing(formula))
         stop("formula missing")
     ## <FIXME>
@@ -70,6 +67,8 @@ function(formula, data, subset, na.action, ...)
         stop("incorrect specification for `formula'")
     formula[[3]][[1]] <- as.name("+")
     ## </FIXME>
+    if(missing(na.action))
+        na.action <- getOption("na.action")
     m <- match.call(expand.dots = FALSE)
     m$formula <- formula
     if(is.matrix(eval(m$data, parent.frame())))

@@ -20,27 +20,10 @@
 \alias{dotplot}
 \alias{stripplot}
 \alias{getenv}
-\alias{read.table.url}
-\alias{scan.url}
-\alias{source.url}
-\alias{httpclient}
-\alias{parse.dcf}
-\alias{.Alias}
-\alias{reshapeLong}
-\alias{reshapeWide}
-\alias{piechart}
-\alias{print.ordered}
-\alias{.Dyn.libs}
-\alias{.lib.loc}
-\alias{machine}
-\alias{Platform}
-\alias{Machine}
-\alias{restart}
-\alias{printNoClass}
 %
 \description{
-  The functions or variables listed here are no longer part of \R as
-  they are not needed (any more).
+  The functions listed here are no longer part of \R as they are not
+  needed (any more).
 }
 \usage{
 .Defunct()
@@ -67,39 +50,6 @@ dotplot(\dots)
 stripplot(\dots)
 getenv(\dots)
 % </Removed 1.3.0>
-% Removed in 1.4.0
-read.table.url(url, method,\dots)
-scan.url(url, file = tempfile(), method, \dots)
-source.url(url, file = tempfile(), method, \dots)
-httpclient(url, port=80, error.is.fatal=TRUE, check.MIME.type=TRUE,
-           file=tempfile(), drop.ctrl.z=TRUE)
-parse.dcf(text = NULL, file = "", fields = NULL, versionfix = FALSE)
-% </Removed 1.4.0>
-% Removed in 1.5.0
-.Alias(expr)
-reshapeWide(x, i = reshape.i, j = reshape.j, val = reshape.v,
-            jnames = levels(j))
-reshapeLong(x,jvars,  ilev = row.names(x),
-            jlev = names(x)[jvars], iname = "reshape.i",
-            jname = "reshape.j", vname = "reshape.v")
-% </Removed 1.5.0>
-% Removed in 1.6.0
-piechart(x, labels = names(x), edges = 200, radius = 0.8,
-         density = NULL, angle = 45, col = NULL, main = NULL, ...)
-print.ordered(.)
-.Dyn.libs
-.lib.loc
-% </Removed 1.6.0>
-% Removed in 1.7.0
-machine()
-Machine()
-Platform()
-restart()
-% </Removed 1.7.0>
-% Removed in 1.8.0
-printNoClass(x, digits = NULL, quote = TRUE, na.print = NULL,
-             print.gap = NULL, right = FALSE, \dots)
-% </Removed 1.8.0>
 }
 \details{
   \code{.Defunct} is the function to which defunct functions are set.
@@ -121,49 +71,7 @@ printNoClass(x, digits = NULL, quote = TRUE, na.print = NULL,
   \code{\link{dotchart}} and \code{\link{stripchart}}, respectively.
 
   \code{getenv} has been replaced by \code{\link{Sys.getenv}}.
-
-
-  \code{*.url} are replaced by calling \code{read.table}, \code{scan} or
-  \code{source} on a \code{\link{url}} connection.
-
-  \code{httpclient} was used by the deprecated \code{"socket"} method
-  of \code{\link{download.file}}.
-
-  \code{parse.dcf} has been replaced by \code{read.dcf}, which is much
-  faster, but has a slightly different interface.
-
-  \code{.Alias} provided an unreliable way to create duplicate
-  references to the same object. There is no direct replacement. Where
-  multiple references to a single object are required for semantic
-  reasons consider using environments or external pointers. There are
-  some notes on \url{http://developer.r-project.org}.
-
-  \code{reshape*}, which were experimental, are replaced by
-  \code{\link{reshape}}. This has a different syntax and allows multiple
-  time-varying variables.
-
-  \code{piechart} is the old name for \code{pie}, but clashed with usage
-  in Trellis.
-
-  \code{.Dyn.libs} and \code{.lib.loc} were internal variables used for
-  storing and manipulating the information about packages with dynloaded
-  shared libs, and the known \R library trees.  These are now dynamic
-  variables which one can get or set using \code{\link{.dynLibs}} and
-  \code{\link{.libPaths}}, respectively.
-
-  \code{Machine()} and \code{Platform()} were functions returning the
-  variables \code{\link{.Machine}} and \code{\link{.Platform}}
-  respectively.
-
-  \code{restart()} should be replaced by \code{try()}, in preparation
-  for an exception-based implementation.  If you use \code{restart()} in
-  a way that cannot be replaced with \code{try()} then ask for help
-  on \code{r-devel}.
-
-  \code{printNoClass} was in package \code{methods} and calls directly the
-  internal function \code{print.default}.
 }
 \seealso{\code{\link{Deprecated}}}
 \keyword{documentation}
 \keyword{utilities}
-\keyword{internal}

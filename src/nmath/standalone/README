@@ -8,11 +8,7 @@ libRmath.a and libRmath.so.  `make static' and `make shared' make
 just one of them.
 
 Under Windows, use make -f Makefile.win. This makes Rmath.dll with
-import library libRmath.a, and static library Rmath.a.
-
-NB: certain compilers are unable to do compile-time IEEE-754
-arithmetic and so cannot compile mlutils.c.  The known example is
-Sun's cc.  Use gcc for mlutils.c (or the whole library).
+import library libRmath.a.
 
 
 To use the routines in your own C or C++ programs, include
@@ -24,8 +20,6 @@ and link against -lRmath.  The example file test.c does nothing
 useful, but is provided to test the process.  Note that you will
 probably not be able to run it unless you add the directory containing
 libRmath.so to the LD_LIBRARY_PATH.
-
-Under Windows you can also link statically against Rmath.a.
 
 
 A little care is needed to use the random-number routines. You will

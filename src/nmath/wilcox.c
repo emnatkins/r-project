@@ -18,7 +18,7 @@
 
   SYNOPSIS
 
-    #include <Rmath.h>
+    #include "Rmath.h"
     double dwilcox(double x, double m, double n, int give_log)
     double pwilcox(double x, double m, double n, int lower_tail, int log_p)
     double qwilcox(double x, double m, double n, int lower_tail, int log_p);
@@ -36,14 +36,7 @@
 #include "nmath.h"
 #include "dpq.h"
 
-#ifndef MATHLIB_STANDALONE
-#ifdef Win32
-extern void R_ProcessEvents();
-#endif
-#endif
-
 static double ***w;
-static int allocated_m, allocated_n;
 
 static void
 w_free(int m, int n)
@@ -64,7 +57,7 @@ w_free(int m, int n)
 	free((void *) w[i]);
     }
     free((void *) w);
-    w = 0; allocated_m = allocated_n = 0;
+    w = 0;
 }
 
 static void
@@ -76,7 +69,6 @@ w_init_maybe(int m, int n)
 	w_free(WILCOX_MAX, WILCOX_MAX);
 
     if (!w) {
-	allocated_m = m; allocated_n = n;
 	if (m > n) {
 	    i = n; n = m; m = i;
 	}
@@ -105,13 +97,6 @@ cwilcox(int k, int m, int n)
 {
     int c, u, i, j, l;
 
-#ifndef MATHLIB_STANDALONE
-    /* check for a user interrupt */
-#ifdef Win32
-    R_ProcessEvents();
-#endif
-#endif
-
     u = m * n;
     c = (int)(u / 2);
 
@@ -127,8 +112,6 @@ cwilcox(int k, int m, int n)
 
     if (w[i][j] == 0) {
 	w[i][j] = (double *) calloc(c + 1, sizeof(double));
-	if (!w[i][j])
-		MATHLIB_ERROR("wilcox allocation error %d", 3);
 	for (l = 0; l <= c; l++)
 	    w[i][j][l] = -1;
     }
@@ -167,6 +150,7 @@ double dwilcox(double x, double m, double n, int give_log)
     d = give_log ?
 	log(cwilcox(x, m, n)) - lchoose(m + n, n) :
 	    cwilcox(x, m, n)  /	 choose(m + n, n);
+    w_free_maybe(m, n);
 
     return(d);
 }
@@ -207,6 +191,7 @@ double pwilcox(double x, double m, double n, int lower_tail, int log_p)
 	    p += cwilcox(i, m, n) / c;
 	lower_tail = !lower_tail; /* p = 1 - p; */
     }
+    w_free_maybe(m, n);
 
     return(R_DT_val(p));
 } /* pwilcox */
@@ -260,6 +245,7 @@ double qwilcox(double x, double m, double n, int lower_tail, int log_p)
 	    q++;
 	}
     }
+    w_free_maybe(m, n);
 
     return(q);
 }
@@ -285,8 +271,6 @@ double rwilcox(double m, double n)
     r = 0.0;
     k = (int) (m + n);
     x = (int *) calloc(k, sizeof(int));
-    if (!x)
-	MATHLIB_ERROR("wilcox allocation error %d", 4);
     for (i = 0; i < k; i++)
 	x[i] = i;
     for (i = 0; i < n; i++) {
@@ -294,13 +278,5 @@ double rwilcox(double m, double n)
 	r += x[j];
 	x[j] = x[--k];
     }
-    free(x);
     return(r - n * (n - 1) / 2);
 }
-
-void wilcox_free()
-{
-    w_free_maybe(allocated_m, allocated_n);
-}
-
-

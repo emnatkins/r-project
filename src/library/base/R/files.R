@@ -1,5 +1,5 @@
-#Platform <- function()
-#.Internal(Platform())
+Platform <- function()
+.Internal(Platform())
 
 R.home <- function()
 .Internal(R.home())
@@ -24,14 +24,10 @@ file.append <- function(file1, file2)
 file.remove <- function(...)
 .Internal(file.remove(c(...)))
 
-file.rename <- function(from, to)
-.Internal(file.rename(from, to))
+list.files <- function(path=".", pattern=NULL,all.files=FALSE,full.names=FALSE)
+.Internal(list.files(path, pattern, all.files, full.names))
 
-list.files <- function(path=".", pattern=NULL, all.files=FALSE,
-                       full.names=FALSE, recursive=FALSE)
-.Internal(list.files(path, pattern, all.files, full.names, recursive))
-
-dir <- list.files
+dir <- .Alias(list.files)
 
 file.path <- function(..., fsep=.Platform$file.sep)
 paste(..., sep=fsep)
@@ -62,14 +58,6 @@ file.copy <- function(from, to, overwrite=FALSE)
     file.append(to, from)
 }
 
-file.symlink <- function(from, to) {
-    if (!(length(from))) stop("no files to link from")
-    if (!(nt <- length(to)))   stop("no files/dir to link to")
-    if (nt == 1 && file.exists(to) && file.info(to)$isdir)
-        to <- file.path(to, basename(from))
-    .Internal(file.symlink(from, to))
-}
-
 file.info <- function(...)
 {
     res <- .Internal(file.info(fn <- c(...)))
@@ -93,17 +81,16 @@ format.octmode <- function(x, ...)
     isna <- is.na(x)
     y <- x[!isna]
     ans0 <- character(length(y))
-    z <- NULL
-    while(any(y > 0) || is.null(z)) {
+    while(any(y > 0)) {
         z <- y%%8
         y <- floor(y/8)
         ans0 <- paste(z, ans0, sep="")
     }
-    ans <- rep(as.character(NA), length(x))
+    ans <- rep("NA", length(x))
     ans[!isna] <- ans0
     ans
 }
-as.character.octmode <- format.octmode
+as.character.octmode <- .Alias(format.octmode)
 
 print.octmode <- function(x, ...)
 {
@@ -112,13 +99,22 @@ print.octmode <- function(x, ...)
 }
 
 system.file <-
-function(..., package = "base", lib.loc = NULL)
-{
+function(..., package = "base", lib.loc = .lib.loc, pkg, lib) {
     if(nargs() == 0)
         return(file.path(.Library, "base"))
+    if(!missing(pkg)) {
+        warning("argument `pkg' is deprecated.  Use `package' instead.")
+        if(missing(package)) package <- pkg
+    }
+    if(!missing(lib)) {
+        warning("argument `lib' is deprecated.  Use `lib.loc' instead.")
+        if(missing(lib.loc)) lib.loc <- lib
+    }
     if(length(package) != 1)
         stop("argument `package' must be of length 1")
-    packagePath <- .find.package(package, lib.loc, quiet = TRUE)
+    packagePath <- .find.package(package, lib.loc,
+                                 missing(lib.loc) && missing(lib),
+                                 quiet = TRUE)
     if(length(packagePath) == 0)
         return("")
     FILES <- file.path(packagePath, ...)

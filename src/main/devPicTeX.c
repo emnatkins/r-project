@@ -48,7 +48,8 @@ typedef struct {
     double clippedx0, clippedy0, clippedx1, clippedy1;
     int lty;
     rcolor col;
-    rcolor fill;
+    rcolor fg;
+    rcolor bg;
     int fontsize;
     int fontface;
     Rboolean debug;
@@ -57,7 +58,7 @@ typedef struct {
 
 	/* Global device information */
 
-static const double charwidth[4][128] = {
+static double charwidth[4][128] = {
 {
   0.5416690, 0.8333360, 0.7777810, 0.6111145, 0.6666690, 0.7083380, 0.7222240,
   0.7777810, 0.7222240, 0.7777810, 0.7222240, 0.5833360, 0.5361130, 0.5361130,
@@ -142,7 +143,7 @@ static const double charwidth[4][128] = {
 }
 };
 
-static const char * const fontname[] = {
+static char *fontname[] = {
     "cmss10",
     "cmssbx10",
     "cmssi10",
@@ -152,44 +153,29 @@ static const char * const fontname[] = {
 
 	/* Device driver actions */
 
-static void PicTeX_Activate(NewDevDesc *dd);
-static void PicTeX_Circle(double x, double y, double r,
-		       int col, int fill, double gamma, int lty, double lwd,
-		       NewDevDesc *dd);
-static void PicTeX_Clip(double x0, double x1, double y0, double y1, 
-		     NewDevDesc *dd);
-static void PicTeX_Close(NewDevDesc *dd);
-static void PicTeX_Deactivate(NewDevDesc *dd);
-static void PicTeX_Hold(NewDevDesc *dd);
-static Rboolean PicTeX_Locator(double *x, double *y, NewDevDesc *dd);
-static void PicTeX_Line(double x1, double y1, double x2, double y2,
-		     int col, double gamma, int lty, double lwd,
-		     NewDevDesc *dd);
-static void PicTeX_MetricInfo(int c, int font, double cex, double ps,
-			      double* ascent, double* descent,
-			      double* width, NewDevDesc *dd);
-static void PicTeX_Mode(int mode, NewDevDesc *dd);
-static void PicTeX_NewPage(int fill, double gamma, NewDevDesc *dd);
-static void PicTeX_Polygon(int n, double *x, double *y, 
-			int col, int fill, double gamma, int lty, double lwd,
-			NewDevDesc *dd);
-static void PicTeX_Rect(double x0, double y0, double x1, double y1,
-		     int col, int fill, double gamma, int lty, double lwd,
-		     NewDevDesc *dd);
-static void PicTeX_Size(double *left, double *right,
-		     double *bottom, double *top,
-		     NewDevDesc *dd);
-static double PicTeX_StrWidth(char *str, int font,
-			      double cex, double ps, NewDevDesc *dd);
-static void PicTeX_Text(double x, double y, char *str, 
-		     double rot, double hadj, 
-		     int col, double gamma, int font, double cex, double ps,
-		     NewDevDesc *dd);
-static Rboolean PicTeX_Open(NewDevDesc*, picTeXDesc*);
+static void   PicTeX_Activate(DevDesc *);
+static void   PicTeX_Circle(double, double, int, double, int, int, DevDesc*);
+static void   PicTeX_Clip(double, double, double, double, DevDesc*);
+static void   PicTeX_Close(DevDesc*);
+static void   PicTeX_Deactivate(DevDesc *);
+static void   PicTeX_Hold(DevDesc*);
+static void   PicTeX_Line(double, double, double, double, int, DevDesc*);
+static Rboolean PicTeX_Locator(double*, double*, DevDesc*);
+static void   PicTeX_Mode(int, DevDesc*);
+static void   PicTeX_NewPage(DevDesc*);
+static Rboolean PicTeX_Open(DevDesc*, picTeXDesc*);
+static void   PicTeX_Polygon(int, double*, double*, int, int, int, DevDesc*);
+static void   PicTeX_Polyline(int, double*, double*, int, DevDesc*);
+static void   PicTeX_Rect(double, double, double, double, int, int, int,
+			  DevDesc*);
+static void   PicTeX_Resize(DevDesc*);
+static double PicTeX_StrWidth(char*, DevDesc*);
+static void   PicTeX_Text(double, double, int, char*, double, double, DevDesc*);
+static void   PicTeX_MetricInfo(int, double*, double*, double*, DevDesc*);
 
 	/* Support routines */
 
-static void SetLinetype(int newlty, int newlwd, NewDevDesc *dd)
+static void SetLinetype(int newlty, int newlwd, DevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
@@ -221,17 +207,16 @@ static void SetFont(int face, int size, picTeXDesc *ptd)
     }
 }
 
-static void PicTeX_Activate(NewDevDesc *dd)
+static void PicTeX_Activate(DevDesc *dd)
 {
 }
 
-static void PicTeX_Deactivate(NewDevDesc *dd)
+static void PicTeX_Deactivate(DevDesc *dd)
 {
 }
 
-static void PicTeX_MetricInfo(int c, int font, double cex, double ps,
-			      double* ascent, double* descent,
-			      double* width, NewDevDesc *dd)
+static void PicTeX_MetricInfo(int c, double *ascent, double *descent,
+			      double *width, DevDesc *dd)
 {
     /* metric information not available => return 0,0,0 */
     *ascent = 0.0;
@@ -241,7 +226,7 @@ static void PicTeX_MetricInfo(int c, int font, double cex, double ps,
 
 	/* Initialize the device */
 
-static Rboolean PicTeX_Open(NewDevDesc *dd, picTeXDesc *ptd)
+static Rboolean PicTeX_Open(DevDesc *dd, picTeXDesc *ptd)
 {
     ptd->fontsize = 0;
     ptd->fontface = 0;
@@ -263,18 +248,12 @@ static Rboolean PicTeX_Open(NewDevDesc *dd, picTeXDesc *ptd)
 
 	/* Interactive Resize */
 
-static void PicTeX_Size(double *left, double *right,
-		     double *bottom, double *top,
-		     NewDevDesc *dd)
+static void PicTeX_Resize(DevDesc *dd)
 {
-    *left = dd->left;		/* left */
-    *right = dd->right;/* right */
-    *bottom = dd->bottom;		/* bottom */
-    *top = dd->top;/* top */
 }
 
 static void PicTeX_Clip(double x0, double x1, double y0, double y1,
-			NewDevDesc *dd)
+			DevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
@@ -289,7 +268,7 @@ static void PicTeX_Clip(double x0, double x1, double y0, double y1,
 
 	/* Start a new page */
 
-static void PicTeX_NewPage(int fill, double gamma, NewDevDesc *dd)
+static void PicTeX_NewPage(DevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
@@ -314,7 +293,7 @@ static void PicTeX_NewPage(int fill, double gamma, NewDevDesc *dd)
 
 	/* Close down the driver */
 
-static void PicTeX_Close(NewDevDesc *dd)
+static void PicTeX_Close(DevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
@@ -412,13 +391,14 @@ static void PicTeX_ClipLine(double x0, double y0, double x1, double y1,
 }
 
 static void PicTeX_Line(double x1, double y1, double x2, double y2,
-		     int col, double gamma, int lty, double lwd,
-		     NewDevDesc *dd)
+			int coords, DevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
     if (x1 != x2 || y1 != y2) {
-	SetLinetype(lty, lwd, dd);
+	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
+	GConvert(&x1, &y1, coords, DEVICE, dd);
+	GConvert(&x2, &y2, coords, DEVICE, dd);
 	if(ptd->debug)
 	    fprintf(ptd->texfp,
 		    "%% Drawing line from %.2f, %.2f to %.2f, %.2f\n",
@@ -435,20 +415,21 @@ static void PicTeX_Line(double x1, double y1, double x2, double y2,
     }
 }
 
-static void PicTeX_Polyline(int n, double *x, double *y, 
-			    int col, double gamma, int lty, double lwd,
-			    NewDevDesc *dd)
+static void PicTeX_Polyline(int n, double *x, double *y, int coords,
+			    DevDesc* dd)
 {
     double x1, y1, x2, y2;
     int i;
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
-    SetLinetype(lty, lwd, dd);
+    SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
     x1 = x[0];
     y1 = y[0];
+    GConvert(&x1, &y1, coords, DEVICE, dd);
     for (i = 1; i < n; i++) {
 	x2 = x[i];
 	y2 = y[i];
+	GConvert(&x2, &y2, coords, DEVICE, dd);
 	PicTeX_ClipLine(x1, y1, x2, y2, ptd);
 	fprintf(ptd->texfp, "\\plot %.2f %.2f %.2f %.2f /\n",
 		ptd->clippedx0, ptd->clippedy0,
@@ -461,16 +442,15 @@ static void PicTeX_Polyline(int n, double *x, double *y,
 	/* String Width in Rasters */
 	/* For the current font in pointsize fontsize */
 
-static double PicTeX_StrWidth(char *str, int font,
-			      double cex, double ps, NewDevDesc *dd)
+static double PicTeX_StrWidth(char *str, DevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
     char *p;
     int size;
     double sum;
-    size = cex * ps + 0.5;
-    SetFont(font, size, ptd);
+    size = dd->gp.cex * dd->gp.ps + 0.5;
+    SetFont(dd->gp.font, size, ptd);
     sum = 0;
     for(p=str ; *p ; p++)
 	sum += charwidth[ptd->fontface-1][(int)*p];
@@ -480,8 +460,7 @@ static double PicTeX_StrWidth(char *str, int font,
 
 /* Possibly Filled Rectangle */
 static void PicTeX_Rect(double x0, double y0, double x1, double y1,
-		     int col, int fill, double gamma, int lty, double lwd,
-		     NewDevDesc *dd)
+			int coords, int bg, int fg, DevDesc *dd)
 {
     double x[4], y[4];
 
@@ -489,34 +468,35 @@ static void PicTeX_Rect(double x0, double y0, double x1, double y1,
     x[1] = x0; y[1] = y1;
     x[2] = x1; y[2] = y1;
     x[3] = x1; y[3] = y0;
-    PicTeX_Polygon(4, x, y, col, fill, gamma, lty, lwd, dd);
+    PicTeX_Polygon(4, x, y, coords, bg, fg, dd);
 }
 
-static void PicTeX_Circle(double x, double y, double r,
-		       int col, int fill, double gamma, int lty, double lwd,
-		       NewDevDesc *dd)
+static void PicTeX_Circle(double x, double y, int coords, double r,
+			  int col, int border, DevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
+    GConvert(&x, &y, coords, DEVICE, dd);
     fprintf(ptd->texfp,
 	    "\\circulararc 360 degrees from %.2f %.2f center at %.2f %.2f\n",
 	    x, (y + r), x, y);
 }
 
-static void PicTeX_Polygon(int n, double *x, double *y, 
-			int col, int fill, double gamma, int lty, double lwd,
-			NewDevDesc *dd)
+static void PicTeX_Polygon(int n, double *x, double *y, int coords,
+			   int bg, int fg, DevDesc* dd)
 {
     double x1, y1, x2, y2;
     int i;
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
-    SetLinetype(lty, lwd, dd);
+    SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
     x1 = x[0];
     y1 = y[0];
+    GConvert(&x1, &y1, coords, DEVICE, dd);
     for (i=1; i<n; i++) {
 	x2 = x[i];
 	y2 = y[i];
+	GConvert(&x2, &y2, coords, DEVICE, dd);
 	PicTeX_ClipLine(x1, y1, x2, y2, ptd);
 	fprintf(ptd->texfp, "\\plot %.2f %.2f %.2f %.2f /\n",
 		ptd->clippedx0, ptd->clippedy0,
@@ -526,6 +506,7 @@ static void PicTeX_Polygon(int n, double *x, double *y,
     }
     x2 = x[0];
     y2 = y[0];
+    GConvert(&x2, &y2, coords, DEVICE, dd);
     PicTeX_ClipLine(x1, y1, x2, y2, ptd);
     fprintf(ptd->texfp, "\\plot %.2f %.2f %.2f %.2f /\n",
 	    ptd->clippedx0, ptd->clippedy0,
@@ -567,22 +548,21 @@ static void textext(char *str, picTeXDesc *ptd)
 
 /* Rotated Text */
 
-static void PicTeX_Text(double x, double y, char *str, 
-		     double rot, double hadj, 
-		     int col, double gamma, int font, double cex, double ps,
-		     NewDevDesc *dd)
+static void PicTeX_Text(double x, double y, int coords,
+			char *str, double rot, double hadj,
+			DevDesc *dd)
 {
     int size;
     double xoff = 0.0, yoff = 0.0;
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
-    size = cex * ps + 0.5;
-    SetFont(font, size, ptd);
+    size = dd->gp.cex * dd->gp.ps + 0.5;
+    SetFont(dd->gp.font, size, ptd);
+    GConvert(&x, &y, coords, DEVICE, dd);
     if(ptd->debug) 
 	fprintf(ptd->texfp,
 		"%% Writing string of length %.2f, at %.2f %.2f, xc = %.2f yc = %.2f\n",
-		(double)PicTeX_StrWidth(str, font, cex, ps, dd), 
-		x, y, 0.0, 0.0);
+		(double)PicTeX_StrWidth(str, dd), x, y, 0.0, 0.0);
     fprintf(ptd->texfp,"\\put ");
     textext(str, ptd);
     if (rot == 90 )
@@ -592,24 +572,22 @@ static void PicTeX_Text(double x, double y, char *str,
 }
 
 /* Pick */
-static Rboolean PicTeX_Locator(double *x, double *y, NewDevDesc *dd)
+static Rboolean PicTeX_Locator(double *x, double *y, DevDesc *dd)
 {
     return FALSE;
 }
 
 
-static void PicTeX_Mode(int mode, NewDevDesc* dd)
+static void PicTeX_Mode(int mode, DevDesc* dd)
 {
 }
 
-static void PicTeX_Hold(NewDevDesc *dd)
+static void PicTeX_Hold(DevDesc *dd)
 {
 }
 
-Rboolean internalPicTeXDeviceDriver(NewDevDesc *dd, char *filename, 
-				    char *bg, char *fg,
-				    double width, double height, 
-				    Rboolean debug)
+Rboolean PicTeXDeviceDriver(DevDesc *dd, char *filename, char *bg, char *fg,
+			    double width, double height, Rboolean debug)
 {
     picTeXDesc *ptd;
 
@@ -618,40 +596,34 @@ Rboolean internalPicTeXDeviceDriver(NewDevDesc *dd, char *filename,
 
     strcpy(ptd->filename, filename);
 
-    dd->startfill = str2col(bg);
-    dd->startcol = str2col(fg);
-    dd->startps = 10;
-    dd->startlty = 0;
-    dd->startfont = 1;
-    dd->startgamma = 1;
+    dd->dp.bg = dd->gp.bg = str2col(bg);
+    dd->dp.fg = dd->gp.fg = str2col(fg);
 
-    dd->newDevStruct = 1;
-    
-    dd->activate = PicTeX_Activate;
-    dd->deactivate = PicTeX_Deactivate;
-    dd->open = PicTeX_Open;
-    dd->close = PicTeX_Close;
-    dd->clip = PicTeX_Clip;
-    dd->size = PicTeX_Size;
-    dd->newPage = PicTeX_NewPage;
-    dd->line = PicTeX_Line;
-    dd->text = PicTeX_Text;
-    dd->strWidth = PicTeX_StrWidth;
-    dd->rect = PicTeX_Rect;
-    dd->circle = PicTeX_Circle;
-    dd->polygon = PicTeX_Polygon;
-    dd->polyline = PicTeX_Polyline;
-    dd->locator = PicTeX_Locator;
-    dd->mode = PicTeX_Mode;
-    dd->hold = PicTeX_Hold;
-    dd->metricInfo = PicTeX_MetricInfo;
+    dd->dp.activate = PicTeX_Activate;
+    dd->dp.deactivate = PicTeX_Deactivate;
+    dd->dp.open = PicTeX_Open;
+    dd->dp.close = PicTeX_Close;
+    dd->dp.clip = PicTeX_Clip;
+    dd->dp.resize = PicTeX_Resize;
+    dd->dp.newPage = PicTeX_NewPage;
+    dd->dp.line = PicTeX_Line;
+    dd->dp.text = PicTeX_Text;
+    dd->dp.strWidth = PicTeX_StrWidth;
+    dd->dp.rect = PicTeX_Rect;
+    dd->dp.circle = PicTeX_Circle;
+    dd->dp.polygon = PicTeX_Polygon;
+    dd->dp.polyline = PicTeX_Polyline;
+    dd->dp.locator = PicTeX_Locator;
+    dd->dp.mode = PicTeX_Mode;
+    dd->dp.hold = PicTeX_Hold;
+    dd->dp.metricInfo = PicTeX_MetricInfo;
 
     /* Screen Dimensions in Pixels */
 
-    dd->left = 0;		/* left */
-    dd->right = in2dots(width);/* right */
-    dd->bottom = 0;		/* bottom */
-    dd->top = in2dots(height);/* top */
+    dd->dp.left = 0;		/* left */
+    dd->dp.right = in2dots(width);/* right */
+    dd->dp.bottom = 0;		/* bottom */
+    dd->dp.top = in2dots(height);/* top */
     ptd->width = width;
     ptd->height = height;
 
@@ -661,29 +633,29 @@ Rboolean internalPicTeXDeviceDriver(NewDevDesc *dd, char *filename,
     /* Base Pointsize */
     /* Nominal Character Sizes in Pixels */
 
-    dd->cra[0] =	 (6.0/12.0) * 10.0;
-    dd->cra[1] =	(10.0/12.0) * 10.0;
+    dd->dp.ps = 10;
+    dd->dp.cra[0] =	 (6.0/12.0) * 10.0;
+    dd->dp.cra[1] =	(10.0/12.0) * 10.0;
 
     /* Character Addressing Offsets */
     /* These offsets should center a single */
     /* plotting character over the plotting point. */
     /* Pure guesswork and eyeballing ... */
 
-    dd->xCharOffset =  0; /*0.4900;*/
-    dd->yCharOffset =  0; /*0.3333;*/
-    dd->yLineBias = 0; /*0.1;*/
+    dd->dp.xCharOffset =  0; /*0.4900;*/
+    dd->dp.yCharOffset =  0; /*0.3333;*/
+    dd->dp.yLineBias = 0; /*0.1;*/
 
     /* Inches per Raster Unit */
     /* We use printer points, i.e. 72.27 dots per inch : */
-    dd->ipr[0] = dd->ipr[1] = 1./DOTSperIN;
+    dd->dp.ipr[0] = dd->dp.ipr[1] = 1./DOTSperIN;
 
-    dd->canResizePlot = FALSE;
-    dd->canChangeFont = TRUE;
-    dd->canRotateText = FALSE;
-    dd->canResizeText = TRUE;
-    dd->canClip = TRUE;
-    dd->canHAdj = 0;
-    dd->canChangeGamma = FALSE;
+    dd->dp.canResizePlot = FALSE;
+    dd->dp.canChangeFont = TRUE;
+    dd->dp.canRotateText = FALSE;
+    dd->dp.canResizeText = TRUE;
+    dd->dp.canClip = TRUE;
+    dd->dp.canHAdj = 0;
 
     ptd->lty = 1;
     ptd->pageno = 0;
@@ -693,11 +665,3 @@ Rboolean internalPicTeXDeviceDriver(NewDevDesc *dd, char *filename,
     dd->displayListOn = FALSE;
     return TRUE;
 }
-
-Rboolean PicTeXDeviceDriver(DevDesc *dd, char *filename, char *bg, char *fg,
-			    double width, double height, Rboolean debug)
-{
-    return internalPicTeXDeviceDriver((NewDevDesc*) dd, filename, bg, fg,
-				      width, height, debug);
-}
-

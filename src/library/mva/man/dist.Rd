@@ -5,7 +5,7 @@ dist(x, method = "euclidean", diag = FALSE, upper = FALSE)
 
 print.dist(x, diag = NULL, upper = NULL, \dots)
 as.matrix.dist(x)
-as.dist(m, diag = FALSE, upper = FALSE)
+as.dist(m, diag = NULL, upper = NULL)
 }
 \alias{dist}
 \alias{print.dist}
@@ -15,18 +15,18 @@ as.dist(m, diag = FALSE, upper = FALSE)
 \alias{names<-.dist}
 \alias{as.dist}
 \arguments{
-  \item{x}{numeric matrix or (data frame).  Distances between the rows of
+  \item{x}{A matrix or (data frame).  Distances between the rows of
     \code{x} will be computed.}
-  \item{method}{the distance measure to be used. This must be one of
-    \code{"euclidean"}, \code{"maximum"}, \code{"manhattan"},
+  \item{method}{The distance measure to be used. This must be one of
+    \code{"euclidean"}, \code{"maximum"}, \code{"manhattan"}, 
     \code{"canberra"} or \code{"binary"}.
     Any unambiguous substring can be given.}
-  \item{diag}{logical value indicating whether the diagonal of the
+  \item{diag}{A logical value indicating whether the diagonal of the
     distance matrix should be printed by \code{print.dist}.}
-  \item{upper}{logical value indicating whether the upper triangle of the
-    distance matrix should be printed by \code{print.dist}.}
-  \item{m}{A matrix of distances to be converted to a \code{"dist"}
-    object (only the lower triangle is used, the rest is ignored).}
+  \item{upper}{A logical value indicating whether the upper triangle of the
+      distance matrix should be printed by \code{print.dist}.}
+    \item{m}{A matrix of distances to be converted to a \code{"dist"}
+      object (only the lower triangle is used, the rest is ignored).}
   \item{\dots}{further arguments, passed to the (next) \code{print} method.}
 }
 \description{
@@ -36,7 +36,7 @@ as.dist(m, diag = FALSE, upper = FALSE)
 }
 \details{
   Available distance measures are (written for two vectors \eqn{x} and
-  \eqn{y}):
+  \eqn{y}): 
   \describe{
     \item{\code{euclidean}:}{Usual square distance between the two
       vectors (2 norm).}
@@ -52,7 +52,7 @@ as.dist(m, diag = FALSE, upper = FALSE)
       denominator are omitted from the sum and treated as if the values
       were missing.
     }
-
+    
     \item{\code{binary}:}{(aka \emph{asymmetric binary}): The vectors
       are regarded as binary bits, so non-zero elements are `on' and zero
       elements are `off'.  The distance is the \emph{proportion} of
@@ -60,50 +60,29 @@ as.dist(m, diag = FALSE, upper = FALSE)
   }
 
   Missing values are allowed, and are excluded from all computations
-  involving the rows within which they occur.
-  Further, when \code{Inf} values are involved, all pairs of values are
-  excluded when their contribution to the distance gave \code{NaN} or
-  \code{NA}.\cr
-  If some columns are excluded in calculating a Euclidean, Manhattan or
-  Canberra distance, the sum is scaled up proportionally to the number
-  of columns used.  If all pairs are excluded when calculating a
-  particular distance, the value is \code{NA}.
-
+  involving the rows within which they occur.  If some columns are
+  excluded in calculating a Euclidean, Manhattan or Canberra distance,
+  the sum is scaled up proportionally to the number of columns used.
+  If all pairs are excluded when calculating a particular distance,
+  the value is \code{NA}. 
+  
   The functions \code{as.matrix.dist()} and \code{as.dist()} can be used
   for conversion between objects of class \code{"dist"} and conventional
   distance matrices and vice versa.
 }
 \value{
   An object of class \code{"dist"}.
-
+  
   The lower triangle of the distance matrix stored by columns in a
-  vector, say \code{do}. If \code{n} is the number of
-  observations, i.e., \code{n <- attr(do, "Size")}, then
-  for \eqn{i < j <= n}, the dissimilarity between (row) i and j is
-  \code{do[n*(i-1) - i*(i-1)/2 + j-i]}.
-  The length of the vector is \eqn{n*(n-1)/2}, i.e., of order \eqn{n^2}.
-
-  The object has the following attributes (besides \code{"class"} equal
-  to \code{"dist"}):
-  \item{Size}{integer, the number of observations in the dataset.}
-  \item{Labels}{optionally, contains the labels, if any, of the
-    observations of the dataset.}
-  \item{Diag, Upper}{logicals corresponding to the arguments \code{diag}
-    and \code{upper} above, specifying how the object should be printed.}
-  \item{call}{optionally, the \code{\link{call}} used to create the
-    object.}
-  \item{methods}{optionally, the distance method used; resulting form
-    \code{\link{dist}()}, the (\code{\link{match.arg}()}ed) \code{method}
-    argument.}
+  single vector.  The vector has the attributes \code{"Size"},
+  \code{"Diag"}, \code{"Upper"}, \code{"Labels"} and \code{"class"} equal
+  to \code{"dist"}.
 }
 \references{
   Mardia, K. V., Kent, J. T. and Bibby, J. M. (1979)
   \emph{Multivariate Analysis.} London: Academic Press.
 }
 \seealso{
-  \code{\link[cluster]{daisy}} in the \file{cluster} package with more
-  possibilities in the case of \emph{mixed} (contiuous / categorical)
-  variables.
   \code{\link{hclust}}.
 }
 \examples{
@@ -113,8 +92,6 @@ dist(x, diag = TRUE)
 dist(x, upper = TRUE)
 m <- as.matrix(dist(x))
 d <- as.dist(m)
-stopifnot(d == dist(x))
-names(d) <- LETTERS[1:5]
 print(d, digits = 3)
 
 ## example of binary and canberra distances.
@@ -124,28 +101,6 @@ dist(rbind(x,y), method="binary")
 ## answer 0.4 = 2/5
 dist(rbind(x,y), method="canberra")
 ## answer 2 * (6/5)
-
-## Examples involving "Inf" :
-
-## 1)
-x[6] <- Inf
-(m2 <- rbind(x,y))
-dist(m2, method="binary")# warning, answer 0.5 = 2/4
-## These all give "Inf":
-stopifnot(Inf == dist(m2, method= "euclidean"),
-          Inf == dist(m2, method= "maximum"),
-          Inf == dist(m2, method= "manhattan"))
-##  "Inf" is same as very large number:
-x1 <- x; x1[6] <- 1e100
-stopifnot(dist(cbind(x ,y), method="canberra") ==
-    print(dist(cbind(x1,y), method="canberra")))
-
-## 2)
-y[6] <- Inf #-> 6-th pair is excluded
-dist(rbind(x,y), method="binary")# warning; 0.5
-dist(rbind(x,y), method="canberra")#  3
-dist(rbind(x,y), method="maximum")  # 1
-dist(rbind(x,y), method="manhattan")# 2.4
 }
 \keyword{multivariate}
 \keyword{cluster}

@@ -5,6 +5,8 @@ xtabs <- function(formula = ~., data = parent.frame(), subset,
 	stop("formula is incorrect")
     if(any(attr(terms(formula), "order") > 1))
 	stop("interactions are not allowed")
+    if(missing(na.action))
+	na.action <- getOption("na.action")
     m <- match.call(expand.dots = FALSE)
     if(is.matrix(eval(m$data, parent.frame())))
 	m$data <- as.data.frame(data)
@@ -26,7 +28,7 @@ xtabs <- function(formula = ~., data = parent.frame(), subset,
     })
     x <-
 	if(is.null(y))
-	    do.call("table", by)
+	    do.call("table", mf)
 	else if(NCOL(y) == 1)
 	    tapply(y, by, sum)
 	else {

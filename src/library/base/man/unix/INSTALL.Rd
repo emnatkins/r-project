@@ -1,6 +1,6 @@
 \name{INSTALL}
-\alias{INSTALL}
 \title{Install Add-on Packages}
+\alias{INSTALL}
 \description{Utility for installing add-on packages.}
 \usage{R CMD INSTALL [options] [-l lib] pkgs}
 \arguments{
@@ -13,9 +13,9 @@
 \details{
   If used as \code{R CMD INSTALL pkgs} without explicitly specifying
   \code{lib}, packages are installed into the library tree rooted at the
-  first directory given in the environment variable \code{R\_LIBS} if
-  this is set and non-null, and to the default library tree (which is
-  rooted at \file{\$R\_HOME/library}) otherwise.
+  first directory given in \code{\$R\_LIBS} if this is set and non-null,
+  and to the default library tree (which is rooted at
+  \file{\$R\_HOME/library}) otherwise.
 
   To install into the library tree \code{lib}, use
   \code{R CMD INSTALL -l lib pkgs}.
@@ -31,10 +31,9 @@
   is useful in particular if libraries or header files needed for the
   package are in non-system directories.  In this case, one can use the
   configure variables \code{LIBS} and \code{CPPFLAGS} to specify these
-  locations (and set these via \code{--configure-vars}), see section
-  `Configuration variables' in ``R Installation and Administration'' for
-  more information.  One can also bypass the configure mechanism using
-  the option \code{--no-configure}.
+  locations (and set these via \code{--configure-vars}).  One can also
+  bypass the configure mechanism using the option
+  \code{--no-configure}.
   
   If \code{--no-docs} is given, no help files are built.  Options
   \code{--no-text}, \code{--no-html}, and \code{--no-latex} suppress
@@ -44,33 +43,13 @@
   If the option \code{--save} is used, the installation procedure
   creates a binary image of the package code, which is then loaded when
   the package is attached, rather than evaluating the package source at
-  that time.  Having a file \file{install.R} in the package directory
-  makes this the default behavior for the package (option
-  \code{--no-save} overrides).  You may need  \code{--save} if your
-  package requires other packages to evaluate its own source.  If the
-  file \file{install.R} is non-empty, it should contain R expressions to
-  be executed when the package is attached, after loading the saved
-  image.  Options to be passed to R when creating the save image can be
-  specified via \code{--save=ARGS}.
+  that time.  Having a file \file{INSTALL.R} in the package directory
+  (its contents don't matter) makes this the default behavior for the
+  package (option \code{--no-save} overrides).  You may need
+  \code{--save} if your package requires other packages to evaluate its
+  own source.
 
   Use \code{R CMD INSTALL --help} for more usage information.
-}
-
-\section{Packages using the methods package}{
-  Packages that require the methods package, and that use functions such
-  as \code{\link[methods]{setMethod}} or
-  \code{\link[methods]{setClass}}, should be installed by creating a
-  binary image.
-
-  The package should require the methods package, both during
-  installation and when the user attaches the package.  A good solution
-  for most cases is to include the line \code{require("methods")} twice,
-  once at the beginning of the package's R source, and once in the file
-  \file{install.R} in the package directory (the top-level directory,
-  \emph{not} in the \file{R} directory below that).  The
-  \file{install.R} file causes an image to be saved, and the contents
-  will ensure that methods are available when the package is attached.
-
 }
 \seealso{
   \code{\link{REMOVE}},

@@ -1,6 +1,5 @@
 \name{DateTimeClasses}
-% implementation mostly in ../R/datetime.R
-\alias{DateTimeClasses}
+% implementation mostly in ../R/datetime.R 
 \alias{POSIXct}
 \alias{POSIXlt}
 \alias{print.POSIXct}
@@ -17,10 +16,7 @@
 \alias{[.POSIXct}
 \alias{[<-.POSIXct}
 \alias{[[.POSIXct}
-\alias{[.POSIXlt}
-\alias{[<-.POSIXlt}
 \alias{as.data.frame.POSIXct}
-\alias{as.data.frame.POSIXlt}
 \alias{.leap.seconds}
 \alias{is.na.POSIXlt}
 \alias{all.equal.POSIXct}
@@ -43,22 +39,26 @@
   representing calendar dates and times (to the nearest second). 
 }
 \usage{
-\method{print}{POSIXct}(x, ...)
+print.POSIXct(x, ...)
+print.POSIXlt(x, ...)
 
-\method{summary}{POSIXct}(object, digits = 15, ...)
+summary.POSIXct(object, digits = 15, ...)
+summary.POSIXlt(object, digits = 15, ...)
 
 time + number
 time - number
 time1 lop time2
+
+c(time1, ..., recursive = FALSE)
+mean(time)
 }
 \arguments{
-  \item{x, object}{An object to be printed or summarized from one of the
-    date-time classes.}
+  \item{x, object}{An object to be printed or summarized.}
   \item{digits}{Number of significant digits for the computations:
     should be high enough to represent the least important time unit
     exactly.}
   \item{\dots}{Further arguments to be passed from or to other methods.}
-  \item{time, time1, time2}{date-time objects.}
+  \item{time, time1, time2, \dots}{date-time objects.}
   \item{number}{a numeric object.}
   \item{lop}{One of \code{==}, \code{!=}, \code{<}, \code{<=}, \code{>}
     or \code{>=}.}
@@ -121,7 +121,7 @@ time1 lop time2
   be wrong if the system has changed since build time, just possibly by
   changing locales.)
 
-  Using \code{\link{c}} on \code{"POSIXlt"} objects converts them to the
+  Using \code{c} on \code{"POSIXlt"} objects converts them to the
   current time zone.
 
 }
@@ -140,7 +140,7 @@ time1 lop time2
   \code{\link{round.POSIXt}} and \code{\link{trunc.POSIXt}} for methods
   for these classes.
 
-  \code{\link{weekdays.POSIXt}} for convenience extraction functions.
+  \code{weekday.POSIXt} for convenience extraction functions.
 }
 \section{Warning}{
   Some Unix-like systems (especially Linux ones) do not have \code{"TZ"}
@@ -155,6 +155,15 @@ Sys.time() - 3600             # an hour ago
 
 as.POSIXlt(Sys.time(), "GMT") # the current time in GMT
 format(.leap.seconds)         # all 22 leapseconds in your timezone
+
+%% `advanced' examples:
+\testonly{
+str(.leap.seconds)
+
+## Wouldn't we want a  diff.POSIXt()  method ?
+(dls <- .leap.seconds[-1] - .leap.seconds[-22])
+table(dls)
+}
 }
 \keyword{utilities}
 \keyword{chron}

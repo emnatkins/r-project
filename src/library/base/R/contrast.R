@@ -1,7 +1,6 @@
 contrasts <-
     function (x, contrasts = TRUE)
 {
-    if (is.logical(x)) x <- factor(x)
     if (!is.factor(x))
 	stop("contrasts apply only to factors")
     if(!contrasts)
@@ -20,7 +19,6 @@ contrasts <-
 "contrasts<-" <-
     function(x, how.many, value)
 {
-    if (is.logical(x)) x <- factor(x)
     if(!is.factor(x))
 	stop("contrasts apply only to factors")
     if(is.function(value)) value <- value(nlevels(x))
@@ -39,7 +37,7 @@ contrasts <-
 	    cm[,1:nc] <- value
 	    dimnames(cm) <- list(levels(x),NULL)
 	    if(!is.null(nmcol <- dimnames(value)[[2]]))
-		dimnames(cm)[[2]] <- c(nmcol, rep.int("", n1-nc))
+		dimnames(cm)[[2]] <- c(nmcol, rep("", n1-nc))
 	} else cm <- value[, 1:n1, drop=FALSE]
     }
     else if(is.character(value)) cm <- value

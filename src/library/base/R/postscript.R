@@ -6,7 +6,7 @@
 	 family = "Helvetica",
 	 encoding = "default",
 	 pointsize  = 12,
-	 bg	= "transparent",
+	 bg	= "white",
 	 fg	= "black",
 	 onefile    = TRUE,
 	 print.it   = FALSE,
@@ -97,8 +97,7 @@ ps.options <- function(..., reset=FALSE, override.check= FALSE)
 ##--> source in ../../../main/devices.c	 and ../../../main/devPS.c :
 
 postscript <- function (file = ifelse(onefile,"Rplots.ps", "Rplot%03d.ps"),
-                        onefile = TRUE, family,
-                        title = "R Graphics Output", ...)
+                        onefile=TRUE, family, ...)
 {
     new <- list(onefile=onefile, ...)# eval
     old <- check.options(new = new, name.opt = ".PostScript.Options",
@@ -106,20 +105,16 @@ postscript <- function (file = ifelse(onefile,"Rplots.ps", "Rplot%03d.ps"),
 
     if(is.null(old$command) || old$command == "default")
         old$command <- if(!is.null(cmd <- getOption("printcmd"))) cmd else ""
-    ## handle family separately as length can be 1, 4, or 5
-    if(!missing(family)) {
-        if(length(family) == 4) family <- c(family, "sy______.afm")
-        old$family <- family
-    }
+    ## handle family separately as length can be 1 or 4
+    if(!missing(family)) old$family <- family
     if(is.null(old$encoding) || old$encoding  == "default")
-        old$encoding <- switch(.Platform$OS.type,
-                               "mac" = "MacRoman.enc",
-                               "windows" = "WinAnsi.enc",
+        old$encoding <- switch(machine(),
+                               "Macintosh" = "MacRoman.enc",
+                               "Win32" = "WinAnsi.enc",
                                "ISOLatin1.enc")
     .Internal(PS(file, old$paper, old$family, old$encoding, old$bg, old$fg,
 		 old$width, old$height, old$horizontal, old$pointsize,
-                 old$onefile, old$pagecentre, old$print.it, old$command,
-                 title))
+                 old$onefile, old$pagecentre, old$print.it, old$command))
 }
 
 xfig <- function (file = ifelse(onefile,"Rplots.fig", "Rplot%03d.fig"),
@@ -135,19 +130,18 @@ xfig <- function (file = ifelse(onefile,"Rplots.fig", "Rplot%03d.fig"),
 }
 
 pdf <- function (file = ifelse(onefile, "Rplots.pdf", "Rplot%03d.pdf"),
-                 width = 6, height = 6, onefile = TRUE,
-                 title = "R Graphics Output", ...)
+                 width = 6, height = 6, onefile=TRUE, ...)
 {
     new <- list(onefile=onefile, ...)# eval
     old <- check.options(new = new, name.opt = ".PostScript.Options",
 			 reset = FALSE, assign.opt = FALSE)
     if(is.null(old$encoding) || old$encoding  == "default")
-        old$encoding <- switch(.Platform$OS.type,
-                               "mac" = "MacRoman.enc",
-                               "windows" = "WinAnsi.enc",
+        old$encoding <- switch(machine(),
+                               "Macintosh" = "MacRoman.enc",
+                               "Win32" = "WinAnsi.enc",
                                "ISOLatin1.enc")
     .Internal(PDF(file, old$family, old$encoding, old$bg, old$fg,
-                  width, height, old$pointsize, old$onefile, title))
+                  width, height, old$pointsize, old$onefile))
 }
 
 .ps.prolog <- c(
@@ -155,13 +149,14 @@ pdf <- function (file = ifelse(onefile, "Rplots.pdf", "Rplot%03d.pdf"),
 "/gr  { grestore } def",
 "/ep  { showpage gr gr } def",
 "/m   { moveto } def",
-"/l  { rlineto } def",
+"/l   { lineto } def",
 "/np  { newpath } def",
 "/cp  { closepath } def",
 "/f   { fill } def",
 "/o   { stroke } def",
 "/c   { newpath 0 360 arc } def",
-"/r   { 4 2 roll moveto 1 copy 3 -1 roll exch 0 exch rlineto 0 rlineto -1 mul 0 exch rlineto closepath } def",
+"/r   { 3 index 3 index moveto 1 index 4 -1 roll",
+"       lineto exch 1 index lineto lineto closepath } def",
 "/p1  { stroke } def",
 "/p2  { gsave bg setrgbcolor fill grestore newpath } def",
 "/p3  { gsave bg setrgbcolor fill grestore stroke } def",

@@ -4,7 +4,7 @@
 \alias{predict.pbSpline}
 \alias{predict.npolySpline}
 \alias{predict.ppolySpline}
-%\alias{plot.spline}
+\alias{plot.spline}
 \title{Evaluate a spline at new values of x}
 \description{
   The \code{predict} methods for the classes that inherit from the
@@ -14,17 +14,13 @@
   argument missing, then plots the resulting \code{xyVector} with
   \code{type = "l"}.}
 \usage{
-\method{predict}{bSpline}(object, x, nseg=50, deriv=0, \dots)
-%plot.spline(x, \dots)
+predict.bSpline(object, x, nseg=50, deriv=0)
+predict.nbSpline(object, x, nseg=50, deriv=0)
+predict.pbSpline(object, x, nseg=50, deriv=0)
+predict.npolySpline(object, x, nseg=50, deriv=0)
+predict.ppolySpline(object, x, nseg=50, deriv=0)
+plot.spline(x, \dots)
 }
-% \synopsis{
-% predict.bSpline(object, x, nseg=50, deriv=0, \dots)
-% predict.nbSpline(object, x, nseg=50, deriv=0, \dots)
-% predict.pbSpline(object, x, nseg=50, deriv=0, \dots)
-% predict.npolySpline(object, x, nseg=50, deriv=0, \dots)
-% predict.ppolySpline(object, x, nseg=50, deriv=0, \dots)
-% plot.spline(x, \dots)
-% }
 \arguments{
   \item{object}{An object that inherits from the \code{bSpline} or the
     \code{polySpline} class.  For \code{plot.spline} this argument is
@@ -39,11 +35,7 @@
     in \code{object}.  This value is only used if \code{x} is missing.}
   \item{deriv}{An integer between 0 and \code{splineOrder(object) - 1}
     specifying the derivative to evaluate.}
-  \item{\dots}{
-    \code{predict}: further arguments passed to or from other methods.
-
-    \code{plot}: additional graphical parameters (see \code{link{par}}).
-  }
+  \item{\dots}{additional graphical parameters (see \code{link{par}}).}
 }
 \value{
   an \code{xyVector} with components
@@ -52,11 +44,8 @@
       at the \code{x} vector}
 }
 \author{Douglas Bates and Bill Venables}
-\seealso{
-  \code{\link{xyVector}},
-  \code{\link{interpSpline}},
-  \code{\link{periodicSpline}}
-}
+\seealso{\code{\link{xyVector}}, \code{\link{interpSpline}},
+    \code{\link{periodicSpline}}}
 \examples{
 data( women )
 ispl <- interpSpline( weight ~ height,  women )

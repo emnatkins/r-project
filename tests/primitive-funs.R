@@ -22,7 +22,7 @@ Real.primitives <-
 	 "return", "function", "quote",
 	 "on.exit" ## on.exit(expression, add=F) has two arguments in S-plus !
 	 ),
-	 language = c("$", "$<-", "@", "<-", "=", "<<-", "[", "[<-", "[[", "[[<-"),
+	 language = c("$", "$<-", "<-", "<<-", "[", "[<-", "[[", "[[<-"),
 	 arith = c("%%", "%*%", "%/%","*", "+", "-", "/", "^"),
 	 logic = c("!",	 "&", "&&",  "|", "||",
 	 "<", "<=", "==", ">", ">=", "!="),
@@ -47,18 +47,17 @@ Real.primitives <-
            ".External.graphics", ".Call.graphics",
 	   ".C", ".Fortran", "symbol.C", "symbol.For",
 	   "globalenv", "pos.to.env", "unclass",
-           "as.character", "as.environment",
+           "as.character",
 	   ##maybe ? "gc", "gcinfo",
 	   ##
-	   "debug", "undebug", ".primTrace", ".primUntrace",
+	   "debug", "undebug", "trace", "untrace",
 	   "browser",  "proc.time", "gc.time", #"traceback",
 	   ),
 
 	 language2= c(":", "~", "c", "list", #nomore (Sep.9,1998): "unlist",
-	 # ".Alias", removed for 1.5.0
+	 ".Alias",
 	 "call", "as.call", "expression", "substitute",
 	 "UseMethod", ## ? really ?
-         "standardGeneric",
 	 "invisible",
 	 ),
 

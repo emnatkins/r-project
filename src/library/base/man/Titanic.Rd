@@ -1,15 +1,13 @@
 \name{Titanic}
-\docType{data}
 \alias{Titanic}
 \title{Survival of passengers on the Titanic}
+\usage{data(Titanic)}
 \description{
   This data set provides information on the fate of passengers on the
   fatal maiden voyage of the ocean liner `Titanic', summarized according
   to economic status (class), sex, age and survival.
 }
-\usage{data(Titanic)}
-\format{
-  A 4-dimensional array resulting from cross-tabulating 2201
+\format{A 4-dimensional array resulting from cross-tabulating 2201
   observations on 4 variables.  The variables and their levels are as
   follows:
 

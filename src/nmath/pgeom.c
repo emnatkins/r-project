@@ -31,12 +31,12 @@ double pgeom(double x, double p, int lower_tail, int log_p)
     if (ISNAN(x) || ISNAN(p))
 	return x + p;
 #endif
-    x = floor(x+1e-7);
+    x = floor(x);
     if(p < 0 || p > 1) ML_ERR_return_NAN;
 
     if (x < 0. || p == 0.) return R_DT_0;
     if (!R_FINITE(x)) return R_DT_1;
     if(log_p && !lower_tail)
-	return log1p(-p) * (x + 1);
+	return log(1 - p) * (x + 1);
     return R_DT_Cval(pow(1 - p, x + 1));
 }

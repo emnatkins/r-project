@@ -32,12 +32,10 @@ ar.yw.default <-
     if(ists)  xtsp <- tsp(x)
     xfreq <- frequency(x)
     x <- as.matrix(x)
-    if(!is.numeric(x))
-        stop("`x' must be numeric")
     if(any(is.na(x))) stop("NAs in x")
     nser <- ncol(x)
     if (demean) {
-        xm <- colMeans(x)
+        xm <- apply(x, 2, mean)
         x <- sweep(x, 2, xm)
     } else xm <- rep(0, nser)
     n.used <- nrow(x)

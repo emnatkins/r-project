@@ -79,7 +79,6 @@ SEXP duplicate(SEXP s)
     case SPECIALSXP:
     case BUILTINSXP:
     case EXTPTRSXP:
-    case WEAKREFSXP:
 	return s;
     case CLOSXP:
 	PROTECT(s);
@@ -193,10 +192,6 @@ void copyVector(SEXP s, SEXP t)
 	for (i = 0; i < ns; i++)
 	    COMPLEX(s)[i] = COMPLEX(t)[i % nt];
 	break;
-    case VECSXP:
-	for (i = 0; i < ns; i++)
-	    SET_VECTOR_ELT(s, i, VECTOR_ELT(t, i % nt));
-	break;
     default:
 	UNIMPLEMENTED("copyVector");
     }
@@ -270,11 +265,6 @@ void copyMatrix(SEXP s, SEXP t, Rboolean byrow)
 	    for (i = 0; i < nr; i++)
 		for (j = 0; j < nc; j++)
 		    COMPLEX(s)[i + j * nr] = COMPLEX(t)[k++ % nt];
-	    break;
-	case VECSXP:
-	    for (i = 0; i < nr; i++)
-		for (j = 0; j < nc; j++)
-		    SET_VECTOR_ELT(s, i + j * nr, VECTOR_ELT(t, k++ % nt));
 	    break;
 	default:
 	    UNIMPLEMENTED("copyMatrix");

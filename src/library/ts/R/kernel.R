@@ -85,19 +85,26 @@ kernel <- function (coef, m = length(coef)+1, r, name="unknown")
     }
 }
 
-print.tskernel <- function (x, digits = max(3,getOption("digits")-3), ...)
+print.tskernel <- function (k, digits = max(3,getOption("digits")-3))
 {
-    y <- c(rev(x$coef[2:(x$m + 1)]), x$coef)
-    i <- -x$m:x$m
-    cat(attr(x, "name"), "\n")
+    cat (attr(k,"name"),"\n")
+    i <- -k$m:k$m
+    cat(paste("coef[", format(i), "] = ",
+              format(k$coef, digits=digits), sep=""), sep="\n")
+}
+print.tskernel <- function (k, digits = max(3,getOption("digits")-3))
+{
+    y <- c(rev(k$coef[2:(k$m + 1)]), k$coef)
+    i <- -k$m:k$m
+    cat(attr(k, "name"), "\n")
     cat(paste("coef[", format(i), "] = ", format(y, digits = digits),
               sep = ""), sep = "\n")
 }
 
-plot.tskernel <- function (x, ...)
+plot.tskernel <- function (k)
 {
-    y <- c(rev(x$coef[2:(x$m+1)]),x$coef)
-    plot ((-x$m:x$m), y, xlab="k", ylab="W[k]", type="h", main=attr(x,"name"))
+    y <- c(rev(k$coef[2:(k$m+1)]),k$coef)
+    plot ((-k$m:k$m), y, xlab="k", ylab="W[k]", type="h", main=attr(k,"name"))
 }
 
 df.kernel <- function (k)
@@ -127,7 +134,7 @@ kernapply <- function (x, ...)
     UseMethod("kernapply")
 }
 
-kernapply.vector <- function (x, k, circular = FALSE, ...)
+kernapply.vector <- function (x, k, circular = FALSE)
 {
     if (!is.vector(x)) stop ("x is not a vector")
     if (!is.tskernel(k)) stop ("k is not a kernel")
@@ -148,7 +155,7 @@ kernapply.vector <- function (x, k, circular = FALSE, ...)
     }
 }
 
-kernapply.default <- function (x, k, circular = FALSE, ...)
+kernapply.default <- function (x, k, circular = FALSE)
 {
     if (is.vector(x))
         return (kernapply.vector(x, k, circular=circular))
@@ -158,7 +165,7 @@ kernapply.default <- function (x, k, circular = FALSE, ...)
         stop ("kernapply is not available for object x")
 }
 
-kernapply.ts <- function (x, k, circular = FALSE, ...)
+kernapply.ts <- function (x, k, circular = FALSE)
 {
     if (!is.matrix(x))
         y <- kernapply.vector(as.vector(x), k, circular=circular)
@@ -167,19 +174,18 @@ kernapply.ts <- function (x, k, circular = FALSE, ...)
     ts (y, end=end(x), frequency=frequency(x))
 }
 
-kernapply.tskernel <- function (x, k2, ...)
+kernapply.tskernel <- function (k1, k2)
 {
-    if (!is.tskernel(x))
+    if (!is.tskernel(k1))
         stop ("k1 is not a kernel")
-    if (!is.tskernel(x))
+    if (!is.tskernel(k2))
         stop ("k2 is not a kernel")
     n <- k2$m
-    xx <- c(rep(0,n), x[-x$m:x$m], rep(0,n))
-    coef <- kernapply(xx, k2, circular = TRUE)
+    x <- c(rep(0,n), k1[-k1$m:k1$m], rep(0,n))
+    coef <- kernapply(x, k2, circular = TRUE)
     m <- length(coef)%/%2
     kernel(coef[(m+1):length(coef)],m,
-           paste("Composite(", attr(x, "name"), ",",
-                 attr(k2, "name"), ")", sep=""))
+           paste("Composite(", attr(k1, "name"),",",attr(k2, "name"),")",sep=""))
 }
 
 

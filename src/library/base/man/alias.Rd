@@ -23,7 +23,6 @@ alias.lm(object, complete = TRUE, partial = FALSE,
   \item{partial.pattern}{Should partial aliasing be presented in a
     schematic way? If this is done, the results are presented in a
     more compact way, usually giving the deciles of the coefficients.}
-  \item{\dots}{further arguments passed to or from other methods.}
 }
 \description{
   Find aliases (linearly dependent terms) in a linear model specified by
@@ -40,7 +39,7 @@ alias.lm(object, complete = TRUE, partial = FALSE,
   correlations induced by the design.
 }
 \value{
-  A list (of \code{\link[base]{class} "listof"}) containing components
+  A list (of \code{\link{class} "listof"}) containing components
   \item{Model}{Description of the model; usually the formula.}
   \item{Complete}{A matrix with columns corresponding to effects that
     are linearly dependent on the rows; may be of class \code{"mtable"}
@@ -54,10 +53,7 @@ alias.lm(object, complete = TRUE, partial = FALSE,
   The defaults are different from those in S.
 }
 \examples{
-## The next line is for fractions() which gives neater results
-has.VR <- require(MASS, quietly = TRUE)
-if(!has.VR) {
-## From Venables and Ripley (2002) p.165.
+## From Venables and Ripley (1997) p.210.
 N <- c(0,1,0,1,1,1,0,0,0,1,1,0,1,1,0,0,1,0,1,0,1,1,0,0)
 P <- c(1,1,0,0,0,1,0,1,1,1,0,0,0,1,0,1,1,0,0,1,0,1,1,0)
 K <- c(1,0,0,1,0,1,1,0,0,1,0,1,0,1,1,0,0,0,1,1,1,0,1,0)
@@ -65,7 +61,10 @@ yield <- c(49.5,62.8,46.8,57.0,59.8,58.5,55.5,56.0,62.8,55.8,69.5,55.0,
            62.0,48.8,45.5,44.2,52.0,51.5,49.8,48.8,57.2,59.0,53.2,56.0)
 npk <- data.frame(block=gl(6,4), N=factor(N), P=factor(P),
                   K=factor(K), yield=yield)
-}
+
+## The next line is optional (for fractions package which gives neater
+## results.)
+has.VR <- require(MASS, quietly = TRUE)
 
 op <- options(contrasts=c("contr.helmert", "contr.poly"))
 npk.aov <- aov(yield ~ block + N*P*K, npk)

@@ -18,7 +18,7 @@ summary.mlm <- function(object, ...)
     }
     value <- vector("list", ny)
     names(value) <- paste("Response", ynames)
-    cl <- oldClass(object)
+    cl <- class(object)
     class(object) <- cl[match("mlm", cl):length(cl)][-1]
     for(i in seq(ny)) {
 	object$coefficients <- coef[, i]
@@ -32,15 +32,14 @@ summary.mlm <- function(object, ...)
     value
 }
 ## predict.mlm  is in  >> ./lm.R <<
-anova.mlm <- function(object, ...)
-    stop("no anova method implemented for mlm models")
+anova.mlm <- function(...) stop("no anova method implemented for mlm models")
 
 deviance.mlm <- function(object, ...)
 {
     res <-
 	if(is.null(w <- object$weights)) object$residuals^2
 	else w * object$residuals^2
-    drop(rep.int(1, nrow(res)) %*% res)
+    drop(rep(1, nrow(res)) %*% res)
 }
 
-plot.mlm <- function (x, ...) .NotYetImplemented()
+plot.mlm <- function (...) .NotYetImplemented()

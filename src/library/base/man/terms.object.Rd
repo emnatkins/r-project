@@ -14,11 +14,7 @@
 \value{
   An object with the following attributes:
   \item{factors}{A matrix of variables by terms showing which variables
-    appear in which terms. The entries are 0 if the variable does not
-    occur in the term, 1 if it does occur and should be coded by
-    contrasts, and 2 if it occurs and should be coded via dummy
-    variables for all levels (as when an intercept or lower-order term
-    is missing).}
+    appear in which terms.}
   \item{term.labels}{A character vector containing the labels for each
     of the terms in the model.}
   \item{variables}{A list of the variables in the model}
@@ -26,7 +22,7 @@
     indicating that an intercept is to be fit.}
   \item{order}{A vector of the same length as \code{term.labels}
     indicating the order of interaction for each term }
-  \item{response}{The index of the variable (in variables) of the
+  \item{response} {The index of the variable (in variables) of the
     response (the left hand side of the formula).}
   \item{offset}{If the model contains \code{\link{offset}} terms there
     is an \code{offset} attribute indicating which terms are offsets}

@@ -27,13 +27,12 @@ unstack.data.frame(x, form = formula(x), \dots)
     vector to be unstacked and whose right side evaluates to the
     indicator of the groups to create.  Defaults to \code{formula(x)}
     in \code{unstack.data.frame}.}
-  \item{\dots}{further arguments passed to or from other methods.}
 }
 \details{
   The \code{stack} function is used to transform data available as
   separate columns in a data frame or list into a single column that can
   be used in an analysis of variance model or other linear model.  The
-  \code{unstack} function reverses this operation. 
+  \code{unstack} function reverses this operation.
 }
 \value{
   \code{unstack} produces a list of columns according to the formula
@@ -48,7 +47,7 @@ unstack.data.frame(x, form = formula(x), \dots)
 }
 \author{Douglas Bates}
 \seealso{
-  \code{\link{lm}}, \code{\link{reshape}}
+  \code{\link{lm}}
 }
 \examples{
 data(PlantGrowth)

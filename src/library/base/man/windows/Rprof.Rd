@@ -24,8 +24,7 @@ Rprof(filename = "Rprof.out", append = FALSE, interval = 0.02)
   another or the same file.
   
   Profiling works by writing out the call stack every \code{interval}
-  seconds, to the file specified.   Either the \code{\link{summaryRprof}}
-  function or the Perl script \code{Rcmd Rprof}
+  seconds, to the file specified.  The Perl script \code{Rcmd Rprof}
   can be used to process the output file to produce a summary of the
   usage; use \code{Rcmd Rprof --help} for usage information.
 
@@ -33,20 +32,11 @@ Rprof(filename = "Rprof.out", append = FALSE, interval = 0.02)
   \R process is running and executing an \R command.  It is not however just
   CPU time, for if \code{readline()} is waiting for input, that counts
   (on Windows, but not on Unix).
-
-  Note that the timing interval cannot be too small, for the time spent
-  in each profiling step is added to the interval.  What is feasible is
-  machine-dependent, but 10ms seems as small as advisable on a 1GHz machine.
-}
-\note{
-  Using \code{Rcmd Rprof} needs Windows Perl to be installed.
 }
 \seealso{
   The chapter on ``Tidying and profiling R code'' in ``Writing \R
   Extensions'' (see the \file{doc/manual} subdirectory of the \R source
   tree).
-
-  \code{\link{summaryRprof}}
 }
 \examples{
 \dontrun{Rprof()

@@ -6,12 +6,11 @@ str.data.frame(object, \dots)
 str.default(object, max.level = 0, vec.len = 4, digits.d = 3,
     nchar.max = 128, give.attr = TRUE, give.length = TRUE,
     wid = getOption("width"), nest.lev = 0,
-    indent.str = paste(rep(" ", max(0, nest.lev + 1)), collapse = ".."),
-    \dots)
+    indent.str = paste(rep(" ", max(0, nest.lev + 1)), collapse = ".."))
 
- ls.str(pos = 1, pattern, \dots,  envir = as.environment(pos), mode = "any",
+ ls.str(pos = 1, pattern, \dots, mode = "any",
         max.level = 1, give.attr = FALSE)
-lsf.str(pos = 1, \dots, envir = as.environment(pos))
+lsf.str(pos = 1, pattern, \dots)
 }
 \alias{str}
 \alias{str.default}
@@ -55,17 +54,6 @@ lsf.str(pos = 1, \dots, envir = as.environment(pos))
   \item{nest.lev}{current nesting level in the recursive calls to
     \code{str}.}
   \item{indent.str}{the indentation string to use.}
-  \item{\dots}{potential further arguments (required for Method/Generic reasons).}
-
-%% The following line is swallowed, unfortunately..  fixme??
-  For \code{ls.str} and \code{lsf.str}:
-
-  \item{pos}{integer indicating \code{\link{search}} path position.}
-  \item{envir}{environment to use, see \code{\link{ls}}.}
-  \item{pattern}{regular expression passed to \code{\link{ls}}.  Only names
-          matching \code{pattern} are considered.}
-  \item{mode}{character specifying the \code{\link{mode}} of objects to
-    consider.  Passed to \code{\link{exists}} and \code{\link{get}}.}
 }
 \value{
   \code{str} does not return anything, for efficiency reasons.
@@ -94,16 +82,13 @@ need.dev <- !exists(".Device") || is.null(.Device)
 if(need.dev) postscript()
 str(par()); if(need.dev) graphics.off()
 
-ch <- letters[1:12]; is.na(ch) <- 3:5
-str(ch) # character NA's
-
 nchar(longch <- paste(rep(letters,100), collapse=""))
 str(longch)
 str(longch, nchar.max = 52)
 
 lsf.str()#- how do the functions look like which I am using?
 ls.str(mode = "list")#- what are the structured objects I have defined?
-## which base functions have "file" in their name ?
+## which base functions have "file" in their name ?  
 lsf.str(pos = length(search()), pattern = "file")
 \testonly{
  ##-- Some "crazy" objects

@@ -1,6 +1,10 @@
 # -*- Makefile -*-
 #
-# ${R_HOME}/share/make/wintests.mk
+# ${R_HOME}/share/make/tests.mk
+
+ECHO_C =
+ECHO_N = -n
+ECHO_T =
 
 makevars =
 srcdir = .
@@ -16,26 +20,29 @@ USE_GCT = 0
 .SUFFIXES: .R .Rin .Rout
 
 .Rin.R:
-	@echo "Creating '$@'"
+	@echo "Creating \`$@'"
 	@$(R) < $< > /dev/null
 
 .R.Rout:
 	@rm -f $@ $@.fail
-	@echo "  Running '$<'"
-	@(if test "$(USE_GCT)" != 0; then echo "gctorture(TRUE)"; fi; \
-	  cat $<) | $(R) R_LIBS="$(R_LIBS)" > $@ 2>&1
+	@echo "  Running \`$<'"
+	@if test "$(USE_GCT)" = 0; then \
+	  $(R) R_LIBS="$(R_LIBS)" < $< > $@; \
+	else \
+	  (echo "gctorture(TRUE)"; cat $<) | $(R) R_LIBS="$(R_LIBS)" > $@; \
+	fi
 	@if test -f $(srcdir)/$@.save; then \
 	  mv $@ $@.fail; \
-	  echo -n "  Comparing '$@' to '$@.save' ..."; \
+	  echo $(ECHO_N) "  Comparing \`$@' to \`$@.save' ...$(ECHO_C)"; \
 	  $(RDIFF) $@.fail $(srcdir)/$@.save 0 || exit 1; \
 	  mv $@.fail $@; \
-	  echo "OK"; \
+	  echo "$(ECHO_T) OK"; \
 	fi
 
 all:
 	@(out=`echo "$(test-out)" | sed 's/ $$//g'`; \
 	  if test -n "$${out}"; then \
-	    $(MAKE) -f $(R_HOME)/share/make/wintests.mk $(makevars) $${out}; \
+	    $(MAKE) -f $(R_HOME)/share/make/tests.mk $(makevars) $${out}; \
 	  fi)
 
 clean:

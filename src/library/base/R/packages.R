@@ -8,21 +8,17 @@ CRAN.packages <- function(CRAN=getOption("CRAN"), method,
         tmpf <- tempfile()
         on.exit(unlink(tmpf))
         download.file(url=paste(contriburl, "PACKAGES", sep="/"),
-                      destfile=tmpf, method=method, cacheOK=FALSE)
+                      destfile=tmpf, method=method)
     }
     read.dcf(file=tmpf, fields=c("Package", "Version",
                        "Priority", "Bundle", "Depends"))
 }
 
-update.packages <- function(lib.loc=NULL, CRAN=getOption("CRAN"),
+update.packages <- function(lib.loc=.lib.loc, CRAN=getOption("CRAN"),
                             contriburl=contrib.url(CRAN),
                             method, instlib=NULL, ask=TRUE,
-                            available=NULL, destdir=NULL,
-			    installWithVers=FALSE)
+                            available=NULL, destdir=NULL)
 {
-    if(is.null(lib.loc))
-        lib.loc <- .libPaths()
-
     if(is.null(available))
         available <- CRAN.packages(contriburl=contriburl, method=method)
 
@@ -55,30 +51,26 @@ update.packages <- function(lib.loc=NULL, CRAN=getOption("CRAN"),
         install.packages(update[,"Package"], instlib,
                          contriburl=contriburl,
                          method=method,
-                         available=available, destdir=destdir,
-                         installWithVers=installWithVers)
+                         available=available, destdir=destdir)
     }
 }
 
-old.packages <- function(lib.loc=NULL, CRAN=getOption("CRAN"),
+old.packages <- function(lib.loc=.lib.loc, CRAN=getOption("CRAN"),
                          contriburl=contrib.url(CRAN),
                          method, available=NULL)
 {
-    if(is.null(lib.loc))
-        lib.loc <- .libPaths()
-
     instp <- installed.packages(lib.loc=lib.loc)
     if(is.null(available))
         available <- CRAN.packages(contriburl=contriburl, method=method)
 
     ## for bundles it is sufficient to install the first package
     ## contained in the bundle, as this will install the complete bundle
-    ## However, a bundle might be installed in more than one place.
     for(b in unique(instp[,"Bundle"])){
-        if(!is.na(b))
-            for (w in unique(instp[,"LibPath"])) {
-            ok <- which(instp[,"Bundle"] == b & instp[,"LibPath"] == w)
-            if(length(ok)>1) instp <- instp[-ok[-1],]
+        if(!is.na(b)){
+            ok <- which(instp[,"Bundle"] == b)
+            if(length(ok)>1){
+                instp <- instp[-ok[-1],]
+            }
         }
     }
 
@@ -93,9 +85,9 @@ old.packages <- function(lib.loc=NULL, CRAN=getOption("CRAN"),
     newerVersion <- function(a, b){
         a <- as.integer(strsplit(a, "[\\.-]")[[1]])
         b <- as.integer(strsplit(b, "[\\.-]")[[1]])
-        if(any(is.na(a)))
+        if(is.na(a))
             return(FALSE)
-        if(any(is.na(b)))
+        if(is.na(b))
             return(TRUE)
         for(k in 1:length(a)){
             if(k <= length(b)){
@@ -112,7 +104,7 @@ old.packages <- function(lib.loc=NULL, CRAN=getOption("CRAN"),
     }
 
     for(k in 1:nrow(instp)){
-        ok <- (!(instp[k, "Priority"] %in% "base")) &
+        ok <- (instp[k, "Priority"] != "base") &
                 (available[,"Package"] == instp[k, "Package"])
         if(any(ok))
             ok[ok] <- sapply(available[ok, "Version"], newerVersion,
@@ -130,12 +122,9 @@ old.packages <- function(lib.loc=NULL, CRAN=getOption("CRAN"),
     update
 }
 
-package.contents <- function(pkg, lib.loc=NULL)
-{
-    if(is.null(lib.loc))
-        lib.loc <- .libPaths()
+package.contents <- function(pkg, lib=.lib.loc){
 
-    file <- system.file("CONTENTS", package = pkg, lib.loc = lib.loc)
+    file <- system.file("CONTENTS", package = pkg, lib.loc = lib)
     if(file == "") {
         warning(paste("Cannot find CONTENTS file of package", pkg))
         return(NA)
@@ -145,12 +134,9 @@ package.contents <- function(pkg, lib.loc=NULL)
 }
 
 
-package.description <- function(pkg, lib.loc=NULL, fields=NULL)
+package.description <- function(pkg, lib=.lib.loc, fields=NULL)
 {
-    if(is.null(lib.loc))
-        lib.loc <- .libPaths()
-
-    file <- system.file("DESCRIPTION", package = pkg, lib.loc = lib.loc)
+    file <- system.file("DESCRIPTION", package = pkg, lib.loc = lib)
     if(file != "") {
         retval <- read.dcf(file=file, fields=fields)[1,]
     }
@@ -170,29 +156,23 @@ package.description <- function(pkg, lib.loc=NULL, fields=NULL)
 }
 
 
-installed.packages <- function(lib.loc = NULL, priority = NULL)
+installed.packages <- function(lib.loc = .lib.loc)
 {
-    if(is.null(lib.loc))
-        lib.loc <- .libPaths()
-    pkgFlds <- c("Version", "Priority", "Bundle", "Depends")
-    if(!is.null(priority)) {
-        if(!is.character(priority))
-            stop("`priority' must be character or NULL")
-        if(any(b <- priority == "high"))
-            priority <- c(priority[!b], "recommended","base")
-    }
-    retval <- character()
-    for(lib in lib.loc) {
+    retval <- NULL
+    for(lib in lib.loc)
+    {
         pkgs <- .packages(all.available=TRUE, lib.loc = lib)
         for(p in pkgs){
-            desc <- package.description(p, lib=lib, fields= pkgFlds)
-            if(!is.null(priority)) # skip if priority does not match
-                if(is.na(pmatch(desc["Priority"], priority))) next
+            desc <- package.description(p, lib=lib,
+                                        fields=c("Version", "Priority",
+                                        "Bundle", "Depends"))
+
             retval <- rbind(retval, c(p, lib, desc))
         }
     }
     if (!is.null(retval))
-        colnames(retval) <- c("Package", "LibPath", pkgFlds)
+        colnames(retval) <- c("Package", "LibPath", "Version",
+                              "Priority", "Bundle", "Depends")
     retval
 }
 
@@ -257,7 +237,7 @@ package.dependencies <- function(x, check = FALSE)
     }
 }
 
-remove.packages <- function(pkgs, lib, version) {
+remove.packages <- function(pkgs, lib) {
 
     updateIndices <- function(lib) {
         ## This should eventually be made public, as it could also be
@@ -273,16 +253,12 @@ remove.packages <- function(pkgs, lib, version) {
     }
 
     if(missing(lib) || is.null(lib)) {
-        lib <- .libPaths()[1]
+        lib <- .lib.loc[1]
         warning(paste("argument `lib' is missing: using", lib))
     }
-
-    if (!missing(version))
-        pkgs <- manglePackageName(pkgs, version)
 
     paths <- .find.package(pkgs, lib)
     unlink(paths, TRUE)
     for(lib in unique(dirname(paths)))
         updateIndices(lib)
 }
-

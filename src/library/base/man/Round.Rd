@@ -13,6 +13,7 @@ zapsmall(x, digits= getOption("digits"))
 \alias{round}
 \alias{signif}
 \alias{trunc}
+\alias{trunc.default}
 \alias{zapsmall}
 \description{
   \code{ceiling} takes a single numeric argument \code{x} and returns a
@@ -40,10 +41,6 @@ zapsmall(x, digits= getOption("digits"))
   \code{round(x, digits = dr)} such that values ``close to zero'' values
   are ``zapped'', i.e., treated as \code{0}.
 }
-\arguments{
-  \item{x}{a numeric vector.}
-  \item{digits}{integer indicating the precision to be used.}
-}
 \seealso{
   \code{\link{as.integer}}.
 }
@@ -54,6 +51,11 @@ round(x1)#-- IEEE rounding !
 x1[trunc(x1) != floor(x1)]
 x1[round(x1) != floor(x1 + .5)]
 (non.int <- ceiling(x1) != floor(x1))
+stopifnot(
+ trunc(x1) == as.integer(x1),
+ non.int == (ceiling(x1) != trunc(x1) | trunc(x1) != floor(x1)),
+ (signif(x1, 1) != round(x1,1)) == (non.int & abs(x1) > 1)
+)
 
 x2 <- pi * 100^(-1:3)
 round(x2, 3)

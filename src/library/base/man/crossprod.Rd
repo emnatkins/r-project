@@ -8,11 +8,7 @@
   call \code{t(x) \%*\% y}.
 }
 \usage{
-crossprod(x, y = NULL)
-}
-\arguments{
-  \item{x, y}{matrices: \code{y = NULL} is taken to be the
-    same matrix as \code{x}.}
+crossprod(x, y=x)
 }
 \seealso{
 \code{\link{\%*\%}} and outer product \code{\link{\%o\%}}.

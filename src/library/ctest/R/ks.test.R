@@ -13,7 +13,7 @@ function(x, y, ..., alternative = c("two.sided", "less", "greater"),
     if(is.numeric(y)) {
         DNAME <- paste(DNAME, "and", deparse(substitute(y)))
         y <- y[!is.na(y)]
-        n.x <- as.double(n)             # to avoid integer overflow
+        n.x <- n
         n.y <- length(y)
         if(n.y < 1)
             stop("Not enough y data")
@@ -34,11 +34,11 @@ function(x, y, ..., alternative = c("two.sided", "less", "greater"),
                             "greater" = max(z),
                             "less" = - min(z))
         if(exact && alternative == "two.sided" && !TIES)
-            PVAL <- 1 - .C("psmirnov2x",
-                           p = as.double(STATISTIC),
-                           as.integer(n.x),
-                           as.integer(n.y),
-                           PACKAGE = "ctest")$p
+            PVAL <- .C("psmirnov2x",
+                       p = as.double(STATISTIC),
+                       as.integer(n.x),
+                       as.integer(n.y),
+                       PACKAGE = "ctest")$p
     }
     else {
         if(is.character(y))
@@ -46,8 +46,7 @@ function(x, y, ..., alternative = c("two.sided", "less", "greater"),
         if(mode(y) != "function")
             stop("y must be numeric or a string naming a valid function")
         METHOD <- "One-sample Kolmogorov-Smirnov test"
-        if(length(unique(x)) < n)
-            warning("cannot compute correct p-values with ties")
+        n <- length(x)
         x <- y(sort(x), ...) - (0 : (n-1)) / n
         STATISTIC <- switch(alternative,
                             "two.sided" = max(c(x, 1/n - x)),
@@ -60,7 +59,7 @@ function(x, y, ..., alternative = c("two.sided", "less", "greater"),
                                "greater" = "D^+",
                                "less" = "D^-")
 
-    pkstwo <- function(x, tol = 1e-6) {
+    pkstwo <- function(x, tol = 10^(-6)) {
         ## Compute \sum_{-\infty}^\infty (-1)^k e^{-2k^2x^2}
         ## Not really needed at this generality for computing a single
         ## asymptotic p-value as below.

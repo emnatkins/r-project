@@ -1,7 +1,7 @@
 # Subroutines for converting R documentation into text, HTML, LaTeX
 # and R (Examples) format
 
-# Copyright (C) 1997-2002 R Development Core Team
+# Copyright (C) 1997-2001 R Development Core Team
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,12 +27,8 @@ require  Exporter;
 @EXPORT  = qw(Rdconv);
 
 use Text::Tabs;
-use Text::Wrap;
 use FileHandle;
-use R::Utils;
-use R::Vars;
 
-if($main::opt_dosnames) { $HTML = ".htm"; } else { $HTML = ".html"; }
 
 # names of unique text blocks, these may NOT appear MORE THAN ONCE!
 @blocknames = ("name", "title", "usage", "arguments", "format",
@@ -63,7 +59,7 @@ $MAXLOOPS = 1000;
 sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename, pkgname)
 
     $Rdname = $_[0];
-    open(rdfile, "<$Rdname") or die "Rdconv(): Couldn't open '$Rdfile': $!\n";
+    open rdfile, "<$Rdname" || die "Rdconv(): Couldn't open '$Rdfile':$!\n";
 
     $type = $_[1];
     $debug = $_[2];
@@ -76,16 +72,14 @@ sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename, pkgname)
 	    $Exfile = $chmfile = $_[3];
     } else { # have "," in $type: Multiple types with multiple output files
 	$dirname = $_[3]; # The super-directory , such as  <Rlib>/library/<pkg>
-	die "Rdconv(): '$dirname' is NOT a valid directory: $!\n"
-	    unless -d $dirname;
-	$htmlfile = file_path($dirname, "html", $Rdname.$HTML) if $type =~ /html/i;
-	$txtfile= file_path($dirname, "help", $Rdname)	if $type =~ /txt/i;
+	die "Rdconv(): '$dirname' is NOT a valid directory:$!\n"
+	  unless -d $dirname;
+	$htmlfile = $dirname ."/html/" .$Rdname.".html" if $type =~ /html/i;
+	$txtfile= $dirname ."/help/" . $Rdname	        if $type =~ /txt/i;
 	die "Rdconv(): type 'Sd' must not be used with other types (',')\n"
 	  if $type =~ /Sd/i;
-	die "Rdconv(): type 'Ssgm' must not be used with other types (',')\n"
-	  if $type =~ /Ssgm/i;
-	$latexfile= file_path($dirname, "latex", $Rdname.".tex") if $type =~ /tex/i;
-	$Exfile	  = file_path($dirname, "R-ex" , $Rdname.".R") if $type =~ /example/i;
+	$latexfile= $dirname ."/latex/". $Rdname.".tex"	if $type =~ /tex/i;
+	$Exfile	  = $dirname ."/R-ex/" . $Rdname.".R"	if $type =~ /example/i;
     }
 
 
@@ -98,10 +92,9 @@ sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename, pkgname)
     undef @section_title;
 
     $skipping = 0;
-    ## remove comments (everything after a %) and CR in CRLF terminators.
+    #-- remove comments (everything after a %)
     while(<rdfile>){
 	$_ = expand $_;
-	s/\r//;
 	if (/^#ifdef\s+([A-Za-z0-9]+)/o) {
 	    if ($1 ne $main::OSdir) { $skipping = 1; }
 	    next;
@@ -115,11 +108,7 @@ sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename, pkgname)
 	    next;
 	}
 	next if $skipping > 0;
-	next if /^\s*%/o;	# completely drop full comment lines
-	## <FIXME>
-	## Argh.  This is a terrible hack.  Go away!
-	next if /^\\docType/;
-	## </FIXME>
+	next if /^\s*%/o;#- completely drop full comment lines
 	my $loopcount = 0;
 	while(checkloop($loopcount++, $_, "\\%") &&
 	      s/^\\%|([^\\])\\%/$1escaped_percent_sign/go){};
@@ -147,8 +136,8 @@ sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename, pkgname)
 
 	get_blocks($complete_text);
 
-	if($type =~ /html/i || $type =~ /txt/i || $type =~ /Sd/    ||
-	   $type =~ /Ssgm/  || $type =~ /tex/i || $type =~ /chm/i ) {
+	if($type =~ /html/i || $type =~ /txt/i ||
+	   $type =~ /Sd/    || $type =~ /tex/i || $type =~ /chm/i ) {
 
 	    get_sections($complete_text);
 
@@ -160,8 +149,7 @@ sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename, pkgname)
 
 	rdoc2html($htmlfile)	if $type =~ /html/i;
 	rdoc2txt($txtfile)	if $type =~ /txt/i;
-	rdoc2Sd($Sdfile)	if $type =~ /Sd/;
-	rdoc2Ssgm($Sdfile)	if $type =~ /Ssgm/;
+	rdoc2Sd($Sdfile)	if $type =~ /Sd/i;
 	rdoc2latex($latexfile)	if $type =~ /tex/i;
 	rdoc2ex($Exfile)	if $type =~ /example/i;
 	rdoc2chm($chmfile)	if $type =~ /chm/i;
@@ -573,7 +561,7 @@ sub text2html {
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\link")
 	  &&  $text =~ /\\link/){
-	my ($id, $arg, $opt) = get_link($text);
+	my ($id, $arg, $org) = get_link($text);
 	## fix conversions in key of htmlindex:
 	my $argkey = $arg;
 	$argkey =~ s/&lt;/</go;
@@ -595,29 +583,20 @@ sub text2html {
 			s/\\link(\[.*\])?$id.*$id/<a href=\"$htmlfile\">$arg<\/a>/s;
 		}
 	    } else {
-		if ($htmlfile =~ s+^$pkgname/html/++) {
-		    # in the same html file
-		    $text =~
-			s/\\link(\[.*\])?$id.*$id/<a href=\"$htmlfile\">$arg<\/a>/s;
-		} else {
-		    $text =~
-			s/\\link(\[.*\])?$id.*$id/<a href=\"..\/..\/$htmlfile\">$arg<\/a>/s;
-		}
+		$text =~
+		    s/\\link(\[.*\])?$id.*$id/<a href=\"..\/..\/$htmlfile\">$arg<\/a>/s;
 	    }
 	}
 	else {
-	    $main::misslink = $main::misslink . " " . $argkey
+	    $main::misslink = $main::misslink . " " . $argkey 
 		unless $opt ne "";
 	    if($using_chm){
 		if($opt ne "") {
 		    my ($pkg, $topic) = split(/:/, $opt);
 		    $topic = $arg if $topic eq "";
 		    $opt =~ s/:.*$//o;
-		    if($pkg ne $pkgname) {
-			$htmlfile = mklink($opt, $topic . $HTML);
-		    } else {
-			$htmlfile = $topic . $HTML;
-		    }
+#		    $htmlfile = "ms-its:../../$opt/chtml/$opt.chm::/$topic.html";
+		    $htmlfile = mklink($opt, $topic . ".html");
 		    $text =~ s/\\link(\[.*\])?$id.*$id/<a $htmlfile>$arg<\/a>/s;
 		} else {
 		    $text =~ s/\\link(\[.*\])?$id.*$id/$arg/s;
@@ -627,13 +606,8 @@ sub text2html {
 		if($opt ne "") {
 		    my ($pkg, $topic) = split(/:/, $opt);
 		    $topic = $arg if $topic eq "";
-		    $htmlfile = $pkg."/html/".$topic.$HTML;
-		    if ($htmlfile =~ s+^$pkgname/html/++) {
-			# in the same html file
-			$text =~ s/\\link(\[.*\])?$id.*$id/<a href=\"$htmlfile\">$arg<\/a>/s;
-		    } else {
-			$text =~ s/\\link(\[.*\])?$id.*$id/<a href=\"..\/..\/$htmlfile\">$arg<\/a>/s;
-		    }
+		    $htmlfile = $pkg."/html/".$topic.".html";
+		    $text =~ s/\\link(\[.*\])?$id.*$id/<a href=\"..\/..\/$htmlfile\">$arg<\/a>/s;
 		} else {
 		    $text =~ s/\\link(\[.*\])?$id.*$id/<a href=\"..\/..\/..\/doc\/html\/search\/SearchObject.html?$argkey\">$arg<\/a>/s;
 		}
@@ -682,7 +656,6 @@ sub text2html {
     while(checkloop($loopcount++, $text, "\\item") && $text =~ /\\itemnormal/s)
     {
 	my ($id, $arg, $desc)  = get_arguments("item", $text, 2);
-	my $descitem;
 	$descitem = "<dt>" . text2html($arg, 0, $inarglist) . "</dt>";
 	$descitem .= "<dd>" . text2html($desc, 0, $inarglist) . "</dd>";
 	$text =~ s/\\itemnormal.*$id/$descitem/s;
@@ -729,54 +702,39 @@ sub code2html {
 		    $tmp = $htmlfile;
 		    ($base, $topic) = ($tmp =~ m+(.*)/(.*)+);
 		    $base =~ s+/html$++;
+#		    $htmlfile = "ms-its:../../$base/chtml/$base.chm::/$topic";
 		    $htmlfile = mklink($base, $topic);
+#		    print "$htmlfile\n";
 		    $text =~
 			s/\\link(\[.*\])?$id.*$id/<a $htmlfile>$arg<\/a>/s;
 		}
 	    } else {
-		my $uxfile = $htmlfile;
-		if($R::Vars::OSTYPE eq "mac") {
-		    $uxfile =~ s|:|\/|g;
-		}
-		if ($uxfile =~ s+^$pkgname/html/++) {
-		    # in the same html file
-		    $text =~
-			s/\\link(\[.*\])?$id.*$id/<a href=\"$uxfile\">$arg<\/a>/s;
-		} else {
-		    $text =~
-			s/\\link(\[.*\])?$id.*$id/<a href=\"..\/..\/$uxfile\">$arg<\/a>/s;
-		}
+		$text =~
+		    s/\\link(\[.*\])?$id.*$id/<a href=\"..\/..\/$htmlfile\">$arg<\/a>/s;
 	    }
 	}
 	else{
-	    $main::misslink = $main::misslink . " " . $argkey
+	    $main::misslink = $main::misslink . " " . $argkey 
 		unless $opt ne "";
 	    if($using_chm){
 		if($opt ne "") {
 		    my ($pkg, $topic) = split(/:/, $opt);
 		    $topic = $arg if $topic eq "";
 		    $opt =~ s/:.*$//o;
-		    if($pkg ne $pkgname) {
-			$htmlfile = mklink($opt, $topic . $HTML);
-		    } else {
-			$htmlfile = $topic . $HTML;
-		    }
+#		    $htmlfile = "ms-its:../../$opt/chtml/$opt.chm::/$topic.html";
+		    $htmlfile = mklink($opt, $topic . ".html");
+#		    print "$htmlfile\n";
        		    $text =~ s/\\link(\[.*\])?$id.*$id/<a $htmlfile>$arg<\/a>/s;
 		} else {
 		    $text =~ s/\\link(\[.*\])?$id.*$id/$arg/s;
 		}
-	    } else {
+	    }
+	    else{
 		if($opt ne "") {
 		    my ($pkg, $topic) = split(/:/, $opt);
 		    $topic = $arg if $topic eq "";
-		    $htmlfile = $pkg."/html/".$topic.$HTML;
-		    if ($htmlfile =~ s+^$pkgname/html/++) {
-			# in the same html file
-			$text =~
-			    s/\\link(\[.*\])?$id.*$id/<a href=\"$htmlfile\">$arg<\/a>/s;
-		    } else {
-			$text =~ s/\\link(\[.*\])?$id.*$id/<a href=\"..\/..\/$htmlfile\">$arg<\/a>/s;
-		    }
+		    $htmlfile = $pkg."/html/".$topic.".html";
+		    $text =~ s/\\link(\[.*\])?$id.*$id/<a href=\"..\/..\/$htmlfile\">$arg<\/a>/s;
 		} else {
 		    $text =~ s/\\link(\[.*\])?$id.*$id/<a href=\"..\/..\/..\/doc\/html\/search\/SearchObject.html?$argkey\">$arg<\/a>/s;
 		}
@@ -996,7 +954,7 @@ sub html_functionfoot
 
     if($HTML){
 	$retval .= "\n\n<hr><div align=\"center\">" .
-	    "<a href=\"00Index$HTML\">[Package Contents]</a></div>\n\n";
+	    "<a href=\"00Index.$HTML\">[Package Contents]</a></div>\n\n";
     }
 
     $retval .= "</body></html>\n";
@@ -1193,14 +1151,7 @@ sub text2txt {
     {
 	my ($id, $arg, $desc)  = get_arguments("item", $text, 2);
 	my $descitem = text2txt($arg);
-	my $ll = length($desc);
-	$descitem =~ s/\n/ /go;  # no NLs in items
-	if($ll > 0) {
-	    $descitem = "\n.tide " . $descitem . " \n". text2txt($desc);
-	} else {
-	    warn "missing text for \\item in \\describe\n";
-	    $descitem = "\n.tide " . $descitem . " \n \n"
-	}
+	$descitem = "\n.tide " . $descitem . " \n". text2txt($desc);
 	$text =~ s/\\itemnormal.*$id/$descitem/s;
     }
 
@@ -1250,11 +1201,6 @@ sub Rwrap
     my $nl = "";
     my $remainder = "";
 
-    if ($ll <= 0) {
-#	warn "warning. indent:\n".
-#	    &nounder(expand($ip))."\nis wider than the page\n";
-	$ll = 5;
-    }
     while ($t !~ /^\s*$/) {
 	if ($t =~ s/^([^\n]{0,$ll})(\s|\Z(?!\n))//xm) {
 	    $r .= $nl . $lead . $1;
@@ -1263,7 +1209,6 @@ sub Rwrap
 	    $r .= $nl . $lead . $1;
 	    $remainder = "\n";
 	} else {
-	    print "$t\n";
 	    die "This shouldn't happen";
 	}
 
@@ -1945,25 +1890,28 @@ sub rdoc2ex { # (filename)
 	local $Exout;
 	if($_[0]) {
 	    $Exout = new FileHandle;
-	    open $Exout, "> $_[0]"; # will be closed when goes out of scope
+	    open $Exout, "> $_[0]";  # will be closed when goes out of scope
 	} else {
 	    $Exout = "STDOUT";
 	}
 
 	$tit =~ s/\s+/ /g;
+	print $Exout "###--- >>> `", $blocks{"name"};
+	print $Exout "' <<<----- ", $tit , "\n\n";
+	if(@aliases) {
+	    foreach (@aliases) {
+		print $Exout "\t## alias\t help($_)\n";
+	    }
+	    print $Exout "\n";
+	}
 
-	$Exout->print(fill("### Name: ", "###   ", $blocks{"name"}),
-		      "\n",
-		      fill("### Title: ", "###   ", $tit),
-		      "\n",
-		      fill("### Aliases: ", "###   ", @aliases),
-		      "\n",
-		      fill("### Keywords: ", "###   ", @keywords),
-		      "\n\n");
-	
 	ex_print_exampleblock("examples", "Examples");
 
-	$Exout->print("\n\n");
+	if(@keywords) {
+	    print $Exout "## Keywords: ";
+	    &print_vec($Exout, 'keywords');
+	}
+	print $Exout "\n\n";
     }
 }
 
@@ -1971,10 +1919,8 @@ sub ex_print_exampleblock {
 
     my ($block,$env) = @_;
 
-    if(defined $blocks{$block}) {
-	$Exout->print("### ** Examples\n",
-		      code2examp($blocks{$block}),
-		      "\n");
+    if(defined $blocks{$block}){
+	print $Exout "##___ Examples ___:\n", code2examp($blocks{$block}), "\n";
     }
 }
 
@@ -1987,17 +1933,7 @@ sub code2examp {
     $text =~ s/\\dots/.../go;
 
     $text = undefine_command($text, "link");
-
     $text = undefine_command($text, "testonly");
-    ## Ideas for alternatives :
-    ## 1) if the comments were shown in example() at all :
-    ## $text = replace_command($text, "testonly",
-    ##			    "## BEGIN{testonly}\n", "\n## END{testonly}}");
-    ## 2)
-    ## $text = replace_command($test, "testonly",
-    ##	      "if(is.null(F) || <call from example(*, testonly = TRUE)>)) {\\n",
-    ##				"\\n}");
-
     $text = replace_prepend_command($text, "dontrun","##Don't run: ", "",
 				    "##D ");
     $text =~ s/\\\\/\\/g;
@@ -2037,7 +1973,7 @@ sub rdoc2latex {# (filename)
 
     my $current = $blocks{"name"}, $generic, $cmd;
     foreach (sort foldorder @aliases) {
-	next if (/\(/ || /\{/ || /\{-class/);  # these two break the PDF indexing
+	next if ($_ eq "(" || $_ eq "{");  # these two break the PDF indexing
 	$generic = $a = $_;
 	$generic =~ s/\.data\.frame$/.dataframe/o;
 	$generic =~ s/\.model\.matrix$/.modelmatrix/o;
@@ -2284,7 +2220,6 @@ sub latex_code_trans {
     $c =~ /HYPERLINK\(([^)]*)\)/;
     my $link = latex_link_trans($1);
     $c =~ s/HYPERLINK\([^)]*\)/\\Link{$link}/go;
-    $c =~ s/,,/,{},/g; # ,, is a ligature in the ae font.
     $c;
 }
 
@@ -2292,7 +2227,7 @@ sub latex_link_trans {
     my $c = $_[0];
     $c =~ s/<-\./<\\Rdash\./go;
     $c =~ s/<-$/<\\Rdash/go;
-    $c;
+    $c
 }
 
 sub latex_code_cmd {
@@ -2375,465 +2310,6 @@ location.href = link;
 }
 </script>
 END
-}
-
-#==************************ S Sgml ********************************
-
-
-sub rdoc2Ssgm { # (filename) ; 0 for STDOUT
-
-    local $sgmlout;
-    if($_[0]) {
-	$sgmlout = new FileHandle;
-	open $sgmlout, "> $_[0]";  # will be closed when goes out of scope
-    } else {
-	$sgmlout = "STDOUT";
-    }
-    print $sgmlout (Ssgm_functionhead($blocks{"name"}, $blocks{"title"}));
-
-    Ssgm_print_block("description", "s-description");
-    Ssgm_print_usage();
-    Ssgm_print_argblock();
-    Ssgm_print_block_named("format", "Format");
-    Ssgm_print_block("details", "s-details");
-    Ssgm_print_valueblock();
-
-    Ssgm_print_sections();
-
-# s-note, s-author, s-references are in the DTD, but not translated to HTML
-#    Ssgm_print_block("note", "s-note");
-    Ssgm_print_block_named("note", "Note");
-#    Ssgm_print_block("author", "s-author");
-    Ssgm_print_block_named("author", "Author(s)");
-    Ssgm_print_block_named("source", "Source");
-#    Ssgm_print_block("references", "s-references");
-    Ssgm_print_block_named("references", "References");
-    Ssgm_print_seealso();
-    Ssgm_print_examples();
-    if ($#keywords > 0) {
-	print $sgmlout "<s-keywords>\n";
-	while ($#keywords >= 0) {
-	    print $sgmlout "<s-keyword>", shift( @keywords ),
-	    "</s-keyword>\n";
-	}
-	print $sgmlout "</s-keywords>\n";
-    }
-
-    print $sgmlout (Ssgm_functionfoot());
-}
-
-
-# Convert a Rdoc text string to HTML, i.e., convert \lang to <tt> etc.
-sub text2Ssgm {
-
-    my $text = $_[0];
-    my $outerpass = $_[1];
-    my $inarglist = $_[2];
-
-    if($outerpass) {
-        $text =~ s/&([^#])/&amp;\1/go; # might have explicit &# in source
-	$text =~ s/>/&gt;/go;
-	$text =~ s/</&lt;/go;
-	$text =~ s/\]/&rsqb;/go;
-	$text =~ s/\[/&lsqb;/go;
-	$text =~ s/\\%/%/go;
-
-	$text =~ s/\n\s*\n/\n<p>\n/sgo;
-	$text =~ s/\\dots/.../go;
-	$text =~ s/\\ldots/.../go;
-
-	$text =~ s/\\mu/&mu;/go;
-	$text =~ s/\\Gamma/&Gamma;/go;
-	$text =~ s/\\alpha/&alpha;/go;
-	$text =~ s/\\Alpha/&Alpha;/go;
-	$text =~ s/\\pi/&pi;/go;
-	$text =~ s/\\sigma/&sigma;/go;
-	$text =~ s/\\Sigma/&Sigma;/go;
-	$text =~ s/\\lambda/&lambda;/go;
-	$text =~ s/\\beta/&beta;/go;
-	$text =~ s/\\epsilon/&epsilon;/go;
-	$text =~ s/\\left\(/\(/go;
-	$text =~ s/\\right\)/\)/go;
-	$text =~ s/\\le/&lt;=/go;# \le *after* \left !
-	$text =~ s/\\ge/&gt;=/go;
-	$text =~ s/\\R/<bf>R<\/bf>/go;
-#	$text =~ s/---/&#151;/go; # HTML 4.01 has &mdash; and &#8212;
-#	$text =~ s/--/&#150;/go; # HTML 4.01 has &ndash; and &#8211;
-	$text =~ s/---/&mdash;/go;
-	$text =~ s/--/&ndash;/go;
-	$text =~ s/$EOB/\{/go;
-	$text =~ s/$ECB/\}/go;
-    }
-
-    $text = replace_command($text, "emph", "<em>", "</em>");
-    $text = replace_command($text, "bold", "<bf>", "</bf>");
-    $text = replace_command($text, "file", "`<tt>", "</tt>'");
-
-    $text = Ssgm_tables($text);
-    $text =~ s/\\cr/<br>/sgo;
-
-    my $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\link")
-	  &&  $text =~ /\\link/){
-	my ($id, $arg, $opt) = get_link($text);
-	$text =~
-	    s/\\link(\[.*\])?$id.*$id/<s-function name="$arg">$arg<\/s-function>/s;
-    }
-
-    $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\email")
-	  &&  $text =~ /\\email/){
-	my ($id, $arg)	= get_arguments("email", $text, 1);
-	$text =~ s/\\email$id.*$id/<url url=\"mailto:$arg\">/s;
-    }
-
-    $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\url")
-	  &&  $text =~ /\\url/){
-	my ($id, $arg)	= get_arguments("url", $text, 1);
-	$text =~ s/\\url.*$id/<url url =\"$arg\">/s;
-    }
-
-    # handle equations:
-    $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\eqn")
-	  &&  $text =~ /\\eqn/){
-	my ($id, $eqn, $ascii) = get_arguments("eqn", $text, 2);
-	$eqn = $ascii if $ascii;
-	$text =~ s/\\eqn(.*)$id/<it>$eqn<\/it>/s;
-    }
-
-    $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\deqn")
-	  &&  $text =~ /\\deqn/){
-	my ($id, $eqn, $ascii) = get_arguments("deqn", $text, 2);
-	$eqn = $ascii if $ascii;
-	$text =~ s/\\deqn(.*)$id/<p><it>$eqn<\/it><\/p>/s;
-    }
-
-    $text = replace_command($text, "itemize", "<itemize>", "</itemize>");
-    $text = replace_command($text, "enumerate", "<enum>", "</enum>");
-    $text =~ s/<\/p>\n<p>\s+\\item\s+/<item>/go;
-    $text =~ s/\\item\s+/<item>/go;
-
-    # handle "\describe"
-    $text = replace_command($text, "describe", "<descrip>", "</descrip>\n");
-    while(checkloop($loopcount++, $text, "\\item") && $text =~ /\\itemnormal/s)
-    {
-	my ($id, $arg, $desc)  = get_arguments("item", $text, 2);
-	$descitem = "<tag/" . text2Ssgm($arg, 0, $inarglist) . "/";
-	$descitem .= text2Ssgm($desc, 0, $inarglist);
-	$text =~ s/\\itemnormal.*$id/$descitem/s;
-    }
-    if($outerpass) {
-	$text =~ s/\\([^\\])/$1/go;#-drop single "\" (as in ``\R'')
-	$text =~ s/\\\\/\\/go;
-	$text = Ssgm_unescape_codes($text);
-	$text = unmark_brackets($text);
-	$text =~ s/<tag\/<s-expression>(.*?)<\/s-expression>/<tag\/$1/g;
-    }
-    $text;
-}
-
-sub code2Ssgm {
-
-    my $text = $_[0];
-
-    $text =~ s/&/&amp;/go;
-    $text =~ s/>/&gt;/go;
-    $text =~ s/</&lt;/go;
-    $text =~ s/\\%/%/go;
-    $text =~ s/\\ldots/.../go;
-    $text =~ s/\\dots/.../go;
-
-    my $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\link")
-	  &&  $text =~ /\\link/){
-	my ($id, $arg, $opt) = get_link($text);
-	$text =~
-	    s/\\link(\[.*\])?$id.*$id/<s-function name="$arg">$arg<\/s-function>/s;
-    }
-
-    $text = undefine_command($text, "dontrun");
-    $text = drop_full_command($text, "testonly");
-    $text =~ s/\\\\/\\/go;
-
-    $text = unmark_brackets($text);
-    ## \method{CLASS}{GENERIC}
-    $text =~ s/\\method\{([a-zA-Z0-9.]+)\}\{([a-zA-Z0-9.]+)\}/$1/g;
-    $text;
-}
-
-sub see2Ssgm {
-
-    my $text = $_[0];
-    my $loopcount = 0;
-    $text = Ssgm_unescape_codes($text);
-    while(checkloop($loopcount++, $text, "\\link")
-	  &&  $text =~ /\\link/){
-	my ($id, $arg, $opt) = get_link($text);
-	$text =~
-	    s/\\link(\[.*\])?$id.*$id/<s-function name="$arg">$arg<\/s-function>/s;
-    }
-
-    $text = unmark_brackets($text);
-    $text;
-}
-
-# Print a standard block
-sub Ssgm_print_block {
-
-    my ($block,$sname) = @_;
-
-    Ssgm_print_a_section("<$sname>", $blocks{$block}, "</$sname>")
-	if defined $blocks{$block};
-}
-
-sub Ssgm_print_block_named {
-
-    my ($block,$name) = @_;
-
-    Ssgm_print_a_section("<s-section name=\"".uc($name)."\">",
-			 $blocks{$block}, "</s-section>")
-	if defined $blocks{$block};
-}
-
-sub Ssgm_print_usage {
-
-    if(defined $blocks{"usage"}){
-	print $sgmlout ("<s-usage>\n<s-old-style-usage>",
-			code2Ssgm($blocks{"usage"}),
-			"</s-old-style-usage>\n</s-usage>\n\n");
-    }
-}
-
-sub Ssgm_print_examples {
-
-    if(defined $blocks{"examples"}){
-	print $sgmlout ("<s-examples>\n<s-example type = text>",
-			code2Ssgm($blocks{"examples"}),
-			"</s-example>\n</s-examples>\n");
-    }
-}
-
-sub Ssgm_print_seealso {
-
-    if(defined $blocks{"seealso"}){
-	print $sgmlout ("<s-see>\n", see2Ssgm($blocks{"seealso"}),
-			"\n</s-see>\n\n");
-    }
-}
-
-
-# Print the value or arguments block
-sub Ssgm_print_argblock {
-
-    my $block = "arguments";
-
-    if(defined $blocks{$block}){
-	print $sgmlout "<s-args>\n";
-
-	my $text = $blocks{$block};
-
-	if($text =~ /\\item/s){
-	    $text =~ /^(.*)(\\item.*)*/s;
-	    my ($begin, $rest) = split(/\\item/, $text, 2);
-	    if($begin){
-		$text =~ s/^$begin//s;
-		$begin =~ s/(\n)+$//;
-		print $sgmlout (text2Ssgm($begin, 1, 1), "\n");
-	    }
-	    my $loopcount = 0;
-	    while(checkloop($loopcount++, $text, "\\item")
-		  && $text =~ /\\item/s){
-		my ($id, $arg, $desc)  =
-		    get_arguments("item", $text, 2);
-		print $sgmlout ("<s-arg name=\"",
-				text2Ssgm($arg, 1, 1),
-				"\">\n",
-				text2Ssgm($desc, 1, 1), "</s-arg>\n");
-		$text =~ s/.*$id//s;
-	    }
-	    my $rest = text2Ssgm($text, 1, 1);
-	    print $sgmlout ($rest, "\n") if $rest;
-	}
-	else{
-	    my $rest = text2Ssgm($text, 1, 1);
-	    print $sgmlout ($rest, "\n") if $rest;
-	}
-	print $sgmlout "</s-args>\n\n";
-    }
-}
-sub Ssgm_print_valueblock {
-
-    my $block = "value";
-
-    if(defined $blocks{$block}){
-	print $sgmlout "<s-value>\n";
-
-	my $text = $blocks{$block};
-
-	if($text =~ /\\item/s){
-	    $text =~ /^(.*)(\\item.*)*/s;
-	    my ($begin, $rest) = split(/\\item/, $text, 2);
-	    if($begin){
-		$text =~ s/^$begin//s;
-		$begin =~ s/(\n)+$//;
-		print $sgmlout (text2Ssgm($begin, 1, 1), "\n");
-	    }
-	    my $loopcount = 0;
-	    while(checkloop($loopcount++, $text, "\\item")
-		  && $text =~ /\\item/s){
-		my ($id, $arg, $desc)  =
-		    get_arguments("item", $text, 2);
-		print $sgmlout ("<s-return-component name=\"",
-				text2Ssgm($arg, 1, 1),
-				"\">\n",
-				text2Ssgm($desc, 1, 1),
-				"</s-return-component>\n");
-		$text =~ s/.*$id//s;
-	    }
-	    my $rest = text2Ssgm($text, 1, 1);
-	    print $sgmlout ($rest, "\n") if $rest;
-	}
-	else{
-	    my $rest = text2Ssgm($text, 1, 1);
-	    print $sgmlout ($rest, "\n") if $rest;
-	}
-	print $sgmlout "</s-value>\n\n";
-    }
-}
-
-# Print sections
-sub Ssgm_print_sections {
-
-    my $section;
-
-    for($section=0; $section<$max_section; $section++){
-	Ssgm_print_block_named($section, $section_title[$section]);
-    }
-}
-
-sub Ssgm_print_a_section {
-    my ($sbegin, $body, $send) = @_;
-    my $htmlbody = text2Ssgm($body, 1, 0);
-
-    $htmlbody =~ s/<p>\s*<p/<p/g;  # before deqn
-    $htmlbody =~ s/<\/p>\s*<\/p>/<\/p>/g;
-# attempt to close paragraphs tags, and remove spurious closings.
-    $htmlbody =~ s/<\/(table|dl|ul|ol|dd)>\n+<\/p>\n/<\/\1>\n\n/g;
-    $htmlbody =~ s/<\/(table|dl|ul|ol)>\n+(\w|<em|<s-expression|<b)/<\/\1>\n<p>\n\2/g;
-    $htmlbody =~ s/<p>\s*<(table|dl|ul|ol|dt)/\n<\1/g;
-
-    print $sgmlout ("$sbegin\n", $htmlbody, "\n$send\n\n");
-}
-
-
-
-sub Ssgm_unescape_codes {
-
-    my $text = $_[0];
-
-    my $loopcount = 0;
-    while(checkloop($loopcount++, $text, "escaped code")
-	  && $text =~ /$ECODE($ID)/){
-	my $id = $1;
-	my $ec = code2Ssgm($ecodes{$id});
-	if($ec =~ /<s-function/) {
-	    # <s-expression cannot contain <s-function>
-	    $text =~ s/$ECODE$id/$ec/;
-	} else {
-	    $text =~ s/$ECODE$id/<s-expression>$ec<\/s-expression>/;
-	}
-    }
-    $text;
-}
-
-# no support for tables in DTD, even though <tabular> is in linuxdoc.dtd
-sub Ssgm_tables {
-
-    my $text = $_[0];
-
-    my $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\tabular")
-	  &&  $text =~ /\\tabular/){
-
-	my ($id, $format, $arg)	 =
-	    get_arguments("tabular", $text, 2);
-
-	$arg =~ s/\n/ /sgo;
-
-	# remove trailing \cr (otherwise we get an empty last line)
-	$arg =~ s/\\cr\s*$//go;
-
-	# parse the format of the tabular environment
-	my $ncols = length($format);
-	my @colformat = ();
-	for($k=0; $k<$ncols; $k++){
-	    my $cf = substr($format, $k, 1);
-
-	    if($cf =~ /l/o){
-		$colformat[$k] = "left";
-	    }
-	    elsif($cf =~ /r/o){
-		$colformat[$k] = "right";
-	    }
-	    elsif($cf =~ /c/o){
-		$colformat[$k] = "center";
-	    }
-	    else{
-		die("Error: unknown identifier \{$cf\} in" .
-		    " tabular format \{$format\}\n");
-	    }
-	}
-
-	# now do the real work: split into lines and columns
-	my $table = "<p>\n<!-- no support for tables -->\n";
-	my @rows = split(/\\cr/, $arg);
-	for($k=0; $k<=$#rows;$k++){
-	    $table .= "    ";
-	    my @cols = split(/\\tab/, $rows[$k]);
-	    die("Error:\n  $rows[$k]\\cr\n" .
-		"does not fit tabular format \{$format\}\n")
-		if ($#cols != $#colformat);
-	    $table .= $cols[0];
-	    for($l=1; $l<=$#cols; $l++){
-		$table .= "|$cols[$l]";
-	    }
-	    $table .= "<br>\n";
-	}
-	$table .= "<!-- end of table -->\n";
-	$text =~ s/\\tabular.*$id/$table/s;
-    }
-
-    $text;
-}
-
-sub Ssgm_title3
-{
-    my $title = $_[0];
-
-    "\n<h3>$title</h3>\n\n";
-}
-
-# The header & footer of a function page
-
-sub Ssgm_functionhead
-{
-    my ($name,$title) = @_;
-
-    my $retval =
-    "<!doctype s-function-doc system \"s-function-doc.dtd\" [\n".
-    "<!entity % S-OLD \"INCLUDE\">\n]\n>\n".
-    "<s-function-doc>\n";
-    $retval .= "<s-topics>\n  <s-topic>".$name."</s-topic>\n</s-topics>\n\n";
-    $retval .= "<s-title>\n".$title."\n</s-title>\n\n";
-}
-
-sub Ssgm_functionfoot
-{
-
-    "<s-docclass>\nfunction\n</s-docclass>\n</s-function-doc>\n";
 }
 
 # Local variables: **

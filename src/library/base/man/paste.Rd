@@ -29,11 +29,10 @@ paste(\dots, sep = " ", collapse = NULL)
   String manipulation with
   \code{\link{as.character}}, \code{\link{substr}}, \code{\link{nchar}},
   \code{\link{strsplit}}; further, \code{\link{cat}} which concatenates and
-  writes to a file, and \code{\link{sprintf}} for C like string
-  construction.
+  writes to a file.
 }
 \examples{
-paste(1:12) # same as as.character(1:12)
+paste(1:12) # same as as.character(..)
 paste("A", 1:6, sep = "")
 paste("Today is", date())
 }

@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2003    Robert Gentleman, Ross Ihaka
+ *  Copyright (C) 1998-2001    Robert Gentleman, Ross Ihaka
  *                             and the R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -24,9 +24,10 @@
 #ifndef R_EXT_UTILS_H_
 #define R_EXT_UTILS_H_
 
-#include <R_ext/Boolean.h>
-#include <R_ext/Complex.h>
+#include "R_ext/Boolean.h"
+#include "R_ext/Complex.h"
 
+#ifndef R_NO_REMAP
 #define revsort       Rf_revsort
 #define iPsort        Rf_iPsort
 #define rPsort        Rf_rPsort
@@ -38,12 +39,13 @@
 #define StringTrue    Rf_StringTrue
 #define isBlankString Rf_isBlankString
 #define hsv2rgb       Rf_hsv2rgb
+#endif
 
 #ifdef  __cplusplus
 extern "C" {
 #endif
 
-/* ../../main/sort.c : */
+/* ../main/sort.c : */
 void	R_isort(int*, int);
 void	R_rsort(double*, int);
 void	R_csort(Rcomplex*, int);
@@ -53,17 +55,8 @@ void	iPsort(int*,    int, int);
 void	rPsort(double*, int, int);
 void	cPsort(Rcomplex*, int, int);
 
-/* ../../main/qsort.c : */
-void R_qsort    (double *v,         int i, int j);
-void R_qsort_I  (double *v, int *I, int i, int j);
-void R_qsort_int  (int *iv,         int i, int j);
-void R_qsort_int_I(int *iv, int *I, int i, int j);
-
-
-/* ../../main/printutils.c : */
 int	IndexWidth(int);
 int	Rstrlen(char*, int);
-/* ../../main/util.c  and others : */
 char*	R_ExpandFileName(char*);
 void	setIVector(int*, int, int);
 void	setRVector(double*, int, double);
@@ -71,8 +64,7 @@ Rboolean StringFalse(char*);
 Rboolean StringTrue(char*);
 Rboolean isBlankString(char *);
 
-double 	R_strtod(const char *c, char **end);
-char *  R_tmpnam(const char *prefix, const char *tempdir);
+double 	R_strtod(char *c, char **end);
 
 void	hsv2rgb(double *h, double *s, double *v,/* in */
 		double *r, double *g, double *b);/* out */

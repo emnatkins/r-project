@@ -13,52 +13,44 @@
   CRAN and update outdated packages on the fly.}
 }
 \usage{
-update.packages(lib.loc = NULL, CRAN = getOption("CRAN"),
+update.packages(lib.loc = .lib.loc, CRAN = getOption("CRAN"),
                 contriburl = contrib.url(CRAN),
                 method, instlib = NULL,
-                ask=TRUE, available=NULL, destdir=NULL,
-		installWithVers=FALSE)
+                ask=TRUE, available=NULL, destdir=NULL)
 
-installed.packages(lib.loc = NULL, priority = NULL)
+installed.packages(lib.loc = .lib.loc)
 CRAN.packages(CRAN = getOption("CRAN"), method = "auto",
               contriburl = contrib.url(CRAN))
-old.packages(lib.loc = NULL, CRAN = getOption("CRAN"),
+old.packages(lib.loc = .lib.loc, CRAN = getOption("CRAN"),
              contriburl = contrib.url(CRAN),
              method, available = NULL)
 
 download.packages(pkgs, destdir, available = NULL,
-                  CRAN = getOption("CRAN"),
+                  CRAN = getOption("CRAN"), 
                   contriburl = contrib.url(CRAN), method = "auto")
 install.packages(pkgs, lib, CRAN = getOption("CRAN"),
                  contriburl = contrib.url(CRAN),
-                 method, available = NULL, destdir = NULL,
-		 installWithVers = FALSE)
+                 method, available = NULL, destdir = NULL)
 }
-\arguments{
-  \item{lib.loc}{character vector describing the location of R
+\arguments{ 
+  \item{lib.loc}{A character vector describing the location of R
     library trees to search through (and update packages therein).}
-  \item{CRAN}{character, the base URL of the CRAN mirror to use, i.e.,
-    the URL of a CRAN root such as \code{"http://cran.r-project.org"}
-    (the default) or its Statlib mirror,
-    \code{"http://lib.stat.cmu.edu/R/CRAN"}.}
+  \item{CRAN}{The base URL of the CRAN mirror to use, i.e., the URL of a
+    CRAN root such as \code{"http://cran.r-project.org"} (the default) or
+    its Statlib mirror, \code{"http://lib.stat.cmu.edu/R/CRAN"}.}
   \item{contriburl}{URL of the contrib section of CRAN. Use this argument
     only if your CRAN mirror is incomplete, e.g., because you burned
     only the contrib section on a CD.  Overrides argument \code{CRAN}.}
   \item{method}{Download method, see \code{\link{download.file}}.}
-  \item{pkgs}{character vector of the short names of
+  \item{pkgs}{A character vector of the short names of
     packages whose current versions should be downloaded from \code{CRAN}.}
-  \item{destdir}{directory where downloaded packages are stored.}
-  \item{priority}{character vector or \code{NULL} (default).  If
-    non-null, used to select packages; \code{"high"} is equivalent to
-    \code{c("base","recommended")}.}
-  \item{available}{list of packages available at CRAN as returned by
+  \item{destdir}{Directory where downloaded packages are stored.}
+  \item{available}{List of packages available at CRAN as returned by
     \code{CRAN.packages}.}
-  \item{lib,instlib}{character string giving the library directory where to
+  \item{lib,instlib}{A character string giving the library directory where to
     install the packages.}
-  \item{ask}{logical indicating to ask before packages are actually downloaded
+  \item{ask}{If \code{TRUE}, ask before packages are actually downloaded
     and installed.}
-  \item{installWithVers}{If TRUE, will invoke the install the package such
-    that it can be referenced by package version}
 }
 \details{
   \code{installed.packages} scans the \file{DESCRIPTION} files of each
@@ -74,7 +66,7 @@ install.packages(pkgs, lib, CRAN = getOption("CRAN"),
 
   \code{download.packages} takes a list of package names and a
   destination directory, downloads the newest versions of the package
-  sources and saves them in \code{destdir}.  If the list of available
+  sources and saves the in \code{destdir}.  If the list of available
   packages is not given as argument, it is also directly obtained from
   CRAN.  If CRAN is local, i.e., the URL starts with \code{"file:"},
   then the packages are not downloaded but used directly.
@@ -94,12 +86,12 @@ install.packages(pkgs, lib, CRAN = getOption("CRAN"),
   downloaded from CRAN and installed in the respective library path (or
   \code{instlib} if specified).
 #endif
-
+  
   \code{install.packages} can be used to install new packages, it
   takes a vector of package names and a destination library, downloads
   the packages from CRAN and installs them. If the library
-  is omitted it defaults to the first directory in \code{.libPaths()}, with
-  a warning if there is more than one.
+  is omitted it defaults to the first directory in \code{.lib.loc}, with
+  a warning.
 %  The first argument can be an unquoted name, as in
 %  \code{install.packages(nlme)}.
 #ifdef windows
@@ -111,20 +103,21 @@ install.packages(pkgs, lib, CRAN = getOption("CRAN"),
   is the directory to which packages will be downloaded. If it is
   \code{NULL} (the default) a temporary directory is used, and the user
   will be given the option of deleting the temporary files once the
-  packages are installed.  (They will always be deleted at the end of
-  the \R session.)
+  packages are installed.
 }
+#ifdef windows
+\note{
+  \code{wget.exe} is available from
+  \url{http://www.stats.ox.ac.uk/pub/Rtools/wget.zip}.
+  \code{lynx.exe} is available from
+  \url{http://www.fdisk.com/doslynx/lynxport.htm}.
+}
+#endif
 \seealso{
-  See \code{\link{download.file}} for how to handle proxies and
-  other options to monitor file transfers.
-
 #ifdef unix
   \code{\link{INSTALL}}, \code{\link{REMOVE}},
 #endif
-  \code{\link{library}}, \code{\link{.packages}}, \code{\link{read.dcf}}
-}
-\examples{
-str(ip <- installed.packages(priority = "high"))
-ip[, c(1,3:5)]
+  \code{\link{library}}, \code{\link{.packages}},
+  \code{\link{read.dcf}}, \code{\link{download.file}}
 }
 \keyword{utilities}

@@ -115,7 +115,7 @@ lsfit <- function(x, y, wt=NULL, intercept=TRUE, tolerance=1e-07, yname=NULL)
     ## return weights if necessary
 
     if (!is.null(wt) ) {
-	weights <- rep.int(NA, dimy[1])
+	weights <- rep(NA, dimy[1])
 	weights[good] <- wt
 	output <- c(output, list(wt=weights))
     }
@@ -124,7 +124,6 @@ lsfit <- function(x, y, wt=NULL, intercept=TRUE, tolerance=1e-07, yname=NULL)
 
     rqr <- list(qt=z$effects, qr=z$qr, qraux=z$qraux, rank=z$rank,
 		pivot=z$pivot, tol=z$tol)
-    oldClass(rqr) <- "qr"
     output <- c(output, list(intercept=intercept, qr=rqr))
     return(output)
 }
@@ -156,7 +155,7 @@ ls.diag <- function(ls.out)
 
     p <- ls.out$qr$rank
     n <- nrow(resids)
-    hatdiag <- rep.int(NA, n)
+    hatdiag <- rep(NA, n)
     stats <- array(NA, dim = dim(resids))
     colnames(stats) <- yname
     stdres <- studres <- dfits <- Cooks <- stats
@@ -164,11 +163,11 @@ ls.diag <- function(ls.out)
     ## calculate hat matrix diagonals
 
     q <- qr.qy(ls.out$qr, rbind(diag(p), matrix(0, nrow=n-p, ncol=p)))
-    hatdiag[good] <- rowSums(as.matrix(q^2))
+    hatdiag[good] <- apply(as.matrix(q^2), 1, sum)
 
     ## calculate diagnostics
 
-    stddev <- (colSums(as.matrix(resids^2))/(n - p))^0.5
+    stddev <- (apply(as.matrix(resids^2), 2, sum)/(n - p))^0.5
     stddevmat <- matrix(stddev, nrow=sum(good), ncol=ncol(resids), byrow=TRUE)
     stdres[good, ] <- resids/((1-hatdiag[good])^0.5 * stddevmat)
     studres[good, ] <- (stdres[good, ]*stddevmat)/(((n-p)*stddevmat^2 -
@@ -220,7 +219,7 @@ ls.print <- function(ls.out, digits=4, print.it=TRUE)
 	    warning("Observations with 0 weights not used")
 	resids <- resids * ls.out$wt^0.5
     }
-    n <- apply(resids, 2, length)-colSums(is.na(resids))
+    n <- apply(resids, 2, length)-apply(is.na(resids), 2, sum)
     lsqr <- ls.out$qr
     p <- lsqr$rank
 
@@ -228,22 +227,22 @@ ls.print <- function(ls.out, digits=4, print.it=TRUE)
 
     if(ls.out$intercept) {
 	if(is.matrix(lsqr$qt))
-	    totss <- colSums(lsqr$qt[-1, ]^2)
+	    totss <- apply(lsqr$qt[-1, ]^2, 2, sum)
 	else totss <- sum(lsqr$qt[-1]^2)
 	degfree <- p - 1
     } else {
-	totss <- colSums(as.matrix(lsqr$qt^2))
+	totss <- apply(as.matrix(lsqr$qt^2), 2, sum)
 	degfree <- p
     }
 
     ## calculate residual sum sq and regression sum sq
 
-    resss <- colSums(resids^2, na.rm=TRUE)
+    resss <- apply(resids^2, 2, sum, na.rm=TRUE)
     resse <- (resss/(n-p))^.5
     regss <- totss - resss
     rsquared <- regss/totss
     fstat <- (regss/degfree)/(resss/(n-p))
-    pvalue <- pf(fstat, degfree, (n-p), lower.tail = FALSE)
+    pvalue <- 1 - pf(fstat, degfree, (n-p))
 
     ## construct summary
 
@@ -271,8 +270,7 @@ ls.print <- function(ls.out, digits=4, print.it=TRUE)
 	covmat <- (resss[i]/(n[i]-p)) * (qrinv%*%t(qrinv))
 	se <- diag(covmat)^.5
 	coef.table[[i]] <- cbind(coef[, i], se, coef[, i]/se,
-				 2*pt(abs(coef[, i]/se), n[i]-p,
-                                      lower.tail = FALSE))
+				 2*(1 - pt(abs(coef[, i]/se), n[i]-p)))
 	dimnames(coef.table[[i]]) <-
 	    list(colnames(lsqr$qr),
 		 c("Estimate", "Std.Err", "t-value", "Pr(>|t|)"))
@@ -282,9 +280,9 @@ ls.print <- function(ls.out, digits=4, print.it=TRUE)
 	if(print.it) {
 	    if(m.y>1)
 		cat("Response:", Ynames[i], "\n\n")
-	    cat(paste("Residual Standard Error=",
-                      format(round(resse[i], digits)), "\nR-Square=",
-                      format(round(rsquared[i], digits)), "\nF-statistic (df=",
+	    cat(paste("Residual Standard Error=", format(round(
+							       resse[i], digits)), "\nR-Square=", format(round(
+													       rsquared[i], digits)), "\nF-statistic (df=",
 		      format(degfree), ", ", format(n[i]-p), ")=",
 		      format(round(fstat[i], digits)), "\np-value=",
 		      format(round(pvalue[i], digits)), "\n\n", sep=""))

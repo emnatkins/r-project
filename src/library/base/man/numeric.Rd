@@ -8,11 +8,6 @@ numeric(length = 0)
 as.numeric(x, \dots)
 is.numeric(x)
 }
-\arguments{
-  \item{length}{desired length.}
-  \item{x}{object to be coerced or tested.}
-  \item{\dots}{further arguments passed to or from other methods.}
-}
 \description{
   \code{numeric} creates a real vector of the specified length.  The
   elements of the vector are all equal to \code{0}.
@@ -23,11 +18,6 @@ is.numeric(x)
   \code{is.numeric} returns \code{TRUE} if its argument is of type real
   or type integer and \code{FALSE} otherwise.
 }
-\details{
-  \code{is.numeric} is  generic: you can write methods to handle
-  of specific classes of objects, see \link{InternalMethods}.
-}
-
 \note{
   \emph{\R has no single precision data type.  All real numbers are
     stored in double precision format}. While \code{as.numeric} is a

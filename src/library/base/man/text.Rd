@@ -13,12 +13,9 @@ text.default (x, y = NULL, labels = seq(along = x), adj = NULL,
     \code{labels} should be written.  If the length of \code{x} and
     \code{y} differs, the shorter one is recycled.}
   \item{labels}{one or more character strings or expressions specifying
-    the \emph{text} to be written.  An attempt is made
-    to coerce other vectors to character, and other language objects
-    to expressions.}
+    the \emph{text} to be written.}
   \item{adj}{one or two values in \eqn{[0,1]} which specify the x
-    (and optionally y) adjustment of the labels.  On most devices values
-    outside that interval will also work.}
+    (and optionally y) adjustment of the labels.}
   \item{pos}{a position specifier for the text.  If specified this
     overrides any \code{adj} value given.  Values of \code{1},
     \code{2}, \code{3} and \code{4}, respectively indicate
@@ -47,8 +44,7 @@ text.default (x, y = NULL, labels = seq(along = x), adj = NULL,
 }
 \details{
   \code{labels} must be of type \code{\link{character}} or
-  \code{\link{expression}} (or be coercible to such a type).
-  In the latter case, quite a bit of
+  \code{\link{expression}}.  In the latter case, quite a bit of
   mathematical notation is available such as sub- and superscripts,
   greek letters, fractions, etc.
 
@@ -82,8 +78,8 @@ K <- 16; text(exp(1i * 2 * pi * (1:K) / K), col = 2)
 
 ## The following two examples use latin1 characters: these may not
 ## appear correctly (or be omitted entirely).
-plot(1:10, 1:10, main = "text(...) examples\n~~~~~~~~~~~~~~",
-     sub = "R is GNU ©, but not ® ...")
+plot(1:10, 1:10, main = "text(..) examples\n~~~~~~~~~~~~~~",
+     sub = "R is GNU ©, but not ® ..")
 mtext("«ISO-accents»: ± éè øØ å<Å æ<Æ", side=3)
 points(c(6,2), c(2,1), pch = 3, cex = 4, col = "red")
 text(6, 2, "the text is CENTERED around (x,y) = (6,2) by default",
@@ -95,8 +91,7 @@ text(4, 8.4, "expression(hat(beta) == (X^t * X)^{-1} * X^t * y)", cex = .75)
 text(4, 7, expression(bar(x) == sum(frac(x[i], n), i==1, n)))
 
 ## Two more latin1 examples
-text(5,10.2,
-     "Le français, c'est façile: Règles, Liberté, Egalité, Fraternité...")
+text(5,10.2,"Le français, c'est façile: Règles, Liberté, Egalité, Fraternité..")
 text(5,9.8, "Jetz no chli züritüütsch: (noch ein bißchen Zürcher deutsch)")
 }
 \keyword{aplot}

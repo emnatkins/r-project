@@ -1,7 +1,7 @@
 /*
  *  Mathlib : A C Library of Special Functions
  *  Copyright (C) 1998 Ross Ihaka
- *  Copyright (C) 2000-2001 The R Development Core Team
+ *  Copyright (C) 2000 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  *
  *  SYNOPSIS
  *
- *    #include <Rmath.h>
+ *    #include "Rmath.h"
  *    double fround(double x, double digits);
  *
  *  DESCRIPTION
@@ -28,28 +28,43 @@
  *
  */
 
-#include <config.h> /* needed for HAVE_RINT */
 #include "nmath.h"
 
 #ifndef HAVE_RINT
 #define USE_BUILTIN_RINT
 #endif
 
-#ifdef WIN32
-/* earlier Windows headers did not include rint */
-#if __MINGW32_MAJOR_VERSION < 2
-static __inline__ double rint (double x)
-{
-    double retval;
-    __asm__ ("frndint;": "=t" (retval) : "0" (x));
-    return retval;
-}
-#endif
-#endif
-
 #ifdef USE_BUILTIN_RINT
 #define R_rint private_rint
 
+/* Old version was inaccurate, confused on i386 with 80-bit intermediate
+   results, and did not round to even as the help page says */
+#ifdef OLD
+	/* The largest integer which can be represented */
+	/* exactly in floating point form. */
+
+#define BIGGEST 4503599627370496.0E0		/* 2^52 for IEEE */
+
+static double private_rint(double x)
+{
+    static double biggest = BIGGEST;
+    double tmp;
+
+    if (x != x) return x;			/* NaN */
+
+    if (fabs(x) >= biggest)			/* Already integer */
+	return x;
+
+    if(x >= 0) {
+	tmp = x + biggest;
+	return tmp - biggest;
+    }
+    else {
+	tmp = x - biggest;
+	return tmp + biggest;
+    }
+}
+#else
 static double private_rint(double x)
 {
     double tmp, sgn = 1.0;
@@ -74,11 +89,14 @@ static double private_rint(double x)
     }
     return sgn * tmp;
 }
+#endif
+
 #else
 #define R_rint rint
 #endif
 
-double fround(double x, double digits) {
+double fround(double x, double digits)
+{
 #define MAX_DIGITS DBL_MAX_10_EXP
     /* = 308 (IEEE); was till R 0.99: (DBL_DIG - 1) */
     /* Note that large digits make sense for very small numbers */
@@ -94,19 +112,17 @@ double fround(double x, double digits) {
     if (digits > MAX_DIGITS)
 	digits = MAX_DIGITS;
     dig = (int)floor(digits + 0.5);
+    pow10 = R_pow_di(10., dig);
     if(x < 0.) {
 	sgn = -1.;
 	x = -x;
     } else
 	sgn = 1.;
-    if (dig == 0) {
-	return sgn * R_rint(x);
-    } else if (dig > 0) {
-        pow10 = R_pow_di(10., dig);
+    if (dig > 0) {
 	intx = floor(x);
-	return sgn * (intx + R_rint((x-intx) * pow10) / pow10);
-    } else {
-        pow10 = R_pow_di(10., -dig);
-        return sgn * R_rint(x/pow10) * pow10;
-    }
+	x -= intx;
+    } else
+	intx = 0.;
+
+    return sgn * (intx + R_rint(x * pow10) / pow10);
 }

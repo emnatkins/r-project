@@ -22,16 +22,12 @@
 #endif
 
 #include <Defn.h>
-#include <Rdynpriv.h>
-#include <Graphics.h>
+#include <Rgraphics.h>
+#include "R_ext/Rdynpriv.h"
 
-typedef struct {
-    R_GE_VTextRoutine GVText;
-    R_GE_VStrWidthRoutine GVStrWidth;
-    R_GE_VStrHeightRoutine GVStrHeight;
-} VfontRoutines;
-
-static VfontRoutines routines, *ptr = &routines;
+typedef double  (*dblDL_FUNC)();
+static dblDL_FUNC ptr_GVStrWidth, ptr_GVStrHeight;
+static DL_FUNC ptr_GVText;
 
 /*
 static double (*ptr_GVStrWidth)(const unsigned char *s, int typeface, 
@@ -48,21 +44,17 @@ static void (*ptr_GVText)(double x, double y, int unit, char *s,
 
 static int initialized = 0;
 
-void
-R_GE_setVFontRoutines(R_GE_VStrWidthRoutine vwidth, 
-		      R_GE_VStrHeightRoutine vheight, 
-		      R_GE_VTextRoutine vtext)
-{
-    ptr->GVStrWidth = vwidth;
-    ptr->GVStrHeight = vheight;
-    ptr->GVText = vtext;
-}
-
 static void vfonts_Init(void)
 {
     int res = moduleCdynload("vfonts", 1, 1);
     initialized = -1;
     if(!res) return;
+    
+    if(!(ptr_GVStrWidth =  (dblDL_FUNC)R_FindSymbol("Rf_GVStrWidth", 
+						    "vfonts", NULL))) return;
+    if(!(ptr_GVStrHeight = (dblDL_FUNC)R_FindSymbol("Rf_GVStrHeight", 
+						    "vfonts", NULL))) return;
+    if(!(ptr_GVText = R_FindSymbol("Rf_GVText", "vfonts", NULL))) return;
     initialized = 1;    
     return;
 }
@@ -70,20 +62,9 @@ static void vfonts_Init(void)
 double GVStrWidth (const unsigned char *s, int typeface, int fontindex,
 		   int unit, DevDesc *dd)
 {
-    return GConvertXUnits(R_GE_VStrWidth(s, typeface, fontindex, 1, 
-					 Rf_gpptr(dd)->cex, 
-					 Rf_gpptr(dd)->ps, 
-					 (GEDevDesc *) dd),
-			  DEVICE, unit, dd);
-}
-
-double R_GE_VStrWidth(const unsigned char *s, int typeface, int fontindex,
-		      double lineheight, double cex, double ps, GEDevDesc *dd)
-{
     if(!initialized) vfonts_Init();
     if(initialized > 0)
-	return (*ptr->GVStrWidth)(s, typeface, fontindex, lineheight,
-				  cex, ps, dd);
+	return (*ptr_GVStrWidth)(s, typeface, fontindex, unit, dd);
     else {
 	error("Hershey fonts cannot be loaded");
 	return 0.0;
@@ -93,20 +74,9 @@ double R_GE_VStrWidth(const unsigned char *s, int typeface, int fontindex,
 double GVStrHeight (const unsigned char *s, int typeface, int fontindex,
 		    int unit, DevDesc *dd)
 {
-    return GConvertYUnits(R_GE_VStrHeight(s, typeface, fontindex, 1, 
-					  Rf_gpptr(dd)->cex, 
-					  Rf_gpptr(dd)->ps, 
-					  (GEDevDesc *) dd),
-			  DEVICE, unit, dd);
-}
-
-double R_GE_VStrHeight(const unsigned char *s, int typeface, int fontindex,
-		       double lineheight, double cex, double ps, GEDevDesc *dd)
-{
     if(!initialized) vfonts_Init();
     if(initialized > 0)
-	return (*ptr->GVStrHeight)(s, typeface, fontindex, lineheight,
-				   cex, ps, dd);
+	return (*ptr_GVStrHeight)(s, typeface, fontindex, unit, dd);
     else {
 	error("Hershey fonts cannot be loaded");
 	return 0.0;
@@ -118,29 +88,10 @@ void GVText (double x, double y, int unit, char *s,
 	     double x_justify, double y_justify, double rotation,
 	     DevDesc *dd)
 {
-    /* 
-     * Ensure that the current par(xpd) settings are enforced.
-     */
-    GClip(dd);
-    GConvert(&x, &y, unit, DEVICE, dd);
-    R_GE_VText(x, y, s, typeface, fontindex, x_justify, y_justify,
-	       rotation, Rf_gpptr(dd)->col, Rf_gpptr(dd)->gamma,
-	       1 /* lineheight */, Rf_gpptr(dd)->cex, Rf_gpptr(dd)->ps,
-	       (GEDevDesc *) dd);
-}
-
-void R_GE_VText(double x, double y, char *s, 
-		int typeface, int fontindex,
-		double x_justify, double y_justify, double rotation,
-		int col, double gamma, double lineheight,
-		double cex, double ps,
-		GEDevDesc *dd)
-{
     if(!initialized) vfonts_Init();
     if(initialized > 0)
-	(*ptr->GVText)(x, y, s, typeface, fontindex, 
-		       x_justify, y_justify, rotation, 
-		       col, gamma, lineheight, cex, ps, dd);
+	(*ptr_GVText)(x, y, unit, s, typeface, fontindex, 
+		      x_justify, y_justify, rotation, dd);
     else
 	error("Hershey fonts cannot be loaded");
 }

@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-3  The R Development Core Team.
+ *  Copyright (C) 2001   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,8 +17,9 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#if !defined(Unix) || defined(HAVE_BSD_NETWORKING)
 
-/* based on libxml2-2.4.10:
+/* based on libxml2-2.3.6:
  * nanoftp.c: basic FTP client support
  *
  *  Reference: RFC 959
@@ -28,23 +29,10 @@
 #include <config.h>
 #endif
 
-/* we have a substitute snprintf */
-#ifndef HAVE_SNPRINTF
-#define HAVE_SNPRINTF 1
-#endif
-
-#if !defined(Unix) || defined(HAVE_BSD_NETWORKING)
-
 #ifdef Win32
-#include <io.h>
-#include <winsock.h>
+#define INCLUDE_WINSOCK
+#include "win32config.h"
 #define _WINSOCKAPI_
-extern void R_ProcessEvents(void);
-#endif
-
-#ifdef HAVE_STRINGS_H
-   /* may be needed to define bzero in FD_ZERO (eg AIX) */
-  #include <strings.h>
 #endif
 
 #include <R_ext/R-ftp-http.h>
@@ -62,6 +50,7 @@ extern void R_ProcessEvents(void);
 #  include <netdb.h>
 #  include <sys/socket.h>
 #  include <netinet/in.h>
+#  include <netinet/tcp.h>
 #endif
 
 #ifdef HAVE_FCNTL_H
@@ -75,6 +64,9 @@ extern void R_ProcessEvents(void);
 #endif
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
+#endif
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
 #endif
 
 
@@ -113,6 +105,8 @@ setSelectMask(InputHandler *handlers, fd_set *readMask)
 #define closesocket(s) close(s)
 #define SOCKET int
 #endif
+
+static char hostname[100];
 
 #define FTP_COMMAND_OK		200
 #define FTP_SYNTAX_ERROR	500
@@ -175,6 +169,8 @@ RxmlNanoFTPInit(void) {
 	return;
 #endif
 
+    gethostname(hostname, sizeof(hostname));
+
     proxyPort = 21;
     env = getenv("no_proxy");
     if (env != NULL)
@@ -219,6 +215,7 @@ RxmlNanoFTPCleanup(void) {
 	xmlFree(proxyPasswd);
 	proxyPasswd = NULL;
     }
+    hostname[0] = 0;
 #ifdef _WINSOCKAPI_
     if (initialized)
 	WSACleanup();
@@ -271,31 +268,6 @@ RxmlNanoFTPScanURL(void *ctx, const char *URL) {
     if (*cur == 0) return;
 
     buf[indx] = 0;
-    /* allow user@ and user:pass@ forms */
-    { 
-	const char *p = strchr(cur, '@');
-	if(p) {
-	    while(1) {
-		if(cur[0] == ':' || cur[0] == '@') break;
-		buf[indx++] = *cur++;
-	    }
-	    buf[indx] = 0;
-	    ctxt->user = xmlMemStrdup(buf);
-	    indx = 0;
-	    if(cur[0] == ':') {
-		cur++;
-		while(1) {
-		    if(cur[0] == '@') break;
-		    buf[indx++] = *cur++;
-		}
-		buf[indx] = 0;
-		ctxt->passwd = xmlMemStrdup(buf);
-		indx = 0;
-	    }
-	    cur = p+1;
-	}
-    }
-    
     while (1) {
         if (cur[0] == ':') {
 	    buf[indx] = 0;
@@ -353,13 +325,13 @@ RxmlNanoFTPScanProxy(const char *URL) {
         xmlFree(proxy);
 	proxy = NULL;
     }
-    /*if (proxyPort != 0) {
+    if (proxyPort != 0) {
 	proxyPort = 0;
-	}*/
+    }
     if (URL == NULL)
 	RxmlMessage(0, "Removing FTP proxy info");
     else
-	RxmlMessage(1, "Using FTP proxy %s", URL);
+	RxmlMessage(0, "Using FTP proxy %s", URL);
     if (URL == NULL) return;
     buf[indx] = 0;
     while (*cur != 0) {
@@ -423,7 +395,6 @@ RxmlNanoFTPNewCtxt(const char *URL) {
     ret->contentLength = -1;
     ret->controlBufIndex = 0;
     ret->controlBufUsed = 0;
-    ret->controlFd = -1;
 
     if (URL != NULL)
 	RxmlNanoFTPScanURL(ret, URL);
@@ -446,7 +417,7 @@ RxmlNanoFTPFreeCtxt(void * ctx) {
     if (ctxt->protocol != NULL) xmlFree(ctxt->protocol);
     if (ctxt->path != NULL) xmlFree(ctxt->path);
     ctxt->passive = 1;
-    if (ctxt->controlFd > 2) closesocket(ctxt->controlFd);
+    if (ctxt->controlFd >= 0) closesocket(ctxt->controlFd);
     ctxt->controlFd = -1;
     ctxt->controlBufIndex = -1;
     ctxt->controlBufUsed = -1;
@@ -720,9 +691,9 @@ RxmlNanoFTPSendPasswd(void *ctx) {
 
     if (ctxt->passwd == NULL)
 #ifdef HAVE_SNPRINTF
-	snprintf(buf, sizeof(buf), "PASS anonymous\r\n");
+	snprintf(buf, sizeof(buf), "PASS libxml@%s\r\n", hostname);
 #else
-	sprintf(buf, "PASS anonymous\r\n");
+	sprintf(buf, "PASS libxml@%s\r\n", hostname);
 #endif
     else
 #ifdef HAVE_SNPRINTF
@@ -790,11 +761,8 @@ RxmlNanoFTPConnect(void *ctx) {
 	hp = gethostbyname(proxy);
     else
 	hp = gethostbyname(ctxt->hostname);
-    if (hp == NULL) {
-	RxmlMessage(1, "cannot resolve host");
+    if (hp == NULL)
         return(-1);
-    }
-    
 
     /*
      * Prepare the socket
@@ -821,7 +789,6 @@ RxmlNanoFTPConnect(void *ctx) {
                 sizeof(struct sockaddr_in)) < 0) {
         closesocket(ctxt->controlFd); ctxt->controlFd = -1;
         ctxt->controlFd = -1;
-	RxmlMessage(1, "Failed to connect to server");
 	return(-1);
     }
 
@@ -832,7 +799,6 @@ RxmlNanoFTPConnect(void *ctx) {
     if (res != 2) {
         closesocket(ctxt->controlFd); ctxt->controlFd = -1;
         ctxt->controlFd = -1;
-	RxmlMessage(1, "Failed to get response from server");
 	return(-1);
     }
 
@@ -907,9 +873,10 @@ RxmlNanoFTPConnect(void *ctx) {
 #endif
 		    else
 #ifdef HAVE_SNPRINTF
-			snprintf(buf, sizeof(buf), "PASS anonymous\r\n");
+			snprintf(buf, sizeof(buf), "PASS libxml@%s\r\n",
+			               hostname);
 #else
-			sprintf(buf, "PASS anonymous\r\n");
+			sprintf(buf, "PASS libxml@%s\r\n", hostname);
 #endif
                     buf[sizeof(buf) - 1] = 0;
                     len = strlen(buf);
@@ -977,10 +944,10 @@ RxmlNanoFTPConnect(void *ctx) {
 		/* USER user@host command */
 		if (ctxt->user == NULL)
 #ifdef HAVE_SNPRINTF
-		    snprintf(buf, sizeof(buf), "USER anonymous%s\r\n",
+		    snprintf(buf, sizeof(buf), "USER anonymous@%s\r\n",
 			           ctxt->hostname);
 #else
-		    sprintf(buf, "USER anonymous%s\r\n", ctxt->hostname);
+		    sprintf(buf, "USER anonymous@%s\r\n", ctxt->hostname);
 #endif
 		else
 #ifdef HAVE_SNPRINTF
@@ -1007,9 +974,9 @@ RxmlNanoFTPConnect(void *ctx) {
 		}
 		if (ctxt->passwd == NULL)
 #ifdef HAVE_SNPRINTF
-		    snprintf(buf, sizeof(buf), "PASS anonymous\r\n");
+		    snprintf(buf, sizeof(buf), "PASS libxml@%s\r\n", hostname);
 #else
-		    sprintf(buf, "PASS anonymous\r\n");
+		    sprintf(buf, "PASS libxml@%s\r\n", hostname);
 #endif
 		else
 #ifdef HAVE_SNPRINTF
@@ -1352,7 +1319,6 @@ RxmlNanoFTPRead(void *ctx, void *dest, int len)
 	}
 	if (res == 0) { /* timeout, no data available yet */
 	    used += tv.tv_sec + 1e-6 * tv.tv_usec;
-	    if (used > timeout) return(0);
 	    res = RxmlNanoFTPCheckResponse(ctxt);
 	    if (res < 0) {
 		closesocket(ctxt->dataFd); ctxt->dataFd = -1;
@@ -1381,6 +1347,7 @@ RxmlNanoFTPRead(void *ctx, void *dest, int len)
 	    closesocket(ctxt->dataFd); ctxt->dataFd = -1;
 	    return(-1);
 	} else  break;
+	if (used > timeout) return(0);
     }
     return got;
 }

@@ -1,4 +1,4 @@
-### $Id: zzModels.R,v 1.7 2003/02/09 09:31:04 ripley Exp $
+### $Id: zzModels.R,v 1.5 2001/05/10 02:50:31 bates Exp $
 ###
 ###       Individual selfStarting nonlinear regression models
 ###
@@ -501,7 +501,7 @@ SSweibull <- # selfStart( ~ Asym - Drop * exp(-exp(lrc)*x^pwr),
                   stop("Too few distinct input values to fit the Weibull growth model")
               }
               if (any(xy[["x"]] < 0)) {
-                  stop("All x values must be non-negative to fit the Weibull growth model")
+                  error("All x values must be non-negative to fit the Weibull growth model")
               }
               Rasym <- NLSstRtAsymptote(xy)
               Lasym <- NLSstLfAsymptote(xy)
@@ -517,8 +517,6 @@ SSweibull <- # selfStart( ~ Asym - Drop * exp(-exp(lrc)*x^pwr),
           },
               c("Asym", "Drop", "lrc", "pwr"))
 
-
-.noGenerics <- TRUE
 
 ### Local variables:
 ### mode: S

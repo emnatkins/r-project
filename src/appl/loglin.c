@@ -3,17 +3,21 @@
 
    Performs an iterative proportional fit of the marginal totals of a
    contingency table.
-*/
+   */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
+#ifndef Macintosh
 #include <math.h>
+#else
+#include <fp.h>
+#endif /* mac */
 
 #include <stdio.h>
-#include <R_ext/Memory.h>
-#include <R_ext/Applic.h>
+#include "R_ext/RS.h"
+#include "R_ext/Applic.h"
 
 #undef max
 #undef min
@@ -220,6 +224,9 @@ L230:
 L240:
     *nlast = k;
 
+    Free(icon);
+    Free(check);
+
     return;
 }
 
@@ -229,7 +236,7 @@ L240:
    All parameters are assumed valid without test.
 
    The larger table is X and the smaller one is Y.
-*/
+   */
 
 void collap(int *nvar, double *x, double *y, int *locy, int *nx, int
 	   *ny, int *dim, int *config)
@@ -296,6 +303,9 @@ L60:
 	}
 	coord[k - 1] = 0;
     }
+
+    Free(coord);
+    Free(size);
 
     return;
 }
@@ -392,16 +402,19 @@ L50:
 	coord[k - 1] = 0;
     }
 
+    Free(coord);
+    Free(size);
+
     return;
 }
 
 /* Auxiliary routine to get rid of limitations on the number of factors
-   in the model. 
-
-   Changed to use R_alloc to avoid memory leak if routine was
-   interrupted.
-*/
+   in the model. */
 
 static int *lvector(int n) {
-    return (int *) R_alloc(n, sizeof(int));
+    int *v;
+    v = Calloc(n, int);
+    if (!v)
+	PROBLEM "allocation failure" RECOVER(NULL_ENTRY);
+    return v;
 }

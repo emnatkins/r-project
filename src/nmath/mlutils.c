@@ -18,7 +18,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+# include "config.h"
 #endif
 #include "nmath.h"
 
@@ -71,20 +71,23 @@ int R_IsNaNorNA(double x)
 # endif
 #endif
 #if defined(Win32) && defined(_MSC_VER)
-# include <float.h>
+#include <float.h>
 #endif
 
 int R_finite(double x)
 {
-#ifdef HAVE_WORKING_FINITE
+#ifdef Macintosh
+    return isfinite(x);
+#endif
+#ifndef FINITE_BROKEN
     return finite(x);
-#else
-# ifdef _AIX
-#  include <fp.h>
-     return FINITE(x);
 # else
+#  ifdef _AIX
+#   include <fp.h>
+     return FINITE(x);
+#  else
     return (!isnan(x) & (x != ML_POSINF) & (x != ML_NEGINF));
-# endif
+#  endif
 #endif
 }
 
@@ -116,10 +119,10 @@ static double myfmod(double x1, double x2)
     return x1 - floor(q) * x2;
 }
 
-#ifdef HAVE_WORKING_LOG
-# define R_log	log
-#else
+#ifdef LOG_BROKEN
 double R_log(double x) { return(x > 0 ? log(x) : x < 0 ? ML_NAN : ML_NEGINF); }
+#else
+# define R_log	log
 #endif
 
 double R_pow(double x, double y) /* = x ^ y */

@@ -3,7 +3,7 @@
 \alias{stripchart}
 \description{
   \code{stripchart} produces one dimensional scatter plots (or dot
-  plots) of the given data.  These plots are a good alternative to 
+  plots) of the given data.  These plots are are good alternative to 
   \code{\link{boxplot}}s when sample sizes are small.
 }
 \usage{
@@ -33,7 +33,7 @@ stripchart(x, method="overplot", jitter=0.1, offset=1/3,
     vertically rather than the default horizontal.}
   \item{group.names}{group labels which will be printed alongside
     (or underneath) each plot.}
-  \item{xlim, ylim, main, ylab, xlab, pch, col, cex}{Graphical parameters.}
+  \item{\dots}{Graphical parameters can also be specified as arguments.}
 }
 \details{
   Extensive examples of the use of this kind of plot can be found in

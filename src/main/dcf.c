@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-3   The R Development Core Team.
+ *  Copyright (C) 2001   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,11 +19,7 @@
 
 #include <Defn.h>
 #include <Rconnections.h>
-#ifdef USE_SYSTEM_REGEX
-# include <regex.h>
-#else
-# include "Rregex.h"
-#endif
+#include "Rregex.h"
 
 static SEXP allocMatrixNA(SEXPTYPE, int, int);
 static void transferVector(SEXP s, SEXP t);
@@ -46,20 +42,16 @@ SEXP do_readDCF(SEXP call, SEXP op, SEXP args, SEXP env)
     if(!con->canread)
         error("cannot read from this connection");
     wasopen = con->isopen;
-    if(!wasopen)
-	if(!con->open(con)) error("cannot open the connection");
+    if(!wasopen) con->open(con);
 
     PROTECT(what = coerceVector(CADR(args), STRSXP));
     nwhat = LENGTH(what);
     dynwhat = (nwhat==0);
 
     line = (char *) malloc(MAXELTSIZE);
-    if(!line)
-	error("Could not allocate memory for read.dcf");
     buflen = 100;
     buf = (char *) malloc(buflen);
-    if(!buf)
-	error("Could not allocate memory for read.dcf");
+    
     nret = 20;
     /* it is easier if we first have a record per column */
     PROTECT (retval = allocMatrixNA(STRSXP, LENGTH(what), nret));
@@ -68,7 +60,7 @@ SEXP do_readDCF(SEXP call, SEXP op, SEXP args, SEXP env)
     regcomp(&trailblank, "[[:blank:]]+$", REG_EXTENDED);
     regcomp(&contline, "^[[:blank:]]+", REG_EXTENDED);
     regcomp(&regline, "^[^:]+:[[:blank:]]*", REG_EXTENDED);
-
+    
     k=0;
     lastm=-1;
     skip=1;
@@ -92,16 +84,14 @@ SEXP do_readDCF(SEXP call, SEXP op, SEXP args, SEXP env)
 	    if(regexec(&trailblank, line, 1, regmatch, 0)==0){
 		line[regmatch[0].rm_so] = '\0';
 	    }
-
+	    
 	    if(lastm>=0 && regexec(&contline, line, 1, regmatch,
 				   0)==0){
 		need = strlen(line+regmatch[0].rm_eo) +
 		    strlen(CHAR(STRING_ELT(retval, lastm+nwhat*k)))+2;
-		if(buflen < need) {
+		if(buflen < need){
 		    buf = (char *) realloc(buf, need);
-		    if(!buf)
-			error("Could not allocate memory for read.dcf");
-		    buflen = need;
+		    buflen=need;
 		}
 		strcpy(buf,CHAR(STRING_ELT(retval, lastm+nwhat*k)));
 		strcat(buf, "\n");
@@ -147,9 +137,7 @@ SEXP do_readDCF(SEXP call, SEXP op, SEXP args, SEXP env)
 			need = strlen(line+regmatch[0].rm_eo);
 			if(buflen < need){
 			    buf = (char *) realloc(buf, need);
-			    if(!buf)
-				error("Could not allocate memory for read.dcf");
-			    buflen = need;
+			    buflen=need;
 			}
 			strncpy(buf, line, strchr(line, ':')-line);
 			buf[strchr(line, ':')-line] = '\0';
@@ -171,15 +159,11 @@ SEXP do_readDCF(SEXP call, SEXP op, SEXP args, SEXP env)
     if(!wasopen) con->close(con);
     free(line);
     free(buf);
-    regfree(&blankline);
-    regfree(&contline);
-    regfree(&trailblank);
-    regfree(&regline);
 
     if(skip==0) k++;
 
     /* and now transpose the whole matrix */
-    PROTECT(retval2 = allocMatrixNA(STRSXP, k, LENGTH(what)));
+    PROTECT(retval2 = allocMatrixNA(STRSXP, k, LENGTH(what))); 
     copyMatrix(retval2, retval, 1);
 
     PROTECT(dimnames = allocVector(VECSXP, 2));

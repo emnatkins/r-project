@@ -15,9 +15,7 @@ ts <- function(data = NA, start = 1, end = numeric(0), frequency = 1,
                else paste("Series", seq(nseries))
                )
 {
-    if(is.data.frame(data)) data <- data.matrix(data)
-#   if(!is.numeric(data)) stop("`data'  must be a numeric vector or matrix")
-    if(is.matrix(data)) {
+    if(is.matrix(data) || is.data.frame(data)) {
 	nseries <- ncol(data)
 	ndata <- nrow(data)
         dimnames(data) <- list(NULL, names)
@@ -34,12 +32,11 @@ ts <- function(data = NA, start = 1, end = numeric(0), frequency = 1,
 	frequency <- round(frequency)
 
     if(length(start) > 1) {
-## strange: this never checked for < 1!  commented for 1.7.0
-##	if(start[2] > frequency) stop("invalid start")
+	if(start[2] > frequency) stop("invalid start")
 	start <- start[1] + (start[2] - 1)/frequency
     }
     if(length(end) > 1) {
-##	if(end[2] > frequency) stop("invalid end")
+	if(end[2] > frequency) stop("invalid end")
 	end <- end[1] + (end[2] - 1)/frequency
     }
     if(missing(end))
@@ -59,8 +56,6 @@ ts <- function(data = NA, start = 1, end = numeric(0), frequency = 1,
 		if(ndata < nobs) data[rep(1:ndata, length = nobs), ]
 		else if(ndata > nobs) data[1:nobs, ]
 	    }
-    ## FIXME: The following "attr<-"() calls C tspgets() which uses a
-    ##  	fixed equivalent of ts.eps := 1e-5
     attr(data, "tsp") <- c(start, end, frequency) #-- order is fixed
     if(!is.null(class) && class != "none") attr(data, "class") <- class
     data
@@ -70,12 +65,12 @@ tsp <- function(x) attr(x, "tsp")
 
 "tsp<-" <- function(x, value)
 {
-    cl <- oldClass(x)
+    cl <- class(x)
     attr(x, "tsp") <- value # does error-checking internally
     if (inherits(x, "ts") && is.null(value))
-        class(x) <- if(!identical(cl,"ts")) cl["ts" != cl]
-    else if (inherits(x, "mts") && is.null(value))
-        class(x) <- if(!identical(cl,"mts")) cl["mts" != cl]
+        class(x) <- cl["ts" != cl]
+    if (inherits(x, "mts") && is.null(value))
+        class(x) <- cl["mts" != cl]
     x
 }
 
@@ -86,7 +81,7 @@ hasTsp <- function(x)
     x
 }
 
-is.ts <- function (x) inherits(x, "ts") && length(x)
+is.ts <- function (x) inherits(x, "ts")
 
 as.ts <- function (x)
 {
@@ -94,176 +89,6 @@ as.ts <- function (x)
     else if(!is.null(xtsp <- tsp(x))) ts(x, xtsp[1], xtsp[2], xtsp[3])
     else ts(x)
 }
-
-.cbind.ts <- function(sers, nmsers, dframe = FALSE, union = TRUE)
-{
-    nulls <- sapply(sers, is.null)
-    sers <- sers[!nulls]
-    nser <- length(sers)
-    if(nser == 0) return(NULL)
-    if(nser == 1)
-        if(dframe) return(as.data.frame(sers[[1]])) else return(sers[[1]])
-    tsser <-  sapply(sers, function(x) length(tsp(x)) > 0)
-    if(!any(tsser))
-        stop("no time series supplied")
-    sers <- lapply(sers, as.ts)
-    nsers <- sapply(sers, NCOL)
-    tsps <- sapply(sers[tsser], tsp)
-    freq <- mean(tsps[3,])
-    if(max(abs(tsps[3,] - freq)) > getOption("ts.eps")) {
-        stop("Not all series have the same frequency")
-    }
-    if(union) {
-        st <- min(tsps[1,])
-        en <- max(tsps[2,])
-    } else {
-        st <- max(tsps[1,])
-        en <- min(tsps[2,])
-        if(st > en) {
-            warning("Non-intersecting series")
-            return(NULL)
-        }
-    }
-    p <- c(st, en, freq)
-    n <- round(freq * (en - st) + 1)
-    if(any(!tsser)) {
-        ln <- lapply(sers[!tsser], NROW)
-        if(any(ln != 1 && ln != n))
-            stop("non-time series not of the correct length")
-        for(i in (1:nser)[!tsser]) {
-            sers[[i]] <- ts(sers[[i]], start=st, end=en, frequency=freq)
-        }
-        tsps <- sapply(sers, tsp)
-    }
-    if(dframe) {
-        x <- vector("list", nser)
-        names(x) <- nmsers
-    } else {
-        ns <- sum(nsers)
-        x <- matrix(, n, ns)
-        cs <- c(0, cumsum(nsers))
-        nm <- character(ns)
-        for(i in 1:nser)
-            if(nsers[i] > 1) {
-                cn <- colnames(sers[[i]])
-                if(is.null(cn)) cn <- 1:nsers[i]
-                nm[(1+cs[i]):cs[i+1]] <- paste(nmsers[i], cn, sep=".")
-            } else nm[cs[i+1]] <- nmsers[i]
-        dimnames(x) <- list(NULL, nm)
-    }
-    for(i in 1:nser) {
-        if(union) {
-            xx <-
-                if(nsers[i] > 1)
-                    rbind(matrix(NA, round(freq * (tsps[1,i] - st)), nsers[i]),
-                          sers[[i]],
-                          matrix(NA, round(freq * (en - tsps[2,i])), nsers[i]))
-                else
-                    c(rep.int(NA, round(freq * (tsps[1,i] - st))), sers[[i]],
-                      rep.int(NA, round(freq * (en - tsps[2,i]))))
-        } else {
-            xx <- window(sers[[i]], st, en)
-        }
-        if(dframe) x[[i]] <- structure(xx, tsp=p, class="ts")
-        else x[, (1+cs[i]):cs[i+1]] <- xx
-    }
-    if(dframe) as.data.frame(x)
-    else ts(x, start=st, freq=freq)
-}
-
-Ops.ts <- function(e1, e2)
-{
-    if(missing(e2)) {
-        ## univariate operator
-        NextMethod(.Generic)
-    } else if(any(nchar(.Method) == 0)) {
-        ## one operand is not a ts
-        NextMethod(.Generic)
-    } else {
-        nc1 <- NCOL(e1)
-        nc2 <- NCOL(e2)
-        ## use ts.intersect to align e1 and e2
-        e12 <- .cbind.ts(list(e1, e2),
-                         c(deparse(substitute(e1))[1],
-                           deparse(substitute(e2))[1]),
-                         union = FALSE)
-        e1 <- if(is.matrix(e1)) e12[, 1:nc1, drop = FALSE] else e12[, 1]
-        e2 <- if(is.matrix(e2)) e12[, nc1 + (1:nc2), drop = FALSE]
-        else e12[, nc1 + 1]
-        NextMethod(.Generic)
-    }
-}
-
-cbind.ts <- function(..., deparse.level = 1) {
-    if(deparse.level != 1) .NotYetUsed("deparse.level != 1")
-    makeNames <- function(...) {
-        l <- as.list(substitute(list(...)))[-1]
-        nm <- names(l)
-        fixup <- if(is.null(nm)) seq(along = l) else nm == ""
-        ## <NOTE>
-        dep <- sapply(l[fixup], function(x) deparse(x)[1])
-        ## We could add support for `deparse.level' here by creating dep
-        ## as in list.names() inside table().  But there is a catch: we
-        ## need deparse.level = 2 to get the `usual' deparsing when the
-        ## method is invoked by the generic ...
-        ## </NOTE>
-        if(is.null(nm)) return(dep)
-        if(any(fixup)) nm[fixup] <- dep
-        nm
-    }
-    .cbind.ts(list(...), makeNames(...), dframe = FALSE, union = TRUE)
-}
-
-diff.ts <- function (x, lag = 1, differences = 1, ...)
-{
-    if (lag < 1 | differences < 1)
-        stop("Bad value for lag or differences")
-    if (lag * differences >= NROW(x)) return(x[0])
-    ## <FIXME>
-    ## lag() and its default method are defined in package ts, so we
-    ## need to provide our own implementation.
-    tsLag <- function(x, k = 1) {
-        p <- tsp(x)
-        tsp(x) <- p - (k/p[3]) * c(1, 1, 0)
-        x
-    }
-    r <- x
-    for (i in 1:differences) {
-        r <- r - tsLag(r, -lag)
-    }
-    xtsp <- attr(x, "tsp")
-    if(is.matrix(x)) colnames(r) <- colnames(x)
-    ts(r, end = xtsp[2], freq = xtsp[3])
-}
-
-na.omit.ts <- function(object, ...)
-{
-    tm <- time(object)
-    xfreq <- frequency(object)
-    ## drop initial and final NAs
-    if(is.matrix(object))
-        good <- which(apply(!is.na(object), 1, all))
-    else  good <- which(!is.na(object))
-    if(!length(good)) stop("all times contain an NA")
-    omit <- integer(0)
-    n <- NROW(object)
-    st <- min(good)
-    if(st > 1) omit <- c(omit, 1:(st-1))
-    en <- max(good)
-    if(en < n) omit <- c(omit, (en+1):n)
-    cl <- attr(object, "class")
-    if(length(omit)) {
-        object <- if(is.matrix(object)) object[st:en,] else object[st:en]
-        attr(omit, "class") <- "omit"
-        attr(object, "na.action") <- omit
-        tsp(object) <- c(tm[st], tm[en], xfreq)
-        if(!is.null(cl)) class(object) <- cl
-    }
-    if(any(is.na(object))) stop("time series contains internal NAs")
-    object
-}
-
-is.mts <- function (x) inherits(x, "mts")
 
 start.default <- function(x, ...)
 {
@@ -313,7 +138,7 @@ time.ts <- function (x, ...) as.ts(time.default(x, ...))
 cycle.default <- function(x, ...)
 {
     p <- tsp(hasTsp(x))
-    m <- round((p[1] %% 1) * p[3])
+    m <- floor((p[1] %% 1) * p[3])
     x <- (1:NROW(x) + m - 1) %% p[3] + 1
     tsp(x) <- p
     x
@@ -357,8 +182,8 @@ print.ts <- function(x, calendar, ...)
                     start.pad <- start(x)[2] - 1
                     end.pad <- fr.x - end(x)[2]
                     dn1 <- start(x)[1]:end(x)[1]
-                    x <- matrix(c(rep.int("", start.pad), format(x, ...),
-                                  rep.int("", end.pad)), nc =  fr.x, byrow = TRUE,
+                    x <- matrix(c(rep("", start.pad), format(x, ...),
+                                  rep("", end.pad)), nc =  fr.x, byrow = TRUE,
                                 dimnames = list(dn1, dn2))
                 }
             } else { ## fr.x == 1
@@ -373,7 +198,7 @@ print.ts <- function(x, calendar, ...)
     } else { # multi-column matrix
 	if(calendar && fr.x > 1) {
 	    tm <- time(x)
-	    t2 <- 1 + round(fr.x*((tm+0.001) %%1))
+	    t2 <- 1 + round(fr.x*(tm %%1))# round() was floor()
 	    p1 <- format(floor(tm))# yr
 	    rownames(x) <-
 		if(fr.x == 12)
@@ -402,8 +227,8 @@ function (x, y = NULL, type = "l", xlim = NULL, ylim = NULL,
 	  main = NULL, plot.type = c("multiple", "single"),
 	  xy.labels = n <= 150, xy.lines = do.lab, panel=lines, ...)
 {
-    xlabel <- if (!missing(x)) deparse(substitute(x))## else NULL
-    ylabel <- if (!missing(y)) deparse(substitute(y))
+    xlabel <- if (!missing(x)) deparse(substitute(x)) else NULL
+    ylabel <- if (!missing(y)) deparse(substitute(y)) else NULL
     plot.type <- match.arg(plot.type)
     if(plot.type == "multiple" && NCOL(x) > 1) {
 	m <- match.call()
@@ -431,10 +256,10 @@ function (x, y = NULL, type = "l", xlim = NULL, ylim = NULL,
 		stop("`xy.labels' must be logical or character")
 	    do.lab <- TRUE
 	} else do.lab <- xy.labels
-
+	    
         ptype <-
             if(do.lab) "n" else if(missing(type)) "p" else type
-	plot.default(xy, type = ptype,
+	plot.default(xy, type = ptype, 
 		     xlab = xlab, ylab = ylab,
 		     xlim = xlim, ylim = ylim, log = log, col = col, bg = bg,
 		     pch = pch, axes = axes, frame.plot = frame.plot,
@@ -450,29 +275,15 @@ function (x, y = NULL, type = "l", xlim = NULL, ylim = NULL,
                   type = if(do.lab) "c" else "l")
 	return(invisible())
     }
-    ## Else : no y, only x
-
-    if(missing(ylab)) {
-        ylab <- colnames(x)
-        if(length(ylab) != 1)
-            ylab <- xlabel
-    }
-    ## using xy.coords() mainly for the log treatment
-    if(is.matrix(x)) {
-        k <- ncol(x)
-        tx <- time(x)
-        xy <- xy.coords(x = matrix(rep.int(tx, k), ncol = k),
-                        y = x, log=log)
-        xy$x <- tx
-    }
-    else xy <- xy.coords(x, NULL, log=log)
-    if(is.null(xlim)) xlim <- range(xy$x)
-    if(is.null(ylim)) ylim <- range(xy$y[is.finite(xy$y)])
+    if(missing(ylab)) ylab <- xlabel
+    time.x <- time(x)
+    if(is.null(xlim)) xlim <- range(time.x)
+    if(is.null(ylim)) ylim <- range(x[is.finite(x)])
     plot.new()
     plot.window(xlim, ylim, log, ...)
     if(is.matrix(x)) {
-	for(i in seq(length=k))
-	    lines.default(xy$x, x[,i],
+	for(i in 1:ncol(x))
+	    lines.default(time.x, x[,i],
 			  col = col[(i-1) %% length(col) + 1],
 			  lty = lty[(i-1) %% length(lty) + 1],
 			  lwd = lwd[(i-1) %% length(lwd) + 1],
@@ -481,7 +292,7 @@ function (x, y = NULL, type = "l", xlim = NULL, ylim = NULL,
 			  type = type)
     }
     else {
-	lines.default(xy$x, x, col = col[1], bg = bg, lty = lty[1],
+	lines.default(time.x, x, col = col[1], bg = bg, lty = lty[1],
 		      lwd = lwd[1], pch = pch[1], type = type)
     }
     if (ann)
@@ -500,7 +311,7 @@ lines.ts <- function(x, ...)
 plot.mts <- function (x, plot.type = c("multiple", "single"), panel = lines,
                       log = "", col = par("col"),  bg = NA, pch = par("pch"),
                       cex = par("cex"), lty = par("lty"), lwd = par("lwd"),
-                      ann = par("ann"),  xlab = "Time", type = "l", main=NULL,
+                      ann = par("ann"),  xlab = "Time", main=NULL,
                       oma=c(6, 0, 5, 0),...)
 {
     addmain <- function(main, cex.main=par("cex.main"),
@@ -531,8 +342,8 @@ plot.mts <- function (x, plot.type = c("multiple", "single"), panel = lines,
     for(i in 1:nser) {
         plot(x[, i], axes = FALSE, xlab="", ylab="",
              log = log, col = col, bg = bg, pch = pch, ann = ann,
-             type = "n", ...)
-        panel(x[, i], col = col, bg = bg, pch = pch, type=type, ...)
+             type="n", ...)
+        panel(x[, i], col = col, bg = bg, pch = pch, ...)
         box()
         axis(2, xpd=NA)
         mtext(nm[i], 2, 3)
@@ -617,9 +428,9 @@ window.default <- function(x, start = NULL, end = NULL,
         enoff <- floor((end - xtsp[2]) * xfreq + ts.eps)
         yend <- xtsp[2] + enoff/xfreq
         nold <- round(xfreq*(xtsp[2] - xtsp[1])) + 1
-        i <- c(rep.int(nold+1, max(0, -stoff)),
+        i <- c(rep(nold+1, max(0, -stoff)),
                    (1+max(0, stoff)):(nold + min(0, enoff)),
-                   rep.int(nold+1, max(0, enoff)))
+                   rep(nold+1, max(0, enoff)))
         y <- if(is.matrix(x)) rbind(x, NA)[i, , drop = FALSE] else c(x, NA)[i]
         attr(y, "tsp") <- c(ystart, yend, xfreq)
         if(yfreq != xfreq) y <- Recall(y, frequency = yfreq)
@@ -655,12 +466,4 @@ window.ts <- function (x, ...) as.ts(window.default(x, ...))
 # 	y
 #     }
     else y
-}
-
-t.ts <- function(x) {
-    cl <- oldClass(x)
-    other <- !(cl %in% c("ts","mts"))
-    class(x) <- if(any(other)) cl[other]
-    attr(x, "tsp") <- NULL
-    t(x)
 }

@@ -3,11 +3,15 @@
 \usage{
 aov(formula, data = NULL, projections = FALSE, qr = TRUE,
     contrasts = NULL, \dots)
+se.aov(object, n, type = "means") 
 }
 \alias{aov}
 \alias{print.aov}
 \alias{print.aovlist}
-\alias{Error}
+\alias{summary.aov}
+\alias{summary.aovlist}
+\alias{print.summary.aov}
+\alias{print.summary.aovlist}
 \arguments{
   \item{formula}{A formula specifying the model.}
   \item{data}{A data frame in which the variables specified in the
@@ -39,10 +43,6 @@ aov(formula, data = NULL, projections = FALSE, qr = TRUE,
   error stratum.
 
   The formula can specify multiple responses.
-
-  Weights can be specified by a \code{weights} argument, but should not
-  be used with an \code{Error} term, and are incompletely supported
-  (e.g. not by \code{\link{model.tables}}).
 }
 \value{
   An object of class \code{c("aov", "lm")} or for multiple responses
@@ -52,11 +52,11 @@ aov(formula, data = NULL, projections = FALSE, qr = TRUE,
 }
 \author{B. D. Ripley}
 \seealso{
-  \code{\link{lm}}, \code{\link{summary.aov}}, \code{\link{alias}},
-  \code{\link{proj}}, \code{\link{model.tables}}, \code{\link{TukeyHSD}}
+  \code{\link{lm}}, \code{\link{alias}}, \code{\link{proj}},
+  \code{\link{model.tables}}
 }
 \examples{
-## From Venables and Ripley (2002) p.165.
+## From Venables and Ripley (1997) p.210.
 N <- c(0,1,0,1,1,1,0,0,0,1,1,0,1,1,0,0,1,0,1,0,1,1,0,0)
 P <- c(1,1,0,0,0,1,0,1,1,1,0,0,0,1,0,1,1,0,0,1,0,1,1,0)
 K <- c(1,0,0,1,0,1,1,0,0,1,0,1,0,1,1,0,0,0,1,1,1,0,1,0)

@@ -33,8 +33,7 @@ stderr()
   respectively (and not necessarily to file streams).  They are text-mode
   connections of class \code{"terminal"} which cannot be opened or
   closed, and are read-only, write-only and write-only respectively.
-  The \code{stdout()} and \code{stderr()} connections can be
-  re-directed by \code{\link{sink}}.
+  The \code{stdout()} connection can be re-directed by \code{\link{sink}}.
 
   \code{showConnections} returns a matrix of information.  If a
   connection object has been lost or forgotten, \code{getConnection}
@@ -42,8 +41,7 @@ stderr()
   for that connection, which can be used to close the connection,
   for example.
 
-  \code{closeAllConnections} closes (and destroys) all open user
-  connections, restoring all \code{\link{sink}} diversions as it does so.
+  \code{closeAllConnections} closes all open user connections.
 }
 \value{
   \code{stdin()}, \code{stdout()} and \code{stderr()} return connection

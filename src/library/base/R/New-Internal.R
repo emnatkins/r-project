@@ -1,17 +1,12 @@
 ##vector <- function(mode = "logical", length = 0).Internal(vector(mode,length))
 
+warning <- function(message = NULL).Internal(warning(message))
+restart <- function(on = TRUE).Internal(restart(on))
 geterrmessage <- function() .Internal(geterrmessage())
-
-try <- function(expr, silent = FALSE, first = TRUE)
+try <- function(expr, first = TRUE)
 {
-    restart <- function(on = TRUE).Internal(restart(on))
     restart(first)
     if(is.logical(first) && first) {
-        if(silent) {
-            op <- options("show.error.messages")
-            on.exit(options(op))
-            options(show.error.messages = FALSE)
-        }
         first <- FALSE
         expr
     } else
@@ -24,10 +19,9 @@ comment <- function(x).Internal(comment(x))
 
 round <- function(x, digits = 0).Internal(round(x,digits))
 signif <- function(x, digits = 6).Internal(signif(x,digits))
-logb <- log <- function(x, base=exp(1))
+log <- function(x, base=exp(1))
     if(missing(base)).Internal(log(x)) else .Internal(log(x,base))
 log1p <- function(x).Internal(log1p(x))
-expm1 <- function(x).Internal(expm1(x))
 
 atan2 <- function(y, x).Internal(atan2(y, x))
 
@@ -47,8 +41,12 @@ lchoose <- function(n,k).Internal(lchoose(n,k))
 ##-- 2nd part --
 D <- function(expr, name) .Internal(D(expr, name))
 
-# Machine <- function().Internal(Machine())
+Machine <- function().Internal(Machine())
 R.Version <- function().Internal(Version())
+machine <- function().Internal(machine())
+colors <- function().Internal(colors())
+colours <- .Alias(colors)
+col2rgb <- function(col).Internal(col2rgb(col))
 commandArgs <- function() .Internal(commandArgs())
 
 args <- function(name).Internal(args(name))
@@ -81,6 +79,11 @@ deparse <-
 
 do.call <- function(what,args).Internal(do.call(what,args))
 drop <- function(x).Internal(drop(x))
+duplicated <- function(x, incomparables = FALSE) {
+    if(!is.logical(incomparables) || incomparables)
+	.NotYetUsed("incomparables != FALSE")
+    .Internal(duplicated(x))
+}
 format.info <- function(x).Internal(format.info(x))
 gc <- function(verbose = getOption("verbose"))
 {
@@ -92,6 +95,8 @@ gc <- function(verbose = getOption("verbose"))
 }
 gcinfo <- function(verbose).Internal(gcinfo(verbose))
 gctorture <- function(on=TRUE)invisible(.Internal(gctorture(on)))
+gray <- function(level).Internal(gray(level))
+grey <- .Alias(gray)
 
 is.unsorted <- function(x, na.rm = FALSE) {
     if(is.null(x)) return(FALSE)
@@ -119,11 +124,10 @@ rank <- function(x, na.last = TRUE) {
     nas <- is.na(x)
     y <- .Internal(rank(x[!nas]))
     if(!is.na(na.last) && any(nas)) {
-        x <- numeric(length(x))
         if(na.last) {
             ## NOTE that the internal code gets NAs reversed
             x[!nas] <- y
-            x[nas] <- (length(y) + 1:1):length(x)
+            x[nas] <- seq(from = length(y) + 1, to = length(x))
         }
         else {
             len <- sum(nas)
@@ -139,15 +143,13 @@ search <- function().Internal(search())
 searchpaths <- function()
 {
     s <- search()
-    paths <-
-        lapply(1:length(s), function(i) attr(as.environment(i), "path"))
+    paths <- lapply(1:length(s), function(i) attr(pos.to.env(i), "path"))
     paths[[length(s)]] <- system.file()
     m <- grep("^package:", s)
     if(length(m)) paths[-m] <- as.list(s[-m])
     unlist(paths)
 }
 
-sprintf <- function(fmt, ...) .Internal(sprintf(fmt, ...))
 
 ##-- DANGER ! ---   substitute(list(...))  inside functions !!!
 ##substitute <- function(expr, env=NULL).Internal(substitute(expr, env))
@@ -155,6 +157,14 @@ sprintf <- function(fmt, ...) .Internal(sprintf(fmt, ...))
 t.default <- function(x).Internal(t.default(x))
 typeof <- function(x).Internal(typeof(x))
 
+unique <- function(x, incomparables = FALSE) {
+    if(!is.logical(incomparables) || incomparables)
+	.NotYetUsed("incomparables != FALSE")
+    z <- .Internal(unique(x))
+    if(is.factor(x))
+	z <- factor(z, levels = 1:nlevels(x), labels = levels(x))
+    z
+}
 
 memory.profile <- function() .Internal(memory.profile())
 
@@ -166,6 +176,3 @@ capabilities <- function(what = NULL)
     i <- pmatch(what, nm)
     if(is.na(i)) logical(0) else z[i]
 }
-
-## base has no S4 generics
-.noGenerics <- TRUE

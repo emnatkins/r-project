@@ -2,8 +2,7 @@ t.test <- function(x, ...) UseMethod("t.test")
 
 t.test.default <-
 function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
-         mu = 0, paired = FALSE, var.equal = FALSE, conf.level = 0.95,
-         ...)
+         mu=0, paired = FALSE, var.equal = FALSE, conf.level = 0.95)
 {
     alternative <- match.arg(alternative)
 
@@ -41,7 +40,7 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
     vx <- var(x)
     estimate <- mx
     if(is.null(y)) {
-	df <- nx-1
+	df <- length(x)-1
 	stderr <- sqrt(vx/nx)
 	tstat <- (mx-mu)/stderr
 	method <- ifelse(paired,"Paired t-test","One Sample t-test")
@@ -101,6 +100,8 @@ function(formula, data, subset, na.action, ...)
        || (length(attr(terms(formula[-2]), "term.labels")) != 1)
        || (length(attr(terms(formula[-3]), "term.labels")) != 1))
         stop("formula missing or incorrect")
+    if(missing(na.action))
+        na.action <- getOption("na.action")
     m <- match.call(expand.dots = FALSE)
     if(is.matrix(eval(m$data, parent.frame())))
         m$data <- as.data.frame(data)
@@ -110,7 +111,7 @@ function(formula, data, subset, na.action, ...)
     DNAME <- paste(names(mf), collapse = " by ")
     names(mf) <- NULL
     response <- attr(attr(mf, "terms"), "response")
-    g <- factor(mf[[-response]])
+    g <- as.factor(mf[[-response]])
     if(nlevels(g) != 2)
         stop("grouping factor must have exactly 2 levels")
     DATA <- split(mf[[response]], g)

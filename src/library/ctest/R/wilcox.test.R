@@ -1,12 +1,12 @@
 wilcox.test <- function(x, ...) UseMethod("wilcox.test")
 
 wilcox.test.default <-
-function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
+function(x, y = NULL, alternative = c("two.sided", "less", "greater"), 
          mu = 0, paired = FALSE, exact = NULL, correct = TRUE,
-         conf.int = FALSE, conf.level = 0.95, ...)
+         conf.int = FALSE, conf.level = 0.95) 
 {
     alternative <- match.arg(alternative)
-    if(!missing(mu) && ((length(mu) > 1) || !is.finite(mu)))
+    if(!missing(mu) && ((length(mu) > 1) || !is.finite(mu))) 
         stop("mu must be a single number")
     if(conf.int) {
         if(!((length(conf.level) == 1)
@@ -16,13 +16,11 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
             stop("conf.level must be a single number between 0 and 1")
     }
 
-    if(!is.numeric(x)) stop("`x' must be numeric")
     if(!is.null(y)) {
-        if(!is.numeric(y)) stop("`y' must be numeric")
         DNAME <- paste(deparse(substitute(x)), "and",
                        deparse(substitute(y)))
         if(paired) {
-            if(length(x) != length(y))
+            if(length(x) != length(y)) 
                 stop("x and y must have the same length")
             OK <- complete.cases(x, y)
             x <- x[OK] - y[OK]
@@ -34,22 +32,22 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
         }
     } else {
         DNAME <- deparse(substitute(x))
-        if(paired)
+        if(paired) 
             stop("y missing for paired test")
         x <- x[is.finite(x)]
     }
 
-    if(length(x) < 1)
+    if(length(x) < 1) 
         stop("not enough (finite) x observations")
     CORRECTION <- 0
     if(is.null(y)) {
         METHOD <- "Wilcoxon signed rank test"
         x <- x - mu
         ZEROES <- any(x == 0)
-        if(ZEROES)
+        if(ZEROES) 
             x <- x[x != 0]
-        n <- as.double(length(x))
-        if(is.null(exact))
+        n <- length(x)
+        if(is.null(exact)) 
             exact <- (n < 50)
         r <- rank(abs(x))
         STATISTIC <- sum(r[x > 0])
@@ -60,7 +58,7 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
             PVAL <-
                 switch(alternative,
                        "two.sided" = {
-                           p <- if(STATISTIC > (n * (n + 1) / 4))
+                           p <- if(STATISTIC > (n * (n + 1) / 4)) 
                                 psignrank(STATISTIC - 1, n, lower = FALSE)
                            else psignrank(STATISTIC, n)
                            min(2 * p, 1)
@@ -83,7 +81,7 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                                ql <- n*(n+1)/2 - qu
                                uci <- diffs[qu]
                                lci <- diffs[ql+1]
-                               c(uci, lci)
+                               c(uci, lci)        
                            },
                            "greater"= {
                                qu <- qsignrank(alpha, n)
@@ -96,10 +94,15 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                                if(qu == 0) qu <- 1
                                ql <- n*(n+1)/2 - qu
                                lci <- diffs[ql+1]
-                               c(-Inf, lci)
+                               c(-Inf, lci)        
                            })
-                attr(cint, "conf.level") <- conf.level
-                ESTIMATE <- median(diffs)
+                attr(cint, "conf.level") <- conf.level    
+                wmean <- n*(n+1)/4
+                if(floor(wmean) != wmean)
+                    ESTIMATE <- mean(c(diffs[floor(wmean)],
+                                       diffs[ceiling(wmean)]))
+                else 
+                    ESTIMATE <- mean(c(diffs[wmean-1], diffs[wmean+1]))
                 names(ESTIMATE) <- "(pseudo)median"
 
             }
@@ -118,9 +121,9 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
             }
 
             PVAL <- pnorm((z - CORRECTION) / SIGMA)
-            if(alternative == "two.sided")
+            if(alternative == "two.sided") 
                 PVAL <- 2 * min(PVAL, 1 - PVAL)
-            if(alternative == "greater")
+            if(alternative == "greater") 
                 PVAL <- 1 - PVAL
 
             if(conf.int) {
@@ -182,7 +185,7 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                                   zq=qnorm(alpha))$root
                     c(-Inf, u)
                 })
-                attr(cint, "conf.level") <- conf.level
+                attr(cint, "conf.level") <- conf.level    
                 ESTIMATE <- uniroot(wdiff, c(mumin, mumax), tol=1e-4,
                                     zq=0)$root
 		names(ESTIMATE) <- "(pseudo)median"
@@ -201,17 +204,17 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                     warning(paste("Cannot compute exact confidence",
                                   "interval with zeroes"))
             }
-
+            
 	}
     }
     else {
-        if(length(y) < 1)
+        if(length(y) < 1) 
             stop("not enough y observations")
         METHOD <- "Wilcoxon rank sum test"
         r <- rank(c(x - mu, y))
-        n.x <- as.double(length(x))
-        n.y <- as.double(length(y))
-        if(is.null(exact))
+        n.x <- length(x)
+        n.y <- length(y)
+        if(is.null(exact)) 
             exact <- (n.x < 50) && (n.y < 50)
         STATISTIC <- sum(r[seq(along = x)]) - n.x * (n.x + 1) / 2
         names(STATISTIC) <- "W"
@@ -233,7 +236,7 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                        },
                        "less" = pwilcox(STATISTIC, n.x, n.y))
             if(conf.int) {
-                ## Exact confidence interval for the location parameter
+                ## Exact confidence interval for the location parameter 
                 ## mean(x) - mean(y) in the two-sample case (cf. the
                 ## one-sample case).
                 alpha <- 1 - conf.level
@@ -262,7 +265,12 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                                c(-Inf, lci)
                            })
                 attr(cint, "conf.level") <- conf.level
-                ESTIMATE <- median(diffs)
+                wmean <- n.x*n.y/2
+                if(floor(wmean) != wmean)
+                    ESTIMATE <- mean(c(diffs[floor(wmean)],
+                                       diffs[ceiling(wmean)]))
+                else 
+                    ESTIMATE <- mean(c(diffs[wmean-1], diffs[wmean+1]))
                 names(ESTIMATE) <- "difference in location"
             }
         }
@@ -281,9 +289,9 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                 METHOD <- paste(METHOD, "with continuity correction")
             }
             PVAL <- pnorm((z - CORRECTION)/SIGMA)
-            if(alternative == "two.sided")
+            if(alternative == "two.sided") 
                 PVAL <- 2 * min(PVAL, 1 - PVAL)
-            if(alternative == "greater")
+            if(alternative == "greater") 
                 PVAL <- 1 - PVAL
 
             if(conf.int) {
@@ -307,7 +315,7 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                             switch(alternative,
                                    "two.sided" = sign(dz) * 0.5,
                                    "greater" = 0.5,
-                                   "less" = -0.5)
+                                   "less" = -0.5)        
                     }
                     SIGMA.CI <- sqrt((n.x * n.y / 12) *
                                      ((n.x + n.y + 1)
@@ -351,12 +359,12 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                  p.value = as.numeric(PVAL),
                  null.value = c(mu = mu),
                  alternative = alternative,
-                 method = METHOD,
+                 method = METHOD, 
                  data.name = DNAME)
-    if(conf.int)
-        RVAL <- c(RVAL,
-                  list(conf.int = cint,
-                       estimate = ESTIMATE))
+    if(conf.int) {
+        RVAL$conf.int <- cint
+        RVAL$estimate <- ESTIMATE
+    }
     class(RVAL) <- "htest"
     return(RVAL)
 }
@@ -369,6 +377,8 @@ function(formula, data, subset, na.action, ...)
        || (length(attr(terms(formula[-2]), "term.labels")) != 1)
        || (length(attr(terms(formula[-3]), "term.labels")) != 1))
         stop("formula missing or incorrect")
+    if(missing(na.action))
+        na.action <- getOption("na.action")
     m <- match.call(expand.dots = FALSE)
     if(is.matrix(eval(m$data, parent.frame())))
         m$data <- as.data.frame(data)
@@ -378,7 +388,7 @@ function(formula, data, subset, na.action, ...)
     DNAME <- paste(names(mf), collapse = " by ")
     names(mf) <- NULL
     response <- attr(attr(mf, "terms"), "response")
-    g <- factor(mf[[-response]])
+    g <- as.factor(mf[[-response]])
     if(nlevels(g) != 2)
         stop("grouping factor must have exactly 2 levels")
     DATA <- split(mf[[response]], g)

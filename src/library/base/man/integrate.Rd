@@ -3,7 +3,7 @@
 \alias{print.integrate}
 \title{Integration of One-Dimensional Functions}
 \description{
-  Adaptive quadrature of functions of one variable over a finite or
+  Adaptive quadrature of functions of one variable over a finit or
   infinite interval.
 }
 \usage{
@@ -13,7 +13,7 @@ integrate(f, lower, upper, subdivisions=100,
 }
 \arguments{
   \item{f}{An \R function taking a numeric first argument and returning
-    a numeric vector of the same length. Returning a non-finite element will
+    a numeric vector the same length. Returning a non-finite will
     generate an error.}
   \item{lower, upper}{The limits of integration. Can be infinite.}
   \item{subdivisions}{the maximum number of subintervals.}
@@ -36,17 +36,6 @@ integrate(f, lower, upper, subdivisions=100,
   \code{rel.tol} cannot be less than \code{max(50*.Machine$double.eps,
     0.5e-28)} if \code{abs.tol <= 0}.
 }
-\note{
-  Like all numerical integration routines, these evaluate the function
-  on a finite set of points. If the function is approximately constant
-  (in particular, zero) over nearly all its range it is possible that
-  the result and error estimate may be seriously wrong.
-
-  When integrating over infinite intervals do so explicitly, rather than
-  just using a large number as the endpoint. This increases the chance
-  of a correct answer -- any function whose integral over an infinite
-  interval is finite must be near zero for most of that interval.
-}
 \value{
   A list of class \code{"integrate"} with components
   \item{value}{the final estimate of the integral.}
@@ -60,15 +49,12 @@ integrate(f, lower, upper, subdivisions=100,
   Based on QUADPACK routines \code{dqags} and \code{dqagi} by
   R. Piessens and E. deDoncker-Kapenga, available from Netlib.
 
-  See\cr
-  R. Piessens, E. deDoncker-Kapenga, C. Uberhuber, D. Kahaner (1983)
-  \emph{Quadpack: a Subroutine Package for Automatic Integration};
-  Springer Verlag.
+  See\\
+  R. Piessens, E. deDoncker-Kapenga, C. Uberhuber, D. Kahaner
+  \emph{Quadpack: a Subroutine Package for Automatic Integration.}
+  Springer Verlag, 1983.
 }
-\seealso{
-  The function \code{\link[adapt]{adapt}} in the \code{adapt} package on
-  CRAN, for multivariate integration.
-}
+
 \examples{
 integrate(dnorm, -1.96, 1.96)
 integrate(dnorm, -Inf, Inf)
@@ -76,22 +62,13 @@ integrate(dnorm, -Inf, Inf)
 ## a slowly-convergent integral
 integrand <- function(x) {1/((x+1)*sqrt(x))}
 integrate(integrand, lower = 0, upper = Inf)
-
-## don't do this if you really want the integral from 0 to Inf
 integrate(integrand, lower = 0, upper = 10)
-integrate(integrand, lower = 0, upper = 100000)  
+integrate(integrand, lower = 0, upper = 100000)
 integrate(integrand, lower = 0, upper = 1000000, stop.on.error = FALSE)
 
 try(integrate(function(x) 2, 0, 1))  ## no vectorizable function
 integrate(function(x) rep(2, length(x)), 0, 1)  ## correct
-
-## integrate can fail if misused
-integrate(dnorm,0,2)
-integrate(dnorm,0,20)
-integrate(dnorm,0,200)
-integrate(dnorm,0,2000)
-integrate(dnorm,0,20000) ## fails on many systems
-integrate(dnorm,0,Inf)   ## works
 }
 \keyword{math}
 \keyword{utilities}
+

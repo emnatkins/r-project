@@ -8,8 +8,7 @@ pretty(x, n = 5, min.n = n \%/\% 3,  shrink.sml = 0.75,
 \alias{pretty}
 \arguments{
 \item{x}{numeric vector}
-\item{n}{integer giving the \emph{desired} number of
-  intervals.  Non-integer values are rounded down.}
+\item{n}{integer giving the \emph{desired} number of intervals.}
 \item{min.n}{nonnegative integer giving the \emph{minimal} number of
     intervals.  If \code{min.n == 0}, \code{pretty(.)} may return a
     single value.}

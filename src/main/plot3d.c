@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997-2002   Robert Gentleman, Ross Ihaka and the R core team.
+ *  Copyright (C) 1997-2001   Robert Gentleman, Ross Ihaka and the R core team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -404,8 +404,8 @@ static SEXP labelList;
 
 static
 double distFromEdge(double *xxx, double *yyy, int iii, DevDesc *dd) {
-    return fmin2(fmin2(xxx[iii]-Rf_gpptr(dd)->usr[0], Rf_gpptr(dd)->usr[1]-xxx[iii]),
-		 fmin2(yyy[iii]-Rf_gpptr(dd)->usr[2], Rf_gpptr(dd)->usr[3]-yyy[iii]));
+    return fmin2(fmin2(xxx[iii]-dd->gp.usr[0], dd->gp.usr[1]-xxx[iii]),
+		 fmin2(yyy[iii]-dd->gp.usr[2], dd->gp.usr[3]-yyy[iii]));
 }
 
 static
@@ -468,414 +468,6 @@ int findGapDown(double *xxx, double *yyy, int ns, double labelDistance,
 	return -n;
 }
 
-/* 
- * Generate a list of segments for a single level
- */
-static SEGP* contourLines(double *x, int nx, double *y, int ny,
-			 double *z, double zc, double atom)
-{
-    double f, xl, xh, yl, yh, zll, zhl, zlh, zhh, xx[4], yy[4];
-    int i, j, k, l, m, nacode;
-    SEGP seglist;
-    SEGP *segmentDB;
-    /* Initialize the segment data base */
-    /* Note we must be careful about resetting */
-    /* the top of the stack, otherwise we run out of */
-    /* memory after a sequence of displaylist replays */
-    /*
-     * This reset is done out in GEcontourLines
-     */
-    segmentDB = (SEGP*)R_alloc(nx*ny, sizeof(SEGP));
-    for (i = 0; i < nx; i++)
-	for (j = 0; j < ny; j++)
-	    segmentDB[i + j * nx] = NULL;
-    for (i = 0; i < nx - 1; i++) {
-	xl = x[i];
-	xh = x[i + 1];
-	for (j = 0; j < ny - 1; j++) {
-	    yl = y[j];
-	    yh = y[j + 1];
-	    k = i + j * nx;
-	    zll = z[k];
-	    zhl = z[k + 1];
-	    zlh = z[k + nx];
-	    zhh = z[k + nx + 1];
-
-	    /* If the value at a corner is exactly equal to a contour level, 
-	     * change that value by a tiny amount */
-
-	    if (zll == zc) zll += atom;
-	    if (zhl == zc) zhl += atom;
-	    if (zlh == zc) zlh += atom;
-	    if (zhh == zc) zhh += atom;
-#ifdef DEBUG_contour
-	    /* Haven't seen this happening (MM): */
-	    if (zll == zc) REprintf(" [%d,%d] ll: %g\n",i,j, zll);
-	    if (zhl == zc) REprintf(" [%d,%d] hl: %g\n",i,j, zhl);
-	    if (zlh == zc) REprintf(" [%d,%d] lh: %g\n",i,j, zlh);
-	    if (zhh == zc) REprintf(" [%d,%d] hh: %g\n",i,j, zhh);
-#endif
-	    /* Check for intersections with sides */
-
-	    nacode = 0;
-	    if (R_FINITE(zll)) nacode += 1;
-	    if (R_FINITE(zhl)) nacode += 2;
-	    if (R_FINITE(zlh)) nacode += 4;
-	    if (R_FINITE(zhh)) nacode += 8;
-
-	    k = 0;
-	    switch (nacode) {
-	    case 15:
-		if (ctr_intersect(zll, zhl, zc, &f)) {
-		    xx[k] = xl + f * (xh - xl);
-		    yy[k] = yl; k++;
-		}
-		if (ctr_intersect(zll, zlh, zc, &f)) {
-		    yy[k] = yl + f * (yh - yl);
-		    xx[k] = xl; k++;
-		}
-		if (ctr_intersect(zhl, zhh, zc, &f)) {
-		    yy[k] = yl + f * (yh - yl);
-		    xx[k] = xh; k++;
-		}
-		if (ctr_intersect(zlh, zhh, zc, &f)) {
-		    xx[k] = xl + f * (xh - xl);
-		    yy[k] = yh; k++;
-		}
-		break;
-	    case 14:
-		if (ctr_intersect(zhl, zhh, zc, &f)) {
-		    yy[k] = yl + f * (yh - yl);
-		    xx[k] = xh; k++;
-		}
-		if (ctr_intersect(zlh, zhh, zc, &f)) {
-		    xx[k] = xl + f * (xh - xl);
-		    yy[k] = yh; k++;
-		}
-		if (ctr_intersect(zlh, zhl, zc, &f)) {
-		    xx[k] = xl + f * (xh - xl);
-		    yy[k] = yh + f * (yl - yh);
-		    k++;
-		}
-		break;
-	    case 13:
-		if (ctr_intersect(zll, zlh, zc, &f)) {
-		    yy[k] = yl + f * (yh - yl);
-		    xx[k] = xl; k++;
-		}
-		if (ctr_intersect(zlh, zhh, zc, &f)) {
-		    xx[k] = xl + f * (xh - xl);
-		    yy[k] = yh; k++;
-		}
-		if (ctr_intersect(zll, zhh, zc, &f)) {
-		    xx[k] = xl + f * (xh - xl);
-		    yy[k] = yl + f * (yh - yl);
-		    k++;
-		}
-		break;
-	    case 11:
-		if (ctr_intersect(zhl, zhh, zc, &f)) {
-		    yy[k] = yl + f * (yh - yl);
-		    xx[k] = xh; k++;
-		}
-		if (ctr_intersect(zll, zhl, zc, &f)) {
-		    xx[k] = xl + f * (xh - xl);
-		    yy[k] = yl; k++;
-		}
-		if (ctr_intersect(zll, zhh, zc, &f)) {
-		    xx[k] = xl + f * (xh - xl);
-		    yy[k] = yl + f * (yh - yl);
-		    k++;
-		}
-		break;
-	    case 7:
-		if (ctr_intersect(zll, zlh, zc, &f)) {
-		    yy[k] = yl + f * (yh - yl);
-		    xx[k] = xl; k++;
-		}
-		if (ctr_intersect(zll, zhl, zc, &f)) {
-		    xx[k] = xl + f * (xh - xl);
-		    yy[k] = yl; k++;
-		}
-		if (ctr_intersect(zlh, zhl, zc, &f)) {
-		    xx[k] = xl + f * (xh - xl);
-		    yy[k] = yh + f * (yl - yh);
-		    k++;
-		}
-		break;
-	    }
-
-	    /* We now have k(=2,4) endpoints */
-	    /* Decide which to join */
-
-	    seglist = NULL;
-
-	    if (k > 0) {
-		if (k == 2) {
-		    seglist = ctr_newseg(xx[0], yy[0], xx[1], yy[1], seglist);
-		}
-		else if (k == 4) {
-		    for (k = 3; k >= 1; k--) {
-			m = k;
-			xl = xx[k];
-			for (l = 0; l < k; l++) {
-			    if (xx[l] > xl) {
-				xl = xx[l];
-				m = l;
-			    }
-			}
-			if (m != k) {
-			    xl = xx[k];
-			    yl = yy[k];
-			    xx[k] = xx[m];
-			    yy[k] = yy[m];
-			    xx[m] = xl;
-			    yy[m] = yl;
-			}
-		    }
-		    seglist = ctr_newseg(xx[0], yy[0], xx[1], yy[1], seglist);
-		    seglist = ctr_newseg(xx[2], yy[2], xx[3], yy[3], seglist);
-		}
-		else error("k != 2 or 4");
-	    }
-	    segmentDB[i + j * nx] = seglist;
-	}
-    }
-    return segmentDB;
-}
-
-/* maximal number of line segments of one contour segment: 
- * for preventing infinite loops -- shouldn't be needed --> warning */
-#define MAX_ns 25000
-
-#define CONTOUR_LIST_STEP 100
-#define CONTOUR_LIST_LEVEL 0
-#define CONTOUR_LIST_X 1
-#define CONTOUR_LIST_Y 2
-
-static SEXP growList(SEXP oldlist) {
-    int i, len;
-    SEXP templist;
-    len = LENGTH(oldlist);
-    templist = PROTECT(allocVector(VECSXP, len + CONTOUR_LIST_STEP));
-    for (i=0; i<len; i++)
-	SET_VECTOR_ELT(templist, i, VECTOR_ELT(oldlist, i));
-    UNPROTECT(1);
-    return templist;
-}
-
-/* 
- * Store the list of segments for a single level in the SEXP
- * list that will be returned to the user
- */
-int addContourLines(double *x, int nx, double *y, int ny,
-		     double *z, double zc, double atom,
-		     SEGP* segmentDB, int nlines, SEXP container)
-{
-    double xend, yend;
-    int i, ii, j, jj, ns, ns2, dir, nc;
-    SEGP seglist, seg, s, start, end;
-    SEXP ctr, level, xsxp, ysxp, names;
-    /* Begin following contours. */
-    /* 1. Grab a segment */
-    /* 2. Follow its tail */
-    /* 3. Follow its head */
-    /* 4. Save the contour */
-    for (i = 0; i < nx - 1; i++)
-	for (j = 0; j < ny - 1; j++) {
-	    while ((seglist = segmentDB[i + j * nx])) {
-		ii = i; jj = j;
-		start = end = seglist;
-		segmentDB[i + j * nx] = seglist->next;
-		xend = seglist->x1;
-		yend = seglist->y1;
-		while ((dir = ctr_segdir(xend, yend, x, y,
-					 &ii, &jj, nx, ny))) {
-		    segmentDB[ii + jj * nx]
-			= ctr_segupdate(xend, yend, dir, TRUE,/* = tail */
-					segmentDB[ii + jj * nx], &seg);
-		    if (!seg) break;
-		    end->next = seg;
-		    end = seg;
-		    xend = end->x1;
-		    yend = end->y1;
-		}
-		end->next = NULL; /* <<< new for 1.2.3 */
-		ii = i; jj = j;
-		xend = seglist->x0;
-		yend = seglist->y0;
-		while ((dir = ctr_segdir(xend, yend, x, y,
-					 &ii, &jj, nx, ny))) {
-		    segmentDB[ii + jj * nx]
-			= ctr_segupdate(xend, yend, dir, FALSE,/* ie. head */
-					segmentDB[ii+jj*nx], &seg);
-		    if (!seg) break;
-		    seg->next = start;
-		    start = seg;
-		    xend = start->x0;
-		    yend = start->y0;
-		}
-		
-		/* ns := #{segments of polyline} -- need to allocate */
-		s = start;
-		ns = 0;
-		/* MAX_ns: prevent inf.loop (shouldn't be needed) */
-		while (s && ns < MAX_ns) {
-		    ns++;
-		    s = s->next;
-		}
-		if(ns == MAX_ns)
-		    warning("contour(): circular/long seglist -- bug.report()!");
-		
-		/* countour midpoint : use for labelling sometime (not yet!) */
-		if (ns > 3) ns2 = ns/2; else ns2 = -1;
-
-		/*
-		 * "write" the contour locations into the list of contours
-		 */
-		ctr = PROTECT(allocVector(VECSXP, 3));
-		level = PROTECT(allocVector(REALSXP, 1));
-		xsxp = PROTECT(allocVector(REALSXP, ns + 1));
-		ysxp = PROTECT(allocVector(REALSXP, ns + 1));
-		REAL(level)[0] = zc;
-		SET_VECTOR_ELT(ctr, CONTOUR_LIST_LEVEL, level);
-		s = start;
-		REAL(xsxp)[0] = s->x0;
-		REAL(ysxp)[0] = s->y0;
-		ns = 1;
-		while (s->next && ns < MAX_ns) {
-		    s = s->next;
-		    REAL(xsxp)[ns] = s->x0;
-		    REAL(ysxp)[ns++] = s->y0;
-		}
-		REAL(xsxp)[ns] = s->x1;
-		REAL(ysxp)[ns] = s->y1;
-		SET_VECTOR_ELT(ctr, CONTOUR_LIST_X, xsxp);
-		SET_VECTOR_ELT(ctr, CONTOUR_LIST_Y, ysxp);
-		/* 
-		 * Set the names attribute for the contour
-		 * So that users can extract components using 
-		 * meaningful names
-		 */
-		PROTECT(names = allocVector(STRSXP, 3));
-		SET_STRING_ELT(names, 0, mkChar("level"));
-		SET_STRING_ELT(names, 1, mkChar("x"));
-		SET_STRING_ELT(names, 2, mkChar("y"));
-		setAttrib(ctr, R_NamesSymbol, names);
-		/* 
-		 * We're about to add another line to the list ...
-		 */
-		nlines += 1;
-		nc = LENGTH(VECTOR_ELT(container, 0));
-		if (nlines == nc)
-		    /* Where does this get UNPROTECTed? */
-		    SET_VECTOR_ELT(container, 0, 
-				   growList(VECTOR_ELT(container, 0)));
-		SET_VECTOR_ELT(VECTOR_ELT(container, 0), nlines - 1, ctr);
-		UNPROTECT(5);
-	    }
-	}
-    return nlines;
-}
-
-/* 
- * Given nx x values, ny y values, nx*ny z values,
- * and nl cut-values in z ...
- * ... produce a list of contour lines:
- *   list of sub-lists
- *     sub-list = x vector, y vector, and cut-value.
- */
-SEXP GEcontourLines(double *x, int nx, double *y, int ny,
-		    double *z, double *levels, int nl,
-		    GEDevDesc *dd)
-{
-    char *vmax;
-    int i, nlines, len;
-    double atom, zmin, zmax;
-    SEGP* segmentDB;
-    SEXP container, mainlist, templist;
-    /* 
-     * "tie-breaker" values
-     */
-    zmin = DBL_MAX;
-    zmax = DBL_MIN;
-    for (i = 0; i < nx * ny; i++)
-	if (R_FINITE(z[i])) {
-	    if (zmax < z[i]) zmax =  z[i];
-	    if (zmin > z[i]) zmin =  z[i];
-	}
-
-    if (zmin >= zmax) {
-	if (zmin == zmax)
-	    warning("all z values are equal");
-	else
-	    warning("all z values are NA");
-	return R_NilValue;
-    }
-    /* change to 1e-3, reconsidered because of PR#897
-     * but 1e-7, and even  2*DBL_EPSILON do not prevent inf.loop in contour().
-     * maybe something like   16 * DBL_EPSILON * (..).
-     * see also MAX_ns above */
-    atom = 1e-3 * (zmax - zmin);
-    /* 
-     * Create a "container" which is a list with only 1 element.
-     * The element is the list of lines that will be built up.
-     * I create the container because this allows me to PROTECT
-     * the container once here and then UNPROTECT it at the end of 
-     * this function and, as long as I always work with 
-     * VECTOR_ELT(container, 0) and SET_VECTOR_ELT(container, 0)
-     * in functions called from here, I don't need to worry about 
-     * protectin the list that I am building up.
-     * Why bother?  Because the list I am building can potentially
-     * grow and it's awkward to get the PROTECTs/UNPROTECTs right
-     * when you're in a loop and growing a list.
-     */
-    container = PROTECT(allocVector(VECSXP, 1));
-    /* 
-     * Create "large" list (will trim excess at the end if necesary)
-     */
-    SET_VECTOR_ELT(container, 0, allocVector(VECSXP, CONTOUR_LIST_STEP));
-    nlines = 0;
-    /* 
-     * Add lines for each contour level
-     */
-    for (i = 0; i < nl; i++) {
-	/* 
-	 * The vmaxget/set is to manage the memory that gets 
-	 * R_alloc'ed in the creation of the segmentDB structure
-	 */
-	vmax = vmaxget(); 
-	/* 
-	 * Generate a segment database
-	 */
-	segmentDB = contourLines(x, nx, y, ny, z, levels[i], atom);
-	/*
-	 * Add lines to the list based on the segment database
-	 */
-	nlines = addContourLines(x, nx, y, ny, z, levels[i],
-				 atom, segmentDB, nlines,
-				 container);
-	vmaxset(vmax); 
-    }
-    /* 
-     * Trim the list of lines to the appropriate length.
-     */
-    len = LENGTH(VECTOR_ELT(container, 0));
-    if (nlines < len) {
-	mainlist = VECTOR_ELT(container, 0);
-	templist = PROTECT(allocVector(VECSXP, nlines));
-	for (i=0; i<nlines; i++)
-	    SET_VECTOR_ELT(templist, i, VECTOR_ELT(mainlist, i));
-	mainlist = templist;
-	UNPROTECT(1);  /* UNPROTECT templist */
-    } else 
-	mainlist = VECTOR_ELT(container, 0);
-    UNPROTECT(1);  /* UNPROTECT container */
-    return mainlist;
-}
-
-SEXP GEdrawContourLines();
-
 static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, 
 		    double zc,
 		    SEXP labels, int cnum,
@@ -885,7 +477,9 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z,
 {
 /* draw a contour for one given contour level `zc' */
 
-    char *vmax;
+/* maximal number of line segments of one contour segment: 
+ * for preventing infinite loops -- shouldn't be needed --> warning */
+#define MAX_ns 25000
 
     double f, xl, xh, yl, yh, zll, zhl, zlh, zhh, xx[4], yy[4];
     double xend, yend;
@@ -1126,9 +720,8 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z,
 	    /* countour midpoint : use for labelling sometime (not yet!) */
 	    if (ns > 3) ns2 = ns/2; else ns2 = -1;
 
-	    vmax = vmaxget();
-	    xxx = (double *) R_alloc(ns + 1, sizeof(double));
-	    yyy = (double *) R_alloc(ns + 1, sizeof(double));
+	    xxx = (double *) C_alloc(ns + 1, sizeof(double));
+	    yyy = (double *) C_alloc(ns + 1, sizeof(double));
 	    /* now have the space, go through again: */
 	    s = start;
 	    ns = 0;
@@ -1332,10 +925,10 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z,
 			    /* find which plot edge we are closest to */
 			    int closest; /* 0 = indx,  1 = indx+range */
 			    double dx1, dx2, dy1, dy2, dmin;
-			    dx1 = fmin2((xxx[indx] - Rf_gpptr(dd)->usr[0]),
-					(Rf_gpptr(dd)->usr[1] - xxx[indx]));
-			    dx2 = fmin2((Rf_gpptr(dd)->usr[1] - xxx[indx+range]),
-					(xxx[indx+range] - Rf_gpptr(dd)->usr[0]));
+			    dx1 = fmin2((xxx[indx] - dd->gp.usr[0]),
+					(dd->gp.usr[1] - xxx[indx]));
+			    dx2 = fmin2((dd->gp.usr[1] - xxx[indx+range]),
+					(xxx[indx+range] - dd->gp.usr[0]));
 			    if (dx1 < dx2) {
 				closest = 0;
 				dmin = dx1;
@@ -1343,15 +936,15 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z,
 				closest = 1;
 				dmin = dx2;
 			    }
-			    dy1 = fmin2((yyy[indx] - Rf_gpptr(dd)->usr[2]),
-					(Rf_gpptr(dd)->usr[3] - yyy[indx]));
+			    dy1 = fmin2((yyy[indx] - dd->gp.usr[2]),
+					(dd->gp.usr[3] - yyy[indx]));
 			    if (closest && (dy1 < dmin)) {
 				closest = 0;
 				dmin = dy1;
 			    } else if (dy1 < dmin)
 				dmin = dy1;
-			    dy2 = fmin2((Rf_gpptr(dd)->usr[3] - yyy[indx+range]),
-					(yyy[indx+range] - Rf_gpptr(dd)->usr[2]));
+			    dy2 = fmin2((dd->gp.usr[3] - yyy[indx+range]),
+					(yyy[indx+range] - dd->gp.usr[2]));
 			    if (!closest && (dy2 < dmin))
 				closest = 1;
 
@@ -1453,7 +1046,8 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z,
 	    }
 
 	    GMode(0, dd);
-	    vmaxset(vmax);
+	    C_free((char *) xxx);
+	    C_free((char *) yyy);
 	} /* while */
       } /* for(i .. )  for(j ..) */
     UNPROTECT_PTR(label1); /* pwwwargh! This is messy, but last thing
@@ -1479,7 +1073,6 @@ SEXP do_contour(SEXP call, SEXP op, SEXP args, SEXP env)
     int fontindex = 0;
     double labcex;
     DevDesc *dd = CurrentDevice();
-    SEXP result = R_NilValue;
 
     GCheckState(dd);
 
@@ -1535,11 +1128,11 @@ SEXP do_contour(SEXP call, SEXP op, SEXP args, SEXP env)
     ncol = length(col);
     args = CDR(args);
 
-    PROTECT(lty = FixupLty(CAR(args), Rf_gpptr(dd)->lty));
+    PROTECT(lty = FixupLty(CAR(args), dd->gp.lty));
     nlty = length(lty);
     args = CDR(args);
 
-    PROTECT(lwd = FixupLwd(CAR(args), Rf_gpptr(dd)->lwd));
+    PROTECT(lwd = FixupLwd(CAR(args), dd->gp.lwd));
     nlwd = length(lwd);
     args = CDR(args);
 
@@ -1566,6 +1159,11 @@ SEXP do_contour(SEXP call, SEXP op, SEXP args, SEXP env)
 	    errorcall(call, "increasing y values expected");
     }
 
+#ifdef OLDcontour
+    ctr_xtol = 1e-3 * fabs(REAL(x)[nx-1]-REAL(x)[0]);
+    ctr_ytol = 1e-3 * fabs(REAL(y)[ny-1]-REAL(y)[0]);
+#endif
+
     for (i = 0; i < nc; i++)
 	if (!R_FINITE(REAL(c)[i]))
 	    errorcall(call, "illegal NA contour values");
@@ -1586,11 +1184,16 @@ SEXP do_contour(SEXP call, SEXP op, SEXP args, SEXP env)
 	return R_NilValue;
     }
 
+#ifdef OLDcontour 
+    /* R versions up to incl. 0.61.3, 1998-05-03): */
+    atom = DBL_EPSILON * (zmax - zmin);
+#else
     /* change to 1e-3, reconsidered because of PR#897
      * but 1e-7, and even  2*DBL_EPSILON do not prevent inf.loop in contour().
      * maybe something like   16 * DBL_EPSILON * (..).
      * see also MAX_ns above */
     atom = 1e-3 * (zmax - zmin);
+#endif
 
     /* Initialize the segment data base */
 
@@ -1607,44 +1210,41 @@ SEXP do_contour(SEXP call, SEXP op, SEXP args, SEXP env)
 
     /* Draw the contours -- note the heap release */
 
-    ltysave = Rf_gpptr(dd)->lty;
-    colsave = Rf_gpptr(dd)->col;
-    lwdsave = Rf_gpptr(dd)->lwd;
-    cexsave = Rf_gpptr(dd)->cex;
+    ltysave = dd->gp.lty;
+    colsave = dd->gp.col;
+    lwdsave = dd->gp.lwd;
+    cexsave = dd->gp.cex;
     labelList = PROTECT(R_NilValue);
-
-
-    /* draw contour for levels[i] */
     GMode(1, dd);
-    for (i = 0; i < nc; i++) {
+    for (i = 0; i < nc; i++) {/* draw contour for levels[i] */
 	vmax = vmaxget();
-	Rf_gpptr(dd)->lty = INTEGER(lty)[i % nlty];
-	if (Rf_gpptr(dd)->lty == NA_INTEGER)
-	    Rf_gpptr(dd)->lty = ltysave;
-	Rf_gpptr(dd)->col = INTEGER(col)[i % ncol];
-	if (Rf_gpptr(dd)->col == NA_INTEGER)
-	    Rf_gpptr(dd)->col = colsave;
-	Rf_gpptr(dd)->lwd = REAL(lwd)[i % nlwd];
-	if (Rf_gpptr(dd)->lwd == NA_REAL)
-	    Rf_gpptr(dd)->lwd = lwdsave;
-	Rf_gpptr(dd)->cex = labcex;
+	dd->gp.lty = INTEGER(lty)[i % nlty];
+	if (dd->gp.lty == NA_INTEGER)
+	    dd->gp.lty = ltysave;
+	dd->gp.col = INTEGER(col)[i % ncol];
+	if (dd->gp.col == NA_INTEGER)
+	    dd->gp.col = colsave;
+	dd->gp.lwd = REAL(lwd)[i % nlwd];
+	if (dd->gp.lwd == NA_REAL)
+	    dd->gp.lwd = lwdsave;
+	dd->gp.cex = labcex;
 	contour(x, nx, y, ny, z, REAL(c)[i], labels, i,
 		drawLabels, method-1,
 		vectorFonts, typeface, fontindex, atom, dd);
 	vmaxset(vmax);
     }
-    GMode(0, dd); 
+    GMode(0, dd);
     vmaxset(vmax0);
-    Rf_gpptr(dd)->lty = ltysave;
-    Rf_gpptr(dd)->col = colsave;
-    Rf_gpptr(dd)->lwd = lwdsave;
-    Rf_gpptr(dd)->cex = cexsave;
+    dd->gp.lty = ltysave;
+    dd->gp.col = colsave;
+    dd->gp.lwd = lwdsave;
+    dd->gp.cex = cexsave;
     UNPROTECT(5);
     /* NOTE: only record operation if no "error"  */
     /* NOTE: on replay, call == R_NilValue */
     if (GRecording(call))
 	recordGraphicOperation(op, oargs, dd);
-    return result;
+    return R_NilValue;
 }
 
 
@@ -1801,15 +1401,6 @@ SEXP do_filledcontour(SEXP call, SEXP op, SEXP args, SEXP env)
     nc = length(sc);
     args = CDR(args);
 
-    if (nx < 2 || ny < 2)
-	errorcall(call, "insufficient x or y values");
-
-    if (nrows(sz) != nx || ncols(sz) != ny)
-	errorcall(call, "dimension mismatch");
-
-    if (nc < 1)
-	errorcall(call, "no contour values");
-
     PROTECT(scol = FixupCol(CAR(args), NA_INTEGER));
     ncol = length(scol);
 
@@ -1839,10 +1430,10 @@ SEXP do_filledcontour(SEXP call, SEXP op, SEXP args, SEXP env)
     for (k = 1; k < nc; k++)
 	if (!R_FINITE(c[k]) || c[k] <= c[k - 1]) goto badlev;
 
-    colsave = Rf_gpptr(dd)->col;
-    xpdsave = Rf_gpptr(dd)->xpd;
+    colsave = dd->gp.col;
+    xpdsave = dd->gp.xpd;
     /* override par("xpd") and force clipping to plot region */
-    Rf_gpptr(dd)->xpd = 0;
+    dd->gp.xpd = 0;
 
     GMode(1, dd);
 
@@ -1864,8 +1455,8 @@ SEXP do_filledcontour(SEXP call, SEXP op, SEXP args, SEXP env)
 	}
     }
     GMode(0, dd);
-    Rf_gpptr(dd)->col = colsave;
-    Rf_gpptr(dd)->xpd = xpdsave;
+    dd->gp.col = colsave;
+    dd->gp.xpd = xpdsave;
     R_Visible = 0;
     UNPROTECT(1);
     if (GRecording(call))
@@ -1933,10 +1524,10 @@ SEXP do_image(SEXP call, SEXP op, SEXP args, SEXP env)
     for (j = 1; j < ny; j++)
 	if (!R_FINITE(y[j]) || y[j] <= y[j - 1]) goto badxy;
 
-    colsave = Rf_gpptr(dd)->col;
-    xpdsave = Rf_gpptr(dd)->xpd;
+    colsave = dd->gp.col;
+    xpdsave = dd->gp.xpd;
     /* override par("xpd") and force clipping to plot region */
-    Rf_gpptr(dd)->xpd = 0;
+    dd->gp.xpd = 0;
 
     GMode(1, dd);
 
@@ -1949,8 +1540,8 @@ SEXP do_image(SEXP call, SEXP op, SEXP args, SEXP env)
 	}
     }
     GMode(0, dd);
-    Rf_gpptr(dd)->col = colsave;
-    Rf_gpptr(dd)->xpd = xpdsave;
+    dd->gp.col = colsave;
+    dd->gp.xpd = xpdsave;
     R_Visible = 0;
     UNPROTECT(1);
     if (GRecording(call))
@@ -1980,7 +1571,7 @@ static void MakeVector (double x, double y, double z, Vector3d v)
 /* Set up the light source */
 static double Light[4];
 static double Shade;
-static Rboolean DoLighting;
+static int DoLighting;
 
 static void SetUpLight(double theta, double phi)
 {
@@ -2242,11 +1833,11 @@ static void PerspBox(int front, double *x, double *y, double *z, DevDesc *dd)
     Vector3d u0, v0, u1, v1, u2, v2, u3, v3;
     double d[3], e[3];
     int f, i, p0, p1, p2, p3, nearby;
-    int ltysave = Rf_gpptr(dd)->lty;
+    int ltysave = dd->gp.lty;
     if (front)
-	Rf_gpptr(dd)->lty = LTY_DOTTED;
+	dd->gp.lty = LTY_DOTTED;
     else
-	Rf_gpptr(dd)->lty = LTY_SOLID;
+	dd->gp.lty = LTY_SOLID;
     for (f = 0; f < 6; f++) {
         p0 = Face[f][0];
         p1 = Face[f][1];
@@ -2300,7 +1891,7 @@ static void PerspBox(int front, double *x, double *y, double *z, DevDesc *dd)
 		      v0[0]/v0[3], v0[1]/v0[3], USER, dd);
 	}
     }
-    Rf_gpptr(dd)->lty = ltysave;
+    dd->gp.lty = ltysave;
 }
 
 /* PerspAxes:
@@ -2505,45 +2096,24 @@ static void PerspAxis(double *x, double *y, double *z,
     }
 }
 
-/* Determine the transformed (x, y) coordinates (in USER space)
- * for the four corners of the x-y plane of the persp plot
- * These will be used to determine which sides of the persp
- * plot to label with axes
- * The strategy is to determine which corner has the lowest y-value
- * to decide which of the x- and y-axes to label AND which corner
- * has the lowest x-value to decide which of the z-axes to label
- */
 static void PerspAxes(double *x, double *y, double *z,
                       char *xlab, char *ylab, char *zlab,
 		      int nTicks, int tickType, DevDesc *dd) {
     int xAxis=0, yAxis=0, zAxis=0; /* -Wall */
     int xpdsave;
-    Vector3d u0, u1, u2, u3;
+    Vector3d u0 = {0, 0, 0, 1};
+    Vector3d u1 = {1, 0, 0, 1};
+    Vector3d u2 = {0, 1, 0, 1};
+    Vector3d u3 = {1, 1, 0, 1};
     Vector3d v0, v1, v2, v3;
-    u0[0] = x[0];
-    u0[1] = y[0];
-    u0[2] = z[0];
-    u0[3] = 1;
-    u1[0] = x[1];
-    u1[1] = y[0];
-    u1[2] = z[0];
-    u1[3] = 1;
-    u2[0] = x[0];
-    u2[1] = y[1];
-    u2[2] = z[0];
-    u2[3] = 1;
-    u3[0] = x[1];
-    u3[1] = y[1];
-    u3[2] = z[0];
-    u3[3] = 1;
     TransVector(u0, VT, v0);
     TransVector(u1, VT, v1);
     TransVector(u2, VT, v2);
     TransVector(u3, VT, v3);
 
     /* to fit in the axis labels */
-    xpdsave = Rf_gpptr(dd)->xpd;
-    Rf_gpptr(dd)->xpd = 1;
+    xpdsave = dd->gp.xpd;
+    dd->gp.xpd = 1;
 
     /* Figure out which X and Y axis to draw */
     if (lowest(v0[1]/v0[3], v1[1]/v1[3], v2[1]/v2[3], v3[1]/v3[3])) {
@@ -2575,7 +2145,7 @@ static void PerspAxes(double *x, double *y, double *z,
 	warning("Axes orientation not calculated");
     PerspAxis(x, y, z, zAxis, 2, nTicks, tickType, zlab, dd);
 
-    Rf_gpptr(dd)->xpd = xpdsave;
+    dd->gp.xpd = xpdsave;
 }
 
 SEXP do_persp(SEXP call, SEXP op, SEXP args, SEXP env)
@@ -2646,18 +2216,12 @@ SEXP do_persp(SEXP call, SEXP op, SEXP args, SEXP env)
     xlab = CAR(args); args = CDR(args);
     ylab = CAR(args); args = CDR(args);
     zlab = CAR(args); args = CDR(args);
-    if (!isString(xlab) || length(xlab) < 1)
-	error("`xlab' must be a character vector of length 1");
-    if (!isString(ylab) || length(ylab) < 1)
-	error("`ylab' must be a character vector of length 1");
-    if (!isString(zlab) || length(zlab) < 1)
-	error("`zlab' must be a character vector of length 1");
 
     if (R_FINITE(Shade) && Shade <= 0) Shade = 1;
     if (R_FINITE(ltheta) && R_FINITE(lphi) && R_FINITE(Shade))
-	DoLighting = TRUE;
+	DoLighting = 1;
     else
-	DoLighting = FALSE;
+	DoLighting = 0;
 
     if (!scale) {
 	double s;
@@ -2683,19 +2247,19 @@ SEXP do_persp(SEXP call, SEXP op, SEXP args, SEXP env)
 
     dd = GNewPlot(GRecording(call));
 
-    PROTECT(col = FixupCol(col, Rf_gpptr(dd)->bg));
+    PROTECT(col = FixupCol(col, dd->gp.bg));
     ncol = LENGTH(col);
     if (ncol < 1) errorcall(call, "invalid col specification");
-    if(!R_OPAQUE(INTEGER(col)[0])) DoLighting = FALSE;
-    PROTECT(border = FixupCol(border, Rf_gpptr(dd)->fg));
+    PROTECT(border = FixupCol(border, dd->gp.fg));
     if (length(border) < 1) errorcall(call, "invalid border specification");
 
     GSetState(1, dd);
     GSavePars(dd);
-    ProcessInlinePars(args, dd, call);
+    RecordGraphicsCall(call);
+    ProcessInlinePars(args, dd);
     if (length(border) > 1)
-	Rf_gpptr(dd)->fg = INTEGER(border)[0];
-    Rf_gpptr(dd)->xlog = Rf_gpptr(dd)->ylog = FALSE;
+	dd->gp.fg = INTEGER(border)[0];
+    dd->gp.xlog = dd->gp.ylog = FALSE;
 
     /* Set up the light vector (if any) */
     if (DoLighting)
@@ -2738,15 +2302,11 @@ SEXP do_persp(SEXP call, SEXP op, SEXP args, SEXP env)
 
     if (dobox) {
         PerspBox(0, REAL(xlim), REAL(ylim), REAL(zlim), dd);
-	if (doaxes) {
-	    SEXP xl = STRING_ELT(xlab, 0), yl = STRING_ELT(ylab, 0),
-		zl = STRING_ELT(zlab, 0);
+	if (doaxes)
 	    PerspAxes(REAL(xlim), REAL(ylim), REAL(zlim),
-		      (xl == NA_STRING)? "" : CHAR(xl), 
-		      (yl == NA_STRING)? "" : CHAR(yl),
-		      (zl == NA_STRING)? "" : CHAR(zl),
+		      CHAR(STRING_ELT(xlab, 0)), CHAR(STRING_ELT(ylab, 0)),
+		      CHAR(STRING_ELT(zlab, 0)),
 		      nTicks, tickType, dd);
-	}
     }
 
     DrawFacets(REAL(z), REAL(x), REAL(y), nrows(z), ncols(z), INTEGER(indx),

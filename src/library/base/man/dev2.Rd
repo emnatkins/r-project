@@ -17,8 +17,7 @@ dev.control(displaylist)
     For \code{dev.print}, this includes \code{which} and by default any
     \code{\link{postscript}} arguments.}
   \item{which}{A device number specifying the device to copy to}
-  \item{displaylist}{A character string: the only valid value is
-    \code{"inhibit"}.}
+  \item{displaylist}{A character string}
 }
 \description{
   \code{dev.copy} copies the graphics contents of the current device
@@ -28,13 +27,14 @@ dev.control(displaylist)
 
   \code{dev.print} copies the graphics contents of the current device
   to a new device which has been created by the function specified by
-  \code{device} and then shuts the new device.
+  \code{device} and then shuts the new device.  The default is to
+  produce and print a postscript copy.
 
   \code{dev.copy2eps} is similar to \code{dev.print} but produces an
   EPSF output file, in portrait orientation (\code{horizontal = FALSE})
 
   \code{dev.control} allows the user to control the recording of
-  graphics operations in a device.  If \code{displaylist} is \code{"inhibit"}
+  graphics operations in a device.  If \code{displaylist} is "inhibit"
   then recording is turned off.
 }
 \value{
@@ -50,19 +50,6 @@ dev.control(displaylist)
   \code{width} and \code{height} is specified, the other is adjusted
   to preserve the aspect ratio of the device being copied.  The default
   file name is \code{Rplot.eps}.
-
-#ifdef unix
-  The default for \code{dev.print} is to produce and print a postscript
-  copy, if \code{\link{options}("printcmd")} is set suitably.
-#endif
-#ifdef windows
-  The default for \code{dev.print} is to produce and print a postscript
-  copy.  This will not work unless
-  \code{\link{options}("printcmd")} is set suitably and you have a
-  PostScript printer: see \code{\link{postscript}} for how to set this
-  up.  Windows users may prefer to use \code{dev.print(win.print)}.
-#endif
-
 
   \code{dev.print} is most useful for producing a postscript print
   (its default) when the following applies.  Unless

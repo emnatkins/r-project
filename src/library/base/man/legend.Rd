@@ -3,11 +3,10 @@
 \title{Add Legends to Plots}
 \usage{
 legend(x, y, legend, fill, col = "black", lty, lwd, pch,
-       angle = NULL, density = NULL,
-       bty = "o", bg = par("bg"), pt.bg = NA, cex = 1,
-       xjust = 0, yjust = 1, x.intersp = 1, y.intersp = 1, adj = 0,
+       bty = "o", bg = par("bg"), pt.bg = NA, cex = 1, xjust = 0, yjust = 1,
+       x.intersp = 1, y.intersp = 1, adj = 0,
        text.width = NULL, merge = do.lines && has.pch, trace = FALSE,
-       plot = TRUE, ncol = 1, horiz = FALSE)
+       ncol = 1, horiz = FALSE)
 }
 \description{
   This function can be used to add legends to plots.  Note that a call
@@ -32,8 +31,6 @@ legend(x, y, legend, fill, col = "black", lty, lwd, pch,
   \item{pch}{the plotting symbols appearing in the legend, either as
     vector of 1-character strings, or one (multi character)
     string. \emph{Must} be specified for symbol drawing.}
-  \item{angle}{angle of shading lines.}
-  \item{density}{the density of shading lines, if numeric and positive.}
   \item{bty}{the type of box to be drawn around the legend.}
   \item{bg}{the background color for the legend box.}
   \item{pt.bg}{the background color for the \code{\link{points}}.}
@@ -55,8 +52,6 @@ legend(x, y, legend, fill, col = "black", lty, lwd, pch,
     not filled boxes.  Defaults to \code{TRUE} if there are points and lines.}
   \item{trace}{logical; if \code{TRUE}, shows how \code{legend} does all
     its magical computations.}
-  \item{plot}{logical.  If \code{FALSE}, nothing is plotted but the
-    sizes are returned.}
   \item{ncol}{the number of columns in which to set the legend items
     (default is 1, a vertical legend).}
   \item{horiz}{logical; if \code{TRUE}, set the legend horizontally rather than
@@ -108,7 +103,7 @@ x <- seq(-pi, pi, len = 65)
 plot(x, sin(x), type = "l", ylim = c(-1.2, 1.8), col = 3, lty = 2)
 points(x, cos(x), pch = 3, col = 4)
 lines(x, tan(x), type = "b", lty = 1, pch = 4, col = 6)
-title("legend(..., lty = c(2, -1, 1), pch = c(-1,3,4), merge = TRUE)",
+title("legend(..... lty = c(2, -1, 1), pch = c(-1,3,4), merge = TRUE)",
       cex.main = 1.1)
 legend(-1, 1.9, c("sin", "cos", "tan"), col = c(3,4,6),
        lty = c(2, -1, 1), pch = c(-1, 3, 4), merge = TRUE, bg='gray90')
@@ -135,8 +130,7 @@ plot(x, sin(x), type="l", col = 2,xlab=expression(phi),ylab=expression(f(phi)))
 abline(h=-1:1, v=pi/2*(-6:6), col="gray90")
 lines(x, cos(x), col = 3, lty = 2)
 ex.cs1 <- expression(plain(sin) * phi,  paste("cos", phi))# 2 ways
-str(legend(-3, .9, ex.cs1, lty=1:2, plot=FALSE, adj = c(0, .6)))# adj y !
-    legend(-3, .9, ex.cs1, lty=1:2, col=2:3,    adj = c(0, .6))
+str(legend(-3, .9, ex.cs1, lty=1:2, col=2:3, adj = c(0, .6)))# adj y !
 
 x <- rexp(100, rate = .5)
 hist(x, main = "Mean and Median of a Skewed Distribution")
@@ -146,23 +140,16 @@ ex12 <- expression(bar(x) == sum(over(x[i], n), i==1, n),
                    hat(x) == median(x[i], i==1,n))
 str(legend(4.1, 30, ex12, col = 2:3, lty=2:3, lwd=2))
 
-## `Filled' boxes -- for more, see example(plotfactor)
-data(PlantGrowth)
-plot(cut(weight, 3) ~ group, data = PlantGrowth,
-     col = NULL, density = 16*(1:3))
-
 ## Using `ncol' :
 x <- 0:64/64
 matplot(x, outer(x, 1:7, function(x, k) sin(k * pi * x)),
         type = "o", col = 1:7, ylim = c(-1, 1.5), pch = "*")
-op <- par(bg="antiquewhite1")
 legend(0, 1.5, paste("sin(",1:7,"pi * x)"), col=1:7, lty=1:7, pch = "*",
        ncol = 4, cex=.8)
 legend(.8,1.2, paste("sin(",1:7,"pi * x)"), col=1:7, lty=1:7, pch = "*",cex=.8)
 legend(0, -.1, paste("sin(",1:4,"pi * x)"), col=1:4, lty=1:4, ncol=2, cex=.8)
 legend(0, -.4, paste("sin(",5:7,"pi * x)"), col=5:7,  pch=24, ncol=2, cex=1.5,
        pt.bg="pink")
-par(op)
 
 ## point covering line :
 y <- sin(3*pi*x)

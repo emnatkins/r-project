@@ -10,39 +10,43 @@ subdir = etc
 
 include $(top_builddir)/Makeconf
 
-## <NOTE>
-## Need target rules for all elements of SOURCES/OBJECTS.
 SOURCES = Makeconf.in Renviron.in
 OBJECTS = $(SOURCES:.in=)
-## </NOTE>
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 DISTFILES = Makefile.in $(SOURCES)
 
-EXPORTFILES = @USE_EXPORTFILES_TRUE@ R.exp Rlapack.exp
+EXPORTFILE = @EXPORTFILE@
 
-CLEANFILES = $(EXPORTFILES)
-DISTCLEANFILES = $(OBJECTS) Makefile
+## <FIXME>
+## Remove eventually.
+GNOME_IF_FILES = @GNOME_IF_FILES@
+CLEANFILES = $(GNOME_IF_FILES) Makeconf-tests
+## </FIXME>
 
 all: Makefile R
 
-Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+.SUFFIXES:
+.SUFFIXES: .in
 
-## <NOTE>
-## Seems we need target rules for creating FOO from FOO.in: pattern
-## rules ('%:%.in') are not portable, and some versions of Make do not
-## allow separated dependencies for single suffix rules.
-Makeconf: $(srcdir)/Makeconf.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-Renviron: $(srcdir)/Renviron.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-## </NOTE>
+.in:
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
+
+Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
+	@(for f in $(OBJECTS); do \
+	    echo "$${f}: $(srcdir)/$${f}.in"; \
+	  done) >> $@
 
 R: $(OBJECTS)
+$(OBJECTS): $(top_builddir)/config.status
 
 install: installdirs
 	@echo "installing $(subdir) ..."
-	@for f in $(OBJECTS) $(EXPORTFILES); do \
+	@for f in $(OBJECTS) $(EXPORTFILE); do \
 	  $(INSTALL_DATA) $${f} $(rhome)/etc; \
 	done
 installdirs:
@@ -55,16 +59,22 @@ uninstall:
 	  && test "`cd $(rhome); $(GETWD)`" \
 	       != "`cd $(top_builddir); $(GETWD)`"; then \
 	  (cd $(rhome)/etc && \
-	    rm -f $(OBJECTS) $(EXPORTFILES)); \
+	    rm -f $(OBJECTS) $(EXPORTFILE) *.pl $(CLEANFILES)); \
 	  rmdir $(rhome)/etc 2> /dev/null \
 	    || echo "  subdir etc not removed"; \
 	fi
 
 mostlyclean: clean
 clean:
-	-@test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+## <FIXME>
+## Remove eventually.
+	@if test "$(BUILDDIR_IS_SRCDIR)" = no ; then \
+	  rm -f *.pl $(CLEANFILES); \
+	fi
+## </FIXME>
+	@rm -f $(EXPORTFILE)
 distclean: clean
-	-@test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
+	@rm -f $(OBJECTS) Makefile
 maintainer-clean: distclean
 
 distdir: $(DISTFILES)
@@ -73,3 +83,6 @@ distdir: $(DISTFILES)
 	    || ln $(srcdir)/$${f} $(distdir)/$${f} 2>/dev/null \
 	    || cp -p $(srcdir)/$${f} $(distdir)/$${f}; \
 	done
+
+## Automagically generated dependencies:
+

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  file console.h
- *  Copyright (C) 1998--2002  Guido Masarotto and Brian Ripley
+ *  Copyright (C) 1998--1999  Guido Masarotto and Brian Ripley
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -44,11 +44,9 @@ void consoletogglelazy(console c);
 int  consolegetlazy(console c);
 void consoleflush(console c);
 void consoleprint(console c);
-void consolesavefile(console c, int pager);
+void consolesavefile(console c);
 void drawconsole(control c, rect r);
 void consoleclear(control c);
 
 extern int setWidthOnResize;
 int consolecols(console c);
-void pagerbclose(control m);
-

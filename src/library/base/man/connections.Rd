@@ -1,12 +1,9 @@
 \name{connections}
-\alias{connections}
 \alias{connection}
 \alias{file}
 \alias{pipe}
 \alias{fifo}
 \alias{gzfile}
-\alias{unz}
-\alias{bzfile}
 \alias{url}
 \alias{socketConnection}
 \alias{open}
@@ -15,8 +12,6 @@
 \alias{isIncomplete}
 \alias{close}
 \alias{close.connection}
-\alias{flush}
-\alias{flush.connection}
 \alias{print.connection}
 \alias{summary.connection}
 \alias{ISOLatin1}
@@ -35,17 +30,14 @@ fifo(description = "", open = "", blocking = FALSE,
      encoding = getOption("encoding"))
 gzfile(description, open = "", encoding = getOption("encoding"),
        compression = 6)
-unz(description, filename, open = "", encoding = getOption("encoding"))
-bzfile(description, open = "", encoding = getOption("encoding"))
 url(description, open = "", blocking = TRUE,
     encoding = getOption("encoding"))
 socketConnection(host = "localhost", port, server = FALSE,
                  blocking = FALSE, open = "a+",
                  encoding = getOption("encoding"))
 
-\method{open}{connection}(con, open = "r", blocking = TRUE, ...)
-\method{close}{connection}(con, type = "rw", ...)
-\method{flush}{connection}(con)
+\method{open}{connection}(con, open = "r", blocking = TRUE)
+\method{close}{connection}(con, type = "rw")
 
 isOpen(con, rw = "")
 isIncomplete(con)
@@ -57,7 +49,6 @@ isIncomplete(con)
     (\code{http://}, \code{ftp://} or \code{file://}).  \code{file} also
     accepts complete URLs.
   }
-  \item{filename}{a filename within a zip file.}
   \item{con}{a connection.}
   \item{host}{character.  Host name for port.}
   \item{port}{integer.  The TCP port number.}
@@ -70,23 +61,19 @@ isIncomplete(con)
     applied when writing, from none to maximal.  The default is a good
     space/time compromise.}
   \item{type}{character. Currently ignored.}
+  \item{where}{integer.  A file position (relative to the origin
+    specified by \code{origin}), or \code{NA}.}
   \item{rw}{character.  Empty or \code{"read"} or \code{"write"},
     partial matches allowed.}
-  \item{\dots}{arguments passed to or from other methods.}
 }
 \details{
-  The first eight functions create connections.  By default the
-  connection is not opened (except for \code{socketConnection}), but may
-  be opened by setting a non-empty value of argument \code{open}.
+  The first six functions create connections.  By default the connection
+  is not opened (except for \code{socketConnection}, but may be opened
+  by setting a non-empty value of
+  argument \code{open}.  \code{gzfile} applies to files compressed by
+  \code{gzip}: such connections can only be binary.
 
-  \code{gzfile} applies to files compressed by \file{gzip}, and
-  \code{bzfile} to those compressed by \file{bzip2}: such connections can
-  only be binary.
-
-  \code{unz} reads (only) single files within zip files, in binary mode.
-  The description is the full path, with \file{.zip} extension if required.
-
-  All platforms support (gz)file connections and \code{url("file://")}
+  All platforms support file connections and \code{url("file://")}
   connections.  The other types may be partially implemented or
   not implemented at all.  (They do work on most Unix
   platforms, and all but \code{fifo} on Windows.)
@@ -101,16 +88,19 @@ isIncomplete(con)
   connections will open them if they are not open, but then close them
   again, so to leave a connection open call \code{open} explicitly.
 
+  \code{close} closes and destroys a connection.
+
   Possible values for the mode \code{open} to open a connection are
   \describe{
-    \item{\code{"r"} or \code{"rt"}}{Open for reading in text mode.}
+    \item{\code{"r"} or \code{"wt"}}{Open for reading in text mode.}
     \item{\code{"w"} or \code{"wt"}}{Open for writing in text mode.}
     \item{\code{"a"} or \code{"at"}}{Open for appending in text mode.}
     \item{\code{"rb"}}{Open for reading in binary mode.}
     \item{\code{"wb"}}{Open for writing in binary mode.}
     \item{\code{"ab"}}{Open for appending in binary mode.}
     \item{\code{"r+"}, \code{"r+b"}}{Open for reading and writing.}
-    \item{\code{"w+"}, \code{"w+b"}}{Open for reading and writing,
+    \item{\code{"w+"}, \code{"w+b"}}{Open for reading and writing.}
+    \item{\code{"r+"}, \code{"r+b"}}{Open for reading and writing,
       truncating file initially.}
     \item{\code{"a+"}, \code{"a+b"}}{Open for reading and appending.}
   }
@@ -122,11 +112,6 @@ isIncomplete(con)
   connections on Windows, and \code{\link{pushBack}} is text-oriented and
   is only allowed on connections open for reading in text mode.
 
-  \code{close} closes and destroys a connection.
-
-  \code{flush} flushes the output stream of a connection open for
-  write/append (where implemented).
-
   If for a \code{file} connection the description is \code{""}, the file
   is immediately opened in \code{"w+"} mode and unlinked from the file
   system.  This provides a temporary file to write to and then read from.
@@ -134,7 +119,7 @@ isIncomplete(con)
   The encoding vector is used to map the input from a file or pipe to
   the platform's native character set.  Supplied examples are
   \code{native.enc} as well as \code{MacRoman}, \code{WinAnsi} and
-  \code{ISOLatin1}, whose actual encoding is platform-dependent.  Missing
+  \code{ISOLatin1}, whose actual encoding is platform-dependent. Missing
   characters are mapped to a space in these encodings.
 }
 \value{
@@ -180,33 +165,14 @@ isIncomplete(con)
   append to fifos) connects both sides of the fifo to the \R process,
   and provides an similar facility to \code{file()}.
 }
-#ifdef windows
-\section{Clipboard}{
-  Under Windows, \code{file} can also be used with \code{description =
-    "clipboard"} in mode \code{"w"} and \code{"w"} only.
-  
-  When the clipboard is opened for reading, the contents are immediately
-  copied to internal storage in the connection.
-
-  When writing to the clipboard, the output is
-  copied to the clipboard only when the connection is closed or flushed.
-  There is a 32Kb limit of the text to be written to the clipboard.
-}
-#endif
 \note{
   \R's connections are modelled on those in S version 4 (see Chambers,
-  1998). However \R goes well beyond the Svr4 model, for example
-  in output text connections and URL, gzfile, bzfile and socket connections.
+  1998). However \R also goes well beyond the Svr4 model, for example
+  in output text connections and URL, gzfile and socket connections.
 
   The default mode in \R is \code{"r"} except for socket
   connections. This differs from Svr4, where it is the equivalent of
   \code{"r+"}, known as \code{"*"}.
-
-  On platforms where \code{vsnprintf} does not return the needed length
-  of output (e.g. Windows) there is a 100,000 character output limit on the
-  length of line for \code{fifo}, \code{gzfile} and \code{bzfile}
-  connections: longer lines will be truncated with a warning.
-}
 }
 \references{
   Chambers, J. M. (1998)
@@ -229,18 +195,12 @@ close(zz)
 readLines("ex.data")
 unlink("ex.data")
 
-zz <- gzfile("ex.gz", "w")  # compressed file
-cat("TITLE extra line", "2 3 5 7", "", "11 13 17", file = zz, sep = "\n")
-close(zz)
-readLines(gzfile("ex.gz"))
-unlink("ex.gz")
-
-if(capabilities("bzip2")) {
-  zz <- bzfile("ex.bz2", "w")  # bzip2-ed file
+if(capabilities("libz")) {
+  zz <- gzfile("ex.gz", "w")  # compressed file
   cat("TITLE extra line", "2 3 5 7", "", "11 13 17", file = zz, sep = "\n")
   close(zz)
-  print(readLines(bzfile("ex.bz2")))
-  unlink("ex.bz2")
+  print(readLines(gzfile("ex.gz")))
+  unlink("ex.gz")
 }
 
 ## An example of a file open for reading and writing

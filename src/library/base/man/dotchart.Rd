@@ -8,7 +8,6 @@
 dotchart(x, labels = NULL, groups = NULL, gdata = NULL,
          cex = par("cex"), pch = 21, gpch = 21, bg = par("bg"),
          color = par("fg"), gcolor = par("fg"), lcolor = "gray",
-         xlim = range(x[is.finite(x)]),
          main = NULL, xlab = NULL, ylab = NULL, \dots)
 }
 \arguments{
@@ -36,10 +35,9 @@ dotchart(x, labels = NULL, groups = NULL, gdata = NULL,
   \item{gcolor}{the single color to be used for group labels and
     values.}
   \item{lcolor}{the color(s) to be used for the horizontal lines.}
-  \item{xlim}{horizontal range for the plot, see
-    \code{\link{plot.window}}, e.g.}
-  \item{main}{overall title for the plot, see \code{\link{title}}.}
-  \item{xlab, ylab}{axis annotations as in \code{title}.}
+  \item{main}{overall title for the plot.}
+  \item{xlab}{title for the x axis.}
+  \item{ylab}{title for the y axis.}
   \item{\dots}{graphical parameters can also be specified as arguments.}
 }
 \value{
@@ -56,9 +54,6 @@ dotchart(x, labels = NULL, groups = NULL, gdata = NULL,
 \examples{
 data(VADeaths)
 dotchart(VADeaths, main = "Death Rates in Virginia - 1940")
-op <- par(xaxs="i")# 0 -- 100\%
-dotchart(t(VADeaths), xlim = c(0,100),
-         main = "Death Rates in Virginia - 1940")
-par(op)
+dotchart(t(VADeaths), main = "Death Rates in Virginia - 1940")
 }
 \keyword{hplot}

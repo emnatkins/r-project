@@ -1,6 +1,7 @@
 .First.lib <- function(lib, pkg) {
-    ## Use local=FALSE to allow easy loading of Tcl extensions
-    library.dynam("tcltk", pkg, lib, local=FALSE)
+    if (.Platform$GUI=="GNOME")
+	stop("Tcl/Tk library does not work with GNOME interface")
+    library.dynam("tcltk", pkg, lib)
     .C("tcltk_init", PACKAGE="tcltk")
     addTclPath(system.file("exec", package = "tcltk"))
     ## This kind of stuff could be added to build a more extensive GUI ##

@@ -38,7 +38,7 @@ co.intervals(x, number = 6, overlap = 0.5)
     interval, to be conditioned on, but is can also be a single vector
     of numbers or a set of factor levels (if the variable being
     conditioned on is a factor). In this case (no \code{b}),
-    the result of \code{co.intervals} can be used directly as
+    the result of \code{co.intervals(..)} can be used directly as
     \code{given.values} argument.
   }
   \item{panel}{a \code{\link{function}(x, y, col, pch, \dots)}
@@ -79,8 +79,6 @@ co.intervals(x, number = 6, overlap = 0.5)
   \item{xlim}{the range for the x axis.}
   \item{ylim}{the range for the y axis.}
   \item{\dots}{additional arguments to the panel function.}
-
-  \item{x}{a numeric vector.}
 }
 \description{
   This function produces two variants of the \bold{co}nditioning plots
@@ -111,12 +109,12 @@ co.intervals(x, number = 6, overlap = 0.5)
 \examples{
 ## Tonga Trench Earthquakes
 data(quakes)
-coplot(lat ~ long | depth, data = quakes)
+coplot(long ~ lat | depth, data = quakes)
 given.depth <- co.intervals(quakes$depth, number=4, overlap=.1)
-coplot(lat ~ long | depth, data = quakes, given.v=given.depth, rows=1)
+coplot(long ~ lat | depth, data = quakes, given.v=given.depth, rows=1)
 
 ## Conditioning on 2 variables:
-ll.dm <- lat ~ long | depth * mag
+ll.dm <- long ~ lat | depth * mag
 coplot(ll.dm, data = quakes)
 coplot(ll.dm, data = quakes, number=c(4,7), show.given=c(TRUE,FALSE))
 coplot(ll.dm, data = quakes, number=c(3,7),

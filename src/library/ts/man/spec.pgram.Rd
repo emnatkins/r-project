@@ -1,11 +1,11 @@
 \name{spec.pgram}
 \alias{spec.pgram}
-\title{Estimate Spectral Density of a Time Series by a Smoothed
+\title{Estimate Spectral Density of a Time Series from Smoothed
     Periodogram}
 \usage{
 spec.pgram(x, spans = NULL, kernel, taper = 0.1,
            pad = 0, fast = TRUE, demean = FALSE, detrend =TRUE,
-           plot = FALSE, na.action = na.fail, \dots)
+           plot = FALSE, na.action, \dots)
 }
 \arguments{
   \item{x}{univariate or multivariate time series.}
@@ -51,8 +51,7 @@ spec.pgram(x, spans = NULL, kernel, taper = 0.1,
   is returned for that frequency.
 }
 \value{
-  A list object of class \code{"spec"} (see \code{\link{spectrum}})
-  with the following additional components:
+  A list object of class \code{"spec"} with the following elements.
   \item{kernel}{The \code{kernel} argument, or the kernel constructed
     from \code{spans}.}
   \item{df}{The distribution of the spectral density estimate can be
@@ -75,9 +74,9 @@ spec.pgram(x, spans = NULL, kernel, taper = 0.1,
   Brockwell, P.J. and Davis, R.A. (1991) \emph{Time Series: Theory and
     Methods.} Second edition. Springer.
 
-  Venables, W.N. and Ripley, B.D. (2002) \emph{Modern Applied
-    Statistics with S.} Fourth edition. Springer. (Especially
-  pp. 392--7.)
+  Venables, W.N. and Ripley, B.D. (1997) \emph{Modern Applied
+    Statistics with S-PLUS.} Second edition. Springer. (Especially
+  pp. 437--442.)
 }
 \author{
   Originally Martyn Plummer; kernel smoothing by Adrian Trapletti,

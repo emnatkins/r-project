@@ -2,7 +2,7 @@
 \title{Calculate the Determinant of a Matrix}
 \alias{det}
 \usage{
-det(x, method = c("qr", "eigenvalues"), tol = 1e-07)
+det(x, method = c("qr","eigenvalues"))
 }
 \description{
   \code{det} calculates the determinant of a matrix either by QR
@@ -10,13 +10,8 @@ det(x, method = c("qr", "eigenvalues"), tol = 1e-07)
   \code{\link{eigen}}.
   }
 \arguments{
-  \item{x}{numeric matrix.}
-  \item{method}{\code{"qr"} (default) or \code{"eigenvalues"}.}
-  \item{tol}{tolerance, used only for method \code{"qr"}.}
-}
-\value{
-  The determinant, or zero if \code{qr} determines the matrix to be
-  numerically singular.
+  \item{z}{numeric matrix.}
+  \item{method}{\code{"qr"} (default) or \code{"eigenvalues"}}
 }
 \note{
   Often, computing the determinant is \emph{not} what you should be doing

@@ -19,19 +19,12 @@ apply(X, MARGIN, FUN, \dots)
     function name must be quoted.}
   \item{\dots}{optional arguments to \code{FUN}.}
 }
-\details{
-  If \code{X} is not an array but has a dimension attribute,
-  \code{apply} attempts to coerce it to an array via \code{as.matrix}
-  if it is two-dimensional (e.g. data frames) or via \code{as.array}.
-}
 \value{
   If each call to \code{FUN} returns a vector of length \code{n}, then
   \code{apply} returns an array of dimension \code{c(n, dim(X)[MARGIN])}
   if \code{n > 1}.  If \code{n} equals \code{1}, \code{apply} returns a
   vector if \code{MARGIN} has length 1 and an array of dimension
   \code{dim(X)[MARGIN]} otherwise.
-  If \code{n} is \code{0}, the result has length 0 but not necessarily
-  the ``correct'' dimension.
 
   If the calls to \code{FUN} return vectors of different lengths,
   \code{apply} returns a list of length \code{dim(X)[MARGIN]}.
@@ -65,6 +58,25 @@ apply(ma, 1, quantile)# 5 x n matrix with rownames
 
 stopifnot(dim(ma) == dim(apply(ma, 1:2, sum)))## wasn't ok before R 0.63.1
 
+\testonly{
+ apply(x,  2, summary) # 6 x n matrix
+ apply(x,  1, quantile)# 5 x n matrix
+
+ d.arr <- 2:5
+ arr <- array(1:prod(d.arr), d.arr,
+          list(NULL,letters[1:d.arr[2]],NULL,paste("V",4+1:d.arr[4],sep="")))
+ aa <- array(1:20,c(2,2,5))
+ stopifnot(
+	apply(arr, 1:2, sum) == t(apply(arr, 2:1, sum)),
+	aa == apply(aa,2:3,function(x) x),
+        all.equal(apply(apply(aa,2:3, sum),2,sum),
+                  10+16*0:4, tol=4*.Machine$double.eps)
+ )
+ marg <- list(1:2, 2:3, c(2,4), c(1,3), 2:4, 1:3, 1:4)
+ for(m in marg) print(apply(arr, print(m), sum))
+ for(m in marg) ## 75% of the time here was spent on the names
+   print(dim(apply(arr, print(m), quantile, names=FALSE)) == c(5,d.arr[m]))
+}
 }
 \keyword{iteration}
 \keyword{array}

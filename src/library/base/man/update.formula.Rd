@@ -2,12 +2,11 @@
 \alias{update.formula}
 \title{Model Updating}
 \usage{
-\method{update}{formula}(old, new, ...)
+update.formula(old, new)
 }
 \arguments{
-  \item{old}{a model formula to be updated.}
-  \item{new}{a formula giving a template which specifies how to update.}
-  \item{\dots}{further arguments passed to or from other methods.}
+\item{old}{a model formula to be updated.}
+\item{new}{a formula giving a template which specifies how to update.}
 }
 \description{
   \code{update.formula} is used to update model formulae.
@@ -30,7 +29,7 @@
   \code{\link{terms}}, \code{\link{model.matrix}}.
 }
 \examples{
-update(y ~ x,    ~ . + x2) #> y ~ x + x2
-update(y ~ x, log(.) ~ . ) #> log(y) ~ x
+update.formula(y ~ x,    ~ . + x2) #> y ~ x + x2
+update.formula(y ~ x, log(.) ~ . ) #> log(y) ~ x
 }
 \keyword{models}

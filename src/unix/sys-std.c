@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2003  Robert Gentleman, Ross Ihaka
+ *  Copyright (C) 1997-2000   Robert Gentleman, Ross Ihaka
  *                            and the R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -25,11 +25,6 @@
 # include <config.h>
 #endif
 
-#ifdef HAVE_STRINGS_H
-   /* may be needed to define bzero in FD_ZERO (eg AIX) */
-  #include <strings.h>
-#endif
-
 #include "Defn.h"
 #include "Fileio.h"
 #include "Rdevices.h"		/* for KillAllDevices */
@@ -46,11 +41,6 @@
 #  include <readline/history.h>
 # endif
 #endif
-
-/* For compatibility with pre-readline4.2 systems: */
-#if !defined (_RL_FUNCTION_TYPEDEF)
-typedef void rl_vcpfunc_t (char *);
-#endif /* _RL_FUNCTION_TYPEDEF */
 
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>		/* for unlink */
@@ -90,7 +80,7 @@ void Rstd_Suicide(char *s)
 
 
 #define __SYSTEM__
-#include <R_ext/eventloop.h>
+#include "R_ext/eventloop.h"
 #undef __SYSTEM__
 
 /*
@@ -183,7 +173,6 @@ removeInputHandler(InputHandler **handlers, InputHandler *it)
 	    tmp->next = it->next;
 	    return(1);
 	}
-	tmp = tmp->next;
     }
 
     return(0);
@@ -232,24 +221,22 @@ int R_wait_usec = 0; /* 0 means no timeout */
 
 static int setSelectMask(InputHandler *, fd_set *);
 
-
-fd_set *R_checkActivity(int usec, int ignore_stdin)
+static InputHandler* waitForActivity()
 {
     int maxfd;
+    fd_set readMask;
     struct timeval tv;
-    static fd_set readMask;
 
 
-    tv.tv_sec = 0;
-    tv.tv_usec = usec;
-    maxfd = setSelectMask(R_InputHandlers, &readMask);
-    if (ignore_stdin)
-	FD_CLR(fileno(stdin), &readMask);
-    if (select(maxfd+1, &readMask, NULL, NULL,
-		     (usec >= 0) ? &tv : NULL))
-	return(&readMask);
-    else
-	return(NULL);
+    do {
+	R_PolledEvents();
+	tv.tv_sec = 0;
+	tv.tv_usec = R_wait_usec;
+	maxfd = setSelectMask(R_InputHandlers, &readMask);
+    } while (!select(maxfd+1, &readMask, NULL, NULL,
+		     (R_wait_usec) ? &tv : NULL));
+
+    return(getSelectedHandler(R_InputHandlers, &readMask));
 }
 
 /*
@@ -282,24 +269,13 @@ setSelectMask(InputHandler *handlers, fd_set *readMask)
     return(maxfd);
 }
 
-void R_runHandlers(InputHandler *handlers, fd_set *readMask)
-{
-    InputHandler *tmp = handlers;
-
-    if (readMask == NULL)
-	R_PolledEvents();
-    else
-	while(tmp) {
-	    if(FD_ISSET(tmp->fileDescriptor, readMask)
-	       && tmp->handler != NULL)
-		tmp->handler((void*) NULL);
-	    tmp = tmp->next;
-	}
-}
-
-/* The following routine is still used by the internet routines, but
- * it should eventually go away. */
-
+/*
+  Determine which handler was identified as having input pending
+  by the call to select().
+  We have a very simple version of scheduling. We skip the first one
+  if it is the standard input one. This allows the others to not be `starved'.
+  Change this as one wants by not skipping the first one.
+ */
 InputHandler *
 getSelectedHandler(InputHandler *handlers, fd_set *readMask)
 {
@@ -325,146 +301,41 @@ getSelectedHandler(InputHandler *handlers, fd_set *readMask)
 }
 
 
-
 #ifdef HAVE_LIBREADLINE
-/* callback for rl_callback_read_char */
+	/* callback for rl_callback_read_char */
 
-
-/*
-
-There has been a general problem with asynchonous calls to browser and
-anything that uses the standard console reading facilties asynchronously
-(e.g. scan(), parse(), menu()).  The basic problem is as follows.  We
-are in the usual input loop awaiting characters typed by the user.  Then
-asynchronously, we enter the browser due to a callback that is invoked
-from the background event loop that is active while waiting for the user
-input.  At this point, we essentially are starting a new readline
-session and it is important that we restore the old one when we complete
-the browse-related one. But unfortunately, we are using global variables
-and restoring it is not currently being done.
-So this is an attempt to a) remove the global variables (which will
-help with threading), and b) ensure that the relevant readline handlers
-are restored when an asynchronous reader completes its task.
-
-Cleaning up after errors is still an issue that needs investigation
-and whether the current setup does the correct thing.
-Related to this is whether nested calls (e.g. within a browser, we
-do other calls to browser() or scan and whether these i)
-accumulate on our readline stack, and ii) are unwound correctly.
-If they don't accumulate, we need only keep  function pointers on
-this stack. 10 seems safe for most use and is an improvement
-over the abort's that we were getting due to the lack of
-a readline handler being registered.
-DTL.
-*/
-
-typedef struct _R_ReadlineData R_ReadlineData;
-
-struct _R_ReadlineData {
-
- int readline_gotaline;
- int readline_addtohistory;
- int readline_len;
- int readline_eof;
- unsigned char *readline_buf;
- R_ReadlineData *prev;
-
-};
-
-R_ReadlineData *rl_top = NULL;
-
-#define MAX_READLINE_NESTING 10
-
-static struct {
-  int current;
-  int max;
-  rl_vcpfunc_t *fun[MAX_READLINE_NESTING];
-} ReadlineStack = {-1, MAX_READLINE_NESTING - 1};
-
-
-/*
-  Registers the specified routine and prompt with readline
-  and keeps a record of it on the top of the R readline stack.
- */
-void
-pushReadline(char *prompt, rl_vcpfunc_t f)
-{
-   if(ReadlineStack.current >= ReadlineStack.max) {
-     warning("An unusual circumstance has arisen in the nesting of readline input. Please report using bug.report()");
-   } else
-     ReadlineStack.fun[++ReadlineStack.current] = f;
-
-   rl_callback_handler_install(prompt, f);
-}
-
-/*
-  Unregister the current readline handler and pop it from R's readline
-  stack, followed by re-registering the previous one.
-*/
-void
-popReadline()
-{
-  if(ReadlineStack.current > -1) {
-     rl_callback_handler_remove();
-     ReadlineStack.fun[ReadlineStack.current--] = NULL;
-     if(ReadlineStack.current > -1 && ReadlineStack.fun[ReadlineStack.current])
-        rl_callback_handler_install("", ReadlineStack.fun[ReadlineStack.current]);
-  }
-}
+static int readline_gotaline;
+static int readline_addtohistory;
+static int readline_len;
+static int readline_eof;
+static unsigned char *readline_buf;
 
 static void readline_handler(char *line)
 {
     int l;
-
-    popReadline();
-
-    if ((rl_top->readline_eof = !line)) /* Yes, I don't mean ==...*/
+    rl_callback_handler_remove();
+    if ((readline_eof = !line)) /* Yes, I don't mean ==...*/
 	return;
     if (line[0]) {
-# ifdef HAVE_READLINE_HISTORY_H
-	if (strlen(line) && rl_top->readline_addtohistory)
+#ifdef HAVE_READLINE_HISTORY_H
+	if (strlen(line) && readline_addtohistory)
 	    add_history(line);
-# endif
-	l = (((rl_top->readline_len-2) > strlen(line))?
-	     strlen(line): (rl_top->readline_len-2));
-	strncpy((char *)rl_top->readline_buf, line, l);
-	rl_top->readline_buf[l] = '\n';
-	rl_top->readline_buf[l+1] = '\0';
+#endif
+	l = (((readline_len-2) > strlen(line))?
+	     strlen(line): (readline_len-2));
+	strncpy((char *)readline_buf, line, l);
+	readline_buf[l] = '\n';
+	readline_buf[l+1] = '\0';
     }
     else {
-	rl_top->readline_buf[0] = '\n';
-	rl_top->readline_buf[1] = '\0';
+	readline_buf[0] = '\n';
+	readline_buf[1] = '\0';
     }
-    rl_top->readline_gotaline = 1;
+    readline_gotaline = 1;
 }
+#endif
 
-/*
- An extension or override for the standard interrupt handler (Ctrl-C)
- that pops the readline stack and then calls the regular/standard
- interrupt handler. This could be done in a nicer and more general way.
- It may be necessary for embedding, etc. although it may not be an issue
- there (as the host application will presumably handle signals).
- by allowing us to add C routines to be called
- at the conclusion of the context. At the moment there is only one such routine
- allowed, and so we would have to chain them. This just leads to a different set of
- maintenance problems when we rely on the authors of individual routines to
- not break the chain!
- Note that the readline stack is not popped when a SIGUSR1 or SIGUSR2 occurs
- during the select. But of course, we are about to terminate the R session at
- that point so it shouldn't be relevant except in the embedded case. But
- the host application will probably not let things get that far and trap the
- signals itself.
-*/
-static void
-handleInterrupt(int dummy)
-{
-    popReadline();
-    onintr();
-}
-
-#endif /* HAVE_LIBREADLINE */
-
-/* Fill a text buffer from stdin or with user typed console input. */
+	/* Fill a text buffer from stdin or with user typed console input. */
 
 int Rstd_ReadConsole(char *prompt, unsigned char *buf, int len,
 		     int addtohistory)
@@ -477,13 +348,13 @@ int Rstd_ReadConsole(char *prompt, unsigned char *buf, int len,
 	    return 0;
 	ll = strlen((char *)buf);
 	/* remove CR in CRLF ending */
-	if (ll >= 2 && buf[ll - 1] == '\n' && buf[ll - 2] == '\r') {
+	if (buf[ll - 1] == '\n' && buf[ll - 2] == '\r') {
 	    buf[ll - 2] = '\n';
-	    buf[--ll] = '\0';
+	    buf[--ll] = '\0';    
 	}
 /* according to system.txt, should be terminated in \n, so check this
    at eof */
-	if (feof(stdin) && (ll == 0 || buf[ll - 1] != '\n') && ll < len) {
+	if (feof(stdin) && buf[ll - 1] != '\n' && ll < len) {
 	    buf[ll++] = '\n'; buf[ll] = '\0';
 	}
 	if (!R_Slave)
@@ -492,59 +363,47 @@ int Rstd_ReadConsole(char *prompt, unsigned char *buf, int len,
     }
     else {
 #ifdef HAVE_LIBREADLINE
-        R_ReadlineData rl_data;
 	if (UsingReadline) {
-	    rl_data.readline_gotaline = 0;
-	    rl_data.readline_buf = buf;
-	    rl_data.readline_addtohistory = addtohistory;
-	    rl_data.readline_len = len;
-	    rl_data.readline_eof = 0;
-	    rl_data.prev = rl_top;
-	    rl_top = &rl_data;
-	    pushReadline(prompt, readline_handler);
-	    signal(SIGINT, handleInterrupt);
+	    readline_gotaline = 0;
+	    readline_buf = buf;
+	    readline_addtohistory = addtohistory;
+	    readline_len = len;
+	    readline_eof = 0;
+	    rl_callback_handler_install(prompt, readline_handler);
 	}
 	else
-#endif /* HAVE_LIBREADLINE */
+#endif
 	{
 	    fputs(prompt, stdout);
 	    fflush(stdout);
 	}
 
 	if(R_InputHandlers == NULL)
-	    initStdinHandler();
+	  initStdinHandler();
 
 	for (;;) {
-	    fd_set *what;
-
-	    what = R_checkActivity(R_wait_usec ? R_wait_usec : -1, 0);
-	    /* This is slightly clumsy. We have advertised the
-	     * convention that R_wait_usec == 0 means "wait forever",
-	     * but we also need to enable R_checkActivity to return
-	     * immediately. */
-
-	    R_runHandlers(R_InputHandlers, what);
-	    if (what == NULL)
-		continue;
-	    if (FD_ISSET(fileno(stdin), what)) {
-		/* We could make this a regular handler, but we need
-		 * to pass additional arguments. */
+	    InputHandler *what = waitForActivity();
+	    if(what != NULL) {
+		if(what->fileDescriptor == fileno(stdin)) {
+  	        /* We could make this a regular handler, but we need to pass additional arguments. */
 #ifdef HAVE_LIBREADLINE
-		if (UsingReadline) {
-		    rl_callback_read_char();
-		    if(rl_data.readline_eof || rl_data.readline_gotaline) {
-			rl_top = rl_data.prev;
-			return(rl_data.readline_eof ? 0 : 1);
+		    if (UsingReadline) {
+			rl_callback_read_char();
+			if (readline_eof)
+			    return 0;
+			if (readline_gotaline)
+			    return 1;
 		    }
-		}
-		else
-#endif /* HAVE_LIBREADLINE */
-		{
-		    if(fgets((char *)buf, len, stdin) == NULL)
-			return 0;
 		    else
-			return 1;
-		}
+#endif
+		    {
+			if(fgets((char *)buf, len, stdin) == NULL)
+			    return 0;
+			else
+			    return 1;
+		    }
+		} else
+		    what->handler((void*) NULL);
 	    }
 	}
     }
@@ -570,7 +429,7 @@ void Rstd_ResetConsole()
 
 void Rstd_FlushConsole()
 {
-    /* fflush(stdin);  really work on Solaris on pipes */
+    fflush(stdin);
 }
 
 	/* Reset stdin if the user types EOF on the console. */
@@ -604,12 +463,10 @@ void Rstd_Busy(int which)
  */
 
 void R_dot_Last(void);		/* in main.c */
-void R_RunExitFinalizers(void);	/* in memory.c */
 
 void Rstd_CleanUp(SA_TYPE saveact, int status, int runLast)
 {
     unsigned char buf[128];
-    char * tmpdir;
 
     if(saveact == SA_DEFAULT) /* The normal case apart from R_Suicide */
 	saveact = SaveAction;
@@ -619,7 +476,7 @@ void Rstd_CleanUp(SA_TYPE saveact, int status, int runLast)
 	qask:
 	    R_ClearerrConsole();
 	    R_FlushConsole();
-	    R_ReadConsole("Save workspace image? [y/n/c]: ",
+	    R_ReadConsole("Save workspace image? [y/n/c]: ", 
 			  buf, 128, 0);
 	    switch (buf[0]) {
 	    case 'y':
@@ -645,13 +502,13 @@ void Rstd_CleanUp(SA_TYPE saveact, int status, int runLast)
 	if(runLast) R_dot_Last();
 	if(R_DirtyImage) R_SaveGlobalEnv();
 #ifdef HAVE_LIBREADLINE
-# ifdef HAVE_READLINE_HISTORY_H
+#ifdef HAVE_READLINE_HISTORY_H
 	if(R_Interactive && UsingReadline) {
 	    stifle_history(R_HistorySize);
 	    write_history(R_HistoryFile);
 	}
-# endif /* HAVE_READLINE_HISTORY_H */
-#endif /* HAVE_LIBREADLINE */
+#endif
+#endif
 	break;
     case SA_NOSAVE:
 	if(runLast) R_dot_Last();
@@ -660,13 +517,8 @@ void Rstd_CleanUp(SA_TYPE saveact, int status, int runLast)
     default:
         break;
     }
-    R_RunExitFinalizers();
     CleanEd();
-    if((tmpdir = getenv("R_SESSION_TMPDIR"))) {
-	sprintf((char *)buf, "rm -rf %s", tmpdir);
-	system((char *)buf);
-    }
-    if(saveact != SA_SUICIDE) KillAllDevices();
+    KillAllDevices();
     if(saveact != SA_SUICIDE && R_CollectWarnings)
 	PrintWarnings();	/* from device close and .Last */
     fpu_setup(FALSE);
@@ -680,9 +532,9 @@ void Rstd_CleanUp(SA_TYPE saveact, int status, int runLast)
 
 int Rstd_ShowFiles(int nfile, 		/* number of files */
 		   char **file,		/* array of filenames */
-		   char **headers,	/* the `headers' args of file.show.
+		   char **headers,	/* the `headers' args of file.show. 
 					   Printed before each file. */
-		   char *wtitle,	/* title for window
+		   char *wtitle,	/* title for window 
 					   = `title' arg of file.show */
 		   Rboolean del,	/* should files be deleted after use? */
 		   char *pager)		/* pager to be used */
@@ -702,7 +554,7 @@ int Rstd_ShowFiles(int nfile, 		/* number of files */
 
     if (nfile > 0) {
         if (pager == NULL || strlen(pager) == 0) pager = "more";
-	filename = R_tmpnam(NULL, R_TempDir);
+	filename = Runix_tmpnam(NULL);
         if ((tfp = fopen(filename, "w")) != NULL) {
 	    for(i = 0; i < nfile; i++) {
 		if (headers[i] && *headers[i])
@@ -753,34 +605,31 @@ int Rstd_ChooseFile(int new, char *buf, int len)
 
 void Rstd_ShowMessage(char *s)
 {
-    REprintf("%s", s);
+    REprintf(s);
 }
 
 
 void Rstd_read_history(char *s)
 {
 #ifdef HAVE_LIBREADLINE
-# ifdef HAVE_READLINE_HISTORY_H
+#ifdef HAVE_READLINE_HISTORY_H
     if(R_Interactive && UsingReadline) {
 	read_history(s);
     }
-# endif /* HAVE_READLINE_HISTORY_H */
-#endif /* HAVE_LIBREADLINE */
+#endif
+#endif
 }
 
 void Rstd_loadhistory(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP sfile;
-    char file[PATH_MAX], *p;
+    char file[PATH_MAX];
 
     checkArity(op, args);
     sfile = CAR(args);
     if (!isString(sfile) || LENGTH(sfile) < 1)
 	errorcall(call, "invalid file argument");
-    p = R_ExpandFileName(CHAR(STRING_ELT(sfile, 0)));
-    if(strlen(p) > PATH_MAX - 1)
-	errorcall(call, "file argument is too long");
-    strcpy(file, p);
+    strcpy(file, R_ExpandFileName(CHAR(STRING_ELT(sfile, 0))));
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_READLINE_HISTORY_H)
     if(R_Interactive && UsingReadline) {
 	clear_history();
@@ -794,16 +643,13 @@ void Rstd_loadhistory(SEXP call, SEXP op, SEXP args, SEXP env)
 void Rstd_savehistory(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP sfile;
-    char file[PATH_MAX], *p;
+    char file[PATH_MAX];
 
     checkArity(op, args);
     sfile = CAR(args);
     if (!isString(sfile) || LENGTH(sfile) < 1)
 	errorcall(call, "invalid file argument");
-    p = R_ExpandFileName(CHAR(STRING_ELT(sfile, 0)));
-    if(strlen(p) > PATH_MAX - 1)
-	errorcall(call, "file argument is too long");
-    strcpy(file, p);
+    strcpy(file, R_ExpandFileName(CHAR(STRING_ELT(sfile, 0))));
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_READLINE_HISTORY_H)
     if(R_Interactive && UsingReadline) {
 	write_history(file);
@@ -814,68 +660,71 @@ void Rstd_savehistory(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 }
 
+#include <setjmp.h>
+static jmp_buf sleep_return;
+
+static int OldTimeout;
+static void (* OldHandler)(void);
 
 
+#ifdef HAVE_TIMES
+#include <time.h>
+#include <sys/times.h>
+#ifndef CLK_TCK
+/* this is in ticks/second, generally 60 on BSD style Unix, 100? on SysV */
+#ifdef HZ
+#define CLK_TCK HZ
+#else
+#define CLK_TCK	60
+#endif
+#endif /* CLK_TCK */
 
-#ifdef _R_HAVE_TIMING_
-# include <time.h>
-# ifdef HAVE_SYS_TIMES_H
-#  include <sys/times.h>
-# endif
-# ifndef CLK_TCK
-/* this is in ticks/second, generally 60 on BSD style Unix, 100? on SysV
- */
-#  ifdef HZ
-#   define CLK_TCK HZ
-#  else
-#   define CLK_TCK 60
-#  endif
-# endif /* not CLK_TCK */
+static struct tms timeinfo;
+static double timeint, start, elapsed;
 
+static void SleepHandler(void)
+{
+    elapsed = (times(&timeinfo) - start) / (double)CLK_TCK;
+/*    Rprintf("elapsed %f,  R_wait_usec %d\n", elapsed, R_wait_usec); */
+    if(elapsed >= timeint) longjmp(sleep_return, 100);
+    if(timeint - elapsed < 0.5)
+	R_wait_usec = 1e6*(timeint - elapsed) + 10000;
+    OldHandler();
+}
 
-
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 SEXP do_syssleep(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    int Timeout;
-    double tm;
-    struct tms timeinfo;
-    double timeint, start, elapsed;
-
     checkArity(op, args);
     timeint = asReal(CAR(args));
     if (ISNAN(timeint) || timeint < 0)
 	errorcall(call, "invalid time value");
-    tm = timeint * 1e6;
+    OldHandler = R_PolledEvents;
+    R_PolledEvents = SleepHandler;
+    OldTimeout = R_wait_usec;
+    if(OldTimeout == 0 || OldTimeout > 500000) R_wait_usec = 500000;
 
     start = times(&timeinfo);
-    for (;;) {
-	fd_set *what;
-        Timeout = R_wait_usec ? MIN(tm, R_wait_usec) : tm;
-	what = R_checkActivity(Timeout, 1);
+    if(setjmp(sleep_return) != 100)
+	for (;;) {
+	    InputHandler *what = waitForActivity();
+	    if(what != NULL) {
+		if(what->fileDescriptor != fileno(stdin))
+		    what->handler((void*) NULL);
+		else usleep(R_wait_usec/2);
+	    /* we can't handle console read events here,
+	       so just sleep for a while */
+	    }
+	}
 
-	/* Time up? */
-	elapsed = (times(&timeinfo) - start) / (double)CLK_TCK;
-	if(elapsed >= timeint) break;
-
-	/* Nope, service pending events */
-	R_runHandlers(R_InputHandlers, what);
-
-	/* Servicing events might take some time, so recheck: */
-	elapsed = (times(&timeinfo) - start) / (double)CLK_TCK;
-	if(elapsed >= timeint) break;
-
-	tm = 1e6*(timeint - elapsed); /* old code had "+ 10000;" */
-    }
-
+    R_PolledEvents = OldHandler;
+    R_wait_usec = OldTimeout;
     return R_NilValue;
 }
 
-#else /* not _R_HAVE_TIMING_ */
+#else
 SEXP do_syssleep(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     error("Sys.sleep is not implemented on this system");
-    return R_NilValue;		/* -Wall */
 }
-#endif /* not _R_HAVE_TIMING_ */
+#endif

@@ -1,26 +1,21 @@
 \name{nls}
 \alias{nls}
-%\alias{anova.nls}
+\alias{anova.nls}
 \alias{anovalist.nls}
-%\alias{coef.nls}
-%\alias{deviance.nls}
-%\alias{df.residual.nls}
-%\alias{fitted.nls}
-%\alias{logLik.nls}
-%\alias{print.nls}
-%\alias{residuals.nls}
-%\alias{summary.nls}
-%\alias{print.summary.nls}
-%\alias{weights.nls}
-%\alias{vcov.nls}
+\alias{coef.nls}
+\alias{deviance.nls}
+\alias{df.residual.nls}
+\alias{fitted.nls}
+\alias{logLik.nls}
+\alias{print.nls}
+\alias{residuals.nls}
+\alias{summary.nls}
+\alias{print.summary.nls}
+\alias{weights.nls}
+\alias{AIC.nls}
 \title{Nonlinear Least Squares}
-\synopsis{
-nls(formula, data = parent.frame(), start, control,
-    algorithm = "default", trace = FALSE, subset,
-    weights, na.action)
-}
 \usage{
-nls(formula, data = parent.frame(), start, control = nls.control(),
+nls(formula, data, start, control = nls.control(),
     algorithm = "default", trace = FALSE, subset,
     weights, na.action)
 }
@@ -55,23 +50,9 @@ nls(formula, data = parent.frame(), start, control = nls.control(),
   parameters and return a class \code{nls} object.
 }
 \details{
-  \bold{Do not use \code{nls} on artificial "zero-residual" data.}
-
-  The \code{nls} function uses a relative-offset convergence criterion
-  that compares the numerical imprecision at the current parameter
-  estimates to the residual sum-of-squares.  This performs well on data of
-  the form \deqn{y=f(x,\theta)+\epsilon}{y = f(x, theta) + eps} (with
-  \code{var(eps) > 0}).  It
-  fails to indicate convergence on data of the form
-  \deqn{y=f(x,\theta)}{y = f(x, theta)} because the criterion amounts to
-  comparing two components of the round-off error.  If you wish to test
-  \code{nls} on artificial data please add a noise component, as shown
-  in the example below.
-  
   An \code{nls} object is a type of fitted model object.  It has methods
-  for the generic functions \code{\link{coef}}, \code{\link{formula}},
-  \code{\link{resid}}, \code{\link{print}}, \code{\link{summary}},
-  \code{\link{AIC}}, \code{\link{fitted}} and \code{\link{vcov}}.
+  for the generic functions \code{coef}, \code{formula}, \code{resid},
+  \code{print}, \code{summary}, \code{AIC}, and \code{fitted}.
 }
 \value{
   A list of
@@ -124,19 +105,6 @@ weighted.MM <- function(resp, conc, Vm, K)
 Pur.wt <- nls( ~ weighted.MM(rate, conc, Vm, K), data = Treated,
               start = list(Vm = 200, K = 0.1),
               trace = TRUE)
-}
-## The two examples below show that you can fit a model to
-## artificial data with noise but not to artificial data
-## without noise.
-x = 1:10
-y = x                                  # perfect fit
-yeps = y + rnorm(length(y), sd = 0.01) # added noise
-nls(yeps ~ a + b*x, start = list(a = 0.12345, b = 0.54321),
-     trace = TRUE)
-\dontrun{
-nls(y ~ a + b*x, start = list(a = 0.12345, b = 0.54321),
-     trace = TRUE)
-}       
 }
 \keyword{nonlinear}
 \keyword{regression}

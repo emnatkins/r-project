@@ -59,11 +59,10 @@ shell(cmd, shell, flag="/c", intern=FALSE, wait=TRUE,
   chooses a shell.
     
   See \code{\link{system}} for fuller details: \code{shell} is a more
-  user-friendly wrapper for \code{system}.  To make use of Windows
-  file associations, use \code{\link{shell.exec}}.
+  user-friendly wrapper for \code{system}.
 }
 \author{B. D. Ripley}
 
-\seealso{\code{\link{system}}, \code{\link{shell.exec}}}
+\seealso{\code{\link{system}}}
 
 \keyword{utilities}

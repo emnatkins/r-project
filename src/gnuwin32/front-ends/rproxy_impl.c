@@ -21,7 +21,7 @@
  *  Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  *  MA 02111-1307, USA
  *
- *  $Id: rproxy_impl.c,v 1.17 2002/04/30 19:13:56 ripley Exp $
+ *  $Id: rproxy_impl.c,v 1.12 2001/04/05 09:42:35 ripley Exp $
  */
 
 #define NONAMELESSUNION
@@ -29,18 +29,18 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-//#include "globalvar.h"
-//#undef CharacterMode
-//#undef R_Interactive
-#include <config.h>
-#include <Rversion.h>
-#include <Startup.h>
+#include "globalvar.h"
+#undef CharacterMode
+#undef R_Interactive
+#include "config.h"
+#include "Rversion.h"
+#include "Startup.h"
 #include "bdx.h"
 #include "SC_proxy.h"
 #include "rproxy_impl.h"
-#include <IOStuff.h>
-#include <Parse.h>
-#include <Graphics.h>
+#include "IOStuff.h"
+#include "Parse.h"
+#include "Graphics.h"
 
 struct _R_Proxy_init_parameters
 {
@@ -50,18 +50,15 @@ struct _R_Proxy_init_parameters
   int nsize_valid;
 };
 
-/* 01-12-07 | baier | no more extern for exported variables (crashes!) */
 /*#define R_GlobalEnv (*__imp_R_GlobalEnv)
 #define R_Visible (*__imp_R_Visible)
 #define R_EvalDepth (*__imp_R_EvalDepth)
 #define R_DimSymbol (*__imp_R_DimSymbol)*/
 
-/*
 extern SEXP R_GlobalEnv;
 extern int R_Visible;
 extern int R_EvalDepth;
 extern SEXP R_DimSymbol;
-*/
 
 /* calls into the R DLL */
 extern char *getDLLVersion();
@@ -72,15 +69,13 @@ extern char *getRHOME();
 extern void end_Rmainloop(), R_ReplDLLinit();
 extern void askok(char *);
 
-int R_Proxy_Graphics_Driver (NewDevDesc* pDD,
+int R_Proxy_Graphics_Driver (DevDesc* pDD,
 			     char* pDisplay,
 			     double pWidth,
 			     double pHeight,
 			     double pPointSize);
 
 extern SC_CharacterDevice* __output_device;
-
-static int s_EvalInProgress = 0;
 
 void R_Proxy_askok (char* pMsg)
 {
@@ -141,6 +136,10 @@ int SEXP2BDX_Data (SEXP pExpression,BDX_Data** pData)
   switch (TYPEOF (pExpression))
     {
     case NILSXP	 :
+#if 0
+      printf (">> %s is a NULL value\n",
+	      pSymbol);
+#endif
       lData->type = BDX_NULL;
 
       // dimensions: 1
@@ -175,6 +174,10 @@ int SEXP2BDX_Data (SEXP pExpression,BDX_Data** pData)
       // case CPLXSXP	 : printf ("type: complex variables\n");
       // break;
     default:
+#if 0
+      printf (">> cannot handle symbol of type %d\n",
+	      TYPEOF (pExpression));
+#endif
       //      UNPROTECT (1);
       free (lData);
       *pData = NULL;
@@ -234,6 +237,11 @@ int SEXP2BDX_Data (SEXP pExpression,BDX_Data** pData)
 	{
 	  // vector
 	  int i;
+
+#if 0
+	  printf (">> %s is a vector of length %d\n",
+		  pSymbol,LENGTH (pExpression));
+#endif
 
 	  lData->type |= BDX_VECTOR;
 	  lData->dim_count = 1;
@@ -474,13 +482,7 @@ int R_Proxy_init (char const* pParameterString)
   Rp->yesnocancel = R_Proxy_askyesnocancel;
   Rp->busy = R_Proxy_Busy;
   Rp->R_Quiet = 1;
-#if 1
-  // run as "interactive", so server won't be killed after an error
-  Rp->R_Slave = Rp->R_Verbose = 0;
-  Rp->R_Interactive = 1;
-#else
   Rp->R_Slave = Rp->R_Interactive = Rp->R_Verbose = 0;
-#endif
   Rp->RestoreAction = 0; /* no restore */
   Rp->SaveAction = 2;    /* no save */
   Rp->CommandLineArgs = NULL;
@@ -521,18 +523,15 @@ int R_Proxy_init (char const* pParameterString)
   return SC_PROXY_OK;
 }
 
-// 01-06-05 | baier | SETJMP and fatal error handling around eval()
 int R_Proxy_evaluate (char const* pCmd,BDX_Data** pData)
 {
+  //  int c, status;
   SEXP rho = R_GlobalEnv;
   IoBuffer lBuffer;
   SEXP lSexp;
   int lRc;
   int lStatus;
   SEXP lResult;
-
-  // for SETJMP/LONGJMP
-  s_EvalInProgress = 0;
 
   R_IoBufferInit (&lBuffer);
   R_IoBufferPuts ((char*) pCmd,&lBuffer);
@@ -555,24 +554,20 @@ int R_Proxy_evaluate (char const* pCmd,BDX_Data** pData)
       R_Visible = 0;
       R_EvalDepth = 0;
       PROTECT(lSexp);
-      {
-	SETJMP (R_Toplevel.cjmpbuf);
-	R_GlobalContext = R_ToplevelContext = &R_Toplevel;
-
-	if (!s_EvalInProgress)
-	  {
-	    s_EvalInProgress = 1;
-	    lResult = eval (lSexp,rho);
-	    s_EvalInProgress = 0;
-	  }
-	else
-	  {
-	    return SC_PROXY_ERR_EVALUATE_STOP;
-	  }
-      }
+      //      R_Busy(1);
+      lResult = eval (lSexp,rho);
       lRc = SEXP2BDX_Data (lResult,pData);
+      //R_CurrentExpr = eval(lSexp, rho);
       // no last value
+      //SYMVALUE(R_LastvalueSymbol) = R_CurrentExpr;
       UNPROTECT(1);
+      /*
+	if (R_Visible)
+	PrintValueEnv(R_CurrentExpr, rho);
+	if (R_CollectWarnings)
+	PrintWarnings();
+      */
+      //      R_Busy(0);
       break;
     case PARSE_ERROR:
       lRc = SC_PROXY_ERR_PARSE_INVALID;
@@ -592,17 +587,14 @@ int R_Proxy_evaluate (char const* pCmd,BDX_Data** pData)
   return lRc;
 }
 
-// 01-06-05 | baier | SETJMP and fatal error handling around eval()
 int R_Proxy_evaluate_noreturn (char const* pCmd)
 {
+  //  int c, status;
   SEXP rho = R_GlobalEnv;
   IoBuffer lBuffer;
   SEXP lSexp;
   int lRc;
   int lStatus;
-
-  // for SETJMP/LONGJMP
-  s_EvalInProgress = 0;
 
   R_IoBufferInit (&lBuffer);
   R_IoBufferPuts ((char*) pCmd,&lBuffer);
@@ -625,24 +617,20 @@ int R_Proxy_evaluate_noreturn (char const* pCmd)
       R_Visible = 0;
       R_EvalDepth = 0;
       PROTECT(lSexp);
+      //      R_Busy(1);
       // at the moment, discard the result of the eval
-      {
-	SETJMP (R_Toplevel.cjmpbuf);
-	R_GlobalContext = R_ToplevelContext = &R_Toplevel;
-
-	if (!s_EvalInProgress)
-	  {
-	    s_EvalInProgress = 1;
-	    eval (lSexp,rho);
-	    s_EvalInProgress = 0;
-	  }
-	else
-	  {
-	    return SC_PROXY_ERR_EVALUATE_STOP;
-	  }
-      }
+      eval (lSexp,rho);
+      //R_CurrentExpr = eval(lSexp, rho);
       // no last value
+      //SYMVALUE(R_LastvalueSymbol) = R_CurrentExpr;
       UNPROTECT(1);
+      /*
+	if (R_Visible)
+	PrintValueEnv(R_CurrentExpr, rho);
+	if (R_CollectWarnings)
+	PrintWarnings();
+      */
+      //      R_Busy(0);
       lRc = SC_PROXY_OK;
       break;
     case PARSE_ERROR:
@@ -665,9 +653,12 @@ int R_Proxy_evaluate_noreturn (char const* pCmd)
 
 int R_Proxy_get_symbol (char const* pSymbol,BDX_Data** pData)
 {
+  //  int c, status;
+  //  SEXP rho = R_GlobalEnv;
   IoBuffer lBuffer;
   SEXP lSexp;
   SEXP lVar;
+  //  int lRc;
   int lStatus;
 
   R_IoBufferInit (&lBuffer);

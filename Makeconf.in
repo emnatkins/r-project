@@ -8,6 +8,7 @@ AUTOMAKE = @AUTOMAKE@
 AUTOHEADER = @AUTOHEADER@
 AWK = @AWK@
 BITMAP_LIBS = @BITMAP_LIBS@
+BLAS = @BLAS@
 BLAS_LIBS = @BLAS_LIBS@
 BUILDDIR_IS_SRCDIR = @BUILDDIR_IS_SRCDIR@
 CC = @CC@
@@ -15,18 +16,14 @@ CFLAGS = @CFLAGS@
 CPICFLAGS = @CPICFLAGS@
 CPPFLAGS = @CPPFLAGS@
 DEFS = @DEFS@
-DISTDIR_TAR_EXCLUDE = --exclude=CVS --exclude=Makefile --exclude="*.o" --exclude="*$(SHLIB_EXT)"
+DISTDIR_TAR_EXCLUDE = --exclude=CVS --exclude=Makefile --exclude="*.o" --exclude="*.$(SHLIB_EXT)"
 DVIPS = @DVIPS@
-DYLIB_EXT = @DYLIB_EXT@
-ECHO_C = @ECHO_C@
-ECHO_N = @ECHO_N@
-ECHO_T = @ECHO_T@
+FC = @FC@
 FFLAGS = @FFLAGS@
 FLIBS = @FLIBS@
 FPICFLAGS = @FPICFLAGS@
 F2C = @F2C@
 F2CFLAGS = @F2CFLAGS@
-F77 = @F77@
 GETWD = @GETWD@
 GNOMEUI_LIBS = @GNOMEUI_LIBS@
 GNOME_LIBDIR = @GNOME_LIBDIR@
@@ -41,8 +38,8 @@ LATEX = @LATEX@
 LDFLAGS = @LDFLAGS@
 LIBGLADE_CFLAGS = @LIBGLADE_CFLAGS@
 LIBGLADE_LIBS = @LIBGLADE_LIBS@
+LIBPATHS = @LIBPATHS@
 LIBR = @LIBR@
-LIBR_EXT = @LIBR_EXT@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
@@ -56,18 +53,14 @@ MAKEINDEX = @MAKEINDEX@
 MKINSTALLDIRS = $(top_srcdir)/tools/mkinstalldirs
 PERL = @PERL@
 R_GUIS = @R_GUIS@
-R_OSTYPE = @R_OSTYPE@
-R_PKGS_BASE = base ctest eda lqs methods modreg mva nls splines stepfun tcltk tools ts
-R_PKGS_RECOMMENDED = survival boot cluster foreign grid lattice KernSmooth mgcv nlme rpart VR
-R_PKGS_RECOMMENDED_EXPANDED = survival boot cluster foreign grid lattice KernSmooth mgcv nlme rpart MASS nnet spatial class
-R_PKGS = $(R_PKGS_BASE) @USE_RECOMMENDED_PACKAGES_TRUE@ $(R_PKGS_RECOMMENDED)
-R_PLATFORM = @R_PLATFORM@
+# fixme: tcltk needs to be optional
+R_PKGS = base ctest eda lqs modreg mva nls splines stepfun ts tcltk
 R_XTRA_CFLAGS = @R_XTRA_CFLAGS@
-R_XTRA_CPPFLAGS = @R_XTRA_CPPFLAGS@ -I. -I$(top_builddir)/src/include -I$(top_srcdir)/src/include
+R_XTRA_CPPFLAGS = -I. -I$(top_builddir)/src/include -I$(top_srcdir)/src/include
 R_XTRA_FFLAGS = @R_XTRA_FFLAGS@
 R_XTRA_LIBS = @R_XTRA_LIBS@
 RANLIB = @RANLIB@
-SHELL = @SHELL@
+SHELL = /bin/sh
 SHLIB_EXT = @SHLIB_EXT@
 SHLIB_CFLAGS = @SHLIB_CFLAGS@
 SHLIB_FFLAGS = @SHLIB_FFLAGS@
@@ -90,10 +83,13 @@ ALL_CFLAGS_LO = $(R_XTRA_CFLAGS) $(CPICFLAGS) $(SHLIB_CFLAGS) $(CFLAGS)
 ALL_FFLAGS_LO = $(R_XTRA_FFLAGS) $(FPICFLAGS) $(SHLIB_FFLAGS) $(FFLAGS)
 
 .SUFFIXES:
-.SUFFIXES: .c .f .d .lo .o
+.SUFFIXES: .c .f .d .o .lo
 
-@r_cc_rules_frag@
-@r_f77_rules_frag@
+@depend_rules_frag@
+.c.o:
+	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c $< -o $@
+@cc_o_lo_rules_frag@
+@f77_rules_frag@
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@

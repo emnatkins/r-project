@@ -1,7 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-2   The R Development Core Team.
- *  Copyright (C) 2003     The R Foundation
+ *  Copyright (C) 2001   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,12 +19,6 @@
 
 #ifndef R_MODREG_H
 #define R_MODREG_H
-
-#include <R.h>
-/* for Sint .. */
-#include <Rinternals.h>
-
-SEXP R_isoreg(SEXP y);
 
 void BDRksmooth(double *x, double *y, int *n,
 		double *xp, double *yp, int *np,
@@ -58,69 +51,27 @@ loess_ise(double *y, double *x, double *x_evaluate, double *weights,
 	  Sint *drop_square, Sint *sum_drop_sqr, double *cell,
 	  Sint *d, Sint *n, Sint *m, double *fit, double *L);
 
-void Srunmed(double *y, double *smo,
-	     Sint *n, Sint *band, Sint *end_rule, Sint *debug);
-
-void Trunmed(Sint *nn,/* = length(data) */
-	     Sint *kk,/* is odd <= nn */
-	     const double *data,
-	     double *median, /* (n) */
-	     Sint   *outlist,/* (k+1) */
-	     Sint   *nrlist,/* (2k+1) */
-	     double *window,/* (2k+1) */
-	     Sint   *end_rule,
-	     Sint   *print_level);
-
-/* Fortran : */
 
 void F77_SUB(lowesw)(double *res, int *n, double *rw, int *pi);
 void F77_SUB(lowesp)(int *n, double *y, double *yhat, double *pwgts,
 		     double *rwgts, int *pi, double *ytilde);
-void F77_SUB(setppr)(double *span1, double *alpha1,
+void F77_SUB(bdrsetppr)(double *span1, double *alpha1,
 	int *optlevel, int *ism, double *df1, double *gcvpen1);
-void F77_SUB(smart)(int *m, int *mu, int *p, int * q, int *n,
-		    double *w, double *x, double *y,
-		    double *ww, double *smod, int *nsmod, double *sp,
-		    int *nsp, double *dp, int *ndp, double *edf);
-void F77_SUB(pppred)(int *np, double *x, double *smod,
-		     double *y, double *sc);
+void F77_SUB(bdrsmart)(int *m, int *mu, int *p, int * q, int *n,
+		       double *w, double *x, double *y,
+		       double *ww, double *smod, int *nsmod, double *sp,
+		       int *nsp, double *dp, int *ndp, double *edf);
+void F77_SUB(bdrpred)(int *np, double *x, double *smod,
+		      double *y, double *sc);
 void F77_SUB(qsbart)(double *penalt, double *dofoff,
 		     double *xs, double *ys, double *ws, double *ssw,
 		     int *n, double *knot, int *nk, double *coef,
 		     double *sz, double *lev, double *crit, int *iparms,
-		     double *spar, double *parms, int *isetup,
-		     double *scrtch, int *ld4, int *ldnk, int *ier);
-
-void F77_NAME(sbart)
-    (double *penalt, double *dofoff,
-     double *xs, double *ys, double *ws, double *ssw,
-     int *n, double *knot, int *nk, double *coef,
-     double *sz, double *lev, double *crit, int *icrit,
-     double *spar, int *ispar, int *iter, double *lspar,
-     double *uspar, double *tol, double *eps, int *isetup,
-     double *xwy, double *hs0, double *hs1, double *hs2,
-     double *hs3, double *sg0, double *sg1, double *sg2,
-     double *sg3, double *abd, double *p1ip, double *p2ip,
-     int *ld4, int *ldnk, int *ier);
-
-void F77_NAME(sgram)(double *sg0, double *sg1, double *sg2, double *sg3,
-		     double *tb, int *nb);
-void F77_NAME(stxwx)(double *x, double *z, double *w,
-		     int *k, double *xknot, int *n, double *y,
-		     double *hs0, double *hs1, double *hs2, double *hs3);
-void F77_NAME(sslvrg)(double *penalt, double *dofoff,
-		      double *x, double *y, double *w, double *ssw, int *n,
-		      double *knot, int *nk, double *coef, double *sz,
-		      double *lev, double *crit, int *icrit, double *lambda,
-		      double *xwy,
-		      double *hs0, double *hs1, double *hs2, double *hs3,
-		      double *sg0, double *sg1, double *sg2, double *sg3,
-		      double *abd, double *p1ip, double *p2ip,
-		      int *ld4, int *ldnk, int *info);
-
+		     double *spar, double *parms, int *isetup, double *
+		     scrtch, int *ld4, int *ldnk, int *ier);
 void F77_SUB(bvalus)(int *n, double *knot, double *coef,
 		     int *nk, double *x, double *s, int *order);
-void F77_SUB(supsmu)(int *n, double *x, double *y,
-		     double *w, int *iper, double *span, double *alpha,
-		     double *smo, double *sc, double *edf);
+void F77_SUB(bdrsupsmu)(int *n, double *x, double *y,
+			double *w, int *iper, double *span, double *alpha,
+			double *smo, double *sc, double *edf);
 #endif

@@ -1,5 +1,5 @@
 dev.interactive <- function()
-    interactive() && .Device %in% c("X11", "GTK", "gnome", "windows")
+    interactive() && .Device %in% c("X11", "GTK", "gnome", "windows", "Macintosh")
 
 dev.list <- function()
 {
@@ -102,7 +102,7 @@ dev.print <- function(device = postscript, ...)
     current.device <- dev.cur()
     nm <- names(current.device)[1]
     if(nm == "null device") stop("no device to print from")
-    if(!(nm %in% c("X11", "GTK", "gnome", "windows")))
+    if(!(nm %in% c("X11", "GTK", "gnome", "windows", "Macintosh")))
         stop("can only print from screen device")
     oc <- match.call()
     oc[[1]] <- as.name("dev.copy")
@@ -157,7 +157,7 @@ dev.copy2eps <- function(...)
     current.device <- dev.cur()
     nm <- names(current.device)[1]
     if(nm == "null device") stop("no device to print from")
-    if(!(nm %in% c("X11", "GTK", "gnome", "windows")))
+    if(!(nm %in% c("X11", "GTK", "gnome", "windows", "Macintosh")))
         stop("can only print from screen device")
     oc <- match.call()
     oc[[1]] <- as.name("dev.copy")
@@ -179,10 +179,9 @@ dev.copy2eps <- function(...)
 dev.control <- function(displaylist)
 {
     if(!missing(displaylist)) {
-	if(displaylist == "inhibit") {
-            if(dev.cur() > 1) .Internal(dev.control())
-            else stop("dev.control() called without an open graphics device")
-	} else stop("displaylist should be inhibit")
+	if(displaylist == "inhibit")
+	    .Internal(dev.control())
+	else stop(paste("displaylist should be inhibit"))
     }
     invisible()
 }

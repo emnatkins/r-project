@@ -1,5 +1,4 @@
 \name{morley}
-\docType{data}
 \alias{morley}
 \title{Michaelson-Morley Speed of Light Data}
 \description{
@@ -38,6 +37,5 @@ fm <- aov(Speed ~ Run + Expt, data = morley)
 summary(fm)
 fm0 <- update(fm, . ~ . - Run)
 anova(fm0, fm)
-detach(morley)
 }
 \keyword{datasets}

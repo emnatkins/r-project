@@ -1,32 +1,31 @@
 \name{units}
+\title{Graphical Units}
+\usage{
+xinch(x=1, warn.log=TRUE)
+yinch(y=1, warn.log=TRUE)
+xyinch(xy=1, warn.log=TRUE)
+cm(x)
+}
+\arguments{
+  \item{x,y}{numeric vector}}
+  \item{xy}{numeric of length 1 or 2.}
+  \item{warn.log}{logical; if \code{TRUE}, a warning is printed in case
+    of active log scale.}
+}
 \alias{xinch}
 \alias{yinch}
 \alias{xyinch}
 \alias{cm}
-\title{Graphical Units}
 \description{
-  \code{xinch} and \code{yinch} convert the specified number of inches
-  given as their arguments into the correct units for plotting with
-  graphics functions.  Usually, this only makes sense when normal
-  coordinates are used, i.e., \emph{no} \code{log} scale (see the
-  \code{log} argument to \code{\link{par}}).
+\code{xinch} and \code{yinch} convert the specified number of
+inches given as their arguments into the correct units
+for plotting with graphics functions.
+Usually, this only makes sense when normal coordinates are used, i.e.,
+\emph{no} \code{log} scale (see \code{\link{par}(log=..)}).
 
-  \code{xyinch} does the same for a pair of numbers \code{xy},
-  simultaneously.
+\code{xyinch} does the same for a pair of numbers \code{xy}, simultaneously.
 
-  \code{cm} translates inches in to cm (centimeters).
-}
-\usage{
-xinch(x = 1, warn.log = TRUE)
-yinch(y = 1, warn.log = TRUE)
-xyinch(xy = 1, warn.log = TRUE)
-cm(x)
-}
-\arguments{
-  \item{x,y}{numeric vector}
-  \item{xy}{numeric of length 1 or 2.}
-  \item{warn.log}{logical; if \code{TRUE}, a warning is printed in case
-    of active log scale.}
+\code{cm} translates inches in to cm (centimeters).
 }
 \examples{
 all(c(xinch(),yinch()) == xyinch()) # TRUE

@@ -24,19 +24,21 @@ INSTFILES = \
 	template.html \
 	thanks.html
 ## </FIXME>
+## FIXME:
+## build-help really should not create package.html in *this* directory.
+CLEANFILES = packages.html packages-foot.html
+## </FIXME>
 DISTFILES = Makefile.in $(INSTFILES) index-default.html R-admin.html
 SUBDIRS = search
+
 OBJECTS = index.html
-## <FIXME>
-## build-help really should not create packages.html in *this* directory.
-CLEANFILES = packages.html packages-foot.html $(OBJECTS)
-## </FIXME>
-DISTCLEANFILES = Makefile
 
 all: Makefile R
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 R: Makefile $(OBJECTS)
 	@if test "$(BUILDDIR_IS_SRCDIR)" = no ; then \
@@ -87,12 +89,12 @@ clean:
 	@if test "$(BUILDDIR_IS_SRCDIR)" = no ; then \
 	  rm -f $(INSTFILES); \
 	fi
-	-@test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+	@rm -f $(CLEANFILES) $(OBJECTS)
 distclean: clean
 	@for d in $(SUBDIRS); do \
 	  (cd $${d} && $(MAKE) $@); \
 	done
-	-@test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
+	@rm -f Makefile
 maintainer-clean: distclean
 
 distdir: $(DISTFILES)
@@ -102,10 +104,16 @@ distdir: $(DISTFILES)
 	    || cp -p $(srcdir)/$${f} $(distdir)/$${f}; \
 	done
 	@for d in $(SUBDIRS); do \
-	  test -d $(distdir)/$${d} \
-	    || mkdir $(distdir)/$${d} \
-	    || exit 1; \
-	  chmod 755 $(distdir)/$${d}; \
-	  (cd $${d} && $(MAKE) distdir) \
-	    || exit 1; \
+	  if test -f $${d}/Makefile; then \
+	    test -d $(distdir)/$${d} \
+	      || mkdir $(distdir)/$${d} \
+	      || exit 1; \
+	    chmod 755 $(distdir)/$${d}; \
+	    (cd $${d} && $(MAKE) distdir) \
+	      || exit 1; \
+	  else \
+	    ((cd $(srcdir); $(TAR) -c -f - --exclude=CVS $${d}) \
+	        | (cd $(distdir); $(TAR) -x -f -)) \
+	      || exit 1; \
+	  fi; \
 	done

@@ -1,41 +1,38 @@
-print <- function(x, ...) UseMethod("print")
+print <- function(x, ...)UseMethod("print")
 
 ##- Need '...' such that it can be called as  NextMethod("print", ...):
-print.default <- function(x, digits = NULL, quote = TRUE, na.print = NULL,
-                          print.gap = NULL, right = FALSE, ...)
-{
-    noOpt <- missing(digits) && missing(quote) && missing(na.print) &&
-      missing(print.gap) && missing(right) && length(list(...)) == 0
-    .Internal(print.default(x, digits, quote, na.print, print.gap, right,
-                            noOpt))
-}
+print.default <-
+    function(x,digits=NULL,quote=TRUE,na.print=NULL,print.gap=NULL,right=FALSE,
+             ...)
+    .Internal(print.default(x,digits,quote,na.print,print.gap,right))
 
+print.atomic <- function(x,quote=TRUE,...) print.default(x,quote=quote)
 
-print.atomic <- function(x, quote = TRUE, ...) print.default(x, quote=quote)
-
-print.matrix <- print.default  ## back-compatibility
-
-prmatrix <-
-    function (x, rowlab = dn[[1]], collab = dn[[2]],
-              quote = TRUE, right = FALSE,
-              na.print = NULL, ...)
-{
+print.matrix <- function (x, rowlab = dn[[1]], collab = dn[[2]],
+			  quote = TRUE, right = FALSE,
+			  na.print=NULL, print.gap=NULL, ...) {
     x <- as.matrix(x)
     dn <- dimnames(x)
-    .Internal(prmatrix(x, rowlab, collab, quote, right, na.print))
+    if(!is.null(print.gap)) .NotYetUsed("print.gap", error = FALSE)
+    ## and `na.print' could be done in .Internal(.) as well:
+    if(!is.null(na.print) && any(ina <- is.na(x)))
+	x[ina] <- na.print
+    .Internal(print.matrix(x, rowlab, collab, quote, right))
 }
+prmatrix <- .Alias(print.matrix)
+
+## print.tabular is now deprecated !
 
 noquote <- function(obj) {
     ## constructor for a useful "minor" class
-    if(!inherits(obj,"noquote")) class(obj) <- c(attr(obj, "class"),"noquote")
+    if(!inherits(obj,"noquote")) class(obj) <- c(class(obj),"noquote")
     obj
 }
-
 as.matrix.noquote <- function(x) noquote(NextMethod("as.matrix", x))
 
 "[.noquote" <- function (x, ...) {
     attr <- attributes(x)
-    r <- unclass(x)[...] ## shouldn't this be NextMethod?
+    r <- unclass(x)[...]
     attributes(r) <- c(attributes(r),
 		       attr[is.na(match(names(attr),
                                         c("dim","dimnames","names")))])
@@ -43,11 +40,8 @@ as.matrix.noquote <- function(x) noquote(NextMethod("as.matrix", x))
 }
 
 print.noquote <- function(x, ...) {
-    if(!is.null(cl <- attr(x, "class"))) {
-	cl <- cl[cl != "noquote"]
-        attr(x, "class") <-
-          (if(length(cl)>0) cl else NULL)
-      }
+    if(!is.null(cl <- class(x)))
+	class(x) <- cl[cl != "noquote"]
     print(x, quote = FALSE, ...)
 }
 
@@ -74,7 +68,6 @@ print.coefmat <-
 	     cs.ind = 1:k, tst.ind = k+1, zap.ind = integer(0),
 	     P.values = NULL,
 	     has.Pvalue = nc >= 4 && substr(colnames(x)[nc],1,3) == "Pr(",
-             eps.Pvalue = .Machine$double.eps,
 	     na.print = "", ...)
 {
     ## For printing ``coefficient matrices'' as they are in summary.xxx(.) where
@@ -138,8 +131,7 @@ print.coefmat <-
         }
 	pv <- xm[, nc]
 	if(any(okP <- ok[,nc])) {
-	    Cf[okP, nc] <- format.pval(pv[okP],
-                                       digits = dig.tst, eps = eps.Pvalue)
+	    Cf[okP, nc] <- format.pval(pv[okP], digits = dig.tst)
 	    signif.stars <- signif.stars && any(pv[okP] < .1)
 	    if(signif.stars) {
 		Signif <- symnum(pv, corr = FALSE, na = FALSE,
@@ -180,4 +172,22 @@ print.anova <- function(x, digits = max(getOption("digits") - 2, 3),
     invisible(x)
 }
 
-## print.data.frame here was a duplicate of that in dataframe.R
+print.data.frame <- function (x, ..., digits = NULL,
+                              quote = FALSE, right = TRUE)
+{
+    if (length(x) == 0) {
+        cat("NULL data frame with", length(row.names(x)), "rows\n")
+    }
+    else if (length(row.names(x)) == 0) {
+        print.default(names(x), quote = FALSE)
+        cat("<0 rows> (or 0-length row.names)\n")
+    }
+    else {
+         if (!is.null(digits)) {
+             op <- options(digits = digits)
+             on.exit(options(op))
+         }
+         print.matrix(format(x), ..., quote = quote, right = right)
+     }
+    invisible(x)
+}

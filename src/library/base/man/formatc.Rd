@@ -2,11 +2,7 @@
 \title{Formatting Using C-style Formats}
 \usage{
 formatC(x, digits = NULL, width = NULL,
-        format = NULL, flag = "", mode = NULL,
-        big.mark = "", big.interval = 3,
-      small.mark = "", small.interval = 5,
-    decimal.mark = ".")
-
+        format = NULL, flag = "", mode = NULL)
 format.char(x, width = NULL, flag = "-")
 }
 \alias{formatC}
@@ -40,23 +36,16 @@ format.char(x, width = NULL, flag = "-")
     \code{x[i]} into scientific format only if it saves space to do so.
 
     \code{"fg"} uses fixed format as \code{"f"}, but \code{digits} as
-    the minimum number of \emph{significant} digits.  That this can lead
-    to quite long result strings, see examples below.  Note that unlike
-    \code{\link{signif}} this prints large numbers with
-    more significant digits than \code{digits}.}
+    number of \emph{significant} digits.  Note that this can lead to
+    quite long result strings, see examples below.}
 
   \item{flag}{format modifier as in Kernighan and Ritchie (1988, page 243).
     \code{"0"}  pads leading zeros; \code{"-"} does left adjustment,
     others are \code{"+"}, \code{" "}, and \code{"#"}.}
-
+  
   \item{mode}{\code{"double"} (or \code{"real"}), \code{"integer"} or
     \code{"character"}.
     Default: Determined from the storage mode of \code{x}.}
-
-  \item{big.mark, big.interval,
-    small.mark, small.interval,
-    decimal.mark}{used for prettying longer decimal sequences, passed to
-    \code{\link{prettyNum}}: that help page explains the details.}
 }
 \description{
     Formatting numbers individually and flexibly, using \code{C} style
@@ -93,15 +82,14 @@ format.char(x, width = NULL, flag = "-")
   \emph{The C Programming Language.}  Second edition. Prentice Hall.
 }
 \seealso{
-  \code{\link{format}}, \code{\link{sprintf}} for more general C like
-  formatting.
+  \code{\link{format}}.
 }
 \examples{
 xx  <- pi * 10^(-5:4)
-cbind(format(xx, digits=4), formatC(xx))
+dd <- options(digits = 4)   # only for format
+cbind(format(xx), formatC(xx))
 cbind(formatC(xx, wid = 9, flag = "-"))
 cbind(formatC(xx, dig = 5, wid = 8, format = "f", flag = "0"))
-cbind(format(xx, digits=4), formatC(xx, dig = 4, format = "fg"))
 
 format.char(c("a", "Abc", "no way"), wid = -7)  # <=> flag = "-"
 formatC(    c("a", "Abc", "no way"), wid = -7)  # <=> flag = "-"
@@ -112,6 +100,7 @@ xx <- c(1e-12,-3.98765e-10,1.45645e-69,1e-70,pi*1e37,3.44e4)
 formatC(xx)
 formatC(xx, format="fg")       # special "fixed" format.
 formatC(xx, format="f", dig=80)#>> also long strings
+options(dd) # reset
 }
 \keyword{character}
 \keyword{print}

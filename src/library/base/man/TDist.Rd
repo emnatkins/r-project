@@ -1,5 +1,4 @@
 \name{TDist}
-\alias{TDist}
 \alias{dt}
 \alias{pt}
 \alias{qt}
@@ -11,7 +10,7 @@
   (and optional noncentrality parameter \code{ncp}).
 }
 \usage{
-dt(x, df, ncp=0, log = FALSE)
+dt(x, df, log = FALSE)
 pt(q, df, ncp=0, lower.tail = TRUE, log.p = FALSE)
 qt(p, df,        lower.tail = TRUE, log.p = FALSE)
 rt(n, df)
@@ -23,7 +22,7 @@ rt(n, df)
     is taken to be the number required.}
   \item{df}{degrees of freedom (\eqn{> 0}, maybe non-integer).}
   \item{ncp}{non-centrality parameter \eqn{\delta};
-    currently only for \code{pt()} and \code{ncp <= 37.62}.}
+    currently \code{ncp <= 37.62}.}
   \item{log, log.p}{logical; if TRUE, probabilities p are given as log(p).}
   \item{lower.tail}{logical; if TRUE (default), probabilities are
     \eqn{P[X \le x]}{P[X <= x]}, otherwise, \eqn{P[X > x]}{P[X > x]}.}
@@ -66,7 +65,7 @@ rt(n, df)
   Then \eqn{T} is distributed as non-centrally \eqn{t} with
   \code{df}\eqn{= n-1}
   degrees of freedom and \bold{n}on-\bold{c}entrality \bold{p}arameter
-  \code{ncp}\eqn{= (\mu - \mu_0) \sqrt{n}/\sigma}{= (mu - m0) * sqrt(n)/sigma}.
+  \code{ncp}\eqn{= \mu - \mu_0}{= mu - m0}.
 }
 \references{Lenth, R. V. (1989). \emph{Algorithm AS 243} ---
     Cumulative distribution function of the non-central \eqn{t} distribution,

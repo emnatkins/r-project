@@ -7,19 +7,13 @@
   Plotting methods for objects of class \code{"ts"} or \code{"mts"}
   (multivariate time-series).
 }
-\synopsis{
-plot.ts(x, y = NULL, type = "l", xlim = NULL, ylim = NULL,
-	  xlab = "Time", ylab, log = "",
-	  col = par("col"), bg = NA,
-	  pch = par("pch"), cex = par("cex"),
-	  lty = par("lty"), lwd = par("lwd"),
-	  axes = TRUE, frame.plot = axes, ann = par("ann"),
-	  main = NULL, plot.type = c("multiple", "single"),
-	  xy.labels = n <= 150, xy.lines = do.lab, panel=lines, ...)
-}
 \usage{
-\method{plot}{ts}(x, y = NULL, type = "l", frame.plot = axes,
-     plot.type = c("multiple", "single"),
+\method{plot}{ts}(x, y = NULL, type = "l", xlim = NULL, ylim = NULL,
+     xlab = "Time", ylab, log = "",
+     col = par("col"), bg = NA, pch = par("pch"), cex = par("cex"),
+     lty = par("lty"), lwd = par("lwd"),
+     axes = TRUE, frame.plot = axes, ann = par("ann"),
+     main = NULL, plot.type = c("multiple", "single"),
      xy.labels = n <= 150, xy.lines = do.lab, panel=lines, ...)
 
 lines(x, \dots)
@@ -30,8 +24,6 @@ lines(x, \dots)
   \item{type}{the type of plot, see \code{\link{plot}}.  When \code{y}
     is present, the default will depend on \code{xy.labels}, see below.}
 
-  \item{frame.plot}{a function to give the `frame' for each panel.}
-
   \item{plot.type}{for multivariate time series, should the series by
     plotted separately (with a common time axis) or on a single plot?}
 
@@ -40,7 +32,7 @@ lines(x, \dots)
   \item{xy.lines}{logical, indicating if \code{\link{lines}}
     should be drawn for an x-y plot.  Default is true, when labels are
     drawn as well.}
-  \item{panel}{a \code{function(x, col, bg, pch, type, ...)} which gives the
+  \item{panel}{a \code{function(x, col, bg, pch, ...)} which gives the
     action to be carried out in each panel of the display for
     \code{plot.type="multiple"}.  The default is \code{lines}.} 
 
@@ -48,7 +40,7 @@ lines(x, \dots)
     \code{\link{plot.default}} and \code{\link{par}}.}
 }
 \details{
-  With one principal argument, these functions create time series
+  With one prinicipal argument, these functions create time series
   plots, for multivariate series of two kinds depending on \code{plot.type},
 
   If \code{y} is present, both \code{x} and \code{y} must be univariate,
@@ -65,8 +57,9 @@ lines(x, \dots)
 
 ## Multivariate
 z <- ts(matrix(rt(300, df = 3), 100, 3), start=c(1961, 1), frequency=12)
-plot(z, type = "b")    # multiple
-plot(z, plot.type="single", lty=1:3, col=4:2)
+plot(z)                # multiple
+plot(z, panel=points)  # same with points instead of lines
+plot(z, plot.type="single", lty=1:3)
 
 ## A phase plot:
 data(nhtemp)

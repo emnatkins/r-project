@@ -22,15 +22,17 @@
 #include <config.h>
 #endif
 
-#include <Defn.h>		/* -> ../include/R_ext/Complex.h */
+#include <Defn.h>	/* -> ../include/R_ext/Complex.h */
 #include <Rmath.h>
-#include <R_ext/Applic.h>	/* R_cpoly */
+#include <R_ext/Applic.h>		/* R_cpoly */
 
 #include "arithmetic.h"		/* complex_*  */
 
 #ifndef HAVE_HYPOT
 # define hypot pythag
 #endif
+
+static int naflag;
 
 SEXP complex_unary(ARITHOP_TYPE code, SEXP s1)
 {
@@ -47,7 +49,7 @@ SEXP complex_unary(ARITHOP_TYPE code, SEXP s1)
 	n = LENGTH(s1);
 	for (i = 0; i < n; i++) {
 	    x = COMPLEX(s1)[i];
-#ifdef IEEE_754
+#ifdef IEEE_745
 	    COMPLEX(ans)[i].r = -x.r;
 	    COMPLEX(ans)[i].i = -x.i;
 #else
@@ -136,24 +138,18 @@ SEXP complex_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
     int i, n, n1, n2;
     Rcomplex x1, x2;
     SEXP ans;
-
-    /* Note: "s1" and "s1" are protected in the calling code. */
     n1 = LENGTH(s1);
     n2 = LENGTH(s2);
-     /* S4-compatibility change: if n1 or n2 is 0, result is of length 0 */
-    if (n1 == 0 || n2 == 0) return(allocVector(CPLXSXP, 0)); 
-
     n = (n1 > n2) ? n1 : n2;
+    /* Note: "s1" and "s1" are protected in the calling code. */
     ans = allocVector(CPLXSXP, n);
-/*    if (n1 < 1 || n2 < 1) {
+    if (n1 < 1 || n2 < 1) {
 	for (i = 0; i < n; i++) {
 	    COMPLEX(ans)[i].r = NA_REAL;
 	    COMPLEX(ans)[i].i = NA_REAL;
 	}
 	return ans;
     }
-*/
-    
     switch (code) {
     case PLUSOP:
 	for (i = 0; i < n; i++) {
@@ -245,8 +241,7 @@ SEXP complex_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
     default:
 	error("unimplemented complex operation");
     }
-
-    /* Copy attributes from longer argument. */
+    /* Copy attributes from longest argument. */
     if (n1 > n2)
 	copyMostAttrib(s1, ans);
     else if (n1 == n2) {
@@ -567,10 +562,9 @@ static void z_tanh(Rcomplex *r, Rcomplex *z)
     r->i = -a.r;
 }
 
-static Rboolean cmath1(void (*f)(), Rcomplex *x, Rcomplex *y, int n)
+static void cmath1(void (*f)(), Rcomplex *x, Rcomplex *y, int n)
 {
     int i;
-    Rboolean naflag = FALSE;
     for (i = 0 ; i < n ; i++) {
 	if (ISNA(x[i].r) || ISNA(x[i].i)) {
 	    y[i].r = NA_REAL;
@@ -582,44 +576,42 @@ static Rboolean cmath1(void (*f)(), Rcomplex *x, Rcomplex *y, int n)
 	    if(ISNA(y[i].r) || ISNA(y[i].i)) {
 		y[i].r = NA_REAL;
 		y[i].i = NA_REAL;
-		naflag = TRUE;
+		naflag = 1;
 	    }
 #endif
 	}
     }
-
-    return(naflag);
 }
 
 SEXP complex_math1(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP x, y;
     int n;
-    Rboolean naflag = FALSE;
     PROTECT(x = CAR(args));
     n = length(x);
     PROTECT(y = allocVector(CPLXSXP, n));
+    naflag = 0;
 
     switch (PRIMVAL(op)) {
-    case 10002: naflag = cmath1(z_atan, COMPLEX(x), COMPLEX(y), n); break;
-    case 10003: naflag = cmath1(z_log, COMPLEX(x), COMPLEX(y), n); break;
+    case 10002: cmath1(z_atan, COMPLEX(x), COMPLEX(y), n); break;
+    case 10003: cmath1(z_log, COMPLEX(x), COMPLEX(y), n); break;
 
-    case 3: naflag = cmath1(z_sqrt, COMPLEX(x), COMPLEX(y), n); break;
+    case 3:  cmath1(z_sqrt, COMPLEX(x), COMPLEX(y), n); break;
 
-    case 10: naflag = cmath1(z_exp, COMPLEX(x), COMPLEX(y), n); break;
+    case 10: cmath1(z_exp, COMPLEX(x), COMPLEX(y), n); break;
 
-    case 20: naflag = cmath1(z_cos, COMPLEX(x), COMPLEX(y), n); break;
-    case 21: naflag = cmath1(z_sin, COMPLEX(x), COMPLEX(y), n); break;
-    case 22: naflag = cmath1(z_tan, COMPLEX(x), COMPLEX(y), n); break;
-    case 23: naflag = cmath1(z_acos, COMPLEX(x), COMPLEX(y), n); break;
-    case 24: naflag = cmath1(z_asin, COMPLEX(x), COMPLEX(y), n); break;
+    case 20: cmath1(z_cos, COMPLEX(x), COMPLEX(y), n); break;
+    case 21: cmath1(z_sin, COMPLEX(x), COMPLEX(y), n); break;
+    case 22: cmath1(z_tan, COMPLEX(x), COMPLEX(y), n); break;
+    case 23: cmath1(z_acos, COMPLEX(x), COMPLEX(y), n); break;
+    case 24: cmath1(z_asin, COMPLEX(x), COMPLEX(y), n); break;
 
-    case 30: naflag = cmath1(z_cosh, COMPLEX(x), COMPLEX(y), n); break;
-    case 31: naflag = cmath1(z_sinh, COMPLEX(x), COMPLEX(y), n); break;
-    case 32: naflag = cmath1(z_tanh, COMPLEX(x), COMPLEX(y), n); break;
-    case 33: naflag = cmath1(z_acosh, COMPLEX(x), COMPLEX(y), n); break;
-    case 34: naflag = cmath1(z_asinh, COMPLEX(x), COMPLEX(y), n); break;
-    case 35: naflag = cmath1(z_atanh, COMPLEX(x), COMPLEX(y), n); break;
+    case 30: cmath1(z_cosh, COMPLEX(x), COMPLEX(y), n); break;
+    case 31: cmath1(z_sinh, COMPLEX(x), COMPLEX(y), n); break;
+    case 32: cmath1(z_tanh, COMPLEX(x), COMPLEX(y), n); break;
+    case 33: cmath1(z_acosh, COMPLEX(x), COMPLEX(y), n); break;
+    case 34: cmath1(z_asinh, COMPLEX(x), COMPLEX(y), n); break;
+    case 35: cmath1(z_atanh, COMPLEX(x), COMPLEX(y), n); break;
 
 #ifdef NOTYET
 	MATH1(40, lgammafn);
@@ -644,7 +636,7 @@ static SEXP cmath2(SEXP op, SEXP sa, SEXP sb, void (*f)())
     int i, n, na, nb;
     Rcomplex ai, bi, *a, *b, *y;
     SEXP sy;
-    int naflag = 0;
+
     na = length(sa);
     nb = length(sb);
     if ((na == 0) || (nb == 0))
@@ -765,17 +757,13 @@ SEXP do_polyroot(SEXP call, SEXP op, SEXP args, SEXP rho)
 	errorcall(call, "invalid argument type");
     }
     n = length(z);
-    degree = 0;
-    for(i = 0; i < n; i++) {
-	if(COMPLEX(z)[i].r!= 0.0 || COMPLEX(z)[i].i != 0.0) degree = i;
-    }
-    n = degree + 1; /* omit trailing zeroes */
+    degree = n - 1;
     if(degree >= 1) {
 	if(n > 49) errorcall(call, "polynomial degree too high (49 max)");
 	/* <==>	 #define NMAX 50  in  ../appl/cpoly.c */
 
-	/* if(COMPLEX(z)[n-1].r == 0.0 && COMPLEX(z)[n-1].i == 0.0)
-	   errorcall(call, "highest power has coefficient 0");*/
+	if(COMPLEX(z)[n-1].r == 0.0 && COMPLEX(z)[n-1].i == 0.0)
+	    errorcall(call, "highest power has coefficient 0");
 
 	PROTECT(rr = allocVector(REALSXP, n));
 	PROTECT(ri = allocVector(REALSXP, n));

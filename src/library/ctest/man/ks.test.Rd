@@ -16,23 +16,18 @@ ks.test(x, y, \dots, alternative = c("two.sided", "less", "greater"),
   \item{alternative}{indicates the alternative hypothesis and must be
     one of \code{"two.sided"} (default), \code{"less"}, or
     \code{"greater"}.  You can specify just the initial letter.}
-  \item{exact}{\code{NULL} or a logical indicating whether an exact
-    p-value should be computed.  See Details for the meaning of \code{NULL}.
-    Only used in the two-sided two-sample case.}
+  \item{exact}{a logical indicating whether an exact p-value should be
+    computed.  Only used in the two-sided two-sample case.}
   
 }
 \details{
-  If \code{y} is numeric, a two-sample test of the null hypothesis
-  that \code{x} and \code{y} were drawn from the same \emph{continuous}
-  distribution is performed.
+  If \code{y} is numeric, a two sample test of the null that \code{x}
+  and \code{y} were drawn from the same distribution is performed.
 
-  Alternatively, \code{y} can be a character string naming a continuous
+  Alternatively, \code{y} can be a character string naming a
   distribution function.  In this case, a one sample test of the null
   that the distribution function underlying \code{x} is \code{y} with
   parameters specified by \code{\dots} is carried out.
-
-  The presence of ties generates a warning, since continuous distributions
-  do not generate them.
 
   The possible values \code{"two.sided"}, \code{"less"} and
   \code{"greater"} of \code{alternative} specify the null hypothesis
@@ -41,11 +36,11 @@ ks.test(x, y, \dots, alternative = c("two.sided", "less", "greater"),
   (one-sample case) or the distribution function of \code{y} (two-sample
   case), respectively.
 
-  Exact p-values are only available for the two-sided two-sample test
-  with no ties.  In that case, if \code{exact = NULL} (the default) an
-  exact p-value is computed if the product of the sample sizes is less
-  than 10000.  Otherwise, asymptotic distributions are used whose
-  approximations may be inaccurate in small samples.
+  Currently, exact p-value are only available for the two-sided
+  two-sample test.  In this case, by default (if \code{exact} is not
+  specified), an exact p-value is computed if the product of the sample
+  sizes is less than 10000.  Otherwise, the asymptotic distributions are
+  used.  This approximation may be inaccurate in small samples.
 }
 \value{
   A list with class \code{"htest"} containing the following components:

@@ -1,5 +1,4 @@
 \name{Wilcoxon}
-\alias{Wilcoxon}
 \alias{dwilcox}
 \alias{pwilcox}
 \alias{qwilcox}
@@ -48,7 +47,9 @@ rwilcox(nn, m, n)
 \examples{
 x <- -1:(4*6 + 1)
 fx <- dwilcox(x, 4, 6)
+all(fx == dwilcox(x, 6, 4))
 Fx <- pwilcox(x, 4, 6)
+all(abs(Fx - cumsum(fx)) < 10 * .Machine$double.eps)
 
 layout(rbind(1,2),width=1,heights=c(3,2))
 plot(x, fx,type='h', col="violet",

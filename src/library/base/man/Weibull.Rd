@@ -1,5 +1,4 @@
 \name{Weibull}
-\alias{Weibull}
 \alias{dweibull}
 \alias{pweibull}
 \alias{qweibull}
@@ -41,8 +40,8 @@ rweibull(n, shape, scale = 1)
   The cumulative is
   \eqn{F(x) = 1 - \exp(-{(x/\sigma)}^a)}{F(x) = 1 - exp(- (x/b)^a)}, the
   mean is \eqn{E(X) = \sigma \Gamma(1 + 1/a)}{E(X) = b Gamma(1 + 1/a)}, and
-  the \eqn{Var(X) = \sigma^2(\Gamma(1 + 2/a)-(\Gamma(1 + 1/a))^2)}{%
-           Var(X) = b^2 * (gamma(1 + 2/a) - (gamma(1 + 1/a))^2)}.
+  the \eqn{Var(X) = \sigma^2(\Gamma(1 + 2/a)-\Gamma(1 + 1/a))}{%
+    Var(X) = b^2*(Gamma(1 + 2/a) - Gamma(1 + 1/a))}.
 }
 \note{
   The cumulative hazard \eqn{H(t) = - \log(1 - F(t))}{H(t) = - log(1 - F(t))}

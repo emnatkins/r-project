@@ -1,9 +1,8 @@
-dotchart <-
-function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
-	 pch = 21, gpch = 21, bg = par("bg"), color = par("fg"),
-	 gcolor = par("fg"), lcolor = "gray",
-	 xlim = range(x[is.finite(x)]),
-	 main = NULL, xlab = NULL, ylab = NULL, ...)
+"dotchart" <-
+function(x, labels = NULL, groups = NULL, gdata = NULL, cex =
+         par("cex"), pch = 21, gpch = 21, bg = par("bg"), color =
+         par("fg"), gcolor = par("fg"), lcolor = "gray", main = NULL,
+         xlab = NULL, ylab = NULL, ...)
 {
     opar <- par("mar", "cex", "yaxs")
     on.exit(par(opar))
@@ -23,25 +22,27 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
     else {
 	if (is.null(labels))
 	    labels <- names(x)
-	glabels <- if(!is.null(groups)) levels(groups)
+	if (!is.null(groups))
+	    glabels <- levels(groups)
+	else glabels <- NULL
     }
 
-    plot.new() # for strwidth()
-
-    linch <-
-	if(!is.null(labels)) max(strwidth(labels, "inch"), na.rm = TRUE) else 0
-    if (is.null(glabels)) {
-	ginch <- 0
-	goffset <- 0
-    }
-    else {
+    plot.new()
+    linch <- 0
+    ginch <- 0
+    if (!is.null(labels))
+	linch <- max(strwidth(labels, "inch"), na.rm = TRUE)
+    goffset <- 0
+    if (!is.null(glabels)) {
 	ginch <- max(strwidth(glabels, "inch"), na.rm = TRUE)
 	goffset <- 0.4
     }
+
     lheight <- strheight("M", "inch")
     if (!(is.null(labels) && is.null(glabels))) {
 	nmar <- mar <- par("mar")
-	nmar[2] <- nmar[4] + (max(linch + goffset, ginch) + 0.1)/lheight
+	nmar[2] <- nmar[4] + (max(linch + goffset, ginch) +
+			      0.1)/lheight
 	par(mar = nmar)
     }
 
@@ -51,17 +52,17 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
 	ylim <- c(0, n + 1)
     }
     else {
-	o <- sort.list(as.numeric(groups), decreasing = TRUE)
+	o <- rev(order(as.numeric(groups)))
 	x <- x[o]
 	groups <- groups[o]
-	color <- rep(color, length=length(groups))[o]
-	lcolor <- rep(lcolor, length=length(groups))[o]
+        color <- rep(color, length=length(groups))[o]
+        lcolor <- rep(lcolor, length=length(groups))[o]
 	offset <- cumsum(c(0, diff(as.numeric(groups)) != 0))
 	y <- 1:n + 2 * offset
 	ylim <- range(0, y + 2)
     }
 
-    plot.window(xlim = xlim, ylim = ylim, log = "")
+    plot.window(xlim = range(x[is.finite(x)]), ylim = ylim, log = "")
     xmin <- par("usr")[1]
     if (!is.null(labels)) {
 	linch <- max(strwidth(labels, "inch"), na.rm = TRUE)
@@ -82,7 +83,8 @@ function(x, labels = NULL, groups = NULL, gdata = NULL, cex = par("cex"),
 		  adj = 0, col = gcolor, las = 2, cex = cex, ...)
 	if (!is.null(gdata)) {
 	    abline(h = gpos, lty = "dotted")
-	    points(gdata, gpos, pch = gpch, col = gcolor, bg = bg, ...)
+	    points(gdata, gpos, pch = gpch, col = gcolor,
+		   bg = bg, ...)
 	}
     }
     axis(1)

@@ -8,8 +8,7 @@
   Read binary data from a connection, or write binary data to a connection.
 }
 \usage{
-readBin(con, what, n = 1, size = NA, signed = TRUE,
-        endian = .Platform$endian)
+readBin(con, what, n = 1, size = NA, endian = .Platform$endian)
 writeBin(object, con, size = NA, endian = .Platform$endian)
 
 readChar(con, nchars)
@@ -27,9 +26,6 @@ writeChar(object, con, nchars = nchar(object), eos = "")
   \item{size}{integer.  The number of bytes per element in the byte
     stream.  The default, \code{NA}, uses the natural size.  Size changing
     is not supported for complex vectors.}
-  \item{signed}{logical. Only used for integers of sizes 1 and 2,
-    when it determines if the quantity on file
-    should be regarded as a signed or unsigned integer.}
   \item{endian}{The endian-ness (\code{"big"} or \code{"little"} of the
     target system for the file.  Using \code{"swap"} will force swapping
     endian-ness.}
@@ -53,18 +49,14 @@ writeChar(object, con, nchars = nchar(object), eos = "")
   each element of the vector is coerced to an appropriate type before
   being written or as it is read.  Possible sizes are 1, 2, 4 and
   possibly 8 for integer or logical vectors, and 4, 8 and possibly 12/16
-  for numeric vectors.  (Note that coercion occurs as signed types
-  except if \code{signed = FALSE} when reading integers of sizes 1 and 2.)
+  for numeric vectors.  (Note that coercion occurs as signed types.)
   Changing sizes is unlikely to preserve \code{NA}s, and the extended
   precision sizes are unlikely to be portable across platforms.
 
   \code{readBin} and \code{writeBin} read and write C-style
-  zero-terminated character strings. Input strings are limited to 10000
-  characters.  \code{readChar} and \code{writeChar} allow more
-  flexibility, and can also be used on text-mode connections.
-
-  Handling \R's missing and special (\code{Inf}, \code{-Inf} and
-  \code{NaN} values is discussed in the \emph{R Data Import/Export} manual.
+  zero-terminated character strings.  \code{readChar} and
+  \code{writeChar} allow more flexibility, and can also be used on
+  text-mode connections.
 }
 
 \note{
@@ -82,12 +74,7 @@ writeChar(object, con, nchars = nchar(object), eos = "")
   from the file.
 
   If the character length requested for \code{readChar} is longer than
-  the string, as from version 1.4.0 what is available is returned.
-
-  If \code{readBin(what=character())} is used incorrectly on a file which
-  does not contain C-style charcter strings, warnings (usually
-  many) are  given as from version 1.6.2.  The input will be broken into
-  pieces of length 10000 with any final part being discarded.
+  the string, \code{nul}-padding is used.
 }
 
 \value{
@@ -100,8 +87,6 @@ writeChar(object, con, nchars = nchar(object), eos = "")
   For \code{writeBin} and \code{writeChar}, none.
 }
 \seealso{
-  The \emph{R Data Import/Export} manual.
-
   \code{\link{connections}}, \code{\link{readLines}},
   \code{\link{writeLines}}.
 
@@ -150,23 +135,6 @@ close(zz)
 zz <- file("testbin", "rb")
 readChar(zz, nc)
 readChar(zz, nchar(x)+3) # need to read the terminator explicitly
-close(zz)
-unlink("testbin")
-
-## signed vs unsigned ints
-zz <- file("testbin", "wb")
-x <- as.integer(seq(0, 255, 32))
-writeBin(x, zz, size=1)
-writeBin(x, zz, size=1)
-x <- as.integer(seq(0, 60000, 10000))
-writeBin(x, zz, size=2)
-writeBin(x, zz, size=2)
-close(zz)
-zz <- file("testbin", "rb")
-readBin(zz, integer(), 8, size=1)
-readBin(zz, integer(), 8, size=1, signed=FALSE)
-readBin(zz, integer(), 7, size=2)
-readBin(zz, integer(), 7, size=2, signed=FALSE)
 close(zz)
 unlink("testbin")
 }

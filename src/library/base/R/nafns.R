@@ -1,9 +1,8 @@
-na.pass <- function(object, ...) object
 na.action <- function(object, ...) UseMethod("na.action")
 na.action.default <- function(object, ...) attr(object, "na.action")
 
 na.fail <- function(object, ...) UseMethod("na.fail")
-na.fail.default <- function(object, ...)
+na.fail.default <- function(object)
 {
     ok <- complete.cases(object)
     if(all(ok)) object else stop("missing values in object");
@@ -128,7 +127,7 @@ naresid.exclude <- function(omit, x, ...)
 
     if (is.matrix(x)) {
 	n <- nrow(x)
-	keep <- rep.int(NA, n+length(omit))
+	keep <- rep(NA, n+length(omit))
 	keep[-omit] <- 1:n
 	x <- x[keep, , drop=FALSE]
 	temp <- rownames(x)
@@ -138,7 +137,7 @@ naresid.exclude <- function(omit, x, ...)
         }
     } else {
 	n <- length(x)
-	keep <- rep.int(NA, n+length(omit))
+	keep <- rep(NA, n+length(omit))
 	keep[-omit] <- 1:n
 	x <- x[keep]
 	temp <- names(x)

@@ -1,42 +1,26 @@
 \name{Startup}
-\alias{Startup}
-\alias{Rprofile}
-\alias{.Rprofile}
-\alias{Rprofile.site}
-\alias{Renviron.site}
-\alias{.Renviron}
-\alias{.First}
-\alias{.First.sys}
 \title{Initialization at Start of an R Session}
 \usage{
 .First <- function() { \dots\dots }
 
 .Rprofile <startup file>
 }
+\alias{Startup}
+\alias{Rprofile}
+\alias{.Rprofile}
+\alias{.First}
 \description{
-  In \R, the startup mechanism is as follows.
-
-  Unless \code{--no-environ} was given on the command line,
-  \R searches for user and site
-  files to process for setting environment variables.  The name of the
-  site file is the one pointed to by the environment variable
-  \code{R\_ENVIRON}; if this is unset or empty,
-  \file{\$R\_HOME/etc/Renviron.site} is used (if it exists, which it
-  does not in a ``factory-fresh'' installation).
-  The user files searched for are \file{.Renviron} in the
-  current or in the user's home directory (in that order).
-  See \bold{Details} for how the files are read.
+  In \R, the startup mechanism is as follows.  If a file
+  \file{.Renviron}, or a file pointed to by \code{R\_ENVIRON} or
+  \file{\eqn{\sim}{~}/.Renviron}, exists, it is processed to set
+  environmental variables.  (This is suppressed by the flag
+  \code{--no-environ}.)  See \bold{Details} for how the file is read.
 
   Then \R searches for the site-wide startup profile unless the command
   line option \code{--no-site-file} was given.  The name of this file is
   taken from the value of the \code{R\_PROFILE} environment variable.
-  If this variable is unset, the default is
-  \file{\$R\_HOME/etc/Rprofile.site}, which is used if it exists
-  (which it does not in a ``factory-fresh'' installation).
-  This code is loaded into package \code{base}.  Users need to be
-  careful not to unintentionally overwrite objects in base, and it
-  is normally advisable to use \code{\link{local}} if code needs to be
-  executed: see the examples.
+  If this variable is unset, the default is \file{\$R\_HOME/etc/Rprofile}.
+  This code is loaded into package \code{base}.
 
   Then, unless \code{--no-init-file} was given, \R searches for a file
   called \file{.Rprofile} in the current directory or in the user's
@@ -45,39 +29,25 @@
 
   It then loads a saved image of the user workspace from \file{.RData}
   if there is one (unless \code{--no-restore-data} was specified, or
-  \code{--no-restore}, on the command line).
+  \code{--no-restore}).
+  
+  Finally, if a function \code{.First} exists, it is executed as
+  \code{.First()}.
 
-  Next, if a function \code{.First} is found on the search path,
-  it is executed as \code{.First()}.
-  Finally, function \code{.First.sys()} in the base package is run.
-  This calls \code{\link{require}} to attach the default packages
-  specified by \code{\link{options}("defaultPackages")}.
-
-  A function \code{.First} (and \code{\link{.Last}}) can be defined in
-  appropriate \file{.Rprofile} or \file{Rprofile.site} files or have
-  been saved in \file{.RData}.  If you want a different set of packages
-  than the default ones when you start, insert a call to
-  \code{\link{options}} in the \file{.Rprofile} or \file{Rprofile.site}
-  file.  For example, \code{options(defaultPackages = character())} will
-  attach no extra packages on startup.  Alternatively, set
-  \code{R_DEFAULT_PACKAGES=NULL} as an environment variable before
-  running \R.
+  The functions \code{.First} and \code{\link{.Last}} can be defined
+  in the appropriate startup profiles or reside in \file{.RData}.
 
   The commands history is read from the file specified by the
-  environment variable \code{R_HISTFILE} (default \file{.Rhistory})
+  environment variable \code{R_HISTFILE} (default \code{.Rhistory})
   unless \code{--no-restore-history} was specified (or
   \code{--no-restore}).
 
-  The command-line flag \code{--vanilla} implies \code{--no-site-file},
-  \code{--no-init-file}, \code{--no-restore} and \code{--no-environ}.
+  The command-line flag \code{--vanilla} implies \code{--no-init-file},
+  \code{--no-restore} and \code{--no-environ}.
 }
 \details{
-  Note that there are two sorts of files used in startup:
-  \emph{environment files} which contain lists of environment variables
-  to be set, and \emph{profile files} which contain \R code.
-
-  Lines in a site or user environment file should be either comment
-  lines starting with \code{#}, or lines of the form \code{name=value}.
+  Lines in a \file{.Renviron} file should be either comment lines
+  starting with \code{#}, or lines of the form \code{name=value}.
   The latter sets the environmental variable \code{name} to
   \code{value}, overriding an existing value.  If \code{value} is of the
   form \code{${foo-bar}}, the value is that of the environmental
@@ -86,69 +56,18 @@
   \code{bar} can be of the same form (as in \code{${foo-${bar-blah}}}).
 
   Leading and trailing white space in \code{value} are stripped.
-%  No other interpretation of \code{value} is performed. In particular,
-%  if it is enclosed in quotes, the quotes form part of the value.
-  \code{value} is processed in a similar way to a Unix shell.  In particular
-  quotes are stripped, and backslashes are removed except inside quotes.
+  No other interpretation of \code{value} is performed. In particular,
+  if it is enclosed in quotes, the quotes form part of the value.
 }
-#ifdef unix
 \note{
-  The file \file{\$R\_HOME/etc/Renviron} is always read very early in
-  the start-up processing.  It contains environment variables set by \R
-  in the configure process.  Values in that file can be overriden in
-  site or user environment files: do not change
-  \file{\$R\_HOME/etc/Renviron} itself.
-}
-#endif
-\section{Historical notes}{
-  Prior to \R version 1.4.0, the environment files searched were
-  \file{.Renviron} in the current directory, the file pointed to by
-  \code{R_ENVIRON} if set, and \file{.Renviron} in the user's home
-  directory.
-
   Prior to \R version 1.2.1, \file{.Rprofile} was sourced after
   \file{.RData} was loaded, although the documented order was as here.
 
-  The format for site and user environment files was changed in version
-  1.2.0.  Older files are quite likely to work but may generate warnings
-  on startup if they contained unnecessary \code{export} statements.
-
-  Values in environment files were not processed prior to version
-  1.4.0.
+  The format for \file{.Renviron} files was changed in version 1.2.0.
+  Older files are quite likely to work but may generate warnings on
+  startup if they contained unnecessary \code{export} statements.
 }
 \seealso{
   \code{\link{.Last}} for final actions before termination.
 }
-\examples{
-\dontrun{
-# Example ~/.Renviron on Unix
-R_LIBS=~/R/library
-PAGER=/usr/local/bin/less
-
-# Example .Renviron on Windows
-R_LIBS=C:/R/library
-MY_TCLTK=yes
-TCL_LIBRARY=c:/packages/Tcl/lib/tcl8.4
-
-# Example of .Rprofile
-options(width=65, digits=5)
-options(show.signif.stars=FALSE)
-ps.options(horizontal=FALSE)
-set.seed(1234)
-.First <- function() cat("\n   Welcome to R!\n\n")
-.Last <- function()  cat("\n   Goodbye!\n\n")
-
-# Example of Rprofile.site
-local({
-  old <- getOption("defaultPackages")
-  options(defaultPackages = c(old, "MASS"))
-})
-
-## if .Renviron contains
-FOOBAR="coo\bar"doh\\ex"abc\"def'"
-
-## then we get
-> cat(Sys.getenv("FOOBAR"), "\n")
-coo\bardoh\exabc"def'
-}}
 \keyword{environment}

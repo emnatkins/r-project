@@ -1,8 +1,6 @@
 fligner.test <- function(x, ...) UseMethod("fligner.test")
 
-fligner.test.default <-
-function(x, g, ...)
-{
+fligner.test.default <- function(x, g) {
     ## FIXME: This is the same code as in kruskal.test(), and could also
     ## rewrite bartlett.test() accordingly ...
     if (is.list(x)) {
@@ -14,7 +12,7 @@ function(x, g, ...)
         l <- sapply(x, "length")
         if (any(l == 0))
             stop("all groups must contain data")
-        g <- factor(rep(1 : k, l))
+        g <- as.factor(rep(1 : k, l))
         x <- unlist(x)
     }
     else {
@@ -27,7 +25,7 @@ function(x, g, ...)
         g <- g[OK]
         if (!all(is.finite(g)))
             stop("all group levels must be finite")
-        g <- factor(g)
+        g <- as.factor(g)
         k <- nlevels(g)
         if (k < 2)
             stop("all observations are in the same group")
@@ -56,17 +54,17 @@ function(x, g, ...)
     return(RVAL)
 }
 
-fligner.test.formula <-
-function(formula, data, subset, na.action, ...)
-{
+fligner.test.formula <- function(formula, data, subset, na.action) {
     if(missing(formula) || (length(formula) != 3))
         stop("formula missing or incorrect")
+    if(missing(na.action))
+        na.action <- getOption("na.action")
     m <- match.call(expand.dots = FALSE)
     if(is.matrix(eval(m$data, parent.frame())))
         m$data <- as.data.frame(data)
     m[[1]] <- as.name("model.frame")
     mf <- eval(m, parent.frame())
-    DNAME <- paste(names(mf), collapse = " by ")
+    DNAME <- paste(names(mf), collapse = " and ")
     names(mf) <- NULL
     y <- do.call("fligner.test", as.list(mf))
     y$data.name <- DNAME

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2002  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--2001  Robert Gentleman, Ross Ihaka and the
  *			      R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -23,153 +23,89 @@
 #include <config.h>
 #endif
 
-#define NEED_CONNECTION_PSTREAMS
 #include <Defn.h>
 #include <Rmath.h>
 #include <Fileio.h>
 
-/* From time to time changes in R, such as the addition of a new SXP,
- * may require changes in the save file format.  Here are some
- * guidelines on handling format changes:
- *
- *    Starting with 1.4 there is a version number associated with save
- *    file formats.  This version number should be incremented when
- *    the format is changed so older versions of R can recognize and
- *    reject the new format with a meaningful error message.
- *
- *    R should remain able to write older workspace formats.  An error
- *    should be signaled if the contents to be saved is not compatible
- *    with the requested format.
- *
- *    To allow older versions of R to give useful error messages, the
- *    header now contains the version of R that wrote the workspace
- *    and the oldest version that can read the workspace.  These
- *    versions are stored as an integer packed by the R_Version macro
- *    from Rversion.h.  Some workspace formats may only exist
- *    temporarily in the development stage.  If readers are not
- *    provided in a release version, then these should specify the
- *    oldest reader R version as -1.
- */
-
-#define R_MAGIC_ASCII_V2   2001
-#define R_MAGIC_BINARY_V2  2002
-#define R_MAGIC_XDR_V2     2003
 #define R_MAGIC_ASCII_V1   1001
 #define R_MAGIC_BINARY_V1  1002
 #define R_MAGIC_XDR_V1     1003
-#define R_MAGIC_EMPTY      999
-#define R_MAGIC_CORRUPT    998
-#define R_MAGIC_MAYBE_TOONEW 997
 
 /* Static Globals, DIE, DIE, DIE! */
 
+static char smbuf[512];		/* Small buffer for temp use */
+static char *buf=NULL;		/* Buffer for character strings */
+static char *bufp;		/* A pointer to that buffer */
+static int bufsize=0;		/* Current buffer size */
 
-#include "RBufferUtils.h"
+static int NSymbol;		/* Number of symbols */
+static int NSave;		/* Number of non-symbols */
+static int NTotal;		/* NSymbol + NSave */
+static int NVSize;		/* Number of vector cells */
 
-/* These are used by OffsetToNode & DataLoad.
- OffsetToNode is called by DataLoad() and RestoreSEXP()
- which itself is only called by RestoreSEXP.
- */
-typedef struct {
- int NSymbol;		/* Number of symbols */
- int NSave;		/* Number of non-symbols */
- int NTotal;		/* NSymbol + NSave */
- int NVSize;		/* Number of vector cells */
+static int *OldOffset;		/* Offsets in previous incarnation */
+static SEXP NewAddress;		/* Addresses in this incarnation */
 
- int *OldOffset;        /* Offsets in previous incarnation */
+static int VersionId;
+static int DLstartup;		/* Allows different error action on startup */
 
- SEXP NewAddress;       /* Addresses in this incarnation */
-} NodeInfo;
+static SEXP DataLoad(FILE*);
 
-
-#ifndef INT_32_BITS
-/* The way XDR is used pretty much assumes that int is 32 bits and
-   maybe even 2's complement representation--without that, NA_INTEGER
-   is not likely to be preserved properly.  Since 32 bit ints (and 2's
-   complement) are pretty much universal, we can worry about that when
-   the need arises.  To be safe, we signal a compiler error if int is
-   not 32 bits. There may be similar issues with doubles. */
-*/
-# error code requires that int have 32 bits
-#endif
-
-
-#include <rpc/types.h>
-#include <rpc/xdr.h>
-
-typedef struct {
-/* These 4 variables are accessed in the 
-   InInteger, InComplex, InReal, InString
-   methods for Ascii, Binary, XDR.
-   bufsize is only used in XdrInString! 
-
-The Ascii* routines could declare their own local
-copy of smbuf and use that (non-static). That would
-mean some of them wouldn't need the extra argument.
-*/
-
- R_StringBuffer buffer;
- char smbuf[512];		/* Small buffer for temp use */
-                                /* smbuf is only used by Ascii. */
-
- XDR xdrs;
-
-} SaveLoadData;
-
+static void AllocBuffer(int len)
+{
+    if(len >= 0 ) {
+	if(len*sizeof(char) < bufsize) return;
+	len = (len+1)*sizeof(char);
+	if(len < MAXELTSIZE) len = MAXELTSIZE;
+	buf = (char *) realloc(buf, len);
+	bufsize = len;
+	if(!buf) {
+	    bufsize = 0;
+	    error("Could not allocate memory for string save/load");
+	}
+    } else {
+	if(bufsize == MAXELTSIZE) return;
+	free(buf);
+	buf = (char *) malloc(MAXELTSIZE);
+	bufsize = MAXELTSIZE;
+    }
+}
 
 /* ----- I / O -- F u n c t i o n -- P o i n t e r s ----- */
 
-typedef struct {
- void	(*OutInit)(FILE*, SaveLoadData *d);
- void	(*OutInteger)(FILE*, int, SaveLoadData *);
- void	(*OutReal)(FILE*, double, SaveLoadData *);
- void	(*OutComplex)(FILE*, Rcomplex, SaveLoadData *);
- void	(*OutString)(FILE*, char*, SaveLoadData *);
- void	(*OutSpace)(FILE*, int, SaveLoadData *);
- void	(*OutNewline)(FILE*, SaveLoadData *);
- void	(*OutTerm)(FILE*, SaveLoadData *);
-} OutputRoutines;
+static void	(*OutInit)(FILE*);
+static void	(*OutInteger)(FILE*, int);
+static void	(*OutReal)(FILE*, double);
+static void	(*OutComplex)(FILE*, Rcomplex);
+static void	(*OutString)(FILE*, char*);
+static void	(*OutSpace)(FILE*, int);
+static void	(*OutNewline)(FILE*);
+static void	(*OutTerm)(FILE*);
 
-typedef struct {
- void	(*InInit)(FILE*, SaveLoadData *d);
- int	(*InInteger)(FILE*, SaveLoadData *);
- double	(*InReal)(FILE*, SaveLoadData *);
- Rcomplex	(*InComplex)(FILE*, SaveLoadData *);
- char*	(*InString)(FILE*, SaveLoadData *);
- void	(*InTerm)(FILE*, SaveLoadData *d);
-} InputRoutines;
+static void	(*InInit)(FILE*);
+static int	(*InInteger)(FILE*);
+static double	(*InReal)(FILE*);
+static Rcomplex	(*InComplex)(FILE*);
+static char*	(*InString)(FILE*);
+static void	(*InTerm)(FILE*);
 
-typedef struct {
-  FILE *fp;
-  OutputRoutines *methods;
-  SaveLoadData *data;
-} OutputCtxtData;
-
-typedef struct {
-  FILE *fp;
-  InputRoutines *methods;
-  SaveLoadData *data;
-} InputCtxtData;
-
-
-static SEXP DataLoad(FILE*, int startup, InputRoutines *m, int version, SaveLoadData *d);
 
 
 /* ----- D u m m y -- P l a c e h o l d e r -- R o u t i n e s ----- */
 
-static void DummyInit(FILE *fp, SaveLoadData *d)
+static void DummyInit(FILE *fp)
 {
 }
 
-static void DummyOutSpace(FILE *fp, int nspace, SaveLoadData *d)
+static void DummyOutSpace(FILE *fp, int nspace)
 {
 }
 
-static void DummyOutNewline(FILE *fp, SaveLoadData *d)
+static void DummyOutNewline(FILE *fp)
 {
 }
 
-static void DummyTerm(FILE *fp, SaveLoadData *d)
+static void DummyTerm(FILE *fp)
 {
 }
 
@@ -180,63 +116,63 @@ static void DummyTerm(FILE *fp, SaveLoadData *d)
 
 /* ----- L o w l e v e l -- A s c i i -- I / O ----- */
 
-static int AsciiInInteger(FILE *fp, SaveLoadData *d)
+static int AsciiInInteger(FILE *fp)
 {
     int x;
-    fscanf(fp, "%s", d->smbuf);
-    if (strcmp(d->smbuf, "NA") == 0)
+    fscanf(fp, "%s", smbuf);
+    if (strcmp(smbuf, "NA") == 0)
 	return NA_INTEGER;
     else {
-	sscanf(d->smbuf, "%d", &x);
+	sscanf(smbuf, "%d", &x);
 	return x;
     }
 }
 
-static double AsciiInReal(FILE *fp, SaveLoadData *d)
+static double AsciiInReal(FILE *fp)
 {
     double x;
-    fscanf(fp, "%s", d->smbuf);
-    if (strcmp(d->smbuf, "NA") == 0)
+    fscanf(fp, "%s", smbuf);
+    if (strcmp(smbuf, "NA") == 0)
 	x = NA_REAL;
-    else if (strcmp(d->smbuf, "Inf") == 0)
+    else if (strcmp(smbuf, "Inf") == 0)
 	x = R_PosInf;
-    else if (strcmp(d->smbuf, "-Inf") == 0)
+    else if (strcmp(smbuf, "-Inf") == 0)
 	x = R_NegInf;
     else
-	sscanf(d->smbuf, "%lg", &x);
+	sscanf(smbuf, "%lg", &x);
     return x;
 }
 
-static Rcomplex AsciiInComplex(FILE *fp, SaveLoadData *d)
+static Rcomplex AsciiInComplex(FILE *fp)
 {
     Rcomplex x;
-    fscanf(fp, "%s", d->smbuf);
-    if (strcmp(d->smbuf, "NA") == 0)
+    fscanf(fp, "%s", smbuf);
+    if (strcmp(smbuf, "NA") == 0)
 	x.r = NA_REAL;
-    else if (strcmp(d->smbuf, "Inf") == 0)
+    else if (strcmp(smbuf, "Inf") == 0)
 	x.r = R_PosInf;
-    else if (strcmp(d->smbuf, "-Inf") == 0)
+    else if (strcmp(smbuf, "-Inf") == 0)
 	x.r = R_NegInf;
     else
-	sscanf(d->smbuf, "%lg", &x.r);
+	sscanf(smbuf, "%lg", &x.r);
 
-    fscanf(fp, "%s", d->smbuf);
-    if (strcmp(d->smbuf, "NA") == 0)
+    fscanf(fp, "%s", smbuf);
+    if (strcmp(smbuf, "NA") == 0)
 	x.i = NA_REAL;
-    else if (strcmp(d->smbuf, "Inf") == 0)
+    else if (strcmp(smbuf, "Inf") == 0)
 	x.i = R_PosInf;
-    else if (strcmp(d->smbuf, "-Inf") == 0)
+    else if (strcmp(smbuf, "-Inf") == 0)
 	x.i = R_NegInf;
     else
-	sscanf(d->smbuf, "%lg", &x.i);
+	sscanf(smbuf, "%lg", &x.i);
     return x;
 }
 
 
-static char *AsciiInString(FILE *fp, SaveLoadData *d)
+static char *AsciiInString(FILE *fp)
 {
     int c;
-    char *bufp = d->buffer.data;
+    bufp = buf;
     while ((c = R_fgetc(fp)) != '"');
     while ((c = R_fgetc(fp)) != R_EOF && c != '"') {
 	if (c == '\\') {
@@ -259,104 +195,108 @@ static char *AsciiInString(FILE *fp, SaveLoadData *d)
 	*bufp++ = c;
     }
     *bufp = '\0';
-    return d->buffer.data;
+    return buf;
 }
 
-static SEXP AsciiLoad(FILE *fp, int startup, SaveLoadData *d)
+static SEXP AsciiLoad(FILE *fp)
 {
-    InputRoutines m;
-
-    m.InInit = DummyInit;
-    m.InInteger = AsciiInInteger;
-    m.InReal = AsciiInReal;
-    m.InComplex = AsciiInComplex;
-    m.InString = AsciiInString;
-    m.InTerm = DummyTerm;
-    return DataLoad(fp, startup, &m, 0, d);
+    VersionId = 0;
+    InInit = DummyInit;
+    InInteger = AsciiInInteger;
+    InReal = AsciiInReal;
+    InComplex = AsciiInComplex;
+    InString = AsciiInString;
+    InTerm = DummyTerm;
+    return DataLoad(fp);
 }
 
-static SEXP AsciiLoadOld(FILE *fp, int version, int startup, SaveLoadData *d)
+static SEXP AsciiLoadOld(FILE *fp, int version)
 {
-    InputRoutines m;
-
-    m.InInit = DummyInit;
-    m.InInteger = AsciiInInteger;
-    m.InReal = AsciiInReal;
-    m.InComplex = AsciiInComplex;
-    m.InString = AsciiInString;
-    m.InTerm = DummyTerm;
-    return DataLoad(fp, startup, &m, version, d);
+    VersionId = version;
+    InInit = DummyInit;
+    InInteger = AsciiInInteger;
+    InReal = AsciiInReal;
+    InComplex = AsciiInComplex;
+    InString = AsciiInString;
+    InTerm = DummyTerm;
+    return DataLoad(fp);
 }
 
 /* ----- L o w l e v e l -- X D R -- I / O ----- */
 
-static void XdrInInit(FILE *fp, SaveLoadData *d)
+#ifdef HAVE_RPC_XDR_H
+
+#include <rpc/rpc.h>
+
+XDR xdrs;
+
+static void XdrInInit(FILE *fp)
 {
-    xdrstdio_create(&d->xdrs, fp, XDR_DECODE);
+    xdrstdio_create(&xdrs, fp, XDR_DECODE);
 }
 
-static void XdrInTerm(FILE *fp, SaveLoadData *d)
+static void XdrInTerm(FILE *fp)
 {
-    xdr_destroy(&d->xdrs);
+    xdr_destroy(&xdrs);
 }
 
-static int XdrInInteger(FILE * fp, SaveLoadData *d)
+static int XdrInInteger(FILE * fp)
 {
     int i;
-    if (!xdr_int(&d->xdrs, &i)) {
-	xdr_destroy(&d->xdrs);
+    if (!xdr_int(&xdrs, &i)) {
+	xdr_destroy(&xdrs);
 	error("a Iread error occured");
     }
     return i;
 }
 
-static double XdrInReal(FILE * fp, SaveLoadData *d)
+static double XdrInReal(FILE * fp)
 {
     double x;
-    if (!xdr_double(&d->xdrs, &x)) {
-	xdr_destroy(&d->xdrs);
+    if (!xdr_double(&xdrs, &x)) {
+	xdr_destroy(&xdrs);
 	error("a R read error occured");
     }
     return x;
 }
 
-static Rcomplex XdrInComplex(FILE * fp, SaveLoadData *d)
+static Rcomplex XdrInComplex(FILE * fp)
 {
     Rcomplex x;
-    if (!xdr_double(&d->xdrs, &(x.r)) || !xdr_double(&d->xdrs, &(x.i))) {
-	xdr_destroy(&d->xdrs);
+    if (!xdr_double(&xdrs, &(x.r)) || !xdr_double(&xdrs, &(x.i))) {
+	xdr_destroy(&xdrs);
 	error("a C read error occured");
     }
     return x;
 }
 
-static char *XdrInString(FILE *fp, SaveLoadData *d)
+static char *XdrInString(FILE *fp)
 {
-    char *bufp = d->buffer.data;
-    if (!xdr_string(&d->xdrs, &bufp, d->buffer.bufsize)) {
-	xdr_destroy(&d->xdrs);
+    char *bufp = buf;
+    if (!xdr_string(&xdrs, &bufp, bufsize)) {
+	xdr_destroy(&xdrs);
 	error("a S read error occured");
     }
-    return d->buffer.data;
+    return buf;
 }
 
-static SEXP XdrLoad(FILE *fp, int startup, SaveLoadData *d)
+static SEXP XdrLoad(FILE *fp)
 {
-    InputRoutines m;
-
-    m.InInit = XdrInInit;
-    m.InInteger = XdrInInteger;
-    m.InReal = XdrInReal;
-    m.InComplex = XdrInComplex;
-    m.InString = XdrInString;
-    m.InTerm = XdrInTerm;
-    return DataLoad(fp, startup, &m, 0, d);
+    VersionId = 0;
+    InInit = XdrInInit;
+    InInteger = XdrInInteger;
+    InReal = XdrInReal;
+    InComplex = XdrInComplex;
+    InString = XdrInString;
+    InTerm = XdrInTerm;
+    return DataLoad(fp);
 }
+#endif
 
 
 /* ----- L o w l e v e l -- B i n a r y -- I / O ----- */
 
-static int BinaryInInteger(FILE * fp, SaveLoadData *unused)
+static int BinaryInInteger(FILE * fp)
 {
     int i;
     if (fread(&i, sizeof(int), 1, fp) != 1)
@@ -364,7 +304,7 @@ static int BinaryInInteger(FILE * fp, SaveLoadData *unused)
     return i;
 }
 
-static double BinaryInReal(FILE * fp, SaveLoadData *unused)
+static double BinaryInReal(FILE * fp)
 {
     double x;
     if (fread(&x, sizeof(double), 1, fp) != 1)
@@ -372,7 +312,7 @@ static double BinaryInReal(FILE * fp, SaveLoadData *unused)
     return x;
 }
 
-static Rcomplex BinaryInComplex(FILE * fp, SaveLoadData *unused)
+static Rcomplex BinaryInComplex(FILE * fp)
 {
     Rcomplex x;
     if (fread(&x, sizeof(Rcomplex), 1, fp) != 1)
@@ -380,43 +320,41 @@ static Rcomplex BinaryInComplex(FILE * fp, SaveLoadData *unused)
     return x;
 }
 
-static char *BinaryInString(FILE *fp, SaveLoadData *d)
+static char *BinaryInString(FILE *fp)
 {
-    char *bufp = d->buffer.data;
+    bufp = buf;
     do {
 	*bufp = R_fgetc(fp);
     }
     while (*bufp++);
-    return d->buffer.data;
+    return buf;
 }
 
-static SEXP BinaryLoad(FILE *fp, int startup, SaveLoadData *d)
+static SEXP BinaryLoad(FILE *fp)
 {
-    InputRoutines m;
-
-    m.InInit = DummyInit;
-    m.InInteger = BinaryInInteger;
-    m.InReal = BinaryInReal;
-    m.InComplex = BinaryInComplex;
-    m.InString = BinaryInString;
-    m.InTerm = DummyTerm;
-    return DataLoad(fp, startup, &m, 0, d);
+    VersionId = 0;
+    InInit = DummyInit;
+    InInteger = BinaryInInteger;
+    InReal = BinaryInReal;
+    InComplex = BinaryInComplex;
+    InString = BinaryInString;
+    InTerm = DummyTerm;
+    return DataLoad(fp);
 }
 
-static SEXP BinaryLoadOld(FILE *fp, int version, int startup, SaveLoadData *d)
+static SEXP BinaryLoadOld(FILE *fp, int version)
 {
-    InputRoutines m;
-
-    m.InInit = DummyInit;
-    m.InInteger = BinaryInInteger;
-    m.InReal = BinaryInReal;
-    m.InComplex = BinaryInComplex;
-    m.InString = BinaryInString;
-    m.InTerm = DummyTerm;
-    return DataLoad(fp, startup, &m, version, d);
+    VersionId = version;
+    InInit = DummyInit;
+    InInteger = BinaryInInteger;
+    InReal = BinaryInReal;
+    InComplex = BinaryInComplex;
+    InString = BinaryInString;
+    InTerm = DummyTerm;
+    return DataLoad(fp);
 }
 
-static SEXP OffsetToNode(int offset, NodeInfo *node)
+static SEXP OffsetToNode(int offset)
 {
     int l, m, r;
 
@@ -428,23 +366,23 @@ static SEXP OffsetToNode(int offset, NodeInfo *node)
     /* binary search for offset */
 
     l = 0;
-    r = node->NTotal - 1;
+    r = NTotal - 1;
     do {
 	m = (l + r) / 2;
-	if (offset < node->OldOffset[m])
+	if (offset < OldOffset[m])
 	    r = m - 1;
 	else
 	    l = m + 1;
     }
-    while (offset != node->OldOffset[m] && l <= r);
-    if (offset == node->OldOffset[m]) return VECTOR_ELT(node->NewAddress, m);
+    while (offset != OldOffset[m] && l <= r);
+    if (offset == OldOffset[m]) return VECTOR_ELT(NewAddress, m);
 
     /* Not supposed to happen: */
     warning("unresolved node during restore");
     return R_NilValue;
 }
 
-static unsigned int FixupType(unsigned int type, int VersionId)
+static unsigned int FixupType(unsigned int type)
 {
     if (VersionId) {
 	switch(VersionId) {
@@ -473,19 +411,19 @@ static unsigned int FixupType(unsigned int type, int VersionId)
     return type;
 }
 
-static void RemakeNextSEXP(FILE *fp, NodeInfo *node, int version, InputRoutines *m, SaveLoadData *d)
+static void RemakeNextSEXP(FILE *fp)
 {
     unsigned int j, idx, type;
     int len;
     SEXP s = R_NilValue;	/* -Wall */
 
-    idx = m->InInteger(fp, d);
-    type = FixupType(m->InInteger(fp, d), version);
+    idx = InInteger(fp),
+    type = FixupType(InInteger(fp));
 
     /* skip over OBJECT, LEVELS, and ATTRIB */
-    /* OBJECT(s) = */ m->InInteger(fp, d);
-    /* LEVELS(s) = */ m->InInteger(fp, d);
-    /* ATTRIB(s) = */ m->InInteger(fp, d);
+    /* OBJECT(s) = */ InInteger(fp);
+    /* LEVELS(s) = */ InInteger(fp);
+    /* ATTRIB(s) = */ InInteger(fp);
     switch (type) {
     case LISTSXP:
     case LANGSXP:
@@ -494,201 +432,200 @@ static void RemakeNextSEXP(FILE *fp, NodeInfo *node, int version, InputRoutines 
     case ENVSXP:
 	s = allocSExp(type);
 	/* skip over CAR, CDR, and TAG */
-	/* CAR(s) = */ m->InInteger(fp, d);
-	/* CDR(s) = */ m->InInteger(fp, d);
-	/* TAG(s) = */ m->InInteger(fp, d);
+	/* CAR(s) = */ InInteger(fp);
+	/* CDR(s) = */ InInteger(fp);
+	/* TAG(s) = */ InInteger(fp);
 	break;
     case SPECIALSXP:
     case BUILTINSXP:
 	s = allocSExp(type);
 	/* skip over length and name fields */
-	/* length = */ m->InInteger(fp, d);
-	R_AllocStringBuffer(MAXELTSIZE - 1, &(d->buffer));
-	/* name = */ m->InString(fp, d);
+	/* length = */ InInteger(fp);
+	AllocBuffer(MAXELTSIZE - 1);
+	/* name = */ InString(fp);
 	break;
     case CHARSXP:
-	len = m->InInteger(fp, d);
+	len = InInteger(fp);
 	s = allocString(len);
-	R_AllocStringBuffer(len, &(d->buffer));
+	AllocBuffer(len);
 	/* skip over the string */
-	/* string = */ m->InString(fp, d);
+	/* string = */ InString(fp);
 	break;
     case REALSXP:
-        len = m->InInteger(fp, d);
+        len = InInteger(fp);
 	s = allocVector(type, len);
 	/* skip over the vector content */
 	for (j = 0; j < len; j++)
-	    /*REAL(s)[j] = */ m->InReal(fp, d);
+	    /*REAL(s)[j] = */ InReal(fp);
 	break;
     case CPLXSXP:
-	len = m->InInteger(fp, d);
+	len = InInteger(fp);
 	s = allocVector(type, len);
 	/* skip over the vector content */
 	for (j = 0; j < len; j++)
-	    /* COMPLEX(s)[j] = */ m->InComplex(fp, d);
+	    /* COMPLEX(s)[j] = */ InComplex(fp);
 	break;
     case INTSXP:
     case LGLSXP:
-	len = m->InInteger(fp, d);;
+	len = InInteger(fp);;
 	s = allocVector(type, len);
 	/* skip over the vector content */
 	for (j = 0; j < len; j++)
-	    /* INTEGER(s)[j] = */ m->InInteger(fp, d);
+	    /* INTEGER(s)[j] = */ InInteger(fp);
 	break;
     case STRSXP:
     case VECSXP:
     case EXPRSXP:
-	len = m->InInteger(fp, d);
+	len = InInteger(fp);
 	s = allocVector(type, len);
 	/* skip over the vector content */
 	for (j = 0; j < len; j++) {
-	    /* VECTOR(s)[j] = */ m->InInteger(fp, d);
+	    /* VECTOR(s)[j] = */ InInteger(fp);
 	}
 	break;
     default: error("bad SEXP type in data file");
     }
 
     /* install the new SEXP */
-    SET_VECTOR_ELT(node->NewAddress, idx, s);
+    SET_VECTOR_ELT(NewAddress, idx, s);
 }
 
-static void RestoreSEXP(SEXP s, FILE *fp, InputRoutines *m, NodeInfo *node, int version, SaveLoadData *d)
+static void RestoreSEXP(SEXP s, FILE *fp)
 {
     unsigned int j, type;
     int len;
 
-    type = FixupType(m->InInteger(fp, d), version);
+    type = FixupType(InInteger(fp));
     if (type != TYPEOF(s))
       error("mismatch on types");
 
-    SET_OBJECT(s, m->InInteger(fp, d));
-    SETLEVELS(s, m->InInteger(fp, d));
-    SET_ATTRIB(s, OffsetToNode(m->InInteger(fp, d), node));
+    SET_OBJECT(s, InInteger(fp));
+    SETLEVELS(s, InInteger(fp));
+    SET_ATTRIB(s, OffsetToNode(InInteger(fp)));
     switch (TYPEOF(s)) {
     case LISTSXP:
     case LANGSXP:
     case CLOSXP:
     case PROMSXP:
     case ENVSXP:
-	SETCAR(s, OffsetToNode(m->InInteger(fp, d), node));
-	SETCDR(s, OffsetToNode(m->InInteger(fp, d), node));
-	SET_TAG(s, OffsetToNode(m->InInteger(fp, d), node));
+	SETCAR(s, OffsetToNode(InInteger(fp)));
+	SETCDR(s, OffsetToNode(InInteger(fp)));
+	SET_TAG(s, OffsetToNode(InInteger(fp)));
 	break;
     case SPECIALSXP:
     case BUILTINSXP:
-	len = m->InInteger(fp, d);
-	R_AllocStringBuffer(MAXELTSIZE - 1, &(d->buffer));
-	SET_PRIMOFFSET(s, StrToInternal(m->InString(fp, d)));
+	len = InInteger(fp);
+	AllocBuffer(MAXELTSIZE - 1);
+	SET_PRIMOFFSET(s, StrToInternal(InString(fp)));
 	break;
     case CHARSXP:
-	len = m->InInteger(fp, d);
-	R_AllocStringBuffer(len, &(d->buffer));
-	strcpy(CHAR(s), m->InString(fp, d));
+	len = InInteger(fp);
+	AllocBuffer(len);
+	strcpy(CHAR(s), InString(fp));
 	break;
     case REALSXP:
-	len = m->InInteger(fp, d);
+	len = InInteger(fp);
 	for (j = 0; j < len; j++)
-	    REAL(s)[j] = m->InReal(fp, d);
+	    REAL(s)[j] = InReal(fp);
 	break;
     case CPLXSXP:
-	len = m->InInteger(fp, d);
+	len = InInteger(fp);
 	for (j = 0; j < len; j++)
-	    COMPLEX(s)[j] = m->InComplex(fp, d);
+	    COMPLEX(s)[j] = InComplex(fp);
 	break;
     case INTSXP:
     case LGLSXP:
-	len = m->InInteger(fp, d);;
+	len = InInteger(fp);;
 	for (j = 0; j < len; j++)
-	    INTEGER(s)[j] = m->InInteger(fp, d);
+	    INTEGER(s)[j] = InInteger(fp);
 	break;
     case STRSXP:
     case VECSXP:
     case EXPRSXP:
-	len = m->InInteger(fp, d);
+	len = InInteger(fp);
 	for (j = 0; j < len; j++) {
-	    SET_VECTOR_ELT(s, j, OffsetToNode(m->InInteger(fp, d), node));
+	    SET_VECTOR_ELT(s, j, OffsetToNode(InInteger(fp)));
 	}
 	break;
     default: error("bad SEXP type in data file");
     }
 }
 
-static void RestoreError(char *msg, int startup)
+static void RestoreError(char *msg)
 {
-    if(startup)
+    if(DLstartup)
 	R_Suicide(msg);
     else
 	error(msg);
 }
   
-static SEXP DataLoad(FILE *fp, int startup, InputRoutines *m, int version, SaveLoadData *d)
+static SEXP DataLoad(FILE *fp)
 {
     int i, j;
     char *vmaxsave;
     fpos_t savepos;
-    NodeInfo node;
 
     /* read in the size information */
 
-    m->InInit(fp, d);
+    InInit(fp);
 
-    node.NSymbol = m->InInteger(fp, d);
-    node.NSave = m->InInteger(fp, d);
-    node.NVSize = m->InInteger(fp, d);
-    node.NTotal = node.NSymbol + node.NSave;
+    NSymbol = InInteger(fp);
+    NSave = InInteger(fp);
+    NVSize = InInteger(fp);
+    NTotal = NSymbol + NSave;
 
     /* allocate the forwarding-address tables */
     /* these are non-relocatable, so we must */
     /* save the current non-relocatable base */
 
     vmaxsave = vmaxget();
-    node.OldOffset = (int*)R_alloc(node.NSymbol + node.NSave, sizeof(int));
-    PROTECT(node.NewAddress = allocVector(VECSXP, node.NSymbol + node.NSave));
-    for (i = 0 ; i < node.NTotal ; i++) {
-	node.OldOffset[i] = 0;
-	SET_VECTOR_ELT(node.NewAddress, i, R_NilValue);
+    OldOffset = (int*)R_alloc(NSymbol+NSave, sizeof(int));
+    PROTECT(NewAddress = allocVector(VECSXP, NSymbol+NSave));
+    for (i = 0 ; i < NTotal ; i++) {
+	OldOffset[i] = 0;
+	SET_VECTOR_ELT(NewAddress, i, R_NilValue);
     }
 
     /* read in the required symbols */
     /* expanding the symbol table and */
     /* computing the forwarding addresses */
 
-    for (i = 0 ; i < node.NSymbol ; i++) {
-	j = m->InInteger(fp, d);
-	node.OldOffset[j] = m->InInteger(fp, d);
-	R_AllocStringBuffer(MAXELTSIZE - 1, &(d->buffer));
-	SET_VECTOR_ELT(node.NewAddress, j, install(m->InString(fp, d)));
+    for (i = 0 ; i < NSymbol ; i++) {
+	j = InInteger(fp);
+	OldOffset[j] = InInteger(fp);
+	AllocBuffer(MAXELTSIZE - 1);
+	SET_VECTOR_ELT(NewAddress, j, install(InString(fp)));
     }
 
     /* build the full forwarding table */
 
-    for (i = 0 ; i < node.NSave ; i++) {
-	j = m->InInteger(fp, d);
-	node.OldOffset[j] = m->InInteger(fp, d);
+    for (i = 0 ; i < NSave ; i++) {
+	j = InInteger(fp);
+	OldOffset[j] = InInteger(fp);
     }
 
 
     /* save the file position */
     if (fgetpos(fp, &savepos))
-	RestoreError("can't save file position while restoring data", startup);
+	RestoreError("can't save file position while restoring data");
 
 
     /* first pass: allocate nodes */
 
-    for (i = 0 ; i < node.NSave ; i++) {
-        RemakeNextSEXP(fp, &node, version, m, d);
+    for (i = 0 ; i < NSave ; i++) {
+        RemakeNextSEXP(fp);
     }
 
 
     /* restore the file position */
     if (fsetpos(fp, &savepos))
-	RestoreError("can't restore file position while restoring data", startup);
+	RestoreError("can't restore file position while restoring data");
 
 
     /* second pass: restore the contents of the nodes */
 
-    for (i = 0 ; i < node.NSave ;  i++) {
-	RestoreSEXP(VECTOR_ELT(node.NewAddress, m->InInteger(fp, d)), fp, m, &node, version, d);
+    for (i = 0 ; i < NSave ;  i++) {
+	RestoreSEXP(VECTOR_ELT(NewAddress, InInteger(fp)), fp);
     }
 
     /* restore the heap */
@@ -697,15 +634,15 @@ static SEXP DataLoad(FILE *fp, int startup, InputRoutines *m, int version, SaveL
     UNPROTECT(1);
 
     /* clean the string buffer */
-    R_AllocStringBuffer(-1, &(d->buffer));
+    AllocBuffer(-1);
 
     /* return the "top-level" object */
     /* this is usually a list */
 
-    i = m->InInteger(fp, d);
-    m->InTerm(fp, d);
+    i = InInteger(fp);
+    InTerm(fp);
 
-    return OffsetToNode(i, &node);
+    return OffsetToNode(i);
 }
 
 /* These functions convert old (pairlist) lists into new */
@@ -740,7 +677,7 @@ static SEXP ConvertEnvironment(SEXP env)
     }
     return env;
 }
-#endif /* NOTYET */
+#endif
 
 static SEXP ConvertPairToVector(SEXP obj)
 {
@@ -779,11 +716,11 @@ static SEXP ConvertPairToVector(SEXP obj)
 #else
 /* The line below requires an ANSI C preprocessor (stringify operator) */
 #define R_assert(e) ((e) ? (void) 0 : error("assertion `%s' failed: file `%s', line %d\n", #e, __FILE__, __LINE__))
-#endif /* NDEBUG */
+#endif
 
 
-static void NewWriteItem (SEXP s, SEXP sym_list, SEXP env_list, FILE *fp, OutputRoutines *, SaveLoadData *);
-static SEXP NewReadItem (SEXP sym_table, SEXP env_table, FILE *fp, InputRoutines *, SaveLoadData *);
+static void NewWriteItem (SEXP s, SEXP sym_list, SEXP env_list, FILE *fp);
+static SEXP NewReadItem (SEXP sym_table, SEXP env_table, FILE *fp);
 
 
 /*  We use special (negative) type codes to indicate the special
@@ -818,86 +755,24 @@ static SEXP NewLoadSpecialHook (SEXPTYPE type)
  *  If "item" is present in "list" the a positive value is returned
  *  (the 1-based offset into the list).
  *
- *   Otherwise, a value of zero is returned.
- *
- *  The "list" is managed with a hash table.  This results in
- *  significant speedups for saving large amounts of code.  A fixed
- *  hash table size is used; this is not ideal but seems adequate for
- *  now.  The hash table representation consists of a (list . vector)
- *  pair.  The hash buckets are in the vector.  The list holds the
- *  list of keys.  This list is in reverse order to the way the keys
- *  were added (i.e. the most recently added key is first).  The
- *  indices produced by HashAdd are in order.  Since the list is
- *  written out in order, we either have to reverse the list or
- *  reverse the indices; to retain byte for byte compatibility the
- *  function FixHashEntries reverses the indices.  FixHashEntries must
- *  be called after filling the tables and before using them to find
- *  indices.  LT */
+ *   Otherwise, a value of zero is returned.  */
 
-#define HASHSIZE 1099
-
-#define PTRHASH(obj) (((unsigned long) (obj)) >> 2)
-
-#define HASH_TABLE_KEYS_LIST(ht) CAR(ht)
-#define SET_HASH_TABLE_KEYS_LIST(ht, v) SETCAR(ht, v)
-
-#define HASH_TABLE_COUNT(ht) TRUELENGTH(CDR(ht))
-#define SET_HASH_TABLE_COUNT(ht, val) SET_TRUELENGTH(CDR(ht), val)
-
-#define HASH_TABLE_SIZE(ht) LENGTH(CDR(ht))
-
-#define HASH_BUCKET(ht, pos) VECTOR_ELT(CDR(ht), pos)
-#define SET_HASH_BUCKET(ht, pos, val) SET_VECTOR_ELT(CDR(ht), pos, val)
-
-static SEXP MakeHashTable(void)
+static int NewLookup (SEXP item, SEXP list)
 {
-    SEXP val = CONS(R_NilValue, allocVector(VECSXP, HASHSIZE));
-    SET_HASH_TABLE_COUNT(val, 0);
-    return val;
-}
-
-static void FixHashEntries(SEXP ht)
-{
-    SEXP cell;
+    SEXP iterator = list;
     int count;
-    for (cell = HASH_TABLE_KEYS_LIST(ht), count = 1;
-	 cell != R_NilValue;
-	 cell = CDR(cell), count++)
-	INTEGER(TAG(cell))[0] = count;
-}
 
-static void HashAdd(SEXP obj, SEXP ht)
-{
-    int pos = PTRHASH(obj) % HASH_TABLE_SIZE(ht);
-    int count = HASH_TABLE_COUNT(ht) + 1;
-    SEXP val = ScalarInteger(count);
-    SEXP cell = CONS(val, HASH_BUCKET(ht, pos));
-
-    SET_HASH_TABLE_COUNT(ht, count);
-    SET_HASH_BUCKET(ht, pos, cell);
-    SET_TAG(cell, obj);
-    SET_HASH_TABLE_KEYS_LIST(ht, CONS(obj, HASH_TABLE_KEYS_LIST(ht)));
-    SET_TAG(HASH_TABLE_KEYS_LIST(ht), val);
-}
-
-static int HashGet(SEXP item, SEXP ht)
-{
-    int pos = PTRHASH(item) % HASH_TABLE_SIZE(ht);
-    SEXP cell;
-    for (cell = HASH_BUCKET(ht, pos); cell != R_NilValue; cell = CDR(cell))
-	if (item == TAG(cell))
-	    return INTEGER(CAR(cell))[0];
-    return 0;
-}
-    
-static int NewLookup (SEXP item, SEXP ht)
-{
-    int count = NewSaveSpecialHook(item);
-
-    if (count != 0)
+    if ((count = NewSaveSpecialHook(item)))	/* variable reuse :-) */
 	return count;
-    else
-	return HashGet(item, ht);
+    /* now `count' is zero */
+    while (iterator != R_NilValue) {
+	R_assert(TYPEOF(list) == LISTSXP);
+	++count;
+	if (CAR(iterator) == item)
+	    return count;
+	iterator = CDR(iterator);
+    }
+    return 0;
 }
 
 /*  This code carries out the basic inspection of an object, building
@@ -912,7 +787,7 @@ static int NewLookup (SEXP item, SEXP ht)
  *  method used here somehow shoots functional programming in the
  *  head --- sorry.  */
 
-static void NewMakeLists (SEXP obj, SEXP sym_list, SEXP env_list)
+static void NewMakeLists (SEXP obj, SEXP *sym_list, SEXP *env_list)
 {
     int count, length;
 
@@ -920,25 +795,14 @@ static void NewMakeLists (SEXP obj, SEXP sym_list, SEXP env_list)
 	return;
     switch (TYPEOF(obj)) {
     case SYMSXP:
-	if (NewLookup(obj, sym_list))
+	if (NewLookup(obj, *sym_list))
 	    return;
-	HashAdd(obj, sym_list);
+	*sym_list = CONS(obj, *sym_list);
 	break;
     case ENVSXP:
-	if (NewLookup(obj, env_list))
+	if (NewLookup(obj, *env_list))
 	    return;
-#ifdef EXPERIMENTAL_NAMESPACES
-	if (obj == R_BaseNamespace)
-	    warning("base namespace is not preserved in version 1 workspaces");
-	else if (R_IsNamespaceEnv(obj))
-	    error("cannot save namespace in version 1 workspaces");
-#endif
-#ifdef FANCY_BINDINGS
-	if (R_HasFancyBindings(obj))
-	    error("cannot save environment with locked/active bindings"
-		  " in version 1 workspaces");
-#endif
-	HashAdd(obj, env_list);
+	*env_list = CONS(obj, *env_list);
 	/* FALLTHROUGH */
     case LISTSXP:
     case LANGSXP:
@@ -959,24 +823,18 @@ static void NewMakeLists (SEXP obj, SEXP sym_list, SEXP env_list)
 	for (count = 0; count < length; ++count)
 	    NewMakeLists(VECTOR_ELT(obj, count), sym_list, env_list);
 	break;
-    case WEAKREFSXP:
-	error("cannot save weak references in version 1 workspaces");
     }
     NewMakeLists(ATTRIB(obj), sym_list, env_list);
 }
 
-/* e.g., OutVec(fp, obj, INTEGER, OutInteger) 
- The passMethods argument tells it whether to call outfunc with the
- other methods. This is only needed when calling OutCHARSXP
- since it needs to know how to write sub-elements!
-*/
-#define OutVec(fp, obj, accessor, outfunc, methods, d)	                \
+/* e.g., OutVec(fp, obj, INTEGER, OutInteger) */
+#define OutVec(fp, obj, accessor, outfunc)	 			\
 	do { 								\
 		int cnt;						\
 		for (cnt = 0; cnt < LENGTH(obj); ++cnt) {		\
-			methods->OutSpace(fp, 1,d);		       	\
-                        outfunc(fp, accessor(obj, cnt), d);	        \
-                        methods->OutNewline(fp, d);                     \
+			OutSpace(fp, 1);			       	\
+			outfunc(fp, accessor(obj, cnt));		\
+                        OutNewline(fp);                                 \
 		}							\
 	} while (0)
 
@@ -988,13 +846,13 @@ static void NewMakeLists (SEXP obj, SEXP sym_list, SEXP env_list)
 /* Simply outputs the string associated with a CHARSXP, one day this
  * will handle null characters in CHARSXPs and not just blindly call
  * OutString.  */
-static void OutCHARSXP (FILE *fp, SEXP s, OutputRoutines *m, SaveLoadData *d)
+static void OutCHARSXP (FILE *fp, SEXP s)
 {
     R_assert(TYPEOF(s) == CHARSXP);
-    m->OutString(fp, CHAR(s), d);
+    OutString(fp, CHAR(s));
 }
 
-static void NewWriteVec (SEXP s, SEXP sym_list, SEXP env_list, FILE *fp, OutputRoutines *m, SaveLoadData *d)
+static void NewWriteVec (SEXP s, SEXP sym_list, SEXP env_list, FILE *fp)
 {
     int count;
 
@@ -1002,39 +860,32 @@ static void NewWriteVec (SEXP s, SEXP sym_list, SEXP env_list, FILE *fp, OutputR
      * it'll turn out to be one big ugly statement... so I'll do it at
      * the bottom.  */
 
-    m->OutInteger(fp, LENGTH(s), d);
-    m->OutNewline(fp, d);
+    OutInteger(fp, LENGTH(s));
+    OutNewline(fp);
     switch (TYPEOF(s)) {
     case CHARSXP:
-	m->OutSpace(fp, 1, d);
-	OutCHARSXP(fp, s, m, d);
+	OutSpace(fp, 1);
+	OutCHARSXP(fp, s);
 	break;
     case LGLSXP:
     case INTSXP:
-	OutVec(fp, s, INTEGER_ELT, m->OutInteger, m, d);
+	OutVec(fp, s, INTEGER_ELT, OutInteger);
 	break;
     case REALSXP:
-	OutVec(fp, s, REAL_ELT, m->OutReal, m, d);
+	OutVec(fp, s, REAL_ELT, OutReal);
 	break;
     case CPLXSXP:
-	OutVec(fp, s, COMPLEX_ELT, m->OutComplex, m, d);
+	OutVec(fp, s, COMPLEX_ELT, OutComplex);
 	break;
     case STRSXP:
-	do { 								
-		int cnt;						
-		for (cnt = 0; cnt < LENGTH(s); ++cnt) {		
-			m->OutSpace(fp, 1, d);			       	
-                        OutCHARSXP(fp, STRING_ELT(s, cnt), m, d);	        
-                        m->OutNewline(fp, d);                              
-		}							
-	} while (0);
+	OutVec(fp, s, STRING_ELT, OutCHARSXP);
 	break;
     case VECSXP:
     case EXPRSXP:
 	for (count = 0; count < LENGTH(s); ++count) {
 	    /* OutSpace(fp, 1); */
-	    NewWriteItem(VECTOR_ELT(s, count), sym_list, env_list, fp, m, d);
-	    m->OutNewline(fp, d);
+	    NewWriteItem(VECTOR_ELT(s, count), sym_list, env_list, fp);
+	    OutNewline(fp);
 	}
 	break;
     default:
@@ -1042,30 +893,30 @@ static void NewWriteVec (SEXP s, SEXP sym_list, SEXP env_list, FILE *fp, OutputR
     }
 }
 
-static void NewWriteItem (SEXP s, SEXP sym_list, SEXP env_list, FILE *fp, OutputRoutines *m, SaveLoadData *d)
+static void NewWriteItem (SEXP s, SEXP sym_list, SEXP env_list, FILE *fp)
 {
     int i;
 
     if ((i = NewSaveSpecialHook(s))) {
-	m->OutInteger(fp, i, d);
-	m->OutNewline(fp, d);
+	OutInteger(fp, i);
+	OutNewline(fp);
     }
     else {
-	m->OutInteger(fp, TYPEOF(s), d);
-	m->OutSpace(fp, 1, d); m->OutInteger(fp, LEVELS(s), d);
-	m->OutSpace(fp, 1, d); m->OutInteger(fp, OBJECT(s), d);
-	m->OutNewline(fp, d);
+	OutInteger(fp, TYPEOF(s));
+	OutSpace(fp, 1); OutInteger(fp, LEVELS(s));
+	OutSpace(fp, 1); OutInteger(fp, OBJECT(s));
+	OutNewline(fp);
 	switch (TYPEOF(s)) {
 	    /* Note : NILSXP can't occur here */
 	case SYMSXP:
 	    i = NewLookup(s, sym_list);
 	    R_assert(i);
-	    m->OutInteger(fp, i, d); m->OutNewline(fp, d);
+	    OutInteger(fp, i); OutNewline(fp);
 	    break;
 	case ENVSXP:
 	    i = NewLookup(s, env_list);
 	    R_assert(i);
-	    m->OutInteger(fp, i, d); m->OutNewline(fp, d);
+	    OutInteger(fp, i); OutNewline(fp);
 	    break;
 	case LISTSXP:
 	case LANGSXP:
@@ -1073,21 +924,18 @@ static void NewWriteItem (SEXP s, SEXP sym_list, SEXP env_list, FILE *fp, Output
 	case PROMSXP:
 	case DOTSXP:
 	    /* Dotted pair objects */
-	    NewWriteItem(TAG(s), sym_list, env_list, fp, m, d);
-	    NewWriteItem(CAR(s), sym_list, env_list, fp, m, d);
-	    NewWriteItem(CDR(s), sym_list, env_list, fp, m, d);
+	    NewWriteItem(TAG(s), sym_list, env_list, fp);
+	    NewWriteItem(CAR(s), sym_list, env_list, fp);
+	    NewWriteItem(CDR(s), sym_list, env_list, fp);
 	    break;
 	case EXTPTRSXP:
-	    NewWriteItem(EXTPTR_PROT(s), sym_list, env_list, fp, m, d);
-	    NewWriteItem(EXTPTR_TAG(s), sym_list, env_list, fp, m, d);
-	    break;
-	case WEAKREFSXP:
-	    /* Weak references */
+	    NewWriteItem(EXTPTR_PROT(s), sym_list, env_list, fp);
+	    NewWriteItem(EXTPTR_TAG(s), sym_list, env_list, fp);
 	    break;
 	case SPECIALSXP:
 	case BUILTINSXP:
 	    /* Builtin functions */
-	    m->OutString(fp, PRIMNAME(s), d); m->OutNewline(fp, d);
+	    OutString(fp, PRIMNAME(s)); OutNewline(fp);
 	    break;
 	case CHARSXP:
 	case LGLSXP:
@@ -1098,12 +946,12 @@ static void NewWriteItem (SEXP s, SEXP sym_list, SEXP env_list, FILE *fp, Output
 	case VECSXP:
 	case EXPRSXP:
 	    /* Vector Objects */
-	    NewWriteVec(s, sym_list, env_list, fp, m, d);
+	    NewWriteVec(s, sym_list, env_list, fp);
 	    break;
 	default:
 	    error("NewWriteItem: unknown type %i", TYPEOF(s));
 	}
-	NewWriteItem(ATTRIB(s), sym_list, env_list, fp, m, d);
+	NewWriteItem(ATTRIB(s), sym_list, env_list, fp);
     }
 }
 
@@ -1113,66 +961,35 @@ static void NewWriteItem (SEXP s, SEXP sym_list, SEXP env_list, FILE *fp, Output
  *  symbols or environments are encountered, references to them are
  *  made instead of writing them out totally.  */
 
-static void newdatasave_cleanup(void *data)
+static void NewDataSave (SEXP s, FILE *fp)
 {
-    OutputCtxtData *cinfo = (OutputCtxtData*)data;
-    FILE *fp = cinfo->fp;
-    cinfo->methods->OutTerm(fp, cinfo->data);
-}
-
-static void NewDataSave (SEXP s, FILE *fp, OutputRoutines *m, SaveLoadData *d)
-{
-    SEXP sym_table, env_table, iterator;
+    SEXP the_sym_list = R_NilValue, the_env_list = R_NilValue, iterator;
     int sym_count, env_count;
-    RCNTXT cntxt;
-    OutputCtxtData cinfo;
-    cinfo.fp = fp; cinfo.methods = m;  cinfo.data = d;
 
-    PROTECT(sym_table = MakeHashTable());
-    PROTECT(env_table = MakeHashTable());
-    NewMakeLists(s, sym_table, env_table);
-    FixHashEntries(sym_table);
-    FixHashEntries(env_table);
-
-    m->OutInit(fp, d);
-    /* set up a context which will call OutTerm if there is an error */
-    begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_NilValue, R_NilValue,
-		 R_NilValue, R_NilValue);
-    cntxt.cend = &newdatasave_cleanup;
-    cntxt.cenddata = &cinfo;
-
-    m->OutInteger(fp, sym_count = HASH_TABLE_COUNT(sym_table), d); m->OutSpace(fp, 1, d);
-    m->OutInteger(fp, env_count = HASH_TABLE_COUNT(env_table), d); m->OutNewline(fp, d);
-    for (iterator = HASH_TABLE_KEYS_LIST(sym_table);
-	 sym_count--;
-	 iterator = CDR(iterator)) {
+    NewMakeLists(s, &the_sym_list, &the_env_list);
+    OutInit(fp);
+    OutInteger(fp, sym_count = length(the_sym_list)); OutSpace(fp, 1);
+    OutInteger(fp, env_count = length(the_env_list)); OutNewline(fp);
+    for (iterator = the_sym_list; sym_count--; iterator = CDR(iterator)) {
 	R_assert(TYPEOF(CAR(iterator)) == SYMSXP);
-	m->OutString(fp, CHAR(PRINTNAME(CAR(iterator))), d);
-	m->OutNewline(fp, d);
+	OutString(fp, CHAR(PRINTNAME(CAR(iterator))));
+	OutNewline(fp);
     }
-    for (iterator = HASH_TABLE_KEYS_LIST(env_table);
-	 env_count--;
-	 iterator = CDR(iterator)) {
+    for (iterator = the_env_list; env_count--; iterator = CDR(iterator)) {
 	R_assert(TYPEOF(CAR(iterator)) == ENVSXP);
-	NewWriteItem(ENCLOS(CAR(iterator)), sym_table, env_table, fp, m, d);
-	NewWriteItem(FRAME(CAR(iterator)), sym_table, env_table, fp, m, d);
-	NewWriteItem(TAG(CAR(iterator)), sym_table, env_table, fp, m, d);
+	NewWriteItem(ENCLOS(CAR(iterator)), the_sym_list, the_env_list, fp);
+	NewWriteItem(FRAME(CAR(iterator)), the_sym_list, the_env_list, fp);
+	NewWriteItem(TAG(CAR(iterator)), the_sym_list, the_env_list, fp);
     }
-    NewWriteItem(s, sym_table, env_table, fp, m, d);
-
-    /* end the context after anything that could raise an error but before
-       calling OutTerm so it doesn't get called twice */
-    endcontext(&cntxt);
-
-    m->OutTerm(fp, d);
-    UNPROTECT(2);
+    NewWriteItem(s, the_sym_list, the_env_list, fp);
+    OutTerm(fp);
 }
 
-#define InVec(fp, obj, accessor, infunc, length, d)			\
+#define InVec(fp, obj, accessor, infunc, length)			\
 	do {								\
 		int cnt;						\
 		for (cnt = 0; cnt < length; ++cnt)		\
-			accessor(obj, cnt, infunc(fp, d));		\
+			accessor(obj, cnt, infunc(fp));		\
 	} while (0)
 
 
@@ -1182,7 +999,7 @@ static void NewDataSave (SEXP s, FILE *fp, OutputRoutines *m, SaveLoadData *d)
 #define SET_REAL_ELT(x,__i__,v)		(REAL_ELT(x,__i__)=(v))
 #define SET_COMPLEX_ELT(x,__i__,v)	(COMPLEX_ELT(x,__i__)=(v))
 
-static SEXP InCHARSXP (FILE *fp, InputRoutines *m, SaveLoadData *d)
+static SEXP InCHARSXP (FILE *fp)
 {
     SEXP s;
     char *tmp;
@@ -1190,46 +1007,42 @@ static SEXP InCHARSXP (FILE *fp, InputRoutines *m, SaveLoadData *d)
 
     /* FIXME: rather than use strlen, use actual length of string when
      * sized strings get implemented in R's save/load code.  */
-    tmp = m->InString(fp, d);
+    tmp = InString(fp);
     len = strlen(tmp);
-    R_AllocStringBuffer(len, &(d->buffer));
+    AllocBuffer(len);
     s = allocVector(CHARSXP, len);
     memcpy(CHAR(s), tmp, len+1);
     return s;
 }
 
-static SEXP NewReadVec(SEXPTYPE type, SEXP sym_table, SEXP env_table, FILE *fp, InputRoutines *m, SaveLoadData *d)
+static SEXP NewReadVec(SEXPTYPE type, SEXP sym_table, SEXP env_table, FILE *fp)
 {
     int length, count;
     SEXP my_vec;
 
-    length = m->InInteger(fp, d);
+    length = InInteger(fp);
     PROTECT(my_vec = allocVector(type, length));
     switch(type) {
     case CHARSXP:
-	my_vec = InCHARSXP(fp, m, d);
+	my_vec = InCHARSXP(fp);
 	break;
     case LGLSXP:
     case INTSXP:
-	InVec(fp, my_vec, SET_INTEGER_ELT, m->InInteger, length, d);
+	InVec(fp, my_vec, SET_INTEGER_ELT, InInteger, length);
 	break;
     case REALSXP:
-	InVec(fp, my_vec, SET_REAL_ELT, m->InReal, length, d);
+	InVec(fp, my_vec, SET_REAL_ELT, InReal, length);
 	break;
     case CPLXSXP:
-	InVec(fp, my_vec, SET_COMPLEX_ELT, m->InComplex, length, d);
+	InVec(fp, my_vec, SET_COMPLEX_ELT, InComplex, length);
 	break;
     case STRSXP:
-	do {								
-		int cnt;						
-		for (cnt = 0; cnt < length(my_vec); ++cnt)
-			SET_STRING_ELT(my_vec, cnt, InCHARSXP(fp, m, d));
-	} while (0);
+	InVec(fp, my_vec, SET_STRING_ELT, InCHARSXP, length);
 	break;
     case VECSXP:
     case EXPRSXP:
 	for (count = 0; count < length; ++count)
-	    SET_VECTOR_ELT(my_vec, count, NewReadItem(sym_table, env_table, fp, m, d));
+	    SET_VECTOR_ELT(my_vec, count, NewReadItem(sym_table, env_table, fp));
 	break;
     default:
 	error("NewReadVec called with non-vector type");
@@ -1238,25 +1051,25 @@ static SEXP NewReadVec(SEXPTYPE type, SEXP sym_table, SEXP env_table, FILE *fp, 
     return my_vec;
 }
 
-static SEXP NewReadItem (SEXP sym_table, SEXP env_table, FILE *fp, InputRoutines *m, SaveLoadData *d)
+static SEXP NewReadItem (SEXP sym_table, SEXP env_table, FILE *fp)
 {
     SEXPTYPE type;
     SEXP s;
     int pos, levs, objf;
 
     R_assert(TYPEOF(sym_table) == VECSXP && TYPEOF(env_table) == VECSXP);
-    type = m->InInteger(fp, d);
+    type = InInteger(fp);
     if ((s = NewLoadSpecialHook(type)))
 	return s;
-    levs = m->InInteger(fp, d);
-    objf = m->InInteger(fp, d);
+    levs = InInteger(fp);
+    objf = InInteger(fp);
     switch (type) {
     case SYMSXP:
-	pos = m->InInteger(fp, d);
+	pos = InInteger(fp);
 	PROTECT(s = pos ? VECTOR_ELT(sym_table, pos - 1) : R_NilValue);
 	break;
     case ENVSXP:
-	pos = m->InInteger(fp, d);
+	pos = InInteger(fp);
 	PROTECT(s = pos ? VECTOR_ELT(env_table, pos - 1) : R_NilValue);
 	break;
     case LISTSXP:
@@ -1265,25 +1078,22 @@ static SEXP NewReadItem (SEXP sym_table, SEXP env_table, FILE *fp, InputRoutines
     case PROMSXP:
     case DOTSXP:
 	PROTECT(s = allocSExp(type));
-	SET_TAG(s, NewReadItem(sym_table, env_table, fp, m, d));
-	SETCAR(s, NewReadItem(sym_table, env_table, fp, m, d));
-	SETCDR(s, NewReadItem(sym_table, env_table, fp, m, d));
+	SET_TAG(s, NewReadItem(sym_table, env_table, fp));
+	SETCAR(s, NewReadItem(sym_table, env_table, fp));
+	SETCDR(s, NewReadItem(sym_table, env_table, fp));
 	/*UNPROTECT(1);*/
 	break;
     case EXTPTRSXP:
 	PROTECT(s = allocSExp(type));
 	R_SetExternalPtrAddr(s, NULL);
-	R_SetExternalPtrProtected(s, NewReadItem(sym_table, env_table, fp, m, d));
-	R_SetExternalPtrTag(s, NewReadItem(sym_table, env_table, fp, m, d));
+	R_SetExternalPtrProtected(s, NewReadItem(sym_table, env_table, fp));
+	R_SetExternalPtrTag(s, NewReadItem(sym_table, env_table, fp));
 	/*UNPROTECT(1);*/
-	break;
-    case WEAKREFSXP:
-	PROTECT(s = R_MakeWeakRef(R_NilValue, R_NilValue, R_NilValue, FALSE));
 	break;
     case SPECIALSXP:
     case BUILTINSXP:
-	R_AllocStringBuffer(MAXELTSIZE - 1, &(d->buffer));
-	PROTECT(s = mkPRIMSXP(StrToInternal(m->InString(fp, d)), type == BUILTINSXP));
+	AllocBuffer(MAXELTSIZE - 1);
+	PROTECT(s = mkPRIMSXP(StrToInternal(InString(fp)), type == BUILTINSXP));
 	break;
     case CHARSXP:
     case LGLSXP:
@@ -1293,46 +1103,28 @@ static SEXP NewReadItem (SEXP sym_table, SEXP env_table, FILE *fp, InputRoutines
     case STRSXP:
     case VECSXP:
     case EXPRSXP:
-	PROTECT(s = NewReadVec(type, sym_table, env_table, fp, m, d));
+	PROTECT(s = NewReadVec(type, sym_table, env_table, fp));
 	break;
-    case BCODESXP:
-	error("this version of R cannot read byte code objects");
     default:
 	error("NewReadItem: unknown type %i", type);
     }
     SETLEVELS(s, levs);
     SET_OBJECT(s, objf);
-    SET_ATTRIB(s, NewReadItem(sym_table, env_table, fp, m, d));
+    SET_ATTRIB(s, NewReadItem(sym_table, env_table, fp));
     UNPROTECT(1); /* s */
     return s;
 }
 
-static void newdataload_cleanup(void *data)
-{
-    InputCtxtData *cinfo = (InputCtxtData*)data;
-    FILE *fp = data;
-    cinfo->methods->InTerm(fp, cinfo->data);
-}
-
-static SEXP NewDataLoad (FILE *fp, InputRoutines *m, SaveLoadData *d)
+static SEXP NewDataLoad (FILE *fp)
 {
     int sym_count, env_count, count;
     SEXP sym_table, env_table, obj;
-    RCNTXT cntxt;
-    InputCtxtData cinfo;
-    cinfo.fp = fp; cinfo.methods = m; cinfo.data = d;
 
-    m->InInit(fp, d);
-
-    /* set up a context which will call InTerm if there is an error */
-    begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_NilValue, R_NilValue,
-		 R_NilValue, R_NilValue);
-    cntxt.cend = &newdataload_cleanup;
-    cntxt.cenddata = &cinfo;
+    InInit(fp);
 
     /* Read the table sizes */
-    sym_count = m->InInteger(fp, d);
-    env_count = m->InInteger(fp, d);
+    sym_count = InInteger(fp);
+    env_count = InInteger(fp);
 
     /* Allocate the symbol and environment tables */
     PROTECT(sym_table = allocVector(VECSXP, sym_count));
@@ -1340,7 +1132,7 @@ static SEXP NewDataLoad (FILE *fp, InputRoutines *m, SaveLoadData *d)
 
     /* Read back and install symbols */
     for (count = 0; count < sym_count; ++count) {
-	SET_VECTOR_ELT(sym_table, count, install(m->InString(fp, d)));
+	SET_VECTOR_ELT(sym_table, count, install(InString(fp)));
     }
     /* Allocate the environments */
     for (count = 0; count < env_count; ++count)
@@ -1349,44 +1141,39 @@ static SEXP NewDataLoad (FILE *fp, InputRoutines *m, SaveLoadData *d)
     /* Now fill them in  */
     for (count = 0; count < env_count; ++count) {
 	obj = VECTOR_ELT(env_table, count);
-	SET_ENCLOS(obj, NewReadItem(sym_table, env_table, fp, m, d));
-	SET_FRAME(obj, NewReadItem(sym_table, env_table, fp, m, d));
-	SET_TAG(obj, NewReadItem(sym_table, env_table, fp, m, d));
-	R_RestoreHashCount(obj);
+	SET_ENCLOS(obj, NewReadItem(sym_table, env_table, fp));
+	SET_FRAME(obj, NewReadItem(sym_table, env_table, fp));
+	SET_TAG(obj, NewReadItem(sym_table, env_table, fp));
     }
 
     /* Read the actual object back */
-    obj =  NewReadItem(sym_table, env_table, fp, m, d);
-
-    /* end the context after anything that could raise an error but before
-       calling InTerm so it doesn't get called twice */
-    endcontext(&cntxt);
+    obj =  NewReadItem(sym_table, env_table, fp);
 
     /* Wrap up */
-    m->InTerm(fp, d);
+    InTerm(fp);
     UNPROTECT(2);
     return obj;
 }
 
 /* ----- L o w l e v e l -- A s c i i -- I / O ------ */
 
-static void OutSpaceAscii(FILE *fp, int nspace, SaveLoadData *unused)
+static void OutSpaceAscii(FILE *fp, int nspace)
 {
     while(--nspace >= 0)
 	fputc(' ', fp);
 }
-static void OutNewlineAscii(FILE *fp, SaveLoadData *unused)
+static void OutNewlineAscii(FILE *fp)
 {
     fputc('\n', fp);
 }
 
-static void OutIntegerAscii(FILE *fp, int x, SaveLoadData *unused)
+static void OutIntegerAscii(FILE *fp, int x)
 {
     if (x == NA_INTEGER) fprintf(fp, "NA");
     else fprintf(fp, "%d", x);
 }
 
-static int InIntegerAscii(FILE *fp, SaveLoadData *unused)
+static int InIntegerAscii(FILE *fp)
 {
     char buf[128];
     int x;
@@ -1398,39 +1185,35 @@ static int InIntegerAscii(FILE *fp, SaveLoadData *unused)
     return x;
 }
 
-static void OutStringAscii(FILE *fp, char *x, SaveLoadData *unused)
+static void OutStringAscii(FILE *fp, char *x)
 {
     int i, nbytes;
     nbytes = strlen(x);
     fprintf(fp, "%d ", nbytes);
     for (i = 0; i < nbytes; i++) {
-	switch(x[i]) {
-	case '\n': fprintf(fp, "\\n");  break;
-	case '\t': fprintf(fp, "\\t");  break;
-	case '\v': fprintf(fp, "\\v");  break;
-	case '\b': fprintf(fp, "\\b");  break;
-	case '\r': fprintf(fp, "\\r");  break;
-	case '\f': fprintf(fp, "\\f");  break;
-	case '\a': fprintf(fp, "\\a");  break;
-	case '\\': fprintf(fp, "\\\\"); break;
-	case '\?': fprintf(fp, "\\?");  break;
-	case '\'': fprintf(fp, "\\'");  break;
-	case '\"': fprintf(fp, "\\\""); break;
-	default  : 
-	    /* cannot print char in octal mode -> cast to unsigned
-	       char first */
-	    /* actually, since x is signed char and '\?' == 127 
-	       is handled above, x[i] > 126 can't happen, but
-	       I'm superstitious...  -pd */
-	    if (x[i] <= 32 || x[i] > 126)
-		fprintf(fp, "\\%03o", (unsigned char) x[i]);
-	    else 
-		fputc(x[i], fp);
+        if (x[i] <= 32 || x[i] > 126) {
+            switch(x[i]) {
+            case '\n': fprintf(fp, "\\n");  break;
+            case '\t': fprintf(fp, "\\t");  break;
+            case '\v': fprintf(fp, "\\v");  break;
+            case '\b': fprintf(fp, "\\b");  break;
+            case '\r': fprintf(fp, "\\r");  break;
+            case '\f': fprintf(fp, "\\f");  break;
+            case '\a': fprintf(fp, "\\a");  break;
+            case '\\': fprintf(fp, "\\\\"); break;
+            case '\?': fprintf(fp, "\\?");  break;
+            case '\'': fprintf(fp, "\\'");  break;
+            case '\"': fprintf(fp, "\\\""); break;
+		/* cannot print char in octal mode -> cast to unsigned
+		   char first */
+            default  : fprintf(fp, "\\%03o", (unsigned char) x[i]); break;
+            }
         }
+        else fputc(x[i], fp);
     }
 }
 
-static char *InStringAscii(FILE *fp, SaveLoadData *unused)
+static char *InStringAscii(FILE *fp)
 {
     static char *buf = NULL;
     static int buflen = 0;
@@ -1441,10 +1224,7 @@ static char *InStringAscii(FILE *fp, SaveLoadData *unused)
     /* this with a real string allocation. */
     /* All buffers must die! */
     if (nbytes >= buflen) {
-	char *newbuf;
-	/* Protect against broken realloc */
-	if(buf) newbuf = realloc(buf, nbytes + 1); 
-	else newbuf = malloc(nbytes + 1);
+	char *newbuf = realloc(buf, nbytes + 1);
 	if (newbuf == NULL)
 	    error("out of memory reading ascii string\n");
 	buf = newbuf;
@@ -1487,7 +1267,7 @@ static char *InStringAscii(FILE *fp, SaveLoadData *unused)
     return buf;
 }
 
-static void OutDoubleAscii(FILE *fp, double x, SaveLoadData *unused)
+static void OutDoubleAscii(FILE *fp, double x)
 {
     if (!R_FINITE(x)) {
 	if (ISNAN(x)) fprintf(fp, "NA");
@@ -1498,7 +1278,7 @@ static void OutDoubleAscii(FILE *fp, double x, SaveLoadData *unused)
     else fprintf(fp, "%.16g", x);
 }
 
-static double InDoubleAscii(FILE *fp, SaveLoadData *unused)
+static double InDoubleAscii(FILE *fp)
 {
     char buf[128];
     double x;
@@ -1514,56 +1294,52 @@ static double InDoubleAscii(FILE *fp, SaveLoadData *unused)
     return x;
 }
 
-static void OutComplexAscii(FILE *fp, Rcomplex x, SaveLoadData *unused)
+static void OutComplexAscii(FILE *fp, Rcomplex x)
 {
     if (ISNAN(x.r) || ISNAN(x.i))
 	fprintf(fp, "NA NA");
     else {
-	OutDoubleAscii(fp, x.r, unused);
-	OutSpaceAscii(fp, 1, unused);
-	OutDoubleAscii(fp, x.i, unused);
+	OutDoubleAscii(fp, x.r);
+	OutSpaceAscii(fp, 1);
+	OutDoubleAscii(fp, x.i);
     }
 }
 
-static Rcomplex InComplexAscii(FILE *fp, SaveLoadData *unused)
+static Rcomplex InComplexAscii(FILE *fp)
 {
     Rcomplex x;
-    x.r = InDoubleAscii(fp, unused);
-    x.i = InDoubleAscii(fp, unused);
+    x.r = InDoubleAscii(fp);
+    x.i = InDoubleAscii(fp);
     return x;
 }
 
-static void NewAsciiSave(SEXP s, FILE *fp, SaveLoadData *d)
+static void NewAsciiSave(SEXP s, FILE *fp)
 {
-    OutputRoutines m;
-
-    m.OutInit = DummyInit;
-    m.OutInteger = OutIntegerAscii;
-    m.OutReal = OutDoubleAscii;
-    m.OutComplex = OutComplexAscii;
-    m.OutString = OutStringAscii;
-    m.OutSpace = OutSpaceAscii;
-    m.OutNewline = OutNewlineAscii;
-    m.OutTerm = DummyTerm;
-    NewDataSave(s, fp, &m, d);
+    OutInit = DummyInit;
+    OutInteger = OutIntegerAscii;
+    OutReal = OutDoubleAscii;
+    OutComplex = OutComplexAscii;
+    OutString = OutStringAscii;
+    OutSpace = OutSpaceAscii;
+    OutNewline = OutNewlineAscii;
+    OutTerm = DummyTerm;
+    NewDataSave(s, fp);
 }
 
-static SEXP NewAsciiLoad(FILE *fp, SaveLoadData *d)
+static SEXP NewAsciiLoad(FILE *fp)
 {
-    InputRoutines m;
-
-    m.InInit = DummyInit;
-    m.InInteger = InIntegerAscii;
-    m.InReal = InDoubleAscii;
-    m.InComplex = InComplexAscii;
-    m.InString = InStringAscii;
-    m.InTerm = DummyTerm;
-    return NewDataLoad(fp, &m, d);
+    InInit = DummyInit;
+    InInteger = InIntegerAscii;
+    InReal = InDoubleAscii;
+    InComplex = InComplexAscii;
+    InString = InStringAscii;
+    InTerm = DummyTerm;
+    return NewDataLoad(fp);
 }
 
 /* ----- L o w l e v e l -- B i n a r y -- I / O ----- */
 
-static int InIntegerBinary(FILE * fp, SaveLoadData *unused)
+static int InIntegerBinary(FILE * fp)
 {
     int i;
     if (fread(&i, sizeof(int), 1, fp) != 1)
@@ -1571,16 +1347,13 @@ static int InIntegerBinary(FILE * fp, SaveLoadData *unused)
     return i;
 }
 
-static char *InStringBinary(FILE *fp, SaveLoadData *unused)
+static char *InStringBinary(FILE *fp)
 {
     static char *buf = NULL;
     static int buflen = 0;
-    int nbytes = InIntegerBinary(fp, unused);
+    int nbytes = InIntegerBinary(fp);
     if (nbytes >= buflen) {
-	char *newbuf;
-	/* Protect against broken realloc */
-	if(buf) newbuf = realloc(buf, nbytes + 1); 
-	else newbuf = malloc(nbytes + 1);
+	char *newbuf = realloc(buf, nbytes + 1);
 	if (newbuf == NULL)
 	    error("out of memory reading binary string\n");
 	buf = newbuf;
@@ -1592,7 +1365,7 @@ static char *InStringBinary(FILE *fp, SaveLoadData *unused)
     return buf;
 }
 
-static double InRealBinary(FILE * fp, SaveLoadData *unused)
+static double InRealBinary(FILE * fp)
 {
     double x;
     if (fread(&x, sizeof(double), 1, fp) != 1)
@@ -1600,7 +1373,7 @@ static double InRealBinary(FILE * fp, SaveLoadData *unused)
     return x;
 }
 
-static Rcomplex InComplexBinary(FILE * fp, SaveLoadData *unused)
+static Rcomplex InComplexBinary(FILE * fp)
 {
     Rcomplex x;
     if (fread(&x, sizeof(Rcomplex), 1, fp) != 1)
@@ -1608,140 +1381,191 @@ static Rcomplex InComplexBinary(FILE * fp, SaveLoadData *unused)
     return x;
 }
 
-static SEXP NewBinaryLoad(FILE *fp, SaveLoadData *d)
+static SEXP NewBinaryLoad(FILE *fp)
 {
-    InputRoutines m;
-
-    m.InInit = DummyInit;
-    m.InInteger = InIntegerBinary;
-    m.InReal = InRealBinary;
-    m.InComplex = InComplexBinary;
-    m.InString = InStringBinary;
-    m.InTerm = DummyTerm;
-    return NewDataLoad(fp, &m, d);
+    VersionId = 0;
+    InInit = DummyInit;
+    InInteger = InIntegerBinary;
+    InReal = InRealBinary;
+    InComplex = InComplexBinary;
+    InString = InStringBinary;
+    InTerm = DummyTerm;
+    return NewDataLoad(fp);
 }
 
+#ifndef HAVE_RPC_XDR_H
+static void OutIntegerBinary(FILE *fp, int i)
+{
+    if (fwrite(&i, sizeof(int), 1, fp) != 1)
+	error("a binary write error occured");
+}
+
+static void OutStringBinary(FILE *fp, char *s)
+{
+    int n = strlen(s);
+    OutIntegerBinary(fp, n);
+    if (fwrite(s, sizeof(char), n, fp) != n)
+	error("a binary string write error occured");
+}
+
+static void OutRealBinary(FILE *fp, double x)
+{
+    if (fwrite(&x, sizeof(double), 1, fp) != 1)
+	error("a write error occured");
+}
+
+static void OutComplexBinary(FILE *fp, Rcomplex x)
+{
+	if (fwrite(&x, sizeof(Rcomplex), 1, fp) != 1)
+		error("a write error occured");
+}
+
+static void NewBinarySave(SEXP s, FILE *fp)
+{
+    OutInit = DummyInit;
+    OutInteger = OutIntegerBinary;
+    OutReal = OutRealBinary;
+    OutComplex = OutComplexBinary;
+    OutString = OutStringBinary;
+    OutSpace = DummyOutSpace;
+    OutNewline = DummyOutNewline;
+    OutTerm = DummyTerm;
+    NewDataSave(s, fp);
+}
+#endif /* not HAVE_RPC_XDR_H */
 
 /* ----- L o w l e v e l -- X D R -- I / O ----- */
 
-static void InInitXdr(FILE *fp, SaveLoadData *d)
+#ifdef HAVE_RPC_XDR_H
+
+static void InInitXdr(FILE *fp)
 {
-    xdrstdio_create(&d->xdrs, fp, XDR_DECODE);
+    xdrstdio_create(&xdrs, fp, XDR_DECODE);
 }
 
-static void OutInitXdr(FILE *fp, SaveLoadData *d)
+static void OutInitXdr(FILE *fp)
 {
-    xdrstdio_create(&d->xdrs, fp, XDR_ENCODE);
+    xdrstdio_create(&xdrs, fp, XDR_ENCODE);
 }
 
-static void InTermXdr(FILE *fp, SaveLoadData *d)
+static void InTermXdr(FILE *fp)
 {
-    xdr_destroy(&d->xdrs);
+    xdr_destroy(&xdrs);
 }
 
-static void OutTermXdr(FILE *fp, SaveLoadData *d)
+static void OutTermXdr(FILE *fp)
 {
-    xdr_destroy(&d->xdrs);
+    xdr_destroy(&xdrs);
 }
 
-static void OutIntegerXdr(FILE *fp, int i, SaveLoadData *d)
+static void OutIntegerXdr(FILE *fp, int i)
 {
-    if (!xdr_int(&d->xdrs, &i))
+    if (!xdr_int(&xdrs, &i)) {
+	xdr_destroy(&xdrs);
 	error("an xdr integer data write error occured");
+    }
 }
 
-static int InIntegerXdr(FILE *fp, SaveLoadData *d)
+static int InIntegerXdr(FILE *fp)
 {
     int i;
-    if (!xdr_int(&d->xdrs, &i))
+    if (!xdr_int(&xdrs, &i)) {
+	xdr_destroy(&xdrs);
 	error("an xdr integer data read error occured");
+    }
     return i;
 }
 
-static void OutStringXdr(FILE *fp, char *s, SaveLoadData *d)
+static void OutStringXdr(FILE *fp, char *s)
 {
     unsigned int n = strlen(s);
-    OutIntegerXdr(fp, n, d);
-    if (!xdr_bytes(&d->xdrs, &s, &n, n))
+    OutIntegerXdr(fp, n);
+    if (!xdr_bytes(&xdrs, &s, &n, n)) {
+	xdr_destroy(&xdrs);
 	error("an xdr string data write error occured");
+    }
 }
 
-static char *InStringXdr(FILE *fp, SaveLoadData *d)
+static char *InStringXdr(FILE *fp)
 {
     static char *buf = NULL;
     static int buflen = 0;
-    unsigned int nbytes = InIntegerXdr(fp, d);
+    unsigned int nbytes = InIntegerXdr(fp);
     if (nbytes >= buflen) {
-	char *newbuf;
-	/* Protect against broken realloc */
-	if(buf) newbuf = realloc(buf, nbytes + 1); 
-	else newbuf = malloc(nbytes + 1);
+	char *newbuf = realloc(buf, nbytes + 1);
 	if (newbuf == NULL)
 	    error("out of memory reading binary string\n");
 	buf = newbuf;
 	buflen = nbytes + 1;
     }
-    if (!xdr_bytes(&d->xdrs, &buf, &nbytes, nbytes))
+    if (!xdr_bytes(&xdrs, &buf, &nbytes, nbytes)) {
+	xdr_destroy(&xdrs);
 	error("an xdr string data write error occured");
+    }
     buf[nbytes] = '\0';
     return buf;
 }
 
-static void OutRealXdr(FILE *fp, double x, SaveLoadData *d)
+static void OutRealXdr(FILE *fp, double x)
 {
-    if (!xdr_double(&d->xdrs, &x))
+    if (!xdr_double(&xdrs, &x)) {
+	xdr_destroy(&xdrs);
 	error("an xdr real data write error occured");
+    }
 }
 
-static double InRealXdr(FILE * fp, SaveLoadData *d)
+static double InRealXdr(FILE * fp)
 {
     double x;
-    if (!xdr_double(&d->xdrs, &x))
+    if (!xdr_double(&xdrs, &x)) {
+	xdr_destroy(&xdrs);
 	error("an xdr real data read error occured");
+    }
     return x;
 }
 
-static void OutComplexXdr(FILE *fp, Rcomplex x, SaveLoadData *d)
+static void OutComplexXdr(FILE *fp, Rcomplex x)
 {
-    if (!xdr_double(&d->xdrs, &(x.r)) || !xdr_double(&d->xdrs, &(x.i)))
+    if (!xdr_double(&xdrs, &(x.r)) || !xdr_double(&xdrs, &(x.i))) {
+	xdr_destroy(&xdrs);
 	error("an xdr complex data write error occured");
+    }
 }
 
-static Rcomplex InComplexXdr(FILE * fp, SaveLoadData *d)
+static Rcomplex InComplexXdr(FILE * fp)
 {
     Rcomplex x;
-    if (!xdr_double(&d->xdrs, &(x.r)) || !xdr_double(&d->xdrs, &(x.i)))
+    if (!xdr_double(&xdrs, &(x.r)) || !xdr_double(&xdrs, &(x.i))) {
+	xdr_destroy(&xdrs);
 	error("an xdr complex data read error occured");
+    }
     return x;
 }
 
-static void NewXdrSave(SEXP s, FILE *fp, SaveLoadData *d)
+static void NewXdrSave(SEXP s, FILE *fp)
 {
-    OutputRoutines m;
-
-    m.OutInit = OutInitXdr;
-    m.OutInteger = OutIntegerXdr;
-    m.OutReal = OutRealXdr;
-    m.OutComplex = OutComplexXdr;
-    m.OutString = OutStringXdr;
-    m.OutSpace = DummyOutSpace;
-    m.OutNewline = DummyOutNewline;
-    m.OutTerm = OutTermXdr;
-    NewDataSave(s, fp, &m, d);
+    OutInit = OutInitXdr;
+    OutInteger = OutIntegerXdr;
+    OutReal = OutRealXdr;
+    OutComplex = OutComplexXdr;
+    OutString = OutStringXdr;
+    OutSpace = DummyOutSpace;
+    OutNewline = DummyOutNewline;
+    OutTerm = OutTermXdr;
+    NewDataSave(s, fp);
 }
 
-static SEXP NewXdrLoad(FILE *fp, SaveLoadData *d)
+static SEXP NewXdrLoad(FILE *fp)
 {
-    InputRoutines m;
-
-    m.InInit = InInitXdr;
-    m.InInteger = InIntegerXdr;
-    m.InReal = InRealXdr;
-    m.InComplex = InComplexXdr;
-    m.InString = InStringXdr;
-    m.InTerm = InTermXdr;
-    return NewDataLoad(fp, &m, d);
+    InInit = InInitXdr;
+    InInteger = InIntegerXdr;
+    InReal = InRealXdr;
+    InComplex = InComplexXdr;
+    InString = InStringXdr;
+    InTerm = InTermXdr;
+    return NewDataLoad(fp);
 }
+#endif /* HAVE_RPC_XDR_H */
 
 
 /* ----- F i l e -- M a g i c -- N u m b e r s ----- */
@@ -1760,15 +1584,6 @@ static void R_WriteMagic(FILE *fp, int number)
     case R_MAGIC_XDR_V1:     /* Version 1 - R Data, XDR Binary Format */
 	strcpy((char*)buf, "RDX1");
 	break;
-    case R_MAGIC_ASCII_V2:   /* Version >=2 - R Data, ASCII Format */
-	strcpy((char*)buf, "RDA2");
-	break;
-    case R_MAGIC_BINARY_V2:  /* Version >=2 - R Data, Binary Format */
-	strcpy((char*)buf, "RDB2");
-	break;
-    case R_MAGIC_XDR_V2:     /* Version >=2 - R Data, XDR Binary Format */
-	strcpy((char*)buf, "RDX2");
-	break;
     default:
 	buf[0] = (number/1000) % 10 + '0';
 	buf[1] = (number/100) % 10 + '0';
@@ -1782,16 +1597,8 @@ static void R_WriteMagic(FILE *fp, int number)
 static int R_ReadMagic(FILE *fp)
 {
     unsigned char buf[6];
-    int d1, d2, d3, d4, count;
-
-    count = fread((char*)buf, sizeof(char), 5, fp);
-    if (count != 5) {
-	if (count == 0)
-	    return R_MAGIC_EMPTY;
-	else
-	    return R_MAGIC_CORRUPT;
-    }
-
+    int d1, d2, d3, d4;
+    fread((char*)buf, sizeof(char), 5, fp);
     if (strncmp((char*)buf, "RDA1\n", 5) == 0) {
 	return R_MAGIC_ASCII_V1;
     }
@@ -1801,18 +1608,6 @@ static int R_ReadMagic(FILE *fp)
     else if (strncmp((char*)buf, "RDX1\n", 5) == 0) {
 	return R_MAGIC_XDR_V1;
     }
-    if (strncmp((char*)buf, "RDA2\n", 5) == 0) {
-	return R_MAGIC_ASCII_V2;
-    }
-    else if (strncmp((char*)buf, "RDB2\n", 5) == 0) {
-	return R_MAGIC_BINARY_V2;
-    }
-    else if (strncmp((char*)buf, "RDX2\n", 5) == 0) {
-	return R_MAGIC_XDR_V2;
-    }
-    else if (strncmp((char *)buf, "RD", 2) == 0)
-	return R_MAGIC_MAYBE_TOONEW;
-
     /* Intel gcc seems to screw up a single expression here */
     d1 = (buf[3]-'0') % 10;
     d2 = (buf[2]-'0') % 10;
@@ -1821,113 +1616,62 @@ static int R_ReadMagic(FILE *fp)
     return d1 + 10 * d2 + 100 * d3 + 1000 * d4;
 }
 
-static int R_DefaultSaveFormatVersion = 2;
-
-static void R_SaveToFileV(SEXP obj, FILE *fp, int ascii, int version)
-{
-    SaveLoadData data = {{NULL, 0, MAXELTSIZE}};
-
-    if (version == 1) {
-	if (ascii) {
-	    R_WriteMagic(fp, R_MAGIC_ASCII_V1);
-	    NewAsciiSave(obj, fp, &data);
-	} else {
-	    R_WriteMagic(fp, R_MAGIC_XDR_V1);
-	    NewXdrSave(obj, fp, &data);
-	}
-    }
-    else {
-	struct R_outpstream_st out;
-	R_pstream_format_t type;
-	int magic;
-	if (ascii) {
-	    magic = R_MAGIC_ASCII_V2;
-	    type = R_pstream_ascii_format;
-	}
-	else {
-	    magic = R_MAGIC_XDR_V2;
-	    type = R_pstream_xdr_format;
-	}
-	R_WriteMagic(fp, magic);
-	R_InitFileOutPStream(&out, fp, type, version, NULL, NULL);
-	R_Serialize(obj, &out);
-    }
-}
-
 /* ----- E x t e r n a l -- I n t e r f a c e s ----- */
 
 void R_SaveToFile(SEXP obj, FILE *fp, int ascii)
 {
-    R_SaveToFileV(obj, fp, ascii, R_DefaultSaveFormatVersion);
+    if (ascii) {
+	R_WriteMagic(fp, R_MAGIC_ASCII_V1);
+	NewAsciiSave(obj, fp);
+    } else {
+#ifdef HAVE_RPC_XDR_H
+	R_WriteMagic(fp, R_MAGIC_XDR_V1);
+	NewXdrSave(obj, fp);
+#else
+	R_WriteMagic(fp, R_MAGIC_BINARY_V1);
+	NewBinarySave(obj, fp);
+#endif
+    }
 }
 
-    /* different handling of errors */
-
-#define return_and_free(X) {r = X; R_FreeStringBuffer(&data.buffer); return r;}
 SEXP R_LoadFromFile(FILE *fp, int startup)
 {
-    struct R_inpstream_st in;
-    int magic;
-    SaveLoadData data = {{NULL, 0, MAXELTSIZE}};
-    SEXP r;
-
-    magic = R_ReadMagic(fp);
-    switch(magic) {
+    DLstartup = startup; /* different handling of errors */
+    switch(R_ReadMagic(fp)) {
+#ifdef HAVE_RPC_XDR_H
     case R_MAGIC_XDR:
-	return_and_free(XdrLoad(fp, startup, &data));
+	return(XdrLoad(fp));
+#endif
     case R_MAGIC_BINARY:
-	return_and_free(BinaryLoad(fp, startup, &data));
+	return(BinaryLoad(fp));
     case R_MAGIC_ASCII:
-	return_and_free(AsciiLoad(fp, startup, &data));
+	return(AsciiLoad(fp));
     case R_MAGIC_BINARY_VERSION16:
-	return_and_free(BinaryLoadOld(fp, 16, startup, &data));
+	return(BinaryLoadOld(fp, 16));
     case R_MAGIC_ASCII_VERSION16:
-	return_and_free(AsciiLoadOld(fp, 16, startup, &data));
+	return(AsciiLoadOld(fp, 16));
     case R_MAGIC_ASCII_V1:
-	return_and_free(NewAsciiLoad(fp, &data));
+	return(NewAsciiLoad(fp));
     case R_MAGIC_BINARY_V1:
-	return_and_free(NewBinaryLoad(fp, &data));
+	return(NewBinaryLoad(fp));
+#ifdef HAVE_RPC_XDR_H
     case R_MAGIC_XDR_V1:
-	return_and_free(NewXdrLoad(fp, &data));
-    case R_MAGIC_ASCII_V2:
-	R_InitFileInPStream(&in, fp, R_pstream_ascii_format, NULL, NULL);
-	return_and_free(R_Unserialize(&in));
-    case R_MAGIC_BINARY_V2:
-	R_InitFileInPStream(&in, fp, R_pstream_binary_format, NULL, NULL);
-	return_and_free(R_Unserialize(&in));
-    case R_MAGIC_XDR_V2:
-	R_InitFileInPStream(&in, fp, R_pstream_xdr_format, NULL, NULL);
-	return_and_free(R_Unserialize(&in));
+	return(NewXdrLoad(fp));
+#endif
     default:
-        R_FreeStringBuffer(&data.buffer);
-	switch (magic) {
-	case R_MAGIC_EMPTY:
-	    error("restore file may be empty -- no data loaded");
-	case R_MAGIC_MAYBE_TOONEW:
-	    error("restore file may be from a newer version of R"
-		  " -- no data loaded");
-	default:
-	    error("bad restore file magic number (file may be corrupted)"
-		  "-- no data loaded");
-	}
+	fclose(fp);
+	error("restore file corrupted -- no data loaded");
 	return(R_NilValue);/* for -Wall */
     }
 }
 
-static void saveload_cleanup(void *data)
-{
-    FILE *fp = data;
-    fclose(fp);
-}
-
 SEXP do_save(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    /* save(list, file, ascii, version, environment) */
+/* save(list, file, ascii, oldstyle) */
 
-    SEXP s, t, source;
-    int len, j, version;
+    SEXP s, t;
+    int len, j;
     FILE *fp;
-    RCNTXT cntxt;
 
     checkArity(op, args);
 
@@ -1938,25 +1682,10 @@ SEXP do_save(SEXP call, SEXP op, SEXP args, SEXP env)
 	errorcall(call, "`file' must be non-empty string");
     if (TYPEOF(CADDR(args)) != LGLSXP)
 	errorcall(call, "`ascii' must be logical");
-    if (CADDDR(args) == R_NilValue)
-	version = R_DefaultSaveFormatVersion;
-    else
-	version = asInteger(CADDDR(args));
-    if (version == NA_INTEGER || version <= 0)
-	error("bad version value");
-    source = CAR(nthcdr(args,4));
-    if (source != R_NilValue && TYPEOF(source) != ENVSXP)
-	error("bad environment");
 
     fp = R_fopen(R_ExpandFileName(CHAR(STRING_ELT(CADR(args), 0))), "wb");
     if (!fp)
 	errorcall(call, "unable to open file");
-
-    /* set up a context which will close the file if there is an error */
-    begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_NilValue, R_NilValue,
-		 R_NilValue, R_NilValue);
-    cntxt.cend = &saveload_cleanup;
-    cntxt.cenddata = fp;
 
     len = length(CAR(args));
     PROTECT(s = allocList(len));
@@ -1964,72 +1693,61 @@ SEXP do_save(SEXP call, SEXP op, SEXP args, SEXP env)
     t = s;
     for (j = 0; j < len; j++, t = CDR(t)) {
 	SET_TAG(t, install(CHAR(STRING_ELT(CAR(args), j))));
-	SETCAR(t, findVar(TAG(t), source));
+	SETCAR(t, findVar(TAG(t), R_GlobalContext->sysparent));
 	if (CAR(t) == R_UnboundValue)
 	    error("Object \"%s\" not found", CHAR(PRINTNAME(TAG(t))));
     }
 
-    R_SaveToFileV(s, fp, INTEGER(CADDR(args))[0], version);
+    R_SaveToFile(s, fp, INTEGER(CADDR(args))[0]);
 
     UNPROTECT(1);
-    /* end the context after anything that could raise an error but before
-       closing the file so it doesn't get done twice */
-    endcontext(&cntxt);
     fclose(fp);
     return R_NilValue;
 }
 
-static SEXP RestoreToEnv(SEXP ans, SEXP aenv)
+static void R_LoadSavedData(FILE *fp, SEXP aenv)
 {
-    SEXP a, names;
-    int cnt = 0;
-    /* Store the components of the list in aenv.  We either replace
-     * the existing objects in aenv or establish new bindings for
-     * them.  Note that we try to convert old "pairlist" objects
-     * to new "pairlist" objects. */
+    SEXP a, ans;
+    ans = R_LoadFromFile(fp, 0);
 
-    /* allow ans to be a vector-style list */
-    if (TYPEOF(ans) == VECSXP) {
-	int i;
-	PROTECT(ans);
-	PROTECT(names = getAttrib(ans, R_NamesSymbol)); /* PROTECT needed?? */
-	if (TYPEOF(names) != STRSXP || LENGTH(names) != LENGTH(ans))
-	    error("not a valid named list");
-	for (i = 0; i < LENGTH(ans); i++) {
-	    SEXP sym = install(CHAR(STRING_ELT(names, i)));
-	    defineVar(sym, ConvertPairToVector(VECTOR_ELT(ans, i)), aenv);
-	}
-	UNPROTECT(2);
-	return names;
-    }
+    /* Store the components of the list in the Global Env */
+    /* We either replace the existing objects in the Global */
+    /* Environment or establish new bindings for them. */
+    /* Note that we try to convert old "pairlist" objects */
+    /* to new "pairlist" objects. */
 
-    if (! isList(ans))
-	error("loaded data is not in pair list form");
-
-    a = ans;
-    while (a != R_NilValue) {a = CDR(a); cnt++;}
-    PROTECT(names = allocVector(STRSXP, cnt));
-    cnt = 0;
     PROTECT(a = ans);
     while (a != R_NilValue) {
-	SET_VECTOR_ELT(names, cnt++, PRINTNAME(TAG(a)));
+#ifdef OLD
+	for (e = FRAME(aenv); e != R_NilValue ; e = CDR(e)) {
+	    if (TAG(e) == TAG(a)) {
+		CAR(e) = CAR(a);
+		a = CDR(a);
+		CAR(a) = ConvertPairToVector(CAR(a)); /* PAIRLIST conv */
+		goto NextItem;
+	    }
+	}
+	e = a;
+	a = CDR(a);
+	UNPROTECT(1);
+	PROTECT(a);
+	CDR(e) = FRAME(aenv);
+	FRAME(aenv) = e;
+	CAR(e) = ConvertPairToVector(CAR(e)); /* PAIRLIST conv */
+    NextItem:
+	;
+#else
         defineVar(TAG(a), ConvertPairToVector(CAR(a)), aenv);
         a = CDR(a);
+#endif
     }
-    UNPROTECT(2);
-    return names;
-}
-    
-static SEXP R_LoadSavedData(FILE *fp, SEXP aenv)
-{
-    return RestoreToEnv(R_LoadFromFile(fp, 0), aenv);
+    UNPROTECT(1);
 }
 
 SEXP do_load(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP fname, aenv, val;
+    SEXP fname, aenv;
     FILE *fp;
-    RCNTXT cntxt;
 
     checkArity(op, args);
 
@@ -2047,229 +1765,7 @@ SEXP do_load(SEXP call, SEXP op, SEXP args, SEXP env)
     fp = R_fopen(R_ExpandFileName(CHAR(STRING_ELT(fname, 0))), "rb");
     if (!fp)
 	errorcall(call, "unable to open file");
-
-    /* set up a context which will close the file if there is an error */
-    begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_NilValue, R_NilValue,
-		 R_NilValue, R_NilValue);
-    cntxt.cend = &saveload_cleanup;
-    cntxt.cenddata = fp;
-
-    PROTECT(val = R_LoadSavedData(fp, aenv));
-
-    /* end the context after anything that could raise an error but before
-       closing the file so it doesn't get done twice */
-    endcontext(&cntxt);
+    R_LoadSavedData(fp, aenv);
     fclose(fp);
-    UNPROTECT(1);
-    return val;
-}
-
-/* defined in Rinternals.h
-#define R_XDR_DOUBLE_SIZE 8
-#define R_XDR_INTEGER_SIZE 4
-*/
-
-void R_XDREncodeDouble(double d, void *buf)
-{
-    XDR xdrs;
-    int success;
- 
-    xdrmem_create(&xdrs, buf, R_XDR_DOUBLE_SIZE, XDR_ENCODE);
-    success = xdr_double(&xdrs, &d);
-    xdr_destroy(&xdrs);
-    if (! success)
-        error("XDR write failed");
-}
- 
-double R_XDRDecodeDouble(void *buf)
-{
-    XDR xdrs;
-    double d;
-    int success;
- 
-    xdrmem_create(&xdrs, buf, R_XDR_DOUBLE_SIZE, XDR_DECODE);
-    success = xdr_double(&xdrs, &d);
-    xdr_destroy(&xdrs);
-    if (! success)
-        error("XDR read failed");
-    return d;
-}
- 
-void R_XDREncodeInteger(int i, void *buf)
-{
-    XDR xdrs;
-    int success;
- 
-    xdrmem_create(&xdrs, buf, R_XDR_INTEGER_SIZE, XDR_ENCODE);
-    success = xdr_int(&xdrs, &i);
-    xdr_destroy(&xdrs);
-    if (! success)
-        error("XDR write failed");
-}
-
-int R_XDRDecodeInteger(void *buf)
-{
-    XDR xdrs;
-    int i, success;
- 
-    xdrmem_create(&xdrs, buf, R_XDR_INTEGER_SIZE, XDR_DECODE);
-    success = xdr_int(&xdrs, &i);
-    xdr_destroy(&xdrs);
-    if (! success)
-        error("XDR read failed");
-    return i;
-}
-
-void R_SaveGlobalEnvToFile(const char *name)
-{
-    SEXP sym = install("sys.save.image");
-    if (findVar(sym, R_GlobalEnv) == R_UnboundValue) { /* not a perfect test */
-	FILE *fp = R_fopen(name, "wb"); /* binary file */
-	if (!fp)
-	    error("can't save data -- unable to open %s", name);
-	R_SaveToFile(FRAME(R_GlobalEnv), fp, 0);
-	fclose(fp);
-    }
-    else {
-	SEXP args, call;
-	args = LCONS(ScalarString(mkChar(name)), R_NilValue);
-	PROTECT(call = LCONS(sym, args));
-	eval(call, R_GlobalEnv);
-	UNPROTECT(1);
-    }
-}
-
-void R_RestoreGlobalEnvFromFile(const char *name, Rboolean quiet)
-{
-    SEXP sym = install("sys.load.image");
-    if (findVar(sym, R_GlobalEnv) == R_UnboundValue) { /* not a perfect test */
-	FILE *fp = R_fopen(name, "rb"); /* binary file */
-	if(fp != NULL) { 
-	    R_LoadSavedData(fp, R_GlobalEnv);
-	    if(! quiet)
-		Rprintf("[Previously saved workspace restored]\n\n");
-	    fclose(fp);
-	}
-    }
-    else {
-	SEXP args, call, sQuiet;
-	sQuiet = quiet ? mkTrue() : mkFalse();
-	PROTECT(args = LCONS(sQuiet, R_NilValue));
-	args = LCONS(ScalarString(mkChar(name)), args);
-	PROTECT(call = LCONS(sym, args));
-	eval(call, R_GlobalEnv);
-	UNPROTECT(2);
-    }
-}
-
-
-#include <Rconnections.h>
-
-/* Ideally it should be possible to do this entirely in R code with
-   something like
-
-        magic <- if (ascii) "RDA2\n" else
-        writeChar(magic, con, eos = NULL)
-        val <- lapply(list, get, envir = envir)
-	names(val) <- list
-        invisible(serialize(val, con, ascii = ascii))
-
-   Unfortunately, this will result in too much duplication in the lapply
-   (and any other way of doing this).  Hence we need an internal version. */
-
-SEXP do_saveToConn(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    /* saveToConn(list, conn, ascii, version, environment) */
-
-    SEXP s, t, source, list;
-    Rboolean ascii;
-    int len, j, version;
-    Rconnection con;
-    struct R_outpstream_st out;
-    R_pstream_format_t type;
-    char *magic;
-
-    checkArity(op, args);
-
-    if (TYPEOF(CAR(args)) != STRSXP)
-	errorcall(call, "first argument must be a character vector");
-    list = CAR(args);
-
-    con = getConnection(asInteger(CADR(args)));
-
-    if (TYPEOF(CADDR(args)) != LGLSXP)
-	errorcall(call, "`ascii' must be logical");
-    ascii = INTEGER(CADDR(args))[0];
-
-    if (CADDDR(args) == R_NilValue)
-	version = R_DefaultSaveFormatVersion;
-    else
-	version = asInteger(CADDDR(args));
-    if (version == NA_INTEGER || version <= 0)
-	error("bad version value");
-    if (version < 2)
-	error("cannot save to connections in version %d format", version);
-
-    source = CAR(nthcdr(args,4));
-    if (source != R_NilValue && TYPEOF(source) != ENVSXP)
-	error("bad environment");
-
-    if (ascii) {
-	magic = "RDA2\n";
-	type = R_pstream_ascii_format;
-    }
-    else {
-	magic = "RDX2\n";
-	type = R_pstream_xdr_format;
-    }
-	
-    if (con->text)
-	Rconn_printf(con, "%s", magic);
-    else {
-	int len = strlen(magic);
-	if (len != con->write(magic, 1, len, con))
-	    error("error writing to connection");
-    }
-
-    R_InitConnOutPStream(&out, con, type, version, NULL, NULL);
-
-    len = length(list);
-    PROTECT(s = allocList(len));
-
-    t = s;
-    for (j = 0; j < len; j++, t = CDR(t)) {
-	SET_TAG(t, install(CHAR(STRING_ELT(list, j))));
-	SETCAR(t, findVar(TAG(t), source));
-	if (CAR(t) == R_UnboundValue)
-	    error("Object \"%s\" not found", CHAR(PRINTNAME(TAG(t))));
-    }
-
-    R_Serialize(s, &out);
-
-    UNPROTECT(1);
     return R_NilValue;
-}
-
-/* This assumes the magic number has already been read, and its format
-   specification (A or X) is ignored.  For saved images with many
-   variables and the values saved in a pair list this internal version
-   will be faster than a version in R */
-
-SEXP do_loadFromConn(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    /* loadFromConn(conn, environment) */
-
-    struct R_inpstream_st in;
-    Rconnection con;
-    SEXP aenv;
-
-    checkArity(op, args);
-
-    con = getConnection(asInteger(CAR(args)));
-    aenv = CADR(args);
-    if (TYPEOF(aenv) != ENVSXP && aenv != R_NilValue)
-	error("invalid envir argument");
-
-    R_InitConnInPStream(&in, con, R_pstream_any_format, NULL, NULL);
-    return RestoreToEnv(R_Unserialize(&in), aenv);
 }

@@ -6,7 +6,7 @@ merge.default <- function(x, y, ...)
 merge.data.frame <-
     function(x, y, by = intersect(names(x), names(y)), by.x = by, by.y = by,
              all = FALSE, all.x = all, all.y = all,
-             sort = TRUE, suffixes = c(".x",".y"), ...)
+             sort = TRUE, suffixes = c(".x",".y"))
 {
     fix.by <- function(by, df)
     {
@@ -54,13 +54,12 @@ merge.data.frame <-
             bx <- x[, by.x]; if(is.factor(bx)) bx <- as.character(bx)
             by <- y[, by.y]; if(is.factor(by)) by <- as.character(by)
         } else {
-            ## Do these together for consistency in as.character.
-            ## Use same set of names.
-            bx <- x[, by.x, drop=FALSE]; by <- y[, by.y, drop=FALSE]
-            names(bx) <- names(by) <- paste("V", 1:ncol(bx), sep="")
-            bz <- do.call("paste", c(rbind(bx, by), sep = "\r"))
-            bx <- bz[1:nx]
-            by <- bz[nx + (1:ny)]
+            bx <- matrix(as.character(as.matrix.data.frame(x[, by.x,
+                                                             drop=FALSE])), nx)
+            by <- matrix(as.character(as.matrix.data.frame(y[, by.y,
+                                                             drop=FALSE])), ny)
+            bx <- drop(apply(bx, 1, function(x) paste(x, collapse="\r")))
+            by <- drop(apply(by, 1, function(x) paste(x, collapse="\r")))
         }
         comm <- match(bx, by, 0)
         bxy <- bx[comm > 0]             # the keys which are in both
@@ -96,12 +95,9 @@ merge.data.frame <-
             cnm <- nm.y %in% nm
             nm.y[cnm] <- paste(nm.y[cnm], suffixes[2], sep="")
         }
-        y <- y[c(m$yi, if(all.x) rep.int(1:1, nxx), if(all.y) m$y.alone),
-               -by.y, drop = FALSE]
-        if(all.x)
-            for(i in seq(along = y))
-                ## do it this way to invoke methods for e.g. factor
-                is.na(y[[i]]) <- (lxy+1):(lxy+nxx)
+        y <- y[c(m$yi, if(all.x) rep(1:1, nxx), if(all.y) m$y.alone),
+               -by.y, drop=FALSE]
+        if(all.x) y[(lxy+1):(lxy+nxx), ] <- NA
 
         if(has.common.nms) names(y) <- nm.y
         res <- cbind(x, y)
@@ -111,7 +107,7 @@ merge.data.frame <-
                        do.call("order", x[, 1:l.b, drop=FALSE])
             else sort.list(bx[m$xi]),, drop=FALSE]
     }
-
+                                
     row.names(res) <- seq(length=nrow(res))
     res
 }

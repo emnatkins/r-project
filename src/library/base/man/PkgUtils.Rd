@@ -39,9 +39,7 @@ Rcmd check [options] pkgdirs
 #ifdef windows
   \code{Rcmd build}
 #endif
-  builds \R source or binary packages from their sources.  It will
-  create index files in the sources if necessary, so it is often helpful
-  to run \code{build} before \code{check}.
+  builds \R source or binary packages from their sources.
 
   Use
 #ifdef unix
@@ -56,10 +54,6 @@ Rcmd check [options] pkgdirs
 \note{
   These may not work correctly under Windows 95/98/ME because of
   problems Perl has launching programs on those limited OSes.
-
-  They make use of a temporary directory specified by the enironment
-  variable \code{TMPDIR} and defaulting to \code{c:/TEMP}.  Do ensure
-  that if set forward slashes are used.
 }
 #endif
 \seealso{

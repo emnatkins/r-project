@@ -2,29 +2,22 @@
 % copyright (C) 1998 B. D. Ripley
 %
 \name{step}
-\alias{step}
 \title{
 Choose a model by AIC in a Stepwise Algorithm
-}
-\description{
-  Select a formula-based model by AIC.
 }
 \usage{
 step(object, scope, scale = 0,
      direction = c("both", "backward", "forward"), 
      trace = 1, keep = NULL, steps = 1000, k = 2, \dots)
 }
+\alias{step}
 \arguments{
   \item{object}{
-    an object representing a model of an appropriate class (mainly
-    \code{"lm"} and \code{"glm"}).
+    an object representing a model of an appropriate class.
     This is used as the initial model in the stepwise search.
   }
   \item{scope}{
     defines the range of models examined in the stepwise search.
-    This should be either a single formula, or a list containing
-    components \code{upper} and \code{lower}, both formulae.  See the
-    details for how to specify the formulae and how they are used.
   }
   \item{scale}{
     used in the definition of the AIC statistic for selecting the models,
@@ -34,8 +27,8 @@ step(object, scope, scale = 0,
   \item{direction}{
     the mode of stepwise search, can be one of \code{"both"},
     \code{"backward"}, or \code{"forward"}, with a default of \code{"both"}. 
-    If the \code{scope} argument is missing the default for
-    \code{direction} is \code{"backward"}.
+    If the \code{scope} argument is missing, 
+    the default for \code{direction} is \code{"backward"}.
   }
   \item{trace}{
     if positive, information is printed during the running of \code{step}.
@@ -69,8 +62,10 @@ step(object, scope, scale = 0,
   \code{"Resid. Dev"} column of the analysis of deviance table refers
   to a constant minus twice the maximized log likelihood: it will be a
   deviance only in cases where a saturated model is well-defined
-  (thus excluding \code{lm}, \code{aov} and \code{survreg} fits,
-  for example).
+  (thus excluding \code{lm}, \code{aov} and \code{survreg} fits, for example).
+}
+\description{
+  Select a formula-based model by AIC.
 }
 \details{
   \code{step} uses \code{\link{add1}} and \code{\link{drop1}}
@@ -80,21 +75,9 @@ step(object, scope, scale = 0,
   Mallows' \eqn{C_p}{Cp}, this is done and the tables are labelled
   appropriately.
 
-  The set of models searched is determined by the \code{scope} argument.
-  The right-hand-side of its \code{lower} component is always included
-  in the model, and right-hand-side of the model is included in the
-  \code{upper} component.  If \code{scope} is a single formula, it
-  specifes the \code{upper} component, and the \code{lower} model is
-  empty.  If \code{scope} is missing, the initial model is used as the
-  \code{upper} model.
-
-  Models specified by \code{scope} can be templates to update
-  \code{object} as used by \code{\link{update.formula}}.
-  
-  There is a potential problem in using \code{\link{glm}} fits with a
-  variable \code{scale}, as in that case the deviance is not simply
-  related to the maximized log-likelihood. The function
-  \code{\link{extractAIC.glm}} makes the
+  There is a potential problem in using \code{\link{glm}} fits with a variable
+  \code{scale}, as in that case the deviance is not simply related to the
+  maximized log-likelihood. The function \code{\link{extractAIC.glm}} makes the
   appropriate adjustment for a \code{gaussian} family, but may need to be
   amended for other cases. (The \code{binomial} and \code{poisson}
   families have fixed \code{scale} by default and do not correspond
@@ -103,18 +86,15 @@ step(object, scope, scale = 0,
 \note{
   This function differs considerably from the function in S, which uses a
   number of approximations and does not compute the correct AIC.
-
-  This is a minimal implementation. Use \code{\link[MASS]{stepAIC}} for
-  a wider range of object classes.
 }
 \section{Warning}{
   The model fitting must apply the models to the same dataset. This
   may be a problem if there are missing values and \R's default of
-  \code{na.action = na.omit} is used.  We suggest you remove the
+  \code{na.action = na.omit} is used. We suggest you remove the
   missing values first.
 }
 \seealso{
-  \code{\link[MASS]{stepAIC}}, \code{\link{add1}}, \code{\link{drop1}}
+  \code{\link{add1}}, \code{\link{drop1}}
 }
 \author{B. D. Ripley}
 \examples{

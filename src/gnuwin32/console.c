@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  file console.c
- *  Copyright (C) 1998--2002  Guido Masarotto and Brian Ripley
+ *  Copyright (C) 1998--2001  Guido Masarotto and Brian Ripley
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,7 +24,6 @@
 
 #ifdef Win32
 #define USE_MDI 1
-extern void R_ProcessEvents(void);
 #endif
 
 #include <windows.h>
@@ -218,8 +217,8 @@ static void xbuffixl(xbuf p)
 
 /* console */
 
-rgb consolebg = White, consolefg = Black, consoleuser = gaRed,
-    pagerhighlight = gaRed;
+rgb consolebg = White, consolefg = Black, consoleuser = Red,
+    pagerhighlight = Red;
 
 extern int R_HistorySize;  /* from Defn.h */
 
@@ -516,11 +515,7 @@ FBEGIN
 FVOIDEND
 
 
-/* These are the getline keys ^A ^E ^B ^F ^N ^P ^K ^H ^D ^U ^T ^O,
-   plus ^Z for EOF.
-
-   We also use ^C ^V/^Y ^X (copy/paste/both) ^W ^L
-*/
+/* These are the getline keys ^A ^E ^B ^F ^N ^P ^K ^H ^D ^U ^T ^O */
 #define BEGINLINE 1
 #define ENDLINE   5
 #define CHARLEFT 2
@@ -533,8 +528,7 @@ FVOIDEND
 #define KILLLINE 21
 #define CHARTRANS 20
 #define OVERWRITE 15
-#define EOFKEY 26
-/* free ^G ^Q ^R ^S, perhaps ^I ^J */
+/* free ^G ^Q ^R ^S */
 
 static void storekey(control c,int k)
 FBEGIN
@@ -759,15 +753,6 @@ FBEGIN
 	REDRAW;
     }
     if (st == -1) return;
-    if (p->kind == PAGER) {
-	if(k == 'q' || k == 'Q') pagerbclose(c);
-	if(k == ' ') setfirstvisible(c, NEWFV + ROWS);
-	if(k == '-') setfirstvisible(c, NEWFV - ROWS);
-	if(k == 'F' - 'A' + 1) setfirstvisible(c, NEWFV + ROWS);
-	if(k == 'B' - 'A' + 1) setfirstvisible(c, NEWFV - ROWS);
-	if(k == 1) consoleselectall(c);
-	return;
-    }
     storekey(c, k);
 FVOIDEND
 
@@ -991,7 +976,7 @@ FBEGIN
 	p->input = 1;
 	cur_char = consolegetc(c);
 	p->input = 0;
-	chtype = ((unsigned char)cur_char > 0x1f);
+	chtype = isprint(cur_char) || ((unsigned char)cur_char > 0x7f);
 	if(NUMLINES != ns0) { /* we scrolled, e.g. cleared screen */
             cur_line = LINE(NUMLINES - 1) + prompt_len;
 	    ns0 = NUMLINES;
@@ -1078,7 +1063,7 @@ FBEGIN
 		cur_line[cur_pos-1] = cur_char;
 		break;
 	    default:
-		if (chtype || (cur_char=='\n') || (cur_char==EOFKEY)) {
+		if (chtype || (cur_char=='\n')) {
 		    if (chtype) {
 			if (cur_pos == max_pos) {
 			    consoleunputc(c);
@@ -1096,7 +1081,7 @@ FBEGIN
 		    xbuffixl(p->lbuf);
 		    consolewrites(c, "\n");
 		    REDRAW;
-		    FRETURN(cur_char == EOFKEY);
+		    FRETURN(0);
 		}
 		break;
 	    }
@@ -1236,7 +1221,7 @@ FBEGIN
     char *s = "", lc = '\0', msg[LF_FACESIZE + 128], title[60];
     char buf[1024];
     cursor cur;
-    if (!(lpr = newprinter(0.0, 0.0, ""))) FVOIDRETURN;
+    if (!(lpr = newprinter(0.0, 0.0))) FVOIDRETURN;
     show(c);
 /*
  * If possible, we avoid to use FixedFont for printer since it hasn't the
@@ -1336,7 +1321,7 @@ FBEGIN
     setcursor(cur);
 FVOIDEND
 
-void consolesavefile(console c, int pager)
+void consolesavefile(console c)
 FBEGIN
     char *fn;
     cursor cur;

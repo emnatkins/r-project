@@ -41,11 +41,10 @@ tapply(X, INDEX, FUN = NULL, \dots, simplify = TRUE)
   list with a \code{\link{dim}} attribute.
 }
 \seealso{
-  the convenience functions \code{\link{by}} and \code{\link{aggregate}} 
-(using \code{tapply});
+  the convenience function \code{\link{aggregate}} (using \code{tapply});
   \code{\link{apply}},
-  \code{\link{lapply}} with its versions
-  \code{\link{sapply}} and \code{\link{mapply}}.
+  \code{\link{lapply}} with its version
+  \code{\link{sapply}}.
 }
 \examples{
 groups <- as.factor(rbinom(32, n = 5, p = .4))
@@ -63,10 +62,6 @@ tapply(1:n, fac, sum)
 tapply(1:n, fac, sum, simplify = FALSE)
 tapply(1:n, fac, range)
 tapply(1:n, fac, quantile)
-
-## example of ... argument: find quarterly means
-data(presidents)
-tapply(presidents, cycle(presidents), mean, na.rm = TRUE)
 
 ind <- list(c(1, 2, 2), c("A", "A", "B"))
 table(ind)

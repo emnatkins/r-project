@@ -13,10 +13,9 @@ as.call(x)
 }
 \arguments{
   \item{name}{a character string naming the function to be called.}
-  \item{\dots}{arguments to be part of the call.}
   \item{x}{an arbitrary \R object.}
 }
-\details{
+\value{
   \code{call} returns an unevaluated function call, that is, an
   unevaluated expression which consists of the named function applied to
   the given arguments (\code{name} must be a quoted string which gives
@@ -26,13 +25,10 @@ as.call(x)
   of mode \code{"call"}).
   %NO We don't differentiate between expressions and function calls.
   %NO So \code{is.call} is the same as \code{is.expression}.
-  It is generic: you can write methods to handle
-  of specific classes of objects, see \link{InternalMethods}.
-  
-  Objects of mode \code{"list"} can be coerced to mode \code{"call"}.
-  The first element of the list becomes the function part of the call,
-  so should be a function or the name of one (as a symbol; a quoted
-  string will not do).  
+
+  It is not possible to coerce objects to mode call (objects either are
+  calls or they are not calls).  \code{as.call} returns its argument if
+  it is a call and otherwise terminates with an error message.
 }
 \seealso{
   \code{\link{do.call}} for calling a function by name and argument

@@ -14,38 +14,39 @@ INSTFILES = AUTHORS COPYING COPYING.LIB COPYRIGHTS FAQ NEWS RESOURCES THANKS
 DISTFILES = $(INSTFILES) \
 	BUGS ChangeLog INSTALL ONEWS README VERSION Y2K \
 	Makeconf.in Makefile.in \
-	acinclude.m4 aclocal.m4 \
-	config.site configure configure.ac \
+	acconfig.h acinclude.m4 aclocal.m4 \
+	config.site configure configure.in \
 	date-stamp
 SUBDIRS = m4 tools afm doc etc share src tests
-SUBDIRS_WITH_NO_BUILD = debian
 
 GZIP = --best
 
-all: Makefile Makeconf R docs @USE_RECOMMENDED_PACKAGES_TRUE@ stamp-recommended
+all: Makefile Makeconf R docs
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $@
+	@cd $(top_builddir) \
+	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 Makeconf: $(srcdir)/Makeconf.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $@
+	@cd $(top_builddir) \
+	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 ACLOCAL_DEPENDENCIES = \
-	configure.ac \
+	configure.in \
 	acinclude.m4
 ACINCLUDE_DEPENDENCIES = \
 	m4/R.m4 \
+	m4/am-fixes.m4 \
 	m4/gnome-gnorba-check.m4 \
 	m4/gnome-orbit-check.m4 \
 	m4/gnome.m4 \
 	m4/libglade.m4 \
 	m4/libtool.m4
-CONFIGURE_DEPENDENCIES = $(srcdir)/VERSION
 config.status: $(srcdir)/configure
 	@$(SHELL) ./config.status --recheck
-$(srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(srcdir)/configure.ac $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
+$(srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(srcdir)/configure.in $(ACLOCAL_M4)
 	@cd $(srcdir) && $(AUTOCONF)
-$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(srcdir)/configure.ac $(ACLOCAL_DEPENDENCIES)
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(srcdir)/configure.in $(ACLOCAL_DEPENDENCIES)
 	@cd $(srcdir) && $(ACLOCAL)
 $(srcdir)/acinclude.m4: @MAINTAINER_MODE_TRUE@ $(ACINCLUDE_DEPENDENCIES)
 	@cd $(srcdir) && cat $(ACINCLUDE_DEPENDENCIES) > $@
@@ -63,18 +64,16 @@ R: Makefile
 	@for d in $(SUBDIRS); do \
 	  (cd $${d} && $(MAKE) R) || exit 1; \
 	done
-	@test -f src/library/stamp-docs || \
-	  echo "you should 'make docs' now ..."
+	@if [ ! -f src/library/stamp-docs ]; then \
+	  echo "you should \`make docs' now ..."; \
+	fi
 
-docs: R FORCE
+docs: FORCE
 	-@(cd doc && $(MAKE) $@)
 	-@(cd src/library && $(MAKE) $@)
 help html latex examples: FORCE
 	-@(cd src/library && $(MAKE) $@)
 FORCE:
-
-stamp-recommended: R docs
-	@(cd src/library/Recommended && $(MAKE))
 
 install: installdirs
 	@for d in $(SUBDIRS); do \
@@ -107,20 +106,20 @@ clean:
 distclean: clean
 	@(for d in $(SUBDIRS); do rsd="$${d} $${rsd}"; done; \
 	  for d in $${rsd}; do (cd $${d} && $(MAKE) $@); done)
-	-@rm -rf bin include library modules gnome
-	-@rm -f Makeconf Makefile Makefile.bak Makefrag.* \
+	@rm -rf bin include library gnome
+	@rm -f Makeconf Makefile Makefile.bak Makefrag.* \
 	  config.cache config.log config.status libtool
+## FIXME:
+## This should really do something!
 maintainer-clean: distclean
 	@echo "This command is intended for maintainers to use; it"
 	@echo "deletes files that may need special rules to rebuild"
-	@(for d in $(SUBDIRS); do rsd="$${d} $${rsd}"; done; \
-	  for d in $${rsd}; do (cd $${d} && $(MAKE) $@); done)
-	-@(cd $(srcdir) && rm -rf autom4te.cache)
+## </FIXME>
 
 dist: dist-unix
 dist-unix: distdir
 	-chmod -R a+r $(distdir)
-	GZIP=$(GZIP) $(TAR) czf $(distdir).tar.gz $(distdir)
+	GZIP=$(GZIP) $(TAR) chzf $(distdir).tar.gz $(distdir)
 	rm -rf $(distdir)
 dist-win:
 distdir: $(DISTFILES)
@@ -140,9 +139,9 @@ distdir: $(DISTFILES)
 	  (cd $${d} && $(MAKE) distdir) \
 	    || exit 1; \
 	done
-	@for d in $(SUBDIRS_WITH_NO_BUILD); do \
+	@for d in debian; do \
 	  ((cd $(srcdir); $(TAR) -c -f - --exclude=CVS $${d}) \
-	      | (cd $(distdir); $(TAR) -x -f -)) \
+	    | (cd $(distdir); $(TAR) -x -f -)) \
 	    || exit 1; \
 	done
 
@@ -153,10 +152,7 @@ install-dvi install-info install-pdf:
 uninstall-dvi uninstall-info uninstall-pdf:
 	-@(cd doc/manual && $(MAKE) $@)
 
-check check-devel check-all:
+check:
 	@(cd tests && $(MAKE) $@)
-
-reset-recommended:
-	@(cd src/library/Recommended && $(MAKE) clean)
 
 TAGS:

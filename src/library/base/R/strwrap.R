@@ -3,8 +3,8 @@ function(x, width = 0.9 * getOption("width"), indent = 0, exdent = 0,
          prefix = "", simplify = TRUE) {
 
     ## Useful variables.
-    indentString <- paste(rep.int(" ", indent), collapse = "")
-    exdentString <- paste(rep.int(" ", exdent), collapse = "")
+    indentString <- paste(rep(" ", indent), collapse = "")
+    exdentString <- paste(rep(" ", exdent), collapse = "")
     y <- list()                         # return value
     z <- lapply(strsplit(x, "\n[ \t\n]*\n"), strsplit, "[ \t\n]")
     ## Now z[[i]][[j]] is a character vector of all ``words'' in
@@ -76,7 +76,7 @@ function(x, width = 0.9 * getOption("width"), indent = 0, exdent = 0,
 
             nBlocks <- length(upperBlockIndex)
             s <- paste(prefix,
-                       c(indentString, rep.int(exdentString, nBlocks - 1)),
+                       c(indentString, rep(exdentString, nBlocks - 1)),
                        sep = "")
             for(k in (1 : nBlocks))
                 s[k] <- paste(s[k], paste(words[lowerBlockIndex[k] :
@@ -96,34 +96,19 @@ formatDL <-
 function(x, y, style = c("table", "list"),
          width = 0.9 * getOption("width"), indent = NULL)
 {
-    if(is.list(x)) {
-        if((length(x) == 2) && (diff(sapply(x, length)) == 0)) {
-            y <- x[[2]]; x <- x[[1]]
-        }
-        else
-            stop("incorrect value for x")
-    }
-    else if(is.matrix(x)) {
-        if(NCOL(x) == 2) {
-            y <- x[, 2]; x <- x[, 1]
-        }
-        else
-            stop("incorrect value for x")
-    }
-    else if(length(x) != length(y))
-        stop("x and y must have the same length")
+    if(length(x) != length(y))
+        stop("`x' and `y' must have the same length")
     x <- as.character(x)
-    if(length(x) == 0) return(x)
     y <- as.character(y)
 
     style <- match.arg(style)
 
-    if(is.null(indent))
+    if(missing(indent))
         indent <- switch(style, table = width / 3, list = width / 9)
     if(indent > 0.5 * width)
-        stop("incorrect values of indent and width")
+        stop("incorrect values of `indent' and `width'")
 
-    indentString <- paste(rep.int(" ", indent), collapse = "")
+    indentString <- paste(rep(" ", indent), collapse = "")
 
     if(style == "table") {
         i <- (nchar(x) > indent - 3)
@@ -132,8 +117,8 @@ function(x, y, style = c("table", "list"),
         i <- !i
         if(any(i))
             x[i] <- formatC(x[i], width = indent, flag = "-")
-        y <- lapply(strwrap(y, width = width - indent,
-                            simplify = FALSE),
+        y <- lapply(strwrap(y, width = width - indent, simplify =
+                            FALSE),
                     paste,
                     collapse = paste("\n", indentString, sep = ""))
         r <- paste(x, unlist(y), sep = "")

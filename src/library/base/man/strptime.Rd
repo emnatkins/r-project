@@ -12,25 +12,14 @@
   classes \code{"POSIXlt"} and \code{"POSIXct"} representing calendar
   dates and times.
 }
-\synopsis{
-format.POSIXct(x, format = "", tz = "", usetz = FALSE, \dots)
-format.POSIXlt(x, format = "", usetz = FALSE, \dots)
-
-\method{as.character}{POSIXt}(x, \dots)
-
-strftime(x, format="", usetz = FALSE, \dots)
-strptime(x, format)
-
-ISOdatetime(year, month, day, hour, min, sec, tz = "")
-ISOdate(year, month, day, hour = 12, min = 0, sec = 0, tz = "GMT")
-}
 \usage{
-format.POSIXct(x, format = "", tz = "", usetz = FALSE, \dots)
-format.POSIXlt(x, format = "", usetz = FALSE, \dots)
+format.POSIXct(x, format = "", tz = "", usetz = FALSE, ...)
+format.POSIXlt(x, format = "", usetz = FALSE, ...)
 
-\method{as.character}{POSIXt}(x, \dots)
+as.character.POSIXct(x, ...)
+as.character.POSIXlt(x, ...)
 
-strftime(x, format="\%Y-\%m-\%d \%X", usetz = FALSE, \dots)
+strftime(x, format="\%Y-\%m-\%d \%X", usetz = FALSE, ...)
 strptime(x, format)
 
 ISOdatetime(year, month, day, hour, min, sec, tz = "")
@@ -46,6 +35,7 @@ ISOdate(year, month, day, hour = 12, min = 0, sec = 0, tz = "GMT")
     component which is not midnight, and \code{"\%Y-\%m-\%d"}
     otherwise.}
   \item{\dots}{Further arguments to be passed from or to other methods.}
+  \item{tz}{A timezone: see \code{\link{as.POSIXct}}.}
   \item{usetz}{logical.  Should the timezone be appended to the output?
     This is used in printing time, and as a workaround for problems with
     using \code{"\%Z"} on most Linux systems.}
@@ -84,8 +74,7 @@ ISOdate(year, month, day, hour = 12, min = 0, sec = 0, tz = "GMT")
     \item{\code{\%j}}{Day of year as decimal number (001--366).}
     \item{\code{\%m}}{Month as decimal number (01--12).}
     \item{\code{\%M}}{Minute as decimal number (00--59).}
-    \item{\code{\%p}}{AM/PM indicator in the locale.  Used in
-      conjuction with \code{\%I} and \bold{not} with \code{\%H}.}
+    \item{\code{\%p}}{AM/PM indicator in the locale.}
     \item{\code{\%S}}{Second as decimal number (00--61), allowing for
       up to two leap-seconds.}
     \item{\code{\%U}}{Week of the year as decimal number (00--53) using
@@ -125,13 +114,12 @@ ISOdate(year, month, day, hour = 12, min = 0, sec = 0, tz = "GMT")
   \code{"14:01:02"} using leading zeroes as here.  The ISO form uses no
   space to separate dates and times.
 
-  If the date string does not specify the date completely, the returned
-  answer may be system-specific.  The most common behaviour is to assume
-  that unspecified seconds, minutes or hours are zero, and a missing
-  year, month or day is the current one.
-
   If the timezone specified is invalid on your system, what happens is
   system-specific but it will probably be ignored.
+#ifdef mac
+  Under MacOS only the current timezone \code{""} and UTC (or GMT)
+  are supported.
+#endif
 
   OS facilities will probably not print years before 1CE (aka 1AD)
   correctly.
@@ -158,8 +146,7 @@ format(Sys.time(), "\%a \%b \%d \%X \%Y")
 ## but this crashes some Linux systems
 
 ## read in date info in format `ddmmmyyyy'
-## This will give NA(s) in some locales; setting the C locale
-## as in the commented lines will overcome this on most systems.
+## This will give NA(s) in some locales.
 ## lct <- Sys.getlocale("LC_TIME"); Sys.setlocale("LC_TIME", "C")
 x <- c("1jan1960", "2jan1960", "31mar1960", "30jul1960")
 z <- strptime(x, "\%d\%b\%Y")

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2002  The R Development Core Team.
+ *  Copyright (C) 1998--2001  The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,12 +37,6 @@
 #include <Graphics.h> /* display lists */
 #include <Rdevices.h> /* GetDevice */
 
-/* malloc uses size_t.  We are assuming here that size_t is at least
-   as large as unsigned long.  Changed from int at 1.6.0 to (i) allow
-   2-4Gb objects on 32-bit system and (ii) objects limited only by
-   length on a 64-bit system.
-*/
-
 static int gc_reporting = 0;
 static int gc_count = 0;
 
@@ -59,8 +53,8 @@ extern SEXP framenames;
 #define GC_PROT(X) {int __t = gc_inhibit_torture; \
 	gc_inhibit_torture = 1 ; X ; gc_inhibit_torture = __t;}
 
-static void R_gc_internal(R_size_t size_needed);
-static void mem_err_heap(R_size_t size);
+static void R_gc_internal(int size_needed);
+static void mem_err_heap(long size);
 
 static SEXPREC UnmarkedNodeTemplate;
 #define NODE_IS_MARKED(s) (MARK(s)==1)
@@ -150,33 +144,35 @@ static int R_VGrowIncrMin = 80000, R_VShrinkIncrMin = 0;
 
 /* Maximal Heap Limits.  These variables contain upper limits on the
    heap sizes.  They could be made adjustable from the R level,
-   perhaps by a handler for a recoverable error.
+   perhaps by a handler for a recoverable error.  For now both are set
+   to INT_MAX to insure that the heap counters do not wrap on systems
+   with that much memory.
 
    Access to these values is provided with reader and writer
    functions; the writer function insures that the maximal values are
    never set below the current ones. */
-static R_size_t R_MaxVSize = R_SIZE_T_MAX;
-static R_size_t R_MaxNSize = R_SIZE_T_MAX;
+static int R_MaxVSize = INT_MAX;
+static int R_MaxNSize = INT_MAX;
 static int vsfac = 1; /* current units for vsize: changes at initialization */
 
-R_size_t R_GetMaxVSize(void) 
+int R_GetMaxVSize(void) 
 {
-    if (R_MaxVSize == R_SIZE_T_MAX) return R_SIZE_T_MAX;
+    if (R_MaxVSize == INT_MAX) return INT_MAX;
     return R_MaxVSize*vsfac;
 }
 
-void R_SetMaxVSize(R_size_t size)
+void R_SetMaxVSize(int size)
 {
-    if (size == R_SIZE_T_MAX) return;
+    if (size == INT_MAX) return;
     if (size / vsfac >= R_VSize) R_MaxVSize = (size+1)/sizeof(VECREC);
 }
 
-R_size_t R_GetMaxNSize(void) 
+int R_GetMaxNSize(void) 
 { 
     return R_MaxNSize;
 }
 
-void R_SetMaxNSize(R_size_t size)
+void R_SetMaxNSize(int size)
 {
     if (size >= R_NSize) R_MaxNSize = size;
 }
@@ -185,10 +181,10 @@ void R_SetMaxNSize(R_size_t size)
 /* Miscellaneous Globals. */
 
 static SEXP R_VStack = NULL;		/* R_alloc stack pointer */
-static R_size_t R_LargeVallocSize = 0;
-static R_size_t R_SmallVallocSize = 0;
-static R_size_t orig_R_NSize;
-static R_size_t orig_R_VSize;
+static int R_LargeVallocSize = 0;
+static int R_SmallVallocSize = 0;
+static int orig_R_NSize;
+static int orig_R_VSize;
 
 
 /* Node Classes.  Non-vector nodes are of class zero. Small vector
@@ -298,7 +294,7 @@ static struct {
     PAGE_HEADER *pages;
 } R_GenHeap[NUM_NODE_CLASSES];
 
-static R_size_t R_NodesInUse = 0;
+static int R_NodesInUse = 0;
 
 #define NEXT_NODE(s) (s)->gengc_next_node
 #define PREV_NODE(s) (s)->gengc_prev_node
@@ -360,7 +356,6 @@ static R_size_t R_NodesInUse = 0;
   case INTSXP: \
   case REALSXP: \
   case CPLXSXP: \
-  case WEAKREFSXP: \
     break; \
   case STRSXP: \
   case EXPRSXP: \
@@ -489,7 +484,7 @@ static void DEBUG_CHECK_NODE_COUNTS(char *where)
 static void DEBUG_GC_SUMMARY(int full_gc)
 {
     int i, gen, OldCount;
-    REprintf("\n%s, VSize = %lu", full_gc ? "Full" : "Minor",
+    REprintf("\n%s, VSize = %d", full_gc ? "Full" : "Minor",
 	     R_SmallVallocSize + R_LargeVallocSize);
     for (i = 1; i < NUM_NODE_CLASSES; i++) {
 	for (gen = 0, OldCount = 0; gen < NUM_OLD_GENERATIONS; gen++)
@@ -506,15 +501,15 @@ static void DEBUG_GC_SUMMARY(int full_gc)
 static void DEBUG_ADJUST_HEAP_PRINT(double node_occup, double vect_occup)
 {
     int i;
-    R_size_t alloc;
+    int alloc;
     REprintf("Node occupancy: %.0f%%\nVector occupancy: %.0f%%\n",
 	     100.0 * node_occup, 100.0 * vect_occup);
     alloc = R_LargeVallocSize +
 	sizeof(SEXPREC_ALIGN) * R_GenHeap[LARGE_NODE_CLASS].AllocCount;
     for (i = 0; i < NUM_SMALL_NODE_CLASSES; i++)
 	alloc += R_PAGE_SIZE * R_GenHeap[i].PageCount;
-    REprintf("Total allocation: %lu\n", alloc);
-    REprintf("Ncells %lu\nVcells %lu\n", R_NSize, R_VSize);
+    REprintf("Total allocation: %d\n", alloc);
+    REprintf("Ncells %d\nVcells %d\n", R_NSize, R_VSize);
 }
 #else
 #define DEBUG_ADJUST_HEAP_PRINT(node_occup, vect_occup)
@@ -551,7 +546,7 @@ static void GetNewPage(int node_class)
 
     page = malloc(R_PAGE_SIZE);
     if (page == NULL)
-	mem_err_heap((R_size_t) NodeClassSize[node_class]);
+	mem_err_heap(NodeClassSize[node_class]);
     page->next = R_GenHeap[node_class].pages;
     R_GenHeap[node_class].pages = page;
     R_GenHeap[node_class].PageCount++;
@@ -648,7 +643,7 @@ static void ReleaseLargeFreeVectors(void)
     while (s != R_GenHeap[LARGE_NODE_CLASS].New) {
 	SEXP next = NEXT_NODE(s);
 	if (CHAR(s) != NULL) {
-	    R_size_t size;
+	    int size;
 	    switch (TYPEOF(s)) {	/* get size in bytes */
 	    case CHARSXP:
 		size = LENGTH(s) + 1;
@@ -684,23 +679,23 @@ static void ReleaseLargeFreeVectors(void)
 
 /* Heap Size Adjustment. */
 
-static void AdjustHeapSize(R_size_t size_needed)
+static void AdjustHeapSize(int size_needed)
 {
-    R_size_t R_MinNFree = orig_R_NSize * R_MinFreeFrac;
-    R_size_t R_MinVFree = orig_R_VSize * R_MinFreeFrac;
-    R_size_t NNeeded = R_NodesInUse + R_MinNFree;
-    R_size_t VNeeded = R_SmallVallocSize + R_LargeVallocSize
+    int R_MinNFree = orig_R_NSize * R_MinFreeFrac;
+    int R_MinVFree = orig_R_VSize * R_MinFreeFrac;
+    int NNeeded = R_NodesInUse + R_MinNFree;
+    int VNeeded = R_SmallVallocSize + R_LargeVallocSize
 	+ size_needed + R_MinVFree;
     double node_occup = ((double) NNeeded) / R_NSize;
     double vect_occup =	((double) VNeeded) / R_VSize;
 
     if (node_occup > R_NGrowFrac) {
-	R_size_t change = R_NGrowIncrMin + R_NGrowIncrFrac * R_NSize;
-	if (R_MaxNSize >= R_NSize + change)
+	int change = R_NGrowIncrMin + R_NGrowIncrFrac * R_NSize;
+	if (R_MaxNSize - R_NSize >= change)
 	    R_NSize += change;
     }
     else if (node_occup < R_NShrinkFrac) {
-	R_NSize -= (R_NShrinkIncrMin + R_NShrinkIncrFrac * R_NSize);
+	R_NSize -= R_NShrinkIncrMin + R_NShrinkIncrFrac * R_NSize;
 	if (R_NSize < NNeeded)
 	    R_NSize = (NNeeded < R_MaxNSize) ? NNeeded: R_MaxNSize;
 	if (R_NSize < orig_R_NSize)
@@ -710,7 +705,7 @@ static void AdjustHeapSize(R_size_t size_needed)
     if (vect_occup > 1.0 && VNeeded < R_MaxVSize)
 	R_VSize = VNeeded;
     if (vect_occup > R_VGrowFrac) {
-	R_size_t change = R_VGrowIncrMin + R_VGrowIncrFrac * R_NSize;
+	int change = R_VGrowIncrMin + R_VGrowIncrFrac * R_NSize;
 	if (R_MaxVSize - R_VSize >= change)
 	    R_VSize += change;
     }
@@ -810,109 +805,27 @@ static void SortNodes(void)
 #endif
 
 
-/* Finalization and Weak References */
+/* Finalization */
 
-/* The design of this mechanism is very close to the one described in
-   "Stretching the storage manager: weak pointers and stable names in
-   Haskell" by Peyton Jones, Marlow, and Elliott (at
-   www.research.microsoft.com/Users/simonpj/papers/weak.ps.gz). --LT */
-
-static SEXP R_weak_refs = NULL;
-
-#define READY_TO_FINALIZE_MASK 1
-
-#define SET_READY_TO_FINALIZE(s) ((s)->sxpinfo.gp |= READY_TO_FINALIZE_MASK)
-#define CLEAR_READY_TO_FINALIZE(s) ((s)->sxpinfo.gp &= ~READY_TO_FINALIZE_MASK)
-#define IS_READY_TO_FINALIZE(s) ((s)->sxpinfo.gp & READY_TO_FINALIZE_MASK)
-
-#define FINALIZE_ON_EXIT_MASK 2
-
-#define SET_FINALIZE_ON_EXIT(s) ((s)->sxpinfo.gp |= FINALIZE_ON_EXIT_MASK)
-#define CLEAR_FINALIZE_ON_EXIT(s) ((s)->sxpinfo.gp &= ~FINALIZE_ON_EXIT_MASK)
-#define FINALIZE_ON_EXIT(s) ((s)->sxpinfo.gp & FINALIZE_ON_EXIT_MASK)
-
-#define WEAKREF_SIZE 4
-#define WEAKREF_KEY(w) VECTOR_ELT(w, 0)
-#define SET_WEAKREF_KEY(w, k) SET_VECTOR_ELT(w, 0, k)
-#define WEAKREF_VALUE(w) VECTOR_ELT(w, 1)
-#define SET_WEAKREF_VALUE(w, v) SET_VECTOR_ELT(w, 1, v)
-#define WEAKREF_FINALIZER(w) VECTOR_ELT(w, 2)
-#define SET_WEAKREF_FINALIZER(w, f) SET_VECTOR_ELT(w, 2, f)
-#define WEAKREF_NEXT(w) VECTOR_ELT(w, 3)
-#define SET_WEAKREF_NEXT(w, n) SET_VECTOR_ELT(w, 3, n)
-
-static SEXP MakeCFinalizer(R_CFinalizer_t cfun);
-
-static SEXP NewWeakRef(SEXP key, SEXP val, SEXP fin, Rboolean onexit)
-{
-    SEXP w;
-
-    switch (TYPEOF(key)) {
-    case NILSXP:
-    case ENVSXP:
-    case EXTPTRSXP:
-	break;
-    default: error("can only weakly reference/finalize reference objects");
-    }
-	
-    PROTECT(key);
-    PROTECT(val = NAMED(val) ? duplicate(val) : val);
-    PROTECT(fin);
-    w = allocVector(VECSXP, WEAKREF_SIZE);
-    SET_TYPEOF(w, WEAKREFSXP);
-    if (key != R_NilValue) {
-	/* If the key is R_NilValue we don't register the weak reference.
-	   This is used in loading saved images. */
-        SET_WEAKREF_KEY(w, key);
-	SET_WEAKREF_VALUE(w, val);
-	SET_WEAKREF_FINALIZER(w, fin);
-	SET_WEAKREF_NEXT(w, R_weak_refs);
-	CLEAR_READY_TO_FINALIZE(w);
-	if (onexit)
-	    SET_FINALIZE_ON_EXIT(w);
-	else
-	    CLEAR_FINALIZE_ON_EXIT(w);
-	R_weak_refs = w;
-    }
-    UNPROTECT(3);
-    return w;
-}
-
-SEXP R_MakeWeakRef(SEXP key, SEXP val, SEXP fin, Rboolean onexit)
-{
-    switch (TYPEOF(fin)) {
-    case NILSXP:
-    case CLOSXP:
-    case BUILTINSXP:
-    case SPECIALSXP:
-	break;
-    default: error("finalizer must be a function or NULL");
-    }
-    return NewWeakRef(key, val, fin, onexit);
-}
-
-SEXP R_MakeWeakRefC(SEXP key, SEXP val, R_CFinalizer_t fin, Rboolean onexit)
-{
-    SEXP w;
-    PROTECT(key);
-    PROTECT(val);
-    w = NewWeakRef(key, val, MakeCFinalizer(fin), onexit);
-    UNPROTECT(2);
-    return w;
-}
+static SEXP R_fin_registered = NULL;
 
 static void CheckFinalizers(void)
 {
     SEXP s;
-    for (s = R_weak_refs; s != R_NilValue; s = WEAKREF_NEXT(s))
-	if (! NODE_IS_MARKED(WEAKREF_KEY(s)) && ! IS_READY_TO_FINALIZE(s))
-	    SET_READY_TO_FINALIZE(s);
+    for (s = R_fin_registered; s != R_NilValue; s = CDR(s))
+	if (! NODE_IS_MARKED(CAR(s)) && s->sxpinfo.gp == 0)
+	    s->sxpinfo.gp = 1;
 }
 
 /* C finalizers are stored in a CHARSXP.  It would be nice if we could
    use EXTPTRSXP's but these only hold a void *, and function pointers
    are not guaranteed to be compatible with a void *.  There should be
-   a cleaner way of doing this, but this will do for now. --LT */
+   a cleaner way of doing this, but this will do until I get a chance
+   to redesign the finalization stuff to fit in with weak references.
+   I think the right thing to do is to implement the ideas in
+   "Stretching the storage manager: weak pointers and stable names in
+   Haskell" by Peyton Jones, Marlow, and Elliott (at
+   www.research.microsoft.com/Users/simonpj/papers/weak.ps.gz). --LT */
 static Rboolean isCFinalizer(SEXP fun)
 {
     return TYPEOF(fun) == CHARSXP;
@@ -933,60 +846,14 @@ static R_CFinalizer_t GetCFinalizer(SEXP fun)
     /*return (R_CFinalizer_t) R_ExternalPtrAddr(fun);*/
 }
 
-SEXP R_WeakRefKey(SEXP w)
-{
-    if (TYPEOF(w) != WEAKREFSXP)
-	error("not a weak reference");
-    return WEAKREF_KEY(w);
-}
-
-SEXP R_WeakRefValue(SEXP w)
-{
-    SEXP v;
-    if (TYPEOF(w) != WEAKREFSXP)
-	error("not a weak reference");
-    v = WEAKREF_VALUE(w);
-    if (v != R_NilValue && NAMED(v) != 2)
-	SET_NAMED(v, 2);
-    return v;
-}
-
-void R_RunWeakRefFinalizer(SEXP w)
-{
-    SEXP key, fun, e;
-    if (TYPEOF(w) != WEAKREFSXP)
-	error("not a weak reference");
-    key = WEAKREF_KEY(w);
-    fun = WEAKREF_FINALIZER(w);
-    SET_WEAKREF_KEY(w, R_NilValue);
-    SET_WEAKREF_VALUE(w, R_NilValue);
-    SET_WEAKREF_FINALIZER(w, R_NilValue);
-    if (! IS_READY_TO_FINALIZE(w))
-	SET_READY_TO_FINALIZE(w); /* insures removal from list on next gc */
-    PROTECT(key);
-    PROTECT(fun);
-    if (isCFinalizer(fun)) {
-	/* Must be a C finalizer. */
-	R_CFinalizer_t cfun = GetCFinalizer(fun);
-	cfun(key);
-    }
-    else if (fun != R_NilValue) {
-	/* An R finalizer. */
-	PROTECT(e = LCONS(fun, LCONS(key, R_NilValue)));
-	eval(e, R_GlobalEnv);
-	UNPROTECT(1);
-    }
-    UNPROTECT(2);
-}
-
 static Rboolean RunFinalizers(void)
 {
     volatile SEXP s, last;
     volatile Rboolean finalizer_run = FALSE;
 
-    for (s = R_weak_refs, last = R_NilValue; s != R_NilValue;) {
-	SEXP next = WEAKREF_NEXT(s);
-	if (IS_READY_TO_FINALIZE(s)) {
+    for (s = R_fin_registered, last = R_NilValue; s != R_NilValue;) {
+	SEXP next = CDR(s);
+	if (s->sxpinfo.gp != 0) {
 	    RCNTXT thiscontext;
 	    RCNTXT * volatile saveToplevelContext;
 	    volatile int savestack;
@@ -998,22 +865,37 @@ static Rboolean RunFinalizers(void)
 	       insure that any errors that might occur do not spill
 	       into the call that triggered the collection. */
 	    begincontext(&thiscontext, CTXT_TOPLEVEL, R_NilValue, R_GlobalEnv,
-			 R_NilValue, R_NilValue, R_NilValue);
+			 R_NilValue, R_NilValue);
 	    saveToplevelContext = R_ToplevelContext;
 	    PROTECT(topExp = R_CurrentExpr);
 	    savestack = R_PPStackTop;
 	    if (! SETJMP(thiscontext.cjmpbuf)) {
+		SEXP val, fun, e;
 		R_GlobalContext = R_ToplevelContext = &thiscontext;
 
-		/* The entry in the weak reference list is removed
+		/* The entry in the finalization list is removed
 		   before running the finalizer.  This insures that a
 		   finalizer is run only once, even if running it
 		   raises an error. */
 		if (last == R_NilValue)
-		    R_weak_refs = next;
+		    R_fin_registered = next;
 		else
-		    SET_WEAKREF_NEXT(last, next);
-		R_RunWeakRefFinalizer(s);
+		    SETCDR(last, next);
+		PROTECT(s);
+		val = CAR(s);
+		fun = TAG(s);
+		if (isCFinalizer(fun)) {
+		    /* Must be a C finalizer. */
+		    R_CFinalizer_t cfun = GetCFinalizer(fun);
+		    cfun(val);
+		}
+		else {
+		    /* An R finalizer. */
+		    PROTECT(e = LCONS(fun, LCONS(val, R_NilValue)));
+		    eval(e, R_GlobalEnv);
+		    UNPROTECT(1);
+		}
+		UNPROTECT(1);
 	    }
 	    endcontext(&thiscontext);
 	    R_ToplevelContext = saveToplevelContext;
@@ -1027,51 +909,39 @@ static Rboolean RunFinalizers(void)
     return finalizer_run;
 }
 
-void R_RunExitFinalizers(void)
-{
-    SEXP s;
-
-    for (s = R_weak_refs; s != R_NilValue; s = WEAKREF_NEXT(s))
-	if (FINALIZE_ON_EXIT(s))
-	    SET_READY_TO_FINALIZE(s);
-    RunFinalizers();
-}
-
-void R_RegisterFinalizerEx(SEXP s, SEXP fun, Rboolean onexit)
-{
-    R_MakeWeakRef(s, R_NilValue, fun, onexit);
-}
-
 void R_RegisterFinalizer(SEXP s, SEXP fun)
 {
-    R_RegisterFinalizerEx(s, fun, FALSE);
-}
-
-void R_RegisterCFinalizerEx(SEXP s, R_CFinalizer_t fun, Rboolean onexit)
-{
-    R_MakeWeakRefC(s, R_NilValue, fun, onexit);
+    switch (TYPEOF(s)) {
+    case ENVSXP:
+    case EXTPTRSXP:
+	switch (TYPEOF(fun)) {
+	case CLOSXP:
+	case BUILTINSXP:
+	case SPECIALSXP:
+	    break;
+	default:
+	    error("finalizer function must be a closure");
+	}
+	R_fin_registered = CONS(s, R_fin_registered);
+	SET_TAG(R_fin_registered, fun);
+	R_fin_registered->sxpinfo.gp = 0;
+	break;
+    default: error("can only finalize reference objects");
+    }
 }
 
 void R_RegisterCFinalizer(SEXP s, R_CFinalizer_t fun)
 {
-    R_RegisterCFinalizerEx(s, fun, FALSE);
+    /* We need to protect s since otherwise when R_MakeExternalPtr is
+       called, its only link visible to the garbage collector might be
+       the one in the finalization chain, resulting in it being
+       registered as elligible for finalization. */
+    PROTECT(s);
+    R_fin_registered = CONS(s, R_fin_registered);
+    SET_TAG(R_fin_registered, MakeCFinalizer(fun));
+    R_fin_registered->sxpinfo.gp = 0;
+    UNPROTECT(1);
 }
-
-/* R interface function */
-
-SEXP do_regFinaliz(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    checkArity(op, args);
-
-    if (TYPEOF(CAR(args)) != ENVSXP && TYPEOF(CAR(args)) != EXTPTRSXP)
-	errorcall(call, "1st arg must be environment or external pointer");
-    if (TYPEOF(CADR(args)) != CLOSXP)
-	errorcall(call, "2nd arg must be a function");
-    
-    R_RegisterFinalizer(CAR(args), CADR(args));
-    return R_NilValue;
-}
-
 
 /* The Generational Collector. */
 
@@ -1085,7 +955,7 @@ SEXP do_regFinaliz(SEXP call, SEXP op, SEXP args, SEXP rho)
     } \
 } while (0)
 
-static void RunGenCollect(R_size_t size_needed)
+static void RunGenCollect(int size_needed)
 {
     int i, gen, gens_collected;
     DevDesc *dd;
@@ -1162,7 +1032,6 @@ static void RunGenCollect(R_size_t size_needed)
     FORWARD_NODE(NA_STRING);
     FORWARD_NODE(R_BlankString);
     FORWARD_NODE(R_UnboundValue);
-    FORWARD_NODE(R_RestartToken);
     FORWARD_NODE(R_MissingArg);
     FORWARD_NODE(R_CommentSxp);
 
@@ -1177,24 +1046,12 @@ static void RunGenCollect(R_size_t size_needed)
 
     for (i = 0; i < R_MaxDevices; i++) {   /* Device display lists */
 	dd = GetDevice(i);
-	if (dd) {
-	    if (dd->newDevStruct) {
-		FORWARD_NODE(((GEDevDesc*) dd)->dev->displayList);
-		FORWARD_NODE(((GEDevDesc*) dd)->dev->savedSnapshot);
-	    }
-	    else
-		FORWARD_NODE(dd->displayList);
-	}
+	if (dd)
+	    FORWARD_NODE(dd->displayList);
     }
 
-    for (ctxt = R_GlobalContext ; ctxt != NULL ; ctxt = ctxt->nextcontext) {
-	FORWARD_NODE(ctxt->conexit);       /* on.exit expressions */
-	FORWARD_NODE(ctxt->promargs);	   /* promises supplied to closure */
-	FORWARD_NODE(ctxt->callfun);       /* the closure called */
-        FORWARD_NODE(ctxt->sysparent);     /* calling environment */
-	FORWARD_NODE(ctxt->call);          /* the call */
-	FORWARD_NODE(ctxt->cloenv);        /* the closure environment */
-    }
+    for (ctxt = R_GlobalContext ; ctxt != NULL ; ctxt = ctxt->nextcontext)
+	FORWARD_NODE(ctxt->conexit);           /* on.exit expressions */
 
     FORWARD_NODE(framenames); 		   /* used for interprocedure
 					      communication in model.c */
@@ -1209,37 +1066,11 @@ static void RunGenCollect(R_size_t size_needed)
     /* main processing loop */
     PROCESS_NODES();
 
-    /* identify weakly reachable nodes */
-    {
-	Rboolean recheck_weak_refs;
-	do {
-	    recheck_weak_refs = FALSE;
-	    for (s = R_weak_refs; s != R_NilValue; s = WEAKREF_NEXT(s)) {
-		if (NODE_IS_MARKED(WEAKREF_KEY(s))) {
-		    if (! NODE_IS_MARKED(WEAKREF_VALUE(s))) {
-			recheck_weak_refs = TRUE;
-			FORWARD_NODE(WEAKREF_VALUE(s));
-		    }
-		    if (! NODE_IS_MARKED(WEAKREF_FINALIZER(s))) {
-			recheck_weak_refs = TRUE;
-			FORWARD_NODE(WEAKREF_FINALIZER(s));
-		    }
-		}
-	    }
-	    PROCESS_NODES();
-	} while (recheck_weak_refs);
-    }
-
     /* mark nodes ready for finalizing */
     CheckFinalizers();
     
-    /* process the weak reference chain */
-    for (s = R_weak_refs; s != R_NilValue; s = WEAKREF_NEXT(s)) {
-	FORWARD_NODE(s);
-	FORWARD_NODE(WEAKREF_KEY(s));
-	FORWARD_NODE(WEAKREF_VALUE(s));
-	FORWARD_NODE(WEAKREF_FINALIZER(s));
-    }
+    /* process finalizers */
+    FORWARD_NODE(R_fin_registered);
     PROCESS_NODES();
 
     DEBUG_CHECK_NODE_COUNTS("after processing forwarded list");
@@ -1266,7 +1097,7 @@ static void RunGenCollect(R_size_t size_needed)
 
     if (num_old_gens_to_collect < NUM_OLD_GENERATIONS) {
 	if (R_Collected < R_MinFreeFrac * R_NSize ||
-	    VHEAP_FREE() < size_needed + R_MinFreeFrac * R_VSize) {
+	    VHEAP_FREE() - size_needed < R_MinFreeFrac * R_VSize) {
 	    num_old_gens_to_collect++;
 	    if (R_Collected <= 0 || VHEAP_FREE() < size_needed)
 		goto again;
@@ -1331,8 +1162,7 @@ SEXP do_gcinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_gc(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP value;
-    int ogc;
-    R_size_t onsize = R_NSize;
+    int ogc, onsize=R_NSize;
 
     checkArity(op, args);
     ogc = gc_reporting;
@@ -1344,24 +1174,23 @@ SEXP do_gc(SEXP call, SEXP op, SEXP args, SEXP rho)
     PROTECT(value = allocVector(INTSXP, 10));
     INTEGER(value)[0] = onsize - R_Collected;
     INTEGER(value)[1] = R_VSize - VHEAP_FREE();
-    /* carefully here: we can't report large sizes in R's integer */
-    INTEGER(value)[4] = (R_NSize < INT_MAX) ? R_NSize : NA_INTEGER;
-    INTEGER(value)[5] = (R_VSize < INT_MAX) ? R_VSize : NA_INTEGER;
-    /* next four are in 0.1Mb, rounded up */
+    INTEGER(value)[4] = R_NSize;
+    INTEGER(value)[5] = R_VSize;
+    /* next four are in 0.1Mb, rounded up; Mega = 1048576.; Mega/8 = 131072. */
     INTEGER(value)[2] = 10. * (onsize - R_Collected)/Mega * sizeof(SEXPREC) + 0.999;
-    INTEGER(value)[3] = 10. * (R_VSize - VHEAP_FREE())/Mega * vsfac + 0.999;
+    INTEGER(value)[3] = 10. * (R_VSize - VHEAP_FREE())/131072. + 0.999;
     INTEGER(value)[6] = 10. * R_NSize/Mega * sizeof(SEXPREC) + 0.999;
-    INTEGER(value)[7] = 10. * R_VSize/Mega * vsfac + 0.999;
-    INTEGER(value)[8] = (R_MaxNSize < R_SIZE_T_MAX) ? 
+    INTEGER(value)[7] = 10. * R_VSize/131072. + 0.999;
+    INTEGER(value)[8] = (R_MaxNSize < INT_MAX) ? 
 	(10. * R_MaxNSize/Mega * sizeof(SEXPREC) + 0.999) : NA_INTEGER;
-    INTEGER(value)[9] = (R_MaxVSize < R_SIZE_T_MAX) ? 
-	(10. * R_MaxVSize/Mega * vsfac + 0.999) : NA_INTEGER;
+    INTEGER(value)[9] = (R_MaxVSize < INT_MAX) ? 
+	(10. * R_MaxVSize/131072. + 0.999) : NA_INTEGER;
     UNPROTECT(1);
     return value;
 }
 
 
-static void mem_err_heap(R_size_t size)
+static void mem_err_heap(long size)
 {
     errorcall(R_NilValue, "vector memory exhausted (limit reached?)");
 }
@@ -1430,7 +1259,7 @@ void InitMemory()
     TAG(R_NilValue) = R_NilValue;
     ATTRIB(R_NilValue) = R_NilValue;
 
-    R_weak_refs = R_NilValue;
+    R_fin_registered = R_NilValue;
 }
 
 /* Since memory allocated from the heap is non-moving, R_alloc just
@@ -1449,7 +1278,7 @@ void vmaxset(char *ovmax)
 
 char *R_alloc(long nelem, int eltsize)
 {
-  R_size_t size = nelem * eltsize;
+  unsigned int size = nelem * eltsize;
   if (size > 0) {
     SEXP s = allocString(size); /**** avoid extra null byte?? */
     ATTRIB(s) = R_VStack;
@@ -1463,7 +1292,7 @@ char *R_alloc(long nelem, int eltsize)
 
 char *S_alloc(long nelem, int eltsize)
 {
-    R_size_t i, size  = nelem * eltsize;
+    unsigned int i, size  = nelem * eltsize;
     char *p = R_alloc(nelem, eltsize);
     for(i = 0; i < size; i++)
 	p[i] = 0;
@@ -1554,16 +1383,14 @@ SEXP cons(SEXP car, SEXP cdr)
   pairing the variable names given by the tags on "namelist" with
   the values given by the elements of "valuelist".
 
-  NewEnvironment is defined directly to avoid the need to protect its
-  arguments unless a GC will actually occur.  This definition allows
-  the namelist argument to be shorter than the valuelist; in this
-  case the remaining values must be named already.  (This is useful
-  in cases where the entire valuelist is already named--namelist can
-  then be R_NilValue
-
-  The valuelist is destructively modified and used as the
-  environment's frame.
 */
+
+/* NewEnvironment is defined directly do avoid the need to protect its
+   arguments unless a GC will actually occur.  This definition allows
+   the namelist argument to be shorter than the valuelist; in this
+   case the remaining values must be named already.  (This is useful
+   in cses where the entire valuelist is already named--namelist can
+   then be R_NilValue */
 SEXP NewEnvironment(SEXP namelist, SEXP valuelist, SEXP rho)
 {
     SEXP v, n, newrho;
@@ -1637,8 +1464,10 @@ SEXP allocVector(SEXPTYPE type, int length)
 		   work in terms of a VECSEXP here, but that would
 		   require several casts below... */
     int i;
-    R_size_t size = 0, alloc_size, old_R_VSize;
+    long size=0;
+    int alloc_size;
     int node_class;
+    int old_R_VSize;
 
     if (length < 0 )
 	errorcall(R_GlobalContext->call,
@@ -1654,44 +1483,28 @@ SEXP allocVector(SEXPTYPE type, int length)
     case INTSXP:
 	if (length <= 0)
 	    size = 0;
-	else {
-	    if (length > R_SIZE_T_MAX / sizeof(int))
-		errorcall(R_GlobalContext->call,
-			  "cannot allocate vector of length %d", length);
+	else
 	    size = INT2VEC(length);
-	}
 	break;
     case REALSXP:
 	if (length <= 0)
 	    size = 0;
-	else {
-	    if (length > R_SIZE_T_MAX / sizeof(double))
-		errorcall(R_GlobalContext->call,
-			  "cannot allocate vector of length %d", length);
+	else
 	    size = FLOAT2VEC(length);
-	}
 	break;
     case CPLXSXP:
 	if (length <= 0)
 	    size = 0;
-	else {
-	    if (length > R_SIZE_T_MAX / sizeof(Rcomplex))
-		errorcall(R_GlobalContext->call,
-			  "cannot allocate vector of length %d", length);
+	else
 	    size = COMPLEX2VEC(length);
-	}
 	break;
     case STRSXP:
     case EXPRSXP:
     case VECSXP:
 	if (length <= 0)
 	    size = 0;
-	else {
-	    if (length > R_SIZE_T_MAX / sizeof(SEXP))
-		errorcall(R_GlobalContext->call,
-			  "cannot allocate vector of length %d", length);
+	else
 	    size = PTR2VEC(length);
-	}
 	break;
     case LANGSXP:
 	if(length == 0) return R_NilValue;
@@ -1724,7 +1537,7 @@ SEXP allocVector(SEXPTYPE type, int length)
     old_R_VSize = R_VSize;
 
     /* we need to do the gc here so allocSExp doesn't! */
-    if (FORCE_GC || NO_FREE_NODES() || VHEAP_FREE() < alloc_size) {
+    if (FORCE_GC || NO_FREE_NODES() || alloc_size > VHEAP_FREE()) {
 	R_gc_internal(alloc_size);
 	if (NO_FREE_NODES())
 	    mem_err_cons();
@@ -1746,14 +1559,13 @@ SEXP allocVector(SEXPTYPE type, int length)
 		== NULL) {
 		/* reset the vector heap limit */
 		R_VSize = old_R_VSize;
-		errorcall(R_NilValue, "cannot allocate vector of size %lu Kb",
+		errorcall(R_NilValue, "cannot allocate vector of size %ld Kb",
 			  (size * sizeof(VECREC))/1024);
 	    }
 	    s->sxpinfo = UnmarkedNodeTemplate.sxpinfo;
 	    SET_NODE_CLASS(s, LARGE_NODE_CLASS);
-	    R_LargeVallocSize += size;
+	    R_LargeVallocSize += alloc_size;
 	    R_GenHeap[LARGE_NODE_CLASS].AllocCount++;
-	    R_NodesInUse++;
 	    SNAP_NODE(s, R_GenHeap[LARGE_NODE_CLASS].New);
 	}
 	ATTRIB(s) = R_NilValue;
@@ -1779,8 +1591,6 @@ SEXP allocVector(SEXPTYPE type, int length)
 	for (i = 0; i < length; i++)
 	    data[i] = R_BlankString;
     }
-    else if (type == CHARSXP)
-	CHAR(s)[length] = 0;
     return s;
 }
 
@@ -1802,7 +1612,7 @@ void R_gc(void)
     R_gc_internal(0);
 }
 
-#ifdef _R_HAVE_TIMING_
+#ifdef HAVE_TIMES
 double R_getClockIncrement(void);
 void R_getProcTime(double *data);
 
@@ -1810,33 +1620,27 @@ static double gctimes[5], gcstarttimes[5];
 
 SEXP do_gctime(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP ans;
-    ans = allocVector(REALSXP, 5);
-    REAL(ans)[0] = gctimes[0];
-    REAL(ans)[1] = gctimes[1];
-    REAL(ans)[2] = gctimes[2];
-    REAL(ans)[3] = gctimes[3];
-    REAL(ans)[4] = gctimes[4];
-    return ans;
+  SEXP ans;
+  ans = allocVector(REALSXP, 5);
+  REAL(ans)[0] = gctimes[0];
+  REAL(ans)[1] = gctimes[1];
+  REAL(ans)[2] = gctimes[2];
+  REAL(ans)[3] = gctimes[3];
+  REAL(ans)[4] = gctimes[4];
+  return ans;
 }
-#else /* not _R_HAVE_TIMING_ */
-SEXP do_gctime(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    error("gc.time is not implemented on this system");
-    return R_NilValue;		/* -Wall */
-}
-#endif /* not _R_HAVE_TIMING_ */
+#endif /* HAVE_TIMES */
 
 static void gc_start_timing(void)
 {
-#ifdef _R_HAVE_TIMING_
+#ifdef HAVE_TIMES
     R_getProcTime(gcstarttimes);
-#endif /* _R_HAVE_TIMING_ */
+#endif /* HAVE_TIMES */
 }
 
 static void gc_end_timing(void)
 {
-#ifdef _R_HAVE_TIMING_
+#ifdef HAVE_TIMES
     double times[5], delta;
     R_getProcTime(times);
     delta = R_getClockIncrement();
@@ -1847,12 +1651,12 @@ static void gc_end_timing(void)
     gctimes[2] += times[2] - gcstarttimes[2] + delta;
     gctimes[3] += times[3] - gcstarttimes[3];
     gctimes[4] += times[4] - gcstarttimes[4];
-#endif /* _R_HAVE_TIMING_ */
+#endif /* HAVE_TIMES */
 }
 
-static void R_gc_internal(R_size_t size_needed)
+static void R_gc_internal(int size_needed)
 {
-    R_size_t vcells;
+    int vcells;
     double vfrac;
     Rboolean first = TRUE;
 
@@ -1895,19 +1699,18 @@ static void R_gc_internal(R_size_t size_needed)
 SEXP do_memlimits(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans;
-    int nsize, vsize;
-    R_size_t tmp;
+    int nsize, vsize, tmp;
     
     checkArity(op, args);
     nsize = asInteger(CAR(args));
     vsize = asInteger(CADR(args));
-    if(nsize != NA_INTEGER) R_SetMaxNSize((R_size_t) nsize);
-    if(vsize != NA_INTEGER) R_SetMaxVSize((R_size_t) vsize);
+    if(nsize != NA_INTEGER) R_SetMaxNSize(nsize);
+    if(vsize != NA_INTEGER) R_SetMaxVSize(vsize);
     PROTECT(ans = allocVector(INTSXP, 2));
     tmp = R_GetMaxNSize();
-    INTEGER(ans)[0] = (tmp < INT_MAX) ? tmp : NA_INTEGER;
+    INTEGER(ans)[0] = (tmp == INT_MAX) ? NA_INTEGER : tmp;
     tmp = R_GetMaxVSize();
-    INTEGER(ans)[1] = (tmp < INT_MAX) ? tmp : NA_INTEGER;
+    INTEGER(ans)[1] = (tmp == INT_MAX) ? NA_INTEGER : tmp;
     UNPROTECT(1);
     return ans;
 }
@@ -1917,9 +1720,9 @@ SEXP do_memoryprofile(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP ans, nms;
     int i;
 
-    PROTECT(ans = allocVector(INTSXP, 24));
-    PROTECT(nms = allocVector(STRSXP, 24));
-    for (i = 0; i < 24; i++) {
+    PROTECT(ans = allocVector(INTSXP, 23));
+    PROTECT(nms = allocVector(STRSXP, 23));
+    for (i = 0; i < 23; i++) {
         INTEGER(ans)[i] = 0;
         SET_STRING_ELT(nms, i, R_BlankString);
     }
@@ -1943,7 +1746,6 @@ SEXP do_memoryprofile(SEXP call, SEXP op, SEXP args, SEXP env)
     SET_STRING_ELT(nms, VECSXP, mkChar("VECSXP"));
     SET_STRING_ELT(nms, EXPRSXP, mkChar("EXPRSXP"));
     SET_STRING_ELT(nms, EXTPTRSXP, mkChar("EXTPTRSXP"));
-    SET_STRING_ELT(nms, WEAKREFSXP, mkChar("WEAKREFSXP"));
     setAttrib(ans, R_NamesSymbol, nms);
 
     BEGIN_SUSPEND_INTERRUPTS {
@@ -2033,13 +1835,65 @@ void initStack(void)
 }
 
 
+/* Wrappers for malloc/alloc/free */
+/* These allow automatic freeing of malloc-ed */
+/* blocks during error recovery. */
+
+#define MAXPOINTERS 100
+static char *C_Pointers[MAXPOINTERS];
+
+void Init_C_alloc()
+{
+    int i;
+    for(i=0 ; i<MAXPOINTERS ; i++)
+	C_Pointers[i] = NULL;
+}
+
+void Reset_C_alloc()
+{
+    int i;
+    for(i=0 ; i<MAXPOINTERS ; i++) {
+	if(C_Pointers[i] != NULL)
+	    free(C_Pointers[i]);
+	C_Pointers[i] = NULL;
+    }
+}
+
+char *C_alloc(long nelem, int eltsize)
+{
+    int i;
+    for(i=0 ; i<MAXPOINTERS ; i++) {
+	if(C_Pointers[i] == NULL) {
+	    C_Pointers[i] = malloc(nelem * eltsize);
+	    if(C_Pointers[i] == NULL)
+		error("C_alloc(): unable to malloc memory");
+	    else return C_Pointers[i];
+	}
+    }
+    error("C_alloc(): all pointers in use (sorry)");
+    /*-Wall:*/return C_Pointers[0];
+}
+
+void C_free(char *p)
+{
+    int i;
+    for(i=0 ; i<MAXPOINTERS ; i++) {
+	if(C_Pointers[i] == p) {
+	    free(p);
+	    C_Pointers[i] = NULL;
+	    return;
+	}
+    }
+    error("C_free(): attempt to free pointer not allocated by C_alloc()");
+}
+
 /* S-like wrappers for calloc, realloc and free that check for error
    conditions */
 
 void *R_chk_calloc(size_t nelem, size_t elsize)
 {
     void *p;
-#ifndef HAVE_WORKING_CALLOC
+#ifdef CALLOC_BROKEN
     if(nelem == 0)
 	return(NULL);
 #endif
@@ -2050,8 +1904,7 @@ void *R_chk_calloc(size_t nelem, size_t elsize)
 void *R_chk_realloc(void *ptr, size_t size)
 {
     void *p;
-    /* Protect against broken realloc */
-    if(ptr) p = realloc(ptr, size); else p = malloc(size);
+    p = realloc(ptr, size);
     if(!p) error("Realloc could not re-allocate (size %d) memory", size);
     return(p);
 }

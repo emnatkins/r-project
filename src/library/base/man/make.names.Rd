@@ -21,11 +21,7 @@ make.names(names, unique = FALSE)
   A syntactically valid name consists of letters, numbers, and the dot
   character and starts with a letter or the dot.
 
-  All invalid characters are translated to \code{"."}.  A missing value
-  is translated to \code{"NA"}.
-
-  If \code{unique = TRUE} a sequence number is appended to each
-  duplicate (after coercion).
+  All invalid characters are translated to \code{"."}.
 }
 \seealso{
   \code{\link{names}},
@@ -34,6 +30,8 @@ make.names(names, unique = FALSE)
 }
 \examples{
 make.names(c("a and b", "a_and_b"), unique=TRUE)#-> "a.and.b"  "a.and.b1"
+
+all(make.names(letters) == letters)# TRUE
 
 data(state)
 state.name[make.names(state.name) != state.name]# those 10 with a space

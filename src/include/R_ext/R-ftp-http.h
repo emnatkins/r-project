@@ -1,5 +1,3 @@
-/* advertized entry points, for libxml */
-
 void *R_HTTPOpen(const char *url);
 int   R_HTTPRead(void *ctx, char *dest, int len);
 void  R_HTTPClose(void *ctx);
@@ -8,11 +6,10 @@ void *R_FTPOpen(const char *url);
 int   R_FTPRead(void *ctx, char *dest, int len);
 void  R_FTPClose(void *ctx);
 
-void *	RxmlNanoHTTPOpen(const char *URL, char **contentType, int cacheOK);
+void *	RxmlNanoHTTPOpen(const char *URL, char **contentType);
 int	RxmlNanoHTTPRead(void *ctx, void *dest, int len);
 void	RxmlNanoHTTPClose(void *ctx);
 int 	RxmlNanoHTTPReturnCode(void *ctx);
-char * 	RxmlNanoHTTPStatusMsg(void *ctx);
 int 	RxmlNanoHTTPContentLength(void *ctx);
 char *	RxmlNanoHTTPContentType(void *ctx);
 void	RxmlNanoHTTPTimeout(int delay);

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998, 2000, 2003  The R Development Core Team
+ *  Copyright (C) 1998, 2000  The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -62,9 +62,10 @@ static int  EdFileUsed = 0;
 void InitEd()
 {
 #ifdef Win32
-    DefaultFileName = R_tmpnam("Redit", R_TempDir);
+    char * Rwin32_tmpnam(char *);
+    DefaultFileName = Rwin32_tmpnam("Redit");
 #else
-    DefaultFileName = R_tmpnam(NULL, R_TempDir);
+    DefaultFileName = Runix_tmpnam(NULL);
 #endif
 }
 

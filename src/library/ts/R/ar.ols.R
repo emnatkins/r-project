@@ -10,8 +10,6 @@ ar.ols <- function (x, aic = TRUE, order.max = NULL, na.action = na.fail,
     if(any(is.na(x))) stop("NAs in x")
     if(ists)  xtsp <- tsp(x)
     x <- as.matrix(x)
-    if(!is.numeric(x))
-        stop("`x' must be numeric")
     n.used <- nrow(x)
     nser <- ncol(x)
     if(rescale) {
@@ -33,7 +31,7 @@ ar.ols <- function (x, aic = TRUE, order.max = NULL, na.action = na.fail,
 
     ## remove means for conditioning
     if(demean) {
-        xm <- colMeans(x)
+        xm <- apply(x, 2, mean)
         x <- sweep(x, 2, xm)
     } else xm <- rep(0, nser)
     ## Fit models of increasing order

@@ -41,14 +41,8 @@ double rbeta(double aa, double bb)
     static double olda = -1.0;
     static double oldb = -1.0;
 
-    if (aa <= 0. || bb <= 0. || (!R_FINITE(aa) && !R_FINITE(bb)))
+    if (aa <= 0. || bb <= 0.)
 	ML_ERR_return_NAN;
-
-    if (!R_FINITE(aa))
-    	return 1.0;
-
-    if (!R_FINITE(bb))
-    	return 0.0;
 
     /* Test if we need new "initializing" */
     qsame = (olda == aa) && (oldb == bb);

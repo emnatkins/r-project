@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999-2003 The R Development Core Team
+ *  Copyright (C) 1999-2001 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,94 +18,86 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
-#include <Defn.h>
-#if defined(HAVE_X11)
+#include "Defn.h"
+#include "R_ext/Rdynpriv.h"
 
-#include <R_ext/RX11.h>	     /* typedefs for the module routine types */
+#include "../unix/Runix.h"
+#include <sys/types.h>
+#include <sys/stat.h>
 
-static R_X11Routines routines, *ptr = &routines;
+#ifndef HAVE_NO_SYMBOL_UNDERSCORE
+# ifdef HAVE_ELF_H
+#  define HAVE_NO_SYMBOL_UNDERSCORE
+# endif
+#endif
 
-static int initialized = 0;
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
+#else
+#ifdef HAVE_DL_H
+#include "hpdlfcn.c"
+#define HAVE_DLFCN_H
+#endif
+#endif
 
-R_X11Routines *
-R_setX11Routines(R_X11Routines *routines)
+#if defined(HAVE_X11) && defined(HAVE_DLFCN_H)
+
+static DL_FUNC Rdlsym(void *handle, char const *name)
 {
-    R_X11Routines *tmp;
-    tmp = ptr;
-    ptr = routines;
-    return tmp;
+    char buf[MAXIDSIZE+1];
+#ifdef HAVE_NO_SYMBOL_UNDERSCORE
+    sprintf(buf, "%s", name);
+#else
+    sprintf(buf, "_%s", name);
+#endif
+    return (DL_FUNC) dlsym(handle, buf);
 }
 
-static void X11_Init(void)
+
+extern DL_FUNC ptr_X11DeviceDriver, ptr_dataentry, ptr_R_GetX11Image;
+
+/* This is called too early to use moduleCdynload */
+void R_load_X11_shlib(void)
 {
-    int res;
+    char X11_DLL[PATH_MAX], buf[1000], *p;
+    void *handle;
+    struct stat sb;
 
-    initialized = -1;
-    if(strcmp(R_GUIType, "X11") && strcmp(R_GUIType, "GNOME") &&
-	    strcmp(R_GUIType, "Tk")) {
-	warning("X11 module is not available under this GUI");
-	return;
+    p = getenv("R_HOME");
+    if(!p) {
+	sprintf(buf, "R_HOME was not set");
+	R_Suicide(buf);
     }
-    res = moduleCdynload("R_X11", 1, 1);
-    if(!res) return;
-    initialized = 1;    
-    return;
-}
-
-
-SEXP do_X11(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    if(!initialized) X11_Init();
-    if(initialized > 0)
-	return (*ptr->X11)(call, op, args, rho);
-    else {
-	error("R_X11 module cannot be loaded");
-	return R_NilValue;
+    strcpy(X11_DLL, p);
+    strcat(X11_DLL, "/modules/R_X11.");
+    strcat(X11_DLL, SHLIB_EXT); /* from config.h */
+    if(stat(X11_DLL, &sb))
+	R_Suicide("Probably no X11 support: the shared library was not found");
+#ifdef RTLD_NOW
+    handle = dlopen(X11_DLL, RTLD_NOW);
+#else
+    handle = dlopen(X11_DLL, 0);
+#endif
+    if(handle == NULL) {
+	sprintf(buf, "The X11 shared library could not be loaded.\n  The error was %s\n", dlerror());
+	R_Suicide(buf);
     }
-}
-
-SEXP do_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    if(!initialized) X11_Init();
-    if(initialized > 0)
-	return (*ptr->de)(call, op, args, rho);
-    else {
-	error("R_X11 module cannot be loaded");
-	return R_NilValue;
-    }
-}
-
-Rboolean R_GetX11Image(int d, void *pximage, int *pwidth, int *pheight)
-{
-    if(!initialized) X11_Init();
-    if(initialized > 0)
-	return (*ptr->image)(d, pximage, pwidth, pheight);
-    else {
-	error("R_X11 module cannot be loaded");
-	return FALSE;
-    }
+    ptr_X11DeviceDriver = Rdlsym(handle, "X11DeviceDriver");
+    if(!ptr_X11DeviceDriver) R_Suicide("Cannot load X11DeviceDriver");
+    ptr_dataentry = Rdlsym(handle, "RX11_dataentry");
+    if(!ptr_dataentry) R_Suicide("Cannot load do_dataentry");
+    ptr_R_GetX11Image = Rdlsym(handle, "R_GetX11Image");
+    if(!ptr_R_GetX11Image) R_Suicide("Cannot load R_GetX11Image");
 }
 
 #else
 
-SEXP do_X11(SEXP call, SEXP op, SEXP args, SEXP rho)
+void R_load_X11_shlib()
 {
-    error("X11 is not available");
-    return R_NilValue;
+    R_Suicide("no support to load X11 shared library in this R version");
 }
 
-SEXP do_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    error("X11 is not available");
-    return R_NilValue;
-}
-
-Rboolean R_GetX11Image(int d, void *pximage, int *pwidth, int *pheight)
-{
-    error("X11 is not available");
-    return FALSE;
-}
 #endif

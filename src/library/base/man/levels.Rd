@@ -16,9 +16,6 @@ levels(x) <- value
   function and new methods can be written for it.
   The most important method is that for \code{\link{factor}}s:
 }
-\arguments{
-  \item{x}{an object, for example a factor.}
-}
 \seealso{\code{\link{levels<-.factor}}, \code{\link{nlevels}}.
 }
 \keyword{category}

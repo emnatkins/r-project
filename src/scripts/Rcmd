@@ -23,22 +23,20 @@ fi
 . ${R_HOME}/etc/Renviron
 export `sed 's/^ *#.*//; s/^\(.*\)=.*/\1/' ${R_HOME}/etc/Renviron`
 
+PATH="${R_HOME}/bin:${PATH}" 
 case "${1}" in
   perl)
-    cmd="${PERL}" ;;
+    shift;
+    exec ${PERL} "${@}"
+    ;;
   awk)
-    cmd="${AWK}"  ;;
+    shift;
+    exec ${AWK}  "${@}"
+    ;;
   *)
-    if test -x "${R_HOME}/bin/${1}"; then
-      cmd="${R_HOME}/bin/${1}"
-    else
-      cmd="${1}"
-    fi
+    exec "${@}"
     ;;
 esac
-shift
-
-exec "${cmd}" "${@}"
 
 ### Local Variables: ***
 ### mode: sh ***

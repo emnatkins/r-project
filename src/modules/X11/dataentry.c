@@ -301,7 +301,7 @@ SEXP RX11_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     /* set up a context which will close the window if there is an error */
     begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_NilValue, R_NilValue,
-		 R_NilValue, R_NilValue);
+		 R_NilValue);
     cntxt.cend = &closewin_cend;
     cntxt.cenddata = NULL;
 
@@ -1151,6 +1151,7 @@ static void eventloop(void)
 		if(ioevent.xclient.message_type == _XA_WM_PROTOCOLS
 		   && ioevent.xclient.data.l[0] == protocol) {
 		    /* user clicked on `close' aka `destroy' */
+		       closewin();
 		       done = 1;
 		}
 		break;
@@ -1183,22 +1184,19 @@ static void doSpreadKey(int key, DEEvent * event)
 	advancerect(RIGHT);
     else if (iokey == XK_Up)
 	advancerect(UP);
-#ifdef XK_Page_Up
-    else if (iokey == XK_Page_Up) {
-	int i = rowmin - nhigh + 2;
-	jumpwin(colmin, max(1, i));
-    }
-#elif defined(XK_Prior)
+#ifdef _AIX
     else if (iokey == XK_Prior) {
 	int i = rowmin - nhigh + 2;
 	jumpwin(colmin, max(1, i));
     }
-#endif
-#ifdef XK_Page_Down
-    else if (iokey == XK_Page_Down)
-	jumpwin(colmin, rowmax);
-#elif defined(XK_Next)
     else if (iokey == XK_Next)
+	jumpwin(colmin, rowmax);
+#else
+    else if (iokey == XK_Page_Up) {
+	int i = rowmin - nhigh + 2;
+	jumpwin(colmin, max(1, i));
+    }
+    else if (iokey == XK_Page_Down)
 	jumpwin(colmin, rowmax);
 #endif
     else if ((iokey == XK_BackSpace) || (iokey == XK_Delete)) {
@@ -1248,7 +1246,7 @@ static KeySym GetKey(DEEvent * event)
     char text[1];
     KeySym iokey;
 
-    XLookupString(event, text, 1, &iokey, 0);
+    XLookupString(event, text, 10, &iokey, 0);
     return iokey;
 }
 

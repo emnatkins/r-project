@@ -1,7 +1,6 @@
-eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
+eigen <- function(x, symmetric, only.values=FALSE)
 {
     x <- as.matrix(x)
-    dimnames(x) <- list(NULL, NULL)  # or they appear on eigenvectors
     n <- nrow(x)
     if (!n)
         stop("0 x 0 matrix")
@@ -22,23 +21,6 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
         }
     }
     else stop("numeric or complex values required in eigen")
-    if (!EISPACK) {
-        if (symmetric) {
-            z <- if(!complex.x)
-                .Call("La_rs", x, only.values, "dsyevr", PACKAGE = "base")
-            else
-                .Call("La_rs_cmplx", x, only.values, PACKAGE = "base")
-            ord <- rev(seq(along = z$values))
-        } else {
-            z <- if(!complex.x)
-                .Call("La_rg", x, only.values, PACKAGE = "base")
-            else
-                .Call("La_rg_cmplx", x, only.values, PACKAGE = "base")
-            ord <- sort.list(Mod(z$values), decreasing = TRUE)
-        }
-        return(list(values = z$values[ord],
-                    vectors = if (!only.values) z$vectors[, ord]))
-    }
 
     dbl.n <- double(n)
     if(symmetric) {##--> real values
@@ -80,7 +62,7 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 	    if (z$ierr)
 		stop(paste("rs returned code ", z$ierr, " in eigen"))
 	}
-	ord <- sort.list(z$values, decreasing = TRUE)
+	ord <- rev(order(z$values))
     }
     else {##- Asymmetric :
 	if(complex.x) {
@@ -134,7 +116,7 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 		}
 	    }
 	}
-	ord <- sort.list(Mod(z$values), decreasing = TRUE)
+	ord <- rev(order(Mod(z$values)))
     }
     list(values = z$values[ord],
 	 vectors = if(!only.values) z$vectors[,ord])

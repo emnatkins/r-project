@@ -3,40 +3,32 @@ all.equal <- function(target, current, ...) UseMethod("all.equal")
 all.equal.default <- function(target, current, ...)
 {
     ## Really a dispatcher given mode() of args :
-    ## use data.class as unlike class it does not give "Integer"
     if(is.language(target) || is.function(target))
 	return(all.equal.language(target, current, ...))
     if(is.recursive(target))
 	return(all.equal.list(target, current, ...))
     msg <- c(attr.all.equal(target, current, ...),
-	     if(is.numeric(target)) {
-		 all.equal.numeric(target, current, ...)
-	     } else
-	     switch (mode(target),
-		     logical = ,
-		     complex = ,
-		     numeric = all.equal.numeric(target, current, ...),
-		     character = all.equal.character(target, current, ...),
-		      if(data.class(target) != data.class(current)) {
-		 paste("target is ", data.class(target), ", current is ",
-		       data.class(current), sep = "")
-	     } else NULL))
+	     if(data.class(target) != data.class(current))
+		paste("target is ", data.class(target), ", current is ",
+		      data.class(current), sep = "") else
+		switch (mode(target),
+			logical = ,
+                        complex = ,
+			numeric	  = all.equal.numeric(target, current, ...),
+			character = all.equal.character(target, current, ...),
+			NULL))
     if(is.null(msg)) TRUE else msg
 }
 
 all.equal.numeric <-
-function(target, current, tolerance = .Machine$double.eps ^ .5,
-         scale=NULL, ...)
+function(target, current, tolerance = .Machine$double.eps ^ .5, scale=NULL)
 {
-    if(data.class(target) != data.class(current))
-        return(paste("target is ", data.class(target), ", current is ",
-		       data.class(current), sep = ""))
     lt <- length(target)
     lc <- length(current)
     cplx <- is.complex(target)
     if(lt != lc)
 	return(paste(if(cplx)"Complex" else "Numeric",
-                     ": lengths (", lt, ", ", lc, ") differ", sep = ""))
+                     ": lengths (", lt, ", ", lc, ") differ"), sep = "")
     else msg <- NULL
     target <- as.vector(target)
     current <- as.vector(current)
@@ -66,9 +58,6 @@ function(target, current, tolerance = .Machine$double.eps ^ .5,
 
 all.equal.character <- function(target, current, ...)
 {
-    if(data.class(target) != data.class(current))
-        return(paste("target is ", data.class(target), ", current is ",
-		       data.class(current), sep = ""))
     lt <- length(target)
     lc <- length(current)
     if(lt != lc) {
@@ -79,11 +68,7 @@ all.equal.character <- function(target, current, ...)
 	target <- target[ll]
 	current <- current[ll]
     } else msg <- NULL
-    nas <- is.na(target)
-    if (any(nas != is.na(current)))
-        return(paste("`is.NA' value mismatches:", sum(is.na(current)),
-                     "in current,", sum(nas), " in target"))
-    ne <- !nas & (target != current)
+    ne <- target != current
     if(!any(ne) && is.null(msg)) TRUE
     else if(any(ne)) c(msg, paste(sum(ne), "string mismatches"))
     else msg

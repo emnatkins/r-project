@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2002  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--2001  Robert Gentleman, Ross Ihaka and the
  *                            R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -19,10 +19,10 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* See ../unix/system.txt for a description of functions */
+         /* See ../unix/system.txt for a description of functions */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
 #include "Defn.h"
@@ -32,17 +32,12 @@
 #include "console.h"
 #include "rui.h"
 #include "getline/getline.h"
-#include <windows.h>		/* for CreateEvent,.. */
-#include <process.h>		/* for _beginthread,... */
-#include <io.h>			/* for isatty, chdir */
+#include <windows.h>  /* for CreateEvent,.. */
+#include <process.h> /* for _beginthread,... */
 #include "run.h"
 #include "Startup.h"
-#include <stdlib.h>		/* for exit */
-void CleanTempDir();		/* from extra.c */
 
-
-R_size_t R_max_memory = INT_MAX;
-Rboolean UseInternet2 = FALSE;
+unsigned int R_max_memory = INT_MAX;
 
 SA_TYPE SaveAction = SA_DEFAULT;
 SA_TYPE RestoreAction = SA_RESTORE;
@@ -50,7 +45,7 @@ Rboolean LoadSiteFile = TRUE;
 Rboolean LoadInitFile = TRUE;
 Rboolean DebugInitFile = FALSE;
 
-__declspec(dllexport) UImode  CharacterMode;
+UImode  CharacterMode;
 int ConsoleAcceptCmd;
 void closeAllHlpFiles();
 void UnLoad_Unzip_Dll();
@@ -67,7 +62,7 @@ static DWORD mainThreadId;
 
 static char oldtitle[512];
 
-__declspec(dllexport) Rboolean UserBreak = FALSE;
+Rboolean UserBreak = FALSE;
 
 /* callbacks */
 static void (*R_CallBackHook) ();
@@ -177,7 +172,6 @@ void Rconsolesetwidth(int cols)
 static int
 GuiReadConsole(char *prompt, char *buf, int len, int addtohistory)
 {
-    int res;
     char *p;
     char *NormalPrompt =
 	(char *) CHAR(STRING_ELT(GetOption(install("prompt"), R_NilValue), 0));
@@ -187,12 +181,12 @@ GuiReadConsole(char *prompt, char *buf, int len, int addtohistory)
 	Rconsolesetwidth(consolecols(RConsole));
     }
     ConsoleAcceptCmd = !strcmp(prompt, NormalPrompt);
-    res = consolereads(RConsole, prompt, buf, len, addtohistory);
+    consolereads(RConsole, prompt, buf, len, addtohistory);
     for (p = buf; *p; p++)
 	if (*p == EOF)
 	    *p = '\001';
     ConsoleAcceptCmd = 0;
-    return !res;
+    return 1;
 }
 
 
@@ -246,9 +240,9 @@ ThreadedReadConsole(char *prompt, char *buf, int len, int addtohistory)
 static int
 CharReadConsole(char *prompt, char *buf, int len, int addtohistory)
 {
-   int res = getline(prompt,buf,len);
+   getline(prompt,buf,len);
    if (addtohistory) gl_histadd(buf);
-   return !res;
+   return 1;
 }
 
 /*3: (as InThreadReadConsole) and 4: non-interactive */
@@ -357,7 +351,6 @@ void R_Busy(int which)
  */
 
 void R_dot_Last(void);		/* in main.c */
-void R_RunExitFinalizers(void);	/* in memory.c */
 
 
 void R_CleanUp(SA_TYPE saveact, int status, int runLast)
@@ -397,17 +390,13 @@ void R_CleanUp(SA_TYPE saveact, int status, int runLast)
     default:
 	break;
     }
-    R_RunExitFinalizers();
     CleanEd();
-    CleanTempDir();
     closeAllHlpFiles();
     KillAllDevices();
     AllDevicesKilled = TRUE;
     if (R_Interactive && CharacterMode == RTerm) 
 	SetConsoleTitle(oldtitle);
-#if 0
     UnLoad_Unzip_Dll();
-#endif
     UnLoad_Rbitmap_Dll();
     if (R_CollectWarnings && saveact != SA_SUICIDE
 	&& CharacterMode == RTerm)
@@ -528,12 +517,7 @@ void R_ShowMessage(char *s)
 static void char_message(char *s)
 {
     if (!s) return;
-    if (R_Consolefile) {
-	/* flush out standard output in case it uses R_Consolefile */
-	if (R_Outputfile) fflush(R_Outputfile);
-	fprintf(R_Consolefile, "%s\n", s);
-	fflush(R_Consolefile);
-    } else R_WriteConsole(s, strlen(s));
+    R_WriteConsole(s, strlen(s));
 }
 
 static int char_yesnocancel(char *s)
@@ -591,15 +575,11 @@ void R_SetWin32(Rstart Rp)
     pR_ShowMessage = Rp->message;
     R_yesnocancel = Rp->yesnocancel;
     my_R_Busy = Rp->busy;
-    /* Process R_HOME/etc/Renviron.site, then
-       .Renviron or ~/.Renviron, if it exists. 
+    /* Process .Renviron or ~/.Renviron, if it exists. 
        Only used here in embedded versions */
-    if(!Rp->NoRenviron) {
-	process_site_Renviron();
-	process_user_Renviron();
-    }
+    if(!Rp->NoRenviron)
+	process_users_Renviron();
     _controlfp(_MCW_EM, _MCW_EM);
-    _controlfp(_PC_64, _MCW_PC);
 }
 
 
@@ -635,7 +615,7 @@ static void env_command_line(int *pac, char **argv)
 int cmdlineoptions(int ac, char **av)
 {
     int   i, ierr;
-    R_size_t value;
+    long value;
     char *p;
     char  s[1024];
     structRstart rstart;
@@ -643,10 +623,7 @@ int cmdlineoptions(int ac, char **av)
     MEMORYSTATUS ms;
     Rboolean usedRdata = FALSE;
 
-    /* ensure R_Home gets set early: we are in rgui or rterm here */
-    R_Home = getRHOME();
-    
-#ifdef _R_HAVE_TIMING_
+#ifdef HAVE_TIMES
     R_setStartTime();
 #endif
 
@@ -662,7 +639,7 @@ int cmdlineoptions(int ac, char **av)
     /* set defaults for R_max_memory. This is set here so that
        embedded applications get no limit */
     GlobalMemoryStatus(&ms);
-    R_max_memory = min(1024 * Mega, ms.dwTotalPhys);
+    R_max_memory = min(256 * Mega, ms.dwTotalPhys);
     /* need enough to start R: fails on a 8Mb system */
     R_max_memory = max(16 * Mega, R_max_memory);
     
@@ -676,7 +653,7 @@ int cmdlineoptions(int ac, char **av)
     Rp->CallBack = R_DoNothing;
     InThreadReadConsole = NULL;
     if (CharacterMode == RTerm) {
-	if (isatty(0) && isatty(1)) {
+	if (isatty(0)) {
 	    Rp->R_Interactive = TRUE;
 	    Rp->ReadConsole = ThreadedReadConsole;
             InThreadReadConsole = CharReadConsole;
@@ -684,7 +661,7 @@ int cmdlineoptions(int ac, char **av)
 	    Rp->R_Interactive = FALSE;
 	    Rp->ReadConsole = FileReadConsole;
 	}
-	R_Consolefile = stderr; /* used for errors */
+	R_Consolefile = stdout; /* used for errors */
 	R_Outputfile = stdout;  /* used for sink-able output */
         Rp->WriteConsole = TermWriteConsole;
 	Rp->message = char_message;
@@ -707,8 +684,7 @@ int cmdlineoptions(int ac, char **av)
      * precedence:  command-line, .Renviron, inherited
      */
     if(!Rp->NoRenviron) {
-	process_site_Renviron();
-	process_user_Renviron();
+	process_users_Renviron();
 	Rp->NoRenviron = TRUE;
     }
     env_command_line(&ac, av);
@@ -725,8 +701,6 @@ int cmdlineoptions(int ac, char **av)
 		Rp->R_Interactive = TRUE;
 		Rp->ReadConsole = ThreadedReadConsole;
                 InThreadReadConsole = FileReadConsole;
-	    } else if (!strcmp(*av, "--internet2")) {
-		UseInternet2 = TRUE;
 	    } else if (!strcmp(*av, "--mdi")) {
 		MDIset = 1;
 	    } else if (!strcmp(*av, "--sdi") || !strcmp(*av, "--no-mdi")) {
@@ -741,7 +715,7 @@ int cmdlineoptions(int ac, char **av)
 		    R_ShowMessage("WARNING: no max-mem-size given\n");
 		    break;
 		}
-		value = R_Decode2Long(p, &ierr);
+		value = Decode2Long(p, &ierr);
 		if(ierr) {
 		    if(ierr < 0)
 			sprintf(s, "WARNING: --max-mem-size value is invalid: ignored\n");
@@ -787,7 +761,7 @@ int cmdlineoptions(int ac, char **av)
 	    }
 	}
     }
-    Rp->rhome = R_Home;
+    Rp->rhome = getRHOME();
 
     R_tcldo = tcl_do_none;
 /*
@@ -824,7 +798,7 @@ int cmdlineoptions(int ac, char **av)
     R_HistorySize = 512;
     if ((p = getenv("R_HISTSIZE"))) {
 	int value, ierr;
-	value = R_Decode2Long(p, &ierr);
+	value = Decode2Long(p, &ierr);
 	if (ierr != 0 || value < 0)
 	    REprintf("WARNING: invalid R_HISTSIZE ignored;");
 	else

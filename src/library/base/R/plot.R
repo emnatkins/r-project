@@ -1,5 +1,3 @@
-## NOTE that xyz.coords() in ./xyz.coords.R  should be kept in sync!
-##
 xy.coords <- function(x, y, xlab=NULL, ylab=NULL, log=NULL, recycle = FALSE)
 {
     if(is.null(y)) {
@@ -88,33 +86,27 @@ xy.coords <- function(x, y, xlab=NULL, ylab=NULL, log=NULL, recycle = FALSE)
     return(list(x=as.real(x), y=as.real(y), xlab=xlab, ylab=ylab))
 }
 
-plot <- function (x, y, ...)
-{
-    if (is.null(attr(x, "class")) && is.function(x)) {
-	nms <- names(list(...))
-	## need to pass `y' to plot.function() when positionally matched
-	if(missing(y)) # set to defaults {could use formals(plot.default)}:
-	    y <- { if (!"from" %in% nms) 0 else
-		   if (!"to"   %in% nms) 1 else
-		   if (!"xlim" %in% nms) NULL }
-	if ("ylab" %in% nms)
-	    plot.function(x,  y, ...)
+plot <- function(x, ...) {
+    if(is.null(class(x)) && is.function(x)) {
+	if("ylab" %in% names(list(...)))
+	    plot.function(x, ...)
 	else
-	    plot.function(x, y, ylab=paste(deparse(substitute(x)),"(x)"), ...)
+	    plot.function(x, ylab=paste(deparse(substitute(x)),"(x)"), ...)
     }
     else UseMethod("plot")
 }
 
 ## xlim = NULL (instead of "missing", since it will be passed to plot.default:
-plot.function <- function(x, from = 0, to = 1, xlim = NULL, ...) {
+plot.function <- function(fn, from = 0, to = 1, xlim = NULL, ...) {
     if(!is.null(xlim)) {
 	if(missing(from)) from <- xlim[1]
 	if(missing(to))	  to   <- xlim[2]
     }
-    curve(x, from, to, xlim = xlim, ...)
+    curve(fn, from, to, xlim = xlim, ...)
 }
 
-## NOTE: cex = 1 is correct, cex = par("cex") gives *square* of intended!
+### NOTE: cex = 1 is correct, cex = par("cex") gives *square* of intended!
+
 plot.default <- function(x, y=NULL, type="p", xlim=NULL, ylim=NULL,
 			 log="", main=NULL, sub=NULL, xlab=NULL, ylab=NULL,
 			 ann=par("ann"), axes=TRUE, frame.plot=axes,
@@ -132,7 +124,7 @@ plot.default <- function(x, y=NULL, type="p", xlim=NULL, ylim=NULL,
     ylim <- if (is.null(ylim)) range(xy$y[is.finite(xy$y)]) else ylim
     plot.new()
     plot.window(xlim, ylim, log, asp, ...)
-    panel.first # eval() is wrong here {Ross I.}
+    panel.first
     plot.xy(xy, type, col=col, pch=pch, cex=cex, bg=bg, lty=lty, lwd=lwd, ...)
     panel.last
     if (axes) {
@@ -166,34 +158,29 @@ plot.factor <- function(x, y, legend.text=levels(y), ...)
 ## FIXME (ideas/wishes):
 ## o for 1-D tables:
 ##   - alternatively, and/or as default, type = "bar" ??!??
-##   - if "h", make the default lwd depend on number of classes instead of lwd=2
-plot.table <-
-    function(x, type = "h", ylim = c(0, max(x)), lwd = 2,
-             xlab = NULL, ylab = NULL, frame.plot = is.num, ...)
+##   - if "h", make the default lwd depend on number of classes
+plot.table <- function(x, type = "h", ylim = c(0, max(x)), lwd = 2,
+                       xlab = NULL, ylab = deparse(substitute(x)),
+                       frame.plot = is.num,
+                       ...)
 {
-    xnam <- deparse(substitute(x))
     rnk <- length(d <- dim(x))
     if(rnk == 0)
 	stop("invalid table `x'")
     if(rnk == 1) {
-	dn <- dimnames(x)
-	nx <- dn[[1]]
-	if(is.null(xlab)) xlab <- names(dn)
-	if(is.null(xlab)) xlab <- ""
-	if(is.null(ylab)) ylab <- xnam
-	ow <- options(warn = -1)
-	is.num <- !any(is.na(xx <- as.numeric(nx))); options(ow)
-	x0 <- if(is.num) xx else seq(x)
+        dn <- dimnames(x)
+        nx <- dn[[1]]
+        if(is.null(xlab)) xlab <- names(dn)
+        if(is.null(xlab)) xlab <- ""
+        ow <- options(warn = -1)
+        is.num <- !any(is.na(xx <- as.numeric(nx))); options(ow)
+        x0 <- if(is.num) xx else seq(x)
 	plot(x0, unclass(x), type = type,
-	     ylim = ylim, xlab = xlab, ylab = ylab, frame.plot = frame.plot,
-	     lwd = lwd, ..., xaxt = "n")
-	xaxt <-
-	    if(length(as <- list(...))) {
-		if(!is.null(as$axes) && !as$axes) "n" else as$xaxt
-	    }## else NULL
-	axis(1, at = x0, labels = nx, xaxt = xaxt)
+             ylim = ylim, xlab = xlab, ylab = ylab, frame.plot = frame.plot,
+             lwd = lwd, ..., xaxt = "n")
+        axis(1, at = x0, labels = nx)
     } else
-	mosaicplot(x, xlab = xlab, ylab = ylab, ...)
+	mosaicplot(x, ...)
 }
 
 plot.formula <-
@@ -205,18 +192,15 @@ function(formula, data = parent.frame(), ..., subset,
 	m$data <- as.data.frame(data)
     dots <- m$...
     dots <- lapply(dots, eval, data, parent.frame())
-    m$ylab <- m$... <- m$ask <- NULL
-    subset.expr <- m$subset
-    m$subset <- NULL
+    m$ylab <- m$... <- NULL
     m[[1]] <- as.name("model.frame")
     m <- as.call(c(as.list(m), list(na.action = NULL)))
     mf <- eval(m, parent.frame())
     if (!missing(subset)) {
-	s <- eval(subset.expr, data, parent.frame())
+	s <- eval(m$subset, data, parent.frame())
 	l <- nrow(mf)
 	dosub <- function(x) if (length(x) == l) x[s] else x
 	dots <- lapply(dots, dosub)
-	mf <- mf[s,]
     }
     response <- attr(attr(mf, "terms"), "response")
     if (response) {
@@ -359,4 +343,4 @@ plot.xy <- function(xy, type, pch = 1, lty = "solid", col = par("fg"),
 
 plot.new <- function() .Internal(plot.new())
 
-frame <- plot.new
+frame <- .Alias(plot.new)

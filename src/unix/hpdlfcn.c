@@ -28,7 +28,11 @@
 
 #define RTLD_LAZY (BIND_DEFERRED | BIND_NONFATAL)
 
-#include "hpdlfcn.h"
+void *dlopen(const char *, int);
+void *dlsym(void *, const char *);
+int dlclose(void *);
+char *dlerror(void);
+
 
 /*
  * This is a minimal implementation of the ELF dlopen, dlclose, dlsym
@@ -129,7 +133,7 @@ void *dlopen(const char *fname, int mode)
   if (fname == NULL)
     handle = PROG_HANDLE;
   else {
-    handle = shl_load(fname, mode | BIND_VERBOSE, 0L);
+    handle = shl_load(fname, mode, 0L);
     if (handle != NULL) {
       if ((entry = find_lib_entry(handle)) == NULL) {
 	if ((entry = new_lib_entry(handle)) == NULL) {

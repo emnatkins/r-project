@@ -1,5 +1,4 @@
 \name{Normal}
-\alias{Normal}
 \alias{dnorm}
 \alias{pnorm}
 \alias{qnorm}

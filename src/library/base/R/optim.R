@@ -13,8 +13,8 @@ optim <- function(par, fn, gr = NULL,
         method <- "L-BFGS-B"
     }
     ## Defaults :
-    con <- list(trace = 0, fnscale = 1, parscale = rep.int(1, length(par)),
-                ndeps = rep.int(1e-3, length(par)),
+    con <- list(trace = 0, fnscale = 1, parscale = rep(1, length(par)),
+                ndeps = rep(1e-3, length(par)),
                 maxit = 100, abstol = -Inf, reltol=sqrt(.Machine$double.eps),
                 alpha = 1.0, beta = 0.5, gamma = 2.0,
                 REPORT = 10,
@@ -25,14 +25,10 @@ optim <- function(par, fn, gr = NULL,
     if (method == "SANN") con$maxit <- 10000
 
     con[(namc <- names(control))] <- control
-    if(con$trace < 0)
-        warning("read the documentation for `trace' more carefully")
     if (method == "L-BFGS-B" &&
         any(!is.na(match(c("reltol","abstol"), namc))))
         warning("Method L-BFGS-B uses `factr' (& `pgtol') instead of `reltol' and `abstol'")
     npar <- length(par)
-    if(npar == 1 && method == "Nelder-Mead")
-        warning("one-diml optimization by Nelder-Mead is unreliable: use optimize")
     lower <- as.double(rep(lower, , npar))
     upper <- as.double(rep(upper, , npar))
     res <- .Internal(optim(par, fn1, gr1,

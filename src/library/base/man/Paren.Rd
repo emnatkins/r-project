@@ -1,13 +1,12 @@
 \name{Paren}
-\alias{Paren}
-\alias{(}
-\alias{{}
 \title{Parentheses and Braces}
 \usage{
 ( \dots )
 
 { \dots }
 }
+\alias{(}
+\alias{{}
 \description{
   Open parenthesis, \code{(}, and open brace, \code{\{}, are
   \code{\link{.Primitive}} functions in \R.
@@ -19,8 +18,6 @@
 \seealso{
   \code{\link{if}}, \code{\link{return}}, etc for other objects used in
   the \R language itself.
-
-  \code{\link{Syntax}} for operator precedence.
 }
 \examples{
 f <- get("(")

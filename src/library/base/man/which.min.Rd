@@ -35,5 +35,9 @@ presidents[1:30]
 range(presidents, na.rm = TRUE)
 which.min(presidents)# 28
 which.max(presidents)# 2
+\testonly{
+  stopifnot(length(which.min(numeric(0))) == 0)
+  stopifnot(length(which.max( c(NA,NA) )) == 0)
+}
 }
 \keyword{utilities}

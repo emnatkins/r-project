@@ -1,5 +1,4 @@
 \name{NegBinomial}
-\alias{NegBinomial}
 \alias{dnbinom}
 \alias{pnbinom}
 \alias{qnbinom}
@@ -17,6 +16,7 @@ qnbinom(p, size, prob, mu, lower.tail = TRUE, log.p = FALSE)
 rnbinom(n, size, prob, mu)
 }
 \arguments{
+  \item{x, q}{vector of quantiles.}
   \item{x}{vector of (non-negative integer) quantiles.}
   \item{q}{vector of quantiles.}
   \item{p}{vector of probabilities.}
@@ -58,8 +58,8 @@ rnbinom(n, size, prob, mu)
   
   The alternative parametrization (often used in ecology) is by the
   \emph{mean} \code{mu}, and \code{size}, the \emph{dispersion parameter},
-  where \code{prob} = \code{size/(size+mu)}.  In this parametrization the
-  variance is \code{mu + mu^2/size}.
+  where \code{prob} = {size/(size+mu)}.  In this parametrization the
+  variance is \code{mu + mu^2/k}.
 
   If an element of \code{x} is not integer, the result of \code{dnbinom}
   is zero, with a warning.

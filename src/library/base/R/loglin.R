@@ -80,7 +80,7 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
         }
         y[-1]
     }
-    df <- rep.int(0, 2^nvar)
+    df <- rep(0, 2^nvar)
     for (k in seq(along = margin)) {
         terms <- subsets(margin[[k]])
         for (j in seq(along = terms))
@@ -124,7 +124,7 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
         dyadic <- dyadic[order(apply(dyadic, 1, sum)), ]
 
         for (i in 2 : parlen) {
-            vars <- which(dyadic[i - 1, ] > 0)
+            vars <- (1 : nvar)[dyadic[i - 1, ] > 0]
             parval[[i]] <- apply(fit, vars, mean)
             parnam[i] <- paste(varnames[vars], collapse = ".")
             fit <- sweep(fit, vars, parval[[i]])

@@ -29,17 +29,8 @@
 #include <glade/glade.h>
 #include <libgnome/libgnome.h>
 
-#if defined(HAVE_LOCALE_H)
-#include <locale.h>
-#endif
-
-/* used to have Mac conditionals, but not used on classic MacOS */
-#ifdef HAVE_STAT
-# include <sys/types.h>
-# ifdef HAVE_SYS_STAT_H
-#  include <sys/stat.h>
-# endif
-#endif
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <Rversion.h>
 
@@ -59,8 +50,8 @@
 
 	/*--- Initialization Code ---*/
 
-extern SA_TYPE SaveAction;
-extern SA_TYPE RestoreAction;
+SA_TYPE SaveAction;
+SA_TYPE RestoreAction;
 
 static gboolean R_gnome_initialised = FALSE; /* true once gnome_init has been called */
 
@@ -129,13 +120,11 @@ void Rgnome_Busy(int which)
  */
 
 void R_dot_Last(void);		/* in main.c */
-void R_RunExitFinalizers(void);	/* in memory.c */
 
 void Rgnome_CleanUp(SA_TYPE saveact, int status, int runLast)
 {
     GtkWidget *dialog;
     gint which; /* yes = 0, no = 1, cancel = 2 || -1 */
-    char *tmpdir, buf[1000];
 
 /*
     GList *curfile = R_gtk_editfiles;
@@ -196,8 +185,6 @@ void Rgnome_CleanUp(SA_TYPE saveact, int status, int runLast)
 	break;
     }
 
-    R_RunExitFinalizers();
-
     /* save GUI preferences */
     R_gnome_prefs_save();
 /* unlink all the files we opened for editing 
@@ -207,10 +194,6 @@ void Rgnome_CleanUp(SA_TYPE saveact, int status, int runLast)
       curfile = g_list_next(curfile);
     }
 */
-    if((tmpdir = getenv("R_SESSION_TMPDIR"))) {
-	sprintf(buf, "rm -rf %s", tmpdir);
-	system(buf);
-    }
 
 
     /* close all the graphics devices */
@@ -302,14 +285,6 @@ void gnome_start(int ac, char **av, Rstart Rp)
 	       ac, av);
     R_gnome_initialised = TRUE;
 
-    /* Reset locale information */
-    #if defined(HAVE_LOCALE_H)
-    setlocale(LC_ALL, "C");
-    setlocale(LC_CTYPE, "");/*- make ISO-latin1 etc. work for LOCALE users */
-    setlocale(LC_COLLATE, "");/*- alphabetically sorting */
-    setlocale(LC_TIME, "");/*- names and defaults for date-time formats */
-    #endif 
-
     /* Initialise libglade */
     glade_gnome_init();
 
@@ -319,10 +294,7 @@ void gnome_start(int ac, char **av, Rstart Rp)
     R_ShowQueuedMessages();
 
     R_SetParams(Rp);
-    if(!Rp->NoRenviron) {
-	process_site_Renviron();
-	process_user_Renviron();
-    }
+    if(!Rp->NoRenviron) process_users_Renviron();
 
     R_Interactive = isatty(0);
     if((R_Home = R_HomeDir()) == NULL) {
@@ -344,7 +316,7 @@ void gnome_start(int ac, char **av, Rstart Rp)
 	R_HistoryFile = ".Rhistory";
     R_HistorySize = 512;
     if ((p = getenv("R_HISTSIZE"))) {
-	value = R_Decode2Long(p, &ierr);
+	value = Decode2Long(p, &ierr);
 	if (ierr != 0 || value < 0)
 	    fprintf(stderr, "WARNING: invalid R_HISTSIZE ignored;");
 	else
@@ -365,4 +337,10 @@ void gnome_start(int ac, char **av, Rstart Rp)
     /* start main loop */
     mainloop();
     /*++++++  in ../main/main.c */
+}
+
+SEXP do_syssleep(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+    error("Sys.sleep is not implemented on this system");
+    return R_NilValue;		/* -Wall */
 }

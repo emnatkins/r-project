@@ -9,7 +9,7 @@
 }
 \usage{
 \method{ansari.test}{default}(x, y, alternative = c("two.sided", "less", "greater"),
-            exact = NULL, conf.int = FALSE, conf.level = 0.95, \dots)
+            exact = NULL, conf.int = TRUE, conf.level = 0.95)
 \method{ansari.test}{formula}(formula, data, subset, na.action, \dots)
 }
 \arguments{
@@ -33,7 +33,7 @@
   \item{na.action}{a function which indicates what should happen when
     the data contain \code{NA}s.  Defaults to
     \code{getOption("na.action")}.}
-  \item{\dots}{further arguments to be passed to or from methods.}
+  \item{\dots}{further arguments to be passed to the default method.}
 }
 \details{
   Suppose that \code{x} and \code{y} are independent samples from

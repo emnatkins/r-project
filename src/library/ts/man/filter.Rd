@@ -2,8 +2,8 @@
 \alias{filter}
 \title{Linear Filtering on a Time Series}
 \usage{
-filter(x, filter, method = c("convolution", "recursive"),
-       sides = 2, circular = FALSE, init)
+filter(x, filter, method="convolution", sides=2,
+      circular=FALSE, init)
 }
 \arguments{
   \item{x}{a univariate or multivariate time series.}
@@ -62,9 +62,7 @@ filter(x, filter, method = c("convolution", "recursive"),
 }
 \author{B.D. Ripley}
 
-\seealso{
-  \code{\link{convolve}}, \code{\link{arima.sim}}
-}
+\seealso{\code{\link{convolve}}}
 
 \examples{
 x <- 1:100
@@ -73,5 +71,15 @@ filter(x, rep(1, 3), sides = 1)
 filter(x, rep(1, 3), sides = 1, circular = TRUE)
 data(presidents)
 filter(presidents, rep(1,3))
+
+## A simple simulation function for ARMA processes
+arma.sim <- function(n, ar = NULL, ma = NULL, sigma = 1.0)
+{
+    x <- ts(rnorm(n+100, 0, sigma), start = -99)
+    if(length(ma)) x <- filter(x, c(1, ma), sides=1)
+    if(length(ar)) x <- filter(x, ar, method = "recursive")
+    as.ts(x[-(1:100)])
+}
+arma.sim(63, c(0.8897,-0.4858), c(-0.2279, 0.2488), sigma=sqrt(0.1796))
 }
 \keyword{ts}

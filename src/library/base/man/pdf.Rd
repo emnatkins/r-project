@@ -9,12 +9,12 @@
 }
 \synopsis{
 pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
-    width = 6, height = 6, onefile = TRUE, title = "R Graphics Output", \dots)
+    width = 6, height = 6, onefile = TRUE, \dots)
 }
 \usage{
 pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
     width = 6, height = 6, onefile = TRUE, family = "Helvetica",
-    encoding, bg, fg, pointsize, title = "R Graphics Output")
+    encoding, bg, fg, pointsize)
 }
 \arguments{
   \item{file}{a character string giving the name of the file.}
@@ -34,13 +34,15 @@ pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
 #ifdef windows
 \code{"WinAnsi.enc"}
 #endif
+#ifdef mac
+\code{"MacRoman.enc"}
+#endif
     in the \file{R\_HOME/afm} directory, which is used if the path does
     not contain a path separator.  An extension \code{".enc"} can be
     omitted.}
   \item{pointsize}{the default point size to be used.}
   \item{bg}{the default background color to be used.}
   \item{fg}{the default foreground color to be used.}
-  \item{title}{title string to embed in the file.}
 }
 \details{
   \code{pdf()} opens the file \code{file} and the PDF commands needed to
@@ -58,6 +60,9 @@ pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
   At present the PDF is fairly simple, with each page being represented
   as a single stream.  The \R graphics model does not distinguish
   graphics objects at the level of the driver interface.
+
+  There is an internal limit of 500 pages per PDF file, which should
+  be ample.
 }
 \note{
   Acrobat Reader does not use the fonts specified but rather emulates
@@ -69,26 +74,4 @@ pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
   \code{\link{Devices}},
   \code{\link{postscript}}
 }
-\examples{
-\dontrun{
-## Test function for encodings
-TestChars <- function(encoding="ISOLatin1")
-{
-    pdf(encoding=encoding)
-    par(pty="s")
-    plot(c(0,15), c(0,15), type="n", xlab="", ylab="")
-    title(paste("Centred chars in encoding", encoding))
-    grid(15, 15, lty=1)
-    for(i in c(32:255)) {
-	x <- i %% 16
-	y <- i %/% 16
-	points(x, y, pch=i)
-    }
-    dev.off()
-}
-## there will be many warnings.
-TestChars("ISOLatin2")
-## doesn't view properly in US-spec Acrobat 5.05, but gs7.04 works.
-## Lots of characters are not centred.
-}}
 \keyword{device}

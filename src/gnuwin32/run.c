@@ -250,6 +250,8 @@ rpipe * rpipeOpen(char *cmd, int visible, char *finput, int io)
     DWORD id;
     BOOL res;
 
+//    if(io) return NULL;
+
     if (!(r = (rpipe *) malloc(sizeof(struct structRPIPE)))) {
 	strcpy(RunError, "Insufficient memory (rpipeOpen)");
 	return NULL;
@@ -382,7 +384,7 @@ typedef struct Wpipeconn {
 } *RWpipeconn;
 
 
-static Rboolean Wpipe_open(Rconnection con)
+static void Wpipe_open(Rconnection con)
 {
     rpipe *rp;
     int visible = -1, io;
@@ -390,10 +392,7 @@ static Rboolean Wpipe_open(Rconnection con)
     io = con->mode[0] == 'w';
     if(io) visible = 1; /* Somewhere to put the output */
     rp = rpipeOpen(con->description, visible, NULL, io);
-    if(!rp) {
-	warning("cannot open cmd `%s'", con->description);
-	return FALSE;
-    }
+    if(!rp) error("cannot open cmd `%s'", con->description);
     ((RWpipeconn)(con->private))->rp = rp;
     con->isopen = TRUE;
     con->canwrite = io;
@@ -401,7 +400,6 @@ static Rboolean Wpipe_open(Rconnection con)
     if(strlen(con->mode) >= 2 && con->mode[1] == 'b') con->text = FALSE;
     else con->text = TRUE;
     con->save = -1000;
-    return TRUE;
 }
 
 static void Wpipe_close(Rconnection con)

@@ -1,8 +1,8 @@
 \name{factor}
 \title{Factors}
 \usage{
-factor(x, levels = sort(unique.default(x), na.last = TRUE),
-       labels = levels, exclude = NA, ordered = is.ordered(x))
+factor(x, levels = sort(unique(x), na.last = TRUE), labels = levels,
+       exclude = NA, ordered = is.ordered(x))
 ordered(x, \dots)
 
 is.factor(x)
@@ -17,7 +17,6 @@ as.ordered(x)
 \alias{is.ordered}
 \alias{as.factor}
 \alias{as.ordered}
-\alias{is.na<-.factor}
 \description{
   The function \code{factor} is used to encode a vector as a factor (the
   names category and enumerated type are also used for factors).  If
@@ -80,26 +79,19 @@ as.ordered(x)
   which case the levels are that character string with a sequence
   number appended.
 
-  \code{factor(x, exclude=NULL)} applied to a factor is a no-operation
-  unless there are unused levels: in that case, a factor with the
-  reduced level set is returned.  If \code{exclude} is used it should
-  also be a factor with the same level set as \code{x} or a set of codes
-  for the levels to be excluded.
+  \code{factor(x)} applied to a factor is a no-operation unless there
+  are unused levels: in that case, a factor with the reduced level set is
+  returned. If \code{exclude} is used it should also be a factor with
+  the same level set as \code{x} or a set of codes for the levels to
+  be excluded.
 
   The codes of a factor may contain \code{\link{NA}}. For a numeric
   \code{x}, set \code{exclude=NULL} to make \code{\link{NA}} an extra
   level (\code{"NA"}), by default the last level.
-
-  If \code{"NA"} is a level, the way to set a code to be missing is to
-  use \code{\link{is.na}} on the left-hand-side of an assignment.
-  Under those circumstances missing values are printed as \code{<NA>}.
-
-  \code{is.factor} is generic: you can write methods to handle
-  of specific classes of objects, see \link{InternalMethods}.
 }
 \section{Warning}{
   The interpretation of a factor depends on both the codes and the
-  \code{"levels"} attribute.  Be careful only to compare factors with
+  \code{"levels"} attribute. Be careful only to compare factors with
   the same set of levels (in the same order).  In particular,
   \code{as.numeric} applied to a factor is meaningless, and may
   happen by implicit coercion.
@@ -123,13 +115,6 @@ factor(factor(letters[7:10])[2:3]) # exercise indexing and reduction
 factor(letters[1:20], label="letter")
 
 class(ordered(4:1))# "ordered", inheriting from "factor"
-
-## suppose you want "NA" as a level, and to allowing missing values.
-(x <- factor(c(1, 2, "NA"), exclude = ""))
-is.na(x)[2] <- TRUE
-x  # [1] 1    <NA> NA, <NA> used because NA is a level.
-is.na(x)
-# [1] FALSE  TRUE FALSE
 }
 \keyword{category}
 \keyword{NA}

@@ -32,45 +32,55 @@
 #include <unistd.h>
 #endif
 
-#include <Defn.h>
-#include <Rdynpriv.h>
+#include "Defn.h"
+#include "R_ext/Rdynpriv.h"
 
-/* HP-UX 11.0 has dlfcn.h, but according to libtool as of Dec 2001
-   this support is broken. So we force use of shlib even when dlfcn.h
-   is available */
-#ifdef __hpux
-# ifdef HAVE_DL_H
-#  include "hpdlfcn.c"
-#  define HAVE_DYNAMIC_LOADING
-# endif
+#ifdef HAVE_DLFCN_H
+#include <dlfcn.h>
 #else
-# ifdef HAVE_DLFCN_H
-#  include <dlfcn.h>
-#  define HAVE_DYNAMIC_LOADING
-# endif
+#ifdef HAVE_DL_H
+#include "hpdlfcn.c"
+#define HAVE_DLFCN_H
+#endif
 #endif
 
-#ifdef HAVE_DYNAMIC_LOADING
+
+#include "FFDecl.h"
+
+static CFunTabEntry CFunTab[] =
+{
+#include "FFTab.h"
+    {NULL, NULL}
+};
+
+#ifdef HAVE_DLFCN_H
 
 static void *loadLibrary(const char *path, int asLocal, int now);
 static void closeLibrary(void *handle);
 static void deleteCachedSymbols(DllInfo *);
 static DL_FUNC R_dlsym(DllInfo *info, char const *name);
 static void getFullDLLPath(SEXP call, char *buf, char *path);
+static DL_FUNC getBaseSymbol(const char *name);
 static void getSystemError(char *buf, int len);
 
 static int computeDLOpenFlag(int asLocal, int now);
 
 void InitFunctionHashing()
 {
+#ifdef DL_SEARCH_PROG
+    baseDLL.handle = dlopen(0, RTLD_NOW);
+#endif
+
     R_osDynSymbol->loadLibrary = loadLibrary;
     R_osDynSymbol->dlsym = R_dlsym;
     R_osDynSymbol->closeLibrary = closeLibrary;
     R_osDynSymbol->getError = getSystemError;
+    R_osDynSymbol->getBaseSymbol = getBaseSymbol;
 
     R_osDynSymbol->deleteCachedSymbols = deleteCachedSymbols;
     R_osDynSymbol->lookupCachedSymbol = Rf_lookupCachedSymbol;
 
+    R_osDynSymbol->CFunTab = CFunTab;
     R_osDynSymbol->getFullDLLPath = getFullDLLPath;
 }
 
@@ -103,6 +113,15 @@ static void closeLibrary(HINSTANCE handle)
 static void deleteCachedSymbols(DllInfo *dll)
 {
 #ifdef CACHE_DLL_SYM
+#ifdef Macintosh
+    /* This goes in a different order than the Unix version. */
+    for(i = 0; i < nCPFun; i++)
+	if(!strcmp(CPFun[i].pkg, dll->name)) {
+	    strcpy(CPFun[i].pkg, CPFun[nCPFun].pkg);
+	    strcpy(CPFun[i].name, CPFun[nCPFun].name);
+	    CPFun[i].func = CPFun[nCPFun--].func;
+	}
+#else /* Not Macintosh, so Unix */
     int i;
     /* Wouldn't a linked list be easier here?
        Potentially ruin the contiguity of the memory.
@@ -115,8 +134,29 @@ static void deleteCachedSymbols(DllInfo *dll)
 		CPFun[i].func = CPFun[nCPFun].func;
 	    } else nCPFun--;
 	}
+#endif /* Macintosh */
 #endif /* CACHE_DLL_SYM */
 }
+
+
+static DL_FUNC getBaseSymbol(const char *name)
+{
+#ifdef DL_SEARCH_PROG
+    DL_FUNC fcnptr;
+
+    fcnptr = R_osDynSymbol->dlsym(&baseDll, name);
+    return(fcnptr);
+#else
+    int i;
+
+    for(i = 0 ; R_osDynSymbol->CFunTab[i].name ; i++)
+	if(!strcmp(name, R_osDynSymbol->CFunTab[i].name))
+	    return R_osDynSymbol->CFunTab[i].func;
+
+    return((DL_FUNC) NULL);
+#endif
+}
+
 
 
  /*
@@ -216,10 +256,25 @@ static DL_FUNC R_dlsym(DllInfo *info, char const *name)
 
 static void getFullDLLPath(SEXP call, char *buf, char *path)
 {
+#ifdef Macintosh
+    if(path[0] != ':') {
+	if(R_Home == NULL){
+	    if (!getcwd(buf, PATH_MAX))
+		errorcall(call, "can't get working directory!");
+	    strcat(buf, path);
+	}
+	else
+	    strcpy(buf,path);
+    } else
+	strcpy(buf, path);
+    return;
+
+#else /* Macintosh */
+
     if(path[0] == '~')
 	strcpy(buf, R_ExpandFileName(path));
     else if(path[0] != '/') {
-#ifdef HAVE_GETCWD
+#ifdef HAVE_UNISTD_H
 	if(!getcwd(buf, PATH_MAX))
 #endif
 	    errorcall(call, "can't get working directory!");
@@ -227,6 +282,7 @@ static void getFullDLLPath(SEXP call, char *buf, char *path)
 	strcat(buf, path);
     }
     else strcpy(buf, path);
+#endif
 }
 
-#endif /* end of `ifdef HAVE_DYNAMIC_LOADING' */
+#endif /* end of `ifdef HAVE_DLFCN_H' */

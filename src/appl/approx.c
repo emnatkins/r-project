@@ -22,9 +22,9 @@
 #include <config.h>
 #endif
 
-#include <R_ext/Arith.h>
-#include <R_ext/Error.h>
-#include <R_ext/Applic.h>
+#include "R_ext/Arith.h"
+#include "R_ext/Error.h"
+#include "R_ext/Applic.h"
 
 /* Linear and Step Function Interpolation */
 
@@ -32,9 +32,6 @@
  * The right interval is found by bisection
  * Linear/constant interpolation then takes place on that interval
 */
-
-/* NB:  R_interv(.) in ./interv.c  is conceptually a special case of
- *	this, where y = 1:n */
 
 typedef struct {
     double ylow;
@@ -44,7 +41,7 @@ typedef struct {
     int kind;
 } appr_meth;
 
-static double approx1(double v, double *x, double *y, int n,
+static double approx1(double v, double *x, double *y, int n, 
 		      appr_meth *Meth)
 {
     /* Approximate  y(v),  given (x,y)[i], i = 0,..,n-1 */
@@ -80,8 +77,7 @@ static double approx1(double v, double *x, double *y, int n,
     else { /* 2 : constant */
 	return y[i] * Meth->f1 + y[j] * Meth->f2;
     }
-}/* approx1() */
-
+}
 
 	/* R Frontend for Linear and Constant Interpolation */
 

@@ -34,7 +34,8 @@ anova.glm.null <- function (object, ..., test = NULL, na.action = na.omit)
     class(output) <- c("anova.glm.null", "anova.glm")
     return(output)
 }
-print.glm.null <- function(x, digits = max(3, getOption("digits") - 3), ...)
+print.glm.null <- function(x, digits = max(3, getOption("digits") - 3),
+                           na.print = "", ...)
 {
     cat("\nCall: ", deparse(x$call), "\n\n")
     cat("No coefficients\n")
@@ -45,8 +46,8 @@ print.glm.null <- function(x, digits = max(3, getOption("digits") - 3), ...)
     cat("AIC:", format(signif(x$aic, digits)), "\n")
     invisible(x)
 }
-print.summary.glm.null <-
-    function (x, digits = max(3, getOption("digits") - 3), ...)
+print.summary.glm.null <- function (x, digits = max(3, getOption("digits") - 3),
+                                    na.print = "", ...)
 {
     cat("\nCall:\n")
     cat(paste(deparse(x$call), sep = "\n", collapse = "\n"),
@@ -98,10 +99,9 @@ summary.glm.null <- function (object, dispersion = NULL, correlation = TRUE,
     class(ans) <- c("summary.glm.null", "summary.glm")
     return(ans)
 }
-glm.fit.null <-
-    function (x, y, weights = rep(1, nobs), start = NULL,
-              etastart = NULL, mustart = NULL, offset = rep(0, nobs),
-              family = gaussian(), control = glm.control(), intercept = FALSE)
+glm.fit.null <- function (x, y, weights = rep(1, nobs), start = NULL,
+                          offset = rep(0, nobs), family = gaussian(),
+                          control = glm.control(), intercept = FALSE)
 {
     if(intercept) stop("null models have no intercept")
     ynames <- names(y)
@@ -111,9 +111,9 @@ glm.fit.null <-
     ## define weights and offset if needed
     ## get family functions
     if (is.null(weights))
-	weights <- rep.int(1, nobs)
+	weights <- rep(1, nobs)
     if (is.null(offset))
-	offset <- rep.int(0, nobs)
+	offset <- rep(0, nobs)
     variance <- family$variance
     dev.resids <- family$dev.resids
     linkinv <- family$linkinv
@@ -124,11 +124,7 @@ glm.fit.null <-
     validmu <- family$validmu
     if (is.null(validmu))
 	validmu <- function(mu) TRUE
-	## next line may change y and weights, and set n.
-    eval(family$initialize)
-    if (NCOL(y) > 1)
-	stop("y must be univariate unless binomial")
-    eta <- rep.int(0, nobs)
+    eta <- rep(0, nobs)
     if (!valideta(eta + offset))
 	stop("Invalid linear predictor values in empty model")
     mu <- linkinv(eta + offset)
@@ -160,8 +156,7 @@ glm.fit.null <-
 		prior.weights = weights, df.residual = resdf,
 		df.null = nulldf, y = y, converged = conv, boundary = FALSE))
 }
-
-model.matrix.glm.null<-function(object, ...){
+model.matrix.glm.null<-function(x,...){
   rval<-matrix(ncol=0,nrow=length(object$y))
   attr(rval,"assign")<-integer(0)
 }

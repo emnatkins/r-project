@@ -17,15 +17,11 @@ is.primitive <- function(obj)  is.function(obj) && is.null(args(obj))
 
 ## Do we have a method (probably)?
 is.method <- function(fname) {
-    isFun <- function(name) (exists(name, mode="function") &&
-                        is.na(match(name, c("is", "as"))))
     np <- length(sp <- strsplit(fname, split = "\\.")[[1]])
-    if(np <= 1 )
-        FALSE
-    else 
-        (isFun(paste(sp[1:(np-1)], collapse = '.')) ||
-         (np>=3 &&
-          isFun(paste(sp[1:(np-2)], collapse = '.'))))
+    if(np <= 1) return(FALSE)
+    exists(paste(sp[1:(np-1)], collapse = '.'), mode="function") ||
+    (np>=3 &&
+     exists(paste(sp[1:(np-2)], collapse = '.'), mode="function"))
 }
 
 is.ALL <- function(obj, func.names = ls(pos=length(search())),
@@ -40,10 +36,9 @@ is.ALL <- function(obj, func.names = ls(pos=length(search())),
     ## Author: Martin Maechler, Date: 6 Dec 1996
 
     is.fn <- func.names[substring(func.names,1,3) == "is."]
-    is.fn <- is.fn[substring(is.fn,1,7) != "is.na<-"]
     use.fn <- is.fn[ is.na(match(is.fn, not.using))
                     & ! sapply(is.fn, is.method) ]
-
+    
     r <- if(true.only) character(0)
     else structure(vector("list", length= length(use.fn)), names= use.fn)
     for(f in use.fn) {
@@ -65,16 +60,16 @@ is.ALL <- function(obj, func.names = ls(pos=length(search())),
     if(is.list(r)) structure(r, class = "isList") else r
 }
 
-print.isList <- function(x, ..., verbose = getOption("verbose"))
+print.isList <- function(r, ...)
 {
     ## Purpose:	 print METHOD  for `isList' objects
     ## ------------------------------------------------
     ## Author: Martin Maechler, Date: 12 Mar 1997
-    if(is.list(x)) {
-        if(verbose) cat("print.isList(): list case (length=",length(x),")\n")
-	nm <- format(names(x))
-	rr <- lapply(x, symnum, na = "NA")
-	for(i in seq(along=x)) cat(nm[i],":",rr[[i]],"\n", ...)
+    ## >>>>> needs  cmp.logical <<
+    if(is.list(r)) {
+	nm <- format(names(r))
+	rr <- lapply(r, symnum, na = "NA")
+	for(i in seq(along=r)) cat(nm[i],":",rr[[i]],"\n", ...)
     } else NextMethod("print", ...)
 }
 

@@ -17,7 +17,7 @@ cov.wt <- function(x, wt = rep(1/nrow(x), nrow(x)), cor = FALSE,
     }
     if (is.logical(center)) {
 	center <- if (center)
-	    colSums(wt * x)
+	    apply(wt * x, 2, sum)
 	else 0
     } else {
 	if (length(center) != ncol(x))
@@ -25,11 +25,10 @@ cov.wt <- function(x, wt = rep(1/nrow(x), nrow(x)), cor = FALSE,
     }
     x <- sqrt(wt) * sweep(x, 2, center)
     cov <- (t(x) %*% x) / (1 - sum(wt^2))
-
     y <- list(cov = cov, center = center, n.obs = n)
     if (with.wt) y$wt <- wt
     if (cor) {
-	sdinv <- diag(1 / sqrt(diag(cov)), nrow(cov))
+	sdinv <- diag(1 / sqrt(diag(cov)))
 	y$cor <- sdinv %*% cov %*% sdinv
     }
     y

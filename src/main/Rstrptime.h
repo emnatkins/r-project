@@ -1,4 +1,4 @@
-/* For inclusion by datetime.c if needed. A slightly modified version of
+/* For inclusion by dt.c if needed. A slightly modified version of
    code from the GNU C library with locale support removed. */
 
 static void get_locale_strings(void);
@@ -523,7 +523,7 @@ strptime (const char *buf, const char *format, struct tm *tm)
 #ifdef HAVE_LOCALE_H
     if(!have_used_strptime) {
 	get_locale_strings();
-	/* have_used_strptime = 1; might change locale during session */
+	have_used_strptime = 1;
     }
 #endif
     decided = raw;

@@ -1,5 +1,4 @@
 \name{Beta}
-\alias{Beta}
 \alias{dbeta}
 \alias{pbeta}
 \alias{qbeta}

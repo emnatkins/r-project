@@ -23,12 +23,7 @@ cov(x, y = NULL, use = "all.obs")
   \item{use}{an optional character string giving a
     method for computing covariances in the presence
     of missing values.  This must be (an abbreviation of) one of the strings
-    \code{"all.obs"}, \code{"complete.obs"}
-    or \code{"pairwise.complete.obs"}.}
-  \item{na.rm}{logical. Should missing values be removed?}
-}
-\value{For \code{r <- cor(*, use = "all.obs")}, it is now guaranteed that
-  \code{all(r <= 1)}.
+    \code{"all.obs"}, \code{"complete.obs"} or \code{"pairwise.complete.obs"}.}
 }
 \details{
   For \code{cov} and \code{cor} one must \emph{either} give a matrix or data
@@ -54,13 +49,9 @@ cov(x, y = NULL, use = "all.obs")
   The denominator \eqn{n - 1} is used which gives an unbiased estimator
   of the (co)variance for i.i.d. observations.
   These functions return \code{\link{NA}} when there is only one
-  observation (whereas S-plus has been returning \code{NaN}),
-  and from \R 1.2.3 fail if \code{x} has length zero.
+  observation, and from \R 1.2.3 fail if \code{x} has length zero.
 }
-\seealso{
-  \code{\link[ctest]{cor.test}} (pkg \code{ctest}) for confidence
-  intervals (and tests).\cr
-  \code{\link{cov.wt}} for \emph{weighted} covariance
+\seealso{\code{\link{cov.wt}} for \emph{weighted} covariance
   computation, \code{\link{sd}} for standard deviation (vectors).
 }
 \examples{
@@ -71,6 +62,9 @@ var(1:5,1:5)# 2.5
 ## Two simple vectors
 cor(1:10,2:11)# == 1
 
+\testonly{
+ stopifnot(is.na(var(1)) && !is.nan(var(1)))
+}
 ## Correlation Matrix of Multivariate sample:
 data(longley)
 (Cl <- cor(longley))
@@ -82,7 +76,9 @@ data(swiss)
 C1 <- cov(swiss)
 range(eigen(C1, only=TRUE)$val) # 6.19  1921
 swiss[1,2] <- swiss[7,3] <- swiss[25,5] <- NA # create 3 "missing"
-try(cov(swiss)) # Error: missing obs...
+\dontrun{
+ C2 <- cov(swiss) # Error: missing obs...
+}
 C2 <- cov(swiss, use = "complete")
 range(eigen(C2, only=TRUE)$val) # 6.46  1930
 C3 <- cov(swiss, use = "pairwise")

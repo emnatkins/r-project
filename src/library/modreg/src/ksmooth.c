@@ -27,12 +27,10 @@ void BDRksmooth(double *x, double *y, int *n,
 	x0 = xp[j];
 	for(i = imin; i < *n; i++) {
 	    if(x[i] < x0 - cutoff) imin = i;
-	    else {
-		if(x[i] > x0 + cutoff) break;
-		w = dokern(fabs(x[i] - x0)/bw, *kern);
-		num += w*y[i];
-		den += w;
-	    }
+	    if(x[i] > x0 + cutoff) break;
+	    w = dokern(fabs(x[i] - x0)/bw, *kern);
+	    num += w*y[i];
+	    den += w;
 	}
 	if(den > 0) yp[j] = num/den; else yp[j] = NA_REAL;
     }

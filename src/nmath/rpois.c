@@ -19,7 +19,7 @@
  *
  *  SYNOPSIS
  *
- *    #include <Rmath.h>
+ *    #include "Rmath.h"
  *    double rpois(double lambda)
  *
  *  DESCRIPTION
@@ -71,9 +71,6 @@ double rpois(double mu)
     double del, difmuk= 0., E= 0., fk= 0., fx, fy, g, px, py, t, u= 0., v, x;
     double pois = -1.;
     int k, kflag, big_mu, new_big_mu = FALSE;
-
-    if (!R_FINITE(mu))
-	ML_ERR_return_NAN;
 
     if (mu <= 0.)
 	return 0.;
@@ -167,7 +164,7 @@ double rpois(double mu)
         /* Careful! muprev2 is not always == muprev
 	   because one might have exited in step I or S
 	   */
-        muprev2 = mu;
+        muprev2 = mu; 
 	omega = M_1_SQRT_2PI / s;
 	/* The quantities b1, b2, c3, c2, c1, c0 are for the Hermite
 	 * approximations to the discrete normal probabilities fk. */

@@ -37,9 +37,9 @@ extern "C" {
  *  Types.
  */
 
-typedef unsigned char GAbyte;
-
-#define byte GAbyte
+#ifndef byte
+  typedef unsigned char byte;
+#endif
 
 #ifndef objptr
   typedef struct { int kind; } gui_obj;
@@ -264,18 +264,15 @@ void	setrgb(rgb c);
 #define	setcolor(c)  setrgb(c)
 #define	setcolour(c) setrgb(c)
 
-/* changed to avoid clashes with w32api 2.0 */
-#define gaRed 		0x00FF0000UL
-#define gaGreen		0x0000FF00UL
-#define gaBlue		0x000000FFUL
-
-
 #define Transparent     0xFFFFFFFFUL
 
 #define Black		0x00000000UL
 #define White		0x00FFFFFFUL
+#define Blue		0x000000FFUL
 #define Yellow		0x00FFFF00UL
+#define Green		0x0000FF00UL
 #define Magenta		0x00FF00FFUL
+#define Red 		0x00FF0000UL
 #define Cyan		0x0000FFFFUL
 
 #define Grey		0x00808080UL
@@ -698,7 +695,6 @@ char *	askstring(char *question, char *default_string);
 char *	askpassword(char *question, char *default_string);
 char *	askfilename(char *title, char *default_name);
 char *	askfilesave(char *title, char *default_name);
-char *	askUserPass(char *title);
 
 /*
  *  Time functions.
@@ -739,15 +735,13 @@ extern	font	Times;  	/* times roman font (serif) */
 extern	font	Helvetica;	/* helvetica font (sans serif) */
 extern	font	Courier;	/* courier font (fixed width) */
 
-#include <R_ext/libextern.h>
-LibExtern cursor	ArrowCursor;	/* normal arrow cursor */
-LibExtern cursor	BlankCursor;	/* invisible cursor */
-LibExtern cursor	WatchCursor;	/* wait for the computer */
-LibExtern cursor	CaretCursor;	/* insert text */
-LibExtern cursor	TextCursor;	/* insert text */
-LibExtern cursor	HandCursor;	/* hand pointer */
-#undef LibExtern
-#undef extern
+extern	cursor	ArrowCursor;	/* normal arrow cursor */
+extern	cursor	BlankCursor;	/* invisible cursor */
+extern	cursor	WatchCursor;	/* wait for the computer */
+extern	cursor	CaretCursor;	/* insert text */
+extern	cursor	TextCursor;	/* insert text */
+extern	cursor	HandCursor;	/* hand pointer */
+
 
 #ifdef __cplusplus
 }

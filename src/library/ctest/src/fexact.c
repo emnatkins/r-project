@@ -173,14 +173,10 @@ fexact(Sint *nrow, Sint *ncol, double *table, Sint *ldtabl,
     /* Workspace Allocation (freed at end) */
     double *equiv;
     iwkmax = 2 * (Sint) (*workspace / 2);
-    equiv = (double *) R_alloc(iwkmax / 2, sizeof(double));
-
-    /* The check could never happen with Calloc!
     equiv = Calloc(iwkmax / 2, double);
     if (!equiv) {
 	prterr(0, "Can not allocate specified workspace");
-    } */
-
+    }
 #define dwrk (equiv)
 #define iwrk ((Sint *)equiv)
 #define rwrk ((float *)equiv)
@@ -266,7 +262,6 @@ fexact(Sint *nrow, Sint *ncol, double *table, Sint *ldtabl,
     ikh = ldkey << 1;	i9a = iwork(iwkmax, &iwkpt, ikh, i_real);
     ikh = ldkey << 1;	i10 = iwork(iwkmax, &iwkpt, ikh, i_int);
 
-
     /* To convert to double precision, change RWRK to DWRK in the next CALL.
      */
     f2xact(nrow,
@@ -298,7 +293,7 @@ fexact(Sint *nrow, Sint *ncol, double *table, Sint *ldtabl,
 	   dwrk + irwk);
 
 L_End:
-    /* Free(equiv); */
+    Free(equiv);
     return;
 }
 
@@ -334,7 +329,11 @@ f2xact(Sint *nrow, Sint *ncol, double *table, Sint *ldtabl,
     const double amiss = -12345.;
 
     /* TOL is chosen as the square root of the smallest relative spacing. */
+#ifndef Macintosh
     const  static double tol = 3.45254e-7;
+#else
+    static double tol = 3.45254e-7;
+#endif    
     /* EMX is a large positive value used in comparing expected values. */
     const static double emx = 1e30;
 
@@ -497,8 +496,7 @@ f2xact(Sint *nrow, Sint *ncol, double *table, Sint *ldtabl,
     /* Compute log factorials */
     fact[0] = 0.;
     fact[1] = 0.;
-    if(ntot >= 2) fact[2] = log(2.);
-    /* MM: old code assuming log() to be SLOW */
+    fact[2] = log(2.);/* MM: old code assuming log() to be SLOW */
     for (i = 3; i <= ntot; i += 2) {
 	fact[i] = fact[i - 1] + log((double) i);
 	j = i + 1;
@@ -1077,8 +1075,6 @@ L120:
 	for (i = 3; i <= nco; ++i) {
 	    key = it[i] + key * kyy;
 	}
-	if(key < 0)
-	    PROBLEM "Bug in FEXACT: gave negative key" RECOVER(NULL_ENTRY);
 	/* Table index */
 	ipn = key % ldst + 1;
 	/* Find empty position */

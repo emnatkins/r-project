@@ -1,7 +1,6 @@
 windows <- function(width = 7, height = 7, pointsize = 12,
                     record = getOption("graphics.record"),
-                    rescale = c("R", "fit", "fixed"), xpinch, ypinch,
-                    canvas = "white", gamma = getOption("gamma"))
+                    rescale = c("R", "fit", "fixed"), xpinch, ypinch)
 {
     rescale <- match.arg(rescale)
     rescale <- match(rescale, c("R", "fit", "fixed"))
@@ -12,36 +11,33 @@ windows <- function(width = 7, height = 7, pointsize = 12,
         if(!length(ypinch <- getOption("ypinch"))) ypinch <- NA
     ypinch <- as.double(ypinch)
     .Internal(devga("", width, height, pointsize, record, rescale,
-                    xpinch, ypinch, canvas,
-                    if(is.null(gamma)) 1 else gamma))
+                    xpinch, ypinch))
 }
 
 win.graph <- function(width = 7, height = 7, pointsize = 12)
-    .Internal(devga("", width, height, pointsize, FALSE, 1, NA, NA, "white", 1))
+    .Internal(devga("", width, height, pointsize, FALSE, 1, NA, NA))
 
-win.print <- function(width = 7, height = 7, pointsize = 12, printer = "")
-    .Internal(devga(paste("win.print:", printer, sep=""),
-                    width, height, pointsize, FALSE, 1,
-                    NA, NA, "white", 1))
+win.print <- function(width = 7, height = 7, pointsize = 12)
+    .Internal(devga("win.print", width, height, pointsize, FALSE, 1, NA, NA))
 
 win.metafile <- function(filename = "", width = 7, height = 7, pointsize = 12)
     .Internal(devga(paste("win.metafile:", filename, sep=""),
-                  width, height, pointsize, FALSE, 1, NA, NA, "white", 1))
+                  width, height, pointsize, FALSE, 1, NA, NA))
 
-png <- function(filename = "Rplot%03d.png", width = 480, height = 480,
-                pointsize = 12, bg = "white")
+png <- function(filename = "Rplot.png", width = 480, height = 480,
+                pointsize = 12)
     .Internal(devga(paste("png:", filename, sep=""),
-                  width, height, pointsize, FALSE, 1, NA, NA, bg, 1))
+                  width, height, pointsize, FALSE, 1, NA, NA))
 
-bmp <- function(filename = "Rplot%03d.bmp", width = 480, height = 480,
-                pointsize = 12, bg = "white")
+bmp <- function(filename = "Rplot.bmp", width = 480, height = 480,
+                pointsize = 12)
     .Internal(devga(paste("bmp:", filename, sep=""),
-                  width, height, pointsize, FALSE, 1, NA, NA, bg, 1))
+                  width, height, pointsize, FALSE, 1, NA, NA))
 
-jpeg <- function(filename = "Rplot%03d.jpg", width = 480, height = 480,
-                 pointsize = 12, quality=75, bg = "white")
+jpeg <- function(filename = "Rplot.jpg", width = 480, height = 480,
+                 pointsize = 12, quality=75)
     .Internal(devga(paste("jpeg:", quality, ":",filename, sep=""),
-                  width, height, pointsize, FALSE, 1, NA, NA, bg, 1))
+                  width, height, pointsize, FALSE, 1, NA, NA))
 
 bringToTop <- function(which = dev.cur())
 {
@@ -54,7 +50,7 @@ bringToTop <- function(which = dev.cur())
 }
 
 savePlot <- function(filename = "Rplot",
-                     type = c("wmf", "png", "jpeg", "jpg", "bmp", "ps", "pdf"),
+                     type = c("wmf", "png", "jpeg", "jpg", "bmp","ps"),
                      device = dev.cur())
 {
     type <- match.arg(type)
@@ -66,24 +62,4 @@ savePlot <- function(filename = "Rplot",
     if(filename == "clipboard" && type == "wmf") filename <- ""
     if(nchar(filename) > 0) filename <- paste(filename, type, sep=".")
     invisible(.Internal(saveDevga(device, filename, type)))
-}
-
-print.SavedPlots <- function(x, ...)
-{
-    if(x[[1]] != 31416) {
-        cat("object is not of class `SavedPlots'\n")
-        return()
-    }
-    cat("Saved Plots from R version 1.4.0 or later\n\n")
-    cat("  Contains", x[[2]], "out of a maximum", x[[3]], "plots\n")
-    lens <- sapply(x[[5]], length)[1:x[[2]]]
-    cat("  #plot calls are", paste(lens, collapse=", "), "\n")
-    cat("  Current position is plot", 1 + x[[4]], "\n")
-}
-
-"[.SavedPlots" <- function(x, i, ...)
-{
-    numplots <- x[[2]]
-    if(i > numplots || i < 1) stop("subscript out of range")
-    x[[5]][[i]]
 }

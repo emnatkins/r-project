@@ -1,5 +1,4 @@
 \name{Binomial}
-\alias{Binomial}
 \alias{dbinom}
 \alias{pbinom}
 \alias{qbinom}
@@ -31,14 +30,12 @@ rbinom(n, size, prob)
   \code{dbinom} gives the density, \code{pbinom} gives the distribution
   function, \code{qbinom} gives the quantile function and \code{rbinom}
   generates random deviates.
-
-  If \code{size} is not an integer, \code{NaN} is returned.
 }
 \details{
   The binomial distribution with \code{size} \eqn{= n} and
   \code{prob} \eqn{= p} has density
   \deqn{p(x) = {n \choose x} {p}^{x} {(1-p)}^{n-x}}{
-    p(x) = choose(n,x) p^x (1-p)^(n-x)}
+    p(x) = Choose(n,x) p^x (1-p)^(n-x)}
   for \eqn{x = 0, \ldots, n}.
 
   If an element of \code{x} is not integer, the result of \code{dbinom}
@@ -63,11 +60,9 @@ sum(dbinom(46:54, 100, 0.5))
 
 ## Using "log = TRUE" for an extended range :
 n <- 2000
-k <- seq(0, n, by = 20)
-plot (k, dbinom(k, n, pi/10, log=TRUE), type='l', ylab="log density",
+plot (0:n,     dbinom(0:n, n, pi/10, log=TRUE), type='l',
       main = "dbinom(*, log=TRUE) is better than  log(dbinom(*))")
-lines(k, log(dbinom(k, n, pi/10)), col='red', lwd=2)
-## extreme points are omitted since dbinom gives 0.
+lines(0:n, log(dbinom(0:n, n, pi/10)), col='red', lwd=2)
 mtext("dbinom(k, log=TRUE)", adj=0)
 mtext("extended range", adj=0, line = -1, font=4)
 mtext("log(dbinom(k))", col="red", adj=1)

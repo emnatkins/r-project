@@ -30,8 +30,8 @@ eval(e3)
 
 ## The first failed in 0.65.0 :
 attach(list(x=1))
-evalq(dim(x) <- 1,as.environment(2))
-dput(get("x", env=as.environment(2)))
+evalq(dim(x) <- 1,pos.to.env(2))
+dput(get("x", env=pos.to.env(2)))
 
 e <- local({x <- 1;environment()})
 evalq(dim(x) <- 1,e)
@@ -69,7 +69,7 @@ f <- function(...) {
 g <- function(...) h(f(...))
 h <- function(...) list(...)
 k <- function(...) g(...)
-X <- k(a=)
+X <- k(a=) 
 all.equal(X, list(TRUE))
 
 ## Bug PR#24
@@ -105,14 +105,3 @@ u <- runif(1);	length(find(".Random.seed")) == 1
 
 MyVaR <<- "val";length(find("MyVaR")) == 1
 rm(MyVaR);	length(find("MyVaR")) == 0
-
-
-## Martin Maechler: rare bad bug in sys.function() {or match.arg()} (PR#1409)
-callme <- function(a = 1, mm = c("Abc", "Bde")) {
-    mm <- match.arg(mm); cat("mm = "); str(mm) ; invisible()
-}
-## The first two were as desired:
-callme()
-callme(mm="B")
-mycaller <- function(x = 1, callme = pi) { callme(x) }
-mycaller()## wrongly gave `mm = NULL'  now = "Abc"

@@ -1,7 +1,9 @@
 \name{anova.glm}
-\title{Analysis of Deviance for Generalized Linear Model Fits}
+\title{Analysis of Deviance for  Generalized Linear Model Fits}
 \usage{
-\method{anova}{glm}(object, \dots, dispersion = NULL, test = NULL)
+anova(object, \dots, dispersion = NULL, test = NULL)
+anova.glm(object, \dots, dispersion = NULL, test = NULL)
+anova.glmlist(objects, dispersion = NULL, test = NULL)
 }
 \alias{anova.glm}
 \alias{anova.glmlist}
@@ -12,8 +14,8 @@
 }
 \arguments{
   \item{object, \dots}{objects of class \code{glm}, typically
-    the result of a call to \code{\link{glm}}, or a list of
-    \code{objects} for the \code{"glmlist"} method.}
+    the result of a call to \code{\link{glm}}.}
+  \item{objects}{a list of \code{objects}.}
   \item{dispersion}{the dispersion parameter for the fitting family.
     By default it is obtained from \code{glm.obj}.}
   \item{test}{a character string, (partially) matching one of \code{"Chisq"},
@@ -37,7 +39,7 @@
   For models with known dispersion (e.g. binomial and Poisson fits)
   the chi-squared test is most appropriate, and for those with
   dispersion estimated by moments (e.g. \code{gaussian},
-  \code{quasibinomial} and \code{quasipoisson} fits) the F test is
+  \code{pseudobinomial} and \code{pseudopoisson} fits) the F test is
   most appropriate.  Mallows' \eqn{C_p}{Cp} statistic is the residual
   deviance plus twice the estimate of \eqn{\sigma^2}{sigma^2} times
   the residual degrees of freedom, which is closely related to AIC (and

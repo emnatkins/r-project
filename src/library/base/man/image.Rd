@@ -10,8 +10,7 @@ image.default(x, y, z, zlim, xlim, ylim, col = heat.colors(12),
 }
 \arguments{
   \item{x,y}{locations of grid lines at which the values in \code{z} are
-    measured.  These must be in (strictly) ascending order.
-    By default, equally
+    measured.  These must be in ascending order.  By default, equally
     spaced values from 0 to 1 are used.  If \code{x} is a \code{list},
     its components \code{x$x} and \code{x$y} are used for \code{x}
     and \code{y}, respectively. If the list has component \code{z} this
@@ -78,15 +77,21 @@ image.default(x, y, z, zlim, xlim, ylim, col = heat.colors(12),
   \email{tlumley@u.washington.edu}.
 }
 \seealso{
-  \code{\link{filled.contour}} or \code{\link[mva]{heatmap}} which can
-  look nicer (but are less modular),
-  \code{\link{contour}};
-
+  \code{\link{contour}},
   \code{\link{heat.colors}}, \code{\link{topo.colors}},
   \code{\link{terrain.colors}}, \code{\link{rainbow}},
   \code{\link{hsv}}, \code{\link{par}}.
 }
 \examples{
+\testonly{
+## Degenerate, should still work
+image(as.matrix(1))
+image(matrix(pi,2,4))
+x <- seq(0,1,len=100)
+image(x, 1, matrix(x), col=heat.colors(10))
+image(x, 1, matrix(x), col=heat.colors(10), oldstyle = TRUE)
+image(x, 1, matrix(x), col=heat.colors(10), breaks = seq(0.1,1.1,len=11))
+}
 x <- y <- seq(-4*pi, 4*pi, len=27)
 r <- sqrt(outer(x^2, y^2, "+"))
 image(z = z <- cos(r^2)*exp(-r/6), col=gray((0:32)/32))

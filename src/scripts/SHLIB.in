@@ -4,11 +4,11 @@
 
 # @configure_input@
 
-revision='$Revision: 1.28 $'
+revision='$Revision: 1.21 $'
 version=`set - ${revision}; echo ${2}`
 version="R shared library builder ${version}
 
-Copyright (C) 2000-2003 The R Core Development Team.
+Copyright (C) 2000 The R Core Development Team.
 This is free software; see the GNU General Public Licence version 2
 or later for copying conditions.  There is NO warranty."
 
@@ -16,7 +16,7 @@ usage="Usage: R CMD SHLIB [options] files
 
 Build a shared library for dynamic loading from the specified source or
 object files (which are automagically made from their sources).  If not
-given via '--output', the name for the library is determined from the
+given via \`--output', the name for the library is determined from the
 first file.
 
 Options:
@@ -28,9 +28,8 @@ Report bugs to <r-bugs@r-project.org>."
 
 objs=
 shlib=
-MAKE=${MAKE-'@MAKE@'}
+MAKE=${MAKE-@MAKE@}
 makefiles="-f ${R_HOME}/share/make/shlib.mk"
-shlib_libadd='@SHLIB_LIBADD@'
 with_cxx=false
 with_f77=false
 
@@ -44,23 +43,23 @@ while test -n "${1}"; do
       shlib=${2}; shift ;;
     --output=*)
       shlib=`echo "${1}" | sed -e 's/[^=]*=//'` ;;
-    *.cc|*.cpp|*.C)
+    *.cc|*.cpp|.*C)
       with_cxx=true
       if test -z "${shlib}"; then
-	shlib="`echo ${1} | sed 's/\.[^\.][^\.]*$/@SHLIB_EXT@/'`"
+	shlib="`echo ${1} | sed 's/\.[^\.][^\.]*$/.@SHLIB_EXT@/'`"
       fi
       objs="${objs} `echo ${1} | sed 's/\.[^\.][^\.]*$/.o/'`"
       ;;
     *.f)
       with_f77=true
       if test -z "${shlib}"; then
-	shlib="`echo ${1} | sed 's/\.[^\.][^\.]*$/@SHLIB_EXT@/'`"
+	shlib="`echo ${1} | sed 's/\.[^\.][^\.]*$/.@SHLIB_EXT@/'`"
       fi
       objs="${objs} `echo ${1} | sed 's/\.[^\.][^\.]*$/.o/'`"
       ;;
     *.[co])
       if test -z "${shlib}"; then
-	shlib="`echo ${1} | sed 's/\.[^\.][^\.]*$/@SHLIB_EXT@/'`"
+	shlib="`echo ${1} | sed 's/\.[^\.][^\.]*$/.@SHLIB_EXT@/'`"
       fi
       objs="${objs} `echo ${1} | sed 's/\.[^\.][^\.]*$/.o/'`"
       ;;
@@ -68,13 +67,10 @@ while test -n "${1}"; do
   shift
 done
 
-makeobjs="OBJECTS=\"${objs}\""
+makeobjs="OBJS=\"${objs}\""
 if test -r Makevars; then
   makefiles="-f Makevars ${makefiles}"
   if grep '^ *OBJS *=' Makevars >/dev/null; then
-    makeobjs="OBJECTS='\$(OBJS)'"
-  fi
-  if grep '^ *OBJECTS *=' Makevars >/dev/null; then
     makeobjs=
   fi
 fi
@@ -85,14 +81,10 @@ if ${with_cxx}; then
   makeargs="SHLIB_LD='\$(SHLIB_CXXLD)' ${makeargs}"
 fi
 if ${with_f77}; then
-  if test -z "${shlib_libadd}"; then
-    makeargs="${makeargs} SHLIB_LIBADD='\$(FLIBS)'"
-  else
-    makeargs="${makeargs} SHLIB_LIBADD='\$(FLIBS) ${shlib_libadd}'"
-  fi
+  makeargs="${makeargs} SHLIB_LIBADD='\$(FLIBS)'"
 fi
 
-if test -f ${R_HOME}/bin/libR@DYLIB_EXT@; then
+if test -f ${R_HOME}/bin/libR.@SHLIB_EXT@; then
   LIBR="-L${R_HOME}/bin -lR"
 else
   LIBR=

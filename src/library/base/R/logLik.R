@@ -1,43 +1,7 @@
+## from package:nls
 logLik <- function(object, ...) UseMethod("logLik")
 
-print.logLik <- function(x, digits = getOption("digits"), ...)
-{
-    cat("`log Lik.' ",format(c(x), digits=digits),
-        " (df=",format(attr(x,"df")),")\n",sep="")
-    invisible(x)
-}
-
-str.logLik <- function(object, digits = max(2, getOption("digits") - 3), ...)
-{
-    cl <- oldClass(object)
-    cat("Class", if (length(cl) > 1) "es",
-        " `", paste(cl, collapse = "', `"), "' : ",
-        format(c(object), digits=digits),
-        " (df=",format(attr(object,"df")),")\n",sep="")
-}
-
-## rather silly (but potentially used in pkg nlme):
-as.data.frame.logLik <- function (x, row.names = NULL, optional = FALSE)
-    as.data.frame(c(x), row.names=row.names, optional=optional)
-
-## >> logLik.nls() in ../../nls/R/nls.R
-
-## from package:nlme
-
-## log-likelihood for glm objects
-logLik.glm <- function(object, ...)
-{
-    if(length(list(...)))
-        warning("extra arguments discarded")
-    fam <- family(object)$family
-    p <- object$rank
-    ## allow for estimated dispersion
-    if(fam %in% c("gaussian", "Gamma", "inverse.gaussian")) p <- p + 1
-    val <- p - object$aic / 2
-    attr(val, "df") <- p
-    class(val) <- "logLik"
-    val
-}
+## from package:nlme 
 
 ## log-likelihood for lm objects
 logLik.lm <- function(object, REML = FALSE, ...)
@@ -46,7 +10,7 @@ logLik.lm <- function(object, REML = FALSE, ...)
     p <- object$rank
     N <- length(res)
     if(is.null(w <- object$weights)) {
-        w <- rep.int(1, N)
+        w <- rep(1, N)
     } else {
         excl <- w == 0			# eliminating zero weights
         if (any(excl)) {
@@ -67,3 +31,4 @@ logLik.lm <- function(object, REML = FALSE, ...)
     val
 }
 
+print.logLik <- function(x, ...) print(c(x), ...)

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996	Robert Gentleman and Ross Ihaka
- *  Copyright (C) 2000--2002	The R Development Core Team.
+ *  Copyright (C) 2000, 2001	The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,6 +27,10 @@
  *  See ./format.c	 for the  format_FOO_  functions used below.
  */
 
+
+/*
+ *  FIXME: named-dimname printing implemented for integer arrays only
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -64,11 +68,9 @@ static void printLogicalMatrix(SEXP sx, int offset, int r, int c,
 
     for (j = 0; j < c; j++) {
 	formatLogical(&x[j * r], r, &w[j]);
-	if (!isNull(cl)) {
-	    if(STRING_ELT(cl, j) == NA_STRING) 
-		clabw = R_print.na_width_noquote;
-	    else clabw = strlen(CHAR(STRING_ELT(cl, j)));
-	} else
+	if (!isNull(cl))
+	    clabw = strlen(CHAR(STRING_ELT(cl, j)));
+	else
 	    clabw = IndexWidth(j + 1) + 3;
 	if (w[j] < clabw)
 	    w[j] = clabw;
@@ -76,12 +78,6 @@ static void printLogicalMatrix(SEXP sx, int offset, int r, int c,
     }
     jmin = 0;
     jmax = 0;
-    if (c == 0) {
-	for (i = 0; i < r; i++)
-	    MatrixRowLabel(rl, i, rlabw, lbloff);
-	Rprintf("\n");
-	return;
-    }
     while (jmin < c) {
 	width = rlabw;
 	do {
@@ -139,11 +135,9 @@ static void printIntegerMatrix(SEXP sx, int offset, int r, int c,
     w = INTEGER(sw);
     for (j = 0; j < c; j++) {
 	formatInteger(&x[j * r], r, &w[j]);
-	if (!isNull(cl)) {
-	    if(STRING_ELT(cl, j) == NA_STRING) 
-		clabw = R_print.na_width_noquote;
-	    else clabw = strlen(CHAR(STRING_ELT(cl, j)));
-	} else
+	if (!isNull(cl))
+	    clabw = strlen(CHAR(STRING_ELT(cl, j)));
+	else
 	    clabw = IndexWidth(j + 1) + 3;
 	if (w[j] < clabw)
 	    w[j] = clabw;
@@ -151,12 +145,6 @@ static void printIntegerMatrix(SEXP sx, int offset, int r, int c,
     }
     jmin = 0;
     jmax = 0;
-    if (c == 0) {
-	for (i = 0; i < r; i++)
-	    MatrixRowLabel(rl, i, rlabw, lbloff);
-	Rprintf("\n");
-	return;
-    }
     while (jmin < c) {
 	width = rlabw;
 	do {
@@ -221,11 +209,9 @@ static void printRealMatrix(SEXP sx, int offset, int r, int c,
 
     for (j = 0; j < c; j++) {
 	formatReal(&x[j * r], r, &w[j], &d[j], &e[j], 0);
-	if (!isNull(cl)) {
-	    if(STRING_ELT(cl, j) == NA_STRING) 
-		clabw = R_print.na_width_noquote;
-	    else clabw = strlen(CHAR(STRING_ELT(cl, j)));
-	} else
+	if (!isNull(cl))
+	    clabw = strlen(CHAR(STRING_ELT(cl, j)));
+	else
 	    clabw = IndexWidth(j + 1) + 3;
 	if (w[j] < clabw)
 	    w[j] = clabw;
@@ -233,12 +219,6 @@ static void printRealMatrix(SEXP sx, int offset, int r, int c,
     }
     jmin = 0;
     jmax = 0;
-    if (c == 0) {
-	for (i = 0; i < r; i++)
-	    MatrixRowLabel(rl, i, rlabw, lbloff);
-	Rprintf("\n");
-	return;
-    }
     while (jmin < c) {
 	width = rlabw;
 	do {
@@ -315,11 +295,9 @@ static void printComplexMatrix(SEXP sx, int offset, int r, int c,
 	formatComplex(&x[j * r], r,
 		      &wr[j], &dr[j], &er[j],
 		      &wi[j], &di[j], &ei[j], 0);
-	if (!isNull(cl)) {
-	    if(STRING_ELT(cl, j) == NA_STRING) 
-		clabw = R_print.na_width_noquote;
-	    else clabw = strlen(CHAR(STRING_ELT(cl, j)));
-	} else
+	if (!isNull(cl))
+	    clabw = strlen(CHAR(STRING_ELT(cl, j)));
+	else
 	    clabw = IndexWidth(j + 1) + 3;
 	w[j] = wr[j] + wi[j] + 2;
 	if (w[j] < clabw)
@@ -329,12 +307,6 @@ static void printComplexMatrix(SEXP sx, int offset, int r, int c,
 
     jmin = 0;
     jmax = 0;
-    if (c == 0) {
-	for (i = 0; i < r; i++)
-	    MatrixRowLabel(rl, i, rlabw, lbloff);
-	Rprintf("\n");
-	return;
-    }
     while (jmin < c) {
 	width = rlabw;
 	do {
@@ -400,23 +372,13 @@ static void printStringMatrix(SEXP sx, int offset, int r, int c,
     w = INTEGER(sw);
     for (j = 0; j < c; j++) {
 	formatString(&x[j * r], r, &w[j], quote);
-	if (!isNull(cl)) {
-	    if(STRING_ELT(cl, j) == NA_STRING) 
-		clabw = R_print.na_width_noquote;
-	    else clabw = strlen(CHAR(STRING_ELT(cl, j)));
-	} else
-	    clabw = IndexWidth(j + 1) + 3;
+	if (!isNull(cl)) clabw = strlen(CHAR(STRING_ELT(cl, j)));
+	else clabw = IndexWidth(j + 1) + 3;
 	if (w[j] < clabw)
 	    w[j] = clabw;
     }
     jmin = 0;
     jmax = 0;
-    if (c == 0) {
-	for (i = 0; i < r; i++)
-	    MatrixRowLabel(rl, i, rlabw, lbloff);
-	Rprintf("\n");
-	return;
-    }
     while (jmin < c) {
 	width = rlabw;
 	do {
@@ -465,10 +427,6 @@ void printMatrix(SEXP x, int offset, SEXP dim, int quote, int right,
 	error("too few row labels");
     if ((cl!=R_NilValue) && (c>length(cl)))
 	error("too few column labels");
-    if (r == 0 && c == 0) {
-	Rprintf("<0 x 0 matrix>\n");
-	return;
-    }
     switch (TYPEOF(x)) {
     case LGLSXP:
 	printLogicalMatrix(x, offset, r, c, rl, cl, rn, cn);

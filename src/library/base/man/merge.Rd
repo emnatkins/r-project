@@ -13,10 +13,9 @@ merge(x, y, by, by.x, by.y, all = FALSE, all.x = all, all.y = all,
 }
 \synopsis{
 merge(x, y, \dots)
-merge.data.frame(x, y, by = intersect(names(x), names(y)),
-                 by.x = by, by.y = by,
+merge.date.frame(x, y, by = intersect(names(x), names(y)), by.x= by, by.y= by,
                  all = FALSE, all.x = all, all.y = all,
-                 sort = TRUE, suffixes = c(".x",".y"), \dots)
+                 sort = TRUE, suffixes = c(".x",".y"))
 }
 \arguments{
   \item{x, y}{data frames, or objects to be coerced to one}
@@ -59,7 +58,7 @@ merge.data.frame(x, y, by = intersect(names(x), names(y)),
 \value{
   A data frame.  The rows are by default lexicographically sorted on the
   common columns, but are otherwise in the order in which they occurred
-  in \code{y}.  The columns are the common columns followed by the
+  in \code{x}.  The columns are the common columns followed by the
   remaining columns in \code{x} and then those in \code{y}.  If the
   matching involved row names, an extra column \code{Row.names} is added
   at the left, and in all cases the result has no special row names.
@@ -95,6 +94,19 @@ stopifnot(as.character(m1[,1]) == as.character(m2[,1]),
 
 ## "R core" is missing from authors and appears only here :
 merge(authors, books, by.x = "surname", by.y = "name", all = TRUE)
+
+\testonly{
+ b2 <- books; names(b2)[1] <- names(authors)[1]
+
+ merge(authors, b2, all.x = TRUE)
+ merge(authors, b2, all.y = TRUE)
+
+ ## empty d.f. :
+ merge(authors, b2[7,])
+ 			 
+ merge(authors, b2[7,], all.y = TRUE)
+ merge(authors, b2[7,], all.x = TRUE)
+}
 }
 \keyword{array}
 \keyword{manip}

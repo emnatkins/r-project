@@ -1,4 +1,4 @@
-svd <- function(x, nu=min(n,p), nv=min(n,p), LINPACK = FALSE)
+svd <- function(x, nu=min(n,p), nv=min(n,p))
 {
     x <- as.matrix(x)
     dx <- dim(x)
@@ -8,12 +8,6 @@ svd <- function(x, nu=min(n,p), nv=min(n,p), LINPACK = FALSE)
     if (is.complex(x)) {
         res <- La.svd(x, nu, nv)
         return(list(d = res$d, u = if(nu) res$u, v = if(nv) Conj(t(res$vt))))
-    }
-    if (!LINPACK) {
-        method <- "dgesdd"
-        if(!capabilities("IEEE754")) method <- "dgesvd"
-        res <- La.svd(x, nu, nv, method)
-        return(list(d = res$d, u = if(nu) res$u, v = if(nv) t(res$vt)))
     }
     if(!is.numeric(x))
 	stop("argument to svd must be numeric")

@@ -9,13 +9,12 @@ scan(file = "", what = double(0), nmax = -1, n = -1, sep = "",
      quote = if (sep=="\n") "" else "'\"", dec = ".",
      skip = 0, nlines = 0, na.strings = "NA",
      flush = FALSE, fill = FALSE, strip.white = FALSE, quiet = FALSE,
-     blank.lines.skip = TRUE, multi.line = TRUE, comment.char = "")
+     blank.lines.skip = TRUE, multi.line = TRUE)
 }
 \arguments{
   \item{file}{the name of a file to read data values from.  If the
     specified file is \code{""}, then input is taken from the keyboard
-    (in this case input can be terminated by a blank line or an EOF
-    signal, \code{Ctrl-D} on Unix and \code{Ctrl-Z} on Windows.).
+    (in this case input can be terminated by a blank line).
 
     Otherwise, the file name is interpreted \emph{relative} to the
     current working directory (given by \code{\link{getwd}()}),
@@ -31,10 +30,7 @@ scan(file = "", what = double(0), nmax = -1, n = -1, sep = "",
   \item{what}{the type of \code{what} gives the type of data to be
     read.  If \code{what} is a list, it is assumed that the lines of the
     data file are records each containing \code{length(what)} items
-    (``fields'').  The supported types are \code{logical},
-    \code{integer}, \code{numeric}, \code{complex}, \code{character} and
-    \code{list}: \code{list} values should have elements which are one
-    of the first five types listed or \code{NULL}.}
+    (``fields'').}
 
   \item{nmax}{the maximum number of data values to be read, or if
     \code{what} is a list, the maximum number of records to be read.  If
@@ -87,27 +83,19 @@ scan(file = "", what = double(0), nmax = -1, n = -1, sep = "",
     line, saying how many items have been read.}
 
   \item{blank.lines.skip}{logical: if \code{TRUE} blank lines in the
-    input are ignored, except when counting \code{skip} and \code{nlines}.}
+    input are ignored, except when counting \code{nlines}.}
 
   \item{multi.line}{logical. Only used if \code{what} is a list.
     If \code{FALSE}, all of a record must appear on one line (but more
     than one record can appear on a single line).  Note that using
     \code{fill = TRUE} implies that a record will terminated at the end
     of a line.}
-  
-  \item{comment.char}{character: a character vector of length one
-    containing a single character or an empty string.  Use \code{""} to
-    turn off the interpretation of comments altogether (the default).}
 }
 \details{
   The value of \code{what} can be a list of types, in which case
   \code{scan} returns a list of vectors with the types given by the
   types of the elements in \code{what}.  This provides a way of reading
-  columnar data.  If any of the types is \code{NULL}, the corresponding
-  field is skipped (but a \code{NULL} component appears in the result).
-
-  The type of \code{what} or its components can be one of the five
-  atomic types or \code{NULL},
+  columnar data.
 
   Empty numeric fields are always regarded as missing values.
   Empty character fields are scanned as empty character vectors, unless
@@ -126,21 +114,9 @@ scan(file = "", what = double(0), nmax = -1, n = -1, sep = "",
 
   Note that since \code{sep} is a separator and not a terminator,
   reading a file by \code{scan("foo", sep="\n", blank.lines.skip=FALSE)}
-  will give an empty file line if the file ends in a linefeed and not if
+  will give an empty file line if the file ends in a linefeed and not it
   it does not.  This might not be what you expected; see also
   \code{\link{readLines}}.
-
-  If \code{comment.char} occurs (except inside a quoted character
-  field), it signals that the rest of the line
-  should be regarded as a comment and be discarded.  Lines beginning
-  with a comment character (possibly after white space) are treated
-  as blank lines. 
-}
-\value{
-  if \code{what} is a list, a list of the same length and same names (as
-  any) as \code{what}.
-
-  Otherwise, a vector of the type of \code{what}.
 }
 \note{
   The default for \code{multi.line} differs from S.  To read one record

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  file extra.c
- *  Copyright (C) 1998--2003  Guido Masarotto and Brian Ripley
+ *  Copyright (C) 1998--2001  Guido Masarotto and Brian Ripley
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,15 +35,24 @@
 #include "graphapp/ga.h"
 #include "rui.h"
 
-char * R_tmpnam(const char * prefix, const char * tempdir)
+char * Rwin32_tmpnam(char * prefix)
 {
-    char tm[MAX_PATH], tmp1[MAX_PATH], *res;
+    char *tmp, tm[MAX_PATH], tmp1[MAX_PATH], *p, *res;
+    int hasspace = 0;
     unsigned int n, done = 0;
     WIN32_FIND_DATA fd;
     HANDLE h;
 
-    if(!prefix) prefix = "";	/* NULL */
-    strcpy(tmp1, tempdir);
+    tmp = getenv("TMP");
+    if (!tmp) tmp = getenv("TEMP");
+    if (!tmp) tmp = getenv("R_USER"); /* this one will succeed */
+    /* make sure no spaces in path */
+    for (p = tmp; *p; p++)
+	if (isspace(*p)) { hasspace = 1; break; }
+    if (hasspace)
+	GetShortPathName(tmp, tmp1, MAX_PATH);
+    else
+	strcpy(tmp1, tmp);
     for (n = 0; n < 100; n++) {
 	/* try a random number at the end */
         sprintf(tm, "%s\\%s%d", tmp1, prefix, rand());
@@ -61,6 +70,27 @@ char * R_tmpnam(const char * prefix, const char * tempdir)
     return res;
 }
 
+
+SEXP do_tempfile(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP  ans;
+    char *tn, *tm;
+    int i, slen=0 /* -Wall */;
+
+    checkArity(op, args);
+    if (!isString(CAR(args)) || (slen = LENGTH(CAR(args))) < 1)
+	errorcall(call, "invalid file name argument");
+    PROTECT(ans = allocVector(STRSXP, slen));
+    for(i = 0; i < slen; i++) {
+	tn = CHAR(STRING_ELT(CAR(args), i));
+	/* try to get a new file name */
+	tm = Rwin32_tmpnam(tn);
+	SET_STRING_ELT(ans, i, mkChar(tm));
+	free(tm);
+    }
+    UNPROTECT(1);
+    return (ans);
+}
 
 SEXP do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -95,7 +125,7 @@ static int R_unlink_one(char *dir, char *name, int recursive)
     if(strcmp(name, ".") == 0) return 0;
     if(strcmp(name, "..") == 0) return 0;
     if(strlen(dir)) {
-	strcpy(tmp, dir);
+	strcpy(tmp, dir); 
 	if(*(dir + strlen(dir) - 1) != '\\') strcat(tmp, "\\");
 	strcat(tmp, name);
     } else strcpy(tmp, name);
@@ -273,8 +303,6 @@ SEXP do_flushconsole(SEXP call, SEXP op, SEXP args, SEXP env)
     } OSVERSIONINFO; */
 
 
-/* defined in w32api 1.2, but not in 1.1 or earlier */
-#ifndef VER_NT_WORKSTATION
 #define VER_NT_WORKSTATION              0x0000001
 #define VER_NT_DOMAIN_CONTROLLER        0x0000002
 #define VER_NT_SERVER                   0x0000003
@@ -290,6 +318,7 @@ SEXP do_flushconsole(SEXP call, SEXP op, SEXP args, SEXP env)
 #define VER_SUITE_EMBEDDEDNT                0x00000040
 #define VER_SUITE_DATACENTER                0x00000080
 #define VER_SUITE_SINGLEUSERTS              0x00000100
+/* next one is a guess */
 #define VER_SUITE_PERSONAL                  0x00000200
 
 typedef struct _OSVERSIONINFOEX {
@@ -305,11 +334,6 @@ typedef struct _OSVERSIONINFOEX {
   BYTE wProductType;
   BYTE wReserved;
 } OSVERSIONINFOEX;
-#endif
-/* next is from Nov 2001 Platform SDK */
-#ifndef VER_SUITE_BLADE
-#define VER_SUITE_BLADE                     0x00000400
-#endif
 
 SEXP do_winver(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -352,7 +376,7 @@ SEXP do_winver(SEXP call, SEXP op, SEXP args, SEXP env)
     if((int)verinfo.dwMajorVersion >= 5) {
 	OSVERSIONINFOEX osvi;
 	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-	if(GetVersionEx((OSVERSIONINFO *)&osvi)) {
+	if(GetVersionEx(&osvi)) {
 	    char tmp[]="", *desc= tmp, *type = tmp;
 	    if(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 0)
 		desc = "2000";
@@ -360,24 +384,20 @@ SEXP do_winver(SEXP call, SEXP op, SEXP args, SEXP env)
 		desc = "XP";
             if ( osvi.wProductType == VER_NT_WORKSTATION ) {
                if( osvi.wSuiteMask & VER_SUITE_PERSONAL )
-                  type = "Home Edition";
+                  type = "Personal";
                else
                   type = "Professional";
             } else if ( osvi.wProductType == VER_NT_SERVER )
             {
-               if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 1 )
-                  desc = ".NET";
                if( osvi.wSuiteMask & VER_SUITE_DATACENTER )
                   type = "DataCenter Server";
                else if( osvi.wSuiteMask & VER_SUITE_ENTERPRISE )
                   type = "Advanced Server";
-               else if ( osvi.wSuiteMask == VER_SUITE_BLADE )
-                  type = "Web Server";
                else
 		   type = "Server";
             }
-
-	    sprintf(ver,
+ 	    
+	    sprintf(ver, 
 		    "Windows %s %s (build %d) Service Pack %d.%d",
 		    desc, type,
 		    LOWORD(osvi.dwBuildNumber),
@@ -540,7 +560,7 @@ SEXP do_winmenudel(SEXP call, SEXP op, SEXP args, SEXP env)
     sitem = CADR(args);
     if (isNull(sitem)) { /* delete a menu */
 	res = windelmenu (CHAR(STRING_ELT(smenu, 0)), errmsg);
-	if (res > 0)
+	if (res > 0) 
 	    errorcall(call, "menu does not exist");
     } else { /* delete an item */
 	if(!isString(sitem) || length(sitem) != 1)
@@ -560,14 +580,13 @@ void Rwin_fpset()
 {
     _fpreset();
     _controlfp(_MCW_EM, _MCW_EM);
-    _controlfp(_PC_64, _MCW_PC);
 }
 
 #include "getline/getline.h"  /* for gl_load/savehistory */
 SEXP do_savehistory(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP sfile;
-
+    
     checkArity(op, args);
     sfile = CAR(args);
     if (!isString(sfile) || LENGTH(sfile) < 1)
@@ -582,7 +601,7 @@ SEXP do_savehistory(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP do_loadhistory(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP sfile;
-
+    
     checkArity(op, args);
     sfile = CAR(args);
     if (!isString(sfile) || LENGTH(sfile) < 1)
@@ -600,7 +619,7 @@ SEXP do_sysinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans, ansnames;
     OSVERSIONINFO verinfo;
-    char isNT[8]="??", ver[256],
+    char isNT[8]="??", ver[256], 
 	name[MAX_COMPUTERNAME_LENGTH + 1], user[UNLEN+1];
     DWORD namelen = MAX_COMPUTERNAME_LENGTH + 1, userlen = UNLEN+1;
 
@@ -627,7 +646,7 @@ SEXP do_sysinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
     sprintf(ver, "%s %d.%d", isNT,
 	    (int)verinfo.dwMajorVersion, (int)verinfo.dwMinorVersion);
     SET_STRING_ELT(ans, 1, mkChar(ver));
-    sprintf(ver, "(build %d) %s", LOWORD(verinfo.dwBuildNumber),
+    sprintf(ver, "(build %d) %s", LOWORD(verinfo.dwBuildNumber), 
 	    verinfo.szCSDVersion);
     SET_STRING_ELT(ans, 2, mkChar(ver));
     GetComputerName(name, &namelen);
@@ -650,11 +669,11 @@ SEXP do_sysinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 
 SEXP do_syssleep(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
+{    
     DWORD mtime;
     int ntime;
     double time;
-
+    
     checkArity(op, args);
     time = asReal(CAR(args));
     if (ISNAN(time) || time < 0)
@@ -692,35 +711,22 @@ SEXP do_memsize(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans;
     int maxmem;
-
+    
     checkArity(op, args);
-    if(isLogical(CAR(args))) {
-	maxmem = asLogical(CAR(args));
-	PROTECT(ans = allocVector(INTSXP, 1));
+    maxmem = asLogical(CAR(args));
+    PROTECT(ans = allocVector(INTSXP, 1));
 #ifdef LEA_MALLOC
-	if(maxmem == NA_LOGICAL)
-	    INTEGER(ans)[0] = R_max_memory;
-	else if(maxmem)
-	    INTEGER(ans)[0] = max_total_mem;
-	else
-	    INTEGER(ans)[0] = mallinfo().uordblks;
+    if(maxmem == NA_LOGICAL) 
+	INTEGER(ans)[0] = R_max_memory;
+    else if(maxmem)
+	INTEGER(ans)[0] = max_total_mem;
+    else
+	INTEGER(ans)[0] = mallinfo().uordblks;
 #else
-	INTEGER(ans)[0] = NA_INTEGER;
+    INTEGER(ans)[0] = NA_INTEGER;
 #endif
-	UNPROTECT(1);
-	return ans;
-    } else if(isReal(CAR(args))) {
-	unsigned int newmax;
-	double mem = asReal(CAR(args));
-	if (!R_FINITE(mem))
-	    errorcall(call, "incorrect argument");
-	newmax = mem * 1048576.0;
-	if (newmax < R_max_memory)
-	    errorcall(call, "cannot decrease memory limit");
-	R_max_memory = newmax;
-    } else
-	errorcall(call, "incorrect argument");
-    return R_NilValue;
+    UNPROTECT(1);
+    return ans;
 }
 
 SEXP do_dllversion(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -729,7 +735,7 @@ SEXP do_dllversion(SEXP call, SEXP op, SEXP args, SEXP rho)
     char *dll;
     DWORD dwVerInfoSize;
     DWORD dwVerHnd;
-
+    
     checkArity(op, args);
     path = CAR(args);
     if(!isString(path) || LENGTH(path) != 1)
@@ -748,7 +754,7 @@ SEXP do_dllversion(SEXP call, SEXP op, SEXP args, SEXP rho)
 	lpstrVffInfo = (LPSTR) malloc(dwVerInfoSize);
 	if (GetFileVersionInfo(dll, 0L, dwVerInfoSize, lpstrVffInfo))
 	{
-
+	    
 	    fRet = VerQueryValue(lpstrVffInfo,
 				 TEXT("\\StringFileInfo\\040904E4\\FileVersion"),
 				 (LPVOID)&lszVer, &cchVer);
@@ -764,7 +770,7 @@ SEXP do_dllversion(SEXP call, SEXP op, SEXP args, SEXP rho)
 				     (LPVOID)&lszVer, &cchVer);
 		if(fRet) SET_STRING_ELT(ans, 1, mkChar(lszVer));
 	    }
-
+	    
 	} else ans = R_NilValue;
 	free(lpstrVffInfo);
     } else ans = R_NilValue;
@@ -836,10 +842,10 @@ SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP rho)
     xmax = max(170, 8*mw+60);
     ylist = min(20*n, 300);
     ymax = ylist + 60;
-    wselect = newwindow(multiple ? "Select" : "Select one",
+    wselect = newwindow(multiple ? "Select" : "Select one", 
 			rect(0, 0, xmax, ymax),
 			Titlebar | Centered | Modal);
-    setbackground(wselect, dialog_bg());
+    setbackground(wselect, LightGrey);
     if(multiple)
 	f_list = newmultilist(clist, rect(10, 10, 35+8*mw, ylist), NULL);
     else
@@ -864,214 +870,10 @@ SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
     } else {
 	PROTECT(ans = allocVector(STRSXP, 1));
-	SET_STRING_ELT(ans, 0, mkChar(selected));
+	SET_STRING_ELT(ans, 0, mkChar(selected));	
     }
     cleanup();
     show(RConsole);
-    UNPROTECT(1);
-    return ans;
-}
-
-int Rwin_rename(char *from, char *to)
-{
-    int res = 0;
-    OSVERSIONINFO verinfo;
-
-    verinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-    GetVersionEx(&verinfo);
-    switch(verinfo.dwPlatformId) {
-    case VER_PLATFORM_WIN32_NT:
-	res = (MoveFileEx(from, to, MOVEFILE_REPLACE_EXISTING) == 0);
-	break;
-    default:
-	if (!DeleteFile(to) && GetLastError() != ERROR_FILE_NOT_FOUND)
-	    return 1;
-	res = (MoveFile(from, to) == 0);
-    }
-    return res;
-}
-
-void InitTempDir()
-{
-    char *tmp, tm[MAX_PATH], tmp1[MAX_PATH], *p;
-    unsigned int n;
-    int hasspace = 0, len, done = 0, res;
-    WIN32_FIND_DATA fd;
-    HANDLE h;
-
-    tmp = getenv("TMP");
-    if (!tmp) tmp = getenv("TEMP");
-    if (!tmp) tmp = getenv("R_USER"); /* this one will succeed */
-    /* make sure no spaces in path */
-    for (p = tmp; *p; p++)
-	if (isspace(*p)) { hasspace = 1; break; }
-    if (hasspace)
-	GetShortPathName(tmp, tmp1, MAX_PATH);
-    else
-	strcpy(tmp1, tmp);
-    /* now try a random addition */
-    srand( (unsigned)time( NULL ) );
-    for (n = 0; n < 100; n++) {
-	/* try a random number at the end */
-        sprintf(tm, "%s\\%s%d", tmp1, "Rtmp", rand());
-        if ((h = FindFirstFile(tm, &fd)) == INVALID_HANDLE_VALUE) {
-	    done = 1;
-	    break;
-	}
-        FindClose(h);
-        tm[0] = '\0';
-    }
-    if(!done)
-	R_Suicide("cannot find unused tempdir name");
-    /* Now try to create it */
-    res = mkdir(tm);
-    if(res) R_Suicide("Can't mkdir R_TempDir");
-    len = strlen(tm);
-    p = (char *) malloc(len+1);
-    if(!p) R_Suicide("Can't allocate R_TempDir");
-    else {
-	R_TempDir = p;
-	strcpy(R_TempDir, tm);
-    }
-}
-
-void CleanTempDir()
-{
-    if(R_TempDir) R_unlink(R_TempDir, 1);
-}
-
-SEXP do_readClipboard(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP ans = allocVector(STRSXP, 0);
-    HGLOBAL hglb;
-    char *pc;
-
-    checkArity(op, args);
-    if(clipboardhastext() &&
-       OpenClipboard(NULL) &&
-       (hglb = GetClipboardData(CF_TEXT)) &&
-       (pc = (char *)GlobalLock(hglb))) {
-	    PROTECT(ans = allocVector(STRSXP, 1));
-	    SET_STRING_ELT(ans, 0, mkChar(pc));
-	    GlobalUnlock(hglb);
-	    CloseClipboard();
-	    UNPROTECT(1);
-    }
-    return ans;
-}
-
-SEXP do_writeClipboard(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP ans, text;
-    int i, n;
-    HGLOBAL hglb;
-    char *s, *p;
-    Rboolean success = FALSE;
-
-    checkArity(op, args);
-    text = CAR(args);
-    if(!isString(text))
-	errorcall(call, "argument must be a character vector");
-    n = length(text);
-    if(n > 0) {
-	int len = 1;
-	for(i = 0; i < n; i++) len += strlen(CHAR(STRING_ELT(text, i))) + 2;
-	if ( (hglb = GlobalAlloc(GHND, len)) &&
-	     (s = (char *)GlobalLock(hglb)) ) {
-	    for(i = 0; i < n; i++) {
-		p = CHAR(STRING_ELT(text, i));
-		while(*p) *s++ = *p++;
-		*s++ = '\r'; *s++ = '\n';
-	    }
-	    *s = '\0';
-	    GlobalUnlock(hglb);
-	    if (!OpenClipboard(NULL) || !EmptyClipboard()) {
-		warningcall(call, "Unable to open the clipboard");
-		GlobalFree(hglb);
-	    } else {
-		success = SetClipboardData(CF_TEXT, hglb) != 0;
-		if(!success) {
-		    warningcall(call, "Unable to write to the clipboard");
-		    GlobalFree(hglb);
-		}
-		CloseClipboard();
-	    }
-	}
-    }
-    PROTECT(ans = allocVector(LGLSXP, 1));
-    LOGICAL(ans)[0] = success;
-    UNPROTECT(1);
-    return ans;
-}
-
-SEXP do_chooseFiles(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP ans, def, caption, filters;
-    char *temp, *cfilters, list[65520];
-    char path[MAX_PATH], filename[MAX_PATH];
-    int multi, filterindex, i, count, lfilters, pathlen;
-    checkArity(op, args);
-    def = CAR(args);
-    caption = CADR(args);
-    multi = asLogical(CADDR(args));
-    filters = CADDDR(args);
-    filterindex = asInteger(CAD4R(args));
-    if(length(def) != 1 )
-		errorcall(call, "default must be a character string");
-	strcpy(path, CHAR(STRING_ELT(def, 0)));
-	temp = strchr(path,'/');
-	while (temp) {
-		*temp = '\\';
-		temp = strchr(temp,'/');
-	}
-    if(length(caption) != 1 )
-		errorcall(call, "caption must be a character string");
-	if(multi == NA_LOGICAL)
-		errorcall(call, "multi must be a logical value");
-	if(filterindex == NA_INTEGER)
-		errorcall(call, "filterindex must be an integer value");
-    lfilters = 1+length(filters);
-    for (i=0; i<length(filters); i++) lfilters += strlen(CHAR(STRING_ELT(filters,i)));
-    cfilters = R_alloc(lfilters, sizeof(char));
-    temp = cfilters;
-    for (i=0; i<length(filters)/2; i++) {
-		strcpy(temp,CHAR(STRING_ELT(filters,i)));
-		temp += strlen(temp)+1;
-		strcpy(temp,CHAR(STRING_ELT(filters,i+length(filters)/2)));
-		temp += strlen(temp)+1;
-	}
-	*temp = 0;
-
-    askfilenames(CHAR(STRING_ELT(caption, 0)), path,
-    			 multi, cfilters, filterindex,
-                 list, 65500);  /* list declared larger to protect against overwrites */
-    Rwin_fpset();
-    count = countFilenames(list);
-
-    if (count < 2) PROTECT(ans = allocVector(STRSXP, count));
-    else PROTECT(ans = allocVector(STRSXP, count-1));
-
-    switch (count) {
-	case 0: break;
-	case 1: SET_STRING_ELT(ans, 0, mkChar(list));
-			break;
-	default:
-		strncpy(path,list,sizeof(path));
-		pathlen = strlen(path);
-		if (path[pathlen-1] == '\\') path[--pathlen] = '\0';
-    	temp = list;
-    	for (i = 0; i < count-1; i++) {
-			temp += strlen(temp) + 1;
-			if (strchr(temp,':') || *temp == '\\' || *temp == '/')
-				SET_STRING_ELT(ans, i, mkChar(temp));
-			else {
-				strncpy(filename,path,sizeof(filename));
-				filename[pathlen] = '\\';
-				strncpy(filename+pathlen+1,temp,sizeof(filename)-pathlen-1);
-				SET_STRING_ELT(ans, i, mkChar(filename));
-			}
-		}
-    }
     UNPROTECT(1);
     return ans;
 }

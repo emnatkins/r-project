@@ -13,7 +13,7 @@ anova.lm.null <- function (object, ...)
     df <- dfr
     ms <- ss/df
     f <- ms/(ssr/dfr)
-    p <- pf(f, df, dfr, lower.tail = FALSE)
+    p <- 1 - pf(f, df, dfr)
     table <- data.frame(df, ss, ms, f, p)
     table[length(p), 4:5] <- NA
     dimnames(table) <- list(c(attr(object$terms, "term.labels"), "Residuals"),
@@ -61,14 +61,14 @@ print.summary.lm.null <- function (x, digits = max(3, getOption("digits") - 3), 
     invisible(x)
 }
 
-summary.lm.null <- function (object, correlation = FALSE, ...)
+summary.lm.null <- function (z, correlation = FALSE, ...)
 {
-    n <- length(object$fitted.values)
+    n <- length(z$fitted.values)
     p <- 0
-    r <- resid(object)
-    f <- fitted(object)
-    w <- weights(object)
-    if (is.null(object$terms)) {
+    r <- resid(z)
+    f <- fitted(z)
+    w <- weights(z)
+    if (is.null(z$terms)) {
 	stop("invalid \'lm\' object:  no terms component")
     }
     else {
@@ -76,16 +76,16 @@ summary.lm.null <- function (object, correlation = FALSE, ...)
 	mss <- sum(f^2)
     }
     resvar <- rss/(n - p)
-###R <- chol2inv(object$qr$qr[p1, p1, drop = FALSE])
+###R <- chol2inv(z$qr$qr[p1, p1, drop = FALSE])
 ###se <- sqrt(diag(R) * resvar)
-###est <- object$coefficients[object$qr$pivot[p1]]
+###est <- z$coefficients[z$qr$pivot[p1]]
 ###tval <- est/se
-    ans <- object[c("call", "terms")]
+    ans <- z[c("call", "terms")]
     ans$residuals <- r
     ans$coefficients <- NULL
     ans$sigma <- sqrt(resvar)
     ans$df <- c(p, n - p, n - p)
-    ans$r.squared <- ans$adj.r.squared <- 0
+    ans$r.squared <- 0
     ans$cov.unscaled <- NULL
     class(ans) <- "summary.lm.null"
     ans
@@ -104,7 +104,7 @@ lm.wfit.null <- function (x, y, w, method = "qr", tol = 1e-07, ...)
     list(coefficients = numeric(0), residuals = y, fitted.values = 0 *
          y, weights = w, rank = 0, df.residual = length(y))
 
-model.matrix.lm.null <- function(object, ...)
+model.matrix.lm.null <- function(x,...)
 {
   rval <- matrix(ncol=0, nrow=length(object$y))
   attr(rval,"assign") <- integer(0)

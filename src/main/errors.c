@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2002  The R Development Core Team.
+ *  Copyright (C) 1997--2001  The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,10 +27,6 @@
 #include <Startup.h> /* rather cleanup ..*/
 #include <Rconnections.h>
 
-#ifndef min
-#define min(a, b) (a<b?a:b)
-#endif
-
 /* limit on call length at which errorcall/warningcall is split over
    two lines */
 #define LONGCALL 30
@@ -40,6 +36,13 @@
    back into the standard R event loop.
  */
 void jump_now();
+/*
+  Method that resets the global state of the evaluator in the event
+  of an error. Was in jump_now(), but is now a separate method so that
+  we can call it without invoking the longjmp. This is needed when embedding
+  R in other applications.
+*/
+void Rf_resetStack(int topLevel);
 
 /*
 Different values of inError are used to indicate different places
@@ -88,6 +91,8 @@ void onsigusr1()
     }
 
 
+    if (R_Inputfile != NULL)
+	fclose(R_Inputfile);
     R_ResetConsole();
     R_FlushConsole();
     R_ClearerrConsole();
@@ -98,7 +103,7 @@ void onsigusr1()
     for (c = R_GlobalContext; c; c = c->nextcontext) {
 	if (IS_RESTART_BIT_SET(c->callflag)) {
 	    inError=0;
-	    findcontext(CTXT_RESTART, c->cloenv, R_RestartToken);
+	    findcontext(CTXT_RESTART, c->cloenv, R_DollarSymbol);
 	}
     }
 
@@ -125,6 +130,8 @@ void onsigusr2()
     }
 
 
+    if (R_Inputfile != NULL)
+	fclose(R_Inputfile);
     R_ResetConsole();
     R_FlushConsole();
     R_ClearerrConsole();
@@ -143,8 +150,12 @@ static void setupwarnings(void)
 static int Rvsnprintf(char *buf, size_t size, const char  *format, va_list ap)
 {
     int val;
+#ifdef HAVE_VSNPRINTF
     val = vsnprintf(buf, size, format, ap);
     buf[size-1] = '\0';
+#else
+    val = vsprintf(buf, format, ap);
+#endif
     return val;
 }
 
@@ -155,7 +166,7 @@ void warning(const char *format, ...)
 
     va_list(ap);
     va_start(ap, format);
-    Rvsnprintf(buf, min(BUFSIZE, R_WarnLength), format, ap);
+    Rvsnprintf(buf, BUFSIZE, format, ap);
     va_end(ap);
     p = buf + strlen(buf) - 1;
     if(strlen(buf) > 0 && *p == '\n') *p = '\0';
@@ -175,7 +186,7 @@ void warningcall(SEXP call, const char *format, ...)
     if (R_WarningHook != NULL) {
 	va_list(ap);
 	va_start(ap, format);
-	Rvsnprintf(buf, min(BUFSIZE, R_WarnLength), format, ap);
+	Rvsnprintf(buf, BUFSIZE, format, ap);
 	va_end(ap);
 	R_WarningHook(call, buf);
 	return;
@@ -205,9 +216,8 @@ void warningcall(SEXP call, const char *format, ...)
     if(w >= 2) { /* make it an error */
 	va_list(ap);
 	va_start(ap, format);
-	Rvsnprintf(buf, min(BUFSIZE, R_WarnLength), format, ap);
+	Rvsnprintf(buf, BUFSIZE, format, ap);
 	va_end(ap);
-	inWarning = 0; /* PR#1570 */
 	errorcall(call, "(converted from warning) %s", buf);
     }
     else if(w == 1) {	/* print as they happen */
@@ -220,9 +230,9 @@ void warningcall(SEXP call, const char *format, ...)
 	else
 	    REprintf("Warning: ");
 	va_start(ap, format);
-	Rvsnprintf(buf, min(BUFSIZE, R_WarnLength), format, ap);
+	REvprintf(format, ap);
 	va_end(ap);
-	REprintf("%s\n", buf);
+	REprintf("\n");
     }
     else if(w == 0) {	/* collect them */
 	va_list(ap);
@@ -232,7 +242,7 @@ void warningcall(SEXP call, const char *format, ...)
 	if( R_CollectWarnings > 49 )
 	    return;
 	SET_VECTOR_ELT(R_Warnings, R_CollectWarnings, call);
-	Rvsnprintf(buf, min(BUFSIZE, R_WarnLength), format, ap);
+	Rvsnprintf(buf, BUFSIZE, format, ap);
 	va_end(ap);
 	names = CAR(ATTRIB(R_Warnings));
 	SET_STRING_ELT(names, R_CollectWarnings++, mkChar(buf));
@@ -307,7 +317,7 @@ void errorcall(SEXP call, const char *format,...)
 	void (*hook)(SEXP, char *) = R_ErrorHook;
 	R_ErrorHook = NULL; /* to avoid recursion */
 	va_start(ap, format);
-	Rvsnprintf(buf, min(BUFSIZE, R_WarnLength), format, ap);
+	Rvsnprintf(buf, BUFSIZE, format, ap);
 	va_end(ap);
 	hook(call, buf);
     }
@@ -346,7 +356,7 @@ void errorcall(SEXP call, const char *format,...)
 
     p = errbuf + strlen(errbuf);
     va_start(ap, format);
-    Rvsnprintf(p, min(BUFSIZE, R_WarnLength) - strlen(errbuf), format, ap);
+    Rvsnprintf(p, BUFSIZE - strlen(errbuf), format, ap);
     va_end(ap);
     p = errbuf + strlen(errbuf) - 1;
     if(*p != '\n') strcat(errbuf, "\n");
@@ -371,11 +381,9 @@ void error(const char *format, ...)
 
     va_list(ap);
     va_start(ap, format);
-    Rvsnprintf(buf, min(BUFSIZE, R_WarnLength), format, ap);
+    Rvsnprintf(buf, BUFSIZE, format, ap);
     va_end(ap);
-    /* This can be called before R_GlobalContext is defined, so... */
-    errorcall(R_GlobalContext ?
-	      R_GlobalContext->call : R_NilValue, "%s", buf);
+    errorcall(R_GlobalContext->call, "%s", buf);
 }
 
 /* Unwind the call stack in an orderly fashion */
@@ -419,6 +427,8 @@ void jump_to_toplevel()
     }
 
     /* reset some stuff--not sure (all) this belongs here */
+    if (R_Inputfile != NULL)
+	fclose(R_Inputfile);
     R_ResetConsole();
     R_FlushConsole();
     R_ClearerrConsole();
@@ -430,7 +440,7 @@ void jump_to_toplevel()
 	    nback++;
 	if (IS_RESTART_BIT_SET(c->callflag)) {
 	    inError=0;
-	    findcontext(CTXT_RESTART, c->cloenv, R_RestartToken);
+	    findcontext(CTXT_RESTART, c->cloenv, R_DollarSymbol);
 	}
 	if (c->callflag == CTXT_TOPLEVEL)
 	    break;
@@ -472,7 +482,7 @@ void jump_now()
     for (c = R_GlobalContext; c; c = c->nextcontext) {
 	if (IS_RESTART_BIT_SET(c->callflag)) {
 	    inError=0;
-	    findcontext(CTXT_RESTART, c->cloenv, R_RestartToken);
+	    findcontext(CTXT_RESTART, c->cloenv, R_DollarSymbol);
 	}
 	if (c->callflag == CTXT_TOPLEVEL)
 	    break;
@@ -492,6 +502,20 @@ void jump_now()
        control mechanism.  LT. */
     R_run_onexits(R_ToplevelContext);
 
+    Rf_resetStack(0);
+    LONGJMP(R_ToplevelContext->cjmpbuf, 0);
+}
+
+
+/*
+ The topLevelReset argument controls whether the R_GlobalContext is 
+ reset to its initial condition.
+ In regular stand-alone R, this is not needed (see jump_now() above).
+ But when R is embedded in an application, this must be set or otherwise
+ subsequent errors get caught in an infinite loop when iterating over
+ the contexts in the error handling routine jump_to_toplevel() above.
+*/
+void Rf_resetStack(int topLevelReset) {
     if( inError == 2 )
 	REprintf("Lost warning messages\n");
     inError=0;
@@ -499,12 +523,32 @@ void jump_now()
     R_Warnings = R_NilValue;
     R_CollectWarnings = 0;
 
-    R_GlobalContext = R_ToplevelContext;
-    R_restore_globals(R_GlobalContext);
+    R_restore_globals(R_ToplevelContext);
 
-    LONGJMP(R_ToplevelContext->cjmpbuf, 0);
+    if(topLevelReset) {
+        R_GlobalContext = R_ToplevelContext;
+    }
 }
 
+#ifdef OLD_Macintosh
+
+#include <signal.h>
+#include <errno.h>
+
+void isintrpt()
+{
+    register EvQElPtr q;
+
+    for (q = (EvQElPtr) GetEvQHdr()->qHead; q; q = (EvQElPtr) q->qLink)
+	if (q->evtQWhat == keyDown && (char) q->evtQMessage == '.')
+	    if (q->evtQModifiers & cmdKey) {
+		FlushEvents(keyDownMask, 0);
+		raise(SIGINT);
+				/* errno = EINTR; */
+		return;
+	    }
+}
+#endif
 
 SEXP do_stop(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -537,27 +581,19 @@ SEXP do_stop(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_warning(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     RCNTXT *cptr;
-    SEXP c_call;
 
-    if(asLogical(CAR(args))) {/* find context -> "... in: ..:" */
-	cptr = R_GlobalContext->nextcontext;
-	while ( !(cptr->callflag & CTXT_FUNCTION) && 
-		cptr->nextcontext != NULL)
-	    cptr = cptr->nextcontext;
-	c_call = cptr->call;
-    } else
-	c_call = R_NilValue;
-
-    args = CDR(args);
+    cptr = R_GlobalContext->nextcontext;
+    while ( !(cptr->callflag & CTXT_FUNCTION) && cptr->nextcontext != NULL)
+	cptr = cptr->nextcontext;
     if (CAR(args) != R_NilValue) {
 	SETCAR(args, coerceVector(CAR(args), STRSXP));
 	if(!isValidString(CAR(args)))
-	    warningcall(c_call, " [invalid string in warning(.)]");
+	    warningcall(cptr->call, " [invalid string in warning(.)]");
 	else
-	    warningcall(c_call, "%s", CHAR(STRING_ELT(CAR(args), 0)));
+	    warningcall(cptr->call,"%s", CHAR(STRING_ELT(CAR(args), 0)));
     }
     else
-	warningcall(c_call, "");
+	warningcall(cptr->call,"");
     return CAR(args);
 }
 
@@ -669,13 +705,16 @@ void R_ReturnOrRestart(SEXP val, SEXP env, Rboolean restart)
     int mask;
     RCNTXT *c;
 
-    mask = CTXT_BROWSER | CTXT_FUNCTION;
+    if (R_BrowseLevel > 0)
+	mask = CTXT_BROWSER | CTXT_FUNCTION;
+    else
+	mask = CTXT_FUNCTION;
 
     for (c = R_GlobalContext; c; c = c->nextcontext) {
 	if (c->callflag & mask && c->cloenv == env)
 	    findcontext(mask, env, val);
 	else if (restart && IS_RESTART_BIT_SET(c->callflag))
-	    findcontext(CTXT_RESTART, c->cloenv, R_RestartToken);
+	    findcontext(CTXT_RESTART, c->cloenv, R_DollarSymbol);
 	else if (c->callflag == CTXT_TOPLEVEL)
 	    error("No function to return from, jumping to top level");
     }
@@ -688,7 +727,7 @@ void R_JumpToToplevel(Rboolean restart)
     /* Find the target for the jump */
     for (c = R_GlobalContext; c != NULL; c = c->nextcontext) {
 	if (restart && IS_RESTART_BIT_SET(c->callflag))
-	    findcontext(CTXT_RESTART, c->cloenv, R_RestartToken);
+	    findcontext(CTXT_RESTART, c->cloenv, R_DollarSymbol);
 	else if (c->callflag == CTXT_TOPLEVEL)
 	    break;
     }
@@ -698,8 +737,8 @@ void R_JumpToToplevel(Rboolean restart)
     /* Run onexit/cend code for everything above the target. */
     R_run_onexits(c);
 
+    R_restore_globals(c);
     R_ToplevelContext = R_GlobalContext = c;
-    R_restore_globals(R_GlobalContext);
     LONGJMP(c->cjmpbuf, CTXT_TOPLEVEL);
 }
 

@@ -9,6 +9,11 @@
 
 #include "ctest.h"
 
+static void
+errmsg(char *s) {
+    PROBLEM "%s", s RECOVER(NULL_ENTRY);
+}
+
 void
 kendall_tau(Sint *n, double *x, double *y, double *tau) {
     double c = 0, vx = 0, vy = 0, sx, sy;
@@ -37,7 +42,7 @@ ckendall(int k, int n, double **w) {
 	return(0);
     if (w[n] == 0) {
 	w[n] = (double *) R_alloc(u + 1, sizeof(double));
-	memset(w[n], '\0', sizeof(double) * (u+1));
+	memset(w[n], '\0', sizeof(double)*(u+1));
 	for (i = 0; i <= u; i++)
 	    w[n][i] = -1;
     }
@@ -60,7 +65,9 @@ dkendall(Sint *len, double *x, Sint *n) {
     Sint i;
     double **w;
 
-    w = (double **) R_alloc(*n + 1, sizeof(double *));
+    w = R_alloc(*n + 1, sizeof(double *));
+    if (!w)
+	errmsg("allocation error in dkendall()");
 
     for (i = 0; i < *len; i++)
 	if (fabs(x[i] - floor(x[i] + 0.5)) > 1e-7) {
@@ -78,7 +85,7 @@ pkendall(Sint *len, double *x, Sint *n) {
     double **w;
 
     w = (double **) R_alloc(*n + 1, sizeof(double *));
-    memset(w, '\0', sizeof(double*) * (*n+1));
+    memset(w, '\0', sizeof(double*)*(*n+1));
 
     for (i = 0; i < *len; i++) {
 	q = floor(x[i] + 1e-7);

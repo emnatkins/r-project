@@ -34,13 +34,11 @@ all: ../../../bin/Rgui.exe ../../../bin/Rterm.exe \
 graphappmain.o: ../graphapp/graphappmain.c
 	$(CC) -c -o $@ -I../graphapp $(CFLAGS) $^
 
-rgui-CFLAGS=-DWin32
-rterm-CFLAGS=-DWin32
 Rgui-LINKFLAGS=-mwindows
-
 Rterm-LIBS=-luser32 -L.. -lR
 Rgui-LIBS=-L.. -lR
-Rpwd-LIBS=-lkernel32
+rgui-CFLAGS=-DWin32
+rterm-CFLAGS=-DWin32
 
 Rgui.exe: graphappmain.o  rgui.o rgico.o
 
@@ -50,13 +48,7 @@ Rcmd.exe: rcmd.o ../rhome.o rcico.o
 
 RSetReg.exe: RSetReg.o ../rhome.o rcico.o
 
-Rpwd:
-	$(MAKE) -C ../fixed version
-	$(MAKE) Rpwd.exe
-
-Rpwd.exe: rpwd.o rcico.o
-
-rcmd.o rgui.o rterm.o RSetReg.o rproxy_impl.o rgico.o rtico.o rcico.o: ../../include/Rversion.h
+rgui.o rterm.o rproxy_impl.o rgico.o rtico.o rcico.o: ../../include/Rversion.h
 
 clean:
 	$(RM) *.o *.obj *.exe *~ *.exp *.def *.dll *.lib

@@ -56,8 +56,7 @@ pmatch(x, table, nomatch = NA, duplicates.ok = FALSE)
 \seealso{
   \code{\link{match}}, \code{\link{charmatch}} and
   \code{\link{match.arg}}, \code{\link{match.fun}},
-  \code{\link{match.call}}, for function argument matching etc.,
-  \code{\link{grep}} etc for more general (regexp) matching of strings.
+  \code{\link{match.call}}, for function argument matching etc.
 }
 \examples{
 pmatch("", "")                             # returns NA

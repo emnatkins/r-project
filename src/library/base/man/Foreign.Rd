@@ -1,5 +1,4 @@
 \name{Foreign}
-\alias{Foreign}
 \alias{.C}
 \alias{.Fortran}
 \alias{.External}
@@ -67,12 +66,7 @@
   For details about how to write code to use with \code{.Call} and
   \code{.External}, see the chapter on ``System and foreign language
   interfaces'' in ``Writing \R Extensions'' in the \file{doc/manual}
-  subdirectory of the \R source tree.
-
-#ifdef windows
-  For Windows-specific details on producing the external code, see the
-  file \file{readme.packages}.
-#endif
+  subdirectory of the \R source tree).
 }
 %%-- This note based on BDR's understanding, edited TSL
 \section{Argument types}{
@@ -111,27 +105,13 @@
   The first character string of a character vector is passed as a C
   character array to Fortran: that string may be usable as
   \code{character*255} if its true length is passed separately.  Only up
-  to 255 characters of the string are passed back.  (How well this works,
-  or even if it works at all, depends on the C and Fortran compilers
-  and the platform.)
-
-  Missing (\code{NA}) string values are passed to \code{.C} as the string
-  "NA". As the C \code{char} type can represent all possible bit patterns
-  there appears to be no way to distinguish missing strings from the
-  string \code{"NA"}. If this distinction is important use \code{.Call}.
+  to 255 characters of the string are passed back.
 
   Functions, expressions, environments and other language elements are
   passed as the internal \R pointer type \code{SEXP}.  This type is
   defined in \file{Rinternals.h} or the arguments can be declared as
-  generic pointers, \code{void *}. Lists are passed as C arrays of
+  generic pointers, \code{void *}.  Lists are passed as C arrays of
   \code{SEXP} and can be declared as \code{void *} or \code{SEXP *}.
-  Note that you cannot assign values to the elements of the list within
-  the C routine. Assigning values to elements of the array corresponding
-  to the list bypasses R's memory management/garbage collection and will
-  cause problems.  Essentially, the array corresponding to the list is read-only.
-  If you need to return S objects created within the C routine,  use the
-  \code{.Call} interface.
-
 
   \R functions can be invoked using \code{call_S} or \code{call_R} and
   can be passed lists or the simple types as arguments.
@@ -169,10 +149,6 @@
   In this case the output variable did not exist before the call so it
   cannot cause trouble. If the input variable is not changed in the C
   code of \code{Cfunction} you are safe.
-
-  Neither \code{.Call} nor \code{.External} copy their arguments.  You
-  should treat arguments you receive through these interfaces as
-  read-only.
 }
 
 \section{Header files for external code}{

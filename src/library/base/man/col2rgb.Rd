@@ -2,7 +2,6 @@
 \alias{col2rgb}
 \title{Color to RGB Conversion}
 \description{
-  ``Any \R color'' to RGB (red/green/blue) conversion.
 }
 \usage{
 col2rgb(col)
@@ -12,13 +11,6 @@ col2rgb(col)
     a color name (an element of \code{\link{colors}()}), a hexadecimal
     string of the form \code{"#rrggbb"}, or an integer \code{i} meaning
     \code{palette()[i]}.}
-}
-\details{
-  For integer colors, \code{0} is shorthand for the current
-  \code{par("bg")}, and \code{\link{NA}} means ``nothing'' which
-  effectively does not draw the corresponding item.
-
-  For character colors, \code{"NA"} is equivalent to \code{NA} above.
 }
 \value{
   an integer matrix with three rows and number of columns the length
@@ -30,17 +22,22 @@ col2rgb(col)
 col2rgb("peachpuff")
 col2rgb(c(blu = "royalblue", reddish = "tomato")) # names kept
 
-col2rgb(1:8)# the ones from the palette() :
+col2rgb(1:7)# the ones from the palette()
+stopifnot(col2rgb(0) ==  # col = 0 is the background color:
+    print(col2rgb(par("bg"))))
 
 col2rgb(paste("gold", 1:4, sep=""))
 
-col2rgb("#08a0ff")
+stopifnot(col2rgb("#08a0ff") == c(8, 160, 255))
 ## all three kind of colors mixed :
 col2rgb(c(red="red", palette= 1:3, hex="#abcdef"))
 
 ##-- NON-INTRODUCTORY examples --
 
 grC <- col2rgb(paste("gray",0:100,sep=""))
+stopifnot(grC["red",] == grC["green",],
+          grC["red",] == grC["blue",],
+          grC["red", 1:4] == c(0,3,5,8))
 table(print(diff(grC["red",])))# `2' or `3': almost equidistant
 ## The `named' grays are in between {"slate gray" is not gray, strictly}
 col2rgb(c(g66="gray66", darkg= "dark gray", g67="gray67",

@@ -1,8 +1,5 @@
-stop <- function(..., call. = TRUE)
-{
-    message <- if(nargs() > 0) paste(..., sep="")
+stop <- function(message = NULL, call. = TRUE)
     .Internal(stop(as.logical(call.),message))
-}
 
 stopifnot <- function(...)
 {
@@ -14,10 +11,3 @@ stopifnot <- function(...)
         if(!(is.logical(r <- eval(ll[[i]])) && all(r)))
             stop(paste(deparse(mc[[i+1]]), "is not TRUE"), call. = FALSE)
 }
-
-warning <- function(..., call. = TRUE)
-{
-    message <- if(nargs() > 0) paste(..., sep="")
-    .Internal(warning(as.logical(call.), message))
-}
-

@@ -6,10 +6,10 @@
 \alias{ppr}
 \alias{ppr.default}
 \alias{ppr.formula}
-%\alias{predict.ppr}
-%\alias{print.ppr}
-%\alias{summary.ppr}
-%\alias{print.summary.ppr}
+\alias{predict.ppr}
+\alias{print.ppr}
+\alias{summary.ppr}
+\alias{print.summary.ppr}
 \title{Projection Pursuit Regression}
 \description{
   Fit a projection pursuit regression model.
@@ -33,7 +33,7 @@ ppr.formula(formula, data = sys.parent(), weights, subset, na.action,
 ppr.default(x, y, weights = rep(1,n),
     ww = rep(1,q), nterms, max.terms = nterms, optlevel = 2,
     sm.method = c("supsmu", "spline", "gcvspline"),
-    bass = 0, span = 0, df = 5, gcvpen = 1, \dots)
+    bass = 0, span = 0, df = 5, gcvpen = 1)
 }
 \arguments{
   \item{formula}{
@@ -169,8 +169,8 @@ method functions.
   Laboratory for Computational Statistics, Stanford University Technical
   Report No. 1.
 
-  Venables, W. N. & Ripley, B. D. (2002)
-  \emph{Modern Applied Statistics with S.}  Springer.
+  Venables, W. N. & Ripley, B. D. (1999)
+  \emph{Modern Applied Statistics with S-PLUS.}  Springer.
 }
 \seealso{
   \code{\link{plot.ppr}}, \code{\link{supsmu}}, \code{\link{smooth.spline}}

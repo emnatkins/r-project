@@ -1,6 +1,6 @@
 # file modreg/R/ppr.R
 # copyright (C) 1998 B. D. Ripley
-# Copyright (C) 2000-3 The R Development Core Team
+# Copyright (C) 2000 The R Development Core Team
 #
 ppr <- function(x, ...) UseMethod("ppr")
 
@@ -13,7 +13,6 @@ function(formula, data=sys.parent(), weights, subset,
     m$contrasts <- m$... <- NULL
     m[[1]] <- as.name("model.frame")
     m <- eval(m, parent.frame())
-    na.act <- attr(m, "na.action")
     Terms <- attr(m, "terms")
     attr(Terms, "intercept") <- 0
     X <- model.matrix(Terms, m, contrasts)
@@ -21,7 +20,6 @@ function(formula, data=sys.parent(), weights, subset,
     w <- model.extract(m, weights)
     if(length(w) == 0) w <- rep(1, nrow(X))
     fit <- ppr.default(X, Y, w, ...)
-    if(!is.null(na.act)) fit$na.action <- na.act
     fit$terms <- Terms
     fit$call <- call
     structure(fit, class=c("ppr.form", "ppr"))
@@ -30,10 +28,9 @@ function(formula, data=sys.parent(), weights, subset,
 ppr.default <-
 function(x, y, weights=rep(1,n), ww=rep(1,q), nterms, max.terms=nterms,
 	 optlevel=2, sm.method=c("supsmu", "spline", "gcvspline"),
-	 bass=0, span=0, df=5, gcvpen=1, ...)
+	 bass=0, span=0, df=5, gcvpen=1)
 {
     call <- match.call()
-    call[[1]] <- as.name("ppr")
     sm.method <- match.arg(sm.method)
     ism <- switch(sm.method, supsmu=0, spline=1, gcvspline=2)
     if(missing(nterms)) stop("nterms is missing with no default")
@@ -51,12 +48,12 @@ function(x, y, weights=rep(1,n), ww=rep(1,q), nterms, max.terms=nterms,
     msmod <- ml*(p+q+2*n)+q+7+ml+1	# for asr
     nsp <- n*(q+15)+q+3*p
     ndp <- p*(p+1)/2+6*p
-    .Fortran("setppr",
+    .Fortran("bdrsetppr",
 	     as.double(span), as.double(bass), as.integer(optlevel),
 	     as.integer(ism), as.double(df), as.double(gcvpen),
 	     PACKAGE="modreg"
 	     )
-    Z <- .Fortran("smart",
+    Z <- .Fortran("bdrsmart",
 		  as.integer(ml), as.integer(mu),
 		  as.integer(p), as.integer(q), as.integer(n),
 		  as.double(weights),
@@ -76,7 +73,7 @@ function(x, y, weights=rep(1,n), ww=rep(1,q), nterms, max.terms=nterms,
 		    dimnames=list(xnames, tnames))
     beta <- matrix(smod[q+6+p*ml + 1:(q*mu)], q, mu,
 		   dimnames=list(ynames, tnames))
-    fitted <- drop(matrix(.Fortran("pppred",
+    fitted <- drop(matrix(.Fortran("bdrpred",
 				   as.integer(nrow(x)),
 				   as.double(x),
 				   as.double(smod),
@@ -138,7 +135,7 @@ print.summary.ppr <- function(x, ...)
     invisible(x)
 }
 
-plot.ppr <- function(x, ask, type="o", ...)
+plot.ppr <- function(fit, ask, type="o", ...)
 {
     ppr.funs <- function(obj)
     {
@@ -152,45 +149,35 @@ plot.ppr <- function(x, ask, type="o", ...)
 	t <- matrix(sm[jt+1:(mu*n)],n, mu)
 	list(x=t, y=f)
     }
-    obj <- ppr.funs(x)
+    obj <- ppr.funs(fit)
     if(!missing(ask)) {
 	oldpar <- par()
 	on.exit(par(oldpar))
 	par(ask = ask)
     }
-    for(i in 1:x$mu) {
+    for(i in 1:fit$mu) {
 	ord <- order(obj$x[ ,i])
 	plot(obj$x[ord, i], obj$y[ord, i], type = type,
 	     xlab = paste("term", i), ylab = "", ...)
     }
 }
 
-predict.ppr <- function(object, newdata, ...)
+predict.ppr <- function(obj, newdata, ...)
 {
-    if(missing(newdata)) return(fitted(object))
-    if(!is.null(object$terms)) {
-        newdata <- as.data.frame(newdata)
-        rn <- row.names(newdata)
-# work hard to predict NA for rows with missing data
-        Terms <- delete.response(object$terms)
-        m <- model.frame(Terms, newdata, na.action = na.omit)
-        keep <- match(row.names(m), rn)
-        x <- model.matrix(Terms, m, contrasts = object$contrasts)
-    } else {
-        x <- as.matrix(newdata)
-        keep <- 1:nrow(x)
-        rn <- dimnames(x)[[1]]
-    }
-    if(ncol(x) != object$p) stop("wrong number of columns in x")
-    res <- matrix(NA, length(keep), object$q,
-                  dimnames = list(rn, object$ynames))
-    res[keep, ] <- matrix(.Fortran("pppred",
-                                   as.integer(nrow(x)),
-                                   as.double(x),
-                                   as.double(object$smod),
-                                   y = double(nrow(x)*object$q),
-                                   double(2*object$smod[4]),
-                                   PACKAGE="modreg"
-                                   )$y, ncol=object$q)
-    drop(res)
+    if(missing(newdata)) return(obj$fitted)
+    if(!is.null(obj$terms))
+	x <- model.matrix(delete.response(obj$terms), newdata)
+    else x <- as.matrix(newdata)
+    if(ncol(x) != obj$p) stop("wrong number of columns in x")
+    drop(matrix(.Fortran("bdrpred",
+			 as.integer(nrow(x)),
+			 as.double(x),
+			 as.double(obj$smod),
+			 y = double(nrow(x)*obj$q),
+			 double(2*obj$smod[4]),
+			 PACKAGE="modreg"
+			 )$y,
+		ncol=obj$q,
+		dimnames=list(dimnames(x)[[1]], obj$ynames)
+		))
 }

@@ -46,7 +46,7 @@
  *			at exit from the closure (normal or abnormal).
  *	cend		a pointer to function which executes if there is
  *			non-local return (i.e. an error)
- *	cenddata	a void pointer to data for cend to use
+ *	cenddata	a void pointer do data for cend to use
  *	vmax		the current setting of the R_alloc stack
  *
  *  Context types can be one of:
@@ -71,7 +71,7 @@
  *
  *	void begincontext(RCNTXT *cptr, int flags,
  *			  SEXP syscall, SEXP env, SEXP
- *			  sysp, SEXP promargs, SEXP callfun)
+ *			  sysp, SEXP promargs)
  *
  *  which sets up the context pointed to by cptr in the appropriate way.
  *  When the context goes "out-of-scope" a call to
@@ -165,17 +165,13 @@ static void jumpfun(RCNTXT * cptr, int mask, SEXP val)
     UNPROTECT(1);
     R_Visible = savevis;
 
-    R_ReturnedValue = val;
-    R_GlobalContext = cptr; /* this used to be set to
-                               cptr->nextcontext for non-toplevel
-                               jumps (with the context set back at the
-                               SETJMP for restarts).  Changing this to
-                               always using cptr as the new global
-                               context should simplify some code and
-                               perhaps allow loops to be handled with
-                               fewer SETJMP's.  LT */
-    R_restore_globals(R_GlobalContext);
+    R_restore_globals(cptr);
 
+    R_ReturnedValue = val;
+    if (cptr != R_ToplevelContext)
+	R_GlobalContext = cptr->nextcontext;
+    else
+	R_GlobalContext = R_ToplevelContext;
     LONGJMP(cptr->cjmpbuf, mask);
 }
 
@@ -183,8 +179,7 @@ static void jumpfun(RCNTXT * cptr, int mask, SEXP val)
 /* begincontext - begin an execution context */
 
 void begincontext(RCNTXT * cptr, int flags,
-		  SEXP syscall, SEXP env, SEXP sysp,
-		  SEXP promargs, SEXP callfun)
+		  SEXP syscall, SEXP env, SEXP sysp, SEXP promargs)
 {
     cptr->nextcontext = R_GlobalContext;
     cptr->cstacktop = R_PPStackTop;
@@ -196,7 +191,6 @@ void begincontext(RCNTXT * cptr, int flags,
     cptr->conexit = R_NilValue;
     cptr->cend = NULL;
     cptr->promargs = promargs;
-    cptr->callfun = callfun;
     cptr->vmax = vmaxget();
     R_GlobalContext = cptr;
 }
@@ -206,15 +200,10 @@ void begincontext(RCNTXT * cptr, int flags,
 
 void endcontext(RCNTXT * cptr)
 {
-    if (cptr->cloenv != R_NilValue && cptr->conexit != R_NilValue ) {
-	SEXP s = cptr->conexit;
-	int savevis = R_Visible;
-	cptr->conexit = R_NilValue; /* prevent recursion */
-	PROTECT(s);
-	eval(s, cptr->cloenv);
-	UNPROTECT(1);
-	R_Visible = savevis;
-    }
+    int savevis = R_Visible;
+    if (cptr->cloenv != R_NilValue && cptr->conexit != R_NilValue )
+	eval(cptr->conexit, cptr->cloenv);
+    R_Visible = savevis;
     R_GlobalContext = cptr->nextcontext;
 }
 
@@ -357,6 +346,7 @@ SEXP R_syscall(int n, RCNTXT *cptr)
 
 SEXP R_sysfunction(int n, RCNTXT *cptr)
 {
+    SEXP s, t;
     if (n > 0)
 	n = framedepth(cptr) - n;
     else
@@ -365,15 +355,31 @@ SEXP R_sysfunction(int n, RCNTXT *cptr)
 	errorcall(R_GlobalContext->call, "illegal frame number");
     while (cptr->nextcontext != NULL) {
 	if (cptr->callflag & CTXT_FUNCTION ) {
-	    if (n == 0)
-		return duplicate(cptr->callfun);  /***** do we need to DUP? */
+	    if (n == 0) {
+		s = CAR(cptr->call);
+		if (isSymbol(s))
+		    t = findVar(s, cptr->sysparent);
+		else if( isLanguage(s) )
+		    t = eval(s, cptr->sysparent);
+		else if( isFunction(s) )
+		    t = s;
+		else
+		    t = R_NilValue;
+		while (TYPEOF(t) == PROMSXP) 
+		    t = eval(s, cptr->sysparent); 
+		return t;
+	    }
 	    else
 		n--;
 	}
 	cptr = cptr->nextcontext;
     }
-    if (n == 0 && cptr->nextcontext == NULL)
-	return duplicate(cptr->callfun);  /***** do we need to DUP? */
+    if (n == 0 && cptr->nextcontext == NULL){
+	s = findVar(CAR(cptr->call), cptr->sysparent);
+	while (TYPEOF(s) == PROMSXP) 
+	    s = eval(s, cptr->sysparent); 
+	return s;
+    }
     errorcall(R_GlobalContext->call, "not that many enclosing functions");
     return R_NilValue;	/* just for -Wall */
 }
@@ -536,7 +542,7 @@ Rboolean R_ToplevelExec(void (*fun)(void *), void *data)
     saveToplevelContext = R_ToplevelContext;
 
     begincontext(&thiscontext, CTXT_TOPLEVEL, R_NilValue, R_GlobalEnv,
-		 R_NilValue, R_NilValue, R_GlobalEnv);
+		 R_NilValue, R_NilValue);
     if (SETJMP(thiscontext.cjmpbuf))
 	result = FALSE;
     else {
@@ -551,59 +557,4 @@ Rboolean R_ToplevelExec(void (*fun)(void *), void *data)
     UNPROTECT(1);
 
     return result;
-}
-
-
-
-/*
-  This is a simple interface for evaluating R expressions
-  from C with a guarantee that one will return to the 
-  point in the code from which the call was made.
-  This uses R_TopleveExec to do this.  It is important
-  in applications that embed R or wish to make general 
-  callbacks to R with error handling.
-
-  It is currently hidden with a data structure definition
-  and C routine visible only here. The R_tryEval() is the
-  only visible aspect. This can be lifted into the header
-  files if necessary. (DTL)
- */
-typedef struct {
-    SEXP expression;
-    SEXP val;
-    SEXP env;
-} ProtectedEvalData;
-
-static void
-protectedEval(void *d)
-{
-    ProtectedEvalData *data = (ProtectedEvalData *)d;
-    SEXP env = R_GlobalEnv;
-    if(data->env) {
-	env = data->env;
-    }
-    data->val = eval(data->expression, env); 
-    PROTECT(data->val);
-}
-
-SEXP
-R_tryEval(SEXP e, SEXP env, int *ErrorOccurred)
-{
- Rboolean ok;
- ProtectedEvalData data;
-
- data.expression = e;
- data.val = NULL;
- data.env = env;
-
- ok = R_ToplevelExec(protectedEval, &data);
- if(ErrorOccurred) {
-     *ErrorOccurred = (ok == FALSE);
- }
- if(ok == FALSE)
-     data.val = NULL;
- else
-     UNPROTECT(1);
-
- return(data.val);
 }

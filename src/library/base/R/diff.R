@@ -1,5 +1,7 @@
 diff <- function(x, ...) UseMethod("diff")
 
+## autoload("diff.ts", "ts")   in ../../profile/Common.R
+
 diff.default <- function(x, lag = 1, differences = 1, ...)
 {
     ismat <- is.matrix(x)
@@ -18,6 +20,6 @@ diff.default <- function(x, lag = 1, differences = 1, ...)
     else
         for (i in 1:differences)
             r <- r[i1] - r[-length(r):-(length(r)-lag+1)]
-    class(r) <- oldClass(x)
+    class(r) <- class(x)
     r
 }

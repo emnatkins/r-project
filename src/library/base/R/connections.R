@@ -24,13 +24,15 @@ writeLines <- function(text, con = stdout(), sep = "\n")
 open <- function(con, ...)
     UseMethod("open")
 
-open.connection <- function(con, open = "r", blocking = TRUE, ...)
+open.connection <- function(con, open = "r", blocking = TRUE)
 {
+    if(!inherits(con, "connection")) stop("argument is not a connection")
     invisible(.Internal(open(con, open, blocking)))
 }
 
 isOpen <- function(con, rw = "")
 {
+    if(!inherits(con, "connection")) stop("argument is not a connection")
     rw <- pmatch(rw, c("read", "write"), 0)
     .Internal(isOpen(con, rw))
 }
@@ -44,13 +46,11 @@ isSeekable <- function(con)
 close <- function(con, ...)
     UseMethod("close")
 
-close.connection <- function (con, type = "rw", ...)
+close.connection <- function (con, type = "rw")
+{
+    if(!inherits(con, "connection")) stop("argument is not a connection")
     invisible(.Internal(close(con, type)))
-
-flush <- function(con) UseMethod("flush")
-
-flush.connection <- function (con)
-    invisible(.Internal(flush(con)))
+}
 
 file <- function(description = "", open = "", blocking = TRUE,
                  encoding = getOption("encoding"))
@@ -70,13 +70,6 @@ url <- function(description, open = "", blocking = TRUE,
 gzfile <- function(description, open = "",
                    encoding = getOption("encoding"), compression = 6)
     .Internal(gzfile(description, open, encoding, compression))
-
-unz <- function(description, filename, open = "",
-                encoding = getOption("encoding"))
-    .Internal(unz(paste(description, filename, sep=":"), open, encoding))
-
-bzfile <- function(description, open = "", encoding = getOption("encoding"))
-    .Internal(bzfile(description, open, encoding))
 
 socketConnection <- function(host= "localhost", port, server = FALSE,
                              blocking = FALSE, open = "a+",
@@ -147,22 +140,14 @@ getConnection <- function(what)
 
 closeAllConnections <- function()
 {
-    # first re-divert any diversion of stderr.
-    i <- sink.number(type = "message")
-    if(i > 0) sink(stderr(), type = "message")
-    # now unwind the sink diversion stack.
-    n <- sink.number()
-    if(n > 0) for(i in 1:n) sink()
-    # get all the open connections.
+    sink() # might be on a user connection
     set <- getAllConnections()
     set <- set[set > 2]
-    # and close all user connections.
-    for(i in seq(along=set)) close(getConnection(set[i]))
+    for(i in seq(along=set)) close(set[i])
     invisible()
 }
 
-readBin <- function(con, what, n = 1, size = NA, signed = TRUE,
-                    endian = .Platform$endian)
+readBin <- function(con, what, n = 1, size = NA, endian = .Platform$endian)
 {
     if(is.character(con)) {
         con <- file(con, "rb")
@@ -170,7 +155,7 @@ readBin <- function(con, what, n = 1, size = NA, signed = TRUE,
     }
     swap <- endian != .Platform$endian
     if(!is.character(what) || length(what) != 1) what <- typeof(what)
-    .Internal(readBin(con, what, n, size, signed, swap))
+    .Internal(readBin(con, what, n, size, swap))
 }
 
 writeBin <- function(object, con, size = NA, endian = .Platform$endian)
@@ -208,6 +193,3 @@ writeChar <- function(object, con, nchars = nchar(object), eos = "")
     }
     invisible(.Internal(writeChar(object, con, as.integer(nchars), eos)))
 }
-
-gzcon <- function(con, level = 6, allowNonCompressed = TRUE)
-    .Internal(gzcon(con, level, allowNonCompressed))

@@ -9,18 +9,18 @@
 }
 \usage{
 %% Improvement ideas: see code definition, currently in ../R/plot.R
-\method{plot}{table}(x, type = "h", ylim = c(0, max(x)), lwd = 2,
-    xlab = NULL, ylab = NULL, frame.plot = is.num, ...)
+plot.table(x, type = "h", ylim = c(0, max(x)), lwd = 2,
+           xlab = NULL, ylab = deparse(substitute(x)), frame.plot = is.num, ...)
 }
 \arguments{
   \item{x}{a \code{\link{table}} (like) object.}
   \item{type}{plotting type.}
   \item{ylim}{range of y-axis.}
-  \item{lwd}{line width for bars when \code{type = "h"} is used in the 1D case.}
-  \item{xlab, ylab}{x- and y-axis labels.}
+  \item{lwd}{line width of bars when \code{type = "h"} is used.}
+  \item{xlab,ylab}{x- and y-axis labels.}
+  \item{ylab}{ ~~Describe \code{ylab} here~~ }
   \item{frame.plot}{logical indicating if a frame (\code{\link{box}})
-    should be drawn in the 1D case.  Defaults to true when \code{x} has
-    \code{\link{dimnames}} coerceable to numbers.}
+    should be drawn.  Default are ~~Describe \code{frame.plot} here~~ }
   \item{\dots}{further graphical arguments, see \code{\link{plot.default}}.}
 }
 \details{

@@ -1,6 +1,6 @@
 /*
  *  Mathlib : A C Library of Special Functions
- *  Copyright (C) 1998-2003 Ross Ihaka and the R Development Core team.
+ *  Copyright (C) 1998-2001 Ross Ihaka and the R Development Core team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,10 +26,6 @@
 #include "bessel.h"
 #include "nmath.h"
 
-#ifndef MATHLIB_STANDALONE
-#include <R_ext/Memory.h>
-#endif
-
 static void Y_bessel(double *x, double *alpha, long *nb,
 		     double *by, long *ncalc);
 
@@ -37,10 +33,6 @@ double bessel_y(double x, double alpha)
 {
     long nb, ncalc;
     double *by;
-#ifndef MATHLIB_STANDALONE
-    char *vmax;
-#endif
-
 #ifdef IEEE_754
     /* NaNs propagated correctly */
     if (ISNAN(x) || ISNAN(alpha)) return x + alpha;
@@ -56,13 +48,7 @@ double bessel_y(double x, double alpha)
     }
     nb = 1+ (long)floor(alpha);/* nb-1 <= alpha < nb */
     alpha -= (nb-1);
-#ifdef MATHLIB_STANDALONE
     by = (double *) calloc(nb, sizeof(double));
-    if (!by) MATHLIB_ERROR("%s", "bessel_y allocation error");
-#else
-    vmax = vmaxget();
-    by = (double *) R_alloc(nb, sizeof(double));
-#endif
     Y_bessel(&x, &alpha, &nb, by, &ncalc);
     if(ncalc != nb) {/* error input */
 	if(ncalc == -1)
@@ -75,11 +61,7 @@ double bessel_y(double x, double alpha)
 			     x, alpha+nb-1);
     }
     x = by[nb-1];
-#ifdef MATHLIB_STANDALONE
     free(by);
-#else
-    vmaxset(vmax);
-#endif
     return x;
 }
 

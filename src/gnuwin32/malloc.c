@@ -255,7 +255,6 @@ extern "C" {
 #endif
 
 #include <stdio.h>    /* needed for malloc_stats */
-#include <stdlib.h>		/* for exit */
 
 
 /*
@@ -374,8 +373,8 @@ void* memset(void*, int, size_t);
 void* memcpy(void*, const void*, size_t);
 #else
 #ifdef WIN32
-/* On Win32 platforms, 'memset()' and 'memcpy()' are already declared in
-   'windows.h' */
+// On Win32 platforms, 'memset()' and 'memcpy()' are already declared in
+// 'windows.h'
 #else
 Void_t* memset();
 Void_t* memcpy();
@@ -980,7 +979,6 @@ static unsigned int gAddressBase = 0;
 static unsigned int gReservedSize = 0;
 static unsigned int totalAllocated = 0;
 extern unsigned int R_max_memory;
-unsigned int R_reserved_size = RESERVED_SIZE;
 
 static
 int getpagesize(void)
@@ -1046,18 +1044,12 @@ void *wsbrk (long size)
 	/* first check if request fits in reserved space, and if not
 	   try to reserve the address space (never unreserved) */
 	if (gAddressBase == 0) {
-	    gReservedSize = max (R_reserved_size, AlignPage64K(size));
+	    gReservedSize = max (RESERVED_SIZE, AlignPage64K(size));
 	    gNextAddress = gAddressBase =
 		(unsigned int)VirtualAlloc (NULL, gReservedSize,
 					    MEM_RESERVE, PAGE_NOACCESS);
-	    if(!gAddressBase) {
-		/* can't R_Suicide here
-		   R_Suicide("unable to reserve initial space in wsbrk"); */
-		MessageBox(0, "Cannot reserve memory:\nterminating", 
-			   "R fatal error",
-			   MB_TASKMODAL | MB_ICONSTOP | MB_OK);
-		exit(3);
-	    }
+	    if(!gAddressBase)
+		R_Suicide("unable to reserve initial space in wsbrk");
 	} else if (AlignPage (gNextAddress + size) > (gAddressBase +
 						      gReservedSize)) {
 	    long new_size = max (NEXT_SIZE, AlignPage64K(size));

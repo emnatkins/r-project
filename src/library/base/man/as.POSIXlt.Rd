@@ -37,9 +37,6 @@ as.POSIXlt(x, tz = "")
   \code{"14:52:03"}.  (Formats such as \code{"01/02/03"} are ambiguous
   but can be converted via a format specification by
   \code{\link{strptime}}.)
-
-  Logical \code{NA}s can be converted to either of the classes, but no
-  other logical vectors can be.
 }
 \value{
   \code{as.POSIXct} and \code{as.POSIXlt} return an object of the
@@ -55,6 +52,10 @@ as.POSIXlt(x, tz = "")
 
   If a timezone is needed and that specified is invalid on your system,
   what happens is system-specific but it will probably be ignored. 
+#ifdef mac
+  Under MacOS only the current timezone \code{""} and UTC (or GMT)
+  are supported.
+#endif
 }
 \seealso{
   \link{DateTimeClasses} for details of the classes;
@@ -65,6 +66,12 @@ as.POSIXlt(x, tz = "")
 (z <- Sys.time())             # the current date, as class "POSIXct"
 unclass(z)                    # a large integer
 floor(unclass(z)/86400)       # the number of days since 1970-01-01
+\testonly{
+ stopifnot(range(z) == z,
+           min(z) == z,
+           max(z) == z,
+           mean(z) == z)
+}
 (z <- as.POSIXlt(Sys.time())) # the current date, as class "POSIXlt"
 unlist(unclass(z))            # a list shown as a named vector
 

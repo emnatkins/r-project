@@ -1,5 +1,6 @@
 \name{RdUtils}
 \alias{Rdconv}
+\alias{Rdindex}
 \alias{Rd2txt}
 \alias{Rd2dvi}
 \alias{Sd2Rd}
@@ -12,12 +13,14 @@
 \usage{
 #ifdef unix
 R CMD Rdconv [options] file
+R CMD Rdindex [options] files
 R CMD Rd2dvi [options] files
 R CMD Rd2txt [options] file
 R CMD Sd2Rd [options] file
 #endif
 #ifdef windows
 Rcmd Rdconv [options] file
+Rcmd Rdindex [options] files
 Rcmd Rd2dvi.sh [options] files
 Rcmd Rd2txt [options] file
 Rcmd Sd2Rd [options] file
@@ -33,14 +36,15 @@ Rcmd Sd2Rd [options] file
 }
 \details{
   \code{Rdconv} converts Rd format to other formats.  Currently,
-  plain text, HTML, LaTeX, S version 3 (Sd), and S version 4 (.sgml)
-  formats are supported.  It can also extract the examples for
-  run-time testing.
+  plain text, HTML, LaTeX, S version 3 (Sd) format are supported.  It
+  can also extract the examples for run-time testing.
 
   \code{Rd2dvi} and \code{Rd2txt} are user-level programs
   for producing DVI/PDF output or pretty text output from Rd sources.
 
-  \code{Sd2Rd} converts S (version 3 or 4) documentation formats to Rd
+  \code{Rdindex} creates an index table from Rd files.
+
+  \code{Sd2Rd} converts S version 3 documentation format to Rd
   format.
 
   Use
@@ -51,11 +55,6 @@ Rcmd Sd2Rd [options] file
   \code{Rcmd foo --help}
 #endif
   to obtain usage information on utility \code{foo}.  
-}
-\note{
-  Conversion to S version 3/4 formats is rough: there are some
-  \code{.Rd} constructs for which there is no natural analogue.
-  They are intended as a starting point for hand-tuning.
 }
 \seealso{
   The chapter ``Processing Rd format'' in ``Writing \R Extensions''

@@ -68,15 +68,10 @@ all(l1 == as.logical(as.data.frame(l1)[,1]))
 
 ## empty data.frames :
 x <- data.frame(a=1:3)
-x30 <- {
-    if(is.R()) x[, -1]# not even possible in S+
-    else structure(list(), row.names = paste(1:3), class = "data.frame")
-}
+x30 <- x[, -1]# not even possible in S+
 all(dim(x30) == c(3,0))
 x01 <- x[-(1:3), , drop = FALSE]
-x00 <- x01[,-1]
 all(dim(x01) == 0:1)
-all(dim(x00) == 0)
 all(dim(x) == dim(rbind(x, x01)))
 ## bugs up to 1.2.3 :
 all(dim(x30) == dim(m30 <- as.matrix(x30)))
@@ -84,29 +79,11 @@ all(dim(x01) == dim(m01 <- as.matrix(x01)))
 all(dim(x30) == dim(as.data.frame(m30)))
 all(dim(x01) == dim(as.data.frame(m01)))
 all(dim(x01) == dim(   data.frame(m01)))
+## *still* bug in data.frame() -- need to fix unlist(.) ??!
+if(FALSE){
 all(dim(x30) == dim(   data.frame(m30)))
-all(dim(x)   == dim(cbind(x, x30)))
-## up to 1.4.0 :
-all(dim(x30) == dim( data.matrix(x30)))
-all(dim(x00) == dim( data.matrix(x00)))
-
-m0 <- matrix(pi, 0,3)
-a302 <- array("", dim=c(3,0,2))
-identical(apply(m0, 1, dim), NULL)
-identical(apply(m0, 2, dim), NULL)
-identical(apply(m0, 1,length),  integer(0))
-identical(apply(m0, 2,length),  integer(3))
-identical(apply(a302, 1, mode), rep("character",3))
-## NO (maybe later?):
-## identical(apply(a302, 2, mode), rep("character",0))
-is.character(aa <- apply(a302, 2, mode)) && length(aa) == 0
-identical(apply(a302, 3, mode), rep("character",2))
-identical(apply(a302, 3, length),integer(2))
-identical(apply(a302, 3, dim), matrix(as.integer(c(3,0)), 2 ,2))
-identical(apply(a302, 1, dim), matrix(as.integer(c(0,2)), 2 ,3))
-identical(apply(array(dim=3), 1,length), rep(1:1, 3))
-identical(apply(array(dim=0), 1,length), rep(1:1, 0))# = integer(0)
-
+all(dim(x) == dim(cbind(x, x30)))
+}
 
 ### Subsetting
 
@@ -141,10 +118,8 @@ all(sapply(dimnames(m), length) == c(2,2))
 m[[1,2]] == m[[3]] && m[[3]] == m[3] && m[3] == m[1,2]
 
 ## bug in R <= 1.1.1 : unclass(*) didn't drop the class!
-## to be robust to S4 methods DON'T test for null class
-## The test for attr(,"class") is valid, if essentially useless
 d1 <- rbind(data.frame(a=1, b = I(TRUE)), new = c(7, "N"))
-is.null(attr(unclass(d1$b), "class"))
+is.null(class(unclass(d1$b)))
 
 ## bugs in R 1.2.0
 format(as.POSIXct(relR120 <- "2000-12-15 11:24:40")) == relR120

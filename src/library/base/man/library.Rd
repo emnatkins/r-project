@@ -10,14 +10,11 @@
 \alias{.find.package}
 \alias{.packages}
 \alias{.path.package}
-\alias{.libPaths}
-\alias{.noGenerics}
-\alias{print.libraryIQR}
-\alias{print.packageInfo}
+\alias{.lib.loc}
 \description{
   \code{library} and \code{require} load add-on packages.
   \code{.First.lib} is called when a package is loaded;
-  \code{.Last.lib} is called when a package is detached.
+  \code{.Last.lib} is called when a package is loaded.
   \code{.packages} returns information about package availability.
   \code{.path.package} returns information about where a package was
   loaded from.
@@ -25,23 +22,19 @@
   packages.
 }
 \usage{
-library(package, help, lib.loc = NULL, character.only = FALSE,
-        logical.return = FALSE, warn.conflicts = TRUE,
-        keep.source = getOption("keep.source.pkgs"),
-        verbose = getOption("verbose"), version)
+library(package, help = NULL, lib.loc = .lib.loc,
+        character.only = FALSE, logical.return = FALSE,
+        warn.conflicts = TRUE, keep.source = getOption("keep.source.pkgs"))
 require(package, quietly = FALSE, warn.conflicts = TRUE,
-        keep.source = getOption("keep.source.pkgs"),
-        character.only=FALSE, version)
+        keep.source = getOption("keep.source.pkgs"))
 
 .First.lib(libname, pkgname)
 .Last.lib(libpath)
 
-.packages(all.available = FALSE, lib.loc = NULL)
+.packages(all.available = FALSE, lib.loc = .lib.loc)
 .path.package(package = .packages(), quiet = FALSE)
-.find.package(package, lib.loc = NULL, quiet = FALSE,
-              verbose = getOption("verbose"))
-.libPaths(new)
-
+.find.package(package, lib.loc = .lib.loc, use.attached, quiet = FALSE)
+.lib.loc
 .Library
 .Autoloaded
 }
@@ -49,25 +42,18 @@ require(package, quietly = FALSE, warn.conflicts = TRUE,
   \item{package, help}{\link{name} or character string giving the name
     of a package.}
   \item{lib.loc}{a character vector describing the location of \R
-    library trees to search through, or \code{NULL}.  The default value
-    of \code{NULL} corresponds to all libraries currently known.}
+    library trees to search through.}
   \item{character.only}{a logical indicating whether \code{package} or
     \code{help} can be assumed to be character strings.}
-  \item{version}{A character string denoting a version number of the 
-     package to be loaded.  If no version is given, a suitable default
-     is chosen.}
   \item{logical.return}{logical.  If it is \code{TRUE},  \code{FALSE} or
       \code{TRUE} is returned to indicate success.}
   \item{warn.conflicts}{logical.  If \code{TRUE}, warnings are
     printed about \code{\link{conflicts}} from attaching the new
     package, unless that package contains an object \code{.conflicts.OK}.}
   \item{keep.source}{logical.  If \code{TRUE}, functions ``keep their
-    source'' including comments, see argument \code{keep.source} to
-    \code{\link{options}}.}
-  \item{verbose}{a logical.  If \code{TRUE}, additional diagnostics are
-    printed.}
-  \item{quietly}{a logical.  If \code{TRUE}, no message confirming
-      package loading is printed.}
+    source'' including comments, see \code{\link{options}(keep.source = *)}.}
+  \item{quietly}{a logical.  If \code{TRUE}, a warning will not be
+    printed if the package cannot be found.}
   \item{libname}{a character string giving the library directory where
     the package was found.}
   \item{pkgname}{a character string giving the name of the package.}
@@ -80,13 +66,15 @@ require(package, quietly = FALSE, warn.conflicts = TRUE,
     if the package(s) are not loaded?
     For \code{.find.package}, should this not give warnings or an error
     if the package(s) are not found?}
-  \item{new}{a character vector with the locations of \R library trees.}
+  \item{use.attached}{a logical indicating whether attached packages
+    should be considered in addition to the ones installed in the given
+    libraries.}
 }
 \details{
   \code{library(package)} and \code{require(package)} both load the
   package with name \code{package}.  \code{require} is designed for use
-  inside other functions; it returns \code{FALSE} and gives a warning
-  (rather than an error as \code{library()} does) if the package does not exist.
+  inside other functions; it returns \code{FALSE} and optionally gives a
+  warning, rather than giving an error, if the package does not exist.
   Both functions check and update the list of currently loaded packages
   and do not reload code that is already loaded.
 
@@ -94,17 +82,13 @@ require(package, quietly = FALSE, warn.conflicts = TRUE,
   a bit of memory.
 
   If \code{library} is called with no \code{package} or \code{help}
-  argument, it lists all available packages in the libraries specified
-  by \code{lib.loc}, and returns the corresponding information in an
-  object of class \code{"libraryIQR"}.  The structure of this class may
-  change in future versions.  In earlier versions of R, only the names
-  of all available packages were returned; use \code{.packages(all =
-    TRUE)} for obtaining these.
+  argument, it gives a list of all available packages in \code{lib.loc}
+  and invisibly returns their names (same as
+  \code{.packages(all = TRUE)}).
 
-  \code{library(help = somename)} computes basic information about the
-  package \code{somename}, and returns this in an object of class
-  \code{"packageInfo"}.  The structure of this class may change in
-  future versions.
+  \code{library(help = somename)} prints information on the package
+  \code{somename}, typically by listing the most important user level
+  objects it contains.
 
   \code{.First.lib} is called when a package is loaded by
   \code{library}.  It is called with two arguments, the name of the
@@ -116,7 +100,7 @@ require(package, quietly = FALSE, warn.conflicts = TRUE,
   is not installed in a ``standard'' location).  \code{.First.lib}
   is invoked after the search path interrogated by \code{search()}
   has been updated, so
-  \code{as.environment(match("package:name"), search())} will return the
+  \code{pos.to.env(match("package:name"), search())} will return the
   environment in which the package is stored.  If calling
   \code{.First.lib} gives an error the loading of the package is
   abandoned, and the package will be unavailable.  Similarly, if the
@@ -139,86 +123,39 @@ require(package, quietly = FALSE, warn.conflicts = TRUE,
   \code{.path.package} returns the paths from which the named packages
   were loaded, or if none were named, for all currently loaded packages.
   Unless \code{quiet = TRUE} it will warn if some of the packages named
-  are not loaded, and given an error if none are.  This function is not
-  meant to be called by users, and its interface might change in future
-  versions.
+  are not loaded, and given an error if none are.
 
   \code{.find.package} returns the paths to the locations where the
-  given packages can be found.  If \code{lib.loc} is \code{NULL}, then
-  then attached packages are searched before the libraries.  If a
-  package is found more than once, the first match is used.  Unless
-  \code{quiet = TRUE} a warning will be given about the named packages
-  which are not found, and an error if none are.  If \code{verbose} is
-  true, warnings about packages found more than once are given.  This
-  function is not meant to be called by users, and its interface might
-  change in future versions.
+  names packages can be found.  If \code{lib.loc} is not given or
+  \code{use.attached} is \code{TRUE}, then attached packages are
+  searched before the libraries.  If a package is found more than once,
+  the first match is used.  Unless \code{quiet = TRUE} a warning will be
+  given about the named packages which are not found, and an error if
+  none are.  This function is not meant to be called by users, and its
+  interface might change in future versions.
 
   \code{.Autoloaded} contains the ``base names'' of the packages for
   which autoloading has been promised.
 
   \code{.Library} is a character string giving the location of the
-  default library, the \file{library} subdirectory of \code{R_HOME}.
-  \code{.libPaths} is used for getting or setting the library trees that
-  \R knows about (and hence uses when looking for packages).  If called
-  with argument \code{new}, the library search path is set to
-  \code{unique(new, .Library)} and this is returned.  If given no
-  argument, a character vector with the currently known library trees is
-  returned.
-
+  default library, the ``library'' subdirectory of \code{R_HOME}.
+  \code{.lib.loc} is a character vector with the locations of all
+  library trees that \R should use.  It is initialized at startup from
+  the environment variable \code{R_LIBS} (which should be a
 #ifdef unix
-  The library search path is initialized at startup from the
-  environment variable \code{R_LIBS} (which should be a
   colon-separated
-  list of directories at which \R library trees are rooted) by calling
-  \code{.libPaths} with the directories specified in \code{R_LIBS}.
 #endif
-#ifdef windows  
-  The library search path is initialized at startup from the
-  environment variable \code{R_LIBS} (which should be a
+#ifdef windows
   semicolon-separated
-  list of directories at which \R library trees are rooted) by calling
-  \code{.libPaths} with the directories specified in \code{R_LIBS}.
 #endif
+  list of directories at which \R library trees are rooted) followed by
+  \code{.Library}.
 }
 \value{
   \code{library} returns the list of loaded (or available) packages
   (or \code{TRUE} if \code{logical.return} is \code{TRUE}).
   \code{require} returns a logical indicating whether the required
   package is available.
-}
-\section{Formal methods}{
-  \code{library} takes some further actions when package \code{methods}
-  is attached (as it is by default).  Packages may define formal generic
-  functions as well as re-defining functions in other packages (notably
-  \code{base}) to be generic, and this information is cached whenever
-  such a package is loaded after \code{methods} and re-defined functions
-  are excluded from the list of conflicts.  This may take appreciable
-  time and can be prevented by defining an object \code{.noGenerics}
-  (with any value) in the package.
-}
-\note{
-  \code{library} and \code{require} can only load an \emph{installed}
-  package, and this is detected by having a \file{DESCRIPTION} file
-  containing a \code{Built:} field.  Packages
-  installed prior to 1.2.0 (released in December 2000) will need to be
-  re-installed.
-
-  Under Unix-alikes, the code checks that the package was installed
-  under a similar operating system as given by
-  \code{.Platform$canonical.name}, provided it contains compiled code.
-  Packages which do not contain compiled code can be shared between
-  Unix-alikes, but not to other OSes because of potential problems with
-  line endings and OS-specific help files.
-
-  \code{library} and \code{require} use the underlying file system
-  services to locate the libraries, with the result that on 
-  case-sensitive file systems package names are case-sensitive 
-  (i.e. \code{library(foo)} is different from 
-  \code{library(Foo)}), but they are not distinguised on 
-  case-insensitive file systems such as MS Windows.  A warning 
-  is issued if the user specifies a name which isn't a perfect match 
-  to the package name.
-
 }
 \author{R core;  Guido Masarotto for the \code{all.available=TRUE}
   part of \code{.packages}.}
@@ -238,20 +175,11 @@ library(help = eda)         # documentation on package `eda'
 library(eda)                # load package `eda'
 require(eda)                # the same
 (.packages())		    # "eda", too
-detach("package:eda")
-
-# if the package name is in a character vector, use
-pkg <- "eda"
-library(pkg, character.only = TRUE)
-detach(pos = match(paste("package", pkg, sep=":"), search()))
-
-require(pkg, character.only = TRUE)
-detach(pos = match(paste("package", pkg, sep=":"), search()))
-
 .path.package()
 .Autoloaded                 # maybe "ctest"
 
-.libPaths()                 # all library trees R knows about
+.lib.loc
+.Library == .lib.loc[length(.lib.loc)]  # `by definition'
 
 require(nonexistent)        # FALSE
 \dontrun{## Suppose a package needs to call a shared library named `fooEXT',
@@ -259,5 +187,6 @@ require(nonexistent)        # FALSE
 .First.lib <- function(lib, pkg) {
   library.dynam("foo", pkg, lib)
 }}
+\testonly{detach("package:eda")}
 }
 \keyword{data}

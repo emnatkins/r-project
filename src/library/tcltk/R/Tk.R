@@ -2,8 +2,7 @@
 
 
 .Tcl <- function(...)
-    structure(.External("dotTcl", ..., PACKAGE = "tcltk"),
-              class="tclObj")
+    .External("dotTcl", ..., PACKAGE = "tcltk")
 .Tcl.callback <- function(...)
     .External("dotTclcallback", ..., PACKAGE = "tcltk")
 
@@ -14,42 +13,14 @@
             paste("-",x,sep="")
         else ""
 
-    isCallback <- function(x)
-	is.function(x) || is.call(x) || is.expression(x)
-
-    makeAtomicCallback <- function(x, e) {
-	if (is.name(x))
-	    x <- eval(x, e)
-	if (is.call(x)){
-	    if(identical(x[[1]], as.name("break")))
-		return("break")
-	    if(identical(x[[1]], as.name("function")))
-                x <- eval(x, e)
-        }
-	.Tcl.callback(x, e)
-    }
-
-    makeCallback <- function(x, e) {
-	if (is.expression(x))
-	    paste(lapply(x,makeAtomicCallback, e),collapse=";")
-	else
-	    makeAtomicCallback(x, e)
-    }
-
-    ## Convert arguments. Callbacks and windows require special treatment
+    ## Convert arguments. R functions and windows require special treatment
     ## everything else is converted to strings
     val2string <- function(x) {
         if (is.null(x)) return("")
         if (is.tkwin(x)){current.win <<- x ; return (.Tk.ID(x))}
-	if (inherits(x,"tclVar")) return(ls(x$env))
-        if (isCallback(x)){
-	    # Jump through some hoops to protect from GC...
-	    e <- parent.frame()
-	    ref <- local({value<-x; envir<-e; environment()})
-            callback <- makeCallback(get("value",envir=ref),
-		                     get("envir",envir=ref))
-	    callback <- paste("{", callback, "}")
-            assign(callback, ref, envir=current.win$env)
+        if (is.function(x)){
+            callback <- .Tcl.callback(x)
+            assign(callback, .Alias(x), envir=current.win$env)
             return(callback)
         }
         ## quoting hell...
@@ -113,99 +84,15 @@ tkdestroy  <- function(win) {
 
 is.tkwin <- function(x) inherits(x, "tkwin")
 
-"$.tclvar" <- function(x, name) {
-	.Deprecated("tclVar and tclvalue")
-	.Tcl(paste("set", name))
-}
+"$.tclvar" <- function(x, name) .Tcl(paste("set", name))
 "$<-.tclvar" <- function(x, name, value) {
-    .Deprecated("tclVar and tclvalue<-")
     .Tcl(paste("set ", name, " {", value,"}", sep=""))
     x
 }
 
-tclVar <- function(init="") {
-   n <- evalq(TclVarCount <- TclVarCount + 1, .TkRoot$env)
-   name <- paste("::RTcl", n, sep="")
-   l <- list(env=new.env())
-   assign(name,NULL,envir=l$env)
-   reg.finalizer(l$env,function(env)tkcmd("unset",ls(env)))
-   class(l)<-"tclVar"
-   tclvalue(l) <- init
-   l
-}
-
-tclObj <- function(x) UseMethod("tclObj")
-"tclObj<-" <- function(x, value) UseMethod("tclObj<-")
-
-tclObj.tclVar <- function(x){
-    z <- .External("RTcl_ObjFromVar", ls(x$env), PACKAGE="tcltk")
-    class(z) <- "tclObj"
-    z
-}
-
-"tclObj<-.tclVar" <- function(x, value){
-    value <- as.tclObj(value)
-    .External("RTcl_AssignObjToVar", ls(x$env), value, PACKAGE="tcltk")
-    x
-}
-
-tclvalue <- function(x) UseMethod("tclvalue")
-"tclvalue<-" <- function(x, value) UseMethod("tclvalue<-")
-
-tclvalue.tclVar <- function(x) tclvalue(tclObj(x))
-tclvalue.tclObj <- function(x) .External("RTcl_StringFromObj", x,
-                                         PACKAGE="tcltk")
-print.tclObj <- function(x,...) {
-    z <- tclvalue(x)
-    if (length(z) > 0) cat("<Tcl>", z, "\n")
-}
-
-"tclvalue<-.tclVar" <- function(x, value) {
-    name <- ls(x$env)
-    tkcmd("set", name, value)
-    x
-}
-
-tclvalue.default <- function(x) tclvalue(tkcmd("set", as.character(x)))
-
-"tclvalue<-.default" <- function(x, value) {
-    name <- as.character(x)
-    tkcmd("set", name, value)
-    x
-}
-
-as.character.tclVar <- function(x) ls(x$env)
-
-as.character.tclObj <- function(x) .External("RTcl_ObjAsCharVector",
-                                             x, PACKAGE="tcltk")
-as.double.tclObj <- function(x, ...) .External("RTcl_ObjAsDoubleVector",
-                                             x, PACKAGE="tcltk")
-as.integer.tclObj <- function(x, ...) .External("RTcl_ObjAsIntVector",
-                                             x, PACKAGE="tcltk")
-
-is.tclObj <- function(x) inherits(x, "tclObj")
-
-as.tclObj <- function(x) {
-    if (is.tclObj(x)) return(x)
-    z <- switch (storage.mode(x),
-                 character =
-                 .External("RTcl_ObjFromCharVector", x, PACKAGE="tcltk"),
-                 double =
-                 .External("RTcl_ObjFromDoubleVector", x, PACKAGE="tcltk"),
-                 integer =
-                 .External("RTcl_ObjFromIntVector", x, PACKAGE="tcltk"),
-                 stop(paste("Cannot handle object of mode ", storage.mode(x))))
-    class(z) <- "tclObj"
-    z
-}
-# Actually makes .default and .tclVar methods equivalent, the latter
-# just saves a level of function dispatching
-
-#----
 
 .TkRoot <- .Tk.newwin("")
 tclvar  <- structure(NULL,class="tclvar")
-evalq(TclVarCount <- 0, .TkRoot$env)
 
 
 # ------ Widgets ------
@@ -299,24 +186,6 @@ tkXselection.own    <- function(...) tkcmd("selection", "own", ...)
 tkwait.variable  <- function(...) tkcmd("tkwait", "variable", ...)
 tkwait.visibility<- function(...) tkcmd("tkwait", "visibility", ...)
 tkwait.window    <- function(...) tkcmd("tkwait", "window", ...)
-
-## Standard dialogs
-tkgetOpenFile    <- function(...) tkcmd("tk_getOpenFile", ...)
-tkgetSaveFile    <- function(...) tkcmd("tk_getSaveFile", ...)
-tkchooseDirectory<- function(...) tkcmd("tk_chooseDirectory", ...)
-tkmessageBox     <- function(...) tkcmd("tk_messageBox", ...)
-tkdialog         <- function(...) tkcmd("tk_dialog", ...)
-tkpopup          <- function(...) tkcmd("tk_popup", ...)
-
-
-## File handling functions
-
-tkfile.tail      <- function(...) tkcmd("file", "tail", ...)
-tkfile.dir       <- function(...) tkcmd("file", "dir", ...)
-tkopen           <- function(...) tkcmd("open", ...)
-tkclose          <- function(...) tkcmd("close", ...)
-tkputs           <- function(...) tkcmd("puts", ...)
-tkread           <- function(...) tkcmd("read", ...)
 
 ## Tkwinfo actually has a bazillion subcommands, but it's rarely
 ## used, so let's be lazy
@@ -493,9 +362,6 @@ tkyview         <- function(widget, ...) tkcmd(widget, "yview", ...)
 tkyview.moveto  <- function(widget, ...)tkcmd(widget, "yview", "moveto", ...)
 tkyview.scroll  <- function(widget, ...)tkcmd(widget, "yview", "scroll", ...)
 
-
-
-
 tkpager <- function(file, header, title, delete.file)
 {
     for ( i in seq(along=file) ){
@@ -512,7 +378,7 @@ tkpager <- function(file, header, title, delete.file)
 
         chn <- tkcmd("open", zfile)
         tkinsert(txt, "end", header[[i]])
-        tkinsert(txt, "end", gsub("_\b","",tclvalue(tkcmd("read", chn))))
+        tkinsert(txt, "end", gsub("_\b","",tkcmd("read", chn)))
         tkcmd("close", chn)
 
         tkconfigure(txt, state="disabled")

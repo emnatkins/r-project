@@ -26,10 +26,11 @@
 #define addDevice		Rf_addDevice
 #define copyDisplayList		Rf_copyDisplayList
 #define deviceNumber		Rf_deviceNumber
-#define devNumber		Rf_devNumber
 #define DevNull			Rf_DevNull
 #define inhibitDisplayList	Rf_inhibitDisplayList
+#ifndef Macintosh
 #define InitGraphics		Rf_InitGraphics
+#endif
 #define GetDevice		Rf_GetDevice
 #define KillAllDevices		Rf_KillAllDevices
 #define KillDevice		Rf_KillDevice
@@ -55,7 +56,7 @@ PicTeXDeviceDriver(DevDesc*, char*, char*, char*, double, double, Rboolean);
 Rboolean 
 PSDeviceDriver(DevDesc*, char*, char*, char*, char**,
 	       char*, char*, char*, double, double, Rboolean, double, 
-	       Rboolean, Rboolean, Rboolean, char*, char*);
+	       Rboolean, Rboolean, Rboolean, char*);
 Rboolean 
 XFigDeviceDriver(DevDesc*, char*, char*, char*,
 		 char*, char*, double, double, 
@@ -63,7 +64,7 @@ XFigDeviceDriver(DevDesc*, char*, char*, char*,
 Rboolean
 PDFDeviceDriver(DevDesc* dd, char *, char *, char *, 
 		char *, char *, double, double, double,
-		int, char*);
+		int);
 
 
 
@@ -80,16 +81,8 @@ DevDesc* GetDevice(int);
 void KillDevice(DevDesc*);
 /* How many devices exist ? (>= 1) */
 int NumDevices(void);
-/* Get the index of the specified device. 
- * This is used by the graphics engine to map from a *GEDevDesc to
- * a device number.
- */
+/* Get the index of the specified device. */
 int deviceNumber(DevDesc*);
-/* Get the index of the specified device. 
- * This is used by a device to map from a *NewDevDesc to
- * a device number.
- */
-int devNumber(DevDesc *dd);
 /* Create a new device. */
 int StartDevice(SEXP, SEXP, int, SEXP, int);
 /* Check for an available device slot */

@@ -19,12 +19,12 @@
  *
  *  SYNOPSIS
  *
- *    #include <Rmath.h>
+ *    #include "Rmath.h"
  *    double rcauchy(double location, double scale);
  *
  *  DESCRIPTION
  *
- *    Random variates from the Cauchy distribution.
+ *    Random variates from the normal distribution.
  */
 
 #include "nmath.h"

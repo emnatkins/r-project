@@ -1,4 +1,4 @@
-#### copyright (C) 1998-2003 B. D. Ripley
+#### copyright (C) 1998 B. D. Ripley
 add1 <- function(object, scope, ...) UseMethod("add1")
 
 add1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
@@ -20,9 +20,7 @@ add1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
     for(i in seq(ns)) {
 	tt <- scope[i]
 	if(trace > 1) cat("trying +", tt, "\n")
-	nfit <- update(object, as.formula(paste("~ . +", tt)),
-                       evaluate = FALSE)
-        nfit <- eval.parent(nfit)
+	nfit <- update(object, as.formula(paste("~ . +", tt)))
 	ans[i+1, ] <- extractAIC(nfit, scale, k = k, ...)
     }
     dfs <- ans[,1] - ans[1,1]
@@ -82,7 +80,7 @@ add1.lm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
 	fc <- object$call
 	fc$formula <- Terms
 	fob <- list(call = fc)
-	class(fob) <- oldClass(object)
+	class(fob) <- class(object)
 	m <- model.frame(fob, xlev = object$xlevels)
 	x <- model.matrix(Terms, m, contrasts = object$contrasts)
         oldn <- length(y)
@@ -172,7 +170,7 @@ add1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
 	fc <- object$call
 	fc$formula <- Terms
 	fob <- list(call = fc)
-	class(fob) <- oldClass(object)
+	class(fob) <- class(object)
 	m <- model.frame(fob, xlev = object$xlevels)
 	x <- model.matrix(Terms, m, contrasts = object$contrasts)
         oldn <- length(y)
@@ -185,7 +183,7 @@ add1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
                           "rows from a combined fit"))
     }
     n <- nrow(x)
-    if(is.null(wt)) wt <- rep.int(1, n)
+    if(is.null(wt)) wt <- rep(1, n)
     Terms <- attr(Terms, "term.labels")
     asgn <- attr(x, "assign")
     ousex <- match(asgn, match(oTerms, Terms), 0) > 0
@@ -236,7 +234,7 @@ add1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
     aod
 }
 
-add1.mlm <- function(object, scope, ...)
+add1.mlm <- function(...)
     stop("no add1 method implemented for mlm models")
 
 drop1 <- function(object, scope, ...) UseMethod("drop1")
@@ -261,9 +259,7 @@ drop1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
     for(i in seq(ns)) {
 	tt <- scope[i]
 	if(trace > 1) cat("trying -", tt, "\n")
-	nfit <- update(object, as.formula(paste("~ . -", tt)),
-                       evaluate = FALSE)
-        nfit <- eval.parent(nfit)
+	nfit <- update(object, as.formula(paste("~ . -", tt)))
 	ans[i+1, ] <- extractAIC(nfit, scale, k = k, ...)
     }
     dfs <- ans[1,1] - ans[,1]
@@ -275,7 +271,7 @@ drop1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
         dev <- dev - dev[1] ; dev[1] <- NA
         nas <- !is.na(dev)
         P <- dev
-        P[nas] <- pchisq(dev[nas], dfs[nas], lower.tail = FALSE)
+        P[nas] <- 1 - pchisq(dev[nas], dfs[nas])
         aod[, c("LRT", "Pr(Chi)")] <- list(dev, P)
     }
     head <- c("Single term deletions", "\nModel:",
@@ -361,7 +357,7 @@ drop1.lm <- function(object, scope, scale = 0, all.cols = TRUE,
     aod
 }
 
-drop1.mlm <- function(object, scope, ...)
+drop1.mlm <- function(object, ...)
     stop("drop1 not implemented for mlm models")
 
 drop1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
@@ -389,7 +385,7 @@ drop1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
     if(is.null(y)) y <- model.response(model.frame(object), "numeric")
     na.coef <- (1:length(object$coefficients))[!is.na(object$coefficients)]
     wt <- object$prior.weights
-    if(is.null(wt)) wt <- rep.int(1, n)
+    if(is.null(wt)) wt <- rep(1, n)
     rank <- object$rank
     for(i in 1:ns) {
 	ii <- seq(along=asgn)[asgn == ndrop[i]]
@@ -452,17 +448,17 @@ drop1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
 
 add.scope <- function(terms1, terms2)
 {
-    terms1 <- terms(terms1)
-    terms2 <- terms(terms2)
+    terms1 <- terms(as.formula(terms1))
+    terms2 <- terms(as.formula(terms2))
     factor.scope(attr(terms1, "factor"),
 		 list(add = attr(terms2, "factor")))$add
 }
 
 drop.scope <- function(terms1, terms2)
 {
-    terms1 <- terms(terms1)
+    terms1 <- terms(as.formula(terms1))
     f2 <- if(missing(terms2)) numeric(0)
-    else attr(terms(terms2), "factor")
+    else attr(terms(as.formula(terms2)), "factor")
     factor.scope(attr(terms1, "factor"), list(drop = f2))$drop
 }
 
@@ -483,14 +479,14 @@ factor.scope <- function(factor, scope)
 	} else nmdrop <- colnames(factor)
 	if(ncol(facs) > 1) {
             ## check no interactions will be left without margins.
-	    keep <- rep.int(TRUE, ncol(facs))
+	    keep <- rep(TRUE, ncol(facs))
 	    f <- crossprod(facs > 0)
 	    for(i in seq(keep)) keep[i] <- max(f[i, - i]) != f[i, i]
 	    nmdrop <- nmdrop[keep]
 	}
     } else nmdrop <- character(0)
 
-    if(!length(add)) nmadd <- character(0)
+    if(is.null(add)) nmadd <- character(0)
     else {
 	nmfac <- colnames(factor)
 	nmadd <- colnames(add)
@@ -501,7 +497,7 @@ factor.scope <- function(factor, scope)
 	    add <- add[, -where, drop = FALSE]
 	}
 	if(ncol(add) > 1) {             # check marginality:
-	    keep <- rep.int(TRUE, ncol(add))
+	    keep <- rep(TRUE, ncol(add))
 	    f <- crossprod(add > 0)
 	    for(i in seq(keep)) keep[-i] <- keep[-i] & (f[i, -i] < f[i, i])
 	    nmadd <- nmadd[keep]
@@ -514,28 +510,22 @@ step <- function(object, scope, scale = 0,
 		 direction = c("both", "backward", "forward"),
 		 trace = 1, keep = NULL, steps = 1000, k = 2, ...)
 {
-#     fixFormulaObject <- function(object) {
-# 	tt <- terms(object)
-# 	tmp <- attr(tt, "term.labels")
-# 	if (!attr(tt, "intercept"))
-# 	    tmp <- c(tmp, "0")
-# 	if (!length(tmp))
-# 	    tmp <- "1"
-#         tmp <- paste("~", paste(tmp, collapse = " + "))
-#         form <- formula(object) # some formulae have no lhs
-#         tmp <- if(length(form) > 2) paste(deparse(form[[2]]), tmp)
-#         ## must be as.character as deparse gives spurious ()
-# 	if (length(offset <- attr(tt, "offset")))
-# 	    tmp <- paste(tmp, as.character(attr(tt, "variables")[offset + 1]),
-# 			 sep = " + ")
-# 	form <- formula(tmp)
-#         environment(form) <- environment(tt)
-#         form
-#     }
-    mydeviance <- function(x, ...)
-    {
-        dev <- deviance(x)
-        if(!is.null(dev)) dev else extractAIC(x, k=0)[2]
+    fixFormulaObject <- function(object) {
+	tt <- terms(object)
+	tmp <- attr(tt, "term.labels")
+	if (!attr(tt, "intercept"))
+	    tmp <- c(tmp, "0")
+	if (!length(tmp))
+	    tmp <- "1"
+        tmp <- paste("~", paste(tmp, collapse = " + "))
+        form <- formula(object) # some formulae have no lhs
+        tmp <- if(length(form) > 2) paste(deparse(form[[2]]), tmp)
+	if (length(offset <- attr(tt, "offset")))
+	    tmp <- paste(tmp, deparse(attr(tt, "variables")[offset + 1]),
+			 sep = " + ")
+	form<-formula(tmp)
+        environment(form)<-environment(tt)
+        form
     }
 
     cut.string <- function(string)
@@ -557,7 +547,7 @@ step <- function(object, scope, scale = 0,
     {
 	change <- sapply(models, "[[", "change")
 	rd <- sapply(models, "[[", "deviance")
-        dd <- c(NA, abs(diff(rd)))
+	dd <- c(NA, diff(rd))
 	rdf <- sapply(models, "[[", "df.resid")
 	ddf <- c(NA, diff(rdf))
 	AIC <- sapply(models, "[[", "AIC")
@@ -580,21 +570,18 @@ step <- function(object, scope, scale = 0,
     }
 
     ## need to fix up . in formulae in R
-#     object$formula <- fixFormulaObject(object)
-#     Terms <- object$formula
-#     object$call$formula <- object$formula
-#     attributes(Terms) <- attributes(object$terms)
-#     object$terms <- Terms
-    Terms <- terms(object)
-    object$call$formula <- object$formula <- Terms
-    md <- missing(direction)
+    object$formula <- fixFormulaObject(object)
+    Terms <- object$formula
+    object$call$formula <- object$formula
+    attributes(Terms) <- attributes(object$terms)
+    object$terms <- Terms
+    ## not needed: if(missing(direction)) direction <- "both" else
     direction <- match.arg(direction)
     backward <- direction == "both" | direction == "backward"
     forward  <- direction == "both" | direction == "forward"
     if(missing(scope)) {
 	fdrop <- numeric(0)
-        fadd <- attr(Terms, "factors")
-        if(md) forward <- FALSE
+	fadd <- NULL
     }
     else {
 	if(is.list(scope)) {
@@ -609,6 +596,10 @@ step <- function(object, scope, scale = 0,
 		attr(terms(update.formula(object, scope)), "factors")
 	    fdrop <- numeric(0)
 	}
+    }
+    if(is.null(fadd)) {
+	backward <- TRUE
+	forward <- FALSE
     }
     models <- vector("list", steps)
     if(!is.null(keep)) {
@@ -628,7 +619,7 @@ step <- function(object, scope, scale = 0,
 	cat("Start:  AIC=", format(round(bAIC, 2)), "\n",
 	    cut.string(deparse(as.vector(formula(fit)))), "\n\n")
 
-    models[[nm]] <- list(deviance = mydeviance(fit), df.resid = n - edf,
+    models[[nm]] <- list(deviance = deviance(fit), df.resid = n - edf,
 			 change = "", AIC = bAIC)
     if(!is.null(keep)) keep.list[[nm]] <- keep(fit, bAIC)
     usingCp <- FALSE
@@ -675,16 +666,13 @@ step <- function(object, scope, scale = 0,
 	    change <- rownames(aod)[o[1]]
 	}
 	usingCp <- match("Cp", names(aod), 0) > 0
-        ## may need to look for a `data' argument in parent
-	fit <- update(fit, paste("~ .", change), evaluate = FALSE)
-        fit <- eval.parent(fit)
+	fit <- update(fit, paste("~ .", change))
         if(length(fit$residuals) != n)
             stop("number of rows in use has changed: remove missing values?")
-## 	fit$formula <- fixFormulaObject(fit)
-## 	Terms <- fit$formula
-## 	attributes(Terms) <- attributes(fit$terms)
-## 	fit$terms <- Terms
-        Terms <- terms(fit)
+	fit$formula <- fixFormulaObject(fit)
+	Terms <- fit$formula
+	attributes(Terms) <- attributes(fit$terms)
+	fit$terms <- Terms
 	bAIC <- extractAIC(fit, scale, k = k, ...)
 	edf <- bAIC[1]
 	bAIC <- bAIC[2]
@@ -693,8 +681,8 @@ step <- function(object, scope, scale = 0,
 		cut.string(deparse(as.vector(formula(fit)))), "\n\n")
 	if(bAIC >= AIC) break
 	nm <- nm + 1
-	models[[nm]] <-
-	    list(deviance = mydeviance(fit), df.resid = n - edf,
+	edf <- models[[nm]] <-
+	    list(deviance = deviance(fit), df.resid = n - edf,
 		 change = change, AIC = bAIC)
 	if(!is.null(keep)) keep.list[[nm]] <- keep(fit, bAIC)
     }
@@ -736,7 +724,7 @@ extractAIC.lm <- function(fit, scale = 0, k = 2, ...)
     dev <- if(scale > 0) RSS/scale - n else n * log(RSS/n)
     c(edf, dev + k * edf)
 }
-extractAIC.aov <- extractAIC.lm
+extractAIC.aov <- .Alias(extractAIC.lm)
 
 extractAIC.negbin <- function(fit, scale, k = 2, ...)
 {

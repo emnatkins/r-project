@@ -38,7 +38,7 @@ make.socket <- function(host = "localhost", port, fail = TRUE, server = FALSE)
     rval
 }
 
-close.socket <- function(socket, ...)
+close.socket <- function(socket)
 {
     if(length(port <- as.integer(socket$socket)) != 1)
 	stop("invalid `socket' argument")
@@ -55,7 +55,7 @@ read.socket <- function(socket, maxlen=256, loop=FALSE)
 	tmp <- .C("Rsockread", port,
 		  buffer = buffer, len = maxlen, PACKAGE="base")
 	rval <- substr(tmp$buffer, 1, tmp$len)
-	if (nchar(rval) > 0 || !loop) break
+	if (rval > 0 || !loop) break
     }
     rval
 }

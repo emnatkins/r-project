@@ -18,31 +18,13 @@ capabilities(what = NULL)
     \item{png}{Is the \code{\link{png}} function operational?}
     \item{tcltk}{Is the \code{tcltk} package operational?}
     \item{X11}{(Unix)  Are \code{X11} and the data editor available?}
-    \item{GNOME}{(Unix)  Is the GNOME GUI in use and are \code{GTK} and
-      \code{GNOME} graphics devices available?}
-    \item{libz}{Is \code{\link{gzfile}} available?  From \R 1.5.0 this
-      will always be true.}
+    \item{libz}{Is \code{\link{gzfile}} available?}
     \item{http/ftp}{Are \code{\link{url}} and the internal method for
       \code{\link{download.file}} available?}
     \item{sockets}{Are \code{\link{make.socket}} and related functions
       available?}
     \item{libxml}{Is there support for integrating \code{libxml} with
       the \R event loop?}
-    \item{cledit}{Is command-line editing available in the current \R
-      session?  This is false in non-interactive sessions.
-#ifdef Unix
-      It will be true if \code{readline} supported has been compiled in
-      and \code{--no-readline} was \emph{not} invoked.
-#endif
-      }
-    \item{IEEE754}{Does this platform have IEEE 754 arithmetic?  Note
-      that this is more correctly known by the international standard
-      IEC 60559.}
-    \item{bzip2}{Is \code{\link{bzfile}} available?}
-    \item{PCRE}{Is the Perl-Compatible Regular Expression library
-      available?  This is needed for the \code{perl = TRUE} option to
-      \code{\link{grep}} are related function.}
-    }
 }
 \seealso{\code{\link{.Platform}}}
 
