@@ -1,0 +1,181 @@
+=================================================
+This is an automated summary of the status of the R-bugs
+repository.
+
+Note that this may be neither complete nor perfectly
+correct at any given instance: Not all bugs are reported,
+and some reported bugs may have been fixed, but the
+repository not yet updated.
+
+Some bug fixes are difficult to verify because they pertain
+to specific hardware or operating system versions. If you
+have information to contribute, please do so.
+
+If you happen to know how to fix a problem please send
+patches to the bug repository, too.
+
+New bugs are reported either through the web
+interface at r-bugs.biostat.ku.dk or via email to
+r-bugs@biostat.ku.dk. The bug.report() function can be
+used to automate parts of the procedure on many systems.
+Followups on older bugs can be done by including the string
+"(PR#999)" in the Subject of an email (change 999 to the
+actual reference number, of course!).
+=================================================
+
+Directory:  Accuracy
+
+none
+
+Directory:  Add-ons
+
+* PR# 471 *
+Subject:  Problems with nlme 
+From: Berwin Turlach <berwin@maths.uwa.edu.au>
+Date: Tue, 7 Mar 2000 15:28:00 +0800
+--Problem 1) was a subscripting bug introduced in 1.0.0 and fixed for 1.0.1
+--Problem 2) (mssing datasets) needs a revised nlme
+
+Directory:  Analyses
+
+none
+
+Directory:  Documentation
+
+none
+
+Directory:  Graphics
+
+* PR# 202 *
+Subject: persp box occlusion bug
+From: wsi@gcal.ac.uk
+Date: Wed, 2 Jun 1999 15:02:03 +0200 (MET DST)
+--The persp algorithm does not apply the occlusion rules to the frame, 
+--which is always plotted first. 
+--A bug, but not very simple to fix.
+* PR# 400 *
+Subject: X11 troubles
+From: Peter Dalgaard BSA <p.dalgaard@biostat.ku.dk>
+Date: 13 Jan 2000 14:31:42 +0100
+--a) We don't handle multiple window closes well
+--b) X11 errors should be caught by an error handler, not kill R
+* PR# 414 *
+Subject:  graphics bugs: steep slopes and large values beyond ylim 
+From: Ben Bolker <bolker@zoo.ufl.edu>
+Date: Mon, 7 Feb 2000 18:28:04 -0500
+--Followup on R-devel showed this was due to generating integer coordinates 
+--outside +/- 2^15 in the X11 driver.
+
+Directory:  In-Out
+
+none
+
+Directory:  Installation
+
+* PR# 478 *
+Subject: Conditional for XDR code left out in saveload.c
+From: hoffmann@ehmgs2.et.tu-dresden.de
+Date: Thu, 9 Mar 2000 09:43:01 +0100 (MET)
+--This seems to be a harmless warning, not an error.
+
+Directory:  Language
+
+* PR# 408 *
+Subject: convolution bug
+From: wsimpson@gcal.ac.uk
+Date: Fri, 28 Jan 2000 11:17:36 +0100 (MET)
+* PR# 412 *
+Subject: anomalies with call objects
+From: Peter Dalgaard BSA <p.dalgaard@biostat.ku.dk>
+Date: 06 Feb 2000 01:18:50 +0100
+
+Directory:  Low-level
+
+* PR# 391 *
+Subject: Segfault in dataentry()
+From: Peter Dalgaard BSA <p.dalgaard@pubhealth.ku.dk>
+Date: 29 Dec 1999 11:59:50 +0100
+--dataentry(0,0) segfaults
+
+Directory:  Misc
+
+none
+
+Directory:  Models
+
+none
+
+Directory:  Startup
+
+none
+
+Directory:  System-specific
+
+* PR# 452 *
+Subject: problem with glm
+From: Brad McNeney <mcneney@cs.sfu.ca>
+Date: Fri, 18 Feb 2000 17:51:54 -0800 (PST)
+--Problems on Alpha's with glm. Status unclear
+
+Directory:  TooMuchAtOnce
+
+none
+
+Directory:  Windows
+
+none
+
+Directory:  incoming
+
+* PR# 463 *
+Subject: Bug in read.table
+From: "E. S. Venkatraman" <venkat@biosta.mskcc.org>
+Date: Tue, 29 Feb 2000 17:47:54 -0500 (EST)
+* PR# 465 *
+Subject: "is.qr" definition
+From: Jonathan Rougier <J.C.Rougier@durham.ac.uk>
+Date: Wed, 1 Mar 2000 11:12:37 +0000 (GMT)
+* PR# 466 *
+Subject: Re: R-1.0.0 is released
+From: bhoel@server.python.net (Berthold=?iso-8859-1?q?_H=F6llmann?=)
+Date: 01 Mar 2000 16:00:54 +0100
+* PR# 467 *
+Subject: Re: [R] Re: R-1.0.0 is released
+From: Peter Dalgaard BSA <p.dalgaard@biostat.ku.dk>
+Date: 01 Mar 2000 20:26:40 +0100
+* PR# 474 *
+Subject: update fails after specific sequence of steps
+From: John Fox <jfox@mcmaster.ca>
+Date: Tue, 07 Mar 2000 09:06:21 -0500
+* PR# 475 *
+Subject: Error compiling R on RS6000
+From: pgutwin@us.ibm.com
+Date: Tue, 7 Mar 2000 16:35:59 +0100 (MET)
+* PR# 477 *
+Subject: Printing graphs on W98 laptop
+From: P.J.Green@bristol.ac.uk
+Date: Wed, 8 Mar 2000 18:23:33 +0100 (MET)
+* PR# 480 *
+Subject: problem with plot(...., xlim=c(5,0))
+From: Rashid Nassar <rnassar@duke.edu>
+Date: Sun, 12 Mar 2000 20:19:16 -0500 (EST)
+* PR# 481 *
+Subject: check does not accept --vsize option
+From: neteler@geog.uni-hannover.de
+Date: Mon, 13 Mar 2000 19:04:50 +0100 (MET)
+* PR# 482 *
+Subject: plot(1:10,c(1)$nothing)  yields index plot
+From: "Charles C. Berry" <cberry@tajo.ucsd.edu>
+Date: Mon, 13 Mar 2000 11:13:18 -0800
+* PR# 483 *
+Subject: error in par option xaxt
+From: aim@uwo.ca
+Date: Mon, 13 Mar 2000 22:02:42 +0100 (MET)
+* PR# 484 *
+Subject: error in par option xaxt
+From: aim@uwo.ca
+Date: Mon, 13 Mar 2000 22:03:00 +0100 (MET)
+* PR# 485 *
+Subject: Install R1.0.0
+From: Lynn Zhang <lyzhang@umich.edu>
+Date: Mon, 13 Mar 2000 16:10:52 -0500 (EST)
