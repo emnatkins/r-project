@@ -20,7 +20,7 @@
  *
  *    #include "Mathlib.h"
  *    extern int signgam;
- *    double lgammafn(double x);
+ *    double lgamma(double x);
  *
  *  DESCRIPTION
  *
@@ -39,11 +39,11 @@
  */
 
 #include "Mathlib.h"
-#include "Error.h"
+#include "Errormsg.h"
 
 int signgam;
 
-double lgammafn(double x)
+double lgamma(double x)
 {
     static double xmax = 0.;
     static double dxrel = 0.;
@@ -68,7 +68,7 @@ double lgammafn(double x)
     y = fabs(x);
 
     if (y <= 10) {
-	return log(fabs(gammafn(x)));
+	return log(fabs(gamma(x)));
     }
     else { /* y = |x| > 10  */
 

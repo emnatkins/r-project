@@ -1,6 +1,6 @@
-/*
- *  A PicTeX device, (C) 1996 Valerio Aimale, for
- *  R : A Computer Language for Statistical Data Analysis
+/* 
+ *  A PicTeX device, (C) 1996 Valerio Aimale, for 
+ *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -18,8 +18,19 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+/*
+ *
+ */
+
 #include "Graphics.h"
 #include "Fileio.h"
+
+unsigned int str2col(char*);
+
+/*void error(char*);*/
+int ValidColor(unsigned int);
+
+
 
 	/* device-specific information per picTeX device */
 
@@ -203,7 +214,7 @@ static double charwidth[4][128] = {
 0.5000030,
   0.7444490, 0.5000030, 0.5000030, 0.4763920, 0.5500030, 1.1000060,
 0.5500030,
-  0.5500030, 0.550003
+  0.5500030, 0.550003 
 }
 };
 
@@ -213,6 +224,11 @@ static char *fontname[] = {
 	"cmssi10",
 	"cmssxi10"
 };
+
+
+	/* Device driver entry point */
+
+int PicTeXDeviceDriver(DevDesc*, char*, char*, char*, double, double, int);
 
 
 	/* Device driver actions */
@@ -230,12 +246,12 @@ static void   PicTeX_NewPage(DevDesc*);
 static int    PicTeX_Open(DevDesc*, picTeXDesc*);
 static void   PicTeX_Polygon(int, double*, double*, int, int, int, DevDesc*);
 static void   PicTeX_Polyline(int, double*, double*, int, DevDesc*);
-static void   PicTeX_Rect(double, double, double, double, int, int, int,
-			  DevDesc*);
+static void   PicTeX_Rect(double, double, double, double, int, int, int, 
+                          DevDesc*);
 static void   PicTeX_Resize(DevDesc*);
 static double PicTeX_StrWidth(char*, DevDesc*);
 static void   PicTeX_Text(double, double, int, char*, double, double, double,
-			  DevDesc*);
+                          DevDesc*);
 static void   PicTeX_MetricInfo(int, double*, double*, double*, DevDesc*);
 
 
@@ -294,12 +310,12 @@ static int PicTeX_Open(DevDesc *dd, picTeXDesc *ptd)
 	ptd->fontsize = 0;
 	ptd->fontface = 0;
 	ptd->debug = 0;
-	if(!(ptd->texfp = R_fopen(ptd->filename, "w")))
+	if(!(ptd->texfp = R_fopen(ptd->filename, "w"))) 
 	      return 0;
 	fprintf(ptd->texfp, "\\hbox{\\beginpicture\n");
 	fprintf(ptd->texfp, "\\setcoordinatesystem units <1pt,1pt>\n");
-	fprintf(ptd->texfp,
-		"\\setplotarea x from 0 to %.2f, y from 0 to %.2f\n",
+	fprintf(ptd->texfp, 
+                "\\setplotarea x from 0 to %.2f, y from 0 to %.2f\n",
 		ptd->width * 72.27, ptd->height * 72.27);
 	fprintf(ptd->texfp,"\\setlinear\n");
 	fprintf(ptd->texfp, "\\font\\picfont cmss10\\picfont\n");
@@ -316,12 +332,12 @@ static void PicTeX_Resize(DevDesc *dd)
 }
 
 static void PicTeX_Clip(double x0, double x1, double y0, double y1,
-			DevDesc *dd)
+                        DevDesc *dd)
 {
 	picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
 	if(ptd->debug)
-	fprintf(ptd->texfp, "%% Setting Clip Region to %.2f %.2f %.2f %.2f\n",
+	fprintf(ptd->texfp, "%% Setting Clip Region to %.2f %.2f %.2f %.2f\n", 
 		x0, y0, x1, y1);
 	ptd->clipleft = x0;
 	ptd->clipright = x1;
@@ -337,10 +353,10 @@ static void PicTeX_NewPage(DevDesc *dd)
 
 	int face, size;
 	if (ptd->pageno) {
-		fprintf(ptd->texfp, "\\endpicture\n}\n\n\n");
+		fprintf(ptd->texfp, "\\endpicture\n}\n\n\n"); 
 		fprintf(ptd->texfp, "\\hbox{\\beginpicture\n");
 		fprintf(ptd->texfp, "\\setcoordinatesystem units <1pt,1pt>\n");
-		fprintf(ptd->texfp,
+		fprintf(ptd->texfp, 
 			"\\setplotarea x from 0 to %.2f, y from 0 to %.2f\n",
 			ptd->width * 72.27, ptd->height * 72.27);
 		fprintf(ptd->texfp,"\\setlinear\n");
@@ -362,13 +378,13 @@ static void PicTeX_Close(DevDesc *dd)
 
 	fprintf(ptd->texfp, "\\endpicture\n}\n");
 	fclose(ptd->texfp);
-
+	
 	free(ptd);
 }
 
 
 	/* Seek */
-/* NO LONGER USED
+/* NO LONGER USED 
 static void PicTeX_MoveTo(double x, double y)
 {
 	xlast = x;
@@ -379,19 +395,19 @@ static void PicTeX_MoveTo(double x, double y)
 	/* Draw To */
 
 static void PicTeX_ClipLine(double x0, double y0, double x1, double y1,
-			    picTeXDesc *ptd)
+                            picTeXDesc *ptd)
 {
 	ptd->clippedx0 = x0; ptd->clippedx1 = x1;
 	ptd->clippedy0 = y0; ptd->clippedy1 = y1;
 
-	if ((ptd->clippedx0 < ptd->clipleft &&
-	     ptd->clippedx1 < ptd->clipleft) ||
-	    (ptd->clippedx0 > ptd->clipright &&
-	     ptd->clippedx1 > ptd->clipright) ||
-	    (ptd->clippedy0 < ptd->clipbottom &&
-	     ptd->clippedy1 < ptd->clipbottom) ||
-	    (ptd->clippedy0 > ptd->cliptop &&
-	     ptd->clippedy1 > ptd->cliptop)) {
+	if ((ptd->clippedx0 < ptd->clipleft && 
+             ptd->clippedx1 < ptd->clipleft) || 
+	    (ptd->clippedx0 > ptd->clipright && 
+             ptd->clippedx1 > ptd->clipright) || 
+	    (ptd->clippedy0 < ptd->clipbottom && 
+             ptd->clippedy1 < ptd->clipbottom) || 
+	    (ptd->clippedy0 > ptd->cliptop && 
+             ptd->clippedy1 > ptd->cliptop)) {
 		ptd->clippedx0 = ptd->clippedx1;
 		ptd->clippedy0 = ptd->clippedy1;
 		return;
@@ -399,66 +415,66 @@ static void PicTeX_ClipLine(double x0, double y0, double x1, double y1,
 
 	/*Clipping Left */
 	if (ptd->clippedx1 >= ptd->clipleft && ptd->clippedx0 < ptd->clipleft) {
-		ptd->clippedy0 = ((ptd->clippedy1-ptd->clippedy0) /
-				  (ptd->clippedx1-ptd->clippedx0) *
-				  (ptd->clipleft-ptd->clippedx0)) +
-				 ptd->clippedy0;
+		ptd->clippedy0 = ((ptd->clippedy1-ptd->clippedy0) / 
+                                  (ptd->clippedx1-ptd->clippedx0) *
+			          (ptd->clipleft-ptd->clippedx0)) + 
+                                 ptd->clippedy0; 
 		ptd->clippedx0 = ptd->clipleft;
 	}
 	if (ptd->clippedx1 <= ptd->clipleft && ptd->clippedx0 > ptd->clipleft) {
-		ptd->clippedy1 = ((ptd->clippedy1-ptd->clippedy0) /
-				  (ptd->clippedx1-ptd->clippedx0) *
-				  (ptd->clipleft-ptd->clippedx0)) +
-				 ptd->clippedy0;
+		ptd->clippedy1 = ((ptd->clippedy1-ptd->clippedy0) / 
+                                  (ptd->clippedx1-ptd->clippedx0) *
+			          (ptd->clipleft-ptd->clippedx0)) + 
+                                 ptd->clippedy0; 
 		ptd->clippedx1 = ptd->clipleft;
-	}
+	}	
 	/* Clipping Right */
-	if (ptd->clippedx1 >= ptd->clipright &&
-	    ptd->clippedx0 < ptd->clipright) {
-		ptd->clippedy1 = ((ptd->clippedy1-ptd->clippedy0) /
-				  (ptd->clippedx1-ptd->clippedx0) *
-				  (ptd->clipright-ptd->clippedx0)) +
-				 ptd->clippedy0;
+	if (ptd->clippedx1 >= ptd->clipright && 
+            ptd->clippedx0 < ptd->clipright) {
+		ptd->clippedy1 = ((ptd->clippedy1-ptd->clippedy0) / 
+                                  (ptd->clippedx1-ptd->clippedx0) * 
+                                  (ptd->clipright-ptd->clippedx0)) + 
+                                 ptd->clippedy0; 
 		ptd->clippedx1 = ptd->clipright;
 	}
-	if (ptd->clippedx1 <= ptd->clipright &&
-	    ptd->clippedx0 > ptd->clipright) {
-		ptd->clippedy0 = ((ptd->clippedy1-ptd->clippedy0) /
-				  (ptd->clippedx1-ptd->clippedx0) *
-				  (ptd->clipright-ptd->clippedx0)) +
-				 ptd->clippedy0;
-		ptd->clippedx0 = ptd->clipright;
+	if (ptd->clippedx1 <= ptd->clipright && 
+            ptd->clippedx0 > ptd->clipright) {
+		ptd->clippedy0 = ((ptd->clippedy1-ptd->clippedy0) / 
+                                  (ptd->clippedx1-ptd->clippedx0) * 
+                                  (ptd->clipright-ptd->clippedx0)) + 
+                                 ptd->clippedy0; 
+		ptd->clippedx0 = ptd->clipright;	
 	}
 	/*Clipping Bottom */
-	if (ptd->clippedy1 >= ptd->clipbottom  &&
+	if (ptd->clippedy1 >= ptd->clipbottom  && 
 	    ptd->clippedy0 < ptd->clipbottom ) {
-		ptd->clippedx0 = ((ptd->clippedx1-ptd->clippedx0) /
-				  (ptd->clippedy1-ptd->clippedy0) *
-				  (ptd->clipbottom -ptd->clippedy0)) +
-				 ptd->clippedx0;
+		ptd->clippedx0 = ((ptd->clippedx1-ptd->clippedx0) / 
+				  (ptd->clippedy1-ptd->clippedy0) * 
+				  (ptd->clipbottom -ptd->clippedy0)) + 
+				 ptd->clippedx0; 
 		ptd->clippedy0 = ptd->clipbottom ;
 	}
-	if (ptd->clippedy1 <= ptd->clipbottom &&
+	if (ptd->clippedy1 <= ptd->clipbottom && 
 	    ptd->clippedy0 > ptd->clipbottom ) {
-		ptd->clippedx1 = ((ptd->clippedx1-ptd->clippedx0) /
-				  (ptd->clippedy1-ptd->clippedy0) *
-				  (ptd->clipbottom -ptd->clippedy0)) +
-				 ptd->clippedx0;
+		ptd->clippedx1 = ((ptd->clippedx1-ptd->clippedx0) / 
+				  (ptd->clippedy1-ptd->clippedy0) * 
+				  (ptd->clipbottom -ptd->clippedy0)) + 
+				 ptd->clippedx0; 
 		ptd->clippedy1 = ptd->clipbottom ;
 	}
 	/*Clipping Top */
 	if (ptd->clippedy1 >= ptd->cliptop  && ptd->clippedy0 < ptd->cliptop ) {
-		ptd->clippedx1 = ((ptd->clippedx1-ptd->clippedx0) /
-				  (ptd->clippedy1-ptd->clippedy0) *
-				  (ptd->cliptop -ptd->clippedy0)) +
-				 ptd->clippedx0;
+		ptd->clippedx1 = ((ptd->clippedx1-ptd->clippedx0) / 
+				  (ptd->clippedy1-ptd->clippedy0) * 
+				  (ptd->cliptop -ptd->clippedy0)) + 
+				 ptd->clippedx0; 
 		ptd->clippedy1 = ptd->cliptop ;
 	}
 	if (ptd->clippedy1 <= ptd->cliptop && ptd->clippedy0 > ptd->cliptop ) {
-		ptd->clippedx0 = ((ptd->clippedx1-ptd->clippedx0) /
-				  (ptd->clippedy1-ptd->clippedy0) *
-				  (ptd->cliptop -ptd->clippedy0)) +
-				 ptd->clippedx0;
+		ptd->clippedx0 = ((ptd->clippedx1-ptd->clippedx0) / 
+				  (ptd->clippedy1-ptd->clippedy0) * 
+				  (ptd->cliptop -ptd->clippedy0)) + 
+				 ptd->clippedx0; 
 		ptd->clippedy0 = ptd->cliptop ;
 	}
 }
@@ -469,13 +485,13 @@ static void PicTeX_Line(double x1, double y1, double x2, double y2,
 	picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
 	if (x1 != x2 || y1 != y2) {
-	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
+        SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
 	GConvert(&x1, &y1, coords, DEVICE, dd);
 	GConvert(&x2, &y2, coords, DEVICE, dd);
-	if(ptd->debug)
+	if(ptd->debug) 
 		fprintf(ptd->texfp,
 			"%% Drawing line from %.2f, %.2f to %.2f, %.2f\n",
-			x1, y1, x2, y2);
+		        x1, y1, x2, y2);
 	PicTeX_ClipLine(x1, y1, x2, y2, ptd);
 	if (ptd->debug)
 		fprintf(ptd->texfp,
@@ -495,7 +511,7 @@ static void PicTeX_Polyline(int n, double *x, double *y, int coords,
 	int i;
 	picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
-	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
+        SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
 	x1 = x[0];
 	y1 = y[0];
 	GConvert(&x1, &y1, coords, DEVICE, dd);
@@ -509,7 +525,7 @@ static void PicTeX_Polyline(int n, double *x, double *y, int coords,
 			ptd->clippedx1, ptd->clippedy1);
 	}
 }
-
+	
 	/* String Width in Rasters */
 	/* For the current font in pointsize fontsize */
 
@@ -518,14 +534,14 @@ static double PicTeX_StrWidth(char *str, DevDesc *dd)
 	picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
 	char *p;
-	int size;
+	int size; 
 	double sum;
 	size = dd->gp.cex * dd->gp.ps + 0.5;
 	SetFont(dd->gp.font, size, ptd);
 	sum = 0;
 	for(p=str ; *p ; p++)
 		sum += charwidth[ptd->fontface-1][(int)*p];
-	return sum * ptd->fontsize;
+	return sum * ptd->fontsize; 
 }
 
 
@@ -547,7 +563,7 @@ static double PicTeX_StrWidth(char *str, DevDesc *dd)
 */
 
 /* Possibly Filled Rectangle */
-static void PicTeX_Rect(double x0, double y0, double x1, double y1,
+static void PicTeX_Rect(double x0, double y0, double x1, double y1, 
 			int coords, int bg, int fg, DevDesc *dd)
 {
 	double x[4], y[4];
@@ -558,7 +574,7 @@ static void PicTeX_Rect(double x0, double y0, double x1, double y1,
 	PicTeX_Polygon(4, x, y, bg, fg, coords, dd);
 }
 
-static void PicTeX_Circle(double x, double y, int coords, double r,
+static void PicTeX_Circle(double x, double y, int coords, double r, 
 			  int col, int border, DevDesc *dd)
 {
 	picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
@@ -577,7 +593,7 @@ static void PicTeX_Polygon(int n, double *x, double *y, int coords,
 	int i;
 	picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
-	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
+        SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
 	x1 = x[0];
 	y1 = y[0];
 	GConvert(&x1, &y1, coords, DEVICE, dd);
@@ -636,6 +652,8 @@ static void textext(char *str, picTeXDesc *ptd)
 
 /* Rotated Text */
 
+static double deg2rad = 0.01745329251994329576;
+
 static void PicTeX_Text(double x, double y, int coords,
 			char *str, double xc, double yc, double rot,
 			DevDesc *dd)
@@ -649,15 +667,15 @@ static void PicTeX_Text(double x, double y, int coords,
 	GConvert(&x, &y, coords, DEVICE, dd);
 	if(ptd->debug) fprintf(ptd->texfp,
 	"%% Writing string of length %.2f, at %.2f %.2f, xc = %.2f yc = %.2f\n",
-	(double)PicTeX_StrWidth(str, dd), x, y, xc, yc);
+	(double)PicTeX_StrWidth(str, dd), x, y, xc, yc); 
 	if (ptd->debug) fprintf(ptd->texfp,
 	"%% Writing string of length %.2f, at %.2f %.2f, xc = %.2f yc = %.2f\n",
 	(double)PicTeX_StrWidth(str, dd), x, y, xc, yc);
-	if(xc != 0.0 || yc != 0.0) {
+ 	if(xc != 0.0 || yc != 0.0) {
 		if (rot == 90 || rot == 270) {
 			xctemp = xc; xc = yc;
 			yc = xctemp;
-			yc = 1.0 - yc;
+ 			yc = 1.0 - yc;
 		}
 		xl = PicTeX_StrWidth(str, dd);
 		yl = GConvertXUnits(1, CHARS, DEVICE, dd);
@@ -692,7 +710,7 @@ static void PicTeX_Hold(DevDesc *dd)
 {
 }
 
-int PicTeXDeviceDriver(DevDesc *dd, char *filename, char *bg, char *fg,
+int PicTeXDeviceDriver(DevDesc *dd, char *filename, char *bg, char *fg, 
 		       double width, double height, int debug)
 {
 	picTeXDesc *ptd;
@@ -702,8 +720,8 @@ int PicTeXDeviceDriver(DevDesc *dd, char *filename, char *bg, char *fg,
 
 	strcpy(ptd->filename, filename);
 
-	dd->dp.bg = dd->gp.bg = str2col(bg, dd);
-	dd->dp.fg = dd->gp.fg = str2col(fg, dd);
+        dd->dp.bg = dd->gp.bg = str2col(bg);
+        dd->dp.fg = dd->gp.fg = str2col(fg);
 
 	dd->dp.activate = PicTeX_Activate;
 	dd->dp.deactivate = PicTeX_Deactivate;
@@ -727,7 +745,7 @@ int PicTeXDeviceDriver(DevDesc *dd, char *filename, char *bg, char *fg,
 		/* Screen Dimensions in Pixels */
 
 	dd->dp.left = 0;			/* left */
-	dd->dp.right = 72.27 * width;	/* right */
+	dd->dp.right = 72.27 * width; 	/* right */
 	dd->dp.bottom = 0;			/* bottom */
 	dd->dp.top = 72.27 * height;	/* top */
 
@@ -737,8 +755,8 @@ int PicTeXDeviceDriver(DevDesc *dd, char *filename, char *bg, char *fg,
 		/* Nominal Character Sizes in Pixels */
 
 	dd->dp.ps = 10;
-	dd->dp.cra[0] =	 (6.0/12.0) * 10.0;
-	dd->dp.cra[1] =	 (10.0/12.0) * 10.0;
+	dd->dp.cra[0] =  (6.0/12.0) * 10.0;
+	dd->dp.cra[1] =  (10.0/12.0) * 10.0;
 
 		/* Character Addressing Offsets */
 		/* These offsets should center a single */
@@ -770,3 +788,4 @@ int PicTeXDeviceDriver(DevDesc *dd, char *filename, char *bg, char *fg,
 
 	return 1;
 }
+

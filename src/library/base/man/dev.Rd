@@ -7,7 +7,6 @@ dev.next(which = dev.cur())
 dev.prev(which = dev.cur())
 dev.off(which = dev.cur())
 dev.set(which = dev.next())
-graphics.off()
 }
 \alias{dev.cur}
 \alias{dev.list}
@@ -17,7 +16,6 @@ graphics.off()
 \alias{dev.set}
 \alias{.Device}
 \alias{.Devices}
-\alias{graphics.off}
 
 \arguments{
   \item{which}{An integer specifying a device number}
@@ -31,8 +29,7 @@ graphics.off()
   Devices are associated with a name (e.g., "X11"  or "postscript") and a
   number;  the "null device" is always device 1.
 
-  \code{dev.off} shuts down the specified (by default the current) device.
-  \code{graphics.off()} shuts down all open graphics devices.
+  \code{dev.off} shuts down the specified device.
 
   \code{dev.set} makes the specified device the active device.
 
@@ -60,7 +57,7 @@ the list of devices.
 \code{\link{graphic.off}()} for closing all devices.
 }
 \examples{
-\dontrun{
+if (interactive()) {
 x11()
 plot(1:10)
 x11()
@@ -74,4 +71,3 @@ dev.off(); dev.off()#- close the two X devices
 }
 }
 \keyword{device}
-\keyword{iplot}

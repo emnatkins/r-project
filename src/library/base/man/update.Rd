@@ -1,7 +1,9 @@
 \name{update}
-\title{Update and Re-fit a Model Call}
+\title{Update and Re-fit a Model call}
 \usage{
 update(object, ...)
+}
+\usage{
 update.default(object, formula, ..., evaluate = TRUE)
 }
 \alias{update}

@@ -1,17 +1,17 @@
 \name{colnames}
-\alias{colnames}
-\alias{colnames<-}
-\title{Column Names}
+\title{Column Labels}
 \usage{
 colnames(x)
 colnames(x) <- namevector
 }
-\description{
-  Retrieve or set the column names of an object (the second component of
-  its dimnames).
+\alias{colnames}
+\alias{colnames<-}
+\value{
+This function can be used to retrieve or set the
+column labels of a matrix.
 }
 \seealso{
-  \code{\link{dimnames}}, \code{\link{rownames}}
+\code{\link{dimnames}}, \code{\link{rownames}}.
 }
 \keyword{array}
 \keyword{manip}

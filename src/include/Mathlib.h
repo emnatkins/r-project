@@ -154,8 +154,8 @@ double	chebyshev_eval(double, double *, int);
 double	logrelerr(double);
 void	gammalims(double*, double*);
 double	lgammacor(double);
-double	gammafn(double);
-double	lgammafn(double);
+double	gamma(double);
+double	lgamma(double);
 void	dpsifn(double, int, int, int, double*, int*, int*);
 double	digamma(double);
 double	trigamma(double);
@@ -327,7 +327,7 @@ double	ptukey(double, double, double, double);
 double	qtukey(double, double, double, double);
 double	rtukey(double, double, double);
 
-/* Wilcoxon Rank Sum Distribution */
+	/* Wilcoxon Distribution */
 
 #define WILCOX_MMAX 50
 #define WILCOX_NMAX 50
@@ -335,13 +335,5 @@ double dwilcox(double, double, double);
 double pwilcox(double, double, double);
 double qwilcox(double, double, double);
 double rwilcox(double, double);
-
-/* Wilcoxon Signed Rank Distribution */
-
-#define SIGNRANK_NMAX 50
-double dsignrank(double, double);
-double psignrank(double, double);
-double qsignrank(double, double);
-double rsignrank(double);
 
 #endif

@@ -21,13 +21,13 @@ model.response(frame)
 }
 \value{The specified component of the model frame, usually a vector.}
 
-\seealso{\code{\link{model.frame}}, \code{\link{offset}}}
+\seealso{ \code{\link{model.frame}}, \code{\link{offset}}}
 
 \examples{
 data(esoph)
 a <- model.frame(cbind(ncases,ncontrols) ~ agegp+tobgp+alcgp,data=esoph)
 model.extract(a,"response")
-all(model.extract(a,"response") == model.response(a))
+model.response(a)
 
 a <- model.frame(ncases/(ncases+ncontrols) ~ agegp+tobgp+alcgp,
                  data = esoph, weights = ncases+ncontrols)
@@ -37,7 +37,7 @@ model.extract(a,"weights")
 a <- model.frame(cbind(ncases,ncontrols) ~ agegp,
                  something = tobgp, data = esoph)
 names(a)
-all(model.extract(a,"something")==esoph$tobgp) # TRUE
+all(model.extract(a,"something")==esoph$tobgp)
 }
 \keyword{manip}
 \keyword{programming}

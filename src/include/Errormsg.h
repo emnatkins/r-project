@@ -1,5 +1,5 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
+ *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,8 @@
 #ifndef ERRORMSG_H
 #define ERRORMSG_H
 
-#include "Error.h"
+extern void error(const char *, ...);
+extern void warning(const char *, ...);
 
 	/* Packaged Error Messages */
 	/* Argument list length and type errors */

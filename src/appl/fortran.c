@@ -1,7 +1,6 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
+ *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--1998  Robert Gentleman, Ross Ihaka and the R core team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,56 +21,59 @@
  */
 
 #include "Fortran.h"
-#include "Error.h"
+#include "Errormsg.h"
 
 
 double DABS(double *a)
 {
-    return (*a >= 0.0) ? *a : -*a;
+	return (*a >= 0.0) ? *a : -*a;
 }
 
 double DSIGN(double *a, double *b)
 {
-    double x;
-    x = (*a >= 0 ? *a : - *a);
-    return (*b >= 0 ? x : -x);
+	double x;
+	x = (*a >= 0 ? *a : - *a);
+	return (*b >= 0 ? x : -x);
 }
 
 double POW_DI(double *ap, int *bp)
 {
-    double pow, x;
-    int n;
+	double pow, x;
+	int n;
 
-    pow = 1;
-    x = *ap;
-    n = *bp;
+	pow = 1;
+	x = *ap;
+	n = *bp;
 
-    if(n != 0) {
-	if(n < 0) {
-	    n = -n;
-	    x = 1/x;
+	if(n != 0) {
+		if(n < 0) {
+			n = -n;
+			x = 1/x;
+		}
+		for(;;) {
+			if(n & 01)
+				pow *= x;
+			if(n >>= 1)
+				x *= x;
+			else
+				break;
+		}
 	}
-	for(;;) {
-	    if(n & 01)
-		pow *= x;
-	    if(n >>= 1)
-		x *= x;
-	    else
-		break;
-	}
-    }
-    return pow;
+	return pow;
 }
 
 double POW_DD(double *ap, double *bp)
 {
-    return pow(*ap, *bp);
+	return pow(*ap, *bp);
 }
+
+
+#define log10e 0.43429448190325182765
 
 
 double DLOG10(double *x)
 {
-    return M_LOG10E * log(*x);
+	return log10e * log(*x);
 }
 
 
@@ -79,46 +81,46 @@ double DLOG10(double *x)
 
 void ZDIV(complex *c, complex *a, complex *b)
 {
-    double ratio, den;
-    double abr, abi;
+	double ratio, den;
+	double abr, abi;
 
-    if( (abr = b->r) < 0.)
-	abr = - abr;
-    if( (abi = b->i) < 0.)
-	abi = - abi;
-    if( abr <= abi ) {
-	if(abi == 0)
-	    error("complex division by zero\n");
-	ratio = b->r / b->i ;
-	den = b->i * (1 + ratio*ratio);
-	c->r = (a->r*ratio + a->i) / den;
-	c->i = (a->i*ratio - a->r) / den;
-    }
-    else {
-	ratio = b->i / b->r ;
-	den = b->r * (1 + ratio*ratio);
-	c->r = (a->r + a->i*ratio) / den;
-	c->i = (a->i - a->r*ratio) / den;
-    }
+	if( (abr = b->r) < 0.)
+		abr = - abr;
+	if( (abi = b->i) < 0.)
+		abi = - abi;
+	if( abr <= abi ) {
+		if(abi == 0)
+			error("complex division by zero\n");
+		ratio = b->r / b->i ;
+		den = b->i * (1 + ratio*ratio);
+		c->r = (a->r*ratio + a->i) / den;
+		c->i = (a->i*ratio - a->r) / den;
+	}
+	else {
+		ratio = b->i / b->r ;
+		den = b->r * (1 + ratio*ratio);
+		c->r = (a->r + a->i*ratio) / den;
+		c->i = (a->i - a->r*ratio) / den;
+        }
 }
 
 double ZABS(complex *z)
 {
-    return hypot(z->r, z->i);
+	return hypot(z->r, z->i);
 }
 
 double ZIMAG(complex *z)
 {
-    return z->i;
+	return z->i;
 }
 
 double ZREAL(complex *z)
 {
-    return z->r;
+	return z->r;
 }
 
 void ZCNJG(complex *r, complex *z)
 {
-    r->r = z->r;
-    r->i = - z->i;
+	r->r = z->r;
+	r->i = - z->i;
 }

@@ -23,7 +23,7 @@ na.omit(frame)
 \examples{
 DF <- data.frame(x = c(1, 2, 3), y = c(0, 10, NA))
 na.omit(DF)
-\dontrun{na.fail(DF)#> Error: missing values in ..}
+na.fail(DF)
 
 options("na.action")
 }

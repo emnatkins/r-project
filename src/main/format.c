@@ -15,21 +15,19 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *
- *  Object Formatting
- *
- *  See ./paste.c for do_paste() , do_format() and  do_formatinfo()
- *  See ./printutils.c for general remarks on Printing and the Encode.. utils.
- *  See ./print.c  for do_printdefault, do_printmatrix, etc.
- *
- *  These  formatFOO() functions determine the proper width, digits, etc.
  */
+
+/*== see ./printutils.c	 for general remarks on Printing and the Encode.. utils.
+ *== see ./paste.c	 for do_paste() , do_format() and  do_formatinfo()
+ *
+ * These  formatFOO (.)	 functions determine the proper	 width, digits, etc:
+ *
+ */
+
 
 #include "Defn.h"
 #include "Mathlib.h"
 #include "Print.h"
-
 
 void formatString(SEXP *x, int n, int *fieldwidth, int quote)
 {
@@ -154,7 +152,7 @@ static void scientific(double *x, int *sgn, int *kpower, int *nsig)
      *	kpower = Exponent of 10;
      *	nsig   = min(print_digits, #{significant digits of alpha}
      *
-     * where  |x| = alpha * 10^kpower	and	 1 <= alpha < 10
+     * where  |x| = alpha * 10^kpower   and	 1 <= alpha < 10
      */
     register double alpha;
     register double r;
@@ -235,28 +233,28 @@ void formatReal(double *x, int l, int *m, int *n, int *e)
 	    left = kpower + 1;
 	    sleft = sgn + ((left <= 0) ? 1 : left); /* >= 1 */
 	    right = nsig - left; /* #{digits} right of '.' ( > 0 often)*/
-	    if (sgn) neg = 1;	 /* if any < 0, need extra space for sign */
+	    if (sgn) neg = 1; /* if any < 0, need extra space for sign */
 
 	    /* Infinite precision "F" Format : */
-	    if (right > rt) rt = right;	   /* max digits to right of . */
-	    if (left > mxl) mxl = left;	   /* max digits to  left of . */
-	    if (left < mnl) mnl = left;	   /* min digits to  left of . */
-	    if (sleft> mxsl) mxsl = sleft; /* max left including sign(s)*/
-	    if (nsig > mxns) mxns = nsig;  /* max sig digits */
+	    if (right > rt) rt = right;	/* max digits to right of . */
+	    if (left > mxl) mxl = left;	/* max digits to  left of . */
+	    if (left < mnl) mnl = left;	/* min digits to  left of . */
+	    if (sleft> mxsl) mxsl = sleft;	/* max left including sign(s)*/
+	    if (nsig > mxns) mxns = nsig;	/* max sig digits */
 	}
     }
-    /* F Format (NEW):	use "F" format
+    /* F Format (NEW):  use "F" format
      *	    WHENEVER we use not more space than 'E'
      *		and still satisfy 'print_digits'
-     *
+
      * E Format has the form   [S]X[.XXX]E+XX[X]
      *
      * This is indicated by setting *e to non-zero (usually 1)
      * If the additional exponent digit is required *e is set to 2
      */
 
-    /*-- These	'mxsl' & 'rt'  are	used in	 F Format
-     *	 AND in the	 ____ if(.) "F" else "E" ___   below: */
+    /*-- These  'mxsl' & 'rt'  are	used in	 F Format
+     *   AND in the	 ____ if(.) "F" else "E" ___   below: */
     if (mxl < 0) mxsl = 1 + neg;
     /* old?? if (mxl != mnl && mxl + rt > MAXDIG) rt = MAXDIG - mxl; */
     if (rt < 0)		rt = 0;
@@ -267,7 +265,7 @@ void formatReal(double *x, int l, int *m, int *n, int *e)
     if (mxl > 100 || mnl < -99) *e = 2;/* 3 digit exponent */
     else *e = 1;
     *n = mxns - 1;
-    *m = neg + (*n > 0) + *n + 4 + *e; /* width m for E	 format */
+    *m = neg + (*n > 0) + *n + 4 + *e; /* width m for E  format */
 
     if (mF <= *m) { /* IFF it needs less space : "F" (Fixpoint) format */
 	*e = 0;
@@ -310,7 +308,7 @@ void formatComplex(complex *x, int l, int *mr, int *nr, int *er,
 #endif
     neg = 0;
 
-    rt	=  mxl =  mxsl =  mxns = INT_MIN;
+    rt  =  mxl =  mxsl =  mxns = INT_MIN;
     i_rt= i_mxl= i_mxsl= i_mxns= INT_MIN;
     i_mnl = mnl = INT_MAX;
 
@@ -356,7 +354,7 @@ void formatComplex(complex *x, int l, int *mr, int *nr, int *er,
 		if (ISNAN(x[i].i)) inanflag = 1;
 		else iposinf = 1;
 	    }
-	    else
+            else
 #endif
 	      {
 		scientific(&(x[i].i), &sgn, &kpower, &nsig);

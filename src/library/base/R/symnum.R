@@ -49,8 +49,7 @@ symnum <- function(x, cutpoints = c(  .3,  .6,	 .8,  .9, .95),
   }
   if(has.na) {
     Scor <- character(length(iS))
-    has.na <- is.character(na)# if TRUE, add to legend
-    if(has.na) Scor[nax] <- na
+    Scor[nax] <- na
     Scor[!nax] <- symbols[iS[!nax]]
   } else Scor <- symbols[iS]
 

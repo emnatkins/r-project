@@ -23,7 +23,7 @@
  *
  *  DESCRIPTION
  *
- *    Compute minimum of two integers.
+ *    Compute minimin of two integers.
  */
 
 #include "Mathlib.h"

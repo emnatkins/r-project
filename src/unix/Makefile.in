@@ -1,70 +1,55 @@
-#
 # ${RHOME}/src/unix/Makefile
 
-VPATH = @srcdir@
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 
-top_builddir = ../..
-subdir = src/unix
+include $(top_srcdir)/Makeconf
 
-include $(top_builddir)/Makeconf
-
-distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-DISTFILES = $(shell cd $(srcdir) && ls PSPAPER Makefile.in *.[cfh])
-
-OBJS = \
+OBJ= \
 	dataentry.o \
-	devPS.o \
-	devPicTeX.o \
 	devX11.o \
+	devPS.o \
 	dynload.o \
 	edit.o \
 	fileio.o \
+	PostScript.o \
 	rotated.o \
-	system.o
+	system.o \
+	devPicTeX.o
 
-LIB = libunix.a
+LIB=		../lib/libunix.a
 
-all: R
+$(LIB):		$(OBJ)
+		$(AR) cr $(LIB) $(OBJ)
+		$(RANLIB) $(LIB)
 
-R: $(LIB)
+dynload.o:	dynload.c ../include/FFTab.h ../include/FFDecl.h
+		$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
-$(LIB): $(OBJS)
-	$(AR) cr $(LIB) $(OBJS)
-	$(RANLIB) $(LIB)
+dataentry.o:	dataentry.h dataentry.c ../include/Defn.h
+		$(CC) $(CFLAGS) $(X_CFLAGS) $(CPPFLAGS) -c dataentry.c
 
-dynload.o: $(srcdir)/dynload.c ../include/FFTab.h ../include/FFDecl.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
-dataentry.o: $(srcdir)/dataentry.c $(srcdir)/dataentry.h $(top_srcdir)/src/include/Defn.h
-	$(CC) $(CFLAGS) $(X_CFLAGS) $(CPPFLAGS) -c $<
-fileio.o: $(srcdir)/fileio.c $(top_srcdir)/src/include/Fileio.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
-rotated.o: $(srcdir)/rotated.c $(srcdir)/rotated.h
-	$(CC) $(CFLAGS) $(X_CFLAGS) $(CPPFLAGS) -c $<
-devX11.o: $(srcdir)/devX11.c $(top_srcdir)/src/include/Graphics.h $(top_srcdir)/src/include/Defn.h
-	$(CC) $(CFLAGS) $(X_CFLAGS) $(CPPFLAGS) -c $<
-devPS.o: $(srcdir)/devPS.c $(top_srcdir)/src/include/Graphics.h $(top_srcdir)/src/include/Defn.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
-devPicTeX.o: $(srcdir)/devPicTeX.c $(top_srcdir)/src/include/Graphics.h $(top_srcdir)/src/include/Defn.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
-system.o: $(srcdir)/system.c $(top_srcdir)/src/include/Defn.h
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
+fileio.o:	fileio.c ../include/Fileio.h
+		$(CC) $(CFLAGS) $(CPPFLAGS) -c fileio.c
 
-../include/FFTab.h ../include/FFDecl.h::
-	(cd ../include; $(MAKE) $(@F))
+rotated.o:	rotated.c rotated.h
+		$(CC) $(CFLAGS) $(X_CFLAGS) $(CPPFLAGS) -c rotated.c
 
-mostlyclean: clean
+devX11.o:	devX11.c psx11.h ../include/Graphics.h ../include/Defn.h
+		$(CC) $(CFLAGS) $(X_CFLAGS) $(CPPFLAGS) -c devX11.c
+
+devPS.o:	devPS.c ../include/Graphics.h ../include/Defn.h
+		$(CC) $(CFLAGS) $(CPPFLAGS) -c devPS.c
+
+devPicTeX.o:	devPicTeX.c ../include/Graphics.h ../include/Defn.h
+		$(CC) $(CFLAGS) $(CPPFLAGS) -c devPicTeX.c
+
+system.o:	system.c ../include/Defn.h
+		$(CC) $(CFLAGS) $(CPPFLAGS) -c system.c
+
 clean:
-	@echo Cleaning in src/unix
-	@-rm -f *.o *.a
-distclean: clean
-	@-rm -f Makefile
-maintainer-clean: distclean
+		@echo Cleaning in src/unix
+		@-rm -f *.o *.a
 
-distdir: $(DISTFILES)
-	@for f in $(DISTFILES); do \
-	  test -f $(distdir)/$${f} \
-	    || ln $(srcdir)/$${f} $(distdir)/$${f} 2>/dev/null \
-	    || cp -p $(srcdir)/$${f} $(distdir)/$${f}; \
-	done
+realclean:	clean
+		@-rm -f Makefile

@@ -79,6 +79,13 @@ static void split(double *x, double *y, int n, double *d)
 	*d = absdiff(x, y, n);
 }
 
+static void a3rs(double *x, double *y, double *z, int n, double *d)
+{
+	a3r(x, z, y, n, d);
+	split(z, y, n, d);
+}
+
+
 static void a3rsr(double *x, double *y, double *z, double *w, int n, double *d)
 {
 	int i;
@@ -93,8 +100,7 @@ static void a3rsr(double *x, double *y, double *z, double *w, int n, double *d)
 	while (*d > 0.0);
 }
 
-int tukeysmooth(double *x, double *y, double *z, double *w, int *n, double *d)
+tukeysmooth(double *x, double *y, double *z, double *w, int *n, double *d)
 {
-    a3rsr(x, y, z, w, *n, d);
-    return 0;
+	a3rsr(x, y, z, w, *n, d);
 }

@@ -27,7 +27,6 @@ title(main = "", sub = "", xlab = "", ylab = "", \dots)
   \code{\link{mtext}}, \code{\link{text}}.
 }
 \examples{
-\testonly{data(cars)}
 plot(cars, main = "")
 title(main = "Stopping Distance versus Speed")
 

@@ -1,5 +1,5 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
+ *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -21,16 +21,6 @@
 #define ARITH_H_
 
 #include "Platform.h"
-
-/* Maybe get  finite(.) : */
-#ifdef HAVE_IEEE754_H
-#include <ieee754.h> /* newer Linuxen */
-#else
-#ifdef HAVE_IEEEFP_H
-#include <ieeefp.h> /* others [Solaris 2.5.x], .. */
-#endif
-#endif
-
 #ifdef Macintosh
 # include <fp.h>
 #else
@@ -53,12 +43,6 @@ extern double	R_NegInf;		/* IEEE -Inf or -DBL_MAX */
 extern int	R_NaInt;		/* NA_INTEGER etc */
 extern double	R_NaReal;		/* NA_REAL */
 
-#define NA_LOGICAL	R_NaInt
-#define NA_INTEGER	R_NaInt
-#define NA_FACTOR	R_NaInt
-#define NA_REAL		R_NaReal
-#define NA_STRING	R_NaString
-
 #ifdef Win32
 extern int isnan(double);
 extern int finite(double);
@@ -66,13 +50,10 @@ extern int finite(double);
 
 #ifdef IEEE_754
 
-int R_IsNA(double);/* True for Real NA only */
-int R_IsNaN(double);/* True for special NaN,  *not* for NA */
-
 #define MATH_CHECK(call)	(call)
 #define FINITE(x)		finite(x)
-#define ISNAN(x)		((x)!=(x))/* -> True, *both* for NA | NaN */
-#define ISNA(x)			R_IsNA(x) /* from ../main/arithmetic.c */
+#define ISNAN(x)		((x)!=(x))/* True, *both* for NA & NaN */
+#define ISNA(x)			R_IsNA(x) /* --> ../main/arithmetic.c */
 
 #else
 

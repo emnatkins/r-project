@@ -44,8 +44,7 @@ This function is based on the \emph{regex} regular expression library
 written by Henry Spencer of the University of Toronto.
 }
 \seealso{
-    \code{\link{charmatch}}, \code{\link{pmatch}}, \code{\link{match}}.
-    \code{\link{apropos}} uses regexps and has nice examples.
+\code{\link{charmatch}}, \code{\link{pmatch}}, \code{\link{match}}.
 }
 \examples{
 grep("[a-z]", letters)

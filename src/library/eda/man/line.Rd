@@ -25,6 +25,7 @@ print(tukeyline.obj)
   Methods are available for the generic functions \code{coefficients},
   \code{residuals}, \code{fitted.values}, and \code{print}.
 }
+)
 \references{
   Tukey, J. W. (1977).
   \emph{Exploratory Data Analysis},
@@ -40,5 +41,3 @@ plot(cars)
 z <- line(cars)
 abline(coef(z))
 }
-\keyword{robust}
-\keyword{regression}

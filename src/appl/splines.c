@@ -37,8 +37,7 @@
  *	Choleski is more efficient.
  */
 
-#include "Arith.h"
-#include "Applic.h"
+#include "Mathlib.h"
 #include <stdio.h>
 #include <errno.h>
 
@@ -322,8 +321,8 @@ void periodic_spline(int n, double *x, double *y, double *b, double *c, double *
 #undef D
 #undef X
 
-void spline_coef(int *method, int *n, double *x, double *y,
-		 double *b, double *c, double *d, double *e)
+int spline_coef(int *method, int *n, double *x, double *y,
+	double *b, double *c, double *d, double *e)
 {
 	switch(*method) {
 		case 1:
@@ -338,10 +337,11 @@ void spline_coef(int *method, int *n, double *x, double *y,
 			fmm_spline(*n, x, y, b, c, d);
 			break;
 	}
+	return 0;
 }
 
-void spline_eval(int *method, int *nu, double *u, double *v,
-		 int *n, double *x, double *y, double *b, double *c, double *d)
+int spline_eval(int *method, int *nu, double *u, double *v,
+	int *n, double *x, double *y, double *b, double *c, double *d)
 {
 	int i, j, k, l;
 	double ul, dx;
@@ -379,4 +379,5 @@ void spline_eval(int *method, int *nu, double *u, double *v,
 		dx = ul - x[i];
 		v[l] = y[i] + dx*(b[i] + dx*(c[i] + dx*d[i]));
 	}
+	return 0;
 }

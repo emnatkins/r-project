@@ -48,16 +48,6 @@ SEXP do_PicTeX(SEXP, SEXP, SEXP, SEXP);
 
 /* Function Names */
 
-#ifdef Unix
-SEXP do_getenv(SEXP, SEXP, SEXP, SEXP);
-#endif
-
-#ifdef Win32
-SEXP do_winedit(SEXP, SEXP, SEXP, SEXP);
-SEXP do_sysfile(SEXP, SEXP, SEXP, SEXP);
-SEXP do_getenv(SEXP, SEXP, SEXP, SEXP);
-#endif
-
 SEXP do_abbrev(SEXP, SEXP, SEXP, SEXP);
 SEXP do_alias(SEXP, SEXP, SEXP, SEXP);
 SEXP do_allnames(SEXP, SEXP, SEXP, SEXP);
@@ -69,10 +59,9 @@ SEXP do_arith(SEXP, SEXP, SEXP, SEXP);
 SEXP do_arrows(SEXP, SEXP, SEXP, SEXP);
 SEXP do_as(SEXP, SEXP, SEXP, SEXP);
 SEXP do_ascall(SEXP, SEXP, SEXP, SEXP);
-SEXP do_asfunction(SEXP, SEXP, SEXP, SEXP);
 SEXP do_asmatrixdf(SEXP, SEXP, SEXP, SEXP);
 SEXP do_assign(SEXP, SEXP, SEXP, SEXP);
-SEXP do_asvector(SEXP, SEXP, SEXP, SEXP);
+SEXP do_asvector(SEXP, SEXP, SEXP, SEXP); 
 SEXP do_atan(SEXP, SEXP, SEXP, SEXP);
 SEXP do_attach(SEXP,SEXP,SEXP,SEXP);
 SEXP do_attr(SEXP, SEXP, SEXP, SEXP);
@@ -91,6 +80,7 @@ SEXP do_c(SEXP, SEXP, SEXP, SEXP);
 SEXP do_call(SEXP, SEXP, SEXP, SEXP);
 SEXP do_cat(SEXP, SEXP, SEXP, SEXP);
 SEXP do_charmatch(SEXP, SEXP, SEXP, SEXP);
+SEXP do_checkbounds(SEXP, SEXP, SEXP, SEXP);
 SEXP do_class(SEXP, SEXP, SEXP, SEXP);
 SEXP do_classgets(SEXP, SEXP, SEXP, SEXP);
 SEXP do_colors(SEXP, SEXP, SEXP, SEXP);
@@ -150,7 +140,6 @@ SEXP do_formals(SEXP, SEXP, SEXP, SEXP);
 SEXP do_function(SEXP, SEXP, SEXP, SEXP);
 SEXP do_gc(SEXP, SEXP, SEXP, SEXP);
 SEXP do_gcinfo(SEXP, SEXP, SEXP, SEXP);
-SEXP do_gctorture(SEXP, SEXP, SEXP, SEXP);
 SEXP do_get(SEXP, SEXP, SEXP, SEXP);
 SEXP do_globalenv(SEXP, SEXP, SEXP, SEXP);
 SEXP do_gray(SEXP, SEXP, SEXP, SEXP);
@@ -245,7 +234,7 @@ SEXP do_rep(SEXP, SEXP, SEXP, SEXP);
 SEXP do_repeat(SEXP, SEXP, SEXP, SEXP);
 SEXP do_replay(SEXP, SEXP, SEXP, SEXP);
 SEXP do_restoreb(SEXP, SEXP, SEXP, SEXP);
-SEXP do_return(SEXP, SEXP, SEXP, SEXP);
+SEXP do_return(SEXP, SEXP, SEXP, SEXP); 
 SEXP do_rgb(SEXP, SEXP, SEXP, SEXP);
 SEXP do_round(SEXP, SEXP, SEXP, SEXP);
 SEXP do_rownames(SEXP, SEXP, SEXP, SEXP);
@@ -257,9 +246,9 @@ SEXP do_search(SEXP, SEXP, SEXP, SEXP);
 SEXP do_segments(SEXP, SEXP, SEXP, SEXP);
 SEXP do_seq(SEXP, SEXP, SEXP, SEXP);
 SEXP do_set(SEXP, SEXP, SEXP, SEXP);
-SEXP do_signif(SEXP, SEXP, SEXP, SEXP);
+SEXP do_signif(SEXP, SEXP, SEXP, SEXP); 
 SEXP do_strheight(SEXP, SEXP, SEXP, SEXP);
-SEXP do_strwidth(SEXP, SEXP, SEXP, SEXP);
+SEXP do_strwidth(SEXP, SEXP, SEXP, SEXP); 
 SEXP do_sink(SEXP, SEXP, SEXP, SEXP);
 SEXP do_sort(SEXP, SEXP, SEXP, SEXP);
 SEXP do_split(SEXP, SEXP, SEXP, SEXP);
@@ -292,7 +281,6 @@ SEXP do_transpose(SEXP, SEXP, SEXP, SEXP);
 SEXP do_typecvt(SEXP, SEXP, SEXP, SEXP);
 SEXP do_typeof(SEXP, SEXP, SEXP, SEXP);
 SEXP do_unclass(SEXP, SEXP, SEXP, SEXP);
-SEXP do_unlist(SEXP, SEXP, SEXP, SEXP);
 SEXP do_updateform(SEXP, SEXP, SEXP, SEXP);
 SEXP do_usemethod(SEXP, SEXP, SEXP, SEXP);
 SEXP do_version(SEXP, SEXP, SEXP, SEXP);

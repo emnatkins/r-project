@@ -42,12 +42,10 @@ result in the temporary file being reopened for further editing.
 \code{\link{data.entry}}, \code{fix}.
 }
 \examples{
-\dontrun{
 # use xedit on the function mean and assign the changes
 mean <- edit(mean, editor="xedit")
 
 # use vi on mean and write the result to file mean.out
 vi(mean, file="mean.out")
-}
 }
 \keyword{utilities}

@@ -26,8 +26,11 @@ ls.print(ls.out, digits = 4, print.it = TRUE)
   \code{anova(lm(\ldots))} for obtaining similar output.
 }
 \seealso{
-  \code{\link{ls.diag}}, \code{\link{lsfit}}, also for examples;
+  \code{\link{ls.diag}}, \code{\link{lsfit}};
   \code{\link{lm}}, \code{\link{lm.influence}} which usually are
   preferable.
+}
+\examples{
+## See help for \link{lsfit}
 }
 \keyword{regression}

@@ -1,5 +1,5 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
+ *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1997  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -20,8 +20,7 @@
 #ifndef FORTRAN_H
 #define FORTRAN_H
 
-#include "Platform.h"
-#include "Complex.h"
+#include <Platform.h>
 #include <math.h>
 
 	/* General F2C Macros */
@@ -44,7 +43,6 @@
 #endif
 
 #define TRUE    (1)
-
 #define FALSE   (0)
 
 #define abs(x) ((x) >= 0 ? (x) : -(x))
@@ -53,7 +51,12 @@
 #define max(a,b) ((a) >= (b) ? (a) : (b))
 #define dmin(a,b) (double)min(a,b)
 #define dmax(a,b) (double)max(a,b)
-/*-- Note that ./Mathlib.h  has  [if]min2(.,.) and [if]max2(.,.) ! */
+
+
+typedef struct {
+	double r;
+	double i;
+} complex;
 
 	/* Versions of Fortran Intrinsics */
 

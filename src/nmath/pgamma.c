@@ -91,7 +91,7 @@ double pgamma(double x, double p, double scale)
 
 	/* use pearson's series expansion. */
 
-	arg = p * log(x) - x - lgammafn(p + one);
+	arg = p * log(x) - x - lgamma(p + one);
 	c = one;
 	sum = one;
 	a = p;
@@ -108,7 +108,7 @@ double pgamma(double x, double p, double scale)
 
 	/* use a continued fraction expansion */
 
-	arg = p * log(x) - x - lgammafn(p);
+	arg = p * log(x) - x - lgamma(p);
 	a = one - p;
 	b = a + x + one;
 	c = zero;

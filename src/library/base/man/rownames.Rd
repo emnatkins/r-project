@@ -1,17 +1,14 @@
 \name{rownames}
-\alias{rownames}
-\alias{rownames<-}
-\title{Row Names}
+\title{Row Labels}
 \usage{
 rownames(x)
 rownames(x) <- namevector
 }
+\alias{rownames}
+\alias{rownames<-}
 \description{
-  Retrieve or set the row names of an object (the first component of its
-  dimnames).
-}
-\seealso{
-  \code{\link{dimnames}}, \code{\link{colnames}}
+\code{rownames} can be used to retrieve or set the
+row labels of a matrix.
 }
 \keyword{array}
 \keyword{manip}

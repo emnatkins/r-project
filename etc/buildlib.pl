@@ -23,15 +23,16 @@
 use Cwd;
 use File::Basename;
 
-require "$RHOME/etc/html-layout.pl";
-
-
 if($opt_dosnames){
     $HTML="htm";
 }
 else{
     $HTML="html";
 }
+
+
+
+require "$RHOME/etc/html-layout.pl";
 
 $dir_mod = 0755;#- Permission ('mode') of newly created directories.
 
@@ -262,7 +263,7 @@ sub build_index {
 
     $anindex = "$lib/$pkg/help/AnIndex";
     open(anindex, ">${anindex}.in");
-
+    
     my %alltitles;
     my $naliases;
     my $nmanfiles;
@@ -271,7 +272,7 @@ sub build_index {
 	if($manfile =~ /\.Rd$/i){
 
 	    my $rdname = basename($manfile, (".Rd", ".rd"));
-
+	    
 	    if($opt_dosnames){
 		$manfilebase = "x" . $nmanfiles++;
 	    }
@@ -302,7 +303,7 @@ sub build_index {
     }
 
     close anindex;
-
+    
     system("sort -f -d ${anindex}.in | uniq > ${anindex}");
     unlink ("$anindex.in");
 
@@ -319,7 +320,7 @@ sub build_index {
     if($naliases>100){
        print htmlfile html_alphabet();
    }
-
+    
     print htmlfile "\n<p>\n<table width=100%>\n";
 
     my $firstletter = "";
@@ -339,7 +340,7 @@ sub build_index {
 	print htmlfile "<TR><TD width=25%><A HREF=\"$file.$HTML\">" .
 	    "$alias</A></TD>\n<TD>$alltitles{$alias}</TD></TR>\n";
     }
-
+    
     print htmlfile "</TABLE>\n";
     print htmlfile "</BODY>\n";
 
@@ -354,7 +355,7 @@ sub build_index {
 sub build_htmlfctlist {
 
     my $lib = $_[0];
-
+    
     my %htmltitles = read_functiontitles($lib);
     my $key;
 
@@ -375,7 +376,7 @@ sub build_htmlfctlist {
 		unless $alias =~ /^[a-z]/;
     }
     print htmlfile "\n</table>\n<p>\n<table width=100%>\n";
-
+    
     my $firstletter = "";
     foreach $alias (sort(keys %htmltitles)) {
 	$aliasfirst = substr($alias, 0, 1);
@@ -392,21 +393,17 @@ sub build_htmlfctlist {
 		    "$alias</A></TD>\n<TD>$htmltitles{$alias}</TD></TR>\n";
 	}
     }
-
+    
     print htmlfile "</TABLE>\n";
     print htmlfile "</BODY>\n";
-
+    
     close htmlfile;
 }
 
-sub fileolder { #(filename, age)
-    my($file, $age) = @_;
-    #- return ``true'' if file exists and is older than $age
-    (! ((-f $file) && ((-M $file) < $age)))
-}
+
+
 
 1;
-# Local variables: **
-# perl-indent-level: 4 **
-# cperl-indent-level: 4 **
-# End: **
+
+
+

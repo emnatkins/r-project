@@ -35,7 +35,7 @@
  *    Journal of Statistical Computation and Simulation 22, 127-145.
  */
 
-#include "PrtUtil.h"
+#include "Defn.h"/* only for  REprintf(.) below  [-Wall] */
 #include "Mathlib.h"
 
 /* TRUE and FALSE conflict with the MAC */

@@ -20,8 +20,21 @@
  *  Source cleaned up as far as htribk.
  */
 
-#include "Fortran.h"/*-> "Platform.h"*/
-#include "Applic.h"
+#include "Platform.h"
+#include "Fortran.h"
+
+	/* Public Entry Points */
+
+int F77_SYMBOL(cg)(int *nm, int *n, double *ar, double *ai,
+		   double *wr, double *wi, int *matz, double *zr, double *zi,
+		   double *fv1, double *fv2, double *fv3, int *ierr);
+int F77_SYMBOL(ch)(int *nm, int *n, double *ar, double *ai,
+		   double *w, int *matz, double *zr, double *zi,
+		   double *fv1, double *fv2, double *fm1, int *ierr);
+int F77_SYMBOL(rg)(int *nm, int *n, double *a, double *wr, double *wi,
+		   int *matz, double *z, int *iv1, double *fv1, int *ierr);
+int F77_SYMBOL(rs)(int *nm, int *n, double *a, double *w,
+		   int *matz, double *z, double *fv1, double *fv2, int *ierr);
 
 	/* Private Entry Points */
 

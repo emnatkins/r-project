@@ -27,7 +27,7 @@
  */
 
 #include "Mathlib.h"
-#include "Error.h"
+#include "Errormsg.h"/* for warning() */
 
 double pwilcox(double x, double m, double n) {
   int i;
@@ -35,7 +35,7 @@ double pwilcox(double x, double m, double n) {
 
 #ifdef IEEE_754
   if (ISNAN(x) || ISNAN(m) || ISNAN(n))
-    return x + m + n;
+    return x + n + p;
   if (!FINITE(m) || !FINITE(n)) {
     ML_ERROR(ME_DOMAIN);
     return ML_NAN;

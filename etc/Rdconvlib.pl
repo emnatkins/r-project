@@ -22,23 +22,13 @@
 
 # Bugs: still get ``\bsl{}'' in verbatim-like, see e.g. Examples of apropos.Rd
 
-## New: \verbatim{}: like \examples{}, but can appear 0-n times [MM].
-## ---	===========
-## Original idead:  Can have *SEVERAL* verbatim	 codeblocks which should
-## appear  (almost) WHERE they were initially !!
-## BUT, this is not really possible:
-##	we collect the block into a hash array and don't even remember
-##	their order in the *.Rd file
-##
-## ==> Consequence: Allow \verbatim{ ...}  only *within* other
-##     top-level blocks ...
 
 require "$RHOME/etc/html-layout.pl";
 
 
 # names of unique text blocks, these may NOT appear MORE THAN ONCE!
 @blocknames = ("name", "title", "usage", "arguments", "format",
-	       "description", "details", "value", "references", "source",
+	       "description", "details", "value", "references", "source", 
 	       "seealso", "examples", "author", "note");
 
 # These may appear multiply but are of simple structure:
@@ -62,31 +52,12 @@ $Math_del = "\$"; #UNquoted '$'
 $MAXLOOPS = 1000;
 
 
-sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename)
+sub Rdconv {
 
-    $Rdname = $_[0];
-    open rdfile, "<$Rdname" || die "Rdconv(): Couldn't open '$Rdfile':$!\n";
+    open rdfile, "<$_[0]";
 
     $type = $_[1];
     $debug = $_[2];
-
-    if($type !~ /,/) {
-	## Trivial (R 0.62 case): Only 1 $type at a time ==> one filename is ok.
-	## filename = 0	  <==>	STDOUT
-	## filename = -1  <==>	do NOT open and close files!
-	$htmlfile= $nrofffile= $Sdfile= $latexfile= $Exfile = $_[3];
-    } else { # have "," in $type: Multiple types with multiple output files
-	$dirname = $_[3]; # The super-directory , such as  <Rlib>/library/<pkg>
-	die "Rdconv(): '$dirname' is NOT a valid directory:$!\n"
-	  unless -d $dirname;
-	$htmlfile = $dirname ."/html/" .$Rdname.".html" if $type =~ /html/i;
-	$nrofffile= $dirname ."/help/" . $Rdname	if $type =~ /nroff/i;
-	die "Rdconv(): type 'Sd' must not be used with other types (',')\n"
-	  if $type =~ /Sd/i;
-	$latexfile= $dirname ."/latex/". $Rdname.".tex"	if $type =~ /tex/i;
-	$Exfile	  = $dirname ."/R-ex/" . $Rdname.".R"	if $type =~ /example/i;
-    }
-
 
     $max_bracket = 0;
     $max_section = 0;
@@ -105,7 +76,7 @@ sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename)
 	      s/^\\%|([^\\])\\%/$1escaped_percent_sign/go){};
 	s/^([^%]*)%.*$/$1/o;
 	s/escaped_percent_sign/\\%/go;
-	$complete_text .= $_;
+	$complete_text = "$complete_text$_";
     }
     printf STDERR "-- read file '%s';\n",$_[0] if $debug;
 
@@ -113,33 +84,24 @@ sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename)
     ##HARD Debug:print "$complete_text\n"; exit;
     escape_codes();
     if($debug) {
-	print STDERR "\n--------------\nescape codes: '\@ecodes' =\n";
+      print STDERR "\n--------------\nescape codes: '\@ecodes' =\n";
 
-	while(my($id,$code) = each %ecodes) {
-	    print STDERR "\t\$ec{$id}='$code'\n";
-	}
+      while(my($id,$code) = each %ecodes) {
+	print STDERR "\t\$ec{$id}='$code'\n";
+      }
     }
 
     if($type) {
 	#-- These may be used in all cases :
 	@aliases = get_multi($complete_text,"alias");
 	@keywords= get_multi($complete_text,"keyword");
-
-	get_blocks($complete_text);
-
-	get_sections($complete_text)
-	  if $type =~ /html/i || $type =~ /nroff/i ||
-	    $type =~ /Sd/    || $type =~ /tex/i;
-
-	rdoc2html($htmlfile)	if $type =~ /html/i;
-	rdoc2nroff($nrofffile)	if $type =~ /nroff/i;
-	rdoc2Sd($Sdfile)	if $type =~ /Sd/i;
-	rdoc2latex($latexfile)	if $type =~ /tex/i;
-	rdoc2ex($Exfile)	if $type =~ /example/i;
-
-    } else {
-	warn "\n*** Rdconv(): no type specified\n";
     }
+
+    rdoc2html()	 if $type =~ /html/i;
+    rdoc2nroff() if $type =~ /nroff/i;
+    rdoc2Sd()    if $type =~ /Sd/i;
+    rdoc2latex() if $type =~ /tex/i;
+    rdoc2ex()	 if $type =~ /example/i;
 }
 
 
@@ -194,7 +156,7 @@ sub unmark_brackets {
 	    $text =~ s/$id(.*)$id/\{$1\}/so;
 	}
 	else{
-	    # return $text;
+#	    return $text;
 	    $text =~ s/$id/\{/so;
 	}
     }
@@ -229,12 +191,12 @@ sub get_blocks {
 	if($text =~ /\\($block)($ID)/){
 	    ($id, $blocks{$block}) = get_arguments($block, $text, 1);
 	    print STDERR "found: $block\n" if $debug;
-	    if((($block =~ /usage/) || ($block =~ /examples/))) {
+	    if((($block =~ /usage/) || ($block =~ /examples/))){
 		## multiple empty lines to one
-		$blocks{$block} =~ s/^[ \t]+$//;
+		$blocks{$block} =~ s/^[ \t]+$//; 
 		$blocks{$block} =~ s/\n\n\n/\n\n/gom;
 	    } else {
-		## remove leading and trailing whitespace
+		## remove leading and trailing whitespace 
 		$blocks{$block} =~ s/^\s+//so;
 		$blocks{$block} =~ s/\s+$//so;
 		$blocks{$block} =~ s/\n[ \t]+/\n/go;
@@ -243,9 +205,11 @@ sub get_blocks {
 	    # no formatting commands allowed in the title string
 	    if($block =~ /title/) {
 		if($blocks{"title"} =~ /$ID/){
-		    die("\nERROR: Environment ".
-			"(text enclosed in \{\}) found in \\title\{...\}.\n".
-			"The title must be plain text!\n\n");
+		    my $msg = "\nERROR: Environment ";
+		    $msg .= "(text enclosed in \{\}) ";
+		    $msg .= "found in \\title\{...\}.\n";
+		    $msg .= "       The title must be plain text!\n\n";
+		    die($msg);
 		}
 	    }
 
@@ -293,7 +257,7 @@ sub get_sections {
 	    = get_arguments("section", $text, 2);
 	print STDERR "found: $section\n" if $debug;
 
-	## remove leading and trailing whitespace
+	## remove leading and trailing whitespace 
 	$section =~ s/^\s+//so;
 	$section =~ s/\s+$//so;
 	$body =~ s/^\s+//so;
@@ -352,23 +316,21 @@ sub print_blocks {
 
     while(($block,$text) = each %blocks) {
 
-	print STDERR "\n\n********** $block **********\n\n";
-	print STDERR $text;
+	print "\n\n********** $block **********\n\n";
+	print $text;
     }
-    print STDERR "\n";
+    print "\n";
 }
 
 
 
-# Drop the command and leave it's inside argument, i.e.,
-#  replace "\abc{longtext}"
-#  by		"longtext"
-sub undefine_command {
+sub undefined_command {
 
     my ($text, $cmd) = @_;
 
     my $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\$cmd") &&  $text =~ /\\$cmd/){
+    while(checkloop($loopcount++, $text, "\\$cmd")
+	  &&  $text =~ /\\$cmd/){
 	my ($id, $arg)	= get_arguments($cmd, $text, 1);
 	$text =~ s/\\$cmd$id(.*)$id/$1/s;
     }
@@ -376,24 +338,6 @@ sub undefine_command {
 }
 
 
-# Drop the command  AND	 it's inside argument, i.e.,
-#  replace "_text1_\abc{longtext}-text2-" by "_text1_-text2-"
-sub drop_full_command {
-
-    my ($text, $cmd) = @_;
-    my $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\$cmd") &&  $text =~ /\\$cmd/){
-	my ($id, $arg)	= get_arguments($cmd, $text, 1);
-	$text =~ s/\\$cmd$id.*$id/$`$'/s;
-    }
-    $text;
-}
-
-
-# Replace the command and and its closing bracket
-# by  $before  and  $after, respectively, e.g.,
-#  replace "\abc{longtext}"
-#  by	    "<Bef>longtext<Aft>"
 sub replace_command {
 
     my ($text, $cmd, $before, $after) = @_;
@@ -407,39 +351,17 @@ sub replace_command {
     $text;
 }
 
-# Replace the command and and its closing bracket
-# by  $before  and  $after, respectively, AND PREPEND a comment
-# to eacho LINE e.g.,
-#  replace "\abc{line1\nline2\n....}"
-#  by	    "<Bef>\n##line1\n##line2\n##....<Aft>"
-sub replace_prepend_command {
 
-    my ($text, $cmd, $before, $after, $prepend) = @_;
-
-    my $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\$cmd") &&
-	  $text =~ /\\$cmd/){
-	my ($id, $arg)	= get_arguments($cmd, $text, 1);
-	$text =~ /\\$cmd$id(.*)$id/s;
-	$arg = $1;
-	$arg =~ s/^/$prepend/gmo;# prepend at all line beginnings
-	$arg =~ s/^$prepend//;   # but NOT the very beginning..
-	$text =~ s/\\$cmd$id.*$id/$before$arg$after/s;
-    }
-    $text;
-}
+#************************** HTML ********************************
 
 
-#==************************ HTML ********************************
+sub rdoc2html {
 
+    get_blocks($complete_text);
+    get_sections($complete_text);
 
-sub rdoc2html { # (filename) ; 0 for STDOUT
-
-    if($_[0]!= -1) {
-      if($_[0]) { open htmlout, "> $_[0]"; } else { open htmlout, "| cat"; }
-    }
     print htmlout html_functionhead($blocks{"title"});
-
+    
     html_print_codeblock("usage", "Usage");
     html_print_argblock("arguments", "Arguments");
     html_print_block("format", "Format");
@@ -457,7 +379,6 @@ sub rdoc2html { # (filename) ; 0 for STDOUT
     html_print_codeblock("examples", "Examples");
 
     print htmlout html_functionfoot();
-    close htmlout;
 }
 
 
@@ -483,7 +404,6 @@ sub text2html {
     $text =~ s/\\pi/&pi/go;
     $text =~ s/\\mu/&mu/go;
     $text =~ s/\\sigma/&sigma/go;
-    $text =~ s/\\Sigma/&Sigma/go;
     $text =~ s/\\lambda/&lambda/go;
     $text =~ s/\\beta/&beta/go;
     $text =~ s/\\epsilon/&epsilon/go;
@@ -573,6 +493,7 @@ sub code2html {
     $text =~ s/\\ldots/.../go;
     $text =~ s/\\dots/.../go;
 
+
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\link")
 	  &&  $text =~ /\\link/){
@@ -587,10 +508,7 @@ sub code2html {
 	}
     }
 
-    $text = undefine_command($text, "dontrun");
-    $text = drop_full_command($text, "testonly");
     $text =~ s/\\\\/\\/go;
-
     unmark_brackets($text);
 }
 
@@ -692,11 +610,11 @@ sub html_tables {
     while(checkloop($loopcount++, $text, "\\tabular")
 	  &&  $text =~ /\\tabular/){
 
-	my ($id, $format, $arg)	 =
+	my ($id, $format, $arg)  =
 	    get_arguments("tabular", $text, 2);
 
 	$arg =~ s/\n/ /sgo;
-
+	
 	# remove trailing \cr (otherwise we get an empty last line)
 	$arg =~ s/\\cr\s*$//go;
 
@@ -742,16 +660,15 @@ sub html_tables {
     $text;
 }
 
+    
+
+#**************************** nroff ******************************
 
 
-#==************************** nroff ******************************
+sub rdoc2nroff {
 
-
-sub rdoc2nroff { # (filename); 0 for STDOUT
-
-    if($_[0]!= -1) {
-      if($_[0]) { open nroffout, "> $_[0]"; } else { open nroffout, "| cat"; }
-    }
+    get_blocks($complete_text);
+    get_sections($complete_text);
 
     $INDENT = "0.5i";
     $TAGOFF = "1i";
@@ -778,8 +695,6 @@ sub rdoc2nroff { # (filename); 0 for STDOUT
     nroff_print_block("references", "References");
     nroff_print_block("seealso", "See Also");
     nroff_print_codeblock("examples", "Examples");
-
-    close nroffout;
 }
 
 
@@ -800,11 +715,11 @@ sub text2nroff {
     $text =~ s/^\.|([\n\(])\./$1\\\&./g;
 
     ## tables are pre-processed by the tbl(1) command, so this has to
-    ## be done first
+    ## be done first 
     $text = nroff_tables($text);
     $text =~ s/\\cr\n?/\n.br\n/sgo;
 
-
+    
 
     $text =~ s/\n\s*\n/\n.IP \"\" $indent\n/sgo;
     $text =~ s/\\dots/\\&.../go;
@@ -821,7 +736,6 @@ sub text2nroff {
     $text =~ s/\\pi/pi/go;
     $text =~ s/\\mu/mu/go;
     $text =~ s/\\sigma/sigma/go;
-    $text =~ s/\\Sigma/Sigma/go;
     $text =~ s/\\lambda/lambda/go;
     $text =~ s/\\beta/beta/go;
     $text =~ s/\\epsilon/epsilon/go;
@@ -833,16 +747,16 @@ sub text2nroff {
     $text =~ s/$EOB/\{/go;
     $text =~ s/$ECB/\}/go;
 
-    $text = undefine_command($text, "link");
-    $text = undefine_command($text, "emph");
-    $text = undefine_command($text, "bold");
-    $text = undefine_command($text, "textbf");
-    $text = undefine_command($text, "mathbf");
-    $text = undefine_command($text, "email");
+    $text = undefined_command($text, "link");
+    $text = undefined_command($text, "emph");
+    $text = undefined_command($text, "bold");
+    $text = undefined_command($text, "textbf");
+    $text = undefined_command($text, "mathbf");
+    $text = undefined_command($text, "email");
     $text = replace_command($text, "file", "`", "'");
     $text = replace_command($text, "url", "<URL: ", ">");
 
-
+    
     # handle equations:
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\eqn")
@@ -915,9 +829,7 @@ sub code2nroff {
     $text =~ s/\\dots/.../go;
     $text =~ s/\\n/\\\\n/g;
 
-    $text = undefine_command($text, "link");
-    $text = undefine_command($text, "dontrun");
-    $text = drop_full_command($text, "testonly");
+    $text = undefined_command($text, "link");
 
     unmark_brackets($text);
 }
@@ -1045,12 +957,12 @@ sub nroff_tables {
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\tabular")
 	  &&  $text =~ /\\tabular/){
-
-	my ($id, $format, $arg)	 =
+	
+	my ($id, $format, $arg)  =
 	    get_arguments("tabular", $text, 2);
 
 	$arg =~ s/\n/ /sgo;
-
+	
 	# remove trailing \cr (otherwise we get an empty last line)
 	$arg =~ s/\\cr\s*$//go;
 
@@ -1080,7 +992,7 @@ sub nroff_tables {
 	    $table .= "$colformat[$l] ";
 	}
 	$table .= "$colformat[$#colformat].\n";
-
+	
 
 	# now do the real work: split into lines and columns
 	my @rows = split(/\\cr/, $arg);
@@ -1103,14 +1015,14 @@ sub nroff_tables {
 }
 
 
-#==**************************** Sd ******************************
+#****************************** Sd ******************************
 
 
-sub rdoc2Sd { # (filename)
+sub rdoc2Sd {
 
-    if($_[0]!= -1) {
-      if($_[0]) { open Sdout, "> $_[0]"; } else { open Sdout, "| cat"; }
-    }
+    get_blocks($complete_text);
+    get_sections($complete_text);
+
     print Sdout "\.\\\" -*- nroff -*- generated from \.Rd format\n";
     print Sdout ".BG\n";
     print Sdout ".FN ", $blocks{"name"}, "\n";
@@ -1136,8 +1048,7 @@ sub rdoc2Sd { # (filename)
     while ($#keywords >= 0) {
 	print Sdout ".KW ", shift( @keywords ), "\n";
     }
-    print Sdout ".WR\n";
-    close Sdout;
+    print Sdout ".WR\n"
 }
 
 # Convert a Rdoc text string to nroff
@@ -1215,35 +1126,33 @@ sub Sd_print_sections {
 }
 
 
-#==********************* Example ***********************************
+#*********************** Example ***********************************
 
 
-sub rdoc2ex { # (filename)
+sub rdoc2ex {
 
-    if($_[0]!= -1) {
-      if($_[0]) { open Exout, "> $_[0]"; } else { open Exout, "| cat"; }
-    }
+    get_blocks($complete_text);
+
     ##--- Here, I should also put everything which belongs to
     ##--- ./massage-Examples ---- depending on 'name' !!!
-    print Exout "###--- >>> `"; print Exout $blocks{"name"};
-    print Exout "' <<<----- "; print Exout $blocks{"title"};
-    print Exout "\n\n";
+
+    print "###--- >>> `"; print $blocks{"name"};
+    print "' <<<----- "; print $blocks{"title"};
+    print "\n\n";
     if(@aliases) {
 	foreach (@aliases) {
-	    print Exout "\t## alias\t help($_)\n";
+	    print "\t## alias\t help($_)\n";
 	}
-	print Exout "\n";
+	print "\n";
     }
 
     ex_print_exampleblock("examples", "Examples");
 
     if(@keywords) {
-	print Exout "## Keywords: ";
-	&print_vec(Exout, 'keywords');
+	print "## Keywords: ";
+	&print_vec(STDOUT, 'keywords');
     }
-    print Exout "\n\n";
-
-    close Exout;
+    print "\n\n";
 }
 
 sub ex_print_exampleblock {
@@ -1251,9 +1160,9 @@ sub ex_print_exampleblock {
     my ($block,$env) = @_;
 
     if(defined $blocks{$block}){
-	print Exout "##___ Examples ___:\n";
-	print Exout  code2examp($blocks{$block});
-	print Exout "\n";
+	print "##___ Examples ___:\n";
+	print  code2examp($blocks{$block});
+	print "\n";
     }
 }
 
@@ -1265,26 +1174,21 @@ sub code2examp {
     $text =~ s/\\ldots/.../go;
     $text =~ s/\\dots/.../go;
 
-    $text = undefine_command($text, "link");
-    $text = undefine_command($text, "testonly");
-    $text = replace_prepend_command($text, "dontrun","##Don't run: ", "",
-				    "##D ");
+    $text = undefined_command($text, "link");
     $text =~ s/\\\\/\\/g;
 
     unmark_brackets($text);
 }
 
 
-#==********************* LaTeX ***********************************
+#*********************** LaTeX ***********************************
 
 
-sub rdoc2latex {# (filename)
-
+sub rdoc2latex {
     my($c,$a);
+    get_blocks($complete_text);
+    get_sections($complete_text);
 
-    if($_[0]!= -1) {
-      if($_[0]) { open latexout, "> $_[0]"; } else { open latexout, "| cat"; }
-    }
     print latexout "\\Header\{";
     print latexout $blocks{"name"};
     print latexout "\}\{";
@@ -1297,7 +1201,7 @@ sub rdoc2latex {# (filename)
       print STDERR "rdoc2l: alias='$_', code2l(.)='$c', latex_c_a(.)='$a'\n"
 	if $debug;
       printf latexout "\\alias\{%s\}\{%s\}\n", $a, $blocks{"name"}
-	unless /^$blocks{"name"}$/;
+        unless /^$blocks{"name"}$/;
     }
     foreach (@keywords) {
       printf latexout "\\keyword\{%s\}\{%s\}\n", $_, $blocks{"name"}
@@ -1320,7 +1224,7 @@ sub rdoc2latex {# (filename)
     latex_print_exampleblock("examples", "Examples");
 
     print latexout "\n";
-    close latexout;
+
 }
 
 # The basic translator for `normal text'
@@ -1358,7 +1262,7 @@ sub text2latex {
     $text =~ s/\\\\/\\bsl{}/go;
     $text =~ s/\\cr/\\\\\{\}/go;
     $text =~ s/\\tab(\s+)/&$1/go;
-
+	
     ##-- We should escape $LATEX_SPEC  unless within `eqn' above ...
     ##-- this would escape them EVERYWHERE:
     ## $text =~ s/[$LATEX_SPEC]/\\$&/go;  #- escape them (not the "bsl" \)
@@ -1383,10 +1287,8 @@ sub code2latex {
 	    $text =~ s/\\link$id.*$id/HYPERLINK($arg)/s;
 	}
     } else {
-	$text = undefine_command($text, "link");
+	$text = undefined_command($text, "link");
     }
-    $text = undefine_command($text, "dontrun");
-    $text = drop_full_command($text, "testonly");
     unmark_brackets($text);
 }
 
@@ -1497,14 +1399,14 @@ sub latex_code_cmd {
     my $code = $_[0];
 
     if($code =~ /[$LATEX_SPECIAL]/){
-	die("\nERROR: found `\@' in \\code{...\}\n")
+        die("\nERROR: found `\@' in \\code{...\}\n")
 	  if $code =~ /@/;
-	die("\nERROR: found `HYPERLINK(' in \$code: '" . $code ."'\n")
+        die("\nERROR: found `HYPERLINK(' in \$code: '" . $code ."'\n")
 	  if $code =~ /HYPERLINK\(/;
 	$code = "\\verb@" . $code . "@";
     }
     else {
-	$code =~ s/HYPERLINK\(([^)]*)\)/\\Link{$1}/go;
+        $code =~ s/HYPERLINK\(([^)]*)\)/\\Link{$1}/go;
 	$code = "\\texttt\{" . $code . "\}";
     }
     $code;
@@ -1513,7 +1415,7 @@ sub latex_code_cmd {
 
 # Encapsulate code in $...$ by ESCAPING special characters:
 # Tough examples are
-#	Logic.Rd  Arithmetic.Rd	 Extract.Rd  formula.Rd
+#	Logic.Rd  Arithmetic.Rd  Extract.Rd  formula.Rd
 sub latex_code_alias {
 
     my $c = $_[0];  ##-- $c is (typically) the OUTPUT of  code2latex(.) :
@@ -1525,7 +1427,7 @@ sub latex_code_alias {
       $c =~ s/\$/$Dollar/go;
       #-- math around it  (should be "robust")
       $c =~ s/[$LATEX_DO_MATH]+/${MD}$&${MD}/g;
-      $c =~ s/[$LATEX_SPECIAL]/\\$&/go;	 #- escape them (not the "bsl" \)
+      $c =~ s/[$LATEX_SPECIAL]/\\$&/go;  #- escape them (not the "bsl" \)
       $c =~ s/\|/\\mid{}/go; # "|" is special in '\index' !!
       $c =~ s/\!/\\\!/go;
       $c =~ s/\\\^/\\hat{}/go;# ^ is SPECIAL
@@ -1541,10 +1443,3 @@ sub latex_code_alias {
     $c =~ s/HYPERLINK\(([^)]*)\)/\\Link{$1}/go;
     $c;
 }
-
-
-# Local variables: **
-# perl-indent-level: 4 **
-# cperl-indent-level: 4 **
-# page-delimiter: "^#==" **
-# End: **

@@ -21,10 +21,13 @@
 
 #include "Arith.h"
 
-void tabulate(int *x, int *n, int *ans)
-{
-    int i;
-    for(i=0 ; i<*n ; i++)
-	if(x[i] != R_NaInt && x[i] > 0) ans[x[i]-1] += 1;
+#define NA_INTEGER R_NaInt
 
+int tabulate(int *ans, int *x, int *n)
+{
+	int i;
+	
+	for(i=0 ; i<*n ; i++)
+		if(x[i] != R_NaInt && x[i] > 0) ans[x[i]-1] += 1;
+	return 0;
 }

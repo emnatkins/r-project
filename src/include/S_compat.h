@@ -1,5 +1,5 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
+ *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -17,17 +17,22 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/* S compatibility library headers --
-			maps internal functions in S to R equivalents
+/* S compatibility library headers - maps internal functions in S to R 
+   equivalents
+ *
+ * $Id: S_compat.h,v 1.1 1997/12/11 23:38:46 ihaka Exp $
  */
 
 #ifndef S_COMPAT_H_
 #define S_COMPAT_H_
 
 #include "S.h"
-#include "Linpack.h"/*-> Blas.h */
+#include "Fortran.h"
+#include "Blas.h"
+#include "Linpack.h"
 
 extern void
 F77_SYMBOL(dqrdca) (double*, long int*, long int*, long int*,
 		    double*, long int*, double*, long int*, double*);
+
 #endif

@@ -4,6 +4,3 @@
 int X11ConnectionNumber();
 void ProcessEvents(void);
 int X11DeviceDriver(DevDesc*, char*, double, double, double);
-#ifdef SOON
-int XFigDeviceDriver(char**, int, double*, int);
-#endif

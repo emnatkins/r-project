@@ -1,28 +1,19 @@
 \name{dimnames}
-\title{Dimnames of an Object}
-\alias{dimnames}
-\alias{dimnames<-}
-\alias{dimnames.data.frame}
-\alias{dimnames<-.data.frame}
+\title{Array Labels}
 \usage{
 dimnames(x)
 dimnames(x) <- nlist
 }
-\description{
-  Retrieve or set the dimnames of an object.
-}
-\details{
-  The functions \code{dimnames} and \code{dimnames<-} are generic.
-
-  For an array (and hence in particular, for a matrix), they retrieve or
-  set the \code{dimnames} attribute of the object.
-
-  Both have methods for data frames.  The dimnames of a data frame are
-  its \code{row.names} attribute and its \code{names}.
+\alias{dimnames}
+\alias{dimnames<-}
+\alias{dimnames.data.frame}
+\alias{dimnames<-.data.frame}
+\value{
+  This generic function obtains the list of extent labels of the array given as
+  its argument.  The second form above can be used to set these labels.
 }
 \seealso{
-  \code{\link{rownames}}, \code{\link{colnames}};
-  \code{\link{array}}, \code{\link{matrix}}, \code{\link{data.frame}}.
+  \code{\link{matrix}}, \code{\link{rownames}}, \code{\link{colnames}}.
 }
 \examples{
 ## simple versions of rownames and colnames

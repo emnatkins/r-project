@@ -20,7 +20,6 @@ transporting \R data between machines.
 \code{\link{write}}.
 }
 \examples{
-x <- 1; y <- 1:10
 dump(ls(patt='^[xyz]'), "xyz.Rdmped")
 }
 \keyword{file}

@@ -1,5 +1,5 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
+ *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -21,7 +21,6 @@
 
 #define RFILEIO_H_
 
-int	R_fgetc(FILE*);
-FILE *	R_fopen(const char *filename, const char *mode);
+FILE *R_fopen(const char *filename, const char *mode);
 
 #endif

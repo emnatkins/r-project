@@ -28,12 +28,10 @@
  * ``standard error'' and is useful for error messages and warnings.
  * It is not redirected by sink().
  *
- *  See ./format.c  for the  format_FOO_  functions which provide
- *	~~~~~~~~~~  the	 length, width, etc.. that are used here.
- *  See ./print.c  for do_printdefault, do_printmatrix, etc.
+ *== see ./format.c  for the  format_FOO_  functions which provide
+ *	 ~~~~~~~~~~  the  length, width, etc.. that are used here.
  *
- *
- * Here, the following UTILITIES are provided:
+ * Following UTILITIES:
  *
  * The utilities EncodeLogical, EncodeFactor, EncodeInteger, EncodeReal
  * and EncodeString can be used to convert R objects to a form suitable
@@ -132,7 +130,7 @@ char *EncodeComplex(complex x, int wr, int dr, int er, int wi, int di, int ei)
 	/* Latin1 types are (rightfully) upset */
 	/* WHAT NEEDS TO CHANGE */
 
-#ifdef OLD
+#ifdef not_used
 static int hexdigit(unsigned int x)
 {
 	return ((x <= 9)? '0' :	 'A'-10) + x;
@@ -285,7 +283,6 @@ void Rprintf(char *format, ...)
 	va_start(ap, format);
 	if(R_Outputfile) {
 		vfprintf(R_Outputfile, format, ap);
-		fflush(R_Outputfile);
 	}
 	else {
 		char buf[BUFSIZE]; int len;
@@ -316,7 +313,6 @@ void Rvprintf(const char *format, va_list arg)
 {
 	if(R_Outputfile) {
 		vfprintf(R_Outputfile, format, arg);
-		fflush(R_Outputfile);
 	}
 	else {
 		char buf[BUFSIZE]; int slen;

@@ -1,6 +1,6 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995-1998  Robert Gentleman, Ross Ihaka and the R core team
+ *  R : A Computer Langage for Statistical Data Analysis
+ *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,21 +17,22 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include "Applic.h"
+#include "Mathlib.h"
 
-void cumsum(double *x, int *n, double *na_value, double *ans)
+int cumsum(double *x, int *n, double *na_value, double *ans)
 {
-    double sum;
-    int i;
+	double sum;
+	int i;
 
-    for(i=0 ; i<*n ; i++)
-	ans[i] = *na_value;
+	for(i=0 ; i<*n ; i++)
+		ans[i] = *na_value;
 
-    sum = 0.0;
-    for( i=0 ; i<*n ; i++) {
-	if(x[i] == *na_value)
-	    break;
-	sum += x[i];
-	ans[i] = sum;
-    }
+	sum = 0.0;
+	for( i=0 ; i<*n ; i++) {
+		if(x[i] == *na_value)
+			break;
+		sum += x[i];
+		ans[i] = sum;
+	}
+	return 0;
 }

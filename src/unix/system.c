@@ -1,7 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--1998  Robert Gentleman, Ross Ihaka and the R core team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -107,7 +106,7 @@
 #include "Defn.h"
 #include "Fileio.h"
 #include "Graphics.h"/* KillAllDevices() [nothing else?] */
-#include "devX11.h"
+#include "devX11.h"/* 'Public' routines from devX11.c (event loop) */
 
 #ifdef HAVE_LIBREADLINE
 #include <readline/readline.h>
@@ -128,48 +127,46 @@ static int DefaultSaveAction = 0;
 static int DefaultRestoreAction = 1;
 static int LoadSiteFile = 1;
 static int LoadInitFile = 1;
-static int DebugInitFile = 0;
 
 	/*--- I/O Support Code ---*/
 
-	/* These routines provide hooks for supporting console I/O.
-	 * Under raw Unix these routines simply provide a
-	 * connection to the stdio library.
-	 * Under a Motif interface the routines would be
-	 * considerably more complex.
-	 */
+	/* These routines provide hooks for supporting console */
+	/* I/O.	 Under raw Unix these routines simply provide a */
+	/* connection to the stdio library.  Under a Motif */
+	/* interface the routines would be considerably more */
+	/* complex. */
 
 
-/* block on select until either stdin or X11 connection is */
-/* ready to read (return 1 if X11 connection ready to read, */
-/* 2 if stdin ready to read) */
+	/* block on select until either stdin or X11 connection is */
+	/* ready to read (return 1 if X11 connection ready to read, */
+	/* 2 if stdin ready to read) */
 
 #define XActivity 1
 #define StdinActivity 2
 
 static int waitForActivity()
 {
-    int maxfd;
-    fd_set readMask;
-    int stdinfd = fileno(stdin);
-    int connectionfd = X11ConnectionNumber();
+	int maxfd;
+	fd_set readMask;
+	int stdinfd = fileno(stdin);
+	int connectionfd = X11ConnectionNumber();
 
-    FD_ZERO(&readMask);
-    FD_SET(stdinfd, &readMask);
-    maxfd = stdinfd;
-    if (connectionfd > 0) {
-	FD_SET(connectionfd, &readMask);
-	if (connectionfd > stdinfd)
-	    maxfd = connectionfd;
-    }
-    select(maxfd+1, &readMask, NULL, NULL, NULL);
+	FD_ZERO(&readMask);
+	FD_SET(stdinfd, &readMask);
+	maxfd = stdinfd;
+	if (connectionfd > 0) {
+		FD_SET(connectionfd, &readMask);
+		if (connectionfd > stdinfd)
+			maxfd = connectionfd;
+	}
+	select(maxfd+1, &readMask, NULL, NULL, NULL);
 
-    if (connectionfd > 0)
-	if (FD_ISSET(connectionfd, &readMask))
-	    return XActivity;
-    if (FD_ISSET(stdinfd, &readMask))
-	return StdinActivity;
-    return 0;/* for -Wall*/
+	if (connectionfd > 0)
+		if (FD_ISSET(connectionfd, &readMask))
+			return XActivity;
+	if (FD_ISSET(stdinfd, &readMask))
+		return StdinActivity;
+	return 0;/* for -Wall*/
 }
 
 
@@ -184,26 +181,26 @@ static char *readline_buf;
 
 static void readline_handler(char *line)
 {
-    int l;
-    rl_callback_handler_remove();
-    if ((readline_eof = !line)) /* Yes, I don't mean ==...*/
-	return;
-    if (line[0]) {
+	int l;
+	rl_callback_handler_remove();
+	if ((readline_eof = !line)) /* Yes, I don't mean ==...*/
+	       return;
+	if (line[0]) {
 #ifdef HAVE_READLINE_HISTORY_H
-	if (strlen(line) && readline_addtohistory)
-	    add_history(line);
+		if (strlen(line) && readline_addtohistory)
+		       add_history(line);
 #endif
-	l = (((readline_len-2) > strlen(line))?
-	     strlen(line): (readline_len-2));
-	strncpy(readline_buf, line, l);
-	readline_buf[l] = '\n';
-	readline_buf[l+1] = '\0';
-    }
-    else {
-	readline_buf[0] = '\n';
-	readline_buf[1] = '\0';
-    }
-    readline_gotaline = 1;
+		l = (((readline_len-2) > strlen(line))?
+		       strlen(line): (readline_len-2));
+		strncpy(readline_buf, line, l);
+		readline_buf[l] = '\n';
+		readline_buf[l+1] = '\0';
+	}
+	else {
+		readline_buf[0] = '\n';
+		readline_buf[1] = '\0';
+	}
+	readline_gotaline = 1;
 }
 #endif
 
@@ -211,56 +208,56 @@ static void readline_handler(char *line)
 
 int R_ReadConsole(char *prompt, char *buf, int len, int addtohistory)
 {
-    if(!isatty(0)) {
-	if(!R_Quiet) fputs(prompt, stdout);
-	if (fgets(buf, len, stdin) == NULL)
-	    return 0;
-	if(!R_Quiet) fputs(buf,stdout);
-	return 1;
-    }
-    else {
-#ifdef HAVE_LIBREADLINE
-	if (UsingReadline) {
-	    readline_gotaline = 0;
-	    readline_buf = buf;
-	    readline_addtohistory = addtohistory;
-	    readline_len = len;
-	    readline_eof = 0;
-	    rl_callback_handler_install(prompt, readline_handler);
+	if(!isatty(0)) {
+		if(!R_Quiet) fputs(prompt, stdout);
+		if (fgets(buf, len, stdin) == NULL)
+			return 0;
+		if(!R_Quiet) fputs(buf,stdout);
+		return 1;
 	}
-	else
-#endif
-	{
-	    fputs(prompt, stdout);
-	    fflush(stdout);
-	}
-
-	for (;;) {
-	    int what = waitForActivity();
-	    switch (what) {
-	    case XActivity:
-		ProcessEvents();
-		break;
-	    case StdinActivity:
+	else {
 #ifdef HAVE_LIBREADLINE
 		if (UsingReadline) {
-		    rl_callback_read_char();
-		    if (readline_eof)
-			return 0;
-		    if (readline_gotaline)
-			return 1;
+			readline_gotaline = 0;
+			readline_buf = buf;
+			readline_addtohistory = addtohistory;
+			readline_len = len;
+			readline_eof = 0;
+			rl_callback_handler_install(prompt, readline_handler);
 		}
 		else
 #endif
 		{
-		    if(fgets(buf, len, stdin) == NULL)
-			return 0;
-		    else
-			return 1;
+			fputs(prompt, stdout);
+			fflush(stdout);
 		}
-	    }
+
+		for (;;) {
+			int what = waitForActivity();
+			switch (what) {
+				case XActivity:
+					ProcessEvents();
+					break;
+				case StdinActivity:
+#ifdef HAVE_LIBREADLINE
+					if (UsingReadline) {
+						rl_callback_read_char();
+						if (readline_eof)
+							return 0;
+						if (readline_gotaline)
+							return 1;
+					}
+					else
+#endif
+					{
+						if(fgets(buf, len, stdin) == NULL)
+							return 0;
+						else
+							return 1;
+					}
+			}
+		}
 	}
-    }
 }
 
 	/* Write a text buffer to the console. */
@@ -268,7 +265,7 @@ int R_ReadConsole(char *prompt, char *buf, int len, int addtohistory)
 
 void R_WriteConsole(char *buf, int len)
 {
-    printf("%s", buf);
+	printf("%s", buf);
 }
 
 
@@ -283,7 +280,7 @@ void R_ResetConsole()
 
 void R_FlushConsole()
 {
-    fflush(stdin);
+	fflush(stdin);
 }
 
 
@@ -291,7 +288,7 @@ void R_FlushConsole()
 
 void R_ClearerrConsole()
 {
-    clearerr(stdin);
+	clearerr(stdin);
 }
 
 
@@ -303,71 +300,69 @@ char *tilde_expand(char*);
 
 char *R_ExpandFileName(char *s)
 {
-    return tilde_expand(s);
+	return tilde_expand(s);
 }
 #else
 char *R_ExpandFileName(char *s)
 {
-    return s;
+	return s;
 }
 #endif
 
 FILE *R_OpenLibraryFile(char *file)
 {
-    char buf[256], *home;
-    FILE *fp;
+	char buf[256], *home;
+	FILE *fp;
 
-    if((home = getenv("RHOME")) == NULL)
-	return NULL;
-    sprintf(buf, "%s/library/base/R/%s", home, file);
-    fp = R_fopen(buf,"r");
-    return fp;
+	if((home = getenv("RHOME")) == NULL)
+		return NULL;
+	sprintf(buf, "%s/library/base/R/%s", home, file);
+	fp = R_fopen(buf,"r");
+	return fp;
 }
 
-FILE *R_OpenSysInitFile(void)
-{
-    char buf[256];
-    FILE *fp;
+FILE *R_OpenSysInitFile(void) {
+  char buf[256];
+  FILE *fp;
 
-    sprintf(buf, "%s/library/base/R/Rprofile", getenv("RHOME"));
-    fp = R_fopen(buf, "r");
-    return fp;
+  sprintf(buf, "%s/library/base/R/Rprofile", getenv("RHOME"));
+  fp = R_fopen(buf, "r");
+  return fp;
 }
 
-FILE *R_OpenSiteFile(void)
-{
-    char buf[256];
-    FILE *fp;
+FILE *R_OpenSiteFile(void) {
+  char buf[256];
+  FILE *fp;
 
-    fp = NULL;
+  fp = NULL;
 
-    if (LoadSiteFile) {
-	if ((fp = R_fopen(getenv("RPROFILE"), "r")))
-	    return fp;
-	sprintf(buf, "%s/etc/Rprofile", getenv("RHOME"));
-	if ((fp = R_fopen(buf, "r")))
-	    return fp;
-    }
+  if (LoadSiteFile) {
+    if ((fp = R_fopen(getenv("RPROFILE"), "r")))
+      return fp;
+    sprintf(buf, "%s/etc/Rprofile", getenv("RHOME"));
+    if ((fp = R_fopen(buf, "r")))
+      return fp;
+  }
 
-    return fp;
+  return fp;
 }
 
 FILE *R_OpenInitFile(void)
 {
-    char buf[256];
-    FILE *fp;
+  char buf[256];
+  FILE *fp;
 
-    fp = NULL;
+  fp = NULL;
 
-    if (LoadInitFile) {
-	if ((fp = R_fopen(".Rprofile", "r")))
-	    return fp;
-	sprintf(buf, "%s/.Rprofile", getenv("HOME"));
-	if ((fp = R_fopen(buf, "r")))
-	    return fp;
-    }
+  if (LoadInitFile) {
+    if ((fp = R_fopen(".Rprofile", "r")))
+      return fp;
+    sprintf(buf, "%s/.Rprofile", getenv("HOME"));
+    if ((fp = R_fopen(buf, "r")))
+      return fp;
+  }
 
-    return fp;
+  return fp;
 }
 
 
@@ -390,172 +385,128 @@ static struct tms timeinfo;
 
 int main(int ac, char **av)
 {
-    int value;
-    char *p;
+  int value;
+  char *p;
 
-    gc_inhibit_torture = 1;
 #ifdef HAVE_TIMES
-    StartTime = times(&timeinfo);
+  StartTime = times(&timeinfo);
 #endif
-    R_Quiet = 0;
+  R_Quiet = 0;
 
-    while(--ac) {
-	if(**++av == '-') {
-	    if (!strcmp(*av, "--version")) {
-		Rprintf("Version %s.%s %s (%s %s, %s)\n",
-			R_MAJOR, R_MINOR, R_STATUS, R_MONTH, R_DAY, R_YEAR);
-		Rprintf("Copyright (C) %s R Core Team\n", R_YEAR);
-		Rprintf("R is free software and comes with ABSOLUTELY NO WARRANTY.\n");
-		Rprintf("You are welcome to redistribute it under the terms of the\n");
-		Rprintf("GNU General Public License.  For more information about\n");
-		Rprintf("these matters, see http://www.gnu.org/copyleft/gpl.html.\n");
-		exit(0);
-	    }
-	    else if(!strcmp(*av, "--save")) {
-		DefaultSaveAction = 3;
-	    }
-	    else if(!strcmp(*av, "--no-save")) {
-		DefaultSaveAction = 2;
-	    }
-	    else if(!strcmp(*av, "--restore")) {
-		DefaultRestoreAction = 1;
-	    }
-	    else if(!strcmp(*av, "--no-restore")) {
-		DefaultRestoreAction = 0;
-	    }
-	    else if(!strcmp(*av, "--no-readline")) {
-		UsingReadline = 0;
-	    }
-	    else if (!strcmp(*av, "--silent") ||
-		     !strcmp(*av, "--quiet") ||
-		     !strcmp(*av, "-q")) {
-		R_Quiet = 1;
-	    }
-	    else if (!strcmp(*av, "--vanilla")) {
-		DefaultSaveAction = 2;/* --no-save */
-		DefaultRestoreAction = 0;/* --no-restore */
-		LoadSiteFile = 0;/* --no-site-file */
-		LoadInitFile = 0;/* --no-init-file */
-	    }
-	    else if (!strcmp(*av, "--verbose")) {
-		R_Verbose = 1;
-	    }
-	    else if (!strcmp(*av, "--slave") ||
-		     !strcmp(*av, "-s")) {
-		R_Quiet = 1;
-		R_Slave = 1;
-		DefaultSaveAction = 2;
-	    }
-	    else if (!strcmp(*av, "--no-site-file")) {
-		LoadSiteFile = 0;
-	    }
-	    else if (!strcmp(*av, "--no-init-file")) {
-		LoadInitFile = 0;
-	    }
-	    else if (!strcmp(*av, "--debug-init")) {
-		DebugInitFile = 1;
-	    }
-	    else if (!strcmp(*av, "-save") ||
-		     !strcmp(*av, "-nosave") ||
-		     !strcmp(*av, "-restore") ||
-		     !strcmp(*av, "-norestore") ||
-		     !strcmp(*av, "-noreadline") ||
-		     !strcmp(*av, "-quiet") ||
-		     !strcmp(*av, "-V")) {
-		REprintf("WARNING: option %s no longer supported\n", *av);
-	    }
-	    else if((*av)[1] == 'v') {
-		REprintf("WARNING: option `-v' is deprecated.  ");
-		REprintf("Use `--vsize' instead.\n");
-		if((*av)[2] == '\0') {
-		    ac--; av++; p = *av;
-		}
-		else p = &(*av)[2];
-		value = strtol(p, &p, 10);
-		if(*p) goto badargs;
-		if(value < 1 || value > 1000)
-		    REprintf("WARNING: invalid vector heap size ignored\n");
-		else
-		    R_VSize = value * 1048576; /* 1 MByte := 2^20 Bytes*/
-	    }
-	    else if (!strcmp(*av, "--vsize")) {
-		ac--; av++; p = *av;
-		value = strtol(p, &p, 10);
-		if(*p) goto badargs;
-		if(value < 1 || value > 1000)
-		    REprintf("WARNING: invalid vector heap size '%d' ignored, using default = %g\n", value, R_VSize / 1048576.0);
-		else
-		    R_VSize = value * 1048576; /* 1 MByte := 2^20 Bytes*/
-	    }
-	    else if((*av)[1] == 'n') {
-		REprintf("WARNING: option `-n' is deprecated.  ");
-		REprintf("Use `--nsize' instead.\n");
-		if((*av)[2] == '\0') {
-		    ac--; av++; p = *av;
-		}
-		else p = &(*av)[2];
-		value = strtol(p, &p, 10);
-		if(*p) goto badargs;
-		if(value < R_NSize || value > 1000000)
-		    REprintf("WARNING: invalid language heap size ignored\n");
-		else
-		    R_NSize = value;
-	    }
-	    else if (!strcmp(*av, "--nsize")) {
-		ac--; av++; p = *av;
-		value = strtol(p, &p, 10);
-		if(*p) goto badargs;
-		if(value < R_NSize || value > 1000000)
-		    REprintf("WARNING: invalid language heap size '%d' ignored, using default = %d\n", value, R_NSize);
-		else
-		    R_NSize = value;
-	    }
-	    else {
-		REprintf("WARNING: unknown option %s\n", *av);
-		break;
-	    }
+  while(--ac) {
+    if(**++av == '-') {
+      if (!strcmp(*av, "-V") || !strcmp(*av, "--version")) {
+	Rprintf("Version %s.%s %s (%s %s, %s)\n",
+		R_MAJOR, R_MINOR, R_STATUS, R_MONTH, R_DAY, R_YEAR);
+	exit(0);
+      }
+      else if(!strcmp(*av, "--save")) {
+	DefaultSaveAction = 3;
+      }
+      else if(!strcmp(*av, "--no-save")) {
+	DefaultSaveAction = 2;
+      }
+      else if(!strcmp(*av, "--restore")) {
+	DefaultRestoreAction = 1;
+      }
+      else if(!strcmp(*av, "--no-restore")) {
+	DefaultRestoreAction = 0;
+      }
+      else if(!strcmp(*av, "--no-readline")) {
+	UsingReadline = 0;
+      }
+      else if(!strcmp(*av, "--quiet") || !strcmp(*av, "-q")) {
+	R_Quiet = 1;
+      }
+      else if (!strcmp(*av, "--slave") || !strcmp(*av, "-s")) {
+	R_Quiet = 1;
+	R_Slave = 1;
+	DefaultSaveAction = 2;
+      }
+      else if (!strcmp(*av, "--no-site-file")) {
+	LoadSiteFile = 0;
+      }
+      else if (!strcmp(*av, "--no-init-file")) {
+	LoadInitFile = 0;
+      }
+      else if (!strcmp(*av, "-save") ||
+	       !strcmp(*av, "-nosave") ||
+	       !strcmp(*av, "-restore") ||
+	       !strcmp(*av, "-norestore") ||
+	       !strcmp(*av, "-noreadline") ||
+	       !strcmp(*av, "-quiet")) {
+	REprintf("WARNING: option %s no longer supported\n", *av);
+      }
+      else if((*av)[1] == 'v') {
+	if((*av)[2] == '\0') {
+	  ac--; av++; p = *av;
 	}
-	else {
-	    printf("ARGUMENT '%s' __ignored__\n", *av);
+	else p = &(*av)[2];
+	value = strtol(p, &p, 10);
+	if(*p) goto badargs;
+	if(value < 1 || value > 1000)
+	  REprintf("WARNING: invalid vector heap size ignored\n");
+	else
+	  R_VSize = value * 1048576; /* 1 MByte := 2^20 Bytes*/
+      }
+      else if((*av)[1] == 'n') {
+	if((*av)[2] == '\0') {
+	  ac--; av++; p = *av;
 	}
+	else p = &(*av)[2];
+	value = strtol(p, &p, 10);
+	if(*p) goto badargs;
+	if(value < R_NSize || value > 1000000)
+	  REprintf("WARNING: invalid language heap size ignored\n");
+	else
+	  R_NSize = value;
+      }
+      else {
+	REprintf("WARNING: unknown option %s\n", *av);
+	break;
+      }
     }
+    else {
+      printf("ARGUMENT %s\n", *av);
+    }
+  }
 
-    /* On Unix the console is a file; we just use stdio to write on it */
+  /* On Unix the console is a file; we just use stdio to write on it */
 
-    R_Interactive = isatty(0);
-    R_Consolefile = stdout;
-    R_Outputfile = stdout;
-    R_Sinkfile = NULL;
+  R_Interactive = isatty(0);
+  R_Consolefile = stdout;
+  R_Outputfile = stdout;
+  R_Sinkfile = NULL;
 
-    if(!R_Interactive && DefaultSaveAction == 0)
-	R_Suicide("you must specify `--save' or `--no-save'");
+  if(!R_Interactive && DefaultSaveAction == 0)
+    R_Suicide("you must specify `--save' or `--no-save'");
 
 #ifdef __FreeBSD__
-    fpsetmask(0);
+  fpsetmask(0);
 #endif
 
 #ifdef linux
-    __setfpucw(_FPU_IEEE);
+  __setfpucw(_FPU_IEEE);
 #endif
 
 #ifdef HAVE_LIBREADLINE
 #ifdef HAVE_READLINE_HISTORY_H
-    if(isatty(0) && UsingReadline)
-	read_history(".Rhistory");
+  if(isatty(0) && UsingReadline)
+    read_history(".Rhistory");
 #endif
 #endif
-    mainloop();
-    /*++++++  in ../main/main.c */
-    return 0;
+  mainloop();
+  /*++++++  in ../main/main.c */
+  return 0;
 
 badargs:
-    REprintf("invalid argument passed to R\n");
-    exit(1);
+  REprintf("invalid argument passed to R\n");
+  exit(1);
 }
 
 void R_InitialData(void)
 {
-    R_RestoreGlobalEnv();
+	R_RestoreGlobalEnv();
 }
 
 	/* R_CleanUp is invoked at the end of the session to give */
@@ -569,57 +520,57 @@ void R_InitialData(void)
 
 void R_CleanUp(int ask)
 {
-    char buf[128];
+	char buf[128];
 
-    if( R_DirtyImage ) {
-    qask:
-	R_ClearerrConsole();
-	R_FlushConsole();
-	if(!isatty(0) && ask==1)
-	    ask = DefaultSaveAction;
+	if( R_DirtyImage ) {
+qask:
+		R_ClearerrConsole();
+		R_FlushConsole();
+		if(!isatty(0) && ask==1)
+			ask = DefaultSaveAction;
 
-	if(ask == 1) {
-	    R_ReadConsole("Save workspace image? [y/n/c]: ",
-			  buf, 128, 0);
-	}
-	else if(ask == 2)
-	    buf[0] = 'n';
-	else if (ask == 3)
-	    buf[0] = 'y';
+		if(ask == 1) {
+			R_ReadConsole("Save workspace image? [y/n/c]: ",
+				buf, 128, 0);
+		}
+		else if(ask == 2)
+			buf[0] = 'n';
+		else if (ask == 3)
+			buf[0] = 'y';
 
-	switch (buf[0]) {
-	case 'y':
-	case 'Y':
-	    R_SaveGlobalEnv();
+		switch (buf[0]) {
+		case 'y':
+		case 'Y':
+			R_SaveGlobalEnv();
 #ifdef HAVE_LIBREADLINE
 #ifdef HAVE_READLINE_HISTORY_H
-	    if(isatty(0) && UsingReadline)
-		write_history(".Rhistory");
+			if(isatty(0) && UsingReadline)
+				write_history(".Rhistory");
 #endif
 #endif
-	    break;
-	case 'n':
-	case 'N':
-	    break;
-	case 'c':
-	case 'C':
-	    jump_to_toplevel();
-	    break;
-	default:
-	    goto qask;
+			break;
+		case 'n':
+		case 'N':
+			break;
+		case 'c':
+		case 'C':
+			jump_to_toplevel();
+			break;
+		default:
+			goto qask;
+		}
 	}
-    }
-    KillAllDevices();
+	KillAllDevices();
 
 #ifdef __FreeBSD__
-    fpsetmask(~0);
+	fpsetmask(~0);
 #endif
 
 #ifdef linux
-    __setfpucw(_FPU_DEFAULT);
+	__setfpucw(_FPU_DEFAULT);
 #endif
 
-    exit(0);
+	exit(0);
 }
 
 void R_Busy(int which)
@@ -630,25 +581,25 @@ void R_Busy(int which)
 
 void R_SaveGlobalEnv(void)
 {
-    FILE *fp = R_fopen(".RData", "w");
-    if (!fp)
-	error("can't save data -- unable to open ./.RData\n");
-    R_SaveToFile(FRAME(R_GlobalEnv), fp, 0);
-    fclose(fp);
+	FILE *fp = R_fopen(".RData", "w");
+	if (!fp)
+		error("can't save data -- unable to open ./.RData\n");
+	R_SaveToFile(FRAME(R_GlobalEnv), fp, 0);
+	fclose(fp);
 }
 
 void R_RestoreGlobalEnv(void)
 {
-    FILE *fp;
-    if(DefaultRestoreAction) {
-	if(!(fp = R_fopen(".RData","r"))) {
-	    /* warning here perhaps */
-	    return;
+	FILE *fp;
+	if(DefaultRestoreAction) {
+		if(!(fp = R_fopen(".RData","r"))) {
+			/* warning here perhaps */
+			return;
+		}
+		if(!R_Quiet)
+			Rprintf("[Previously saved workspace restored]\n\n");
+		FRAME(R_GlobalEnv) = R_LoadFromFile(fp);
 	}
-	FRAME(R_GlobalEnv) = R_LoadFromFile(fp);
-	if(!R_Quiet)
-	    Rprintf("[Previously saved workspace restored]\n\n");
-    }
 }
 
 
@@ -666,143 +617,142 @@ void R_RestoreGlobalEnv(void)
 
 #endif
 
+extern char ** environ;
 
 
 SEXP do_proctime(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP ans;
-    clock_t elapsed;
-    elapsed = (times(&timeinfo) - StartTime) / (double)CLK_TCK;
-    ans = allocVector(REALSXP, 5);
-    REAL(ans)[0] = timeinfo.tms_utime / (double)CLK_TCK;
-    REAL(ans)[1] = timeinfo.tms_stime / (double)CLK_TCK;
-    REAL(ans)[2] = elapsed;
-    REAL(ans)[3] = timeinfo.tms_cutime / (double)CLK_TCK;
-    REAL(ans)[4] = timeinfo.tms_cstime / (double)CLK_TCK;
-    return ans;
+	SEXP ans;
+	clock_t elapsed;
+	elapsed = (times(&timeinfo) - StartTime) / (double)CLK_TCK;
+	ans = allocVector(REALSXP, 5);
+	REAL(ans)[0] = timeinfo.tms_utime / (double)CLK_TCK;
+	REAL(ans)[1] = timeinfo.tms_stime / (double)CLK_TCK;
+	REAL(ans)[2] = elapsed;
+	REAL(ans)[3] = timeinfo.tms_cutime / (double)CLK_TCK;
+	REAL(ans)[4] = timeinfo.tms_cstime / (double)CLK_TCK;
+	return ans;
 }
 #endif
-extern char ** environ;
 
-SEXP do_getenv(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    int i, j;
-    char *s;
-    char **e;
-    SEXP ans;
+SEXP do_getenv(SEXP call, SEXP op, SEXP args, SEXP env) {
+  int i, j;
+  char *s;
+  char **e;
+  SEXP ans;
 
-    checkArity(op, args);
+  checkArity(op, args);
 
-    if(!isString(CAR(args)))
-	errorcall(call, "wrong type for argument\n");
+  if(!isString(CAR(args)))
+    errorcall(call, "wrong type for argument\n");
 
-    i = LENGTH(CAR(args));
-    if (i == 0) {
-	for (i = 0, e = environ; *e != NULL; i++, e++);
-	PROTECT(ans = allocVector(STRSXP, i));
-	for (i = 0, e = environ; *e != NULL; i++, e++)
-	    STRING(ans)[i] = mkChar(*e);
-    } else {
-	PROTECT(ans = allocVector(STRSXP,i));
-	for (j = 0; j < i; j++) {
-	    s = getenv(CHAR(STRING(CAR(args))[j]));
-	    if (s == NULL)
-		STRING(ans)[j] = mkChar("");
-	    else
-		STRING(ans)[j] = mkChar(s);
-	}
+  i = LENGTH(CAR(args));
+  if (i == 0) {
+    for (i = 0, e = environ; *e != NULL; i++, e++);
+    PROTECT(ans = allocVector(STRSXP, i));
+    for (i = 0, e = environ; *e != NULL; i++, e++)
+      STRING(ans)[i] = mkChar(*e);
+  } else {
+    PROTECT(ans = allocVector(STRSXP,i));
+    for (j = 0; j < i; j++) {
+      s = getenv(CHAR(STRING(CAR(args))[j]));
+      if (s == NULL)
+	STRING(ans)[j] = mkChar("");
+      else
+	STRING(ans)[j] = mkChar(s);
     }
-    UNPROTECT(1);
-    return(ans);
+  }
+  UNPROTECT(1);
+  return(ans);
 }
 
 SEXP do_machine(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    return mkString("Unix");
+	return mkString("Unix");
 }
 
 SEXP do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    FILE *fp;
-    char *x = "r", buf[120];
-    int read=0, i, j;
-    SEXP tlist = R_NilValue, tchar, rval;
+	FILE *fp;
+	char *x = "r", buf[120];
+	int read=0, i, j;
+	SEXP tlist = R_NilValue, tchar, rval;
 
-    checkArity(op, args);
-    if (!isString(CAR(args)))
-	errorcall(call, "character argument expected\n");
-    if (isLogical(CADR(args)))
-	read = INTEGER(CADR(args))[0];
-    if (read) {
-	PROTECT(tlist);
-	fp = popen(CHAR(STRING(CAR(args))[0]), x);
-	for (i = 0; fgets(buf, 120, fp); i++) {
-	    read = strlen(buf);
-	    buf[read - 1] = '\0';
-	    tchar = mkChar(buf);
-	    UNPROTECT(1);
-	    PROTECT(tlist = CONS(tchar, tlist));
+	checkArity(op, args);
+	if (!isString(CAR(args)))
+		errorcall(call, "character argument expected\n");
+	if (isLogical(CADR(args)))
+		read = INTEGER(CADR(args))[0];
+	if (read) {
+		PROTECT(tlist);
+		fp = popen(CHAR(STRING(CAR(args))[0]), x);
+		for (i = 0; fgets(buf, 120, fp); i++) {
+			read = strlen(buf);
+			buf[read - 1] = '\0';
+			tchar = mkChar(buf);
+			UNPROTECT(1);
+			PROTECT(tlist = CONS(tchar, tlist));
+		}
+		pclose(fp);
+		rval = allocVector(STRSXP, i);;
+		for (j = (i - 1); j >= 0; j--) {
+			STRING(rval)[j] = CAR(tlist);
+			tlist = CDR(tlist);
+		}
+		UNPROTECT(1);
+		return (rval);
 	}
-	pclose(fp);
-	rval = allocVector(STRSXP, i);;
-	for (j = (i - 1); j >= 0; j--) {
-	    STRING(rval)[j] = CAR(tlist);
-	    tlist = CDR(tlist);
+	else {
+		tlist = allocVector(INTSXP, 1);
+		fflush(stdout);
+		INTEGER(tlist)[0] = system(CHAR(STRING(CAR(args))[0]));
+		R_Visible = 0;
+		return tlist;
 	}
-	UNPROTECT(1);
-	return (rval);
-    }
-    else {
-	tlist = allocVector(INTSXP, 1);
-	fflush(stdout);
-	INTEGER(tlist)[0] = system(CHAR(STRING(CAR(args))[0]));
-	R_Visible = 0;
-	return tlist;
-    }
 }
 
 SEXP do_interactive(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP rval;
+	SEXP rval;
 
-    rval=allocVector(LGLSXP, 1);
-    if( isatty(0) )
-	LOGICAL(rval)[0]=1;
-    else
-	LOGICAL(rval)[0]=0;
-    return rval;
+	rval=allocVector(LGLSXP, 1);
+	if( isatty(0) )
+		LOGICAL(rval)[0]=1;
+	else
+		LOGICAL(rval)[0]=0;
+	return rval;
 }
 
 SEXP do_quit(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    char *tmp;
-    int ask=0;
+	char *tmp;
+	int ask=0;
 
-    if(R_BrowseLevel) {
-	warning("can't quit from browser\n");
-	return R_NilValue;
-    }
-    if( !isString(CAR(args)) )
-	errorcall(call,"one of \"yes\", \"no\" or \"ask\" expected.\n");
-    tmp = CHAR(STRING(CAR(args))[0]);
-    if( !strcmp(tmp,"ask") )
-	ask=1;
-    else if( !strcmp(tmp,"no") )
-	ask=2;
-    else if( !strcmp(tmp,"yes") )
-	ask=3;
-    else
-	errorcall(call,"unrecognized value of ask\n");
-    R_CleanUp(ask);
-    exit(0);
-    /*NOTREACHED*/
+	if(R_BrowseLevel) {
+		warning("can't quit from browser\n");
+		return R_NilValue;
+	}
+	if( !isString(CAR(args)) )
+		errorcall(call,"one of \"yes\", \"no\" or \"ask\" expected.\n");
+	tmp = CHAR(STRING(CAR(args))[0]);
+	if( !strcmp(tmp,"ask") )
+		ask=1;
+	else if( !strcmp(tmp,"no") )
+		ask=2;
+	else if( !strcmp(tmp,"yes") )
+		ask=3;
+	else
+		errorcall(call,"unrecognized value of ask\n");
+	R_CleanUp(ask);
+	exit(0);
+	/*NOTREACHED*/
 }
 
 void R_Suicide(char *s)
 {
-    REprintf("Fatal error: %s\n", s);
-    R_CleanUp(2);
-    /*	 2 means don't save anything and it's an unrecoverable abort */
+	REprintf("Fatal error: %s\n", s);
+	R_CleanUp(2);
+	/*	 2 means don't save anything and it's an unrecoverable abort */
 }
 
 

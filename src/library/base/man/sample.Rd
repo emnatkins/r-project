@@ -1,7 +1,7 @@
 \name{sample}
 \title{Random Samples and Permutations}
 \usage{
-sample(x, size, replace=FALSE, prob)
+sample(x, size, replace=FALSE)
 }
 \alias{sample}
 \description{
@@ -15,10 +15,6 @@ of the elements of \code{x}.
 
 If \code{x} has length 1, sampling takes place from
 \code{1:x}.
-
-The optional \code{prob} agrument can be used to give a vector
-of probabilities of obtaining the elements of the vector being
-sampled.
 }
 \examples{
 x <- 1:12

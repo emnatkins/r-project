@@ -1,21 +1,19 @@
 \name{postscript}
 \title{PostScript Graphics}
 \usage{
-postscript(file = "Rplots.ps", \dots)
-%  paper, horizontal, width, height, family, pointsize, bg, fg)
-ps.options(\dots, reset = FALSE, override.check = FALSE)
-% (paper, horizontal, width, height, family, pointsize, bg, fg,
-%            onefile = TRUE, print.it = FALSE, append = FALSE,
+postscript(file = "Rplots.ps", paper, horizontal, width, height,
+           family, pointsize, bg, fg)
+ps.options(paper, horizontal, width, height, family, pointsize, bg, fg,
+           onefile = TRUE, print.it = FALSE, append = FALSE)
 .PostScript.Options
 }
 \alias{postscript}
 \alias{ps.options}
 \alias{.PostScript.Options}
 \arguments{
-\item{file}{a character string giving the name of the file to print to.}
-\item{\dots}{further options for \code{postscript()}.}
+\item{file}{a character string giving the name of a file to print to.}
 \item{paper}{the size of paper in the printer.  The choices are
-  \code{"a4"}, \code{"letter"}, \code{"legal"} and \code{"executive"}.}
+\code{"a4"}, \code{"letter"}, \code{"legal"} and \code{"executive"}.}
 \item{horizontal}{the orientation of the printed image, a logical.}
 \item{width,height}{the width, and height of the graphics region in inches.
 The default is to use the entire page.}
@@ -27,21 +25,17 @@ The default is to use the entire page.}
 \item{pointsize}{the default point size to be used.}
 \item{bg}{the default background color to be used.}
 \item{fg}{the default foreground color to be used.}
-\item{onefile, print.it, append}{logical; are currently \bold{all
-    disregarded}; just there for compatibility reasons.}
 }
-%%>>> REAL DOC in SOURCE:    ../../../main/devices.c  &   ../../../unix/devPS.c
 \description{
-\code{postscript} starts the graphics device driver for producing
-PostScript graphics.
-The auxiliary function \code{ps.options} can be used to set and view
-(if called without arguments)
-default values for the arguments to \code{postscript}.
-}
-\details{\code{postscript(..)} opens the file \code{file} and the
+\code{postscript} start the graphics device driver for producing
+PostScript graphics.  The file \code{file} is opened and the
 PostScript commands needed to plot any graphics requested are
 stored in that file.
 This file can then be printed on a suitable device to obtain hard copy.
+
+The auxiliary function \code{ps.options} can be used to set and view
+(if called without arguments)
+default values for the arguments to \code{postscript}.
 
 The postscript produced by \R is EPS (\emph{Encapsulated PostScript})
 compatible, and can be included into other documents, e.g. into LaTeX, using
@@ -51,13 +45,11 @@ compatible, and can be included into other documents, e.g. into LaTeX, using
 \code{\link{x11}}, \code{\link{macintosh}}, \code{\link{Devices}}.
 }
 \examples{
-\dontrun{
- # open the file "foo.ps" for graphics output
- postscript("foo.ps")
-}
-\testonly{xx <- seq(0, 7, length=701); yy <- sin(xx)/xx}
+# open the file "foo.ps" for graphics output
+postscript("foo.ps")
+
 plot(xx,yy)# produce the desired graph(s)
-\dontrun{dev.off()# turn off the postscript device}
+## dev.off()# turn off the postscript device
 
 all(unlist(ps.options()) == unlist(.PostScript.Options))
 str(ps.options(reset = TRUE))

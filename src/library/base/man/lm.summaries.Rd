@@ -12,7 +12,6 @@ formula(x)
 fitted.values(x)
 residuals(x)
 weights(x)
-plot(x)
 
 print.summary(summary.lm.obj, digits = max(3, .Options$digits - 3),
               symbolic.cor = p > 4,
@@ -32,11 +31,11 @@ print.summary(summary.lm.obj, digits = max(3, .Options$digits - 3),
 \alias{residuals.lm}
 \alias{weights}
 \alias{weights.lm}
-\alias{plot.lm}
 \alias{print.lm}
 \alias{print.lm.null}
 \alias{print.summary.lm}
 \alias{print.summary.lm.null}
+\alias{print.anova.lm}
 \arguments{
   \item{object,x}{an object of class \code{lm}, usually, a result of
     \code{\link{lm}(..)}.}
@@ -98,7 +97,6 @@ The model fitting function \code{\link{lm}}.
 \code{\link{residuals}}, \code{\link{summary}}.
 }
 \examples{
-\testonly{example("lm", echo = FALSE)}
 ##-- Continuing the  lm(.) example:
 coef(lm.D90)# the bare coefficients
 sld90 <- summary(lm.D90 <- lm(weight ~ group -1))# omitting intercept
@@ -110,5 +108,7 @@ plot(resid(lm.D90), fitted(lm.D90))# Tukey-Anscombe's
 abline(h=0, lty=2, col = 'gray')
 
 qqnorm(residuals(lm.D90))
+
+
 }
 \keyword{regression}

@@ -1,20 +1,11 @@
-#
 # ${RHOME}/src/appl/Makefile
 
-VPATH = @srcdir@
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 
-top_builddir = ../..
-subdir = src/appl
+include $(top_srcdir)/Makeconf
 
-include $(top_builddir)/Makeconf
-
-distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-DISTFILES = $(shell cd $(srcdir); \
-	       ls COPYRIGHT COPYRIGHT.ftn Makefile.in ROUTINES *.[cfh])
-
-OBJS = \
+OBJ= \
 	approx.o \
 	bakslv.o \
 	binning.o \
@@ -51,26 +42,15 @@ OBJS = \
 	uncmin.o \
 	zeroin.o
 
-LIB = libappl.a
+LIB=		../lib/libappl.a
 
-all: R
+$(LIB):		$(OBJ)
+		$(AR) cr $(LIB) $(OBJ)
+		$(RANLIB) $(LIB)
 
-R: $(LIB)
-
-$(LIB):	$(OBJS)
-	$(AR) cr $(LIB) $(OBJS)
-	$(RANLIB) $(LIB)
-
-mostlyclean: clean
 clean:
-	@-rm -f *.o *.a
-distclean: clean
-	@-rm -f Makefile
-maintainer-clean: distclean
+		@echo Cleaning in src/appl
+		@-rm -f *.o *.a
 
-distdir: $(DISTFILES)
-	@for f in $(DISTFILES); do \
-	  test -f $(distdir)/$${f} \
-	    || ln $(srcdir)/$${f} $(distdir)/$${f} 2>/dev/null \
-	    || cp -p $(srcdir)/$${f} $(distdir)/$${f}; \
-	done
+realclean:	clean
+		@-rm -f Makefile

@@ -37,7 +37,7 @@ static SEGP *ctr_SegDB;
 
 static int ctr_intersect(double z0, double z1, double zc, double *f)
 {
-    if ((z0 - zc) * (z1 - zc) < 0.0) {
+    if((z0 - zc) * (z1 - zc) < 0.0) {
 	*f = (zc - z0) / (z1 -	z0);
 	return 1;
     }
@@ -80,30 +80,25 @@ static void ctr_swapseg(SEGP seg)
 static double ctr_xtol;
 static double ctr_ytol;
 
-static int ctr_segdir(double xend, double yend, double *x, double *y,
-		      int *i, int *j, int nx, int ny)
+static int ctr_segdir(double xend, double yend, double *x, double *y, int *i, int *j, int nx, int ny)
 {
-    if (YMATCH(yend, y[*j])) {
-	if (*j == 0)
-	    return 0;
+    if(YMATCH(yend, y[*j])) {
+	if(*j == 0) return 0;
 	*j = *j - 1;
 	return 3;
     }
-    if (XMATCH(xend, x[*i])) {
-	if (*i == 0)
-	    return 0;
+    if(XMATCH(xend, x[*i])) {
+	if(*i == 0) return 0;
 	*i = *i - 1;
 	return 4;
     }
-    if (YMATCH(yend, y[*j + 1])) {
-	if (*j >= ny - 1)
-	    return 0;
+    if(YMATCH(yend, y[*j+1])) {
+	if(*j >= ny - 1) return 0;
 	*j = *j + 1;
 	return 1;
     }
-    if (XMATCH(xend, x[*i + 1])) {
-	if (*i >= nx - 1)
-	    return 0;
+    if(XMATCH(xend, x[*i+1])) {
+	if(*i >= nx - 1) return 0;
 	*i = *i + 1;
 	return 2;
     }
@@ -116,40 +111,35 @@ static int ctr_segdir(double xend, double yend, double *x, double *y,
 /* is pointed to by seg and the updated segment list (with */
 /* the matched segment stripped is returned by the funtion. */
 
-static SEGP ctr_segupdate(double xend, double yend, int dir, int tail,
-			  SEGP seglist, SEGP* seg)
+static SEGP ctr_segupdate(double xend, double yend, int dir, int tail, SEGP seglist, SEGP* seg)
 {
-    if (seglist == NULL) {
+    if(seglist == NULL) {
 	*seg = NULL;
 	return NULL;
     }
-    switch (dir) {
+    switch(dir) {
     case 1:
     case 3:
-	if (YMATCH(yend,seglist->y0)) {
-	    if (!tail)
-		ctr_swapseg(seglist);
+	if(YMATCH(yend,seglist->y0)) {
+	    if(!tail) ctr_swapseg(seglist);
 	    *seg = seglist;
 	    return seglist->next;
 	}
-	if (YMATCH(yend,seglist->y1)) {
-	    if (tail)
-		ctr_swapseg(seglist);
+	if(YMATCH(yend,seglist->y1)) {
+	    if(tail) ctr_swapseg(seglist);
 	    *seg = seglist;
 	    return seglist->next;
 	}
 	break;
     case 2:
     case 4:
-	if (XMATCH(xend,seglist->x0)) {
-	    if (!tail)
-		ctr_swapseg(seglist);
+	if(XMATCH(xend,seglist->x0)) {
+	    if(!tail) ctr_swapseg(seglist);
 	    *seg = seglist;
 	    return seglist->next;
 	}
-	if (XMATCH(xend,seglist->x1)) {
-	    if (tail)
-		ctr_swapseg(seglist);
+	if(XMATCH(xend,seglist->x1)) {
+	    if(tail) ctr_swapseg(seglist);
 	    *seg = seglist;
 	    return seglist->next;
 	}
@@ -168,17 +158,17 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, double zc,
     SEGP seglist, seg, s, start, end;
     double *xxx, *yyy;
 
-    for (i = 0; i < nx - 1; i++) {
+    for(i=0 ; i<nx-1 ; i++) {
 	xl = REAL(x)[i];
-	xh = REAL(x)[i + 1];
-	for (j = 0; j < ny - 1; j++) {
+	xh = REAL(x)[i+1];
+	for(j=0 ; j<ny-1 ; j++) {
 	    yl = REAL(y)[j];
-	    yh = REAL(y)[j + 1];
-	    k = i + j * nx;
+	    yh = REAL(y)[j+1];
+	    k = i+j*nx;
 	    zll = REAL(z)[k];
-	    zhl = REAL(z)[k + 1];
-	    zlh = REAL(z)[k + nx];
-	    zhh = REAL(z)[k + nx + 1];
+	    zhl = REAL(z)[k+1];
+	    zlh = REAL(z)[k+nx];
+	    zhh = REAL(z)[k+nx+1];
 	    k = 0;
 
 	    /* If the value at a corner is */
@@ -186,93 +176,93 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, double zc,
 	    /* level, change the value at */
 	    /* corner by a tiny amount. */
 
-	    if (zll == zc) zll = zll + atom;
-	    if (zhl == zc) zhl = zhl + atom;
-	    if (zlh == zc) zlh = zlh + atom;
-	    if (zhh == zc) zhh = zhh + atom;
+	    if(zll == zc) zll = zll + atom;
+	    if(zhl == zc) zhl = zhl + atom;
+	    if(zlh == zc) zlh = zlh + atom;
+	    if(zhh == zc) zhh = zhh + atom;
 
 	    /* Check for intersections with sides */
 
 	    nacode = 0;
-	    if (FINITE(zll)) nacode += 1;
-	    if (FINITE(zhl)) nacode += 2;
-	    if (FINITE(zlh)) nacode += 4;
-	    if (FINITE(zhh)) nacode += 8;
+	    if(FINITE(zll)) nacode += 1;
+	    if(FINITE(zhl)) nacode += 2;
+	    if(FINITE(zlh)) nacode += 4;
+	    if(FINITE(zhh)) nacode += 8;
 
-	    switch (nacode) {
+	    switch(nacode) {
 	    case 15:
-		if (ctr_intersect(zll, zhl, zc, &f)) {
+		if(ctr_intersect(zll, zhl, zc, &f)) {
 		    xx[k] = xl + f * (xh - xl);
 		    yy[k] = yl; k++;
 		}
-		if (ctr_intersect(zll, zlh, zc, &f)) {
+		if(ctr_intersect(zll, zlh, zc, &f)) {
 		    yy[k] = yl + f * (yh - yl);
 		    xx[k] = xl; k++;
 		}
-		if (ctr_intersect(zhl, zhh, zc, &f)) {
+		if(ctr_intersect(zhl, zhh, zc, &f)) {
 		    yy[k] = yl + f * (yh - yl);
 		    xx[k] = xh; k++;
 		}
-		if (ctr_intersect(zlh, zhh, zc, &f)) {
+		if(ctr_intersect(zlh, zhh, zc, &f)) {
 		    xx[k] = xl + f * (xh - xl);
 		    yy[k] = yh; k++;
 		}
 		break;
 	    case 14:
-		if (ctr_intersect(zhl, zhh, zc, &f)) {
+		if(ctr_intersect(zhl, zhh, zc, &f)) {
 		    yy[k] = yl + f * (yh - yl);
 		    xx[k] = xh; k++;
 		}
-		if (ctr_intersect(zlh, zhh, zc, &f)) {
+		if(ctr_intersect(zlh, zhh, zc, &f)) {
 		    xx[k] = xl + f * (xh - xl);
 		    yy[k] = yh; k++;
 		}
-		if (ctr_intersect(zlh, zhl, zc, &f)) {
+		if(ctr_intersect(zlh, zhl, zc, &f)) {
 		    xx[k] = xl + f * (xh - xl);
 		    yy[k] = yh + f * (yl - yh);
 		    k++;
 		}
 		break;
 	    case 13:
-		if (ctr_intersect(zll, zlh, zc, &f)) {
+		if(ctr_intersect(zll, zlh, zc, &f)) {
 		    yy[k] = yl + f * (yh - yl);
 		    xx[k] = xl; k++;
 		}
-		if (ctr_intersect(zlh, zhh, zc, &f)) {
+		if(ctr_intersect(zlh, zhh, zc, &f)) {
 		    xx[k] = xl + f * (xh - xl);
 		    yy[k] = yh; k++;
 		}
-		if (ctr_intersect(zll, zhh, zc, &f)) {
+		if(ctr_intersect(zll, zhh, zc, &f)) {
 		    xx[k] = xl + f * (xh - xl);
 		    yy[k] = yl + f * (yh - yl);
 		    k++;
 		}
 		break;
 	    case 11:
-		if (ctr_intersect(zhl, zhh, zc, &f)) {
+		if(ctr_intersect(zhl, zhh, zc, &f)) {
 		    yy[k] = yl + f * (yh - yl);
 		    xx[k] = xh; k++;
 		}
-		if (ctr_intersect(zll, zhl, zc, &f)) {
+		if(ctr_intersect(zll, zhl, zc, &f)) {
 		    xx[k] = xl + f * (xh - xl);
 		    yy[k] = yl; k++;
 		}
-		if (ctr_intersect(zll, zhh, zc, &f)) {
+		if(ctr_intersect(zll, zhh, zc, &f)) {
 		    xx[k] = xl + f * (xh - xl);
 		    yy[k] = yl + f * (yh - yl);
 		    k++;
 		}
 		break;
 	    case 7:
-		if (ctr_intersect(zll, zlh, zc, &f)) {
+		if(ctr_intersect(zll, zlh, zc, &f)) {
 		    yy[k] = yl + f * (yh - yl);
 		    xx[k] = xl; k++;
 		}
-		if (ctr_intersect(zll, zhl, zc, &f)) {
+		if(ctr_intersect(zll, zhl, zc, &f)) {
 		    xx[k] = xl + f * (xh - xl);
 		    yy[k] = yl; k++;
 		}
-		if (ctr_intersect(zlh, zhl, zc, &f)) {
+		if(ctr_intersect(zlh, zhl, zc, &f)) {
 		    xx[k] = xl + f * (xh - xl);
 		    yy[k] = yh + f * (yl - yh);
 		    k++;
@@ -285,21 +275,21 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, double zc,
 
 	    seglist = NULL;
 
-	    if (k > 0) {
-		if (k == 2) {
+	    if(k > 0) {
+		if(k == 2) {
 		    seglist = ctr_newseg(xx[0], yy[0], xx[1], yy[1], seglist);
 		}
-		else if (k == 4) {
-		    for (k = 3; k >= 1; k--) {
+		else if(k == 4) {
+		    for(k=3 ; k>=1 ; k--) {
 			m = k;
 			xl = xx[k];
-			for (l = 0; l < k; l++) {
-			    if (xx[l] > xl) {
+			for(l=0 ; l<k ; l++) {
+			    if(xx[l] > xl) {
 				xl = xx[l];
 				m = l;
 			    }
 			}
-			if (m != k) {
+			if(m != k) {
 			    xl = xx[k];
 			    yl = yy[k];
 			    xx[k] = xx[m];
@@ -313,7 +303,7 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, double zc,
 		}
 		else error("k != 2 or 4\n");
 	    }
-	    ctr_SegDB[i + j * nx] = seglist;
+	    ctr_SegDB[i+j*nx] = seglist;
 	}
     }
 
@@ -324,20 +314,17 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, double zc,
     /* 3. Follow its head */
     /* 4. Draw the contour */
 
-    for (i = 0; i < nx - 1; i++)
-	for (j = 0; j < ny - 1; j++) {
-	    while ((seglist = ctr_SegDB[i + j * nx])) {
+    for(i=0 ; i<nx-1 ; i++)
+	for(j=0 ; j<ny-1 ; j++) {
+	    while((seglist = ctr_SegDB[i+j*nx])) {
 		ii = i; jj = j;
 		start = end = seglist;
-		ctr_SegDB[i + j * nx] = seglist->next;
+		ctr_SegDB[i+j*nx] = seglist->next;
 		xend = seglist->x1;
 		yend = seglist->y1;
-		while ((dir = ctr_segdir(xend, yend, REAL(x), REAL(y),
-				       &ii, &jj, nx, ny))) {
-		    ctr_SegDB[ii + jj * nx]
-			= ctr_segupdate(xend, yend, dir, 1,
-					ctr_SegDB[ii + jj * nx], &seg);
-		    if (!seg) break;
+		while((dir=ctr_segdir(xend, yend, REAL(x), REAL(y), &ii, &jj, nx, ny))) {
+		    ctr_SegDB[ii+jj*nx] = ctr_segupdate(xend, yend, dir, 1, ctr_SegDB[ii+jj*nx], &seg);
+		    if(!seg) break;
 		    end->next = seg;
 		    end = seg;
 		    xend = end->x1;
@@ -346,12 +333,9 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, double zc,
 		ii = i; jj = j;
 		xend = seglist->x0;
 		yend = seglist->y0;
-		while ((dir = ctr_segdir(xend, yend, REAL(x), REAL(y),
-				       &ii, &jj, nx, ny))) {
-		    ctr_SegDB[ii + jj * nx]
-			= ctr_segupdate(xend, yend, dir, 0,
-					ctr_SegDB[ii+jj*nx], &seg);
-		    if (!seg) break;
+		while((dir=ctr_segdir(xend, yend, REAL(x), REAL(y), &ii, &jj, nx, ny))) {
+		    ctr_SegDB[ii+jj*nx] = ctr_segupdate(xend, yend, dir, 0, ctr_SegDB[ii+jj*nx], &seg);
+		    if(!seg) break;
 		    seg->next = start;
 		    start = seg;
 		    xend = start->x0;
@@ -359,7 +343,7 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, double zc,
 		}
 		s = start;
 		ns = 0;
-		while (s) {
+		while(s) {
 		    ns++;
 		    s = s->next;
 		}
@@ -367,16 +351,16 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, double zc,
 		/* countour midpoint */
 		/* use for labelling sometime */
 
-		if (ns > 3) ns2 = ns/2;
+		if(ns > 3) ns2 = ns/2;
 		else ns2 = -1;
 
 		s = start;
-		xxx = (double *) C_alloc(ns + 1, sizeof(double));
-		yyy = (double *) C_alloc(ns + 1, sizeof(double));
+		xxx = (double *) C_alloc(ns+1, sizeof(double));
+		yyy = (double *) C_alloc(ns+1, sizeof(double));
 		ns = 0;
 		xxx[ns] = s->x0;
 		yyy[ns++] = s->y0;
-		while (s->next) {
+		while(s->next) {
 		    s = s->next;
 		    xxx[ns] = s->x0;
 		    yyy[ns++] = s->y0;
@@ -405,8 +389,7 @@ SEXP do_contour(SEXP call, SEXP op, SEXP args, SEXP env)
 
     GCheckState(dd);
 
-    if (length(args) < 4)
-	errorcall(call, "too few arguments\n");
+    if(length(args) < 4) errorcall(call, "too few arguments\n");
 
     oargs = args;
 
@@ -437,46 +420,46 @@ SEXP do_contour(SEXP call, SEXP op, SEXP args, SEXP env)
 
     /* col, lwd and lty vectors here --- FIXME: "lwd" ???? */
 
-    if (nx < 2 || ny < 2)
+    if(nx < 2 || ny < 2)
 	errorcall(call, "insufficient x or y values\n");
 
-    if (nrows(z) != nx || ncols(z) != ny)
+    if(nrows(z) != nx || ncols(z) != ny)
 	errorcall(call, "dimension mismatch\n");
 
-    if (nc < 1)
+    if(nc < 1)
 	errorcall(call, "no contour values\n");
 
-    for (i = 0; i < nx; i++) {
-	if (!FINITE(REAL(x)[i]))
+    for(i=0 ; i<nx ; i++) {
+	if(!FINITE(REAL(x)[i]))
 	    errorcall(call, "missing x values\n");
-	if (i > 0 && REAL(x)[i] < REAL(x)[i - 1])
+	if(i > 0 && REAL(x)[i] < REAL(x)[i-1])
 	    errorcall(call, "increasing x values expected\n");
     }
 
-    for (i = 0; i < ny; i++) {
-	if (!FINITE(REAL(y)[i]))
+    for(i=0 ; i<ny ; i++) {
+	if(!FINITE(REAL(y)[i]))
 	    errorcall(call, "missing y values\n");
-	if (i > 0 && REAL(y)[i] < REAL(y)[i - 1])
+	if(i > 0 && REAL(y)[i] < REAL(y)[i-1])
 	    errorcall(call, "increasing y values expected\n");
     }
 
     ctr_xtol = 1e-3 * fabs(REAL(x)[nx-1]-REAL(x)[0]);
     ctr_ytol = 1e-3 * fabs(REAL(y)[ny-1]-REAL(y)[0]);
 
-    for (i = 0; i < nc; i++)
-	if (!FINITE(REAL(c)[i]))
+    for(i=0 ; i<nc ; i++)
+	if(!FINITE(REAL(c)[i]))
 	    errorcall(call, "illegal NA contour values\n");
 
     zmin = DBL_MAX;
     zmax = DBL_MIN;
-    for (i = 0; i < nx * ny; i++)
-	if (FINITE(REAL(z)[i])) {
-	    if (zmax < REAL(z)[i]) zmax =  REAL(z)[i];
-	    if (zmin > REAL(z)[i]) zmin =  REAL(z)[i];
+    for(i=0 ; i<nx*ny ; i++)
+	if(FINITE(REAL(z)[i])) {
+	    if(zmax < REAL(z)[i]) zmax =  REAL(z)[i];
+	    if(zmin > REAL(z)[i]) zmin =  REAL(z)[i];
 	}
 
-    if (zmin >= zmax) {
-	if (zmin == zmax)
+    if(zmin >= zmax) {
+	if(zmin == zmax)
 	    warning("all z values are equal\n");
 	else
 	    warning("all z values are NA\n");
@@ -495,20 +478,20 @@ SEXP do_contour(SEXP call, SEXP op, SEXP args, SEXP env)
     vmax0 = vmaxget();
     ctr_SegDB = (SEGP*)R_alloc(nx*ny, sizeof(SEGP));
 
-    for (i = 0; i < nx; i++)
-	for (j = 0; j < ny; j++)
-	    ctr_SegDB[i + j * nx] = NULL;
+    for(i=0 ; i<nx ; i++)
+	for(j=0 ; j<ny ; j++)
+	    ctr_SegDB[i+j*nx] = NULL;
 
     /* Draw the contours -- note the heap release */
 
     ltysave = dd->gp.lty;
     colsave = dd->gp.col;
-    for (i = 0; i < nc; i++) {
+    for(i=0 ; i<nc ; i++) {
 	vmax = vmaxget();
-	dd->gp.lty = INTEGER(lty)[i % nlty];
+	dd->gp.lty = INTEGER(lty)[i%nlty];
 	if (dd->gp.lty == NA_INTEGER)
 	    dd->gp.lty = ltysave;
-	dd->gp.col = INTEGER(col)[i % ncol];
+	dd->gp.col = INTEGER(col)[i%ncol];
 	if (dd->gp.col == NA_INTEGER)
 	    dd->gp.col = colsave;
 	contour(x, nx, y, ny, z, REAL(c)[i], atom, dd);
@@ -558,7 +541,7 @@ SEXP do_image(SEXP call, SEXP op, SEXP args, SEXP env)
 
     szlim = CAR(args);
     internalTypeCheck(call, szlim, REALSXP);
-    if (length(szlim) != 2 ||
+    if(length(szlim) != 2 ||
        !FINITE(REAL(szlim)[0]) ||
        !FINITE(REAL(szlim)[1]) ||
        REAL(szlim)[0] >= REAL(szlim)[1])
@@ -580,13 +563,13 @@ SEXP do_image(SEXP call, SEXP op, SEXP args, SEXP env)
     /* Check of grid coordinates */
     /* We want them to all be finite and in strictly ascending order */
 
-    if (nx < 2 || ny < 2) goto badxy;
-    if (!FINITE(x[0])) goto badxy;
-    if (!FINITE(y[0])) goto badxy;
-    for (i = 1; i < nx; i++)
-	if (!FINITE(x[i]) || x[i] <= x[i - 1]) goto badxy;
-    for (j = 1; j < ny; j++)
-	if (!FINITE(y[j]) || y[j] <= y[j - 1]) goto badxy;
+    if(nx < 2 || ny < 2) goto badxy;
+    if(!FINITE(x[0])) goto badxy;
+    if(!FINITE(y[0])) goto badxy;
+    for(i=1 ; i<nx ; i++)
+	if(!FINITE(x[i]) || x[i] <= x[i-1]) goto badxy;
+    for(j=1 ; j<ny ; j++)
+	if(!FINITE(y[j]) || y[j] <= y[j-1]) goto badxy;
 
     colsave = dd->gp.col;
     xpdsave = dd->gp.xpd;
@@ -594,28 +577,28 @@ SEXP do_image(SEXP call, SEXP op, SEXP args, SEXP env)
 
     GMode(dd, 1);
 
-    for (i = 0; i < nx; i++) {
-	if (i == 0)
+    for(i=0 ; i<nx ; i++) {
+	if(i == 0)
 	    xlow = x[0];
 	else
 	    xlow = 0.5 * (x[i] + x[i-1]);
-	if (i == nx-1)
+	if(i == nx-1)
 	    xhigh = x[nx-1];
 	else
 	    xhigh = 0.5 * (x[i] + x[i+1]);
 
-	for (j = 0; j < ny; j++) {
-	    if (FINITE(z[i + j * nx])) {
-		ic = floor((nc - 1) * (z[i + j * nx]-zmin)/(zmax - zmin) + 0.5);
-		if (ic >= 0 && ic < nc) {
-		    if (j == 0)
+	for(j=0 ; j<ny ; j++) {
+	    if(FINITE(z[i+j*nx])) {
+		ic = floor((nc - 1) * (z[i+j*nx]-zmin)/(zmax - zmin) + 0.5);
+		if(ic >= 0 && ic < nc) {
+		    if(j == 0)
 			ylow = y[0];
 		    else
-			ylow = 0.5 * (y[j] + y[j - 1]);
-		    if (j == ny - 1)
-			yhigh = y[ny - 1];
+			ylow = 0.5 * (y[j] + y[j-1]);
+		    if(j == ny-1)
+			yhigh = y[ny-1];
 		    else
-			yhigh = 0.5 * (y[j] + y[j + 1]);
+			yhigh = 0.5 * (y[j] + y[j+1]);
 		    GRect(xlow, ylow, xhigh, yhigh,
 			  USER, c[ic], NA_INTEGER, dd);
 		}
@@ -636,6 +619,7 @@ SEXP do_image(SEXP call, SEXP op, SEXP args, SEXP env)
     return R_NilValue;/* never used; to keep -Wall happy */
 }
 
+#ifdef PERSP
 	/*  P e r s p e c t i v e   S u r f a c e   P l o t s  */
 
 
@@ -658,7 +642,6 @@ static SEXP gcall;
 static Trans3d VT;
 
 
-#ifdef NOT_used_currently/*-- out 'def'  (-Wall) --*/
 static void MakeVector (double x, double y, double z, Vector3d v)
 {
     v[0] = x;
@@ -666,16 +649,15 @@ static void MakeVector (double x, double y, double z, Vector3d v)
     v[2] = z;
     v[3] = 1;
 }
-#endif
 
 static void TransVector (Vector3d u, Trans3d T, Vector3d v)
 {
     double sum;
     int i, j;
 
-    for (i = 0; i < 4; i++) {
+    for(i = 0 ; i < 4 ; i++) {
 	sum = 0;
-	for (j = 0; j < 4; j++)
+	for(j = 0 ; j < 4 ; j++)
 	    sum = sum + u[j] * T[j][i];
 	v[i] = sum;
     }
@@ -687,24 +669,24 @@ static void Accumulate (Trans3d T)
     double sum;
     int i, j, k;
 
-    for (i = 0; i < 4; i++) {
-	for (j = 0; j < 4; j++) {
+    for(i = 0 ; i < 4 ; i++) {
+	for(j = 0 ; j < 4 ; j++) {
 	    sum = 0;
-	    for (k = 0; k < 4; k++)
+	    for(k = 0 ; k < 4 ; k++)
 		sum = sum + VT[i][k] * T[k][j];
 	    U[i][j] = sum;
 	}
     }
-    for (i = 0; i < 4; i++)
-	for (j = 0; j < 4; j++)
+    for(i = 0 ; i < 4 ; i++)
+	for(j = 0 ; j < 4 ; j++)
 	    VT[i][j] = U[i][j];
 }
 
 static void SetToIdentity (Trans3d T)
 {
     int i, j;
-    for (i = 0; i < 4; i++) {
-	for (j = 0; j < 4; j++)
+    for(i = 0 ; i < 4 ; i++) {
+	for(j = 0 ; j < 4 ; j++)
 	    T[i][j] = 0;
 	T[i][i] = 1;
     }
@@ -761,10 +743,22 @@ static void YRotate (double angle)
 static void Perspective (double d)
 {
     Trans3d T;
-
+    int i, j;
     SetToIdentity(T);
     T[2][3] = -1 / d;
     Accumulate(T);
+}
+
+static void SetViewingTrans (double theta, double phi, double r, double d)
+{
+    SetToIdentity(VT);
+    /* Translate(-xc, -yc, -zc);  /* center at the origin */
+    /* Scale(xs, ys, zs);         /* scale extents to [-1,1] */
+    XRotate(-90.0);            /* rotate x-y plane to horizontal */
+    YRotate(-theta);           /* azimuthal rotation */
+    XRotate(-phi);             /* elevation rotation */
+    Translate(0.0, 0.0, -r);   /* translate the eyepoint to the origin */
+    Perspective(d);            /* perspective */
 }
 
 
@@ -799,410 +793,190 @@ void OrderFacets(double *depth, int *index, int n)
     while (h != 1);
 }
 
-
-/* For each facet, determine the farthest point from the eye. */
+/* For each facet, determine the closest point to the eye. */
 /* Sorting the facets so that these depths are decreasing */
-/* yields an occlusion compatible ordering. */
-/* Note that we ignore z values when doing this. */
+/* yields an occlusion compatible ordering order. */
+/* At the same time we compute the plotting window. */
 
-static void DepthOrder(double *z, double *x, double *y, int nx, int ny,
-		       double *depth, int *index)
+static double xmin, xmax;
+static double ymin, ymax;
+
+static int DepthOrder(double *z, double *x, double *y, int nx, int ny,
+		      double *depth, int *index)
 {
     int i, ii, j, jj, nx1, ny1;
     Vector3d u, v;
-    double d;
+    double d, xx, yy;
     nx1 = nx - 1;
     ny1 = ny - 1;
-    for (i = 0; i < nx1 * ny1; i++)
-	index[i] = i;
-    for (i = 0; i < nx1; i++)
-	for (j = 0; j < ny1; j++) {
-	    d = -DBL_MAX;
-	    for (ii = 0; ii <= 1; ii++)
-		for (jj = 0; jj <= 1; jj++) {
-		    u[0] = x[i + ii];
-		    u[1] = y[j + jj];
-		    /* Originally I had the following line here: */
-		    /* u[2] = z[i+ii+(j+jj)*nx]; */
-		    /* But this leads to artifacts. */
-		    /* It has been replaced by the following line: */
-		    u[2] = 0;
+    for (i = 0 ; i < nx1*ny1 ; i++)
+	    index[i] = i;
+    xmin = DBL_MAX; xmax = -DBL_MAX;
+    ymin = DBL_MAX; ymax = -DBL_MAX;
+    for (i = 0 ; i < nx1 ; i++)
+	for (j = 0 ; j < ny1 ; j++) {
+	    d = DBL_MAX;
+	    for (ii = 0 ; ii <= 1 ; ii++)
+		for (jj = 0 ; jj <= 1 ; jj++) {
+		    u[0] = x[i+ii];
+		    u[1] = y[j+jj];
+		    u[2] = z[i+ii+(j+jj)*nx];
 		    u[3] = 1;
-		    if (FINITE(u[0]) &&  FINITE(u[1]) && FINITE(u[2])) {
-			TransVector(u, VT, v);
-			if (v[3] > d) d = v[3];
-		    }
+		    TransVector(u, VT, v);
+		    if (v[3] < d) d = v[3];
+		    xx = v[0] / v[3];
+		    yy = v[1] / v[3];
+		    if(xx < xmin) xmin = xx;
+		    if(xx > xmax) xmax = xx;
+		    if(yy < ymin) ymin = yy;
+		    if(yy > ymax) ymax = yy;
 		}
 	    depth[i+j*nx1] = d;
-
+	    
 	}
+#ifdef OLD
+    if (xmax > -xmin) xmin = -xmax;
+    else xmax = -xmin;
+    if (ymax > -ymin) ymin = -ymax;
+    else ymax = -ymin;
+#endif
+
     OrderFacets(depth, index, nx1 * ny1);
 }
 
-
 static void DrawFacets(double *z, double *x, double *y, int nx, int ny,
-		       int *index, int *col, int ncol)
+		       int *index)
 {
     double xx[4], yy[4];
     Vector3d u, v;
-    int i, j, k, n, nx1, ny1, icol, nv;
+    int i, j, k, n, nx1, ny1;
     DevDesc *dd;
     dd = CurrentDevice();
     nx1 = nx - 1;
     ny1 = ny - 1;
     n = nx1 * ny1;
-    for (k = 0; k < n; k++) {
-	nv = 0;
+    for(k = 0 ; k < n ; k++) {
 	i = index[k] % nx1;
 	j = index[k] / nx1;
-	icol = (i + j * nx1) % ncol;
 
-	u[0] = x[i]; u[1] = y[j];
-	u[2] = z[i + j * nx]; u[3] = 1;
-	if (FINITE(u[0]) &&  FINITE(u[1]) && FINITE(u[2])) {
-	    TransVector(u, VT, v);
-	    xx[nv] = v[0] / v[3];
-	    yy[nv] = v[1] / v[3];
-	    nv++;
-	}
+	u[0] = x[i]; u[1] = y[j]; u[2] = z[i+j*nx]; u[3] = 1;
+	TransVector(u, VT, v);
+	xx[0] = v[0] / v[3];
+	yy[0] = v[1] / v[3];
 
-	u[0] = x[i + 1]; u[1] = y[j];
-	u[2] = z[i + 1 + j * nx]; u[3] = 1;
-	if (FINITE(u[0]) &&  FINITE(u[1]) && FINITE(u[2])) {
-	    TransVector(u, VT, v);
-	    xx[nv] = v[0] / v[3];
-	    yy[nv] = v[1] / v[3];
-	    nv++;
-	}
+	u[0] = x[i+1]; u[1] = y[j]; u[2] = z[i+1+j*nx]; u[3] = 1;
+	TransVector(u, VT, v);
+	xx[1] = v[0] / v[3];
+	yy[1] = v[1] / v[3];
 
-	u[0] = x[i + 1]; u[1] = y[j + 1];
-	u[2] = z[i + 1 + (j + 1) * nx]; u[3] = 1;
-	if (FINITE(u[0]) &&  FINITE(u[1]) && FINITE(u[2])) {
-	    TransVector(u, VT, v);
-	    xx[nv] = v[0] / v[3];
-	    yy[nv] = v[1] / v[3];
-	    nv++;
-	}
+	u[0] = x[i+1]; u[1] = y[j+1]; u[2] = z[i+1+(j+1)*nx]; u[3] = 1;
+	TransVector(u, VT, v);
+	xx[2] = v[0] / v[3];
+	yy[2] = v[1] / v[3];
 
-	u[0] = x[i]; u[1] = y[j + 1];
-	u[2] = z[i + (j + 1) * nx]; u[3] = 1;
-	if (FINITE(u[0]) &&  FINITE(u[1]) && FINITE(u[2])) {
-	    TransVector(u, VT, v);
-	    xx[nv] = v[0] / v[3];
-	    yy[nv] = v[1] / v[3];
-	    nv++;
-	}
+	u[0] = x[i]; u[1] = y[j+1]; u[2] = z[i+(j+1)*nx]; u[3] = 1;
+	TransVector(u, VT, v);
+	xx[3] = v[0] / v[3];
+	yy[3] = v[1] / v[3];
 
-	if (nv > 2)
-	    GPolygon(nv, xx, yy, USER, col[icol], dd->gp.fg, dd);
+	GPolygon(4, xx, yy, USER, dd->gp.bg, dd->gp.fg, dd);
     }
 }
 
-
-#ifdef NOT_used_currently/*-- out 'def'  (-Wall) --*/
-static void CheckRange(double *x, int n, double min, double max)
+static int CheckRange(double *x, int n)
 {
     double xmin, xmax;
     int i;
     xmin =  DBL_MAX;
     xmax = -DBL_MAX;
-    for (i = 0; i < n; i++)
+    for (i = 0 ; i < n ; i++)
 	if (FINITE(x[i])) {
-	    if (x[i] < xmin) xmin = x[i];
-	    if (x[i] > xmax) xmax = x[i];
+	    if(x[i] < xmin) xmin = x[i];
+	    if(x[i] > xmax) xmax = x[i];
 	}
-    if (xmin < min || xmax > max)
-	errorcall(gcall, "coordinates outsize specified range\n");
-}
-#endif
-
-static void PerspWindow(double *xlim, double *ylim, double *zlim, DevDesc *dd)
-{
-    double pin1, pin2, scale, xdelta, ydelta, xscale, yscale, xadd, yadd;
-    double xmax, xmin, ymax, ymin, xx, yy;
-    Vector3d u, v;
-    int i, j, k;
-
-    xmax = xmin = ymax = ymin = 0;
-    u[3] = 1;
-    for (i = 0; i < 2; i++) {
-	u[0] = xlim[i];
-	for (j = 0; j < 2; j++) {
-	    u[1] = ylim[j];
-	    for (k = 0; k < 2; k++) {
-		u[2] = zlim[k];
-		TransVector(u, VT, v);
-		xx = v[0] / v[3];
-		yy = v[1] / v[3];
-		if (xx > xmax) xmax = xx;
-		if (xx < xmin) xmin = xx;
-		if (yy > ymax) ymax = yy;
-		if (yy < ymin) ymin = yy;
-	    }
-	}
-    }
-    pin1 = GConvertXUnits(1.0, NPC, INCHES, dd);
-    pin2 = GConvertYUnits(1.0, NPC, INCHES, dd);
-    xdelta = fabs(xmax - xmin);
-    ydelta = fabs(ymax - ymin);
-    xscale = pin1 / xdelta;
-    yscale = pin2 / ydelta;
-    scale = (xscale < yscale) ? xscale : yscale;
-    xadd = .5 * (pin1 / scale - xdelta);
-    yadd = .5 * (pin2 / scale - ydelta);
-    GScale(xmin - xadd, xmax + xadd, 1, dd);
-    GScale(ymin - yadd, ymax + yadd, 2, dd);
-    GMapWin2Fig(dd);
-}
-
-static int LimitCheck(double *lim, double *c, double *s)
-{
-    if (!FINITE(lim[0]) || !FINITE(lim[1]) || lim[0] >= lim[1])
-	return 0;
-    *s = 0.5 * fabs(lim[1] - lim[0]);
-    *c = 0.5 * (lim[1] + lim[0]);
-    return 1;
-}
-
-/* PerspBox: The following code carries out a visibility test */
-/* on the surfaces of the xlim/ylim/zlim box around the plot. */
-/* If front = 0, only the faces with their inside toward the */
-/* eyepoint are drawn.  If front = 1, only the faces with */
-/* their outside toward the eye are drawn.  This lets us carry */
-/* out hidden line removal by drawing any faces which will be */
-/* obscured before the surface, and those which will not be */
-/* obscured after the surface. */
-
-static int Vertex[8][3] = {
-  {0, 0, 0},
-  {0, 0, 1},
-  {0, 1, 0},
-  {0, 1, 1},
-  {1, 0, 0},
-  {1, 0, 1},
-  {1, 1, 0},
-  {1, 1, 1},
-};
-
-static int Face[6][4] = {
-  {0, 1, 5, 4},
-  {2, 6, 7, 3},
-  {0, 2, 3, 1},
-  {4, 5, 7, 6},
-  {0, 4, 6, 2},
-  {1, 3, 7, 5},
-};
-
-static void PerspBox(int front, double *x, double *y, double *z, DevDesc *dd)
-{
-    Vector3d u0, v0, u1, v1, u2, v2, u3, v3;
-    double d[3], e[3];
-    int f, i, p0, p1, p2, p3, near;
-    for (f = 0; f < 6; f++) {
-        p0 = Face[f][0];
-        p1 = Face[f][1];
-        p2 = Face[f][2];
-        p3 = Face[f][3];
-
-	u0[0] = x[Vertex[p0][0]];
-	u0[1] = y[Vertex[p0][1]];
-	u0[2] = z[Vertex[p0][2]];
-	u0[3] = 1;
-	u1[0] = x[Vertex[p1][0]];
-	u1[1] = y[Vertex[p1][1]];
-	u1[2] = z[Vertex[p1][2]];
-	u1[3] = 1;
-	u2[0] = x[Vertex[p2][0]];
-	u2[1] = y[Vertex[p2][1]];
-	u2[2] = z[Vertex[p2][2]];
-	u2[3] = 1;
-	u3[0] = x[Vertex[p3][0]];
-	u3[1] = y[Vertex[p3][1]];
-	u3[2] = z[Vertex[p3][2]];
-	u3[3] = 1;
-
-	TransVector(u0, VT, v0);
-	TransVector(u1, VT, v1);
-	TransVector(u2, VT, v2);
-	TransVector(u3, VT, v3);
-
-	/* Visibility test */
-	/* Determine whether the surface normal is toward the eye. */
-
-        for (i = 0; i < 3; i++) {
-	    d[i] = v1[i]/v1[3] - v0[i]/v0[3];
-	    e[i] = v2[i]/v2[3] - v1[i]/v1[3];
-        }
-	near = (d[0]*e[1] - d[1]*e[0]) < 0;
-
-	if ((front && near) || (!front && !near)) {
-	  GLine(v0[0]/v0[3], v0[1]/v0[3],
-		v1[0]/v1[3], v1[1]/v1[3], USER, dd);
-	  GLine(v1[0]/v1[3], v1[1]/v1[3],
-		v2[0]/v2[3], v2[1]/v2[3], USER, dd);
-	  GLine(v2[0]/v2[3], v2[1]/v2[3],
-		v3[0]/v3[3], v3[1]/v3[3], USER, dd);
-	  GLine(v3[0]/v3[3], v3[1]/v3[3],
-		v0[0]/v0[3], v0[1]/v0[3], USER, dd);
-	}
-    }
+    if(xmin < -1 || xmax > 1)
+	errorcall(gcall, "incorrectly scaled coordinates\n");
 }
 
 SEXP do_persp(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP x, y, z, xlim, ylim, zlim;
-    SEXP depth, index, originalArgs;
-    SEXP col, border;
-    double theta, phi, r, d, expand, xc, yc, zc, xs, ys, zs;
-    int i, j, scale, ncol;
+    SEXP x, y, z, eye, depth, index, originalArgs;
+    double theta, phi, r, d;
     DevDesc *dd;
 
-    if (length(args) < 12)
+    if(length(args) < 4)
 	errorcall(call, "too few parameters\n");
     gcall = call;
     originalArgs = args;
 
-    PROTECT(x = coerceVector(CAR(args), REALSXP));
-    if (length(x) < 2) errorcall(call, "invalid x argument\n");
-    args = CDR(args);
-
-    PROTECT(y = coerceVector(CAR(args), REALSXP));
-    if (length(y) < 2) errorcall(call, "invalid y argument\n");
-    args = CDR(args);
-
     PROTECT(z = coerceVector(CAR(args), REALSXP));
-    if (!isMatrix(z) || nrows(z) != length(x) || ncols(z) != length(y))
+    if (!isReal(z) || !isMatrix(z) || nrows(z) < 2 || ncols(z) < 2)
 	errorcall(call, "invalid z argument\n");
     args = CDR(args);
 
-    PROTECT(xlim = coerceVector(CAR(args), REALSXP));
-    if (length(xlim) != 2) errorcall(call, "invalid xlim argument\n");
+    PROTECT(x = coerceVector(CAR(args), REALSXP));
+    if (!isReal(x) || length(x) != nrows(z))
+	errorcall(call, "invalid x argument\n");
     args = CDR(args);
 
-    PROTECT(ylim = coerceVector(CAR(args), REALSXP));
-    if (length(ylim) != 2) errorcall(call, "invalid ylim argument\n");
+    PROTECT(y = coerceVector(CAR(args), REALSXP));
+    if (!isReal(y) || length(y) != ncols(z))
+	errorcall(call, "invalid y argument\n");
     args = CDR(args);
 
-    PROTECT(zlim = coerceVector(CAR(args), REALSXP));
-    if (length(zlim) != 2) errorcall(call, "invalid zlim argument\n");
-    args = CDR(args);
+    PROTECT(eye = coerceVector(CAR(args), REALSXP));
+    if (!isReal(eye) || length(eye) != 4 ||
+	REAL(eye)[2] <= 1 || REAL(eye)[3] <= 0)
+	errorcall(call, "invalid eye argument\n");
+    theta = REAL(eye)[0];
+    phi   = REAL(eye)[1];
+    r     = REAL(eye)[2];
+    d     = REAL(eye)[3];
 
-    /* Checks on x/y/z Limits */
-
-    if (!LimitCheck(REAL(xlim), &xc, &xs))
-	errorcall(call, "invalid x limits\n");
-    if (!LimitCheck(REAL(ylim), &yc, &ys))
-	errorcall(call, "invalid y limits\n");
-    if (!LimitCheck(REAL(zlim), &zc, &zs))
-	errorcall(call, "invalid z limits\n");
-
-    theta = asReal(CAR(args));
-    args = CDR(args);
-
-    phi = asReal(CAR(args));
-    args = CDR(args);
-
-    r = asReal(CAR(args));
-    args = CDR(args);
-
-    d = asReal(CAR(args));
-    args = CDR(args);
-
-    scale = asLogical(CAR(args));
-    args = CDR(args);
-
-    expand = asReal(CAR(args));
-    args = CDR(args);
-
-    PROTECT(col = FixupCol(CAR(args), dd));
-    ncol = LENGTH(col);
-    if (ncol < 1)
-	errorcall(call, "invalid col specification\n");
-    args = CDR(args);
-
-    PROTECT(border = FixupCol(CAR(args), dd));
-    if (length(border) < 1)
-	errorcall(call, "invalid border specification\n");
-    args = CDR(args);
-
-    if (!scale) {
-	double s;
-	s = xs;
-	if (s < ys) s = ys;
-	if (s < zs) s = zs;
-	xs = s; ys = s; zs = s;
-    }
-
-    /* Parameter Checks */
-
-    if (!FINITE(theta) || !FINITE(phi) || !FINITE(r) || !FINITE(d) ||
-	d < 0 || r < 0)
-	errorcall(call, "invalid viewing parameters\n");
-    if (!FINITE(expand) || expand < 0)
-	errorcall(call, "invalid expand value\n");
-    if (scale == NA_LOGICAL)
-	scale = 0;
+    /* Check that coordinates have been scaled to [-1,1] */
+    CheckRange(REAL(z), length(z));
+    CheckRange(REAL(x), length(x));
+    CheckRange(REAL(y), length(y));
 
     dd = GNewPlot(call != R_NilValue, NA_LOGICAL);
     GSetState(1, dd);
     GSavePars(dd);
     ProcessInlinePars(args, dd);
-    if (length(border) > 1)
-	dd->gp.fg = INTEGER(border)[0];
     dd->gp.xlog = 0;
     dd->gp.ylog = 0;
 
     /* Specify the viewing transformation. */
-
-    SetToIdentity(VT);             /* Initialization */
-    Translate(-xc, -yc, -zc);      /* center at the origin */
-    Scale(1/xs, 1/ys, expand/zs);  /* scale extents to [-1,1] */
-    XRotate(-90.0);                /* rotate x-y plane to horizontal */
-    YRotate(-theta);               /* azimuthal rotation */
-    XRotate(phi);                  /* elevation rotation */
-    Translate(0.0, 0.0, -r - d);   /* translate the eyepoint to the origin */
-    Perspective(d);                /* perspective */
-
-    /* Specify the plotting window. */
-    /* Here we map the vertices of the cube */
-    /* [xmin,xmax]*[ymin,ymax]*[zmin,zmax] */
-    /* to the screen and then chose a window */
-    /* which is symmetric about (0,0). */
-
-    PerspWindow(REAL(xlim), REAL(ylim), REAL(zlim), dd);
-
-    /* Compute facet order. */
-
+    SetViewingTrans(theta, -phi, r, d);
+    
+    /* Compute the plotting window and facet order. */
     PROTECT(depth = allocVector(REALSXP, (nrows(z) - 1)*(ncols(z) - 1)));
     PROTECT(index = allocVector(INTSXP, (nrows(z) - 1)*(ncols(z) - 1)));
     DepthOrder(REAL(z), REAL(x), REAL(y), nrows(z), ncols(z),
 	       REAL(depth), INTEGER(index));
 
-    /* Now we order the facets by depth */
-    /* and then draw them back to front. */
-    /* This is the "painters" algorithm. */
+    /* Specify the window. */
+    if(1) {
+	double pin1, pin2, scale, xdelta, ydelta, xscale, yscale, xadd, yadd;
+	pin1 = GConvertXUnits(1.0, NPC, INCHES, dd);
+	pin2 = GConvertYUnits(1.0, NPC, INCHES, dd);
+	xdelta = fabs(xmax - xmin);
+	ydelta = fabs(ymax - ymin);
+	xscale = pin1 / xdelta;
+	yscale = pin2 / ydelta;
+	scale = (xscale < yscale) ? xscale : yscale;
+	xadd = .5 * (pin1 / scale - xdelta);
+	yadd = .5 * (pin2 / scale - ydelta);
+	GScale(xmin - xadd, xmax + xadd, 1, dd);
+	GScale(ymin - yadd, ymax + yadd, 2, dd);
+    }
+    GMapWin2Fig(dd);
 
-    PerspBox(0, REAL(xlim), REAL(ylim), REAL(zlim), dd);
-
-    DrawFacets(REAL(z), REAL(x), REAL(y), nrows(z), ncols(z), INTEGER(index),
-	       INTEGER(col), ncol);
-
-    PerspBox(1, REAL(xlim), REAL(ylim), REAL(zlim), dd);
+    DrawFacets(REAL(z), REAL(x), REAL(y), nrows(z), ncols(z), INTEGER(index));
 
     GRestorePars(dd);
-    UNPROTECT(10);
+    UNPROTECT(6);
     if (call != R_NilValue)
         recordGraphicOperation(op, originalArgs, dd);
-
-    PROTECT(x = allocVector(REALSXP, 16));
-    PROTECT(y = allocVector(INTSXP, 2));
-    for (i = 0; i < 4; i++)
-      for (j = 0; j < 4; j++) {
-        REAL(x)[i + j * 4] = VT[i][j];
-      }
-    INTEGER(y)[0] = 4;
-    INTEGER(y)[1] = 4;
-    setAttrib(x, R_DimSymbol, y);
-    UNPROTECT(2);
     return x;
 }
+#endif

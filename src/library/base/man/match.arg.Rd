@@ -38,7 +38,8 @@ center <- function(x, type = c("mean", "median", "trimmed")) {
 x <- rcauchy(10)
 center(x, "t")       # Works
 center(x, "med")     # Works
-\dontrun{center(x, "m")       # Error
-}
+center(x, "m")       # Error
+## Actually, it would be nicer if one could catch the error
+## to produce a more helpful error message ...
 }
 \keyword{programming}
