@@ -38,7 +38,6 @@
 #include "rui.h"
 #include "opt.h"
 #include "Rversion.h"
-#include "getline/getline.h"  /* for gl_load/savehistory */
 
 #define TRACERUI(a)
 
@@ -52,8 +51,8 @@ static window RFrame;
 #endif
 extern int ConsoleAcceptCmd;
 static menubar RMenuBar;
-static menuitem msource, mdisplay, mload, msave, mloadhistory,
-    msavehistory, mpaste, mcopy, mcopypaste, mlazy, mconfig,
+static menuitem msource, mdisplay, mload, msave, msavehistory, mpaste, mcopy, 
+    mcopypaste, mlazy, mconfig,
     mls, mrm, msearch, mhelp, mmanintro, mmanref, 
     mmanext, mapropos, mhelpstart, mFAQ, mrwFAQ;
 static int lmanintro, lmanref, lmanext;
@@ -141,31 +140,17 @@ static void menusaveimage(control m)
     }
 }
 
-static void menuloadhistory(control m)
-{
-    char *fn;
-
-    if (!ConsoleAcceptCmd) return;
-    setuserfilter("All files (*.*)\0*.*\0\0");
-    fn = askfilename("Load history from", R_HistoryFile);
-    show(RConsole);
-    if (fn) {
-	fixslash(fn);
-	gl_loadhistory(fn);
-    }
-}
-
 static void menusavehistory(control m)
 {
     char *fn;
 
     if (!ConsoleAcceptCmd) return;
     setuserfilter("All files (*.*)\0*.*\0\0");
-    fn = askfilesave("Save history in", R_HistoryFile);
+    fn = askfilesave("Save history in", ".Rhistory");
     show(RConsole);
     if (fn) {
 	fixslash(fn);
-	gl_savehistory(fn);
+	savehistory(RConsole, fn);
     }
 }
 
@@ -219,12 +204,6 @@ static void menucopypaste(control m)
 	askok("No selection");
     show(RConsole);
 }
-
-static void menuclear(control m)
-{
-    consoleclear(RConsole);
-}
-
 
 static void menuconfig(control m)
 {
@@ -564,8 +543,6 @@ static MenuItem ConsolePopup[] = {
     {"Paste", menupaste, 0},
     {"Copy and paste", menucopypaste, 0},
     {"-", 0, 0},
-    {"Clear window", menuclear, 0},
-    {"-", 0, 0},
     {"Select all", menuselectall, 0},
     {"-", 0, 0},
     {"Buffered output", menulazy, 0},
@@ -671,10 +648,8 @@ int setupui()
     MCHECK(msource = newmenuitem("Source R code", 0, menusource));
     MCHECK(mdisplay = newmenuitem("Display file", 0, menudisplay));
     MCHECK(newmenuitem("-", 0, NULL));
-    MCHECK(mload = newmenuitem("Load Workspace", 0, menuloadimage));
-    MCHECK(msave = newmenuitem("Save Workspace", 0, menusaveimage));
-    MCHECK(newmenuitem("-", 0, NULL));
-    MCHECK(mloadhistory = newmenuitem("Load History", 0, menuloadhistory));
+    MCHECK(mload = newmenuitem("Load Image", 0, menuloadimage));
+    MCHECK(msave = newmenuitem("Save Image", 0, menusaveimage));
     MCHECK(msavehistory = newmenuitem("Save History", 0, menusavehistory));
     MCHECK(newmenuitem("-", 0, NULL));
     MCHECK(newmenuitem("Change dir", 0, menuchangedir));
@@ -684,18 +659,18 @@ int setupui()
     MCHECK(newmenuitem("Exit", 0, menuexit));
 
     MCHECK(newmenu("Edit"));
-    MCHECK(mcopy = newmenuitem("Copy", 'C', menucopy));
-    MCHECK(mpaste = newmenuitem("Paste", 'V', menupaste));
-    MCHECK(mcopypaste = newmenuitem("Copy and Paste", 'X', menucopypaste));
+    MCHECK(mcopy = newmenuitem("Copy          \tCTRL+C", 0, menucopy));
+    MCHECK(mpaste = newmenuitem("Paste         \tCTRL+V", 0, menupaste));
+    MCHECK(mcopypaste = newmenuitem("Copy And Paste  \tCTRL+X", 
+				    0, menucopypaste));
     MCHECK(newmenuitem("Select all", 0, menuselectall));
-    MCHECK(newmenuitem("Clear console", 'L', menuclear));
     MCHECK(newmenuitem("-", 0, NULL));
     MCHECK(mconfig = newmenuitem("GUI preferences", 0, menuconfig));
 
     MCHECK(newmenu("Misc"));
     MCHECK(newmenuitem("Stop current computation           \tESC", 0, menukill));
     MCHECK(newmenuitem("-", 0, NULL));
-    MCHECK(mlazy = newmenuitem("Buffered output", 'W', menulazy));
+    MCHECK(mlazy = newmenuitem("Buffered output\tCTRL+W", 0, menulazy));
     MCHECK(newmenuitem("-", 0, NULL));
     MCHECK(mls = newmenuitem("List objects", 0, menuls));
     MCHECK(mrm = newmenuitem("Remove all objects", 0, menurm));
@@ -734,8 +709,7 @@ int setupui()
     MCHECK(newmenuitem("-", 0, NULL));
     MCHECK(newmenuitem("About", 0, menuabout));
     consolesetbrk(RConsole, menukill, ESC, 0);
-    gl_hist_init(R_HistorySize, 0);
-    if (R_RestoreHistory) gl_loadhistory(R_HistoryFile);
+    readhistory(RConsole, ".Rhistory");
     show(RConsole);
     return 1;
 }

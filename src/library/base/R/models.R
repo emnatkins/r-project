@@ -44,13 +44,7 @@ print.formula <- function(x, ...) {
 }
 
 terms <- function(x, ...) UseMethod("terms")
-terms.default <- function(x, ...) {
-    v<-x$terms
-    if(is.null(v))
-        stop("no terms component")
-    return(v)
-}
-
+terms.default <- function(x, ...) x$terms
 terms.terms <- function(x, ...) x
 print.terms <- function(x, ...) print.default(unclass(x))
 #delete.response <- function (termobj)
@@ -126,8 +120,6 @@ terms.formula <- function(x, specials = NULL, abb = NULL, data = NULL,
 	}
     }
     attr(terms, "specials")$offset <- NULL
-    if( !inherits(terms, "formula") )
-        class(terms)<-c(class(terms), "formula")
     terms
 }
 
@@ -180,13 +172,13 @@ na.omit.default <- function(object)
     if(!is.atomic(object)) return(object)
     d <- dim(object)
     if(length(d) > 2) return(object)
-    omit <- seq(along=object)[is.na(object)]
-    if (length(omit) == 0) return(object)
     if(length(d)){
+        omit <- seq(along=object)[is.na(object)]
         omit <- unique(((omit-1) %% d[1]) + 1)
         nm <- rownames(object)
         object <- object[-omit, , drop=FALSE]
     } else {
+	omit <- seq(along=object)[is.na(object)]
         nm <- names(object)
         object <- object[-omit]
     }

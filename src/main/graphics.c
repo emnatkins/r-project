@@ -1742,7 +1742,7 @@ DevDesc *GNewPlot(int recording, int ask)
     if (NoDevices()) {
 	SEXP defdev = GetOption(install("device"), R_NilValue);
 	if (isString(defdev) && length(defdev) > 0) {
-	    PROTECT(defdev = lang1(install(CHAR(STRING_ELT(defdev, 0)))));
+	    PROTECT(defdev = lang1(install(CHAR(STRING(defdev)[0]))));
 	}
 	else error("No active or default device");
 	eval(defdev, R_GlobalEnv);
@@ -2633,12 +2633,13 @@ void GMetricInfo(int c, double *ascent, double *descent, double *width,
 }
 
 
-/* Check that everything is initialized :
-  	Interpretation :
-  	mode = 0, graphics off
-  	mode = 1, graphics on
-  	mode = 2, graphical input on (ignored by most drivers)
-*/
+/*  Check that everything is initialized  */
+/*  Interpretation  */
+/*  mode = 0, graphics off */
+/*  mode = 1, graphics on */
+/*  mode = 2, graphical input on */
+/*  (Ignored by most drivers)	 */
+
 void GMode(int mode, DevDesc *dd)
 {
     if (NoDevices())
@@ -2650,11 +2651,12 @@ void GMode(int mode, DevDesc *dd)
 }
 
 
-/* GPolygon -- Draw a polygon
- *	Filled with color bg and outlined with color fg
- *	These may both be NA_INTEGER
- * If device can't clip we should use something like Sutherland-Hodgman here
- */
+/* GPolygon -- Draw a polygon  */
+/* Filled with color bg and outlined with color fg  */
+/* These may both be NA_INTEGER	 */
+/* If device can't clip we should use something */
+/* like Sutherland-Hodgman here */
+
 typedef enum {
     Left = 0,
     Right = 1,
@@ -3232,7 +3234,7 @@ double GStrHeight(char *str, int units, DevDesc *dd)
 	if (*s == '\n')
 	    n++;
     h = n * GConvertYUnits(1, CHARS, DEVICE, dd);
-    /* Add in the ascent of the font, if available */
+    /*  Add in the ascent of the font, if available */
     GMetricInfo('M', &asc, &dsc, &wid, DEVICE, dd);
     if ((asc == 0.0) && (dsc == 0.0) && (wid == 0.0))
 	asc = GConvertYUnits(1, CHARS, DEVICE, dd);
@@ -5005,7 +5007,7 @@ unsigned int RGBpar(SEXP x, int i)
 {
     int index;
     if(isString(x)) {
-	return str2col(CHAR(STRING_ELT(x, i)));
+	return str2col(CHAR(STRING(x)[i]));
     }
     else if(isInteger(x) || isLogical(x)) {
 	if(INTEGER(x)[i] == NA_INTEGER) return NA_INTEGER;
@@ -5079,13 +5081,13 @@ unsigned int LTYpar(SEXP value, int index)
 
     if(isString(value)) {
 	for(i = 0; linetype[i].name; i++) { /* is it the i-th name ? */
-	    if(!strcmp(CHAR(STRING_ELT(value, index)), linetype[i].name))
+	    if(!strcmp(CHAR(STRING(value)[index]), linetype[i].name))
 		return linetype[i].pattern;
 	}
 	/* otherwise, a string of hex digits: */
 	code = 0;
 	shift = 0;
-	for(p = CHAR(STRING_ELT(value, index)); *p; p++) {
+	for(p = CHAR(STRING(value)[index]); *p; p++) {
 	    digit = hexdigit(*p);
 	    code  |= (digit<<shift);
 	    shift += 4;
@@ -5119,21 +5121,22 @@ SEXP LTYget(unsigned int lty)
     unsigned char dash[8];
     unsigned int l;
 
-    for(i = 0; linetype[i].name; i++) {
+    for (i = 0; linetype[i].name; i++) {
 	if(linetype[i].pattern == lty)
 	    return mkString(linetype[i].name);
     }
 
     l = lty; ndash = 0;
-    for(i = 0; i < 8 && l & 15; i++) {
+    for (i = 0; i < 8 && l & 15; i++) {
 	dash[ndash++] = l&15;
 	l = l >> 4;
     }
     PROTECT(ans = allocVector(STRSXP, 1));
-    SET_STRING_ELT(ans, 0, allocString(ndash));
-    for(i=0 ; i<ndash ; i++) {
-	CHAR(STRING_ELT(ans, 0))[i] = HexDigits[dash[i]];
+    STRING(ans)[0] = allocString(ndash);
+    for (i = 0 ; i < ndash ; i++) {
+	CHAR(STRING(ans)[0])[i] = HexDigits[dash[i]];
     }
+    CHAR(STRING(ans)[0])[ndash] = '\0';
     UNPROTECT(1);
     return ans;
 }
@@ -5326,11 +5329,11 @@ void addDevice(DevDesc *dd)
     dd->dp.activate(dd);
 
     /* maintain .Devices (.Device has already been set) */
-    PROTECT(t = mkString(CHAR(STRING_ELT(getSymbolValue(".Device"), 0))));
+    PROTECT(t = mkString(CHAR(STRING(getSymbolValue(".Device"))[0])));
     if (append)
-	SETCDR(s, CONS(t, R_NilValue));
+	CDR(s) = CONS(t, R_NilValue);
     else
-	SETCAR(s, t);
+	CAR(s) = t;
 
     UNPROTECT(2);
 
@@ -5398,7 +5401,7 @@ void removeDevice(int devNum)
 	PROTECT(s = getSymbolValue(".Devices"));
 	for (i=0; i<devNum; i++)
 	    s = CDR(s);
-	SETCAR(s, mkString(""));
+	CAR(s) = mkString("");
 	UNPROTECT(1);
 
 	/* determine new current device */
@@ -5472,7 +5475,7 @@ void recordGraphicOperation(SEXP op, SEXP args, DevDesc *dd)
 	if (lastOperation == R_NilValue)
 	    dd->displayList = CONS(newOperation, R_NilValue);
 	else
-	    SETCDR(lastOperation, CONS(newOperation, R_NilValue));
+	    CDR(lastOperation) = CONS(newOperation, R_NilValue);
     }
 }
 

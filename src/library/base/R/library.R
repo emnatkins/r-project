@@ -155,7 +155,7 @@ library <-
 
 library.dynam <-
   function (chname, package = .packages(), lib.loc = .lib.loc,
-	    verbose = getOption("verbose"), file.ext = .Platform$dynlib.ext, ...)
+	    verbose = getOption("verbose"), file.ext = .Platform$dynlib.ext)
 {
   if (!exists(".Dyn.libs"))
     assign(".Dyn.libs", character(0), envir = .AutoloadEnv)
@@ -173,7 +173,7 @@ library.dynam <-
     }
     if (verbose)
       cat("now dyn.load(", file, ")..\n", sep = "")
-    dyn.load(file, ...)
+    dyn.load(file)
     assign(".Dyn.libs", c(.Dyn.libs, chname), envir = .AutoloadEnv)
   }
   invisible(.Dyn.libs)
@@ -183,11 +183,14 @@ require <- function(package, quietly = FALSE, warn.conflicts = TRUE,
                     keep.source = getOption("keep.source.pkgs"))
 {
     package <- as.character(substitute(package)) # allowing "require(eda)"
-    if (is.na(match(paste("package", package, sep = ":"), search()))) {
-	if (!quietly) cat("Loading required package:", package, "\n")
+    if (is.na(match(paste("package", package, sep = ":"), search())))
+        if(!exists(".Provided") || is.na(match(package, .Provided))) {
+	if (!quietly)
+	    cat("Loading required package:", package, "\n")
 	library(package, char = TRUE, logical = TRUE,
 		warn.conflicts = warn.conflicts, keep.source = keep.source)
     } else TRUE
+    else TRUE
 }
 
 .packages <- function(all.available = FALSE, lib.loc = .lib.loc) {

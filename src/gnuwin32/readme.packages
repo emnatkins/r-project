@@ -47,8 +47,6 @@ For large packages it is helpful to make zipped help and/or data
 files: for that you need zip and unzip from the Info-ZIP project
 (www.info-zip.org and mirrors, and included in our tools.zip).
 
-
-
 All of these need to be installed and in your path, and the
 appropriate environment variables set.  Edit MkRules to set BUILD and
 the appropriate paths as needed.  (IMPORTANT: if you use cygwin you
@@ -64,28 +62,6 @@ minutes depending on processor speed, RAM, disk speed and
 compiler. Using a network file system is likely to take longer. With
 mingw32, gcc-2.95.2.1 and later only take a few seconds.)  This only
 needs to be done once for each R release.
-
-
-At this point there are two approaches:
-
-1) Streamlined way
-
-Assuming that .../rw1020/bin is in your path, use
-
-	Rcmd INSTALL package
-
-where `package' can be a directory or a .tar.gz file.  See
-Rcmd INSTALL --help for a full list of options, which include
-
-  -l, --library=LIB	install packages to library tree LIB
-      --docs=TYPE	type(s) of documentation to build and install
-      --use-zip-data	collect data files in zip archive
-      --use-zip-help	collect help and examples into zip archives
-      --use-zip		combine `--use-zip-data' and `--use-zip-help'
-
-TYPE can be "none" or "normal" or "chm" (the default) or "winhlp" or "all"
-
-2) Manual `full-control' approach:
 
 For each package you want to install, unpack it to a directory, say
 mypkg, in RHOME\src\library, and run
@@ -138,19 +114,14 @@ Checking packages
 
 The equivalent of `R CMD check mypkg' on Unix is
 
-	Rcmd check mypkg
+	make pkgcheck-mypkg
 
-Use `Rcmd check --help' for full details.
+This runs all the examples in the help files. If you need to increase
+the heap size or the number of cons cells (e.g. for nlme) use
+environmental variables to do so.  
 
-
-Building packages
-=================
-
-The equivalent of `R CMD build mypkg' on Unix is
-
-	Rcmd build mypkg
-
-Use `Rcmd build --help' for full details.
+It will also run and `diff' examples in the tests directory if one
+exists.
 
 
 Debugging
@@ -288,12 +259,10 @@ You can specify the location of the package source by PKGDIR and the
 library in which to install the package by RLIB, as in
 
 	make PKGDIR=/mysources RLIB=/R/library pkg-mypkg
+	make PKGDIR=/mysources RLIB=/R/library pkgcheck-mypkg
 
-which installs the package in \mysources\mypkg as \R\library\mypkg.
-
-It may well be simpler to use
-
-	Rcmd INSTALL -l /R/library /mysources/mypkg
+which installs the package in \mysources\mypkg as \R\library\mypkg and
+checks its examples.
 
 
 Cross-building packages on Linux
@@ -318,8 +287,6 @@ Then packages can be made as natively, for example by
 	make PKGDIR=/mysources RLIB=/R/win/library pkgcheck-mypkg
 	cd /R/win/library
 	zip -rl /dest/mypkg.zip mypkg
-
-(Rcmd is a Windows executable, so cannot be used.)
 
 
 Feedback

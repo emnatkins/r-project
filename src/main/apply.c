@@ -57,7 +57,7 @@ SEXP do_lapply(SEXP call, SEXP op, SEXP args, SEXP rho)
     PROTECT(ans = allocVector(VECSXP, n));
     for(i = 0; i < n; i++) {
 	INTEGER(ind)[0] = i + 1;
-	SET_VECTOR_ELT(ans, i, eval(R_fcall, rho));
+	VECTOR(ans)[i] = eval(R_fcall, rho);
     }
     UNPROTECT(3);
     return ans;
@@ -70,7 +70,7 @@ SEXP do_lapply(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_apply(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP R_fcall, X, Xd, X1, ans, FUN;
-    int i, j, nr, nc, inr;
+    int i, nr, nc;
 
     checkArity(op, args);
     X = CAR(args); args = CDR(args);
@@ -80,40 +80,33 @@ SEXP do_apply(SEXP call, SEXP op, SEXP args, SEXP rho)
     nr = INTEGER(Xd)[0];
     nc = INTEGER(Xd)[1];
     X1 = CAR(args); args = CDR(args);
-    FUN = CAR(args);
+    FUN = CAR(args); args = CDR(args);
 
     PROTECT(R_fcall = LCONS(FUN, LCONS(X1, LCONS(R_DotsSymbol, R_NilValue))));
     PROTECT(ans = allocVector(VECSXP, nc));
-    PROTECT(X1 = allocVector(TYPEOF(X), nr));
-    SETCADR(R_fcall, X1);
     for(i = 0; i < nc; i++) {
 	switch(TYPEOF(X)) {
 	case REALSXP:
-	    for (j = 0, inr = i*nr; j < nr; j++)
-		REAL(X1)[j] = REAL(X)[j + inr];
+	    REAL(X1) = REAL(X) + i*nr;
 	    break;
 	case INTSXP:
-	    for (j = 0, inr = i*nr; j < nr; j++)
-		INTEGER(X1)[j] = INTEGER(X)[j + inr];
+	    INTEGER(X1) = INTEGER(X) + i*nr;
 	    break;
 	case LGLSXP:
-	    for (j = 0, inr = i*nr; j < nr; j++)
-		LOGICAL(X1)[j] = LOGICAL(X)[j + inr];
+	    LOGICAL(X1) = LOGICAL(X) + i*nr;
 	    break;
 	case CPLXSXP:
-	    for (j = 0, inr = i*nr; j < nr; j++)
-		COMPLEX(X1)[j] = COMPLEX(X)[j + inr];
+	    COMPLEX(X1) = COMPLEX(X) + i*nr;
 	    break;
 	case STRSXP:
-	    for (j = 0, inr = i*nr; j < nr; j++)
-		SET_STRING_ELT(X1, j, STRING_ELT(X, j + inr));
+	    STRING(X1) = STRING(X) + i*nr;
 	    break;
 	default:
 	    error("unsupported type of array in apply");
 	}
 	/* careful: we have altered X1 and might have FUN = function(x) x */
-	SET_VECTOR_ELT(ans, i, duplicate(eval(R_fcall, rho)));
+	VECTOR(ans)[i] = duplicate(eval(R_fcall, rho));
     }
-    UNPROTECT(3);
+    UNPROTECT(2);
     return ans;
 }

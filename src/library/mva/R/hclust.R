@@ -21,9 +21,9 @@
 ##
 ## Original author: F. Murtagh, May 1992
 ## R Modifications: Ross Ihaka, Dec 1996
-##		    Friedrich Leisch, Apr 1998, Jun 2000
+##		    Friedrich Leisch, Apr 1998
 
-hclust <- function(d, method="complete", members=NULL)
+hclust <- function(d, method="complete")
 {
     METHODS <- c("ward", "single",
                  "complete", "average", "mcquitty",
@@ -40,12 +40,6 @@ hclust <- function(d, method="complete", members=NULL)
     labels <- attr(d, "Labels")
 
     len <- n*(n-1)/2
-
-    if(is.null(members))
-        members <- rep(1, n)
-    if(length(members)!=n)
-        stop("Invalid length of members")
-    
     hcl <- .Fortran("hclust",
 		    n = as.integer(n),
 		    len = as.integer(len),
@@ -53,7 +47,7 @@ hclust <- function(d, method="complete", members=NULL)
 		    ia = integer(n),
 		    ib = integer(n),
 		    crit = double(n),
-		    members = as.double(members),
+		    membr = double(n),
 		    nn = integer(n),
 		    disnn = double(n),
 		    flag = logical(n),

@@ -5,7 +5,7 @@ WINHELP = BOTH # NO, CHM, BOTH
 
 PACKAGES = base ctest eda lqs modreg mva nls splines stepfun ts
 ALLPACKAGES = $(PACKAGES) tcltk
-RPREFIX = rw1020
+RPREFIX = rw1011
 
 RHOME = $(shell perl pwd.pl ../..)# must be absolute path
 RLIB = $(RHOME)/library
@@ -188,20 +188,15 @@ clean: cleanwin $(PKGCLEAN)
 	-$(MAKE) -C ../nmath/standalone -f Makefile.win distclean
 
 distclean veryclean: clean
-	$(RM) -rf R.exp globalvar.h ../../bin ../../library
-	$(RM) -f ../include/config.h ../include/psignal.h \
-	../include/Rconfig.h ../include/version.h 
+	$(RM) -rf R.exp ../../bin ../../library
 	$(RM) -f ../library/*/src/*.o ../library/*/src/*.a
 	$(RM) -f ../library/*/src/*.dll
 	$(RM) -rf ../library/*/check
 	$(RM) -f ../../doc/html/search/index.txt \
-	../../doc/html/function.html ../../doc/html/function-head.html \
-	../../doc/html/packages.html ../../doc/html/rwin.html \
-	../../doc/html/rw-FAQ.html ../../doc/html/search/SearchEngine.html \
+	../../doc/html/function.html ../../doc/html/packages.html \
 	../../demos/dynload/zero.def ../../demos/dynload/zero.dll \
-	../../demos/dynload/zero.o
-	$(RM) -f ../../etc/Rconsole ../../etc/Rdevga ../../etc/Rprofile \
-	../../etc/rgb.txt ../../etc/Makeconf-tests \
+	../../demos/dynload/zero.o \
+	../../etc/Rconsole ../etc/Rdevga ../etc/Rprofile ../../etc/rgb.txt \
 	../include/FFDecl.h ../include/FFTab.h ../include/Platform.h \
 	../include/globalvar.h ../../tests/*.Rout ../../tests/*.Rout.fail
 
@@ -221,8 +216,8 @@ cleanwin:
 
 #                          ===== testing ======
 
-# tests
-check test: test-Specific pkgtests
+check: all test
+test: test-Specific pkgtests
 
 test-Specific:
 	-@$(MAKE) -C $(RHOME)/tests -f $(RHOME)/src/gnuwin32/check/Maketests clean
@@ -280,10 +275,6 @@ bindist: docfiles
 	$(CP) -pr $(LIBFILES) $(RPREFIX)/library
 	$(RM) $(RPREFIX)/demos/dynload/*.o $(RPREFIX)/demos/dynload/*.def
 	$(RM) $(RPREFIX)/*/Makefile.in
-	$(RM) $(RPREFIX)/bin/INSTALL $(RPREFIX)/bin/REMOVE \
-	      $(RPREFIX)/bin/SHLIB\
-              $(RPREFIX)/bin/build $(RPREFIX)/bin/check \
-	      $(RPREFIX)/bin/massage-Examples.sh
 	$(MKDIR) $(RPREFIX)/etc
 	$(CP) -p ../../etc/Rprofile $(RPREFIX)/etc/Rprofile
 	$(CP) -p ../../etc/Rconsole $(RPREFIX)/etc/Rconsole
@@ -344,7 +335,7 @@ GW32_HEADERS = globalvar.h # psignal.h
 
 packagedist:
 	$(RM) -r $(RPREFIX)sp.zip $(RPREFIX)
-	$(MKDIR) $(RPREFIX) $(RPREFIX)/bin $(RPREFIX)/etc $(RPREFIX)/src \
+	$(MKDIR) $(RPREFIX) $(RPREFIX)/etc $(RPREFIX)/src \
 	  $(RPREFIX)/src/include $(RPREFIX)/src/library \
 	  $(RPREFIX)/src/gnuwin32 $(RPREFIX)/src/gnuwin32/fixed
 	$(CP) -p ../../COPYING exported-vars R.exp MkRules MakePkg MakeDll \
@@ -361,8 +352,6 @@ packagedist:
 	$(CP) readme.packages $(RPREFIX)
 	$(CP) ../../etc/Rdconvlib.pl ../../etc/buildlib.pl \
 	   ../../etc/html-layout.pl $(RPREFIX)/etc
-	$(CP) ../../bin/INSTALL ../../bin/SHLIB ../../bin/build \
-	   ../../bin/check ../../bin/massage-Examples.sh $(RPREFIX)/bin
 	$(CP) -p graphapp/graphapp.h $(RPREFIX)/src/include
 	$(CP) -pr windlgs $(RPREFIX)/src/library
 	zip -rX $(RPREFIX)sp.zip $(RPREFIX)

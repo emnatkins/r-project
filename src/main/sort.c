@@ -206,7 +206,7 @@ void sortVector(SEXP s)
 	    R_csort(COMPLEX(s), n);
 	    break;
 	case STRSXP:
-	    ssort(STRING_PTR(s), n);
+	    ssort(STRING(s), n);
 	    break;
 	}
 }
@@ -292,7 +292,7 @@ static void Psort(SEXP x, int k)
 	cPsort(COMPLEX(x), LENGTH(x), k);
 	break;
     case STRSXP:
-	sPsort(STRING_PTR(x), LENGTH(x), k);
+	sPsort(STRING(x), LENGTH(x), k);
 	break;
     }
 }
@@ -307,7 +307,7 @@ SEXP do_psort(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (!isVector(CAR(args)))
 	errorcall(call,"only vectors can be sorted");
     n = LENGTH(CAR(args));
-    SETCADR(args, coerceVector(CADR(args), INTSXP));
+    CADR(args) = coerceVector(CADR(args), INTSXP);
     l = INTEGER(CADR(args));
     k = LENGTH(CADR(args));
     for (i = 0; i < k; i++) {
@@ -316,7 +316,7 @@ SEXP do_psort(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if (l[i] < 1 || l[i] > n)
 	    errorcall(call,"index %d outside bounds", l[i]);
     }
-    SETCAR(args, duplicate(CAR(args)));
+    CAR(args) = duplicate(CAR(args));
     for (i = 0; i < k; i++)
 	Psort(CAR(args), l[i] - 1);
     return CAR(args);
@@ -341,7 +341,7 @@ static int equal(int i, int j, SEXP x)
 	c = ccmp(COMPLEX(x)[i], COMPLEX(x)[j]);
 	break;
     case STRSXP:
-	c = scmp(STRING_ELT(x, i), STRING_ELT(x, j));
+	c = scmp(STRING(x)[i], STRING(x)[j]);
 	break;
     }
     if (c == 0)
@@ -365,7 +365,7 @@ static int greater(int i, int j, SEXP x)
 	c = ccmp(COMPLEX(x)[i], COMPLEX(x)[j]);
 	break;
     case STRSXP:
-	c = scmp(STRING_ELT(x, i), STRING_ELT(x, j));
+	c = scmp(STRING(x)[i], STRING(x)[j]);
 	break;
     }
     if (c > 0)
@@ -392,7 +392,7 @@ static int listgreater(int i, int j, SEXP key)
 	    c = ccmp(COMPLEX(x)[i], COMPLEX(x)[j]);
 	    break;
 	case STRSXP:
-	    c = scmp(STRING_ELT(x, i), STRING_ELT(x, j));
+	    c = scmp(STRING(x)[i], STRING(x)[j]);
 	    break;
 	}
 	if (c > 0)

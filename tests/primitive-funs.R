@@ -49,7 +49,7 @@ Real.primitives <-
 	   ##maybe ? "gc", "gcinfo",
 	   ##
 	   "debug", "undebug", "trace", "untrace",
-	   "browser",  "proc.time", "gc.time", #"traceback",
+	   "browser",  "proc.time", #"traceback",
 	   ),
 
 	 language2= c(":", "~", "c", "list", #nomore (Sep.9,1998): "unlist",

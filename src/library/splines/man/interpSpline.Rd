@@ -42,6 +42,7 @@ interpSpline(obj1, obj2, bSpline, period, na.action)
   \code{\link{periodicSpline}}}
 }
 \examples{
+library( splines )
 data( women )
 ispl <- interpSpline( women$height, women$weight )
 ispl2 <- interpSpline( weight ~ height,  women )

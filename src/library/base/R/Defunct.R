@@ -55,5 +55,3 @@ print.anova.glm <- .Alias(print.anova.lm)
 
 system.test <- function(...)
   .Defunct()
-
-provide <- function(package) .Defunct()

@@ -43,8 +43,8 @@ help.search <- function(topic, fields = c("name", "title"),
         ## Check whether we can save the help db lateron
         save.db <- FALSE
         dir <- switch(.Platform$OS.type,
-                      "windows" = Sys.getenv("R_USER"),
-                      "unix" = Sys.getenv("HOME"),
+                      "windows" = getenv("R_USER"),
+                      "unix" = getenv("HOME"),
                       "")
         if(nchar(dir) == 0) dir <- getwd()
         dir <- file.path(dir, ".R")
@@ -72,7 +72,7 @@ help.search <- function(topic, fields = c("name", "title"),
                 cfile <- system.file("CONTENTS", pkg = p, lib = lib)
                 if(cfile != "") {
                     ctext <- scan("", file = cfile, sep = "\n",
-                                  quiet = TRUE)
+                                  quote="", quiet = TRUE)
                     if(length(ctext) > 0) {
                         ctext <- parse.dcf(ctext,
                                            fields = c("Entry", "Aliases",

@@ -68,8 +68,8 @@ directory that was last used, and start their dialog boxes from that
 directory the next time they are used.  That directory can be made the
 working directory by the File | Change dir menu item.  All the `save'
 menu items start dialog boxes at the current working directory: this
-includes `Save Workspace' and the various ways to save graphics, as
-well as saving the workspace at the end of the session.
+includes `Save Image' and the various ways to save graphics, as well as
+saving the workspace at the end of the session.
 
 Note that the text help files use the latin1 encoding.  To see all the
 characters you must use an appropriate font (European-language True
@@ -247,9 +247,11 @@ Differences from Unix versions of R
   Ctrl-C is used for copying in the GUI version.  C-c C-c works
   under NTemacs.
 
-- Command-line editing is always available, but is simpler than
+- Command-line editing is always available, but is much simpler than
   under readline-based input on Unix.  For Rgui.exe, see the menu item
   `Help | Console', for Rterm.exe the file README.Rterm.
+
+- The commands history is always saved between sessions.
 
 - The HTML function and package lists and search database are not
   re-generated automatically by help.start().  Use link.html.help().

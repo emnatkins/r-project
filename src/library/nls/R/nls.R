@@ -1,4 +1,4 @@
-### $Id: nls.R,v 1.7 2000/06/28 17:26:44 bates Exp $
+### $Id: nls.R,v 1.5.6.1 2000/06/21 08:40:30 ripley Exp $
 ###
 ###            Nonlinear least squares for R
 ###
@@ -24,6 +24,13 @@
 
 .First.lib <- function(lib, pkg) library.dynam( "nls", pkg, lib )
 
+newEnv <- function(enclos) {
+    if (missing(enclos))
+        eval.parent(quote((function() environment())()))
+    else
+        eval(quote((function() environment())()), envir = enclos)
+}
+
 numericDeriv <- function(expr, theta, rho = parent.frame()) {
     val <- .Call("numeric_deriv", expr, theta, rho, PACKAGE="nls")
     valDim <- dim(val)
@@ -39,7 +46,7 @@ numericDeriv <- function(expr, theta, rho = parent.frame()) {
 
 nlsModel.plinear <- function( form, data, start ) {
     thisEnv <- environment()
-    env <- new.env()
+    env <- newEnv()
     for( i in names( data ) ) {
         assign( i, data[[i]], envir = env )
     }
@@ -217,7 +224,7 @@ nlsModel.plinear <- function( form, data, start ) {
            },
            predict = function(newdata = list(), qr = FALSE)
            {
-               Env <- new.env()
+               Env <- newEnv()
                for (i in objects(envir = env)) {
                    assign(i, get(i, envir = env), envir = Env)
                }
@@ -235,7 +242,7 @@ nlsModel.plinear <- function( form, data, start ) {
 
 nlsModel <- function( form, data, start ) {
     thisEnv <- environment()
-    env <- new.env()
+    env <- newEnv()
     for( i in names( data ) ) {
         assign( i, data[[i]], envir = env )
     }
@@ -376,7 +383,7 @@ nlsModel <- function( form, data, start ) {
            Rmat = function() qr.R( QR ),
            predict = function(newdata = list(), qr = FALSE)
            {
-               Env <- new.env()
+               Env <- newEnv()
                for (i in objects(envir = env)) {
                    assign(i, get(i, envir = env), envir = Env)
                }

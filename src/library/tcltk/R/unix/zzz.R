@@ -3,7 +3,6 @@
 	stop("Tcl/Tk library does not work with GNOME interface")
     library.dynam("tcltk", pkg, lib)
     .C("tcltk_init", PACKAGE="tcltk")
-    addTclPath(system.file("exec",pkg="tcltk"))
 }
 
 .Last.lib <- function(libpath) {

@@ -27,7 +27,6 @@
 
 #define NIL -1
 #define ARGUSED(x) LEVELS(x)
-#define SET_ARGUSED(x,v) SETLEVELS(x,v)
 
 /* Hash function and equality test for keys */
 static int K, M;
@@ -82,7 +81,7 @@ static int chash(SEXP x, int index)
 static int shash(SEXP x, int index)
 {
     unsigned int k;
-    char *p = CHAR(STRING_ELT(x, index));
+    char *p = CHAR(STRING(x)[index]);
     k = 0;
     while (*p++)
 	k = 8 * k + *p;
@@ -121,7 +120,7 @@ static int cequal(SEXP x, int i, SEXP y, int j)
 
 static int sequal(SEXP x, int i, SEXP y, int j)
 {
-    return !strcmp(CHAR(STRING_ELT(x, i)), CHAR(STRING_ELT(y, j)));
+    return !strcmp(CHAR(STRING(x)[i]), CHAR(STRING(y)[j]));
 }
 
 /* Choose M to be the smallest power of 2 */
@@ -270,7 +269,7 @@ SEXP do_duplicated(SEXP call, SEXP op, SEXP args, SEXP env)
     case STRSXP:
 	for (i = 0; i < n; i++)
 	    if (LOGICAL(dup)[i] == 0)
-		SET_STRING_ELT(ans, k++, STRING_ELT(x, i));
+		STRING(ans)[k++] = STRING(x)[i];
 	break;
     }
     return ans;
@@ -336,8 +335,8 @@ SEXP do_match(SEXP call, SEXP op, SEXP args, SEXP env)
 
     type = TYPEOF(CAR(args)) < TYPEOF(CADR(args)) ?
 	TYPEOF(CADR(args)) : TYPEOF(CAR(args));
-    x = SETCAR(args, coerceVector(CAR(args), type));
-    table = SETCADR(args, coerceVector(CADR(args), type));
+    x = CAR(args) = coerceVector(CAR(args), type);
+    table = CADR(args) = coerceVector(CADR(args), type);
     nomatch = asInteger(CAR(CDDR(args)));
     n = length(x);
 
@@ -409,12 +408,11 @@ SEXP do_pmatch(SEXP call, SEXP op, SEXP args, SEXP env)
  
     /* First pass, exact matching */
     for (i = 0; i < n_input; i++) {
-	temp = strlen(CHAR(STRING_ELT(input, i)));
+	temp = strlen(CHAR(STRING(input)[i]));
 	if (temp == 0) continue;
 	for (j = 0; j < n_target; j++) {
 	    if (!dups_ok && used[j]) continue;
-	    k = strcmp(CHAR(STRING_ELT(input, i)),
-		       CHAR(STRING_ELT(target, j)));
+	    k = strcmp(CHAR(STRING(input)[i]), CHAR(STRING(target)[j]));
 	    if (k == 0) {
 		used[j] = 1;
 		INTEGER(ans)[i] = j + 1;
@@ -425,14 +423,13 @@ SEXP do_pmatch(SEXP call, SEXP op, SEXP args, SEXP env)
     /* Second pass, partial matching */   
     for (i = 0; i < n_input; i++) {
 	if (INTEGER(ans)[i]) continue;
-	temp = strlen(CHAR(STRING_ELT(input, i)));
+	temp = strlen(CHAR(STRING(input)[i]));
 	if (temp == 0) continue;
 	mtch = 0;
 	mtch_count = 0;
 	for (j = 0; j < n_target; j++) {
 	    if (!dups_ok && used[j]) continue;
-	    k = strncmp(CHAR(STRING_ELT(input, i)),
-			CHAR(STRING_ELT(target, j)), temp);
+	    k = strncmp(CHAR(STRING(input)[i]), CHAR(STRING(target)[j]), temp);
 	    if (k == 0) {
 		mtch = j + 1;
 		mtch_count++;
@@ -446,17 +443,17 @@ SEXP do_pmatch(SEXP call, SEXP op, SEXP args, SEXP env)
 
 #ifdef OLD_PMATCH
     for (i = 0; i < n_input; i++) {
-	temp = strlen(CHAR(STRING_ELT(input, i)));
+	temp = strlen(CHAR(STRING(input)[i]));
 	mtch = 0;
 	mtch_count = 0;
 	if (temp) {
 	    for (j = 0; j < n_target; j++) {
-		k = strncmp(CHAR(STRING_ELT(input, i)),
-			    CHAR(STRING_ELT(target, j)), temp);
+		k = strncmp(CHAR(STRING(input)[i]),
+			    CHAR(STRING(target)[j]), temp);
 		if (k == 0) {
 		    mtch = j + 1;
 		    if (dups_ok ||
-			strlen(CHAR(STRING_ELT(target, j))) == temp)
+			strlen(CHAR(STRING(target)[j])) == temp)
 			/* This is odd, effectively sets dups.ok
 			 * for perfect mtches, but that's what
 			 * Splus 3.4 does  --pd
@@ -495,14 +492,14 @@ SEXP do_charmatch(SEXP call, SEXP op, SEXP args, SEXP env)
     ans = allocVector(INTSXP, n_input);
 
     for (i = 0; i < n_input; i++) {
-	temp = strlen(CHAR(STRING_ELT(input, i)));
+	temp = strlen(CHAR(STRING(input)[i]));
 	match = NA_INTEGER;
 	perfect = 0;
 	for (j = 0; j < n_target; j++) {
-	    k = strncmp(CHAR(STRING_ELT(input, i)),
-			CHAR(STRING_ELT(target, j)), temp);
+	    k = strncmp(CHAR(STRING(input)[i]),
+			CHAR(STRING(target)[j]), temp);
 	    if (k == 0) {
-		if (strlen(CHAR(STRING_ELT(target, j))) == temp) {
+		if (strlen(CHAR(STRING(target)[j])) == temp) {
 		    if (perfect == 1)
 			match = 0;
 		    else {
@@ -541,7 +538,7 @@ static SEXP StripUnmatched(SEXP s)
 	return StripUnmatched(CDR(s));
     }
     else {
-	SETCDR(s, StripUnmatched(CDR(s)));
+	CDR(s) = StripUnmatched(CDR(s));
 	return s;
     }
 }
@@ -552,21 +549,21 @@ static SEXP ExpandDots(SEXP s, int expdots)
     if (s == R_NilValue)
 	return s;
     if (TYPEOF(CAR(s)) == DOTSXP ) {
-	SET_TYPEOF(CAR(s), LISTSXP);	/* a safe mutation */
+	TYPEOF(CAR(s)) = LISTSXP;	/* a safe mutation */
 	if (expdots) {
 	    r = CAR(s);
 	    while (CDR(r) != R_NilValue ) {
-		SET_ARGUSED(r, 1);
+		ARGUSED(r) = 1;
 		r = CDR(r);
 	    }
-	    SET_ARGUSED(r, 1);
-	    SETCDR(r, ExpandDots(CDR(s), expdots));
+	    ARGUSED(r) = 1;
+	    CDR(r)= ExpandDots(CDR(s), expdots);
 	    return CAR(s);
 	}
     }
     else
-	SET_ARGUSED(s, 0);
-    SETCDR(s, ExpandDots(CDR(s), expdots));
+	ARGUSED(s) = 0;
+    CDR(s) = ExpandDots(CDR(s), expdots);
     return s;
 }
 static SEXP subDots(SEXP rho)
@@ -588,14 +585,14 @@ static SEXP subDots(SEXP rho)
     for(a=dots, b=rval, i=1; i<=len; a=CDR(a), b=CDR(b), i++) {
 	sprintf(tbuf,"..%d",i);
 	if( TAG(a) != R_NilValue )
-	    SET_TAG(b, TAG(a));
+	    TAG(b) = TAG(a);
 	else
-	    SET_TAG(b, install(tbuf));
+	    TAG(b) = install(tbuf);
 	if( isSymbol(PREXPR(CAR(a))) || isLanguage(PREXPR(CAR(a))) ) {
-		SETCAR(b, mkSYMSXP(mkChar(tbuf), R_UnboundValue));
+		CAR(b) = mkSYMSXP(mkChar(tbuf), R_UnboundValue);
 	}
 	else
-		SETCAR(b, PREXPR(CAR(a)));
+		CAR(b) = PREXPR(CAR(a));
     }
     UNPROTECT(1);
     return rval;
@@ -614,11 +611,11 @@ SEXP do_matchcall(SEXP call, SEXP op, SEXP args, SEXP env)
     funcall = CADR(args);
 
     if (TYPEOF(funcall) == EXPRSXP)
-	funcall = VECTOR_ELT(funcall, 0);
+	funcall = VECTOR(funcall)[0];
 
     if (TYPEOF(funcall) != LANGSXP) {
 	b = deparse1(funcall, 1);
-	errorcall(call, "%s is not a valid call", CHAR(STRING_ELT(b, 0)));
+	errorcall(call, "%s is not a valid call", CHAR(STRING(b)[0]));
     }
 
     /* Get the function definition */
@@ -648,7 +645,7 @@ SEXP do_matchcall(SEXP call, SEXP op, SEXP args, SEXP env)
 
     if (TYPEOF(b) != CLOSXP) {
 	b = deparse1(b, 1);
-	errorcall(call, "%s is not a function", CHAR(STRING_ELT(b, 0)));
+	errorcall(call, "%s is not a function", CHAR(STRING(b)[0]));
     }
 
     /* Do we expand ... ? */
@@ -656,7 +653,7 @@ SEXP do_matchcall(SEXP call, SEXP op, SEXP args, SEXP env)
     expdots = asLogical(CAR(CDDR(args)));
     if (expdots == NA_LOGICAL) {
 	b = deparse1(CADDR(args), 1);
-	errorcall(call, "%s is not a logical", CHAR(STRING_ELT(b, 0)));
+	errorcall(call, "%s is not a logical", CHAR(STRING(b)[0]));
     }
 
     /* Get the formals and match the actual args */
@@ -691,7 +688,7 @@ SEXP do_matchcall(SEXP call, SEXP op, SEXP args, SEXP env)
 		for(t1=actuals; t1!=R_NilValue; t1=CDR(t1)) {
 			if( CADR(t1) == R_DotsSymbol ) {
 				tail = CDDR(t1);
-				SETCDR(t1, t2);
+				CDR(t1) = t2;
 				listAppend(actuals,tail);
 				break;
 			}
@@ -704,7 +701,7 @@ SEXP do_matchcall(SEXP call, SEXP op, SEXP args, SEXP env)
     /* Attach the argument names as tags */
 
     for (f = formals, b = rlist; b != R_NilValue; b = CDR(b), f = CDR(f)) {
-	SET_TAG(b, TAG(f));
+	TAG(b) = TAG(f);
     }
 
 
@@ -718,8 +715,8 @@ SEXP do_matchcall(SEXP call, SEXP op, SEXP args, SEXP env)
     rlist = StripUnmatched(rlist);
 
     PROTECT(rval = allocSExp(LANGSXP));
-    SETCAR(rval, duplicate(CAR(funcall)));
-    SETCDR(rval, rlist);
+    CAR(rval) = duplicate(CAR(funcall));
+    CDR(rval) = rlist;
     UNPROTECT(4);
     return rval;
 }

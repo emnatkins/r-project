@@ -1,128 +1,6 @@
 				Dear Emacs, please make this -*-Text-*- mode!
 	**************************************************
 	*						 *
-	*	       1.2 SERIES NEWS			 *
-	*						 *
-	**************************************************
-
-
-		CHANGES IN R VERSION 1.2.0
-
-
-NEW FEATURES
-
-    o   hclust() takes new argument `members' allowing dissimilarity
-	matrices both for singletons (as until now) and clusters.
-
-    o	hist() now returns a "histogram" object and calls the new
-	function plot.histogram() for plotting.
-	It now also allows character labels.
-
-    o	The more recent GNU regex from grep-2.4.2 is used.
-
-    o   `where' command added to debug.
-
-    o   inherits() is now an internal function and compatible with S.
-
-    o   R CMD build and check have been completely re-written in perl. In
-        addition to running examples, check now also checks the directory
-        structure and control files, makes a temporary installation and
-        runs LaTeX on the help pages. Build has been reduced to
-        cleaning, rewriting indices and creating tar files.
-
-	The same files of Perl code are now also used under Windows.
-
-    o   Add-ons for utilities like perl or LaTeX have now a central
-        place in $R_HOME/share. Migration of existing files might take
-        a while, though.
-
-    o   --nsize up to 50M (2Gb on 64-bit Solaris) allowed.
-
-    o	The commands history can be loaded with loadhistory(), saved
-	with savehistory() and displayed with history(), under Windows
-	and under Unix using the readline or GNOME interfaces.
-
-    o	if(*) now gives a more intelligible error message
-        when "*" cannot be coerced to logical.
-
-    o	New function Rprof() for profiling R expressions under Unix.
-	Configure with --enable-R-profiling to make this operational.
-
-    o	New functions file.access() and file.info() for information on
-	files on the user's file systems.
-
-    o	New convenience function file.copy().
-
-    o	New function Sys.info() for platform, host and user information.
-
-    o	New function Sys.sleep() to suspend execution for a while.
-
-    o	Sys.getenv() becomes the preferred name for getenv(), which is
-	now deprecated.
-
-    o	New function Sys.putenv() to set environment variables.
-
-    o	Formerly deprecated function provide() is now defunct.
-
-    o	New command-line option --no-restore-history implied by --vanilla.
-
-    o	Command-line option --restore is now --no-restore-data and
-	--no-restore implies --no-restory-* (currently `data' and
-	`history').
-
-    o	The `mode' argument of exists() and get() is interpreted
-	as mode(x) rather than typeof(x), following S.
-
-    o	Configure/build variables MAINLD and MAINLDFLAGS are renamed to
-	MAIN_LD and MAIN_LDFLAGS for consistency with other MAIN_* vars,
-	simlarly for SHLIBLD and SHLIBLDFLAGS.
-
-    o	Much improved support for C++ code in add-on packages under Unix.
-	New configure/build variables SHLIB_CXXLD and SHLIB_CXXLDFLAGS
-	for specifying the command and flags needed for building shared
-	libraries containing objects from a C++ compiler.
-	Configure tries to get these right in typical cases (GNU tools
-	and/or common platforms).
-	C++ source suffixes `.cpp' and `.C' are now recognized in
-	adddition to `.cc'.
-
-    o	.Platform has new component "endian", useful for binary file
-	manipulations.
-
-    o	Configure/build variable FLIBS now only contains the Fortran 77
-	intrinsic and run-time libraries needed for linking a Fortran 77
-	program or shared library (as determined by configure).  BLAS
-	library detection was extended, with results saved to the Make
-	variable BLAS_LIBS which is also available to add-on packages.
-
-    o	constrasts(, FALSE) now always returns an identity matrix,
-	to make model.matrix compatible with S. This affects models
-	such as lm(y ~ o - 1) where o is an ordered factor.
-
-    o	anova() for 3 or more lm objects now behaves compatibly
-	with S and anova.glmlist(). The old behaviour is still available
-	by calling anovalist.lm() directly.
-
-    o	anova() for multiple lm and glm objects no longer truncates the
-	formula. There is much more extensive documentation for anova()
-	methods.
-
-    o	The standard methods for add1() and drop1() now attempt to cope
-	with missing values by using a subset of the data  that is 
-	`cleaned' by na.action for the maximal model under consideration.
-
-
-
-BUG FIXES
-
-    o   Postscript driver no longer uses the initclip operator, which
-        was against the EPSF specifications and broke inclusion of
-	graphics in some documents.
-
-
-
-	**************************************************
-	*						 *
 	*	       1.1 SERIES NEWS			 *
 	*						 *
 	**************************************************
@@ -242,7 +120,13 @@ BUG FIXES
     o	summary(.matrix | .data.frame) now respects a `digits' argument.
 
     o   scan() recognises quoted strings by default again. The default
-	for the quote= argument got set wrongly when it was introduced.
+	for the quote= argument got set wrongly when it was
+	introduced. They are, however, turned off when using sep="\n",
+	since you probably want unprocessed lines of text in that
+	case.
+
+    o   fixed buglet where scan() would double a character following a
+        terminating quote symbol.
 
     o	kmeans was failing on vector inputs (although not documented
 	to accept such).
@@ -292,8 +176,9 @@ BUG FIXES
     o	Better rendering of ^ and ~ in latex in \code{} (and they should
 	not appear outside code and verbatim sections).
 
-    o	Help aliases "(" and "{" now work, apart from as PDF hyperlinks.
+    o   Fixed unterminated string problem with lty (PR 584)
 
+    o   Fixed scoping problem with quasi() family (PR 614)
 
 
 		CHANGES IN R VERSION 1.1.0

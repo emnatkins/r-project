@@ -30,32 +30,16 @@ fixh: h/config.h ../../include/FFDecl.h ../../include/FFTab.h \
 	$(ECHO) done > fixh
 
 ../../include/Rconfig.h: h/config.h
-	$(SED) -e 1d ../../../tools/GETCONFIG > GC
-	(cd h; sh ../GC > ../../../include/Rconfig.h)
-	$(RM) GC
+	sh ./GETCONFIG > ../../include/Rconfig.h
 
 ../../include/Rversion.h: ../../../date-stamp ../../../VERSION
-	$(SED) -e 1d ../../../tools/GETVERSION > ../../../tools/GV
-	sh ../../../tools/GV > $@
-	$(RM) ../../../tools/GV
+	sh ./GETVERSION > ../../include/Rversion.h
 
-../../../bin/massage-Examples.sh: ../../scripts/massage-Examples
-	$(SED) -e 1d  -e 's/"contr.poly")/"contr.poly"), pager="console"'/ $< > $@
-
-../../../bin/check: ../../scripts/check.in
-	$(CP) $< $@
-
-../../../bin/build: ../../scripts/build.in
-	$(CP) $< $@
-
-fixbin: ../../../bin/massage-Examples.sh ../../../bin/build \
-	 ../../../bin/check  cp2bin
-	$(ECHO) done > fixbin
-
-cp2bin: $(filter-out ./bin/CVS, $(wildcard ./bin/*))
+fixbin: $(filter-out ./bin/CVS, $(wildcard ./bin/*))
 	zip -q bins $^
 	unzip -oaq bins -d  ../../..
 	$(RM) bins.zip
+	$(ECHO) done > fixbin
 
 fixr: $(wildcard ./r/*.html) ../../../doc/html/search/SearchEngine.html
 	$(CP) -p ./r/*.html ../../../doc/html
@@ -71,5 +55,5 @@ clean:
 ../../../doc/html/search/SearchEngine.html:../../../doc/KEYWORDS.db
 	(cd ../../../doc; \
 	cat html/search/SearchEngine-head.html > html/search/SearchEngine.html; \
-	perl ../tools/keywords2html.pl KEYWORDS.db >> html/search/SearchEngine.html; \
+	perl ../src/gnuwin32/fixed/keywords2html KEYWORDS.db >> html/search/SearchEngine.html; \
 	cat html/search/SearchEngine-foot.html >> html/search/SearchEngine.html)

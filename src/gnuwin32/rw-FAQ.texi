@@ -150,7 +150,7 @@ file tree. Right-click the shortcut, select Properties... and change
 the `Start in' field to your working directory.
 
 You may also want to add command-line arguments at the end of the
-Target field, for example @code{--vsize=10M --nsize=400k}. You can also set
+Target field. We use @code{--vsize=10M --nsize=400k}. You can also set
 environment variables at the end of the Target field, for
 example @code{R_LIBS=e:/R/library}.
 
@@ -189,20 +189,17 @@ latex installed you can print help files by @code{help(fn_name, offline=TRUE)}.
 @node Can I use R BATCH?, Can I use rwXxxx with ESS and emacs?, How do I print from R?, Installation and Usage
 @section Can I use @code{R BATCH}?
 
-Yes, if you Perl installed.  The Windows analogue is @code{Rcmd BATCH}:
-use @code{Rcmd BATCH --help} for full details.
-
-Otherwise you can set up a batch file using @code{Rterm.exe}. A sample
-batch file might contain (as one line)
+No, but you can set up a batch file using @code{Rterm.exe}. A sample batch file
+might contain (as one line)
 
 @example
-path_to_R\bin\Rterm.exe --no-restore --no-save < %1 > %1.out
+path_to_R\bin\Rterm.exe --vsize=10M --nsize=500k --no-restore --no-save < %1 > %1.out
 @end example
 
 @node Can I use rwXxxx with ESS and emacs?, What are HOME and working directories?, Can I use R BATCH?, Installation and Usage
 @section Can I use rwXxxx with ESS and emacs?
 
-Yes. The latest versions of ESS (e.g. 5.1.16) come with support for this
+Yes. The latest versions of ESS (e.g. 5.1.13) come with support for this
 version of R, and there is support for interrupting the R process from
 ESS (by @code{C-c C-c}).
 
@@ -227,7 +224,7 @@ Otherwise if environment variables @code{HOMEDRIVE} and @code{HOMEPATH} are set,
 the value is @code{$@{HOMEDRIVE@}$@{HOMEPATH@}}.@*
 If all of these fail, the current working directory is used.
 
-You can find this from R code by @code{Sys.getenv("R_USER")}.
+You can find this from R code by @code{getenv("R_USER")}.
 
 
 @newchap{}
@@ -369,9 +366,11 @@ If those all hold true, this works for us.
 and @key{Ctrl-break} or @key{Ctrl-C} in @code{Rterm.exe}: @key{Ctrl-C}
 is used for copying in the GUI version.
 
-@item Command-line editing is always available, but is simpler than the
+@item Command-line editing is always available, but is much simpler than the
 readline-based editing on Unix. For @code{Rgui.exe}, the menu item `Help |
 Console' will give details.
+
+@item The commands history is always saved between sessions.
 
 @item Using @code{help.start()} does not automatically send help
 requests to the browser: use @code{options(htmlhelp=T)} to turn this on.
@@ -443,7 +442,7 @@ Have you changed the working directory?: see Q5.2.
 Use the `File | Change Dir' menu item to select a new working
 directory: this defaults to the last directory you loaded a file
 from. The workspace is saved in the working directory. You can also
-save a snapshot of the workspace from the `Save Workspace' menu item.
+save a snapshot of the workspace from the `Save Image' menu item.
 
 
 @node Can I load workspaces saved under Unix/GNU-Linux?,  , How do I store my workspace in a different place?, Workspaces
@@ -632,7 +631,16 @@ as in the example in `@emph{Writing R Extensions}'. Then build the DLL by
 (@code{gcc-2.95})
 
 @example
-.../bin/Rcmd SHLIB X.cc X_main.cc
+g++ -c X.cc X_main.cc
+dlltool --export-all-symbols --output-def X.def X_main.o
+dllwrap -o X.dll --def X.def X.o X_main.o -lstdc++
+@end example
+@noindent
+or if you have @code{--shared} (@code{mingw32 gcc-2.95.1} or
+@code{cygwin 1.1})
+
+@example
+g++ -shared -o X.dll X.cc X_main.cc
 @end example
 @noindent
 or (VC++, which requires extension @code{.cpp})

@@ -1812,7 +1812,6 @@ sub rdoc2latex {# (filename)
 
     my $current = $blocks{"name"}, $generic, $cmd;
     foreach (sort foldorder @aliases) {
-	next if ($_ == "(" || $_ == "{");  # these two break the PDF indexing
 	$generic = $a = $_;
 	$generic =~ s/\.data\.frame$/.dataframe/o;
 	$generic =~ s/\.model\.matrix$/.modelmatrix/o;

@@ -170,7 +170,7 @@ GuiReadConsole(char *prompt, char *buf, int len, int addtohistory)
 {
     char *p;
     char *NormalPrompt =
-	(char *) CHAR(STRING_ELT(GetOption(install("prompt"), R_NilValue), 0));
+	(char *) CHAR(STRING(GetOption(install("prompt"), R_NilValue))[0]);
 
     if(!R_is_running) {
 	R_is_running = 1;
@@ -367,9 +367,6 @@ void R_CleanUp(int saveact, int status, int runLast)
     case SA_SAVE:
 	if(runLast) R_dot_Last();
 	if(R_DirtyImage) R_SaveGlobalEnv();
-	if (CharacterMode == RGui || 
-	    (R_Interactive && CharacterMode == RTerm))
-	    gl_savehistory(R_HistoryFile);
 	break;
     case SA_NOSAVE:
 	if(runLast) R_dot_Last();
@@ -382,8 +379,10 @@ void R_CleanUp(int saveact, int status, int runLast)
     closeAllHlpFiles();
     KillAllDevices();
     AllDevicesKilled = 1;
+    if (CharacterMode == RGui)
+	savehistory(RConsole, ".Rhistory");
     if (R_Interactive && CharacterMode == RTerm)
-	SetConsoleTitle("");
+	gl_savehistory(".Rhistory");
     UnLoad_Unzip_Dll();
     UnLoad_Rbitmap_Dll();
     if (R_CollectWarnings && saveact != SA_SUICIDE
@@ -474,7 +473,7 @@ int internal_ShowFile(char *file, char *header)
 
     files[0] = file;
     headers[0] = header;
-    return R_ShowFiles(1, files, headers, "File", 0, CHAR(STRING_ELT(pager, 0)));
+    return R_ShowFiles(1, files, headers, "File", 0, CHAR(STRING(pager)[0]));
 }
 
 
@@ -739,18 +738,6 @@ int cmdlineoptions(int ac, char **av)
         (!(EhiWakeUp = CreateEvent(NULL, FALSE, FALSE, NULL)) ||
 	 (_beginthread(ReaderThread, 0, NULL) == -1)))
       R_Suicide("impossible to create 'reader thread'; you must free some system resources");
-
-    if ((R_HistoryFile = getenv("R_HISTFILE")) == NULL)
-	R_HistoryFile = ".Rhistory";
-    R_HistorySize = 512;
-    if ((p = getenv("R_HISTSIZE"))) {
-	int value, ierr;
-	value = Decode2Long(p, &ierr);
-	if (ierr != 0 || value < 0)
-	    REprintf("WARNING: invalid R_HISTSIZE ignored;");
-	else
-	    R_HistorySize = value;
-    }
     return 0;
 }
 

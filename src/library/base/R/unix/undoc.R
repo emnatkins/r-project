@@ -1,6 +1,6 @@
 undoc <- function(pkg, dir)
 {
-    fQuote <- function(s) paste("`", s, "'", sep = "")
+    paste0 <- function(...) paste(..., sep = "")
     listFilesWithExts <- function(dir, exts, path = TRUE) {
         ## Return the paths or names of the files in `dir' with
         ## extension in `exts'.
@@ -17,12 +17,11 @@ undoc <- function(pkg, dir)
     if(!missing(pkg)) {
         pkgDir <- system.file(pkg = pkg)
         if(length(pkgDir) > 1) {
-            warning(paste("package", fQuote(pkg), "found more than once"))
+            warning(paste0("package `", pkg, "' found more than once"))
             pkgDir <- pkgDir[1]
         }
         if(pkgDir == "")
-            stop(paste("package", fQuote(pkg), "is not installed"))
-        isBase <- pkg == "base"
+            stop(paste0("package `", pkg, "' is not installed"))
         objsdocs <- sort(scan(file = file.path(pkgDir, "help",
                               "AnIndex"),
                               what = list("", ""),
@@ -34,8 +33,8 @@ undoc <- function(pkg, dir)
         if(missing(dir))
             stop("you must specify `pkg' or `dir'")
         if(!file.exists(dir))
-            stop(paste("directory", fQuote(dir), "does not exist"))
-        isBase <- basename(dir) == "base"
+            stop(paste0("directory `", dir, "' does not exist"))
+
         if(!file.exists(docsDir <- file.path(dir, "man")))
             stop("no directory with Rd sources found")
         docsExts <- c("Rd", "rd")
@@ -71,9 +70,7 @@ undoc <- function(pkg, dir)
         dataDir <- file.path(dir, "data")
     }
 
-    if(isBase)
-        allObjs <- ls("package:base", all.name = TRUE)
-    else if(file.exists(codeFile)) {
+    if(file.exists(codeFile)) {
         codeEnv <- new.env()
         sys.source(codeFile, envir = codeEnv)
         allObjs <- ls(envir = codeEnv, all.names = TRUE)
@@ -91,7 +88,7 @@ undoc <- function(pkg, dir)
         if(any(i <- grep("\\.\(R\|r\)$", files))) {
             for (f in file.path(dataDir, files[i])) {
                 sys.source(f, envir = dataEnv, chdir = TRUE)
-                new <- ls(envir = dataEnv, all.names = TRUE)
+                new <- ls(all = TRUE, envir = dataEnv)
                 dataObjs <- c(dataObjs, new)
                 rm(list = new, envir = dataEnv)
             }
@@ -100,7 +97,7 @@ undoc <- function(pkg, dir)
         if(any(i <- grep("\\.\(RData\|rdata\|rda\)$", files))) {
             for (f in file.path(dataDir, files[i])) {
                 load(f, envir = dataEnv)
-                new <- ls(envir = dataEnv, all.names = TRUE)
+                new <- ls(all = TRUE, envir = dataEnv)
                 dataObjs <- c(dataObjs, new)
                 rm(list = new, envir = dataEnv)
             }

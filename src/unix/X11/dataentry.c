@@ -95,8 +95,8 @@ static SEXP ssNewVector(SEXPTYPE type, int vlen)
 	if (type == REALSXP)
 	    REAL(tvec)[j] = ssNA_REAL;
 	else if (type == STRSXP)
-	    SET_STRING_ELT(tvec, j, STRING_ELT(ssNA_STRING, 0));
-    SETLEVELS(tvec, 0);
+	    STRING(tvec)[j] = STRING(ssNA_STRING)[0];
+    LEVELS(tvec) = 0;
     return (tvec);
 }
 
@@ -144,31 +144,31 @@ SEXP RX11_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho)
 	     tvec = CDR(tvec), tvec2 = CDR(tvec2)) {
 	    type = TYPEOF(CAR(tvec)); xmaxused++;
 	    if (CAR(tvec2) != R_NilValue)
-		type = str2type(CHAR(STRING_ELT(CAR(tvec2), 0)));
+		type = str2type(CHAR(STRING(CAR(tvec2))[0]));
 	    if (type != STRSXP)
 		type = REALSXP;
 	    if (CAR(tvec) == R_NilValue) {
 		if (type == NILSXP)
 		    type = REALSXP;
-		SETCAR(tvec, ssNewVector(type, 100));
-		SET_TAG(tvec, install("var1"));
-		SETLEVELS(CAR(tvec), 0);
+		CAR(tvec) = ssNewVector(type, 100);
+		TAG(tvec) = install("var1");
+		LEVELS(CAR(tvec)) = 0;
 	    }
 	    else if (!isVector(CAR(tvec)))
 		errorcall(call, "invalid type for value");
 	    else {
 		if (TYPEOF(CAR(tvec)) != type)
-		    SETCAR(tvec, coerceVector(CAR(tvec), type));
-		tmp = SETLEVELS(CAR(tvec), LENGTH(CAR(tvec)));
+		    CAR(tvec) = coerceVector(CAR(tvec), type);
+		tmp = LEVELS(CAR(tvec)) = LENGTH(CAR(tvec));
 		ymaxused = max(tmp, ymaxused);
 	    }
 	}
     }
     else if (colmodes == R_NilValue ) {
 	PROTECT(inputlist = allocList(1)); nprotect++;
-	SETCAR(inputlist, ssNewVector(REALSXP, 100));
-	SET_TAG(inputlist, install("var1"));
-	SETLEVELS(CAR(inputlist), 0);
+	CAR(inputlist) = ssNewVector(REALSXP, 100);
+	TAG(inputlist) = install("var1");
+	LEVELS(CAR(inputlist)) = 0;
     }
     else {
 	errorcall(call, "invalid parameter(s) ");
@@ -216,14 +216,14 @@ SEXP RX11_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    else
 			REAL(tvec2)[j] = NA_REAL;
 		} else if (TYPEOF(CAR(tvec)) == STRSXP) {
-		    if (!streql(CHAR(STRING_ELT(CAR(tvec), j)),
-				CHAR(STRING_ELT(ssNA_STRING, 0))))
-			SET_STRING_ELT(tvec2, j, STRING_ELT(CAR(tvec), j));
+		    if (!streql(CHAR(STRING(CAR(tvec))[j]),
+				CHAR(STRING(ssNA_STRING)[0])))
+			STRING(tvec2)[j] = STRING(CAR(tvec))[j];
 		    else
-			SET_STRING_ELT(tvec2, j, NA_STRING);
+			STRING(tvec2)[j] = NA_STRING;
 		} else
 		    error("dataentry: internal memory problem");
-	    SETCAR(tvec, tvec2);
+	    CAR(tvec) = tvec2;
 	    UNPROTECT(1);
 	}
     }
@@ -551,8 +551,7 @@ static void printelt(SEXP invec, int vrow, int ssrow, int sscol)
 	}
     }
     else if (TYPEOF(invec) == STRSXP) {
-	if (!streql(CHAR(STRING_ELT(invec, vrow)),
-		    CHAR(STRING_ELT(ssNA_STRING, 0)))) {
+	if (!streql(CHAR(STRING(invec)[vrow]), CHAR(STRING(ssNA_STRING)[0]))) {
 	    strp = EncodeElement(invec, vrow, 0);
 	    printstring(strp, strlen(strp), ssrow, sscol, 0);
 	}
@@ -663,10 +662,10 @@ static SEXP getccol()
 	newcol = 1;
 	xmaxused = wcol;
 	len = max(100, wrow);
-	SETCAR(tmp, ssNewVector(REALSXP, len));
+	CAR(tmp) = ssNewVector(REALSXP, len);
 	if (TAG(tmp) == R_NilValue) {
 	    sprintf(cname, "var%d", wcol);
-	    SET_TAG(tmp, install(cname));
+	    TAG(tmp) = install(cname);
 	}
     }
     if (!isVector(CAR(tmp)))
@@ -681,11 +680,11 @@ static SEXP getccol()
 	    if (type == REALSXP)
 		REAL(tmp2)[i] = REAL(CAR(tmp))[i];
 	    else if (type == STRSXP)
-		SET_STRING_ELT(tmp2, i, STRING_ELT(CAR(tmp), i));
+		STRING(tmp2)[i] = STRING(CAR(tmp))[i];
 	    else
 		error("internal type error in dataentry");
-	SETLEVELS(tmp2, LEVELS(CAR(tmp)));
-	SETCAR(tmp, tmp2);
+	LEVELS(tmp2) = LEVELS(CAR(tmp));
+	CAR(tmp) = tmp2;
     }
     return (tmp);
 }
@@ -712,7 +711,7 @@ static void closerect()
 			listAppend(inputlist,
 				   allocList((wcol - length(inputlist))));
 		tvec = nthcdr(inputlist, wcol - 1);
-		SET_TAG(tvec, install(buf));
+		TAG(tvec) = install(buf);
 		printstring(buf, strlen(buf), 0, wcol, 0);
 	    } else {
 		sprintf(buf, "var%d", ccol);
@@ -722,7 +721,7 @@ static void closerect()
 	c0vec = getccol();
 	cvec = CAR(c0vec);
 	wrow0 = (int)LEVELS(cvec);
-	if (wrow > wrow0) SETLEVELS(cvec, wrow);
+	if (wrow > wrow0) LEVELS(cvec) = wrow;
 	ymaxused = max(ymaxused, wrow);
 	if (clength != 0) {
 	    /* do it this way to ensure NA, Inf, ...  can get set */
@@ -732,21 +731,21 @@ static void closerect()
 	    if (TYPEOF(cvec) == STRSXP) {
 		tvec = allocString(strlen(buf));
 		strcpy(CHAR(tvec), buf);
-		SET_STRING_ELT(cvec, wrow - 1, tvec);
+		STRING(cvec)[wrow - 1] = tvec;
 	    } else
 		REAL(cvec)[wrow - 1] = new;
 	    if (newcol & warn) {
 		/* change mode to character */
 		int levs = LEVELS(cvec);
-		cvec = SETCAR(c0vec, coerceVector(cvec, STRSXP));
-		SETLEVELS(cvec, levs);
+		cvec = CAR(c0vec) = coerceVector(cvec, STRSXP);
+		LEVELS(cvec) = levs;
 		tvec = allocString(strlen(buf));
 		strcpy(CHAR(tvec), buf);
-		SET_STRING_ELT(cvec, wrow - 1, tvec);
+		STRING(cvec)[wrow - 1] = tvec;
 	    }
 	} else {
 	    if (TYPEOF(cvec) == STRSXP)
-		SET_STRING_ELT(cvec, wrow - 1, NA_STRING);
+		STRING(cvec)[wrow - 1] = NA_STRING;
 	    else
 		REAL(cvec)[wrow - 1] = NA_REAL;
 	}
@@ -1498,17 +1497,17 @@ void popupmenu(int x_pos, int y_pos, int col, int row)
 		    break;
 		case 1:
 		    if (CAR(tvec) == R_NilValue)
-			SETCAR(tvec, ssNewVector(REALSXP, 100));
+			CAR(tvec) = ssNewVector(REALSXP, 100);
 		    levs = LEVELS(CAR(tvec));
-		    SETCAR(tvec, coerceVector(CAR(tvec), REALSXP));
-		    SETLEVELS(CAR(tvec), levs);
+		    CAR(tvec) = coerceVector(CAR(tvec), REALSXP);
+		    LEVELS(CAR(tvec)) = levs;
 		    goto done;
 		case 2:
 		    if (CAR(tvec) == R_NilValue)
-			SETCAR(tvec, ssNewVector(STRSXP, 100));
+			CAR(tvec) = ssNewVector(STRSXP, 100);
 		    levs = LEVELS(CAR(tvec));
-		    SETCAR(tvec, coerceVector(CAR(tvec), STRSXP));
-		    SETLEVELS(CAR(tvec), levs);
+		    CAR(tvec) = coerceVector(CAR(tvec), STRSXP);
+		    LEVELS(CAR(tvec)) = levs;
 		    goto done;
 		case 3:
 		    closerect();
@@ -1560,8 +1559,8 @@ static void copycell()
 		    if (REAL(tmp)[i] != ssNA_REAL)
 			strcpy(copycontents, EncodeElement(tmp, i, 0));
 		} else if (TYPEOF(tmp) == STRSXP) {
-		    if (!streql(CHAR(STRING_ELT(tmp, i)),
-				CHAR(STRING_ELT(ssNA_STRING, 0))))
+		    if (!streql(CHAR(STRING(tmp)[i]),
+				CHAR(STRING(ssNA_STRING)[0])))
 			strcpy(copycontents, EncodeElement(tmp, i, 0));
 		}
 	    }

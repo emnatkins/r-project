@@ -1,6 +1,6 @@
 R for Windows FAQ
 Frequently Asked Questions on R for Windows
-Version for rw1020
+Version for rw1011
 Brian Ripley
 
 
@@ -62,7 +62,7 @@ that version. The main R FAQ can be found at
 
 The information here applies only to recent versions of R for Windows,
 (`rw1000' or later); the current version is often called something like
-`rw1020' (although not officially).
+`rw1011' (although not officially).
 
 
 2 Installation and Usage
@@ -105,7 +105,7 @@ file tree. Right-click the shortcut, select Properties... and change
 the `Start in' field to your working directory.
 
 You may also want to add command-line arguments at the end of the
-Target field, for example `--vsize=10M --nsize=400k'. You can also set
+Target field. We use `--vsize=10M --nsize=400k'. You can also set
 environment variables at the end of the Target field, for example
 `R_LIBS=e:/R/library'.
 
@@ -143,18 +143,15 @@ It depends what you want to print.
 2.6 Can I use `R BATCH'?
 ========================
 
-Yes, if you Perl installed.  The Windows analogue is `Rcmd BATCH': use
-`Rcmd BATCH --help' for full details.
-
-Otherwise you can set up a batch file using `Rterm.exe'. A sample batch
+No, but you can set up a batch file using `Rterm.exe'. A sample batch
 file might contain (as one line)
 
-     path_to_R\bin\Rterm.exe --no-restore --no-save < %1 > %1.out
+     path_to_R\bin\Rterm.exe --vsize=10M --nsize=500k --no-restore --no-save < %1 > %1.out
 
 2.7 Can I use rwXxxx with ESS and emacs?
 ========================================
 
-Yes. The latest versions of ESS (e.g. 5.1.16) come with support for this
+Yes. The latest versions of ESS (e.g. 5.1.13) come with support for this
 version of R, and there is support for interrupting the R process from
 ESS (by `C-c C-c').
 
@@ -178,7 +175,7 @@ Otherwise if environment variables `HOMEDRIVE' and `HOMEPATH' are set,
 the value is `${HOMEDRIVE}${HOMEPATH}'.
 If all of these fail, the current working directory is used.
 
-You can find this from R code by `Sys.getenv("R_USER")'.
+You can find this from R code by `getenv("R_USER")'.
 
 
 3 Packages
@@ -289,9 +286,11 @@ If those all hold true, this works for us.
      <Ctrl-break> or <Ctrl-C> in `Rterm.exe': <Ctrl-C> is used for
      copying in the GUI version.
 
-   * Command-line editing is always available, but is simpler than the
-     readline-based editing on Unix. For `Rgui.exe', the menu item
+   * Command-line editing is always available, but is much simpler than
+     the readline-based editing on Unix. For `Rgui.exe', the menu item
      `Help | Console' will give details.
+
+   * The commands history is always saved between sessions.
 
    * Using `help.start()' does not automatically send help requests to
      the browser: use `options(htmlhelp=T)' to turn this on.
@@ -353,7 +352,7 @@ Have you changed the working directory?: see Q5.2.
 Use the `File | Change Dir' menu item to select a new working
 directory: this defaults to the last directory you loaded a file from.
 The workspace is saved in the working directory. You can also save a
-snapshot of the workspace from the `Save Workspace' menu item.
+snapshot of the workspace from the `Save Image' menu item.
 
 5.3 Can I load workspaces saved under Unix/GNU-Linux?
 =====================================================
@@ -411,10 +410,10 @@ scrollbar or the <CTRL+arrow> keys to scroll horizontally.
 7.1 How can I compile R from source?
 ====================================
 
-Get the R sources. Suppose you want to compile R-1.2.0.
+Get the R sources. Suppose you want to compile R-1.1.0.
 
-     tar zxvf R-1.2.0.tgz
-     cd R-1.2.0
+     tar zxvf R-1.1.0.tgz
+     cd R-1.1.0
      cd src\gnuwin32
 
 Now read the `INSTALL' file and set up all the tools needed. Then you
@@ -499,7 +498,13 @@ You need to do two things:
 the example in `_Writing R Extensions_'. Then build the DLL by
 (`gcc-2.95')
 
-     .../bin/Rcmd SHLIB X.cc X_main.cc
+     g++ -c X.cc X_main.cc
+     dlltool --export-all-symbols --output-def X.def X_main.o
+     dllwrap -o X.dll --def X.def X.o X_main.o -lstdc++
+
+or if you have `--shared' (`mingw32 gcc-2.95.1' or `cygwin 1.1')
+
+     g++ -shared -o X.dll X.cc X_main.cc
 
 or (VC++, which requires extension `.cpp')
 

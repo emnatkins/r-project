@@ -14,7 +14,7 @@ asVector(object)
 \value{
     a vector
 }
-\details{
+\description{
     Methods for vector coercion in new classes must be created for the
     \code{asVector} generic instead of \code{as.vector}.
     The \code{as.vector} function is internal and not
@@ -24,6 +24,7 @@ asVector(object)
 \author{Douglas Bates and Bill Venables}
 \seealso{\code{\link{xyVector}}}
 \examples{
+library( splines )
 data( women )
 ispl <- interpSpline( weight ~ height,  women )
 pred <- predict(ispl)

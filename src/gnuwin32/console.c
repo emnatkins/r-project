@@ -36,7 +36,6 @@
 #include "console.h"
 #include "consolestructs.h"
 #include "rui.h"
-#include "getline/getline.h"
 
 
 /* xbuf */
@@ -187,8 +186,6 @@ static void xbuffixl(xbuf p)
 rgb consolebg = White, consolefg = Black, consoleuser = Red,
     pagerhighlight = Red;
 
-extern int R_HistorySize;  /* from Defn.h */
-
 ConsoleData
 newconsoledata(font f, int rows, int cols,
 	       rgb fg, rgb ufg, rgb bg, int kind)
@@ -206,14 +203,22 @@ newconsoledata(font f, int rows, int cols,
 	    winfree(p);
 	    return NULL;
 	}
+	p->history = newxbuf(DIMHIST, MHIST, SHIST);
+	if (!p->history) {
+	    xbufdel(p->lbuf);
+	    winfree(p);
+	    return NULL;
+	}
 	p->kbuf = winmalloc(NKEYS * sizeof(char));
 	if (!p->kbuf) {
 	    xbufdel(p->lbuf);
+	    xbufdel(p->history);
 	    winfree(p);
 	    return NULL;
 	}
     } else {
 	p->lbuf = NULL;
+	p->history = NULL;
 	p->kbuf = NULL;
     }
     p->bm = NULL;
@@ -232,7 +237,6 @@ newconsoledata(font f, int rows, int cols,
     p->firstkey = p->numkeys = 0;
     p->clp = NULL;
     p->r = -1;
-    p->overwrite = 0;
     p->lazyupdate = 1;
     p->needredraw = 0;
     p->my0 = p->my1 = -1;
@@ -483,21 +487,16 @@ FBEGIN
   REDRAW;
 FVOIDEND
 
-
-/* These are the getline keys ^A ^E ^B ^F ^N ^P ^K ^H ^D ^U ^T */
 #define BEGINLINE 1
-#define ENDLINE   5
-#define CHARLEFT 2
-#define CHARRIGHT 6
-#define NEXTHISTORY 14
-#define PREVHISTORY 16
-#define KILLRESTOFLINE 11
+#define ENDLINE   2
+#define CHARLEFT 3
+#define CHARRIGHT 4
+#define NEXTHISTORY 5
+#define PREVHISTORY 6
+#define KILLRESTOFLINE 7
 #define BACKCHAR  8
-#define DELETECHAR 4
+#define DELETECHAR 22 /* ^I is printable in some systems */
 #define KILLLINE 21
-#define CHARTRANS 20
-#define OVERWRITE 15
-/* free ^G ^Q ^R ^S */
 
 static void storekey(control c,int k)
 FBEGIN
@@ -684,10 +683,36 @@ FBEGIN
     }
     if (st == CtrlKey)
 	switch (k + 'A' - 1) {
-	    /* most are stored as themselves */
+	case 'A':
+	    k = BEGINLINE;
+	    break;
+	case 'B':
+	    k = CHARLEFT;
+	    break;
 	case 'C':
 	    consolecopy(c);
 	    st = -1;
+	    break;
+	case 'D':
+	    k = DELETECHAR;
+	    break;
+	case 'E':
+	    k = ENDLINE;
+	    break;
+	case 'F':
+	    k = CHARRIGHT;
+	    break;
+	case 'K':
+	    k = KILLRESTOFLINE;
+	    break;
+	case 'N':
+	    k = NEXTHISTORY;
+	    break;
+	case 'P':
+	    k = PREVHISTORY;
+	    break;
+	case 'U':
+	    k = KILLLINE;
 	    break;
 	case 'V':
 	case 'Y':
@@ -707,14 +732,6 @@ FBEGIN
 	    consoletogglelazy(c);
 	    st = -1;
 	    break;
-	case 'L':
-	    consoleclear(c);
-	    st = -1;
-	    break;
-	case 'O':
-	    p->overwrite = !p->overwrite;
-	    st = -1;
-	    break;
 	}
     if (p->sel) {
 	p->sel = 0;
@@ -722,7 +739,7 @@ FBEGIN
 	REDRAW;
     }
     if (st == -1) return;
-    storekey(c, k);
+    storekey(c,k);
 FVOIDEND
 
 void console_ctrlkeyin(control c, int key)
@@ -819,6 +836,7 @@ void freeConsoleData(ConsoleData p)
     if (p->bm) del(p->bm);
     if (p->kind == CONSOLE) {
         if (p->lbuf) xbufdel(p->lbuf);
+	if (p->history) xbufdel(p->history);
 	if (p->kbuf) winfree(p->kbuf);
     }
     winfree(p);
@@ -902,8 +920,8 @@ int consolereads(control c, char *prompt, char *buf, int len, int addtohistory)
 FBEGIN
     char cur_char;
     char *cur_line;
+    int  hentry;
     char *aLine;
-    int ns0 = p->lbuf->ns;
 
     /* print the prompt */
     xbufadds(p->lbuf, prompt, 1);
@@ -924,28 +942,22 @@ FBEGIN
     max_pos = 0;
     cur_line = &aLine[prompt_len];
     cur_line[0] = '\0';
+    hentry=-1;
     REDRAW;
     for(;;) {
 	char chtype;
 	cur_char = consolegetc(c);
 	chtype = isprint(cur_char) ||
 	    ((unsigned char)cur_char > 0x7f);
-	if(p->lbuf->ns != ns0) { /* we scrolled, e.g. cleared screen */
-            cur_line = p->lbuf->s[p->lbuf->ns - 1] + prompt_len;
-	}
-        if(chtype && (max_pos < len - 2)) {
+	if(chtype && (max_pos < len - 2)) {
 	    int i;
-	    if(!p->overwrite) {
-		for(i = max_pos; i > cur_pos; i--) {
-		    cur_line[i] = cur_line[i - 1];
-		}
+	    for(i = max_pos; i > cur_pos; i--) {
+		cur_line[i] = cur_line[i - 1];
 	    }
 	    cur_line[cur_pos] = cur_char;
-	    if(!p->overwrite || cur_pos == max_pos) {
-		max_pos += 1;
-		cur_line[max_pos] = '\0';
-	    }
 	    cur_pos += 1;
+	    max_pos += 1;
+	    cur_line[max_pos] = '\0';
 	    draweditline(c);
 	} else {
 	    /* do normal editing commands */
@@ -976,11 +988,24 @@ FBEGIN
 		cur_line[max_pos]='\0';
 		break;
 	    case PREVHISTORY:
-		strcpy(cur_line, gl_hist_prev());
-		cur_pos = max_pos = strlen(cur_line);
+		hentry += 1;
+		if(hentry < NHISTORY) {
+		    if (hentry == 0) strcpy(buf, cur_line);
+		    strcpy(cur_line, HISTORY(hentry));
+		    cur_pos = max_pos = strlen(cur_line);
+		}
+		else
+		    hentry -= 1;
 		break;
 	    case NEXTHISTORY:
-		strcpy(cur_line, gl_hist_next());
+		if(hentry > 0) {
+		    hentry -= 1;
+		    strcpy(cur_line, HISTORY(hentry));
+		}
+		else if (hentry == 0) {
+		    hentry =- 1;
+		    strcpy(cur_line, buf);
+		}
 		cur_pos = max_pos = strlen(cur_line);
 		break;
 	    case BACKCHAR:
@@ -999,12 +1024,6 @@ FBEGIN
 		    max_pos -= 1;
 		}
 		break;
-	    case CHARTRANS:
-		if(cur_pos < 2) break;
-		cur_char = cur_line[cur_pos];
-		cur_line[cur_pos] = cur_line[cur_pos-1];
-		cur_line[cur_pos-1] = cur_char;
-		break;
 	    default:
 		if (chtype || (cur_char=='\n')) {
 		    if (chtype) {
@@ -1020,7 +1039,10 @@ FBEGIN
 		    strcpy(buf, cur_line);
 		    p->r = -1;
 		    cur_line[max_pos] = '\0';
-		    if (max_pos && addtohistory)  gl_histadd(cur_line);
+		    if (max_pos && addtohistory) {
+			xbufadds(p->history, "\n", 0);
+			xbufadds(p->history, cur_line, 0);
+		    }
 		    xbuffixl(p->lbuf);
 		    consolewrites(c, "\n");
 		    REDRAW;
@@ -1031,6 +1053,37 @@ FBEGIN
 	    draweditline(c);
 	}
     }
+FVOIDEND
+
+void savehistory(control c, char *s)
+FBEGIN
+    FILE *fp;
+    int i;
+
+    if (!s || !NHISTORY) return;
+    fp = fopen(s, "w");
+    if (!fp) {
+       char msg[256];
+       sprintf(msg, "Unable to open `%s'", s);
+       R_ShowMessage(msg);
+       FVOIDRETURN;
+    }
+    for (i = NHISTORY - 1; i >= 0; i--) {
+       fprintf(fp, "%s\n", HISTORY(i));
+    }
+    fclose(fp);
+FVOIDEND
+
+void readhistory(control c, char *s)
+FBEGIN
+    FILE *fp;
+    int c;
+
+    if (!s || !(fp = fopen(s, "r"))) FVOIDRETURN;
+    while ((c = getc(fp)) != EOF) xbufaddc(p->history, c);
+    /* remove blank line started by final \n */
+    p->history->ns--;
+    fclose(fp);
 FVOIDEND
 
 void console_sbf(control c, int pos)
@@ -1151,113 +1204,73 @@ setconsoleoptions(char *fnname,int fnsty, int fnpoints,
 
 void consoleprint(console c)
 FBEGIN
-    
-    printer lpr;
-    int cc, rr, fh, cl, cp, clinp, i;
-    int top, left;
-    int x0, y0, x1, y1;
-    font f;
-    char *s = "", lc = '\0', msg[LF_FACESIZE + 128], title[60];
-    char buf[1024];
-    cursor cur;
-    if (!(lpr = newprinter(0.0, 0.0))) FVOIDRETURN;
-    show(c);
+   printer lpr;
+   int cc, rr, fh, cl, cp, clinp, i;
+   int top, left;
+   font f;
+   char *s = "", lc = '\0', msg[LF_FACESIZE + 128], title[60];
+   cursor cur;
+   if (!(lpr = newprinter(0.0, 0.0))) FVOIDRETURN;
+   show(c);
 /*
  * If possible, we avoid to use FixedFont for printer since it hasn't the
  * right size
- */
-    f = gnewfont(lpr, strcmp(fontname, "FixedFont") ? fontname : "Courier New",
-		 fontsty, pointsize, 0.0);
-    if (!f) {
-	/* Should not happen but....*/
-	sprintf(msg, "Font %s-%d-%d  not found.\nUsing system fixed font.",
-		strcmp(fontname, "FixedFont") ? fontname : "Courier New",
-		fontsty, pointsize);
-	R_ShowMessage(msg);
-	f = FixedFont;
-    }
-    top = devicepixelsy(lpr) / 5;
-    left = devicepixelsx(lpr) / 5;
-    fh = fontheight(f);
-    rr = getheight(lpr) - top;
-    cc = getwidth(lpr) - 2*left;
-    strncpy(title, gettext(c), 59);
-    if (strlen(gettext(c)) > 59) strcpy(&title[56], "...");
-    cur = currentcursor();
-    setcursor(WatchCursor);
-
-    /* Look for a selection */
-    if (p->sel) {
-	int len, c1, c2, c3;
-	if (p->my0 >= NUMLINES) p->my0 = NUMLINES - 1;
-	if (p->my0 < 0) p->my0 = 0;
-	len = strlen(LINE(p->my0));
-	if (p->mx0 >= len) p->mx0 = len - 1;
-	if (p->mx0 < 0) p->mx0 = 0;
-	if (p->my1 >= NUMLINES) p->my1 = NUMLINES - 1;
-	if (p->my1 < 0) p->my1 = 0;
-	len = strlen(LINE(p->my1));
-	if (p->mx1 >= len) p->mx1 = len - 1;
-	if (p->mx1 < 0) p->mx1 = 0;
-	c1 = (p->my0 < p->my1);
-	c2 = (p->my0 == p->my1);
-	c3 = (p->mx0 < p->mx1);
-	if (c1 || (c2 && c3)) {
-	    x0 = p->mx0; y0 = p->my0;
-	    x1 = p->mx1; y1 = p->my1;
-	}
-	else {
-	    x0 = p->mx1; y0 = p->my1;
-	    x1 = p->mx0; y1 = p->my0;
-	}
-    } else {
-	x0 = y0 = 0;
-	y1 = NUMLINES - 1;
-	x1 = strlen(LINE(y1));
-    }
-
-    cl = y0; /* current line */
-    clinp = rr;
-    cp = 1; /* current page */
-
-    /* s is possible continuation line */
-    while ((cl <= y1) || (*s)) {
-	if (clinp + fh >= rr) {
-	    if (cp > 1) nextpage(lpr);
-	    gdrawstr(lpr, f, Black, pt(left, top), title);
-	    sprintf(msg, "Page %d", cp++);
-	    gdrawstr(lpr, f, Black, 
-                     pt(cc - gstrwidth(lpr, f, msg) - 1, top), 
-		     msg);
-	    clinp = top + 2 * fh;
-	}
-	if (!*s) {
-            if (cl == y0) s = LINE(cl++) + x0;
-	    else if (cl < y1) s = LINE(cl++);
-	    else if (cl == y1) {
-		s = strncpy(buf, LINE(cl++), 1023);
-		s[min(x0, 1023) + 1] = '\0';
-	    } else break;
-	}
-	if (!*s) {
-	    clinp += fh;
-	} else {
-	    for (i = strlen(s); i > 0; i--) {
-		lc = s[i];
-		s[i] = '\0';
-		if (gstrwidth(lpr, f, s) < cc) break;
-		s[i] = lc;
-	    }
-	    gdrawstr(lpr, f, Black, pt(left, clinp), s);
-	    clinp += fh;
-	    s[i] = lc;
-	    s = s + i;
-	}
-    }
-
-    if (f != FixedFont) del(f);
-    del(lpr);
-    setcursor(cur);
+*/
+   f = gnewfont(lpr, strcmp(fontname, "FixedFont") ? fontname : "Courier New",
+         fontsty, pointsize, 0.0);
+   if (!f) {
+     /* Should not happen but....*/
+       sprintf(msg, "Font %s-%d-%d  not found.\nUsing system fixed font.",
+	       strcmp(fontname, "FixedFont") ? fontname : "Courier New",
+	       fontsty, pointsize);
+       R_ShowMessage(msg);
+       f = FixedFont;
+   }
+   top = devicepixelsy(lpr) / 5;
+   left = devicepixelsx(lpr) / 5;
+   fh = fontheight(f);
+   rr = getheight(lpr) - top;
+   cc = getwidth(lpr) - 2*left;
+   cl = 0;
+   clinp = rr;
+   cp = 1;
+   strncpy(title,gettext(c), 59);
+   if (strlen(gettext(c)) > 59) strcpy(&title[57], "...");
+   cur = currentcursor();
+   setcursor(WatchCursor);
+   while ((cl < NUMLINES) || (*s)) {
+     if (clinp + fh >= rr) {
+       if (cp > 1) nextpage(lpr);
+       gdrawstr(lpr, f, Black, pt(left, top), title);
+       sprintf(msg, "Pag.%d", cp++);
+       gdrawstr(lpr, f, Black, pt(cc - gstrwidth(lpr, f, msg) - 1, top), msg);
+       clinp = top + 2 * fh;
+     }
+     if (!*s) {
+        if (cl < NUMLINES)
+           s = LINE(cl++);
+        else
+           break;
+     }
+     if (!*s) {
+       clinp += fh;
+     }
+     else {
+       for (i = strlen(s); i > 0; i--) {
+         lc = s[i];
+         s[i] = '\0';
+         if (gstrwidth(lpr, f, s) < cc) break;
+         s[i] = lc;
+       }
+       gdrawstr(lpr, f, Black, pt(left, clinp), s);
+       clinp += fh;
+       s[i] = lc;
+       s = &s[i];
+     }
+   }
+   if (f != FixedFont) del(f);
+   del(lpr);
+   setcursor(cur);
 FVOIDEND
 
 console newconsole(char *name, int flags)
@@ -1323,13 +1336,9 @@ void  consolehelp()
     strcat(s,"  Copy and paste.\n");
     strcat(s,"     Use the mouse (with the left button held down) to mark (select) text.\n");
     strcat(s,"     Use Shift+Del (or Ctrl+C) to copy the marked text to the clipboard and\n");
-    strcat(s,"     Shift+Ins (or Ctrl+V or Ctrl+Y) to paste the content of the clipboard (if any)  \n");
-    strcat(s,"     to the console, Ctrl+X first copy then paste\n");
-    strcat(s,"  Misc:\n");
-    strcat(s,"     Ctrl+L: Clear the console.\n");
-    strcat(s,"     Ctrl+O: Toggle overwrite mode: initially off.\n");
-    strcat(s,"     Ctrl+T: Interchange current char with one to the left.\n");
-    strcat(s,"\nNote: Console is updated only when some input is required.\n");
+    strcat(s,"     Shift+Ins (or Ctrl+V or Ctrl+Y) to paste the content of the clipboard (if any)\n");
+    strcat(s,"     to the console, Ctrl+X first copy then paste\n\n");
+    strcat(s,"Note: Console is updated only when some input is required.\n");
     strcat(s,"  Use Ctrl+W to toggle this feature off/on.\n\n");
     strcat(s,"Use ESC to stop the interpreter.\n\n");
     strcat(s,"Standard Windows hotkeys can be used to switch to the\n");
@@ -1337,14 +1346,3 @@ void  consolehelp()
     askok(s);
 }
 
-void consoleclear(control c)
-FBEGIN
-    xbuf l = p->lbuf;
-    int oldshift = l->shift;
-    l->shift = (l->ns - 1);
-    xbufshift(l);
-    l->shift = oldshift;
-    NEWFV = 0;
-    p->r = 0;
-    REDRAW;
-FVOIDEND

@@ -29,8 +29,8 @@ static SEXP getListElement(SEXP list, char *str)
     int i;
 
     for (i = 0; i < length(list); i++)
-	if (strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
-	    elmt = VECTOR_ELT(list, i);
+	if (strcmp(CHAR(STRING(names)[i]), str) == 0) {
+	    elmt = VECTOR(list)[i];
 	    break;
 	}
     return elmt;
@@ -91,7 +91,7 @@ static double fminfn(int n, double *p, OptStruct OS)
 	if (!R_FINITE(p[i])) error("non-finite value supplied by optim");
 	REAL(x)[i] = p[i] * (OS->parscale[i]);
     }
-    SETCADR(OS->R_fcall, x);
+    CADR(OS->R_fcall) = x;
     PROTECT(s = coerceVector(eval(OS->R_fcall, OS->R_env), REALSXP));
     val = REAL(s)[0]/(OS->fnscale);
     UNPROTECT(2);
@@ -110,7 +110,7 @@ static void fmingr(int n, double *p, double *df, OptStruct OS)
 	    if (!R_FINITE(p[i])) error("non-finite value supplied by optim");
 	    REAL(x)[i] = p[i] * (OS->parscale[i]);
 	}
-	SETCADR(OS->R_gcall, x);
+	CADR(OS->R_gcall) = x;
 	PROTECT(s = coerceVector(eval(OS->R_gcall, OS->R_env), REALSXP));
 	for (i = 0; i < n; i++)
 	    df[i] = REAL(s)[i] * (OS->parscale[i])/(OS->fnscale);
@@ -118,26 +118,22 @@ static void fmingr(int n, double *p, double *df, OptStruct OS)
     } else { /* numerical derivatives */
 	PROTECT(x = allocVector(REALSXP, n));
 	for (i = 0; i < n; i++) REAL(x)[i] = p[i] * (OS->parscale[i]);
-	SETCADR(OS->R_fcall, x);
+	CADR(OS->R_fcall) = x;
 	if(OS->usebounds == 0) {
 	    for (i = 0; i < n; i++) {
 		eps = OS->ndeps[i];
 		REAL(x)[i] = (p[i] + eps) * (OS->parscale[i]);
-		SETCADR(OS->R_fcall, x);
+		CADR(OS->R_fcall) = x;
 		s = coerceVector(eval(OS->R_fcall, OS->R_env), REALSXP);
 		val1 = REAL(s)[0]/(OS->fnscale);
 		REAL(x)[i] = (p[i] - eps) * (OS->parscale[i]);
-		SETCADR(OS->R_fcall, x);
+		CADR(OS->R_fcall) = x;
 		s = coerceVector(eval(OS->R_fcall, OS->R_env), REALSXP);
 		val2 = REAL(s)[0]/(OS->fnscale);
 		df[i] = (val1 - val2)/(2 * eps);
-#define DO_df_x 							\
-		if(!R_FINITE(df[i])) 					\
-		    error("non-finite finite-difference value [%d]", i);\
-		REAL(x)[i] = p[i] * (OS->parscale[i])
-
-		DO_df_x;
-
+		if(!R_FINITE(df[i]))
+		    error("non-finite values encountered in finite-difference calculation");
+		REAL(x)[i] = p[i] * (OS->parscale[i]);
 	    }
 	} else { /* usebounds */
 	    for (i = 0; i < n; i++) {
@@ -148,7 +144,7 @@ static void fmingr(int n, double *p, double *df, OptStruct OS)
 		    epsused = tmp - p[i] ;
 		}
 		REAL(x)[i] = tmp * (OS->parscale[i]);
-		SETCADR(OS->R_fcall, x);
+		CADR(OS->R_fcall) = x;
 		s = coerceVector(eval(OS->R_fcall, OS->R_env), REALSXP);
 		val1 = REAL(s)[0]/(OS->fnscale);
 		tmp = p[i] - eps;
@@ -157,12 +153,13 @@ static void fmingr(int n, double *p, double *df, OptStruct OS)
 		    eps = p[i] - tmp;
 		}
 		REAL(x)[i] = tmp * (OS->parscale[i]);
-		SETCADR(OS->R_fcall, x);
+		CADR(OS->R_fcall) = x;
 		s = coerceVector(eval(OS->R_fcall, OS->R_env), REALSXP);
 		val2 = REAL(s)[0]/(OS->fnscale);
 		df[i] = (val1 - val2)/(epsused + eps);
-
-		DO_df_x;
+		if(!R_FINITE(df[i]))
+		    error("non-finite values encountered in finite-difference calculation");
+		REAL(x)[i] = p[i] * (OS->parscale[i]);
 	    }
 	}
 	UNPROTECT(1); /* x */
@@ -193,7 +190,7 @@ SEXP do_optim(SEXP call, SEXP op, SEXP args, SEXP rho)
     args = CDR(args); method = CAR(args);
     if (!isString(method)|| LENGTH(method) != 1)
 	errorcall(call, "invalid method argument");
-    tn = CHAR(STRING_ELT(method, 0));
+    tn = CHAR(STRING(method)[0]);
     args = CDR(args); options = CAR(args);
     PROTECT(OS->R_fcall = lang2(fn, R_NilValue));
     PROTECT(par = coerceVector(duplicate(par), REALSXP));
@@ -330,18 +327,18 @@ SEXP do_optim(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    REAL(par)[i] = dpar[i] * (OS->parscale[i]);
 	UNPROTECT(1); /* OS->R_gcall */
 	PROTECT(smsg = allocVector(STRSXP, 1));
-	SET_STRING_ELT(smsg, 0, CREATE_STRING_VECTOR(msg));
-	SET_VECTOR_ELT(res, 4, smsg);
+	STRING(smsg)[0] = CREATE_STRING_VECTOR(msg);
+	VECTOR(res)[4] = smsg;
 	UNPROTECT(1);
     } else
 	errorcall(call, "unknown method");
 
     REAL(value)[0] = val * (OS->fnscale);
-    SET_VECTOR_ELT(res, 0, par); SET_VECTOR_ELT(res, 1, value);
+    VECTOR(res)[0] = par; VECTOR(res)[1] = value;
     INTEGER(counts)[0] = fncount; INTEGER(counts)[1] = grcount;
-    SET_VECTOR_ELT(res, 2, counts);
+    VECTOR(res)[2] = counts;
     INTEGER(conv)[0] = ifail;
-    SET_VECTOR_ELT(res, 3, conv);
+    VECTOR(res)[3] = conv;
     vmaxset(vmax);
     UNPROTECT(6);
     return res;
@@ -796,7 +793,7 @@ void cgmin(int n, double *Bvec, double *X, double *Fmin, int *fail,
     double G1, G2, G3, gradproj;
     int funcount=0, gradcount=0, i;
     double newstep, oldstep, setstep, steplength=1.0;
-    double tol;
+    double tol, TEMP;
 
     if (trace) {
 	Rprintf("  Conjugate gradients function minimiser\n");
@@ -838,8 +835,9 @@ void cgmin(int n, double *Bvec, double *X, double *Fmin, int *fail,
 		    Rprintf("parameters ");
 		    for (i = 1; i <= n; i++) {
 			Rprintf("%10.5f ", Bvec[i - 1]);
-			if (i / 7 * 7 == i && i < n)
+			if (i / 7 * 7 == i && i < n) {
 			    Rprintf("\n");
+			}
 		    }
 		    Rprintf("\n");
 		}
@@ -858,13 +856,16 @@ void cgmin(int n, double *Bvec, double *X, double *Fmin, int *fail,
 		    switch (type) {
 
 		    case 1: /* Fletcher-Reeves */
-			G1 += g[i] * g[i];
-			G2 += c[i] * c[i];
+			TEMP = g[i];
+			G1 += TEMP * TEMP;
+			TEMP = c[i];
+			G2 += TEMP * TEMP;
 			break;
 
 		    case 2: /* Polak-Ribiere */
 			G1 += g[i] * (g[i] - c[i]);
-			G2 += c[i] * c[i];
+			TEMP = c[i];
+			G2 += TEMP * TEMP;
 			break;
 
 		    case 3: /* Beale-Sorenson */

@@ -120,8 +120,9 @@ typedef struct _FILETIME {
 } FILETIME; 
 */
  
-void R_getProcTime(double *data)
+SEXP do_proctime(SEXP call, SEXP op, SEXP args, SEXP env)
 {
+    SEXP  ans;
     long  elapsed;
     double kernel, user;
     OSVERSIONINFO verinfo;
@@ -143,22 +144,13 @@ void R_getProcTime(double *data)
 	user = R_NaReal;
 	kernel = R_NaReal;
     }
-    data[0] = user;
-    data[1] = kernel;
-    data[2] = (double) elapsed / 100.0;
-    data[3] = R_NaReal;
-    data[4] = R_NaReal;
-}
-
-double R_getClockIncrement(void)
-{
-  return 1.0 / 100.0;
-}
-
-SEXP do_proctime(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP ans = allocVector(REALSXP, 5);
-    R_getProcTime(REAL(ans));
+    PROTECT(ans = allocVector(REALSXP, 5));
+    REAL(ans)[0] = user;
+    REAL(ans)[1] = kernel;
+    REAL(ans)[2] = (double) elapsed / 100.0;
+    REAL(ans)[3] = R_NaReal;
+    REAL(ans)[4] = R_NaReal;
+    UNPROTECT(1);
     return ans;
 }
 #endif /* HAVE_TIMES */
@@ -204,13 +196,13 @@ SEXP do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
 	SetStdHandle(STD_ERROR_HANDLE, INVALID_HANDLE_VALUE);
     }
     if (flag < 2) {
-	ll = runcmd(CHAR(STRING_ELT(CAR(args), 0)), flag, vis,
-		    CHAR(STRING_ELT(CADDR(args), 0)));
+	ll = runcmd(CHAR(STRING(CAR(args))[0]), flag, vis,
+		    CHAR(STRING(CADDR(args))[0]));
 	if (ll == NOLAUNCH)
 	    warning(runerror());
     } else {
-	fp = rpipeOpen(CHAR(STRING_ELT(CAR(args), 0)), vis,
-		       CHAR(STRING_ELT(CADDR(args), 0)));
+	fp = rpipeOpen(CHAR(STRING(CAR(args))[0]), vis,
+		       CHAR(STRING(CADDR(args))[0]));
 	if (!fp) {
 	    /* If we are returning standard output generate an error */
 	    if (flag == 3)
@@ -237,7 +229,7 @@ SEXP do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (flag == 3) {
 	rval = allocVector(STRSXP, i);;
 	for (j = (i - 1); j >= 0; j--) {
-	    SET_STRING_ELT(rval, j, CAR(tlist));
+	    STRING(rval)[j] = CAR(tlist);
 	    tlist = CDR(tlist);
 	}
 	UNPROTECT(1);
