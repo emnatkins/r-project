@@ -48,10 +48,12 @@
 #define	R_VSIZE		2097152L
 #endif
 
-#include <math.h>
 #ifdef Macintosh
+#include <fp.h>
 #define PosixArith
 #define QUICKDRAW_GRAPHICS
+#else
+#include <math.h>
 #endif
 
 #include <errno.h>
@@ -277,11 +279,10 @@ typedef struct {
 
 
 /* Evaluation Context Structure */
-/* Note: JMP_BUF is defined in Platform.h */
 typedef struct RCNTXT {
     struct RCNTXT *nextcontext;	/* The next context up the chain */
     int callflag;		/* The context "type" */
-    JMP_BUF cjmpbuf;		/* C stack and register information */
+    sigjmp_buf cjmpbuf;		/* C stack and register information */
     int cstacktop;		/* Top of the pointer protection stack */
     SEXP promargs;		/* Promises supplied to closure */
     SEXP sysparent;		/* environment the closure was called from */
@@ -341,9 +342,6 @@ enum {
 
 extern int	errno;
 extern int	gc_inhibit_torture;
-
-/* R Home Directory */
-extern char*	R_Home;		    /* Root of the R tree */
 
 /* Memory Management */
 extern int	R_NSize;	    /* Size of cons cell heap */
@@ -444,13 +442,6 @@ void	R_ClearerrConsole(void);
 void	R_Busy(int);
 void	R_CleanUp(int);
 void	R_StartUp(void);
-int	R_ShowFile(char*, char*);
-int     R_ShowFiles(int, char **, char **, char *);
-int	R_ChooseFile(int, char*, int);
-char*	R_HomeDir(void);
-int	R_HiddenFile(char*);
-char*	R_Date(void);
-int	R_FileExists(char*);
 
 /* Type Coercions of all kinds */
 
@@ -531,7 +522,6 @@ SEXP dynamicfindVar(SEXP, RCNTXT*);
 SEXP elt(SEXP, int);
 SEXP emptyEnv(void);
 void endcontext(RCNTXT*);
-SEXP EnsureString(SEXP);
 void errorcall(SEXP, char*, ...);
 void ErrorMessage(SEXP, int, ...);
 SEXP eval(SEXP, SEXP);
@@ -661,7 +651,6 @@ FILE* R_OpenLibraryFile(char *);
 void R_RestoreGlobalEnv(void);
 void R_SaveGlobalEnv(void);
 void R_SaveToFile(SEXP, FILE*, int);
-int R_SetOptionWidth(int);
 void R_Suicide(char*);
 SEXP rownamesgets(SEXP,SEXP);
 SEXP ScalarLogical(int);

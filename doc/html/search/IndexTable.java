@@ -23,9 +23,9 @@
   
   $Source: /scratch/CVS-ARCHIVE/R/doc/html/search/IndexTable.java,v $
   
-  $Revision: 1.2 $
+  $Revision: 1.1.4.1 $
 
-  $Date: 1999/03/04 17:15:18 $
+  $Date: 1999/03/02 15:19:56 $
   
   $Author: leisch $
 
@@ -116,9 +116,6 @@ public class IndexTable extends Vector
   HISTORY:
   
   $Log: IndexTable.java,v $
-  Revision 1.2  1999/03/04 17:15:18  leisch
-  various bugfixes
-
   Revision 1.1.4.1  1999/03/02 15:19:56  leisch
   search used only kewords, no titles
 

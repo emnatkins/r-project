@@ -6,12 +6,6 @@ eval <-
                        sys.frame(sys.parent()))
     .Internal(eval(expr, envir,enclos))
 
-eval.with.vis <-
-    function (expr, envir = sys.frame(sys.parent()),
-              enclos = if (is.list(envir) || is.pairlist(envir))
-              sys.frame(sys.parent()))
-    .Internal(eval.with.vis(expr, envir, enclos))
-
 quote <- function(x) substitute(x)
 
 evalq <-

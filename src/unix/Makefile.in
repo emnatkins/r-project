@@ -20,10 +20,9 @@ OBJS = \
 	devX11.o \
 	dynload.o \
 	edit.o \
+	fileio.o \
 	rotated.o \
-	system.o \
-	Rsock.o \
-	sock.o
+	system.o
 
 LIB = libunix.a
 

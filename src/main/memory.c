@@ -133,7 +133,7 @@ void mem_err_cons()
     error("cons memory (%ld cells) exhausted\n       See \"help(Memory)\" on how to increase the number of cons cells.\n", R_NSize);
 }
 
-#ifdef OLD_Macintosh
+#ifdef Macintosh
 Handle  gStackH;
 Handle  gNHeapH;
 Handle  gVHeapH;
@@ -163,7 +163,7 @@ void InitMemory()
     int i;
 
     gc_reporting = R_Verbose;
-#ifdef OLD_Macintosh
+#ifdef Macintosh
     OSErr   result;
 
     gStackH = TempNewHandle( R_PPStackSize * sizeof(SEXP), &result );
@@ -178,7 +178,7 @@ void InitMemory()
 
     R_PPStackTop = 0;
 
-#ifdef OLD_Macintosh
+#ifdef Macintosh
     gNHeapH = TempNewHandle( R_NSize * sizeof(SEXPREC), &result );
     if( (gNHeapH == NULL) || (result != noErr) )
 	R_Suicide( "couldn't allocate system memory for node heap" );
@@ -191,7 +191,7 @@ void InitMemory()
 
     R_VSize = (((R_VSize + 1)/ sizeof(VECREC)));
 
-#ifdef OLD_Macintosh
+#ifdef Macintosh
     gVHeapH = TempNewHandle( R_VSize * sizeof(VECREC), &result );
     if( (gVHeapH == NULL) || (result != noErr) )
 	R_Suicide( "couldn't allocate system memory for vector heap" );
@@ -420,26 +420,20 @@ SEXP allocList(int n)
 
 void gc(void)
 {
-#ifndef Macintosh
     sigset_t mask, omask;
-#endif
     int vcells, vfrac;
 
     gc_count++;
     if (gc_reporting)
 	REprintf("Garbage collection [nr. %d]...", gc_count);
-#ifndef Macintosh
     sigemptyset(&mask);
     sigaddset(&mask,SIGINT);
     sigprocmask(SIG_BLOCK, &mask, &omask);
-#endif
     unmarkPhase();
     markPhase();
     compactPhase();
     scanPhase();
-#ifndef Macintosh
     sigprocmask(SIG_SETMASK, &omask, &mask);
-#endif
     if (gc_reporting) {
 	REprintf("\n%ld cons cells free (%ld%%)\n",
 		 R_Collected, (100 * R_Collected / R_NSize));
@@ -450,45 +444,6 @@ void gc(void)
     }
 }
 
-
-SEXP do_memoryprofile(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP ans, nms;
-    int i;
-    unmarkPhase();
-    markPhase();
-    PROTECT(ans = allocVector(INTSXP, 21));
-    PROTECT(nms = allocVector(STRSXP, 21));
-    for (i = 0; i < 21; i++) {
-        STRING(ans)[i] = 0;
-        STRING(nms)[i] = R_BlankString;
-    }
-    STRING(nms)[NILSXP]     = mkChar("NILSXP");
-    STRING(nms)[SYMSXP]     = mkChar("SYMSXP");
-    STRING(nms)[LISTSXP]    = mkChar("LISTSXP");
-    STRING(nms)[CLOSXP]     = mkChar("CLOSXP");
-    STRING(nms)[ENVSXP]     = mkChar("ENVSXP");
-    STRING(nms)[PROMSXP]    = mkChar("PROMSXP");
-    STRING(nms)[LANGSXP]    = mkChar("LANGSXP");
-    STRING(nms)[SPECIALSXP] = mkChar("SPECIALSXP");
-    STRING(nms)[BUILTINSXP] = mkChar("BUILTINSXP");
-    STRING(nms)[CHARSXP]    = mkChar("CHARSXP");
-    STRING(nms)[LGLSXP]     = mkChar("LGLSXP");
-    STRING(nms)[INTSXP]     = mkChar("INTSXP");
-    STRING(nms)[REALSXP]    = mkChar("REALSXP");
-    STRING(nms)[CPLXSXP]    = mkChar("CPLXSXP");
-    STRING(nms)[STRSXP]     = mkChar("STRSXP");
-    STRING(nms)[DOTSXP]     = mkChar("DOTSXP");
-    STRING(nms)[ANYSXP]     = mkChar("ANYSXP");
-    STRING(nms)[VECSXP]     = mkChar("VECSXP");
-    STRING(nms)[EXPRSXP]    = mkChar("EXPRSXP");
-    for (i = 0; i < R_NSize; i++)
-	if(MARK(&R_NHeap[i]))
-            INTEGER(ans)[TYPEOF(&R_NHeap[i])] += 1;
-    setAttrib(ans, R_NamesSymbol, nms);
-    UNPROTECT(2);
-    return ans;
-}
 
 /* "unmarkPhase" reset mark in ALL cons cells */
 

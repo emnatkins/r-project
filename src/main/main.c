@@ -32,10 +32,6 @@
 /* in separate platform dependent modules. */
 
 
-/* The R Home Directory */
-
-char*	R_Home;			    /* The Root of the R Tree */
-
 /* Memory Management */
 
 int	R_NSize = R_NSIZE;	    /* Size of cons cell heap */
@@ -310,8 +306,8 @@ static void R_ReplConsole(SEXP rho, int savestack, int browselevel)
 
 static int doneit;
 
-FILE* R_OpenSysInitFile(void);
 #ifndef Macintosh
+FILE* R_OpenSysInitFile(void);
 FILE* R_OpenSiteFile(void);
 FILE* R_OpenInitFile(void);
 #endif
@@ -321,21 +317,19 @@ static void R_LoadProfile(FILE *fp)
     if (fp != NULL) {
 	R_Inputfile = fp;
 	doneit = 0;
-	SETJMP(R_Toplevel.cjmpbuf);
+	sigsetjmp(R_Toplevel.cjmpbuf, 1);
 	R_GlobalContext = R_ToplevelContext = &R_Toplevel;
 	signal(SIGINT, onintr);
 	if (!doneit) {
 	    doneit = 1;
 	    R_ReplFile(R_Inputfile, R_NilValue, 0, 0);
 	}
-        R_Inputfile = NULL;
     }
 }
 
 void mainloop(void)
 {
     SEXP cmd;
-    FILE *fp;
 
     /* Print a platform and version dependent */
     /* greeting and a pointer to the copyleft. */
@@ -384,22 +378,19 @@ void mainloop(void)
     /* If there is an error we pass on to the repl. */
     /* Perhaps it makes more sense to quit gracefully? */
 
-    fp = R_OpenLibraryFile("base");
-    R_Inputfile = fp;
-    if (fp == NULL) {
+    R_Inputfile = R_OpenLibraryFile("base");
+    if (R_Inputfile == NULL) {
 	R_Suicide("unable to open the base package\n");
     }
 
     doneit = 0;
-    SETJMP(R_Toplevel.cjmpbuf);
+    sigsetjmp(R_Toplevel.cjmpbuf, 1);
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
     signal(SIGINT, onintr);
     if (!doneit) {
 	doneit = 1;
-	R_ReplFile(fp, R_NilValue, 0, 0);
+	R_ReplFile(R_Inputfile, R_NilValue, 0, 0);
     }
-    R_Inputfile = NULL;
-    fclose(fp);
 
     /* This is where we try to load a user's */
     /* saved data.	The right thing to do here */
@@ -410,7 +401,7 @@ void mainloop(void)
     /* on the application */
 
     doneit = 0;
-    SETJMP(R_Toplevel.cjmpbuf);
+    sigsetjmp(R_Toplevel.cjmpbuf, 1);
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
     signal(SIGINT, onintr);
     if (!doneit) {
@@ -420,11 +411,11 @@ void mainloop(void)
     else
     	R_Suicide("unable to restore saved data\n (remove .RData or increase memory)\n");
 
+#ifndef Macintosh
     /* This is where we source the system-wide, the site's and the
        user's profile (in that order).  If there is an error, we
        drop through to further processing. */
     R_LoadProfile(R_OpenSysInitFile());
-#ifndef Macintosh
     R_LoadProfile(R_OpenSiteFile());
     R_LoadProfile(R_OpenInitFile());
 #endif
@@ -434,7 +425,7 @@ void mainloop(void)
     /* If there is an error we continue */
 
     doneit = 0;
-    SETJMP(R_Toplevel.cjmpbuf);
+    sigsetjmp(R_Toplevel.cjmpbuf, 1);
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
     signal(SIGINT, onintr);
     if (!doneit) {
@@ -456,7 +447,7 @@ void mainloop(void)
     /* We handle the console until end-of-file. */
 
     R_IoBufferInit(&R_ConsoleIob);
-    SETJMP(R_Toplevel.cjmpbuf);
+    sigsetjmp(R_Toplevel.cjmpbuf, 1);
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
     signal(SIGINT, onintr);
     R_ReplConsole(R_GlobalEnv, 0, 0);
@@ -539,10 +530,10 @@ SEXP do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     begincontext(&returncontext, CTXT_BROWSER, call, rho,
 		 R_NilValue, R_NilValue);
-    if (!SETJMP(returncontext.cjmpbuf)) {
+    if (!sigsetjmp(returncontext.cjmpbuf, 1)) {
 	begincontext(&thiscontext, CTXT_TOPLEVEL, R_NilValue, rho,
 		     R_NilValue, R_NilValue);
-	SETJMP(thiscontext.cjmpbuf);
+	sigsetjmp(thiscontext.cjmpbuf, 1);
 	R_GlobalContext = R_ToplevelContext = &thiscontext;
 	R_BrowseLevel = savebrowselevel;
 	R_ReplConsole(rho, savestack, R_BrowseLevel);

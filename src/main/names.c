@@ -60,10 +60,6 @@
  *
  */
 
-SEXP do_indexsearch(SEXP, SEXP, SEXP, SEXP);
-SEXP do_surface(SEXP, SEXP, SEXP, SEXP);
-SEXP do_flatContour(SEXP, SEXP, SEXP, SEXP);
-
 FUNTAB R_FunTab[] =
 {
 
@@ -477,7 +473,7 @@ FUNTAB R_FunTab[] =
 #endif
 {"parse",	do_parse,	0,	11,	4,	PP_FUNCALL},
 {"save",	do_save,	0,	111,	3,	PP_FUNCALL},
-{"load",	do_load,	0,	111,	2,	PP_FUNCALL},
+{"load",	do_load,	0,	111,	1,	PP_FUNCALL},
 {"hdf5save",	do_hdf5save,	0,	0,	-1,	PP_FUNCALL},
 {"hdf5load",	do_hdf5load,	0,	11,	 2,	PP_FUNCALL},
 {"deparse",	do_deparse,	0,	11,	2,	PP_FUNCALL},
@@ -494,7 +490,6 @@ FUNTAB R_FunTab[] =
 {"gc",		do_gc,		0,	11,	1,	PP_FUNCALL},
 {"gcinfo",	do_gcinfo,	0,	11,	1,	PP_FUNCALL},
 {"gctorture",	do_gctorture,	0,	11,	1,	PP_FUNCALL},
-{"memory.profile",do_memoryprofile, 0,  1,      0,      PP_FUNCALL},
 {"rep",		do_rep,		0,	11,	2,	PP_FUNCALL},
 {"list",	do_makelist,	1,	1,	-1,	PP_FUNCALL},
 {"split",	do_split,	0,	11,	2,	PP_FUNCALL},
@@ -507,8 +502,7 @@ FUNTAB R_FunTab[] =
 {"dyn.unload",	do_dynunload,	0,	111,	1,	PP_FUNCALL},
 {"ls",		do_ls,		1,	11,	2,	PP_FUNCALL},
 {"typeof",	do_typeof,	1,	11,	1,	PP_FUNCALL},
-{"eval",	do_eval,	0,	11,	3,	PP_FUNCALL},
-{"eval.with.vis",do_eval,	1,	11,	3,	PP_FUNCALL},
+{"eval",	do_eval,	1,	11,	3,	PP_FUNCALL},
 {"expression",	do_expression,	1,	0,	-1,	PP_FUNCALL},
 {"sys.parent",	do_sys,		1,	10,	-1,	PP_FUNCALL},
 {"sys.call",	do_sys,		2,	10,	-1,	PP_FUNCALL},
@@ -543,20 +537,6 @@ FUNTAB R_FunTab[] =
 {"lib.fixup",	do_libfixup,	0,	111,	2,	PP_FUNCALL},
 {"pos.to.env",	do_pos2env,	0,	1,	1,	PP_FUNCALL},
 
-/* Functions To Interact with the Operating System */
-
-{"file.show",	do_fileshow,	0,	111,	3,	PP_FUNCALL},
-{"file.create",	do_filecreate,	0,	11,	1,	PP_FUNCALL},
-{"file.remove",	do_fileremove,	0,	11,	1,	PP_FUNCALL},
-{"file.append",	do_fileappend,	0,	11,	2,	PP_FUNCALL},
-{"list.files",  do_listfiles,   0,      11,     4,      PP_FUNCALL},
-{"file.exists", do_fileexists,  0,      11,     1,      PP_FUNCALL},
-{"file.choose", do_filechoose,  0,      11,     1,      PP_FUNCALL},
-{"R.home",	do_Rhome,	0,	11,	0,	PP_FUNCALL},
-{"date",	do_date,	0,	11,	0,	PP_FUNCALL},
-{"Platform",	do_Platform,	0,	11,	0,	PP_FUNCALL},
-{"index.search",do_indexsearch, 0,      11,     5,      PP_FUNCALL},
-
 /* Complex Valued Functions */
 {"fft",		do_fft,		0,	11,	2,	PP_FUNCALL},
 {"mvfft",	do_mvfft,	0,	11,	2,	PP_FUNCALL},
@@ -565,11 +545,9 @@ FUNTAB R_FunTab[] =
 
 /* Device Drivers */
 
-{"X11",		do_X11,		0,	111,	5,	PP_FUNCALL},
+{"X11",		do_X11,		0,	111,	4,	PP_FUNCALL},
 {"PS",		do_PS,		0,	111,	9,	PP_FUNCALL},
 {"PicTeX",	do_PicTeX,	0,	111,	6,	PP_FUNCALL},
-{"Macintosh",	do_Macintosh,	0,	111,	4,	PP_FUNCALL},
-{"Gnome",       do_Gnome,       0,      111,    4,      PP_FUNCALL},
 
 /* Graphics */
 
@@ -615,11 +593,6 @@ FUNTAB R_FunTab[] =
 {"erase",	do_erase,	0,	111,	1,	PP_FUNCALL},
 {"dotplot",	do_dotplot,	0,	111,	1,	PP_FUNCALL},
 {"persp",	do_persp,	0,	111,	4,	PP_FUNCALL},
-#ifdef NICK
-{"shade",       do_shade,       0,      111,    14,     PP_FUNCALL},
-{"surface",     do_surface,     0,      111,    18,     PP_FUNCALL},
-{"flatContour", do_flatContour, 0,      111,    9,      PP_FUNCALL},
-#endif
 
 /* Objects */
 {"UseMethod",	do_usemethod,	0,	 0,	-1,	PP_FUNCALL},

@@ -1,2 +1,1 @@
-macintosh <- function (display = "", width = 5, height = 5, pointsize = 12) 
-.Internal(Macintosh(display, width, height, pointsize))
+macintosh <- function() .Internal(device("Macintosh","",c(0,0,0)))

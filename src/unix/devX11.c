@@ -22,7 +22,6 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
-#include <X11/Xutil.h>
 #include <X11/cursorfont.h>
 #include <X11/Intrinsic.h>/*->	Xlib.h	Xutil.h Xresource.h .. */
 
@@ -54,31 +53,31 @@
 
 typedef struct {
     /* R Graphics Parameters */
-    /* Local device copy so that we can detect */
-    /* when parameter changes. */
+    /* local device copy so that we can detect */
+    /* when parameter changes */
 
     double cex;				/* Character expansion */
     double srt;				/* String rotation */
     int lty;				/* Line type */
     double lwd;
     int col;				/* Color */
-    int fg;				/* Foreground */
-    int bg;				/* Background */
-    int fontface;			/* Typeface */
-    int fontsize;			/* Size in points */
+    int fg;					/* Foreground */
+    int bg;					/* Background */
+    int fontface;				/* Typeface */
+    int fontsize;				/* Size in points */
 
     /* X11 Driver Specific */
-    /* Parameters with copy per X11 device. */
+    /* parameters with copy per x11 device */
 
     int windowWidth;			/* Window width (pixels) */
     int windowHeight;			/* Window height (pixels) */
     int resize;				/* Window resized */
-    Window window;			/* Graphics Window */
-    GC wgc;				/* GC for window */
-    Cursor gcursor;			/* Graphics Cursor */
+    Window window;				/* Graphics Window */
+    GC wgc;					/* GC for window */
+    Cursor gcursor;				/* Graphics Cursor */
     XSetWindowAttributes attributes;	/* Window attributes */
-    XColor fgcolor;			/* Foreground color */
-    XColor bgcolor;			/* Background color */
+    XColor fgcolor;				/* Foreground color */
+    XColor bgcolor;				/* Background color */
     XRectangle clip;			/* The clipping rectangle */
 
     int usefixed;
@@ -99,13 +98,10 @@ typedef struct {
 
 static Display *display;			/* Display */
 static int screen;				/* Screen */
-static Window rootwin;				/* Root Window */
-static Visual *visual;				/* Visual */
+static Window rootWindow;			/* Root Window */
 static int depth;				/* Pixmap depth */
-static int class;                               /* Viasual class */
 static XSetWindowAttributes attributes;		/* Window attributes */
 static Colormap cmap;				/* Default color map */
-static Colormap colormap;                       /* Default color map */
 static int blackpixel;				/* Black */
 static int whitepixel;				/* White */
 static XContext devPtrContext;
@@ -113,6 +109,7 @@ static Atom _XA_WM_PROTOCOLS, protocol;
 
 static int displayOpen = 0;
 static int numX11Devices = 0;
+
 
 	/********************************************************/
 	/* There must be an entry point for the device driver	*/
@@ -145,9 +142,9 @@ static void   X11_Deactivate(DevDesc *);
 static void   X11_Hold(DevDesc*);
 static void   X11_Line(double, double, double, double, int, DevDesc*);
 static int    X11_Locator(double*, double*, DevDesc*);
-static void   X11_Mode(int, DevDesc*);
+static void   X11_Mode(int);
 static void   X11_NewPage(DevDesc*);
-static int    X11_Open(DevDesc*, x11Desc*, char*, double, double, double);
+static int    X11_Open(DevDesc*, x11Desc*, char*, double, double);
 static void   X11_Polygon(int, double*, double*, int, int, int, DevDesc*);
 static void   X11_Polyline(int, double*, double*, int, DevDesc*);
 static void   X11_Rect(double, double, double, double, int, int, int, DevDesc*);
@@ -157,9 +154,9 @@ static void   X11_Text(double, double, int, char*, double, double, double,
 		       DevDesc*);
 static void   X11_MetricInfo(int, double*, double*, double*, DevDesc*);
 
-	/*************************************************/
-	/* End of list of required device driver actions */
-	/*************************************************/
+	/********************************************************/
+	/* end of list of required device driver actions	*/
+	/********************************************************/
 
 	/* Support Routines */
 
@@ -173,274 +170,7 @@ static void SetFont(int, int, DevDesc*);
 static void SetLinetype(int, double, DevDesc*);
 
 
-        /************************/
-        /* X11 Color Management */
-        /************************/
-
-static double RedGamma   = 0.6;
-static double GreenGamma = 0.6;
-static double BlueGamma  = 0.6;
-
-
-/* Variables Used To Store Colormap Information */
-static struct { int red; int green; int blue; } RPalette[512];
-static XColor XPalette[512];
-static int PaletteSize;
-static int RedLevels, GreenLevels, BlueLevels;
-
-
-/* Code To Handle Monochome Displays */
-/* See: Foley & van Damm */
-static unsigned GetMonochromePixel(int r, int g, int b)
-{
-    /* Convert to Luminance */   
-    int gray = (0.299 * r + 0.587 * g + 0.114 * b);
-    if (gray > 127)
-	return WhitePixel(display, screen);
-    else
-	return BlackPixel(display, screen);
-}
-
-static unsigned GetGrayScalePixel(int r, int g, int b)
-{
-    /* Convert to Luminance */   
-    unsigned int d, dmin = 0xFFFFFFFF;
-    unsigned int dr;
-    unsigned int pixel;
-    int i, imin;
-    int gray = (0.299 * r + 0.587 * g + 0.114 * b) + 0.0001;
-    for (i = 0; i < PaletteSize; i++) {
-	dr = (RPalette[i].red - gray);
-	d = dr * dr;
-	if (d < dmin) {
-	    pixel = XPalette[i].pixel;
-	    dmin = d;
-	    imin = i;
-	}
-    }
-    return pixel;
-}
-
-
-/* Code To Handle Grayscale Displays */
-static int GetGrayPalette(Display *display, Colormap cmap, int n)
-{
-    int status, i, m;
-    m = 0;
-    i = 0;
-    for (i = 0; i < n; i++) {
-	RPalette[i].red   = (i * 0xff) / (n - 1);
-	RPalette[i].green = RPalette[i].red;
-	RPalette[i].blue  = RPalette[i].red;
-	/* Gamma correct here */
-	XPalette[i].red   = (i * 0xffff) / (n - 1);
-	XPalette[i].green = XPalette[i].red;
-	XPalette[i].blue  = XPalette[i].red;
-	status = XAllocColor(display, cmap, &XPalette[i]);
-	if (status == 0) {
-	    XPalette[i].flags = 0;
-	    m++;
-	}
-	else
-	    XPalette[i].flags = DoRed|DoGreen|DoBlue;
-    }    
-    PaletteSize = n;
-    if (m > 0) {
-        for (i = 0; i < PaletteSize; i++) {
-            if (XPalette[i].flags != 0)
-                XFreeColors(display, cmap, &(XPalette[i].pixel), 1, 0);
-        }
-        PaletteSize = 0;
-        return 0;
-    }
-    else return 1;
-}
-
-static void SetupGrayScale()
-{
-    int i;
-    PaletteSize = 0;
-    if (GetGrayPalette(display, colormap, 1 << depth) == 0)
-	depth = 1;
-}
-
-/* Code To Handle PseudoColor Displays */
-static int RGBlevels[][3] = {  /* PseudoColor Palettes */
-    { 8, 8, 4 },
-    { 6, 7, 6 },    
-    { 6, 6, 6 },    
-    { 6, 6, 5 },
-    { 6, 6, 4 },
-    { 5, 5, 5 },
-    { 5, 5, 4 },
-    { 4, 4, 4 },
-    { 4, 4, 3 },
-    { 3, 3, 3 },
-    { 2, 2, 2 }
-};
-static int NRGBlevels = sizeof(RGBlevels) / (3 * sizeof(int));
-
-
-static int GetColorPalette(Display *dpy, Colormap cmap, int nr, int ng, int nb)
-{
-    int status, i, m, r, g, b;
-    m = 0;
-    i = 0;
-    for (r = 0; r < nr; r++) {
-	for (g = 0; g < ng; g++) {
-	    for (b = 0; b < nb; b++) {
-		RPalette[i].red   = (r * 0xff) / (nr - 1);
-		RPalette[i].green = (g * 0xff) / (ng - 1);
-		RPalette[i].blue  = (b * 0xff) / (nb - 1);
-		/* Perform Gamma Correction Here */
-#ifdef OLD
-		XPalette[i].red   = (r * 0xffff) / (nr - 1);
-		XPalette[i].green = (g * 0xffff) / (ng - 1);
-		XPalette[i].blue  = (b * 0xffff) / (nb - 1);
-#else
-		XPalette[i].red   = pow(r / (nr - 1.0), RedGamma) * 0xffff;
-		XPalette[i].green = pow(g / (ng - 1.0), GreenGamma) * 0xffff;
-		XPalette[i].blue  = pow(b / (nb - 1.0), BlueGamma) * 0xffff;
-#endif
-		/* End Gamma Correction */
-		status = XAllocColor(dpy, cmap, &XPalette[i]);
-		if (status == 0) {
-		    XPalette[i].flags = 0;
-		    m++;
-		}
-		else
-		    XPalette[i].flags = DoRed|DoGreen|DoBlue;
-		i++;
-	    }
-	}
-    }
-    PaletteSize = nr * ng * nb;
-    if (m > 0) {
-	for (i = 0; i < PaletteSize; i++) {
-	    if (XPalette[i].flags != 0)
-		XFreeColors(dpy, cmap, &(XPalette[i].pixel), 1, 0);
-	}
-	PaletteSize = 0;
-	return 0;
-    }
-    else {
-        RedLevels = nr;
-	GreenLevels = ng;
-	BlueLevels = nb;
-	return 1;
-    }
-}
-
-static void SetupPseudoColor()
-{
-    int i;
-    PaletteSize = 0;
-    for (i = 0; i < NRGBlevels; i++)
-	if (GetColorPalette(display, colormap,
-			    RGBlevels[i][0],
-			    RGBlevels[i][1],
-			    RGBlevels[i][2]))
-	    break;
-    if (PaletteSize == 0) {
-	warning("X11 driver unable to obtain color cube\n");
-	depth = 1;
-    }
-}
-
-static unsigned int GetPseudoColorPixel(int r, int g, int b)
-{
-    unsigned int d, dmin = 0xFFFFFFFF;
-    unsigned int dr, dg, db;
-    unsigned int pixel;
-    int i, imin;
-    for (i = 0; i < PaletteSize; i++) {
-	dr = (RPalette[i].red - r);
-	dg = (RPalette[i].green - g);
-	db = (RPalette[i].blue - b);
-	d = dr * dr + dg * dg + db * db;
-	if (d < dmin) {
-	    pixel = XPalette[i].pixel;
-	    dmin = d;
-	    imin = i;
-	}
-    }
-    return pixel;
-}
-
-/* Code To Handle Truecolor Displays */
-static unsigned int RMask, RShift;
-static unsigned int GMask, GShift;
-static unsigned int BMask, BShift;
-
-static void SetupTrueColor()
-{
-    RMask = visual->red_mask;
-    GMask = visual->green_mask;
-    BMask = visual->blue_mask;
-    RShift = 0; while ((RMask & 1) == 0) { RShift++; RMask >>= 1; }
-    GShift = 0; while ((GMask & 1) == 0) { GShift++; GMask >>= 1; }
-    BShift = 0; while ((BMask & 1) == 0) { BShift++; BMask >>= 1; }
-}
-
-static unsigned GetTrueColorPixel(int r, int g, int b)
-{
-    r = pow((r / 255.0), RedGamma) * 255;
-    g = pow((g / 255.0), GreenGamma) * 255;
-    b = pow((b / 255.0), BlueGamma) * 255;
-    return
-	(((r * RMask) / 255) << RShift) |
-	(((g * GMask) / 255) << GShift) |
-	(((b * BMask) / 255) << BShift);
-}
-
-
-unsigned int GetX11Pixel(int r, int g, int b)
-{
-    if (depth > 1) {
-	switch(class) {
-	case StaticGray:
-	case GrayScale:
-	    return GetGrayScalePixel(r, g, b);
-	case PseudoColor:
-	    return GetPseudoColorPixel(r, g, b);
-	case TrueColor:
-	    return GetTrueColorPixel(r, g, b);
-	}
-    }
-    else GetMonochromePixel(r, g, b);
-}
-
-int SetupX11Color()
-{
-    if (depth > 1) {
-	switch (class) {
-	case StaticGray:
-	case GrayScale:
-	    SetupGrayScale();
-	    break;
-	case StaticColor:
-	    depth = 1;
-	    break;
-	case PseudoColor:
-	    SetupPseudoColor();
-	    break;
-	case TrueColor:
-	    SetupTrueColor();
-	    break;
-	case DirectColor:
-	    depth = 1;
-	    break;
-	default:
-	    printf("Unknown Visual\n");
-	    return 0;
-	}
-    }
-    whitepixel = GetX11Pixel(255, 255, 255);
-    blackpixel = GetX11Pixel(0, 0, 0);
-    return 1;
-}
-
-        /* Pixel Dimensions (Inches) */
+			/* Pixel Dimensions (Inches) */
 
 static double pixelWidth(void)
 {
@@ -503,10 +233,10 @@ void ProcessEvents(void)
     }
 }
 
-        /* Font information array. */
-        /* Point sizes: 6-24 */
-        /* Faces: plain, bold, oblique, bold-oblique */
-        /* Symbol may be added later */
+			/* Font information array. */
+			/* Point sizes: 6-24 */
+			/* Faces: plain, bold, oblique, bold-oblique */
+			/* Symbol may be added later */
 
 #define NFONT 19
 
@@ -671,17 +401,62 @@ static struct {
 } Colors[256];
 
 static int NColors;
-static int LimitedColors;
 
 static void SetColor(int color, DevDesc *dd)
 {
     int i, r, g, b;
     x11Desc *xd = (x11Desc *) dd->deviceSpecific;
+
     if(color != xd->col) {
-	blackpixel = GetX11Pixel(R_RED(color), R_GREEN(color), R_BLUE(color));
+	for(i=0 ; i<NColors ; i++) {
+	    if(color == Colors[i].rcolor) {
+		xd->fgcolor.pixel = Colors[i].pixel;
+		goto found;
+	    }
+	}
+
+	/* Gamma Correction */
+	/* This is very experimental! */
+
+	if(dd->gp.gamma != 1) {
+	    r = (int)(255*pow(R_RED(color)/255.0, dd->gp.gamma));
+	    g = (int)(255*pow(R_GREEN(color)/255.0, dd->gp.gamma));
+	    b = (int)(255*pow(R_BLUE(color)/255.0, dd->gp.gamma));
+	}
+	else {
+	    r = R_RED(color);
+	    g = R_GREEN(color);
+	    b = R_BLUE(color);
+	}
+
+	/* Note that X11 uses 16 bits to describe the	*/
+	/* level of the RGB primaries and this explains */
+	/* the additional * 257 below.			*/
+	/* 257 = (2^16-1)/(2^8-1)			*/
+
+	xd->fgcolor.red	  = r * 257;
+	xd->fgcolor.green = g * 257;
+	xd->fgcolor.blue  = b * 257;
+
+	if(NColors == 255 ||
+	   XAllocColor(display, cmap, &(xd->fgcolor)) == 0)
+	    error("color allocation error\n");
+	Colors[NColors].rcolor = color;
+	Colors[NColors].pixel = xd->fgcolor.pixel;
+	NColors++;
+    found:
+	blackpixel = xd->fgcolor.pixel;
 	xd->col = color;
 	XSetState(display, xd->wgc, blackpixel, whitepixel, GXcopy, AllPlanes);
     }
+}
+
+static void FreeColors()
+{
+    int i;
+    for(i=0 ; i<NColors ; i++)
+	XFreeColors(display, cmap, &(Colors[i].pixel), 1, 0);
+    NColors = 0;
 }
 
 /*
@@ -782,8 +557,7 @@ static void SetLinetype(int newlty, double nlwd, DevDesc *dd)
 	/* of course :)						*/
 	/********************************************************/
 
-static int X11_Open(DevDesc *dd, x11Desc *xd, char *dsp,
-                    double w, double h, double gamma)
+static int X11_Open(DevDesc *dd, x11Desc *xd, char *dsp, double w, double h)
 {
     /* if have to bail out with "error" then must */
     /* free(dd) and free(xd) */
@@ -793,26 +567,26 @@ static int X11_Open(DevDesc *dd, x11Desc *xd, char *dsp,
     XGCValues gcv;
     XColor exact;
 
-    /* If there is no server connection, establish one and */
-    /* initialize the X11 device driver data structures. */
-    
+    /* only open display if we haven't already */
     if (!displayOpen) {
+
+	/* Open the default display */
+	/* A return value of 0 indicates failure */
+
 	if ((display = XOpenDisplay(dsp)) == NULL)
 	    return 0;
-#define SETGAMMA
-#ifdef SETGAMMA
-	RedGamma   = gamma;
-	GreenGamma = gamma;
-	BlueGamma  = gamma;
-#endif
-	screen = DefaultScreen(display);
-	rootwin = DefaultRootWindow(display);
-	depth = DefaultDepth(display, screen);
-	visual = DefaultVisual(display, screen);
-	colormap = DefaultColormap(display, screen);
-	class = visual->class;
-	SetupX11Color(display, screen, rootwin, visual);
+
+	/* Default Screen and Root Window */
+
+	screen = XDefaultScreen(display);
+	rootWindow = XDefaultRootWindow(display);
+	depth = XDefaultDepth(display, screen);
+
+	cmap = DefaultColormap(display, screen);
+	NColors = 0;
+
 	devPtrContext = XUniqueContext();
+
 	displayOpen = 1;
     }
 
@@ -823,9 +597,26 @@ static int X11_Open(DevDesc *dd, x11Desc *xd, char *dsp,
 
     /* Foreground and Background Colors */
 
-    xd->bg =  dd->dp.bg	 = R_RGB(255, 255, 255);
-    xd->fg =  dd->dp.fg	 = R_RGB(0, 0, 0);
+    xd->bg =  dd->dp.bg	 = R_RGB(255,255,255);
+    xd->fg =  dd->dp.fg	 = R_RGB(0,0,0);
     xd->col = dd->dp.col = xd->fg;
+
+    result = XAllocNamedColor(display, cmap, "white", &exact, &(xd->bgcolor));
+    if (result == 0) {
+	free(xd);
+	free(dd);
+	error("color allocation error\n");
+    }
+
+    result = XAllocNamedColor(display, cmap, "black", &exact, &(xd->fgcolor));
+    if (result == 0) {
+	free(xd);
+	free(dd);
+	error("color allocation error\n");
+    }
+
+    whitepixel = xd->bgcolor.pixel;
+    blackpixel = xd->fgcolor.pixel;
 
     /* Try to create a simple window */
     /* Want to know about exposures */
@@ -842,7 +633,8 @@ static int X11_Open(DevDesc *dd, x11Desc *xd, char *dsp,
     xd->windowHeight = ih = h/pixelHeight();
 
     if ((xd->window = XCreateWindow(
-	display, rootwin,
+	display,
+	rootWindow,
 	DisplayWidth(display, screen) - iw - 10, 10, iw, ih, 1,
 	DefaultDepth(display, screen),
 	InputOutput,
@@ -980,9 +772,7 @@ static void X11_Clip(double x0, double x1, double y0, double y1, DevDesc *dd)
 	xd->clip.height = (int)(y0 - y1);
     }
     XSetClipRectangles(display, xd->wgc, 0, 0, &(xd->clip), 1, Unsorted);
-#ifdef XSYNC
     XSync(display, 0);
-#endif
 }
 
 	/********************************************************/
@@ -1021,15 +811,20 @@ static void X11_NewPage(DevDesc *dd)
     int result;
     x11Desc *xd = (x11Desc *) dd->deviceSpecific;
 
+    FreeColors();
+
     if(xd->bg != dd->dp.bg) {
 	xd->bg = dd->dp.bg;
-	whitepixel = GetX11Pixel(R_RED(xd->bg),R_GREEN(xd->bg),R_BLUE(xd->bg));
+	xd->bgcolor.red	  = R_RED(xd->bg)   * 257;
+	xd->bgcolor.green = R_GREEN(xd->bg) * 257;
+	xd->bgcolor.blue  = R_BLUE(xd->bg)  * 257;
+	result = XAllocColor(display, cmap, &(xd->bgcolor));
+	if (result == 0) error("color allocation error\n");
+	whitepixel = xd->bgcolor.pixel;
 	XSetWindowBackground(display, xd->window, whitepixel);
     }
     XClearWindow(display, xd->window);
-#ifdef XSYNC
     XSync(display, 0);
-#endif
 }
 
 	/********************************************************/
@@ -1167,9 +962,7 @@ static void X11_Rect(double x0, double y0, double x1, double y1,
 	XDrawRectangle(display, xd->window, xd->wgc, (int)x0, (int)y0,
 		       (int)x1 - (int)x0, (int)y1 - (int)y0);
     }
-#ifdef XSYNC
     XSync(display, 0);
-#endif
 }
 
 	/********************************************************/
@@ -1228,7 +1021,7 @@ static void X11_Circle(double x, double y, int coords,
 static void X11_Line(double x1, double y1, double x2, double y2,
 		     int coords, DevDesc *dd)
 {
-    double xx1, yy1, xx2, yy2;
+    int xx1, yy1, xx2, yy2;
     x11Desc *xd = (x11Desc *) dd->deviceSpecific;
 
     /* In-place conversion ok */
@@ -1243,9 +1036,7 @@ static void X11_Line(double x1, double y1, double x2, double y2,
     SetColor(dd->gp.col, dd);
     SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
     XDrawLine(display, xd->window, xd->wgc, xx1, yy1, xx2, yy2);
-#ifdef XSYNC
     XSync(display, 0);
-#endif
 }
 
 	/********************************************************/
@@ -1276,9 +1067,7 @@ static void X11_Polyline(int n, double *x, double *y, int coords, DevDesc *dd)
     SetColor(dd->gp.col, dd);
     SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
     XDrawLines(display, xd->window, xd->wgc, points, n, CoordModeOrigin);
-#ifdef XSYNC
     XSync(display, 0);
-#endif
 
     C_free((char *) points);
 }
@@ -1319,17 +1108,13 @@ static void X11_Polygon(int n, double *x, double *y, int coords,
     if(bg != NA_INTEGER) {
 	SetColor(bg, dd);
 	XFillPolygon(display, xd->window, xd->wgc, points, n, Complex, CoordModeOrigin);
-#ifdef XSYNC
 	XSync(display, 0);
-#endif
     }
     if(fg != NA_INTEGER) {
 	SetColor(fg, dd);
 	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
 	XDrawLines(display, xd->window, xd->wgc, points, n+1, CoordModeOrigin);
-#ifdef XSYNC
 	XSync(display, 0);
-#endif
     }
 
     C_free((char *) points);
@@ -1371,9 +1156,7 @@ static void X11_Text(double x, double y, int coords,
     }
     XRotDrawString(display, xd->font, rot, xd->window, xd->wgc,
 		   (int)x, (int)y, str);
-#ifdef XSYNC
     XSync(display, 0);
-#endif
 }
 
 	/********************************************************/
@@ -1429,13 +1212,9 @@ static int X11_Locator(double *x, double *y, DevDesc *dd)
 	/********************************************************/
 
 /* Set Graphics mode - not needed for X11 */
-static void X11_Mode(int mode, DevDesc *dd)
+static void X11_Mode(int mode)
 {
-#ifdef XSYNC
     if(mode == 0) XSync(display, 0);
-#else
-    XSync(display, 0);
-#endif
 }
 
 	/********************************************************/
@@ -1480,19 +1259,24 @@ static void X11_Hold(DevDesc *dd)
 	/********************************************************/
 
 
-	/*  X11 Device Driver Arguments		*/
-	/*    1)  display name			*/
-	/*    2)  width (inches)		*/
-	/*    3)  height (inches)		*/
-	/*    4)  base pointsize		*/
-	/*    5)  gamma correction factor	*/
+	/*  X11 Device Driver Arguments		      */
+
+	/*  cpars[0] = display name		      */
+	/*  cpars[1] = paper type (a4, letter, none)  */
+
+	/*  npars[0] = width (inches)		      */
+	/*  npars[1] = height (inches)		      */
+	/*  npars[2] = base pointsize		      */
+	/*  npars[3] = paper orientation	      */
+	/*	       1 - portrait		      */
+	/*	       2 - landscape		      */
+	/*	       3 - flexible		      */
 
 int X11DeviceDriver(DevDesc *dd, char *display,
-		    double width, double height,
-		    double pointsize, double gamma)
+		    double width, double height, double pointsize)
 {
     /* if need to bail out with some sort of "error" then */
-    /* must free(xd) */
+    /* must free(dd) */
 
     int ps;
     x11Desc *xd;
@@ -1516,7 +1300,7 @@ int X11DeviceDriver(DevDesc *dd, char *display,
 
     /*	Start the Device Driver and Hardcopy.  */
 
-    if (!X11_Open(dd, xd, display, width, height, gamma)) {
+    if (!X11_Open(dd, xd, display, width, height)) {
 	free(xd);
 	return 0;
     }
@@ -1603,24 +1387,5 @@ int X11ConnectionNumber()
 	return ConnectionNumber(display);
     else
 	return 0;
-}
-
-	/* X11 Color Allocation code */
-
-
-/* return the position of the highest set bit in ul */
-/* as an integer (0-31), or -1 if none */
-static int highbit(unsigned long ul)
-{
-    int i;  unsigned long hb;
-    hb = 0x8000;  hb = (hb<<16);  /* hb = 0x80000000UL */
-    for (i=31; ((ul & hb) == 0) && i>=0;  i--, ul<<=1);
-    return i;
-}
-
-int GnomeDeviceDriver(DevDesc *dd, char *display,
-		    double width, double height, double pointsize)
-{
-  return 0;
 }
 

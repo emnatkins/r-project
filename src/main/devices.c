@@ -36,22 +36,16 @@ static char *SaveString(SEXP sxp, int offset)
     return s;
 }
 
-static void DeviceUnavailable(char *dev)
-{
-    error("The %s device driver is unavailable.\n", dev);
-}
-
-#ifdef Macintosh
-/*  Macintosh Device Driver Parameters:
+#ifdef Unix
+#include "../unix/devX11.h"
+/*  X11 Device Driver Parameters:
  *  -----------------		--> ../unix/devX11.c
  *  display	= display
  *  width	= width in inches
  *  height	= height in inches
  *  ps		= pointsize
  */
-int MacDeviceDriver();
-
-SEXP do_Macintosh(SEXP call, SEXP op, SEXP args, SEXP env)
+SEXP do_X11(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     DevDesc *dd;
     char *display, *vmax;
@@ -70,21 +64,26 @@ SEXP do_Macintosh(SEXP call, SEXP op, SEXP args, SEXP env)
     /* Do this for early redraw attempts */
     dd->displayList = R_NilValue;
     GInit(&dd->dp);
-    if (!MacDeviceDriver(dd, width, height, ps)) {
+    if (!X11DeviceDriver(dd, display, width, height, ps)) {
 	free(dd);
-	errorcall(call, "unable to start device Macintosh\n");
+	errorcall(call, "unable to start device X11\n");
     }
-    gsetVar(install(".Device"), mkString("Macintosh"), R_NilValue);
+    gsetVar(install(".Device"), mkString("X11"), R_NilValue);
     addDevice(dd);
     initDisplayList(dd);
     vmaxset(vmax);
     return R_NilValue;
 }
+
 #else
-SEXP do_Macintosh(SEXP call, SEXP op, SEXP args, SEXP env)
+SEXP do_x11(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    gcall = call;
-    DeviceUnavailable("Macintosh");
+    DeviceUnavailable("X11");
+}
+
+static void DeviceUnavailable(char *dev)
+{
+    errorcall(gcall, "%s device is unavailable.\n", dev);
 }
 #endif
 
@@ -103,7 +102,6 @@ SEXP do_Macintosh(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP do_PS(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-#ifndef Macintosh
     DevDesc *dd;
     char *vmax;
     char *file, *paper, *face, *bg, *fg;
@@ -138,10 +136,6 @@ SEXP do_PS(SEXP call, SEXP op, SEXP args, SEXP env)
     initDisplayList(dd);
     vmaxset(vmax);
     return R_NilValue;
-#else
-    gcall = call;
-    DeviceUnavailable("postscript");
-#endif
 }
 
 /*  PicTeX Device Driver Parameters
@@ -156,7 +150,6 @@ SEXP do_PS(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP do_PicTeX(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-#ifdef Unix
     DevDesc *dd;
     char *vmax;
     char *file, *bg, *fg;
@@ -184,95 +177,4 @@ SEXP do_PicTeX(SEXP call, SEXP op, SEXP args, SEXP env)
     initDisplayList(dd);
     vmaxset(vmax);
     return R_NilValue;
-#else
-    gcall = call;
-    DeviceUnavailable("pictex");
-#endif
 }
-
-#ifdef Unix
-#include "../unix/devX11.h"
-/*  X11 Device Driver Parameters:
- *  -----------------		--> ../unix/devX11.c
- *  display	= display
- *  width	= width in inches
- *  height	= height in inches
- *  ps		= pointsize
- */
-SEXP do_X11(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    DevDesc *dd;
-    char *display, *vmax;
-    double height, width, ps, gamma;
-    gcall = call;
-    vmax = vmaxget();
-    display = SaveString(CAR(args), 0); args = CDR(args);
-    width = asReal(CAR(args));	args = CDR(args);
-    height = asReal(CAR(args)); args = CDR(args);
-    if (width <= 0 || height <= 0)
-	errorcall(call, "invalid width or height");
-    ps = asReal(CAR(args)); args = CDR(args);
-    gamma = asReal(CAR(args)); args = CDR(args);
-    if (gamma < 0 || gamma > 100)
-	errorcall(call, "invalid gamma value");
-    /* Allocate and initialize the device driver data */
-    if (!(dd = (DevDesc *) malloc(sizeof(DevDesc))))
-	return 0;
-    /* Do this for early redraw attempts */
-    dd->displayList = R_NilValue;
-    GInit(&dd->dp);
-    if (!X11DeviceDriver(dd, display, width, height, ps, gamma)) {
-	free(dd);
-	errorcall(call, "unable to start device X11\n");
-    }
-    gsetVar(install(".Device"), mkString("X11"), R_NilValue);
-    addDevice(dd);
-    initDisplayList(dd);
-    vmaxset(vmax);
-    return R_NilValue;
-}
-
-SEXP do_Gnome(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    DevDesc *dd;
-    char *display, *vmax;
-    double height, width, ps;
-    gcall = call;
-    vmax = vmaxget();
-    display = SaveString(CAR(args), 0); args = CDR(args);
-    width = asReal(CAR(args));	args = CDR(args);
-    height = asReal(CAR(args)); args = CDR(args);
-    if (width <= 0 || height <= 0)
-	errorcall(call, "invalid width or height");
-    ps = asReal(CAR(args));
-    /* Allocate and initialize the device driver data */
-    if (!(dd = (DevDesc *) malloc(sizeof(DevDesc))))
-	return 0;
-    /* Do this for early redraw attempts */
-    dd->displayList = R_NilValue;
-    GInit(&dd->dp);
-    if (!GnomeDeviceDriver(dd, display, width, height, ps)) {
-	free(dd);
-	errorcall(call, "unable to start device Gnome\n");
-    }
-    gsetVar(install(".Device"), mkString("Gnome"), R_NilValue);
-    addDevice(dd);
-    initDisplayList(dd);
-    vmaxset(vmax);
-    return R_NilValue;
-}
-#else
-SEXP do_X11(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    gcall = call;
-    DeviceUnavailable("X11");
-}
-
-SEXP do_Gnome(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    gcall = call;
-    DeviceUnavailable("Gnome");
-}
-#endif
-
-

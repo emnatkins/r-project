@@ -13,34 +13,28 @@ include $(top_builddir)/Makeconf
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 DISTFILES = $(shell cd $(srcdir) && ls Makefile.in *.[cfhy])
 
-OBJS = arithmetic.o array.o attrib.o bind.o builtin.o character.o       \
-	coerce.o colors.o complex.o context.o cov.o cum.o debug.o       \
-	deparse.o deriv.o devices.o dotcode.o dstruct.o duplicate.o     \
-	envir.o errors.o eval.o format.o fourier.o gram.o graphics.o    \
-	iosupport.o list.o logic.o main.o match.o memory.o model.o      \
-	names.o objects.o optimize.o options.o par.o paste.o platform.o \
-	plot.o plot3d.o plotmath.o print.o printarray.o printvector.o   \
-	printutils.o random.o relop.o saveload.o scan.o seq.o sort.o    \
-	source.o split.o subassign.o subscript.o subset.o summary.o     \
+OBJS = arithmetic.o array.o attrib.o bind.o builtin.o character.o    \
+	coerce.o colors.o complex.o context.o cov.o cum.o debug.o    \
+	deparse.o deriv.o devices.o dotcode.o dstruct.o duplicate.o  \
+	envir.o errors.o eval.o format.o fourier.o gram.o graphics.o \
+	iosupport.o list.o logic.o main.o match.o memory.o model.o   \
+	names.o objects.o optimize.o options.o par.o paste.o plot.o  \
+	plot3d.o plotmath.o print.o printarray.o printvector.o       \
+	printutils.o random.o relop.o saveload.o scan.o seq.o sort.o \
+	source.o split.o subassign.o subscript.o subset.o summary.o  \
 	unique.o util.o version.o
 
 RLIBS = ../unix/libunix.a ../appl/libappl.a ../nmath/libmath.a
-RGNOMELIBS = ../gnome/libRgnome.a ../appl/libappl.a ../nmath/libmath.a
 
 ALL_LIBS = $(RLIBS) $(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS) $(LIBS)
-ALL_GNOME_LIBS = $(RGNOMELIBS) $(LIBS) $(GNOMEUI_LIBS)
 
 all: R
 
-R: $(top_builddir)/bin/R.binary @RGNOMEBIN@
+R: $(top_builddir)/bin/R.binary
 
 $(top_builddir)/bin/R.binary: $(OBJS) $(RLIBS)
 	@$(MKINSTALLDIRS) $(top_builddir)/bin
 	$(LDCMD) $(DLLFLAGS) -o $@ $(OBJS) $(ALL_LIBS)
-
-$(top_builddir)/bin/R.gnome: $(OBJS) $(RGNOMELIBS)
-	@$(MKINSTALLDIRS) $(top_builddir)/bin
-	$(LDCMD) $(DLLFLAGS) $(GNOME_LIBDIR) -o $@ $(OBJS) $(ALL_GNOME_LIBS)
 
 ../unix/libunix.a:
 	(cd ../unix;  $(MAKE) $(@F))
@@ -56,7 +50,7 @@ $(OBJS): $(top_srcdir)/src/include/Defn.h
 #	mv y.tab.c $@
 
 gram.c: $(srcdir)/gram.y
-	$(YACC) $(srcdir)/gram.y
+	$(YACC) $<
 	mv y.tab.c $@
 
 mostlyclean: clean

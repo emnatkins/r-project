@@ -47,107 +47,41 @@
 #define LTRUE	(1)
 #define LFALSE	(0)
 
-/* 30 Decimal-place constants */
-/* Computed with bc -l (scale=32; proper round) */
+/* 30 Decimal-place constants computed with bc -l (scale=32; proper round) */
 
-/* SVID & X/Open Constants */
-/* Names from Solaris math.h */
-
-#ifndef M_E
-#define M_E		2.718281828459045235360287471353	/* e */
-#endif
-
-#ifndef M_LOG2E
-#define M_LOG2E		1.442695040888963407359924681002	/* log2(e) */
-#endif
-
-#ifndef M_LOG10E
-#define M_LOG10E        0.434294481903251827651128918917	/* log10(e) */
-#endif
-
-#ifndef M_LN2
-#define M_LN2		0.693147180559945309417232121458	/* ln(2) */
-#endif
-
-#ifndef M_LN10
-#define M_LN10		2.302585092994045684017991454684	/* ln(10) */
-#endif
-
-#ifndef M_PI
-#define M_PI		3.141592653589793238462643383280        /* pi */
-#endif
-
-#ifndef M_PI_2
-#define M_PI_2		1.570796326794896619231321691640	/* pi/2 */
-#endif
-
-#ifndef M_PI_4
-#define M_PI_4		0.785398163397448309615660845820	/* pi/4 */
-#endif
-
-#ifndef M_1_PI		
-#define M_1_PI		0.318309886183790671537767526745	/* 1/pi */
-#endif
-
-#ifndef M_2_PI		
-#define M_2_PI		0.636619772367581343075535053490	/* 1/pi */
-#endif
-
-#ifndef M_2_SQRTPI
-#define M_2_SQRTPI	1.128379167095512573896158903122	/* 1/sqrt(pi) */
-#endif
-
-#ifndef M_SQRT2
-#define M_SQRT2		1.414213562373095048801688724210	/* sqrt(2) */
-#endif
-
-#ifndef M_SQRT1_2
-#define M_SQRT1_2	0.707106781186547524400844362105	/* 1/sqrt(2) */
-#endif
-
-/* Other, R-Specific Constants */
-/* Note there are some repeats of values above */
-/* Needs a cleanup */
-
-#ifndef M_1_SQRT_2
+#ifndef M_SQRT_2
+#define M_SQRT_2	1.4142135623730950488016887242097
 #define M_1_SQRT_2	0.707106781186547524400844362105	/* 1/sqrt(2) */
-#endif
-
-#ifndef M_SQRT_32
 #define M_SQRT_32	5.656854249492380195206754896838	/* sqrt(32) */
 #endif
 
-#ifndef M_LOG10_2
-#define M_LOG10_2	0.301029995663981195213738894724	/* log10(2) */
+#ifndef M_LN_2
+#define M_LN_2		0.693147180559945309417232121458176568
+#define M_LOG10_2	0.301029995663981195213738894724493027
 #endif
 
+#ifndef M_PI
+#define M_PI		3.141592653589793238462643383279502884197169399375
+#endif
 #ifndef M_PI_half
-#define M_PI_half	1.570796326794896619231321691640	/* pi/2 */
+#define M_PI_half	1.570796326794896619231321691640
 #endif
 
 #ifndef M_SQRT_PI
-#define M_SQRT_PI	1.772453850905516027298167483341	/* sqrt(pi) */
-#endif
-
-#ifndef M_1_SQRT_2PI
-#define M_1_SQRT_2PI	0.398942280401432677939946059934	/* 1/sqrt(2pi) */
-#endif
-
-#ifndef M_SQRT_2dPI
-#define M_SQRT_2dPI	0.797884560802865355879892119869	/* sqrt(2/pi) */
+/* sqrt(pi),  1/sqrt(2pi),  sqrt(2/pi) : */
+# define M_SQRT_PI	1.772453850905516027298167483341
+# define M_1_SQRT_2PI	0.398942280401432677939946059934
+# define M_SQRT_2dPI	0.79788456080286535587989211986876
 #endif
 
 
 #ifndef M_LN_SQRT_PI
-#define M_LN_SQRT_PI	0.572364942924700087071713675677	/* log(sqrt(pi)) */
-#endif
-
-#ifndef M_LN_SQRT_2PI
-#define M_LN_SQRT_2PI	0.918938533204672741780329736406	/* log(sqrt(2*pi)) */
-#endif
-
-#ifndef M_LN_SQRT_PId2
-#define M_LN_SQRT_PId2	0.225791352644727432363097614947	/* log(sqrt(pi/2)) */
+/* log(sqrt(pi)) = log(pi)/2 : */
+# define M_LN_SQRT_PI	0.5723649429247000870717136756765293558
+/* log(sqrt(2*pi)) = log(2*pi)/2 : */
+# define M_LN_SQRT_2PI	0.91893853320467274178032973640562
+/* log(sqrt(pi/2)) = log(pi/2)/2 : */
+# define M_LN_SQRT_PId2	0.225791352644727432363097614947441
 #endif
 
 
@@ -163,7 +97,7 @@
 #else/* Mathlib standalone */
 
 #include <stdio.h>
-# define MATHLIB_ERROR(fmt,x)   { printf(fmt,x); exit(1) }
+# define MATHLIB_ERROR(fmt,x)	{ printf(fmt,x); exit(1) }
 # define MATHLIB_WARNING(fmt,x)		printf(fmt,x)
 # define MATHLIB_WARNING2(fmt,x,x2)	printf(fmt,x,x2)
 # define MATHLIB_WARNING3(fmt,x,x2,x3)	printf(fmt,x,x2,x3)
@@ -171,15 +105,21 @@
 #endif
 
 #define ME_NONE		0
+/*	no error */
 #define ME_DOMAIN	1
+/*	argument out of domain */
 #define ME_RANGE	2
-#define ME_NOCONV	3
-#define ME_PRECISION	4
-#define ME_UNDERFLOW	5
+/*	value out of range */
+#define ME_NOCONV	4
+/*	process did not converge */
+#define ME_PRECISION	8
+/*	does not have "full" precision */
+#define ME_UNDERFLOW	16
+/*	and underflow occured (important for IEEE)*/
 
-#undef ML_PRECISION_WARNINGS
 
 #ifdef IEEE_754
+
 # ifdef HAVE_IEEE754_H
 #  include <ieee754.h> /* newer Linuxen */
 # else
@@ -190,12 +130,12 @@
 
 extern double m_zero;
 extern double m_one;
-/* extern double m_tiny; */
+extern double m_tiny;
 #define ML_ERROR(x)	/* nothing */
 #define ML_POSINF	(m_one / m_zero)
 #define ML_NEGINF	((-m_one) / m_zero)
 #define ML_NAN		(m_zero / m_zero)
-#define ML_UNDERFLOW	(DBL_MIN * DBL_MIN)
+#define ML_UNDERFLOW	(m_tiny * m_tiny)
 #define ML_VALID(x)	(!isnan(x))
 
 #else/*--- NO IEEE: No +/-Inf, NAN,... ---*/
@@ -231,7 +171,6 @@ extern double m_one;
 
 #define	rround	fround
 #define	prec	fprec
-#undef trunc
 #define	trunc	ftrunc
 
 	/* Machine Characteristics */
@@ -288,14 +227,14 @@ double	lfastchoose(double, double);
 
 	/* Bessel Functions of All Kinds */
 
-double  bessel_i(double, double, double);
-double  bessel_j(double, double);
-double  bessel_k(double, double, double);
-double  bessel_y(double, double);
-void    I_bessel(double*, double*, long*, long*, double*, long*);
-void    J_bessel(double*, double*, long*,        double*, long*);
-void 	K_bessel(double*, double*, long*, long*, double*, long*);
-void	Y_bessel(double*, double*, long*,        double*, long*);
+double	bessel_i(double, double, double);
+double	bessel_j(double, double);
+double	bessel_k(double, double, double);
+double	bessel_y(double, double);
+void	I_bessel(double*, double*, long*, long*, double*, long*);
+void	J_bessel(double*, double*, long*,	 double*, long*);
+void	K_bessel(double*, double*, long*, long*, double*, long*);
+void	Y_bessel(double*, double*, long*,	 double*, long*);
 
 	/* Beta and Related Functions */
 

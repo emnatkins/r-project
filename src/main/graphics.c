@@ -32,8 +32,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-static char HexDigits[] = "0123456789ABCDEF";
-
 
 /*--->> Documentation now in  ../include/Graphics.h  "API" ----- */
 
@@ -825,10 +823,6 @@ void GConvert(double *x, double *y, int from, int to, DevDesc *dd)
     case NFC:
 	*x = xDevtoNFC(devx, dd);
 	*y = yDevtoNFC(devy, dd);
-	break;
-    case NPC:
-	*x = xDevtoNPC(devx, dd);
-	*y = yDevtoNPC(devy, dd);
 	break;
     case USER:
 	*x = xDevtoUsr(devx, dd);
@@ -2567,12 +2561,12 @@ void GMetricInfo(int c, double *ascent, double *descent, double *width,
 /*  mode = 2, graphical input on */
 /*  (Ignored by most drivers)	 */
 
-void GMode(int mode, DevDesc *dd)
+void GMode(DevDesc *dd, int mode)
 {
     if (NoDevices())
 	error("No graphics device is active\n");
     if(mode != dd->gp.devmode)
-	dd->dp.mode(mode, dd);
+	dd->dp.mode(mode);
     dd->gp.new = dd->dp.new = 0;
     dd->gp.devmode = dd->dp.devmode = mode;
 }
@@ -2623,65 +2617,20 @@ void GRect(double x0, double y0, double x1, double y1, int coords,
 /* Compute string width. */
 double GStrWidth(char *str, int units, DevDesc *dd)
 {
-#ifdef OLD
     double w = dd->dp.strWidth(str, dd);
     if (units != DEVICE)
 	w = GConvertXUnits(w, DEVICE, units, dd);
     return w;
-#else
-    double w;
-    static *sbuf = NULL;
-    if (sbuf) {
-	free(sbuf);
-	sbuf = NULL;
-        warning("freeing previous text buffer in GStrWidth\n");
-    }
-    w = 0;
-    if(str && *str) {
-        char *s, *sbuf, *sb;
-	double wdash;
-	sbuf = (char*)malloc(strlen(str) + 1);
-	sb = sbuf;
-        for(s = str; ; s++) {
-            if (*s == '\n' || *s == '\0') {
-		*sb = '\0';
-		wdash = dd->dp.strWidth(sbuf, dd);
-		if (wdash > w) w = wdash;
-		sb = sbuf;
-	    }
-	    else *sb++ = *s;
-	    if (!*s) break;
-	}
-	if (units != DEVICE)
-	    w = GConvertXUnits(w, DEVICE, units, dd);
-    }
-    return w;
-#endif
 }
 
 
 /* Compute string height. */
 double GStrHeight(char *str, int units, DevDesc *dd)
 {
-#ifdef OLD
     double h = dd->gp.cex * dd->gp.cra[1];
     if (units != DEVICE)
 	h = GConvertYUnits(h, DEVICE, units, dd);
     return h;
-#else
-    double h;
-    char *s;
-    int n;
-    /* Count the lines of text */
-    n = 1;
-    for(s = str; *s ; s++)
-	if (*s == '\n')
-	    n += 1;
-    h = n * dd->gp.cex * dd->gp.cra[1];
-    if (units != DEVICE)
-	h = GConvertYUnits(h, DEVICE, units, dd);
-    return h;
-#endif
 }
 
 
@@ -2689,76 +2638,23 @@ double GStrHeight(char *str, int units, DevDesc *dd)
 void GText(double x, double y, int coords, char *str,
 	   double xc, double yc, double rot, DevDesc *dd)
 {
-    /* Deallocate any prior string buffer */
-    static *sbuf = NULL;
-    if (sbuf) {
-	free(sbuf);
-	sbuf = NULL;
-        warning("freeing previous text buffer in GText\n");
-    }
+
     if(str && *str) {
-        char *s, *sbuf, *sb;
-	int i, n;
-	double xoff, yoff, yadj;
-	/* Fixup for string centering. */
-	/* Higher functions send in NA_REAL */
-	/* when true text centering is desired */
-	if (!FINITE(yc)) {
-	    yadj = (dd->gp.yCharOffset - 0.5);
-	    yc = 0.5;
-	}
-	else yadj = 0;
-	if (!FINITE(xc)) xc = 0.5;
-	/* We work in NDC coordinates */
-	GConvert(&x, &y, coords, NDC, dd);
-	/* Set device clipping (if available) */
 	GClip(dd);
-	/* Count the lines of text */
-	n = 1;
-        for(s = str; *s ; s++)
-            if (*s == '\n')
-		n += 1;
-	/* Allocate a temporary buffer */
-	sbuf = (char*)malloc(strlen(str) + 1);
-	sb = sbuf;
-	i = 0;
-        for(s = str; ; s++) {
-            if (*s == '\n' || *s == '\0') {
-		*sb = '\0';
-		/* Compute the approriate offset. */
-		/* (translate verticaly then rotate). */
-                yoff = (1 - yc) * (n - 1) - i - yadj;
-		yoff = GConvertYUnits(yoff, CHARS, INCHES, dd);
-		xoff = - yoff * sin(DEG2RAD * rot);
-		yoff = yoff * cos(DEG2RAD * rot);
-		GConvert(&xoff, &yoff, INCHES, NDC, dd);
-		xoff = x + xoff;
-		yoff = y + yoff;
-		if(dd->dp.canClip) {
-		    dd->dp.text(xoff, yoff, NDC, sbuf, xc, yc, rot, dd);
-		}
-		else {
-		    if(!dd->gp.xpd) {
-			double xtest = xoff;
-			double ytest = yoff;
-			/* FIXME: This needs checking */
-			GConvert(&xtest, &ytest, NDC, NPC, dd);
-			if(xtest < 0 || ytest < 0 ||
-			   xtest > 1 || ytest > 1)
-			    return;
-		    }
-		    dd->dp.text(xoff, yoff, NDC, sbuf, xc, yc, rot, dd);
-		}
-		sb = sbuf;
-		i += 1;
-	    }
-	    else *sb++ = *s;
-	    if (!*s) break;
+	if(dd->dp.canClip) {
+	    dd->dp.text(x, y, coords, str, xc, yc, rot, dd);
 	}
-        if (sbuf) {
-	    free(sbuf);
-	    sbuf = NULL;
-        }
+	else {
+	    if(!dd->dp.xpd) {
+		double xtest = x;
+		double ytest = y;
+		GConvert(&xtest, &ytest, coords, NDC, dd);
+		if(xtest < 0 || ytest < 0 ||
+		   xtest > 1 || ytest > 1)
+		    return;
+	    }
+	    dd->dp.text(x, y, coords, str, xc, yc, rot, dd);
+	}
     }
 }
 
@@ -3036,17 +2932,17 @@ void GPretty(double *lo, double *up, int *ndiv)
 
 
 #define SMALL	0.25
+#ifdef OLD
+#define RADIUS	0.425
+#else
 #define RADIUS	0.375
+#endif
 #define SQRC	0.88622692545275801364		/* sqrt(pi / 4) */
 #define DMDC	1.25331413731550025119		/* sqrt(pi / 4) * sqrt(2) */
 #define TRC0	1.55512030155621416073		/* sqrt(4 * pi/(3 * sqrt(3))) */
 #define TRC1	1.34677368708859836060		/* TRC0 * sqrt(3) / 2 */
 #define TRC2	0.77756015077810708036		/* TRC0 / 2 */
-#ifdef Macintosh
-#define CMAG	1.0
-#else
 #define CMAG	1.1				/* Circle magnifier */
-#endif
 
 /* Draw one of the R special symbols. */
 void GSymbol(double x, double y, int coords, int pch, DevDesc *dd)
@@ -3270,7 +3166,7 @@ void GSymbol(double x, double y, int coords, int pch, DevDesc *dd)
 
 
 	case 21: /* circles */
-	    xc = RADIUS * CMAG * GStrWidth("0", INCHES, dd);
+	    xc = RADIUS * GStrWidth("0", INCHES, dd);
 	    GCircle(x, y, coords, xc, dd->gp.bg, dd->gp.col, dd);
 	    break;
 
@@ -3382,7 +3278,6 @@ void GMtext(char *str, int side, double line, int outer, double at, int las,
 		at = at/* + GConvertYUnits(dd->gp.yLineBias, LINES, USER, dd)*/;
 		line = line + dd->gp.yLineBias;
 		angle = 0;
-		xadj = dd->gp.adj;
 		yadj = 0.5;
 	    }
 	    else {
@@ -4183,8 +4078,8 @@ ColorDataBaseEntry ColorDataBase[] = {
 };
 
 
-int R_ColorTableSize;
-unsigned int R_ColorTable[COLOR_TABLE_SIZE];
+int ColorTableSize;
+unsigned int ColorTable[COLOR_TABLE_SIZE];
 
 /* Hex Digit to Integer Conversion */
 
@@ -4196,6 +4091,8 @@ static unsigned int hexdigit(int digit)
     else error("invalid hex digit in color\n");
     return digit - '0';	/* never occurs but avoid compiler warnings */
 }
+
+static char HexDigits[] = "0123456789ABCDEF";
 
 #ifdef UNUSED
 /* Integer to Hex Digit */
@@ -4261,7 +4158,7 @@ unsigned int number2col(char *nm, DevDesc *dd)
     index = strtod(nm, &ptr);
     if(*ptr) error("invalid color specification\n");
     if(index == 0) return dd->dp.bg;
-    else return R_ColorTable[(index-1) % R_ColorTableSize];
+    else return ColorTable[(index-1) % ColorTableSize];
 }
 
 
@@ -4331,13 +4228,13 @@ unsigned int RGBpar(SEXP x, int i, DevDesc *dd)
 	if(INTEGER(x)[i] == NA_INTEGER) return NA_INTEGER;
 	index = INTEGER(x)[i] - 1;
 	if(index < 0) return dd->dp.bg;
-	else return R_ColorTable[abs(index) % R_ColorTableSize];
+	else return ColorTable[abs(index) % ColorTableSize];
     }
     else if(isReal(x)) {
 	if(!FINITE(REAL(x)[i])) return NA_INTEGER;
 	index = REAL(x)[i] - 1;
 	if(index < 0) return dd->dp.bg;
-	else return R_ColorTable[abs(index) % R_ColorTableSize];
+	else return ColorTable[abs(index) % ColorTableSize];
     }
     return 0;		/* should not occur */
 }
@@ -4356,8 +4253,8 @@ void InitColors()
 
     /* Install Default Palette */
     for(i=0 ; DefaultPalette[i] ; i++)
-	R_ColorTable[i] = str2col(DefaultPalette[i], NULL);
-    R_ColorTableSize = i;
+	ColorTable[i] = str2col(DefaultPalette[i], NULL);
+    ColorTableSize = i;
 }
 
 /*  LINE TEXTURE CODE */
@@ -4430,7 +4327,7 @@ SEXP LTYget(unsigned int lty)
 {
     SEXP ans;
     int i, ndash;
-    unsigned char dash[8];
+    char dash[8];
     unsigned int l;
 
     for(i = 0; linetype[i].name; i++) {
@@ -4446,7 +4343,7 @@ SEXP LTYget(unsigned int lty)
     PROTECT(ans = allocVector(STRSXP, 1));
     STRING(ans)[0] = allocString(ndash);
     for(i=0 ; i<ndash ; i++) {
-	CHAR(STRING(ans)[0])[i] = HexDigits[dash[i]];
+	CHAR(STRING(ans)[0])[i] = dash[i] + '0';
     }
     UNPROTECT(1);
     return ans;
@@ -4939,9 +4836,6 @@ void restoredpSaved(DevDesc *dd)
 }
 
 
-/* FIXME : If a non-active window is resized to an invalid size */
-/* that window is left active.  */
-
 void playDisplayList(DevDesc *dd)
 {
     int ask, savedDevice;
@@ -4959,7 +4853,6 @@ void playDisplayList(DevDesc *dd)
 	    SEXP op = CAR(theOperation);
 	    SEXP args = CDR(theOperation);
 	    PRIMFUN(op) (R_NilValue, op, args, R_NilValue);
-            if (!dd->gp.valid) break;
 	    theList = CDR(theList);
 	}
 	dd->gp.ask = ask;

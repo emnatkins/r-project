@@ -29,8 +29,8 @@ AC_CONFIG_HEADER(src/include/Platform.h)
 if test -f ${HOME}/.Rconf; then . ${HOME}/.Rconf; fi
 
 R_MAJOR="0"
-R_MINOR="64.0"
-R_STATUS="Unstable"
+R_MINOR="63.3"
+R_STATUS=""
 R_STATUS_REV="0"
 
 AC_CONFIG_AUX_DIR(aux)
@@ -426,8 +426,9 @@ AC_CHECK_LIB(ncurses, main,,
 ))
 AC_CHECK_LIB(dl, dlopen)
 
-AC_CHECK_LIB(z, main)
-AC_CHECK_LIB(hdf5, main)
+AC_CHECK_LIB(z, main,
+  AC_CHECK_LIB(hdf5, main)
+)
 
 BLAS="blas.o"
 if ${use_dxml}; then
@@ -455,25 +456,12 @@ if ${use_readline}; then
   AC_CHECK_LIB(readline, rl_callback_read_char)
 fi
 
-GNOME_INIT_HOOK([],cont)
-if test "$GNOMEUI_LIBS" = ""; then
-  GNOME_ENABLED="no"
-  RGNOMEDIR=""
-  RGNOMEBIN=""
-else
-  GNOME_ENABLED="yes"
-  RGNOMEDIR="gnome"
-  RGNOMEBIN="\$(top_builddir)/bin/R.gnome"
-fi
-AC_SUBST(RGNOMEDIR)
-AC_SUBST(RGNOMEBIN)
-
 ### Library functions.
 
 AC_FUNC_VFORK
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(acosh asinh atanh bcopy finite isfinite isnan matherr memcpy \
-  memmove regcomp rint strcoll strtod strtol system times sigsetjmp siglongjmp)
+AC_CHECK_FUNCS(acosh asinh atanh bcopy finite isnan matherr memcpy \
+  memmove regcomp rint strcoll strtod strtol system times __setfpucw)
 
 ### Header files
 
@@ -680,13 +668,12 @@ AC_SUBST(F2CFLAGS)
 AC_OUTPUT(Makeconf Makefile
   afm/Makefile
   demos/Makefile
-  doc/Makefile doc/keyword-test
-  doc/manual/Makefile doc/manual/lib2tex
-  doc/manual/Reference.tex doc/manual/Manual.tex
+  doc/Makefile doc/keyword-test doc/manual/Makefile
+  doc/manual/ABOUT.tex doc/manual/Man.tex doc/manual/lib2tex
   etc/Makefile etc/Makeconf
   src/Makefile src/appl/Makefile src/include/Makefile
   src/library/Makefile src/main/Makefile src/nmath/Makefile
-  src/scripts/Makefile src/unix/Makefile src/gnome/Makefile
+  src/scripts/Makefile src/unix/Makefile
   src/library/base/Makefile src/library/profile/Makefile
   src/library/eda/Makefile src/library/eda/src/Makefile
   src/library/lqs/Makefile src/library/lqs/src/Makefile
@@ -697,7 +684,7 @@ AC_OUTPUT(Makeconf Makefile
   src/scripts/R.sh src/scripts/Rdconv src/scripts/Rdindex
   src/scripts/Rman2Rd src/scripts/SHLIB src/scripts/Sd2Rd
   src/scripts/build-help src/scripts/fwf2table src/scripts/help.pretty
-  src/scripts/html2dos
+  src/scripts/html2dos src/scripts/Rd2contents
   tests/Makefile tests/Examples/Makefile
 )
 
@@ -719,5 +706,4 @@ R is now configured for ${host}
   Installation directory:   ${prefix}
   C compiler:               ${CC} ${CFLAGS}
   FORTRAN compiler:         ${FORT}
-  Gnome support enabled:    ${GNOME_ENABLED}
 ])

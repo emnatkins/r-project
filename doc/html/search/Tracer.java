@@ -22,9 +22,9 @@
   
   $Source: /scratch/CVS-ARCHIVE/R/doc/html/search/Tracer.java,v $
   
-  $Revision: 1.2 $
+  $Revision: 1.1.4.1 $
 
-  $Date: 1999/03/04 17:15:19 $
+  $Date: 1999/03/02 15:19:58 $
   
   $Author: leisch $
 
@@ -214,9 +214,6 @@ public class Tracer extends Frame
   HISTORY:
   
   $Log: Tracer.java,v $
-  Revision 1.2  1999/03/04 17:15:19  leisch
-  various bugfixes
-
   Revision 1.1.4.1  1999/03/02 15:19:58  leisch
   search used only kewords, no titles
 

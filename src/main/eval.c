@@ -29,8 +29,8 @@ SEXP do_browser(SEXP, SEXP, SEXP, SEXP);
 /* The universe will end if the Stack on the Mac grows til it hits the heap. */
 /* This code places a limit on the depth to which eval can recurse. */
 
-#define EVAL_LIMIT 500
-void isintrpt(){}
+#define EVAL_LIMIT 100
+extern void isintrpt();
 
 #endif
 
@@ -271,7 +271,7 @@ SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedenv)
     /* Set a longjmp target which will catch any */
     /* explicit returns from the function body. */
 
-    if (SETJMP(cntxt.cjmpbuf)) {
+    if (sigsetjmp(cntxt.cjmpbuf, 1)) {
 	PROTECT(tmp = R_ReturnedValue);
     }
     else {
@@ -408,7 +408,7 @@ SEXP do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	begincontext(&cntxt, CTXT_LOOP, R_NilValue, R_NilValue,
 		     R_NilValue, R_NilValue);
-	if ((tmp = SETJMP(cntxt.cjmpbuf))) {
+	if ((tmp = sigsetjmp(cntxt.cjmpbuf, 1))) {
 	    if (tmp == CTXT_BREAK) break;	/* break */
 	    else continue;			/* next	 */
 	} else {
@@ -489,7 +489,7 @@ SEXP do_while(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	begincontext(&cntxt, CTXT_LOOP, R_NilValue, R_NilValue,
 		     R_NilValue, R_NilValue);
-	if ((cond = SETJMP(cntxt.cjmpbuf))) {
+	if ((cond = sigsetjmp(cntxt.cjmpbuf, 1))) {
 	    if (cond == CTXT_BREAK) break;	/* break */
 	    else continue;			/* next	 */
 	}
@@ -528,7 +528,7 @@ SEXP do_repeat(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	begincontext(&cntxt, CTXT_LOOP, R_NilValue, R_NilValue,
 		     R_NilValue, R_NilValue);
-	if ((cond = SETJMP(cntxt.cjmpbuf))) {
+	if ((cond = sigsetjmp(cntxt.cjmpbuf, 1))) {
 	    if (cond == CTXT_BREAK) break;	/*break */
 	    else continue;			/* next */
 	}
@@ -952,8 +952,8 @@ void CheckFormals(SEXP ls)
 
 
 
-/* "eval" and "eval.with.vis" : Evaluate the first argument */
-/* in the environment specified by the second argument. */
+/* Evaluate the first argument in the environment specified by */
+/* the second argument. */
 
 SEXP do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -1001,17 +1001,6 @@ SEXP do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
 	expr = eval(expr, env);
 	endcontext(&cntxt);
 	UNPROTECT(1);
-    }
-    if (PRIMVAL(op)) {
-        PROTECT(env = allocVector(VECSXP, 2));
-        PROTECT(encl = allocVector(STRSXP, 2));
-	STRING(encl)[0] = mkChar("value");
-	STRING(encl)[1] = mkChar("visible");
-        VECTOR(env)[0] = expr;
-        VECTOR(env)[1] = ScalarLogical(R_Visible);
-        setAttrib(env, R_NamesSymbol, encl);
-        expr = env;
-        UNPROTECT(2);
     }
     UNPROTECT(1);
     return expr;

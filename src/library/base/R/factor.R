@@ -23,33 +23,13 @@ as.factor <- function (x) if (is.factor(x)) x else factor(x)
 levels <- function(x) attr(x, "levels")
 nlevels <- function(x) length(levels(x))
 
-"levels<-" <-
-function(x, value)
-  UseMethod("levels<-")
-
-"levels<-.default" <-
-function(x, value)
-{
-  attr(x, "levels") <- value
-  x
-}
- 
-"levels<-.factor" <-
-function (x, value)
-{
-  xlevs <- levels(x)
-  if (is.list(value)) {
-      nlevs <- rep(names(value), lapply(value, length))
-      value <- unlist(value)
-      m <- match(value, xlevs, nomatch=0)
-      xlevs[m] <- nlevs
-  }
-  else {
-    if (length(xlevs) > length(value))
-      stop("number of levels differs")
-    xlevs <- as.character(value)
-  }
-  factor(xlevs[x], levels=unique(xlevs))
+"levels<-" <- function(x, value) {
+    x <- as.factor(x)
+    if (length(value) != nlevels(x))
+	stop("Length mismatch in levels<-")
+    value <- as.character(value)
+    uvalue <- unique(value)
+    factor(match(value, uvalue), labels = uvalue)[x]
 }
 
 codes <- function(x, ...) UseMethod("codes")
@@ -129,6 +109,7 @@ Ops.factor <- function(e1, e2)
 {
     y <- NextMethod("[")
     class(y)<-class(x)
+    attr(y,"contrasts")<-attr(x,"contrasts")
     attr(y,"levels")<-attr(x,"levels")
     if ( drop ) factor(y) else y
 }
@@ -156,20 +137,22 @@ ordered <-
     function(x, levels = sort(unique(x), na.last = TRUE), labels = levels,
 	     exclude = NA, ordered = TRUE)
 {
-    if (length(x) == 0)
-	return(character(0))
-    exclude <- as.vector(exclude, typeof(x))
-    levels <- levels[is.na(match(levels, exclude))]
-    f <- match(as.character(x), levels)
-    names(f) <- names(x)
-    attr(f, "levels") <-
-	if (length(labels) == length(levels))
-	    as.character(labels)
-	else if (length(labels) == 1)
-	    paste(labels, seq(along = levels), sep = "")
-	else
-	    stop("invalid labels argument in \"ordered\"")
-    attr(f, "class") <- c(if (ordered) "ordered", "factor")
+    if (length(x) == 0) 
+        f <- numeric(0)
+    else {
+        exclude <- as.vector(exclude, typeof(x))
+        levels <- levels[is.na(match(levels, exclude))]
+        f <- match(as.character(x), levels)
+        names(f) <- names(x)
+        attr(f, "levels") <-
+            if (length(labels) == length(levels))
+                as.character(labels)
+            else if (length(labels) == 1)
+                paste(labels, seq(along = levels), sep = "")
+            else
+                stop("invalid labels argument in \"ordered\"")
+    }
+    class(f) <- c(if (ordered) "ordered", "factor")
     f
 }
 

@@ -29,8 +29,6 @@ OBJS = \
 	cpoly.o \
 	cumsum.o \
 	distance.o \
-	dpbfa.o \
-	dpbsl.o \
 	dpoco.o \
 	dpodi.o \
 	dpofa.o \

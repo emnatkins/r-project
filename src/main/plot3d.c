@@ -383,9 +383,9 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, double zc,
 		}
 		xxx[ns] = s->x1;
 		yyy[ns++] = s->y1;
-		GMode(1, dd);
+		GMode(dd, 1);
 		GPolyline(ns, xxx, yyy, USER, dd);
-		GMode(0, dd);
+		GMode(dd, 0);
 		C_free((char *) xxx);
 		C_free((char *) yyy);
 	    }
@@ -503,7 +503,6 @@ SEXP do_contour(SEXP call, SEXP op, SEXP args, SEXP env)
 
     ltysave = dd->gp.lty;
     colsave = dd->gp.col;
-    GMode(1, dd);
     for (i = 0; i < nc; i++) {
 	vmax = vmaxget();
 	dd->gp.lty = INTEGER(lty)[i % nlty];
@@ -515,7 +514,6 @@ SEXP do_contour(SEXP call, SEXP op, SEXP args, SEXP env)
 	contour(x, nx, y, ny, z, REAL(c)[i], atom, dd);
 	vmaxset(vmax);
     }
-    GMode(0, dd);
     vmaxset(vmax0);
     dd->gp.lty = ltysave;
     dd->gp.col = colsave;
@@ -594,7 +592,7 @@ SEXP do_image(SEXP call, SEXP op, SEXP args, SEXP env)
     xpdsave = dd->gp.xpd;
     dd->gp.xpd = 0;
 
-    GMode(1, dd);
+    GMode(dd, 1);
 
     for (i = 0; i < nx; i++) {
 	if (i == 0)
@@ -624,7 +622,7 @@ SEXP do_image(SEXP call, SEXP op, SEXP args, SEXP env)
 	    }
 	}
     }
-    GMode(0, dd);
+    GMode(dd, 0);
     dd->gp.col = colsave;
     dd->gp.xpd = xpdsave;
     R_Visible = 0;
@@ -760,20 +758,6 @@ static void YRotate (double angle)
     Accumulate(T);
 }
 
-static void ZRotate (double angle)
-{
-    double c, s;
-    Trans3d T;
-    SetToIdentity(T);
-    c = cos(DegToRad(angle));
-    s = sin(DegToRad(angle));
-    T[0][0] = c;
-    T[1][0] = -s;
-    T[1][1] = c;
-    T[0][1] = s;
-    Accumulate(T);
-}
-
 static void Perspective (double d)
 {
     Trans3d T;
@@ -783,36 +767,6 @@ static void Perspective (double d)
     Accumulate(T);
 }
 
-
-/* Set up the light source */
-static double Light[4];
-static double Shade;
-static int DoLighting;
-
-static void SetUpLight(double theta, double phi)
-{
-    double u[4], v[4];
-    u[0] = 0; u[1] = -1; u[2] = 0; u[3] = 1;
-    SetToIdentity(VT);             /* Initialization */
-    XRotate(-phi);                 /* colatitude rotation */
-    ZRotate(theta);                /* azimuthal rotation */
-    TransVector(u, VT, Light);	   /* transform */
-}
-
-static double FacetShade(double *u, double *v)
-{ 
-    double nx, ny, nz, sum;
-    nx = u[1] * v[2] - u[2] * v[1];
-    ny = u[2] * v[0] - u[0] * v[2];
-    nz = u[0] * v[1] - u[1] * v[0];
-    sum = sqrt(nx * nx + ny * ny + nz * nz);
-    if (sum == 0) sum = 1;
-    nx /= sum;
-    ny /= sum;
-    nz /= sum;      
-    sum = 0.5 * (nx * Light[0] + ny * Light[1] + nz * Light[2] + 1);
-    return pow(sum, Shade);
-}
 
 /* Determine the depth ordering of the facets to ensure */
 /* that they are drawn in an occlusion compatible order. */
@@ -887,13 +841,11 @@ static void DepthOrder(double *z, double *x, double *y, int nx, int ny,
 
 
 static void DrawFacets(double *z, double *x, double *y, int nx, int ny,
-		       int *index, double xs, double ys, double zs,
-	               int *col, int ncol, int border)
+		       int *index, int *col, int ncol)
 {
-    double xx[4], yy[4], shade;
+    double xx[4], yy[4];
     Vector3d u, v;
     int i, j, k, n, nx1, ny1, icol, nv;
-    unsigned int newcol, r, g, b;
     DevDesc *dd;
     dd = CurrentDevice();
     nx1 = nx - 1;
@@ -904,16 +856,7 @@ static void DrawFacets(double *z, double *x, double *y, int nx, int ny,
 	i = index[k] % nx1;
 	j = index[k] / nx1;
 	icol = (i + j * nx1) % ncol;
-	if (DoLighting) {
-            /* Note we must scale here */
-	    u[0] = xs * (x[i+1] - x[i]);
-	    u[1] = ys * (y[j] - y[j+1]);
-	    u[2] = zs * (z[(i+1)+j*nx] - z[i+(j+1)*nx]);
-	    v[0] = xs * (x[i+1] - x[i]);
-	    v[1] = ys * (y[j+1] - y[j]);
-	    v[2] = zs * (z[(i+1)+(j+1)*nx] - z[i+j*nx]);
-	    shade = FacetShade(u, v);
-	}
+
 	u[0] = x[i]; u[1] = y[j];
 	u[2] = z[i + j * nx]; u[3] = 1;
 	if (FINITE(u[0]) &&  FINITE(u[1]) && FINITE(u[2])) {
@@ -950,16 +893,8 @@ static void DrawFacets(double *z, double *x, double *y, int nx, int ny,
 	    nv++;
 	}
 
-	if (nv > 2) {
-	    newcol = col[icol];
-	    if (DoLighting) {
-		r = shade * R_RED(newcol);
-		g = shade * R_GREEN(newcol);
-		b = shade * R_BLUE(newcol);
-		newcol = R_RGB(r, g, b);
-	    }
-	    GPolygon(nv, xx, yy, USER, newcol, border, dd);
-	}
+	if (nv > 2)
+	    GPolygon(nv, xx, yy, USER, col[icol], dd->gp.fg, dd);
     }
 }
 
@@ -1038,51 +973,31 @@ static int LimitCheck(double *lim, double *c, double *s)
 /* obscured before the surface, and those which will not be */
 /* obscured after the surface. */
 
-/* The verices of the box */
-static char Vertex[8][3] = {
-    {0, 0, 0},
-    {0, 0, 1},
-    {0, 1, 0},
-    {0, 1, 1},
-    {1, 0, 0},
-    {1, 0, 1},
-    {1, 1, 0},
-    {1, 1, 1},
+static int Vertex[8][3] = {
+  {0, 0, 0},
+  {0, 0, 1},
+  {0, 1, 0},
+  {0, 1, 1},
+  {1, 0, 0},
+  {1, 0, 1},
+  {1, 1, 0},
+  {1, 1, 1},
 };
 
-/* The vertices visited when tracing a face */
-static char Face[6][4] = {
-    {0, 1, 5, 4},
-    {2, 6, 7, 3},
-    {0, 2, 3, 1},
-    {4, 5, 7, 6},
-    {0, 4, 6, 2},
-    {1, 3, 7, 5},
+static int Face[6][4] = {
+  {0, 1, 5, 4},
+  {2, 6, 7, 3},
+  {0, 2, 3, 1},
+  {4, 5, 7, 6},
+  {0, 4, 6, 2},
+  {1, 3, 7, 5},
 };
-
-/* The edges drawn when tracing a face */
-static int Edge[6][4] = {
-    { 0, 1, 2, 3},
-    { 4, 5, 6, 7},
-    { 8, 7, 9, 0},
-    { 2,10, 5,11},
-    { 3,11, 4, 8},
-    { 9, 6,10, 1},
-};
-
-/* Which edges have been drawn previously */
-static char EdgeDone[12];
 
 static void PerspBox(int front, double *x, double *y, double *z, DevDesc *dd)
 {
     Vector3d u0, v0, u1, v1, u2, v2, u3, v3;
     double d[3], e[3];
     int f, i, p0, p1, p2, p3, near;
-    int ltysave = dd->gp.lty;
-    if (front)
-	dd->gp.lty = LTY_DOTTED;
-    else
-	dd->gp.lty = LTY_SOLID;
     for (f = 0; f < 6; f++) {
         p0 = Face[f][0];
         p1 = Face[f][1];
@@ -1111,9 +1026,8 @@ static void PerspBox(int front, double *x, double *y, double *z, DevDesc *dd)
 	TransVector(u2, VT, v2);
 	TransVector(u3, VT, v3);
 
-	/* Visibility test. */
+	/* Visibility test */
 	/* Determine whether the surface normal is toward the eye. */
-	/* Note that we only draw lines once. */
 
         for (i = 0; i < 3; i++) {
 	    d[i] = v1[i]/v1[3] - v0[i]/v0[3];
@@ -1122,21 +1036,16 @@ static void PerspBox(int front, double *x, double *y, double *z, DevDesc *dd)
 	near = (d[0]*e[1] - d[1]*e[0]) < 0;
 
 	if ((front && near) || (!front && !near)) {
-	    if (!EdgeDone[Edge[f][0]]++)
-		GLine(v0[0]/v0[3], v0[1]/v0[3],
-		      v1[0]/v1[3], v1[1]/v1[3], USER, dd);
-	    if (!EdgeDone[Edge[f][1]]++)
-		GLine(v1[0]/v1[3], v1[1]/v1[3],
-		      v2[0]/v2[3], v2[1]/v2[3], USER, dd);
-	    if (!EdgeDone[Edge[f][2]]++)
-		GLine(v2[0]/v2[3], v2[1]/v2[3],
-		      v3[0]/v3[3], v3[1]/v3[3], USER, dd);
-	    if (!EdgeDone[Edge[f][3]]++)
-		GLine(v3[0]/v3[3], v3[1]/v3[3],
-		      v0[0]/v0[3], v0[1]/v0[3], USER, dd);
+	  GLine(v0[0]/v0[3], v0[1]/v0[3],
+		v1[0]/v1[3], v1[1]/v1[3], USER, dd);
+	  GLine(v1[0]/v1[3], v1[1]/v1[3],
+		v2[0]/v2[3], v2[1]/v2[3], USER, dd);
+	  GLine(v2[0]/v2[3], v2[1]/v2[3],
+		v3[0]/v3[3], v3[1]/v3[3], USER, dd);
+	  GLine(v3[0]/v3[3], v3[1]/v3[3],
+		v0[0]/v0[3], v0[1]/v0[3], USER, dd);
 	}
     }
-    dd->gp.lty = ltysave;
 }
 
 SEXP do_persp(SEXP call, SEXP op, SEXP args, SEXP env)
@@ -1144,13 +1053,11 @@ SEXP do_persp(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP x, y, z, xlim, ylim, zlim;
     SEXP depth, index, originalArgs;
     SEXP col, border;
-    double theta, phi, r, d;
-    double ltheta, lphi;
-    double expand, xc, yc, zc, xs, ys, zs;
-    int i, j, scale, ncol, dobox;
+    double theta, phi, r, d, expand, xc, yc, zc, xs, ys, zs;
+    int i, j, scale, ncol;
     DevDesc *dd;
 
-    if (length(args) < 18)
+    if (length(args) < 12)
 	errorcall(call, "too few parameters\n");
     gcall = call;
     originalArgs = args;
@@ -1218,24 +1125,6 @@ SEXP do_persp(SEXP call, SEXP op, SEXP args, SEXP env)
 	errorcall(call, "invalid border specification\n");
     args = CDR(args);
 
-    ltheta = asReal(CAR(args));
-    args = CDR(args);
-
-    lphi = asReal(CAR(args));
-    args = CDR(args);
-
-    Shade = asReal(CAR(args));
-    if (FINITE(Shade) && Shade <= 0) Shade = 1;
-    args = CDR(args);
-
-    dobox = asLogical(CAR(args));
-    args = CDR(args);
-
-    if (FINITE(ltheta) && FINITE(lphi) && FINITE(Shade))
-	DoLighting = 1;
-    else
-	DoLighting = 0;
-
     if (!scale) {
 	double s;
 	s = xs;
@@ -1262,14 +1151,6 @@ SEXP do_persp(SEXP call, SEXP op, SEXP args, SEXP env)
 	dd->gp.fg = INTEGER(border)[0];
     dd->gp.xlog = 0;
     dd->gp.ylog = 0;
-
-    /* Set up the light vector (if any) */
-    if (DoLighting)
-        SetUpLight(ltheta, lphi);
-
-    /* Mark box edges as undrawn */
-    for (i = 0; i< 12; i++)
-	EdgeDone[i] = 0;
 
     /* Specify the viewing transformation. */
 
@@ -1301,17 +1182,12 @@ SEXP do_persp(SEXP call, SEXP op, SEXP args, SEXP env)
     /* and then draw them back to front. */
     /* This is the "painters" algorithm. */
 
-    GMode(1, dd);
-    if (dobox)
-        PerspBox(0, REAL(xlim), REAL(ylim), REAL(zlim), dd);
+    PerspBox(0, REAL(xlim), REAL(ylim), REAL(zlim), dd);
 
     DrawFacets(REAL(z), REAL(x), REAL(y), nrows(z), ncols(z), INTEGER(index),
-	       1/xs, 1/ys, expand/zs,
-	       INTEGER(col), ncol, INTEGER(border)[0]);
+	       INTEGER(col), ncol);
 
-    if (dobox)
-        PerspBox(1, REAL(xlim), REAL(ylim), REAL(zlim), dd);
-    GMode(0, dd);
+    PerspBox(1, REAL(xlim), REAL(ylim), REAL(zlim), dd);
 
     GRestorePars(dd);
     UNPROTECT(10);

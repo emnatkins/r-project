@@ -390,24 +390,21 @@ static char *TypeFaceDef[] = { "R", "B", "I", "BI", "S" };
 static void PSEncodeFont(FILE *fp, int index, int encoding)
 {
     int i;
-    switch (encoding) {
-    case 0:
-	for (i = 0; i < 4 ; i++)
-	    fprintf(fp, "/Font%d /%s findfont definefont\n",
-		    i + 1, Family[index].font[i].name);
-	break;
-    case 1:
-	for (i = 0; i < 4 ; i++) {
-	    fprintf(fp, "/%s findfont\n", Family[index].font[i].name);
-	    fprintf(fp, "dup length dict begin\n");
-	    fprintf(fp, "  {1 index /FID ne {def} {pop pop} ifelse} forall\n");
-	    fprintf(fp, "  /Encoding ISOLatin1Encoding def\n");
-	    fprintf(fp, "  currentdict\n");
-	    fprintf(fp, "  end\n");
-	    fprintf(fp, "/Font%d exch definefont pop\n", i + 1);
-	}
+    for (i = 0; i < 4 ; i++) {
+	fprintf(fp, "/%s findfont\n", Family[index].font[i].name);
+	fprintf(fp, "dup length dict begin\n");
+	fprintf(fp, "  {1 index /FID ne {def} {pop pop} ifelse} forall\n");
+	if (encoding) fprintf(fp, "  /Encoding ISOLatin1Encoding def\n");
+	fprintf(fp, "  currentdict\n");
+	fprintf(fp, "  end\n");
+	fprintf(fp, "/Font%d exch definefont pop\n", i + 1);
     }
-    fprintf(fp, "/Font5 /Symbol findfont definefont\n");
+    fprintf(fp, "/Symbol findfont\n");
+    fprintf(fp, "dup length dict begin\n");
+    fprintf(fp, "  {1 index /FID ne {def} {pop pop} ifelse} forall\n");
+    fprintf(fp, "  currentdict\n");
+    fprintf(fp, "  end\n");
+    fprintf(fp, "/Font5 exch definefont pop\n");
 }
 
 /* The variables "paperwidth" and "paperheight" give the dimensions */
@@ -431,7 +428,10 @@ static void PSFileHeader(FILE *fp, int font, int encoding, char *papername,
     if (landscape) {
 	fprintf(fp, "%%%%Orientation: Landscape\n");
 	fprintf(fp, "%%%%BoundingBox: %.0f %.0f %.0f %.0f\n",
+		left, bottom, right, top);
+/* This appears to be wrong, use *same* BBox as Portrait
 		bottom, left, top, right);
+*/
     }
     else {
 	fprintf(fp, "%%%%Orientation: Portrait\n");
@@ -459,18 +459,11 @@ static void PSFileHeader(FILE *fp, int font, int encoding, char *papername,
     fprintf(fp, "/p1  { stroke } def\n");
     fprintf(fp, "/p2  { bg setrgbcolor fill fg setrgbcolor } def\n");
     fprintf(fp, "/p3  { gsave bg setrgbcolor fill grestore stroke } def\n");
-#ifdef OLD
     fprintf(fp, "/t   { 6 -2 roll moveto gsave 3 index true\n");
     fprintf(fp, "	charpath flattenpath pathbbox grestore gsave\n");
     fprintf(fp, "	5 -1 roll rotate 6 -1 roll neg 3 -1 roll 5 -1\n");
     fprintf(fp, "	roll sub mul 4 -1 roll neg 3 -1 roll 4 -1 roll\n");
     fprintf(fp, "	sub mul rmoveto show grestore } def\n");
-#else
-    fprintf(fp, "/t   { 6 -2 roll moveto gsave rotate\n");
-    fprintf(fp, "       ps mul neg 0 2 1 roll rmoveto\n");
-    fprintf(fp, "       1 index stringwidth pop\n");
-    fprintf(fp, "       mul neg 0 rmoveto show grestore } def\n");
-#endif
     fprintf(fp, "/cl  { initclip newpath 3 index 3 index moveto 1 index\n");
     fprintf(fp, "	4 -1 roll lineto  exch 1 index lineto lineto\n");
     fprintf(fp, "	closepath clip newpath } def\n");
@@ -518,7 +511,7 @@ void PostScriptSetClipRect(FILE *fp,
 
 void PostScriptSetFont(FILE *fp, int typeface, double size)
 {
-    fprintf(fp, "/ps %.0f def %s %.0f s\n", size, TypeFaceDef[typeface], size);
+    fprintf(fp, "%s %.0f s\n", TypeFaceDef[typeface], size);
 }
 
 void PostScriptSetColor(FILE *fp, double r, double g, double b)
@@ -644,7 +637,7 @@ static void   PS_Deactivate(DevDesc*);
 static void   PS_Hold(DevDesc*);
 static void   PS_Line(double, double, double, double, int, DevDesc*);
 static int    PS_Locator(double*, double*, DevDesc*);
-static void   PS_Mode(int, DevDesc*);
+static void   PS_Mode(int);
 static void   PS_NewPage(DevDesc*);
 static int    PS_Open(DevDesc*, PostScriptDesc*);
 static void   PS_Polygon(int, double*, double*, int, int, int, DevDesc*);
@@ -1215,7 +1208,7 @@ static int PS_Locator(double *x, double *y, DevDesc *dd)
     return 0;
 }
 
-static void PS_Mode(int mode, DevDesc* dd)
+static void PS_Mode(int mode)
 {
 }
 

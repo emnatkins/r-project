@@ -24,19 +24,6 @@
  *  This source file contains the platform dependent code for
  *  the Unix (reference) port of R.
  *
- *
- *  1) FATAL MESSAGES AT STARTUP
- *
- *    void  R_Suicide(char *msg)
- *
- *  This function displays the given message and the causes R to
- *  die immediately.  It is used for non-recoverable errors such as
- *  not having enough memory to launch etc.  The phrase "dialog box"
- *  springs to mind for non-unix platforms.
- *
- *
- *  2. CONSOLE I/O
- *
  *  The first group of functions is concerned with reading and
  *  writing to the system console.
  *
@@ -71,8 +58,12 @@
  *  console.  In Unix is is used to clear any EOF condition associated
  *  with stdin.
  *
+ *    void  R_Suicide(char *msg)
  *
- *  3) ACTIONS DURING (LONG) COMPUTATIONS
+ *  This function displays the given message and the causes R to
+ *  die immediately.  It is used for non-recoverable errors such as
+ *  not having enough memory to launch etc.  The phrase "dialog box"
+ *  springs to mind for non-unix platforms.
  *
  *    void  R_Busy(int which)
  *
@@ -80,47 +71,9 @@
  *  R embarks on an extended computation (which=1) and when such a
  *  state terminates (which=0).
  *
- *
- *  4) INITIALIZATION AND TERMINATION ACTIONS
- *
- *    void  R_InitialData(void)
- *    FILE* R_OpenInitFile(void)
- *    FILE* R_OpenLibraryFile(char *file)
- *    FILE* R_OpenSysInitFile(void)
- *    FILE* R_OpenSiteFile()
- *
- *  These functions load the initial system and user data into R.
- *    
- *    void  R_RestoreGlobalEnv(void)
- *    void  R_SaveGlobalEnv(void)
- *
- *  These functions save and restore the user's global environment.
- *  The system specific aspect of this is what files are used.
- *
  *    void  R_CleanUp(int ask)
-
+ *
  *  This function invokes any actions which occur at system termination.
- *
- *
- *  5) FILESYSTEM INTERACTION
- *
- *    int FileExists(char *file)
- *
- *  This function returns 1 if the named file exists and 0 otherwise.
- *  On Unix this is just an interface to "stat".
- *
- *    int R_HiddenFile(char *file)
- *
- *  This function returns 1 if the named file is "hidden".  In Unix,
- *  this is the case if the file name begins with a '.'.  On the Mac
- *  a file is hidden if the file name ends in '\r'.
- *
- *    int R_ShowFile(char *file, char *title)
- *
- *  This function is used to display the contents of a file.  On (raw)
- *  Unix this means invoking a pager on the file.  On Gui-based platforms
- *  the file would probably be displayed in a window with the given
- *  title.
  *
  *    char* R_ExpandFileName(char *s)
  *
@@ -130,31 +83,25 @@
  *  library is available.  The minimal action is to return the argument
  *  unaltered.
  *
- *    FILE *R_fopen(const char *filename, const char *mode);
+ *    void  R_InitialData(void)
+ *    FILE* R_OpenInitFile(void)
+ *    FILE* R_OpenLibraryFile(char *file)
+ *    FILE* R_OpenSysInitFile(void)
  *
- *  This is a (probably unnecessary) wrapper function for ``fopen''.
+ *  The following two functions save and restore the user's global
+ *  environment.  The system specific aspect of this what files
+ *  are used for this.
  *
+ *    void  R_RestoreGlobalEnv(void)
+ *    void  R_SaveGlobalEnv(void)
  *
- *  6) SYSTEM INFORMATION
+ *  Platform dependent functions.
  *
- *    char *R_HomeDir(void)
- *
- *  Get the R ``home directory'' as a string.
- *
- *    char *R_Date(void)
- *
- *  Get the current local time and date as a string.
- *
- *
- *  7) PLATFORM INDEPENDENT FUNCTIONS
- *
- *    SEXP do_getenv(SEXP call, SEXP op, SEXP args, SEXP rho)
- *    SEXP do_interactive(SEXP call, SEXP op, SEXP args, SEXP rho)
- *    SEXP do_machine(SEXP call, SEXP op, SEXP args, SEXP rho)
- *    SEXP do_proctime(SEXP call, SEXP op, SEXP args, SEXP rho)
- *    SEXP do_quit(SEXP call, SEXP op, SEXP args, SEXP rho)
- *    SEXP do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
- *
+ *    SEXP  do_interactive(SEXP call, SEXP op, SEXP args, SEXP rho)
+ *    SEXP  do_machine(SEXP call, SEXP op, SEXP args, SEXP rho)
+ *    SEXP  do_proctime(SEXP call, SEXP op, SEXP args, SEXP rho)
+ *    SEXP  do_quit(SEXP call, SEXP op, SEXP args, SEXP rho)
+ *    SEXP  do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
  */
 
 #include "Defn.h"
@@ -269,10 +216,12 @@ static void readline_handler(char *line)
 int R_ReadConsole(char *prompt, char *buf, int len, int addtohistory)
 {
     if(!isatty(0)) {
-	if(!R_Quiet) fputs(prompt, stdout);
+	if (!R_Slave)
+	    fputs(prompt, stdout);
 	if (fgets(buf, len, stdin) == NULL)
 	    return 0;
-	if(!R_Quiet) fputs(buf,stdout);
+	if (!R_Slave)
+	    fputs(buf, stdout);
 	return 1;
     }
     else {
@@ -369,17 +318,14 @@ char *R_ExpandFileName(char *s)
 }
 #endif
 
-FILE *R_fopen(const char *filename, const char *mode)
-{
-	return( fopen(filename, mode) );
-}
-
 FILE *R_OpenLibraryFile(char *file)
 {
     char buf[256], *rhome;
     FILE *fp;
 
-    sprintf(buf, "%s/library/base/R/%s", R_Home, file);
+    if((rhome = getenv("RHOME")) == NULL)
+	return NULL;
+    sprintf(buf, "%s/library/base/R/%s", rhome, file);
     fp = R_fopen(buf, "r");
     return fp;
 }
@@ -389,7 +335,9 @@ FILE *R_OpenSysInitFile(void)
     char buf[256], *rhome;
     FILE *fp;
 
-    sprintf(buf, "%s/library/base/R/Rprofile", R_Home);
+    if((rhome = getenv("RHOME")) == NULL)
+	return NULL;
+    sprintf(buf, "%s/library/base/R/Rprofile", rhome);
     fp = R_fopen(buf, "r");
     return fp;
 }
@@ -404,7 +352,9 @@ FILE *R_OpenSiteFile(void)
     if (LoadSiteFile) {
 	if ((fp = R_fopen(getenv("RPROFILE"), "r")))
 	    return fp;
-	sprintf(buf, "%s/etc/Rprofile", R_Home);
+	if ((rhome = getenv("RHOME")) == NULL)
+	    return NULL;
+	sprintf(buf, "%s/etc/Rprofile", rhome);
 	if ((fp = R_fopen(buf, "r")))
 	    return fp;
     }
@@ -597,9 +547,6 @@ int main(int ac, char **av)
     R_Consolefile = stdout;
     R_Outputfile = stdout;
     R_Sinkfile = NULL;
-    if((R_Home = getenv("RHOME")) == NULL) {
-	R_Suicide("R home directory is not defined");
-    }
 
     if(!R_Interactive && DefaultSaveAction == 0)
 	R_Suicide("you must specify `--save', `--no-save' or `--vanilla'");
@@ -609,7 +556,9 @@ int main(int ac, char **av)
 #endif
 
 #ifdef linux
+#ifdef HAVE___SETFPUCW
     __setfpucw(_FPU_IEEE);
+#endif    
 #endif
 
 #ifdef HAVE_LIBREADLINE
@@ -690,7 +639,9 @@ void R_CleanUp(int ask)
 #endif
 
 #ifdef linux
+#ifdef HAVE___SETFPUCW
     __setfpucw(_FPU_DEFAULT);
+#endif    
 #endif
 
     exit(0);
@@ -722,7 +673,6 @@ void R_RestoreGlobalEnv(void)
 	FRAME(R_GlobalEnv) = R_LoadFromFile(fp);
 	if(!R_Quiet)
 	    Rprintf("[Previously saved workspace restored]\n\n");
-        fclose(fp);
     }
 }
 
@@ -886,104 +836,3 @@ void R_Suicide(char *s)
 int MAIN_()  {return 0;}
 int MAIN__() {return 0;}
 int __main() {return 0;}
-
-
-/* New / Experimental API elements */
-
-#ifdef DEFUNCT
-int R_ShowFile(char *file, char *title)
-{
-    FILE *fp;
-    char buf[1024];
-    char *pager;
-    int c;
-    pager = getenv("PAGER");
-    if (pager == NULL) pager = "more";
-    sprintf(buf, "%s %s", pager, file);
-    if (system(buf) != 0) return 0;
-    else return 1;
-}
-#endif
-
-/* This function can be used to display the named files with the */
-/* given titles and overall title.  On GUI platforms we could */
-/* use a read-only window to display the result.  Here we just */
-/* make up a temporary file and invoke a page on it. */
-
-int R_ShowFiles(int nfile, char **file, char **title, char *wtitle)
-{
-    int c, i;
-    char *pager, *filename;
-    FILE *fp, *tfp;
-    char buf[1024];
-    if (nfile > 0) {
-        pager = getenv("PAGER");
-        if (pager == NULL) pager = "more";
-	filename = tmpnam(NULL);
-        if ((tfp = fopen(filename, "w")) != NULL) {
-	    for(i = 0; i < nfile; i++) {
-		if (title[i] && *title[i])
-		    fprintf(tfp, "%s\n\n", title[i]);
-		if ((fp = fopen(file[i], "r")) != NULL) {
-		    while ((c = fgetc(fp)) != EOF)
-			fputc(c, tfp);
-		    fprintf(tfp, "\n");
-		    fclose(fp);
-		}
-		else
-		    fprintf(tfp, "NO FILE %s\n\n", file[i]);
-	    }
-	    fclose(tfp);
-	}
-	sprintf(buf, "%s < %s", pager, filename);
-	if (system(buf) != 0) return 0;
-	else return 1;
-    }
-    return 1;
-}
-
-
-/* The location of the R system files */
-
-char *R_HomeDir()
-{
-	return getenv("RHOME");
-}
-
-/* Prompt the user for a file name.  Return the length of */
-/* the name typed.  On Gui platforms, this should bring up */
-/* a dialog box so a user can choos files that way. */
-
-int R_ChooseFile(int new, char *buf, int len)
-{
-    int namelen;
-    char *bufp;
-    R_ReadConsole("Enter file name: ", buf, len, 0);
-    namelen = strlen(buf);
-    bufp = &buf[namelen - 1];
-    while (bufp >= buf && isspace(*bufp))
-	*bufp-- = '\0';
-    return strlen(buf);
-}
-
-/* Unix file names which begin with "." are invisible. */
-/* Macintosh file names which end with "\r" are invisible. */
-/* More complex tests may be needed on other platforms. */
-
-int R_HiddenFile(char *name)
-{
-    if (name && name[0] != '.') return 0;
-    else return 1;
-}
-
-/* This call provides a simple interface to the "stat" */
-/* system call.  This is available on the Macintosh too. */
-
-#include <sys/types.h>
-#include <sys/stat.h>
-
-int R_FileExists(char *path)
-{
-    struct stat sb;
-    return stat(R_ExpandFileName(path), &sb) == 0;
-}

@@ -1,59 +1,5 @@
 	**************************************************
 	*						 *
-	*	       0.64 SERIES NEWS			 *
-	*    (This label is really only here to keep	 *
-	*     CVS from getting confused...)		 *
-	*						 *
-	**************************************************
-
-
-		CHANGES IN R VERSION 0.64.0
-
-NEW FEATURES
-
-    o   Support for handling embedded '\n's in text strings
-	handed to low-level graphics functions has been added.
-	Some changes to the PostScript graphics driver were
-	needed to support this, so there may some minor change
-	in the appearance of plots produced in PostScript.
-
-    o   The LaTeX documentation is now split into 2 parts: the (currently
-        almost non-existent) manual and a reference index.
-        Manual: new section on loading C++ code.
-
-    o	Gnome support added
-
-    o   The X11 graphics driver no longer produces "color allocation"
-        error messages.  On pseudocolor displays, the driver allocates
-	the best color cube it can at startup and approximates the
-	user-specified colors as best it can from the cube.  On
-	truecolor displays, you get exactly the color you request.
-	(Directcolor and staticcolor displays are not supported yet).
-
-    o	The "persp" function now allows shading of the rendered
-	surface using a simple lighting model.
-
-    o	Many functions providing an interface to the operating system
-	have been made "platform independent".  See the manual entry
-	for "file" for details.
-
-    o   There is a new function "eval.with.vis" which behaves exactly
-	like "eval", but which returns both the result of the evaluation
-	an a logical value indicating whether the value is ``visible''.
-	This has been used to replace some ad-hoc tests for whether
-	value should be printed or not in "source".  As a consequence,
-	the "example" and "demo" functions no longer print invisible
-	values when the example script is run.
-
-BUG FIXES
-
-    o	Resizing an inactive graphics window to an invalid size left
-	that window active and produced a spurious prompt and newline
-	in the console window.  This no longer happens.
-
-
- 	**************************************************
-	*						 *
 	*	       0.63 SERIES NEWS			 *
 	*    (This label is really only here to keep	 *
 	*     CVS from getting confused...)		 *
@@ -64,6 +10,25 @@ BUG FIXES
 		CHANGES IN R VERSION 0.63.3
 
 NEW FEATURES
+
+    o	get() and assign() allow position in search list to be a
+	character string. (e.g. get("delete.response","package:base") 
+
+    o	HTML search now works for all packages (after new installation).
+
+    o	R INSTALL now also copies DESCRIPTION file to target dir.
+
+    o	offsets should work with lm as well as with glm now
+
+    o	range() is now in the Summary group, trunc() back in the Math
+	group.
+
+    o	Under Unix, R-specific environment variables can now be kept/set
+	in `~/.Renviron'.
+
+    o	New options `latexcmd' and `dvipscmd' for specifying the locations
+	of LaTeX and dvips; corresponding environment variables renamed to
+	`R_LATEXCMD' and `R_DVIPSCMD'.
 
     o	--vsize & --nsize now both give size in "single units" 
 	(bytes/cons cells) with possible 
@@ -82,13 +47,62 @@ NEW FEATURES
 
 BUG FIXES
 
+    o   system(command, intern=FALSE, ignore.errors=FALSE) 
+	changed 1st & 3rd argument names and is better documented.
+
+    o   "/Font5 /Symbol findfont definefont" confused some printers
+
+    o   Bounding box rotated 90 deg for landscape (shouldn't be)
+
+    o   Legend skipped symbol for pch=0
+
+    o   compilation on non-Intel Linux systems no longer looks for __setfpucw
+
+    o   a %% b -- is now periodic instead of symmetric; more S compatible.
+
+    o	locator(n=512) -- default: MANY points, not just one.
+
+    o	qqnorm() uses ppoints() and returns list with x sorted along y.
+
+    o	plot.formula now allows ylab to be set
+
+    o	plotmath had trouble with paste()'ing expressions
+
+    o	plotting math expressions now also works for objects of mode
+	"call" (in particular on the result of substitute())
+
+    o	locator() on log axes: value antilogged twice
+
+    o	(a real oldie - and trival too) is.recursive now TRUE for
+	expressions 
+
+    o	sanitised delete.response
+
+    o	x[["a",]] could crash R
+
+    o	strwidth() crashed R if no device open
+
+    o	predict inconsistencies with offsets straightened out
+
+    o	tapply goofed when FUN returned named scalar
+
+    o	[.factor now retains contrasts attrib.
+
+    o	hist() had trouble with plotting math
+
+    o	HTML indices get only built when installing a package to RHOME
+
+    o	subscripting with a length zero logical no longer bombs.
+
+    o	as.ordered(NULL) now returns an "ordered" object.
+
     o	--debugger .. now gives a warning if other command line args are used
 
-    o	pt(t,df, ncp) now also works for bigger ncp's
+    o	pt(t, df, ncp) now also works for bigger ncp's
     
     o	apply(a,d, fun) now passes vectors (rank 1 arrays) to fun.
 
-    o	model.frame with subset and only one column fixed
+    o	model.frame() with subset and only one column fixed
 
     o	boxplot(<data.frame>) now works again.
 

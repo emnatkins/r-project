@@ -56,7 +56,7 @@ extern double norm_rand(void);
 
 
 #define PROBLEM_BUFSIZE 4096
-static char problem_buf[PROBLEM_BUFSIZE];
+char problem_buf[PROBLEM_BUFSIZE];
 
 #define NULL_ENTRY
 #define PROBLEM		sprintf(problem_buf,
