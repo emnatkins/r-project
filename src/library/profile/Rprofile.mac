@@ -1,9 +1,3 @@
 ###-*- R -*- Macintosh Specific ----
-# .Library <- paste(getenv("RHOME"), "library", sep = "\\")
-
-# .lib.loc <- unique(c(unlist(strsplit(getenv("RLIBS"), ":")), .Library))
-
-options(papersize = "a4")
-
-# .First <- function() macintosh()
+.First <- function() if(interactive()) macintosh()
 

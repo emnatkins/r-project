@@ -130,12 +130,12 @@ static void jump_now()
 {
     inError=0;
     R_PPStackTop = 0;
-    if (R_Interactive) LONGJMP(R_ToplevelContext->cjmpbuf, 0);
+    if (R_Interactive) siglongjmp(R_ToplevelContext->cjmpbuf, 0);
     else REprintf("Execution halted\n");
     exit(1);
 }
 
-#ifdef OLD_Macintosh
+#ifdef Macintosh
 
 #include <signal.h>
 #include <errno.h>

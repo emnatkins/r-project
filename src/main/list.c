@@ -176,7 +176,7 @@ static SEXP	ans;
 static int	UniqueNames;
 static int	IncludeFunctions;
 static int	StoreValues;
-static int	ItemCounts;
+static int	ItemCount;
 static int	MaxCount;
 
 static void namewalk(SEXP s)
@@ -184,17 +184,17 @@ static void namewalk(SEXP s)
     int i, j, n;
     switch(TYPEOF(s)) {
     case SYMSXP:
-	if(ItemCounts < MaxCount) {
+	if(ItemCount < MaxCount) {
 	    if(StoreValues) {
 		if(UniqueNames) {
-		    for(j=0 ; j<ItemCounts ; j++) {
+		    for(j=0 ; j<ItemCount ; j++) {
 			if(STRING(ans)[j] == PRINTNAME(s))
 			    goto ignore;
 		    }
 		}
-		STRING(ans)[ItemCounts] = PRINTNAME(s);
+		STRING(ans)[ItemCount] = PRINTNAME(s);
 	    }
-	    ItemCounts += 1;
+	    ItemCount += 1;
 	}
     ignore:
 	break;
@@ -238,20 +238,20 @@ SEXP do_allnames(SEXP call, SEXP op, SEXP args, SEXP env)
 	UniqueNames = 1;
 
     StoreValues = 0;
-    ItemCounts = 0;
+    ItemCount = 0;
     namewalk(expr);
-    savecount = ItemCounts;
+    savecount = ItemCount;
 
-    ans = allocVector(STRSXP, ItemCounts);
+    ans = allocVector(STRSXP, ItemCount);
 
     StoreValues = 1;
-    ItemCounts = 0;
+    ItemCount = 0;
     namewalk(expr);
 
-    if(ItemCounts != savecount) {
+    if(ItemCount != savecount) {
 	PROTECT(expr = ans);
-	ans = allocVector(STRSXP, ItemCounts);
-	for(i=0 ; i<ItemCounts ; i++)
+	ans = allocVector(STRSXP, ItemCount);
+	for(i=0 ; i<ItemCount ; i++)
 	    STRING(ans)[i] = STRING(expr)[i];
 	UNPROTECT(1);
     }

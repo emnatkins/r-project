@@ -313,6 +313,26 @@ static void ComplexAnswer(SEXP x)
     }
 }
 
+static SEXP EnsureString(SEXP s)
+{
+    switch(TYPEOF(s)) {
+    case SYMSXP:
+	s = PRINTNAME(s);
+	break;
+    case STRSXP:
+	s = STRING(s)[0];
+	break;
+    case CHARSXP:
+	break;
+    case NILSXP:
+	s = R_BlankString;
+	break;
+    default:
+	error("invalid tag in name extraction\n");
+    }
+    return s;
+}
+
 static SEXP NewBase(SEXP base, SEXP tag)
 {
     SEXP ans;
@@ -345,7 +365,7 @@ SEXP NewName(SEXP base, SEXP tag, int i, int n, int seqno)
     base = EnsureString(base);
     tag = EnsureString(tag);
     if (*CHAR(base) && *CHAR(tag)) {
-	ans = allocString(strlen(CHAR(base)) + strlen(CHAR(tag)));
+	ans = allocString(strlen(CHAR(base)) + strlen(CHAR(tag)) + 1);
 	sprintf(CHAR(ans), "%s.%s", CHAR(base), CHAR(tag));
     }
     else if (*CHAR(base)) {

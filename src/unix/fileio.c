@@ -1,6 +1,6 @@
 /*
- *  Mathlib : A C Library of Special Functions
- *  Copyright (C) 1998 Ross Ihaka
+ *  R : A Computer Langage for Statistical Data Analysis
+ *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -15,31 +15,18 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- *  SYNOPSIS
- *
- *    #include "Mathlib.h"
- *    double runif(double a, double b);
- *
- *  DESCRIPTION
- *
- *    Random variates from the uniform distribution.
  */
 
-#include "Mathlib.h"
+#include <stdio.h>
+#include "Fileio.h"
 
-double runif(double a, double b)
+/*
+ *
+ * R versions of the standard C file operations
+ *
+ */
+
+FILE *R_fopen(const char *filename, const char *mode)
 {
-    if (
-#ifdef IEEE_754
-	!finite(a) || !finite(b) ||
-#endif
-	b < a) {
-	ML_ERROR(ME_DOMAIN);
-	return ML_NAN;
-    }
-    if (a == b) 
-	return a;
-    else 
-	return a + (b - a) * sunif();
+	return( fopen(filename, mode) );
 }

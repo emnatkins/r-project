@@ -1,8 +1,2 @@
-dump <-
-function (list, fileout = "dumpdata")
-{
-    digits <- options("digits")
-    on.exit(options(digits = digits))
-    options(digits = 12)
+dump <- function(list, fileout="dumpdata")
     .Internal(dump(list, fileout))
-}

@@ -312,17 +312,14 @@ char *R_ExpandFileName(char *s)
 }
 #endif
 
-FILE *R_fopen(const char *filename, const char *mode)
-{
-	return( fopen(filename, mode) );
-}
-
 FILE *R_OpenLibraryFile(char *file)
 {
     char buf[256], *rhome;
     FILE *fp;
 
-    sprintf(buf, "%s/library/base/R/%s", R_Home, file);
+    if((rhome = getenv("RHOME")) == NULL)
+	return NULL;
+    sprintf(buf, "%s/library/base/R/%s", rhome, file);
     fp = R_fopen(buf, "r");
     return fp;
 }
@@ -332,7 +329,9 @@ FILE *R_OpenSysInitFile(void)
     char buf[256], *rhome;
     FILE *fp;
 
-    sprintf(buf, "%s/library/base/R/Rprofile", R_Home);
+    if((rhome = getenv("RHOME")) == NULL)
+	return NULL;
+    sprintf(buf, "%s/library/base/R/Rprofile", rhome);
     fp = R_fopen(buf, "r");
     return fp;
 }
@@ -347,7 +346,9 @@ FILE *R_OpenSiteFile(void)
     if (LoadSiteFile) {
 	if ((fp = R_fopen(getenv("RPROFILE"), "r")))
 	    return fp;
-	sprintf(buf, "%s/etc/Rprofile", R_Home);
+	if ((rhome = getenv("RHOME")) == NULL)
+	    return NULL;
+	sprintf(buf, "%s/etc/Rprofile", rhome);
 	if ((fp = R_fopen(buf, "r")))
 	    return fp;
     }
@@ -531,9 +532,6 @@ int main(int ac, char **av)
     R_Consolefile = stdout;
     R_Outputfile = stdout;
     R_Sinkfile = NULL;
-    if((R_Home = getenv("RHOME")) == NULL) {
-	R_Suicide("R home directory is not defined");
-    }
 
     if(!R_Interactive && DefaultSaveAction == 0)
 	R_Suicide("you must specify `--save' or `--no-save'");
@@ -656,7 +654,6 @@ void R_RestoreGlobalEnv(void)
 	FRAME(R_GlobalEnv) = R_LoadFromFile(fp);
 	if(!R_Quiet)
 	    Rprintf("[Previously saved workspace restored]\n\n");
-        fclose(fp);
     }
 }
 

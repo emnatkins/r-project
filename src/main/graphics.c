@@ -3278,7 +3278,6 @@ void GMtext(char *str, int side, double line, int outer, double at, int las,
 		at = at/* + GConvertYUnits(dd->gp.yLineBias, LINES, USER, dd)*/;
 		line = line + dd->gp.yLineBias;
 		angle = 0;
-		xadj = dd->gp.adj;
 		yadj = 0.5;
 	    }
 	    else {
@@ -4079,8 +4078,8 @@ ColorDataBaseEntry ColorDataBase[] = {
 };
 
 
-int R_ColorTableSize;
-unsigned int R_ColorTable[COLOR_TABLE_SIZE];
+int ColorTableSize;
+unsigned int ColorTable[COLOR_TABLE_SIZE];
 
 /* Hex Digit to Integer Conversion */
 
@@ -4159,7 +4158,7 @@ unsigned int number2col(char *nm, DevDesc *dd)
     index = strtod(nm, &ptr);
     if(*ptr) error("invalid color specification\n");
     if(index == 0) return dd->dp.bg;
-    else return R_ColorTable[(index-1) % R_ColorTableSize];
+    else return ColorTable[(index-1) % ColorTableSize];
 }
 
 
@@ -4229,13 +4228,13 @@ unsigned int RGBpar(SEXP x, int i, DevDesc *dd)
 	if(INTEGER(x)[i] == NA_INTEGER) return NA_INTEGER;
 	index = INTEGER(x)[i] - 1;
 	if(index < 0) return dd->dp.bg;
-	else return R_ColorTable[abs(index) % R_ColorTableSize];
+	else return ColorTable[abs(index) % ColorTableSize];
     }
     else if(isReal(x)) {
 	if(!FINITE(REAL(x)[i])) return NA_INTEGER;
 	index = REAL(x)[i] - 1;
 	if(index < 0) return dd->dp.bg;
-	else return R_ColorTable[abs(index) % R_ColorTableSize];
+	else return ColorTable[abs(index) % ColorTableSize];
     }
     return 0;		/* should not occur */
 }
@@ -4254,8 +4253,8 @@ void InitColors()
 
     /* Install Default Palette */
     for(i=0 ; DefaultPalette[i] ; i++)
-	R_ColorTable[i] = str2col(DefaultPalette[i], NULL);
-    R_ColorTableSize = i;
+	ColorTable[i] = str2col(DefaultPalette[i], NULL);
+    ColorTableSize = i;
 }
 
 /*  LINE TEXTURE CODE */

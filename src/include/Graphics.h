@@ -30,7 +30,11 @@
 #define NA_INTEGER R_NaInt
 #endif
 
+#ifdef Macintosh
+#include <fp.h>
+#else
 #include <math.h>
+#endif
 
 #ifdef Windows
 #include <windows.h>
@@ -66,13 +70,6 @@
 
 
 #ifdef Unix
-#define LTY_SOLID	0
-#define LTY_DASHED	4 + (4<<4)
-#define LTY_DOTTED	1 + (3<<4)
-#define LTY_DOTDASH	1 + (3<<4) + (4<<8) + (3<<12)
-#endif
-
-#ifdef Macintosh
 #define LTY_SOLID	0
 #define LTY_DASHED	4 + (4<<4)
 #define LTY_DOTTED	1 + (3<<4)
@@ -133,8 +130,8 @@ struct colorDataBaseEntry {
 
 typedef struct colorDataBaseEntry ColorDataBaseEntry;
 
-extern int R_ColorTableSize;
-extern unsigned int R_ColorTable[];
+extern int ColorTableSize;
+extern unsigned int ColorTable[];
 extern ColorDataBaseEntry ColorDataBase[];
 extern char *DefaultPalette[];
 
@@ -413,7 +410,7 @@ int PicTeXDeviceDriver(DevDesc*, char*, char*, char*, double, double, int);
 int WinDeviceDriver(char**, int, double*, int);
 #endif
 
-#ifdef OLD_Macintosh
+#ifdef Macintosh
 int MacDeviceDriver(char**, int, double*, int);
 #endif
 

@@ -318,11 +318,12 @@ SEXP do_plot_new(SEXP call, SEXP op, SEXP args, SEXP env)
  *	This function sets up the world coordinates for a graphics
  *	window.	 Note that if asp is a finite positive value then
  *	the window is set up so that one data unit in the y direction
- *	is equal in length to one data unit in the x direction divided
- *	by asp.
+ *	is equal in length to asp * one data unit in the x direction.
  *
  *	The special case asp == 1 produces plots where distances
- *	between points are represented accurately on screen.
+ *	between points are represented accurately on screen.  Values
+ *	with asp < 1 can be used to produce more accurate maps when
+ *	using latitude and longitude.
  *
  *  NOTE
  *
@@ -414,12 +415,12 @@ SEXP do_plot_window(SEXP call, SEXP op, SEXP args, SEXP env)
 	double pin1, pin2, scale, xdelta, ydelta, xscale, yscale, xadd, yadd;
 	pin1 = GConvertXUnits(1.0, NPC, INCHES, dd);
 	pin2 = GConvertYUnits(1.0, NPC, INCHES, dd);
-	xdelta = fabs(xmax - xmin) / asp;
+	xdelta = asp * fabs(xmax - xmin);
 	ydelta = fabs(ymax - ymin);
 	xscale = pin1 / xdelta;
 	yscale = pin2 / ydelta;
 	scale = (xscale < yscale) ? xscale : yscale;
-	xadd = .5 * (pin1 / scale - xdelta) * asp;
+	xadd = .5 * (pin1 / scale - xdelta) / asp;
 	yadd = .5 * (pin2 / scale - ydelta);
 	GScale(xmin - xadd, xmax + xadd, 1, dd);
 	GScale(ymin - yadd, ymax + yadd, 2, dd);
@@ -1427,7 +1428,6 @@ SEXP do_polygon(SEXP call, SEXP op, SEXP args, SEXP env)
     /* polygon(x, y, col, border) */
     SEXP sx, sy, col, border, lty;
     int nx=1, ny=1, ncol, nborder, nlty, xpd, i, start=0;
-    int num = 0;
     double *x, *y, xx, yy, xold, yold;
 
     SEXP originalArgs = args;
@@ -1487,18 +1487,14 @@ SEXP do_polygon(SEXP call, SEXP op, SEXP args, SEXP env)
 	    start = i; /* first valid point of current segment */
 	else if ((FINITE(xold) && FINITE(yold)) &&
 		 !(FINITE(xx) && FINITE(yy))) {
-	    if (i-start > 1) {
+	    if (i-start > 1)
 		GPolygon(i-start, x+start, y+start, USER,
-			 INTEGER(col)[num%ncol], INTEGER(border)[0], dd);
-		num++;
-	    }
+			 INTEGER(col)[0], INTEGER(border)[0], dd);
 	}
 	else if ((FINITE(xold) && FINITE(yold)) &&
-		 (i == nx-1)) { /* very last */
+		 (i == nx-1))/* very last */
 	    GPolygon(nx-start, x+start, y+start, USER,
-		     INTEGER(col)[num%ncol], INTEGER(border)[0], dd);
-	    num++;
-	}
+		     INTEGER(col)[0], INTEGER(border)[0], dd);
 	xold = xx;
 	yold = yy;
     }

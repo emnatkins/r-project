@@ -65,8 +65,8 @@ static double tr, ti;
 static double pvr, pvi;
 static double are;
 static double mre;
-static double eta;
-static double infin;
+static double eta = DBL_EPSILON;
+static double infin = DBL_MAX;
 
 
 int F77_SYMBOL(cpoly)(double *opr, double *opi, int *degree,
@@ -77,13 +77,9 @@ int F77_SYMBOL(cpoly)(double *opr, double *opi, int *degree,
     static double base = (double)FLT_RADIX;
     static double cosr, sinr;
     static int conv, d_n, i, i1, i2;
-    static double zi, zr, xx, yy, smalno;
+    static double zi, zr, xx, yy, smalno= DBL_MIN;
     static double bnd, xxx;
     int d1;
-
-    eta = DBL_EPSILON;
-    infin = DBL_MAX;
-    smalno = DBL_MIN;
 
     are = eta;
     mre = sqrt(2.0) * 2.0 * eta;

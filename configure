@@ -542,8 +542,8 @@ fi
 if test -f ${HOME}/.Rconf; then . ${HOME}/.Rconf; fi
 
 R_MAJOR="0"
-R_MINOR="64.0"
-R_STATUS="Unstable"
+R_MINOR="63.2"
+R_STATUS=""
 R_STATUS_REV="0"
 
 ac_aux_dir=
@@ -2798,8 +2798,8 @@ fi
 
 fi
 
-for ac_func in acosh asinh atanh bcopy finite isfinite isnan matherr memcpy \
-  memmove regcomp rint strcoll strtod strtol system times sigsetjmp siglongjmp
+for ac_func in acosh asinh atanh bcopy finite isnan matherr memcpy \
+  memmove regcomp rint strcoll strtod strtol system times
 do
 echo $ac_n "checking for $ac_func""... $ac_c" 1>&6
 echo "configure:2806: checking for $ac_func" >&5

@@ -29,8 +29,8 @@ AC_CONFIG_HEADER(src/include/Platform.h)
 if test -f ${HOME}/.Rconf; then . ${HOME}/.Rconf; fi
 
 R_MAJOR="0"
-R_MINOR="64.0"
-R_STATUS="Unstable"
+R_MINOR="63.2"
+R_STATUS=""
 R_STATUS_REV="0"
 
 AC_CONFIG_AUX_DIR(aux)
@@ -459,8 +459,8 @@ fi
 
 AC_FUNC_VFORK
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(acosh asinh atanh bcopy finite isfinite isnan matherr memcpy \
-  memmove regcomp rint strcoll strtod strtol system times sigsetjmp siglongjmp)
+AC_CHECK_FUNCS(acosh asinh atanh bcopy finite isnan matherr memcpy \
+  memmove regcomp rint strcoll strtod strtol system times)
 
 ### Header files
 
