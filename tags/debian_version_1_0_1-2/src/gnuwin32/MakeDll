@@ -1,0 +1,40 @@
+#-*- Makefile -*-
+all:  $(DLLNAME).dll
+
+SOURCES=$(wildcard -f *.c *.f)
+OBJSA=$(foreach i,$(SOURCES),$(basename $i).o)
+
+include $(RHOME)/src/gnuwin32/MkRules
+
+ifdef DEBUG
+  DLLFLAGS=
+  DEBUGFLAG=-g -Wall
+else
+  DLLFLAGS=-s
+  DEBUGFLAG=-Wall
+endif
+
+CFLAGS=-I$(RHOME)/src/include -include $(RHOME)/src/include/globalvar.h $(DEBUGFLAG) -O2
+FFLAGS=-O2 $(DEBUGFLAG)
+DLLLIBS=-L$(RHOME)/src/gnuwin32  $(FLIBS) -lR 
+
+
+ifeq ($(PKG),RODBC)
+  DLLLIBS+=-lodbc32
+endif 
+
+
+AA=$(wildcard Makefile)
+ifeq ($(AA),Makefile)
+ include Makefile
+else
+ OBJS=$(filter-out $(OBJS-NO),$(OBJSA))
+endif
+-include Makevars
+
+$(DLLNAME).a: $(OBJS) #
+	$(RM) -f $@
+	$(AR) cr $@ *.o
+	$(RANLIB) $@
+
+$(DLLNAME).dll : $(DLLNAME).a
