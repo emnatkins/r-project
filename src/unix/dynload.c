@@ -100,9 +100,6 @@ static CFunTabEntry CFunTab[] =
 #ifndef RTLD_LAZY
 #define RTLD_LAZY 1
 #endif
-#ifndef RTLD_NOW
-#define RTLD_NOW  2
-#endif
 
 #ifdef DL_SEARCH_PROG
 static void *dlhandle;
@@ -111,7 +108,7 @@ static void *dlhandle;
 void InitFunctionHashing()
 {
 #ifdef DL_SEARCH_PROG
-    dlhandle = dlopen(0, RTLD_NOW);
+    dlhandle = dlopen(0, RTLD_LAZY);
 #endif
 }
 
@@ -170,7 +167,7 @@ static int AddDLL(char *path)
 	strcpy(DLLerror, "Maximal number of DLLs reached...");
 	return 0;
     }
-    handle = dlopen(path, RTLD_NOW);
+    handle = dlopen(path, RTLD_LAZY);
     if(handle == NULL) {
 	strcpy(DLLerror, dlerror());
 	return 0;
@@ -236,7 +233,7 @@ static void GetFullDLLPath(SEXP call, char *buf, char *path)
 	strcpy(buf, R_ExpandFileName(path));
     else if(path[0] != '/') {
 #ifdef HAVE_UNISTD_H
-	if(!getcwd(buf, PATH_MAX))
+	if(!getcwd(buf, MAXPATHLEN))
 #endif
 	    errorcall(call, "can't get working directory!\n");
 	strcat(buf, "/");
@@ -250,7 +247,7 @@ static void GetFullDLLPath(SEXP call, char *buf, char *path)
 
 SEXP do_dynload(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    char buf[2 * PATH_MAX];
+    char buf[2*MAXPATHLEN];
     checkArity(op,args);
     if (!isString(CAR(args)) || length(CAR(args)) < 1)
 	errorcall(call, "character argument expected\n");
@@ -264,7 +261,7 @@ SEXP do_dynload(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP do_dynunload(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    char buf[2 * PATH_MAX];
+    char buf[2*MAXPATHLEN];
     checkArity(op,args);
     if (!isString(CAR(args)) || length(CAR(args)) < 1)
 	errorcall(call, "character argument expected\n");

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# ${R_HOME}/bin/COMPILE
+# ${RHOME}/bin/COMPILE
 
 # @configure_input@
 
@@ -8,9 +8,9 @@ MAKE=${MAKE-@MAKE@}
 MAKEOPTS=
 
 if test -r Makefile; then
-  MAKEFILES="-f ${R_HOME}/etc/Makeconf -f Makefile"
+  MAKEFILES="-f ${RHOME}/etc/Makeconf -f Makefile"
 else
-  MAKEFILES="-f ${R_HOME}/etc/Makeconf"
+  MAKEFILES="-f ${RHOME}/etc/Makeconf"
 fi
 
 OBJS=

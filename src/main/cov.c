@@ -434,6 +434,6 @@ SEXP do_cov(SEXP call, SEXP op, SEXP args, SEXP env)
     }
     UNPROTECT(1);
     if(ZeroSD)
-	warningcall(call, "standard deviation equal to zero in cor(.)");
+	warning("standard deviation equal to zero in cor(.)\n");
     return ans;
 }

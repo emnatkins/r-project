@@ -95,9 +95,6 @@ SEXP eval(SEXP e, SEXP rho)
     case ENVSXP:
     case CLOSXP:
     case VECSXP:
-#ifndef OLD
-    case EXPRSXP:
-#endif
 	tmp = e;
 	break;
     case SYMSXP:
@@ -148,7 +145,6 @@ SEXP eval(SEXP e, SEXP rho)
 	}
 	tmp = PRVALUE(e);
 	break;
-#ifdef OLD
     case EXPRSXP:
 	{
 	    int i, n;
@@ -157,7 +153,6 @@ SEXP eval(SEXP e, SEXP rho)
 		tmp = eval(VECTOR(e)[i], rho);
 	}
 	break;
-#endif
     case LANGSXP:
 	if (TYPEOF(CAR(e)) == SYMSXP)
 	    PROTECT(op = findFun(CAR(e), rho));
@@ -213,7 +208,7 @@ SEXP eval(SEXP e, SEXP rho)
 
 SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedenv)
 {
-    int i, nargs;
+    int nargs;
     SEXP body, formals, actuals, savedrho;
     volatile  SEXP newrho;
     SEXP f, a, tmp;
@@ -286,32 +281,13 @@ SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedenv)
     if( DEBUG(op) ) {
 	Rprintf("debugging in: ");
 	PrintValueRec(call,rho);
-	/* now find out if the body is function with only one statement */
-	if (isSymbol(CAR(body)))
-	    tmp = findFun(CAR(body), rho);
-	else
-	    tmp = eval(CAR(body), rho);
-	if((TYPEOF(tmp) == BUILTINSXP || TYPEOF(tmp) == SPECIALSXP) 
-	    && !strcmp( PRIMNAME(tmp), "for" ) && !strcmp( PRIMNAME(tmp), 
-	    "{" ) && !strcmp( PRIMNAME(tmp),"repeat" ) && 
-	    !strcmp( PRIMNAME(tmp), "while" )) 
-	    goto regdb;
-	Rprintf("debug: ");
-	PrintValue(body);
-	do_browser(call,op,arglist,newrho);
     }
-regdb:
+
     /* Set a longjmp target which will catch any */
     /* explicit returns from the function body. */
 
-    if (i =SETJMP(cntxt.cjmpbuf)) {
-	if(R_ReturnedValue == R_DollarSymbol) {
-	    cntxt.callflag = CTXT_RETURN; /* turn restart off */
-	    R_GlobalContext = &cntxt;  /* put the context back */
-	    PROTECT(tmp = eval(body, newrho));
-	}
-	else
-	    PROTECT(tmp = R_ReturnedValue);
+    if (SETJMP(cntxt.cjmpbuf)) {
+	PROTECT(tmp = R_ReturnedValue);
     }
     else {
 	PROTECT(tmp = eval(body, newrho));
@@ -809,7 +785,7 @@ SEXP do_set(SEXP call, SEXP op, SEXP args, SEXP rho)
 		s = duplicate(s);
 	    PROTECT(s);
 	    R_Visible = 0;
-	    setVar(CAR(args), s, ENCLOS(rho));
+	    setVar(CAR(args), s, rho);
 	    UNPROTECT(1);
 	    NAMED(s) = 1;
 	    return s;
@@ -996,7 +972,7 @@ void CheckFormals(SEXP ls)
 
 SEXP do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP expr, env, encl, tmp;
+    SEXP expr, env, encl;
     int nback;
     RCNTXT cntxt;
 
@@ -1034,26 +1010,13 @@ SEXP do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
     default:
 	errorcall(call, "invalid second argument\n");
     }
-    if(isLanguage(expr) || isSymbol(expr)) {
+    if(isLanguage(expr) || isExpression(expr) || isSymbol(expr)) {
 	PROTECT(expr);
 	begincontext(&cntxt, CTXT_RETURN, call, env, rho, args);
-        if (!SETJMP(cntxt.cjmpbuf))
+	if (!SETJMP(cntxt.cjmpbuf))
 	    expr = eval(expr, env);
 	endcontext(&cntxt);
 	UNPROTECT(1);
-    }
-    else if (isExpression(expr)) {
-	int i, n;
-	PROTECT(expr);
-	n = LENGTH(expr);
-	tmp = R_NilValue;
-	begincontext(&cntxt, CTXT_RETURN, call, env, rho, args);
-        if (!SETJMP(cntxt.cjmpbuf))
-	    for(i=0 ; i<n ; i++)
-	        tmp = eval(VECTOR(expr)[i], env);
-	endcontext(&cntxt);
-	UNPROTECT(1);
-	expr = tmp;
     }
     if (PRIMVAL(op)) {
 	PROTECT(expr);
@@ -1075,7 +1038,7 @@ SEXP do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_recall(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     RCNTXT *cptr;
-    SEXP s, ans ;
+    SEXP t, s, ans ;
     cptr = R_GlobalContext;
     /* get the args supplied */
     while (cptr != NULL) {
@@ -1083,7 +1046,7 @@ SEXP do_recall(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    break;
 	cptr = cptr->nextcontext;
     }
-    args = cptr->promargs;
+    args=cptr->promargs;
     /* get the env recall was called from */
     s = R_GlobalContext->sysparent;
     while (cptr != NULL) {
@@ -1093,11 +1056,10 @@ SEXP do_recall(SEXP call, SEXP op, SEXP args, SEXP rho)
     }
     if (cptr == NULL)
 	error("Recall called from outside a closure\n");
-    if( TYPEOF(CAR(cptr->call)) == SYMSXP)
-        PROTECT(s = findFun(CAR(cptr->call), cptr->sysparent));
-    else
-        PROTECT(s = eval(CAR(cptr->call), cptr->sysparent));
-    ans = applyClosure(cptr->call, s, args, cptr->sysparent, R_NilValue);
+    t = CAR(cptr->call);
+    s = findFun(t, cptr->sysparent);
+    PROTECT(t = LCONS(t,args));
+    ans = applyClosure(t, s, args, rho, R_NilValue);
     UNPROTECT(1);
     return ans;
 }

@@ -4,12 +4,10 @@
       .C(name, \dots, NAOK=FALSE, DUP=TRUE)
 .Fortran(name, \dots, NAOK=FALSE, DUP=TRUE)
 .External(name, \dots)
-.Call(name, \dots)
 }
 \alias{.C}
 \alias{.Fortran}
 \alias{.External}
-\alias{.Call}
 \arguments{
 \item{name}{a character string giving the name of a C function or
   Fortran subroutine.}
@@ -28,10 +26,6 @@ make calls to C and Fortran code.
 \code{.External} can be used to call
 compiled code that uses \R objects in the same way as internal \R
 functions. There is no documentation to help you write this sort of code.
-
-\code{.Call} can be used call compiled code which makes use of internal
-\R objects.  The arguments are passed to the C code as a sequence of
-\R objects.  It is included to provide compatibility with S version 4.
 }
 \value{
 The functions \code{.C} and \code{.Fortran} return a list similar to the \code{\dots}

@@ -208,7 +208,7 @@ SEXP findFun(SEXP symbol, SEXP rho)
 		error("Argument \"%s\" is missing, with no default\n",
 		      CHAR(PRINTNAME(symbol)));
 #ifdef Warn_on_non_function
-	    warning("ignored non function \"%s\"",
+	    warning("ignored non function \"%s\"\n",
 		    CHAR(PRINTNAME(symbol)));
 #endif
 	}

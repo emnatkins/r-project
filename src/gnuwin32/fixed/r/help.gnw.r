@@ -113,8 +113,8 @@ help <-
                     stop(paste("No offline documentation for", topic, "is available"))
             }
         }
-        else
-            stop(paste("No documentation for `", topic, "'", sep = ""))
+        else stop(paste("No documentation for `", topic, "'",
+            sep = ""))
     }
     else if (!missing(package))
         library(help = package, lib = lib.loc, character.only = TRUE)

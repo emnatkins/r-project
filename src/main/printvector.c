@@ -40,10 +40,10 @@ static void printLogicalVector(int *x, int n, int index)
     else width = 0;
 
     formatLogical(x, n, &w);
-    w += R_print.gap;
+    w += PRINT_GAP;
 
     for (i = 0; i < n; i++) {
-	if (width + w > R_print.width) {
+	if (width + w > PRINT_WIDTH) {
 	    Rprintf("\n");
 	    if (index) {
 		VectorIndex(i + 1, labwidth);
@@ -70,10 +70,10 @@ void printIntegerVector(int *x, int n, int index)
     else width = 0;
 
     formatInteger(x, n, &w);
-    w += R_print.gap;
+    w += PRINT_GAP;
 
     for (i = 0; i < n; i++) {
-	if (width + w > R_print.width) {
+	if (width + w > PRINT_WIDTH) {
 	    Rprintf("\n");
 	    if (index) {
 		VectorIndex(i + 1, labwidth);
@@ -100,10 +100,10 @@ void printRealVector(double *x, int n, int index)
     else width = 0;
 
     formatReal(x, n, &w, &d, &e);
-    w += R_print.gap;
+    w += PRINT_GAP;
 
     for (i = 0; i < n; i++) {
-	if (width + w > R_print.width) {
+	if (width + w > PRINT_WIDTH) {
 	    Rprintf("\n");
 	    if (index) {
 		VectorIndex(i + 1, labwidth);
@@ -132,10 +132,10 @@ void printComplexVector(complex *x, int n, int index)
     formatComplex(x, n, &wr, &dr, &er, &wi, &di, &ei);
 
     w = wr + wi + 2;	/* +2 for "+" and "i" */
-    w += R_print.gap;
+    w += PRINT_GAP;
 
     for (i = 0; i < n; i++) {
-	if (width + w > R_print.width) {
+	if (width + w > PRINT_WIDTH) {
 	    Rprintf("\n");
 	    if (index) {
 		VectorIndex(i + 1, labwidth);
@@ -148,7 +148,7 @@ void printComplexVector(complex *x, int n, int index)
 	    Rprintf("%s", EncodeReal(NA_REAL, w, 0, 0));
 	}
 	else {
-	    Rprintf("%s", EncodeComplex(x[i], wr + R_print.gap , dr, er, wi, di, ei));
+	    Rprintf("%s", EncodeComplex(x[i], wr + PRINT_GAP , dr, er, wi, di, ei));
 	}
 	width += w;
     }
@@ -169,7 +169,7 @@ static void printStringVector(SEXP * x, int n, int quote, int index)
     formatString(x, n, &w, quote);
 
     for (i = 0; i < n; i++) {
-	if (i > 0 && width + w + R_print.gap > R_print.width) {
+	if (i > 0 && width + w + PRINT_GAP > PRINT_WIDTH) {
 	    Rprintf("\n");
 	    if (index) {
 		VectorIndex(i + 1, labwidth);
@@ -178,8 +178,8 @@ static void printStringVector(SEXP * x, int n, int quote, int index)
 	    else
 		width = 0;
 	}
-	Rprintf("%*s%s", R_print.gap, "", EncodeString(CHAR(x[i]), w, quote, adj_left));
-	width += w + R_print.gap;
+	Rprintf("%*s%s", PRINT_GAP, "", EncodeString(CHAR(x[i]), w, quote, adj_left));
+	width += w + PRINT_GAP;
     }
     Rprintf("\n");
 }
@@ -227,9 +227,13 @@ void printVector(SEXP x, int index, int quote)
 	}
 }
 
-/* The following code prints vectors which have every element named */
-/* Primitives for each type of vector are presented first, followed */
-/* by the main (despatching) function */
+/* The following code prints vectors which have every element named
+ * Primitives for each type of vector are presented first, followed
+ * by the main (dispatching) function.
+
+ * 1) These functions are almost identical... (use Macro to clarify ?)
+ * 2) S prints a _space_ in the first column for named vectors; we dont.
+ */
 
 static void printNamedLogicalVector(int * x, int n, SEXP * names)
 {
@@ -237,9 +241,8 @@ static void printNamedLogicalVector(int * x, int n, SEXP * names)
 
     formatLogical(x, n, &w);
     formatString(names, n, &wn, 0);
-
     if (w < wn) w = wn;
-    nperline = R_print.width / (w + R_print.gap);
+    nperline = PRINT_WIDTH / (w + PRINT_GAP);
     if (nperline <= 0) nperline = 1;
     nlines = n / nperline;
     if (n % nperline) nlines += 1;
@@ -248,12 +251,11 @@ static void printNamedLogicalVector(int * x, int n, SEXP * names)
 	if (i) Rprintf("\n");
 	for (j = 0; j < nperline && (k = i * nperline + j) < n; j++) {
 	    Rprintf("%s%*s", EncodeString(CHAR(names[k]), w, 0, adj_right),
-		    R_print.gap, "");
+		    PRINT_GAP, "");
 	}
 	Rprintf("\n");
-	for (j = 0; j < nperline && (k = i * nperline + j) < n; j++) {
-	    Rprintf("%s%*s", EncodeLogical(x[k], w), R_print.gap, "");
-	}
+	for (j = 0; j < nperline && (k = i * nperline + j) < n; j++)
+	    Rprintf("%s%*s", EncodeLogical(x[k], w), PRINT_GAP, "");
     }
     Rprintf("\n");
 }
@@ -265,7 +267,7 @@ static void printNamedIntegerVector(int * x, int n, SEXP * names)
     formatInteger(x, n, &w);
     formatString(names, n, &wn, 0);
     if (w < wn) w = wn;
-    nperline = R_print.width / (w + R_print.gap);
+    nperline = PRINT_WIDTH / (w + PRINT_GAP);
     if (nperline <= 0) nperline = 1;
     nlines = n / nperline;
     if (n % nperline) nlines += 1;
@@ -274,11 +276,11 @@ static void printNamedIntegerVector(int * x, int n, SEXP * names)
 	if (i) Rprintf("\n");
 	for (j = 0; j < nperline && (k = i * nperline + j) < n; j++) {
 	    Rprintf("%s%*s", EncodeString(CHAR(names[k]), w, 0, adj_right),
-		    R_print.gap, "");
+		    PRINT_GAP, "");
 	}
 	Rprintf("\n");
 	for (j = 0; j < nperline && (k = i * nperline + j) < n; j++)
-	    Rprintf("%s%*s", EncodeInteger(x[k], w), R_print.gap, "");
+	    Rprintf("%s%*s", EncodeInteger(x[k], w), PRINT_GAP, "");
     }
     Rprintf("\n");
 }
@@ -290,7 +292,7 @@ static void printNamedRealVector(double * x, int n, SEXP * names)
     formatReal(x, n, &w, &d, &e);
     formatString(names, n, &wn, 0);
     if (w < wn) w = wn;
-    nperline = R_print.width / (w + R_print.gap);
+    nperline = PRINT_WIDTH / (w + PRINT_GAP);
     if (nperline <= 0) nperline = 1;
     nlines = n / nperline;
     if (n % nperline) nlines += 1;
@@ -299,11 +301,11 @@ static void printNamedRealVector(double * x, int n, SEXP * names)
 	if (i) Rprintf("\n");
 	for (j = 0; j < nperline && (k = i * nperline + j) < n; j++) {
 	    Rprintf("%s%*s", EncodeString(CHAR(names[k]), w, 0, adj_right),
-		    R_print.gap, "");
+		    PRINT_GAP, "");
 	}
 	Rprintf("\n");
 	for (j = 0; j < nperline && (k = i * nperline + j) < n; j++)
-	    Rprintf("%s%*s", EncodeReal(x[k], w, d, e), R_print.gap, "");
+	    Rprintf("%s%*s", EncodeReal(x[k], w, d, e), PRINT_GAP, "");
     }
     Rprintf("\n");
 }
@@ -316,7 +318,7 @@ static void printNamedComplexVector(complex *x, int n, SEXP *names)
     w = wr + wi + 2;
     formatString(names, n, &wn, 0);
     if (w < wn) w = wn;
-    nperline = R_print.width / (w + R_print.gap);
+    nperline = PRINT_WIDTH / (w + PRINT_GAP);
     if (nperline <= 0) nperline = 1;
     nlines = n / nperline;
     if (n % nperline) nlines += 1;
@@ -325,11 +327,11 @@ static void printNamedComplexVector(complex *x, int n, SEXP *names)
 	if (i) Rprintf("\n");
 	for (j = 0; j < nperline && (k = i * nperline + j) < n; j++) {
 	    Rprintf("%s%*s", EncodeString(CHAR(names[k]), w, 0, adj_right),
-		    R_print.gap, "");
+		    PRINT_GAP, "");
 	}
 	Rprintf("\n");
 	for (j=0; j<nperline && (k =i*nperline+j) < n; j++) {
-	    if(j) Rprintf("%*s", R_print.gap, "");
+	    if(j) Rprintf("%*s", PRINT_GAP, "");
 	    if (ISNA(x[j].r) || ISNA(x[j].i)) {
 		Rprintf("%s", EncodeReal(NA_REAL, w, 0, 0));
 	    }
@@ -354,11 +356,10 @@ static void printNamedStringVector(SEXP * x, int n, int quote, SEXP * names)
 {
     int i, j, k, w, wn, nlines, nperline;
 
-
     formatString(x, n, &w, quote);
     formatString(names, n, &wn, 0);
     if (w < wn) w = wn;
-    nperline = R_print.width / (w + R_print.gap);
+    nperline = PRINT_WIDTH / (w + PRINT_GAP);
     if (nperline <= 0) nperline = 1;
     nlines = n / nperline;
     if (n % nperline) nlines += 1;
@@ -367,22 +368,19 @@ static void printNamedStringVector(SEXP * x, int n, int quote, SEXP * names)
 	if (i) Rprintf("\n");
 	for (j = 0; j < nperline && (k = i * nperline + j) < n; j++) {
 	    Rprintf("%s%*s", EncodeString(CHAR(names[k]), w, 0, adj_right),
-		    R_print.gap, "");
+		    PRINT_GAP, "");
 	}
 	Rprintf("\n");
 	for (j = 0; j < nperline && (k = i * nperline + j) < n; j++)
 	    Rprintf("%s%*s", EncodeString(CHAR(x[k]), w, quote, adj_right),
-		    R_print.gap, "");
+		    PRINT_GAP, "");
     }
     Rprintf("\n");
 }
 
-void printNamedVector(SEXP x, SEXP names, int quote, char *title)
+void printNamedVector(SEXP x, SEXP names, int quote)
 {
     int n;
-
-    if (title != NULL)
-         Rprintf("%s\n", title);
 
     if ((n = LENGTH(x)) != 0)
 	switch (TYPEOF(x)) {

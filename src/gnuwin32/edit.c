@@ -50,7 +50,7 @@ void InitEd()
 
     tmp = getenv("TMP");
     if (!tmp) tmp = getenv("TEMP");
-    if (!tmp) getenv("R_USER");
+    if (!tmp) getenv("R_HOME");
     sprintf(DefaultFileName,"%s/XXXXXX",tmp);
     mktemp(DefaultFileName);
 }
@@ -104,24 +104,16 @@ SEXP do_edit(SEXP call, SEXP op, SEXP args, SEXP rho)
     if ((fp = R_fopen(filename, "r")) == NULL)
 	errorcall(call, "unable to open file to read\n");
     R_ParseCnt = 0;
-    x = PROTECT(R_ParseFile(fp, -1, &status));
+    x = R_ParseFile(fp, -1, &status);
     if (status != PARSE_OK)
 	errorcall(call, "An error occurred on line %d\n use a command like\n x <- vi()\n to recover\n", R_ParseError);
     else
 	fclose(fp);
     R_ResetConsole();
-    {   /* can't just eval(x) here */
-	int i, n;
-	SEXP tmp;
-
-	n = LENGTH(x);
-	for (i = 0 ; i < n ; i++)
-	    tmp = eval(VECTOR(x)[i], R_GlobalEnv);
-	x = tmp;
-    }
+    x = eval(x, R_GlobalEnv);
     if (TYPEOF(x) == CLOSXP && envir != R_NilValue)
 	CLOENV(x) = envir;
-    UNPROTECT(2);
+    UNPROTECT(1);
     vmaxset(vmaxsave);
     return (x);
 }

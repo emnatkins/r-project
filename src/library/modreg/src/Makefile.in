@@ -1,5 +1,5 @@
 #
-# ${R_HOME}/src/library/modreg/src/Makefile
+# ${RHOME}/src/library/modreg/src/Makefile
 
 VPATH = @srcdir@
 srcdir = @srcdir@
@@ -10,7 +10,7 @@ subdir = src/library/modreg/src
 
 include $(top_builddir)/etc/Makeconf
 MKINSTALLDIRS = $(top_srcdir)/tools/mkinstalldirs
-R_HOME = $(top_builddir)
+RHOME = $(top_builddir)
 
 pkg = modreg
 LIB = $(pkg).$(SHLIBEXT)
@@ -22,7 +22,7 @@ all: $(LIB)
 	@cp $(LIB) $(top_builddir)/library/$(pkg)/libs
 
 $(LIB): $(OBJS)
-	$(SHLIBLD) $(SHLIBLDFLAGS) -o $@ $(OBJS) $(FLIBS)
+	$(top_builddir)/bin/R SHLIB -o $@ $(OBJS)
 
 mostlyclean: clean
 clean:

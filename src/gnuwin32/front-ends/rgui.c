@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "Version.h"
+#include "Platform.h"
 
 #define CharacterMode (*__imp_CharacterMode)
 

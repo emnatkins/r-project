@@ -25,7 +25,6 @@
  */
 
 #include "internal.h"
-#include "rui.h"
 
 
 /*
@@ -99,7 +98,7 @@ printer newprinter(double width, double height)
     if ( !hDC) return NULL;
     obj = new_object(PrinterObject,(HANDLE) hDC,get_printer_base());
     if ( !obj ) {
-	R_ShowMessage("Insufficient memory for new printer");
+	askok("Insufficient memory for new printer");
 	DeleteDC(hDC);
 	return NULL;
     }
@@ -133,7 +132,7 @@ printer newprinter(double width, double height)
     docinfo.fwType = 0;
 
     if (StartDoc(hDC, &docinfo) <= 0) {
-	R_ShowMessage("Unable to start the print job");
+	askok("Unable to start the print job");
 	del(obj);
 	return NULL;
     }

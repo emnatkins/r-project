@@ -1,5 +1,5 @@
 #
-# ${R_HOME}/src/library/base/Makefile
+# ${RHOME}/src/library/base/Makefile
 
 VPATH = @srcdir@
 srcdir = @srcdir@
@@ -13,8 +13,8 @@ include $(top_builddir)/Makeconf
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 DISTFILES = INDEX TITLE Makefile.in
 
-all: Makefile
-	@echo "building package \`base'"
+all:
+	@echo Building R base package
 	@$(MKINSTALLDIRS) $(top_builddir)/library/base/R
 	@cat `ls $(srcdir)/R/*.R | sed '/system.*/d'` \
 	     $(srcdir)/R/system.unix.R | \
@@ -26,11 +26,6 @@ all: Makefile
 	@for f in `ls -d $(srcdir)/data/* | sed '/CVS/d'`; do \
 	  $(INSTALL_DATA) $${f} $(top_builddir)/library/base/data; \
 	done
-
-Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) && \
-	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
-	  $(SHELL) ./config.status
 
 mostlyclean: clean
 clean:

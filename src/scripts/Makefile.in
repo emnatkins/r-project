@@ -1,5 +1,5 @@
 #
-# ${R_HOME}/src/scripts/Makefile
+# ${RHOME}/src/scripts/Makefile
 
 VPATH = @srcdir@
 srcdir = @srcdir@
@@ -23,7 +23,7 @@ all: R
 R:
 	@$(MKINSTALLDIRS) $(top_builddir)/bin
 	@cat R.sh | \
-	  (cd $(top_builddir); sed "s@-R_HOME_DIR*@-`pwd`@" > bin/R)
+	  (cd $(top_builddir); sed "s@RHOME=.*@RHOME=`pwd`@" > bin/R)
 	@chmod +x $(top_builddir)/bin/R
 	@for f in $(SRC_SCRIPTS); do \
 	  $(INSTALL) $(srcdir)/$$f $(top_builddir)/bin; \

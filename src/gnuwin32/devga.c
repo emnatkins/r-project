@@ -180,17 +180,17 @@ void SaveX11DeviceAsGif(char *fn)
     int   l;
 
     if (!activedevice) {
-	R_ShowMessage("No graphics device active to copy");
+	askok("No device active");
 	return;
     }
     l = strlen(fn);
     if ((l < 5) || strcmpi(&fn[l - 4], ".gif")) {
-	R_ShowMessage("File extension must be .gif");
+	askok("File extension must be .gif");
 	return;
     }
     img = bitmaptoimage(activedevice->bm);
     if (!img) {
-	R_ShowMessage("Insufficient memory to copy graphics device");
+	askok("Insufficient memory");
 	return;
     }
     saveimage(img, fn);
@@ -243,12 +243,12 @@ static void RFontInit()
     char *opt[2];
     char  oops[256];
 
-    sprintf(oops, "%s/Rdevga", getenv("R_USER"));
+    sprintf(oops, "%s/Rdevga", getenv("R_HOME"));
     notdone = 1;
     fontnum = 0;
     fontinitdone = 1;
     if (!optopenfile(oops)) {
-	sprintf(oops, "%s/etc/Rdevga", getenv("R_HOME"));
+	sprintf(oops, "%s/etc/Rdevga", getenv("RHOME"));
 	if (!optopenfile(oops)) {
 	    RStandardFonts();
 	    notdone = 0;
@@ -281,7 +281,7 @@ static void RFontInit()
 	    optclosefile();
 	    strcat(oops, optfile());
 	    strcat(oops, " will be ignored.");
-	    R_ShowMessage(oops);
+	    askok(oops);
 	    for (i = 0; i < fontnum; i++) winfree(fontname);
 	    RStandardFonts();
 	    notdone = 0;
@@ -608,7 +608,7 @@ static void menuprint(control m)
     DevDesc *ndd = (DevDesc *) malloc(sizeof(DevDesc));
 
     if (!ndd) {
-	R_ShowMessage("No enough memory to print graphics window");
+	askok("No enough memory");
 	return;
     }
     ndd->displayList = R_NilValue;
@@ -668,14 +668,14 @@ extern GPar savedGPar;
                        (TYPEOF(VECTOR(vDL)[0])!=INTSXP) ||\
                        (LENGTH(VECTOR(vDL)[0])!=1) ||\
                        (pMAGIC != PLOTHISTORYMAGIC)) {\
-                       R_ShowMessage("Plot history seems corrupted");\
+                       askok("History plot seems corrupted");\
                        return;}
 #define pMOVE(a) {pCURRENTPOS+=a;\
                   if(pCURRENTPOS<0) pCURRENTPOS=0;\
                   if(pCURRENTPOS>pNUMPLOTS-1) pCURRENTPOS=pNUMPLOTS-1;\
                   Replay(dd,vDL);SETDL;}
 #define pEXIST ((vDL!=R_UnboundValue) && (vDL!=R_NilValue))
-#define pMUSTEXIST if(!pEXIST){R_ShowMessage("No plot history!");return;}
+#define pMUSTEXIST if(!pEXIST){askok("No plot history!");return;}
 
 
 
@@ -727,7 +727,7 @@ static void AddtoPlotHistory(SEXP dl,GPar *gp,int replace)
 
     GETDL;
     if (dl == R_NilValue) {
-	R_ShowMessage("Display list is void!!");
+	askok("Display list is void!!");
 	return;
     }
     if (!pEXIST)
@@ -804,7 +804,7 @@ static void menureplace(control m)
     pMUSTEXIST;
     pCHECK;
     if (pCURRENTPOS < 0) {
-	R_ShowMessage("No plot to replace!");
+	askok("No plot to replace!!");
 	return;
     }
     AddtoPlotHistory(dd->displayList, &dd->dpSaved, 1);
@@ -855,7 +855,7 @@ static void menugvar(control m)
 	return;
     vDL = findVar(install(v), R_GlobalEnv);
     if (!pEXIST || !pNUMPLOTS) {
-	R_ShowMessage("Variable doesn't exist or doesn't contain any plots!");
+	askok("Variable doesn't exist or doesn't contain any plots!");
 	return;
     }
     pCHECK;
@@ -1280,7 +1280,7 @@ static void X11_Resize(DevDesc *dd)
 	    del(xd->bm);
 	    xd->bm = newbitmap(iw, ih, getdepth(xd->gawin));
 	    if (!xd->bm) {
-		R_ShowMessage("Insufficient memory for resize. Killing device");
+		askok("Insufficient memory. Killing device");
 		KillDevice(dd);
 	    }
 	    setbackground(xd->bm, xd->bgcolor);

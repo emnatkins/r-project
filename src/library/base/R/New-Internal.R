@@ -1,9 +1,4 @@
 ##vector <- function(mode = "logical", length = 0).Internal(vector(mode,length))
-
-stop <- function(message = NULL).Internal(stop(message))
-warning <- function(message = NULL).Internal(warning(message))
-restart <- function(on = TRUE).Internal(restart(on))
-
 comment <- function(x).Internal(comment(x))
 "comment<-" <- function(x,value).Internal("comment<-"(x,value))
 
@@ -55,8 +50,6 @@ rbind <- function(..., deparse.level=1) {
 dataentry <- function(data, modes).Internal(dataentry(data, modes))
 deparse <-
     function(expr, width.cutoff = 60).Internal(deparse(expr, width.cutoff))
-deparse.list <-
-    function(...)sapply(as.list(substitute(list(...)))[-1], deparse)
 
 do.call <- function(what,args).Internal(do.call(what,args))
 drop <- function(x).Internal(drop(x))
@@ -115,5 +108,8 @@ unique <- function(x){
 	z <- factor(z,levels=1:nlevels(x),labels=levels(x))
     z
 }
+
+stop <- function(message = NULL).Internal(stop(message))
+warning <- function(message = NULL).Internal(warning(message))
 
 memory.profile <- function().Internal(memory.profile())

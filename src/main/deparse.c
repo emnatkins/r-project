@@ -126,7 +126,7 @@ SEXP do_deparse(SEXP call, SEXP op, SEXP args, SEXP rho)
     if(!isNull(CAR(args))) {
 	cut0 = asInteger(CAR(args));
 	if(cut0 == NA_INTEGER|| cut0 < MIN_Cutoff || cut0 > MAX_Cutoff)
-	    warning("invalid 'cutoff' for deparse, used default");
+	    warning("invalid 'cutoff' for deparse, used default\n");
 	else
 	    cutoff = cut0;
     }
@@ -146,8 +146,8 @@ SEXP deparse1(SEXP call, int abbrev)
     int savedigits;
 
     PrintDefaults(R_NilValue);/* from global options() */
-    savedigits = R_print.digits; 
-    R_print.digits = DBL_DIG;/* MAX precision */
+    savedigits = print_digits; 
+    print_digits = DBL_DIG;/* MAX precision */
 
     svec = R_NilValue;
     deparse2(call, svec);/* just to determine linenumber..*/
@@ -161,7 +161,7 @@ SEXP deparse1(SEXP call, int abbrev)
 	    strcat(buff, "...");
 	svec = mkString(buff);
     }
-    R_print.digits = savedigits;
+    print_digits = savedigits;
     return svec;
 }
 
@@ -682,7 +682,7 @@ static void deparse2buff(SEXP s)
 	    args2buff(CDR(s), 0, 0);
 	    print2buff(")");
 	}
-	else { /* we have a lambda expression */
+	else {
 	    deparse2buff(CAR(s));
 	    print2buff("(");
 	    args2buff(CDR(s), 0, 0);

@@ -75,11 +75,11 @@ seq(SEXP call, SEXP s1, SEXP s2)
     SEXP ans;
 
     n1 = length(s1);
-    if( n1 > 1 )
-	warningcall(call, "Numerical expression has %d elements: only the first used", (int) n1);
-    n2 = length(s2);
-    if( n2 > 1 )
-	warningcall(call, "Numerical expression has %d elements: only the first used", (int) n2);
+    n2 = length(s1);
+    if(n1 > 1 || n2 > 1) {
+	n = (n1 > n2) ? n1 : n2;
+	warningcall(call, "Numerical expression has %d elements: only the first used\n", n);
+    }
     n1 = asReal(s1);
     n2 = asReal(s2);
     if (ISNAN(n1) || ISNAN(n2))

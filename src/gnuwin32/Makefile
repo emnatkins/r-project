@@ -3,7 +3,7 @@ include MkRules
 HELP=YES
 
 PACKAGES=base eda lqs modreg mva stepfun
-RPREFIX=rw0650
+RPREFIX=rw0642
 
 ifdef DEBUG
  OPTFLAGS=-g -O2
@@ -31,7 +31,7 @@ EXTRALIBS=rx.a ga.a gl.a xdr.a em.a
 
 all: rbuild rdemo rpackage
 
-CFLAGS=$(OPTFLAGS) -I../include -I.
+CFLAGS=$(OPTFLAGS) -I../include
 FFLAGS=$(OPTFLAGS)
 
 ../main/saveload-CFLAGS=-Ixdr

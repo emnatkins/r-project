@@ -1,5 +1,5 @@
 #
-# ${R_HOME}/src/library/Makefile
+# ${RHOME}/src/library/Makefile
 
 VPATH = @srcdir@
 srcdir = @srcdir@
@@ -34,14 +34,14 @@ R:
 docs:
 	@echo "Building ALL documentation (help, HTML, LaTeX, examples)"
 	@$(MAKE) DOCS
-	@R_HOME=`cd $(top_builddir); pwd`; export R_HOME; \
-	  $${R_HOME}/bin/build-help --htmllists
+	@RHOME=`cd $(top_builddir); pwd`; export RHOME; \
+	  $${RHOME}/bin/build-help --htmllists
 help:
 	@OPTS="--nroff"   $(MAKE) DOCS
 html:
 	@OPTS="--html"    $(MAKE) DOCS
-	@R_HOME=`cd $(top_builddir); pwd`; export R_HOME; \
-	  $${R_HOME}/bin/build-help --htmllists
+	@RHOME=`cd $(top_builddir); pwd`; export RHOME; \
+	  $${RHOME}/bin/build-help --htmllists
 latex:
 	@OPTS="--latex"   $(MAKE) DOCS
 examples:
@@ -51,14 +51,15 @@ $(top_builddir)/library/LibIndex:
 	@if [ ! -f $@ ]; then touch $@; fi
 
 DOCS:
+#	@cd base/man && ${MAKE}
 	@for pkg in $(PKGS); do \
-	  R_HOME=`cd $(top_builddir); pwd`; export R_HOME; \
-	  $${R_HOME}/bin/build-help $${OPTS} $(srcdir)/$${pkg}; \
-	  $${R_HOME}/bin/Rd2contents $(srcdir)/$${pkg} \
-	    > $${R_HOME}/library/$${pkg}/CONTENTS; \
+	  RHOME=`cd $(top_builddir); pwd`; export RHOME; \
+	  $${RHOME}/bin/build-help $${OPTS} $(srcdir)/$${pkg}; \
+	  $${RHOME}/bin/Rd2contents $(srcdir)/$${pkg} \
+	    > $${RHOME}/library/$${pkg}/CONTENTS; \
 	done; \
-	cat $${R_HOME}/library/*/CONTENTS \
-	  > $${R_HOME}/doc/html/search/index.txt
+	cat $${RHOME}/library/*/CONTENTS \
+	  > $${RHOME}/doc/html/search/index.txt
 
 mostlyclean: clean
 clean:

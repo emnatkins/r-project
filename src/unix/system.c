@@ -157,9 +157,7 @@
 
 #include "Defn.h"
 #include "Fileio.h"
-#include "Graphics.h"		/* KillAllDevices() [nothing else?] */
-#include "Version.h"
-
+#include "Graphics.h"/* KillAllDevices() [nothing else?] */
 #include "devX11.h"
 
 #ifdef HAVE_LIBREADLINE
@@ -404,8 +402,6 @@ FILE *R_OpenSiteFile(void)
     fp = NULL;
 
     if (LoadSiteFile) {
-	if ((fp = R_fopen(getenv("R_PROFILE"), "r")))
-	    return fp;
 	if ((fp = R_fopen(getenv("RPROFILE"), "r")))
 	    return fp;
 	sprintf(buf, "%s/etc/Rprofile", R_Home);
@@ -519,10 +515,10 @@ int main(int ac, char **av)
 		R_Quiet = 1;
 	    }
 	    else if (!strcmp(*av, "--vanilla")) {
-		DefaultSaveAction = 2; /* --no-save */
-		DefaultRestoreAction = 0; /* --no-restore */
-		LoadSiteFile = 0; /* --no-site-file */
-		LoadInitFile = 0; /* --no-init-file */
+		DefaultSaveAction = 2;/* --no-save */
+		DefaultRestoreAction = 0;/* --no-restore */
+		LoadSiteFile = 0;/* --no-site-file */
+		LoadInitFile = 0;/* --no-init-file */
 	    }
 	    else if (!strcmp(*av, "--verbose")) {
 		R_Verbose = 1;
@@ -619,7 +615,7 @@ int main(int ac, char **av)
     R_Consolefile = stdout;
     R_Outputfile = stdout;
     R_Sinkfile = NULL;
-    if((R_Home = R_HomeDir()) == NULL) {
+    if((R_Home = getenv("RHOME")) == NULL) {
 	R_Suicide("R home directory is not defined");
     }
 
@@ -636,22 +632,10 @@ int main(int ac, char **av)
 #endif    
 #endif
 
-    if ((R_HistoryFile = getenv("R_HISTFILE")) == NULL)
-	R_HistoryFile = ".Rhistory";
-    R_HistorySize = 512;
-    if ((p = getenv("R_HISTSIZE"))) {
-	value = Decode2Long(p, &ierr);
-	if (ierr != 0 || value < 0)
-	    REprintf("WARNING: invalid R_HISTSIZE ignored;");
-	else
-	    R_HistorySize = value;
-    }
-
 #ifdef HAVE_LIBREADLINE
 #ifdef HAVE_READLINE_HISTORY_H
-    if(isatty(0) && UsingReadline) {
-	read_history(R_HistoryFile);
-    }
+    if(isatty(0) && UsingReadline)
+	read_history(".Rhistory");
 #endif
 #endif
     mainloop();
@@ -704,8 +688,7 @@ void R_CleanUp(int ask)
 #ifdef HAVE_LIBREADLINE
 #ifdef HAVE_READLINE_HISTORY_H
 	    if(isatty(0) && UsingReadline)
-		stifle_history(R_HistorySize);
-		write_history(R_HistoryFile);
+		write_history(".Rhistory");
 #endif
 #endif
 	    break;
@@ -973,14 +956,12 @@ int R_ShowFiles(int nfile, char **file, char **headers, char *wtitle,
 	    for(i = 0; i < nfile; i++) {
 		if (headers[i] && *headers[i])
 		    fprintf(tfp, "%s\n\n", headers[i]);
-		if ((fp = R_fopen(R_ExpandFileName(file[i]), "r"))
-		    != NULL) {
+		if ((fp = fopen(file[i], "r")) != NULL) {
 		    while ((c = fgetc(fp)) != EOF)
 			fputc(c, tfp);
 		    fprintf(tfp, "\n");
 		    fclose(fp);
-		    if(del)
-			unlink(R_ExpandFileName(file[i]));
+		    if(del) unlink(file[i]);
 		}
 		else
 		    fprintf(tfp, "NO FILE %s\n\n", file[i]);
@@ -1000,7 +981,7 @@ int R_ShowFiles(int nfile, char **file, char **headers, char *wtitle,
 
 char *R_HomeDir()
 {
-    return getenv("R_HOME");
+    return getenv("RHOME");
 }
 
 /* Prompt the user for a file name.  Return the length of */

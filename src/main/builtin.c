@@ -145,7 +145,7 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
     FILE *savefp;
     int havefile, append;
     int w, i, iobj, n, nobjs, pwidth, width, sepw, lablen, ntot, nlsep, nlines;
-    char *p = "", buf[512];
+    char *p, buf[512];
 
     checkArity(op, args);
 
@@ -173,7 +173,7 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 	errorcall(call, "invalid fill argument\n");
     if (isLogical(fill)) {
 	if (asLogical(fill) == 1)
-	    pwidth = R_print.width;
+	    pwidth = PRINT_WIDTH;
 	else
 	    pwidth = INT_MAX;
     }
@@ -381,12 +381,10 @@ SEXP do_makevector(SEXP call, SEXP op, SEXP args, SEXP rho)
     else if (mode == REALSXP)
 	for (i = 0; i < len; i++)
 	    REAL(s)[i] = 0.0;
-#ifdef OLD
     else if (mode == STRSXP) {
 	for (i = 0; i < len; i++)
 	    STRING(s)[i] = R_BlankString;
     }
-#endif
     return s;
 }
 

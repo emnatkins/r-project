@@ -6,9 +6,7 @@ cat(\dots , file = "", sep = " ", fill = FALSE, labels = NULL,
 }
 \alias{cat}
 \arguments{
-    \item{\dots}{R objects which are coerced to character strings,
-	concatenated, and printed, with the remaining arguments
-	controlling the output.}
+    \item{\dots}{objects that can be coerced into vectors.}
     \item{file}{character string naming the file to print to.  If
 	\code{""}, \code{cat} prints to the standard output.}
     \item{sep}{character string to insert between the objects to print.}

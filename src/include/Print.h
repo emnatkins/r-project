@@ -23,16 +23,7 @@
 #include "PrtUtil.h"
 #include "Defn.h"
 
-typedef struct {
-    int width;
-    int na_width;
-    int digits;
-    int gap;
-    int quote;
-    int right;
-    SEXP na_string;
-} R_print_par_t;
-extern R_print_par_t R_print;
+extern SEXP print_na_string;
 
 /* Computation of printing formats */
 void formatString(SEXP*, int, int*, int);
@@ -45,15 +36,13 @@ char *EncodeElement(SEXP, int, int);
 void MatrixColumnLabel(SEXP, int, int);
 void RightMatrixColumnLabel(SEXP, int, int);
 void LeftMatrixColumnLabel(SEXP, int, int);
-void MatrixRowLabel(SEXP, int, int, int);
+void MatrixRowLabel(SEXP, int, int);
 
 /* In Defn.h (and MUST be there):
    CustomPrintValue,  PrintValue, PrintValueRec */
 void printArray(SEXP, SEXP, int, SEXP);
-void printMatrix(SEXP, int, SEXP, int, int, SEXP, SEXP, char*, char*);
-void printNamedVector(SEXP, SEXP, int, char*);
+void printMatrix(SEXP, int, SEXP, int, int, SEXP, SEXP);
+void printNamedVector(SEXP, SEXP, int);
 void printVector(SEXP, int, int);
-/* Offset for rowlabels if there are named dimnames */
-#define MIN_LBLOFF 2
 
 #endif

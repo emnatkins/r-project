@@ -56,7 +56,7 @@
 #define BUFSIZE 8192
 /* FIXME: we shouldn't use a fixed BUFSIZE at all
    -----  Rather, e.g. use moderate BUFSIZE (e.g. 256),
-	  then	ALLOCATE  if we need more.
+   	  then  ALLOCATE  if we need more.
  or replace the whole idea of		  sprintf(Encodebuf,..) ?
  */
 static char Encodebuf[BUFSIZE];
@@ -69,7 +69,7 @@ long Decode2Long(char *p, int *ierr)
     if(p[0] == '\0') return v;
     /* else look for letter-code ending : */
     if(R_Verbose)
-	REprintf("Decode2Long(): v=%ld\n", v);
+        REprintf("Decode2Long(): v=%ld\n", v);
     if(p[0] == 'M') {
 	if((Mega * (double)v) > LONG_MAX) { *ierr = 1; return(v); }
 	return (Mega*v);
@@ -90,7 +90,7 @@ long Decode2Long(char *p, int *ierr)
 
 char *EncodeLogical(int x, int w)
 {
-    if(x == NA_LOGICAL) sprintf(Encodebuf, "%*s", w, CHAR(R_print.na_string));
+    if(x == NA_LOGICAL) sprintf(Encodebuf, "%*s", w, CHAR(print_na_string));
     else if(x) sprintf(Encodebuf, "%*s", w, "TRUE");
     else sprintf(Encodebuf, "%*s", w, "FALSE");
     return Encodebuf;
@@ -98,7 +98,7 @@ char *EncodeLogical(int x, int w)
 
 char *EncodeInteger(int x, int w)
 {
-    if(x == NA_INTEGER) sprintf(Encodebuf, "%*s", w, CHAR(R_print.na_string));
+    if(x == NA_INTEGER) sprintf(Encodebuf, "%*s", w, CHAR(print_na_string));
     else sprintf(Encodebuf, "%*d", w, x);
     return Encodebuf;
 }
@@ -110,12 +110,12 @@ char *EncodeReal(double x, int w, int d, int e)
     if (x == 0.0) x = 0.0;
     if (!FINITE(x)) {
 #ifdef IEEE_754
-	if(ISNA(x)) sprintf(Encodebuf, "%*s", w, CHAR(R_print.na_string));
+	if(ISNA(x)) sprintf(Encodebuf, "%*s", w, CHAR(print_na_string));
 	else if(ISNAN(x)) sprintf(Encodebuf, "%*s", w, "NaN");
 	else if(x > 0) sprintf(Encodebuf, "%*s", w, "Inf");
 	else sprintf(Encodebuf, "%*s", w, "-Inf");
 #else
-	sprintf(Encodebuf, "%*s", w, CHAR(R_print.na_string));
+	sprintf(Encodebuf, "%*s", w, CHAR(print_na_string));
 #endif
     }
     else if (e) {
@@ -149,47 +149,27 @@ char *EncodeReal(double x, int w, int d, int e)
 
 char *EncodeComplex(complex x, int wr, int dr, int er, int wi, int di, int ei)
 {
-#if OLD
     char fmt[64], *efr, *efi;
-#else
-    char *Re, *Im, *tmp;
-    int  flagNegIm = 0; 
-#endif   
 
-    /* IEEE allows signed zeros; strip these here */
+    /* IEEE allows signed zeros */
+    /* We strip these here */
+
     if (x.r == 0.0) x.r = 0.0;
     if (x.i == 0.0) x.i = 0.0;
 
-
     if (ISNA(x.r) || ISNA(x.i)) {
-	sprintf(Encodebuf, "%*s%*s", R_print.gap, "", wr+wi+2,
-		CHAR(R_print.na_string));
+	sprintf(Encodebuf, "%*s%*s", PRINT_GAP, "", wr+wi+2,
+		CHAR(print_na_string));
     }
     else {
-#if OLD
-	if(er) efr = "e"; else efr = "f";
-	if(ei) efi = "e"; else efi = "f";
+	if(er) efr = "e";
+	else efr = "f";
+	if(ei) efi = "e";
+	else efi = "f";
 	sprintf(fmt,"%%%d.%d%s%%+%d.%d%si", wr, dr, efr, wi, di, efi);
 	sprintf(Encodebuf, fmt, x.r, x.i);
-#else
 
-	/* EncodeReal returns pointer to static storage so copy */
-
-	tmp = EncodeReal(x.r, wr, dr, er);
-	Re = (char *) calloc(strlen(tmp)+1, sizeof(char));
-	strcpy(Re, tmp);
-	
-	if ( flagNegIm = (x.i < 0) )
-	    x.i = -x.i;
-	tmp = EncodeReal(x.i, wi, di, ei);
-	Im = (char *) calloc(strlen(tmp)+1, sizeof(char));
-	strcpy(Im, tmp);
-
-	sprintf(Encodebuf, "%s%s%si", Re, flagNegIm ? "-" : "+", Im);
-
-	free(Re); free(Im);
     }
-#endif
     return Encodebuf;
 }
 
@@ -244,22 +224,16 @@ int Rstrlen(char *s)
 
 char *EncodeString(char *s, int w, int quote, int right)
 {
-    int b, i ;
+    int b, i;
     char *p, *q;
     q = Encodebuf;
-    i = Rstrlen(s);
-    if( i >  BUFSIZE ) {
-	warning("String is too long to be printed");
-	Encodebuf[0]='\0';
-	return Encodebuf;
-    }
     if(right) { /*Right justifying */
-	b = w - i - (quote ? 2 : 0);
+	b = w - Rstrlen(s) - (quote ? 2 : 0);
 	for(i=0 ; i<b ; i++) *q++ = ' ';
     }
     if(quote) *q++ = quote;
     if (s == CHAR(NA_STRING) )
-	p = CHAR(R_print.na_string);
+	p = CHAR(print_na_string);
     else	p = s;
     while(*p) {
 
@@ -426,8 +400,7 @@ void MatrixColumnLabel(SEXP cl, int j, int w)
 
     if (!isNull(cl)) {
 	l = Rstrlen(CHAR(STRING(cl)[j]));
-	Rprintf("%*s%s", w-l, "",
-		EncodeString(CHAR(STRING(cl)[j]), l, 0, adj_left));
+	Rprintf("%*s%s", w-l, "", EncodeString(CHAR(STRING(cl)[j]), l, 0, adj_left));
     }
     else {
 	Rprintf("%*s[,%ld]", w-IndexWidth(j+1)-3, "", j+1);
@@ -440,11 +413,11 @@ void RightMatrixColumnLabel(SEXP cl, int j, int w)
 
     if (!isNull(cl)) {
 	l = Rstrlen(CHAR(STRING(cl)[j]));
-	Rprintf("%*s", R_print.gap+w,
+	Rprintf("%*s", PRINT_GAP+w,
 		EncodeString(CHAR(STRING(cl)[j]), l, 0, adj_right));
     }
     else {
-	Rprintf("%*s[,%ld]%*s", R_print.gap, "", j+1, w-IndexWidth(j+1)-3, "");
+	Rprintf("%*s[,%ld]%*s", PRINT_GAP, "", j+1, w-IndexWidth(j+1)-3, "");
     }
 }
 
@@ -454,23 +427,20 @@ void LeftMatrixColumnLabel(SEXP cl, int j, int w)
 
     if (!isNull(cl)) {
 	l = Rstrlen(CHAR(STRING(cl)[j]));
-	Rprintf("%*s%s%*s", R_print.gap, "",
-		EncodeString(CHAR(STRING(cl)[j]), l, 0, adj_left), w-l, "");
+	Rprintf("%*s%s%*s", PRINT_GAP, "", EncodeString(CHAR(STRING(cl)[j]), l, 0, adj_left), w-l, "");
     }
     else {
-	Rprintf("%*s[,%ld]%*s", R_print.gap, "", j+1, w-IndexWidth(j+1)-3, "");
+	Rprintf("%*s[,%ld]%*s", PRINT_GAP, "", j+1, w-IndexWidth(j+1)-3, "");
     }
 }
 
-void MatrixRowLabel(SEXP rl, int i, int rlabw, int lbloff)
+void MatrixRowLabel(SEXP rl, int i, int rlabw)
 {
     int l;
 
     if (!isNull(rl)) {
 	l = Rstrlen(CHAR(STRING(rl)[i]));
-	Rprintf("\n%*s%s%*s", lbloff, "",
-		EncodeString(CHAR(STRING(rl)[i]), l, 0, adj_left),
-		rlabw-l-lbloff, "");
+	Rprintf("\n%s%*s", EncodeString(CHAR(STRING(rl)[i]), l, 0, adj_left), rlabw-l, "");
     }
     else {
 	Rprintf("\n%*s[%ld,]", rlabw-3-IndexWidth(i + 1), "", i+1);

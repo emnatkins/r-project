@@ -1,5 +1,5 @@
 #
-# ${R_HOME}/demos/Makefile
+# ${RHOME}/demos/Makefile
 
 VPATH = @srcdir@
 srcdir = @srcdir@

@@ -20,7 +20,7 @@
 #ifndef _R_INTERNALS_H_
 #define _R_INTERNALS_H_
 
-#include "Arith.h"             /*-> Platform.h */
+#include "Arith.h"/*-> Platform.h */
 #include "Complex.h"
 #include "Errormsg.h"
 #include "Memory.h"
@@ -36,21 +36,12 @@
 #include <limits.h>
 #include <float.h>
 #include <ctype.h>
-#ifdef PSIGNAL
-#include <psignal.h>
-#else
-#include <signal.h>
 #include <setjmp.h>
-#endif
+#include <signal.h>
 #include <time.h>
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
-
-#ifdef __MAIN__
-#define extern
-#endif
-
 
 /*  Fundamental Data Types:  These are largely Lisp  */
 /*  influenced structures, with the exception of LGLSXP,  */
@@ -61,7 +52,6 @@
 /*  the withdrawal of native "factor" and "ordered" types.  */
 
 /*			--> TypeTable[] in ../main/util.c for  typeof() */
-
 typedef unsigned int SEXPTYPE;
 
 #define NILSXP	     0	  /* nil = NULL */
@@ -177,7 +167,6 @@ typedef struct SEXPREC {
 #define CDDR(e)		CDR(CDR(e))
 #define CADDR(e)	CAR(CDR(CDR(e)))
 #define CADDDR(e)	CAR(CDR(CDR(CDR(e))))
-#define CAD4R(e)	CAR(CDR(CDR(CDR(CDR(e)))))
 #define CONS(a, b)	cons((a), (b))		/* data lists */
 #define LCONS(a, b)	lcons((a), (b))		/* language lists */
 #define MISSING(x)	((x)->sxpinfo.gp)	/* for closure calls */
@@ -299,7 +288,7 @@ SEXP extendEnv(SEXP, SEXP, SEXP);
 SEXP findVar(SEXP, SEXP);
 SEXP findFun(SEXP, SEXP);
 SEXP getAttrib(SEXP, SEXP);
-void GetMatrixDimnames(SEXP, SEXP*, SEXP*, char**, char**);
+void GetMatrixDimnames(SEXP, SEXP*, SEXP*);
 SEXP GetArrayDimnames(SEXP);
 SEXP GetColNames(SEXP);
 SEXP GetOption(SEXP, SEXP);
@@ -356,8 +345,8 @@ SEXP makeSubscript(SEXP, SEXP, int *);
 SEXP matchArg(SEXP, SEXP*);
 SEXP matchArgs(SEXP, SEXP);
 SEXP matchPar(char*, SEXP*);
-SEXP mkChar(const char*);
-SEXP mkString(const char*);
+SEXP mkChar(char*);
+SEXP mkString(char*);
 SEXP namesgets(SEXP, SEXP);
 int ncols(SEXP);
 int nrows(SEXP);
@@ -382,9 +371,5 @@ void setVar(SEXP, SEXP, SEXP);
 int StringBlank(SEXP);
 void unprotect(int);
 void unprotect_ptr(SEXP);
-
-#ifdef __MAIN__
-#undef extern
-#endif
 
 #endif

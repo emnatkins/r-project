@@ -78,7 +78,7 @@ static SEXP EnlargeVector(SEXP x, int newlen)
 
     /* Sanity Checks */
     if (LOGICAL(GetOption(install("check.bounds"), R_NilValue))[0])
-	warning("assignment outside vector/list limits");
+	warning("assignment outside vector/list limits\n");
     if (!isVector(x))
 	error("attempt to enlarge non-vector\n");
 
@@ -220,14 +220,6 @@ static void SubassignTypeFix(SEXP *x, SEXP *y,
 	}
 	break;
 
-    case 1019:  /* logical    <- vector     */
-    case 1319:  /* integer    <- vector     */
-    case 1419:  /* real       <- vector     */
-    case 1519:  /* complex    <- vector     */
-    case 1619:  /* character  <- vector     */
-	*x = coerceVector(*x, VECSXP);
-	break;
-
     case 2001:	/* expression <- symbol	    */
     case 2006:	/* expression <- language   */
     case 2010:	/* expression <- logical    */
@@ -339,7 +331,7 @@ static SEXP VectorAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 	if (n > 0 && ny == 0)
 	    errorcall(call, "nothing to replace with\n");
 	if (n > 0 && n % ny)
-	    warning("number of items to replace is not a multiple of replacement length");
+	    warning("number of items to replace is not a multiple of replacement length\n");
     }
 
     PROTECT(x);
@@ -1321,22 +1313,18 @@ SEXP do_subassign2(SEXP call, SEXP op, SEXP args, SEXP rho)
     PROTECT(CDR(args) = EvalSubassignArgs(CDR(args), rho));
     SubAssignArgs(args, &x, &subs, &y);
 
-    /* Handle NULL left-hand sides.  If the right-hand side */
-    /* is NULL, just return the left-hand size otherwise, */
-    /* convert to a zero length list (VECSXP). */
-
-    if (isNull(x)) {
-        if (isNull(y)) {
-            UNPROTECT(1);
-	    return x;
-        }
-        UNPROTECT(1);
-        PROTECT(x = allocVector(TYPEOF(y), 0));
+    if (length(x) == 0) {
+	if (length(y) > 1)
+	    x = coerceVector(x, VECSXP);
+	else if (length(y) == 1) {
+	    if (TYPEOF(x) != VECSXP)
+		x = coerceVector(x, TYPEOF(y));
+	}
+	else {
+	    UNPROTECT(1);
+	    return(x);
+	}
     }
-
-    /* Ensure that the LHS is a local variable. */
-    /* If it is not, then make a local copy. */
-
     if (NAMED(x) == 2) {
 	CAR(args) = x = duplicate(x);
     }
@@ -1458,12 +1446,6 @@ SEXP do_subassign2(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    STRING(x)[offset] = STRING(y)[0];
 	    break;
 
-	case 1019:      /* logical    <- vector     */
-	case 1319:      /* integer    <- vector     */
-	case 1419:      /* real       <- vector     */
-	case 1519:      /* complex    <- vector     */
-	case 1619:      /* character  <- vector     */
-
 	case 1901:	/* vector     <- symbol	    */
 	case 1906:	/* vector     <- language   */
 	case 1910:      /* vector     <- logical    */
@@ -1474,6 +1456,7 @@ SEXP do_subassign2(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 	    VECTOR(x)[offset] = VECTOR(y)[0];
 	    break;
+
 
 	case 2001:	/* expression <- symbol	    */
 	case 2006:	/* expression <- language   */
@@ -1606,7 +1589,7 @@ SEXP do_subassign3(SEXP call, SEXP op, SEXP args, SEXP env)
 	SEXP names;
 
 	if (!(isNewList(x) || isExpression(x))) {
-	    warning("Coercing LHS to a list");
+	    warning("Coercing LHS to a list\n");
 	    x = coerceVector(x, VECSXP);
 	}
 	names = getAttrib(x, R_NamesSymbol);

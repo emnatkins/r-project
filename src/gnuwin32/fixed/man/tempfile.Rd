@@ -15,7 +15,7 @@ tempfile(pattern = "file")
 }
 \details{
     The filenames will be in the directory given by the first found of
-    the environment variables \code{TMP}, \code{TEMP} and \code{R_USER}
+    the environment variables \code{TMP}, \code{TEMP} and \code{R_HOME}
     (see \code{\link{Rconsole}}).
 }
 \seealso{\code{\link{unlink}} for deleting files.}

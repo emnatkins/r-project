@@ -18,12 +18,12 @@
  *
  *  SYNOPSIS
  *
- *	#include "Mathlib.h"
- *	double dgamma(double x, double shape, double scale);
+ *    #include "Mathlib.h"
+ *    double dgamma(double x, double shape, double scale);
  *
  *  DESCRIPTION
  *
- *     Computes the density of the gamma distribution.
+ *    Computes the density of the gamma distribution.
  */
 
 #include "Mathlib.h"
@@ -50,7 +50,6 @@ double dgamma(double x, double shape, double scale)
 	}
 	return 1 / scale;
     }
-    x /= scale;
+    x = x / scale;
     return exp((shape - 1) * log(x) - lgammafn(shape) - x) / scale;
 }
-

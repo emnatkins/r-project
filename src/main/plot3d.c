@@ -706,6 +706,7 @@ SEXP do_filledcontour(SEXP call, SEXP op, SEXP args, SEXP env)
 
     colsave = dd->gp.col;
     xpdsave = dd->gp.xpd;
+    /* override par("xpd") and force clipping to plot region */
     dd->gp.xpd = 0;
 
     GMode(1, dd);
@@ -810,6 +811,7 @@ SEXP do_image(SEXP call, SEXP op, SEXP args, SEXP env)
 
     colsave = dd->gp.col;
     xpdsave = dd->gp.xpd;
+    /* override par("xpd") and force clipping to plot region */
     dd->gp.xpd = 0;
 
     GMode(1, dd);
@@ -1366,9 +1368,9 @@ SEXP do_persp(SEXP call, SEXP op, SEXP args, SEXP env)
     double ltheta, lphi;
     double expand, xc, yc, zc, xs, ys, zs;
     int i, j, scale, ncol, dobox;
-    DevDesc *dd = CurrentDevice();
+    DevDesc *dd;
 
-    GCheckState(dd);
+    /* dd = CurrentDevice(); GCheckState(dd); */
 
     if (length(args) < 18)
 	errorcall(call, "too few parameters\n");

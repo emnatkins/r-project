@@ -25,7 +25,7 @@
 #ifndef APPLIC_H_
 #define APPLIC_H_
 
-#include "Platform.h"		/* F77... */
+#include "Platform.h"/* F77... */
 
 void approx(double *, double *, int *, double *, int *,
 	    int *, double *, double *, double *);
@@ -40,16 +40,6 @@ void bincount(double *x, int *n, double *breaks, int *nb, int *count,
 	      int *right, int *include_border, int *naok);
 /*unused*/
 void bincode2(double *, int *, double *, int *, int *, int *, int *);
-
-/* chisqsim.c: */
-void chisqsim(long *nrow, long *ncol, long *nrowt, long *ncolt, long *n,
-	      long *b, double *expected, long *observed, double *fact,
-	      long *jwork, double *results);
-
-/* chull.c -- comments in the source */
-void chull(int *n, double *x, int *m, int *in,
-	   int *ia, int *ib,
-	   int *ih, int *nh, int *il);
 
 /* cpoly.c : */
 int F77_SYMBOL(cpoly)(double *opr, double *opi, int *degree,
@@ -241,7 +231,6 @@ int F77_SYMBOL(optif9)(int *nr, int *n, double *x,
 		       double *xpls, double *fpls, double *gpls,
 		       int *itrmcd, double *a, double *wrk, int *itncnt);
  
-double zeroin(double ax, double bx, double (*f)(double, void *), void *info,
-	      double *tol, int *maxit);
-
+double F77_SYMBOL(zeroin)(double *ax, double *bx, 
+			  D_fp f, double *tol, int *maxiter);
 #endif

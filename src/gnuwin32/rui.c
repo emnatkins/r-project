@@ -25,7 +25,7 @@
 #include "console.h"
 #include "rui.h"
 #include "opt.h"
-#include "Version.h"
+
 
 #define TRACERUI(a)
 
@@ -336,9 +336,9 @@ static void readconsolecfg()
     if (MDIset == -1)
 	RguiMDI = RguiMDI &= ~RW_MDI;
 
-    sprintf(optf, "%s/RConsole", getenv("R_USER"));
+    sprintf(optf, "%s/RConsole", getenv("R_HOME"));
     if (!optopenfile(optf)) {
-	sprintf(optf, "%s/etc/RConsole", getenv("R_HOME"));
+	sprintf(optf, "%s/etc/RConsole", getenv("RHOME"));
 	if (!optopenfile(optf))
 	    return;
     }

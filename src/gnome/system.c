@@ -107,9 +107,7 @@
 
 #include "Defn.h"
 #include "Fileio.h"
-#include "Graphics.h"		/* KillAllDevices() [nothing else?] */
-#include "Version.h"
-
+#include "Graphics.h"/* KillAllDevices() [nothing else?] */
 #include "devGNOME.h"
 
 #ifdef HAVE_LIBREADLINE
@@ -235,40 +233,43 @@ FILE *R_fopen(const char *filename, const char *mode)
 
 FILE *R_OpenLibraryFile(char *file)
 {
-    char buf[256];
+    char buf[256], *rhome;
     FILE *fp;
 
-    sprintf(buf, "%s/library/base/R/%s", R_Home, file);
+    if((rhome = getenv("RHOME")) == NULL)
+	return NULL;
+    sprintf(buf, "%s/library/base/R/%s", rhome, file);
     fp = R_fopen(buf, "r");
     return fp;
 }
 
 FILE *R_OpenSysInitFile(void)
 {
-    char buf[256];
+    char buf[256], *rhome;
     FILE *fp;
 
-    sprintf(buf, "%s/library/base/R/Rprofile", R_Home);
+    if((rhome = getenv("RHOME")) == NULL)
+	return NULL;
+    sprintf(buf, "%s/library/base/R/Rprofile", rhome);
     fp = R_fopen(buf, "r");
     return fp;
 }
 
-
 FILE *R_OpenSiteFile(void)
 {
-    char buf[256];
+    char buf[256], *rhome;
     FILE *fp;
 
     fp = NULL;
 
     if (LoadSiteFile) {
-        if ((fp = R_fopen(getenv("R_PROFILE"), "r")))
-            return fp;
-        if ((fp = R_fopen(getenv("RPROFILE"), "r")))
-            return fp;
-        sprintf(buf, "%s/etc/Rprofile", R_Home);
-        if ((fp = R_fopen(buf, "r")))
-            return fp;
+	if ((fp = R_fopen(getenv("RPROFILE"), "r")))
+	    return fp;
+	if ((rhome = getenv("RHOME")) == NULL)
+	    return NULL;
+	sprintf(buf, "%s/etc/Rprofile", rhome);
+	if ((fp = R_fopen(buf, "r")))
+	    return fp;
     }
 
     return fp;
@@ -282,17 +283,18 @@ FILE *R_OpenInitFile(void)
     fp = NULL;
 
     if (LoadInitFile) {
-        if ((fp = R_fopen(".Rprofile", "r")))
-            return fp;
-        if ((home = getenv("HOME")) == NULL)
-            return NULL;
-        sprintf(buf, "%s/.Rprofile", home);
-        if ((fp = R_fopen(buf, "r")))
-            return fp;
+	if ((fp = R_fopen(".Rprofile", "r")))
+	    return fp;
+	if ((home = getenv("HOME")) == NULL)
+	    return NULL;
+	sprintf(buf, "%s/.Rprofile", home);
+	if ((fp = R_fopen(buf, "r")))
+	    return fp;
     }
 
     return fp;
 }
+
 
 	/*--- Initialization Code ---*/
 
@@ -451,9 +453,6 @@ int main(int ac, char **av)
 
     R_Interactive = 1;
     R_Sinkfile = NULL;
-    if((R_Home = R_HomeDir()) == NULL) {
-        R_Suicide("R home directory is not defined");
-    }
 
     if(!R_Interactive && DefaultSaveAction == 0)
 	R_Suicide("you must specify `--save' or `--no-save'");
@@ -1069,7 +1068,7 @@ int del, char *pager)
 
 char *R_HomeDir()
 {
-    return getenv("R_HOME");
+    return getenv("RHOME");
 }
 
 /* Unix file names which begin with "." are invisible. */

@@ -27,9 +27,10 @@ exp(x)
 }
 \value{
   A vector of the same length as \code{x} containing the transformed
-  values.  \code{log(0)} gives \code{-Inf} (when available).
+  values.
 }
-\seealso{\code{\link{Trig}}, \code{\link{Math}}, \code{\link{Arithmetic}}.
+\seealso{
+  \code{\link{Trig}}, \code{\link{Math}}, \code{\link{Arithmetic}}.
 }
 \examples{
 log(exp(3))

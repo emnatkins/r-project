@@ -1,6 +1,6 @@
-.Library <- file.path(getenv("R_HOME"), "library")
+.Library <- file.path(getenv("RHOME"), "library")
 
-.lib.loc <- unique(c(unlist(strsplit(getenv("R_LIBS"), ";")), .Library))
+.lib.loc <- unique(c(unlist(strsplit(getenv("RLIBS"), ";")), .Library))
 
 options(papersize="a4")
 options(device="X11")

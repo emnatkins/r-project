@@ -19,7 +19,6 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#define __R_Names__
 #include "Defn.h"
 #include "Print.h"
 #include "names.h"
@@ -66,7 +65,6 @@ SEXP do_indexsearch(SEXP, SEXP, SEXP, SEXP);
 SEXP do_surface(SEXP, SEXP, SEXP, SEXP);
 SEXP do_flatContour(SEXP, SEXP, SEXP, SEXP);
 SEXP do_filledcontour(SEXP, SEXP, SEXP, SEXP);
-SEXP do_restart(SEXP, SEXP, SEXP, SEXP);
 
 FUNTAB R_FunTab[] =
 {
@@ -84,7 +82,6 @@ FUNTAB R_FunTab[] =
 {"return",	do_return,	0,	0,	-1,	PP_RETURN},
 {"stop",	do_stop,	0,	11,	1,	PP_FUNCALL},
 {"warning",	do_warning,	0,	111,	1,	PP_FUNCALL},
-{"restart",	do_restart,	0,	11,	1,	PP_FUNCALL},
 {"function",	do_function,	0,	0,	-1,	PP_FUNCTION},
 {"as.function.default",do_asfunction,0,	11,	2,	PP_FUNCTION},
 {"<-",		do_set,		1,	100,	-1,	PP_ASSIGN},
@@ -523,7 +520,6 @@ FUNTAB R_FunTab[] =
 {".C",		do_dotCode,	0,	1,	-1,	PP_FOREIGN},
 {".Fortran",	do_dotCode,	1,	1,	-1,	PP_FOREIGN},
 {".External",   do_External,    0,      1,      -1,     PP_FOREIGN},
-{".Call",       do_dotcall,     0,      1,      -1,     PP_FOREIGN},
 {"dyn.load",	do_dynload,	0,	111,	1,	PP_FUNCALL},
 {"dyn.unload",	do_dynunload,	0,	111,	1,	PP_FUNCALL},
 {"ls",		do_ls,		1,	11,	2,	PP_FUNCALL},
@@ -577,10 +573,6 @@ FUNTAB R_FunTab[] =
 {"date",	do_date,	0,	11,	0,	PP_FUNCALL},
 {"Platform",	do_Platform,	0,	11,	0,	PP_FUNCALL},
 {"index.search",do_indexsearch, 0,      11,     5,      PP_FUNCALL},
-{"getwd",	do_getwd,	0,	11,	0,	PP_FUNCALL},
-{"setwd",	do_setwd,	0,	11,	1,	PP_FUNCALL},
-{"basename",	do_basename,	0,	11,	1,	PP_FUNCALL},
-{"dirname",	do_dirname,	0,	11,	1,	PP_FUNCALL},
 
 /* Complex Valued Functions */
 {"fft",		do_fft,		0,	11,	2,	PP_FUNCALL},
@@ -760,7 +752,7 @@ void InitNames()
 
     NA_STRING = allocString(strlen("NA"));
     strcpy(CHAR(NA_STRING), "NA");
-    R_print.na_string = NA_STRING;
+    print_na_string = NA_STRING;
 
     R_BlankString = mkChar("");
 
@@ -778,8 +770,6 @@ void InitNames()
 
     for (i = 0; R_FunTab[i].name; i++)
 	installFunTab(i);
-
-    R_PreciousList = R_NilValue;
 }
 
 /* install - probe the symbol table */
@@ -838,4 +828,3 @@ SEXP do_internal(SEXP call, SEXP op, SEXP args, SEXP env)
     }
     return (args);
 }
-#undef __R_Names__

@@ -20,7 +20,7 @@ dnl Copyright (C) 1998, 1999 R Core Team
 ### along with R; if not, you can obtain it via the World Wide Web at
 ### `http://www.gnu.org/copyleft/gpl.html', or by writing to the Free
 ### Software Foundation, 59 Temple Place -- Suite 330, Boston, MA
-### 02111-3307, USA.
+### 02111-3307, USE.
 
 AC_INIT(src/include/Defn.h)
 AC_CONFIG_HEADER(src/include/Platform.h)
@@ -29,8 +29,9 @@ AC_CONFIG_HEADER(src/include/Platform.h)
 if test -f ${HOME}/.Rconf; then . ${HOME}/.Rconf; fi
 
 R_MAJOR="0"
-R_MINOR="65.0"
-R_STATUS="Under development (unstable)"
+R_MINOR="64.2"
+R_STATUS=""
+#R_STATUS="Patched (unreleased snapshot)"
 R_STATUS_REV="0"
 
 AC_CONFIG_AUX_DIR(tools)
@@ -47,13 +48,21 @@ set `echo ${host} | tr '-' ' '`
 host_cpu=$1
 host_vendor=$2
 host_os=$3
+
+AC_DEFINE_UNQUOTED(R_MAJOR, "${R_MAJOR}")
+AC_DEFINE_UNQUOTED(R_MINOR, "${R_MINOR}")
+AC_DEFINE_UNQUOTED(R_STATUS, "${R_STATUS}")
+AC_DEFINE_UNQUOTED(R_STATUS_REV, "${R_STATUS_REV}")
+AC_DEFINE_UNQUOTED(R_DAY, "`awk -F/ '{print $3+0}' ${srcdir}/date-stamp`")
+AC_DEFINE_UNQUOTED(R_MONTH, "`awk -F/ '{print $2}' ${srcdir}/date-stamp`")
+AC_DEFINE_UNQUOTED(R_YEAR, "`awk -F/ '{print $1}' ${srcdir}/date-stamp`")
 AC_DEFINE_UNQUOTED(R_PLATFORM, "${host}")
 AC_DEFINE_UNQUOTED(R_CPU, "${host_cpu}")
 AC_DEFINE_UNQUOTED(R_VENDOR, "${host_vendor}")
 AC_DEFINE_UNQUOTED(R_OS, "${host_os}")
 
 PACKAGE="R"
-VERSION=`${srcdir}/tools/GETVERSION`
+VERSION="${R_MAJOR}.${R_MINOR}"
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
 
@@ -142,7 +151,7 @@ AC_PROG_INSTALL
 ## AC_CONFIG_AUX_DIR().
 case ${INSTALL} in
   [[!/]]*install-sh*)
-    INSTALL="\$\(top_srcdir\)/tools/install-sh -c" ;;
+    INSTALL="\$\(top_srcdir\)/${INSTALL}" ;;
 esac
 ## Osman says that this is necessary.
 case ${host} in
@@ -171,31 +180,6 @@ AC_PATH_PROG(R_ZIPCMD, zip, "")
 MAKE=${MAKE-make}
 AC_SUBST(MAKE)
 
-dnl CheckForMakeIncludeSyntax()
-dnl {
-dnl   cat >.Makefile <<EOF
-dnl ${1}
-dnl all:
-dnl EOF
-dnl     (eval "set -x; ${MAKE} -f .Makefile") >&5 2>&1
-dnl }
-dnl if test -z "${MAKE_INCLUDE_DEPS}"; then
-dnl   AC_MSG_CHECKING(whether ${MAKE} supports conditional inclusion)
-dnl   rm -f .Makefile .dummy
-dnl   if CheckForMakeIncludeSyntax "-include .dummy"; then
-dnl     AC_MSG_RESULT(yes)
-dnl     MAKE_INCLUDE_DEPS="-include"
-dnl   elif CheckForMakeIncludeSyntax "sinclude .dummy"; then
-dnl     AC_MSG_RESULT(yes)
-dnl     MAKE_INCLUDE_DEPS="sinclude"
-dnl   else
-dnl     AC_MSG_RESULT(no)
-dnl     MAKE_INCLUDE_DEPS="#include"
-dnl   fi
-dnl   rm -f .Makefile
-dnl fi
-dnl AC_SUBST(MAKE_INCLUDE_DEPS)
-    
 ## Perl.
 
 AC_PATH_PROG(PERL, perl)
@@ -233,6 +217,12 @@ fi
 
 CFLAGS=${CFLAGS-"-g"}
 
+cc_is_gcc=false
+cc_output=`${CC} -v 2>&1 | grep gcc`
+if test -n "${cc_output}"; then
+  cc_is_gcc=true
+fi
+
 case ${host} in
   *hpux*)
     LIBS="-L/lib/pa1.1 ${LIBS}"
@@ -241,26 +231,6 @@ case ${host} in
         CFLAGS="-D_HPUX_SOURCE ${CFLAGS}" ;;
     esac
 esac
-
-AC_MSG_CHECKING([whether ${CC} accepts -M for generating dependencies])
-depend_rules_frag=Makefrag.dep
-echo "#include <math.h>" > conftest.${ac_ext}
-if test -n "`${CC} -M conftest.${ac_ext} | grep conftest`"; then
-  AC_MSG_RESULT(yes)
-  cat << \EOF > ${depend_rules_frag}
-.c.d:
-	@echo "making $@ from $<"
-	@$(CC) -M $(CPPFLAGS) $< -o $@
-EOF
-else
-  AC_MSG_RESULT(no)
-  cat << \EOF > ${depend_rules_frag}
-.c.d:
-	@touch $@
-EOF
-fi
-
-AC_SUBST_FILE(depend_rules_frag)
 
 ## FORTRAN compiler
 
@@ -271,10 +241,8 @@ AC_SUBST_FILE(depend_rules_frag)
 ## force g77, f77, or f2c to be used.  It is also possible to use these
 ## options to specify the full path name of the compiler.
 
-if test -n "${FC}"; then
-  F77=${FC}
-  AC_MSG_RESULT([defining F77 to be ${F77}])  
-elif ${use_f77}; then
+f77_is_g77=false
+if ${use_f77}; then
   if test "${with_f77}" = yes; then
     F77=f77
   else
@@ -297,29 +265,59 @@ elif ${use_f2c}; then
   fi
   AC_MSG_RESULT([defining F2C to be ${F2C}])
 else
-  AC_PATH_PROGS(F77, g77 f77 fort77 f90 xlf cf77 fc)
-  if test -n "${F77}"; then
-    if test -n "`file ${F77} | grep script`"; then
-      dnl If F77 found above is a shell or perl script, don't use it.
-      F77=
-    else
-      F77=`basename ${F77}`
+  if test -z "${FC}"; then
+    AC_PATH_PROGS(F77, g77 f77 fort77 f90 xlf cf77 fc)
+    if test -n "${F77}"; then
+      if test -n "`file ${F77} | grep script`"; then
+        ## If F77 found above is a shell or perl script, don't use it.
+	F77=
+      else
+        F77=`basename ${F77}`
+      fi
     fi
+  else
+    F77=${FC}
   fi
   if test -z "${F77}"; then
     AC_CHECK_PROGS(F2C, f2c)
+  else
+    f77_output=`${F77} -v 2>&1 | egrep "GNU F77|egcs|g77"`
+    if test -n "${f77_output}"; then
+      f77_is_g77=true
+    fi
   fi
 fi
 
 if test -n "${F77}"; then
   FC=${F77}
-  LDCMD=${LDCMD-${CC}}
-  R_PROG_G77
-  if test "${r_cv_f77_is_g77}" = yes; then
-    FFLAGS=${FFLAGS-"-O2"}
+  LDCMD=${LDCMD-${FC}}
+  AC_MSG_CHECKING(for underscore after Fortran symbols)
+  cat > conftestf.f <<EOF
+      subroutine try
+      end
+EOF
+  ${FC} -c ${FFLAGS} conftestf.f 2>/dev/null 1>/dev/null
+  cat > conftest.c <<EOF
+main() { try_(); }
+EOF
+  ${CC} ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} -o conftest \
+    conftest.c conftestf.o 1>/dev/null 2>/dev/null
+  if test ${?} = 0; then
+    AC_MSG_RESULT(yes)
+    AC_DEFINE(HAVE_F77_UNDERSCORE)
+  else
+    cat > conftest.c <<EOF
+main() { try(); }
+EOF
+    ${CC} ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} -o conftest \
+      conftest.c conftestf.o 1>/dev/null 2>/dev/null
+    if test ${?} = 0; then
+      AC_MSG_RESULT(no)
+    else
+      AC_MSG_ERROR([Nothing worked - cannot use FORTRAN])
+    fi
   fi
-  R_F77_APPEND_UNDERSCORE  
-  OCTAVE_FLIBS
+  rm -rf conftest conftest.* conftestf.*
   f77_rules_frag_top=Makefrag.top
   cat << \EOF > ${f77_rules_frag_top}
 .f.c:
@@ -333,21 +331,29 @@ EOF
 	$(FC) $(FFLAGS) $(FPICFLAGS) -c $< -o $@
 EOF
 elif test -n "${F2C}"; then
-  ## This seems to be necessary on some Linux system. -- you bet! -pd
+  ## I cannibalized most of the following out of octave 2.0.5, I have
+  ## only a vague idea how it works... (-pd) 
+  ##
+  ## This seems to be necessary on some Linux system.
+  ## -- you bet! -pd
   cat > conftest.${ac_ext} << EOF
 int MAIN_ () { return 0; }
 int MAIN__ () { return 0; }
 EOF
+  ## XXX FIXME XXX -- these shouldn't be fixed names, eh?
+  R_conflib=libconflib.a
+  R_obj_ext=o
   if AC_TRY_EVAL(ac_compile); then
-    ${AR} ${ARFLAGS} libconftest.a conftest.o 1>&AC_FD_CC
-    if test -n "${RANLIB}"; then
-      ${RANLIB} libconftest.a 1>&AC_FD_CC
+    $AR $ARFLAGS $R_conflib conftest.$R_obj_ext 1>&AC_FD_CC
+    if test -n "$RANLIB"; then
+      $RANLIB $R_conflib 1>&AC_FD_CC
     fi
   fi
+  rm -f conftest*
+
   LDCMD=${LDCMD-${CC}}
   AC_DEFINE(HAVE_F77_UNDERSCORE)
-  AC_CHECK_LIB(f2c, f_open, FLIBS=-lf2c, FLIBS=, -L. -lconftest -lm)
-  rm -f libconftest*
+  AC_CHECK_LIB(f2c, f_open, FLIBS=-lf2c, FLIBS=, -L. -lconflib -lm)
   if test -z "${FLIBS}"; then
     AC_CHECK_LIB(F77, d_sin, FLIBS=-lF77, FLIBS=, -lm)
     if test -n "${FLIBS}"; then
@@ -361,18 +367,22 @@ EOF
   ## for some reason these can't be .f.c/.f.o, at least in GNU make
   ## this probably makes *other* makes useless... (-pd)
   cat << \EOF > ${f77_rules_frag_top}
-%.c: %.f
+%.c : %.f
 	cat $< | $(F2C) $(F2CFLAGS) > $(@F)
-%.o: %.f
+%.o : %.f
 EOF
   f77_rules_frag_etc=Makefrag.etc
   cat << \EOF > ${f77_rules_frag_etc}
-%.c: %.f
+%.c : %.f
 	cat $< | $(F2C) $(F2CFLAGS) > $(@F)
-%.o: %.f
+%.o : %.f
 EOF
 else
   AC_MSG_ERROR([Neither an F77 compiler nor f2c found])
+fi
+
+if test "${FC}" = g77; then
+  FFLAGS=${FFLAGS-"-O2"}
 fi
 
 AC_SUBST(FC)
@@ -436,6 +446,7 @@ AC_SUBST(FLIBS)
 if ${use_readline}; then
   AC_CHECK_LIB(readline, rl_callback_read_char)
 fi
+
 if ${use_gnome}; then
   GNOME_INIT_HOOK([],cont)
 fi
@@ -455,16 +466,16 @@ AC_SUBST(RGNOMEBIN)
 
 AC_FUNC_VFORK
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(acosh asinh atanh bcopy finite getcwd isfinite isnan \
-  matherr memcpy memmove regcomp rint siglongjmp sigsetjmp strcoll  \
-  strtod strtol system times __setfpucw)
+AC_CHECK_FUNCS(acosh asinh atanh bcopy finite isfinite isnan\
+  matherr memcpy \
+  memmove regcomp rint strcoll strtod strtol system times sigsetjmp\
+  siglongjmp __setfpucw)
 
 ### Header files
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS(dl.h dlfcn.h elf.h ieee754.h ieeefp.h hdf5.h limits.h \
-  locale.h readline/history.h rpc/xdr.h sys/param.h sys/times.h time.h \
-  unistd.h)
+AC_CHECK_HEADERS(dl.h dlfcn.h elf.h locale.h readline/history.h \
+  rpc/xdr.h sys/times.h time.h ieeefp.h ieee754.h unistd.h hdf5.h)
 case ${host} in
   *sunos4*)
     AC_DEFINE(SunOS4) ;;
@@ -478,28 +489,14 @@ AC_TYPE_SIGNAL
 
 AC_C_CONST
 AC_CHECK_SIZEOF(long, 4)
-
-AC_MSG_CHECKING(whether log is broken)
-AC_TRY_RUN(
-  changequote(<<, >>)dnl
-  <<
-  #include <math.h>
-  #include "confdefs.h"
-  int main () {
-  #ifdef HAVE_ISNAN
-    return(!(log(0.) == -1. / 0. && isnan(log(-1.))));
-  #else
-    return(log(0.) != -1. / 0);
-  #endif
-  }
-  >>,
-  changequote([, ])dnl
-  AC_MSG_RESULT(no),
-  AC_MSG_RESULT(yes)
-  AC_DEFINE(LOG_BROKEN),
-  AC_MSG_WARN(cannot determine when cross-compiling)
-)
-
+SIZEOF_LONG=`grep SIZEOF_LONG confdefs.h | sed 's/.* //'`
+if test ${SIZEOF_LONG} -lt 4; then
+  echo "Size of long must be at least 32 bits"
+  exit 32
+elif test ${SIZEOF_LONG} -eq 4; then
+  AC_DEFINE(LONG_32_BITS)
+fi
+  
 case ${host} in
   *irix*)
     AC_MSG_CHECKING(whether compilers need -OPT:IEEE_NaN_inf=ON)
@@ -524,7 +521,7 @@ esac
 
 ##  DLL linking.
 
-SHLIBLD=${CC}
+SHLIBLD=ld
 SHLIBEXT=so
 
 #  We create a fake Imakefile and then run xmkmf so that we can
@@ -537,7 +534,7 @@ SHLIBEXT=so
 #
 #  Damn!  It seems that this can lead to using the wrong options
 #  if the CC we have differs from that which imake knows about.
-#  Lets always use -fpic when CC is gcc.
+#  Lets always use -fpic when CC=gcc.
 #
 #  As a final safeguard, any options specified in config.site will
 #  override anything we discover below.
@@ -560,7 +557,7 @@ else
     Please set CPICFLAGS, FPICFLAGS and SHLIBLDFLAGS in \`config.site'.])
 fi
 
-if test "${GCC}" = yes; then
+if test "${CC}" = gcc; then
   cpicflags=-fpic
 fi
 
@@ -571,14 +568,6 @@ SHLIBLDFLAGS=${SHLIBLDFLAGS-${shlibldflags}}
 ## Individual platform overrides.
 
 case "${host}" in
-  *aix4.[2-9]*)
-    LDCMD="\$(top_srcdir)/tools/ldAIX4"
-    DLLFLAGS="f77 -bdynamic"
-    SHLIBLD=f77
-    SHLIBLDFLAGS="-bM:SRE -H512 -T512 -bnoentry -bexpall \
-      -bI:\$(top_builddir)/src/main/lib.exp"
-    AC_DEFINE(HAVE_NO_SYMBOL_UNDERSCORE)
-    ;;
   alpha*osf*)
     CFLAGS="-ieee_with_inexact ${CFLAGS}"
     AC_DEFINE(HAVE_NO_SYMBOL_UNDERSCORE)
@@ -587,12 +576,7 @@ case "${host}" in
     ;;
   alpha*linux)
     CFLAGS="-mieee ${CFLAGS}"
-    FFLAGS="-mieee ${FFLAGS}"
     DLLFLAGS=-export-dynamic
-    ;;
-  *freebsd3.*)
-    DLLFLAGS=-export-dynamic
-    SHLIBLDFLAGS="-shared"
     ;;
   *linuxaout)
     sed '/HAVE_ELF_H/d' confdefs.h > tmp.h ; mv tmp.h confdefs.h
@@ -612,12 +596,12 @@ case "${host}" in
     ;;
   *sgi*)
     SHLIBLDFLAGS="-shared"
-    if test "${GCC}" = yes; then
+    if ${cc_is_gcc}; then
       CPICFLAGS=-fPIC
     else
       CPICFLAGS=-KPIC
     fi
-    if test "${r_cv_f77_is_g77}" = yes; then
+    if ${f77_is_g77}; then
       FPICFLAGS=-fPIC
     else
       FPICFLAGS=-KPIC
@@ -638,12 +622,12 @@ case "${host}" in
     ;;
   *solaris*)
     SHLIBLDFLAGS="-G"
-    if test "${GCC}" = yes; then
+    if ${cc_is_gcc}; then
       CPICFLAGS=-fPIC
     else
       CPICFLAGS=-KPIC
     fi
-    if test "${r_cv_f77_is_g77}" = yes; then
+    if ${f77_is_g77}; then
       FPICFLAGS=-fPIC
     else
       FPICFLAGS=-PIC

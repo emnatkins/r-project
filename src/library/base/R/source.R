@@ -1,7 +1,7 @@
 source <-
   function (file, local = FALSE, echo = verbose, print.eval = echo,
             verbose = .Options$verbose, prompt.echo = .Options$prompt,
-            max.deparse.length = 150, chdir = FALSE)
+            max.deparse.length = 150)
 {
     envir <- if (local)
         sys.frame(sys.parent())
@@ -10,12 +10,12 @@ source <-
         if (!is.logical(echo))
             stop("echo must be logical")
         if (!echo && verbose) {
-            warning("verbose is TRUE, echo not; ... coercing `echo <- TRUE'")
+            warning("verbose is TRUE, echo not; ... coercing 'echo <- TRUE'")
             echo <- TRUE
         }
     }
     if (verbose) {
-        cat("`envir' chosen:")
+        cat("'envir' chosen:")
         print(envir)
     }
     Ne <- length(exprs <- parse(n = -1, file = file))
@@ -23,12 +23,7 @@ source <-
         cat("--> parsed", Ne, "expressions; now eval(.)ing them:\n")
     if (Ne == 0)
         return(invisible())
-    if (chdir && (path <- dirname(file)) != ".") {
-        owd <- getwd()
-        on.exit(setwd(owd))
-        setwd(path)
-    }
-    #-- ass1 :  the  `<-' symbol/name
+    #-- ass1 :  the  '<-' symbol/name
     ass1 <- expression(y <- x)[[1]][[1]]
     if (echo) {
         ## Reg.exps for string delimiter/ NO-string-del / odd-number-of-str.del
@@ -106,7 +101,7 @@ demo <- function(topic, device = .Options$device)
     dimnames(Topics)[[1]] <- c("dir", "file", "flag")
     topic.names <- dimnames(Topics)[[2]]
     demo.help <- function() {
-	cat("Use `demo(topic)' where choices for argument `topic' are:\n")
+	cat("Use ``demo(topic)'' where choices for argument `topic' are:\n")
 	cbind(topics = topic.names)
     }
     if(missing(topic)) return(demo.help())
@@ -143,7 +138,7 @@ function (topic, package = .packages(), lib.loc = .lib.loc, echo = TRUE,
     INDICES <- system.file(pkg = package, lib = lib.loc)
     file <- index.search(topic, INDICES, "AnIndex", "R-ex")
     if (file == "") {
-        warning(paste("No help file found for `", topic, "'", sep = ""))
+        warning(paste("No help file found for'", topic, "'", sep = ""))
         return(invisible())
     }
     comp <- strsplit(file, .Platform$file.sep)[[1]]
@@ -156,12 +151,13 @@ function (topic, package = .packages(), lib.loc = .lib.loc, echo = TRUE,
     if(zfile != file) on.exit(unlink(zfile))
     ## end of experimental code
     if (!file.exists(zfile)) {
-        warning(paste("`", topic, "' has a help file but no examples file",
+        warning(paste("'", topic, "' has a help file but no examples file",
                       sep = ""))
         return(invisible())
     }
     if (pkg != "base")
         library(pkg, lib = lib, character.only = TRUE)
-    source(zfile, echo = echo, prompt.echo = prompt.echo, verbose =
-           verbose, max.deparse.length = 250)
+    source(zfile, echo = echo, prompt.echo = prompt.echo, verbose = verbose,
+           max.deparse.length = 250)
 }
+

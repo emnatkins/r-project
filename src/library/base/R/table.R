@@ -1,15 +1,9 @@
-table <- function (..., exclude = c(NA, NaN), dnn = deparse.list(...)) {
+table <- function (..., exclude = c(NA, NaN)) {
     args <- list(...)
     if (length(args) == 0)
 	stop("nothing to tabulate")
-    if (length(args) == 1 && is.list(args[[1]])) {
+    if (length(args) == 1 && is.list(args[[1]]))
 	args <- args[[1]]
-	if (length(dnn) != length(args))
-	    dnn <- if (!is.null(argn <- names(args))) 
-	         argn 
-	    else 
-                 paste(dnn[1],1:length(args),sep='.') 
-    }
     bin <- 0
     lens <- NULL
     dims <- integer(0)
@@ -30,7 +24,6 @@ table <- function (..., exclude = c(NA, NaN), dnn = deparse.list(...)) {
 	bin <- bin + pd * (as.integer(cat) - 1)
 	pd <- pd * nl
     }
-    names(dn) <- dnn
     bin <- bin[!is.na(bin)]
     array(tabulate(bin + 1, pd), dims, dimnames = dn)
 }

@@ -33,7 +33,7 @@
 ## ==> Consequence: Allow \verbatim{ ...}  only *within* other
 ##     top-level blocks ...
 
-require "$R_HOME/etc/html-layout.pl";
+require "$RHOME/etc/html-layout.pl";
 
 
 # names of unique text blocks, these may NOT appear MORE THAN ONCE!
@@ -1520,9 +1520,9 @@ sub latex_code_cmd {
     my $code = $_[0];
 
     if($code =~ /[$LATEX_SPECIAL]/){
-	warn("\nERROR: found `\@' in \\code{...\}\n")
+	die("\nERROR: found `\@' in \\code{...\}\n")
 	  if $code =~ /@/;
-	warn("\nERROR: found `HYPERLINK(' in \$code: '" . $code ."'\n")
+	die("\nERROR: found `HYPERLINK(' in \$code: '" . $code ."'\n")
 	  if $code =~ /HYPERLINK\(/;
 	## till 0.63.1 
 	## $code = "\\verb@" . $code . "@";

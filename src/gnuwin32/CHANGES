@@ -1,17 +1,3 @@
-rw0650
-======
-
-The environment variables have been changed: R_HOME is now R's home
-and R_USER is the HOME for the user which will be used by R (and
-defaults to HOME, if set).
-
-New flag --no-environ suppresses reading .Renviron and is implied by
---vanilla.
-
-More support for building R into other applications: see the examples
-in the front-ends directory of the source distribution.
-
-
 rw0642
 ======
 

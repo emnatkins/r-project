@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--1999  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--1998  Robert Gentleman, Ross Ihaka and the
  *                            R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -398,6 +398,7 @@ static unsigned int GetPseudoColor1Pixel(int r, int g, int b)
 
 static unsigned int GetPseudoColor2Pixel(int r, int g, int b)
 {
+    XColor newxcolor;
     int i;
     /* Search for previously allocated color */
     for (i = 0; i < PaletteSize ; i++) {
@@ -538,13 +539,10 @@ static int SetupX11Color()
 	printf("Unknown Visual\n");
 	return 0;
     }
-    whitepixel = GetX11Pixel(255, 255, 255);
-    blackpixel = GetX11Pixel(0, 0, 0);
     return 1;
 }
 
         /* Pixel Dimensions (Inches) */
-
 
 static double pixelWidth(void)
 {
@@ -912,6 +910,8 @@ static int X11_Open(DevDesc *dd, x11Desc *xd, char *dsp,
 	devPtrContext = XUniqueContext();
 	displayOpen = 1;
     }
+    whitepixel = GetX11Pixel(255, 255, 255);
+    blackpixel = GetX11Pixel(0, 0, 0);
 
     if (!SetBaseFont(xd)) {
 	Rprintf("can't find X11 font\n");
@@ -1711,10 +1711,21 @@ int X11ConnectionNumber()
 	return 0;
 }
 
-int
-GnomeDeviceDriver(DevDesc *dd, char *display, double width, double
-		  height, double pointsize)
+	/* X11 Color Allocation code */
+
+/* return the position of the highest set bit in ul */
+/* as an integer (0-31), or -1 if none */
+static int highbit(unsigned long ul)
 {
-    return 0;
+    int i;  unsigned long hb;
+    hb = 0x8000;  hb = (hb<<16);  /* hb = 0x80000000UL */
+    for (i=31; ((ul & hb) == 0) && i>=0;  i--, ul<<=1);
+    return i;
+}
+
+int GnomeDeviceDriver(DevDesc *dd, char *display,
+		    double width, double height, double pointsize)
+{
+  return 0;
 }
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# ${R_HOME}/bin/SHLIB
+# ${RHOME}/bin/SHLIB
 
 # @configure_input@
 
@@ -35,7 +35,7 @@ while test -n "${1}"; do
   shift
 done
 
-${MAKE} -f ${R_HOME}/etc/Makeconf SHLIB="${lib}" OBJS="${OBJS}"
+${MAKE} -f ${RHOME}/etc/Makeconf SHLIB="${lib}" OBJS="${OBJS}"
 
 ### Local Variables: ***
 ### mode: sh ***

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997-1999  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--1999  Robert Gentleman, Ross Ihaka and the
  *                            R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -166,17 +166,15 @@
 #include "devga.h"
 #include <windows.h>
 #include "run.h"
-#include "Startup.h"
-#include "Version.h"
 
 static int DefaultSaveAction = 0;
 static int DefaultRestoreAction = 1;
 static int LoadSiteFile = 1;
 static int LoadInitFile = 1;
 static int DebugInitFile = 0;
-static int NoRenviron = 0;
 
-UImode  CharacterMode;
+int   CharacterMode;
+static int PipedInput = 0;
 int   ConsoleAcceptCmd;
 
 /* used to avoid some flashing during cleaning up */
@@ -185,10 +183,6 @@ int   setupui(void);
 void  delui(void);
 
 int   UserBreak = 0;
-/* callbacks */
-static void (*R_CallBackHook) ();
-static void R_DoNothing() {}
-static void (*my_R_Busy)(int);
 
 void ProcessEvents(void)
 {
@@ -199,31 +193,36 @@ void ProcessEvents(void)
 	UserBreak = 0;
 	error("user break\n");
     }
-    R_CallBackHook();
 }
 
-static void char_message(char *s)
+static void my_message(char *s)
 {
     if (!s) return;
-    R_WriteConsole(s, strlen(s));
+    if (CharacterMode)
+	R_WriteConsole(s, strlen(s));
+    else
+	askok(s);
 }
 
-static int char_yesnocancel(char *s)
+static int my_yesnocancel(char *s)
 {
     char  a[3], ss[128];
 
-    sprintf(ss, "%s [y/n/c]: ", s);
-    R_ReadConsole(ss, a, 3, 0);
-    switch (a[0]) {
-    case 'y':
-    case 'Y':
-	return YES;
-    case 'n':
-    case 'N':
-	return NO;
-    default:
-	return CANCEL;
-    }
+    if (CharacterMode) {
+	sprintf(ss, "%s [y/n/c]: ", s);
+	R_ReadConsole(ss, a, 3, 0);
+	switch (a[0]) {
+	  case 'y':
+	  case 'Y':
+	    return YES;
+	  case 'n':
+	  case 'N':
+	    return NO;
+	  default:
+	    return CANCEL;
+	}
+    } else
+	return askyesnocancel(s);
 }
 
 
@@ -289,7 +288,7 @@ static void GuiWriteConsole(char *buf,int len)
 /*2:*/
 static char LastLine[512];
 
-int CharReadConsole(char *prompt, char *buf, int len, int addtohistory)
+static int CharReadConsole(char *prompt, char *buf, int len, int addtohistory)
 {
     static char *gl = NULL;
     int   i;
@@ -310,7 +309,7 @@ int CharReadConsole(char *prompt, char *buf, int len, int addtohistory)
     return 1;
 }
 
-void CharWriteConsole(char *buf, int len)
+static void CharWriteConsole(char *buf, int len)
 {
     char *p = strrchr(buf, '\n');
 
@@ -420,8 +419,10 @@ void R_ResetConsole()
 
 void R_FlushConsole()
 {
-    if (CharacterMode == RTerm) fflush(stdin);
-    else if (CharacterMode == RGui) consoleflush(RConsole);
+    if (CharacterMode)
+	fflush(stdin);
+    else
+	consoleflush(RConsole);
 }
 
 
@@ -429,7 +430,7 @@ void R_FlushConsole()
 
 void R_ClearerrConsole()
 {
-    if (CharacterMode == RTerm)  clearerr(stdin);
+    if (CharacterMode)  clearerr(stdin);
 }
 
 
@@ -471,8 +472,6 @@ FILE *R_OpenSiteFile(void)
     fp = NULL;
 
     if (LoadSiteFile) {
-	if ((fp = R_fopen(getenv("R_PROFILE"), "r")))
-	    return fp;
 	if ((fp = R_fopen(getenv("RPROFILE"), "r")))
 	    return fp;
 	sprintf(buf, "%s/etc/Rprofile", R_Home);
@@ -492,7 +491,7 @@ FILE *R_OpenInitFile(void)
     if (LoadInitFile) {
 	if ((fp = R_fopen(".Rprofile", "r")))
 	    return fp;
-	sprintf(buf, "%s/.Rprofile", getenv("R_USER"));
+	sprintf(buf, "%s/.Rprofile", getenv("R_HOME"));
 	if ((fp = R_fopen(buf, "r")))
 	    return fp;
     }
@@ -506,11 +505,10 @@ FILE *R_OpenInitFile(void)
 static long StartTime;
 #endif
 
-static char RHome[MAX_PATH + 7];
-static char UserRHome[MAX_PATH + 7];
-static char RUser[MAX_PATH];
+static char RHome[MAX_PATH + 6];
+static char UserRHome[MAX_PATH + 6];
 char *getRHOME();
-void closeAllHlpFiles();
+void  closeAllHlpFiles();
 void UnLoad_Unzip_Dll();
 
 
@@ -531,7 +529,7 @@ static void processRenviron()
     char *opt[2], optf[MAX_PATH], buf[80];
     int   ok;
 
-    sprintf(optf, "%s/.Renviron", getenv("R_USER"));
+    sprintf(optf, "%s/.Renviron", getenv("R_HOME"));
     if (!optopenfile(optf))
 	return;
     while ((ok = optread(opt, '='))) {
@@ -542,61 +540,6 @@ static void processRenviron()
 }
 
 
-void GuiBusy(int which)
-{
-	if (which == 1) gsetcursor(RConsole, WatchCursor);
-	if (which == 0) gsetcursor(RConsole, ArrowCursor);
-}
-
-void CharBusy(int which)
-{
-}
-
-void R_Busy(int which)
-{
-    my_R_Busy(which);
-}
-
-int R_SetParams(Rstart Rp)
-{
-    R_Home = Rp->rhome;
-    sprintf(RHome, "R_HOME=%s", R_Home);
-    putenv(RHome);
-    strcpy(UserRHome, "R_USER=");
-    strcat(UserRHome, Rp->home);
-    putenv(UserRHome);
-
-    CharacterMode = Rp->CharacterMode;
-    TrueReadConsole = Rp->ReadConsole;
-    TrueWriteConsole = Rp->WriteConsole;
-    R_CallBackHook = Rp->CallBack;
-    R_ShowMessage = Rp->message;
-    R_yesnocancel = Rp->yesnocancel;
-    my_R_Busy = Rp->busy;    
-    R_Quiet = Rp->R_Quiet;
-    R_Slave = Rp->R_Slave;
-    R_Interactive = Rp->R_Interactive;
-    R_Verbose = Rp->R_Verbose;
-    DefaultRestoreAction = Rp->RestoreAction;
-    DefaultSaveAction = Rp->SaveAction;
-    LoadSiteFile = Rp->LoadSiteFile;
-    LoadInitFile = Rp->LoadInitFile;
-    DebugInitFile = Rp->DebugInitFile;
-    NoRenviron = Rp->NoRenviron;
-    R_VSize = Rp->vsize;
-    R_NSize = Rp->nsize;
-
-/* Process ~/.Renviron, if it exists. This may already have been done
- * in case R_VSIZE and R_NSIZE are set there.
- */
-    if(!Rp->NoRenviron) processRenviron();
-#ifdef Win32    
-    /* in case caller uses getline */
-    gl_events_hook = ProcessEvents;
-    _controlfp(_MCW_EM, _MCW_EM);
-#endif
-    return 0;
-}
 
 #define Max_Nsize 20000000	/* must be < LONG_MAX (= 2^32 - 1 =)
 				   2147483647 = 2.1e9 */
@@ -605,106 +548,87 @@ int R_SetParams(Rstart Rp)
 #define Min_Nsize 200000
 #define Min_Vsize (2*Mega)
 
-
 int cmdlineoptions(int ac, char **av)
 {
     int   value, ierr, nset = 0, vset = 0;
     char *p;
     char  s[1024];
-    structRstart rstart;
-    Rstart Rp = &rstart;
-
-    Rp->R_Quiet = 0;
-    Rp->R_Slave = 0;
-    Rp->R_Verbose = 0;
-    Rp->SaveAction = 1;
-    Rp->RestoreAction = 1;
-    Rp->LoadSiteFile = 1;
-    Rp->LoadInitFile = 1;
-    Rp->DebugInitFile = 0;
-    Rp->NoRenviron = 0;
-    Rp->vsize = R_VSIZE;
-    Rp->nsize = R_NSIZE;
 
 /* Here so that -ess and similar can change */
-    Rp->CallBack = R_DoNothing;
-    if (CharacterMode == RTerm) {
+    PipedInput = 0;
+    if (CharacterMode) {
 	if (isatty(0)) {
-	    Rp->R_Interactive = 1;
+	    R_Interactive = 1;
+	    R_Consolefile = NULL;
+	    R_Outputfile = NULL;
+	    gl_events_hook = ProcessEvents;
 	    LastLine[0] = 0;
-	    Rp->ReadConsole = CharReadConsole;
-	    Rp->WriteConsole = CharWriteConsole;
+	    TrueReadConsole = CharReadConsole;
+	    TrueWriteConsole = CharWriteConsole;
 	} else {
-	    Rp->R_Interactive = 0;
-	    R_Consolefile = stdout; /* used for errors */
-	    R_Outputfile = stdout;  /* used for sink-able output */
-	    Rp->ReadConsole = FileReadConsole;
-	    Rp->WriteConsole = FileWriteConsole;
+	    R_Interactive = 0;
+	    R_Consolefile = stdout;
+	    R_Outputfile = stdout;
+	    TrueReadConsole = FileReadConsole;
+	    TrueWriteConsole = FileWriteConsole;
 	}
-	Rp->message = char_message;
-	Rp->yesnocancel = char_yesnocancel;
-	Rp->busy = CharBusy;
     } else {
-	Rp->R_Interactive = 1;
-	Rp->ReadConsole = GuiReadConsole;
-	Rp->WriteConsole = GuiWriteConsole;
-	Rp->message = askok;
-	Rp->yesnocancel = askyesnocancel;
-	Rp->busy = GuiBusy;
+	R_Interactive = 1;
+	R_Consolefile = NULL;
+	R_Outputfile = NULL;
+	TrueReadConsole = GuiReadConsole;
+	TrueWriteConsole = GuiWriteConsole;
     }
-
-    R_ShowMessage = Rp->message; /* used here */
+    R_Sinkfile = NULL;
 
 #ifdef HAVE_TIMES
     StartTime = currenttime();
 #endif
+    R_Quiet = 0;
 
-/*    DefaultSaveAction = 1;*/
+    DefaultSaveAction = 1;
 
     while (--ac) {
 	if (**++av == '-') {
 	    if (!strcmp(*av, "-V") || !strcmp(*av, "--version")) {
-		sprintf(s, "Version %s.%s %s (%s %s, %s)\nCopyright (C) %s R Develpment Core Team\n\n",
+		sprintf(s, "Version %s.%s %s (%s %s, %s)\nCopyright (C) %s R Core Team\n\n",
 		R_MAJOR, R_MINOR, R_STATUS, R_MONTH, R_DAY, R_YEAR, R_YEAR);
 		strcat(s, "R is free software and comes with ABSOLUTELY NO WARRANTY.\n");
 		strcat(s, "You are welcome to redistribute it under the terms of the\n");
 		strcat(s, "GNU General Public License.  For more information about\n");
 		strcat(s, "these matters, see http://www.gnu.org/copyleft/gpl.html.\n");
-		R_ShowMessage(s);
+		my_message(s);
 		exit(0);
 	    } else if (!strcmp(*av, "--save")) {
-		Rp->SaveAction = 3;
+		DefaultSaveAction = 3;
 	    } else if (!strcmp(*av, "--no-save")) {
-		Rp->SaveAction = 2;
+		DefaultSaveAction = 2;
 	    } else if (!strcmp(*av, "--restore")) {
-		Rp->RestoreAction = 1;
+		DefaultRestoreAction = 1;
 	    } else if (!strcmp(*av, "--no-restore")) {
-		Rp->RestoreAction = 0;
+		DefaultRestoreAction = 0;
 	    } else if (!strcmp(*av, "--silent") ||
 		       !strcmp(*av, "--quiet") ||
 		       !strcmp(*av, "-q")) {
 		R_Quiet = 1;
 	    } else if (!strcmp(*av, "--vanilla")) {
-		Rp->SaveAction = 2;	/* --no-save */
-		Rp->RestoreAction = 0;	/* --no-restore */
-		Rp->LoadSiteFile = 0;	/* --no-site-file */
-		Rp->LoadInitFile = 0;	/* --no-init-file */
-		Rp->NoRenviron = 1;
+		DefaultSaveAction = 2;	/* --no-save */
+		DefaultRestoreAction = 0;	/* --no-restore */
+		LoadSiteFile = 0;	/* --no-site-file */
+		LoadInitFile = 0;	/* --no-init-file */
 	    } else if (!strcmp(*av, "--verbose")) {
 		R_Verbose = 1;
 	    } else if (!strcmp(*av, "--slave") ||
 		       !strcmp(*av, "-s")) {
-		Rp->R_Quiet = 1;
-		Rp->R_Slave = 1;
-		Rp->SaveAction = 2;
+		R_Quiet = 1;
+		R_Slave = 1;
+		DefaultSaveAction = 2;
 	    } else if (!strcmp(*av, "--no-site-file")) {
-		Rp->LoadSiteFile = 0;
+		LoadSiteFile = 0;
 	    } else if (!strcmp(*av, "--no-init-file")) {
-		Rp->LoadInitFile = 0;
+		LoadInitFile = 0;
 	    } else if (!strcmp(*av, "--debug-init")) {
-		Rp->DebugInitFile = 1;
-	    } else if (!strcmp(*av, "--no-environ")) {
-		Rp->NoRenviron = 1;
+		DebugInitFile = 1;
 	    } else if (!strcmp(*av, "-save") ||
 		       !strcmp(*av, "-nosave") ||
 		       !strcmp(*av, "-restore") ||
@@ -713,10 +637,10 @@ int cmdlineoptions(int ac, char **av)
 		       !strcmp(*av, "-quiet") ||
 		       !strcmp(*av, "-V")) {
 		sprintf(s, "WARNING: option %s no longer supported", *av);
-		R_ShowMessage(s);
+		my_message(s);
 	    } else if ((value = (*av)[1] == 'v') || !strcmp(*av, "--vsize")) {
 		if (value)
-		    R_ShowMessage("WARNING: option `-v' is deprecated. Use `--vsize' instead.\n");
+		    my_message("WARNING: option `-v' is deprecated. Use `--vsize' instead.\n");
 		if (!value || (*av)[2] == '\0') {
 		    ac--;
 		    av++;
@@ -724,7 +648,7 @@ int cmdlineoptions(int ac, char **av)
 		} else
 		    p = &(*av)[2];
 		if (p == NULL) {
-		    R_ShowMessage("WARNING: no vsize given");
+		    my_message("WARNING: no vsize given");
 		    break;
 		}
 		value = Decode2Long(p, &ierr);
@@ -733,23 +657,23 @@ int cmdlineoptions(int ac, char **av)
 			goto badargs;	/* if(*p) goto badargs; */
 		    sprintf(s, "--vsize %d'%c': too large", value,
 			    (ierr == 1) ? 'M' : ((ierr == 2) ? 'K' : 'k'));
-		    R_ShowMessage(s);
+		    my_message(s);
 		}
 		if (value < 1000) {
-		    R_ShowMessage("WARNING: vsize ridiculously low, Megabytes assumed\n");
+		    my_message("WARNING: vsize ridiculously low, Megabytes assumed\n");
 		    value *= Mega;
 		}
 		if (value < Min_Vsize || value > Max_Vsize) {
 		    sprintf(s, "WARNING: invalid v(ector heap)size '%d' ignored;"
 			    "using default = %gM\n", value, R_VSize / Mega);
-		    R_ShowMessage(s);
+		    my_message(s);
 		} else {
 		    vset = 1;
-		    Rp->vsize = value;
+		    R_VSize = value;
 		}
 	    } else if ((value = (*av)[1] == 'n') || !strcmp(*av, "--nsize")) {
 		if (value)
-		    R_ShowMessage("WARNING: option `-n' is deprecated.  "
+		    my_message("WARNING: option `-n' is deprecated.  "
 			       "Use `--nsize' instead.\n");
 		if (!value || (*av)[2] == '\0') {
 		    ac--;
@@ -758,7 +682,7 @@ int cmdlineoptions(int ac, char **av)
 		} else
 		    p = &(*av)[2];
 		if (p == NULL) {
-		    R_ShowMessage("WARNING: no nsize given");
+		    my_message("WARNING: no nsize given");
 		    break;
 		}
 		value = Decode2Long(p, &ierr);
@@ -767,27 +691,28 @@ int cmdlineoptions(int ac, char **av)
 			goto badargs;
 		    sprintf(s, "--nsize %d'%c': too large", value,
 			    (ierr == 1) ? 'M' : ((ierr == 2) ? 'K' : 'k'));
-		    R_ShowMessage(s);
+		    my_message(s);
 		}
 		if (value < Min_Nsize || value > Max_Nsize) {
 		    sprintf(s, "WARNING: invalid language heap (n)size '%d' ignored,"
 			    " using default = %d\n", value, R_NSize);
-		    R_ShowMessage(s);
+		    my_message(s);
 		} else {
 		    nset = 1;
-		    Rp->nsize = value;
+		    R_NSize = value;
 		}
 	    } else if (!strcmp(*av, "--ess")) {
 /* Assert that we are interactive even if input is from a file */
-		Rp->R_Interactive = 1;
-		Rp->ReadConsole = PipeReadConsole;
+		PipedInput = 1;
+		R_Interactive = 1;
+		TrueReadConsole = PipeReadConsole;
 	    } else if (!strcmp(*av, "--mdi")) {
 		MDIset = 1;
 	    } else if (!strcmp(*av, "--sdi") || !strcmp(*av, "--no-mdi")) {
 		MDIset = -1;
 	    } else {
 		sprintf(s, "WARNING: unknown option %s\n", *av);
-		R_ShowMessage(s);
+		my_message(s);
 		break;
 	    }
 	} else {
@@ -797,54 +722,52 @@ int cmdlineoptions(int ac, char **av)
 		putenv(*av);
 	    } else {
 		sprintf(s, "ARGUMENT '%s' __ignored__\n", *av);
-		R_ShowMessage(s);
+		my_message(s);
 	    }
 	}
     }
-    Rp->rhome = getRHOME();
+    R_Home = getRHOME();
+    sprintf(RHome, "RHOME=%s", R_Home);
+    putenv(RHome);
 
 /*
- * try R_USER then HOME then working directory
- * put these here to allow R_USER or HOME to be set on the command line.
+ * try R_HOME then HOME then working directory
+ * put these here to allow R_HOME or HOME to be set on the command line.
  */
-    if (getenv("R_USER")) {
-	strcpy(RUser, getenv("HOME"));
-	p = RUser + (strlen(RUser) - 1);
-	if (*p == '/' || *p == '\\') *p = '\0';
-    } else {
+    if (!getenv("R_HOME")) {
 	if (getenv("HOME")) {
-	    strcpy(RUser, getenv("HOME"));
-	    p = RUser + (strlen(RUser) - 1);
-	    if (*p == '/' || *p == '\\') *p = '\0';
-	} else
-	    GetCurrentDirectory(MAX_PATH, RUser);
+	    sprintf(UserRHome, "R_HOME=%s", getenv("HOME"));
+	    p = UserRHome + (strlen(UserRHome) - 1);
+	    if (*p == '/' || *p == '\\')
+		*p = '\0';
+	} else {
+	    strcpy(UserRHome, "R_HOME=");
+	    GetCurrentDirectory(MAX_PATH, &UserRHome[7]);
+	}
+	putenv(UserRHome);
     }
-    Rp->home = RUser;
 
-/* Process ~/.Renviron, if it exists, for R_NSIZE and R_VSIZE */
-    if(!Rp->NoRenviron) {
-	processRenviron();
-	Rp->NoRenviron = 1;
-    }
+/* Process ~/.Renviron, if it exists */
+    processRenviron();
 
     if (!vset && (p = getenv("R_VSIZE"))) {
 	value = Decode2Long(p, &ierr);
 	if (ierr != 0 || value > Max_Vsize || value < Min_Vsize)
 	    REprintf("WARNING: invalid R_VSIZE ignored;");
 	else
-	    Rp->vsize = value;
+	    R_VSize = value;
     }
     if (!nset && (p = getenv("R_NSIZE"))) {
 	value = Decode2Long(p, &ierr);
 	if (ierr != 0 || value > Max_Nsize || value < Min_Nsize)
 	    REprintf("WARNING: invalid R_NSIZE ignored;");
 	else
-	    Rp->nsize = value;
+	    R_NSize = value;
     }
     if (!R_Interactive && DefaultSaveAction == 0)
 	R_Suicide("you must specify `--save', `--no-save' or `--vanilla'");
 
-    R_SetParams(Rp);
+    _controlfp(_MCW_EM, _MCW_EM);
 
     return 0;
 
@@ -852,7 +775,6 @@ badargs:
     REprintf("invalid argument passed to R\n");
     exit(1);
 }
-
 
 void R_InitialData(void)
 {
@@ -875,10 +797,10 @@ void R_CleanUp(int ask)
     if (R_DirtyImage) {
 	R_ClearerrConsole();
 	R_FlushConsole();
-	if ((CharacterMode != RGui) && !R_Interactive && (ask == 1))
+	if (CharacterMode && !R_Interactive && ask == 1)
 	    ask = DefaultSaveAction;
 	if (ask == 1)
-	    ans = R_yesnocancel("Save workspace image?");
+	    ans = my_yesnocancel("Save workspace image?");
 	else if (ask == 2)
 	    ans = NO;
 	else if (ask == 3)
@@ -898,10 +820,19 @@ void R_CleanUp(int ask)
     closeAllHlpFiles();
     KillAllDevices();
     AllDevicesKilled = 1;
-    if (CharacterMode == RGui)
+    if (!CharacterMode)
 	savehistory(RConsole, ".Rhistory");
     UnLoad_Unzip_Dll();
     exitapp();
+}
+
+void R_Busy(int which)
+{
+/* currently cursor is never set off busy */
+    if(!CharacterMode) {
+	if (which == 1) gsetcursor(RConsole, WatchCursor);
+	if (which == 0) gsetcursor(RConsole, ArrowCursor);
+    }
 }
 
 	/* Saving and Restoring the Global Environment */
@@ -1026,9 +957,9 @@ SEXP do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
 	vis = 1;
     if (!isString(CADDR(args)))
 	errorcall(call, "character string expected as third argument\n");
-    if ((CharacterMode != RGui) && (flag == 2))
+    if (CharacterMode && (flag == 2))
 	flag = 1;
-    if (CharacterMode == RGui) {
+    if (!CharacterMode) {
 	SetStdHandle(STD_INPUT_HANDLE, INVALID_HANDLE_VALUE);
 	SetStdHandle(STD_OUTPUT_HANDLE, INVALID_HANDLE_VALUE);
 	SetStdHandle(STD_ERROR_HANDLE, INVALID_HANDLE_VALUE);
@@ -1119,7 +1050,7 @@ void R_Suicide(char *s)
     char  pp[1024];
 
     sprintf(pp, "Fatal error: %s\n", s);
-    R_ShowMessage(pp);
+    my_message(pp);
     R_CleanUp(2);
     /* 2 means don't save anything and it's an unrecoverable abort */
 }
@@ -1172,24 +1103,33 @@ int R_ShowFiles(int nfile, char **file, char **headers, char *wtitle,
 {
     int   i;
     char  buf[1024];
-    WIN32_FIND_DATA fd;
 
     if (nfile > 0) {
 	if (pager == NULL || strlen(pager) == 0)
 	    pager = "internal";
 	for (i = 0; i < nfile; i++) {
-	    if (FindFirstFile(file[i], &fd) != INVALID_HANDLE_VALUE) {
-		if (!strcmp(pager, "internal")) {
-		    newpager(wtitle, file[i], headers[i], del);
-		} else {
-		    sprintf(buf, "%s  %s", pager, file[i]);
-		    runcmd(buf, 0, 1, "");
-		}
+	    if (!strcmp(pager, "internal")) {
+		newpager(wtitle, file[i], headers[i], del);
+            } if (!strcmp(pager, "console")) {
+                DWORD len = 1;
+                HANDLE f = CreateFile(file[i], GENERIC_READ, FILE_SHARE_WRITE,
+		   NULL, OPEN_EXISTING, 0, NULL);
+                if (f != INVALID_HANDLE_VALUE) {
+                  while (ReadFile(f,buf,1023,&len,NULL) && len) {
+                    buf[len] = '\0';
+                    R_WriteConsole(buf,strlen(buf));
+                  }
+                  CloseHandle(f);
+                  if (del) DeleteFile(file[i]);
+                }
+                else {
+                  sprintf(buf,"Impossible to open file '%s'. Does it exist?\n",file[i]);
+                  warning(buf);
+                }
 	    } else {
-		sprintf(buf, "file.show(): file %s does not exist\n", file[i]);
-		warning(buf);
+		sprintf(buf, "%s  %s", pager, file[i]);
+		runcmd(buf, 0, 1, "");
 	    }
-	    
 	}
 	return 0;
     }
@@ -1201,7 +1141,7 @@ int R_ShowFiles(int nfile, char **file, char **headers, char *wtitle,
 
 char *R_HomeDir()
 {
-    return getenv("R_HOME");
+    return getenv("RHOME");
 }
 
 /* Prompt the user for a file name.  Return the length of */

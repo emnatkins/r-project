@@ -27,7 +27,6 @@
 
 
 #include "internal.h"
-#include "rui.h"
 
 /*
  *  Internal printer deletion function.
@@ -53,7 +52,7 @@ static void private_delmetafile(metafile obj)
 	CloseClipboard())
 	return;
     else {
-	R_ShowMessage("Unable to save metafile to the clipboard");
+	askok("Unable to save metafile to the clipboard");
 	DeleteEnhMetaFile(hm);
 	return;
     }
@@ -87,19 +86,19 @@ metafile newmetafile(char *name,rect r)
     if (!nummeta) {
         wHDC = GetDC(NULL);
         if (!wHDC) {
-	    R_ShowMessage("Unable to create reference DC for metafiles");
+	    askok("Unable to create reference DC for metafiles");
 	    return NULL;
         }
     }
-    hDC = CreateEnhMetaFile(wHDC, strlen(name) ? name : NULL, &wr, "GraphApp");
+    hDC = CreateEnhMetaFile(wHDC, strlen(name) ? name:NULL, &wr, "GraphApp");
     if ( !hDC ) {
-	R_ShowMessage("Unable to create metafile");
+	askok("Unable to create metafile");
 	if (!nummeta) ReleaseDC(NULL, wHDC);
 	return NULL;
     }
     obj = new_object(MetafileObject, (HANDLE) hDC, get_metafile_base());
     if ( !obj ) {
-	R_ShowMessage("Insufficient memory to create metafile");
+	askok("Insufficient memory to create metafile");
 	DeleteEnhMetaFile(CloseEnhMetaFile(hDC));
 	if (!nummeta) ReleaseDC(NULL, wHDC);
 	return NULL;

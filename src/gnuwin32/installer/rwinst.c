@@ -20,7 +20,7 @@
 
 #include "graphapp.h"
 #include "ga.h"
-#include "Version.h"
+#include "Platform.h"
 #include <windows.h>
 #include <string.h>
 

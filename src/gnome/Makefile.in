@@ -1,5 +1,5 @@
 #
-# ${R_HOME}/src/gnome/Makefile
+# ${RHOME}/src/unix/Makefile
 
 VPATH = @srcdir@
 srcdir = @srcdir@

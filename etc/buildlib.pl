@@ -23,7 +23,7 @@
 use Cwd;
 use File::Basename;
 
-require "$R_HOME/etc/html-layout.pl";
+require "$RHOME/etc/html-layout.pl";
 
 
 if($opt_dosnames){
@@ -49,7 +49,7 @@ sub buildinit {
 	die("Package $pkg does not exist\n") unless (-d $pkg);
     }
     else{
-	$pkg="$R_HOME/src/library/base";
+	$pkg="$RHOME/src/library/base";
     }
 
     chdir $currentdir;
@@ -61,7 +61,7 @@ sub buildinit {
 	chdir $currentdir;
     }
     else{
-	$lib="$R_HOME/library";
+	$lib="$RHOME/library";
     }
 
     chdir $currentdir;
@@ -208,7 +208,7 @@ sub read_anindex {
 
 
 
-### Build $R_HOME/doc/html/packages.html from the $pkg/TITLE files
+### Build $RHOME/doc/html/packages.html from the $pkg/TITLE files
 
 sub build_htmlpkglist {
 
@@ -217,7 +217,7 @@ sub build_htmlpkglist {
     my %htmltitles = read_titles($lib);
     my $key;
 
-    open(htmlfile, ">$R_HOME/doc/html/packages.$HTML");
+    open(htmlfile, ">$RHOME/doc/html/packages.$HTML");
 
     print htmlfile html_pagehead("Package Index", ".",
 				 "index.$HTML", "Top",
@@ -359,9 +359,9 @@ sub build_htmlfctlist {
     my %htmltitles = read_functiontitles($lib);
     my $key;
 
-    open(htmlfile, ">$R_HOME/doc/html/function.$HTML");
+    open(htmlfile, ">$RHOME/doc/html/function.$HTML");
 
-    print htmlfile html_pagehead("Functions installed in R_HOME", ".",
+    print htmlfile html_pagehead("Functions installed in RHOME", ".",
 				 "index.$HTML", "Top",
 				 "packages.$HTML", "Packages");
 

@@ -19,7 +19,6 @@
  */
 
 #include "Defn.h"
-#include "Version.h"
 
 void PrintGreeting(void)
 {
