@@ -1,0 +1,145 @@
+
+			INSTALLING R UNDER UNIX
+
+
+GENERALITIES
+
+R will configure and build under a number of common Unix platforms
+including dec-alpha-osf, freebsd, hpux, linux-elf, sgi-irix, solaris,
+and sunos.  In general it is relatively easy to adapt R to new
+platforms.  See below for details.
+
+
+SIMPLE COMPILATION
+
+Choose a place to install the R tree (R is not just a binary, but has
+additional data sets, help files, font metrics etc).  Let's call this
+place RHOME.  Untar the source code.  This should create directories
+src, etc, cmd, help and doc.  Issue the following commands:
+
+	./configure
+	make
+
+If these commands execute successfully, the R binary will be copied to
+the `$RHOME/bin' directory.  In addition, a shell script font-end
+called "R" will be created and copied to the same directory.  You can
+copy this script to a place where users can invoke it, for example to
+`/usr/local/bin/R'.  You could also copy the man page `R.1' to a place
+where your man reader finds it, such as `/usr/local/man/man1'. If you
+want to install the complete R tree to, e.g., /usr/local/lib/R, see
+section INSTALLATION below.
+
+If you need or want to set certain configure variables to something
+other than their default, you can do that by either editing the file
+`config.site' or on the command line as
+
+	VAR="..." ./configure              # Bourne shell compatibles
+	(setenv VAR "..."; ./configure)    # C shell
+
+One common variable to change is R_PAPERSIZE, which defaults to a4, not
+letter.
+
+Make will also build plain text help pages as well as HTML and LaTeX
+versions of the documentation (the three kinds can also be generated
+separately using make help, make html and make latex).  Note that as
+of R version 0.60, you need Perl version 5 to build the documentation.
+If this is not available on your system, you can obtain precompiled
+documentation files via the `doc/pre-formatted-help' directory of the
+Comprehensive R Archive Network (CRAN), see the file `RESOURCES' for
+information on CRAN.
+
+Now type R and reach for your S manuals ...
+
+
+INSTALLATION
+
+After
+	./configure
+	make
+have been completed successfully, you can install the complete R tree
+to your system by typing
+
+	make install
+
+This will install to the following directories:
+
+	$prefix/bin		executables
+	$prefix/man/man1	man pages
+	$prefix/lib/R		all the rest (libraries, online help
+				system, ...)
+
+where prefix is determined during configuration (typically /usr/local)
+and can be set by running configure with the option
+
+	./configure --prefix=/where/you/want/R/to/go
+
+The prefix of the installation directories can also be seen in the
+status message that is displayed at the end of configure.
+
+If you have libraries and header files, e.g. for GNU readline, in
+non-system directories, use the variables LIBS (for libraries) and
+CPPFLAGS (for header files), respectively, to specify these locations.
+
+
+USING FORTRAN
+
+To compile R, you need a FORTRAN compiler or f2c, the FORTRAN-to-C
+converter.  The default is to search for f77, g77, fort77, f90, xlf,
+cf77, and fc (in that order), and then for f2c, and use whichever is
+found first; if none is found, R cannot be compiled.  The search
+mechanism can be changed using the `--with-g77', `--with-f77', and
+`--with-f2c' command line options to configure.  If your FORTRAN
+compiler is in a non-standard location, you can specify it via
+`--with-f77=path.to.f77'.
+
+
+TWO-LEVEL MAKE
+
+If you don't need to supply any special arguments to "configure", you
+can actually build R simply by typing "make", which will automatically
+run "configure" if the configuration files are absent. Since the build
+process depends on the results of "configure", the top-level Makefile
+does little more than passing control to Makefile.2nd after ensuring
+that "configure" has been run.
+
+This has the curious, but harmless, consequence that "make distclean"
+and the like may run "configure" and remove the configuration files a
+moment later. This looks odd, but is fairly hard to avoid.
+
+
+NEW PLATFORMS (Standards Hah!)
+
+There are a number of sources of problems when installing R on a new
+hardware/os platform.
+
+ 1. Floating Point Arithmetic: R supports the POSIX, SVID and IEEE
+    models for floating point arithmetic.  The POSIX and SVID models
+    provide no problems.  The IEEE model however can be a pain.  The
+    problem is that there is no agreement on how to set the signalling
+    behavior;  sgi/irix and linux require no special action, freebsd
+    requires a call to (the macro) fpsetmask(0) and osf1v3.2 requires
+    that computation be done with a -ieee_with_inexact flag etc...
+    On a new platform you must find out the magic recipe and add some
+    code to make it work.  This can often be done via the file
+    config.site which resides in the top level directory.
+
+ 2. Shared Libraries: There seems to be very little agreement across
+    platforms on what needs to be done to build shared libraries.
+    there are many different combinations of flags for the compilers
+    and loaders.  The technique we use is to interrogate the X window
+    system about what it does (using xmkmf).  This often works, but
+    you may have to manually override the results.  Scanning the cc(1)
+    and ld(1) manual entries usually reveals the correct incantation.
+    Once you know the recipe you can modify the file config.site
+    (following the instructions therein) so that the build will use
+    these options.
+
+If you do manage to get R running on a new platform please let us know
+about it so we can modify the configuration procedures to include that
+platform.
+
+If you are having trouble getting R to work on your platform please
+feel free to get in touch to ask questions.  We've had a fair amount
+of practice at porting R to new platforms...
+
+	R Core Members
