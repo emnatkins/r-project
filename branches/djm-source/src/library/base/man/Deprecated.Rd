@@ -1,0 +1,34 @@
+\name{Deprecated}
+%------ NOTE:  ../R/Deprecated.R   must be synchronized with this!
+\title{Deprecated Functions}
+\alias{Deprecated}
+\alias{.Deprecated}
+%------ PLEASE: put \alias{.} here for EACH !
+\description{
+  These functions are provided for compatibility with older versions of
+  \R only, and may be defunct as soon as the next release.
+}
+\usage{
+.Deprecated(new, package=NULL)
+}
+\arguments{
+  \item{new}{
+    character string: A suggestion for a replacement function.
+  }
+  \item{package}{
+    character string: The package to be used when suggesting where the
+    deprecated function might be listed.
+  }
+}
+\details{
+  \code{.Deprecated("<new name>")} is called from deprecated
+  functions. The original help page for these functions is often
+  available at \code{help("oldName-deprecated")} (note the quotes).
+  Functions in packages other than the base package should be listed in
+  \code{help("pkg-deprecated")}.
+}
+\seealso{
+  \code{\link{Defunct}}
+}
+\keyword{documentation}
+\keyword{utilities}
