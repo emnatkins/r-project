@@ -40,7 +40,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 static double wprob(double w, double rr, double cc)
 {

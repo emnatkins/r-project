@@ -19,7 +19,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double dlogis(double x, double location, double scale, int give_log)
 {

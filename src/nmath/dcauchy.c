@@ -23,7 +23,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double dcauchy(double x, double location, double scale, int give_log)
 {

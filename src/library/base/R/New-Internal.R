@@ -3,17 +3,6 @@
 stop <- function(message = NULL).Internal(stop(message))
 warning <- function(message = NULL).Internal(warning(message))
 restart <- function(on = TRUE).Internal(restart(on))
-geterrmessage <- function() .Internal(geterrmessage())
-try <- function(expr, first = T)
-{
-    restart(first)
-    if(first) {
-        first <- F
-        expr
-    } else
-       invisible(structure(.Internal(geterrmessage()), class="try-error"))
-}
-
 
 comment <- function(x).Internal(comment(x))
 "comment<-" <- function(x,value).Internal("comment<-"(x,value))
@@ -22,7 +11,6 @@ round <- function(x, digits = 0).Internal(round(x,digits))
 signif <- function(x, digits = 6).Internal(signif(x,digits))
 log <- function(x, base=exp(1))
     if(missing(base)).Internal(log(x)) else .Internal(log(x,base))
-log1p <- function(x).Internal(log1p(x))
 
 atan2 <- function(y, x).Internal(atan2(y, x))
 

@@ -558,12 +558,7 @@ sub text2html {
 	}
 	else {
 	    $misslink = $misslink . " " . $arg;
-	    if($using_chm){
-		$text =~ s/\\link$id.*$id/$arg/s;
-	    }
-	    else{
-		$text =~ s/\\link$id.*$id/<A HREF=\"..\/..\/..\/doc\/html\/search\/SearchObject.html?$argkey\">$arg<\/A>/s;
-	    }
+	    $text =~ s/\\link$id.*$id/$arg/s;
 	}
     }
 
@@ -659,12 +654,7 @@ sub code2html {
 	}
 	else{
 	    $misslink = $misslink . " " . $argkey;
-	    if($using_chm){
-		$text =~ s/\\link$id.*$id/$arg/s;
-	    }
-	    else{
-		$text =~ s/\\link$id.*$id/<A HREF=\"..\/..\/..\/doc\/html\/search\/SearchObject.html?$argkey\">$arg<\/A>/s;
-	    }
+	    $text =~ s/\\link$id.*$id/$arg/s;
 	}
     }
 
@@ -1426,17 +1416,12 @@ sub txt_fill { # pre1, base, "text to be formatted"
 
 # first split by paragraphs
 
-    $text =~ s/\\\\/\\bsl{}/go;
-    $text =~ s/\\&\./\./go; # unescape code pieces
-# A mess:  map  & \& \\& \\\& to  & & \& \&
-    $text =~ s/\\&/&/go;
+    $text =~ s/\\&//go;
     $text =~ s/\\ / /go;
     $text =~ s/\\_/_/go;
     $text =~ s/\\$/\$/go;
     $text =~ s/\\#/#/go;
     $text =~ s/\\%/%/go;
-    $text =~ s/\\bsl{}/\\/go;
-
     my @paras = split /\n\n/, $text;
     $indent1 = $pre1; $indent2 = $indent;
 
@@ -2003,10 +1988,9 @@ sub text2latex {
     $text =~ s/\\dddeqn/\\deqn/og;
     $text =~ s/\\DITEM/\\item/og;
 
-    $text =~ s/\\\\/\\bsl{}/go;
-# A mess:  map  & \& \\& \\\& to  \& \& \bsl{}\& \bsl{}\&
-    $text =~ s/([^\\])&/$1\\&/go;
+    $text =~ s/&/\\&/go;
     $text =~ s/\\R(\s+)/\\R\{\}$1/go;
+    $text =~ s/\\\\/\\bsl{}/go;
     $text =~ s/\\cr/\\\\\{\}/go;
     $text =~ s/\\tab(\s+)/&$1/go;
 

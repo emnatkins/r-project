@@ -2,8 +2,7 @@
 ## .Platform$show.data() idea.
 data <-
 function (..., list = character(0),
-#          package = c(.packages(), .Autoloaded),
-          package = .packages(),
+          package = c(.packages(), .Autoloaded),
           lib.loc = .lib.loc, verbose = getOption("verbose"))
 {
     names <- c(as.character(substitute(list(...))[-1]), list)
@@ -18,23 +17,10 @@ function (..., list = character(0),
         else
             show.data(lib.loc = lib.loc)
     } else for (name in names) {
-        paths <-
-            if(missing(lib.loc)) {
-                paths <- file.path(c(.path.package(package), getwd()), "data")
-                paths[file.exists(paths)]
-            } else
-                system.file("data", pkg = package, lib = lib.loc)
-        files <- NULL
-        for (p in paths) {
-            if(file.exists(file.path(p, "Rdata.zip"))) {
-                if(file.exists(fp <- file.path(p, "filelist")))
-                    files <- c(files,
-                               file.path(p, scan(fp, what="", quiet = TRUE)))
-                else warning(paste("`filelist' is missing for dir", p))
-            } else {
-                files <- c(files, list.files(p, full=TRUE))
-            }
-        }
+        ## don't make this a single call: list.files() sorts all the
+        ## entries. 
+        paths <- system.file("data", pkg = package, lib = lib.loc)
+        files <- unlist(lapply(paths, FUN = list.files, full = TRUE))
         files <- files[grep(name, files)]
         found <- FALSE
         if (length(files) > 0) {
@@ -51,23 +37,19 @@ function (..., list = character(0),
                 ## otherwise
                 if (sub(subpre, "", file) != paste(name, ".", ext, sep = ""))
                     found <- FALSE
-                else {
-                    zfile <- zip.file.extract(file, "Rdata.zip")
-                    switch(ext,
-                           R = ,
-                           r = source(zfile, chdir = TRUE),
-                           RData = ,
-                           rdata = ,
-                           rda = load(zfile, envir = .GlobalEnv),
-                           TXT = ,
-                           txt = ,
-                           tab = assign(name, read.table(zfile, header = TRUE),
-                           env = .GlobalEnv), CSV = ,
-                           csv = assign(name,
-                           read.table(zfile, header = TRUE, sep = ";"),
-                           env = .GlobalEnv), found <- FALSE)
-                    if (zfile != file) unlink(zfile)
-                }
+                else switch(ext,
+                            R = ,
+                            r = source(file, chdir = TRUE),
+                            RData = ,
+                            rdata = ,
+                            rda = load(file, envir = .GlobalEnv),
+                            TXT = ,
+                            txt = ,
+                            tab = assign(name, read.table(file, header = TRUE),
+                            env = .GlobalEnv), CSV = ,
+                            csv = assign(name,
+                            read.table(file, header = TRUE, sep = ";"),
+                            env = .GlobalEnv), found <- FALSE)
                 if (verbose)
                     cat(if (!found)
                         "*NOT* ", "found\n")
@@ -80,36 +62,30 @@ function (..., list = character(0),
 }
 
 show.data <-
-  function (package = .packages(), lib.loc = .lib.loc)
+  function (package = c(.packages(), .Autoloaded), lib.loc = .lib.loc)
 {
     ## give `index' of all possible data sets
     file <- tempfile("R.")
     file.create(file)
     first <- TRUE
     nodata <- noindex <- character(0)
-    paths <-
-        if(missing(lib.loc)) {
-            paths <- file.path(c(.path.package(package), getwd()), "data")
-        } else
-            system.file(pkg = package, lib = lib.loc)
-    for (path in paths) {
-        pkg <- sub(".*/([^/]*)$", "\\1", path) # may not work on Mac
-        if(!file.exists(path)) next
-        if(!file.exists(file.path(path, "data"))) {
+    for (lib in lib.loc) for (pkg in package) {
+        if(!file.exists(file.path(lib, pkg))) next
+        if(!file.exists(file.path(lib, pkg, "data"))) {
             nodata <- c(nodata, pkg)
             next
         }
-        INDEX <- file.path(path, "data", "00Index")
+        INDEX <- system.file("data", "00Index", pkg = pkg, lib = lib)
         if(INDEX == "")
-            INDEX <- file.path(path, "data", "index.doc")
+            INDEX <- system.file("data", "index.doc", pkg = pkg, lib = lib)
         if (INDEX != "") {
             cat(paste(ifelse(first, "", "\n"), "Data sets in package `",
                       pkg, "':\n\n", sep = ""), file = file, append = TRUE)
             file.append(file, INDEX)
             first <- FALSE
         } else {
-            ## no index: check for datasets -- won't work if zipped
-            files <- list.files(file.path(path, "data"))
+            ## no index: check for datasets
+            files <- list.files(system.file("data", pkg = pkg, lib = lib))
             if(length(files) > 0) noindex <- c(noindex, pkg)
         }
     }

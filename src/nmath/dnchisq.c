@@ -24,7 +24,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double dnchisq(double x, double df, double lambda, int give_log)
 {

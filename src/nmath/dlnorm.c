@@ -23,7 +23,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double dlnorm(double x, double logmean, double logsd, int give_log)
 {

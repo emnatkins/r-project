@@ -191,11 +191,10 @@ void PrintWarnings(void)
     return;
 }
 
-static char errbuf[BUFSIZE];
 
 void errorcall(SEXP call, char *format,...)
 {
-    char *p, *dcall;
+    char buf[BUFSIZE], *p, *dcall;
 
     va_list(ap);
 
@@ -207,31 +206,20 @@ void errorcall(SEXP call, char *format,...)
 
     if(call != R_NilValue ) {
 	dcall = CHAR(STRING(deparse1(call, 0))[0]);
-	sprintf(errbuf, "Error in %s : ", dcall);
-	if (strlen(dcall) > LONGCALL) strcat(errbuf, "\n	");
+	sprintf(buf, "Error in %s : ", dcall);
+	if (strlen(dcall) > LONGCALL) strcat(buf, "\n	");
     }
     else
-	sprintf(errbuf, "Error: ");
+	sprintf(buf, "Error: ");
 
-    p = errbuf + strlen(errbuf);
+    p = buf + strlen(buf);
     va_start(ap, format);
     vsprintf(p, format, ap);
     va_end(ap);
-    p = errbuf + strlen(errbuf) - 1;
-    if(*p != '\n') strcat(errbuf, "\n");
-    if (R_ShowErrorMessages) REprintf("%s", errbuf);
+    p = buf + strlen(buf) - 1;
+    if(*p != '\n') strcat(buf, "\n");
+    REprintf("%s", buf);
     jump_to_toplevel();
-}
-
-SEXP do_geterrmessage(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP res;
-
-    checkArity(op, args);
-    PROTECT(res = allocVector(STRSXP, 1));
-    STRING(res)[0] = mkChar(errbuf);
-    UNPROTECT(1);    
-    return res;
 }
 
 void error(const char *format, ...)

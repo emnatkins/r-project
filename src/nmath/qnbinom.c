@@ -40,7 +40,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 
 double qnbinom(double p, double n, double pr, int lower_tail, int log_p)
 {

@@ -46,7 +46,6 @@
  */
 
 #include "Mathlib.h"
-#include "dpq.h"
 /*----------- DEBUGGING -------------
  *	make CFLAGS='-DDEBUG_p -g -I/usr/local/include -I../include'
  */

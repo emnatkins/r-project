@@ -32,8 +32,6 @@ prompt.default(object,
 }
 \examples{
 prompt(plot.default)
-prompt(interactive, force.function = TRUE)
-unlink("plot.default.Rd")
-unlink("interactive.Rd")
+prompt(interactive, force.f = TRUE)
 }
 \keyword{documentation}

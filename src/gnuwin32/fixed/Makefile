@@ -30,10 +30,8 @@ r/rw-FAQ.html: ../rw-FAQ.texi
 ../rw-faq: ../rw-FAQ.texi
 	makeinfo --no-headers --number-sections -o $@ $<
 
-r/SearchEngine.html:../../../doc/KEYWORDS.db
-	perl keywords2html $< > $@
 
-fixh: h/config.h ../../../date-stamp ../../include/FFDecl.h ../../include/FFTab.h ../../../VERSION
+fixh: h/config.h ../../../date-stamp ../../include/FFDecl.h ../../include/FFTab.h
 	$(CP) -p ./h/config.h ./h/psignal.h ../../include
 	sh ./GETVERSION > ../../include/Rversion.h
 	sh ./GETCONFIG > ../../include/Rconfig.h
@@ -43,7 +41,7 @@ fixbin: $(filter-out ./bin/CVS, $(wildcard ./bin/*))
 	$(CP) -p  $^ ../../../bin
 	$(ECHO) done > fixbin
 
-fixr: $(wildcard ./r/*.html) r/SearchEngine.html
+fixr: $(wildcard ./r/*.html)
 	$(CP) -p ./r/*.html ../../../doc/html
 	$(ECHO) done > fixr
 

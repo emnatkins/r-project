@@ -4,7 +4,7 @@ HELP=YES
 WINHELP=BOTH # NO, CHM, BOTH
 
 PACKAGES=base ctest eda lqs modreg mva nls splines stepfun ts
-RPREFIX=rw1000
+RPREFIX=rw0990
 
 RHOME=$(shell cd ../..; pwd)# must be absolute path
 RLIB=$(RHOME)/library
@@ -151,10 +151,6 @@ ziphelp-%:
 ziponly-%:
 	$(MAKE) -C ./help RHOME=$(RHOME) PKGDIR=$(PKGD) RLIB=$(RLIB) ziponlyhelp-$*
 	$(MAKE) -C ./help RHOME=$(RHOME) PKGDIR=$(PKGD) RLIB=$(RLIB) contents-$*
-
-zipdata-%:
-	(cd $(RLIB)/$*/data; ls -1 > filelist; \
-	  zip -rmq9X Rdata * -x filelist 00Index)
 
 bootstrap-DLLNM=boott
 

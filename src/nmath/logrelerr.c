@@ -20,7 +20,7 @@
  *  SYNOPSIS
  *
  *	#include "Mathlib.h"
- *	double log1p(double x);
+ *	double logrelerr(double x);
  *
  *  DESCRIPTION
  *
@@ -36,9 +36,9 @@
 
 #include "Mathlib.h"
 
-double log1p(double x)
+double logrelerr(double x)
 {
-    /* series for log1p on the interval -.375 to .375
+    /* series for logrelerr on the interval -.375 to .375
      *				     with weighted error   6.35e-32
      *				      log weighted error  31.20
      *			    significant figures required  30.93
@@ -103,25 +103,15 @@ double log1p(double x)
 #endif
 
     if (x == 0.) return 0.;/* speed */
-    if (x == -1) return(R_NegInf);
-    if (x  < -1) ML_ERR_return_NAN;
+    if (x <= -1) ML_ERR_return_NAN;
 
-    if (fabs(x) <= .375) {
-        /* Improve on speed (only);
-	   again give result accurate to IEEE double precision: */
-	if(fabs(x) < .5 * DBL_EPSILON)
-	    return x;
-
-	if( 0    < x && x < 1e-8 ||
-	   -1e-9 < x && x < 0)
-	    return x * (1 - .5 * x);
-	/* else */
-	return x * (1 - x * chebyshev_eval(x / .375, alnrcs, nlnrel));
-    }
-    /* else */
     if (x < xmin) {
 	/* answer less than half precision because x too near -1 */
 	ML_ERROR(ME_PRECISION);
     }
-    return log(1 + x);
+
+    if (fabs(x) <= .375)
+	return x * (1 - x * chebyshev_eval(x / .375, alnrcs, nlnrel));
+    else
+	return log(1 + x);
 }
