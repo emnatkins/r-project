@@ -59,11 +59,7 @@ writeBin(object, con, size = NA, endian = .Platform$endian)
   For \code{writeBin}, none.
 }
 \seealso{
-  \code{\link{connection}}, \code{\link{readLines}},
-  \code{\link{writeLines}}.
-
-  \code{\link{.Machine}} for the sizes of \code{long}, \code{long long}
-  and \code{long double}.
+  \code{\link{connection}}, \code{\link{readLines}}, \code{\link{writeLines}}
 }
 \examples{
 zz <- file("testbin", "wb")
@@ -75,9 +71,6 @@ writeBin(pi+3i, zz)
 writeBin("A test of a connection", zz)
 z <- paste("A very long string", 1:100, collapse=" + ")
 writeBin(z, zz)
-if(.Machine$sizeof.long == 8 || .Machine$sizeof.longlong == 8)
-    writeBin(as.integer(5^(1:10)), zz, size = 8)
-if((s <-.Machine$sizeof.longdouble) > 8) writeBin((pi/3)^(1:10), zz, size = s)
 close(zz)
 
 zz <- file("testbin", "rb")
@@ -89,9 +82,6 @@ readBin(zz, numeric(), size=4, endian="swap")
 readBin(zz, complex(), 1)
 readBin(zz, character(), 1)
 z2 <- readBin(zz, character(), 1)
-if(.Machine$sizeof.long == 8 || .Machine$sizeof.longlong == 8)
-    readBin(zz, integer(), 10,  size = 8)
-if((s <-.Machine$sizeof.longdouble) > 8) readBin(zz, numeric(), 10, size = s)
 close(zz)
 unlink("testbin")
 stopifnot(z2 == z)

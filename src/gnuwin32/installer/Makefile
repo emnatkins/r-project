@@ -2,7 +2,7 @@
 
 include ../MkRules
 UNZIPDIR=unzip
-PREFIX=rw1030
+PREFIX=rw1022
 
 .PHONY: GA UZ
 

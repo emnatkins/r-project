@@ -1,5 +1,5 @@
 /*
- *  $Id: nls.c,v 1.9 2001/01/15 14:52:00 pd Exp $
+ *  $Id: nls.c,v 1.8.2.1 2001/01/08 22:26:35 bates Exp $
  *
  *  Routines used in calculating least squares solutions in a
  *  nonlinear model in nls library for R.

@@ -8,13 +8,11 @@ ps.options(\dots, reset = FALSE, override.check = FALSE)
 \usage{
 postscript(file = ifelse(onefile, "Rplots.ps", "Rplot\%03d.ps"),
            onefile = TRUE,
-           paper, family, encoding, bg, fg,
-           width, height, horizontal, pointsize,
+           paper, family, bg, fg, width, height, horizontal, pointsize,
            pagecentre, print.it, command)
 
 %  paper, horizontal, width, height, family, pointsize, bg, fg)
-ps.options(paper, horizontal, width, height, family, encoding,
-           pointsize, bg, fg,
+ps.options(paper, horizontal, width, height, family, pointsize, bg, fg,
            onefile = TRUE, print.it = FALSE, append = FALSE,
            reset = FALSE, override.check = FALSE)
 .PostScript.Options
@@ -66,10 +64,6 @@ ps.options(paper, horizontal, width, height, family, encoding,
     \code{"Helvetica-Narrow"}, \code{"NewCenturySchoolbook"},
     \code{"Palatino"} or \code{"Times"}, OR a character vector of length
     four. }
-  \item{encoding}{the name of an encoding file. Defaults to
-    "ISOLatin1.enc" in the \file{R\_HOME/afm} directory, which is used
-    if the path does not contain a path separator.  An extension
-    \code{".enc"} can be omitted.}
   \item{pointsize}{the default point size to be used.}
   \item{bg}{the default background color to be used.}
   \item{fg}{the default foreground color to be used.}
@@ -114,8 +108,9 @@ ps.options(paper, horizontal, width, height, family, encoding,
 
   The postscript produced by \R is EPS (\emph{Encapsulated PostScript})
   compatible, and can be included into other documents, e.g. into LaTeX,
-  using \code{\includegraphics{<filename>}}.  For use in this way you will
-  probably want to set \code{horizontal=FALSE, onefile=FALSE, paper="special"}.
+  using \code{\includegraphics{<filename>}}. For use in this way you will
+  probably want to set \code{horizontal=FALSE, onefile=FALSE,
+    paper="special"}.
 
   Most of the PostScript prologue used is taken from the \R character
   vector \code{.ps.profile}.  This is marked in the output, and can be
@@ -131,41 +126,15 @@ ps.options(paper, horizontal, width, height, family, encoding,
     "hvb_____.afm", "hvo_____.afm", "hvbo____.afm")}.
 
   It is the user's responsibility to check that suitable fonts are made
-  available, and that they contain the needed characters when
-  re-encoded.  The fontnames used are taken from the
+  available, and that they contain the needed characters when re-encoded
+  to the ISOLatin1 encoding.  The fontnames used are taken from the
   \code{FontName} fields of the \code{afm} files.  The software
   including the PostScript plot file should either embed the font
   outlines (usually from \code{.pfb} or \code{.pfa} files) or
   use DSC comments to instruct the print spooler to do so.
-}
-\section{Encodings}{
-  Encodings describe which glyphs are used to display the character codes
-  (in the range 0--255).  By default \R uses ISOLatin1 encoding, and
-  the examples for \code{\link{text}} are in that encoding.  However,
-  the encoding used on machines running \R may well be different, and by
-  using the \code{encoding} argument the glyphs can be matched to
-  encoding in use.
 
-  None of this will matter if only ASCII characters (codes 32--126) are
-  used as all the encodings agree over that range.  Some encodings are
-  supersets of ISOLatin1, too.  However, if accented and special
-  characters do not come out as you expect, you may need to change the
-  encoding.  Three other encodings are supplied with \R:
-  \code{"WinAnsi.enc"} and \code{"MacRoman.enc"} correspond to the
-  encodings normally used on Windows and MacOS (at least by Adobe), and
-  \code{"PDFDoc.enc"} is the first 256 characters of the Unicode
-  encoding, the standard for PDF.
-
-  If you change the encoding, it is your responsibility to ensure that
-  the PostScript font contains the glyphs used .  One issue here is the Euro
-  symbol which is in the WinAnsi and MacRoman encodings but may well not
-  be in the PostScript fonts.  (It is in the URW variants; it is not in
-  the supplied Adobe Font Metric files.)
-
-  There is one exception.  Character 45 (\code{"-"}) is always set
-  as minus (its value in Adobe ISOLatin1) even though it is hyphen in
-  the other encodings.  Hyphen is available as character 173 (octal
-  0255) in ISOLatin1.
+  As ISOLatin1 encoding is used, \code{-} is set as a minus and not
+  as a hyphen.  Supply a hyphen (character 173) if that is what you need.
 }
 \seealso{
     \code{\link{Devices}},
