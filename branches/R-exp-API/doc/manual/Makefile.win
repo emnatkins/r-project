@@ -1,0 +1,85 @@
+#-*-Makefile-*-
+#
+# ${R_HOME}/doc/manual/Makefile.win
+
+PAPER = a4
+PDFLATEX = pdflatex
+PDFTEX = pdftex
+MAKEINDEX = makeindex
+TEXINDEX = texindex
+RHOME=$(shell cd ../..; pwd)
+R_PKGS=base eda lqs modreg mva nls splines stepfun ts
+
+# set the next to `ae' to omit the hyperlinks
+PDF=pdf
+
+srcdir = .
+top_srcdir = ../..
+
+pkgsrcs = $(R_PKGS:=-pkg.tex)
+
+.SUFFIXES:
+.SUFFIXES: .dvi .info .texi .pdf
+
+all: lib2tex.pl pdf
+
+lib2tex.pl: lib2tex.in
+	sed -e 1d  $^ > $@
+
+.texi.pdf:
+	$(PDFTEX) $<
+	$(PDFTEX) $<
+
+pdf: refman.pdf R-exts.pdf
+
+refman.tex: lib2tex.pl refman.top $(srcdir)/refman.bot
+	@echo "creating $(subdir)/$@"
+	@(cat refman.top; \
+	  for p in $(R_PKGS); do echo "\\input{$${p}-pkg.tex}"; done; \
+	  cat $(srcdir)/refman.bot) > $@
+
+refman.top: $(srcdir)/refman.top.in
+	sed -e s/@R_PAPERSIZE@/$(PAPER)/ $^ > $@
+
+version.tex: ../../bin/rterm.exe $(top_srcdir)/VERSION
+	@echo "creating $(subdir)/$@"
+	@(v=`cat $(top_srcdir)/VERSION`; \
+	  y=`cut -d/ -f1 < $(top_srcdir)/date-stamp`; \
+	  m=`cut -d/ -f2 < $(top_srcdir)/date-stamp`; \
+	  d=`cut -d/ -f3 < $(top_srcdir)/date-stamp`; \
+	  echo "$${v} ($${m} $${d}, $${y})") > $@
+
+%-pkg.tex: FORCE
+	@echo "Collecting components of $@ ..."
+	cd ../../src/gnuwin32/help && $(MAKE) RHOME=$(RHOME) latex-$*
+	perl lib2tex.pl $*
+FORCE:
+
+refman.pdf: refman.tex version.tex $(pkgsrcs) $(srcdir)/Rd.sty
+	@echo " PDF LaTeX documentation: Reference Index ..."
+	@$(RM) -f *.aux refman.toc refman.ind
+	@TEXINPUTS="$(PDF);.;" \
+	  $(PDFLATEX) '\nonstopmode\input{refman.tex}'
+	@$(MAKEINDEX) refman
+	@TEXINPUTS="$(PDF);.;" \
+	  $(PDFLATEX) '\nonstopmode\input{refman.tex}'
+	@TEXINPUTS="$(PDF);.;" \
+	  $(PDFLATEX) '\nonstopmode\input{refman.tex}'
+
+R-exts.pdf: R-exts.texi
+	$(PDFTEX) R-exts.texi
+	$(TEXINDEX) R-exts.cp R-exts.fn R-exts.vr
+	$(PDFTEX) R-exts.texi
+
+
+mostlyclean: clean
+clean:
+	@echo cleaning in doc/manual
+	@-rm -f *.aux *.toc refman.i?? *.out *.log
+	@-rm -f *.cp *.cps *.fn *.fns *.ky *.kys \
+	  *.out *.pg *.pgs *.tmp *.tp *.vr *.vrs
+distclean: clean
+	@-rm -f version.tex *-pkg.tex lib2tex.pl \
+	  refman.tex refman.top *.pdf
+maintainer-clean: distclean
+
