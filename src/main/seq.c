@@ -1,6 +1,6 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995-1998  Robert Gentleman and Ross Ihaka
+ *  R : A Computer Langage for Statistical Data Analysis
+ *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,8 +40,8 @@ static SEXP seq(SEXP call, SEXP s1, SEXP s2)
 	}
 	n1 = asReal(s1);
 	n2 = asReal(s2);
-	if (ISNAN(n1) || ISNAN(n2))
-		errorcall(call, "NA/NaN argument\n");
+	if (!FINITE(n1) || !FINITE(n2))
+		errorcall(call, "NA argument\n");
 
 	if (n1 <= INT_MIN || n2 <= INT_MIN || n1 > INT_MAX || n2 > INT_MAX
 	    || abs(n2 - n1) >= INT_MAX)
@@ -66,8 +66,8 @@ static SEXP seq(SEXP call, SEXP s1, SEXP s2)
 
 	/*  cross  -  the "cross" of two factors  */
 
-	/*  Note that this always produces an unordered result.
-	 *  There is no way to order.  */
+	/*  Note that this always produces an unordered
+	 *  result.  There is no way to order.	*/
 
 static SEXP cross(SEXP s1, SEXP s2)
 {

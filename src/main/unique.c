@@ -91,28 +91,30 @@ static int iequal(SEXP x, int i, SEXP y, int j)
 
 static int requal(SEXP x, int i, SEXP y, int j)
 {
-	if(!ISNAN(REAL(x)[i]) && !ISNAN(REAL(y)[j])) {
+	if(FINITE(REAL(x)[i]) && FINITE(REAL(y)[j])) {
 		return (REAL(x)[i] == REAL(y)[j]);
 	}
-	else if(ISNAN(REAL(x)[i]) && ISNAN(REAL(y)[j])) {
+	else if(!FINITE(REAL(x)[i]) && !FINITE(REAL(y)[j])) {
 		return 1;
 	}
 	return 0;
 }
 
+#ifdef COMPLEX_DATA
 static int cequal(SEXP x, int i, SEXP y, int j)
 {
-	if(!ISNAN(COMPLEX(x)[i].r) && !ISNAN(COMPLEX(x)[i].i)
-	&& !ISNAN(COMPLEX(y)[j].r) && !ISNAN(COMPLEX(y)[j].i)) {
+	if(FINITE(COMPLEX(x)[i].r) && FINITE(COMPLEX(x)[i].i)
+	&& FINITE(COMPLEX(y)[j].r) && FINITE(COMPLEX(y)[j].i)) {
 		return COMPLEX(x)[i].r == COMPLEX(y)[j].r &&
 			COMPLEX(x)[i].i == COMPLEX(y)[j].i;
 	}
-	else if((ISNAN(COMPLEX(x)[i].r) || ISNAN(COMPLEX(x)[i].i))
-	     && (ISNAN(COMPLEX(y)[j].r) || ISNAN(COMPLEX(y)[j].i))) {
+	else if((!FINITE(COMPLEX(x)[i].r) || !FINITE(COMPLEX(x)[i].i))
+	     && (!FINITE(COMPLEX(y)[j].r) || !FINITE(COMPLEX(y)[j].i))) {
 		return 1;
 	}
 	return 0;
 }
+#endif
 
 static int sequal(SEXP x, int i, SEXP y, int j)
 {
@@ -221,7 +223,7 @@ SEXP do_duplicated(SEXP call, SEXP op, SEXP args, SEXP env)
 
 	checkArity(op, args);
 	x = CAR(args);
-	if (!(isVector(x) || isNull(x)))
+	if (!isVector(x))
 		error("duplicated applies only to vectors\n");
 
 	/* handle zero length vectors */
@@ -471,8 +473,7 @@ static SEXP ExpandDots(SEXP s, int expdots)
 SEXP do_matchcall(SEXP call, SEXP op, SEXP args, SEXP env)
 {
         SEXP formals, actuals, rlist;
-	SEXP f, b, rval, sysp;
-	RCNTXT *cptr;
+	SEXP f, b, rval;
 	int expdots;
 
 	checkArity(op,args);
@@ -487,23 +488,10 @@ SEXP do_matchcall(SEXP call, SEXP op, SEXP args, SEXP env)
 		/* Get the function definition */
 
 	if(TYPEOF(CAR(args)) == NILSXP) {
-		/* get the env that the function containing matchcall was
-		   called from */
-		cptr = R_GlobalContext;
-		sysp = R_GlobalContext->sysparent;
-	        while(cptr != NULL) {
-			if(cptr->callflag == CTXT_RETURN && cptr->cloenv == sysp)
-				break;
-			cptr = cptr->nextcontext;
-		}
-		if( cptr == NULL )
-			sysp = R_GlobalEnv;
-		else
-			sysp = cptr->sysparent;
 		if( TYPEOF(CAR(f)) == SYMSXP )
-			PROTECT(b = findFun(CAR(f), sysp));
+			PROTECT(b = findFun(CAR(f), env));
 		else
-			PROTECT(b = eval(CAR(f), sysp));
+			PROTECT(b = eval(CAR(f), env));
 	}
 	else PROTECT(b = CAR(args));
 

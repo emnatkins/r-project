@@ -21,10 +21,6 @@
 #include "Print.h"
 #include "names.h"
 
-#ifdef Unix
-SEXP do_getenv(SEXP, SEXP, SEXP, SEXP);
-#endif
-
 #ifdef Win32
 SEXP do_winedit(SEXP, SEXP, SEXP, SEXP);
 SEXP do_sysfile(SEXP, SEXP, SEXP, SEXP);
@@ -174,7 +170,6 @@ FUNTAB R_FunTab[] =
 {"round",	do_round,	10001,	1,	1,	PP_FUNCALL,	0},
 {"atan",	do_atan,	10002,	1,	1,	PP_FUNCALL,	0},
 {"log",		do_log,		10003,	1,	1,	PP_FUNCALL,	0},
-{"signif",	do_signif,	10004,	1,	1,	PP_FUNCALL,	0},
 
 {"abs",		do_math1,	0,	1,	1,	PP_FUNCALL,	0},
 {"floor",	do_math1,	1,	1,	1,	PP_FUNCALL,	0},
@@ -211,9 +206,7 @@ FUNTAB R_FunTab[] =
 /* Mathematical Functions of Two Variables */
 
 {"atan2",	do_math2,	0,	1,	2,	PP_FUNCALL,	0},
-/* KH
-   {"signif",	do_math2,	1,	1,	2,	PP_FUNCALL,	0},
-   */
+{"signif",	do_math2,	1,	1,	2,	PP_FUNCALL,	0},
 
 {"lbeta",	do_math2,	2,	1,	2,	PP_FUNCALL,	0},
 {"beta",	do_math2,	3,	1,	2,	PP_FUNCALL,	0},
@@ -302,9 +295,6 @@ FUNTAB R_FunTab[] =
 {"pnchisq",	do_math3,	35,	11,	3,	PP_FUNCALL,	0},
 {"qnchisq",	do_math3,	36,	11,	3,	PP_FUNCALL,	0},
 
-{"dnt",		do_math3,	37,	11,	3,	PP_FUNCALL,	0},
-{"pnt",		do_math3,	38,	11,	3,	PP_FUNCALL,	0},
-{"qnt",		do_math3,	39,	11,	3,	PP_FUNCALL,	0},
 
 /* Mathematical Functions of Four Variables */
 
@@ -312,17 +302,6 @@ FUNTAB R_FunTab[] =
 {"phyper",	do_math4,	2,	11,	4,	PP_FUNCALL,	0},
 {"qhyper",	do_math4,	3,	11,	4,	PP_FUNCALL,	0},
 
-{"dnbeta",	do_math4,	4,	11,	4,	PP_FUNCALL,	0},
-{"pnbeta",	do_math4,	5,	11,	4,	PP_FUNCALL,	0},
-{"qnbeta",	do_math4,	6,	11,	4,	PP_FUNCALL,	0},
-
-{"dnf",		do_math4,	7,	11,	4,	PP_FUNCALL,	0},
-{"pnf",		do_math4,	8,	11,	4,	PP_FUNCALL,	0},
-{"qnf",		do_math4,	9,	11,	4,	PP_FUNCALL,	0},
-
-{"dtukey",	do_math4,	10,	11,	4,	PP_FUNCALL,	0},
-{"ptukey",	do_math4,	11,	11,	4,	PP_FUNCALL,	0},
-{"qtukey",	do_math4,	12,	11,	4,	PP_FUNCALL,	0},
 
 /* Random Numbers */
 
@@ -375,7 +354,7 @@ FUNTAB R_FunTab[] =
 {"codes",	do_codes,	0,	1,	1,	PP_FUNCALL,	0},
 {"codes<-",	do_codesgets,	0,	1,	2,	PP_FUNCALL,	0},
 {"paste",	do_paste,	0,	11,	3,	PP_FUNCALL,	0},
-{"format",	do_format,	0,	11,	-1,	PP_FUNCALL,	0},
+{"format",	do_format,	0,	1,	-1,	PP_FUNCALL,	0},
 {"format.info",	do_formatinfo,	0,	1,	1,	PP_FUNCALL,	0},
 {"cat",		do_cat,		0,	111,	6,	PP_FUNCALL,	0},
 {"call",	do_call,	0,	0,	-1,	PP_FUNCALL,	0},
@@ -430,7 +409,6 @@ FUNTAB R_FunTab[] =
 
 {"is.vector",	do_isvector,	0,	11,	2,	PP_FUNCALL,	0},
 {"is.na",	do_isna,	0,	1,	1,	PP_FUNCALL,	0},
-{"is.finite",	do_isfinite,	0,	1,	1,	PP_FUNCALL,	0},
 
 
 /* Miscellaneous */
@@ -442,9 +420,6 @@ FUNTAB R_FunTab[] =
 {"machine",	do_machine,	0,	1,	0,	PP_FUNCALL,	0},
 {"Machine",	do_Machine,	0,	1,	0,	PP_FUNCALL,	0},
 {"system",	do_system,	0,	11,	2,	PP_FUNCALL,	0},
-#ifdef Unix
-{"getenv",	do_getenv,	0,	11,	1,	PP_FUNCALL,	0},
-#endif
 #ifdef Win32
 {"system.file",	do_sysfile,	0,	11,	2,	PP_FUNCALL,	0},
 {"getenv",	do_getenv,	0,	11,	1,	PP_FUNCALL,	0},
@@ -532,23 +507,10 @@ FUNTAB R_FunTab[] =
 #endif
 {"nextn",	do_nextn,	0,	11,	2,	PP_FUNCALL,	0},
 
-/* Device Drivers */
-
-{"X11",		do_X11,		0,	111,	4,	PP_FUNCALL,	0},
-{"PS",		do_PS,		0,	111,	9,	PP_FUNCALL,	0},
-
 /* Graphics */
 
-{"dev.control",	do_devcontrol,	0,	111,	0, 	PP_FUNCALL,	0},
-{"dev.copy",	do_devcopy,	0,	111,	1, 	PP_FUNCALL,	0},
-{"dev.cur",	do_devcur,	0,	111,	0,	PP_FUNCALL,	0},
-/*
 {"device",	do_device,	0,	111,	3,	PP_FUNCALL,	0},
-*/
-{"dev.next",	do_devnext,	0,	111,	1,	PP_FUNCALL,	0},
-{"dev.off",	do_devoff,	0,	111,	1,	PP_FUNCALL,	0},
-{"dev.prev",	do_devprev,	0,	111,	1,	PP_FUNCALL,	0},
-{"dev.set",	do_devset,	0,	111,	1,	PP_FUNCALL,	0},
+{"dev.off",	do_devoff,	0,	101,	0,	PP_FUNCALL,	0},
 {"rgb",		do_rgb,		0,	11,	4,	PP_FUNCALL,	0},
 {"hsv",		do_hsv,		0,	11,	4,	PP_FUNCALL,	0},
 {"gray",	do_gray,	0,	1,	1,	PP_FUNCALL,	0},
@@ -566,9 +528,9 @@ FUNTAB R_FunTab[] =
 {"rect",	do_rect,	0,	111,	6,	PP_FUNCALL,	0},
 {"polygon",	do_polygon,	0,	111,	5,	PP_FUNCALL,	0},
 {"par",		do_par,		0,	11,	1,	PP_FUNCALL,	0},
+{"par2",	do_par2,	0,	11,	1,	PP_FUNCALL,	0},
 {"segments",	do_segments,	0,	111,	6,	PP_FUNCALL,	0},
 {"arrows",	do_arrows,	0,	111,	9,	PP_FUNCALL,	0},
-{"layout", 	do_layout,	0, 	111,	10, 	PP_FUNCALL,	0},
 {"locator",	do_locator,	0,	11,	1,	PP_FUNCALL,	0},
 {"identify",	do_identify,	0,	11,	3,	PP_FUNCALL,	0},
 {"strheight",   do_strheight,   0,      11,     3, 	PP_FUNCALL, 	0},
@@ -576,8 +538,9 @@ FUNTAB R_FunTab[] =
 {"contour",	do_contour,	0,	11,	6,	PP_FUNCALL,	0},
 {"image",	do_image,	0,	11,	5,	PP_FUNCALL,	0},
 {"dend",	do_dend,	0,	111,	6,	PP_FUNCALL,	0},
-{"dend.window",	do_dendwindow,	0,	111,	6,	PP_FUNCALL,	0},
-{"replay", 	do_replay,	0,	111,	0,	PP_FUNCALL, 	0},
+{"save.plot",	do_saveplot,	0,	101,	1,	PP_FUNCALL,	0},
+{"print.plot",	do_printplot,	0,	101,	0,	PP_FUNCALL,	0},
+{"text.math",	do_mathtext,	0,	100,	1,	PP_FUNCALL,	0},
 {"erase",	do_erase,	0,	111,	1,	PP_FUNCALL,	0},
 
 /* Objects */

@@ -1,14 +1,15 @@
-toLink = S.h S_compat.h f2c.h Fortran.h Blas.h Linpack.h Platform.h
+toLink = S.h S_compat.h f2c.h Fortran.h Blas.h Linpack.h
 
 install: rmlinks
-	@echo Making include links
+	@echo making include links
 	@ln $(toLink) ../../include
 
 rmlinks:
-	@echo Removing links in src/include
+	@echo cleaning links in src/include
 	@for f in $(toLink); do rm -f ../../include/$${f}; done
 
 clean:
-	@echo Cleaning in src/include
+	@echo cleaning in src/include
 
-realclean: clean rmlinks
+realclean: rmlinks
+	@echo realcleaning in src/include

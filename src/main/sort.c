@@ -35,9 +35,9 @@ static int icmp(int x, int y)
 
 static int rcmp(double x, double y)
 {
-	if (ISNAN(x))
+	if (!FINITE(x))
 		return 1;
-	if (ISNAN(y))
+	if (!FINITE(y))
 		return -1;
 	if (x < y)
 		return -1;
@@ -46,28 +46,30 @@ static int rcmp(double x, double y)
 	return 0;
 }
 
+#ifdef COMPLEX_DATA
 static int ccmp(complex x, complex y)
 {
-	if (ISNAN(x.r))		/* compare real parts */
+	if (!FINITE(x.r))		/* compare real parts */
 		return 1;
-	if (ISNAN(y.r))
+	if (!FINITE(y.r))
 		return -1;
 	if (x.r < y.r)
 		return -1;
 	if (x.r > y.r)
 		return 1;
 
-	if (ISNAN(x.i))		/* compare complex parts */
+	if (!FINITE(x.i))		/* compare complex parts */
 		return 1;
-	if (ISNAN(y.i))
+	if (!FINITE(y.i))
 		return -1;
 	if (x.i < y.i)
 		return -1;
 	if (x.i > y.i)
 		return 1;
 
-	return 0;		/* equal */
+	return 0;			/* equal */
 }
+#endif
 
 static int scmp(SEXP x, SEXP y)
 {

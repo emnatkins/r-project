@@ -9,10 +9,6 @@ cat("\nNumber of base objects:\t\t", length(ls.base),
 ## 0.14 : 31
 ## 0.50 : 33
 ## 0.60 : 34
-## 0.62 : 35
-
-## This can be useful:  Which of the  builtin functions are "primitive" ?
-is.primitive <- function(obj)  is.function(obj) && is.null(args(obj))
 
 is.ALL <- function(obj, func.names = ls(pos=length(search())),
                    not.using = c("is.single", "is.na.data.frame",
@@ -38,8 +34,7 @@ is.ALL <- function(obj, func.names = ls(pos=length(search())),
       }
     }
     if(debug) cat(f,"")
-    fn <- get(f)
-    rr <- if(is.primitive(fn) || length(formals(fn))>0)  fn(obj) else fn()
+    rr <-  (get(f))(obj)
     if(!is.logical(rr)) cat("f=",f," --- rr  is NOT logical  = ",rr,"\n")
     ##if(1!=length(rr))   cat("f=",f," --- rr NOT of length 1; = ",rr,"\n")
     if(true.only && length(rr)==1 && rr) r <- c(r, f)
@@ -107,10 +102,9 @@ is.ALL(numeric(0), true=T)
 is.ALL(array(1,1:3), true=T)
 is.ALL(cbind(1:3), true=T)
 
-is.ALL(structure(1:7, names = paste("a",1:7,sep="")))
-is.ALL(structure(1:7, names = paste("a",1:7,sep="")), true.only = T)
+
 
 x <- 1:20 ; y <- 5 + 6*x + rnorm(20) ; lm.xy <- lm(y ~ x)
-#now (0.62) fails: is.ALL(lm.xy)
+is.ALL(lm.xy)
 is.ALL(structure(1:7, names = paste("a",1:7,sep="")))
 is.ALL(structure(1:7, names = paste("a",1:7,sep="")), true.only = T)

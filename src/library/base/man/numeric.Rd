@@ -1,16 +1,16 @@
 \name{numeric}
 \title{Numeric Vectors}
-\alias{numeric}
-\alias{as.numeric}
-\alias{is.numeric}
 \usage{
-numeric(length = 0)
+numeric(n = 0)
 as.numeric(x)
 is.numeric(x)
 }
+\alias{numeric}
+\alias{as.numeric}
+\alias{is.numeric}
 \description{
-  \code{numeric} creates a real vector of the specified length.  The
-  elements of the vector are all equal to \code{0}.
+  \code{numeric} creates a real vector of length \code{n}.  The vector
+  is filled with zeros.
 
   \code{as.numeric} attempts to coerce its argument to numeric type
   (either integer or real).

@@ -24,7 +24,7 @@
 
 # Bug reports to Kurt.Hornik@ci.tuwien.ac.at
 
-$VERSION = "0.2-a5";
+$VERSION = "0.2-a4";
 ($NAME = $0) =~ s|.*/||;
 
 $\ = "\n";
@@ -99,9 +99,7 @@ while (<>) {
     if ($word[1] =~ /REFERENCE/) {
       &section(0, "\\references\{");
     } else {
-      # This line may be of the form .SH "A B C"
-      ($tmp = join(" ", @word[1..$#word])) =~ s/\"(.*)\"/$1/;
-      &section(0, "\\section\{$tmp\}\{");
+      &section(0, "\\section\{$word[1]\}\{");
     }
   }
   if (/^\.sp/) { output("\n"); }

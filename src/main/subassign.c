@@ -407,7 +407,7 @@ static SEXP vectorAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 			if(ii == NA_INTEGER) continue;
 			ii = ii - 1;
 			ry = REAL(y)[i % ny];
-			if(ISNA(ry)) {
+			if(!FINITE(ry)) {
 				COMPLEX(x)[ii].r = NA_REAL;
 				COMPLEX(x)[ii].i = NA_REAL;
 			}
@@ -630,7 +630,7 @@ static SEXP matrixAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 				ii = ii - 1;
 				ij = ii + jj * nr;
 				ry = REAL(y)[k];
-				if(ISNA(ry)) {
+				if(!FINITE(ry)) {
 					COMPLEX(x)[ij].r = NA_REAL;
 					COMPLEX(x)[ij].i = NA_REAL;
 				}
@@ -814,7 +814,7 @@ static SEXP arrayAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 		case 1514:	/* complex   <- real      */
 
 			ry = REAL(y)[i % ny];
-			if(ISNA(ry)) {
+			if(!FINITE(ry)) {
 				COMPLEX(x)[ii].r = NA_REAL;
 				COMPLEX(x)[ii].i = NA_REAL;
 			}
@@ -866,7 +866,7 @@ static SEXP arrayAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 
 static SEXP SimpleListAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 {
-	SEXP index, xi, yi, yp;
+	SEXP index, yi, yp;
 	int i, ii, n, nx, ny, stretch=1;
 
 	if (length(s) > 1)
@@ -884,7 +884,6 @@ static SEXP SimpleListAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 		yi = allocList(length(y));
 		for(yp=yi ; yp!=R_NilValue ; yp=CDR(yp)) {
 			CAR(yp) = CAR(y);
-			TAG(yp) = TAG(y);
 			NAMED(CAR(yp)) = ny | NAMED(CAR(y));
 			y = CDR(y);
 		}
@@ -912,20 +911,10 @@ static SEXP SimpleListAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 		ii = INTEGER(index)[i];
 		if(ii == NA_INTEGER) continue;
 		ii = ii - 1;
-#ifdef OLD_STUFF
 		yi = CAR(nthcdr(y, i % ny));
 		if(NAMED(y) || NAMED(yi)) yi = duplicate(yi);
 		else NAMED(yi) = 1;
 		CAR(nthcdr(x, ii % nx)) = yi;
-#else
-		yi = nthcdr(y, i % ny);
-		xi = nthcdr(x, ii % nx);
-		if(NAMED(y) || NAMED(CAR(yi))) CAR(yi) = duplicate(CAR(yi));
-		else NAMED(CAR(yi)) = 1;
-		CAR(xi) = CAR(yi);
-		if(TAG(yi) != R_NilValue)
-			TAG(xi) = TAG(yi);
-#endif
 	}
 	UNPROTECT(3);
 	return x;
@@ -1015,7 +1004,7 @@ SEXP listAssign1(SEXP call, SEXP x, SEXP subs, SEXP y)
 
 static SEXP frameAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 {
-	int i, ii;
+	int i, j, ii, jj, ij, k;
 	int nr, nc, ncy;
 	int nrs, ncs;
 	SEXP sr, sc, ss, xp, yp;
@@ -1153,7 +1142,7 @@ static void SubAssignArgs(SEXP args, SEXP *x, SEXP *s, SEXP *y)
 SEXP do_subassign(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
 	SEXP subs, x, y;
-	int nsubs;
+	int i, nsubs;
 	RCNTXT cntxt;
 
 	CAR(args) = eval(CAR(args), rho);
@@ -1228,7 +1217,7 @@ SEXP do_subassign(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 SEXP do_subassign2(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-	SEXP dims, index, names, subs, x, y;
+	SEXP dims, index, names, subs, x, y, obj;
 	int i, ndims, nsubs, offset, which;
 	RCNTXT cntxt;
 
@@ -1332,7 +1321,7 @@ SEXP do_subassign2(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 		case 1514:	/* complex   <- real      */
 
-			if(ISNA(REAL(y)[0])) {
+			if(!FINITE(REAL(y)[0])) {
 				COMPLEX(x)[offset].r = NA_REAL;
 				COMPLEX(x)[offset].i = NA_REAL;
 			}

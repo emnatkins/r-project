@@ -186,11 +186,13 @@ SEXP do_relop(SEXP call, SEXP op, SEXP args, SEXP env)
 		y = CADR(args) = coerceVector(y, STRSXP);
 		x = string_relop(PRIMVAL(op), x, y);
 	}
+#ifdef COMPLEX_DATA
 	else if (isComplex(x) || isComplex(y)) {
 		x = CAR(args) = coerceVector(x, CPLXSXP);
 		y = CADR(args) = coerceVector(y, CPLXSXP);
 		x = complex_relop(PRIMVAL(op), x, y);
 	}
+#endif
 	else if (TYPEOF(x) == REALSXP || TYPEOF(y) == REALSXP) {
 		x = CAR(args) = coerceVector(x, REALSXP);
 		y = CADR(args) = coerceVector(y, REALSXP);
@@ -322,60 +324,60 @@ static SEXP real_relop(int code, SEXP s1, SEXP s2)
 		for (i = 0; i < n; i++) {
 			x1 = REAL(s1)[i % n1];
 			x2 = REAL(s2)[i % n2];
-			if (ISNAN(x1) || ISNAN(x2))
-				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
+			if (FINITE(x1) && FINITE(x2))
 				LOGICAL(ans)[i] = (x1 == x2);
+			else
+				LOGICAL(ans)[i] = NA_LOGICAL;
 		}
 		break;
 	case NEOP:
 		for (i = 0; i < n; i++) {
 			x1 = REAL(s1)[i % n1];
 			x2 = REAL(s2)[i % n2];
-			if (ISNAN(x1) || ISNAN(x2))
-				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
+			if (FINITE(x1) && FINITE(x2))
 				LOGICAL(ans)[i] = (x1 != x2);
+			else
+				LOGICAL(ans)[i] = NA_LOGICAL;
 		}
 		break;
 	case LTOP:
 		for (i = 0; i < n; i++) {
 			x1 = REAL(s1)[i % n1];
 			x2 = REAL(s2)[i % n2];
-			if (ISNAN(x1) || ISNAN(x2))
-				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
+			if (FINITE(x1) && FINITE(x2))
 				LOGICAL(ans)[i] = (x1 < x2);
+			else
+				LOGICAL(ans)[i] = NA_LOGICAL;
 		}
 		break;
 	case GTOP:
 		for (i = 0; i < n; i++) {
 			x1 = REAL(s1)[i % n1];
 			x2 = REAL(s2)[i % n2];
-			if (ISNAN(x1) || ISNAN(x2))
-				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
+			if (FINITE(x1) && FINITE(x2))
 				LOGICAL(ans)[i] = (x1 > x2);
+			else
+				LOGICAL(ans)[i] = NA_LOGICAL;
 		}
 		break;
 	case LEOP:
 		for (i = 0; i < n; i++) {
 			x1 = REAL(s1)[i % n1];
 			x2 = REAL(s2)[i % n2];
-			if (ISNAN(x1) || ISNAN(x2))
-				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
+			if (FINITE(x1) && FINITE(x2))
 				LOGICAL(ans)[i] = (x1 <= x2);
+			else
+				LOGICAL(ans)[i] = NA_LOGICAL;
 		}
 		break;
 	case GEOP:
 		for (i = 0; i < n; i++) {
 			x1 = REAL(s1)[i % n1];
 			x2 = REAL(s2)[i % n2];
-			if (ISNAN(x1) || ISNAN(x2))
-				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
+			if (FINITE(x1) && FINITE(x2))
 				LOGICAL(ans)[i] = (x1 >= x2);
+			else
+				LOGICAL(ans)[i] = NA_LOGICAL;
 		}
 		break;
 	}
@@ -383,6 +385,7 @@ static SEXP real_relop(int code, SEXP s1, SEXP s2)
 	return ans;
 }
 
+#ifdef COMPLEX_DATA
 static SEXP complex_relop(int code, SEXP s1, SEXP s2)
 {
 	int i, n, n1, n2;
@@ -405,28 +408,27 @@ static SEXP complex_relop(int code, SEXP s1, SEXP s2)
 		for (i = 0; i < n; i++) {
 			x1 = COMPLEX(s1)[i % n1];
 			x2 = COMPLEX(s2)[i % n2];
-			if (ISNAN(x1.r) || ISNAN(x1.i) ||
-			    ISNAN(x2.r) || ISNAN(x2.i))
-				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
+			if (FINITE(x1.r) && FINITE(x1.i) && FINITE(x2.r) && FINITE(x2.i))
 				LOGICAL(ans)[i] = (x1.r == x2.r && x1.i == x2.i);
+			else
+				LOGICAL(ans)[i] = NA_LOGICAL;
 		}
 		break;
 	case NEOP:
 		for (i = 0; i < n; i++) {
 			x1 = COMPLEX(s1)[i % n1];
 			x2 = COMPLEX(s2)[i % n2];
-			if (ISNAN(x1.r) || ISNAN(x1.i) ||
-			    ISNAN(x2.r) || ISNAN(x2.i))
-				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
+			if (FINITE(x1.r) && FINITE(x1.i) && FINITE(x2.r) && FINITE(x2.i))
 				LOGICAL(ans)[i] = (x1.r != x2.r || x1.i != x2.i);
+			else
+				LOGICAL(ans)[i] = NA_LOGICAL;
 		}
 		break;
 	}
 	UNPROTECT(2);
 	return ans;
 }
+#endif
 
 static SEXP string_relop(int code, SEXP s1, SEXP s2)
 {

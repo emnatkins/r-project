@@ -1,27 +1,24 @@
-R:		build
-		@cd main; make install
-		@cd library; make
-		@cd library; make libs
-		@cd front; make
-
 build:
-		@echo "Extracting foreign function symbols"
+		@echo extracting foreign function symbols
 		@sh GETSYMBOLS
 		cd graphics; make
-		cd nmath; make
+		cd math; make
 		cd appl; make
 		cd unix; make
 		cd main; make
 		cd include; make
 
-install:
-		@echo "Sorry, this hasn't been implemented yet"
+install:	build
+		@cd main; make install
+		@cd library; make
+		@cd library; make libs
+		@cd front; make
 
 clean:
 		@cd graphics; make $@
 		@cd library; make $@
 		@cd main; make $@
-		@cd nmath; make $@
+		@cd math; make $@
 		@cd appl; make $@
 		@cd unix; make $@
 		@-rm -f lib/*.a
@@ -31,7 +28,7 @@ realclean:
 		@cd graphics; make $@
 		@cd library; make clean
 		@cd main; make $@
-		@cd nmath; make $@
+		@cd math; make $@
 		@cd appl; make $@
 		@cd unix; make $@
 		@cd include; make $@

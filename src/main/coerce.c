@@ -58,7 +58,6 @@ SEXP do_codes(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_codesgets(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
 	SEXP x, y;
-	double yi;
 	int i, iy, lx, nx, ny;
 
 	checkArity(op, args);
@@ -76,15 +75,9 @@ SEXP do_codesgets(SEXP call, SEXP op, SEXP args, SEXP rho)
 				iy = INTEGER(y)[i];
 				break;
 			case REALSXP:
-				if (ISNAN(REAL(y)[i])) iy = NA_INTEGER;
-				else {
-					yi = floor(REAL(y)[i]+0.5);
-					if (ISNAN(yi) || yi < 1 || yi > lx)
-						iy = NA_INTEGER;
-					else
-						iy = NA_INTEGER;
-					break;
-				}
+				if(FINITE(REAL(y)[i])) iy = REAL(y)[i] + 0.5;
+				else iy = NA_INTEGER;
+				break;
 		}
 		if(iy == NA_INTEGER || (1 <= iy && iy <= lx))
 			INTEGER(x)[i] = iy;
@@ -461,12 +454,12 @@ SEXP do_isna(SEXP call, SEXP op, SEXP args, SEXP rho)
 		break;
 	case REALSXP:
 		for (i = 0; i < length(x); i++)
-			LOGICAL(ans)[i] = ISNAN(REAL(x)[i]);
+			LOGICAL(ans)[i] = !FINITE(REAL(x)[i]);
 		break;
 	case CPLXSXP:
 		for (i = 0; i < length(x); i++)
-			LOGICAL(ans)[i] = (ISNAN(COMPLEX(x)[i].r)
-					|| ISNAN(COMPLEX(x)[i].i));
+			LOGICAL(ans)[i] = !(FINITE(COMPLEX(x)[i].r)
+					&& FINITE(COMPLEX(x)[i].i));
 		break;
 	case STRSXP:
 		for (i = 0; i < length(x); i++)
@@ -486,14 +479,14 @@ SEXP do_isna(SEXP call, SEXP op, SEXP args, SEXP rho)
 					LOGICAL(ans)[i] = (INTEGER(CAR(x))[0] == NA_INTEGER);
 					break;
 				case REALSXP:
-					LOGICAL(ans)[i] = ISNAN(REAL(CAR(x))[0]);
+					LOGICAL(ans)[i] = !FINITE(REAL(CAR(x))[0]);
 					break;
 				case STRSXP:
 					LOGICAL(ans)[i] = (STRING(CAR(x))[0] == NA_STRING);
 					break;
 				case CPLXSXP:
-					LOGICAL(ans)[i] = (ISNAN(COMPLEX(CAR(x))[0].r)
-						|| ISNAN(COMPLEX(CAR(x))[0].i));
+					LOGICAL(ans)[i] = !(FINITE(COMPLEX(CAR(x))[0].r)
+						&& FINITE(COMPLEX(CAR(x))[0].i));
 					break;
 				}
 			}
@@ -510,46 +503,6 @@ SEXP do_isna(SEXP call, SEXP op, SEXP args, SEXP rho)
 		UNPROTECT(2);
 	}
 	UNPROTECT(1);
-	return ans;
-}
-
-SEXP do_isfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-	SEXP ans, x, names, dims;
-	int i, n;
-	checkArity(op, args);
-	switch(TYPEOF(CAR(args))) {
-	    case REALSXP:
-	    case CPLXSXP:
-		break;
-	    default:
-		CAR(args) = coerceVector(CAR(args), REALSXP);
-	}
-	x = CAR(args);
-	n = length(x);
-	PROTECT(ans = allocVector(LGLSXP, n));
-	if (isVector(x)) {
-		PROTECT(dims = getAttrib(x, R_DimSymbol));
-		if (isArray(x))
-			PROTECT(names = getAttrib(x, R_DimNamesSymbol));
-		else
-			PROTECT(names = getAttrib(x, R_NamesSymbol));
-	}
-	if(isComplex(x)) {
-		for(i=0 ; i<n ; i++)
-			INTEGER(ans)[i] = (FINITE(COMPLEX(x)[i].r)
-					&& FINITE(COMPLEX(x)[i].i));
-	}
-	else {
-		for(i=0 ; i<n ; i++)
-			INTEGER(ans)[i] = FINITE(REAL(x)[i]);
-	}
-	setAttrib(ans, R_DimSymbol, dims);
-	if (isArray(x))
-		setAttrib(ans, R_DimNamesSymbol, names);
-	else
-		setAttrib(ans, R_NamesSymbol, names);
-	UNPROTECT(3);
 	return ans;
 }
 
@@ -714,18 +667,15 @@ static SEXP coerceToLogical(SEXP v)
 		break;
 	case REALSXP:
 		for (i = 0; i < n; i++) {
-			if(ISNAN(REAL(v)[i]))
-				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
-				LOGICAL(ans)[i] = (REAL(v)[i] != 0);
+			if(FINITE(REAL(v)[i])) LOGICAL(ans)[i] = (REAL(v)[i] != 0);
+			else LOGICAL(ans)[i] = NA_LOGICAL;
 		}
 		break;
 	case CPLXSXP:
 		for (i = 0; i < n; i++) {
-			if(ISNAN(COMPLEX(v)[i].r) || ISNAN(COMPLEX(v)[i].i))
-				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
+			if(FINITE(COMPLEX(v)[i].r) && FINITE(COMPLEX(v)[i].i))
 				LOGICAL(ans)[i] = (COMPLEX(v)[i].r != 0 || COMPLEX(v)[i].i != 0);
+			else LOGICAL(ans)[i] = NA_LOGICAL;
 		}
 		break;
 	case STRSXP:
@@ -853,32 +803,27 @@ static SEXP coerceToInteger(SEXP v)
 		break;
 	case REALSXP:
 		for (i = 0; i < n; i++) {
-			if(ISNAN(REAL(v)[i]) )
+			if( !FINITE(REAL(v)[i]) )
 				INTEGER(ans)[i] = NA_INTEGER;
-			else if (REAL(v)[i] > INT_MAX) {
-				INTEGER(ans)[i] = INT_MAX;
+			else if ( REAL(v)[i] >= LONG_MAX+1.0 || REAL(v)[i]<= LONG_MIN-1.0 ) {
 				warn = 1;
+				INTEGER(ans)[i] = NA_INTEGER;
 			}
-			else if(REAL(v)[i]<= INT_MIN) {
-				INTEGER(ans)[i] = INT_MIN+1;
-				warn = 1;
-			}
-			else INTEGER(ans)[i] = REAL(v)[i];
+			else
+				INTEGER(ans)[i] = REAL(v)[i];
 		}
 		break;
 	case CPLXSXP:
 		for (i = 0; i < n; i++) {
-			if (ISNAN(COMPLEX(v)[i].r) || ISNAN(COMPLEX(v)[i].i))
+			if( (FINITE(COMPLEX(v)[i].r) && FINITE(COMPLEX(v)[i].i)) )
 				INTEGER(ans)[i] = NA_INTEGER;
-			else if (COMPLEX(v)[i].r > INT_MAX) {
+			else if ( COMPLEX(v)[i].r >= LONG_MAX+1.0 || COMPLEX(v)[i].r <= LONG_MIN-1.0 ) {     
 				warn = 1;
-				INTEGER(ans)[i] = INT_MAX;
+				INTEGER(ans)[i] = NA_INTEGER;
 			}
-			else if (COMPLEX(v)[i].r < INT_MIN) {     
-				warn = 1;
-				INTEGER(ans)[i] = INT_MIN+1;
-			}
-			else INTEGER(ans)[i] = COMPLEX(v)[i].r;
+			else
+
+				INTEGER(ans)[i] = COMPLEX(v)[i].r;
 		}
 		break;
 	case STRSXP:
@@ -905,7 +850,7 @@ static SEXP coerceToInteger(SEXP v)
 		break;
 	}
 	UNPROTECT(2);
-	if( warn ) warning("inaccurate integer conversion\n");
+	if( warn ) warning("integer conversion: some values were too large and were converted to NA\n");
 	return ans;
 }
 
@@ -1028,7 +973,7 @@ static SEXP coerceToComplex(SEXP v)
 		break;
 	case REALSXP:
 		for (i = 0; i < n; i++) {
-			if (ISNA(REAL(v)[i])) {
+			if (!FINITE(REAL(v)[i])) {
 				COMPLEX(ans)[i].r = NA_REAL;
 				COMPLEX(ans)[i].i = NA_REAL;
 			}

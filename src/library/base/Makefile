@@ -1,9 +1,10 @@
 base:
-	@echo Building R base package
+	@echo Building R base library
 	@if test ! -d ../../../library/base; then mkdir ../../../library/base; fi
 	@if test ! -d ../../../library/base/R; then mkdir ../../../library/base/R; fi
 	@if test ! -d ../../../library/base/data; then mkdir ../../../library/base/data; fi
-	@cat `ls R/*.R | sed '/system.*/d'` R/system.unix.R | \
+	@cat `ls R/[a-z]* | sed '/CVS/d; /~$$/d; /\.orig$$/d; \
+		/\.bak$$/d; /^core$$/d; /system.*/d'` R/system.unix | \
 	 sed '/^[ 	]*$$/d'  > ../../../library/base/R/base
 #		   ^^ = TAB + Space
 ##-- do NOT delete all '#' lines -- this BREAKS strings containing '#' !!

@@ -71,6 +71,7 @@ static int CountItems(SEXP sxp, int handsoff)
 static void InsertVector(SEXP sxp, int handsoff)
 {
 	SEXP tmp;
+	int i;
 
 	if(NAMED(sxp))
 		sxp = duplicate(sxp);

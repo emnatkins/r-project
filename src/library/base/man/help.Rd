@@ -1,7 +1,7 @@
 \name{help}
 \title{Online Documentation}
 \usage{
-help(topic, package = c(.packages(),.Autoloaded), lib.loc = .lib.loc)
+help(topic, package = .packages(), lib.loc = .lib.loc)
 
 ?topic
 }
@@ -30,9 +30,6 @@ forms, the name may need to be be quoted.
 objects they contain;
 \code{\link{data}} for listing available data sets;
 \code{\link{methods}}.
-
-See \code{\link{prompt}} to get a prototype for writing \code{help} pages
-of private packages.
 }
 \examples{
 help()

@@ -1,15 +1,7 @@
 \name{complex}
 \title{Complex Vectors}
-\alias{complex}
-\alias{as.complex}
-\alias{is.complex}
-\alias{Re}
-\alias{Im}
-\alias{Mod}
-\alias{Arg}
-\alias{Conj}
 \usage{
-complex(length = 0, real = numeric(), imaginary = numeric())
+complex(n = 0, real = numeric(), imaginary = numeric())
 as.complex(z)
 is.complex(z)
 
@@ -19,6 +11,14 @@ Mod(z)
 Arg(z)
 Conj(z)
 }
+\alias{complex}
+\alias{as.complex}
+\alias{is.complex}
+\alias{Re}
+\alias{Im}
+\alias{Mod}
+\alias{Arg}
+\alias{Conj}
 \description{
   These are basic functions which support complex arithmetic in R.
   Complex vectors can be created with \code{complex}.  The vector can be

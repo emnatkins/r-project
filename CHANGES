@@ -1,167 +1,24 @@
-		CHANGES IN R VERSION 0.62
-
-NEW FEATURES
-
-    o	quantile.default() now handles Inf's correctly.
-
-    o	New command line options `--enable-blas' and `--enable-readline'
-	to configure.
-
-    o   pretty(x) is more reasonable when max(x)-min(x) < 1e-10 max(|x|),
-	and has a new argument "shrink.sml" for that case.
-
-    o   formatC(.) supports a new "fg" format for flexible
-	non-exponential formatting.
-
-    o   etc/build-htmlpkglist has been integrated into etc/build-help
-        (option --htmllists)
-
-    o   family	gaussian(.) and inverse.gaussian(.) both accept several
-	link arguments [J.Lindsey].
-
-    o   The graphics function "tck" now produces effects just
-	like those in S (e.g. par(tck=1) now produces grid lines).
-	Since using "tck" produces nasty results in some circumstances
-	there is also an alternative parameter "tcl" which defines
-	the tick length in terms of lines of text.  The default
-	setting is par(tcl=-0.5).
-
-    o   menu() now takes additional arguments `graphics' (currently
-	unused) and `title'.
-
-    o   New function plot.formula().
-        plot.factor() now produces boxplots when given 2 arguments.
-
-    o   New function write.table().
-
-    o   signif() now has a `digits' default of 6.
-
-    o   Old-style long command line options (`-save' etc) changed to
-	GNU-style (`--save' etc).
-	Debugging options (`-ddd', `-gdb', `-xxgdb') unified into the
-	new `--debugger' (`-d').
-	New command line options `--version' (`-V') and `--help' (`-h')
-	which print useful information and exit.
-
-    o	The loading of profiles at startup now works as follows.
-	Unless the new `--no-site-file' was given, a site profile is
-	sought (as specified via the environment variable `RPROFILE',
-	or if this is unset defaulting to `${RHOME}/etc/Rprofile'.
-	Then, unless the new `--no-init-file' was given, the user
-	profiles (`.Rprofile' and `~/.Rprofile') are sought.
-
-    o   New functions subset() and transform() intended primarily to
-	make life with dataframes easier.
-
-    o   debian directory has been added so Debian GNU/Linux packages can be
-        created from raw source.
-
-    o   The graphics system has been through a major overhaul.
-	It is now possible to have multiple active device drivers
-	and to control them with full suite of dev.xxx() functions
-	available in S.  Display lists are now kept for interactive
-	devices.  When an on-screen graphics window is resized,
-	the content of that window is redrawn at the new size.
-	At present only X11 and PostScript graphics device drivers
-	are available, but more are on the way.
-
-    o   On systems using IEEE arithmetic, the builtin Inf and NaN
-	values are now recognised and used.  NA and NaN should
-	propagate correctly in computations, with NA dominating
-	in computations involving both quantities.
-        E.g. NA+NaN is NA.
-
-    o   Some of the t, F, and chisq distribution/probability functions
-	now allow a noncentrality parameter `ncp'.
-
-    o   Functions ptukey() and qtukey() provide the distribution and
-	quantile functions for the maximum of several studentized
-	ranges.
-
-    o   system.file()  [now documented] returns all files matched by
-	wildcards.
-
-    o   data() now supports the new .tab file format, for data to be
-	read by `read.table(file, header=TRUE)'.
-
-    o	Rdconv: new tabular environment, new sections `\format' and
-        `\source', new output format `-type Sd' for S documentation
-
-    o	.First.lib() now implemented; called by library() after loading
-	a package.
-
-    o	print.summary.[g]lm() now give `significance stars' and a symbolic
-	correlation matrix.
-
-    o	new is.R() function.
-
-    o   glm() now also returns an AIC value [from JL].
-	print..glm methods indicate the options()$contrasts in some cases.
-	In summary.glm(..., correlation=..), the default has been changed to
-	corr. = FALSE  which is consistent with  summary.lm().
-	predict() now works again for glm objects.
-
-    o   the `flag' argument in formatC(.) can now have more than one
-	character.
-
-    o	nlm() returns the number of iterations used [from J.Lindsey].
-
-    o	cut, diff, hist, mean, quantile, seq, trunc()  are now all generic.
-	cut() has an `include.lowest' argument as S.
-
-    o	save.image() as short-cut to save the current session in .RData.
-
-    o   new design of HTML help pages, including an index of all
-	functions from all installed packages.
-
-BUG FIXES (many of which resulted from the added features...)
-
-    o   sign(.) works again.
-
-    o   [.data.frame segfaulted if arg. wasn't a data frame
-
-    o   "R --no-readline" now again gives proper prompts.
-
-    o   demos/zero.R  dyn.load(.) now should be working more easily.
-
-    o   mode(.) now returns "(" for a "parentheses 'call'".
-
-    o   Bug fix in mva dist.c for method binary (gave "invalid distance").
-
-    o	R INSTALL should work (again) now when `pkg' is a relative file
-	name.
-
-    o	.not.yet.implemented() now takes an arbitrary number of args.
-
-    o   Plotting of dendrograms is working again.
-
-    o   data.frame(.) now uses "1:n" as default row.names.
-
-    o   image(.) and contour(.) now also work called as, e.g., ``image(z)''.
-
-    o   the first argument of axis(.) is now called `side' as in S.
-
-    o   format(NULL) now works.
-
-    o	minor fix in symnum.
-
-    o	hist() now is more compatible to S, has a new `labels' argument,
-	and should work ok for non-equidistant breaks.
-
-    o	plot(-1) now labels properly.
-
-    o	Many small code changes (eliminating extraneous variables, nested comm.)
-	in C code in order to satisfy `gcc -Wall' [Doug Bates].
-
-
 		CHANGES IN R VERSION 0.61.2
 
 BUG FIXES
 
+    o   Output of correlation matrix in summary.glm() no longer default
+
+    o   Docs for predict.lm
+
+    o   Subset and transform functions (to make life with dataframes
+	easier) copied from 0.62.
+
+    o   (copy from 0.62) check.names argument to data.frame,
+	default rownames 1:n
+
+    o   Axes were labeled strangely for extreme extents.  This should be
+	much better thanks to a fix to GPretty(.) in graphics/graphics.c
+
     o   pretty(999) resulted in an infinite loop due to integer overflow.
 	pretty(.) now sometimes returns different results than before.
 
-    o   pi:6  returned integer, instead of real.
+    o   pi:6  now works as in S.
 
     o	[.data.frame caused segfault if called with non-dataframe argument
 
@@ -169,7 +26,6 @@ BUG FIXES
 	and should work ok for non-equidistant breaks.
 
     o   lgamma(-1e7) segfaulted.
-	gamma(.) and lgamma(.) now give proper results for negative integers.
 
     o   formatC(pi,dig=20,wid=2) segfaulted.
 
@@ -267,26 +123,26 @@ NEW FEATURES
 	All include files now live in RHOME/src/include and are
 	copied to RHOME/include when needed.
 
-    o	The "noquote" functions are now documented.
+    o   The "noquote" functions are now documented.
 
-    o	A new `language' demo, "is.things", is provided.
+    o   A new `language' demo, "is.things", is provided.
 
-    o	symnum(.) function
+    o   symnum(.) function
 
-    o	The files in R/library/base/data have had a .R suffix added.
+    o   The files in R/library/base/data have had a .R suffix added.
 
 BUG_FIXES
 
     o	A nasty bug which showed when attempt was made to create
 	a zero length call has been fixed.
 
-    o	model.matrix(.) now allows a  contrasts argument.
+    o   model.matrix(.) now allows a  contrasts argument.
 
-    o	barplot(.) now also works for barplot(table(rpois(100,3))).
+    o   barplot(.) now also works for barplot(table(rpois(100,3))).
 
-    o	make clean ; make    now should work;  ./Makefile.in eliminated
+    o   make clean ; make    now should work;  ./Makefile.in eliminated
 
-    o	format(.) is now generic;  the default method has a `digits' argument.
+    o   format(.) is now generic;  the default method has a `digits' argument.
 
 
 		CHANGES IN R VERSION 0.60.1
@@ -306,7 +162,7 @@ BUG FIXES
 	after sourcing a file.	In some versions of Linux this caused
 	a core dump.
 
-    o	The inclusion <readline/history.h> was causing problems with
+    o   The inclusion <readline/history.h> was causing problems with
 	some versions of readline because the file did not exist.
 	This is now detected by configure.
 
@@ -360,25 +216,25 @@ NEW FEATURES
 	of their x or y arguments is a matrix.	Dimnames are propagated
 	in a sensible fashion.
 
-    o	New chisq.test(.) and prop.test() from Kurt Hornik.
+    o   New chisq.test(.) and prop.test() from Kurt Hornik.
 
-    o	New read.fwf(.) for reading fixed width format (KH).
+    o   New read.fwf(.) for reading fixed width format (KH).
 
-    o	New str(.) [alternative to summary(.) for programmers] (MM).
+    o   New str(.) [alternative to summary(.) for programmers] (MM).
 
-    o	New example data sets "esoph", "infert" and "anscombe" (TL),
+    o   New example data sets "esoph", "infert" and "anscombe" (TL),
 	"iris3" (KH) and "stackloss" (MM).
 
-    o	source(.) has several new arguments, notably ``echo = FALSE''.
+    o   source(.) has several new arguments, notably ``echo = FALSE''.
 	This is applied in the new function  demo(.) which runs all the
 	code in demos/ (but dynload).
 
-    o	strheight(.) is new, accompanying strwidth(.).
+    o   strheight(.) is new, accompanying strwidth(.).
 	Both now work for mathematical expressions (Paul Murrell).
 
-    o	The LaTeX version of the manual (-> doc/manual/) now has an index.
+    o   The LaTeX version of the manual (-> doc/manual/) now has an index.
 
-    o	EVERY *.Rd file in src/library/base/man/ has now at least one \keyword
+    o   EVERY *.Rd file in src/library/base/man/ has now at least one \keyword
 
     o	New package (`library(.)') "stepfun" for step functions, incl.
 	empirical distributions.
@@ -386,8 +242,8 @@ NEW FEATURES
 
 BUG FIXES
 
-    o	Regular expression matching is now done with system versions
-	of the regexp library.	This should fix compilation problems
+    o   Regular expression matching is now done with system versions
+	of the regexp library.  This should fix compilation problems
 	on some platforms.
 
     o	"approx" and "approxfun", have had some minor adjustments.
@@ -428,26 +284,26 @@ BUG FIXES
 	the result is still not perfect (the parse() returns).
 	This will be fixed by a future parse rewrite.
 
-    o	rainbow, topo.colors, etc., now also work with n in {1,2};
+    o   rainbow, topo.colors, etc., now also work with n in {1,2};
 	don't return duplicate neighbor colors anymore.
 
-    o	legend has new `text.width' argument and now also works with
+    o   legend has new `text.width' argument and now also works with
 	mathematical expressions as text.
 
-    o	hist() now works better, has a `plot = TRUE' argument, and returns
+    o   hist() now works better, has a `plot = TRUE' argument, and returns
 	something useful.
 
-    o	barplot() improved for `names', now returns vector of midpoints.
+    o   barplot() improved for `names', now returns vector of midpoints.
 
-    o	lm(), lm.fit, lm.wfit (was `lm.w.fit'):	 Made more compatible.
+    o   lm(), lm.fit, lm.wfit (was `lm.w.fit'):  Made more compatible.
 	Dealing with (close to) collinear situations is still not flexible
 	enough.
 
     o	internal postscript() improved (missing lines in boxplot(.)).
 
-    o	Improvement to many (even most ?) documentation (.Rd) files.
+    o   Improvement to many (even most ?) documentation (.Rd) files.
 
-    o	Numerous other fixes of minor things ...
+    o   Numerous other fixes of minor things ...
 
 
 

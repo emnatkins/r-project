@@ -40,11 +40,6 @@
 #define PP_FOREIGN	19
 #define PP_REPEAT	20
 
-/* Device drivers here (for ease of access) */
-
-SEXP do_X11(SEXP, SEXP, SEXP, SEXP);
-SEXP do_PS(SEXP, SEXP, SEXP, SEXP);
-
 /* Function Names */
 
 SEXP do_abbrev(SEXP, SEXP, SEXP, SEXP);
@@ -99,18 +94,11 @@ SEXP do_dataframe(SEXP, SEXP, SEXP, SEXP);
 SEXP do_debug(SEXP, SEXP, SEXP, SEXP);
 SEXP do_delay(SEXP, SEXP, SEXP, SEXP);
 SEXP do_dend(SEXP, SEXP, SEXP, SEXP);
-SEXP do_dendwindow(SEXP, SEXP, SEXP, SEXP);
 SEXP do_deparse(SEXP, SEXP, SEXP, SEXP);
 SEXP do_deriv(SEXP, SEXP, SEXP, SEXP);
 SEXP do_detach(SEXP,SEXP,SEXP,SEXP);
-SEXP do_devcontrol(SEXP,SEXP,SEXP,SEXP);
-SEXP do_devcopy(SEXP,SEXP,SEXP,SEXP);
-SEXP do_devcur(SEXP, SEXP, SEXP, SEXP);
 SEXP do_device(SEXP, SEXP, SEXP, SEXP);
-SEXP do_devnext(SEXP, SEXP, SEXP, SEXP);
 SEXP do_devoff(SEXP, SEXP, SEXP, SEXP);
-SEXP do_devprev(SEXP, SEXP, SEXP, SEXP);
-SEXP do_devset(SEXP, SEXP, SEXP, SEXP);
 SEXP do_dim(SEXP, SEXP, SEXP, SEXP);
 SEXP do_dimgets(SEXP, SEXP, SEXP, SEXP);
 SEXP do_dimnames(SEXP, SEXP, SEXP, SEXP);
@@ -152,11 +140,9 @@ SEXP do_interactive(SEXP, SEXP, SEXP, SEXP);
 SEXP do_internal(SEXP, SEXP, SEXP, SEXP);
 SEXP do_invisible(SEXP, SEXP, SEXP, SEXP);
 SEXP do_is(SEXP, SEXP, SEXP, SEXP);
-SEXP do_isfinite(SEXP, SEXP, SEXP, SEXP);
 SEXP do_isloaded(SEXP, SEXP, SEXP, SEXP);
 SEXP do_isna(SEXP, SEXP, SEXP, SEXP);
 SEXP do_isvector(SEXP, SEXP, SEXP, SEXP);
-SEXP do_layout(SEXP, SEXP, SEXP, SEXP);
 SEXP do_length(SEXP, SEXP, SEXP, SEXP);
 SEXP do_lengthgets(SEXP, SEXP, SEXP, SEXP);
 SEXP do_levels(SEXP, SEXP, SEXP, SEXP);
@@ -180,6 +166,7 @@ SEXP do_math1(SEXP, SEXP, SEXP, SEXP);
 SEXP do_math2(SEXP, SEXP, SEXP, SEXP);
 SEXP do_math3(SEXP, SEXP, SEXP, SEXP);
 SEXP do_math4(SEXP, SEXP, SEXP, SEXP);
+SEXP do_mathtext(SEXP, SEXP, SEXP, SEXP);
 SEXP do_matprod(SEXP, SEXP, SEXP, SEXP);
 SEXP do_matrix(SEXP, SEXP, SEXP, SEXP);
 SEXP do_menu(SEXP, SEXP, SEXP, SEXP);
@@ -201,6 +188,7 @@ SEXP do_options(SEXP, SEXP, SEXP, SEXP);
 SEXP do_order(SEXP, SEXP, SEXP, SEXP);
 SEXP do_palette(SEXP, SEXP, SEXP, SEXP);
 SEXP do_par(SEXP, SEXP, SEXP, SEXP);
+SEXP do_par2(SEXP, SEXP, SEXP, SEXP);
 SEXP do_paren(SEXP, SEXP, SEXP, SEXP);
 SEXP do_parse(SEXP, SEXP, SEXP, SEXP);
 SEXP do_paste(SEXP, SEXP, SEXP, SEXP);
@@ -218,6 +206,7 @@ SEXP do_polygon(SEXP, SEXP, SEXP, SEXP);
 SEXP do_printdefault(SEXP, SEXP, SEXP, SEXP);
 SEXP do_printdf(SEXP, SEXP, SEXP, SEXP);
 SEXP do_printmatrix(SEXP, SEXP, SEXP, SEXP);
+SEXP do_printplot(SEXP, SEXP, SEXP, SEXP);
 SEXP do_psort(SEXP, SEXP, SEXP, SEXP);
 SEXP do_quit(SEXP, SEXP, SEXP, SEXP);
 SEXP do_random1(SEXP, SEXP, SEXP, SEXP);
@@ -231,7 +220,6 @@ SEXP do_relop(SEXP, SEXP, SEXP, SEXP);
 SEXP do_remove(SEXP, SEXP, SEXP, SEXP);
 SEXP do_rep(SEXP, SEXP, SEXP, SEXP);
 SEXP do_repeat(SEXP, SEXP, SEXP, SEXP);
-SEXP do_replay(SEXP, SEXP, SEXP, SEXP);
 SEXP do_restoreb(SEXP, SEXP, SEXP, SEXP);
 SEXP do_return(SEXP, SEXP, SEXP, SEXP); 
 SEXP do_rgb(SEXP, SEXP, SEXP, SEXP);
@@ -240,12 +228,12 @@ SEXP do_rownames(SEXP, SEXP, SEXP, SEXP);
 SEXP do_rowscols(SEXP, SEXP, SEXP, SEXP);
 SEXP do_sample(SEXP, SEXP, SEXP, SEXP);
 SEXP do_save(SEXP, SEXP, SEXP, SEXP);
+SEXP do_saveplot(SEXP, SEXP, SEXP, SEXP);
 SEXP do_scan(SEXP, SEXP, SEXP, SEXP);
 SEXP do_search(SEXP, SEXP, SEXP, SEXP);
 SEXP do_segments(SEXP, SEXP, SEXP, SEXP);
 SEXP do_seq(SEXP, SEXP, SEXP, SEXP);
-SEXP do_set(SEXP, SEXP, SEXP, SEXP);
-SEXP do_signif(SEXP, SEXP, SEXP, SEXP); 
+SEXP do_set(SEXP, SEXP, SEXP, SEXP); 
 SEXP do_strheight(SEXP, SEXP, SEXP, SEXP);
 SEXP do_strwidth(SEXP, SEXP, SEXP, SEXP); 
 SEXP do_sink(SEXP, SEXP, SEXP, SEXP);

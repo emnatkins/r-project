@@ -12,8 +12,7 @@ objects(name, pos= -1, envir=pos.to.env(pos),
 \item{name}{the name of an attached object appearing
 in the vector of names returned by \code{search}.}
 \item{pos}{the index of an attached object in
-  the list returned by \code{search}.  Defaults to the \emph{current}
-  environment.} 
+the list returned by \code{search}.  Defaults to the \emph{global} environment.}
 \item{envir}{an evaluation environment.  Defaults to the one corresponding
 to \code{pos}.}
 \item{all.names}{a logical value.  If \code{TRUE}, all
@@ -37,15 +36,7 @@ This is useful in conjunction with \code{browser}.
 }
 \examples{
 .Ob <- 1
-ls(pat="O")             
-ls(pat="O", all = T)    # also shows ".[foo]"
-
-# shows an empty list because inside myfunc no variables are defined
-myfunc _ function() {ls()}
-myfunc()
-
-# define a local variable inside myfunc 
-myfunc _ function() {y_1; ls()}
-myfunc()                # shows "y"
+ls(pat="O")
+ls(pat="O", all = T)#- also shows ".[foo]"
 }
 \keyword{environment}

@@ -5,7 +5,7 @@ lm.influence(lm.obj)
 }
 \alias{lm.influence}
 \arguments{
-\item{lm.obj}{an object as returned by \code{\link{lm}}.}
+\item{lm.obj}{the results returned by \code{lm}.}
 }
 \description{
 This function provides the basic quantities which are
@@ -38,7 +38,6 @@ Belsley, D. A., E. Kuh and R. E. Welsch (1980).
 New York: Wiley.
 }
 \seealso{
-\code{\link{summary.lm}} for \code{\link{summary}} and related methods;
 \code{\link{influence.measures}},
 \code{\link{hat}} for the hat matrix diagonals,
 \code{\link{dfbetas}},
@@ -51,7 +50,7 @@ New York: Wiley.
 # Analysis of the life-cycle savings data
 # given in Belsley, Kuh and Welsch.
 data(savings)
-summary(lm.SR <- lm(sr ~ pop15 + pop75 + dpi + ddpi, data=savings),corr= TRUE)
+lm.SR <- lm(sr ~ pop15 + pop75 + dpi + ddpi, data=savings)
 rstudent(lm.SR)
 dfbetas(lm.SR)
 dffits(lm.SR)

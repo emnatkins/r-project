@@ -111,6 +111,10 @@ contributed to STATLIB by F. Murtagh.}
 library(mva)
 data(crimes)
 hc <- hclust(dist(crimes), "ave")
+# create space for labels
+mar <- mar.save <- par("mar")
+mar[1] <- mar[1] + 4
+par(mar=mar)
 plot(hc, hang=-1)
-plot(hc)
+par(mar=mar.save)
 }

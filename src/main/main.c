@@ -19,7 +19,7 @@
 
 #include "Defn.h"
 #include "Graphics.h"
-#include "IOStuff.h"
+#include "IOSupport.h"
 #include "Parse.h"
 
 /*--- The `real'  main() program is in	../<SYSTEM>/system.c,
@@ -73,7 +73,6 @@ int	R_EvalCount = 0;		/* Evaluation count */
 
 int	R_Interactive = 1;		/* Interactive? */
 int	R_Quiet = 0;			/* Be Quiet */
-int	R_Slave = 0;			/* Run as a slave process */
 int	R_Console;			/* Console active flag */
 IoBuffer R_ConsoleIob;			/* Console IO Buffer */
 FILE*	R_Inputfile = NULL;		/* Current input flag */
@@ -154,7 +153,6 @@ static void R_ReplFile(FILE *fp, SEXP rho, int savestack, int browselevel)
 	int status;
 
 	for(;;) {
-		Reset_C_alloc();
 		R_PPStackTop = savestack;
 		R_CurrentExpr = R_Parse1File(fp, 1, &status);
 		switch(status) {
@@ -188,23 +186,17 @@ static char BrowsePrompt[20];
 
 char *R_PromptString(int browselevel, int type)
 {
-	if (R_Slave) {
-		BrowsePrompt[0] = '\0';
-		return BrowsePrompt;
+	if(type == 1) {
+		if(browselevel) {
+			sprintf(BrowsePrompt, "Browse[%d]> ", browselevel);
+			return BrowsePrompt;
+		}
+		return (char*)CHAR(STRING(GetOption(install("prompt"),
+				R_NilValue))[0]);
 	}
 	else {
-		if(type == 1) {
-			if(browselevel) {
-				sprintf(BrowsePrompt, "Browse[%d]> ", browselevel);
-				return BrowsePrompt;
-			}
-			return (char*)CHAR(STRING(GetOption(install("prompt"),
-					R_NilValue))[0]);
-		}
-		else {
-			return (char*)CHAR(STRING(GetOption(install("continue"),
-				R_NilValue))[0]);
-		}
+		return (char*)CHAR(STRING(GetOption(install("continue"),
+			R_NilValue))[0]);
 	}
 }
 
@@ -231,8 +223,6 @@ static void R_ReplConsole(SEXP rho, int savestack, int browselevel)
 				break;
 			}
 		}
-		if(browselevel)
-			Reset_C_alloc();
 		R_PPStackTop = savestack;
 		R_CurrentExpr = R_Parse1Buffer(&R_ConsoleIob, 0, &status);
 
@@ -298,25 +288,10 @@ static void R_ReplConsole(SEXP rho, int savestack, int browselevel)
 
 #ifndef Macintosh
 FILE* R_OpenSysInitFile(void);
-FILE* R_OpenSiteFile(void);
 FILE* R_OpenInitFile(void);
 #endif
 
 static int doneit;
-
-static int R_LoadProfile(FILE *fp) {
-  if (fp != NULL) {
-    R_Inputfile = fp;
-    doneit = 0;
-    setjmp(R_Toplevel.cjmpbuf);
-    R_GlobalContext = R_ToplevelContext = &R_Toplevel;
-    signal(SIGINT, onintr);
-    if(!doneit) {
-      doneit = 1;
-      R_ReplFile(R_Inputfile, R_NilValue, 0, 0);
-    }
-  }
-}
 
 void mainloop()
 {
@@ -334,7 +309,7 @@ void mainloop()
 #ifdef HAVE_LOCALE_H
 	setlocale(LC_CTYPE,"");/*- make ISO-latin1 etc. work LOCALE users */
 	setlocale(LC_COLLATE,"");/*- alphabetically sorting */
-	/* setlocale(LC_MESSAGES,""); */
+	setlocale(LC_MESSAGES,"");
 #endif
 	InitMemory();
 	InitNames();
@@ -344,8 +319,6 @@ void mainloop()
 	InitEd();
 	InitArithmetic();
 	InitColors();
-	InitGraphics();
-	Init_C_alloc();
 
 
 		/* Initialize the global context for error handling. */
@@ -400,12 +373,37 @@ void mainloop()
 	}
 
 #ifndef Macintosh
-	/* This is where we source the system-wide, the site's and the
-	   user's profile (in that order).  If there is an error, we
-	   drop through to further processing. */
-	R_LoadProfile(R_OpenSysInitFile());
-	R_LoadProfile(R_OpenSiteFile());
-	R_LoadProfile(R_OpenInitFile());
+		/* This is where we source the system-wide */
+		/* profile file.  If there is an error */
+		/* we drop through to further processing. */
+
+	R_Inputfile = R_OpenSysInitFile();
+	if(R_Inputfile != NULL) {
+		doneit = 0;
+		setjmp(R_Toplevel.cjmpbuf);
+		R_GlobalContext = R_ToplevelContext = &R_Toplevel;
+		signal(SIGINT, onintr);
+		if(!doneit) {
+			doneit = 1;
+			R_ReplFile(R_Inputfile, R_NilValue, 0, 0);
+		}
+	}
+
+		/* This is where we source the user's */
+		/* profile file.  If there is an error */
+		/* we drop through to further processing. */
+
+	R_Inputfile = R_OpenInitFile();
+	if(R_Inputfile != NULL) {
+		doneit = 0;
+		setjmp(R_Toplevel.cjmpbuf);
+		R_GlobalContext = R_ToplevelContext = &R_Toplevel;
+		signal(SIGINT, onintr);
+		if(!doneit) {
+			doneit = 1;
+			R_ReplFile(R_Inputfile, R_NilValue, 0, 0);
+		}
+	}
 #endif
 
 		/* Initial Loading is done.  At this point */

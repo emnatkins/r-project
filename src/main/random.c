@@ -383,7 +383,6 @@ void seed_out()
 	PutSeeds();
 }
 
-/*
 double unif_rand(void)
 {
 	sunif();
@@ -393,4 +392,3 @@ double norm_rand(void)
 {
 	snorm();
 }
-*/
