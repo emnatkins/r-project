@@ -6,11 +6,9 @@
 RNGkind <- function(kind = NULL, normal.kind = NULL)
 {
     kinds <- c("Wichmann-Hill", "Marsaglia-Multicarry", "Super-Duper",
-               "Mersenne-Twister", "Knuth-TAOCP", "user-supplied",
-               "Knuth-TAOCP-2002", "default")
-    n.kinds <- c("Buggy Kinderman-Ramage", "Ahrens-Dieter", "Box-Muller",
-                 "user-supplied", "Inversion", "Kinderman-Ramage", 
-		 "default")
+               "Mersenne-Twister", "Knuth-TAOCP", "user-supplied", "default")
+    n.kinds <- c("Kinderman-Ramage", "Ahrens-Dieter", "Box-Muller",
+                 "user-supplied", "default")
     do.set <- length(kind) > 0
     if(do.set) {
 	if(!is.character(kind) || length(kind) > 1)
@@ -24,8 +22,6 @@ RNGkind <- function(kind = NULL, normal.kind = NULL)
     if(!is.null(normal.kind)) {
 	if(!is.character(normal.kind) || length(normal.kind) > 1)
 	    stop("'normal.kind' must be a character string of length 1.")
-	if (normal.kind == "Buggy Kinderman-Ramage")
-		warning("Buggy version of Kinderman-Ramage generator used.")
         normal.kind <- pmatch(normal.kind, n.kinds) - 1
         if(is.na(normal.kind))
  	    stop(paste("'", normal.kind,"' is not a valid choice", sep=""))
@@ -36,11 +32,9 @@ RNGkind <- function(kind = NULL, normal.kind = NULL)
     if(do.set || !is.null(normal.kind)) invisible(r) else r
 }
 
-set.seed <- function(seed, kind = NULL)
-{
+set.seed <- function(seed, kind = NULL) {
     kinds <- c("Wichmann-Hill", "Marsaglia-Multicarry", "Super-Duper",
-               "Mersenne-Twister", "Knuth-TAOCP", "user-supplied",
-               "Knuth-TAOCP-2002", "default")
+               "Mersenne-Twister", "Knuth-TAOCP", "user-supplied", "default")
     if(length(kind) > 0) {
 	if(!is.character(kind) || length(kind) > 1)
 	    stop("'kind' must be a character string of length 1 (RNG to be used).")
@@ -51,19 +45,4 @@ set.seed <- function(seed, kind = NULL)
     } else i.knd <- NULL
 
     invisible(.Internal(set.seed(seed, i.knd)))
-}
-
-# Compatibility function to set RNGkind as in a given R version
-
-RNGversion <- function(vstr) 
-{
-    vnum <- as.numeric(strsplit(vstr,"\\.")[[1]])
-    if (length(vnum) < 2) 
-	stop("Malformed version string")
-    if (vnum[1] == 0 && vnum[2] < 99) 
-        RNGkind("Wichmann-Hill", "Buggy Kinderman-Ramage")
-    else if (vnum[1] == 0 || vnum[1] == 1 && vnum[2] <= 6) 
-	RNGkind("Marsaglia-Multicarry", "Buggy Kinderman-Ramage")
-    else
-	RNGkind("Mersenne-Twister", "Inversion")
 }

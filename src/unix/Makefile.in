@@ -10,28 +10,27 @@ subdir = src/unix
 
 include $(top_builddir)/Makeconf
 
-ALL_CPPFLAGS = $(R_XTRA_CPPFLAGS) $(X_CFLAGS) $(CPPFLAGS) $(DEFS)
+ALL_CPPFLAGS = $(R_XTRA_CPPFLAGS) $(CPPFLAGS) $(DEFS)
 
-SOURCES_C_BASE = devices.c dynload.c edit.c gnome.c stubs.c system.c \
-  sys-unix.c sys-common.c sys-std.c \
-  X11.c devQuartz.c aqua.c
-SOURCES_C_DARWIN = dlfcn-darwin.c
-SOURCES = $(SOURCES_C_BASE) @BUILD_DLFCN_DARWIN_TRUE@ $(SOURCES_C_DARWIN)
+SOURCES = devices.c dynload.c edit.c stubs.c system.c sys-unix.c \
+          sys-common.c sys-std.c
 DEPENDS = $(SOURCES:.c=.d)
 OBJECTS = $(SOURCES:.c=.o)
-HEADERS = Runix.h devUI.h hpdlfcn.h dlfcn-darwin.h
+HEADERS = Runix.h devUI.h
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 DISTFILES = \
-  Makefile.in PSPAPER $(SOURCES_C_BASE) $(SOURCES_C_DARWIN) \
-  $(HEADERS) hpdlfcn.c system.txt
+	Makefile.in PSPAPER $(SOURCES) $(HEADERS) \
+	hpdlfcn.c system.txt
+
+SUBDIRS = X11 gnome
 
 noinst_LIBRARIES = libunix.a
 libunix_a_SOURCES = $(SOURCES)
 libunix_a_OBJECTS = $(OBJECTS)
 
-## <FIXME>
-## We most likely will not want a separate shared library.
+## FIXME:
+## We most likely will not want a seperate shared library.
 ## If we have a final decision, remove libunix.la target.
 ## </FIXME>
 noinst_LTLIBRARIES = libunix.la
@@ -44,8 +43,12 @@ all: Makefile Makedeps R
 Makefile: $(srcdir)/Makefile.in \
   $(top_builddir)/config.status \
   ../include/Rversion.h \
+  FFDecl.h \
+  FFTab.h \
   $(SOURCES)
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 Makedeps: Makefile $(DEPENDS)
 	@cat $(DEPENDS) >> Makefile
@@ -56,8 +59,18 @@ R: Makefile
 	@$(MAKE) $(noinst_LIBRARIES)
 @WANT_R_SHLIB_TRUE@	@$(MAKE) stamp-lo
 
+DLLs:
+	@for g in $(R_GUIS) ""; do \
+	  if test -n "$${g}"; then \
+	    (cd $${g} && $(MAKE) R) || exit 1; \
+	  fi; \
+	done
+
 ../include/Rversion.h:
 	(cd ../include; $(MAKE) $(@F))
+FFDecl.h FFTab.h: $(top_srcdir)/src/appl/ROUTINES \
+  $(top_srcdir)/tools/GETSYMBOLS
+	@$(top_srcdir)/tools/GETSYMBOLS
 
 libunix.a: $(libunix_a_OBJECTS)
 	$(AR) cr $@ $(libunix_a_OBJECTS)
@@ -70,19 +83,38 @@ libunix.la: stamp-lo
 
 mostlyclean: clean
 clean:
+	@for g in $(R_GUIS) ""; do \
+	  if test -n "$${g}"; then \
+	    (cd $${g} && $(MAKE) $@); \
+	  fi; \
+	done
 	@-rm -rf .libs _libs
-	@-rm -f Makedeps *.d *.o *.a *.lo *.la stamp-lo
+	@-rm -f Makedeps FFDecl.h FFTab.h *.d *.o *.a *.lo *.la stamp-lo
 distclean: clean
+	@for g in $(R_GUIS) ""; do \
+	  if test -n "$${g}"; then \
+	    (cd $${g} && $(MAKE) $@); \
+	  fi; \
+	done
+	@for d in $(SUBDIRS); do \
+	  rm -f $${d}/Makefile; \
+	done
 	@-rm -f Makefile
 maintainer-clean: distclean
-
-install install-strip uninstall TAGS info dvi check:
 
 distdir: $(DISTFILES)
 	@for f in $(DISTFILES); do \
 	  test -f $(distdir)/$${f} \
 	    || ln $(srcdir)/$${f} $(distdir)/$${f} 2>/dev/null \
 	    || cp -p $(srcdir)/$${f} $(distdir)/$${f}; \
+	done
+	@for d in $(SUBDIRS); do \
+	  test -d $(distdir)/$${d} \
+	    || mkdir $(distdir)/$${d} \
+	    || exit 1; \
+	  chmod 755 $(distdir)/$${d}; \
+	  (cd $${d} && $(MAKE) distdir) \
+	    || exit 1; \
 	done
 
 ## Automagically generated dependencies:

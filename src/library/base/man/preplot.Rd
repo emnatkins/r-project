@@ -5,7 +5,7 @@
     Compute an object to be used for plots relating to the given model object.
 }
 \usage{
-preplot(object, \dots)
+preplot(object, ...)
 }
 \arguments{
  \item{object}{a fitted model object.}

@@ -1,5 +1,4 @@
 \name{Hypergeometric}
-\alias{Hypergeometric}
 \alias{dhyper}
 \alias{phyper}
 \alias{qhyper}
@@ -52,10 +51,10 @@ rhyper(nn, m, n, k)
 }
 \examples{
 m <- 10; n <- 7; k <- 8
-x <- 0:(k+1)
+x <- 0:m
 rbind(phyper(x, m, n, k), dhyper(x, m, n, k))
 all(phyper(x, m, n, k) == cumsum(dhyper(x, m, n, k)))# FALSE
-## but error is very small:
+## Error :
 signif(phyper(x, m, n, k) - cumsum(dhyper(x, m, n, k)), dig=3)
 }
 \keyword{distribution}

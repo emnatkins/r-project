@@ -1,4 +1,4 @@
-### $Id: nls.R,v 1.26 2003/08/10 09:24:39 ripley Exp $
+### $Id: nls.R,v 1.8.4.3 2001/03/24 00:10:55 bates Exp $
 ###
 ###            Nonlinear least squares for R
 ###
@@ -22,6 +22,8 @@
 ### Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 ### MA 02111-1307, USA
 
+### Force loading of the nls dynamic library in R
+.First.lib <- function(lib, pkg) library.dynam( "nls", pkg, lib )
 
 numericDeriv <- function(expr, theta, rho = parent.frame()) {
     val <- .Call("numeric_deriv", expr, theta, rho, PACKAGE="nls")
@@ -227,7 +229,7 @@ nlsModel.plinear <- function( form, data, start ) {
                getPred(eval(form[[3]], env = Env))
            })
     class(m) <- c("nlsModel.plinear", "nlsModel")
-    m$conv()
+    m$conv();
     on.exit( remove( data, i, m, marg, n, p, start, temp, gradSetArgs) )
     m
 }
@@ -292,7 +294,7 @@ nlsModel <- function( form, data, start ) {
     QR <- qr( attr( rhs, "gradient" ) )
     qrDim <- min( dim( QR$qr ) )
     if( QR$rank < qrDim)
-      stop("singular gradient matrix at initial parameter estimates")
+      stop( "singular gradient matrix at initial parameter estimates" );
 
     getPars.noVarying <- function()
       unlist( setNames( lapply( names( ind ), get, envir = env ),
@@ -393,8 +395,8 @@ nls.control <- function( maxiter = 50, tol = 0.00001, minFactor = 1/1024 ) {
 }
 
 nls <-
-  function (formula, data = parent.frame(), start, control = nls.control(),
-            algorithm = "default", trace = FALSE,
+  function (formula, data = parent.frame(), start, control,
+            algorithm="default", trace = FALSE,
             subset, weights, na.action)
 {
     mf <- match.call()             # for creating the model frame
@@ -439,7 +441,6 @@ nls <-
     mf$start <- mf$control <- mf$algorithm <- mf$trace <- NULL
     mf[[1]] <- as.name("model.frame")
     mf <- as.list(eval(mf, parent.frame()))
-    na.act <- attr(mf, "na.action")
     if (missing(start)) {
         start <- getInitial(formula, mf)
     }
@@ -454,22 +455,21 @@ nls <-
         control <- as.list(control)
         ctrl[names(control)] <- control
     }
-    nls.out <- list(m = .Call("nls_iter", m, ctrl, trace,
-                              PACKAGE = "nls"),
-                    data = substitute( data ), call = match.call())
+    nls.out <- list(m = .Call( "nls_iter", m, ctrl, trace ),
+                    data = substitute( data ), call = match.call(),
+                    PACKAGE="nls")
     nls.out$call$control <- ctrl
     nls.out$call$trace <- trace
-    if(!is.null(na.act)) nls.out$na.action <- na.act
     class(nls.out) <- "nls"
     nls.out
 }
 
-coef.nls <- function( object, ... ) object$m$getAllPars()
+coef.nls <- function( x, ... ) x$m$getAllPars()
 
 print.nls <- function(x, ...) {
     cat( "Nonlinear regression model\n" )
     cat( "  model: ", deparse( formula(x) ), "\n" )
-    cat( "   data: ", deparse( x$data ), "\n" )
+    cat( "   data: ", as.character( x$data ), "\n" )
     print( x$m$getAllPars() )
     cat( " residual sum-of-squares: ", format( x$m$deviance() ), "\n" )
     invisible(x)
@@ -477,17 +477,18 @@ print.nls <- function(x, ...) {
 
 summary.nls <- function (object, ...)
 {
-    z <- object
-    ## we want the raw values, not the na-adjusted ones.
-    r <- resid <- as.vector(object$m$resid())
+    z <- .Alias(object)
+    resid <- resid(z)
     n <- length(resid)
     param <- coef(z)
     pnames <- names(param)
     p <- length(param)
     rdf <- n - p
-    f <- as.vector(object$m$fitted())
-    w <- z$weights
+    p1 <- 1:p
+    r <- resid(z)
+    f <- fitted(z)
     R <- z$m$Rmat()
+    w <- weights(z)
     if (!is.null(w)) {
         w <- w^0.5
         resid <- resid * w
@@ -511,7 +512,7 @@ summary.nls <- function (object, ...)
     ans <- list(formula = formula(z), residuals = r, sigma = sqrt(resvar),
                 df = c(p, rdf), cov.unscaled = R, correlation = correl)
     tval <- param/se
-    param <- cbind( param, se, tval, 2 * pt(abs(tval), rdf, lower.tail = FALSE))
+    param <- cbind( param, se, tval, 2 * (1 - pt(abs(tval), rdf)) )
     dimnames(param) <-
       list(pnames, c("Estimate", "Std. Error", "t value", "Pr(>|t|)"))
     ans$parameters <- param
@@ -529,7 +530,7 @@ print.summary.nls <-
     df <- x$df
     rdf <- df[2]
     cat("\nParameters:\n")
-    printCoefmat(x$parameters, digits = digits, signif.stars = signif.stars,
+    print.coefmat(x$parameters, digits = digits, signif.stars = signif.stars,
                   ...)
     cat("\nResidual standard error:", format(signif(x$sigma,
                                                     digits)), "on", rdf, "degrees of freedom\n")
@@ -561,11 +562,11 @@ predict.nls <-
     object$m$predict(newdata)
 }
 
-fitted.nls <- function(object, ...)
+fitted.nls <-
+  function(object, ...)
 {
     val <- as.vector(object$m$fitted())
-    if(!is.null(object$na.action))
-        val <- napredict(object$na.action, val)
+
     lab <- "Fitted values"
     if (!is.null(aux <- attr(object, "units")$y)) {
         lab <- paste(lab, aux)
@@ -574,21 +575,19 @@ fitted.nls <- function(object, ...)
     val
 }
 
-formula.nls <- function(x, ...) x$m$formula()
+formula.nls <- function(object)
+  object$m$formula()
 
-residuals.nls <- function(object, type = c("response", "pearson"), ...)
+residuals.nls <-
+  function(object, type = c("response", "pearson"), ...)
 {
     type <- match.arg(type)
     val <- as.vector(object$m$resid())
     if (type == "pearson") {
         std <- sqrt(sum(val^2)/(length(val) - length(coef(object))))
         val <- val/std
-        if(!is.null(object$na.action))
-            val <- naresid(object$na.action, val)
         attr(val, "label") <- "Standardized residuals"
     } else {
-        if(!is.null(object$na.action))
-            val <- naresid(object$na.action, val)
         lab <- "Residuals"
         if (!is.null(aux <- attr(object, "units")$y)) {
             lab <- paste(lab, aux)
@@ -598,37 +597,34 @@ residuals.nls <- function(object, type = c("response", "pearson"), ...)
     val
 }
 
-## logLik & AIC -- generic now in base
+logLik <-
+  function(object, ...) UseMethod("logLik")
 
-logLik.nls <- function(object, REML = FALSE, ...)
+logLik.nls <-
+  function(object, REML = FALSE)
 {
-    if (REML)
+    if (REML) {
         stop("Cannot calculate REML log-likelihood for nls objects")
-
-    res <- object$m$resid()
+    }
+    res <- resid(object)
     N <- length(res)
     if(is.null(w <- object$weights)) {
         w <- rep(1, N)
     }
     val <-  -N * (log(2 * pi) + 1 - log(N) - sum(log(w)) + log(sum(w*res^2)))/2
-    attr(val, "df") <- length(coef(object))
+    attr(val, "df") <- length(object[["parameters"]]) + 1
     attr(val, "nobs") <- attr(val, "nall") <- N
     class(val) <- "logLik"
     val
 }
 
-df.residual.nls <- function(object, ...)
+df.residual.nls <-
+  function(object, ...)
 {
     return(length(resid(object)) - length(coef(object)))
 }
 
 deviance.nls <- function(object, ...) object$m$deviance()
-
-vcov.nls <- function(object, ...)
-{
-    sm <- summary(object)
-    sm$cov.unscaled * sm$sigma^2
-}
 
 
 anova.nls <- function(object, ...)
@@ -668,11 +664,11 @@ anovalist.nls <- function (object, ..., test = NULL)
     for(i in 2:nmodels) {
 	if(df[i] > 0) {
 	    f[i] <- ms[i]/(ss.r[i]/df.r[i])
-	    p[i] <- pf(f[i], df[i], df.r[i], lower.tail = FALSE)
+	    p[i] <- 1 - pf(f[i], df[i], df.r[i])
 	}
 	else if(df[i] < 0) {
 	    f[i] <- ms[i]/(ss.r[i-1]/df.r[i-1])
-	    p[i] <- pf(f[i], -df[i], df.r[i-1], lower.tail = FALSE)
+	    p[i] <- 1 - pf(f[i], -df[i], df.r[i-1])
 	}
 	else { # df[i] == 0
 	  ss[i] <- 0

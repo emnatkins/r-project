@@ -19,18 +19,13 @@ as.expression(x, \dots)
 }
 \value{
   \code{expression} returns a vector of mode \code{"expression"}
-  containing its arguments as unevaluated \dQuote{\link{call}s}.
+  containing its arguments as unevaluated ``\link{call}s''.
 
   \code{is.expression} returns \code{TRUE} if \code{expr} is an
   expression object and \code{FALSE} otherwise.
 
   \code{as.expression} attempts to coerce its argument into an
   expression object.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{call}},

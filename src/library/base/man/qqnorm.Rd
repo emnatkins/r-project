@@ -1,31 +1,22 @@
 \name{qqnorm}
 \title{Quantile-Quantile Plots}
 \usage{
-qqnorm(y, \dots)
-\method{qqnorm}{default}(y, ylim, main = "Normal Q-Q Plot",
-       xlab = "Theoretical Quantiles",
-       ylab = "Sample Quantiles", plot.it = TRUE, datax = FALSE,
-       \dots)
-qqline(y, datax = FALSE, \dots)
+qqnorm(y, ylim, main = "Normal Q-Q Plot", xlab = "Theoretical Quantiles",
+       ylab = "Sample Quantiles", plot.it = TRUE, \dots)
+qqline(y, \dots)
 qqplot(x, y, plot.it = TRUE, xlab = deparse(substitute(x)),
        ylab = deparse(substitute(y)), \dots)
 }
 \alias{qqnorm}
-\alias{qqnorm.default}
 \alias{qqplot}
 \alias{qqline}
 
 \arguments{
-  \item{x}{The first sample for \code{qqplot}.}
-  \item{y}{The second or only data sample.}
-  \item{xlab, ylab, main}{plot labels.}
-  \item{plot.it}{logical. Should the result be plotted?}
-  \item{datax}{logical. Should data values be on the x-axis?}
-  \item{ylim, \dots}{graphical parameters.}
+ \item{x}{The first sample for \code{qqplot}.}
+ \item{y}{The second or only data sample.}
 }
 \description{
-  \code{qqnorm} is a generic functions the default method of which
-  produces a normal QQ plot of the values in \code{y}.
+  \code{qqnorm} produces a normal QQ plot of the values in \code{y}.
   \code{qqline} adds a line to a normal quantile-quantile plot which
   passes through the first and third quartiles.
 
@@ -37,14 +28,8 @@ qqplot(x, y, plot.it = TRUE, xlab = deparse(substitute(x)),
 \value{
   For \code{qqnorm} and \code{qqplot}, a list with components
   \item{x}{The x coordinates of the points that were/would be plotted}
-  \item{y}{The original \code{y} vector, i.e., the corresponding y
-    coordinates \emph{including \code{\link{NA}}s}.}
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
+  \item{y}{The corresponding y coordinates}
+  }
 \seealso{
 \code{\link{ppoints}}.
 }

@@ -33,7 +33,6 @@
 */
 
 #include <R.h>
-#include "ts.h"
 #include "carray.h"
 #include "qr.h"
 

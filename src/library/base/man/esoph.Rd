@@ -1,14 +1,12 @@
 \name{esoph}
-\docType{data}
-\alias{esoph}
 \title{Smoking, Alcohol and (O)esophageal Cancer}
+\usage{data(esoph)}
+\alias{esoph}
 \description{
   Data from a case-control study of (o)esophageal cancer in
   Ile-et-Vilaine, France.
 }
-\usage{data(esoph)}
-\format{
-  A data frame with records for 88 age/alcohol/tobacco combinations.
+\format{data frame with records for 88 age/alcohol/tobacco combinations.
 
   \tabular{rlll}{
     [,1] \tab "agegp" \tab Age group \tab 1  25--34 years\cr
@@ -26,7 +24,7 @@
     \tab \tab \tab 3  20--29\cr
     \tab \tab \tab 4  30+\cr
     [,4] \tab "ncases" \tab Number of cases \tab \cr
-    [,5] \tab "ncontrols" \tab Number of controls \tab
+    [,5] \tab "ncontrols"  \tab Number of subjects \tab
   }
 }
 \source{
@@ -43,8 +41,8 @@ model1 <- glm(cbind(ncases, ncontrols) ~ agegp + tobgp * alcgp,
               data = esoph, family = binomial())
 anova(model1)
 ## Try a linear effect of alcohol and tobacco
-model2 <- glm(cbind(ncases, ncontrols) ~ agegp + unclass(tobgp)
-                                         + unclass(alcgp),
+model2 <- glm(cbind(ncases, ncontrols) ~ agegp + codes(tobgp)
+                                         + codes(alcgp),
               data = esoph, family = binomial())
 summary(model2)
 ## Re-arrange data for a mosaic plot

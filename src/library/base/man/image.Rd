@@ -1,18 +1,21 @@
 \name{image}
-\alias{image}
-\alias{image.default}
 \title{Display a Color Image}
 \usage{
-image(x, \dots)
-
-\method{image}{default}(x, y, z, zlim, xlim, ylim, col = heat.colors(12),
+image(x, y, z, zlim, xlim, ylim, col = heat.colors(12),
       add = FALSE, xaxs = "i", yaxs = "i", xlab, ylab,
       breaks, oldstyle = FALSE, \dots)
 }
+\synopsis{
+image(x = seq(0, 1, len = nrow(z)), y = seq(0, 1, len = ncol(z)), 
+    z, zlim = range(z[is.finite(z)]), xlim = range(x[is.finite(x)]), 
+    ylim = range(y[is.finite(y)]), col = heat.colors(12), add = FALSE, 
+    xaxs = "i", yaxs = "i", xlab, ylab, breaks, oldstyle = FALSE, 
+    ...) 
+}
+\alias{image}
 \arguments{
   \item{x,y}{locations of grid lines at which the values in \code{z} are
-    measured.  These must be in (strictly) ascending order.
-    By default, equally
+    measured.  These must be in ascending order.  By default, equally
     spaced values from 0 to 1 are used.  If \code{x} is a \code{list},
     its components \code{x$x} and \code{x$y} are used for \code{x}
     and \code{y}, respectively. If the list has component \code{z} this
@@ -33,11 +36,11 @@ image(x, \dots)
     functions.}
   \item{add}{logical; if \code{TRUE}, add to current plot (and disregard
     the following arguments).  This is rarely useful because
-    \code{image} \dQuote{paints} over existing graphics.}
+    \code{image} ``paints'' over existing graphics.}
   \item{xaxs, yaxs}{style of x and y axis.  The default \code{"i"} is
     appropriate for images.  See \code{\link{par}}.}
   \item{xlab, ylab}{each a character string giving the labels for the x and
-    y axis.  Default to the \sQuote{call names} of \code{x} or \code{y}, or to
+    y axis.  Default to the `call names' of \code{x} or \code{y}, or to
     \code{""} if these where unspecified.}
   \item{breaks}{a set of breakpoints for the colours: must give one more
     breakpoint than colour.}
@@ -52,8 +55,7 @@ image(x, \dots)
 \description{
   Creates a grid of colored or gray-scale rectangles with colors
   corresponding to the values in \code{z}.  This can be used to display
-  three-dimensional or spatial data aka \dQuote{images}.
-  This is a generic function.
+  three-dimensional or spatial data aka ``images''.
 
   The functions \code{\link{heat.colors}}, \code{\link{terrain.colors}}
   and \code{\link{topo.colors}} create heat-spectrum (red to white) and
@@ -61,14 +63,14 @@ image(x, \dots)
   \code{n} giving the number of colors desired.
 }
 \details{
-  The length of \code{x} should be equal to the \code{nrow(z)+1} or
-  \code{nrow(z)}.  In the first case \code{x} specifies the boundaries
-  between the cells: in the second case \code{x} specifies the midpoints
-  of the cells.  Similar reasoning applies to \code{y}.  It probably
-  only makes sense to specify the midpoints of an equally-spaced
-  grid.  If you specify just one row or column and a length-one \code{x}
-  or \code{y}, the whole user area in the corresponding direction is
-  filled.
+  The length of \code{x} should be equal to the \code{nrow(x)+1} or
+  \code{nrow(x)}. In the first case \code{x} specifies the boundaries
+  between the cells: in the second case \code{x} specifies the
+  midpoints of the cells. Similar reasoning applies to \code{y}. It
+  probably only makes sense to specify the midpoints of an
+  equally-spaced grid. If you specify just one row or column and a
+  length-one \code{x} or \code{y}, the whole user area in the
+  corresponding direction is filled.
 
   If \code{breaks} is specified then \code{zlim} is unused and the
   algorithm used follows \code{\link{cut}}, so intervals are closed on
@@ -77,17 +79,27 @@ image(x, \dots)
 \note{
   Based on a function by Thomas Lumley
   \email{tlumley@u.washington.edu}.
+
+  The way in which \code{zlim} is divided into colours will be changed
+  for the next major release (1.1.0) to divide the range into
+  equal-length intervals.
 }
 \seealso{
-  \code{\link{filled.contour}} or \code{\link[mva]{heatmap}} which can
-  look nicer (but are less modular),
-  \code{\link{contour}};
-
+  \code{\link{contour}},
   \code{\link{heat.colors}}, \code{\link{topo.colors}},
   \code{\link{terrain.colors}}, \code{\link{rainbow}},
   \code{\link{hsv}}, \code{\link{par}}.
 }
 \examples{
+\testonly{
+## Degenerate, should still work
+image(as.matrix(1))
+image(matrix(pi,2,4))
+x <- seq(0,1,len=100)
+image(x, 1, matrix(x), col=heat.colors(10))
+image(x, 1, matrix(x), col=heat.colors(10), oldstyle = TRUE)
+image(x, 1, matrix(x), col=heat.colors(10), breaks = seq(0.1,1.1,len=11))
+}
 x <- y <- seq(-4*pi, 4*pi, len=27)
 r <- sqrt(outer(x^2, y^2, "+"))
 image(z = z <- cos(r^2)*exp(-r/6), col=gray((0:32)/32))

@@ -1,13 +1,11 @@
 \name{contour}
 \alias{contour}
-\alias{contour.default}
 \title{Display Contours}
 \description{
   Create a contour plot, or add contour lines to an existing plot.
 }
 \usage{
-contour(x, \dots)
-\method{contour}{default}(x = seq(0, 1, len = nrow(z)), y = seq(0, 1, len = ncol(z)),
+contour(x = seq(0, 1, len = nrow(z)), y = seq(0, 1, len = ncol(z)),
         z,
         nlevels = 10, levels = pretty(zlim, nlevels), labels = NULL,
         xlim = range(x, finite = TRUE),
@@ -56,9 +54,6 @@ contour(x, \dots)
     and the arguments to \code{\link{title}} may also be supplied.}
 }
 \details{
-  \code{contour} is a generic function with only a default method in
-  base \R.
-  
   There is currently no documentation about the algorithm.
   The source code is in \file{\$R\_HOME/src/main/plot3d.c}.
 
@@ -73,13 +68,8 @@ contour(x, \dots)
   For information about vector fonts, see the
   help for \code{\link{text}} and \code{\link{Hershey}}.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
-  \code{\link{filled.contour}} for \dQuote{color-filled} contours,
+  \code{\link{filled.contour}} for ``color-filled'' contours,
   \code{\link{image}} and the graphics demo which can be invoked as
   \code{demo(graphics)}.
 }

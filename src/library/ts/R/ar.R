@@ -1,7 +1,7 @@
 ## based on, especially multivariate case, code by Martyn Plummer
 ar <-
     function (x, aic = TRUE, order.max = NULL,
-              method=c("yule-walker","burg", "ols", "mle", "yw"),
+              method=c("yule-walker","burg", "ols", "mle", "yw",),
               na.action = na.fail, series = deparse(substitute(x)), ...)
 {
     res <- switch(match.arg(method),
@@ -32,12 +32,10 @@ ar.yw.default <-
     if(ists)  xtsp <- tsp(x)
     xfreq <- frequency(x)
     x <- as.matrix(x)
-    if(!is.numeric(x))
-        stop("`x' must be numeric")
     if(any(is.na(x))) stop("NAs in x")
     nser <- ncol(x)
     if (demean) {
-        xm <- colMeans(x)
+        xm <- apply(x, 2, mean)
         x <- sweep(x, 2, xm)
     } else xm <- rep(0, nser)
     n.used <- nrow(x)
@@ -179,9 +177,9 @@ print.ar <- function(x, digits = max(3, getOption("digits") - 3), ...)
 predict.ar <- function(object, newdata, n.ahead = 1, se.fit=TRUE, ...)
 {
     if(missing(newdata)) {
-        newdata <- eval.parent(parse(text=object$series))
+        newdata <- eval(parse(text=object$series))
         if (!is.null(nas <- object$call$na.action))
-            newdata <- eval.parent(call(nas, newdata))
+            newdata <- eval(call(nas, newdata))
     }
     nser <- NCOL(newdata)
     ar <- object$ar
@@ -241,6 +239,6 @@ predict.ar <- function(object, newdata, n.ahead = 1, se.fit=TRUE, ...)
     }
     pred <- ts(pred, start = st + dt, frequency=xfreq)
     if(se.fit) se <- ts(se, start = st + dt, frequency=xfreq)
-    if(se.fit) return(list(pred=pred, se=se)) else return(pred)
+    if(se.fit) return(pred, se) else return(pred)
 }
 

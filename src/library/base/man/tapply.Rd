@@ -7,7 +7,7 @@
   levels of certain factors.
 }
 \usage{
-tapply(X, INDEX, FUN = NULL, \dots, simplify = TRUE)
+tapply(X, INDEX, FUN = NULL, simplify = TRUE, \dots)
 }
 \arguments{
   \item{X}{an atomic object, typically a vector.}
@@ -16,11 +16,11 @@ tapply(X, INDEX, FUN = NULL, \dots, simplify = TRUE)
     \code{+}, \code{\%*\%}, etc., the function name must be quoted.  If
     \code{FUN} is \code{NULL}, tapply returns a vector which can be used
     to subscript the multi-way array \code{tapply} normally produces.}
-  \item{\dots}{optional arguments to \code{FUN}.}
   \item{simplify}{If \code{FALSE}, \code{tapply} always returns an array
     of mode \code{"list"}.  If \code{TRUE} (the default), then if
     \code{FUN} always returns a scalar, \code{tapply} returns an array
     with the mode of the scalar.}
+  \item{\dots}{optional arguments to \code{FUN}.}
 }
 \value{
   When \code{FUN} is present, \code{tapply} calls \code{FUN} for each
@@ -40,17 +40,11 @@ tapply(X, INDEX, FUN = NULL, \dots, simplify = TRUE)
   values of the individual calls to \code{FUN}, i.e., the result is a
   list with a \code{\link{dim}} attribute.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
-  the convenience functions \code{\link{by}} and \code{\link{aggregate}} 
-(using \code{tapply});
+  the convenience function \code{\link{aggregate}} (using \code{tapply});
   \code{\link{apply}},
-  \code{\link{lapply}} with its versions
-  \code{\link{sapply}} and \code{\link{mapply}}.
+  \code{\link{lapply}} with its version
+  \code{\link{sapply}}.
 }
 \examples{
 groups <- as.factor(rbinom(32, n = 5, p = .4))
@@ -68,10 +62,6 @@ tapply(1:n, fac, sum)
 tapply(1:n, fac, sum, simplify = FALSE)
 tapply(1:n, fac, range)
 tapply(1:n, fac, quantile)
-
-## example of ... argument: find quarterly means
-data(presidents)
-tapply(presidents, cycle(presidents), mean, na.rm = TRUE)
 
 ind <- list(c(1, 2, 2), c("A", "A", "B"))
 table(ind)

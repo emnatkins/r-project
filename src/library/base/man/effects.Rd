@@ -2,8 +2,7 @@
 \title{Effects from Fitted Model}
 \usage{
 effects(object, \dots)
-
-\method{effects}{lm}(object, set.sign=FALSE, \dots)
+effects.lm(object, set.sign=FALSE)
 }
 \alias{effects}
 \alias{effects.lm}
@@ -15,12 +14,11 @@ effects(object, \dots)
    corresponding to coefficients in the model will be set to agree with the
    signs of the corresponding coefficients, otherwise the sign is
    arbitrary.}
- \item{\dots}{arguments passed to or from other methods.}
 }
 \description{
   Returns (orthogonal) effects from a fitted model, usually a linear
-  model. This is a generic function, but currently only has a methods for
-  objects inheriting from classes \code{"lm"} and \code{"glm"}.
+  model. This is a generic function, but currently only has a method for
+  objects inheriting from class \code{"lm"}.
 }
 \details{
   For a linear model fitted by \code{\link{lm}} or \code{\link{aov}},
@@ -30,8 +28,6 @@ effects(object, \dots)
   process. The first \eqn{r} (the rank of the model) are associated with
   coefficients and the remainder span the space of residuals (but are
   not associated with particular residuals).
-
-  Empty models do not have effects.
 }
 \value{
   A (named) numeric vector of the same length as
@@ -40,13 +36,8 @@ effects(object, \dots)
 
   The first \eqn{r} rows are labelled by the corresponding coefficients,
   and the remaining rows are unlabelled.  Note that in rank-deficient
-  models the \dQuote{corresponding} coefficients will be in a different
-  order if pivoting occurred.
-}
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical Models in S.}
-  Wadsworth \& Brooks/Cole.
+  models the ``corresponding''
+  coefficients will be in a different order if pivoting occurred.
 }
 \seealso{\code{\link{coef}}}
 \examples{

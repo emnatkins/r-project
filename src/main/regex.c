@@ -19,13 +19,14 @@
    write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
    Boston, MA 02111-1307, USA.  */
 
+
 /* AIX requires this to be the first thing in the file. */
 #if defined _AIX && !defined REGEX_MALLOC
   #pragma alloca
 #endif
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+# include "config.h"
 #endif
 
 #ifndef USE_SYSTEM_REGEX
@@ -173,28 +174,6 @@ char *realloc ();
 
 /* Get the interface, including the syntax bits.  */
 #include "Rregex.h"
-/* Compile a fastmap for the compiled pattern in BUFFER; used to
-   accelerate searches.  Return 0 if successful and -2 if was an
-   internal error.  */
-static int re_compile_fastmap _RE_ARGS ((struct re_pattern_buffer *buffer));
-/* Search in the string STRING (with length LENGTH) for the pattern
-   compiled into BUFFER.  Start searching at position START, for RANGE
-   characters.  Return the starting position of the match, -1 for no
-   match, or -2 for an internal error.  Also return register
-   information in REGS (if REGS and BUFFER->no_sub are nonzero).  */
-static int re_search
-  _RE_ARGS ((struct re_pattern_buffer *buffer, const char *string,
-            int length, int start, int range, struct re_registers *regs));
-
-
-/* Like `re_search', but search in the concatenation of STRING1 and
-   STRING2.  Also, stop searching at index START + STOP.  */
-static int re_search_2
-  _RE_ARGS ((struct re_pattern_buffer *buffer, const char *string1,
-             int length1, const char *string2, int length2,
-             int start, int range, struct re_registers *regs, int stop));
-
-
 
 /* isalpha etc. are used for the character classes.  */
 #include <ctype.h>
@@ -1003,9 +982,8 @@ printchar (c)
    syntax, so it can be changed between regex compilations.  */
 /* This has no initializer because initialized variables in Emacs
    become read-only after dumping.  */
-#if 0
-static reg_syntax_t re_syntax_options;
-#endif
+reg_syntax_t re_syntax_options;
+
 
 /* Specify the precise syntax of regexps for compilation.  This provides
    for compatibility for various utilities which historically have
@@ -1014,8 +992,7 @@ static reg_syntax_t re_syntax_options;
    The argument SYNTAX is a bit mask comprised of the various bits
    defined in regex.h.  We return the old syntax.  */
 
-#if 0
-static reg_syntax_t
+reg_syntax_t
 re_set_syntax (syntax)
     reg_syntax_t syntax;
 {
@@ -1032,7 +1009,6 @@ re_set_syntax (syntax)
 }
 #ifdef _LIBC
 weak_alias (__re_set_syntax, re_set_syntax)
-#endif
 #endif
 
 /* This table gives an error message for each of the error codes listed
@@ -1184,9 +1160,9 @@ static const size_t re_error_msgid_idx[] =
 # if defined MATCH_MAY_ALLOCATE
 /* 4400 was enough to cause a crash on Alpha OSF/1,
    whose default stack limit is 2mb.  */
-static const long int re_max_failures = 4000;
+long int re_max_failures = 4000;
 # else
-static const long int re_max_failures = 2000;
+long int re_max_failures = 2000;
 # endif
 
 union fail_stack_elt
@@ -1209,9 +1185,9 @@ typedef struct
 # if defined MATCH_MAY_ALLOCATE
 /* 4400 was enough to cause a crash on Alpha OSF/1,
    whose default stack limit is 2mb.  */
-static const int re_max_failures = 20000;
+int re_max_failures = 20000;
 # else
-static const int re_max_failures = 2000;
+int re_max_failures = 2000;
 # endif
 
 union fail_stack_elt
@@ -1584,7 +1560,7 @@ typedef union
   while (0)
 
 /* Registers are set to a sentinel when they haven't yet matched.  */
-static char const reg_unset_dummy = '\0'; /* initialize to ensure constant (as identified by nm) */
+static char reg_unset_dummy;
 #define REG_UNSET_VALUE (&reg_unset_dummy)
 #define REG_UNSET(e) ((e) == REG_UNSET_VALUE)
 
@@ -3230,7 +3206,7 @@ compile_range (p_ptr, pend, translate, syntax, b)
 
    Returns 0 if we succeed, -2 if an internal error.   */
 
-static int
+int
 re_compile_fastmap (bufp)
      struct re_pattern_buffer *bufp;
 {
@@ -3536,8 +3512,7 @@ weak_alias (__re_compile_fastmap, re_compile_fastmap)
    PATTERN_BUFFER will allocate its own register data, without
    freeing the old data.  */
 
-#if 0
-static void
+void
 re_set_registers (bufp, regs, num_regs, starts, ends)
     struct re_pattern_buffer *bufp;
     struct re_registers *regs;
@@ -3561,14 +3536,13 @@ re_set_registers (bufp, regs, num_regs, starts, ends)
 #ifdef _LIBC
 weak_alias (__re_set_registers, re_set_registers)
 #endif
-#endif
 
 /* Searching routines.  */
 
 /* Like re_search_2, below, but only one string is specified, and
    doesn't let you say where to stop matching. */
 
-static int
+int
 re_search (bufp, string, size, startpos, range, regs)
      struct re_pattern_buffer *bufp;
      const char *string;
@@ -3604,7 +3578,7 @@ weak_alias (__re_search, re_search)
    found, -1 if no match, or -2 if error (such as failure
    stack overflow).  */
 
-static int
+int
 re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
      struct re_pattern_buffer *bufp;
      const char *string1, *string2;
@@ -3826,11 +3800,10 @@ weak_alias (__re_search_2, re_search_2)
 
 /* Matching routines.  */
 
-#if 0
 #ifndef emacs   /* Emacs never uses this.  */
 /* re_match is like re_match_2 except it takes only a single string.  */
 
-static int
+int
 re_match (bufp, string, size, pos, regs)
      struct re_pattern_buffer *bufp;
      const char *string;
@@ -3850,7 +3823,6 @@ re_match (bufp, string, size, pos, regs)
 weak_alias (__re_match, re_match)
 # endif
 #endif /* not emacs */
-#endif
 
 static boolean group_match_null_string_p _RE_ARGS ((unsigned char **p,
 						    unsigned char *end,
@@ -3877,8 +3849,7 @@ static int bcmp_translate _RE_ARGS ((const char *s1, const char *s2,
    failure stack overflowing).  Otherwise, we return the length of the
    matched substring.  */
 
-#if 0
-static int
+int
 re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
      struct re_pattern_buffer *bufp;
      const char *string1, *string2;
@@ -3898,7 +3869,6 @@ re_match_2 (bufp, string1, size1, string2, size2, pos, regs, stop)
 }
 #ifdef _LIBC
 weak_alias (__re_match_2, re_match_2)
-#endif
 #endif
 
 /* This is a separate function so that we can force an alloca cleanup
@@ -5556,8 +5526,7 @@ bcmp_translate (s1, s2, len, translate)
 
    We call regex_compile to do the actual compilation.  */
 
-#if 0
-static const char *
+const char *
 re_compile_pattern (pattern, length, bufp)
      const char *pattern;
      size_t length;
@@ -5585,7 +5554,6 @@ re_compile_pattern (pattern, length, bufp)
 }
 #ifdef _LIBC
 weak_alias (__re_compile_pattern, re_compile_pattern)
-#endif
 #endif
 
 /* Entry points compatible with 4.2 BSD regex library.  We don't define

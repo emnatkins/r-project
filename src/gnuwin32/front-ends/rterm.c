@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998--2002  R Development Core Team
+ *  Copyright (C) 1998--2001  R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,21 +21,23 @@
 #include <windows.h>
 #include <stdio.h>
 #include <io.h> /* for isatty */
-#include <Rversion.h>
-#include <Startup.h>
-#include <psignal.h>
+#include "Rversion.h"
+#include "Startup.h"
+#define PSIGNAL
+#include "psignal.h"
+#include "globalvar.h"
 #include "../getline/getline.h"
 
 extern void cmdlineoptions(int, char **);
 extern void readconsolecfg();
 extern int initapp(int, char **);
 extern void Rf_mainloop(void);
-__declspec(dllimport) extern UImode CharacterMode;
-__declspec(dllimport) extern int UserBreak;
-__declspec(dllimport) extern int R_Interactive;
-__declspec(dllimport) extern int R_HistorySize;
-__declspec(dllimport) extern int R_RestoreHistory;
-__declspec(dllimport) extern char *R_HistoryFile;
+extern UImode CharacterMode;
+extern int UserBreak;
+extern int R_Interactive;
+extern int R_HistorySize;
+extern int R_RestoreHistory;
+extern char *R_HistoryFile;
 
 extern char *getDLLVersion();
 extern void saveConsoleTitle();

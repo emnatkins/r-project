@@ -1,16 +1,19 @@
 \name{factanal}
 \alias{factanal}
 \alias{factanal.fit.mle}
+\alias{print.factanal}
+\alias{print.loadings}
 \title{Factor Analysis}
 \description{
   Perform maximum-likelihood factor analysis on a covariance matrix or
   data matrix.
 }
 \usage{
-factanal(x, factors, data = NULL, covmat = NULL, n.obs = NA,
-         subset, na.action,
+factanal(x, factors, data, covmat = NULL, n.obs = NA, subset, na.action,
          start = NULL, scores = c("none", "regression", "Bartlett"),
-         rotation = "varimax", control = NULL, \dots)
+         rotation = "varimax", control = NULL, ...)
+print.factanal(x, digits = 3, ...)
+print.loadings(x, digits = 3, cutoff = 0.1, sort = FALSE, ...)
 }
 \arguments{
   \item{x}{Either a formula or a numeric matrix or an object that can be
@@ -50,6 +53,16 @@ factanal(x, factors, data = NULL, covmat = NULL, n.obs = NA,
   }
   \item{\dots}{Components of \code{control} can also be supplied as
     named arguments to \code{factanal}.}
+  \item{digits}{number of decimal places to use in printing uniquenesses
+    and loadings.}
+  \item{cutoff}{loadings smaller than this (in absolute value) are suppressed.}
+  \item{sort}{logical. If true, the variables are sorted by their
+    importance on each factor.  Each variable with any loading larger
+    than 0.5 (in modulus) is assigned to the factor with the largest
+    loading, and the variables are printed in the order of the factor
+    they are assigned to, then those unassigned.}
+  \item{\dots}{further arguments, such as \code{cutoff} and \code{sort} for
+    \code{print.factanal}.}
 }
 \details{
   The factor analysis model is
@@ -103,9 +116,6 @@ factanal(x, factors, data = NULL, covmat = NULL, n.obs = NA,
   right-hand side.  Bartlett's method minimizes the sum of squares of
   standardized errors over the choice of \eqn{f}, given (the fitted)
   \eqn{\Lambda}{Lambda}.
-
-  If \code{x} is a formula then the standard NA-handling is applied to
-  the scores (if requested): see \code{\link{napredict}}.
 }
 \value{
   An object of class \code{"factanal"} with components
@@ -123,9 +133,6 @@ factanal(x, factors, data = NULL, covmat = NULL, n.obs = NA,
   \item{scores}{If requested, a matrix of scores.}
   \item{n.obs}{The number of observations if available, or \code{NA}.}
   \item{call}{The matched call.}
-  \item{na.action}{If relevant.}
-  \item{STATISTIC, PVAL}{The significance-test statistic and P value, if
-    if can be computed.}
 }
 
 \note{
@@ -154,9 +161,9 @@ factanal(x, factors, data = NULL, covmat = NULL, n.obs = NA,
   Thomson, G. H. (1951) \emph{The Factorial Analysis of Human Ability.}
   London University Press.
 }
+\author{B. D. Ripley}
 
 \seealso{
-  \code{\link{print.loadings}},
   \code{\link{varimax}}, \code{\link{princomp}},
   \code{\link{ability.cov}}, \code{\link{Harman23.cor}},
   \code{\link{Harman74.cor}}
@@ -165,7 +172,7 @@ factanal(x, factors, data = NULL, covmat = NULL, n.obs = NA,
 \examples{
 # A little demonstration, v2 is just v1 with noise,
 # and same for v4 vs. v3 and v6 vs. v5
-# Last four cases are there to add noise
+# Last four cases in each vector are there to add noise
 # and introduce a positive manifold (g factor)
 v1 <- c(1,1,1,1,1,1,1,1,1,1,3,3,3,3,3,4,5,6)
 v2 <- c(1,2,1,1,1,1,2,1,2,1,3,4,3,3,3,4,6,5)
@@ -178,11 +185,8 @@ cor(m1)
 factanal(m1, factors=3) # varimax is the default
 factanal(m1, factors=3, rotation="promax")
 # The following shows the g factor as PC1
+library(mva)
 prcomp(m1)
-
-## formula interface
-factanal(~v1+v2+v3+v4+v5+v6, factors = 3,
-         scores = "Bartlett")$scores
 
 ## a realistic example from Barthlomew (1987, pp. 61-65)
 example(ability.cov)

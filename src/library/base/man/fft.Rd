@@ -36,15 +36,11 @@ mvfft(z, inverse = FALSE)
   vector-valued series.
 
   The FFT is fastest when the length of of the series being transformed
-  is highly composite (i.e., has many factors).  If this is not the
-  case, the transform may take a long time to compute and will use a
-  large amount of memory.
+  is highly composite (i.e. has many factors).  If this is not the case,
+  the transform may take a long time to compute and will use a large
+  amount of memory.
 }
 \references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-
   Singleton, R. C. (1979)
   Mixed Radix Fast Fourier Transforms,
   in \emph{Programs for Digital Signal Processing},
@@ -57,7 +53,28 @@ mvfft(z, inverse = FALSE)
 \examples{
 x <- 1:4
 fft(x)
-fft(fft(x), inverse = TRUE)/length(x)
+all(fft(fft(x), inverse = TRUE)/(x*length(x)) == 1+0i)
+eps <- 1e-11 ## In general, not exactly, but still:
+for(N in 1:130) {
+    cat("N=",formatC(N,wid=3),": ")
+    x <- rnorm(N)
+    if(N \%\% 5 == 0) {
+        m5 <- matrix(x,ncol=5)
+        cat("mvfft:",all(apply(m5,2,fft) == mvfft(m5)),"")
+    }
+    dd <- Mod(1 - (f2 <- fft(fft(x), inverse=TRUE)/(x*length(x))))
+    cat(if(all(dd < eps))paste(" all < ", formatC(eps)) else
+            paste("NO: range=",paste(formatC(range(dd)),collapse=",")),"\n")
+}
+
+plot(fft(c(9:0,0:13, numeric(301))), type = "l")
+periodogram <- function(x, mean.x = mean(x)) { # simple periodogram
+  n <- length(x)
+  x <- unclass(x) - mean.x
+  Mod(fft(x))[2:(n\%/\%2 + 1)]^2 / (2*pi*n) # drop I(0)
+}
+data(sunspots)
+plot(10*log10(periodogram(sunspots)), type = "b", col = "blue")
 }
 \keyword{math}
 \keyword{dplot}

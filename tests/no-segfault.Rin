@@ -6,12 +6,10 @@
 
 core.pkgs <-
 {x <- installed.packages(file.path(R.home(), "library"));
-    x[x[,"Priority"] %in% "base", "Package"]}
-## skip mle for now because strange things happen with the S3
-## generic overrides
-core.pkgs <- core.pkgs[- match(c("methods", "tcltk", "mle"), core.pkgs)]
-## move methods to the end because it has side effects (overrides primitives)
-core.pkgs <- c(core.pkgs, "methods")
+    x[x[,"Priority"]=="base", "Package"]}
+## c("base", "eda", "lqs", "modreg", "mva", "stepfun", "ts", "nls","splines")
+## .packages(all=TRUE,lib.loc = .lib.loc[length(.lib.loc)])
+core.pkgs <- core.pkgs[- match("tcltk", core.pkgs)]
 stop.list <- vector("list", length(core.pkgs))
 names(stop.list) <- core.pkgs
 
@@ -20,80 +18,65 @@ names(stop.list) <- core.pkgs
 edit.int <- c("fix", "edit", "edit.data.frame", "edit.matrix",
               "edit.default", "vi",
               "emacs", "pico", "xemacs", "xedit")
-
 ## warning: readLines will work, but read all the rest of the script
-## warning: trace will load methods.
-## warning: rm and remove zaps c0, l0, m0, df0
-misc.int <- c("browser", "bug.report", "menu", "repeat", "readLines",
-              "package.skeleton", "trace", "recover", "rm", "remove")
-
+misc.int <- c("browser", "bug.report", "menu", "repeat", "readLines")
 stop.list[["base"]] <-
     if(nchar(Sys.getenv("R_TESTLOTS"))) {## SEVERE TESTING, try almost ALL
 	c(edit.int, misc.int)
     } else {
 	inet.list <- c(apropos("download\."),
 		       apropos("^url\."), apropos("\.url"),
-                       apropos("packageStatus"),
 		       paste(c("CRAN", "install", "update", "old"),
                              "packages",sep="."))
 	socket.fun <- apropos("socket")
 	## "Interactive" ones:
-	dev.int <- c("X11", "x11", "windows", "postscript",
+	dev.int <- c("X11", "x11", "windows", "macintosh", "postscript",
                      "xfig", "jpeg", "png", "pictex")
-	misc.2 <- c("help.start", "browseEnv",
+	## print.plot() will print a blank page on the printer and is
+	## deprecated anyway --pd
+	misc.2 <- c("help.start", "print.plot",
 		    "gctorture", "q", "quit", "restart", "try",
                     "read.fwf", "source",## << MM thinks "FIXME"
 		    "data.entry", "dataentry", "de", apropos("^de\."))
-        if(.Platform$OS.type == "windows")
-            misc.2 <- c(misc.2, "bmp", "windows", "win.graph", "win.print",
-                        "win.metafile", "x11", "X11","file.choose",
-                        "choose.files")
 	c(inet.list, socket.fun, dev.int, edit.int, misc.int, misc.2)
     }
-## warning: browseAll will tend to read all the script and/or loop forever
-stop.list[["methods"]] <- c("browseAll", "recover")
-stop.list[["ts"]] <- c("arma0f", "KalmanLike")
 
 sink("no-segfault.R")
 
-if(.Platform$OS.type == "unix") cat('options(pager = "cat")\n')
-if(.Platform$OS.type == "windows") cat('options(pager = "console")\n')
-cat('options(error=expression(NULL))',
+cat('options(pager = "cat", error=expression(NULL))',
     "# don't stop on error in batch\n##~~~~~~~~~~~~~~\n")
 
 cat(".proctime00 <- proc.time()\n",
     "c0 <- character(0)\n",
     "l0 <- logical(0)\n",
-    "m0 <- matrix(1,0,0)\n",
     "df0 <- as.data.frame(c0)\n", sep="")
 
 for (pkg in core.pkgs) {
   cat("### Package ", pkg, "\n",
       "###         ", rep("~",nchar(pkg)), "\n", collapse="", sep="")
-  pkgname <- paste("package", pkg, sep=":")
-  this.pos <- match(paste("package", pkg, sep=":"), search())
-  lib.not.loaded <- is.na(this.pos)
-  if(lib.not.loaded) {
-      library(pkg, character = TRUE, warn.conflicts = FALSE)
-      cat("library(", pkg, ")\n")
+  if(pkg == "base") {
+      this.pos <- length(search())
   }
-  this.pos <- match(paste("package", pkg, sep=":"), search())
+  else {
+      library(pkg, character = TRUE)
+      cat("library(",pkg,")\n")
+      this.pos <- 2
+  }
 
-  for(nm in ls(pkgname)) {
+  for(nm in ls(pos = this.pos)) {
       if(!(nm %in% stop.list[[pkg]]) &&
-	 is.function(f <- get(nm, pos = pkgname))) {
+	 is.function(f <- get(nm,pos = this.pos))) {
 	  cat("\n## ", nm, " :\n")
-	  cat("f <- get(\"",nm,"\", pos = '", pkgname, "')\n", sep="")
+	  cat("f <- get(\"",nm,"\", pos = ", this.pos, ")\n", sep="")
 	  cat("f()\nf(NULL)\nf(,NULL)\nf(NULL,NULL)\n",
-	      "f(list())\nf(l0)\nf(c0)\nf(m0)\nf(df0)\nf(FALSE)\n",
-	      "f(list(),list())\nf(l0,l0)\nf(c0,c0)\n",
-              "f(df0,df0)\nf(FALSE,FALSE)\n",
+	      "f(list())\nf(l0)\nf(c0)\nf(df0)\nf(F)\n",
+	      "f(list(),list())\nf(l0,l0)\nf(c0,c0)\nf(df0,df0)\nf(F,F)\n",
 	      sep="")
       }
   }
-  if(lib.not.loaded) {
+  if(pkg != "base") {
       detach(pos=this.pos)
-      cat("detach(pos=", this.pos, ")\n", sep="")
+      cat("detach(pos=",this.pos,")\n")
   }
 
   cat("\n##__________\n\n")

@@ -3,7 +3,8 @@
 \alias{format.POSIXlt}
 \alias{strftime}
 \alias{strptime}
-\alias{as.character.POSIXt}
+\alias{as.character.POSIXct}
+\alias{as.character.POSIXlt}
 \alias{ISOdatetime}
 \alias{ISOdate}
 \title{Date-time Conversion Functions to and from Character}
@@ -13,12 +14,13 @@
   dates and times.
 }
 \usage{
-\method{format}{POSIXct}(x, format = "", tz = "", usetz = FALSE, \dots)
-\method{format}{POSIXlt}(x, format = "", usetz = FALSE, \dots)
+format.POSIXct(x, format = "", tz = "", usetz = FALSE, ...)
+format.POSIXlt(x, format = "", usetz = FALSE, ...)
 
-\method{as.character}{POSIXt}(x, \dots)
+as.character.POSIXct(x, ...)
+as.character.POSIXlt(x, ...)
 
-strftime(x, format="", usetz = FALSE, \dots)
+strftime(x, format="\%Y-\%m-\%d \%X", usetz = FALSE, ...)
 strptime(x, format)
 
 ISOdatetime(year, month, day, hour, min, sec, tz = "")
@@ -29,14 +31,15 @@ ISOdate(year, month, day, hour = 12, min = 0, sec = 0, tz = "GMT")
   \item{tz}{A timezone specification to be used for the conversion.
     System-specific, but \code{""} is the current time zone, and
     \code{"GMT"} is UTC.}
-  \item{format}{A character string.  The default is
+  \item{format}{A character vector. The default is
     \code{"\%Y-\%m-\%d \%H:\%M:\%S"} if any component has a time
-    component which is not midnight, and \code{"\%Y-\%m-\%d"}
-    otherwise.}
+    component which is not midnight, and \code{"\%Y-\%m-\%d"} otherwise.
+  }
   \item{\dots}{Further arguments to be passed from or to other methods.}
+  \item{tz}{A timezone: see \code{\link{as.POSIXct}}.}
   \item{usetz}{logical.  Should the timezone be appended to the output?
     This is used in printing time, and as a workaround for problems with
-    using \code{"\%Z"} on most Linux systems.}
+    using \code{"%Z"} on most Linux systems.}
   \item{year, month, day}{numerical values to specify a day.}
   \item{hour, min, sec}{numerical values for a time within a day.}
 }
@@ -72,8 +75,7 @@ ISOdate(year, month, day, hour = 12, min = 0, sec = 0, tz = "GMT")
     \item{\code{\%j}}{Day of year as decimal number (001--366).}
     \item{\code{\%m}}{Month as decimal number (01--12).}
     \item{\code{\%M}}{Minute as decimal number (00--59).}
-    \item{\code{\%p}}{AM/PM indicator in the locale.  Used in
-      conjuction with \code{\%I} and \bold{not} with \code{\%H}.}
+    \item{\code{\%p}}{AM/PM indicator in the locale.}
     \item{\code{\%S}}{Second as decimal number (00--61), allowing for
       up to two leap-seconds.}
     \item{\code{\%U}}{Week of the year as decimal number (00--53) using
@@ -113,13 +115,12 @@ ISOdate(year, month, day, hour = 12, min = 0, sec = 0, tz = "GMT")
   \code{"14:01:02"} using leading zeroes as here.  The ISO form uses no
   space to separate dates and times.
 
-  If the date string does not specify the date completely, the returned
-  answer may be system-specific.  The most common behaviour is to assume
-  that unspecified seconds, minutes or hours are zero, and a missing
-  year, month or day is the current one.
-
   If the timezone specified is invalid on your system, what happens is
   system-specific but it will probably be ignored.
+#ifdef mac
+  Under MacOS only the current timezone \code{""} and UTC (or GMT)
+  are supported.
+#endif
 
   OS facilities will probably not print years before 1CE (aka 1AD)
   correctly.
@@ -145,16 +146,15 @@ format(Sys.time(), "\%a \%b \%d \%X \%Y")
 ## format(Sys.time(), "\%a \%b \%d \%X \%Y \%Z")
 ## but this crashes some Linux systems
 
-## read in date info in format 'ddmmmyyyy'
-## This will give NA(s) in some locales; setting the C locale
-## as in the commented lines will overcome this on most systems.
+## read in date info in format `ddmmmyyyy'
+## This will give NA(s) in some locales.
 ## lct <- Sys.getlocale("LC_TIME"); Sys.setlocale("LC_TIME", "C")
 x <- c("1jan1960", "2jan1960", "31mar1960", "30jul1960")
 z <- strptime(x, "\%d\%b\%Y")
 ## Sys.setlocale("LC_TIME", lct)
 z
 
-## read in date/time info in format 'm/d/y h:m:s'
+## read in date/time info in format `m/d/y h:m:s'
 dates <- c("02/27/92", "02/27/92", "01/14/92",
            "02/28/92", "02/01/92")
 times <- c("23:03:20", "22:29:56", "01:03:30",

@@ -1,8 +1,5 @@
 traceback <- function()
 {
-    if (exists(".Traceback", env = .GlobalEnv))
-	.Traceback <- get(".Traceback", env = .GlobalEnv)
-    else .Traceback <- NULL
     if(is.null(.Traceback) || length(.Traceback) == 0)
         cat("No traceback available\n")
     else {

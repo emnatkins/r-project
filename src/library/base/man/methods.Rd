@@ -1,68 +1,66 @@
 \name{methods}
-\title{List Methods for S3 Generic Functions or Classes}
-\alias{methods}
-\alias{print.MethodsFunction}
-\description{
-  List all available methods for an S3 generic function, or all
-  methods for a class.
-}
+\title{Class Methods}
 \usage{
+UseMethod(generic, object )
+NextMethod(generic, object, \dots)
 methods(generic.function, class)
 }
-\arguments{
-  \item{generic.function}{a generic function, or a character string naming a
-    generic function.}
-  \item{class}{a symbol or character string naming a class: only used if
-    \code{generic.function} is not supplied.}
-}
-\value{
-  An object of class \code{"MethodsFunction"}, a
-  character vector of function names with an \code{"info"} attribute.
-  There is a \code{print} method which marks with an asterisk any
-  methods which are not visible: such functions can be examined by
-  \code{\link{getS3method}} or \code{\link{getAnywhere}}.
-
-  The \code{"info"} attribute is a data frame, currently with a
-  logical column, \code{visible} and a factor column \code{from}
-  (indicating where the methods were found).
+\alias{UseMethod}
+\alias{NextMethod}
+\alias{methods}
+\description{
+  \R possesses a simple generic function mechanism which can be used for
+  an object-oriented style of programming.  Method despatch takes place
+  based on the class of the first argument to the generic function or on 
+  the object supplied as an argument to \code{UseMethod} or \code{NextMethod}.
 }
 \details{
-  Function \code{methods} can be used to find out about the methods for
-  a particular generic function or class.  The functions listed are those
-  which \emph{are named like methods} and may not actually be methods
-  (known exceptions are discarded in the code).  Note that the listed
-  methods may not be user-visible objects, but often help will be
-  available for them.
+  An \R ``object'' is a data object which has a \code{class} attribute.
+  A class attribute is a character vector giving the names of
+  the classes which the object ``inherits'' from.  When a generic
+  function \code{fun} is applied to an object with class attribute
+  \code{c("first", "second")}, the system searches for a function called
+  \code{fun.first} and, if it finds it, applied it to the object.  If no
+  such function is found a function called \code{fun.second} is tried.
+  If no class name produces a suitable function, the function
+  \code{fun.default} is used.
 
-  If \code{class} is used, we check that a matching generic can be found
-  for each user-visible object named.
+  \code{methods} can be used to find out about the methods for a
+  particular generic function or class.  See the examples below for
+  details.
+
+  Now for some obscure details that need to appear somewhere.  These
+  comments will be slightly different than those in Appendix A of the
+  White S Book. \code{UseMethod} creates a ``new'' function call with
+  arguments matched as they came in to the generic.  Any local variables
+  defined before the call to \code{UseMethod} are retained (!?).  Any
+  statements after the call to \code{UseMethod} will not be evaluated as
+  \code{UseMethod} does not return.
+
+  \code{NextMethod} invokes the next method (determined by the
+  class).  It does this by creating a special call frame for that
+  method.  The arguments will be the same in number, order and name as
+  those to the current method but their values will be promises to
+  evaluate their name in the current method and environment.  Any
+  arguments matched to \code{\dots} are handled specially.  They are
+  passed on as the promise that was supplied as an argument to the
+  current environment. (S does this differently!)  If they have been
+  evaluated in the current (or a previous environment) they remain
+  evaluated.
 }
 \note{
-  This scheme is called \emph{S3} (S version 3).  For new projects,
-  it is recommended to use the more flexible and robust \emph{S4} scheme
-  provided in the \pkg{methods} package.  Functions can have both S3
-  and S4 methods, and function \code{\link[methods]{showMethods}} will
-  list the S4 methods (possibly none).
-
-  The original \code{methods} function was written by Martin Maechler.
+  The \code{methods} function was written by Martin Maechler.
 }
 \seealso{
-  \code{\link{S3Methods}}, \code{\link[base]{class}}, \code{\link{getS3method}}
-}
-\references{
-  Chambers, J. M. (1992)
-  \emph{Classes and methods: object-oriented programming in S.}
-  Appendix A of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
+  \code{\link{class}}
 }
 \examples{
 methods(summary)
-methods(class = "aov")
-methods("[[")    ##- does not list the C-internal ones...
-methods("$")     # currently none
-methods("$<-")   # replacement function
-methods("+")     # binary operator
-methods("Math")  # group generic
-\dontrun{methods(print)
-}}
+
+methods(print)
+
+methods(class = data.frame)
+
+methods("[")#- does not list the C-internal ones...
+}
 \keyword{methods}

@@ -1,14 +1,12 @@
 \name{UCBAdmissions}
-\docType{data}
 \alias{UCBAdmissions}
 \title{Student Admissions at UC Berkeley}
+\usage{data(UCBAdmissions)}
 \description{
   Aggregate data on applicants to graduate school at Berkeley for the
   six largest departments in 1973 classified by admission and sex.
 }
-\usage{data(UCBAdmissions)}
-\format{
-  A 3-dimensional array resulting from cross-tabulating 4526
+\format{A 3-dimensional array resulting from cross-tabulating 4526
   observations on 3 variables.  The variables and their levels are as
   follows:
 
@@ -30,13 +28,13 @@
   or log-linear modelling show that the apparent association between
   admission and sex stems from differences in the tendency of males and
   females to apply to the individual departments (females used to apply
-  \dQuote{more} to departments with higher rejection rates).
+  ``more'' to departments with higher rejection rates).
 
   This data set can also be used for illustrating methods for graphical
   display of categorical data, such as the general-purpose mosaic plot
-  or the \dQuote{fourfold display} for 2-by-2-by-\eqn{k} tables.  See the
+  or the ``fourfold display'' for 2-by-2-by-\eqn{k} tables.  See the
   home page of Michael Friendly
-  (\url{http://www.math.yorku.ca/SCS/friendly.html}) for further
+  (\url{http://hotspur.psych.yorku.ca/SCS/friendly.html}) for further
   information.
 }
 \references{

@@ -1,6 +1,6 @@
 \name{spec.taper}
 \alias{spec.taper}
-\title{Taper a Time Series by a Cosine Bell}
+\title{Taper a Time Series}
 \usage{
 spec.taper(x, p=0.1)
 }
@@ -20,11 +20,8 @@ spec.taper(x, p=0.1)
   A new time series object.
 }
 \author{Kurt Hornik, B.D. Ripley}
-\note{From package \pkg{MASS}.}
+\note{From package \file{MASS}.}
 
-\seealso{
-  \code{\link{spec.pgram}},
-  \code{\link{cpgram}}
-}
+\seealso{\code{\link{spec.pgram}}, \code{\link{cpgram}}}
 
 \keyword{ts}

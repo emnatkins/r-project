@@ -56,3 +56,4 @@ points(cl$centers, col = 1:2, pch = 8)
 }
 \keyword{multivariate}
 \keyword{cluster}
+

@@ -1,19 +1,26 @@
+index.search <- function(topic, path, file="AnIndex", type="help")
+    .Internal(index.search(topic, path, file, .Platform$file.sep, type))
+
 help <-
     function(topic, offline = FALSE, package = .packages(),
-             lib.loc = NULL, verbose = getOption("verbose"),
+             lib.loc = .lib.loc, verbose = getOption("verbose"),
              try.all.packages = getOption("help.try.all.packages"),
              chmhelp = getOption("chmhelp"), htmlhelp = getOption("htmlhelp"),
              winhelp = getOption("winhelp"),
              pager = getOption("pager"))
 {
     chmhelp <- is.logical(chmhelp) && chmhelp
-    htmlhelp <- !chmhelp && is.logical(htmlhelp) && htmlhelp
-    winhelp <- !chmhelp && !htmlhelp && is.logical(winhelp) && winhelp
+    htmlhelp <- is.logical(htmlhelp) && htmlhelp
+    winhelp <- is.logical(winhelp) && winhelp
     if (!missing(package))
         if (is.name(y <- substitute(package)))
             package <- as.character(y)
     if (!missing(topic)) {
-        if (!is.character(topic)) topic <- deparse(substitute(topic))
+        topic <- substitute(topic)
+        if (is.name(topic))
+            topic <- as.character(topic)
+        else if (!is.character(topic))
+            stop("Unimplemented help feature")
         # for cmd/help ..
         if (!is.na(match(topic, c("+", "-", "*", "/", "^", "%%"))))
             topic <- "Arithmetic"
@@ -26,7 +33,11 @@ help <-
         else if (!is.na(match(topic, c("%*%"))))
             topic <- "matmult"
         type <- if(offline) "latex" else if (htmlhelp) "html" else "help"
-        INDICES <- .find.package(package, lib.loc, verbose = verbose)
+        INDICES <-
+            if(missing(lib.loc))
+                c(.path.package(package, TRUE),
+                  system.file(pkg = package, lib = lib.loc))
+            else system.file(pkg = package, lib = lib.loc)
         file <- index.search(topic, INDICES, "AnIndex", type)
         if (length(file) && file != "") {
             if (verbose)
@@ -46,9 +57,7 @@ help <-
                                      sep = "")
                     if(verbose) print(hlpfile)
                     if(file.exists(hlpfile)) {
-                        err <- .C("Rchtml", hlpfile, topic,
-                                  err = integer(1), PACKAGE = "")$err
-                        if(err) stop("CHM file could not be displayed")
+                        err <- .C("Rchtml", hlpfile, topic, err=integer(1))$err
                         if(verbose)
                             cat("help() for `", topic,
                                 "' is shown in Compiled HTML\n",
@@ -61,9 +70,9 @@ help <-
                     }
                 }
                 if(htmlhelp) {
-                    file <- chartr("/", "\\", file)
+                    file <- gsub("/", "\\\\", file)
                     if(file.exists(file)) {
-                        browseURL(file)
+                        .Internal(show.help.item(file, 1, ""))
                         cat("help() for `", topic, "' is shown in browser\n",
                             sep="")
                         return(invisible())
@@ -79,7 +88,7 @@ help <-
                     thispkg <- sub(".*/([^/]*)$", "\\1", wfile)
                     hlpfile <- paste(wfile, "/winhlp/", thispkg, ".hlp",
                                      sep = "")
-                    hlpfile <- chartr("/", "\\", hlpfile)
+                    hlpfile <- gsub("/", "\\\\", hlpfile)
                     topic <- sub("(.*/help/)([^/]*)$", "\\2", file)
                     if(verbose) print(hlpfile)
                     if(file.exists(hlpfile)) {
@@ -98,7 +107,8 @@ help <-
                 zfile <- zip.file.extract(file, "Rhelp.zip")
                 ## end of experimental code
                 if(file.exists(zfile))
-                    file.show(zfile, title = paste("`", topic, "' help", sep=""),
+                    file.show(zfile,
+                              header = paste("Help for `", topic, "'", sep=""),
                               delete.file = (zfile!=file), pager = pager)
                 else
                     stop(paste("The help file for `", topic, "' is missing",
@@ -129,8 +139,8 @@ help <-
                     cmd <- paste('"',
                                  paste(R.home(), "bin", "helpPRINT", sep="/"),
                                  '"', sep="")
-                    texpath <- chartr("\\", "/",
-                                      file.path(R.home(), "share", "texmf"))
+                    texpath <- gsub("\\\\", "/",
+                                    file.path(R.home(), "doc", "manual"))
                     system(paste(cmd, FILE, topic, texpath), wait = FALSE)
                     return(invisible())
                 }
@@ -144,13 +154,12 @@ help <-
                 try.all.packages <- FALSE
             if(try.all.packages && missing(package) && missing(lib.loc)) {
                 ## try all the remaining packages
-                lib.loc <- .libPaths()
                 packages <- .packages(all.available = TRUE, lib.loc = lib.loc)
                 packages <- packages[is.na(match(packages, .packages()))]
                 pkgs <- libs <- character(0)
                 for (lib in lib.loc)
                     for (pkg in packages) {
-                        INDEX <- system.file(package = pkg, lib.loc = lib)
+                        INDEX <- system.file(pkg = pkg, lib = lib)
                         file <- index.search(topic, INDEX, "AnIndex", "help")
                         if(length(file) && file != "") {
                             pkgs <- c(pkgs, pkg)
@@ -167,26 +176,22 @@ help <-
                         sep="")
                     A <- cbind(package=pkgs, library=libs)
                     rownames(A) <- 1:nrow(A)
-                    print(A, quote=FALSE)
+                    print(A, quote=F)
                 } else {
                     stop(paste("No documentation for `", topic,
-                               "' in specified packages and libraries:\n",
-                               "  you could try `help.search(\"", topic,
-                               "\")'",
+                               "' in specified packages and libraries",
                                sep = ""))
                 }
             } else {
                     stop(paste("No documentation for `", topic,
-                               "' in specified packages and libraries:\n",
-                               "  you could try `help.search(\"", topic,
-                               "\")'",
+                               "' in specified packages and libraries",
                                sep = ""))
             }
         }
     }
     else if (!missing(package))
-        library(help = package, lib.loc = lib.loc, character.only = TRUE)
+        library(help = package, lib = lib.loc, character.only = TRUE)
     else if (!missing(lib.loc))
-        library(lib.loc = lib.loc)
+        library(lib = lib.loc)
     else help("help", package = "base", lib.loc = .Library)
 }

@@ -1,15 +1,14 @@
 \name{freeny}
-\docType{data}
 \alias{freeny}
 \alias{freeny.x}
 \alias{freeny.y}
 \title{Freeny's Revenue Data}
+\usage{data(freeny)}
 \description{
   Freeny's data on quarterly revenue and explanatory variables.
 }
-\usage{data(freeny)}
 \format{
-  There are three \sQuote{freeny} data sets.
+  There are three `freeny' data sets.
 
   \code{freeny.y} is a time series with 39 observations on quarterly
   revenue from (1962,2Q) to (1971,4Q).
@@ -24,13 +23,8 @@
 }
 \source{
   A. E. Freeny (1977)
-  \emph{A Portable Linear Regression Package with Test Programs}.
+  \emph{A Portable Linear Regression Package with Test Programs.}
   Bell Laboratories memorandum.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \examples{
 data(freeny)

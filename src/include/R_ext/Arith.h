@@ -21,22 +21,27 @@
 #ifndef R_ARITH_H_
 #define R_ARITH_H_
 
+#ifdef Macintosh
+#include <fp.h> 
+#else
 #include <math.h>
+#endif
 
-#include <R_ext/libextern.h>
+#ifdef __MAIN__
+#define extern
+#endif
 #ifdef  __cplusplus
 extern "C" {
 #endif
 
 /* implementation of these : ../../main/arithmetic.c */
-LibExtern double R_NaN;		/* IEEE NaN or = NA_REAL */
-LibExtern double R_PosInf;	/* IEEE Inf  or	 DBL_MAX */
-LibExtern double R_NegInf;	/* IEEE -Inf or -DBL_MAX */
-LibExtern double R_NaReal;	/* NA_REAL: IEEE or "almost -DBL_MAX" */
-LibExtern int	 R_NaInt;	/* NA_INTEGER:= INT_MIN currently */
+extern double	R_NaN;		/* IEEE NaN or = NA_REAL */
+extern double	R_PosInf;	/* IEEE Inf  or	 DBL_MAX */
+extern double	R_NegInf;	/* IEEE -Inf or -DBL_MAX */
+extern double	R_NaReal;	/* NA_REAL: IEEE or "almost -DBL_MAX" */
+extern int	R_NaInt;	/* NA_INTEGER:= INT_MIN currently */
 #ifdef __MAIN__
 #undef extern
-#undef LibExtern
 #endif
 
 #define NA_LOGICAL	R_NaInt
@@ -51,11 +56,7 @@ int R_IsNaNorNA(double);	/* True for both */
 int R_finite(double);		/* True if none of NA, NaN, +/-Inf */
 
 #define ISNA(x)	       R_IsNA(x)
-#ifdef IEEE_754
-# define ISNAN(x) (isnan(x)!=0)
-#else
-# define ISNAN(x)      R_IsNaNorNA(x)
-#endif
+#define ISNAN(x)       R_IsNaNorNA(x)
 #define R_FINITE(x)    R_finite(x)
 
 #ifdef  __cplusplus

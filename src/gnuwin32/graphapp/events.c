@@ -61,7 +61,7 @@ static void handle_mouse(object obj, HWND hwnd, UINT message,
         POINT wp;
         HWND hw;
 	int dble = 1;
-
+	
 	xy.x = x;
 	xy.y = y;
 	buttons = 0;
@@ -74,7 +74,7 @@ static void handle_mouse(object obj, HWND hwnd, UINT message,
 		buttons |= RightButton;
 
 	/* dispatch the mouse event to the relevent handler */
-	if (obj && obj->drawstate && obj->drawstate->crsr)
+	if (obj && obj->drawstate && obj->drawstate->crsr) 
                  SetCursor((HCURSOR)obj->drawstate->crsr->handle);
 
 	switch (message)
@@ -211,12 +211,12 @@ static void handle_mdiframesize() {
      GetClientRect(hwndFrame,&rFrame);
      fw = rFrame.right-rFrame.left;
      fh = rFrame.bottom-rFrame.top;
-     if (MDIToolbar) {
+     if (MDIToolbar) {  
         tool = (HWND)MDIToolbar->handle;
         GetWindowRect(tool,&rToolbar);
         th = rToolbar.bottom-rToolbar.top;
      }
-     if (MDIStatus) {
+     if (MDIStatus) {  
         status = (HWND)MDIStatus;
         GetWindowRect(status,&rToolbar);
         sh = rToolbar.bottom-rToolbar.top;
@@ -231,7 +231,7 @@ static void handle_mdiframesize() {
      }
      SetFocus((HWND)SendMessage(hwndClient,
                 WM_MDIGETACTIVE,(WPARAM)0,(LPARAM) 0));
-}
+}           
 
 /*
  *  The window is being resized for some reason.
@@ -243,8 +243,6 @@ static void handle_resize(object obj)
 		obj->call->resize(obj,
 			rect(0,0,obj->rect.width,obj->rect.height));
 	}
-	deletion_traversal();  /* We may be called again before 
-				  returning to doevent */
 }
 
 /*
@@ -253,7 +251,7 @@ static void handle_resize(object obj)
 static void handle_redraw(object obj, HWND hwnd)
 {
 	PAINTSTRUCT ps;
-        if (obj==MDIFrame)
+        if (obj==MDIFrame) 
                 handle_mdiframesize();
 	del_context(obj);
 	add_context(obj, BeginPaint(hwnd, &ps), NULL);
@@ -320,7 +318,7 @@ static void handle_scroll(object obj, HWND hwnd, UINT message,
 	    max_value = obj->xmax;
 	    size_shown = obj->xsize;
 	}
-
+	
 	/* next we look at wParam to see what happened */
 	switch(LOWORD(wParam))
 	{
@@ -390,21 +388,6 @@ static void handle_colour(HDC dc, object obj)
 }
    #endif
 #endif
-
-static char dfilename[MAX_PATH + 1];
-static void handle_drop(object obj, HANDLE dropstruct)
-{
-    if (obj->call && obj->call->drop) {
-	int len = DragQueryFile(dropstruct, 0, NULL, 0);
-	if (len > MAX_PATH) {
-	    DragFinish(dropstruct);
-	    return;
-	}
-	DragQueryFile(dropstruct, 0, dfilename, MAX_PATH);
-	DragFinish(dropstruct);
-	obj->call->drop(obj, dfilename);
-    }
-}
 
 /*
  *  Shared window procedure code. The pass variable is initially zero.
@@ -547,8 +530,6 @@ static long handle_message(HWND hwnd, UINT message,
 		return (LRESULT) obj->bgbrush;
   #endif
 #endif
-        case WM_DROPFILES:
-		handle_drop(obj, (HANDLE) wParam);
 	}
 
 	/* If we got this far the event must be passed along
@@ -919,7 +900,7 @@ int doevent(void)
 		DispatchMessage(&msg);
 	}
 	deletion_traversal();
-	if ((active_windows <= 0) || (msg.message == WM_QUIT))
+	if ((active_windows == 0) || (msg.message == WM_QUIT))
 		return 0;
 	else
 		return 1;

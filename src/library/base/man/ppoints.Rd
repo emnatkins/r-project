@@ -10,7 +10,7 @@ ppoints(n, a = ifelse(n <= 10, 3/8, 1/2))
   \item{a}{the offset fraction to be used; typically in \eqn{(0,1)}.}
 }
 \description{
-  Generates the sequence of \dQuote{probability} points
+  Generates the sequence of ``probability'' points
   \code{(1:m - a)/(m + (1-a)-a)}
   where \code{m} is either \code{n}, if \code{length(n)==1}, or
   \code{length(n)}.
@@ -23,11 +23,6 @@ ppoints(n, a = ifelse(n <= 10, 3/8, 1/2))
 
  \code{ppoints()} is used in \code{qqplot} and \code{qqnorm} to generate
  the set of probabilities at which to evaluate the inverse distribution.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
 \code{\link{qqplot}}, \code{\link{qqnorm}}.

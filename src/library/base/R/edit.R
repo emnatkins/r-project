@@ -3,7 +3,7 @@ edit <- function(name,...)UseMethod("edit")
 edit.default <-
     function (name = NULL, file = "", editor = getOption("editor"), ...)
 {
-    if(is.matrix(name) && 
+    if(is.matrix(name) &&
        (mode(name) == "numeric" || mode(name) == "character"))
         edit.matrix(name=name, ...)
     else .Internal(edit(name, file, editor))
@@ -13,7 +13,7 @@ edit.data.frame <-
     function(name, factor.mode = c("character", "numeric"),
              edit.row.names =  any(row.names(name) != 1:nrow(name)), ...)
 {
-    if (.Platform$OS.type == "unix"  && .Platform$GUI != "AQUA")
+    if (.Platform$OS.type == "unix")
         if(.Platform$GUI == "unknown" || Sys.getenv("DISPLAY")=="" )
             return (edit.default(name, ...))
 
@@ -28,7 +28,7 @@ edit.data.frame <-
     {
         ## Would as.character be a better default?  BDR 2000/5/3
         if (is.character(x)) x
-        else if (is.logical(x) || (is.factor(x) && factor.mode == "character")) as.character(x)
+        else if (is.factor(x) && factor.mode == "character") as.character(x)
         else as.numeric(x)
     }
 
@@ -38,11 +38,6 @@ edit.data.frame <-
         which(sapply(name, is.factor))
     else
         numeric(0)
-
-    logicals <- if (length(name) > 0)
-    	which(sapply(name, is.logical))
-    else
-    	numeric(0)
 
     modes <- lapply(datalist, mode)
     if (edit.row.names) {
@@ -54,7 +49,7 @@ edit.data.frame <-
     maxlength <- max(lengths)
     if (edit.row.names) rn <- out[[1]]
     for (i in which(lengths != maxlength))
-         out[[i]] <- c(out[[i]], rep.int(NA, maxlength - lengths[i]))
+         out[[i]] <- c(out[[i]], rep(NA, maxlength - lengths[i]))
     if (edit.row.names) {
         out <- out[-1]
         if((ln <- length(rn)) < maxlength)
@@ -84,8 +79,6 @@ edit.data.frame <-
         }
         out[[i]] <- o
     }
-    for (i in logicals) out[[i]] <- as.logical(out[[i]])
-
     out <- as.data.frame(out) # will convert cols switched to char into factors
     if (edit.row.names) {
         if(any(duplicated(rn)))
@@ -98,21 +91,19 @@ edit.data.frame <-
 edit.matrix <-
     function(name, edit.row.names = any(rownames(name) != 1:nrow(name)), ...)
 {
-    if (.Platform$OS.type == "unix" && .Platform$GUI != "AQUA")
+    if (.Platform$OS.type == "unix")
         if(.Platform$GUI == "unknown" || Sys.getenv("DISPLAY")=="" )
             return (edit.default(name, ...))
     if(!is.matrix(name) ||
-       !(mode(name) == "numeric" || mode(name) == "character" || mode(name) == "logical")
+       !(mode(name) == "numeric" || mode(name) == "character")
        || any(dim(name) < 1))
         stop("invalid input matrix")
-    logicals <- is.logical(name)
-    if (logicals) mode(name) <- "character"
     dn <- dimnames(name)
     if(is.null(dn[[1]])) edit.row.names <- FALSE
     datalist <- split(name, col(name))
     if(!is.null(dn[[2]])) names(datalist) <- dn[[2]]
     else names(datalist) <- paste("col", 1:ncol(name), sep = "")
-    modes <- as.list(rep.int(mode(name), ncol(name)))
+    modes <- as.list(rep(mode(name), ncol(name)))
     if (edit.row.names) {
         datalist <- c(list(row.names=dn[[1]]), datalist)
         modes <- c(list(row.names="character"), modes)
@@ -122,7 +113,7 @@ edit.matrix <-
     maxlength <- max(lengths)
     if (edit.row.names) rn <- out[[1]]
     for (i in which(lengths != maxlength))
-         out[[i]] <- c(out[[i]], rep.int(NA, maxlength - lengths[i]))
+         out[[i]] <- c(out[[i]], rep(NA, maxlength - lengths[i]))
     if (edit.row.names) {
         out <- out[-1]
         if((ln <- length(rn)) < maxlength)
@@ -132,7 +123,6 @@ edit.matrix <-
     if (edit.row.names) rownames(out) <- rn
     else if(!is.null(dn[[1]]))  rownames(out) <- dn[[1]]
     if(!is.null(dn[[2]]))  colnames(out) <- dn[[2]]
-    if (logicals) mode(out) <- "logical"
     out
 }
 

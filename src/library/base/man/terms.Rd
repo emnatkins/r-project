@@ -13,10 +13,6 @@ terms(x, \dots)
   which can be used to extract \emph{terms} objects
   from various kinds of \R data objects.
 }
-\arguments{
-  \item{x}{object used to select a method to dispatch.}
-  \item{\dots}{further arguments passed to or from other methods.}
-}
 \details{
   There are methods for classes \code{"aovlist"}, and \code{"terms"}
   \code{"formula"} (see \code{\link{terms.formula}}):
@@ -27,12 +23,6 @@ terms(x, \dots)
   An object of class \code{c("terms", "formula")} which contains the
   \emph{terms} representation of a symbolic model. See
   \code{\link{terms.object}} for its structure.
-}
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical models.}
-  Chapter 2 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{terms.object}}, \code{\link{terms.formula}},

@@ -4,7 +4,7 @@
 \description{
   Compile given source files using \code{R CMD COMPILE}, and then link
   all specified object files into a shared library which can be loaded
-  into R using \code{dyn.load} or \code{library.dynam}.
+  into R using \code{dyn.load()}.
 }
 \usage{R CMD SHLIB [options] [-o libname] files}
 \arguments{
@@ -18,6 +18,6 @@
     obtaining information about usage and version of the utility.}
 }
 \seealso{
-  \code{\link{COMPILE}}, \code{\link{dyn.load}}, \code{\link{library.dynam}}
+  \code{\link{COMPILE}}, \code{\link{dyn.load}}
 }
 \keyword{utilities}

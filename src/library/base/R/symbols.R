@@ -1,8 +1,8 @@
 symbols <-
-function (x, y = NULL, circles, squares, rectangles, stars,
+function (x, y, circles, squares, rectangles, stars,
 	  thermometers, boxplots, inches = TRUE, add = FALSE,
-	  fg = 1, bg = NA, xlab = NULL, ylab = NULL, main = NULL,
-	  xlim=NULL, ylim=NULL, ...)
+	  fg = 1, bg = NA,
+	  xlab = "", ylab = "", xlim=NULL, ylim=NULL, ...)
 {
     count <- 0
     if (!missing(circles)) {
@@ -37,16 +37,11 @@ function (x, y = NULL, circles, squares, rectangles, stars,
     }
     if (count != 1)
 	stop("exactly one symbol type must be specified")
-    xy <- xy.coords(x, y, xlab = deparse(substitute(x)),
-                    ylab = deparse(substitute(y)))
-    x <- xy$x; y <- xy$y
     if (!add) {
-	if(is.null(xlab)) xlab <- xy$xlab
-	if(is.null(ylab)) ylab <- xy$ylab
 	if(is.null(xlim)) {
 	    ## Expand the range by 20% : wild guess !
 	    ## FIXME: better guess: use size of largest symbol...
-	    ##	      really would need	 (x, y, type, data, inches) ->
+	    ##        really would need  (x, y, type, data, inches) ->
 	    ##	      rather an internal symbols.limits()
 	    xlim <- range(x, na.rm = TRUE)
 	    xlim <- xlim + c(-1, 1) * .10 * diff(xlim)
@@ -55,8 +50,7 @@ function (x, y = NULL, circles, squares, rectangles, stars,
 	    ylim <- range(y, na.rm = TRUE)
 	    ylim <- ylim + c(-1, 1) * .10 * diff(ylim)
 	}
-	plot(NA, NA, type="n", xlim=xlim, ylim=ylim,
-	     xlab=xlab, ylab=ylab, main=main, ...)
+	plot(NA, NA, type="n", xlim=xlim, ylim=ylim, xlab=xlab, ylab=ylab, ...)
     }
     .Internal(symbols(x, y, type, data, inches, bg, fg, ...))
 }

@@ -3,9 +3,11 @@
 \usage{
 y ~ model
 formula(x, \dots)
-as.formula(object, env = parent.frame())
+as.formula(object, env=parent.frame())
+I(x)
 }
 \alias{~}
+\alias{I}
 \alias{formula}
 \alias{formula.default}
 \alias{formula.formula}
@@ -21,11 +23,6 @@ as.formula(object, env = parent.frame())
   attributes when \code{object} already inherits from
   \code{"formula"}. The default value of the \code{env} argument is
   used only when the formula would otherwise lack an environment.
-}
-\arguments{
-  \item{x, object}{an object}
-  \item{\dots}{further arguments passed to or from other methods.}
-  \item{env}{the environment to associate with the result.}
 }
 \details{
   The models fit by, e.g., the \code{\link{lm}} and \code{\link{glm}} functions
@@ -52,8 +49,8 @@ as.formula(object, env = parent.frame())
   nested within those on the right.  For example \code{a+b\%in\%a}
   expands to the formula \code{a+a:b}.  The \code{-} operator removes
   the specified terms, so that \code{(a+b+c)^2 - a:b} is identical to
-  \code{a + b + c + b:c + a:c}.  It can also used to remove the intercept
-  term: \code{y~x - 1} is a line through the origin.  A model with no
+  \code{a + b + c + b:c + a:c}. It can also used to remove the intercept
+  term: \code{y~x - 1} is a line through the origin. A model with no
   intercept can be also specified as \code{y~x + 0} or \code{0 + y~x}.
 
   While formulae usually involve just variable and factor
@@ -64,20 +61,16 @@ as.formula(object, env = parent.frame())
   in model formulae, there can be confusion between
   arithmetic and symbolic operator use.
 
-  To avoid this confusion, the function \code{\link{I}()}
+  To avoid this confusion, the function \code{I()}
   can be used to bracket those portions of a model
   formula where the operators are used in their
   arithmetic sense.  For example, in the formula
   \code{y ~ a + I(b+c)}, the term \code{b+c} is to be
   interpreted as the sum of \code{b} and \code{c}.
-
-  As from \R 1.8.0 variable names can be quoted by backticks \code{`like
-    this`} in formulae, although there is no guarantee that all code
-  using formulae will accept such non-syntactic names.
 }
 \section{Environments}{
-  A formula object has an associated environment, and
-  this environment (rather than the parent
+  As of version 1.1 a formula object has an associated environment, and
+  as of version 1.2 this environment (rather than the parent
   environment) is used by \code{\link{model.frame}} to evaluate variables
   that are not found in the supplied \code{data} argument.
 
@@ -87,23 +80,14 @@ as.formula(object, env = parent.frame())
   environment. Pre-existing formulas extracted with
   \code{as.formula} will only have their environment changed if
   \code{env} is explicitly given.
-}
+
+  }
 \value{
-  All the functions above produce an object of class \code{"formula"}
-  which contains a symbolic model formula.
-}
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical models.}
-  Chapter 2 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
+  All the functions above produce an object
+  of class \code{formula} which contains a symbolic model formula.
 }
 \seealso{
-  \code{\link{I}}.
-  
-  For formula manipulation: \code{\link{terms}}, and \code{\link{all.vars}};
-  for typical use: \code{\link{lm}}, \code{\link{glm}}, and
-  \code{\link{coplot}}.
+\code{\link{lm}}, \code{\link{glm}}, \code{\link{terms}}.
 }
 \examples{
 class(fo <- y ~ x1*x2) # "formula"
@@ -112,8 +96,8 @@ typeof(fo)# R internal : "language"
 terms(fo)
 
 environment(fo)
-environment(as.formula("y ~ x"))
-environment(as.formula("y ~ x",env=new.env()))
+environment(as.formula("y~x"))  
+environment(as.formula("y~x",env=new.env())) 
 
 
 ## Create a formula for a model with a large number of variables:

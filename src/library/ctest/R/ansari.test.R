@@ -1,8 +1,7 @@
-ansari.test <- function(x, ...) UseMethod("ansari.test")
-
-ansari.test.default <-
-function(x, y, alternative = c("two.sided", "less", "greater"),
-         exact = NULL, conf.int = FALSE, conf.level = 0.95, ...) 
+ansari.test <- function(x, y,
+                        alternative = c("two.sided", "less", "greater"),
+                        exact = NULL,
+                        conf.int = FALSE, conf.level = 0.95) 
 {
     alternative <- match.arg(alternative)
     if(conf.int) {
@@ -61,76 +60,114 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
                    as.integer(n),
                    PACKAGE = "ctest")$q
             }
+            # Bauer defines the CI for y/x, therefore interchange.
+            help <- x
+            x <- y
+            y <- help
+            m <- length(x)
+            n <- length(y)
             alpha <- 1 - conf.level
             x <- sort(x)
             y <- sort(y)
             ab <- function(sig) {
-                rab <- rank(c(x/sig, y))
-                sum(pmin(rab, N - rab + 1)[seq(along = x)])
+                rab <- rank(c(y/sig, x))
+                ## here follow Bauer directly
+                sum(pmin(rab, N - rab + 1)[seq(along = y)])
             }
-            ratio <- outer(x,y,"/")
-            aratio <- ratio[ratio >= 0]
-            sigma <- sort(aratio)
-
-            cci <- function(alpha) {
-              u <- absigma - qansari(alpha/2,  m, n) 
-              l <- absigma - qansari(1 - alpha/2, m, n) 
-              ## Check if the statistic exceeds both quantiles first.
-              uci <- NULL
-              lci <- NULL                    
-              if(length(u[u >= 0]) == 0 || length(l[l > 0]) == 0) {
-                  warning(paste("Samples differ in location: Cannot",
-                                "compute confidence set, returning NA"))
-                  return(c(NA, NA))
-              } 
-              if (is.null(uci)) {
-                  u[u < 0] <- NA
-                  uci <- min(sigma[which(u == min(u, na.rm=TRUE))])
-              }
-              if (is.null(lci)) {
-                  l[l <= 0] <- NA
-                  lci <- max(sigma[which(l == min(l, na.rm=TRUE))])
-              }
-              ## The process of the statistics does not need to be
-              ## monotone in sigma: check this and interchange quantiles.
-              if (uci > lci) {
-                  l <- absigma - qansari(alpha/2,  m, n)
-                  u <- absigma - qansari(1 - alpha/2, m, n)
-                  u[u < 0] <- NA
-                  uci <- min(sigma[which(u == min(u, na.rm=TRUE))])
-                  l[l <= 0] <- NA
-                  lci <- max(sigma[which(l == min(l, na.rm=TRUE))])
-               }
-               c(uci, lci)
+            xpos <- x[x > 0]
+            ypos <- y[y > 0]
+            xneg <- x[x <= 0]
+            yneg <- y[y <= 0]
+            signeg <- NULL
+            sigpos <- NULL
+            ## compute all stuff for the negative/positive values
+            ## separately 
+            if(length(xneg) > 0 && length(yneg) > 0) {
+                coefn <- function(j, i)
+                    - abs(j+i-(N+1)/2) + abs(i+j-1-(N+1)/2)
+                signeg <- outer(yneg, xneg, "/")
+                coefneg <- outer(1:length(yneg), 1:length(xneg), "coefn")
+                coefneg <- coefneg[order(signeg)]
+                signeg <- sort(signeg)
             }
-
+            if(length(xpos) > 0 && length(ypos) > 0) {
+                coefp <- function(j,i)
+                    - abs(j+i-1-(N+1)/2) + abs(i+j-(N+1)/2)
+                sigpos <- outer(ypos, xpos, "/")
+                mpos <- min(which(x > 0))
+                npos <- min(which(y > 0))
+                coefpos <- outer(npos:n, mpos:m, "coefp")
+                coefpos <- coefpos[order(sigpos)]
+                sigpos <- sort(sigpos)
+                if(!is.null(signeg)) {
+                    sigma <- c(signeg, sigpos)
+                    coefs <- c(coefneg, coefpos)
+                    coefs <- coefs[order(sigma)]
+                    sigma <- sort(sigma)
+                } else {
+                    sigma <- sigpos
+                    coefs <- coefpos[order(sigpos)]
+                    sigma <- sort(sigma)
+                }
+            }
+            if(is.null(sigpos) && !is.null(signeg)) {
+                sigma <- signeg
+                coefs <- coefneg[order(signeg)]
+                sigma <- sort(sigma)
+            } 
+            ## compute step function
             cint <- if(length(sigma) < 1) {
-                warning("Cannot compute confidence set, returning NA")
-                c(NA, NA)
+                warning("Cannot compute confidence interval")
+                c(0, 0)
             }
             else {
-                ## Compute statistics directly: computing the steps is
-                ## not faster.
-                absigma <-
-                    sapply(sigma + c(diff(sigma)/2,
-                                     sigma[length(sigma)]*1.01), ab)
+                absigma <- cumsum(c(ab(sigma[1]),
+                                    coefs[2:length(coefs)]))
                 switch(alternative, two.sided = {
-                    cci(alpha)
+                    u <- absigma - qansari(alpha/2, n, m) 
+                    l <- absigma - qansari(1 - alpha/2, n, m) 
+                    if(length(u[u >= 0]) == 0)
+                        uci <- sigma[1]
+                    else {
+                        u[u < 0] <- NA
+                        uci <- unique(sigma[which(u == min(u, na.rm=TRUE))])
+                        if (length(uci) != 1)
+                            uci <- uci[1]
+                    }
+                    if (length(l[l > 0]) == 0)
+                        lci <- sigma[length(sigma)]
+                    else {                
+                        l[l <= 0] <- NA
+                        lci <- unique(sigma[which(l == min(l, na.rm=TRUE))])
+                        if(length(lci) != 1)
+                            lci <- lci[length(lci)]
+                    }
+                    c(uci, lci)
                 }, greater= {
-                    c(cci(alpha*2)[1], Inf)
+                    u <- absigma - qansari(alpha, n, m)
+                    if(length(u[u >= 0]) == 0)
+                        uci <- sigma[1]
+                    else {
+                        u[u < 0] <- NA
+                        uci <- unique(sigma[which(u == min(u, na.rm=TRUE))])
+                        if(length(uci) != 1)
+                            uci <- uci[1]
+                    }
+                    c(uci, Inf)
                 }, less= {
-                    c(0, cci(alpha*2)[2])
+                    l <- absigma - qansari(1 - alpha, n, m)
+                    if(length(l[l > 0]) == 0)
+                        lci <- sigma[length(sigma)]
+                    else {                
+                        l[l <= 0] <- NA
+                        lci <- unique(sigma[which(l == min(l, na.rm=TRUE))])
+                        if (length(lci) != 1)
+                            lci <- lci[length(lci)]
+                    }
+                    c(0, lci)
                 })
             }
-            attr(cint, "conf.level") <- conf.level
-            u <- absigma - qansari(0.5, m, n)
-            sgr <- sigma[u <= 0]
-            if (length(sgr) == 0) sgr <- NA
-            else sgr <- max(sgr)
-            sle <- sigma[u > 0]
-            if (length(sle) == 0) sle <- NA
-            else sle <- min(sle)
-            ESTIMATE <- mean(c(sle, sgr))
+            attr(cint, "conf.level") <- conf.level	
         }
     }
     else {
@@ -166,68 +203,37 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
                        greater = p)
     
         if(conf.int && !exact) {
+            # Bauer defines the CI for y/x, therefore interchange.
+            help <- x
+            x <- y
+            y <- help
+            m <- length(x)
+            n <- length(y)
+
             alpha <- 1 - conf.level
             ab <- function(sig, zq) {
-                r <- rank(c(x / sig, y))
-                s <- sum(pmin(r, N -r + 1)[seq(along = x)])
+                r <- rank(c(y / sig, x))
+                s <- sum(pmin(r, N -r + 1)[seq(along = y)])
                 TIES <- (length(r) != length(unique(r)))
-                normalize(s, r, TIES, length(x), length(y)) - zq
+                abs(normalize(s, r, TIES, length(y), length(x)) - zq)
             }
-            ## Use uniroot here.
-            ## Compute the range of sigma first.
-            srangepos <- NULL
-            srangeneg <- NULL
-            if (any(x[x > 0]) && any(y[y > 0]))
-                srangepos <-
-                    c(min(x[x>0], na.rm=TRUE)/max(y[y>0], na.rm=TRUE), 
-                      max(x[x>0], na.rm=TRUE)/min(y[y>0], na.rm=TRUE))
-            if (any(x[x <= 0]) && any(y[y < 0]))
-                srangeneg <-
-                    c(min(x[x<=0], na.rm=TRUE)/max(y[y<0], na.rm=TRUE), 
-                      max(x[x<=0], na.rm=TRUE)/min(y[y<0], na.rm=TRUE))
-            if (any(is.infinite(c(srangepos, srangeneg)))) {
-                warning(paste("Cannot compute asymptotic confidence",
-                              "set or estimator"))
-                conf.int <- FALSE
-            } else {
-                ccia <- function(alpha) {
-                    ## Check if the statistic exceeds both quantiles
-                    ## first.
-                    statu <- ab(srange[1], zq=qnorm(alpha/2))
-                    statl <- ab(srange[2], zq=qnorm(alpha/2, lower=FALSE))
-                    if (statu > 0 || statl < 0) {
-                        warning(paste("Samples differ in location:",
-                                      "Cannot compute confidence set,",
-                                      "returning NA"))
-                        return(c(NA, NA))
-                    }
-                    u <- uniroot(ab, srange, tol=1e-4,
-                                 zq=qnorm(alpha/2))$root
-                    l <- uniroot(ab, srange, tol=1e-4,
-                                 zq=qnorm(alpha/2, lower=FALSE))$root
-                    ## The process of the statistics does not need to be
-                    ## monotone: sort is ok here.
-                    sort(c(u, l))
-                }
-                srange <- range(c(srangepos, srangeneg), na.rm=FALSE)
-                cint <- switch(alternative, two.sided = {
-                    ccia(alpha)
-                }, greater= {
-                    c(ccia(alpha*2)[1], Inf)
-                }, less= {
-                    c(0, ccia(alpha*2)[2])
-                })
-                attr(cint, "conf.level") <- conf.level
-                ## Check if the statistic exceeds both quantiles first.
-                statu <- ab(srange[1], zq=0)
-                statl <- ab(srange[2], zq=0)
-                if (statu > 0 || statl < 0) {
-                    ESTIMATE <- NA
-                    warning("Cannot compute estimate, returning NA")
-                } else
-                    ESTIMATE <- uniroot(ab, srange, tol=1e-4, zq=0)$root
-            }
+            ## optimize is not good here, use Nelder-Mead 
+            ## what should we use as initial value?
+            ## I think the null hypotheses is right here: use sigma = 1 
+            cint <- switch(alternative, two.sided = {
+                u <- optim(1, ab, zq=qnorm(alpha/2))$par
+                l <- optim(1, ab, zq=qnorm(alpha/2, lower = FALSE))$par
+                c(u, l)
+            }, greater= {
+                u <- optim(1, ab, zq=qnorm(alpha))$par
+                c(u, Inf)
+            }, less= {
+                l <- optim(1, ab, zq=qnorm(alpha, lower = FALSE))$par
+                c(0, l)
+            })
+            attr(cint, "conf.level") <- conf.level
         }
+
         if(exact && TIES) {
             warning("Cannot compute exact p-value with ties")
             if(conf.int)
@@ -244,36 +250,7 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
                  method = "Ansari-Bradley test",
                  data.name = DNAME)
     if(conf.int)
-        RVAL <- c(RVAL,
-                  list(conf.int = cint,
-                       estimate = c("ratio of scales" = ESTIMATE)))
+        RVAL$conf.int <- cint
     class(RVAL) <- "htest"
     return(RVAL)
-}
-
-ansari.test.formula <-
-function(formula, data, subset, na.action, ...)
-{
-    if(missing(formula)
-       || (length(formula) != 3)
-       || (length(attr(terms(formula[-2]), "term.labels")) != 1)
-       || (length(attr(terms(formula[-3]), "term.labels")) != 1))
-        stop("formula missing or incorrect")
-    m <- match.call(expand.dots = FALSE)
-    if(is.matrix(eval(m$data, parent.frame())))
-        m$data <- as.data.frame(data)
-    m[[1]] <- as.name("model.frame")
-    m$... <- NULL
-    mf <- eval(m, parent.frame())
-    DNAME <- paste(names(mf), collapse = " by ")
-    names(mf) <- NULL
-    response <- attr(attr(mf, "terms"), "response")
-    g <- factor(mf[[-response]])
-    if(nlevels(g) != 2)
-        stop("grouping factor must have exactly 2 levels")
-    DATA <- split(mf[[response]], g)
-    names(DATA) <- c("x", "y")
-    y <- do.call("ansari.test", c(DATA, list(...)))
-    y$data.name <- DNAME
-    y
 }

@@ -30,7 +30,8 @@
 
 /* Return a non-relocatable copy of a string */
 
-static char *SaveString(SEXP sxp, int offset, SEXP gcall)
+static SEXP gcall;
+static char *SaveString(SEXP sxp, int offset)
 {
     char *s;
     if(!isString(sxp) || length(sxp) <= offset)
@@ -44,8 +45,7 @@ static char *SaveString(SEXP sxp, int offset, SEXP gcall)
  *  ------------------------		--> devPS.c
  *  file	= output filename
  *  paper	= paper type
- *  family	= typeface = "family"
- *  encoding	= char encoding file name
+ *  face	= typeface = "family"
  *  bg		= background color
  *  fg		= foreground color
  *  width	= width in inches
@@ -56,38 +56,36 @@ static char *SaveString(SEXP sxp, int offset, SEXP gcall)
  *  pagecentre  = centre plot region on paper?
  *  printit     = `print' after closing device?
  *  command     = `print' command
- *  title       = character string
  */
 
 SEXP do_PS(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    NewDevDesc *dev = NULL;
-    GEDevDesc *dd;
+    DevDesc *dd;
     char *vmax;
     char *file, *paper, *family=NULL, *bg, *fg, *cmd;
-    char *afms[5], *encoding, *title;
+    char *afms[4];
     int i, horizontal, onefile, pagecentre, printit;
     double height, width, ps;
     SEXP fam;
 
+    gcall = call;
     vmax = vmaxget();
-    file = SaveString(CAR(args), 0, call);  args = CDR(args);
-    paper = SaveString(CAR(args), 0, call); args = CDR(args);
+    file = SaveString(CAR(args), 0);  args = CDR(args);
+    paper = SaveString(CAR(args), 0); args = CDR(args);
 
-    /* `family' can be either one string or a 5-vector of afmpaths. */
+    /* `family' can be either one string or a 4-vector of afmpaths. */
     fam = CAR(args); args = CDR(args);
     if(length(fam) == 1) 
-	family = SaveString(fam, 0, call);
-    else if(length(fam) == 5) {
+	family = SaveString(fam, 0);
+    else if(length(fam) == 4) {
 	if(!isString(fam)) errorcall(call, "invalid `family' parameter");
 	family = "User";
-	for(i = 0; i < 5; i++) afms[i] = SaveString(fam, i, call);
+	for(i = 0; i < 4; i++) afms[i] = SaveString(fam, i);
     } else 
 	errorcall(call, "invalid `family' parameter");
     
-    encoding = SaveString(CAR(args), 0, call);    args = CDR(args);
-    bg = SaveString(CAR(args), 0, call);    args = CDR(args);
-    fg = SaveString(CAR(args), 0, call);    args = CDR(args);
+    bg = SaveString(CAR(args), 0);    args = CDR(args);
+    fg = SaveString(CAR(args), 0);    args = CDR(args);
     width = asReal(CAR(args));	      args = CDR(args);
     height = asReal(CAR(args));	      args = CDR(args);
     horizontal = asLogical(CAR(args));args = CDR(args);
@@ -97,29 +95,24 @@ SEXP do_PS(SEXP call, SEXP op, SEXP args, SEXP env)
     onefile = asLogical(CAR(args));   args = CDR(args);
     pagecentre = asLogical(CAR(args));args = CDR(args);
     printit = asLogical(CAR(args));   args = CDR(args);
-    cmd = SaveString(CAR(args), 0, call); args = CDR(args);
-    title = SaveString(CAR(args), 0, call);
+    cmd = SaveString(CAR(args), 0);
 
     R_CheckDeviceAvailable();
     BEGIN_SUSPEND_INTERRUPTS {
-	if (!(dev = (NewDevDesc *) calloc(1, sizeof(NewDevDesc))))
+	if (!(dd = (DevDesc *) malloc(sizeof(DevDesc))))
 	    return 0;
 	/* Do this for early redraw attempts */
-	dev->displayList = R_NilValue;
-	/* Make sure that this is initialised before a GC can occur.
-	 * This (and displayList) get protected during GC
-	 */
-	dev->savedSnapshot = R_NilValue;
-	if(!PSDeviceDriver((DevDesc*) dev, file, paper, family, afms, encoding, bg, fg,
+	dd->displayList = R_NilValue;
+	GInit(&dd->dp);
+	if(!PSDeviceDriver(dd, file, paper, family, afms, bg, fg,
 			   width, height, (double)horizontal, ps, onefile,
-			   pagecentre, printit, cmd, title)) {
-	    free(dev);
+			   pagecentre, printit, cmd)) {
+	    free(dd);
 	    errorcall(call, "unable to start device PostScript");
 	}
 	gsetVar(install(".Device"), mkString("postscript"), R_NilValue);
-	dd = GEcreateDevDesc(dev);
-	addDevice((DevDesc*) dd);
-	GEinitDisplayList(dd);
+	addDevice(dd);
+	initDisplayList(dd);
     } END_SUSPEND_INTERRUPTS;
     vmaxset(vmax);
     return R_NilValue;
@@ -137,17 +130,17 @@ SEXP do_PS(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP do_PicTeX(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    NewDevDesc *dev;
-    GEDevDesc *dd;
+    DevDesc *dd;
     char *vmax;
     char *file, *bg, *fg;
     double height, width;
     Rboolean debug;
 
+    gcall = call;
     vmax = vmaxget();
-    file = SaveString(CAR(args), 0, call); args = CDR(args);
-    bg = SaveString(CAR(args), 0, call);   args = CDR(args);
-    fg = SaveString(CAR(args), 0, call);   args = CDR(args);
+    file = SaveString(CAR(args), 0); args = CDR(args);
+    bg = SaveString(CAR(args), 0);   args = CDR(args);
+    fg = SaveString(CAR(args), 0);   args = CDR(args);
     width = asReal(CAR(args));	     args = CDR(args);
     height = asReal(CAR(args));	     args = CDR(args);
     debug = asLogical(CAR(args));    args = CDR(args);
@@ -155,23 +148,18 @@ SEXP do_PicTeX(SEXP call, SEXP op, SEXP args, SEXP env)
 
     R_CheckDeviceAvailable();
     BEGIN_SUSPEND_INTERRUPTS {
-	if (!(dev = (NewDevDesc *) calloc(1,sizeof(NewDevDesc))))
+	if (!(dd = (DevDesc *) malloc(sizeof(DevDesc))))
 	    return 0;
 	/* Do this for early redraw attempts */
-	dev->displayList = R_NilValue;
-	/* Make sure that this is initialised before a GC can occur.
-	 * This (and displayList) get protected during GC
-	 */
-	dev->savedSnapshot = R_NilValue;
-	if(!PicTeXDeviceDriver((DevDesc*) dev, file, bg, fg, 
-			       width, height, debug)) {
-	    free(dev);
+	dd->displayList = R_NilValue;
+	GInit(&dd->dp);
+	if(!PicTeXDeviceDriver(dd, file, bg, fg, width, height, debug)) {
+	    free(dd);
 	    errorcall(call, "unable to start device PicTeX");
 	}
 	gsetVar(install(".Device"), mkString("pictex"), R_NilValue);
-	dd = GEcreateDevDesc(dev);
-	addDevice((DevDesc*) dd);
-	GEinitDisplayList(dd);
+	addDevice(dd);
+	initDisplayList(dd);
     } END_SUSPEND_INTERRUPTS;
     vmaxset(vmax);
     return R_NilValue;
@@ -183,7 +171,7 @@ SEXP do_PicTeX(SEXP call, SEXP op, SEXP args, SEXP env)
  *  ------------------------		--> devPS.c
  *  file	= output filename
  *  paper	= paper type
- *  family	= typeface = "family"
+ *  face	= typeface = "family"
  *  bg		= background color
  *  fg		= foreground color
  *  width	= width in inches
@@ -196,19 +184,18 @@ SEXP do_PicTeX(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP do_XFig(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    NewDevDesc *dev = NULL;
-    GEDevDesc *dd;
+    DevDesc *dd;
     char *vmax;
-    char *file, *paper, *family, *bg, *fg;
+    char *file, *paper, *face, *bg, *fg;
     int horizontal, onefile, pagecentre;
     double height, width, ps;
-
+    gcall = call;
     vmax = vmaxget();
-    file = SaveString(CAR(args), 0, call);  args = CDR(args);
-    paper = SaveString(CAR(args), 0, call); args = CDR(args);
-    family = SaveString(CAR(args), 0, call);  args = CDR(args);
-    bg = SaveString(CAR(args), 0, call);    args = CDR(args);
-    fg = SaveString(CAR(args), 0, call);    args = CDR(args);
+    file = SaveString(CAR(args), 0);  args = CDR(args);
+    paper = SaveString(CAR(args), 0); args = CDR(args);
+    face = SaveString(CAR(args), 0);  args = CDR(args);
+    bg = SaveString(CAR(args), 0);    args = CDR(args);
+    fg = SaveString(CAR(args), 0);    args = CDR(args);
     width = asReal(CAR(args));	      args = CDR(args);
     height = asReal(CAR(args));	      args = CDR(args);
     horizontal = asLogical(CAR(args));args = CDR(args);
@@ -220,85 +207,19 @@ SEXP do_XFig(SEXP call, SEXP op, SEXP args, SEXP env)
 
     R_CheckDeviceAvailable();
     BEGIN_SUSPEND_INTERRUPTS {
-	if (!(dev = (NewDevDesc *) calloc(1, sizeof(NewDevDesc))))
+	if (!(dd = (DevDesc *) malloc(sizeof(DevDesc))))
 	    return 0;
 	/* Do this for early redraw attempts */
-	dev->displayList = R_NilValue;
-	/* Make sure that this is initialised before a GC can occur.
-	 * This (and displayList) get protected during GC
-	 */
-	dev->savedSnapshot = R_NilValue;
-	if(!XFigDeviceDriver((DevDesc*) dev, file, paper, family, bg, fg, width, height,
+	dd->displayList = R_NilValue;
+	GInit(&dd->dp);
+	if(!XFigDeviceDriver(dd, file, paper, face, bg, fg, width, height,
 			     (double)horizontal, ps, onefile, pagecentre)) {
-	    free(dev);
+	    free(dd);
 	    errorcall(call, "unable to start device xfig");
 	}
 	gsetVar(install(".Device"), mkString("xfig"), R_NilValue);
-	dd = GEcreateDevDesc(dev);
-	addDevice((DevDesc*) dd);
-	GEinitDisplayList(dd);
-    } END_SUSPEND_INTERRUPTS;
-    vmaxset(vmax);
-    return R_NilValue;
-}
-
-
-/*  PDF Device Driver Parameters:
- *  ------------------------		--> devPS.c
- *  file	= output filename
- *  family	= typeface = "family"
- *  encoding	= char encoding file name
- *  bg		= background color
- *  fg		= foreground color
- *  width	= width in inches
- *  height	= height in inches
- *  ps		= pointsize
- *  onefile     = {TRUE: normal; FALSE: single page per file}
- *  title
- */
-
-SEXP do_PDF(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    NewDevDesc *dev = NULL;
-    GEDevDesc *dd;
-    char *vmax;
-    char *file, *encoding, *family, *bg, *fg, *title;
-    double height, width, ps;
-    int onefile;
-
-
-    vmax = vmaxget();
-    file = SaveString(CAR(args), 0, call);  args = CDR(args);
-    family = SaveString(CAR(args), 0, call);  args = CDR(args);
-    encoding = SaveString(CAR(args), 0, call);  args = CDR(args);
-    bg = SaveString(CAR(args), 0, call);    args = CDR(args);
-    fg = SaveString(CAR(args), 0, call);    args = CDR(args);
-    width = asReal(CAR(args));	      args = CDR(args);
-    height = asReal(CAR(args));	      args = CDR(args);
-    ps = asReal(CAR(args));           args = CDR(args);
-    onefile = asLogical(CAR(args)); args = CDR(args);
-    title = SaveString(CAR(args), 0, call);
-
-
-    R_CheckDeviceAvailable();
-    BEGIN_SUSPEND_INTERRUPTS {
-	if (!(dev = (NewDevDesc *) calloc(1, sizeof(NewDevDesc))))
-	    return 0;
-	/* Do this for early redraw attempts */
-	dev->displayList = R_NilValue;
-	/* Make sure that this is initialised before a GC can occur.
-	 * This (and displayList) get protected during GC
-	 */
-	dev->savedSnapshot = R_NilValue;
-	if(!PDFDeviceDriver((DevDesc*) dev, file, family, encoding, bg, fg, 
-			    width, height, ps, onefile, title)) {
-	    free(dev);
-	    errorcall(call, "unable to start device pdf");
-	}
-	gsetVar(install(".Device"), mkString("pdf"), R_NilValue);
-	dd = GEcreateDevDesc(dev);
-	addDevice((DevDesc*) dd);
-	GEinitDisplayList(dd);
+	addDevice(dd);
+	initDisplayList(dd);
     } END_SUSPEND_INTERRUPTS;
     vmaxset(vmax);
     return R_NilValue;

@@ -1,4 +1,4 @@
-% $Id: getInitial.Rd,v 1.8 2003/06/12 11:51:31 ripley Exp $
+% $Id: getInitial.Rd,v 1.4.4.2 2001/03/24 00:08:06 bates Exp $
 \name{getInitial}
 \title{Get Initial Parameter Estimates}
 \alias{getInitial}
@@ -6,7 +6,7 @@
 \alias{getInitial.formula}
 \alias{getInitial.selfStart}
 \usage{
-getInitial(object, data, \dots)
+getInitial(object, data, ...)
 }
 \arguments{
   \item{object}{a formula or a \code{selfStart} model that defines a

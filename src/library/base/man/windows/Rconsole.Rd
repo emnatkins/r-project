@@ -8,7 +8,7 @@
   \code{windows}, \code{win.graph}, \code{win.metafile} and \code{win.print}.
 }
 \value{
-  Each of the files contains details in its comments of how to set the
+  Each of the files contains details in comments of how to set the
   values.
 
   At the time of writing \file{Rdevga} configured the mapping of font
@@ -20,20 +20,16 @@
   The file \file{Rconsole} also configures the internal pager.  This
   shares the font and colours of the console, but can be sized
   separately.
-
-  \file{Rconsole} can also set the initial positions of the console and
-  the graphics device, as well as the size and position of the MDI
-  workspace in MDI mode.
 }
 \details{
-  There are system copies of these files in \file{R\_HOME\\etc}.  Users
+  There are system copies of these files in \file{R\_HOME\\etc}. Users
   can have personal copies of the files: these are looked for in the
-  location given by the environment variable \env{R\_USER}. The system
+  location given by the environment variable \code{R_USER}. The system
   files are read only if a corresponding personal file is not found.
 
-  If the environment variable \env{R\_USER} is not set, the \R system
-  sets it to \env{HOME} if that is set (stripping any trailing slash),
-  otherwise to \code{{HOMEDRIVE}{HOMEPATH}} if \code{HOMEDRIVE} is set
+  If the environment variable \code{R_USER} is not set, the \R system
+  sets it to \code{HOME} if that is set (stripping any trailing
+  slash), otherwise to \code{HOMEDIR:HOMEPATH} is \code{HOMEDIR} is set
   otherwise to the working directory.
 }
 \note{

@@ -2,8 +2,8 @@
 \alias{spec.ar}
 \title{Estimate Spectral Density of a Time Series from AR Fit}
 \usage{
-spec.ar(x, n.freq, order = NULL, plot = TRUE, na.action = na.fail,
-        method = "yule-walker", \dots)
+spec.ar(x, n.freq, order = NULL, plot = TRUE, na.action,
+        method = "yule-walker", ...)
 }
 \arguments{
   \item{x}{A univariate (not yet:or multivariate) time series or the
@@ -12,7 +12,7 @@ spec.ar(x, n.freq, order = NULL, plot = TRUE, na.action = na.fail,
   \item{order}{The order of the AR model to be fitted.  If omitted,
     the order is chosen by AIC.}
   \item{plot}{Plot the periodogram?}
-  \item{na.action}{\code{NA} action function.}
+  \item{na.action}{NA action function.}
   \item{method}{\code{method} for \code{ar} fit.}
   \item{\dots}{Graphical arguments passed to \code{\link{plot.spec}}.}
 }
@@ -28,14 +28,16 @@ spec.ar(x, n.freq, order = NULL, plot = TRUE, na.action = na.fail,
   Thompson, D.J. (1990) Time series analysis of Holocene climate data.
   \emph{Phil. Trans. Roy. Soc. A} \bold{330}, 601--616.
 
-  Venables, W.N. and Ripley, B.D. (2002) \emph{Modern Applied
-    Statistics with S.} Fourth edition. Springer. (Especially
-  page 402.)
+  Venables, W.N. and Ripley, B.D. (1997) \emph{Modern Applied
+    Statistics with S-PLUS.} Second edition. Springer. (Especially
+  page 448.)
 }
 \section{Warning}{
   Some authors, for example Thomson (1990), warn strongly
   that AR spectra can be misleading.
 }
+
+\author{B.D. Ripley}
 
 \seealso{\code{\link{ar}}, \code{\link{spectrum}}.}
 

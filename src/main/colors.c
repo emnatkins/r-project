@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995-2001  Robert Gentleman, Ross Ihaka and the
- *			     R Development Core Team
+ *  Copyright (C) 1995-2000  Robert Gentleman, Ross Ihaka and the
+ *                           R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,13 +38,6 @@ unsigned int ScaleColor(double x)
 	error("color intensity %g, not in [0,1]",x);
     return (unsigned int)(255*x + 0.5);
 }
-unsigned int CheckColor(int x)
-{
-    if (x == NA_INTEGER || x < 0 || x > 255)
-	error("color intensity %d, not in 0:255", x);
-    return (unsigned int)x;
-}
-
 
 static void setpalette(char **palette)
 {
@@ -57,7 +50,7 @@ static void setpalette(char **palette)
 SEXP do_palette(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP val, ans;
-    unsigned int color[COLOR_TABLE_SIZE];
+    unsigned int ncols[COLOR_TABLE_SIZE];
     int i, n;
     checkArity(op,args);
     /* Record the current palette */
@@ -75,9 +68,9 @@ SEXP do_palette(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if (n > COLOR_TABLE_SIZE)
 	     errorcall(call, "maximum number of colors exceeded");
 	for (i = 0; i < n; i++)
-	    color[i] = char2col(CHAR(STRING_ELT(val, i)));
+	    ncols[i] = char2col(CHAR(STRING_ELT(val, i)));
 	for (i = 0; i < n; i++)
-	    R_ColorTable[i] = color[i];
+	    R_ColorTable[i] = ncols[i];
 	R_ColorTableSize = n;
     }
     UNPROTECT(1);
@@ -105,7 +98,7 @@ SEXP do_hsv(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP c, h, s, v, gm;
     double hh, ss, vv, gg, r, g, b;
-    int i, max, nh, ns, nv, ng;
+    int i, min, max, nh, ns, nv, ng;
 
     checkArity(op, args);
 
@@ -118,17 +111,18 @@ SEXP do_hsv(SEXP call, SEXP op, SEXP args, SEXP env)
     ns = LENGTH(s);
     nv = LENGTH(v);
     ng = LENGTH(gm);
-    if (nh <= 0 || ns <= 0 || nv <= 0 || ng <= 0) {
-	UNPROTECT(4);
-	return(allocVector(STRSXP, 0));
-    }
     max = nh;
     if (max < ns) max = ns;
     if (max < nv) max = nv;
     if (max < ng) max = ng;
-    PROTECT(c = allocVector(STRSXP, max));
-    if(max == 0) return(c);
+    min = nh;
+    if (min > ns) min = ns;
+    if (min > nv) min = nv;
+    if (min > ng) min = ng;
+    if (min <= 0)
+	errorcall(call, "invalid argument length");
 
+    PROTECT(c = allocVector(STRSXP, max));
     for (i = 0; i < max; i++) {
 	hh = REAL(h)[i % nh];
 	ss = REAL(s)[i % ns];
@@ -136,7 +130,7 @@ SEXP do_hsv(SEXP call, SEXP op, SEXP args, SEXP env)
 	gg = REAL(gm)[i % ng];
 	if (hh < 0 || hh > 1 || ss < 0 || ss > 1 || vv < 0 || vv > 1)
 	    errorcall(call, "invalid HSV color");
-	hsv2rgb(hh, ss, vv, &r, &g, &b);
+	hsv2rgb(&hh, &ss, &vv, &r, &g, &b);
 	r = pow(r, gg);
 	g = pow(g, gg);
 	b = pow(b, gg);
@@ -151,59 +145,34 @@ SEXP do_hsv(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP do_rgb(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP c, r, g, b, nam;
-    int OP, i, l_max, nr, ng, nb;
-    Rboolean max_1 = FALSE;
-    double mV = 0.0; /* -Wall */
+    SEXP c, r, g, b, n;
+    int i, min, max, nr, ng, nb;
+    unsigned int ri, gi, bi;
 
     checkArity(op, args);
-    OP = PRIMVAL(op);
-    if(OP) {/* op == 1:  rgb256() :*/
-	PROTECT(r = coerceVector(CAR(args), INTSXP)); args = CDR(args);
-	PROTECT(g = coerceVector(CAR(args), INTSXP)); args = CDR(args);
-	PROTECT(b = coerceVector(CAR(args), INTSXP)); args = CDR(args);
-    }
-    else {
-	PROTECT(r = coerceVector(CAR(args), REALSXP)); args = CDR(args);
-	PROTECT(g = coerceVector(CAR(args), REALSXP)); args = CDR(args);
-	PROTECT(b = coerceVector(CAR(args), REALSXP)); args = CDR(args);
-	mV = asReal(CAR(args));			       args = CDR(args);
-	max_1 = (mV == 1.);
-    }
+
+    PROTECT(r = coerceVector(CAR(args), REALSXP)); args = CDR(args);
+    PROTECT(g = coerceVector(CAR(args), REALSXP)); args = CDR(args);
+    PROTECT(b = coerceVector(CAR(args), REALSXP)); args = CDR(args);
+    PROTECT(n = coerceVector(CAR(args), STRSXP)); args = CDR(args);
 
     nr = LENGTH(r); ng = LENGTH(g); nb = LENGTH(b);
-    if (nr <= 0 || ng <= 0 || nb <= 0) {
-	UNPROTECT(3);
-	return(allocVector(STRSXP, 0));
-    }
-    l_max = nr; if (l_max < ng) l_max = ng; if (l_max < nb) l_max = nb;
+    max = nr; if (max < ng) max = ng; if (max < nb) max = nb;
+    min = nr; if (min > ng) min = ng; if (min > nb) min = nb;
+    if (min <= 0) errorcall(call, "invalid argument length");
 
-    PROTECT(nam = coerceVector(CAR(args), STRSXP)); args = CDR(args);
-    if (length(nam) != 0 && length(nam) != l_max)
+    if (length(n) != 0 && length(n) != max)
 	errorcall(call, "invalid names vector");
-    PROTECT(c = allocVector(STRSXP, l_max));
 
-#define _R_set_c_RGB(_R,_G,_B)				\
-    for (i = 0; i < l_max; i++)				\
-	SET_STRING_ELT(c, i, mkChar(RGB2rgb(_R,_G,_B)))
-
-    if(OP) { /* OP == 1:  rgb256() :*/
-	_R_set_c_RGB(CheckColor(INTEGER(r)[i%nr]),
-		     CheckColor(INTEGER(g)[i%ng]),
-		     CheckColor(INTEGER(b)[i%nb]));
+    PROTECT(c = allocVector(STRSXP, max));
+    for (i = 0; i < max; i++) {
+	ri = ScaleColor(REAL(r)[i%nr]);
+	gi = ScaleColor(REAL(g)[i%ng]);
+	bi = ScaleColor(REAL(b)[i%nb]);
+	SET_STRING_ELT(c, i, mkChar(RGB2rgb(ri, gi, bi)));
     }
-    else if(max_1) {
-	_R_set_c_RGB(ScaleColor(REAL(r)[i%nr]),
-		     ScaleColor(REAL(g)[i%ng]),
-		     ScaleColor(REAL(b)[i%nb]));
-    }
-    else { /* maxColorVal not in {1, 255} */
-	_R_set_c_RGB(ScaleColor(REAL(r)[i%nr] / mV),
-		     ScaleColor(REAL(g)[i%ng] / mV),
-		     ScaleColor(REAL(b)[i%nb] / mV));
-    }
-    if (length(nam) != 0)
-	setAttrib(c, R_NamesSymbol, nam);
+    if (length(n) != 0)
+	setAttrib(c, R_NamesSymbol, n);
     UNPROTECT(5);
     return c;
 }
@@ -230,35 +199,3 @@ SEXP do_gray(SEXP call, SEXP op, SEXP args, SEXP env)
     return ans;
 }
 
-SEXP do_col2RGB(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-/* colorname, "#rrggbb" or "col.number" to (r,g,b) conversion */
-    SEXP colors, ans, names, dmns;
-    unsigned int col;
-    int n, i, i3;
-
-    checkArity(op, args);
-
-    PROTECT(colors = coerceVector(CAR(args),STRSXP));
-    n = LENGTH(colors);
-    PROTECT(ans = allocMatrix(INTSXP, 3, n));
-    PROTECT(dmns = allocVector(VECSXP, 2));
-
-    PROTECT(names = allocVector(STRSXP, 3));
-    SET_STRING_ELT(names, 0, mkChar("red"));
-    SET_STRING_ELT(names, 1, mkChar("green"));
-    SET_STRING_ELT(names, 2, mkChar("blue"));
-    SET_VECTOR_ELT(dmns, 0, names);
-    UNPROTECT(1);/*names*/
-    if ((names = getAttrib(colors, R_NamesSymbol)) != R_NilValue)
-	SET_VECTOR_ELT(dmns, 1, names);
-    setAttrib(ans, R_DimNamesSymbol, dmns);
-    for(i = i3 = 0; i < n; i++, i3 += 3) {
-	col = str2col(CHAR(STRING_ELT(colors, i)));
-	INTEGER(ans)[i3 +0] = R_RED(col);
-	INTEGER(ans)[i3 +1] = R_GREEN(col);
-	INTEGER(ans)[i3 +2] = R_BLUE(col);
-    }
-    UNPROTECT(3);
-    return ans;
-}

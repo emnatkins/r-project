@@ -2,12 +2,12 @@
 \title{Add Arrows to a Plot}
 \usage{
 arrows(x0, y0, x1, y1, length = 0.25, angle = 30, code = 2,
-       col = par("fg"), lty = NULL, lwd = par("lwd"), xpd = NULL)
+       col = par("fg"), lty = NULL, lwd = par("lwd"), xpd = FALSE)
 }
 \alias{arrows}
 \arguments{
-  \item{x0, y0}{coordinates of points \bold{from} which to draw.}
-  \item{x1, y1}{coordinates of points \bold{to} which to draw.}
+  \item{x0,y0}{coordinates of points \bold{from} which to draw.}
+  \item{x1,y1}{coordinates of points \bold{to} which to draw.}
   \item{length}{length of the edges of the arrow head (in inches).}
   \item{angle}{angle from the shaft of the arrow to the edge of the
     arrow head.}
@@ -25,8 +25,7 @@ arrows(x0, y0, x1, y1, length = 0.25, angle = 30, code = 2,
 
   If \code{code=2} an arrowhead is drawn at \code{(x0[i],y0[i])} and if
   \code{code=1} an arrowhead is drawn at \code{(x1[i],y1[i])}.  If
-  \code{code=3} a head is drawn at both ends of the arrow.  Unless
-  \code{length = 0}, when no head is drawn.
+  \code{code=3} a head is drawn at both ends of the arrow.
 
   The graphical parameters \code{col} and \code{lty} can be used
   to specify a color and line texture for the line segments which
@@ -36,11 +35,6 @@ arrows(x0, y0, x1, y1, length = 0.25, angle = 30, code = 2,
   the direction of the arrowheads.  To allow for rounding error,
   arrowheads are omitted (with a warning) on any arrow of length less
   than 1/1000 inch.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{segments}} to draw segments.

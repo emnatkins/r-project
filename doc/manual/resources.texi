@@ -103,71 +103,10 @@ archive is available via @uref{http://www.ens.gu.edu.au/robertk/R/}.
 The Comprehensive R Archive Network (@acronym{CRAN}) is a collection of
 sites which carry identical material, consisting of the R
 distribution(s), the contributed extensions, documentation for R, and
-binaries. It is currently mirrored daily at
+binaries.
 
-@table @asis
-@item @uref{http://cran.au.r-project.org/}
-PlanetMirror,  Australia 
-@item @uref{http://mirror.aarnet.edu.au/pub/CRAN/}
-AARNet (accessible only from Australia and New Zealand)
-
-@item @uref{http://cran.at.r-project.org/}
-TU Wien, Austria
-
-@item @uref{ http://cran.br.r-project.org}
-Universidade Federal do Paraná, Brasil
-@item @uref{http://www.termix.ufv.br/CRAN/}
-Federal University of Vicosa, Brasil
-@item @uref{http://lmq.esalq.usp.br/CRAN/}
-University of Sao Paulo, Piracicaba, Brasil
-
-@item @uref{ http://probability.ca/cran/}
-University of Toronto, Canada
-
-@item @uref{http://cran.dk.r-project.org/}
-SunSITE, Denmark
-
-@item @uref{http://cran.hu.r-project.org/}
-Semmelweis University, Hungary 
-
-@item @uref{ftp://ftp.u-aizu.ac.jp/pub/lang/R/CRAN/}
-University of Aizu, Japan
-
-@item @uref{http://cran.za.r-project.org/}
-Rhodes University, South Africa
-
-@item @uref{http://cran.es.r-project.org/}
-Spanish National Research Network, Madrid, Spain
-
-@item @uref{http://cran.ch.r-project.org/}
-ETH Zurich, Switzerland
-
-@item @uref{http://cran.uk.r-project.org/}
-University of Bristol, UK
-
-@item @uref{http://cran.us.r-project.org/}
-University of Wisconsin, Madison, WI, USA
-@item @uref{http://cran.stat.ucla.edu/}
-University of California, Los Angeles, CA, USA
-@item @uref{http://www.bioconductor.org/CRAN/}
-Dana Farber Cancer Institute, Boston, MA, USA
-@item @uref{http://cran.get-software.com}
-Get-Software.com, Augusta, ME, USA
-@item @uref{http://www.ibiblio.org/pub/languages/R/CRAN/}
-University of North Carolina, Chapel Hill, NC, USA
-@item @uref{http://lib.stat.cmu.edu/R/CRAN/}
-Statlib, Carnegie Mellon University, PA, USA
-@item @uref{http://cran.mirrors.pair.com/}
-Pair Networks, PA, USA
-@item @uref{http://www.binarycode.org/cran}
-BinaryCode.org, Austin, TX, USA
-@item @uref{ http://mirrors.mix5.com/CRAN/}
-Mix5.com, Houston, TX, USA
-@end table
-
-Many of these sites can also be accessed using FTP.  In the interests of
-preserving international bandwidth please use a site near you if
-possible.
+@acronym{CRAN} also contains a @emph{daily} snapshots of the latest R
+sources.
 
 The @acronym{CRAN} master site at TU Wien, Austria, can be found at the
 @acronym{URL}s
@@ -181,6 +120,40 @@ The @acronym{CRAN} master site at TU Wien, Austria, can be found at the
 
 and is also available for anonymous rsync at
 @samp{cran.r-project.org::CRAN}.
+
+It is currently mirrored daily at
+
+@quotation
+@multitable @columnfractions .55 .40
+@item @uref{http://cran.at.r-project.org/}
+@tab TU Wien, Austria
+@item @uref{http://cran.ch.r-project.org/}
+@tab ETH Z@"urich, Switzerland
+@item @uref{http://cran.dk.r-project.org/}
+@tab SunSITE, Denmark
+@item @uref{http://cran.hu.r-project.org/}
+@tab Semmelweis University, Hungary
+@item @uref{http://cran.uk.r-project.org/}
+@tab University of Bristol, UK
+@item @uref{http://cran.us.r-project.org/}
+@tab University of Wisconsin, USA
+@item @uref{http://mirror.aarnet.edu.au/CRAN/}
+@tab University of Queensland, Australia
+@item @uref{ftp://ftp.u-aizu.ac.jp/pub/lang/R/CRAN/}
+@ifinfo
+@tab @item
+@end ifinfo
+@tab University of Aizu, Japan
+@item @uref{ftp://dola.snu.ac.kr/pub/R/CRAN/}
+@tab Seoul, South Korea
+@item @uref{http://lib.stat.cmu.edu/R/CRAN/}
+@tab Statlib, Carnegie Mellon University, USA
+@end multitable
+@end quotation
+
+Many of these sites can also be accessed using FTP.  In the interests of
+preserving international bandwidth please use a site near you if
+possible.
 
 @node Bug-tracking system,  , Archives, Top
 @chapter Bug-tracking system

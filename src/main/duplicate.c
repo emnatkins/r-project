@@ -79,10 +79,6 @@ SEXP duplicate(SEXP s)
     case SPECIALSXP:
     case BUILTINSXP:
     case EXTPTRSXP:
-#ifdef BYTECODE
-    case BCODESXP:
-#endif
-    case WEAKREFSXP:
 	return s;
     case CLOSXP:
 	PROTECT(s);
@@ -149,7 +145,14 @@ SEXP duplicate(SEXP s)
 	   the elements in s.  LT */
 	DUPLICATE_ATOMIC_VECTOR(SEXP, STRING_PTR, t, s);
 	break;
-    case PROMSXP:
+    case PROMSXP: /* duplication requires that we evaluate the promise */
+#ifdef OLD
+	if (PRVALUE(s) == R_UnboundValue) {
+	    t = eval(PREXPR(s), PRENV(s));
+	    PRVALUE(s) = t;
+	}
+	t = duplicate(PRVALUE(s));
+#endif
 	return s;
 	break;
     default:
@@ -188,10 +191,6 @@ void copyVector(SEXP s, SEXP t)
     case CPLXSXP:
 	for (i = 0; i < ns; i++)
 	    COMPLEX(s)[i] = COMPLEX(t)[i % nt];
-	break;
-    case VECSXP:
-	for (i = 0; i < ns; i++)
-	    SET_VECTOR_ELT(s, i, VECTOR_ELT(t, i % nt));
 	break;
     default:
 	UNIMPLEMENTED("copyVector");
@@ -266,11 +265,6 @@ void copyMatrix(SEXP s, SEXP t, Rboolean byrow)
 	    for (i = 0; i < nr; i++)
 		for (j = 0; j < nc; j++)
 		    COMPLEX(s)[i + j * nr] = COMPLEX(t)[k++ % nt];
-	    break;
-	case VECSXP:
-	    for (i = 0; i < nr; i++)
-		for (j = 0; j < nc; j++)
-		    SET_VECTOR_ELT(s, i + j * nr, VECTOR_ELT(t, k++ % nt));
 	    break;
 	default:
 	    UNIMPLEMENTED("copyMatrix");

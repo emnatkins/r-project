@@ -2,7 +2,7 @@
 \title{NA Action}
 \usage{
 na.action(object, \dots)
-%na.action.default(object, \dots)
+na.action.default(object, \dots)
 }
 \alias{na.action}
 \alias{na.action.default}
@@ -15,13 +15,8 @@ na.action(object, \dots)
   default method.
 }
 \value{
-  The \dQuote{NA action} which should be applied to \code{object} whenever
+  The ``NA action'' which should be applied to \code{object} whenever
   \code{\link{NA}}s are not desired.
-}
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical Models in S.}
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{options}("na.action")}, \code{\link{na.omit}},

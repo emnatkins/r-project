@@ -1,21 +1,22 @@
 \name{backSpline}
-\alias{backSpline}
-%\alias{backSpline.nbSpline}
-%\alias{backSpline.npolySpline}
 \title{Monotone Inverse Spline}
-\description{
-  Create a monotone inverse of a monotone natural spline.
-}
 \usage{
 backSpline(object)
 }
+\alias{backSpline}
+\alias{backSpline.nbSpline}
+\alias{backSpline.npolySpline}
 \arguments{
-  \item{object}{an object that inherits from class \code{nbSpline} or
+  \item{object}{
+    An object that inherits from class \code{nbSpline} or
     \code{npolySpline}.  That is, the object must represent a natural
     interpolation spline but it can be either in the B-spline
-    representation or the piecewise polynomial one.  The spline is
-    checked to see if it represents a monotone function.
+    representation or the piecewise polynomial representation. 
+    The spline is checked to see if represents a monotone function.
   }
+}
+\description{
+  Create a monotone inverse of a monotone natural spline.
 }
 \value{
   An object of class \code{polySpline} that contains the piecewise

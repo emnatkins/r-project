@@ -1,23 +1,12 @@
 \name{ability.cov}
-\docType{data}
 \alias{ability.cov}
+\non_function{}
 \title{Ability and Intelligence Tests}
 \description{
   Six tests were given to 112 individuals. The covariance matrix is
   given in this object.
 }
 \details{
-  The tests are described as
-  \describe{
-    \item{general:}{a non-verbal measure of general intelligence using
-      Cattell's culture-fair test.}
-    \item{picture:}{a picture-completion test}
-    \item{blocks:}{block design}
-    \item{maze:}{mazes}
-    \item{reading:}{reading comprehension}
-    \item{vocab:}{vocabulary}
-  }
-  
   Bartholomew gives both covariance and correlation matrices,
   but these are inconsistent.  Neither are in the original paper.
 }
@@ -25,9 +14,6 @@
 \source{
   Barthlomew, D. J. (1987) \emph{Latent Variable Analysis and Factor
     Analysis.} Griffin.  
-
-  Barthlomew, D. J.  and Knott, M. (1990) \emph{Latent Variable Analysis
-    and Factor Analysis.} Second Edition, Arnold.  
 }
 \references{
   Smith, G. A. and Stanley G. (1983)

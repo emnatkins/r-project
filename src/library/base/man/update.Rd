@@ -2,8 +2,7 @@
 \title{Update and Re-fit a Model Call}
 \usage{
 update(object, \dots)
-
-\method{update}{default}(object, formula., \dots, evaluate = TRUE)
+update.default(object, formula., \dots, evaluate = TRUE)
 }
 \alias{update}
 \alias{update.default}
@@ -26,15 +25,9 @@ been corrected.
 \value{
   If \code{evaluate = TRUE} the fitted object, otherwise the updated call.
 }
-\seealso{
-  \code{\link{update.formula}}
-}
-\references{
-  Chambers, J. M. (1992)
-  \emph{Linear models.}
-  Chapter 4 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
-}
+\author{B.D. Ripley}
+\seealso{\code{\link{update.formula}}}
+
 \examples{
 oldcon <- options(contrasts = c("contr.treatment", "contr.poly"))
 ## Annette Dobson (1990) "An Introduction to Generalized Linear Models".

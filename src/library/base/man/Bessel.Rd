@@ -26,7 +26,8 @@ gammaCody(x)
 \arguments{
   \item{x}{numeric, \eqn{\ge 0}{>= 0}.}
 
-  \item{nu}{numeric; The \emph{order} (maybe fractional!) of the
+  \item{nu}{numeric; \eqn{\ge 0}{>= 0} unless in \code{besselK} which
+    is symmetric in \code{nu}.  The \emph{order} of the
     corresponding Bessel function.}
 
   \item{expon.scaled}{logical; if \code{TRUE}, the results are
@@ -48,10 +49,6 @@ gammaCody(x)
   \code{gammaCody} may be somewhat faster but less precise and/or robust
   than \R's standard \code{\link{gamma}}.  It is here for experimental
   purpose mainly, and \emph{may be defunct very soon}.
-
-  For \eqn{\nu < 0}{nu < 0}, formulae 9.1.2 and 9.6.2 from the
-  reference below are applied (which is probably suboptimal), unless for
-  \code{besselK} which is symmetric in \code{nu}.  
 }
 \references{
   Abramowitz, M. and Stegun, I. A. (1972)
@@ -82,18 +79,6 @@ plot(x,x, ylim = yl, ylab="",type='n', main = "Bessel Functions  J_nu(x)")
 for(nu in nus) lines(x,besselJ(x,nu=nu), col = nu+2)
 legend(32,-.18, leg=paste("nu=",nus), col = nus+2, lwd=1)
 
-## Negative nu's :
-xx <- 2:7
-nu <- seq(-10,9, len = 2001)
-op <- par(lab = c(16,5,7))
-matplot(nu, t(outer(xx,nu, besselI)), type = 'l', ylim = c(-50,200),
-        main = expression(paste("Bessel ",I[nu](x)," for fixed ", x,
-                                ",  as ",f(nu))),
-        xlab = expression(nu))
-abline(v=0, col = "light gray", lty = 3)
-legend(5,200, leg = paste("x=",xx), col=seq(xx), lty=seq(xx))
-par(op)
-
 x0 <- 2^(-20:10)
 plot(x0,x0^-8, log='xy', ylab="",type='n',
      main = "Bessel Functions  J_nu(x)  near 0\n log - log  scale")
@@ -111,10 +96,38 @@ plot(x,x, ylim=c(1e-18,1e11),log="y", ylab="",type='n',
 for(nu in nus) lines(x,besselK(x,nu=nu), col = nu+2)
 legend(0,1e-5, leg=paste("nu=",nus), col = nus+2, lwd=1)
 
+## Check the Scaling :
+for(nu in nus)
+   print(all(abs(1- besselK(x,nu)*exp( x) / besselK(x,nu,expo=TRUE)) < 2e-15))
+for(nu in nus)
+   print(all(abs(1- besselI(x,nu)*exp(-x) / besselI(x,nu,expo=TRUE)) < 1e-15))
+
 yl <- c(-1.6, .6)
 plot(x,x, ylim = yl, ylab="",type='n', main = "Bessel Functions  Y_nu(x)")
 for(nu in nus){xx <- x[x > .6*nu]; lines(xx,besselY(xx,nu=nu), col = nu+2)}
 legend(25,-.5, leg=paste("nu=",nus), col = nus+2, lwd=1)
+
+\testonly{
+ x0 <- 2^(-20:10)
+ plot(x0,x0, log='xy', ylab="", ylim=c(.1,1e60),type='n',
+      main = "Bessel Functions -Y_nu(x)  near 0\n log - log  scale")
+ for(nu in sort(c(nus,nus+.5))) lines(x0, -besselY(x0,nu=nu), col = nu+2)
+ legend(3,1e50, leg=paste("nu=", paste(nus,nus+.5, sep=",")), col=nus+2, lwd=1)
+
+ x <- seq(3,500);yl <- c(-.3, .2)
+ plot(x,x, ylim = yl, ylab="",type='n', main = "Bessel Functions  Y_nu(x)")
+ for(nu in nus){xx <- x[x > .6*nu]; lines(xx,besselY(xx,nu=nu), col = nu+2)}
+ legend(300,-.08, leg=paste("nu=",nus), col = nus+2, lwd=1)
+
+ x <- seq(10,50000,by=10);yl <- c(-.1, .1)
+ plot(x,x, ylim = yl, ylab="",type='n', main = "Bessel Functions  Y_nu(x)")
+ for(nu in nus){xx <- x[x > .6*nu]; lines(xx,besselY(xx,nu=nu), col = nu+2)}
+ summary(bY <- besselY(2,nu = nu <- seq(0,100,len=501)))
+ which(bY >= 0)
+ summary(bY <- besselY(2,nu = nu <- seq(3,300,len=51)))
+ summary(bI <- besselI(x = x <- 10:700, 1))
+}
+
 }
 \keyword{math}
 

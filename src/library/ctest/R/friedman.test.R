@@ -1,12 +1,8 @@
-friedman.test <- function(y, ...) UseMethod("friedman.test")
-
-friedman.test.default <-
-function(y, groups, blocks, ...)
-{
+friedman.test <- function(y, groups, blocks) {
     DNAME <- deparse(substitute(y))
     if (is.matrix(y)) {
-        groups <- factor(c(col(y)))
-        blocks <- factor(c(row(y)))
+        groups <- as.factor(c(col(y)))
+        blocks <- as.factor(c(row(y)))
     }
     else {
         if (any(is.na(groups)) || any(is.na(blocks)))
@@ -17,8 +13,8 @@ function(y, groups, blocks, ...)
                        " and ", deparse(substitute(blocks)), sep = "")
         if (any(table(groups, blocks) != 1))
             stop("Not an unreplicated complete block design")
-        groups <- factor(groups)
-        blocks <- factor(blocks)
+        groups <- as.factor(groups)
+        blocks <- as.factor(blocks)
     }
 
     k <- nlevels(groups)
@@ -42,31 +38,4 @@ function(y, groups, blocks, ...)
                    method = "Friedman rank sum test",
                    data.name = DNAME),
               class = "htest")
-}
-
-friedman.test.formula <-
-function(formula, data, subset, na.action, ...)
-{
-    if(missing(formula))
-        stop("formula missing")
-    ## <FIXME>
-    ## Maybe put this into an internal rewriteTwoWayFormula() when
-    ## adding support for strata()
-    if((length(formula) != 3)
-       || (length(formula[[3]]) != 3)
-       || (formula[[3]][[1]] != as.name("|")))
-        stop("incorrect specification for `formula'")
-    formula[[3]][[1]] <- as.name("+")
-    ## </FIXME>
-    m <- match.call(expand.dots = FALSE)
-    m$formula <- formula
-    if(is.matrix(eval(m$data, parent.frame())))
-        m$data <- as.data.frame(data)
-    m[[1]] <- as.name("model.frame")
-    mf <- eval(m, parent.frame())
-    DNAME <- paste(names(mf), collapse = " and ")
-    names(mf) <- NULL
-    y <- do.call("friedman.test", as.list(mf))
-    y$data.name <- DNAME
-    y
 }

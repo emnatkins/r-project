@@ -1,22 +1,22 @@
 
-R : Copyright 2003, The R Development Core Team
-Version 1.8.0 alpha (2003-09-12)
+R : Copyright 2001, The R Development Core Team
+Version 1.2.0 Patched (2001-01-09)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
-Type 'license()' or 'licence()' for distribution details.
+Type `license()' or `licence()' for distribution details.
 
 R is a collaborative project with many contributors.
-Type 'contributors()' for more information.
+Type `contributors()' for more information.
 
-Type 'demo()' for some demos, 'help()' for on-line help, or
-'help.start()' for a HTML browser interface to help.
-Type 'q()' to quit R.
+Type `demo()' for some demos, `help()' for on-line help, or
+`help.start()' for a HTML browser interface to help.
+Type `q()' to quit R.
 
 > ####=== Numerical / Arithmetic Tests
 > ####--- ALL tests here should return  TRUE !
 > ###
-> ### '##P': These lines don't give TRUE but relevant ``Print output''
+> ### '##P': This lines give not 'T' but relevant ``Print output''
 > 
 > ### --> d-p-q-r-tests.R  for distribution things
 > 
@@ -67,7 +67,6 @@ Type 'q()' to quit R.
 > 1/Inf == 0 & Inf ^ -1 == 0
 [1] TRUE
 > 
-> iNA <- as.integer(NA)
 > !is.na(Inf) & !is.nan(Inf) &   is.infinite(Inf) & !is.finite(Inf)
 [1] TRUE
 > !is.na(-Inf)& !is.nan(-Inf)&   is.infinite(-Inf)& !is.finite(-Inf)
@@ -76,15 +75,12 @@ Type 'q()' to quit R.
 [1] TRUE
 >  is.na(NaN) &  is.nan(NaN) &  !is.infinite(NaN) & !is.finite(NaN)
 [1] TRUE
->  is.na(iNA) & !is.nan(iNA) &  !is.infinite(iNA) & !is.finite(iNA)
-[1] TRUE
 > 
-> ## These are "double"s:
-> all(!is.nan(c(1.,NA)))
+> all(!is.nan(c(1,NA)))
 [1] TRUE
-> all(c(FALSE,TRUE,FALSE) == is.nan(c   (1.,NaN,NA)))
+> all(c(F,T,F) == is.nan(c   (1,NaN,NA)))
 [1] TRUE
-> all(c(FALSE,TRUE,FALSE) == is.nan(list(1.,NaN,NA)))
+> all(c(F,T,F) == is.nan(list(1,NaN,NA)))
 [1] TRUE
 > 
 > 
@@ -170,20 +166,11 @@ NaNs produced in: log(x)
 > all(abs(1 + polyroot(choose(8, 0:8))) < 1e-10)# maybe smaller..
 [1] TRUE
 > 
-> ## gamma()
+> ## gamma():
 > abs(gamma(1/2)^2 - pi) < 4* Meps
 [1] TRUE
 > r <- rlnorm(5000)
 > all(abs(rErr(gamma(r+1), r*gamma(r))) < 500 * Meps)
-[1] TRUE
-> ## more accurate for integers n <= 50 since R 1.8.0	Sol8: perfect
-> n <-   20; all(		 gamma(1:n) == cumprod(c(1,1:(n-1))))# Lnx: up too n=28
-[1] TRUE
-> n <-   50; all(abs(rErr( gamma(1:n), cumprod(c(1,1:(n-1))))) < 20*Meps)#Lnx: f=2
-[1] TRUE
-> n <-  120; all(abs(rErr( gamma(1:n), cumprod(c(1,1:(n-1))))) < 1000*Meps)
-[1] TRUE
-> n <- 10000;all(abs(rErr(lgamma(1:n),cumsum(log(c(1,1:(n-1)))))) < 100*Meps)
 [1] TRUE
 > 
 > n <-   10; all(		 gamma(1:n) == cumprod(c(1,1:(n-1))))
@@ -282,7 +269,7 @@ NaNs produced in: gamma(x)
 [1] TRUE
 > is.na(match(c(1,pi,pi0), pi)[3])
 [1] TRUE
-> 
+>     
 > ## PR#749:
 > all(is.na(c(NA && TRUE, TRUE  && NA, NA && NA,
 +             NA || FALSE,FALSE || NA, NA || NA)))
@@ -298,5 +285,5 @@ NaNs produced in: gamma(x)
 > 
 > ## Last Line:
 > cat('Time elapsed: ', proc.time() - .proctime00,'\n')
-Time elapsed:  2.52 0.01 2.66 0 0 
+Time elapsed:  4.12 0.13 4.29 0 0 
 > 

@@ -1,21 +1,5 @@
 \name{sys.parent}
-\alias{sys.parent}
-\alias{sys.call}
-\alias{sys.calls}
-\alias{sys.frame}
-\alias{sys.frames}
-\alias{sys.nframe}
-\alias{sys.function}
-\alias{sys.parents}
-\alias{sys.on.exit}
-\alias{sys.status}
-\alias{parent.frame}
 \title{Functions to Access the Function Call Stack}
-\description{
-  These functions provide access to \code{\link{environment}}s
-  (\dQuote{frames} in S terminology) associated with functions further
-  up the calling stack.
-}
 \usage{
 sys.call(which = 0)
 sys.frame(which = 0)
@@ -30,10 +14,25 @@ sys.on.exit()
 sys.status()
 parent.frame(n = 1)
 }
+\alias{sys.parent}
+\alias{sys.call}
+\alias{sys.calls}
+\alias{sys.frame}
+\alias{sys.frames}
+\alias{sys.nframe}
+\alias{sys.function}
+\alias{sys.parents}
+\alias{sys.on.exit}
+\alias{sys.status}
+\alias{parent.frame}
 \arguments{
-  \item{which}{the frame number if non-negative, the number of generations
-    to go back if negative. (See the Details section.)}
-  \item{n}{the number of frame generations to go back.}
+\item{which}{the frame number if non-negative, the number of generations
+  to go back if negative. (See the Details section.)}
+\item{n}{the number of frame generations to go back.}
+}
+\description{
+  These functions provide access to \code{\link{environment}}s (``frames''
+  in S terminology) associated with functions further up the calling stack.
 }
 \details{
   \code{\link{.GlobalEnv}} is given number 0 in the list of frames.
@@ -78,11 +77,6 @@ parent.frame(n = 1)
   \code{parent.frame(n)} is a convenient shorthand for
   \code{sys.frame(sys.parent(n))} (implemented slightly more efficiently).
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole. (not \code{parent.frame}.)
-}
 \seealso{
   \code{\link{eval}} for the usage of \code{sys.frame} and \code{parent.frame}.
 }
@@ -123,7 +117,7 @@ test.sys.on.exit <- function() {
   cat("exiting...\n")
 }
 test.sys.on.exit()
-## gives 'language print(1)', prints 1 on exit
+## gives `language print(1)', prints 1 on exit
 }
 \keyword{programming}
 \keyword{data}

@@ -28,7 +28,9 @@ Sys.sleep(time)
 \value{
   Invisible \code{NULL}.
 }
-\note{This function may not be implemented on all systems.}
+\author{B. D. Ripley}
+
+\note{This function is not implemented on all systems.}
 
 \examples{
 testit <- function(x)

@@ -1,27 +1,24 @@
 \name{DateTimeClasses}
-% implementation mostly in ../R/datetime.R
-\alias{DateTimeClasses}
 \alias{POSIXct}
 \alias{POSIXlt}
-\alias{POSIXt}
 \alias{print.POSIXct}
 \alias{print.POSIXlt}
 \alias{summary.POSIXct}
 \alias{summary.POSIXlt}
-\alias{+.POSIXt}
-\alias{-.POSIXt}
-\alias{Ops.POSIXt}
-\alias{Math.POSIXt}
+\alias{+.POSIXct}
+\alias{-.POSIXct}
+\alias{Ops.POSIXct}
+\alias{Math.POSIXct}
 \alias{Summary.POSIXct}
+\alias{+.POSIXlt}
+\alias{-.POSIXlt}
+\alias{Ops.POSIXlt}
 \alias{Math.POSIXlt}
 \alias{Summary.POSIXlt}
 \alias{[.POSIXct}
 \alias{[<-.POSIXct}
 \alias{[[.POSIXct}
-\alias{[.POSIXlt}
-\alias{[<-.POSIXlt}
 \alias{as.data.frame.POSIXct}
-\alias{as.data.frame.POSIXlt}
 \alias{.leap.seconds}
 \alias{is.na.POSIXlt}
 \alias{all.equal.POSIXct}
@@ -30,30 +27,32 @@
 \alias{as.matrix.POSIXlt}
 \alias{mean.POSIXct}
 \alias{mean.POSIXlt}
-\alias{str.POSIXt}
-
 \title{Date-Time Classes}
 \description{
   Description of the classes \code{"POSIXlt"} and \code{"POSIXct"}
   representing calendar dates and times (to the nearest second). 
 }
 \usage{
-\method{print}{POSIXct}(x, \dots)
+print.POSIXct(x, ...)
+print.POSIXlt(x, ...)
 
-\method{summary}{POSIXct}(object, digits = 15, \dots)
+summary.POSIXct(object, digits = 15, ...)
+summary.POSIXlt(object, digits = 15, ...)
 
 time + number
 time - number
 time1 lop time2
+
+c(time1, ...)
+mean(time)
 }
 \arguments{
-  \item{x, object}{An object to be printed or summarized from one of the
-    date-time classes.}
+  \item{x, object}{An object to be printed or summarized.}
   \item{digits}{Number of significant digits for the computations:
     should be high enough to represent the least important time unit
     exactly.}
   \item{\dots}{Further arguments to be passed from or to other methods.}
-  \item{time, time1, time2}{date-time objects.}
+  \item{time, time1, time2, \dots}{date-time objects.}
   \item{number}{a numeric object.}
   \item{lop}{One of \code{==}, \code{!=}, \code{<}, \code{<=}, \code{>}
     or \code{>=}.}
@@ -75,28 +74,21 @@ time1 lop time2
     \item{\code{isdst}}{Daylight savings time flag. Positive if in
       force, zero if not, negative if unknown.}
   }
-  The classes correspond to the ANSI C constructs of \dQuote{calendar
-    time} (the \code{time\_t} data type) and \dQuote{local time} (or
-  broken-down time, the \code{struct tm} data type), from which they
-  also inherit their names.
+  The classes correspond to the ANSI C constructs of ``calendar time''
+  (the \code{time\_t} data type) and ``local time'' (or broken-down
+  time, the \code{struct tm} data type), from which they also inherit
+  their names.
 
   \code{"POSIXct"} is more convenient for including in data frames, and
-  \code{"POSIXlt"} is closer to human-readable forms.
-  A virtual class \code{"POSIXt"} inherits from both of the classes: it
-  is used to allow operations such as subtraction to mix the two classes.
-
-  Logical comparisons and limited arithmetic are available for both classes.
-  One can add or subtract a number of seconds or a
-  \code{\link{difftime}} object from a date-time object,
-  but not add two date-time objects.  Subtraction of two date-time objects
-  is equivalent to using \code{\link{difftime}}.  Be aware
-  that \code{"POSIXlt"} objects will be interpreted as being in the
-  current timezone for these operations, unless a timezone has been
-  specified.
+  \code{"POSIXlt"} is closer to human-readable forms.  Logical
+  comparisons and limited arithmetic are available for both classes.
+  Differences between objects are returned as the number of (non-leap)
+  seconds between them.  One can add or subtract a number of seconds
+  from a date-time object, but not add two date-time objects.
 
   \code{"POSIXlt"} objects will often have an attribute \code{"tzone"},
   a character vector of length 3 giving the timezone name from the
-  \env{TZ} environment variable and the names of the base timezone
+  \code{"TZ"} environment variable and the names of the base timezone
   and the alternate (daylight-saving) timezone.  Sometimes this may
   just be of length one, giving the timezone name.
 
@@ -116,9 +108,8 @@ time1 lop time2
   be wrong if the system has changed since build time, just possibly by
   changing locales.)
 
-  Using \code{\link{c}} on \code{"POSIXlt"} objects converts them to the
+  Using \code{c} on \code{"POSIXlt"} objects converts them to the
   current time zone.
-
 }
 \seealso{
   \code{\link{as.POSIXct}} and \code{\link{as.POSIXlt}} for conversion
@@ -128,14 +119,6 @@ time1 lop time2
   representations.
 
   \code{\link{Sys.time}} for clock time as a \code{"POSIXct"} object.
-
-  \code{\link{difftime}} for time intervals.
-
-  \code{\link{cut.POSIXt}}, \code{\link{seq.POSIXt}},
-  \code{\link{round.POSIXt}} and \code{\link{trunc.POSIXt}} for methods
-  for these classes.
-
-  \code{\link{weekdays.POSIXt}} for convenience extraction functions.
 }
 \section{Warning}{
   Some Unix-like systems (especially Linux ones) do not have \code{"TZ"}
@@ -146,7 +129,8 @@ time1 lop time2
 \examples{
 (z <- Sys.time())             # the current date, as class "POSIXct"
 
-Sys.time() - 3600             # an hour ago
+(z <- Sys.time() - 3600)      # an hour ago
+Sys.time() - z                # just over 3600 seconds.
 
 as.POSIXlt(Sys.time(), "GMT") # the current time in GMT
 format(.leap.seconds)         # all 22 leapseconds in your timezone

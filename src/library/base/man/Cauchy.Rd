@@ -1,5 +1,4 @@
 \name{Cauchy}
-\alias{Cauchy}
 \alias{dcauchy}
 \alias{pcauchy}
 \alias{qcauchy}
@@ -43,16 +42,11 @@ rcauchy(n, location = 0, scale = 1)
   }{f(x) = 1 / (pi s (1 + ((x-l)/s)^2))}
   for all \eqn{x}.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
   \code{\link{dt}} for the t distribution which generalizes
   \code{dcauchy(*, l = 0, s = 1)}.
 }
 \examples{
-dcauchy(-1:4)
+all.equal(dcauchy(-1:4), 1 / (pi*(1 + (-1:4)^2)))
 }
 \keyword{distribution}

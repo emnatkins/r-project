@@ -1,36 +1,31 @@
 \name{glm}
 \title{Fitting Generalized Linear Models}
-\alias{glm}
-\alias{glm.fit}
-\alias{weights.glm}
-\alias{print.glm}
-\description{
-  \code{glm} is used to fit generalized linear models, specified by
-  giving a symbolic description of the linear predictor and a
-  description of the error distribution.
-}
 \usage{
 glm(formula, family = gaussian, data, weights = NULL, subset = NULL,
-    na.action, start = NULL, etastart = NULL, mustart = NULL,
-    offset = NULL, control = glm.control(\dots), model = TRUE,
-    method = "glm.fit", x = FALSE, y = TRUE, contrasts = NULL, \dots)
-
-glm.fit(x, y, weights = rep(1, nobs),
-        start = NULL, etastart = NULL, mustart = NULL,
-        offset = rep(0, nobs), family = gaussian(),
-        control = glm.control(), intercept = TRUE)
-
-\method{weights}{glm}(object, type = c("prior", "working"), \dots)
+    na.action, start = NULL, offset = NULL,
+    control = glm.control(epsilon=0.0001, maxit=10, trace=FALSE),
+    model = TRUE, method = "glm.fit", x = FALSE, y = TRUE,
+    contrasts = NULL, ...)
+glm.control(epsilon = 0.0001, maxit = 10, trace = FALSE)
+glm.fit(x, y, weights = rep(1, nrow(x)),
+        start = NULL, etastart  =  NULL, mustart = NULL,
+        offset = rep(0, nrow(x)),
+        family = gaussian(), control = glm.control(),
+        intercept = TRUE)
+weights.glm(object, type = c("prior", "working"), ...)
 }
+\alias{glm}
+\alias{glm.control}
+\alias{glm.fit}
+\alias{glm.fit.null}
+\alias{weights.glm}
 \arguments{
   \item{formula}{a symbolic description of the model to be fit.
     The details of model specification are given below.}
 
   \item{family}{a description of the error distribution and link
-    function to be used in the model. This can be a character string
-    naming a family function, a family function or the result of a call
-    to a family function.  (See \code{\link{family}} for details of
-    family functions.)}
+    function to be used in the model.
+    See \code{\link{family}} for details.}
 
   \item{data}{an optional data frame containing the variables
     in the model.  By default the variables are taken from
@@ -46,7 +41,7 @@ glm.fit(x, y, weights = rep(1, nobs),
   \item{na.action}{a function which indicates what should happen
     when the data contain \code{NA}s.  The default is set by
     the \code{na.action} setting of \code{\link{options}}, and is
-    \code{\link{na.fail}} if that is unset.  The \dQuote{factory-fresh}
+    \code{\link{na.fail}} if that is unset.  The ``factory-fresh''
     default is \code{\link{na.omit}}.}
 
   \item{start}{starting values for the parameters in the linear predictor.}
@@ -60,25 +55,18 @@ glm.fit(x, y, weights = rep(1, nobs),
     during fitting.}
 
   \item{control}{a list of parameters for controlling the fitting
-    process.  See the documentation for \code{\link{glm.control}}
-    for details.}
+    process.  See the documentation for \code{\link{glm.control}} for details.}
 
   \item{model}{a logical value indicating whether \emph{model frame}
     should be included as a component of the returned value.}
 
   \item{method}{the method to be used in fitting the model.
-    The default method \code{"glm.fit"} uses iteratively reweighted
-    least squares (IWLS).  The only current alternative is
-    \code{"model.frame"} which returns the model frame and does no fitting.}
+    The default (and presently only) method \code{glm.fit}
+    uses iteratively reweighted least squares.}
 
-  \item{x, y}{For \code{glm}:
-    logical values indicating whether the response
+  \item{x, y}{logical values indicating whether the response
     vector and model matrix used in the fitting process
-    should be returned as components of the returned value.
-
-    For \code{glm.fit}: \code{x} is a design matrix of dimension \code{n
-      * p}, and \code{y} is a vector of observations of length \code{n}.
-  }
+    should be returned as components of the returned value.}
 
   \item{contrasts}{an optional list. See the \code{contrasts.arg}
     of \code{model.matrix.default}.}
@@ -86,10 +74,11 @@ glm.fit(x, y, weights = rep(1, nobs),
   \item{object}{an object inheriting from class \code{"glm"}.}
   \item{type}{character, partial matching allowed.  Type of weights to
     extract from the fitted model object.}
-
-  \item{intercept}{logical. Should an intercept be included?}
-
-  \item{\dots}{further arguments passed to or from other methods.}
+}
+\description{
+  \code{glm} is used to fit generalized linear models, specified by
+  giving a symbolic description of the linear predictor and
+  a description of the error distribution.
 }
 \details{
   A typical predictor has the form \code{response ~ terms} where
@@ -108,16 +97,10 @@ glm.fit(x, y, weights = rep(1, nobs),
   The specification \code{first*second} indicates the \emph{cross}
   of \code{first} and \code{second}.
   This is the same as \code{first + second + first:second}.
-
-  \code{glm.fit} and \code{glm.fit.null} are the workhorse functions:
-  the former calls the latter for a null model (with no intercept).
-
-  If more than one of \code{etastart}, \code{start} and \code{mustart}
-  is specified, the first in the list will be used.
 }
 \value{
-  \code{glm} returns an object of class inheriting from \code{"glm"}
-  which inherits from the class \code{"lm"}. See later in this section.
+  \code{glm} returns an object of class \code{glm}
+  which inherits from the class \code{lm}. See later in this section.
 
   The function \code{\link{summary}} (i.e., \code{\link{summary.glm}}) can
   be used to obtain or print a summary of the results and the function
@@ -152,7 +135,7 @@ glm.fit(x, y, weights = rep(1, nobs),
     \code{deviance}. The null model will include the offset, and an
     intercept if there is one in the model}
   \item{iter}{the number of iterations of IWLS used.}
-  \item{weights}{the \emph{working} weights, that is the weights
+  \item{weights}{the \emph{working} residuals, that is the weights
     in the final iteration of the IWLS fit.}
   \item{prior.weights}{the case weights initially supplied.}
   \item{df.residual}{the residual degrees of freedom.}
@@ -174,7 +157,7 @@ glm.fit(x, y, weights = rep(1, nobs),
   \item{xlevels}{(where relevant) a record of the levels of the factors
     used in fitting.}
 
-  In addition, non-empty fits will have components \code{qr}, \code{R}
+  In addition, non-null fits will have components \code{qr}, \code{R}
   and \code{effects} relating to the final weighted linear fit.
 
   Objects of class \code{"glm"} are normally of class \code{c("glm",
@@ -201,35 +184,14 @@ glm.fit(x, y, weights = rep(1, nobs),
   \code{\link{esoph}}, \code{\link{infert}} and
   \code{\link{predict.glm}} have examples of fitting binomial glms.
 }
-\author{
-  The original \R implementation of \code{glm} was written by Simon
-  Davies working for Ross Ihaka at the University of Auckland, but has
-  since been extensively re-written by members of the R Core team.
-
-  The design was inspired by the S function of the same name described
-  in Hastie \& Pregibon (1992).
+\note{
+  Offsets specified by \code{offset} will not be included in predictions
+  by \code{\link{predict.glm}}, whereas those specified by an offset term
+  in the formula will be.
 }
-\references{
-  Dobson, A. J. (1990)
-  \emph{An Introduction to Generalized Linear Models.}
-  London: Chapman and Hall.
-
-  Hastie, T. J. and Pregibon, D. (1992)
-  \emph{Generalized linear models.}
-  Chapter 6 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
-
-  McCullagh P. and Nelder, J. A. (1989)
-  \emph{Generalized Linear Models.}
-  London: Chapman and Hall.
-
-  Venables, W. N. and Ripley, B. D. (2002)
-  \emph{Modern Applied Statistics with S.}
-  New York: Springer.
-}
-
 \examples{
-## Dobson (1990) Page 93: Randomized Controlled Trial :
+## Annette Dobson (1990) "An Introduction to Generalized Linear Models".
+## Page 93: Randomized Controlled Trial :
 counts <- c(18,17,15,20,10,20,25,13,12)
 outcome <- gl(3,1,9)
 treatment <- gl(3,3)
@@ -238,8 +200,8 @@ glm.D93 <- glm(counts ~ outcome + treatment, family=poisson())
 anova(glm.D93)
 summary(glm.D93)
 
-## an example with offsets from Venables & Ripley (2002, p.189)
-\dontshow{"anorexia" <-
+## an example with offsets from Venables & Ripley (1999, pp.217-8)
+\testonly{"anorexia" <-
 structure(list(Treat = structure(c(2, 2, 2, 2, 2, 2, 2, 2, 2,
 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1,
 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -267,9 +229,9 @@ structure(list(Treat = structure(c(2, 2, 2, 2, 2, 2, 2, 2, 2,
 "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60",
 "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71",
 "72"))}
-%% "else" (not dontshow)
+%% "else" (not testonly)
 \dontrun{
-## Need the anorexia data from a recent version of the package 'MASS':
+## Need the anorexia data from a recent version of the package MASS:
 library(MASS)
 data(anorexia)
 }
@@ -284,6 +246,14 @@ clotting <- data.frame(
     lot2 = c(69,35,26,21,18,16,13,12,12))
 summary(glm(lot1 ~ log(u), data=clotting, family=Gamma))
 summary(glm(lot2 ~ log(u), data=clotting, family=Gamma))
+
+\testonly{
+## these are the same -- example from Jim Lindsey
+y <- rnorm(20)
+y1 <- y[-1]; y2 <- y[-20]
+summary(glm(y1 - y2 ~ 1))
+summary(glm(y1 ~ offset(y2)))
+}
 }
 \keyword{models}
 \keyword{regression}

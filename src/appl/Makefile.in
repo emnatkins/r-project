@@ -10,54 +10,52 @@ subdir = src/appl
 
 include $(top_builddir)/Makeconf
 
-## <NOTE>
 ## All functions/subroutines to be called via .C() or .Fortran() must
-## also have an entry in the appropriate table/array in
-## @file{../main/registration.c} in order to be registered with the
-## symbol lookup mechanism, i.e., 'pre-dyn.loaded'.
-## </NOTE>
+## also have an entry in `./ROUTINES' in order to be ``pre-dyn.loaded'';
+## see `../unix/dynload.c'.
 
 SOURCES_C = \
+	Rsock.c \
 	approx.c \
-	bakslv.c bandwidths.c binning.c \
-	chull.c cpoly.c cumsum.c \
-	fft.c fmin.c integrate.c interv.c \
+	bakslv.c binning.c \
+	chisqsim.c chull.c cpoly.c cumsum.c \
+	distance.c \
+	fft.c fmin.c fortran.c \
 	lbfgsb.c loglin.c lowess.c \
 	machar.c maxcol.c massdist.c \
 	pretty.c \
-	rcont.c rowsum.c \
-	splines.c stem.c strsignif.c \
+	rowsum.c \
+	sock.c splines.c stem.c strsignif.c \
 	tabulate.c \
 	uncmin.c \
 	zeroin.c
 SOURCES_F = \
 	ch2inv.f chol.f \
-	dchdc.f dpbfa.f dpbsl.f dpoco.f dpodi.f dpofa.f dposl.f dqrdc.f \
+	dpbfa.f dpbsl.f dpoco.f dpodi.f dpofa.f dposl.f dqrdc.f \
 	dqrdc2.f dqrls.f dqrsl.f dqrutl.f dsvdc.f dtrco.f dtrsl.f \
 	eigen.f \
 	lminfl.f
 DEPENDS = $(SOURCES_C:.c=.d)
-OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_F:.f=.o) \
-  @USE_EXTERNAL_BLAS_FALSE@ blas.o @COMPILE_DOUBLE_COMPLEX_FALSE@ zgemm.o
-HEADERS =
+OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_F:.f=.o) $(BLAS)
+HEADERS = Rsock.h sock.h
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-DISTFILES = COPYRIGHT COPYRIGHT.ftn README lowess.doc \
+DISTFILES = COPYRIGHT COPYRIGHT.ftn README ROUTINES lowess.doc \
 	Makefile.in Makefile.win \
 	$(HEADERS) \
 	$(SOURCES_C) \
 	$(SOURCES_F) \
-	blas.f zgemm.f
+	blas.f
 
 noinst_LIBRARIES = libappl.a
 libappl_a_SOURCES = $(SOURCES)
 libappl_a_OBJECTS = $(OBJECTS)
 
-## <FIXME>
-## We most likely will not want a separate shared library.
+## FIXME:
+## We most likely will not want a seperate shared library.
 ## If we have a final decision, remove libappl.la target.
-noinst_LTLIBRARIES = libappl.la
 ## </FIXME>
+noinst_LTLIBRARIES = libappl.la
 libappl_la_SOURCES = $(SOURCES)
 libappl_la_OBJECTS = $(OBJECTS:.o=.lo)
 @USE_LIBTOOL_TRUE@libappl_la_LDFLAGS = -avoid-version -rpath $(Rexeclibdir)
@@ -65,7 +63,9 @@ libappl_la_OBJECTS = $(OBJECTS:.o=.lo)
 all: Makefile Makedeps R
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status $(SOURCES_C)
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 Makedeps: Makefile $(DEPENDS)
 	@cat $(DEPENDS) >> Makefile
@@ -73,7 +73,7 @@ Makedeps: Makefile $(DEPENDS)
 
 R: Makefile
 	@$(MAKE) Makedeps
-	@$(MAKE) $(noinst_LIBRARIES)
+	@$(MAKE) $(noinst_LIBRARIES) 
 @WANT_R_SHLIB_TRUE@	@$(MAKE) stamp-lo
 
 libappl.a: $(libappl_a_OBJECTS)
@@ -92,8 +92,6 @@ clean:
 distclean: clean
 	@-rm -f Makefile
 maintainer-clean: distclean
-
-install install-strip uninstall TAGS info dvi check:
 
 distdir: $(DISTFILES)
 	@for f in $(DISTFILES); do \

@@ -7,12 +7,13 @@
 }
 \usage{
 formals(fun = sys.function(sys.parent()))
-formals(fun, envir = parent.frame()) <- value
+formals(fun) <- list
 }
 \arguments{
-  \item{fun}{a function object, or see Details.}
-  \item{envir}{environment in which the function should be defined.}
-  \item{value}{a list of \R expressions.}
+  \item{fun}{a function object or a character string naming the function
+    to be manipulated.
+    If not specified, the function calling \code{body} is used.}
+  \item{list}{a list of \R expressions.}
 }
 \value{
   \code{formals} returns the formal argument list of the function
@@ -21,14 +22,8 @@ formals(fun, envir = parent.frame()) <- value
   The assignment form sets the formals of a function to the list on the
   right hand side.
 }
-\details{
-  For the first form, \code{fun} can be a character string
-  naming the function to be manipulated, which is searched for from the
-  parent environment.
-  If it is not specified, the function calling \code{formals} is used.
-}
 \seealso{
-  \code{\link{args}} for a \dQuote{human-readable} version,
+  \code{\link{args}} for a ``human-readable'' version,
   \code{\link{alist}},
   \code{\link{body}},
   \code{\link{function}}.

@@ -24,8 +24,8 @@ function(x, y = NULL, z = NULL,
         DNAME <- paste(DNAME, "and", deparse(substitute(y)), "and",
                        deparse(substitute(z)))
         OK <- complete.cases(x, y, z)
-        x <- factor(x[OK])
-        y <- factor(y[OK])
+        x <- as.factor(x[OK])
+        y <- as.factor(y[OK])
         if((nlevels(x) < 2) || (nlevels(y) < 2))
             stop("x and y must have at least 2 levels")
         else
@@ -49,7 +49,7 @@ function(x, y = NULL, z = NULL,
 
         NVAL <- 1
         names(NVAL) <- "common odds ratio"
-
+        
         if(!exact) {
             ## Classical Mantel-Haenszel 2 x 2 x K test
             s.x <- apply(x, c(1, 3), sum)
@@ -69,10 +69,10 @@ function(x, y = NULL, z = NULL,
                             "continuity correction")
             s.diag <- sum(x[1, 1, ] * x[2, 2, ] / n)
             s.offd <- sum(x[1, 2, ] * x[2, 1, ] / n)
-            ## Mantel-Haenszel (1959) estimate of the common odds ratio.
+            ## Mantel-Haenszel (1959) estimate of the common odds ratio
             ESTIMATE <- s.diag / s.offd
             ## Robins et al. (1986) estimate of the standard deviation
-            ## of the log of the Mantel-Haenszel estimator.
+            ## of the log of the Mantel-Haenszel estimator
             sd <-
                 sqrt(  sum((x[1,1,] + x[2,2,]) * x[1,1,] * x[2,2,]
                            / n^2)
@@ -86,11 +86,11 @@ function(x, y = NULL, z = NULL,
                      / (2 * s.offd^2))
             CINT <-
                 switch(alternative,
-                       less = c(0, ESTIMATE * exp(qnorm(conf.level) * sd)),
+                       less = c(0, ESTIMATE * exp(qnorm(conf.level) *sd)),
                        greater = c(ESTIMATE * exp(qnorm(conf.level,
-                                   lower = FALSE) * sd), Inf),
+                       				       lower=FALSE) *sd), Inf),
                        two.sided = {
-                           ESTIMATE * exp(c(1, -1) *
+                           ESTIMATE * exp(c(1, -1) * 
                                           qnorm((1 - conf.level) / 2) * sd)
                        })
             RVAL <- list(statistic = STATISTIC,
@@ -115,34 +115,23 @@ function(x, y = NULL, z = NULL,
             s <- sum(x[1, 1, ])
             lo <- sum(pmax(0, t - n))
             hi <- sum(pmin(m, t))
+            d.save <- .C("d2x2xk",
+                         as.integer(K),
+                         as.double(m),
+                         as.double(n),
+                         as.double(t),
+                         d = double(hi - lo + 1),
+                         PACKAGE = "ctest")$d
 
-            support <- lo : hi
-            ## Density of the *central* product hypergeometric
-            ## distribution on its support: store for once as this is
-            ## needed quite a bit.
-            dc <- .C("d2x2xk",
-                     as.integer(K),
-                     as.double(m),
-                     as.double(n),
-                     as.double(t),
-                     d = double(hi - lo + 1),
-                     PACKAGE = "ctest")$d
-            logdc <- log(dc)
-
-            dn2x2xk <- function(ncp) {
-                ## Does not work for boundary values for ncp (0, Inf)
-                ## but it does not need to.
-                if(ncp == 1) return(dc)
-                d <- logdc + log(ncp) * support
-                d <- exp(d - max(d))    # beware of overflow
-                d / sum(d)
-            }
-            mn2x2xk <- function(ncp) {
-                if(ncp == 0)
-                    return(lo)
-                if(ncp == Inf)
-                    return(hi)
-                sum(support * dn2x2xk(ncp))
+            dn2x2xk <- function(ncp = 1) {
+                ## Note that this returns the whole vector of length
+                ## hi - lo + 1.
+                if(ncp == 1)
+                    return(d.save)
+                else {
+                    d <- d.save * ncp ^ (0 : (hi - lo))
+                    d / sum(d)
+                }
             }
             pn2x2xk <- function(q, ncp = 1, upper.tail = FALSE) {
                 if(ncp == 0) {
@@ -151,20 +140,19 @@ function(x, y = NULL, z = NULL,
                     else
                         return(as.numeric(q >= lo))
                 }
-                if(ncp == Inf) {
+                if(ncp^(hi - lo) == Inf) {
                     if(upper.tail)
                         return(as.numeric(q <= hi))
                     else
                         return(as.numeric(q >= hi))
                 }
+                u <- lo : hi
                 d <- dn2x2xk(ncp)
                 if(upper.tail)
-                    sum(d[support >= q])
+                    sum(d[u >= q])
                 else
-                    sum(d[support <= q])
+                    sum(d[u <= q])
             }
-
-            ## Determine the p-value.
             PVAL <-
                 switch(alternative,
                        less = pn2x2xk(s, 1),
@@ -172,10 +160,9 @@ function(x, y = NULL, z = NULL,
                        two.sided = {
                            ## Note that we need a little fuzz.
                            relErr <- 1 + 10 ^ (-7)
-                           d <- dc      # same as dn2x2xk(1)
+                           d <- d.save  # same as dn2x2xk(1)
                            sum(d[d <= d[s - lo + 1] * relErr])
                        })
-
             ## Determine the MLE for ncp by solving E(S) = s, where the
             ## expectation is with respect to the above distribution.
             mle <- function(x) {
@@ -183,18 +170,28 @@ function(x, y = NULL, z = NULL,
                     return(0)
                 if(x == hi)
                     return(Inf)
+                mn2x2xk <- function(ncp) {
+                    if(ncp == 0)
+                        return(lo)
+                    if(ncp^(hi - lo) == Inf)
+                        return(hi)
+                    q <- lo : hi
+                    d <- dn2x2xk(ncp)
+                    sum(q * d)
+                }
                 mu <- mn2x2xk(1)
                 if(mu > x)
-                    uniroot(function(t) mn2x2xk(t) - x,
+                    uniroot(function(t)
+                            mn2x2xk(t) - x,
                             c(0, 1))$root
                 else if(mu < x)
-                    1 / uniroot(function(t) mn2x2xk(1/t) - x,
+                    1 / uniroot(function(t)
+                                mn2x2xk(1/t) - x,
                                 c(.Machine$double.eps, 1))$root
                 else
                     1
             }
             ESTIMATE <- mle(s)
-
             ## Determine confidence intervals for the odds ratio.
             ncp.U <- function(x, alpha) {
                 if(x == hi)
@@ -227,18 +224,13 @@ function(x, y = NULL, z = NULL,
             CINT <- switch(alternative,
                            less = c(0, ncp.U(s, 1 - conf.level)),
                            greater = c(ncp.L(s, 1 - conf.level), Inf),
-                           two.sided = {
+                           two.sided <- {
                                alpha <- (1 - conf.level) / 2
                                c(ncp.L(s, alpha), ncp.U(s, alpha))
                            })
-
-            STATISTIC <- s
-            names(STATISTIC) <- "S"
-
-            RVAL <- list(statistic = STATISTIC,
-                         p.value = PVAL)
+            RVAL <- list(p.value = PVAL)
         }
-
+        
         names(ESTIMATE) <- names(NVAL)
         attr(CINT, "conf.level") <- conf.level
         RVAL <- c(RVAL,

@@ -1,17 +1,39 @@
-/* Kendall's rank correlation tau and its exact distribution in case of no ties
-*/
+/* kendall.c
+   Compute Kendall's rank correlation tau and the exact distribution of
+   T = (n * (n - 1) * tau + 1) / 4, the number of concordant ordered
+   pairs.
+   */
+
 #include <R.h>
 #include <Rmath.h>
 
-#include "ctest.h"
+static double **w;
 
-/*
-   and the exact distribution of  T = (n * (n - 1) * tau + 1) / 4,
-   which is -- if there are no ties -- the number of concordant ordered pairs
-*/
+static void
+errmsg(char *s) {
+    PROBLEM "%s", s RECOVER(NULL_ENTRY);
+}
+
+void
+kendall_tau(Sint *n, double *x, double *y, double *tau) {
+    double c = 0, vx = 0, vy = 0, sx, sy;
+    int i, j;
+
+    for(i = 0; i < *n; i++) {
+	for(j = 0; j < i; j++) {
+	    sx = sign(x[i] - x[j]);
+	    sy = sign(y[i] - y[j]);
+	    vx += sx * sx;
+	    vy += sy * sy;
+	    c += sx * sy;
+	}
+    }
+
+    *tau = c / (sqrt(vx) * sqrt(vy));
+}
 
 static double
-ckendall(int k, int n, double **w) {
+ckendall(int k, int n) {
     int i, u;
     double s;
 
@@ -19,8 +41,9 @@ ckendall(int k, int n, double **w) {
     if ((k < 0) || (k > u))
 	return(0);
     if (w[n] == 0) {
-	w[n] = (double *) R_alloc(u + 1, sizeof(double));
-	memset(w[n], '\0', sizeof(double) * (u+1));
+	w[n] = Calloc(u + 1, double);
+	if (!w[n])
+	    errmsg("allocation error in ckendall()");
 	for (i = 0; i <= u; i++)
 	    w[n][i] = -1;
     }
@@ -30,38 +53,37 @@ ckendall(int k, int n, double **w) {
 	else {
 	    s = 0;
 	    for (i = 0; i < n; i++)
-		s += ckendall(k - i, n - 1, w);
+		s += ckendall(k - i, n - 1);
 	    w[n][k] = s;
 	}
     }
     return(w[n][k]);
 }
 
-#if 0
 void
 dkendall(Sint *len, double *x, Sint *n) {
     Sint i;
-    double **w;
 
-    w = (double **) R_alloc(*n + 1, sizeof(double *));
+    w = Calloc(*n + 1, double *);
+    if (!w)
+	errmsg("allocation error in dkendall()");
 
     for (i = 0; i < *len; i++)
 	if (fabs(x[i] - floor(x[i] + 0.5)) > 1e-7) {
 	    x[i] = 0;
 	} else {
-	    x[i] = ckendall((Sint)x[i], (Sint)*n) / gammafn(*n + 1, w);
+	    x[i] = ckendall((Sint)x[i], (Sint)*n) / gammafn(*n + 1);
 	}
 }
-#endif
 
 void
 pkendall(Sint *len, double *x, Sint *n) {
     Sint i, j;
     double p, q;
-    double **w;
 
-    w = (double **) R_alloc(*n + 1, sizeof(double *));
-    memset(w, '\0', sizeof(double*) * (*n+1));
+    w = Calloc(*n + 1, double *);
+    if (!w)
+	errmsg("allocation error in pkendall()");
 
     for (i = 0; i < *len; i++) {
 	q = floor(x[i] + 1e-7);
@@ -72,7 +94,7 @@ pkendall(Sint *len, double *x, Sint *n) {
 	else {
 	    p = 0;
 	    for (j = 0; j <= q; j++) {
-		p += ckendall((Sint)j, (Sint)*n, w);
+		p += ckendall((Sint)j, (Sint)*n);
 	    }
 	    x[i] = p / gammafn(*n + 1);
 	}

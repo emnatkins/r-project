@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998, 2000, 2003  The R Development Core Team
+ *  Copyright (C) 1998, 2000  The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,12 +35,6 @@
 # include "run.h"
 #endif
 
-#ifdef HAVE_AQUA
-extern  DL_FUNC ptr_Raqua_Edit;
-
-int Raqua_Edit(char *filename) {ptr_Raqua_Edit(filename);}
-#endif
-
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>		/* for unlink() */
 #endif
@@ -68,9 +62,10 @@ static int  EdFileUsed = 0;
 void InitEd()
 {
 #ifdef Win32
-    DefaultFileName = R_tmpnam("Redit", R_TempDir);
+    char * Rwin32_tmpnam(char *);
+    DefaultFileName = Rwin32_tmpnam("Redit");
 #else
-    DefaultFileName = R_tmpnam(NULL, R_TempDir);
+    DefaultFileName = Runix_tmpnam(NULL);
 #endif
 }
 
@@ -81,8 +76,7 @@ void CleanEd()
 
 SEXP do_edit(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    int   i, rc;
-    ParseStatus status;
+    int   i, rc, status;
     SEXP  x, fn, envir, ed, t;
     char *filename, *editcmd, *vmaxsave, *cmd;
     FILE *fp;
@@ -135,17 +129,8 @@ SEXP do_edit(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (rc != 0)
 	warningcall(call, "editor ran but returned error status");
 #else
-# if defined(HAVE_AQUA)
-    if (!strcmp(R_GUIType,"AQUA"))
-      rc = Raqua_Edit(filename);
-    else {
-      sprintf(editcmd, "%s %s", cmd, filename);
-      rc = R_system(editcmd);
-    }
-# else
     sprintf(editcmd, "%s %s", cmd, filename);
-    rc = R_system(editcmd);
-# endif
+    rc = system(editcmd);
     if (rc != 0)
 	errorcall(call, "problem with running editor %s", cmd);
 #endif

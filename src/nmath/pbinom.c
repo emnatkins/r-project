@@ -1,7 +1,7 @@
 /*
  *  Mathlib : A C Library of Special Functions
  *  Copyright (C) 1998 Ross Ihaka
- *  Copyright (C) 2000, 2002 The R Development Core Team
+ *  Copyright (C) 2000 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,11 +32,10 @@ double pbinom(double x, double n, double p, int lower_tail, int log_p)
     if (!R_FINITE(n) || !R_FINITE(p)) ML_ERR_return_NAN;
 
 #endif
-    if(R_D_nonint(n)) ML_ERR_return_NAN;
-    n = R_D_forceint(n);
+    n = floor(n + 0.5);
     if(n <= 0 || p < 0 || p > 1) ML_ERR_return_NAN;
 
-    x = floor(x + 1e-7);
+    x = floor(x);
     if (x < 0.0) return R_DT_0;
     if (n <= x) return R_DT_1;
     return pbeta(1 - p, n - x, x + 1, lower_tail, log_p);

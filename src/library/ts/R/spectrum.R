@@ -2,9 +2,9 @@
 spectrum <- function (..., method = c("pgram", "ar"))
 {
     switch(match.arg(method),
-	   pgram = spec.pgram(...),
-	   ar	 = spec.ar(...)
-	   )
+           pgram = spec.pgram(...),
+           ar = spec.ar(...)
+           )
 }
 
 ## spec.taper based on code by Kurt Hornik
@@ -38,6 +38,7 @@ spec.ar <- function(x, n.freq, order = NULL, plot = TRUE,
         series <- deparse(substitute(x))
         x <- na.action(as.ts(x))
         xfreq <- frequency(x)
+        n <- NROW(x)
         nser <- NCOL(x)
         x <- ar(x, is.null(order), order, na.action=na.action, method=method)
     } else {
@@ -48,6 +49,7 @@ spec.ar <- function(x, n.freq, order = NULL, plot = TRUE,
         xfreq <- x$frequency
         if(is.array(x$ar)) nser <- dim(x$ar)[2] else nser <- 1
     }
+    n <- x$n.used
     order <- x$order
     if(missing(n.freq)) n.freq <- 500
     freq <- seq(0, 0.5, length = n.freq)
@@ -96,7 +98,7 @@ spec.pgram <-
             x[, i] <- x[, i] - mean(x[, i]) - sum(x[, i] * t) * t/sumt2
     }
     else if (demean) {
-        x <- sweep(x, 2, colMeans(x))
+        x <- sweep(x, 2, apply(x, 2, mean))
     }
     x <- spec.taper(x, taper)
     ## to correct for tapering: Bloomfield (1976, p. 194)
@@ -117,10 +119,10 @@ spec.pgram <-
     for (i in 1:ncol(x)) {
         for (j in 1:ncol(x)) {
             pgram[, i, j] <- xfft[, i] * Conj(xfft[, j])/(N*xfreq)
-        ## value at zero is invalid as mean has been removed, so interpolate
-            pgram[1, i, j] <- 0.5*(pgram[2, i, j] + pgram[N, i, j])
         }
     }
+    ## value at zero is invalid as mean has been removed, so interpolate
+    pgram[1, i, j] <- 0.5*(pgram[2, i, j] + pgram[N, i, j])
     if(!is.null(kernel)) {
         for (i in 1:ncol(x)) for (j in 1:ncol(x))
                 pgram[, i, j] <- kernapply(pgram[, i, j], kernel,
@@ -180,13 +182,12 @@ plot.spec <-
             stop("coverage probability out of range [0,1)")
         tail <- (1 - coverage)
         df <- spec.obj$df
-        upper.quantile <- 1 - tail * pchisq(df, df, lower.tail = FALSE)
+        upper.quantile <- 1 - tail * (1 - pchisq(df, df))
         lower.quantile <- tail * pchisq(df, df)
         1/(qchisq(c(upper.quantile, lower.quantile), df)/df)
     }
 
     plot.type <- match.arg(plot.type)
-    log <- match.arg(log)
     m <- match.call()
     if(plot.type == "coherency") {
         m[[1]] <- as.name("plot.spec.coherency")
@@ -212,7 +213,8 @@ plot.spec <-
     } else {
         matplot(x$freq, x$spec, xlab = xlab, ylab = ylab, type = type,
                 log = ylog, ...)
-        if (ci <= 0 || !is.numeric(x$df) || log == "no") {
+        is.ar <- !is.na(pmatch("AR", x$method))
+        if (ci <= 0 || log == "no" || is.ar) {
             ## No confidence limits
             ci.text <- ""
         } else {
@@ -240,10 +242,8 @@ plot.spec <-
             }
         }
         if (is.null(main))
-            main <- paste(if(!is.null(x$series)) paste("Series:", x$series)
-                          else "from specified model",
-                          x$method, sep = "\n")
-        if (is.null(sub) && is.numeric(x$bandwidth))
+            main <- paste(paste("Series:", x$series), x$method, sep = "\n")
+        if (is.null(sub) && !is.ar)
              sub <- paste("bandwidth = ", format(x$bandwidth, digits = 3),
                          ci.text, sep="")
         title(main = main, sub = sub)

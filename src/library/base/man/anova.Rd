@@ -1,17 +1,20 @@
 \name{anova}
-\alias{anova}
-\alias{print.anova}
 \title{Anova Tables}
 \usage{
 anova(object, \dots)
+print(anova.object)
 }
+\alias{anova}
+\alias{anova.mlm}
+% others in ./lm.summaries.Rd
+\alias{print.anova}
 \description{
   Compute analysis of variance (or deviance) tables for one or more
   fitted model objects.
 }
 \arguments{
-  \item{object}{an object containing the results returned by a model
-    fitting function (e.g., \code{lm} or \code{glm}).} 
+  \item{object}{an object containing the results returned
+    by a model fitting function (e.g. \code{lm} or \code{glm}).}
   \item{\dots}{additional objects of the same type.}
 }
 \value{
@@ -24,21 +27,16 @@ anova(object, \dots)
   the models against one another in the order specified.
 
   The print method for \code{anova} objects prints
-  tables in a \dQuote{pretty} form.
+  tables in a ``pretty'' form.
 }
 \section{Warning}{
   The comparison between two or more models will only be valid if they
   are fitted to the same dataset. This may be a problem if there are
   missing values and \R's default of \code{na.action = na.omit} is used.
 }
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical Models in S}, Wadsworth \& Brooks/Cole.
-}
 \seealso{
   \code{\link{coefficients}}, \code{\link{effects}},
-  \code{\link{fitted.values}}, \code{\link{residuals}},
-  \code{\link{summary}}, \code{\link{drop1}}, \code{\link{add1}}.
+  \code{\link{fitted.values}}, \code{\link{residuals}}, \code{\link{summary}}.
 }
 \keyword{regression}
 \keyword{models}

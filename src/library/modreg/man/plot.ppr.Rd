@@ -10,10 +10,10 @@ Plot Ridge Functions for Projection Pursuit Regression Fit
 Plot ridge functions for projection pursuit regression fit.
 }
 \usage{
-\method{plot}{ppr}(x, ask, type = "o", \dots)
+plot.ppr(fit, ask, type = "o", \dots)
 }
 \arguments{
-  \item{x}{
+  \item{fit}{
     A fit of class \code{"ppr"} as produced by a call to \code{ppr}.
   }
   \item{ask}{
@@ -23,7 +23,7 @@ Plot ridge functions for projection pursuit regression fit.
   \item{type}{
     the type of line to draw
   }
-  \item{\dots}{
+  \item{...}{
     further graphical parameters
   }
 }
@@ -48,7 +48,6 @@ plot(rock.ppr, main="ppr(log(perm)~ ., nterms=2, max.terms=5)")
 plot(update(rock.ppr, bass=5), main = "update(..., bass = 5)")
 plot(update(rock.ppr, sm.method="gcv", gcvpen=2),
      main = "update(..., sm.method=\"gcv\", gcvpen=2)")
-detach()
 }
 \keyword{hplot}
 % Converted by Sd2Rd version 0.2-a5.

@@ -26,10 +26,6 @@ is.vector(x, mode = "any")
   and \code{FALSE} otherwise.
 }
 \details{
-  \code{is.vector} returns \code{FALSE} if \code{x} has any attributes
-  except names.  (This is incompatible with S.)  On the other hand,
-  \code{as.vector} removes \emph{all} attributes including names.
-  
   Note that factors are \emph{not} vectors;  \code{is.vector} returns
   \code{FALSE} and \code{as.vector} converts to character mode.
 }
@@ -37,11 +33,6 @@ is.vector(x, mode = "any")
   For \code{vector}, a vector of the given length and mode.  Logical
   vector elements are initialized to \code{FALSE}, numeric vector
   elements to \code{0} and character vector elements to \code{""}.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
 \code{\link{c}}, \code{\link{is.numeric}}, \code{\link{is.list}}, etc.
@@ -51,13 +42,6 @@ df <- data.frame(x=1:3, y=5:7)
 \dontrun{## Error:
   as.vector(data.frame(x=1:3, y=5:7), mode="numeric")
 }
-
-x <- c(a = 1, b = 2)
-is.vector(x)
-as.vector(x)
-all.equal(x, as.vector(x)) ## FALSE
-
-
 ###-- All the following are TRUE:
 is.list(df)
 ! is.vector(df)

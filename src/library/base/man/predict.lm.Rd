@@ -9,21 +9,18 @@
 \method{predict}{lm}(object, newdata, se.fit = FALSE, scale = NULL, df = Inf, 
         interval = c("none", "confidence", "prediction"),
         level = 0.95, type = c("response", "terms"),
-        terms = NULL, na.action = na.pass, \dots)
+        terms = NULL, \dots)
 }
 \arguments{
-  \item{object}{Object of class inheriting from \code{"lm"}}
-  \item{newdata}{Data frame in which to predict}
-  \item{se.fit}{A switch indicating if standard errors are required.}
-  \item{scale}{Scale parameter for std.err. calculation}
-  \item{df}{Degrees of freedom for scale}
-  \item{interval}{Type of interval calculation}
-  \item{level}{Tolerance/confidence level}
-  \item{type}{Type of prediction (response or model term)}
-  \item{terms}{If \code{type="terms"}, which terms (default is all terms)}
-  \item{na.action}{function determining what should be done with missing
-    values in \code{newdata}.  The default is to predict \code{NA}.}
-  \item{\dots}{further arguments passed to or from other methods.}
+ \item{object}{Object of class inheriting from \code{"lm"}}
+ \item{newdata}{Data frame in which to predict}
+ \item{se.fit}{A switch indicating if standard errors are required.}
+ \item{scale}{Scale parameter for std.err. calculation}
+ \item{df}{Degrees of freedom for scale}
+ \item{interval}{Type of interval calculation}
+ \item{level}{Tolerance/confidence level}
+ \item{type}{Type of prediction (response or model term)}
+ \item{terms}{If \code{type="terms"}, which terms (default is all terms)}
 }
 \details{
   \code{predict.lm} produces predicted values, obtained by evaluating
@@ -35,11 +32,6 @@
   standard errors, otherwise this is extracted from the model fit.
   Setting \code{intervals} specifies computation of confidence or
   prediction (tolerance) intervals at the specified \code{level}.
-
-  If the fit is rank-deficient, some of the columns of the design matrix
-  will have been dropped.  Prediction from such a fit only makes sense
-  if \code{newdata} is contained in the same subspace as the original
-  data. That cannot be checked accurately, so a warning is issued.
 }
 \value{
   \code{predict.lm} produces a vector of predictions or a matrix of
@@ -57,8 +49,7 @@
   offset term in the formula will be.
 }
 \seealso{
-  The model fitting function \code{\link{lm}}, \code{\link{predict}},
-  \code{\link{SafePrediction}}
+  The model fitting function \code{\link{lm}}, \code{\link{predict}}.
 }
 \examples{
 ## Predictions

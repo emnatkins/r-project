@@ -1,14 +1,13 @@
 \name{anova.lm}
 \title{ANOVA for Linear Model Fits}
 \usage{
-\method{anova}{lm}(object, \dots)
-
+anova(object, \dots)
 anova.lmlist(object, \dots, scale = 0, test = "F")
 }
 \alias{anova.lm}
-%\alias{anova.lm.null}
+\alias{anova.lm.null}
 \alias{anova.lmlist}
-\alias{anova.mlm}
+\alias{anovalist.lm}
 \description{
   Compute an analysis of variance table for one or more linear model fits.
 }
@@ -60,18 +59,8 @@ anova.lmlist(object, \dots, scale = 0, test = "F")
   missing values and \R's default of \code{na.action = na.omit} is used,
   and \code{anova.lmlist} will detect this with an error.
 }
-\references{
-  Chambers, J. M. (1992)
-  \emph{Linear models.}
-  Chapter 4 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
-}
 \seealso{
-  The model fitting function \code{\link{lm}}, \code{\link{anova}}.
-
-  \code{\link{drop1}} for
-  so-called \sQuote{type II} anova where each term is dropped one at a
-  time respecting their hierarchy.
+  The model fitting function \code{\link{lm}}.
 }
 \examples{
 ## sequential table

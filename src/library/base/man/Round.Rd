@@ -13,6 +13,7 @@ zapsmall(x, digits= getOption("digits"))
 \alias{round}
 \alias{signif}
 \alias{trunc}
+\alias{trunc.default}
 \alias{zapsmall}
 \description{
   \code{ceiling} takes a single numeric argument \code{x} and returns a
@@ -26,7 +27,7 @@ zapsmall(x, digits= getOption("digits"))
   \code{round} rounds the values in its first argument to the specified
   number of decimal places (default 0).
   Note that for rounding off a 5, the IEEE standard is used,
-  \dQuote{\emph{go to the even digit}}.
+  \emph{``go to the even digit''}.
   Therefore \code{round(0.5)} is \code{0} and \code{round(-1.5)} is \code{-2}.
 
   \code{signif} rounds the values in its first argument to the specified
@@ -36,23 +37,9 @@ zapsmall(x, digits= getOption("digits"))
   numeric vector containing the integers by truncating the values in
   \code{x} toward \code{0}.
 
-  \code{zapsmall} determines a \code{digits} argument \code{dr} for
-  calling \code{round(x, digits = dr)} such that values \dQuote{close to
-    zero} (compared with the maximal absolute one) are \dQuote{zapped},
-  i.e., treated as \code{0}.
-}
-\arguments{
-  \item{x}{a numeric vector.}
-  \item{digits}{integer indicating the precision to be used.}
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole. (except \code{zapsmall}.)
-
-  Chambers, J. M. (1998)
-  \emph{Programming with Data. A Guide to the S Language}.
-  Springer. (\code{zapsmall}.)
+  \code{zapsmall} determines a \code{digits} argument \code{dr} for calling
+  \code{round(x, digits = dr)} such that values ``close to zero'' values
+  are ``zapped'', i.e., treated as \code{0}.
 }
 \seealso{
   \code{\link{as.integer}}.
@@ -64,6 +51,11 @@ round(x1)#-- IEEE rounding !
 x1[trunc(x1) != floor(x1)]
 x1[round(x1) != floor(x1 + .5)]
 (non.int <- ceiling(x1) != floor(x1))
+stopifnot(
+ trunc(x1) == as.integer(x1),
+ non.int == (ceiling(x1) != trunc(x1) | trunc(x1) != floor(x1)),
+ (signif(x1, 1) != round(x1,1)) == (non.int & abs(x1) > 1)
+)
 
 x2 <- pi * 100^(-1:3)
 round(x2, 3)

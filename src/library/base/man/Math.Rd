@@ -11,18 +11,10 @@ These functions compute miscellaneous mathematical functions.
 The naming follows the standard for computer languages
 such as C or Fortran.
 }
-\arguments{
-  \item{x}{a numeric vector}
-}
 \seealso{
 \code{\link{Arithmetic}} for simple, \code{\link{log}} for logarithmic,
 \code{\link{sin}} for trigonometric, and \code{\link{Special}} for
 special mathematical functions.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \examples{
 xx <- -9:9

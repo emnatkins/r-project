@@ -1,17 +1,11 @@
 \name{friedman.test}
 \alias{friedman.test}
-\alias{friedman.test.default}
-\alias{friedman.test.formula}
 \title{Friedman Rank Sum Test}
 \description{
   Performs a Friedman rank sum test with unreplicated blocked data.
 }
 \usage{
-friedman.test(y, \dots)
-
-\method{friedman.test}{default}(y, groups, blocks, \dots)
-
-\method{friedman.test}{formula}(formula, data, subset, na.action, \dots)
+friedman.test(y, groups, blocks)
 }
 \arguments{
   \item{y}{either a numeric vector of data values, or a data matrix.}
@@ -21,17 +15,6 @@ friedman.test(y, \dots)
   \item{blocks}{a vector giving the block for the corresponding
     elements of \code{y} if this is a vector;  ignored if \code{y}
     is a matrix.  If not a factor object, it is coerced to one.}
-  \item{formula}{a formula of the form \code{a ~ b | c}, where \code{a},
-    \code{b} and \code{c} give the data values and corresponding groups
-    and blocks, respectively.}
-  \item{data}{an optional data frame containing the variables in the
-    model formula.}
-  \item{subset}{an optional vector specifying a subset of observations
-    to be used.}
-  \item{na.action}{a function which indicates what should happen when
-    the data contain \code{NA}s.  Defaults to
-    \code{getOption("na.action")}.}
-  \item{\dots}{further arguments to be passed to or from methods.}    
 }
 \details{
   \code{friedman.test} can be used for analyzing unreplicated complete
@@ -68,8 +51,8 @@ friedman.test(y, \dots)
 }
 \examples{
 ## Hollander & Wolfe (1973), p. 140ff.
-## Comparison of three methods ("round out", "narrow angle", and
-##  "wide angle") for rounding first base.  For each of 18 players
+## Comparison of three methods (``round out'', ``narrow angle'', and
+##  ``wide angle'') for rounding first base.  For each of 18 players
 ##  and the three method, the average time of two runs from a point on
 ##  the first base line 35ft from home plate to a point 15ft short of
 ##  second base is recorded.
@@ -111,6 +94,5 @@ wb <- aggregate(warpbreaks$breaks,
                 FUN = mean)
 wb
 friedman.test(wb$x, wb$w, wb$t)
-friedman.test(x ~ w | t, data = wb)
 }
 \keyword{htest}

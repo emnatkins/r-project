@@ -3,7 +3,7 @@
 \alias{varimax}
 \title{Rotation Methods for Factor Analysis}
 \description{
-  These functions \sQuote{rotate} loading matrices in factor analysis.
+  These functions `rotate' loading matrices in factor analysis.
 }
 \usage{
 varimax(x, normalize = TRUE, eps = 1e-5)
@@ -20,17 +20,16 @@ promax(x, m = 4)
     of singular values.}
 }
 \details{
-  These seek a \sQuote{rotation} of the factors \code{x \%*\% T} that
-  aims to clarify the structure of the loadings matrix.  The matrix
-  \code{T} is a rotation (possibly with reflection) for \code{varimax},
-  but a general linear transformation for \code{promax}, with the
-  variance of the factors being preserved.
+  These seek a `rotation' of the factors \code{x \%*\% T} that aims to
+  clarify the structure of the loadings matrix.  The matrix \code{T}
+  is a rotation (possibly with reflection) for \code{varimax}, but a
+  general linear transformation for \code{promax}, with the variance of
+  the factors being preserved.
 }
 \value{
   A list with components
-  \item{loadings}{The \sQuote{rotated} loadings matrix,
-    \code{x \%*\% rotmat}.}
-  \item{rotmat}{The \sQuote{rotation} matrix.}
+  \item{loadings}{The `rotated' loadings matrix, \code{x \%*\% rotmat}.}
+  \item{rotmat}{The `rotation matrix.}
 }
 \references{
   Hendrickson, A. E. and White, P. O. (1964) Promax: a quick method for
@@ -46,6 +45,7 @@ promax(x, m = 4)
   Lawley, D. N. and Maxwell, A. E. (1971) \emph{Factor Analysis as a
     Statistical Method}. Second edition. Butterworths.
 }
+\author{B. D. Ripley}
 \seealso{\code{\link{factanal}}, \code{\link{Harman74.cor}}.}
 
 \examples{

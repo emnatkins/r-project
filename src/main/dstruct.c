@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 2001-3  The R Development Core Team
+ *  Copyright (C) 2001  The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 /*           This operation is non-destructive     */
 /*           i.e. first and second are duplicated  */
 
-SEXP Rf_append(SEXP first, SEXP second)
+SEXP append(SEXP first, SEXP second)
 {
     SEXP e;
 
@@ -75,11 +75,7 @@ SEXP mkCLOSXP(SEXP formals, SEXP body, SEXP rho)
     SET_FORMALS(c, formals);
 #endif
     if(isList(body) || isLanguage(body) || isSymbol(body)
-       || isExpression(body) || isVector(body)
-#ifdef BYTECODE
-       || isByteCode(body)
-#endif
-       )
+       || isExpression(body) || isVector(body))
 	SET_BODY(c, body);
     else
         error("invalid body argument for \"function\"\n"
@@ -99,10 +95,8 @@ SEXP mkChar(const char *name)
 {
     SEXP c;
 
-#if 0
     if (streql(name, "NA"))
 	return (NA_STRING);
-#endif
     c = allocString(strlen(name));
     strcpy(CHAR(c), name);
     return c;
@@ -112,7 +106,7 @@ SEXP mkChar(const char *name)
 /*  mkSYMSXP - return a symsxp with the string  */
 /*             name inserted in the name field  */
 
-static int isDDName(SEXP name)
+static int ddVal(SEXP name)
 {
     char *buf, *endp;
 
@@ -135,7 +129,7 @@ SEXP mkSYMSXP(SEXP name, SEXP value)
     int i;
     PROTECT(name);
     PROTECT(value);
-    i = isDDName(name);
+    i = ddVal(name);
     c = allocSExp(SYMSXP);
     SET_PRINTNAME(c, name);
     SET_SYMVALUE(c, value);

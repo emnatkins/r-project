@@ -24,24 +24,35 @@
 
 #include <Rconfig.h>
 #define MATHLIB_PRIVATE
-#include <Rmath.h>
+#include "R_ext/Mathlib.h"
 #undef  MATHLIB_PRIVATE
-#include <R_ext/RS.h>
+#include "R_ext/RS.h"
 
 #ifndef MATHLIB_STANDALONE
 /* Mathlib in R */
 
-#include <R_ext/Error.h>
+#include "R_ext/Error.h"
 # define MATHLIB_ERROR(fmt,x)		error(fmt,x);
 # define MATHLIB_WARNING(fmt,x)		warning(fmt,x)
 # define MATHLIB_WARNING2(fmt,x,x2)	warning(fmt,x,x2)
 # define MATHLIB_WARNING3(fmt,x,x2,x3)	warning(fmt,x,x2,x3)
 # define MATHLIB_WARNING4(fmt,x,x2,x3,x4) warning(fmt,x,x2,x3,x4)
 
-#include <R_ext/Arith.h>
+#include "R_ext/Arith.h"
 #define ML_POSINF	R_PosInf
 #define ML_NEGINF	R_NegInf
 #define ML_NAN		R_NaN
+
+#ifdef IEEE_754
+#define ML_ERROR(x)	/* nothing */
+#define ML_UNDERFLOW	(DBL_MIN * DBL_MIN)
+#define ML_VALID(x)	(!ISNAN(x))
+#else
+void ml_error(int n);
+#define ML_ERROR(x)	ml_error(x)
+#define ML_UNDERFLOW	0
+#define ML_VALID(x)	(errno == 0)
+#endif
 
 #else
 /* Mathlib standalone */
@@ -53,11 +64,7 @@
 # define MATHLIB_WARNING3(fmt,x,x2,x3)	printf(fmt,x,x2,x3)
 # define MATHLIB_WARNING4(fmt,x,x2,x3,x4) printf(fmt,x,x2,x3,x4)
 
-#ifdef IEEE_754
-# define ISNAN(x) (isnan(x)!=0)
-#else
-# define ISNAN(x)      R_IsNaNorNA(x)
-#endif
+#define ISNAN(x)       R_IsNaNorNA(x)
 #define R_FINITE(x)    R_finite(x)
 int R_IsNaNorNA(double);
 int R_finite(double);
@@ -124,7 +131,7 @@ void ml_error(int n);
 	/* Chebyshev Series */
 
 int	chebyshev_init(double*, int, double);
-double	chebyshev_eval(double, const double *, const int);
+double	chebyshev_eval(double, double *, int);
 
 	/* Gamma and Related Functions */
 

@@ -12,15 +12,15 @@
 prcomp(x, retx = TRUE, center = TRUE, scale. = FALSE, tol = NULL)
 }
 \arguments{
-  \item{x}{a numeric or complex matrix (or data frame) which provides
-    the data for the principal components analysis.}
+  \item{x}{a matrix (or data frame) which provides the data for the
+    principal components analysis.}
   \item{retx}{a logical value indicating whether the rotated variables
     should be returned.}
   \item{center}{a logical value indicating whether the variables
     should be shifted to be zero centered. Alternately, a vector of
     length equal the number of columns of \code{x} can be supplied.
     The value is passed to \code{scale}.}
-  \item{scale.}{a logical value indicating whether the variables should
+  \item{scale}{a logical value indicating whether the variables should
     be scaled to have unit variance before the analysis takes
     place. The default is \code{FALSE} for consistency with S, but
     in general scaling is advisable. Alternately, a vector of length
@@ -55,20 +55,8 @@ prcomp(x, retx = TRUE, center = TRUE, scale. = FALSE, tol = NULL)
   is generally the preferred method for numerical accuracy.  The
   \code{print} method for the these objects prints the results in a nice
   format and the \code{plot} method produces a scree plot.
-
-  If the input has more variables than units then \code{\link{La.svd}}
-  is used, and the results may differ in sign from versions prior to 1.7.0.
-}
-\note{
-  The signs of the columns of the rotation matrix are arbitrary, and
-  so may differ between different programs for PCA, and even between
-  different builds of \R.
 }
 \references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-
   Mardia, K. V., J. T. Kent, and J. M. Bibby (1979)
   \emph{Multivariate Analysis}, London: Academic Press.
 

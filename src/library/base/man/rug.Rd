@@ -2,21 +2,16 @@
 \title{Add a Rug to a Plot}
 \alias{rug}
 \usage{
-rug(x, ticksize=0.03, side=1, lwd=0.5, col,
-    quiet = getOption("warn") < 0, \dots)
+rug(x, ticksize=0.03, side=1, lwd=0.5, col)
 }
 \arguments{
  \item{x}{A numeric vector}
- \item{ticksize}{The length of the ticks making up the \sQuote{rug}.
-   Positive lengths give inwards ticks.}
+ \item{ticksize}{The length of the ticks making up the `rug'. Positive
+   lengths give inwards ticks.}
  \item{side}{On which side of the plot box the rug will be
    plotted. Normally 1 (bottom) or 3 (top).}
  \item{lwd}{The line width of the ticks.}
  \item{col}{The colour the ticks are plotted in, default is black.}
- \item{quiet}{logical indicating if there should be a warning about
-   clipped values.}
- \item{\dots}{further arguments, passed to \code{\link{axis}(...)}, such
-   as \code{line} or \code{pos} for specifying the location of the rug.}
 }
 \description{
   Adds a \emph{rug} representation (1-d plot) of the data to the plot.
@@ -31,18 +26,14 @@ rug(x, ticksize=0.03, side=1, lwd=0.5, col,
   same as the ticks.  You can always replot the box in black if you don't
   like this feature.
 }
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical Models in S.}
-  Wadsworth \& Brooks/Cole.
-}
+\author{B. D. Ripley}
 \seealso{\code{\link{jitter}} which you may want for ties in \code{x}.}
 \examples{
 data(faithful)
-with(faithful, {
-    plot(density(eruptions, bw=0.15))
-    rug(eruptions)
-    rug(jitter(eruptions, amount = .01), side = 3, col = "light blue")
-})
+attach(faithful)
+plot(density(eruptions, bw=0.15))
+rug(eruptions)
+rug(jitter(eruptions, amount = .01), side = 3, col = "light blue")
+detach("faithful")
 }
-\keyword{aplot}
+\keyword{hplot}

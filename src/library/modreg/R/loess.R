@@ -1,3 +1,7 @@
+# file modreg/R/loess.R
+# copyright (C) 1998 B. D. Ripley
+# Copyright (C) 2000 The R Development Core Team
+#
 loess <-
 function(formula, data=NULL, weights, subset, na.action, model = FALSE,
 	 span = 0.75, enp.target, degree = 2, parametric = FALSE,
@@ -6,17 +10,14 @@ function(formula, data=NULL, weights, subset, na.action, model = FALSE,
 	 method = c("loess", "model.frame"),
 	 control = loess.control(...), ...)
 {
-    family <- match.arg(family)
-    method <- match.arg(method)
     mt <- terms(formula, data = data)
     mf <- match.call(expand.dots=FALSE)
     mf$model <- mf$span <- mf$enp.target <- mf$degree <-
 	mf$parametric <- mf$drop.square <- mf$normalize <- mf$family <-
-	    mf$method <- mf$control <- mf$... <- NULL
+	    mf$control <- mf$... <- NULL
     mf[[1]] <- as.name("model.frame")
     mf <- eval(mf, parent.frame())
     if (match.arg(method) == "model.frame") return(mf)
-    na.act <- attr(mf, "na.action")
     y <- model.response(mf, "numeric")
     w <- model.weights(mf)
     if(is.null(w)) w <- rep(1, length(y))
@@ -48,7 +49,6 @@ function(formula, data=NULL, weights, subset, na.action, model = FALSE,
     fit$y <- y
     fit$weights <- w
     if(model) fit$model <- mf
-    if(!is.null(na.act)) fit$na.action <- na.act
     fit
 }
 
@@ -74,7 +74,6 @@ simpleLoess <-
     ## loess_ translated to R.
 
     D <- NCOL(x)
-    if(D > 4) stop("only 1-4 predictors are allowed")
     N <- NROW(x)
     if(!N || !D)	stop("invalid `x'")
     if(!length(y))	stop("invalid `y'")
@@ -105,11 +104,11 @@ simpleLoess <-
     for(j in 1:iterations) {
 	robust <- weights * robust
 	if(j > 1) statistics <- "none"
-	else if(surface == "interpolate" && statistics == "approximate")
-	    statistics <- if(trace.hat == "exact") "1.approx"
-            else "2.approx" # trace.hat == "approximate"
+	if(surface == "interpolate" && statistics == "approximate")
+	    statistics <- if(trace.hat == "approximate") "2.approx"
+	    else if(trace.hat == "exact") "1.approx"
 	surf.stat <- paste(surface, statistics, sep="/")
-	z <- .C("loess_raw", # ../src/loessc.c
+	z <- .C("loess_raw",
 		as.double(y),
 		as.double(x),
 		as.double(weights),
@@ -213,18 +212,18 @@ simpleLoess <-
     fit
 }
 
-predict.loess <- function(object, newdata = NULL, se = FALSE, ...)
+predict.loess <- function(object, newdata = NULL, se = FALSE)
 {
     if(!inherits(object, "loess"))
 	stop("First argument must be a loess object")
     if(is.null(newdata) & (se == FALSE)) return(fitted(object))
 
-    if(is.null(newdata)) newx <- object$x
+    if(is.null(newdata)) newx <- .Alias(object$x)
     else {
 	vars <- as.character(attr(delete.response(terms(object)),
 				  "variables"))[-1]
 	newx <- if(length(vars) > 1 || NCOL(newdata) > 1) {
-	    if(any(!match(vars, colnames(newdata), FALSE)))
+	    if(any(!match(vars, colnames(newdata), F)))
 		stop("newdata does not contain the variables needed")
 	    as.matrix(newdata[, vars, drop=FALSE])
 	} else as.matrix(newdata)
@@ -251,6 +250,7 @@ predLoess <-
     newx <- newx/rep(divisor, rep(M, D))
     x <- x/rep(divisor, rep(N, D))
     sum.drop.sqr <- sum(drop.square)
+    sum.parametric <- sum(parametric)
     nonparametric <- sum(!parametric)
     order.parametric <- order(parametric)
     x <- x[, order.parametric, drop=FALSE]
@@ -426,7 +426,7 @@ loess.smooth <-
     control <- loess.control(...)
     ##	x <- matrix(x, ncol = 1)
     ##	n <- length(y)
-    w <- rep(1, length(y))
+    robust <- w <- rep(1, length(y))
     family <- match.arg(family)
     iterations <- if(family == "gaussian") 1 else control$iterations
     fit <- simpleLoess(y, x, w, span, degree, FALSE, FALSE,
@@ -482,7 +482,7 @@ anova.loess <- function(object, ...)
     dfnum <- c(d1diff^2/abs(diff(delta2)))
     dfden <- (delta1^2/delta2)[max.enp]
     Fvalue <- c(NA, (abs(diff(rss))/d1diff)/s[max.enp]^2)
-    pr <- pf(Fvalue, dfnum, dfden, lower.tail = FALSE)
+    pr <- 1 - pf(Fvalue, dfnum, dfden)
     ans <- data.frame(ENP = round(enp,2), RSS = rss, "F-value" = Fvalue,
 		      "Pr(>F)" = pr, check.names = FALSE)
     attr(ans, "heading") <-

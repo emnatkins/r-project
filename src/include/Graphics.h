@@ -319,28 +319,24 @@ typedef struct {
 } GPar;
 
 typedef struct {
-    /* New flag to indicate that this is an "old" device
-     * structure.
-     */
-    int newDevStruct;
-    GPar dp;		/* current device default parameters */
-    GPar gp;		/* current device current parameters */
-    GPar dpSaved;		/* saved device default parameters */
-    void *deviceSpecific;	/* pointer to device specific parameters */
-    Rboolean displayListOn;	/* toggle for display list status */
-    SEXP displayList;	/* display list */
+	GPar dp;		/* current device default parameters */
+	GPar gp;		/* current device current parameters */
+	GPar dpSaved;		/* saved device default parameters */
+	void *deviceSpecific;	/* pointer to device specific parameters */
+	Rboolean displayListOn;	/* toggle for display list status */
+	SEXP displayList;	/* display list */
 } DevDesc;
 
-/* For easy reference: Here are the source files of
+/* For easy reference: Here are the source files of 
  * currently existing device drivers:
  * FILE				driver name prefix
  * ----------------------	------------------
- * ../main/devPS.c		PS , PDF _and_  XFig
+ * ../main/devPS.c		PS  _and_  XFig
  * ../main/devPicTeX.c		PicTeX
- * ../modules/X11/devX11.c	X11
+ * ../unix/X11/devX11.c		X11
  * ../gnuwin32/devga.c		GA
- * ../modules/gnome/devGTK.c	GTK
- * ../modules/gnome/devGNOME.c	Gnome
+ * ../unix/gnome/devGTK.c	GTK
+ * ../unix/gnome/devGNOME.c	Gnome
  */
 
 /* always remap private functions */
@@ -348,18 +344,15 @@ typedef struct {
 #define char2col		Rf_char2col
 #define col2name		Rf_col2name
 #define copyGPar		Rf_copyGPar
-#define curDevice               Rf_curDevice
-#define GetDevice               Rf_GetDevice
 #define GInit			Rf_GInit
 #define name2col		Rf_name2col
-#define nextDevice              Rf_nextDevice
 #define number2col		Rf_number2col
-#define NumDevices              Rf_NumDevices
 #define rgb2col			Rf_rgb2col
 #define RGB2rgb			Rf_RGB2rgb
 #define ScaleColor		Rf_ScaleColor
 #define str2col			Rf_str2col
 #define StrMatch		Rf_StrMatch
+
 
 /* Default the settings for general graphical parameters
  * (i.e., defaults that do not depend on the device type: */
@@ -367,17 +360,7 @@ void GInit(GPar*);
 
 void copyGPar(GPar *, GPar *);
 
-int curDevice(void);
 
-DevDesc* GetDevice(int i);
-
-int nextDevice(int from);
-
-int NumDevices(void);
-
-int deviceNumber(DevDesc *dd);
-
-int devNumber(DevDesc *dd);
 
 		/* Miscellaneous (from graphics.c & colors.c) */
 
@@ -390,23 +373,11 @@ unsigned int str2col(char *);
 char* col2name(unsigned int);
 
 unsigned int ScaleColor(double x);
-unsigned int CheckColor(int x);
 
 char* RGB2rgb(unsigned int, unsigned int, unsigned int);
 
 int StrMatch(char *s, char *t);
 
 double R_Log10(double);
-
-#include <R_ext/GraphicsDevice.h>
-#include <R_ext/GraphicsEngine.h>
-#include <R_ext/GraphicsBase.h>
-
-/* FIXME: Make this a macro to avoid function call overhead?
- */
-GPar* Rf_gpptr(DevDesc *dd);
-GPar* Rf_dpptr(DevDesc *dd);
-GPar* Rf_dpSavedptr(DevDesc *dd);
-SEXP Rf_displayList(DevDesc *dd);
 
 #endif /* GRAPHICS_H_ */

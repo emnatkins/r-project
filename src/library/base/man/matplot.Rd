@@ -74,11 +74,6 @@ matlines (x, y, type = "l", lty = 1:5, lwd = 1, pch = NULL, col = 1:6, \dots)
   functions may be changing the line style, you should probably specify
   \code{lty=1} when using plotting symbols.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
   \code{\link{plot}}, \code{\link{points}}, \code{\link{lines}},
   \code{\link{matrix}}, \code{\link{par}}.
@@ -96,7 +91,7 @@ matplot(x, outer(x, 1:8, function(x, k) sin(k*pi * x)),
 matplot(x, outer(x, 1:4, function(x, k) sin(k*pi * x)),
         pch = letters[1:4], type = c("b","p","o"))
 
-data(iris)                  # is data.frame with 'Species' factor
+data(iris)                  # is data.frame with  `Species' factor
 table(iris$Species)
 iS <- iris$Species == "setosa"
 iV <- iris$Species == "versicolor"

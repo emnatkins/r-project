@@ -1,5 +1,4 @@
 \name{localeconv}
-\alias{localeconv}
 \alias{Sys.localeconv}
 \title{Find Details of the Numerical Representations in the Current Locale}
 \description{
@@ -16,7 +15,7 @@ Sys.localeconv()
   case the value will be \code{NULL}.
 }
 \seealso{
-  \code{\link{Sys.setlocale}} for ways to set locales: by default \R uses the
+  \code{\link{locales}} for ways to set locales: by default \R uses the
   C clocal for \code{"LC_NUMERIC"} and \code{"LC_MONETARY"}.
 }
 \examples{

@@ -3,36 +3,47 @@
    */
 
 #include <R.h>
-#include <Rmath.h>		/* uses choose() */
+#include <Rmath.h> /* uses choose() */
 
-#include "ctest.h"
+static double ***w;
 
-/*
-  Removed the non-local variable `double ***w' and moved to R_alloc from
-  Calloc.
-  The tests for whether the memory was allocated have been discarded as
-  R_alloc will throw an error.
-  The .C() will handle the vmaxget() and vmaxset().
- */
+static void
+errmsg(char *s)
+{
+    PROBLEM "%s", s RECOVER(NULL_ENTRY);
+}
 
-static double ***
+static void
 w_init(Sint m, Sint n)
 {
     Sint i;
-    double ***w;
     
-    w = (double ***) R_alloc(m + 1, sizeof(double **));
-    memset(w, '\0', (m+1) * sizeof(double**));
+    w = Calloc(m + 1, double **);
+    if (!w)
+	errmsg("allocation error 1 in `ansari.c'");
     for (i = 0; i <= m; i++) {
-	w[i] = (double**) R_alloc(n + 1, sizeof(double *));
-	memset(w[i], '\0', (n+1) * sizeof(double*));
+	w[i] = Calloc(n + 1, double *);
+	if (!w[i])
+	    errmsg("allocation error 2 in `ansari.c'");
     }
-    return(w);
 }
 
+static void
+w_free(Sint m, Sint n)
+{
+    Sint i, j;
+    for (i = m; i >= 0; i--) {
+	for (j = n; j >= 0; j--) {
+	    Free(w[i][j]);
+        }
+	Free(w[i]);
+    }
+    Free(w);
+    w = 0;
+}
 
 static double
-cansari(int k, int m, int n, double ***w)
+cansari(int k, int m, int n)
 {
     int i, l, u;
 
@@ -43,8 +54,9 @@ cansari(int k, int m, int n, double ***w)
 	return(0);
 
     if (w[m][n] == 0) {
-	w[m][n] = (double *) R_alloc(u + 1, sizeof(double));
-	memset(w[m][n], '\0', (u + 1) * sizeof(double));
+	w[m][n] = Calloc(u + 1, double);
+	if (!w[m][n])
+	    errmsg("allocation error in cansari()");
 	for (i = 0; i <= u; i++)
 	    w[m][n][i] = -1;
     }
@@ -55,34 +67,27 @@ cansari(int k, int m, int n, double ***w)
 	else if (n == 0)
 	    w[m][n][k] = (k == l);
 	else
-	    w[m][n][k] = cansari(k, m, n - 1, w)
-		+ cansari(k - (m + n + 1) / 2, m - 1, n, w);
+	    w[m][n][k] = cansari(k, m, n - 1)
+		+ cansari(k - (m + n + 1) / 2, m - 1, n);
     }
 
     return(w[m][n][k]);
 }
 
-
-/*
-  Is this ever called?
-  There is no .C() in the package.
-  However, apparently users know about it.
-  And indeed, package `exactRankTests' uses it.
- */
 void
 dansari(Sint *len, double *x, Sint *m, Sint *n)
 {
     Sint i;
-    double ***w;
 
-    w = w_init(*m, *n);
+    w_init(*m, *n);
     for (i = 0; i < *len; i++)
 	if (fabs(x[i] - floor(x[i] + 0.5)) > 1e-7) {
 	    x[i] = 0;
 	} else {
-	    x[i] = cansari((Sint)x[i], (Sint)*m, (Sint)*n, w)
+	    x[i] = cansari((Sint)x[i], (Sint)*m, (Sint)*n)
 		/ choose(*m + *n, *m);
 	}
+    w_free(*m, *n);
 }
 
 void
@@ -90,9 +95,8 @@ pansari(Sint *len, double *x, Sint *m, Sint *n)
 {
     Sint i, j, l, u;
     double c, p, q;
-    double ***w;
 
-    w = w_init(*m, *n);
+    w_init(*m, *n);
     l = (*m + 1) * (*m + 1) / 4;
     u = l + *m * *n / 2;
     c = choose(*m + *n, *m);
@@ -105,11 +109,12 @@ pansari(Sint *len, double *x, Sint *m, Sint *n)
 	else {
 	    p = 0;
 	    for (j = l; j <= q; j++) {
-		p += cansari((Sint)j, (Sint)*m, (Sint)*n, w);
+		p += cansari((Sint)j, (Sint)*m, (Sint)*n);
 	    }
 	    x[i] = p / c;
 	}
     }
+    w_free(*m, *n);
 }
 
 void
@@ -117,16 +122,15 @@ qansari(Sint *len, double *x, Sint *m, Sint *n)
 {
     Sint i, l, u;
     double c, p, q, xi;
-    double ***w;
 
-    w = w_init(*m, *n);
+    w_init(*m, *n);
     l = (*m + 1) * (*m + 1) / 4;
     u = l + *m * *n / 2;
     c = choose(*m + *n, *m);    
     for (i = 0; i < *len; i++) {
 	xi = x[i];
         if(xi < 0 || xi > 1)
-	    error("probabilities outside [0,1] in qansari()");
+	    errmsg("probabilities outside [0,1] in qansari()");
 	if(xi == 0)
 	    x[i] = l;
 	else if(xi == 1)
@@ -135,7 +139,7 @@ qansari(Sint *len, double *x, Sint *m, Sint *n)
 	    p = 0;
 	    q = 0;
 	    for(;;) {
-		p += cansari(q, (Sint)*m, (Sint)*n, w) / c;
+		p += cansari(q, (Sint)*m, (Sint)*n) / c;
 		if (p >= xi)
 		    break;
 		q++;
@@ -143,4 +147,5 @@ qansari(Sint *len, double *x, Sint *m, Sint *n)
 	    x[i] = q;
 	}
     }
+    w_free(*m, *n);
 }

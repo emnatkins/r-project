@@ -11,7 +11,7 @@ dput(x, file = "")
 dget(file)
 }
 \arguments{
-  \item{x}{an object.}
+  \item{}{an object.}
   \item{file}{either a character string naming a file or a
     connection. \code{""} indicates output to the console.}
 }
@@ -23,14 +23,6 @@ dget(file)
 
   Using \code{dget}, the object can be recreated (with the limitations
   mentioned above).
-
-  \code{dput} will warn if fewer characters were written to a file than
-  expected, which may indicate a full or corrupt file system.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{deparse}}, \code{\link{dump}}, \code{\link{write}}.
@@ -38,7 +30,7 @@ dget(file)
 \examples{
 ## Write an ASCII version of mean to the file "foo"
 dput(mean, "foo")
-## And read it back into 'bar'
+## And read it back into `bar'
 bar <- dget("foo")
 unlink("foo")
 }

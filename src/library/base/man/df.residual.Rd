@@ -1,16 +1,15 @@
 \name{df.residual}
 \alias{df.residual}
-\alias{df.residual.default}
 \title{Residual Degrees-of-Freedom}
 \description{
   Returns the residual degrees-of-freedom extracted from a fitted model
   object.
 }
 \usage{
-df.residual(object, \dots)
+df.residual(x, \dots)
 }
 \arguments{
-  \item{object}{an object for which the degrees-of-freedom are desired.}
+  \item{x}{an object for which the degrees-of-freedom are desired.}
   \item{\dots}{additional optional arguments.}
 }
 \details{
@@ -18,7 +17,7 @@ df.residual(object, \dots)
   degrees-of-freedom for fitted models.  Consult the individual modeling
   functions for details details on how to use this function.
 
-  The default method just extracts the \code{df.residual} component.
+  There is no default method for this function.
 }
 \value{
   The value of the residual degrees-of-freedom extracted from the object

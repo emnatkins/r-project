@@ -1,6 +1,7 @@
+#### copyright (C) 1998 B. D. Ripley
 model.tables <- function(x, ...) UseMethod("model.tables")
 
-model.tables.aov <- function(x, type = "effects", se = FALSE, cterms, ...)
+model.tables.aov <- function(x, type = "effects", se = FALSE, cterms)
 {
     if(inherits(x, "maov"))
 	stop("model.tables is not implemented for multiple responses")
@@ -87,12 +88,12 @@ model.tables.aovlist <- function(x, type = "effects", se = FALSE, ...)
     factors <- lapply(prjs, attr, "factors")
     dn.proj <- unlist(lapply(factors, names), recursive = FALSE)
     m.factors <- unlist(factors, recursive = FALSE)
-    dn.strata <- rep.int(names(factors), unlist(lapply(factors, length)))
+    dn.strata <- rep(names(factors), unlist(lapply(factors, length)))
     names(dn.strata) <- names(m.factors) <- names(dn.proj) <- unlist(dn.proj)
     t.factor <- attr(prjs, "t.factor")
     efficiency <- FALSE
     if(type == "effects" || type == "means") {
-	if(any(duplicated(names(dn.proj)[names(dn.proj)!= "Residuals"]))) {
+	if(any(duplicated(nms <- names(dn.proj)[names(dn.proj)!= "Residuals"]))) {
 	    efficiency <- eff.aovlist(x)
 	    ## Elect to use the effects from the lowest stratum:
 	    ##	usually expect this to be highest efficiency
@@ -148,7 +149,7 @@ model.tables.aovlist <- function(x, type = "effects", se = FALSE, ...)
 				    efficiency, n, type = type)
 	}
     result <- list(tables = tables, n = n)
-    if(se) result$se <- se.tables
+    if(se) result <- append(result, list(se = se.tables))
     attr(result, "type") <- type
     class(result) <- c("tables.aov", "list.of")
     result
@@ -183,9 +184,8 @@ make.tables.aovproj <-
 	terms <- proj.cols[[i]]
 	data <-
 	    if(length(terms) == 1) prjs[, terms]
-	    else prjs[, terms] %*% as.matrix(rep.int(1, length(terms)))
-	tables[[i]] <- tapply(data, mf[mf.cols[[i]]],
-                              get(fun, mode="function"))
+	    else prjs[, terms] %*% as.matrix(rep(1, length(terms)))
+	tables[[i]] <- tapply(data, mf[mf.cols[[i]]], get(fun))
 	class(tables[[i]]) <- "mtable"
 	if(prt) print(tables[i], ..., quote = FALSE)
     }
@@ -203,7 +203,7 @@ make.tables.aovprojlist <-
 	for(i in seq(length(tables))) {
 	    terms <- proj.cols[[i]]
 	    if(all(is.na(eff.i <- match(terms, names(eff)))))
-		eff.i <- rep.int(1, length(terms))
+		eff.i <- rep(1, length(terms))
 	    if(length(terms) == 1)
 		data <- projections[[strata.cols[i]]][, terms]/ eff[eff.i]
 	    else {
@@ -219,8 +219,7 @@ make.tables.aovprojlist <-
 		    data <- mat %*% as.matrix(1/eff[eff.i])
 		}
 	    }
-	    tables[[i]] <- tapply(data, model[model.cols[[i]]],
-                                  get(fun, mode="function"))
+	    tables[[i]] <- tapply(data, model[model.cols[[i]]], get(fun))
 	    attr(tables[[i]], "strata") <- strata.cols[i]
 	    class(tables[[i]]) <- "mtable"
 	    if(prt) print(tables[i], ..., quote = FALSE)
@@ -231,14 +230,14 @@ make.tables.aovprojlist <-
 	else {
 	    if(length(strata <- unique(strata.cols[terms])) == 1)
 		data <- projections[[strata]][, terms] %*%
-		    as.matrix(rep.int(1, length(terms)))
+		    as.matrix(rep(1, length(terms)))
 	    else {
 		mat <- NULL
 		for(j in strata) {
 		    mat <- cbind(mat, projections[[j]][, terms[!is.na(match(terms,
 									    names(strata.cols)[strata.cols == j]))]])
 		}
-		data <- mat %*% as.matrix(rep.int(1, length(terms)))
+		data <- mat %*% as.matrix(rep(1, length(terms)))
 	    }
 	}
 	tables[[i]] <- tapply(data, model[model.cols[[i]]], get(fun))
@@ -265,8 +264,7 @@ replications <- function(formula, data = NULL, na.action)
 	formula <- terms(formula, data = data)
     }
     if(missing(na.action))
-        if(!is.null(tj <- attr(data, "na.action")) && is.function(tj))
-            na.action <- tj
+        if(!is.null(tj <- attr(data, "na.action"))) na.action <- tj
         else {
             naa <- getOption("na.action")
             if(!is.null(naa)) na.action <- match.fun(naa)
@@ -345,10 +343,10 @@ print.tables.aov <- function(x, digits = 4, ...)
 		ctable <- aperm(ctable, c(1, d, 2:(d - 1)))
 		dim(ctable) <- c(dim.t[1] * dim.t[d], dim.t[-c(1, d)])
 		dimnames(ctable) <-
-		    c(list(format(c(rownames(table), rep.int("rep", dim.t[1])))),
-                      dimnames(table)[-1])
+		    append(list(format(c(rownames(table), rep("rep", dim.t[1])))),
+			   dimnames(table)[-1])
 		ctable <- eval(parse(text = paste(
-				     "ctable[as.numeric(t(matrix(seq(nrow(ctable)),ncol=2)))", paste(rep.int(", ", d - 2), collapse = " "), "]")))
+				     "ctable[as.numeric(t(matrix(seq(nrow(ctable)),ncol=2)))", paste(rep(", ", d - 2), collapse = " "), "]")))
 		names(dimnames(ctable)) <- names(dimnames(table))
 		class(ctable) <- "mtable"
 		print.mtable(ctable, digits = digits, ...)
@@ -369,7 +367,7 @@ print.tables.aov <- function(x, digits = 4, ...)
 	    cn <- names(se.aov)
 	    se.aov <- rbind(format(se.aov, digits = digits), format(n.aov))
 	    dimnames(se.aov) <- list(c(" ", rn), cn)
-	    print(se.aov, quote=FALSE, right=TRUE, ...)
+	    print.matrix(se.aov, quote=FALSE, right=TRUE, ...)
 	} else for(i in names(se.aov)) {
 	    se <- se.aov[[i]]
 	    if(length(se) == 1) { ## single se
@@ -417,7 +415,7 @@ eff.aovlist <- function(aovlist)
 	ind <- rbind(ind, cbind(match(i, s.labs),
 				match(names(proj.len[[i]]), t.labs)))
     eff[ind] <- unlist(x.len)
-    x.len <- t(eff) %*% rep.int(1, length(s.labs))
+    x.len <- t(eff) %*% rep(1, length(s.labs))
     eff[ind] <- unlist(proj.len)
     eff <- sweep(eff, 2, x.len, "/")
     eff[, x.len != 0, drop = FALSE]
@@ -433,8 +431,8 @@ model.frame.aovlist <- function(formula, data = NULL, ...)
     rm(formula)
     indError <- attr(Terms, "specials")$Error
     errorterm <-  attr(Terms, "variables")[[1 + indError]]
-    form <- update.formula(Terms, paste(". ~ .-", deparse(errorterm, width=500, backtick = TRUE),
-					"+", deparse(errorterm[[2]], width=500, backtick = TRUE)))
+    form <- update.formula(Terms, paste(". ~ .-", deparse(errorterm),
+					"+", deparse(errorterm[[2]])))
     nargs <- as.list(call)
     oargs <- as.list(oc)
     nargs <- nargs[match(c("data", "na.action", "subset"), names(nargs), 0)]
@@ -449,7 +447,7 @@ print.mtable <-
 {
     xxx <- x
     xx <- attr(x, "Notes")
-#    nn <- names(dimnames(x))
+    nn <- names(dimnames(x))
     a.ind <- match(names(a <- attributes(x)), c("dim", "dimnames", "names"))
     a <- a[!is.na(a.ind)]
     class(x) <- attributes(x) <- NULL

@@ -7,7 +7,7 @@
 }
 \usage{
 contrasts(x, contrasts = TRUE)
-contrasts(x, how.many) <- value
+contrasts(x, how.many) <- ctr
 }
 \arguments{
   \item{x}{a factor.}
@@ -15,7 +15,7 @@ contrasts(x, how.many) <- value
   \item{how.many}{How many contrasts should be made. Defaults to one
     less than the number of levels of \code{x}.  This need not be the
     same as the number of columns of \code{ctr}.}
-  \item{value}{either a matrix whose columns give coefficients for
+  \item{ctr}{either a matrix whose columns give coefficients for
     contrasts in the levels of \code{x}, or the (quoted) name of a
     function which computes such matrices.}
 }
@@ -29,17 +29,11 @@ contrasts(x, how.many) <- value
   \code{\link{contr.treatment}} and if \code{contrasts = FALSE}
   an identity matrix is returned.
 }
-% \note{
-%   Prior to \R version 1.2.0, \code{contrasts(, FALSE)} called a
-%   contrasts function with \code{contrasts = FALSE}.  This normally gave
-%   the same result, but not for \code{\link{contr.poly}}, the default for
-%   ordered factors.
-% }
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical models.}
-  Chapter 2 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
+\note{
+  Prior to \R version 1.2.0, \code{contrasts(, FALSE)} called a
+  contrasts function with \code{contrasts = FALSE}.  This normally gave
+  the same result, but not for \code{\link{contr.poly}}, the default for
+  ordered factors.
 }
 \seealso{
   \code{\link{C}},
@@ -53,7 +47,7 @@ contrasts(x, how.many) <- value
 }
 \examples{
 example(factor)
-fff <- ff[, drop=TRUE]  # reduce to 5 levels.
+(fff <- factor(ff))
 contrasts(fff) # treatment contrasts by default
 contrasts(C(fff, sum))
 contrasts(fff, contrasts = FALSE) # the 5x5 identity matrix

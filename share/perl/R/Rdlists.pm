@@ -1,118 +1,98 @@
-## Subroutines for building R documentation
+# Subroutines for building R documentation
 
-## Copyright (C) 1997-2003 R Development Core Team
-##
-## This program is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as published by
-## the Free Software Foundation; either version 2, or (at your option)
-## any later version.
-##
-## This program is distributed in the hope that it will be useful, but
-## WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-## General Public License for more details.
-##
-## A copy of the GNU General Public License is available via WWW at
-## http://www.gnu.org/copyleft/gpl.html.  You can also obtain it by
-## writing to the Free Software Foundation, Inc., 59 Temple Place, Suite
-## 330, Boston, MA 02111-1307 USA.
+# Copyright (C) 1997-2000 R Development Core Team
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# A copy of the GNU General Public License is available via WWW at
+# http://www.gnu.org/copyleft/gpl.html.  You can also obtain it by
+# writing to the Free Software Foundation, Inc., 59 Temple Place,
+# Suite 330, Boston, MA  02111-1307  USA.
 
-## Send any bug reports to r-bugs@r-project.org.
+# Send any bug reports to r-bugs@r-project.org
 
 package R::Rdlists;
 
 require  Exporter;
 @ISA     = qw(Exporter);
-@EXPORT  = qw(buildinit read_titles read_htmlindex read_htmlpkgindex
-	      read_anindex build_htmlpkglist build_index fileolder
-	      foldorder);
+@EXPORT  = qw(buildinit read_titles read_functiontitles read_htmlindex read_anindex build_htmlpkglist build_index build_htmlfctlist fileolder foldorder);
 
 use Cwd;
 use File::Basename;
-use R::Utils;
-use R::Vars;
-use R::Dcf;
 
-if($main::opt_dosnames) { $HTML = ".htm"; } else { $HTML = ".html"; }
+if($main::opt_dosnames){
+    $HTML="htm";
+}
+else{
+    $HTML="html";
+}
 
 $dir_mod = 0755;#- Permission ('mode') of newly created directories.
 
-### Determine if package (pkg_dir) and lib directories are accessible;
-### chdir to package man dir and return package name, full path to lib
-### dir and contents of mandir.
+# determine if pkg and lib directory are accessible; chdir to pkg man dir
+# and return pkg name, full path to lib dir and contents of mandir
 
 sub buildinit {
 
-    my ($pkg_dir, $lib, $dest, $pkg_name) = @ARGV;
+    my $pkg = $ARGV[0];
+    my $lib = $ARGV[1];
 
-    my $currentdir = cwd();
+    my $currentdir = getcwd();
 
-    if($pkg_dir) {
-	die("Package directory ${pkg_dir} does not exist\n")
-	    unless (-d $pkg_dir);
-    }
-    else {
-	$pkg_dir = file_path($main::R_HOME, "src", "library", "base");
-    }
-
-    chdir($currentdir);
-
-    if($lib) {
-	if(!(-d $lib)) {
-	    mkdir("$lib", $dir_mod) or die "Could not create $lib: $!\n";
-	}
-	## <NOTE>
-	## A version of file_path_as_absolute() would be handy ...
-	chdir($lib);
-	$lib = cwd();
-	chdir($currentdir);
-	## </NOTE>
+    if($pkg){
+	die("Package $pkg does not exist\n") unless (-d $pkg);
     }
     else{
-	$lib = file_path($main::R_HOME, "library");
+	$pkg="$main::R_HOME/src/library/base";
     }
 
-    chdir($currentdir);
+    chdir $currentdir;
 
-    chdir($pkg_dir) or die("Cannot change to ${pkg_dir}\n");
-    $tmp = cwd();
+    if($lib){
+        mkdir "$lib", $dir_mod || die "Could not create $lib: $!\n";
+	chdir $lib;
+	$lib=getcwd();
+	chdir $currentdir;
+    }
+    else{
+	$lib="$main::R_HOME/library";
+    }
+
+    chdir $currentdir;
+
+    chdir($pkg) or die("Cannot change to $pkg\n");
+    $tmp = getcwd();
     if($main::OSdir eq "windows") {
-	$tmp =~ s+\\+/+g;	# need Unix-style path here
+	$tmp =~ s+\\+/+g; # need Unix-style path here
     }
-    $pkg_name = basename($tmp) unless($pkg_name);
+    $pkg = basename($tmp);
+#    $pkg = basename(getcwd());
 
-    chdir "man" or die("There are no man pages in ${pkg_dir}\n");
-
-    ## <FIXME>
-    ## Why not simply use
-    ##   list_files_with_type(".", "docs", $main::OSdir)
-    ## ???
+    chdir "man" or die("There are no man pages in $pkg\n");
     opendir man, '.';
     @mandir = sort(readdir(man));
     closedir man;
+
     if(-d $main::OSdir) {
 	foreach $file (@mandir) { $Rds{$file} = $file; }
 	opendir man, $main::OSdir;
 	foreach $file (readdir(man)) {
 	    delete $Rds{$file};
-	    $RdsOS{$file} = file_path($main::OSdir, $file);
+	    $RdsOS{$file} = $main::OSdir."/".$file;
 	}
 	@mandir = sort(values %Rds);
 	push @mandir, sort(values %RdsOS);
     }
-    if(-d $main::AQUAdir) {
-	foreach $file (@mandir) { $Rds{$file} = $file; }
-	opendir man, $main::AQUAdir;
-	foreach $file (readdir(man)) {
-	    delete $Rds{$file};
-	    $RdsOS{$file} = file_path($main::AQUAdir, $file);
-	}
-	@mandir = sort(values %Rds);
-	push @mandir, sort(values %RdsOS);
-    }
-    ## </FIXME>
 
-    ($pkg_name, $lib, @mandir);
+    ($pkg, $lib, @mandir);
 }
 
 
@@ -130,19 +110,52 @@ sub read_titles {
     closedir lib;
 
     foreach $pkg (@libs) {
-	if(-d file_path($lib, $pkg)){
+	if(-d "$lib/$pkg"){
 	    if(! ( ($pkg =~ /^CVS$/) || ($pkg =~ /^\.+$/))){
-		if(-r file_path($lib, $pkg, "DESCRIPTION")){
-		    my $rdcf = R::Dcf->new(file_path($lib, $pkg, "DESCRIPTION"));
-		    my $pkgname = $pkg;
-		    if($rdcf->{"Package"}) {
-			 $pkgname = $rdcf->{"Package"};
+		if(-r "$lib/$pkg/TITLE"){
+		    open rtitle, "< $lib/$pkg/TITLE";
+		    $_ = <rtitle>;
+		    /^(\S*)\s*(.*)/;
+		    my $pkgname = $1;
+		    $tit{$pkgname} = $2;
+		    while(<rtitle>){
+			/\s*(.*)/;
+			$tit{$pkgname} = $tit{$pkgname} . "\n" .$1;
 		    }
-		    if($rdcf->{"Title"}) {
-			$tit{$pkgname} = $rdcf->{"Title"};
-		    } else {
-			$tit{$pkgname} = "-- Title is missing --";
+		    close rtitle;
+		}
+	    }
+	}
+    }
+
+    close titles;
+    %tit;
+}
+
+### Read the titles of all installed functions into an hash array
+
+sub read_functiontitles {
+
+    my $lib = $_[0];
+
+    my %tit;
+    my $pkg;
+
+    opendir lib, $lib;
+    my @libs = readdir(lib);
+    closedir lib;
+
+    foreach $pkg (@libs) {
+	if(-d "$lib/$pkg"){
+	    if(! ( ($pkg =~ /^CVS$/) || ($pkg =~ /^\.+$/))){
+		if(-r "$lib/$pkg/TITLE"){
+		    open rtitle, "< $lib/$pkg/help/00Titles";
+		    while(<rtitle>){
+			/^([^\t]*)\s*(.*)/;
+			my $alias = $1;
+			$tit{$alias} = $2 . " ($pkg)";
 		    }
+		    close rtitle;
 		}
 	    }
 	}
@@ -168,36 +181,18 @@ sub read_htmlindex {
     closedir lib;
 
     foreach $pkg (@libs) {
-	if(-d file_path($lib, $pkg)){
+	if(-d "$lib/$pkg"){
 	    if(! ( ($pkg =~ /^CVS$/) || ($pkg =~ /^\.+$/))){
-		if(-r file_path($lib, $pkg, "help", "AnIndex")){
-		    open ranindex, "<".file_path($lib, $pkg, "help", "AnIndex");
+		if(-r "$lib/$pkg/help/AnIndex"){
+		    open ranindex, "< $lib/$pkg/help/AnIndex";
 		    while(<ranindex>){
 			/^([^\t]*)\s*\t(.*)/;
-			$htmlindex{$1} = file_path($pkg, "html", $2.$HTML);
+			$htmlindex{$1} = "$pkg/html/$2.$HTML";
 		    }
 		    close ranindex;
 		}
 	    }
 	}
-    }
-    %htmlindex;
-}
-
-sub read_htmlpkgindex {
-
-    my $lib = $_[0];
-    my $pkg = $_[1];
-
-    my %htmlindex;
-
-    if(-r file_path($lib, $pkg, "help", "AnIndex")){
-	open ranindex, "<".file_path($lib, $pkg, "help", "AnIndex");
-	while(<ranindex>){
-	    /^([^\t]*)\s*\t(.*)/;
-	    $htmlindex{$1} = file_path($pkg, "html", $2.$HTML);
-	}
-	close ranindex;
     }
     %htmlindex;
 }
@@ -213,10 +208,10 @@ sub read_anindex {
     closedir lib;
 
     foreach $pkg (@libs) {
-	if(-d file_path($lib, $pkg)){
+	if(-d "$lib/$pkg"){
 	    if(! ( ($pkg =~ /^CVS$/) || ($pkg =~ /^\.+$/))){
-		if(-r file_path($lib, $pkg, "help", "AnIndex")){
-		    open ranindex, "<".file_path($lib, $pkg, "help", "AnIndex");
+		if(-r "$lib/$pkg/help/AnIndex"){
+		    open ranindex, "< $lib/$pkg/help/AnIndex";
 		    while(<ranindex>){
 			/^([^\t]*)\s*\t(.*)/;
 			$anindex{$1} = $2;
@@ -231,7 +226,7 @@ sub read_anindex {
 
 
 
-### Build $R_HOME/doc/html/packages.html from the $pkg/DESCRIPTION files
+### Build $R_HOME/doc/html/packages.html from the $pkg/TITLE files
 
 sub build_htmlpkglist {
 
@@ -240,27 +235,24 @@ sub build_htmlpkglist {
     my %htmltitles = read_titles($lib);
     my $key;
 
-    open(htmlfile, ">". file_path($main::R_HOME, "doc", "html", 
-				  "packages".$HTML)) or
-	die "Could not open " . 
-	    file_path($main::R_HOME, "doc", "html", "packages".$HTML);
+    open(htmlfile, "> $main::R_HOME/doc/html/packages.$HTML") ||
+	die "Could not open $main::R_HOME/doc/html/packages.$HTML";
 
     print htmlfile html_pagehead("Package Index", ".",
-				 "index$HTML", "Top",
+				 "index.$HTML", "Top",
 				 "", "",
-				 "", "", "./R.css");
+				 "function.$HTML", "Functions");
 
-    print htmlfile "<p><h3>Packages in the standard library</h3>\n", 
-    "<p>\n<table width=\"100%\">\n";
+    print htmlfile "<table align=\"center\" summary=\"R Package list\">\n";
 
     foreach $key (sort(keys %htmltitles)) {
 	print htmlfile "<tr align=\"left\" valign=\"top\">\n";
-	print htmlfile "<td width=\"25%\"><a href=\"../../library/$key/html/00Index$HTML\">";
+	print htmlfile "<td><a href=\"../../library/$key/html/00Index.$HTML\">";
 	print htmlfile encodealias($key), "</a></td><td>";
 	print htmlfile $htmltitles{$key}, "</td></tr>\n";
     }
 
-    print htmlfile "</table>\n\n";
+    print htmlfile "</table>\n";
     print htmlfile "</body></html>\n";
 
     close htmlfile;
@@ -290,44 +282,32 @@ sub build_index { # lib, dest
     my $chmdir = $_[2];
 
     if(! -d $lib){
-        mkdir("$lib", $dir_mod) or die "Could not create directory $lib: $!\n";
+        mkdir "$lib", $dir_mod || die "Could not create directory $lib: $!\n";
     }
 
     if(! -d "$dest"){
-        mkdir("$dest", $dir_mod) or die "Could not create directory $dest: $!\n";
+        mkdir "$dest", $dir_mod || die "Could not create directory $dest: $!\n";
     }
 
-    my $title = "";
-    if(-r "../DESCRIPTION") {
-	my $rdcf = R::Dcf->new("../DESCRIPTION");
-	if($rdcf->{"Title"}) {
-	    $title = $rdcf->{"Title"};
-	    chomp $title;
-	}
-    }
+    open title, "<../TITLE";
+    my $title = <title>;
+    close title;
+    chomp $title;
+    $title =~ s/^\S*\s*(.*)/$1/;
 
-    my $tdir = file_path($dest, "help");
-    if(! -d $tdir) {
-	mkdir($tdir, $dir_mod) or die "Could not create " . $tdir.": $!\n";
-    }
-    $tdir = file_path($dest, "html");
-    if(! -d $tdir) {
-	mkdir($tdir, $dir_mod) or die "Could not create " . $tdir.": $!\n";
-    }
-    my $anindex = file_path($dest, "help", "AnIndex");
+    mkdir "$dest/help", $dir_mod || die "Could not create $dest/help: $!\n";
+    mkdir "$dest/html", $dir_mod || die "Could not create $dest/html: $!\n";
+    my $anindex = "$dest/help/AnIndex";
 
     my %alltitles;
     my $naliases;
     my $nmanfiles;
     my %firstlettersfound;
-    my %internal;
-    my $tfile;
-
+                           
     foreach $manfile (@mandir) {
 	if($manfile =~ /\.Rd$/i){
 
 	    my $rdname = basename($manfile, (".Rd", ".rd"));
-	    my $internal = 0;
 
 	    if($main::opt_dosnames){
 		$manfilebase = "x" . $nmanfiles++;
@@ -346,39 +326,33 @@ sub build_index { # lib, dest
 	    my $rdtitle = $1;
 	    $rdtitle =~ s/\n/ /sg;
 	    $rdtitle =~ s/\\R/R/g; # don't use \R in titles
-	    $internal = 1 if $text =~ /\\keyword\{\s*internal\s*\}/;
 
 	    $main::filenm{$rdname} = $manfilebase;
 	    if($main::opt_chm) {
 		$main::title2file{$rdtitle} = $manfilebase;
 	    }
 
-	    while($text =~ s/\\alias\{\s*(.*)\s*\}//){
-		$alias = $1;
+	    while($text =~ s/\\(alias|name)\{\s*(.*)\s*\}//){
+		$alias = $2;
 		$alias =~ s/\\%/%/g;
-		if ($internal){
-		    $internal{$alias} = 1;
-		}
 		my $an = $main::aliasnm{$alias};
 		if ($an) {
 		    if($an ne $manfilebase) {
-			warn "\\alias\{$alias\} already in $an.Rd -- " .
+			warn "\\$1\{$alias\} already in $an.Rd -- " .
 			    "skipping the one in $manfilebase.Rd\n";
 		    }
 		} else {
 		    $main::alltitles{$alias} = $rdtitle;
 		    $main::aliasnm{$alias} = $manfilebase;
-		    if(!$internal){
-			my $flc = firstLetterCategory($alias);
-			$firstlettersfound{$flc}++;
-		    }
+		    my $flc = firstLetterCategory($alias);
+		    $firstlettersfound{$flc}++;
 		    $naliases++;
 		}
 	    }
 	}
     }
 
-    open(anindex, "> ${anindex}") or die "Could not open ${anindex}";
+    open anindex, "> ${anindex}" || die "Could not open ${anindex}";
     foreach $alias (sort foldorder keys %main::aliasnm) {
 	print anindex "$alias\t$main::aliasnm{$alias}\n";
     }
@@ -386,29 +360,25 @@ sub build_index { # lib, dest
 
 
     open(anindex, "< $anindex");
-    $tfile = file_path($dest, "html", "00Index".$HTML);
-    open(htmlfile, "> $tfile") or die "Could not open $tfile";
-    if($main::opt_chm) { # Windows only
-	open(chmfile, "> $chmdir/00Index$HTML") or
-	    die "Could not open $chmdir/00Index$HTML";
+    open(titleindex, "> $dest/help/00Titles") 
+	|| die "Could not open $dest/help/00Titles";
+    open(htmlfile, "> $dest/html/00Index.$HTML")
+	|| die "Could not open $dest/help/00Index.$HTML";
+    if($main::opt_chm) {
+	open(chmfile, "> $chmdir/00Index.$HTML") ||
+	    die "Could not open $chmdir/00Index.$HTML";
     }
 
     print htmlfile html_pagehead("$title", "../../../doc/html",
-				 "../../../doc/html/index$HTML", "Top",
-				 "../../../doc/html/packages$HTML",
-				 "Package List", "", "", "../../R.css");
+				 "../../../doc/html/index.$HTML", "Top",
+				 "../../../doc/html/packages.$HTML",
+				 "Package List");
 
     if($main::opt_chm) {
 	print chmfile chm_pagehead("$title");
     }
 
-    if(-d file_path($dest, "doc")){
-	print htmlfile "<h2>User Guides and Package Vignettes</h2>\n"
-	    . "Read <a href=\"../doc/index.html\">overview</a> or "
-	    . "browse <a href=\"../doc\">directory</a>.\n\n"
-	    . "<h2>Help Pages</h2>\n\n";
-    }
-	
+
     if($naliases>100){
 	print htmlfile html_alphabet(keys(%firstlettersfound));
 	if($main::opt_chm) {
@@ -423,39 +393,38 @@ sub build_index { # lib, dest
     my $current = "", $currentfile = "", $file, $generic;
     while(<anindex>){
         chomp;  ($alias, $file) = split /\t/;
-	if(!$internal{$alias}){
-	    $aliasfirst = firstLetterCategory($alias);
-	    if( ($naliases > 100) && ($aliasfirst ne $firstletter) ) {
-		print htmlfile "</table>\n";
-		print htmlfile html_title2("<a name=\"$aliasfirst\">-- $aliasfirst --</a>");
-		print htmlfile "<table width=\"100%\">\n";
-		if($main::opt_chm) {
-		    print chmfile "</table>\n";
-		    print chmfile html_title2("<a name=\"$aliasfirst\">-- $aliasfirst --</a>");
-		    print chmfile "<table width=\"100%\">\n";
-		}
-		$firstletter = $aliasfirst;
-	    }
-            ## skip method aliases.
-	    $generic = $alias;  
-	    $generic =~ s/\.data\.frame$/.dataframe/o;
-	    $generic =~ s/\.model\.matrix$/.modelmatrix/o;
-	    $generic =~ s/\.[^.]+$//o;
-
-	    next if $alias =~ /<-$/o || $generic =~ /<-$/o;
-	    if ($generic ne "" && $generic eq $current && 
-		$file eq $currentfile && $generic ne "ar") { 
-
-		next; 
-	    } else { $current = $alias; $currentfile = $file;}
-
-	    my $title = striptitle($main::alltitles{$alias});
-	    print htmlfile "<tr><td width=\"25%\"><a href=\"$file$HTML\">" .
-		encodealias($alias) . "</a></td>\n<td>$title</td></tr>\n";
+        $aliasfirst = firstLetterCategory($alias);
+	if( ($naliases > 100) && ($aliasfirst ne $firstletter) ) {
+	    print htmlfile "</table>\n";
+	    print htmlfile html_title2("<a name=\"$aliasfirst\">-- $aliasfirst --</a>");
+	    print htmlfile "<table width=\"100%\">\n";
 	    if($main::opt_chm) {
-		print chmfile "<tr><td width=\"25%\"><a href=\"$file$HTML\">" .
-		    encodealias($alias) . "</a></td>\n<td>$title</td></tr>\n";
+		print chmfile "</table>\n";
+		print chmfile html_title2("<a name=\"$aliasfirst\">-- $aliasfirst --</a>");
+		print chmfile "<table width=\"100%\">\n";
 	    }
+	    $firstletter = $aliasfirst;
+	}
+# skip method aliases.
+	$generic = $alias;  
+	$generic =~ s/\.data\.frame$/.dataframe/o;
+	$generic =~ s/\.model\.matrix$/.modelmatrix/o;
+	$generic =~ s/\.[^.]+$//o;
+#	print "   $alias, $generic, $file, $currentfile\n";
+	next if $alias =~ /<-$/o || $generic =~ /<-$/o;
+	if ($generic ne "" && $generic eq $current && 
+	    $file eq $currentfile && $generic ne "ar") { 
+#	    print "skipping $alias\n";
+	    next; 
+	} else { $current = $alias; $currentfile = $file;}
+
+	print titleindex "$alias\t$main::alltitles{$alias}\n";
+	my $title = striptitle($main::alltitles{$alias});
+	print htmlfile "<tr><td width=\"25%\"><a href=\"$file.$HTML\">" .
+	    encodealias($alias) . "</a></td>\n<td>$title</td></tr>\n";
+	if($main::opt_chm) {
+	    print chmfile "<tr><td width=\"25%\"><a href=\"$file.$HTML\">" .
+		encodealias($alias) . "</a></td>\n<td>$title</td></tr>\n";
 	}
     }
 
@@ -463,12 +432,81 @@ sub build_index { # lib, dest
     print htmlfile "</body></html>\n";
     if($main::opt_chm) {print chmfile "</table>\n</body></html>\n";}
 
+    close titleindex;
     close htmlfile;
     if($main::opt_chm) {close chmfile;}
     close anindex;
+
+#    build_htmlpkglist($lib);
 }
 
 
+sub build_htmlfctlist {
+
+    my $lib = $_[0];
+
+    my %htmltitles = read_functiontitles($lib);
+    my $key;
+
+    open(htmlfile, "> $main::R_HOME/doc/html/function.$HTML") ||
+	die "Could not open $main::R_HOME/doc/html/function.$HTML";
+
+    print htmlfile html_pagehead("Functions installed in R_HOME", ".",
+				 "index.$HTML", "Top",
+				 "packages.$HTML", "Packages");
+
+    print htmlfile html_alphabet();
+
+    print htmlfile html_title2("-- Operators, Global Variables, ... --");
+    print htmlfile "\n<table width=\"100%\">\n";
+    foreach $alias (sort foldorder keys %htmltitles) {
+	print htmlfile "<tr><td width=\"25%\">" .
+	    "<a href=\"../../library/$htmlindex{$alias}\">" .
+		encodealias($alias) . 
+		"</a></td>\n<td>$htmltitles{$alias}</td></tr>\n"
+		unless $alias =~ /^[a-zA-Z]/;
+    }
+    print htmlfile "\n</table>\n<table width=\"100%\">\n";
+
+    my $firstletter = "";
+    my $current = "", $currentfile = "", $file, $generic;
+    foreach $alias (sort foldorder keys %htmltitles) {
+	$aliasfirst = uc substr($alias, 0, 1);
+	if($aliasfirst =~ /[A-Z]/){
+	    if($aliasfirst ne $firstletter){
+		print htmlfile "</table>\n";
+		print htmlfile "<a name=\"" . uc $aliasfirst . "\"></a>";
+		print htmlfile html_title2("-- " . uc $aliasfirst . " --");
+		print htmlfile "<table width=\"100%\">\n";
+		$firstletter = $aliasfirst;
+	    }
+# skip method aliases.
+	    $file = $htmlindex{$alias};
+	    $generic = $alias;  
+	    $generic =~ s/\.data\.frame$/.dataframe/o;
+	    $generic =~ s/\.model\.matrix$/.modelmatrix/o;
+	    $generic =~ s/\.[^.]+$//o;
+# omit all replacement functions and all plot and print methods
+	    next if $alias =~ /<-$/o || $generic =~ /<-$/o;
+	    next if $alias =~ /plot\./o;
+	    next if $alias =~ /print\./o;
+	    if ($generic ne "" && $generic eq $current && 
+		$file eq $currentfile && $generic ne "ar") { 
+		next;
+	    } else { $current  = $alias; $currentfile = $file;}
+	    my $title = striptitle($htmltitles{$alias});
+	    print htmlfile "<tr><td width=\"25%\">" .
+		"<a href=\"../../library/$file\">" .
+		    encodealias($alias) .
+			"</a></td>\n<td>$title</td></tr>\n";
+	}
+    }
+
+    print htmlfile "</table>\n";
+    print htmlfile "</body>\n";
+
+    close htmlfile;
+}
 
 
 ## return ``true'' if file exists and is older than $age
@@ -506,11 +544,10 @@ sub html_alphabet
 
 sub html_pagehead
 {
-    my ($title, $top, $up, $uptext, $prev, $prevtext, $next, $nextext, 
-	$cssloc) = @_;
+    my ($title, $top, $up, $uptext, $prev, $prevtext, $next, $nextext) = @_;
 
     my $retval = "<html><head><title>R: $title</title>\n" .
-	"<link rel=\"stylesheet\" type=\"text/css\" href=\"$cssloc\">\n" .
+	"<link rel=\"stylesheet\" type=\"text/css\" href=\"$top/R.css\">\n" .
 	"</head><body>\n" .
 	"<h1>$title " .
 	"<img class=\"toplogo\" src=\"$top/logo.jpg\" alt=\"[R logo]\"></h1>\n\n" .
@@ -527,8 +564,8 @@ sub html_pagehead
 	    if $up;
 
     $retval .= "<a href=\"$next\"><img src=\"$top/right.jpg\"\n" .
-	"alt=\"[$nextext]\" width=\"30\" height=\"30\" border=\"0\"></a>\n"
-	if $next;  # always so in current usage
+    "alt=\"[$nextext]\" width=\"30\" height=\"30\" border=\"0\"></a>\n"
+	if $next;
 
     $retval .= "</div>\n\n";
 

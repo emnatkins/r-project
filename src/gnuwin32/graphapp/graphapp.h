@@ -37,9 +37,9 @@ extern "C" {
  *  Types.
  */
 
-typedef unsigned char GAbyte;
-
-#define byte GAbyte
+#ifndef byte
+  typedef unsigned char byte;
+#endif
 
 #ifndef objptr
   typedef struct { int kind; } gui_obj;
@@ -66,7 +66,6 @@ typedef control field;        /* one-line text field */
 typedef control textbox;      /* multi-line text box */
 typedef control scrollbar;    /* scroll-bar */
 typedef control listbox;      /* list of text */
-typedef control progressbar;  /* progress bar */
 
 typedef control menubar;      /* contains menus */
 typedef control menu;         /* pull-down menu contains menuitems */
@@ -127,7 +126,6 @@ typedef void (*intfn)(control c, int argument);
 typedef void (*keyfn)(control c, int key);
 typedef void (*menufn)(menuitem m);
 typedef void (*scrollfn)(scrollbar s, int position);
-typedef void (*dropfn)(control c, char *data);
 
 /*
  *  Mouse buttons state (bit-fields).
@@ -264,18 +262,15 @@ void	setrgb(rgb c);
 #define	setcolor(c)  setrgb(c)
 #define	setcolour(c) setrgb(c)
 
-/* changed to avoid clashes with w32api 2.0 */
-#define gaRed 		0x00FF0000UL
-#define gaGreen		0x0000FF00UL
-#define gaBlue		0x000000FFUL
-
-
 #define Transparent     0xFFFFFFFFUL
 
 #define Black		0x00000000UL
 #define White		0x00FFFFFFUL
+#define Blue		0x000000FFUL
 #define Yellow		0x00FFFF00UL
+#define Green		0x0000FF00UL
 #define Magenta		0x00FF00FFUL
+#define Red 		0x00FF0000UL
 #define Cyan		0x0000FFFFUL
 
 #define Grey		0x00808080UL
@@ -450,7 +445,6 @@ bitmap	imagetobitmap(image img);
 bitmap	createbitmap(int width, int height, int depth, byte *data);
 void	setbitmapdata(bitmap b, byte data[]);
 void	getbitmapdata(bitmap b, byte data[]);
-void	getbitmapdata2(bitmap b, byte **data, int *row_bytes);
 
 /*
  *  Images.
@@ -489,7 +483,6 @@ void	drawbrighter(image img, rect dr, rect sr);
 window	newwindow(char *name, rect r, long flags);
 void	show(window w);
 void	hide(window w);
-rect    GetCurrentWinPos(window obj);
 
 /*
  *  Window creation flags.
@@ -557,8 +550,6 @@ void	setmousedrag(control c, mousefn fn);
 void	setmouseup(control c, mousefn fn);
 void	setmousemove(control c, mousefn fn);
 void	setmouserepeat(control c, mousefn fn);
-
-void	setdrop(control c, dropfn fn);
 
 /*
  *  Using windows and controls.
@@ -660,12 +651,6 @@ void	  setlistitem(listbox b, int index);
 int 	  getlistitem(listbox b);
 void	  changelistbox(listbox b, char *new_list[]);
 
-progressbar newprogressbar(rect r, int pmin, int pmax, int incr, int smooth);
-void setprogressbar(progressbar obj, int n);
-void stepprogressbar(progressbar obj, int n);
-void setprogressbarrange(progressbar obj, int pbmin, int pbmax);
-
-
 menubar	  newmenubar(actionfn adjust_menus);
 menu	  newsubmenu(menu parent, char *name);
 menu	  newmenu(char *name);
@@ -700,7 +685,6 @@ char *	askstring(char *question, char *default_string);
 char *	askpassword(char *question, char *default_string);
 char *	askfilename(char *title, char *default_name);
 char *	askfilesave(char *title, char *default_name);
-char *	askUserPass(char *title);
 
 /*
  *  Time functions.
@@ -741,15 +725,13 @@ extern	font	Times;  	/* times roman font (serif) */
 extern	font	Helvetica;	/* helvetica font (sans serif) */
 extern	font	Courier;	/* courier font (fixed width) */
 
-#include <R_ext/libextern.h>
-LibExtern cursor	ArrowCursor;	/* normal arrow cursor */
-LibExtern cursor	BlankCursor;	/* invisible cursor */
-LibExtern cursor	WatchCursor;	/* wait for the computer */
-LibExtern cursor	CaretCursor;	/* insert text */
-LibExtern cursor	TextCursor;	/* insert text */
-LibExtern cursor	HandCursor;	/* hand pointer */
-#undef LibExtern
-#undef extern
+extern	cursor	ArrowCursor;	/* normal arrow cursor */
+extern	cursor	BlankCursor;	/* invisible cursor */
+extern	cursor	WatchCursor;	/* wait for the computer */
+extern	cursor	CaretCursor;	/* insert text */
+extern	cursor	TextCursor;	/* insert text */
+extern	cursor	HandCursor;	/* hand pointer */
+
 
 #ifdef __cplusplus
 }

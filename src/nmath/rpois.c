@@ -1,7 +1,7 @@
 /*
  *  Mathlib : A C Library of Special Functions
  *  Copyright (C) 1998 Ross Ihaka
- *  Copyright (C) 2000-2001 The R Development Core Team
+ *  Copyright (C) 2000 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  *
  *  SYNOPSIS
  *
- *    #include <Rmath.h>
+ *    #include "Rmath.h"
  *    double rpois(double lambda)
  *
  *  DESCRIPTION
@@ -33,6 +33,12 @@
  *    from modified normal distributions.
  *    ACM Trans. Math. Software 8, 163-179.
  */
+
+/* Factorial Table (0:9)! */
+static double fact[10] =
+{
+    1., 1., 2., 6., 24., 120., 720., 5040., 40320., 362880.
+};
 
 #define a0	-0.5
 #define a1	 0.3333333
@@ -53,27 +59,18 @@
 
 double rpois(double mu)
 {
-    /* Factorial Table (0:9)! */
-    const double fact[10] =
-    {
-	1., 1., 2., 6., 24., 120., 720., 5040., 40320., 362880.
-    };
-
     /* These are static --- persistent between calls for same mu : */
-    static int l, m;
-
     static double b1, b2, c, c0, c1, c2, c3;
-    static double pp[36], p0, p, q, s, d, omega;
+    static double s, d, omega, pp[36], p0, p, q;
+
     static double big_l;/* integer "w/o overflow" */
+    static int l, m;
     static double muprev = 0., muprev2 = 0.;/*, muold	 = 0.*/
 
     /* Local Vars  [initialize some for -Wall]: */
     double del, difmuk= 0., E= 0., fk= 0., fx, fy, g, px, py, t, u= 0., v, x;
     double pois = -1.;
     int k, kflag, big_mu, new_big_mu = FALSE;
-
-    if (!R_FINITE(mu))
-	ML_ERR_return_NAN;
 
     if (mu <= 0.)
 	return 0.;
@@ -167,7 +164,7 @@ double rpois(double mu)
         /* Careful! muprev2 is not always == muprev
 	   because one might have exited in step I or S
 	   */
-        muprev2 = mu;
+        muprev2 = mu; 
 	omega = M_1_SQRT_2PI / s;
 	/* The quantities b1, b2, c3, c2, c1, c0 are for the Hermite
 	 * approximations to the discrete normal probabilities fk. */

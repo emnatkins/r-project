@@ -13,7 +13,7 @@
  */
 
 /*
- *  Altered by B.D. Ripley to use F77_*, declare routines before use.
+ *  Altered by B.D. Ripley to use  F77_SYMBOL, declare routines before use.
  *
  *  'protoize'd to ANSI C headers; indented: M.Maechler
  */
@@ -21,33 +21,32 @@
 #include <string.h>
 #include <R.h>
 
-/* Forward declarations */
-static
+/* Much cleaner would be a  loess.h !! */
 void loess_workspace(Sint *d, Sint *n, double *span, Sint *degree,
 		     Sint *nonparametric, Sint *drop_square,
 		     Sint *sum_drop_sqr, Sint *setLf);
-static
-void loess_prune(Sint *parameter, Sint *a,
+void loess_prune(Sint *parameter, Sint *a, 
 		 double *xi, double *vert, double *vval);
-static
-void loess_grow (Sint *parameter, Sint *a,
+void loess_grow (Sint *parameter, Sint *a, 
 		 double *xi, double *vert, double *vval);
+void loess_free(void);
 
 /* These (and many more) are in ./loessf.f : */
-void F77_NAME(lowesa)();
-void F77_NAME(lowesb)();
-void F77_NAME(lowesc)();
-void F77_NAME(lowesd)();
-void F77_NAME(lowese)();
-void F77_NAME(lowesf)();
-void F77_NAME(lowesl)();
-void F77_NAME(ehg169)();
-void F77_NAME(ehg196)();
-/* exported (for loessf.f) : */
-void F77_SUB(ehg182)(int *i);
-void F77_SUB(ehg183a)(char *s, int *nc,int *i,int *n,int *inc);
-void F77_SUB(ehg184a)(char *s, int *nc, double *x, int *n, int *inc);
+void F77_SUB(lowesa)();
+void F77_SUB(lowesb)();
+void F77_SUB(lowesc)();
+void F77_SUB(lowesd)();
+void F77_SUB(lowese)();
+void F77_SUB(lowesf)();
+void F77_SUB(lowesl)();
+void F77_SUB(ehg169)();
+void F77_SUB(ehg196)();
 
+
+static void warnmsg(char *string)
+{
+  PROBLEM "%s", string WARNING(NULL_ENTRY);
+}
 
 
 #undef min
@@ -61,17 +60,10 @@ void F77_SUB(ehg184a)(char *s, int *nc, double *x, int *n, int *inc);
 static Sint	*iv, liv, lv, tau;
 static double	*v;
 
-/* these are set in an earlier call to loess_workspace or loess_grow */
-static void loess_free(void)
-{
-    Free(v);
-    Free(iv);
-}
-
 void
 loess_raw(double *y, double *x, double *weights, double *robust, Sint *d,
 	  Sint *n, double *span, Sint *degree, Sint *nonparametric,
-	  Sint *drop_square, Sint *sum_drop_sqr, double *cell,
+	  Sint *drop_square, Sint *sum_drop_sqr, double *cell, 
 	  char **surf_stat, double *surface, Sint *parameter,
 	  Sint *a, double *xi, double *vert, double *vval, double *diagonal,
 	  double *trL, double *one_delta, double *two_delta, Sint *setLf)
@@ -83,80 +75,84 @@ loess_raw(double *y, double *x, double *weights, double *robust, Sint *d,
 
     loess_workspace(d, n, span, degree, nonparametric, drop_square,
 		    sum_drop_sqr, setLf);
-    v[1] = *cell;/* = v(2) in Fortran (!) */
+    v[1] = *cell;
     if(!strcmp(*surf_stat, "interpolate/none")) {
-	F77_CALL(lowesb)(x, y, robust, &zero, &zero, iv, &liv, &lv, v);
-	F77_CALL(lowese)(iv, &liv, &lv, v, n, x, surface);
+	F77_SUB(lowesb)(x, y, robust, &zero, &zero, iv, &liv, &lv, v);
+	F77_SUB(lowese)(iv, &liv, &lv, v, n, x, surface);
 	loess_prune(parameter, a, xi, vert, vval);
     }
     else if (!strcmp(*surf_stat, "direct/none")) {
-	F77_CALL(lowesf)(x, y, robust, iv, &liv, &lv, v, n, x,
+	F77_SUB(lowesf)(x, y, robust, iv, &liv, &lv, v, n, x,
 			&zero, &zero, surface);
     }
     else if (!strcmp(*surf_stat, "interpolate/1.approx")) {
-	F77_CALL(lowesb)(x, y, weights, diagonal, &one, iv, &liv, &lv, v);
-	F77_CALL(lowese)(iv, &liv, &lv, v, n, x, surface);
+	F77_SUB(lowesb)(x, y, weights, diagonal, &one, iv, &liv, &lv, v);
+	F77_SUB(lowese)(iv, &liv, &lv, v, n, x, surface);
 	nsing = iv[29];
 	for(i = 0; i < (*n); i++) *trL = *trL + diagonal[i];
-	F77_CALL(lowesa)(trL, n, d, &tau, &nsing, one_delta, two_delta);
+	F77_SUB(lowesa)(trL, n, d, &tau, &nsing, one_delta, two_delta);
 	loess_prune(parameter, a, xi, vert, vval);
     }
     else if (!strcmp(*surf_stat, "interpolate/2.approx")) {
-	F77_CALL(lowesb)(x, y, robust, &zero, &zero, iv, &liv, &lv, v);
-	F77_CALL(lowese)(iv, &liv, &lv, v, n, x, surface);
+	F77_SUB(lowesb)(x, y, robust, &zero, &zero, iv, &liv, &lv, v);
+	F77_SUB(lowese)(iv, &liv, &lv, v, n, x, surface);
 	nsing = iv[29];
-	F77_CALL(ehg196)(&tau, d, span, trL);
-	F77_CALL(lowesa)(trL, n, d, &tau, &nsing, one_delta, two_delta);
+	F77_SUB(ehg196)(&tau, d, span, trL);
+	F77_SUB(lowesa)(trL, n, d, &tau, &nsing, one_delta, two_delta);
 	loess_prune(parameter, a, xi, vert, vval);
     }
     else if (!strcmp(*surf_stat, "direct/approximate")) {
-	F77_CALL(lowesf)(x, y, weights, iv, &liv, &lv, v, n, x,
+	F77_SUB(lowesf)(x, y, weights, iv, &liv, &lv, v, n, x,
 			diagonal, &one, surface);
 	nsing = iv[29];
 	for(i = 0; i < (*n); i++) *trL = *trL + diagonal[i];
-	F77_CALL(lowesa)(trL, n, d, &tau, &nsing, one_delta, two_delta);
+	F77_SUB(lowesa)(trL, n, d, &tau, &nsing, one_delta, two_delta);
     }
     else if (!strcmp(*surf_stat, "interpolate/exact")) {
-	hat_matrix = (double *) R_alloc((*n)*(*n), sizeof(double));
-	LL = (double *) R_alloc((*n)*(*n), sizeof(double));
-	F77_CALL(lowesb)(x, y, weights, diagonal, &one, iv, &liv, &lv, v);
-	F77_CALL(lowesl)(iv, &liv, &lv, v, n, x, hat_matrix);
-	F77_CALL(lowesc)(n, hat_matrix, LL, trL, one_delta, two_delta);
-	F77_CALL(lowese)(iv, &liv, &lv, v, n, x, surface);
+	hat_matrix = Calloc((*n)*(*n), double);
+	LL = Calloc((*n)*(*n), double);
+	F77_SUB(lowesb)(x, y, weights, diagonal, &one, iv, &liv, &lv, v);
+	F77_SUB(lowesl)(iv, &liv, &lv, v, n, x, hat_matrix);
+	F77_SUB(lowesc)(n, hat_matrix, LL, trL, one_delta, two_delta);
+	F77_SUB(lowese)(iv, &liv, &lv, v, n, x, surface);
 	loess_prune(parameter, a, xi, vert, vval);
+	Free(hat_matrix);
+	Free(LL);
     }
     else if (!strcmp(*surf_stat, "direct/exact")) {
-	hat_matrix = (double *) R_alloc((*n)*(*n), sizeof(double));
-	LL = (double *) R_alloc((*n)*(*n), sizeof(double));
-	F77_CALL(lowesf)(x, y, weights, iv, liv, lv, v, n, x,
+	hat_matrix = Calloc((*n)*(*n), double);
+	LL = Calloc((*n)*(*n), double);
+	F77_SUB(lowesf)(x, y, weights, iv, liv, lv, v, n, x,
 			hat_matrix, &two, surface);
-	F77_CALL(lowesc)(n, hat_matrix, LL, trL, one_delta, two_delta);
+	F77_SUB(lowesc)(n, hat_matrix, LL, trL, one_delta, two_delta);
 	k = (*n) + 1;
 	for(i = 0; i < (*n); i++)
 	    diagonal[i] = hat_matrix[i * k];
+	Free(hat_matrix);
+	Free(LL);
     }
     loess_free();
 }
 
-void
+void 
 loess_dfit(double *y, double *x, double *x_evaluate, double *weights,
-	   double *span, Sint *degree, Sint *nonparametric,
-	   Sint *drop_square, Sint *sum_drop_sqr,
+	   double *span, Sint *degree, Sint *nonparametric, 
+	   Sint *drop_square, Sint *sum_drop_sqr, 
 	   Sint *d, Sint *n, Sint *m, double *fit)
 {
     Sint zero = 0;
 
     loess_workspace(d, n, span, degree, nonparametric, drop_square,
 		    sum_drop_sqr, &zero);
-    F77_CALL(lowesf)(x, y, weights, iv, &liv, &lv, v, m, x_evaluate,
+    F77_SUB(lowesf)(x, y, weights, iv, &liv, &lv, v, m, x_evaluate,
 		    &zero, &zero, fit);
     loess_free();
 }
 
-void
+void 
 loess_dfitse(double *y, double *x, double *x_evaluate, double *weights,
 	     double *robust, Sint *family, double *span, Sint *degree,
-	     Sint *nonparametric, Sint *drop_square,
+	     Sint *nonparametric, Sint *drop_square, 
 	     Sint *sum_drop_sqr,
 	     Sint *d, Sint *n, Sint *m, double *fit, double *L)
 {
@@ -165,30 +161,29 @@ loess_dfitse(double *y, double *x, double *x_evaluate, double *weights,
     loess_workspace(d, n, span, degree, nonparametric, drop_square,
 		    sum_drop_sqr, &zero);
     if(*family == GAUSSIAN)
-	F77_CALL(lowesf)(x, y, weights, iv, &liv, &lv, v, m,
+	F77_SUB(lowesf)(x, y, weights, iv, &liv, &lv, v, m,
 			x_evaluate, L, &two, fit);
     else if(*family == SYMMETRIC)
     {
-	F77_CALL(lowesf)(x, y, weights, iv, &liv, &lv, v, m,
+	F77_SUB(lowesf)(x, y, weights, iv, &liv, &lv, v, m,
 			x_evaluate, L, &two, fit);
-	F77_CALL(lowesf)(x, y, robust, iv, &liv, &lv, v, m,
+	F77_SUB(lowesf)(x, y, robust, iv, &liv, &lv, v, m,
 			x_evaluate, &zero, &zero, fit);
     }
     loess_free();
 }
-
-void
-loess_ifit(Sint *parameter, Sint *a, double *xi, double *vert,
-	   double *vval, Sint *m, double *x_evaluate, double *fit)
+void 
+loess_ifit(Sint *parameter, Sint *a, double *xi, double *vert, 
+	   double *vval, Sint *m, double *x_evaluate, double *fit) 
 {
     loess_grow(parameter, a, xi, vert, vval);
-    F77_CALL(lowese)(iv, &liv, &lv, v, m, x_evaluate, fit);
+    F77_SUB(lowese)(iv, &liv, &lv, v, m, x_evaluate, fit);
     loess_free();
 }
 
-void
+void 
 loess_ise(double *y, double *x, double *x_evaluate, double *weights,
-	  double *span, Sint *degree, Sint *nonparametric,
+	  double *span, Sint *degree, Sint *nonparametric, 
 	  Sint *drop_square, Sint *sum_drop_sqr, double *cell,
 	  Sint *d, Sint *n, Sint *m, double *fit, double *L)
 {
@@ -197,14 +192,14 @@ loess_ise(double *y, double *x, double *x_evaluate, double *weights,
     loess_workspace(d, n, span, degree, nonparametric, drop_square,
 		    sum_drop_sqr, &one);
     v[1] = *cell;
-    F77_CALL(lowesb)(x, y, weights, &zero, &zero, iv, &liv, &lv, v);
-    F77_CALL(lowesl)(iv, &liv, &lv, v, m, x_evaluate, L);
+    F77_SUB(lowesb)(x, y, weights, &zero, &zero, iv, &liv, &lv, v);
+    F77_SUB(lowesl)(iv, &liv, &lv, v, m, x_evaluate, L);
     loess_free();
 }
 
-void
-loess_workspace(Sint *d, Sint *n, double *span, Sint *degree,
-		Sint *nonparametric, Sint *drop_square,
+void 
+loess_workspace(Sint *d, Sint *n, double *span, Sint *degree, 
+		Sint *nonparametric, Sint *drop_square, 
 		Sint *sum_drop_sqr, Sint *setLf)
 {
     Sint D, N, tau0, nvmax, nf, version = 106, i;
@@ -213,7 +208,6 @@ loess_workspace(Sint *d, Sint *n, double *span, Sint *degree,
     N = *n;
     nvmax = max(200, N);
     nf = min(N, floor(N * (*span) + 1e-5));
-    if(nf <= 0) error("span is too small");
     tau0 = ((*degree) > 1) ? ((D + 2) * (D + 1) * 0.5) : (D + 1);
     tau = tau0 - (*sum_drop_sqr);
     lv = 50 + (3 * D + 3) * nvmax + N + (tau0 + 2) * nf;
@@ -225,14 +219,14 @@ loess_workspace(Sint *d, Sint *n, double *span, Sint *degree,
     iv = Calloc(liv, Sint);
     v = Calloc(lv, double);
 
-    F77_CALL(lowesd)(&version, iv, &liv, &lv, v, d, n, span, degree,
+    F77_SUB(lowesd)(&version, iv, &liv, &lv, v, d, n, span, degree,
 		    &nvmax, setLf);
     iv[32] = *nonparametric;
     for(i = 0; i < D; i++)
 	iv[i + 40] = drop_square[i];
 }
 
-static void
+void 
 loess_prune(Sint *parameter, Sint *a, double *xi, double *vert,
 	    double *vval)
 {
@@ -267,7 +261,7 @@ loess_prune(Sint *parameter, Sint *a, double *xi, double *vert,
 	vval[i] = v[vv1 + i];
 }
 
-static void
+void 
 loess_grow(Sint *parameter, Sint *a, double *xi,
 	   double *vert, double *vval)
 {
@@ -314,60 +308,62 @@ loess_grow(Sint *parameter, Sint *a, double *xi,
     for(i = 0; i < k; i++)
 	v[vv1 + i] = vval[i];
 
-    F77_CALL(ehg169)(&d, &vc, &nc, &nc, &nv, &nv, v+v1, iv+a1,
+    F77_SUB(ehg169)(&d, &vc, &nc, &nc, &nv, &nv, v+v1, iv+a1,
 		    v+xi1, iv+iv[7]-1, iv+iv[8]-1, iv+iv[9]-1);
 }
 
+void loess_free(void)
+{
+    Free(v);
+    Free(iv);
+}
 
 /* begin ehg's FORTRAN-callable C-codes */
 
 void F77_SUB(ehg182)(int *i)
 {
     char *msg, msg2[50];
-#define MSG(_m_)	msg = _m_ ; break ;
-
 switch(*i){
- case 100:MSG("wrong version number in lowesd.   Probably typo in caller.")
- case 101:MSG("d>dMAX in ehg131.  Need to recompile with increased dimensions.")
- case 102:MSG("liv too small.    (Discovered by lowesd)")
- case 103:MSG("lv too small.     (Discovered by lowesd)")
- case 104:MSG("span too small.   fewer data values than degrees of freedom.")
- case 105:MSG("k>d2MAX in ehg136.  Need to recompile with increased dimensions.")
- case 106:MSG("lwork too small")
- case 107:MSG("invalid value for kernel")
- case 108:MSG("invalid value for ideg")
- case 109:MSG("lowstt only applies when kernel=1.")
- case 110:MSG("not enough extra workspace for robustness calculation")
- case 120:MSG("zero-width neighborhood. make span bigger")
- case 121:MSG("all data on boundary of neighborhood. make span bigger")
- case 122:MSG("extrapolation not allowed with blending")
- case 123:MSG("ihat=1 (diag L) in l2fit only makes sense if z=x (eval=data).")
- case 171:MSG("lowesd must be called first.")
- case 172:MSG("lowesf must not come between lowesb and lowese, lowesr, or lowesl.")
- case 173:MSG("lowesb must come before lowese, lowesr, or lowesl.")
- case 174:MSG("lowesb need not be called twice.")
- case 175:MSG("need setLf=.true. for lowesl.")
- case 180:MSG("nv>nvmax in cpvert.")
- case 181:MSG("nt>20 in eval.")
- case 182:MSG("svddc failed in l2fit.")
- case 183:MSG("didnt find edge in vleaf.")
- case 184:MSG("zero-width cell found in vleaf.")
- case 185:MSG("trouble descending to leaf in vleaf.")
- case 186:MSG("insufficient workspace for lowesf.")
- case 187:MSG("insufficient stack space")
- case 188:MSG("lv too small for computing explicit L")
- case 191:MSG("computed trace L was negative; something is wrong!")
- case 192:MSG("computed delta was negative; something is wrong!")
- case 193:MSG("workspace in loread appears to be corrupted")
- case 194:MSG("trouble in l2fit/l2tr")
- case 195:MSG("only constant, linear, or quadratic local models allowed")
- case 196:MSG("degree must be at least 1 for vertex influence matrix")
- case 999:MSG("not yet implemented")
+ case 100:msg="wrong version number in lowesd.   Probably typo in caller.";break;
+ case 101:msg="d>dMAX in ehg131.  Need to recompile with increased dimensions.";break;
+ case 102:msg="liv too small.    (Discovered by lowesd)";break;
+ case 103:msg="lv too small.     (Discovered by lowesd)";break;
+ case 104:msg="span too small.   fewer data values than degrees of freedom.";break;
+ case 105:msg="k>d2MAX in ehg136.  Need to recompile with increased dimensions.";break;
+ case 106:msg="lwork too small";break;
+ case 107:msg="invalid value for kernel";break;
+ case 108:msg="invalid value for ideg";break;
+ case 109:msg="lowstt only applies when kernel=1.";break;
+ case 110:msg="not enough extra workspace for robustness calculation";break;
+ case 120:msg="zero-width neighborhood. make span bigger";break;
+ case 121:msg="all data on boundary of neighborhood. make span bigger";break;
+ case 122:msg="extrapolation not allowed with blending";break;
+ case 123:msg="ihat=1 (diag L) in l2fit only makes sense if z=x (eval=data).";break;
+ case 171:msg="lowesd must be called first.";break;
+ case 172:msg="lowesf must not come between lowesb and lowese, lowesr, or lowesl.";break;
+ case 173:msg="lowesb must come before lowese, lowesr, or lowesl.";break;
+ case 174:msg="lowesb need not be called twice.";break;
+ case 175:msg="need setLf=.true. for lowesl.";break;
+ case 180:msg="nv>nvmax in cpvert.";break;
+ case 181:msg="nt>20 in eval.";break;
+ case 182:msg="svddc failed in l2fit.";break;
+ case 183:msg="didnt find edge in vleaf.";break;
+ case 184:msg="zero-width cell found in vleaf.";break;
+ case 185:msg="trouble descending to leaf in vleaf.";break;
+ case 186:msg="insufficient workspace for lowesf.";break;
+ case 187:msg="insufficient stack space";break;
+ case 188:msg="lv too small for computing explicit L";break;
+ case 191:msg="computed trace L was negative; something is wrong!";break;
+ case 192:msg="computed delta was negative; something is wrong!";break;
+ case 193:msg="workspace in loread appears to be corrupted";break;
+ case 194:msg="trouble in l2fit/l2tr";break;
+ case 195:msg="only constant, linear, or quadratic local models allowed";break;
+ case 196:msg="degree must be at least 1 for vertex influence matrix";break;
+ case 999:msg="not yet implemented";break;
  default: sprintf(msg=msg2,"Assert failed; error code %d\n",*i);
 }
-warning(msg);
+warnmsg(msg);
 }
-#undef MSG
 
 void F77_SUB(ehg183a)(char *s, int *nc,int *i,int *n,int *inc)
 {
@@ -380,7 +376,7 @@ void F77_SUB(ehg183a)(char *s, int *nc,int *i,int *n,int *inc)
 	strcat(mess,num);
     }
     strcat(mess,"\n");
-    warning(mess);
+    warnmsg(mess);
 }
 
 void F77_SUB(ehg184a)(char *s, int *nc, double *x, int *n, int *inc)
@@ -394,5 +390,5 @@ void F77_SUB(ehg184a)(char *s, int *nc, double *x, int *n, int *inc)
 	strcat(mess,num);
     }
     strcat(mess,"\n");
-    warning(mess);
+    warnmsg(mess);
 }

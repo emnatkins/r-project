@@ -2,24 +2,17 @@
 \title{Hierarchical Clustering}
 \alias{hclust}
 \alias{plot.hclust}
-\alias{plclust}
 \alias{print.hclust}
 \description{
-  Hierarchical cluster analysis on a set of dissimilarities and
-  methods for analyzing it.
+  Performs a hierarchical cluster analysis on a set of dissimilarities.
 }
 \usage{
 hclust(d, method = "complete", members=NULL)
 
-\method{plot}{hclust}(x, labels = NULL, hang = 0.1,
-     axes = TRUE, frame.plot = FALSE, ann = TRUE,
-     main = "Cluster Dendrogram",
-     sub = NULL, xlab = NULL, ylab = "Height", \dots)
-
-plclust(tree, hang = 0.1, unit = FALSE, level = FALSE, hmin = 0,
-        square = TRUE, labels = NULL, plot. = TRUE,
-        axes = TRUE, frame.plot = FALSE, ann = TRUE,
-        main = "", sub = NULL, xlab = NULL, ylab = "Height")
+plot.hclust(tree, labels = NULL, hang = 0.1,
+            axes = TRUE, frame.plot = FALSE, ann = TRUE,
+            main = "Cluster Dendrogram",
+            sub = NULL, xlab = NULL, ylab = "Height", \dots)
 }
 \arguments{
   \item{d}{a dissimilarity structure as produced by \code{dist}.}
@@ -30,10 +23,9 @@ plclust(tree, hang = 0.1, unit = FALSE, level = FALSE, hmin = 0,
     \code{"average"}, \code{"mcquitty"}, \code{"median"} or
     \code{"centroid"}.}
 
-  \item{members}{\code{NULL} or a vector with length size of
-    \code{d}. See the Details section.}
+  \item{members}{\code{NULL} or a vector with length size of \code{d}.}
 
-  \item{x,tree}{an object of the type produced by \code{hclust}.}
+  \item{tree}{an object of the type produced by \code{hclust}.}
 
   \item{hang}{The fraction of the plot height by which labels should hang
     below the rest of the plot.
@@ -48,20 +40,12 @@ plclust(tree, hang = 0.1, unit = FALSE, level = FALSE, hmin = 0,
     \code{\link{title}}.  \code{sub} and \code{xlab} have a non-NULL
     default when there's a \code{tree$call}.}
   \item{\dots}{Further graphical arguments.}
-
-  \item{unit}{logical.  If true, the splits are plotted at
-    equally-spaced heights rather than at the height in the object.}
-
-  \item{hmin}{numeric.  All heights less than \code{hmin} are regarded
-    as being \code{hmin}: this can be used to suppress detail at the
-    bottom of the tree.}
-  \item{level, square, plot.}{as yet unimplemented arguments of
-    \code{plclust} for S-PLUS compatibility.}
 }
 \value{
   An object of class \bold{hclust} which describes the
   tree produced by the clustering process.
   The object is a list with components:
+
   \item{merge}{an \eqn{n-1} by 2 matrix.
     Row \eqn{i} of \code{merge} describes the merging of clusters
     at step \eqn{i} of the clustering.
@@ -93,12 +77,6 @@ plclust(tree, hang = 0.1, unit = FALSE, level = FALSE, hmin = 0,
   \item{dist.method}{the distance that has been used to create \code{d}
     (only returned if the distance object has a \code{"method"}
     attribute).}
-
-  There is a \code{\link{print}} and a \code{\link{plot}} method for
-  \code{hclust} objects.
-  The \code{plclust()} function is basically the same as the plot method,
-  \code{plot.hclust}, primarily for back compatibility with S-plus. Its
-  extra arguments are not yet implemented.
 }
 \details{
   This function performs a hierarchical cluster analysis
@@ -116,7 +94,7 @@ plclust(tree, hang = 0.1, unit = FALSE, level = FALSE, hmin = 0,
   spherical clusters.  The \emph{complete linkage} method finds
   similar clusters. The \emph{single linkage} method
   (which is closely related to the minimal spanning tree)
-  adopts a \sQuote{friends of friends} clustering strategy.
+  adopts a `friends of friends' clustering strategy.
   The other methods can be regarded as aiming
   for clusters with characteristics somewhere between
   the single and complete link methods.
@@ -124,15 +102,14 @@ plclust(tree, hang = 0.1, unit = FALSE, level = FALSE, hmin = 0,
   If \code{members!=NULL}, then \code{d} is taken to be a
   dissimilarity matrix between clusters instead of dissimilarities
   between singletons and \code{members} gives the number of observations
-  per cluster.  This way the hierarchical cluster algorithm can be
-  \dQuote{started in the middle of the dendrogram}, e.g., in order to
-  reconstruct the part of the tree above a cut (see examples).
-  Dissimilarities between clusters can be efficiently computed (i.e.,
-  without \code{hclust} itself) only for a limited number of
-  distance/linkage combinations, the simplest one being squared
-  Euclidean distance and centroid linkage.  In this case the
-  dissimilarities between the clusters are the squared Euclidean
-  distances between cluster means.
+  per cluster. This way the hierarchical cluster algorithm can be ``started
+  in the middle of the dendrogram'', e.g., in order to reconstruct the
+  part of the tree above a cut (see examples). Dissimilarities between
+  clusters can be efficiently computed (i.e., without \code{hclust}
+  itself) only for a limited number of distance/linkage combinations,
+  the simplest one being squared Euclidean distance and centroid
+  linkage. In this case the dissimilarities between the clusters are
+  the squared Euclidean distances between cluster means.
 
   In hierarchical cluster displays, a decision is needed at each merge to
   specify which subtree should go on the left and which on the right.
@@ -140,7 +117,7 @@ plclust(tree, hang = 0.1, unit = FALSE, level = FALSE, hmin = 0,
   there are \eqn{2^{(n-1)}} possible orderings for the leaves
   in a cluster tree, or dendrogram.
   The algorithm used in \code{hclust} is to order the subtree so that
-  the tighter cluster is on the left (the last, i.e., most recent,
+  the tighter cluster is on the left (the last, i.e. most recent,
   merge of the left subtree is at a lower value than the last
   merge of the right subtree).
   Single observations are the tightest clusters possible,
@@ -148,10 +125,6 @@ plclust(tree, hang = 0.1, unit = FALSE, level = FALSE, hmin = 0,
   observation sequence number.
 }
 \references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole. (S version.)
-
   Everitt, B. (1974).
   \emph{Cluster Analysis}.
   London: Heinemann Educ. Books.
@@ -168,12 +141,12 @@ plclust(tree, hang = 0.1, unit = FALSE, level = FALSE, hmin = 0,
   \emph{Cluster Analysis for Applications}.
   Academic Press: New York.
 
-  Gordon, A. D. (1999).
-  \emph{Classification}. Second Edition.
-  London: Chapman and Hall / CRC
+  Gordon, A. D. (1981).
+  \emph{Classification}.
+  London: Chapman and Hall.
 
   Murtagh, F. (1985).
-  \dQuote{Multidimensional Clustering Algorithms}, in
+  ``Multidimensional Clustering Algorithms'', in
   \emph{COMPSTAT Lectures 4}.
   Wuerzburg: Physica-Verlag
   (for algorithmic details of algorithms used).
@@ -183,28 +156,28 @@ plclust(tree, hang = 0.1, unit = FALSE, level = FALSE, hmin = 0,
   contributed to STATLIB by F. Murtagh.
 }
 \seealso{
-  \code{\link{cutree}}, \code{\link{dendrogram}}, \code{\link{kmeans}}.
+  \code{\link{kmeans}}.
 }
 \examples{
 library(mva)
 data(USArrests)
 hc <- hclust(dist(USArrests), "ave")
 plot(hc)
-plot(hc, hang = -1)
+plot(hc, hang=-1)
 
 ## Do the same with centroid clustering and squared Euclidean distance,
 ## cut the tree into ten clusters and reconstruct the upper part of the
 ## tree from the cluster centers.
 hc <- hclust(dist(USArrests)^2, "cen")
-memb <- cutree(hc, k = 10)
+memb <- cutree(hc, k=10)
 cent <- NULL
 for(k in 1:10){
-  cent <- rbind(cent, colMeans(USArrests[memb == k, , drop = FALSE]))
+  cent <- rbind(cent, apply(USArrests[memb==k,,drop=FALSE], 2, mean))
 }
-hc1 <- hclust(dist(cent)^2, method = "cen", members = table(memb))
-opar <- par(mfrow = c(1, 2))
-plot(hc,  labels = FALSE, hang = -1, main = "Original Tree")
-plot(hc1, labels = FALSE, hang = -1, main = "Re-start from 10 clusters")
+hc1 <- hclust(dist(cent)^2, method="cen", members=table(memb))
+opar <- par(mfrow=c(1,2))
+plot(hc,  labels=FALSE, hang=-1, main= "Original Tree")
+plot(hc1, labels=FALSE, hang=-1, main= "Re-start from 10 clusters")
 par(opar)
 }
 \keyword{multivariate}

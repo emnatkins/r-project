@@ -2,17 +2,17 @@
 \alias{plot.default}
 \title{The Default Scatterplot Function}
 \description{
-  Draw a scatter plot with \dQuote{decorations} such as axes and titles
+  Draw a scatter plot with ``decorations'' such as axes and titles
   in the active graphics window.
 }
 \usage{
-\method{plot}{default}(x, y = NULL, type = "p",  xlim = NULL, ylim = NULL,
-     log = "", main = NULL, sub = NULL, xlab = NULL, ylab = NULL,
-     ann = par("ann"), axes = TRUE, frame.plot = axes,
-     panel.first = NULL, panel.last = NULL,
-     col = par("col"), bg = NA, pch = par("pch"),
-     cex = 1, lty = par("lty"), lab = par("lab"),
-     lwd = par("lwd"), asp = NA, \dots)
+plot.default(x, y = NULL, type = "p",  xlim = NULL, ylim = NULL,
+             log = "", main = NULL, sub = NULL, xlab = NULL, ylab = NULL,
+             ann = par("ann"), axes = TRUE, frame.plot = axes,
+             panel.first = NULL, panel.last = NULL,
+             col = par("fg"), bg = NA, pch = par("pch"),
+             cex = par("cex"), lty = par("lty"), lab = par("lab"),
+             lwd = par("lwd"), asp = NA, \dots)
 }
 \arguments{
   \item{x,y}{the \code{x} and \code{y} arguments provide the x and y
@@ -54,12 +54,12 @@
   \item{col}{The colors for lines and points.  Multiple colors can be
     specified so that each point can be given its own color.  If there
     are fewer colors than points they are recycled in the standard
-    fashion.  Lines will all be plotted in the first colour specified.}
+    fashion.}
   \item{bg}{background color for open plot symbols, see
     \code{\link{points}}.}
-  \item{pch}{a vector of plotting characters or symbols: see \code{\link{points}}.}
-  \item{cex}{a numerical vector giving the amount by which plotting text
-    and symbols should be scaled relative to the default.}
+  \item{pch}{a vector of plotting characters or symbols.}
+  \item{cex}{a numerical value giving the amount by which plotting text
+    and symbols should be scaled relative to the default}
   \item{lty}{the line type, see \code{\link{par}}.}
   \item{lab}{the specification for the (approximate) numbers of tick
     marks on the x and y axes.}
@@ -69,10 +69,6 @@
     passed as arguments.}
 }
 \references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-
   Cleveland, W. S. (1985)
   \emph{The Elements of Graphing Data.}
   Monterey, CA: Wadsworth.

@@ -43,8 +43,7 @@ SEXP do_parse(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP text, prompt, s;
     Rconnection con;
     Rboolean wasopen;
-    int ifile, num;
-    ParseStatus status;
+    int ifile, num, status;
 
     checkArity(op, args);
     R_ParseError = 0;
@@ -72,8 +71,7 @@ SEXP do_parse(SEXP call, SEXP op, SEXP args, SEXP env)
     else if (ifile >= 3) {/* file != "" */
 	if (num == NA_INTEGER)
 	    num = -1;
-	if(!wasopen)
-	    if(!con->open(con)) error("cannot open the connection");
+	if(!wasopen) con->open(con);
 	s = R_ParseConn(con, num, &status);
 	if(!wasopen) con->close(con);
 	if (status != PARSE_OK)

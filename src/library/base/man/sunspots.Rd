@@ -1,13 +1,12 @@
 \name{sunspots}
-\docType{data}
 \alias{sunspots}
 \title{Monthly Sunspot Numbers, 1749--1983}
+\usage{data(sunspots)}
 \description{
-  Monthly mean relative sunspot numbers from 1749 to 1983.  Collected at
-  Swiss Federal Observatory, Zurich until 1960, then Tokyo Astronomical
+  Monthly mean relative sunspot numbers from 1749 to 1983.  Collected at Swiss
+  Federal Observatory, Zurich until 1960, then Tokyo Astronomical
   Observatory.
 }
-\usage{data(sunspots)}
 \format{
   A time series of monthly data from 1749 to 1983.
 }
@@ -17,8 +16,7 @@
     Student and Research Worker}.
   New York: Springer-Verlag.
 }
-\seealso{\code{\link[ts]{sunspot.month}} (package \pkg{ts}) has a
-  longer (and a bit different) series.} 
+\seealso{\code{\link[ts]{sunspot.month}} has a longer (and a bit different) series.}
 \examples{
 data(sunspots)
 plot(sunspots, main = "sunspots data", xlab = "Year",

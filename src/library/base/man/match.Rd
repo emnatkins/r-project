@@ -12,14 +12,13 @@
 }
 \usage{
 match(x, table, nomatch = NA, incomparables = FALSE)
-
 x \%in\% table
 }
 \arguments{
   \item{x}{the values to be matched.}
   \item{table}{the values to be matched against.}
   \item{nomatch}{the value to be returned in the case when no match is
-    found.  Note that it is coerced to \code{integer}.}
+    found.}
   \item{incomparables}{a vector of values that cannot be matched.  Any
     value in \code{x} matching a value in this vector is assigned the
     \code{nomatch} value.  Currently, \code{FALSE} is the only possible
@@ -27,15 +26,15 @@ x \%in\% table
 }
 \value{
   In both cases, a vector of the same length as \code{x}.
-
-  \code{match}: An integer vector giving the position in \code{table} of
+  
+  \code{match}: A numeric vector giving the position in \code{table} of
   the first match if there is a match, otherwise \code{nomatch}.
-
+  
   If \code{x[i]} is found to equal \code{table[j]}
   then the value returned in the \code{i}-th position of the return value is
   \code{j}, for the smallest possible \code{j}.  If no match is found,
   the value is \code{nomatch}.
-
+  
   \code{\%in\%}: A logical vector, indicating if a match was located for
   each element of \code{x}.
 }
@@ -48,17 +47,12 @@ x \%in\% table
   in R's ordering, logical < integer < numeric < complex < character)
   before matching.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
-  \code{\link{pmatch}} and \code{\link{charmatch}} for (\emph{partial})
-  string matching, \code{\link{match.arg}}, etc for function argument
-  matching.
+\code{\link{pmatch}} and \code{\link{charmatch}} for (\emph{partial})
+string matching, \code{\link{match.arg}}, etc for function argument
+matching.
 
-  \code{\link{is.element}} for an S-compatible equivalent of \code{\%in\%}.
+\code{\link{is.element}} for an S-compatible equivalent of \code{\%in\%}.
 }
 \examples{
 ## The intersection of two sets :

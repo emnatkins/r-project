@@ -13,11 +13,11 @@ bug.report(subject = "", ccaddress = Sys.getenv("USER"),
 }
 \arguments{
   \item{subject}{Subject of the email. Please do not use single quotes
-    (\code{'}) in the subject! File separate bug reports for multiple bugs}
+    (\code{'}) in the subject!}
   \item{ccaddress}{Optional email address for copies (default is current
     user).  Use \code{ccaddress = FALSE} for no copies.}
   \item{method}{Submission method, one of \code{"mailx"},
-    \code{"gnudoit"}, \code{"none"}, or \code{"ess"}.}
+    \code{"gnuclient"}, \code{"none"}, or \code{"ess"}.}
   \item{address}{Recipient's email address.}
   \item{file}{File to use for setting up the email (or storing it when
     method is \code{"none"} or sending mail fails).}
@@ -27,7 +27,7 @@ bug.report(subject = "", ccaddress = Sys.getenv("USER"),
 }
 \description{
   Invokes an editor to write a bug report and optionally mail it to the
-  automated r-bugs repository at \email{r-bugs@r-project.org}.  Some standard
+  r-bugs list at \email{r-bugs@r-project.org}.  Some standard
   information on the current version and configuration of \R are 
   included automatically.
 }
@@ -42,7 +42,7 @@ bug.report(subject = "", ccaddress = Sys.getenv("USER"),
   the report is mailed using a Unix command line mail utility such as
   \code{mailx}.  A copy of the mail is sent to the current user.
 
-  If method is \code{"gnudoit"}, then an emacs mail buffer is opened
+  If method is \code{"gnuclient"}, then an emacs mail buffer is opened
   and used for sending the email.
 
   If method is \code{"none"} or \code{NULL} (which is the default on
@@ -57,8 +57,7 @@ bug.report(subject = "", ccaddress = Sys.getenv("USER"),
 \section{When is there a bug?}{
   If \R executes an illegal instruction, or dies with an operating
   system error message that indicates a problem in the program (as
-  opposed to something like \dQuote{disk full}), then it is certainly a
-  bug.
+  opposed to something like ``disk full''), then it is certainly a bug.
 
   Taking forever to complete a command can be a bug, but you must make
   certain that it was really \R's fault.  Some commands simply take a
@@ -83,13 +82,12 @@ bug.report(subject = "", ccaddress = Sys.getenv("USER"),
    probably best not to complain about such a problem until you have
    checked the documentation in the usual ways, feel confident that you
    understand it, and know for certain that what you want is not
-   available. The mailing list \code{r-devel@r-project.org} is a better
-   place for discussions of this sort than the bug list.
-
-   If you are not sure what the command is supposed to do
+   available.  If you are not sure what the command is supposed to do
    after a careful reading of the manual this indicates a bug in the
    manual.  The manual's job is to make everything clear.  It is just as
-   important to report documentation bugs as program bugs.
+   important to report documentation bugs as program bugs. However, we
+   know that the introductory documentation is seriously inadequate, so
+   you don't need to report this.
 
    If the online argument list of a function disagrees with the manual,
    one of them must be wrong, so report the bug.
@@ -99,9 +97,8 @@ bug.report(subject = "", ccaddress = Sys.getenv("USER"),
   to report it in a way which is useful.  What is most useful is an
   exact description of what commands you type, from when you start \R
   until the problem happens.  Always include the version of \R, machine,
-  and operating system that you are using; type \kbd{version} in \R to
-  print this.  To help us keep track of which bugs have been fixed and
-  which are still open please send a separate report for each bug.
+  and operating system that you are using; type `version' in \R to print
+  this. 
 
   The most important principle in reporting a bug is to report FACTS,
   not hypotheses or categorizations.  It is always easier to report the
@@ -135,20 +132,17 @@ bug.report(subject = "", ccaddress = Sys.getenv("USER"),
   wonderful.  You should still report the facts as well as any
   explanations or solutions.
 
-  Invoking \R with the \option{--vanilla} option may help in isolating a
+  Invoking \R with the \code{--vanilla} option may help in isolating a
   bug.  This ensures that the site profile and saved data files are not
   read.
 
-  A bug report can be generated using the
+  On some systems a bug report can be generated using the
   \code{bug.report()} function.  This automatically includes the version
   information and sends the bug to the correct address.  Alternatively
   the bug report can be emailed to \email{r-bugs@r-project.org} or
   submitted to the Web page at \url{http://bugs.r-project.org}.
-
-  Bug reports on \strong{contributed packages} should perhaps be sent to the
-  package maintainer rather than to r-bugs.
 }
 \seealso{R FAQ} 
-\author{This help page is adapted from the Emacs manual and the R FAQ}
+\author{This help page is adapted from the Emacs manual}
 \keyword{utilities}
 \keyword{error}

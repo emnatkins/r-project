@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2001  The R Development Core Team
+ *  Copyright (C) 1998--2000  The R Development Core Team
  *  based on code (C) 1979 and later Royal Statistical Society
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,12 @@
 #include "dpq.h"
 
 /* set the exponent of accu to -2r-2 for r digits of accuracy */
-/*---- NEW ---- -- still fails for p = 1e11, q=.5*/
+#ifdef OLD
+#define acu 1.0e-32
+#define lower 0.0001
+#define upper 0.9999
+
+#else/*---- NEW ---- -- still fails for p = 1e11, q=.5*/
 
 #define fpu 3e-308
 /* acu_min:  Minimal value for accuracy 'acu' which will depend on (a,p);
@@ -41,12 +46,14 @@
 #define lower fpu
 #define upper 1-2.22e-16
 
+#endif
+
 #define const1 2.30753
 #define const2 0.27061
 #define const3 0.99229
 #define const4 0.04481
 
-static volatile double xtrunc;/* not a real global .. delicate though! */
+static volatile double xtrunc;
 
 double qbeta(double alpha, double p, double q, int lower_tail, int log_p)
 {
@@ -86,27 +93,27 @@ double qbeta(double alpha, double p, double q, int lower_tail, int log_p)
 
     /* calculate the initial approximation */
 
-    r = sqrt(-2 * log(a));
-    y = r - (const1 + const2 * r) / (1. + (const3 + const4 * r) * r);
+    r = sqrt(-log(a * a));
+    y = r - (const1 + const2 * r) / (1 + (const3 + const4 * r) * r);
     if (pp > 1 && qq > 1) {
-	r = (y * y - 3.) / 6.;
-	s = 1. / (pp + pp - 1.);
-	t = 1. / (qq + qq - 1.);
-	h = 2. / (s + t);
-	w = y * sqrt(h + r) / h - (t - s) * (r + 5. / 6. - 2. / (3. * h));
+	r = (y * y - 3) / 6;
+	s = 1 / (pp + pp - 1);
+	t = 1 / (qq + qq - 1);
+	h = 2 / (s + t);
+	w = y * sqrt(h + r) / h - (t - s) * (r + 5 / 6 - 2 / (3 * h));
 	xinbta = pp / (pp + qq * exp(w + w));
     } else {
 	r = qq + qq;
-	t = 1. / (9. * qq);
-	t = r * pow(1. - t + y * sqrt(t), 3.0);
+	t = 1 / (9 * qq);
+	t = r * pow(1 - t + y * sqrt(t), 3);
 	if (t <= 0.)
-	    xinbta = 1. - exp((log1p(-a)+ log(qq) + logbeta) / qq);
+	    xinbta = 1 - exp((log((1 - a) * qq) + logbeta) / qq);
 	else {
-	    t = (4. * pp + r - 2.) / t;
-	    if (t <= 1.)
+	    t = (4 * pp + r - 2) / t;
+	    if (t <= 1)
 		xinbta = exp((log(a * pp) + logbeta) / pp);
 	    else
-		xinbta = 1. - 2. / (t + 1.);
+		xinbta = 1 - 2 / (t + 1);
 	}
     }
 
@@ -117,11 +124,10 @@ double qbeta(double alpha, double p, double q, int lower_tail, int log_p)
     t = 1 - qq;
     yprev = 0.;
     adj = 1;
-    /* Sometimes the approximation is negative! */
     if (xinbta < lower)
-	xinbta = 0.5;
+	xinbta = lower;
     else if (xinbta > upper)
-	xinbta = 0.5;
+	xinbta = upper;
 
     /* Desired accuracy should depend on  (a,p)
      * This is from Remark .. on AS 109, adapted.
@@ -147,7 +153,7 @@ double qbeta(double alpha, double p, double q, int lower_tail, int log_p)
 		ML_ERR_return_NAN;
 
 	y = (y - a) *
-	    exp(logbeta + r * log(xinbta) + t * log1p(-xinbta));
+	    exp(logbeta + r * log(xinbta) + t * log(1 - xinbta));
 	if (y * yprev <= 0.)
 	    prev = fmax2(fabs(adj),fpu);
 	g = 1;

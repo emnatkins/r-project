@@ -1,5 +1,5 @@
-#Platform <- function()
-#.Internal(Platform())
+Platform <- function()
+.Internal(Platform())
 
 R.home <- function()
 .Internal(R.home())
@@ -24,22 +24,13 @@ file.append <- function(file1, file2)
 file.remove <- function(...)
 .Internal(file.remove(c(...)))
 
-file.rename <- function(from, to)
-.Internal(file.rename(from, to))
+list.files <- function(path=".", pattern=NULL,all.files=FALSE,full.names=FALSE)
+.Internal(list.files(path, pattern, all.files, full.names))
 
-list.files <- function(path=".", pattern=NULL, all.files=FALSE,
-                       full.names=FALSE, recursive=FALSE)
-.Internal(list.files(path, pattern, all.files, full.names, recursive))
+dir <- .Alias(list.files)
 
-dir <- list.files
-
-file.path <-
-function(..., fsep=.Platform$file.sep)
-{
-    if(any(sapply(list(...), length) == 0)) return(character())
-    paste(..., sep = fsep)
-}
-
+file.path <- function(..., fsep=.Platform$file.sep)
+paste(..., sep=fsep)
 
 file.exists <- function(...)
 .Internal(file.exists(c(...)))
@@ -55,33 +46,22 @@ file.copy <- function(from, to, overwrite=FALSE)
     if (!(nf <- length(from))) stop("no files to copy from")
     if (!(nt <- length(to)))   stop("no files to copy to")
     if (nt == 1 && file.exists(to) && file.info(to)$isdir)
-        to <- file.path(to, basename(from))
-    else if (nf > nt) stop("more 'from' files than 'to' files")
-    if(nt > nf) from <- rep(from, length = nt)
-    if (!overwrite) okay <- !file.exists(to)
-    else okay <- rep(TRUE, length(to))
-    if (any(from[okay] %in% to[okay]))
-        stop("file can't be copied both from and to")
-    if (any(okay)) { 
-    	file.create(to[okay])
-    	okay[okay] <- file.append(to[okay], from[okay])
+        to <- file.path(to, from)
+    else if (nf > nt)  stop("more `from' files than `to' files")
+    if(!overwrite) {
+        if(nt > nf) from <- rep(from, length = nt)
+        exists <- file.exists(from)
+        from <- from[exists]
+        to <- to[exists]
     }
-    okay
-}
-
-file.symlink <- function(from, to) {
-    if (!(length(from))) stop("no files to link from")
-    if (!(nt <- length(to)))   stop("no files/dir to link to")
-    if (nt == 1 && file.exists(to) && file.info(to)$isdir)
-        to <- file.path(to, basename(from))
-    .Internal(file.symlink(from, to))
+    file.create(to)
+    file.append(to, from)
 }
 
 file.info <- function(...)
 {
     res <- .Internal(file.info(fn <- c(...)))
-    class(res$mtime) <- class(res$ctime) <- class(res$atime) <-
-        c("POSIXt", "POSIXct")
+    class(res$mtime) <- class(res$ctime) <- class(res$atime) <- "POSIXct"
     class(res) <- "data.frame"
     row.names(res) <- fn
     res
@@ -100,17 +80,16 @@ format.octmode <- function(x, ...)
     isna <- is.na(x)
     y <- x[!isna]
     ans0 <- character(length(y))
-    z <- NULL
-    while(any(y > 0) || is.null(z)) {
+    while(any(y > 0)) {
         z <- y%%8
         y <- floor(y/8)
         ans0 <- paste(z, ans0, sep="")
     }
-    ans <- rep(as.character(NA), length(x))
+    ans <- rep("NA", length(x))
     ans[!isna] <- ans0
     ans
 }
-as.character.octmode <- format.octmode
+as.character.octmode <- .Alias(format.octmode)
 
 print.octmode <- function(x, ...)
 {
@@ -118,20 +97,19 @@ print.octmode <- function(x, ...)
     invisible(x)
 }
 
-system.file <-
-function(..., package = "base", lib.loc = NULL)
+
+system.file <- function (..., pkg = .packages(), lib = .lib.loc)
 {
-    if(nargs() == 0)
-        return(file.path(.Library, "base"))
-    if(length(package) != 1)
-        stop(paste("argument", sQuote("package"), "must be of length 1"))
-    packagePath <- .find.package(package, lib.loc, quiet = TRUE)
-    if(length(packagePath) == 0)
-        return("")
-    FILES <- file.path(packagePath, ...)
+    flist <- list(...)
+    if((length(flist) > 1)
+       || (length(flist) == 1 && nchar(flist[[1]]) > 0)) {
+        FILES <- file.path(t(outer(lib, pkg, file.path)), ...)
+    } else {
+        if(missing(pkg)) pkg <- "base"
+        FILES <- outer(lib, pkg, file.path)
+    }
     present <- file.exists(FILES)
-    if(any(present))
-        FILES[present]
+    if(any(present)) FILES[present]
     else ""
 }
 

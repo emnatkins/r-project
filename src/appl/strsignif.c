@@ -1,6 +1,6 @@
 /*
  *  Copyright (C) Martin Maechler, 1994, 1998
- *  Copyright (C) 2001-2002 the R Development Core Team
+ *  Copyright (C) 2001 the R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,9 +34,6 @@
  *  Integer arguments changed from "long" to "int"
  *  Bus error due to non-writable strings fixed
  *
- *  BDR 2001-10-30 use R_alloc not Calloc as memory was not
- *  reclaimed on error (and there are many error exits).
- *
  *	type	"double" or "integer" (R - numeric `mode').
  *
  *	width	The total field width; width < 0 means to left justify
@@ -63,26 +60,20 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 #include <stdio.h>
 #include <string.h>
+#ifndef Macintosh
 #include <math.h>
+#else
+#include <fp.h>
+#endif /* mac */
 
-#ifdef Win32
-#include <ctype.h>
-#endif
+#include "R_ext/Error.h" /* error */
+#include "R_ext/RS.h" /* Calloc */
+#include "R_ext/Applic.h"
 
-#include <R_ext/Error.h>	/* error */
-#include <R_ext/Memory.h>	/* R_alloc */
-#include <R_ext/Applic.h>
-#include <Rmath.h>		/* fround */
-
-/*
-   The declaration for x is unusual for a .C() but is managed by
-   casting in the code itself.  However, it does mean that we cannot
-   use the argument type matching
- */
 void str_signif(char *x, int *n, char **type, int *width, int *digits,
 		char **format, char **flag, char **result)
 {
@@ -93,8 +84,8 @@ void str_signif(char *x, int *n, char **type, int *width, int *digits,
     double xx;
     int iex, j, jL, len_flag = strlen(*flag);
 
-    char *f0  =	 R_alloc(do_fg ? 1+len_flag+3 : 1, sizeof(char));
-    char *form = R_alloc(len_flag+4 + strlen(*format), sizeof(char));
+    char *f0  =	 Calloc(do_fg ? 1+len_flag+3 : 1, char);
+    char *form = Calloc(len_flag+4 + strlen(*format), char);
 
     if (wid == 0)
 	error(".C(..): Width cannot be zero");
@@ -142,18 +133,7 @@ void str_signif(char *x, int *n, char **type, int *width, int *digits,
 		    if(xx == 0.)
 			strcpy(result[i], "0");
 		    else {
-			/* This was iex= (int)floor(log10(fabs(xx)))
-			   That's wrong, as xx might get rounded up,
-			   and we do need some fuzz or 99.5 is correct.
-			*/
-			double xxx = fabs(xx), X;
-			iex= (int)floor(log10(xxx) + 1e-12);
-			X = fround(xxx/pow(10.0, (double)iex)+ 1e-12, 
-				   (double)(dig-1));
-			if(iex > 0 &&  X >= 10) {
-			    xx = X * pow(10.0, (double)iex);
-			    iex++;
-			}
+			iex= (int)floor(log10(fabs(xx)));
 			if(iex == -4 && fabs(xx)< 1e-4) {/* VERY rare case */
 			    iex = -5;
 			}
@@ -184,25 +164,11 @@ void str_signif(char *x, int *n, char **type, int *width, int *digits,
 		    } /* xx != 0 */
 		} /* if(do_fg) for(i..) */
 	    else
-		for (i=0; i < nn; i++) {
+		for (i=0; i < nn; i++)
 		    sprintf(result[i], form, wid, dig, ((double *)x)[i]);
-#ifdef Win32
-		    {
-			/* change e+/-00n to e+/-0n etc */
-			char *p = result[i];
-			int len = strlen(p);
-			if (tolower(p[len-5]) == 'e' &&
-			   (p[len-4] == '+' || p[len-4] == '-') &&
-			   p[len-3] == '0' &&
-			   isdigit(p[len-2]) && isdigit(p[len-1])) {
-			    p[len-3] = p[len-2];
-			    p[len-2] = p[len-1];
-			    p[len-1] = '\0';
-			}
-		    }
-#endif
-		}
 	} else
 	    error(".C(..): `type' must be \"real\" for this format");
     }
+    Free(form);
+    Free(f0);
 }

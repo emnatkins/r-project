@@ -51,10 +51,8 @@ ar.burg.default <-
                 partialacf = partialacf, resid = resid,
                 method = ifelse(var.method==1,"Burg","Burg2"),
                 series = series, frequency = xfreq, call = match.call())
-    if(order > 0) {
-        xacf <- acf(x, type = "covariance", lag.max = order, plot=FALSE)$acf
-        res$asy.var.coef <- solve(toeplitz(drop(xacf)[seq(length=order)]))*var.pred/n.used
-    }
+    xacf <- acf(x, type = "covariance", lag.max = order, plot=FALSE)$acf
+    if(order > 0) res$asy.var.coef <- solve(toeplitz(drop(xacf)[seq(length=order)]))*var.pred/n.used
     class(res) <- "ar"
     return(res)
 }

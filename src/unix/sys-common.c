@@ -1,7 +1,7 @@
 /*
   R : A Computer Language for Statistical Data Analysis
   Copyright (C) 1995-1996   Robert Gentleman and Ross Ihaka
-  Copyright (C) 1997-2003   Robert Gentleman, Ross Ihaka
+  Copyright (C) 1997-2000   Robert Gentleman, Ross Ihaka
                             and the R Development Core Team
 
   This program is free software; you can redistribute it and/or modify
@@ -33,6 +33,9 @@
 #include "Startup.h"
 
 #include <string.h>
+#ifndef HAVE_STRDUP
+extern char *strdup();
+#endif
 
 extern SA_TYPE	SaveAction;
 extern SA_TYPE	RestoreAction;
@@ -65,24 +68,17 @@ FILE *R_OpenLibraryFile(char *file)
     char buf[256];
     FILE *fp;
 
-    snprintf(buf, 256, "%s/library/base/R/%s", R_Home, file);
+    sprintf(buf, "%s/library/base/R/%s", R_Home, file);
     fp = R_fopen(buf, "r");
     return fp;
 }
 
-char *R_LibraryFileName(char *file, char *buf, size_t bsize)
-{
-    if (snprintf(buf, bsize, "%s/library/base/R/%s", R_Home, file) < 0)
-	error("R_LibraryFileName: buffer too small");
-    return buf;
-}     
-     
 FILE *R_OpenSysInitFile(void)
 {
     char buf[256];
     FILE *fp;
 
-    snprintf(buf, 256, "%s/library/base/R/Rprofile", R_Home);
+    sprintf(buf, "%s/library/base/R/Rprofile", R_Home);
     fp = R_fopen(buf, "r");
     return fp;
 }
@@ -98,10 +94,7 @@ FILE *R_OpenSiteFile(void)
 	    return fp;
 	if ((fp = R_fopen(getenv("RPROFILE"), "r")))
 	    return fp;
-	snprintf(buf, 256, "%s/etc/Rprofile.site", R_Home);
-	if ((fp = R_fopen(buf, "r")))
-	    return fp;
-	snprintf(buf, 256, "%s/etc/Rprofile", R_Home);
+	sprintf(buf, "%s/etc/Rprofile", R_Home);
 	if ((fp = R_fopen(buf, "r")))
 	    return fp;
     }
@@ -110,23 +103,56 @@ FILE *R_OpenSiteFile(void)
 
 	/* Saving and Restoring the Global Environment */
 
-static char workspace_name[100] = ".RData";
-
-void set_workspace_name(char *fn)
-{
-    strcpy(workspace_name, fn);
-}
-
 void R_RestoreGlobalEnv(void)
 {
+    FILE *fp;
+    SEXP img, lst;
+    int i;
+
     if(RestoreAction == SA_RESTORE) {
-	R_RestoreGlobalEnvFromFile(workspace_name, R_Quiet);
+	if(!(fp = R_fopen(".RData", "rb"))) { /* binary file */
+	    /* warning here perhaps */
+	    return;
+	}
+#ifdef OLD
+	FRAME(R_GlobalEnv) = R_LoadFromFile(fp, 1);
+#else
+	PROTECT(img = R_LoadFromFile(fp, 1));
+	switch (TYPEOF(img)) {
+	case LISTSXP:
+	    while (img != R_NilValue) {
+		defineVar(TAG(img), CAR(img), R_GlobalEnv);
+		img = CDR(img);
+	    }
+	    break;
+	case VECSXP:
+	    for (i = 0; i < LENGTH(img); i++) {
+		lst = VECTOR_ELT(img, i);
+		while (lst != R_NilValue) {
+		    defineVar(TAG(lst), CAR(lst), R_GlobalEnv);
+		    lst = CDR(lst);
+		}
+	    }
+	    break;
+	}
+        UNPROTECT(1);
+#endif
+	if(!R_Quiet)
+	    Rprintf("[Previously saved workspace restored]\n\n");
+        fclose(fp);
     }
 }
 
 void R_SaveGlobalEnv(void)
 {
-    R_SaveGlobalEnvToFile(".RData");
+    FILE *fp = R_fopen(".RData", "wb"); /* binary file */
+    if (!fp)
+	error("can't save data -- unable to open ./.RData");
+    if (HASHTAB(R_GlobalEnv) != R_NilValue)
+	R_SaveToFile(HASHTAB(R_GlobalEnv), fp, 0);
+    else
+	R_SaveToFile(FRAME(R_GlobalEnv), fp, 0);
+    fclose(fp);
 }
 
 /*
@@ -139,33 +165,17 @@ void R_SaveGlobalEnv(void)
 
 #ifdef HAVE_STAT
 #include <sys/types.h>
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
-#endif
+#include <sys/stat.h>
 
 Rboolean R_FileExists(char *path)
 {
     struct stat sb;
     return stat(R_ExpandFileName(path), &sb) == 0;
 }
-
-double R_FileMtime(char *path)
-{
-    struct stat sb;
-    if (stat(R_ExpandFileName(path), &sb) != 0)
-	error("cannot determine file modification time of %s", path);
-    return sb.st_mtime;
-}
 #else
 Rboolean R_FileExists(char *path)
 {
     error("file existence is not available on this system");
-}
-
-double R_FileMtime(char *path)
-{
-    error("file modification time is not available on this system");
-    return 0.0; /* not reached */
 }
 #endif
 
@@ -200,12 +210,8 @@ char *R_HomeDir()
  *  7) PLATFORM DEPENDENT FUNCTIONS
  */
 
-/* The __APPLE__ code below is for OS X */
 #ifdef Win32
-# include <windows.h>
-#elif defined(__APPLE__)
-# include <crt_externs.h>
-# define environ (*_NSGetEnviron())
+#include <windows.h>
 #else
 extern char ** environ;
 #endif
@@ -252,20 +258,6 @@ SEXP do_getenv(SEXP call, SEXP op, SEXP args, SEXP env)
     return (ans);
 }
 
-#ifdef HAVE_PUTENV
-static int Rputenv(char *str)
-{
-    char *buf;
-    buf = (char *) malloc((strlen(str) + 1) * sizeof(char));
-    if(!buf) return 1;
-    strcpy(buf, str);
-    putenv(buf);
-    /* no free here: storage remains in use */
-    return 0;
-}
-#endif
-
-
 SEXP do_putenv(SEXP call, SEXP op, SEXP args, SEXP env)
 {
 #ifdef HAVE_PUTENV
@@ -280,7 +272,7 @@ SEXP do_putenv(SEXP call, SEXP op, SEXP args, SEXP env)
     n = LENGTH(vars);
     PROTECT(ans = allocVector(LGLSXP, n));
     for (i = 0; i < n; i++) {
-	LOGICAL(ans)[i] = Rputenv(CHAR(STRING_ELT(vars, i))) == 0;
+	LOGICAL(ans)[i] = putenv(CHAR(STRING_ELT(vars, i))) == 0;
     }
     UNPROTECT(1);
     return ans;
@@ -321,32 +313,33 @@ void R_DefParams(Rstart Rp)
     Rp->DebugInitFile = FALSE;
     Rp->vsize = R_VSIZE;
     Rp->nsize = R_NSIZE;
-    Rp->max_vsize = R_SIZE_T_MAX;
-    Rp->max_nsize = R_SIZE_T_MAX;
+    Rp->max_vsize = INT_MAX;
+    Rp->max_nsize = INT_MAX;
     Rp->NoRenviron = FALSE;
 }
 
-#define Max_Nsize 50000000	/* about 1.4Gb 32-bit, 2.8Gb 64-bit */
-#define Max_Vsize R_SIZE_T_MAX	/* unlimited */
+#define Max_Nsize 50000000	/* must be < LONG_MAX (= 2^32 - 1 =)
+				   2147483647 = 2.1e9 */
+                                /* limit was 2e7, changed to 5e7, which gives
+                                   nearly 2Gb of cons cells */
+#define Max_Vsize (2048*Mega)	/* 2048*Mega = 2^(11+20) must be < LONG_MAX */
 
-#define Min_Nsize 220000
+#define Min_Nsize 160000
 #define Min_Vsize (1*Mega)
 
 void R_SizeFromEnv(Rstart Rp)
 {
-    int ierr;
-    R_size_t value;
+    int value, ierr;
     char *p;
-
     if((p = getenv("R_VSIZE"))) {
-	value = R_Decode2Long(p, &ierr);
+	value = Decode2Long(p, &ierr);
 	if(ierr != 0 || value > Max_Vsize || value < Min_Vsize)
 	    R_ShowMessage("WARNING: invalid R_VSIZE ignored\n");
 	else
 	    Rp->vsize = value;
     }
     if((p = getenv("R_NSIZE"))) {
-	value = R_Decode2Long(p, &ierr);
+	value = Decode2Long(p, &ierr);
 	if(ierr != 0 || value > Max_Nsize || value < Min_Nsize)
 	    R_ShowMessage("WARNING: invalid R_NSIZE ignored\n");
 	else
@@ -354,7 +347,7 @@ void R_SizeFromEnv(Rstart Rp)
     }
 }
 
-static void SetSize(R_size_t vsize, R_size_t nsize)
+static void SetSize(int vsize, int nsize)
 {
     char msg[1024];
 
@@ -364,14 +357,14 @@ static void SetSize(R_size_t vsize, R_size_t nsize)
 	vsize *= Mega;
     }
     if(vsize < Min_Vsize || vsize > Max_Vsize) {
-	sprintf(msg, "WARNING: invalid v(ector heap)size `%lu' ignored\n"
+	sprintf(msg, "WARNING: invalid v(ector heap)size `%d' ignored\n"
 		 "using default = %gM\n", vsize, R_VSIZE / Mega);
 	R_ShowMessage(msg);
 	R_VSize = R_VSIZE;
     } else
 	R_VSize = vsize;
     if(nsize < Min_Nsize || nsize > Max_Nsize) {
-	sprintf(msg, "WARNING: invalid language heap (n)size `%lu' ignored,"
+	sprintf(msg, "WARNING: invalid language heap (n)size `%d' ignored,"
 		 " using default = %ld\n", nsize, R_NSIZE);
 	R_ShowMessage(msg);
 	R_NSize = R_NSIZE;
@@ -417,14 +410,14 @@ void R_SetParams(Rstart Rp)
 void
 R_set_command_line_arguments(int argc, char **argv, Rstart Rp)
 {
-    int i;
+ int i;
 
-    Rp->NumCommandLineArgs = argc;
-    Rp->CommandLineArgs = (char**) calloc(argc, sizeof(char*));
+  Rp->NumCommandLineArgs = argc;
+  Rp->CommandLineArgs = (char**) calloc(argc, sizeof(char*));
 
-    for(i = 0; i < argc; i++) {
-	Rp->CommandLineArgs[i] = strdup(argv[i]);
-    }
+  for(i = 0; i < argc; i++) {
+    Rp->CommandLineArgs[i] = strdup(argv[i]);
+  }
 }
 
 
@@ -435,15 +428,15 @@ R_set_command_line_arguments(int argc, char **argv, Rstart Rp)
 SEXP
 do_commandArgs(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    int i;
-    SEXP vals;
+ int i;
+ SEXP vals;
 
-    vals = allocVector(STRSXP, NumCommandLineArgs);
-    for(i = 0; i < NumCommandLineArgs; i++) {
-	SET_STRING_ELT(vals, i, mkChar(CommandLineArgs[i]));
-    }
+  vals = allocVector(STRSXP, NumCommandLineArgs);
+  for(i = 0; i < NumCommandLineArgs; i++) {
+    SET_STRING_ELT(vals, i, mkChar(CommandLineArgs[i]));
+  }
 
-    return(vals);
+ return(vals);
 }
 
 void
@@ -451,22 +444,16 @@ R_common_command_line(int *pac, char **argv, Rstart Rp)
 {
     int ac = *pac, newac = 1;	/* argv[0] is process name */
     int ierr;
-    R_size_t value;
+    long value;
     char *p, **av = argv, msg[1024];
-    Rboolean processing = TRUE;
 
     R_RestoreHistory = 1;
     while(--ac) {
-	if(processing && **++av == '-') {
+	if(**++av == '-') {
 	    if (!strcmp(*av, "--version")) {
 		PrintVersion(msg);
 		R_ShowMessage(msg);
 		exit(0);
-	    }
-	    else if(!strcmp(*av, "--args")) {
-		/* copy this through for further processing */
-		argv[newac++] = *av;
-		processing = FALSE;
 	    }
 #if 0
 	    else if(!strcmp(*av, "--print-nsize")) {
@@ -540,8 +527,7 @@ R_common_command_line(int *pac, char **argv, Rstart Rp)
 		     !strcmp(*av, "-V") ||
 		     !strcmp(*av, "-n") ||
 		     !strcmp(*av, "-v")) {
-		snprintf(msg, 1024, 
-			 "WARNING: option %s no longer supported\n", *av);
+		sprintf(msg, "WARNING: option %s no longer supported\n", *av);
 		R_ShowMessage(msg);
 	    }
             /* mop up --max/min/-n/vsize */
@@ -551,17 +537,15 @@ R_common_command_line(int *pac, char **argv, Rstart Rp)
 		}
 		else p = &(*av)[12];
 		if (p == NULL) {
-		    snprintf(msg, 1024,
-			     "WARNING: no value given for %s\n", *av);
+		    sprintf(msg, "WARNING: no value given for %s\n", *av);
 		    R_ShowMessage(msg);
 		    break;
 		}
-		value = R_Decode2Long(p, &ierr);
+		value = Decode2Long(p, &ierr);
 		if(ierr) {
 		    if(ierr < 0)
-			snprintf(msg, 1024, 
-				 "WARNING: %s value is invalid: ignored\n",
-				 *av);
+			sprintf(msg, "WARNING: %s value is invalid: ignored\n",
+				*av);
 		    else
 			sprintf(msg, "WARNING: %s=%ld`%c': too large and ignored\n",
 				*av, value,
@@ -585,7 +569,7 @@ R_common_command_line(int *pac, char **argv, Rstart Rp)
 		    R_ShowMessage("WARNING: no vsize given\n");
 		    break;
 		}
-		value = R_Decode2Long(p, &ierr);
+		value = Decode2Long(p, &ierr);
 		if(ierr) {
 		    if(ierr < 0) /* R_common_badargs(); */
 			sprintf(msg, "WARNING: --vsize value is invalid: ignored\n");
@@ -608,19 +592,19 @@ R_common_command_line(int *pac, char **argv, Rstart Rp)
 		    R_ShowMessage("WARNING: no nsize given\n");
 		    break;
 		}
-		value = R_Decode2Long(p, &ierr);
+		value = Decode2Long(p, &ierr);
 		if(ierr) {
 		    if(ierr < 0) /* R_common_badargs(); */
 			sprintf(msg, "WARNING: --nsize value is invalid: ignored\n");
 		    else
-		    sprintf(msg, "WARNING: --nsize=%lu`%c': too large and ignored\n",
+		    sprintf(msg, "WARNING: --nsize=%ld`%c': too large and ignored\n",
 			    value,
 			    (ierr == 1) ? 'M': ((ierr == 2) ? 'K':'k'));
 		    R_ShowMessage(msg);
 		} else
 		    Rp->nsize = value;
 	    }
-	    else { /* unknown -option */
+	    else {
 		argv[newac++] = *av;
 	    }
 	}
@@ -639,7 +623,7 @@ static char *rmspace(char *s)
 {
     int   i;
 
-    for (i = strlen(s) - 1; i >= 0 && isspace((int)s[i]); i--) s[i] = '\0';
+    for (i = strlen(s) - 1; isspace((int)s[i]); i--) s[i] = '\0';
     for (i = 0; isspace((int)s[i]); i++);
     return s + i;
 }
@@ -668,35 +652,11 @@ static char *findterm(char *s)
 
 static void Putenv(char *a, char *b)
 {
-    char *buf, *value, *p, *q, quote='\0';
-    int inquote = 0;
+    char *buf;
 
     buf = (char *) malloc((strlen(a) + strlen(b) + 2) * sizeof(char));
     if(!buf) R_Suicide("allocation failure in reading Renviron");
-    strcpy(buf, a); strcat(buf, "=");
-    value = buf+strlen(buf);
-
-    /* now process the value */
-    for(p = b, q = value; *p; p++) {
-	/* remove quotes around sections, preserve \ inside quotes */
-	if(!inquote && (*p == '"' || *p == '\'')) {
-	    inquote = 1;
-	    quote = *p;
-	    continue;
-	}
-	if(inquote && *p == quote && *(p-1) != '\\') {
-	    inquote = 0;
-	    continue;
-	}
-	if(!inquote && *p == '\\') {
-	    if(*(p+1) == '\n') p++;
-	    else if(*(p+1) == '\\') *q++ = *p;
-	    continue;
-	}
-	if(inquote && *p == '\\' && *(p+1) == quote) continue;
-	*q++ = *p;
-    }
-    *q = '\0';
+    strcpy(buf, a); strcat(buf, "="); strcat(buf, b);
     putenv(buf);
     /* no free here: storage remains in use */
 }
@@ -711,11 +671,10 @@ static int process_Renviron(char *filename)
     int errs = 0;
 
     if (!filename || !(fp = fopen(filename, "r"))) return 0;
-    snprintf(msg, MSG_SIZE+50, 
-	     "\n   File %s contains invalid line(s)", filename);
+    sprintf(msg, "\n   File %s contains invalid line(s)", filename);
 
     while(fgets(sm, BUF_SIZE, fp)) {
-        sm[BUF_SIZE-1] = '\0';
+	sm[BUF_SIZE] = '\0';
 	s = rmspace(sm);
 	if(strlen(s) == 0 || s[0] == '#') continue;
 	if(!(p = strchr(s, '='))) {
@@ -740,44 +699,26 @@ static int process_Renviron(char *filename)
 }
 
 
-/* try system Renviron: R_HOME/etc/Renviron.  Unix only. */
-void process_system_Renviron()
+/* read R_HOME/etc/Renviron:  Unix only */
+void process_global_Renviron()
 {
-    char buf[PATH_MAX];
-
-    if(strlen(R_Home) + strlen("/etc/Renviron") > PATH_MAX - 1) {
-	R_ShowMessage("path to system Renviron is too long: skipping");
-	return;
-    }
+    char buf[1024];
+    
     strcpy(buf, R_Home);
     strcat(buf, "/etc/Renviron");
-    if(!process_Renviron(buf))
-	R_ShowMessage("cannot find system Renviron");
+    if(!process_Renviron(buf)) R_ShowMessage("cannot find system Renviron");
 }
 
-/* try site Renviron: R_ENVIRON, then R_HOME/etc/Renviron.site. */
-void process_site_Renviron ()
-{
-    char buf[PATH_MAX], *p = getenv("R_ENVIRON");
-
-    if(p && strlen(p)) {
-	process_Renviron(p);
-	return;
-    }
-    if(strlen(R_Home) + strlen("/etc/Renviron.site") > PATH_MAX - 1) {
-	R_ShowMessage("path to Renviron.site is too long: skipping");
-	return;
-    }
-    snprintf(buf, PATH_MAX, "%s/etc/Renviron.site", R_Home);
-    process_Renviron(buf);
-}
-
-/* try user Renviron: ./.Renviron, then ~/.Renviron */
-void process_user_Renviron()
+/* try ./.Renviron, then value of R_ENVIRON, then ~/.Renviron */
+void process_users_Renviron()
 {
     char *s;
-
+    
     if(process_Renviron(".Renviron")) return;
+    if((s = getenv("R_ENVIRON"))) {
+	process_Renviron(s);
+	return;
+    } 
 #ifdef Unix
     s = R_ExpandFileName("~/.Renviron");
 #endif
@@ -788,85 +729,9 @@ void process_user_Renviron()
 	s = getenv("R_USER");
 	if(!s) s = getenv("HOME");
 	if(!s) return;
-	snprintf(buf, 1024, "%s/.Renviron", s);
+	sprintf(buf, "%s/.Renviron", s);
 	s = buf;
     }
 #endif
     process_Renviron(s);
-}
-
-SEXP do_tempdir(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP  ans;
-
-    PROTECT(ans = allocVector(STRSXP, 1));
-    SET_STRING_ELT(ans, 0, mkChar(R_TempDir));
-    UNPROTECT(1);
-    return (ans);
-}
-
-
-SEXP do_tempfile(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP  ans, pattern, tempdir;
-    char *tn, *td, *tm;
-    int i, n1, n2, slen;
-
-    checkArity(op, args);
-    pattern = CAR(args); n1 = length(pattern);
-    tempdir = CADR(args); n2 = length(tempdir);
-    if (!isString(pattern))
-        errorcall(call, "invalid filename pattern");
-    if (!isString(tempdir))
-        errorcall(call, "invalid tempdir");
-    if (n1 < 1)
-	errorcall(call, "no patterns");
-    if (n2 < 1)
-	errorcall(call, "no tempdir");
-    slen = (n1 > n2) ? n1 : n2;
-    PROTECT(ans = allocVector(STRSXP, slen));
-    for(i = 0; i < slen; i++) {
-	tn = CHAR( STRING_ELT( pattern , i%n1 ) );
-	td = CHAR( STRING_ELT( tempdir , i%n2 ) );
-	/* try to get a new file name */
-	tm = R_tmpnam(tn, td);
-	SET_STRING_ELT(ans, i, mkChar(tm));
-	if(tm) free(tm);
-    }
-    UNPROTECT(1);
-    return (ans);
-}
-
-#ifdef HAVE_POPEN
-FILE *R_popen(char *command, char *type)
-{
-    FILE *fp;
-#ifdef __APPLE_CC__
-    /* Luke recommends this to fix PR#1140 */
-    sigset_t ss;
-    sigaddset(&ss, SIGPROF);
-    sigprocmask(SIG_BLOCK, &ss,  NULL);
-    fp = popen(command, type);
-    sigprocmask(SIG_UNBLOCK, &ss, NULL);
-#else
-    fp = popen(command, type);
-#endif
-    return fp;
-}
-#endif /* HAVE_POPEN */
-
-int R_system(char *command)
-{
-    int val;
-#ifdef __APPLE_CC__
-    /* Luke recommends this to fix PR#1140 */
-    sigset_t ss;
-    sigaddset(&ss, SIGPROF);
-    sigprocmask(SIG_BLOCK, &ss,  NULL);
-    val = system(command);
-    sigprocmask(SIG_UNBLOCK, &ss, NULL);
-#else
-    val = system(command);
-#endif
-    return val;
 }

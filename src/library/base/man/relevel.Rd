@@ -19,8 +19,9 @@ relevel(x, ref, \dots)
     the reference.
 }
 \value{
-  A factor of the same length as \code{x}.
+    A factor of the same length as \code{x}.
 }
+\author{B. D. Ripley}
 
 \seealso{\code{\link{factor}}, \code{\link{contr.treatment}}}
 

@@ -7,13 +7,7 @@
   time series.
 }
 \usage{
-spectrum(x, method = c("pgram", "ar"), plot = TRUE, na.action = na.fail,
-         \dots)
-}
-%% spectrum() dispatches to spec.pgram() or spec.ar() which have quite
-%%            different extra arguments
-\synopsis{
-spectrum(\dots, method = c("pgram", "ar"))
+spectrum(x, method = c("pgram", "ar"), plot = TRUE, \dots)
 }
 \arguments{
   \item{x}{A univariate or multivariate time series.}
@@ -22,17 +16,14 @@ spectrum(\dots, method = c("pgram", "ar"))
     and \code{"ar"}.} 
   \item{plot}{logical. If \code{TRUE} then the spectral density is
     plotted.}
-  \item{na.action}{\code{NA} action function.}
   \item{\dots}{Further arguments to specific spec methods or
     \code{plot.spec}.}
 }
 \value{
   An object of class \code{"spec"}, which is a list containing at
-  least the following components:
+  least the following elements:
   \item{freq}{vector of frequencies at which the spectral
-    density is estimated. (Possibly approximate Fourier frequencies.)
-    The units are the reciprocal of cycles per unit time (and not per
-    observation spacing): see Details below.}
+    density is estimated. (Possibly approximate Fourier frequencies.)}
 
   \item{spec}{Vector (for univariate series) or matrix (for multivariate
     series) of estimates of the spectral density at frequencies
@@ -84,9 +75,9 @@ spectrum(\dots, method = c("pgram", "ar"))
   Brockwell, P. J. and Davis, R. A. (1991) \emph{Time Series: Theory and
     Methods.} Second edition. Springer.
 
-  Venables, W. N. and Ripley, B. D. (2002) \emph{Modern Applied
-    Statistics with S-PLUS.} Fourth edition. Springer. (Especially
-  pages 392--7.)
+  Venables, W. N. and Ripley, B. D. (1997) \emph{Modern Applied
+    Statistics with S-PLUS.} Second edition. Springer. (Especially
+  pages 437--442.)
 }
 \author{Martyn Plummer, B.D. Ripley}
 \seealso{

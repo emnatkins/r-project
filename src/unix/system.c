@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2003  Robert Gentleman, Ross Ihaka
+ *  Copyright (C) 1997-2000   Robert Gentleman, Ross Ihaka
  *			      and the R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -19,42 +19,32 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* See system.txt for a description of functions
- */
+	 /* See system.txt for a description of functions */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
 /* necessary for some (older, i.e., ~ <= 1997) Linuxen, and apparently
    also some AIX systems.
    */
 #ifndef FD_SET
-# ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# endif
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 #endif
 
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>		/* isatty() */
-#endif
+#include <unistd.h> /* isatty() */
 
 #include "Defn.h"
 #include "Fileio.h"
 #include "Rdevices.h"		/* KillAllDevices() [nothing else?] */
 
 #define __SYSTEM__
-#include "devUI.h"		/* includes Startup.h */
-#include <R_ext/GetX11Image.h>  /* for *GetX11Image declarations */
+#include "devUI.h" /* includes Startup.h */
 #undef __SYSTEM__
 
 #include "Runix.h"
-
-
-#ifdef HAVE_AQUA 
-void R_StartConsole(Rboolean OpenConsole) { ptr_R_StartConsole(); }
-#endif
-
 
 SA_TYPE SaveAction = SA_SAVEASK;
 SA_TYPE	RestoreAction = SA_RESTORE;
@@ -85,6 +75,7 @@ int R_ChooseFile(int new, char *buf, int len)
 void (*ptr_gnome_start)(int ac, char **av, Rstart Rp);
 
 void R_setStartTime(void); /* in sys-unix.c */
+void R_load_X11_shlib(void); /* in dynload.c */
 void R_load_gnome_shlib(void); /* in dynload.c */
 
 int Rf_initialize_R(int ac, char **av);
@@ -94,8 +85,6 @@ int main(int ac, char **av)
 {
     Rf_initialize_R(ac, av);
 
-
-
     mainloop();
     /*++++++  in ../main/main.c */
     return 0;
@@ -104,8 +93,7 @@ int main(int ac, char **av)
 int Rf_initialize_R(int ac, char **av)
 {
     int i, ioff = 1, j, value, ierr;
-    Rboolean useX11 = TRUE, usegnome = FALSE, useTk = FALSE;
-    Rboolean useaqua = FALSE;
+    Rboolean useX11 = TRUE, usegnome = FALSE;
     char *p, msg[1024], **avv;
     structRstart rstart;
     Rstart Rp = &rstart;
@@ -123,17 +111,13 @@ int Rf_initialize_R(int ac, char **av)
     ptr_R_ChooseFile = Rstd_ChooseFile;
     ptr_R_loadhistory = Rstd_loadhistory;
     ptr_R_savehistory = Rstd_savehistory;
-    R_timeout_handler = NULL;
-    R_timeout_val = 0;
-
-    R_GlobalContext = NULL; /* Make R_Suicide less messy... */
 
     if((R_Home = R_HomeDir()) == NULL)
 	R_Suicide("R home directory is not defined");
 
-    process_system_Renviron();
+    process_global_Renviron();
 
-#ifdef _R_HAVE_TIMING_
+#ifdef HAVE_TIMES
     R_setStartTime();
 #endif
     R_DefParams(Rp);
@@ -162,19 +146,13 @@ int Rf_initialize_R(int ac, char **av)
 		useX11 = FALSE;
 	    else if(!strcmp(p, "gnome") || !strcmp(p, "GNOME"))
 		usegnome = TRUE;
-	    else if(!strcmp(p, "aqua") || !strcmp(p, "AQUA"))
-		useaqua = TRUE;
 	    else if(!strcmp(p, "X11") || !strcmp(p, "x11"))
 		useX11 = TRUE;
-	    else if(!strcmp(p, "Tk") || !strcmp(p, "tk"))
-		useTk = TRUE;
 	    else {
 #ifdef HAVE_X11
-		snprintf(msg, 1024,
-			 "WARNING: unknown gui `%s', using X11\n", p);
+		sprintf(msg, "WARNING: unknown gui `%s', using X11\n", p);
 #else
-		snprintf(msg, 1024,
-			 "WARNING: unknown gui `%s', using none\n", p);
+		sprintf(msg, "WARNING: unknown gui `%s', using none\n", p);
 #endif
 		R_ShowMessage(msg);
 	    }
@@ -189,15 +167,19 @@ int Rf_initialize_R(int ac, char **av)
 
     ptr_GnomeDeviceDriver = stub_GnomeDeviceDriver;
     ptr_GTKDeviceDriver = stub_GTKDeviceDriver;
-    ptr_R_GetX11Image = R_GetX11Image;
+    ptr_X11DeviceDriver = stub_X11DeviceDriver;
+    ptr_dataentry = stub_dataentry;
+    ptr_R_GetX11Image = stub_R_GetX11Image;
 #ifdef HAVE_X11
     if(useX11) {
 	if(!usegnome) {
+	    R_load_X11_shlib();
 	    R_GUIType="X11";
 	} else {
 #ifndef HAVE_GNOME
 	    R_Suicide("GNOME GUI is not available in this version");
 #endif
+	    R_load_X11_shlib();
 	    R_load_gnome_shlib();
 	    R_GUIType="GNOME";
 	    ptr_gnome_start(ac, av, Rp);
@@ -205,62 +187,31 @@ int Rf_initialize_R(int ac, char **av)
 	    return 0;
 	}
     }
-#endif /* HAVE_X11 */
-#ifdef HAVE_AQUA
-    if(useaqua) {
-	    R_load_aqua_shlib();
-	    R_GUIType="AQUA";
-    }
 #endif
-#ifdef HAVE_TCLTK
-    if(useTk) {
-	    R_GUIType="Tk";
-    }
-#endif
+
     R_common_command_line(&ac, av, Rp);
     while (--ac) {
 	if (**++av == '-') {
 	    if(!strcmp(*av, "--no-readline")) {
-		UsingReadline = FALSE;
-	    } else if(!strcmp(*av, "--args")) {
-		break;
+		UsingReadline = 0;
 	    } else {
-		snprintf(msg, 1024, "WARNING: unknown option %s\n", *av);
+		sprintf(msg, "WARNING: unknown option %s\n", *av);
 		R_ShowMessage(msg);
 	    }
 	} else {
-	    snprintf(msg, 1024, "ARGUMENT '%s' __ignored__\n", *av);
+	    sprintf(msg, "ARGUMENT '%s' __ignored__\n", *av);
 	    R_ShowMessage(msg);
 	}
     }
     R_SetParams(Rp);
-    if(!Rp->NoRenviron) {
-	process_site_Renviron();
-	process_user_Renviron();
-    }
+    if(!Rp->NoRenviron) process_users_Renviron();
 
     /* On Unix the console is a file; we just use stdio to write on it */
 
-#ifdef HAVE_AQUA
-    if(useaqua) 
-      R_Interactive = useaqua;
-    else
-#endif
     R_Interactive = isatty(0);
-
-#ifdef HAVE_AQUA
-    if(useaqua){
-     R_Outputfile = NULL;
-     R_Consolefile = NULL;
-    } else { 
-#endif
+    R_Consolefile = stdout;
     R_Outputfile = stdout;
-    R_Consolefile = stderr;
-#ifdef HAVE_AQUA
-    }
-#endif 
-
-  
+    R_Sinkfile = NULL;
 /*
  *  Since users' expectations for save/no-save will differ, we decided
  *  that they should be forced to specify in the non-interactive case.
@@ -272,7 +223,7 @@ int Rf_initialize_R(int ac, char **av)
 	R_HistoryFile = ".Rhistory";
     R_HistorySize = 512;
     if ((p = getenv("R_HISTSIZE"))) {
-	value = R_Decode2Long(p, &ierr);
+	value = Decode2Long(p, &ierr);
 	if (ierr != 0 || value < 0)
 	    REprintf("WARNING: invalid R_HISTSIZE ignored;");
 	else
@@ -282,14 +233,8 @@ int Rf_initialize_R(int ac, char **av)
 	Rstd_read_history(R_HistoryFile);
     fpu_setup(1);
 
-#ifdef HAVE_AQUA    
-    if(useaqua)
-     R_StartConsole(TRUE);
-#endif
-
  return(0);
 }
-
 
 
 /*

@@ -1,6 +1,6 @@
 \name{COMPILE}
-\alias{COMPILE}
 \title{Compile Files for Use with R}
+\alias{COMPILE}
 \description{
   Compile given source files so that they can subsequently be collected
   into a shared library using \code{R CMD SHLIB} and be loaded into R
@@ -16,13 +16,7 @@
     values for \code{CFLAGS} or \code{FFLAGS}, or for obtaining
     information about usage and version of the utility.}
 }
-\details{
-  Note that Ratfor is not supported.  If you have Ratfor source code,
-  you need to convert it to FORTRAN.  On many Solaris systems mixing
-  Ratfor and FORTRAN code will work.
-}
 \seealso{
-  \code{\link{SHLIB}},
-  \code{\link{dyn.load}}
+  \code{\link{SHLIB}}, \code{\link{dyn.load}}
 }
 \keyword{utilities}

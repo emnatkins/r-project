@@ -5,10 +5,10 @@
 \alias{dev.control}
 \title{Copy Graphics Between Multiple Devices}
 \usage{
-dev.copy(device, \dots, which = dev.next())
-dev.print(device = postscript, \dots)
+dev.copy(device, \dots, which=dev.next())
+dev.print(device=postscript, \dots)
 dev.copy2eps(\dots)
-dev.control(displaylist = c("inhibit", "enable"))
+dev.control(displaylist)
 }
 \arguments{
   \item{device}{A device function (e.g., \code{x11},
@@ -17,31 +17,25 @@ dev.control(displaylist = c("inhibit", "enable"))
     For \code{dev.print}, this includes \code{which} and by default any
     \code{\link{postscript}} arguments.}
   \item{which}{A device number specifying the device to copy to}
-  \item{displaylist}{A character string: the only valid values are
-    \code{"inhibit"} and \code{"enable"}.}
+  \item{displaylist}{A character string}
 }
 \description{
   \code{dev.copy} copies the graphics contents of the current device
   to the device specified by \code{which} or to a new device which has
   been created by the function specified by \code{device} (it is an
-  error to specify both \code{which} and \code{device}).  (If recording
-  is off on the current device, there are no contents to copy: this will
-  result in no plot or an empty plot.)
-  The device copied to becomes the current device.
+  error to specify both \code{which} and \code{device}).
 
   \code{dev.print} copies the graphics contents of the current device
   to a new device which has been created by the function specified by
-  \code{device} and then shuts the new device.
+  \code{device} and then shuts the new device.  The default is to
+  produce and print a postscript copy.
 
   \code{dev.copy2eps} is similar to \code{dev.print} but produces an
   EPSF output file, in portrait orientation (\code{horizontal = FALSE})
 
   \code{dev.control} allows the user to control the recording of
-  graphics operations in a device.  If \code{displaylist} is \code{"inhibit"}
-  (\code{"enable")} then recording is turned off (on). It is only safe
-  to change this at the beginning of a plot (just before or just after a
-  new page).  Initially recording is on for screen devices, and off for
-  print devices.
+  graphics operations in a device.  If \code{displaylist} is "inhibit"
+  then recording is turned off.
 }
 \value{
   \code{dev.copy} returns the name and number of the device which has
@@ -56,19 +50,6 @@ dev.control(displaylist = c("inhibit", "enable"))
   \code{width} and \code{height} is specified, the other is adjusted
   to preserve the aspect ratio of the device being copied.  The default
   file name is \code{Rplot.eps}.
-
-#ifdef unix
-  The default for \code{dev.print} is to produce and print a postscript
-  copy, if \code{\link{options}("printcmd")} is set suitably.
-#endif
-#ifdef windows
-  The default for \code{dev.print} is to produce and print a postscript
-  copy.  This will not work unless
-  \code{\link{options}("printcmd")} is set suitably and you have a
-  PostScript printer: see \code{\link{postscript}} for how to set this
-  up.  Windows users may prefer to use \code{dev.print(win.print)}.
-#endif
-
 
   \code{dev.print} is most useful for producing a postscript print
   (its default) when the following applies.  Unless

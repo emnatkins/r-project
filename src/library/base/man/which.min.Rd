@@ -24,13 +24,7 @@ which.max(x)
   respectively.
 }
 \author{Martin Maechler}
-\seealso{
-  \code{\link{which}}, \code{\link{max.col}}, \code{\link{max}}, etc.
-
-  \code{\link[nnet]{which.is.max}} in package \pkg{nnet} differs in
-  breaking ties at random (and having a \dQuote{fuzz} in the definition
-  of ties).
-}
+\seealso{\code{\link{which}}, \code{\link{max.col}}, \code{\link{max}}, etc.}
 \examples{
 x <- c(1:4,0:5,11)
 which.min(x)
@@ -41,5 +35,9 @@ presidents[1:30]
 range(presidents, na.rm = TRUE)
 which.min(presidents)# 28
 which.max(presidents)# 2
+\testonly{
+  stopifnot(length(which.min(numeric(0))) == 0)
+  stopifnot(length(which.max( c(NA,NA) )) == 0)
+}
 }
 \keyword{utilities}

@@ -11,8 +11,7 @@ quote(expr)
   expression \code{expr}, substituting any variables bound in
   \code{env}.
 
-  \code{quote} simply returns its argument. The argument is not evaluated
-  and can be any R expression.
+  \code{quote} simply returns the parse tree for the expression.
 }
 \arguments{
   \item{expr}{Any syntactically valid \R expression}
@@ -29,7 +28,7 @@ quote(expr)
 
   Substitution takes place by examining each component of the parse tree
   as follows: If it is not a bound symbol in \code{env}, it is
-  unchanged. If it is a promise object, i.e., a formal argument to a
+  unchanged. If it is a promise object, i.e. a formal argument to a
   function or explicitly created using \code{\link{delay}()}, the expression
   slot of the promise replaces the symbol. If it is an ordinary
   variable, its value is substituted, unless \code{env} is
@@ -50,16 +49,8 @@ quote(expr)
   \code{\link{expression}} constructor function and needs to be evaluated
   with \code{\link{eval}} to give the actual expression object.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
-  \code{\link{missing}} for argument \dQuote{missingness},
-  \code{\link{bquote}} for partial substitution,
-  \code{\link{sQuote}} and \code{\link{dQuote}} for adding quotation
-  marks to strings.
+  \code{\link{missing}} for argument ``missingness''.
 }
 \examples{
 (s.e <- substitute(expression(a + b), list(a = 1)))  #> expression(1 + b)

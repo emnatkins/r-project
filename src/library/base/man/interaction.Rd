@@ -1,12 +1,11 @@
 \name{interaction}
 \title{Compute Factor Interactions}
 \usage{
-interaction(\dots, drop = FALSE)
+interaction(\dots, drop=FALSE)
 }
 \alias{interaction}
 \arguments{
-  \item{\dots}{The factors for which interaction is to be computed, or a
-    single list giving those factors.}
+  \item{\dots}{The factors for which interaction is to be computed.}
   \item{drop}{If \code{drop} is \code{TRUE}, empty factor levels
     are dropped from the result. The default is to retain all
     factor levels.}
@@ -17,11 +16,6 @@ interaction(\dots, drop = FALSE)
 }
 \value{
   A factor which represents the interaction of the given factors.
-}
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical Models in S}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{\code{\link{factor}}.}%% even more ":" for factors!
 

@@ -1,9 +1,5 @@
-t.test <- function(x, ...) UseMethod("t.test")
-
-t.test.default <-
-function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
-         mu = 0, paired = FALSE, var.equal = FALSE, conf.level = 0.95,
-         ...)
+t.test <- function(x, y=NULL, alternative = c("two.sided", "less", "greater"),
+		   mu=0, paired = FALSE, var.equal = FALSE, conf.level = 0.95)
 {
     alternative <- match.arg(alternative)
 
@@ -41,7 +37,7 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
     vx <- var(x)
     estimate <- mx
     if(is.null(y)) {
-	df <- nx-1
+	df <- length(x)-1
 	stderr <- sqrt(vx/nx)
 	tstat <- (mx-mu)/stderr
 	method <- ifelse(paired,"Paired t-test","One Sample t-test")
@@ -91,33 +87,4 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
 	       method=method, data.name=dname)
     class(rval) <- "htest"
     return(rval)
-}
-
-t.test.formula <-
-function(formula, data, subset, na.action, ...)
-{
-    if(missing(formula)
-       || (length(formula) != 3)
-       || (length(attr(terms(formula[-2]), "term.labels")) != 1)
-       || (length(attr(terms(formula[-3]), "term.labels")) != 1))
-        stop("formula missing or incorrect")
-    m <- match.call(expand.dots = FALSE)
-    if(is.matrix(eval(m$data, parent.frame())))
-        m$data <- as.data.frame(data)
-    m[[1]] <- as.name("model.frame")
-    m$... <- NULL
-    mf <- eval(m, parent.frame())
-    DNAME <- paste(names(mf), collapse = " by ")
-    names(mf) <- NULL
-    response <- attr(attr(mf, "terms"), "response")
-    g <- factor(mf[[-response]])
-    if(nlevels(g) != 2)
-        stop("grouping factor must have exactly 2 levels")
-    DATA <- split(mf[[response]], g)
-    names(DATA) <- c("x", "y")
-    y <- do.call("t.test", c(DATA, list(...)))
-    y$data.name <- DNAME
-    if(length(y$estimate) == 2)
-        names(y$estimate) <- paste("mean in group", levels(g))
-    y
 }

@@ -1,7 +1,4 @@
 \name{lm}
-\alias{lm}
-\alias{print.lm}
-%\alias{print.lm.null}
 \title{Fitting Linear Models}
 \description{
   \code{lm} is used to fit linear models.
@@ -15,6 +12,7 @@ lm(formula, data, subset, weights, na.action,
    method = "qr", model = TRUE, x = FALSE, y = FALSE, qr = TRUE,
    singular.ok = TRUE, contrasts = NULL, offset = NULL, \dots)
 }
+\alias{lm}
 \arguments{
   \item{formula}{a symbolic description of the model to be fit.
     The details of model specification are given below.}
@@ -35,19 +33,17 @@ lm(formula, data, subset, weights, na.action,
   \item{na.action}{a function which indicates what should happen
     when the data contain \code{NA}s.  The default is set by
     the \code{na.action} setting of \code{\link{options}}, and is
-    \code{\link{na.fail}} if that is unset. The \dQuote{factory-fresh}
+    \code{\link{na.fail}} if that is unset. The ``factory-fresh''
     default is \code{\link{na.omit}}.}
 
-  \item{method}{the method to be used; for fitting, currently only
-    \code{method="qr"} is supported; \code{method="model.frame"} returns
-    the model frame (the same as with \code{model = TRUE}, see below).}
+  \item{method}{currently, only \code{method="qr"} is supported.}
 
   \item{model, x, y, qr}{logicals.  If \code{TRUE} the corresponding
     components of the fit (the model frame, the model matrix, the
     response, the QR decomposition) are returned.}
 
-  \item{singular.ok}{logical. If \code{FALSE} (the default in S but
-    not in \R) a singular fit is an error.}
+  \item{singular.ok}{logical, defaulting to
+    \code{TRUE}. \emph{\code{FALSE} is not yet implemented}.}
 
   \item{contrasts}{an optional list. See the \code{contrasts.arg}
     of \code{model.matrix.default}.}
@@ -57,8 +53,7 @@ lm(formula, data, subset, weights, na.action,
     during fitting.  An \code{\link{offset}} term can be included in the
     formula instead or as well, and if both are specified their sum is used.}
 
-  \item{\dots}{additional arguments to be passed to the low level
-    regression fitting functions (see below).}
+  \item{\dots}{currently disregarded.}
 }
 \details{
   Models for \code{lm} are specified symbolically.  A typical model has
@@ -71,25 +66,25 @@ lm(formula, data, subset, weights, na.action,
   terms obtained by taking the interactions of all terms in \code{first}
   with all terms in \code{second}.  The specification \code{first*second}
   indicates the \emph{cross} of \code{first} and \code{second}.  This is
-  the same as \code{first + second + first:second}.  If \code{response} 
-  is a matrix a linear model is fitted to each column of the matrix.
-  See \code{\link{model.matrix}} for some further details.
+  the same as \code{first + second + first:second}.
 
-  \code{lm} calls the lower level functions \code{\link{lm.fit}}, etc,
-  see below, for the actual numerical computations.  For programming
-  only, you may consider doing likewise.
+  \code{lm} calls the lower level functions
+  \code{\link{lm.fit}}, etc, see below, for the actual numerical
+  computations.  For programming only, you may consider doing likewise.
 }
 \value{
-  \code{lm} returns an object of \code{\link[base]{class}} \code{"lm"} or for
+  \code{lm} returns an object of \code{\link{class}} \code{"lm"} or for
   multiple responses of class \code{c("mlm", "lm")}.
+%% actually also c("lm.null","lm") and c("mlm.null", "lm.null", "mlm", "lm")
+%% but I'm still not sure that this should be `it' for the future.. {MM}.
 
   The functions \code{summary} and \code{\link{anova}} are used to
-  obtain and print a summary and analysis of variance table of the
-  results.  The generic accessor functions \code{coefficients},
-  \code{effects}, \code{fitted.values} and \code{residuals} extract
-  various useful features of the value returned by \code{lm}.
+  obtain and print a summary and analysis of variance table of the results.
+  The generic accessor functions \code{coefficients},
+  \code{effects}, \code{fitted.values} and \code{residuals}
+  extract various useful features of the value returned by \code{lm}.
 
-  An object of class \code{"lm"} is a list containing at least the
+  An object of class \code{"glm"} is a list containing at least the
   following components:
 
   \item{coefficients}{a named vector of coefficients}
@@ -99,6 +94,7 @@ lm(formula, data, subset, weights, na.action,
   \item{weights}{(only for weighted fits) the specified weights.}
   \item{df.residual}{the residual degrees of freedom.}
   \item{call}{the matched call.}
+  \item{formula}{the formula supplied.}
   \item{terms}{the \code{\link{terms}} object used.}
   \item{contrasts}{(only where relevant) the contrasts used.}
   \item{xlevels}{(only where relevant) a record of the levels of the
@@ -107,7 +103,7 @@ lm(formula, data, subset, weights, na.action,
   \item{x}{if requested, the model matrix used.}
   \item{model}{if requested (the default), the model frame used.}
 
-  In addition, non-null fits will have components \code{assign},
+  In addition, non-null fits will have components \code{assign}, 
   \code{effects} and (unless not requested) \code{qr} relating to the linear
   fit, for use by extractor functions such as \code{summary} and
   \code{\link{effects}}.
@@ -119,7 +115,7 @@ lm(formula, data, subset, weights, na.action,
   The generic functions \code{\link{coefficients}}, \code{\link{effects}},
   \code{\link{residuals}}, \code{\link{fitted.values}}.
 
-  \code{\link{predict.lm}} (via \code{\link{predict}}) for prediction,
+  \code{\link{predict.lm}} (via \code{predict(..)}) for prediction,
   including confidence and prediction intervals.
 
   \code{\link{lm.influence}} for regression diagnostics, and
@@ -129,22 +125,6 @@ lm(formula, data, subset, weights, na.action,
   \code{\link{lm.fit}} for plain, and \code{\link{lm.wfit}} for weighted
   regression fitting.
 }
-\references{
-  Chambers, J. M. (1992)
-  \emph{Linear models.}
-  Chapter 4 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
-
-  Wilkinson, G. N. and Rogers, C. E. (1973)
-  Symbolic descriptions of factorial models for analysis of variance.
-  \emph{Applied Statistics}, \bold{22}, 392--9.
-}
-\author{
-  The design was inspired by the S function of the same name described
-  in Chambers (1992).  The implementation of model formula by Ross Ihaka
-  was based on Wilkinson \& Rogers (1973).
-}
-
 \note{
   Offsets specified by \code{offset} will not be included in predictions
   by \code{\link{predict.lm}}, whereas those specified by an offset term
@@ -164,9 +144,5 @@ summary(resid(lm.D9) - resid(lm.D90)) #- residuals almost identical
 opar <- par(mfrow = c(2,2), oma = c(0, 0, 1.1, 0))
 plot(lm.D9, las = 1)      # Residuals, Fitted, ...
 par(opar)
-
-## model frame :
-stopifnot(identical(lm(weight ~ group, method = "model.frame"),
-                    model.frame(lm.D9)))
 }
 \keyword{regression}

@@ -11,8 +11,7 @@ predict (object, \dots)
 \description{
   \code{predict} is a generic function for predictions from the results of
   various model fitting functions.  The function invokes particular
-  \emph{methods} which depend on the \code{\link[base]{class}} of
-  the first argument.
+  \emph{methods} which depend on the \code{\link{class}} of the first argument.
 
   The function \code{\link{predict.lm}} makes predictions based on the
   results produced by \code{\link{lm}}.
@@ -24,15 +23,9 @@ predict (object, \dots)
 }
 \seealso{\code{\link{predict.lm}}.
 }
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical Models in S}.
-  Wadsworth \& Brooks/Cole.
-}
 \examples{
-## All the "predict" methods visible in your current search() path.
-## NB most of the methods in the base packages are hidden.
+## All the "predict" methods available in your current search() path:
 for(fn in methods("predict"))
-   try(cat(fn,":\n\t",deparse(args(get(fn))),"\n"), silent = TRUE)
+   cat(fn,":\n\t",deparse(args(get(fn))),"\n")
 }
 \keyword{methods}

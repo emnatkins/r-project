@@ -1,9 +1,9 @@
 \name{BATCH}
-\alias{BATCH}
 \title{Batch Execution of R}
-\description{Run R non-interactively with input from a given file and
-  place output (stdout/stderr) to another file.}
+\alias{BATCH}
 \usage{R CMD BATCH [options] infile [outfile]}
+\description{Run R non-interactively with input from \code{infile} and
+  place output (stdout/stderr) to another file.}
 \arguments{
   \item{infile}{the name of a file with R code to be executed.}
   \item{options}{a list of R command line options, e.g., for setting the
@@ -21,9 +21,6 @@
 
   The \code{infile} can have end of line marked by LF or CRLF (but not
   just CR), and files with a missing EOL mark are processed correctly.
-
-  Using \code{R CMD BATCH} sets the GUI to \code{"none"}, so none of
-  \code{\link{x11}}, \code{\link{jpeg}} and \code{\link{png}} are available.
 }
 \note{
   Unlike \code{Splus BATCH}, this does not run the \R process in the

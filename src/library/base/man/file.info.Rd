@@ -6,14 +6,14 @@
   file systems.
 }
 \usage{
-file.info(\dots)
+file.info(...)
 }
 \arguments{
   \item{\dots}{character vectors containing file names.}
 }
 \details{
-  What is meant by \dQuote{file access} and hence the last access time
-  is system-dependent.
+  What is meant by ``file access'' and hence the last access time is
+  system-dependent.
 
 #ifdef unix
   On most systems symbolic links are followed, so information is given
@@ -41,7 +41,7 @@ file.info(\dots)
 
 Entries for non-existent or non-readable files will be \code{NA}.
 #ifdef unix
-The \code{uid}, \code{gid}, \code{uname} and \code{grname} columns
+The \code{uid}}, \code{gid}, \code{uname} and \code{grname} columns
 may not be supplied on a non-POSIX Unix system.
 #endif
 }
@@ -49,6 +49,7 @@ may not be supplied on a non-POSIX Unix system.
   This function will only be operational on systems with the
   \code{stat} system call, but that seems very widely available.
 }
+\author{B. D. Ripley}
 
 \seealso{
   \code{\link{files}}, \code{\link{file.access}},
@@ -56,11 +57,11 @@ may not be supplied on a non-POSIX Unix system.
   and \code{\link{DateTimeClasses}} for the date formats.
 }
 \examples{
-%-- the output of this should be "diff"able, says MM: why?
+%-- the output of this should be "diff"able
 ncol(finf <- file.info(dir()))# at least six
 \dontrun{finf # the whole list}
 ## Those that are more than 100 days old :
-finf[difftime(Sys.time(), finf[,"mtime"], units="days") > 100 , 1:4]
+finf[ (Sys.time() - finf[,"mtime"]) > (24*60^2) * 100 , 1:4]
 
 file.info("no-such-file-exists")
 }

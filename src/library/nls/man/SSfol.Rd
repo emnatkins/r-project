@@ -1,4 +1,4 @@
-% $Id: SSfol.Rd,v 1.4 2001/08/13 21:41:48 ripley Exp $
+% $Id: SSfol.Rd,v 1.2.14.1 2001/03/24 00:08:06 bates Exp $
 \name{SSfol}
 \title{First-order Compartment Model}
 \usage{
@@ -10,7 +10,7 @@ SSfol(Dose, input, lKe, lKa, lCl)
   \item{input}{a numeric vector at which to evaluate the model.}
   \item{lKe}{a numeric parameter representing the natural logarithm of
     the elimination rate constant.}
-  \item{lKa}{a numeric parameter representing the natural logarithm of
+  \item{lKe}{a numeric parameter representing the natural logarithm of
     the absorption rate constant.}
   \item{lCl}{a numeric parameter representing the natural logarithm of
     the clearance.}

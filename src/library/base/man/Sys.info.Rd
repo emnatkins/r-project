@@ -7,6 +7,11 @@
 \usage{
 Sys.info()
 }
+\details{
+   This function is not implemented on all \R platforms, and returns
+  \code{NULL} when not available.  Where possible it is based on POSIX
+  system calls.
+}
 \value{
   A character vector with fields
   \item{sysname}{The operating system.}
@@ -26,29 +31,19 @@ login name comes from \code{getlogin(2)}, and the user name from
 #endif
 #ifdef windows
 The information is obtained from Windows system calls.  It is likely to
-be most complete on Windows NT/2000/XP systems.
+be most complete on Windows NT and 2000 systems.
 #endif
 }
-\details{
-  This function is not implemented on all \R platforms, and returns
-  \code{NULL} when not available.  Where possible it is based on POSIX
-  system calls.
-
-  \code{Sys.info()} returns details of the platform \R is running on,
-  whereas \code{\link{R.version}} gives details of the platform \R was
-  built on: they may well be different.
-}
 \note{
-  The meaning of OS \dQuote{release} and \dQuote{version} is highly
+  The meaning of OS ``release'' and ``version'' is highly
   system-dependent and there is no guarantee that the node or
   login or user names will be what you might reasonably expect.
   (In particular on some Linux distributions the login name is unknown
   from sessions with re-directed inputs.)
 }
+\author{B. D. Ripley}
 
-\seealso{
-  \code{\link{.Platform}}, and \code{\link{R.version}}.
-}
+\seealso{\code{\link{.Platform}}}
 
 \examples{
 Sys.info()

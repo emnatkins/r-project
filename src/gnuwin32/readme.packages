@@ -1,21 +1,8 @@
-Writing packages for R
-======================
-
-See the Writing R Extensions manual for a full description of how
-to write a package.
-
-
 Building from a source-code library under Windows
 =================================================
 
 [If you are reading this file as part of the full R source distribution,
 you need to build R first: see file INSTALL.]
-
-
-    *** This file contains a lot of prescriptive comments.  They are
-    here as a result of bitter experience.  Please do not report problems
-    to R-help unless you have followed all the prescriptions. ***
-
 
 If your package has no C nor Fortran nor C++ sources, see `Simple ports' 
 near the bottom of this file.
@@ -25,41 +12,42 @@ current links at http://www.stats.ox.ac.uk/pub/Rtools/.
 
 
 You will need suitable versions of at least make, sh, cat, cp, diff,
-echo, mkdir, mv, rm, sed; we have packaged a set at
+echo, g(awk), mkdir, mv, rm, sed; we have packaged a set at
 http://www.stats.ox.ac.uk/pub/Rtools/tools.zip extracted from the
 cygwin distribution (http://www.cygwin.com/mirrors.html) or (gzip)
 compiled from the sources.
 
-
 BEWARE: `Native' ports of make are _not_ suitable (including that at
-the mingw site).  There were also problems with several earlier
+the mingw32 site).  There are also problems with several earlier
 versions of the cygwin tools and dll.  To avoid frustration, please
-use our tool set, and make sure it is at the front of your path.
-
-You need a recent version of the Mingw port of gcc from
-http://sourceforge.net/projects/mingw/.  There will be a distribution
-called something like MinGW-3.0.0-1.exe.  Earlier versions may work,
-but mingw-runtime >= 2.0 and w32api >= 2.0 are essential.  The release
-candidates of gcc-3.3.1 have also been tested.
-
-No earlier Mingw compiler has been tested and support for using the
-Cygwin compiler has been withdrawn.  If you see errors about `-shared'
-not being understood or `__imp_foo' missing, you are not using the
-recommended compiler.
+use our tool set.
 
 
-The Windows port of perl5, available via
-http://www.activestate.com/Products/ActivePerl/.
-BEWARE: you do need the *Windows* port and not the Cygwin one.
+We recommend that you use the mingw32 port of gcc-2.95.2-1 by Mumit
+Khan from http://www.mingw.org/.  (The `portal' gives more precise
+instructions on the current locations.)  As R itself is built against
+msvcrt.dll, we strongly recommend that you use that version of the
+compilers.
+
+It might also be possible to use the compilers from the cygwin 1.1 net
+release with the -mno-cygwin -mwin32 flags; the current versions use
+mscrt.dll.  (You will need the cygwin, gcc, mingw32, w32api and
+binutils bundles.  All the recent versions we have tried do not work
+unchanged with -mno-cygwin.)
+
+
+perl5, available via http://www.activestate.com/Products/ActivePerl/
 
 
 If you want to make compiled html (.chm) files you will need the
-Microsoft HTML Help Workshop, currently available for download at
-http://msdn.microsoft.com/library/en-us/htmlhelp/html/hwmicrosofthtmlhelpdownloads.asp
-and http://www.microsoft.com/office/ork/xp/appndx/appa06.htm
-
+Microsoft HTML Help Workshop, available for download at 
+http://msdn.microsoft.com/library/tools/htmlhelp/wkshp/download.htm
 You may need this on the same drive as the other tools. (Although we
 have successfully used it elsewhere, others have reported problems).
+
+If you want to make Window help files you will need hcrtf.exe from a
+Windows compiler installation (this has been available for download at
+ftp://ftp.microsoft.com/softlib/mslfiles/hcwsetup.exe).
 
 
 For large packages it is helpful to make zipped help and/or data
@@ -68,38 +56,31 @@ files: for that you need zip and unzip from the Info-ZIP project
 
 
 All of these need to be installed and in your path, and the
-appropriate environment variables set.  
-Edit MkRules to set the appropriate paths as needed.
-BEWARE: MkRules contains tabs and some editors (e.g. WinEdt) silently 
-remove them.
-
-Do not use paths with spaces in: you can always use the short forms.
-Do not use unnecessary quotes in your PATH variable.
-Do not have our toolset and any other version of cygwin1.dll in your path.
-
+appropriate environment variables set.  Edit MkRules to set BUILD and
+the appropriate paths as needed.  (IMPORTANT: if you use cygwin you
+must edit MkRules and set BUILD=CYGWIN.)
 
 BEWARE: if you have Norton Anti-Virus you may need to disable it.
-Some versions lock up the machine when windres is run.  (Norton
-Anti-Virus 2002 causes no problems.)
 
 BEWARE: Don't expect this to work if the path to R_HOME contains spaces.
-It may work, but we don't recommend it.
 
 Then
 
 	cd R_HOME\src\gnuwin32
-	make libR.a libRblas.a
+	make libR.a
 
-which might take up to a minute.  This only needs to be done once for
-each R release, and will be done automatically when needed if
-omitted at this point.
+which might take several minutes. (We have seen times from 5 secs to
+20 minutes depending on compiler version, processor speed, RAM, disk
+speed and compiler.)  This only needs to be done once for each R
+release, and should be done automatically when needed if omitted at
+this point.
 
 
 At this point there are two approaches:
 
 1) Streamlined way
 
-Assuming that ...\rw1050\bin is in your path, use
+Assuming that ...\rw1023\bin is in your path, use
 
 	Rcmd INSTALL package
 
@@ -149,7 +130,10 @@ and the .win equivalents do not.  Such files included in package
 sources are usually designed for use under Unix and are best removed.
 
 BEWARE: references to variables in R.dll are converted to the
-right form by using the header files.  You must include them.
+right form by including "globalvar.h" in the C source.  If you use
+your own Makefile.win or set CFLAGS (rather than append to it) you may
+need to include "globalvar.h" explicitly.  (References to exported
+variables may lurk inside the macros of Rinternals.h and Rdefines.h.)
 
 
 Using zipped help files
@@ -188,26 +172,13 @@ The equivalent of `R CMD check mypkg' on Unix is
 Use `Rcmd check --help' for full details.  There is an analogous call for
 build.
 
-You may need to set TMPDIR to (the absolute path to) a suitable
-temporary directory: the default is c:/TEMP.  (Use forward slashes,
-although the code will try to convert backslashes as from 1.7.0.)
+You may need to set TMPDIR to a suitable temporary directory: the
+default is c:\TEMP.
 
-These have been used successfully under NT/2000/XP.  We have seen
-problems with some Perl versions on Win 95/98/ME, but believe these
-are now resolved.  make pkgcheck-mypkg will perform the tests of the
-examples and tests directory, as far as we know on all versions of Windows.
-
-
-Building the package reference manual
-=====================================
-
-See the Writing R Extensions manual for full instructions on converting
-package help files to DVI or PDF format.  If you have the necessary tools 
-installed,
-
-	Rcmd rd2dvi.sh --pdf mypkg
-	
-will use LaTeX to build a PDF version of the reference manual.	
+These have been used successfully under NT/2000.  We have seen
+problems with some Perl versions on Win 95/08/ME.  make pkgcheck-mypkg
+will perform the tests of the examples and tests directory, as far
+as we know on all OSes.
 
 
 Debugging
@@ -242,8 +213,8 @@ executable to be debugged as the full path to the R front-end.
 
 Extra care is needed when referencing variables (rather than
 functions) exported from R.dll.  These must be declared
-__declspec(dllimport) (as in R's own header files).  A list of the
-relevant variables is in the file `exported-vars'.
+__declspec(dllimport).  A list of the relevant variables is in the
+file `exported-vars'.
 
 
 Using Borland C++
@@ -252,7 +223,7 @@ Using Borland C++
 Borland C++5.5 is available as a free download from
 http://www.borland.com/bcppbuilder/freecompiler/ and as part of C++
 Builder 5.  The following will make convolve.dll from convolve.c (flag
--6 optimizes for a Pentium Pro/II/III/4, and -u- removes extra underscores)
+-6 optimizes for a Pentium Pro/II/III, and -u- removes extra underscores)
 
 bcc32 -u- -6 -O2 -WDE convolve.c
 
@@ -264,7 +235,7 @@ implib R.lib R.def
 and then add R.lib to the bcc32 command line, for example (from
 Venables & Ripley's `S Programming')
 
-bcc32 -u- -6 -O2 -WDE -I\R\rw1050\src\include VCrndR.c R.lib
+bcc32 -u- -6 -O2 -WDE -I\R\rw1010\src\include VCrndR.c R.lib
 
 We believe that when referencing variables (rather than functions)
 exported from R.dll these must be declared __declspec(dllimport) just
@@ -275,13 +246,14 @@ Using other compilers and languages
 ===================================
 
 To use C++ see the section in the R for Windows FAQ.  You can include
-C++ code in packages and the supplied Makefiles will compile with g++
-and link the DLL using g++ (and hence link against libstc++.a).  Use
-of C++ I/O may or may not work, and has been seen to crash R.
+C++ code in packages as from R 1.1.1, and the supplied Makefiles will
+compile with g++ and link the DLL using g++ (and hence link against
+libstc++.a).  Use of C++ I/O may or may not work, and has been seen
+to crash R.
 
 For other compilers you will need to arrange to produce a DLL with
-cdecl (also known as _cdecl or __cdecl) linkage.  The mingw port (and
-VC++) uses no `name mangling' at all, so that if for example your
+cdecl (also known as _cdecl or __cdecl) linkage.  The mingw32 port
+(and VC++) uses no `name mangling' at all, so that if for example your
 compiler adds leading or trailing underscores you will need to use the
 transformed symbol in the call to .C in your R code.  Many compilers
 can produce cdecl DLLs by a suitable choice of flags, but if yours
@@ -294,12 +266,12 @@ conversion at all to the symbol name.  It is normally best to use
 
 Care is needed in passing character strings to and from a DLL by .C:
 they must be equivalent to the C type char** and null-terminated.  Not
-even the mingw g77 Fortran uses null-terminated strings.
+even the mingw32 g77 Fortran uses null-terminated strings.
 
 WARNING: DLLs made with some compilers reset the FPU in their startup
-code (Delphi has been one), and this will cause operations such as
-0./0. to crash R.  You can re-set the FPU to the correct values by a
-call to the C entry point Rwin_fpset().
+code (Delphi is one), and this will cause operations such as 0./0. to
+crash R.  You can re-set the FPU to the correct values by a call to
+the C entry point Rwin_fpset().
 
 
 Simple Ports
@@ -326,6 +298,19 @@ mypkg, in RHOME\src\library, and run
 	make pkg-mypkg
 
 
+If you have a Unix/Linux box, it will suffice to zip up the Unix
+installation of the package.  Install the package, then
+
+	cd `R RHOME`/library
+	zip -rl /dest/mypkg.zip mypkg
+
+(the -l flag converts to CRLF line endings: it is not necessary but
+users may want to read the information files in a Windows editor).
+
+zip is often installed on Linux machines, and sources and binaries for
+Unix boxes are available via the Info-Zip site given above.
+
+
 Non-standard locations
 ======================
 
@@ -345,25 +330,25 @@ Cross-building packages on Linux
 ================================
 
 It is straightforward to build a package on a ix86-linux system,
-although it is not possible (and we have tried, including using WINE)
-to cross-build .chm files.  You will need an installation of R for
-Windows, either copied from a Windows system or cross-compiled.
+although it is not possible (as far as we know) to cross-build .chm or
+.hlp files.  For a package without compiled code you can just zip up
+the Linux installation of the package.
 
 First you need to set up the cross-compilers and tools (see file
 src/gnuwin32/INSTALL in the full source distribution) and have them
-in your path.  We will assume that your Linux installation has Perl5,
+in your path. We will assume that your Linux installation has Perl5,
 unzip and zip.
 
 Edit MkRules to set BUILD=CROSS and the appropriate paths (including
-HEADER) as needed.
+HEADER) as needed, and check that Makefile has WINHELP set to NO.
 
 Then packages can be made as natively, for example by
 
 	cd .../src/gnuwin32
-	make PKGDIR=/mysources RLIB=/R/win/library pkg-mypkg
+	make STAMP=NO PKGDIR=/mysources RLIB=/R/win/library pkg-mypkg
 	make PKGDIR=/mysources RLIB=/R/win/library pkgcheck-mypkg
 	cd /R/win/library
-	zip -r9X /dest/mypkg.zip mypkg
+	zip -rl /dest/mypkg.zip mypkg
 
 (Rcmd is a Windows executable, so cannot be used.)
 
@@ -371,7 +356,7 @@ Then packages can be made as natively, for example by
 Feedback
 ========
 
-Please send comments and bug reports to
+Please send comments and bug reports to (preferably both of)
 
-	R-windows@r-project.org
-
+    Guido Masarotto <guido@hal.stat.unipd.it>
+    Brian Ripley <ripley@stats.ox.ac.uk>

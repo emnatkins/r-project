@@ -1,8 +1,14 @@
-contr.poly <- function (n, scores = 1:n, contrasts = TRUE)
+#### copyright (C) 1998 W. N. Venables and B. D. Ripley
+####
+#### copyright (C) 1998 The R Development Core Team.
+
+#dimnames(x)[[2]] changed to colnames() --pd April 17 '99
+
+contr.poly <- function (n, contrasts = TRUE)
 {
-    make.poly <- function(n, scores)
+    make.poly <- function(n)
     {
-	y <- scores - mean(scores)
+	y <- seq(length=n) - n %/% 2 - 1
 	X <- outer(y, seq(length=n) - 1, "^")
 	QR <- qr(X)
 	z <- QR$qr
@@ -12,7 +18,6 @@ contr.poly <- function (n, scores = 1:n, contrasts = TRUE)
 	colnames(Z) <- paste("^", 1:n - 1, sep="")
 	Z
     }
-
     if (is.numeric(n) && length(n) == 1) levs <- 1:n
     else {
 	levs <- n
@@ -20,15 +25,9 @@ contr.poly <- function (n, scores = 1:n, contrasts = TRUE)
     }
     if (n < 2)
 	stop(paste("Contrasts not defined for", n - 1, "degrees of freedom"))
-    if (n > 95)
-        stop(paste("Orthogonal polynomials cannot be represented accurately enough for", n - 1, "degrees of freedom"))
-    if (length(scores) != n)
-        stop("scores argument is of the wrong length")
-    if (!is.numeric(scores) || any(duplicated(scores)))
-        stop("scores must all be different numbers")
-    contr <- make.poly(n, scores)
+    contr <- make.poly(n)
     if (contrasts) {
-	dn <- colnames(contr)
+	dn <- dimnames(contr)[[2]]
 	dn[2:min(4,n)] <- c(".L", ".Q", ".C")[1:min(3, n-1)]
 	colnames(contr) <- dn
 	contr[, -1, drop = FALSE]
@@ -39,85 +38,25 @@ contr.poly <- function (n, scores = 1:n, contrasts = TRUE)
     }
 }
 
-poly <- function(x, ..., degree = 1, coefs = NULL)
+## implemented by BDR 29 May 1998
+## `coefs' code added by KH
+poly <- function(x, degree=1)
 {
-    dots <- list(...)
-    if(nd <- length(dots)) {
-        if(nd == 1 && length(dots[[1]]) == 1) # unnamed degree
-            degree <- dots[[1]]
-        else return(polym(x, ..., degree = degree))
-    }
-    if(is.matrix(x)) {
-        m <- unclass(as.data.frame(cbind(x, ...)))
-        return(do.call("polym", c(m, degree=degree)))
-    }
-    if(degree < 1)
-        stop("degree must be at least 1")
+    if(is.matrix(x)) stop("poly is only implemented for vectors")
     n <- degree + 1
-    if(is.null(coefs)) { # fitting
-        if(degree >= length(x))
-            stop("degree must be less than number of points")
-        xbar <- mean(x)
-        x <- x - xbar
-        X <- outer(x, seq(length = n) - 1, "^")
-        QR <- qr(X)
-        z <- QR$qr
-        z <- z * (row(z) == col(z))
-        raw <- qr.qy(QR, z)
-        norm2 <- colSums(raw^2)
-        alpha <- (colSums(x*raw^2)/norm2 + xbar)[1:degree]
-        Z <- raw / rep(sqrt(norm2), each = length(x))
-        colnames(Z) <- 1:n - 1
-        Z <- Z[, -1, drop = FALSE]
-        attr(Z, "degree") <- 1:degree
-        attr(Z, "coefs") <- list(alpha = alpha, norm2 = c(1, norm2))
-        class(Z) <- c("poly", "matrix")
-    } else {            # prediction
-        alpha <- coefs$alpha; norm2 <- coefs$norm2
-        Z <- matrix(, length(x), n)
-        Z[, 1] <- 1
-        Z[, 2] <- x - alpha[1]
-        if(degree > 1)
-            for(i in 2:degree)
-                Z[, i+1] <- (x - alpha[i]) * Z[, i]  -
-                    (norm2[i+1] / norm2[i]) * Z[, i-1]
-        Z <- Z / rep(sqrt(norm2[-1]), each = length(x))
-        colnames(Z) <- 0:degree
-        Z <- Z[, -1, drop = FALSE]
-    }
-    return(Z)
-}
-
-predict.poly <- function(object, newdata, ...)
-{
-    if(missing(newdata)) return(object)
-    poly(newdata, degree = max(attr(object, "degree")),
-         coefs = attr(object, "coefs"))
-}
-
-makepredictcall.poly  <- function(var, call)
-{
-    if(as.character(call)[1] != "poly") return(call)
-    call$coefs <- attr(var, "coefs")
-    call
-}
-
-polym <- function(..., degree = 1)
-{
-    dots <- list(...)
-    nd <- length(dots)
-    if(nd == 0) stop("must supply one or more vectors")
-    if(nd == 1) return(poly(dots[[1]], degree))
-    n <- sapply(dots, length)
-    if(any(n != n[1]))
-        stop("arguments must have the same length")
-    z <- do.call("expand.grid", rep.int(list(0:degree), nd))
-    s <- rowSums(z)
-    ind <- (s > 0) & (s <= degree)
-    z <- z[ind, ]; s <- s[ind]
-    res <- cbind(1, poly(dots[[1]], degree))[, 1 + z[, 1]]
-    for(i in 2:nd) res <- res * cbind(1, poly(dots[[i]], degree))[, 1 + z[, i]]
-    colnames(res) <- apply(z, 1, function(x) paste(x, collapse = "."))
-    attr(res, "degree") <- as.vector(s)
-    res
+    xbar <- mean(x)
+    x <- x - xbar
+    X <- outer(x, seq(length = n) - 1, "^")
+    QR <- qr(X)
+    z <- QR$qr
+    z <- z * (row(z) == col(z))
+    raw <- qr.qy(QR, z)
+    norm2 <- diag(crossprod(raw))
+    alpha <- (diag(crossprod(raw, x * raw))/norm2 + xbar)[1:degree]
+    Z <- raw/rep(sqrt(norm2), rep(length(x), n))
+    colnames(Z) <- 1:n - 1
+    Z <- Z[, -1]
+    attr(Z, "degree") <- 1:degree
+    attr(Z, "coefs") <- list(alpha = alpha, norm2 = c(1, norm2))
+    Z
 }

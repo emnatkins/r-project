@@ -20,10 +20,8 @@ profile(fitted, \dots)
   individual methods for further details.
 }
 \seealso{
-  \code{\link[nls]{profile.nls}} in package \pkg{nls},
-  \code{\link[MASS:confint]{profile.glm}} in package \pkg{MASS},
+  \code{\link[nls]{profile.nls}} in package \bold{nls},
+  \code{\link[MASS:confint]{profile.glm}} in package \bold{MASS},
   \ldots
-
-  For profiling code, see \code{\link{Rprof}}.
 }
 \keyword{models}

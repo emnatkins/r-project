@@ -1,7 +1,7 @@
 \name{plot.factor}
 \title{Plotting Factor Variables}
 \usage{
-\method{plot}{factor}(x, y, legend.text = levels(y), \dots)
+plot.factor(x, y, legend.text = levels(y), \dots)
 }
 \alias{plot.factor}
 \arguments{
@@ -12,7 +12,7 @@
         \code{\link{par}}.}
 }
 \description{
-  This functions implements a \dQuote{scatterplot} method for
+  This functions implements a ``scatterplot'' method for
   \code{\link{factor}} arguments of the \emph{generic}
   \code{\link{plot}} function.
   Actually, \code{\link{boxplot}} or \code{\link{barplot}} are used when
@@ -27,8 +27,6 @@ data(PlantGrowth)
 plot(PlantGrowth)                                # -> plot.data.frame
 plot(weight ~ group, data = PlantGrowth)         # numeric vector ~ factor
 plot(cut(weight, 2) ~ group, data = PlantGrowth) # factor ~ factor
-## passing "..." to barplot() eventually:
-plot(cut(weight, 3) ~ group, data = PlantGrowth, density = 16*(1:3),col=NULL)
 
 plot(PlantGrowth$group, axes=FALSE, main="no axes")# extremly silly
 }

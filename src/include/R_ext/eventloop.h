@@ -20,11 +20,6 @@
 #ifndef R_EXT_EVENTLOOP_H
 #define R_EXT_EVENTLOOP_H
 
-/* NOTE:
-   Needed at least on FreeBSD so that fd_set is defined.
-*/
-#include <sys/types.h>
-
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -61,13 +56,6 @@ extern InputHandler *addInputHandler(InputHandler *handlers, int fd, InputHandle
 extern InputHandler *getInputHandler(InputHandler *handlers, int fd);
 extern int           removeInputHandler(InputHandler **handlers, InputHandler *it);
 extern InputHandler *getSelectedHandler(InputHandler *handlers, fd_set *mask);
-extern fd_set *R_checkActivity(int usec, int ignore_stdin);
-extern fd_set *R_checkActivityEx(int usec, int ignore_stdin, void (*intr)(void));
-extern void R_runHandlers(InputHandler *handlers, fd_set *mask);
-
-extern int R_SelectEx(int  n,  fd_set  *readfds,  fd_set  *writefds,
-		      fd_set *exceptfds, struct timeval *timeout,
-		      void (*intr)(void));
 
 #ifdef __SYSTEM__
 InputHandler *R_InputHandlers;

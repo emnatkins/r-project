@@ -1,8 +1,7 @@
 /*
  *  Mathlib : A C Library of Special Functions
  *  Copyright (C) 1998 Ross Ihaka
- *  Copyright (C) 2000-2001 The R Development Core Team
- *  Copyright (C) 2002-2003 The R Foundation
+ *  Copyright (C) 2000 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,7 +19,7 @@
  *
  *  SYNOPSIS
  *
- *    #include <Rmath.h>
+ *    #include "Rmath.h"
  *    double gammafn(double x);
  *
  *  DESCRIPTION
@@ -35,15 +34,13 @@
  *    The accuracy of this routine compares (very) favourably
  *    with those of the Sun Microsystems portable mathematical
  *    library.
- *
- *    MM specialized the case of  n!  for n < 50 - for even better precision
  */
 
 #include "nmath.h"
 
 double gammafn(double x)
 {
-    const double gamcs[42] = {
+    static /* const */ double gamcs[42] = {
 	+.8571195590989331421920062399942e-2,
 	+.4415381324841006757191315771652e-2,
 	+.5685043681599363378632664588789e-1,
@@ -92,7 +89,6 @@ double gammafn(double x)
     double y;
     double sinpiy, value;
 
-#ifdef NOMORE_FOR_THREADS
     static int ngam = 0;
     static double xmin = 0, xmax = 0., xsml = 0., dxrel = 0.;
 
@@ -105,18 +101,6 @@ double gammafn(double x)
 	/*   = exp(.01)*DBL_MIN = 2.247e-308 for IEEE */
 	dxrel = sqrt(1/DBL_EPSILON);/*was (1/d1mach(4)) */
     }
-#else
-/* For IEEE double precision DBL_EPSILON = 2^-52 = 2.220446049250313e-16 :
- * (xmin, xmax) are non-trivial, see ./gammalims.c
- * xsml = exp(.01)*DBL_MIN
- * dxrel = sqrt(1/DBL_EPSILON) = 2 ^ 26
-*/
-# define ngam 22
-# define xmin -170.5674972726612
-# define xmax  171.61447887182298
-# define xsml 2.2474362225598545e-308
-# define dxrel 67108864.
-#endif
 
     if(ISNAN(x)) return x;
 
@@ -188,14 +172,8 @@ double gammafn(double x)
 	    return ML_UNDERFLOW;
 	}
 
-	if(y <= 50 && y == (int)y) { /* compute (n - 1)! */
-	    value = 1.;
-	    for (i = 2; i < y; i++) value *= i;
-	}
-	else { /* normal case */
-	    value = exp((y - 0.5) * log(y) - y + M_LN_SQRT_2PI +
-			((2*y == (int)2*y)? stirlerr(y) : lgammacor(y)));
-	}
+	value = exp((y - 0.5) * log(y) - y + M_LN_SQRT_2PI + lgammacor(y));
+
 	if (x > 0)
 	    return value;
 

@@ -1,10 +1,10 @@
 \name{screen}
 \title{Creating and Controlling Multiple Screens on a Single Device}
 \usage{
-split.screen(figs, screen = , erase = TRUE)
-screen(n = , new = TRUE)
-erase.screen(n = )
-close.screen(n, all.screens = FALSE)
+split.screen(figs, screen = <<see below>>, erase = TRUE)
+screen(n = <<see below>>, new = TRUE)
+erase.screen(n = <<see below>>)
+close.screen(n = <<see below>>, all.screens = TRUE)
 }
 \alias{screen}
 \alias{split.screen}
@@ -15,8 +15,6 @@ close.screen(n, all.screens = FALSE)
     number of columns in a screen matrix \emph{or} a matrix with 4 columns.
     If a matrix, then each row describes a screen with values for the left,
     right, bottom, and top of the screen (in that order) in NDC units.}
-  \item{screen}{A number giving the screen to be split.}
-  \item{erase}{logical: should be selected screen be cleared?}
   \item{n}{A number indicating which screen to prepare for drawing
     (\code{screen}), erase (\code{erase.screen}), or close
     (\code{close.screen}).}
@@ -34,8 +32,7 @@ close.screen(n, all.screens = FALSE)
 
   \code{screen} is used to select which screen to draw in.
 
-  \code{erase.screen} is used to clear a single screen, which it
-  does by filling with the background colour.
+  \code{erase.screen} is used to clear a single screen.
 
   \code{close.screen} removes the specified screen definition(s).
 }
@@ -43,7 +40,7 @@ close.screen(n, all.screens = FALSE)
   The first call to \code{split.screen} places \R into split-screen
   mode.  The other split-screen functions only work within this mode.
   While in this mode, certain other commands should be avoided (see WARNINGS
-  below).  Split-screen mode is exited by the command
+  below).  Split-screen mode is exited by the command 
   \code{close.screen(all = TRUE)}
 }
 \value{
@@ -62,61 +59,45 @@ close.screen(n, all.screens = FALSE)
 }
 
 \section{Warning}{
-  The recommended way to use these functions is to
-  completely draw a plot and all
-  additions (ie. points and lines) to the base plot, prior to selecting
-  and plotting on another screen. The behavior associated with returning
-  to a screen to add to an existing plot is unpredictable and may result
-  in problems that are not readily visible.
-
   These functions are totally incompatible with the
   other mechanisms for arranging plots on a device:  \code{par(mfrow)},
-  \code{par(mfcol)}, and \code{layout()}.
+  \code{par(mfcol)}, and \code{layout()}.  
 
-  The functions are also incompatible with some plotting functions,
+  The functions are also incompatible with some plotting functions, 
   such as \code{coplot}, which make use of these other mechanisms.
 
   The functions should not be used with multiple devices.
-
-  \code{erase.screen} will appear not to work if the background colour
-  is transparent (as it is by default on most devices).
 }
 
 \seealso{
   \code{\link{par}}, \code{\link{layout}}, \code{\link{Devices}},
   \code{dev.*}
 }
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical Models in S}.
-  Wadsworth \& Brooks/Cole.
-}
 
 \examples{
 if (interactive()) {
-par(bg = "white")           # default is likely to be transparent
-split.screen(c(2,1))        # split display into two screens
+split.screen(c(2,1))             # split display into two screens
 split.screen(c(1,3), screen = 2) # now split the bottom half into 3
 screen(1) # prepare screen 1 for output
 plot(10:1)
 screen(4) # prepare screen 4 for output
 plot(10:1)
-close.screen(all = TRUE)    # exit split-screen mode
+close.screen(all = TRUE) # exit split-screen mode
 
 split.screen(c(2,1))        # split display into two screens
 split.screen(c(1,2),2)      # split bottom half in two
 plot(1:10)                  # screen 3 is active, draw plot
-erase.screen()              # forgot label, erase and redraw
+erase.screen()              #forgot label, erase and redraw
 plot(1:10, ylab= "ylab 3")
-screen(1)                   # prepare screen 1 for output
+screen(1)                 # prepare screen 1 for output
 plot(1:10)
-screen(4)                   # prepare screen 4 for output
+screen(4)                 # prepare screen 4 for output
 plot(1:10, ylab="ylab 4")
-screen(1, FALSE)            # return to screen 1, but do not clear
-plot(10:1, axes=FALSE, lty=2, ylab="")  # overlay second plot
-axis(4)                     # add tic marks to right-hand axis
+screen(1, FALSE)              #return to screen 1, but do not clear
+plot(10:1, axes=F, lty=2, ylab="")  # overlay second plot
+axis(4)                   # add tic marks to right-hand axis
 title("Plot 1")
-close.screen(all = TRUE)    # exit split-screen mode
+close.screen(all = TRUE) # exit split-screen mode
 }
 }
 \keyword{aplot}

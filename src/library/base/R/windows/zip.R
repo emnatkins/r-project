@@ -1,18 +1,22 @@
-zip.file.extract <- function(file, zipname = "R.zip")
+zip.file.extract <- function(file, zipname="R.zip")
 {
-    path <- dirname(file)
-    topic <- basename(file)
+    ofile <- gsub("\\\\", "/", file)
+    path <- sub("[^/]*$","", ofile)
+    topic <- substr(ofile, nchar(path)+1, 1000)
     if(file.exists(file.path(path, zipname))) {
-        tmpd <- tempdir()
+        tempdir <- sub("[^\\]*$","", tempfile())
         if((unzip <- getOption("unzip")) != "internal") {
             if(!system(paste(unzip, ' -oq "',
                              file.path(path, zipname), '" ', topic,
-                             " -d ", tmpd, sep=""), invisible = TRUE))
-                file <- file.path(tmpd, topic)
+                             " -d ", tempdir, sep=""), invisible = TRUE))
+                file <- paste(tempdir, topic, sep="")
         } else {
-            rc <- .Internal(int.unzip(file.path(path, zipname), topic, tmpd))
+            rc <- .Internal(int.unzip(file.path(path, zipname), topic, tempdir))
+            if (rc == 10)
+                warning(paste(R.home(),
+                              "unzip\\unzip32.dll cannot be loaded", sep="\\"))
             if (rc == 0)
-                file <- file.path(tmpd, topic)
+                file <- paste(tempdir, topic, sep="")
         }
     }
     file
@@ -27,7 +31,11 @@ zip.unpack <- function(zipname, dest)
             system(paste(unzip, "-oq", zipname, "-d", dest),
                    show = FALSE, invisible = TRUE)
         } else {
-            .Internal(int.unzip(zipname, NULL, dest))
+            rc <- .Internal(int.unzip(zipname, NULL, dest))
+            if (rc == 10)
+                warning(paste(R.home(),
+                              "unzip\\unzip32.dll cannot be loaded", sep="\\"))
+            rc
         }
     } else stop(paste("zipfile", zipname, "not found"))
 }

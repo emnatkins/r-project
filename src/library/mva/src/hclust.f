@@ -10,7 +10,7 @@ C                    storage; LEN = N.N-1/2,                 C
 C  IOPT              clustering criterion to be used,        C
 C  IA, IB, CRIT      history of agglomerations; dimensions   C
 C                    N, first N-1 locations only used,       C
-C  MEMBR, NN, DISNN  vectors of length N, used to store      C
+C  MEMBR, NN, DISNN  vectors of length N, used to store      C 
 C                    cluster cardinalities, current nearest  C
 C                    neighbour, and the dissimilarity assoc. C
 C                    with the latter.                        C
@@ -22,21 +22,16 @@ C                                                            C
 C  F. Murtagh, ESA/ESO/STECF, Garching, February 1986.       C
 C  Modifications for R: Ross Ihaka, Dec 1996                 C
 C                       Fritz Leisch, Jun 2000               C
-C  all vars declared:   Martin Maechler, Apr 2001            C
 C------------------------------------------------------------C
       SUBROUTINE HCLUST(N,LEN,IOPT,IA,IB,CRIT,MEMBR,NN,DISNN,
-     X                  FLAG,DISS)
-c Args
-      INTEGER N, LEN, IOPT
-      INTEGER IA(N),IB(N), NN(N)
+     X                FLAG,DISS)
+C     IMPLICIT UNDEFINED(A-H,O-Z)
+      DOUBLE PRECISION MEMBR(N),DISS(LEN), DISNN(N)
+      INTEGER IA(N),IB(N)
+      DOUBLE PRECISION CRIT(N)
+      DIMENSION NN(N)
       LOGICAL FLAG(N)
-      DOUBLE PRECISION CRIT(N), MEMBR(N),DISS(LEN), DISNN(N)
-c Var
-      INTEGER IM, JJ, JM, I, NCL, J, IND, I2, J2, K, IND1, IND2, IND3
-      DOUBLE PRECISION INF, DMIN, D12
-c External function
-      INTEGER IOFFST
-c
+      DOUBLE PRECISION INF, DMIN, X, XX
       DATA INF/1.D+20/
 c
 c     unnecessary initialization of im jj jm to keep g77 -Wall happy
@@ -59,7 +54,7 @@ C
       DO 30 I=1,N-1
          DMIN=INF
          DO 20 J=I+1,N
-            IND=IOFFST(N,I,J)
+            IND=IOFFSET(N,I,J)
             IF (DISS(IND).GE.DMIN) GOTO 20
                DMIN=DISS(IND)
                JM=J
@@ -95,25 +90,27 @@ C
       DO 50 K=1,N
          IF (.NOT.FLAG(K)) GOTO 800
          IF (K.EQ.I2) GOTO 800
+         X=MEMBR(I2)+MEMBR(J2)+MEMBR(K)
          IF (I2.LT.K) THEN
-                           IND1=IOFFST(N,I2,K)
+                           IND1=IOFFSET(N,I2,K)
                       ELSE
-                           IND1=IOFFST(N,K,I2)
+                           IND1=IOFFSET(N,K,I2)
          ENDIF
          IF (J2.LT.K) THEN
-                           IND2=IOFFST(N,J2,K)
+                           IND2=IOFFSET(N,J2,K)
                       ELSE
-                           IND2=IOFFST(N,K,J2)
+                           IND2=IOFFSET(N,K,J2)
          ENDIF
-         IND3=IOFFST(N,I2,J2)
-         D12=DISS(IND3)
+         IND3=IOFFSET(N,I2,J2)
+         XX=DISS(IND3)
 C
 C  WARD'S MINIMUM VARIANCE METHOD - IOPT=1.
 C
          IF (IOPT.EQ.1) THEN
             DISS(IND1)=(MEMBR(I2)+MEMBR(K))*DISS(IND1)+
-     X                 (MEMBR(J2)+MEMBR(K))*DISS(IND2) - MEMBR(K)*D12
-            DISS(IND1)=DISS(IND1) / (MEMBR(I2)+MEMBR(J2)+MEMBR(K))
+     X                 (MEMBR(J2)+MEMBR(K))*DISS(IND2)-
+     X                 MEMBR(K)*XX
+            DISS(IND1)=DISS(IND1)/X
          ENDIF
 C
 C  SINGLE LINK METHOD - IOPT=2.
@@ -144,14 +141,14 @@ C
 C  MEDIAN (GOWER'S) METHOD - IOPT=6.
 C
          IF (IOPT.EQ.6) THEN
-            DISS(IND1)=0.5*DISS(IND1)+0.5*DISS(IND2)-0.25*D12
+            DISS(IND1)=0.5*DISS(IND1)+0.5*DISS(IND2)-0.25*XX
          ENDIF
 C
 C  CENTROID METHOD - IOPT=7.
 C
          IF (IOPT.EQ.7) THEN
             DISS(IND1)=(MEMBR(I2)*DISS(IND1)+MEMBR(J2)*DISS(IND2)-
-     X                  MEMBR(I2)*MEMBR(J2)*D12/(MEMBR(I2)+MEMBR(J2)))/
+     X          MEMBR(I2)*MEMBR(J2)*XX/(MEMBR(I2)+MEMBR(J2)))/
      X          (MEMBR(I2)+MEMBR(J2))
             ENDIF
 C
@@ -176,7 +173,7 @@ C
 C        (Redetermine NN of I:)
          DMIN=INF
          DO 870 J=I+1,N
-            IND=IOFFST(N,I,J)
+            IND=IOFFSET(N,I,J)
             IF (.NOT.FLAG(J)) GOTO 870
             IF (I.EQ.J) GOTO 870
             IF (DISS(IND).GE.DMIN) GOTO 870
@@ -194,14 +191,12 @@ C
 C
       RETURN
       END
-c     of HCLUST()
 C
 C
-      INTEGER FUNCTION IOFFST(N,I,J)
-C  Map row I and column J of upper half diagonal symmetric matrix
+      FUNCTION IOFFSET(N,I,J)
+C  Map row I and column J of upper half diagonal symmetric matrix 
 C  onto vector.
-      INTEGER N,I,J
-      IOFFST=J+(I-1)*N-(I*(I+1))/2
+      IOFFSET=J+(I-1)*N-(I*(I+1))/2
       RETURN
       END
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++C
@@ -228,10 +223,7 @@ C   cluster assignments at all levels, at extra comput. expense C
 C                                                               C
 C---------------------------------------------------------------C
       SUBROUTINE HCASS2(N,IA,IB,IORDER,IIA,IIB)
-c Args
-      INTEGER N,IA(N),IB(N),IORDER(N),IIA(N),IIB(N)
-c Var
-      INTEGER I, J, K, K1, K2, LOC
+      INTEGER IA(N),IB(N),IORDER(N),IIA(N),IIB(N)
 C
 C     Following bit is to get seq. of merges into format acceptable to plclust
 C     I coded clusters as lowest seq. no. of constituents; S's `hclust' codes

@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998--2001  R Development Core Team
+ *  Copyright (C) 1998--1999  R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,14 +20,15 @@
 #define NONAMELESSUNION
 #include <windows.h>
 #include <stdio.h>
-#include <Rversion.h>
-#include <Startup.h>
-#include <stdlib.h>		/* for exit */
+#include "Rversion.h"
+#include "Startup.h"
+
+#define CharacterMode (*_imp__CharacterMode)
 
 extern void cmdlineoptions(int, char **);
 extern int setupui(void);
 extern void Rf_mainloop(void);
-__declspec(dllimport) extern UImode CharacterMode;
+extern UImode CharacterMode;
 
 extern char *getDLLVersion();
 

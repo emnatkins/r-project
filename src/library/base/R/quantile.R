@@ -1,7 +1,7 @@
 quantile <- function(x, ...) UseMethod("quantile")
 
 quantile.default <-
-    function(x, probs = seq(0, 1, 0.25), na.rm = FALSE, names = TRUE, ...)
+    function(x, probs = seq(0, 1, 0.25), na.rm = FALSE, names = TRUE)
 {
     if (na.rm)
 	x <- x[!is.na(x)]
@@ -22,7 +22,7 @@ quantile.default <-
 	x <- sort(x, partial = unique(c(lo, hi)))
 	i <- index > lo
 	qs <- x[lo]
-        i <- seq(along=i)[i & !is.na(i)]
+        i <- seq(along=i)[i & !is.na(i)][qs[i] > -Inf]
         .minus <- function(x,y) ifelse(x == y, 0, x - y)# ok for Inf - Inf
         qs[i] <- qs[i] + .minus(x[hi[i]], x[lo[i]]) * (index[i] - lo[i])
     }
@@ -33,13 +33,12 @@ quantile.default <-
 	dig <- max(2, getOption("digits"))
 	names(qs) <- paste(## formatC is slow for long probs
 			   if(np < 100)
-			   formatC(100*probs, format="fg", wid = 1, digits=dig)
-			   else format(100 * probs, trim=TRUE, digits=dig),
+			   formatC(100*probs, format="fg", wid = 1, dig=dig)
+			   else format(100 * probs, trim=TRUE, dig=dig),
 			   "%", sep = "")
     }
     if(na.p) { # do this more elegantly (?!)
         o.pr[p.ok] <- qs
-        names(o.pr) <- rep("", length(o.pr)) # suppress <NA> names
         names(o.pr)[p.ok] <- names(qs)
         o.pr
     } else qs

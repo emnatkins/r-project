@@ -3,13 +3,10 @@
 \title{Report Time Spent in Garbage Collection}
 \description{
   This function reports the time spent in garbage collection so far in
-  the \R session while GC timing was enabled..
+  the \R session.
 }
 \usage{
-gc.time(on = TRUE)
-}
-\arguments{
-  \item{on}{logical; if \code{TRUE}, GC timing is enabled.}
+gc.time()
 }
 \value{
   A numerical vector of length 5 giving the user CPU time, the system
@@ -19,7 +16,7 @@ gc.time(on = TRUE)
 #ifdef windows
 \note{
   CPU times will be returned as \code{NA} on Windows 9x/ME systems, but
-  are genuine times on NT4/2000/XP systems.  Times of child processes are
+  are genuine times on NT4 and 2000 systems. Times of child processes are
   not available and will always be given as \code{NA}.
 }
 #endif

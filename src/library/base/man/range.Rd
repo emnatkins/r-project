@@ -4,8 +4,7 @@
 \title{Range of Values}
 \usage{
 range(\dots, na.rm = FALSE)
-
-\method{range}{default}(\dots, na.rm = FALSE, finite = FALSE)
+range.default(\dots, na.rm = FALSE, finite = FALSE)
 }
 \arguments{
   \item{\dots}{any \code{\link{numeric}} objects.}
@@ -21,9 +20,9 @@ range(\dots, na.rm = FALSE)
 \details{
   This is a generic function; currently, it has only a default method
   (\code{\link{range.default}}).
-
+    
   It is also a member of the \code{Summary} group of functions, see
-  \code{\link[base]{Methods}}.
+  \code{\link{Methods}}.
 
   If \code{na.rm} is \code{FALSE}, \code{NA}
   and \code{NaN} values in any of the arguments will cause NA values
@@ -32,19 +31,11 @@ range(\dots, na.rm = FALSE)
   If \code{finite} is \code{TRUE}, the minimum
   and maximum of all finite values is computed, i.e.,
   \code{finite=TRUE} \emph{includes} \code{na.rm=TRUE}.
-
-  A special situation occurs when there is no (after omission
-  of \code{NA}s) nonempty argument left, see \code{\link{min}}.% Extremes.Rd
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{min}},
   \code{\link{max}},
-  \code{\link[base]{Methods}}.
+  \code{\link{Methods}}.
 }
 \examples{
 print(r.x <- range(rnorm(100)))

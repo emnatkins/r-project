@@ -7,11 +7,20 @@
 \alias{xemacs}
 \alias{xedit}
 \title{Invoke a Text Editor}
+\synopsis{
+edit(name, \dots) 
+edit.default(name = NULL, file = "", editor = getOption("editor"), ...)
+vi(name = NULL, file = "")
+emacs(name = NULL, file = "")
+pico(name = NULL, file = "")
+xemacs(name = NULL, file = "")
+xedit(name = NULL, file = "")
+}
 \description{
   Invoke a text editor on an \R object.
 }
 \usage{
-\method{edit}{default}(name = NULL, file = "", editor = getOption("editor"), \dots)
+edit(name = NULL, file = "", editor = getOption("editor"), \dots)
 vi(name = NULL, file = "")
 emacs(name = NULL, file = "")
 pico(name = NULL, file = "")
@@ -23,15 +32,15 @@ xedit(name = NULL, file = "")
     then the file specified by \code{file} is opened for editing.}
   \item{file}{a string naming the file to write the edited version to.}
   \item{editor}{a string naming the text editor you want to use.  On
-    Unix the default is set from the environment variables \env{EDITOR}
-    or \env{VISUAL} if either is set, otherwise \code{vi} is used.  On
+    Unix the default is set from the environment variables \code{EDITOR}
+    or \code{VISUAL} if either is set, otherwise \code{vi} is used.  On
     Windows it defaults to \code{notepad}.}
   \item{\dots}{further arguments to be passed to or from methods.}
 }
 \details{
   \code{edit} invokes the text editor specified by \code{editor} with
   the object \code{name} to be edited.  It is a generic function,
-  currently with a default method and one for data frames and matrices.
+  currently with a default method and one for data frames.
 
   \code{data.entry} can be used to edit data, and is used by \code{edit}
   to edit matrices and data frames on systems for which

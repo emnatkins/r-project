@@ -39,9 +39,7 @@ Rcmd check [options] pkgdirs
 #ifdef windows
   \code{Rcmd build}
 #endif
-  builds \R source or binary packages from their sources.  It will
-  create index files in the sources if necessary, so it is often helpful
-  to run \code{build} before \code{check}.
+  builds \R source or binary packages from their sources.
 
   Use
 #ifdef unix
@@ -51,30 +49,20 @@ Rcmd check [options] pkgdirs
   \code{Rcmd foo --help}
 #endif
   to obtain usage information on utility \code{foo}.
-
-  Several of the options to \code{build --binary} are passed to
-  \code{\link{INSTALL}} so consult its help for the details.
 }
 #ifdef windows
 \note{
   These may not work correctly under Windows 95/98/ME because of
   problems Perl has launching programs on those limited OSes.
-
-  They make use of a temporary directory specified by the enironment
-  variable \code{TMPDIR} and defaulting to \code{c:/TEMP}.  Do ensure
-  that if set forward slashes are used.
 }
 #endif
 \seealso{
-  The chapter \dQuote{Processing Rd format} in \dQuote{Writing \R
-    Extensions}
+  The chapter ``Processing Rd format'' in ``Writing \R Extensions''
 #ifdef unix
   (see the \file{doc/manual} subdirectory of the \R source tree).
 #endif
 #ifdef windows
   (see the Manuals sub-menu of the Help menu on the console).
 #endif
-
-  \code{\link{INSTALL}} is called by \code{build --binary}.
 }
 \keyword{utilities}

@@ -1,7 +1,7 @@
 \name{diag}
 \title{Matrix Diagonals}
 \usage{
-diag(x = 1, nrow, ncol= )
+diag(x, nrow, ncol)
 diag(x) <- value
 }
 \alias{diag}
@@ -9,13 +9,6 @@ diag(x) <- value
 \description{
   Extract or replace the diagonal of a matrix,
   or construct a diagonal matrix.
-}
-\arguments{
-  \item{x}{a matrix, vector or 1D array.}
-  \item{nrow, ncol}{Optional dimensions for the result.}
-  \item{value}{either a single value or a vector of length equal to that
-    of the current diagonal.  Should be of a mode which can be coerced
-    to that of \code{x}.}
 }
 \value{
   If \code{x} is a matrix then \code{diag(x)} returns the diagonal of
@@ -36,15 +29,10 @@ diag(x) <- value
 \note{
   Using \code{diag(x)} can have unexpected effects if \code{x} is a
   vector that could be of length one. Use \code{diag(x, nrow =
-    length(x))} for consistent behaviour.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
+    length(x))} for consistent behaviour. 
 }
 \seealso{
-\code{\link{upper.tri}}, \code{\link{lower.tri}}, \code{\link{matrix}}.
+\code{\link{matrix}}.
 }
 \examples{
 dim(diag(3))
@@ -54,5 +42,15 @@ all(diag(1:3) == {m <- matrix(0,3,3); diag(m) <- 1:3; m})
 diag(var(M <- cbind(X=1:5, Y=rnorm(5))))#-> vector with names "X" and "Y"
 rownames(M) <- c(colnames(M),rep("",3));
 M; diag(M) #  named as well
+
+\testonly{
+diag(array(1:4, dim=5))
+## test behaviour with 0 rows or columns
+diag(0)
+z <- matrix(0, 0, 4)
+diag(z)
+diag(z) <- numeric(0)
+z
+}
 }
 \keyword{array}

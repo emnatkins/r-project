@@ -1,56 +1,27 @@
 \name{cor.test}
 \alias{cor.test}
-\alias{cor.test.default}
-\alias{cor.test.formula}
-\concept{Kendall correlation coefficient}
-\concept{Kendall's tau}
-\concept{Pearson correlation coefficient}
-\concept{Spearman correlation coefficient}
-\concept{Spearman's rho}
-\title{Test for Association/Correlation Between Paired Samples}
+\title{Test for Zero Correlation}
 \description{
-  Test for association between paired samples, using one of
-  Pearson's product moment correlation coefficient,
-  Kendall's \eqn{\tau}{tau} or Spearman's \eqn{\rho}{rho}.
+  Tests whether two samples come from uncorrelated (independent)
+  populations, using Pearson's product moment correlation coefficient,
+  Kendall's tau, or Spearman's rho.
 }
 \usage{
-cor.test(x, \dots)
-
-\method{cor.test}{default}(x, y,
+cor.test(x, y,
          alternative = c("two.sided", "less", "greater"),
-         method = c("pearson", "kendall", "spearman"),
-         exact = NULL, conf.level = 0.95, \dots)
-
-\method{cor.test}{formula}(formula, data, subset, na.action, \dots)
+         method = c("pearson", "kendall", "spearman"), exact = NULL)
 }
 \arguments{
   \item{x, y}{numeric vectors of data values.  \code{x} and \code{y}
     must have the same length.}
   \item{alternative}{indicates the alternative hypothesis and must be
     one of \code{"two.sided"}, \code{"greater"} or \code{"less"}.  You
-    can specify just the initial letter.  \code{"greater"} corresponds
-    to positive association, \code{"less"} to negative association.}
+    can specify just the initial letter.}
   \item{method}{a character string indicating which correlation
     coefficient is to be  used for the test.  One of \code{"pearson"},
     \code{"kendall"}, or \code{"spearman"}, can be abbreviated.}
   \item{exact}{a logical indicating whether an exact p-value should be
-    computed.  Only used for Kendall's \eqn{\tau}{tau}.
-    See the Details for the meaning of \code{NULL} (the default).}
-  \item{conf.level}{confidence level for the returned confidence
-    interval.  Currently only used for the Pearson product moment
-    correlation coefficient if there are at least 4 complete pairs of
-    observations.}
-  \item{formula}{a formula of the form \code{~ u + v}, where each of
-    \code{u} and \code{v} are numeric variables giving the data values
-    for one sample.  The samples must be of the same length.}
-  \item{data}{an optional data frame containing the variables in the
-    model formula.}
-  \item{subset}{an optional vector specifying a subset of observations
-    to be used.}
-  \item{na.action}{a function which indicates what should happen when
-    the data contain \code{NA}s.  Defaults to
-    \code{getOption("na.action")}.}
-  \item{\dots}{further arguments to be passed to or from methods.}
+    computed.}
 }
 \value{
   A list with class \code{"htest"} containing the following components:
@@ -58,46 +29,31 @@ cor.test(x, \dots)
   \item{parameter}{the degrees of freedom of the test statistic in the
     case that it follows a t distribution.}
   \item{p.value}{the p-value of the test.}
-  \item{estimate}{the estimated measure of association, with name
-    \code{"cor"}, \code{"tau"}, or \code{"rho"} correspoding
+  \item{estimate}{the estimated correlation coefficient, with names
+    attribute \code{"cor"}, \code{"tau"}, or \code{"rho"}, correspoding
     to the method employed.}
-  \item{null.value}{the value of the association measure under the
-    null hypothesis, always \code{0}.}
+  \item{null.value}{the value of the correlation coefficient under the
+    null hypothesis, hence \code{0}.}
   \item{alternative}{a character string describing the alternative
     hypothesis.}
-  \item{method}{a character string indicating how the association was
-    measured.}
+  \item{method}{a character string indicating how the correlation was
+    estimated.}
   \item{data.name}{a character string giving the names of the data.}
-  \item{conf.int}{a confidence interval for the measure of association.
-    Currently only given for Pearson's product moment correlation
-    coefficient in case of at least 4 complete pairs of observations.}
 }
 \details{
-  The three methods each estimate the association between paired samples
-  and compute a test of the value being zero.  They use different
-  measures of association, all in the range \eqn{[-1, 1]} with \eqn{0}
-  indicating no association.  These are sometimes referred to as tests
-  of no \emph{correlation}, but that term is often confined to the
-  default method.
-
   If \code{method} is \code{"pearson"}, the test statistic is based on
   Pearson's product moment correlation coefficient \code{cor(x, y)} and
-  follows a t distribution with \code{length(x)-2} degrees of freedom
-  if the samples follow independent normal distributions.  If there are
-  at least 4 complete pairs of observation, an asymptotic confidence
-  interval is given based on Fisher's Z transform.
+  follows a t distribution with \code{length(x)-2} degrees of freedom.
 
   If \code{method} is \code{"kendall"} or \code{"spearman"}, Kendall's
-  \eqn{\tau}{tau} or Spearman's \eqn{\rho}{rho} statistic is used to
-  estimate a rank-based measure of association.  These tests may be used
-  if the data do not necessarily come from a bivariate normal
-  distribution.
+  tau or Spearman's rho, respectively, are used to estimate the
+  correlation.  These tests should be used if the data do not
+  necessarily come from a bivariate normal distribution.
 
-  For Kendall's test, by default (if \code{exact} is NULL), an exact
-  p-value is computed if there are less than 50 paired samples containing
-  finite values and there are no ties.  Otherwise, the test statistic is
-  the estimate scaled to zero mean and unit variance, and is approximately
-  normally distributed.
+  For Kendall's test, by default (if \code{exact} is not specified), an
+  exact p-value is computed if both samples contain less than 50 finite
+  values and there are no ties.  Otherwise, the standardized estimate is
+  used as the test statistic, and is approximately normally distributed.
 
   For Spearman's test, p-values are computed using algorithm AS 89.
 }
@@ -117,28 +73,19 @@ cor.test(x, \dots)
 ## Assessment of tuna quality.  We compare the Hunter L measure of
 ##  lightness to the averages of consumer panel scores (recoded as
 ##  integer values from 1 to 6 and averaged over 80 such values) in
-##  9 lots of canned tuna.
-
+#   9 lots of canned tuna.
+##  The null is that the Hunter L value is positively associated
+##  with the panel score.
 x <- c(44.4, 45.9, 41.9, 53.3, 44.7, 44.1, 50.7, 45.2, 60.1)
 y <- c( 2.6,  3.1,  2.5,  5.0,  3.6,  4.0,  5.2,  2.8,  3.8)
-
-##  The alternative hypothesis of interest is that the
-##  Hunter L value is positively associated with the panel score.
-
 cor.test(x, y, method = "kendall", alternative = "greater")
 ## => p=0.05972
-
+##
 cor.test(x, y, method = "kendall", alternative = "greater",
          exact = FALSE) # using large sample approximation
 ## => p=0.04765
-
 ## Compare this to
 cor.test(x, y, method = "spearm", alternative = "g")
 cor.test(x, y,                    alternative = "g")
-
-## Formula interface.
-data(USJudgeRatings)
-pairs(USJudgeRatings)
-cor.test(~ CONT + INTG, data = USJudgeRatings)
 }
 \keyword{htest}

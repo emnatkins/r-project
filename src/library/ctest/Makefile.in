@@ -11,32 +11,26 @@ subdir = src/library/ctest
 include $(top_builddir)/Makeconf
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-DISTFILES = DESCRIPTION.in Makefile.in NAMESPACE
+DISTFILES = INDEX TITLE DESCRIPTION.in Makefile.in
 
 pkg = ctest
 
 all: Makefile DESCRIPTION
-	@echo "building package '$(pkg)'"
+	@echo "building package \`$(pkg)'"
 	@$(MKINSTALLDIRS) $(top_builddir)/library/$(pkg)/R
 	@(f=$${TMPDIR:-/tmp}/R$$$$; \
 	  cat `ls $(srcdir)/R/*.R` > $${f}; \
-	  $(SHELL) $(top_srcdir)/tools/move-if-change $${f} \
+	  $(top_srcdir)/tools/move-if-change $${f} \
 	    $(top_builddir)/library/$(pkg)/R/$(pkg))
-	@for f in COPYRIGHTS INDEX NAMESPACE SOURCES; do \
-	  if test -f $(srcdir)/$${f}; then \
-	    $(INSTALL_DATA) $(srcdir)/$${f} \
-	      $(top_builddir)/library/$(pkg); \
-	  fi; \
+	@for f in INDEX TITLE; do \
+	if test -f $(srcdir)/$${f}; then \
+	  $(INSTALL_DATA) $(srcdir)/$${f} \
+	    $(top_builddir)/library/$(pkg); \
+	fi; \
 	done
-	@if test -f DESCRIPTION; then \
-	  $(INSTALL_DATA) DESCRIPTION $(top_builddir)/library/$(pkg); \
-	  (tmp="Built: R $(VERSION); "; \
-	    if test -d $(srcdir)/src; then \
-	      tmp="$${tmp}$(R_PLATFORM)"; \
-	    fi; \
-	    tmp="$${tmp}; `date`; $(R_OSTYPE)"; \
-	    echo "$${tmp}") \
-	    >> $(top_builddir)/library/$(pkg)/DESCRIPTION; \
+	@if test -f $(top_builddir)/$(subdir)/DESCRIPTION; then \
+	  $(INSTALL_DATA)  $(top_builddir)/$(subdir)/DESCRIPTION \
+	    $(top_builddir)/library/ctest; \
 	fi
 	@if test -d $(srcdir)/data; then \
 	  $(MKINSTALLDIRS) $(top_builddir)/library/$(pkg)/data; \
@@ -44,30 +38,25 @@ all: Makefile DESCRIPTION
 	    $(INSTALL_DATA) $${f} $(top_builddir)/library/$(pkg)/data; \
 	  done; \
 	fi
-	@if test -d $(srcdir)/man; then \
-	  $(MKINSTALLDIRS) $(top_builddir)/library/$(pkg)/man; \
-	  (f=$${TMPDIR:-/tmp}/R$$$$; \
-	    for rdfile in $(srcdir)/man/*.Rd; do \
-	      cat $${rdfile}; echo '\eof'; \
-	    done >> $${f}; \
-	    $(SHELL) $(top_srcdir)/tools/move-if-change $${f} \
-	      $(top_builddir)/library/$(pkg)/man/$(pkg).Rd); \
-	fi
 	@if test -d src; then \
 	  (cd src && $(MAKE)) || exit 1; \
 	fi
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 DESCRIPTION: $(srcdir)/DESCRIPTION.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 mostlyclean: clean
 clean:
 	@if test -d src; then (cd src && $(MAKE) $@); fi
 distclean:
 	@if test -d src; then (cd src && $(MAKE) $@); fi
-	-@rm -f Makefile DESCRIPTION
+	@rm -f Makefile DESCRIPTION
 maintainer-clean: distclean
 
 distdir: $(DISTFILES)
@@ -76,7 +65,7 @@ distdir: $(DISTFILES)
 	    || ln $(srcdir)/$${f} $(distdir)/$${f} 2>/dev/null \
 	    || cp -p $(srcdir)/$${f} $(distdir)/$${f}; \
 	done
-	@for d in R data demo exec inst man src; do \
+	@for d in R data exec man src; do \
 	  if test -d $(srcdir)/$${d}; then \
 	    ((cd $(srcdir); \
 	          $(TAR) -c -f - $(DISTDIR_TAR_EXCLUDE) $${d}) \

@@ -2,7 +2,6 @@
 % copyright (C) 1994-9 W. N. Venables and B. D. Ripley
 %
 \name{austres}
-\docType{data}
 \alias{austres}
 \title{
   Quarterly Time Series of the Number of Australian Residents

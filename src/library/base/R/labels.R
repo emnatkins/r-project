@@ -1,3 +1,4 @@
+#### copyright (C) 1998 B. D. Ripley
 labels <- function(object, ...) UseMethod("labels")
 
 labels.default <- function(object, ...)

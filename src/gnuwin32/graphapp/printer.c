@@ -93,25 +93,14 @@ static HDC chooseprinter()
 }
 
 
-printer newprinter(double width, double height, char *name)
+printer newprinter(double width, double height)
 {
     DOCINFO docinfo;
     printer obj;
-    HDC hDC;
+    HDC hDC = chooseprinter();
     double dd,AL;
     int ww,hh,x0,y0;
 
-    if(strlen(name)) {
-	OSVERSIONINFO verinfo;
-	verinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	GetVersionEx(&verinfo);
-	switch(verinfo.dwPlatformId) {
-	case VER_PLATFORM_WIN32_NT:
-	    hDC = CreateDC("WINSPOOL", name, NULL, NULL);
-	default:
-	    hDC = CreateDC(NULL, name, NULL, NULL);
-	}
-    } else hDC = chooseprinter();
     if ( !hDC ) return NULL;
     obj = new_object(PrinterObject, (HANDLE) hDC, get_printer_base());
     if ( !obj ) {

@@ -11,9 +11,9 @@ subdir = tools
 include $(top_builddir)/Makeconf
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-DISTFILES = README \
-	Makefile.in \
-	GETCONFIG GETMAKEVAL GETVERSION \
+DISTFILES = Makefile.in \
+	GETCONFIG GETMAKEVAL GETSYMBOLS GETVERSION \
+	Rd.files \
 	Rdnewer.pl \
 	config.guess \
 	config.sub \
@@ -23,33 +23,32 @@ DISTFILES = README \
 	install-sh \
 	keywords2html.pl \
 	ldAIX4 \
-	link-recommended \
 	linkcheck.pl \
 	ltmain.sh \
 	mdate-sh \
 	missing \
+	mkinstalldirs \
 	move-if-change \
 	pkg2tex.pl \
-	rsync-recommended
-
-CLEANFILES =
-DISTCLEANFILES = Makefile
+	texi2dvi
 
 all: Makefile R
 
+.SUFFIXES:
+.SUFFIXES: .in
+
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 R: Makefile
 
 mostlyclean: clean
 clean:
-	-@test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 distclean: clean
-	-@test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
+	@rm -f Makefile
 maintainer-clean: distclean
-
-install install-strip uninstall TAGS info dvi check:
 
 distdir: $(DISTFILES)
 	@for f in $(DISTFILES); do \

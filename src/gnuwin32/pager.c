@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  file pager.c
- *  Copyright (C) 1998--2002  Guido Masarotto and Brian Ripley
+ *  Copyright (C) 1998--2000  Guido Masarotto and Brian Ripley
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 #define USE_MDI 1
 #endif
 
-#include <R_ext/Error.h>  /* for warning() */
+#include "R_ext/Error.h"  /* for warning() */
 #include <windows.h>
 #include "graphapp/ga.h"
 #ifdef USE_MDI
@@ -35,7 +35,7 @@
 #include "console.h"
 #include "consolestructs.h"
 #include "rui.h"
-#include <Startup.h> /* for UImode */
+#include "Startup.h" /* for UImode */
 
 extern UImode  CharacterMode;
 
@@ -66,17 +66,18 @@ static xbuf file2xbuf(char *name, int del)
     xlong dim;
     xint  ms;
     xbuf  xb;
-    f = CreateFile(name, GENERIC_READ, FILE_SHARE_READ,
+
+    f = CreateFile(name, GENERIC_READ, FILE_SHARE_WRITE,
 		   NULL, OPEN_EXISTING, 0, NULL);
     if (f == INVALID_HANDLE_VALUE) {
-	R_ShowMessage("Error opening file");
+	warning("File %s could not be opened by internal pager", name);
 	return NULL;
     }
     vv = GetFileSize(f, NULL);
     p = (char *) malloc((size_t) vv + 1);
     if (!p) {
 	CloseHandle(f);
-	R_ShowMessage("Insufficient memory to display file in internal pager");
+	warning("Insufficient memory to display %s in internal pager", name);
 	return NULL;
     }
     ReadFile(f, p, vv, &rr, NULL);
@@ -120,7 +121,7 @@ static void delpager(control m)
     freeConsoleData(getdata(m));
 }
 
-void pagerbclose(control m)
+static void pagerbclose(control m)
 {
     show(RConsole);
     if (!pagerMultiple) {
@@ -146,7 +147,7 @@ static void pagerprint(control m)
 
 static void pagersavefile(control m)
 {
-    consolesavefile(getdata(m), 1);
+    consolesavefile(getdata(m));
 }
 
 static void pagercopy(control m)
@@ -222,7 +223,7 @@ static int pageraddfile(char *wtitle, char *filename, int deleteonexit)
     xbuf nxbuf = file2xbuf(filename, deleteonexit);
 
     if (!nxbuf) {
-	/* R_ShowMessage("File not found or memory insufficient"); */
+/*	R_ShowMessage("File not found or memory insufficient"); */
 	return 0;
     }
     if (pagerActualKept == PAGERMAXKEPT) {
@@ -386,9 +387,9 @@ static pager pagercreate()
     MCHECK(m = newmenubar(pagermenuact));
     setdata(m, c);
     MCHECK(newmenu("File"));
-    MCHECK(m = newmenuitem("Print...", 0, pagerprint));
+    MCHECK(m = newmenuitem("Print", 0, pagerprint));
     setdata(m, c);
-    MCHECK(m = newmenuitem("Save to File...", 0, pagersavefile));
+    MCHECK(m = newmenuitem("Save to File", 0, pagersavefile));
     setdata(m, c);
     MCHECK(m = newmenuitem("-", 0, NULL));
     MCHECK(m = newmenuitem("Close", 0, pagerclose));
@@ -398,7 +399,7 @@ static pager pagercreate()
     setdata(p->mcopy, c);
     MCHECK(p->mpaste = newmenuitem("Paste to console", 'V', pagerpaste));
     setdata(p->mpaste, c);
-    MCHECK(m = newmenuitem("Select all", 'A', pagerselectall));
+    MCHECK(m = newmenuitem("Select all", 0, pagerselectall));
     setdata(m, c);
     if (!pagerMultiple) {
 	MCHECK(newmenu("View"));
@@ -474,10 +475,8 @@ pager newpager(char *title, char *filename, char *header, int deleteonexit)
         c = newpager1win(wtitle, filename, deleteonexit);
     else
         c = newpagerNwin(wtitle, filename, deleteonexit);
-    if (c) {
-	haveusedapager++;
-	BringToTop(c);
-    }
+    haveusedapager++;
+    BringToTop(c);
     return c;
 }
 

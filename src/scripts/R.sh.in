@@ -24,7 +24,7 @@ Usage: R [options] [< infile] [> outfile]
    or: R CMD command [arguments]
 
 Start R, a system for statistical computation and graphics, with the
-specified options, or invoke an R tool via the 'R CMD' interface.
+specified options, or invoke an R tool via the \`R CMD' interface.
 
 Options:
   -h, --help            Print short help message and exit
@@ -32,7 +32,7 @@ Options:
   RHOME			Print path to R home directory and exit
   --save                Do save data sets at the end of the session
   --no-save             Don't save them
-  --no-environ          Don't read the site and user environment files
+  --no-environ          Don't read the .Renviron or ~/.Renviron files
   --no-site-file        Don't read the site-wide Rprofile
   --no-init-file        Don't read the .Rprofile or ~/.Rprofile files
   --restore             Do restore previously saved data sets at startup
@@ -42,7 +42,7 @@ Options:
   --vanilla		Combine --no-save, --no-restore, --no-site-file,
 			--no-init-file and --no-environ
   --no-readline         Don't use readline for command-line editing
-  --min-vsize=N         Set vector heap min to N bytes; '4M' = 4 MegaB
+  --min-vsize=N         Set vector heap min to N bytes; \`4M' = 4 MegaB
   --max-vsize=N         Set vector heap max to N bytes;
   --min-nsize=N         Set min number of cons cells to N
   --max-nsize=N         Set max number of cons cells to N
@@ -51,10 +51,8 @@ Options:
   --slave               Make R run as quietly as possible
   --verbose             Print more information about progress
   -d, --debugger=NAME   Run R through debugger NAME
-  --debugger-args=ARGS  Pass ARGS as arguments to the debugger
-  -g, --gui=TYPE	Use TYPE as GUI; possible values are 'X11'
-			(default), 'none' and 'gnome'
-  --args                Skip the rest of the command line
+  -g, --gui=TYPE	Use TYPE as GUI; possible values are \`X11'
+			(default), \`none' and \`gnome'
 
 Commands:
   BATCH			Run R in batch mode
@@ -69,14 +67,14 @@ Commands:
   Rdconv		Convert Rd format to various other formats
   Rd2dvi		Convert Rd format to DVI/PDF
   Rd2txt		Convert Rd format to pretty text
+  Rdindex		Extract index information from Rd files
   Sd2Rd			Convert S documentation to Rd format
-  config                Obtain configuration information about R
 
 The first five tools (i.e., BATCH, COMPILE, SHLIB, INSTALL, and REMOVE)
-can also be invoked without the 'CMD' option.
+can also be invoked without the \`CMD' option.
 
-Please use 'R CMD command --help' to obtain further information about
-the usage of 'command'.
+Please use \`R CMD command --help' to obtain further information about
+the usage of \`command'.
 
 Report bugs to <r-bugs@r-project.org>."
 
@@ -91,7 +89,6 @@ see http://www.gnu.org/copyleft/gpl.html."
 ### Argument loop
 args=
 debugger=
-debugger_args=
 while test -n "${1}"; do
   case ${1} in
     RHOME|--print-home)
@@ -102,21 +99,19 @@ while test -n "${1}"; do
       shift;
       exec sh "${R_HOME}/bin/Rcmd" "${@}" ;;
     --gnome)
-      echo "ERROR: option '${1}' is defunct, use '--gui=gnome'"
+      echo "option \`${1}' is defunct, use \`--gui=gnome'"
       exit 1
       ;;
     -d|--debugger)
       if test -n "`echo ${2} | sed 's/^-.*//'`"; then      
 	debugger="${2}"; shift
       else
-	echo "ERROR: option '${1}' requires an argument"
+	echo "ERROR: option \`${1}' requires an argument"
 	exit 1
       fi
       ;;
     --debugger=*)
       debugger=`echo "${1}" | sed -e 's/[^=]*=//'` ;;
-    --debugger-args=*)
-      debugger_args=`echo "${1}" | sed -e 's/[^=]*=//'` ;;
     -h|--help)
       echo "${usage}"; exit 0 ;;
     --version)
@@ -129,52 +124,24 @@ done
 
 ## R_HOME may have moved, so check
 ## (or you get "GUI X11 is not supported")
-if test -x "${R_HOME}"; then
+if test -x ${R_HOME}; then
   :
 else
-  echo "R_HOME ('${R_HOME}') not found"
+  echo "R_HOME (\`${R_HOME}') not found"
   exit 1
 fi
 
-## Create a per-session dir
-R_SESSION_TMPDIR=${TMPDIR-/tmp}/Rtmp$$
-export R_SESSION_TMPDIR
-if test -n "${R_SESSION_TMPDIR}"; then
-  rm -rf "${R_SESSION_TMPDIR}"
-fi
-mkdir "${R_SESSION_TMPDIR}"
-
 ## Startup
-R_binary="${R_HOME}/bin/R.bin"
+R_binary="R.bin"
 if test -z "${debugger}"; then
-  exec ${R_binary} @R_BATCHSAVE@ ${args}
+  exec ${R_HOME}/bin/${R_binary} @R_BATCHSAVE@ ${args}
 else
-  ## Ideally, we would like the debugger to start R with additional
-  ## ('inferior') arguments, but not all debuggers can do this.  We know
-  ## about valgrind and some versions of GDB , and deal with these.
-  ## Otherwise, to be on the safe side, we disregard non-debugger
-  ## command line args.
-  args_ok=no
-  case "`${debugger} --version 2>/dev/null`" in
-    "GNU gdb"*)
-      if ${debugger} --help 2>/dev/null | \
-          grep ' *--args' >/dev/null; then
-	args_ok=yes
-	debugger_args="${debugger_args} --args"
-      fi
-      ;;
-    valgrind*)
-      args_ok=yes
-      ;;
-  esac
-  if test -n "${args}" && test "${args_ok}" = no; then
-    echo "*** Further command line arguments ('${args}') disregarded"
-    echo "*** (maybe use 'run ${args}' from *inside* ${debugger})"
+  if test -n "${args}"; then
+    echo "*** Further command line arguments (\`${args}') disregarded"
+    echo "*** (maybe use \`run ${args}' from *inside* ${debugger})"
     echo ""
-    exec ${debugger} ${debugger_args} ${R_binary}
-  else
-    exec ${debugger} ${debugger_args} ${R_binary} ${args}
   fi
+  exec ${debugger} ${R_HOME}/bin/${R_binary}
 fi
 
 ### Local Variables: ***

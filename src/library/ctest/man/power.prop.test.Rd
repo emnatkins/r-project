@@ -1,22 +1,22 @@
 \name{power.prop.test}
 \alias{power.prop.test}
 \title{Power calculations two sample test for of proportions}
-\description{
-  Compute power of test, or determine parameters to obtain target power.
-}
 \usage{
 power.prop.test(n=NULL, p1=NULL, p2=NULL, sig.level=0.05,
                 power=NULL,
-                alternative=c("two.sided", "one.sided"), strict=FALSE)
+                alternative=c("two.sided", "one.sided"))
 }
+%- maybe also `usage' for other objects documented here.
 \arguments{
-  \item{n}{Number of observations (per group)}
-  \item{p1}{probability in one group}
-  \item{p2}{probability in other group}
-  \item{sig.level}{Significance level (Type I error probability)}
-  \item{power}{Power of test (1 minus Type II error probability)}
-  \item{alternative}{One- or two-sided test}
-  \item{strict}{Use strict interpretation in two-sided case}
+ \item{n}{Number of observations (per group)}
+ \item{p1}{probability in one group}
+ \item{p2}{probability in other group}
+ \item{sig.level}{Significance level (Type I error probability)}
+ \item{power}{Power of test (1 minus Type II error probability)}
+ \item{alternative}{One- or two-sided test}
+}
+\description{
+ Compute power of test, or determine parameters to obtain target power.
 }
 \details{
   Exactly one of the parameters \code{n}, \code{p1}, \code{p2},
@@ -24,11 +24,6 @@ power.prop.test(n=NULL, p1=NULL, p2=NULL, sig.level=0.05,
   parameter is determined from the others. Notice that \code{sig.level}
   has a non-NULL default so NULL must be explicitly passed if you want
   it  computed.
-
-  If \code{strict=TRUE} is used, the power will include the probability of
-  rejection in the opposite direction of the true effect, in the two-sided 
-  case. Without this the power will be half the significance level if the 
-  true difference is zero.
 }
 \value{
   Object of class \code{"power.htest"}, a list of the arguments

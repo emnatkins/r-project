@@ -30,8 +30,6 @@ abbreviate(names.arg, minlength = 4, use.classes = TRUE,
   If a single string is passed it is abbreviated in the same manner as a
   vector of strings.
 
-  Missing (\code{NA}) values are not abbreviated.
-  
   If \code{use.classes} is \code{FALSE} then the only distinction is to
   be between letters and space.  This has NOT been implemented.
 }
@@ -57,5 +55,9 @@ abbreviate(x, 2)
 data(state)
 (st.abb <- abbreviate(state.name, 2))
 table(nchar(st.abb))# out of 50, 3 need 4 letters
+\testonly{
+for(m in 1:5) {
+  cat("\n",m,":\n"); print(as.vector(abbreviate(state.name, minl=m)))}
+}
 }
 \keyword{character}

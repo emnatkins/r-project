@@ -8,7 +8,7 @@
   populations (strata).
 }
 \usage{
-fourfoldplot(x, color = c("#99CCFF", "#6699CC"), conf.level = 0.95,
+fourfoldplot(x, color = c("red", "blue"), conf.level = 0.95,
              std = c("margins", "ind.max", "all.max"),
              margin = c(1, 2), space = 0.2, main = NULL,
              mfrow = NULL, mfcol = NULL)
@@ -70,7 +70,7 @@ fourfoldplot(x, color = c("#99CCFF", "#6699CC"), conf.level = 0.95,
   Friendly, M. (1994).
   A fourfold display for 2 by 2 by \eqn{k} tables.
   Technical Report 217, York University, Psychology Department.
-  \url{http://www.math.yorku.ca/SCS/Papers/4fold/4fold.ps.gz}
+  \url{http://hotspur.psych.yorku.ca/ftp/sas/catdata/4fold.ps.gz}
 }
 \seealso{
   \code{\link{mosaicplot}}

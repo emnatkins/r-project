@@ -5,54 +5,28 @@
   Performs one or two sample Kolmogorov-Smirnov tests.
 }
 \usage{
-ks.test(x, y, \dots, alternative = c("two.sided", "less", "greater"),
-        exact = NULL)
+ks.test(x, y, \dots, alternative = c("two.sided", "less", "greater"))
 }
 \arguments{
   \item{x}{a numeric vector of data values.}
   \item{y}{either a numeric vector of data values, or a character string
     naming a distribution function.}
-  \item{\dots}{parameters of the distribution specified (as a character
-    string) by \code{y}.}
+  \item{\dots}{parameters of the distribution specified by \code{y}.}
   \item{alternative}{indicates the alternative hypothesis and must be
-    one of \code{"two.sided"} (default), \code{"less"}, or
-    \code{"greater"}.  You can specify just the initial letter.}
-  \item{exact}{\code{NULL} or a logical indicating whether an exact
-    p-value should be computed.  See Details for the meaning of \code{NULL}.
-    Only used in the two-sided two-sample case.}
-  
+    one of \code{"two.sided"} (default), \code{"greater"} or \code{"less"}.
+    You can specify just the initial letter.}
 }
 \details{
-  If \code{y} is numeric, a two-sample test of the null hypothesis
-  that \code{x} and \code{y} were drawn from the same \emph{continuous}
-  distribution is performed.
+  If \code{y} is numeric, a two sample test of the null that \code{x}
+  and \code{y} were drawn from the same distribution is performed.
 
-  Alternatively, \code{y} can be a character string naming a continuous
-  distribution function.  In this case, a one-sample test is carried
-  out of the null that the distribution function which generated
-  \code{x} is distribution \code{y} with parameters specified by \code{\dots}.
+  Alternatively, \code{y} can be a character string naming a
+  distribution function.  In this case, a one sample test of the null
+  that the distribution function underlying \code{x} is \code{y} with
+  parameters specified by \dots{} is carried out.
 
-  The presence of ties generates a warning, since continuous distributions
-  do not generate them.
-
-  The possible values \code{"two.sided"}, \code{"less"} and
-  \code{"greater"} of \code{alternative} specify the null hypothesis
-  that the true distribution function of \code{x} is equal to, not less
-  than or not greater than the hypothesized distribution function
-  (one-sample case) or the distribution function of \code{y} (two-sample
-  case), respectively.
-
-  Exact p-values are only available for the two-sided two-sample test
-  with no ties.  In that case, if \code{exact = NULL} (the default) an
-  exact p-value is computed if the product of the sample sizes is less
-  than 10000.  Otherwise, asymptotic distributions are used whose
-  approximations may be inaccurate in small samples.
-
-  If a single-sample test is used, the parameters specified in
-  \code{\dots} must be pre-specified and not estimated from the data.
-  There is some more refined distribution theory for the KS test with
-  estimated parameters (see Durbin, 1973), but that is not implemented
-  in \code{ks.test}.
+  Currently, no exact p-values are available.  The approximation by the
+  limiting distribution may be inaccurate in small samples.
 }
 \value{
   A list with class \code{"htest"} containing the following components:
@@ -68,12 +42,8 @@ ks.test(x, y, \dots, alternative = c("two.sided", "less", "greater"),
   Conover, W. J. (1971),
   \emph{Practical nonparametric statistics}.
   New York: John Wiley & Sons.
-  Pages 295--301 (one-sample \dQuote{Kolmogorov} test),
-  309--314 (two-sample \dQuote{Smirnov} test).
-
-  Durbin, J. (1973)
-  \emph{Distribution theory for tests based on the sample distribution
-    function}.  SIAM.
+  Pages 295--301 (one-sample ``Kolmogorov'' test),
+  309--314 (two-sample ``Smirnov'' test).
 }
 \seealso{
   \code{\link{shapiro.test}} which performs the Shapiro-Wilk test for

@@ -23,23 +23,19 @@ ftable.default <- function(..., exclude = c(NA, NaN),
         if(is.character(row.vars)) {
             i <- pmatch(row.vars, names(dn))
             if(any(is.na(i)))
-                stop(paste("incorrect specification for",
-                           sQuote("row.vars")))
+                stop("incorrect specification for `row.vars'")
             row.vars <- i
         } else if(any((row.vars < 1) | (row.vars > n)))
-            stop(paste("incorrect specification for",
-                       sQuote("row.vars")))
+            stop("incorrect specification for `row.vars'")
     }
     if(!is.null(col.vars)) {
         if(is.character(col.vars)) {
             i <- pmatch(col.vars, names(dn))
             if(any(is.na(i)))
-                stop(paste("incorrect specification for",
-                           sQuote("col.vars")))
+                stop("incorrect specification for `col.vars'")
             col.vars <- i
         } else if(any((col.vars < 1) | (col.vars > n)))
-            stop(paste("incorrect specification for",
-                       sQuote("col.vars")))
+            stop("incorrect specification for `col.vars'")
     }
     i <- 1 : n
     if(!is.null(row.vars) && !is.null(col.vars)) {
@@ -82,8 +78,9 @@ ftable.formula <- function(formula, data = NULL, subset, na.action, ...)
     rhs.has.dot <- any(rvars == ".")
     lhs.has.dot <- any(cvars == ".")
     if(lhs.has.dot && rhs.has.dot)
-        stop(paste("formula has", sQuote("."),
-                   "in both left and right hand side"))
+        stop("formula has `.' in both left and right hand side")
+    if(missing(na.action))
+        na.action <- getOption("na.action")
     m <- match.call(expand.dots = FALSE)
     edata <- eval(m$data, parent.frame())
     if(inherits(edata, "ftable")
@@ -135,10 +132,10 @@ ftable.formula <- function(formula, data = NULL, subset, na.action, ...)
     }
 }
 
-as.table.ftable <- function(x, ...)
+as.table.ftable <- function(x)
 {
     if(!inherits(x, "ftable"))
-        stop(paste("x must be an", sQuote("ftable")))
+        stop("x must be an `ftable'")
     xrv <- rev(attr(x, "row.vars"))
     xcv <- rev(attr(x, "col.vars"))
     x <- array(data = c(x),
@@ -157,7 +154,7 @@ write.ftable <- function(x, file = "", quote = TRUE,
                          digits = getOption("digits"))
 {
     if(!inherits(x, "ftable"))
-        stop(paste("x must be an", sQuote("ftable")))
+        stop("x must be an `ftable'")
     ox <- x
     charQuote <- function(s)
         if(quote) paste("\"", s, "\"", sep = "") else s
@@ -174,19 +171,12 @@ write.ftable <- function(x, file = "", quote = TRUE,
         }
         y
     }
-    makeNames <- function(x) {
-        nmx <- names(x)
-        if(is.null(nmx))
-            nmx <- rep("", length = length(x))
-        nmx
-    }
-
     xrv <- attr(x, "row.vars")
     xcv <- attr(x, "col.vars")
     LABS <- cbind(rbind(matrix("", nr = length(xcv), nc = length(xrv)),
-                        charQuote(makeNames(xrv)),
+                        charQuote(names(xrv)),
                         makeLabels(xrv)),
-                  c(charQuote(makeNames(xcv)),
+                  c(charQuote(names(xcv)),
                     rep("", times = nrow(x) + 1)))
     DATA <- rbind(t(makeLabels(xcv)),
                   rep("", times = ncol(x)),
@@ -203,22 +193,9 @@ print.ftable <- function(x, digits = getOption("digits"), ...)
 read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
                         col.vars, skip = 0)
 {
-    ## <NOTE>
-    ## Currently, 'file' must really be a character string naming a
-    ## file, connections are not supported.  We need to count.fields()
-    ## on the whole thing, so we could extend this to connections which
-    ## can seek the origin (file connections only, it seems).
-    ## </NOTE>
-    
     z <- count.fields(file, sep, quote, skip)
     n.row.vars <- z[max(which(z == max(z)))] - z[length(z)] + 1
     i <- which(z == n.row.vars)
-
-    ## Open a file connection so that we do not have to play with skips.
-    file <- file(file, "r")
-    on.exit(close(file))
-    readLines(file, skip)
-    
     if((length(i) != 1) || (i == 1)) {
         ## This is not really an ftable.
         if((z[1] == 1) && z[2] == max(z)) {
@@ -231,21 +208,22 @@ read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
             n.col.vars <- 1
             col.vars <- vector("list", length = n.col.vars)
             s <- scan(file, what = "", sep = sep, quote = quote,
-                      nlines = 2, quiet = TRUE)
+                      nlines = 2, skip = skip, quiet = TRUE)
             names(col.vars) <- s[1]
             s <- s[-1]
             row.vars <- vector("list", length = n.row.vars)
             i <- 1 : n.row.vars
             names(row.vars) <- s[i]
             col.vars[[1]] <- s[-i]
-            z <- z[-(1 : 2)]
+            z <- z[3 : length(z)]
+            skip <- skip + 2
         }
         else {
             ## Case B.
             ## We cannot determine the names and levels of the column
             ## variables, and also not the names of the row variables.
             if(missing(row.var.names)) {
-                ## 'row.var.names' should be a character vector (or
+                ## `row.var.names' should be a character vector (or
                 ## factor) with the names of the row variables.
                 stop("row.var.names missing")
             }
@@ -253,7 +231,7 @@ read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
             row.vars <- vector("list", length = n.row.vars)
             names(row.vars) <- as.character(row.var.names)
             if(missing(col.vars) || !is.list(col.vars)) {
-                ## 'col.vars' should be a list.
+                ## `col.vars' should be a list.
                 stop("col.vars missing or incorrect")
             }
             col.vars <- lapply(col.vars, as.character)
@@ -276,24 +254,26 @@ read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
         n <- c(1, z[1 : n.col.vars] - 1)
         for(k in seq(from = 1, to = n.col.vars)) {
             s <- scan(file, what = "", sep = sep, quote = quote,
-                      nlines = 1, quiet = TRUE)
+                      nlines = 1, skip = skip + k - 1, quiet = TRUE)
             col.vars[[k]] <- s[-1]
             names(col.vars)[k] <- s[1]
         }
         row.vars <- vector("list", length = n.row.vars)
         names(row.vars) <- scan(file, what = "", sep = sep, quote =
-                                quote, nlines = 1, quiet = TRUE)
-        z <- z[-(1 : (n.col.vars + 1))]
+                                quote, nlines = 1, skip = skip +
+                                n.col.vars, quiet = TRUE)
+        z <- z[(n.col.vars + 2) : length(z)]
+        skip <- skip + n.col.vars + 1
     }
     p <- 1
     n <- integer(n.row.vars)
     for(k in seq(from = 1, to = n.row.vars)) {
-        n[k] <- sum(z >= max(z) - k + 1) / p
-        p <- p * n[k]
+        n[k] <- sum(z == max(z) - k + 1) / p
     }
     is.row.lab <- rep(rep(c(TRUE, FALSE), length(z)),
                       c(rbind(z - min(z) + 1, min(z) - 1)))
-    s <- scan(file, what = "", sep = sep, quote = quote, quiet = TRUE)
+    s <- scan(file, what = "", sep = sep, quote = quote, quiet = TRUE,
+              skip = skip)
     values <- as.numeric(s[!is.row.lab])
     tmp <- s[is.row.lab]
     len <- length(tmp)
@@ -303,10 +283,8 @@ read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
         tmp <- tmp[seq(from = 2, to = len / n[k])]
         len <- length(tmp)
     }
-    values <- matrix(values,
-                     nr = prod(sapply(row.vars, length)),
-                     nc = prod(sapply(col.vars, length)),
-                     byrow = TRUE)
+    dim(values) <- c(prod(sapply(row.vars, length)),
+                     prod(sapply(col.vars, length)))
     structure(values,
               row.vars = row.vars,
               col.vars = col.vars,

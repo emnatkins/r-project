@@ -7,7 +7,7 @@ unix.time(expr)
 \alias{system.time}
 \alias{unix.time}
 \arguments{
-  \item{expr}{Valid \R expression to be \dQuote{timed}}
+  \item{expr}{Valid \R expression to be ``timed''}
 }
 \description{Return CPU (and other) times that \code{expr} used.
 }    
@@ -17,20 +17,20 @@ unix.time(expr)
   returning the difference between the two \code{proc.time} calls.
 
   The values returned by the \code{proc.time} are (on Unix) those
-  returned by the C library function \code{times}(3v), if available.
+  returned by the C library function \code{times}(3v).
 
-  \code{unix.time} is an alias of \code{system.time}, for
+  \code{unix.time} is an \code{\link{.Alias}} of \code{system.time}, for
   compatibility reasons.
 }
 \value{
   A numeric vector of length 5 containing the user cpu, system cpu, elapsed,
-  subproc1, subproc2 times. The subproc times are the user and
+  subproc1, subproc2 times. The subproc times are the the user and
   system cpu time used by child processes (and so are usually zero).
 #ifdef windows
   On Windows the subproc times are not available and so are always
   \code{NA}. The first two components are not available on Windows 9x,
   and so are reported as \code{NA}; they do return real values on
-  Windows NT4/2000/XP.
+  Windows NT4 and 2000.
 #endif
 
   The resolution of the times will be system-specific; it is common for
@@ -47,14 +47,13 @@ unix.time(expr)
   \code{\link{proc.time}}, \code{\link{time}} which is for time series.
 }
 \examples{
-system.time(for(i in 1:100) mad(runif(1000)))
-\dontrun{
-exT <- function(n = 1000) {
+system.time(for(i in 1:50) mad(runif(500)))
+exT <- function(n = 100) {
   # Purpose: Test if system.time works ok;   n: loop size
   system.time(for(i in 1:n) x <- mean(rt(1000, df=4)))
 }
-#-- Try to interrupt one of the following (using Ctrl-C / Escape):
-exT()                 #- about 3 secs on a 1GHz PIII
+#-- Try to interrupt one of the following (using Ctrl-C):
+exT()                 #- `1.4' on -O-optimized Ultra1
 system.time(exT())    #~ +/- same
-}}
+}
 \keyword{utilities}

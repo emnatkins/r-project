@@ -10,61 +10,76 @@ subdir = etc
 
 include $(top_builddir)/Makeconf
 
-## <NOTE>
-## Need target rules for all elements of SOURCES/OBJECTS.
-SOURCES = Makeconf.in Renviron.in
+SOURCES = Makeconf.in Makeconf-tests.in Renviron.in
 OBJECTS = $(SOURCES:.in=)
-## </NOTE>
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-DISTFILES = Makefile.in $(SOURCES)
+DISTFILES = \
+	Makefile.in $(SOURCES) \
+	gnome-interface.glade
 
-EXPORTFILES = @USE_EXPORTFILES_TRUE@ R.exp Rlapack.exp
-
-CLEANFILES = $(EXPORTFILES)
-DISTCLEANFILES = $(OBJECTS) Makefile
+EXPORTFILE = @EXPORTFILE@
+GNOME_IF_FILES = @GNOME_IF_FILES@
 
 all: Makefile R
 
-Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+.SUFFIXES:
+.SUFFIXES: .in
 
-## <NOTE>
-## Seems we need target rules for creating FOO from FOO.in: pattern
-## rules ('%:%.in') are not portable, and some versions of Make do not
-## allow separated dependencies for single suffix rules.
-Makeconf: $(srcdir)/Makeconf.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-Renviron: $(srcdir)/Renviron.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
-## </NOTE>
+.in:
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
+
+Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
+	@(for f in $(OBJECTS); do \
+	    echo "$${f}: $(srcdir)/$${f}.in"; \
+	  done) >> $@
 
 R: $(OBJECTS)
+## FIXME:
+## We currently look for gnome-interface.glade in R_HOME/gnome, but we 
+## should have it in R_HOME/etc (and the shlibs in Rexeclibdir).
+## In this case, only do `install-gnome' if not building in srcdir.
+	@$(MAKE) rhome=$(top_builddir) install-gnome
 
-install: installdirs
-	@echo "installing $(subdir) ..."
-	@for f in $(OBJECTS) $(EXPORTFILES); do \
+$(OBJECTS): $(top_builddir)/config.status
+
+install: installdirs install-gnome
+	@echo "installing etc ..."
+	@for f in $(OBJECTS) $(EXPORTFILE); do \
 	  $(INSTALL_DATA) $${f} $(rhome)/etc; \
 	done
 installdirs:
 	@$(MKINSTALLDIRS) $(rhome)/etc
+install-gnome:
+	@if test -n "$(GNOME_IF_FILES)"; then \
+	  $(MKINSTALLDIRS) $(rhome)/gnome ;\
+	  for f in "$(GNOME_IF_FILES)"; do \
+	    $(INSTALL_DATA) $(srcdir)/$${f} $(rhome)/gnome; \
+	  done; \
+	fi
 install-strip: install
-
 uninstall:
-	@echo "uninstalling $(subdir) ..."
-	@if test -d $(rhome)/$(subdir) \
-	  && test "`cd $(rhome); $(GETWD)`" \
-	       != "`cd $(top_builddir); $(GETWD)`"; then \
+	@echo "uninstalling etc ..."
+	@if test -d $(rhome)/etc -a \
+	  "`cd $(rhome); pwd`" != "`cd $(top_builddir); pwd`"; then \
 	  (cd $(rhome)/etc && \
-	    rm -f $(OBJECTS) $(EXPORTFILES)); \
+	    rm -f *.pl $(OBJECTS) $(EXPORTFILE) $(GNOME_IF_FILES)); \
 	  rmdir $(rhome)/etc 2> /dev/null \
 	    || echo "  subdir etc not removed"; \
 	fi
 
 mostlyclean: clean
 clean:
-	-@test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+	@if [ "$(srcdir)" != "." ]; then \
+	  rm -f *.pl $(GNOME_IF_FILES); \
+	fi
+	@rm -f $(EXPORTFILE)
 distclean: clean
-	-@test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
+	@rm -f $(OBJECTS) Makefile
 maintainer-clean: distclean
 
 distdir: $(DISTFILES)
@@ -73,3 +88,6 @@ distdir: $(DISTFILES)
 	    || ln $(srcdir)/$${f} $(distdir)/$${f} 2>/dev/null \
 	    || cp -p $(srcdir)/$${f} $(distdir)/$${f}; \
 	done
+
+## Automagically generated dependencies:
+

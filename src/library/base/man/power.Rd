@@ -21,19 +21,9 @@ power(lambda = 1)
     \code{mu.eta}, and \code{valideta}.
     See \code{\link{make.link}} for information on their meaning.
 }
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical Models in S.}
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
-  \code{\link{make.link}},
-  \code{\link{family}}
-
-  To raise a number to a power, see \code{\link{Arithmetic}}.
-
-  To calculate the power of a test, see various functions in the 
-  \pkg{ctest} package, e.g., \code{\link[ctest]{power.t.test}}.
+    \code{\link{make.link}},
+    \code{\link{family}}
 }
 \examples{
 power()

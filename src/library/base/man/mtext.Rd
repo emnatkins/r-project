@@ -1,7 +1,7 @@
 \name{mtext}
 \title{Write Text into the Margins of a Plot}
 \usage{
-mtext(text, side = 3, line = 0, outer = FALSE, at = NA,
+mtext(text, side = 3, line = 0, outer = FALSE, at = NULL,
       adj = NA, cex = NA, col = NA, font = NA, vfont = NULL, \dots)
 }
 \alias{mtext}
@@ -32,7 +32,7 @@ mtext(text, side = 3, line = 0, outer = FALSE, at = NA,
   or one of the outer margins of the device region.
 }
 \details{
-  The \dQuote{user coordinates} in the outer margins always range from zero to
+  The ``user coordinates'' in the outer margins always range from zero to
   one, and are not affected by the user coordinates in the figure
   region(s) --- \R is differing here from other implementations of S.
 
@@ -54,11 +54,6 @@ mtext(text, side = 3, line = 0, outer = FALSE, at = NA,
   position along the axis unless \code{at} is specified.
 }
 \section{Side Effects}{The given text is written onto the current plot.}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
   \code{\link{title}}, \code{\link{text}}, \code{\link{plot}},
   \code{\link{par}};
@@ -68,14 +63,14 @@ mtext(text, side = 3, line = 0, outer = FALSE, at = NA,
 plot(1:10, (-4:5)^2, main="Parabola Points", xlab="xlab")
 mtext("10 of them")
 for(s in 1:4)
-    mtext(paste("mtext(..., line= -1, {side, col, font} = ",s,
+    mtext(paste("mtext(.., line= -1, {side, col, font} = ",s,
           ", cex = ", (1+s)/2, ")"), line = -1,
           side=s, col=s, font=s, cex= (1+s)/2)
-mtext("mtext(..., line= -2)", line = -2)
-mtext("mtext(..., line= -2, adj = 0)", line = -2, adj =0)
+mtext("mtext(.., line= -2)", line = -2)
+mtext("mtext(.., line= -2, adj = 0)", line = -2, adj =0)
 ##--- log axis :
 plot(1:10, exp(1:10), log='y', main="log='y'", xlab="xlab")
-for(s in 1:4) mtext(paste("mtext(...,side=",s,")"), side=s)
+for(s in 1:4) mtext(paste("mtext(..,side=",s,")"), side=s)
 }
 \keyword{aplot}
 

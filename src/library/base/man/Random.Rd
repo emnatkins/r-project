@@ -1,30 +1,25 @@
 \name{Random}
-\alias{.Random.seed}
-\alias{RNG}
-\alias{RNGkind}
-\alias{RNGversion}
-\alias{set.seed}
 \title{Random Number Generation}
-\description{
-  \code{.Random.seed} is an integer vector, containing the random number
-  generator (RNG) \bold{state} for random number generation in \R.  It
-  can be saved and restored, but should not be altered by the user.
-
-  \code{RNGkind} is a more friendly interface to query or set the kind
-  of RNG in use.
-
-  \code{RNGversion} can be used to set the random generators as they
-  were in an earlier \R version (for reproducibility).
-  
-  \code{set.seed} is the recommended way to specify seeds.
-}
 \usage{
 .Random.seed <- c(rng.kind, n1, n2, \dots)
 save.seed <- .Random.seed
 
 RNGkind(kind = NULL, normal.kind = NULL)
-RNGversion(vstr)
 set.seed(seed, kind = NULL)
+}
+\alias{.Random.seed}
+\alias{RNG}
+\alias{RNGkind}
+\alias{set.seed}
+\description{
+  \code{.Random.seed} is an integer vector, containing the random number
+  generator (RNG) \bold{state} for random number generation in \R. It
+  can be saved and restored, but should not be altered by the user.
+
+  \code{RNGkind} is a more friendly interface to query or set the kind
+  of RNG in use.
+
+  \code{set.seed} is the recommended way to specify seeds.
 }
 \arguments{
   \item{kind}{character or \code{NULL}.  If \code{kind} is a character
@@ -35,17 +30,15 @@ set.seed(seed, kind = NULL)
     string, set the method of Normal generation. Use \code{"default"}
     to return to the \R default.}
   \item{seed}{a single value, interpreted as an integer.}
-  \item{vstr}{a character string containing a version number,
-    e.g., \code{"1.6.2"}}
   \item{rng.kind}{integer code in \code{0:k} for the above \code{kind}.}
   \item{n1, n2, \dots}{integers. See the details for how many are required
     (which depends on \code{rng.kind}).}
 }
 \details{
-  %% source and more detailed references:  ../../../main/RNG.c
+%% source and more detailed references:  ../../../main/RNG.c
   The currently available RNG kinds are given below.  \code{kind} is
   partially matched to this list.  The default is
-  \code{"Mersenne-Twister"}.
+  \code{"Marsaglia-Multicarry"}.
   \describe{
     \item{\code{"Wichmann-Hill"}}{
     The seed, \code{.Random.seed[-1] == r[1:3]} is an integer vector of
@@ -79,69 +72,47 @@ set.seed(seed, kind = NULL)
     is \bold{not} exactly the same as that in recent versions of S-PLUS.}
 
     \item{\code{"Mersenne-Twister":}}{
-      From Matsumoto and Nishimura (1998). A twisted GFSR with period
-      \eqn{2^{19937} - 1}{2^19937 - 1} and equidistribution in 623
-      consecutive dimensions (over the whole period).  The \dQuote{seed} is a
-      624-dimensional set of 32-bit integers plus a current position in
-      that set.
-    }
+    From Matsumoto and Nishimura (1998). A twisted GFSR with period
+    \eqn{2^{19937} - 1}{2^19937 - 1} and equidistribution in 623
+    consecutive dimensions (over the whole period).  The ``seed'' is a
+    624-dimensional set of 32-bit integers plus a current position in
+    that set.}
 
     \item{\code{"Knuth-TAOCP":}}{
-      From Knuth (1997).  A GFSR using lagged Fibonacci sequences with
-      subtraction. That is, the recurrence used is
-      \deqn{X_j = (X_{j-100} - X_{j-37}) \bmod 2^{30}%
-      }{X[j] = (X[j-100] - X[j-37]) mod 2^30}
-      and the \dQuote{seed} is the set of the 100 last numbers (actually
-      recorded as 101 numbers, the last being a cyclic shift of the
-      buffer).  The period is around \eqn{2^{129}}{2^129}.
-      }
-
-    \item{\code{"Knuth-TAOCP-2002":}}{
-      The 2002 version which not backwards compatible with the earlier
-      version: the initialization of the GFSR from the seed was altered.
-      \R did not allow you to choose consecutive
-      seeds, the reported \sQuote{weakness}, and already scrambled the seeds.
-    }
+    From Knuth (1997).  A GFSR using lagged Fibonacci sequences with
+    subtraction. That is, the recurrence used is
+    \deqn{X_j = (X_{j-100} - X_{j-37}) \bmod 2^{30}%
+        }{X[j] = (X[j-100] - X[j-37]) mod 2^30}
+    and the ``seed'' is the set of the 100 last numbers (actually
+    recorded as 101 numbers, the last being a cyclic shift of the
+    buffer).  The period is around \eqn{2^{129}}{2^129}.}
 
     \item{\code{"user-supplied":}}{
     Use a user-supplied generator. See \code{\link{Random.user}} for details.
     }
   }
 
-  \code{normal.kind} can be \code{"Kinderman-Ramage"}, 
-  \code{"Buggy Kinderman-Ramage"},
-  \code{"Ahrens-Dieter"}, \code{"Box-Muller"}, \code{"Inversion"} (the
-  default), or
-  \code{"user-supplied"}.  (For inversion, see the reference in
-  \code{\link{qnorm}}.) The Kinderman-Ramage generator used in versions prior
-  to 1.7.1 had several approximation errors and should only be used for
-  reproduction of older results.
+  \code{normal.kind} can be \code{"Kinderman-Ramage"} (the default) or
+  \code{"Ahrens-Dieter"} or \code{"Box-Muller"} or \code{"user-supplied"}.
 
   \code{set.seed} uses its single integer argument to set as many seeds
   as are required.  It is intended as a simple way to get quite different
   seeds by specifying small integer arguments, and also as a way to get
   valid seed sets for the more complicated methods (especially
-  \code{"Mersenne-Twister"} and \code{"Knuth-TAOCP"}).
+  \code{"Knuth-TAOCP"}).
 }
 \note{
-  Initially, there is no seed;	a new one is created from the current
-  time when one is required.  Hence, different sessions will give
-  different simulation results, by default.
-
   \code{.Random.seed} saves the seed set for the uniform random-number
-  generator, at least for the system generators.  It does not
-  necessarily save the state of other generators, and in particular does
-  not save the state of the Box--Muller normal generator.  If you want
-  to reproduce work later, call \code{set.seed} rather than set
+  generator, at least for the system generators. It does not necessarily
+  save the state of other generators, and in particular does not save
+  the state of the Box--Muller normal generator. If you want to
+  reproduce work later, call \code{set.seed} rather than set
   \code{.Random.seed}.
-
-  As from \R 1.8.0, \code{.Random.seed} is only looked for in the user's
-  workspace.
 }
 \value{
   \code{.Random.seed} is an \code{\link{integer}} vector whose first
   element \emph{codes} the kind of RNG and normal generator. The lowest
-  two decimal digits are in \code{0:(k-1)}
+  two decimal digits are in in \code{0:(k-1)}
   where \code{k} is the number of available RNGs. The hundreds
   represent the type of normal generator (starting at \code{0}).
 
@@ -150,16 +121,11 @@ set.seed(seed, kind = NULL)
 
   \code{RNGkind} returns a two-element character vector of the RNG and
   normal kinds in use \emph{before} the call, invisibly if either
-  argument is not \code{NULL}. \code{RNGversion} returns the same
-  information.
+  argument is not \code{NULL}.
 
   \code{set.seed} returns \code{NULL}, invisibly.
 }
 \references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole. (\code{set.seed}, storing in \code{.Random.seed}.)
-
   Wichmann, B. A.  and Hill, I. D. (1982)
   \emph{Algorithm AS 183: An Efficient and Portable Pseudo-random Number
     Generator}, Applied Statistics, \bold{31}, 188--190; Remarks:
@@ -191,26 +157,11 @@ set.seed(seed, kind = NULL)
   Knuth, D. E. (1997)
   \emph{The Art of Computer Programming.} Volume 2, third edition.\cr
   Source code at \url{http://www-cs-faculty.stanford.edu/~knuth/taocp.html}.
-
-  Knuth, D. E. (2002)
-  \emph{The Art of Computer Programming.} Volume 2, third edition, ninth
-  printing.\cr
-  See \url{http://Sunburn.Stanford.EDU/~knuth/news02.html}.
-
-
-  Kinderman, A. J. and Ramage, J. G. (1976)
-  Computer generation of normal random variables.
-  \emph{Journal of the American Statistical Association} \bold{71},
-  893-896.
-
-  Ahrens, J.H. and Dieter, U. (1973)
-  Extensions of Forsythe's method for random sampling from the normal
-  distribution.
-  \emph{Mathematics of Computation} \bold{27}, 927-937.
-
-  Box, G.E.P. and Muller, M.E. (1958) A note on the generation of normal
-  random deviates. \emph{Annals of Mathmatical Statistics} \bold{29},
-  610--611.
+}
+\note{
+  Initially, there is no seed;	a new one is created from the current
+  time when one is required.  Hence, different sessions will give
+  different simulation results, by default.
 }
 \author{of RNGkind: Martin Maechler. Current implementation, B. D. Ripley}
 
@@ -218,20 +169,17 @@ set.seed(seed, kind = NULL)
 %	this is ./Uniform.Rd
 \examples{
 runif(1); .Random.seed; runif(1); .Random.seed
-## If there is no seed, a "random" new one is created:
+## If there is no seed,  a ``random'' new one is created:
 rm(.Random.seed); runif(1); .Random.seed
 
 RNGkind("Wich")# (partial string matching on 'kind')
-
-## This shows how 'runif(.)' works for Wichmann-Hill,
-## using only R functions:
-
 p.WH <- c(30269, 30307, 30323)
 a.WH <- c(  171,   172,   170)
-next.WHseed <- function(i.seed = .Random.seed[-1])
-  { (a.WH * i.seed) \%\% p.WH }
+next.WHseed <- function(i.seed = .Random.seed[-1]) (a.WH * i.seed) \%\% p.WH
 my.runif1 <- function(i.seed = .Random.seed)
   { ns <- next.WHseed(i.seed[-1]); sum(ns / p.WH) \%\% 1 }
+
+## This shows how `runif(.)' works for Wichmann-Hill, using only R functions:
 rs <- .Random.seed
 (WHs <- next.WHseed(rs[-1]))
 u <- runif(1)

@@ -15,8 +15,7 @@ fivenum(x, na.rm = TRUE)
     \code{\link{NaN}}s are dropped, before the statistics are computed.}
 }
 \value{
-  A numeric vector of length 5 containing the summary information.  See
-  \code{\link{boxplot.stats}} for more details.
+  A numeric vector of length 5 containing the summary information.
 }
 \seealso{
   \code{\link{IQR}},

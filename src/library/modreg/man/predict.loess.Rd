@@ -1,18 +1,20 @@
+% file modreg/man/predict.loess.Rd
+% copyright (C) 1998 B. D. Ripley
+%
 \name{predict.loess}
-\alias{predict.loess}
 \title{Predict Loess Curve or Surface}
-\description{
- Predictions from a \code{loess} fit, optionally with standard errors.
-}
 \usage{
-\method{predict}{loess}(object, newdata = NULL, se = FALSE, \dots)
+predict.loess(object, newdata = NULL, se = FALSE)
 }
+\alias{predict.loess}
 \arguments{
  \item{object}{an object fitted by \code{loess}.}
  \item{newdata}{an optional data frame specifying points at which to do
    the predictions. If missing, the original data points are used.}
  \item{se}{should standard errors be computed?}
- \item{\dots}{arguments passed to or from other methods.}
+}
+\description{
+ Predictions from a \code{loess} fit, optionally with standard errors.
 }
 \details{
   The standard errors calculation is slower than prediction.
@@ -34,10 +36,8 @@
     estimating the residual scale, intended for use with t-based
     confidence intervals. }
 }
-\author{
-  B.D. Ripley, based on the \code{cloess} package of Cleveland,
-  Grosse and Shyu.
-}
+\author{B.D. Ripley, based on the \code{cloess} package of Cleveland,
+  Grosse and Shyu.}
 
 \seealso{\code{\link{loess}}}
 

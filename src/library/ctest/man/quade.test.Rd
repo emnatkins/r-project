@@ -1,17 +1,11 @@
 \name{quade.test}
 \alias{quade.test}
-\alias{quade.test.default}
-\alias{quade.test.formula}
 \title{Quade Test}
 \description{
   Performs a Quade test with unreplicated blocked data.
 }
 \usage{
-quade.test(y, \dots)
-
-\method{quade.test}{default}(y, groups, blocks, \dots)
-
-\method{quade.test}{formula}(formula, data, subset, na.action, \dots)
+quade.test(y, groups, blocks)
 }
 \arguments{
   \item{y}{either a numeric vector of data values, or a data matrix.}
@@ -21,17 +15,6 @@ quade.test(y, \dots)
   \item{blocks}{a vector giving the block for the corresponding	elements
     of \code{y} if this is a vector;  ignored if \code{y} is a matrix.
     If not a factor object, it is coerced to one.}
-  \item{formula}{a formula of the form \code{a ~ b | c}, where \code{a},
-    \code{b} and \code{c} give the data values and corresponding groups
-    and blocks, respectively.}
-  \item{data}{an optional data frame containing the variables in the
-    model formula.}
-  \item{subset}{an optional vector specifying a subset of observations
-    to be used.}
-  \item{na.action}{a function which indicates what should happen when
-    the data contain \code{NA}s.  Defaults to
-    \code{getOption("na.action")}.}
-  \item{\dots}{further arguments to be passed to or from methods.}
 }
 \details{
   \code{quade.test} can be used for analyzing unreplicated complete
@@ -51,7 +34,7 @@ quade.test(y, \dots)
 \value{
   A list with class \code{"htest"} containing the following components:
   \item{statistic}{the value of Quade's F statistic.}
-  \item{parameter}{a vector with the numerator and denominator degrees 
+  \item{parameters}{a vector with the numerator and denominator degrees 
     of freedom of the approximate F distribution of the test statistic.}
   \item{p.value}{the p-value of the test.}
   \item{method}{the character string \code{"Quade test"}.}

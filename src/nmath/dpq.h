@@ -19,14 +19,8 @@
 
 #define R_DT_val(x)	R_D_val(R_D_Lval(x))		/*  x  in pF */
 #define R_DT_Cval(x)	R_D_val(R_D_Cval(x))		/*  1 - x */
-/*#define R_DT_qIv(p)	R_D_Lval(R_D_qIv(p))		 *  p  in qF ! */
-#define R_DT_qIv(p)	(log_p ? (lower_tail ? exp(p) : - expm1(p)) \
-			       : R_D_Lval(p))
-
-/*#define R_DT_CIv(p)	R_D_Cval(R_D_qIv(p))		 *  1 - p in qF */
-#define R_DT_CIv(p)	(log_p ? (lower_tail ? -expm1(p) : exp(p)) \
-			       : R_D_Cval(p))
-
+#define R_DT_qIv(p)	R_D_Lval(R_D_qIv(p))		/*  p  in qF ! */
+#define R_DT_CIv(p)	R_D_Cval(R_D_qIv(p))		/*  1 - p in qF */
 
 #define R_DT_exp(x)	R_D_exp(R_D_Lval(x))		/* exp(x) */
 #define R_DT_Cexp(x)	R_D_exp(R_D_Cval(x))		/* exp(1 - x) */
@@ -55,3 +49,8 @@
 	MATHLIB_WARNING("non-integer x = %f", x);	\
 	return R_D__0;					\
    }
+
+#ifndef M_2PI
+#define M_2PI		6.283185307179586476925286766559	/* 2*pi */
+#endif
+

@@ -19,7 +19,7 @@
  *
  *  SYNOPSIS
  *
- *    #include <Rmath.h>
+ *    #include "Rmath.h"
  *    double dnbeta(double x, double a, double b, double lambda, int give_log);
  *
  *  DESCRIPTION
@@ -58,8 +58,8 @@
 
 double dnbeta(double x, double a, double b, double lambda, int give_log)
 {
-    const double eps = 1.e-14;
-    const int maxiter = 200;
+    const static double eps = 1.e-14;
+    const static int maxiter = 200;
 
     double k, lambda2, psum, sum, term, weight;
 

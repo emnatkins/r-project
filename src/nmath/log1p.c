@@ -1,7 +1,7 @@
 /*
  *  Mathlib : A C Library of Special Functions
  *  Copyright (C) 1998 Ross Ihaka
- *  Copyright (C) 2000, 2003 The R Development Core Team
+ *  Copyright (C) 2000 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  *
  *  SYNOPSIS
  *
- *	#include <Rmath.h>
+ *	#include "Rmath.h"
  *	double log1p(double x);
  *
  *  DESCRIPTION
@@ -35,18 +35,10 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+# include "config.h"
 #endif
 #include "nmath.h"
 
-#ifndef MATHLIB_STANDALONE
-/* want to compile log1p as Rlog1p if HAVE_LOG1P && !HAVE_WORKING_LOG1P */
-#if defined(HAVE_LOG1P) && !defined(HAVE_WORKING_LOG1P)
-#undef HAVE_LOG1P
-#endif
-#endif
-
-#ifndef HAVE_LOG1P
 double log1p(double x)
 {
     /* series for log1p on the interval -.375 to .375
@@ -55,7 +47,7 @@ double log1p(double x)
      *			    significant figures required  30.93
      *				 decimal places required  32.01
      */
-    const double alnrcs[43] = {
+     static /* const */ double alnrcs[43] = {
 	+.10378693562743769800686267719098e+1,
 	-.13364301504908918098766041553133e+0,
 	+.19408249135520563357926199374750e-1,
@@ -135,7 +127,6 @@ double log1p(double x)
     }
     return log(1 + x);
 }
-#endif
 
 
 

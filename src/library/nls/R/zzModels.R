@@ -1,4 +1,4 @@
-### $Id: zzModels.R,v 1.7 2003/02/09 09:31:04 ripley Exp $
+### $Id: zzModels.R,v 1.2.24.2 2001/03/27 15:48:38 bates Exp $
 ###
 ###       Individual selfStarting nonlinear regression models
 ###
@@ -335,16 +335,16 @@ SSfpl <- # selfStart(~ A + (B - A)/(1 + exp((xmid - input)/scal)),
               if (nrow(xy) < 5) {
                   stop("Too few distinct input values to fit a four-parameter logistic")
               }
-              ## convert the response to a proportion (i.e. contained in (0,1))
-              rng <- range(xy$y); drng <- diff(rng)
-              xy$prop <- (xy$y - rng[1] + 0.05 * drng)/(1.1 * drng)
-              ## inverse regression of the x values on the proportion
-              ir <- as.vector(coef(lm(x ~ I(log(prop/(1-prop))), data = xy)))
-              pars <- as.vector(coef(nls(y ~ cbind(1, 1/(1 + exp((xmid - x)/
-                                                                 exp(lscal)))),
-                                         data = xy,
-                                         start = list(xmid = ir[1],
-                                                      lscal = log(abs(ir[2]))),
+              ## get a preliminary estimate for xmid
+              xydata <- c(as.list(xy), xmid = NLSstClosestX(xy, mean(range(xy[["y"]]))))
+              xydata <- as.list(xydata)
+              pars <- as.vector(coef(nls(y ~ cbind(1, 1/(1 + exp((xmid - x)/exp(lscal)))),
+                                         data = xydata,
+                                         start = list(lscal = 0),  # scal = 1
+                                         algorithm = "plinear")))
+              pars <- as.vector(coef(nls(y ~ cbind(1, 1/(1 + exp((xmid - x)/exp(lscal)))),
+                                         data = data.frame(xy),
+                                         start = list(xmid = xydata$xmid, lscal = pars[1]),
                                          algorithm = "plinear")))
               value <- c(pars[3], pars[3] + pars[4], pars[1], exp(pars[2]))
               names(value) <- mCall[c("A", "B", "xmid", "scal")]
@@ -501,7 +501,7 @@ SSweibull <- # selfStart( ~ Asym - Drop * exp(-exp(lrc)*x^pwr),
                   stop("Too few distinct input values to fit the Weibull growth model")
               }
               if (any(xy[["x"]] < 0)) {
-                  stop("All x values must be non-negative to fit the Weibull growth model")
+                  error("All x values must be non-negative to fit the Weibull growth model")
               }
               Rasym <- NLSstRtAsymptote(xy)
               Lasym <- NLSstLfAsymptote(xy)
@@ -517,8 +517,6 @@ SSweibull <- # selfStart( ~ Asym - Drop * exp(-exp(lrc)*x^pwr),
           },
               c("Asym", "Drop", "lrc", "pwr"))
 
-
-.noGenerics <- TRUE
 
 ### Local variables:
 ### mode: S

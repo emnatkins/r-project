@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995-1998  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2002   The R Development Core Team.
+ *  Copyright (C) 1998-2000   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -224,7 +224,7 @@ static SEXP rep(SEXP s, SEXP ncopy)
     if ((length(ncopy) != 1))
 	error("invalid number of copies in \"rep\"");
 
-    if ((nc = asInteger(ncopy)) == NA_INTEGER || nc < 0)/* nc = 0 ok */
+    if ((nc = asInteger(ncopy)) == NA_INTEGER || nc <= 0)
 	error("invalid number of copies in \"rep\"");
 
     ns = length(s);
@@ -260,11 +260,6 @@ static SEXP rep(SEXP s, SEXP ncopy)
 	i = 0;
 	for (t = a; t != R_NilValue; t = CDR(t), i++)
 	    SETCAR(t, duplicate(CAR(nthcdr(s, (i % ns)))));
-	break;
-    case VECSXP:
-	i = 0;
-	for (i = 0; i < na; i++)
-	    SET_VECTOR_ELT(a, i, duplicate(VECTOR_ELT(s, i% ns)));
 	break;
     default:
 	UNIMPLEMENTED("rep");

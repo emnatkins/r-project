@@ -16,12 +16,9 @@ append(x, values, after=length(x))
   A vector containing the values in \code{x} with the elements of
   \code{values} appended after the specified element of \code{x}.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \examples{
-append(1:5, 0:1, after=3)
+stopifnot(
+    append(1:5, 0:1, after=3)
+ == append(1:3, c(0:1, 4:5)))
 }
 \keyword{manip}

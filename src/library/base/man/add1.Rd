@@ -1,4 +1,25 @@
+% file add1.Rd
+% copyright (C) 1998 B. D. Ripley
+%
 \name{add1}
+\title{Add or Drop All Possible Single Terms to a Model}
+\usage{
+add1(object, scope, \dots)
+add1.default(object, scope, scale = 0, test = c("none", "Chisq"),
+             k = 2, trace = FALSE, \dots)
+add1.lm(object, scope, scale = 0, test = c("none", "Chisq", "F"),
+        x = NULL, k = 2, \dots)
+add1.glm(object, scope, scale = 0, test = c("none", "Chisq", "F"),
+         x = NULL, k = 2, \dots)
+
+drop1(object, scope, \dots)
+drop1.default(object, scope, scale = 0, test = c("none", "Chisq"),
+              k = 2, trace = FALSE, \dots)
+drop1.lm(object, scope, scale = 0, all.cols = TRUE,
+         test=c("none", "Chisq", "F"),k = 2, \dots)
+drop1.glm(object, scope, scale = 0, test = c("none", "Chisq", "F"),
+          k = 2, \dots)
+}
 \alias{add1}
 \alias{add1.default}
 \alias{add1.lm}
@@ -9,30 +30,6 @@
 \alias{drop1.lm}
 \alias{drop1.glm}
 \alias{drop1.mlm}
-\title{Add or Drop All Possible Single Terms to a Model}
-\usage{
-add1(object, scope, \dots)
-
-\method{add1}{default}(object, scope, scale = 0, test = c("none", "Chisq"),
-     k = 2, trace = FALSE, \dots)
-
-\method{add1}{lm}(object, scope, scale = 0, test = c("none", "Chisq", "F"),
-     x = NULL, k = 2, \dots)
-
-\method{add1}{glm}(object, scope, scale = 0, test = c("none", "Chisq", "F"),
-     x = NULL, k = 2, \dots)
-
-drop1(object, scope, \dots)
-
-\method{drop1}{default}(object, scope, scale = 0, test = c("none", "Chisq"),
-      k = 2, trace = FALSE, \dots)
-
-\method{drop1}{lm}(object, scope, scale = 0, all.cols = TRUE,
-      test=c("none", "Chisq", "F"),k = 2, \dots)
-
-\method{drop1}{glm}(object, scope, scale = 0, test = c("none", "Chisq", "F"),
-      k = 2, \dots)
-}
 \arguments{
   \item{object}{a fitted model object.}
   \item{scope}{a formula giving the terms to be considered for adding or
@@ -55,7 +52,6 @@ drop1(object, scope, \dots)
     whether all columns of the design matrix should be used. If
     \code{FALSE} then non-estimable columns are dropped, but the result
     is not usually statistically meaningful.}
-  \item{\dots}{further arguments passed to or from other methods.}
 }
 \description{
   Compute all the single terms in the \code{scope} argument that can be
@@ -84,16 +80,7 @@ drop1(object, scope, \dots)
   An object of class \code{"anova"} summarizing the differences in fit
   between the models.
 }
-\author{
-  The design was inspired by the S functions of the same names described
-  in Chambers (1992).
-}
-\references{
-  Chambers, J. M. (1992)
-  \emph{Linear models.}
-  Chapter 4 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
-}
+\author{B. D. Ripley}
 \note{
   These are not fully equivalent to the functions in S.  There is no
   \code{keep} argument, and the methods used are not quite so
@@ -109,14 +96,12 @@ drop1(object, scope, \dots)
   this may give biased results.  Only use
   these functions with data containing missing values with great care.
 }
-\seealso{
-  \code{\link{step}}, \code{\link{aov}}, \code{\link{lm}},
-  \code{\link{extractAIC}}, \code{\link{anova}}
-}
+\seealso{\code{\link{step}}, \code{\link{aov}}, \code{\link{lm}},
+    \code{\link{extractAIC}}.}
 \examples{
 example(step)#-> swiss
 add1(lm1, ~ I(Education^2) + .^2)
-drop1(lm1, test="F")  # So called 'type II' anova
+drop1(lm1, test="F")
 
 example(glm)
 drop1(glm.D93, test="Chisq")

@@ -1,3 +1,6 @@
+% file replications.Rd
+% copyright (C) 1998 B. D. Ripley
+%
 \name{replications}
 \title{Number of Replications of Terms}
 \usage{
@@ -29,21 +32,12 @@ replications(formula, data=NULL, na.action)
 
   A test for balance is \code{!is.list(replications(formula,data))}.
 }
-\references{
-  Chambers, J. M., Freeny, A and Heiberger, R. M. (1992)
-  \emph{Analysis of variance; designed experiments.}
-  Chapter 5 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
-}
-\author{
-  The design was inspired by the S function of the same name described
-  in Chambers \emph{et al.} (1992).
-}
+\author{B. D. Ripley}
 
 \seealso{\code{\link{model.tables}}}
 
 \examples{
-## From Venables and Ripley (2002) p.165.
+## From Venables and Ripley (1997) p.210.
 N <- c(0,1,0,1,1,1,0,0,0,1,1,0,1,1,0,0,1,0,1,0,1,1,0,0)
 P <- c(1,1,0,0,0,1,0,1,1,1,0,0,0,1,0,1,1,0,0,1,0,1,1,0)
 K <- c(1,0,0,1,0,1,1,0,0,1,0,1,0,1,1,0,0,0,1,1,1,0,1,0)

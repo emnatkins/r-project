@@ -20,14 +20,14 @@ colors()
   A character vector containing all the built-in color names.
 }
 \seealso{
-  \code{\link{palette}} for setting the \dQuote{palette} of colors for
+  \code{\link{palette}} for setting the ``palette'' of colors for
   \code{par(col=}\emph{<num>}\code{)};
-  \code{\link{rgb}}, \code{\link{hsv}}, \code{\link{gray}};
+  \code{\link{rgb}},
+  \code{\link{hsv}},
+  \code{\link{gray}};
   \code{\link{rainbow}} for a nice example;
-  and \code{\link{heat.colors}}, \code{\link{topo.colors}} for images.
-
-  \code{\link{col2rgb}} for translating to RGB numbers and extended
-  examples.
+  and \code{\link{heat.colors}},
+  \code{\link{topo.colors}} for images.
 }
 \examples{
 str(colors())

@@ -11,62 +11,43 @@ subdir = src/library/base
 include $(top_builddir)/Makeconf
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-DISTFILES = INDEX DESCRIPTION.in Makefile.in
-
-pkg = base
-
-RSRC = $(srcdir)/R/*.R $(srcdir)/R/$(R_OSTYPE)/*.R @BUILD_AQUA_TRUE@ $(srcdir)/R/aqua/*.R
-
-RdSRC = $(srcdir)/man/*.Rd $(srcdir)/man/$(R_OSTYPE)/*.Rd @BUILD_AQUA_TRUE@ $(srcdir)/man/aqua/*.Rd
+DISTFILES = INDEX TITLE DESCRIPTION.in Makefile.in
 
 all: Makefile DESCRIPTION
-	@echo "building package '$(pkg)'"
-	@$(MKINSTALLDIRS) $(top_builddir)/library/$(pkg)/R
+	@echo "building package \`base'"
+	@$(MKINSTALLDIRS) $(top_builddir)/library/base/R
 	@(f=$${TMPDIR:-/tmp}/R$$$$; \
-	  cat $(RSRC) >> $${f}; \
-	  $(SHELL) $(top_srcdir)/tools/move-if-change $${f} \
-	    $(top_builddir)/library/$(pkg)/R/$(pkg))
-	@for f in COPYRIGHTS INDEX SOURCES; do \
-	  if test -f $(srcdir)/$${f}; then \
-	    $(INSTALL_DATA) $(srcdir)/$${f} \
-	      $(top_builddir)/library/$(pkg); \
-	  fi; \
+	  cat $(srcdir)/R/*.R $(srcdir)/R/unix/*.R >> $${f}; \
+	  $(top_srcdir)/tools/move-if-change $${f} \
+	    $(top_builddir)/library/base/R/base)
+	@for f in INDEX TITLE; do \
+	if test -f $(srcdir)/$${f}; then \
+	  $(INSTALL_DATA) $(srcdir)/$${f} \
+	    $(top_builddir)/library/base; \
+	fi; \
 	done
-	@if test -f DESCRIPTION; then \
-	  $(INSTALL_DATA) DESCRIPTION $(top_builddir)/library/$(pkg); \
-	  (tmp="Built: R $(VERSION); "; \
-	    if test -d $(srcdir)/src; then \
-	      tmp="$${tmp}$(R_PLATFORM)"; \
-	    fi; \
-	    tmp="$${tmp}; `date`; $(R_OSTYPE)"; \
-	    echo "$${tmp}") \
-	    >> $(top_builddir)/library/$(pkg)/DESCRIPTION; \
+	@if test -f $(top_builddir)/$(subdir)/DESCRIPTION; then \
+	  $(INSTALL_DATA) $(top_builddir)/$(subdir)/DESCRIPTION \
+	    $(top_builddir)/library/base; \
 	fi
-	@$(MKINSTALLDIRS) $(top_builddir)/library/$(pkg)/data
-	@for f in `ls -d $(srcdir)/data/* | sed '/CVS/d'`; do \
-	  $(INSTALL_DATA) $${f} $(top_builddir)/library/$(pkg)/data; \
+	@$(MKINSTALLDIRS) $(top_builddir)/library/base/data
+	@for f in `ls -d $(srcdir)/data/* | sed '/data\/CVS/d'`; do \
+	  $(INSTALL_DATA) $${f} $(top_builddir)/library/base/data; \
 	done
-	@$(MKINSTALLDIRS) $(top_builddir)/library/$(pkg)/demo
-	@for f in `ls -d $(srcdir)/demo/* | sed '/CVS/d'`; do \
-	  $(INSTALL_DATA) $${f} $(top_builddir)/library/$(pkg)/demo; \
-	done
-	@$(MKINSTALLDIRS) $(top_builddir)/library/$(pkg)/man
-	@(f=$${TMPDIR:-/tmp}/R$$$$; \
-	  for rdfile in $(RdSRC); do \
-	    cat $${rdfile}; echo '\eof'; \
-	  done >> $${f}; \
-	  $(SHELL) $(top_srcdir)/tools/move-if-change $${f} \
-	    $(top_builddir)/library/$(pkg)/man/$(pkg).Rd)
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 DESCRIPTION: $(srcdir)/DESCRIPTION.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
 mostlyclean: clean
 clean:
 distclean:
-	-@rm -f Makefile DESCRIPTION
+	@rm -f Makefile DESCRIPTION
 maintainer-clean: distclean
 
 distdir: $(DISTFILES)
@@ -75,7 +56,7 @@ distdir: $(DISTFILES)
 	    || ln $(srcdir)/$${f} $(distdir)/$${f} 2>/dev/null \
 	    || cp -p $(srcdir)/$${f} $(distdir)/$${f}; \
 	done
-	@for d in R data demo exec inst man src; do \
+	@for d in R data exec man src; do \
 	  if test -d $(srcdir)/$${d}; then \
 	    ((cd $(srcdir); \
 	          $(TAR) -c -f - $(DISTDIR_TAR_EXCLUDE) $${d}) \

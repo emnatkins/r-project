@@ -1,4 +1,4 @@
-### $Id: pkg2tex.pl,v 1.4 2003/07/29 10:35:13 ripley Exp $
+### $Id: pkg2tex.pl,v 1.1.2.1 2000/12/16 22:48:52 hornik Exp $
 
 ## Create a single pkgname-pkg.tex file from the Latex subdirectories
 ## Copyright (C) 1998 Douglas M. Bates <bates@stat.wisc.edu>
@@ -20,19 +20,14 @@
 
 ## Send any bug reports to bates@stat.wisc.edu
 
-## <NOTE>
-## Could use &file_path() to make this portable.
-## </NOTE>
-
 use strict;
 use FileHandle;
 use Carp;
 use Getopt::Long;
-use R::Utils;
 
 my $help;
 
-my $revision = ' $Revision: 1.4 $ ';
+my $revision = ' $Revision: 1.1.2.1 $ ';
 my $version;
 my $name;
 
@@ -46,7 +41,6 @@ GetOptions("help|h" => \$help);
 
 my $RLIB;
 if ($ENV{'RLIB'}) {
-    ## Set under Windows, but also useful to override the default.
     $RLIB = $ENV{'RLIB'};
 } else {
     $RLIB = "../../library";
@@ -56,22 +50,12 @@ for (@ARGV) {
     my $latexDir = $RLIB . "/" . $_ . "/latex/";
     carp "latex subdirectory for library $_ does not exist!\n", next
 	unless -d $latexDir;
-    my $was_zipped = 0;
-    if(-f $latexDir . "Rhelp.zip") {
-	$was_zipped = 1;
-	my $cmd = "cd $latexDir; unzip -qo Rhelp.zip";
-	croak "Cannot unzip latex files\n" if R_system($cmd);
-    }
     my $out = new FileHandle "> " . $_ . "-pkg.tex" or
 	croak "unable to open file $_-pkg.tex: $!\n";
     &do_header($_, $out);
     &do_tex_files($latexDir, $out);
     &do_trailer($out);
     $out->close;
-    if($was_zipped) {
-	croak "Removing unzipped latex files failed.\n" if
-	    R_system("rm -f $latexDir*.tex");
-    }
 }
 
 sub do_header {
@@ -94,7 +78,7 @@ sub do_tex_files {
 	$fh->open( $latexDir . $fname ) 
 	    or croak "unable to open file $_:$!\n";
 	$fline = <$fh>;
-	## first line is \Header{object}{...}
+	# first line is \Header{object}{...}
 	$fline =~ s/\\Header\{\s*([^}]*)\}//;
 	$filenames{$1} = $fname;
     }

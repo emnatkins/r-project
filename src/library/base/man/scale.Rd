@@ -1,13 +1,17 @@
 \name{scale}
-\alias{scale}
-\alias{scale.default}
 \title{Scaling and Centering of Matrix-like Objects}
 \description{
-  \code{scale} is generic function whose default method centers and/or
-  scales the columns of a numeric matrix.
+  \code{scale} is generic function who's default method
+  centers and/or scales the columns of a numeric matrix.
 }
+\alias{scale}
+\alias{scale.default}
 \usage{
 scale(x, center = TRUE, scale = TRUE)
+}
+\synopsis{
+scale.default(x, center = TRUE, scale = TRUE)
+scale(x, ..., scale = TRUE)
 }
 \arguments{
   \item{x}{a numeric matrix(like object).}
@@ -17,9 +21,7 @@ scale(x, center = TRUE, scale = TRUE)
     equal to the number of columns of \code{x}.}
 }
 \value{
-  For \code{scale.default}, the centered, scaled matrix. The numeric
-  centering and scalings used (if any) are returned as attributes
-  \code{"scaled:center"} and \code{"scaled:scale"}
+  For \code{scale.default}, the centered, scaled matrix.
 }
 \details{
   The value of \code{center} determines how column centering is
@@ -45,20 +47,17 @@ scale(x, center = TRUE, scale = TRUE)
   square-root of the sum-of-squares of the non-missing values in the
   column divided by the number of non-missing values minus one.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
   \code{\link{sweep}} which allows centering (and scaling) with
   arbitrary statistics.
-
-  For working with the scale of a plot, see \code{\link{par}}.
 }
 \examples{
 x <- matrix(1:10, nc=2)
 (centered.x <- scale(x, scale=FALSE))
 cov(centered.scaled.x <- scale(x))# all 1
-}
+\testonly{## test out NA handling
+tm <- matrix(c(2,1,0,1,0,NA,NA,NA,0), nrow=3)
+scale(tm, , FALSE)
+scale(tm)
+}}
 \keyword{array}

@@ -1,16 +1,16 @@
-%% $Id: splineKnots.Rd,v 1.4 2003/03/03 18:02:04 ripley Exp $
+%% $Id: splineKnots.Rd,v 1.2 2000/08/06 03:30:52 bates Exp $
 \name{splineKnots}
-\alias{splineKnots}
-%\alias{splineKnots.spline}
 \title{Knot Vector from a Spline}
-\description{
-  Return the knot vector corresponding to a spline object.
-}
 \usage{
 splineKnots(object)
 }
+\alias{splineKnots}
+\alias{splineKnots.spline}
 \arguments{
-  \item{object}{an object that inherits from class \code{"spline"}.}
+ \item{object}{an object that inherits from class \code{spline}.}
+}
+\description{
+  Return the knot vector corresponding to a spline object.
 }
 \value{
   A non-decreasing numeric vector of knot positions.

@@ -6,22 +6,21 @@
   Use data editor on data frame or matrix contents.
 }
 \usage{
-\method{edit}{data.frame}(name, factor.mode = c("character", "numeric"),
-     edit.row.names = any(row.names(name) != 1:nrow(name)), \dots)
-
-\method{edit}{matrix}(name, edit.row.names = any(rownames(name) != 1:nrow(name)), \dots)
+edit.data.frame(name, factor.mode = c("numeric", "character"),
+                edit.row.names = any(row.names(name) != 1:nrow(name)),
+                \dots)
+edit.matrix(name, edit.row.names = any(rownames(name != 1:nrow(name))), \dots)
 }
 \arguments{
   \item{name}{A data frame or matrix.}
   \item{factor.mode}{How to handle factors (as integers or using
-    character levels) in a data frame.}
+    character levels).}
   \item{edit.row.names}{logical. Show the row names be displayed as
     a separate editable column?}
-  \item{\dots}{further arguments passed to or from other methods.}
 }
 \details{
-  At present, this only works on simple data frames containing numeric, 
-  logical or character vectors and factors. Factors are represented in the
+  At present, this only works on simple data frames containing numeric or
+  character vectors and factors. Factors are represented in the
   spreadsheet as either numeric vectors (which is more suitable for data
   entry) or character vectors (better for browsing). After editing,
   vectors are padded with \code{NA} to have the same length and
@@ -34,8 +33,7 @@
   It is possible to use the data-editor's facilities to select the mode
   of columns to swap between numerical and factor columns in a data
   frame.  Changing any column in a numerical matrix to character will
-  cause the result to be coerced to a character matrix.  Changing 
-  the mode of logical columns is not supported.
+  cause the result to be coerced to a character matrix.
 }
 \value{
   The edited data frame.
@@ -47,8 +45,6 @@
 
   If the data editor is not available, a dump of the object is presented
   for editing using the default method of \code{edit}.
-
-  At present the data editor is limited to 65535 rows.
 }
 \seealso{\code{\link{data.entry}}, \code{\link{edit}}}
 \examples{

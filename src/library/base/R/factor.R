@@ -1,4 +1,4 @@
-factor <- function (x, levels = sort(unique.default(x), na.last = TRUE),
+factor <- function (x, levels = sort(unique(x), na.last = TRUE),
 		    labels=levels, exclude = NA, ordered = is.ordered(x))
 {
     if(is.null(x))
@@ -33,67 +33,66 @@ nlevels <- function(x) length(levels(x))
 
 "levels<-.default" <- function(x, value)
 {
-    attr(x, "levels") <- value
-    x
+  attr(x, "levels") <- value
+  x
 }
 
 "levels<-.factor" <- function(x, value)
 {
-    xlevs <- levels(x)
-    if (is.list(value)) {
-        nlevs <- rep.int(names(value), lapply(value, length))
-        value <- unlist(value)
-        m <- match(value, xlevs, nomatch=0)
-        xlevs[m] <- nlevs[m > 0]
-    } else {
-        if (length(xlevs) > length(value))
-            stop("number of levels differs")
-        nlevs <- xlevs <- as.character(value)
-    }
-    factor(xlevs[x], levels = unique(nlevs))
+  xlevs <- levels(x)
+  if (is.list(value)) {
+      nlevs <- rep(names(value), lapply(value, length))
+      value <- unlist(value)
+      m <- match(value, xlevs, nomatch=0)
+      xlevs[m] <- nlevs
+  }
+  else {
+    if (length(xlevs) > length(value))
+      stop("number of levels differs")
+    xlevs <- as.character(value)
+  }
+  factor(xlevs[x], levels=unique(xlevs))
 }
 
-as.vector.factor <- function(x, mode="any")
+codes <- function(x, ...) UseMethod("codes")
+
+codes.factor <- function(x)
 {
-    if(mode== "any" || mode== "character" || mode== "logical" || mode== "list")
-	as.vector(levels(x)[x], mode)
+    ## This is the S-plus semantics.
+    ## The deeper meaning? Search me...
+    rank(levels(x))[x]
+}
+
+codes.ordered <- .Alias(as.integer)
+
+"codes<-" <- function(x, value, ...)
+{
+    if ( length(value) == 1 )
+	value <- rep(value, length(x))
+    else if ( length(x) != length(value) )
+	stop("Length mismatch in \"codes<-\"")
+    ## S-plus again...
+    if ( !is.ordered(x) ) value <- order(levels(x))[value]
+    attributes(value) <- attributes(x)
+    value
+}
+
+as.vector.factor <- function(x, type="any")
+{
+    if(type== "any" || type== "character" || type== "logical" || type== "list")
+	as.vector(levels(x)[x], type)
     else
-	as.vector(unclass(x), mode)
+	as.vector(unclass(x), type)
 }
 
-as.character.factor <- function(x,...)
-{
-    cx <- levels(x)[x]
-    if("NA" %in% levels(x)) cx[is.na(x)] <- "<NA>"
-    cx
-}
 
-## for `factor' *and* `ordered' :
-print.factor <- function (x, quote = FALSE, max.levels = NULL,
-                          width = getOption("width"), ...)
+print.factor <- function (x, quote=FALSE, ...)
 {
-    ord <- is.ordered(x)
-    if (length(x) <= 0)
-        cat(if(ord)"ordered" else "factor","(0)\n",sep="")
+    if(length(x) <= 0)
+	cat("factor(0)\n")
     else
-        print(as.character(x), quote = quote, ...)
-    maxl <- if(is.null(max.levels)) TRUE else max.levels
-    if (maxl) {
-        n <- length(lev <- levels(x))
-        colsep <- if(ord) " < " else " "
-        T0 <- "Levels: "
-        if(is.logical(maxl))
-            maxl <- { ## smart default
-                width <- width - (nchar(T0) + 3 + 1 + 3)# 3='...', 3=#lev, 1=extra
-                lenl <- cumsum(nchar(lev) + nchar(colsep))# + ifelse(quote,2,0))
-                if(n <= 1 || lenl[n] <= width) n
-                else max(1, which(lenl > width)[1] - 1)
-            }
-        drop <- n > maxl
-        cat(if(drop)paste(format(n),""), T0,
-            paste(if(drop)c(lev[1:max(1,maxl-1)],"...",if(maxl > 1) lev[n])
-                      else lev, collapse= colsep), "\n", sep="")
-    }
+	print(levels(x)[x], quote=quote, ...)
+    cat("Levels: ", paste(levels(x), collapse=" "), "\n")
     invisible(x)
 }
 
@@ -108,8 +107,8 @@ Ops.factor <- function(e1, e2)
 {
     ok <- switch(.Generic, "=="=, "!="=TRUE, FALSE)
     if(!ok) {
-	warning('"',.Generic,'"', " not meaningful for factors")
-	return(rep.int(NA, max(length(e1), if(!missing(e2))length(e2))))
+	warning(paste('"',.Generic,'"', " not meaningful for factors", sep=""))
+	return(rep(NA, max(length(e1),if(!missing(e2))length(e2))))
     }
     nas <- is.na(e1) | is.na(e2)
     if (nchar(.Method[1])) {
@@ -131,7 +130,7 @@ Ops.factor <- function(e1, e2)
 "[.factor" <- function(x, i, drop=FALSE)
 {
     y <- NextMethod("[")
-    class(y) <- oldClass(x)
+    class(y)<-class(x)
     attr(y,"contrasts")<-attr(x,"contrasts")
     attr(y,"levels")<-attr(x,"levels")
     if ( drop ) factor(y) else y
@@ -140,18 +139,15 @@ Ops.factor <- function(e1, e2)
 "[<-.factor" <- function(x, i, value)
 {
     lx <- levels(x)
-    cx <- oldClass(x)
-#    nas <- is.na(x) # unused
+    cx <- class(x)
+    nas <- is.na(x)
     if (is.factor(value))
 	value <- levels(value)[value]
     m <- match(value, lx)
     if (any(is.na(m) & !is.na(value)))
 	warning("invalid factor level, NAs generated")
     class(x) <- NULL
-    if (missing(i))
-	x[] <- m
-    else
-        x[i] <- m
+    x[i] <- m
     attr(x,"levels") <- lx
     class(x) <- cx
     x
@@ -164,6 +160,16 @@ ordered <- function(x, ...) factor(x, ..., ordered=TRUE)
 is.ordered <- function(x) inherits(x, "ordered")
 as.ordered <- function(x) if(is.ordered(x)) x else ordered(x)
 
+print.ordered <- function (x, quote=FALSE, ...)
+{
+    if(length(x) <= 0)
+	cat("ordered(0)\n")
+    else
+	print(levels(x)[x], quote=quote)
+    cat("Levels: ",paste(levels(x), collapse=" < "), "\n")
+    invisible(x)
+}
+
 Ops.ordered <-
 function (e1, e2)
 {
@@ -171,11 +177,9 @@ function (e1, e2)
 		 "<" = , ">" = , "<=" = , ">=" = ,"=="=, "!=" =TRUE,
 		 FALSE)
     if(!ok) {
-	warning('"',.Generic,'"', " not meaningful for ordered factors")
-	return(rep.int(NA, max(length(e1), if(!missing(e2))length(e2))))
+	warning(paste('"',.Generic,'"', " not meaningful for ordered factors", sep=""))
+	return(rep(NA, max(length(e1),if(!missing(e2))length(e2))))
     }
-    if (.Generic %in% c("==", "!="))
-      return(NextMethod(.Generic))  ##not S-PLUS compatible, but saner
     nas <- is.na(e1) | is.na(e2)
     ord1 <- FALSE
     ord2 <- FALSE
@@ -190,27 +194,18 @@ function (e1, e2)
     if (all(nchar(.Method)) && (length(l1) != length(l2) || !all(l2 == l1)))
 	stop("Level sets of factors are different")
     if (ord1 && ord2) {
-	e1 <- as.integer(e1) # was codes, but same thing for ordered factor.
-	e2 <- as.integer(e2)
+	e1 <- codes(e1)
+	e2 <- codes(e2)
     }
     else if (!ord1) {
 	e1 <- match(e1, l2)
-	e2 <- as.integer(e2)
+	e2 <- codes(e2)
     }
     else if (!ord2) {
 	e2 <- match(e2, l1)
-	e1 <- as.integer(e1)
+	e1 <- codes(e1)
     }
     value <- get(.Generic, mode = "function")(e1, e2)
     value[nas] <- NA
     value
-}
-
-"is.na<-.factor" <- function(x, value)
-{
-    lx <- levels(x)
-    cx <- oldClass(x)
-    class(x) <- NULL
-    x[value] <- NA
-    structure(x, levels = lx, class = cx)
 }

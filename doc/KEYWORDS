@@ -2,13 +2,13 @@ GROUPED Keywords
 ----------------
 
 Graphics
-	aplot		&	Add to Existing Plot / internal plot
+	aplot		&	Add to Existing Plot / internal plot.
 	dplot		&	Computations Related to Plotting
 	hplot		&	High-Level Plots
 	iplot		&	Interacting with Plots
-	color		&	Color, Palettes etc
+	color		&	Color, Palettes etc.
 	dynamic		&	Dynamic Graphics
-	device		&	Graphical Devices
+	device		&	Graphical Devices			7
 
 Basics
 	sysdata		&	Basic System Variables		[!= S]
@@ -22,7 +22,7 @@ Basics
 	    & category	&	Categorical Data
 	    & NA	&	Missing Values			[!= S]
 	list		&	Lists
-	chron		&	Dates and Times
+	chron		&	Dates and Times				12
 
 Mathematics
 	array		&	Matrices and Arrays
@@ -30,33 +30,28 @@ Mathematics
 	arith		&	Basic Arithmetic and Sorting	[!= S]
 	math		&	Mathematical Calculus etc.	[!= S]
 	logic		&	Logical Operators
-	optimize	&	Optimization
+	optimize	&	Optimization				6
 	symbolmath	&	"Symbolic Math", as polynomials, fractions
-	graphs		&	Graphs, (not graphics), e.g. dendrograms
+
 
 Programming, Input/Ouput, and Miscellaneous
 
 	programming	&	Programming
 	     & interface&	Interfaces to Other Languages
-	IO		&	Input/output
-	     & file	&	Files
-	     & connection&	Connections
-	     & database	&	Interfaces to databases
 	iteration	&	Looping and Iteration
 	methods		&	Methods and Generic Functions
 	print		&	Printing
-	error		&	Error Handling
+	file		&	Input/Output--Files
+	connection	&	Input/Output--Connections
+	error		&	Error Handling				8
 
 	environment	&	Session Environment
-	internal	&	Internal Objects (not part of API)
 	utilities	&	Utilities
 	misc		&	Miscellaneous
-	documentation	&	Documentation
-	debugging	&	Debugging Tools
+	documentation	&	Documentation				4
 
 Statistics
 
-	datagen		&	Functions for generating data sets
 	distribution	&	Probability Distributions and Random Numbers
 	univar		&	simple univariate statistics  [!= S]
 	htest		&	Statistical Inference
@@ -67,14 +62,18 @@ Statistics
 	design		&	Designed Experiments
 	multivariate	&	Multivariate Techniques
 	ts		&	Time Series
-	survival	&	Survival Analysis
+	survival	&	Survival Analysis			11
+
+				 [actually, `survival4' rather than `survival',
+				  but do we want 'survival5' later ?]
+
 	nonparametric	&	Nonparametric Statistics [w/o 'smooth']
 	smooth		&	Curve (and Surface) Smoothing
-	     & loess	&	Loess Objects
 	cluster		&	Clustering
-	tree		&	Regression and Classification Trees
-	survey		&	Complex survey samples
-
+	loess		&	Loess Objects
+	tree		&	Regression and Classification Trees	5
+								      ---
+								       52
 
 MASS (2, 1997)
 --------------

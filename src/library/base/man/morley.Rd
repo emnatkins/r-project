@@ -1,12 +1,11 @@
 \name{morley}
-\docType{data}
 \alias{morley}
 \title{Michaelson-Morley Speed of Light Data}
 \description{
   The classical data of Michaelson and Morley on the speed of light.
   The data consists of five experiments, each consisting of 20
-  consecutive \sQuote{runs}.  The response is the speed of light
-  measurement, suitably coded.
+  consecutive `runs'.  The response is the speed of light measurement,
+  suitably coded.
 }
 \usage{data(morley)}
 \format{
@@ -19,10 +18,9 @@
 }
 \details{
   The data is here viewed as a randomized block experiment with
-  \sQuote{experiment} and \sQuote{run} as the factors.  \sQuote{run} may
-  also be considered a quantitative variate to account for linear (or
-  polynomial) changes in the measurement over the course of a single
-  experiment.
+  `experiment' and `run' as the factors.  `run' may also be considered a
+  quantitative variate to account for linear (or polynomial) changes in
+  the measurement over the course of a single experiment.
 }
 \source{
   A. J. Weekes (1986)
@@ -39,6 +37,5 @@ fm <- aov(Speed ~ Run + Expt, data = morley)
 summary(fm)
 fm0 <- update(fm, . ~ . - Run)
 anova(fm0, fm)
-detach(morley)
 }
 \keyword{datasets}

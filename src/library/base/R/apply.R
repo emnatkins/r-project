@@ -8,7 +8,7 @@ apply <- function(X, MARGIN, FUN, ...)
     if(dl == 0)
 	stop("dim(X) must have a positive length")
     ds <- 1:dl
-    if(length(oldClass(X)) > 0)
+    if(length(class(X)) > 0)
 	X <- if(dl == 2) as.matrix(X) else as.array(X)
     dn <- dimnames(X)
 
@@ -24,20 +24,8 @@ apply <- function(X, MARGIN, FUN, ...)
 
     ## do the calls
 
-    d2 <- prod(d.ans)
-    if(d2 == 0) {
-        ## arrays with some 0 extents: return ``empty result'' trying
-        ## to use proper mode and dimension:
-        ## The following is still a bit `hackish': use non-empty X
-        newX <- array(vector(typeof(X), 1), dim = c(prod(d.call), 1))
-        ans <- FUN(if(length(d.call) < 2) newX[,1] else
-                   array(newX[,1], d.call, dn.call), ...)
-        return(if(is.null(ans)) ans else if(length(d.call) < 2) ans[1][-1]
-               else array(ans, d.ans, dn.ans))
-    }
-    ## else
     newX <- aperm(X, c(s.call, s.ans))
-    dim(newX) <- c(prod(d.call), d2)
+    dim(newX) <- c(prod(d.call), d2 <- prod(d.ans))
     ans <- vector("list", d2)
     if(length(d.call) < 2) {# vector
         if (length(dn.call)) dimnames(newX) <- c(dn.call, list(NULL))
@@ -59,7 +47,7 @@ apply <- function(X, MARGIN, FUN, ...)
     if(!ans.list)
 	ans.list <- any(unlist(lapply(ans, length)) != l.ans)
     if(!ans.list && length(ans.names)) {
-        all.same <- sapply(ans, function(x) identical(names(x), ans.names))
+        all.same <- sapply(ans, function(x) all(names(x) == ans.names))
         if (!all(all.same)) ans.names <- NULL
     }
     len.a <- if(ans.list) d2 else length(ans <- unlist(ans, recursive = FALSE))

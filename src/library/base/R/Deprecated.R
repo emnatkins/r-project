@@ -1,18 +1,28 @@
 ###----- NOTE:	../man/Deprecated.Rd   must be synchronized with this!
 ###		--------------------
 .Deprecated <- function(new) {
-    warning(paste(sQuote(as.character(sys.call(sys.parent())[[1]])),
-		  " is deprecated.\n",
+    warning(paste("`", as.character(sys.call(sys.parent())[[1]]), "' ",
+		  "is deprecated.\n",
 		  if (!missing(new))
-		  paste("Use", sQuote(new), "instead.\n"),
+		  paste("Use `", new, "' instead.\n", sep = ""),
 		  "See ?Deprecated.",
-		  sep = ""),
-            call. = FALSE)
+		  sep = ""))
 }
 
-## consider keeping one (commented) entry here, for easier additions
-## <entry>
-## Deprecated in 1.9.0
-## </entry>
+## Deprecated in 1.2.0
+getenv <- function(x) {
+    .Deprecated("Sys.getenv")
+    Sys.getenv(x)
+}
+## </Deprecated>
 
-
+## Deprecated in 1.2.3
+dotplot <- function(...) {
+    .Deprecated("dotchart")
+    dotchart(...)
+}
+stripplot <- function(...) {
+    .Deprecated("stripchart")
+    stripchart(...)
+}
+## </Deprecated>

@@ -1,16 +1,13 @@
 \name{as.hclust}
 \alias{as.hclust}
-\alias{as.hclust.default}
 \alias{as.hclust.twins}
 \title{Convert Objects to Class hclust}
 \usage{
-as.hclust(x, \dots)
-%as.hclust.default(x, \dots)
-%as.hclust.twins(x, \dots)
+as.hclust(x, ...)
+as.hclust.twins(x)
 }
 \arguments{
-  \item{x}{Hierarchical clustering object}
-  \item{\dots}{further arguments passed to or from other methods.}
+ \item{x}{Hierarchical clustering object}
 }
 \description{
   Converts objects from other hierarchical clustering functions to
@@ -19,8 +16,7 @@ as.hclust(x, \dots)
 \details{
   Currently there is only support for converting objects of
   class \code{"twins"} as produced by the functions \code{diana} and
-  \code{agnes} from the package \pkg{cluster}.  The default method
-  throws an error unless passed an \code{"hclust"} object.
+  \code{agnes} from the package \file{cluster}.
 }
 \value{
   An object of class \code{"hclust"}.
@@ -30,17 +26,21 @@ as.hclust(x, \dots)
   \code{\link[cluster]{agnes}}
 }
 \examples{
+\dontrun{
 x <- matrix(rnorm(30), ncol=3)
 hc <- hclust(dist(x), method="complete")
 
-if(require(cluster)) {# is a required package
-  ag <- agnes(x, method="complete")
-  hcag <- as.hclust(ag)
-  ## The dendrograms order slightly differently:
-  op <- par(mfrow=c(1,2))
-  plot(hc) ;  mtext("hclust", side=1)
-  plot(hcag); mtext("agnes",  side=1)
+library(cluster)
+ag <- agnes(x, method="complete")
+
+x11()
+par(mfrow=c(1,2))
+plot(hc)
+mtext("hclust", side=1)
+plot(as.hclust(ag))
+mtext("agnes", side=1)
 }
 }
 \keyword{multivariate}
 \keyword{cluster}
+

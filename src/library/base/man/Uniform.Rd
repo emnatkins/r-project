@@ -1,5 +1,4 @@
 \name{Uniform}
-\alias{Uniform}
 \title{The Uniform Distribution}
 \usage{
 dunif(x, min=0, max=1, log = FALSE)
@@ -39,11 +38,6 @@ runif(n, min=0, max=1)
   For the case of \eqn{u := min == max}, the limit case of
   \eqn{X \equiv u}{X == u} is assumed.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
   \code{\link{.Random.seed}} about random number generation,
   \code{\link{rnorm}}, etc for other distributions.
@@ -52,9 +46,13 @@ runif(n, min=0, max=1)
 u <- runif(20)
 
 ## The following relations always hold :
-punif(u) == u
-dunif(u) == 1
-
+ punif(u) == u
+ dunif(u) == 1
+ runif(10, 2,2) == 2
+\testonly{
+ stopifnot(punif(u) == u, dunif(u) == 1,
+           runif(100, 2,2) == 2)#-> TRUE [bug in R version <= 0.63.1]
+}
 var(runif(10000))#- ~ = 1/12 = .08333
 }
 \keyword{distribution}

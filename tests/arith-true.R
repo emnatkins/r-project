@@ -1,7 +1,7 @@
 ####=== Numerical / Arithmetic Tests
 ####--- ALL tests here should return  TRUE !
 ###
-### '##P': These lines don't give TRUE but relevant ``Print output''
+### '##P': This lines give not 'T' but relevant ``Print output''
 
 ### --> d-p-q-r-tests.R  for distribution things
 
@@ -40,17 +40,14 @@ is.nan(i1 / i1)
 1/0 == Inf & 0 ^ -1 == Inf
 1/Inf == 0 & Inf ^ -1 == 0
 
-iNA <- as.integer(NA)
 !is.na(Inf) & !is.nan(Inf) &   is.infinite(Inf) & !is.finite(Inf)
 !is.na(-Inf)& !is.nan(-Inf)&   is.infinite(-Inf)& !is.finite(-Inf)
  is.na(NA)  & !is.nan(NA)  &  !is.infinite(NA)  & !is.finite(NA)
  is.na(NaN) &  is.nan(NaN) &  !is.infinite(NaN) & !is.finite(NaN)
- is.na(iNA) & !is.nan(iNA) &  !is.infinite(iNA) & !is.finite(iNA)
 
-## These are "double"s:
-all(!is.nan(c(1.,NA)))
-all(c(FALSE,TRUE,FALSE) == is.nan(c   (1.,NaN,NA)))
-all(c(FALSE,TRUE,FALSE) == is.nan(list(1.,NaN,NA)))
+all(!is.nan(c(1,NA)))
+all(c(F,T,F) == is.nan(c   (1,NaN,NA)))
+all(c(F,T,F) == is.nan(list(1,NaN,NA)))
 
 
 ##  log() and "pow()" -- POSIX is not specific enough..
@@ -108,15 +105,10 @@ all(abs(Isi-1) < 100* Meps)
 ## polyroot():
 all(abs(1 + polyroot(choose(8, 0:8))) < 1e-10)# maybe smaller..
 
-## gamma()
+## gamma():
 abs(gamma(1/2)^2 - pi) < 4* Meps
 r <- rlnorm(5000)
 all(abs(rErr(gamma(r+1), r*gamma(r))) < 500 * Meps)
-## more accurate for integers n <= 50 since R 1.8.0	Sol8: perfect
-n <-   20; all(		 gamma(1:n) == cumprod(c(1,1:(n-1))))# Lnx: up too n=28
-n <-   50; all(abs(rErr( gamma(1:n), cumprod(c(1,1:(n-1))))) < 20*Meps)#Lnx: f=2
-n <-  120; all(abs(rErr( gamma(1:n), cumprod(c(1,1:(n-1))))) < 1000*Meps)
-n <- 10000;all(abs(rErr(lgamma(1:n),cumsum(log(c(1,1:(n-1)))))) < 100*Meps)
 
 n <-   10; all(		 gamma(1:n) == cumprod(c(1,1:(n-1))))
 n <-   20; all(abs(rErr( gamma(1:n), cumprod(c(1,1:(n-1))))) < 100*Meps)
@@ -187,7 +179,7 @@ for(i in 1:n) {
 ## PR#741:
 pi != (pi0 <- pi + 2*.Machine$double.eps)
 is.na(match(c(1,pi,pi0), pi)[3])
-
+    
 ## PR#749:
 all(is.na(c(NA && TRUE, TRUE  && NA, NA && NA,
             NA || FALSE,FALSE || NA, NA || NA)))

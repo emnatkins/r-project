@@ -1,8 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2003  The R Development Core Team.
- *  Copyright (C) 2003        The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,7 +21,7 @@
  *
  *  See ./paste.c for do_paste() , do_format() and  do_formatinfo()
  *  See ./printutils.c for general remarks on Printing and the Encode.. utils.
- *  See ./print.c  for do_printdefault, do_prmatrix, etc.
+ *  See ./print.c  for do_printdefault, do_printmatrix, etc.
  *
  * Exports
  *	formatString
@@ -47,16 +45,23 @@
 
 void formatString(SEXP *x, int n, int *fieldwidth, int quote)
 {
-    int xmax = 0;
+    int xmax = 0, naflag = 0;
     int i, l;
 
     for (i = 0; i < n; i++) {
-	if (x[i] == NA_STRING) {
-	    l = quote ? R_print.na_width : R_print.na_width_noquote;
-	} else l = Rstrlen(CHAR(x[i]), quote) + (quote ? 2 : 0);
-	if (l > xmax) xmax = l;
+	if (CHAR(x[i]) == NULL)
+	    naflag = 1;
+	else {
+	    l = Rstrlen(CHAR(x[i]), quote);
+	    if (l > xmax)
+		xmax = l;
+	}
     }
     *fieldwidth = xmax;
+    if (quote)
+	*fieldwidth += 2;
+    if (naflag && *fieldwidth < R_print.na_width)
+	*fieldwidth = R_print.na_width;
 }
 
 void formatLogical(int *x, int n, int *fieldwidth)
@@ -64,17 +69,16 @@ void formatLogical(int *x, int n, int *fieldwidth)
     int i;
 
     *fieldwidth = 1;
-    for(i = 0 ; i < n; i++) {
-	if (x[i] == NA_LOGICAL) {
-	    if(*fieldwidth < R_print.na_width)
-		*fieldwidth =  R_print.na_width;
-	} else if (x[i] != 0 && *fieldwidth < 4) {
+    for(i=0 ; i<n ; i++) {
+	if (x[i] == 1 && *fieldwidth < 4)
 	    *fieldwidth = 4;
-	} else if (x[i] == 0 && *fieldwidth < 5 ) {
+	if (x[i] == 0 && *fieldwidth < 5 ) {
 	    *fieldwidth = 5;
 	    break;
-	    /* this is the widest it can be,  so stop */
+	    /* this is the widest it can be so stop */
 	}
+	if (x[i] == NA_LOGICAL && *fieldwidth <	 R_print.na_width)
+	    *fieldwidth =  R_print.na_width;
     }
 }
 
@@ -147,17 +151,20 @@ void formatInteger(int *x, int n, int *fieldwidth)
  * Using GLOBAL	 R_print.digits	 -- had	 #define MAXDIG R_print.digits
 */
 
-static const double tbl[] =
+static double tbl[] =
 {
     0.e0, 1.e0, 1.e1, 1.e2, 1.e3, 1.e4, 1.e5, 1.e6, 1.e7, 1.e8, 1.e9
 };
 
-static void scientific(double *x, int *sgn, int *kpower, int *nsig, double eps)
+static double eps;/* = 10^{- R_print.digits};
+			set in formatReal/Complex,  used in scientific() */
+
+static void scientific(double *x, int *sgn, int *kpower, int *nsig)
 {
-    /* for a number x , determine
+    /* for 1 number	 x , return
      *	sgn    = 1_{x < 0}  {0/1}
      *	kpower = Exponent of 10;
-     *	nsig   = min(R_print.digits, #{significant digits of alpha})
+     *	nsig   = min(R_print.digits, #{significant digits of alpha}
      *
      * where  |x| = alpha * 10^kpower	and	 1 <= alpha < 10
      */
@@ -184,16 +191,7 @@ static void scientific(double *x, int *sgn, int *kpower, int *nsig, double eps)
 	    else
 		alpha = r * tbl[-kp + 1];
 	}
-	/* on IEEE 1e-308 is not representable except by gradual underflow.
-	   shifting by 30 allows for any potential denormalized numbers x,
-	   and makes the reasonable assumption that R_dec_min_exponent+30
-	   is in range.
-	 */
-	else if (kp <= R_dec_min_exponent) {
-	    alpha = (r * 1e+30)/pow(10.0, (double)(kp+30));
-	}
-	else
-	    alpha = r / pow(10.0, (double)kp);
+	else alpha = r / pow(10.0, (double)kp);
 
 	/* make sure that alpha is in [1,10) AFTER rounding */
 
@@ -216,14 +214,14 @@ static void scientific(double *x, int *sgn, int *kpower, int *nsig, double eps)
     }
 }
 
-void formatReal(double *x, int l, int *m, int *n, int *e, int nsmall)
+void formatReal(double *x, int l, int *m, int *n, int *e)
 {
     int left, right, sleft;
     int mnl, mxl, rgt, mxsl, mxns, mF;
     int neg, sgn, kpower, nsig;
     int i, naflag, nanflag, posinf, neginf;
 
-    double eps = pow(10.0, -(double)R_print.digits);
+    eps = pow(10.0, -(double)R_print.digits);
 
     nanflag = 0;
     naflag = 0;
@@ -240,7 +238,7 @@ void formatReal(double *x, int l, int *m, int *n, int *e, int nsmall)
 	    else if(x[i] > 0) posinf = 1;
 	    else neginf = 1;
 	} else {
-	    scientific(&x[i], &sgn, &kpower, &nsig, eps);
+	    scientific(&x[i], &sgn, &kpower, &nsig);
 
 	    left = kpower + 1;
 	    sleft = sgn + ((left <= 0) ? 1 : left); /* >= 1 */
@@ -255,8 +253,9 @@ void formatReal(double *x, int l, int *m, int *n, int *e, int nsmall)
 	    if (nsig > mxns) mxns = nsig;	/* max sig digits */
 	}
     }
-    /* F Format: use "F" format WHENEVER we use not more space than 'E'
-     *		and still satisfy 'R_print.digits' {but as if nsmall==0 !}
+    /* F Format (NEW):	use "F" format
+     *	    WHENEVER we use not more space than 'E'
+     *		and still satisfy 'R_print.digits'
      *
      * E Format has the form   [S]X[.XXX]E+XX[X]
      *
@@ -264,12 +263,12 @@ void formatReal(double *x, int l, int *m, int *n, int *e, int nsmall)
      * If the additional exponent digit is required *e is set to 2
      */
 
-    /*-- These	'mxsl' & 'rgt'	are used in F Format
+    /*-- These	'mxsl' & 'rgt'  are used in F Format
      *	 AND in the	____ if(.) "F" else "E" ___   below: */
     if (mxl < 0) mxsl = 1 + neg;
-
-    /* use nsmall only *after* comparing "F" vs "E": */
+    /*old: if (mxl != mnl && mxl + rgt > R_print.digits) rgt = R_print.digits - mxl;*/
     if (rgt < 0) rgt = 0;
+    /* NO! else if (rgt > R_print.digits) rgt = R_print.digits; */
     mF = mxsl + rgt + (rgt != 0);	/* width m for F  format */
 
     /*-- 'see' how "E" Exponential format would be like : */
@@ -278,12 +277,8 @@ void formatReal(double *x, int l, int *m, int *n, int *e, int nsmall)
     *n = mxns - 1;
     *m = neg + (*n > 0) + *n + 4 + *e; /* width m for E	 format */
 
-    if (mF <= *m  + R_print.scipen) { /* Fixpoint if it needs less space */
+    if (mF <= *m) { /* IFF it needs less space : "F" (Fixpoint) format */
 	*e = 0;
-	if (nsmall > rgt) {
-	    rgt = nsmall;
-	    mF = mxsl + rgt + (rgt != 0);
-	}
 	*n = rgt;
 	*m = mF;
     } /* else : "E" Exponential format -- all done above */
@@ -296,7 +291,7 @@ void formatReal(double *x, int l, int *m, int *n, int *e, int nsmall)
 
 
 void formatComplex(Rcomplex *x, int l, int *mr, int *nr, int *er,
-		   int *mi, int *ni, int *ei, int nsmall)
+				      int *mi, int *ni, int *ei)
 {
 /* format.info() or  x[1..l] for both Re & Im */
     int left, right, sleft;
@@ -307,7 +302,7 @@ void formatComplex(Rcomplex *x, int l, int *mr, int *nr, int *er,
     int naflag;
     int rnanflag, rposinf, rneginf, inanflag, iposinf;
 
-    double eps = pow(10.0, -(double)R_print.digits);
+    eps = pow(10.0, -(double)R_print.digits);
 
     naflag = 0;
     rnanflag = 0;
@@ -337,7 +332,7 @@ void formatComplex(Rcomplex *x, int l, int *mr, int *nr, int *er,
 	    }
 	    else
 	      {
-		scientific(&(x[i].r), &sgn, &kpower, &nsig, eps);
+		scientific(&(x[i].r), &sgn, &kpower, &nsig);
 
 		left = kpower + 1;
 		sleft = sgn + ((left <= 0) ? 1 : left); /* >= 1 */
@@ -362,7 +357,7 @@ void formatComplex(Rcomplex *x, int l, int *mr, int *nr, int *er,
 	    }
 	    else
 	      {
-		scientific(&(x[i].i), &sgn, &kpower, &nsig, eps);
+		scientific(&(x[i].i), &sgn, &kpower, &nsig);
 
 		left = kpower + 1;
 		sleft = ((left <= 0) ? 1 : left);
@@ -391,12 +386,8 @@ void formatComplex(Rcomplex *x, int l, int *mr, int *nr, int *er,
 	else *er = 1;
 	*nr = mxns - 1;
 	*mr = neg + (*nr > 0) + *nr + 4 + *er;
-        if (mF <= *mr + R_print.scipen) { /* Fixpoint if it needs less space */
+	if (mF <= *mr) { /* IFF it needs less space : "F" (Fixpoint) format */
 	    *er = 0;
-	    if (nsmall > rt) {
-		rt = nsmall;
-		mF = mxsl + rt + (rt != 0);
-	    }
 	    *nr = rt;
 	    *mr = mF;
 	}
@@ -421,12 +412,8 @@ void formatComplex(Rcomplex *x, int l, int *mr, int *nr, int *er,
 	else *ei = 1;
 	*ni = i_mxns - 1;
 	*mi = (*ni > 0) + *ni + 4 + *ei;
-        if (mF <= *mi + R_print.scipen) { /* Fixpoint if it needs less space */
+	if (mF <= *mi) { /* IFF it needs less space : "F" (Fixpoint) format */
 	    *ei = 0;
-	    if (nsmall > i_rt) {
-		i_rt = nsmall;
-		mF = mxsl + i_rt + (i_rt != 0);
-	    }
 	    *ni = i_rt;
 	    *mi = mF;
 	}

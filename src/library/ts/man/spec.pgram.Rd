@@ -1,32 +1,31 @@
 \name{spec.pgram}
 \alias{spec.pgram}
-\title{Estimate Spectral Density of a Time Series by a Smoothed
+\title{Estimate Spectral Density of a Time Series from Smoothed
     Periodogram}
 \usage{
 spec.pgram(x, spans = NULL, kernel, taper = 0.1,
            pad = 0, fast = TRUE, demean = FALSE, detrend =TRUE,
-           plot = TRUE, na.action = na.fail, \dots)
+           plot = FALSE, na.action, \dots)
 }
 \arguments{
-  \item{x}{univariate or multivariate time series.}
-  \item{spans}{vector of odd integers giving the widths of modified
+  \item{x}{A univariate or multivariate time series.}
+  \item{spans}{Vector of odd integers giving the widths of modified
     Daniell smoothers to be used to smooth the periodogram.}
-  \item{kernel}{alternatively, a kernel smoother of class
+  \item{kernel}{Alternatively, a kernel smoother of class
     \code{"tskernel"}.}
-  \item{taper}{proportion of data to taper.  A split cosine bell taper
+  \item{taper}{Proportion of data to taper.  A split cosine bell taper
     is applied to this proportion of the data at the beginning and
     end of the series.}
-  \item{pad}{proportion of data to pad. Zeros are added to the end of
-    the series to increase its length by the proportion \code{pad}.}
-  \item{fast}{logical; if \code{TRUE}, pad the series to a highly composite
-    length.}
   \item{demean}{logical. If \code{TRUE}, subtract the mean of the
     series.}
   \item{detrend}{logical. If \code{TRUE}, remove a linear trend from
     the series. This will also remove the mean.}
-  \item{plot}{plot the periodogram?}
-  \item{na.action}{\code{NA} action function.}
-  \item{\dots}{graphical arguments passed to \code{plot.spec}.}
+  \item{pad}{Proportion of data to pad. Zeros are added to the end of
+    the series to increase its length by the proportion \code{pad}.}
+  \item{plot}{Plot the periodogram?}
+  \item{fast}{If \code{TRUE}, pad the series to a highly composite
+    length.}
+  \item{\dots}{Graphical arguments passed to \code{plot.spec}.}
 }
 \description{
   \code{spec.pgram} calculates the periodogram using a fast Fourier
@@ -51,8 +50,7 @@ spec.pgram(x, spans = NULL, kernel, taper = 0.1,
   is returned for that frequency.
 }
 \value{
-  A list object of class \code{"spec"} (see \code{\link{spectrum}})
-  with the following additional components:
+  A list object of class \code{"spec"} with the following elements.
   \item{kernel}{The \code{kernel} argument, or the kernel constructed
     from \code{spans}.}
   \item{df}{The distribution of the spectral density estimate can be
@@ -75,9 +73,9 @@ spec.pgram(x, spans = NULL, kernel, taper = 0.1,
   Brockwell, P.J. and Davis, R.A. (1991) \emph{Time Series: Theory and
     Methods.} Second edition. Springer.
 
-  Venables, W.N. and Ripley, B.D. (2002) \emph{Modern Applied
-    Statistics with S.} Fourth edition. Springer. (Especially
-  pp. 392--7.)
+  Venables, W.N. and Ripley, B.D. (1997) \emph{Modern Applied
+    Statistics with S-PLUS.} Second edition. Springer. (Especially
+  pp. 437--442.)
 }
 \author{
   Originally Martyn Plummer; kernel smoothing by Adrian Trapletti,

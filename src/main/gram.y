@@ -2,7 +2,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996, 1997  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2002  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--2001  Robert Gentleman, Ross Ihaka and the
  *                            R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -71,9 +71,7 @@ static int 	xxcharcount, xxcharsave;
 
 /* Handle function source */
 
-/* FIXME: These arrays really ought to be dynamically extendable
-   As from 1.6.0, SourceLine[] is, and the other two are checked.
-*/
+/* FIXME: These arrays really ought to be dynamically extendable */
 
 #define MAXFUNSIZE 131072
 #define MAXLINESIZE  1024
@@ -132,17 +130,15 @@ static int	xxvalue(SEXP, int);
 
 %token		END_OF_INPUT ERROR
 %token		STR_CONST NUM_CONST NULL_CONST SYMBOL FUNCTION
-%token		LEFT_ASSIGN EQ_ASSIGN RIGHT_ASSIGN LBB
+%token		LEFT_ASSIGN RIGHT_ASSIGN LBB
 %token		FOR IN IF ELSE WHILE NEXT BREAK REPEAT
 %token		GT GE LT LE EQ NE AND OR
-%token		NS_GET NS_GET_INT
 
 %left		'?'
 %left		LOW WHILE FOR REPEAT
 %right		IF
 %left		ELSE
 %right		LEFT_ASSIGN
-%right		EQ_ASSIGN
 %left		RIGHT_ASSIGN
 %left		'~' TILDE
 %left		OR
@@ -150,30 +146,22 @@ static int	xxvalue(SEXP, int);
 %left		UNOT NOT
 %left   	GT GE LT LE EQ NE
 %left		'+' '-'
-%left		'*' '/'
+%left		'*' '/' '%'
 %left		SPECIAL
 %left		':'
 %left		UMINUS UPLUS
 %right		'^'
-%left		'$' '@'
-%left		NS_GET NS_GET_INT
+%left		'$'
 %nonassoc	'(' '[' LBB
 
 %%
 
 prog	:	END_OF_INPUT			{ return 0; }
 	|	'\n'				{ return xxvalue(NULL,2); }
-	|	expr_or_assign '\n'			{ return xxvalue($1,3); }
-	|	expr_or_assign ';'			{ return xxvalue($1,4); }
+	|	expr '\n'			{ return xxvalue($1,3); }
+	|	expr ';'			{ return xxvalue($1,4); }
 	|	error	 			{ YYABORT; }
 	;
-
-expr_or_assign  :    expr                       { $$ = $1; }
-                |    equal_assign               { $$ = $1; }
-                ;
-
-equal_assign    :    expr EQ_ASSIGN expr_or_assign              { $$ = xxbinary($2,$1,$3); }
-                ;
 
 expr	: 	NUM_CONST			{ $$ = $1; }
 	|	STR_CONST			{ $$ = $1; }
@@ -181,7 +169,7 @@ expr	: 	NUM_CONST			{ $$ = $1; }
 	|	SYMBOL				{ $$ = $1; }
 
 	|	'{' exprlist '}'		{ $$ = xxexprlist($1,$2); }
-	|	'(' expr_or_assign ')'			{ $$ = xxparen($1,$2); }
+	|	'(' expr ')'			{ $$ = xxparen($1,$2); }
 
 	|	'-' expr %prec UMINUS		{ $$ = xxunary($1,$2); }
 	|	'+' expr %prec UMINUS		{ $$ = xxunary($1,$2); }
@@ -198,7 +186,6 @@ expr	: 	NUM_CONST			{ $$ = $1; }
 	|	expr SPECIAL expr		{ $$ = xxbinary($2,$1,$3); }
 	|	expr '%' expr			{ $$ = xxbinary($2,$1,$3); }
 	|	expr '~' expr			{ $$ = xxbinary($2,$1,$3); }
-	|	expr '?' expr			{ $$ = xxbinary($2,$1,$3); }
 	|	expr LT expr			{ $$ = xxbinary($2,$1,$3); }
 	|	expr LE expr			{ $$ = xxbinary($2,$1,$3); }
 	|	expr EQ expr			{ $$ = xxbinary($2,$1,$3); }
@@ -210,28 +197,18 @@ expr	: 	NUM_CONST			{ $$ = $1; }
 
 	|	expr LEFT_ASSIGN expr 		{ $$ = xxbinary($2,$1,$3); }
 	|	expr RIGHT_ASSIGN expr 		{ $$ = xxbinary($2,$3,$1); }
-	|	FUNCTION '(' formlist ')' cr expr_or_assign %prec LOW
+	|	FUNCTION '(' formlist ')' cr expr %prec LOW
 						{ $$ = xxdefun($1,$3,$6); }
 	|	expr '(' sublist ')'		{ $$ = xxfuncall($1,$3); }
-	|	IF ifcond expr_or_assign 			{ $$ = xxif($1,$2,$3); }
-	|	IF ifcond expr_or_assign ELSE expr_or_assign	{ $$ = xxifelse($1,$2,$3,$5); }
-	|	FOR forcond expr_or_assign %prec FOR 	{ $$ = xxfor($1,$2,$3); }
-	|	WHILE cond expr_or_assign			{ $$ = xxwhile($1,$2,$3); }
-	|	REPEAT expr_or_assign			{ $$ = xxrepeat($1,$2); }
+	|	IF ifcond expr 			{ $$ = xxif($1,$2,$3); }
+	|	IF ifcond expr ELSE expr	{ $$ = xxifelse($1,$2,$3,$5); }
+	|	FOR forcond expr %prec FOR 	{ $$ = xxfor($1,$2,$3); }
+	|	WHILE cond expr			{ $$ = xxwhile($1,$2,$3); }
+	|	REPEAT expr			{ $$ = xxrepeat($1,$2); }
 	|	expr LBB sublist ']' ']'	{ $$ = xxsubscript($1,$2,$3); }
 	|	expr '[' sublist ']'		{ $$ = xxsubscript($1,$2,$3); }
-	|	SYMBOL NS_GET SYMBOL		{ $$ = xxbinary($2,$1,$3); }
-	|	SYMBOL NS_GET STR_CONST		{ $$ = xxbinary($2,$1,$3); }
-	|	STR_CONST NS_GET SYMBOL		{ $$ = xxbinary($2,$1,$3); }
-	|	STR_CONST NS_GET STR_CONST	{ $$ = xxbinary($2,$1,$3); }
-	|	SYMBOL NS_GET_INT SYMBOL	{ $$ = xxbinary($2,$1,$3); }
-	|	SYMBOL NS_GET_INT STR_CONST	{ $$ = xxbinary($2,$1,$3); }
-	|	STR_CONST NS_GET_INT SYMBOL	{ $$ = xxbinary($2,$1,$3); }
-	|	STR_CONST NS_GET_INT STR_CONST	{ $$ = xxbinary($2,$1,$3); }
 	|	expr '$' SYMBOL			{ $$ = xxbinary($2,$1,$3); }
 	|	expr '$' STR_CONST		{ $$ = xxbinary($2,$1,$3); }
-	|	expr '@' SYMBOL			{ $$ = xxbinary($2,$1,$3); }
-	|	expr '@' STR_CONST		{ $$ = xxbinary($2,$1,$3); }
 	|	NEXT				{ $$ = xxnxtbrk($1); }
 	|	BREAK				{ $$ = xxnxtbrk($1); }
 	;
@@ -248,10 +225,10 @@ forcond :	'(' SYMBOL IN expr ')' 		{ $$ = xxforcond($2,$4); }
 
 
 exprlist:					{ $$ = xxexprlist0(); }
-	|	expr_or_assign				{ $$ = xxexprlist1($1); }
-	|	exprlist ';' expr_or_assign	{ $$ = xxexprlist2($1,$3); }
+	|	expr				{ $$ = xxexprlist1($1); }
+	|	exprlist ';' expr		{ $$ = xxexprlist2($1,$3); }
 	|	exprlist ';'			{ $$ = $1; }
-	|	exprlist '\n' expr_or_assign	{ $$ = xxexprlist2($1,$3); }
+	|	exprlist '\n' expr		{ $$ = xxexprlist2($1,$3); }
 	|	exprlist '\n'			{ $$ = $1;}
 	;
 
@@ -261,19 +238,19 @@ sublist	:	sub				{ $$ = xxsublist1($1); }
 
 sub	:					{ $$ = xxsub0(); }
 	|	expr				{ $$ = xxsub1($1); }
-	|	SYMBOL EQ_ASSIGN 			{ $$ = xxsymsub0($1); }
-	|	SYMBOL EQ_ASSIGN expr			{ $$ = xxsymsub1($1,$3); }
-	|	STR_CONST EQ_ASSIGN 			{ $$ = xxsymsub0($1); }
-	|	STR_CONST EQ_ASSIGN expr		{ $$ = xxsymsub1($1,$3); }
-	|	NULL_CONST EQ_ASSIGN 			{ $$ = xxnullsub0(); }
-	|	NULL_CONST EQ_ASSIGN expr		{ $$ = xxnullsub1($3); }
+	|	SYMBOL '=' 			{ $$ = xxsymsub0($1); }
+	|	SYMBOL '=' expr			{ $$ = xxsymsub1($1,$3); }
+	|	STR_CONST '=' 			{ $$ = xxsymsub0($1); }
+	|	STR_CONST '=' expr		{ $$ = xxsymsub1($1,$3); }
+	|	NULL_CONST '=' 			{ $$ = xxnullsub0(); }
+	|	NULL_CONST '=' expr		{ $$ = xxnullsub1($3); }
 	;
 
 formlist:					{ $$ = xxnullformal(); }
 	|	SYMBOL				{ $$ = xxfirstformal0($1); }
-	|	SYMBOL EQ_ASSIGN expr			{ $$ = xxfirstformal1($1,$3); }
+	|	SYMBOL '=' expr			{ $$ = xxfirstformal1($1,$3); }
 	|	formlist ',' SYMBOL		{ $$ = xxaddformal0($1,$3); }
-	|	formlist ',' SYMBOL EQ_ASSIGN expr	{ $$ = xxaddformal1($1,$3,$5); }
+	|	formlist ',' SYMBOL '=' expr	{ $$ = xxaddformal1($1,$3,$5); }
 	;
 
 cr	:					{ EatLines = 1; }
@@ -294,11 +271,9 @@ static int xxgetc(void)
         return R_EOF;
     }
     if (c == '\n') R_ParseError += 1;
-    if ( KeepSource && GenerateCode && FunctionLevel > 0 ) {
-	if(SourcePtr <  FunctionSource + MAXFUNSIZE)
-	    *SourcePtr++ = c;
-	else  error("function is too long to keep source");
-    }
+    /* FIXME: check for overrun in SourcePtr */
+    if ( GenerateCode && FunctionLevel > 0 )
+	*SourcePtr++ = c;
     xxcharcount++;
     return c;
 }
@@ -306,7 +281,7 @@ static int xxgetc(void)
 static int xxungetc(int c)
 {
     if (c == '\n') R_ParseError -= 1;
-    if ( KeepSource && GenerateCode && FunctionLevel > 0 )
+    if ( GenerateCode && FunctionLevel > 0 )
 	SourcePtr--;
     xxcharcount--;
     return ptr_ungetc(c);
@@ -665,21 +640,10 @@ static SEXP xxdefun(SEXP fname, SEXP formals, SEXP body)
 		    nc = p - p0;
 		    if (*p != '\n')
 			nc++;
-		    if (nc <= MAXLINESIZE) {
-			strncpy((char *)SourceLine, (char *)p0, nc);
-			SourceLine[nc] = '\0';
-			SET_STRING_ELT(source, lines++,
-				       mkChar((char *)SourceLine));
-		    } else { /* over-long line */
-			char *LongLine = (char *) malloc(nc);
-			if(!LongLine) 
-			    error("unable to allocate space to source line");
-			strncpy(LongLine, (char *)p0, nc);
-			LongLine[nc] = '\0';
-			SET_STRING_ELT(source, lines++,
-				       mkChar((char *)LongLine));
-			free(LongLine);
-		    }
+		    strncpy((char *)SourceLine, (char *)p0, nc);
+		    SourceLine[nc] = '\0';
+		    SET_STRING_ELT(source, lines++,
+				   mkChar((char *)SourceLine));
 		    p0 = p + 1;
 		}
 	    /* PrintValue(source); */
@@ -823,6 +787,17 @@ static void PopComment(void)
 	R_CommentSxp = CDR(R_CommentSxp);
 }
 
+#ifdef NOT_used
+int IsComment(SEXP l)
+{
+    if (isList(l) && isString(CAR(l))
+	&& !strncmp(CHAR(STRING(CAR(l))[0]), "#", 1))
+	return 1;
+    else
+	return 0;
+}
+#endif
+
 static void AddComment(SEXP l)
 {
     SEXP tcmt, cmt;
@@ -888,11 +863,11 @@ static SEXP NextArg(SEXP l, SEXP s, SEXP tag)
  *  The following routines parse a single expression:
  *
  *
- *	SEXP R_Parse1File(FILE *fp, int gencode, ParseStatus *status)
+ *	SEXP R_Parse1File(FILE *fp, int gencode, int *status)
  *
- *	SEXP R_Parse1Vector(TextBuffer *text, int gencode, ParseStatus *status)
+ *	SEXP R_Parse1Vector(TextBuffer *text, int gencode, int *status)
  *
- *	SEXP R_Parse1Buffer(IOBuffer *buffer, int gencode, ParseStatus *status)
+ *	SEXP R_Parse1Buffer(IOBuffer *buffer, int gencode, int *status)
  *
  *
  *  The success of the parse is indicated as folllows:
@@ -908,11 +883,11 @@ static SEXP NextArg(SEXP l, SEXP s, SEXP tag)
  *  The following routines parse several expressions and return
  *  their values in a single expression vector.
  *
- *	SEXP R_ParseFile(FILE *fp, int n, ParseStatus *status)
+ *	SEXP R_ParseFile(FILE *fp, int n, int *status)
  *
- *	SEXP R_ParseVector(TextBuffer *text, int n, ParseStatus *status)
+ *	SEXP R_ParseVector(TextBuffer *text, int n, int *status)
  *
- *	SEXP R_ParseBuffer(IOBuffer *buffer, int n, ParseStatus *status)
+ *	SEXP R_ParseBuffer(IOBuffer *buffer, int n, int *status)
  *
  *  Here, status is 1 for a successful parse and 0 if parsing failed
  *  for some reason.
@@ -936,7 +911,7 @@ static void ParseInit()
     KeepSource = *LOGICAL(GetOption(install("keep.source"), R_NilValue));
 }
 
-static SEXP R_Parse1(ParseStatus *status)
+static SEXP R_Parse1(int *status)
 {
     switch(yyparse()) {
     case 0:                     /* End of file */
@@ -970,7 +945,7 @@ static int file_ungetc(int c)
     return ungetc(c, fp_parse);
 }
 
-SEXP R_Parse1File(FILE *fp, int gencode, ParseStatus *status)
+SEXP R_Parse1File(FILE *fp, int gencode, int *status)
 {
     ParseInit();
     GenerateCode = gencode;
@@ -993,7 +968,7 @@ static int buffer_ungetc(int c)
     return R_IoBufferUngetc(c, iob);
 }
 
-SEXP R_Parse1Buffer(IoBuffer *buffer, int gencode, ParseStatus *status)
+SEXP R_Parse1Buffer(IoBuffer *buffer, int gencode, int *status)
 {
     ParseInit();
     GenerateCode = gencode;
@@ -1016,7 +991,7 @@ static int text_ungetc(int c)
     return R_TextBufferUngetc(c, txtb);
 }
 
-SEXP R_Parse1Vector(TextBuffer *textb, int gencode, ParseStatus *status)
+SEXP R_Parse1Vector(TextBuffer *textb, int gencode, int *status)
 {
     ParseInit();
     GenerateCode = gencode;
@@ -1031,7 +1006,7 @@ SEXP R_Parse1Vector(TextBuffer *textb, int gencode, ParseStatus *status)
 #ifdef GENERAL
 
 SEXP R_Parse1General(int (*g_getc)(), int (*g_ungetc)(),
-		     int gencode, ParseStatus *status)
+		     int gencode, int *status)
 {
     ParseInit();
     GenerateCode = gencode;
@@ -1042,7 +1017,7 @@ SEXP R_Parse1General(int (*g_getc)(), int (*g_ungetc)(),
 }
 #endif
 
-SEXP R_Parse(int n, ParseStatus *status)
+SEXP R_Parse(int n, int *status)
 {
     int i;
     SEXP t, rval;
@@ -1101,7 +1076,7 @@ SEXP R_Parse(int n, ParseStatus *status)
     }
 }
 
-SEXP R_ParseFile(FILE *fp, int n, ParseStatus *status)
+SEXP R_ParseFile(FILE *fp, int n, int *status)
 {
     GenerateCode = 1;
     R_ParseError = 1;
@@ -1130,7 +1105,7 @@ static int con_ungetc(int c)
     return Rconn_ungetc(c, con_parse);
 }
 
-SEXP R_ParseConn(Rconnection con, int n, ParseStatus *status)
+SEXP R_ParseConn(Rconnection con, int n, int *status)
 {
     GenerateCode = 1;
     R_ParseError = 1;
@@ -1140,7 +1115,7 @@ SEXP R_ParseConn(Rconnection con, int n, ParseStatus *status)
     return R_Parse(n, status);
 }
 
-SEXP R_ParseVector(SEXP text, int n, ParseStatus *status)
+SEXP R_ParseVector(SEXP text, int n, int *status)
 {
     SEXP rval;
     TextBuffer textb;
@@ -1156,8 +1131,7 @@ SEXP R_ParseVector(SEXP text, int n, ParseStatus *status)
 }
 
 #ifdef GENERAL
-SEXP R_ParseGeneral(int (*ggetc)(), int (*gungetc)(), int n,
-		    ParseStatus *status)
+SEXP R_ParseGeneral(int (*ggetc)(), int (*gungetc)(), int n, int *status)
 {
     GenerateCode = 1;
     R_ParseError = 1;
@@ -1183,7 +1157,7 @@ static char *Prompt(SEXP prompt, int type)
     }
 }
 
-SEXP R_ParseBuffer(IoBuffer *buffer, int n, ParseStatus *status, SEXP prompt)
+SEXP R_ParseBuffer(IoBuffer *buffer, int n, int *status, SEXP prompt)
 {
     SEXP rval, t;
     char *bufp, buf[1024];
@@ -1483,13 +1457,6 @@ static void CheckFormalArgs(SEXP formlist, SEXP new)
 
 static char yytext[MAXELTSIZE];
 
-#define DECLARE_YYTEXT_BUFP(bp) char *bp = yytext
-#define YYTEXT_PUSH(c, bp) do { \
-    if ((bp) - yytext >= sizeof(yytext) - 1) \
-        error("input buffer overflow"); \
-	*(bp)++ = (c); \
-} while(0)
-
 static int SkipSpace(void)
 {
     int c;
@@ -1506,12 +1473,13 @@ static int SkipSpace(void)
 
 static int SkipComment(void)
 {
-    DECLARE_YYTEXT_BUFP(yyp);
+    char *p;
     int c;
-    YYTEXT_PUSH('#', yyp);
+    p = yytext;
+    *p++ = '#';
     while ((c = xxgetc()) != '\n' && c != R_EOF)
-	YYTEXT_PUSH(c, yyp);
-    YYTEXT_PUSH('\0', yyp);
+	*p++ = c;
+    *p = '\0';
     if (c == R_EOF) EndOfFile = 2;
     return c;
 }
@@ -1520,15 +1488,15 @@ static int NumericValue(int c)
 {
     int seendot = (c == '.');
     int seenexp = 0;
-    DECLARE_YYTEXT_BUFP(yyp);
-    YYTEXT_PUSH(c, yyp);
+    char *p = yytext;
+    *p++ = c;
     while (isdigit(c = xxgetc()) || c == '.' || c == 'e' || c == 'E') {
 	if (c == 'E' || c == 'e') {
 	    if (seenexp)
 		break;
 	    seenexp = 1;
 	    seendot = 1;
-	    YYTEXT_PUSH(c, yyp);
+	    *p++ = c;
 	    c = xxgetc();
 	    if (!isdigit(c) && c != '+' && c != '-')
 		break;
@@ -1538,9 +1506,9 @@ static int NumericValue(int c)
 		break;
 	    seendot = 1;
 	}
-	YYTEXT_PUSH(c, yyp);
+	*p++ = c;
     }
-    YYTEXT_PUSH('\0', yyp);
+    *p = '\0';
     if(c == 'i') {
 	yylval = mkComplex(yytext);
     }
@@ -1559,7 +1527,7 @@ static int NumericValue(int c)
 static int StringValue(int c)
 {
     int quote = c;
-    DECLARE_YYTEXT_BUFP(yyp);
+    char *p = yytext;
     while ((c = xxgetc()) != R_EOF && c != quote) {
 	if (c == '\n') {
 	    xxungetc(c);
@@ -1608,35 +1576,27 @@ static int StringValue(int c)
 		}
 	    }
 	}
-	YYTEXT_PUSH(c, yyp);
+	*p++ = c;
     }
-    YYTEXT_PUSH('\0', yyp);
+    *p = '\0';
     PROTECT(yylval = mkString(yytext));
     return STR_CONST;
 }
 
-static int QuotedSymbolValue(int c)
-{
-    (void) StringValue(c); /* always returns STR_CONST */
-    UNPROTECT(1);
-    PROTECT(yylval = install(yytext));
-    return SYMBOL;
-}
-
 static int SpecialValue(int c)
 {
-    DECLARE_YYTEXT_BUFP(yyp);
-    YYTEXT_PUSH(c, yyp);
+    char *p = yytext;
+    *p++ = c;
     while ((c = xxgetc()) != R_EOF && c != '%') {
 	if (c == '\n') {
 	    xxungetc(c);
 	    return ERROR;
 	}
-	YYTEXT_PUSH(c, yyp);
+	*p++ = c;
     }
     if (c == '%')
-	YYTEXT_PUSH(c, yyp);
-    YYTEXT_PUSH('\0', yyp);
+	*p++ = c;
+    *p++ = '\0';
     yylval = install(yytext);
     return SPECIAL;
 }
@@ -1653,39 +1613,44 @@ int isValidName(char *name)
     if( c != '.' && !isalpha(c) )
         return 0;
 
-    if (c == '.' && isdigit((int)*p)) 
-	return 0;
-
-    while ( c = *p++, (isalnum(c) || c=='.') )
-	;
-
-    if (c != '\0') return 0;
-
-    if (strcmp(name, "...") == 0) 
-	return 1;
-
-    for (i = 0; keywords[i].name != NULL; i++)
-        if (strcmp(keywords[i].name, name) == 0)
+    for (i = 0; keywords[i].name; i++)
+        if (strcmp(keywords[i].name, name) == 0 && !(strcmp(name, "...")==0))
                 return 0;
-    
-    return 1;
+
+    if (c == '.' ) {
+	if( strlen(name)==1 )
+	    return 1;
+        while ( (c = *p++) )
+	    if( !isdigit(c) ) {
+		if( !isalpha(c) )
+		    return 0;
+		else
+		    break;
+	    };
+	if( c == '\0' )
+ 	    return 0;
+    }
+    while ( c = *p++, (isalnum(c) || c=='.') );
+    if (c == '\0')
+        return 1;
+    else
+        return 0;
 }
 
 
 static int SymbolValue(int c)
 {
     int kw;
-    DECLARE_YYTEXT_BUFP(yyp);
+    char *p = yytext;
     do {
-	YYTEXT_PUSH(c, yyp);
+	*p++ = c;
     }
     while ((c = xxgetc()) != R_EOF && (isalnum(c) || c == '.'));
     xxungetc(c);
-    YYTEXT_PUSH('\0', yyp);
+    *p = '\0';
+    /* FIXME: check overrun conditions */
     if ((kw = KeywordLookup(yytext))) {
 	if ( kw == FUNCTION ) {
-	    if (FunctionLevel >= MAXNEST)
-		error("functions nested too deeply in source code");
 	    if ( FunctionLevel++ == 0 && GenerateCode) {
 		strcpy((char *)FunctionSource, "function");
 		SourcePtr = FunctionSource + 8;
@@ -1746,12 +1711,17 @@ static int token()
 
     /* functions, constants and variables */
 
-    if (c == '`')
-	return QuotedSymbolValue(c);
  symbol:
 
     if (c == '.' || isalpha(c))
 	return SymbolValue(c);
+
+    /* gag, barf, but the punters want it */
+
+    if (c == '_') {
+	yylval = install("<-");
+	return LEFT_ASSIGN;
+    }
 
     /* compound tokens */
 
@@ -1807,19 +1777,8 @@ static int token()
 	    yylval = install("==");
 	    return EQ;
 	}
-	yylval = install("=");
-	return EQ_ASSIGN;
+	return '=';
     case ':':
-	if (nextchar(':')) {
-            if (nextchar(':')) {
-		yylval = install(":::");
-		return NS_GET_INT;
-	    }
-	    else {
-		yylval = install("::");
-		return NS_GET;
-	    }
-	}
 	if (nextchar('=')) {
 	    yylval = install(":=");
 	    return LEFT_ASSIGN;
@@ -1860,7 +1819,7 @@ static int token()
     case ']':
 	return c;
     case '?':
-	strcpy(yytext, "?");
+	strcpy(yytext, "help");
 	yylval = install(yytext);
 	return c;
     case '*':
@@ -1875,7 +1834,6 @@ static int token()
     case '^':
     case '~':
     case '$':
-    case '@':
 	yytext[0] = c;
 	yytext[1] = '\0';
 	yylval = install(yytext);
@@ -1995,10 +1953,8 @@ int yylex(void)
     case ':':
     case '~':
     case '$':
-    case '@':
     case LEFT_ASSIGN:
     case RIGHT_ASSIGN:
-    case EQ_ASSIGN:
 	EatLines = 1;
 	break;
 

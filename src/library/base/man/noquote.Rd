@@ -1,40 +1,33 @@
 \name{noquote}
-\alias{noquote}
-\alias{print.noquote}
-\alias{as.matrix.noquote}
-\alias{c.noquote}
-\alias{[.noquote}
-\title{Class for ``no quote'' Printing of Character Strings}
-\description{
-  Print character strings without quotes.
-}
+\title{Class for ``no quote'' Printing of Strings}
 \usage{
 noquote(obj)
-\method{print}{noquote}(x, \dots)
-\method{c}{noquote}(\dots, recursive = FALSE)
+print.noquote(x, \dots)
+obj[j]
 }
+\alias{noquote}
+%> ./Extract.Rd for "[" and "[<-"
+\alias{print.noquote}
+\alias{as.matrix.noquote}
 \arguments{
-  \item{obj}{any \R object, typically a vector of
-    \code{\link{character}} strings.}
-  \item{x}{an object of class \code{"noquote"}.}
-  \item{\dots}{further options passed to next methods, such as \code{\link{print}}.}
-  \item{recursive}{for compatibility with the generic \code{\link{c}} function.}
+ \item{obj, x}{any \R object; typically a vector of \code{\link{character}}
+   strings.}
+ \item{\dots}{further options for \code{\link{print}}.}
 }
-\details{
+\description{
+  These functions exist both as utilities and as an example of using
+  \code{\link{class}} and object orientation.
+}
+\value{
   \code{noquote} returns its argument as an object of class
-  \code{"noquote"}.  There is a method for \code{c()} and subscript
-  method (\code{"[.noquote"}) which ensures that the class is not lost
-  by subsetting.  The print method (\code{print.noquote}) prints
-  character stringss \emph{without} quotes (\code{"\dots"}).
+  \code{"noquote"}.  The function \code{"[.noquote"} ensures that the
+  class is not lost by subsetting.
 
-  These functions exist both as utilities and as an example of using (S3)
-  \code{\link[base]{class}} and object orientation.
+  For (default) printing, \code{print.noquote} will be used which prints
+  characters \emph{without} quotes (\code{"\dots"}).
 }
 \author{Martin Maechler \email{maechler@stat.math.ethz.ch}}
-\seealso{
-  \code{\link{methods}},
-  \code{\link[base]{class}},
-  \code{\link{print}}.
+\seealso{\code{\link{methods}},\code{\link{class}},\code{\link{print}}.
 }
 \examples{
 letters

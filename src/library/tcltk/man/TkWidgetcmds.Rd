@@ -1,5 +1,4 @@
 \name{TkWidgetcmds}
-\alias{TkWidgetcmds}
 \alias{tkactivate}
 \alias{tkadd}
 \alias{tkaddtag}
@@ -29,6 +28,10 @@
 \alias{tkgettags}
 \alias{tkicursor}
 \alias{tkidentify}
+\alias{tkimage.cget}
+\alias{tkimage.configure}
+\alias{tkimage.create}
+\alias{tkimage.names}
 \alias{tkindex}
 \alias{tkinsert}
 \alias{tkinvoke}
@@ -117,7 +120,6 @@ tkdelete(widget, ...)
 tkdelta(widget, ...)
 tkdeselect(widget, ...)
 tkdlineinfo(widget, ...)
-tkdtag(widget, ...)
 tkdump(widget, ...)
 tkentrycget(widget, ...)
 tkentryconfigure(widget, ...)
@@ -128,6 +130,10 @@ tkget(widget, ...)
 tkgettags(widget, ...)
 tkicursor(widget, ...)
 tkidentify(widget, ...)
+tkimage.cget(widget, ...)
+tkimage.configure(widget, ...)
+tkimage.create(widget, ...)
+tkimage.names(widget, ...)
 tkindex(widget, ...)
 tkinsert(widget, ...)
 tkinvoke(widget, ...)

@@ -1,6 +1,6 @@
-### R.m4 -- extra macros for configuring R		-*- Autoconf -*-
+### aclocal.m4 -- extra macros for configuring R
 ###
-### Copyright (C) 1998-2002 R Core Team
+### Copyright (C) 1998, 1999, 2000, 2001 R Core Team
 ###
 ### This file is part of R.
 ###
@@ -20,840 +20,418 @@
 ### Software Foundation, 59 Temple Place -- Suite 330, Boston, MA
 ### 02111-3307, USA.
 
-### * General support macros
-
+##
+## R_ARG_WITH_EXCLUSIVE
+##
+AC_DEFUN([R_ARG_WITH_EXCLUSIVE],
+ [if test "${with_$1+set}" = set; then
+    if test "${with_$2+set}" = set; then
+      if test "$with_$2" = no; then
+	true
+      else
+	$3
+      fi
+    fi
+  fi])
+##
 ## R_ARG_USE
-## ---------
+##
 AC_DEFUN([R_ARG_USE],
-[if test "${withval}" = no; then
-  use_$1=no
-else
-  use_$1=yes
-fi
-])# R_ARG_USE
-
-## R_SH_VAR_ADD(VARIABLE, VALUE, [SEPARATOR = " "])
-## ---------------------------------------------------
-## Set sh variable VARIABLE to VALUE if empty (or undefined), or append
-## VALUE to the value of VARIABLE, separated by SEPARATOR.
-## Currently, safe only if all arguments are literals.
-## Useful mostly when we do not know whether VARIABLE is empty or not.
-## Should maybe also have a fourth argument to control whether adding
-## happens by appending (default) or prepending ...
-AC_DEFUN([R_SH_VAR_ADD],
-[separator="$3"
-test -z "${separator}" && separator=" "
-if test -z "${[$1]}"; then
-  $1="$2"
-else
-  $1="${[$1]}${separator}$2"
-fi])# R_SH_VAR_ADD
-
-### * Programs
-
+ [if test "${withval}" = no; then
+    use_$1=false
+  else
+    use_$1=true
+  fi])
+##
 ## R_PROG_AR
-## ---------
+##
 AC_DEFUN([R_PROG_AR],
-[AC_CHECK_PROGS(AR, [${AR} ar])
-: ${ARFLAGS="rc"}
-AC_SUBST(ARFLAGS)
-])# R_PROG_AR
-
+ [AC_CHECK_PROGS(AR, [${AR} ar])
+  : ${ARFLAGS="rc"}
+  AC_SUBST(ARFLAGS)])
+##
+## R_PROG_ECHO_N
+##
+AC_DEFUN([R_PROG_ECHO_N],
+ [AC_MSG_CHECKING([whether echo can suppress newlines])
+  if echo "testing\c" | grep c >/dev/null; then
+    if echo -n "testing" | sed s/-n/xn/ | grep xn >/dev/null; then
+      ECHO_N= ECHO_C= ECHO_T='	'
+    else
+      ECHO_N=-n ECHO_C= ECHO_T=
+    fi
+  else
+    ECHO_N= ECHO_C='\c' ECHO_T=
+  fi
+  if test -z "${ECHO_T}"; then
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no)
+  fi
+  AC_SUBST(ECHO_C)
+  AC_SUBST(ECHO_N)
+  AC_SUBST(ECHO_T)
+ ])
+##
 ## R_PROG_INSTALL
-## --------------
-## Find a good install program.
-## We like to provide INSTALL in the top-level Makeconf.
-## Hence, if AC_PROG_INSTALL ends up with the 'tools/install-sh' script,
-## we need to ensure a relative path (i.e., in case we build in srcdir)
-## gets prefixed by top_srcdir.  (This would not be necessary if we had
-## '@INSTALL@' in each Makefile.in, but we prefer to share ...)
+##
 AC_DEFUN([R_PROG_INSTALL],
-[AC_REQUIRE([AC_PROG_INSTALL])
-case "${INSTALL}" in
-  [[\\/]]* | ?:[[\\/]]* ) # absolute
-    ;;
-  *)
-    INSTALL="\$\(top_srcdir\)/tools/install-sh -c"
-    ;;
-esac
-case "${host_os}" in
-  hpux*)
-    ## On some versions of HP-UX (seen on both 10.20 and 11.0) we end up
-    ## a broken install (seen in /opt/imake/bin) which has the default
-    ## permissions wrong (PR#2091).  Let's just always use install-sh on
-    ## HP-UX.
-    INSTALL="\$\(top_srcdir\)/tools/install-sh -c"
-    ;;
-esac
-])# R_PROG_INSTALL
-
-## R_PROG_PAGER
-## ------------
-AC_DEFUN([R_PROG_PAGER],
-[AC_PATH_PROGS(PAGER, [${PAGER} less more page pg], false)
-if test "${PAGER}" = false; then
-  warn_pager="I could not determine a pager"
-  AC_MSG_WARN([${warn_pager}])
-fi
-])# R_PROG_PAGER
-
-## R_PROG_PERL
-## -----------
-AC_DEFUN([R_PROG_PERL],
-[AC_PATH_PROGS(PERL, [${PERL} perl])
-if test -n "${PERL}"; then
-  _R_PROG_PERL_VERSION
-else
-  ## <NOTE>
-  ## Need a full path for '@PERL@' substitutions when starting Perl
-  ## scripts with a line of the form '#! FOO'.
-  AC_PATH_PROGS(FALSE, false)
-  PERL="${FALSE}"
-  ## </NOTE>
-fi
-if test "${r_cv_prog_perl_v5}" = yes; then
-  NO_PERL5=false
-else
-  warn_perl5="you cannot build the object documentation system"
-  AC_MSG_WARN([${warn_perl5}])
-  NO_PERL5=true
-fi
-AC_SUBST(NO_PERL5)
-])# R_PROG_PERL
-
-## _R_PROG_PERL_VERSION
-## --------------------
-## Building the R documentation system (Rdconv and friends) requires
-## Perl version 5.004 or better.
-## Set shell variable r_cv_prog_perl_v5 to 'yes' if a recent enough
-## Perl is found, and to 'no' otherwise.
-AC_DEFUN([_R_PROG_PERL_VERSION],
-[AC_CACHE_CHECK([whether perl version is at least 5.004],
-                [r_cv_prog_perl_v5],
-[if ${PERL} -e 'require 5.004 or exit 1'; then
-  r_cv_prog_perl_v5=yes
-else
-  r_cv_prog_perl_v5=no
-fi])
-])# _R_PROG_PERL_VERSION
-
-## R_PROG_TEXMF
-## ------------
-AC_DEFUN([R_PROG_TEXMF],
-[AC_REQUIRE([R_PROG_PERL])
-AC_PATH_PROGS(DVIPS, [${DVIPS} dvips], false)
-AC_PATH_PROGS(TEX, [${TEX} tex], false)
-AC_PATH_PROGS(LATEX, [${LATEX} latex], false)
-if test -z "${ac_cv_path_TEX}" ; then
-  warn_dvi="you cannot build DVI versions of the R manuals"
-elif test -z "${ac_cv_path_LATEX}"; then
-  warn_dvi="you cannot build DVI versions of all the help pages"
-fi
-if test -n "${warn_dvi}"; then
-  AC_MSG_WARN([${warn_dvi}])
-fi
-AC_PATH_PROGS(MAKEINDEX, [${MAKEINDEX} makeindex], false)
-AC_PATH_PROGS(PDFTEX, [${PDFTEX} pdftex], false)
-AC_PATH_PROGS(PDFLATEX, [${PDFLATEX} pdflatex], false)
-if test -z "${ac_cv_path_PDFTEX}" ; then
-  warn_pdf="you cannot build PDF versions of the R manuals"
-elif test -z "${ac_cv_path_PDFLATEX}" ; then
-  warn_pdf="you cannot build PDF versions of all the help pages"
-fi
-if test -n "${warn_pdf}"; then
-  AC_MSG_WARN([${warn_pdf}])
-fi
-AC_PATH_PROGS(MAKEINFO_CMD, [${MAKEINFO} makeinfo])
-## This test admittedly looks a bit strange ... see R_PROG_PERL.
-if test "${PERL}" = "${FALSE}"; then
-  AC_PATH_PROGS(INSTALL_INFO, [${INSTALL_INFO} install-info], false)
-else
-  INSTALL_INFO="\$(PERL) \$(top_srcdir)/tools/install-info.pl"
-  AC_SUBST(INSTALL_INFO)
-fi
-: ${R_RD4DVI="ae"}
-AC_SUBST(R_RD4DVI)
-: ${R_RD4PDF="ae,hyper"}
-AC_SUBST(R_RD4PDF)
-])# R_PROG_TEXMF
-
-## R_PROG_MAKEINFO
-## ---------------
-AC_DEFUN([R_PROG_MAKEINFO],
-## This used to be part of R_PROG_TEXMF, where it really belongs.
-## Unfortunately, AM_PROG_LIBTOOL unconditionally overwrites MAKEINFO
-## by makeinfo or missing.  To allow users to pass a MAKEINFO setting to
-## configure, we thus have to run R_PROG_TEXMF before AM_PROG_LIBTOOL,
-## save the result to something not overwritten (hence MAKEINFO_CMD),
-## and finally set MAKEINFO according to our needs.
-[AC_REQUIRE([R_PROG_TEXMF])
-AC_REQUIRE([AM_PROG_LIBTOOL])
-if test -n "${MAKEINFO_CMD}"; then
-  _R_PROG_MAKEINFO_VERSION
-fi
-if test "${r_cv_prog_makeinfo_v4}" != yes; then
-  warn_info="you cannot build info versions of the R manuals"
-  AC_MSG_WARN([${warn_info}])
-  MAKEINFO=false
-else
-  MAKEINFO="${MAKEINFO_CMD}"
-fi
-])# R_PROG_MAKEINFO
-
-## _R_PROG_MAKEINFO_VERSION
-## ------------------------
-## Building the R Texinfo manuals requires Makeinfo v4 or better.
-## Set shell variable r_cv_prog_makeinfo_v4 to 'yes' if a recent
-## enough Makeinfo is found, and to 'no' otherwise.
-AC_DEFUN([_R_PROG_MAKEINFO_VERSION],
-[AC_CACHE_CHECK([whether makeinfo version is at least 4],
-                [r_cv_prog_makeinfo_v4],
-[makeinfo_version=`${MAKEINFO_CMD} --version | \
-  grep "^makeinfo" | sed 's/[[^)]]*) \(.\).*/\1/'`
-if test -z "${makeinfo_version}"; then
-  r_cv_prog_makeinfo_v4=no
-elif test ${makeinfo_version} -lt 4; then
-  r_cv_prog_makeinfo_v4=no
-else
-  r_cv_prog_makeinfo_v4=yes
-fi])
-])# _R_PROG_MAKEINFO_VERSION
-
-## R_PROG_BROWSER
-## --------------
-AC_DEFUN([R_PROG_BROWSER],
-[if test -z "${R_BROWSER}"; then
-  AC_PATH_PROGS(R_BROWSER, [netscape mozilla galeon kfmclient opera gnome-moz-remote open])
-fi
-if test -z "${R_BROWSER}"; then
-  warn_browser="I could not determine a browser"
-  AC_MSG_WARN([${warn_browser}])
-else
-  AC_MSG_RESULT([using default browser ... ${R_BROWSER}])
-fi
-AC_SUBST(R_BROWSER)
-])# R_BROWSER
-
-## R_PROG_PDFVIEWER
-## ----------------
-## Try to determine a PDF viewer.
-## According to Jeff Gentry <jgentry@jimmy.harvard.edu>, 'acroread4' is
-## the FreeBSD acroread port.
-AC_DEFUN([R_PROG_PDFVIEWER],
-[AC_PATH_PROGS(R_PDFVIEWER,
-               [${R_PDFVIEWER} acroread acroread4 xpdf gv gnome-gv kghostview open])
-if test -z "${R_PDFVIEWER}"; then
-  warn_pdfviewer="I could not determine a PDF viewer"
-  AC_MSG_WARN([${warn_pdfviewer}])
-fi
-AC_SUBST(R_PDFVIEWER)
-])# R_PDFVIEWER
-
-### * C compiler and its characteristics.
-
-## R_PROG_CPP_CPPFLAGS
-## -------------------
-## In case of gcc, check whether the C preprocessor complains about
-## having '/usr/local/include' in its header search path (no matter how
-## it came there).  GCC 3.1 and 3.2 (at least) give warnings about
-## 'changing search order for system directory "/usr/local/include" as
-## it has already been specified as a non-system directory' which are at
-## least quite annoying.
-## <NOTE>
-## We currently do not distinguish whether '/usr/local/include' was
-## added as the R default, or by an explicit CPPFLAGS arg to configure.
-## If we wanted to, we should change
-##     : ${CPPFLAGS="-I/usr/local/include"}
-## in 'configure.ac' by something like
-##     : ${CPPFLAGS=${r_default_CPPFLAGS="-I/usr/local/include"}}
-## and test whether r_default_CPPFLAGS is non-empty.
-## </NOTE>
-AC_DEFUN([R_PROG_CPP_CPPFLAGS],
-[AC_REQUIRE([AC_PROG_CC])
-AC_REQUIRE([AC_PROG_CPP])
-if test "${GCC}" = yes; then
-  AC_LANG_PUSH(C)
-  AC_LANG_CONFTEST([AC_LANG_PROGRAM()])
-  if ${CPP} ${CPPFLAGS} conftest.${ac_ext} 2>&1 1>/dev/null | \
-      grep 'warning:.*system directory.*/usr/local/include' >/dev/null; then
-    CPPFLAGS=`echo ${CPPFLAGS} | \
-      sed 's|\(.*\)-I/usr/local/include *\(.*\)|\1\2|'`
-  fi
-  rm -f conftest.${ac_ext}
-  AC_LANG_POP(C)
-fi])# R_PROG_CPP_CPPFLAGS
-
-## R_PROG_CC_M
-## -----------
-## Check whether we can figure out C Make dependencies.
-AC_DEFUN([R_PROG_CC_M],
-[AC_MSG_CHECKING([whether we can compute C Make dependencies])
-AC_CACHE_VAL([r_cv_prog_cc_m],
-[echo "#include <math.h>" > conftest.c
-## No real point in using AC_LANG_* and ${ac_ext}, as we need to create
-## hard-wired suffix rules.
-## Another obvious candidate to try is '${MAKEDEPEND-makedepend} -f-'.
-## However, this does not work out of the box when srcdir and builddir
-## are different, as it creates dependencies of the form
-##   ${srcdir}/foo.o: /path/to/bar.h
-## Could be made to work, of course ...
-## Note also that it does not create a 'conftest.o: conftest.c' line.
-## For gcc 3.2 or better, we want to use '-MM' in case this works.
-cc_minus_MM=false
-if test "${GCC}" = yes; then
-  gcc_version=`${CC} -v 2>&1 | grep "^.*g.. version" | \
-    sed -e 's/^.*g.. version *//'`
-  case "${gcc_version}" in
-    1.*|2.*|3.[[01]]*) ;;
-    *) cc_minus_MM="${CC} -MM" ;;
+ [AC_REQUIRE([AC_PROG_INSTALL])
+  warn_install="redefining INSTALL to be `pwd`/tools/install-sh -c"
+  case "${INSTALL}" in
+    [[!/]]*install-sh*)
+      ## Fix a bug in older versions of autoconf---the path of the
+      ## install shell script is not cached.  Could also use an absolute
+      ## path in AC_CONFIG_AUX_DIR().
+      INSTALL="\$\(top_srcdir\)/tools/install-sh -c"
+      AC_MSG_WARN([${warn_install}])
+      ;;
   esac
-fi
-for prog in "${cc_minus_MM}" "${CC} -M" "${CPP} -M" "cpp -M"; do
-  if ${prog} conftest.c 2>/dev/null | \
-      grep 'conftest.o: conftest.c' >/dev/null; then
-    r_cv_prog_cc_m="${prog}"
-    break
+  case "${host}" in
+    *aix*|*hpux*)
+      ## installbsd on AIX does not seem to work?
+      INSTALL="\$\(top_srcdir\)/tools/install-sh -c"
+      AC_MSG_WARN([${warn_install}])
+      ;;
+  esac
+ ])
+##
+## R_PROG_PERL
+##
+changequote(<<, >>)dnl
+define(PERL5_CHECK,
+<<
+  if ${PERL} -e 'exit 1 if $]<5'
+  then
+    r_cv_prog_perl_v5=yes
+  else
+    r_cv_prog_perl_v5=no
   fi
-done])
-if test -z "${r_cv_prog_cc_m}"; then
-  AC_MSG_RESULT([no])
-else
-  AC_MSG_RESULT([yes, using ${r_cv_prog_cc_m}])
-fi
-])# R_PROG_CC_M
-
+>>)
+changequote([, ]) dnl
+AC_DEFUN([R_PROG_PERL],
+ [AC_PATH_PROGS(PERL, [${PERL} perl])
+  if test -n "${PERL}"; then
+    AC_CACHE_CHECK([whether perl version is at least 5],
+      r_cv_prog_perl_v5, [PERL5_CHECK()] )
+  else
+    PERL=false
+  fi
+  if test "${r_cv_prog_perl_v5}" = yes; then
+    NO_PERL5=false
+  else
+    warn_perl5="you cannot build the object documentation system"
+    AC_MSG_WARN(${warn_perl5})
+    NO_PERL5=true
+  fi
+  AC_SUBST(NO_PERL5)
+ ])
+##
+## R_PROG_TEXMF
+##
+AC_DEFUN([R_PROG_TEXMF],
+ [AC_REQUIRE([R_PROG_PERL])
+  AC_PATH_PROGS(DVIPS, [${DVIPS} dvips], false)
+  AC_PATH_PROGS(TEX, [${TEX} tex], false)
+  AC_PATH_PROGS(LATEX, [${LATEX} latex], false)
+  if test -z "${ac_cv_path_LATEX}" ; then
+    warn_dvi="you cannot build DVI versions of the R manuals"
+    AC_MSG_WARN(${warn_dvi})
+  fi
+  AC_PATH_PROGS(MAKEINDEX, [${MAKEINDEX} makeindex], false)
+  AC_PATH_PROGS(PDFTEX, [${PDFTEX} pdftex], false)
+  AC_PATH_PROGS(PDFLATEX, [${PDFLATEX} pdflatex], false)
+  if test -z "${ac_cv_path_PDFLATEX}" ; then
+    warn_pdf="you cannot build PDF versions of the R manuals"
+    AC_MSG_WARN(${warn_pdf})
+  fi
+  AC_PATH_PROGS(MAKEINFO, [${MAKEINFO} makeinfo])
+  if test -n "${MAKEINFO}"; then
+    AC_CACHE_CHECK([whether makeinfo version is at least 4],
+      r_cv_prog_makeinfo_v4,
+      [ makeinfo_version=`${MAKEINFO} --version | grep "^makeinfo" | \
+          sed 's/[[^)]]*) \(.\).*/\1/'`
+	if test -z "${makeinfo_version}"; then
+	  r_cv_prog_makeinfo_v4=no
+	elif test ${makeinfo_version} -lt 4; then
+	  r_cv_prog_makeinfo_v4=no
+	else
+	  r_cv_prog_makeinfo_v4=yes
+	fi
+      ])
+  fi
+  if test "${r_cv_prog_makeinfo_v4}" != yes; then
+    warn_info="you cannot build info versions of the R manuals"
+    AC_MSG_WARN(${warn_info})
+    MAKEINFO=false
+  fi
+  if test "${PERL}" != false; then
+    INSTALL_INFO="\$(PERL) \$(top_srcdir)/tools/install-info.pl"
+    AC_SUBST(INSTALL_INFO)
+  else
+    AC_PATH_PROGS(INSTALL_INFO, [${INSTALL_INFO} install-info], false)
+  fi
+  : ${R_RD4DVI="ae"}
+  AC_SUBST(R_RD4DVI)
+  : ${R_RD4PDF="ae,hyper"}
+  AC_SUBST(R_RD4PDF)
+  ])
+##
+## R_PROG_CC_M
+##
+## Test whether the C compiler accepts -M for generating dependencies
+##
+AC_DEFUN([R_PROG_CC_M],
+  [ depend_rules_frag=Makefrag.dep
+    AC_CACHE_CHECK(
+      [whether ${CC} accepts -M for generating dependencies],
+      r_cv_prog_cc_m,
+      [ AC_LANG_SAVE
+	AC_LANG_C
+        echo "#include <math.h>" > conftest.${ac_ext}
+	if test -n "`${CC} -M conftest.${ac_ext} 2>/dev/null \
+		    | grep conftest`"; then
+	  r_cv_prog_cc_m=yes
+	else
+	  r_cv_prog_cc_m=no
+	fi
+	AC_LANG_RESTORE
+      ])
+    if test "${r_cv_prog_cc_m}" = yes; then
+      cat << \EOF > ${depend_rules_frag}
+.c.d:
+	@echo "making $[@] from $<"
+	@$(CC) -M $(ALL_CPPFLAGS) $< | \
+	  sed -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > $[@]
+EOF
+    else
+      cat << \EOF > ${depend_rules_frag}
+.c.d:
+	@touch $[@]
+EOF
+    fi
+    AC_SUBST_FILE(depend_rules_frag)
+  ])
+##
 ## R_PROG_CC_C_O_LO
-## ----------------
-## Check whether the C compiler supports '-c -o FILE.lo'.
+##
+## See whether C compiler supports -c -o FILE.lo
+##
 AC_DEFUN([R_PROG_CC_C_O_LO],
-[AC_CACHE_CHECK([whether ${CC} supports -c -o FILE.lo],
-                [r_cv_prog_cc_c_o_lo],
-[test -d TMP || mkdir TMP
-echo "int some_variable = 0;" > conftest.c
-## No real point in using AC_LANG_* and ${ac_ext}, as we need to create
-## hard-wired suffix rules. 
-ac_try='${CC} ${CFLAGS} -c conftest.c -o TMP/conftest.lo 1>&AS_MESSAGE_LOG_FD'
-if AC_TRY_EVAL(ac_try) \
-    && test -f TMP/conftest.lo \
-    && AC_TRY_EVAL(ac_try); then
-  r_cv_prog_cc_c_o_lo=yes
-else
-  r_cv_prog_cc_c_o_lo=no
-fi
-rm -rf conftest* TMP])
-])# R_PROG_CC_C_O_LO
-
-## R_PROG_CC_MAKEFRAG
-## ------------------
-## Generate a Make fragment with suffix rules for the C compiler.
-## Used for both building R (Makeconf) and add-ons (etc/Makeconf).
-## NB test -d .libs || mkdir .libs can be run more than once
-##    and hence race when a parallel make is used
-AC_DEFUN([R_PROG_CC_MAKEFRAG],
-[r_cc_rules_frag=Makefrag.cc
-AC_REQUIRE([R_PROG_CC_M])
-AC_REQUIRE([R_PROG_CC_C_O_LO])
-cat << \EOF > ${r_cc_rules_frag}
-.c.o:
-	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c $< -o $[@]
-EOF
-if test -n "${r_cv_prog_cc_m}"; then
-  cat << EOF >> ${r_cc_rules_frag}
-.c.d:
-	@echo "making \$[@] from \$<"
-	@${r_cv_prog_cc_m} \$(ALL_CPPFLAGS) $< | \\
-	  sed -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > \$[@]
-EOF
-else
-  cat << \EOF >> ${r_cc_rules_frag}
-.c.d:
-	@echo > $[@]
-EOF
-fi
-if test "${r_cv_prog_cc_c_o_lo}" = yes; then
-  cat << \EOF >> ${r_cc_rules_frag}
+[ cc_o_lo_rules_frag=Makefrag.cc
+  AC_CACHE_CHECK([whether ${CC} supports -c -o FILE.lo],
+    r_cv_prog_cc_c_o_lo,
+    [ test -d TMP || mkdir TMP
+      echo "foo(){}" > conftest.c
+      ac_try='${CC} ${CFLAGS} -c conftest.c -o TMP/conftest.lo 1>&AC_FD_CC'
+      if AC_TRY_EVAL(ac_try) \
+          && test -f TMP/conftest.lo \
+          && AC_TRY_EVAL(ac_try); then
+        r_cv_prog_cc_c_o_lo=yes
+      else
+        r_cv_prog_cc_c_o_lo=no
+      fi
+      rm -rf conftest* TMP
+    ])
+  if test "${r_cv_prog_cc_c_o_lo}" = yes; then
+    cat << \EOF > ${cc_o_lo_rules_frag}
 .c.lo:
 	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS_LO) -c $< -o $[@]
 EOF
-else
-  cat << \EOF >> ${r_cc_rules_frag}
+  else
+    cat << \EOF > ${cc_o_lo_rules_frag}
 .c.lo:
-	@-test -d .libs || mkdir .libs
+	@test -d .libs || mkdir .libs
 	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS_LO) -c $< -o .libs/$[*].o
 	mv .libs/$[*].o $[*].lo
 EOF
-fi
-AC_SUBST_FILE(r_cc_rules_frag)
-])# R_PROG_CC_MAKEFRAG
-
-## R_PROG_CC_FLAG(FLAG, [ACTION-IF-TRUE])
-## ---------------------------------------
-## Check whether the C compiler handles command line option FLAG,
-## and set shell variable r_cv_prog_cc_flag_SFLAG accordingly (where
-## SFLAG is a shell-safe transliteration of FLAG).
-## In addition, execute ACTION-IF-TRUE in case of success.
+  fi
+  AC_SUBST_FILE(cc_o_lo_rules_frag)
+])
+##
+## R_PROG_CC_FLAG
+##
+## Test whether the C compiler handles a command line option
+##
 AC_DEFUN([R_PROG_CC_FLAG],
-[ac_safe=AS_TR_SH($1)
-AC_MSG_CHECKING([whether ${CC} accepts $1])
-AC_CACHE_VAL([r_cv_prog_cc_flag_${ac_safe}],
-[AC_LANG_PUSH(C)
-r_save_CFLAGS="${CFLAGS}"
-CFLAGS="${CFLAGS} $1"
-AC_LINK_IFELSE([AC_LANG_PROGRAM()],
-               [eval "r_cv_prog_cc_flag_${ac_safe}=yes"],
-               [eval "r_cv_prog_cc_flag_${ac_safe}=no"])
-CFLAGS="${r_save_CFLAGS}"
-AC_LANG_POP(C)
-])
-if eval "test \"`echo '$r_cv_prog_cc_flag_'$ac_safe`\" = yes"; then
-  AC_MSG_RESULT([yes])
-  [$2]
-else
-  AC_MSG_RESULT([no])
-fi
-])# R_PROG_CC_FLAG
-
-## R_PROG_CC_FLAG_D__NO_MATH_INLINES
-## ---------------------------
-## In current glibc, inline version [x86] of exp is broken.
-## We fix this by adding '-D__NO_MATH_INLINES' to R_XTRA_CFLAGS rather
-## than AC_DEFINE(__NO_MATH_INLINES) as the former also takes care of
-## compiling C code for add-on packages.
-AC_DEFUN([R_PROG_CC_FLAG_D__NO_MATH_INLINES],
-[AC_EGREP_CPP([yes],
-[#include <math.h>
-#if defined(__GLIBC__)
-  yes
-#endif
-],
-              [R_SH_VAR_ADD(R_XTRA_CFLAGS, [-D__NO_MATH_INLINES])])
-])# R_PROG_CC_FLAG_D__NO_MATH_INLINES
-
-## R_C_OPTIEEE
-## -----------
-## Check whether the C compiler needs '-OPT:IEEE_NaN_inf=ON' to
-## correctly deal with IEEE NaN/Inf.
-## This flag is needed for the native SGI C compiler.
-## If needed, add the flag to R_XTRA_CFLAGS.
-AC_DEFUN([R_C_OPTIEEE],
-[AC_CACHE_CHECK([whether C compiler needs -OPT:IEEE_NaN_inf=ON],
-                [r_cv_c_optieee],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <math.h>
-#include <ieeefp.h>
-int main () {
-  double x = 0;
-  fpsetmask(0); x = x / x; exit (x != x);
-}
-]])],
-              [r_cv_c_optieee=yes],
-              [r_cv_c_optieee=no],
-              [r_cv_c_optieee=no])])
-if test "${r_cv_c_optieee}" = yes; then
-  R_SH_VAR_ADD(R_XTRA_CFLAGS, [-OPT:IEEE_NaN_inf=ON])
-fi
-])# R_C_OPTIEEE
-
-### * C++ compiler and its characteristics.
-
-## R_PROG_CXX_M
-## ------------
-## Check whether the C++ compiler accepts '-M' for generating
-## dependencies.
-AC_DEFUN([R_PROG_CXX_M],
-[AC_REQUIRE([R_PROG_CC_M])
-AC_CACHE_CHECK([whether ${CXX} accepts -M for generating dependencies],
-               [r_cv_prog_cxx_m],
-[echo "#include <math.h>" > conftest.cc
-## No real point in using AC_LANG_* and ${ac_ext}, as we need to create
-## hard-wired suffix rules.  We could be a bit more careful as we
-## actually only test suffix '.cc'. 
-if test -n "`${CXX} -M conftest.cc 2>/dev/null | grep conftest`"; then
-  r_cv_prog_cxx_m=yes
-else
-  r_cv_prog_cxx_m=no
-fi])
-])# R_PROG_CXX_M
-
-## R_PROG_CXX_C_O_LO
-## -----------------
-## Check whether the C++ compiler supports '-c -o FILE.lo'.
-AC_DEFUN([R_PROG_CXX_C_O_LO],
-[cxx_o_lo_rules_frag=Makefrag.cxx
-AC_CACHE_CHECK([whether ${CXX} supports -c -o FILE.lo],
-               [r_cv_prog_cxx_c_o_lo],
-[test -d TMP || mkdir TMP
-echo "int some_variable = 0;" > conftest.cc
-## No real point in using AC_LANG_* and ${ac_ext}, as we need to create
-## hard-wired suffix rules.  We could be a bit more careful as we
-## actually only test suffix '.cc'.
-ac_try='${CXX} ${CXXFLAGS} -c conftest.cc -o TMP/conftest.lo 1>&AS_MESSAGE_LOG_FD'
-if AC_TRY_EVAL(ac_try) \
-    && test -f TMP/conftest.lo \
-    && AC_TRY_EVAL(ac_try); then
-  r_cv_prog_cxx_c_o_lo=yes
-else
-  r_cv_prog_cxx_c_o_lo=no
-fi
-rm -rf conftest* TMP])
-])# R_PROG_CXX_C_O_LO
-
-## R_PROG_CXX_MAKEFRAG
-## -------------------
-## Generate a Make fragment with suffix rules for the C++ compiler.
-## Used for both building R (Makeconf) and add-ons (etc/Makeconf).
-AC_DEFUN([R_PROG_CXX_MAKEFRAG],
-[r_cxx_rules_frag=Makefrag.cxx
-AC_REQUIRE([R_PROG_CXX_M])
-AC_REQUIRE([R_PROG_CXX_C_O_LO])
-cat << \EOF > ${r_cxx_rules_frag}
-.cc.o:
-	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS) -c $< -o $[@]
-.cpp.o:
-	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS) -c $< -o $[@]
-.C.o:
-	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS) -c $< -o $[@]
-EOF
-if test "${r_cv_prog_cxx_m}" = yes; then
-  cat << \EOF >> ${r_cxx_rules_frag}
-.cc.d:
-	@echo "making $[@] from $<"
-	@$(CXX) -M $(ALL_CPPFLAGS) $< | \
-	  sed -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > $[@]
-.cpp.d:
-	@echo "making $[@] from $<"
-	@$(CXX) -M $(ALL_CPPFLAGS) $< | \
-	  sed -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > $[@]
-.C.d:
-	@echo "making $[@] from $<"
-	@$(CXX) -M $(ALL_CPPFLAGS) $< | \
-	  sed -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > $[@]
-EOF
-else
-  cat << \EOF >> ${r_cxx_rules_frag}
-.cc.d:
-	@echo > $[@]
-.cpp.d:
-	@echo > $[@]
-.C.d:
-	@echo > $[@]
-EOF
-fi
-if test "${r_cv_prog_cxx_c_o_lo}" = yes; then
-  cat << \EOF >> ${r_cxx_rules_frag}
-.cc.lo:
-	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS_LO) -c $< -o $[@]
-.cpp.lo:
-	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS_LO) -c $< -o $[@]
-.C.lo:
-	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS_LO) -c $< -o $[@]
-EOF
-else
-  cat << \EOF >> ${r_cxx_rules_frag}
-.cc.lo:
-	@test -d .libs || mkdir .libs
-	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS_LO) -c $< -o .libs/$[*].o
-	mv .libs/$[*].o $[*].lo
-.cpp.lo:
-	@test -d .libs || mkdir .libs
-	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS_LO) -c $< -o .libs/$[*].o
-	mv .libs/$[*].o $[*].lo
-.C.lo:
-	@test -d .libs || mkdir .libs
-	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS_LO) -c $< -o .libs/$[*].o
-	mv .libs/$[*].o $[*].lo
-EOF
-fi
-AC_SUBST_FILE(r_cxx_rules_frag)
-])# R_PROG_CXX_MAKEFRAG
-
+  [ ac_safe=`echo "$1" | sed 'y%./+-%__p_%'`
+    AC_MSG_CHECKING([whether ${CC-cc} accepts $1])
+    AC_CACHE_VAL(r_cv_prog_cc_flag_${ac_safe},
+      [ AC_LANG_SAVE
+        AC_LANG_C
+	XCFLAGS="${CFLAGS}"
+	CFLAGS="${CFLAGS} $1"
+	AC_TRY_LINK([], [],
+	  eval "r_cv_prog_cc_flag_${ac_safe}=yes",
+	  eval "r_cv_prog_cc_flag_${ac_safe}=no")
+	CFLAGS="${XCFLAGS}"
+	AC_LANG_RESTORE
+      ])
+    if eval "test \"`echo '$r_cv_prog_cc_flag_'$ac_safe`\" = yes"; then
+      AC_MSG_RESULT(yes)
+      [$2]
+    else
+      AC_MSG_RESULT(no)
+    fi
+  ])
+##
 ## R_PROG_CXX_FLAG
-## ---------------
-## Check whether the C++ compiler handles command line option FLAG,
-## and set shell variable r_cv_prog_cc_flag_SFLAG accordingly (where
-## SFLAG is a shell-safe transliteration of FLAG).
-## In addition, execute ACTION-IF-TRUE in case of success.
+##
+## Test whether the C++ compiler handles a command line option
+##
 AC_DEFUN([R_PROG_CXX_FLAG],
-[ac_safe=AS_TR_SH($1)
-AC_MSG_CHECKING([whether ${CXX-c++} accepts $1])
-AC_CACHE_VAL([r_cv_prog_cxx_flag_${ac_safe}],
-[AC_LANG_PUSH(C++)
-r_save_CXXFLAGS="${CXXFLAGS}"
-CXXFLAGS="${CXXFLAGS} $1"
-AC_LINK_IFELSE([AC_LANG_PROGRAM()],
-               [eval "r_cv_prog_cxx_flag_${ac_safe}=yes"],
-               [eval "r_cv_prog_cxx_flag_${ac_safe}=no"])
-CXXFLAGS="${r_save_CXXFLAGS}"
-AC_LANG_POP(C++)
-])
-if eval "test \"`echo '$r_cv_prog_cxx_flag_'$ac_safe`\" = yes"; then
-  AC_MSG_RESULT([yes])
-  [$2]
-else
-  AC_MSG_RESULT([no])
-fi
-])# R_PROG_CXX_FLAG
-
-### * Fortran 77 compiler/converter and its characteristics.
-
+  [ ac_safe=`echo "$1" | sed 'y%./+-%__p_%'`
+    AC_MSG_CHECKING([whether ${CXX-c++} accepts $1])
+    AC_CACHE_VAL(r_cv_prog_cxx_flag_${ac_safe},
+      [ AC_LANG_SAVE
+        AC_LANG_CPLUSPLUS
+	XCXXFLAGS="${CXXFLAGS}"
+	CXXFLAGS="${CXXFLAGS} $1"
+	AC_TRY_LINK([], [],
+	  eval "r_cv_prog_cxx_flag_${ac_safe}=yes",
+	  eval "r_cv_prog_cxx_flag_${ac_safe}=no")
+	CXXFLAGS="${XCXXFLAGS}"
+	AC_LANG_RESTORE
+      ])
+    if eval "test \"`echo '$r_cv_prog_cxx_flag_'$ac_safe`\" = yes"; then
+      AC_MSG_RESULT(yes)
+      [$2]
+    else
+      AC_MSG_RESULT(no)
+    fi
+  ])
+##
 ## R_PROG_F77_OR_F2C
-## -----------------
+##
 ## Find a Fortran 77 compiler, or f2c.
 ##
-## If we have not been forced to use a particular Fortran compiler, try
+## If we have not been forced to use a particular FORTRAN compiler, try
 ## to find one using one of the several common names.  The list is based
-## on what the current autoconf CVS contains.  This says,
-##
-## <Quote>
-## Compilers are ordered by
+## on what the current autoconf CVS contains, and ordered by
 ##  1. F77, F90, F95
 ##  2. Good/tested native compilers, bad/untested native compilers
 ##  3. Wrappers around f2c go last.
 ##
-## 'fort77' and fc' are wrappers around 'f2c', 'fort77' being better.
-## It is believed that under HP-UX 'fort77' is the name of the native
+## `fort77' and `fc' are wrappers around `f2c', `fort77' being better.
+## It is believed that under HP-UX `fort77' is the name of the native
 ## compiler.  On some Cray systems, fort77 is a native compiler.
-## frt is the Fujitsu F77 compiler.
+## cf77 and cft77 are (older) Cray F77 compilers.
 ## pgf77 and pgf90 are the Portland Group F77 and F90 compilers.
 ## xlf/xlf90/xlf95 are IBM (AIX) F77/F90/F95 compilers.
 ## lf95 is the Lahey-Fujitsu compiler.
 ## fl32 is the Microsoft Fortran "PowerStation" compiler.
 ## af77 is the Apogee F77 compiler for Intergraph hardware running CLIX.
 ## epcf90 is the "Edinburgh Portable Compiler" F90.
-## fort is the Compaq Fortran 90 (now 95) compiler for Tru64 and
-## Linux/Alpha.
-## </Quote>
 ##
-## In fact, on HP-UX fort77 is the POSIX-compatible native compiler and
-## f77 is not: hence we need look for fort77 first!
-AC_DEFUN([R_PROG_F77_OR_F2C],
-[if test -n "${F77}" && test -n "${F2C}"; then
-  warn_F77_and_F2C="both 'F77' and 'F2C' given.
-Using the given Fortran 77 compiler ..."
-  AC_MSG_WARN([${warn_F77_and_F2C}])
-  F2C=
-fi
-if test -n "${F77}"; then
+## The configure options `--with-g77', `--with-f77', or `--with-f2c'
+## force g77, f77, or f2c to be used (under *exactly* these names).  It
+## is also possible to use these options to specify the full path name
+## of the compiler.
+AC_DEFUN([R_PROG_F77_OR_F2C], [
+if test -n "${FC}"; then
+  F77=${FC}
   AC_MSG_RESULT([defining F77 to be ${F77}])
-elif test -z "${F2C}"; then
+elif ${use_f77}; then
+  if test "${with_f77}" = yes; then
+    F77=f77
+  else
+    F77="${with_f77}"
+  fi
+  AC_MSG_RESULT([defining F77 to be ${F77}])
+elif ${use_g77}; then
+  if test "${with_g77}" = yes; then
+    F77=g77
+  else
+    F77="${with_g77}"
+  fi
+  AC_MSG_RESULT([defining F77 to be ${F77}])
+elif ${use_f2c}; then
   F77=
-  case "${host_os}" in
-    hpux*)
-      AC_CHECK_PROGS(F77, [g77 fort77 f77 xlf frt pgf77 fl32 af77 f90 \
-                           xlf90 pgf90 epcf90 f95 fort xlf95 lf95 g95 fc])
-      ;;
-    *)
-      AC_CHECK_PROGS(F77, [g77 f77 xlf frt pgf77 fl32 af77 fort77 f90 \
-                           xlf90 pgf90 epcf90 f95 fort xlf95 lf95 g95 fc])
-      ;;
-  esac
+  if test "${with_f2c}" = yes; then
+    F2C=f2c
+  else
+    F2C="${with_f2c}"
+  fi
+  AC_MSG_RESULT([defining F2C to be ${F2C}])
+else
+  F77=
+  AC_CHECK_PROGS(F77, [g77 f77 xlf cf77 cft77 pgf77 fl32 af77 fort77 f90 xlf90 pgf90 epcf90 f95 xlf95 lf95 g95 fc])
   if test -z "${F77}"; then
     AC_CHECK_PROG(F2C, f2c, f2c, [])
   fi
-else
-  AC_MSG_RESULT([defining F2C to be ${F2C}])
-fi
-if test -n "${F77}"; then
-  ## If the above 'found' a Fortran 77 compiler, we run AC_PROG_F77 as
-  ## this does additional testing (GNU, '-g', ...).
-  AC_PROG_F77
-elif test -z "${F2C}"; then
-  AC_MSG_ERROR([Neither an F77 compiler nor f2c found])
-fi
-])# R_PROG_F77_OR_F2C
-
-## R_PROG_F77_FLIBS
-## ----------------
-## Run AC_F77_LIBRARY_LDFLAGS, and fix some known problems with FLIBS.
-AC_DEFUN([R_PROG_F77_FLIBS],
-[AC_BEFORE([$0], [AC_F77_LIBRARY_LDFLAGS])
-## Currently (Autoconf 2.50 or better, it seems) FLIBS also contains all
-## elements of LIBS when AC_F77_LIBRARY_LDFLAGS is run.  This is because
-## _AC_PROG_F77_V_OUTPUT() uses 'eval $ac_link' for obtaining verbose
-## linker output, and AC_LANG(Fortran 77) sets up ac_link to contain
-## LIBS.  Most likely a bug, and a nuisance in any case ... 
-## But we cannot simply eliminate the elements in FLIBS duplicated from
-## LIBS (e.g. '-lm' should be preserved).  Hence, we try to call
-## AC_F77_LIBRARY_LDFLAGS() with LIBS temporarily set to empty.
-r_save_LIBS="${LIBS}"
-LIBS=
-AC_F77_LIBRARY_LDFLAGS
-LIBS="${r_save_LIBS}"
-## Currently g77 on Darwin links against '-lcrt1.o' (and for GCC 3.1 or
-## better also against '-lcrtbegin.o'), which (unlike '-lcrt0.o') are
-## not stripped by AC_F77_LIBRARY_LDFLAGS.  This in particular causes
-## R_PROG_F77_CC_COMPAT to fail.  Hence, we make sure all -lcrt*.o are
-## removed.
-##
-## Native f90 on HPUX 11 comes up with '-l:libF90.a' causing trouble
-## when using gcc for linking.  The '-l:' construction is similar to
-## plain '-l' except that search order (archive/shared) given by '-a'
-## is not important.  We escape such flags via '-Wl,' in case of gcc.
-## Note that the current Autoconf CVS uses _AC_LINKER_OPTION for a
-## similar purpose when computing FLIBS: this uses '-Xlinker' escapes
-## for gcc and does nothing otherwise.  Note also that we cannot simply
-## unconditionally escape with '${wl}' from libtool as on HPUX we need
-## SHLIB_LD=ld for native C compilers (problem with non-PIC 'crt0.o',
-## see 'Individual platform overrides' in section 'DLL stuff' in file
-## 'configure.ac'.
-##
-## Using the Intel Fortran compiler (ifc) one typically gets incorrect
-## flags, as the output from _AC_PROG_F77_V_OUTPUT() contains double
-## quoted options, e.g. "-mGLOB_options_string=......", see also e.g.
-## http://www.octave.org/octave-lists/archive/octave-maintainers.2002/msg00038.html.
-## One possible solution is to change AC_F77_LIBRARY_LDFLAGS() to remove
-## double quotes for ifc, as it already does for the Cray cft90.  As we
-## prefer not to overload Autoconf code, we try to fix things here ...
-flibs=
-if test "${GCC}" = yes; then
-  linker_option="-Wl,"
-else
-  linker_option=
-fi
-for arg in ${FLIBS}; do
-  case "${arg}" in
-    -lcrt*.o)
-      ;;
-    -[[a-zA-Z]]/*\" | -[[a-zA-Z]]*\\) # ifc
-      ;;
-    -l:*)
-      flibs="${flibs} ${linker_option}${arg}"
-      ;;
-    *)
-      flibs="${flibs} ${arg}"
-      ;;
-  esac
-done
-FLIBS="${flibs}"
-## Versions of g77 up to 3.0.x only have a non-PIC (static) -lg2c which
-## on some platforms means one cannot build dynamically loadable modules
-## containing Fortran code.  (g77 3.1 will have a shared -lg2c too.)  As
-## a workaround, Debian provides -lg2c-pic which holds pic objects only,
-## and we should use in case we can find it ...
-if test "${G77}" = yes; then
-  r_save_LIBS="${LIBS}"
-  flibs=`echo "${FLIBS}" | sed 's/-lg2c/-lg2c-pic/'`
-  LIBS="${flibs} ${LIBS}"
-  AC_LANG_PUSH(C)
-  AC_LINK_IFELSE([AC_LANG_PROGRAM()], [FLIBS="${flibs}"], [])
-  AC_LANG_POP(C)
-  LIBS="${r_save_LIBS}"
-fi
-])# R_PROG_F77_FLIBS
-
-## R_PROG_F77_APPEND_UNDERSCORE
-## ----------------------------
-## See if the Fortran 77 compiler appends underscores.
-## What we really should do is determine how to properly mangle the 
-## names of C/C++ identifiers (potentially containing underscores) so
-## that they match the name-mangling scheme used by the Fortran 77
-## compiler.  Autoconf 2.50 or better has macros F77_FUNC(name, NAME)
-## and F77_FUNC_(name, NAME) for this.  However, the F77_* macros in
-## the R API have one argument only and therefore cannot deal with 
-## Fortran 77 compilers which convert to upper case or add an extra
-## underscore for identifiers containing underscores.  We give an error
-## in the former case; as ISO Fortran 77 does not allow underscores in
-## function names, we do nothing about the latter.
-AC_DEFUN([R_PROG_F77_APPEND_UNDERSCORE],
-[AC_REQUIRE([AC_F77_WRAPPERS])
-## DANGER!  We really needs the results of _AC_F77_NAME_MANGLING as
-## stored in the cache var ac_cv_f77_mangling which is not documented
-## and hence may change ...
-case "${ac_cv_f77_mangling}" in
-  "upper "*)
-    AC_MSG_WARN([Fortran compiler uses uppercase external names])
-    AC_MSG_ERROR([cannot use Fortran])
-    ;;
-esac
-AC_MSG_CHECKING([whether ${F77} appends underscores to external names])
-AC_CACHE_VAL([r_cv_prog_f77_append_underscore],
-[case "${ac_cv_f77_mangling}" in
-  *", underscore, "*)
-    r_cv_prog_f77_append_underscore=yes
-    ;;
-  *", no underscore, "*)
-    r_cv_prog_f77_append_underscore=no
-    ;;
-esac])
-if test -n "${r_cv_prog_f77_append_underscore}"; then
-  AC_MSG_RESULT([${r_cv_prog_f77_append_underscore}])
-else
-  AC_MSG_RESULT([unknown])
-  AC_MSG_ERROR([cannot use Fortran])
-fi
-if test "${r_cv_prog_f77_append_underscore}" = yes; then
-  AC_DEFINE(HAVE_F77_UNDERSCORE, 1,
-            [Define if your Fortran compiler appends an underscore to
-             external names.])
-fi
-])# R_PROG_F77_APPEND_UNDERSCORE
-
-## R_PROG_F77_CAN_RUN
-## --------------------
-## Check whether the C/Fortran set up produces runnable code, as
-## a preliminary to the compatibility tests.
-## May fail if Fortran shared libraries are not in the library path.
-AC_DEFUN([R_PROG_F77_CAN_RUN],
-[AC_REQUIRE([AC_CHECK_LIBM])
-AC_MSG_CHECKING([whether mixed C/Fortran code can be run])
-AC_CACHE_VAL([r_cv_prog_f77_can_run],
-[cat > conftestf.f <<EOF
-      subroutine cftest(a, b, x, y)
-      integer a(3), b(2)
-      double precision x(3), y(3)
-      end
-EOF
-${F77} ${FFLAGS} -c conftestf.f 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD
-## Yes we need to double quote this ...
-[cat > conftest.c <<EOF
-#include <math.h>
-#include "confdefs.h"
-#ifdef HAVE_F77_UNDERSCORE
-# define F77_SYMBOL(x)   x ## _
-#else
-# define F77_SYMBOL(x)   x
-#endif
-int main () {
-  exit(0);
-}
-EOF]
-if ${CC} ${CFLAGS} -c conftest.c 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD; then
-  ## <NOTE>
-  ## This should really use MAIN_LD, and hence come after this is
-  ## determined (and necessary additions to MAIN_LDFLAGS were made).
-  ## But it seems that we currently can always use the C compiler.
-  ## Also, to be defensive there should be a similar test with SHLIB_LD
-  ## and SHLIB_LDFLAGS (and note that on HPUX with native cc we have to
-  ## use ld for SHLIB_LD) ...
-  if ${CC} ${LDFLAGS} ${MAIN_LDFLAGS} -o conftest${ac_exeext} \
-       conftest.${ac_objext} conftestf.${ac_objext} ${FLIBS} \
-       ${LIBM} 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD;
-  ## </NOTE>
-  then
-    output=`./conftest${ac_exeext} 2>&1`
-    if test ${?} = 0; then
-      r_cv_prog_f77_can_run=yes
-    fi
-  fi
 fi
 ])
-rm -rf conftest conftest.* conftestf.* core
-if test -n "${r_cv_prog_f77_can_run}"; then
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_WARN([cannot run mixed C/Fortan code])
-  AC_MSG_ERROR([Maybe check LDFLAGS for paths to Fortran libraries?])
-fi
-])# R_PROG_F77_CAN_RUN
-
-## R_PROG_F77_CC_COMPAT
-## --------------------
-## Check whether the Fortran 77 and C compilers agree on int and double.
+##
+## R_PROG_F77_GNU
+##
+## See if ${F77-f77} is the GNU Fortran compiler
+##
+AC_DEFUN([R_PROG_F77_GNU],
+  [ AC_CACHE_CHECK([whether ${F77-f77} is the GNU Fortran compiler],
+      r_cv_prog_f77_is_g77,
+      [ if ${use_g77}; then
+	  r_cv_prog_f77_is_g77=yes
+	else
+	  foutput=`${F77-f77} -v 2>&1 | egrep "GNU F77|egcs|g77"`
+	  if test -n "${foutput}"; then
+	    r_cv_prog_f77_is_g77=yes
+	  else
+	    r_cv_prog_f77_is_g77=no
+	  fi
+	fi
+      ])
+    if test "${r_cv_prog_f77_is_g77}" = yes; then
+      G77=yes
+      : ${FFLAGS="-g -O2"}
+    else
+      G77=
+    fi
+  ])
+##
+## See if the Fortran compiler appends underscores
+##
+AC_DEFUN([R_PROG_F77_APPEND_UNDERSCORE],
+ [AC_CACHE_CHECK([whether ${F77-f77} appends underscores],
+    r_cv_prog_f77_append_underscore,
+    [ cat > conftestf.f <<EOF
+      subroutine try
+      end
+EOF
+      ${F77} -c ${FFLAGS} conftestf.f 1>&AC_FD_CC 2>&AC_FD_CC
+      cat > conftest.c <<EOF
+main() { try_(); }
+EOF
+      ${CC} ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} -o conftest${ac_exeext} \
+	conftest.c conftestf.${ac_objext} 1>&AC_FD_CC 2>&AC_FD_CC
+      if test ${?} = 0; then
+	r_cv_prog_f77_append_underscore=yes
+      else
+	cat > conftest.c <<EOF
+main() { try(); }
+EOF
+	${CC} ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} -o conftest${ac_exeext} \
+	  conftest.c conftestf.${ac_objext} 1>&AC_FD_CC 2>&AC_FD_CC
+	if test ${?} = 0; then
+	  r_cv_prog_f77_append_underscore=no
+	fi
+      fi
+      rm -rf conftest conftest.* conftestf.*
+      if test -z "${r_cv_prog_f77_append_underscore}"; then
+	AC_MSG_ERROR([Nothing worked - cannot use FORTRAN])
+      fi
+    ])
+  if test "${r_cv_prog_f77_append_underscore}" = yes; then
+    AC_DEFINE(HAVE_F77_UNDERSCORE, 1)
+  fi
+])
+##
+## See whether Fortran and C compilers agree on int and double
+##
 AC_DEFUN([R_PROG_F77_CC_COMPAT],
-[AC_REQUIRE([AC_CHECK_LIBM])
-AC_MSG_CHECKING([whether ${F77} and ${CC} agree on int and double])
-AC_CACHE_VAL([r_cv_prog_f77_cc_compat],
-[cat > conftestf.f <<EOF
+ [AC_REQUIRE([AC_CHECK_LIBM])
+  AC_MSG_CHECKING([whether ${F77-f77} and ${CC-cc} agree on int and double])
+  AC_CACHE_VAL(r_cv_prog_f77_cc_compat,
+    [ cat > conftestf.f <<EOF
       subroutine cftest(a, b, x, y)
       integer a(3), b(2)
       double precision x(3), y(3)
@@ -865,9 +443,9 @@ AC_CACHE_VAL([r_cv_prog_f77_cc_compat],
       y(3) = (x(2)/x(1)) ** a(1)
       end
 EOF
-${F77} ${FFLAGS} -c conftestf.f 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD
-## Yes we need to double quote this ...
-[cat > conftest.c <<EOF
+      ${F77} ${FFLAGS} -c conftestf.f 1>&AC_FD_CC 2>&AC_FD_CC
+      changequote(, )
+      cat > conftest.c <<EOF
 #include <math.h>
 #include "confdefs.h"
 #ifdef HAVE_F77_UNDERSCORE
@@ -896,790 +474,340 @@ int main () {
   for(i = 0; i < 3; i++)
     if(fabs(z[i]/zres[i] - 1) > eps) res++;
   printf("number of errors %d\n", res);
-  exit(res);
+  return(res);
 }
-EOF]
-if ${CC} ${CFLAGS} -c conftest.c 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD; then
-  ## <NOTE>
-  ## This should really use MAIN_LD, and hence come after this is
-  ## determined (and necessary additions to MAIN_LDFLAGS were made).
-  ## But it seems that we currently can always use the C compiler.
-  ## Also, to be defensive there should be a similar test with SHLIB_LD
-  ## and SHLIB_LDFLAGS (and note that on HPUX with native cc we have to
-  ## use ld for SHLIB_LD) ...
-  if ${CC} ${LDFLAGS} ${MAIN_LDFLAGS} -o conftest${ac_exeext} \
-       conftest.${ac_objext} conftestf.${ac_objext} ${FLIBS} \
-       ${LIBM} 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD;
-  ## </NOTE>
-  then
-    output=`./conftest${ac_exeext} 2>&1`
-    if test ${?} = 0; then
-      r_cv_prog_f77_cc_compat=yes
-    fi
-  fi
-fi
-])
-rm -rf conftest conftest.* conftestf.* core
-if test -n "${r_cv_prog_f77_cc_compat}"; then
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_WARN([${F77} and ${CC} disagree on int and double])
-  AC_MSG_ERROR([Maybe change CFLAGS or FFLAGS?])
-fi
-])# R_PROG_F77_CC_COMPAT
-
-## R_PROG_F77_CC_COMPAT_COMPLEX
-## ----------------------------
-## Check whether the Fortran 77 and C compilers agree on double complex.
-AC_DEFUN([R_PROG_F77_CC_COMPAT_COMPLEX],
-[AC_REQUIRE([AC_CHECK_LIBM])
-AC_MSG_CHECKING([whether ${F77} and ${CC} agree on double complex])
-AC_CACHE_VAL([r_cv_prog_f77_cc_compat_complex],
-[cat > conftestf.f <<EOF
-      subroutine cftest(x)
-      complex*16 x(3)
-      integer i
-
-c a few tests of constructs that are sometimes missing
-      if(x(1) .eq. x(1)) i = 0
-      x(1) = x(1)*x(2) + x(3)
-      end
 EOF
-${F77} ${FFLAGS} -c conftestf.f 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD
-## Yes we need to double quote this ...
-[cat > conftest.c <<EOF
-#include <math.h>
-#include "confdefs.h"
-#ifdef HAVE_F77_UNDERSCORE
-# define F77_SYMBOL(x)   x ## _
-#else
-# define F77_SYMBOL(x)   x
-#endif
-
-typedef struct {
-        double r;
-        double i;
-} Rcomplex;
-
-extern void F77_SYMBOL(cftest)(Rcomplex *x);
-
-int main () {
-    Rcomplex z[3];
-    
-    z[0].r = 3.14159265;
-    z[0].i = 2.172;
-    z[1].i = 3.14159265;
-    z[1].r = 2.172;
-    z[2].r = 123.456;
-    z[2].i = 0.123456;
-    F77_SYMBOL(cftest)(z);
-    printf("%f %f\n", z[0].r, z[0].i);
-    if(fabs(z[0].r - 123.456) < 1e-4 && fabs(z[0].i - 14.71065) < 1e-4)
-	exit(0);
-    else exit(1);
-}
-EOF]
-if ${CC} ${CFLAGS} -c conftest.c 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD; then
-  ## <NOTE>
-  ## This should really use MAIN_LD, and hence come after this is
-  ## determined (and necessary additions to MAIN_LDFLAGS were made).
-  ## But it seems that we currently can always use the C compiler.
-  ## Also, to be defensive there should be a similar test with SHLIB_LD
-  ## and SHLIB_LDFLAGS (and note that on HPUX with native cc we have to
-  ## use ld for SHLIB_LD) ...
-  if ${CC} ${LDFLAGS} ${MAIN_LDFLAGS} -o conftest${ac_exeext} \
-       conftest.${ac_objext} conftestf.${ac_objext} ${FLIBS} \
-       ${LIBM} 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD;
-  ## </NOTE>
-  then
-    output=`./conftest${ac_exeext} 2>&1`
-    if test ${?} = 0; then
-      r_cv_prog_f77_cc_compat_complex=yes
-    fi
+      changequote([, ])
+      if ${CC-cc} ${CFLAGS} -c conftest.c 1>&AC_FD_CC 2>&AC_FD_CC; then
+	## FIXME
+	## This should really use MAIN_LD, and hence come after this is
+	## determined.  Or maybe we can always use ${CC} eventually?
+	## Also, this used to have `-lm' hardwired ...
+	if ${CC-cc} ${LDFLAGS} ${MAIN_LDFLAGS} -o conftest${ac_exeext} \
+	    conftest.${ac_objext} conftestf.${ac_objext} ${FLIBS} \
+	    ${LIBM} 1>&AC_FD_CC 2>&AC_FD_CC; then
+          output=`./conftest${ac_exeext} 2>&1`
+	  if test ${?} = 0; then
+	    r_cv_prog_f77_cc_compat=yes
+	  fi
+	fi
+      fi
+    ])
+  rm -rf conftest conftest.* conftestf.* core
+  if test -n "${r_cv_prog_f77_cc_compat}"; then
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_WARN([${F77-f77} and ${CC-cc} disagree on int and double])
+    AC_MSG_ERROR([Maybe change CFLAGS or FFLAGS?])
   fi
-fi
 ])
-rm -rf conftest conftest.* conftestf.* core
-if test -n "${r_cv_prog_f77_cc_compat_complex}"; then
-  AC_MSG_RESULT([yes])
-  AC_DEFINE(HAVE_DOUBLE_COMPLEX, 1,
-            [Define if C's Rcomplex and Fortran's COMPLEX*16 can be
-             interchanged, and can do arithmetic on the latter.])
-else
-  warn_f77_cc_double_complex="${F77} and ${CC} disagree on double complex"
-  AC_MSG_WARN([${warn_f77_cc_double_complex}])
-fi
-AC_SUBST(HAVE_DOUBLE_COMPLEX)
-])# R_PROG_F77_CC_COMPAT_COMPLEX
-
-## R_PROG_F77_C_O_LO
-## -----------------
-## Check whether the Fortran compiler supports '-c -o FILE.lo'.
+##
+## See whether Fortran compiler supports -c -o FILE.lo
+##
 AC_DEFUN([R_PROG_F77_C_O_LO],
 [AC_CACHE_CHECK([whether ${F77} supports -c -o FILE.lo],
-                [r_cv_prog_f77_c_o_lo],
-[test -d TMP || mkdir TMP
-cat > conftest.f <<EOF
+  r_cv_prog_f77_c_o_lo,
+  [ test -d TMP || mkdir TMP
+    cat > conftest.f <<EOF
       program conftest
       end
 EOF
-ac_try='${F77} ${FFLAGS} -c conftest.f -o TMP/conftest.lo 1>&AS_MESSAGE_LOG_FD'
-if AC_TRY_EVAL(ac_try) \
-    && test -f TMP/conftest.lo \
-    && AC_TRY_EVAL(ac_try); then
-  r_cv_prog_f77_c_o_lo=yes
-else
-  r_cv_prog_f77_c_o_lo=no
-fi
-rm -rf conftest* TMP])
-])# R_PROG_F77_C_O_LO
-
-## R_PROG_F77_MAKEFRAG
-## -------------------
-## Generate a Make fragment with suffix rules for Fortran 77 source
-## files when using a Fortran 77 compiler.
-## Used for both building R (Makeconf) and add-ons (etc/Makeconf).
-AC_DEFUN([R_PROG_F77_MAKEFRAG],
-[AC_REQUIRE([R_PROG_F77_C_O_LO])
-r_f77_rules_frag=Makefrag.f77
-cat << \EOF > ${r_f77_rules_frag}
-.f.c:
-.f.o:
-	$(F77) $(ALL_FFLAGS) -c $< -o $[@]
-EOF
-if test "${r_cv_prog_f77_c_o_lo}" = yes; then
-  cat << \EOF >> ${r_f77_rules_frag}
-.f.lo:
-	$(F77) $(ALL_FFLAGS_LO) -c $< -o $[@]
-EOF
-else
-  cat << \EOF >> ${r_f77_rules_frag}
-.f.lo:
-	@test -d .libs || mkdir .libs
-	$(F77) $(ALL_FFLAGS_LO) -c $< -o .libs/$[*].o
-	mv .libs/$[*].o $[*].lo
-EOF
-fi
-AC_SUBST_FILE(r_f77_rules_frag)
-])# R_PROG_F77_MAKEFRAG
-
-## R_PROG_F77_FLAG(FLAG, [ACTION-IF-TRUE])
-## ---------------------------------------
-## Check whether the Fortran 77 compiler handles command line option
-## FLAG, and set shell variable r_cv_prog_f77_flag_SFLAG accordingly
-## (where SFLAG is a shell-safe transliteration of FLAG).
-## In addition, execute ACTION-IF-TRUE in case of success.
-AC_DEFUN([R_PROG_F77_FLAG],
-[ac_safe=AS_TR_SH($1)
-AC_MSG_CHECKING([whether ${F77} accepts $1])
-AC_CACHE_VAL([r_cv_prog_f77_flag_${ac_safe}],
-[AC_LANG_PUSH(Fortran 77)
-r_save_FFLAGS="${FFLAGS}"
-FFLAGS="${FFLAGS} $1"
-AC_LINK_IFELSE([AC_LANG_PROGRAM()],
-               [eval "r_cv_prog_f77_flag_${ac_safe}=yes"],
-               [eval "r_cv_prog_f77_flag_${ac_safe}=no"])
-FFLAGS="${r_save_FFLAGS}"
-AC_LANG_POP(Fortran 77)
+    ac_try='${F77} ${FFLAGS} -c conftest.f -o TMP/conftest.lo 1>&AC_FD_CC'
+    if AC_TRY_EVAL(ac_try) \
+        && test -f TMP/conftest.lo \
+        && AC_TRY_EVAL(ac_try); then
+      r_cv_prog_f77_c_o_lo=yes
+    else
+      r_cv_prog_f77_c_o_lo=no
+    fi
+    rm -rf conftest* TMP
+  ])
 ])
-if eval "test \"`echo '$r_cv_prog_f77_flag_'$ac_safe`\" = yes"; then
-  AC_MSG_RESULT([yes])
-  [$2]
-else
-  AC_MSG_RESULT([no])
-fi
-])# R_PROG_F77_FLAG
-
+##
 ## R_PROG_F2C_FLIBS
-## ----------------
+##
 AC_DEFUN([R_PROG_F2C_FLIBS],
-[AC_REQUIRE([AC_PROG_RANLIB])
-AC_REQUIRE([AC_CHECK_LIBM])
-AC_CACHE_VAL([r_cv_f2c_flibs],
-[
-## <FIXME>
-## Why do we need this?  What about AC_F77_DUMMY_MAIN?
-## This seems to be necessary on some Linux system. -- you bet! -pd
-AC_LANG_PUSH(C)
-cat > conftest.${ac_ext} << EOF
-int MAIN_ () { exit(0); }
-int MAIN__ () { exit(0); }
+ [AC_REQUIRE([AC_PROG_RANLIB])
+  AC_REQUIRE([AC_CHECK_LIBM])
+  AC_CACHE_VAL(r_cv_f2c_flibs,
+    [## This seems to be necessary on some Linux system. -- you bet! -pd
+      AC_LANG_SAVE
+      AC_LANG_C
+      cat > conftest.${ac_ext} << EOF
+int MAIN_ () { return 0; }
+int MAIN__ () { return 0; }
 EOF
-if AC_TRY_EVAL(ac_compile); then
-  ${AR} ${ARFLAGS} libconftest.a conftest.${ac_objext} 1>&AS_MESSAGE_LOG_FD
-  ${RANLIB} libconftest.a 1>&AS_MESSAGE_LOG_FD
-fi
-AC_LANG_POP(C)
-## </FIXME>
-AC_CHECK_LIB(f2c, f_open, 
-             [flibs=-lf2c],
-             [flibs=],
-             [-L. -lconftest ${LIBM}])
-rm -f libconftest*
-if test -z "${flibs}"; then
-  AC_CHECK_LIB(F77, d_sin, [flibs=-lF77], [flibs=], [${LIBM}])
-  if test -n "${flibs}"; then
-    AC_CHECK_LIB(I77, f_rew, [flibs="${flibs} -lI77"], [flibs=], [-lF77])
-  fi
-fi
-r_cv_f2c_flibs="${flibs}"])
-FLIBS="${r_cv_f2c_flibs}"
-if test -z "${FLIBS}"; then
-  warn_f2c_flibs="I found f2c but not libf2c, or libF77 and libI77"
-  AC_MSG_WARN([${warn_f2c_flibs}])
-else
-  FLIBS="${FLIBS} ${LIBM}"
-fi
-])# R_PROG_F2C_FLIBS
-
-## R_PROG_F2C_MAKEFRAG
-## -------------------
-## Generate a Make fragment with suffix rules for Fortran 77 source
-## files when using f2c, the Fortran-to-C converter.
-## Used for both building R (Makeconf) and add-ons (etc/Makeconf).
-AC_DEFUN([R_PROG_F2C_MAKEFRAG],
-[AC_REQUIRE([R_PROG_CC_C_O_LO])
-r_f77_rules_frag=Makefrag.f77
-cat << \EOF > ${r_f77_rules_frag}
-.f.o:
-	$(F2C) $(F2CFLAGS) < $< > $[*].c
-	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c $[*].c -o $[@]
-	@rm -f $[*].c
-.f.lo:
-	$(F2C) $(F2CFLAGS) < $< > $[*].c
-EOF
-if test "${r_cv_prog_cc_c_o_lo}" = yes; then
-  cat << \EOF >> ${r_f77_rules_frag}
-	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS_LO) -c $[*].c -o $[@]
-EOF
-else
-  cat << \EOF >> ${r_f77_rules_frag}
-	@test -d .libs || mkdir .libs
-	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS_LO) -c $[*].c -o .libs/$[*].o
-	mv .libs/$[*].o $[*].lo
-EOF
-fi
-cat << \EOF >> ${r_f77_rules_frag}
-	@rm -f $[*].c
-EOF
-AC_SUBST_FILE(r_f77_rules_frag)
-])# R_PROG_F2C_MAKEFRAG
-
-### * Library functions
-
+      if AC_TRY_EVAL(ac_compile); then
+	${AR} ${ARFLAGS} libconftest.a conftest.${ac_objext} 1>&AC_FD_CC
+	if test -n "${RANLIB}"; then
+	  ${RANLIB} libconftest.a 1>&AC_FD_CC
+	fi
+      fi
+      AC_DEFINE(HAVE_F77_UNDERSCORE)
+      AC_LANG_RESTORE
+      AC_CHECK_LIB(f2c, f_open, flibs=-lf2c, flibs=,
+	[-L. -lconftest ${LIBM}])
+      rm -f libconftest*
+      if test -z "${flibs}"; then
+	AC_CHECK_LIB(F77, d_sin, flibs=-lF77, flibs=, ${LIBM})
+	if test -n "${flibs}"; then
+	  AC_CHECK_LIB(I77, f_rew, flibs="${flibs} -lI77", flibs=, -lF77)
+	fi
+      fi
+      r_cv_f2c_flibs="${flibs}"])
+  FLIBS="${r_cv_f2c_flibs}"
+  if test -z "${FLIBS}"; then
+    warn_f2c_flibs="I found f2c but not libf2c, or libF77 and libI77"
+    AC_MSG_WARN(${warn_f2c_flibs})
+  else
+    FLIBS="${FLIBS} ${LIBM}"
+  fi])
+##
 ## R_FUNC___SETFPUCW
-## -----------------
+##
 AC_DEFUN([R_FUNC___SETFPUCW],
-[AC_CHECK_FUNC(__setfpucw, 
-[AC_CACHE_CHECK([whether __setfpucw is needed],
-	        [r_cv_func___setfpucw_needed],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
+  [ AC_CHECK_FUNC(__setfpucw,
+    [ AC_CACHE_CHECK([whether __setfpucw is needed],
+	r_cv_func___setfpucw_needed,
+	AC_TRY_RUN(
+	  changequote(<<, >>)dnl
+<<
 int main () {
 #include <fpu_control.h>
 #if defined(_FPU_DEFAULT) && defined(_FPU_IEEE)
-  exit(_FPU_DEFAULT != _FPU_IEEE);
+  return(_FPU_DEFAULT != _FPU_IEEE);
 #endif
-  exit(0);
+  return(0);
 }
-]])],
-              [r_cv_func___setfpucw_needed=no],
-              [r_cv_func___setfpucw_needed=yes],
-              [r_cv_func___setfpucw_needed=no])])
-if test "x${r_cv_func___setfpucw_needed}" = xyes; then
-  AC_DEFINE(NEED___SETFPUCW, 1,
-	    [Define if your system needs __setfpucw() to control
-             FPU rounding. 
-             This was used to control floating point precision,
-             rounding and floating point exceptions on older Linux
-             systems. 
-             As of GLIBC 2.1 this function is not used anymore.])
-fi])
-])# R_FUNC___SETFPUCW
-
+>>,
+	  changequote([, ])dnl
+	  r_cv_func___setfpucw_needed=no,
+	  r_cv_func___setfpucw_needed=yes,
+	  r_cv_func___setfpucw_needed=no))
+      if test "${r_cv_func___setfpucw_needed}" = yes; then
+	AC_DEFINE(NEED___SETFPUCW)
+      fi
+    ])
+  ])
+##
 ## R_FUNC_CALLOC
-## -------------
+##
 AC_DEFUN([R_FUNC_CALLOC],
-[AC_CACHE_CHECK([for working calloc], [r_cv_func_calloc_works],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
+  [ AC_CACHE_CHECK([whether calloc is broken],
+      r_cv_func_calloc_broken,
+      AC_TRY_RUN(
+	changequote(<<, >>)dnl
+	<<
 #include <stdlib.h>
 int main () {
   int *p = calloc(0, sizeof(int));
-  exit(p == 0);
+  return(p == 0);
 }
-]])],
-               [r_cv_func_calloc_works=yes],
-               [r_cv_func_calloc_works=no],
-               [r_cv_func_calloc_works=no])])
-if test "x${r_cv_func_calloc_works}" = xyes; then
-  AC_DEFINE(HAVE_WORKING_CALLOC, 1,
-            [Define if calloc(0) returns a null pointer.])
-fi
-])# R_FUNC_CALLOC
-
+	>>,
+	changequote([, ])dnl
+	r_cv_func_calloc_broken=no,
+	r_cv_func_calloc_broken=yes,
+	r_cv_func_calloc_broken=yes))
+    if test "${r_cv_func_calloc_broken}" = yes; then
+      AC_DEFINE(CALLOC_BROKEN)
+    fi
+  ])
+##
 ## R_FUNC_FINITE
-## -------------
+##
 AC_DEFUN([R_FUNC_FINITE],
-[AC_CACHE_CHECK([for working finite], [r_cv_func_finite_works],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
+  [ AC_CACHE_CHECK([whether finite is broken],
+      r_cv_func_finite_broken,
+      AC_TRY_RUN(
+	changequote(<<, >>)dnl
+	<<
 #include <math.h>
 #include "confdefs.h"
 int main () {
 #ifdef HAVE_FINITE
-  exit(finite(1./0.) | finite(0./0.) | finite(-1./0.));
+  return(finite(1./0.) | finite(0./0.) | finite(-1./0.));
 #else
-  exit(1);
+  return(0);
 #endif
 }
-]])],
-               [r_cv_func_finite_works=yes],
-               [r_cv_func_finite_works=no],
-               [r_cv_func_finite_works=no])])
-if test "x${r_cv_func_finite_works}" = xyes; then
-  AC_DEFINE(HAVE_WORKING_FINITE, 1,
-            [Define if finite() is correct for -Inf/NaN/Inf.])
-fi
-])# R_FUNC_FINITE
-
+	>>,
+	changequote([, ])dnl
+	r_cv_func_finite_broken=no,
+	r_cv_func_finite_broken=yes,
+	r_cv_func_finite_broken=yes))
+    if test "${r_cv_func_finite_broken}" = yes; then
+      AC_DEFINE(FINITE_BROKEN)
+    fi
+  ])
+##
 ## R_FUNC_LOG
-## ----------
+##
 AC_DEFUN([R_FUNC_LOG],
-[AC_CACHE_CHECK([for working log], [r_cv_func_log_works],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
+  [ AC_CACHE_CHECK([whether log is broken],
+      r_cv_func_log_broken,
+      AC_TRY_RUN(
+	changequote(<<, >>)dnl
+	<<
 #include <math.h>
 #include "confdefs.h"
 int main () {
 #ifdef HAVE_ISNAN
-  exit(!(log(0.) == -1. / 0. && isnan(log(-1.))));
+  return(!(log(0.) == -1. / 0. && isnan(log(-1.))));
 #else
-  exit(log(0.) != -1. / 0);
+  return(log(0.) != -1. / 0);
 #endif
 }
-]])],
-               [r_cv_func_log_works=yes],
-               [r_cv_func_log_works=no],
-               [r_cv_func_log_works=no])])
-if test "x${r_cv_func_log_works}" = xyes; then
-  AC_DEFINE(HAVE_WORKING_LOG, 1,
-            [Define if log() is correct for 0/-1.])
-fi
-])# R_FUNC_LOG
-
-## R_FUNC_LOG1P
-## ------------
-## Suggested by Nelson H. F. Beebe <beebe@math.utah.edu> to deal with
-## inaccuracies on at least NetBSD 1.6 and OpenBSD 3.2.
-## However, don't test all the way into denormalized x (he had k > -1074)
-AC_DEFUN([R_FUNC_LOG1P],
-[AC_CACHE_CHECK([for working log1p], [r_cv_func_log1p_works],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <math.h>
-#include "confdefs.h"
-int main () {
-#ifdef HAVE_LOG1P
-  int k;
-  double d;
-  double x;
-  /* log(1+x) = x - (1/2)x^2 + (1/3)x^3 - (1/4)x^4 ... */
-  /*          = x for x sufficiently small */
-  x = pow(2.0, -53.0);
-  for(k = -54; k > -1022; --k) {	
-    x /= 2.0;
-    if(x == 0.0)
-      exit(0);			/* OK: reached underflow limit */
-    d = log1p(x);
-    if(d == 0.0)
-      exit(1);			/* ERROR: inaccurate log1p() */
-    if(d != x)
-      exit(1);			/* ERROR: inaccurate log1p() */
-  }	
-  exit(0);
-#else
-  exit(1);
-#endif
-}
-]])],
-               [r_cv_func_log1p_works=yes],
-               [r_cv_func_log1p_works=no],
-               [r_cv_func_log1p_works=no])])
-if test "x${r_cv_func_log1p_works}" = xyes; then
-  AC_DEFINE(HAVE_WORKING_LOG1P, 1,
-            [Define if log1p() exists and is accurate enough.])
-  RMATH_HAVE_WORKING_LOG1P="# define HAVE_WORKING_LOG1P 1"
-else
-  RMATH_HAVE_WORKING_LOG1P="# undef HAVE_WORKING_LOG1P"
-fi
-AC_SUBST(RMATH_HAVE_WORKING_LOG1P)
-])# R_FUNC_LOG1P
-
-## R_FUNC_STRPTIME
-## ---------------
-AC_DEFUN([R_FUNC_STRPTIME],
-[AC_CACHE_CHECK([for working strptime], [r_cv_func_strptime_works],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <time.h>
-int main () {
-#ifdef HAVE_STRPTIME
-  struct tm tm;
-  char *p;
-
-  p = strptime("1960-01-01", "%Y-%m-%d", &tm);
-  exit(p == 0);
-#else
-  exit(1);
-#endif
-}
-]])],
-               [r_cv_func_strptime_works=yes],
-               [r_cv_func_strptime_works=no],
-               [r_cv_func_strptime_works=no])])
-if test "x${r_cv_func_strptime_works}" = xyes; then
-  AC_DEFINE(HAVE_WORKING_STRPTIME, 1,
-            [Define if strptime() exists and does not fail pre-1970.])
-fi
-])# R_FUNC_STRPTIME
-
-### * Headers
-
+	>>,
+	changequote([, ])dnl
+	r_cv_func_log_broken=no,
+	r_cv_func_log_broken=yes,
+	r_cv_func_log_broken=yes))
+    if test "${r_cv_func_log_broken}" = yes; then
+      AC_DEFINE(LOG_BROKEN)
+    fi
+  ])
+##
 ## R_HEADER_SETJMP
-## ---------------
+##
 AC_DEFUN([R_HEADER_SETJMP],
-[AC_CACHE_CHECK([whether setjmp.h is POSIX.1 compatible], 
-                [r_cv_header_setjmp_posix],
-[AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-[[#include <setjmp.h>]],
-[[sigjmp_buf b;
-sigsetjmp(b, 0);
-siglongjmp(b, 1);]])],
-                   [r_cv_header_setjmp_posix=yes],
-                   [r_cv_header_setjmp_posix=no])])
-if test "${r_cv_header_setjmp_posix}" = yes; then
-  AC_DEFINE(HAVE_POSIX_SETJMP, 1,
-            [Define if you have POSIX.1 compatible sigsetjmp/siglongjmp.])
-fi
-])# R_HEADER_SETJMP
-
+ [AC_CACHE_CHECK([whether setjmp.h is POSIX.1 compatible], 
+    r_cv_header_setjmp_posix,
+    [AC_EGREP_HEADER(sigjmp_buf, setjmp.h, 
+       r_cv_header_setjmp_posix=yes,
+       r_cv_header_setjmp_posix=no)
+     if test "${r_cv_header_setjmp_posix}" = yes; then
+       AC_EGREP_HEADER(siglongjmp, setjmp.h, , r_cv_header_setjmp_posix=no)
+     fi
+     if test "${r_cv_header_setjmp_posix}" = yes; then
+       AC_EGREP_HEADER(sigsetjmp, setjmp.h, , r_cv_header_setjmp_posix=no)
+     fi])
+  if test "${r_cv_header_setjmp_posix}" = yes; then
+    AC_DEFINE(HAVE_POSIX_SETJMP)
+  fi])
+##
 ## R_HEADER_GLIBC2
-## ---------------
+##
 AC_DEFUN([R_HEADER_GLIBC2],
-[AC_CACHE_CHECK([for GNU C library with version >= 2],
-                [r_cv_header_glibc2],
-[AC_EGREP_CPP([yes],
-[#include <stdio.h>
+ [AC_CACHE_CHECK([for GNU C library with version >= 2],
+    r_cv_header_glibc2,
+    AC_EGREP_CPP(yes,
+      changequote(<<, >>)dnl
+      <<
+#include <stdio.h>
 #if defined __GLIBC__ && __GLIBC__ >= 2
   yes
 #endif
-],
-              [r_cv_header_glibc2=yes],
-              [r_cv_header_glibc2=no],
-              [r_cv_header_glibc2=no])
-])
-if test "${r_cv_header_glibc2}" = yes; then
-  AC_DEFINE(HAVE_GLIBC2, 1,
-            [Define if you have the GNU C library version >= 2.
-             This is needed to fix a problem with getting the prototype
-             of strptime().])
-fi
-])# R_HEADER_GLIBC2
-
-## R_TYPE_SOCKLEN
-## --------------
-AC_DEFUN([R_TYPE_SOCKLEN],
-[AC_MSG_CHECKING([for type of socket length])
-AC_CACHE_VAL([r_cv_type_socklen],
-[for t in socklen_t size_t int; do
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <stddef.h>
-#include <sys/types.h>
-#ifdef HAVE_SYS_SOCKET_H
-# include <sys/socket.h>
+      >>,
+      changequote([, ])dnl
+      r_cv_header_glibc2=yes,
+      r_cv_header_glibc2=no,
+      r_cv_header_glibc2=no))
+  if test "${r_cv_header_glibc2}" = yes; then
+    AC_DEFINE(HAVE_GLIBC2)
+  fi])
+##
+##
+## R_C_IEEE_754
+##
+AC_DEFUN([R_C_IEEE_754],
+ [AC_CHECK_FUNCS(finite isnan)
+  AC_CACHE_CHECK([whether you have IEEE 754 floating-point arithmetic],
+    r_cv_c_ieee_754,
+    dnl FIXME: This fails is finite() or isnan() are defined as macros
+    dnl rather than exist as library functions ...
+    AC_EGREP_CPP(yes,
+      changequote(<<, >>)dnl
+      <<
+#include "confdefs.h"
+#if defined(HAVE_FINITE) && defined(HAVE_ISNAN)
+  yes
 #endif
-#ifdef Win32
-# include <winsock.h>
-#endif
-]],
-[[(void)getsockopt (1, 1, 1, NULL, (${t} *)NULL)]])],
-                    [r_cv_type_socklen=${t}; break],
-                    [r_cv_type_socklen=])
-done])
-## size_t works on Windows but is unsigned and int is correct
-case "${host_os}" in
-  cygwin*|mingw*|windows*|winnt)
-    r_cv_type_socklen=int
-    ;;
-esac
-if test "x${r_cv_type_socklen}" = x; then
-  warn_type_socklen="could not determine type of socket length"
-  AC_MSG_WARN([${warn_type_socklen}])
-else
-  AC_MSG_RESULT([${r_cv_type_socklen} *])
-fi
-AC_DEFINE_UNQUOTED(SOCKLEN_T, ${r_cv_type_socklen},
-                   [Type for socket lengths: socklen_t, sock_t, int?])
-])# R_TYPE_SOCKLEN
-
-### * System services
-
-## R_X11
-## -----
-AC_DEFUN([R_X11],
-[AC_PATH_XTRA			# standard X11 search macro
-if test -z "${no_x}"; then
-  ## We force the use of -lX11 (perhaps this is not necessary?).
-  X_LIBS="${X_LIBS} -lX11"
-  use_X11="yes"
-  AC_DEFINE(HAVE_X11, 1,
-            [Define if you have the X11 headers and libraries, and want
-             the X11 GUI to be built.])
-else
-  use_X11="no"
-fi])# R_X11
-
+      >>,
+      changequote([, ])dnl
+      r_cv_c_ieee_754=yes,
+      r_cv_c_ieee_754=no,
+      r_cv_c_ieee_754=no))
+  if test "${r_cv_c_ieee_754}" = yes; then
+    AC_DEFINE(IEEE_754)
+  fi])
+##
+## R_C_OPTIEEE
+##
+AC_DEFUN([R_C_OPTIEEE],
+  [ AC_CACHE_CHECK([whether C compiler needs -OPT:IEEE_NaN_inf=ON],
+      r_cv_c_optieee,
+      AC_TRY_RUN(
+	changequote(<<, >>)dnl
+	<<
+#include <math.h>
+#include <ieeefp.h>
+int main () {
+  double x = 0;
+  fpsetmask(0); x = x / x; return (x != x);
+}
+	>>,
+	changequote([, ])dnl
+	r_cv_c_optieee=yes,
+	r_cv_c_optieee=no,
+	r_cv_c_optieee=no))
+    if test "${r_cv_c_optieee}" = yes; then
+      R_XTRA_CFLAGS="${R_XTRA_CFLAGS} -OPT:IEEE_NaN_inf=ON"
+    fi
+  ])
+##
 ## R_GNOME
-## -------
-AC_DEFUN([R_GNOME], 
-[if test ${want_gnome} = yes; then
-  GNOME_INIT_HOOK([], [cont])
-  if test "${GNOMEUI_LIBS}"; then
-    AM_PATH_LIBGLADE([use_gnome="yes"
-                      GNOME_IF_FILES="gnome-interface.glade"],
-                     [warn_libglade_version="GNOME support requires libglade version >= 0.3"
-                      AC_MSG_WARN([${warn_libglade_version}])],
-                     [gnome])
+##
+AC_DEFUN([R_GNOME], [ 
+  if test ${want_gnome} = yes; then
+    GNOME_INIT_HOOK([], cont)
+    if test "${GNOMEUI_LIBS}"; then
+      AM_PATH_LIBGLADE(
+        [use_gnome="yes"
+	  GNOME_IF_FILES="gnome-interface.glade"],
+        [ warn_libglade="GNOME support requires libglade version >= 0.3"
+	  AC_MSG_WARN(${warn_libglade})],
+        gnome)
+    fi
   fi
-fi
-if test "${use_gnome}" != yes; then
-  use_gnome="no"
-  GNOME_IF_FILES=
-else
-  AC_DEFINE(HAVE_GNOME, 1,
-            [Define if you have the GNOME headers and libraries,
-             and want the GNOME GUI to be built.])
-fi
-AC_SUBST(HAVE_GNOME)
-AC_SUBST(GNOME_IF_FILES)
-])# R_GNOME
-
-## R_AQUA
-## ------
-AC_DEFUN([R_AQUA],
-[use_aqua=no
-if test "${want_aqua}" = yes; then
-  case "${host_os}" in
-    darwin*)
-      use_aqua=yes
-      ;;
-  esac
-fi
-if test "${use_aqua}" = yes; then
-  AC_DEFINE(HAVE_AQUA, 1,
-            [Define if you have the Aqua headers and libraries,
-             and want the Aqua GUI to be built.])
-fi
-])# R_AQUA
-
-## R_IEEE_754
-## ----------
-AC_DEFUN([R_IEEE_754],
-[AC_CHECK_FUNCS([finite isnan])
-AC_CHECK_DECLS([isfinite, isnan], , , [#include <math.h>])
-AC_CACHE_CHECK([whether you have IEEE 754 floating-point arithmetic],
-               [r_cv_ieee_754],
-[if (test "${ac_cv_func_finite}" = yes \
-      || test "${ac_cv_have_decl_isfinite}" = yes) \
-    && (test "${ac_cv_func_isnan}" = yes \
-      || test "${ac_cv_have_decl_isnan}" = yes); then
-  r_cv_ieee_754=yes
-else
-  r_cv_ieee_754=no
-fi])
-if test "${r_cv_ieee_754}" = yes; then
-  AC_DEFINE(IEEE_754, 1,
-            [Define if you have IEEE 754 floating point arithmetic.])
-fi
-])# R_IEEE_754
-
-## R_BSD_NETWORKING
-## ----------------
-AC_DEFUN([R_BSD_NETWORKING],
-[AC_CACHE_CHECK([for BSD networking],
-                [r_cv_bsd_networking],
-[if test "${ac_cv_header_netdb_h}" = yes \
-     && test "${ac_cv_header_netinet_in_h}" = yes \
-     && test "${ac_cv_header_sys_socket_h}" = yes \
-     && test "${ac_cv_search_connect}" != no \
-     && test "${ac_cv_search_gethostbyname}" !=  no; then
-  r_cv_bsd_networking=yes
-else
-  r_cv_bsd_networking=no
-fi])
-if test "${r_cv_bsd_networking}" = yes; then
-  AC_DEFINE(HAVE_BSD_NETWORKING, 1,
-            [Define if you have BSD networking headers and libraries.])
-  AC_DEFINE(HAVE_SOCKETS, 1,
-            [Define if you have support for sockets.])
-  AC_DEFINE(HAVE_INTERNET, 1,
-            [Define if you have support for ftp/http access.])
-  AC_DEFINE(SUPPORT_LIBXML, 1,
-            [Define if you provide support for the libxml ftp/http
-	     functions.])
-fi
-])# R_BSD_NETWORKING
-
+  if test "${use_gnome}" != yes; then
+    use_gnome="no"
+    GNOME_IF_FILES=
+  else
+    AC_DEFINE(HAVE_GNOME, 1)
+  fi
+  AC_SUBST(HAVE_GNOME)
+  AC_SUBST(GNOME_IF_FILES)])
+##
 ## R_BITMAPS
-## ---------
-## Here we only need any old -lz, and don't need zlib.h.
-## However, we do need recent enough libpng and jpeg, and so check both
-## the header versions and for key routines in the library.
-## The png code will do a run-time check of the consistency of libpng
-## versions.
-AC_DEFUN([R_BITMAPS],
-[BITMAP_LIBS=
-if test "${use_jpeglib}" = yes; then
-  _R_HEADER_JPEGLIB
-  have_jpeg=${r_cv_header_jpeglib_h}
-  if test "${have_jpeg}" = yes; then
-    AC_CHECK_LIB(jpeg, jpeg_destroy_compress, 
-		 [have_jpeg=yes],
-		 [have_jpeg=no],
-		 [${LIBS}])
-  fi
-  if test "${have_jpeg}" = yes; then
-    BITMAP_LIBS="-ljpeg"
-    AC_DEFINE(HAVE_JPEG, 1,
-	      [Define if you have the JPEG headers and libraries.])
-  fi
-fi
-if test "${use_libpng}" = yes; then
-  AC_CHECK_LIB(z, main, [have_png=yes], [have_png=no])
-  if test "${have_png}" = yes; then
-    _R_HEADER_PNG
-    have_png=${r_cv_header_png_h}
-  fi
-  if test "${have_png}" = yes; then
-    AC_CHECK_LIB(png, png_create_write_struct,
-		 [have_png=yes],
-		 [have_png=no],
-		 [-lz ${LIBS}])
-  fi
-  if test "${have_png}" = yes; then
-    BITMAP_LIBS="${BITMAP_LIBS} -lpng -lz"
-    AC_DEFINE(HAVE_PNG, 1,
-	      [Define if you have the PNG headers and libraries.])
-  fi
-fi
-AC_SUBST(BITMAP_LIBS)
-])# R_BITMAPS
-
-## _R_HEADER_JPEGLIB
-## -----------------
-## Set shell variable r_cv_header_jpeglib_h to 'yes' if a recent enough
-## jpeglib.h is found, and to 'no' otherwise.
-AC_DEFUN([_R_HEADER_JPEGLIB],
-[AC_CACHE_CHECK([if jpeglib version >= 6b],
-                [r_cv_header_jpeglib_h],
-AC_EGREP_CPP([yes],
-[#include <jpeglib.h>
-#if (JPEG_LIB_VERSION >= 62)
-  yes
-#endif
-],
-             [r_cv_header_jpeglib_h=yes],
-             [r_cv_header_jpeglib_h=no]))
-])# _R_HEADER_JPEGLIB
-
-## _R_HEADER_PNG
-## -------------
-## Set shell variable r_cv_header_png_h to 'yes' if a recent enough
-## 'png.h' is found, and to 'no' otherwise.
-AC_DEFUN([_R_HEADER_PNG],
-[AC_CACHE_CHECK([if libpng version >= 1.0.5], 
-                [r_cv_header_png_h],
-AC_EGREP_CPP([yes],
-[#include <png.h>
-#if (PNG_LIBPNG_VER >= 10005)
-  yes
-#endif
-],
-             [r_cv_header_png_h=yes],
-             [r_cv_header_png_h=no]))
-])# _R_HEADER_PNG
-
-## _R_PATH_TCL_CONFIG
-## ------------------
-## Try finding tclConfig.sh in common library directories and their
-## tcl$x.$y subdirectories.  Set shell variable r_cv_path_TCL_CONFIG
-## to the entire path of the script if found, and leave it empty
-## otherwise.
-AC_DEFUN([_R_PATH_TCL_CONFIG],
-[AC_MSG_CHECKING([for tclConfig.sh in library (sub)directories])
-AC_CACHE_VAL([r_cv_path_TCL_CONFIG],
-[for ldir in /opt/lib /sw/lib /usr/local/lib /usr/lib /lib; do
-  for dir in \
-      ${ldir} \
-      `ls -d ${ldir}/tcl[[8-9]].[[0-9]]* 2>/dev/null | sort -r`; do
-    if test -f ${dir}/tclConfig.sh; then
-      r_cv_path_TCL_CONFIG="${dir}/tclConfig.sh"
-      break 2
-    fi
-  done
-done])
-if test -n "${r_cv_path_TCL_CONFIG}"; then
-  AC_MSG_RESULT([${r_cv_path_TCL_CONFIG}])
-else
-  AC_MSG_RESULT([no])
-fi
-])# _R_PATH_TCL_CONFIG
-
-## _R_PATH_TK_CONFIG
-## ------------------
-## Try finding tkConfig.sh in common library directories and their
-## tk$x.$y subdirectories.  Set shell variable r_cv_path_TK_CONFIG
-## to the entire path of the script if found, and leave it empty
-## otherwise.
-AC_DEFUN([_R_PATH_TK_CONFIG],
-[AC_MSG_CHECKING([for tkConfig.sh in library (sub)directories])
-AC_CACHE_VAL([r_cv_path_TK_CONFIG],
-[for ldir in /opt/lib /sw/lib /usr/local/lib /usr/lib /lib; do
-  for dir in \
-      ${ldir} \
-      `ls -d ${ldir}/tk[[8-9]].[[0-9]]* 2>/dev/null | sort -r`; do
-    if test -f ${dir}/tkConfig.sh; then
-      r_cv_path_TK_CONFIG="${dir}/tkConfig.sh"
-      break 2
-    fi
-  done
-done])
-if test -n "${r_cv_path_TK_CONFIG}"; then
-  AC_MSG_RESULT([${r_cv_path_TK_CONFIG}])
-else
-  AC_MSG_RESULT([no])
-fi
-])# _R_PATH_TK_CONFIG
-
-## _R_TCLTK_CONFIG
-## ---------------
-## Try finding the tclConfig.sh and tkConfig.sh scripts in PATH as well
-## as in common library directories and their tcl/tk subdirectories.
-## Set shell variables TCL_CONFIG and TK_CONFIG to the entire paths to
-## the scripts if found and check that the corresponding Tcl/Tk versions
-## are at least 8; if not, set shell variable have_tcltk to 'no'.
-AC_DEFUN([_R_TCLTK_CONFIG],
-[AC_PATH_PROGS(TCL_CONFIG, [${TCL_CONFIG} tclConfig.sh])
-if test -z "${TCL_CONFIG}"; then
-  _R_PATH_TCL_CONFIG
-  if test -n "${r_cv_path_TCL_CONFIG}"; then
-    TCL_CONFIG="${r_cv_path_TCL_CONFIG}"
-  fi
-fi
-AC_PATH_PROGS(TK_CONFIG, [${TK_CONFIG} tkConfig.sh])
-if test -z "${TK_CONFIG}"; then
-  _R_PATH_TK_CONFIG
-  if test -n "${r_cv_path_TK_CONFIG}"; then
-    TK_CONFIG="${r_cv_path_TK_CONFIG}"
-  fi
-fi
-if test -z "${TCLTK_CPPFLAGS}" \
-    || test -z "${TCLTK_LIBS}"; then
+##
+AC_DEFUN([R_BITMAPS], [
+  BITMAP_LIBS=
+  AC_EGREP_HEADER(jpeg_error_mgr, jpeglib.h, [
+    AC_CHECK_LIB(jpeg, jpeg_destroy_compress, [
+      BITMAP_LIBS=-ljpeg
+      AC_DEFINE(HAVE_JPEG)
+    ], , ${LIBS})
+  ])
+  AC_CHECK_LIB(z, main, [
+    AC_CHECK_HEADER(png.h, [
+      AC_CHECK_LIB(png, png_create_write_struct, [
+        BITMAP_LIBS="${BITMAP_LIBS} -lpng -lz"
+	AC_DEFINE(HAVE_PNG)
+      ], , ${LIBS})
+    ])
+  ])
+  AC_SUBST(BITMAP_LIBS)])
+##
+## Try finding {tcl,tk}Config.sh
+##
+## R_TCLTK_CONFIG()
+##
+AC_DEFUN([R_TCLTK_CONFIG],
+[libpath="${tcltk_prefix}:${LD_LIBRARY_PATH}"
+libpath="${libpath}:/opt/lib:/usr/local/lib:/usr/lib:/lib"
+AC_PATH_PROG(TCL_CONFIG, [${TCL_CONFIG} tclConfig.sh], , ${libpath})
+AC_PATH_PROG(TK_CONFIG, [${TK_CONFIG} tkConfig.sh], , ${libpath})
+if test -z "${TCLTK_CPPFLAGS}" -o -z "${TCLTK_LIBS}"; then
   ## Check whether the versions found via the *Config.sh files are at
   ## least 8; otherwise, issue a warning and turn off Tcl/Tk support.
   ## Note that in theory a system could have outdated versions of the
@@ -1689,66 +817,21 @@ if test -z "${TCLTK_CPPFLAGS}" \
     . ${TCL_CONFIG}
     if test ${TCL_MAJOR_VERSION} -lt 8; then
       warn_tcltk_version="Tcl/Tk support requires Tcl version >= 8"
-      AC_MSG_WARN([${warn_tcltk_version}])
+      AC_MSG_WARN(${warn_tcltk_version})
       have_tcltk=no
     fi
   fi
-  if test -n "${TK_CONFIG}" \
-      && test -z "${warn_tcltk_version}"; then
+  if test -n "${TK_CONFIG}" -a -z "${warn_tcltk_version}"; then
     . ${TK_CONFIG}
     if test ${TK_MAJOR_VERSION} -lt 8; then
       warn_tcltk_version="Tcl/Tk support requires Tk version >= 8"
-      AC_MSG_WARN([${warn_tcltk_version}])
-      have_tcltk=no
-    fi
-  fi
-  if test -n "${TCL_CONFIG}" \
-      && test -n "${TK_CONFIG}" \
-      && test -z "${warn_tcltk_version}"; then
-    if test ${TCL_MAJOR_VERSION} -ne ${TK_MAJOR_VERSION} \
-      || test ${TCL_MINOR_VERSION} -ne ${TK_MINOR_VERSION}; then
-     warn_tcltk_version="Tcl and Tk major or minor versions disagree"
-      AC_MSG_WARN([${warn_tcltk_version}])
+      AC_MSG_WARN(${warn_tcltk_version})
       have_tcltk=no
     fi
   fi
 fi
-])# _R_TCLTK_CONFIG
-
-## _R_HEADER_TCL
-## -------------
-## Set shell variable 'r_cv_header_tcl_h' to 'yes' if a recent enough
-## 'tcl.h' is found, and to 'no' otherwise.
-AC_DEFUN([_R_HEADER_TCL],
-[AC_CACHE_CHECK([for tcl.h], [r_cv_header_tcl_h],
-[AC_EGREP_CPP([yes],
-[#include <tcl.h>
-#if (TCL_MAJOR_VERSION >= 8)
-  yes
-#endif
-],
-             [r_cv_header_tcl_h=yes],
-             [r_cv_header_tcl_h=no])])
-])# _R_HEADER_TCL
-
-## _R_HEADER_TK
-## -------------
-## Set shell variable 'r_cv_header_tk_h' to 'yes' if a recent enough
-## 'tk.h' is found, and to 'no' otherwise.
-AC_DEFUN([_R_HEADER_TK],
-[AC_CACHE_CHECK([for tk.h], [r_cv_header_tk_h],
-[AC_EGREP_CPP([yes],
-[#include <tk.h>
-#if (TK_MAJOR_VERSION >= 8)
-  yes
-#endif
-],
-             [r_cv_header_tk_h=yes],
-             [r_cv_header_tk_h=no])])
-])# _R_HEADER_TK
-
-## _R_TCLTK_CPPFLAGS
-## -----------------
+])
+##
 ## Need to ensure that we can find the tcl.h and tk.h headers, which
 ## may be in non-standard and/or version-dependent directories, such as
 ## on FreeBSD systems.
@@ -1757,8 +840,11 @@ AC_DEFUN([_R_HEADER_TK],
 ## do not investigate any further.  Otherwise, if we still think we
 ## have Tcl/Tk, then first try via the corresponding *Config.sh file,
 ## or else try the obvious.
-AC_DEFUN([_R_TCLTK_CPPFLAGS],
-[AC_REQUIRE([_R_TCLTK_CONFIG])
+##
+## R_TCLTK_CPPFLAGS()
+##
+AC_DEFUN([R_TCLTK_CPPFLAGS],
+[AC_REQUIRE([R_TCLTK_CONFIG])
 if test -z "${TCLTK_CPPFLAGS}"; then
   ## We have to do the work.
   if test "${have_tcltk}" = yes; then
@@ -1769,30 +855,25 @@ if test -z "${TCLTK_CPPFLAGS}"; then
       ## Look for tcl.h in
       ##   ${TCL_PREFIX}/include/tcl${TCL_VERSION}
       ##   ${TCL_PREFIX}/include
-      ## Also look in
-      ##   ${TCL_PREFIX}/include/tcl${TCL_VERSION}/generic
-      ## to deal with current FreeBSD layouts.  These also link the real
-      ## thing to the version subdir, but the link cannot be used as it
-      ## fails to include 'tclDecls.h' which is not linked.  Hence we
-      ## must look for the real thing first.  Argh ...
-      for dir in \
-          ${TCL_PREFIX}/include/tcl${TCL_VERSION}/generic \
-          ${TCL_PREFIX}/include/tcl${TCL_VERSION} \
-          ${TCL_PREFIX}/include; do 
-        AC_CHECK_HEADER([${dir}/tcl.h],
-                        [TCLTK_CPPFLAGS="-I${dir}"
-                         found_tcl_h=yes
-                         break])
-      done
-    fi
-    if test "${found_tcl_h}" = no; then
-      _R_HEADER_TCL
-      if test "${r_cv_header_tcl_h}" = yes; then
-        found_tcl_h=yes
-      else
-        have_tcltk=no
+      AC_CHECK_HEADER(${TCL_PREFIX}/include/tcl${TCL_VERSION}/tcl.h,
+        [TCLTK_CPPFLAGS="-I${TCL_PREFIX}/include/tcl${TCL_VERSION}"
+	  found_tcl_h=yes])
+      if test "${found_tcl_h}" = no; then
+	AC_CHECK_HEADER(${TCL_PREFIX}/include/tcl.h,
+	  [TCLTK_CPPFLAGS="-I${TCL_PREFIX}/include"
+            found_tcl_h=yes])
       fi
     fi
+    if test "${found_tcl_h}" = no; then
+      AC_MSG_CHECKING([for tcl.h])
+      AC_EGREP_CPP(yes, [
+#include <tcl.h>
+#if (TCL_MAJOR_VERSION >= 8)
+  yes
+#endif], found_tcl_h=yes, have_tcltk=no)
+      AC_MSG_RESULT([${found_tcl_h}])
+    fi
+    unset found_tcl_h
   fi
   if test "${have_tcltk}" = yes; then
     ## Part 2.  Check for tk.h.
@@ -1802,55 +883,41 @@ if test -z "${TCLTK_CPPFLAGS}"; then
       ## Look for tk.h in
       ##   ${TK_PREFIX}/include/tk${TK_VERSION}
       ##   ${TK_PREFIX}/include
-      ## Also look in
-      ##   ${TK_PREFIX}/include/tcl${TK_VERSION}
-      ## to compensate for Debian madness ...
-      ## Also look in
-      ##   ${TK_PREFIX}/include/tk${TK_VERSION}/generic
-      ## to deal with current FreeBSD layouts.  See above for details.
-      ##
       ## As the AC_CHECK_HEADER test tries including the header file and
       ## tk.h includes tcl.h and X11/Xlib.h, we need to change CPPFLAGS
       ## for the check.
-      r_save_CPPFLAGS="${CPPFLAGS}"
+      save_CPPFLAGS="${CPPFLAGS}"
       CPPFLAGS="${CPPFLAGS} ${TK_XINCLUDES} ${TCLTK_CPPFLAGS}"
-      for dir in \
-          ${TK_PREFIX}/include/tk${TK_VERSION}/generic \
-          ${TK_PREFIX}/include/tk${TK_VERSION} \
-          ${TK_PREFIX}/include/tcl${TK_VERSION} \
-          ${TK_PREFIX}/include; do 
-        AC_CHECK_HEADER([${dir}/tk.h],
-                        [TCLTK_CPPFLAGS="${TCLTK_CPPFLAGS} -I${dir}"
-                         found_tk_h=yes
-                         break])
-      done
-      CPPFLAGS="${r_save_CPPFLAGS}"
+      AC_CHECK_HEADER(${TK_PREFIX}/include/tk${TK_VERSION}/tk.h,
+        [TCLTK_CPPFLAGS="${TCLTK_CPPFLAGS} -I${TK_PREFIX}/include/tk${TK_VERSION}"
+	  found_tk_h=yes])
+      if test "${found_tk_h}" = no; then
+	AC_CHECK_HEADER(${TK_PREFIX}/include/tk.h,
+          [TCLTK_CPPFLAGS="${TCLTK_CPPFLAGS} -I${TK_PREFIX}/include"
+            found_tk_h=yes])
+      fi
+      CPPFLAGS="${save_CPPFLAGS}"
     fi
     if test "${found_tk_h}" = no; then
-      _R_HEADER_TK
-      if test "{r_cv_header_tk_h}" = yes; then
-        found_tk_h=yes
-      else
-        have_tcltk=no
-      fi
+      AC_MSG_CHECKING([for tk.h])
+      AC_EGREP_CPP(yes, [
+#include <tk.h>
+#if (TK_MAJOR_VERSION >= 8)
+  yes
+#endif], found_tk_h=yes, have_tcltk=no)
+      AC_MSG_RESULT([${found_tk_h}])
     fi
+    unset found_tk_h
   fi
-fi
-if test "${have_tcltk}" = yes; then
-  if test -n "${TK_XINCLUDES}"; then
-    TCLTK_CPPFLAGS="${TCLTK_CPPFLAGS} ${TK_XINCLUDES}"
-  else
-    TCLTK_CPPFLAGS="${TCLTK_CPPFLAGS} ${X_CFLAGS}"
-  fi
-fi
-])# _R_TCLTK_CPPFLAGS
-
-## _R_TCLTK_LIBS
-## -------------
+fi])
+##
 ## Find the tcl and tk libraries.
-AC_DEFUN([_R_TCLTK_LIBS],
+##
+## R_TCLTK_LIBS()
+##
+AC_DEFUN([R_TCLTK_LIBS],
 [AC_REQUIRE([AC_PATH_XTRA])
-AC_REQUIRE([_R_TCLTK_CONFIG])
+AC_REQUIRE([R_TCLTK_CONFIG])
 if test -z "${TCLTK_LIBS}"; then
   ## We have to do the work.
   if test "${have_tcltk}" = yes; then
@@ -1860,8 +927,8 @@ if test -z "${TCLTK_LIBS}"; then
       TCLTK_LIBS="${TCL_LIB_SPEC}"
     else
       AC_CHECK_LIB(tcl, Tcl_CreateInterp,
-                   [TCLTK_LIBS=-ltcl],
-                   [have_tcltk=no])
+        TCLTK_LIBS=-ltcl,
+        have_tcltk=no)
     fi
   fi
   if test "${have_tcltk}" = yes; then
@@ -1870,90 +937,29 @@ if test -z "${TCLTK_LIBS}"; then
       . ${TK_CONFIG}
       TCLTK_LIBS="${TCLTK_LIBS} ${TK_LIB_SPEC} ${TK_LIBS}"
     else
-      AC_CHECK_LIB(tk, Tk_Init, , , [${TCLTK_LIBS}])
+      AC_CHECK_LIB(tk, Tk_Init, , , ${TCLTK_LIBS})
       if test "${ac_cv_lib_tk_Tk_Init}" = no; then
 	## Grr, simple -ltk does not work.
 	## But maybe we simply need to add X11 libs.
-        ## Note that we cannot simply repeat the above test with extra
-        ## libs, because AC_CHECK_LIB uses the corresponding cache var
-        ## (ac_cv_lib_tk_Tk_Init in our case) if set.  As using unset
-        ## is not portable shell programming according to the Autoconf
-        ## docs, we use Tk_SafeInit in the test with X11 libs added.
-	AC_CHECK_LIB(tk, Tk_SafeInit,
-                     [TCLTK_LIBS="${TCLTK_LIBS} -ltk ${X_LIBS}"],
-	             [have_tcltk=no],
-                     [${TCLTK_LIBS} ${X_LIBS}])
+	unset ac_cv_lib_tk_Tk_Init
+	AC_CHECK_LIB(tk, Tk_Init,
+          [TCLTK_LIBS="${TCLTK_LIBS} -ltk ${X_LIBS}"],
+	  have_tcltk=no,
+          [${TCLTK_LIBS} ${X_LIBS}])
       fi
     fi
   fi
-  ## Postprocessing for AIX.
-  ## On AIX, the *_LIB_SPEC variables need to contain '-bI:' flags for
-  ## the Tcl export file.  These are really flags for ld rather than the
-  ## C/C++ compilers, and hence may need protection via '-Wl,'.
-  ## We have two ways of doing that:
-  ## * Recording whether '-Wl,' is needed for the C or C++ compilers,
-  ##   and getting this info into the TCLTK_LIBS make variable ... mess!
-  ## * Protecting all entries in TCLTK_LIBS that do not start with '-l'
-  ##   or '-L' with '-Wl,' (hoping that all compilers understand this).
-  ##   Easy, hence ...
-  case "${host_os}" in
-    aix*)
-      orig_TCLTK_LIBS="${TCLTK_LIBS}"
-      TCLTK_LIBS=
-      for flag in ${orig_TCLTK_LIBS}; do
-        case "${flag}" in
-	  -l*|-L*|-Wl,*) ;;
-	  *) flag="-Wl,${flag}" ;;
-	esac
-	TCLTK_LIBS="${TCLTK_LIBS} ${flag}"
-      done
-      ;;
-  esac
-  ## Force evaluation ('-ltcl8.3${TCL_DBGX}' and friends ...).
-  eval "TCLTK_LIBS=\"${TCLTK_LIBS}\""
 fi
-])# _R_TCLTK_LIBS
-
-## _R_TCLTK_WORKS
-## --------------
-## Check whether compiling and linking code using Tcl/Tk works.
-## Set shell variable r_cv_tcltk_works to 'yes' or 'no' accordingly.
-AC_DEFUN([_R_TCLTK_WORKS],
-[AC_CACHE_CHECK([whether compiling/linking Tcl/Tk code works],
-                [r_cv_tcltk_works],
-[AC_LANG_PUSH(C)
-r_save_CPPFLAGS="${CPPFLAGS}"
-r_save_LIBS="${LIBS}"
-CPPFLAGS="${CPPFLAGS} ${TCLTK_CPPFLAGS}"
-LIBS="${LIBS} ${TCLTK_LIBS}"
-AC_LINK_IFELSE([AC_LANG_PROGRAM(
-[[#include <tcl.h>
-#include <tk.h>
-]],
-[[static char * p1 = (char *) Tcl_Init;
-static char * p2 = (char *) Tk_Init;
-]])],
-r_cv_tcltk_works=yes,
-r_cv_tcltk_works=no)
-CPPFLAGS="${r_save_CPPFLAGS}"
-LIBS="${r_save_LIBS}"
-AC_LANG_POP(C)])
-])# _R_TCLTK_WORKS
-
-## R_TCLTK
-## -------
+])
+##
+## R_TCLTK()
+##
 AC_DEFUN([R_TCLTK],
 [if test "${want_tcltk}" = yes; then
   have_tcltk=yes
-  ## (Note that the subsequent 3 macros assume that have_tcltk has been
-  ## set appropriately.)
-  _R_TCLTK_CONFIG
-  _R_TCLTK_CPPFLAGS  
-  _R_TCLTK_LIBS
-  if test "${have_tcltk}" = yes; then
-    _R_TCLTK_WORKS
-    have_tcltk=${r_cv_tcltk_works}
-  fi
+  R_TCLTK_CONFIG
+  R_TCLTK_CPPFLAGS  
+  R_TCLTK_LIBS
 else
   have_tcltk=no
   ## Just making sure.
@@ -1961,426 +967,117 @@ else
   TCLTK_LIBS=
 fi
 if test "${have_tcltk}" = yes; then
-  AC_DEFINE(HAVE_TCLTK, 1,
-            [Define if you have the Tcl/Tk headers and libraries and
-	     want Tcl/Tk support to be built.])
+  AC_DEFINE(HAVE_TCLTK)
   use_tcltk=yes
+  if test -n "${TK_XINCLUDES}"; then
+    TCLTK_CPPFLAGS="${TCLTK_CPPFLAGS} ${TK_XINCLUDES}"
+  else
+    TCLTK_CPPFLAGS="${TCLTK_CPPFLAGS} ${X_CFLAGS}"
+  fi
 else
   use_tcltk=no
 fi
 AC_SUBST(TCLTK_CPPFLAGS)
 AC_SUBST(TCLTK_LIBS)
 AC_SUBST(use_tcltk)
-])# R_TCLTK
+])
 
-## R_BLAS_LIBS
-## -----------
-## Look for a library that implements the BLAS linear-algebra interface
-## (see http://www.netlib.org/blas/).  On success, sets BLAS_LIBS to the
-## requisite library linkages.
-##
-## This is based on ACX_BLAS by Steven G. Johnson <stevenj@alum.mit.edu>
-## from the Official Autoconf Macro Archive
-## (http://www.gnu.org/software/ac-archive/htmldoc/acx_blas.m4),
-## with the following changes:
-## * We also handle HPUX .sl command line specifications.
-## * We explictly deal with the case of f2c.  Most likely pointless.
-## * We only care about the Fortran 77 interface to Atlas, hence do not
-##   test for -lcblas.
-## * We do not use BLAS libs that caused problems in the past: Alpha
-##   CXML and DXML, and SGI SCSL and SGIMATH (marked with COMMENT tags).
-## * As we link with $BLAS_LIBS $FLIBS $LIBS (in that order), we use the
-##   same order in the tests.
-## * We do not use ACTION-IF-FOUND and ACTION-IF-NOT-FOUND.
-## The sunperf test calls the library as now required.
-## Based on acx_blas.m4 version 1.2 (2001-12-13)
-AC_DEFUN([R_BLAS_LIBS],
-[AC_REQUIRE([R_PROG_F77_FLIBS])
-AC_REQUIRE([R_PROG_F77_APPEND_UNDERSCORE])
-AC_REQUIRE([R_PROG_F2C_FLIBS])
 
-acx_blas_ok=no
-case "${with_blas}" in
-  yes | "") ;;
-  no) acx_blas_ok=disable ;;
-  -* | */* | *.a | *.so | *.so.* | *.sl | *.sl.* | *.o)
-    BLAS_LIBS="${with_blas}" 
-    ;;
-  *) BLAS_LIBS="-l${with_blas}" ;;
-esac
-
+AC_DEFUN([R_BLAS_LIBS], [
 if test "${r_cv_prog_f77_append_underscore}" = yes \
   || test -n "${F2C}"; then
-  dgemm=dgemm_
-  sgemm=sgemm_
+  dgemm_func=dgemm_
 else
-  dgemm=dgemm
-  sgemm=sgemm
+  dgemm_func=dgemm
+fi
+if test -z "${with_blas}"; then
+  with_blas=yes
 fi
 
-acx_blas_save_LIBS="${LIBS}"
-LIBS="${FLIBS} ${LIBS}"
-
-## First, check BLAS_LIBS environment variable
-if test "${acx_blas_ok}" = no; then
-  if test "x${BLAS_LIBS}" != x; then
-    r_save_LIBS="${LIBS}"; LIBS="${BLAS_LIBS} ${LIBS}"
-    AC_MSG_CHECKING([for ${sgemm} in ${BLAS_LIBS}])
-    AC_TRY_LINK_FUNC(${sgemm}, [acx_blas_ok=yes], [BLAS_LIBS=""])
-    AC_MSG_RESULT([${acx_blas_ok}])
-    LIBS="${r_save_LIBS}"
+if test "$with_blas" = "no"; then
+  BLAS_LIBS=" "
+elif test "$with_blas" != "yes"; then
+  # user specified a BLAS library to try on the command line
+  # Safeguard against users giving the location of the lib.
+  blas_lib_dir=`dirname ${with_blas}`
+  if test "x${blas_lib_dir}" = x; then
+    AC_CHECK_LIB($with_blas, $dgemm_func, 
+                 BLAS_LIBS="-l$with_blas", , $FLIBS)
+  else
+    blas_lib_name=`basename ${with_blas} | sed 's/^lib\([[^.]]*\).*$/\1/'`
+    AC_CHECK_LIB($blas_lib_name, $dgemm_func,
+      BLAS_LIBS="-L${blas_lib_dir} -l${blas_lib_name}", ,
+      [-L${blas_lib_dir} ${FLIBS}])
   fi
 fi
 
-## BLAS linked to by default?  (happens on some supercomputers)
-if test "${acx_blas_ok}" = no; then
-  AC_CHECK_FUNC(${sgemm}, [acx_blas_ok=yes])
-fi
-
-## BLAS in ATLAS library?  (http://math-atlas.sourceforge.net/)
-if test "${acx_blas_ok}" = no; then
-  AC_CHECK_LIB(atlas, ATL_xerbla,
-               [AC_CHECK_LIB(f77blas, ${sgemm},
-                             [acx_blas_ok=yes
-                              BLAS_LIBS="-lf77blas -latlas"],
-			     [], [-latlas])])
-fi
-
-## BLAS in PhiPACK libraries?  (requires generic BLAS lib, too)
-if test "${acx_blas_ok}" = no; then
-  AC_CHECK_LIB(blas, ${sgemm},
-	       [AC_CHECK_LIB(dgemm, $dgemm,
-		             [AC_CHECK_LIB(sgemm, ${sgemm},
-			                   [acx_blas_ok=yes
-                                            BLAS_LIBS="-lsgemm -ldgemm -lblas"],
-			                   [], [-lblas])],
-			     [], [-lblas])])
-fi
-
-## <COMMENT>
-## ## BLAS in Alpha CXML library?
-## if test "${acx_blas_ok}" = no; then
-##   AC_CHECK_LIB(cxml, ${sgemm},
-##                [acx_blas_ok=yes; BLAS_LIBS="-lcxml"])
-## fi
-## </COMMENT>
-  
-## <COMMENT>
-## # BLAS in Alpha DXML library? (now called CXML, see above)
-## if test "${acx_blas_ok}" = no; then
-##   AC_CHECK_LIB(dxml, ${sgemm},
-##                [acx_blas_ok=yes; BLAS_LIBS="-ldxml"])
-## fi
-## </COMMENT>
-
-## BLAS in Sun Performance library?
-## Some versions require -xlic_lib=sunperf: -lsunperf will not work
-## Not sure whether -lsunmath is required, but it helps anyway
-if test "${acx_blas_ok}" = no; then
-  if test "x$GCC" != xyes; then # only works with Sun CC
-     AC_MSG_CHECKING([for ${sgemm} in -lsunperf])
-     r_save_LIBS="${LIBS}"
-     LIBS="-xlic_lib=sunperf -lsunmath ${LIBS}"
-     AC_TRY_LINK_FUNC([${sgemm}], [R_sunperf=yes], [R_sunperf=no])
-     if test "${R_sunperf}" = yes; then
-        BLAS_LIBS="-xlic_lib=sunperf -lsunmath"
-	acx_blas_ok=yes
-     fi
-     LIBS="${r_save_LIBS}"
-     AC_MSG_RESULT([${acx_blas_ok}])
+if test "x$BLAS_LIBS" = x; then
+  # Checks for ATLAS BLAS library:
+  AC_CHECK_LIB(atlas, ATL_xerbla, BLAS_LIBS="-latlas")
+  if test "x$BLAS_LIBS" != x; then
+    # check for other atlas libs:
+    AC_CHECK_LIB(cblas, cblas_dgemm,BLAS_LIBS="-lcblas $BLAS_LIBS",,$BLAS_LIBS)
+    AC_CHECK_LIB(f77blas, $dgemm_func, 
+		 BLAS_LIBS="-lf77blas $BLAS_LIBS", , $BLAS_LIBS $FLIBS)
   fi
 fi
 
-## <COMMENT>
-## ## BLAS in SCSL library?  (SGI/Cray Scientific Library)
-## if test "${acx_blas_ok}" = no; then
-##   AC_CHECK_LIB(scs, ${sgemm},
-##                [acx_blas_ok=yes; BLAS_LIBS="-lscs"])
-## fi
-## </COMMENT>
- 
-## <COMMENT>
-## ## BLAS in SGIMATH library?
-## if test "${acx_blas_ok}" = no; then
-##   AC_CHECK_LIB(complib.sgimath, ${sgemm},
-##                [acx_blas_ok=yes; BLAS_LIBS="-lcomplib.sgimath"])
-## fi
-## </COMMENT>
-
-## BLAS in IBM ESSL library? (requires generic BLAS lib, too)
-if test "${acx_blas_ok}" = no; then
-  AC_CHECK_LIB(blas, ${sgemm},
-	       [AC_CHECK_LIB(essl, ${sgemm},
-			     [acx_blas_ok=yes
-                              BLAS_LIBS="-lessl -lblas"],
-			     [], [-lblas ${FLIBS}])])
+if test "x$BLAS_LIBS" = x; then
+  # BLAS in Alpha CXML library?
+  AC_CHECK_LIB(cxml, $dgemm_func, BLAS_LIBS="-lcxml", , $FLIBS)
 fi
 
-## Generic BLAS library?
-if test "${acx_blas_ok}" = no; then
-  AC_CHECK_LIB(blas, ${sgemm},
-               [acx_blas_ok=yes; BLAS_LIBS="-lblas"])
+if test "x$BLAS_LIBS" = x; then
+  # BLAS in Alpha DXML library? (now called CXML, see above)
+  AC_CHECK_LIB(dxml, $dgemm_func, BLAS_LIBS="-ldxml", , $FLIBS)
 fi
 
-LIBS="${acx_blas_save_LIBS}"
+if test "x$BLAS_LIBS" = x; then
+  if test "x$GCC" != xyes; then
+    # Check for BLAS in Sun Performance library:
+    AC_CHECK_LIB(sunmath, acosp,
+                 AC_CHECK_LIB(sunperf, $dgemm_func,
+			      BLAS_LIBS="-xlic_lib=sunperf -lsunmath", ,
+			      [-lsunmath $FLIBS]))
+  fi
+fi
+
+if test "x$BLAS_LIBS" = x; then
+  # Check for BLAS in SCSL and SGIMATH libraries (prefer SCSL):
+  AC_CHECK_LIB(scs, $dgemm_func,
+               BLAS_LIBS="-lscs", 
+	       AC_CHECK_LIB(complib.sgimath, $dgemm_func,
+			    BLAS_LIBS="-lcomplib.sgimath", , $FLIBS), $FLIBS)
+fi
+
+if test "x$BLAS_LIBS" = x; then
+  # Checks for BLAS in IBM ESSL library.  We must also link
+  # with -lblas in this case (ESSL does not include the full BLAS):
+  AC_CHECK_LIB(blas, zherk, 
+	       AC_CHECK_LIB(essl, $dgemm_func, 
+			    BLAS_LIBS="-lessl -lblas", , $FLIBS), , $FLIBS)
+fi
+
+if test "x$BLAS_LIBS" = x; then
+  # Finally, check for the generic BLAS library:
+  AC_CHECK_LIB(blas, $dgemm_func, BLAS_LIBS="-lblas", , $FLIBS)
+fi
+
+if test "$with_blas" = "no"; then
+  # Unset BLAS_LIBS so that we know below that nothing was found.
+  BLAS_LIBS=""
+fi
 
 AC_SUBST(BLAS_LIBS)
-])# R_BLAS_LIBS
-
-## R_LAPACK_LIBS
-## -------------
-## Look for a library that implements LAPACK (see
-## http://www.netlib.org/lapack/).  On success, sets LAPACK_LIBS to the
-## requisite library linkages.  Only used by the lapack module at
-## present. 
-##
-## This is roughly based on ACX_LAPACK by Steven G. Johnson
-## <stevenj@alum.mit.edu> from the Official Autoconf Macro Archive
-## (http://www.gnu.org/software/ac-archive/htmldoc/acx_lapack.m4),
-## with the following changes:
-## * We also handle HPUX .sl command line specifications.
-## * We explictly deal with the case of f2c.  Most likely pointless.
-## * We test for a LAPACK_LIBS environment variable after checking
-##   whether LAPACK is already linked (see below).
-## * We do not test for the generic lapack_rs6k library (why not?).
-## * As we link with $LAPACK_LIBS $BLAS_LIBS $FLIBS $LIBS (in that
-##   order), we use the same order in the tests.
-## * We do not use ACTION-IF-FOUND and ACTION-IF-NOT-FOUND.
-## Note that Debian ATLAS has LAPACK libs in /usr/lib/atlas (or $arch
-## variants) which should be used if ATLAS is used for BLAS, and not
-## found at configure time but used at run time ...
-## Note also that (see R-admin) that our main intention is to allow a
-## LAPACK-containing BLAS to be used ... there are too many slow or
-## broken LAPACKs out there.
-## Based on acx_lapack.m4 version 1.3 (2002-03-12).
-
-AC_DEFUN([R_LAPACK_LIBS],
-[AC_REQUIRE([R_PROG_F77_FLIBS])
-AC_REQUIRE([R_PROG_F77_APPEND_UNDERSCORE])
-AC_REQUIRE([R_PROG_F2C_FLIBS])
-AC_REQUIRE([R_BLAS_LIBS])
-
-acx_lapack_ok=no
-case "${with_lapack}" in
-  yes | "") ;;
-  no) acx_lapack_ok=disable ;;
-  -* | */* | *.a | *.so | *.so.* | *.sl | *.sl.* | *.o)
-    LAPACK_LIBS="${with_lapack}" 
-    ;;
-  *) LAPACK_LIBS="-l${with_lapack}" ;;
-esac
-
-if test "${r_cv_prog_f77_append_underscore}" = yes \
-  || test -n "${F2C}"; then
-  zgeev=zgeev_
-else
-  zgeev=zgeev
-fi
-
-# We cannot use LAPACK if BLAS is not found
-if test "x${acx_blas_ok}" != xyes; then
-  acx_lapack_ok=noblas
-fi
-
-acx_lapack_save_LIBS="${LIBS}"
-LIBS="${BLAS_LIBS} ${FLIBS} ${LIBS}"
-
-## LAPACK linked to by default?  (Could be in the BLAS libs.)
-if test "${acx_lapack_ok}" = no; then
-  AC_CHECK_FUNC(${zgeev}, [acx_lapack_ok=yes])
-fi
-
-## Next, check LAPACK_LIBS environment variable
-if test "${acx_lapack_ok}" = no; then
-  if test "x${LAPACK_LIBS}" != x; then
-    r_save_LIBS="${LIBS}"; LIBS="${LAPACK_LIBS} ${LIBS}"
-    AC_MSG_CHECKING([for ${zgeev} in ${LAPACK_LIBS}])
-    AC_TRY_LINK_FUNC(${zgeev}, [acx_lapack_ok=yes], [LAPACK_LIBS=""])
-    AC_MSG_RESULT([${acx_lapack_ok}])
-    LIBS="${r_save_LIBS}"
-  fi
-fi
-
-## LAPACK in Sun Performance library?
-## No longer test here as will be picked up by the default test.
-
-## Generic LAPACK library?
-if test "${acx_lapack_ok}" = no; then
-  AC_CHECK_LIB(lapack, ${zgeev},
-               [acx_lapack_ok=yes; LAPACK_LIBS="-llapack"])
-fi
-
-LIBS="${acx_lapack_save_LIBS}"
-
-if test "${acx_lapack_ok}" = yes; then
-  AC_DEFINE(HAVE_LAPACK, 1,
-            [Define if external LAPACK is available.])
-fi
-
-AC_SUBST(LAPACK_LIBS)
-])# R_LAPACK_LIBS
-
-## R_XDR
-## -----
-## Try finding XDR library functions and headers.
-## FreeBSD in particular needs rpc/types.h before rpc/xdr.h.
-AC_DEFUN([R_XDR],
-[AC_CHECK_HEADER(rpc/types.h)
-if test "${ac_cv_header_rpc_types_h}" = yes ; then
-  AC_CHECK_HEADER(rpc/xdr.h, , , [#include <rpc/types.h>])
-fi
-AC_CACHE_CHECK([for XDR support],
-                [r_cv_xdr],
-[if test "${ac_cv_header_rpc_types_h}" = yes \
-     && test "${ac_cv_header_rpc_xdr_h}" = yes \
-     && test "${ac_cv_search_xdr_string}" != no ; then
-  r_cv_xdr=yes
-else
-  r_cv_xdr=no
-fi
 ])
-AM_CONDITIONAL(BUILD_XDR, [test "x${r_cv_xdr}" = xno])
-])# R_XDR
 
-## R_ZLIB
-## ------
-## Try finding zlib library and headers.
-## We check that both are installed, and that the header >= 1.1.4
-## and that gzeof is in the library (which suggests the library
-## is also recent enough).
-AC_DEFUN([R_ZLIB],
-[if test "x${use_zlib}" = xyes; then
-  AC_CHECK_LIB(z, gzeof, [have_zlib=yes], [have_zlib=no])
-  if test "${have_zlib}" = yes; then
-    AC_CHECK_HEADER(zlib.h, [have_zlib=yes], [have_zlib=no])
-  fi
-  if test "${have_zlib}" = yes; then
-    _R_HEADER_ZLIB
-    have_zlib=${r_cv_header_zlib_h}
-  fi
-else
-  have_zlib="no"
-fi
-AC_MSG_CHECKING([whether zlib support needs to be compiled])
-if test "${have_zlib}" = yes; then
-  AC_MSG_RESULT([no])
-  AC_DEFINE(HAVE_ZLIB, 1,
-	    [Define if you have the zlib headers and libraries.])
-  LIBS="-lz ${LIBS}"
-else
-  AC_MSG_RESULT([yes])
-  _R_ZLIB_MMAP
-fi
-AM_CONDITIONAL(BUILD_ZLIB, [test "x${have_zlib}" = xno])
-AM_CONDITIONAL(USE_MMAP_ZLIB,
-[test "x${have_zlib}" = xno && test "x${r_cv_zlib_mmap}" = xyes])
-])# R_ZLIB
-
-## _R_HEADER_ZLIB
-## --------------
-## Set shell variable r_cv_header_zlib_h to 'yes' if a recent enough
-## zlib.h is found, and to 'no' otherwise.
-AC_DEFUN([_R_HEADER_ZLIB],
-[AC_CACHE_CHECK([if zlib version >= 1.1.4],
-                [r_cv_header_zlib_h],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <string.h>
-#include <zlib.h>
-int main() {
-#ifdef ZLIB_VERSION
-  exit(strcmp(ZLIB_VERSION, "1.1.4") < 0);
-#else
-  exit(1);
-#endif
-}
-]])],
-              [r_cv_header_zlib_h=yes],
-              [r_cv_header_zlib_h=no],
-              [r_cv_header_zlib_h=no])])
-])# _R_HEADER_ZLIB
-
-## _R_ZLIB_MMAP
-## ------------
-AC_DEFUN([_R_ZLIB_MMAP],
-[AC_CACHE_CHECK([mmap support for zlib],
-                [r_cv_zlib_mmap],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-caddr_t hello() {
-  exit(mmap((caddr_t)0, (off_t)0, PROT_READ, MAP_SHARED, 0, (off_t)0)); 
-}
-]])],
-              [r_cv_zlib_mmap=no],
-              [r_cv_zlib_mmap=yes],
-              [r_cv_zlib_mmap=yes])])
-])# _R_ZLIB_MMAP
-
-## R_PCRE
-## ------
-## Try finding pcre library and headers.
-## RedHat puts the headers in /usr/include/pcre.
-AC_DEFUN([R_PCRE],
-[if test "x${use_pcre}" = xyes; then
-  AC_CHECK_LIB(pcre, pcre_fullinfo, [have_pcre=yes], [have_pcre=no])
-  if test "${have_pcre}" = yes; then
-    AC_CHECK_HEADERS(pcre.h pcre/pcre.h)
-    if test "${ac_cv_header_pcre_h}" = no \
-	&& test "${ac_cv_header_pcre_pcre_h}" = no; then
-      have_pcre=no
-    fi
-  fi
-else
-  have_pcre=no
-fi
-if test "${have_pcre}" = yes; then
-  AC_DEFINE(HAVE_PCRE, 1,
-            [Define if you have the PCRE headers and libraries.])
-  LIBS="-lpcre ${LIBS}"
-fi
-AC_MSG_CHECKING([whether PCRE support needs to be compiled])
-if test "x${have_pcre}" = xyes; then
-  AC_MSG_RESULT([no])
-else
-  AC_MSG_RESULT([yes])
-fi
-AM_CONDITIONAL(BUILD_PCRE, [test "x${have_pcre}" = xno])
-])# R_PCRE
-
-## R_BZLIB
-## -------
-## Try finding bzlib library and headers.
-## We check that both are installed,
-## and that BZ2_bzlibVersion is in the library.
-AC_DEFUN([R_BZLIB],
-[if test "x${use_bzlib}" = xyes; then
-  AC_CHECK_LIB(bz2, BZ2_bzlibVersion, [have_bzlib=yes], [have_bzlib=no])
-  if test "${have_bzlib}" = yes; then
-    AC_CHECK_HEADER(bzlib.h, [have_bzlib=yes], [have_bzlib=no])
-  fi
-else
-  have_bzlib=no
-fi
-AC_MSG_CHECKING([whether bzip2 support needs to be compiled])
-if test "x${have_bzlib}" = xyes; then
-  AC_MSG_RESULT([no])
-  LIBS="-lbz2 ${LIBS}"
-else
-  AC_MSG_RESULT([yes])
-fi
-AM_CONDITIONAL(BUILD_BZLIB, [test "x${have_bzlib}" = xno])
-])# R_BZLIB
-
-## R_SYS_POSIX_LEAPSECONDS
-## -----------------------
-## See if your system time functions do not count leap seconds, as
-## required by POSIX.
-AC_DEFUN([R_SYS_POSIX_LEAPSECONDS],
-[AC_CACHE_CHECK([whether leap seconds are treated according to POSIX],
-                [r_cv_sys_posix_leapseconds],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <stdlib.h>
+##
+## See if leap seconds are used.
+##
+AC_DEFUN([R_USES_LEAPSECONDS],
+ [AC_MSG_CHECKING([whether leap seconds are counted])
+  AC_CACHE_VAL(uses_leapseconds,
+    [ cat > conftest.c <<EOF
 #include <time.h>
 #include <stdio.h>
 #include "confdefs.h"
@@ -2392,112 +1089,44 @@ int main () {
   ctime(&ct);
   ct = ct - (ct % 60);
   tm = gmtime(&ct);
-  if(tm->tm_sec == 0) exit(1); else exit(0);
+  printf("%d", tm->tm_sec);
+  exit(0);
 }
-]])],
-              [r_cv_sys_posix_leapseconds=no],
-              [r_cv_sys_posix_leapseconds=yes],
-              [r_cv_sys_posix_leapseconds=yes])])
-if test "x${r_cv_sys_posix_leapseconds}" = xyes; then
-  AC_DEFINE(HAVE_POSIX_LEAPSECONDS, 1,
-            [Define if your system time functions do not count leap
-	     seconds, as required by POSIX.])
-fi
-])# R_SYS_POSIX_LEAPSECONDS
-
-### * Miscellaneous
-
-## R_RECOMMENDED_PACKAGES
-## ----------------------
-## See if the sources for the recommended packages are available.
-AC_DEFUN([R_RECOMMENDED_PACKAGES],
-[AC_CACHE_CHECK([for recommended packages],
-                [r_cv_misc_recommended_packages],
-[r_cv_misc_recommended_packages=yes
-recommended_pkgs=`grep '^R_PKGS_RECOMMENDED_SOURCES *=' \
-  ${srcdir}/share/make/vars.mk | sed 's/.*=//'`
-for pkg in ${recommended_pkgs}; do
-  n_pkg=`ls ${srcdir}/src/library/Recommended/${pkg}_*.tar.gz | wc -l`
-  if test ${n_pkg} -ne 1; then
-    r_cv_misc_recommended_packages=no
-    break
+EOF
+      if ${CC-cc} ${CFLAGS} -o conftest${ac_exeext} conftest.c; then
+          output=`./conftest${ac_exeext}`
+	  if test ${?} -eq 0; then
+            if test ${output} -gt 0; then
+	      uses_leapseconds=yes
+            fi
+	  fi
+      fi
+    ])
+  rm -rf conftest conftest.* core
+  if test -n "${uses_leapseconds}"; then
+    AC_MSG_RESULT([yes])
+    AC_DEFINE(USING_LEAPSECONDS, 1)
+  else
+    AC_MSG_RESULT([no])
   fi
-done])
-use_recommended_packages=${r_cv_misc_recommended_packages}
-])# R_RECOMMENDED_PACKAGES
-
-### Local variables: ***
-### mode: outline-minor ***
-### outline-regexp: "### [*]+" ***
-### End: ***
-dnl
-dnl GNOME_GNORBA_HOOK (script-if-gnorba-found, failflag)
-dnl
-dnl if failflag is "failure" it aborts if gnorba is not found.
-dnl
-
-AC_DEFUN([GNOME_GNORBA_HOOK],[
-	GNOME_ORBIT_HOOK([],$2)
-	AC_CACHE_CHECK([for gnorba libraries],gnome_cv_gnorba_found,[
-		gnome_cv_gnorba_found=no
-		if test x$gnome_cv_orbit_found = xyes; then
-			GNORBA_CFLAGS="`gnome-config --cflags gnorba gnomeui`"
-			GNORBA_LIBS="`gnome-config --libs gnorba gnomeui`"
-			if test -n "$GNORBA_LIBS"; then
-				gnome_cv_gnorba_found=yes
-			fi
-		fi
-	])
-	AM_CONDITIONAL(HAVE_GNORBA, test x$gnome_cv_gnorba_found = xyes)
-	if test x$gnome_cv_orbit_found = xyes; then
-		$1
-		GNORBA_CFLAGS="`gnome-config --cflags gnorba gnomeui`"
-		GNORBA_LIBS="`gnome-config --libs gnorba gnomeui`"
-		AC_SUBST(GNORBA_CFLAGS)
-		AC_SUBST(GNORBA_LIBS)
-	else
-	    	if test x$2 = xfailure; then
-			AC_MSG_ERROR(gnorba library not installed or installation problem)
-	    	fi
-	fi
 ])
 
-AC_DEFUN([GNOME_GNORBA_CHECK], [
-	GNOME_GNORBA_HOOK([],failure)
-])
-dnl
-dnl GNOME_ORBIT_HOOK (script-if-orbit-found, failflag)
-dnl
-dnl if failflag is "failure" it aborts if orbit is not found.
-dnl
+## FIXME
+## This ends the what could eventually be R.m4 (after taking out the
+## GNOME macros which are in gnome.m4.  We currently include libtool.m4
+## because the release version 1.3.3 e.g. refuses to link a shared lib
+## against a static one.
 
-AC_DEFUN([GNOME_ORBIT_HOOK],[
-	AC_PATH_PROG(ORBIT_CONFIG,orbit-config,no)
-	AC_PATH_PROG(ORBIT_IDL,orbit-idl,no)
-	AC_CACHE_CHECK([for working ORBit environment],gnome_cv_orbit_found,[
-		if test x$ORBIT_CONFIG = xno -o x$ORBIT_IDL = xno; then
-			gnome_cv_orbit_found=no
-		else
-			gnome_cv_orbit_found=yes
-		fi
-	])
-	AM_CONDITIONAL(HAVE_ORBIT, test x$gnome_cv_orbit_found = xyes)
-	if test x$gnome_cv_orbit_found = xyes; then
-		$1
-		ORBIT_CFLAGS=`orbit-config --cflags client server`
-		ORBIT_LIBS=`orbit-config --use-service=name --libs client server`
-		AC_SUBST(ORBIT_CFLAGS)
-		AC_SUBST(ORBIT_LIBS)
-	else
-    		if test x$2 = xfailure; then
-			AC_MSG_ERROR(ORBit not installed or installation problem)
-    		fi
-	fi
-])
-
-AC_DEFUN([GNOME_ORBIT_CHECK], [
-	GNOME_ORBIT_HOOK([],failure)
-])
+
+## gnome.m4
+## CHANGES:
+## * Replace AC_ARG_WITH(gnome) by our version in configure.in because
+##   we need want_gnome=no by default and use LIBS and CPPFLAGS rather
+##   than LDFLAGS and CFLAGS.
+## * In AC_ARG_WITH(gnome-includes), standardize doc strings and use
+##   CPPFLAGS rather than CFLAGS.
+## * In AC_ARG_WITH(gnome-libs), standardize doc strings and use LIBS
+##   rather than LDFLAGS.
 dnl
 dnl GNOME_INIT_HOOK (script-if-gnome-enabled, [failflag], [additional-inits])
 dnl
@@ -2550,16 +1179,14 @@ AC_DEFUN([GNOME_INIT_HOOK],[
               fi
             fi
 
-	    if test x$gnome_prefix = x; then
-	      if test x$exec_prefix = xNONE; then
+	    if test x$exec_prefix = xNONE; then
 	        if test x$prefix = xNONE; then
 		    gnome_prefix=$ac_default_prefix/lib
 	        else
  		    gnome_prefix=$prefix/lib
 	        fi
-	      else
+	    else
 	        gnome_prefix=`eval echo \`echo $libdir\``
-	      fi
 	    fi
 	
 	    if test "$no_gnome_config" = "yes"; then
@@ -2606,6 +1233,88 @@ dnl
 AC_DEFUN([GNOME_INIT],[
 	GNOME_INIT_HOOK([],fail,$1)
 ])
+
+
+## gnome-gnorba-check.m4
+
+dnl
+dnl GNOME_GNORBA_HOOK (script-if-gnorba-found, failflag)
+dnl
+dnl if failflag is "failure" it aborts if gnorba is not found.
+dnl
+
+AC_DEFUN([GNOME_GNORBA_HOOK],[
+	GNOME_ORBIT_HOOK([],$2)
+	AC_CACHE_CHECK([for gnorba libraries],gnome_cv_gnorba_found,[
+		gnome_cv_gnorba_found=no
+		if test x$gnome_cv_orbit_found = xyes; then
+			GNORBA_CFLAGS="`gnome-config --cflags gnorba gnomeui`"
+			GNORBA_LIBS="`gnome-config --libs gnorba gnomeui`"
+			if test -n "$GNORBA_LIBS"; then
+				gnome_cv_gnorba_found=yes
+			fi
+		fi
+	])
+	AM_CONDITIONAL(HAVE_GNORBA, test x$gnome_cv_gnorba_found = xyes)
+	if test x$gnome_cv_orbit_found = xyes; then
+		$1
+		GNORBA_CFLAGS="`gnome-config --cflags gnorba gnomeui`"
+		GNORBA_LIBS="`gnome-config --libs gnorba gnomeui`"
+		AC_SUBST(GNORBA_CFLAGS)
+		AC_SUBST(GNORBA_LIBS)
+	else
+	    	if test x$2 = xfailure; then
+			AC_MSG_ERROR(gnorba library not installed or installation problem)
+	    	fi
+	fi
+])
+
+AC_DEFUN([GNOME_GNORBA_CHECK], [
+	GNOME_GNORBA_HOOK([],failure)
+])
+
+
+## gnome-orbit-check.m4
+
+dnl
+dnl GNOME_ORBIT_HOOK (script-if-orbit-found, failflag)
+dnl
+dnl if failflag is "failure" it aborts if orbit is not found.
+dnl
+
+AC_DEFUN([GNOME_ORBIT_HOOK],[
+	AC_PATH_PROG(ORBIT_CONFIG,orbit-config,no)
+	AC_PATH_PROG(ORBIT_IDL,orbit-idl,no)
+	AC_CACHE_CHECK([for working ORBit environment],gnome_cv_orbit_found,[
+		if test x$ORBIT_CONFIG = xno -o x$ORBIT_IDL = xno; then
+			gnome_cv_orbit_found=no
+		else
+			gnome_cv_orbit_found=yes
+		fi
+	])
+	AM_CONDITIONAL(HAVE_ORBIT, test x$gnome_cv_orbit_found = xyes)
+	if test x$gnome_cv_orbit_found = xyes; then
+		$1
+		ORBIT_CFLAGS=`orbit-config --cflags client server`
+		ORBIT_LIBS=`orbit-config --use-service=name --libs client server`
+		AC_SUBST(ORBIT_CFLAGS)
+		AC_SUBST(ORBIT_LIBS)
+	else
+    		if test x$2 = xfailure; then
+			AC_MSG_ERROR(ORBit not installed or installation problem)
+    		fi
+	fi
+])
+
+AC_DEFUN([GNOME_ORBIT_CHECK], [
+	GNOME_ORBIT_HOOK([],failure)
+])
+
+
+## libglade.m4
+## CHANGES:
+## * In AC_ARG_WITH(libglade-config), standardize doc strings.
+
 # a macro to get the libs/cflags for libglade
 # serial 1
 
@@ -2630,9 +1339,6 @@ for module in . $3; do
     bonobo)
       module_args="$module_args bonobo"
       ;;
-    gnomedb)
-      module_args="$module_args gnomedb"
-      ;;
   esac
 done
 
@@ -2656,7 +1362,9 @@ fi
 AC_SUBST(LIBGLADE_CFLAGS)
 AC_SUBST(LIBGLADE_LIBS)
 ])
-# libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
+
+
+## libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
 ## Free Software Foundation, Inc.
 ## Originally by Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996
@@ -2681,7 +1389,6 @@ AC_SUBST(LIBGLADE_LIBS)
 ## the same distribution terms that you use for the rest of that program.
 
 # serial 46 AC_PROG_LIBTOOL
-
 AC_DEFUN([AC_PROG_LIBTOOL],
 [AC_REQUIRE([AC_LIBTOOL_SETUP])dnl
 
@@ -2707,8 +1414,6 @@ AC_REQUIRE([AC_PROG_CC])dnl
 AC_REQUIRE([AC_PROG_LD])dnl
 AC_REQUIRE([AC_PROG_LD_RELOAD_FLAG])dnl
 AC_REQUIRE([AC_PROG_NM])dnl
-AC_REQUIRE([LT_AC_PROG_SED])dnl
-
 AC_REQUIRE([AC_PROG_LN_S])dnl
 AC_REQUIRE([AC_DEPLIBS_CHECK_METHOD])dnl
 AC_REQUIRE([AC_OBJEXT])dnl
@@ -2809,30 +1514,9 @@ _LT_AC_LTCONFIG_HACK
 
 ])
 
-# AC_LIBTOOL_HEADER_ASSERT
-# ------------------------
-AC_DEFUN([AC_LIBTOOL_HEADER_ASSERT],
-[AC_CACHE_CHECK([whether $CC supports assert without backlinking],
-    [lt_cv_func_assert_works],
-    [case $host in
-    *-*-solaris*)
-      if test "$GCC" = yes && test "$with_gnu_ld" != yes; then
-        case `$CC --version 2>/dev/null` in
-        [[12]].*) lt_cv_func_assert_works=no ;;
-        *)        lt_cv_func_assert_works=yes ;;
-        esac
-      fi
-      ;;
-    esac])
-
-if test "x$lt_cv_func_assert_works" = xyes; then
-  AC_CHECK_HEADERS(assert.h)
-fi
-])# AC_LIBTOOL_HEADER_ASSERT
-
 # _LT_AC_CHECK_DLFCN
 # --------------------
-AC_DEFUN([_LT_AC_CHECK_DLFCN],
+AC_DEFUN(_LT_AC_CHECK_DLFCN,
 [AC_CHECK_HEADERS(dlfcn.h)
 ])# _LT_AC_CHECK_DLFCN
 
@@ -2850,10 +1534,10 @@ AC_CACHE_VAL([lt_cv_sys_global_symbol_pipe], [dnl
 # [They come from Ultrix.  What could be older than Ultrix?!! ;)]
 
 # Character class describing NM global symbol codes.
-symcode='[[BCDEGRST]]'
+[symcode='[BCDEGRST]']
 
 # Regexp to match symbols that can be accessed directly from C.
-sympat='\([[_A-Za-z]][[_A-Za-z0-9]]*\)'
+[sympat='\([_A-Za-z][_A-Za-z0-9]*\)']
 
 # Transform the above into a raw symbol and a C symbol.
 symxfrm='\1 \2\3 \3'
@@ -2861,32 +1545,25 @@ symxfrm='\1 \2\3 \3'
 # Transform an extracted symbol line into a proper C declaration
 lt_cv_global_symbol_to_cdecl="sed -n -e 's/^. .* \(.*\)$/extern char \1;/p'"
 
-# Transform an extracted symbol line into symbol name and symbol address
-lt_cv_global_symbol_to_c_name_address="sed -n -e 's/^: \([[^ ]]*\) $/  {\\\"\1\\\", (lt_ptr) 0},/p' -e 's/^$symcode \([[^ ]]*\) \([[^ ]]*\)$/  {\"\2\", (lt_ptr) \&\2},/p'"
-
 # Define system-specific variables.
 case $host_os in
 aix*)
-  symcode='[[BCDT]]'
+  [symcode='[BCDT]']
   ;;
 cygwin* | mingw* | pw32*)
-  symcode='[[ABCDGISTW]]'
+  [symcode='[ABCDGISTW]']
   ;;
 hpux*) # Its linker distinguishes data from code symbols
-  lt_cv_global_symbol_to_cdecl="sed -n -e 's/^T .* \(.*\)$/extern char \1();/p' -e 's/^$symcode* .* \(.*\)$/extern char \1;/p'"
-  lt_cv_global_symbol_to_c_name_address="sed -n -e 's/^: \([[^ ]]*\) $/  {\\\"\1\\\", (lt_ptr) 0},/p' -e 's/^$symcode* \([[^ ]]*\) \([[^ ]]*\)$/  {\"\2\", (lt_ptr) \&\2},/p'"
+  lt_cv_global_symbol_to_cdecl="sed -n -e 's/^T .* \(.*\)$/extern char \1();/p' -e 's/^. .* \(.*\)$/extern char \1;/p'"
   ;;
-irix* | nonstopux*)
-  symcode='[[BCDEGRST]]'
-  ;;
-osf*)
-  symcode='[[BCDEGQRST]]'
+irix*)
+  [symcode='[BCDEGRST]']
   ;;
 solaris* | sysv5*)
-  symcode='[[BDT]]'
+  [symcode='[BDT]']
   ;;
 sysv4)
-  symcode='[[DFNSTU]]'
+  [symcode='[DFNSTU]']
   ;;
 esac
 
@@ -2900,14 +1577,14 @@ esac
 
 # If we're using GNU nm, then use its standard symbol codes.
 if $NM -V 2>&1 | egrep '(GNU|with BFD)' > /dev/null; then
-  symcode='[[ABCDGISTW]]'
+  [symcode='[ABCDGISTW]']
 fi
 
 # Try without a prefix undercore, then with it.
 for ac_symprfx in "" "_"; do
 
   # Write the raw and C identifiers.
-lt_cv_sys_global_symbol_pipe="sed -n -e 's/^.*[[ 	]]\($symcode$symcode*\)[[ 	]][[ 	]]*\($ac_symprfx\)$sympat$opt_cr$/$symxfrm/p'"
+[lt_cv_sys_global_symbol_pipe="sed -n -e 's/^.*[ 	]\($symcode\)[ 	][ 	]*\($ac_symprfx\)$sympat$opt_cr$/$symxfrm/p'"]
 
   # Check to see that the pipe works correctly.
   pipe_works=no
@@ -2949,23 +1626,23 @@ EOF
 
 	  cat <<EOF >> conftest.$ac_ext
 #if defined (__STDC__) && __STDC__
-# define lt_ptr void *
+# define lt_ptr_t void *
 #else
-# define lt_ptr char *
+# define lt_ptr_t char *
 # define const
 #endif
 
 /* The mapping between symbol names and symbols. */
 const struct {
   const char *name;
-  lt_ptr address;
+  lt_ptr_t address;
 }
-lt_preloaded_symbols[[]] =
+[lt_preloaded_symbols[] =]
 {
 EOF
-	  sed "s/^$symcode$symcode* \(.*\) \(.*\)$/  {\"\2\", (lt_ptr) \&\2},/" < "$nlist" >> conftest.$ac_ext
+	  sed 's/^. \(.*\) \(.*\)$/  {"\2", (lt_ptr_t) \&\2},/' < "$nlist" >> conftest.$ac_ext
 	  cat <<\EOF >> conftest.$ac_ext
-  {0, (lt_ptr) 0}
+  {0, (lt_ptr_t) 0}
 };
 
 #ifdef __cplusplus
@@ -2978,7 +1655,7 @@ EOF
 	  save_CFLAGS="$CFLAGS"
 	  LIBS="conftstm.$ac_objext"
 	  CFLAGS="$CFLAGS$no_builtin_flag"
-	  if AC_TRY_EVAL(ac_link) && test -s conftest$ac_exeext; then
+	  if AC_TRY_EVAL(ac_link) && test -s conftest; then
 	    pipe_works=yes
 	  fi
 	  LIBS="$save_LIBS"
@@ -3009,13 +1686,10 @@ done
 global_symbol_pipe="$lt_cv_sys_global_symbol_pipe"
 if test -z "$lt_cv_sys_global_symbol_pipe"; then
   global_symbol_to_cdecl=
-  global_symbol_to_c_name_address=
 else
   global_symbol_to_cdecl="$lt_cv_global_symbol_to_cdecl"
-  global_symbol_to_c_name_address="$lt_cv_global_symbol_to_c_name_address"
 fi
-if test -z "$global_symbol_pipe$global_symbol_to_cdec$global_symbol_to_c_name_address";
-then
+if test -z "$global_symbol_pipe$global_symbol_to_cdecl"; then
   AC_MSG_RESULT(failed)
 else
   AC_MSG_RESULT(ok)
@@ -3033,17 +1707,16 @@ if test "X${PATH_SEPARATOR+set}" != Xset; then
     *-DOS) lt_cv_sys_path_separator=';' ;;
     *)     lt_cv_sys_path_separator=':' ;;
   esac
-  PATH_SEPARATOR=$lt_cv_sys_path_separator
 fi
 ])# _LT_AC_LIBTOOL_SYS_PATH_SEPARATOR
 
 # _LT_AC_PROG_ECHO_BACKSLASH
 # --------------------------
 # Add some code to the start of the generated configure script which
-# will find an echo command which doesn't interpret backslashes.
+# will find an echo command which doesn;t interpret backslashes.
 AC_DEFUN([_LT_AC_PROG_ECHO_BACKSLASH],
 [ifdef([AC_DIVERSION_NOTICE], [AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)],
-			      [AC_DIVERT_PUSH(NOTICE)])
+                              [AC_DIVERT_PUSH(NOTICE)])
 _LT_AC_LIBTOOL_SYS_PATH_SEPARATOR
 
 # Check that we are running under the correct shell.
@@ -3109,7 +1782,7 @@ else
   #
   # So, first we look for a working echo in the user's PATH.
 
-  IFS="${IFS= 	}"; save_ifs="$IFS"; IFS=$PATH_SEPARATOR
+  IFS="${IFS= 	}"; save_ifs="$IFS"; IFS="${IFS}${PATH_SEPARATOR}"
   for dir in $PATH /usr/ucb; do
     if (test -f $dir/echo || test -f $dir/echo$ac_exeext) &&
        test "X`($dir/echo '\t') 2>/dev/null`" = 'X\t' &&
@@ -3130,7 +1803,7 @@ else
       echo='print -r'
     elif (test -f /bin/ksh || test -f /bin/ksh$ac_exeext) &&
 	 test "X$CONFIG_SHELL" != X/bin/ksh; then
-      # If we have ksh, try running configure again with it.
+      # If we have ksh, try running ltconfig again with it.
       ORIGINAL_CONFIG_SHELL=${CONFIG_SHELL-/bin/sh}
       export ORIGINAL_CONFIG_SHELL
       CONFIG_SHELL=/bin/ksh
@@ -3198,7 +1871,7 @@ AC_DIVERT_POP
 # _LT_AC_TRY_DLOPEN_SELF (ACTION-IF-TRUE, ACTION-IF-TRUE-W-USCORE,
 #                           ACTION-IF-FALSE, ACTION-IF-CROSS-COMPILING)
 # ------------------------------------------------------------------
-AC_DEFUN([_LT_AC_TRY_DLOPEN_SELF],
+AC_DEFUN(_LT_AC_TRY_DLOPEN_SELF,
 [if test "$cross_compiling" = yes; then :
   [$4]
 else
@@ -3285,7 +1958,7 @@ rm -fr conftest*
 
 # AC_LIBTOOL_DLOPEN_SELF
 # -------------------
-AC_DEFUN([AC_LIBTOOL_DLOPEN_SELF],
+AC_DEFUN(AC_LIBTOOL_DLOPEN_SELF,
 [if test "x$enable_dlopen" != xyes; then
   enable_dlopen=unknown
   enable_dlopen_self=unknown
@@ -3307,22 +1980,16 @@ else
    ;;
 
   *)
-    AC_CHECK_FUNC([shl_load],
-          [lt_cv_dlopen="shl_load"],
-      [AC_CHECK_LIB([dld], [shl_load],
-            [lt_cv_dlopen="shl_load" lt_cv_dlopen_libs="-dld"],
-	[AC_CHECK_FUNC([dlopen],
-	      [lt_cv_dlopen="dlopen"],
-	  [AC_CHECK_LIB([dl], [dlopen],
-	        [lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-ldl"],
-	    [AC_CHECK_LIB([svld], [dlopen],
-	          [lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-lsvld"],
-	      [AC_CHECK_LIB([dld], [dld_link],
-	            [lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-dld"])
-	      ])
+    AC_CHECK_LIB(dl, dlopen,  [lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-ldl"],
+      [AC_CHECK_FUNC(dlopen, lt_cv_dlopen="dlopen",
+        [AC_CHECK_FUNC(shl_load, lt_cv_dlopen="shl_load",
+          [AC_CHECK_LIB(svld, dlopen,
+	    [lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-lsvld"],
+            [AC_CHECK_LIB(dld, shl_load,
+              [lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-dld"])
 	    ])
-	  ])
-	])
+          ])
+        ])
       ])
     ;;
   esac
@@ -3385,10 +2052,10 @@ AC_DEFUN([_LT_AC_LTCONFIG_HACK],
 # Sed substitution that helps us do robust quoting.  It backslashifies
 # metacharacters that are still active within double-quoted strings.
 Xsed='sed -e s/^X//'
-sed_quote_subst='s/\([[\\"\\`$\\\\]]\)/\\\1/g'
+[sed_quote_subst='s/\([\\"\\`$\\\\]\)/\\\1/g']
 
 # Same as above, but do not quote variable references.
-double_quote_subst='s/\([[\\"\\`\\\\]]\)/\\\1/g'
+[double_quote_subst='s/\([\\"\\`\\\\]\)/\\\1/g']
 
 # Sed substitution to delay expansion of an escaped shell variable in a
 # double_quote_subst'ed string.
@@ -3457,15 +2124,8 @@ old_postinstall_cmds='chmod 644 $oldlib'
 old_postuninstall_cmds=
 
 if test -n "$RANLIB"; then
-  case $host_os in
-  openbsd*)
-    old_postinstall_cmds="\$RANLIB -t \$oldlib~$old_postinstall_cmds"
-    ;;
-  *)
-    old_postinstall_cmds="\$RANLIB \$oldlib~$old_postinstall_cmds"
-    ;;
-  esac
   old_archive_cmds="$old_archive_cmds~\$RANLIB \$oldlib"
+  old_postinstall_cmds="\$RANLIB \$oldlib~$old_postinstall_cmds"
 fi
 
 # Allow CC to be a program name with arguments.
@@ -3491,7 +2151,7 @@ AC_MSG_RESULT($objdir)
 
 ## FIXME: this should be a separate macro
 ##
-AC_ARG_WITH(pic,
+AC_ARG_WITH(pic, 
 [  --with-pic              try to use only PIC/non-PIC objects [default=use both]],
 pic_mode="$withval", pic_mode=default)
 test -z "$pic_mode" && pic_mode=default
@@ -3519,7 +2179,7 @@ AC_CACHE_VAL(lt_cv_prog_cc_pic,
       # libC (AIX C++ library), which obviously doesn't included in libraries
       # list by gcc. This cause undefined symbols with -static flags.
       # This hack allows C programs to be linked with "-static -ldl", but
-      # not sure about C++ programs.
+      # we not sure about C++ programs.
       lt_cv_prog_cc_static="$lt_cv_prog_cc_static ${lt_cv_prog_cc_wl}-lC"
       ;;
     amigaos*)
@@ -3528,7 +2188,7 @@ AC_CACHE_VAL(lt_cv_prog_cc_pic,
       # like `-m68040'.
       lt_cv_prog_cc_pic='-m68020 -resident32 -malways-restore-a4'
       ;;
-    beos* | irix5* | irix6* | nonstopux* | osf3* | osf4* | osf5*)
+    beos* | irix5* | irix6* | osf3* | osf4* | osf5*)
       # PIC is the default for these OSes.
       ;;
     darwin* | rhapsody*)
@@ -3553,15 +2213,9 @@ AC_CACHE_VAL(lt_cv_prog_cc_pic,
   else
     # PORTME Check for PIC flags for the system compiler.
     case $host_os in
-    aix3* | aix4* | aix5*)
-      lt_cv_prog_cc_wl='-Wl,'
-      # All AIX code is PIC.
-      if test "$host_cpu" = ia64; then
-	# AIX 5 now supports IA64 processor
-	lt_cv_prog_cc_static='-Bstatic'
-      else
-	lt_cv_prog_cc_static='-bnso -bI:/lib/syscalls.exp'
-      fi
+    aix3* | aix4*)
+     # All AIX code is PIC.
+      lt_cv_prog_cc_static='-bnso -bI:/lib/syscalls.exp'
       ;;
 
     hpux9* | hpux10* | hpux11*)
@@ -3571,7 +2225,7 @@ AC_CACHE_VAL(lt_cv_prog_cc_pic,
       lt_cv_prog_cc_pic='+Z'
       ;;
 
-    irix5* | irix6* | nonstopux*)
+    irix5* | irix6*)
       lt_cv_prog_cc_wl='-Wl,'
       lt_cv_prog_cc_static='-non_shared'
       # PIC (with -KPIC) is the default.
@@ -3615,7 +2269,11 @@ AC_CACHE_VAL(lt_cv_prog_cc_pic,
     sysv4 | sysv4.2uw2* | sysv4.3* | sysv5*)
       lt_cv_prog_cc_pic='-KPIC'
       lt_cv_prog_cc_static='-Bstatic'
-      lt_cv_prog_cc_wl='-Wl,'
+      if test "x$host_vendor" = xsni; then
+        lt_cv_prog_cc_wl='-LD'
+      else
+        lt_cv_prog_cc_wl='-Wl,'
+      fi
       ;;
 
     uts4*)
@@ -3683,7 +2341,7 @@ fi
 # Check for any special shared library compilation flags.
 if test -n "$lt_cv_prog_cc_shlib"; then
   AC_MSG_WARN([\`$CC' requires \`$lt_cv_prog_cc_shlib' to build shared libraries])
-  if echo "$old_CC $old_CFLAGS " | egrep -e "[[ 	]]$lt_cv_prog_cc_shlib[[ 	]]" >/dev/null; then :
+  if echo "$old_CC $old_CFLAGS " | [egrep -e "[ 	]$lt_cv_prog_cc_shlib[ 	]"] >/dev/null; then :
   else
    AC_MSG_WARN([add \`$lt_cv_prog_cc_shlib' to the CC or CFLAGS env variable and reconfigure])
     lt_cv_prog_cc_can_build_shared=no
@@ -3765,8 +2423,6 @@ if test x"$compiler_c_o" = x"yes"; then
   lt_cv_compiler_o_lo=no
   save_CFLAGS="$CFLAGS"
   CFLAGS="$CFLAGS -c -o conftest.lo"
-  save_objext="$ac_objext"
-  ac_objext=lo
   AC_TRY_COMPILE([], [int some_variable = 0;], [dnl
     # The compiler can only warn and ignore the option if not recognized
     # So say no if there are warnings
@@ -3776,11 +2432,10 @@ if test x"$compiler_c_o" = x"yes"; then
       lt_cv_compiler_o_lo=yes
     fi
   ])
-  ac_objext="$save_objext"
   CFLAGS="$save_CFLAGS"
   ])
   compiler_o_lo=$lt_cv_compiler_o_lo
-  AC_MSG_RESULT([$compiler_o_lo])
+  AC_MSG_RESULT([$compiler_c_lo])
 else
   compiler_o_lo=no
 fi
@@ -3885,7 +2540,7 @@ exclude_expsyms="_GLOBAL_OFFSET_TABLE_"
 extract_expsyms_cmds=
 
 case $host_os in
-cygwin* | mingw* | pw32*)
+cygwin* | mingw* | pw32* )
   # FIXME: the MSVC++ port hasn't been tested in a loooong time
   # When not using gcc, we currently assume that we are using
   # Microsoft Visual C++.
@@ -3893,9 +2548,7 @@ cygwin* | mingw* | pw32*)
     with_gnu_ld=no
   fi
   ;;
-openbsd*)
-  with_gnu_ld=no
-  ;;
+
 esac
 
 ld_shlibs=yes
@@ -3905,9 +2558,8 @@ if test "$with_gnu_ld" = yes; then
 
   # See if GNU ld supports shared libraries.
   case $host_os in
-  aix3* | aix4* | aix5*)
+  aix3* | aix4*)
     # On AIX, the GNU linker is very broken
-    # Note:Check GNU linker on AIX 5-IA64 when/if it becomes available.
     ld_shlibs=no
     cat <<EOF 1>&2
 
@@ -3982,7 +2634,7 @@ EOF
     # can override, but on older systems we have to supply one (in ltdll.c)
     if test "x$lt_cv_need_dllmain" = "xyes"; then
       ltdll_obj='$output_objdir/$soname-ltdll.'"$ac_objext "
-      ltdll_cmds='test -f $output_objdir/$soname-ltdll.c || sed -e "/^# \/\* ltdll\.c starts here \*\//,/^# \/\* ltdll.c ends here \*\// { s/^# //; p; }" -e d < $''0 > $output_objdir/$soname-ltdll.c~
+      ltdll_cmds='test -f $output_objdir/$soname-ltdll.c || sed -e "/^# \/\* ltdll\.c starts here \*\//,/^# \/\* ltdll.c ends here \*\// { s/^# //; p; }" -e d < [$]0 > $output_objdir/$soname-ltdll.c~
 	test -f $output_objdir/$soname-ltdll.$ac_objext || (cd $output_objdir && $CC -c $soname-ltdll.c)~'
     else
       ltdll_obj=
@@ -3995,25 +2647,24 @@ EOF
     # Be careful not to strip the DATA tag left be newer dlltools.
     export_symbols_cmds="$ltdll_cmds"'
       $DLLTOOL --export-all --exclude-symbols '$dll_exclude_symbols' --output-def $output_objdir/$soname-def '$ltdll_obj'$libobjs $convenience~
-      sed -e "1,/EXPORTS/d" -e "s/ @ [[0-9]]*//" -e "s/ *;.*$//" < $output_objdir/$soname-def > $export_symbols'
+      [sed -e "1,/EXPORTS/d" -e "s/ @ [0-9]*//" -e "s/ *;.*$//"] < $output_objdir/$soname-def > $export_symbols'
 
     # If the export-symbols file already is a .def file (1st line
     # is EXPORTS), use it as is.
     # If DATA tags from a recent dlltool are present, honour them!
-    archive_expsym_cmds='if test "x`sed 1q $export_symbols`" = xEXPORTS; then
-	cp $export_symbols $output_objdir/$soname-def;
+    archive_expsym_cmds='if test "x`head -1 $export_symbols`" = xEXPORTS; then
+        cp $export_symbols $output_objdir/$soname-def;
       else
-	echo EXPORTS > $output_objdir/$soname-def;
-	_lt_hint=1;
-	cat $export_symbols | while read symbol; do
-	 set dummy \$symbol;
-	 case \[$]# in
-	   2) echo "   \[$]2 @ \$_lt_hint ; " >> $output_objdir/$soname-def;;
-	   4) echo "   \[$]2 \[$]3 \[$]4 ; " >> $output_objdir/$soname-def; _lt_hint=`expr \$_lt_hint - 1`;;
-	   *) echo "     \[$]2 @ \$_lt_hint \[$]3 ; " >> $output_objdir/$soname-def;;
-	 esac;
-	 _lt_hint=`expr 1 + \$_lt_hint`;
-	done;
+        echo EXPORTS > $output_objdir/$soname-def;
+        _lt_hint=1;
+        cat $export_symbols | while read symbol; do
+         set dummy \$symbol;
+         case \[$]# in
+           2) echo "   \[$]2 @ \$_lt_hint ; " >> $output_objdir/$soname-def;;
+           *) echo "     \[$]2 @ \$_lt_hint \[$]3 ; " >> $output_objdir/$soname-def;;
+         esac;
+         _lt_hint=`expr 1 + \$_lt_hint`;
+        done;
       fi~
       '"$ltdll_cmds"'
       $CC -Wl,--base-file,$output_objdir/$soname-base '$lt_cv_cc_dll_switch' -Wl,-e,'$dll_entry' -o $output_objdir/$soname '$ltdll_obj'$libobjs $deplibs $compiler_flags~
@@ -4028,8 +2679,8 @@ EOF
       archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
       wlarc=
     else
-      archive_cmds='$CC -shared -nodefaultlibs $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname -o $lib'
-      archive_expsym_cmds='$CC -shared -nodefaultlibs $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-retain-symbols-file $wl$export_symbols -o $lib'
+      archive_cmds='$CC -shared $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname -o $lib'
+      archive_expsym_cmds='$CC -shared $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-retain-symbols-file $wl$export_symbols -o $lib'
     fi
     ;;
 
@@ -4107,102 +2758,45 @@ else
     fi
     ;;
 
-  aix4* | aix5*)
-    if test "$host_cpu" = ia64; then
-      # On IA64, the linker does run time linking by default, so we don't
-      # have to do anything special.
-      aix_use_runtimelinking=no
-      exp_sym_flag='-Bexport'
-      no_entry_flag=""
-    else
-      aix_use_runtimelinking=no
-
-      # Test if we are trying to use run time linking or normal
-      # AIX style linking. If -brtl is somewhere in LDFLAGS, we
-      # need to do runtime linking.
-      case $host_os in aix4.[[23]]|aix4.[[23]].*|aix5*)
-	for ld_flag in $LDFLAGS; do
-	  case $ld_flag in
-	  *-brtl*)
-	    aix_use_runtimelinking=yes
-	    break
-	  ;;
-	  esac
-	done
-      esac
-
-      exp_sym_flag='-bexport'
-      no_entry_flag='-bnoentry'
-    fi
-
-    # When large executables or shared objects are built, AIX ld can
-    # have problems creating the table of contents.  If linking a library
-    # or program results in "error TOC overflow" add -mminimal-toc to
-    # CXXFLAGS/CFLAGS for g++/gcc.  In the cases where that is not
-    # enough to fix the problem, add -Wl,-bbigtoc to LDFLAGS.
-
-    hardcode_direct=yes
-    archive_cmds=''
+  aix4*)
+    hardcode_libdir_flag_spec='${wl}-b ${wl}nolibpath ${wl}-b ${wl}libpath:$libdir:/usr/lib:/lib'
     hardcode_libdir_separator=':'
     if test "$GCC" = yes; then
-      case $host_os in aix4.[[012]]|aix4.[[012]].*)
-	collect2name=`${CC} -print-prog-name=collect2`
-	if test -f "$collect2name" && \
-	  strings "$collect2name" | grep resolve_lib_name >/dev/null
-	then
-	  # We have reworked collect2
-	  hardcode_direct=yes
-	else
-	  # We have old collect2
-	  hardcode_direct=unsupported
-	  # It fails to find uninstalled libraries when the uninstalled
-	  # path is not listed in the libpath.  Setting hardcode_minus_L
-	  # to unsupported forces relinking
-	  hardcode_minus_L=yes
-	  hardcode_libdir_flag_spec='-L$libdir'
-	  hardcode_libdir_separator=
-	fi
-      esac
-
+      collect2name=`${CC} -print-prog-name=collect2`
+      if test -f "$collect2name" && \
+	 strings "$collect2name" | grep resolve_lib_name >/dev/null
+      then
+	# We have reworked collect2
+	hardcode_direct=yes
+      else
+	# We have old collect2
+	hardcode_direct=unsupported
+	# It fails to find uninstalled libraries when the uninstalled
+	# path is not listed in the libpath.  Setting hardcode_minus_L
+	# to unsupported forces relinking
+	hardcode_minus_L=yes
+	hardcode_libdir_flag_spec='-L$libdir'
+	hardcode_libdir_separator=
+      fi
       shared_flag='-shared'
     else
-      # not using gcc
-      if test "$host_cpu" = ia64; then
-	shared_flag='${wl}-G'
-      else
-	if test "$aix_use_runtimelinking" = yes; then
-	  shared_flag='${wl}-G'
-	else
-	  shared_flag='${wl}-bM:SRE'
-	fi
-      fi
+      shared_flag='${wl}-bM:SRE'
+      hardcode_direct=yes
     fi
+    allow_undefined_flag=' ${wl}-berok'
+    archive_cmds="\$CC $shared_flag"' -o $output_objdir/$soname $libobjs $deplibs $compiler_flags ${wl}-bexpall ${wl}-bnoentry${allow_undefined_flag}'
+    archive_expsym_cmds="\$CC $shared_flag"' -o $output_objdir/$soname $libobjs $deplibs $compiler_flags ${wl}-bE:$export_symbols ${wl}-bnoentry${allow_undefined_flag}'
+    case $host_os in [aix4.[01]|aix4.[01].*])
+      # According to Greg Wooledge, -bexpall is only supported from AIX 4.2 on
+      always_export_symbols=yes ;;
+    esac
 
-    # It seems that -bexpall can do strange things, so it is better to
-    # generate a list of symbols to export.
-    always_export_symbols=yes
-    if test "$aix_use_runtimelinking" = yes; then
-      # Warning - without using the other runtime loading flags (-brtl),
-      # -berok will link without error, but may produce a broken library.
-      allow_undefined_flag='-berok'
-      hardcode_libdir_flag_spec='${wl}-blibpath:$libdir:/usr/lib:/lib'
-      archive_expsym_cmds="\$CC"' -o $output_objdir/$soname $libobjs $deplibs $compiler_flags `if test "x${allow_undefined_flag}" != "x"; then echo "${wl}${allow_undefined_flag}"; else :; fi` '"\${wl}$no_entry_flag \${wl}$exp_sym_flag:\$export_symbols $shared_flag"
-    else
-      if test "$host_cpu" = ia64; then
-	hardcode_libdir_flag_spec='${wl}-R $libdir:/usr/lib:/lib'
-	allow_undefined_flag="-z nodefs"
-	archive_expsym_cmds="\$CC $shared_flag"' -o $output_objdir/$soname ${wl}-h$soname $libobjs $deplibs $compiler_flags ${wl}${allow_undefined_flag} '"\${wl}$no_entry_flag \${wl}$exp_sym_flag:\$export_symbols"
-      else
-	hardcode_libdir_flag_spec='${wl}-bnolibpath ${wl}-blibpath:$libdir:/usr/lib:/lib'
-	# Warning - without using the other run time loading flags,
-	# -berok will link without error, but may produce a broken library.
-	allow_undefined_flag='${wl}-berok'
-	# This is a bit strange, but is similar to how AIX traditionally builds
-	# it's shared libraries.
-	archive_expsym_cmds="\$CC $shared_flag"' -o $output_objdir/$soname $libobjs $deplibs $compiler_flags ${allow_undefined_flag} '"\${wl}$no_entry_flag \${wl}$exp_sym_flag:\$export_symbols"' ~$AR -crlo $output_objdir/$libname$release.a $output_objdir/$soname'
-      fi
-    fi
-    ;;
+    # We don't want to build shared libraries on unknown CPU types.
+    case $host_cpu in
+    powerpc | rs6000) ;;
+    *) ld_shlibs=no ;;
+    esac
+   ;;
 
   amigaos*)
     archive_cmds='$rm $output_objdir/a2ixlibrary.data~$echo "#define NAME $libname" > $output_objdir/a2ixlibrary.data~$echo "#define LIBRARY_ID 1" >> $output_objdir/a2ixlibrary.data~$echo "#define VERSION $major" >> $output_objdir/a2ixlibrary.data~$echo "#define REVISION $revision" >> $output_objdir/a2ixlibrary.data~$AR $AR_FLAGS $lib $libobjs~$RANLIB $lib~(cd $output_objdir && a2ixlibrary -32)'
@@ -4231,19 +2825,8 @@ else
     ;;
 
   darwin* | rhapsody*)
-    case "$host_os" in
-    rhapsody* | darwin1.[[012]])
-      allow_undefined_flag='-undefined suppress'
-      ;;
-    *) # Darwin 1.3 on
-      allow_undefined_flag='-flat_namespace -undefined suppress'
-      ;;
-    esac
-    # FIXME: Relying on posixy $() will cause problems for
-    #        cross-compilation, but unfortunately the echo tests do not
-    #        yet detect zsh echo's removal of \ escapes.  Also zsh mangles
-    #	     `"' quotes if we put them in here... so don't!
-    archive_cmds='$CC -r -keep_private_externs -nostdlib -o ${lib}-master.o $libobjs && $CC $(test .$module = .yes && echo -bundle || echo -dynamiclib) $allow_undefined_flag -o $lib ${lib}-master.o $deplibs$linker_flags $(test .$module != .yes && echo -install_name $rpath/$soname $verstring)'
+    allow_undefined_flag='-undefined suppress'
+    archive_cmds='$CC `test .$module = .yes && echo -bundle || echo -dynamiclib` $allow_undefined_flag -o $lib $libobjs $deplibs$linkopts -install_name $rpath/$soname `test -n "$verstring" -a x$verstring != x0.0 && echo $verstring`'
     # We need to add '_' to the symbols in $export_symbols first
     #archive_expsym_cmds="$archive_cmds"' && strip -s $export_symbols'
     hardcode_direct=yes
@@ -4295,14 +2878,13 @@ else
     export_dynamic_flag_spec='${wl}-E'
     ;;
 
-  irix5* | irix6* | nonstopux*)
+  irix5* | irix6*)
     if test "$GCC" = yes; then
       archive_cmds='$CC -shared $libobjs $deplibs $compiler_flags ${wl}-soname ${wl}$soname `test -n "$verstring" && echo ${wl}-set_version ${wl}$verstring` ${wl}-update_registry ${wl}${output_objdir}/so_locations -o $lib'
-      hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
     else
       archive_cmds='$LD -shared $libobjs $deplibs $linker_flags -soname $soname `test -n "$verstring" && echo -set_version $verstring` -update_registry ${output_objdir}/so_locations -o $lib'
-      hardcode_libdir_flag_spec='-rpath $libdir'
     fi
+    hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
     hardcode_libdir_separator=:
     link_all_deplibs=yes
     ;;
@@ -4319,7 +2901,7 @@ else
     ;;
 
   newsos6)
-    archive_cmds='$LD -G -h $soname -o $lib $libobjs $deplibs $linker_flags'
+    archive_cmds='$LD -G -h $soname -o $lib $libobjs $deplibs $linkopts'
     hardcode_direct=yes
     hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
     hardcode_libdir_separator=:
@@ -4327,24 +2909,10 @@ else
     ;;
 
   openbsd*)
+    archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'
+    hardcode_libdir_flag_spec='-R$libdir'
     hardcode_direct=yes
     hardcode_shlibpath_var=no
-    if test -z "`echo __ELF__ | $CC -E - | grep __ELF__`" || test "$host_os-$host_cpu" = "openbsd2.8-powerpc"; then
-      archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags'
-      hardcode_libdir_flag_spec='${wl}-rpath,$libdir'
-      export_dynamic_flag_spec='${wl}-E'
-    else
-      case "$host_os" in
-      openbsd[[01]].* | openbsd2.[[0-7]] | openbsd2.[[0-7]].*)
-	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'
-	hardcode_libdir_flag_spec='-R$libdir'
-        ;;
-      *)
-        archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags'
-        hardcode_libdir_flag_spec='${wl}-rpath,$libdir'
-        ;;
-      esac
-    fi
     ;;
 
   os2*)
@@ -4371,16 +2939,14 @@ else
     if test "$GCC" = yes; then
       allow_undefined_flag=' ${wl}-expect_unresolved ${wl}\*'
       archive_cmds='$CC -shared${allow_undefined_flag} $libobjs $deplibs $compiler_flags ${wl}-msym ${wl}-soname ${wl}$soname `test -n "$verstring" && echo ${wl}-set_version ${wl}$verstring` ${wl}-update_registry ${wl}${output_objdir}/so_locations -o $lib'
-      hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
     else
       allow_undefined_flag=' -expect_unresolved \*'
       archive_cmds='$LD -shared${allow_undefined_flag} $libobjs $deplibs $linker_flags -msym -soname $soname `test -n "$verstring" && echo -set_version $verstring` -update_registry ${output_objdir}/so_locations -o $lib'
       archive_expsym_cmds='for i in `cat $export_symbols`; do printf "-exported_symbol " >> $lib.exp; echo "\$i" >> $lib.exp; done; echo "-hidden">> $lib.exp~
       $LD -shared${allow_undefined_flag} -input $lib.exp $linker_flags $libobjs $deplibs -soname $soname `test -n "$verstring" && echo -set_version $verstring` -update_registry ${objdir}/so_locations -o $lib~$rm $lib.exp'
-
-      #Both c and cxx compiler support -rpath directly
-      hardcode_libdir_flag_spec='-rpath $libdir'
     fi
+#Both c and cxx compiler support -rpath directly
+    hardcode_libdir_flag_spec='-rpath $libdir'
     hardcode_libdir_separator=:
     ;;
 
@@ -4389,39 +2955,10 @@ else
     hardcode_shlibpath_var=no
     runpath_var=LD_RUN_PATH
     hardcode_runpath_var=yes
-    export_dynamic_flag_spec='${wl}-Bexport'
     ;;
 
   solaris*)
-    # gcc --version < 3.0 without binutils cannot create self contained
-    # shared libraries reliably, requiring libgcc.a to resolve some of
-    # the object symbols generated in some cases.  Libraries that use
-    # assert need libgcc.a to resolve __eprintf, for example.  Linking
-    # a copy of libgcc.a into every shared library to guarantee resolving
-    # such symbols causes other problems:  According to Tim Van Holder
-    # <tim.van.holder@pandora.be>, C++ libraries end up with a separate
-    # (to the application) exception stack for one thing.
-    no_undefined_flag=' -z defs'
-    if test "$GCC" = yes; then
-      case `$CC --version 2>/dev/null` in
-      [[12]].*)
-	cat <<EOF 1>&2
-
-*** Warning: Releases of GCC earlier than version 3.0 cannot reliably
-*** create self contained shared libraries on Solaris systems, without
-*** introducing a dependency on libgcc.a.  Therefore, libtool is disabling
-*** -no-undefined support, which will at least allow you to build shared
-*** libraries.  However, you may find that when you link such libraries
-*** into an application without using GCC, you have to manually add
-*** \`gcc --print-libgcc-file-name\` to the link command.  We urge you to
-*** upgrade to a newer version of GCC.  Another option is to rebuild your
-*** current GCC to use the GNU linker from GNU binutils 2.9.1 or newer.
-
-EOF
-        no_undefined_flag=
-	;;
-      esac
-    fi
+    no_undefined_flag=' -z text'
     # $CC -shared without GNU ld will not create a library from C++
     # object files and a static libstdc++, better avoid it by now
     archive_cmds='$LD -G${allow_undefined_flag} -h $soname -o $lib $libobjs $deplibs $linker_flags'
@@ -4430,7 +2967,7 @@ EOF
     hardcode_libdir_flag_spec='-R$libdir'
     hardcode_shlibpath_var=no
     case $host_os in
-    solaris2.[[0-5]] | solaris2.[[0-5]].*) ;;
+    [solaris2.[0-5] | solaris2.[0-5].*]) ;;
     *) # Supported since Solaris 2.6 (maybe 2.5.1?)
       whole_archive_flag_spec='-z allextract$convenience -z defaultextract' ;;
     esac
@@ -4452,23 +2989,13 @@ EOF
     ;;
 
   sysv4)
-    case $host_vendor in
-      sni)
-        archive_cmds='$LD -G -h $soname -o $lib $libobjs $deplibs $linker_flags'
-        hardcode_direct=yes # is this really true???
-        ;;
-      siemens)
-        ## LD is ld it makes a PLAMLIB
-        ## CC just makes a GrossModule.
-        archive_cmds='$LD -G -o $lib $libobjs $deplibs $linker_flags'
-        reload_cmds='$CC -r -o $output$reload_objs'
-        hardcode_direct=no
-        ;;
-      motorola)
-        archive_cmds='$LD -G -h $soname -o $lib $libobjs $deplibs $linker_flags'
-        hardcode_direct=no #Motorola manual says yes, but my tests say they lie
-        ;;
-    esac
+    if test "x$host_vendor" = xsno; then
+      archive_cmds='$LD -G -Bsymbolic -h $soname -o $lib $libobjs $deplibs $linkopts'
+      hardcode_direct=yes # is this really true???
+    else
+      archive_cmds='$LD -G -h $soname -o $lib $libobjs $deplibs $linker_flags'
+      hardcode_direct=no #Motorola manual says yes, but my tests say they lie
+    fi
     runpath_var='LD_RUN_PATH'
     hardcode_shlibpath_var=no
     ;;
@@ -4522,13 +3049,8 @@ EOF
     runpath_var=LD_RUN_PATH
     ;;
 
-  sysv5uw7* | unixware7*)
-    no_undefined_flag='${wl}-z ${wl}text'
-    if test "$GCC" = yes; then
-      archive_cmds='$CC -shared ${wl}-h ${wl}$soname -o $lib $libobjs $deplibs $compiler_flags'
-    else
-      archive_cmds='$CC -G ${wl}-h ${wl}$soname -o $lib $libobjs $deplibs $compiler_flags'
-    fi
+  unixware7*)
+    archive_cmds='$LD -G -h $soname -o $lib $libobjs $deplibs $linker_flags'
     runpath_var='LD_RUN_PATH'
     hardcode_shlibpath_var=no
     ;;
@@ -4619,56 +3141,37 @@ aix3*)
   soname_spec='${libname}${release}.so$major'
   ;;
 
-aix4* | aix5*)
+aix4*)
   version_type=linux
-  need_lib_prefix=no
-  need_version=no
-  hardcode_into_libs=yes
-  if test "$host_cpu" = ia64; then
-    # AIX 5 supports IA64
-    library_names_spec='${libname}${release}.so$major ${libname}${release}.so$versuffix $libname.so'
-    shlibpath_var=LD_LIBRARY_PATH
-  else
-    # With GCC up to 2.95.x, collect2 would create an import file
-    # for dependence libraries.  The import file would start with
-    # the line `#! .'.  This would cause the generated library to
-    # depend on `.', always an invalid library.  This was fixed in
-    # development snapshots of GCC prior to 3.0.
-    case $host_os in
-      aix4 | aix4.[[01]] | aix4.[[01]].*)
-	if { echo '#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 97)'
-	     echo ' yes '
-	     echo '#endif'; } | ${CC} -E - | grep yes > /dev/null; then
-	  :
-	else
-	  can_build_shared=no
-	fi
-	;;
-    esac
-    # AIX (on Power*) has no versioning support, so currently we can
-    # not hardcode correct soname into executable. Probably we can
-    # add versioning support to collect2, so additional links can
-    # be useful in future.
-    if test "$aix_use_runtimelinking" = yes; then
-      # If using run time linking (on AIX 4.2 or later) use lib<name>.so
-      # instead of lib<name>.a to let people know that these are not
-      # typical AIX shared libraries.
-      library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so$major $libname.so'
+  # AIX has no versioning support, so currently we can not hardcode correct
+  # soname into executable. Probably we can add versioning support to
+  # collect2, so additional links can be useful in future.
+  # We preserve .a as extension for shared libraries though AIX4.2
+  # and later linker supports .so
+  library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so$major $libname.a'
+  shlibpath_var=LIBPATH
+  case $host_os in
+[  aix4 | aix4.[01] | aix4.[01].*)]
+    if { echo '#if __GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 97)'
+	 echo ' yes '
+	 echo '#endif'; } | ${CC} -E - | grep yes > /dev/null; then
+      :
     else
-      # We preserve .a as extension for shared libraries through AIX4.2
-      # and later when we are not doing run time linking.
-      library_names_spec='${libname}${release}.a $libname.a'
-      soname_spec='${libname}${release}.so$major'
+      # With GCC up to 2.95.x, collect2 would create an import file
+      # for dependence libraries.  The import file would start with
+      # the line `#! .'.  This would cause the generated library to
+      # depend on `.', always an invalid library.  This was fixed in
+      # development snapshots of GCC prior to 3.0.
+      can_build_shared=no
     fi
-    shlibpath_var=LIBPATH
-  fi
-  hardcode_into_libs=yes
+    ;;
+  esac
   ;;
 
 amigaos*)
   library_names_spec='$libname.ixlibrary $libname.a'
   # Create ${libname}_ixlibrary.a entries in /sys/libs.
-  finish_eval='for lib in `ls $libdir/*.ixlibrary 2>/dev/null`; do libname=`$echo "X$lib" | $Xsed -e '\''s%^.*/\([[^/]]*\)\.ixlibrary$%\1%'\''`; test $rm /sys/libs/${libname}_ixlibrary.a; $show "(cd /sys/libs && $LN_S $lib ${libname}_ixlibrary.a)"; (cd /sys/libs && $LN_S $lib ${libname}_ixlibrary.a) || exit 1; done'
+  finish_eval='for lib in `ls $libdir/*.ixlibrary 2>/dev/null`; do libname=`$echo "X$lib" | [$Xsed -e '\''s%^.*/\([^/]*\)\.ixlibrary$%\1%'\'']`; test $rm /sys/libs/${libname}_ixlibrary.a; $show "(cd /sys/libs && $LN_S $lib ${libname}_ixlibrary.a)"; (cd /sys/libs && $LN_S $lib ${libname}_ixlibrary.a) || exit 1; done'
   ;;
 
 beos*)
@@ -4699,7 +3202,7 @@ cygwin* | mingw* | pw32*)
   case $GCC,$host_os in
   yes,cygwin*)
     library_names_spec='$libname.dll.a'
-    soname_spec='`echo ${libname} | sed -e 's/^lib/cyg/'``echo ${release} | sed -e 's/[[.]]/-/g'`${versuffix}.dll'
+    soname_spec='`echo ${libname} | sed -e 's/^lib/cyg/'``echo ${release} | [sed -e 's/[.]/-/g']`${versuffix}.dll'
     postinstall_cmds='dlpath=`bash 2>&1 -c '\''. $dir/${file}i;echo \$dlname'\''`~
       dldir=$destdir/`dirname \$dlpath`~
       test -d \$dldir || mkdir -p \$dldir~
@@ -4709,14 +3212,14 @@ cygwin* | mingw* | pw32*)
        $rm \$dlpath'
     ;;
   yes,mingw*)
-    library_names_spec='${libname}`echo ${release} | sed -e 's/[[.]]/-/g'`${versuffix}.dll'
-    sys_lib_search_path_spec=`$CC -print-search-dirs | grep "^libraries:" | sed -e "s/^libraries://" -e "s/;/ /g" -e "s,=/,/,g"`
+    library_names_spec='${libname}`echo ${release} | [sed -e 's/[.]/-/g']`${versuffix}.dll'
+    sys_lib_search_path_spec=`$CC -print-search-dirs | grep "^libraries:" | sed -e "s/^libraries://" -e "s/;/ /g"`
     ;;
   yes,pw32*)
     library_names_spec='`echo ${libname} | sed -e 's/^lib/pw/'``echo ${release} | sed -e 's/[.]/-/g'`${versuffix}.dll'
     ;;
   *)
-    library_names_spec='${libname}`echo ${release} | sed -e 's/[[.]]/-/g'`${versuffix}.dll $libname.lib'
+    library_names_spec='${libname}`echo ${release} | [sed -e 's/[.]/-/g']`${versuffix}.dll $libname.lib'
     ;;
   esac
   dynamic_linker='Win32 ld.exe'
@@ -4729,29 +3232,14 @@ darwin* | rhapsody*)
   version_type=darwin
   need_lib_prefix=no
   need_version=no
-  # FIXME: Relying on posixy $() will cause problems for
-  #        cross-compilation, but unfortunately the echo tests do not
-  #        yet detect zsh echo's removal of \ escapes.
-  library_names_spec='${libname}${release}${versuffix}.$(test .$module = .yes && echo so || echo dylib) ${libname}${release}${major}.$(test .$module = .yes && echo so || echo dylib) ${libname}.$(test .$module = .yes && echo so || echo dylib)'
-  soname_spec='${libname}${release}${major}.$(test .$module = .yes && echo so || echo dylib)'
+  library_names_spec='${libname}${release}${versuffix}.`test .$module = .yes && echo so || echo dylib` ${libname}${release}${major}.`test .$module = .yes && echo so || echo dylib` ${libname}.`test .$module = .yes && echo so || echo dylib`'
+  soname_spec='${libname}${release}${major}.`test .$module = .yes && echo so || echo dylib`'
   shlibpath_overrides_runpath=yes
   shlibpath_var=DYLD_LIBRARY_PATH
   ;;
 
 freebsd1*)
   dynamic_linker=no
-  ;;
-
-freebsd*-gnu*)
-  version_type=linux
-  need_lib_prefix=no
-  need_version=no
-  library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so$major $libname.so'
-  soname_spec='${libname}${release}.so$major'
-  shlibpath_var=LD_LIBRARY_PATH
-  shlibpath_overrides_runpath=no
-  hardcode_into_libs=yes
-  dynamic_linker='GNU/FreeBSD ld.so'
   ;;
 
 freebsd*)
@@ -4805,17 +3293,14 @@ hpux9* | hpux10* | hpux11*)
   postinstall_cmds='chmod 555 $lib'
   ;;
 
-irix5* | irix6* | nonstopux*)
-  case $host_os in
-    nonstopux*) version_type=nonstopux ;;
-    *)          version_type=irix ;;
-  esac
+irix5* | irix6*)
+  version_type=irix
   need_lib_prefix=no
   need_version=no
   soname_spec='${libname}${release}.so$major'
   library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so$major ${libname}${release}.so $libname.so'
   case $host_os in
-  irix5* | nonstopux*)
+  irix5*)
     libsuff= shlibsuff=
     ;;
   *)
@@ -4864,8 +3349,6 @@ linux-gnu*)
 
 netbsd*)
   version_type=sunos
-  need_lib_prefix=no
-  need_version=no
   if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
     library_names_spec='${libname}${release}.so$versuffix ${libname}.so$versuffix'
     finish_cmds='PATH="\$PATH:/sbin" ldconfig -m $libdir'
@@ -4889,19 +3372,9 @@ newsos6)
 
 openbsd*)
   version_type=sunos
-  need_lib_prefix=no
-  need_version=no
-  if test -z "`echo __ELF__ | $CC -E - | grep __ELF__`" || test "$host_os-$host_cpu" = "openbsd2.8-powerpc"; then
-    case "$host_os" in
-    openbsd2.[[89]] | openbsd2.[[89]].*)
-      shlibpath_overrides_runpath=no
-      ;;
-    *)
-      shlibpath_overrides_runpath=yes
-      ;;
-    esac
-  else
-    shlibpath_overrides_runpath=yes
+  if test "$with_gnu_ld" = yes; then
+    need_lib_prefix=no
+    need_version=no
   fi
   library_names_spec='${libname}${release}.so$versuffix ${libname}.so$versuffix'
   finish_cmds='PATH="\$PATH:/sbin" ldconfig -m $libdir'
@@ -4919,13 +3392,11 @@ os2*)
 osf3* | osf4* | osf5*)
   version_type=osf
   need_version=no
-  need_lib_prefix=no
-  soname_spec='${libname}${release}.so$major'
-  library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so$major $libname.so'
+  soname_spec='${libname}${release}.so'
+  library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so $libname.so'
   shlibpath_var=LD_LIBRARY_PATH
   sys_lib_search_path_spec="/usr/shlib /usr/ccs/lib /usr/lib/cmplrs/cc /usr/lib /usr/local/lib /var/shlib"
   sys_lib_dlsearch_path_spec="$sys_lib_search_path_spec"
-  hardcode_into_libs=yes
   ;;
 
 sco3.2v5*)
@@ -4968,12 +3439,6 @@ sysv4 | sysv4.2uw2* | sysv4.3* | sysv5*)
   case $host_vendor in
     sni)
       shlibpath_overrides_runpath=no
-      need_lib_prefix=no
-      export_dynamic_flag_spec='${wl}-Blargedynsym'
-      runpath_var=LD_RUN_PATH
-      ;;
-    siemens)
-      need_lib_prefix=no
       ;;
     motorola)
       need_lib_prefix=no
@@ -5023,41 +3488,6 @@ test "$dynamic_linker" = no && can_build_shared=no
 # Report the final consequences.
 AC_MSG_CHECKING([if libtool supports shared libraries])
 AC_MSG_RESULT([$can_build_shared])
-##
-## END FIXME
-
-## FIXME: this should be a separate macro
-##
-AC_MSG_CHECKING([whether to build shared libraries])
-test "$can_build_shared" = "no" && enable_shared=no
-
-# On AIX, shared libraries and static libraries use the same namespace, and
-# are all built from PIC.
-case "$host_os" in
-aix3*)
-  test "$enable_shared" = yes && enable_static=no
-  if test -n "$RANLIB"; then
-    archive_cmds="$archive_cmds~\$RANLIB \$lib"
-    postinstall_cmds='$RANLIB $lib'
-  fi
-  ;;
-
-aix4*)
-  if test "$host_cpu" != ia64 && test "$aix_use_runtimelinking" = no ; then
-    test "$enable_shared" = yes && enable_static=no
-  fi
-  ;;
-esac
-AC_MSG_RESULT([$enable_shared])
-##
-## END FIXME
-
-## FIXME: this should be a separate macro
-##
-AC_MSG_CHECKING([whether to build static libraries])
-# Make sure either enable_shared or enable_static is yes.
-test "$enable_shared" = yes || enable_static=yes
-AC_MSG_RESULT([$enable_static])
 ##
 ## END FIXME
 
@@ -5148,7 +3578,7 @@ if test -f "$ltmain"; then
   # Now quote all the things that may contain metacharacters while being
   # careful not to overquote the AC_SUBSTed values.  We take copies of the
   # variables and quote the copies for generation of the libtool script.
-  for var in echo old_CC old_CFLAGS SED \
+  for var in echo old_CC old_CFLAGS \
     AR AR_FLAGS CC LD LN_S NM SHELL \
     reload_flag reload_cmds wl \
     pic_flag link_static_flag no_builtin_flag export_dynamic_flag_spec \
@@ -5160,7 +3590,6 @@ if test -f "$ltmain"; then
     old_striplib striplib file_magic_cmd export_symbols_cmds \
     deplibs_check_method allow_undefined_flag no_undefined_flag \
     finish_cmds finish_eval global_symbol_pipe global_symbol_to_cdecl \
-    global_symbol_to_c_name_address \
     hardcode_libdir_flag_spec hardcode_libdir_separator  \
     sys_lib_search_path_spec sys_lib_dlsearch_path_spec \
     compiler_c_o compiler_o_lo need_locks exclude_expsyms include_expsyms; do
@@ -5210,11 +3639,8 @@ if test -f "$ltmain"; then
 # configuration script generated by Autoconf, you may include it under
 # the same distribution terms that you use for the rest of that program.
 
-# A sed that does not truncate output.
-SED=$lt_SED
-
 # Sed that helps us avoid accidentally triggering echo(1) options like -n.
-Xsed="${SED} -e s/^X//"
+Xsed="sed -e s/^X//"
 
 # The HP-UX ksh and POSIX shell print the target directory to stdout
 # if CDPATH is set.
@@ -5230,11 +3656,11 @@ SHELL=$lt_SHELL
 # Whether or not to build shared libraries.
 build_libtool_libs=$enable_shared
 
-# Whether or not to build static libraries.
-build_old_libs=$enable_static
-
 # Whether or not to add -lc for building shared libraries.
 build_libtool_need_lc=$need_lc
+
+# Whether or not to build static libraries.
+build_old_libs=$enable_static
 
 # Whether or not to optimize for fast installation.
 fast_install=$enable_fast_install
@@ -5401,9 +3827,6 @@ global_symbol_pipe=$lt_global_symbol_pipe
 # Transform the output of nm in a proper C declaration
 global_symbol_to_cdecl=$lt_global_symbol_to_cdecl
 
-# Transform the output of nm in a C name address pair
-global_symbol_to_c_name_address=$lt_global_symbol_to_c_name_address
-
 # This is the shared library runtime path variable.
 runpath_var=$runpath_var
 
@@ -5526,9 +3949,9 @@ EOF
 #   return TRUE;
 # }
 # /* ltdll.c ends here */
-	# This is a source program that is used to create import libraries
-	# on Windows for dlls which lack them. Don't remove nor modify the
-	# starting and closing comments
+        # This is a source program that is used to create import libraries
+        # on Windows for dlls which lack them. Don't remove nor modify the
+        # starting and closing comments
 # /* impgen.c starts here */
 # /*   Copyright (C) 1999-2000 Free Software Foundation, Inc.
 #
@@ -5885,7 +4308,6 @@ test "$withval" = no || with_gnu_ld=yes, with_gnu_ld=no)
 AC_REQUIRE([AC_PROG_CC])dnl
 AC_REQUIRE([AC_CANONICAL_HOST])dnl
 AC_REQUIRE([AC_CANONICAL_BUILD])dnl
-AC_REQUIRE([_LT_AC_LIBTOOL_SYS_PATH_SEPARATOR])dnl
 ac_prog=ld
 if test "$GCC" = yes; then
   # Check if gcc -print-prog-name=ld gives a path.
@@ -5899,8 +4321,8 @@ if test "$GCC" = yes; then
   esac
   case $ac_prog in
     # Accept absolute paths.
-    [[\\/]]* | [[A-Za-z]]:[[\\/]]*)
-      re_direlt='/[[^/]][[^/]]*/\.\./'
+    [[\\/]* | [A-Za-z]:[\\/]*)]
+      [re_direlt='/[^/][^/]*/\.\./']
       # Canonicalize the path of ld
       ac_prog=`echo $ac_prog| sed 's%\\\\%/%g'`
       while echo $ac_prog | grep "$re_direlt" > /dev/null 2>&1; do
@@ -5924,7 +4346,7 @@ else
 fi
 AC_CACHE_VAL(lt_cv_path_LD,
 [if test -z "$LD"; then
-  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=$PATH_SEPARATOR
+  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}${PATH_SEPARATOR-:}"
   for ac_dir in $PATH; do
     test -z "$ac_dir" && ac_dir=.
     if test -f "$ac_dir/$ac_prog" || test -f "$ac_dir/$ac_prog$ac_exeext"; then
@@ -5977,7 +4399,7 @@ test -n "$reload_flag" && reload_flag=" $reload_flag"
 # AC_DEPLIBS_CHECK_METHOD - how to check for library dependencies
 #  -- PORTME fill in with the dynamic library characteristics
 AC_DEFUN([AC_DEPLIBS_CHECK_METHOD],
-[AC_CACHE_CHECK([how to recognise dependent libraries],
+[AC_CACHE_CHECK([how to recognise dependant libraries],
 lt_cv_deplibs_check_method,
 [lt_cv_file_magic_cmd='$MAGIC_CMD'
 lt_cv_file_magic_test_file=
@@ -5988,13 +4410,13 @@ lt_cv_deplibs_check_method='unknown'
 # `unknown' -- same as none, but documents that we really don't know.
 # 'pass_all' -- all dependencies passed with no checks.
 # 'test_compile' -- check by making test program.
-# 'file_magic [[regex]]' -- check by looking for files in library path
+# ['file_magic [regex]'] -- check by looking for files in library path
 # which responds to the $file_magic_cmd with a given egrep regex.
 # If you have `file' or equivalent on your system and you're not sure
 # whether `pass_all' will *always* work, you probably want this one.
 
 case $host_os in
-aix4* | aix5*)
+aix4*)
   lt_cv_deplibs_check_method=pass_all
   ;;
 
@@ -6003,7 +4425,7 @@ beos*)
   ;;
 
 bsdi4*)
-  lt_cv_deplibs_check_method='file_magic ELF [[0-9]][[0-9]]*-bit [[ML]]SB (shared object|dynamic lib)'
+  [lt_cv_deplibs_check_method='file_magic ELF [0-9][0-9]*-bit [ML]SB (shared object|dynamic lib)']
   lt_cv_file_magic_cmd='/usr/bin/file -L'
   lt_cv_file_magic_test_file=/shlib/libc.so
   ;;
@@ -6014,10 +4436,9 @@ cygwin* | mingw* | pw32*)
   ;;
 
 darwin* | rhapsody*)
-  lt_cv_deplibs_check_method='file_magic Mach-O dynamically linked shared library'
   lt_cv_file_magic_cmd='/usr/bin/file -L'
   case "$host_os" in
-  rhapsody* | darwin1.[[012]])
+  rhapsody* | darwin1.[012])
     lt_cv_file_magic_test_file=`echo /System/Library/Frameworks/System.framework/Versions/*/System | head -1`
     ;;
   *) # Darwin 1.3 on
@@ -6032,7 +4453,7 @@ freebsd*)
     i*86 )
       # Not sure whether the presence of OpenBSD here was a mistake.
       # Let's accept both of them until this is cleared up.
-      lt_cv_deplibs_check_method='file_magic (FreeBSD|OpenBSD)/i[[3-9]]86 (compact )?demand paged shared library'
+      [lt_cv_deplibs_check_method='file_magic (FreeBSD|OpenBSD)/i[3-9]86 (compact )?demand paged shared library']
       lt_cv_file_magic_cmd=/usr/bin/file
       lt_cv_file_magic_test_file=`echo /usr/lib/libc.so.*`
       ;;
@@ -6047,14 +4468,14 @@ gnu*)
   ;;
 
 hpux10.20*|hpux11*)
-  lt_cv_deplibs_check_method='file_magic (s[[0-9]][[0-9]][[0-9]]|PA-RISC[[0-9]].[[0-9]]) shared library'
+  [lt_cv_deplibs_check_method='file_magic (s[0-9][0-9][0-9]|PA-RISC[0-9].[0-9]) shared library']
   lt_cv_file_magic_cmd=/usr/bin/file
   lt_cv_file_magic_test_file=/usr/lib/libc.sl
   ;;
 
-irix5* | irix6* | nonstopux*)
+irix5* | irix6*)
   case $host_os in
-  irix5* | nonstopux*)
+  irix5*)
     # this will be overridden with pass_all, but let us keep it just in case
     lt_cv_deplibs_check_method="file_magic ELF 32-bit MSB dynamic lib MIPS - version 1"
     ;;
@@ -6066,7 +4487,7 @@ irix5* | irix6* | nonstopux*)
     *) libmagic=never-match;;
     esac
     # this will be overridden with pass_all, but let us keep it just in case
-    lt_cv_deplibs_check_method="file_magic ELF ${libmagic} MSB mips-[[1234]] dynamic lib MIPS - version 1"
+    [lt_cv_deplibs_check_method="file_magic ELF ${libmagic} MSB mips-[1234] dynamic lib MIPS - version 1"]
     ;;
   esac
   lt_cv_file_magic_test_file=`echo /lib${libsuff}/libc.so*`
@@ -6076,37 +4497,27 @@ irix5* | irix6* | nonstopux*)
 # This must be Linux ELF.
 linux-gnu*)
   case $host_cpu in
-  alpha* | hppa* | i*86 | mips | mipsel | powerpc* | sparc* | ia64*)
+  alpha* | i*86 | powerpc* | sparc* | ia64* )
     lt_cv_deplibs_check_method=pass_all ;;
   *)
     # glibc up to 2.1.1 does not perform some relocations on ARM
-    lt_cv_deplibs_check_method='file_magic ELF [[0-9]][[0-9]]*-bit [[LM]]SB (shared object|dynamic lib )' ;;
+    [lt_cv_deplibs_check_method='file_magic ELF [0-9][0-9]*-bit [LM]SB (shared object|dynamic lib )' ;;]
   esac
   lt_cv_file_magic_test_file=`echo /lib/libc.so* /lib/libc-*.so`
   ;;
 
 netbsd*)
   if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
-    lt_cv_deplibs_check_method='match_pattern /lib[[^/\.]]+\.so\.[[0-9]]+\.[[0-9]]+$'
+    [lt_cv_deplibs_check_method='match_pattern /lib[^/\.]+\.so\.[0-9]+\.[0-9]+$']
   else
-    lt_cv_deplibs_check_method='match_pattern /lib[[^/\.]]+\.so$'
+    [lt_cv_deplibs_check_method='match_pattern /lib[^/\.]+\.so$']
   fi
   ;;
 
 newos6*)
-  lt_cv_deplibs_check_method='file_magic ELF [[0-9]][[0-9]]*-bit [[ML]]SB (executable|dynamic lib)'
+  [lt_cv_deplibs_check_method='file_magic ELF [0-9][0-9]*-bit [ML]SB (executable|dynamic lib)']
   lt_cv_file_magic_cmd=/usr/bin/file
   lt_cv_file_magic_test_file=/usr/lib/libnls.so
-  ;;
-
-openbsd*)
-  lt_cv_file_magic_cmd=/usr/bin/file
-  lt_cv_file_magic_test_file=`echo /usr/lib/libc.so.*`
-  if test -z "`echo __ELF__ | $CC -E - | grep __ELF__`" || test "$host_os-$host_cpu" = "openbsd2.8-powerpc"; then
-    lt_cv_deplibs_check_method='file_magic ELF [[0-9]][[0-9]]*-bit [[LM]]SB shared object'
-  else
-    lt_cv_deplibs_check_method='file_magic OpenBSD.* shared library'
-  fi
   ;;
 
 osf3* | osf4* | osf5*)
@@ -6125,14 +4536,10 @@ solaris*)
   lt_cv_file_magic_test_file=/lib/libc.so
   ;;
 
-sysv5uw[[78]]* | sysv4*uw2*)
-  lt_cv_deplibs_check_method=pass_all
-  ;;
-
 sysv4 | sysv4.2uw2* | sysv4.3* | sysv5*)
   case $host_vendor in
   motorola)
-    lt_cv_deplibs_check_method='file_magic ELF [[0-9]][[0-9]]*-bit [[ML]]SB (shared object|dynamic lib) M[[0-9]][[0-9]]* Version [[0-9]]'
+    [lt_cv_deplibs_check_method='file_magic ELF [0-9][0-9]*-bit [ML]SB (shared object|dynamic lib) M[0-9][0-9]* Version [0-9]']
     lt_cv_file_magic_test_file=`echo /usr/lib/libc.so*`
     ;;
   ncr)
@@ -6140,15 +4547,12 @@ sysv4 | sysv4.2uw2* | sysv4.3* | sysv5*)
     ;;
   sequent)
     lt_cv_file_magic_cmd='/bin/file'
-    lt_cv_deplibs_check_method='file_magic ELF [[0-9]][[0-9]]*-bit [[LM]]SB (shared object|dynamic lib )'
+    [lt_cv_deplibs_check_method='file_magic ELF [0-9][0-9]*-bit [LM]SB (shared object|dynamic lib )']
     ;;
   sni)
     lt_cv_file_magic_cmd='/bin/file'
-    lt_cv_deplibs_check_method="file_magic ELF [[0-9]][[0-9]]*-bit [[LM]]SB dynamic lib"
+    [lt_cv_deplibs_check_method="file_magic ELF [0-9][0-9]*-bit [LM]SB dynamic lib"]
     lt_cv_file_magic_test_file=/lib/libc.so
-    ;;
-  siemens)
-    lt_cv_deplibs_check_method=pass_all
     ;;
   esac
   ;;
@@ -6161,14 +4565,13 @@ deplibs_check_method=$lt_cv_deplibs_check_method
 
 # AC_PROG_NM - find the path to a BSD-compatible name lister
 AC_DEFUN([AC_PROG_NM],
-[AC_REQUIRE([_LT_AC_LIBTOOL_SYS_PATH_SEPARATOR])dnl
-AC_MSG_CHECKING([for BSD-compatible nm])
+[AC_MSG_CHECKING([for BSD-compatible nm])
 AC_CACHE_VAL(lt_cv_path_NM,
 [if test -n "$NM"; then
   # Let the user override the test.
   lt_cv_path_NM="$NM"
 else
-  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=$PATH_SEPARATOR
+  IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS="${IFS}${PATH_SEPARATOR-:}"
   for ac_dir in $PATH /usr/ccs/bin /usr/ucb /bin; do
     test -z "$ac_dir" && ac_dir=.
     tmp_nm=$ac_dir/${ac_tool_prefix}nm
@@ -6215,12 +4618,12 @@ esac
 ])
 
 # AC_LIBLTDL_CONVENIENCE[(dir)] - sets LIBLTDL to the link flags for
-# the libltdl convenience library and LTDLINCL to the include flags for
+# the libltdl convenience library and INCLTDL to the include flags for
 # the libltdl header and adds --enable-ltdl-convenience to the
-# configure arguments.  Note that LIBLTDL and LTDLINCL are not
+# configure arguments.  Note that LIBLTDL and INCLTDL are not
 # AC_SUBSTed, nor is AC_CONFIG_SUBDIRS called.  If DIR is not
 # provided, it is assumed to be `libltdl'.  LIBLTDL will be prefixed
-# with '${top_builddir}/' and LTDLINCL will be prefixed with
+# with '${top_builddir}/' and INCLTDL will be prefixed with
 # '${top_srcdir}/' (note the single quotes!).  If your package is not
 # flat and you're not using automake, define top_builddir and
 # top_srcdir appropriately in the Makefiles.
@@ -6232,18 +4635,16 @@ AC_DEFUN([AC_LIBLTDL_CONVENIENCE],
       ac_configure_args="$ac_configure_args --enable-ltdl-convenience" ;;
   esac
   LIBLTDL='${top_builddir}/'ifelse($#,1,[$1],['libltdl'])/libltdlc.la
-  LTDLINCL='-I${top_srcdir}/'ifelse($#,1,[$1],['libltdl'])
-  # For backwards non-gettext consistent compatibility...
-  INCLTDL="$LTDLINCL"
+  INCLTDL='-I${top_srcdir}/'ifelse($#,1,[$1],['libltdl'])
 ])
 
 # AC_LIBLTDL_INSTALLABLE[(dir)] - sets LIBLTDL to the link flags for
-# the libltdl installable library and LTDLINCL to the include flags for
+# the libltdl installable library and INCLTDL to the include flags for
 # the libltdl header and adds --enable-ltdl-install to the configure
-# arguments.  Note that LIBLTDL and LTDLINCL are not AC_SUBSTed, nor is
+# arguments.  Note that LIBLTDL and INCLTDL are not AC_SUBSTed, nor is
 # AC_CONFIG_SUBDIRS called.  If DIR is not provided and an installed
 # libltdl is not found, it is assumed to be `libltdl'.  LIBLTDL will
-# be prefixed with '${top_builddir}/' and LTDLINCL will be prefixed
+# be prefixed with '${top_builddir}/' and INCLTDL will be prefixed
 # with '${top_srcdir}/' (note the single quotes!).  If your package is
 # not flat and you're not using automake, define top_builddir and
 # top_srcdir appropriately in the Makefiles.
@@ -6261,14 +4662,12 @@ AC_DEFUN([AC_LIBLTDL_INSTALLABLE],
   if test x"$enable_ltdl_install" = x"yes"; then
     ac_configure_args="$ac_configure_args --enable-ltdl-install"
     LIBLTDL='${top_builddir}/'ifelse($#,1,[$1],['libltdl'])/libltdl.la
-    LTDLINCL='-I${top_srcdir}/'ifelse($#,1,[$1],['libltdl'])
+    INCLTDL='-I${top_srcdir}/'ifelse($#,1,[$1],['libltdl'])
   else
     ac_configure_args="$ac_configure_args --enable-ltdl-install=no"
     LIBLTDL="-lltdl"
-    LTDLINCL=
+    INCLTDL=
   fi
-  # For backwards non-gettext consistent compatibility...
-  INCLTDL="$LTDLINCL"
 ])
 
 # old names
@@ -6283,93 +4682,7 @@ AC_DEFUN([AM_PROG_NM],        [AC_PROG_NM])
 # This is just to silence aclocal about the macro not being used
 ifelse([AC_DISABLE_FAST_INSTALL])
 
-############################################################
-# NOTE: This macro has been submitted for inclusion into   #
-#  GNU Autoconf as AC_PROG_SED.  When it is available in   #
-#  a released version of Autoconf we should remove this    #
-#  macro and use it instead.                               #
-############################################################
-# LT_AC_PROG_SED
-# --------------
-# Check for a fully-functional sed program, that truncates
-# as few characters as possible.  Prefer GNU sed if found.
-AC_DEFUN([LT_AC_PROG_SED],
-[AC_MSG_CHECKING([for a sed that does not truncate output])
-AC_CACHE_VAL(lt_cv_path_SED,
-[# Loop through the user's path and test for sed and gsed.
-# Then use that list of sed's as ones to test for truncation.
-as_executable_p="test -f"
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-  for ac_prog in sed gsed; do
-    for ac_exec_ext in '' $ac_executable_extensions; do
-      if $as_executable_p "$as_dir/$ac_prog$ac_exec_ext"; then
-        _sed_list="$_sed_list $as_dir/$ac_prog$ac_exec_ext"
-      fi
-    done
-  done
-done
-
-  # Create a temporary directory, and hook for its removal unless debugging.
-$debug ||
-{
-  trap 'exit_status=$?; rm -rf $tmp && exit $exit_status' 0
-  trap '{ (exit 1); exit 1; }' 1 2 13 15
-}
-
-# Create a (secure) tmp directory for tmp files.
-: ${TMPDIR=/tmp}
-{
-  tmp=`(umask 077 && mktemp -d -q "$TMPDIR/sedXXXXXX") 2>/dev/null` &&
-  test -n "$tmp" && test -d "$tmp"
-}  ||
-{
-  tmp=$TMPDIR/sed$$-$RANDOM
-  (umask 077 && mkdir $tmp)
-} ||
-{
-   echo "$me: cannot create a temporary directory in $TMPDIR" >&2
-   { (exit 1); exit 1; }
-}
-  _max=0
-  _count=0
-  # Add /usr/xpg4/bin/sed as it is typically found on Solaris
-  # along with /bin/sed that truncates output.
-  for _sed in $_sed_list /usr/xpg4/bin/sed; do
-    test ! -f ${_sed} && break
-    cat /dev/null > "$tmp/sed.in"
-    _count=0
-    echo ${ECHO_N-$ac_n} "0123456789${ECHO_C-$ac_c}" >"$tmp/sed.in"
-    # Check for GNU sed and select it if it is found.
-    if "${_sed}" --version 2>&1 < /dev/null | egrep '(GNU)' > /dev/null; then
-      lt_cv_path_SED=${_sed}
-      break
-    fi
-    while true; do
-      cat "$tmp/sed.in" "$tmp/sed.in" >"$tmp/sed.tmp"
-      mv "$tmp/sed.tmp" "$tmp/sed.in"
-      cp "$tmp/sed.in" "$tmp/sed.nl"
-      echo >>"$tmp/sed.nl"
-      ${_sed} -e 's/a$//' < "$tmp/sed.nl" >"$tmp/sed.out" || break
-      cmp -s "$tmp/sed.out" "$tmp/sed.nl" || break
-      # 40000 chars as input seems more than enough
-      test $_count -gt 10 && break
-      _count=`expr $_count + 1`
-      if test $_count -gt $_max; then
-        _max=$_count
-        lt_cv_path_SED=$_sed
-      fi
-    done
-  done
-  rm -rf "$tmp"
-])
-if test "X$SED" != "X"; then
-  lt_cv_path_SED=$SED
-else
-  SED=$lt_cv_path_SED
-fi
-AC_MSG_RESULT([$SED])
-])
+dnl Local Variables: ***
+dnl mode: sh ***
+dnl sh-indentation: 2 ***
+dnl End: ***

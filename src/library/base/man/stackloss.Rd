@@ -1,16 +1,13 @@
 \name{stackloss}
-\docType{data}
 \alias{stackloss}
 \alias{stack.loss}
 \alias{stack.x}
 \title{Brownlee's Stack Loss Plant Data}
-\description{
-  Operational data of a plant for the oxidation of ammonia to nitric
-  acid.
-}
 \usage{data(stackloss)}
-\format{
-  \code{stackloss} is a data frame with 21 observations on 4 variables.
+\description{Operational data of a plant for the oxidation of ammonia to
+  nitric acid.}
+\format{\code{stackloss} is a data frame with 21 observations on 4
+  variables.
 
   \tabular{rll}{
     [,1] \tab \code{Air Flow}   \tab Flow of cooling air\cr
@@ -28,15 +25,14 @@
 }
 \source{
   Brownlee, K. A. (1960, 2nd ed. 1965)
-  \emph{Statistical Theory and Methodology in Science and Engineering}.
+  \emph{Statistical Theory and Methodology in Science and Engineering.}
   New York: Wiley. pp. 491--500.
 }
 \details{
-  \dQuote{Obtained from 21 days of operation of a plant for the
-    oxidation of ammonia (NH\eqn{_3}{3}) to nitric acid
-    (HNO\eqn{_3}{3}).  The nitric oxides produced are absorbed in a
-    countercurrent absorption tower}.
-  (Brownlee, cited by Dodge, slightly reformatted by MM.)
+  ``Obtained from 21 days of operation of a plant for the oxidation
+  of ammonia (NH\eqn{_3}{3}) to nitric acid (HNO\eqn{_3}{3}).
+  The nitric oxides produced are absorbed in a countercurrent absorption
+  tower.''  (Brownlee, cited by Dodge, slightly reformatted by MM.)
 
   \code{Air Flow} represents the rate of operation of the plant.
   \code{Water Temp} is the temperature of cooling water circulated
@@ -49,10 +45,6 @@
   efficiency of the plant.
 }
 \references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-
   Dodge, Y. (1996)
   The guinea pig of multiple regression. In:
   \emph{Robust Statistics, Data Analysis, and Computer Intensive

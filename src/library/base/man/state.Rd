@@ -1,5 +1,4 @@
 \name{state}
-\docType{data}
 \alias{state}
 \alias{state.abb}
 \alias{state.area}
@@ -8,13 +7,12 @@
 \alias{state.name}
 \alias{state.region}
 \alias{state.x77}
-\title{US State Facts and Figures}
+\title{States of the U.S.A.}
+\usage{data(state)}
 \description{Data sets related to the 50 states of the United States of
   America.}
-\usage{data(state)}
-\details{
-  \R currently contains the following \dQuote{state} data sets.  Note
-  that all data are arranged according to alphabetical order of the
+\details{\R currently contains the following ``state'' data sets.
+  Note that all data are arranged according to alphabetical order of the
   state names.
   \describe{
     \item{\code{state.abb}:}{character vector of 2-letter abbreviations
@@ -58,10 +56,5 @@
 
   U.S. Department of Commerce, Bureau of the Census (1977)
   \emph{County and City Data Book}.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \keyword{datasets}

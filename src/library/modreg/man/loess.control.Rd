@@ -1,3 +1,6 @@
+% file modreg/man/loess.control.Rd
+% copyright (C) 1998 B. D. Ripley
+%
 \name{loess.control}
 \title{Set Parameters for Loess}
 \usage{
@@ -19,7 +22,6 @@ loess.control(surface = c("interpolate", "direct"),
    approximation via the maximum number of points in a  cell in the kd
    tree. Cells with more than \code{floor(n*span*cell)} points are subdivided.}
  \item{iterations}{the number of iterations used in robust fitting.}
-  \item{\dots}{further arguments which are ignored.}
 }
 \description{
   Set control parameters for \code{loess} fits.
@@ -31,8 +33,8 @@ loess.control(surface = c("interpolate", "direct"),
   \item{trace.hat}{}
   \item{cell}{}
   \item{iterations}{}
-  with meanings as explained under \sQuote{Arguments}.
+  with meanings as explained under `Arguments'.
 }
+\author{B.D. Ripley}
 \seealso{\code{\link{loess}}}
 \keyword{smooth}
-\keyword{loess}

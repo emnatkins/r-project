@@ -1,3 +1,6 @@
+% file factor.scope.Rd
+% copyright (C) 1998 B. D. Ripley
+%
 \name{factor.scope}
 \title{Compute Allowed Changes in Adding to or Dropping from a Formula}
 \usage{
@@ -32,6 +35,7 @@ factor.scope(factor, scope)
   terms labels. For \code{factor.scope}, a list with components
   \code{drop} and \code{add}, character vectors of terms labels.
 }
+\author{B.D. Ripley}
 
 \seealso{\code{\link{add1}}, \code{\link{drop1}},
   \code{\link{aov}}, \code{\link{lm}}}

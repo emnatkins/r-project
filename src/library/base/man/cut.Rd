@@ -2,69 +2,60 @@
 \title{Convert Numeric to Factor}
 \usage{
 cut(x, \dots)
-
-\method{cut}{default}(x, breaks, labels = NULL,
-    include.lowest = FALSE, right = TRUE, dig.lab = 3, \dots)
+cut.default(x, breaks, labels = NULL,
+            include.lowest = FALSE, right = TRUE, dig.lab = 3)
 }
 \alias{cut}
 \alias{cut.default}
 \arguments{
-  \item{x}{a numeric vector which is to be converted to a factor by cutting.}
-  \item{breaks}{either a vector of cut points or number
-    giving the number of intervals which \code{x} is to be cut into.}
-  \item{labels}{labels for the levels of the resulting category.  By default,
+\item{x}{a numeric vector which is to be converted to a factor by cutting.}
+\item{breaks}{either a vector of cut points or number
+  giving the number of intervals which \code{x} is to be cut into.}
+\item{labels}{labels for the levels of the resulting category.  By default,
     labels are constructed using \code{"(a,b]"} interval notation. If
     \code{labels = FALSE}, simple integer codes are returned instead of
     a factor.}.
-  \item{include.lowest}{logical, indicating if an \sQuote{x[i]} equal to
-    the lowest (or highest, for \code{right = FALSE}) \sQuote{breaks}
-    value should be included.}
-  \item{right}{logical, indicating if the intervals should be closed on
-    the right (and open on the left) or vice versa.}
-  \item{dig.lab}{integer which is used when labels are not given. It
-    determines the number of digits used in formatting the break numbers.}
-  \item{\dots}{further arguments passed to or from other methods.}
+\item{include.lowest}{logical, indicating if an `x[i]' equal to the
+  lowest (or highest, for \code{right = FALSE}) `breaks' value should be
+  included.}
+\item{right}{logical, indicating if the intervals should closed on the
+  right (and open on the left) or vice versa.}
+\item{dig.lab}{integer which is used when labels are not given. It
+  determines the number of digits used in formatting the break numbers.}
 }
 \description{
-  \code{cut} divides the range of \code{x} into intervals
-  and codes the values in \code{x} according to which
-  interval they fall.
-  The leftmost interval corresponds to level one,
-  the next leftmost to level two and so on.
+\code{cut} divides the range of \code{x} into intervals
+and codes the values in \code{x} according to which
+interval they fall.
+The leftmost interval corresponds to level one,
+the next leftmost to level two and so on.
 }
 \value{
-  A \code{\link{factor}} is returned, unless \code{labels = FALSE} which
-  results in the mere integer level codes.
+A \code{\link{factor}} is returned, unless \code{labels = FALSE} which
+results in the mere integer level codes.
 }
 \details{
-  If a \code{labels} parameter is specified, its values are used
-  to name the factor levels. If none is specified, the factor
-  level labels are constructed as \code{"(b1, b2]"}, \code{"(b2, b3]"}
-  etc. for \code{right=TRUE} and as \code{"[b1, b2)"}, \ldots if
-  \code{right=FALSE}.
-  In this case, \code{dig.lab} indicates how many digits should be used in
-  formatting the numbers \code{b1}, \code{b2}, \ldots.
+If a \code{labels} parameter is specified, its values are used
+to name the factor levels. If none is specified, the factor
+level labels are constructed as \code{"(b1, b2]"}, \code{"(b2, b3]"}
+etc. for \code{right=TRUE} and as \code{"[b1, b2)"}, \ldots if
+\code{right=FALSE}.
+In this case, \code{dig.lab} indicates how many digits should be used in
+formatting the numbers \code{b1}, \code{b2}, \ldots.
 }
 \note{
-  Instead of \code{table(cut(x, br))}, \code{hist(x, br, plot = FALSE)} is
-  more efficient and less memory hungry.  Instead of \code{cut(*,
-    labels = FALSE)}, \code{\link{findInterval}()} is more efficient.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
+Instead of \code{table(cut(x, br))}, \code{hist(x, br, plot = FALSE)} is
+more efficient and less memory hungry.
 }
 \seealso{
-  \code{\link{split}} for splitting a variable according to a group factor;
-  \code{\link{factor}}, \code{\link{tabulate}}, \code{\link{table}},
-  \code{\link{findInterval}()}.
+\code{\link{split}} for splitting a variable according to a group factor;
+\code{\link{factor}}, \code{\link{tabulate}}, \code{\link{table}}.
 }
 \examples{
 Z <- rnorm(10000)
 table(cut(Z, br = -6:6))
-sum(table(cut(Z, br = -6:6, labels=FALSE)))
-sum(   hist  (Z, br = -6:6, plot=FALSE)$counts)
+system.time(print(sum(table(cut(Z, br = -6:6, labels=FALSE)))))
+system.time(print(sum(   hist  (Z, br = -6:6, plot=FALSE)$counts)))
 
 cut(rep(1,5),4)#-- dummy
 tx0 <- c(9, 4, 6, 5, 3, 10, 5, 3, 5)

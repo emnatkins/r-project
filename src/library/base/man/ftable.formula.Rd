@@ -3,8 +3,11 @@
 \title{Formula Notation for Flat Contingency Tables}
 \description{Produce or manipulate a flat contingency table using
   formula notation.}
+\synopsis{
+ftable.formula(formula, data = NULL, subset, na.action, ...)
+}
 \usage{
-\method{ftable}{formula}(formula, data = NULL, subset, na.action, \dots)
+ftable(formula, data = NULL, subset, na.action, \dots)
 }
 \arguments{
   \item{formula}{a formula object with both left and right hand sides
@@ -27,7 +30,7 @@
   row variables, respectively, of the flat contingency table to be
   created.  Only the \code{+} operator is allowed for combining the
   variables.  A \code{.} may be used once in the formula to indicate
-  inclusion of all the \dQuote{remaining} variables.
+  inclusion of all the ``remaining'' variables.
 
   If \code{data} is an object of class \code{"table"} or an array with
   more than 2 dimensions, it is taken as a contingency table, and hence

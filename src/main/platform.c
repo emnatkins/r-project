@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998, 2001-3 The R Development Core Team
+ *  Copyright (C) 1998, 2001 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,87 +19,13 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
-#include <Defn.h>
-#include <Fileio.h>
-#include <R_ext/Applic.h>		/* machar */
+#include "Defn.h"
+#include "Fileio.h"
 
 #include <time.h>
-
-/* Machine Constants */
-
-static void Init_R_Machine(SEXP rho)
-{
-    int ibeta, it, irnd, ngrd, machep, negep, iexp, minexp, maxexp;
-    double eps, epsneg, xmin, xmax;
-    SEXP ans, nms;
-
-    machar(&ibeta, &it, &irnd, &ngrd, &machep, &negep, &iexp,
-	   &minexp, &maxexp, &eps, &epsneg, &xmin, &xmax);
-
-    R_dec_min_exponent = floor(log10(xmin)); /* smallest decimal exponent */
-    PROTECT(ans = allocVector(VECSXP, 18));
-    PROTECT(nms = allocVector(STRSXP, 18));
-    SET_STRING_ELT(nms, 0, mkChar("double.eps"));
-    SET_VECTOR_ELT(ans, 0, ScalarReal(eps));
-
-    SET_STRING_ELT(nms, 1, mkChar("double.neg.eps"));
-    SET_VECTOR_ELT(ans, 1, ScalarReal(epsneg));
-
-    SET_STRING_ELT(nms, 2, mkChar("double.xmin"));
-    SET_VECTOR_ELT(ans, 2, ScalarReal(xmin));
-
-    SET_STRING_ELT(nms, 3, mkChar("double.xmax"));
-    SET_VECTOR_ELT(ans, 3, ScalarReal(xmax));
-
-    SET_STRING_ELT(nms, 4, mkChar("double.base"));
-    SET_VECTOR_ELT(ans, 4, ScalarInteger(ibeta));
-
-    SET_STRING_ELT(nms, 5, mkChar("double.digits"));
-    SET_VECTOR_ELT(ans, 5, ScalarInteger(it));
-
-    SET_STRING_ELT(nms, 6, mkChar("double.rounding"));
-    SET_VECTOR_ELT(ans, 6, ScalarInteger(irnd));
-
-    SET_STRING_ELT(nms, 7, mkChar("double.guard"));
-    SET_VECTOR_ELT(ans, 7, ScalarInteger(ngrd));
-
-    SET_STRING_ELT(nms, 8, mkChar("double.ulp.digits"));
-    SET_VECTOR_ELT(ans, 8, ScalarInteger(machep));
-
-    SET_STRING_ELT(nms, 9, mkChar("double.neg.ulp.digits"));
-    SET_VECTOR_ELT(ans, 9, ScalarInteger(negep));
-
-    SET_STRING_ELT(nms, 10, mkChar("double.exponent"));
-    SET_VECTOR_ELT(ans, 10, ScalarInteger(iexp));
-
-    SET_STRING_ELT(nms, 11, mkChar("double.min.exp"));
-    SET_VECTOR_ELT(ans, 11, ScalarInteger(minexp));
-
-    SET_STRING_ELT(nms, 12, mkChar("double.max.exp"));
-    SET_VECTOR_ELT(ans, 12, ScalarInteger(maxexp));
-
-    SET_STRING_ELT(nms, 13, mkChar("integer.max"));
-    SET_VECTOR_ELT(ans, 13, ScalarInteger(INT_MAX));
-
-    SET_STRING_ELT(nms, 14, mkChar("sizeof.long"));
-    SET_VECTOR_ELT(ans, 14, ScalarInteger(SIZEOF_LONG));
-
-    SET_STRING_ELT(nms, 15, mkChar("sizeof.longlong"));
-    SET_VECTOR_ELT(ans, 15, ScalarInteger(SIZEOF_LONG_LONG));
-
-    SET_STRING_ELT(nms, 16, mkChar("sizeof.longdouble"));
-    SET_VECTOR_ELT(ans, 16, ScalarInteger(SIZEOF_LONG_DOUBLE));
-
-    SET_STRING_ELT(nms, 17, mkChar("sizeof.pointer"));
-    SET_VECTOR_ELT(ans, 17, ScalarInteger(sizeof(SEXP)));
-    setAttrib(ans, R_NamesSymbol, nms);
-    defineVar(install(".Machine"), ans, rho);
-    UNPROTECT(2);
-}
-
 
 /*  Platform
  *
@@ -107,13 +33,14 @@ static void Init_R_Machine(SEXP rho)
  *  "Machine", but for strings rather than numerical values.  These
  *  two functions should probably be amalgamated.
  */
-static const char  * const R_OSType = OSTYPE;
-static const char  * const R_FileSep = FILESEP;
+static char *R_OSType = OSTYPE;
+static char *R_FileSep = FILESEP;
 
-static void Init_R_Platform(SEXP rho)
+SEXP do_Platform(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP value, names;
-
+    char *tmp;
+    checkArity(op, args);
     PROTECT(value = allocVector(VECSXP, 5));
     PROTECT(names = allocVector(STRSXP, 5));
     SET_STRING_ELT(names, 0, mkChar("OS.type"));
@@ -123,7 +50,16 @@ static void Init_R_Platform(SEXP rho)
     SET_STRING_ELT(names, 4, mkChar("endian"));
     SET_VECTOR_ELT(value, 0, mkString(R_OSType));
     SET_VECTOR_ELT(value, 1, mkString(R_FileSep));
-    SET_VECTOR_ELT(value, 2, mkString(SHLIB_EXT));
+    tmp = (char *) malloc(strlen(SHLIB_EXT) + 2);
+    if(!tmp) {
+	error("Could not allocate memory");
+    }
+#ifndef Macintosh    
+    sprintf(tmp, ".%s", SHLIB_EXT);
+#else    /* Usually DLL under MacOS are called "LibraryLib" without a "." */
+    sprintf(tmp, "%s", SHLIB_EXT);
+#endif    
+    SET_VECTOR_ELT(value, 2, mkString(tmp));
     SET_VECTOR_ELT(value, 3, mkString(R_GUIType));
 #ifdef WORDS_BIGENDIAN
     SET_VECTOR_ELT(value, 4, mkString("big"));
@@ -131,16 +67,9 @@ static void Init_R_Platform(SEXP rho)
     SET_VECTOR_ELT(value, 4, mkString("little"));
 #endif
     setAttrib(value, R_NamesSymbol, names);
-    defineVar(install(".Platform"), value, rho);
     UNPROTECT(2);
+    return value;
 }
-
-void Init_R_Variables(SEXP rho)
-{
-    Init_R_Machine(rho);
-    Init_R_Platform(rho);
-}
-
 
 /*  date
  *
@@ -180,6 +109,23 @@ SEXP do_date(SEXP call, SEXP op, SEXP args, SEXP rho)
  *  version, write down a pipe to a pager.
  */
 
+#ifdef OLD
+SEXP do_fileshow(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+    SEXP fn, tl;
+    checkArity(op, args);
+    fn = CAR(args);
+    tl = CADR(args);
+    if (!isString(fn) || length(fn) < 1 || STRING_ELT(fn, 0) == R_NilValue)
+	errorcall(call, "invalid filename");
+    if (!isString(tl) || length(tl) < 1 || STRING_ELT(tl, 0) == R_NilValue)
+	errorcall(call, "invalid filename");
+    if (!R_ShowFile(R_ExpandFileName(CHAR(STRING_ELT(fn, 0))),
+                    CHAR(STRING_ELT(tl, 0))))
+	error("unable to display file \"%s\"", CHAR(STRING_ELT(fn, 0)));
+    return R_NilValue;
+}
+#else
 SEXP do_fileshow(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP fn, tl, hd, pg;
@@ -227,6 +173,7 @@ SEXP do_fileshow(SEXP call, SEXP op, SEXP args, SEXP rho)
     vmaxset(vm);
     return R_NilValue;
 }
+#endif
 
 
 /*  append.file
@@ -242,10 +189,10 @@ static int R_AppendFile(char *file1, char *file2)
     FILE *fp1, *fp2;
     char buf[APPENDBUFSIZE];
     int nchar, status = 0;
-    if((fp1 = R_fopen(R_ExpandFileName(file1), "ab")) == NULL) {
+    if((fp1 = R_fopen(R_ExpandFileName(file1), "a")) == NULL) {
         return 0;
     }
-    if((fp2 = R_fopen(R_ExpandFileName(file2), "rb")) == NULL) {
+    if((fp2 = R_fopen(R_ExpandFileName(file2), "r")) == NULL) {
         fclose(fp1);
         return 0;
     }
@@ -337,206 +284,11 @@ SEXP do_fileremove(SEXP call, SEXP op, SEXP args, SEXP rho)
     return ans;
 }
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h> /* for symlink */
-#endif
-
-SEXP do_filesymlink(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP f1, f2;
-    int n, n1, n2;
-#ifdef HAVE_SYMLINK
-    SEXP ans;
-    int i;
-    char from[PATH_MAX], to[PATH_MAX], *p;
-#endif
-    checkArity(op, args);
-    f1 = CAR(args); n1 = length(f1);
-    f2 = CADR(args); n2 = length(f2);
-    if (!isString(f1))
-        errorcall(call, "invalid first filename");
-    if (!isString(f2))
-        errorcall(call, "invalid second filename");
-    if (n1 < 1)
-	errorcall(call, "nothing to link");
-    if (n2 < 1)
-	return allocVector(LGLSXP, 0);
-    n = (n1 > n2) ? n1 : n2;
-#ifdef HAVE_SYMLINK
-    PROTECT(ans = allocVector(LGLSXP, n));
-    for(i = 0; i < n; i++) {
-        if (STRING_ELT(f1, i%n1) == R_NilValue || STRING_ELT(f2, i%n2) == R_NilValue)
-            LOGICAL(ans)[i] = 0;
-        else {
-	    p = R_ExpandFileName(CHAR(STRING_ELT(f1, i%n1)));
-	    if (strlen(p) >= PATH_MAX - 1) {
-		LOGICAL(ans)[i] = 0;
-		continue;
-	    }
-	    strcpy(from, p);
-	    p = R_ExpandFileName(CHAR(STRING_ELT(f2, i%n2)));
-	    if (strlen(p) >= PATH_MAX - 1) {
-		LOGICAL(ans)[i] = 0;
-		continue;
-	    }
-	    strcpy(to, p);
-	    /* Rprintf("linking %s to %s\n", from, to); */
-            LOGICAL(ans)[i] = symlink(from, to) == 0;
-	}
-    }
-    UNPROTECT(1);
-    return ans;
-#else
-    warningcall(call, "symlinks are not supported on this platform");
-    return allocVector(LGLSXP, n);
-#endif
-}
-
-#if defined(Win32)
-# include <errno.h>
-#endif
-
-#ifdef Win32
-int Rwin_rename(char *from, char *to);  /* in src/gnuwin32/extra.c */
-#endif
-
-SEXP do_filerename(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    char from[PATH_MAX], to[PATH_MAX], *p;
-
-    checkArity(op, args);
-    if (TYPEOF(CAR(args)) != STRSXP || LENGTH(CAR(args)) != 1)
-	error("source must be a single string");
-    p = R_ExpandFileName(CHAR(STRING_ELT(CAR(args), 0)));
-    if (strlen(p) >= PATH_MAX - 1)
-	error("expanded source name too long");
-    strncpy(from, p, PATH_MAX - 1);
-
-    if (TYPEOF(CADR(args)) != STRSXP || LENGTH(CADR(args)) != 1)
-	error("destination must be a single string");
-    p = R_ExpandFileName(CHAR(STRING_ELT(CADR(args), 0)));
-    if (strlen(p) >= PATH_MAX - 1)
-	error("expanded destination name too long");
-    strncpy(to, p, PATH_MAX - 1);
-
-#ifdef Win32
-    return Rwin_rename(from, to) == 0 ? mkTrue() : mkFalse();
-#endif
-
-    return rename(from, to) == 0 ? mkTrue() : mkFalse();
-}
-
-#ifdef HAVE_STAT
-# ifdef HAVE_SYS_TYPES_H
-#  include <sys/types.h>
-# endif
-# ifdef HAVE_SYS_STAT_H
-#  include <sys/stat.h>
-# endif
-
-# if defined(Unix) && defined(HAVE_PWD_H) && defined(HAVE_GRP_H) \
-  && defined(HAVE_GETPWUID) && defined(HAVE_GETGRGID)
-#  include <pwd.h>
-#  include <grp.h>
-#  define UNIX_EXTRAS 1
-# endif
-
-SEXP do_fileinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP fn, ans, ansnames, fsize, mtime, ctime, atime, isdir,
-	mode, xxclass;
-#ifdef UNIX_EXTRAS
-    SEXP uid, gid, uname, grname;
-    struct passwd *stpwd;
-    struct group *stgrp;
-#endif
-    int i, n;
-    struct stat sb;
-
-    checkArity(op, args);
-    fn = CAR(args);
-    if (!isString(fn))
-        errorcall(call, "invalid filename argument");
-    n = length(fn);
-#ifdef UNIX_EXTRAS
-    PROTECT(ans = allocVector(VECSXP, 10));
-    PROTECT(ansnames = allocVector(STRSXP, 10));
-#else
-    PROTECT(ans = allocVector(VECSXP, 6));
-    PROTECT(ansnames = allocVector(STRSXP, 6));
-#endif
-    fsize = SET_VECTOR_ELT(ans, 0, allocVector(INTSXP, n));
-    SET_STRING_ELT(ansnames, 0, mkChar("size"));
-    isdir = SET_VECTOR_ELT(ans, 1, allocVector(LGLSXP, n));
-    SET_STRING_ELT(ansnames, 1, mkChar("isdir"));
-    mode  = SET_VECTOR_ELT(ans, 2, allocVector(INTSXP, n));
-    SET_STRING_ELT(ansnames, 2, mkChar("mode"));
-    mtime = SET_VECTOR_ELT(ans, 3, allocVector(REALSXP, n));
-    SET_STRING_ELT(ansnames, 3, mkChar("mtime"));
-    ctime = SET_VECTOR_ELT(ans, 4, allocVector(REALSXP, n));
-    SET_STRING_ELT(ansnames, 4, mkChar("ctime"));
-    atime = SET_VECTOR_ELT(ans, 5, allocVector(REALSXP, n));
-    SET_STRING_ELT(ansnames, 5, mkChar("atime"));
-#ifdef UNIX_EXTRAS
-    uid = SET_VECTOR_ELT(ans, 6, allocVector(INTSXP, n));
-    SET_STRING_ELT(ansnames, 6, mkChar("uid"));
-    gid = SET_VECTOR_ELT(ans, 7, allocVector(INTSXP, n));
-    SET_STRING_ELT(ansnames, 7, mkChar("gid"));
-    uname = SET_VECTOR_ELT(ans, 8, allocVector(STRSXP, n));
-    SET_STRING_ELT(ansnames, 8, mkChar("uname"));
-    grname = SET_VECTOR_ELT(ans, 9, allocVector(STRSXP, n));
-    SET_STRING_ELT(ansnames, 9, mkChar("grname"));
-#endif
-    for (i = 0; i < n; i++) {
-	if (STRING_ELT(fn, i) != R_NilValue &&
-	    stat(R_ExpandFileName(CHAR(STRING_ELT(fn, i))), &sb) == 0) {
-	    INTEGER(fsize)[i] = (int) sb.st_size;
-	    LOGICAL(isdir)[i] = (sb.st_mode & S_IFDIR) > 0;
-	    INTEGER(mode)[i]  = (int) sb.st_mode & 0007777;
-	    REAL(mtime)[i] = (double) sb.st_mtime;
-	    REAL(ctime)[i] = (double) sb.st_ctime;
-	    REAL(atime)[i] = (double) sb.st_atime;
-#ifdef UNIX_EXTRAS
-	    INTEGER(uid)[i] = (int) sb.st_uid;
-	    INTEGER(gid)[i] = (int) sb.st_gid;
-	    stpwd = getpwuid(sb.st_uid);
-	    if(stpwd) SET_STRING_ELT(uname, i, mkChar(stpwd->pw_name));
-	    else SET_STRING_ELT(uname, i, NA_STRING);
-	    stgrp = getgrgid(sb.st_gid);
-	    if(stgrp) SET_STRING_ELT(grname, i, mkChar(stgrp->gr_name));
-	    else SET_STRING_ELT(grname, i, NA_STRING);
-#endif
-	} else {
-	    INTEGER(fsize)[i] = NA_INTEGER;
-	    LOGICAL(isdir)[i] = NA_INTEGER;
-	    INTEGER(mode)[i]  = NA_INTEGER;
-	    REAL(mtime)[i] = NA_REAL;
-	    REAL(ctime)[i] = NA_REAL;
-	    REAL(atime)[i] = NA_REAL;
-#ifdef UNIX_EXTRAS
-	    INTEGER(uid)[i] = NA_INTEGER;
-	    INTEGER(gid)[i] = NA_INTEGER;
-	    SET_STRING_ELT(uname, i, NA_STRING);
-	    SET_STRING_ELT(grname, i, NA_STRING);
-#endif
-	}
-    }
-    setAttrib(ans, R_NamesSymbol, ansnames);
-    PROTECT(xxclass = allocVector(STRSXP, 1));
-    SET_STRING_ELT(xxclass, 0, mkChar("octmode"));
-    classgets(mode, xxclass);
-    UNPROTECT(3);
-    return ans;
-}
-#else
-SEXP do_fileinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    error("file.info is not implemented on this system");
-    return R_NilValue;		/* -Wall */
-}
-#endif
-
+#ifndef Macintosh
 # include <sys/types.h>
+#else 
+# include <types.h>
+#endif /* mac */
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -546,6 +298,8 @@ SEXP do_fileinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
 # include <sys/dir.h>
 #elif HAVE_NDIR_H
 # include <ndir.h>
+#elif defined(Macintosh)
+# include "dirent.h"  /* We use a local equivalent to dirent.h */
 #endif
 
 #ifdef USE_SYSTEM_REGEX
@@ -568,93 +322,14 @@ static SEXP filename(char *dir, char *file)
     return ans;
 }
 
-static void count_files(char *dnp, int *count,
-			int allfiles, int recursive, int pattern, regex_t reg)
-{
-    DIR *dir;
-    struct dirent *de;
-    char p[PATH_MAX];
-#ifdef HAVE_STAT
-    struct stat sb;
-#endif
-
-    if (strlen(dnp) >= PATH_MAX)  /* should not happen! */
-	error("directory/folder path name too long");
-    if ((dir = opendir(dnp)) == NULL) {
-	warning("list.files: %s is not a readable directory", dnp);
-    } else {
-	while ((de = readdir(dir))) {
-	    if (allfiles || !R_HiddenFile(de->d_name)) {
-#ifdef HAVE_STAT
-		if(recursive) {
-		    snprintf(p, PATH_MAX, "%s%s%s", dnp, 
-			     R_FileSep, de->d_name);
-		    stat(p, &sb);
-		    if((sb.st_mode & S_IFDIR) > 0) {
-			 count_files(p, count, allfiles, recursive,
-				     pattern, reg);
-			 continue;
-		    }
-		}
-#endif
-		if (pattern) {
-		    if(regexec(&reg, de->d_name, 0, NULL, 0) == 0) (*count)++;
-		} else (*count)++;
-	    }
-	}
-	closedir(dir);
-    }
-}
-
-static void list_files(char *dnp, char *stem, int *count, SEXP ans,
-			int allfiles, int recursive, int pattern, regex_t reg)
-{
-    DIR *dir;
-    struct dirent *de;
-    char p[PATH_MAX], stem2[PATH_MAX];
-#ifdef HAVE_STAT
-    struct stat sb;
-#endif
-
-    if ((dir = opendir(dnp)) != NULL) {
-	while ((de = readdir(dir))) {
-	    if (allfiles || !R_HiddenFile(de->d_name)) {
-#ifdef HAVE_STAT
-		if(recursive) {
-		    snprintf(p, PATH_MAX, "%s%s%s", dnp, 
-			     R_FileSep, de->d_name);
-		    stat(p, &sb);
-		    if((sb.st_mode & S_IFDIR) > 0) {
-			if(stem)
-			    snprintf(stem2, PATH_MAX, "%s%s%s", stem, 
-				     R_FileSep, de->d_name);
-			else
-			    strcpy(stem2, de->d_name);
-			list_files(p, stem2, count, ans, allfiles, recursive,
-				   pattern, reg);
-			 continue;
-		    }
-		}
-#endif
-		if (pattern) {
-		    if (regexec(&reg, de->d_name, 0, NULL, 0) == 0)
-			SET_STRING_ELT(ans, (*count)++,
-				       filename(stem, de->d_name));
-		} else
-		    SET_STRING_ELT(ans, (*count)++,
-				   filename(stem, de->d_name));
-	    }
-	}
-	closedir(dir);
-    }
-}
-
 SEXP do_listfiles(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP d, p, ans;
-    int allfiles, fullnames, count, pattern, recursive;
+    DIR *dir;
+    struct dirent *de;
+    int allfiles, fullnames, count, pattern;
     int i, ndir;
-    char *dnp;
+    char *dnp, dirname[PATH_MAX];
     regex_t reg;
 
     checkArity(op, args);
@@ -668,33 +343,58 @@ SEXP do_listfiles(SEXP call, SEXP op, SEXP args, SEXP rho)
     else if (!isNull(p) && !(isString(p) && length(p) < 1))
 	errorcall(call, "invalid pattern argument");
     allfiles = asLogical(CAR(args)); args = CDR(args);
-    fullnames = asLogical(CAR(args)); args = CDR(args);
-    recursive = asLogical(CAR(args));
-#ifndef HAVE_STAT
-    if(recursive) {
-	warningcall(call, 
-		    "`recursive = TRUE' is not supported on this platform");
-	recursive = FALSE;
-    }
-#endif
+    fullnames = asLogical(CAR(args));
     ndir = length(d);
     if (pattern && regcomp(&reg, CHAR(STRING_ELT(p, 0)), REG_EXTENDED))
         errorcall(call, "invalid pattern regular expression");
     count = 0;
     for (i = 0; i < ndir ; i++) {
 	dnp = R_ExpandFileName(CHAR(STRING_ELT(d, i)));
-	count_files(dnp, &count, allfiles, recursive, pattern, reg);
+
+	if (strlen(dnp) >= PATH_MAX)  /* should not happen! */
+	    error("directory/folder path name too long");
+	strcpy(dirname, dnp);
+	if ((dir = opendir(dirname)) == NULL) {
+	    /* errorcall(call, "invalid directory/folder name");*/
+	    warning("list.files: %s is not a readable directory", dirname);
+	} else {  
+	    while ((de = readdir(dir))) {
+		if (allfiles || !R_HiddenFile(de->d_name)) {
+		    if (pattern) {
+			if(regexec(&reg, de->d_name, 0, NULL, 0) == 0)
+			    count++;
+		    }
+		    else
+			count++;
+		}
+	    }
+	    closedir(dir);
+	}
     }
     PROTECT(ans = allocVector(STRSXP, count));
     count = 0;
     for (i = 0; i < ndir ; i++) {
 	dnp = R_ExpandFileName(CHAR(STRING_ELT(d, i)));
+/*	if (strlen(dnp) >= PATH_MAX) We've already checked!
+	error("directory/folder path name too long"); */
+	strcpy(dirname, dnp);
 	if (fullnames)
-	    list_files(dnp, dnp, &count, ans, allfiles, recursive,
-		       pattern, reg);
+	    dnp = dirname;
 	else
-	    list_files(dnp, NULL, &count, ans, allfiles, recursive,
-		       pattern, reg);
+	    dnp = NULL;
+	if ((dir = opendir(dirname)) != NULL) {
+	    while ((de = readdir(dir))) {
+		if (allfiles || !R_HiddenFile(de->d_name)) {
+		    if (pattern) {
+			if (regexec(&reg, de->d_name, 0, NULL, 0) == 0)
+			    SET_STRING_ELT(ans, count++, filename(dnp, de->d_name));
+		    }
+		    else
+			SET_STRING_ELT(ans, count++, filename(dnp, de->d_name));
+		}
+	    }
+	    closedir(dir);
+	}
     }
     if (pattern)
 	regfree(&reg);
@@ -767,11 +467,11 @@ SEXP do_indexsearch(SEXP call, SEXP op, SEXP args, SEXP rho)
     if(!isString(type) || length(type) < 1 || isNull(type))
 	error("invalid \"type\" argument");
     strcpy(ctype, CHAR(STRING_ELT(type, 0)));
-    snprintf(topicbuf, 256, "%s\t", CHAR(STRING_ELT(topic, 0)));
+    sprintf(topicbuf, "%s\t", CHAR(STRING_ELT(topic, 0)));
     ltopicbuf = strlen(topicbuf);
     npath = length(path);
     for (i = 0; i < npath; i++) {
-	snprintf(linebuf, 256, "%s%s%s%s%s",
+	sprintf(linebuf, "%s%s%s%s%s",
 		CHAR(STRING_ELT(path, i)),
 		CHAR(STRING_ELT(sep, 0)),
 		"help", CHAR(STRING_ELT(sep, 0)),
@@ -783,25 +483,25 @@ SEXP do_indexsearch(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    while(isspace((int)*p)) p++;
 		    fclose(fp);
 		    if (!strcmp(ctype, "html"))
-			snprintf(topicbuf, 256, "%s%s%s%s%s%s",
+			sprintf(topicbuf, "%s%s%s%s%s%s",
 				CHAR(STRING_ELT(path, i)),
 				CHAR(STRING_ELT(sep, 0)),
 				"html", CHAR(STRING_ELT(sep, 0)),
 				p, ".html");
 		    else if (!strcmp(ctype, "R-ex"))
-			snprintf(topicbuf, 256, "%s%s%s%s%s%s",
+			sprintf(topicbuf, "%s%s%s%s%s%s",
 				CHAR(STRING_ELT(path, i)),
 				CHAR(STRING_ELT(sep, 0)),
 				"R-ex", CHAR(STRING_ELT(sep, 0)),
 				p, ".R");
 		    else if (!strcmp(ctype, "latex"))
-			snprintf(topicbuf, 256, "%s%s%s%s%s%s",
+			sprintf(topicbuf, "%s%s%s%s%s%s",
 				CHAR(STRING_ELT(path, i)),
 				CHAR(STRING_ELT(sep, 0)),
 				"latex", CHAR(STRING_ELT(sep, 0)),
 				p, ".tex");
 		    else /* type = "help" */
-			snprintf(topicbuf, 256, "%s%s%s%s%s",
+			sprintf(topicbuf, "%s%s%s%s%s",
 				CHAR(STRING_ELT(path, i)),
 				CHAR(STRING_ELT(sep, 0)),
 				ctype, CHAR(STRING_ELT(sep, 0)), p);
@@ -829,6 +529,116 @@ SEXP do_filechoose(SEXP call, SEXP op, SEXP args, SEXP rho)
     return mkString(R_ExpandFileName(buf));
 }
 
+#ifdef HAVE_STAT
+# ifndef Macintosh
+#  include <sys/types.h>
+#  include <sys/stat.h>
+# else
+#  include <types.h>
+#  include <stat.h>
+#  endif /* mac */
+
+# if defined(Unix) && defined(HAVE_PWD_H) && defined(HAVE_GRP_H) \
+  && defined(HAVE_GETPWUID) && defined(HAVE_GETGRGID)
+#  include <pwd.h>
+#  include <grp.h>
+#  define UNIX_EXTRAS 1
+# endif
+
+SEXP do_fileinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+    SEXP fn, ans, ansnames, fsize, mtime, ctime, atime, isdir, 
+	mode, xxclass;
+#ifdef UNIX_EXTRAS
+    SEXP uid, gid, uname, grname;
+    struct passwd *stpwd;
+    struct group *stgrp;
+#endif
+    int i, n;
+    struct stat sb;
+
+    checkArity(op, args);
+    fn = CAR(args);
+    if (!isString(fn))
+        errorcall(call, "invalid filename argument");
+    n = length(fn);
+#ifdef UNIX_EXTRAS
+    PROTECT(ans = allocVector(VECSXP, 10));
+    PROTECT(ansnames = allocVector(STRSXP, 10));
+#else
+    PROTECT(ans = allocVector(VECSXP, 6));
+    PROTECT(ansnames = allocVector(STRSXP, 6));
+#endif
+    fsize = SET_VECTOR_ELT(ans, 0, allocVector(INTSXP, n));
+    SET_STRING_ELT(ansnames, 0, mkChar("size"));
+    isdir = SET_VECTOR_ELT(ans, 1, allocVector(LGLSXP, n));
+    SET_STRING_ELT(ansnames, 1, mkChar("isdir"));
+    mode  = SET_VECTOR_ELT(ans, 2, allocVector(INTSXP, n));
+    SET_STRING_ELT(ansnames, 2, mkChar("mode"));
+    mtime = SET_VECTOR_ELT(ans, 3, allocVector(REALSXP, n));
+    SET_STRING_ELT(ansnames, 3, mkChar("mtime"));
+    ctime = SET_VECTOR_ELT(ans, 4, allocVector(REALSXP, n));
+    SET_STRING_ELT(ansnames, 4, mkChar("ctime"));
+    atime = SET_VECTOR_ELT(ans, 5, allocVector(REALSXP, n));
+    SET_STRING_ELT(ansnames, 5, mkChar("atime"));
+#ifdef UNIX_EXTRAS
+    uid = SET_VECTOR_ELT(ans, 6, allocVector(INTSXP, n));
+    SET_STRING_ELT(ansnames, 6, mkChar("uid"));
+    gid = SET_VECTOR_ELT(ans, 7, allocVector(INTSXP, n));
+    SET_STRING_ELT(ansnames, 7, mkChar("gid"));
+    uname = SET_VECTOR_ELT(ans, 8, allocVector(STRSXP, n));
+    SET_STRING_ELT(ansnames, 8, mkChar("uname"));
+    grname = SET_VECTOR_ELT(ans, 9, allocVector(STRSXP, n));
+    SET_STRING_ELT(ansnames, 9, mkChar("grname"));
+#endif
+    for (i = 0; i < n; i++) {
+	if (STRING_ELT(fn, i) != R_NilValue && 
+	    stat(R_ExpandFileName(CHAR(STRING_ELT(fn, i))), &sb) == 0) {
+	    INTEGER(fsize)[i] = (int) sb.st_size;
+	    LOGICAL(isdir)[i] = (int) sb.st_mode & S_IFDIR;
+	    INTEGER(mode)[i]  = (int) sb.st_mode & 0007777;
+	    REAL(mtime)[i] = (double) sb.st_mtime;
+	    REAL(ctime)[i] = (double) sb.st_ctime;
+	    REAL(atime)[i] = (double) sb.st_atime;
+#ifdef UNIX_EXTRAS
+	    INTEGER(uid)[i] = (int) sb.st_uid;
+	    INTEGER(gid)[i] = (int) sb.st_gid;
+	    stpwd = getpwuid(sb.st_uid);
+	    if(stpwd) SET_STRING_ELT(uname, i, mkChar(stpwd->pw_name));
+	    else SET_STRING_ELT(uname, i, NA_STRING);
+	    stgrp = getgrgid(sb.st_gid);
+	    if(stgrp) SET_STRING_ELT(grname, i, mkChar(stgrp->gr_name));
+	    else SET_STRING_ELT(grname, i, NA_STRING);
+#endif
+	} else {
+	    INTEGER(fsize)[i] = NA_INTEGER;
+	    LOGICAL(isdir)[i] = NA_INTEGER;
+	    INTEGER(mode)[i]  = NA_INTEGER;
+	    REAL(mtime)[i] = NA_REAL;
+	    REAL(ctime)[i] = NA_REAL;
+	    REAL(atime)[i] = NA_REAL;
+#ifdef UNIX_EXTRAS
+	    INTEGER(uid)[i] = NA_INTEGER;
+	    INTEGER(gid)[i] = NA_INTEGER;
+	    SET_STRING_ELT(uname, i, NA_STRING);
+	    SET_STRING_ELT(grname, i, NA_STRING);
+#endif
+	}
+    }
+    setAttrib(ans, R_NamesSymbol, ansnames);
+    PROTECT(xxclass = allocVector(STRSXP, 1));
+    SET_STRING_ELT(xxclass, 0, mkChar("octmode"));
+    classgets(mode, xxclass);
+    UNPROTECT(3);
+    return ans;
+}
+#else
+SEXP do_fileinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+    error("file.info is not implemented on this system");
+    return R_NilValue; /* -Wall */
+}
+#endif
 
 #ifdef HAVE_ACCESS
 # ifdef HAVE_UNISTD_H
@@ -862,7 +672,7 @@ SEXP do_fileaccess(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_fileaccess(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     error("file.access is not implemented on this system");
-    return R_NilValue;		/* -Wall */
+    return R_NilValue; /* -Wall */
 }
 #endif
 
@@ -876,7 +686,7 @@ SEXP do_getlocale(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP ans;
     int cat;
     char *p;
-
+    
     checkArity(op, args);
     cat = asInteger(CAR(args));
     if(cat == NA_INTEGER || cat < 0)
@@ -894,7 +704,7 @@ SEXP do_getlocale(SEXP call, SEXP op, SEXP args, SEXP rho)
     if(p) SET_STRING_ELT(ans, 0, mkChar(p));
     else  SET_STRING_ELT(ans, 0, mkChar(""));
     UNPROTECT(1);
-    return ans;
+    return ans;  
 #else
     return R_NilValue;
 #endif
@@ -906,7 +716,7 @@ SEXP do_setlocale(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP locale = CADR(args), ans;
     int cat;
     char *p;
-
+    
     checkArity(op, args);
     cat = asInteger(CAR(args));
     if(cat == NA_INTEGER || cat < 0)
@@ -924,10 +734,7 @@ SEXP do_setlocale(SEXP call, SEXP op, SEXP args, SEXP rho)
     p = setlocale(cat, CHAR(STRING_ELT(locale, 0)));
     PROTECT(ans = allocVector(STRSXP, 1));
     if(p) SET_STRING_ELT(ans, 0, mkChar(p));
-    else  {
-	SET_STRING_ELT(ans, 0, mkChar(""));
-	warningcall(call, "OS reports request cannot be honored");
-    }
+    else  SET_STRING_ELT(ans, 0, mkChar(""));
     UNPROTECT(1);
     return ans;
 #else
@@ -1004,7 +811,7 @@ SEXP do_pathexpand(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP fn, ans;
     int i, n;
-
+    
     checkArity(op, args);
     fn = CAR(args);
     if (!isString(fn))
@@ -1012,196 +819,8 @@ SEXP do_pathexpand(SEXP call, SEXP op, SEXP args, SEXP rho)
     n = length(fn);
     PROTECT(ans = allocVector(STRSXP, n));
     for (i = 0; i < n; i++)
-	SET_STRING_ELT(ans, i,
+	SET_STRING_ELT(ans, i, 
 		       mkChar(R_ExpandFileName(CHAR(STRING_ELT(fn, i)))));
-    UNPROTECT(1);
-    return ans;
-}
-
-
-SEXP do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP ans, ansnames;
-    int i = 0;
-#ifdef Unix
-    Rboolean X11 = (strcmp(R_GUIType, "X11") == 0) ||
-	(strcmp(R_GUIType, "Tk") == 0) ||
-	(strcmp(R_GUIType, "GNOME") == 0);
-#endif
-
-    checkArity(op, args);
-    PROTECT(ans = allocVector(LGLSXP, 14));
-    PROTECT(ansnames = allocVector(STRSXP, 14));
-
-    SET_STRING_ELT(ansnames, i, mkChar("jpeg"));
-#ifdef HAVE_JPEG
-#ifdef Unix
-    LOGICAL(ans)[i++] = X11;
-#else
-    LOGICAL(ans)[i++] = TRUE;
-#endif
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("png"));
-#ifdef HAVE_PNG
-#ifdef Unix
-    LOGICAL(ans)[i++] = X11;
-#else
-    LOGICAL(ans)[i++] = TRUE;
-#endif
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("tcltk"));
-#ifdef HAVE_TCLTK
-    LOGICAL(ans)[i++] = TRUE;
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("X11"));
-#ifdef Unix
-    LOGICAL(ans)[i++] = X11;
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("GNOME"));
-#ifdef Unix
-    LOGICAL(ans)[i++] = strcmp(R_GUIType, "GNOME") == 0;
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("libz"));
-    LOGICAL(ans)[i++] = TRUE;	/* always true in this version */
-
-    SET_STRING_ELT(ansnames, i, mkChar("http/ftp"));
-#if HAVE_INTERNET
-    LOGICAL(ans)[i++] = TRUE;
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("sockets"));
-#ifdef HAVE_SOCKETS
-    LOGICAL(ans)[i++] = TRUE;
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("libxml"));
-#ifdef SUPPORT_LIBXML
-    LOGICAL(ans)[i++] = TRUE;
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("fifo"));
-#if defined(HAVE_MKFIFO) && defined(HAVE_FCNTL_H)
-    LOGICAL(ans)[i++] = TRUE;
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    /* This one is complex.  Set it to be true only in interactive use,
-       with any of the GUIs or under Unix if readline is available and in
-       use */
-    SET_STRING_ELT(ansnames, i, mkChar("cledit"));
-    LOGICAL(ans)[i] = FALSE;
-#if defined(Win32)
-    if(R_Interactive) LOGICAL(ans)[i] = TRUE;
-#endif
-#ifdef Unix
-    if(strcmp(R_GUIType, "GNOME") == 0) {
-	if(R_Interactive) LOGICAL(ans)[i] = TRUE;
-    } else {
-#ifdef HAVE_LIBREADLINE
-	extern Rboolean UsingReadline;
-	if(R_Interactive && UsingReadline) LOGICAL(ans)[i] = TRUE;
-#endif
-    }
-#endif
-    i++;
-
-    SET_STRING_ELT(ansnames, i, mkChar("IEEE754"));
-#if defined(IEEE_754)
-    LOGICAL(ans)[i++] = TRUE;
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("bzip2"));
-#if defined(HAVE_BZLIB) || defined(Unix) || defined(Win32)
-    LOGICAL(ans)[i++] = TRUE;
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("PCRE"));
-#if defined(HAVE_PCRE) || defined(Unix) || defined(Win32)
-    LOGICAL(ans)[i++] = TRUE;
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    setAttrib(ans, R_NamesSymbol, ansnames);
-    UNPROTECT(2);
-    return ans;
-}
-
-#if defined(HAVE_BSD_NETWORKING) && defined(HAVE_ARPA_INET_H)
-#include <netdb.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-SEXP do_nsl(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP ans = R_NilValue;
-    char *name, ip[] = "xxx.xxx.xxx.xxx";
-    struct hostent *hp;
-
-    checkArity(op, args);
-    if(!isString(CAR(args)) || length(CAR(args)) != 1)
-	error("hostname must be a character vector of length 1");
-    name = CHAR(STRING_ELT(CAR(args), 0));
-
-    hp = gethostbyname(name);
-
-    if(hp == NULL) {		/* cannot resolve the address */
-	warning("nsl() was unable to resolve host `%s'", name);
-    } else {
-	if (hp->h_addrtype == AF_INET) {
-	    struct in_addr in;
-	    memcpy(&in.s_addr, *(hp->h_addr_list), sizeof (in.s_addr));
-	    strcpy(ip, inet_ntoa(in));
-	} else {
-	    warningcall(call, "unknown format returned by gethostbyname");
-	}
-	PROTECT(ans = allocVector(STRSXP, 1));
-	SET_STRING_ELT(ans, 0, mkChar(ip));
-	UNPROTECT(1);
-    }
-    return ans;
-}
-#else
-SEXP do_nsl(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    warning("nsl is not supported on this platform");
-    return R_NilValue;
-}
-#endif
-
-SEXP do_sysgetpid(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP ans;
-
-    PROTECT(ans = allocVector(INTSXP, 1));
-    INTEGER(ans)[0] = getpid();
     UNPROTECT(1);
     return ans;
 }

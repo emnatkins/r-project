@@ -1,3 +1,4 @@
+#### copyright (C) 1998 B. D. Ripley
 proj <- function(object, ...) UseMethod("proj")
 
 proj.default <- function(object, onedf = TRUE, ...)
@@ -7,14 +8,14 @@ proj.default <- function(object, onedf = TRUE, ...)
     if(is.null(object$effects))
 	stop("Argument does not include an effects component")
     RB <- c(object$effects[seq(object$rank)],
-	    rep.int(0, nrow(object$qr$qr) - object$rank))
+	    rep(0, nrow(object$qr$qr) - object$rank))
     prj <- as.matrix(qr.Q(object$qr, Dvec = RB))
     DN <- dimnames(object$qr$qr)
     dimnames(prj) <- list(DN[[1]], DN[[2]][seq(ncol(prj))])
     prj
 }
 
-proj.lm <- function(object, onedf = FALSE, unweighted.scale = FALSE, ...)
+proj.lm <- function(object, onedf = FALSE, unweighted.scale = FALSE)
 {
     if(inherits(object, "mlm"))
 	stop("proj is not implemented for mlm fits")
@@ -22,7 +23,7 @@ proj.lm <- function(object, onedf = FALSE, unweighted.scale = FALSE, ...)
     if(rank > 0) {
 	prj <- proj.default(object, onedf = TRUE)[, 1:rank, drop = FALSE]
 	if(onedf) {
-	    df <- rep.int(1, rank)
+	    df <- rep(1, rank)
 	    result <- prj
 	} else {
 	    asgn <- object$assign[object$qr$pivot[1:object$rank]]
@@ -36,7 +37,7 @@ proj.lm <- function(object, onedf = FALSE, unweighted.scale = FALSE, ...)
 	    for(i in seq(along=uasgn)) {
 		select <- (asgn == uasgn[i])
 		df[i] <- sum(select)
-		result[, i] <- prj[, select, drop = FALSE] %*% rep.int(1, df[i])
+		result[, i] <- prj[, select, drop = FALSE] %*% rep(1, df[i])
 	    }
 	}
     } else {
@@ -73,7 +74,7 @@ proj.lm <- function(object, onedf = FALSE, unweighted.scale = FALSE, ...)
     result
 }
 
-proj.aov <- function(object, onedf = FALSE, unweighted.scale = FALSE, ...)
+proj.aov <- function(object, onedf = FALSE, unweighted.scale = FALSE)
 {
     if(inherits(object, "maov"))
 	stop("proj is not implemented for multiple responses")
@@ -86,7 +87,7 @@ proj.aov <- function(object, onedf = FALSE, unweighted.scale = FALSE, ...)
 	names(tnames) <- colnames(tfactor)
 	if(!is.na(match("Residuals", pnames))) {
 	    enames <- c(rownames(tfactor)
-			[as.logical(tfactor %*% rep.int(1, ncol(tfactor)))],
+			[as.logical(tfactor %*% rep(1, ncol(tfactor)))],
 			"Within")
 	    tnames <- append(tnames, list(Residuals = enames))
 	}
@@ -106,7 +107,7 @@ proj.aov <- function(object, onedf = FALSE, unweighted.scale = FALSE, ...)
 }
 
 
-proj.aovlist <- function(object, onedf = FALSE, unweighted.scale = FALSE, ...)
+proj.aovlist <- function(object, onedf = FALSE, unweighted.scale = FALSE)
 {
     attr.xdim <- function(x)
     {
@@ -133,7 +134,7 @@ proj.aovlist <- function(object, onedf = FALSE, unweighted.scale = FALSE, ...)
 		enames <- (rownames(efactor))[as.logical(efactor[, err])]
 	    else if(strata == "Within")
 		enames <- c(rownames(efactor)
-			    [as.logical(efactor %*% rep.int(1, ncol(efactor)))],
+			    [as.logical(efactor %*% rep(1, ncol(efactor)))],
 			    "Within")
 	    if(!is.null(enames))
 		tnames <- append(tnames, list(Residuals = enames))

@@ -1,5 +1,4 @@
 \name{Lognormal}
-\alias{Lognormal}
 \alias{dlnorm}
 \alias{plnorm}
 \alias{qlnorm}
@@ -40,27 +39,21 @@ rlnorm(n, meanlog = 0, sdlog = 1)
   }{f(x) = 1/(sqrt(2 pi) sigma x) e^-((log x - mu)^2 / (2 sigma^2))}
   where \eqn{\mu} and \eqn{\sigma} are the mean and standard
   deviation of the logarithm.
-  The mean is \eqn{E(X) = exp(\mu + 1/2 \sigma^2)}, and the variance
-  \eqn{Var(X) = exp(2\mu + \sigma^2)(exp(\sigma^2) - 1)}{%
-    Var(X) = exp(2*mu + sigma^2)*(exp(sigma^2) - 1)} and
-  hence the coefficient of variation is
-  \eqn{\sqrt{exp(\sigma^2) - 1}}{sqrt(exp(sigma^2) - 1)} which is
-    approximately \eqn{\sigma} when that is small (e.g., \eqn{\sigma < 1/2}).
 %% Mode = exp(max(0, mu - sigma^2)); Median = exp(mu)
+%% E[X]   = exp(mu + 1/2 sigma^2);
+%% Var[X] = exp(sigma^2) (exp(sigma^2) - 1) exp(2 mu)
+%% -> coeff.var. = sigma/mu = sqrt(exp(sigma^2) - 1) ~= sigma, if sigma < 1/2
 }
 \note{
   The cumulative hazard \eqn{H(t) = - \log(1 - F(t))}{H(t) = - log(1 - F(t))}
   is \code{-plnorm(t, r, lower = FALSE, log = TRUE)}.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{dnorm}} for the normal distribution.
 }
 \examples{
 dlnorm(1) == dnorm(0)
+x <- rlnorm(1000)       # not yet always :
+all(abs(x  -  qlnorm(plnorm(x))) < 1e4 * .Machine$double.eps * x)
 }
 \keyword{distribution}

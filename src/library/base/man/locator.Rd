@@ -24,24 +24,13 @@ locator(n = 512, type = "n", \dots)
   Unless the process is terminated prematurely by the user (see below)
   at most \code{n} positions are determined.
 
-#ifdef unix
-  The identification process can be terminated by pressing any mouse
+  The input process can be terminated prematurely by pressing any mouse
   button other than the first.
-#endif
-#ifdef windows
-  The identification process can be terminated by clicking the second
-  button and selecting \sQuote{Stop} from the menu, or from the
-  \sQuote{Stop} menu on the graphics window.
-#endif
 
   The current graphics parameters apply just as if \code{plot.default}
   has been called with the same value of \code{type}. The plotting of
   the points and lines is subject to clipping, but locations outside the
   current clipping rectangle will be returned.
-
-  On most devices which support \code{locator}, successful selection of
-  a point is indicated by a bell sound unless
-  \code{\link{options}(locatorBell=FALSE)} has been set.
 
   If the window is resized or hidden and then exposed before the input 
   process has terminated, any lines or points drawn by \code{locator}
@@ -50,11 +39,6 @@ locator(n = 512, type = "n", \dots)
   This is because the points and lines drawn by \code{locator} are not
   recorded in the device's display list until the input process has
   terminated.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{identify}}

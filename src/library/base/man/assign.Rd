@@ -1,38 +1,34 @@
 \name{assign}
 \alias{assign}
+\alias{<-}
+\alias{<<-}
+\alias{->}
+\alias{->>}
 \title{Assign a Value to a Name}
 \description{
   Assign a value to a name in an environment.
 }
 \usage{
-assign(x, value, pos = -1, envir = as.environment(pos),
+assign(x, value, pos = -1, envir = pos.to.env(pos),
        inherits = FALSE, immediate = TRUE)
+x <- value
+x <<- value
+value -> x
+value ->> x
 }
 \arguments{
-  \item{x}{a variable name (given as a quoted string in the function call).}
+  \item{x}{a variable name (given as a quoted string).}
   \item{value}{a value to be assigned to \code{x}.}
-  \item{pos}{where to do the assignment.  By default, assigns into the
-    current environment.  See the details for other possibilities.}
-  \item{envir}{the \code{\link{environment}} to use. See the details section.}
+  \item{pos}{an index into the search list which determines which
+    environment the assignment is to take place in.  A character string
+    may also be used.  The environment can also be specified directly
+    with \code{envir}.}
+  \item{envir}{the \code{\link{environment}} in which to assign.  The
+    default is the environment where the call to \code{assign} takes
+    place.}
   \item{inherits}{should the enclosing frames of the environment be
     inspected?}
   \item{immediate}{an ignored compatibility feature.}
-}
-\details{
-  The \code{pos} argument can specify the  environment in which to assign
-  the object in any of several ways:
-  as an integer (the position in the \code{\link{search}} list); as
-  the character string name of an element in the search list; or as an
-  \code{\link{environment}} (including using \code{\link{sys.frame}} to
-  access the currently active function calls).
-  The \code{envir} argument is an alternative way to specify an
-  environment, but is primarily there for back compatibility.
-
-  \code{assign} does not dispatch assignment methods, so it cannot be
-  used to set elements of vectors, names, attributes, etc.
-
-  Note that assignment to an attached list or data frame changes the
-  attached copy and not the orginal object: see \code{\link{attach}}.
 }
 \value{
   This function is invoked for its side effect, which is assigning
@@ -48,19 +44,29 @@ assign(x, value, pos = -1, envir = as.environment(pos),
 
   If \code{inherits} is \code{FALSE}, assignment takes place in the
   initial frame of \code{envir}.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 
+
+}
+\details{
+  The arrow forms of assignment provide shortcut ways to carry out
+  assignment.  The \code{<-} and \code{->} forms carry out assignment
+  in the local environment frame, while the \code{<<-} and \code{->>}
+  forms cause a search to made through the environment for an existing
+  definition of the variable being assigned.  If such a variable is
+  found then its value is redefined, otherwise assignment takes place
+  globally.
+
+  Note that the action of \code{<<-} and \code{->>} differs from that in
+  the S language, but is useful in conjunction with the scoping rules of
+  R.
+
+  \code{assign} does not dispatch assignment methods, so it cannot be
+  used to set elements of vectors, names, attributes, etc.
+  }
 \seealso{
-  \code{\link{<-}},
   \code{\link{get}},
   \code{\link{exists}},
-  \code{\link{environment}}.
-}
+  \code{\link{environment}}.}
 \examples{
 for(i in 1:6) { #-- Create objects  'r1', 'r2', ... 'r6' --
  nam <- paste("r",i, sep=".")
@@ -76,10 +82,10 @@ myf <- function(x) {
 myf(3)
 Global.res # 16
 
-a <- 1:4
-assign("a[1]", 2)
-a[1] == 2          #FALSE
-get("a[1]") == 2   #TRUE
+a<-1:4
+assign("a[1]",2)
+a[1]==2          #FALSE
+get("a[1]")==2   #TRUE
 
 }
 \keyword{data}

@@ -2,9 +2,10 @@ boxplot <- function(x, ...) UseMethod("boxplot")
 
 boxplot.default <-
 function(x, ..., range = 1.5, width = NULL, varwidth = FALSE,
-         notch = FALSE, outline = TRUE, names, boxwex = 0.8, plot = TRUE,
+         notch = FALSE, names, boxwex = 0.8,
+	 data = parent.frame(), plot = TRUE,
          border = par("fg"), col = NULL, log = "", pars = NULL,
-         horizontal = FALSE, add = FALSE, at = NULL)
+         horizontal = FALSE, add = FALSE)
 {
     args <- list(x, ...)
     namedargs <-
@@ -13,7 +14,19 @@ function(x, ..., range = 1.5, width = NULL, varwidth = FALSE,
 	else
 	    rep(FALSE, length = length(args))
     pars <- c(args[namedargs], pars)
-    groups <- if(is.list(x)) x else args[!namedargs]
+    groups <-
+	if(is.language(x)) {
+            warning("Using `formula' in boxplot.default -- shouldn't boxplot.formula be called?")
+	    if(inherits(x, "formula") && length(x) == 3) {
+		groups <- eval(x[[3]], data, parent.frame())
+		x <- eval(x[[2]], data, parent.frame())
+		split(x, groups)
+	    }
+	}
+	else {
+	    groups <- args[!namedargs]
+	    if(length(groups) == 1 && is.list(x)) x else groups
+	}
     if(0 == (n <- length(groups)))
 	stop("invalid first argument")
     if(length(class(groups)))
@@ -37,7 +50,7 @@ function(x, ..., range = 1.5, width = NULL, varwidth = FALSE,
         ng <- c(ng, i$n)
         if((lo <- length(i$out))) {
             out   <- c(out,i$out)
-            group <- c(group, rep.int(ct, lo))
+            group <- c(group, rep(ct, lo))
         }
         ct <- ct+1
     }
@@ -46,16 +59,18 @@ function(x, ..., range = 1.5, width = NULL, varwidth = FALSE,
     if(plot) {
 	bxp(z, width, varwidth = varwidth, notch = notch, boxwex = boxwex,
             border = border, col = col, log = log, pars = pars,
-            outline = outline, horizontal = horizontal, add = add, at = at)
+            horizontal = horizontal, add = add)
 	invisible(z)
     }
     else z
 }
 
-boxplot.formula <- function(formula, data = NULL, ..., subset)
+boxplot.formula <- function(formula, data = NULL, subset, na.action, ...)
 {
     if(missing(formula) || (length(formula) != 3))
         stop("formula missing or incorrect")
+    if(missing(na.action))
+        na.action <- getOption("na.action")
     m <- match.call(expand.dots = FALSE)
     if(is.matrix(eval(m$data, parent.frame())))
         m$data <- as.data.frame(data)
@@ -63,19 +78,19 @@ boxplot.formula <- function(formula, data = NULL, ..., subset)
     m[[1]] <- as.name("model.frame")
     mf <- eval(m, parent.frame())
     response <- attr(attr(mf, "terms"), "response")
-    boxplot(split(mf[[response]], mf[-response]), ...)
+    boxplot(split(mf[[response]], mf[[-response]]), ...)
 }
 
 boxplot.stats <- function(x, coef = 1.5, do.conf=TRUE, do.out=TRUE)
 {
     nna <- !is.na(x)
-    n <- sum(nna)                       # including +/- Inf
+    n <- length(nna) # including +/- Inf
     stats <- fivenum(x, na.rm = TRUE)
     iqr <- diff(stats[c(2, 4)])
-    if(coef < 0) stop(paste(sQuote("coef"), "must not be negative"))
+    if(coef < 0) stop("`coef' must not be negative")
     if(coef == 0)
 	do.out <- FALSE
-    else {                              # coef > 0
+    else { # coef > 0
 	out <- x < (stats[2] - coef * iqr) | x > (stats[4] + coef * iqr)
 	if(any(out[nna])) stats[c(1, 5)] <- range(x[!out], na.rm = TRUE)
     }
@@ -86,57 +101,65 @@ boxplot.stats <- function(x, coef = 1.5, do.conf=TRUE, do.out=TRUE)
 }
 
 bxp <- function(z, notch=FALSE, width=NULL, varwidth=FALSE,
-	        outline = TRUE, notch.frac = 0.5, boxwex = 0.8,
+	        notch.frac = 0.5, boxwex = 0.8,
 		border=par("fg"), col=NULL, log="", pars=NULL,
                 frame.plot = axes,
-                horizontal = FALSE, add = FALSE, at = NULL, show.names=NULL,
-                ...)
+                horizontal = FALSE, add = FALSE, ...)
 {
     pars <- c(pars, list(...))
 
-    bplt <- function(x, wid, stats, out, conf, notch, border, col,
-                     horizontal, xlog)
+    bplt <- function(x, wid, stats, out, conf, notch, border, col, horizontal)
     {
 	## Draw single box plot
 	if(!any(is.na(stats))) {
-            ## stats = +/- Inf:	polygon & segments should handle
-
-            ## Compute 'x + w' -- "correctly" in log-coord. case:
-            xP <-
-                if(xlog) function(x,w) x * exp(w)
-                else function(x,w) x + w
+	    ## stats = +/- Inf:	 polygon & segments should handle
 	    wid <- wid/2
-            if (notch) {
-                xx <- xP(x, wid * c(-1, 1, 1, notch.frac, 1,
-                                    1, -1,-1,-notch.frac,-1))
-                yy <- c(stats[c(2, 2)], conf[1], stats[3], conf[2],
-                        stats[c(4, 4)], conf[2], stats[3], conf[1])
-            }
-            else {
-                xx <- xP(x, wid * c(-1, 1, 1, -1))
-                yy <- stats[c(2, 2, 4, 4)]
-            }
-            if(!notch) notch.frac <- 1
-            wntch <- notch.frac*wid
             if (horizontal) {
-                polygon(yy, xx, col = col, border = border)
-                segments(stats[3], xP(x, -wntch),
-                         stats[3], xP(x, +wntch), col = border)
-                segments(stats[c(1, 5)], rep.int(x, 2),
-                         stats[c(2, 4)], rep.int(x, 2), lty= "dashed", col= border)
-                segments(stats[c(1, 5)], rep.int(xP(x, -wid/2), 2),
-                         stats[c(1, 5)], rep.int(xP(x, +wid/2), 2), col = border)
-                do.call("points",c(list(out, rep.int(x, length(out))), pt.pars))
+
+                if (notch) {
+                    xx <- x + wid * c(-1, 1, 1, notch.frac, 1, 1,
+                                      -1, -1, -notch.frac, -1)
+                    yy <- c(stats[c(2, 2)], conf[1], stats[3], conf[2],
+                            stats[c(4, 4)], conf[2], stats[3], conf[1])
+                    polygon(yy, xx, col = col, border = border)
+                    segments(stats[3], x - wid/2, stats[3], x + wid/2,
+                             col = border)
+                }
+                else {
+                    xx <- x + wid * c(-1, 1, 1, -1)
+                    yy <- stats[c(2, 2, 4, 4)]
+                    polygon(yy, xx, col = col, border = border)
+                    segments(stats[3], x - wid, stats[3], x + wid,
+                             col = border)
+                }
+                segments(stats[c(1, 5)], rep(x, 2), stats[c(2, 4)], rep(x, 2),
+                         lty = "dashed", col = border)
+                segments(stats[c(1, 5)], rep(x - wid/2, 2), stats[c(1, 5)],
+                         rep(x + wid/2, 2), col = border)
+                points(out, rep(x, length(out)), col = border)
+
             }
             else { ## vertical
-                polygon(xx, yy, col=col, border=border)
-                segments(xP(x, -wntch), stats[3],
-                         xP(x, +wntch), stats[3], col=border)
-                segments(rep.int(x,2), stats[c(1,5)],
-                         rep.int(x,2), stats[c(2,4)], lty= "dashed",col= border)
-                segments(rep.int(xP(x, -wid/2), 2), stats[c(1,5)],
-                         rep.int(xP(x, +wid/2), 2), stats[c(1,5)], col=border)
-                do.call("points",c(list(rep.int(x,length(out)), out), pt.pars))
+
+                if(notch) {
+                    xx <- x+wid*c(-1,1, 1, notch.frac, 1,
+                                  1,-1,-1,-notch.frac,-1)
+                    yy <- c(stats[c(2,2)],conf[1],stats[3],conf[2],
+                            stats[c(4,4)],conf[2],stats[3],conf[1])
+                    polygon(xx, yy, col=col, border=border)
+                    segments(x-wid/2,stats[3], x+wid/2,stats[3], col=border)
+                }
+                else {
+                    xx <- x+wid*c(-1,1,1,-1)
+                    yy <- stats[c(2,2,4,4)]
+                    polygon(xx, yy, col=col, border=border)
+                    segments(x-wid,stats[3],x+wid,stats[3],col=border)
+                }
+                segments(rep(x,2),stats[c(1,5)], rep(x,2),
+                         stats[c(2,4)], lty="dashed",col=border)
+                segments(rep(x-wid/2,2),stats[c(1,5)],rep(x+wid/2,2),
+                         stats[c(1,5)],col=border)
+                points(rep(x,length(out)), out, col=border)
             }
 	    if(any(inf <- !is.finite(out))) {
 		## FIXME: should MARK on plot !! (S-plus doesn't either)
@@ -151,17 +174,9 @@ bxp <- function(z, notch=FALSE, width=NULL, varwidth=FALSE,
 
     if(!is.list(z) || 0 == (n <- length(z$n)))
 	stop("invalid first argument")
-    if(is.null(at))
-        at <- 1:n
-    else if(length(at) != n)
-        stop(paste(sQuote("at"), " must have same length as ",
-                   sQuote("z $ n"), ", i.e. ", n,
-                   sep = ""))
     ## just for compatibility with S
-    if(is.null(z$out))
-        z$out <- numeric()
-    if(is.null(z$group) || !outline)
-        z$group <- integer()
+    if(is.null(z$out))	 z$out	 <- vector(length=0)
+    if(is.null(z$group)) z$group <- vector(length=0)
     if(is.null(pars$ylim))
 	ylim <- range(z$stats[is.finite(z$stats)],
 		      z$out  [is.finite(z$out)],
@@ -171,10 +186,18 @@ bxp <- function(z, notch=FALSE, width=NULL, varwidth=FALSE,
 	ylim <- pars$ylim
 	pars$ylim <- NULL
     }
+    width <-
+	if(!is.null(width)) {
+	    if(length(width) != n | any(is.na(width)) | any(width <= 0))
+		stop("invalid boxplot widths")
+	    boxwex * width/max(width)
+	}
+	else if(varwidth) boxwex * sqrt(z$n/max(z$n))
+	else if(n == 1) 0.5 * boxwex
+	else rep(boxwex, n)
 
     if(missing(border) || length(border)==0)
 	border <- par("fg")
-    pt.pars <- c(pars[names(pars) %in% c("pch", "cex", "bg")], col = border)
 
     if (!add) {
     	plot.new()
@@ -185,44 +208,27 @@ bxp <- function(z, notch=FALSE, width=NULL, varwidth=FALSE,
         else
             plot.window(xlim = c(0.5, n + 0.5), ylim = ylim, log = log)
     }
-    xlog <- (par("ylog") && horizontal) || (par("xlog") && !horizontal)
-    ## default boxwex depends on xlog
-    if(missing(boxwex))
-        boxwex <- 0.8 * {
-            if(n <= 1) 1 else
-            quantile(diff(sort(if(xlog)log(at) else at)), 0.10) }
-
-    width <-
-	if(!is.null(width)) {
-	    if(length(width) != n | any(is.na(width)) | any(width <= 0))
-		stop("invalid boxplot widths")
-	    boxwex * width/max(width)
-	}
-	else if(varwidth) boxwex * sqrt(z$n/max(z$n))
-	else if(n == 1) 0.5 * boxwex
-	else rep.int(boxwex, n)
     for(i in 1:n)
-	bplt(at[i], wid=width[i],
+	bplt(i, wid=width[i],
 	     stats= z$stats[,i],
 	     out  = z$out[z$group==i],
 	     conf = z$conf[,i],
 	     notch= notch,
 	     border=border[(i-1)%%length(border)+1],
 	     col = if(is.null(col)) col else col[(i-1)%%length(col)+1],
-             horizontal = horizontal, xlog = xlog)
+             horizontal=horizontal)
 
     axes <- is.null(pars$axes)
     if(!axes) { axes <- pars$axes; pars$axes <- NULL }
     if(axes) {
-        ax.pars <- pars[names(pars) %in% c("xaxt", "yaxt", "las", "cex.axis")]
-        if (is.null(show.names)) show.names <- n > 1
-        if (show.names)
-            do.call("axis", c(list(side = 1 + horizontal,
-                                   at = at, labels = z$names), ax.pars))
-        do.call("axis", c(list(side = 2 - horizontal), ax.pars))
+        if (n > 1)
+            do.call("axis", c(list(side = 1 + horizontal, at = 1:n, labels
+                 = z$names), pars[names(pars) %in% c("xaxt", "yaxt", "las")]))
+        do.call("axis", c(list(side = 2 - horizontal),
+                          pars[names(pars) %in% c("xaxt", "yaxt", "las")]))
     }
     do.call("title", pars)
     if(frame.plot)
         box()
-    invisible(at)
+    invisible(1:n)
 }

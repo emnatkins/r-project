@@ -1,15 +1,11 @@
 \name{proj}
 \title{Projections of Models}
 \usage{
-proj(object, \dots)  
-
-\method{proj}{aov}(object, onedf = FALSE, unweighted.scale = FALSE, \dots)  
-
-\method{proj}{aovlist}(object, onedf = FALSE, unweighted.scale = FALSE, \dots)  
-
-\method{proj}{default}(object, onedf = TRUE, \dots)  
-
-\method{proj}{lm}(object, onedf = FALSE, unweighted.scale = FALSE, \dots)  
+proj     (object, \dots)  
+proj.aov    (object, onedf = FALSE, unweighted.scale = FALSE)  
+proj.aovlist(object, onedf = FALSE, unweighted.scale = FALSE)  
+proj.default(object, onedf = TRUE, \dots)  
+proj.lm     (object, onedf = FALSE, unweighted.scale = FALSE)  
 }
 \alias{proj}
 \alias{proj.default}
@@ -60,16 +56,8 @@ proj(object, \dots)
   model matrix corresponding to that term. In this case the matrix does
   not depend on the coding used.
 }
-\references{
-  Chambers, J. M., Freeny, A and Heiberger, R. M. (1992)
-  \emph{Analysis of variance; designed experiments.}
-  Chapter 5 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
-}
-\author{
-  The design was inspired by the S function of the same name described
-  in Chambers \emph{et al.} (1992).
-}
+\author{B.D. Ripley}
+
 \seealso{\code{\link{aov}}, \code{\link{lm}}, \code{\link{model.tables}}
 }
 \examples{

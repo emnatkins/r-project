@@ -9,7 +9,7 @@
   \code{\link{tapply}} applied to data frames.
 }
 \usage{
-by(data, INDICES, FUN, \dots)
+by(data, INDICES, FUN, ...)
 }
 \arguments{
  \item{data}{an \R object, normally a data frame, possibly a matrix.}
@@ -35,11 +35,6 @@ attach(warpbreaks)
 by(warpbreaks[, 1:2], tension, summary)
 by(warpbreaks[, 1], list(wool=wool, tension=tension), summary)
 by(warpbreaks, tension, function(x) lm(breaks ~ wool, data=x))
-
-## now suppose we want to extract the coefficients by group
-tmp <- by(warpbreaks, tension, function(x) lm(breaks ~ wool, data=x))
-sapply(tmp, coef)
-
 detach("warpbreaks")
 }
 \keyword{iteration}

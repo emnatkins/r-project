@@ -3,8 +3,8 @@
 \alias{predict.nls}
 \usage{
 \method{predict}{nls}(object, newdata , se.fit = FALSE, scale = NULL, df = Inf, 
-        interval = c("none", "confidence", "prediction"),
-        level = 0.95, \dots)
+              interval = c("none", "confidence", "prediction"),
+              level = 0.95, ...)
 }
 \description{
   \code{predict.nls} produces predicted values, obtained by evaluating
@@ -44,11 +44,10 @@
      arguments are used.}
 }
 \value{
-  \code{predict.nls} produces a vector of predictions.
-  When implemented, \code{interval} will produce a matrix of
+  \code{predict.nls} produces a vector of predictions or a matrix of
   predictions and bounds with column names \code{fit}, \code{lwr}, and
-  \code{upr}.  When implemented, if \code{se.fit} is
-  \code{TRUE}, a list with the following components will be returned:
+  \code{upr} if \code{interval} is set.  If \code{se.fit} is
+  \code{TRUE}, a list with the following components is returned:
 
   \item{fit}{vector or matrix as above}
   \item{se.fit}{standard error of predictions}

@@ -2,40 +2,32 @@
 \alias{lag}
 \alias{lag.default}
 \title{Lag a Time Series}
-\description{
-  Computed a lagged version of a time series, shifting the time base
-  back by a given number of observations.
-}
 \usage{
-lag(x, \dots)
-
-\method{lag}{default}(x, k = 1, \dots)
+lag(x, ...)
+lag.default(x, k=1)
 }
 \arguments{
   \item{x}{A vector or matrix or univariate or multivariate time series}
   \item{k}{The number of lags (in units of observations).}
-  \item{\dots}{further arguments to be passed to or from methods.}
+  \item{\dots}{Arguments for future methods.}
+}
+\description{
+  Computed a lagged version of a time series, shifting the time base
+  back by \code{k} observations.
 }
 \details{
   Vector or matrix arguments \code{x} are coerced to time series.
-
-  \code{lag} is a generic function; this page documents its default
-  method.
 }
 \value{
   A time series object.
 }
+\author{B.D. Ripley}
 
 \note{
   Note the sign of \code{k}: a series lagged by a positive \code{k}
   starts \emph{earlier}.
 }
 
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{\code{\link{diff}}, \code{\link{deltat}} }
 
 \examples{

@@ -16,9 +16,6 @@ unlist(x, recursive = TRUE, use.names = TRUE)
   \item{use.names}{logical. Should names be preserved?}
 }
 \details{
-  \code{unlist} is generic: you can write methods to handle
-  of specific classes of objects, see \link{InternalMethods}.
-  
   If \code{recursive = FALSE}, the function will not recurse beyond
   the first level items in \code{x}.
 
@@ -41,11 +38,6 @@ unlist(x, recursive = TRUE, use.names = TRUE)
 }
 \value{
   A vector of an appropriate mode to hold the list components.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{c}}, \code{\link{as.list}}.

@@ -1,22 +1,17 @@
 \name{mode}
+\title{The (Storage) Mode of an Object}
+\usage{
+mode(x)
+mode(x) <- "<mode>"
+storage.mode(x)
+storage.mode(x) <- "<mode>"
+}
 \alias{mode}
 \alias{mode<-}
 \alias{storage.mode}
 \alias{storage.mode<-}
-\title{The (Storage) Mode of an Object}
 \description{
   Get or set the type or storage mode of an object.
-}
-\usage{
-mode(x)
-mode(x) <- value
-storage.mode(x)
-storage.mode(x) <- value
-}
-\arguments{
-  \item{x}{any \R object.}
-  \item{value}{a character string giving the desired (storage) mode of
-    the object.}
 }
 \details{
   Both \code{mode} and \code{storage.mode} return a character string
@@ -40,13 +35,8 @@ storage.mode(x) <- value
   Note (in the examples below) that some \code{\link{call}}s have mode
   \code{"("} which is S compatible.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
-  \code{\link{typeof}} for the R-internal \dQuote{mode},
+  \code{\link{typeof}} for the R-internal ``mode'',
   \code{\link{attributes}}.
 }
 \examples{
@@ -60,7 +50,7 @@ mex3 <- t(sapply(lex3, function(x) c(typeof(x), storage.mode(x), mode(x))))
 dimnames(mex3) <- list(cex3, c("typeof(.)","storage.mode(.)","mode(.)"))
 mex3
 
-## This also makes a local copy of 'pi':
+## This also makes a local copy of  `pi':
 storage.mode(pi) <- "complex"
 storage.mode(pi)
 rm(pi)

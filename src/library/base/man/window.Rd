@@ -1,16 +1,21 @@
 \name{window}
-\alias{window}
-\alias{window.default}
-\alias{window.ts}
 \title{Time Windows}
 \usage{
 window(x, \dots)
-
-\method{window}{ts}(x, \dots)
-
-\method{window}{default}(x, start = NULL, end = NULL,
-      frequency = NULL, deltat = NULL, extend = FALSE, \dots)
+window.default(x, start = NULL, end = NULL,
+               frequency = NULL, deltat = NULL, extend = FALSE, \dots)
+window.ts(x, start = NULL, end = NULL,
+          frequency = NULL, deltat = NULL, extend = FALSE, \dots)
 }
+\synopsis{
+window(x, \dots)
+window.default(x, start = NULL, end = NULL,
+               frequency = NULL, deltat = NULL, extend = FALSE, \dots)
+window.ts(x, \dots)
+}
+\alias{window}
+\alias{window.default}
+\alias{window.ts}
 \arguments{
   \item{x}{a time-series or other object.}
   \item{start}{the start time of the period of interest.}
@@ -20,7 +25,6 @@ window(x, \dots)
   \item{extend}{logical. If true, the \code{start} and \code{end} values
     are allowed to extend the series. If false, attempts to extend the
     series give a warning and are ignored.}
-  \item{\dots}{further arguments passed to or from other methods.}
 }
 \description{
   \code{window} is a generic function which
@@ -44,11 +48,6 @@ window(x, \dots)
 
   If \code{extend = TRUE} the series will be padded with \code{NA} if
   needed.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{\code{\link{time}}, \code{\link{ts}}.}
 \examples{

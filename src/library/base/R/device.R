@@ -1,20 +1,27 @@
-dev.interactive <- function()
-    interactive() && .Device %in% c("X11", "GTK", "gnome", "quartz", "windows")
-
-dev.list <- function()
+dev.list <-
+    function()
 {
-    n <- if(exists(".Devices")) get(".Devices") else list("null device")
+    if(exists(".Devices")) {
+	n <- get(".Devices")
+    }
+    else {
+	n <- list("null device")
+    }
     n <- unlist(n)
     i <- seq(along = n)[n != ""]
     names(i) <- n[i]
     i <- i[-1]
-    if(length(i) == 0) NULL else i
+    if(length(i) == 0)
+	return(NULL)
+    else i
 }
 
-dev.cur <- function()
+dev.cur <-
+    function()
 {
-    if(!exists(".Devices"))
+    if(!exists(".Devices")) {
 	.Devices <- list("null device")
+    }
     num.device <- .Internal(dev.cur())
     names(num.device) <- .Devices[[num.device]]
     num.device
@@ -24,12 +31,12 @@ dev.set <-
     function(which = dev.next())
 {
     which <- .Internal(dev.set(as.integer(which)))
-#     if(exists(".Devices")) {
-# 	assign(".Device", get(".Devices")[[which]])
-#     }
-#     else {
-# 	.Devices <- list("null device")
-#     }
+    if(exists(".Devices")) {
+	assign(".Device", get(".Devices")[[which]])
+    }
+    else {
+	.Devices <- list("null device")
+    }
     names(which) <- .Devices[[which]]
     which
 }
@@ -59,7 +66,16 @@ dev.off <-
 {
     if(which == 1)
 	stop("Cannot shut down device 1 (the null device)")
+    if(exists(".Devices")) {
+	.Devices <- get(".Devices")
+    }
+    else {
+	.Devices <- list("null device")
+    }
+    .Devices[[which]] <- ""
+    assign(".Devices", .Devices)
     .Internal(dev.off(as.integer(which)))
+    assign(".Device", .Devices[[dev.cur()]])
     dev.cur()
 }
 
@@ -91,7 +107,7 @@ dev.print <- function(device = postscript, ...)
     current.device <- dev.cur()
     nm <- names(current.device)[1]
     if(nm == "null device") stop("no device to print from")
-    if(!(nm %in% c("X11", "GTK", "gnome", "windows")))
+    if(nm != "X11" && nm != "windows" && nm != "gtk"  && nm != "gnome")
         stop("can only print from screen device")
     oc <- match.call()
     oc[[1]] <- as.name("dev.copy")
@@ -146,7 +162,7 @@ dev.copy2eps <- function(...)
     current.device <- dev.cur()
     nm <- names(current.device)[1]
     if(nm == "null device") stop("no device to print from")
-    if(!(nm %in% c("X11", "GTK", "gnome", "windows")))
+    if(nm != "X11" && nm != "windows" && nm != "gtk"  && nm != "gnome")
         stop("can only print from screen device")
     oc <- match.call()
     oc[[1]] <- as.name("dev.copy")
@@ -165,14 +181,13 @@ dev.copy2eps <- function(...)
     dev.set(current.device)
 }
 
-dev.control <- function(displaylist = c("inhibit", "enable"))
+dev.control <- function(displaylist)
 {
-    if(dev.cur() <= 1)
-        stop("dev.control() called without an open graphics device")
     if(!missing(displaylist)) {
-        displaylist <- match.arg(displaylist)
-	.Internal(dev.control(displaylist == "enable"))
-    } else stop("argument is missing with no default")
+	if(displaylist == "inhibit")
+	    .Internal(dev.control())
+	else stop(paste("displaylist should be inhibit"))
+    }
     invisible()
 }
 

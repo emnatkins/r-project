@@ -1,17 +1,18 @@
 \name{autoload}
 \title{On-demand Loading of Packages}
 \usage{
-autoload(name, package, \dots)
-autoloader(name, package, \dots)
+autoload(name, package,...)
+autoloader(name, package,...)
 .AutoloadEnv
 }
 \alias{autoload}
 \alias{autoloader}
 \alias{.AutoloadEnv}
 \arguments{
-\item{name}{string giving the name of an object.}
-\item{package}{string giving the name of a package containing the object.}
-\item{\dots}{other arguments to \code{\link{library}}.}
+\item{name}{string giving the name of an object}
+\item{package}{string giving the name of a package containing the
+  object}
+\item{\dots}{other arguments to \code{\link{library}}}
 }
 \description{
   \code{autoload} creates a promise-to-evaluate \code{autoloader} and stores it with name \code{name} in
@@ -22,8 +23,7 @@ autoloader(name, package, \dots)
   \code{file} was loaded but it does not occupy memory.
 }
 \value{
-This function is invoked for its side-effect. It has no return value as
-of \R 1.7.0.
+This function is invoked for its side-effect.
 }
 \seealso{
 \code{\link{delay}}, \code{\link{library}}
@@ -32,7 +32,7 @@ of \R 1.7.0.
 autoload("line","eda")
 search()
 ls("Autoloads")
-
+all(ls("Autoloads") == ls(envir = .AutoloadEnv))
 data(cars)
 plot(cars)
 z<-line(cars)

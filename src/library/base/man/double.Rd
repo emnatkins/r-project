@@ -7,9 +7,6 @@
 \alias{single}
 \alias{as.single}
 \alias{as.single.default}
-\description{
-  Create, coerce to or test for a double-precision vector.
-}
 \usage{
 double(length = 0)
 as.double(x, \dots)
@@ -17,22 +14,18 @@ is.double(x)
 single(length = 0)
 as.single(x, \dots)
 }
-\arguments{
-  \item{length}{desired length.}
-  \item{x}{object to be coerced or tested.}
-  \item{\dots}{further arguments passed to or from other methods.}
+\description{
+    Create, coerce to or test for a double-precision vector.
 }
 \value{
   \code{double} creates a double precision vector of the specified
   length.  The elements of the vector are all equal to \code{0}.
 
   \code{as.double} attempts to coerce its argument to be of double
-  type: like \code{\link{as.vector}} it strips attributes including names.
+  type.
 
   \code{is.double} returns \code{TRUE} or \code{FALSE} depending on
-  whether its argument is of double type or not.  It is generic:
-  you can write methods to handle of specific classes of objects,
-  see \link{InternalMethods}.
+  whether its argument is of double type or not.
 }
 \note{
   \emph{\R has no single precision data type.  All real numbers are
@@ -41,11 +34,6 @@ as.single(x, \dots)
   except they set the attribute \code{Csingle} that is used in the
   \code{\link{.C}} and \code{\link{.Fortran}} interface, and they are
   intended only to be used in that context.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{integer}}.

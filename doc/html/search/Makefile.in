@@ -18,32 +18,26 @@ SOURCES_JAVA = \
 	SearchEngine.java \
 	Tracer.java \
 	Value.java
-OBJECTS_JAVA = $(SOURCES_JAVA:.java=.class)
 INSTFILES = \
-	$(OBJECTS_JAVA) \
+	$(SOURCES_JAVA:.java=.class) \
 	SearchEngine-foot.html \
 	SearchEngine-head.html \
 	SearchObject.html
 DISTFILES = Makefile.in $(SOURCES_JAVA) $(INSTFILES)
 
-OBJECTS = SearchEngine.html index.txt
-
-CLEANFILES = $(OBJECTS)
-DISTCLEANFILES = Makefile
-
-.SUFFIXES:
-.SUFFIXES: .class .java
-
-.java.class:
-	(cd $(srcdir) && $(JAVAC) $(<F))
+OBJECTS = \
+	SearchEngine.html \
+	index.txt
 
 all: Makefile R
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
 
-R: Makefile $(OBJECTS) @MAINTAINER_MODE_TRUE@ $(OBJECTS_JAVA)
-	@if test "$(BUILDDIR_IS_SRCDIR)" = no ; then \
+R: Makefile $(OBJECTS)
+	@if [ "$(srcdir)" != "." ]; then \
 	  $(MAKE) rhome=$(top_builddir) install-sources; \
 	fi
 
@@ -55,13 +49,11 @@ SearchEngine.html: \
 	@-$(PERL) $(top_srcdir)/tools/keywords2html.pl \
 	  $(top_srcdir)/doc/KEYWORDS.db >> $@
 	@cat $(srcdir)/SearchEngine-foot.html >> $@
-## <FIXME>
+## FIXME:
 ## This is created via
 ##   (cd $(top_builddir)/src/library && make DOCS)
 index.txt:
 	@touch $@
-## so we need to remove it ...
-## </FIXME>
 
 install: install-message installdirs install-sources
 	@for f in $(OBJECTS); do \
@@ -83,12 +75,12 @@ uninstall:
 
 mostlyclean:
 clean:
-	@if test "$(BUILDDIR_IS_SRCDIR)" = no ; then \
+	@if [ "$(srcdir)" != "." ]; then \
 	  rm -f $(INSTFILES); \
 	fi
-	-@test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+	@rm -f $(OBJECTS)
 distclean: clean
-	-@test -z "$(DISTCLEANFILES)" || rm -f $(DISTCLEANFILES)
+	@rm -f Makefile
 maintainer-clean: distclean
 
 distdir: $(DISTFILES)

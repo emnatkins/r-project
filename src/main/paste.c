@@ -1,7 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2003  The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,6 +36,7 @@
  * The first pass calculates the width of the paste buffer,
  * then it is alloc-ed and the second pass stuffs the information in.
  */
+
 SEXP do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, collapse, sep, x, tmpchar;
@@ -60,7 +60,7 @@ SEXP do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
     if (!isString(sep) || LENGTH(sep) <= 0)
 	errorcall(call, "invalid separator");
     sep = STRING_ELT(sep, 0);
-    sepw = strlen(CHAR(sep)); /* not LENGTH as might contain \0 */
+    sepw = LENGTH(sep);
 
     collapse = CADDR(args);
     if (!isNull(collapse))
@@ -79,7 +79,7 @@ SEXP do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 	    maxlen = length(VECTOR_ELT(x, j));
     }
     if(maxlen == 0)
-	return (!isNull(collapse)) ? mkString("") : allocVector(STRSXP, 0);
+	return mkString("");
 
     PROTECT(ans = allocVector(STRSXP, maxlen));
 
@@ -88,7 +88,7 @@ SEXP do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 	for (j = 0; j < nx; j++) {
 	    k = length(VECTOR_ELT(x, j));
 	    if (k > 0)
-		pwidth += strlen(CHAR(STRING_ELT(VECTOR_ELT(x, j), i % k)));
+		pwidth += LENGTH(STRING_ELT(VECTOR_ELT(x, j), i % k));
 	}
 	pwidth += (nx - 1) * sepw;
 	tmpchar = allocString(pwidth);
@@ -97,11 +97,11 @@ SEXP do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 	    k = length(VECTOR_ELT(x, j));
 	    if (k > 0) {
 		s = CHAR(STRING_ELT(VECTOR_ELT(x, j), i % k));
-                strcpy(buf, s);
-		buf += strlen(s);
+		sprintf(buf, "%s", s);
+		buf += LENGTH(STRING_ELT(VECTOR_ELT(x, j), i % k));
 	    }
 	    if (j != nx - 1 && sepw != 0) {
-	        strcpy(buf, CHAR(sep));
+		sprintf(buf, "%s", CHAR(sep));
 		buf += sepw;
 	    }
 	}
@@ -112,20 +112,20 @@ SEXP do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 
     if(collapse != R_NilValue && (nx=LENGTH(ans)) != 0) {
 	sep = STRING_ELT(collapse, 0);
-	sepw = strlen(CHAR(sep));
+	sepw = LENGTH(sep);
 	pwidth = 0;
 	for (i = 0; i < nx; i++)
-	    pwidth += strlen(CHAR(STRING_ELT(ans, i)));
+	    pwidth += LENGTH(STRING_ELT(ans, i));
 	pwidth += (nx - 1) * sepw;
 	tmpchar = allocString(pwidth);
 	buf = CHAR(tmpchar);
 	for (i = 0; i < nx; i++) {
 	    if(i > 0) {
-	        strcpy(buf, CHAR(sep));
+		sprintf(buf, "%s", CHAR(sep));
 		buf += sepw;
 	    }
 	    s = CHAR(STRING_ELT(ans, i));
-            strcpy(buf, s);
+	    sprintf(buf, "%s", s);
 	    while (*buf)
 		buf++;
 	}
@@ -138,13 +138,13 @@ SEXP do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
     return ans;
 }
 
-/* format.default(x, trim, nsmall) : ../library/base/R/format.R
- * --------------   See "FIXME" in that file !
+/* format.default(x, trim) : ../library/base/R/format.R 
+ * --------------   See "FIXME" in that file ! 
  */
 SEXP do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP l, x, y;
-    int i, n, trim=0, nsmall=0;
+    int i, n, trim=0;
     int w, d, e;
     int wi, di, ei;
     char *strp;
@@ -153,12 +153,8 @@ SEXP do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 
     switch (length(args)) {
     case 1:
+	trim = 0;
 	break;
-    case 3:
-	nsmall = asInteger(CADDR(args));
-	if (nsmall == NA_INTEGER || nsmall < 0 || nsmall > 20)
-	    errorcall(call, "invalid \"nsmall\" argument");
-	/* drop through */
     case 2:
 	trim = asLogical(CADR(args));
 	if (trim == NA_INTEGER)
@@ -201,7 +197,7 @@ SEXP do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 	break;
 
     case REALSXP:
-	formatReal(REAL(x), n, &w, &d, &e, nsmall);
+	formatReal(REAL(x), n, &w, &d, &e);
 	if (trim) w = 0;
 	PROTECT(y = allocVector(STRSXP, n));
 	for (i = 0; i < n; i++) {
@@ -212,7 +208,7 @@ SEXP do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 	break;
 
     case CPLXSXP:
-	formatComplex(COMPLEX(x), n, &w, &d, &e, &wi, &di, &ei, nsmall);
+	formatComplex(COMPLEX(x), n, &w, &d, &e, &wi, &di, &ei);
 	if (trim) wi = w = 0;
 	PROTECT(y = allocVector(STRSXP, n));
 	for (i = 0; i < n; i++) {
@@ -257,12 +253,11 @@ SEXP do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP do_formatinfo(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP x;
-    int n, nsmall, w, d, e;
+    int n, w, d, e;
     int wi, di, ei;
     checkArity(op, args);
     x = CAR(args);
     n = LENGTH(x);
-    nsmall = asInteger(CADR(args));
     w = 0;
     d = 0;
     e = 0;
@@ -277,12 +272,12 @@ SEXP do_formatinfo(SEXP call, SEXP op, SEXP args, SEXP env)
 	break;
 
     case REALSXP:
-	formatReal(REAL(x), n, &w, &d, &e, nsmall);
+	formatReal(REAL(x), n, &w, &d, &e);
 	break;
 
     case CPLXSXP:
 	wi = di = ei = 0;
-	formatComplex(COMPLEX(x), n, &w, &d, &e, &wi, &di, &ei, nsmall);
+	formatComplex(COMPLEX(x), n, &w, &d, &e, &wi, &di, &ei);
 	n = -1;/* complex 'code' */
 	break;
 

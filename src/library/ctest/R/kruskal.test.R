@@ -1,8 +1,4 @@
-kruskal.test <- function(x, ...) UseMethod("kruskal.test")
-
-kruskal.test.default <-
-function(x, g, ...)
-{
+kruskal.test <- function(x, g) {
     if (is.list(x)) {
         if (length(x) < 2)
             stop("x must be a list with at least 2 elements")
@@ -12,7 +8,7 @@ function(x, g, ...)
         l <- sapply(x, "length")
         if (any(l == 0))
             stop("all groups must contain data")
-        g <- factor(rep(1 : k, l))
+        g <- as.factor(rep(1 : k, l))
         x <- unlist(x)
     }
     else {
@@ -25,7 +21,7 @@ function(x, g, ...)
         g <- g[OK]
         if (!all(is.finite(g)))
             stop("all group levels must be finite")
-        g <- factor(g)
+        g <- as.factor(g)
         k <- nlevels(g)
         if (k < 2)
             stop("all observations are in the same group")
@@ -51,21 +47,4 @@ function(x, g, ...)
                  data.name = DNAME)
     class(RVAL) <- "htest"
     return(RVAL)
-}
-
-kruskal.test.formula <-
-function(formula, data, subset, na.action, ...)
-{
-    if(missing(formula) || (length(formula) != 3))
-        stop("formula missing or incorrect")
-    m <- match.call(expand.dots = FALSE)
-    if(is.matrix(eval(m$data, parent.frame())))
-        m$data <- as.data.frame(data)
-    m[[1]] <- as.name("model.frame")
-    mf <- eval(m, parent.frame())
-    DNAME <- paste(names(mf), collapse = " by ")
-    names(mf) <- NULL
-    y <- do.call("kruskal.test", as.list(mf))
-    y$data.name <- DNAME
-    y
 }

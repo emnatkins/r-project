@@ -1,22 +1,11 @@
-svd <- function(x, nu=min(n,p), nv=min(n,p), LINPACK = FALSE)
-{
+svd <- function(x, nu=min(n,p), nv=min(n,p)) {
+    if(!is.numeric(x))
+	stop("argument to svd must be numeric")
     x <- as.matrix(x)
     dx <- dim(x)
     n <- dx[1]
     p <- dx[2]
     if(!n || !p) stop("0 extent dimensions")
-    if (is.complex(x)) {
-        res <- La.svd(x, nu, nv)
-        return(list(d = res$d, u = if(nu) res$u, v = if(nv) Conj(t(res$vt))))
-    }
-    if (!LINPACK) {
-        method <- "dgesdd"
-        if(!capabilities("IEEE754")) method <- "dgesvd"
-        res <- La.svd(x, nu, nv, method)
-        return(list(d = res$d, u = if(nu) res$u, v = if(nv) t(res$vt)))
-    }
-    if(!is.numeric(x))
-	stop("argument to svd must be numeric")
 
     if(nu == 0) {
 	job <- 0
@@ -59,6 +48,6 @@ svd <- function(x, nu=min(n,p), nv=min(n,p), LINPACK = FALSE)
     if(z$info)
 	stop(paste("error ",z$info," in dsvdc"))
     z$d <- z$d[1:mn]
-    if(nv && nv < p) z$v <- z$v[, 1:nv, drop = FALSE]
+    if(nv && nv < p) z$v <- z$v[, 1:nv]
     z[c("d", if(nu) "u", if(nv) "v")]
 }

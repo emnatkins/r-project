@@ -1,7 +1,7 @@
 \name{lowess}
 \title{Scatter Plot Smoothing}
 \usage{
-lowess(x, y = NULL, f = 2/3, iter=3, delta = 0.01 * diff(range(xy$x[o])))
+lowess(x, y, f=2/3, iter=3, delta=.01*diff(range(x)))
 }
 \alias{lowess}
 \arguments{
@@ -14,8 +14,7 @@ lowess(x, y = NULL, f = 2/3, iter=3, delta = 0.01 * diff(range(xy$x[o])))
     performed.
     Using smaller values of \code{iter} will make \code{lowess} run faster.}
   \item{delta}{values of \code{x} which lie within \code{delta}
-    of each other are replaced by a single value in the output from
-    \code{lowess}.  Defaults to 1/100th of the range of \code{x}.}
+    of each other replaced by a single value in the output from \code{lowess}.}
 }
 \description{
   This function performs the computations for the
@@ -26,10 +25,6 @@ lowess(x, y = NULL, f = 2/3, iter=3, delta = 0.01 * diff(range(xy$x[o])))
   points with the function \code{lines}.
 }
 \references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-
   Cleveland, W. S. (1979)
   Robust locally weighted regression and smoothing scatterplots.
   \emph{J. Amer. Statist. Assoc.} \bold{74}, 829--836.
@@ -38,8 +33,8 @@ lowess(x, y = NULL, f = 2/3, iter=3, delta = 0.01 * diff(range(xy$x[o])))
   LOWESS: A program for smoothing scatterplots by robust locally weighted
   regression. \emph{The American Statistician}, \bold{35}, 54.
 }
-\seealso{\code{\link[modreg]{loess}} (in package \pkg{modreg}), a newer
-  formula based version of \code{lowess} (with different defaults!).
+\seealso{\code{\link[modreg]{loess}}, a newer formula based version of 
+  \code{lowess} (with different defaults!).
 }
 \examples{
 data(cars)

@@ -1,7 +1,13 @@
+% file labels.Rd
+% copyright (C) 1998 B. D. Ripley
+%
 \name{labels}
 \title{Find Labels from Object}
 \usage{
 labels(object, \dots)
+labels.default(object, \dots)
+labels.terms(object, \dots)
+labels.lm(object, \dots)
 }
 \alias{labels}
 \alias{labels.default}
@@ -9,11 +15,10 @@ labels(object, \dots)
 \alias{labels.lm}
 \arguments{
   \item{object}{Any \R object: the function is generic.}
-  \item{\dots}{further arguments passed to or from other methods.}
 }
 \description{
   Find a suitable set of labels from an object for use in printing or
-  plotting, for example.  A generic function.
+  plotting, for example.
 }
 \value{
   A character vector or list of such vectors. For a vector the results
@@ -22,10 +27,6 @@ labels(object, \dots)
   a \code{terms} object it is the term labels and for an \code{lm}
   object it is the term labels for estimable terms.
 }
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical Models in S.}
-  Wadsworth \& Brooks/Cole.
-}
+\author{B.D. Ripley}
 \keyword{print}
 \keyword{models}

@@ -13,8 +13,8 @@ R.version.string
     \code{R.Version()} provides detailed information about the version of
     \R running. \cr
     \code{R.version} is a variable (a \code{\link{list}}) holding this
-    information (and \code{version} is a copy of it for
-    S compatibility), whereas \code{R.version.string} is a simple
+    information (and \code{version} is an \code{\link{.Alias}} to it for
+    S compatibility), whereas \code{R.version.string} is simple
     \code{\link{character}} string, useful for plotting, etc.
 }
 \value{
@@ -34,14 +34,8 @@ R.version.string
   \item{day}{the day the version was released}
   \item{language}{always \code{"R"}.}
 }
-\note{
-  Do \emph{not} use \code{R.version$os} to test the platform the
-  code is running on: use \code{.Platform$OS.type} instead.  Slightly
-  different versions of the OS may report different values of
-  \code{R.version$os}, as may different versions of \R.
-}
 \seealso{
-  \code{\link{.Platform}}.
+\code{\link{machine}}.
 }
 \examples{
 R.version$os # to check how lucky you are ...

@@ -1,7 +1,8 @@
-### $Id: splines.R,v 1.6 2002/05/08 17:32:12 ripley Exp $
+### $Id: splines.R,v 1.3 2000/08/06 03:30:52 bates Exp $
 
-bs <- function(x, df = NULL, knots = NULL, degree = 3, intercept = FALSE,
-               Boundary.knots = range(x))
+bs <-
+    function(x, df = NULL, knots = NULL, degree = 3, intercept = FALSE,
+             Boundary.knots = range(x))
 {
     nx <- names(x)
     x <- as.vector(x)
@@ -20,7 +21,7 @@ bs <- function(x, df = NULL, knots = NULL, degree = 3, intercept = FALSE,
         nIknots <- df - ord + (1 - intercept)
         if(nIknots < 0) {
             nIknots <- 0
-            warning("df was too small; have used  ", ord - (1 - intercept))
+            warning(paste("df was too small; have used ", ord - (1 - intercept)))
         }
         knots <-
             if(nIknots > 0) {
@@ -60,15 +61,15 @@ bs <- function(x, df = NULL, knots = NULL, degree = 3, intercept = FALSE,
         basis <- nmat
     }
     dimnames(basis) <- list(nx, 1:n.col)
-    a <- list(degree = degree, knots = if(is.null(knots)) numeric(0) else knots,
-              Boundary.knots = Boundary.knots, intercept = intercept)
+    a <- list(degree = degree, knots = knots, Boundary.knots =
+              Boundary.knots, intercept = intercept, class = c("bs", "basis"))
     attributes(basis) <- c(attributes(basis), a)
-    class(basis) <- c("bs", "basis")
     basis
 }
 
-ns <- function(x, df = NULL, knots = NULL, intercept = FALSE,
-               Boundary.knots = range(x))
+ns <-
+    function(x, df = NULL, knots = NULL, intercept = FALSE,
+             Boundary.knots = range(x))
 {
     nx <- names(x)
     x <- as.vector(x)
@@ -87,10 +88,11 @@ ns <- function(x, df = NULL, knots = NULL, intercept = FALSE,
             nIknots <- 0
             warning(paste("df was too small; have used ", 1 + intercept))
         }
-        knots <- if(nIknots > 0) {
-            knots <- seq(0, 1, length = nIknots + 2)[-c(1, nIknots + 2)]
-            quantile(x[!outside], knots)
-        } ## else  NULL
+        if(nIknots > 0) {
+            knots <- seq(from = 0, to = 1, length = nIknots + 2)[-c(1, nIknots + 2)]
+            knots <- quantile(x[!outside], knots)
+        }
+        else knots <- NULL
     } else nIknots <- length(knots)
     Aknots <- sort(c(rep(Boundary.knots, 4), knots))
     if(any(outside)) {
@@ -121,18 +123,18 @@ ns <- function(x, df = NULL, knots = NULL, intercept = FALSE,
     n.col <- ncol(basis)
     if(nas) {
         nmat <- matrix(NA, length(nax), n.col)
-        nmat[!nax, ] <- basis
+        nmat[!nax,  ] <- basis
         basis <- nmat
     }
     dimnames(basis) <- list(nx, 1:n.col)
-    a <- list(degree = 3, knots = if(is.null(knots)) numeric(0) else knots,
-              Boundary.knots = Boundary.knots, intercept = intercept)
+    a <- list(degree = 4, knots = knots, Boundary.knots = Boundary.knots,
+              intercept = intercept, class = c("ns", "basis"))
     attributes(basis) <- c(attributes(basis), a)
-    class(basis) <- c("ns", "basis")
     basis
 }
 
-predict.bs <- function(object, newx, ...)
+predict.bs <-
+    function(object, newx, ...)
 {
     if(missing(newx))
         return(object)
@@ -141,7 +143,8 @@ predict.bs <- function(object, newx, ...)
     do.call("bs", a)
 }
 
-predict.ns <- function(object, newx, ...)
+predict.ns <-
+    function(object, newx, ...)
 {
     if(missing(newx))
         return(object)
@@ -150,30 +153,39 @@ predict.ns <- function(object, newx, ...)
     do.call("ns", a)
 }
 
-### FIXME:  Also need  summary.basis() and probably print.basis()  method!
-
-makepredictcall.ns <- function(var, call)
-{
-    if(as.character(call)[1] != "ns") return(call)
-    at <- attributes(var)[c("knots", "Boundary.knots", "intercept")]
-    xxx <- call[1:2]
-    xxx[names(at)] <- at
-    xxx
-}
-
-makepredictcall.bs <- function(var, call)
-{
-    if(as.character(call)[1] != "bs") return(call)
-    at <- attributes(var)[c("degree", "knots", "Boundary.knots", "intercept")]
-    xxx <- call[1:2]
-    xxx[names(at)] <- at
-    xxx
-}
-
-
 spline.des <- function(knots, x, ord = 4, derivs = integer(length(x)))
 {
     list(knots = sort(as.vector(knots)), order = ord, derivs = derivs,
          design = splineDesign(knots, x, ord, derivs))
 }
-## splineDesign() is in ./splineClasses.R
+
+# {
+#   ## "Design matrix" for a collection of B-splines.  `The' basic function.
+#   knots <- sort(as.vector(knots))
+#   x <- as.vector(x)
+#   nk <- length(knots)
+#   nx <- length(x)
+#   ind <- order(x)
+#   sortx <- x[ind]
+#   ind <- order(ind)
+#   if(sortx[1] < knots[ord] || sortx[nx] > knots[nk + 1 - ord])
+#     stop(paste("The x data must be in the range", knots[ord], "to",
+#                knots[nk + 1 - ord]))
+#   if(length(derivs)!=nx)
+#     stop("length of derivs must match length of x")
+#   ncoef <- nk - ord
+#   temp <- .C("spline_basis",
+#              as.double(knots),
+#              as.integer(ncoef),
+#              as.integer(ord),
+#              as.double(sortx),
+#              as.integer(derivs),
+#              as.integer(nx),
+#              design = array(0, c(ord, nx)),
+#              offsets = integer(nx))
+#   design <- array(0, c(nx, ncoef))
+#   d.ind <- array(c(rep(1:nx, rep(ord, nx)),
+#                    outer(1:ord, temp$offsets, "+")), c(nx * ord, 2))
+#   design[d.ind] <- temp$design
+#   list(knots = knots, order = ord, derivs = derivs, design = design[ind,  ])
+# }

@@ -2,16 +2,6 @@
 RLIB=../../../library
 DPKG=$(RLIB)/$(PKG)
 SPKG=.
-SAVE=CHECK
-
-ifneq ($(strip $(BUILD)),CROSS)
-SPKG0 = $(shell $(RHOME)/src/gnuwin32/Rpwd.exe $(SPKG))
-DPKG0 = $(shell $(RHOME)/src/gnuwin32/Rpwd.exe $(DPKG))
-else
-SPKG0=$(SPKG)
-DPKG0=$(DPKG)
-endif
-
 
 ifeq ($(strip $(DLLNM)),)
   DLLNAME=$(PKG)
@@ -20,20 +10,19 @@ else
 endif
 #this can be overwriten by the caller
 SRC = src
+STAMP = YES
 
 #source directory
 SSPKG=$(SPKG)/$(SRC)
-
-# src Makefile?
-SRCMAKE=$(wildcard $(SSPKG)/Makefile.win)
-SDYNLIB=$(SSPKG)/$(DLLNAME).dll
 
 LSOURCES=$(wildcard $(SSPKG)/*.c $(SSPKG)/*.f $(SSPKG)/*.cc \
 	$(SSPKG)/*.cpp $(SSPKG)/*.C)
 ifeq ($(strip $(LSOURCES)),)
   LOBJS=
+  DYNLIB=
 else
   LOBJS=$(foreach i, $(LSOURCES), $(basename $i).o)
+  DYNLIB=$(DPKG)/libs/$(DLLNAME).dll
 endif
 
 # data
@@ -54,222 +43,84 @@ else
   PKGRFILES=$(filter-out $(R1), $(PKGRFILES0)) $(RWIN32)
 endif
 
-# demos
-PKGDEMOS0=$(wildcard $(SPKG)/demo/*)
-PKGDEMOS=$(filter-out $(SPKG)/demo/CVS, $(PKGDEMOS0))
-
-# exec
-EXECFILES=$(filter-out $(SPKG)/exec/CVS, $(wildcard $(SPKG)/exec/*))
-
 # Others
-INSTFILES=$(filter-out $(SPKG)/inst/CVS, $(wildcard $(SPKG)/inst/*))
+OFILES0=$(wildcard $(SPKG)/*)
+OFILES1= DESCRIPTION INDEX TITLE
+OFILES-NO= R r chm data man src src-c Makefile.in inst check orig tests \
+	DESCRIPTION DESCRIPTION.in INDEX TITLE index title \
+	configure configure.in cleanup CVS cvs
+OFILES3=$(foreach i, $(OFILES1), $(SPKG)/$i)
+OFILES2=$(foreach i, $(OFILES-NO), $(SPKG)/$i)
+OFILES=$(filter-out $(OFILES2),$(OFILES0))
+INSTFILES=$(wildcard $(SPKG)/inst/*)
 
-all:  $(DPKG)/zzzz frontmatter nmspace Dynlib R $(DPKG)/demo \
-  $(DPKG)/exec $(DATA) mansrcs indices
+# src Makefile?
+SRCMAKE=$(wildcard $(SSPKG)/Makefile.win)
 
-fake: zzzfirst frontmatter nmspacefake R Rfake $(DPKG)/demo \
-  $(DPKG)/exec $(DATA) mansrcs indices
+all:  bare  $(DATA) $(DYNLIB)
+bare: $(DPKG)/zzzz $(DPKG)/R/$(PKG)
 
 include $(RHOME)/src/gnuwin32/MkRules
 
 clean:
 ifeq ($(strip $(SRCMAKE)),)
-	$(RM) $(SDYNLIB) $(LOBJS) $(SSPKG)/$(DLLNAME).a  $(SSPKG)/$(DLLNAME).def $(SSPKG)/$(DLLNAME)_res.* $(SSPKG)/*.d $(SSPKG)/Makedeps
+	$(RM) $(SSPKG)/$(DLLNAME).dll $(LOBJS)  $(SSPKG)/$(DLLNAME).a  $(SSPKG)/$(DLLNAME).def $(SSPKG)/$(DLLNAME)_res.*
 else
 	$(MAKE) -C $(SSPKG) RHOME=$(RHOME) -f Makefile.win clean
 endif
 	$(RM) -rf $(SPKG)/chm $(SPKG)/check
 
-## used to build skeletal versions of packages, enough to run
-## package tools to install them properly
-Rcode: Rcode0 Dynlib
-
-Rcode0:
-	@$(MKDIR) -p $(DPKG) $(DPKG)/R
-	@$(CAT) $(PKGRFILES) > $(DPKG)/R/$(PKG)
-	@if test -f ${SPKG}/NAMESPACE; then \
-	  $(CP) ${SPKG}/NAMESPACE $(DPKG)/NAMESPACE; \
-	fi
-	@(cat DESCRIPTION; $(ECHO); $(ECHO) "Built: R" $(RVER)\;  \;  `date`) \
-	  | $(SED) '/^\s*$$/d' > ${DPKG}/DESCRIPTION
+SEDP='/^[	 ]*$$/d;s/$(DLLNAME).so/$(DLLNAME).dll/'
 
 $(DPKG)/R/$(PKG): $(PKGRFILES)
 ifneq ($(strip $(PKGRFILES)),)
-	@$(ECHO) "  installing R files"
+	@echo "  installing R files"
 	@$(MKDIR) -p $(DPKG)/R
-ifeq ($(strip $(BUILD)),CROSS)
-	@$(ECHO) ".installPackageCodeFiles('"$(SPKG)"', '"$(DPKG)"')" \
-	  | R_DEFAULT_PACKAGES=tools $(R_EXE) --vanilla --slave > /dev/null
-else
-	@$(ECHO) ".installPackageCodeFiles('"$(SPKG)"', '"$(DPKG)"')" \
-	  | $(RHOME)/bin/rterm.exe --vanilla --slave \
-	    R_DEFAULT_PACKAGES=tools > /dev/null
-endif
-## install halts here if collater failed
-	@sh $(RHOME)/src/gnuwin32/install-save.sh $(SAVE) $(RLIB) $(PKG) $(RHOME)
+#	$(CAT) $(PKGRFILES) | $(SED) $(SEDP)  > $@
+	@$(CAT) $(PKGRFILES)   > $@
 else
 	@$(ECHO) "  no R files in this package"
 endif
 
-$(DPKG)/demo: $(PKGDEMOS)
-ifneq ($(strip $(PKGDEMOS)),)
-	@$(ECHO) "  installing demos"
-	@$(RM) -rf $@
-	@$(MKDIR) -p $@
-	@$(CP) $(PKGDEMOS)   $@
-endif
-
-$(DPKG)/exec: $(EXECFILES)
-ifneq ($(strip $(EXECFILES)),)
-	@$(ECHO) "  installing exec files"
-	@$(RM) -rf $@
-	@$(MKDIR) -p $@
-	@$(CP) $(EXECFILES)   $@
-endif
-
-
-$(DPKG)/zzzz: zzzfirst
-	@if test -f ${SPKG}/configure.win; then \
-	  sh ${SPKG}/configure.win; \
-	else if test -f ${SPKG}/configure; then \
-	    $(ECHO) ; \
-	    $(ECHO) "   **********************************************" ; \
-	    $(ECHO) "   WARNING: this package has a configure script" ; \
-	    $(ECHO) "         It probably needs manual configuration" ; \
-	    $(ECHO) "   **********************************************" ; \
-	    $(ECHO) ; \
-	  fi; \
+$(SPKG)/TITLE:
+	if [ ! -f $(SPKG)/TITLE -a -f $(SPKG)/DESCRIPTION ] ; then \
+	  perl $(RHOME)/share/perl/maketitle.pl $(SPKG)/DESCRIPTION > $@; \
 	fi
 
-zzzfirst:
-ifeq ($(SPKG0),$(DPKG0))
-	@$(ECHO)
-	@$(ECHO) "  *** cannot install a package into its source directory ***"
-	@$(ECHO)
-	@exit 111
-endif
-	@$(ECHO)
+# This fails if DESCRIPTION.. doesn't exist.
+# $(DPKG)/zzzz: $(OFILES3) $(OFILES)
+# On the other hand, ...zzzz is never created so
+$(DPKG)/zzzz: $(SPKG)/TITLE
 	@$(ECHO) "---------- Making package $(PKG) ------------"
-	@$(MKDIR) -p $(DPKG)
-
-
-frontmatter:
-	@$(MKDIR) -p $(DPKG)
-ifneq ($(strip $(INSTFILES)),)
-	@$(ECHO) "  installing inst files"
-	-@$(CP) -r inst/* $(DPKG)
-endif
-	@if test -f ${SPKG}/DESCRIPTION; then \
-	  $(ECHO) "  adding build stamp to DESCRIPTION"; \
-	else \
-	  $(ECHO) "A package must contain a DESCRIPTION file"; \
-	  exit 27; \
-	fi
-ifeq ($(strip $(BUILD)),CROSS)
-	@(cat DESCRIPTION; $(ECHO); $(ECHO) "Built: R" $(RVER)\;  Win32\;  `date`) \
-	  | $(SED) '/^\s*$$/d' > ${DPKG}/DESCRIPTION
+	$(MKDIR) -p $(DPKG)
+ifeq ($(strip $(INSTFILES)),)
+	-$(CP) -r  $(OFILES3) $(OFILES) $(DPKG)/
 else
-	@$(ECHO) ".installPackageDescription('.', '"$(DPKG)"')" | \
-	  $(RHOME)/bin/rterm.exe --vanilla --slave  R_DEFAULT_PACKAGES=tools> /dev/null
+	-$(CP) -r $(OFILES3) inst/* $(DPKG)/
 endif
-
-nmspace:
-	@if test -f ${SPKG}/NAMESPACE; then \
-	  $(ECHO) "  installing NAMESPACE file"; \
-	  $(CP) ${SPKG}/NAMESPACE $(DPKG)/NAMESPACE; \
-	fi
-nmspacefake:
-	@if test -f ${SPKG}/NAMESPACE; then \
-	  $(ECHO) "  installing NAMESPACE file"; \
-	  $(SED) -e '/useDynLib/d' ${SPKG}/NAMESPACE > $(DPKG)/NAMESPACE; \
-	fi
-
+ifeq ($(strip $(STAMP)),YES)
+	@echo "   adding build stamp to DESCRIPTION"
+	@echo  "cat('Built: R ', R.version[['major']], '.', R.version[['minor']], ';  Win32;  ', format(Sys.time()), sep='')" | $(RHOME)/bin/Rterm --slave >> ${DPKG}/DESCRIPTION
+endif
 
 $(DATA): $(DSOURCES)
-	@$(ECHO) "  installing data files"
-	@$(RM) -rf $(DATA)
+	@echo "  installing data files"
 	@$(MKDIR) -p $(DATA)
 	@$(CP) $^  $@
 
 
-Dynlib: srcDynlib
-	@if test -f $(SDYNLIB) ; then \
-	  $(ECHO) "  installing DLL" ; \
-	  $(MKDIR) -p $(DPKG)/libs ; \
-	  $(CP) $(SDYNLIB) $(DPKG)/libs ; \
-	fi
+$(DYNLIB): $(SSPKG)/$(DLLNAME).dll
+	$(MKDIR) -p $(DPKG)/libs
+	$(CP) $^ $@
 
-srcDynlib:
+$(SSPKG)/$(DLLNAME).dll: FORCE
+	@echo "  making DLL"
 ifeq ($(strip $(SRCMAKE)),)
-ifneq ($(strip $(LOBJS)),)
-	@$(ECHO) "  making DLL ..."
-	@$(MAKE) --no-print-directory -C $(SSPKG) RHOME=$(RHOME) \
+	@$(MAKE) -C $(SSPKG) RHOME=$(RHOME) \
 	  -f $(RHOME)/src/gnuwin32/MakeDll DLLNAME=$(DLLNAME)
-	@$(ECHO) "  ... DLL made"
-endif
 else
-	@$(ECHO) "  running src/Makefile.win ..."
-	@$(MAKE) --no-print-directory -C $(SSPKG) RHOME=$(RHOME) -f Makefile.win
-	@$(ECHO) "  ... done"
+	@$(MAKE) -C $(SSPKG) RHOME=$(RHOME) -f Makefile.win
 endif
 
-# R
-AA=$(wildcard R/Makefile.win)
-ifeq ($(AA),)
- R: $(DPKG)/R/$(PKG)
-else
- include R/Makefile.win
-endif
+FORCE:
 
-Rfake:
-	@if test -f $(SPKG)/NAMESPACE; then \
-	  echo ".onLoad <- function(list, pkg) NULL" >> $(DPKG)/R/$(PKG) ; \
-	else \
-	  echo ".First.lib <- function(lib, pkg) NULL" >> $(DPKG)/R/$(PKG) ;\
-	fi
-
-
-MANMAIN=$(wildcard $(SPKG)/man/*.[Rr]d)
-MANWIN32=$(wildcard $(SPKG)/man/windows/*.[Rr]d) 
-
-mansrcs: $(DPKG)/man/$(PKG).Rd
-
-PKGMANFILES=$(MANMAIN) $(MANWIN32)
-$(DPKG)/man/$(PKG).Rd: $(MANMAIN) $(MANWIN32)
-ifneq ($(strip $(PKGMANFILES)),)
-	@$(ECHO) "  installing man source files"
-	@$(RM) -rf $(DPKG)/man
-	@$(MKDIR) -p $(DPKG)/man
-	@for rdfile in $^; do \
-	  $(CAT) $${rdfile}; echo; echo '\eof'; \
-	done > $(DPKG)/man/$(PKG).Rd
-else
-	@$(ECHO) "  no man files in this package"
-endif
-
-indices:
-	@$(ECHO) "  installing indices"
-ifeq ($(strip $(BUILD)),CROSS)
-	@$(ECHO) ".installPackageIndices('.', '"$(DPKG)"')" | \
-	  R_DEFAULT_PACKAGES=tools $(R_EXE) --vanilla --slave > /dev/null
-else
-	@$(ECHO) ".installPackageIndices('.', '"$(DPKG)"')" | \
-	  $(RHOME)/bin/rterm.exe --vanilla --slave R_DEFAULT_PACKAGES=tools > /dev/null
-endif
-# need not have HTML installed when building packages
-	@$(MKDIR) -p $(RHOME)/doc/html/search
-	@$(CAT) $(RHOME)/library/*/CONTENTS > $(RHOME)/doc/html/search/index.txt	
-	@PERL5LIB=$(RHOME)/share/perl $(PERL) \
-	  $(RHOME)/share/perl/build-help-windows.pl -htmllists
-
-md5sums:
-ifneq ($(strip $(PKG)),base)
-	@$(ECHO) "  adding MD5 sums"
-ifeq ($(strip $(BUILD)),CROSS)
-	@$(ECHO) ".installMD5sums('"$(DPKG)"')" | \
-	  R_DEFAULT_PACKAGES=tools $(R_EXE) --vanilla --slave > /dev/null
-else
-	@$(ECHO) ".installMD5sums('"$(DPKG)"')" | \
-	  $(RHOME)/bin/rterm.exe --vanilla --slave R_DEFAULT_PACKAGES=tools > /dev/null
-endif
-endif

@@ -1,35 +1,17 @@
 \name{fligner.test}
 \alias{fligner.test}
-\alias{fligner.test.default}
-\alias{fligner.test.formula}
 \title{Fligner-Killeen Test for Homogeneity of Variances}
 \description{
   Performs a Fligner-Killeen (median) test of the null that the
   variances in each of the groups (samples) are the same.
 }
-\usage{
-fligner.test(x, \dots)
-
-\method{fligner.test}{default}(x, g, \dots)
-
-\method{fligner.test}{formula}(formula, data, subset, na.action, \dots)
-}
+\usage{fligner.test(x, g)}
 \arguments{
   \item{x}{a numeric vector of data values, or a list of numeric data
     vectors.}
   \item{g}{a vector or factor object giving the group for the
     corresponding elements of \code{x}.
     Ignored if \code{x} is a list.}
-  \item{formula}{a formula of the form \code{lhs ~ rhs} where \code{lhs}
-    gives the data values and \code{rhs} the corresponding groups.}
-  \item{data}{an optional data frame containing the variables in the
-    model formula.}
-  \item{subset}{an optional vector specifying a subset of observations
-    to be used.}
-  \item{na.action}{a function which indicates what should happen when
-    the data contain \code{NA}s.  Defaults to
-    \code{getOption("na.action")}.}
-  \item{\dots}{further arguments to be passed to or from methods.}  
 }
 \details{
   If \code{x} is a list, its elements are taken as the samples to be
@@ -76,9 +58,8 @@ fligner.test(x, \dots)
 \examples{
 % FIXME: could use something more interesting here
 data(InsectSprays)
-plot(count ~ spray, data = InsectSprays)
+plot(InsectSprays$count ~ InsectSprays$spray)
 fligner.test(InsectSprays$count, InsectSprays$spray)
-fligner.test(count ~ spray, data = InsectSprays)
 ## Compare this to bartlett.test()
 }
 \keyword{htest}

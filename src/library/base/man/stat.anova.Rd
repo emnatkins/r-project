@@ -1,7 +1,7 @@
 \name{stat.anova}
 \title{GLM Anova Statistics}
 \usage{
-stat.anova(table, test = c("Chisq", "F", "Cp"), scale, df.scale, n)
+stat.anova(table, test, scale, df.scale, n)
 }
 \alias{stat.anova}
 \arguments{
@@ -21,16 +21,10 @@ stat.anova(table, test = c("Chisq", "F", "Cp"), scale, df.scale, n)
   A matrix which is the original \code{table}, augmented by a column
   of test statistics, depending on the \code{test} argument.
 }
-\references{
-  Hastie, T. J. and Pregibon, D. (1992)
-  \emph{Generalized linear models.}
-  Chapter 6 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
-}
 \seealso{\code{\link{anova.lm}}, \code{\link{anova.glm}}.}
 \examples{
-##-- Continued from '?glm':
-\dontshow{example("glm", echo = FALSE)}
+##-- Continued from  ``?glm'':
+\testonly{example("glm", echo = FALSE)}
 print(ag <- anova(glm.D93))
 stat.anova(ag$table, test = "Cp",
            scale = sum(resid(glm.D93, "pearson")^2)/4, df = 4, n = 9)

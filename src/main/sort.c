@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2002   The R Development Core Team.
+ *  Copyright (C) 1998-2000   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,131 +24,67 @@
 
 #include <Defn.h> /* => Utils.h with the protos from here */
 #include <Rmath.h>
-
-#ifndef HAVE_STRCOLL
-#define strcoll strcmp
-#endif
-
 			/*--- Part I: Comparison Utilities ---*/
 
-static int icmp(int x, int y, Rboolean nalast)
+static int icmp(int x, int y)
 {
-    if (x == NA_INTEGER && y == NA_INTEGER) return 0;
-    if (x == NA_INTEGER)return nalast?1:-1;
-    if (y == NA_INTEGER)return nalast?-1:1;
+    if (x == NA_INTEGER)return 1;
+    if (y == NA_INTEGER)return -1;
     if (x < y)		return -1;
     if (x > y)		return 1;
     return 0;
 }
 
-static int rcmp(double x, double y, Rboolean nalast)
+static int rcmp(double x, double y)
 {
-    int nax = ISNAN(x), nay = ISNAN(y);
-    if (nax && nay)	return 0;
-    if (nax)		return nalast?1:-1;
-    if (nay)		return nalast?-1:1;
+    if (ISNAN(x))	return 1;
+    if (ISNAN(y))	return -1;
     if (x < y)		return -1;
     if (x > y)		return 1;
     return 0;
 }
 
-static int ccmp(Rcomplex x, Rcomplex y, Rboolean nalast)
+static int ccmp(Rcomplex x, Rcomplex y)
 {
-    int nax = ISNAN(x.r), nay = ISNAN(y.r);
 				/* compare real parts */
-    if (nax && nay)	return 0;
-    if (nax)		return nalast?1:-1;
-    if (nay)		return nalast?-1:1;
+    if (ISNAN(x.r))	return 1;
+    if (ISNAN(y.r))	return -1;
     if (x.r < y.r)	return -1;
     if (x.r > y.r)	return 1;
 				/* compare complex parts */
-    nax = ISNAN(x.i); nay = ISNAN(y.i);
-    if (nax && nay)	return 0;
-    if (nax)		return nalast?1:-1;
-    if (nay)		return nalast?-1:1;
+    if (ISNAN(x.i))	return 1;
+    if (ISNAN(y.i))	return -1;
     if (x.i < y.i)	return -1;
     if (x.i > y.i)	return 1;
 
     return 0;		/* equal */
 }
 
-static int scmp(SEXP x, SEXP y, Rboolean nalast)
+static int scmp(SEXP x, SEXP y)
 {
-    if (x == NA_STRING && y == NA_STRING) return 0;
-    if (x == NA_STRING) return nalast?1:-1;
-    if (y == NA_STRING) return nalast?-1:1;
+#ifdef HAVE_STRCOLL
     return strcoll(CHAR(x), CHAR(y));
+#else
+    return strcmp(CHAR(x), CHAR(y));
+#endif
 }
-
-Rboolean isUnsorted(SEXP x)
-{
-    int n, i;
-
-    if (!isVectorAtomic(x))
-	error("only atomic vectors can be tested to be sorted");
-    n = LENGTH(x);
-    if(n >= 2)
-	switch (TYPEOF(x)) {
-
-	    /* NOTE: x must have no NAs {is.na(.) in R};
-	       hence be faster than `rcmp()', `icmp()' for these two cases */
-
-	case LGLSXP:
-	case INTSXP:
-	    for(i = 0; i+1 < n ; i++)
-		if(INTEGER(x)[i] > INTEGER(x)[i+1])
-		    return TRUE;
-	    break;
-	case REALSXP:
-	    for(i = 0; i+1 < n ; i++)
-		if(REAL(x)[i] > REAL(x)[i+1])
-		    return TRUE;
-	    break;
-	case CPLXSXP:
-	    for(i = 0; i+1 < n ; i++)
-		if(ccmp(COMPLEX(x)[i], COMPLEX(x)[i+1], TRUE) > 0)
-		    return TRUE;
-	    break;
-	case STRSXP:
-	    for(i = 0; i+1 < n ; i++)
-		if(scmp(STRING_ELT(x, i ),
-			STRING_ELT(x,i+1), TRUE) > 0)
-		    return TRUE;
-	    break;
-	default:
-	    error("unknown atomic type in isUnsorted() -- should not happen");
-	}
-    return FALSE;/* sorted */
-}
-
-SEXP do_isunsorted(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP ans;
-
-    checkArity(op, args);
-    ans = allocVector(LGLSXP, 1);
-    LOGICAL(ans)[0] = isUnsorted(CAR(args));
-    return ans;
-}
-
 
 			/*--- Part II: Complete (non-partial) Sorting ---*/
 
 
-/* SHELLsort -- corrected from R. Sedgewick `Algorithms in C'
+/* SHELLsort -- corrected from R. Sedgewick `Algorithms in C' 
  *		(version of BDR's lqs():*/
-#define sort_body					\
-    Rboolean nalast=TRUE;				\
-    int i, j, h;					\
-							\
-    for (h = 1; h <= n / 9; h = 3 * h + 1);		\
-    for (; h > 0; h /= 3)				\
-	for (i = h; i < n; i++) {			\
-	    v = x[i];					\
-	    j = i;					\
-	    while (j >= h && TYPE_CMP(x[j - h], v, nalast) > 0)	\
-		 { x[j] = x[j - h]; j -= h; }		\
-	    x[j] = v;					\
+#define sort_body \
+    int i, j, h;\
+\
+    for (h = 1; h <= n / 9; h = 3 * h + 1);\
+    for (; h > 0; h /= 3)\
+	for (i = h; i < n; i++) {\
+	    v = x[i];\
+	    j = i;\
+	    while (j >= h && TYPE_CMP(x[j - h], v) > 0)\
+		 { x[j] = x[j - h]; j -= h; }\
+	    x[j] = v;\
 	}
 
 void R_isort(int *x, int n)
@@ -194,7 +130,7 @@ void rsort_with_index(double *x, int *indx, int n)
 	for (i = h; i < n; i++) {
 	    v = x[i]; iv = indx[i];
 	    j = i;
-	    while (j >= h && rcmp(x[j - h], v, TRUE) > 0)
+	    while (j >= h && rcmp(x[j - h], v) > 0)
 		 { x[j] = x[j - h]; indx[j] = indx[j-h]; j -= h; }
 	    x[j] = v; indx[j] = iv;
 	}
@@ -219,12 +155,12 @@ void revsort(double *a, int *ib, int n)
     ir = n;
 
     for (;;) {
-	if (l > 1) {
+        if (l > 1) {
 	    l = l - 1;
 	    ra = a[l];
 	    ii = ib[l];
-	}
-	else {
+        }
+        else {
 	    ra = a[ir];
 	    ii = ib[ir];
 	    a[ir] = a[1];
@@ -234,10 +170,10 @@ void revsort(double *a, int *ib, int n)
 		ib[1] = ii;
 		return;
 	    }
-	}
-	i = l;
-	j = l << 1;
-	while (j <= ir) {
+        }
+        i = l;
+        j = l << 1;
+        while (j <= ir) {
 	    if (j < ir && a[j] > a[j + 1]) ++j;
 	    if (ra > a[j]) {
 		a[i] = a[j];
@@ -246,168 +182,66 @@ void revsort(double *a, int *ib, int n)
 	    }
 	    else
 		j = ir + 1;
-	}
-	a[i] = ra;
-	ib[i] = ii;
+        }
+        a[i] = ra;
+        ib[i] = ii;
     }
 }
 
+void sortVector(SEXP s)
+{
+    int n;
+
+    n = LENGTH(s);
+    if (n >= 2)
+	switch (TYPEOF(s)) {
+	case LGLSXP:
+	case INTSXP:
+	    R_isort(INTEGER(s), n);
+	    break;
+	case REALSXP:
+	    R_rsort(REAL(s), n);
+	    break;
+	case CPLXSXP:
+	    R_csort(COMPLEX(s), n);
+	    break;
+	case STRSXP:
+	    ssort(STRING_PTR(s), n);
+	    break;
+	}
+}
 
 SEXP do_sort(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans;
-    Rboolean decreasing;
 
     checkArity(op, args);
 
-    decreasing = asLogical(CADR(args));
-    if(decreasing == NA_LOGICAL)
-	error("`decreasing' must be TRUE or FALSE");
-    if(CAR(args) == R_NilValue) return R_NilValue;
-    if(!isVectorAtomic(CAR(args)))
-	errorcall(call, "only atomic vectors can be sorted");
-    if (decreasing || isUnsorted(CAR(args))) { /* do not duplicate if sorted */
-	ans = duplicate(CAR(args));
-	sortVector(ans, decreasing);
-	return(ans);
-    }
-    else return(CAR(args));
+    if (!isVector(CAR(args)))
+	errorcall(call, "only vectors can be sorted");
+    ans = duplicate(CAR(args));
+    sortVector(ans);
+    return ans;
 }
-
-/* faster versions of shellsort, following Sedgewick (1986) */
-
-static const int incs[16] = {1073790977, 268460033, 67121153, 16783361, 4197377,
-		       1050113, 262913, 65921, 16577, 4193, 1073, 281, 77, 
-		       23, 8, 1};
-
-#define sort2_body \
-    for (h = incs[t]; t < 16; h = incs[++t]) \
-	for (i = h; i < n; i++) { \
-	    v = x[i]; \
-	    j = i; \
-	    while (j >= h && x[j - h] less v) { x[j] = x[j - h]; j -= h; } \
-	    x[j] = v; \
-	}
-
-
-static void R_isort2(int *x, int n, Rboolean decreasing)
-{
-    int v;
-    int i, j, h, t;
-
-    for (t = 0; incs[t] > n; t++);
-    if(decreasing)
-#define less <
-	sort2_body
-#undef less
-    else
-#define less >
-	sort2_body
-#undef less
-}
-
-static void R_rsort2(double *x, int n, Rboolean decreasing)
-{
-    double v;
-    int i, j, h, t;
-
-    for (t = 0; incs[t] > n; t++);
-    if(decreasing)
-#define less <
-	sort2_body
-#undef less
-    else
-#define less >
-	sort2_body
-#undef less
-}
-
-static void R_csort2(Rcomplex *x, int n, Rboolean decreasing)
-{
-    Rcomplex v;
-    int i, j, h, t;
-
-    for (t = 0; incs[t] > n; t++);
-    for (h = incs[t]; t < 16; h = incs[++t])
-	for (i = h; i < n; i++) {
-	    v = x[i];
-	    j = i;
-	    if(decreasing)
-		while (j >= h && (x[j - h].r < v.r ||
-				  (x[j - h].r == v.r && x[j - h].i < v.i)))
-		{ x[j] = x[j - h]; j -= h; }
-	    else
-		while (j >= h && (x[j - h].r > v.r ||
-				  (x[j - h].r == v.r && x[j - h].i > v.i)))
-		{ x[j] = x[j - h]; j -= h; }
-	    x[j] = v;
-	}
-}
-
-void ssort2(SEXP *x, int n, Rboolean decreasing)
-{
-    SEXP v;
-    int i, j, h, t;
-
-    for (t = 0; incs[t] > n; t++);
-    for (h = incs[t]; t < 16; h = incs[++t])
-	for (i = h; i < n; i++) {
-	    v = x[i];
-	    j = i;
-	    if(decreasing)
-		while (j >= h && scmp(x[j - h], v, TRUE) < 0)
-		{ x[j] = x[j - h]; j -= h; }
-	    else
-		while (j >= h && scmp(x[j - h], v, TRUE) > 0)
-		{ x[j] = x[j - h]; j -= h; }
-	    x[j] = v;
-	}
-}
-
-void sortVector(SEXP s, Rboolean decreasing)
-{
-    int n = LENGTH(s);
-    if (n >= 2 && (decreasing || isUnsorted(s)))
-	switch (TYPEOF(s)) {
-	case LGLSXP:
-	case INTSXP:
-	    R_isort2(INTEGER(s), n, decreasing);
-	    break;
-	case REALSXP:
-	    R_rsort2(REAL(s), n, decreasing);
-	    break;
-	case CPLXSXP:
-	    R_csort2(COMPLEX(s), n, decreasing);
-	    break;
-	case STRSXP:
-	    ssort2(STRING_PTR(s), n, decreasing);
-	    break;
-	}
-}
-
 
 			/*--- Part III: Partial Sorting ---*/
 
-/*
+/* 
    Partial sort so that x[k] is in the correct place, smaller to left,
    larger to right
-
-   NOTA BENE:  k < n  required, and *not* checked here but in do_psort();
-	       -----  infinite loop possible otherwise!
  */
-#define psort_body						\
-    Rboolean nalast=TRUE;					\
-    int L, R, i, j;						\
-								\
-    for (L = 0, R = n - 1; L < R; ) {				\
-	v = x[k];						\
-	for(i = L, j = R; i <= j;) {				\
-	    while (TYPE_CMP(x[i], v, nalast) < 0) i++;			\
-	    while (TYPE_CMP(v, x[j], nalast) < 0) j--;			\
+#define psort_body \
+    int L, R, i, j;\
+\
+    for (L = 0, R = n - 1; L < R; ) {\
+	v = x[k];\
+	for(i = L, j = R; i <= j;) {\
+	    while (TYPE_CMP(x[i], v) < 0) i++;\
+	    while (TYPE_CMP(v, x[j]) < 0) j--;\
 	    if (i <= j) { w = x[i]; x[i++] = x[j]; x[j--] = w; }\
-	}							\
-	if (j < k) L = i;					\
-	if (k < i) R = j;					\
+	}\
+	if (j < k) L = i;\
+	if (k < i) R = j;\
     }
 
 
@@ -491,23 +325,23 @@ SEXP do_psort(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 			/*--- Part IV : Rank & Order ---*/
 
-static int equal(int i, int j, SEXP x, Rboolean nalast)
+static int equal(int i, int j, SEXP x)
 {
     int c=-1;
 
     switch (TYPEOF(x)) {
     case LGLSXP:
     case INTSXP:
-	c = icmp(INTEGER(x)[i], INTEGER(x)[j], nalast);
+	c = icmp(INTEGER(x)[i], INTEGER(x)[j]);
 	break;
     case REALSXP:
-	c = rcmp(REAL(x)[i], REAL(x)[j], nalast);
+	c = rcmp(REAL(x)[i], REAL(x)[j]);
 	break;
     case CPLXSXP:
-	c = ccmp(COMPLEX(x)[i], COMPLEX(x)[j], nalast);
+	c = ccmp(COMPLEX(x)[i], COMPLEX(x)[j]);
 	break;
     case STRSXP:
-	c = scmp(STRING_ELT(x, i), STRING_ELT(x, j), nalast);
+	c = scmp(STRING_ELT(x, i), STRING_ELT(x, j));
 	break;
     }
     if (c == 0)
@@ -515,212 +349,115 @@ static int equal(int i, int j, SEXP x, Rboolean nalast)
     return 0;
 }
 
-static int greater(int i, int j, SEXP x, Rboolean nalast, Rboolean decreasing)
+static int greater(int i, int j, SEXP x)
 {
-    int c = -1;
+    int c=-1;
 
     switch (TYPEOF(x)) {
     case LGLSXP:
     case INTSXP:
-	c = icmp(INTEGER(x)[i], INTEGER(x)[j], nalast);
+	c = icmp(INTEGER(x)[i], INTEGER(x)[j]);
 	break;
     case REALSXP:
-	c = rcmp(REAL(x)[i], REAL(x)[j], nalast);
+	c = rcmp(REAL(x)[i], REAL(x)[j]);
 	break;
     case CPLXSXP:
-	c = ccmp(COMPLEX(x)[i], COMPLEX(x)[j], nalast);
+	c = ccmp(COMPLEX(x)[i], COMPLEX(x)[j]);
 	break;
     case STRSXP:
-	c = scmp(STRING_ELT(x, i), STRING_ELT(x, j), nalast);
+	c = scmp(STRING_ELT(x, i), STRING_ELT(x, j));
 	break;
     }
-    if (decreasing) c = -c;
-    if (c > 0 || (c == 0 && j < i)) return 1; else return 0;
+    if (c > 0)
+	return 1;
+    return 0;
 }
 
-/* listgreater(): used as greater_sub in orderVector() in do_order(...) */
-static int listgreater(int i, int j, SEXP key, Rboolean nalast,
-		       Rboolean decreasing)
+static int listgreater(int i, int j, SEXP key)
 {
     SEXP x;
-    int c = -1;
+    int c=-1;
 
     while (key != R_NilValue) {
 	x = CAR(key);
 	switch (TYPEOF(x)) {
 	case LGLSXP:
 	case INTSXP:
-	    c = icmp(INTEGER(x)[i], INTEGER(x)[j], nalast);
+	    c = icmp(INTEGER(x)[i], INTEGER(x)[j]);
 	    break;
 	case REALSXP:
-	    c = rcmp(REAL(x)[i], REAL(x)[j], nalast);
+	    c = rcmp(REAL(x)[i], REAL(x)[j]);
 	    break;
 	case CPLXSXP:
-	    c = ccmp(COMPLEX(x)[i], COMPLEX(x)[j], nalast);
+	    c = ccmp(COMPLEX(x)[i], COMPLEX(x)[j]);
 	    break;
 	case STRSXP:
-	    c = scmp(STRING_ELT(x, i), STRING_ELT(x, j), nalast);
+	    c = scmp(STRING_ELT(x, i), STRING_ELT(x, j));
 	    break;
 	}
-	if (decreasing) c = -c;
 	if (c > 0)
 	    return 1;
 	if (c < 0)
 	    return 0;
 	key = CDR(key);
     }
-    if (c == 0 && i < j) return 0; else return 1;
+    if (c==0 && i<j)
+	return 0;
+    return 1;
 }
 
-static void orderVector(int *indx, int n, SEXP key, Rboolean nalast,
-			Rboolean decreasing, int greater_sub())
+static void orderVector(int *indx, int n, SEXP key, int greater_sub())
 {
-    int i, j, h, t;
+    int i, j, h;
     int itmp;
 
-    for (t = 0; incs[t] > n; t++);
-    for (h = incs[t]; t < 16; h = incs[++t])
+    h = 1;
+    do {
+	h = 3 * h + 1;
+    } while (h <= n);
+
+    do {
+	h = h / 3;
 	for (i = h; i < n; i++) {
 	    itmp = indx[i];
 	    j = i;
-	    while (j >= h &&
-		   greater_sub(indx[j - h], itmp, key, nalast^decreasing,
-			       decreasing)) {
+	    while (greater_sub(indx[j - h], itmp, key)) {
 		indx[j] = indx[j - h];
-		j -= h;
+		j = j - h;
+		if (j < h)
+		    goto next_h;
 	    }
-	    indx[j] = itmp;
+	next_h:	indx[j] = itmp;
 	}
-}
-
-#define sort2_with_index \
-            for (h = incs[t]; t < 16; h = incs[++t]) \
-		for (i = lo + h; i <= hi; i++) { \
-		    itmp = indx[i]; \
-		    j = i; \
-		    while (j >= h && less(indx[j - h], itmp)) { \
-			indx[j] = indx[j - h]; j -= h; } \
-		    indx[j] = itmp; \
-		}
-
-
-static void orderVector1(int *indx, int n, SEXP key, Rboolean nalast,
-			 Rboolean decreasing)
-{
-    int c, i, j, h, t, lo = 0, hi = n-1;
-    int itmp, *isna, numna = 0;
-    int *ix = INTEGER(key);
-    double *x = REAL(key);
-    SEXP *sx = STRING_PTR(key);
-
-    /* First sort NAs to one end */
-    isna = (int *) malloc(n * sizeof(int));
-    switch (TYPEOF(key)) {
-    case LGLSXP:
-    case INTSXP:
-	for (i = 0; i < n; i++) isna[i] = (ix[i] == NA_INTEGER);
-	break;
-    case REALSXP:
-	for (i = 0; i < n; i++) isna[i] = ISNAN(x[i]);
-	break;
-    case STRSXP:
-	for (i = 0; i < n; i++) isna[i] = (sx[i] == NA_STRING);
-	break;
     }
-    for (i = 0; i < n; i++) numna += isna[i];
-
-    if(numna)
-	switch (TYPEOF(key)) {
-	case LGLSXP:
-	case INTSXP:
-	case REALSXP:
-    case STRSXP:
-	    if (!nalast) for (i = 0; i < n; i++) isna[i] = !isna[i];
-	    for (t = 0; incs[t] > n; t++);
-#define less(a, b) (isna[a] > isna[b] || (isna[a] == isna[b] && a > b))
-	    sort2_with_index
-#undef less
-	    if(nalast) hi -= numna; else lo += numna;
-	}
-
-    /* Shell sort isn't stable, so add test on index */
-    for (t = 0; incs[t] > hi-lo+1; t++);
-    switch (TYPEOF(key)) {
-    case LGLSXP:
-    case INTSXP:
-	if (decreasing) {
-#define less(a, b) (ix[a] < ix[b] || (ix[a] == ix[b] && a > b))
-	    sort2_with_index
-#undef less
-        } else {
-#define less(a, b) (ix[a] > ix[b] || (ix[a] == ix[b] && a > b))
-	    sort2_with_index
-#undef less
-        }
-	break;
-    case REALSXP:
-	if (decreasing) {
-#define less(a, b) (x[a] < x[b] || (x[a] == x[b] && a > b))
-	    sort2_with_index
-#undef less
-        } else {
-#define less(a, b) (x[a] > x[b] || (x[a] == x[b] && a > b))
-	    sort2_with_index
-#undef less
-        }
-	break;
-    case STRSXP:
-	if (decreasing)
-#define less(a, b) (c=strcoll(CHAR(sx[a]),CHAR(sx[b])), c < 0 || (c == 0 && a > b))
-	    sort2_with_index
-#undef less
-        else
-#define less(a, b) (c=strcoll(CHAR(sx[a]),CHAR(sx[b])), c > 0 || (c == 0 && a > b))
-	    sort2_with_index
-#undef less
-	break;
-    default:
-#define less(a, b) greater(a, b, key, nalast^decreasing, decreasing)
-	sort2_with_index
-#undef less
-    }
-    free(isna);
+    while (h != 1);
 }
 
 /* FUNCTION order(...) */
 SEXP do_order(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ap, ans;
-    int i, n = -1, narg = 0;
-    Rboolean nalast, decreasing;
+    int i, n, narg = 0;
 
-    nalast = asLogical(CAR(args));
-    if(nalast == NA_LOGICAL)
-	error("`na.last' is invalid");
-    args = CDR(args);
-    decreasing = asLogical(CAR(args));
-    if(decreasing == NA_LOGICAL)
-	error("`decreasing' must be TRUE or FALSE");
-    args = CDR(args);
     if (args == R_NilValue)
 	return R_NilValue;
 
     if (isVector(CAR(args)))
 	n = LENGTH(CAR(args));
-    for (ap = args; ap != R_NilValue; ap = CDR(ap), narg++) {
+    else    n = -1; /* for -Wall;  will have error below */
+    for (ap = args; ap != R_NilValue; ap = CDR(ap)) {
 	if (!isVector(CAR(ap)))
-	    errorcall(call, "Argument %d is not a vector", narg + 1);
+	    errorcall(call, "Argument %d is not a vector", ++narg);
 	if (LENGTH(CAR(ap)) != n)
 	    errorcall(call, "Argument lengths differ");
     }
     ans = allocVector(INTSXP, n);
     if (n != 0) {
-	for (i = 0; i < n; i++) INTEGER(ans)[i] = i;
-	if(narg == 1)
-	    orderVector1(INTEGER(ans), n, CAR(args), nalast, decreasing);
-	else
-	    orderVector(INTEGER(ans), n, args, nalast, decreasing, listgreater);
-	for (i = 0; i < n; i++) INTEGER(ans)[i]++;
+	for (i = 0; i < n; i++)
+	    INTEGER(ans)[i] = i;
+	orderVector(INTEGER(ans), n, args, listgreater);
+	for (i = 0; i < n; i++)
+	    INTEGER(ans)[i] += 1;
     }
     return ans;
 }
@@ -748,11 +485,11 @@ SEXP do_rank(SEXP call, SEXP op, SEXP args, SEXP rho)
 	rk = REAL(rank);
 	for (i = 0; i < n; i++)
 	    in[i] = i;
-	orderVector1(in, n, x, TRUE, FALSE);
+	orderVector(in, n, x, greater);
 	i = 0;
 	while (i < n) {
 	    j = i;
-	    while ((j < n - 1) && equal(in[j], in[j + 1], x, TRUE))
+	    while ((j < n - 1) && equal(in[j], in[j + 1], x))
 		j++;
 	    if (i != j) {
 		for (k = i; k <= j; k++)
@@ -764,67 +501,4 @@ SEXP do_rank(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
     }
     return rank;
-}
-
-#include <R_ext/RS.h>
-
-SEXP do_radixsort(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP x, ans;
-    Rboolean nalast, decreasing;
-    unsigned int *cnts;
-    int i, n, tmp, xmax = NA_INTEGER, xmin = NA_INTEGER, off, napos;
-
-    checkArity(op, args);
-
-    x = CAR(args);
-    nalast = asLogical(CADR(args));
-    if(nalast == NA_LOGICAL)
-	error("`na.last' is invalid");
-    decreasing = asLogical(CADDR(args));
-    if(decreasing == NA_LOGICAL)
-	error("`decreasing' must be TRUE or FALSE");
-    off = nalast^decreasing ? 0 : 1;
-    n = LENGTH(x);
-    PROTECT(ans = allocVector(INTSXP, n));
-    for(i = 0; i < n; i++) {
-	tmp = INTEGER(x)[i];
-	if(tmp == NA_INTEGER) continue;
-	if(tmp < 0) errorcall(call, "negative value in x");
-	if(xmax == NA_INTEGER || tmp > xmax) xmax = tmp;
-	if(xmin == NA_INTEGER || tmp < xmin) xmin = tmp;
-    }
-    if(xmin == NA_INTEGER) {  /* all NAs, so nothing to do */
-	for(i = 0; i < n; i++) INTEGER(ans)[i] = i+1;
-	UNPROTECT(1);
-	return ans;
-    }
-
-    xmax -= xmin;
-    if(xmax > 100000) errorcall(call, "too large a range of values in x");
-    napos = off ? 0 : xmax + 1;
-    off -= xmin;
-    cnts = Calloc(xmax+1, unsigned int);
-
-    for(i = 0; i <= xmax+1; i++) cnts[i] = 0;
-    for(i = 0; i < n; i++) {
-	if(INTEGER(x)[i] == NA_INTEGER) cnts[napos]++;
-	else cnts[off+INTEGER(x)[i]]++;
-    }
-    
-    for(i = 1; i <= xmax+1; i++) cnts[i] += cnts[i-1];
-    if(decreasing)
-	for(i = 0; i < n; i++){
-	    tmp = INTEGER(x)[i];
-	    INTEGER(ans)[n-(cnts[(tmp==NA_INTEGER) ? napos : off+tmp]--)] = i+1;
-	}
-    else
-	for(i = n-1; i >= 0; i--) {
-	    tmp = INTEGER(x)[i];
-	    INTEGER(ans)[--cnts[(tmp==NA_INTEGER) ? napos : off+tmp]] = i+1;
-	}
-
-    Free(cnts);
-    UNPROTECT(1);
-    return ans;
 }

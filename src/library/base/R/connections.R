@@ -24,14 +24,15 @@ writeLines <- function(text, con = stdout(), sep = "\n")
 open <- function(con, ...)
     UseMethod("open")
 
-open.connection <- function(con, open = "r", blocking = TRUE, ...)
+open.connection <- function(con, open = "r", blocking = TRUE)
 {
+    if(!inherits(con, "connection")) stop("argument is not a connection")
     invisible(.Internal(open(con, open, blocking)))
 }
 
 isOpen <- function(con, rw = "")
 {
-    rw <- pmatch(rw, c("read", "write"), 0)
+    if(!inherits(con, "connection")) stop("argument is not a connection")
     .Internal(isOpen(con, rw))
 }
 
@@ -44,71 +45,26 @@ isSeekable <- function(con)
 close <- function(con, ...)
     UseMethod("close")
 
-close.connection <- function (con, type = "rw", ...)
+close.connection <- function (con, type = "rw")
+{
+    if(!inherits(con, "connection")) stop("argument is not a connection")
     invisible(.Internal(close(con, type)))
-
-flush <- function(con) UseMethod("flush")
-
-flush.connection <- function (con)
-    invisible(.Internal(flush(con)))
-
-file <- function(description = "", open = "", blocking = TRUE,
-                 encoding = getOption("encoding"))
-    .Internal(file(description, open, blocking, encoding))
-
-pipe <- function(description, open = "", encoding = getOption("encoding"))
-    .Internal(pipe(description, open, encoding))
-
-fifo <- function(description = "", open = "", blocking = FALSE,
-                 encoding = getOption("encoding"))
-    .Internal(fifo(description, open, blocking, encoding))
-
-url <- function(description, open = "", blocking = TRUE,
-                encoding = getOption("encoding"))
-    .Internal(url(description, open, blocking, encoding))
-
-gzfile <- function(description, open = "",
-                   encoding = getOption("encoding"), compression = 6)
-    .Internal(gzfile(description, open, encoding, compression))
-
-unz <- function(description, filename, open = "",
-                encoding = getOption("encoding"))
-    .Internal(unz(paste(description, filename, sep=":"), open, encoding))
-
-bzfile <- function(description, open = "", encoding = getOption("encoding"))
-    .Internal(bzfile(description, open, encoding))
-
-socketConnection <- function(host= "localhost", port, server = FALSE,
-                             blocking = FALSE, open = "a+",
-                             encoding = getOption("encoding"))
-    .Internal(socketConnection(host, port, server, blocking, open, encoding))
-
-textConnection <- function(object, open = "r", local = FALSE) {
-    if (local) env <- parent.frame()
-    else env <- .GlobalEnv
-    .Internal(textConnection(deparse(substitute(object)), object, open, env))
 }
+
+file <- function(description, open = "", blocking = TRUE)
+    .Internal(file(description, open, blocking))
+
+pipe <- function(description, open = "")
+    .Internal(pipe(description, open))
+
+textConnection <- function(object, open = "r")
+    .Internal(textConnection(deparse(substitute(object)), object, open))
 
 seek <- function(con, ...)
     UseMethod("seek")
 
-seek.connection <- function(con, where = NA, origin = "start", rw = "", ...)
-{
-    origin <- pmatch(origin, c("start", "current", "end"))
-    rw <- pmatch(rw, c("read", "write"), 0)
-    if(is.na(origin))
-        stop("`origin' must be one of `start', `current` or `end'")
-    .Internal(seek(con, as.integer(where), origin, rw))
-}
-
-truncate <- function(con, ...)
-    UseMethod("truncate")
-
-truncate.connection <- function(con, ...)
-{
-    if(!isOpen(con)) stop("can only truncate an open connection")
-    .Internal(truncate(con))
-}
+seek.connection <- function(con, where = NA, rw = "")
+    .Internal(seek(con, as.integer(where), rw))
 
 pushBack <- function(data, connection, newLine = TRUE)
     invisible(.Internal(pushBack(data, connection, newLine)))
@@ -150,32 +106,22 @@ getConnection <- function(what)
 
 closeAllConnections <- function()
 {
-    # first re-divert any diversion of stderr.
-    i <- sink.number(type = "message")
-    if(i > 0) sink(stderr(), type = "message")
-    # now unwind the sink diversion stack.
-    n <- sink.number()
-    if(n > 0) for(i in 1:n) sink()
-    # get all the open connections.
+    sink() # might be on a user connection
     set <- getAllConnections()
     set <- set[set > 2]
-    # and close all user connections.
-    for(i in seq(along=set)) close(getConnection(set[i]))
+    for(i in seq(along=set)) close(set[i])
     invisible()
 }
 
-readBin <- function(con, what, n = 1, size = NA, signed = TRUE,
-                    endian = .Platform$endian)
+readBin <- function(con, what, n = 1, size = NA, endian = .Platform$endian)
 {
     if(is.character(con)) {
         con <- file(con, "rb")
         on.exit(close(con))
     }
     swap <- endian != .Platform$endian
-    if(!is.character(what) || length(what) != 1 
-    	|| !(what %in% c("numeric", "double", "integer",
-    		"int", "logical", "complex", "character"))) what <- typeof(what)
-    .Internal(readBin(con, what, n, size, signed, swap))
+    if(!is.character(what) || length(what) != 1) what <- typeof(what)
+    .Internal(readBin(con, what, n, size, swap))
 }
 
 writeBin <- function(object, con, size = NA, endian = .Platform$endian)
@@ -188,41 +134,4 @@ writeBin <- function(object, con, size = NA, endian = .Platform$endian)
         on.exit(close(con))
     }
     invisible(.Internal(writeBin(object, con, size, swap)))
-}
-
-## encoding vectors
-native.enc <- 0:255
-# rest in Rprofile.*
-
-readChar <- function(con, nchars)
-{
-    if(is.character(con)) {
-        con <- file(con, "rb")
-        on.exit(close(con))
-    }
-    .Internal(readChar(con, as.integer(nchars)))
-}
-
-writeChar <- function(object, con, nchars = nchar(object), eos = "")
-{
-    if(!is.character(object))
-        stop("can only write character objects")
-    if(is.character(con)) {
-        con <- file(con, "wb")
-        on.exit(close(con))
-    }
-    invisible(.Internal(writeChar(object, con, as.integer(nchars), eos)))
-}
-
-gzcon <- function(con, level = 6, allowNonCompressed = TRUE)
-    .Internal(gzcon(con, level, allowNonCompressed))
-
-socketSelect <- function(socklist, write = FALSE, timeout = NULL) {
-    if (is.null(timeout))
-        timeout <- -1
-    else if (timeout < 0)
-        stop("supplied timeout must be NULL or a non-negative number")
-    if (length(write) < length(socklist))
-        write <- rep(write, length.out = length(socklist))
-    .Internal(sockSelect(socklist, write, timeout))
 }

@@ -13,16 +13,14 @@
 dyn.load(x, local = TRUE, now = TRUE)
 dyn.unload(x)
 
-is.loaded(symbol, PACKAGE="")
+is.loaded(symbol)
 symbol.C(name)
 symbol.For(name)
 }
 \arguments{
-  \item{x}{a character string giving the pathname to a shared library or
-    DLL.}
+  \item{x}{a character string giving the pathname to a DLL.}
   \item{local}{a logical value controlling whether the symbols in the
-    shared library are stored in their own local table and not shared
-    across shared libraries,
+    DLL are stored in their own local table and not shared across DLLs,
     or added to the global symbol table.  Whether this has any effect is
     system-dependent.
 #ifdef windows
@@ -39,32 +37,11 @@ symbol.For(name)
 #endif
   }
   \item{symbol}{a character string giving a symbol name.}
-  \item{PACKAGE}{if supplied, confine the search for the \code{name} to
-    the DLL given by this argument (plus the conventional extension,
-    \code{.so}, \code{.sl}, \code{.dll}, \dots).  This is intended to
-    add safety for packages, which can ensure by using this argument
-    that no other package can override their external symbols.  Use
-    \code{PACKAGE="base"} for symbols linked in to \R.  This is used in the
-    same way as in \code{\link{.C}}, \code{\link{.Call}},
-    \code{\link{.Fortran}} and \code{\link{.External}} functions}
   \item{name}{a character string giving either the name of a C function
     or Fortran subroutine.  Fortran names probably need to be given
     entirely in lower case (but this may be system-dependent).}
 }
 \details{
-  See
-#ifdef windows
-  file \file{readme.packages},
-#endif
-  \sQuote{See Also} and the \emph{Writing R Extensions} manual for how to
-  create a suitable shared library.  Note that unlike some versions of
-  S-PLUS, \code{dyn.load} does not load an object (\code{.o}) file but a
-  shared library or DLL.
-
-  Unfortunately a very few platforms (Compaq Tru64) do not handle the
-  \code{PACKAGE} argument correctly, and may incorrectly find symbols
-  linked into \R.
-  
   The additional arguments to \code{dyn.load} mirror the different
   aspects of the mode argument to the dlopen() routine on UNIX
   systems. They are available so that users can exercise greater control
@@ -76,13 +53,13 @@ symbol.For(name)
   The \code{local} argument allows one to control whether the symbols in
   the DLL being attached are visible to other DLLs.  While maintaining
   the symbols in their own namespace is good practice, the ability to
-  share symbols across related \dQuote{chapters} is useful in many
+  share symbols across related ``chapters'' is useful in many
   cases.  Additionally, on certain platforms and versions of an
   operating system, certain libraries must have their symbols loaded
   globally to successfully resolve all symbols.
 
   One should be careful of the potential side-effect of using lazy
-  loading via the \code{now} argument as \code{FALSE}.  If a routine is
+  loading via the `now' argument as \code{FALSE}.  If a routine is
   called that has a missing symbol, the process will terminate
   immediately and unsaved session variables will be lost.  The intended
   use is for library developers to call specify a value \code{TRUE} to
@@ -109,21 +86,6 @@ symbol.For(name)
   There is a short discussion of these additional arguments with some
   example code available at
   \url{http://cm.bell-labs.com/stat/duncan/R/dynload}.
-#endif
-
-#ifdef windows
-  External code must not change the floating point control word, but
-  many DLLs do so.  Common changes are to set it to use 53 bit 
-  precision instead of R's default 64 bit precision, or to unmask 
-  some exceptions.  \code{dyn.load} detects such changes, 
-  and restores R's control word to its default value of hex 8001F.  
-  This may cause the DLL to malfunction; if so, it should be rewritten
-  to save and restore the control word itself.  If \code{warn.FPU}
-  is set to \code{TRUE} using the \code{\link{options}} function, 
-  a warning will be printed.  (If the warning says
-  that the control word was changed from some other value than 8001F, 
-  please   report the circumstances to the Windows maintainers:  
-  that probably indicates an internal bug.)
 #endif
 }
 \value{
@@ -153,28 +115,19 @@ symbol.For(name)
   Schwarte.  The compatibility code for HP-UX was provided by Luke
   Tierney.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
   \code{\link{library.dynam}} to be used inside a package's
   \code{\link{.First.lib}} initialization.
 
-#ifdef unix
-  \code{\link{SHLIB}} for how to create suitable shared objects.
-#endif
-#ifdef windows
-  \code{\link{SHLIB}} for how to create suitable DLLs.
-#endif
-  
   \code{\link{.C}},
   \code{\link{.Fortran}},
   \code{\link{.External}},
   \code{\link{.Call}}.
 }
 \examples{
-is.loaded(symbol.For("hcass2")) #-> probably TRUE, as mva is loaded
+is.loaded(symbol.For("hcass2")) #-> probably  FALSE
+library(mva)
+is.loaded(symbol.For("hcass2")) #-> TRUE
+\testonly{detach("package:mva")}
 }
 \keyword{interface}

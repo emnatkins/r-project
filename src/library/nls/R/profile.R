@@ -1,4 +1,4 @@
-### $Id: profile.R,v 1.8 2003/08/10 09:24:39 ripley Exp $
+### $Id: profile.R,v 1.6 2000/06/27 22:26:18 pd Exp $
 ###
 ### Profiling nonlinear least squares for R
 ###
@@ -114,13 +114,14 @@ profiler.nls <-
 
 profile.nls <-
   function(fitted, which = 1:npar, maxpts = 100, alphamax = 0.01, delta.t =
-           cutoff/5, ...)
+           cutoff/5)
 {
   f.summary <- summary(fitted)
   std.err <- f.summary$parameters[,"Std. Error"]
   npar <- length(std.err)
   nobs <- length(resid(fitted))
   cutoff <- sqrt(npar * qf(1 - alphamax, npar, nobs - npar))
+  outmat <- array(0, c(nobs, npar))
   out <- list()
   prof <- profiler(fitted)
   on.exit(prof$setDefault()) # in case there is an abnormal exit

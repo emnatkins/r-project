@@ -1,5 +1,4 @@
 \name{SignRank}
-\alias{SignRank}
 \alias{dsignrank}
 \alias{psignrank}
 \alias{qsignrank}

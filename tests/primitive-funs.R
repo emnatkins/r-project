@@ -2,9 +2,8 @@
 #### ------------------------------------------------------------
 #### M.Maechler, May, 1998.
 ####
-#### text was in ../doc/manual/primitive-funs.tex , now
-#### ==> ../doc/manual/R-exts.texi "@appendix R (internal) ...
-####	 ~~~~~~~~~~~~~~~~~~~~~~~~~
+#### ==> ../doc/manual/primitive-funs.tex
+####	 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 bpos <- match("package:base",search())
 nn <- ls(pos=bpos)
@@ -19,10 +18,10 @@ length(Primf) ## 195  R 0.62.0, March 25, 1998
 Real.primitives <-
     list(
 	 specials = c("{", "(", "if", "for", "while", "repeat", "break", "next",
-	 "return", "function", "quote",
+	 "return", "function",
 	 "on.exit" ## on.exit(expression, add=F) has two arguments in S-plus !
 	 ),
-	 language = c("$", "$<-", "@", "<-", "=", "<<-", "[", "[<-", "[[", "[[<-"),
+	 language = c("$", "$<-", "<-", "<<-", "[", "[<-", "[[", "[[<-"),
 	 arith = c("%%", "%*%", "%/%","*", "+", "-", "/", "^"),
 	 logic = c("!",	 "&", "&&",  "|", "||",
 	 "<", "<=", "==", ">", ">=", "!="),
@@ -46,19 +45,18 @@ Real.primitives <-
 	   ".Primitive", ".Internal", ".External", ".Call",
            ".External.graphics", ".Call.graphics",
 	   ".C", ".Fortran", "symbol.C", "symbol.For",
-	   "globalenv", "pos.to.env", "unclass",
-           "as.character", "as.environment",
+	   "globalenv", "pos.to.env", "unclass", "attr", "as.character",
+
 	   ##maybe ? "gc", "gcinfo",
 	   ##
-	   "debug", "undebug", ".primTrace", ".primUntrace",
+	   "debug", "undebug", "trace", "untrace",
 	   "browser",  "proc.time", "gc.time", #"traceback",
 	   ),
 
 	 language2= c(":", "~", "c", "list", #nomore (Sep.9,1998): "unlist",
-	 # ".Alias", removed for 1.5.0
+	 ".Alias",
 	 "call", "as.call", "expression", "substitute",
 	 "UseMethod", ## ? really ?
-         "standardGeneric",
 	 "invisible",
 	 ),
 
@@ -66,7 +64,7 @@ Real.primitives <-
 	 c("environment<-",
 	   "length",	"length<-",
 	   "class",	"class<-",
-	   "attr", # again
+	   ## "attr", not anymore [Summer '98]
 	   "attr<-",
 	   "attributes",	"attributes<-",
 	   "dim",		"dim<-",

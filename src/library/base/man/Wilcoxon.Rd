@@ -1,5 +1,4 @@
 \name{Wilcoxon}
-\alias{Wilcoxon}
 \alias{dwilcox}
 \alias{pwilcox}
 \alias{qwilcox}
@@ -42,17 +41,15 @@ rwilcox(nn, m, n)
   \code{m * n}, and its mean and variance are \code{m * n / 2} and
   \code{m * n * (m + n + 1) / 12}, respectively.
 }
-\note{
-  S-PLUS uses a different (but equivalent) definition of the Wilcoxon
-  statistic.
-}
 \author{Kurt Hornik \email{hornik@ci.tuwien.ac.at}}
 \seealso{\code{\link{dsignrank}} etc, for the \emph{one-sample} Wilcoxon
     rank statistic.}
 \examples{
 x <- -1:(4*6 + 1)
 fx <- dwilcox(x, 4, 6)
+all(fx == dwilcox(x, 6, 4))
 Fx <- pwilcox(x, 4, 6)
+all(abs(Fx - cumsum(fx)) < 10 * .Machine$double.eps)
 
 layout(rbind(1,2),width=1,heights=c(3,2))
 plot(x, fx,type='h', col="violet",
@@ -65,7 +62,7 @@ layout(1)# set back
 N <- 200
 hist(U <- rwilcox(N, m=4,n=6), breaks=0:25 - 1/2, border="red", col="pink",
      sub = paste("N =",N))
-mtext("N * f(x),  f() = true \"density\"", side=3, col="blue")
+mtext("N * f(x),  f() = true ``density''", side=3, col="blue")
  lines(x, N*fx, type='h', col='blue', lwd=2)
 points(x, N*fx, cex=2)
 

@@ -1,5 +1,4 @@
 \name{Logistic}
-\alias{Logistic}
 \alias{dlogis}
 \alias{plogis}
 \alias{qlogis}
@@ -39,9 +38,8 @@ rlogis(n, location = 0, scale = 1)
 
   The Logistic distribution with \code{location} \eqn{= \mu}{= m} and
   \code{scale} \eqn{= \sigma}{= s} has distribution function
-  \deqn{
-    F(x) = \frac{1}{1 + e^{-(x-\mu)/\sigma}}%
-  }{F(x) = 1 / (1 + exp(-(x-m)/s))}  and density
+  \deqn{F(x) = \frac{1}{1 + e^{(x-\mu)/\sigma}}}{F(x) = 1 / (1 + exp(-(x-m)/s))}
+  and density
   \deqn{
     f(x)= \frac{1}{\sigma}\frac{e^{(x-\mu)/\sigma}}{(1 + e^{(x-\mu)/\sigma})^2}%
   }{f(x) = 1/s exp((x-m)/s) (1 + exp((x-m)/s))^-2.}
@@ -49,12 +47,14 @@ rlogis(n, location = 0, scale = 1)
   It is a long-tailed distribution with mean \eqn{\mu}{m} and variance
   \eqn{\pi^2/3 \sigma^2}{pi^2 /3 s^2}.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \examples{
+eps <- 100 * .Machine$double.eps
+x <- c(0:4, rlogis(100))
+all.equal(plogis(x),                 1 / (1 + exp(-x)), tol = eps)
+all.equal(plogis(x, lower=FALSE),   exp(-x)/ (1 + exp(-x)), tol = eps)
+all.equal(plogis(x, lower=FALSE, log=TRUE), -log(1 + exp(x)),  tol = eps)
+all.equal(dlogis(x), exp(x) * (1 + exp(x))^-2, tol = eps)
+
 var(rlogis(4000, 0, s = 5))# approximately (+/- 3)
 pi^2/3 * 5^2
 }

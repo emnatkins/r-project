@@ -2,7 +2,6 @@ c-----------------------------------------------------------------------
 c
 c  R : A Computer Langage for Statistical Data Analysis
 c  Copyright (C) 1996, 1997  Robert Gentleman and Ross Ihaka
-c  Copyright (C) 2001        The R Development Core Team
 c
 c  This program is free software; you can redistribute it and/or modify
 c  it under the terms of the GNU General Public License as published by
@@ -20,39 +19,40 @@ c  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 c
 c-----------------------------------------------------------------------
 c
-c ch2inv(x, ldx, n, v, info) computes the inverse of a positive-definite
-c		symmetric matrix from its choleski factorization.
-c This can be used, e.g., to compute the dispersion matrix for the estimated
-c parameters in a regression analysis.
+c     ch2inv computes the inverse of a positive-definite symmetric
+c     matrix from its choleski factorization.  this can be used (for
+c     example) to compute the dispersion matrix for the estimated
+c     parameters in a regression analysis.
 c
-c On Entry
+c     on entry
 c
-c	x	double precision(ldx,n)	 {ldx >= n}
-c		the choleski decomposition or the qr decomposition
-c		as computed by dqrdc or dqrdc2.	 Only the
-c		UPPER TRIANGULAR part,	x(i,j), 1 <= i <= j <= n, is accessed.
+c         x         double precision(ldx,k)
+c                   the choleski decomposition or the
+c                   qr decomposition as computed by dqrdc
+c                   or dqrdc2
 c
-c	ldx	integer, ldx >= n
-c		the leading dimension of the array x
+c         ldx       integer
+c                   the leading dimension of the array x
 c
-c	n	integer
-c		the number of rows and columns of the matrix x
+c         n         integer
+c                   the number of rows of the matrix x
 c
-c On Return
+c         k         integer
+c                   the number of columns in the matrix k
 c
-c	v	double precision(n,n)
-c		the value of inverse(x'x)
+c     on return
 c
-c This version dated Aug 24, 1996.
-c Ross Ihaka, University of Auckland.
+c         v         double precision(k,k)
+c                   the value of inverse(x'x)
+c
+c     This version dated Aug 24, 1996.
+c     Ross Ihaka, University of Auckland.
 c
       subroutine ch2inv(x, ldx, n, v, info)
-c     implicit none
-      integer n, ldx, info
       double precision x(ldx, n), v(n, n)
 c
       double precision d
-      integer i, j, im1
+      integer i, j
 c
       do 20 i=1,n
         if(x(i,i) .eq. 0.0d0) then

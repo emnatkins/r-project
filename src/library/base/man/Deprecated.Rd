@@ -3,24 +3,31 @@
 \title{Deprecated Functions}
 \alias{Deprecated}
 \alias{.Deprecated}
-%------ PLEASE: put \alias{.} here for EACH !
+\usage{
+getenv(x)
+
+.Deprecated(new)
+}
+%------ PLEASE: put \alias{.} here for  EACH !
+%
+\alias{getenv}
+\alias{dotplot}
+\alias{stripplot}
 \description{
   These functions are provided for compatibility with older versions of
   \R only, and may be defunct as soon as of the next release.
-}
-\usage{
-.Deprecated(new)
 
-% Deprecated in 1.9.0
-% </Deprecated 1.9.0>
+  \code{.Deprecated("<new name>")} is called from deprecated functions.
+
+  \code{getenv} is a deprecated alternative name for
+  \code{\link{Sys.getenv}}.
+
+  \code{dotplot} and \code{stripplot} are deprecated names for
+  \code{\link{dotchart}} and \code{\link{stripchart}}, respectively.
 }
-\details{
-  \code{.Deprecated("<new name>")} is called from deprecated
-  functions. The original help page for these functions is often
-  available at \code{help("oldName-deprecated")} (note the quotes).
-}
-\seealso{
-  \code{\link{Defunct}}
-}
+\seealso{\code{\link{Defunct}}}
+%\examples{
+%save.plot # to see how the ``Deprecated'' reference is made automagically
+%}
 \keyword{documentation}
 \keyword{utilities}

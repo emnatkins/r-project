@@ -19,7 +19,7 @@
  *
  *  SYNOPSIS
  *
- *    #include <Rmath.h>
+ *    #include "Rmath.h"
  *    double ptukey(q, rr, cc, df, lower_tail, log_p);
  *
  *  DESCRIPTION
@@ -78,15 +78,15 @@ static double wprob(double w, double rr, double cc)
     /* looks like this is suboptimal for double precision.
        (see how C1-C3 are used) <MM>
     */
-    /* const double iMax  = 1.; not used if = 1*/
-    const double C1 = -30.;
-    const double C2 = -50.;
-    const double C3 = 60.;
-    const double bb   = 8.;
-    const double wlar = 3.;
-    const double wincr1 = 2.;
-    const double wincr2 = 3.;
-    const double xleg[ihalf] = {
+    /* const static double iMax  = 1.; not used if = 1*/
+    const static double C1 = -30.;
+    const static double C2 = -50.;
+    const static double C3 = 60.;
+    const static double bb   = 8.;
+    const static double wlar = 3.;
+    const static double wincr1 = 2.;
+    const static double wincr2 = 3.;
+    const static double xleg[ihalf] = {
 	0.981560634246719250690549090149,
 	0.904117256370474856678465866119,
 	0.769902674194304687036893833213,
@@ -94,7 +94,7 @@ static double wprob(double w, double rr, double cc)
 	0.367831498998180193752691536644,
 	0.125233408511468915472441369464
     };
-    const double aleg[ihalf] = {
+    const static double aleg[ihalf] = {
 	0.047175336386511827194615961485,
 	0.106939325995318430960254718194,
 	0.160078328543346226334652529543,
@@ -174,8 +174,16 @@ static double wprob(double w, double rr, double cc)
 	    if (qexpo > C3)
 		break;
 
+#ifdef OLD
+	    if (ac > 0.)	pplus = 1.0 + erf(ac / M_SQRT2);
+	    else		pplus = erfc(-(ac / M_SQRT2));
+
+	    if (ac > w) pminus = 1.0 + erf((ac / M_SQRT2) - (w / M_SQRT2));
+	    else	pminus = erfc((w / M_SQRT2) - (ac / M_SQRT2));
+#else
 	    pplus = 2 * pnorm(ac, 0., 1., 1,0);
 	    pminus= 2 * pnorm(ac, w,  1., 1,0);
+#endif
 
 	    /* if rinsum ^ (cc-1) < 9e-14, */
 	    /* then doesn't contribute to integral */
@@ -271,18 +279,18 @@ double ptukey(double q, double rr, double cc, double df,
 #define nlegq	16
 #define ihalfq	8
 
-/*  const double eps = 1.0; not used if = 1 */
-    const double eps1 = -30.0;
-    const double eps2 = 1.0e-14;
-    const double dhaf  = 100.0;
-    const double dquar = 800.0;
-    const double deigh = 5000.0;
-    const double dlarg = 25000.0;
-    const double ulen1 = 1.0;
-    const double ulen2 = 0.5;
-    const double ulen3 = 0.25;
-    const double ulen4 = 0.125;
-    const double xlegq[ihalfq] = {
+/*  const static double eps = 1.0; not used if = 1 */
+    const static double eps1 = -30.0;
+    const static double eps2 = 1.0e-14;
+    const static double dhaf  = 100.0;
+    const static double dquar = 800.0;
+    const static double deigh = 5000.0;
+    const static double dlarg = 25000.0;
+    const static double ulen1 = 1.0;
+    const static double ulen2 = 0.5;
+    const static double ulen3 = 0.25;
+    const static double ulen4 = 0.125;
+    const static double xlegq[ihalfq] = {
 	0.989400934991649932596154173450,
 	0.944575023073232576077988415535,
 	0.865631202387831743880467897712,
@@ -292,7 +300,7 @@ double ptukey(double q, double rr, double cc, double df,
 	0.281603550779258913230460501460,
 	0.950125098376374401853193354250e-1
     };
-    const double alegq[ihalfq] = {
+    const static double alegq[ihalfq] = {
 	0.271524594117540948517805724560e-1,
 	0.622535239386478928628438369944e-1,
 	0.951585116824927848099251076022e-1,

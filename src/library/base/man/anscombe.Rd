@@ -1,15 +1,8 @@
 \name{anscombe}
-\docType{data}
-\alias{anscombe}
 \title{Anscombe's Quartet of ``Identical'' Simple Linear Regressions}
-\description{
-  Four \eqn{x}-\eqn{y} datasets which have the same traditional
-  statistical properties (mean, variance, correlation, regression line,
-  etc.), yet are quite different.
-}
 \usage{data(anscombe)}
-\format{
-  A data frame with 11 observations on 8 variables.
+\alias{anscombe}
+\format{A data frame with 11 observations on 8 variables.
   \tabular{rl}{
     x1 == x2 == x3 \tab the integers 4:14, specially arranged \cr
     x4             \tab values 8 and 19 \cr
@@ -23,6 +16,11 @@
 \references{
   Anscombe, Francis J. (1973)  Graphs in statistical analysis.
   \emph{American Statistician}, \bold{27}, 17--21.
+}
+\description{
+  Four \eqn{x}-\eqn{y} datasets which have the same traditional
+  statistical properties (mean, variance, correlation, regression line,
+  etc.), yet are quite different.
 }
 \examples{
 data(anscombe)

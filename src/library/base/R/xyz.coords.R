@@ -1,7 +1,6 @@
-## the obvious analog of  xy.coords() -- in ./plot.R
-
-xyz.coords <- function(x, y, z, xlab=NULL, ylab=NULL, zlab=NULL,
-		       log = NULL, recycle = FALSE)
+xyz.coords <-
+    function(x, y, z, xlab=NULL, ylab=NULL, zlab=NULL,
+	     log=NULL, recycle = FALSE)
 {
     ## Only x
     if(is.null(y)) {
@@ -11,10 +10,10 @@ xyz.coords <- function(x, y, z, xlab=NULL, ylab=NULL, zlab=NULL,
 		zlab <- deparse(x[[2]])
 		ylab <- deparse(rhs[[3]])
 		xlab <- deparse(rhs[[2]])
-		pf <- parent.frame()
-		z <- eval(x[[2]],   environment(x), pf)
-		y <- eval(rhs[[3]], environment(x), pf)
-		x <- eval(rhs[[2]], environment(x), pf)
+		env <- parent.frame()
+		z <- eval(x[[2]], env)
+		y <- eval(rhs[[3]], env)
+		x <- eval(rhs[[2]], env)
 	    }
 	    else stop("invalid first argument [bad language]")
 	}
@@ -25,7 +24,7 @@ xyz.coords <- function(x, y, z, xlab=NULL, ylab=NULL, zlab=NULL,
 		xlab <- "Index"
 		y <- x[,1]
 		z <- x[,2]
-		x <- seq(along=y)
+		x <- 1:length(y)
 	    }
 	    else { ## >= 3 columns
 		colnames <- dimnames(x)[[2]]
@@ -78,7 +77,7 @@ xyz.coords <- function(x, y, z, xlab=NULL, ylab=NULL, zlab=NULL,
 	    xlab <- "Index"
 	    z <- y
 	    y <- x
-	    x <- seq(along=x)
+	    x <- 1:length(x)
 	}
     }
 

@@ -1,4 +1,4 @@
-% $Id: SSbiexp.Rd,v 1.4 2003/09/01 09:38:22 ripley Exp $
+% $Id: SSbiexp.Rd,v 1.1.24.1 2001/03/24 00:08:06 bates Exp $
 \name{SSbiexp}
 \title{Biexponential model}
 \usage{
@@ -43,13 +43,13 @@ getInitial(conc ~ SSbiexp(time, A1, lrc1, A2, lrc2), data = Indo.1)
 ## Initial values are in fact the converged values
 fm1 <- nls(conc ~ SSbiexp(time, A1, lrc1, A2, lrc2), data = Indo.1)
 summary(fm1)
-\dontshow{
+\testonly{
   xx <- seq(0, 5, len = 101)
   y1 <- 3.5 * exp(-4*xx)
   y2 <- 1.5 * exp(-xx)
   yy <- y1 + y2
   par(mar = c(0, 0, 3.5, 0))
-  plot(xx, yy, type = "n", axes = FALSE, ylim = c(-0.2,6), xlim = c(0, 5),
+  plot(xx, yy, type = "n", axes = F, ylim = c(-0.2,6), xlim = c(0, 5),
        xlab = "", ylab = "", main = "Components of the SSbiexp model")
   usr <- par("usr")
   lines(xx, y1, lty = 2, lwd = 0.75)

@@ -1,12 +1,10 @@
 install.packages <- function(pkgs, lib, CRAN=getOption("CRAN"),
                              contriburl=contrib.url(CRAN),
-                             method, available=NULL, destdir=NULL,
-			     installWithVers=FALSE)
+                             method="auto", available=NULL, destdir=NULL)
 {
     if(missing(lib) || is.null(lib)) {
-        lib <- .libPaths()[1]
-        if(length(.libPaths()) > 1)
-            warning(paste("argument `lib' is missing: using", lib))
+        lib <- .lib.loc[1]
+        warning(paste("argument `lib' is missing: using", lib))
     }
     localcran <- length(grep("^file:", contriburl)) > 0
     if(!localcran) {
@@ -32,11 +30,8 @@ install.packages <- function(pkgs, lib, CRAN=getOption("CRAN"),
                 okp <- p == foundpkgs[, 1]
                 if(length(okp) > 0){
                     cmd <- paste(file.path(R.home(),"bin","R"),
-				 "CMD INSTALL")
-		    if (installWithVers)
-			cmd <- paste(cmd,"--with-package-versions")
-
-		    cmd <- paste(cmd,"-l",lib,foundpkgs[okp, 2])
+                                 "INSTALL -l", lib,
+                                 foundpkgs[okp, 2])
                     status <- system(cmd)
                     if(status>0){
                         warning(paste("Installation of package",
@@ -65,7 +60,7 @@ install.packages <- function(pkgs, lib, CRAN=getOption("CRAN"),
 download.packages <- function(pkgs, destdir, available=NULL,
                               CRAN=getOption("CRAN"),
                               contriburl=contrib.url(CRAN),
-                              method)
+                              method="auto")
 {
     localcran <- length(grep("^file:", contriburl)) > 0
     if(is.null(available))
@@ -75,7 +70,6 @@ download.packages <- function(pkgs, destdir, available=NULL,
     for(p in unique(pkgs))
     {
         ok <- (available[,"Package"] == p) | (available[,"Bundle"] == p)
-        ok <- ok & !is.na(ok)
         if(!any(ok))
             warning(paste("No package \"", p, "\" on CRAN.", sep=""))
         else{
@@ -99,10 +93,4 @@ download.packages <- function(pkgs, destdir, available=NULL,
     retval
 }
 
-contrib.url <- function(CRAN, type=c("source","mac.binary")){
-  type<-match.arg(type)
-  switch(type, 
-         source=paste(CRAN,"/src/contrib",sep=""),
-         mac.binary=paste(CRAN,"/bin/macosx/",version$major, ".", substr(version$minor,1,1),sep="")
-         )
-}
+contrib.url <- function(CRAN) paste(CRAN,"/src/contrib",sep="")

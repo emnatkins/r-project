@@ -1,8 +1,6 @@
 PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
-include $(top_srcdir)/share/make/vars.mk
-
 AR = @AR@
 ACLOCAL = @ACLOCAL@
 AUTOCONF = @AUTOCONF@
@@ -10,29 +8,21 @@ AUTOMAKE = @AUTOMAKE@
 AUTOHEADER = @AUTOHEADER@
 AWK = @AWK@
 BITMAP_LIBS = @BITMAP_LIBS@
+BLAS = @BLAS@
 BLAS_LIBS = @BLAS_LIBS@
-BUILDDIR_IS_SRCDIR = @BUILDDIR_IS_SRCDIR@
 CC = @CC@
 CFLAGS = @CFLAGS@
 CPICFLAGS = @CPICFLAGS@
 CPPFLAGS = @CPPFLAGS@
 DEFS = @DEFS@
-DISTDIR_TAR_EXCLUDE = --exclude=CVS --exclude=Makefile --exclude="*.o" --exclude="*$(SHLIB_EXT)"
+DISTDIR_TAR_EXCLUDE = --exclude=CVS --exclude=Makefile --exclude="*.o" --exclude="*.$(SHLIB_EXT)"
 DVIPS = @DVIPS@
-DYLIB_EXT = @DYLIB_EXT@
-DYLIB_LD = @DYLIB_LD@
-DYLIB_LDFLAGS = @DYLIB_LDFLAGS@
-DYLIB_LINK = $(DYLIB_LD) $(DYLIB_LDFLAGS) $(LDFLAGS)
-ECHO_C = @ECHO_C@
-ECHO_N = @ECHO_N@
-ECHO_T = @ECHO_T@
+FC = @FC@
 FFLAGS = @FFLAGS@
 FLIBS = @FLIBS@
 FPICFLAGS = @FPICFLAGS@
 F2C = @F2C@
 F2CFLAGS = @F2CFLAGS@
-F77 = @F77@
-GETWD = @GETWD@
 GNOMEUI_LIBS = @GNOMEUI_LIBS@
 GNOME_LIBDIR = @GNOME_LIBDIR@
 GNOME_INCLUDEDIR = @GNOME_INCLUDEDIR@
@@ -41,13 +31,11 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_DIR = ${INSTALL} -d
-JAVAC = @JAVAC@
 LATEX = @LATEX@
 LDFLAGS = @LDFLAGS@
 LIBGLADE_CFLAGS = @LIBGLADE_CFLAGS@
 LIBGLADE_LIBS = @LIBGLADE_LIBS@
-LIBR = @LIBR@
-LIBR_EXT = @LIBR_EXT@
+LIBPATHS = @LIBPATHS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
@@ -58,18 +46,17 @@ MAIN_LDFLAGS = @MAIN_LDFLAGS@
 @USE_LIBTOOL_FALSE@MAIN_LINK = $(MAIN_LD) $(MAIN_LDFLAGS) $(LDFLAGS)
 @USE_LIBTOOL_TRUE@MAIN_LINK = $(LIBTOOL) --mode=link $(MAIN_LD) $(MAIN_LDFLAGS) $(LDFLAGS)
 MAKEINDEX = @MAKEINDEX@
-MKINSTALLDIRS = $(SHELL) $(top_srcdir)/src/scripts/mkinstalldirs
+MKINSTALLDIRS = $(top_srcdir)/tools/mkinstalldirs
 PERL = @PERL@
 R_GUIS = @R_GUIS@
-R_OSTYPE = @R_OSTYPE@
-R_PKGS = $(R_PKGS_BASE) @USE_RECOMMENDED_PACKAGES_TRUE@ $(R_PKGS_RECOMMENDED)
-R_PLATFORM = @R_PLATFORM@
+# fixme: tcltk needs to be optional
+R_PKGS = base ctest eda lqs modreg mva nls splines stepfun ts tcltk
 R_XTRA_CFLAGS = @R_XTRA_CFLAGS@
-R_XTRA_CPPFLAGS = @R_XTRA_CPPFLAGS@ -I. -I$(top_builddir)/src/include -I$(top_srcdir)/src/include
+R_XTRA_CPPFLAGS = -I. -I$(top_builddir)/src/include -I$(top_srcdir)/src/include
 R_XTRA_FFLAGS = @R_XTRA_FFLAGS@
 R_XTRA_LIBS = @R_XTRA_LIBS@
 RANLIB = @RANLIB@
-SHELL = @SHELL@
+SHELL = /bin/sh
 SHLIB_EXT = @SHLIB_EXT@
 SHLIB_CFLAGS = @SHLIB_CFLAGS@
 SHLIB_FFLAGS = @SHLIB_FFLAGS@
@@ -92,10 +79,13 @@ ALL_CFLAGS_LO = $(R_XTRA_CFLAGS) $(CPICFLAGS) $(SHLIB_CFLAGS) $(CFLAGS)
 ALL_FFLAGS_LO = $(R_XTRA_FFLAGS) $(FPICFLAGS) $(SHLIB_FFLAGS) $(FFLAGS)
 
 .SUFFIXES:
-.SUFFIXES: .c .f .d .lo .o
+.SUFFIXES: .c .f .d .o .lo
 
-@r_cc_rules_frag@
-@r_f77_rules_frag@
+@depend_rules_frag@
+.c.o:
+	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c $< -o $@
+@cc_o_lo_rules_frag@
+@f77_rules_frag@
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@
@@ -112,4 +102,3 @@ Rexeclibdir = $(rhome)/bin
 ## Alternatively, we could try to set pkglibdir = $(rhome)/lib when
 ## switching to automake.
 ## </FIXME>
-Rexecmodulesdir = $(rhome)/modules

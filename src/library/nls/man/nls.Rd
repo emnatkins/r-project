@@ -1,28 +1,24 @@
 \name{nls}
 \alias{nls}
-%\alias{anova.nls}
-%\alias{anovalist.nls}
-%\alias{coef.nls}
-%\alias{deviance.nls}
-%\alias{df.residual.nls}
-%\alias{fitted.nls}
-%\alias{logLik.nls}
-%\alias{print.nls}
-%\alias{residuals.nls}
-%\alias{summary.nls}
-%\alias{print.summary.nls}
-%\alias{weights.nls}
-%\alias{vcov.nls}
+\alias{anova.nls}
+\alias{anovalist.nls}
+\alias{coef.nls}
+\alias{deviance.nls}
+\alias{df.residual.nls}
+\alias{fitted.nls}
+\alias{logLik.nls}
+\alias{print.nls}
+\alias{residuals.nls}
+\alias{summary.nls}
+\alias{print.summary.nls}
+\alias{weights.nls}
 \title{Nonlinear Least Squares}
-\description{
-  Determine the nonlinear least-squares estimates of the nonlinear model
-  parameters and return a class \code{nls} object.
-}
 \usage{
-nls(formula, data = parent.frame(), start, control = nls.control(),
+nls(formula, data, start, control = nls.control(),
     algorithm = "default", trace = FALSE, subset,
     weights, na.action)
 }
+%- maybe also `usage' for other objects documented here.
 \arguments{
  \item{formula}{a nonlinear model formula including variables and parameters}
  \item{data}{an optional data frame in which to evaluate the variables in
@@ -49,24 +45,13 @@ nls(formula, data = parent.frame(), start, control = nls.control(),
 \item{na.action}{a function which indicates what should happen
     when the data contain \code{NA}s.}
 }
+\description{
+  Determine the nonlinear least squares estimates of the parameters.
+}
 \details{
-  \bold{Do not use \code{nls} on artificial "zero-residual" data.}
-
-  The \code{nls} function uses a relative-offset convergence criterion
-  that compares the numerical imprecision at the current parameter
-  estimates to the residual sum-of-squares.  This performs well on data of
-  the form \deqn{y=f(x,\theta)+\epsilon}{y = f(x, theta) + eps} (with
-  \code{var(eps) > 0}).  It
-  fails to indicate convergence on data of the form
-  \deqn{y=f(x,\theta)}{y = f(x, theta)} because the criterion amounts to
-  comparing two components of the round-off error.  If you wish to test
-  \code{nls} on artificial data please add a noise component, as shown
-  in the example below.
-  
   An \code{nls} object is a type of fitted model object.  It has methods
-  for the generic functions \code{\link{coef}}, \code{\link{formula}},
-  \code{\link{resid}}, \code{\link{print}}, \code{\link{summary}},
-  \code{\link{AIC}}, \code{\link{fitted}} and \code{\link{vcov}}.
+  for the generic functions \code{coef}, \code{formula}, \code{resid},
+  \code{print}, \code{summary}, and \code{fitted}.
 }
 \value{
   A list of
@@ -75,16 +60,8 @@ nls(formula, data = parent.frame(), start, control = nls.control(),
     argument.  The actual data values are present in the environment of
     the \code{m} component.}
 }
-\references{
-  Bates, D.M. and Watts, D.G. (1988)
-  \emph{Nonlinear Regression Analysis and Its Applications},
-  Wiley
-
-  Bates, D. M. and Chambers, J. M. (1992)
-  \emph{Nonlinear models.}
-  Chapter 10 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
-}
+\references{Bates, D.M. and Watts, D.G. (1988), \emph{Nonlinear Regression Analysis
+    and Its Applications}, Wiley}
 \author{Douglas M. Bates and Saikat DebRoy}
 \seealso{\code{\link{nlsModel}}}
 \examples{
@@ -112,9 +89,9 @@ weighted.MM <- function(resp, conc, Vm, K)
 {
     ## Purpose: exactly as white book p.451 -- RHS for nls()
     ##  Weighted version of Michaelis-Menten model
-    ## ------------------------------------------------------------
-    ## Arguments: 'y', 'x' and the two parameters (see book)
-    ## ------------------------------------------------------------
+    ## -------------------------------------------------------------------------
+    ## Arguments: `y', `x' and the two parameters (see book)
+    ## -------------------------------------------------------------------------
     ## Author: Martin Maechler, Date: 23 Mar 2001, 18:48
 
     pred <- (Vm * conc)/(K + conc)
@@ -124,19 +101,6 @@ weighted.MM <- function(resp, conc, Vm, K)
 Pur.wt <- nls( ~ weighted.MM(rate, conc, Vm, K), data = Treated,
               start = list(Vm = 200, K = 0.1),
               trace = TRUE)
-}
-## The two examples below show that you can fit a model to
-## artificial data with noise but not to artificial data
-## without noise.
-x = 1:10
-y = x                                  # perfect fit
-yeps = y + rnorm(length(y), sd = 0.01) # added noise
-nls(yeps ~ a + b*x, start = list(a = 0.12345, b = 0.54321),
-     trace = TRUE)
-\dontrun{
-nls(y ~ a + b*x, start = list(a = 0.12345, b = 0.54321),
-     trace = TRUE)
-}       
 }
 \keyword{nonlinear}
 \keyword{regression}

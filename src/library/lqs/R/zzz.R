@@ -1,4 +1,1 @@
-.noGenerics <- TRUE
-
-.onUnload <- function(libpath)
-    library.dynam.unload("lqs", libpath)
+.First.lib <- function(lib, pkg) library.dynam("lqs", pkg, lib) 

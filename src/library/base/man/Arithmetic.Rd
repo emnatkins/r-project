@@ -35,22 +35,15 @@ unless \code{y == 0} where the result is \code{\link{NA}} or
 }
 \details{
     \code{1 ^ y} and \code{y ^ 0} are \code{1}, \emph{always}.
-    \code{x ^ y} should also give the proper \dQuote{limit} result when
+    \code{x ^ y} should also give the proper ``limit'' result when
     either argument is infinite (i.e., \code{+- \link{Inf}}).
 
     Objects such as arrays or time-series can be operated on this
     way provided they are conformable.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
-  \code{\link{sqrt}} for miscellaneous and \code{\link{Special}} for special
-  mathematical functions.
-
-  \code{\link{Syntax}} for operator precedence.
+\code{\link{sqrt}} for miscellaneous and \code{\link{Special}} for special
+mathematical functions.
 }
 \examples{
 x <- -1:12

@@ -1,3 +1,7 @@
+# Originally file MASS/max.col.q
+# copyright (C) 1994-9 W. N. Venables and B. D. Ripley
+#
+# nrow() & ncol() are guaranteed to return integer
 max.col <- function(m)
 {
     m <- as.matrix(m)

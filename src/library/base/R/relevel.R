@@ -1,3 +1,4 @@
+#### copyright (C) 1998 B. D. Ripley
 relevel <- function(x, ref, ...) UseMethod("relevel")
 
 relevel.default <- function(x, ref, ...)

@@ -29,18 +29,14 @@ as.POSIXlt(x, tz = "")
   classes used to represent date/times (calendar dates plus time to the
   nearest second).  They can take convert a wide variety of objects,
   including objects of the other class and of classes \code{"date"}
-  (from package \pkg{\link[date:as.date]{date}} or
-  \pkg{\link[date:as.date]{survival}}), \code{"chron"} and
-  \code{"dates"} (from package \pkg{\link[chron]{chron}}) to these
+  (from package \code{\link[date:as.date]{date}}), \code{"chron"} and
+  \code{"dates"} (from package \code{\link[chron]{chron}}) to these
   classes.  They can also convert character strings of the formats
   \code{"2001-02-03"} and \code{"2001/02/03"} optionally followed by
   white space and a time in the format \code{"14:52"} or
   \code{"14:52:03"}.  (Formats such as \code{"01/02/03"} are ambiguous
   but can be converted via a format specification by
   \code{\link{strptime}}.)
-
-  Logical \code{NA}s can be converted to either of the classes, but no
-  other logical vectors can be.
 }
 \value{
   \code{as.POSIXct} and \code{as.POSIXlt} return an object of the
@@ -56,6 +52,10 @@ as.POSIXlt(x, tz = "")
 
   If a timezone is needed and that specified is invalid on your system,
   what happens is system-specific but it will probably be ignored. 
+#ifdef mac
+  Under MacOS only the current timezone \code{""} and UTC (or GMT)
+  are supported.
+#endif
 }
 \seealso{
   \link{DateTimeClasses} for details of the classes;
@@ -66,6 +66,12 @@ as.POSIXlt(x, tz = "")
 (z <- Sys.time())             # the current date, as class "POSIXct"
 unclass(z)                    # a large integer
 floor(unclass(z)/86400)       # the number of days since 1970-01-01
+\testonly{
+ stopifnot(range(z) == z,
+           min(z) == z,
+           max(z) == z,
+           mean(z) == z)
+}
 (z <- as.POSIXlt(Sys.time())) # the current date, as class "POSIXlt"
 unlist(unclass(z))            # a list shown as a named vector
 

@@ -1,4 +1,1 @@
-.noGenerics <- TRUE
-
-.onUnload <- function(libpath)
-    library.dynam.unload("mva", libpath)
+.First.lib <- function(lib, pkg) library.dynam("mva", pkg, lib)

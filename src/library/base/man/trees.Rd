@@ -1,16 +1,8 @@
 \name{trees}
-\docType{data}
-\alias{trees}
 \title{Girth, Height and Volume for Black Cherry Trees}
-\description{
-  This data set provides measurements of the girth, height and volume
-  of timber in 31 felled black cherry trees.  Note that girth is the
-  diameter of the tree (in inches) measured at 4 ft 6 in above the
-  ground.
-}
 \usage{data(trees)}
-\format{
-  A data frame with 31 observations on 3 variables.
+\alias{trees}
+\format{A data frame with 31 observations on 3 variables.
   \tabular{rlll}{
     \code{[,1]} \tab \code{Girth} \tab numeric
     \tab Tree diameter in inches\cr
@@ -24,9 +16,13 @@
   \emph{The Minitab Student Handbook}.
   Duxbury Press.
 }
+\description{
+  This data set provides measurements of the girth, height and volume
+  of timber in 31 felled black cherry trees.  Note that girth is the
+  diameter of the tree (in inches) measured at 4 ft 6 in above the ground.
+}
 \references{
-  Atkinson, A. C. (1985)
-  \emph{Plots, Transformations and Regression}.
+  Atkinson, A. C. (1985)  \emph{Plots, Transformations and Regression.}
   Oxford University Press.
 }
 \examples{
@@ -36,8 +32,5 @@ plot(Volume ~ Girth, data = trees, log = "xy")
 coplot(log(Volume) ~ log(Girth) | Height, data = trees,
        panel = panel.smooth)
 summary(fm1 <- lm(log(Volume) ~ log(Girth), data = trees))
-summary(fm2 <- update(fm1, ~ . + log(Height), data = trees))
-step(fm2)
-## i.e., Volume ~= c * Height * Girth^2  seems reasonable
 }
 \keyword{datasets}

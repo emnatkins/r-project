@@ -1,4 +1,4 @@
-% $Id: SSasympOrig.Rd,v 1.4 2003/09/01 09:38:22 ripley Exp $
+% $Id: SSasympOrig.Rd,v 1.1.24.1 2001/03/24 00:08:06 bates Exp $
 \name{SSasympOrig}
 \title{Asymptotic Regression Model through the Origin}
 \usage{
@@ -37,11 +37,11 @@ getInitial(height ~ SSasympOrig(age, Asym, lrc), data = Lob.329)
 ## Initial values are in fact the converged values
 fm1 <- nls(height ~ SSasympOrig( age, Asym, lrc), data = Lob.329)
 summary(fm1)
-\dontshow{
+\testonly{
   xx <- seq(0, 5, len = 101)
   yy <- 5 * (1- exp(-xx/(2*log(2))))
   par(mar = c(0, 0, 3.5, 0))
-  plot(xx, yy, type = "l", axes = FALSE, ylim = c(0,6), xlim = c(-1, 5),
+  plot(xx, yy, type = "l", axes = F, ylim = c(0,6), xlim = c(-1, 5),
        xlab = "", ylab = "", lwd = 2,
        main = "Parameters in the SSasympOrig model")
   usr <- par("usr")

@@ -4,25 +4,19 @@
 \description{
   Return the matrix obtained by converting all the variables in a data
   frame to numeric mode and then binding them together as the columns of
-  a matrix.  Factors and ordered factors are replaced by their internal
-  codes.
+  a matrix.  Factors and ordered factors are replaced by their codes.
 }
 \usage{
 data.matrix(frame)
 }
 \arguments{
-  \item{frame}{a data frame whose components are logical vectors,
+  \item{frame}{a data frame whose components are either logical vectors,
     factors or numeric vectors.}
 }
 \seealso{
   \code{\link{as.matrix}},
+  \code{\link{codes}},
   \code{\link{data.frame}},
   \code{\link{matrix}}.
-}
-\references{
-  Chambers, J. M. (1992)
-  \emph{Data for models.}
-  Chapter 3 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
 }
 \keyword{array}

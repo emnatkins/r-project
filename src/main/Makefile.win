@@ -3,25 +3,24 @@ include ../gnuwin32/MkRules
 
 all: makeMakedeps ../gnuwin32/libmain.a
 
-CFLAGS=$(OPTFLAGS) -I../include -DHAVE_CONFIG_H -DR_DLL_BUILD
+CFLAGS=$(OPTFLAGS) -I../include -DHAVE_CONFIG_H
 FFLAGS=$(OPTFLAGS)
-CSOURCES=$(filter-out alloca.c par-common.c qsort-body.c snprintf.c strdup.c \
-           strncasecmp.c vsnprintf.c, $(wildcard *.c))
-FSOURCES=$(wildcard *.f)
-OBJS=$(CSOURCES:.c=.o) $(FSOURCES:.f=.o) 
+SOURCES=$(filter-out strdup.c, $(wildcard *.c *.f))
+OBJS=$(foreach i, $(SOURCES), $(basename $i).o)
 
 gram.c: ;
 
-saveload-CFLAGS=-I../extra/xdr
-connections-CFLAGS=-I../extra/zlib -I../extra/bzip2
-dounzip-CFLAGS=-I../extra/zlib
-pcre-CFLAGS=-I../extra/pcre -DSTATIC
-
+saveload-CFLAGS=-I../gnuwin32/xdr
 
 ../gnuwin32/libmain.a: $(OBJS)
 
 # Dependencies
-DEPS=$(CSOURCES:.c=.d)
+CSOURCES=$(wildcard *.c)
+DEPS=$(foreach i, $(CSOURCES), $(basename $i).d)
+
+.c.d:
+	@echo "making $@ from $<"
+	@$(CC)  -M $(CFLAGS) $($*-CFLAGS) $< -o $@
 
 makeMakedeps: $(DEPS)
 	@$(RM) Makedeps

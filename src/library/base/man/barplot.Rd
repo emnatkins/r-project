@@ -3,15 +3,12 @@
 \alias{barplot.default}
 \title{Bar Plots}
 \usage{
-\method{barplot}{default}(height, width = 1, space = NULL,
-        names.arg = NULL, legend.text = NULL, beside = FALSE,
-        horiz = FALSE, density = NULL, angle = 45,
+\method{barplot}{default}(height, width = 1, space = NULL, names.arg = NULL,
+        legend.text = NULL, beside = FALSE, horiz = FALSE,
         col = heat.colors(NR), border = par("fg"),
         main = NULL, sub = NULL, xlab = NULL, ylab = NULL,
-        xlim = NULL, ylim = NULL, xpd = TRUE,
-        axes = TRUE, axisnames = TRUE,
-        cex.axis = par("cex.axis"), cex.names = par("cex.axis"),
-        inside = TRUE, plot = TRUE, axis.lty = 0, \dots)
+        xlim = NULL, ylim = NULL,
+        axes = TRUE, axisnames = TRUE, inside = TRUE, plot = TRUE, \dots)
 }
 \arguments{
   \item{height}{either a vector or matrix of values describing the
@@ -20,7 +17,7 @@
     given by the values in the vector.  If \code{height} is a matrix
     and \code{beside} is \code{FALSE} then each bar of the plot
     corresponds to a column of \code{height}, with the values in the
-    column giving the heights of stacked \dQuote{sub-bars} making up the
+    column giving the heights of stacked ``sub-bars'' making up the
     bar.  If \code{height} is a matrix and \code{beside} is
     \code{TRUE}, then the values in each column are juxtaposed
     rather than stacked.}
@@ -41,24 +38,15 @@
     taken from the \code{names} attribute of \code{height} if this
     is a vector, or the column names if it is a matrix.}
   \item{legend.text}{a vector of text used to construct a legend for
-    the plot, or a logical indicating whether a legend should be
-    included.  This is only useful when \code{height} is a matrix.
-    In that case given legend labels should correspond to the rows of
-    \code{height}; if \code{legend.text} is true, the row names of
-    \code{height} will be used as labels if they are non-null.}
+    the plot.  This is only useful when \code{height} is a matrix.
+    In that case the legend labels should correspond to the rows of
+    \code{height}.}
   \item{beside}{a logical value.  If \code{FALSE}, the columns of
     \code{height} are portrayed as stacked bars, and if \code{TRUE}
     the columns are portrayed as juxtaposed bars.}
   \item{horiz}{a logical value.  If \code{FALSE}, the bars are drawn
     vertically with the first bar to the left.  If \code{TRUE}, the
     bars are drawn horizontally with the first at the bottom.}
-  \item{density}{a vector giving the the density of shading lines, in
-    lines per inch, for the bars or bar components.
-    The default value of \code{NULL} means that no shading lines
-    are drawn. Non-positive values of \code{density} also inhibit the
-    drawing of shading lines.}
-  \item{angle}{the slope of shading lines, given as an angle in
-    degrees (counter-clockwise), for the bars or bar components.}
   \item{col}{a vector of colors for the bars or bar components.}
   \item{border}{the color to be used for the border of the bars.}
   \item{main,sub}{overall and sub title for the plot.}
@@ -66,26 +54,14 @@
   \item{ylab}{a label for the y axis.}
   \item{xlim}{limits for the x axis.}
   \item{ylim}{limits for the y axis.}
-  \item{xpd}{logical. Should bars be allowed to go outside region?}
   \item{axes}{logical.  If \code{TRUE}, a vertical (or horizontal, if
     \code{horiz} is true) axis is drawn.}
   \item{axisnames}{logical.  If \code{TRUE}, and if there are
     \code{names.arg} (see above), the
     other axis is drawn (with \code{lty=0}) and labeled.}
-  \item{cex.axis}{expansion factor for numeric axis labels.}
-  \item{cex.names}{expansion factor for axis names (bar labels).}
-  \item{inside}{logical.  If \code{TRUE}, the lines which divide
-    adjacent (non-stacked!) bars will be drawn.  Only applies when
-    \code{space = 0} (which it partly is when \code{beside = TRUE}).}
-%MM: we still have "NotYetUsed" -- the above describe's S-plus 6.1 (not
-% precisely documented!) behavior!
   \item{plot}{logical.  If \code{FALSE}, nothing is plotted.}
-  \item{axis.lty}{the graphics parameter \code{lty} applied to the axis
-    and tick marks of the categorical (default horzontal) axis.  Note
-    that by default the axis is suppressed.}
   \item{\dots}{further graphical parameters (\code{\link{par}}) are
-    passed to \code{\link{plot.window}()}, \code{\link{title}()} and
-    \code{\link{axis}}.}
+    passed to \code{\link{plot.window}()} and \code{\link{title}()}.}
 }
 \description{
   Creates a bar plot with vertical or horizontal bars.
@@ -99,17 +75,8 @@
   \code{mp}, giving the coordinates of \emph{all} the bar midpoints
   drawn, useful for adding to the graph.
 
-  If \code{beside} is true, use \code{colMeans(mp)} for the
+  If \code{beside} is true, use \code{apply(mp, 2, mean)} for the
   midpoints of each \emph{group} of bars, see example.
-}
-\note{
-  Prior to \R 1.6.0, \code{barplot} behaved as if \code{axis.lty = 1},
-  unintentionally.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{plot}(\dots, type="h")}, \code{\link{dotchart}},
@@ -118,18 +85,18 @@
 \examples{
 tN <- table(Ni <- rpois(100, lambda=5))
 r <- barplot(tN, col='gray')
-#- type = "h" plotting *is* 'bar'plot
+#- type = "h" plotting *is* `bar'plot
 lines(r, tN, type='h', col='red', lwd=2)
 
 barplot(tN, space = 1.5, axisnames=FALSE,
-        sub = "barplot(..., space= 1.5, axisnames = FALSE)")
+        sub = "barplot(...., space= 1.5, axisnames = FALSE)")
 
 data(VADeaths, package = "base")
 barplot(VADeaths, plot = FALSE)
 barplot(VADeaths, plot = FALSE, beside = TRUE)
 
 mp <- barplot(VADeaths) # default
-tot <- colMeans(VADeaths)
+tot <- apply(VADeaths, 2, sum)
 text(mp, tot + 3, format(tot), xpd = TRUE, col = "blue")
 barplot(VADeaths, beside = TRUE,
         col = c("lightblue", "mistyrose", "lightcyan",
@@ -144,20 +111,10 @@ mp <- barplot(hh, beside = TRUE,
                 "lightcyan", "lavender"),
         legend = colnames(VADeaths), ylim= c(0,100),
         main = "Death Rates in Virginia", font.main = 4,
-        sub = "Faked upper 2*sigma error bars", col.sub = mybarcol,
-        cex.names = 1.5)
+        sub = "Faked upper 2*sigma error bars", col.sub = mybarcol)
 segments(mp, hh, mp, hh + 2*sqrt(1000*hh/100), col = mybarcol, lwd = 1.5)
 stopifnot(dim(mp) == dim(hh))# corresponding matrices
-mtext(side = 1, at = colMeans(mp), line = -2,
-      text = paste("Mean", formatC(colMeans(hh))), col = "red")
-
-# Bar shading example
-barplot(VADeaths, angle = 15+10*1:5, density = 20, col = "black",
-        legend = rownames(VADeaths))
-title(main = list("Death Rates in Virginia", font = 4))
-
-# border :
-barplot(VADeaths, border = "dark blue") % lwd = 2 << not passed
-%notyet barplot(VADeaths, inside = FALSE, main = "barplot(*, inside=FALSE)")
+mtext(side = 1, at = apply(mp, 2, mean), line = -2,
+      text = paste("Mean", formatC(apply(hh, 2, mean))), col = "red")
 }
 \keyword{hplot}

@@ -50,11 +50,6 @@ typedef struct callinfo  callinfo;
 typedef struct objinfo   objinfo;
 typedef objinfo *object;
 
-/* in w32api this needs to be before ga.h */
-#ifndef __WINDOWS_H     /* prevent multiple includes */
-#include <windows.h>
-#endif
-
 #ifndef __GA__VERSION__
 #define objptr object
 #include "ga.h"
@@ -76,6 +71,9 @@ extern "C" {
 #include <ctype.h>
 #include <math.h>
 
+#ifndef __WINDOWS_H     /* prevent multiple includes */
+#include <windows.h>
+#endif
 
 #include <commdlg.h>
 
@@ -170,7 +168,6 @@ extern "C" {
 	#define MultilistObject   0x1021
 	#define DroplistObject    0x1022
 	#define DropfieldObject   0x1023
-	#define ProgressbarObject 0x1024
 
 	#define MenubarObject     0x0041
 	#define MenuObject        0x0042
@@ -248,8 +245,6 @@ struct callinfo
 	mousefn	mousemove;	/* mouse was moved */
 	mousefn	mousedrag;	/* mouse dragged (button is down) */
 	mousefn	mouserepeat;	/* mouse-down timer auto repeat */
-
-	dropfn drop;		/* drag-and-drop function */
   };
 
 

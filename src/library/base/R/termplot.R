@@ -1,12 +1,10 @@
-termplot <- function(model, data=NULL,envir=environment(formula(model)),
-                     partial.resid=FALSE,
+termplot <- function(model, data=model.frame(model), partial.resid=FALSE,
 		     rug=FALSE, terms=NULL, se=FALSE, xlabs=NULL, ylabs=NULL,
                      main = NULL, col.term = 2, lwd.term = 1.5,
                      col.se = "orange", lty.se = 2, lwd.se = 1,
                      col.res= "gray", cex = 1, pch = par("pch"),
                      ask = interactive() && nb.fig < n.tms &&
                            .Device != "postscript",
-                     use.factor.levels=TRUE,
                      ...)
 {
     terms <- ## need if(), since predict.coxph() has non-NULL default terms :
@@ -16,12 +14,6 @@ termplot <- function(model, data=NULL,envir=environment(formula(model)),
 	    predict(model, type="terms", se=se, terms=terms)
     n.tms <- ncol(tms <- as.matrix(if(se) terms$fit else terms))
     mf <- model.frame(model)
-    if (is.null(data))
-        data<-eval(model$call$data,envir)
-    if (is.null(data))
-        data<-mf
-    if (NROW(tms)<NROW(data))
-        data <- data[ dimnames( tms)[[1]], ]
     nmt <- colnames(tms)
     cn <- parse(text=nmt)
     ## Defaults:
@@ -30,11 +22,11 @@ termplot <- function(model, data=NULL,envir=environment(formula(model)),
     if (is.null(main))
         main <- ""
     else if(is.logical(main))
-        main <- if(main) deparse(model$call, 500) else ""
+        main <- if(main) deparse(model$call) else ""
     else if(!is.character(main))
         stop("`main' must be TRUE, FALSE, NULL or character (vector).")
     main <- rep(main, length = n.tms) # recycling
-    pf <- envir
+    pf <- parent.frame()
     carrier <- function(term) { # used for non-factor ones
 	if (length(term) > 1)
 	    carrier(term[[2]])
@@ -49,7 +41,7 @@ termplot <- function(model, data=NULL,envir=environment(formula(model)),
     }
     if (is.null(xlabs))
         xlabs<-unlist(lapply(cn,carrier.name))
-
+    
     if (partial.resid)
 	pres <- residuals(model, "partial")
     is.fac <- sapply(nmt, function(i) is.factor(mf[,i]))
@@ -82,17 +74,13 @@ termplot <- function(model, data=NULL,envir=environment(formula(model)),
 	    ff <- mf[,nmt[i]]
 	    ll <- levels(ff)
 	    xlims <- range(seq(along=ll)) + c(-.5, .5)
-            xx <- as.numeric(ff) ##need if rug or partial
+            xx <- codes(ff) ##need if rug or partial
 	    if(rug) {
 		xlims[1] <- xlims[1]-0.07*diff(xlims)
 		xlims[2] <- xlims[2]+0.03*diff(xlims)
 	    }
 	    plot(1,0, type = "n", xlab = xlabs[i], ylab = ylabs[i],
-                 xlim = xlims, ylim = ylims, main = main[i],xaxt="n", ...)
-            if (use.factor.levels)
-                axis(1,at=seq(along=ll),labels=ll,...)
-            else
-                axis(1)
+                 xlim = xlims, ylim = ylims, main = main[i], ...)
 	    for(j in seq(along=ll)) {
 		ww <- which(ff==ll[j])[c(1,1)]
 		jf <- j + c(-.4, .4)
@@ -116,11 +104,11 @@ termplot <- function(model, data=NULL,envir=environment(formula(model)),
 	if (rug) {
             n <- length(xx)
             ## Fixme: Isn't this a kludge for segments() ?
-	    lines(rep.int(jitter(xx), rep.int(3,n)),
-                  rep.int(ylims[1] + c(0,0.05,NA)*diff(ylims), n))
+	    lines(rep(jitter(xx), rep(3,n)),
+                  rep(ylims[1] + c(0,0.05,NA)*diff(ylims), n))
 	    if (partial.resid)
-		lines(rep.int(xlims[1] + c(0,0.05,NA)*diff(xlims), n),
-                      rep.int(pres[,i], rep.int(3,n)))
+		lines(rep(xlims[1] + c(0,0.05,NA)*diff(xlims), n),
+                      rep(pres[,i],rep(3,n)))
 	}
     }
     invisible(n.tms)

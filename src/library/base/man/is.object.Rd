@@ -9,14 +9,7 @@ is.object(x)
     object \code{x} has the \R internal \code{OBJECT} attribute set, and
     \code{FALSE} otherwise.
 }
-\arguments{
-  \item{x}{object to be tested.}
-}
-\details{
-  \code{is.object} is generic: you can write methods to handle
-  of specific classes of objects, see \link{InternalMethods}.
-}
-\seealso{\code{\link[base]{class}}, and \code{\link{methods}}.}
+\seealso{\code{\link{class}}, and \code{\link{methods}}.}
 
 \examples{
 is.object(1) # FALSE

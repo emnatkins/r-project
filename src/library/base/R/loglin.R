@@ -50,8 +50,7 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
            stop("This should not happen"),
            stop("This should not happen"),
            warning("Algorithm did not converge"),
-           stop(paste("Incorrect specification of", sQuote("table"),
-                      "or", sQuote("start"))))
+           stop("Incorrect specification of `table' or `start'"))
 
     if (print)
         cat(z$nlast, "iterations: deviation", z$dev[z$nlast], "\n")
@@ -73,7 +72,7 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
     ## Use a dyadic-style representation for the (possible) subsets B.
     ## Let u_i(B) = 1 if i is contained in B and 0 otherwise.  Then B
     ## <-> u(B) = (u_1(B),...,u_N(B)) <-> \sum_{i=1}^N u_i(B) 2^{i-1}.
-    ## See also the code for 'dyadic' below which computes the u_i(B).
+    ## See also the code for `dyadic' below which computes the u_i(B).
     subsets <- function(x) {
         y <- list(vector(mode(x), length = 0))
         for (i in seq(along = x)) {
@@ -81,7 +80,7 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
         }
         y[-1]
     }
-    df <- rep.int(0, 2^nvar)
+    df <- rep(0, 2^nvar)
     for (k in seq(along = margin)) {
         terms <- subsets(margin[[k]])
         for (j in seq(along = terms))
@@ -116,7 +115,7 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
         parnam[1] <- "(Intercept)"
         fit <- fit - parval[[1]]
 
-        ## Get the u_i(B) in the rows of 'dyadic', see above.
+        ## Get the u_i(B) in the rows of `dyadic', see above.
         dyadic <- NULL
         while(any(terms > 0)) {
             dyadic <- cbind(dyadic, terms %% 2)
@@ -125,7 +124,7 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
         dyadic <- dyadic[order(apply(dyadic, 1, sum)), ]
 
         for (i in 2 : parlen) {
-            vars <- which(dyadic[i - 1, ] > 0)
+            vars <- (1 : nvar)[dyadic[i - 1, ] > 0]
             parval[[i]] <- apply(fit, vars, mean)
             parnam[i] <- paste(varnames[vars], collapse = ".")
             fit <- sweep(fit, vars, parval[[i]])

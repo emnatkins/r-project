@@ -5,20 +5,17 @@
   Input and output text connections.
 }
 \usage{
-textConnection(object, open = "r", local = FALSE)
+textConnection(object, open = "r")
 }
 \arguments{
   \item{object}{character.  A description of the connection. 
-    For an input this is an \R character vector object, and for an output
+    For an input is an \R character vector object, and for an output
     connection the name for the \R character vector to receive the
     output.
   }
   \item{open}{character.  Either \code{"r"} (or equivalently \code{""})
-    for an input connection or \code{"w"} or \code{"a"} for an output
+    for an input connection or \code{"w"} or \code{"a"}for an output
     connection.}
-  \item{local}{logical.  Used only for output connections.  If \code{TRUE},
-    output is assigned to a variable in the calling environment.  Otherwise
-    the global environment is used.}
 }
 \details{
   An input text connection is opened and the character vector is copied
@@ -26,44 +23,29 @@ textConnection(object, open = "r", local = FALSE)
   destroys the copy.
 
   An output text connection is opened and creates an \R character vector
-  of the given name in the user's workspace or in the calling environment,
-  depending on the value of the \code{local} argument.  This object will at all
+  of the given name in the user's workspace.  This object will at all
   times hold the completed lines of output to the connection, and
   \code{\link{isIncomplete}} will indicate if there is an incomplete
   final line.  Closing the connection will output the final line,
-  complete or not.  (A line is complete once it has been terminated by
-  end-of-line, represented by \code{"\\n"} in \R.)
+  complete or not.
 
   Opening a text connection with \code{mode = "a"} will attempt to
   append to an existing character vector with the given name in the
-  user's workspace or the calling environment.  If none is found (even
-  if an object exists of the right name but the wrong type) a new
-  character vector wil be created, with a warning.
+  user's workspace.  If none is found (even if an object exists of the
+  right name but the wrong type) a new character vector wil be created,
+  with a warning.
 
   You cannot \code{seek} on a text connection, and \code{seek} will
   always return zero as the position.
 }
-
 \value{
   A connection object of class \code{"textConnection"} which inherits
   from class \code{"connection"}.
 }
 
-\note{
-  As output text connections keep the character vector up to date
-  line-by-line, they are relatively expensive to use, and it is often
-  better to use an anonymous \code{\link{file}()} connection to collect
-  output.
-
-  On platforms where \code{vsnprintf} does not return the needed length
-  of output (e.g., Windows) there is a 100,000 character limit on the
-  length of line for output connections: longer lines will be truncated
-  with a warning.
-}
- 
 \seealso{
-  \code{\link{connections}}, \code{\link{showConnections}},
-  \code{\link{pushBack}}, \code{\link{capture.output}}.
+  \code{\link{connection}}, \code{\link{showConnections}},
+  \code{\link{pushBack}}
 }
 
 \examples{

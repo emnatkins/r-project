@@ -1,14 +1,13 @@
-% $Id: formula.nls.Rd,v 1.6 2003/06/12 11:51:31 ripley Exp $
+% $Id: formula.nls.Rd,v 1.2.4.1 2001/03/24 00:08:06 bates Exp $
 \name{formula.nls}
-\alias{formula.nls}
 \title{Extract Model Formula from nls Object}
 \usage{
-\method{formula}{nls}(x, \dots)
+formula(object)
 }
+\alias{formula.nls}
 \arguments{
- \item{x}{an object inheriting from class \code{nls}, representing
+ \item{object}{an object inheriting from class \code{nls}, representing
    a nonlinear least squares fit.}
- \item{\dots}{further arguments passed to or from other methods.}
 }
 \description{
   Returns the model used to fit \code{object}. 

@@ -2,18 +2,17 @@
 \title{Modify Terms Objects}
 \usage{
 delete.response(termobj)
-reformulate(termlabels, response = NULL)
-drop.terms(termobj, dropx = NULL, keep.response = FALSE)
+reformulate(termlabels,response=NULL)
+drop.terms(termobj, dropx = NULL, keep.response = FALSE) 
 }
 \alias{reformulate}
 \alias{drop.terms}
 \alias{delete.response}
-\alias{[.terms}
 \arguments{
   \item{termobj}{A \code{terms} object}
   \item{termlabels}{character vector giving the right-hand side of a
     model formula.}
-  \item{response}{character string, symbol or call giving the left-hand side of
+  \item{response}{character string giving the left-hand side of
     a model formula.}
   \item{dropx}{vector of positions of variables to drop from the
     right-hand side of the model.}
@@ -24,8 +23,7 @@ drop.terms(termobj, dropx = NULL, keep.response = FALSE)
   model but with no response variable.
 
   \code{drop.terms} removes variables from the right-hand side of the
-  model. There is also a \code{"[.terms"} method to perform the same
-  function (with \code{keep.response=TRUE}).
+  model.
 
   \code{reformulate} creates a formula from a character vector.
 }
@@ -43,18 +41,6 @@ tt <- terms(ff)
 tt
 delete.response(tt)
 drop.terms(tt, 2:3, keep.response = TRUE)
-tt[-1]
-tt[2:3]
 reformulate(attr(tt, "term.labels"))
-
-## keep LHS :
-reformulate("x*w", ff[[2]])
-fS <- surv(ft, case) ~ a + b
-reformulate(c("a", "b*f"), fS[[2]])
-
-stopifnot(identical(      ~ var, reformulate("var")),
-          identical(~ a + b + c, reformulate(letters[1:3])),
-          identical(  y ~ a + b, reformulate(letters[1:2], "y"))
-         )
 }
 \keyword{programming}

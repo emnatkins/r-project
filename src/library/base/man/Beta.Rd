@@ -1,5 +1,4 @@
 \name{Beta}
-\alias{Beta}
 \alias{dbeta}
 \alias{pbeta}
 \alias{qbeta}
@@ -37,14 +36,7 @@ rbeta(n, shape1, shape2)
   \code{shape2} \eqn{= b} has density
   \deqn{f(x)=\frac{\Gamma(a+b)}{\Gamma(a)\Gamma(b)}{x}^{a} {(1-x)}^{b}%
   }{Gamma(a+b)/(Gamma(a)Gamma(b))x^(a-1)(1-x)^(b-1)}
-  for \eqn{a > 0}, \eqn{b > 0} and \eqn{0 \le x \le 1}{0 <= x <= 1}
-  where the boundary values at \eqn{x=0} or \eqn{x=1} are defined as
-  by continuity (as limits).}
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
+  for \eqn{a > 0}, \eqn{b > 0} and \eqn{0 < x < 1}.
 }
 \seealso{
   \code{\link{beta}} for the Beta function, and \code{\link{dgamma}} for

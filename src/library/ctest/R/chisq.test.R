@@ -12,17 +12,13 @@ function(x, y = NULL, correct = TRUE, p = rep(1 / length(x), length(x)),
     if (!is.matrix(x) && !is.null(y)) {
 	if (length(x) != length(y))
 	    stop("x and y must have the same length")
-        DNAME <- c(DNAME, deparse(substitute(y)))
+	DNAME <- paste(DNAME, "and", deparse(substitute(y)))
 	OK <- complete.cases(x, y)
-	x <- factor(x[OK])
-	y <- factor(y[OK])
+	x <- as.factor(x[OK])
+	y <- as.factor(y[OK])
 	if ((nlevels(x) < 2) || (nlevels(y) < 2))
 	    stop("x and y must have at least 2 levels")
-        ## Could also call table() with 'deparse.level = 2', but we need
-        ## to deparse ourselves for DNAME anyway ...
 	x <- table(x, y)
-        names(dimnames(x)) <- DNAME
-        DNAME <- paste(DNAME, collapse = " and ")
     }
 
     if (any(x < 0) || any(is.na(x)))
@@ -34,8 +30,8 @@ function(x, y = NULL, correct = TRUE, p = rep(1 / length(x), length(x)),
 	METHOD <- "Pearson's Chi-squared test"
         nr <- nrow(x)
         nc <- ncol(x)
-        sr <- rowSums(x)
-        sc <- colSums(x)
+        sr <- apply(x, 1, sum)
+        sc <- apply(x, 2, sum)
 	E <- outer(sr, sc, "*") / n
 	dimnames(E) <- dimnames(x)
         if (simulate.p.value && all(sr > 0) && all(sc > 0)) {
@@ -54,10 +50,8 @@ function(x, y = NULL, correct = TRUE, p = rep(1 / length(x), length(x)),
                       double(n + 1),
                       integer(nc),
                       results = double(B),
-                      PACKAGE = "ctest")
-            ## Sorting before summing may look strange, but seems to be
-            ## a sensible way to deal with rounding issues (PR#3486):
-            STATISTIC <- sum(sort((x - E) ^ 2 / E, decreasing = TRUE))
+                      PACKAGE = "base")
+            STATISTIC <- sum((x - E) ^ 2 / E)
             PARAMETER <- NA
             PVAL <- sum(tmp$results >= STATISTIC) / B
         }
@@ -100,7 +94,6 @@ function(x, y = NULL, correct = TRUE, p = rep(1 / length(x), length(x)),
 		   method = METHOD,
 		   data.name = DNAME,
 		   observed = x,
-		   expected = E,
-                   residuals = (x - E) / sqrt(E)),
+		   expected = E),
 	      class = "htest")
 }

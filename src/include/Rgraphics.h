@@ -42,17 +42,10 @@ extern "C" {
  *		green = ((color >>  8) & 255)
  *		blue  = ((color >> 16) & 255)
  */
-/*
- *	Changes from 1.4.0: use top 8 bits as an alpha channel.
- * 	0 = opaque, 255 = transparent.
- *	At present only 0 and >0 are used, with no semi-transparent.
- */
 #define R_RGB(r,g,b)	((r)|((g)<<8)|((b)<<16))
 #define R_RED(col)	(((col)	   )&255)
 #define R_GREEN(col)	(((col)>> 8)&255)
 #define R_BLUE(col)	(((col)>>16)&255)
-#define R_ALPHA(col)	(((col)>>24)&255)
-#define R_OPAQUE(col)	(R_ALPHA(col) == 0)
 
 /*
  *	Some Notes on Line Textures
@@ -81,11 +74,13 @@ extern "C" {
  *	elements it is replicated to create a pattern with an
  *	even number of elements.  (If this is a pain, do something
  *	different its not crucial).
+ *
  */
 
-/* The basic numbered & named line types; here device-independent:
- * e.g. "dashed" == "44",  "dotdash" == "1343"
+/*--- The basic numbered & names line types; Here device-independent:
+  e.g. "dashed" == "44",  "dotdash" == "1343"
 */
+
 #define LTY_BLANK	-1
 #define LTY_SOLID	0
 #define LTY_DASHED	4 + (4<<4)
@@ -151,6 +146,7 @@ int dummy;
 } DevDesc;
 #endif /* R_GRAPHICS_INTERNAL */
 
+#ifndef R_NO_REMAP
 #define CreateAtVector		Rf_CreateAtVector
 #define curDevice		Rf_curDevice
 #define CurrentDevice		Rf_CurrentDevice
@@ -229,6 +225,7 @@ int dummy;
 #define yDevtoNPC		Rf_yDevtoNPC
 #define yDevtoUsr		Rf_yDevtoUsr
 #define yNPCtoUsr		Rf_yNPCtoUsr
+#endif
 
 
 		/* User Callable Functions */
@@ -250,8 +247,8 @@ void GRestorePars(DevDesc*);
 
 		/* More Programmer GPar functions */
 
-void ProcessInlinePars(SEXP, DevDesc*, SEXP call);
-void Specify2(char*, SEXP, DevDesc*, SEXP call);
+void ProcessInlinePars(SEXP, DevDesc*);
+void Specify2(char*, SEXP, DevDesc*);
 void RecordGraphicsCall(SEXP);
 
 SEXP FixupPch(SEXP, int);
@@ -332,15 +329,6 @@ void GEndPath(DevDesc*);
 
 void GMathText(double, double, int, SEXP, double, double, double, DevDesc*);
 void GMMathText(SEXP, int, double, int, double, int, DevDesc*);
-
-
-typedef void (*GVTextRoutine)(double x, double y, int unit, char* s, int typeface, int fontindex,
-	                      double xadj, double yadj, double rot, DevDesc *dd);
-typedef double (*GVStrWidthRoutine)(const unsigned char *s, int typeface, int fontindex,
-		                    int unit, DevDesc *dd);
-typedef double (*GVStrHeightRoutine)(const unsigned char *s, int typeface, int fontindex,
-   	   	                     int unit, DevDesc *dd);
-void R_setVFontRoutines(GVStrWidthRoutine vwidth, GVStrHeightRoutine vheight, GVTextRoutine vtext);
 
 void GVText(double x, double y, int unit, char* s, int typeface, int fontindex,
 	    double xadj, double yadj, double rot, DevDesc *dd);

@@ -1,32 +1,34 @@
+% file modreg/man/predict.smooth.spline.Rd
+% copyright (C) 1998 B. D. Ripley
+%
 \name{predict.smooth.spline}
-\alias{predict.smooth.spline}
-%\alias{predict.smooth.spline.fit}
 \title{Predict from Smoothing Spline Fit}
-\description{
-  Predict a smoothing spline fit at new points, return the derivative if
-  desired. The predicted fit is linear beyond the original data.
-}
 \usage{
-\method{predict}{smooth.spline}(object, x, deriv = 0, \dots)
+predict.smooth.spline(object, x, deriv = 0, \dots)
 }
+\alias{predict.smooth.spline}
 \arguments{
   \item{object}{a fit from \code{smooth.spline}.}
   \item{x}{the new values of x.}
   \item{deriv}{integer; the order of the derivative required.}
-  \item{\dots}{further arguments passed to or from other methods.}
+}
+\description{
+  Predict a smoothing spline fit at new points, return the derivative if
+  desired. The predicted fit is linear beyond the original data.
 }
 \value{
   A list with components
   \item{x}{The input \code{x}.}
   \item{y}{The fitted values or derivatives at \code{x}.}
 }
+\author{B.D. Ripley}
 \seealso{\code{\link{smooth.spline}}
 }
 \examples{
 data(cars)
 attach(cars)
 cars.spl <- smooth.spline(speed, dist, df=6.4)
-\dontshow{
+\testonly{
 print.default(cars.spl)
 }
 
@@ -52,7 +54,7 @@ for(d in 1:3){
        main= paste("s",paste(rep("'",d), collapse=""),"(x)", sep=""))
   mtext("Difference quotient approx.(last)", col = "blue")
   lines(pp <- predict(cars.spl, xx, deriv = d), col = "red")
-\dontshow{
+\testonly{
   print(pp)
 }
   points(kn, pp$y[i.kn], pch = 3, col="dark red")

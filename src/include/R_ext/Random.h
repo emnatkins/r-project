@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2002    Robert Gentleman, Ross Ihaka 
+ *  Copyright (C) 1998-2001    Robert Gentleman, Ross Ihaka 
  *                             and the R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -31,18 +31,15 @@ typedef enum {
     SUPER_DUPER,
     MERSENNE_TWISTER,
     KNUTH_TAOCP,
-    USER_UNIF,
-    KNUTH_TAOCP2
+    USER_UNIF
 } RNGtype;
 
 /* Different kinds of "N(0,1)" generators :*/
 typedef enum {
-    BUGGY_KINDERMAN_RAMAGE,
+    KINDERMAN_RAMAGE,
     AHRENS_DIETER,
     BOX_MULLER,
-    USER_NORM,
-    INVERSION,
-    KINDERMAN_RAMAGE
+    USER_NORM
 } N01type;
 
 
@@ -50,7 +47,7 @@ void GetRNGstate(void);
 void PutRNGstate(void);
 
 double unif_rand(void);
-/* These are also defined in Rmath.h */
+/* These are also defined in Mathlib.h */
 double norm_rand(void);
 double exp_rand(void);
 

@@ -1,19 +1,21 @@
 \name{anova.glm}
-\title{Analysis of Deviance for Generalized Linear Model Fits}
+\title{Analysis of Deviance for  Generalized Linear Model Fits}
 \usage{
-\method{anova}{glm}(object, \dots, dispersion = NULL, test = NULL)
+anova(object, \dots, dispersion = NULL, test = NULL)
+anova.glm(object, \dots, dispersion = NULL, test = NULL)
+anova.glmlist(objects, dispersion = NULL, test = NULL)
 }
 \alias{anova.glm}
 \alias{anova.glmlist}
-%\alias{anova.glm.null}
+\alias{anova.glm.null}
 \description{
   Compute an analysis of deviance table for one or more generalized
   linear model fits.
 }
 \arguments{
   \item{object, \dots}{objects of class \code{glm}, typically
-    the result of a call to \code{\link{glm}}, or a list of
-    \code{objects} for the \code{"glmlist"} method.}
+    the result of a call to \code{\link{glm}}.}
+  \item{objects}{a list of \code{objects}.}
   \item{dispersion}{the dispersion parameter for the fitting family.
     By default it is obtained from \code{glm.obj}.}
   \item{test}{a character string, (partially) matching one of \code{"Chisq"},
@@ -34,10 +36,10 @@
 
   The table will optionally contain test statistics (and P values)
   comparing the reduction in deviance for the row to the residuals.
-  For models with known dispersion (e.g., binomial and Poisson fits)
+  For models with known dispersion (e.g. binomial and Poisson fits)
   the chi-squared test is most appropriate, and for those with
-  dispersion estimated by moments (e.g., \code{gaussian},
-  \code{quasibinomial} and \code{quasipoisson} fits) the F test is
+  dispersion estimated by moments (e.g. \code{gaussian},
+  \code{pseudobinomial} and \code{pseudopoisson} fits) the F test is
   most appropriate.  Mallows' \eqn{C_p}{Cp} statistic is the residual
   deviance plus twice the estimate of \eqn{\sigma^2}{sigma^2} times
   the residual degrees of freedom, which is closely related to AIC (and
@@ -53,22 +55,12 @@
   missing values and \R's default of \code{na.action = na.omit} is used,
   and \code{anova.glmlist} will detect this with an error.
 }
-\references{
-  Hastie, T. J. and Pregibon, D. (1992)
-  \emph{Generalized linear models.}
-  Chapter 6 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
-}
 \seealso{
   \code{\link{glm}}, \code{\link{anova}}.
-
-  \code{\link{drop1}} for
-  so-called \sQuote{type II} anova where each term is dropped one at a
-  time respecting their hierarchy.
 }
 \examples{
-## --- Continuing the Example from  '?glm':%\code{\link{glm}}:
-\dontshow{example("glm", echo = FALSE)}
+## --- Continuing the Example from  ``?glm'':%\code{\link{glm}}:
+\testonly{example("glm", echo = FALSE)}
 anova(glm.D93)
 anova(glm.D93, test = "Cp")
 anova(glm.D93, test = "Chisq")

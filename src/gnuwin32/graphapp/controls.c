@@ -18,7 +18,7 @@
    This file is part of GraphApp, a cross-platform C graphics library.
 
    GraphApp is free software; you can redistribute it and/or modify it
-   under the terms of the GNU Library General Public License.
+   under the terms of the GNU Library General Public License. 
    GraphApp is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY.
 
@@ -126,16 +126,6 @@ void setmouserepeat(control obj, mousefn fn)
 			obj->call->mouserepeat = fn;
 }
 
-void setdrop(control obj, dropfn fn)
-{
-	if (obj)
-	    if (obj->call) {
-		DragAcceptFiles(obj->handle, TRUE);
-		obj->call->drop = fn;
-	    }
-}
-
-
 /*
  *  Drawing controls and windows.
  */
@@ -225,7 +215,6 @@ void resize(control obj, rect r)
 		r.y = obj->rect.y;
 		if (!equalr(r, obj->rect)) {
 			GetWindowPlacement(obj->handle, &W);
-			if (!isvisible(obj)) W.showCmd = SW_HIDE;  /* stops the resize from revealing the window */
 			dx = r.x - obj->rect.x;
 			dy = r.y - obj->rect.y;
 			/* don't believe current sizes!
@@ -605,7 +594,7 @@ void setbackground(control obj, rgb bg)
 #if USE_NATIVE_CONTROLS
 	COLORREF wincolour;
 
-	wincolour = RGB((bg&gaRed)>>16,(bg&gaGreen)>>8,(bg&gaBlue));
+	wincolour = RGB((bg&Red)>>16,(bg&Green)>>8,(bg&Blue));
 
 	if (! obj)
 		return;
@@ -831,7 +820,7 @@ rect objrect(object obj)
 		break;
 	 case MetafileObject:
 		r = obj->rect;
-		break;
+		break;	   
 	  default:
 		GetClientRect(obj->handle, (RECT *) &r);
 		break;
@@ -890,7 +879,7 @@ void delobj(object obj)
 		delimage((image)obj);
 		break;
 	  default:
-		/* if (obj->refcount == 1)   why would this test be here?? */
+		if (obj->refcount == 1)
 			decrease_refcount(obj);
 		break;
 	}

@@ -1,8 +1,4 @@
-bartlett.test <- function(x, ...) UseMethod("bartlett.test")
-
-bartlett.test.default <-
-function(x, g, ...)
-{
+bartlett.test <- function(x, g) {
     LM <- FALSE
     if (is.list(x)) {
         if (length(x) < 2)
@@ -21,7 +17,7 @@ function(x, g, ...)
                        deparse(substitute(g)))
         OK <- complete.cases(x, g)
         x <- x[OK]
-        g <- factor(g[OK])
+        g <- as.factor(g[OK])
         k <- nlevels(g)
         if (k < 2)
             stop("all observations are in the same group")
@@ -54,21 +50,4 @@ function(x, g, ...)
                  method = "Bartlett test for homogeneity of variances")
     class(RVAL) <- "htest"
     return(RVAL)
-}
-
-bartlett.test.formula <-
-function(formula, data, subset, na.action, ...)
-{
-    if(missing(formula) || (length(formula) != 3))
-        stop("formula missing or incorrect")
-    m <- match.call(expand.dots = FALSE)
-    if(is.matrix(eval(m$data, parent.frame())))
-        m$data <- as.data.frame(data)
-    m[[1]] <- as.name("model.frame")
-    mf <- eval(m, parent.frame())
-    DNAME <- paste(names(mf), collapse = " by ")
-    names(mf) <- NULL
-    y <- do.call("bartlett.test", as.list(mf))
-    y$data.name <- DNAME
-    y
 }

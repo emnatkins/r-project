@@ -1,4 +1,4 @@
-\name{coef}
+\name{coefficients}
 \title{Extract Model Coefficients}
 \usage{
 coef(object, \dots)
@@ -22,7 +22,7 @@ coefficients(object, \dots)
 \description{
   \code{coef} is a generic function which extracts model coefficients
   from objects returned by modeling functions.  \code{coefficients} is
-  an \emph{alias} for it.
+  an \emph{alias} (\code{\link{.Alias}}) for it.
 }
 \details{
   All object classes which are returned by model fitting functions
@@ -32,11 +32,6 @@ coefficients(object, \dots)
 \seealso{
   \code{\link{fitted.values}} and \code{\link{residuals}} for related methods;
   \code{\link{glm}}, \code{\link{lm}} for model fitting.
-}
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical Models in S}.
-  Wadsworth \& Brooks/Cole.
 }
 \examples{
 x <- 1:5; coef(lm(c(1:3,7,6) ~ x))

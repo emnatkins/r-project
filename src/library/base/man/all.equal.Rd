@@ -12,8 +12,8 @@
 \usage{
 all.equal(target, current, \dots)
 
-\method{all.equal}{numeric}(target, current,
-          tolerance= .Machine$double.eps ^ 0.5, scale=NULL, \dots)
+all.equal.numeric(target, current,
+                  tolerance= .Machine$double.eps ^ 0.5, scale=NULL)
 }
 \arguments{
   \item{target}{\R object.}
@@ -26,11 +26,9 @@ all.equal(target, current, \dots)
 }
 \description{
     \code{all.equal(x,y)} is a utility to compare \R objects \code{x}
-    and \code{y} testing \dQuote{near equality}.  If they are different,
+    and \code{y} testing ``near equality''.  If they are different,
     comparison is still made to some extent, and a report of the
-    differences is returned.  Don't use \code{all.equal} directly in
-    \code{if} expressions---either use \code{\link{identical}} or combine
-    the two, as shown in the documentation for \code{identical}.
+    differences is returned.
 }
 \details{
     There are several methods available, most of which are dispatched by
@@ -44,8 +42,7 @@ all.equal(target, current, \dots)
     absolute differences are used, otherwise relative differences scaled
     by the mean absolute difference.
 
-    If \code{scale} is positive, absolute comparisons are after scaling
-    (dividing) by \code{scale}.
+    If \code{scale} is positive, comparisons are after scaling by \code{scale}.
 
     For complex arguments, \code{\link{Mod}} of difference is used.
 
@@ -59,20 +56,15 @@ all.equal(target, current, \dots)
 
   Numerical differences are reported by relative error
 }
-\references{
-  Chambers, J. M. (1998)
-  \emph{Programming with Data. A Guide to the S Language}.
-  Springer (for \code{=}).
-}
 \seealso{\code{\link{==}}, and \code{\link{all}} for exact equality testing.}
 \examples{
 all.equal(pi, 355/113) # not precise enough (default tol) > relative error
 
-d45 <- pi*(1/4 + 1:10)
 stopifnot(
-all.equal(tan(d45), rep(1,10))) # TRUE, but
-all      (tan(d45) == rep(1,10)) # FALSE, since not exactly
-all.equal(tan(d45), rep(1,10), tol=0) # to see difference
+all.equal(gamma(2:14),   cumprod(1:13))) # TRUE, but
+
+all      (gamma(2:14) == cumprod(1:13)) # FALSE, since not exactly
+all.equal(gamma(2:14),   cumprod(1:13), tol=0) # to see difference
 
 all.equal(options(), .Options)
 all.equal(options(), as.list(.Options))# TRUE

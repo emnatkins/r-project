@@ -1,5 +1,4 @@
 \name{locales}
-\alias{locales}
 \alias{Sys.getlocale}
 \alias{Sys.setlocale}
 \title{Query or Set Aspects of the Locale}
@@ -20,9 +19,9 @@ Sys.setlocale(category = "LC_ALL", locale = "")
 }
 \details{
   The locale describes aspects of the internationalization of a program.
-  Initially most aspects of the locale of \R are set to \code{"C"} (which
+  Initially mist aspects of the locale of \R are set to \code{"C"} (which
   is the default for the C language and reflects North-American usage).
-  \R does set \code{"LC_CTYPE"} and \code{"LC_COLLATE"}, which allow the
+  \R does set \code{"LC_COLLATE"} and  \code{"LC_CTYPE"}, which allow the
   use of a different character set (typically ISO Latin 1) and alphabetic
   comparisons in that character set (including the use of
   \code{\link{sort}}) and \code{"LC_TIME"} may affect
@@ -38,16 +37,14 @@ Sys.setlocale(category = "LC_ALL", locale = "")
 \value{
   A character string of length one describing the locale in use (after
   setting for \code{Sys.setlocale}), or an empty character string if the
-  locale is invalid (with a warning) or \code{NULL} if locale
-  information is unavailable.
+  locale is invalid or \code{NULL} if locale information is unavailable.
 
   For \code{category = "LC_ALL"} the details of the string are
   system-specific: it might be a single locale or a set of locales
-  separated by \code{"/"} (Solaris) or \code{";"} (Windows).  For
-  portability, it is best to query categories individually.  It is
-  guaranteed that the result of \code{foo <- Sys.getlocale()} can be
-  used in \code{Sys.setlocale("LC_ALL", locale = foo)} on the same
-  machine.
+  separated by \code{"/"} (Solaris) or \code{";"} (Windows). For
+  portability, it is best to query categories individually. It is
+  guaranteed that the result of \code{foo <- Sys.getlocale()} can used
+  in \code{Sys.setlocale("LC_ALL", locale = foo)} on the same machine.
 }
 \section{Warning}{
   Setting \code{"LC_NUMERIC"} can produce output that \R cannot then
@@ -56,7 +53,7 @@ Sys.setlocale(category = "LC_ALL", locale = "")
 }
 \seealso{
   \code{\link{strptime}} for uses of \code{category = "LC_TIME"}.
-  \code{\link{Sys.localeconv}} for details of numerical representations.
+  \code{\link{localeconv}} for details of numerical representations.
 }
 \examples{
 Sys.getlocale()

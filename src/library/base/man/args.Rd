@@ -22,17 +22,12 @@ args(name)
   This function is mainly used interactively.
   For programming, use \code{\link{formals}} instead.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
   \code{\link{formals}},
   \code{\link{help}}.
 }
 \examples{
-args(c)            # -> NULL (c is a 'primitive' function)
+args(c)            # -> NULL (c is a `primitive' function)
 args(plot.default)
 }
 \keyword{documentation}

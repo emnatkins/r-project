@@ -1,18 +1,18 @@
+#### copyright (C) 1998 B. D. Ripley
 dummy.coef <- function(object, ...) UseMethod("dummy.coef")
 
-dummy.coef.lm <- function(object, use.na=FALSE, ...)
+dummy.coef.lm <- function(object, use.na=FALSE)
 {
     Terms <- terms(object)
     tl <- attr(Terms, "term.labels")
     int <- attr(Terms, "intercept")
     facs <- attr(Terms, "factors")[-1, , drop=FALSE]
-    Terms <- delete.response(Terms)
-    vars <- all.vars(Terms)
+    vars <- rownames(facs)
     xl <- object$xlevels
     if(!length(xl)) {			# no factors in model
 	return(as.list(coef(object)))
     }
-    nxl <- rep.int(1, length(vars))
+    nxl <- rep(1, length(vars))
     names(nxl) <- vars
     tmp <- unlist(lapply(xl, length))
     nxl[names(tmp)] <- tmp
@@ -21,12 +21,12 @@ dummy.coef.lm <- function(object, use.na=FALSE, ...)
     args <- vector("list", length(vars))
     names(args) <- vars
     for(i in vars)
-	args[[i]] <- if(nxl[[i]] == 1) rep.int(1, nl)
-	else factor(rep.int(xl[[i]][1], nl), levels = xl[[i]])
+	args[[i]] <- if(nxl[[i]] == 1) rep(1, nl)
+	else factor(rep(xl[[i]][1], nl), levels = xl[[i]])
     dummy <- do.call("data.frame", args)
     pos <- 0
-    rn <- rep.int(tl, lterms)
-    rnn <- rep.int("", nl)
+    rn <- rep(tl, lterms)
+    rnn <- rep("", nl)
     for(j in tl) {
 	i <- vars[facs[, j] > 0]
 	ifac <- i[nxl[i] > 1]
@@ -43,14 +43,7 @@ dummy.coef.lm <- function(object, use.na=FALSE, ...)
 	}
 	pos <- pos + lterms[j]
     }
-    ## some terms like poly(x,1) will give problems here, so allow
-    ## NaNs and set to NA afterwards.
-    mf <- model.frame(Terms, dummy, na.action=function(x)x, xlev=xl)
-    mm <- model.matrix(Terms, mf, object$contrasts, xl)
-    if(any(is.na(mm))) {
-        warning("Some terms will have NAs due to the limits of the method")
-        mm[is.na(mm)] <- NA
-    }
+    mm <- model.matrix(delete.response(Terms), dummy, object$contrasts, xl)
     coef <- object$coef
     if(!use.na) coef[is.na(coef)] <- 0
     asgn <- attr(mm,"assign")
@@ -70,7 +63,7 @@ dummy.coef.lm <- function(object, use.na=FALSE, ...)
     res
 }
 
-dummy.coef.aovlist <- function(object, use.na = FALSE, ...)
+dummy.coef.aovlist <- function(object, use.na = FALSE)
 {
     Terms <- terms(object, specials="Error")
     err <- attr(Terms,"specials")$Error - 1
@@ -82,7 +75,7 @@ dummy.coef.aovlist <- function(object, use.na = FALSE, ...)
     if(!length(xl)) {			# no factors in model
 	return(as.list(coef(object)))
     }
-    nxl <- rep.int(1, length(vars))
+    nxl <- rep(1, length(vars))
     names(nxl) <- vars
     tmp <- unlist(lapply(xl, length))
     nxl[names(tmp)] <- tmp
@@ -91,12 +84,12 @@ dummy.coef.aovlist <- function(object, use.na = FALSE, ...)
     args <- vector("list", length(vars))
     names(args) <- vars
     for(i in vars)
-	args[[i]] <- if(nxl[[i]] == 1) rep.int(1, nl)
-	else factor(rep.int(xl[[i]][1], nl), levels = xl[[i]])
+	args[[i]] <- if(nxl[[i]] == 1) rep(1, nl)
+	else factor(rep(xl[[i]][1], nl), levels = xl[[i]])
     dummy <- do.call("data.frame", args)
     pos <- 0
-    rn <- rep.int(tl, lterms)
-    rnn <- rep.int("", nl)
+    rn <- rep(tl, lterms)
+    rnn <- rep("", nl)
     for(j in tl) {
 	i <- vars[facs[, j] > 0]
 	ifac <- i[nxl[i] > 1]
@@ -151,7 +144,7 @@ print.dummy.coef <- function(x, ..., title)
     n <- length(x)
     nm <- max(sapply(x, length))
     ans <- matrix("", 2*n, nm)
-    rn <- rep.int("", 2*n)
+    rn <- rep("", 2*n)
     line <- 0
     for (j in seq(n)) {
 	this <- x[[j]]
@@ -168,9 +161,9 @@ print.dummy.coef <- function(x, ..., title)
 	}
     }
     rownames(ans) <- rn
-    colnames(ans) <- rep.int("", nm)
+    colnames(ans) <- rep("", nm)
     cat(if(missing(title)) "Full coefficients are" else title, "\n")
-    print(ans[1:line, , drop=FALSE], quote=FALSE, right=TRUE)
+    print.matrix(ans[1:line, , drop=FALSE], quote=FALSE, right=TRUE)
     invisible(x)
 }
 

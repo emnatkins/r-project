@@ -1,17 +1,21 @@
-\name{.Machine}
-\title{Numerical Characteristics of the Machine}
+\name{Machine}
+\title{Machine Characteristics}
 \usage{
+Machine()
 .Machine
 }
+\alias{Machine}
 \alias{.Machine}
 \description{
-  \code{.Machine} is a variable holding information on the numerical
-  characteristics of the machine \R is running on, such as the largest
-  double or integer and the machine's precision.
+  \code{Machine()} returns information on numeric characteristics of the
+  machine \R is running on, such as the largest double or integer and the
+  machine's precision.
+
+  \code{.Machine} is a variable holding this information.
 }
 \value{
-  A list with components (for simplicity, the prefix \dQuote{double} is
-  omitted in the explanations)
+  \code{Machine()} returns a list with components (for simplicity, the
+  prefix ``double'' is omitted in the explanations)
   \item{double.eps}{the smallest positive floating-point number
     \code{x} such that \code{1 + x != 1}.  It equals
     \code{base^ulp.digits} if either \code{base} is 2 or \code{rounding}
@@ -63,13 +67,6 @@
   \item{double.max.exp}{
     the smallest positive power of \code{base} that overflows.}
   \item{integer.max}{the largest integer which can be represented.}
-  \item{sizeof.long}{the number of bytes in a C \code{long} type.}
-  \item{sizeof.longlong}{the number of bytes in a C \code{long long}
-    type. Will be zero if there is no such type.}
-  \item{sizeof.longdouble}{the number of bytes in a C \code{long double}
-    type. Will be zero if there is no such type.}
-  \item{sizeof.pointer}{the number of bytes in a C \code{SEXP}
-    type.}
 }
 \details{
   The algorithm is based on Cody's (1988) subroutine MACHAR.
@@ -80,10 +77,20 @@
   \emph{Transactions on Mathematical Software}, \bold{14}, 4, 303--311.
 }
 \seealso{
-  \code{\link{.Platform}} for details of the platform.
+  \code{\link{machine}} to determine the computer type which \R is running on.
 }
 \examples{
-str(.Machine)
+str(Machine())
+(Meps <- .Machine $ double.eps)
+
+## All the following relations must hold :
+stopifnot(
+ 1 +     Meps != 1,
+ 1 + .5* Meps == 1,
+ log2(.Machine$double.xmax) == .Machine$double.max.exp,
+ log2(.Machine$double.xmin) == .Machine$double.min.exp,
+ is.infinite(.Machine$double.base ^ .Machine$double.max.exp)
+)
 }
 \keyword{sysdata}
 \keyword{programming}

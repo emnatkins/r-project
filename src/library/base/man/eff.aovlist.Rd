@@ -1,3 +1,6 @@
+% file eff.aovlist.Rd
+% copyright (C) 1998 B. D. Ripley
+%
 \name{eff.aovlist}
 \title{Compute Efficiencies of Multistratum Analysis of Variance}
 \usage{
@@ -27,7 +30,7 @@ eff.aovlist(aovlist)
   A matrix giving for each non-pure-error stratum (row) the efficiencies
   for each fixed-effect term in the model.
 }
-
+\author{B.D. Ripley}
 \seealso{\code{\link{aov}}, \code{\link{model.tables.aovlist}},
   \code{\link{se.contrast.aovlist}} }
 
@@ -35,7 +38,7 @@ eff.aovlist(aovlist)
 ## for balanced designs all efficiencies are zero or one.
 ## so as a statistically meaningless test:
 options(contrasts=c("contr.helmert", "contr.poly"))
-## From Venables and Ripley (2002) p.165.
+## From Venables and Ripley (1997) p.210.
 N <- c(0,1,0,1,1,1,0,0,0,1,1,0,1,1,0,0,1,0,1,0,1,1,0,0)
 P <- c(1,1,0,0,0,1,0,1,1,1,0,0,0,1,0,1,1,0,0,1,0,1,1,0)
 K <- c(1,0,0,1,0,1,1,0,0,1,0,1,0,1,1,0,0,0,1,1,1,0,1,0)

@@ -8,15 +8,14 @@
   performing the interpolation.
 }
 \usage{
-splinefun(x, y = NULL, method = "fmm")
-
-spline(x, y = NULL, n = 3*length(x), method = "fmm",
+splinefun(x, y, method = "fmm")
+spline(x, y, n = 3*length(x), method = "fmm",
        xmin = min(x), xmax = max(x))
 }
 \arguments{
   \item{x,y}{vectors giving the coordinates of the points to be
     interpolated.  Alternatively a single plotting structure can be
-    specified: see \code{\link{xy.coords}.}}
+    specified: see \code{\link{xy.coords}.}
   \item{method}{specifies the type of spline to be used.  Possible
     values are \code{"fmm"}, \code{"natural"} and \code{"periodic"}.}
   \item{n}{interpolation takes place at \code{n} equally spaced points
@@ -47,10 +46,6 @@ spline(x, y = NULL, n = 3*length(x), method = "fmm",
   than \code{spline}.
 }
 \references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-
   Forsythe, G. E., Malcolm, M. A. and Moler, C. B. (1977)
   \emph{Computer Methods for Mathematical Computations}.
 }
@@ -58,12 +53,12 @@ spline(x, y = NULL, n = 3*length(x), method = "fmm",
   \code{\link{approx}} and \code{\link{approxfun}} for constant and
   linear interpolation.
 
-  Package \pkg{splines}, especially \code{\link[splines]{interpSpline}}
-  and \code{\link[splines]{periodicSpline}} for interpolation splines.
+  Package \code{splines}, especially \code{\link[splines]{interpSpline}} and
+  \code{\link[splines]{periodicSpline}} for interpolation splines.
   That package also generates spline bases that can be used for
   regression splines.
 
-  \code{\link[modreg]{smooth.spline}} in package \pkg{modreg} for
+  \code{\link[modreg]{smooth.spline}} in package \code{modreg} for
   smoothing splines.
 }
 \examples{

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995-1998  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1999-2003  The R Development Core Team.
+ *  Copyright (C) 1999-2000  The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ SEXP do_onexit(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    {
 		PROTECT(tmp=allocList(1));
 		SETCAR(tmp, code);
-		ctxt->conexit = listAppend(duplicate(oldcode),tmp);
+		ctxt->conexit = listAppend(oldcode,tmp);
 		UNPROTECT(1);
 	    }
 	}
@@ -123,14 +123,6 @@ SEXP do_body(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     checkArity(op, args);
     if (TYPEOF(CAR(args)) == CLOSXP)
-	return duplicate(BODY_EXPR(CAR(args)));
-    else return R_NilValue;
-}
-
-SEXP do_bodyCode(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    checkArity(op, args);
-    if (TYPEOF(CAR(args)) == CLOSXP)
 	return duplicate(BODY(CAR(args)));
     else return R_NilValue;
 }
@@ -155,49 +147,6 @@ SEXP do_envirgets(SEXP call, SEXP op, SEXP args, SEXP rho)
     else
 	errorcall(call, "replacement object is not an environment");
     return CAR(args);
-}
-
-
-SEXP do_newenv(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP enclos;
-    int hash;
-
-    checkArity(op, args);
-
-    hash = asInteger(CAR(args));
-    enclos = CADR(args);
-    if( !isEnvironment(enclos) )
-	errorcall(call, "enclos needs to be an environment");
-
-    if( hash )
-	return R_NewHashedEnv(enclos);
-    else
-	return NewEnvironment(R_NilValue, R_NilValue, enclos);
-}
-
-SEXP do_parentenv(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    checkArity(op, args);
-
-    if( !isEnvironment(CAR(args)) )
-	errorcall(call, "argument is not an environment");
-
-    return( ENCLOS(CAR(args)) );
-}
-
-SEXP do_parentenvgets(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    checkArity(op, args);
-
-    if( !isEnvironment(CAR(args)) )
-	errorcall(call, "argument is not an environment");
-    if( !isEnvironment(CADR(args)) )
-	errorcall(call, "parent is not an environment");
-
-    SET_ENCLOS(CAR(args), CADR(args));
-
-    return( CAR(args) );
 }
 
 static void cat_newline(SEXP labels, int *width, int lablen, int ntot)
@@ -230,30 +179,11 @@ static void cat_printsep(SEXP sep, int ntot)
     return;
 }
 
-typedef struct cat_info {
-    Rboolean wasopen;
-    int changedcon;
-    Rconnection con;
-} cat_info;
-
-static void cat_cleanup(void *data)
-{
-    cat_info *pci = data;
-    Rconnection con = pci->con;
-    Rboolean wasopen = pci->wasopen;
-    int changedcon = pci->changedcon;
-
-    con->fflush(con);
-    if(!wasopen) con->close(con);  /**** do this second? */
-    if(changedcon) switch_stdout(-1, 0);
-}
-
 SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    cat_info ci;
-    RCNTXT cntxt;
     SEXP objs, file, fill, sepr, labs, s;
-    int ifile;
+    int ifile, savecon;
+    Rboolean wasopen;
     Rconnection con;
     int append;
     int w, i, iobj, n, nobjs, pwidth, width, sepw, lablen, ntot, nlsep, nlines;
@@ -302,18 +232,9 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (append == NA_LOGICAL)
 	errorcall(call, "invalid append specification");
 
-    ci.wasopen = con->isopen;
-
-    ci.changedcon = switch_stdout(ifile, 0);
-    /* will open new connection if required */
-
-    ci.con = con;
-
-    /* set up a context which will close the window if there is an error */
-    begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_NilValue, R_NilValue,
-		 R_NilValue, R_NilValue);
-    cntxt.cend = &cat_cleanup;
-    cntxt.cenddata = &ci;
+    savecon = R_OutputCon;
+    wasopen = con->isopen;
+    switch_stdout(ifile); /* will open new connection if required */
 
     nobjs = length(objs);
     /*
@@ -389,12 +310,9 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
     if ((pwidth != INT_MAX) || nlsep)
 	Rprintf("\n");
 
-    /* end the context after anything that could raise an error but before
-       doing the cleanup so the cleanup doesn't get done twice */
-    endcontext(&cntxt);
-
-    cat_cleanup(&ci);
-
+    con->fflush(con);
+    if(!wasopen) con->close(con);
+    switch_stdout(savecon);
     return R_NilValue;
 }
 
@@ -426,6 +344,13 @@ SEXP do_makelist(SEXP call, SEXP op, SEXP args, SEXP rho)
     UNPROTECT(2);
     return list;
 }
+
+#ifdef NOT_used
+SEXP do_namedlist(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+}
+#endif /* NOT_used */
+
 
 SEXP do_expression(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -493,13 +418,13 @@ SEXP do_makevector(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    INTEGER(s)[i] = 0;
     else if (mode == REALSXP)
 	for (i = 0; i < len; i++)
-	    REAL(s)[i] = 0.;
-    else if (mode == CPLXSXP)
-	for (i = 0; i < len; i++) {
-	    COMPLEX(s)[i].r = 0.;
-	    COMPLEX(s)[i].i = 0.;
-	}
-    /* other cases: list/expression have "NULL", ok */
+	    REAL(s)[i] = 0.0;
+#ifdef OLD
+    else if (mode == STRSXP) {
+	for (i = 0; i < len; i++)
+	    SET_STRING_ELT(s, i, R_BlankString);
+    }
+#endif
     return s;
 }
 

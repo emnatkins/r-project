@@ -1,13 +1,12 @@
 \name{identify}
-\alias{identify}
-\alias{identify.default}
 \title{Identify Points in a Scatter Plot}
 \usage{
 identify(x, \dots)
-
-\method{identify}{default}(x, y = NULL, labels = seq(along = x), pos = FALSE,
-         n = length(x), plot = TRUE, offset = 0.5, \dots)
+identify.default(x, y = NULL, labels = seq(along = x), pos = FALSE,
+                 n = length(x), plot = TRUE, offset = 0.5, \dots)
 }
+\alias{identify}
+\alias{identify.default}
 \arguments{
   \item{x,y}{coordinates of points in a scatter plot.  Alternatively, any
     object which defines coordinates (a plotting structure, time
@@ -38,19 +37,8 @@ identify(x, \dots)
   The labels are placed either below, to the left, above or to the right
   of the identified point, depending on where the cursor was.
 
-#ifdef unix
   The identification process is terminated by pressing any mouse button
-  other than the first.
-#endif
-#ifdef windows
-  The identification process is terminated by clicking the second button
-  and selecting \sQuote{Stop} from the menu, or from the \sQuote{Stop}
-  menu on the graphics window.
-#endif
- 
-  On most devices which support \code{locator}, successful selection of
-  a point is indicated by a bell sound unless
-  \code{\link{options}(locatorBell=FALSE}} has been set.
+  other than the first, or by clicking outside the graphics window.
 
   If the window is resized or hidden and then exposed before the identification
   process has terminated, any labels drawn by \code{identify}
@@ -68,11 +56,6 @@ identify(x, \dots)
   \code{ind}, indicating which points were identified and a component
   \code{pos}, indicating where the labels were placed relative to the
   identified points.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{locator}}

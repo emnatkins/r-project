@@ -1,5 +1,4 @@
 \name{Exponential}
-\alias{Exponential}
 \alias{dexp}
 \alias{pexp}
 \alias{qexp}
@@ -42,11 +41,6 @@ rexp(n, rate = 1)
     f(x) = lambda e^(- lambda x)}
   for \eqn{x \ge 0}.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
   \code{\link{exp}} for the exponential function,
   \code{\link{dgamma}} for the gamma distribution and
@@ -59,5 +53,7 @@ rexp(n, rate = 1)
 }
 \examples{
 dexp(1) - exp(-1) #-> 0
+r <- rexp(100)
+all(abs(1 - dexp(1, r) / (r*exp(-r))) < 1e-14)
 }
 \keyword{distribution}

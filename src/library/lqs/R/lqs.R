@@ -1,5 +1,5 @@
 ### file lqs/R/lqs.R
-### copyright (C) 1998-2003 B. D. Ripley
+### copyright (C) 1998-9 B. D. Ripley
 
 lqs <- function(x, ...) UseMethod("lqs")
 
@@ -11,12 +11,11 @@ lqs.formula <-
 {
     method <- match.arg(method)
     mf <- match.call(expand.dots = FALSE)
-    mf$method <- mf$contrasts <- mf$model <- mf$x.ret <- mf$y.ret <- mf$... <- NULL
+    mf$method <- mf$contrasts <- mf$model <- mf$x <- mf$y <- mf$... <- NULL
     mf[[1]] <- as.name("model.frame")
     mf <- eval(mf, parent.frame())
     if (method == "model.frame") return(mf)
     mt <- attr(mf, "terms")
-    na.act <- attr(mf, "na.action")
     y <- model.extract(mf, "response")
     x <- model.matrix(mt, mf, contrasts)
     xvars <- as.character(attr(mt, "variables"))[-1]
@@ -34,7 +33,6 @@ lqs.formula <-
     fit$call <- match.call()
     fit$contrasts <- attr(x, "contrasts")
     fit$xlevels <- xlev
-    if(!is.null(na.act)) fit$na.action <- na.act
     if(model) fit$model <- mf
     if(x.ret) fit$x <- x
     if(y.ret) fit$y <- y
@@ -81,7 +79,6 @@ lqs.default <-
 	chi <- function(u, k0)
 	{ u <- (u/k0)^2; ifelse(u < 1, 3*u - 3*u^2 + u^3, 1) }
     }
-    if(quantile > n-1) stop(paste("quantile must be at most", n-1))
     ps <- control$psamp
     if(is.na(ps)) ps <- p
     if(ps < p) {
@@ -91,24 +88,25 @@ lqs.default <-
     adj <- control$adjust & intercept
     nsamp <- eval(control$nsamp)
     nexact <- choose(n, ps)
-    if(is.character(nsamp) && nsamp == "best") {
+    if(is.character(nsamp) && nsamp == "best")
 	nsamp <- if(nexact < 5000) "exact" else "sample"
-    } else if(is.numeric(nsamp) && nsamp > nexact) {
+    if(is.numeric(nsamp) && nsamp > nexact) {
 	warning(paste("only", nexact, "sets, so all sets will be tried"))
 	nsamp <- "exact"
     }
-    samp <- nsamp != "exact"
-    if(samp) {
-	if(nsamp == "sample") nsamp <- min(500*ps, 3000)
-    } else
+    if(nsamp == "exact") {
 	nsamp <- nexact
-
+	samp <- FALSE
+    } else {
+	if(nsamp == "sample") nsamp <- min(500*ps, 3000)
+	samp <- TRUE
+    }
     if(samp && !missing(seed)) {
-	if(exists(".Random.seed", envir=.GlobalEnv, inherits=FALSE))  {
-	    seed.keep <- get(".Random.seed", envir=.GlobalEnv, inherits=FALSE)
+	if(exists(".Random.seed", envir=.GlobalEnv))  {
+	    seed.keep <- .Random.seed
 	    on.exit(assign(".Random.seed", seed.keep, envir=.GlobalEnv))
 	}
-	assign(".Random.seed", seed, envir=.GlobalEnv)
+	.Random.seed <<- seed
     }
     z <-  .C("lqs_fitlots",
 	     as.double(x), as.double(y), as.integer(n), as.integer(p),
@@ -118,8 +116,6 @@ lqs.default <-
 	     coefficients=double(p), as.double(k0), as.double(beta),
 	     PACKAGE="lqs"
 	     )[c("crit", "sing", "coefficients", "bestone")]
-    if(z$sing == nsamp)
-        stop("lqs failed: all the samples were singular", call.=FALSE)
     z$sing <- paste(z$sing, "singular samples of size", ps, "out of", nsamp)
     z$bestone <- sort(z$bestone)
     names(z$coefficients) <- nm
@@ -127,16 +123,18 @@ lqs.default <-
     z$fitted.values <- fitted
     z$residuals <- y - fitted
     c1 <- 1/qnorm((n + quantile)/(2*n))
-    s <-
-        if(lts == 1)
-            sqrt(z$crit/quantile)/sqrt(1 - 2*n*dnorm(1/c1)/(quantile*c1))
-        else if(lts == 0) sqrt(z$crit)*c1 else z$crit
+    if(lts == 1) {
+	s <- sqrt(z$crit/quantile)/sqrt(1 - 2*n*dnorm(1/c1)/(quantile*c1))
+    } else if(lts == 0) {
+	s <- sqrt(z$crit)*c1
+    } else s <- z$crit
     res <- z$residual
     ind <- abs(res) <= 2.5*s
     s2 <- sum(res[ind]^2)/(sum(ind) - p)
     z$scale <- c(s, sqrt(s2))
     if(method == "S") { # IWLS refinement
 	psi <- function(u, k0) (1  - pmin(1, abs(u/k0))^2)^2
+	coef <- z$coef
 	resid <- z$residuals
 	scale <- s
 	for(i in 1:30) {
@@ -170,14 +168,11 @@ print.lqs <- function (x, digits = max(3, getOption("digits") - 3), ...)
     invisible(x)
 }
 
-predict.lqs <- function (object, newdata, na.action = na.pass, ...)
+predict.lqs <- function (object, newdata, ...)
 {
-    if (missing(newdata)) return(fitted(object))
-    ## work hard to predict NA for rows with missing data
-    Terms <- delete.response(terms(object))
-    m <- model.frame(Terms, newdata, na.action = na.action,
-                     xlev = object$xlevels)
-    X <- model.matrix(Terms, m, contrasts = object$contrasts)
+    if (missing(newdata)) return(object$fitted.values)
+    X <- model.matrix(delete.response(terms(object)), newdata,
+		      contrasts = object$contrasts, xlev = object$xlevels)
     drop(X %*% object$coefficients)
 }
 
@@ -192,10 +187,9 @@ cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
     n <- nrow(x); p <- ncol(x)
     if(n < p+1) stop(paste("At least", p+1, "cases are needed"))
     if(method == "classical") {
-	ans <- list(center = colMeans(x), cov = var(x))
+	ans <- list(center = apply(x, 2, mean), cov = var(x))
     } else {
 	if(quantile.used < p+1) stop(paste("quantile must be at least", p+1))
-	if(quantile.used > n-1) stop(paste("quantile must be at most", n-1))
 	## re-scale to roughly common scale
 	divisor <- apply(x, 2, IQR)
         if(any(divisor == 0)) stop("at least one column has IQR 0")
@@ -215,11 +209,11 @@ cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
 	} else nsamp <- nexact
 
 	if(samp && !missing(seed)) {
-	    if(exists(".Random.seed", envir=.GlobalEnv, inherits=FALSE))  {
-		seed.keep <- get(".Random.seed", envir=.GlobalEnv, inherits=FALSE)
+	    if(exists(".Random.seed", envir=.GlobalEnv))  {
+		seed.keep <- .Random.seed
 		on.exit(assign(".Random.seed", seed.keep, envir=.GlobalEnv))
 	    }
-            assign(".Random.seed", seed, envir=.GlobalEnv)
+	    .Random.seed <<- seed
 	}
 	z <-  .C("mve_fitlots",
 		 as.double(x), as.integer(n), as.integer(p),
@@ -228,13 +222,11 @@ cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
 		 crit=double(1), sing=integer(1), bestone=integer(n),
 		 PACKAGE="lqs"
 		 )
-	z$sing <- paste(z$sing, "singular samples of size", ps,
-                        "out of", nsamp)
+	z$sing <- paste(z$sing, "singular samples of size", ps, "out of", nsamp)
 	crit <- z$crit + 2*sum(log(divisor)) +
 	    if(method=="mcd") - p * log(qn - 1) else 0
 	best <- seq(n)[z$bestone != 0]
-        if(!length(best)) stop("x is probably collinear")
-	means <- colMeans(x[best, , drop = FALSE])
+	means <- apply(x[best, , drop = FALSE], 2, mean)
 	rcov <- var(x[best, , drop = FALSE]) * (1 + 15/(n - p))^2
 	dist <- mahalanobis(x, means, rcov)
 	cut <- qchisq(0.975, p) * quantile(dist, qn/n)/qchisq(qn/n, p)
@@ -242,7 +234,7 @@ cov.rob <- function(x, cor = FALSE, quantile.used = floor((n+p+1)/2),
 	    rep(divisor, rep(p, p))
 	attr(cov, "names") <- NULL
 	ans <- list(center =
-		    colMeans(x[dist < cut, , drop = FALSE]) * divisor,
+		    apply(x[dist < cut, , drop = FALSE], 2, mean) * divisor,
 		    cov = cov, msg = z$sing, crit = crit, best = best)
     }
     if(cor) {

@@ -1,10 +1,9 @@
 \name{rivers}
-\docType{data}
 \alias{rivers}
 \title{Lengths of Major North American Rivers}
 \description{
-  This data set gives the lengths (in miles) of 141 \dQuote{major}
-  rivers in North America, as compiled by the US Geological Survey.
+  This data set gives the lengths (in miles) of 141 ``major'' rivers
+  in North America, as compiled by the US Geological Survey.
 }
 \usage{data(rivers)}
 \format{A vector containing 141 observations.}

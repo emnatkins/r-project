@@ -6,28 +6,25 @@
 \description{Plots a mosaic on the current graphics device.}
 \usage{
 mosaicplot(x, \dots)
-
-\method{mosaicplot}{default}(x, main = deparse(substitute(x)), 
-                   sub = NULL, xlab = NULL, ylab = NULL,
+mosaicplot.default(X, main = NULL, xlab = NULL, ylab = NULL,
                    sort = NULL, off = NULL, dir = NULL,
                    color = FALSE, shade = FALSE, margin = NULL,
-                   cex.axis = 0.66, las = par("las"),
-                   type = c("pearson", "deviance", "FT"), \dots)
-
-\method{mosaicplot}{formula}(formula, data = NULL, \dots,
-          main = deparse(substitute(data)), subset)
+                   type = c("pearson", "deviance", "FT"))
+mosaicplot.formula(formula, data = NULL, subset, na.action, \dots)
 }
 \arguments{
-  \item{x}{a contingency table in array form, with optional category
-    labels specified in the \code{dimnames(x)} attribute.  The table is
-    best created by the \code{table()} command.}
+  \item{x}{an \R object.}
+  \item{X}{a contingency table, with optional category labels
+    specified in the \code{dimnames(x)} attribute.  The table is
+    best created by the \code{table()} command, which produces an
+    object of type array.}
   \item{main}{character string for the mosaic title.}
-  \item{sub}{character string for the mosaic sub-title (at bottom).}
-  \item{xlab,ylab}{x- and y-axis labels used for the plot; by default,
-    the first and second element of \code{names(dimnames(X))} (i.e., the
-    name of the first and second variable in \code{X}).}
-  \item{sort}{vector ordering of the variables, containing a permutation
-    of the integers \code{1:length(dim(x))} (the default).}
+  \item{xlab,ylab}{x- and y-axis labels; by default, the first and
+    second element of \code{names(dimnames(X))} (i.e., the name of the
+    first and second variable in \code{X}).}
+  \item{sort}{vector ordering of the variables, containing a
+    permutation of the integers \code{1:length(dim(x))} (the
+    default).}
   \item{off}{vector of offsets to determine percentage spacing at each
     level of the mosaic (appropriate values are between 0 and 20,
     and the default is 10 at each level).  There should be one
@@ -37,9 +34,9 @@ mosaicplot(x, \dots)
     direction for each dimension of the contingency table.  The
     default consists of alternating directions, beginning with a
     vertical split.}
-  \item{color}{logical or (recycling) vector of colors for color
-    shading, used only when \code{shade} is \code{FALSE}.  The default
-    \code{color=FALSE} gives empty boxes with no shading.}
+  \item{color}{(\code{TRUE} or vector of integer colors) for color
+    shading or (\code{FALSE}, the default) for empty boxes with no
+    shading.  Ignored if \code{shade} is not \code{FALSE}.}
   \item{shade}{a logical indicating whether to produce extended mosaic
     plots, or a numeric vector of at most 5 distinct positive numbers
     giving the absolute values of the cut points for the residuals.  By
@@ -49,9 +46,6 @@ mosaicplot(x, \dots)
   \item{margin}{a list of vectors with the marginal totals to be fit in
     the log-linear model.  By default, an independence model is fitted.
     See \code{\link{loglin}} for further information.}
-  \item{cex.axis}{The magnification to be used for axis annotation,
-    as a multiple of \code{par("cex")}.}
-  \item{las}{numeric; the style of axis labels, see \code{\link{par}}.}
   \item{type}{a character string indicating the type of residual to be
     represented.  Must be one of \code{"pearson"} (giving components of
     Pearson's \eqn{\chi^2}{chi-squared}), \code{"deviance"} (giving
@@ -59,11 +53,13 @@ mosaicplot(x, \dots)
     \code{"FT"} for the Freeman-Tukey residuals.  The value of this
     argument can be abbreviated.}
   \item{formula}{a formula, such as \code{y ~ x}.}
-  \item{data}{a data frame (or list), or a contingency table from which
-    the variables in \code{formula} should be taken.}
-  \item{\dots}{further arguments to be passed to or from methods.}
+  \item{data}{a data.frame (or list) from which the variables in
+    \code{formula} should be taken.}
   \item{subset}{an optional vector specifying a subset of observations
-    in the data frame to be used for plotting.}
+    to be used in the fitting process.}
+  \item{na.action}{a function which indicates what should happen when
+    the data contain \code{NA}s.}
+  \item{\dots}{further arguments to the default mosaicplot method.}
 }
 \details{
   This is a generic function.  It currently has a default method
@@ -77,28 +73,12 @@ mosaicplot(x, \dots)
   of red and with broken outlines; positive ones are drawn in blue with
   solid outlines.
 
-  For the formula method, if \code{data} is an object inheriting from
-  classes \code{"table"} or \code{"ftable"}, or an array with more than
-  2 dimensions, it is taken as a contingency table, and hence all
-  entries should be nonnegative.  In this case, the left-hand side of
-  \code{formula} should be empty, and the variables on the right-hand
-  side should be taken from the names of the dimnames attribute of the
-  contingency table.  A marginal table of these variables is computed,
-  and a mosaic of this table is produced.
-
-  Otherwise, \code{data} should be a data frame or matrix, list or
-  environment containing the variables to be cross-tabulated.  In this
-  case, after possibly selecting a subset of the data as specified by
-  the \code{subset} argument, a contingency table is computed from the
-  variables given in \code{formula}, and a mosaic is produced from
-  this.
-
   See Emerson (1998) for more information and a case study with
   television viewer data from Nielsen Media Research.
 }
 \author{
   S-PLUS original by John Emerson \email{emerson@stat.yale.edu}.
-  Originally modified and enhanced for \R by KH.
+  Slightly modified for \R by KH.
 }
 \references{
   Hartigan, J.A., and Kleiner, B. (1984)
@@ -116,7 +96,7 @@ mosaicplot(x, \dots)
   190--200.
 
   The home page of Michael Friendly
-  (\url{http://www.math.yorku.ca/SCS/friendly.html}) provides
+  (\url{http://hotspur.psych.yorku.ca/SCS/friendly.html}) provides
   information on various aspects of graphical methods for analyzing
   categorical data, including mosaic plots.
 }
@@ -127,25 +107,21 @@ mosaicplot(x, \dots)
 \examples{
 data(Titanic)
 mosaicplot(Titanic, main = "Survival on the Titanic", color = TRUE)
-## Formula interface for tabulated data:
-mosaicplot(~ Sex + Age + Survived, data = Titanic, color = TRUE)
 
 data(HairEyeColor)
 mosaicplot(HairEyeColor, shade = TRUE)
 ## Independence model of hair and eye color and sex.  Indicates that
-## there are significantly more blue eyed blonde females than expected
-## in the case of independence (and too few brown eyed blonde females).
-
+## there are significantly more blue eyed blond females than expected
+## in the case of independence (and too few brown eyed blond females).
 mosaicplot(HairEyeColor, shade = TRUE, margin = list(c(1,2), 3))
 ## Model of joint independence of sex from hair and eye color.  Males
 ## are underrepresented among people with brown hair and eyes, and are
 ## overrepresented among people with brown hair and blue eyes, but not
-## "significantly".
+## ``significantly''.
 
-## Formula interface for raw data: visualize crosstabulation of numbers
-## of gears and carburettors in Motor Trend car data.
+## Formula interface: visualize crosstabulation of numbers of gears and
+## carburettors in Motor Trend car data.
 data(mtcars)
-mosaicplot(~ gear + carb, data = mtcars, color = TRUE, las = 1)
-mosaicplot(~ gear + carb, data = mtcars, color = 2:3, las = 1)# color recycling
+mosaicplot(~ gear + carb, data = mtcars, color = TRUE)
 }
 \keyword{hplot}

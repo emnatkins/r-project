@@ -2,7 +2,8 @@
 \alias{diffinv}
 \alias{diffinv.default}
 \alias{diffinv.ts}
-\title{Discrete Integration: Inverse of Differencing}
+\alias{diffinv.vector}
+\title{Discrete Integrals: Inverse of Differencing}
 \description{
   Computes the inverse function of the lagged differences function
   \code{\link{diff}}. 
@@ -10,13 +11,15 @@
 \synopsis{
 diffinv(x, ...)
 diffinv.default(x, lag = 1, differences = 1,
-    xi = rep(0, lag * differences * dim(as.matrix(x))[2]), ...) 
+    xi = rep(0, lag * differences * dim(as.matrix(x))[2])) 
 diffinv.ts(x, lag = 1, differences = 1,
-    xi = rep(0, lag * differences * NCOL(x)), ...) 
+    xi = rep(0, lag * differences * NCOL(x))) 
+diffinv.vector(x, lag = 1, differences = 1,
+    xi = rep(0, lag * differences))
 }
 \usage{
 diffinv(x, lag = 1, differences = 1,
-        xi = rep(0.0, lag*differences*NCOL(x)), \dots)
+        xi = rep(0.0, lag*differences*NCOL(x)))
 }
 \arguments{
   \item{x}{a numeric vector, matrix, or time series.}
@@ -25,7 +28,6 @@ diffinv(x, lag = 1, differences = 1,
     difference.}
   \item{xi}{a numeric vector, matrix, or time series containing the
     initial values for the integrals.}
-  \item{\dots}{arguments passed to or from other methods.}
 }
 \details{
   \code{diffinv} is a generic function with methods for class \code{"ts"}

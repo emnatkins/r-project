@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997-2002 Robert Gentleman, Ross Ihaka and the R core team.
+ *  Copyright (C) 1997-2001 Robert Gentleman, Ross Ihaka and the R core team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,7 +51,6 @@
 
 static SEXP gcall;
 
-
 void RecordGraphicsCall(SEXP call)
 {
     gcall = call;
@@ -63,10 +62,10 @@ static void par_error(char *what)
 }
 
 
-static void lengthCheck(char *what, SEXP v, int n, SEXP call)
+static void lengthCheck(char *what, SEXP v, int n)
 {
     if (length(v) != n)
-	errorcall(call, "parameter \"%s\" has the wrong length", what);
+	errorcall(gcall, "parameter \"%s\" has the wrong length", what);
 }
 
 
@@ -82,13 +81,11 @@ static void posIntCheck(int x, char *s)
 	par_error(s);
 }
 
-#ifdef UNUSED
 static void naIntCheck(int x, char *s)
 {
     if (x == NA_INTEGER)
 	par_error(s);
 }
-#endif
 
 static void posRealCheck(double x, char *s)
 {
@@ -121,21 +118,6 @@ static void BoundsCheck(double x, double a, double b, char *s)
 /* par(...)) is modified, must call GReset() to update the layout and */
 /* the transformations between coordinate systems */
 
-/* These will be defined differently for Specify() and Specify2() : */
-#define R_DEV__(_P_) Rf_dpptr(dd)->_P_ = Rf_gpptr(dd)->_P_
-#define R_DEV_2(_P_) Rf_gpptr(dd)->_P_ = Rf_dpptr(dd)->_P_
-/* In Emacs : -- only inside Specify() :
- *  (query-replace-regexp
-     "Rf_dpptr(dd)->\\([][A-Za-z0-9]+\\) = Rf_gpptr(dd)->\\(\\1\\)"
-     "R_DEV__(\\1)" nil nil nil)
-
-   (query-replace-regexp
-     "Rf_gpptr(dd)->\\([][A-Za-z0-9]+\\) = Rf_dpptr(dd)->\\(\\1\\)"
-     "R_DEV_2(\\1)" nil nil nil)
-*/
-
-static void Specify(char *what, SEXP value, DevDesc *dd, SEXP call)
-{
 /* If you ADD a NEW par, then do NOT forget to update the code in
  *			 ../library/base/R/par.R
 
@@ -154,179 +136,321 @@ static void Specify(char *what, SEXP value, DevDesc *dd, SEXP call)
  *	"usr",
  *	"xlog", "ylog"
  */
+static void Specify(char *what, SEXP value, DevDesc *dd)
+{
     double x;
     int ix = 0;
 
-#include "par-common.c"
-/*	  ------------
- *--- now, these are *different* from  "Specify2() use" : */
+    if (streql(what, "adj")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	BoundsCheck(x, 0.0, 1.0, what);
+	dd->dp.adj = dd->gp.adj = x;
+    }
+    else if (streql(what, "ann")) {
+	lengthCheck(what, value, 1);	ix = asLogical(value);
+	dd->dp.ann = dd->gp.ann = (ix != 0);/* NA |-> TRUE */
+    }
+    else if (streql(what, "ask")) {
+	lengthCheck(what, value, 1);	ix = asLogical(value);
+	dd->dp.ask = dd->gp.ask = (ix == 1);/* NA |-> FALSE */
+    }
     else if (streql(what, "bg")) {
-	lengthCheck(what, value, 1, call);	ix = RGBpar(value, 0);
-	/*	naIntCheck(ix, what); */
-	R_DEV__(bg) = ix;
-	R_DEV__(new) = FALSE;
+	lengthCheck(what, value, 1);	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->dp.bg = dd->gp.bg = ix;
+	dd->dp.new = dd->gp.new = FALSE;
+    }
+    else if (streql(what, "bty")) {
+	lengthCheck(what, value, 1);
+	if (!isString(value))
+	    par_error(what);
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	switch (ix) {
+	case 'o': case 'O':
+	case 'l': case 'L':
+	case '7':
+	case 'c': case 'C': case '[':
+	case ']':
+	case 'u': case 'U':
+	case 'n':
+	    dd->dp.bty = dd->gp.bty = ix;
+	    break;
+	default:
+	    par_error(what);
+	}
     }
     else if (streql(what, "cex")) {
-	lengthCheck(what, value, 1, call);	x = asReal(value);
+	lengthCheck(what, value, 1);	x = asReal(value);
 	posRealCheck(x, what);
-	R_DEV__(cex) = 1.0; /* ! (highlevel par, i.e.  Specify2(), set x ! */
-	R_DEV__(cexbase) = x;
+	dd->dp.cex = dd->gp.cex = 1.0;
+	dd->dp.cexbase = dd->gp.cexbase = x;
     }
-
+    else if (streql(what, "cex.main")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->dp.cexmain = dd->gp.cexmain = x;
+    }
+    else if (streql(what, "cex.lab")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->dp.cexlab = dd->gp.cexlab = x;
+    }
+    else if (streql(what, "cex.sub")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->dp.cexsub = dd->gp.cexsub = x;
+    }
+    else if (streql(what, "cex.axis")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->dp.cexaxis = dd->gp.cexaxis = x;
+    }
+    else if (streql(what, "col")) {
+	lengthCheck(what, value, 1);
+	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->dp.col = dd->gp.col = ix;
+    }
+    else if (streql(what, "col.main")) {
+	lengthCheck(what, value, 1);
+	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->dp.colmain = dd->gp.colmain = ix;
+    }
+    else if (streql(what, "col.lab")) {
+	lengthCheck(what, value, 1);
+	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->dp.collab = dd->gp.collab = ix;
+    }
+    else if (streql(what, "col.sub")) {
+	lengthCheck(what, value, 1);
+	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->dp.colsub = dd->gp.colsub = ix;
+    }
+    else if (streql(what, "col.axis")) {
+	lengthCheck(what, value, 1);
+	naIntCheck(ix = RGBpar(value, 0), what);
+	dd->dp.colaxis = dd->gp.colaxis = ix;
+    }
+    else if (streql(what, "crt")) {
+	lengthCheck(what, value, 1);
+	x = asReal(value);
+	naRealCheck(x, what);
+	dd->dp.crt = dd->gp.crt = x;
+    }
+    else if (streql(what, "err")) {
+	lengthCheck(what, value, 1);
+	ix = asInteger(value);
+	if (ix == 0 || ix == -1)
+	    dd->dp.err = dd->gp.err = ix;
+	else par_error(what);
+    }
     else if (streql(what, "fg")) {
-	/* par(fg=) sets BOTH "fg" and "col" */
-	lengthCheck(what, value, 1, call);	ix = RGBpar(value, 0);
-	/*	naIntCheck(ix, what); */
-	R_DEV__(col) = R_DEV__(fg) = ix;
-    }
-
-
-/*--- and these are "Specify() only" {i.e. par(nam = val)} : */
-    else if (streql(what, "ask")) {
-	lengthCheck(what, value, 1, call);	ix = asLogical(value);
-	R_DEV__(ask) = (ix == 1);/* NA |-> FALSE */
+	lengthCheck(what, value, 1);
+	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->dp.col = dd->gp.col = dd->dp.fg = dd->gp.fg = ix;
     }
     else if (streql(what, "fig")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4, call);
+	lengthCheck(what, value, 4);
 	if (0.0 <= REAL(value)[0] && REAL(value)[0] < REAL(value)[1] &&
 	    REAL(value)[1] <= 1.0 &&
 	    0.0 <= REAL(value)[2] && REAL(value)[2] < REAL(value)[3] &&
 	    REAL(value)[3] <= 1.0) {
-	    R_DEV_2(defaultFigure) = 0;
-	    R_DEV_2(fUnits) = NIC;
-	    R_DEV_2(numrows) = 1;
-	    R_DEV_2(numcols) = 1;
-	    R_DEV_2(heights[0]) = 1;
-	    R_DEV_2(widths[0]) = 1;
-	    R_DEV_2(cmHeights[0]) = 0;
-	    R_DEV_2(cmWidths[0]) = 0;
-	    R_DEV_2(order[0][0]) = 1;
-	    R_DEV_2(currentFigure) = 1;
-	    R_DEV_2(lastFigure) = 1;
-	    R_DEV__(rspct) = 0;
-
-	    R_DEV_2(fig[0]) = REAL(value)[0];
-	    R_DEV_2(fig[1]) = REAL(value)[1];
-	    R_DEV_2(fig[2]) = REAL(value)[2];
-	    R_DEV_2(fig[3]) = REAL(value)[3];
+	    dd->gp.defaultFigure = dd->dp.defaultFigure = 0;
+	    dd->gp.fUnits = dd->dp.fUnits = NIC;
+	    dd->gp.numrows = dd->dp.numrows = 1;
+	    dd->gp.numcols = dd->dp.numcols = 1;
+	    dd->gp.heights[0] = dd->dp.heights[0] = 1;
+	    dd->gp.widths[0] = dd->dp.widths[0] = 1;
+	    dd->gp.cmHeights[0] = dd->dp.cmHeights[0] = 0;
+	    dd->gp.cmWidths[0] = dd->dp.cmWidths[0] = 0;
+	    dd->gp.order[0][0] = dd->dp.order[0][0] = 1;
+	    dd->gp.currentFigure = dd->dp.currentFigure = 1;
+	    dd->gp.lastFigure = dd->dp.lastFigure = 1;
+	    dd->dp.rspct = dd->gp.rspct = 0;
+	    dd->gp.fig[0] = dd->dp.fig[0] = REAL(value)[0];
+	    dd->gp.fig[1] = dd->dp.fig[1] = REAL(value)[1];
+	    dd->gp.fig[2] = dd->dp.fig[2] = REAL(value)[2];
+	    dd->gp.fig[3] = dd->dp.fig[3] = REAL(value)[3];
 	    GReset(dd);
 	}
 	else par_error(what);
     }
     else if (streql(what, "fin")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 2, call);
-	R_DEV_2(defaultFigure) = 0;
-	R_DEV_2(fUnits) = INCHES;
-	R_DEV_2(numrows) = 1;
-	R_DEV_2(numcols) = 1;
-	R_DEV_2(heights[0]) = 1;
-	R_DEV_2(widths[0]) = 1;
-	R_DEV_2(cmHeights[0]) = 0;
-	R_DEV_2(cmWidths[0]) = 0;
-	R_DEV_2(order[0][0]) = 1;
-	R_DEV_2(currentFigure) = 1;
-	R_DEV_2(lastFigure) = 1;
-	R_DEV__(rspct) = 0;
-	R_DEV_2(fin[0]) = REAL(value)[0];
-	R_DEV_2(fin[1]) = REAL(value)[1];
+	lengthCheck(what, value, 2);
+	dd->gp.defaultFigure = dd->dp.defaultFigure = 0;
+	dd->gp.fUnits = dd->dp.fUnits = INCHES;
+	dd->gp.numrows = dd->dp.numrows = 1;
+	dd->gp.numcols = dd->dp.numcols = 1;
+	dd->gp.heights[0] = dd->dp.heights[0] = 1;
+	dd->gp.widths[0] = dd->dp.widths[0] = 1;
+	dd->gp.cmHeights[0] = dd->dp.cmHeights[0] = 0;
+	dd->gp.cmWidths[0] = dd->dp.cmWidths[0] = 0;
+	dd->gp.order[0][0] = dd->dp.order[0][0] = 1;
+	dd->gp.currentFigure = dd->dp.currentFigure = 1;
+	dd->gp.lastFigure = dd->dp.lastFigure = 1;
+	dd->dp.rspct = dd->gp.rspct = 0;
+	dd->gp.fin[0] = dd->dp.fin[0] = REAL(value)[0];
+	dd->gp.fin[1] = dd->dp.fin[1] = REAL(value)[1];
 	GReset(dd);
     }
-    /* -- */
-
+    else if (streql(what, "font")) {
+	lengthCheck(what, value, 1);
+	ix = asInteger(value);
+	posIntCheck(ix, what);
+	dd->dp.font = dd->gp.font = ix;
+    }
+    else if (streql(what, "font.main")) {
+	lengthCheck(what, value, 1);
+	ix = asInteger(value);
+	posIntCheck(ix, what);
+	dd->dp.fontmain = dd->gp.fontmain = ix;
+    }
+    else if (streql(what, "font.lab")) {
+	lengthCheck(what, value, 1);
+	ix = asInteger(value);
+	posIntCheck(ix, what);
+	dd->dp.fontlab = dd->gp.fontlab = ix;
+    }
+    else if (streql(what, "font.sub")) {
+	lengthCheck(what, value, 1);
+	ix = asInteger(value);
+	posIntCheck(ix, what);
+	dd->dp.fontsub = dd->gp.fontsub = ix;
+    }
+    else if (streql(what, "font.axis")) {
+	lengthCheck(what, value, 1);
+	ix = asInteger(value);
+	posIntCheck(ix, what);
+	dd->dp.fontaxis = dd->gp.fontaxis = ix;
+    }
+    else if(streql(what, "gamma")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->dp.gamma = dd->gp.gamma = x;
+    }
+    else if (streql(what, "lab")) {
+	value = coerceVector(value, INTSXP);
+	lengthCheck(what, value, 3);
+	posIntCheck   (INTEGER(value)[0], what);
+	posIntCheck   (INTEGER(value)[1], what);
+	nonnegIntCheck(INTEGER(value)[2], what);
+	dd->dp.lab[0] = dd->gp.lab[0] = INTEGER(value)[0];
+	dd->dp.lab[1] = dd->gp.lab[1] = INTEGER(value)[1];
+	dd->dp.lab[2] = dd->gp.lab[2] = INTEGER(value)[2];
+    }
+    else if (streql(what, "las")) {
+	lengthCheck(what, value, 1);	ix = asInteger(value);
+	if (0 <= ix && ix <= 3)
+	    dd->dp.las = dd->gp.las = ix;
+	else par_error(what);
+    }
+    else if (streql(what, "lty")) {
+	lengthCheck(what, value, 1);
+	dd->dp.lty = dd->gp.lty = LTYpar(value, 0);
+    }
+    else if (streql(what, "lwd")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->dp.lwd = dd->gp.lwd = x;
+    }
     else if (streql(what, "mai")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4, call);
+	lengthCheck(what, value, 4);
 	nonnegRealCheck(REAL(value)[0], what);
 	nonnegRealCheck(REAL(value)[1], what);
 	nonnegRealCheck(REAL(value)[2], what);
 	nonnegRealCheck(REAL(value)[3], what);
-	R_DEV__(mai[0]) = REAL(value)[0];
-	R_DEV__(mai[1]) = REAL(value)[1];
-	R_DEV__(mai[2]) = REAL(value)[2];
-	R_DEV__(mai[3]) = REAL(value)[3];
-	R_DEV__(mUnits) = INCHES;
-	R_DEV__(defaultPlot) = TRUE;
+	dd->dp.mai[0] = dd->gp.mai[0] = REAL(value)[0];
+	dd->dp.mai[1] = dd->gp.mai[1] = REAL(value)[1];
+	dd->dp.mai[2] = dd->gp.mai[2] = REAL(value)[2];
+	dd->dp.mai[3] = dd->gp.mai[3] = REAL(value)[3];
+	dd->dp.mUnits = dd->gp.mUnits = INCHES;
+	dd->dp.defaultPlot = dd->gp.defaultPlot = TRUE;
 	GReset(dd);
     }
     else if (streql(what, "mar")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4, call);
+	lengthCheck(what, value, 4);
 	nonnegRealCheck(REAL(value)[0], what);
 	nonnegRealCheck(REAL(value)[1], what);
 	nonnegRealCheck(REAL(value)[2], what);
 	nonnegRealCheck(REAL(value)[3], what);
-	R_DEV__(mar[0]) = REAL(value)[0];
-	R_DEV__(mar[1]) = REAL(value)[1];
-	R_DEV__(mar[2]) = REAL(value)[2];
-	R_DEV__(mar[3]) = REAL(value)[3];
-	R_DEV__(mUnits) = LINES;
-	R_DEV__(defaultPlot) = TRUE;
+	dd->dp.mar[0] = dd->gp.mar[0] = REAL(value)[0];
+	dd->dp.mar[1] = dd->gp.mar[1] = REAL(value)[1];
+	dd->dp.mar[2] = dd->gp.mar[2] = REAL(value)[2];
+	dd->dp.mar[3] = dd->gp.mar[3] = REAL(value)[3];
+	dd->dp.mUnits = dd->gp.mUnits = LINES;
+	dd->dp.defaultPlot = dd->gp.defaultPlot = TRUE;
 	GReset(dd);
     }
     else if (streql(what, "mex")) {
-	lengthCheck(what, value, 1, call);	x = asReal(value);
+	lengthCheck(what, value, 1);	x = asReal(value);
 	posRealCheck(x, what);
-	R_DEV__(mex) = x;
+	dd->dp.mex = dd->gp.mex = x;
 	GReset(dd);
     }
     else if (streql(what, "mfrow")) {
 	int nrow, ncol;
 	value = coerceVector(value, INTSXP);
-	lengthCheck(what, value, 2, call);
+	lengthCheck(what, value, 2);
 	posIntCheck(INTEGER(value)[0], what);
 	posIntCheck(INTEGER(value)[1], what);
 	nrow = INTEGER(value)[0];
 	ncol = INTEGER(value)[1];
-	R_DEV_2(numrows) = nrow;
-	R_DEV_2(numcols) = ncol;
-	R_DEV_2(currentFigure) = nrow*ncol;
-	R_DEV_2(lastFigure) = nrow*ncol;
-	R_DEV_2(defaultFigure) = TRUE;
-	R_DEV_2(layout) = FALSE;
+	dd->gp.numrows = dd->dp.numrows = nrow;
+	dd->gp.numcols = dd->dp.numcols = ncol;
+	dd->gp.currentFigure = dd->dp.currentFigure = nrow*ncol;
+	dd->gp.lastFigure = dd->dp.lastFigure = nrow*ncol;
+	dd->gp.defaultFigure = dd->dp.defaultFigure = TRUE;
+	dd->gp.layout = dd->dp.layout = FALSE;
 	if (nrow > 2 || ncol > 2) {
-	    R_DEV_2(cexbase) = 0.66;
-	    R_DEV_2(mex) = 1.0;
+	    dd->gp.cexbase = dd->dp.cexbase = 0.66;
+	    dd->gp.mex = dd->dp.mex = 1.0;
 	}
 	else if (nrow == 2 && ncol == 2) {
-	    R_DEV_2(cexbase) = 0.83;
-	    R_DEV_2(mex) = 1.0;
+	    dd->gp.cexbase = dd->dp.cexbase = 0.83;
+	    dd->gp.mex = dd->dp.mex = 1.0;
 	}
 	else {
-	    R_DEV_2(cexbase) = 1.0;
-	    R_DEV_2(mex) = 1.0;
+	    dd->gp.cexbase = dd->dp.cexbase = 1.0;
+	    dd->gp.mex = dd->dp.mex = 1.0;
 	}
-	R_DEV__(mfind) = 0;
+	dd->dp.mfind = dd->gp.mfind = 0;
 	GReset(dd);
     }
     else if (streql(what, "mfcol")) {
 	int nrow, ncol;
 	value = coerceVector(value, INTSXP);
-	lengthCheck(what, value, 2, call);
+	lengthCheck(what, value, 2);
 	posIntCheck(INTEGER(value)[0], what);
 	posIntCheck(INTEGER(value)[1], what);
 	nrow = INTEGER(value)[0];
 	ncol = INTEGER(value)[1];
-	R_DEV_2(numrows) = nrow;
-	R_DEV_2(numcols) = ncol;
-	R_DEV_2(currentFigure) = nrow*ncol;
-	R_DEV_2(lastFigure) = nrow*ncol;
-	R_DEV_2(defaultFigure) = TRUE;
-	R_DEV_2(layout) = FALSE;
+	dd->gp.numrows = dd->dp.numrows = nrow;
+	dd->gp.numcols = dd->dp.numcols = ncol;
+	dd->gp.currentFigure = dd->dp.currentFigure = nrow*ncol;
+	dd->gp.lastFigure = dd->dp.lastFigure = nrow*ncol;
+	dd->gp.defaultFigure = dd->dp.defaultFigure = TRUE;
+	dd->gp.layout = dd->dp.layout = FALSE;
 	if (nrow > 2 || ncol > 2) {
-	    R_DEV_2(cexbase) = 0.66;
-	    R_DEV_2(mex) = 1.0;
+	    dd->gp.cexbase = dd->dp.cexbase = 0.66;
+	    dd->gp.mex = dd->dp.mex = 1.0;
 	}
 	else if (nrow == 2 && ncol == 2) {
-	    R_DEV_2(cexbase) = 0.83;
-	    R_DEV_2(mex) = 1.0;
+	    dd->gp.cexbase = dd->dp.cexbase = 0.83;
+	    dd->gp.mex = dd->dp.mex = 1.0;
 	}
 	else {
-	    R_DEV__(cexbase) = 1.0;
-	    R_DEV__(mex) = 1.0;
+	    dd->gp.cexbase = dd->dp.cexbase = 1.0;
+	    dd->gp.mex = dd->dp.mex = 1.0;
 	}
-	R_DEV__(mfind) = 1;
+	dd->dp.mfind = dd->gp.mfind = 1;
 	GReset(dd);
     }
     else if (streql(what, "mfg")) {
@@ -334,161 +458,237 @@ static void Specify(char *what, SEXP value, DevDesc *dd, SEXP call)
 	value = coerceVector(value, INTSXP);
 	np = length(value);
 	if(np != 2 && np != 4)
-	    errorcall(call, "parameter \"mfg\" has the wrong length");
+	    errorcall(gcall, "parameter \"mfg\" has the wrong length");
 	posIntCheck(INTEGER(value)[0], what);
 	posIntCheck(INTEGER(value)[1], what);
 	row = INTEGER(value)[0];
 	col = INTEGER(value)[1];
-	nrow = Rf_dpptr(dd)->numrows;
-	ncol = Rf_dpptr(dd)->numcols;
+	nrow = dd->dp.numrows;
+	ncol = dd->dp.numcols;
 	if(row <= 0 || row > nrow)
-	    errorcall(call, "parameter \"i\" in \"mfg\" is out of range");
+	    errorcall(gcall, "parameter \"i\" in \"mfg\" is out of range");
 	if(col <= 0 || col > ncol)
-	    errorcall(call, "parameter \"j\" in \"mfg\" is out of range");
+	    errorcall(gcall, "parameter \"j\" in \"mfg\" is out of range");
 	if(np == 4) {
 	    posIntCheck(INTEGER(value)[2], what);
 	    posIntCheck(INTEGER(value)[3], what);
 	    if(nrow != INTEGER(value)[2])
-		warningcall(call, "value of nr in \"mfg\" is wrong and will be ignored");
+		warningcall(gcall, "value of nr in \"mfg\" is wrong and will be ignored");
 	    if(ncol != INTEGER(value)[3])
-		warningcall(call, "value of nc in \"mfg\" is wrong and will be ignored");
+		warningcall(gcall, "value of nc in \"mfg\" is wrong and will be ignored");
 	}
-	R_DEV_2(lastFigure) = nrow*ncol;
-	/*R_DEV__(mfind) = 1;*/
+	dd->gp.lastFigure = dd->dp.lastFigure = nrow*ncol;
+	/*dd->dp.mfind = dd->gp.mfind = 1;*/
 	/* currentFigure is 1-based */
-	if(Rf_gpptr(dd)->mfind)
-	    Rf_dpptr(dd)->currentFigure = (col-1)*nrow + row;
-	else Rf_dpptr(dd)->currentFigure = (row-1)*ncol + col;
+	if(dd->gp.mfind)
+	    dd->dp.currentFigure = (col-1)*nrow + row;
+	else dd->dp.currentFigure = (row-1)*ncol + col;
 	/*
-	  if (Rf_dpptr(dd)->currentFigure == 0)
-	  Rf_dpptr(dd)->currentFigure = Rf_dpptr(dd)->lastFigure;
+	  if (dd->dp.currentFigure == 0)
+	  dd->dp.currentFigure = dd->dp.lastFigure;
 	*/
-	R_DEV_2(currentFigure);
-	/* R_DEV_2(defaultFigure) = TRUE;
-	   R_DEV_2(layout) = FALSE; */
-	R_DEV_2(new) = 1;
+	dd->gp.currentFigure = dd->dp.currentFigure;
+	/* dd->gp.defaultFigure = dd->dp.defaultFigure = TRUE;
+	dd->gp.layout = dd->dp.layout = FALSE; */
+	dd->gp.new = dd->dp.new = 1;
 	/*
 	if (nrow > 2 || ncol > 2) {
-	    R_DEV__(cexbase) = 0.66;
-	    R_DEV__(mex) = 1.0;
+	    dd->gp.cexbase = dd->dp.cexbase = 0.66;
+	    dd->gp.mex = dd->dp.mex = 1.0;
 	}
 	else if (nrow == 2 && ncol == 2) {
-	    R_DEV__(cexbase) = 0.83;
-	    R_DEV__(mex) = 1.0;
+	    dd->gp.cexbase = dd->dp.cexbase = 0.83;
+	    dd->gp.mex = dd->dp.mex = 1.0;
 	}
 	else {
-	    R_DEV__(cexbase) = 1.0;
-	    R_DEV__(mex) = 1.0;
+	    dd->gp.cexbase = dd->dp.cexbase = 1.0;
+	    dd->gp.mex = dd->dp.mex = 1.0;
 	}
 	*/
 	GReset(dd);
 	/* Force a device clip */
-	if (Rf_dpptr(dd)->canClip)
+	if (dd->dp.canClip)
 	    GForceClip(dd);
-    } /* mfg */
-
-    else if (streql(what, "new")) {
-	lengthCheck(what, value, 1, call);	ix = asLogical(value);
-	if(!Rf_gpptr(dd)->state) warning("calling par(new=) with no plot");
-	else R_DEV__(new) = (ix != 0);
     }
-    /* -- */
-
+    else if (streql(what, "mgp")) {
+	value = coerceVector(value, REALSXP);
+	lengthCheck(what, value, 3);
+	nonnegRealCheck(REAL(value)[0], what);
+	nonnegRealCheck(REAL(value)[1], what);
+	nonnegRealCheck(REAL(value)[2], what);
+	dd->dp.mgp[0] = dd->gp.mgp[0] = REAL(value)[0];
+	dd->dp.mgp[1] = dd->gp.mgp[1] = REAL(value)[1];
+	dd->dp.mgp[2] = dd->gp.mgp[2] = REAL(value)[2];
+    }
+    else if (streql(what, "mkh")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->dp.mkh = dd->gp.mkh = x;
+    }
+    else if (streql(what, "new")) {
+	lengthCheck(what, value, 1);	ix = asLogical(value);
+	dd->dp.new = dd->gp.new = (ix != 0);
+    }
     else if (streql(what, "oma")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4, call);
+	lengthCheck(what, value, 4);
 	nonnegRealCheck(REAL(value)[0], what);
 	nonnegRealCheck(REAL(value)[1], what);
 	nonnegRealCheck(REAL(value)[2], what);
 	nonnegRealCheck(REAL(value)[3], what);
-	R_DEV__(oma[0]) = REAL(value)[0];
-	R_DEV__(oma[1]) = REAL(value)[1];
-	R_DEV__(oma[2]) = REAL(value)[2];
-	R_DEV__(oma[3]) = REAL(value)[3];
-	R_DEV__(oUnits) = LINES;
+	dd->dp.oma[0] = dd->gp.oma[0] = REAL(value)[0];
+	dd->dp.oma[1] = dd->gp.oma[1] = REAL(value)[1];
+	dd->dp.oma[2] = dd->gp.oma[2] = REAL(value)[2];
+	dd->dp.oma[3] = dd->gp.oma[3] = REAL(value)[3];
+	dd->dp.oUnits = dd->gp.oUnits = LINES;
 	/* !!! Force eject of multiple figures !!! */
-	R_DEV__(currentFigure) = Rf_gpptr(dd)->lastFigure;
+	dd->dp.currentFigure = dd->gp.currentFigure = dd->gp.lastFigure;
 	GReset(dd);
     }
     else if (streql(what, "omd")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4, call);
+	lengthCheck(what, value, 4);
 	BoundsCheck(REAL(value)[0], 0.0, 1.0, what);
 	BoundsCheck(REAL(value)[1], 0.0, 1.0, what);
 	BoundsCheck(REAL(value)[2], 0.0, 1.0, what);
 	BoundsCheck(REAL(value)[3], 0.0, 1.0, what);
-	R_DEV__(omd[0]) = REAL(value)[0];
-	R_DEV__(omd[1]) = REAL(value)[1];
-	R_DEV__(omd[2]) = REAL(value)[2];
-	R_DEV__(omd[3]) = REAL(value)[3];
-	R_DEV__(oUnits) = NDC;
+	dd->dp.omd[0] = dd->gp.omd[0] = REAL(value)[0];
+	dd->dp.omd[1] = dd->gp.omd[1] = REAL(value)[1];
+	dd->dp.omd[2] = dd->gp.omd[2] = REAL(value)[2];
+	dd->dp.omd[3] = dd->gp.omd[3] = REAL(value)[3];
+	dd->dp.oUnits = dd->gp.oUnits = NDC;
 	/* Force eject of multiple figures */
-	R_DEV__(currentFigure) = Rf_gpptr(dd)->lastFigure;
+	dd->dp.currentFigure = dd->gp.currentFigure = dd->gp.lastFigure;
 	GReset(dd);
     }
     else if (streql(what, "omi")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4, call);
+	lengthCheck(what, value, 4);
 	nonnegRealCheck(REAL(value)[0], what);
 	nonnegRealCheck(REAL(value)[1], what);
 	nonnegRealCheck(REAL(value)[2], what);
 	nonnegRealCheck(REAL(value)[3], what);
-	R_DEV__(omi[0]) = REAL(value)[0];
-	R_DEV__(omi[1]) = REAL(value)[1];
-	R_DEV__(omi[2]) = REAL(value)[2];
-	R_DEV__(omi[3]) = REAL(value)[3];
-	R_DEV__(oUnits) = INCHES;
+	dd->dp.omi[0] = dd->gp.omi[0] = REAL(value)[0];
+	dd->dp.omi[1] = dd->gp.omi[1] = REAL(value)[1];
+	dd->dp.omi[2] = dd->gp.omi[2] = REAL(value)[2];
+	dd->dp.omi[3] = dd->gp.omi[3] = REAL(value)[3];
+	dd->dp.oUnits = dd->gp.oUnits = INCHES;
 	/* Force eject of multiple figures */
-	R_DEV__(currentFigure) = Rf_gpptr(dd)->lastFigure;
+	dd->dp.currentFigure = dd->gp.currentFigure = dd->gp.lastFigure;
 	GReset(dd);
     }
-    /* -- */
-
+    else if (streql(what, "pch")) {
+	if (!isVector(value) || LENGTH(value) < 1)
+	    par_error(what);
+	if (isString(value)) {
+	    ix = CHAR(STRING_ELT(value, 0))[0];
+	}
+	else if (isNumeric(value)) {
+	    ix = asInteger(value);
+	    nonnegIntCheck(ix, what);
+	}
+	else par_error(what);
+	dd->dp.pch = dd->gp.pch = ix;
+    }
     else if (streql(what, "pin")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 2, call);
+	lengthCheck(what, value, 2);
 	nonnegRealCheck(REAL(value)[0], what);
 	nonnegRealCheck(REAL(value)[1], what);
-	R_DEV__(pin[0]) = REAL(value)[0];
-	R_DEV__(pin[1]) = REAL(value)[1];
-	R_DEV__(pUnits) = INCHES;
-	R_DEV__(defaultPlot) = FALSE;
+	dd->dp.pin[0] = dd->gp.pin[0] = REAL(value)[0];
+	dd->dp.pin[1] = dd->gp.pin[1] = REAL(value)[1];
+	dd->dp.pUnits = dd->gp.pUnits = INCHES;
+	dd->dp.defaultPlot = dd->gp.defaultPlot = FALSE;
 	GReset(dd);
     }
     else if (streql(what, "plt")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4, call);
+	lengthCheck(what, value, 4);
 	nonnegRealCheck(REAL(value)[0], what);
 	nonnegRealCheck(REAL(value)[1], what);
 	nonnegRealCheck(REAL(value)[2], what);
 	nonnegRealCheck(REAL(value)[3], what);
-	R_DEV__(plt[0]) = REAL(value)[0];
-	R_DEV__(plt[1]) = REAL(value)[1];
-	R_DEV__(plt[2]) = REAL(value)[2];
-	R_DEV__(plt[3]) = REAL(value)[3];
-	R_DEV__(pUnits) = NFC;
-	R_DEV__(defaultPlot) = FALSE;
+	dd->dp.plt[0] = dd->gp.plt[0] = REAL(value)[0];
+	dd->dp.plt[1] = dd->gp.plt[1] = REAL(value)[1];
+	dd->dp.plt[2] = dd->gp.plt[2] = REAL(value)[2];
+	dd->dp.plt[3] = dd->gp.plt[3] = REAL(value)[3];
+	dd->dp.pUnits = dd->gp.pUnits = NFC;
+	dd->dp.defaultPlot = dd->gp.defaultPlot = FALSE;
 	GReset(dd);
     }
     else if (streql(what, "ps")) {
-	lengthCheck(what, value, 1, call);	ix = asInteger(value);
+	lengthCheck(what, value, 1);	ix = asInteger(value);
 	nonnegIntCheck(ix, what);
-	R_DEV__(ps) = ix;
+	dd->dp.ps = dd->gp.ps = ix;
     }
     else if (streql(what, "pty")) {
 	if (!isString(value) || LENGTH(value) < 1)
 	    par_error(what);
 	ix = CHAR(STRING_ELT(value, 0))[0];
 	if (ix == 'm' || ix == 's') {
-	    R_DEV__(pty) = ix;
-	    R_DEV__(defaultPlot) = TRUE;
+	    dd->dp.pty = dd->gp.pty = ix;
+	    dd->dp.defaultPlot = dd->gp.defaultPlot = TRUE;
 	}
 	else par_error(what);
     }
-    /* -- */
+    else if (streql(what, "smo")) {
+	lengthCheck(what, value, 1);	ix = asInteger(value);
+	nonnegIntCheck(ix, what);
+	dd->dp.smo = dd->gp.smo = ix;
+    }
+    else if (streql(what, "srt")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	naRealCheck(x, what);
+	dd->dp.srt = dd->gp.srt = x;
+    }
+    /* NOTE: tck and tcl must be treated in parallel. */
+    /* If one is NA, the other must be non NA.	If tcl */
+    /* is NA then setting tck to NA will reset tck to its */
+    /* initial default value.  See also graphics.c. */
+    else if (streql(what, "tck")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	dd->dp.tck = dd->gp.tck = x;
+	if (R_FINITE(x))
+	    dd->dp.tcl = dd->gp.tcl = NA_REAL;
+	else if(!R_FINITE(dd->dp.tcl))
+	    dd->dp.tcl = dd->gp.tcl = -0.5;
+    }
+    else if (streql(what, "tcl")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	dd->dp.tcl = dd->gp.tcl = x;
+	if (R_FINITE(x))
+	    dd->dp.tck = dd->gp.tck = NA_REAL;
+	else if (!R_FINITE(dd->dp.tck))
+	    dd->dp.tck = dd->gp.tck = 0.02;	/* S Default */
+    }
+    else if (streql(what, "tmag")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->dp.tmag = dd->gp.tmag = x;
+    }
+    else if (streql(what, "type")) {
+	if (!isString(value) || LENGTH(value) < 1)
+	    par_error(what);
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	switch (ix) {
+	case 'p':
+	case 'l':
+	case 'b':
+	case 'o':
+	case 'c':
+	case 's':
+	case 'S':
+	case 'h':
+	case 'n':
+	    dd->dp.type = dd->gp.type = ix;
+	    break;
+	default:
+	    par_error(what);
+	}
+    }
     else if (streql(what, "usr")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4, call);
+	lengthCheck(what, value, 4);
 	naRealCheck(REAL(value)[0], what);
 	naRealCheck(REAL(value)[1], what);
 	naRealCheck(REAL(value)[2], what);
@@ -496,53 +696,114 @@ static void Specify(char *what, SEXP value, DevDesc *dd, SEXP call)
 	if (REAL(value)[0] == REAL(value)[1] ||
 	    REAL(value)[2] == REAL(value)[3])
 	    par_error(what);
-	if (Rf_gpptr(dd)->xlog) {
-	    R_DEV_2(logusr[0]) = REAL(value)[0];
-	    R_DEV_2(logusr[1]) = REAL(value)[1];
-	    R_DEV_2(usr[0]) = pow(10., REAL(value)[0]);
-	    R_DEV_2(usr[1]) = pow(10., REAL(value)[1]);
+	if (dd->gp.xlog) {
+	    dd->gp.logusr[0] = dd->dp.logusr[0] = REAL(value)[0];
+	    dd->gp.logusr[1] = dd->dp.logusr[1] = REAL(value)[1];
+	    dd->gp.usr[0] = dd->dp.usr[0] = pow(10., REAL(value)[0]);
+	    dd->gp.usr[1] = dd->dp.usr[1] = pow(10., REAL(value)[1]);
 	}
 	else {
-	    R_DEV_2(usr[0]) = REAL(value)[0];
-	    R_DEV_2(usr[1]) = REAL(value)[1];
-	    R_DEV_2(logusr[0]) = R_Log10(REAL(value)[0]);
-	    R_DEV_2(logusr[1]) = R_Log10(REAL(value)[1]);
+	    dd->gp.usr[0] = dd->dp.usr[0] = REAL(value)[0];
+	    dd->gp.usr[1] = dd->dp.usr[1] = REAL(value)[1];
+	    dd->gp.logusr[0] = dd->dp.logusr[0] =
+		R_Log10(REAL(value)[0]);
+	    dd->gp.logusr[1] = dd->dp.logusr[1] =
+		R_Log10(REAL(value)[1]);
 	}
-	if (Rf_gpptr(dd)->ylog) {
-	    R_DEV_2(logusr[2]) = REAL(value)[2];
-	    R_DEV_2(logusr[3]) = REAL(value)[3];
-	    R_DEV_2(usr[2]) = pow(10., REAL(value)[2]);
-	    R_DEV_2(usr[3]) = pow(10., REAL(value)[3]);
+	if (dd->gp.ylog) {
+	    dd->gp.logusr[2] = dd->dp.logusr[2] = REAL(value)[2];
+	    dd->gp.logusr[3] = dd->dp.logusr[3] = REAL(value)[3];
+	    dd->gp.usr[2] = dd->dp.usr[2] = pow(10., REAL(value)[2]);
+	    dd->gp.usr[3] = dd->dp.usr[3] = pow(10., REAL(value)[3]);
 	}
 	else {
-	    R_DEV_2(usr[2]) = REAL(value)[2];
-	    R_DEV_2(usr[3]) = REAL(value)[3];
-	    R_DEV_2(logusr[2]) = R_Log10(REAL(value)[2]);
-	    R_DEV_2(logusr[3]) = R_Log10(REAL(value)[3]);
+	    dd->gp.usr[2] = dd->dp.usr[2] = REAL(value)[2];
+	    dd->gp.usr[3] = dd->dp.usr[3] = REAL(value)[3];
+	    dd->gp.logusr[2] = dd->dp.logusr[2] =
+		R_Log10(REAL(value)[2]);
+	    dd->gp.logusr[3] = dd->dp.logusr[3] =
+		R_Log10(REAL(value)[3]);
 	}
 	/* Reset Mapping and Axis Parameters */
 	GMapWin2Fig(dd);
 	GSetupAxis(1, dd);
 	GSetupAxis(2, dd);
-    }/* usr */
-
+    }
+    else if (streql(what, "xaxp")) {
+	value = coerceVector(value, REALSXP);
+	lengthCheck(what, value, 3);
+	naRealCheck(REAL(value)[0], what);
+	naRealCheck(REAL(value)[1], what);
+	posIntCheck((int) (REAL(value)[2]), what);
+	dd->dp.xaxp[0] = dd->gp.xaxp[0] = REAL(value)[0];
+	dd->dp.xaxp[1] = dd->gp.xaxp[1] = REAL(value)[1];
+	dd->dp.xaxp[2] = dd->gp.xaxp[2] = (int)(REAL(value)[2]);
+    }
+    else if (streql(what, "xaxs")) {
+	if (!isString(value) || LENGTH(value) < 1)
+	    par_error(what);
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	if (ix == 's' || ix == 'e' || ix == 'i' || ix == 'r' || ix == 'd')
+	    dd->dp.xaxs = dd->gp.xaxs = ix;
+	else par_error(what);
+    }
+    else if (streql(what, "xaxt")) {
+	if (!isString(value) || LENGTH(value) < 1)
+	    par_error(what);
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	if (ix == 's' || ix == 'l' || ix == 't' || ix == 'n')
+	    dd->dp.xaxt = dd->gp.xaxt = ix;
+	else par_error(what);
+    }
     else if (streql(what, "xlog")) {
-	lengthCheck(what, value, 1, call);	ix = asLogical(value);
+	lengthCheck(what, value, 1);	ix = asLogical(value);
 	if (ix == NA_LOGICAL)
 	    par_error(what);
-	R_DEV__(xlog) = (ix != 0);
+	dd->dp.xlog = dd->gp.xlog = (ix != 0);
+    }
+    else if (streql(what, "xpd")) {
+	lengthCheck(what, value, 1);
+	ix = asInteger(value);
+	if (ix == NA_INTEGER)
+	    dd->dp.xpd = dd->gp.xpd = 2;
+	else
+	    dd->dp.xpd = dd->gp.xpd = (ix != 0);
+    }
+    else if (streql(what, "yaxp")) {
+	value = coerceVector(value, REALSXP);
+	lengthCheck(what, value, 3);
+	naRealCheck(REAL(value)[0], what);
+	naRealCheck(REAL(value)[1], what);
+	posIntCheck((int) (REAL(value)[2]), what);
+	dd->dp.yaxp[0] = dd->gp.yaxp[0] = REAL(value)[0];
+	dd->dp.yaxp[1] = dd->gp.yaxp[1] = REAL(value)[1];
+	dd->dp.yaxp[2] = dd->gp.yaxp[2] = (int) (REAL(value)[2]);
+    }
+    else if (streql(what, "yaxs")) {
+	if (!isString(value) || LENGTH(value) < 1)
+	    par_error(what);
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	if (ix == 's' || ix == 'e' || ix == 'i' || ix == 'r' || ix == 'd')
+	    dd->dp.yaxs = dd->gp.yaxs = ix;
+	else par_error(what);
+    }
+    else if (streql(what, "yaxt")) {
+	if (!isString(value) || LENGTH(value) < 1)
+	    par_error(what);
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	if (ix == 's' || ix == 'l' || ix == 't' || ix == 'n')
+	    dd->dp.yaxt = dd->gp.yaxt = ix;
+	else par_error(what);
     }
     else if (streql(what, "ylog")) {
-	lengthCheck(what, value, 1, call);	ix = asLogical(value);
+	lengthCheck(what, value, 1);	ix = asLogical(value);
 	if (ix == NA_LOGICAL)
 	    par_error(what);
-	R_DEV__(ylog) = (ix != 0);
+	dd->dp.ylog = dd->gp.ylog = (ix != 0);
     }
-
-    else warningcall(call, "parameter \"%s\" can't be set", what);
-
+    else warningcall(gcall, "parameter \"%s\" can't be set", what);
     return;
-} /* Specify */
+}
 
 
 /* Specify2 -- parameters as arguments from higher-level graphics functions
@@ -550,41 +811,301 @@ static void Specify(char *what, SEXP value, DevDesc *dd, SEXP call)
  * Many things in PARALLEL to Specify(.)
  * for par()s not valid here, see comment there.
  */
-#undef R_DEV_2
-#undef R_DEV__
-/* Now defined differently in Specify2() : */
-#define R_DEV__(_P_) Rf_gpptr(dd)->_P_
-
-void Specify2(char *what, SEXP value, DevDesc *dd, SEXP call)
+void Specify2(char *what, SEXP value, DevDesc *dd)
 {
     double x;
     int ix = 0;
 
-#include "par-common.c"
-/*	  ------------
- *  these are *different* from Specify() , i.e., par(<NAM> = .) use : */
+    if (streql(what, "adj")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	BoundsCheck(x, 0.0, 1.0, what);
+	dd->gp.adj = x;
+    }
+    else if (streql(what, "ann")) {
+	lengthCheck(what, value, 1);	ix = asInteger(value);
+	dd->gp.ann = (ix != 0);
+    }
     else if (streql(what, "bg")) {
-	lengthCheck(what, value, 1, call);	ix = RGBpar(value, 0);
-	/*	naIntCheck(ix, what); */
-	R_DEV__(bg) = ix;
+	lengthCheck(what, value, 1);	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->gp.bg = ix;
+    }
+    else if (streql(what, "bty")) {
+	lengthCheck(what, value, 1);
+	if (!isString(value))
+	    par_error(what);
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	switch (ix) {
+	case 'o': case 'O':
+	case 'l': case 'L':
+	case '7':
+	case 'c': case 'C': case '[':
+	case ']':
+	case 'u': case 'U':
+	case 'n':
+	    dd->gp.bty = ix;
+	    break;
+	default:
+	    par_error(what);
+	}
     }
     else if (streql(what, "cex")) {
-	lengthCheck(what, value, 1, call);	x = asReal(value);
+	lengthCheck(what, value, 1);	x = asReal(value);
 	posRealCheck(x, what);
-	R_DEV__(cex) = x;
-	/* not setting cexbase here (but in Specify()) */
+	dd->gp.cex = x;
+	/* dd->gp.cexbase = x; */
     }
-
+    else if (streql(what, "cex.main")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->gp.cexmain = x;
+    }
+    else if (streql(what, "cex.lab")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->gp.cexlab = x;
+    }
+    else if (streql(what, "cex.sub")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->gp.cexsub = x;
+    }
+    else if (streql(what, "cex.axis")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->gp.cexaxis = x;
+    }
+    else if (streql(what, "col")) {
+	lengthCheck(what, value, 1);	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->gp.col = ix;
+    }
+    else if (streql(what, "col.main")) {
+	lengthCheck(what, value, 1);	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->gp.colmain = ix;
+    }
+    else if (streql(what, "col.lab")) {
+	lengthCheck(what, value, 1);	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->gp.collab = ix;
+    }
+    else if (streql(what, "col.sub")) {
+	lengthCheck(what, value, 1);	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->gp.colsub = ix;
+    }
+    else if (streql(what, "col.axis")) {
+	lengthCheck(what, value, 1);	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->gp.colaxis = ix;
+    }
+    else if (streql(what, "crt")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	naRealCheck(x, what);
+	dd->gp.crt = x;
+    }
+    else if (streql(what, "err")) {
+	lengthCheck(what, value, 1);	ix = asInteger(value);
+	if (ix == 0 || ix == -1)
+	    dd->gp.err = ix;
+	else par_error(what);
+    }
     else if (streql(what, "fg")) {
-	/* highlevel arg `fg = ' does *not* set `col' (as par(fg=.) does!*/
-	lengthCheck(what, value, 1, call);	ix = RGBpar(value, 0);
-	/*	naIntCheck(ix, what); */
-	R_DEV__(fg) = ix;
+	lengthCheck(what, value, 1);	ix = RGBpar(value, 0);
+	naIntCheck(ix, what);
+	dd->gp.fg = ix;
     }
-
-    else warning(
-	"parameter \"%s\" couldn't be set in high-level plot() function", what);
-} /* Specify2 */
+    else if (streql(what, "font")) {
+	lengthCheck(what, value, 1);	ix = asInteger(value);
+	posIntCheck(ix, what);
+	dd->gp.font = ix;
+    }
+    else if (streql(what, "font.main")) {
+	lengthCheck(what, value, 1);	ix = asInteger(value);
+	posIntCheck(ix, what);
+	dd->gp.fontmain = ix;
+    }
+    else if (streql(what, "font.lab")) {
+	lengthCheck(what, value, 1);	ix = asInteger(value);
+	posIntCheck(ix, what);
+	dd->gp.fontlab = ix;
+    }
+    else if (streql(what, "font.sub")) {
+	lengthCheck(what, value, 1);	ix = asInteger(value);
+	posIntCheck(ix, what);
+	dd->gp.fontsub = ix;
+    }
+    else if (streql(what, "font.axis")) {
+	lengthCheck(what, value, 1);	ix = asInteger(value);
+	posIntCheck(ix, what);
+	dd->gp.fontaxis = ix;
+    }
+    else if(streql(what, "gamma")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->gp.gamma = x;
+    }
+    else if (streql(what, "lab")) {
+	value = coerceVector(value, INTSXP);
+	lengthCheck(what, value, 3);
+	posIntCheck   (INTEGER(value)[0], what);
+	posIntCheck   (INTEGER(value)[1], what);
+	nonnegIntCheck(INTEGER(value)[2], what);
+	dd->gp.lab[0] = INTEGER(value)[0];
+	dd->gp.lab[1] = INTEGER(value)[1];
+	dd->gp.lab[2] = INTEGER(value)[2];
+    }
+    else if (streql(what, "las")) {
+	lengthCheck(what, value, 1);	ix = asInteger(value);
+	if (0 <= ix && ix <= 3)
+	    dd->gp.las = ix;
+	else par_error(what);
+    }
+    else if (streql(what, "lty")) {
+	lengthCheck(what, value, 1);
+	dd->gp.lty = LTYpar(value, 0);
+    }
+    else if (streql(what, "lwd")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->gp.lwd = x;
+    }
+    else if (streql(what, "mgp")) {
+	value = coerceVector(value, REALSXP);
+	lengthCheck(what, value, 3);
+	nonnegRealCheck(REAL(value)[0], what);
+	nonnegRealCheck(REAL(value)[1], what);
+	nonnegRealCheck(REAL(value)[2], what);
+	dd->gp.mgp[0] = REAL(value)[0];
+	dd->gp.mgp[1] = REAL(value)[1];
+	dd->gp.mgp[2] = REAL(value)[2];
+    }
+    else if (streql(what, "mkh")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->gp.mkh = x;
+    }
+    else if (streql(what, "pch")) {
+	if (!isVector(value) || LENGTH(value) < 1)
+	    par_error(what);
+	if (isString(value)) {
+	    ix = CHAR(STRING_ELT(value, 0))[0];
+	}
+	else if (isNumeric(value)) {
+	    ix = asInteger(value);
+	    nonnegIntCheck(ix, what);
+	}
+	else par_error(what);
+	dd->gp.pch = ix;
+    }
+    else if (streql(what, "smo")) {
+	lengthCheck(what, value, 1);	ix = asInteger(value);
+	posIntCheck(ix, what);
+	dd->gp.smo = ix;
+    }
+    else if (streql(what, "srt")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	naRealCheck(x, what);
+	dd->gp.srt = x;
+    }
+    else if (streql(what, "tck")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	naRealCheck(x, what);
+	dd->gp.tck = x;
+    }
+    else if (streql(what, "tcl")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	naRealCheck(x, what);
+	dd->gp.tcl = x;
+    }
+    else if (streql(what, "tmag")) {
+	lengthCheck(what, value, 1);	x = asReal(value);
+	posRealCheck(x, what);
+	dd->gp.tmag = x;
+    }
+    else if (streql(what, "type")) {
+	if (!isString(value) || LENGTH(value) < 1)
+	    par_error(what);
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	switch (ix) {
+	case 'p':
+	case 'l':
+	case 'b':
+	case 'o':
+	case 'c':
+	case 's':
+	case 'S':
+	case 'h':
+	case 'n':
+	    dd->gp.type = ix;
+	    break;
+	default:
+	    par_error(what);
+	}
+    }
+    else if (streql(what, "xaxp")) {
+	value = coerceVector(value, REALSXP);
+	lengthCheck(what, value, 3);
+	naRealCheck(REAL(value)[0], what);
+	naRealCheck(REAL(value)[1], what);
+	posIntCheck((int) (REAL(value)[2]), what);
+	dd->gp.xaxp[0] = REAL(value)[0];
+	dd->gp.xaxp[1] = REAL(value)[1];
+	dd->gp.xaxp[2] = (int)(REAL(value)[2]);
+    }
+    else if (streql(what, "xaxs")) {
+	if (!isString(value) || LENGTH(value) < 1)
+	    par_error(what);
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	if (ix == 's' || ix == 'e' || ix == 'i' || ix == 'r' || ix == 'd')
+	    dd->gp.xaxs = ix;
+	else par_error(what);
+    }
+    else if (streql(what, "xaxt")) {
+	if (!isString(value) || LENGTH(value) < 1)
+	    par_error(what);
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	if (ix == 's' || ix == 'l' || ix == 't' || ix == 'n')
+	    dd->gp.xaxt = ix;
+	else par_error(what);
+    }
+    else if (streql(what, "xpd")) {
+	lengthCheck(what, value, 1);
+	ix = asInteger(value);
+	if (ix==NA_INTEGER)
+	    dd->gp.xpd = 2;
+	else
+	    dd->gp.xpd = (ix != 0);
+    }
+    else if (streql(what, "yaxp")) {
+	value = coerceVector(value, REALSXP);
+	lengthCheck(what, value, 3);
+	naRealCheck(REAL(value)[0], what);
+	naRealCheck(REAL(value)[1], what);
+	posIntCheck((int) (REAL(value)[2]), what);
+	dd->gp.yaxp[0] = REAL(value)[0];
+	dd->gp.yaxp[1] = REAL(value)[1];
+	dd->gp.yaxp[2] = (int) (REAL(value)[2]);
+    }
+    else if (streql(what, "yaxs")) {
+	if (!isString(value) || LENGTH(value) < 1)
+	    par_error(what);
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	if (ix == 's' || ix == 'e' || ix == 'i' || ix == 'r' || ix == 'd')
+	    dd->gp.yaxs = ix;
+	else par_error(what);
+    }
+    else if (streql(what, "yaxt")) {
+	if (!isString(value) || LENGTH(value) < 1)
+	    par_error(what);
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	if (ix == 's' || ix == 'l' || ix == 't' || ix == 'n')
+	    dd->gp.yaxt = ix;
+	else par_error(what);
+    }
+    else warning("parameter \"%s\" couldn't be set in high-level plot() function", what);
+}
 
 
 /* Do NOT forget to update  ../library/base/R/par.R */
@@ -596,87 +1117,87 @@ static SEXP Query(char *what, DevDesc *dd)
 
     if (streql(what, "adj")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->adj;
+	REAL(value)[0] = dd->dp.adj;
     }
     else if (streql(what, "ann")) {
 	value = allocVector(LGLSXP, 1);
-	LOGICAL(value)[0] = (Rf_dpptr(dd)->ann != 0);
+	LOGICAL(value)[0] = (dd->dp.ann != 0);
     }
     else if (streql(what, "ask")) {
 	value = allocVector(LGLSXP, 1);
-	INTEGER(value)[0] = Rf_dpptr(dd)->ask;
+	INTEGER(value)[0] = dd->dp.ask;
     }
     else if (streql(what, "bg")) {
 	PROTECT(value = allocVector(STRSXP, 1));
-	SET_STRING_ELT(value, 0, mkChar(col2name(Rf_dpptr(dd)->bg)));
+	SET_STRING_ELT(value, 0, mkChar(col2name(dd->dp.bg)));
 	UNPROTECT(1);
     }
     else if (streql(what, "bty")) {
 	char buf[2];
 	PROTECT(value = allocVector(STRSXP, 1));
-	buf[0] = Rf_dpptr(dd)->bty;
+	buf[0] = dd->dp.bty;
 	buf[1] = '\0';
 	SET_STRING_ELT(value, 0, mkChar(buf));
 	UNPROTECT(1);
     }
     else if (streql(what, "cex")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->cexbase;
+	REAL(value)[0] = dd->dp.cexbase;
     }
     else if (streql(what, "cex.main")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->cexmain;
+	REAL(value)[0] = dd->dp.cexmain;
     }
     else if (streql(what, "cex.lab")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->cexlab;
+	REAL(value)[0] = dd->dp.cexlab;
     }
     else if (streql(what, "cex.sub")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->cexsub;
+	REAL(value)[0] = dd->dp.cexsub;
     }
     else if (streql(what, "cex.axis")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->cexaxis;
+	REAL(value)[0] = dd->dp.cexaxis;
     }
     else if (streql(what, "cin")) {
 	value = allocVector(REALSXP, 2);
-	REAL(value)[0] = Rf_dpptr(dd)->cra[0]*Rf_dpptr(dd)->ipr[0];
-	REAL(value)[1] = Rf_dpptr(dd)->cra[1]*Rf_dpptr(dd)->ipr[1];
+	REAL(value)[0] = dd->dp.cra[0]*dd->dp.ipr[0];
+	REAL(value)[1] = dd->dp.cra[1]*dd->dp.ipr[1];
     }
     else if (streql(what, "col")) {
 	PROTECT(value = allocVector(STRSXP, 1));
-	SET_STRING_ELT(value, 0, mkChar(col2name(Rf_dpptr(dd)->col)));
+	SET_STRING_ELT(value, 0, mkChar(col2name(dd->dp.col)));
 	UNPROTECT(1);
     }
     else if (streql(what, "col.main")) {
 	PROTECT(value = allocVector(STRSXP, 1));
-	SET_STRING_ELT(value, 0, mkChar(col2name(Rf_dpptr(dd)->colmain)));
+	SET_STRING_ELT(value, 0, mkChar(col2name(dd->dp.colmain)));
 	UNPROTECT(1);
     }
     else if (streql(what, "col.lab")) {
 	PROTECT(value = allocVector(STRSXP, 1));
-	SET_STRING_ELT(value, 0, mkChar(col2name(Rf_dpptr(dd)->collab)));
+	SET_STRING_ELT(value, 0, mkChar(col2name(dd->dp.collab)));
 	UNPROTECT(1);
     }
     else if (streql(what, "col.sub")) {
 	PROTECT(value = allocVector(STRSXP, 1));
-	SET_STRING_ELT(value, 0, mkChar(col2name(Rf_dpptr(dd)->colsub)));
+	SET_STRING_ELT(value, 0, mkChar(col2name(dd->dp.colsub)));
 	UNPROTECT(1);
     }
     else if (streql(what, "col.axis")) {
 	PROTECT(value = allocVector(STRSXP, 1));
-	SET_STRING_ELT(value, 0, mkChar(col2name(Rf_dpptr(dd)->colaxis)));
+	SET_STRING_ELT(value, 0, mkChar(col2name(dd->dp.colaxis)));
 	UNPROTECT(1);
     }
     else if (streql(what, "cra")) {
 	value = allocVector(REALSXP, 2);
-	REAL(value)[0] = Rf_dpptr(dd)->cra[0];
-	REAL(value)[1] = Rf_dpptr(dd)->cra[1];
+	REAL(value)[0] = dd->dp.cra[0];
+	REAL(value)[1] = dd->dp.cra[1];
     }
     else if (streql(what, "crt")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->crt;
+	REAL(value)[0] = dd->dp.crt;
     }
     else if (streql(what, "csi")) {
 	value = allocVector(REALSXP, 1);
@@ -685,10 +1206,10 @@ static SEXP Query(char *what, DevDesc *dd)
     else if (streql(what, "cxy")) {
 	value = allocVector(REALSXP, 2);
 	/* == par("cin") / par("pin") : */
-	REAL(value)[0] = Rf_dpptr(dd)->cra[0]*Rf_dpptr(dd)->ipr[0] / Rf_dpptr(dd)->pin[0]
-	    * (Rf_dpptr(dd)->usr[1] - Rf_dpptr(dd)->usr[0]);
-	REAL(value)[1] = Rf_dpptr(dd)->cra[1]*Rf_dpptr(dd)->ipr[1] / Rf_dpptr(dd)->pin[1]
-	    * (Rf_dpptr(dd)->usr[3] - Rf_dpptr(dd)->usr[2]);
+	REAL(value)[0] = dd->dp.cra[0]*dd->dp.ipr[0] / dd->dp.pin[0]
+	    * (dd->dp.usr[1] - dd->dp.usr[0]);
+	REAL(value)[1] = dd->dp.cra[1]*dd->dp.ipr[1] / dd->dp.pin[1]
+	    * (dd->dp.usr[3] - dd->dp.usr[2]);
     }
     else if (streql(what, "din")) {
 	value = allocVector(REALSXP, 2);
@@ -697,90 +1218,90 @@ static SEXP Query(char *what, DevDesc *dd)
     }
     else if (streql(what, "err")) {
 	value = allocVector(INTSXP, 1);
-	INTEGER(value)[0] = Rf_dpptr(dd)->err;
+	INTEGER(value)[0] = dd->dp.err;
     }
     else if (streql(what, "fg")) {
 	PROTECT(value = allocVector(STRSXP, 1));
-	SET_STRING_ELT(value, 0, mkChar(col2name(Rf_dpptr(dd)->fg)));
+	SET_STRING_ELT(value, 0, mkChar(col2name(dd->dp.fg)));
 	UNPROTECT(1);
     }
     else if (streql(what, "fig")) {
 	value = allocVector(REALSXP, 4);
-	REAL(value)[0] = Rf_dpptr(dd)->fig[0];
-	REAL(value)[1] = Rf_dpptr(dd)->fig[1];
-	REAL(value)[2] = Rf_dpptr(dd)->fig[2];
-	REAL(value)[3] = Rf_dpptr(dd)->fig[3];
+	REAL(value)[0] = dd->dp.fig[0];
+	REAL(value)[1] = dd->dp.fig[1];
+	REAL(value)[2] = dd->dp.fig[2];
+	REAL(value)[3] = dd->dp.fig[3];
     }
     else if (streql(what, "fin")) {
 	value = allocVector(REALSXP, 2);
-	REAL(value)[0] = Rf_dpptr(dd)->fin[0];
-	REAL(value)[1] = Rf_dpptr(dd)->fin[1];
+	REAL(value)[0] = dd->dp.fin[0];
+	REAL(value)[1] = dd->dp.fin[1];
     }
     else if (streql(what, "font")) {
 	value = allocVector(INTSXP, 1);
-	INTEGER(value)[0] = Rf_dpptr(dd)->font;
+	INTEGER(value)[0] = dd->dp.font;
     }
     else if (streql(what, "font.main")) {
 	value = allocVector(INTSXP, 1);
-	INTEGER(value)[0] = Rf_dpptr(dd)->fontmain;
+	INTEGER(value)[0] = dd->dp.fontmain;
     }
     else if (streql(what, "font.lab")) {
 	value = allocVector(INTSXP, 1);
-	INTEGER(value)[0] = Rf_dpptr(dd)->fontlab;
+	INTEGER(value)[0] = dd->dp.fontlab;
     }
     else if (streql(what, "font.sub")) {
 	value = allocVector(INTSXP, 1);
-	INTEGER(value)[0] = Rf_dpptr(dd)->fontsub;
+	INTEGER(value)[0] = dd->dp.fontsub;
     }
     else if (streql(what, "font.axis")) {
 	value = allocVector(INTSXP, 1);
-	INTEGER(value)[0] = Rf_dpptr(dd)->fontaxis;
+	INTEGER(value)[0] = dd->dp.fontaxis;
     }
     else if (streql(what, "gamma")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->gamma;
+	REAL(value)[0] = dd->dp.gamma;
     }
     else if (streql(what, "lab")) {
 	value = allocVector(INTSXP, 3);
-	INTEGER(value)[0] = Rf_dpptr(dd)->lab[0];
-	INTEGER(value)[1] = Rf_dpptr(dd)->lab[1];
-	INTEGER(value)[2] = Rf_dpptr(dd)->lab[2];
+	INTEGER(value)[0] = dd->dp.lab[0];
+	INTEGER(value)[1] = dd->dp.lab[1];
+	INTEGER(value)[2] = dd->dp.lab[2];
     }
     else if (streql(what, "las")) {
 	value = allocVector(INTSXP, 1);
-	INTEGER(value)[0] = Rf_dpptr(dd)->las;
+	INTEGER(value)[0] = dd->dp.las;
     }
     else if (streql(what, "lty")) {
-	value = LTYget(Rf_dpptr(dd)->lty);
+	value = LTYget(dd->dp.lty);
     }
     else if (streql(what, "lwd")) {
 	value =	 allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->lwd;
+	REAL(value)[0] = dd->dp.lwd;
     }
     else if (streql(what, "mai")) {
 	value = allocVector(REALSXP, 4);
-	REAL(value)[0] = Rf_dpptr(dd)->mai[0];
-	REAL(value)[1] = Rf_dpptr(dd)->mai[1];
-	REAL(value)[2] = Rf_dpptr(dd)->mai[2];
-	REAL(value)[3] = Rf_dpptr(dd)->mai[3];
+	REAL(value)[0] = dd->dp.mai[0];
+	REAL(value)[1] = dd->dp.mai[1];
+	REAL(value)[2] = dd->dp.mai[2];
+	REAL(value)[3] = dd->dp.mai[3];
     }
     else if (streql(what, "mar")) {
 	value = allocVector(REALSXP, 4);
-	REAL(value)[0] = Rf_dpptr(dd)->mar[0];
-	REAL(value)[1] = Rf_dpptr(dd)->mar[1];
-	REAL(value)[2] = Rf_dpptr(dd)->mar[2];
-	REAL(value)[3] = Rf_dpptr(dd)->mar[3];
+	REAL(value)[0] = dd->dp.mar[0];
+	REAL(value)[1] = dd->dp.mar[1];
+	REAL(value)[2] = dd->dp.mar[2];
+	REAL(value)[3] = dd->dp.mar[3];
     }
     else if (streql(what, "mex")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->mex;
+	REAL(value)[0] = dd->dp.mex;
     }
     /* NOTE that if a complex layout has been specified */
     /* then this simple information may not be very useful. */
     else if (streql(what, "mfrow") || streql(what, "mfcol")) {
 	value = allocVector(INTSXP, 2);
-	INTEGER(value)[0] = Rf_dpptr(dd)->numrows;
-	INTEGER(value)[1] = Rf_dpptr(dd)->numcols;
+	INTEGER(value)[0] = dd->dp.numrows;
+	INTEGER(value)[1] = dd->dp.numcols;
     }
     else if (streql(what, "mfg")) {
 	int row, col;
@@ -788,53 +1309,53 @@ static SEXP Query(char *what, DevDesc *dd)
 	currentFigureLocation(&row, &col, dd);
 	INTEGER(value)[0] = row+1;
 	INTEGER(value)[1] = col+1;
-	INTEGER(value)[2] = Rf_dpptr(dd)->numrows;
-	INTEGER(value)[3] = Rf_dpptr(dd)->numcols;
+	INTEGER(value)[2] = dd->dp.numrows;
+	INTEGER(value)[3] = dd->dp.numcols;
     }
     else if (streql(what, "mgp")) {
 	value = allocVector(REALSXP, 3);
-	REAL(value)[0] = Rf_dpptr(dd)->mgp[0];
-	REAL(value)[1] = Rf_dpptr(dd)->mgp[1];
-	REAL(value)[2] = Rf_dpptr(dd)->mgp[2];
+	REAL(value)[0] = dd->dp.mgp[0];
+	REAL(value)[1] = dd->dp.mgp[1];
+	REAL(value)[2] = dd->dp.mgp[2];
     }
     else if (streql(what, "mkh")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->mkh;
+	REAL(value)[0] = dd->dp.mkh;
     }
     else if (streql(what, "new")) {
 	value = allocVector(LGLSXP, 1);
-	INTEGER(value)[0] = Rf_dpptr(dd)->new;
+	INTEGER(value)[0] = dd->dp.new;
     }
     else if (streql(what, "oma")) {
 	value = allocVector(REALSXP, 4);
-	REAL(value)[0] = Rf_dpptr(dd)->oma[0];
-	REAL(value)[1] = Rf_dpptr(dd)->oma[1];
-	REAL(value)[2] = Rf_dpptr(dd)->oma[2];
-	REAL(value)[3] = Rf_dpptr(dd)->oma[3];
+	REAL(value)[0] = dd->dp.oma[0];
+	REAL(value)[1] = dd->dp.oma[1];
+	REAL(value)[2] = dd->dp.oma[2];
+	REAL(value)[3] = dd->dp.oma[3];
     }
     else if (streql(what, "omd")) {
 	value = allocVector(REALSXP, 4);
-	REAL(value)[0] = Rf_dpptr(dd)->omd[0];
-	REAL(value)[1] = Rf_dpptr(dd)->omd[1];
-	REAL(value)[2] = Rf_dpptr(dd)->omd[2];
-	REAL(value)[3] = Rf_dpptr(dd)->omd[3];
+	REAL(value)[0] = dd->dp.omd[0];
+	REAL(value)[1] = dd->dp.omd[1];
+	REAL(value)[2] = dd->dp.omd[2];
+	REAL(value)[3] = dd->dp.omd[3];
     }
     else if (streql(what, "omi")) {
 	value = allocVector(REALSXP, 4);
-	REAL(value)[0] = Rf_dpptr(dd)->omi[0];
-	REAL(value)[1] = Rf_dpptr(dd)->omi[1];
-	REAL(value)[2] = Rf_dpptr(dd)->omi[2];
-	REAL(value)[3] = Rf_dpptr(dd)->omi[3];
+	REAL(value)[0] = dd->dp.omi[0];
+	REAL(value)[1] = dd->dp.omi[1];
+	REAL(value)[2] = dd->dp.omi[2];
+	REAL(value)[3] = dd->dp.omi[3];
     }
     else if (streql(what, "pch")) {
 	char buf[2];
-	if(Rf_dpptr(dd)->pch < ' ' || Rf_dpptr(dd)->pch > 255) {
+	if(dd->dp.pch < ' ' || dd->dp.pch > 255) {
 	    PROTECT(value = allocVector(INTSXP, 1));
-	    INTEGER(value)[0] = Rf_dpptr(dd)->pch;
+	    INTEGER(value)[0] = dd->dp.pch;
 	}
 	else {
 	    PROTECT(value = allocVector(STRSXP, 1));
-	    buf[0] = Rf_dpptr(dd)->pch;
+	    buf[0] = dd->dp.pch;
 	    buf[1] = '\0';
 	    SET_STRING_ELT(value, 0, mkChar(buf));
 	}
@@ -842,85 +1363,85 @@ static SEXP Query(char *what, DevDesc *dd)
     }
     else if (streql(what, "pin")) {
 	value = allocVector(REALSXP, 2);
-	REAL(value)[0] = Rf_dpptr(dd)->pin[0];
-	REAL(value)[1] = Rf_dpptr(dd)->pin[1];
+	REAL(value)[0] = dd->dp.pin[0];
+	REAL(value)[1] = dd->dp.pin[1];
     }
     else if (streql(what, "plt")) {
 	value = allocVector(REALSXP, 4);
-	REAL(value)[0] = Rf_dpptr(dd)->plt[0];
-	REAL(value)[1] = Rf_dpptr(dd)->plt[1];
-	REAL(value)[2] = Rf_dpptr(dd)->plt[2];
-	REAL(value)[3] = Rf_dpptr(dd)->plt[3];
+	REAL(value)[0] = dd->dp.plt[0];
+	REAL(value)[1] = dd->dp.plt[1];
+	REAL(value)[2] = dd->dp.plt[2];
+	REAL(value)[3] = dd->dp.plt[3];
     }
     else if (streql(what, "ps")) {
 	value = allocVector(INTSXP, 1);
-	INTEGER(value)[0] = Rf_dpptr(dd)->ps;
+	INTEGER(value)[0] = dd->dp.ps;
     }
     else if (streql(what, "pty")) {
 	char buf[2];
 	PROTECT(value = allocVector(STRSXP, 1));
-	buf[0] = Rf_dpptr(dd)->pty;
+	buf[0] = dd->dp.pty;
 	buf[1] = '\0';
 	SET_STRING_ELT(value, 0, mkChar(buf));
 	UNPROTECT(1);
     }
     else if (streql(what, "smo")) {
-	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->smo;
+	value = allocVector(INTSXP, 1);
+	INTEGER(value)[0] = dd->dp.smo;
     }
     else if (streql(what, "srt")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->srt;
+	REAL(value)[0] = dd->dp.srt;
     }
     else if (streql(what, "tck")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->tck;
+	REAL(value)[0] = dd->dp.tck;
     }
     else if (streql(what, "tcl")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->tcl;
+	REAL(value)[0] = dd->dp.tcl;
     }
     else if (streql(what, "tmag")) {
 	value = allocVector(REALSXP, 1);
-	REAL(value)[0] = Rf_dpptr(dd)->tmag;
+	REAL(value)[0] = dd->dp.tmag;
     }
     else if (streql(what, "type")) {
 	char buf[2];
 	PROTECT(value = allocVector(STRSXP, 1));
-	buf[0] = Rf_dpptr(dd)->type;
+	buf[0] = dd->dp.type;
 	buf[1] = '\0';
 	SET_STRING_ELT(value, 0, mkChar(buf));
 	UNPROTECT(1);
     }
     else if (streql(what, "usr")) {
 	value = allocVector(REALSXP, 4);
-	if (Rf_gpptr(dd)->xlog) {
-	    REAL(value)[0] = Rf_gpptr(dd)->logusr[0];
-	    REAL(value)[1] = Rf_gpptr(dd)->logusr[1];
+	if (dd->gp.xlog) {
+	    REAL(value)[0] = dd->gp.logusr[0];
+	    REAL(value)[1] = dd->gp.logusr[1];
 	}
 	else {
-	    REAL(value)[0] = Rf_dpptr(dd)->usr[0];
-	    REAL(value)[1] = Rf_dpptr(dd)->usr[1];
+	    REAL(value)[0] = dd->dp.usr[0];
+	    REAL(value)[1] = dd->dp.usr[1];
 	}
-	if (Rf_gpptr(dd)->ylog) {
-	    REAL(value)[2] = Rf_gpptr(dd)->logusr[2];
-	    REAL(value)[3] = Rf_gpptr(dd)->logusr[3];
+	if (dd->gp.ylog) {
+	    REAL(value)[2] = dd->gp.logusr[2];
+	    REAL(value)[3] = dd->gp.logusr[3];
 	}
 	else {
-	    REAL(value)[2] = Rf_dpptr(dd)->usr[2];
-	    REAL(value)[3] = Rf_dpptr(dd)->usr[3];
+	    REAL(value)[2] = dd->dp.usr[2];
+	    REAL(value)[3] = dd->dp.usr[3];
 	}
     }
     else if (streql(what, "xaxp")) {
 	value = allocVector(REALSXP, 3);
-	REAL(value)[0] = Rf_dpptr(dd)->xaxp[0];
-	REAL(value)[1] = Rf_dpptr(dd)->xaxp[1];
-	REAL(value)[2] = Rf_dpptr(dd)->xaxp[2];
+	REAL(value)[0] = dd->dp.xaxp[0];
+	REAL(value)[1] = dd->dp.xaxp[1];
+	REAL(value)[2] = dd->dp.xaxp[2];
     }
     else if (streql(what, "xaxs")) {
 	char buf[2];
 	PROTECT(value = allocVector(STRSXP, 1));
-	buf[0] = Rf_dpptr(dd)->xaxs;
+	buf[0] = dd->dp.xaxs;
 	buf[1] = '\0';
 	SET_STRING_ELT(value, 0, mkChar(buf));
 	UNPROTECT(1);
@@ -928,32 +1449,32 @@ static SEXP Query(char *what, DevDesc *dd)
     else if (streql(what, "xaxt")) {
 	char buf[2];
 	PROTECT(value = allocVector(STRSXP, 1));
-	buf[0] = Rf_dpptr(dd)->xaxt;
+	buf[0] = dd->dp.xaxt;
 	buf[1] = '\0';
 	SET_STRING_ELT(value, 0, mkChar(buf));
 	UNPROTECT(1);
     }
     else if (streql(what, "xlog")) {
 	value = allocVector(LGLSXP, 1);
-	INTEGER(value)[0] = Rf_dpptr(dd)->xlog;
+	INTEGER(value)[0] = dd->dp.xlog;
     }
     else if (streql(what, "xpd")) {
 	value = allocVector(LGLSXP, 1);
-	if (Rf_dpptr(dd)->xpd == 2)
+	if (dd->dp.xpd == 2)
 	    INTEGER(value)[0] = NA_INTEGER;
 	else
-	    INTEGER(value)[0] = Rf_dpptr(dd)->xpd;
+	    INTEGER(value)[0] = dd->dp.xpd;
     }
     else if (streql(what, "yaxp")) {
 	value = allocVector(REALSXP, 3);
-	REAL(value)[0] = Rf_dpptr(dd)->yaxp[0];
-	REAL(value)[1] = Rf_dpptr(dd)->yaxp[1];
-	REAL(value)[2] = Rf_dpptr(dd)->yaxp[2];
+	REAL(value)[0] = dd->dp.yaxp[0];
+	REAL(value)[1] = dd->dp.yaxp[1];
+	REAL(value)[2] = dd->dp.yaxp[2];
     }
     else if (streql(what, "yaxs")) {
 	char buf[2];
 	PROTECT(value = allocVector(STRSXP, 1));
-	buf[0] = Rf_dpptr(dd)->yaxs;
+	buf[0] = dd->dp.yaxs;
 	buf[1] = '\0';
 	SET_STRING_ELT(value, 0, mkChar(buf));
 	UNPROTECT(1);
@@ -961,14 +1482,14 @@ static SEXP Query(char *what, DevDesc *dd)
     else if (streql(what, "yaxt")) {
 	char buf[2];
 	PROTECT(value = allocVector(STRSXP, 1));
-	buf[0] = Rf_dpptr(dd)->yaxt;
+	buf[0] = dd->dp.yaxt;
 	buf[1] = '\0';
 	SET_STRING_ELT(value, 0, mkChar(buf));
 	UNPROTECT(1);
     }
     else if (streql(what, "ylog")) {
 	value = allocVector(LGLSXP, 1);
-	INTEGER(value)[0] = Rf_dpptr(dd)->ylog;
+	INTEGER(value)[0] = dd->dp.ylog;
     }
     else
 	value = R_NilValue;
@@ -983,7 +1504,7 @@ SEXP do_par(SEXP call, SEXP op, SEXP args, SEXP env)
     int new_spec, nargs;
 
     checkArity(op, args);
-
+    gcall = call;
     if (NoDevices()) {
 	SEXP defdev = GetOption(install("device"), R_NilValue);
 	if (isString(defdev) && length(defdev) > 0) {
@@ -1013,7 +1534,7 @@ SEXP do_par(SEXP call, SEXP op, SEXP args, SEXP env)
 		new_spec = 1;
 		SET_VECTOR_ELT(value, i, Query(CHAR(tag), dd));
 		SET_STRING_ELT(newnames, i, tag);
-		Specify(CHAR(tag), val, dd, call);
+		Specify(CHAR(tag), val, dd);
 	    }
 	    else if (isString(val) && length(val) > 0) {
 		tag = STRING_ELT(val, 0);
@@ -1040,43 +1561,6 @@ SEXP do_par(SEXP call, SEXP op, SEXP args, SEXP env)
     return value;
 }
 
-SEXP do_readonlypars(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP result;
-    GEDevDesc *dd;
-    Rboolean canChangeGamma;
-    int nreadonly;
-
-    checkArity(op, args);
-    /* need a device open: called from par() which would open a
-       device later, so do it now */
-    if (NoDevices()) {
-	SEXP defdev = GetOption(install("device"), R_NilValue);
-	if (isString(defdev) && length(defdev) > 0) {
-	    PROTECT(defdev = lang1(install(CHAR(STRING_ELT(defdev, 0)))));
-	}
-	else errorcall(call, "No active or default device");
-	eval(defdev, R_GlobalEnv);
-	UNPROTECT(1);
-    }
-    dd = GEcurrentDevice();
-    canChangeGamma = dd->dev->canChangeGamma;
-
-    if (canChangeGamma)
-	nreadonly = 5;
-    else
-	nreadonly = 6;
-    PROTECT(result = allocVector(STRSXP, nreadonly));
-    SET_STRING_ELT(result, 0, mkChar("cin"));
-    SET_STRING_ELT(result, 1, mkChar("cra"));
-    SET_STRING_ELT(result, 2, mkChar("csi"));
-    SET_STRING_ELT(result, 3, mkChar("cxy"));
-    SET_STRING_ELT(result, 4, mkChar("din"));
-    if (!canChangeGamma)
-	SET_STRING_ELT(result, 5, mkChar("gamma"));
-    UNPROTECT(1);
-    return result;
-}
 
 /*
  *  Layout was written by Paul Murrell during 1997-1998 as a partial
@@ -1117,80 +1601,76 @@ SEXP do_layout(SEXP call, SEXP op, SEXP args, SEXP env)
     dd = CurrentDevice();
 
     /* num.rows: */
-    nrow = Rf_dpptr(dd)->numrows = Rf_gpptr(dd)->numrows = INTEGER(CAR(args))[0];
-    if (nrow > MAX_LAYOUT_ROWS)
-	error("Too many rows in layout");
+    nrow = dd->dp.numrows = dd->gp.numrows = INTEGER(CAR(args))[0];
     args = CDR(args);
     /* num.cols: */
-    ncol = Rf_dpptr(dd)->numcols = Rf_gpptr(dd)->numcols = INTEGER(CAR(args))[0];
-    if (ncol > MAX_LAYOUT_COLS)
-	error("Too many columns in layout");
+    ncol = dd->dp.numcols = dd->gp.numcols = INTEGER(CAR(args))[0];
     args = CDR(args);
     /* mat[i,j] == order[i][j] : */
     for (i = 0; i < nrow; i++)
 	for (j = 0; j < ncol; j++)
-	    Rf_dpptr(dd)->order[i][j] = Rf_gpptr(dd)->order[i][j] =
+	    dd->dp.order[i][j] = dd->gp.order[i][j] =
 		INTEGER(CAR(args))[i + j*nrow];
     args = CDR(args);
 
     /* num.figures: */
-    Rf_dpptr(dd)->currentFigure = Rf_gpptr(dd)->currentFigure =
-	Rf_dpptr(dd)->lastFigure = Rf_gpptr(dd)->lastFigure = INTEGER(CAR(args))[0];
+    dd->dp.currentFigure = dd->gp.currentFigure =
+	dd->dp.lastFigure = dd->gp.lastFigure = INTEGER(CAR(args))[0];
     args = CDR(args);
     /* col.widths: */
     for (j = 0; j < ncol; j++)
-	Rf_dpptr(dd)->widths[j] = Rf_gpptr(dd)->widths[j] = REAL(CAR(args))[j];
+	dd->dp.widths[j] = dd->gp.widths[j] = REAL(CAR(args))[j];
     args = CDR(args);
     /* row.heights: */
     for (i = 0; i < nrow; i++)
-	Rf_dpptr(dd)->heights[i] = Rf_gpptr(dd)->heights[i] = REAL(CAR(args))[i];
+	dd->dp.heights[i] = dd->gp.heights[i] = REAL(CAR(args))[i];
     args = CDR(args);
     /* cm.widths: */
     ncmcol = length(CAR(args));
     for (j = 0; j < ncol; j++)
-	Rf_dpptr(dd)->cmWidths[j] = Rf_gpptr(dd)->cmWidths[j] = 0;
+	dd->dp.cmWidths[j] = dd->gp.cmWidths[j] = 0;
     for (j = 0; j < ncmcol; j++) {
-	Rf_dpptr(dd)->cmWidths[INTEGER(CAR(args))[j] - 1]
-	    = Rf_gpptr(dd)->cmWidths[INTEGER(CAR(args))[j] - 1]
+	dd->dp.cmWidths[INTEGER(CAR(args))[j] - 1]
+	    = dd->gp.cmWidths[INTEGER(CAR(args))[j] - 1]
 	    = 1;
     }
     args = CDR(args);
     /* cm.heights: */
     ncmrow = length(CAR(args));
     for (i = 0; i < nrow; i++)
-	Rf_dpptr(dd)->cmHeights[i] = Rf_gpptr(dd)->cmHeights[i] = 0;
+	dd->dp.cmHeights[i] = dd->gp.cmHeights[i] = 0;
     for (i = 0; i < ncmrow; i++) {
-	Rf_dpptr(dd)->cmHeights[INTEGER(CAR(args))[i] - 1]
-	    = Rf_gpptr(dd)->cmHeights[INTEGER(CAR(args))[i]-1]
+	dd->dp.cmHeights[INTEGER(CAR(args))[i] - 1]
+	    = dd->gp.cmHeights[INTEGER(CAR(args))[i]-1]
 	    = 1;
     }
     args = CDR(args);
     /* respect =  0 (FALSE), 1 (TRUE), or 2 (matrix) : */
-    Rf_dpptr(dd)->rspct = Rf_gpptr(dd)->rspct = INTEGER(CAR(args))[0];
+    dd->dp.rspct = dd->gp.rspct = INTEGER(CAR(args))[0];
     args = CDR(args);
     /* respect.mat */
     for (i = 0; i < nrow; i++)
 	for (j = 0; j < ncol; j++)
-	    Rf_dpptr(dd)->respect[i][j] = Rf_gpptr(dd)->respect[i][j]
+	    dd->dp.respect[i][j] = dd->gp.respect[i][j]
 		= INTEGER(CAR(args))[i + j * nrow];
 
     /*------------------------------------------------------*/
 
     if (nrow > 2 || ncol > 2) {
-	Rf_gpptr(dd)->cexbase = Rf_dpptr(dd)->cexbase = 0.66;
-	Rf_gpptr(dd)->mex = Rf_dpptr(dd)->mex = 1.0;
+	dd->gp.cexbase = dd->dp.cexbase = 0.66;
+	dd->gp.mex = dd->dp.mex = 1.0;
     }
     else if (nrow == 2 && ncol == 2) {
-	Rf_gpptr(dd)->cexbase = Rf_dpptr(dd)->cexbase = 0.83;
-	Rf_gpptr(dd)->mex = Rf_dpptr(dd)->mex = 1.0;
+	dd->gp.cexbase = dd->dp.cexbase = 0.83;
+	dd->gp.mex = dd->dp.mex = 1.0;
     }
     else {
-	Rf_gpptr(dd)->cexbase = Rf_dpptr(dd)->cexbase = 1.0;
-	Rf_gpptr(dd)->mex = Rf_dpptr(dd)->mex = 1.0;
+	dd->gp.cexbase = dd->dp.cexbase = 1.0;
+	dd->gp.mex = dd->dp.mex = 1.0;
     }
 
-    Rf_dpptr(dd)->defaultFigure = Rf_gpptr(dd)->defaultFigure = TRUE;
-    Rf_dpptr(dd)->layout = Rf_gpptr(dd)->layout = TRUE;
+    dd->dp.defaultFigure = dd->gp.defaultFigure = TRUE;
+    dd->dp.layout = dd->gp.layout = TRUE;
 
     GReset(dd);
 
@@ -1198,10 +1678,3 @@ SEXP do_layout(SEXP call, SEXP op, SEXP args, SEXP env)
 	recordGraphicOperation(op, originalArgs, dd);
     return R_NilValue;
 }
-
-/*= Local Variables: **/
-/*= mode: C **/
-/*= kept-old-versions: 12 **/
-/*= kept-new-versions: 30 **/
-/*= End: **/
-

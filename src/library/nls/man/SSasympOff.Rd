@@ -1,4 +1,4 @@
-% $Id: SSasympOff.Rd,v 1.4 2003/09/01 09:38:22 ripley Exp $
+% $Id: SSasympOff.Rd,v 1.1.24.1 2001/03/24 00:08:06 bates Exp $
 \name{SSasympOff}
 \title{Asymptotic Regression Model with an Offset}
 \usage{
@@ -42,11 +42,11 @@ getInitial(uptake ~ SSasymp( conc, Asym, lrc, c0), data = CO2.Qn1)
 ## Initial values are in fact the converged values
 fm1 <- nls(uptake ~ SSasymp( conc, Asym, lrc, c0), data = CO2.Qn1)
 summary(fm1)
-\dontshow{
+\testonly{
   xx <- seq(0.5, 5, len = 101)
   yy <- 5 * (1 -  exp(-(xx - 0.5)/(2*log(2))))
   par(mar = c(0, 0, 4.0, 0))
-  plot(xx, yy, type = "l", axes = FALSE, ylim = c(0,6), xlim = c(-1, 5),
+  plot(xx, yy, type = "l", axes = F, ylim = c(0,6), xlim = c(-1, 5),
        xlab = "", ylab = "", lwd = 2,
        main = "Parameters in the SSasympOff model")
   usr <- par("usr")

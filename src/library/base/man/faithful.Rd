@@ -1,11 +1,6 @@
 \name{faithful}
-\docType{data}
 \alias{faithful}
 \title{Old Faithful Geyser Data}
-\description{
-  Waiting time between eruptions and the duration of the eruption for
-  the Old Faithful geyser in Yellowstone National Park, Wyoming, USA.
-}
 \usage{data(faithful)}
 \format{A data frame with 272 observations on 2 variables.
   \tabular{rlll}{
@@ -15,6 +10,11 @@
   }
 }
 \source{W. Härdle.}
+\description{
+  The `faithful' data frame has 272 rows and 2 columns; the waiting
+  time between eruptions and the duration of the eruption for the Old
+  Faithful geyser in Yellowstone National Park, Wyoming, USA.
+}
 \references{
   Härdle, W. (1991)
   \emph{Smoothing Techniques with Implementation in S}.
@@ -28,13 +28,13 @@
   A closer look at \code{faithful$eruptions} reveals that these are
   heavily rounded times originally in seconds, where multiples of 5 are
   more frequent than expected under non-human measurement.  For a
-  \dQuote{better} version of the eruptions times, see the example below.
+  ``better'' version of the eruptions times, see the example below.
 
   There are many versions of this dataset around: Azzalini and Bowman
   (1990) use a more complete version.
 }
 \seealso{
-  \code{geyser} in package \pkg{MASS} for the Azzalini-Bowman version.
+  \code{geyser} in package \code{MASS} for the Azzalini-Bowman version.
 }
 \examples{
 data(faithful)

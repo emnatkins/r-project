@@ -1,21 +1,5 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2003	The R Foundation
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  A copy of the GNU General Public License is available via WWW at
- *  http://www.gnu.org/copyleft/gpl.html.  You can also obtain it by
- *  writing to the Free Software Foundation, Inc., 59 Temple Place,
- *  Suite 330, Boston, MA  02111-1307  USA.
+ *  modreg/src/ksmooth.c by B. D. Ripley  Copyright (C) 1998
  */
 
 #include <R.h>			/* for NA_REAL, includes math.h */
@@ -43,12 +27,10 @@ void BDRksmooth(double *x, double *y, int *n,
 	x0 = xp[j];
 	for(i = imin; i < *n; i++) {
 	    if(x[i] < x0 - cutoff) imin = i;
-	    else {
-		if(x[i] > x0 + cutoff) break;
-		w = dokern(fabs(x[i] - x0)/bw, *kern);
-		num += w*y[i];
-		den += w;
-	    }
+	    if(x[i] > x0 + cutoff) break;
+	    w = dokern(fabs(x[i] - x0)/bw, *kern);
+	    num += w*y[i];
+	    den += w;
 	}
 	if(den > 0) yp[j] = num/den; else yp[j] = NA_REAL;
     }

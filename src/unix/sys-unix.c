@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2003  Robert Gentleman, Ross Ihaka
+ *  Copyright (C) 1997-2000   Robert Gentleman, Ross Ihaka
  *                            and the R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -28,7 +28,6 @@
 #include "Defn.h"
 #include "Fileio.h"
 #include "Runix.h"
-#include <sys/stat.h> /* for mkdir */
 
 /* HP-UX headers need this before CLK_TCK */
 #ifdef HAVE_UNISTD_H
@@ -85,52 +84,36 @@ FILE *R_OpenInitFile(void)
      */
 
 
-static char newFileName[PATH_MAX];
 #ifdef HAVE_LIBREADLINE
-/* tilde_expand (in libreadline) mallocs storage for its return value.
-   The R entry point does not require that storage to be freed, so we
-   copy the value to a static buffer, to void a memory leak in R<=1.6.0.
-
-   This is not thread-safe, but as R_ExpandFileName is a public entry
-   point (in R-exts.texi) it will need to deprecated and replaced by a
-   version which takes a buffer as an argument.
-
-   BDR 10/2002
-*/
-
 char *R_ExpandFileName(char *s)
 {
-    char *s2 = tilde_expand(s);
-
-    strncpy(newFileName, s2, PATH_MAX);
-    if(strlen(s2) >= PATH_MAX) newFileName[PATH_MAX-1] = '\0';
-    free(s2);
-    return newFileName;
+    return( tilde_expand(s) );
 }
-#else /* not HAVE_LIBREADLINE */
+#else
 static int HaveHOME=-1;
 static char UserHOME[PATH_MAX];
+static char newFileName[PATH_MAX];
 char *R_ExpandFileName(char *s)
 {
     char *p;
-
+    
     if(s[0] != '~') return s;
     if(isalpha(s[1])) return s;
     if(HaveHOME < 0) {
 	p = getenv("HOME");
-	if(p && strlen(p) && (strlen(p) < PATH_MAX)) {
+	if(p && strlen(p)) {
 	    strcpy(UserHOME, p);
 	    HaveHOME = 1;
 	} else
 	    HaveHOME = 0;
     }
-    if(HaveHOME > 0 && (strlen(UserHOME) + strlen(s+1) < PATH_MAX)) {
+    if(HaveHOME > 0) {
 	strcpy(newFileName, UserHOME);
 	strcat(newFileName, s+1);
 	return newFileName;
     } else return s;
 }
-#endif /* not HAVE_LIBREADLINE */
+#endif
 
 
 /*
@@ -142,20 +125,17 @@ SEXP do_machine(SEXP call, SEXP op, SEXP args, SEXP env)
     return mkString("Unix");
 }
 
-#ifdef _R_HAVE_TIMING_
-# include <time.h>
-# ifdef HAVE_SYS_TIMES_H
-#  include <sys/times.h>
-# endif
-# ifndef CLK_TCK
-/* this is in ticks/second, generally 60 on BSD style Unix, 100? on SysV
- */
-#  ifdef HZ
-#   define CLK_TCK HZ
-#  else
-#   define CLK_TCK 60
-#  endif
-# endif /* not CLK_TCK */
+#ifdef HAVE_TIMES
+#include <time.h>
+#include <sys/times.h>
+#ifndef CLK_TCK
+/* this is in ticks/second, generally 60 on BSD style Unix, 100? on SysV */
+#ifdef HZ
+#define CLK_TCK HZ
+#else
+#define CLK_TCK	60
+#endif
+#endif /* CLK_TCK */
 
 static clock_t StartTime;
 static struct tms timeinfo;
@@ -187,20 +167,13 @@ SEXP do_proctime(SEXP call, SEXP op, SEXP args, SEXP env)
     R_getProcTime(REAL(ans));
     return ans;
 }
-#else /* not _R_HAVE_TIMING_ */
-SEXP do_proctime(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    error("proc.time is not implemented on this system");
-    return R_NilValue;		/* -Wall */
-}
-#endif /* not _R_HAVE_TIMING_ */
+#endif /* HAVE_TIMES */
 
 
-#define INTERN_BUFSIZE 8096
 SEXP do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     FILE *fp;
-    char *x = "r", buf[INTERN_BUFSIZE];
+    char *x = "r", buf[120];
     int read=0, i, j;
     SEXP tlist = R_NilValue, tchar, rval;
 
@@ -212,10 +185,10 @@ SEXP do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (read) {
 #ifdef HAVE_POPEN
 	PROTECT(tlist);
-	fp = R_popen(CHAR(STRING_ELT(CAR(args), 0)), x);
-	for (i = 0; fgets(buf, INTERN_BUFSIZE, fp); i++) {
+	fp = popen(CHAR(STRING_ELT(CAR(args), 0)), x);
+	for (i = 0; fgets(buf, 120, fp); i++) {
 	    read = strlen(buf);
-	    if (read < INTERN_BUFSIZE) buf[read - 1] = '\0'; /* chop final CR */
+	    buf[read - 1] = '\0';
 	    tchar = mkChar(buf);
 	    UNPROTECT(1);
 	    PROTECT(tlist = CONS(tchar, tlist));
@@ -228,74 +201,34 @@ SEXP do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	UNPROTECT(1);
 	return (rval);
-#else /* not HAVE_POPEN */
+#else
 	errorcall(call, "intern=TRUE is not implemented on this platform");
 	return R_NilValue;
-#endif /* not HAVE_POPEN */
+#endif
     }
     else {
-#ifdef HAVE_AQUA
-    	R_Busy(1);
-#endif
 	tlist = allocVector(INTSXP, 1);
 	fflush(stdout);
-	INTEGER(tlist)[0] = R_system(CHAR(STRING_ELT(CAR(args), 0)));
-#ifdef HAVE_AQUA
-    	R_Busy(0);
-#endif
+	INTEGER(tlist)[0] = system(CHAR(STRING_ELT(CAR(args), 0)));
 	R_Visible = 0;
 	return tlist;
     }
 }
 
-void InitTempDir()
+char * Runix_tmpnam(char * prefix)
 {
-    char *tmp, *tm, tmp1[PATH_MAX+10], *p;
-    int len, res;
-
-    tmp = getenv("R_SESSION_TMPDIR");
-    if (!tmp) {
-        /* This looks like it will only be called in the embedded case
-           since this is done in the script. Also should test if directory
-           exists rather than just attempting to remove it. */
-	char *buf;
-	tm = getenv("TMPDIR");
-	if (!tm) tm = getenv("TMP");
-	if (!tm) tm = getenv("TEMP");
-	if (!tm) tm = "/tmp";
-	sprintf(tmp1, "rm -rf %s/Rtmp%u", tm, (unsigned int)getpid());
-	R_system(tmp1);
-	sprintf(tmp1, "%s/Rtmp%u", tm, (unsigned int)getpid());
-	res = mkdir(tmp1, 0755);
-	if(res) R_Suicide("Can't mkdir R_TempDir");
-	tmp = tmp1;
-	buf = (char *) malloc((strlen(tmp) + 20) * sizeof(char));
-	if(buf) {
-	    sprintf(buf, "R_SESSION_TMPDIR=%s", tmp);
-	    putenv(buf);
-	    /* no free here: storage remains in use */
-	}
-    }
-
-    len = strlen(tmp) + 1;
-    p = (char *) malloc(len);
-    if(!p) R_Suicide("Can't allocate R_TempDir");
-    else {
-	R_TempDir = p;
-	strcpy(R_TempDir, tmp);
-    }
-}
-
-char * R_tmpnam(const char * prefix, const char * tempdir)
-{
-    char tm[PATH_MAX], tmp1[PATH_MAX], *res;
-    unsigned int n, done = 0;
+    char *tmp, tm[PATH_MAX], tmp1[PATH_MAX], *res;
+    unsigned int n, done = 0, pid;
 
     if(!prefix) prefix = "";	/* NULL */
-    strcpy(tmp1, tempdir);
+    tmp = getenv("TMP");
+    if (!tmp) tmp = getenv("TEMP");
+    if(tmp) strcpy(tmp1, tmp);
+    else strcpy(tmp1, "/tmp");
+    pid = (unsigned int) getpid();
     for (n = 0; n < 100; n++) {
 	/* try a random number at the end */
-	sprintf(tm, "%s/%s%x", tmp1, prefix, rand());
+	sprintf(tm, "%s/%sR%xS%x", tmp1, prefix, pid, rand());
         if(!R_FileExists(tm)) { done = 1; break; }
     }
     if(!done)
@@ -305,18 +238,38 @@ char * R_tmpnam(const char * prefix, const char * tempdir)
     return res;
 }
 
+SEXP do_tempfile(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP  ans;
+    char *tn, *tm;
+    int i, slen=0 /* -Wall */;
+
+    checkArity(op, args);
+    if (!isString(CAR(args)) || (slen = LENGTH(CAR(args))) < 1)
+	errorcall(call, "invalid file name argument");
+    PROTECT(ans = allocVector(STRSXP, slen));
+    for(i = 0; i < slen; i++) {
+	tn = CHAR(STRING_ELT(CAR(args), i));
+	/* try to get a new file name */
+	tm = Runix_tmpnam(tn);
+	SET_STRING_ELT(ans, i, mkChar(tm));
+	free(tm);
+    }
+    UNPROTECT(1);
+    return (ans);
+}
 
 
 #ifdef HAVE_SYS_UTSNAME_H
-# include <sys/utsname.h>
+#include <sys/utsname.h>
 
-# ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-# endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
-# ifdef HAVE_PWD_H
-#  include <pwd.h>
-# endif
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#endif
 
 SEXP do_sysinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -358,28 +311,28 @@ SEXP do_sysinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
     UNPROTECT(2);
     return ans;
 }
-#else /* not HAVE_SYS_UTSNAME_H */
+#else
 SEXP do_sysinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     warning("Sys.info is not implemented on this system");
     return R_NilValue;		/* -Wall */
 }
-#endif /* not HAVE_SYS_UTSNAME_H */
+#endif
 
 /*
  *  helpers for start-up code
  */
 
 #ifdef __FreeBSD__
-# ifdef HAVE_FLOATINGPOINT_H
-#  include <floatingpoint.h>
-# endif
+#ifdef HAVE_FLOATINGPOINT_H
+#include <floatingpoint.h>
+#endif
 #endif
 
 #ifdef linux
-# ifdef HAVE_FPU_CONTROL_H
-#  include <fpu_control.h>
-# endif
+#ifdef HAVE_FPU_CONTROL_H
+#include <fpu_control.h>
+#endif
 #endif
 
 void fpu_setup(Rboolean start)
@@ -402,3 +355,4 @@ void fpu_setup(Rboolean start)
 #endif
     }
 }
+

@@ -7,14 +7,13 @@
   or a function performing the linear (or constant) interpolation.
 }
 \usage{
-approx   (x, y = NULL, xout, method="linear", n=50,
-          yleft, yright, rule = 1, f=0, ties = mean)
-
-approxfun(x, y = NULL,       method="linear",
-          yleft, yright, rule = 1, f=0, ties = mean)
+approx   (x, y, xout, method="linear", n=50,
+          yleft, yright, rule=1, f=0,ties=mean)
+approxfun(x, y,       method="linear",
+          yleft, yright, rule=1, f=0,ties=mean)
 }
 \arguments{
-  \item{x, y}{vectors giving the coordinates of the points to be
+  \item{x,y}{vectors giving the coordinates of the points to be
     interpolated.  Alternatively a single plotting structure can be
     specified: see \code{\link{xy.coords}}.}
   \item{xout}{an optional set of values specifying where interpolation
@@ -39,11 +38,11 @@ approxfun(x, y = NULL,       method="linear",
     inclusive, indicating a compromise between left- and
     right-continuous step functions. If \code{y0} and \code{y1} are the
     values to the left and right of the point then the value is
-    \code{y0*(1-f)+y1*f} so that \code{f=0} is right-continuous and
+    \code{y0*f+y1*(1-f)} so that \code{f=0} is right-continuous and
     \code{f=1} is left-continuous.}
   \item{ties}{Handling of tied \code{x} values. Either a function
     with a single vector argument returning a single number result or
-    the string \code{"ordered"}.}
+    the string \code{"ordered"}}
 }
 \value{
   \code{approx} returns a list with components \code{x} and \code{y},
@@ -57,23 +56,18 @@ approxfun(x, y = NULL,       method="linear",
 }
 \details{
   The inputs can contain missing values which are deleted, so at least
-  two complete \code{(x, y)} pairs are required.  If there are
-  duplicated (tied) \code{x} values and \code{ties} is a function it is
-  applied to the \code{y} values for each distinct \code{x} value.
-  Useful functions in this context include \code{\link{mean}},
-  \code{\link{min}}, and \code{\link{max}}.  If \code{ties="ordered"}
-  the \code{x} values are assumed to be already ordered.  The first
-  \code{y} value will be used for interpolation to the left and the last
-  one for interpolation to the right.
+  two complete \code{(x, y)} pairs are required. If there are duplicated
+  (tied) \code{x} values and \code{ties} is a function it is applied
+  to the \code{y} values for each distinct \code{x} value. Useful
+  functions in this context include
+  \code{\link{mean}},\code{\link{min}}, and \code{\link{max}}. If
+  \code{ties="ordered"} the \code{x} values are assumed to be already
+  ordered. The first \code{y} value will be used for interpolation to
+  the left and the last one for interpolation to the right.
 }
 \seealso{
   \code{\link{spline}} and \code{\link{splinefun}} for spline
   interpolation.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \examples{
 x <- 1:10
@@ -86,20 +80,8 @@ points(approx(x, y, method = "constant"), col = 4, pch = "*")
 f <- approxfun(x, y)
 curve(f(x), 0, 10, col = "green")
 points(x, y)
-is.function(fc <- approxfun(x, y, method = "const")) # TRUE
+is.function(fc <- approxfun(x, y, method = "const"))  # T
 curve(fc(x), 0, 10, col = "darkblue", add = TRUE)
-
-## Show treatment of 'ties' :
-
-x <- c(2,2:4,4,4,5,5,7,7,7)
-y <- c(1:6, 5:4, 3:1)
-approx(x,y, xout=x)$y # warning
-(ay <- approx(x,y, xout=x, ties = "ordered")$y)
-stopifnot(ay == c(2,2,3,6,6,6,4,4,1,1,1))
-approx(x,y, xout=x, ties = min)$y
-approx(x,y, xout=x, ties = max)$y
-
-%%-- MM has nice utility plotting -- do in demo ?
 }
 \keyword{arith}
 \keyword{dplot}

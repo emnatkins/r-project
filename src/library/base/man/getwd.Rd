@@ -7,22 +7,12 @@ getwd()
 setwd(dir)
 }
 \arguments{
-  \item{dir}{A character string.}
+    \item{dir}{A character string.}
 }
 \description{
-  \code{getwd} returns an absolute filename representing the current
-  working directory of the \R process; \code{setwd(dir)} is used to set
-  the working directory to \code{dir}.
-}
-\note{
-  These functions are not implemented on all platforms.
-}
-\value{
-  \code{getwd} returns a character vector, or \code{NULL} if the
-  working directory is not available on that platform.
-
-  \code{setwd} returns \code{NULL} invisibly.  It will give an error if
-  it does not succeed.
+    \code{getwd} returns an absolute filename representing the current
+    working directory of the \R process; \code{setwd(dir)} is used to set
+    the working directory to \code{dir}.
 }
 \examples{
 (WD <- getwd())

@@ -5,7 +5,7 @@ dist <- function(x, method="euclidean", diag=FALSE, upper=FALSE)
 	method <- "euclidean"
 
     METHODS <- c("euclidean", "maximum",
-		 "manhattan", "canberra", "binary")
+                 "manhattan", "canberra", "binary")
     method <- pmatch(method, METHODS)
     if(is.na(method))
 	stop("invalid distance method")
@@ -20,7 +20,7 @@ dist <- function(x, method="euclidean", diag=FALSE, upper=FALSE)
 	    d = double(N*(N - 1)/2),
 	    diag  = as.integer(FALSE),
 	    method= as.integer(method),
-	    DUP = FALSE, NAOK=TRUE, PACKAGE="mva")$d
+	    DUP = FALSE, PACKAGE="base")$d
     attr(d, "Size") <- N
     attr(d, "Labels") <- dimnames(x)[[1]]
     attr(d, "Diag") <- diag
@@ -31,14 +31,14 @@ dist <- function(x, method="euclidean", diag=FALSE, upper=FALSE)
     return(d)
 }
 
-names.dist <- function(x) attr(x, "Labels")
+names.dist <- function(d) attr(d, "Labels")
 
-"names<-.dist" <- function(x, value)
+"names<-.dist" <- function(d, n)
 {
-    if(length(value) != attr(x, "Size"))
+    if(length(n) != attr(d, "Size"))
 	stop("invalid names for dist object")
-    attr(x, "Labels") <- value
-    x
+    attr(d, "Labels") <- n
+    d
 }
 
 ## Because names(d) != length(d) for "dist"-object d, we need
@@ -57,34 +57,32 @@ as.matrix.dist <- function(x)
 }
 
 
-as.dist <- function(m, diag = FALSE, upper = FALSE)
+as.dist <- function(m, diag = FALSE, upper=FALSE)
 {
-    if (inherits(m,"dist"))
-	ans <- m
-    else { ## matrix |-> dist
-	m <- as.matrix(m)
-	ans <- m[row(m) > col(m)]
-	attributes(ans) <- NULL
-	if(!is.null(rownames(m)))
-	    attr(ans,"Labels") <- rownames(m)
-	else if(!is.null(colnames(m)))
-	    attr(ans,"Labels") <- colnames(m)
-	attr(ans,"Size") <- nrow(m)
-	attr(ans, "call") <- match.call()
-	class(ans) <- "dist"
-    }
-    if(is.null(attr(ans,"Diag")) || !missing(diag))
-	attr(ans,"Diag") <- diag
-    if(is.null(attr(ans,"Upper")) || !missing(upper))
-	attr(ans,"Upper") <- upper
-    ans
+    m <- as.matrix(m)
+
+    retval <-  m[row(m) > col(m)]
+
+    attributes(retval) <- NULL
+
+    if(!is.null(rownames(m)))
+        attr(retval,"Labels") <- rownames(m)
+    else if(!is.null(colnames(m)))
+        attr(retval,"Labels") <- colnames(m)
+
+    attr(retval,"Size") <- nrow(m)
+    attr(retval,"Diag") <- diag
+    attr(retval,"Upper") <- upper
+    attr(retval, "call") <- match.call()
+    class(retval) <- "dist"
+    retval
 }
 
 
 print.dist <- function(x, diag = NULL, upper = NULL, ...)
 {
     if(is.null(diag))
-	diag <-	 if(is.null(a <- attr(x, "Diag"))) FALSE else a
+	diag <-  if(is.null(a <- attr(x, "Diag"))) FALSE else a
     if(is.null(upper))
 	upper <- if(is.null(a <- attr(x,"Upper"))) FALSE else a
 

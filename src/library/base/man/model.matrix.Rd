@@ -1,27 +1,24 @@
 \name{model.matrix}
+\title{Construct Design Matrices}
+\usage{
+model.matrix   (object, \dots)
+model.matrix.lm(object, \dots)
+model.matrix.default(formula, data, contrasts.arg = NULL, xlev = NULL)
+}
 \alias{model.matrix}
 \alias{model.matrix.default}
 \alias{model.matrix.lm}
-%\alias{model.matrix.lm.null}
-%\alias{model.matrix.glm.null}
-\title{Construct Design Matrices}
-\usage{
-model.matrix(object, \dots)
-
-\method{model.matrix}{default}(object, data = environment(object),
-             contrasts.arg = NULL, xlev = NULL, \dots)
-}
+\alias{model.matrix.lm.null}
+\alias{model.matrix.glm.null}
 \arguments{
-  \item{object}{an object of an appropriate class. For the default
-    method, a model formula or terms object.}
+  \item{formula}{a model formula or terms object.}
   \item{data}{a data frame created with \code{\link{model.frame}}.}
   \item{contrasts.arg}{A list, whose entries are contrasts suitable for
-    input to the \code{\link{contrasts}} replacement function and
-    whose names are the names of columns of \code{data} containing
-    \code{\link{factor}}s.}
+    input to the \code{\link{contrasts}} function and whose names are
+    the names of columns of \code{data} containing \code{\link{factor}}s.}
   \item{xlev}{to be used as argument of \code{\link{model.frame}} if
     \code{data} has no \code{"terms"} attribute.}
-  \item{\dots}{further arguments passed to or from other methods.}
+  \item{x}{a model frame.}
 }
 \description{
   \code{model.matrix} creates a design matrix.
@@ -32,26 +29,17 @@ model.matrix(object, \dots)
   contain columns with the same names as would be created by a call to
   \code{model.frame(formula)} or, more precisely, by evaluating
   \code{attr(terms(formula), "variables")}.  There may be other columns
-  and the order is not important.  If \code{contrasts} is specified it
+  and the order is not important. If \code{contrasts} is specified it
   overrides the default factor coding for that variable.
-
-  In interactions, the variable whose levels vary fastest is the first
-  one to appear in the formula (and not in the term), so in \code{~ a +
-    b + b:a} the interaction will have \code{a} varying fastest.
-
-  By convention, if the response variable also appears on the
-  right-hand side of the formula it is dropped (with a warning),
-  although interactions involving the term are retained.
 }
 \value{
   The design matrix for a regression model with the specified formula
   and data.
 }
 \references{
-  Chambers, J. M. (1992)
-  \emph{Data for models.}
-  Chapter 3 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
+  Chambers, J. M. and Hastie, T. J. eds (1992)
+  \emph{Statistical Models in S.}
+  Chapman & Hall, London.
 }
 \seealso{
   \code{\link{model.frame}}, \code{\link{model.extract}},

@@ -10,6 +10,10 @@
 }
 \usage{
 deviance(object, \dots)
+deviance.lm (object, \dots)
+deviance.glm(object, \dots)
+deviance.mlm(object, \dots)
+deviance.default(object, \dots)
 }
 \arguments{
   \item{object}{an object for which the deviance is desired.}
@@ -18,15 +22,12 @@ deviance(object, \dots)
 \details{
   This is a generic function which can be used to extract deviances for
   fitted models.  Consult the individual modeling functions for details
-  on how to use this function.
+  details on how to use this function.
+
+  There is no default method for this function.
 }
 \value{
   The value of the deviance extracted from the object \code{object}.
-}
-\references{
-  Chambers, J. M. and Hastie, T. J. (1992)
-  \emph{Statistical Models in S.}
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{df.residual}},

@@ -41,6 +41,7 @@ debugger(dump = last.dump)
 \value{
   None.
 }
+\author{B. D. Ripley}
 \note{
   Functions such as \code{\link{sys.parent}} and
   \code{\link{environment}} applied to closures will not work correctly
@@ -49,15 +50,8 @@ debugger(dump = last.dump)
   Of course post-mortem debugging will not work if \R is too damaged to
   produce and save the dump, for example if it has run out of workspace.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \seealso{
-  \code{\link{options}} for setting \code{error} options;
-  \code{\link{recover}} is an interactive debugger working similarly to
-  \code{debugger} but directly after the error occurs.
+  \code{\link{options}} for setting \code{error} options.
 }
 \examples{
 \dontrun{

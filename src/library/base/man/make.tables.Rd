@@ -5,7 +5,6 @@
 \usage{
 make.tables.aovproj    (proj.cols, mf.cols, prjs, mf,
                         fun = "mean", prt = FALSE, \dots)
-
 make.tables.aovprojlist(proj.cols, strata.cols, model.cols, projections,
                         model, eff, fun = "mean", prt = FALSE, \dots)  
 }
@@ -17,4 +16,4 @@ make.tables.aovprojlist(proj.cols, strata.cols, model.cols, projections,
 %%              ___ SOURCE in ../R/model.tables.R ___
 %% }
 \seealso{\code{\link{model.tables}}}
-\keyword{internal}
+\keyword{models}

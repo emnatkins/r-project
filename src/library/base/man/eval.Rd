@@ -16,7 +16,7 @@ local(expr, envir = new.env())
 }
 \arguments{
   \item{expr}{object of mode \code{\link{expression}} or\code{call} or
-    an \dQuote{unevaluated expression}.}
+    an ``unevaluated expression''.}
   \item{envir}{the \code{\link{environment}} in which \code{expr} is to
     be evaluated.  May also be a list, a data frame, or an integer as in
     \code{sys.call}.}
@@ -48,11 +48,6 @@ local(expr, envir = new.env())
   functions and as a kind of limited namespace feature since variables
   defined in the environment are not visible from the outside.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole. (\code{eval} only.)
-}
 \seealso{
   \code{\link{expression}}, \code{quote}, \code{\link{sys.frame}},
   \code{\link{parent.frame}}, \code{\link{environment}}.
@@ -62,7 +57,7 @@ local(expr, envir = new.env())
   between \R and S in this area.  In particular, the default enclosure
   in S is the global environment.
 
-  When evaluating expressions in data frames that has been passed as
+  When evaluating expressions in dataframes that has been passed as
   argument to a function, the relevant enclosure is often the caller's
   environment, i.e., one needs
   \code{eval(x, data, parent.frame())}.
@@ -73,7 +68,7 @@ mEx <- expression(2^2^3); mEx; 1 + eval(mEx)
 eval({ xx <- pi; xx^2}) ; xx
 
 a <- 3 ; aa <- 4 ; evalq(evalq(a+b+aa, list(a=1)), list(b=5)) # == 10
-a <- 3 ; aa <- 4 ; evalq(evalq(a+b+aa, -1), list(b=5))         # == 12
+a <- 3 ; aa <- 4 ; evalq(evalq(a+b+aa, 1), list(b=5))         # == 12
 
 ev <- function() {
    e1 <- parent.frame()

@@ -1,19 +1,22 @@
 #-*- Makefile -*-
 include ../gnuwin32/MkRules
 
-CFLAGS=$(OPTFLAGS) -I../include -DHAVE_CONFIG_H -DR_DLL_BUILD
+CFLAGS=$(OPTFLAGS) -I../include -DHAVE_CONFIG_H
 FFLAGS=$(OPTFLAGS)
 CSOURCES=$(wildcard *.c)
-FSOURCES1=$(filter-out blas.f zgemm.f, $(wildcard *.f))
-OBJS=$(CSOURCES:.c=.o) $(FSOURCES1:.f=.o)
+FSOURCES=$(filter-out $(wildcard z*.f), $(wildcard *.f))
+OBJS=$(foreach i, $(CSOURCES) $(FSOURCES), $(basename $i).o)
 
 all: makeMakedeps ../gnuwin32/libappl.a
 
 ../gnuwin32/libappl.a: $(OBJS)
 
 # Dependencies
-DEPS=$(CSOURCES:.c=.d)
+DEPS=$(foreach i, $(CSOURCES), $(basename $i).d)
 
+.c.d:
+	@echo "making $@ from $<"
+	@$(CC)  -M $(CFLAGS) $($*-CFLAGS) $< -o $@
 
 makeMakedeps: $(DEPS)
 	@$(RM) Makedeps

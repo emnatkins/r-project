@@ -1,12 +1,13 @@
+% file alias.Rd
+% copyright (C) 1998 B. D. Ripley
+%
 \name{alias}
 \title{Find Aliases (Dependencies) in a Model}
 \usage{
 alias(object, \dots)
-
-\method{alias}{formula}(object, data, \dots)
-
-\method{alias}{lm}(object, complete = TRUE, partial = FALSE,
-      partial.pattern = FALSE, \dots)
+alias.formula(object, data, \dots)
+alias.lm(object, complete = TRUE, partial = FALSE,
+         partial.pattern = FALSE, \dots)
 }
 \alias{alias}
 \alias{alias.formula}
@@ -22,7 +23,6 @@ alias(object, \dots)
   \item{partial.pattern}{Should partial aliasing be presented in a
     schematic way? If this is done, the results are presented in a
     more compact way, usually giving the deciles of the coefficients.}
-  \item{\dots}{further arguments passed to or from other methods.}
 }
 \description{
   Find aliases (linearly dependent terms) in a linear model specified by
@@ -39,7 +39,7 @@ alias(object, \dots)
   correlations induced by the design.
 }
 \value{
-  A list (of \code{\link[base]{class} "listof"}) containing components
+  A list (of \code{\link{class} "listof"}) containing components
   \item{Model}{Description of the model; usually the formula.}
   \item{Complete}{A matrix with columns corresponding to effects that
     are linearly dependent on the rows; may be of class \code{"mtable"}
@@ -52,21 +52,8 @@ alias(object, \dots)
 
   The defaults are different from those in S.
 }
-\references{
-  Chambers, J. M., Freeny, A and Heiberger, R. M. (1992)
-  \emph{Analysis of variance; designed experiments.}
-  Chapter 5 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
-}
-\author{
-  The design was inspired by the S function of the same name described
-  in Chambers \emph{et al.} (1992).
-}
 \examples{
-had.VR <- "package:MASS" \%in\% search()
-## The next line is for fractions() which gives neater results
-if(!had.VR) res <- require(MASS)
-## From Venables and Ripley (2002) p.165.
+## From Venables and Ripley (1997) p.210.
 N <- c(0,1,0,1,1,1,0,0,0,1,1,0,1,1,0,0,1,0,1,0,1,1,0,0)
 P <- c(1,1,0,0,0,1,0,1,1,1,0,0,0,1,0,1,1,0,0,1,0,1,1,0)
 K <- c(1,0,0,1,0,1,1,0,0,1,0,1,0,1,1,0,0,0,1,1,1,0,1,0)
@@ -75,10 +62,15 @@ yield <- c(49.5,62.8,46.8,57.0,59.8,58.5,55.5,56.0,62.8,55.8,69.5,55.0,
 npk <- data.frame(block=gl(6,4), N=factor(N), P=factor(P),
                   K=factor(K), yield=yield)
 
+## The next line is optional (for fractions package which gives neater
+## results.)
+has.VR <- require(MASS, quietly = TRUE)
+
 op <- options(contrasts=c("contr.helmert", "contr.poly"))
 npk.aov <- aov(yield ~ block + N*P*K, npk)
 alias(npk.aov)
-if(!had.VR && res) detach(package:MASS)
+if(has.VR) detach(package:MASS)
 options(op)# reset
 }
+\author{B.D. Ripley}
 \keyword{models}

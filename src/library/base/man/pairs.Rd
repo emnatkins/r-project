@@ -1,43 +1,30 @@
 \name{pairs}
+\title{Scatterplot Matrices}
 \alias{pairs}
 \alias{pairs.default}
-\alias{pairs.formula}
-
-\title{Scatterplot Matrices}
-\description{
-  A matrix of scatterplots is produced.
+\usage{
+pairs(x, \dots)
+pairs.default(x, labels = colnames(x), panel = points, \dots,
+              lower.panel = panel, upper.panel = panel,
+              diag.panel = NULL, text.panel = textPanel,
+              label.pos = 0.5 + has.diag/3,
+              cex.labels = NULL, font.labels = 1,
+              row1attop = TRUE)
 }
 \synopsis{
 pairs(x, \dots)
-pairs.formula(formula, data = NULL, \dots, subset)
-pairs.default(x, labels, panel = points, \dots,
+pairs.default(x, labels = colnames(x), panel = points, \dots,
               main = NULL, oma = NULL,
               font.main = par("font.main"), cex.main = par("cex.main"),
               lower.panel = panel, upper.panel = panel,
               diag.panel = NULL, text.panel = textPanel,
               label.pos = 0.5 + has.diag/3,
               cex.labels = NULL, font.labels = 1,
-              row1attop = TRUE, gap = 1)
+              row1attop = TRUE)
 }
-\usage{
-pairs(x, \dots)
-
-\method{pairs}{formula}(formula, data = NULL, \dots, subset)
-
-\method{pairs}{default}(x, labels, panel = points, \dots,
-      lower.panel = panel, upper.panel = panel,
-      diag.panel = NULL, text.panel = textPanel,
-      label.pos = 0.5 + has.diag/3,
-      cex.labels = NULL, font.labels = 1,
-      row1attop = TRUE, gap = 1)
 }
 \arguments{
   \item{x}{the coordinates of points given as columns of a matrix.}
-  \item{formula}{a formula, such as \code{y ~ x}.}
-  \item{data}{a data.frame (or list) from which the variables in
-    \code{formula} should be taken.}
-  \item{subset}{an optional vector specifying a subset of observations
-    to be used for plotting.}
   \item{labels}{the names of the variables.}
   \item{panel}{\code{function(x,y,\dots)} which is used to plot
     the contents of each panel of the display.}
@@ -53,11 +40,13 @@ pairs(x, \dots)
   \item{cex.labels, font.labels}{graphics parameters for the text panel.}
   \item{row1attop}{logical. Should the layout be matrix-like with row 1
     at the top, or graph-like with row 1 at the bottom?}
-  \item{gap}{Distance between subplots, in margin lines.}
+}
+\description{
+  A matrix of scatterplots is produced.
 }
 \details{
   The \eqn{ij}th scatterplot contains \code{x[,i]} plotted against
-  \code{x[,j]}.  The \dQuote{scatterplot} can be customised by setting panel
+  \code{x[,j]}.  The ``scatterplot' can be customised by setting panel
   functions to appear as something completely different. The
   off-diagonal panel functions are passed the appropriate columns of
   \code{x} as \code{x} and \code{y}: the diagonal panel function (if
@@ -70,29 +59,15 @@ pairs(x, \dots)
 
   The graphical parameter \code{oma} will be set by \code{pairs.default}
   unless supplied as an argument.
-
-  A panel function should not attempt to start a new plot, but just plot
-  within a given coordinate system: thus \code{plot} and \code{boxplot}
-  are not panel functions.
 }
 \author{
   Enhancements for \R 1.0.0 contributed by Dr. Jens
   Oehlschlaegel-Akiyoshi and R-core members.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \examples{
 data(iris)
-pairs(iris[1:4], main = "Anderson's Iris Data -- 3 species",
-      pch = 21, bg = c("red", "green3", "blue")[unclass(iris$Species)])
-
-## formula method
-data(swiss)
-pairs(~ Fertility + Education + Catholic, data = swiss,
-      subset = Education < 20, main = "Swiss data, Education < 20")
+pairs(iris[1:4], main = "Anderson's Iris Data -- 3 species", 
+      pch = 21, bg = c("red", "green3", "blue")[codes(iris$Species)])
 
 data(USJudgeRatings)
 pairs(USJudgeRatings)

@@ -1,6 +1,6 @@
 warnings <- function(...)
 {
-    if(!exists("last.warning") || !(n <- length(last.warning)))
+    if(!(n <- length(last.warning)))
 	return()
     names <- names(last.warning)
     cat("Warning message", if(n > 1)"s", ":\n", sep="")

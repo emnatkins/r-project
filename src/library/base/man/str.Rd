@@ -2,45 +2,27 @@
 \title{Compactly Display the Structure of an Arbitrary R Object}
 \usage{
 str(object, \dots)
-
-\method{str}{data.frame}(object, \dots)
-
-\method{str}{default}(object, max.level = 0, vec.len = 4, digits.d = 3,
+str.data.frame(object, \dots)
+str.default(object, max.level = 0, vec.len = 4, digits.d = 3,
     nchar.max = 128, give.attr = TRUE, give.length = TRUE,
     wid = getOption("width"), nest.lev = 0,
-    indent.str = paste(rep(" ", max(0, nest.lev + 1)), collapse = ".."),
-    \dots)
+    indent.str = paste(rep(" ", max(0, nest.lev + 1)), collapse = ".."))
 
- ls.str(pos = 1, pattern, \dots,  envir = as.environment(pos), mode = "any",
-        max.level = 1, give.attr = FALSE)
-lsf.str(pos = 1, \dots, envir = as.environment(pos))
+ls.str(name, pattern, mode = "any", max.level = 1, give.attr = FALSE)
+lsf.str(\dots)
 }
 \alias{str}
 \alias{str.default}
 \alias{str.data.frame}
 \alias{ls.str}
 \alias{lsf.str}
-\description{
-  Compactly display the internal \bold{str}ucture of an \R object, a
-  \dQuote{diagnostic} function and an alternative to \code{\link{summary}}
-  (and to some extent, \code{\link{dput}}).  Ideally, only one line for
-  each \dQuote{basic} structure is displayed.  It is especially well suited
-  to compactly display the (abbreviated) contents of (possibly nested)
-  lists.  The idea is to give reasonable output for \bold{any} \R
-  object.  It calls \code{\link{args}} for (non-primitive) function objects.
-
-  \code{\link{ls.str}} and \code{\link{lsf.str}} are useful \dQuote{versions}
-  of \code{\link{ls}}, calling \code{str} on each object.  They are not
-  foolproof and should rather not be used for programming, but are
-  provided for their usefulness.
-}
 \arguments{
   \item{object}{any \R object about which you want to have some
     information.}
   \item{max.level}{maximal level of nesting which is applied for
     displaying nested structures, e.g., a list containing sub lists.
     Default 0: Display all nesting levels.}
-  \item{vec.len}{numeric (>= 0) indicating how many \dQuote{first few} elements
+  \item{vec.len}{numeric (>= 0) indicating how many ``first few'' elements
     are displayed of each vector.  The number is multiplied by different
     factors (from .5 to 3) depending on the kind of vector.  Default 4.}
   \item{digits.d}{number of digits for numerical components (as for
@@ -57,24 +39,24 @@ lsf.str(pos = 1, \dots, envir = as.environment(pos))
   \item{nest.lev}{current nesting level in the recursive calls to
     \code{str}.}
   \item{indent.str}{the indentation string to use.}
-  \item{\dots}{potential further arguments (required for Method/Generic reasons).}
+}
+\description{
+  This is a ``diagnostic'' function, and an alternative to
+  \code{\link{summary}} (and to some extent, \code{\link{dput}}).  Ideally,
+  only one line for each ``basic'' structure is displayed.  It is especially
+  well suited to compactly display the (abbreviated) contents of
+  (possibly nested) lists.  The idea is to give reasonable output for
+  \bold{any} \R object.  It calls \code{\link{args}} for (non-primitive)
+  function objects.
 
-%% The following line is swallowed, unfortunately..  fixme??
-  For \code{ls.str} and \code{lsf.str}:
-
-  \item{pos}{integer indicating \code{\link{search}} path position.}
-  \item{envir}{environment to use, see \code{\link{ls}}.}
-  \item{pattern}{regular expression passed to \code{\link{ls}}.  Only names
-          matching \code{pattern} are considered.}
-  \item{mode}{character specifying the \code{\link{mode}} of objects to
-    consider.  Passed to \code{\link{exists}} and \code{\link{get}}.}
+  \code{\link{ls.str}} and \code{\link{lsf.str}} are useful ``versions''
+  of \code{\link{ls}}, calling \code{str} on each object.  They are not
+  foolproof and should rather not be used for programming, but are
+  provided for their usefulness.
 }
 \value{
-  \code{str} does not return anything, for efficiency reasons.
+  Nothing, for efficiency reasons.
   The obvious side effect is output to the terminal.
-
-  \code{ls.str} and \code{lsf.str} invisibly return a character vector
-  of the matching names, similarly to \code{\link{ls}}.
 }
 \author{Martin Maechler \email{maechler@stat.math.ethz.ch} since 1990.
 }
@@ -82,7 +64,7 @@ lsf.str(pos = 1, \dots, envir = as.environment(pos))
   \code{\link{summary}}, \code{\link{args}}.
 }
 \examples{
-## The following examples show some of 'str' capabilities
+## The following examples show some of `str' capabilities
 str(1:12)
 str(ls)
 str(args)#- more useful than  args(args) !
@@ -96,18 +78,13 @@ need.dev <- !exists(".Device") || is.null(.Device)
 if(need.dev) postscript()
 str(par()); if(need.dev) graphics.off()
 
-ch <- letters[1:12]; is.na(ch) <- 3:5
-str(ch) # character NA's
-
 nchar(longch <- paste(rep(letters,100), collapse=""))
 str(longch)
 str(longch, nchar.max = 52)
 
 lsf.str()#- how do the functions look like which I am using?
 ls.str(mode = "list")#- what are the structured objects I have defined?
-## which base functions have "file" in their name ?
-lsf.str(pos = length(search()), pattern = "file")
-\dontshow{
+\testonly{
  ##-- Some "crazy" objects
  str(array(1:5, dim=20))
  str(factor(character(0)))

@@ -1,7 +1,7 @@
 density <-
-    function(x, bw = "nrd0", adjust = 1,
-             kernel = c("gaussian", "epanechnikov", "rectangular",
-             "triangular", "biweight", "cosine", "optcosine"),
+    function(x, bw, adjust = 1,
+             kernel=c("gaussian", "epanechnikov", "rectangular", "triangular",
+               "biweight", "cosine", "optcosine"),
              window = kernel, width,
              give.Rkern = FALSE,
              n = 512, from, to, cut = 3, na.rm = FALSE)
@@ -40,38 +40,15 @@ density <-
     n <- max(n, 512)
     if (n > 512) n <- 2^ceiling(log2(n)) #- to be fast with FFT
 
-    if (missing(bw) && !missing(width)) {
-        if(is.numeric(width)) {
-            ## S has width equal to the length of the support of the kernel
-            ## except for the gaussian where it is 4 * sd.
-            ## R has bw a multiple of the sd.
-            fac <- switch(kernel,
-                          gaussian = 4,
-                          rectangular = 2*sqrt(3),
-                          triangular = 2 * sqrt(6),
-                          epanechnikov = 2 * sqrt(5),
-                          biweight = 2 * sqrt(7),
-                          cosine = 2/sqrt(1/3 - 2/pi^2),
-                          optcosine = 2/sqrt(1-8/pi^2)
-                          )
-            bw <- width / fac
-        }
-        if(is.character(width)) bw <- width
-    }
-    if (is.character(bw)) {
-        if(length(x) < 2)
-            stop("need at least 2 points to select a bandwidth automatically")
-        bw <- switch(tolower(bw),
-                     nrd0 = bw.nrd0(x),
-                     nrd = bw.nrd(x),
-                     ucv = bw.ucv(x),
-                     bcv = bw.bcv(x),
-                     sj = , "sj-ste" = bw.SJ(x, method="ste"),
-                     "sj-dpi" = bw.SJ(x, method="dpi"),
-                     stop("unknown bandwidth rule"))
-    }
+    if (missing(bw))
+      bw <-
+        if(missing(width)) {
+            hi <- sd(x)
+            if(!(lo <- min(hi, IQR(x)/1.34)))# qnorm(.75) - qnorm(.25) = 1.34898
+                (lo <- hi) || (lo <- abs(x[1])) || (lo <- 1.)
+            adjust * 0.9 * lo * N^(-0.2)
+        } else 0.25 * width
     if (!is.finite(bw)) stop("non-finite `bw'")
-    bw <- adjust * bw
     if (bw <= 0) stop("`bw' is not positive.")
 
     if (missing(from))
@@ -118,22 +95,21 @@ density <-
     kords <- fft( fft(y)* Conj(fft(kords)), inv=TRUE)
     kords <- Re(kords)[1:n]/length(y)
     xords <- seq(lo, up, length = n)
-#    keep <- (xords >= from) & (xords <= to)
+    keep <- (xords >= from) & (xords <= to)
     x <- seq(from, to, length = n.user)
     structure(list(x = x, y = approx(xords, kords, x)$y, bw = bw, n = N,
 		   call=match.call(), data.name=name, has.na = FALSE),
 	      class="density")
 }
 
-plot.density <- function(x, main=NULL, xlab=NULL, ylab="Density", type="l",
+plot.density <- function(s, main=NULL, xlab=NULL, ylab="Density", type="l",
 			 zero.line = TRUE, ...)
 {
     if(is.null(xlab))
-	xlab <- paste("N =", x$n, "  Bandwidth =", formatC(x$bw))
-    if(is.null(main)) main <- deparse(x$call)
-    plot.default(x, main=main, xlab=xlab, ylab=ylab, type=type, ...)
+	xlab <- paste("N =", s$n, "  Bandwidth =", formatC(s$bw))
+    if(is.null(main)) main <- deparse(s$call)
+    plot.default(s, main=main, xlab=xlab, ylab=ylab, type=type, ...)
     if(zero.line) abline(h=0, lwd=0.1, col = "gray")
-    invisible(NULL)
 }
 
 print.density <- function(x, digits=NULL, ...)

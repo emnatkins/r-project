@@ -7,7 +7,7 @@ chull(x, y=NULL)
 \arguments{
   \item{x, y}{coordinate vectors of points. This can be specified as two
     vectors \code{x} and \code{y}, a 2-column matrix \code{x}, a list
-    \code{x} with two components, etc, see \code{\link{xy.coords}}.}
+    \code{x} with components \code{x} and \code{y}}
 }
 \description{
   Computes the subset of points which lie on the convex hull of the
@@ -17,18 +17,14 @@ chull(x, y=NULL)
   \code{\link{xy.coords}} is used to interpret the specification of the
   points. The algorithm is that given by Eddy (1977).
 
-  \sQuote{Peeling} as used in the S function \code{chull} can be
-  implemented by calling \code{chull} recursively.
+  `Peeling' as used in the S function \code{chull} can be implemented
+  by calling \code{chull} recursively.
 }
 \value{
   An integer vector giving the indices of the points lying on the
   convex hull, in clockwise order.
 }
 \references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-
   Eddy, W. F. (1977) A new convex hull algorithm for planar sets.
   \emph{ACM Transactions on Mathematical Software}, \bold{3}, 398--403.
 
@@ -36,6 +32,8 @@ chull(x, y=NULL)
   algorithm for planar sets[Z]. \emph{ACM Transactions on
     Mathematical Software}, \bold{3}, 411--412.
 }
+\author{B. D. Ripley}
+
 \seealso{\code{\link{xy.coords}},\code{\link{polygon}}}
 
 \examples{

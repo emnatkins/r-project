@@ -23,7 +23,7 @@ cancor(x, y, xcenter = TRUE, ycenter = TRUE)
   The canonical correlation analysis seeks linear combinations of the
   \code{y} variables which are well explained by linear combinations
   of the \code{x} variables. The relationship is symmetric as
-  \sQuote{well explained} is measured by correlations.
+  `well explained' is measured by correlations.
 }
 \value{
   A list containing the following components:
@@ -34,16 +34,11 @@ cancor(x, y, xcenter = TRUE, ycenter = TRUE)
   \item{ycenter}{the values used to adjust the \code{x} variables.}
 }
 \references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-
   Hotelling H. (1936).
   Relations between two sets of variables.
   \emph{Biometrika}, \bold{28}, 321--327.
   
-  Seber, G. A. F. (1984).
-  \emph{Multivariate Observations}.
+  Seber, G. A. F. (1984). \emph{Multivariate Analysis}.
   New York: Wiley, p. 506f.
 }
 \seealso{
@@ -53,11 +48,11 @@ cancor(x, y, xcenter = TRUE, ycenter = TRUE)
 data(LifeCycleSavings)
 pop <- LifeCycleSavings[, 2:3]
 oec <- LifeCycleSavings[, -(2:3)]
-cancor(pop, oec)
+str(cancor(pop, oec))
 
 x <- matrix(rnorm(150), 50, 3)
 y <- matrix(rnorm(250), 50, 5)
-(cxy <- cancor(x, y))
+str(cxy <- cancor(x, y))
 all(abs(cor(x \%*\% cxy$xcoef,
             y \%*\% cxy$ycoef)[,1:3] - diag(cxy $ cor)) < 1e-15)
 all(abs(cor(x \%*\% cxy$xcoef) - diag(3)) < 1e-15)

@@ -14,23 +14,14 @@
 ar(x, aic = TRUE, order.max = NULL,
    method=c("yule-walker", "burg", "ols", "mle", "yw"), na.action,
    series, \dots)
-
-ar.burg(x, \dots)
-\method{ar.burg}{default}(x, aic = TRUE, order.max = NULL,
-        na.action = na.fail, demean = TRUE, series, var.method = 1, \dots)
-\method{ar.burg}{mts}(x, aic = TRUE, order.max = NULL,
-        na.action = na.fail, demean = TRUE, series, var.method = 1, \dots)
-
-ar.yw(x, \dots)
-\method{ar.yw}{default}(x, aic = TRUE, order.max = NULL,
-      na.action = na.fail, demean = TRUE, series, \dots)
-\method{ar.yw}{mts}(x, aic = TRUE, order.max = NULL,
-      na.action = na.fail, demean = TRUE, series, \dots)
-
-ar.mle(x, aic = TRUE, order.max = NULL, na.action = na.fail, demean = TRUE,
+\method{ar.burg}{default}(x, aic = TRUE, order.max = NULL, na.action, demean = TRUE,
+        series, var.method = 1, \dots)
+\method{ar.yw}{default}(x, aic = TRUE, order.max = NULL, na.action, demean = TRUE,
+      series, \dots)
+ar.mle(x, aic = TRUE, order.max = NULL, na.action, demean = TRUE,
        series, \dots)
 
-\method{predict}{ar}(object, newdata, n.ahead = 1, se.fit = TRUE, \dots)
+predict(ar.obj, newdata, n.ahead = 1, se.fit = TRUE)
 }
 \arguments{
   \item{x}{A univariate or multivariate time series.}
@@ -60,9 +51,9 @@ ar.mle(x, aic = TRUE, order.max = NULL, na.action = na.fail, demean = TRUE,
   \item{var.method}{the method to estimate the innovations variance
     (see Details).}
 
-  \item{\dots}{additional arguments for specific methods.}
+  \item{...}{additional arguments for specific methods.}
 
-  \item{object}{a fit from \code{ar}.}
+  \item{ar.obj}{a fit from \code{ar}.}
 
   \item{newdata}{data to which to apply the prediction.}
 
@@ -174,10 +165,22 @@ ar(lh, method="burg")
 ar(lh, method="ols")
 ar(lh, FALSE, 4) # fit ar(4)
 
+data(LakeHuron)
+ar(LakeHuron)
+ar(LakeHuron, method="burg")
+ar(LakeHuron, method="ols")
+
+
 data(sunspot)
-(sunspot.ar <- ar(sunspot.year))
+sunspot.ar <- ar(sunspot.year)
+sunspot.ar
+ar(x = sunspot.year, method = "burg")
+ar(x = sunspot.year, method = "ols")
+\dontrun{## next is slow and may have convergence problems,
+## as it cares about invertibility
+ar(x = sunspot.year, method = "mle")
+}
 predict(sunspot.ar, n.ahead=25)
-## try the other methods too
 
 data(BJsales)
 ar(ts.union(BJsales, BJsales.lead))

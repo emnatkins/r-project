@@ -1,4 +1,3 @@
-## Hmm, MM thinks diag(.) needs checking { diag(vec) when length(vec)==1 !}
 factanal <-
     function (x, factors, data = NULL, covmat = NULL, n.obs = NA,
               subset, na.action, start = NULL,
@@ -13,7 +12,7 @@ factanal <-
         ssq <- apply(Lambda, 2, function(x) -sum(x^2))
         Lambda <- Lambda[, order(ssq), drop = FALSE]
         colnames(Lambda) <- cn
-        neg <- colSums(Lambda) < 0
+        neg <- apply(Lambda, 2, sum) < 0
         Lambda[, neg] <- -Lambda[, neg]
         if(!is.null(Phi)) {
             unit <- ifelse(neg, -1, 1)
@@ -23,7 +22,6 @@ factanal <-
         Lambda
     }
     cl <- match.call()
-    na.act <- NULL
     if (is.list(covmat)) {
         if (any(is.na(match(c("cov", "n.obs"), names(covmat)))))
             stop("covmat is not a valid covariance list")
@@ -33,6 +31,7 @@ factanal <-
     }
     else if (is.matrix(covmat)) {
         cv <- covmat
+        cen <- NULL
         have.x <- FALSE
     }
     else if (is.null(covmat)) {
@@ -40,8 +39,6 @@ factanal <-
         have.x <- TRUE
         if(inherits(x, "formula")) {
             mt <- terms(x, data = data)
-            if(attr(mt, "response") > 0)
-                stop("response not allowed in formula")
             attr(mt, "intercept") <- 0
             mf <- match.call(expand.dots = FALSE)
             names(mf)[names(mf) == "x"] <- "formula"
@@ -49,7 +46,6 @@ factanal <-
                 mf$rotation <- mf$control <- mf$... <- NULL
             mf[[1]] <- as.name("model.frame")
             mf <- eval(mf, parent.frame())
-            na.act <- attr(mf, "na.action")
             z <- model.matrix(mt, mf)
         } else {
             z <- as.matrix(x)
@@ -105,7 +101,6 @@ factanal <-
     }
     fit$loadings <- sortLoadings(load)
     class(fit$loadings) <- "loadings"
-    fit$na.action <- na.act
     if(have.x && scores != "none") {
         Lambda <- fit$loadings
         zz <- scale(z, TRUE, TRUE)
@@ -122,13 +117,7 @@ factanal <-
                })
         rownames(sc) <- rownames(z)
         colnames(sc) <- colnames(Lambda)
-        if(!is.null(na.act)) sc <- napredict(na.act, sc)
         fit$scores <- sc
-    }
-    if(!is.na(n.obs) && dof > 0) {
-        fit$STATISTIC <- (n.obs - 1 - (2 * p + 5)/6 -
-                     (2 * factors)/3) * fit$criteria["objective"]
-        fit$PVAL <- pchisq(fit$STATISTIC, dof, lower.tail = FALSE)
     }
     fit$n.obs <- n.obs
     fit$call <- cl
@@ -142,7 +131,7 @@ factanal.fit.mle <-
     {
         sc <- diag(1/sqrt(Psi))
         Sstar <- sc %*% S %*% sc
-        E <- La.eigen(Sstar, symmetric = TRUE)
+        E <- eigen(Sstar, symmetric = TRUE)
         L <- E$vectors[, 1:q, drop = FALSE]
         load <- L %*% diag(sqrt(pmax(E$values[1:q] - 1, 0)), q)
         diag(sqrt(Psi)) %*% load
@@ -151,7 +140,7 @@ factanal.fit.mle <-
     {
         sc <- diag(1/sqrt(Psi))
         Sstar <- sc %*% S %*% sc
-        E <- La.eigen(Sstar, symmetric = TRUE, only.values = TRUE)
+        E <- eigen(Sstar, symmetric = TRUE, only.values = TRUE)
         e <- E$values[-(1:q)]
         e <- sum(log(e) - e) - q + nrow(S)
 ##        print(round(c(Psi, -e), 5))  # for tracing
@@ -161,7 +150,7 @@ factanal.fit.mle <-
     {
         sc <- diag(1/sqrt(Psi))
         Sstar <- sc %*% S %*% sc
-        E <- La.eigen(Sstar, symmetric = TRUE)
+        E <- eigen(Sstar, symmetric = TRUE)
         L <- E$vectors[, 1:q, drop = FALSE]
         load <- L %*% diag(sqrt(pmax(E$values[1:q] - 1, 0)), q)
         load <- diag(sqrt(Psi)) %*% load
@@ -210,7 +199,7 @@ print.loadings <- function(x, digits = 3, cutoff = 0.1, sort = FALSE, ...)
     nc <- nchar(fx[1])
     fx[abs(Lambda) < cutoff] <- paste(rep(" ", nc), collapse = "")
     print(fx, quote = FALSE, ...)
-    vx <- colSums(x^2)
+    vx <- apply(x^2, 2, sum)
     varex <- rbind("SS loadings" = vx)
     if(is.null(attr(x, "covariance"))) {
         varex <- rbind(varex, "Proportion Var" = vx/p)
@@ -228,13 +217,17 @@ print.factanal <- function(x, digits = 3, ...)
     cat("Uniquenesses:\n")
     print(round(x$uniquenesses, digits), ...)
     print(x$loadings, digits = digits, ...)
-    if(!is.null(x$STATISTIC)) {
-        factors <- x$factors
+    p <- nrow(x$loadings); factors <- x$factors
+    if(!is.na(x$n.obs) && x$dof > 0) {
+        dof <- x$dof
+        stat <- (x$n.obs - 1 - (2 * p + 5)/6 -
+                 (2 * factors)/3) * x$criteria["objective"]
         cat("\nTest of the hypothesis that", factors, if(factors == 1)
             "factor is" else "factors are", "sufficient.\n")
-        cat("The chi square statistic is", round(x$STATISTIC, 2), "on", x$dof,
-            if(x$dof == 1) "degree" else "degrees",
-            "of freedom.\nThe p-value is", signif(x$PVAL, 3), "\n")
+        cat("The chi square statistic is", round(stat, 2), "on", dof,
+            if(dof == 1) "degree" else "degrees",
+            "of freedom.\nThe p-value is",
+            signif(1 - pchisq(stat, dof), 3), "\n")
     } else {
         cat(paste("\nThe degrees of freedom for the model is",
                   x$dof, "and the fit was", round(x$criteria["objective"], 4),
@@ -246,42 +239,44 @@ print.factanal <- function(x, digits = 3, ...)
 varimax <- function(x, normalize = TRUE, eps = 1e-5)
 {
     nc <- ncol(x)
+    dn <- dimnames(x)
     if(nc < 2) return(x)
     if(normalize) {
         sc <- sqrt(drop(apply(x, 1, function(x) sum(x^2))))
         x <- x/sc
     }
     p <- nrow(x)
-    TT <- diag(nc)
+    T <- diag(nc)
     d <- 0
     for(i in 1:1000) {
-        z <- x %*% TT
+        z <- x %*% T
         B  <- t(x) %*% (z^3 - z %*% diag(drop(rep(1, p) %*% z^2))/p)
-        sB <- La.svd(B)
-        TT <- sB$u %*% sB$vt
+        sB <- svd(B)
+        T <- sB$u %*% t(sB$v)
         dpast <- d
         d <- sum(sB$d)
         if(d < dpast * (1 + eps)) break
     }
-    z <- x %*% TT
     if(normalize) z <- z * sc
     dimnames(z) <- dimnames(x)
-    list(loadings = z, rotmat = TT)
+    list(loadings = z, rotmat = T)
 }
 
 promax <- function(x, m = 4)
 {
     if(ncol(x) < 2) return(x)
     dn <- dimnames(x)
+    Phi <- attr(x, "covariance")
     xx <- varimax(x)
     x <- xx$loadings
-    Q <- x * abs(x)^(m-1)
+    Q <- x * abs(x)^3
     U <- lm.fit(x, Q)$coefficients
     d <- diag(solve(t(U) %*% U))
     U <- U %*% diag(sqrt(d))
     dimnames(U) <- NULL
     z <- x %*% U
-    U <- xx$rotmat %*% U
+    U <- U %*% xx$rotmat
     dimnames(z) <- dn
+    attr(z, "covariance") <- crossprod(U)
     list(loadings = z, rotmat = U)
 }

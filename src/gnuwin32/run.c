@@ -250,6 +250,8 @@ rpipe * rpipeOpen(char *cmd, int visible, char *finput, int io)
     DWORD id;
     BOOL res;
 
+//    if(io) return NULL;
+
     if (!(r = (rpipe *) malloc(sizeof(struct structRPIPE)))) {
 	strcpy(RunError, "Insufficient memory (rpipeOpen)");
 	return NULL;
@@ -382,7 +384,7 @@ typedef struct Wpipeconn {
 } *RWpipeconn;
 
 
-static Rboolean Wpipe_open(Rconnection con)
+static void Wpipe_open(Rconnection con)
 {
     rpipe *rp;
     int visible = -1, io;
@@ -390,10 +392,7 @@ static Rboolean Wpipe_open(Rconnection con)
     io = con->mode[0] == 'w';
     if(io) visible = 1; /* Somewhere to put the output */
     rp = rpipeOpen(con->description, visible, NULL, io);
-    if(!rp) {
-	warning("cannot open cmd `%s'", con->description);
-	return FALSE;
-    }
+    if(!rp) error("cannot open cmd `%s'", con->description);
     ((RWpipeconn)(con->private))->rp = rp;
     con->isopen = TRUE;
     con->canwrite = io;
@@ -401,7 +400,6 @@ static Rboolean Wpipe_open(Rconnection con)
     if(strlen(con->mode) >= 2 && con->mode[1] == 'b') con->text = FALSE;
     else con->text = TRUE;
     con->save = -1000;
-    return TRUE;
 }
 
 static void Wpipe_close(Rconnection con)
@@ -421,20 +419,25 @@ static int Wpipe_fgetc(Rconnection con)
     rpipe *rp = ((RWpipeconn)con->private) ->rp;
     int c;
     
-    c = rpipeGetc(rp);
+    if (con->save != -1000) {
+	c = con->save;
+	con->save = -1000;
+    } else {
+	c = rpipeGetc(rp);
+    }
     return c == NOLAUNCH ? R_EOF : c;
 }
 
+static int Wpipe_ungetc(int c, Rconnection con)
+{
+    con->save = c;
+    return c;
+}
 
-static long null_seek(Rconnection con, int where, int origin, int rw)
+static long null_seek(Rconnection con, int where)
 {
     error("seek not enabled for this connection");
     return 0; /* -Wall */
-}
-
-static void null_truncate(Rconnection con)
-{
-    error("truncate not enabled for this connection");
 }
 
 static int Wpipe_fflush(Rconnection con)
@@ -534,8 +537,8 @@ Rconnection newWpipe(char *description, char *mode)
     new->destroy = &Wpipe_destroy;
     new->vfprintf = &Wpipe_vfprintf;
     new->fgetc = &Wpipe_fgetc;
+    new->ungetc = &Wpipe_ungetc;
     new->seek = &null_seek;
-    new->truncate = &null_truncate;
     new->fflush = &Wpipe_fflush;
     new->read = &Wpipe_read;
     new->write = &Wpipe_write;

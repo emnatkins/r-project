@@ -9,7 +9,7 @@
 file.access(names, mode = 0)
 }
 \arguments{
-  \item{names}{character vector containing file names.}
+  \item{name}{character vector containing file names.}
   \item{mode}{integer specifying access mode required.}
 }
 \details{
@@ -32,6 +32,8 @@ directories have both read and write permissions.
 \value{
   An integer vector with values \code{0} for success and \code{-1} for failure.
 }
+
+\author{B. D. Ripley}
 
 \note{
   This is intended as a replacement for the S-PLUS function

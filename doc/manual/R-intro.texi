@@ -5,9 +5,6 @@
 @setchapternewpage on
 @c %**end of header
 
-@c Authors: If you edit/add @example(s) ,  please keep
-@c  ./R-intro.R   up-to-date !
-@c  ~~~~~~~~~~~
 @syncodeindex fn vr
 
 @dircategory Programming
@@ -41,17 +38,10 @@ Copyright @copyright{} 1997, 1998 M.@: Maechler
 @end macro
 @end iftex
 
-@c <FIXME>
-@c Apparently AUCTeX 11.06 has a problem with '@appendixsection' entries
-@c when updating nodes---the equivalent '@appendixsec' seems to work.
-@c Hence changed (temporarily?) ...
-@c </FIXME>
-
-@c <NOTE>
+@c NOTE:
 @c Conversion to PDF fails if sectioning titles contain (user-defined)
 @c macros such as @R{}.  Hence in section titles we changed @R{} to R.
 @c Revert when this is fixed.
-@c </NOTE>
 
 @ifinfo
 This is an introduction to R.
@@ -66,7 +56,7 @@ This is an introduction to R.
 @title An Introduction to R
 @subtitle Notes on @R{}: A Programming Environment for Data Analysis and Graphics
 @subtitle Version @value{VERSION}
-@author W. N. Venables, D. M. Smith
+@author W. N. Venables, D. M. Smith 
 @author and the R Development Core Team
 
 @page
@@ -78,7 +68,6 @@ This is an introduction to R.
 
 @permission{}
 
-@value{ISBN-intro}
 @end titlepage
 
 @ifnothtml
@@ -100,30 +89,28 @@ This manual provides information on data types, programming elements,
 statistical modeling and graphics.
 
 The current version of this document is @value{VERSION}.
-
-@value{ISBN-intro}
 @end ifnottex
 
 @menu
-* Preface::
-* Introduction and preliminaries::
-* Simple manipulations numbers and vectors::
-* Objects::
-* Factors::
-* Arrays and matrices::
-* Lists and data frames::
-* Reading data from files::
-* Probability distributions::
-* Loops and conditional execution::
-* Writing your own functions::
-* Statistical models in R::
-* Graphics::
-* A sample session::
-* Invoking R::
-* The command line editor::
-* Function and variable index::
-* Concept index::
-* References::
+* Preface::                     
+* Introduction and preliminaries::  
+* Simple manipulations numbers and vectors::  
+* Objects::                     
+* Factors::                     
+* Arrays and matrices::         
+* Lists and data frames::       
+* Reading data from files::     
+* Probability distributions::   
+* Loops and conditional execution::  
+* Writing your own functions::  
+* Statistical models in R::     
+* Graphics::                    
+* A sample session::            
+* Invoking R::                  
+* The command line editor::     
+* Function and variable index::  
+* Concept index::               
+* References::                  
 @end menu
 
 @node Preface, Introduction and preliminaries, Top, Top
@@ -134,6 +121,16 @@ describing the @Sl{} and @SPLUS{} environments written by Bill Venables
 and David M. Smith (Insightful Corporation).  We have made a number of
 small changes to reflect differences between the @R{} and @Sl{}
 programs, and expanded some of the material.
+
+@c FIXME:
+@c Would something like this still be needed?  There are certainly no
+@c such features ...
+@c  @R{} is an ongoing project and its capabilities do not presently
+@c  match those of @Sl{}.  In this guide we have adopted the convention
+@c  that any feature that we intend to implement is noted as such at the
+@c  beginning of the section where the feature is described.  Users can
+@c  contribute to the project by implementing any of these that remain.
+@c </FIXME>
 
 We would like to extend warm thanks to Bill Venables for granting
 permission to distribute this modified version of the notes in this way,
@@ -161,16 +158,16 @@ been digested.
 @chapter Introduction and preliminaries
 
 @menu
-* The R environment::
-* Related software and documentation::
-* R and statistics::
-* R and the window system::
-* Using R interactively::
-* Getting help::
-* R commands; case sensitivity etc::
-* Recall and correction of previous commands::
-* Executing commands from or diverting output to a file::
-* Data permanency and removing objects::
+* The R environment::           
+* Related software and documentation::  
+* R and statistics::            
+* R and the window system::     
+* Using R interactively::       
+* Getting help::                
+* R commands; case sensitivity etc::  
+* Recall and correction of previous commands::  
+* Executing commands from or diverting output to a file::  
+* Data permanency and removing objects::  
 @end menu
 
 @node The R environment, Related software and documentation, Introduction and preliminaries, Introduction and preliminaries
@@ -380,8 +377,6 @@ An alternative is
 
 For a feature specified by special characters, the argument must be
 enclosed in double or single quotes, making it a ``character string'':
-This is also necessary for a few words with syntactic meaning including
-@code{if}, @code{for} and @code{function}.
 
 @example
 > help("[[")
@@ -391,8 +386,8 @@ Either form of quote mark may be used to escape the other, as in the
 string @code{"It's important"}.  Our convention is to use
 double quote marks for preference.
 
-On most @R{} installations help is available in @HTML{} format by running
-@findex help.start
+On most versions of @R{} help is available in @HTML{} format by running
+
 @example
 > help.start()
 @end example
@@ -400,23 +395,7 @@ On most @R{} installations help is available in @HTML{} format by running
 @noindent
 which will launch a Web browser (@code{netscape} on UNIX) that allows
 the help pages to be browsed with hyperlinks.  On UNIX, subsequent help
-requests are sent to the @HTML{}-based help system.  The `Search Engine
-and Keywords' link in the page loaded by @code{help.start()} is
-particularly useful as it is contains a high-level concept list which
-searches though available functions.  It can be a great way to get you
-bearings quickly and to understand the breadth of what @R{} has to
-offer.
-
-@findex help.search
-The @code{help.search} command allows searching for help in various
-ways: try @code{?help.search} for details and examples.
-
-The examples on a help topic can normally be run by
-@findex example
-@example
-> example(@var{topic})
-@end example
-
+requests are sent to the @HTML{}-based help system.
 
 Windows versions of @R{} have other optional help systems: use
 
@@ -574,14 +553,14 @@ been conducted in the same directory.
 @cindex Vectors
 
 @menu
-* Vectors and assignment::
-* Vector arithmetic::
-* Generating regular sequences::
-* Logical vectors::
-* Missing values::
-* Character vectors::
-* Index vectors::
-* Other types of objects::
+* Vectors and assignment::      
+* Vector arithmetic::           
+* Generating regular sequences::  
+* Logical vectors::             
+* Missing values::              
+* Character vectors::           
+* Index vectors::               
+* Other types of objects::      
 @end menu
 
 @node Vectors and assignment, Vector arithmetic, Simple manipulations numbers and vectors, Simple manipulations numbers and vectors
@@ -782,12 +761,7 @@ will do the computations as complex numbers.
 @R{} has a number of facilities for generating commonly used sequences
 of numbers.  For example @code{1:30} is the vector @code{c(1, 2,
 @dots{}, 29, 30)}.
-@c <NOTE>
-@c Info cannot handle ':' as an index entry.
-@ifnotinfo
 @findex :
-@end ifnotinfo
-@c </NOTE>
 The colon operator has highest priority within an expression, so, for
 example @code{2*1:15} is the vector @code{c(2, 4, @dots{}, 28, 30)}.
 Put @code{n <- 10} and compare the sequences @code{1:n-1} and
@@ -961,14 +935,6 @@ Character quantities and character vectors are used frequently in @R{},
 for example as plot labels.  Where needed they are denoted by a sequence
 of characters delimited by the double quote character, e.g.,
 @code{"x-values"}, @code{"New iteration results"}.
-
-Character strings are entered using either double (@code{"}) or single
-(@code{'}) quotes, but are printed using double quotes (or sometimes
-without quotes).  They use C-style escape sequences, using @code{\} as
-the escape character, so @code{\\} is entered and printed as @code{\\},
-and inside double quotes @code{"} is entered as @code{\"}.  Other
-useful escape sequences are @code{\n}, newline, @code{\t}, tab and
-@code{\b}, backspace.
 
 Character vectors may be concatenated into a vector by the @code{c()}
 function; examples of their use will emerge frequently.
@@ -1171,17 +1137,17 @@ extend @R{}.  @xref{Writing your own functions}.
 @cindex Objects
 @cindex Attributes
 
-@c <FIXME>
+@c FIXME:
 @c This needs to be re-written for R.  We really have data types (as
 @c returned by typeof()) and that functions mode() and storage.mode()
 @c are for S compatibility mostly.  Hence in particular, there is no
 @c intrinsic attribute `mode'.
 
 @menu
-* The intrinsic attributes mode and length::
-* Changing the length of an object::
-* Getting and setting attributes::
-* The class of an object::
+* The intrinsic attributes mode and length::  
+* Changing the length of an object::  
+* Getting and setting attributes::  
+* The class of an object::      
 @end menu
 
 @node The intrinsic attributes mode and length, Changing the length of an object, Objects, Objects
@@ -1436,8 +1402,8 @@ used.
 @end example
 
 @menu
-* The function tapply() and ragged arrays::
-* Ordered factors::
+* The function tapply() and ragged arrays::  
+* Ordered factors::             
 @end menu
 
 @node The function tapply() and ragged arrays, Ordered factors, Factors, Factors
@@ -1552,16 +1518,16 @@ linear models are different.
 @chapter Arrays and matrices
 
 @menu
-* Arrays::
-* Array indexing::
-* Index arrays::
-* The array() function::
-* The outer product of two arrays::
-* Generalized transpose of an array::
-* Matrix facilities::
-* Forming partitioned matrices::
-* The concatenation function c() with arrays::
-* Frequency tables from factors::
+* Arrays::                      
+* Array indexing::              
+* Index arrays::                
+* The array() function::        
+* The outer product of two arrays::  
+* Generalized transpose of an array::  
+* Matrix facilities::           
+* Forming partitioned matrices::  
+* The concatenation function c() with arrays::  
+* Frequency tables from factors::  
 @end menu
 
 @node Arrays, Array indexing, Arrays and matrices, Arrays and matrices
@@ -1789,7 +1755,7 @@ concerning mixed array and vector calculations has to be considered a
 little more carefully.
 
 @menu
-* The recycling rule::
+* The recycling rule::          
 @end menu
 
 @node The recycling rule,  , The array() function, The array() function
@@ -1860,7 +1826,7 @@ the outer product operator is of course non-commutative.  Defining your
 own @R{} functions will be considered further in @ref{Writing your own
 functions}.
 
-@subsubheading An example: Determinants of 2 by 2 digit matrices
+@unnumberedsubsec An example: Determinants of 2 by 2 digit matrices
 
 As an artificial but cute example, consider the determinants of @math{2}
 by @math{2} matrices @math{[a, b; c, d]} where each entry is a
@@ -1936,11 +1902,11 @@ number of rows and columns in the matrix @code{A} respectively.
 @findex ncol
 
 @menu
-* Multiplication::
-* Linear equations and inversion::
-* Eigenvalues and eigenvectors::
-* Singular value decomposition and determinants::
-* Least squares fitting and the QR decomposition::
+* Multiplication::              
+* Linear equations and inversion::  
+* Eigenvalues and eigenvectors::  
+* Singular value decomposition and determinants::  
+* Least squares fitting and the QR decomposition::  
 @end menu
 
 @node  Multiplication, Linear equations and inversion, Matrix facilities, Matrix facilities
@@ -2297,9 +2263,9 @@ Extension to higher way frequency tables is immediate.
 @chapter Lists and data frames
 
 @menu
-* Lists::
-* Constructing and modifying lists::
-* Data frames::
+* Lists::                       
+* Constructing and modifying lists::  
+* Data frames::                 
 @end menu
 
 @node Lists, Constructing and modifying lists, Lists and data frames, Lists and data frames
@@ -2409,7 +2375,7 @@ additional components.  For example
 @end example
 
 @menu
-* Concatenating lists::
+* Concatenating lists::         
 @end menu
 
 @node Concatenating lists,  , Constructing and modifying lists, Constructing and modifying lists
@@ -2446,9 +2412,9 @@ factors, numeric matrices, lists, or other data frames.
 Matrices, lists, and data frames provide as many variables to the new
 data frame as they have columns, elements, or variables, respectively.
 @item
-Numeric vectors, logicals and factors are included as is, and character
-vectors are coerced to be factors, whose levels are the unique values
-appearing in the vector.
+Numeric vectors and factors are included as is, and non-numeric
+(character and logical) vectors are coerced to be factors, whose levels
+are the unique values appearing in the vector.
 @item
 Vector structures appearing as variables of the data frame must all have
 the @emph{same length}, and matrix structures must all have the same
@@ -2461,11 +2427,11 @@ matrix form, and its rows and columns extracted using matrix indexing
 conventions.
 
 @menu
-* Making data frames::
-* attach() and detach()::
-* Working with data frames::
-* Attaching arbitrary lists::
-* Managing the search path::
+* Making data frames::          
+* attach() and detach()::       
+* Working with data frames::    
+* Attaching arbitrary lists::   
+* Managing the search path::    
 @end menu
 
 @node Making data frames, attach() and detach(), Data frames, Data frames
@@ -2666,10 +2632,10 @@ For more details on importing data into @R{} and also exporting data,
 see the @emph{R Data Import/Export} manual.
 
 @menu
-* The read.table() function::
-* The scan() function::
-* Accessing builtin datasets::
-* Editing data::
+* The read.table() function::   
+* The scan() function::         
+* Accessing builtin datasets::  
+* Editing data::                
 @end menu
 
 @node The read.table() function, The scan() function, Reading data from files, Reading data from files
@@ -2890,9 +2856,9 @@ to enter new data via the spreadsheet interface.
 @cindex Probability distributions
 
 @menu
-* R as a set of statistical tables::
-* Examining the distribution of a set of data::
-* One- and two-sample tests::
+* R as a set of statistical tables::  
+* Examining the distribution of a set of data::  
+* One- and two-sample tests::   
 @end menu
 
 @node R as a set of statistical tables, Examining the distribution of a set of data, Probability distributions, Probability distributions
@@ -3075,7 +3041,7 @@ qqnorm(long); qqline(long)
 @end example
 
 @noindent
-which shows a reasonable fit but a shorter right tail than one would
+which shows a reasonable fit but a shorter right tail that one would
 expect from a normal distribution.  Let us compare this with some
 simulated data from a @math{t} distribution
 
@@ -3155,8 +3121,6 @@ Method B: 80.02 79.94 79.98 79.97 79.97 80.03 79.95 79.97
 @noindent
 Boxplots provide a simple graphical comparison of the two samples.
 
-@c NOTE scan() from stdin is not parse()able, hence not source()able
-@c Hence ./R-intro.R uses c(..)
 @example
 A <- scan()
 79.98 80.04 80.02 80.04 80.03 80.03 80.04 79.97
@@ -3175,7 +3139,7 @@ which indicates that the first group tends to give higher results than
 the second.
 
 @iftex
-@image{images/ice,7cm}
+@image{images/ice, 7cm}
 @end iftex
 
 To test for the equality of the means of the two examples, we can use
@@ -3294,12 +3258,12 @@ cannot compute correct p-values with ties in: ks.test(A, B)
 @end example
 
 @node Loops and conditional execution, Writing your own functions, Probability distributions, Top
-@chapter Grouping, loops and conditional execution
+@chapter More language features.  Loops and conditional execution
 @cindex Loops and conditional execution
 
 @menu
-* Grouped expressions::
-* Control statements::
+* Grouped expressions::         
+* Control statements::          
 @end menu
 
 @node Grouped expressions, Control statements, Loops and conditional execution, Loops and conditional execution
@@ -3323,8 +3287,8 @@ parentheses and used a part of an even larger expression, and so on.
 @cindex Control statements
 
 @menu
-* Conditional execution::
-* Repetitive execution::
+* Conditional execution::       
+* Repetitive execution::        
 @end menu
 
 @node Conditional execution, Repetitive execution, Control statements, Control statements
@@ -3471,15 +3435,15 @@ A call to the function then usually takes the form
 anywhere a function call is legitimate.
 
 @menu
-* Simple examples::
-* Defining new binary operators::
-* Named arguments and defaults::
-* The ellipsis argument (...)::
-* Assignment within functions::
-* More advanced examples::
-* Scope::
-* Customizing the environment::
-* Object orientation::
+* Simple examples::             
+* Defining new binary operators::  
+* Named arguments and defaults::  
+* The ellipsis argument (...)::  
+* Assignment within functions::  
+* More advanced examples::      
+* Scope::                       
+* Customizing the environment::  
+* Object orientation::          
 @end menu
 
 @node Simple examples, Defining new binary operators, Writing your own functions, Writing your own functions
@@ -3689,9 +3653,9 @@ in @R{}.  These are discussed further in @ref{Scope}.
 @section More advanced examples
 
 @menu
-* Efficiency factors in block designs::
-* Dropping all names in a printed array::
-* Recursive numerical integration::
+* Efficiency factors in block designs::  
+* Dropping all names in a printed array::  
+* Recursive numerical integration::  
 @end menu
 
 @node Efficiency factors in block designs, Dropping all names in a printed array, More advanced examples, More advanced examples
@@ -3969,17 +3933,16 @@ special initialization file.  Finally, the special functions
 
 The location of the site initialization file is taken from the value of
 the @env{R_PROFILE} environment variable.  If that variable is unset,
-file @file{Rprofile.site} in the @R{} home subdirectory @file{etc} is
-used.  This file should contain the commands that you want to execute
-every time @R{} is started under your system.  A second, personal,
-profile file named @file{.Rprofile}@footnote{So it is hidden under
-UNIX.} can be placed in any directory.  If @R{} is invoked in that
-directory then that file will be sourced.  This file gives individual
-users control over their workspace and allows for different startup
-procedures in different working directories.  If no @file{.Rprofile}
-file is found in the startup directory, than @R{} looks for a
-@file{.Rprofile} file in the user's home directory and uses that (if it
-exists).
+file @file{Rprofile} in the @R{} home subdirectory @file{etc} is used.
+This file should contain the commands that you want to execute every
+time @R{} is started under your system.  A second, personal, profile
+file named @file{.Rprofile}@footnote{So it is hidden under UNIX.} can be
+placed in any directory.  If @R{} is invoked in that directory then that
+file will be sourced.  This file gives individual users control over
+their workspace and allows for different startup procedures in different
+working directories.  If no @file{.Rprofile} file is found in the
+startup directory, than @R{} looks for a @file{.Rprofile} file in the
+user's home directory and uses that (if it exists).
 
 Any function named @code{.First()} in either of the two profile files or
 in the @file{.RData} image has a special status.  It is automatically
@@ -3988,7 +3951,7 @@ initialize the environment.  For example, the definition in the example
 below alters the prompt to @code{$} and sets up various other useful
 things that can then be taken for granted in the rest of the session.
 
-Thus, the sequence in which files are executed is, @file{Rprofile.site},
+Thus, the sequence in which files are executed is, @file{Rprofile},
 @file{.Rprofile}, @file{.RData} and then @code{.First()}.  A definition
 in later files will mask definitions in earlier files.
 
@@ -4086,14 +4049,14 @@ basic output is minimal, and one needs to ask for the details by calling
 extractor functions.
 
 @menu
-* Formulae for statistical models::
-* Linear models::
-* Generic functions for extracting model information::
-* Analysis of variance and model comparison::
-* Updating fitted models::
-* Generalized linear models::
-* Nonlinear least squares and maximum likelihood models::
-* Some non-standard models::
+* Formulae for statistical models::  
+* Linear models::               
+* Generic functions for extracting model information::  
+* Analysis of variance and model comparison::  
+* Updating fitted models::      
+* Generalized linear models::   
+* Nonlinear least squares and maximum likelihood models::  
+* Some non-standard models::    
 @end menu
 
 @node Formulae for statistical models, Linear models, Statistical models in R, Statistical models in R
@@ -4293,7 +4256,7 @@ implicit.  This is not the case in other contexts, for example in
 specifying nonlinear models.
 
 @menu
-* Contrasts::
+* Contrasts::                   
 @end menu
 
 @node Contrasts,  , Formulae for statistical models, Formulae for statistical models
@@ -4504,7 +4467,7 @@ would typically be used to describe an experiment with mean model
 ``within farms, between blocks'' and ``within blocks''.
 
 @menu
-* ANOVA tables::
+* ANOVA tables::                
 @end menu
 
 @node ANOVA tables,  , Analysis of variance and model comparison, Analysis of variance and model comparison
@@ -4678,8 +4641,8 @@ reference works on the subject for full details, such as McCullagh &
 Nelder (1989) or Dobson (1990).
 
 @menu
-* Families::
-* The glm() function::
+* Families::                    
+* The glm() function::          
 @end menu
 
 @node Families, The glm() function, Generalized linear models, Generalized linear models
@@ -4782,20 +4745,15 @@ for blindness and the results recorded.  The data is shown below:
 
 @iftex
 @quotation
+@end iftex
 @multitable {No.@: tested::} {50} {50} {50} {50} {50}
 @item Age:          @tab  20 @tab  35 @tab  45 @tab  55 @tab  70
 @item No.@: tested: @tab  50 @tab  50 @tab  50 @tab  50 @tab  50
 @item No.@: blind:  @tab  @w{ 6} @tab  17 @tab  26 @tab  37 @tab  44
 @end multitable
+@iftex
 @end quotation
 @end iftex
-@ifnottex
-@multitable {No.@: tested::} {50} {50} {50} {50} {50}
-@item Age:          @tab  20 @tab  35 @tab  45 @tab  55 @tab  70
-@item No.@: tested: @tab  50 @tab  50 @tab  50 @tab  50 @tab  50
-@item No.@: blind:  @tab  @w{ 6} @tab  17 @tab  26 @tab  37 @tab  44
-@end multitable
-@end ifnottex
 
 The problem we consider is to fit both logistic and probit models to
 this data, and to estimate for each model the LD50, that is the age at
@@ -4872,7 +4830,7 @@ simple function:
 
 @example
 > ld50 <- function(b) -b[1]/b[2]
-> ldp <- ld50(coef(fmp)); ldl <- ld50(coef(fml)); c(ldp, ldl)
+> ldp <- ld50(coef(fmp)); ldl <- ld50(coef(fmp)); c(ldp, ldl)
 @end example
 
 The actual estimates from this data are 43.663 years and 43.601 years
@@ -4968,8 +4926,8 @@ try, and convergence depends critically upon the quality of the initial
 guesses.
 
 @menu
-* Least squares::
-* Maximum likelihood::
+* Least squares::               
+* Maximum likelihood::          
 @end menu
 
 @node Least squares, Maximum likelihood, Nonlinear least squares and maximum likelihood models, Nonlinear least squares and maximum likelihood models
@@ -5216,8 +5174,8 @@ most cases, interactive use is more productive.  Interactive use is also
 easy because at startup time @R{} initiates a graphics @emph{device
 driver} which opens a special @emph{graphics window} for the display of
 interactive graphics.  Although this is done automatically, it is useful
-to know that the command used is @code{X11()} under UNIX and 
-@code{windows()} under Windows.
+to know that the command used is @code{X11()} under UNIX,
+@code{windows()} under Windows and @code{macintosh()} on MacOS 8/9.
 
 Once the device driver is running, @R{} plotting commands can be used to
 produce a variety of graphical displays and to create entirely new kinds
@@ -5242,13 +5200,13 @@ In addition, @R{} maintains a list of @emph{graphical parameters} which
 can be manipulated to customize your plots.
 
 @menu
-* High-level plotting commands::
-* Low-level plotting commands::
-* Interacting with graphics::
-* Using graphics parameters::
-* Graphics parameters::
-* Device drivers::
-* Dynamic graphics::
+* High-level plotting commands::  
+* Low-level plotting commands::  
+* Interacting with graphics::   
+* Using graphics parameters::   
+* Graphics parameters::         
+* Device drivers::              
+* Dynamic graphics::            
 @end menu
 
 @node High-level plotting commands, Low-level plotting commands, Graphics, Graphics
@@ -5261,10 +5219,10 @@ otherwise.) High-level plotting commands always start a new plot,
 erasing the current plot if necessary.
 
 @menu
-* The plot() function::
-* Displaying multivariate data::
-* Display graphics::
-* Arguments to high-level plotting functions::
+* The plot() function::         
+* Displaying multivariate data::  
+* Display graphics::            
+* Arguments to high-level plotting functions::  
 @end menu
 
 @node The plot() function, Displaying multivariate data, High-level plotting commands, High-level plotting commands
@@ -5586,8 +5544,8 @@ valid input.  In this way functions such as @code{locator()} (see below)
 may be used to specify positions on a plot interactively.
 
 @menu
-* Mathematical annotation::
-* Hershey vector fonts::
+* Mathematical annotation::     
+* Hershey vector fonts::        
 @end menu
 
 @node Mathematical annotation, Hershey vector fonts, Low-level plotting commands, Low-level plotting commands
@@ -5653,7 +5611,7 @@ information to a plot using a mouse.  The simplest of these is the
 @findex locator
 Waits for the user to select locations on the current plot using the
 left mouse button.  This continues until @code{n} (default 512) points
-have been selected, or another mouse button is pressed.  The
+have been selected, or the middle mouse button is pressed.  The
 @code{type} argument allows for plotting at the selected points and has
 the same effect as for high-level graphics commands; the default is no
 plotting.  @code{locator()} returns the locations of the points selected
@@ -5682,7 +5640,7 @@ Allow the user to highlight any of the points defined by @code{x} and
 @code{y} (using the left mouse button) by plotting the corresponding
 component of @code{labels} nearby (or the index number of the point if
 @code{labels} is absent).  Returns the indices of the selected points
-when another button is pressed.
+when the middle button is pressed.
 @end table
 
 Sometimes we want to identify particular @emph{points} on a plot, rather
@@ -5704,10 +5662,10 @@ highlighted with its index number (that is, its position in the
 @code{x}/@code{y} vectors) plotted nearby.  Alternatively, you could use
 some informative string (such as a case name) as a highlight by using
 the @code{labels} argument to @code{identify()}, or disable highlighting
-altogether with the @code{plot=FALSE} argument.  When the process is
-terminated (see above), @code{identify()} returns the indices of the
-selected points; you can use these indices to extract the selected
-points from the original vectors @code{x} and @code{y}.
+altogether with the @code{plot=FALSE} argument.  When the middle button is
+pressed, @code{identify()} returns the indices of the selected points;
+you can use these indices to extract the selected points from the
+original vectors @code{x} and @code{y}.
 
 @node Using graphics parameters, Graphics parameters, Interacting with graphics, Graphics
 @section Using graphics parameters
@@ -5728,8 +5686,8 @@ permanently, affecting all graphics functions which access the current
 device; or temporarily, affecting only a single graphics function call.
 
 @menu
-* The par() function::
-* Arguments to graphics functions::
+* The par() function::          
+* Arguments to graphics functions::  
 @end menu
 
 @node The par() function, Arguments to graphics functions, Using graphics parameters, Using graphics parameters
@@ -5810,10 +5768,10 @@ setting the parameter.
 @end table
 
 @menu
-* Graphical elements::
-* Axes and tick marks::
-* Figure margins::
-* Multiple figure environment::
+* Graphical elements::          
+* Axes and tick marks::         
+* Figure margins::              
+* Multiple figure environment::  
 @end menu
 
 @node Graphical elements, Axes and tick marks, Graphics parameters, Graphics parameters
@@ -5956,7 +5914,7 @@ labels, titles, etc.) and (usually) bounded by the axes themselves.
 @iftex
 A typical figure is
 
-@image{images/fig11,7cm}
+@image{images/fig11, 7cm}
 @end iftex
 
 Graphics parameters controlling figure layout include:
@@ -6088,8 +6046,8 @@ of hardcopy devices this ensures that every page is completed and has
 been sent to the printer.
 
 @menu
-* PostScript diagrams for typeset documents::
-* Multiple graphics devices::
+* PostScript diagrams for typeset documents::  
+* Multiple graphics devices::   
 @end menu
 
 @node PostScript diagrams for typeset documents, Multiple graphics devices, Device drivers, Device drivers
@@ -6145,6 +6103,8 @@ meanings are as follows:
 [Unix]
 @item windows()
 [Windows]
+@item Macintosh()
+[MaxOS 8/9]
 @item postscript()
 @itemx pictex()
 @itemx @dots{}
@@ -6217,7 +6177,7 @@ The following session is intended to introduce to you some features of
 the @R{} environment by using them.  Many features of the system will be
 unfamiliar and puzzling at first, but this puzzlement will soon
 disappear.  This is written for the UNIX user.  Those using Windows will
-need to adapt the discussion slightly.
+need to adapt the discussion appropriately.
 
 @table @code
 @item
@@ -6385,7 +6345,7 @@ Make a contour map of @math{f}; add in more lines for more detail.
 @code{fa} is the ``asymmetric part'' of @math{f}.  (@code{t()} is
 transpose).
 
-@item contour(x, y, fa, nlevels=15)
+@item contour(x, y, fa, nint=15)
 Make a contour plot, @dots{}
 
 @item par(oldpar)
@@ -6448,10 +6408,11 @@ want to save it.
 @menu
 * Invoking R under UNIX::       
 * Invoking R under Windows::    
+* Invoking R on a Macintosh::   
 @end menu
 
 @node Invoking R under UNIX, Invoking R under Windows, Invoking R, Invoking R
-@appendixsec Invoking R under UNIX
+@section Invoking R under UNIX
 
 The command @samp{R} can be used both for starting the main @R{} program
 with a variety of options in the form
@@ -6471,24 +6432,23 @@ help for topic @samp{Startup} for more information).
 
 @itemize @bullet
 @item
-Unless @option{--no-environ} was given, @R{} searches for user and site
-files to process for setting environment variables.  The name of the
-site file is the one pointed to by the environment variable
-@env{R_ENVIRON}; if this is unset, @file{$R_HOME/etc/Renviron.site} is
-used (if it exists).  The user files searched for are @file{.Renviron}
-in the current or in the user's home directory (in that order).  These
-files should contain lines of the form @samp{@var{name}=@var{value}}.
-(See @code{help(Startup)} for a precise description.)  Variables you
-might want to set include @env{R_PAPERSIZE} (the default paper size),
-@env{R_PRINTCMD} (the default print command) and @env{R_LIBS} (specifies
-the list of @R{} library trees searched for add-on packages).
+Unless @option{--no-environ} was given, @R{} searches for the file
+@file{.Renviron} in the current directory, or failing that the file
+pointed to by the environment variable @env{R_ENVIRON}, or if that is
+not set, the file @file{.Renviron} in the user's home directory.  The
+first of these files found is processed to set environment variables. It
+should contain lines of the form @samp{@var{name}=@var{value}}.
+(See @code{help(Startup)} for a precise description.)
+Variables you might want to set include @env{R_PAPERSIZE} (the default
+paper size), @env{R_PRINTCMD} (the default print command) and
+@env{R_LIBS} (specifies the list of @R{} library trees searched for
+add-on packages).
 
 @item
 Then @R{} searches for the site-wide startup profile unless the command
 line option @option{--no-site-file} was given.  The name of this file is
 taken from the value of the @env{R_PROFILE} environment variable.  If
-that variable is unset, the default @file{$R_HOME/etc/Rprofile.site} is
-used if this exists.
+that variable is unset, the default is @file{$R_HOME/etc/Rprofile}.
 
 @item
 Then, unless @option{--no-init-file} was given, @R{} searches for a file
@@ -6571,9 +6531,9 @@ information.
 @itemx --max-vsize=@var{N}
 Specify the minimum or maximum amount of memory used for variable size
 objects by setting the ``vector heap'' size to @var{N} bytes.  Here,
-@var{N} must either be an integer or an integer ending with @samp{G},
-@samp{M}, @samp{K}, or @samp{k}, meaning `Giga' (2^30), `Mega' (2^20),
-(computer) `Kilo' (2^10), or regular `kilo' (1000).
+@var{N} must either be an integer or an integer ending with @samp{M},
+@samp{K}, or @samp{k}, meaning `Mega' (2^20), (computer) `Kilo' (2^10),
+or regular `kilo' (1000).
 
 @item --min-nsize=@var{N}
 @itemx --max-nsize=@var{N}
@@ -6608,17 +6568,12 @@ Use @var{type} as graphical user interface (note that this also includes
 interactive graphics).  Currently, possible values for @var{type} are
 @samp{X11} (the default), @samp{gnome} provided that @acronym{GNOME}
 support is available, and @samp{none}.
-
-@item --args
-This flag does nothing except cause the rest of the command line to be
-skipped: this can be useful to retrieve values from it with
-@code{commandArgs()}.
 @end table
 
 Note that input and output can be redirected in the usual way (using
 @samp{<} and @samp{>}).
 
-The command @code{R CMD} allows the invocation of various tools which
+The command @code{R CMD} allows the invokation of various tools which
 are useful in conjunction with @R{}, but not intended to be called
 ``directly''.  The general form is
 
@@ -6658,6 +6613,8 @@ La@TeX{}, plain text, and S documentation format.
 Convert Rd format to DVI/PDF.
 @item Rd2txt
 Convert Rd format to text.
+@item Rdindex
+Extract index information from Rd files.
 @item Sd2Rd
 Convert S documentation to Rd format.
 @end table
@@ -6677,8 +6634,8 @@ R CMD @var{command} --help
 to obtain usage information for each of the tools accessible via the
 @code{R CMD} interface.
 
-@node Invoking R under Windows,  , Invoking R under UNIX, Invoking R
-@appendixsec Invoking R under Windows
+@node Invoking R under Windows, Invoking R on a Macintosh, Invoking R under UNIX, Invoking R
+@section Invoking R under Windows
 
 The startup procedure under Windows is very similar to that under UNIX,
 but necessarily not identical. There are two versions of @R{} for
@@ -6693,20 +6650,17 @@ Windows.  If the environment variable @env{R_USER} is defined, that
 gives the home directory. Next, if the environment variable @env{HOME}
 is defined, that gives the home directory. If not, and environment
 variables @env{HOMEDRIVE} and @env{HOMEPATH} are defined (and they
-normally are under Windows NT/2000/XP) these define the home
+normally are under Windows NT/2000) these define the home
 directory. Failing all those, the home directory is taken to be the
 starting directory.
 
 @itemize @bullet
 @item
-Unless @option{--no-environ} was given, @R{} searches for user and site
-files to process for setting environment variables.  The name of the
-site file is the one pointed to by the environment variable
-@env{R_ENVIRON}; if this is unset or empty, @file{$R_HOME/etc/Renviron.site}
-is used (if it exists).  The user files searched for
-are @file{.Renviron} in the current or in the user's home directory (in
-that order).  These files should contain lines of the form
-@samp{@var{name}=@var{value}}.  (See @code{help(Startup)} for a
+If a file @file{.Renviron} in the current directory, or if that is not
+set, the file @file{.Renviron} in the user's home directory, exists, it
+is read to set environment variables.  Reading is suppressed by the flag
+@option{--no-environ}.  The variables are set by separate lines of the
+form @samp{@var{name}=@var{value}}.  (See @code{help(Startup)} for a
 precise description.)  Variables you might want to set include
 @env{R_PAPERSIZE} (the default paper size) and @env{R_LIBS} (controls
 the list of @R{} library trees searched for add-on packages).
@@ -6718,8 +6672,7 @@ Environment variables can also be supplied as
 Then @R{} searches for the site-wide startup profile unless the command
 line option @option{--no-site-file} was given.  The name of this file is
 taken from the value of the @env{R_PROFILE} environment variable.  If
-that variable is unset, the default @file{$R_HOME/etc/Rprofile.site} is
-used if this exists.
+that variable is unset, the default is @file{$R_HOME/etc/Rprofile}.
 
 @item
 Then, unless @option{--no-init-file} was given, @R{} searches for a file
@@ -6740,7 +6693,7 @@ reside in @file{.RData}.
 In addition, there are options for controlling the memory available to
 the @R{} process (see the on-line help for topic @samp{Memory} for more
 information).  Users will not normally need to use these.  @R{} for
-Windows has an additional flag @option{--max-mem-size} described below,
+Windows has an additional flag @code{--max-mem-size} described below,
 which by default does limit the memory usage of an @R{} process.
 
 @R{} for Windows accepts the following command line options.
@@ -6795,9 +6748,9 @@ Combine @option{--no-save}, @option{--no-restore},
 @itemx --max-vsize=@var{N}
 Specify the minimum or maximum amount of memory used for variable size
 objects by setting the ``vector heap'' size to @var{N} bytes.  Here,
-@var{N} must either be an integer or an integer ending with @samp{G},
-@samp{M}, @samp{K}, or @samp{k}, meaning `Giga' (2^30), `Mega' (2^20),
-(computer) `Kilo' (2^10), or regular `kilo' (1000).
+@var{N} must either be an integer or an integer ending with @samp{M},
+@samp{K}, or @samp{k}, meaning `Mega' (2^20), (computer) `Kilo' (2^10),
+or regular `kilo' (1000).
 
 @item --min-nsize=@var{N}
 @itemx --max-nsize=@var{N}
@@ -6826,14 +6779,9 @@ control the printing of diagnostic messages.
 
 @item --ess
 Set @code{Rterm} up for use by @code{R-inferior-mode} in @acronym{ESS}.
-
-@item --args
-This flag does nothing except cause the rest of the command line to be
-skipped: this can be useful to retrieve values from it with
-@code{commandArgs()}.
 @end table
 
-The command @code{Rcmd} allows the invocation of various tools which
+The command @code{Rcmd} allows the invokation of various tools which
 are useful in conjunction with @R{}, but not intended to be called
 ``directly''.  The general form is
 
@@ -6867,6 +6815,8 @@ La@TeX{}, plain text, and S documentation format.
 Convert Rd format to DVI/PDF.
 @item Rd2txt
 Convert Rd format to text.
+@item Rdindex
+Extract index information from Rd files.
 @item Sd2Rd
 Convert S documentation to Rd format.
 @end table
@@ -6881,24 +6831,138 @@ Rcmd @var{command} --help
 to obtain usage information for each of the tools accessible via the
 @code{Rcmd} interface.
 
-You may also specify your own @code{*.bat} or @code{*.exe} file instead of one of the built-in
-commands.  It will be run with the following environment variables set appropriately:
-@code{R_HOME}, @code{R_VERSION}, @code{R_CMD}, @code{R_OSTYPE}, @code{PATH},
-@code{PERL5LIB}, and @code{TEXINPUTS}.  For example, if you already have @code{latex.exe} 
-on your path, then 
+@node Invoking R on a Macintosh,  , Invoking R under Windows, Invoking R
+@section Invoking R on a Macintosh
 
-@example
-Rcmd latex.exe mydoc
-@end example
+The @R{} application startup is similar to that of UNIX and Windows
+systems.  Only a console-based version of @R{} for Macintosh exists, and
+there is no equivalent to the @code{R CMD} engine.
+ 
+When you double-click on the @R{} application icon a small window will
+appear.  This is equivalent to the command line under other ports.  You
+can enter the startup options, or simply press @key{RET} on the keyboard
+to start @R{} running with default options.  The main @R{} program can be
+started with a variety of options in the form
+
+@display
+@code{R} [@var{options}]
+@end display
 
 @noindent
-will run LaTeX on mydoc.tex, with the path to @R{}'s @code{share/texmf} macros 
-added to @code{TEXINPUTS}.
+as listed later in this section.  Using [@code{<}@var{infile}]
+[@code{>}@var{outfile}] equivalent to UNIX can be selected at startup
+using the standard Macintosh interface but they are not currently fully
+implemented, so you can ignore these.
+
+Most options control what happens at the beginning and at the end of an
+@R{} session.  The startup mechanism is as follows (see also the on-line
+help for topic @samp{Startup} for more information).
+
+@itemize @bullet
+@item
+Unless @option{--no-environ} was given, @R{} looks for the file
+@file{.Renviron} in the @file{etc} subdirectory of @R{} application
+folder. The file found is processed to set environment variables. It
+should contain lines of the form @samp{@var{name}=@var{value}}.  (See
+@code{help(Startup)} for a precise description.)
+
+@item
+Then, unless @option{--no-init-file} was given, @R{} looks for a file
+called @file{.Rprofile} in the @file{etc} subdirectory of @R{}
+application folder and processes it (as @R{} code).
+
+@item
+It then loads a saved image from file @file{.RData} if there is one (unless
+@option{--no-restore} or @option{--no-restore-data} was specified).
+This file looked for in the @file{etc} subdirectory of @R{}
+application folder.
+
+@item
+Finally, if a function @code{.First} exists, it is executed.  This
+function (as well as @code{.Last} which is executed at the end of the
+@R{} session) can be defined in the appropriate startup profiles, or
+reside in @file{.RData}.
+@end itemize
+
+In addition, there are options for controlling the memory available to
+the @R{} process (see the on-line help for topic @samp{Memory} for more
+information).  Users will not normally need to use these unless they are
+trying to limit the amount of memory used by @R{}.  Please note that
+under MacOS, you have to reserve in advance the amount of memory
+assigned to the @R{} application from the `Finder/Information' menu as
+it is usually done for any Macintosh software.  An amount of 32000k is
+sufficient to run all the demos and examples in the base distribution.
+
+@R{} accepts the following command-line options.
+
+@table @option
+@item --version
+Print version information to standard output and exit successfully.
+
+@item --save
+@itemx --no-save
+Control whether data sets should be saved or not at the end of the @R{}
+session.  If neither is given in an interactive session, the user is
+asked for the desired behavior when ending the session with @kbd{q()};
+in batch mode, one of these must be specified.
+
+@item --no-init-file
+Do not read the user's profile at startup.
+
+@item --restore
+@itemx --no-restore
+@itemx --no-restore-data
+Control whether saved images (file @file{:etc:.RData} in the directory
+where @R{} was started) should be restored at startup or not.  The
+default is to restore. (@option{--no-restore} implies all the specific
+@option{--no-restore-*} options.)
+
+@item --no-restore-history
+Control whether the history file (normally file @file{.Rhistory} in the
+directory where @R{} was started, but can be set by the environment
+variable @env{R_HISTFILE}) should be restored at startup or not.  The
+default is to restore.
+
+@item --vanilla
+Combine @option{--no-save}, @option{--no-environ},
+@option{--no-site-file}, @option{--no-init-file} and
+@option{--no-restore}.
+
+@item --min-vsize=@var{N}
+@itemx --max-vsize=@var{N}
+Specify the minimum or maximum amount of memory used for variable size
+objects by setting the ``vector heap'' size to @var{N} bytes.  Here,
+@var{N} must either be an integer or an integer ending with @samp{M},
+@samp{K}, or @samp{k}, meaning `Mega' (2^20), (computer) `Kilo' (2^10),
+or regular `kilo' (1000).
+
+@item --min-nsize=@var{N}
+@itemx --max-nsize=@var{N}
+Specify the amount of memory used for fixed size objects by setting the
+number of ``cons cells'' to @var{N}.  See the previous option for
+details on @var{N}.  A cons cell takes 28 bytes on a 32-bit machine, and
+usually 56 bytes on a 64-bit machine.
+
+@item --quiet
+@itemx --silent
+@itemx -q
+Do not print out the initial copyright and welcome messages.
+
+@item --slave
+Make @R{} run as quietly as possible.
+
+@item --verbose
+Print more information about progress, and in particular set @R{}'s
+option @code{verbose} to @code{TRUE}.  @R{} code uses this option to
+control the printing of diagnostic messages.
+
+@end table
+
 
 @node The command line editor, Function and variable index, Invoking R, Top
 @appendix The command line editor
 
-@appendixsection Preliminaries
+@section Preliminaries
 
 When the @acronym{GNU} @strong{readline} library is available at the
 time @R{} is configured for compilation under UNIX, an inbuilt command
@@ -6931,7 +6995,7 @@ with @kbd{ESC}.  Thus, to enter @kbd{M-b}, you could type
 terminals with real Meta keys.  Note that case is significant for Meta
 characters.
 
-@appendixsection Editing actions
+@section Editing actions
 
 The @R{} program keeps a history of the commands you type, including the
 error lines, and commands in your history may be recalled, changed if
@@ -6951,7 +7015,7 @@ Other editing actions are summarized in the following table.
 Unfortunately it does not seem to be possible to bind the motion keys,
 for example, to the arrow keys, which is something of a nuisance.
 
-@appendixsection Command line editor summary
+@section Command line editor summary
 
 @subheading Command recall and vertical motion
 

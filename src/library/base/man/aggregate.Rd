@@ -6,13 +6,10 @@
 \title{Compute Summary Statistics of Data Subsets}
 \usage{
 aggregate(x, \dots)
-
-\method{aggregate}{default}(x, \dots)
-
-\method{aggregate}{data.frame}(x, by, FUN, \dots)
-
-\method{aggregate}{ts}(x, nfrequency = 1, FUN = sum, ndeltat = 1,
-          ts.eps = getOption("ts.eps"), \dots)
+aggregate.default(x, \dots)
+aggregate.data.frame(x, by, FUN, \dots)
+aggregate.ts(x, nfrequency = 1, FUN = sum, ndeltat = 1,
+             ts.eps = getOption("ts.eps"))
 }
 \description{
   Splits the data into subsets, computes summary statistics for each,
@@ -22,8 +19,7 @@ aggregate(x, \dots)
   \item{x}{an R object.}
   \item{by}{a list of grouping elements, each as long as the variables
     in \code{x}.  Names for the grouping variables are provided if
-    they are not given.  The elements of the list will be coerced to
-    factors (if they are not already factors).}
+    they are not given.}
   \item{FUN}{a scalar function to compute the summary statistics which
     can be applied to all data subsets.}
   \item{nfrequency}{new number of observations per unit of time; must
@@ -33,10 +29,10 @@ aggregate(x, \dots)
     interval of \code{x}.}
   \item{ts.eps}{tolerance used to decide if \code{nfrequency} is a
     sub-multiple of the original frequency.}
-  \item{\dots}{further arguments passed to or used by methods.}
+  \item{\dots}{further arguments passed to the method used.}
 }
 \details{
-  \code{aggregate} is a generic function with methods for data frames
+  \code{aggregate} is a generic functions with methods for data frames
   and time series.
   
   The default method \code{aggregate.default} uses the time series
@@ -63,23 +59,17 @@ aggregate(x, \dots)
   time series, it is coerced to one.  Then, the variables in \code{x}
   are split into appropriate blocks of length
   \code{frequency(x) / nfrequency}, and \code{FUN} is applied to each
-  such block, with further (named) arguments in \code{\dots} passed to
-  it.  The result returned is a time series with frequency
+  such block.  The result returned is a time series with frequency
   \code{nfrequency} holding the aggregated values.
 }
 \author{Kurt Hornik}
 \seealso{
   \code{\link{apply}}, \code{\link{lapply}}, \code{\link{tapply}}.
 }
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
-}
 \examples{
 data(state)
 
-## Compute the averages for the variables in 'state.x77', grouped
+## Compute the averages for the variables in `state.x77', grouped
 ## according to the region (Northeast, South, North Central, West) that
 ## each state belongs to.
 aggregate(state.x77, list(Region = state.region), mean)
@@ -90,13 +80,13 @@ aggregate(state.x77,
           list(Region = state.region,
                Cold = state.x77[,"Frost"] > 130),
           mean)
-## (Note that no state in 'South' is THAT cold.)
+## (Note that no state in `South' is THAT cold.)
 
 data(presidents)
 ## Compute the average annual approval ratings for American presidents.
 aggregate(presidents, nf = 1, FUN = mean)
-## Give the summer less weight.
-aggregate(presidents, nf = 1, FUN = weighted.mean, w = c(1, 1, 0.5, 1))
-}
+\testonly{## regression test for PR#376
+aggregate(ts(1:20), nfreq=1/3)
+}}
 \keyword{category}
 \keyword{array}

@@ -1,28 +1,20 @@
 \name{points}
+\title{Add Points to a Plot}
 \alias{points}
 \alias{points.default}
-\title{Add Points to a Plot}
-\description{
-  \code{points} is a generic function to draw a sequence of points at
-  the specified coordinates.  The specified character(s) are plotted,
-  centered at the coordinates.
-}
 \usage{
 points(x, \dots)
-
-\method{points}{default}(x, y = NULL, type = "p", pch = par("pch"),
-       col = par("col"), bg = NA, cex = 1, \dots)
+points.default(x, y=NULL, type="p", pch=1, col="black", bg=NA, cex=1, \dots)
 }
 \arguments{
   \item{x, y}{coordinate vectors of points to plot.}
   \item{type}{character indicating the type of plotting; actually any of
-    the \code{type}s as in \code{\link{plot}}.}
-  \item{pch}{plotting \dQuote{character}, i.e., symbol to use.  \code{pch} can
+    the \code{type}s as in \code{\link{plot}(..)}.}
+  \item{pch}{plotting ``character'', i.e. symbol to use.  \code{pch} can
     either be a \code{\link{character}} or an integer code for a set of
     graphics symbols.  The full set of S symbols is available with
     \code{pch=0:18}, see the last picture from \code{example(points)},
-    i.e., the examples below.
-    % (currently, \R uses circles instead of octagons).
+    i.e., the examples below. %(currently, \R uses circles instead of octagons).
 
     In addition, there is a special set of \R plotting symbols which
     can be obtained with \code{pch=19:25} and \code{21:25} can be
@@ -36,36 +28,29 @@ points(x, \dots)
       \item \code{pch=24}: triangle point-up,
       \item \code{pch=25}: triangle point down.
     }
-    Values \code{pch=26:32} are currently unused, and \code{pch=32:255}
-    give the text symbol in the encoding in use (see \code{\link{postscript}}).
   }
-  \item{col}{color code or name, see \code{\link{par}}.}
-  \item{bg}{background (\dQuote{fill}) color for open plot symbols}
-  \item{cex}{character expansion: a numerical vector.}
+  \item{col}{color code or name, see \code{\link{colors}},
+    \code{\link{palette}}.}
+  \item{bg}{background (``fill'') color for open plot symbols}
+  \item{cex}{character expansion}
   \item{\dots}{Further graphical parameters (see \code{\link{plot.xy}}
     and \code{\link{par}}) may also be supplied as arguments.}
+}
+\description{
+  \code{points} is a generic function to draw a sequence of points at
+  the specified coordinates.  The specified character(s) are plotted,
+  centered at the coordinates.
 }
 \details{
   The coordinates can be passed in a plotting structure
   (a list with \code{x} and \code{y} components), a two-column matrix, a
   time series, \dots.  See \code{\link{xy.coords}}.
 
-  Arguments \code{pch}, \code{col}, \code{bg} and \code{cex} can be
-  vectors (which will be recycled as needed) giving a value for each
-  point plotted. 
-  Points whose \code{x}, \code{y}, \code{pch}, \code{col} or \code{cex}
-  value is \code{NA} are omitted from the plot.
-  
   Graphical parameters are permitted as arguments to this function.
-}
-\references{
-  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
-  \emph{The New S Language}.
-  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{plot}}, \code{\link{lines}}, and the underlying
-  \dQuote{primitive} \code{\link{plot.xy}}.
+  ``primitive'' \code{\link{plot.xy}}.
 }
 \examples{
 plot(-4:4, -4:4, type = "n")# setting up coord. system
@@ -74,9 +59,9 @@ points(rnorm(100)/2, rnorm(100)/2, col = "blue", cex = 1.5)
 
 op <- par(bg = "light blue")
 x <- seq(0,2*pi, len=51)
-## something "between type='b' and type='o'":
+## something ``between type="b" and type="o" '' :
 plot(x, sin(x), type="o", pch=21, bg=par("bg"), col = "blue", cex=.6,
- main='plot(..., type="o", pch=21, bg=par("bg"))')
+ main='plot(.., type="o", pch=21, bg=par("bg"))')
 par(op)
 
 ##-------- Showing all the extra & some char graphics symbols ------------
@@ -87,7 +72,7 @@ ry <- dd + range(iy <- 3 + (k-1)-(ipch-1) \%\% k)
 pch <- as.list(ipch)
 pch[25+ 1:11] <- as.list(c("*",".", "o","O","0","+","-",":","|","\%","#"))
 plot(rx, ry, type="n", axes = FALSE, xlab = "", ylab = "",
-     main = paste("plot symbols :  points (...  pch = *, cex =", Pex,")"))
+     main = paste("plot symbols :  points (..  pch = *, cex =", Pex,")"))
 abline(v = ix, h = iy, col = "lightgray", lty = "dotted")
 for(i in 1:np) {
   pc <- pch[[i]]
