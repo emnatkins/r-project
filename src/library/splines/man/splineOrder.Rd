@@ -18,7 +18,7 @@ splineOrder(object)
   representation.  Thus a cubic spline has order 4.
 }
 \value{
-  A positive integer.
+  An integer vector of length 1.
 }
 \author{Douglas Bates and Bill Venables}
 \seealso{
@@ -26,6 +26,7 @@ splineOrder(object)
   \code{\link{interpSpline}},
   \code{\link{periodicSpline}}}}
 \examples{
+library( splines )
 data( women )
 splineOrder( interpSpline( weight ~ height, women ) )
 }

@@ -47,6 +47,7 @@ plot.spline(x, \dots)
 \seealso{\code{\link{xyVector}}, \code{\link{interpSpline}},
     \code{\link{periodicSpline}}}
 \examples{
+library( splines )
 data( women )
 ispl <- interpSpline( weight ~ height,  women )
 opar <- par(mfrow = c(2, 2), las = 1)

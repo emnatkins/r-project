@@ -39,6 +39,7 @@ spline.des(knots, x, ord, derivs)
 }
 \author{Douglas Bates and Bill Venables}
 \examples{
+library( splines )
 splineDesign(knots = 1:10, x = 4:7)
 }
 \keyword{ models }

@@ -33,6 +33,7 @@ backSpline(object)
   \code{\link{interpSpline}}
 }
 \examples{
+library( splines )
 data( women )
 ispl <- interpSpline( women$height, women$weight )
 bspl <- backSpline( ispl )

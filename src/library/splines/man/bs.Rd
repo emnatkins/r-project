@@ -49,6 +49,7 @@ bs(x, df, knots, degree=3, intercept=FALSE, Boundary.knots)
   \code{predict.bs}.
 }
 \examples{
+library(splines)
 data(women)
 bs(women$height, df = 5)
 summary(fm1 <- lm(weight ~ bs(height, df = 5), data = women))

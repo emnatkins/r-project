@@ -93,12 +93,6 @@ NEW FEATURES
 	manipulations.
 
 
-BUG FIXES
-
-    o   Postscript driver nolonger uses the initclip operator, which
-        was against the EPSF specifications and broke inclusion of
-	graphics in some documents.
-
 
 	**************************************************
 	*						 *

@@ -1,4 +1,4 @@
-% $Id: formula.nls.Rd,v 1.2 2000/06/27 22:26:18 pd Exp $
+% $Id: formula.nls.Rd,v 1.1.20.1 2000/08/03 05:08:49 luke Exp $
 \name{formula.nls}
 \title{Extract Model Formula from nls Object}
 \usage{
