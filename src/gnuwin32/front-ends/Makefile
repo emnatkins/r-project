@@ -1,5 +1,4 @@
 include ../MkRules
-R_HOME = ../../..
 
 ifdef DEBUG
   OPTFLAGS=-g
@@ -12,28 +11,28 @@ else
 endif
 CFLAGS=$(OPTFLAGS) -I../../include
 
-all: $(R_HOME)/bin/Rgui.exe $(R_HOME)/bin/Rterm.exe \
-     $(R_HOME)/bin/Rcmd.exe  $(R_HOME)/bin/RSetReg.exe  \
-     $(R_HOME)/bin/Rproxy.dll $(R_HOME)/bin/R.exe
+all: ../../../bin/Rgui.exe ../../../bin/Rterm.exe \
+     ../../../bin/Rcmd.exe  ../../../bin/RSetReg.exe  \
+     ../../../bin/Rproxy.dll ../../../bin/R.exe
 
-$(R_HOME)/bin/Rgui.exe: Rgui.exe
-	$(MKDIR) -p $(R_HOME)/bin
+../../../bin/Rgui.exe: Rgui.exe
+	$(MKDIR) -p ../../../bin
 	$(CP) $^ $@
 
-$(R_HOME)/bin/Rterm.exe: Rterm.exe
-	$(MKDIR) -p $(R_HOME)/bin
+../../../bin/Rterm.exe: Rterm.exe
+	$(MKDIR) -p ../../../bin
 	$(CP) $^ $@	
 
-$(R_HOME)/bin/Rcmd.exe: Rcmd.exe
-	$(MKDIR) -p $(R_HOME)/bin
+../../../bin/Rcmd.exe: Rcmd.exe
+	$(MKDIR) -p ../../../bin
 	$(CP) $^ $@
 
-$(R_HOME)/bin/RSetReg.exe: RSetReg.exe
-	$(MKDIR) -p $(R_HOME)/bin
+../../../bin/RSetReg.exe: RSetReg.exe
+	$(MKDIR) -p ../../../bin
 	$(CP) $^ $@
-
-$(R_HOME)/bin/R.exe: R.exe
-	$(MKDIR) -p $(R_HOME)/bin
+	
+../../../bin/R.exe: R.exe
+	$(MKDIR) -p ../../../bin
 	$(CP) $^ $@	
 
 graphappmain.o: ../graphapp/graphappmain.c
@@ -58,7 +57,7 @@ R.exe: R.o ../rhome.o rcico.o rcmdfn.o
 RSetReg.exe: RSetReg.o ../rhome.o rcico.o
 
 Rpwd:
-	$(MAKE) -C ../../include -f Makefile.win version
+	$(MAKE) -C ../fixed version
 	$(MAKE) Rpwd.exe
 
 Rpwd.exe: rpwd.o rcico.o
@@ -73,6 +72,6 @@ rproxy-DLLFLAGS=-mwindows
 rproxy-DLLLIBS=-L.. -lR
 rproxy.dll: rproxy.o rproxy_dev.o rproxy_impl.o bdx.o rtico.o
 
-$(R_HOME)/bin/Rproxy.dll: rproxy.dll
-	$(MKDIR) -p $(R_HOME)/bin
+../../../bin/Rproxy.dll: rproxy.dll
+	$(MKDIR) -p ../../../bin
 	$(CP) $^ $@	

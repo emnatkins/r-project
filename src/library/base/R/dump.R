@@ -1,5 +1,5 @@
 dump <- function (list, file = "dumpdata.R", append = FALSE,
-		  control = "all", envir = parent.frame())
+                  envir = parent.frame())
 {
     digits <- options("digits")
     on.exit(options(digits))
@@ -9,7 +9,6 @@ dump <- function (list, file = "dumpdata.R", append = FALSE,
             file <- file(file, ifelse(append, "a", "w"))
             on.exit(close(file), add = TRUE)
         } else file <- stdout()
-    opts <- .deparseOpts(control)
-    .Internal(dump(list, file, envir, opts))
+    .Internal(dump(list, file, envir))
 }
 

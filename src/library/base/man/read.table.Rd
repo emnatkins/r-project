@@ -88,9 +88,6 @@ read.delim2(file, header = TRUE, sep = "\t", quote="\"", dec=",",
 
     Note: to suppress all conversions including those of numeric
     columns, set \code{colClasses = "character"}.
-
-    Note that \code{as.is} is specified per column (not per
-    variable) and so includes the column of row names (if any).
   }
 
   \item{na.strings}{a vector of strings which are to be interpreted as
@@ -99,17 +96,11 @@ read.delim2(file, header = TRUE, sep = "\t", quote="\"", dec=",",
 
   \item{colClasses}{character.  A vector of classes to be assumed for
     the columns.  Recycled as necessary.  If this is not one of the
-    atomic vector classes (logical, integer, numeric, complex,
-    character, raw), there needs to be an \code{as} method for
+    atomic vector classes (logical, integer, numeric, complex and
+    character), there needs to be an \code{as} method for
     conversion from \code{"character"} to the specified class, or
     \code{NA} when \code{\link{type.convert}} is used.  NB: \code{as} is
-    in package \pkg{methods}.  Note that \code{colClasses} and
-    \code{as.is} are specified per column, not per variable, and so
-    include the column of row names (if any).
-
-    Note that \code{colClasses} is specified per column (not per
-    variable) and so includes the column of row names (if any).
-  }
+    in package \pkg{methods}.}
 
   \item{nrows}{the maximum number of rows to read in.  Negative values
     are ignored.}
@@ -185,7 +176,7 @@ read.delim2(file, header = TRUE, sep = "\t", quote="\"", dec=",",
   the column of row names (if any).
   
   Less memory will be used if \code{colClasses} is specified as one of
-  the six atomic vector classes.
+  the five atomic vector classes.
 
   Using \code{nrows}, even as a mild over-estimate, will help memory
   usage.

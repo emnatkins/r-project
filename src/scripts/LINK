@@ -2,11 +2,11 @@
 ##
 ## ${R_HOME}/bin/LINK
 
-revision='$Revision: 1.7 $'
+revision='$Revision: 1.6 $'
 version=`set - ${revision}; echo ${2}`
 version="R linker front end ${version}
 
-Copyright (C) 2000-2004 The R Core Development Team.
+Copyright (C) 2000 The R Core Development Team.
 This is free software; see the GNU General Public Licence version 2
 or later for copying conditions.  There is NO warranty."
 
@@ -47,7 +47,9 @@ if test -z "${R_HOME}"; then
   exit 1
 fi
 
-Rexeclibdir=${R_HOME}/lib
+## FIXME: should be `lib' eventually
+Rexeclibdir=${R_HOME}/bin
+## </FIXME>
 linkopts="-avoid-version -rpath ${Rexeclibdir}"
 
 exec ${R_HOME}/bin/libtool --mode=link ${args} ${linkopts}

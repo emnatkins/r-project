@@ -575,7 +575,7 @@ static void mainlb(int n, int m, double *x,
     int info;
     double time;
     int nfgv, ifun, iter, nint;
-    char word[4]; /* allow for terminator */
+    char word[4];
     double time1, time2;
     int i, iback, k;
     double gdold;

@@ -18,6 +18,7 @@ ALL_X_LIBS = $(X_PRE_LIBS) $(X_LIBS) $(X_EXTRA_LIBS)
 
 SOURCES = \
 	command-grep.c \
+	devGNOME.c \
 	gdkrotated.c gnome-find-dialog.c gtkconsole.c \
 	savehistory.c \
 	system-choosefile.c system-console.c system-showfiles.c \
@@ -28,6 +29,7 @@ DEPENDS = $(SOURCES:.c=.d)
 OBJECTS = $(SOURCES:.c=.lo)
 HEADERS = \
 	command-grep.h \
+	devGNOME.h \
 	gdkrotated.h \
 	gnome-find-dialog.h \
 	gtkconsole.h \
@@ -67,7 +69,7 @@ $(R_gnome_la): $(R_gnome_la_OBJECTS) $(R_gnome_la_DEPENDENCIES)
 	$(SHLIB_LINK) -o $@ $(R_gnome_la_LDFLAGS) $(R_gnome_la_OBJECTS) $(R_gnome_la_LIBADD) $(LIBS)
 ## <FIXME>
 ## Not sure of we want to do this ...
-	@$(MAKE) rhome="$(abs_top_builddir)" install
+	@$(MAKE) rhome=`cd $(top_builddir); pwd` install
 ## </FIXME>
 
 install: installdirs

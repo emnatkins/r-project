@@ -189,11 +189,6 @@ static SEXP rep2(SEXP s, SEXP ncopy)
 		u = CDR(u);
 	    }
 	break;
-    case RAWSXP:
-	for (i = 0; i < nc; i++)
-	    for (j = 0; j < (INTEGER(t)[i]); j++)
-		RAW(a)[n++] = RAW(s)[i];
-	break;
     default:
 	UNIMPLEMENTED("rep2");
     }
@@ -274,10 +269,6 @@ static SEXP rep(SEXP s, SEXP ncopy)
 	i = 0;
 	for (i = 0; i < na; i++)
 	    SET_VECTOR_ELT(a, i, duplicate(VECTOR_ELT(s, i% ns)));
-	break;
-    case RAWSXP:
-	for (i = 0; i < na; i++)
-	    RAW(a)[i] = RAW(s)[i % ns];
 	break;
     default:
 	UNIMPLEMENTED("rep");

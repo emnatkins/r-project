@@ -2429,17 +2429,6 @@ SEXP do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
 	    }
 	    PROTECT(ans = allocVector(LGLSXP, n));
 	    p = (void *) LOGICAL(ans);
-	} else if (!strcmp(what, "raw")) {
-	    sizedef = 1; mode = 1;
-	    if(size == NA_INTEGER) size = sizedef;
-	    switch (size) {
-	    case 1:
-		break;
-	    default:
-		error("raw is always of size 1");
-	    }
-	    PROTECT(ans = allocVector(RAWSXP, n));
-	    p = (void *) RAW(ans);
 	} else if (!strcmp(what, "numeric") || !strcmp(what, "double")) {
 	    sizedef = sizeof(double); mode = 2;
 	    if(size == NA_INTEGER) size = sizedef;
@@ -2597,11 +2586,6 @@ SEXP do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 	    if(size != sizeof(Rcomplex))
 		error("size changing is not supported for complex vectors");
 	    break;
-	case RAWSXP:
-	    if(size == NA_INTEGER) size = 1;
-	    if(size != 1)
-		error("size changing is not supported for raw vectors");
-	    break;
 	default:
 	    error("That type is unimplemented");
 	}
@@ -2679,9 +2663,6 @@ SEXP do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 	case CPLXSXP:
 	    memcpy(buf, COMPLEX(object), size * len);
 	    break;
-	case RAWSXP:
-	    memcpy(buf, RAW(object), len); /* size = 1 */
-	    break;
 	}
 
 	if(swap && size > 1)
@@ -2701,7 +2682,6 @@ static SEXP readFixedString(Rconnection con, int len)
 {
     char *buf, *p;
     int  pos, m;
-    SEXP ans;
 
     buf = (char *) R_alloc(len+1, sizeof(char));
     for(pos = 0; pos < len; pos++) {
@@ -2712,10 +2692,7 @@ static SEXP readFixedString(Rconnection con, int len)
 	}
     }
     buf[pos] = '\0';
-    /* String may contain nuls so don't use mkChar */
-    ans = allocString(pos);
-    memcpy(CHAR(ans), buf, pos);
-    return ans;
+    return mkChar(buf);
 }
 
 
@@ -3335,7 +3312,7 @@ static void gzcon_close(Rconnection con)
 	err = deflateEnd(&(priv->s));
 	/* NB: these must be little-endian */
 	putLong(icon, priv->crc);
-	putLong(icon, (uLong)(priv->s.total_in & 0xffffffff));
+	putLong(icon, priv->s.total_in);
     } else err = inflateEnd(&(priv->s));
     if(priv->inbuf) {free(priv->inbuf); priv->inbuf = Z_NULL;}
     if(priv->outbuf) {free(priv->outbuf); priv->outbuf = Z_NULL;}

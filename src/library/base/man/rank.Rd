@@ -6,8 +6,7 @@
   Ties, i.e., equal values, result in ranks being averaged, by default.
 }
 \usage{
-rank(x, na.last = TRUE,
-     ties.method = c("average", "first", "random", "max", "min"))
+rank(x, na.last = TRUE, ties.method = c("average", "first", "random"))
 }
 \arguments{
   \item{x}{a numeric vector.}
@@ -31,10 +30,7 @@ rank(x, na.last = TRUE,
   the result at the corresponding indices.  The \code{"first"} method
   results in a permutation with increasing values at each index set of
   ties.  The \code{"random"} method puts these in random order whereas the
-  default, \code{"average"}, replaces them by their mean, and
-  \code{"max"} and \code{"min"} replaces them by their maximum and
-  minimum respectively, the latter being the typical \dQuote{sports}
-  ranking.
+  default, \code{"average"}, replaces them by their mean.
 }
 \seealso{\code{\link{order}} and \code{\link{sort}}.}
 \examples{
@@ -50,10 +46,5 @@ stopifnot(rank(r1) == r1, rank(r2) == r2)
 rank(x2, ties.method= "first")  # first occurrence wins
 rank(x2, ties.method= "random") # ties broken at random
 rank(x2, ties.method= "random") # and again
-
-## keep ties ties, no average
-(rma <- rank(x2, ties.method= "max"))  # as used classically
-(rmi <- rank(x2, ties.method= "min"))  # as in Sports
-stopifnot(rma + rmi == round(r2 + r2))
 }
 \keyword{univar}

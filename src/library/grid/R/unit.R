@@ -576,14 +576,6 @@ grobWidth.gList <- function(x) {
   unit(rep(1, length(gList)), "grobwidth", data=x)
 }
 
-grobWidth.gPath <- function(x) {
-  unit(1, "grobwidth", data=x)
-}
-
-grobWidth.default <- function(x) {
-  unit(1, "grobwidth", data=gPathDirect(as.character(x)))
-}
-
 grobHeight <- function(x) {
   UseMethod("grobHeight")
 }
@@ -594,14 +586,6 @@ grobHeight.grob <- function(x) {
 
 grobHeight.gList <- function(x) {
   unit(rep(1, length(gList)), "grobheight", data=x)
-}
-
-grobHeight.gPath <- function(x) {
-  unit(1, "grobheight", data=x)
-}
-
-grobHeight.default <- function(x) {
-  unit(1, "grobheight", data=gPathDirect(as.character(x)))
 }
 
 #########################

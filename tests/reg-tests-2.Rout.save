@@ -1,6 +1,6 @@
 
 R : Copyright 2004, The R Foundation for Statistical Computing
-Version 2.0.0 Under development (unstable) (2004-07-06), ISBN 3-900051-00-3
+Version 1.9.1 Patched (2004-07-14), ISBN 3-900051-00-3
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -1511,7 +1511,7 @@ x    1  2
 Single term deletions
 
 Model:
-Fr ~ (Hair + Eye + Sex)^2
+Fr ~ .^2
          Df Deviance    AIC
 <none>          8.19 192.94
 Hair:Eye  9   162.21 328.96
@@ -3243,7 +3243,7 @@ Error in "[.data.frame"(x, 1, c("a", "c")) :
 [36] str           subset        summary       t             tail         
 [41] transform     unique        unstack      
 > meth2gen("dendrogram")
-[1] [[      cut     labels  plot    print   reorder rev     str    
+[1] [[      cut     plot    print   reorder rev     str    
 > ## --> the output may need somewhat frequent updating..
 > 
 > 
@@ -4019,110 +4019,13 @@ attr(,".Environment")
 Error in try(x[-c(1, NA)]) : only 0's may mix with negative subscripts
 > ## worked on some platforms, segfaulted on others in 1.8.1
 > 
-> 
 > ## vector 'border' (and no 'pch', 'cex' nor 'bg'):
 > data(InsectSprays)
 > boxplot(count ~ spray, data = InsectSprays, border=2:7)
 > ## gave warnings in 1.9.0
 > 
-> 
-> ## Dump should quote when necessary (PR#6857)
-> x <- quote(b)
-> dump("x", "")
-x <-
-quote(b)
-> ## doesn't quote b in 1.9.0
-> 
-> 
-> ## some checks of indexing by character, used to test hashing code
-> x <- 1:26
-> names(x) <- letters
-> x[c("a", "aa", "aa")] <- 100:102
-> x
-  a   b   c   d   e   f   g   h   i   j   k   l   m   n   o   p   q   r   s   t 
-100   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
-  u   v   w   x   y   z  aa 
- 21  22  23  24  25  26 102 
-> 
-> x <- 1:26
-> names(x) <- rep("", 26)
-> x[c("a", "aa", "aa")] <- 100:102
-> x
-                                                                                
-  1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
-                          a  aa 
- 21  22  23  24  25  26 100 102 
-> ##
-> 
-> 
-> ## tests of raw type
-> # tests of logic operators
-> x <- "A test string"
-> (y <- charToRaw(x))
- [1] 41 20 74 65 73 74 20 73 74 72 69 6e 67
-> (xx <- c(y, as.raw(0), charToRaw("more")))
- [1] 41 20 74 65 73 74 20 73 74 72 69 6e 67 00 6d 6f 72 65
-> 
-> !y
- [1] be df 8b 9a 8c 8b df 8c 8b 8d 96 91 98
-> y & as.raw(15)
- [1] 01 00 04 05 03 04 00 03 04 02 09 0e 07
-> y | as.raw(128)
- [1] c1 a0 f4 e5 f3 f4 a0 f3 f4 f2 e9 ee e7
-> 
-> # tests of binary read/write
-> zz <- file("testbin", "wb")
-> writeBin(xx, zz)
-> close(zz)
-> zz <- file("testbin", "rb")
-> (yy <- readBin(zz, "raw", 100))
- [1] 41 20 74 65 73 74 20 73 74 72 69 6e 67 00 6d 6f 72 65
-> seek(zz, 0, "start")
-[1] 18
-> readBin(zz, "integer", n=100, size = 1) # read as small integers
- [1]  65  32 116 101 115 116  32 115 116 114 105 110 103   0 109 111 114 101
-> seek(zz, 0, "start")
-[1] 18
-> readBin(zz, "character", 100)  # is confused by embedded nul.
-[1] "A test string" ""             
-Warning message: 
-incomplete string at end of file has been discarded 
-> seek(zz, 0, "start")
-[1] 18
-> readChar(zz, length(xx)) # correct
-[1] "A test string\0more"
-> close(zz)
-> unlink("testbin")
-> 
-> # tests of ASCII read/write.
-> cat(xx, file="testascii")
-> scan("testascii", what=raw(0))
-Read 18 items
- [1] 41 20 74 65 73 74 20 73 74 72 69 6e 67 00 6d 6f 72 65
-> unlink("testascii")
-> ##
-> 
-> 
-> ## Example of prediction not from newdata as intended.
-> set.seed(1)
-> y <- rnorm(10)
-> x  <- cbind(1:10, sample(1:10)) # matrix
-> xt <- cbind(1:2,  3:4)
-> (lm1 <- lm(y ~ x))
-
-Call:
-lm(formula = y ~ x)
-
-Coefficients:
-(Intercept)           x1           x2  
-     0.4359      -0.1376       0.1539  
-
-> predict(lm1, newdata = data.frame(x= xt))
-          1           2           3           4           5           6 
- 1.83760728  0.93041126  0.17714205  0.19350695  1.13343277  0.84194402 
-          7           8           9          10 
- 0.08867482  0.25896653  0.27533143 -0.47793778 
-Warning message: 
-'newdata' had 2 rows but variable(s) found have 10 rows 
-> ## warns as from 2.0.0
+> summary(as.Date(paste("2002-12", 26:31, sep="-")))
+        Min.      1st Qu.       Median         Mean      3rd Qu.         Max. 
+"2002-12-26" "2002-12-27" "2002-12-28" "2002-12-28" "2002-12-29" "2002-12-31" 
+> ## printed all "2002.-12-29" in 1.9.1 {because digits was too small}
 > 

@@ -233,62 +233,6 @@ SEXP do_fileshow(SEXP call, SEXP op, SEXP args, SEXP rho)
     return R_NilValue;
 }
 
-/*  file.edit
- *
- *  Open a file in a text editor. The function calls
- *  "R_EditFiles" which is a platform dependent hook that invokes
- *  the given editor.
- *
- */
-
-
-SEXP do_fileedit(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP fn, ti, ed;
-    char **f, *vm, **title, *editor;
-    int i, n;
-
-    checkArity(op, args);
-    vm = vmaxget();
-    fn = CAR(args); args = CDR(args);
-    ti = CAR(args); args = CDR(args);
-    ed = CAR(args);
-
-    n = length(fn);
-    if (!isString(ed))
-	errorcall(call, "invalid editor specification");
-    if (n > 0) {
-	if (!isString(fn))
-	    errorcall(call, "invalid filename specification");
-	f = (char**) R_alloc(n, sizeof(char*));
-	title = (char**) R_alloc(n, sizeof(char*));
-	for (i = 0; i < n; i++) {
-	    if (!isNull(STRING_ELT(fn, i)))
-		f[i] = CHAR(STRING_ELT(fn, i));
-	    else
-		f[i] = CHAR(R_BlankString);
-	    if (!isNull(STRING_ELT(ti, i)))
-	    	title[i] = CHAR(STRING_ELT(ti, i));
-	    else
-	    	title[i] = CHAR(R_BlankString);
-	}
-    }
-    else {  /* open a new file for editing */
-	n = 1;
-	f = (char**) R_alloc(1, sizeof(char*));
-	f[0] = CHAR(R_BlankString);
-	title = (char**) R_alloc(1, sizeof(char*));
-	title[0] = CHAR(R_BlankString);
-    }
-    if (length(ed) >= 1 || !isNull(STRING_ELT(ed, 0)))
-	editor = CHAR(STRING_ELT(ed, 0));
-    else
-	editor = CHAR(R_BlankString);
-    R_EditFiles(n, f, title, editor);
-    vmaxset(vm);
-    return R_NilValue;
-}
-
 
 /*  append.file
  *
@@ -746,7 +690,7 @@ SEXP do_listfiles(SEXP call, SEXP op, SEXP args, SEXP rho)
 #ifndef HAVE_STAT
     if(recursive) {
 	warningcall(call,
-		    "'recursive = TRUE' is not supported on this platform");
+		    "`recursive = TRUE' is not supported on this platform");
 	recursive = FALSE;
     }
 #endif
@@ -956,7 +900,7 @@ SEXP do_getlocale(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
     cat = asInteger(CAR(args));
     if(cat == NA_INTEGER || cat < 0)
-	error("invalid 'category' argument");
+	error("invalid `category' argument");
     switch(cat) {
     case 1: cat = LC_ALL; break;
     case 2: cat = LC_COLLATE; break;
@@ -972,7 +916,7 @@ SEXP do_getlocale(SEXP call, SEXP op, SEXP args, SEXP rho)
     UNPROTECT(1);
 #ifdef HAVE_LANGINFO_CODESET
     utf8locale = strcmp(nl_langinfo(CODESET), "UTF-8") == 0;
-#endif
+#endif    
     return ans;
 #else
     return R_NilValue;
@@ -989,9 +933,9 @@ SEXP do_setlocale(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
     cat = asInteger(CAR(args));
     if(cat == NA_INTEGER || cat < 0)
-	error("invalid 'category' argument");
+	error("invalid `category' argument");
     if(!isString(locale) || LENGTH(locale) != 1)
-	error("invalid 'locale' argument");
+	error("invalid `locale' argument");
     switch(cat) {
     case 1: cat = LC_ALL; break;
     case 2: cat = LC_COLLATE; break;
@@ -1244,7 +1188,7 @@ SEXP do_nsl(SEXP call, SEXP op, SEXP args, SEXP rho)
     hp = gethostbyname(name);
 
     if(hp == NULL) {		/* cannot resolve the address */
-	warning("nsl() was unable to resolve host '%s'", name);
+	warning("nsl() was unable to resolve host `%s'", name);
     } else {
 	if (hp->h_addrtype == AF_INET) {
 	    struct in_addr in;
@@ -1282,7 +1226,7 @@ SEXP do_sysgetpid(SEXP call, SEXP op, SEXP args, SEXP rho)
 /* mkdir is defined in <sys/stat.h> */
 SEXP do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP path, ans;
+    SEXP  path, ans;
     int res, show;
 
     checkArity(op, args);
@@ -1291,7 +1235,7 @@ SEXP do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
 	errorcall(call, "invalid path argument");
     show = asLogical(CADR(args));
     if(show == NA_LOGICAL) show = 0;
-    res = mkdir(R_ExpandFileName(CHAR(STRING_ELT(path, 0))), 0777);
+    res = mkdir(CHAR(STRING_ELT(path, 0)), 0777);
     if(show && res && errno == EEXIST)
 	warning("'%s' already exists", CHAR(STRING_ELT(path, 0)));
     PROTECT(ans = allocVector(LGLSXP, 1));
@@ -1317,7 +1261,7 @@ SEXP do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
     /* need DOS paths on Win 9x */
     for(p = dir; *p != '\0'; p++)
 	if(*p == '/') *p = '\\';
-    res = mkdir(R_ExpandFileName(dir));
+    res = mkdir(dir);
     if(show && res && errno == EEXIST)
 	warning("'%s' already exists", dir);
     PROTECT(ans = allocVector(LGLSXP, 1));

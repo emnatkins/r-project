@@ -15,10 +15,9 @@ atanh(x)
 \alias{asinh}
 \alias{atanh}
 \description{
-  These functions give the obvious hyperbolic functions.  They
-  respectively compute the hyperbolic cosine, sine, tangent, and their
-  inverses, arc-cosine, arc-sine, arc-tangent (or \dQuote{\emph{area cosine}},
-  etc).
+These functions give the obvious hyperbolic functions.
+They respectively compute the hyperbolic cosine, sine, tangent,
+arc-cosine, arc-sine, arc-tangent.
 }
 \arguments{
   \item{x}{a numeric vector}
@@ -28,11 +27,7 @@ atanh(x)
   individually or via the \code{\link{Math}} group generic.
 }
 \seealso{
-  The trigonometric functions, \code{\link{cos}}, \code{\link{sin}},
-  \code{\link{tan}}, and their inverses
-  \code{\link{acos}}, \code{\link{asin}}, \code{\link{atan}}.
-
-  The logistic distribution function \code{\link[stats]{plogis}} is a shifted
-  version of \code{tanh()}.
+\code{\link{cos}}, \code{\link{sin}}, \code{\link{tan}},
+\code{\link{acos}}, \code{\link{asin}}, \code{\link{atan}}.
 }
 \keyword{math}

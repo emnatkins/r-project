@@ -125,43 +125,9 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 
     if(!missing(package)) {
         if (is.null(lib.loc)) lib.loc <- .libPaths()
-
+        
 	if(!character.only)
 	    package <- as.character(substitute(package))
-
-        if(package %in% c("ctest", "eda", "modreg", "mva", "nls",
-                          "stepfun", "ts")) {
-            have.stats <- "package:stats" %in% search()
-            if(!have.stats) require("stats")
-            warning("package ", sQuote(package), " has been merged into ",
-                    sQuote("stats"), call. = FALSE)
-            return(if (logical.return) TRUE else invisible(.packages()))
-        }
-        if(package  == "mle") {
-            have.stats4 <- "package:stats4" %in% search()
-            if(!have.stats4) require("stats4")
-            warning("package ", sQuote(package), " has been merged into ",
-                    sQuote("stats4"), call. = FALSE)
-            return(if (logical.return) TRUE else invisible(.packages()))
-        }
-        if(package == "lqs") {
-            cat("Package", sQuote("lqs"),
-                "has been moved back to package", sQuote("MASS"), "\n")
-            have.VR <- "package:MASS" %in% search()
-            if(!have.VR) {
-                if(require(MASS, quietly=TRUE))
-                    cat("Package", sQuote("MASS"),
-                        "has now been loaded\n")
-                else {
-                    if(logical.return) return(FALSE)
-                    else
-                        stop(paste("Package", sQuote("MASS"),
-                                   "seems to be missing",
-                                   "from this R installation"))
-                }
-            }
-            return(if (logical.return) TRUE else invisible(.packages()))
-        }
 
 	if (!missing(version)) {
 	     package <- manglePackageName(package, version)
@@ -592,9 +558,9 @@ function(package, quietly = FALSE, warn.conflicts = TRUE,
     function(package, lib.loc = NULL, quiet = FALSE,
              verbose = getOption("verbose"))
 {
-    .file_path_as_absolute <- function(x) {
-        ## Note that we cannot use tools::file_path_as_absolute() here,
-        ## as cyclic name space dependencies are not supported.  Argh.
+    .filePathAsAbsolute <- function(x) {
+        ## Note that we cannot use tools::filePathAsAbsolute() here, as
+        ## cyclic name space dependencies are not supported.  Argh.
         ## This version is simpler: we only need it for directories
         ## already known to exist.
         cwd <- getwd(); on.exit(setwd(cwd))
@@ -618,7 +584,7 @@ function(package, quietly = FALSE, warn.conflicts = TRUE,
         fp <- file.path(lib.loc, pkg)
         if(useAttached)
             fp <- c(.path.package(pkg, TRUE), fp)
-        ## Note that we cannot use tools::file_test() here, as cyclic
+        ## Note that we cannot use tools::fileTest() here, as cyclic
         ## name space dependencies are not supported.  Argh.
         fp <- unique(fp[file.exists(fp) &
                         file.exists(file.path(fp, "DESCRIPTION"))])
@@ -626,7 +592,7 @@ function(package, quietly = FALSE, warn.conflicts = TRUE,
             bad <- c(bad, pkg)
             next
         }
-        afp <- .file_path_as_absolute(fp[1])
+        afp <- .filePathAsAbsolute(fp[1])
         if(verbose && (length(fp) > 1))
             warning(paste("package ", sQuote(pkg),
                           " found more than once,\n",

@@ -1,284 +1,6 @@
 				Dear Emacs, please make this -*-Text-*- mode!
 	**************************************************
 	*						 *
-	*	       2.0 SERIES NEWS			 *
-	*						 *
-	**************************************************
-
-
-		CHANGES IN R VERSION 2.0.0
-
-
-USER-VISIBLE CHANGES
-
-    o	The stub packages from 1.9.x have been removed: the library()
-	function selects the new home for their code.
-
-    o	The default barplot() method now by default uses a
-	gamma-corrected grey palette (rather than the heat color
-	palette) for coloring its output when given a matrix.
-
-    o	dir.create() now expands '~' in filenames.
-
-    o	tail() of a matrix now displays the original row numbers.
-
-
-NEW FEATURES
-
-    o   'version' argument added to pdf() device.  If this is set
-	to "1.4", the device will support transparent colours.
-
-    o	Function file.edit() function added: like file.show(), but
-	allows editing.
-
-    o	edit() and fix() use the object name in the window caption on
-	some platforms.
-
-    o	The 'formula' method for boxplot() has a 'na.action' argument,
-	defaulting to na.pass().  This is mainly useful if the response
-	is a matrix when the previous default of na.omit() would omit
-	entire rows.  (Related to PR#6846.)
-
-	boxplot() and bxp() now obey global 'par' settings and also
-	allow to specify graphical options in much detail, compatibly
-	with S-PLUS (fulfilling wishlist entry PR#6832) thanks to
-	contributions from Arni Magnusson.  For consistency, 'boxwex'
-	is not an explicit argument anymore.
-
-    o	The 'formula' method for pairs() has a 'na.action' argument,
-	defaulting to na.pass(), rather than the value of
-	getOption("na.action").
-
-    o	The 'formula' method for mosaicplot() has a 'na.action' argument
-	defaulting to na.omit.
-
-    o	The way the comparison operators handle a list argument has
-	been rationalized so a few more cases will now work -- see
-	?Comparison.
-
-    o	deparse(), dput() and dump() have a new 'control' argument to
-    	control the level of detail when deparsing. dump() defaults to
-    	the most detail, the others default to less.  See ?deparse
-    	for the details.
-
-    o	source() with 'echo = TRUE' uses the function source attribute
-    	when displaying commands as they are parsed.
-
-    o	The screen devices x11(), windows() and quartz() have a new
-	argument 'bg' to set the default background colour.
-
-    o	data.frame() and its replacement methods remove the names from
-	vector columns.	 Using I() will ensure that names are
-	preserved.
-
-    o	Indexing a vector by a character vector was slow if both the
-	vector and index were long (say 10,000).  Now hashing is used
-	and the time should be linear in the longer of the lengths
-	(but more memory is used).
-
-    o	cumsum/prod/max/min() now preserve names.
-
-    o	Replaying a plot (with replayPlot or autoprinting) now
-	automagically opens a device if none is open.
-
-    o	Printing a character string with embedded nuls now prints the
-	whole string, and non-printable characters are represented by
-	octal escape sequences.
-
-    o	str(obj) now displays more reasonably the STRucture of S4 objects.
-	The method for class "dendrogram" has a new argument 'stem' and
-	indicates when it's not printing all levels (as typically when
-	e.g., 'max.level = 2').
-
-    o	fisher.test(*, conf.int=FALSE) allows the confidence interval
-	computation to be skipped.
-
-    o	formula() methods for classes "lm" and "glm" used the expanded
-	formula (with '.' expanded) from the terms component.
-
-    o	New function eapply() - apply for environments.	 The supplied
-	function is applied to each element of the environment; the order
-	of application is not specified.
-
-    o	system.time() has a new argument 'gcFirst' which, when TRUE,
-	forces a garbage collection before timing begins.
-
-    o	There is now a coef() method for summaries of "nls" objects.
-
-    o	ftable.formula() now looks for variables in the environment of
-	the formula before the usual search path.
-
-    o	.Defunct() now has 'new' and 'package' arguments like those of
-	.Deprecated().
-
-    o	The plot() method for "dendrogram" objects now respects many more
-	nodePar and edgePar settings and for edge labeling computes the
-	extents of the diamond more correctly.
-
-    o	New functions is.leaf(), dendrapply() and a labels() method for
-	dendrogram objects.
-
-    o	reorder.dendrogram() now has a 'agglo.FUN' argument for
-	specification of a weights agglomeration function.
-
-    o	heatmap() has got an argument 'reorderfun'.
-
-    o	readChar() can now read strings with embedded nuls.
-
-    o	There is a new atomic vector type, class "raw".	 See ?raw for
-	full details including the operators and utility functions provided.
-
-    o	The png() and jpeg() devices (and the bmp() device under Windows)
-	now allow a nominal resolution to be recorded in the file.
-
-    o	ls.str() and lsf.str() now return an object of class "ls_str" which
-	has a print method.
-
-    o	There is now a replacement method for window(), to allow a
-	range of values of time series to be replaced by specifying the
-	start and end times (and optionally a frequency).
-
-    o	model.frame() now warns if it is given data = newdata and it
-	creates a model frame with a different number of rows from
-	that implied by the size of 'newdata'.
-
-    o	data.frame(check.names = TRUE) (the default) enforces unique
-	names, as S does.
-
-    o	make.names() has a new argument allow_, which if false allows
-	its behaviour in R 1.8.1 to be reproduced.
-
-    o	rank() has two new 'ties.method's, "min" and "max".
-
-    o   power (x^y) is optimised for y==2
-
-    o   read.fwf reads multiline records, is faster for large files.
-
-    o   read.fortran reads Fortran-style fixed-format specifications.
-
-UTILITIES
-
-    o   Package utils now contains a much improved citation function
-        which also has a package argument.  By default the citation is
-        auto-generated from the package DESCRIPTION, the file
-        'inst/CITATION' can be used to override this, see
-        help(citation) and help(citEntry).
-
-    o   R CMD check now checks for file names in a directory that
-	differ only by case.
-
-    o	R CMD INSTALL now fails for packages with incomplete/invalid
-        DESCRIPTION metadata, using new code from package tools which is
-        also used by R CMD check.
-
-
-C-LEVEL FACILITIES
-
-    o	The header Rmath.h contains a definition for R_VERSION_STRING
-	which can be used to track different versions of R and libRmath.
-
-    o	The Makefile in src/nmath/standalone now has 'install' and
-	'uninstall' targets -- see the README file in that directory.
-
-    o	More of the header files, including Rinternals.h, Rdefines.h and
-	Rversion.h, are now suitable for calling directly from C++.
-
-
-DEPRECATED & DEFUNCT
-
-    o	Direct use of R INSTALL|REMOVE|BATCH|COMPILE|SHLIB has been
-	removed: use R CMD instead.
-
-    o	La.eigen(), tetragamma(), pentagamma(), package.contents() and
-	package.description() are defunct.
-
-    o	The undocumented function newestVersion() is no longer exported
-	from package utils.  (Mainly because it was not completely general.)
-
-    o	If --enable-R-shlib is specified, a copy of libR is still
-	installed in $R_HOME/bin, but this will be removed in the near
-	future.	 Use that in R_HOME/lib instead.
-
-    o	C-level entry point ptr_R_GetX11Image has been removed, as it
-	was replaced by R_GetX11Image at 1.7.0.
-
-    o	The undocumented C-level entry point R_IsNaNorNA has been
-	removed.  It was used in a couple of packages, and should be
-	replaced by a call to the documented macro ISNAN.
-
-    o   The gnome/GNOME graphics device is now defunct.
-
-
-INSTALLATION CHANGES
-
-    o	Arithmetic supporting +/-Inf, NaNs and the IEC 60559 (aka
-	IEEE 754) standard is now required -- the partial and often
-	untested support for more limited arithmetic has been removed.
-
-	The C99 macro isfinite is used in preference to finite if available
-	(and its correct functioning is checked at configure time).
-
-	Where isfinite or finite is available and works, it is used as
-	the substitution value for R_FINITE.  On some platforms this
-	leads to a performance gain.  (This applies to compiled code
-	in packages only for isfinite.)
-
-    o	The dynamic libraries libR and libRlapack are now installed in
-	R_HOME/lib rather than R_HOME/bin.
-
-    o	When --enable-R-shlib is specified, the R executable is now a
-	small executable linked against libR: see the R-admin manual
-	for further discussion.	 The 'extra' libraries bzip2, pcre,
-	xdr and zlib are now compiled in a way that allows the code to
-	be included in a shared library only if this option is
-	specified, which might improve performance when it is not.
-
-    o	The main R executable is now R_HOME/exec/R not R_HOME/R.bin, to
-	ease issues on MacOS X.	 (The location is needed when debugging
-	core dumps, on other platforms.)
-
-    o	Configure now tests for 'inline' and alternatives, and the
-	src/extra/bzip2 code now (potentially) uses inlining where
-	available and not just under gcc.
-
-    o	The XPG4 sed is used on Solaris for forming dependencies,
-	which should now be done correctly.
-
-
-BUG FIXES
-
-    o   Complex superassignments were wrong when a variable with the same
-    	 name existed locally, and were not documented in R-lang.
-
-    o	rbind.data.frame() dropped names/rownames from columns in all
-	but the first data frame.
-
-    o	The dimnames<- method for data.frames was not checking the
-	validity of the row names.
-
-    o   Various memory leaks reported by valgrind have been plugged.
-
-    o   gzcon() connections would sometimes read the crc bytes from
-	the wrong place, possibly uninitialized memory.
-
-    o   Rd.sty contained a length \middle that was not needed after a
-	revision in July 2000.  It causes problems with LaTeX systems
-	based on e-TeX which are starting to appear.
-
-    o   save() to a connection did not check that the connection was
-	open for writing, nor that non-ascii saves cannot be made to a
-	text-mode connection.
-
-    o	phyper() uses a new algorithm based on Morten Welinder's bug
-	report (PR#6772).  This leads to faster code for large arguments
-	and more precise code, e.g. for phyper(59, 150,150, 60,	lower=FALSE).
-	This also fixes bug (PR#7064) about fisher.test().
-
-
-
-
-	**************************************************
-	*						 *
 	*	       1.9 SERIES NEWS			 *
 	*						 *
 	**************************************************
@@ -313,13 +35,14 @@ BUG FIXES
 	behaves differently from what is documented.
 
     o	prompt(f) now gives proper \usage{..} for
-	f <- function(x, g = function(u) { v <- u^2 ; sin(v)/v }) { g(x) }
+	f <- function(x, g = function(u) { x <- u^2 ; sin(x)/x }) { g(x) }
 
     o	package.skeleton() now uses the supplied name in the DESCRIPTION
 	file.
 
     o	options(list('digits', 'scipen')) no longer seg.faults (PR#7078).
 
+    o	summary.Date() now has a sensible default for 'digits'.
 
 
 
@@ -386,10 +109,10 @@ DEPRECATED & DEFUNCT
 BUG FIXES
 
     o	pbinom(q, N, prob) is now more accurate when prob is close to 0.
-	(PR#6757).
+	(PR#6757)
 
     o	pcauchy(x, .., log.p) is now more accurate for large x,
-	particularly when log.p = TRUE.	(PR#6756)
+	particularly when log.p = TRUE. (PR#6756)
 
     o	pgeom(q, prob, lower.tail, log.p) is now (sometimes much) more
 	accurate when prob is very small. (PR#6792)
@@ -1087,9 +810,8 @@ BUG FIXES
 	used and have been removed.  glm had na.action=na.fail, again
 	never used.
 
-    o	The internal tools function for listing all internal S3 generics
-	was omitting all the members of the S3 group generics, which
-	also accept methods for members.
+    o	tools:::.getInternalS3generics() was omitting all the members
+	of the S3 group generics, which also accept methods for members.
 
     o	Some BLASes were returning NA %*% 0 as 0 and some as NA.  Now
 	slower but more careful code is used if NAs are present. (PR#4582)

@@ -15,8 +15,7 @@
 }
 \synopsis{
 postscript(file = ifelse(onefile, "Rplots.ps", "Rplot\%03d.ps"),
-           onefile = TRUE, family, title = "R Graphics Output",
-           fonts = NULL, \dots)
+           onefile = TRUE, family, title = "R Graphics Output", \dots)
 ps.options(\dots, reset = FALSE, override.check = FALSE)
 }
 %% The definitive doc is the source :-)
@@ -26,8 +25,7 @@ postscript(file = ifelse(onefile, "Rplots.ps", "Rplot\%03d.ps"),
            onefile = TRUE,
            paper, family, encoding, bg, fg,
            width, height, horizontal, pointsize,
-           pagecentre, print.it, command, title = "R Graphics Output",
-           fonts=NULL)
+           pagecentre, print.it, command, title = "R Graphics Output")
 
 % paper, horizontal, width, height, family, pointsize, bg, fg)
 ps.options(paper, horizontal, width, height, family, encoding,
@@ -95,9 +93,6 @@ ps.options(paper, horizontal, width, height, family, encoding,
   \item{reset, override.check}{logical arguments passed to
     \code{\link{check.options}}.  See the Examples.}
   \item{title}{title string to embed in the file.}
-  \item{fonts}{a character vector specifying font family names for fonts
-    which must be 
-    included in the PostScript file.}
 }
 \details{
   \code{postscript} opens the file \code{file} and the PostScript
@@ -145,13 +140,6 @@ ps.options(paper, horizontal, width, height, family, encoding,
   \code{ps.options} needs to be called before calling \code{postscript},
   and the default values it sets can be overridden by supplying
   arguments to \code{postscript}.
-
-  A PostScript device has a default font, which can be set by the user
-  via \code{family}.  If other fonts are to be used when drawing to
-  the PostScript device, these must be declared when the
-  device is created via \code{fonts};  the font family names for this
-  argument are generic R graphics font family names (see the
-  documentation for \code{postscriptFonts}).
 }
 
 \section{Families}{
@@ -240,7 +228,6 @@ ps.options(paper, horizontal, width, height, family, encoding,
   Wadsworth \& Brooks/Cole.
 }
 \seealso{
-  \code{\link{postscriptFonts}},
   \code{\link{Devices}},
   {\code{\link{check.options}} which is called from both
     \code{ps.options} and \code{postscript}}.

@@ -1274,69 +1274,10 @@ x <- 1:3
 try(x[-c(1, NA)])
 ## worked on some platforms, segfaulted on others in 1.8.1
 
-
 ## vector 'border' (and no 'pch', 'cex' nor 'bg'):
 data(InsectSprays)
 boxplot(count ~ spray, data = InsectSprays, border=2:7)
 ## gave warnings in 1.9.0
 
-
-## Dump should quote when necessary (PR#6857)
-x <- quote(b)
-dump("x", "")
-## doesn't quote b in 1.9.0
-
-
-## some checks of indexing by character, used to test hashing code
-x <- 1:26
-names(x) <- letters
-x[c("a", "aa", "aa")] <- 100:102
-x
-
-x <- 1:26
-names(x) <- rep("", 26)
-x[c("a", "aa", "aa")] <- 100:102
-x
-##
-
-
-## tests of raw type
-# tests of logic operators
-x <- "A test string"
-(y <- charToRaw(x))
-(xx <- c(y, as.raw(0), charToRaw("more")))
-
-!y
-y & as.raw(15)
-y | as.raw(128)
-
-# tests of binary read/write
-zz <- file("testbin", "wb")
-writeBin(xx, zz)
-close(zz)
-zz <- file("testbin", "rb")
-(yy <- readBin(zz, "raw", 100))
-seek(zz, 0, "start")
-readBin(zz, "integer", n=100, size = 1) # read as small integers
-seek(zz, 0, "start")
-readBin(zz, "character", 100)  # is confused by embedded nul.
-seek(zz, 0, "start")
-readChar(zz, length(xx)) # correct
-close(zz)
-unlink("testbin")
-
-# tests of ASCII read/write.
-cat(xx, file="testascii")
-scan("testascii", what=raw(0))
-unlink("testascii")
-##
-
-
-## Example of prediction not from newdata as intended.
-set.seed(1)
-y <- rnorm(10)
-x  <- cbind(1:10, sample(1:10)) # matrix
-xt <- cbind(1:2,  3:4)
-(lm1 <- lm(y ~ x))
-predict(lm1, newdata = data.frame(x= xt))
-## warns as from 2.0.0
+summary(as.Date(paste("2002-12", 26:31, sep="-")))
+## printed all "2002.-12-29" in 1.9.1 {because digits was too small}
