@@ -1,5 +1,5 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
+ *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -92,7 +92,7 @@ SEXP do_substr(SEXP call, SEXP op, SEXP args, SEXP env)
 /* strsplit is going to split the strings in the first argument
    into tokens depending on the second argument. The characters
    of the second argument are used to split the first argument.
-   A list of vectors is returned of length equal to the input vector x,
+   A list of vectors is returned of length equal to the input vector x, 
    each element of the list is the collection of splits for the corresponding
    element of x.
  */
@@ -116,18 +116,33 @@ SEXP do_strsplit(SEXP call, SEXP op, SEXP args, SEXP env)
 	for (i = 0; i < len; i++) {
 		/* first find out how many splits there will be */
 		strcpy(buff, CHAR(STRING(x)[i]));
-		split = CHAR(STRING(tok)[i % tlen]);
-		ntok = 0;
-		if(strtok(buff, split) != NULL)
-			 do {
-				ntok++;
-			 } while (strtok(NULL, split) != NULL);
+		if( tlen > 0 ) {
+			split = CHAR(STRING(tok)[i % tlen]);
+			ntok = 0;
+			if(strtok(buff, split) != NULL)
+			         do {
+			         	ntok++;
+			         } while (strtok(NULL, split) != NULL);
+		}
+		else 
+			ntok=strlen(buff);
+
 		PROTECT(t = allocVector(STRSXP, ntok));
-		strcpy(buff, CHAR(STRING(x)[i]));
-		pt = strtok(buff, split);
-		for (j = 0; j < ntok; j++) {
-			STRING(t)[j] = mkChar(pt);
-			pt = strtok(NULL, split);
+		if( tlen > 0 ) {
+			strcpy(buff, CHAR(STRING(x)[i]));
+			pt = strtok(buff, split);
+			for (j = 0; j < ntok; j++) {
+				STRING(t)[j] = mkChar(pt);
+				pt = strtok(NULL, split);
+			}
+		}
+		else {
+			char bf[2];
+			bf[1]='\0';
+			for (j = 0; j < ntok; j++) {
+				bf[0]=buff[j];
+				STRING(t)[j] = mkChar(bf);
+			}
 		}
 		CAR(w) = t;
 		UNPROTECT(1);
@@ -161,7 +176,7 @@ static SEXP stripchars(SEXP inchar, int minlen)
 	for(i=0 ; i<upper ; i++ )
 		if(isspace(buff1[i]))
 			j++;
-		else
+		else 
 			break;
 
 	strcpy(buff1,&buff1[j]);
@@ -170,7 +185,7 @@ static SEXP stripchars(SEXP inchar, int minlen)
 	if(strlen(buff1)<minlen)
 		goto donesc;
 
-	for (i=upper; i>0; i--) {
+	for (i=upper; i>0; i--) { 
 		if( isspace(buff1[i]))
 			nspace++;
 			/*strcpy(buff1[i],buff1[i+1]);*/
@@ -181,7 +196,7 @@ static SEXP stripchars(SEXP inchar, int minlen)
 	upper=strlen(buff1)-1;
 
 	for (i=upper; i>=0; i--) {
-		if( (buff1[i]=='a' || buff1[i]=='e' || buff1[i]=='i' ||
+		if( (buff1[i]=='a' || buff1[i]=='e' || buff1[i]=='i' || 
 			buff1[i]=='o' || buff1[i]=='u') ) {
 			if (i>0) {
 				if(!(isspace(buff1[i-1]) && isspace(buff1[i+1])) )
@@ -193,7 +208,7 @@ static SEXP stripchars(SEXP inchar, int minlen)
 		if(strlen(buff1)-nspace <= minlen)
 			goto donesc;
 	}
-
+	
 	upper=strlen(buff1)-1;
 
 	for (i=upper; i>=0; i--) {
@@ -218,14 +233,14 @@ static SEXP stripchars(SEXP inchar, int minlen)
 		if(strlen(buff1)-nspace <= minlen)
 			goto donesc;
 	}
-
+	
 donesc:
 	upper=strlen(buff1);
 	if(upper > minlen )
-		for (i=upper-1; i>0; i--)
+		for (i=upper-1; i>0; i--) 
 			if(isspace(buff1[i]))
 				strcpy(&buff1[i],&buff1[i+1]);
-
+	
 	return(mkChar(buff1));
 }
 
@@ -244,7 +259,7 @@ SEXP do_abbrev(SEXP call, SEXP op, SEXP args, SEXP env)
 	minlen=asInteger(CADR(args));
 	uclass=asLogical(CAR(CDDR(args)));
 
-	for(i=0 ; i<len ; i++)
+	for(i=0 ; i<len ; i++) 
 		STRING(ans)[i]=stripchars(STRING(CAR(args))[i],minlen);
 	UNPROTECT(1);
 	return(ans);
@@ -385,8 +400,8 @@ SEXP do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
 	SEXP pat, rep, vec, ans;
 	regex_t reg;
 	regmatch_t regmatch[10];
-	int i, j, n, ns, nmatch, offset;
-	int global, igcase_opt, extended_opt, eflags;
+	int i, j, n, ns, nsubexp, nmatch, offset;
+	int global, igcase_opt, extended_opt, value_opt, eflags;
 	char *s, *t, *u;
 
 	checkArity(op, args);

@@ -25,7 +25,7 @@
 extern IoBuffer R_ConsoleIob;
 extern int errno;
 
-static int ValidFileSpec(SEXP f)
+static ValidFileSpec(SEXP f)
 {
 	if(isString(f) && length(f) > 0 && CHAR(STRING(f)[0])[0])
 		return 1;
@@ -40,9 +40,9 @@ static int ValidFileSpec(SEXP f)
 
 SEXP do_parse(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-	SEXP file, text, prompt, s;
+	SEXP file, text, prompt, s, t;
 	FILE *fp;
-	int num, pstacktop, status;
+	int num, input, pstacktop, status;
 
 	checkArity(op, args);
 

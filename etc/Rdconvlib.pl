@@ -20,9 +20,8 @@
 
 # Send any bug reports to Friedrich.Leisch@ci.tuwien.ac.at
 
+$VERSION = "0.2.3";#MM
 # Bugs: still get ``\bsl{}'' in verbatim-like, see e.g. Examples of apropos.Rd
-
-
 
 
 # names of unique text blocks, these may NOT appear MORE THAN ONCE!
@@ -75,16 +74,16 @@ sub Rdconv {
 	s/escaped_percent_sign/\\%/go;
 	$complete_text = "$complete_text$_";
     }
-    printf STDERR "-- read file '%s';\n",$_[0] if $debug;
+    printf stderr "-- read file '%s';\n",$_[0] if $debug;
 
     mark_brackets();
     ##HARD Debug:print "$complete_text\n"; exit;
     escape_codes();
     if($debug) {
-      print STDERR "\n--------------\nescape codes: '\@ecodes' =\n";
+      print stderr "\n--------------\nescape codes: '\@ecodes' =\n";
 
       while(my($id,$code) = each %ecodes) {
-	print STDERR "\t\$ec{$id}='$code'\n";
+	print stderr "\t\$ec{$id}='$code'\n";
       }
     }
 
@@ -130,14 +129,14 @@ sub mark_brackets {
     $complete_text =~ s/^\\{|([^\\])\\{/$1$EOB/gso;
     $complete_text =~ s/^\\}|([^\\])\\}/$1$ECB/gso;
 
-    print STDERR "\n-- mark_brackets:" if $debug;
+    print stderr "\n-- mark_brackets:" if $debug;
     my $loopcount = 0;
     while(checkloop($loopcount++, $complete_text,
 		    "mismatched or missing brackets") &&
 	  $complete_text =~ /{([^{}]*)}/s){
 	my $id = $NB . ++$max_bracket . $BN;
 	$complete_text =~ s/{([^{}]*)}/$id$1$id/s;
-	print STDERR "." if $debug;
+	print stderr "." if $debug;
     }
 }
 
@@ -162,7 +161,7 @@ sub unmark_brackets {
 }
 
 sub escape_codes {
-    print STDERR "\n-- escape_codes:" if $debug;
+    print stderr "\n-- escape_codes:" if $debug;
     my $loopcount = 0;
     while(checkloop($loopcount++, $complete_text,
 		    "while replacing all \\code{...}") &&
@@ -170,7 +169,7 @@ sub escape_codes {
 	my ($id, $arg)	= get_arguments("code", $complete_text, 1);
 	$complete_text =~ s/\\code$id(.*)$id/$ECODE$id/s;
 	$ecodes{$id} = $1;
-	print STDERR "," if $debug;
+	print stderr "," if $debug;
     }
 }
 
@@ -182,20 +181,17 @@ sub get_blocks {
     my $text = $_[0];
 
     my $id="";
-    print STDERR "--- Blocks\n" if $debug;
+    print stderr "--- Blocks\n" if $debug;
     foreach $block (@blocknames){
 	if($text =~ /\\($block)($ID)/){
 	    ($id, $blocks{$block}) = get_arguments($block, $text, 1);
-	    print STDERR "found: $block\n" if $debug;
+	    print stderr "found: $block\n" if $debug;
 	    if((($block =~ /usage/) || ($block =~ /examples/))){
-		## multiple empty lines to one
-		$blocks{$block} =~ s/^[ \t]+$//; 
+		$blocks{$block} =~ s/^[ \t]+$//; #- multiple empty lines to one
 		$blocks{$block} =~ s/\n\n\n/\n\n/gom;
 	    } else {
-		## remove leading and trailing whitespace 
-		$blocks{$block} =~ s/^\s+//so;
-		$blocks{$block} =~ s/\s+$//so;
-		$blocks{$block} =~ s/\n[ \t]+/\n/go;
+		$blocks{$block} =~ s/^\s*(\S)/$1/;
+		$blocks{$block} =~ s/\n[ \t]*(\S)/\n$1/g;
 	    }
 
 	    # no formatting commands allowed in the title string
@@ -211,7 +207,7 @@ sub get_blocks {
 
 	}
     }
-    print STDERR "---\n" if $debug;
+    print stderr "---\n" if $debug;
 }
 
 # Get  ALL  multiblock things -- their simple arg. is put in array:
@@ -220,21 +216,21 @@ sub get_multi {
 
     my ($text, $name) = @_; # name: "alias" or "keyword"
     my @res, $k=0;
-    print STDERR "--- Multi: $name\n" if $debug;
+    print stderr "--- Multi: $name\n" if $debug;
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\name")
 	  && $text =~ /\\$name($ID)/) {
 	my $id = $1;
 	my ($endid, $arg) =
 	    get_arguments($name, $text, 1);
-	print STDERR "found:" if $debug && $k==0;
-	print STDERR " $k:$arg" if $debug;
+	print stderr "found:" if $debug && $k==0;
+	print stderr " $k:$arg" if $debug;
 	$arg =~ s/^\s*(\S)/$1/;
 	$arg =~ s/\n[ \t]*(\S)/\n$1/g;
 	$res[$k++] = $arg;
 	$text =~ s/\\$name//s;
     }
-    print STDERR "\n---\n" if $debug;
+    print stderr "\n---\n" if $debug;
     @res;
 }
 
@@ -244,24 +240,21 @@ sub get_sections {
 
     my $text = $_[0];
 
-    print STDERR "--- Sections\n" if $debug;
+    print stderr "--- Sections\n" if $debug;
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\section") &&
 	  $text =~ /\\section($ID)/){
 	my $id = $1;
 	my ($endid, $section, $body)
 	    = get_arguments("section", $text, 2);
-	print STDERR "found: $section\n" if $debug;
-
-	## remove leading and trailing whitespace 
-	$blocks{$block} =~ s/^\s+//so;
-	$blocks{$block} =~ s/\s+$//so;
-	$blocks{$block} =~ s/\n[ \t]+/\n/go;
+	print stderr "found: $section\n" if $debug;
+	$body =~ s/^\s*(\S)/$1/;
+	$body =~ s/\n[ \t]*(\S)/\n$1/g;
 	$section_body[$max_section] = $body;
 	$section_title[$max_section++] = $section;
 	$text =~ s/\\section//s;
     }
-    print STDERR "---\n" if $debug;
+    print stderr "---\n" if $debug;
 }
 
 # Get the arguments of a command.
@@ -397,6 +390,7 @@ sub text2html {
     $text =~ s/\n\s*\n/\n<P>\n/sgo;
     $text =~ s/\\dots/.../go;
     $text =~ s/\\ldots/.../go;
+    $text =~ s/\\cr/<BR>/sgo;
 
     $text =~ s/\\Gamma/&Gamma/go;
     $text =~ s/\\alpha/&alpha/go;
@@ -415,9 +409,6 @@ sub text2html {
     $text = replace_command($text, "emph", "<EM>", "</EM>");
     $text = replace_command($text, "bold", "<B>", "</B>");
     $text = replace_command($text, "file", "`", "'");
-
-    $text = html_tables($text);
-    $text =~ s/\\cr/<BR>/sgo;
 
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\link")
@@ -445,6 +436,7 @@ sub text2html {
 	my ($id, $arg)	= get_arguments("url", $text, 1);
 	$text =~ s/\\url.*$id/<A HREF=\"$arg\">$arg<\/A>/s;
     }
+
 
     # handle equations:
     $loopcount = 0;
@@ -595,66 +587,6 @@ sub html_unescape_codes {
 }
 
 
-sub html_tables {
-
-    my $text = $_[0];
-
-    my $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\tabular")
-	  &&  $text =~ /\\tabular/){
-
-	my ($id, $format, $arg)  =
-	    get_arguments("tabular", $text, 2);
-
-	$arg =~ s/\n/ /sgo;
-	
-	# remove trailing \cr (otherwise we get an empty last line)
-	$arg =~ s/\\cr\s*$//go;
-
-	# parse the format of the tabular environment
-	my $ncols = length($format);
-	my @colformat = ();
-	for($k=0; $k<$ncols; $k++){
-	    my $cf = substr($format, $k, 1);
-
-	    if($cf =~ /l/o){
-		$colformat[$k] = "left";
-	    }
-	    elsif($cf =~ /r/o){
-		$colformat[$k] = "right";
-	    }
-	    elsif($cf =~ /c/o){
-		$colformat[$k] = "center";
-	    }
-	    else{
-		die("Error: unknown identifier \{$cf\} in" .
-		    " tabular format \{$format\}\n");
-	    }
-	}
-
-	# now do the real work: split into lines and columns
-	my $table = "<TABLE>\n";
-	my @rows = split(/\\cr/, $arg);
-	for($k=0; $k<=$#rows;$k++){
-	    $table .= "<TR>\n";
-	    my @cols = split(/\\tab/, $rows[$k]);
-	    die("Error:\n  $rows[$k]\\cr\n" .
-		"does not fit tabular format \{$format\}\n")
-		if ($#cols != $#colformat);
-	    for($l=0; $l<=$#cols; $l++){
-		$table .= "  <TD align=\"$colformat[$l]\">$cols[$l]</TD>";
-	    }
-	    $table .= "\n</TR>\n";
-	}
-	$table .= "</TABLE>\n";
-	$text =~ s/\\tabular.*$id/$table/s;
-    }
-
-    $text;
-}
-
-    
-
 #**************************** nroff ******************************
 
 
@@ -704,16 +636,10 @@ sub text2nroff {
 
     $text =~ s/^\.|([\n\(])\./$1\\\&./g;
 
-    ## tables are pre-processed by the tbl(1) command, so this has to
-    ## be done first 
-    $text = nroff_tables($text);
-    $text =~ s/\\cr\n?/\n/sgo;
-
-    
-
     $text =~ s/\n\s*\n/\n.IP \"\" $indent\n/sgo;
     $text =~ s/\\dots/\\&.../go;
     $text =~ s/\\ldots/\\&.../go;
+    $text =~ s/\\cr\n?/\n/sgo;
     $text =~ s/\\le/<=/go;
     $text =~ s/\\ge/>=/go;
     $text =~ s/\\%/%/sgo;
@@ -743,7 +669,6 @@ sub text2nroff {
     $text = replace_command($text, "file", "`", "'");
     $text = replace_command($text, "url", "<URL: ", ">");
 
-    
     # handle equations:
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\eqn")
@@ -936,71 +861,7 @@ sub nroff_unescape_codes {
     $text;
 }
 
-
-sub nroff_tables {
-
-    my $text = $_[0];
-
-    my $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\tabular")
-	  &&  $text =~ /\\tabular/){
-	
-	my ($id, $format, $arg)  =
-	    get_arguments("tabular", $text, 2);
-
-	$arg =~ s/\n/ /sgo;
-	
-	# remove trailing \cr (otherwise we get an empty last line)
-	$arg =~ s/\\cr\s*$//go;
-
-	# parse the format of the tabular environment
-	my $ncols = length($format);
-	my @colformat = ();
-	for($k=0; $k<$ncols; $k++){
-	    my $cf = substr($format, $k, 1);
-
-	    if($cf =~ /l/o){
-		$colformat[$k] = "l";
-	    }
-	    elsif($cf =~ /r/o){
-		$colformat[$k] = "r";
-	    }
-	    elsif($cf =~ /c/o){
-		$colformat[$k] = "c";
-	    }
-	    else{
-		die("Error: unknown identifier \{$cf\} in" .
-		    " tabular format \{$format\}\n");
-	    }
-	}
-
-	my $table = ".TS\n";
-	for($l=0; $l<$#colformat; $l++){
-	    $table .= "$colformat[$l] ";
-	}
-	$table .= "$colformat[$#colformat].\n";
-	
-
-	# now do the real work: split into lines and columns
-	my @rows = split(/\\cr/, $arg);
-	for($k=0; $k<=$#rows;$k++){
-	    my @cols = split(/\\tab/, $rows[$k]);
-	    die("Error:\n  $rows[$k]\\cr\n" .
-		"does not fit tabular format \{$format\}\n")
-		if ($#cols != $#colformat);
-	    for($l=0; $l<$#cols; $l++){
-		$table .= "$cols[$l]\t";
-	    }
-	    $table .= "$cols[$#cols]\n";
-	}
-	$table .= ".TE\n";
-
-	$text =~ s/\\tabular.*$id/$table/s;
-    }
-
-    $text;
-}
-
+
 
 #*********************** Example ***********************************
 
@@ -1056,6 +917,7 @@ sub code2examp {
     unmark_brackets($text);
 }
 
+
 
 #*********************** LaTeX ***********************************
 
@@ -1074,7 +936,7 @@ sub rdoc2latex {
     foreach (@aliases) {
       $c= code2latex($_,0);
       $a= latex_code_alias($c);
-      print STDERR "rdoc2l: alias='$_', code2l(.)='$c', latex_c_a(.)='$a'\n"
+      print stderr "rdoc2l: alias='$_', code2l(.)='$c', latex_c_a(.)='$a'\n"
 	if $debug;
       printf latexout "\\alias\{%s\}\{%s\}\n", $a, $blocks{"name"}
         unless /^$blocks{"name"}$/;
@@ -1108,9 +970,8 @@ sub text2latex {
     $text =~ s/$EOB/\\\{/go;
     $text =~ s/$ECB/\\\}/go;
 
-    $text =~ s/\\itemize/\\Itemize/go;
-    $text =~ s/\\enumerate/\\Enumerate/go;
-    $text =~ s/\\tabular/\\Tabular/go;
+    $text =~ s/\\itemize/\\Itemize/o;
+    $text =~ s/\\enumerate/\\Enumerate/o;
 
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\eqn")
@@ -1134,8 +995,6 @@ sub text2latex {
     $text =~ s/\\R /\\R\\ /go;
     $text =~ s/\\\\/\\bsl{}/go;
     $text =~ s/\\cr/\\\\/go;
-    $text =~ s/\\tab(\s+)/&$1/go;
-	
     ##-- We should escape $LATEX_SPEC  unless within `eqn' above ...
     ##-- this would escape them EVERYWHERE:
     ## $text =~ s/[$LATEX_SPEC]/\\$&/go;  #- escape them (not the "bsl" \)

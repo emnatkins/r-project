@@ -43,7 +43,7 @@ static void isum(int *x, int n, double *value)
 	*value = s;
 }
 
-static void rsum(double *x, int n, double *value)
+static double rsum(double *x, int n, double *value)
 {
 	double s;
 	int i;
@@ -62,7 +62,7 @@ static void rsum(double *x, int n, double *value)
 	*value = s;
 }
 
-static void csum(complex *x, int n, complex *value)
+static double csum(complex *x, int n, complex *value)
 {
 	complex s;
 	int i;
@@ -159,7 +159,7 @@ static void rmax(double *x, int n, double *value)
         *value = s;
 }
 
-static void iprod(int *x, int n, double *value)
+static double iprod(int *x, int n, double *value)
 {
 	double s;
 	int i;
@@ -182,7 +182,7 @@ static void iprod(int *x, int n, double *value)
 	*value = s;
 }
 
-static void rprod(double *x, int n, double *value)
+static double rprod(double *x, int n, double *value)
 {
 	double s;
 	int i;
@@ -205,7 +205,7 @@ static void rprod(double *x, int n, double *value)
 	*value = s;
 }
 
-static void cprod(complex *x, int n, complex *value)
+static double cprod(complex *x, int n, complex *value)
 {
 	complex s, t;
 	int i;
@@ -244,7 +244,7 @@ SEXP do_summary(SEXP call, SEXP op, SEXP args, SEXP env)
 	SEXP ans, a;
 	double tmp;
 	complex z, ztmp, zcum;
-	int complex_ans, oldcount;
+	int complex_ans, n, oldcount;
 
 	 if( DispatchGroup("Summary",call, op, args, env, &ans) )
                 return ans;

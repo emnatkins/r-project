@@ -167,7 +167,7 @@ static void AsciiOutString(FILE *fp, char *s)
 
 static char *AsciiInString(FILE *fp)
 {
-	int c;
+	int c, quote;
 	bufp = buf;
 	while ((c = R_fgetc(fp)) != '"');
 	while ((c = R_fgetc(fp)) != R_EOF && c != '"') {
@@ -661,6 +661,8 @@ static SEXP OffsetToNode(int offset)
 static void DataSave(SEXP s, FILE *fp)
 {
 	int i, j, k, l, n;
+	char *strp;
+	SEXP t;
 
 		/* compute the storage requirements */
 		/* and write these to the save file */
@@ -830,8 +832,8 @@ static void DataSave(SEXP s, FILE *fp)
 
 static void RestoreSEXP(SEXP s, FILE *fp)
 {
-	unsigned int j;
-	int len;
+	unsigned int i, j, k, l;
+	int len, t1;
 
 	TYPEOF(s) = InInteger(fp);
 
@@ -910,7 +912,7 @@ static void RestoreSEXP(SEXP s, FILE *fp)
 
 static SEXP DataLoad(FILE *fp)
 {
-	int i, j;
+	int i, j, k;
 	char *vmaxsave;
 
 		/* read in the size information */

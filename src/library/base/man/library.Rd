@@ -8,13 +8,10 @@ provide(name)
 
 library.dynam(chname)
 
-.First.lib(section,libname)
-
 .packages()
 .lib.loc
 .Library
 .Provided
-.Autoloaded
 }
 \alias{library}
 \alias{library.dynam}
@@ -23,8 +20,6 @@ library.dynam(chname)
 \alias{.lib.loc}
 \alias{.Library}
 \alias{.Provided}
-\alias{.Autoloaded}
-\alias{.First.lib}
 \alias{RLIBS}
 \arguments{
  \item{name, help}{\code{name} or character string giving the name of a
@@ -35,11 +30,7 @@ library.dynam(chname)
   \code{help} can be assumed to be character strings}
  \item{quietly}{if \code{TRUE}, a warning will not be printed if the
   package cannot be found.}
-\item{chname}{a character string naming a shared library to load}
-\item{section}{a character string giving the library directory where the
-  package was found}
-\item{section}{a character string giving the name of the subdirectory in
-  which the package was found. This is always \code{name}}
+ \item{chname}{a character string naming a shared library to load}
 }
 \description{
   \code{library(name)} and \code{require(name)} both load the package
@@ -69,12 +60,6 @@ library.dynam(chname)
   the package \code{name}, typically by listing the most important user
   level objects it contains.
 
-  \code{.First.lib()} is called when a package is loaded by
-  \code{library()}. It is a good place to put calls to
-  \code{library.dynam()}. It is invoked after \code{\link{search()}} has
-  been updated, so \code{pos.to.env(match("package:name"),search())}
-  will return the environment in which the package is stored.
-  
   \code{library.dynam} loads the specified (shared) object file if it
   has not been loaded already.	It is designed to be used inside a
   package rather than at the command line.  The system-specific
@@ -83,9 +68,6 @@ library.dynam(chname)
 
   \code{.packages()} returns the ``base names'' of the currently attached
   packages.
-
-  \code{.Autoloaded} contains the ``base names'' of the packages for
-  which autoloading has been promised.
 
   \code{.Library} is a character string giving the location of the
   default library, the ``library'' subdirectory of \code{RHOME}.
@@ -161,6 +143,5 @@ library(help = eda)	    # documentation on package "eda"
 library(eda)		    # load package "eda"
 require(eda)		    # the same
 require(nonexistent)	    # FALSE
-
 }
 \keyword{data}

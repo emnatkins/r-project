@@ -1004,7 +1004,7 @@ SEXP listAssign1(SEXP call, SEXP x, SEXP subs, SEXP y)
 
 static SEXP frameAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 {
-	int i, ii;
+	int i, j, ii, jj, ij, k;
 	int nr, nc, ncy;
 	int nrs, ncs;
 	SEXP sr, sc, ss, xp, yp;
@@ -1142,7 +1142,7 @@ static void SubAssignArgs(SEXP args, SEXP *x, SEXP *s, SEXP *y)
 SEXP do_subassign(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
 	SEXP subs, x, y;
-	int nsubs;
+	int i, nsubs;
 	RCNTXT cntxt;
 
 	CAR(args) = eval(CAR(args), rho);
@@ -1217,7 +1217,7 @@ SEXP do_subassign(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 SEXP do_subassign2(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-	SEXP dims, index, names, subs, x, y;
+	SEXP dims, index, names, subs, x, y, obj;
 	int i, ndims, nsubs, offset, which;
 	RCNTXT cntxt;
 
@@ -1253,7 +1253,7 @@ SEXP do_subassign2(SEXP call, SEXP op, SEXP args, SEXP rho)
 		if(!isExpression(x) && length(y) > 1)
 			error("number of elements supplied larger than number of elements to replace\n");
 		if (nsubs == 1) {
-			offset = get1index(CAR(subs), getAttrib(x, R_NamesSymbol));
+			offset = get1index(CAR(subs), getAttrib(x, R_NamesSymbol),0);
 			if (offset < 0 || offset >= LENGTH(x))
 				error("[[]] subscript out of bounds\n");
 		}
@@ -1263,7 +1263,7 @@ SEXP do_subassign2(SEXP call, SEXP op, SEXP args, SEXP rho)
 			PROTECT(index = allocVector(INTSXP, ndims));
 			names = getAttrib(x, R_DimNamesSymbol);
 			for (i = 0; i < ndims; i++) {
-				INTEGER(index)[i] = get1index(CAR(subs), isList(names) ? CAR(names) : R_NilValue);
+				INTEGER(index)[i] = get1index(CAR(subs), isList(names) ? CAR(names) : R_NilValue,0);
 				subs = CDR(subs);
 				if (INTEGER(index)[i] < 0 || INTEGER(index)[i] >= INTEGER(dims)[i])
 					error("[[]] subscript out of bounds\n");
@@ -1393,7 +1393,7 @@ SEXP do_subassign2(SEXP call, SEXP op, SEXP args, SEXP rho)
 			PROTECT(index = allocVector(INTSXP, ndims));
 			names = getAttrib(x, R_DimNamesSymbol);
 			for (i = 0; i < ndims; i++) {
-				INTEGER(index)[i] = get1index(CAR(subs), CAR(names));
+				INTEGER(index)[i] = get1index(CAR(subs), CAR(names),0);
 				subs = CDR(subs);
 				if (INTEGER(index)[i] < 0 || INTEGER(index)[i] >= INTEGER(dims)[i])
 					error("[[]] subscript out of bounds\n");

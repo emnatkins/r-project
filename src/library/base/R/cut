@@ -1,5 +1,4 @@
-cut <- function (x, breaks, labels=NULL,
-                 include.lowest = FALSE, right=TRUE, dig.lab=3)
+cut <- function (x, breaks, labels=NULL, right=TRUE, dig.lab=3)
 {
 	if (!is.numeric(x)) stop("cut: x must be numeric")
 	if (length(breaks) == 1) {
@@ -30,7 +29,6 @@ cut <- function (x, breaks, labels=NULL,
 		   as.double(breaks),
 		   nb,
 		   code= integer(length(x)),
-                   include= as.logical(include.lowest),
 		   NAOK= TRUE) $code
 	factor(code, seq(labels), labels)
 }

@@ -33,7 +33,6 @@
  *
  */
 
-int get1index(SEXP, SEXP);
 
 static void SetArgsforUseMethod(SEXP x)
 {
@@ -197,7 +196,7 @@ static SEXP vectorSubset(SEXP x, SEXP s, SEXP call)
 
 SEXP matrixSubset(SEXP x, SEXP s, SEXP call, int drop)
 {
-	SEXP a, attr, p, result, sr, sc;
+	SEXP a, attr, p, q, result, sr, sc;
 	int nr, nc, nrs, ncs;
 	int i, j, ii, jj, ij, iijj;
 
@@ -692,7 +691,7 @@ SEXP do_subset2(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if (isVector(x) || isList(x) || isLanguage(x)) {
 		
 		if(nsubs == 1) {
-			offset = get1index(CAR(subs), getAttrib(x, R_NamesSymbol));
+			offset = get1index(CAR(subs), getAttrib(x, R_NamesSymbol),1);
 			if (offset < 0 || offset >= length(x))
 				/* a bold attempt to get the same behaviour
 				   for $ and [[ */
@@ -710,7 +709,7 @@ SEXP do_subset2(SEXP call, SEXP op, SEXP args, SEXP rho)
 			PROTECT(index = allocVector(INTSXP, nsubs));
 			dimnames = getAttrib(x, R_DimNamesSymbol);
 			for (i = 0; i < nsubs; i++) {
-				INTEGER(index)[i] = get1index(CAR(subs), CAR(dimnames));
+				INTEGER(index)[i] = get1index(CAR(subs), CAR(dimnames),1);
 				subs = CDR(subs);
 				dimnames = CDR(dimnames);
 				if (INTEGER(index)[i] < 0 || INTEGER(index)[i] >= INTEGER(dims)[i])
@@ -767,7 +766,7 @@ SEXP do_subset2(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 static int pstrmatch(SEXP target, char * input, int slen)
 {
-	int t,k;
+	int t,k,perfect;
 
 	if(target==R_NilValue) return -1;
 
@@ -790,7 +789,7 @@ static int pstrmatch(SEXP target, char * input, int slen)
 SEXP do_subset3(SEXP call, SEXP op, SEXP args, SEXP env)
 {
 	SEXP x, y, nlist;
-	int slen, posi, s, idx;
+	int slen, posi, s, perfect, idx;
 	char *input;
 
 	checkArity(op, args);
