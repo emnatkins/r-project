@@ -106,22 +106,8 @@ function(topic, package = c(.packages(),.Autoloaded), lib.loc =.lib.loc) {
     if (length(file) && file != "") {
       if (!is.null(.Options$trace) && .Options$trace)
         cat ("\t\t\t\t\t\tHelp file name '", sub(".*/","",file),".Rd'\n",sep="")
-
-      if(!is.null(.Options$htmlhelp) && .Options$htmlhelp){
-        file <- gsub(paste("/help/", topic, sep=""),
-                     paste("/html/", topic, sep=""),
-                     file)
-        file <- paste("file:", file, ".html", sep="")
-        if(is.null(.Options$browser))
-          stop("options(\"browser\") not set")
-        browser <- .Options$browser
-        system(paste(browser, " -remote \"openURL(", file, ")\" 2>/dev/null || ",
-                     browser, " ", file, " &", sep = ""))
-      }
-      else
-        system(paste("${RHOME}/cmd/pager", file))
-    }
-    else
+      system(paste("${RHOME}/cmd/pager", file))
+    } else
       stop(paste("No documentation for `", topic, "'", sep = ""))
   }
   else if (!missing(package))
@@ -255,7 +241,7 @@ system.time <- function(expr) {
 	new.time - time
 }
 
-unix.time <- .Alias(system.time)
+unix.time <- system.time
 
 tempfile <- function(pattern = "file") {
   system(paste("for p in", paste(pattern, collapse = " "), ";",

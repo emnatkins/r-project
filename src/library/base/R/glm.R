@@ -76,7 +76,7 @@ glm.control <- function(epsilon = 0.0001, maxit = 10, trace = FALSE)
 
 glm.fit <-
 function (x, y, weights = rep(1, nobs), start = NULL,
-	etastart = NULL, mustart = NULL, offset = rep(0, nobs),
+        etastart = NULL, mustart = NULL, offset = rep(0, nobs),
 	family = gaussian(), control = glm.control(), intercept = TRUE)
 {
         xnames <- dimnames(x)[[2]]
@@ -282,7 +282,9 @@ function (x, y, weights = rep(1, nobs), start = NULL,
         resdf  <- n.ok - fit$rank
         ## calculate AIC
         aic.model <-
-          if(resdf>0) aic(y, n, mu, weights, dev) + 2*fit$rank else -Inf
+          #Should not be necessary: --pd
+	  #if(resdf>0) aic(y, n, mu, weights, dev) + 2*fit$rank else -Inf
+          aic(y, n, mu, weights, dev) + 2*fit$rank
         list(coefficients = coef, residuals = residuals, fitted.values = mu,
              effects = fit$effects, R = Rmat, rank = fit$rank,
              qr = fit[c("qr", "rank", "qraux", "pivot", "tol")], family = family,
@@ -301,7 +303,8 @@ print.glm <- function (x, digits= max(3, .Options$digits - 3), na.print="", ...)
 		cat("  [contrasts: ",
 			apply(cbind(names(co),co), 1, paste, collapse="="), "]")
 	cat(":\n")
-	print.default(round(x$coefficients, digits), print.gap = 2)
+	print.default(format(x$coefficients, digits=digits),
+		      print.gap = 2, quote = FALSE)
 	cat("\nDegrees of Freedom:", x$df.null, "Total (i.e. Null); ",
 		 x$df.residual, "Residual\n")
 	cat("Null Deviance:    ", format(signif(x$null.deviance, digits)), "\n")
@@ -517,21 +520,20 @@ summary.glm <- function(object, dispersion = NULL,
 	## calculate coef table
 
 ##	nas <- is.na(object$coefficients)
-	if(df.r > 0) {
-		s.err <- sqrt(var.cf)
-		tvalue <- coef.p/s.err
-	}
-	dn <- c("Estimate", "Std. Error")
-	if(est.disp) {
-		pvalue <- 2*pt(-abs(tvalue), df.r)
-		coef.table <- cbind(coef.p, s.err, tvalue, pvalue)
-		dimnames(coef.table) <- list(names(coef.p),
-				     c(dn, "t value","Pr(>|t|)"))
-	} else if(df.r > 0) {
+	s.err <- sqrt(var.cf)
+	tvalue <- coef.p/s.err
+
+        dn <- c("Estimate", "Std. Error")
+	if(!est.disp) {
 		pvalue <- 2*pnorm(-abs(tvalue))
 		coef.table <- cbind(coef.p, s.err, tvalue, pvalue)
 		dimnames(coef.table) <- list(names(coef.p),
 				     c(dn, "z value","Pr(>|z|)"))
+	} else if(df.r > 0) {
+		pvalue <- 2*pt(-abs(tvalue), df.r)
+		coef.table <- cbind(coef.p, s.err, tvalue, pvalue)
+		dimnames(coef.table) <- list(names(coef.p),
+				     c(dn, "t value","Pr(>|t|)"))
 	} else { ## df.r == 0
 		coef.table <- cbind(coef.p, Inf)
 		dimnames(coef.table) <- list(names(coef.p), dn)
@@ -560,29 +562,9 @@ summary.glm <- function(object, dispersion = NULL,
 	return(ans)
 }
 
-print.glm <-
-function (x, digits= max(3, .Options$digits - 3), na.print="", ...)
-{
-	cat("\nCall: ", deparse(x$call), "\n\n")
-	cat("Coefficients")
-	if(is.character(co <- x$contrasts))
-		cat("  [contrasts: ",
-			apply(cbind(names(co),co), 1, paste, collapse="="), "]")
-	cat(":\n")
-	print.default(format(x$coefficients, digits=digits),
-		      print.gap = 2, quote = FALSE)
-	cat("\nDegrees of Freedom:", x$df.null, "Total (i.e. Null); ",
-		 x$df.residual, "Residual\n")
-	cat("Null Deviance:    ", format(signif(x$null.deviance, digits)), "\n")
-	cat("Residual Deviance:", format(signif(x$deviance, digits)), "\t")
-	cat("AIC:", format(signif(x$aic, digits)), "\n")
-	invisible(x)
-}
-
 print.summary.glm <- function (x, digits = max(3, .Options$digits - 3),
-	formatfun = format, na.print = "",
-	symbolic.cor = p > 4, signif.stars= .Options$show.signif.stars,
-	...)
+	na.print = "", symbolic.cor = p > 4,
+	signif.stars= .Options$show.signif.stars, ...)
 {
 	cat("\nCall:\n")
 	cat(paste(deparse(x$call), sep="\n", collapse="\n"), "\n\n", sep="")
@@ -598,6 +580,8 @@ print.summary.glm <- function (x, digits = max(3, .Options$digits - 3),
 		cat("  [contrasts: ",
 			apply(cbind(names(co),co), 1, paste, collapse="="), "]")
 	cat(":\n")
+	##
+	##0.61:print.default(roundfun(x$coefficients,digits=digits),print.gap=2)
 	p <- nrow(x$coef)
 	acs <- abs(coef.se <- x$coef[, 1:2, drop=FALSE])
 	digmin <- 1+floor(log10(range(acs[acs != 0], na.rm= TRUE)))
@@ -615,9 +599,9 @@ print.summary.glm <- function (x, digits = max(3, .Options$digits - 3),
 	if(any(not.both.0 <- (c(x$coef)==0)!=(as.numeric(Coefs)==0),na.rm=TRUE))
 	  ## not.both.0==T:  one is TRUE, one is FALSE : ==> x$coef != 0
 	  Coefs[not.both.0] <- format(x$coef[not.both.0], digits= min(1,digits-1))# =2
-	if(!has.Pval || !exists("symnum", mode = "function")) {
+	if(!has.Pval || !exists("symnum", mode = "function")){
 		signif.stars <- FALSE
-	} else if(signif.stars) {
+	}else if(signif.stars) {
 		Signif <- symnum(Pv, corr = FALSE,
 				 cutpoints = c(0,  .001,.01,.05, .1, 1),
 				 symbols   =  c("***","**","*","."," "))

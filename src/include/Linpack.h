@@ -1,7 +1,6 @@
 #ifndef LINPACK_H_
 #define LINPACK_H_
 
-#include <Platform.h>/* for F77_SYMBOL */
 #include <Blas.h>
 
 	/* Double Precision Linpack */

@@ -8,7 +8,7 @@ function(x,digits=NULL,quote=TRUE,na.print=NULL,print.gap=NULL, ...)
 print.atomic <- function(x,quote=TRUE,...) print.default(x,quote=quote)
 
 print.matrix <- function (x, rowlab = character(0), collab =
-			  character(0), quote = TRUE, right = FALSE) {
+                          character(0), quote = TRUE, right = FALSE) {
   x <- as.matrix(x)
   .Internal(print.matrix(x, rowlab, collab, quote, right))
 }
@@ -36,7 +36,7 @@ noquote <- function(obj) {
 	attr <- attributes(x,"legend")
 	r <- unclass(x)[...]
 	attributes(r) <- c(attributes(r),
-		   attr[is.na(match(names(attr),c("dim","dimnames")))])
+			   attr[is.na(match(names(attr),c("dim","dimnames")))])
 	r
 }
 
@@ -46,6 +46,6 @@ print.noquote <- function(obj,...) {
 	if(!is.null(cl)) class(obj) <- cl[cl != "noquote"]
 	NextMethod("print", obj, quote = FALSE, ...)
 }
-# used for version:
+## used for version:
 print.simple.list <-
 function(x, ...) print(noquote(cbind("_"=unlist(x))), ...)

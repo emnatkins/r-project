@@ -20,7 +20,6 @@
 
 /*---------------- BIG "FIXME" : Accept "lwd" wherever there's	lty !!! ----
  *		   ====================================================
- *---> need  FixupLwd ?
  */
 
 #include "Defn.h"
@@ -970,7 +969,7 @@ SEXP do_plot_xy(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(cex = FixupCex(CAR(args)));		args = CDR(args);
     ncex = LENGTH(cex);
 
-    /* Miscellaneous Graphical Parameters -- e.g., lwd */
+    /* Miscellaneous Graphical Parameters */
     GSavePars(dd);
     ProcessInlinePars(args, dd);
 
@@ -1152,11 +1151,11 @@ static void xypoints(SEXP call, SEXP args, int *n)
 
 SEXP do_segments(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    /* segments(x0, y0, x1, y1, col, lty, lwd, xpd) */
-    SEXP sx0, sx1, sy0, sy1, col, lty, lwd;
+    /* segments(x0, y0, x1, y1, col, lty, xpd) */
+    SEXP sx0, sx1, sy0, sy1, col, lty;
     double *x0, *x1, *y0, *y1;
     double xx[2], yy[2];
-    int nx0, nx1, ny0, ny1, i, n, ncol, nlty, nlwd, xpd;
+    int nx0, nx1, ny0, ny1, i, n, ncol, nlty, xpd;
     SEXP originalArgs = args;
     DevDesc *dd = CurrentDevice();
 
@@ -1175,9 +1174,6 @@ SEXP do_segments(SEXP call, SEXP op, SEXP args, SEXP env)
 
     PROTECT(lty = FixupLty(GetPar("lty", args), dd));
     nlty = length(lty);
-
-    PROTECT(lwd = GetPar("lwd", args));
-    nlwd = length(lwd);
 
     xpd = asLogical(GetPar("xpd", args));
     if (xpd == NA_LOGICAL)
@@ -1205,14 +1201,13 @@ SEXP do_segments(SEXP call, SEXP op, SEXP args, SEXP env)
 	    if (dd->gp.col == NA_INTEGER)
 		dd->gp.col = dd->dp.col;
 	    dd->gp.lty = INTEGER(lty)[i % nlty];
-	    dd->gp.lwd = REAL(lwd)[i % nlwd];
 	    GLine(xx[0], yy[0], xx[1], yy[1], DEVICE, dd);
 	}
     }
     GMode(dd, 0);
     GRestorePars(dd);
 
-    UNPROTECT(3);
+    UNPROTECT(2);
     /* NOTE: only record operation if no "error"  */
     /* NOTE: on replay, call == R_NilValue */
     if (call != R_NilValue)
@@ -1292,13 +1287,13 @@ SEXP do_rect(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP do_arrows(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    /* arrows(x0, y0, x1, y1, length, angle, code, col, lty, lwd, xpd) */
-    SEXP sx0, sx1, sy0, sy1, col, lty, lwd;
+    /* arrows(x0, y0, x1, y1, length, angle, code, col, lty, xpd) */
+    SEXP sx0, sx1, sy0, sy1, col, lty;
     double *x0, *x1, *y0, *y1;
     double xx0, yy0, xx1, yy1;
     double hlength, angle;
     int code;
-    int nx0, nx1, ny0, ny1, i, n, ncol, nlty, nlwd, xpd;
+    int nx0, nx1, ny0, ny1, i, n, ncol, nlty, xpd;
     SEXP originalArgs = args;
     DevDesc *dd = CurrentDevice();
 
@@ -1330,11 +1325,6 @@ SEXP do_arrows(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(lty = FixupLty(GetPar("lty", args), dd));
     nlty = length(lty);
 
-    PROTECT(lwd = GetPar("lwd", args));/*need  FixupLwd ?*/
-    nlwd = length(lwd);
-    if(nlwd == 0)
-	errorcall(call, "'lwd' must be numeric of length >=1");
-
     xpd = asLogical(GetPar("xpd", args));
     if (xpd == NA_LOGICAL)
 	xpd = dd->gp.xpd;
@@ -1364,7 +1354,6 @@ SEXP do_arrows(SEXP call, SEXP op, SEXP args, SEXP env)
 		dd->gp.lty = dd->dp.lty;
 	    else
 		dd->gp.lty = INTEGER(lty)[i % nlty];
-	    dd->gp.lwd = REAL(lwd)[i % nlwd];
 	    GArrow(xx0, yy0, xx1, yy1, DEVICE,
 		   hlength, angle, code, dd);
 	}
@@ -1372,7 +1361,7 @@ SEXP do_arrows(SEXP call, SEXP op, SEXP args, SEXP env)
     GMode(dd, 0);
     GRestorePars(dd);
 
-    UNPROTECT(3);
+    UNPROTECT(2);
     /* NOTE: only record operation if no "error"  */
     /* NOTE: on replay, call == R_NilValue */
     if (call != R_NilValue)
@@ -1788,7 +1777,7 @@ SEXP do_title(SEXP call, SEXP op, SEXP args, SEXP env)
 	    GMMathText(VECTOR(sub)[0], 1, dd->gp.mgp[0]+1.0, 0,
 		       xNPCtoUsr(adj, dd), 0, dd);
 	else {
-	    n = length(xlab);
+	    n = length(sub);
 	    for(i=0 ; i<n ; i++)
 		GMtext(CHAR(STRING(sub)[i]), 1, dd->gp.mgp[0]+1.0, 0,
 		   xNPCtoUsr(adj, dd), 0, dd);

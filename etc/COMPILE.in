@@ -2,7 +2,9 @@
 #
 # ${RHOME}/etc/COMPILE
 
-MAKE=${MAKE-make}
+# @configure_input@
+
+MAKE=${MAKE-@MAKE@}
 MAKEOPTS=
 
 for i in $*; do

@@ -1,11 +1,13 @@
 formula <- function(x, ...) UseMethod("formula")
-formula.default <- function (x)
+formula.default<-function (x)
 {
-	if (!is.null(x$formula))		eval(x$formula)
-	else if (!is.null(x$call$formula))	eval(x$call$formula)
-	else if (!is.null(x$terms))		x$terms
-	else switch(mode(x),
-                NULL = structure(NULL, class = "formula"),
+	if (!is.null(x$formula))
+		return(eval(x$formula))
+	if (!is.null(x$call$formula))
+		return(eval(x$call$formula))
+	if (!is.null(x$terms))
+		return(x$terms)
+	switch(mode(x), NULL = structure(NULL, class = "formula"),
 		character = formula(eval(parse(text = x)[[1]])),
 		call = eval(x), stop("invalid formula"))
 }
@@ -15,7 +17,6 @@ formula.terms <- function(x) {
 	x
 }
 print.formula <- function(x) print.default(unclass(x))
-
 "[.formula" <- function(x,i) {
 	ans <- NextMethod("[")
 	if(as.character(ans[[1]]) == "~")
@@ -37,10 +38,11 @@ delete.response <- function (termobj)
 reformulate <- function (termlabels, response=NULL)
 {
 	termtext <- paste(termlabels, collapse="+")
-	if (is.null(response)) {
+	if (is.null(response)){
 		termtext <- paste("~", termtext, collapse="")
 		eval(parse(text=termtext)[[1]])
-	} else {
+	}
+	else {
 		termtext <- paste("response", "~", termtext, collapse="")
 		termobj <- eval(parse(text=termtext)[[1]])
 		termobj[[2]] <- response
@@ -60,16 +62,17 @@ drop.terms <-function(termobj, dropx=NULL, keep.response=FALSE)
 }
 
 terms.formula <- function(x, specials = NULL, abb = NULL, data = NULL,
-                          neg.out = TRUE, keep.order = FALSE)
+                          neg.out = TRUE, keep.order = FALSE) 
 {
   fixFormulaObject <- function(object) {
     tmp <- attr(terms(object), "term.labels")
     form <- formula(object)
     lhs <- if(length(form) == 2) NULL else deparse(form[[2]])
     rhs <- if(length(tmp)) paste(tmp, collapse = " + ") else "1"
+    if(!attr(terms(object), "intercept")) rhs <- paste(rhs, "- 1")
     formula(paste(lhs, "~", rhs))
   }
-  if (!is.null(data) && !is.environment(data) && !is.data.frame(data))
+  if (!is.null(data) && !is.environment(data) && !is.data.frame(data)) 
     data <- as.data.frame(data)
   new.specials <- unique(c(specials, "offset"))
   tmp <- .Internal(terms.formula(x, new.specials, abb, data, keep.order))
@@ -94,16 +97,16 @@ terms.formula <- function(x, specials = NULL, abb = NULL, data = NULL,
 
 coef <- function(x, ...) UseMethod("coef")
 coef.default <- function(x, ...) x$coefficients
-coefficients <- .Alias(coef)
+coefficients <- coef
 
 residuals <- function(x, ...) UseMethod("residuals")
-resid <- .Alias(residuals)
+resid <- residuals
 
 deviance <- function(x, ...) UseMethod("deviance")
 
 fitted <- function(x, ...) UseMethod("fitted")
 fitted.default <- function(x) x$fitted
-fitted.values <- .Alias(fitted)
+fitted.values <- fitted
 
 anova <- function(x, ...)UseMethod("anova")
 
@@ -192,8 +195,12 @@ model.matrix <- function(object, ...) UseMethod("model.matrix")
 model.matrix.default <- function(formula, data, contrasts = NULL)
 {
  t <- terms(formula)
- if (missing(data)) 
-	data <- model.frame(formula)
+ if (missing(data)) {
+	vars <- attr(t, "variables")
+	# comes out as list(x,y,z), make it data.frame(x,y,z)
+	vars[[1]] <- as.name("data.frame")
+	data <- eval(vars, sys.frame(sys.parent()))
+ }
  else if (is.null(attr(data, "terms")))
      data <- model.frame(formula, data)
  contrastsL <- contrasts
@@ -216,25 +223,43 @@ model.matrix.default <- function(formula, data, contrasts = NULL)
  data <- data[,reorder, drop=FALSE]
  .Internal(model.matrix(t, data))
 }
-
-model.response <- function (data, type = "any")
+model.response <- function (data, type = "any") 
 {
-	if (attr(attr(data, "terms"), "response")) {
-		if (is.list(data) | is.data.frame(data)) {
-			v <- data[[1]]
-			if (type == "numeric" | type == "double") {
-				storage.mode(v) <- "double"
-			}
-			else if (type != "any")
-				stop("invalid response type")
-			if (is.matrix(v) && ncol(v) == 1)
-				dim(v) <- NULL
-			return(v)
-		}
-		else stop("invalid data argument")
-	}
-	else return(NULL)
+  if (attr(attr(data, "terms"), "response")) {
+    if (is.list(data) | is.data.frame(data)) {
+      v <- data[[1]]
+      if (type == "numeric" | type == "double") storage.mode(v) <- "double"
+      else if (type != "any") stop("invalid response type")
+      if (is.matrix(v) && ncol(v) == 1) dim(v) <- NULL
+      rows <- attr(data, "row.names")
+      if (nrows <- length(rows)) {
+        if (length(v) == nrows) names(v) <- rows
+        else if (length(dd <- dim(v)) == 2) 
+          if (dd[1] == nrows && !length((dn <- dimnames(v))[[1]])) 
+            dimnames(v) <- list(rows, dn[[2]])
+      }
+      return(v)
+    } else stop("invalid data argument")
+  } else return(NULL)
 }
+#model.response <- function (data, type = "any")
+#{
+#	if (attr(attr(data, "terms"), "response")) {
+#		if (is.list(data) | is.data.frame(data)) {
+#			v <- data[[1]]
+#			if (type == "numeric" | type == "double") {
+#				storage.mode(v) <- "double"
+#			}
+#			else if (type != "any")
+#				stop("invalid response type")
+#			if (is.matrix(v) && ncol(v) == 1)
+#				dim(v) <- NULL
+#			return(v)
+#		}
+#		else stop("invalid data argument")
+#	}
+#	else return(NULL)
+#}
 
 model.extract <- function (frame, component)
 {

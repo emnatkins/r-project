@@ -9,7 +9,7 @@ This function returns \code{TRUE} when \R is being used interactively
 and \code{FALSE} when not.
 }
 \seealso{
-\code{\link{source}}, \code{\link{.First}}
+\code{\link{source}}
 }
 \examples{
  .First <- function() if(interactive()) x11()
