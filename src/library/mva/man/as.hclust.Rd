@@ -4,11 +4,10 @@
 \title{Convert Objects to Class hclust}
 \usage{
 as.hclust(x, ...)
-as.hclust.twins(x, ...)
+as.hclust.twins(x)
 }
 \arguments{
-  \item{x}{Hierarchical clustering object}
-  \item{\dots}{further arguments passed to or from other methods.}
+ \item{x}{Hierarchical clustering object}
 }
 \description{
   Converts objects from other hierarchical clustering functions to

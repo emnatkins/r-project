@@ -6,7 +6,7 @@
 	 family = "Helvetica",
 	 encoding = "default",
 	 pointsize  = 12,
-	 bg	= "transparent",
+	 bg	= "white",
 	 fg	= "black",
 	 onefile    = TRUE,
 	 print.it   = FALSE,

@@ -32,7 +32,7 @@ paste(\dots, sep = " ", collapse = NULL)
   writes to a file.
 }
 \examples{
-paste(1:12) # same as as.character(1:12)
+paste(1:12) # same as as.character(..)
 paste("A", 1:6, sep = "")
 paste("Today is", date())
 }

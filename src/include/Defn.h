@@ -372,9 +372,8 @@ extern
 FUNTAB	R_FunTab[];	    /* Built in functions */
 
 
-#include <R_ext/libextern.h>
-
 #ifdef __MAIN__
+#define extern
 #define INI_as(v) = v
 #else
 #define INI_as(v)
@@ -400,8 +399,9 @@ extern int	R_VSize		INI_as(R_VSIZE);/* Size of the vector heap */
 extern SEXP	R_NHeap;	    /* Start of the cons cell heap */
 extern SEXP	R_FreeSEXP;	    /* Cons cell free list */
 extern long	R_Collected;	    /* Number of free cons cells (after gc) */
-LibExtern SEXP	R_PreciousList;	    /* List of Persistent Objects */
-LibExtern int	R_Is_Running;	    /* for Windows memory manager */
+extern SEXP	R_PreciousList;	    /* List of Persistent Objects */
+void	Init_C_alloc(void);
+void	Reset_C_alloc(void);
 
 /* The Pointer Protection Stack */
 extern int	R_PPStackSize	INI_as(R_PPSSIZE); /* The stack size (elements) */
@@ -409,14 +409,15 @@ extern int	R_PPStackTop;	    /* The top of the stack */
 extern SEXP*	R_PPStack;	    /* The pointer protection stack */
 
 /* Evaluation Environment */
-LibExtern SEXP	R_CurrentExpr;	    /* Currently evaluating expression */
+extern SEXP	R_Call;		    /* The current call */
+extern SEXP	R_CurrentExpr;	    /* Currently evaluating expression */
 extern SEXP	R_ReturnedValue;    /* Slot for return-ing values */
 extern SEXP*	R_SymbolTable;	    /* The symbol table */
 extern RCNTXT	R_Toplevel;	    /* Storage for the toplevel environment */
 extern RCNTXT*	R_ToplevelContext;  /* The toplevel environment */
 extern RCNTXT*	R_GlobalContext;    /* The global environment */
-LibExtern int	R_Visible;	    /* Value visibility flag */
-LibExtern int	R_EvalDepth	INI_as(0);	/* Evaluation recursion depth */
+extern int	R_Visible;	    /* Value visibility flag */
+extern int	R_EvalDepth	INI_as(0);	/* Evaluation recursion depth */
 extern int	R_EvalCount	INI_as(0);	/* Evaluation count */
 extern int	R_BrowseLevel	INI_as(0);	/* how deep the browser is */
 
@@ -424,12 +425,13 @@ extern int	R_Expressions	INI_as(500);	/* options(expressions) */
 extern Rboolean	R_KeepSource	INI_as(FALSE);	/* options(keep.source) */
 
 /* File Input/Output */
-LibExtern Rboolean R_Interactive	INI_as(TRUE);	/* TRUE during interactive use*/
+extern Rboolean	R_Interactive	INI_as(TRUE);	/* TRUE during interactive use*/
 extern Rboolean	R_Quiet		INI_as(FALSE);	/* Be as quiet as possible */
 extern Rboolean	R_Slave		INI_as(FALSE);	/* Run as a slave process */
 extern Rboolean	R_Verbose	INI_as(FALSE);	/* Be verbose */
 /* extern int	R_Console; */	    /* Console active flag */
 /* IoBuffer R_ConsoleIob; : --> ./IOStuff.h */
+extern FILE*	R_Inputfile	INI_as(NULL);	/* Current input flag */
 extern FILE*	R_Consolefile	INI_as(NULL);	/* Console output file */
 extern FILE*	R_Outputfile	INI_as(NULL);	/* Output file */
 extern int	R_ErrorCon	INI_as(2);	/* Error connection */
@@ -441,12 +443,16 @@ extern int	R_ParseCnt;	    /* Count of lines of text to be parsed */
 extern int	R_ParseError	INI_as(0); /* Line where parse error occured */
 
 /* Image Dump/Restore */
+extern char	R_ImageName[256];   /* Default image name */
+extern int	R_Unnamed	INI_as(1);	/* Use default name? */
 extern int	R_DirtyImage	INI_as(0);	/* Current image dirty */
+extern int	R_Init		INI_as(0);	/* Do we have an image loaded */
+/* extern FILE*	R_FileRef;	    the environment file pointer  */
 
 /* History */
-LibExtern char*	R_HistoryFile;	/* Name of the history file */
-LibExtern int	R_HistorySize;	/* Size of the history file */
-LibExtern int	R_RestoreHistory;	/* restore the history file? */
+extern char*	R_HistoryFile;	/* Name of the history file */
+extern int	R_HistorySize;	/* Size of the history file */
+extern int	R_RestoreHistory;	/* restore the history file? */
 
 /* Warnings/Errors */
 extern int	R_CollectWarnings INI_as(0);	/* the number of warnings */
@@ -459,7 +465,6 @@ extern char*	R_GUIType	INI_as("unknown");
 
 #ifdef __MAIN__
 #undef extern
-#undef LibExtern
 #endif
 #undef INI_as
 
@@ -477,6 +482,7 @@ extern char*	R_GUIType	INI_as("unknown");
 #define deparse1line		Rf_deparse1line
 #define DispatchGroup		Rf_DispatchGroup
 #define DispatchOrEval		Rf_DispatchOrEval
+#define DropDims		Rf_DropDims
 #define duplicated		Rf_duplicated
 #define dynamicfindVar		Rf_dynamicfindVar
 #define endcontext		Rf_endcontext
@@ -541,7 +547,6 @@ extern char*	R_GUIType	INI_as("unknown");
 #define tsConform		Rf_tsConform
 #define tspgets			Rf_tspgets
 #define type2str		Rf_type2str
-#define type2symbol		Rf_type2symbol
 #define unbindVar		Rf_unbindVar
 #define usemethod		Rf_usemethod
 #define warningcall		Rf_warningcall
@@ -584,8 +589,9 @@ void DataFrameClass(SEXP);
 SEXP ddfindVar(SEXP, SEXP);
 SEXP deparse1(SEXP,Rboolean);
 SEXP deparse1line(SEXP,Rboolean);
-int DispatchOrEval(SEXP, char*, SEXP, SEXP, SEXP*, int, int);
+int DispatchOrEval(SEXP, char*, SEXP, SEXP, SEXP*, int);
 int DispatchGroup(char*, SEXP,SEXP,SEXP,SEXP,SEXP*);
+SEXP DropDims(SEXP);
 SEXP duplicated(SEXP);
 SEXP dynamicfindVar(SEXP, RCNTXT*);
 void endcontext(RCNTXT*);
@@ -640,15 +646,12 @@ SEXP parse(FILE*, int);
 void PrintGreeting(void);
 void PrintVersion(char *);
 void PrintWarnings(void);
-void process_site_Renviron();
-void process_system_Renviron();
-void process_user_Renviron();
+void process_global_Renviron();
+void process_users_Renviron();
 SEXP promiseArgs(SEXP, SEXP);
 void Rcons_vprintf(const char *, va_list);
 void RemoveClass(SEXP, char *);
-SEXP R_data_class(SEXP , int);
 SEXP R_LoadFromFile(FILE*, int);
-SEXP R_NewHashTable(int, int);
 extern int R_Newhashpjw(char*);
 FILE* R_OpenLibraryFile(char *);
 void R_PreserveObject(SEXP);
@@ -656,7 +659,6 @@ void R_ReleaseObject(SEXP);
 void R_RestoreGlobalEnv(void);
 void R_SaveGlobalEnv(void);
 void R_SaveToFile(SEXP, FILE*, int);
-SEXP R_set_class(SEXP, SEXP, SEXP);
 int R_SetOptionWarn(int);
 int R_SetOptionWidth(int);
 void R_Suicide(char*);
@@ -673,7 +675,6 @@ SEXP R_sysfunction(int,RCNTXT*);
 Rboolean tsConform(SEXP,SEXP);
 SEXP tspgets(SEXP, SEXP);
 SEXP type2str(SEXPTYPE);
-SEXP type2symbol(SEXPTYPE);
 void unbindVar(SEXP, SEXP);
 #ifdef ALLOW_OLD_SAVE
 void unmarkPhase(void);

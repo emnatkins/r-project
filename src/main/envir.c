@@ -225,10 +225,10 @@ SEXP R_NewHashTable(int size, int growth_rate)
     SEXP table;
 
     /* Some checking */
-    if (growth_rate <= 0) 
-	growth_rate =  HASHTABLEGROWTHRATE;
-
-    if (size <= 0) {
+    if (growth_rate == 0) {
+	error("Hash table growth rate must be > 0");
+    }
+    if (size == 0) {
 	size = HASHMINSIZE;
     }
     /* Allocate hash table in the form of a vector */
@@ -1159,10 +1159,11 @@ static SEXP mfindVarInFrame(SEXP rho, SEXP symbol)
 */
 SEXP do_assign(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP name=R_NilValue, val, aenv;
+    SEXP name, val, aenv;
     int ginherits = 0;
     checkArity(op, args);
-
+    name = findVar(CAR(args), rho);
+    PROTECT(args = evalList(args, rho));
     if (!isString(CAR(args)) || length(CAR(args)) == 0)
 	error("invalid first argument");
     else
@@ -1180,7 +1181,7 @@ SEXP do_assign(SEXP call, SEXP op, SEXP args, SEXP rho)
 	setVar(name, val, aenv);
     else
 	defineVar(name, val, aenv);
-    UNPROTECT(1);
+    UNPROTECT(2);
     return val;
 }
 
@@ -1298,6 +1299,20 @@ SEXP do_get(SEXP call, SEXP op, SEXP args, SEXP rho)
     int ginherits = 0, where;
     checkArity(op, args);
 
+    /* Grab the environment off the first arg */
+    /* for use as the default environment. */
+
+    /* TODO: Don't we have a better way */
+    /* of doing this using sys.xxx now? */
+
+    rval = findVar(CAR(args), rho);
+    if (TYPEOF(rval) == PROMSXP)
+	genv = PRENV(rval);
+
+    /* Now we can evaluate the arguments */
+
+    PROTECT(args = evalList(args, rho));
+
     /* The first arg is the object name */
     /* It must be present and a string */
 
@@ -1344,6 +1359,8 @@ SEXP do_get(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     /* Search for the object */
     rval = findVar1mode(t1, genv, gmode, ginherits);
+
+    UNPROTECT(1);
 
     if (PRIMVAL(op)) { /* have get(.) */
 	if (rval == R_UnboundValue)
@@ -1892,40 +1909,4 @@ SEXP do_pos2env(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (npos == 1) env = VECTOR_ELT(env, 0);
     UNPROTECT(2);
     return env;
-}
-
-static SEXP matchEnvir(SEXP call, char *what)
-{
-  SEXP t, name, nameSymbol;
-  if(!strcmp(".GlobalEnv", what))
-    return R_GlobalEnv;
-  if(!strcmp("package:base", what))
-    return R_NilValue;
-  nameSymbol = install("name");
-  for (t = ENCLOS(R_GlobalEnv); t != R_NilValue ; t = ENCLOS(t)) {
-    name = getAttrib(t, nameSymbol);
-    if(isString(name) && length(name) > 0 &&
-       !strcmp(CHAR(STRING_ELT(name, 0)), what))
-      return t;
-  }
-  errorcall(call, "Package named \"%s\" not found in search list",
-	    what);
-  return R_NilValue;
-}
-
-SEXP do_as_environment(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-  SEXP arg = CAR(args);
-  checkArity(op, args);
-  if(isEnvironment(arg))
-    return arg;
-  switch(TYPEOF(arg)) {
-  case STRSXP:
-    return matchEnvir(call, CHAR(asChar(arg)));
-  case REALSXP: case INTSXP:
-    return do_pos2env(call, op, args, rho);
-  default:
-    errorcall(call, "Invalid object for as.environment");
-    return R_NilValue; /* -Wall */
-  }
 }

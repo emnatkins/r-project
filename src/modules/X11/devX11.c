@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2001  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--2000  Robert Gentleman, Ross Ihaka and the
  *			      R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -53,8 +53,6 @@
 
 #define R_X11_DEVICE 1
 #include "devX11.h"
-
-#include "R_ext/RX11.h"
 
 	/********************************************************/
 	/* This device driver has been documented so that it be	*/
@@ -132,8 +130,7 @@ static void   X11_Line(double, double, double, double, int, DevDesc*);
 static Rboolean X11_Locator(double*, double*, DevDesc*);
 static void   X11_Mode(int, DevDesc*);
 static void   X11_NewPage(DevDesc*);
-Rboolean X11_Open(DevDesc*, x11Desc*, char*, double, double, double,
-		  X_COLORTYPE, int, int);
+Rboolean X11_Open(DevDesc*, x11Desc*, char*, double, double, double, X_COLORTYPE, int);
 static void   X11_Polygon(int, double*, double*, int, int, int, DevDesc*);
 static void   X11_Polyline(int, double*, double*, int, DevDesc*);
 static void   X11_Rect(double, double, double, double, int, int, int, DevDesc*);
@@ -1035,8 +1032,7 @@ static int R_X11IOErr(Display *dsp)
 
 Rboolean 
 X11_Open(DevDesc *dd, x11Desc *xd, char *dsp, double w, double h, 
-	 double gamma_fac, X_COLORTYPE colormodel, int maxcube, 
-	 int canvascolor)
+	 double gamma_fac, X_COLORTYPE colormodel, int maxcube)
 {
     /* if we have to bail out with "error", then must free(dd) and free(xd) */
 
@@ -1089,18 +1085,16 @@ X11_Open(DevDesc *dd, x11Desc *xd, char *dsp, double w, double h,
     /* initialize the X11 device driver data structures. */
 
     if (!displayOpen) {
-	if ((display = XOpenDisplay(p)) == NULL)
-	    return FALSE;
-	DisplayOpened = TRUE;
-	Rf_setX11Display(display, gamma_fac, colormodel, maxcube, TRUE);
-	displayOpen = TRUE;
-	if(xd->handleOwnEvents == FALSE)
-	    addInputHandler(R_InputHandlers, ConnectionNumber(display),
-			    R_ProcessEvents, XActivity);
+      if ((display = XOpenDisplay(p)) == NULL)
+        return FALSE;
+      DisplayOpened = TRUE;
+      Rf_setX11Display(display, gamma_fac, colormodel, maxcube, TRUE);
+      displayOpen = TRUE;
+      if(xd->handleOwnEvents == FALSE)
+	  addInputHandler(R_InputHandlers, ConnectionNumber(display),
+			  R_ProcessEvents, XActivity);
     }
-    /* whitepixel = GetX11Pixel(255, 255, 255); */
-    whitepixel = GetX11Pixel(R_RED(canvascolor), R_GREEN(canvascolor), 
-			     R_BLUE(canvascolor));
+    whitepixel = GetX11Pixel(255, 255, 255);
     blackpixel = GetX11Pixel(0, 0, 0);
 
     if (!SetBaseFont(xd)) {
@@ -1110,10 +1104,9 @@ X11_Open(DevDesc *dd, x11Desc *xd, char *dsp, double w, double h,
 
     /* Foreground and Background Colors */
 
-    xd->bg =  dd->dp.bg	 = 0xffffffff; /* R_RGB(255, 255, 255); */
+    xd->bg =  dd->dp.bg	 = R_RGB(255, 255, 255);
     xd->fg =  dd->dp.fg	 = R_RGB(0, 0, 0);
     xd->col = dd->dp.col = xd->fg;
-    xd->canvas = canvascolor;
 
     /* Try to create a simple window. */
     /* We want to know about exposures */
@@ -1128,51 +1121,50 @@ X11_Open(DevDesc *dd, x11Desc *xd, char *dsp, double w, double h,
 
 
     if (type == WINDOW) {
-	int alreadyCreated = (xd->window != (Window)NULL);
-	if(alreadyCreated == 0) {
-	    xd->windowWidth = iw = w/pixelWidth();
-	    xd->windowHeight = ih = h/pixelHeight();
-	    if ((xd->window = XCreateWindow(
-		display, rootwin,
-		DisplayWidth(display, screen) - iw - 10, 10, iw, ih, 1,
-		DefaultDepth(display, screen),
-		InputOutput,
-		DefaultVisual(display, screen),
-		CWEventMask | CWBackPixel | CWBorderPixel | CWBackingStore,
-		&attributes)) == 0)
-		return FALSE;
-	    
-	    XChangeProperty(display, xd->window, XA_WM_NAME, XA_STRING,
-			    8, PropModeReplace, 
-			    (unsigned char*)"R Graphics", 13);
+     int alreadyCreated = (xd->window != (Window)NULL);
+     if(alreadyCreated == 0) {
+	xd->windowWidth = iw = w/pixelWidth();
+	xd->windowHeight = ih = h/pixelHeight();
+	if ((xd->window = XCreateWindow(
+	    display, rootwin,
+	    DisplayWidth(display, screen) - iw - 10, 10, iw, ih, 1,
+	    DefaultDepth(display, screen),
+	    InputOutput,
+	    DefaultVisual(display, screen),
+	    CWEventMask | CWBackPixel | CWBorderPixel | CWBackingStore,
+	    &attributes)) == 0)
+	    return FALSE;
 
-	    xd->gcursor = XCreateFontCursor(display, CURSOR);
-	    XDefineCursor(display, xd->window, xd->gcursor);
+	XChangeProperty( display, xd->window, XA_WM_NAME, XA_STRING,
+			 8, PropModeReplace, (unsigned char*)"R Graphics", 13);
 
-	    /* set up protocols so that window manager sends */
-	    /* me an event when user "destroys" window */
-	    _XA_WM_PROTOCOLS = XInternAtom(display, "WM_PROTOCOLS", 0);
-	    protocol = XInternAtom(display, "WM_DELETE_WINDOW", 0);
-	    XSetWMProtocols(display, xd->window, &protocol, 1);
-	
-	}
+	xd->gcursor = XCreateFontCursor(display, CURSOR);
+	XDefineCursor(display, xd->window, xd->gcursor);
+
+	/* set up protocols so that window manager sends */
+	/* me an event when user "destroys" window */
+	_XA_WM_PROTOCOLS = XInternAtom(display, "WM_PROTOCOLS", 0);
+	protocol = XInternAtom(display, "WM_DELETE_WINDOW", 0);
+	XSetWMProtocols(display, xd->window, &protocol, 1);
+
+     }
 	/* Save the devDesc* with the window for event dispatching */
 	XSaveContext(display, xd->window, devPtrContext, (caddr_t) dd);
 
 	/* Map the window */
 	if(alreadyCreated == 0) {
-	    XSelectInput(display, xd->window,
-			 ExposureMask | ButtonPressMask | StructureNotifyMask);
-	    XMapWindow(display, xd->window);
-	    XSync(display, 0);
-	    
-	    /* Gobble expose events */
-	    
-	    XNextEvent(display, &event);
-	    if (event.xany.type == Expose) {
-		while (event.xexpose.count)
-		    XNextEvent(display, &event);
-	    }
+	  XSelectInput(display, xd->window,
+		       ExposureMask | ButtonPressMask | StructureNotifyMask);
+   	  XMapWindow(display, xd->window);
+  	  XSync(display, 0);
+
+	   /* Gobble expose events */
+
+ 	  XNextEvent(display, &event);
+	 if (event.xany.type == Expose) {
+	      while (event.xexpose.count)
+		XNextEvent(display, &event);
+	 }
 	}
     } else { /* PIXMAP */
 	xd->windowWidth = iw = w;
@@ -1335,7 +1327,7 @@ static void X11_NewPage(DevDesc *dd)
     if (xd->type > WINDOW) {
 	if (xd->npages++)
 	    error("attempt to draw second page on pixmap device");
-	xd->bg = R_OPAQUE(dd->dp.bg) ? dd->dp.bg : xd->canvas;
+	xd->bg = dd->dp.bg;
 	SetColor(xd->bg, dd);
 	XFillRectangle(display, xd->window, xd->wgc, 0, 0,
 		       xd->windowWidth, xd->windowHeight);
@@ -1344,7 +1336,7 @@ static void X11_NewPage(DevDesc *dd)
 
     FreeX11Colors();
     if ( (model == PSEUDOCOLOR2) || (xd->bg != dd->dp.bg)) {
-	xd->bg = R_OPAQUE(dd->dp.bg) ? dd->dp.bg : xd->canvas;
+	xd->bg = dd->dp.bg;
 	whitepixel = GetX11Pixel(R_RED(xd->bg),R_GREEN(xd->bg),R_BLUE(xd->bg));
 	XSetWindowBackground(display, xd->window, whitepixel);
     }
@@ -1356,7 +1348,7 @@ static void X11_NewPage(DevDesc *dd)
 
 extern int R_SaveAsPng(void  *d, int width, int height, 
 		       unsigned long (*gp)(XImage *, int, int),
-		       int bgr, FILE *fp, unsigned int transparent);
+		       int bgr, FILE *fp);
 
 extern int R_SaveAsJpeg(void  *d, int width, int height, 
 			unsigned long (*gp)(XImage *, int, int),
@@ -1436,8 +1428,7 @@ static void X11_Close(DevDesc *dd)
 			   AllPlanes, ZPixmap);
 	    if (xd->type == PNG) 
 		R_SaveAsPng(xi, xd->windowWidth, xd->windowHeight, 
-			    bitgp, 0, xd->fp, 
-			    R_OPAQUE(dd->dp.bg) ? 0 : xd->canvas);
+			    bitgp, 0, xd->fp);
 	    else if (xd->type == JPEG)
 		R_SaveAsJpeg(xi, xd->windowWidth, xd->windowHeight, 
 			     bitgp, 0, xd->quality, xd->fp);
@@ -1562,7 +1553,7 @@ static void X11_Rect(double x0, double y0, double x1, double y1,
 	y0 = y1;
 	y1 = tmp;
     }
-    if (R_OPAQUE(bg)) {
+    if (bg != NA_INTEGER) {
 	SetColor(bg, dd);
 	XFillRectangle(display, xd->window, xd->wgc, (int)x0, (int)y0,
 		       (int)x1 - (int)x0, (int)y1 - (int)y0);
@@ -1570,7 +1561,7 @@ static void X11_Rect(double x0, double y0, double x1, double y1,
 	XFillRectangle(display, xd->window, xd->wgc, (int)x0, (int)y0,
 		       (int)x1 - (int)x0, (int)y1 - (int)y0);
     }
-    if (R_OPAQUE(fg)) {
+    if (fg != NA_INTEGER) {
 	SetColor(fg, dd);
 	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
 	XDrawRectangle(display, xd->window, xd->wgc, (int)x0, (int)y0,
@@ -1613,12 +1604,12 @@ static void X11_Circle(double x, double y, int coords,
     GConvert(&x, &y, coords, DEVICE, dd);
     ix = (int)x;
     iy = (int)y;
-    if (R_OPAQUE(col)) {
+    if (col != NA_INTEGER) {
 	SetColor(col, dd);
 	XFillArc(display, xd->window, xd->wgc,
 		 ix-ir, iy-ir, 2*ir, 2*ir, 0, 23040);
     }
-    if (R_OPAQUE(border)) {
+    if (border != NA_INTEGER) {
 	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
 	SetColor(border, dd);
 	XDrawArc(display, xd->window, xd->wgc,
@@ -1649,14 +1640,12 @@ static void X11_Line(double x1, double y1, double x2, double y2,
     xx2 = (int) x2;
     yy2 = (int) y2;
 
-    if (R_OPAQUE(dd->gp.col)) {
-	SetColor(dd->gp.col, dd);
-	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
-	XDrawLine(display, xd->window, xd->wgc, xx1, yy1, xx2, yy2);
+    SetColor(dd->gp.col, dd);
+    SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
+    XDrawLine(display, xd->window, xd->wgc, xx1, yy1, xx2, yy2);
 #ifdef XSYNC
-	if (xd->type == WINDOW) XSync(display, 0);
+    if (xd->type == WINDOW) XSync(display, 0);
 #endif
-    }
 }
 
 	/********************************************************/
@@ -1670,13 +1659,11 @@ static void X11_Line(double x1, double y1, double x2, double y2,
 
 static void X11_Polyline(int n, double *x, double *y, int coords, DevDesc *dd)
 {
-    char *vmax = vmaxget();
     XPoint *points;
     double devx, devy;
     int i, j;
     x11Desc *xd = (x11Desc *) dd->deviceSpecific;
-
-    points = (XPoint *) R_alloc(n, sizeof(XPoint));
+    points = (XPoint *) C_alloc(n, sizeof(XPoint));
 
     for(i=0 ; i<n ; i++) {
 	devx = x[i];  devy = y[i];
@@ -1685,22 +1672,19 @@ static void X11_Polyline(int n, double *x, double *y, int coords, DevDesc *dd)
 	points[i].y = (int)(devy);
     }
 
-    if (R_OPAQUE(dd->gp.col)) {
-	SetColor(dd->gp.col, dd);
-	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
+    SetColor(dd->gp.col, dd);
+    SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
 /* Some X servers need npoints < 64K */
-	for(i = 0; i < n; i+= 10000-1) {
-	    j = n - i;
-	    j = (j <= 10000) ? j: 10000; /* allow for overlap */
-	    XDrawLines(display, xd->window, xd->wgc, points+i, j, 
-		       CoordModeOrigin);
-	}
-#ifdef XSYNC
-	if (xd->type == WINDOW) XSync(display, 0);
-#endif
+    for(i = 0; i < n; i+= 10000-1) {
+	j = n - i;
+	j = (j <= 10000) ? j: 10000; /* allow for overlap */
+	XDrawLines(display, xd->window, xd->wgc, points+i, j, CoordModeOrigin);
     }
+#ifdef XSYNC
+    if (xd->type == WINDOW) XSync(display, 0);
+#endif
 
-    vmaxset(vmax);
+    C_free((char *) points);
 }
 
 	/********************************************************/
@@ -1718,13 +1702,12 @@ static void X11_Polyline(int n, double *x, double *y, int coords, DevDesc *dd)
 static void X11_Polygon(int n, double *x, double *y, int coords,
 			int bg, int fg, DevDesc *dd)
 {
-    char *vmax = vmaxget();
     XPoint *points;
     double devx, devy;
     int i;
     x11Desc *xd = (x11Desc *) dd->deviceSpecific;
 
-    points = (XPoint *) R_alloc(n+1, sizeof(XPoint));
+    points = (XPoint *) C_alloc(n+1, sizeof(XPoint));
 
     for (i=0 ; i<n ; i++) {
 	devx = x[i];  devy = y[i];
@@ -1736,14 +1719,14 @@ static void X11_Polygon(int n, double *x, double *y, int coords,
     GConvert(&devx, &devy, coords, DEVICE, dd);
     points[n].x = (int)(devx);
     points[n].y = (int)(devy);
-    if (R_OPAQUE(bg)) {
+    if (bg != NA_INTEGER) {
 	SetColor(bg, dd);
 	XFillPolygon(display, xd->window, xd->wgc, points, n, Complex, CoordModeOrigin);
 #ifdef XSYNC
 	if (xd->type == WINDOW) XSync(display, 0);
 #endif
     }
-    if (R_OPAQUE(fg)) {
+    if (fg != NA_INTEGER) {
 	SetColor(fg, dd);
 	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
 	XDrawLines(display, xd->window, xd->wgc, points, n+1, CoordModeOrigin);
@@ -1752,7 +1735,7 @@ static void X11_Polygon(int n, double *x, double *y, int coords,
 #endif
     }
 
-    vmaxset(vmax);
+    C_free((char *) points);
 }
 
 
@@ -1774,16 +1757,14 @@ static void X11_Text(double x, double y, int coords,
 
     size = dd->gp.cex * dd->gp.ps + 0.5;
     SetFont(dd->gp.font, size, dd);
-    if (R_OPAQUE(dd->gp.col)) {
-	SetColor(dd->gp.col, dd);
-	len = strlen(str);
-	GConvert(&x, &y, coords, DEVICE, dd);
-	XRotDrawString(display, xd->font, rot, xd->window, xd->wgc,
-		       (int)x, (int)y, str);
+    SetColor(dd->gp.col, dd);
+    len = strlen(str);
+    GConvert(&x, &y, coords, DEVICE, dd);
+    XRotDrawString(display, xd->font, rot, xd->window, xd->wgc,
+		   (int)x, (int)y, str);
 #ifdef XSYNC
-	if (xd->type == WINDOW) XSync(display, 0);
+    if (xd->type == WINDOW) XSync(display, 0);
 #endif
-    }
 }
 
 	/********************************************************/
@@ -1910,7 +1891,7 @@ X11DeviceDriver(DevDesc *dd,
 		double pointsize,
 		double gamma_fac,
 		X_COLORTYPE colormodel,
-		int maxcube, int canvascolor)
+		int maxcube)
 {
     x11Desc *xd;
 
@@ -1921,7 +1902,7 @@ X11DeviceDriver(DevDesc *dd,
     /*	Start the Device Driver and Hardcopy.  */
 
     if (!X11_Open(dd, xd, disp_name, width, height, 
-		  gamma_fac, colormodel, maxcube, canvascolor)) {
+		  gamma_fac, colormodel, maxcube)) {
 	free(xd);
 	return FALSE;
     }
@@ -2123,17 +2104,3 @@ Rf_allocX11DeviceDesc(double ps)
 }
 
 
-extern SEXP RX11_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho);
-
-void
-R_init_X11(DllInfo *info)
-{
-      /* Ideally, we would not cast X11DeviceDriver here.
-         However, the declaration in R_ext/RX11.h doesn't have access
-         to the definition of X_COLORTYPE, at present. Thus we need 
-         to explicitly cast to avoid compiler warnings.
-       */
-    R_setX11Routines((R_X11DeviceDriverRoutine) X11DeviceDriver, 
-                      RX11_dataentry, 
-                      R_GetX11Image);
-}

@@ -32,8 +32,7 @@ summary.mlm <- function(object, ...)
     value
 }
 ## predict.mlm  is in  >> ./lm.R <<
-anova.mlm <- function(object, ...)
-    stop("no anova method implemented for mlm models")
+anova.mlm <- function(...) stop("no anova method implemented for mlm models")
 
 deviance.mlm <- function(object, ...)
 {
@@ -43,4 +42,4 @@ deviance.mlm <- function(object, ...)
     drop(rep(1, nrow(res)) %*% res)
 }
 
-plot.mlm <- function (x, ...) .NotYetImplemented()
+plot.mlm <- function (...) .NotYetImplemented()

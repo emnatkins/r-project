@@ -1,5 +1,5 @@
 download.file <- function(url, destfile, method,
-                          quiet = FALSE, mode = "w", cacheOK = TRUE)
+                          quiet = FALSE, mode = "w")
 {
     method <- if(missing(method)) "auto" else
     match.arg(method,
@@ -20,12 +20,13 @@ download.file <- function(url, destfile, method,
             stop("No download method found")
     }
     if(method == "internal")
-        status <- .Internal(download(url, destfile, quiet, mode, cacheOK))
-    else if(method == "wget") {
-        extra <- if(quiet) " --quiet" else ""
-        if(!cacheOK) extra <- paste(extra, "--cache=off")
-        status <- system(paste("wget", extra, url, "-O", destfile))
-    } else if(method == "lynx")
+        status <- .Internal(download(url, destfile, quiet, mode))
+    else if(method == "wget")
+        if(quiet)
+            status <- system(paste("wget --quiet", url, "-O", destfile))
+        else
+            status <- system(paste("wget", url, "-O", destfile))
+    else if(method == "lynx")
         status <- shell(paste("lynx -dump", url, ">", destfile))
     else if (method == "socket") {
         status <- 0

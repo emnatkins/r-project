@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2001   Lyndon Drake
+ *  Copyright (C) 1998-2000   Lyndon Drake
  *                            and the R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -669,7 +669,7 @@ static void GTK_Rect(double x0, double y0, double x1, double y1,
     }
 
 
-    if (R_OPAQUE(bg)) {
+    if(bg != NA_INTEGER) {
 	SetColor(&gcol_fill, bg);
 	gdk_gc_set_foreground(gtkd->wgc, &gcol_fill);
 
@@ -686,7 +686,7 @@ static void GTK_Rect(double x0, double y0, double x1, double y1,
 			   (gint) x1 - (gint) x0,
 			   (gint) y1 - (gint) y0);
     }
-    if (R_OPAQUE(fg)) {
+    if(fg != NA_INTEGER) {
 	SetColor(&gcol_outline, fg);
 	gdk_gc_set_foreground(gtkd->wgc, &gcol_outline);
 
@@ -718,7 +718,7 @@ static void GTK_Circle(double x, double y, int coords,
     iy = y - r;
     ir = 2 * floor(r + 0.5);
 
-    if (R_OPAQUE(col)) {
+    if(col != NA_INTEGER) {
 	SetColor(&gcol_fill, col);
 	gdk_gc_set_foreground(gtkd->wgc, &gcol_fill);
 
@@ -731,7 +731,7 @@ static void GTK_Circle(double x, double y, int coords,
 		     ix, iy, ir, ir,
 		     0, 23040);
     }
-    if (R_OPAQUE(border)) {
+    if(border != NA_INTEGER) {
 	SetColor(&gcol_outline, border);
 	gdk_gc_set_foreground(gtkd->wgc, &gcol_outline);
 
@@ -761,7 +761,7 @@ static void GTK_Line(double x1, double y1, double x2, double y2,
     ix1 = (gint) x1;  iy1 = (gint) y1;
     ix2 = (gint) x2;  iy2 = (gint) y2;
 
-    if (R_OPAQUE(dd->gp.col)) {
+    if(dd->gp.col != NA_INTEGER) {
 	SetColor(&gcol_fill, dd->gp.col);
 	gdk_gc_set_foreground(gtkd->wgc, &gcol_fill);
 
@@ -791,7 +791,7 @@ static void GTK_Polyline(int n, double *x, double *y, int coords, DevDesc *dd)
 	points[i].y = (gint16) devy;
     }
 
-    if (R_OPAQUE(dd->gp.col)) {
+    if(dd->gp.col != NA_INTEGER) {
 	SetColor(&gcol_fill, dd->gp.col);
 	gdk_gc_set_foreground(gtkd->wgc, &gcol_fill);
 
@@ -824,7 +824,7 @@ static void GTK_Polygon(int n, double *x, double *y, int coords,
 	points[i].y = (gint16) devy;
     }
 
-    if (R_OPAQUE(bg)) {
+    if(bg != NA_INTEGER) {
 	SetColor(&gcol_fill, bg);
 	gdk_gc_set_foreground(gtkd->wgc, &gcol_fill);
 
@@ -833,7 +833,7 @@ static void GTK_Polygon(int n, double *x, double *y, int coords,
 	gdk_draw_polygon(gtkd->pixmap,
 			 gtkd->wgc, TRUE, points, n);
     }
-    if (R_OPAQUE(fg)) {
+    if(fg != NA_INTEGER) {
 	SetColor(&gcol_outline, fg);
 	gdk_gc_set_foreground(gtkd->wgc, &gcol_outline);
 
@@ -862,21 +862,20 @@ static void GTK_Text(double x, double y, int coords,
     SetFont(dd, dd->gp.font, size);
     gdk_gc_set_font(gtkd->wgc, gtkd->font);
 
-    if (R_OPAQUE(dd->gp.col)) {
-	SetColor(&gcol_fill, dd->gp.col);
-	gdk_gc_set_foreground(gtkd->wgc, &gcol_fill);
+    SetColor(&gcol_fill, dd->gp.col);
+    gdk_gc_set_foreground(gtkd->wgc, &gcol_fill);
 
-	gdk_draw_text_rot(gtkd->drawing->window,
-			  gtkd->font, gtkd->wgc,
-			  (int) x, (int) y,
-			  gtkd->windowWidth, gtkd->windowHeight,
-			  str, strlen(str), rrot);
-	gdk_draw_text_rot(gtkd->pixmap,
-			  gtkd->font, gtkd->wgc, 
-			  (int) x, (int) y,
-			  gtkd->windowWidth, gtkd->windowHeight,
-			  str, strlen(str), rrot);
-    }
+    gdk_draw_text_rot(gtkd->drawing->window,
+		      gtkd->font, gtkd->wgc,
+		      (int) x, (int) y,
+		      gtkd->windowWidth, gtkd->windowHeight,
+		      str, strlen(str), rrot);
+    gdk_draw_text_rot(gtkd->pixmap,
+		      gtkd->font, gtkd->wgc, 
+		      (int) x, (int) y,
+		      gtkd->windowWidth, gtkd->windowHeight,
+		      str, strlen(str), rrot);
+
 }
 
 
@@ -888,9 +887,9 @@ struct _GTK_locator_info {
     gboolean button1;
 };
 
-static void locator_button_press(GtkWidget *widget,
-				 GdkEventButton *event,
-				 gpointer user_data)
+static gboolean locator_button_press(GtkWidget *widget,
+				     GdkEventButton *event,
+				     gpointer user_data)
 {
     GTK_locator_info *info;
 

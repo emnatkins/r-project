@@ -8,7 +8,7 @@ CRAN.packages <- function(CRAN=getOption("CRAN"), method,
         tmpf <- tempfile()
         on.exit(unlink(tmpf))
         download.file(url=paste(contriburl, "PACKAGES", sep="/"),
-                      destfile=tmpf, method=method, cacheOK=FALSE)
+                      destfile=tmpf, method=method)
     }
     read.dcf(file=tmpf, fields=c("Package", "Version",
                        "Priority", "Bundle", "Depends"))

@@ -90,8 +90,7 @@ power.prop.test <-
               class="power.htest")
 }
 
-print.power.htest <-
-function(x, ...)
+print.power.htest <- function(x)
 {
     cat("\n    ", x$method, "\n\n")
     note<-x$note

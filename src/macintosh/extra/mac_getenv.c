@@ -85,8 +85,6 @@
 /*  Includes                                                                 */
 /*****************************************************************************/
 
-#include <RCarbon.h>
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -99,7 +97,6 @@
 #include <config.h>
 #endif
 #include "Defn.h"
-#include "Fileio.h"
 
 extern char*	R_Home;	
 
@@ -116,6 +113,8 @@ EnviromentPair *ParseLine(char *line)
     static EnviromentPair Env;
     unsigned short length = strlen(line);
 
+   // Env->key   = "";
+   // Env->value = "";
 
     for (tmpPtr = line; *tmpPtr; tmpPtr++)
     {
@@ -182,7 +181,7 @@ FILE * FSp_fopen(ConstFSSpecPtr spec, const char * open_mode){
 	filetoopen[pathLen] = '\0';
 	HUnlock((Handle) pathName);
 
-	fp = R_fopen(filetoopen,"r");
+	fp = fopen(filetoopen,"r");
 
     return(fp);
 }
@@ -205,7 +204,7 @@ char *mac_getenv(const char *name)
 	return NULL;  /* user wants to ignore the environment vars */
 
     if (name == NULL)
-	return err_str;
+	return err_str;//NULL;
     
     if(strcmp(name,"R_HOME")==0)
      return R_Home;
@@ -214,10 +213,6 @@ char *mac_getenv(const char *name)
     
     err = FSpLocationFromFullPath(strlen(temp_path),temp_path,&spec);
   
-    
-    if (err != noErr)
-	    return err_str;//NULL; /* there is no enviroment-file */
-
 /* try open the file in the folder R_HOME:etc */
 
 
@@ -384,7 +379,7 @@ int get_char(FILE *file)
 {
     int ch;
 
-    ch = R_fgetc(file);
+    ch = getc(file);
     if (ch == '\n')
         {
         Set_LineNum(LineNumber + 1);

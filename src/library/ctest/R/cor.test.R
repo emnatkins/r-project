@@ -2,8 +2,7 @@ cor.test <- function(x, ...) UseMethod("cor.test")
 
 cor.test.default <-
 function(x, y, alternative = c("two.sided", "less", "greater"),
-         method = c("pearson", "kendall", "spearman"), exact = NULL,
-         conf.level = 0.95, ...)
+         method = c("pearson", "kendall", "spearman"), exact = NULL)
 {
     alternative <- match.arg(alternative)
     method <- match.arg(method)
@@ -18,7 +17,6 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
 
     PVAL <- NULL
     NVAL <- 0
-    conf.int <- FALSE
 
     if(method == "pearson") {
 	if(n < 3)
@@ -33,24 +31,6 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
 	STATISTIC <- sqrt(PARAMETER) * r / sqrt(1 - r^2)
 	names(STATISTIC) <- "t"
 	p <- pt(STATISTIC, PARAMETER)
-        if(n > 3) {
-            if(!missing(conf.level) &&
-               (length(conf.level) != 1 || !is.finite(conf.level) ||
-                conf.level < 0 || conf.level > 1))
-                stop(paste("conf.level must be a single number",
-                           "between 0 and 1"))
-            conf.int <- TRUE
-            z <- atanh(r)
-            sigma <- 1 / sqrt(n - 3)
-            cint <-
-                switch(alternative,
-                       less = c(-Inf, z + sigma * qnorm(conf.level)),
-                       greater = c(z - sigma * qnorm(conf.level), Inf),
-                       two.sided = z +
-                       c(-1, 1) * sigma * qnorm((1 + conf.level) / 2))
-            cint <- tanh(cint)
-            attr(cint, "conf.level") <- conf.level
-        }
     }
     else {
 	if(n < 2)
@@ -155,18 +135,15 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
 		       "greater" = 1 - p,
 		       "two.sided" = 2 * min(p, 1 - p))
 
-    RVAL <- list(statistic = STATISTIC,
-                 parameter = PARAMETER,
-                 p.value = as.numeric(PVAL),
-                 estimate = ESTIMATE,
-                 null.value = NVAL,
-                 alternative = alternative,
-                 method = method,
-                 data.name = DNAME)
-    if(conf.int)
-        RVAL <- c(RVAL, list(conf.int = cint))
-    class(RVAL) <- "htest"
-    RVAL
+    structure(list(statistic = STATISTIC,
+		   parameter = PARAMETER,
+		   p.value = as.numeric(PVAL),
+		   estimate = ESTIMATE,
+		   null.value = NVAL,
+		   alternative = alternative,
+		   method = method,
+		   data.name = DNAME),
+	      class = "htest")
 }
 
 cor.test.formula <-

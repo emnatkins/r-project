@@ -168,7 +168,7 @@ static SEXP VectorSubset(SEXP x, SEXP s, SEXP call)
 
 static SEXP MatrixSubset(SEXP x, SEXP s, SEXP call, int drop)
 {
-    SEXP attr, result, sr, sc, dim;
+    SEXP attr, result, sr, sc;
     int nr, nc, nrs, ncs;
     int i, j, ii, jj, ij, iijj;
 
@@ -177,10 +177,9 @@ static SEXP MatrixSubset(SEXP x, SEXP s, SEXP call, int drop)
 
     /* Note that "s" is protected on entry. */
     /* The following ensures that pointers remain protected. */
-    dim = getAttrib(x, R_DimSymbol);
 
-    sr = SETCAR(s, arraySubscript(0, CAR(s), dim, getAttrib, x));
-    sc = SETCADR(s, arraySubscript(1, CADR(s), dim, getAttrib, x));
+    sr = SETCAR(s, arraySubscript(0, CAR(s), x));
+    sc = SETCADR(s, arraySubscript(1, CADR(s), x));
     nrs = LENGTH(sr);
     ncs = LENGTH(sc);
     PROTECT(sr);
@@ -311,7 +310,7 @@ static SEXP ArraySubset(SEXP x, SEXP s, SEXP call, int drop)
     n = 1;
     r = s;
     for (i = 0; i < k; i++) {
-	SETCAR(r, arraySubscript(i, CAR(r), xdims, getAttrib, x));
+	SETCAR(r, arraySubscript(i, CAR(r), x));
 	bound[i] = LENGTH(CAR(r));
 	n *= bound[i];
 	r = CDR(r);
@@ -472,7 +471,7 @@ SEXP do_subset(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* to the generic code below.  Note that evaluation */
     /* retains any missing argument indicators. */
 
-    if(DispatchOrEval(call, "[", args, rho, &ans, 0, 0))
+    if(DispatchOrEval(call, "[", args, rho, &ans, 0))
 	return(ans);
 
     /* Method dispatch has failed, we now */
@@ -582,7 +581,7 @@ SEXP do_subset2(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* through to the generic code below.  Note that */
     /* evaluation retains any missing argument indicators. */
 
-    if(DispatchOrEval(call, "[[", args, rho, &ans, 0, 0))
+    if(DispatchOrEval(call, "[[", args, rho, &ans, 0))
 	return(ans);
 
     /* Method dispatch has failed. */
@@ -765,7 +764,7 @@ SEXP do_subset3(SEXP call, SEXP op, SEXP args, SEXP env)
     /* through to the generic code below.  Note that */
     /* evaluation retains any missing argument indicators. */
 
-    if(DispatchOrEval(call, "$", args, env, &ans, 0, 0)) {
+    if(DispatchOrEval(call, "$", args, env, &ans, 0)) {
 	UNPROTECT(1);
 	return(ans);
     }

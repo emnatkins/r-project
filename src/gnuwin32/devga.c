@@ -49,21 +49,6 @@ void GAsetunits(double xpinch, double ypinch)
     user_ypinch = ypinch;
 }
 
-static rgb GArgb(int color, double gamma)
-{
-    int r, g, b;
-    if (gamma != 1) {
-	r = (int) (255 * pow(R_RED(color) / 255.0, gamma));
-	g = (int) (255 * pow(R_GREEN(color) / 255.0, gamma));
-	b = (int) (255 * pow(R_BLUE(color) / 255.0, gamma));
-    } else {
-	r = R_RED(color);
-	g = R_GREEN(color);
-	b = R_BLUE(color);
-    }
-    return rgb(r, g, b);
-}
-
 
 
 	/********************************************************/
@@ -107,8 +92,8 @@ typedef struct {
     int   fontsize, basefontsize;  /* Size in points */
     double fontangle;
 
-    /* devga Driver Specific */
-    /* parameters with copy per devga device */
+    /* X11 Driver Specific */
+    /* parameters with copy per x11 device */
 
     enum DeviceKinds kind;
     int   windowWidth;		/* Window width (pixels) */
@@ -138,8 +123,6 @@ typedef struct {
     int truedpi, wanteddpi; 
     rgb   fgcolor;		/* Foreground color */
     rgb   bgcolor;		/* Background color */
-    rgb   canvascolor;		/* Canvas color */
-    rgb   outcolor;		/* Outside canvas color */
     rect  clip;			/* The clipping rectangle */
     Rboolean usefixed;
     font  fixedfont;
@@ -186,7 +169,7 @@ static Rboolean GA_Locator(double*, double*, DevDesc*);
 static void   GA_Mode(int);
 static void   GA_NewPage(DevDesc*);
 static Rboolean GA_Open(DevDesc*, gadesc*, char*, double, double, 
-			Rboolean, int, rgb);
+			Rboolean, int);
 static void   GA_Polygon(int, double*, double*, int, int, int, DevDesc*);
 static void   GA_Polyline(int, double*, double*, int, DevDesc*);
 static void   GA_Rect(double, double, double, double, int, int, int, DevDesc*);
@@ -208,9 +191,9 @@ static void SetFont(int, int, double, DevDesc *);
 static void SetLinetype(int, double, DevDesc *);
 static int Load_Rbitmap_Dll();
 void UnLoad_Rbitmap_Dll();
-static void SaveAsPng(DevDesc *dd, char *fn);
-static void SaveAsJpeg(DevDesc *dd, int quality, char *fn);
-static void SaveAsBmp(DevDesc *dd, char *fn);
+static void SaveAsPng(DevDesc *dd,char *fn);
+static void SaveAsJpeg(DevDesc *dd,int quality,char *fn);
+static void SaveAsBmp(DevDesc *dd,char *fn);
 static void SaveAsBitmap(DevDesc *dd);
 
 static void PrivateCopyDevice(DevDesc *dd,DevDesc *ndd, char *name)
@@ -247,7 +230,7 @@ static void SaveAsWin(DevDesc *dd, char *display)
     if (GADeviceDriver(ndd, display,
 			 GConvertXUnits(1.0, NDC, INCHES, dd),
 			 GConvertYUnits(1.0, NDC, INCHES, dd),
-			 dd->gp.ps, 0, 1, White))
+			 dd->gp.ps, 0, 1))
         PrivateCopyDevice(dd, ndd, display);
 }
 
@@ -276,7 +259,7 @@ static void SaveAsPostscript(DevDesc *dd, char *fn)
     strcpy(family, "Helvetica");
     strcpy(encoding, "ISOLatin1.enc");
     strcpy(paper, "default");
-    strcpy(bg, "transparent");
+    strcpy(bg, "white");
     strcpy(fg, "black");
     /* and then try to get it from .PostScript.Options */
     if ((s!=R_UnboundValue) && (s!=R_NilValue)) {
@@ -332,7 +315,7 @@ static void SaveAsPDF(DevDesc *dd, char *fn)
     /* Set default values... */
     strcpy(family, "Helvetica");
     strcpy(encoding, "ISOLatin1.enc");
-    strcpy(bg, "transparent");
+    strcpy(bg, "white");
     strcpy(fg, "black");
     /* and then try to get it from .PostScript.Options */
     if ((s!=R_UnboundValue) && (s!=R_NilValue)) {
@@ -517,11 +500,23 @@ static void SetFont(int face, int size, double rot, DevDesc *dd)
 
 static void SetColor(int color, DevDesc *dd)
 {
+    int   r, g, b;
     gadesc *xd = (gadesc *) dd->deviceSpecific;
 
     if (color != xd->col) {
+	/* Gamma Correction */
+	/* This is very experimental! */
 	xd->col = color;
-	xd->fgcolor = GArgb(color, dd->gp.gamma);
+	if (dd->gp.gamma != 1) {
+	    r = (int) (255 * pow(R_RED(color) / 255.0, dd->gp.gamma));
+	    g = (int) (255 * pow(R_GREEN(color) / 255.0, dd->gp.gamma));
+	    b = (int) (255 * pow(R_BLUE(color) / 255.0, dd->gp.gamma));
+	} else {
+	    r = R_RED(color);
+	    g = R_GREEN(color);
+	    b = R_BLUE(color);
+	}
+	xd->fgcolor = rgb(r, g, b);
     }
 }
 
@@ -1313,8 +1308,8 @@ setupScreenDevice(DevDesc *dd, gadesc *xd, double w, double h,
 
     MCHECK(xd->bm = newbitmap(getwidth(xd->gawin), getheight(xd->gawin), 
 			      getdepth(xd->gawin)));
-    gfillrect(xd->gawin, xd->outcolor, getrect(xd->gawin));
-    gfillrect(xd->bm, xd->outcolor, getrect(xd->bm));
+    gfillrect(xd->gawin, LightGray, getrect(xd->gawin));
+    gfillrect(xd->bm, LightGray, getrect(xd->bm));
     addto(xd->gawin);
     setdata(xd->mbar, (void *) dd);
     setdata(xd->mpng, (void *) dd);
@@ -1356,8 +1351,7 @@ setupScreenDevice(DevDesc *dd, gadesc *xd, double w, double h,
 }
 
 static Rboolean GA_Open(DevDesc *dd, gadesc *xd, char *dsp,
-			double w, double h, Rboolean recording,
-			int resize, rgb canvascolor)
+			double w, double h, Rboolean recording, int resize)
 {
     rect  rr;
 
@@ -1365,13 +1359,12 @@ static Rboolean GA_Open(DevDesc *dd, gadesc *xd, char *dsp,
 	RFontInit();
 
     /* Foreground and Background Colors */
-    xd->bg = dd->dp.bg = 0xffffffff; /* transparent */
+    xd->bg = dd->dp.bg = R_RGB(255, 255, 255);
     xd->fg = dd->dp.fg = R_RGB(0, 0, 0);
     xd->col = dd->dp.col = xd->fg;
 
     xd->fgcolor = Black;
-    xd->bgcolor = xd->canvascolor = canvascolor;
-    xd->outcolor = myGetSysColor(COLOR_APPWORKSPACE);
+    xd->bgcolor = White;
     xd->rescale_factor = 1.0;
     xd->fast = 1;  /* Use `cosmetic pens' if available */
     xd->xshift = xd->yshift = 0;
@@ -1384,7 +1377,6 @@ static Rboolean GA_Open(DevDesc *dd, gadesc *xd, char *dsp,
 	if (!xd->gawin)
 	    return FALSE;
     } else if (!strncmp(dsp, "png:", 4) || !strncmp(dsp,"bmp:",4)) {
-	xd->bg = dd->dp.bg = R_RGB(255, 255, 255); /* white */
         xd->kind = (dsp[0]=='p') ? PNG : BMP;
 	if (!Load_Rbitmap_Dll()) {
 	    warning("Unable to load Rbitmap.dll");
@@ -1611,8 +1603,8 @@ static void GA_Resize(DevDesc *dd)
 		R_ShowMessage("Insufficient memory for resize. Killing device");
 		KillDevice(dd);
 	    }
-	    gfillrect(xd->gawin, xd->outcolor, getrect(xd->gawin));
-	    gfillrect(xd->bm, xd->outcolor, getrect(xd->bm));
+	    gfillrect(xd->gawin, LightGray, getrect(xd->gawin));
+	    gfillrect(xd->bm, LightGray, getrect(xd->bm));
 	}
     }
 }
@@ -1647,15 +1639,13 @@ static void GA_NewPage(DevDesc *dd)
 	    xd->needsave = TRUE;
     }
     xd->bg = dd->dp.bg;
-    if (!R_OPAQUE(xd->bg)) 
-	xd->bgcolor = xd->canvascolor;
-    else
-	xd->bgcolor = GArgb(xd->bg, dd->gp.gamma);
-    if (xd->kind != SCREEN) {
+    xd->bgcolor = rgb(R_RED(xd->bg),
+		      R_GREEN(xd->bg),
+		      R_BLUE(xd->bg));
+    if (xd->kind!=SCREEN) {
 	xd->needsave = TRUE;
 	xd->clip = getrect(xd->gawin);
-	if(R_OPAQUE(xd->bg) || xd->kind == PNG || 
-	   xd->kind == BMP || xd->kind == JPEG )
+	if(xd->bg != R_RGB(255,255,255))
 	    DRAW(gfillrect(_d, xd->bgcolor, xd->clip));
     } else {
 	xd->clip = getregion(xd);
@@ -1778,12 +1768,12 @@ static void GA_Rect(double x0, double y0, double x1, double y1,
 	y1 = tmp;
     }
     r = rect((int) x0, (int) y0, (int) x1 - (int) x0, (int) y1 - (int) y0);
-    if (R_OPAQUE(bg)) {
+    if (bg != NA_INTEGER) {
 	SetColor(bg, dd);
 	DRAW(gfillrect(_d, xd->fgcolor, r));
 
     }
-    if (R_OPAQUE(fg)) {
+    if (fg != NA_INTEGER) {
 	SetColor(fg, dd);
 	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
 	DRAW(gdrawrect(_d, xd->lwd, xd->lty, xd->fgcolor, r, 0));
@@ -1825,11 +1815,11 @@ static void GA_Circle(double x, double y, int coords,
     ix = (int) x;
     iy = (int) y;
     rr = rect(ix - ir, iy - ir, 2 * ir, 2 * ir);
-    if (R_ALPHA(col)) {
+    if (col != NA_INTEGER) {
 	SetColor(col, dd);
 	DRAW(gfillellipse(_d, xd->fgcolor, rr));
     }
-    if (R_OPAQUE(border)) {
+    if (border != NA_INTEGER) {
 	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
 	SetColor(border, dd);
 	DRAW(gdrawellipse(_d, xd->lwd, xd->fgcolor, rr, 0));
@@ -1861,9 +1851,8 @@ static void GA_Line(double x1, double y1, double x2, double y2,
 
     SetColor(dd->gp.col, dd),
     SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
-    if (R_OPAQUE(xd->fgcolor))
-	DRAW(gdrawline(_d, xd->lwd, xd->lty, xd->fgcolor,
-		       pt(xx1, yy1), pt(xx2, yy2), 0));
+    DRAW(gdrawline(_d, xd->lwd, xd->lty, xd->fgcolor,
+		   pt(xx1, yy1), pt(xx2, yy2), 0));
 }
 
 	/********************************************************/
@@ -1877,8 +1866,7 @@ static void GA_Line(double x1, double y1, double x2, double y2,
 
 static void GA_Polyline(int n, double *x, double *y, int coords, DevDesc *dd)
 {
-    char *vmax = vmaxget();
-    point *p = (point *) R_alloc(n, sizeof(point));
+    point *p = (point *) C_alloc(n, sizeof(point));
     double devx, devy;
     int   i;
     gadesc *xd = (gadesc *) dd->deviceSpecific;
@@ -1890,11 +1878,10 @@ static void GA_Polyline(int n, double *x, double *y, int coords, DevDesc *dd)
 	p[i].x = (int) devx;
 	p[i].y = (int) devy;
     }
-    SetColor(dd->gp.col, dd);
-    SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
-    if (R_OPAQUE(xd->fgcolor))
-	DRAW(gdrawpolyline(_d, xd->lwd, xd->lty, xd->fgcolor, p, n, 0, 0));
-    vmaxset(vmax);
+    SetColor(dd->gp.col, dd),
+	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
+    DRAW(gdrawpolyline(_d, xd->lwd, xd->lty, xd->fgcolor, p, n, 0, 0));
+    C_free((char *) p);
 }
 
 	/********************************************************/
@@ -1912,14 +1899,13 @@ static void GA_Polyline(int n, double *x, double *y, int coords, DevDesc *dd)
 static void GA_Polygon(int n, double *x, double *y, int coords,
 			int bg, int fg, DevDesc *dd)
 {
-    char *vmax = vmaxget();
     point *points;
     double devx, devy;
     int   i;
     gadesc *xd = (gadesc *) dd->deviceSpecific;
 
     TRACEDEVGA("plg");
-    points = (point *) R_alloc(n , sizeof(point));
+    points = (point *) C_alloc(n , sizeof(point));
     if (!points)
 	return;
     for (i = 0; i < n; i++) {
@@ -1929,16 +1915,16 @@ static void GA_Polygon(int n, double *x, double *y, int coords,
 	points[i].x = (int) (devx);
 	points[i].y = (int) (devy);
     }
-    if (R_OPAQUE(bg)) {
+    if (bg != NA_INTEGER) {
 	SetColor(bg, dd);
 	DRAW(gfillpolygon(_d, xd->fgcolor, points, n));
     }
-    if (R_OPAQUE(fg)) {
+    if (fg != NA_INTEGER) {
 	SetColor(fg, dd);
 	SetLinetype(dd->gp.lty, dd->gp.lwd, dd);
 	DRAW(gdrawpolygon(_d, xd->lwd, xd->lty, xd->fgcolor, points, n, 0 ));
     }
-    vmaxset(vmax);
+    C_free((char *) points);
 }
 
 
@@ -1970,18 +1956,16 @@ static void GA_Text(double x, double y, int coords,
     y -= -xl * sin(rot1) - yl * cos(rot1);
     SetFont(dd->gp.font, size, rot, dd);
     SetColor(dd->gp.col, dd);
-    if (R_OPAQUE(xd->fgcolor)) {
 #ifdef NOCLIPTEXT
-	gsetcliprect(xd->gawin, getrect(xd->gawin));
-	gdrawstr1(xd->gawin, xd->font, xd->fgcolor, pt(x, y), str, hadj);
-	if (xd->kind==SCREEN) {
-	    gsetcliprect(xd->bm, getrect(xd->bm));
-	    gdrawstr1(xd->bm, xd->font, xd->fgcolor, pt(x, y), str, hadj);
-	}
-#else
-	DRAW(gdrawstr1(_d, xd->font, xd->fgcolor, pt(x, y), str, hadj));
-#endif
+    gsetcliprect(xd->gawin, getrect(xd->gawin));
+    gdrawstr1(xd->gawin, xd->font, xd->fgcolor, pt(x, y), str, hadj);
+    if (xd->kind==SCREEN) {
+	gsetcliprect(xd->bm, getrect(xd->bm));
+	gdrawstr1(xd->bm, xd->font, xd->fgcolor, pt(x, y), str, hadj);
     }
+#else
+    DRAW(gdrawstr1(_d, xd->font, xd->fgcolor, pt(x, y), str, hadj));
+#endif
 }
 
 	/********************************************************/
@@ -2090,7 +2074,7 @@ static void GA_Hold(DevDesc *dd)
 
 Rboolean GADeviceDriver(DevDesc *dd, char *display, double width, 
 			double height, double pointsize, 
-			Rboolean recording, int resize, int canvas)
+			Rboolean recording, int resize)
 {
     /* if need to bail out with some sort of "error" then */
     /* must free(dd) */
@@ -2121,8 +2105,7 @@ Rboolean GADeviceDriver(DevDesc *dd, char *display, double width,
 
     /* Start the Device Driver and Hardcopy.  */
 
-    if (!GA_Open(dd, xd, display, width, height, recording, resize,
-		 GArgb(canvas, 1.0))) {
+    if (!GA_Open(dd, xd, display, width, height, recording, resize)) {
 	free(xd);
 	return FALSE;
     }
@@ -2245,8 +2228,6 @@ SEXP do_saveDevga(SEXP call, SEXP op, SEXP args, SEXP env)
 	SaveAsWin(dd, display);
     } else if (!strcmp(tp, "ps")) {
 	SaveAsPostscript(dd, fn);
-    } else if (!strcmp(tp, "pdf")) {
-	SaveAsPDF(dd, fn);
     } else
 	errorcall(call, "unknown type");
     return R_NilValue;
@@ -2305,8 +2286,7 @@ static void SaveAsBitmap(DevDesc *dd)
     gsetcliprect(xd->gawin, getrect(xd->gawin));
     if (xd->kind==PNG) 
 	R_SaveAsPng(xd->gawin, xd->windowWidth, xd->windowHeight,
-		    privategetpixel, 0, xd->fp,
-		    R_OPAQUE(xd->bg) ? 0 : xd->canvascolor) ;
+		    privategetpixel, 0, xd->fp) ;
     else if (xd->kind==JPEG)
 	R_SaveAsJpeg(xd->gawin, xd->windowWidth, xd->windowHeight,
 		     privategetpixel, 0, xd->quality, xd->fp) ;
@@ -2327,10 +2307,10 @@ static void SaveAsPng(DevDesc *dd,char *fn)
 	R_ShowMessage("Impossible to load Rbitmap.dll");
 	return;
     }
-    if ((fp=fopen(fn, "wb")) == NULL) {
+    if ((fp=fopen(fn,"wb")) == NULL) {
 	char msg[MAX_PATH+32];
 
-	strcpy(msg, "Impossible to open ");
+	strcpy(msg,"Impossible to open ");
 	strncat(msg, fn, MAX_PATH);
 	R_ShowMessage(msg);
 	return;
@@ -2338,8 +2318,7 @@ static void SaveAsPng(DevDesc *dd,char *fn)
     r = ggetcliprect(xd->bm);
     gsetcliprect(xd->bm, getrect(xd->bm));
     R_SaveAsPng(xd->bm, xd->windowWidth, xd->windowHeight,
-		privategetpixel, 0, fp, 0) ;
-    /* R_OPAQUE(xd->bg) ? 0 : xd->canvascolor) ; */
+		privategetpixel, 0, fp) ;
     gsetcliprect(xd->bm, r);
     fclose(fp);
 }

@@ -21,10 +21,10 @@
 #include <config.h>
 #endif
 
-#include <Defn.h>
-#include <Rdynpriv.h>
+#include "Defn.h"
+#include "R_ext/Rdynpriv.h"
 
-#include "Runix.h"
+#include "../unix/Runix.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -35,12 +35,12 @@
 #endif
 
 #ifdef HAVE_DLFCN_H
-# include <dlfcn.h>
+#include <dlfcn.h>
 #else
-# ifdef HAVE_DL_H
-#  include "hpdlfcn.c"
-# define HAVE_DLFCN_H
-# endif
+#ifdef HAVE_DL_H
+#include "hpdlfcn.c"
+#define HAVE_DLFCN_H
+#endif
 #endif
 
 #if defined(HAVE_GNOME) && defined(HAVE_DLFCN_H)
@@ -78,7 +78,7 @@ void R_load_gnome_shlib(void)
 	R_Suicide(buf);
     }
     strcpy(gnome_DLL, p);
-    strcat(gnome_DLL, "/modules/R_gnome");
+    strcat(gnome_DLL, "/modules/R_gnome.");
     strcat(gnome_DLL, SHLIB_EXT); /* from config.h */
     if(stat(gnome_DLL, &sb))
 	R_Suicide("Probably no GNOME support: the shared library was not found");

@@ -3,7 +3,7 @@ wilcox.test <- function(x, ...) UseMethod("wilcox.test")
 wilcox.test.default <-
 function(x, y = NULL, alternative = c("two.sided", "less", "greater"), 
          mu = 0, paired = FALSE, exact = NULL, correct = TRUE,
-         conf.int = FALSE, conf.level = 0.95, ...)
+         conf.int = FALSE, conf.level = 0.95) 
 {
     alternative <- match.arg(alternative)
     if(!missing(mu) && ((length(mu) > 1) || !is.finite(mu))) 
@@ -361,10 +361,10 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                  alternative = alternative,
                  method = METHOD, 
                  data.name = DNAME)
-    if(conf.int)
-        RVAL <- c(RVAL,
-                  list(conf.int = cint,
-                       estimate = ESTIMATE))
+    if(conf.int) {
+        RVAL$conf.int <- cint
+        RVAL$estimate <- ESTIMATE
+    }
     class(RVAL) <- "htest"
     return(RVAL)
 }

@@ -28,7 +28,6 @@ as.qr(x)
   \item{qr}{a QR decomposition of the type computed by \code{qr}.}
   \item{y, b}{a vector or matrix of right-hand sides of equations.}
   \item{a}{A matrix or QR decomposition.}
-  \item{k}{effective rank.}
 }
 \description{
   \code{qr} computes the QR decomposition of a matrix.  It provides an

@@ -14,7 +14,6 @@ undoc <- function(package, dir, lib.loc = .lib.loc)
         files
     }
 
-    useSaveImage <- FALSE
     if(!missing(package)) {
         packageDir <- .find.package(package, lib.loc)
         isBase <- package == "base"
@@ -22,11 +21,7 @@ undoc <- function(package, dir, lib.loc = .lib.loc)
                               "AnIndex"),
                               what = list("", ""),
                               quiet = TRUE, sep="\t")[[1]])
-        codeFile <- file.path(packageDir, "R", "all.rda")
-        if(file.exists(codeFile))
-            useSaveImage <- TRUE
-        else
-            codeFile <- file.path(packageDir, "R", package)
+        codeFile <- file.path(packageDir, "R", package)
         dataDir <- file.path(packageDir, "data")
     }
     else {
@@ -41,21 +36,30 @@ undoc <- function(package, dir, lib.loc = .lib.loc)
         files <- listFilesWithExts(docsDir, docsExts)
         if(file.exists(docsOSDir <- file.path(docsDir, .Platform$OS)))
             files <- c(files, listFilesWithExts(docsOSDir, docsExts))
-        aliases <- character(0)
-        for(f in files) {
-            aliases <- c(aliases,
-                         grep("^\\\\alias", readLines(f), value = TRUE))
+        files <- paste(files, collapse = " ")
+        shQuote <- function(s) {
+            if(.Platform$OS.type == "unix")
+                paste("'", s, "'", sep = "")
+            else
+                s
         }
-        objsdocs <- gsub("\\\\alias{(.*)}.*", "\\1", aliases)
+        fname  <- system(paste("grep -h", shQuote("^\\\\name"), files),
+                         intern = TRUE)
+        falias <- system(paste("grep -h", shQuote("^\\\\alias"), files),
+                         intern = TRUE)
+        objsdocs <- c(gsub("\\\\name{(.*)}.*",  "\\1", fname),
+                      gsub("\\\\alias{(.*)}.*", "\\1", falias))
         objsdocs <- gsub("\\\\%", "%", objsdocs)
         objsdocs <- gsub(" ", "", objsdocs)
         objsdocs <- sort(unique(objsdocs))
 
         if(file.exists(codeDir <- file.path(dir, "R"))) {
-            codeFile <- tempfile("Rcode")
+            codeFile <- tempfile("Rbuild")
             on.exit(unlink(codeFile))
             codeExts <- c("R", "r", "S", "s", "q")
             files <- listFilesWithExts(codeDir, codeExts, path = FALSE)
+            if(any(i <- grep("^zzz\\.", files)))
+               files <- files[-i]
             if(length(files) > 0)
                 files <- file.path(codeDir, files)
             if(file.exists(codeOSDir <- file.path(codeDir, .Platform$OS)))
@@ -69,35 +73,13 @@ undoc <- function(package, dir, lib.loc = .lib.loc)
         dataDir <- file.path(dir, "data")
     }
 
-    lib.source <- function(file, envir) {
-        oop <- options(keep.source = FALSE)
-        on.exit(options(oop))
-        assignmentSymbol <- as.name("<-")
-        exprs <- parse(n = -1, file = file)
-        if(length(exprs) == 0)
-            return(invisible())
-        for(e in exprs) {
-            if(e[[1]] == assignmentSymbol)
-                yy <- eval(e, envir)
-        }
-        invisible()
-    }
-    
     if(isBase)
         allObjs <- ls("package:base", all.names = TRUE)
     else if(file.exists(codeFile)) {
         codeEnv <- new.env()
-        if(useSaveImage) {
-            yy <- try(load(codeFile, envir = codeEnv))
-            if(inherits(yy, "try-error")) {
-                stop("cannot load package image")
-            }
-        }
-        else {
-            yy <- try(lib.source(codeFile, envir = codeEnv))
-            if(inherits(yy, "try-error")) {
-                stop("cannot source package code")
-            }
+        yy <- try(sys.source(codeFile, envir = codeEnv))
+        if(inherits(yy, "try-error")) {
+            stop("cannot source package code")
         }
         allObjs <- ls(envir = codeEnv, all.names = TRUE)
     }
@@ -124,7 +106,7 @@ undoc <- function(package, dir, lib.loc = .lib.loc)
         }
         if(any(i <- grep("\\.\(RData\|rdata\|rda\)$", files))) {
             for (f in file.path(dataDir, files[i])) {
-                yy <- try(load(f, envir = dataEnv))
+                yy <- load(f, envir = dataEnv)
                 if(inherits(yy, "try-error"))
                     stop(paste("cannot load data file", fQuote(f)))
                 new <- ls(envir = dataEnv, all.names = TRUE)

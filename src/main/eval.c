@@ -33,6 +33,8 @@ SEXP do_browser(SEXP, SEXP, SEXP, SEXP);
 
 #ifdef Macintosh
 
+/* This code places a limit on the depth to which eval can recurse. */
+
 /* Now R correctly handles user breaks
    This is the fastest way to do handle user breaks
    and performance are no rather good. 
@@ -48,9 +50,7 @@ void isintrpt()
    if(CheckEventQueueForUserCancel()){  
 	Rprintf("\n");
 	error("user break");
-#ifndef __MRC__
 	raise(SIGINT);
-#endif
 	return;
     }
 
@@ -572,9 +572,9 @@ SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedenv)
 	from the function body.  */
 
     if ((SETJMP(cntxt.cjmpbuf))) {
-	if (R_ReturnedValue == R_RestartToken) {
+	if (R_ReturnedValue == R_DollarSymbol) {
 	    cntxt.callflag = CTXT_RETURN;  /* turn restart off */
-	    R_ReturnedValue = R_NilValue;  /* remove restart token */
+	    R_GlobalContext = &cntxt;      /* put the context back */
 	    PROTECT(tmp = eval(body, newrho));
 	}
 	else
@@ -660,26 +660,16 @@ static SEXP assignCall(SEXP op, SEXP symbol, SEXP fun,
 }
 
 
-/* It might be a tad more efficient to make the non-error part of this
-   into a macro, especially for while loops. */
-static Rboolean asLogicalNoNA(SEXP s, SEXP call)
-{
-    Rboolean cond = asLogical(s);
-    if (cond == NA_LOGICAL) {
-	char *msg = isLogical(s) ?
-	    "missing value where logical needed" :
-	    "argument is not interpretable as logical";
-	errorcall(call, msg);
-    }
-    return cond;
-}
-    
-
 SEXP do_if(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP Cond = eval(CAR(args), rho);
+    int cond;
 
-    if (asLogicalNoNA(Cond, call))
+    if ((cond = asLogical(Cond)) == NA_LOGICAL)
+	errorcall(call, isLogical(Cond)
+		  ? "missing value where logical needed"
+		  : "argument of if(*) is not interpretable as logical");
+    else if (cond)
 	return (eval(CAR(CDR(args)), rho));
     else if (length(args) > 2)
 	return (eval(CAR(CDR(CDR(args))), rho));
@@ -691,22 +681,14 @@ SEXP do_if(SEXP call, SEXP op, SEXP args, SEXP rho)
 #define BodyHasBraces(body) \
     ((isLanguage(body) && CAR(body) == R_BraceSymbol) ? 1 : 0)
 
-#define DO_LOOP_DEBUG(call, op, args, rho, bgn) do { \
-    if (bgn && DEBUG(rho)) { \
-	Rprintf("debug: "); \
-	PrintValue(CAR(args)); \
-	do_browser(call,op,args,rho); \
-    } } while (0)
-
 
 SEXP do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    int dbg;
+    int tmp, dbg;
     volatile int i, n, bgn;
     SEXP sym, body;
     volatile SEXP ans, v, val;
     RCNTXT cntxt;
-    PROTECT_INDEX vpi, api;
 
     sym = CAR(args);
     val = CADR(args);
@@ -720,68 +702,74 @@ SEXP do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
     defineVar(sym, R_NilValue, rho);
     if (isList(val) || isNull(val)) {
 	n = length(val);
-	PROTECT_WITH_INDEX(v = R_NilValue, &vpi);
+	PROTECT(v = R_NilValue);
     }
     else {
 	n = LENGTH(val);
-	PROTECT_WITH_INDEX(v = allocVector(TYPEOF(val), 1), &vpi);
+	PROTECT(v = allocVector(TYPEOF(val), 1));
     }
     ans = R_NilValue;
 
     dbg = DEBUG(rho);
     bgn = BodyHasBraces(body);
 
-    PROTECT_WITH_INDEX(ans, &api);
-    begincontext(&cntxt, CTXT_LOOP, R_NilValue, rho, R_NilValue, R_NilValue);
-    switch (SETJMP(cntxt.cjmpbuf)) {
-    case CTXT_BREAK: goto for_break;
-    case CTXT_NEXT: goto for_next;
-    }
     for (i = 0; i < n; i++) {
-	DO_LOOP_DEBUG(call, op, args, rho, bgn);
-	switch (TYPEOF(val)) {
-	case LGLSXP:
-	    REPROTECT(v = allocVector(TYPEOF(val), 1), vpi);
-	    LOGICAL(v)[0] = LOGICAL(val)[i];
-	    setVar(sym, v, rho);
-	    break;
-	case INTSXP:
-	    REPROTECT(v = allocVector(TYPEOF(val), 1), vpi);
-	    INTEGER(v)[0] = INTEGER(val)[i];
-	    setVar(sym, v, rho);
-	    break;
-	case REALSXP:
-	    REPROTECT(v = allocVector(TYPEOF(val), 1), vpi);
-	    REAL(v)[0] = REAL(val)[i];
-	    setVar(sym, v, rho);
-	    break;
-	case CPLXSXP:
-	    REPROTECT(v = allocVector(TYPEOF(val), 1), vpi);
-	    COMPLEX(v)[0] = COMPLEX(val)[i];
-	    setVar(sym, v, rho);
-	    break;
-	case STRSXP:
-	    REPROTECT(v = allocVector(TYPEOF(val), 1), vpi);
-	    SET_STRING_ELT(v, 0, STRING_ELT(val, i));
-	    setVar(sym, v, rho);
-	    break;
-	case EXPRSXP:
-	case VECSXP:
-	    setVar(sym, VECTOR_ELT(val, i), rho);
-	    break;
-	case LISTSXP:
-	    setVar(sym, CAR(val), rho);
-	    val = CDR(val);
-	    break;
-	default: errorcall(call, "bad for loop sequence");
+	if( DEBUG(rho) && bgn ) {
+	    Rprintf("debug: ");
+	    PrintValue(body);
+	    do_browser(call,op,args,rho);
 	}
-	REPROTECT(ans = eval(body, rho), api);
-    for_next:
-	; /* needed for strict ISO C compilance, according to gcc 2.95.2 */
+	begincontext(&cntxt, CTXT_LOOP, R_NilValue, rho,
+		     R_NilValue, R_NilValue);
+	if ((tmp = SETJMP(cntxt.cjmpbuf))) {
+	    if (tmp == CTXT_BREAK) break;	/* break */
+	    else   continue;                       /* next  */
+
+	} else {
+	    if (isVector(v)) {
+		UNPROTECT(1);
+		PROTECT(v = allocVector(TYPEOF(val), 1));
+	    }
+	    switch (TYPEOF(val)) {
+	    case LGLSXP:
+		LOGICAL(v)[0] = LOGICAL(val)[i];
+		setVar(sym, v, rho);
+		ans = eval(body, rho);
+		break;
+	    case INTSXP:
+		INTEGER(v)[0] = INTEGER(val)[i];
+		setVar(sym, v, rho);
+		ans = eval(body, rho);
+		break;
+	    case REALSXP:
+		REAL(v)[0] = REAL(val)[i];
+		setVar(sym, v, rho);
+		ans = eval(body, rho);
+		break;
+	    case CPLXSXP:
+		COMPLEX(v)[0] = COMPLEX(val)[i];
+		setVar(sym, v, rho);
+		ans = eval(body, rho);
+		break;
+	    case STRSXP:
+		SET_STRING_ELT(v, 0, STRING_ELT(val, i));
+		setVar(sym, v, rho);
+		ans = eval(body, rho);
+		break;
+	    case EXPRSXP:
+	    case VECSXP:
+		setVar(sym, VECTOR_ELT(val, i), rho);
+		ans = eval(body, rho);
+		break;
+	    case LISTSXP:
+		setVar(sym, CAR(val), rho);
+		ans = eval(body, rho);
+		val = CDR(val);
+	    }
+	    endcontext(&cntxt);
+	}
     }
- for_break:
-    endcontext(&cntxt);
-    UNPROTECT(5);
+    UNPROTECT(4);
     R_Visible = 0;
     SET_DEBUG(rho, dbg);
     return ans;
@@ -790,29 +778,43 @@ SEXP do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 SEXP do_while(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    int dbg;
+    int cond, dbg;
     volatile int bgn;
-    volatile SEXP t, body;
+    volatile SEXP s, t, body;
     RCNTXT cntxt;
-    PROTECT_INDEX tpi;
 
     checkArity(op, args);
+    s = eval(CAR(args), rho);	/* ??? */
 
     dbg = DEBUG(rho);
     body = CADR(args);
     bgn = BodyHasBraces(body);
 
+	bgn = 1;
     t = R_NilValue;
-    PROTECT_WITH_INDEX(t, &tpi);
-    begincontext(&cntxt, CTXT_LOOP, R_NilValue, rho, R_NilValue, R_NilValue);
-    if (SETJMP(cntxt.cjmpbuf) != CTXT_BREAK) {
-	while (asLogicalNoNA(eval(CAR(args), rho), call)) {
-	    DO_LOOP_DEBUG(call, op, args, rho, bgn);
-	    REPROTECT(t = eval(body, rho), tpi);
+    for (;;) {
+	if ((cond = asLogical(s)) == NA_LOGICAL)
+	    errorcall(call, "missing value where logical needed");
+	else if (!cond)
+	    break;
+	if (bgn && DEBUG(rho)) {
+	    Rprintf("debug: ");
+	    PrintValue(CAR(args));
+	    do_browser(call,op,args,rho);
+	}
+	begincontext(&cntxt, CTXT_LOOP, R_NilValue, rho,
+		     R_NilValue, R_NilValue);
+	if ((cond = SETJMP(cntxt.cjmpbuf))) {
+	    if (cond == CTXT_BREAK) break;	/* break */
+	    else continue;                      /* next  */
+	}
+	else {
+	    PROTECT(t = eval(body, rho));
+	    s = eval(CAR(args), rho);
+	    UNPROTECT(1);
+	    endcontext(&cntxt);
 	}
     }
-    endcontext(&cntxt);
-    UNPROTECT(1);
     R_Visible = 0;
     SET_DEBUG(rho, dbg);
     return t;
@@ -821,11 +823,10 @@ SEXP do_while(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 SEXP do_repeat(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    int dbg;
+    int cond, dbg;
     volatile int bgn;
     volatile SEXP t, body;
     RCNTXT cntxt;
-    PROTECT_INDEX tpi;
 
     checkArity(op, args);
 
@@ -834,16 +835,23 @@ SEXP do_repeat(SEXP call, SEXP op, SEXP args, SEXP rho)
     bgn = BodyHasBraces(body);
 
     t = R_NilValue;
-    PROTECT_WITH_INDEX(t, &tpi);
-    begincontext(&cntxt, CTXT_LOOP, R_NilValue, rho, R_NilValue, R_NilValue);
-    if (SETJMP(cntxt.cjmpbuf) != CTXT_BREAK) {
-	for (;;) {
-	    DO_LOOP_DEBUG(call, op, args, rho, bgn);
-	    REPROTECT(t = eval(body, rho), tpi);
+    for (;;) {
+	if (DEBUG(rho) && bgn) {
+	    Rprintf("debug: ");
+	    PrintValue(CAR(args));
+	    do_browser(call, op, args, rho);
+	}
+	begincontext(&cntxt, CTXT_LOOP, R_NilValue, rho,
+		     R_NilValue, R_NilValue);
+	if ((cond = SETJMP(cntxt.cjmpbuf))) {
+	    if (cond == CTXT_BREAK) break;	/*break */
+	    else   continue;                    /* next  */
+	}
+	else {
+	    t = eval(body, rho);
+	    endcontext(&cntxt);
 	}
     }
-    endcontext(&cntxt);
-    UNPROTECT(1);
     R_Visible = 0;
     SET_DEBUG(rho, dbg);
     return t;
@@ -898,13 +906,14 @@ SEXP do_return(SEXP call, SEXP op, SEXP args, SEXP rho)
     v = vals;
     while (!isNull(a)) {
 	nv += 1;
-	if (CAR(a) == R_DotsSymbol)
-	    error("... not allowed in return");
 	if (isNull(TAG(a)) && isSymbol(CAR(a)))
 	    SET_TAG(v, CAR(a));
+	if (NAMED(CAR(v)) > 1)
+	    SETCAR(v, duplicate(CAR(v)));
 	a = CDR(a);
 	v = CDR(v);
     }
+    UNPROTECT(1);
     switch(nv) {
     case 0:
 	v = R_NilValue;
@@ -913,16 +922,13 @@ SEXP do_return(SEXP call, SEXP op, SEXP args, SEXP rho)
 	v = CAR(vals);
 	break;
     default:
-	for (v = vals; v != R_NilValue; v = CDR(v))
-	    if (NAMED(CAR(v)))
-		SETCAR(v, duplicate(CAR(v)));
 	v = PairToVectorList(vals);
 	break;
     }
-    UNPROTECT(1);
-
-    findcontext(CTXT_BROWSER | CTXT_FUNCTION, rho, v);
-
+    if (R_BrowseLevel)
+	findcontext(CTXT_BROWSER | CTXT_FUNCTION, rho, v);
+    else
+	findcontext(CTXT_FUNCTION, rho, v);
     return R_NilValue; /*NOTREACHED*/
 }
 
@@ -986,7 +992,7 @@ static SEXP evalseq(SEXP expr, SEXP rho, int forcelocal, SEXP tmploc)
 /* Main entry point for complex assignments */
 /* We have checked to see that CAR(args) is a LANGSXP */
 
-static char *asym[] = {":=", "<-", "<<-", "="};
+static char *asym[] = {":=", "<-", "<<-"};
 
 
 static SEXP applydefine(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -1082,7 +1088,7 @@ SEXP do_set(SEXP call, SEXP op, SEXP args, SEXP rho)
 	SETCAR(args, install(CHAR(STRING_ELT(CAR(args), 0))));
 
     switch (PRIMVAL(op)) {
-    case 1: case 3:					/* <-, = */
+    case 1:						/* <- */
 	if (isSymbol(CAR(args))) {
 	    s = eval(CADR(args), rho);
 	    if (NAMED(s))
@@ -1426,7 +1432,7 @@ SEXP EvalArgs(SEXP el, SEXP rho, int dropmissing)
  * at large in the world.
  */
 int DispatchOrEval(SEXP call, char *generic, SEXP args, SEXP rho,
-		   SEXP *ans, int dropmissing, int argsevald)
+		   SEXP *ans, int dropmissing)
 {
 #define AVOID_PROMISES_IN_DISPATCH_OR_EVAL
 #ifdef AVOID_PROMISES_IN_DISPATCH_OR_EVAL
@@ -1442,35 +1448,32 @@ int DispatchOrEval(SEXP call, char *generic, SEXP args, SEXP rho,
     SEXP x = R_NilValue;
     int dots = FALSE;
 
-    if( argsevald ) 
-	PROTECT(x = CAR(args));
-    else {
-	/* Find the object to dispatch on, dropping any leading
-	   ... arguments with missing or empty values.  If there are no
-	   arguments, R_NilValue is used. */
-	for (; args != R_NilValue; args = CDR(args)) {
-	    if (CAR(args) == R_DotsSymbol) {
-		SEXP h = findVar(R_DotsSymbol, rho);
-		if (TYPEOF(h) == DOTSXP) {
-		    /* just a consistency check */
-		    if (TYPEOF(CAR(h)) != PROMSXP)
-			error("value in ... is not a promise");
-		    dots = TRUE;
-		    x = eval(CAR(h), rho);
+    /* Find the object to dispatch on, dropping any leading
+       ... arguments with missing or empty values.  If there are no
+       arguments, R_NilValue is used. */
+    for (; args != R_NilValue; args = CDR(args)) {
+	if (CAR(args) == R_DotsSymbol) {
+	    SEXP h = findVar(R_DotsSymbol, rho);
+	    if (TYPEOF(h) == DOTSXP) {
+		/* just a consistency check */
+		if (TYPEOF(CAR(h)) != PROMSXP)
+		    error("value in ... is not a promise");
+		dots = TRUE;
+		x = eval(CAR(h), rho);
 		break;
-		}
-		else if (h != R_NilValue && h != R_MissingArg)
-		    error("... used in an incorrect context");
 	    }
-	    else {
-		dots = FALSE;
+	    else if (h != R_NilValue && h != R_MissingArg)
+		error("... used in an incorrect context");
+	}
+	else {
+	    dots = FALSE;
 	    x = eval(CAR(args), rho);
 	    break;
-	    }
 	}
-	PROTECT(x);
     }
-	/* try to dispatch on the object */
+    PROTECT(x);
+
+    /* try to dispatch on the object */
     if( isObject(x)) {
 	char *pt;
 	if (TYPEOF(CAR(call)) == SYMSXP)

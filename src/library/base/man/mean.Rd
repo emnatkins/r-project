@@ -2,7 +2,7 @@
 \title{Arithmetic Mean}
 \usage{
 mean(x, \dots)
-mean.default(x, trim = 0, na.rm = FALSE, \dots)
+mean.default(x, trim = 0, na.rm = FALSE)
 }
 \alias{mean}
 \alias{mean.default}
@@ -14,7 +14,6 @@ mean.default(x, trim = 0, na.rm = FALSE, \dots)
     trimmed from each end of \code{x} before the mean is computed.}
   \item{na.rm}{a logical value indicating whether \code{NA}
     values should be stripped before the computation proceeds.}
-  \item{\dots}{further arguments passed to or from other methods.}
 }
 \description{
   Generic function for the (trimmed) arithmetic mean.

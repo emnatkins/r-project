@@ -92,18 +92,15 @@ FUNTAB R_FunTab[] =
 {"function",	do_function,	0,	0,	-1,	PP_FUNCTION},
 {"as.function.default",do_asfunction,0,	11,	2,	PP_FUNCTION},
 {"<-",		do_set,		1,	100,	-1,	PP_ASSIGN},
-{"=",		do_set,		3,	100,	-1,	PP_ASSIGN},
 {"<<-",		do_set,		2,	100,	-1,	PP_ASSIGN2},
 {"{",		do_begin,	0,	0,	-1,	PP_CURLY},
 {"(",		do_paren,	0,	1,	1,	PP_PAREN},
 {"[",		do_subset,	1,	0,	-1,	PP_SUBSET},
 {"[[",		do_subset2,	2,	0,	2,	PP_SUBSET},
 {"$",		do_subset3,	3,	0,	2,	PP_DOLLAR},
-{"@",		do_AT,		0,	0,	2,	PP_DOLLAR},
 {"[<-",		do_subassign,	0,	0,	3,	PP_SUBASS},
 {"[[<-",	do_subassign2,	1,	100,	3,	PP_SUBASS},
 {"$<-",		do_subassign3,	1,	0,	3,	PP_SUBASS},
-{"@<-",		do_AT_assign,	0,	0,	3,	PP_SUBASS},
 {"switch",	do_switch,	0,	10,	-1,	PP_FUNCALL},
 {"browser",	do_browser,	0,	100,	0,	PP_FUNCALL},
 {"debug",	do_debug,	0,	101,	1,	PP_FUNCALL},
@@ -116,10 +113,10 @@ FUNTAB R_FunTab[] =
 {"delay",	do_delay,	0,	11,	2,	PP_FUNCALL},
 {".Alias",	do_alias,	0,	1,	1,	PP_FUNCALL},
 {".Primitive",	do_primitive,	0,	1,	1,	PP_FUNCALL},
-{"identical",	do_ident,	0,	11,	2,	PP_FUNCALL}, 
 
 
 /* Binary Operators */
+
 {"+",		do_arith,	PLUSOP,	1,	2,	PP_BINARY},
 {"-",		do_arith,	MINUSOP,1,	2,	PP_BINARY},
 {"*",		do_arith,	TIMESOP,1,	2,	PP_BINARY},
@@ -169,8 +166,6 @@ FUNTAB R_FunTab[] =
 {"drop",	do_drop,	0,	11,	1,	PP_FUNCALL},
 {"class",	do_class,	0,	1,	1,	PP_FUNCALL},
 {"class<-",	do_classgets,	0,	1,	2,	PP_FUNCALL},
-{"dataClass",	R_do_data_class,0,	1,	1,	PP_FUNCALL},
-{"objWithClass",R_do_set_class,	0,	1,	2,	PP_FUNCALL},
 {"unclass",	do_unclass,	0,	1,	1,	PP_FUNCALL},
 {"names",	do_names,	0,	11,	1,	PP_FUNCALL},
 {"names<-",	do_namesgets,	0,	11,	2,	PP_FUNCALL},
@@ -185,9 +180,9 @@ FUNTAB R_FunTab[] =
 {"attr<-",	do_attrgets,	0,	0,	3,	PP_FUNCALL},
 {"comment",	do_comment,	0,	11,	1,	PP_FUNCALL},
 {"comment<-",	do_commentgets,	0,	11,	2,	PP_FUNCALL},
-{"get",		do_get,		1,	11,	4,	PP_FUNCALL},
-{"exists",	do_get,		0,	11,	4,	PP_FUNCALL},
-{"assign",	do_assign,	0,	111,	4,	PP_FUNCALL},
+{"get",		do_get,		1,	10,	4,	PP_FUNCALL},
+{"exists",	do_get,		0,	10,	4,	PP_FUNCALL},
+{"assign",	do_assign,	0,	110,	4,	PP_FUNCALL},
 {"remove",	do_remove,	0,	111,	3,	PP_FUNCALL},
 {"duplicated",	do_duplicated,	0,	11,	1,	PP_FUNCALL},
 {"unique",	do_duplicated,	1,	11,	1,	PP_FUNCALL},
@@ -427,7 +422,6 @@ FUNTAB R_FunTab[] =
 {"do.call",	do_docall,	0,	11,	2,	PP_FUNCALL},
 {"as.call",	do_ascall,	0,	1,	1,	PP_FUNCALL},
 {"type.convert",do_typecvt,	1,	11,	4,	PP_FUNCALL},
-{"as.environment", do_as_environment,	0,	1,	1,	PP_FUNCALL},
 
 
 /* String Manipulation */
@@ -607,9 +601,6 @@ FUNTAB R_FunTab[] =
 {"mem.limits",	do_memlimits,	0,	11,	2,	PP_FUNCALL},
 {"merge",	do_merge,	0,	11,	4,	PP_FUNCALL},
 {"capabilities",do_capabilities,0,	11,	0,	PP_FUNCALL},
-{"new.env",	do_newenv,	0,	11,     2,      PP_FUNCALL},
-{"parent.env",  do_parentenv,   0,	11,     1,      PP_FUNCALL},
-{"parent.env<-",do_parentenvgets, 0,	11,     2,      PP_FUNCALL},
 #if 0
 {"visibleflag", do_visibleflag,	0,	1,	0,	PP_FUNCALL},
 #endif
@@ -656,10 +647,10 @@ FUNTAB R_FunTab[] =
 {"XFig",	do_XFig,	0,	111,   11,	PP_FUNCALL},
 {"PDF",		do_PDF,		0,	111,    9,	PP_FUNCALL},
 #ifdef Win32
-{"devga",	do_devga,	0,	111,	6,	PP_FUNCALL},
+{"devga",	do_devga,	0,	111,	5,	PP_FUNCALL},
 #endif
 #ifdef Unix
-{"X11",		do_X11,		0,	111,	8,	PP_FUNCALL},
+{"X11",		do_X11,		0,	111,	7,	PP_FUNCALL},
 {"gnome",	do_Gnome,	0,	111,	4,	PP_FUNCALL},
 {"GTK",		do_GTK,		0,	111,	4,	PP_FUNCALL},
 #endif
@@ -779,8 +770,7 @@ FUNTAB R_FunTab[] =
 {"socketConnection",do_sockconn,0,	11,     6,      PP_FUNCALL},
 {"getAllConnections",do_getallconnections,0,	11,     0,      PP_FUNCALL},
 {"summary.connection",do_sumconnection,0,	11,     1,      PP_FUNCALL},
-{"download", 	do_download,	0,      11,     5,      PP_FUNCALL},
-{"nsl", 	do_nsl,		0,      11,     1,      PP_FUNCALL},
+{"download", 	do_download,	0,      11,     4,      PP_FUNCALL},
 
 
 {"readDCF", 	do_readDCF,	0,      11,     2,      PP_FUNCALL},
@@ -893,11 +883,6 @@ void InitNames()
     SET_SYMVALUE(R_MissingArg, R_MissingArg);
     SET_PRINTNAME(R_MissingArg, mkChar(""));
     SET_ATTRIB(R_MissingArg, R_NilValue);
-    /* R_RestartToken */
-    R_RestartToken = allocSExp(SYMSXP);
-    SET_SYMVALUE(R_RestartToken, R_RestartToken);
-    SET_PRINTNAME(R_RestartToken, mkChar(""));
-    SET_ATTRIB(R_RestartToken, R_NilValue);
     /* Parser Structures */
     R_CommentSxp = R_NilValue;
     R_ParseText = R_NilValue;

@@ -1,7 +1,4 @@
 \name{lm}
-\alias{lm}
-\alias{print.lm}
-\alias{print.lm.null}
 \title{Fitting Linear Models}
 \description{
   \code{lm} is used to fit linear models.
@@ -15,6 +12,7 @@ lm(formula, data, subset, weights, na.action,
    method = "qr", model = TRUE, x = FALSE, y = FALSE, qr = TRUE,
    singular.ok = TRUE, contrasts = NULL, offset = NULL, \dots)
 }
+\alias{lm}
 \arguments{
   \item{formula}{a symbolic description of the model to be fit.
     The details of model specification are given below.}
@@ -79,7 +77,7 @@ lm(formula, data, subset, weights, na.action,
   \code{lm} returns an object of \code{\link{class}} \code{"lm"} or for
   multiple responses of class \code{c("mlm", "lm")}.
 %% actually also c("lm.null","lm") and c("mlm.null", "lm.null", "mlm", "lm")
-%% but I'm still not sure that this should be `it' for the future. {MM}.
+%% but I'm still not sure that this should be `it' for the future.. {MM}.
 
   The functions \code{summary} and \code{\link{anova}} are used to
   obtain and print a summary and analysis of variance table of the
@@ -118,7 +116,7 @@ lm(formula, data, subset, weights, na.action,
   The generic functions \code{\link{coefficients}}, \code{\link{effects}},
   \code{\link{residuals}}, \code{\link{fitted.values}}.
 
-  \code{\link{predict.lm}} (via \code{\link{predict}}) for prediction,
+  \code{\link{predict.lm}} (via \code{predict(..)}) for prediction,
   including confidence and prediction intervals.
 
   \code{\link{lm.influence}} for regression diagnostics, and

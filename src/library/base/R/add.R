@@ -234,7 +234,7 @@ add1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
     aod
 }
 
-add1.mlm <- function(object, scope, ...)
+add1.mlm <- function(...)
     stop("no add1 method implemented for mlm models")
 
 drop1 <- function(object, scope, ...) UseMethod("drop1")
@@ -357,7 +357,7 @@ drop1.lm <- function(object, scope, scale = 0, all.cols = TRUE,
     aod
 }
 
-drop1.mlm <- function(object, scope, ...)
+drop1.mlm <- function(object, ...)
     stop("drop1 not implemented for mlm models")
 
 drop1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),

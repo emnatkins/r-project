@@ -1,18 +1,9 @@
 \name{influence.measures}
-\alias{influence.measures}
-\alias{print.infl}
-\alias{summary.infl}
-
-\alias{hat}
-\alias{rstandard}
-\alias{rstudent}
-\alias{dfbetas}
-\alias{dffits}
-\alias{covratio}
-\alias{cooks.distance}
 \title{Regression Diagnostics}
 \usage{
 influence.measures(lm.obj)
+summary.infl (object, digits = max(2, getOption("digits") - 5), \dots)
+  print.infl (x, digits = max(3, getOption("digits") - 4), \dots)
 
 rstandard(lm.obj,
           infl = lm.influence(lm.obj),
@@ -26,6 +17,17 @@ cooks.distance(lm.obj, infl = \dots, res = \dots, sd = \dots)
 
 hat(x, intercept = TRUE)
 }
+\alias{influence.measures}
+\alias{print.infl}
+\alias{summary.infl}
+
+\alias{hat}
+\alias{rstandard}
+\alias{rstudent}
+\alias{dfbetas}
+\alias{dffits}
+\alias{covratio}
+\alias{cooks.distance}
 \arguments{
   \item{lm.obj}{the resulting object returned by \code{\link{lm}}.}
 

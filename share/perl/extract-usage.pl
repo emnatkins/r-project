@@ -26,7 +26,7 @@ use R::Rdtools;
 use R::Utils;
 use R::Rd;
 
-my $revision = ' $Revision: 1.5 $ ';
+my $revision = ' $Revision: 1.2 $ ';
 my $version;
 my $name;
 
@@ -44,7 +44,6 @@ listed in FILE.
 Options:
   -h, --help            print short help message and exit
   -v, --version         print version info and exit
-      --mode=MODE       use operation mode MODE (codoc or args)
       --os=NAME         use OS subdir \`NAME\' (unix, mac or windows)
       --OS=NAME         the same as \`--os\'.
 
@@ -53,23 +52,17 @@ END
   exit 0;
 }
 
-## <FIXME>
-## Currently, R_OSTYPE is always set on Unix/Windows.
-my $OSdir = R_getenv("R_OSTYPE", "mac");
-## </FIXME>
-my $opt_mode = "codoc";
-my $opt_v;
+my $OSdir = R_getenv("R_OSTYPE", "unix");
 
-GetOptions("h|help"    => \&usage,
-	   "v|version" => \$opt_v,
-	   "os|OS:s"   => \$OSdir,
-	   "mode=s"    => \$opt_mode
-	  ) or &usage();
-
+my @knownoptions = ("h|help", "v|version", "os|OS:s");
+GetOptions (@knownoptions) || &usage();
 &R_version($name, $version) if $opt_v;
+&usage() if $opt_h;
 
-open(INFILE, "< $ARGV[0]") or die "Can't open input file";
-open(OUTFILE, "> $ARGV[1]") or die "Can't open output file";
+$OSdir = $opt_os if $opt_os;
+
+open INFILE, "< $ARGV[0]" || die "Can't open input file";
+open OUTFILE, "> $ARGV[1]" || die "Can't open output file";
 
 while (<INFILE>) {
     chomp;
@@ -78,15 +71,12 @@ while (<INFILE>) {
 
     my $text = R::Rd::Rdpp($_, $OSdir);
 
-    print OUTFILE "# arglist: ", join(" ", get_arglist($text)), "\n"
-      unless ($opt_mode eq "codoc");
-
     {
-	local $/;		# unset for get_usages()
-	%usages = get_usages($text, $opt_mode);
+	local $/; # unset for get_usages
+	%usages = get_usages($text);
     }
     
-    foreach my $key (keys(%usages)){
+    foreach $key (keys(%usages)){
 	$usages{$key} =~ s/ *\\.?dots/ .../g;
 	if ($key !~ /^</) {
 	    print OUTFILE "$key <- function$usages{$key} NULL\n";

@@ -1,8 +1,6 @@
-friedman.test <- function(y, ...) UseMethod("friedman.test")
+friedman.test <- function(x, ...) UseMethod("friedman.test")
 
-friedman.test.default <-
-function(y, groups, blocks, ...)
-{
+friedman.test.default <- function(y, groups, blocks) {
     DNAME <- deparse(substitute(y))
     if (is.matrix(y)) {
         groups <- as.factor(c(col(y)))
@@ -44,9 +42,7 @@ function(y, groups, blocks, ...)
               class = "htest")
 }
 
-friedman.test.formula <-
-function(formula, data, subset, na.action, ...)
-{
+friedman.test.formula <- function(formula, data, subset, na.action) {
     if(missing(formula))
         stop("formula missing")
     ## <FIXME>

@@ -39,7 +39,10 @@
 #include <float.h>
 #include <ctype.h>
 
-#include <R_ext/libextern.h>
+#ifdef __MAIN__
+#define extern
+#endif
+
 
 /* Fundamental Data Types:  These are largely Lisp
  * influenced structures, with the exception of LGLSXP,
@@ -345,43 +348,42 @@ typedef int PROTECT_INDEX;
 #define REPROTECT(x,i) R_Reprotect(x,i)
 
 /* Evaluation Environment */
-LibExtern SEXP	R_GlobalEnv;	    /* The "global" environment */
+extern SEXP	R_GlobalEnv;	    /* The "global" environment */
 
 /* Special Values */
-LibExtern SEXP	R_NilValue;	    /* The nil object */
-LibExtern SEXP	R_UnboundValue;	    /* Unbound marker */
-LibExtern SEXP	R_MissingArg;	    /* Missing argument marker */
-extern SEXP	R_RestartToken;     /* Marker for restarted function calls */
+extern SEXP	R_NilValue;	    /* The nil object */
+extern SEXP	R_UnboundValue;	    /* Unbound marker */
+extern SEXP	R_MissingArg;	    /* Missing argument marker */
 
 /* Symbol Table Shortcuts */
-LibExtern SEXP	R_Bracket2Symbol;   /* "[[" */
-LibExtern SEXP	R_BracketSymbol;    /* "[" */
-LibExtern SEXP	R_BraceSymbol;      /* "{" */
-LibExtern SEXP	R_TmpvalSymbol;     /* "*tmp*" */
-LibExtern SEXP	R_ClassSymbol;	    /* "class" */
-LibExtern SEXP	R_DimNamesSymbol;   /* "dimnames" */
-LibExtern SEXP	R_DimSymbol;	    /* "dim" */
-LibExtern SEXP	R_DollarSymbol;	    /* "$" */
-LibExtern SEXP	R_DotsSymbol;	    /* "..." */
-LibExtern SEXP	R_DropSymbol;	    /* "drop" */
-LibExtern SEXP	R_LevelsSymbol;	    /* "levels" */
-LibExtern SEXP	R_ModeSymbol;	    /* "mode" */
-LibExtern SEXP	R_NamesSymbol;	    /* "names" */
-LibExtern SEXP	R_NaRmSymbol;	    /* "na.rm" */
-LibExtern SEXP	R_RowNamesSymbol;   /* "row.names" */
-LibExtern SEXP	R_SeedsSymbol;	    /* ".Random.seed" */
-LibExtern SEXP	R_TspSymbol;	    /* "tsp" */
-LibExtern SEXP	R_LastvalueSymbol;  /* ".Last.value" */
-LibExtern SEXP	R_CommentSymbol;    /* "comment" */
-LibExtern SEXP	R_SourceSymbol;     /* "source" */
-LibExtern SEXP	R_DotEnvSymbol;     /* ".Environment" */
-LibExtern SEXP	R_RecursiveSymbol;  /* "recursive" */
-LibExtern SEXP	R_UseNamesSymbol;   /* "use.names" */
+extern SEXP	R_Bracket2Symbol;   /* "[[" */
+extern SEXP	R_BracketSymbol;    /* "[" */
+extern SEXP	R_BraceSymbol;      /* "{" */
+extern SEXP	R_TmpvalSymbol;     /* "*tmp*" */
+extern SEXP	R_ClassSymbol;	    /* "class" */
+extern SEXP	R_DimNamesSymbol;   /* "dimnames" */
+extern SEXP	R_DimSymbol;	    /* "dim" */
+extern SEXP	R_DollarSymbol;	    /* "$" */
+extern SEXP	R_DotsSymbol;	    /* "..." */
+extern SEXP	R_DropSymbol;	    /* "drop" */
+extern SEXP	R_LevelsSymbol;	    /* "levels" */
+extern SEXP	R_ModeSymbol;	    /* "mode" */
+extern SEXP	R_NamesSymbol;	    /* "names" */
+extern SEXP	R_NaRmSymbol;	    /* "na.rm" */
+extern SEXP	R_RowNamesSymbol;   /* "row.names" */
+extern SEXP	R_SeedsSymbol;	    /* ".Random.seed" */
+extern SEXP	R_TspSymbol;	    /* "tsp" */
+extern SEXP	R_LastvalueSymbol;  /* ".Last.value" */
+extern SEXP	R_CommentSymbol;    /* "comment" */
+extern SEXP	R_SourceSymbol;     /* "source" */
+extern SEXP	R_DotEnvSymbol;     /* ".Environment" */
+extern SEXP	R_RecursiveSymbol;  /* "recursive" */
+extern SEXP	R_UseNamesSymbol;  /* "use.names" */
 
 /* Missing Values - others from Arith.h */
 #define NA_STRING	R_NaString
-LibExtern SEXP	R_NaString;	    /* NA_STRING as a CHARSXP */
-LibExtern SEXP	R_BlankString;	    /* "" as a CHARSXP */
+extern SEXP	R_NaString;	    /* NA_STRING as a CHARSXP */
+extern SEXP	R_BlankString;	    /* "" as a CHARSXP */
 
 /*--- FUNCTIONS ------------------------------------------------------ */
 
@@ -419,7 +421,6 @@ LibExtern SEXP	R_BlankString;	    /* "" as a CHARSXP */
 #define defineVar		Rf_defineVar
 #define dimgets			Rf_dimgets
 #define dimnamesgets		Rf_dimnamesgets
-#define DropDims                Rf_DropDims
 #define duplicate		Rf_duplicate
 #define elt			Rf_elt
 #define emptyEnv		Rf_emptyEnv
@@ -540,7 +541,6 @@ LibExtern SEXP	R_BlankString;	    /* "" as a CHARSXP */
 #define unprotect		Rf_unprotect
 #define unprotect_ptr		Rf_unprotect_ptr
 #define VectorToPairList	Rf_VectorToPairList
-#define vectorSubscript         Rf_vectorSubscript
 #endif
 
 /* Type Coercions of all kinds */
@@ -589,11 +589,7 @@ Rcomplex asComplex(SEXP);
 int asInteger(SEXP);
 int asLogical(SEXP);
 double asReal(SEXP);
-#ifdef __MWERKS__
-SEXP arraySubscript(int, SEXP, SEXP, SEXP(SEXP,SEXP), SEXP);
-#else
-SEXP arraySubscript(int, SEXP, SEXP, SEXP(), SEXP);
-#endif
+SEXP arraySubscript(int, SEXP, SEXP);
 SEXP classgets(SEXP, SEXP);
 Rboolean conformable(SEXP, SEXP);
 SEXP cons(SEXP, SEXP);
@@ -606,7 +602,6 @@ void CustomPrintValue(SEXP,SEXP);
 void defineVar(SEXP, SEXP, SEXP);
 SEXP dimgets(SEXP, SEXP);
 SEXP dimnamesgets(SEXP, SEXP);
-SEXP DropDims(SEXP);
 SEXP duplicate(SEXP);
 SEXP elt(SEXP, int);
 SEXP emptyEnv(void);
@@ -709,12 +704,6 @@ Rboolean StringBlank(SEXP);
 SEXP substitute(SEXP,SEXP);
 void unprotect(int);
 void unprotect_ptr(SEXP);
-#ifdef __MWERKS__
-SEXP vectorSubscript(int, SEXP, int*, SEXP(SEXP,SEXP), SEXP);
-#else
-SEXP vectorSubscript(int, SEXP, int*, SEXP(), SEXP);
-#endif
-
 void R_ProtectWithIndex(SEXP, PROTECT_INDEX *);
 void R_Reprotect(SEXP, PROTECT_INDEX);
 SEXP R_subassign3_dflt(SEXP, SEXP, SEXP, SEXP);
@@ -726,7 +715,6 @@ SEXP R_subset3_dflt(SEXP, SEXP);
 
 #ifdef __MAIN__
 #undef extern
-#undef LibExtern
 #endif
 
 /* General Cons Cell Attributes */

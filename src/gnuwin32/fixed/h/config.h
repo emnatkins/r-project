@@ -68,6 +68,15 @@
    and can do arithmetic on the latter */
 #define HAVE_DOUBLE_COMPLEX 1
 
+/* Define if calloc(0) does not return a null pointer. */
+#undef CALLOC_BROKEN
+
+/* Define if finite() is wrong for -Inf/NaN/Inf. */
+#undef FINITE_BROKEN
+
+/* Define if strptime() does not exist or fails pre-1970. */
+#define STRPTIME_BROKEN 1
+
 /* Define if you have BSD networking headers and libraries. */
 #undef HAVE_BSD_NETWORKING
 
@@ -103,28 +112,12 @@
 /* Define if you have the PNG headers and libraries. */
 #define HAVE_PNG 1
 
-/* Define if your system time functions do not count leap seconds, as
-   required by POSIX. */
-#define HAVE_POSIX_LEAPSECONDS 1
-
 /* Define if you have POSIX.1 compatible sigsetjmp/siglongjmp. */
 #define HAVE_POSIX_SETJMP 1
 
 /* Define if you have the Tcl/Tk headers and libraries and want Tcl/Tk
    support to be built. */
 #define HAVE_TCLTK 1
-
-/* Define if calloc(0) returns a null pointer. */
-#define HAVE_WORKING_CALLOC 1
-
-/* Define if finite() is correct for -Inf/NaN/Inf. */
-#define HAVE_WORKING_FINITE 1
-
-/* Define if log() is correct for 0/-1. */
-#define HAVE_WORKING_LOG 1
-
-/* Define if strptime() exists and does not fail pre-1970. */
-#undef HAVE_WORKING_STRPTIME
 
 /* Define if you have the X11 headers and libraries, and want the X11
    GUI to be built. */
@@ -138,6 +131,9 @@
 
 /* Define if you have IEEE 754 floating point arithmetic. */
 #define IEEE_754 1
+
+/* Define if log() is wrong for 0/-1. */
+#undef LOG_BROKEN
 
 /* Define if your system needs __setfpucw() to control FPU rounding.
    This was used to control floating point precision, rounding and
@@ -166,7 +162,7 @@
 
 /* Define this to be the extension used for shared libraries on your
    system. */
-#define SHLIB_EXT ".dll"
+#define SHLIB_EXT "dll"
 
 /* Define if your system is SunOS4, which is famous for broken header
    files. */
@@ -179,6 +175,9 @@
 /* Define if your system's rint() is broken.
    Apparently needed on HPUX. */
 #undef USE_BUILTIN_RINT
+
+/* Define if your system time functions count leap seconds. */
+#undef USING_LEAPSECONDS
 
 /* Define on HPUX if not using GCC. */
 #undef _HPUX_SOURCE

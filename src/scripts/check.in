@@ -34,7 +34,7 @@ use Text::DelimMatch;
 ## don't buffer output
 $| = 1;
 
-my $revision = ' $Revision: 1.58 $ ';
+my $revision = ' $Revision: 1.47.4.4 $ ';
 my $version;
 my $name;
 $revision =~ / ([\d\.]*) /;
@@ -79,11 +79,7 @@ my $R_HOME = $ENV{'R_HOME'} ||
 my $R_CMD = $ENV{'R_CMD'} ||
     die "Error: environment variable R_CMD not found\n";
 
-## <FIXME>
-## Currently, R_OSTYPE is always set on Unix/Windows.
-my $OS = R_getenv("R_OSTYPE", "mac");
-## </FIXME>
-
+my $OS = R_getenv("R_OSTYPE", "unix");
 my $R_exe = "${R_HOME}/bin/R";
 my $TMPDIR = R_getenv("TMPDIR", "/tmp");
 $WINDOWS = ($OS eq "windows");
@@ -118,8 +114,8 @@ my $R_opts = "--vanilla";
 if($opt_latex) {
     my $log = new R::Logfile();
     $log->checking("for working latex");
-    open(texfile, "> $TMPDIR/Rtextest$$.tex")
-      or die "Error: cannot write to Rtextest$$.tex\n";
+    open(texfile, "> $TMPDIR/Rtextest$$.tex") ||
+	die "Error: cannot write to Rtextest$$.tex\n";
     print texfile "\\documentclass\{article\}\\begin\{document\}" .
 	"test\\end\{document\}\n";
     close texfile;
@@ -138,8 +134,8 @@ if($opt_latex) {
 
 ## get the valid keywords for later ...
 my %standard_keywords = ();
-open(KEYWORDS, "< ${R_HOME}/doc/KEYWORDS.db")
-  or die "Cannot open \`KEYWORDS.db'";
+open(KEYWORDS, "< ${R_HOME}/doc/KEYWORDS.db") ||
+    die "Cannot open \`KEYWORDS.db'";
 while(<KEYWORDS>) {
     if(/^.*\|([^:]*):.*/) {
 	$standard_keywords{$1} = 1;
@@ -148,7 +144,7 @@ while(<KEYWORDS>) {
 close KEYWORDS;
 
 ## this is the main loop over all packages to be checked
-$#ARGV >= 0 or die "Error: no packages were specified";
+$#ARGV >= 0 || die "Error: no packages were specified";
 my $pkg;
 foreach $pkg (@ARGV) {
     ## $pkg should be the path to the package (bundle) root source
@@ -285,7 +281,7 @@ sub check_pkg {
     ## check for sufficient file permissions (Unix only).
     
     if($OS eq "unix") {
-	$log->checking("for sufficient/correct file permissions");
+	$log->checking("for sufficient file permissions");
 	my @badfiles = ();
 	my @excludepatterns = ("^.Rbuildignore\$", "\~\$", "\.swp\$",
 			       "^.*/\.#[^/]*\$", "^.*/#[^/]*#\$");
@@ -297,8 +293,6 @@ sub check_pkg {
 	    }
 	    close(RBUILDIGNORE);
 	}
-
-	## Phase 1.  Directories at least 755, files at least 644.
 	sub findWrongPerms {
 	    my $filename = $File::Find::name;
 	    $filename =~ s/^[^\/]*\///;
@@ -320,41 +314,7 @@ sub check_pkg {
 	    $log->message("  Please fix permissions and try again.");
 	    exit(1);
 	}
-
-	## Phase 2.  Text files (as determined by their extensions)
-	## should really be mode 644.
-	@badfiles = ();
-	my @textfile_patterns =
-	  ("\.[RSdq]\$",	# R source code
-	   "\.[Rr]d\$",		# Rd files
-	   "\.([Ccfh]|cc|cpp)\$",
-				# C/C++/FORTRAN sources and headers
-	   "^(DESCRIPTION|INDEX|TITLE)\$");
-	sub findWrongPerms {
-	    my $filename = $File::Find::name;
-	    $filename =~ s/^[^\/]*\///;
-	    foreach my $p (@excludepatterns) {
-		return 0 if($filename =~ /$p/);
-	    }
-	    if(-f $_ && (((stat $_)[2] & 00777) != oct("644"))) {
-		foreach my $p (@textfile_patterns) {
-		    if($filename =~ /$p/) {
-			push @badfiles, $File::Find::name;
-			last;
-		    }
-		}
-	    }
-	}
-	find(\&findWrongPerms, ".");
-	if($#badfiles >= 0) {
-	    $log->warning("  Found the following text files with " .
-			  "incorrect permissions:");
-	    $log->message("    " . join("\n    ", @badfiles));
-	    $log->message("  Please fix permissions.");
-	}
-	else {
-	    $log->result("OK");
-	    }
+	$log->result("OK");
     }
 
     if($in_bundle) {		# join DESCRIPTION and DESCRIPTION.in
@@ -429,38 +389,28 @@ sub check_pkg {
 	$log->result("OK");
     }
 
-    if($description->{"Depends"}) {
+    if($description->{"Depends"} =~ /\bR *\([^)]*\)/) {
+	## The `Depends' field is not required, and currently only R
+	## version dependencies are used, which must be of the form
+	## `R ($op $version)' with `$op' one of `<=' or `>='.
 	$log->checking("DESCRIPTION Depends field");
-	my @dependencies = split(/\,/, $description->{"Depends"});
-	my $any = 0;
-	foreach my $dep (@dependencies) {
-	    $dep =~ /^\s*(\w+)(\s*\(([^) ]+)\s+([^) ]+)\))?\s*$/;
-	    ## The entry is malformed if there is no match, or there is
-	    ## a match but the dep_op is different from `<=' or `>', or
-	    ## the dep_version does not only consist of digits, `.' or
-	    ## `-'.
-	    if(!($1) || ($2 && (!(($3 eq "<=") || ($3 eq ">="))
-				|| ($4 =~ /[^\d\.\-]/)))) {
-		$any++;
-		break;
-	    }
-	}
-	if($any == 0) {
-	    $log->result("OK")
+        $description->{"Depends"} =~ /\bR *\(([^) ]+) *([^) ]+)\)/;
+	if((($1 eq "<=") || ($1 eq ">=")) && $2) {
+	    $log->result("OK");
 	}
 	else {
 	    $log->warning();
 	    $log->message("  malformed Depends field");
 	}
     }
-
+    
     ## check usage of library.dynam (if any)
 
-    if(!$is_base_pkg && -d "R") {
+    if(-d "R") {
 	$log->checking("R files for library.dynam");
 	# only need to check the installed file
-	open Rfile, "< $library/$pkgname/R/$pkgname"
-	  or die "cannot open \`$library/$pkgname/R/$pkgname' for reading\n";
+	open Rfile, "< $library/$pkgname/R/$pkgname" ||
+	    die "cannot open \`$library/$pkgname/R/$pkgname' for reading\n";
 	my $any = 0;
 	while(<Rfile>) {
 	    if(/library.dynam\(\"(.*?)\"/o) {
@@ -484,34 +434,6 @@ sub check_pkg {
 	}
         close Rfile;
 	$log->result("OK") unless $any;
-    }
-
-    ## check whether methods have all arguments of the corresponding
-    ## generic.
-    if(-d "R") {
-	$log->checking("generic/method consistency");
-
-	my $Rcmd = "$TMPDIR/Rcmd.$$";
-	my $Rout = "$TMPDIR/Rout.$$";
-	open Rcmd, "> $Rcmd" or die "Cannot write to \`$Rcmd'\n";
-        print Rcmd "checkMethods(dir = \"${pkgdir}\")\n";
-        close Rcmd;
-        system("${R_exe} ${R_opts} --quiet < ${Rcmd} > ${Rout}");
-        my @out;
-        open Rout,  "< $Rout";
-        while(<Rout>) {chomp; push(@out, $_);}
-        close Rout;
-        unlink($Rcmd);
-        unlink($Rout);
-
-	@out = grep(!/^\>/, @out);
-	if($#out>=0) {
-	    $log->warning();
-	    $log->print(join("\n", @out) . "\n");
-	}
-	else {
-	    $log->result("OK");
-	}
     }
 
     ## check R documentation files
@@ -566,8 +488,8 @@ sub check_pkg {
 	}
 	
 	foreach $rdfile (@rdfiles) {
-	    open RDFILE, "< $rdfile"
-	      or die "cannot open \`$rdfile' for reading\n";
+	    open RDFILE, "< $rdfile" ||
+		die "cannot open \`$rdfile' for reading\n";
 
 	    my %keywords;
 	    my %tagcount;
@@ -670,10 +592,10 @@ sub check_pkg {
 
 	my $Rcmd = "$TMPDIR/Rcmd.$$";
 	my $Rout = "$TMPDIR/Rout.$$";
-	open Rcmd, "> $Rcmd" or die "Cannot write to \`$Rcmd'\n";
+	open Rcmd, "> $Rcmd" || die "Cannot write to \`$Rcmd'\n";
         print Rcmd "undoc(dir = \"${pkgdir}\")\n";
         close Rcmd;
-        system("${R_exe} ${R_opts} --quiet < ${Rcmd} > ${Rout}");
+        system("${R_exe} ${R_opts} < ${Rcmd} > ${Rout}");
         my @out;
         open Rout,  "< $Rout";
         while (<Rout>) {chomp; push(@out, $_);}
@@ -682,7 +604,7 @@ sub check_pkg {
         unlink($Rout);
 
 	my @err = grep {s/^Error *//} @out;
-	@out = grep {!/^(\>|character)/} @out;
+	@out = grep {/^ *\[/} @out;
 	if($#err<0) {
 	    if($#out>=0) {
 		$log->warning();
@@ -705,7 +627,7 @@ sub check_pkg {
 
 	my $Rcmd = "$TMPDIR/Rcmd.$$";
 	my $Rout = "$TMPDIR/Rout.$$";
-	open Rcmd, "> $Rcmd" or die "Cannot write to \`$Rcmd'\n";
+	open Rcmd, "> $Rcmd" || die "Cannot write to \`$Rcmd'\n";
         print Rcmd "codoc(dir = \"${pkgdir}\")\n";
         close Rcmd;
         system("${R_exe} ${R_opts} --quiet < ${Rcmd} > ${Rout}");
@@ -720,7 +642,9 @@ sub check_pkg {
 	## With the current heuristics codoc() may throw an error even
 	## though the documentation is valid.  Change this when we know
 	## what must be valid R code, similar to the above for undoc().
-	@out = grep(!/^(\>|Using)/, @out);
+	@out = grep {/^(\$| *\[|\t+|Multiple|Error)/} @out;
+	## Also, the `\t+' in the above is ugly, but needed to catch the
+	## pretty-printing in errorcall() for non-NULL call ...
 	if($#out>=0) {
 	    $log->warning();
 	    $log->print(join("\n", @out) . "\n");
@@ -729,62 +653,6 @@ sub check_pkg {
 	    $log->result("OK");
 	}
 	## </FIXME>
-    }
-
-    ## check whether all arguments shown in \usage are document in
-    ## \arguments.
-    if(-d "man") {
-	$log->checking("for undocumented arguments in \\usage");
-
-	my $Rcmd = "$TMPDIR/Rcmd.$$";
-	my $Rout = "$TMPDIR/Rout.$$";
-	open Rcmd, "> $Rcmd" or die "Cannot write to \`$Rcmd'\n";
-        print Rcmd "checkDocArgs(dir = \"${pkgdir}\")\n";
-        close Rcmd;
-        system("${R_exe} ${R_opts} --quiet < ${Rcmd} > ${Rout}");
-        my @out;
-        open Rout,  "< $Rout";
-        while(<Rout>) {chomp; push(@out, $_);}
-        close Rout;
-        unlink($Rcmd);
-        unlink($Rout);
-
-	@out = grep(!/^\>/, @out);
-	if($#out>=0) {
-	    $log->warning();
-	    $log->print(join("\n", @out) . "\n");
-	}
-	else {
-	    $log->result("OK");
-	}
-    }
-
-    ## check C sources/headers for CRLF line endings
-    if(-d "src") {
-	$log->checking("for CRLF line endings in C sources/headers");
-	my @srcfiles = glob("src/*.[ch]");
-	my @badfiles = ();
-	foreach my $file (@srcfiles) {
-	    open(SRCFILE, "< $file")
-	      or die "cannot open \`$file' for reading\n";
-            binmode(SRCFILE);  # for Windows
-	    while(<SRCFILE>) {
-		chop;
-		if($_ =~ /\r$/) {
-		    push(@badfiles, $file);
-		    last;
-		}
-	    }
-	    close(SRCFILE);
-	}
-	if($#badfiles >= 0) {
-	    $log->warning("  Found the following C sources/headers with " .
-			  "CRLF line endings:");
-	    $log->message("    " . join("\n    ", @badfiles));
-	}
-	else {
-	    $log->result("OK");
-	}
     }
 
     chdir($pkgoutdir);
@@ -944,7 +812,7 @@ sub Rsystem
 {
     my $cmd = $_[0];
     if($WINDOWS) {
-	open cfile,  "> $cfile" or die "Cannot write to \`$cfile'\n";
+	open cfile,  "> $cfile" || die "Cannot write to \`$cfile'\n";
 	print cfile "$cmd\n";
 	close cfile;
 	$res = system("sh $cfile");

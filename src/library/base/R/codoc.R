@@ -1,9 +1,7 @@
-codoc <-
-function(dir, use.values = FALSE, use.positions = TRUE,
-         ignore.generic.functions = FALSE,
-         keep.tempfiles = FALSE,
-         verbose = getOption("verbose"))
-{
+codoc <- function(dir, use.values = FALSE, use.positions = TRUE,
+                  ignore.generic.functions = FALSE,
+                  keep.tempfiles = FALSE,
+                  verbose = getOption("verbose")) {
     fQuote <- function(s) paste("`", s, "'", sep = "")
     listFilesWithExts <- function(dir, exts, path = TRUE) {
         ## Return the paths or names of the files in `dir' with
@@ -18,7 +16,6 @@ function(dir, use.values = FALSE, use.positions = TRUE,
         files
     }
 
-    ## Argument handling.
     if(missing(dir))
         stop("no package directory given")
     if(!file.exists(dir))
@@ -32,112 +29,40 @@ function(dir, use.values = FALSE, use.positions = TRUE,
     if(!file.exists(docsDir <- file.path(dir, "man")))
         stop(paste("directory", fQuote(dir),
                    "does not contain Rd sources"))
-    isBase <- basename(dir) == "base"
 
     unlinkOnExitFiles <- NULL
     if(!keep.tempfiles)
         on.exit(unlink(unlinkOnExitFiles))
 
-    ## Collect code into codeFile.
     codeFile <- tempfile("Rcode")
     unlinkOnExitFiles <- c(unlinkOnExitFiles, codeFile)
     codeExts <- c("R", "r", "S", "s", "q")
     files <- listFilesWithExts(codeDir, codeExts, path = FALSE)
+    if(any(i <- grep("^zzz\\.", files)))
+        files <- files[-i]
     files <- file.path(codeDir, files)
     if(file.exists(codeOSDir <- file.path(codeDir, .Platform$OS)))
         files <- c(files, listFilesWithExts(codeOSDir, codeExts))
     file.create(codeFile)
     file.append(codeFile, files)
 
-    ## Collect usages into docsFile.
     docsFile <- tempfile("Rdocs")
     unlinkOnExitFiles <- c(unlinkOnExitFiles, docsFile)
     docsExts <- c("Rd", "rd")
     files <- listFilesWithExts(docsDir, docsExts, path = FALSE)
-    if(isBase) {
-        baseStopList <- c("Defunct.Rd", "Devices.Rd")
-        files <- files[!files %in% baseStopList]
+    if(basename(dir) == "base") {
+        baseStopList <- c("Devices.Rd") # add more if needed
+	files <- files[-grep(baseStopList, files, ignore.case = TRUE)]
     }
     files <- file.path(docsDir, files)
     if(file.exists(docsOSDir <- file.path(docsDir, .Platform$OS)))
         files <- c(files, listFilesWithExts(docsOSDir, docsExts))
     docsList <- tempfile("Rdocs")
     unlinkOnExitFiles <- c(unlinkOnExitFiles, docsList)
-    writeLines(files, docsList)
+    cat(files, sep = "\n", file = docsList)
     .Script("perl", "extract-usage.pl", paste(docsList, docsFile))
 
-    ## Read code into .CodeEnv
-    lib.source <- function(file, envir) {
-        oop <- options(keep.source = FALSE)
-        on.exit(options(oop))
-        assignmentSymbol <- as.name("<-")
-        exprs <- parse(n = -1, file = file)
-        if(length(exprs) == 0)
-            return(invisible())
-        for(e in exprs) {
-            if(e[[1]] == assignmentSymbol)
-                yy <- eval(e, envir)
-        }
-        invisible()
-    }
-    .CodeEnv <- new.env()
-    if(verbose)
-        cat("Reading code from", fQuote(codeFile), "\n")        
-    lib.source(codeFile, env = .CodeEnv)
-    lsCode <- ls(envir = .CodeEnv, all.names = TRUE)
-    
-    ## Find the function objects to work on.
-    funs <- lsCode[sapply(lsCode, function(f) {
-        f <- get(f, envir = .CodeEnv)
-        is.function(f) && (length(formals(f)) > 0)
-    })]
-    if(ignore.generic.functions) {
-        isS3Generic <- function(f) {
-            any(grep("^UseMethod",
-                     deparse(body(get(f, envir = .CodeEnv)))[1]))
-        }
-        funs <- funs[sapply(funs, isS3Generic) == FALSE]
-    }
-    ## <FIXME>
-    ## Sourcing all R code files in the package is a problem for base,
-    ## where this misses the .Primitive functions.  Hence, when checking
-    ## base for objects shown in \usage but missing from the code, we
-    ## get the primitive functions from the version of R we are using.
-    ## Maybe one we will have R code for the primitives as well ...
-    if(isBase) {
-        baseObjs <- ls(envir = as.environment(NULL), all.names = TRUE)
-        isPrimitive <- function(fname, envir) {
-            f <- get(fname, envir = envir)
-            is.function(f) && any(grep("^\\.Primitive", deparse(f)))
-        }
-        lsCode <-
-            c(lsCode, baseObjs[sapply(baseObjs, isPrimitive, NULL)],
-              c(".First.lib", ".Last.lib", ".Random.seed"))
-    }
-    ## </FIXME>
-
     .DocsEnv <- new.env()
-    checkCoDoc <- function(f) {
-        ffc <- formals(get(f, envir = .CodeEnv))
-        ffd <- formals(get(f, envir = .DocsEnv))
-        if(!use.positions) {
-            ffc <- ffc[sort(names(ffc))]
-            ffd <- ffc[sort(names(ffd))]
-        }
-        if(!use.values) {
-            ffc <- names(ffc)
-            ffd <- names(ffd)
-        }
-        if(all(all.equal(ffc, ffd) == TRUE))
-            NULL
-        else {
-            list(list(name = f, code = ffc, docs = ffd))
-        }
-    }
-
-    ## Process the usages in the Rd files, one at a time.
-    lsDocs <- character()
-    badUsages <- list()
     if(verbose)
         cat("Reading docs from", fQuote(docsFile), "\n")
     txt <- readLines(docsFile)
@@ -157,69 +82,73 @@ function(dir, use.values = FALSE, use.positions = TRUE,
             if(inherits(yy, "try-error"))
                 stop(paste("cannot eval", gsub("^# ", "", whereAmI)))
         }
-
-        badUsagesInFile <- list()
-        file <- gsub("^# usages in file ", "", whereAmI)
-        usages <- ls(envir = .DocsEnv, all.names = TRUE)
-        for(f in usages[usages %in% funs])
-            badUsagesInFile <- c(badUsagesInFile, checkCoDoc(f))
-        if(length(badUsagesInFile) > 0)
-            badUsages[[file]] <- badUsagesInFile
-
-        usagesNotInCode <- usages[! usages %in% lsCode]
-        if(length(usagesNotInCode) > 0) {
-            writeLines(paste("Objects with usage in file `", file,
-                             "' but missing from code:", sep = ""))
-            print(unique(usagesNotInCode))
-            writeLines("")
-        }
-
-        lsDocs <- c(lsDocs, usages)
-        rm(list = usages, envir = .DocsEnv)
     }
+    lsDocs <- ls(envir = .DocsEnv, all.names = TRUE)
 
-    ## Objects without usage information.
-    ## Could still be documented via \alias.
-    undocObjs <- lsCode[!lsCode %in% lsDocs]
+    lib.source <- function(file, env) {
+        oop <- options(keep.source = FALSE)
+        on.exit(options(oop))
+        exprs <- parse(n = -1, file = file)
+        if(length(exprs) == 0)
+            return(invisible())
+        for(i in exprs) yy <- eval(i, env)
+        invisible()
+    }
+    .CodeEnv <- new.env()
+    if(verbose)
+        cat("Reading code from", fQuote(codeFile), "\n")        
+    lib.source(codeFile, env = .CodeEnv)
+    lsCode <- ls(envir = .CodeEnv, all.names = TRUE)
+
+    funs <- sapply(lsCode,
+                   function(f) is.function(get(f, envir = .CodeEnv)))
+    ## Undocumented variables?
+    vars <- lsCode[funs == FALSE]
+    undocVars <- vars[!vars %in% lsDocs]
     if(verbose) {
-        writeLines("\nObjects without usage information:")
-        print(undocObjs)
-        writeLines("")        
+        cat("\nVariables without usage information:\n")
+        print(undocVars)
+    }
+    ## Undocumented functions?
+    funs <- lsCode[funs]
+    undocFuns <- funs[!funs %in% lsDocs]
+    if(verbose) {
+        cat("\nFunctions without usage information:\n")
+        print(undocFuns)
     }
 
-    class(badUsages) <- "codoc"
-    badUsages
-}
+    ## Function objects which are non-primitive (such that args() is
+    ## non-NULL) and have wrong usage documentation
+    args <- lapply(funs,
+                   function(f) args(get(f, envir = .CodeEnv)))
+    funs <- funs[(funs %in% lsDocs) & (sapply(args, length) > 0)]
+    if(ignore.generic.functions) {
+        isGeneric <- function(f) {
+            any(grep("UseMethod",
+                     deparse(body(get(f, envir = .CodeEnv)))))
+        }
+        funs <- funs[sapply(funs, isGeneric) == FALSE]
+    }
 
-print.codoc <-
-function(x, ...)
-{
-    if(length(x) == 0)
-        return(invisible())
-    hasOnlyNames <- is.character(x[[1]][[1]][["code"]])
-    formatArgs <- function(s) {
-        if(hasOnlyNames) {
-            paste("function(", paste(s, collapse = ", "), ")", sep = "")
+    getCoDoc <- function(f) {
+        ffc <- formals(get(f, envir = .CodeEnv))
+        ffd <- formals(get(f, envir = .DocsEnv))
+        if(!use.positions) {
+            ffc <- ffc[sort(names(ffc))]
+            ffd <- ffc[sort(names(ffd))]
         }
-        else {
-            s <- paste(deparse(s), collapse = "")
-            s <- gsub(" = \([,\\)]\)", "\\1", s)
-            gsub("^list", "function", s)
+        if(!use.values) {
+            ffc <- names(ffc)
+            ffd <- names(ffd)
         }
+        list(code = ffc, docs = ffd)
     }
-    for(fname in names(x)) {
-        writeLines(paste("Codoc mismatches from file `", fname, "':",
-                         sep = ""))
-        xfname <- x[[fname]]
-        for(i in seq(along = xfname))
-            writeLines(c(xfname[[i]][["name"]],
-                         strwrap(paste("Code:",
-                                       formatArgs(xfname[[i]][["code"]])),
-                                 indent = 2, exdent = 17),
-                         strwrap(paste("Docs:",
-                                       formatArgs(xfname[[i]][["docs"]])),
-                                 indent = 2, exdent = 17)))
-        writeLines("")
-    }
-    invisible(x)
+    wrongfuns <- lapply(funs, getCoDoc)
+    names(wrongfuns) <- funs
+    wrongfuns <-
+        wrongfuns[sapply(wrongfuns,
+                          function(u) {
+                              all(all.equal(u$code, u$docs) == TRUE)
+                          }) == FALSE]
+    wrongfuns
 }

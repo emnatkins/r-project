@@ -1,8 +1,7 @@
-seq <- function(...) UseMethod("seq")
+seq <- function(x, ...) UseMethod("seq")
 
-seq.default <-
-    function(from = 1, to = 1, by = ((to - from)/(length.out - 1)),
-             length.out = NULL, along.with = NULL, ...)
+seq.default <- function(from = 1, to = 1, by = ((to - from)/(length.out - 1)),
+			length.out = NULL, along.with = NULL)
 {
     if((One <- nargs() == 1) && !missing(from)) {
 	lf <- length(from)

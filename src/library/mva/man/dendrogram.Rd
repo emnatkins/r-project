@@ -6,31 +6,28 @@
 \alias{plotNode}
 \alias{plotNodeLimit}
 \alias{cut.dendrogram}
-\description{
-  Class \code{"dendrogram"} provides general functions for handling
-  tree-like structures.  It is intended as a replacement for similar
-  functions in hierarchical clustering and classification/regression
-  trees, such that all of these can use the same engine for plotting or
-  cutting trees. Currently the code is in alpha stage and the API may
-  change at any point in time.
-}
+\description{Class \code{"dendrogram"} provides general functions for
+  handling tree-like structures. It is
+  intended as a replacement for similar functions in hierarchical
+  clustering and classification/regression trees, such that all of these
+  can use the same engine for plotting or cutting trees. Currently the
+  code is in alpha stage and the API may change at any point in time.}
 \usage{
-\method{plot}{dendrogram}(x, type=c("rectangle", "triangle"),
+plot.dendrogram(dobj, type=c("rectangle", "triangle"),
                 center=FALSE, xlab="", ylab="", ...)
-\method{cut}{dendrogram}(x, h, ...)
+as.dendrogram.hclust(object, ...)
+cut.dendrogram(dobj, h)
 
 plotNode(x1, x2, subtree, type, center)
 plotNodeLimit(x1, x2, subtree, center)
 }
 \arguments{
-  \item{x}{Object of class \code{"dendrogram"}.}
+  \item{dobj}{Object of class \code{"dendrogram"}.}
   \item{type}{Type of plot.}
   \item{center}{If \code{TRUE}, nodes are plotted centered with respect to
     the leaves in the branch. Default is to plot them in the middle of all
     direct child nodes.}
   \item{h}{Height at which the tree is cutted.}
-  \item{\dots, xlab, ylab}{graphical parameters, or arguments for
-    other methods.}
 }
 \details{
   Warning: This documentation is preliminary.
@@ -56,9 +53,6 @@ plotNodeLimit(x1, x2, subtree, center)
   \code{$lower}, the first is a truncated version of the original tree,
   the latter a list with the branches obtained from cutting the tree.
 
-  Objects of class \code{"hclust"} can be converted to class
-  \code{"dendrogram"} using method \code{as.dendrogram}.
-
   \code{plotNode()} and \code{plotNodeLimit()} are helper functions.
 }
 \examples{
@@ -73,3 +67,4 @@ plot(dend2$lower[[3]])
 }
 %FIXME !! -- proper Keyword !!
 \keyword{multivariate}
+

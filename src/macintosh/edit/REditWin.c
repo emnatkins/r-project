@@ -31,8 +31,6 @@
  *	C port by John C. Daub
  */
 
-#include <RCarbon.h>
-
 #ifndef __APPLEEVENTS__
 # include <AppleEvents.h>
 #endif

@@ -23,8 +23,6 @@
 /* Updated for Carbon compatibility    */
 /* March 2001, Stefano M.Iacus         */
 
-#include <RCarbon.h>
-
 #include "RIntf.h"
 
 static unsigned char pathname[2048];

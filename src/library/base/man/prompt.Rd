@@ -5,10 +5,10 @@ prompt(object, \dots)
 
 prompt.default(object,
     filename = paste(name, ".Rd", sep = ""),
-    force.function = FALSE, \dots)
+    force.function = FALSE)
 
 prompt.data.frame(object,
-    filename = paste(name, ".Rd", sep = ""), \dots)
+    filename = paste(name, ".Rd", sep = ""))
 }
 \alias{prompt}
 \alias{prompt.default}
@@ -17,7 +17,6 @@ prompt.data.frame(object,
   \item{object}{an \R object, typically a function}
   \item{filename}{name of the output file}
   \item{force.function}{treat \code{object} as function in any case}
-  \item{\dots}{further arguments passed to or from other methods.}
 }
 \description{
   Facilitate the constructing of files documenting \R functions.

@@ -8,8 +8,7 @@
 }
 \usage{
 \method{t.test}{default}(x, y = NULL, alternative = c("two.sided", "less", "greater"),
-       mu = 0, paired = FALSE, var.equal = FALSE,
-       conf.level = 0.95, \dots)
+       mu = 0, paired = FALSE, var.equal = FALSE, conf.level = 0.95)
 \method{t.test}{formula}(formula, data, subset, na.action, \dots)
 }
 \arguments{
@@ -38,7 +37,7 @@
   \item{na.action}{a function which indicates what should happen when
     the data contain \code{NA}s.  Defaults to
     \code{getOption("na.action")}.}
-  \item{\dots}{further arguments to be passed to or from methods.}  
+  \item{\dots}{further arguments to be passed to the default method.}
 }
 \details{
   The formula interface is only applicable for the 2-sample tests.

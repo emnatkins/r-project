@@ -103,5 +103,4 @@ void Rconn_setEncoding(Rconnection con, SEXP enc);
 void init_con(Rconnection new, char *description, char *mode);
 Rconnection R_newurl(char *description, char *mode);
 Rconnection R_newsock(char *host, int port, int server, char *mode);
-Rconnection in_R_newsock(char *host, int port, int server, char *mode);
 int dummy_vfprintf(Rconnection con, const char *format, va_list ap);

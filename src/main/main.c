@@ -62,6 +62,7 @@ static void R_ReplFile(FILE *fp, SEXP rho, int savestack, int browselevel)
     int status, count=0;
 
     for(;;) {
+	Reset_C_alloc();
 	R_PPStackTop = savestack;
 	R_CurrentExpr = R_Parse1File(fp, 1, &status);
 	switch (status) {
@@ -150,6 +151,8 @@ static void R_ReplConsole(SEXP rho, int savestack, int browselevel)
 	    R_IoBufferPutc(c, &R_ConsoleIob);
 	    if(c == ';' || c == '\n') break;
 	}
+	if (browselevel)
+	    Reset_C_alloc();
 
 	R_PPStackTop = savestack;
 	R_CurrentExpr = R_Parse1Buffer(&R_ConsoleIob, 0, &status);
@@ -290,6 +293,11 @@ int R_ReplDLLdo1()
 /* the read-eval-print loop. */
 
 
+/* The following variable must be external to mainloop because gcc -O */
+/* seems to eliminate a local one? */
+
+static int doneit;
+
 FILE* R_OpenSysInitFile(void);
 FILE* R_OpenSiteFile(void);
 FILE* R_OpenInitFile(void);
@@ -297,33 +305,33 @@ FILE* R_OpenInitFile(void);
 #ifdef OLD
 static void R_LoadProfile(FILE *fp)
 #else
-static void R_LoadProfile(FILE *fparg, SEXP env)
+static void R_LoadProfile(FILE *fp, SEXP env)
 #endif
 {
-    FILE * volatile fp = fparg; /* is this needed? */
     if (fp != NULL) {
-	if (! SETJMP(R_Toplevel.cjmpbuf)) {
-	    R_GlobalContext = R_ToplevelContext = &R_Toplevel;
-#ifndef __MRC__
-	    signal(SIGINT, onintr);
-#endif
+	R_Inputfile = fp;
+	doneit = 0;
+	SETJMP(R_Toplevel.cjmpbuf);
+	R_GlobalContext = R_ToplevelContext = &R_Toplevel;
+	signal(SIGINT, onintr);
+	if (!doneit) {
+	    doneit = 1;
 #ifdef OLD
-	    R_ReplFile(fp, R_NilValue, 0, 0);
+	    R_ReplFile(R_Inputfile, R_NilValue, 0, 0);
 #else
-	    R_ReplFile(fp, env, 0, 0);
+	    R_ReplFile(R_Inputfile, env, 0, 0);
 #endif
 	}
-	fclose(fp);
+        R_Inputfile = NULL;
     }
 }
 
 /* Use this to allow e.g. Win32 malloc to call warning.
    Don't use R-specific type, e.g. Rboolean */
-/* int R_Is_Running = 0; now in Defn.h */
+int R_Is_Running = 0;
 
 void setup_Rmainloop(void)
 {
-    volatile int doneit;
     SEXP cmd;
     FILE *fp;
 
@@ -367,6 +375,7 @@ void setup_Rmainloop(void)
     InitArithmetic();
     InitColors();
     InitGraphics();
+    Init_C_alloc();
     R_Is_Running = 1;
     
     /* gc_inhibit_torture = 0; */
@@ -395,6 +404,7 @@ void setup_Rmainloop(void)
     */
 
     fp = R_OpenLibraryFile("base");
+    R_Inputfile = NULL;
     if (fp == NULL) {
 	R_Suicide("unable to open the base package\n");
     }
@@ -402,11 +412,9 @@ void setup_Rmainloop(void)
     doneit = 0;
     SETJMP(R_Toplevel.cjmpbuf);
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
-#ifndef __MRC__
     signal(SIGINT, onintr);
     signal(SIGUSR1,onsigusr1);
     signal(SIGUSR2,onsigusr2);
-#endif
     if (!doneit) {
 	doneit = 1;
 	R_ReplFile(fp, R_NilValue, 0, 0);
@@ -432,11 +440,9 @@ void setup_Rmainloop(void)
     doneit = 0;
     SETJMP(R_Toplevel.cjmpbuf);
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
-#ifndef __MRC__
     signal(SIGINT, onintr);
     signal(SIGUSR1,onsigusr1);
     signal(SIGUSR2,onsigusr2);
-#endif
     if (!doneit) {
 	doneit = 1;
 	R_InitialData();
@@ -451,9 +457,7 @@ void setup_Rmainloop(void)
     doneit = 0;
     SETJMP(R_Toplevel.cjmpbuf);
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
-#ifndef __MRC__
     signal(SIGINT, onintr);
-#endif
     if (!doneit) {
 	doneit = 1;
 	PROTECT(cmd = install(".First"));
@@ -486,11 +490,10 @@ void run_Rmainloop(void)
     R_IoBufferInit(&R_ConsoleIob);
     SETJMP(R_Toplevel.cjmpbuf);
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
-#ifndef __MRC__
     signal(SIGINT, onintr);
     signal(SIGUSR1,onsigusr1);
     signal(SIGUSR2,onsigusr2);
-#endif
+
     R_ReplConsole(R_GlobalEnv, 0, 0);
     end_Rmainloop(); /* must go here */
 }
@@ -617,13 +620,9 @@ SEXP do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    R_Visible = 0;
 	}
 	R_GlobalContext = &thiscontext;
-#ifndef __MRC__
 	signal(SIGINT, onintr);
-#endif
 	R_BrowseLevel = savebrowselevel;
-#ifndef __MRC__
-    signal(SIGINT, onintr);
-#endif
+        signal(SIGINT, onintr);
 	R_ReplConsole(rho, savestack, R_BrowseLevel);
 	endcontext(&thiscontext);
     }

@@ -22,7 +22,8 @@ rbind(\dots, deparse.level = 1)
   The functions \code{cbind} and \code{rbind} are generic, with methods
   for data frames.  The data frame method will be used if an argument is
   a data frame and the rest are vectors or matrices.  There can be other
-  methods; in particular, there is one for time series objects.
+  methods, for example \code{\link[ts:ts.union]{cbind.ts}} in package
+  \code{ts}.
 
   If there are several matrix arguments, they must all have the same
   number of columns (or rows) and this will be the number of columns (or

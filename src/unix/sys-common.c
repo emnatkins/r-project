@@ -94,9 +94,6 @@ FILE *R_OpenSiteFile(void)
 	    return fp;
 	if ((fp = R_fopen(getenv("RPROFILE"), "r")))
 	    return fp;
-	sprintf(buf, "%s/etc/Rprofile.site", R_Home);
-	if ((fp = R_fopen(buf, "r")))
-	    return fp;
 	sprintf(buf, "%s/etc/Rprofile", R_Home);
 	if ((fp = R_fopen(buf, "r")))
 	    return fp;
@@ -221,10 +218,7 @@ char *R_HomeDir()
  */
 
 #ifdef Win32
-# include <windows.h>
-#elif defined(__APPLE__)
-# include <crt_externs.h>
-# define environ (*_NSGetEnviron())
+#include <windows.h>
 #else
 extern char ** environ;
 #endif
@@ -665,35 +659,11 @@ static char *findterm(char *s)
 
 static void Putenv(char *a, char *b)
 {
-    char *buf, *value, *p, *q, quote='\0';
-    int inquote = 0;
+    char *buf;
 
     buf = (char *) malloc((strlen(a) + strlen(b) + 2) * sizeof(char));
     if(!buf) R_Suicide("allocation failure in reading Renviron");
-    strcpy(buf, a); strcat(buf, "="); 
-    value = buf+strlen(buf);
-
-    /* now process the value */
-    for(p = b, q = value; *p; p++) {
-	/* remove quotes around sections, preserve \ inside quotes */
-	if(!inquote && (*p == '"' || *p == '\'')) {
-	    inquote = 1;
-	    quote = *p;
-	    continue;
-	}
-	if(inquote && *p == quote && *(p-1) != '\\') {
-	    inquote = 0;
-	    continue;
-	}
-	if(!inquote && *p == '\\') {
-	    if(*(p+1) == '\n') p++;
-	    else if(*(p+1) == '\\') *q++ = *p;
-	    continue;
-	}
-	if(inquote && *p == '\\' && *(p+1) == quote) continue;
-	*q++ = *p;
-    }
-    *q = '\0';
+    strcpy(buf, a); strcat(buf, "="); strcat(buf, b);
     putenv(buf);
     /* no free here: storage remains in use */
 }
@@ -736,33 +706,26 @@ static int process_Renviron(char *filename)
 }
 
 
-/* try system Renviron: R_HOME/etc/Renviron.  Unix only. */
-void process_system_Renviron()
+/* read R_HOME/etc/Renviron:  Unix only */
+void process_global_Renviron()
 {
-    char buf[PATH_MAX];
+    char buf[1024];
     
     strcpy(buf, R_Home);
     strcat(buf, "/etc/Renviron");
-    if(!process_Renviron(buf))
-	R_ShowMessage("cannot find system Renviron");
+    if(!process_Renviron(buf)) R_ShowMessage("cannot find system Renviron");
 }
 
-/* try site Renviron: R_ENVIRON, then R_HOME/etc/Renviron.site. */
-void process_site_Renviron ()
-{
-    char buf[PATH_MAX];
-
-    if(process_Renviron(getenv("R_ENVIRON"))) return;
-    sprintf(buf, "%s/etc/Renviron.site", R_Home);
-    process_Renviron(buf);
-}
-
-/* try user Renviron: ./.Renviron, then ~/.Renviron */
-void process_user_Renviron()
+/* try ./.Renviron, then value of R_ENVIRON, then ~/.Renviron */
+void process_users_Renviron()
 {
     char *s;
     
     if(process_Renviron(".Renviron")) return;
+    if((s = getenv("R_ENVIRON"))) {
+	process_Renviron(s);
+	return;
+    } 
 #ifdef Unix
     s = R_ExpandFileName("~/.Renviron");
 #endif

@@ -32,17 +32,18 @@
 #include <unistd.h>
 #endif
 
-#include <Defn.h>
-#include <Rdynpriv.h>
+#include "Defn.h"
+#include "R_ext/Rdynpriv.h"
 
 #ifdef HAVE_DLFCN_H
-# include <dlfcn.h>
+#include <dlfcn.h>
 #else
-# ifdef HAVE_DL_H
-#  include "hpdlfcn.c"
-# define HAVE_DLFCN_H
-# endif
+#ifdef HAVE_DL_H
+#include "hpdlfcn.c"
+#define HAVE_DLFCN_H
 #endif
+#endif
+
 
 #include "FFDecl.h"
 

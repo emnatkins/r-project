@@ -726,6 +726,5 @@ SEXP do_syssleep(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_syssleep(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     error("Sys.sleep is not implemented on this system");
-    return R_NilValue;		/* -Wall */
 }
-#endif /* HAVE_TIMES */
+#endif

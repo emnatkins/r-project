@@ -390,17 +390,15 @@ weights.default <- function(object, ...)
 }
 
 weights.lm <- .Alias(weights.default)
-
-
+df.residual.lm <- function(object, ...) object$df.residual
 deviance.lm <- function(object, ...)
     sum(weighted.residuals(object)^2, na.rm=TRUE)
-
-formula.lm <- function(x, ...)
+formula.lm <- function(object, ...)
 {
-    form <- x$formula
+    form <- object$formula
     if( !is.null(form) )
         return(form)
-    formula(x$terms)
+    formula(object$terms)
 }
 
 family.lm <- function(object, ...) { gaussian() }
@@ -417,13 +415,13 @@ model.frame.lm <- function(formula, data, na.action, ...) {
     else formula$model
 }
 
-variable.names.lm <- function(object, full=FALSE, ...)
+variable.names.lm <- function(object, full=FALSE)
 {
     if(full)	dimnames(object$qr$qr)[[2]]
     else	dimnames(object$qr$qr)[[2]][1:object$rank]
 }
 
-case.names.lm <- function(object, full=FALSE, ...)
+case.names.lm <- function(object, full=FALSE)
 {
     w <- weights(object)
     dn <- .Alias(names(residuals(object)))
@@ -712,7 +710,7 @@ predict.lm <-
     else predictor
 }
 
-effects.lm <- function(object, set.sign = FALSE, ...)
+effects.lm <- function(object, set.sign = FALSE)
 {
     eff <- object$effects
     if(set.sign) {

@@ -47,9 +47,7 @@ ns(x, df, knots, intercept = FALSE, Boundary.knots)
     specify \code{knots} and \code{Boundary.knots}.
 }
 \seealso{
-  \code{\link{bs}},
-  \code{\link{poly}},
-  \code{\link{predict.ns}}
+  \code{bs}, \code{poly}, \code{predict.ns}
 }
 \examples{
 data(women)

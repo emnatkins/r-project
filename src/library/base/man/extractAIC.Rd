@@ -2,7 +2,6 @@
 \name{extractAIC}
 \title{Extract AIC from a Fitted Model}
 %
-\alias{extractAIC}
 \alias{extractAIC.aov}  
 \alias{extractAIC.lm}
 \alias{extractAIC.glm}    

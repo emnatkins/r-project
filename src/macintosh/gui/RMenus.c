@@ -56,10 +56,6 @@
 
 
 /*            INCLUDE HEADER FILE           */
-
-
-#include <RCarbon.h>
-
 #ifndef __ALIASES__
 #include <Aliases.h>
 #endif
@@ -107,7 +103,6 @@
 #include <Scrap.h>
 #include "Graphics.h"
 #include <Rdevices.h>
-#include "Fileio.h"
 
 /*         DEFINE CONSTANTS        */
 #define eNoSuchFile                      9
@@ -132,13 +127,10 @@ extern OSErr DoSelectDirectory( void );
 extern char *mac_getenv(const char *name);
 
 MenuRef 		HelpMenu=NULL; /* This Handle willtake care of the Help Menu */
-static 	short 	RHelpMenuItem=-1;
-static 	short 	RTopicHelpItem=-1;
-static	short 	RunExampleItem=-1;
+static 	short RHelpMenuItem=-1;
+static 	short RTopicHelpItem=-1;
+static	short RunExampleItem=-1;
 static	short	SearchHelpItem=-1;
-static	short	LinkHtmlHelpItem=-1;
-static  short  	PreferencesItem=-1;
-
 
 //	user structure passed to the NavEventFilter callback
 
@@ -186,8 +178,6 @@ OSErr DoSource(void);
 OSErr SourceFile(FSSpec  	*myfss);
 int GetTextSize(void);
 int GetScreenRes(void);
-Boolean RunningOnCarbonX(void);
-
 
 void consolecmd(char *cmd);
 static pascal void NavEventFilter(NavEventCallbackMessage,NavCBRec *,void *);
@@ -512,15 +502,7 @@ void PrepareMenus(void)
     else
       CheckMenuItem(windowsMenu, kItemAllowInterrupt, false);
       
-   menu = GetMenuHandle(kHMHelpMenuID);
-   EnableMenuItem  (menu, RHelpMenuItem);
-   EnableMenuItem  (menu, RTopicHelpItem);
-   EnableMenuItem  (menu, SearchHelpItem);
-   EnableMenuItem  (menu, RunExampleItem); 
-   EnableMenuItem  (menu, LinkHtmlHelpItem); 
 
-   menu = GetMenuHandle(kMenuApple);
-   EnableMenuCommand(menu, kHICommandPreferences); 
 }
 
 
@@ -673,7 +655,7 @@ OSStatus DoOpen ( void )
 /*
    Routine now handles XDR object. Nov 2000 (Stefano M. Iacus)
 */
-    if(!(fp = R_fopen(InitFile, "rb"))) { /* binary file */
+    if(!(fp = fopen(InitFile, "rb"))) { /* binary file */
 	warning("File cannot be opened !");
 	/* warning here perhaps */
 	return;
@@ -781,12 +763,13 @@ OSErr SourceFile(FSSpec  	*myfss)
     char 		cmd[FILENAME_MAX+25];
     SInt16		pathLen;
     Handle		pathName=NULL;
+    FInfo		fileInfo;
 
     if(myfss == NULL)
      return(-1);
      
-    cmd[0] = '\0';
-     
+    err = FSpGetFInfo(myfss, &fileInfo);
+    if (err != noErr) return err;
     FSpGetFullPath(myfss, &pathLen, &pathName);
     HLock((Handle)pathName);
     strncpy(sourcefile, *pathName, pathLen);
@@ -796,8 +779,7 @@ OSErr SourceFile(FSSpec  	*myfss)
     sprintf(cmd,"source(\"%s\")",sourcefile);
 
     consolecmd(cmd);
-    if(pathName)
-     DisposeHandle(pathName);
+
 
 }
 
@@ -1212,12 +1194,6 @@ void DoHelpChoice(SInt16 menuItem)
 
   if(menuItem == RunExampleItem)
     Do_RunExample();
-  
-  if(menuItem == LinkHtmlHelpItem){
-   	consolecmd("link.html.help()");
-    return;
-   }
-   
   
 }
 
@@ -1700,10 +1676,6 @@ void DoMenuChoice(SInt32 menuChoice, EventModifiers modifiers, WindowPtr window)
 }
 
 
-	
-
-
-
 /* InitializeMenus
  */
 OSErr InitializeMenus(void)
@@ -1744,24 +1716,7 @@ OSErr InitializeMenus(void)
    	    SearchHelpItem=CountMenuItems(HelpMenu);
 		AppendMenu(HelpMenu, "\pRun An Example...");
 		RunExampleItem=CountMenuItems(HelpMenu);
-		AppendMenu(HelpMenu, "\pLink Packages Help");
-		LinkHtmlHelpItem=CountMenuItems(HelpMenu);
 	}
-
-    /* Appends the Preferences menuitem to the Config menu */
-    /* This is not needed under OS X                       */
-    
-    if( !RunningOnCarbonX()){
-     if( (menu = GetMenuHandle( kMenuConfig )) == NULL) goto cleanup;
-     AppendMenu(menu, "\pPreferences...");
-     PreferencesItem = CountMenuItems(menu);
-     if( (err = SetMenuItemCommandID (menu, PreferencesItem, kHICommandPreferences)) != noErr)
-      goto cleanup;
-    }
-
-
-
-
 
 #if TARGET_API_MAC_CARBON
 	if ( ( Gestalt ( gestaltMenuMgrAttr, & gestaltResponse ) == noErr ) &&
@@ -1799,16 +1754,6 @@ cleanup :
 }
 
 
-
-
-Boolean RunningOnCarbonX(void)
-{
-    UInt32 response;
-    
-    return (Gestalt(gestaltSystemVersion, 
-                    (SInt32 *) &response) == noErr)
-                && (response >= 0x01000);
-}
 /* do_Print
 
   This routine has been completely rewritten.
@@ -2043,7 +1988,47 @@ static pascal void NavEventFilter
 				}
 			}
 			
+			//	intercept clicks in our custom items, if any
+	/*		else if ( cd && ( event -> what == mouseDown ) )
+			{
+				switch ( inPB -> eventData . itemHit - cd -> numItems )
+				{
+					case kItemFormatPopup :
+					{
+						if ( cd -> formatPopup )
+						{
+							switch ( GetControlValue ( cd -> formatPopup ) )
+							{
+								case kItemTextFormat :
+								{
+									cd -> fileType = kTypeText ;
+									break ;
+								}
 
+								case kItemUnicodeTextFormat :
+								{
+									cd -> fileType = kTypeUnicodeText ;
+									break ;
+								}
+							}
+						}
+						break ;
+					}
+
+		     		case kItemStationeryCheckbox :
+					{
+						if ( cd -> stationeryCheckbox )
+						{
+							cd -> isStationery = 1 - cd -> isStationery ;
+							SetControlValue ( cd -> stationeryCheckbox, cd -> isStationery ) ;
+						}
+						break ;
+					}
+						
+				}
+			}
+			break ;
+			*/
 		}
 
 		case kNavCBCustomize :

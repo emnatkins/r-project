@@ -145,19 +145,16 @@ R_ARG_WITH_EXCLUSIVE(g77, f2c,
   AC_MSG_WARN(${warn_g77_and_f2c})
   use_f2c=false])
 
-## BLAS.
 AC_ARG_WITH(blas,
   [  --with-blas             use specified BLAS library],
   R_ARG_USE(blas),
   use_blas=true)
 
-## Readline.
 AC_ARG_WITH(readline,
   [  --with-readline         use readline library (if available) [yes]],
   R_ARG_USE(readline),
   use_readline=true)
 
-## GNOME.
 AC_ARG_WITH(gnome,
   [  --with-gnome            use GNOME, or specify its prefix [no]],
   [ if test "${withval}" = no; then
@@ -172,7 +169,6 @@ AC_ARG_WITH(gnome,
     fi],
   want_gnome=no)
 
-## Tcl/Tk.
 AC_ARG_WITH(tcltk,
   [  --with-tcltk            use Tcl/Tk, or specify its library dir [yes]],
   [ if test "${withval}" = no; then
@@ -232,9 +228,6 @@ case "${host}" in
     AC_AIX
     LIBS="${LIBS} -lc"
     ;;
-  ## <FIXME>
-  ## Autoconf 2.50 or better has AC_PROG_CC_STDC which takes care of
-  ## this.
   *hpux*)
     case "${CC}" in
       cc)
@@ -248,7 +241,6 @@ case "${host}" in
 	;;
     esac
     ;;
-  ## </FIXME>
 esac
 
 R_PROG_CC_M
@@ -402,8 +394,6 @@ eval "export ${shlibpath_var}"
 
 AC_PROG_CXX
 AC_PROG_CXXCPP
-R_PROG_CXX_M
-R_PROG_CXX_C_O_LO
 
 ### Libraries.
 
@@ -439,10 +429,10 @@ fi
 AC_FUNC_ALLOCA
 AC_FUNC_VFORK
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS(access acosh asinh atanh bcopy bzero finite ftruncate \
-  getcwd getgrgid getpwuid getuid hypot isascii isnan matherr memcpy \
-  memmove mempcpy mkfifo popen putenv rint setenv snprintf strcoll \
-  stat strptime system times unsetenv vsnprintf)
+AC_CHECK_FUNCS(access acosh asinh atanh bcopy finite ftruncate getcwd \
+  getgrgid getpwuid getuid hypot isnan matherr memcpy memmove mkfifo \
+  popen putenv rint setenv snprintf strcoll stat strptime system times \
+  unsetenv vsnprintf)
 AC_REPLACE_FUNCS(strdup)
 AC_SEARCH_LIBS(connect, [socket])
 AC_SEARCH_LIBS(gethostbyname, [nsl socket])
@@ -452,7 +442,6 @@ R_FUNC_CALLOC
 R_FUNC_FINITE
 R_FUNC_LOG
 R_FUNC_STRPTIME
-R_IEEE_754
 
 ### Header files.
 
@@ -460,17 +449,11 @@ AC_HEADER_STDC
 AC_HEADER_TIME
 AC_HEADER_DIRENT
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(arpa/inet.h dl.h dlfcn.h elf.h errno.h fcntl.h \
-  floatingpoint.h fpu_control.h grp.h ieee754.h ieeefp.h locale.h \
-  netdb.h netinet/in.h pwd.h readline/history.h readline/readline.h \
-  rpc/xdr.h string.h strings.h sys/param.h sys/select.h sys/socket.h \
-  sys/stat.h sys/time.h sys/times.h sys/utsname.h unistd.h)
-## <FIXME>
-## AC_CHECK_HEADERS(libintl.h)
-## src/main/regex.c uses HAVE_LIBINTL_H.
-## But then we want full gettext support and AM_GNU_GETTEXT.
-## </FIXME>
-
+AC_CHECK_HEADERS(dl.h dlfcn.h elf.h errno.h fcntl.h floatingpoint.h \
+  fpu_control.h grp.h ieee754.h ieeefp.h locale.h netdb.h netinet/in.h \
+  pwd.h readline/history.h readline/readline.h rpc/rpc.h rpc/xdr.h \
+  string.h sys/param.h sys/select.h sys/socket.h sys/stat.h \
+  sys/time.h sys/times.h sys/utsname.h unistd.h)
 case "${host}" in
   *sunos4*)
     AC_DEFINE(SunOS4) ;;
@@ -496,6 +479,7 @@ fi
 AC_CHECK_SIZEOF(long, 4)
 AC_CHECK_SIZEOF(long long, 0)
 AC_CHECK_SIZEOF(long double, 0)
+R_C_IEEE_754
 
 ### Platform-specific overrides for the C, FORTRAN and C++ compilers.
 
@@ -623,7 +607,7 @@ AC_SUBST(R_XTRA_LIBS)
 main_ld=${CC}
 shlib_ld=${CC}
 shlib_cxxld=${CXX}
-SHLIB_EXT=".so"
+SHLIB_EXT="so"
 SHLIB_LIBADD=
 
 ## Step 1.  Ask imake.
@@ -680,9 +664,6 @@ case "${host}" in
     shlib_ldflags="-shared"
     ;;
   *-*-darwin*)
-    cpicflags="-fno-common"
-    cxxpicflags="-fno-common"
-    fpicflags="-fno-common"
     shlib_ldflags="-bundle -undefined suppress"
     shlib_cxxldflags="-bundle -undefined suppress"
     ;;
@@ -694,7 +675,7 @@ case "${host}" in
     main_ldflags="-export-dynamic"
     ;;
   *hpux*)
-    SHLIB_EXT=".sl"
+    SHLIB_EXT=sl
     case "${CC}" in
       cc|c89)
         cpicflags="+Z" ;;
@@ -762,8 +743,6 @@ case "${host}" in
       if test -n "${ldoutput}"; then
         shlib_cxxldflags="-shared"
       fi
-    else
-      cxxpicflags="-KPIC"
     fi
     ;;
 esac
@@ -864,19 +843,6 @@ if test -z "${SHLIB_CXXLDFLAGS}"; then
   AC_MSG_WARN(${warn_shlib_cxxldflags})
 fi
 
-## Step 6.  We may need flags different from SHLIB_LDFLAGS and SHLIB_EXT
-## for building R as a shared library to link against (the SHLIB_* vars
-## just determined are really for loadable modules).  On ELF there is no
-## difference, but e.g. on Mach-O for Darwin there is.
-LIBR_EXT="${SHLIB_EXT}"
-LIBR_LDFLAGS="${SHLIB_LDFLAGS}"
-case "${host}" in
-  *-*-darwin*)
-    LIBR_EXT=".dylib"
-    LIBR_LDFLAGS="-dynamiclib"
-    ;;
-esac
-
 AC_SUBST(MAIN_LD)
 AC_SUBST(MAIN_LDFLAGS)
 AC_SUBST(CPICFLAGS)
@@ -890,8 +856,6 @@ AC_SUBST(SHLIB_LIBADD)
 AC_SUBST(SHLIB_EXT)
 AC_DEFINE_UNQUOTED(SHLIB_EXT, "${SHLIB_EXT}")
 AC_SUBST(EXPORTFILE)
-AC_SUBST(LIBR_EXT)
-AC_SUBST(LIBR_LDFLAGS)
 
 ### System services.
 
@@ -933,7 +897,7 @@ R_XDR
 R_ZLIB
 
 ## POSIX times.
-R_SYS_POSIX_LEAPSECONDS
+R_USES_LEAPSECONDS
 
 ## R profiling.
 if test "${want_R_profiling}" = yes; then
@@ -1003,7 +967,7 @@ AC_SUBST(R_LD_LIBRARY_PATH)
 ### Final cleanups/rewrites.
 
 ## <FIXME>
-## This will no longer be necessary in Autoconf 2.50 or better.
+## This will no longer be necessary in Autoconf 2.49b or better.
 LTLIBOBJS=`echo $LIBOBJS | sed 's/\.o/\.lo/g'`
 AC_SUBST(LTLIBOBJS)
 LTALLOCA=`echo "$ALLOCA" | sed 's/\.o/.lo/g'`
@@ -1027,7 +991,6 @@ AC_OUTPUT(Makeconf
   src/Makefile
   src/appl/Makefile
   src/include/Makefile
-  src/include/R_ext/Makefile
   src/library/Makefile
   src/library/base/DESCRIPTION
   src/library/base/Makefile
@@ -1041,9 +1004,6 @@ AC_OUTPUT(Makeconf
   src/library/lqs/DESCRIPTION
   src/library/lqs/Makefile
   src/library/lqs/src/Makefile
-  src/library/methods/DESCRIPTION
-  src/library/methods/Makefile
-  src/library/methods/src/Makefile
   src/library/modreg/DESCRIPTION
   src/library/modreg/Makefile
   src/library/modreg/src/Makefile
@@ -1087,7 +1047,6 @@ AC_OUTPUT(Makeconf
   src/scripts/check
   src/unix/Makefile
   tests/Makefile
-  tests/Embedding/Makefile
   tests/Examples/Makefile
   tools/Makefile
 )

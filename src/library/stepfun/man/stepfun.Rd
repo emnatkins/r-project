@@ -6,8 +6,8 @@ stepfun(x, y, f = 0, ties = "ordered")
 is.stepfun(x)
 knots(Fn, \dots)
 
-\method{print}{stepfun}(x, digits= getOption("digits") - 2, \dots)
-\method{summary}{stepfun}(object, \dots)
+print.stepfun(Fn, digits, \dots)
+summary.stepfun(Fn)
 }
 \alias{stepfun}
 \alias{is.stepfun}
@@ -24,10 +24,7 @@ knots(Fn, \dots)
     the given x values should happen.  See  \code{\link{approxfun}}.}
   \item{ties}{Handling of tied \code{x} values. Either a function or
     the string \code{"ordered"}.  See  \code{\link{approxfun}}.}
-
-  \item{Fn, object, x}{an \R object inheriting from \code{"stepfun"}.}
-  \item{digits}{number of significant digits to use, see \code{\link{print}}.}
-  \item{\dots}{potentially further arguments (require by the generic).}
+  \item{Fn}{an \R object inheriting from \code{"stepfun"}.}
 }
 \description{
   Given the vectors \eqn{(x_1,\ldots, x_n)}{(x[1],\ldots, x[n])} and

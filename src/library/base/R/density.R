@@ -110,7 +110,6 @@ plot.density <- function(x, main=NULL, xlab=NULL, ylab="Density", type="l",
     if(is.null(main)) main <- deparse(x$call)
     plot.default(x, main=main, xlab=xlab, ylab=ylab, type=type, ...)
     if(zero.line) abline(h=0, lwd=0.1, col = "gray")
-    invisible(NULL)
 }
 
 print.density <- function(x, digits=NULL, ...)

@@ -19,7 +19,6 @@
 
 #include "Graphics.h"
 #include "R_ext/Boolean.h"
-Rboolean GADeviceDriver(DevDesc*, char*, double, double, double, 
-			Rboolean, int, int);
+Rboolean GADeviceDriver(DevDesc*, char*, double, double, double, Rboolean, int);
 void GAsetunits(double, double);
 

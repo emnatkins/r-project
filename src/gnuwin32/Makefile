@@ -13,7 +13,7 @@ LEA_MALLOC=YES
 USE_ATLAS=NO
 ATLAS_PATH=/R/ATLAS/lib/WinNT_PII
 
-PACKAGES = base ctest eda lqs methods modreg mva nls splines stepfun ts
+PACKAGES = base ctest eda lqs modreg mva nls splines stepfun ts
 ALLPACKAGES = $(PACKAGES) tcltk
 
 RHOME = $(shell perl pwd.pl ../..)# must be absolute path
@@ -60,18 +60,11 @@ endif
 tcl: 
 	$(MAKE) STAMP=NO pkg-tcltk
 
-CFLAGS = $(OPTFLAGS) -I../include -I. -DHAVE_CONFIG_H -DR_DLL_BUILD
+CFLAGS = $(OPTFLAGS) -I../include -I. -DHAVE_CONFIG_H
 FFLAGS = $(OPTFLAGS)
 
-## cross-building needs an import library: native builds can use the DLL.
-## we do need to build R.exp to ship if for use with VC++ etc.
-ifeq ($(strip $(BUILD)),CROSS)
-rbuild: fixfiles rlibs makeMakedeps ../../bin/R.dll libR.a \
-	 CHTML front-ends COPYRIGHTS rmodules
-else
-rbuild: fixfiles rlibs makeMakedeps ../../bin/R.dll R.exp\
-	 CHTML front-ends COPYRIGHTS rmodules
-endif
+rbuild: fixfiles rlibs makeMakedeps ../../bin/R.dll libR.a CHTML \
+	 ../include/globalvar.h front-ends COPYRIGHTS rmodules
 
 rpackage: fixed/fixdesc ../../library/R.css
 	$(MAKE) STAMP=NO $(PKGS)
@@ -115,7 +108,7 @@ Rdll: makeMakedeps ../../bin/R.dll
 	$(MKDIR) -p ../../bin
 	$(CP) R.dll ../../bin/
 
-front-ends:
+front-ends: libR.a
 	$(MAKE) -C front-ends
 
 R.a: $(OBJS)
@@ -126,7 +119,6 @@ R.a: $(OBJS)
 
 # R.dll exports all global symbols BUT import library (libR.a)
 # only (all functions) + (global vars listed in exported-vars))
-# Only used in the cross-compilation case.
 
 libR.a:  R.exp
 	$(DLLTOOL) $(DLLTOOLFLAGS) $(R-DLLTOOLFLAGS) --dllname R.dll --def R.exp --output-lib libR.a
@@ -141,8 +133,7 @@ R.exp1: R.a $(MAINLIBS) $(EXTRALIBS) exported-vars
 	$(CAT) exported-vars >> $@
 	$(RM) RDefs
 
-# A version needed for the modules that uses R.dll's malloc/.../free
-# Used in all cases.
+# A version needed for the modules that uses R.dll's malloc/.../free:
 
 libRm.a:  Rm.exp
 	$(DLLTOOL) $(DLLTOOLFLAGS) $(R-DLLTOOLFLAGS) --dllname R.dll --def Rm.exp --output-lib libRm.a
@@ -156,6 +147,11 @@ Rm.exp1: R.a $(OBJS-EXTRA) $(MAINLIBS) $(EXTRALIBS) exported-vars
 	$(SED) -n '/^........ [T] _/s/^........ [T] _/ /p' RDefs >> $@
 	$(CAT) exported-vars >> $@
 	$(RM) RDefs
+
+
+# avoid building globalvar.h with errors
+../include/globalvar.h: exported-vars
+	perl -n makeimps.pl exported-vars > $@
 
 ../../library/R.css: ../../doc/html/R.css
 	$(CP) $< $@
@@ -188,7 +184,7 @@ ts-ZIPDATA = zip
 bundle-%:
 	$(PERL) fixed/dobundle.pl $* $(PKGD) $(RLIB)
 
-pkg-%:
+pkg-%:  libR.a #../include/globalvar.h
 	$(MAKE) DLLNM=$($*-DLLNM)  FLIBS="$(FLIBS)" EXTRADOCS=$($*-EXTRADOCS) \
 	  -C $(PKGDIR)/$* PKG=$* RHOME=$(RHOME) RLIB=$(RLIB) \
 	  -f $(RHOME)/src/gnuwin32/MakePkg
@@ -250,7 +246,7 @@ clean: cleanwin $(PKGCLEAN)
 	-$(MAKE) -C ../../tests -f Makefile.win clean
 
 distclean veryclean: clean
-	$(RM) COPYRIGHTS R.exp Rm.exp 
+	$(RM) R.exp Rm.exp globalvar.h 
 	$(RM) -r ../../bin ../../library ../../modules
 	$(RM) ../include/config.h ../include/psignal.h \
 	../include/Rconfig.h ../include/version.h 
@@ -262,8 +258,8 @@ distclean veryclean: clean
 	../../doc/html/rw-FAQ.html ../../doc/html/search/SearchEngine.html
 	$(RM) ../../etc/Rconsole ../../etc/Rdevga ../../etc/Rprofile \
 	../../etc/rgb.txt ../../share/make/tests.mk \
-	../include/Platform.h ../../tests/*.Rout ../../tests/*.Rout.fail
-	$(MAKE) -C fixed distclean
+	../include/FFDecl.h ../include/FFTab.h ../include/Platform.h \
+	../include/globalvar.h ../../tests/*.Rout ../../tests/*.Rout.fail
 	-$(MAKE) -C installer ISdistclean
 
 cleanwin:
@@ -316,7 +312,7 @@ FAQs: rw-faq fixed/html/rw-FAQ.html
 
 fixed/html/rw-FAQ.html: rw-FAQ.texi ../../VERSION RWVERSION
 	@$(SED) $(SEDVER) $< > tmp.texi
-	makeinfo --html --no-headers --number-sections -o tmp.html tmp.texi
+	makeinfo --no-split --html --no-headers --number-sections -o tmp.html tmp.texi
 	-tidy tmp.html > $@ 2> /dev/null
 	@$(RM) tmp.texi tmp.html
 
@@ -393,7 +389,7 @@ endif
 #taken from ../include/Makefile.in
 SRC_HEADERS = R.h S.h Rdefines.h Rgraphics.h Rinternals.h Rmath.h
 OBJ_HEADERS = Rconfig.h Rversion.h
-GW32_HEADERS =
+GW32_HEADERS = globalvar.h
 
 packagedist:
 	$(RM) -r $(RPREFIX)sp.zip $(RPREFIX)

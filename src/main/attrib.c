@@ -25,7 +25,6 @@
 
 #include <Defn.h>
 #include <Rmath.h>
-#include <Rdefines.h>
 
 static void checkNames(SEXP, SEXP);
 static SEXP installAttrib(SEXP, SEXP, SEXP);
@@ -331,90 +330,6 @@ SEXP do_class(SEXP call, SEXP op, SEXP args, SEXP env)
     return getAttrib(CAR(args), R_ClassSymbol);
 }
 
-/* character elements corresponding to the syntactic types in the
-   grammar */
-static SEXP lang2str(SEXP obj, SEXPTYPE t)
-{
-  SEXP symb = CAR(obj);
-  static SEXP if_sym = 0, while_sym, for_sym, eq_sym, gets_sym,
-    lpar_sym, lbrace_sym, call_sym;
-  if(!if_sym) {
-    /* initialize:  another place for a hash table */
-    if_sym = install("if");
-    while_sym = install("while");
-    for_sym = install("for");
-    eq_sym = install("=");
-    gets_sym = install("<-");
-    lpar_sym = install("(");
-    lbrace_sym = install("{");
-    call_sym = install("call");
-  }
-  if(isSymbol(symb)) {
-    if(symb == if_sym || symb == for_sym || symb == while_sym ||
-       symb == lpar_sym || symb == lbrace_sym || 
-       symb == eq_sym || symb == gets_sym)
-      return PRINTNAME(symb);
-  }
-  return PRINTNAME(call_sym);
-}
-
-/* the S4-style class: for dispatch  required to be a single string;
-   for the newClass function, keeps S3-style multiple classes. */
-
-SEXP R_data_class(SEXP obj, int singleString)
-{
-    SEXP class, value; int n;
-    class = getAttrib(obj, R_ClassSymbol);
-    n = length(class);
-    if(n == 1 || (n > 0 && !singleString))
-	return(class);
-    if(n == 0) {
-	SEXP dim; int n;
-	dim = getAttrib(obj, R_DimSymbol);
-	n = length(dim);
-	if(n > 0) {
-	    if(n == 2)
-		class = mkChar("matrix");
-	    else
-		class = mkChar("array");
-	}
-	else {
-	  SEXPTYPE t = TYPEOF(obj);
-	  switch(t) {
-	  case CLOSXP: case SPECIALSXP: case BUILTINSXP:
-	    class = mkChar("function");
-	    break;
-	  case REALSXP:
-	    class = mkChar("numeric");
-	    break;
-	  case LANGSXP:
-	    class = lang2str(obj, t);
-	    break;
-	  default:
-	    class = type2str(t);
-	  }
-	}
-    }
-    else
-	class = asChar(class);
-    PROTECT(value = allocVector(STRSXP, 1));
-    SET_STRING_ELT(value, 0, class);
-    UNPROTECT(1);
-    return value;
-}
-
-SEXP R_do_data_class(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-  checkArity(op, args);
-  return R_data_class(CAR(args), FALSE);
-}
-
-SEXP R_do_set_class(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-  checkArity(op, args);
-  return R_set_class(CAR(args), CADR(args), call);
-}
-
 /* names(object) <- name */
 SEXP do_namesgets(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -510,7 +425,7 @@ SEXP do_names(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP do_dimnamesgets(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans;
-    if (DispatchOrEval(call, "dimnames<-", args, env, &ans, 0, 0))
+    if (DispatchOrEval(call, "dimnames<-", args, env, &ans, 0))
 	return(ans);
     PROTECT(args = ans);
     checkArity(op, args);
@@ -578,7 +493,7 @@ SEXP dimnamesgets(SEXP vec, SEXP val)
 SEXP do_dimnames(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans;
-    if (DispatchOrEval(call, "dimnames", args, env, &ans, 0, 0))
+    if (DispatchOrEval(call, "dimnames", args, env, &ans, 0))
 	return(ans);
     PROTECT(args = ans);
     checkArity(op, args);
@@ -590,7 +505,7 @@ SEXP do_dimnames(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP do_dim(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans;
-    if (DispatchOrEval(call, "dim", args, env, &ans, 0, 0))
+    if (DispatchOrEval(call, "dim", args, env, &ans, 0))
 	return(ans);
     PROTECT(args = ans);
     checkArity(op, args);
@@ -602,7 +517,7 @@ SEXP do_dim(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP do_dimgets(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans;
-    if (DispatchOrEval(call, "dim<-", args, env, &ans, 0, 0))
+    if (DispatchOrEval(call, "dim<-", args, env, &ans, 0))
 	return(ans);
     PROTECT(args = ans);
     checkArity(op, args);
@@ -895,104 +810,5 @@ void GetMatrixDimnames(SEXP x, SEXP *rl, SEXP *cl, char **rn, char **cn)
 SEXP GetArrayDimnames(SEXP x)
 {
     return getAttrib(x, R_DimNamesSymbol);
-}
-
-
-/* the code to manage slots in formal classes. These are attributes,
-   but without partial matching and enforcing legal slot names (it's
-   an error to get a slot that doesn't exist. */
-
-
-static SEXP pseudo_NULL = 0;
-
-static void init_pseudo_NULL() {
-  /* create and preserve an object that is NOT R_NilValue, and is used
-     to represent slots that are NULL (which an attribute can not
-     be).  The point is not just to store NULL as a slot, but also to
-     provide a check on invalid slot names (see get_slot below). 
-
-     The object has to be a symbol if we're going to check identity by
-     just looking at referential equality. */
-  pseudo_NULL = install("\001NULL\001");
-}
-
-SEXP R_do_slot(SEXP obj, SEXP name) {
-  /* currently we just use attributes, with all the current semantics
-     (except of course for no partial matching).  (So all the vagaries
-     of name, dimnames, etc carray over.)  Probably reasonable for
-     back compatibility. */
-  SEXP value = getAttrib(obj, name);
-  if(value == R_NilValue) 
-    /* not there.  But since even NULL really does get stored, this
-       implies that there is no slot of this name.  Or somebody
-       screwed up by using atttr(..) <- NULL */
-    error("\"%s\" is not a valid slot for this object (or was mistakenly deleted)",
-	  CHAR(asChar(name)));
-  else if(value == pseudo_NULL)
-    value = R_NilValue;
-  return value;
-}
-
-SEXP R_do_slot_assign(SEXP obj, SEXP name, SEXP check, SEXP value) {
-  if(check == R_NilValue || LOGICAL_VALUE(check))
-    /*  an error will occur in getting the slot if it's not defined */
-    R_do_slot(obj, name);
-  if(value == R_NilValue) {
-    /* slots, but not attributes, can be NULL.  Store a special symbol
-       instead. */
-    if(pseudo_NULL == 0)
-      init_pseudo_NULL();
-    value = pseudo_NULL;
-  }
-  PROTECT(obj);
-  setAttrib(obj, name, value);
-  UNPROTECT(1);
-  return obj;
-}
-
-SEXP R_pseudo_null() {
-  if(pseudo_NULL == 0)
-    init_pseudo_NULL();
-  return pseudo_NULL;
-}
-
-
-/* the @ operator, and its assignment form.  Processed much like $
-   (see do_subset3) but without S3-style methods.
-*/
-
-SEXP do_AT(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP input, nlist, object, ans;
-    input = PROTECT(allocVector(STRSXP, 1));
-
-    nlist = CADR(args);
-    if(isSymbol(nlist) )
-	SET_STRING_ELT(input, 0, PRINTNAME(nlist));
-    else if(isString(nlist) )
-	SET_STRING_ELT(input, 0, STRING_ELT(nlist, 0));
-    else {
-	errorcall_return(call, "invalid slot type");
-    }
-    PROTECT(object = eval(CAR(args), env));
-    ans = R_do_slot(object, input);
-    UNPROTECT(2);
-    return ans;
-}
-
-SEXP do_AT_assign(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP nlist, object, ans, value; 
-    PROTECT(object = eval(CAR(args), env));
-    nlist = CADR(args);
-    if(!(isSymbol(nlist) || isString(nlist)))
-	errorcall_return(call, "invalid slot type");
-    /* The code for "$<-" claims that the RHS is already evaluated, but
-       this is not quite right.  It can, at the least, be a promise
-       for the "@" case. */
-    value = eval(CADDR(args), env);
-    ans = R_do_slot_assign(object, nlist, R_NilValue, value);
-    UNPROTECT(1);
-    return ans;
 }
 

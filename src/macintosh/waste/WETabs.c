@@ -6,7 +6,6 @@
  *
  */
 
-#include <RCarbon.h>
 
 #include "WETabs.h"
 #include "WETabHooks.h"

@@ -50,8 +50,8 @@
 
 	/*--- Initialization Code ---*/
 
-extern SA_TYPE SaveAction;
-extern SA_TYPE RestoreAction;
+SA_TYPE SaveAction;
+SA_TYPE RestoreAction;
 
 static gboolean R_gnome_initialised = FALSE; /* true once gnome_init has been called */
 
@@ -294,10 +294,7 @@ void gnome_start(int ac, char **av, Rstart Rp)
     R_ShowQueuedMessages();
 
     R_SetParams(Rp);
-    if(!Rp->NoRenviron) {
-	process_site_Renviron();
-	process_user_Renviron();
-    }
+    if(!Rp->NoRenviron) process_users_Renviron();
 
     R_Interactive = isatty(0);
     if((R_Home = R_HomeDir()) == NULL) {
@@ -340,4 +337,10 @@ void gnome_start(int ac, char **av, Rstart Rp)
     /* start main loop */
     mainloop();
     /*++++++  in ../main/main.c */
+}
+
+SEXP do_syssleep(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+    error("Sys.sleep is not implemented on this system");
+    return R_NilValue;		/* -Wall */
 }

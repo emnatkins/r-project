@@ -2586,7 +2586,6 @@ static void CScliplines(int n, double *x, double *y, int coords, DevDesc *dd)
     double *xx, *yy, temp;
     double x1, y1, x2, y2;
     cliprect cr;
-    char *vmax = vmaxget();
 
     setClipRect(&cr.xl, &cr.yb, &cr.xr, &cr.yt, coords, dd);
     if (cr.xr < cr.xl) {
@@ -2600,8 +2599,8 @@ static void CScliplines(int n, double *x, double *y, int coords, DevDesc *dd)
 	cr.yt = temp;
     }
 
-    xx = (double *) R_alloc(n, sizeof(double));
-    yy = (double *) R_alloc(n, sizeof(double));
+    xx = (double *) C_alloc(n, sizeof(double));
+    yy = (double *) C_alloc(n, sizeof(double));
     if (xx == NULL || yy == NULL)
 	error("out of memory while clipping polyline");
 
@@ -2648,7 +2647,8 @@ static void CScliplines(int n, double *x, double *y, int coords, DevDesc *dd)
 	y1 = y[i];
     }
 
-    vmaxset(vmax);
+    C_free((char *) xx);
+    C_free((char *) yy);
 }
 
 /* Clip the line
@@ -4978,8 +4978,7 @@ unsigned int rgb2col(char *rgb)
 unsigned int name2col(char *nm)
 {
     int i;
-    if(strcmp(nm, "NA") == 0 || strcmp(nm, "transparent") == 0) 
-	return NA_INTEGER;
+    if(strcmp(nm, "NA") == 0) return NA_INTEGER;
     for(i = 0; ColorDataBase[i].name ; i++) {
 	if(StrMatch(ColorDataBase[i].name, nm))
 	    return ColorDataBase[i].code;
@@ -5024,8 +5023,6 @@ char *RGB2rgb(unsigned int r, unsigned int g, unsigned int b)
 char *col2name(unsigned int col)
 {
     int i;
-
-    if(R_ALPHA(col) != 0) return "transparent";
     for(i=0 ; ColorDataBase[i].name ; i++) {
 	if(col == ColorDataBase[i].code)
 	    return ColorDataBase[i].name;

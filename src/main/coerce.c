@@ -201,7 +201,7 @@ double RealFromString(SEXP x, int *warn)
     double xdouble;
     char *endp;
     if (x != R_NaString && !isBlankString(CHAR(x))) {
-	xdouble = strtod(CHAR(x), &endp);
+	xdouble = R_strtod(CHAR(x), &endp);
 	if (isBlankString(endp))
 	    return xdouble;
 	else
@@ -259,13 +259,13 @@ Rcomplex ComplexFromString(SEXP x, int *warn)
     char *endp = CHAR(x);;
     z.r = z.i = NA_REAL;
     if (x != R_NaString && !isBlankString(endp)) {
-	xr = strtod(endp, &endp);
+	xr = R_strtod(endp, &endp);
 	if (isBlankString(endp)) {
 	    z.r = xr;
 	    z.i = 0.0;
 	}
 	else if (*endp == '+' || *endp == '-') {
-	    xi = strtod(endp, &endp);
+	    xi = R_strtod(endp, &endp);
 	    if (*endp++ == 'i' && isBlankString(endp)) {
 		z.r = xr;
 		z.i = xi;
@@ -524,15 +524,15 @@ static SEXP coerceToString(SEXP v)
 	savedigits = R_print.digits; R_print.digits = DBL_DIG;/* MAX precision */
 	for (i = 0; i < n; i++)
 	    SET_STRING_ELT(ans, i, StringFromReal(REAL(v)[i], &warn));
-	break;
 	R_print.digits = savedigits;
+	break;
     case CPLXSXP:
 	PrintDefaults(R_NilValue);
 	savedigits = R_print.digits; R_print.digits = DBL_DIG;/* MAX precision */
 	for (i = 0; i < n; i++)
 	    SET_STRING_ELT(ans, i, StringFromComplex(COMPLEX(v)[i], &warn));
-	break;
 	R_print.digits = savedigits;
+	break;
     }
     if (warn) CoercionWarning(warn);/*2000/10/23*/
     UNPROTECT(1);
@@ -692,7 +692,7 @@ static SEXP coercePairList(SEXP v, SEXPTYPE type)
 	    if (isString(CAR(vp)) && length(CAR(vp)) == 1)
 		SET_STRING_ELT(rval, i, STRING_ELT(CAR(vp), 0));
 	    else
-		SET_STRING_ELT(rval, i, STRING_ELT(deparse1(CAR(vp), 0), 0));
+		SET_STRING_ELT(rval, i, STRING_ELT(deparse1line(CAR(vp), 0), 0));
 	}
     }
     else if (type == VECSXP) {
@@ -985,7 +985,7 @@ SEXP do_ascharacter(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans;
 
-    if (DispatchOrEval(call, "as.character", args, rho, &ans, 1, 0))
+    if (DispatchOrEval(call, "as.character", args, rho, &ans, 1))
 	return(ans);
 
     /* Method dispatch has failed, we now just */
@@ -1006,7 +1006,7 @@ SEXP do_asvector(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP ans;
     int type;
 
-    if (DispatchOrEval(call, "as.vector", args, rho, &ans, 1, 0))
+    if (DispatchOrEval(call, "as.vector", args, rho, &ans, 1))
 	return(ans);
 
     /* Method dispatch has failed, we now just */
@@ -1328,7 +1328,7 @@ SEXP do_isna(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP ans, dims, names, x;
     int i, n;
 
-    if (DispatchOrEval(call, "is.na", args, rho, &ans, 1, 1))
+    if (DispatchOrEval(call, "is.na", args, rho, &ans, 1))
 	return(ans);
     PROTECT(args = ans);
     checkArity(op, args);
@@ -1428,7 +1428,7 @@ SEXP do_isnan(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP ans, dims, names, x;
     int i, n;
 
-    if (DispatchOrEval(call, "is.nan", args, rho, &ans, 1, 1))
+    if (DispatchOrEval(call, "is.nan", args, rho, &ans, 1))
 	return(ans);
 
     PROTECT(args = ans);
@@ -1808,75 +1808,4 @@ SEXP do_quote(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
 
     return(CAR(args));
-}
-
-/* set the class to value, and return the modified object.  This is
-   NOT a primitive assignment operator , because there is no code in R
-   that changes type in place. See the definition of "class<-" in the methods
-   package for the use of this code. */
-SEXP R_set_class(SEXP obj, SEXP value, SEXP call)
-{
-  int nProtect = 0;
-  if(isNull(value)) {
-    setAttrib(obj, R_ClassSymbol, value);
-    return obj;
-  }
-  if(TYPEOF(value) != STRSXP) {
-    PROTECT(value = coerceVector(duplicate(value), STRSXP));
-    nProtect++;
-  }
-  if(length(value) > 1)
-    setAttrib(obj, R_ClassSymbol, value);
-  else if(length(value) == 0) {
-    UNPROTECT(nProtect); nProtect = 0;
-    error("Invalid replacement object to be a class string");    
-  }
-  else {
-    char *valueString, *classString;
-    SEXP cur_class; SEXPTYPE valueType;
-    valueString = CHAR(asChar(value));
-    cur_class = R_data_class(obj, FALSE);
-    classString = CHAR(asChar(cur_class));
-     /* If equal to cur. class; leave alone.  This is important in
-	preserving several implicit basic classes. However, it will
-	not always switch from one such to another.  Examples include
-	assigning one syntactic class as a way of converting from
-	another.  Not a good idea, of course, but it should probably
-	be intercepted with an error message.*/
-    if(!strcmp(valueString, classString)) {}
-    /* at this point, the better semantics is to look up the class
-       definition in the metadata table; i.e., the equivalent of
-       if(isClass(valueString)) and set the class directly if so.
-       Until the code for isClass is moved to main, we can't.  The
-       effect is to prevent redefining the basic classes below. */
-    else if(!strcmp("numeric", valueString)) {
-      setAttrib(obj, R_ClassSymbol, R_NilValue);
-      switch(TYPEOF(obj)) {
-      case INTSXP: case REALSXP: break;
-      default: PROTECT(obj = coerceVector(obj, REALSXP));
-	nProtect++;
-      }
-    }
-    else {
-      if(!strcmp("function", valueString))
-	valueType = CLOSXP;
-      else
-	valueType = str2type(valueString);
-      if(valueType != -1) {
-	setAttrib(obj, R_ClassSymbol, R_NilValue);
-	PROTECT(obj = ascommon(call, obj, valueType));
-	nProtect++;
-      }
-      else if(!strcmp("array", valueString) && 
-	      length(getAttrib(obj, R_DimSymbol)) >0) {}
-      else if(!strcmp("matrix", valueString) &&
-	      length(getAttrib(obj, R_DimSymbol)) == 2) {}
-      else { /* set the class but don't do the coercion; that's
-		supposed to be done by an as() method */
-	setAttrib(obj, R_ClassSymbol, value);
-      }
-    }
-  }
-  UNPROTECT(nProtect);
-  return obj;
 }

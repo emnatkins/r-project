@@ -1,5 +1,4 @@
 \name{TkCommands}
-\alias{TkCommands}
 \alias{tkcmd}
 \alias{tktitle}
 \alias{tktitle<-}

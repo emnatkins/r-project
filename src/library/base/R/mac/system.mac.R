@@ -11,7 +11,7 @@ unlink <- function(x, recursive=FALSE)
 
 help.start <- function(gui = "irrelevant", browser = "irrelevant")
 {
-    a <- file.path(R.home(), "doc", "html", "index.html")
+    a <- file.path(R.home(), "doc", "html", "rmac.html")
     if(!file.exists(a))
         stop("I can't find the html help")
     else {

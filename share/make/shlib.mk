@@ -2,5 +2,5 @@
 
 include $(R_HOME)/etc/Makeconf
 
-$(SHLIB): $(OBJECTS)
-	$(SHLIB_LINK) -o $@ $(OBJECTS) $(ALL_LIBS)
+$(SHLIB): $(OBJS)
+	$(SHLIB_LINK) -o $@ $(OBJS) $(ALL_LIBS)

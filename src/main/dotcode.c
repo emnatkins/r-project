@@ -45,7 +45,8 @@ static SEXP PkgSymbol = NULL;
 static char DLLname[PATH_MAX];
 
 /* This looks up entry points in DLLs in a platform specific way. */
-#include <Rdynpriv.h>
+#include "R_ext/Rdynpriv.h"
+
 
 /* Convert an R object to a non-moveable C/Fortran object and return
    a pointer to it.  This leaves pointers for anything other

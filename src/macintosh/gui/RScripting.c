@@ -35,8 +35,7 @@
 
 	C port by John C. Daub
 */
-
-#include <RCarbon.h>
+#include <Carbon.h>
 
 #include <AppleEvents.h>
 

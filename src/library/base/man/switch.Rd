@@ -1,17 +1,16 @@
 \name{switch}
-\alias{switch}
 \title{Select One of a List of Alternatives}
-\description{
-  \code{switch} evaluates \code{EXPR} and accordingly chooses one of the
-  further arguments (in \code{\dots}).
-}
 \usage{
 switch(EXPR, \dots)
 }
+\alias{switch}
 \arguments{
-  \item{EXPR}{an expression evaluating to a number or a character
-    string.}
+  \item{EXPR}{an expression evaluating to a number or a character string.}
   \item{\dots}{the list of alternatives, given explicitly.}
+}
+\description{
+  \code{switch} evaluates \code{EXPR} and accordingly chooses one of the
+  further arguments (in \code{\dots}).
 }
 \details{
   If the value of \code{EXPR} is an integer between 1 and
@@ -23,8 +22,8 @@ switch(EXPR, \dots)
   match then that element is evaluated and returned if there is one,
    otherwise the next element is chosen, e.g.,
   \code{switch("cc", a=1, cc=, d=2)} evaluates to \code{2}.
-
-  In the case of no match, if there's a further argument in \code{switch}
+  \cr
+  In the case of no match, if there's a further argument in \code{switch(..)}
   that one is returned, otherwise \code{NULL}.
 }
 \examples{

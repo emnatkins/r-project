@@ -10,6 +10,7 @@
 \alias{row.names<-.data.frame}
 \alias{row.names<-.default}
 %- methods:
+\alias{print.data.frame}
 \alias{plot.data.frame}
 %
 \alias{[.AsIs}
@@ -40,11 +41,13 @@
 data.frame(\dots, row.names = NULL, check.rows = FALSE,
         check.names = TRUE)
 
-as.data.frame(x, row.names = NULL, optional = FALSE)
+as.data.frame(x, row.names = NULL, optional)
 is.data.frame(x)
 
 row.names(x)
 row.names(x) <- names
+print(x, \dots, digits = NULL, quote = FALSE, right = TRUE)
+plot (x, \dots)
 }
 \arguments{
   \item{\dots}{these arguments are of either the form \code{value} or
@@ -58,9 +61,10 @@ row.names(x) <- names
     variables in the data frame are checked to ensure that they are
     syntactically valid variable names.  If necessary they are adjusted
     (by \code{\link{make.names}}) so that they are.}
+  \item{data.frame.obj}{objects of class \code{data.frame}.}
+  \item{\dots}{optional arguments to \code{print} or \code{plot} methods.}
   \item{optional}{logical. If \code{TRUE}, setting row names is
     optional.}
-  \item{x}{object of class \code{data.frame}.}
 }
 \value{
   For \code{data.frame(.)} a data frame, a matrix-like stucture whose
@@ -82,26 +86,25 @@ row.names(x) <- names
   \code{\link{plot.default}} (scatterplot) for \emph{two} variables, and
   \code{\link{pairs}} (scatterplot matrix) otherwise.
 
+  For the \code{\link{print}} method (\code{print.data.frame}), see
+  \code{\link{print.matrix}}.
+
   \code{xpdrows.data.frame} is an auxiliary function which expands the
   rows of a data frame.  It is used by the data frame methods of
   \code{[<-} and \code{[[<-} (which perform subscripted assignments on a
   data frame), and not intended to be called directly.
 }
 \details{
-  Character variables passed to \code{data.frame} are converted to
-  factor columns unless protected by \code{\link{I}}. It also applies to
+  Non-numeric variables passed to \code{data.frame} are converted to
+  factor columns unless protected by \code{\link{I}}.  This applies to
+  character and logical variables, in particular.  It also applies to
   adding columns to a data frame.
 
   If a list or data frame or matrix is passed to \code{data.frame}
   it is as if each column had been passed as a separate argument,
   with the exception of matrices of class \code{\link{model.matrix}}.
 }
-\note{
-  In versions of \R prior to 1.4.0 (and in S3) logical columns were
-  converted to factors.
-}
 \seealso{
-  \code{\link{print.data.frame}},
   \code{\link{read.table}},
   \code{\link{Math.data.frame}} etc, about
   \emph{Group} methods for \code{data.frame}s;

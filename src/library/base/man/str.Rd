@@ -6,8 +6,7 @@ str.data.frame(object, \dots)
 str.default(object, max.level = 0, vec.len = 4, digits.d = 3,
     nchar.max = 128, give.attr = TRUE, give.length = TRUE,
     wid = getOption("width"), nest.lev = 0,
-    indent.str = paste(rep(" ", max(0, nest.lev + 1)), collapse = ".."),
-    \dots)
+    indent.str = paste(rep(" ", max(0, nest.lev + 1)), collapse = ".."))
 
  ls.str(pos = 1, pattern, \dots, mode = "any",
         max.level = 1, give.attr = FALSE)

@@ -48,8 +48,7 @@ SEXP do_devga(SEXP call, SEXP op, SEXP args, SEXP env)
     DevDesc *dd;
     char *display, *vmax;
     double height, width, ps, xpinch, ypinch;
-    int recording = 0, resize = 1, canvas;
-    SEXP sc;
+    int recording = 0, resize = 1;
 
     gcall = call;
     vmax = vmaxget();
@@ -74,12 +73,7 @@ SEXP do_devga(SEXP call, SEXP op, SEXP args, SEXP env)
     xpinch = asReal(CAR(args));
     args = CDR(args);
     ypinch = asReal(CAR(args));
-    args = CDR(args);
-    sc = CAR(args);
-    if (!isString(sc) && !isInteger(sc) && !isLogical(sc) && !isReal(sc))
-	errorcall(call, "invalid value of `canvas'");
-    canvas = RGBpar(sc, 0);
-    
+
     R_CheckDeviceAvailable();
     BEGIN_SUSPEND_INTERRUPTS {
 	/* Allocate and initialize the device driver data */
@@ -90,7 +84,7 @@ SEXP do_devga(SEXP call, SEXP op, SEXP args, SEXP env)
 	GInit(&dd->dp);
 	GAsetunits(xpinch, ypinch);
 	if (!GADeviceDriver(dd, display, width, height, ps, 
-			    (Rboolean)recording, resize, canvas)) {
+			    (Rboolean)recording, resize)) {
 	    free(dd);
 	    errorcall(call, "unable to start device devga");
 	}

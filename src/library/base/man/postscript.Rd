@@ -1,17 +1,5 @@
 \name{postscript}
-\alias{postscript}
-\alias{ps.options}
-\alias{.PostScript.Options}
-\alias{.ps.prolog}
 \title{PostScript Graphics}
-\description{
-  \code{postscript} starts the graphics device driver for producing
-  PostScript graphics.
-
-  The auxiliary function \code{ps.options} can be used to set and view
-  (if called without arguments) default values for the arguments to
-  \code{postscript}.
-}
 \synopsis{
 postscript(file = ifelse(onefile, "Rplots.ps", "Rplot\%03d.ps"),
            onefile = TRUE, family, \dots)
@@ -33,6 +21,20 @@ ps.options(paper, horizontal, width, height, family, encoding,
 }
 %% The definitive doc is the source :-)
 %% 	../../../main/devices.c  &   ../../../unix/devPS.c
+\description{
+  \code{postscript} starts the graphics device driver for producing
+  PostScript graphics.
+
+  The auxiliary function \code{ps.options} can be used to set and view
+  (if called without arguments)
+  default values for the arguments to \code{postscript}.  It needs to be
+  called before calling \code{postscript}, and the default values it
+  sets can be overridden by supplying arguments to \code{postscript}.
+}
+\alias{postscript}
+\alias{ps.options}
+\alias{.PostScript.Options}
+\alias{.ps.prolog}
 \arguments{
   \item{file}{a character string giving the name of the file.  If it is
     \code{""}, the output is piped to the command given by
@@ -42,8 +44,9 @@ ps.options(paper, horizontal, width, height, family, encoding,
     by \file{cmd}.
 #endif
 
-    For use with \code{onefile=FALSE} give a \code{printf} format such
-    as \code{"Rplot\%d.ps"} (the default in that case).
+    For use with \code{onefile=FALSE} give a
+    \code{printf} format such as \code{"Rplot\%d.ps"} (the default in that
+    case).
   }
   \item{\dots}{further options for \code{postscript()} :}
   \item{paper}{the size of paper in the printer.  The choices are
@@ -98,10 +101,10 @@ ps.options(paper, horizontal, width, height, family, encoding,
     \code{\link{check.options}}.  See the Examples.}
 }
 \details{
-  \code{postscript} opens the file \code{file} and the PostScript
-  commands needed to plot any graphics requested are stored in that
-  file.  This file can then be printed on a suitable device to obtain
-  hard copy.
+  \code{postscript(..)} opens the file \code{file} and the PostScript
+  commands needed to plot any graphics requested are stored in that file.
+  This file can then be printed on a suitable device to obtain hard
+  copy.
 
   A postscript plot can be printed via \code{postscript} in two ways.
   \enumerate{

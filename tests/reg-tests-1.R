@@ -157,14 +157,13 @@ try(eigen(m))
 ## segfaults on 1.2.2
 
 ## 1.3.0 had poor compression on gzfile() with lots of small pieces.
-if (capabilities("libz")) {
-    zz <- gzfile("t1.gz", "w")
-    write(1:1000, zz)
-    close(zz)
-    (sz <- file.info("t1.gz")$size)
-    unlink("t1.gz")
-    stopifnot(sz < 2000)
-}
+zz <- gzfile("t1.gz", "w")
+write(1:1000, zz)
+close(zz)
+(sz <- file.info("t1.gz")$size)
+unlink("t1.gz")
+stopifnot(sz < 2000)
+
 ## PR 1010: plot.mts (type="p") was broken in 1.3.0 and this call failed.
 plot(ts(matrix(runif(10), ncol = 2)), type = "p")
 
@@ -199,14 +198,14 @@ stopifnot(all.equal(z$y, y))
 detach("package:modreg")
 ## did some smoothing prior to 1.3.1.
 
-## The length of lines read by scan() was limited before 1.4.0
-xx <- paste(rep(0:9, 2000), collapse="")
-zz <- file("foo.txt", "w")
-writeLines(xx, zz)
-close(zz)
-xxx <- scan("foo.txt", "", sep="\n")
-stopifnot(identical(xx, xxx))
-unlink("foo.txt")
+## as.character was truncating formulae:  John Fox 2001-08-23
+mod <- this ~ is + a + very + long + formula + with + a + very + large + number + of + characters
+zz <- as.character(mod)
+zz
+nchar(zz)
+stopifnot(nchar(zz)[3] == 83)
+## truncated in 1.3.0
+
 
 ## PR 902 segfaults when warning string is too long, Ben Bolker 2001-04-09
 provoke.bug <- function(n=9000) {

@@ -61,7 +61,7 @@ DISTFILES = Makefile.in Makefile.win README \
 	$(test-src-reg) reg-IO.Rout.save reg-IO2.Rout.save \
 	  reg-plot.Rout.save reg-tests-2.Rout.save \
 	gct-foot.R
-SUBDIRS = Embedding Examples
+SUBDIRS = Examples
 
 R = LC_ALL=C $(top_builddir)/bin/R --vanilla
 RDIFF = $(top_builddir)/bin/Rdiff
@@ -111,9 +111,8 @@ FORCE:
 
 .R.Rout:
 	@rm -f $@ $@.fail
-	@echo @ECHO_N@ "running code in \`$<' ...@ECHO_C@"
-	@$(R) < $< > $@ || (mv $@ $@.fail && exit 1)
-	@echo "@ECHO_T@ OK"
+	@echo "running \`$<'"
+	@$(R) < $< > $@
 	@if [ -f $(srcdir)/$@.save ] ; then \
 	  mv $@ $@.fail; \
 	  echo @ECHO_N@ \
@@ -172,67 +171,16 @@ test-Random:
 test-Reg:
 	@echo "running regression tests"
 	@$(MAKE) $(test-out-reg) RVAL_IF_DIFF=0
-test-DocArgs:
-	@echo "checking whether arguments from usage are documented"
-	@for p in $(R_PKGS); do \
-	  out="package"; \
-	  echo @ECHO_N@ "$${out} \`$${p}' ...@ECHO_C@"; \
-	  dir="$(top_srcdir)/src/library/$${p}"; \
-	  out=`echo "checkDocArgs(\"$${dir}\")" | \
-	       $(R) -q | sed '/^>/d'`; \
-	  if test -n "$${out}"; then \
-	    echo "@ECHO_T@ WARNING"; \
-	    echo; \
-	    echo "$${out}"; \
-	    echo; \
-	  else \
-	    echo "@ECHO_T@ OK"; \
-	  fi; \
-	done
-test-DocStyle:
-	@echo "checking usages for method documentation style"
-	@for p in $(R_PKGS); do \
-	  out="package"; \
-	  echo @ECHO_N@ "$${out} \`$${p}' ...@ECHO_C@"; \
-	  dir="$(top_srcdir)/src/library/$${p}"; \
-	  out=`echo "checkDocStyle(\"$${dir}\")" | \
-	       $(R) -q | sed '/^>/d'`; \
-	  if test -n "$${out}"; then \
-	    echo "@ECHO_T@ WARNING"; \
-	    echo; \
-	    echo "$${out}"; \
-	    echo; \
-	  else \
-	    echo "@ECHO_T@ OK"; \
-	  fi; \
-	done
 test-FF:
 	@echo "checking foreign function calls"
 	@for p in $(R_PKGS); do \
 	  out="package"; \
 	  echo @ECHO_N@ "$${out} \`$${p}' ...@ECHO_C@"; \
 	  out=`echo "checkFF(package = \"$${p}\")" | \
-	       $(R) -q | sed '/^>/d; /^loading/d'`; \
+	       $(R) -q | grep '^\..*'`; \
 	  if test -n "$${out}"; then \
 	    echo "@ECHO_T@ WARNING"; \
 	    echo "$${out}"; \
-	  else \
-	    echo "@ECHO_T@ OK"; \
-	  fi; \
-	done
-test-Methods:
-	@echo "checking generic/method consistency"
-	@for p in $(R_PKGS); do \
-	  out="package"; \
-	  echo @ECHO_N@ "$${out} \`$${p}' ...@ECHO_C@"; \
-	  dir="$(top_srcdir)/src/library/$${p}"; \
-	  out=`echo "checkMethods(\"$${dir}\")" | \
-	       $(R) -q | sed '/^>/d'`; \
-	  if test -n "$${out}"; then \
-	    echo "@ECHO_T@ WARNING"; \
-	    echo; \
-	    echo "$${out}"; \
-	    echo; \
 	  else \
 	    echo "@ECHO_T@ OK"; \
 	  fi; \
@@ -243,12 +191,10 @@ test-codoc:
 	  out="package"; \
 	  echo @ECHO_N@ "$${out} \`$${p}' ...@ECHO_C@"; \
 	  out=`echo "codoc(\"$(top_srcdir)/src/library/$${p}\")" | \
-	       $(R) -q | sed '/^>/d; /^Using/d'`; \
+	       $(R) -q | egrep -e '^($$|\\$$| *\\[|Multiple|Error)'`; \
 	  if test -n "$${out}"; then \
 	    echo "@ECHO_T@ WARNING"; \
-	    echo; \
 	    echo "$${out}"; \
-	    echo; \
 	  else \
 	    echo "@ECHO_T@ OK"; \
 	  fi; \
@@ -258,8 +204,7 @@ test-undoc:
 	@for p in $(R_PKGS); do \
 	  out="package"; \
 	  echo @ECHO_N@ "$${out} \`$${p}' ...@ECHO_C@"; \
-	  out=`echo "undoc(\"$${p}\")" | \
-	       $(R) -q | sed '/^>/d; /^character/d'`; \
+	  out=`echo "undoc(\"$${p}\")" | $(R) | grep '^ *\\['`; \
 	  if test -n "$${out}"; then \
 	    echo "@ECHO_T@ WARNING"; \
 	    echo "$${out}"; \

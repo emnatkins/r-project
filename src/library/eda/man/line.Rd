@@ -1,16 +1,5 @@
 \name{line}
-\alias{line}
-\alias{coef.tukeyline}
-%\alias{coefficients.tukeyline}
-\alias{residuals.tukeyline}
-\alias{fitted.tukeyline}
-%\alias{fitted.values.tukeyline}
-\alias{print.tukeyline}
 \title{Robust Line Fitting}
-\description{
-  Fit a line robustly as recommended in \emph{Exploratory Data
-    Analysis}.
-}
 \usage{
 line(x, y)
 
@@ -21,13 +10,23 @@ line(x, y)
 \method{fitted}{tukeyline}(object, \dots)
 \method{print}{tukeyline}(x, digits = max(3, getOption("digits") - 3), \dots)
 }
+\alias{coef.tukeyline}
+%\alias{coefficients.tukeyline}
+\alias{residuals.tukeyline}
+\alias{fitted.tukeyline}
+%\alias{fitted.values.tukeyline}
+\alias{print.tukeyline}
 \arguments{
   \item{x,y}{the arguments can be any way of specifying x-y pairs.}
-  \item{object}{a \code{tukeyline} object, typically the result of
-    \code{line(*)}.}
+
+  \item{object}{a \code{tukeyline} object, typically the result of \code{line(*)}.}
+}
+\description{
+  This function fits a line robustly as recommended in
+  \emph{Exploratory Data Analysis}.
 }
 \value{
-  An object of class \code{"tukeyline"}.
+  An object of class \code{tukeyline}.
 
   Methods are available for the generic functions \code{coef},
   \code{residuals}, \code{fitted}, and \code{print}.
@@ -38,7 +37,7 @@ line(x, y)
   Reading Massachusetts: Addison-Wesley.
 }
 \seealso{
-  \code{\link{lm}}.
+\code{\link{lm}}.
 }
 \examples{
 library(eda)

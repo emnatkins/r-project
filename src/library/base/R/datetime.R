@@ -149,7 +149,7 @@ summary.POSIXlt <- function(object, digits = 15, ...)
     if (nargs() == 1) stop("unary - is not defined for POSIXt objects")
     if(inherits(e2, "POSIXt")) return(difftime(e1, e2))
     if (inherits(e2, "difftime")) e2 <- unclass(coerceTimeUnit(e2))
-    if(!is.null(attr(e2, "class")))
+    if(!is.null(class(e2)))
         stop("can only subtract numbers from POSIXt objects")
     structure(unclass(as.POSIXct(e1)) - e2, class = c("POSIXt", "POSIXct"))
 }
@@ -222,10 +222,10 @@ function(x, ..., value) {
 
 as.character.POSIXt <- function(x, ...) format(x, ...)
 
-str.POSIXt <- function(object, ...) {
-    cl <- class(object)
+str.POSIXt <- function(x, ...) {
+    cl <- class(x)
     cat("`", cl[min(2, length(cl))],"', format:", sep = "")
-    str(format(object), ...)
+    str(format(x), ...)
 }
 
 as.data.frame.POSIXct <- .Alias(as.data.frame.vector)
@@ -240,7 +240,7 @@ c.POSIXlt <- function(..., recursive=FALSE)
     as.POSIXlt(do.call("c", lapply(list(...), as.POSIXct)))
 
 ## force absolute comparisons
-all.equal.POSIXct <- function(target, current, ..., scale=1)
+all.equal.POSIXct <- function(..., scale=1)
     NextMethod("all.equal")
 
 
@@ -420,7 +420,7 @@ Ops.POSIXlt <- function(e1, e2)
 ## ----- convenience functions -----
 
 seq.POSIXt <-
-    function(from, to, by, length.out = NULL, along.with = NULL, ...)
+    function(from, to, by, length.out = NULL, along.with = NULL)
 {
     if (missing(from)) stop("`from` must be specified")
     if (!inherits(from, "POSIXt")) stop("`from' must be a POSIXt object")
@@ -500,7 +500,7 @@ seq.POSIXt <-
 }
 
 cut.POSIXt <-
-    function (x, breaks, labels = NULL, start.on.monday = TRUE, ...)
+    function (x, breaks, labels = NULL, start.on.monday = TRUE)
 {
     if(!inherits(x, "POSIXt")) stop("`x' must be a date-time object")
     x <- as.POSIXct(x)

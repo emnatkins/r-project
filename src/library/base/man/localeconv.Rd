@@ -1,5 +1,4 @@
 \name{localeconv}
-\alias{localeconv}
 \alias{Sys.localeconv}
 \title{Find Details of the Numerical Representations in the Current Locale}
 \description{

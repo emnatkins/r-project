@@ -2,7 +2,7 @@
 \title{Effects from Fitted Model}
 \usage{
 effects(object, \dots)
-effects.lm(object, set.sign=FALSE, \dots)
+effects.lm(object, set.sign=FALSE)
 }
 \alias{effects}
 \alias{effects.lm}
@@ -14,7 +14,6 @@ effects.lm(object, set.sign=FALSE, \dots)
    corresponding to coefficients in the model will be set to agree with the
    signs of the corresponding coefficients, otherwise the sign is
    arbitrary.}
- \item{\dots}{arguments passed to or from other methods.}
 }
 \description{
   Returns (orthogonal) effects from a fitted model, usually a linear

@@ -84,7 +84,7 @@
 #include "Defn.h"
 #include "Rmath.h"
 
-#include <Rdynpriv.h>
+#include "R_ext/Rdynpriv.h"
 
 #ifdef Unix
 # ifndef HAVE_NO_SYMBOL_UNDERSCORE
@@ -386,7 +386,7 @@ DL_FUNC Rf_lookupCachedSymbol(const char *name, const char *pkg, int all)
 
 
 
-#ifdef Win32
+#ifdef WIN32
 #define DLLerrBUFSIZE 4000
 #else  /* Not Windows */
 #define DLLerrBUFSIZE 1000
@@ -450,14 +450,12 @@ DllInfo *R_RegisterDLL(HINSTANCE handle, const char *path)
     DllInfo *info;
 
     info = &LoadedDLL[CountDLL];
-    /* default is to use old-style dynamic lookup. Library's
-       initialization routine can limit access by setting this to FALSE.
-    */
-    info->useDynamicLookup = TRUE; 
-
+    info->useDynamicLookup = TRUE; /* default is to use old-style dynamic lookup. Library's
+                                      initialization routine can limit access by setting this to FALSE.
+                                    */
     dpath = malloc(strlen(path)+1);
     if(dpath == NULL) {
-	strcpy(DLLerror, "Couldn't allocate space for 'path'");
+	strcpy(DLLerror,"Couldn't allocate space for 'path'");
 	R_osDynSymbol->closeLibrary(handle);
 	return 0;
     }
@@ -466,26 +464,14 @@ DllInfo *R_RegisterDLL(HINSTANCE handle, const char *path)
     if(R_osDynSymbol->fixPath)
 	R_osDynSymbol->fixPath(dpath);
 
-    /* keep only basename from path */
     p = strrchr(dpath, FILESEP[0]); 
     if(!p) p = dpath; else p++;
     strcpy(DLLname, p);
-
-    /* FIXME: didn't work on Mac, unsafe
     p = strchr(DLLname, '.');
-    if(p) *p = '\0'; */
-
-    /* remove SHLIB_EXT if present */
-    p = DLLname + strlen(DLLname) - strlen(SHLIB_EXT);
-#ifdef Win32  /* case-insensitive file system */
-    if(p > DLLname && stricmp(p, SHLIB_EXT) == 0) *p = '\0';
-#else
-    if(p > DLLname && strcmp(p, SHLIB_EXT) == 0) *p = '\0';
-#endif
-    
+    if(p) *p = '\0';
     name = malloc(strlen(DLLname)+1);
     if(name == NULL) {
-	strcpy(DLLerror, "Couldn't allocate space for 'name'");
+	strcpy(DLLerror,"Couldn't allocate space for 'name'");
 	R_osDynSymbol->closeLibrary(handle);
 	free(dpath);
 	return 0;
@@ -768,8 +754,13 @@ int moduleCdynload(char *module, int local, int now)
     char dllpath[PATH_MAX], *p = R_Home;
 #endif    
     if(!p) return 0;
+#ifndef Macintosh
+    sprintf(dllpath, "%s%smodules%s%s.%s", p, FILESEP, FILESEP, 
+	    module, SHLIB_EXT);
+#else /* no "dot" in DLL names under MacOS */
     sprintf(dllpath, "%s%smodules%s%s%s", p, FILESEP, FILESEP, 
 	    module, SHLIB_EXT);
+#endif
     return AddDLL(dllpath, local, now);
 }
 

@@ -10,7 +10,7 @@
   Predict from an resistant regression fitted by \code{lqs}.
 }
 \usage{
-\method{predict}{lqs}(object, newdata, \dots)
+predict.lqs(object, newdata, \dots)
 }
 \arguments{
   \item{object}{

@@ -1,4 +1,4 @@
-### $Id: nls.R,v 1.15 2001/08/16 09:24:25 ripley Exp $
+### $Id: nls.R,v 1.13 2001/05/29 10:06:34 maechler Exp $
 ###
 ###            Nonlinear least squares for R
 ###
@@ -464,7 +464,7 @@ nls <-
     nls.out
 }
 
-coef.nls <- function( object, ... ) object$m$getAllPars()
+coef.nls <- function( x, ... ) x$m$getAllPars()
 
 print.nls <- function(x, ...) {
     cat( "Nonlinear regression model\n" )
@@ -574,7 +574,7 @@ fitted.nls <- function(object, ...)
     val
 }
 
-formula.nls <- function(x, ...) x$m$formula()
+formula.nls <- function(object) object$m$formula()
 
 residuals.nls <- function(object, type = c("response", "pearson"), ...)
 {
@@ -596,7 +596,7 @@ residuals.nls <- function(object, type = c("response", "pearson"), ...)
 
 ## logLik & AIC -- generic now in base
 
-logLik.nls <- function(object, REML = FALSE, ...)
+logLik.nls <- function(object, REML = FALSE)
 {
     if (REML)
         stop("Cannot calculate REML log-likelihood for nls objects")

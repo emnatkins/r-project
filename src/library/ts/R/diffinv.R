@@ -4,7 +4,7 @@
 diffinv <- function (x, ...) { UseMethod("diffinv") }
 
 diffinv.vector <- function (x, lag = 1, differences = 1,
-                            xi = rep(0.0,lag*differences), ...)
+                            xi = rep(0.0,lag*differences))
 {
     if (!is.vector(x)) stop ("x is not a vector")
     if (lag < 1 | differences < 1) stop ("Bad value for lag or differences")
@@ -21,13 +21,12 @@ diffinv.vector <- function (x, lag = 1, differences = 1,
     }
     else
         diffinv.vector(diffinv.vector(x, lag, differences-1,
-                                      diff(xi, lag=lag, differences=1)),
+                                      xi[(lag+1):(lag*differences)]),
                        lag, 1, xi[1:lag])
 }
 
-diffinv.default <-
-    function (x, lag = 1, differences = 1,
-              xi = rep(0.0,lag*differences*dim(as.matrix(x))[2]), ...)
+diffinv.default <- function (x, lag = 1, differences = 1,
+                            xi = rep(0.0,lag*differences*dim(as.matrix(x))[2]))
 {
     if (is.matrix(x)) {
         n <- nrow(x)
@@ -46,13 +45,13 @@ diffinv.default <-
 }
 
 diffinv.ts <- function (x, lag = 1, differences = 1,
-                       xi = rep(0.0, lag*differences*NCOL(x)), ...)
+                       xi = rep(0.0, lag*differences*NCOL(x)))
 {
     if (is.ts(x) & is.null(dim(x)))
         y <- diffinv.default(as.vector(x), lag, differences, xi)
     else
         y <- diffinv.default(as.matrix(x), lag, differences, xi)
-    ts(y, frequency = frequency(x), end = end(x))
+    ts(y, frequency = frequency(x), start = start(x))
 }
 
 toeplitz <- function (x)

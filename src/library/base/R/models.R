@@ -109,7 +109,7 @@ drop.terms <- function(termobj, dropx=NULL, keep.response = FALSE)
 }
 
 terms.formula <- function(x, specials = NULL, abb = NULL, data = NULL,
-			  neg.out = TRUE, keep.order = FALSE, ...)
+			  neg.out = TRUE, keep.order = FALSE)
 {
     fixFormulaObject <- function(object) {
 	tmp <- attr(terms(object), "term.labels")
@@ -177,13 +177,12 @@ effects <- function(object, ...)UseMethod("effects")
 weights <- function(object, ...)UseMethod("weights")
 
 df.residual <- function(object, ...)UseMethod("df.residual")
-df.residual.default <- function(object, ...) object$df.residual
 
 variable.names <- function(object, ...) UseMethod("variable.names")
-variable.names.default <- function(object, ...) colnames(object)
+variable.names.default <- .Alias(colnames)
 
 case.names <- function(object, ...) UseMethod("case.names")
-case.names.default <- function(object, ...) rownames(object)
+case.names.default <- .Alias(rownames)
 
 offset <- function(object) object
 ## ?
@@ -214,7 +213,7 @@ model.frame.default <-
     }
     if(missing(data))
 	data <- environment(formula)
-    else if (!is.data.frame(data) && !is.environment(data) && !is.null(attr(data, "class")))
+    else if (!is.data.frame(data) && !is.environment(data) && !is.null(class(data)))
         data <- as.data.frame(data)
     env<-environment(formula)
     if(!inherits(formula, "terms"))
@@ -272,25 +271,23 @@ model.offset <- function(x) {
 }
 
 model.matrix <- function(object, ...) UseMethod("model.matrix")
-model.matrix.default <- function(object, data = environment(object),
-				 contrasts.arg = NULL, xlev = NULL, ...)
+model.matrix.default <- function(formula, data = environment(formula),
+				 contrasts.arg = NULL, xlev = NULL)
 {
-    t <- terms(object)
+    t <- terms(formula)
     if (is.null(attr(data, "terms")))
-	data <- model.frame(object, data, xlev=xlev)
+	data <- model.frame(formula, data, xlev=xlev)
     else {
 	reorder <- match(as.character(attr(t,"variables"))[-1],names(data))
 	if (any(is.na(reorder)))
 	    stop("model frame and formula mismatch in model.matrix()")
 	data <- data[,reorder, drop=FALSE]
     }
-    int <- attr(t, "response")
     contr.funs <- as.character(getOption("contrasts"))
-    isF <- sapply(data, function(x) is.factor(x) || is.logical(x) )
-    isF[int] <- FALSE
+    isF <- sapply(data, is.factor)[-1]
     isOF <- sapply(data, is.ordered)
     namD <- names(data)
-    for(nn in namD[isF]) # drop response
+    for(nn in namD[-1][isF]) # drop response
 	if(is.null(attr(data[[nn]], "contrasts")))
 	    contrasts(data[[nn]]) <- contr.funs[1 + isOF[nn]]
     ## it might be safer to have numerical contrasts:
@@ -306,7 +303,7 @@ model.matrix.default <- function(object, data = environment(object),
     }
     ans <- .Internal(model.matrix(t, data))
     cons <- if(any(isF))
-	lapply(data[isF], function(x) attr(x,  "contrasts"))
+	lapply(data[-1][isF], function(x) attr(x,  "contrasts"))
     else NULL
     attr(ans, "contrasts") <- cons
     ans

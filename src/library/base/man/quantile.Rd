@@ -9,8 +9,7 @@
   largest to a probability of 1.
 }
 \usage{
-\method{quantile}{default}(x, probs = seq(0, 1, 0.25), na.rm = FALSE,
-         names = TRUE, ...)
+\method{quantile}{default}(x, probs = seq(0, 1, 0.25), na.rm = FALSE, names = TRUE)
 }
 \arguments{
   \item{x}{numeric vectors whose sample quantiles are wanted.}
@@ -18,8 +17,8 @@
   \item{na.rm}{logical; if true, any \code{\link{NA}} and \code{NaN}'s
     are removed from \code{x} before the quantiles are computed.}
   \item{names}{logical; if true, the result has a \code{\link{names}}
-    attribute.  Set to \code{FALSE} for speedup with many \code{probs}.}
-  \item{\dots}{further arguments passed to or from other methods.}
+    attribute.  Set to \code{FALSE} for speedup with many \code{probs}.
+  }
 }
 \details{
   A vector of length \code{length(probs)} is returned;

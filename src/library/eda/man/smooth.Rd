@@ -1,8 +1,8 @@
 \name{smooth}
+\title{Median Smoothing}
 \alias{smooth}
 \alias{print.tukeysmooth}
 \alias{summary.tukeysmooth}
-\title{Median Smoothing}
 \description{
   Tukey's smoothers, \emph{3RS3R}, \emph{3RSS}, \emph{3R}, etc.
 }

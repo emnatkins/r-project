@@ -34,16 +34,18 @@ hclust <- function(d, method="complete", members=NULL)
     if(method == -1)
 	stop("ambiguous clustering method")
 
-    n <- attr(d, "Size")
+    n <- as.integer(attr(d, "Size"))
     if(is.null(n))
 	stop("invalid dissimilarities")
+    if(n < 2)
+        stop("Must have n >= 2 objects to cluster")
     labels <- attr(d, "Labels")
 
     len <- n*(n-1)/2
 
     if(is.null(members))
         members <- rep(1, n)
-    if(length(members)!=n)
+    if(length(members) != n)
         stop("Invalid length of members")
 
     hcl <- .Fortran("hclust",
@@ -66,13 +68,13 @@ hclust <- function(d, method="complete", members=NULL)
 		      n = as.integer(n),
 		      ia = as.integer(hcl$ia),
 		      ib = as.integer(hcl$ib),
-		      order = integer(n),
+  		      order = integer(n),
 		      iia = integer(n),
 		      iib = integer(n), PACKAGE="mva")
 
-    tree <- list(merge=cbind(hcass$iia[1:(n-1)], hcass$iib[1:(n-1)]),
-		 height=hcl$crit[1:(n-1)],
-		 order=hcass$order,
+    tree <- list(merge = cbind(hcass$iia[1:(n-1)], hcass$iib[1:(n-1)]),
+		 height= hcl$crit[1:(n-1)],
+		 order = hcass$order,
 		 labels=attr(d, "Labels"),
                  method=METHODS[method],
                  call=match.call())
@@ -80,32 +82,31 @@ hclust <- function(d, method="complete", members=NULL)
     if(!is.null(attr(d, "method"))){
         tree$dist.method <- attr(d, "method")
     }
-
     class(tree) <- "hclust"
     tree
 }
 
 plot.hclust <-
-    function (x, labels = NULL, hang = 0.1,
+    function (tree, labels = NULL, hang = 0.1,
               axes = TRUE, frame.plot = FALSE, ann = TRUE,
               main = "Cluster Dendrogram",
               sub = NULL, xlab = NULL, ylab = "Height", ...)
 {
-    merge <- x$merge
+    merge <- tree$merge
     if (!is.matrix(merge) || ncol(merge) != 2)
 	stop("invalid dendrogram")
     n <- nrow(merge)
-    height <- as.double(x$height)
-    order <- as.double(order(x$order))
+    height <- as.double(tree$height)
+    order <- as.double(order(tree$order))
 
     labels <-
 	if(missing(labels)){
-	    if (is.null(x$labels))
+	    if (is.null(tree$labels))
 		paste(1:(n+1))
 	    else
-		as.character(x$labels)
+		as.character(tree$labels)
 	} else {
-	    if(labels==FALSE)
+	    if(is.logical(labels) && !labels)# FALSE
 		character(n+1)
 	    else
 		as.character(labels)
@@ -113,14 +114,14 @@ plot.hclust <-
 
     plot.new()
     .Internal(dend.window(n, merge, height, order, hang, labels, ...))
-    .Internal(dend(n, merge, height, order, hang, labels, ...))
+    .Internal(dend       (n, merge, height, order, hang, labels, ...))
     if(axes)
         axis(2, at=pretty(range(height)))
     if (frame.plot)
         box(...)
     if (ann) {
-        if(!is.null(cl <- x$call) && is.null(sub))
-            sub <- paste(deparse(cl[[1]])," (*, \"", x$method,"\")",sep="")
+        if(!is.null(cl <- tree$call) && is.null(sub))
+            sub <- paste(deparse(cl[[1]])," (*, \"", tree$method,"\")",sep="")
         if(is.null(xlab) && !is.null(cl))
             xlab <- deparse(cl[[2]])
         title(main = main, sub = sub, xlab = xlab, ylab = ylab, ...)
@@ -130,7 +131,7 @@ plot.hclust <-
 
 as.hclust <- function(x, ...) UseMethod("as.hclust")
 
-as.hclust.twins <- function(x, ...)
+as.hclust.twins <- function(x)
 {
     retval <- list(merge = x$merge,
                    height = sort(x$height),
@@ -143,15 +144,15 @@ as.hclust.twins <- function(x, ...)
     retval
 }
 
-print.hclust <- function(x, ...)
+print.hclust <- function(tree)
 {
-    if(!is.null(x$call))
-        cat("\nCall:\n",deparse(x$call),"\n\n",sep="")
-    if(!is.null(x$method))
-        cat("Cluster method   :", x$method, "\n")
-    if(!is.null(x$dist.method))
-        cat("Distance         :", x$dist.method, "\n")
-        cat("Number of objects:", length(x$height)+1, "\n")
+    if(!is.null(tree$call))
+        cat("\nCall:\n",deparse(tree$call),"\n\n",sep="")
+    if(!is.null(tree$method))
+        cat("Cluster method   :", tree$method, "\n")
+    if(!is.null(tree$dist.method))
+        cat("Distance         :", tree$dist.method, "\n")
+    cat(    "Number of objects:", length(tree$height)+1, "\n")
     cat("\n")
 }
 
