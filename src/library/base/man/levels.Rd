@@ -1,5 +1,5 @@
 \name{levels}
-\title{Levels Attributes}
+\title{Level Names for a Factor}
 \usage{
 levels(x)
 levels(x) <- value
@@ -7,14 +7,17 @@ levels(x) <- value
 \alias{levels}
 \alias{levels<-}
 \description{
-\code{levels} provides access to the levels attribute of a variable.
-The first form returns the value of the levels of its argument
-and the second sets the attribute.
+\code{levels} provides access to the levels attribute of factor.
+The first form prints the levels of the observations
+and the second sets the levels.
+In this case,
+\code{value} must be a vector of character strings with
+length equal to the number of levels of \code{x}.
 
-The assignment for of \code{levels} is a generic function and new methods
-can be written for it.  The most important method is that for factors.
+To find out how many levels a factor has user the function
+\code{nlevels}.
 }
 \seealso{
-\code{\link{levels<-.factor}}, \code{\link{nlevels}}.
+\code{\link{factor}}, \code{\link{nlevels}}.
 }
 \keyword{category}

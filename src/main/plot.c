@@ -318,11 +318,12 @@ SEXP do_plot_new(SEXP call, SEXP op, SEXP args, SEXP env)
  *	This function sets up the world coordinates for a graphics
  *	window.	 Note that if asp is a finite positive value then
  *	the window is set up so that one data unit in the y direction
- *	is equal in length to one data unit in the x direction divided
- *	by asp.
+ *	is equal in length to asp * one data unit in the x direction.
  *
  *	The special case asp == 1 produces plots where distances
- *	between points are represented accurately on screen.
+ *	between points are represented accurately on screen.  Values
+ *	with asp < 1 can be used to produce more accurate maps when
+ *	using latitude and longitude.
  *
  *  NOTE
  *
@@ -414,12 +415,12 @@ SEXP do_plot_window(SEXP call, SEXP op, SEXP args, SEXP env)
 	double pin1, pin2, scale, xdelta, ydelta, xscale, yscale, xadd, yadd;
 	pin1 = GConvertXUnits(1.0, NPC, INCHES, dd);
 	pin2 = GConvertYUnits(1.0, NPC, INCHES, dd);
-	xdelta = fabs(xmax - xmin) / asp;
+	xdelta = asp * fabs(xmax - xmin);
 	ydelta = fabs(ymax - ymin);
 	xscale = pin1 / xdelta;
 	yscale = pin2 / ydelta;
 	scale = (xscale < yscale) ? xscale : yscale;
-	xadd = .5 * (pin1 / scale - xdelta) * asp;
+	xadd = .5 * (pin1 / scale - xdelta) / asp;
 	yadd = .5 * (pin2 / scale - ydelta);
 	GScale(xmin - xadd, xmax + xadd, 1, dd);
 	GScale(ymin - yadd, ymax + yadd, 2, dd);
@@ -753,7 +754,7 @@ SEXP do_axis(SEXP call, SEXP op, SEXP args, SEXP env)
     dd->gp.xpd = 1;
     dd->gp.adj = 0.5;
     dd->gp.font = dd->gp.fontaxis;
-    dd->gp.cex = dd->gp.cex * dd->gp.cexbase;
+    dd->gp.cex = dd->gp.cexbase * dd->gp.cexaxis;
     col = dd->gp.col;
     fg = dd->gp.fg;
 
@@ -1595,8 +1596,7 @@ SEXP do_text(SEXP call, SEXP op, SEXP args, SEXP env)
 	    else
 		dd->gp.col = dd->dp.col;
 	    if(ncex && FINITE(REAL(cex)[i%ncex]))
-		dd->gp.cex = dd->gp.cexbase *
-		    REAL(cex)[i % ncex];
+		dd->gp.cex = dd->gp.cexbase * REAL(cex)[i % ncex];
 	    else
 		dd->gp.cex = dd->gp.cexbase;
 	    if (nfont && INTEGER(font)[i % nfont] != NA_INTEGER)
