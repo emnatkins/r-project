@@ -80,7 +80,7 @@ that version.  The main R FAQ can be found at
 @end display
 
 The information here applies only to recent versions of R for Windows,
-(@code{2.0.0} or later); the current version is often called something like
+(@code{1.9.0} or later); the current version is often called something like
 @code{@value{VERSION}} (although not officially).
 
 
@@ -255,7 +255,8 @@ Be aware though that Windows has (in most versions) a maximum amount of
 user virtual memory of 2Gb, and parts of this can be reserved by
 processes but not used.  The version of the memory manager used from R
 1.9.0 allocates large objects in their own memory areas and so is better
-able to make use of fragmented virtual memory than that used previously.
+able to make use of fragmented virtual memory than that used from 1.2.0
+to 1.8.x.
 
 Use @code{?Memory} and @code{?memory.size} for information about memory
 usage.  The limit can be raised by calling @code{memory.limit} within a
@@ -320,7 +321,8 @@ LaTeX installed you can print help files by @code{help(fn_name, offline=TRUE)}.
 @node Can I use R CMD BATCH?, Can I use @RWVER@ with ESS and (X)emacs?, How do I print from R?, Installation and Usage
 @section Can I use @code{R CMD BATCH}?
 
-Yes: use @code{R CMD BATCH --help} or @code{?BATCH} for full details.
+Yes: use @code{R CMD BATCH --help} for full details.  (Perl used to be
+required, but is no longer.)
 
 You can set also up a batch file using @code{Rterm.exe}.  A sample
 batch file might contain (as one line)
@@ -357,15 +359,11 @@ The working directory is the directory from which @code{Rgui} or
 by the `Start in' field of the shortcut's properties.  You can find this
 from R code by the call @code{getwd()}.
 
-The home directory is set as follows: If environment variable
-@env{R_USER} is set, its value is used.  Otherwise if environment
-variable @env{HOME} is set, its value is used.  After those two
-user-controllable settings, R tries to find system-defined home
-directories.  It first tries to use the Windows "personal" directory
-(typically @code{C:\Documents and Settings\username\My Documents} in
-Windows XP).  If that fails, if both environment variables
-@env{HOMEDRIVE} and @env{HOMEPATH} are set (and they normally are under
-Windows NT/2000/XP), the value is @code{$@{HOMEDRIVE@}$@{HOMEPATH@}}.
+The home directory is set as follows:@*
+If environment variable @env{R_USER} is set, its value is used.@*
+Otherwise if environment variable @env{HOME} is set, its value is used.@*
+Otherwise if environment variables @env{HOMEDRIVE} and @env{HOMEPATH}
+are set, the value is @code{$@{HOMEDRIVE@}$@{HOMEPATH@}}.@*
 If all of these fail, the current working directory is used.
 
 You can find this from R code by @code{Sys.getenv("R_USER")}.
@@ -571,8 +569,8 @@ You can install pre-compiled packages either from CRAN or from a local
 @code{.zip} file by using @code{install.packages}: see its help page.
 There are menu items on the @code{Packages} menu to provide a
 point-and-click interface to package installation.  The packages for
-each minor (2.x) version will be stored in a separate area, so for R
-2.0.? the files are in @code{bin/windows/contrib/2.0}.  You can try
+each minor (1.x) version will be stored in a separate area, so for R
+1.9.? the files are in @code{bin/windows/contrib/1.9}.  You can try
 those compiled for earlier versions, at your own risk.
 
 Note that the pre-compiled versions on CRAN are unsupported: see
@@ -653,7 +651,7 @@ the main library will be found.
 If the help search system does not work @emph{at all}, this probably
 indicates that Java support is either not installed or not enabled in
 your browser.  The search page contains a link to the appropriate
-section in the @emph{R Installation and Administration} manual.
+section in the `R Installation and Administration' manual.
 
 
 @node Loading a package fails., Package TclTk does not work., My functions are not found by the HTML help search system., Packages
@@ -848,7 +846,7 @@ function @code{setwd}: see its help page.
 @section Can I load workspaces saved under Unix/GNU-Linux or MacOS?
 
 Yes.  All ports of R use the same format for workspaces, so they are
-interchangeable (for the same 2.x.? version of R, at least).
+interchangeable (for the same 1.x.? version of R, at least).
 
 
 @newchap{}

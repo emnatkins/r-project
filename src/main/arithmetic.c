@@ -38,6 +38,20 @@
 #undef MATHLIB_PRIVATE
 #include "arithmetic.h"
 
+/* Error Handling for Floating Point Errors */
+
+#ifndef IEEE_754
+#ifdef Unix
+#include <signal.h>
+
+static RETSIGTYPE handle_fperror(int dummy)
+{
+    errno = ERANGE;
+    signal(SIGFPE, handle_fperror);
+}
+#endif /* Unix */
+#endif /* not IEEE_754 */
+
 #ifdef HAVE_MATHERR
 
 /* Override the SVID matherr function */
@@ -60,6 +74,7 @@ int matherr(struct exception *exc)
 }
 #endif
 
+#ifdef IEEE_754
 #ifndef _AIX
 const double R_Zero_Hack = 0.0;	/* Silence the Sun compiler */
 #else
@@ -131,35 +146,93 @@ int R_IsNaN(double x)
     return 0;
 }
 
-/* <FIXME> Simplify this mess.  Not used inside R 
-   if isfinite works, and if finite works only in packages */
+int R_IsNaNorNA(double x)
+{
+/* True for *both* NA and NaN.
+   NOTE: some systems do not return 1 for TRUE. */
+    return (isnan(x) != 0);
+}
+
+/* Include the header file defining finite() */
+#ifdef HAVE_IEEE754_H
+# include <ieee754.h>		/* newer Linuxen */
+#else
+# ifdef HAVE_IEEEFP_H
+#  include <ieeefp.h>		/* others [Solaris 2.5.x], .. */
+# endif
+#endif
+#if defined(Win32) && defined(_MSC_VER)
+# include <float.h>
+#endif
+
 int R_finite(double x)
 {
-#ifdef HAVE_WORKING_ISFINITE
-    return isfinite(x);
-#elif HAVE_WORKING_FINITE
+#ifdef HAVE_WORKING_FINITE
     return finite(x);
 #else
-/* neither finite nor isfinite work. Do we really need the AIX exception? */
-# ifdef _AIX
+# if defined(HAVE_DECL_ISFINITE) && HAVE_DECL_ISFINITE
+    return isfinite(x);
+# else
+#  ifdef _AIX
 #  include <fp.h>
      return FINITE(x);
-# else
+#  else
     return (!isnan(x) & (x != R_PosInf) & (x != R_NegInf));
+#  endif
 # endif
 #endif
 }
 
+#else /* not IEEE_754 */
+
+int R_IsNA(double x)
+{
+    return (x == R_NaReal);
+}
+
+/* NaN but not NA: never true */
+int R_IsNaN(double x)
+{
+    return 0;
+}
+
+int R_IsNaNorNA(double x)
+{
+# ifndef HAVE_ISNAN
+    return (x == R_NaReal);
+# else
+    return (isnan(x) != 0 || x == R_NaReal);
+# endif
+}
+
+/* Having finite() is irrelevant as we are not using IEEE */
+int R_finite(double x)
+{
+    return (x != R_NaReal && x < R_PosInf && x > R_NegInf);
+}
+#endif /* IEEE_754 */
 
 /* Arithmetic Initialization */
 
 void InitArithmetic()
 {
     R_NaInt = INT_MIN;
+
+#ifdef IEEE_754
+    /* establish_endianness(); */
     R_NaN = 0.0/R_Zero_Hack;
     R_NaReal = R_ValueOfNA();
     R_PosInf = 1.0/R_Zero_Hack;
     R_NegInf = -1.0/R_Zero_Hack;
+#else
+    R_NaN = -DBL_MAX*(1-1e-15);
+    R_NaReal = R_NaN;
+    R_PosInf = DBL_MAX;
+    R_NegInf = -DBL_MAX;
+#ifdef Unix
+    signal(SIGFPE, handle_fperror);
+#endif
+#endif
 }
 
 
@@ -192,8 +265,13 @@ double R_pow(double x, double y) /* = x ^ y */
     }
     if (R_FINITE(x) && R_FINITE(y))
 	return(pow(x,y));
-    if (ISNAN(x) || ISNAN(y))
+    if (ISNAN(x) || ISNAN(y)) {
+#ifdef IEEE_754
 	return(x + y);
+#else
+	return(NA_REAL);
+#endif
+    }
     if(!R_FINITE(x)) {
 	if(x > 0)		/* Inf ^ y */
 	    return((y < 0.)? 0. : R_PosInf);
@@ -510,8 +588,16 @@ static SEXP real_unary(ARITHOP_TYPE code, SEXP s1, SEXP lcall)
     case MINUSOP:
 	ans = duplicate(s1);
 	n = LENGTH(s1);
-	for (i = 0; i < n; i++)
+	for (i = 0; i < n; i++) {
+#ifdef IEEE_754
 	    REAL(ans)[i] = -REAL(s1)[i];
+#else
+	    double x;
+	    x = REAL(s1)[i];
+	    REAL(ans)[i] = ISNA(x) ? NA_REAL :
+		((x == 0.0) ? 0.0 : -x);
+#endif
+	}
 	return ans;
     default:
 	errorcall(lcall, "illegal unary operator");
@@ -653,7 +739,11 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 	mod_iterate(n1, n2, i1, i2) {
 	    x1 = INTEGER(s1)[i1];
 	    x2 = INTEGER(s2)[i2];
+#ifdef IEEE_754
 	    if (x1 == NA_INTEGER || x2 == NA_INTEGER)
+#else
+		if (x1 == NA_INTEGER || x2 == NA_INTEGER || x2 == 0)
+#endif
 		    REAL(ans)[i] = NA_REAL;
 		else
 		    REAL(ans)[i] = (double) x1 / (double) x2;
@@ -666,7 +756,7 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 	    if (x1 == NA_INTEGER || x2 == NA_INTEGER)
 		REAL(ans)[i] = NA_REAL;
 	    else {
-		REAL(ans)[i] = R_pow((double) x1, (double) x2);
+		REAL(ans)[i] = MATH_CHECK(R_pow((double) x1, (double) x2));
 	    }
 	}
 	break;
@@ -720,6 +810,9 @@ static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
 {
     int i, i1, i2, n, n1, n2;
     SEXP ans;
+#ifndef IEEE_754
+    double x1, x2;
+#endif
 
     /* Note: "s1" and "s2" are protected above. */
     n1 = LENGTH(s1);
@@ -740,37 +833,136 @@ static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
     switch (code) {
     case PLUSOP:
 	mod_iterate(n1, n2, i1, i2) {
+#ifdef IEEE_754
 	    REAL(ans)[i] = REAL(s1)[i1] + REAL(s2)[i2];
+#else
+	    x1 = REAL(s1)[i1];
+	    x2 = REAL(s2)[i2];
+	    if (ISNA(x1) || ISNA(x2))
+		REAL(ans)[i] = NA_REAL;
+	    else if(x1 == R_PosInf)
+		REAL(ans)[i] = (x2 == R_NegInf) ? NA_REAL : x1;
+	    else if(x1 == R_NegInf)
+		REAL(ans)[i] = (x2 == R_PosInf) ? NA_REAL : x1;
+	    else
+		REAL(ans)[i] = MATH_CHECK(x1 + x2);
+#endif
 	}
 	break;
     case MINUSOP:
 	mod_iterate(n1, n2, i1, i2) {
+#ifdef IEEE_754
 	    REAL(ans)[i] = REAL(s1)[i1] - REAL(s2)[i2];
+#else
+	    x1 = REAL(s1)[i1];
+	    x2 = REAL(s2)[i2];
+	    if (ISNA(x1) || ISNA(x2))
+		REAL(ans)[i] = NA_REAL;
+	    else if(x1 == R_PosInf)
+		REAL(ans)[i] = (x2 == x1) ? NA_REAL : x1;
+	    else if(x1 == R_NegInf)
+		REAL(ans)[i] = (x2 == x1) ? NA_REAL : x1;
+	    else
+		REAL(ans)[i] = MATH_CHECK(x1 - x2);
+#endif
 	}
 	break;
     case TIMESOP:
 	mod_iterate(n1, n2, i1, i2) {
+#ifdef IEEE_754
 	    REAL(ans)[i] = REAL(s1)[i1] * REAL(s2)[i2];
+#else
+	    x1 = REAL(s1)[i1];
+	    x2 = REAL(s2)[i2];
+	    if (ISNA(x1) || ISNA(x2))
+		REAL(ans)[i] = NA_REAL;
+	    else if(x1 == R_PosInf)
+		REAL(ans)[i] = (x2 == 0.) ? NA_REAL : 
+		    ((x2 > 0) ? R_PosInf : R_NegInf);
+	    else if(x1 == R_NegInf)
+		REAL(ans)[i] = (x2 == 0.) ? NA_REAL : 
+		    ((x2 < 0) ? R_PosInf : R_NegInf);
+	    else if(x2 == R_PosInf)
+		REAL(ans)[i] = (x1 == 0.) ? NA_REAL : 
+		    ((x1 > 0) ? R_PosInf : R_NegInf);
+	    else if(x2 == R_NegInf)
+		REAL(ans)[i] = (x1 == 0.) ? NA_REAL : 
+		    ((x1 < 0) ? R_PosInf : R_NegInf);
+	    else
+		REAL(ans)[i] = MATH_CHECK(x1 * x2);
+#endif
 	}
 	break;
     case DIVOP:
 	mod_iterate(n1, n2, i1, i2) {
+#ifdef IEEE_754
 	    REAL(ans)[i] = REAL(s1)[i1] / REAL(s2)[i2];
+#else
+	    x1 = REAL(s1)[i1];
+	    x2 = REAL(s2)[i2];
+	    if (!R_FINITE(x1) && !R_FINITE(x2))
+		REAL(ans)[i] = NA_REAL;
+	    else if (ISNA(x1) || ISNA(x2))
+		REAL(ans)[i] = NA_REAL;
+	    else if (x1 == 0.0 && x2 == 0.0)
+		REAL(ans)[i] = NA_REAL;
+	    else if (x2 == 0.0)
+		REAL(ans)[i] = (x1 > 0) ? R_PosInf : R_NegInf;
+	    else if (x1 == R_PosInf)
+		REAL(ans)[i] = (x2 > 0) ? R_PosInf : R_NegInf;
+	    else if (x1 == R_NegInf)
+		REAL(ans)[i] = (x2 < 0) ? R_PosInf : R_NegInf;
+	    else if (!R_FINITE(x2)) /* +/- Inf */
+		REAL(ans)[i] = 0.0;
+	    else
+		REAL(ans)[i] = MATH_CHECK(x1 / x2);
+#endif
 	}
 	break;
     case POWOP:
 	mod_iterate(n1, n2, i1, i2) {
+#ifdef IEEE_754
 	    REAL(ans)[i] = R_pow(REAL(s1)[i1], REAL(s2)[i2]);
+#else
+	    x1 = REAL(s1)[i1];
+	    x2 = REAL(s2)[i2];
+	    if (ISNA(x1) || ISNA(x2))
+		REAL(ans)[i] = NA_REAL;
+	    else
+		REAL(ans)[i] = MATH_CHECK(R_pow(x1, x2));
+#endif
 	}
 	break;
     case MODOP:
 	mod_iterate(n1, n2, i1, i2) {
+#ifdef IEEE_754
 	    REAL(ans)[i] = myfmod(REAL(s1)[i1], REAL(s2)[i2]);
+#else
+	    x1 = REAL(s1)[i1];
+	    x2 = REAL(s2)[i2];
+	    if (ISNA(x1) || ISNA(x2) || x2 == 0)
+		REAL(ans)[i] = NA_REAL;
+	    else
+		REAL(ans)[i] = MATH_CHECK(myfmod(x1, x2));
+#endif
 	}
 	break;
     case IDIVOP:
 	mod_iterate(n1, n2, i1, i2) {
+#ifdef IEEE_754
 	    REAL(ans)[i] = floor(REAL(s1)[i1] / REAL(s2)[i2]);
+#else
+	    x1 = REAL(s1)[i1];
+	    x2 = REAL(s2)[i2];
+	    if (ISNA(x1) || ISNA(x2))
+		REAL(ans)[i] = NA_REAL;
+	    else {
+		if (x2 == 0)
+		    REAL(ans)[i] = 0;
+		else
+		    REAL(ans)[i] = MATH_CHECK(floor(x1 / x2));
+	    }
+#endif
 	}
 	break;
     }
@@ -817,7 +1009,7 @@ static SEXP math1(SEXP sa, double(*f)(), SEXP lcall)
 	if (ISNAN(a[i]))
 	    y[i] = a[i];
 	else {
-	    y[i] = f(a[i]);
+	    y[i] = MATH_CHECK(f(a[i]));
 	    if (ISNAN(y[i])) naflag = 1;
 	}
     }
@@ -937,7 +1129,7 @@ static SEXP math2(SEXP sa, SEXP sb, double (*f)(), SEXP lcall)
 	bi = b[ib];
 	if_NA_Math2_set(y[i], ai, bi)
 	else {
-	    y[i] = f(ai, bi);
+	    y[i] = MATH_CHECK(f(ai, bi));
 	    if (ISNAN(y[i])) naflag = 1;
 	}
     }
@@ -980,7 +1172,7 @@ static SEXP math2_1(SEXP sa, SEXP sb, SEXP sI, double (*f)(), SEXP lcall)
 	bi = b[ib];
 	if_NA_Math2_set(y[i], ai, bi)
 	else {
-	    y[i] = f(ai, bi, m_opt);
+	    y[i] = MATH_CHECK(f(ai, bi, m_opt));
 	    if (ISNAN(y[i])) naflag = 1;
 	}
     }
@@ -1007,7 +1199,7 @@ static SEXP math2_2(SEXP sa, SEXP sb, SEXP sI1, SEXP sI2, double (*f)(), SEXP lc
 	bi = b[ib];
 	if_NA_Math2_set(y[i], ai, bi)
 	else {
-	    y[i] = f(ai, bi, i_1, i_2);
+	    y[i] = MATH_CHECK(f(ai, bi, i_1, i_2));
 	    if (ISNAN(y[i])) naflag = 1;
 	}
     }
@@ -1188,7 +1380,7 @@ static SEXP math3(SEXP sa, SEXP sb, SEXP sc, double (*f)(), SEXP lcall)
 	ci = c[ic];
 	if_NA_Math3_set(y[i], ai,bi,ci)
 	else {
-	    y[i] = f(ai, bi, ci);
+	    y[i] = MATH_CHECK(f(ai, bi, ci));
 	    if (ISNAN(y[i])) naflag = 1;
 	}
     }
@@ -1234,7 +1426,7 @@ static SEXP math3_1(SEXP sa, SEXP sb, SEXP sc, SEXP sI, double (*f)(), SEXP lcal
 	ci = c[ic];
 	if_NA_Math3_set(y[i], ai,bi,ci)
 	else {
-	    y[i] = f(ai, bi, ci, i_1);
+	    y[i] = MATH_CHECK(f(ai, bi, ci, i_1));
 	    if (ISNAN(y[i])) naflag = 1;
 	}
     }
@@ -1262,7 +1454,7 @@ static SEXP math3_2(SEXP sa, SEXP sb, SEXP sc, SEXP sI, SEXP sJ, double (*f)(), 
 	ci = c[ic];
 	if_NA_Math3_set(y[i], ai,bi,ci)
 	else {
-	    y[i] = f(ai, bi, ci, i_1, i_2);
+	    y[i] = MATH_CHECK(f(ai, bi, ci, i_1, i_2));
 	    if (ISNAN(y[i])) naflag = 1;
 	}
     }
@@ -1405,7 +1597,7 @@ static SEXP math4(SEXP sa, SEXP sb, SEXP sc, SEXP sd, double (*f)(), SEXP lcall)
 	di = d[id];
 	if_NA_Math4_set(y[i], ai,bi,ci,di)
 	else {
-	    y[i] = f(ai, bi, ci, di);
+	    y[i] = MATH_CHECK(f(ai, bi, ci, di));
 	    if (ISNAN(y[i])) naflag = 1;
 	}
     }
@@ -1456,7 +1648,7 @@ static SEXP math4_1(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP sI, double (*f)(), 
 	di = d[id];
 	if_NA_Math4_set(y[i], ai,bi,ci,di)
 	else {
-	    y[i] = f(ai, bi, ci, di, i_1);
+	    y[i] = MATH_CHECK(f(ai, bi, ci, di, i_1));
 	    if (ISNAN(y[i])) naflag = 1;
 	}
     }
@@ -1485,7 +1677,7 @@ static SEXP math4_2(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP sI, SEXP sJ,
 	di = d[id];
 	if_NA_Math4_set(y[i], ai,bi,ci,di)
 	else {
-	    y[i] = f(ai, bi, ci, di, i_1, i_2);
+	    y[i] = MATH_CHECK(f(ai, bi, ci, di, i_1, i_2));
 	    if (ISNAN(y[i])) naflag = 1;
 	}
     }
@@ -1612,7 +1804,7 @@ static SEXP math5(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP se, double (*f)())
 	ei = e[ie];
 	if_NA_Math5_set(y[i], ai,bi,ci,di,ei)
 	else {
-	    y[i] = f(ai, bi, ci, di, ei);
+	    y[i] = MATH_CHECK(f(ai, bi, ci, di, ei));
 	    if (ISNAN(y[i])) naflag = 1;
 	}
     }

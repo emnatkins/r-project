@@ -82,6 +82,10 @@ assign("cleanEx",
            RNGkind("default", "default")
 	   set.seed(1)
    	   options(warn = 1)
+_EOF_
+if(!defined($ENV{'R_CHECK_WITH_T_N_F_AS_NULL'})
+   || $ENV{'R_CHECK_WITH_T_N_F_AS_NULL'} ne "") {
+    print <<_EOF_;
 	   assign("T", delay(stop("T used instead of TRUE")),
 		  pos = .CheckExEnv)
 	   assign("F", delay(stop("F used instead of FALSE")),
@@ -94,6 +98,9 @@ assign("cleanEx",
 	   if(length(missitems))
 	       warning("items ", paste(missitems, collapse=", "),
 		       " have been removed from the search path")
+_EOF_
+}
+print <<_EOF_;
        },
        env = .CheckExEnv)
 assign("..nameEx", "__{must remake R-ex/*.R}__", env = .CheckExEnv) # for now

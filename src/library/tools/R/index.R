@@ -9,27 +9,27 @@
 ## which could be abstracted into a function .mergeIndexEntries().
 ## </NOTE>
 
-### * .build_data_index
+### * .buildDataIndex
 
-.build_data_index <-
+.buildDataIndex <-
 function(dataDir, contents)
 {
     ## Build an index with information about all available data sets.
-    ## See .build_demo_index() for an explanation of what we do here.
+    ## See .buildDemoIndex() for an explanation of what we do here.
 
     ## <NOTE>
     ## We could also have an interface like
-    ##   .build_data_index(dir, contents = NULL)
+    ##   .buildDataIndex(dir, contents = NULL)
     ## where @code{dir} is the path to a package's root source dir and
-    ## contents is Rdcontents(list_files_with_type(file.path(dir, "man"),
+    ## contents is Rdcontents(listFilesWithType(file.path(dir, "man"),
     ## "docs")).
     ## </NOTE>
 
-    if(!file_test("-d", dataDir))
+    if(!fileTest("-d", dataDir))
         stop(paste("directory", sQuote(dataDir), "does not exist"))
-    dataFiles <- list_files_with_type(dataDir, "data")
+    dataFiles <- listFilesWithType(dataDir, "data")
     ## <FIXME> to avoid name clashes CO2 is stored as zCO2.R
-    dataTopics <- unique(basename(file_path_sans_ext(dataFiles)))
+    dataTopics <- unique(basename(filePathSansExt(dataFiles)))
     dataTopics[dataTopics == "zCO2"] <- "CO2"
     if(!length(dataTopics)) return(matrix("", 0, 2))
     dataTopics <- sort(dataTopics)
@@ -46,9 +46,9 @@ function(dataDir, contents)
     dataIndex
 }
 
-### * .build_demo_index
+### * .buildDemoIndex
 
-.build_demo_index <-
+.buildDemoIndex <-
 function(demoDir)
 {
     ## Build an index with information about all available demos.
@@ -59,17 +59,17 @@ function(demoDir)
     ## demo index.
     ## This ensures that demo() really lists all *available* demos, even
     ## if some might be 'undocumented', i.e., without index information.
-    ## Use .check_demo_index() to check whether available demo code and
+    ## Use .checkDemoIndex() to check whether available demo code and
     ## docs are in sync.
     ## </NOTE>
 
-    if(!file_test("-d", demoDir))
+    if(!fileTest("-d", demoDir))
         stop(paste("directory", sQuote(demoDir), "does not exist"))
-    demoFiles <- list_files_with_type(demoDir, "demo")
-    demoTopics <- unique(basename(file_path_sans_ext(demoFiles)))
+    demoFiles <- listFilesWithType(demoDir, "demo")
+    demoTopics <- unique(basename(filePathSansExt(demoFiles)))
     if(!length(demoTopics)) return(matrix("", 0, 2))
     demoIndex <- cbind(demoTopics, "")
-    if(file_test("-f", INDEX <- file.path(demoDir, "00Index"))) {
+    if(fileTest("-f", INDEX <- file.path(demoDir, "00Index"))) {
         demoEntries <- try(read.00Index(INDEX))
         if(inherits(demoEntries, "try-error"))
             warning(paste("cannot read index information in file",
@@ -81,14 +81,14 @@ function(demoDir)
     demoIndex
 }
 
-### * .check_demo_index
+### * .checkDemoIndex
 
-.check_demo_index <-
+.checkDemoIndex <-
 function(demoDir)
 {
-    if(!file_test("-d", demoDir))
+    if(!fileTest("-d", demoDir))
         stop(paste("directory", sQuote(demoDir), "does not exist"))
-    infoFromBuild <- .build_demo_index(demoDir)
+    infoFromBuild <- .buildDemoIndex(demoDir)
     infoFromIndex <- try(read.00Index(file.path(demoDir, "00Index")))
     if(inherits(infoFromIndex, "try-error"))
         stop(paste("cannot read index information in file",
@@ -102,11 +102,11 @@ function(demoDir)
              infoFromIndex[!infoFromIndex[ , 1]
                            %in% infoFromBuild[ , 1],
                            1])
-    class(badEntries) <- "check_demo_index"
+    class(badEntries) <- "checkDemoIndex"
     badEntries
 }
 
-print.check_demo_index <-
+print.checkDemoIndex <-
 function(x, ...)
 {
     if(length(x$missingFromIndex) > 0) {
@@ -120,9 +120,9 @@ function(x, ...)
     invisible(x)
 }
 
-### * .build_hsearch_index
+### * .buildHsearchIndex
 
-.build_hsearch_index <-
+.buildHsearchIndex <-
 function(contents, packageName, libDir)
 {
     ## Build an index of the Rd contents in 'contents', of a package

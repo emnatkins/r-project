@@ -17,7 +17,7 @@ fixh: version h/config.h \
 	@$(CP) -p ./h/config.h ./h/psignal.h ../../include
 	@$(ECHO) done > fixh
 
-../../include/Rconfig.h: h/config.h ../../../tools/GETCONFIG
+../../include/Rconfig.h: h/config.h
 	$(SED) -e 1d ../../../tools/GETCONFIG > GC
 	(cd h; sh ../GC > ../../../include/Rconfig.h)
 	$(RM) GC
@@ -27,19 +27,14 @@ fixh: version h/config.h \
 	sh ../../../tools/GV > $@
 	$(RM) ../../../tools/GV
 
-Rmath.h: ../../include/Rmath.h0.in ../../../VERSION
-	$(SED) -e 's/@RMATH_HAVE_LOG1P@/# define HAVE_LOG1P 1/'  \
-	  -e /@RMATH_HAVE_EXPM1@/d  \
-	  -e  's/@RMATH_HAVE_WORKING_LOG1P@/# define HAVE_WORKING_LOG1P 1/' \
-	  -e "s/@PACKAGE_VERSION@/`sed 's/\([^ ]*\).*/\1/' < ../../../VERSION`/" $< > $@
-../../include/Rmath.h: Rmath.h
-	@sh ../../../tools/copy-if-change $< $@
+../../include/Rmath.h: ../../include/Rmath.h0.in
+	$(SED) -e 's/@RMATH_HAVE_LOG1P@/# define HAVE_LOG1P 1/'  -e /@RMATH_HAVE_EXPM1@/d  -e  's/@RMATH_HAVE_WORKING_LOG1P@/# define HAVE_WORKING_LOG1P 1/' $< > $@
 
 ../../../bin/massage-Examples: ../../../share/perl/massage-Examples.pl
 	$(SED) -e 's/"contr.poly")/"contr.poly"), pager="console"/' $< > $@
 
 ../../../bin/check: ../../scripts/check.in
-	$(SED) -e 1d $< > $@
+	$(SED) -e 1d -e "s/Rd2dvi /Rd2dvi.sh /" $< > $@
 
 ../../../bin/build: ../../scripts/build.in
 	$(SED) -e 1d $< > $@
@@ -89,7 +84,7 @@ clean:
 	$(RM) *~ */*~ fixhtml fixh fixbin fixetc fixshare
 
 distclean: clean
-	$(RM) -f Rmath.h ../../../tools/GV
+	$(RM) -f ../../../tools/GV
 
 ../../../doc/html/search/SearchEngine.html: ../../../doc/html/search/SearchEngine-head.html ../../../doc/html/search/SearchEngine-foot.html ../../../doc/KEYWORDS.db
 	(cd ../../../doc; \

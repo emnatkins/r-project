@@ -126,9 +126,8 @@ print.dendrogram <- function(x, digits = getOption("digits"), ...)
 }
 
 str.dendrogram <-
-function (object, max.level = 2, digits.d = 3, give.attr = FALSE,
-          wid = getOption("width"), nest.lev = 0, indent.str = "",
-          stem = "--", ...)
+function (object, max.level = 0, digits.d = 3, give.attr = FALSE,
+	  wid = getOption("width"), nest.lev = 0, indent.str = "", ...)
 {
     ## FIXME: `wid' argument is currently disregarded
     pasteLis <- function(lis, dropNam, sep = " = ") {
@@ -141,7 +140,7 @@ function (object, max.level = 2, digits.d = 3, give.attr = FALSE,
     nind <- nchar(istr <- indent.str)
     if(substr(istr, nind,nind) == " ")
        substr(istr, nind,nind) <- "`"
-    cat(istr, stem, sep="")
+    cat(istr, "--", sep="")
 
     nAt <- names(at <- attributes(object))
     memb <- at[["members"]]
@@ -153,8 +152,7 @@ function (object, max.level = 2, digits.d = 3, give.attr = FALSE,
 		at <- paste(",", at)
 	}
 	cat("[dendrogram w/ ", le, " branches and ", memb, " members at h = ",
-            format(hgt, digits=digits.d), if(give.attr) at,
-            "]", if(nest.lev == max.level)" ..", "\n", sep="")
+	    format(hgt, digits=digits.d), if(give.attr) at, "]\n", sep="")
 	if (max.level==0 || nest.lev < max.level) {
 	    for(i in 1:le) {
 		##cat(indent.str, nam.ob[i], ":", sep="")
@@ -388,7 +386,7 @@ cut.dendrogram <- function(x, h, ...)
     assignNodes <- function(subtree, h) {
 	if(!isLeaf(subtree)) {
 	    if(!(K <- length(subtree)))
-		warning(paste(sQuote("subtree"), "of length 0 !!"))
+		warning("`subtree' of length 0 !!")
 	    new.mem <- 0
 	    for(k in 1:K) {
 		if(attr(subtree[[k]], "height") <= h) {
@@ -443,29 +441,32 @@ order.dendrogram <- function(x) {
 
 reorder <- function(x, ...) UseMethod("reorder")
 
-reorder.dendrogram <- function(x, wts, agglo.FUN = sum, ...)
+reorder.dendrogram <- function(x, wts, ...)
 {
     if( !inherits(x, "dendrogram") )
 	stop("we require a dendrogram")
-    agglo.FUN <- match.fun(agglo.FUN)
     oV <- function(x, wts) {
-	if(isLeaf(x)) {
+	if( isLeaf(x) ) {
 	    attr(x, "value") <- wts[x[1]]
 	    return(x)
 	}
-        k <- length(x)
-        if(k == 0) stop("invalid (length 0) node in dendrogram")
-        vals <- numeric(k)
-        for(j in 1:k) {
-            ## insert/compute 'wts' recursively down the branches:
-            b <- oV(x[[j]], wts)
-            x[[j]] <- b
-            vals[j] <- attr(b, "value")
-        }
-        iOrd <- sort.list(vals)
-	attr(x, "value") <- agglo.FUN(vals[iOrd])
-        x[] <- x[iOrd]
-        x
+###--- FIXME: This works only for binary dendrograms !
+	if(length(x) != 2)
+	    stop("reorder()ing of non-binary dendrograms not yet implemented")
+	## insert/compute 'wts' recursively down the branches:
+	left  <- oV(x[[1]], wts)
+	right <- oV(x[[2]], wts)
+	lV <- attr(left, "value")
+	rV <- attr(right, "value")
+	attr(x, "value") <- lV+rV
+	if( lV > rV ) {
+	    x[[1]] <- right
+	    x[[2]] <- left
+	} else {
+	    x[[1]] <- left
+	    x[[2]] <- right
+	}
+	x
     }
     midcache.dendrogram( oV(x, wts) )
 }
@@ -486,9 +487,8 @@ rev.dendrogram <- function(x) {
 ## original Andy Liaw; modified RG, MM :
 heatmap <-
 function (x, Rowv=NULL, Colv=if(symm)"Rowv" else NULL,
-	  distfun = dist, hclustfun = hclust,
-          reorderfun = function(d,w) reorder(d,w),
-          add.expr, symm = FALSE, revC = identical(Colv, "Rowv"),
+	  distfun = dist, hclustfun = hclust, add.expr,
+	  symm = FALSE, revC = identical(Colv, "Rowv"),
 	  scale = c("row", "column", "none"), na.rm=TRUE,
 	  margins = c(5, 5), ColSideColors, RowSideColors,
 	  cexRow = 0.2 + 1/log10(nr), cexCol = 0.2 + 1/log10(nc),
@@ -521,7 +521,7 @@ function (x, Rowv=NULL, Colv=if(symm)"Rowv" else NULL,
 	    hcr <- hclustfun(distfun(x))
 	    ddr <- as.dendrogram(hcr)
 	    if(!is.logical(Rowv) || Rowv)
-		ddr <- reorderfun(ddr, Rowv)
+		ddr <- reorder(ddr, Rowv)
 	}
 	if(nr != length(rowInd <- order.dendrogram(ddr)))
 	    stop("row dendrogram ordering gave index of wrong length")
@@ -540,7 +540,7 @@ function (x, Rowv=NULL, Colv=if(symm)"Rowv" else NULL,
 	    hcc <- hclustfun(distfun(if(symm)x else t(x)))
 	    ddc <- as.dendrogram(hcc)
 	    if(!is.logical(Colv) || Colv)
-		ddc <- reorderfun(ddc, Colv)
+		ddc <- reorder(ddc, Colv)
 	}
 	if(nc != length(colInd <- order.dendrogram(ddc)))
 	    stop("column dendrogram ordering gave index of wrong length")

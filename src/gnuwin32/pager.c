@@ -52,9 +52,6 @@ static menuitem pagerMenus[PAGERMAXKEPT];
 static int pagerRow[PAGERMAXKEPT];
 static void pagerupdateview();
 
-void menueditoropen(control m);
-void menueditornew(control m);
-
 int pagerMultiple, haveusedapager;
 
 
@@ -284,14 +281,14 @@ static int pageraddfile(char *wtitle, char *filename, int deleteonexit)
 }
 
 static MenuItem PagerPopup[] = {		   /* Numbers used below */
-    {"Copy", pagercopy, 'C', 0},			   /* 0 */
-    {"Paste to console", pagerpaste, 'V', 0},		   /* 1 */
-    {"Paste commands to console", pagerpastecmds, 0, 0},   /* 2 */
-    {"Select all", pagerselectall, 'A', 0},		   /* 3 */
-    {"-", 0, 0, 0},
-    {"Stay on top", pagerstayontop, 0, 0},		   /* 5 */
-    {"-", 0, 0, 0},
-    {"Close", pagerclose, 0, 0},			   /* 7 */
+    {"Copy", pagercopy, 0},				   /* 0 */
+    {"Paste to console", pagerpaste, 0},		   /* 1 */
+    {"Paste commands to console", pagerpastecmds, 0},	   /* 2 */
+    {"Select all", pagerselectall, 0},			   /* 3 */
+    {"-", 0, 0},
+    {"Stay on top", pagerstayontop, 0},			   /* 5 */
+    {"-", 0, 0},
+    {"Close", pagerclose, 0},				   /* 7 */
     LASTMENUITEM
 };
 
@@ -409,10 +406,6 @@ static pager pagercreate()
         MCHECK(tb = newtoolbar(btsize + 4));
 	gsetcursor(tb, ArrowCursor);
         addto(tb);
-        MCHECK(bt = newtoolbutton(open_image, r, menueditoropen));
-        MCHECK(addtooltip(bt, "Open script"));
-	gsetcursor(bt, ArrowCursor);
-        r.x += (btsize + 6) ;	
         MCHECK(bt = newtoolbutton(copy1_image, r, pagerpaste));
         MCHECK(addtooltip(bt, "Paste to console"));
 	gsetcursor(bt, ArrowCursor);
@@ -445,8 +438,6 @@ static pager pagercreate()
     MCHECK(m = newmenubar(pagermenuact));
     setdata(m, c);
     MCHECK(newmenu("File"));
-    MCHECK(m = newmenuitem("New script", 'N', menueditornew));
-    MCHECK(m = newmenuitem("Open script...", 'O', menueditoropen));
     MCHECK(m = newmenuitem("Print...", 0, pagerprint));
     setdata(m, c);
     MCHECK(m = newmenuitem("Save to File...", 0, pagersavefile));

@@ -20,10 +20,6 @@
 #ifndef DEVICES_H_
 #define DEVICES_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <Rgraphics.h>
 #include <R_ext/Boolean.h>
 
@@ -128,8 +124,6 @@ void killDevice(int);
 /* ...NO DOC... */
 void addDevice(DevDesc *);
 
-#ifdef __cplusplus
-}
-#endif
+
 
 #endif

@@ -486,11 +486,11 @@ path does not contain spaces}, and run something like
 @smallexample
 tar zxvf R-@value{VERSIONno}.tgz
 cd R-@value{VERSIONno}\src\gnuwin32
-make all recommended
+make
 @end smallexample
 
 @noindent
-sit back and wait (for about 15 minutes on 1GHz PIII with a fast local
+sit back and wait (for about 5 minutes on 1GHz PIII with a fast local
 disc).
 
 For further details, including how to make the documentation and how to
@@ -937,16 +937,10 @@ negatives.
 You will want to use @option{--disable-R-profiling} if you are building
 a profiled executable of @R{} (e.g. with @samp{-pg)}.
 
-Flag @option{--enable-R-shlib} causes the make process to build @R{} as
-a dynamic (shared) library, typically called @file{libR.so}, and link
-the main @R{} executable @file{R.bin} against that library.  This can
-only be done if all the code (including system libraries) can be
-compiled into a dynamic library, and there may be a small performance
-penalty.  So you probably only want this if you will be using an
-application which embeds @R{}.  Note that C code in packages installed
-on a @R{} system linked with @option{--enable-R-shlib} are linked
-against the dynamic library and so such packages cannot be used from a
-@R{} system built in the default way.
+Flag @option{--enable-R-shlib} causes the make process to build R as a
+shared library, typically called @file{libR.so}, and to take
+considerably longer, so you probably only want this if you will be using
+an application which embeds @R{}.
 
 @node Configuration variables, Using make, Configuration options, Configuration on Unix
 @section Configuration variables
@@ -1469,10 +1463,11 @@ specified in the C9x draft standard.  In particular, this means that
 @code{finite} has been replaced by @code{isfinite}.  A @command{gcc}
 configured for HP-UX 10.2 run on 11.0 will not find @code{isfinite}, and
 as a result @command{configure} does not recognize the machine as fully
-supporting @acronym{IEEE} arithmetic and so will not complete.  The best
-solution is to install a properly configured @command{gcc}.  An
-alternative work-around is to add @option{-DIEEE_754} to the
-@code{CFLAGS} variable.
+supporting @acronym{IEEE} arithmetic and does not define @code{IEEE_754}
+when compiling C code.  This results in a failure in @command{make
+check}.  The best solution is to install a properly configured
+@command{gcc}.  An alternative work-around is to add @option{-DIEEE_754}
+to the @code{CFLAGS} variable.
 
 You can configure @R{} to use both the native @command{cc} and
 @command{fort77} with
@@ -1597,8 +1592,6 @@ and the @code{X11()} device worked.  His system required the
 @file{Makeconf} file to be edited to replace @code{/lib/crt0.o} by
 @code{/lib/crt0_64.o} in @code{R_XTRA_LIBS}, and @command{configure} now
 tries to detect this.
-
-We understand that @option{--enable-R-shlib} does not work under AIX.
 
 
 @node Enabling search in HTML help, New platforms, Configuration on Unix, Top

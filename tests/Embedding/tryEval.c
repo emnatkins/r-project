@@ -1,5 +1,4 @@
 #include <Rdefines.h>
-extern int Rf_initEmbeddedR(int argc, char *argv[]);
 
 int 
 main(int argc, char *argv[])
@@ -7,7 +6,7 @@ main(int argc, char *argv[])
 
     SEXP e, val;
     int errorOccurred;
-    argv[0] = "R";
+    argv[0] = "R.bin";
     Rf_initEmbeddedR(argc, argv);
 
     PROTECT(e = allocVector(LANGSXP, 2));

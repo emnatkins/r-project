@@ -30,9 +30,9 @@ lsf.str(pos = 1, \dots, envir = as.environment(pos))
   object.  It calls \code{\link{args}} for (non-primitive) function objects.
 
   \code{\link{ls.str}} and \code{\link{lsf.str}} are useful \dQuote{versions}
-  of \code{\link{ls}}, calling \code{str} on each object (functions only
-  for \code{\link{lsf.str}}).  They are not foolproof and should rather
-  not be used for programming, but are provided for their usefulness.
+  of \code{\link{ls}}, calling \code{str} on each object.  They are not
+  foolproof and should rather not be used for programming, but are
+  provided for their usefulness.
 }
 \arguments{
   \item{object}{any \R object about which you want to have some
@@ -114,18 +114,6 @@ lsf.str(pos = length(search()), pattern = "file")
  str(factor(character(0)))
  str(as.data.frame(NULL))
 }
-\dontshow{
-had.stats4 <- "package:stats4" \%in\% search()
-if(!had.stats4)
-   rs <-
-}
-## S4 classes :
-require(stats4)
-x <- 0:10; y <- c(26, 17, 13, 12, 20, 5, 9, 8, 5, 4, 8)
-ll <- function(ymax=15, xh=6) -sum(dpois(y, lambda=ymax/(1+x/xh), log=TRUE))
-fit <- mle(ll)
-str(fit)
-\dontshow{if(!had.stats4 && rs) detach("package:stats4")}
 }
 \keyword{print}
 \keyword{documentation}

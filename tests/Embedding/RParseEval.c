@@ -8,8 +8,9 @@
 int
 main(int argc, char *argv[])
 {
-    SEXP e, tmp;
-    int n, hadError;
+    SEXP fun, arg, seq, pch, tmp;
+    SEXP e, e1;
+    int i, n, hadError;
     ParseStatus status;
 
     init_R(argc, argv);

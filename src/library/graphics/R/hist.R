@@ -17,8 +17,7 @@ hist.default <-
     use.br <- !missing(breaks)
     if(use.br) {
 	if(!missing(nclass))
-	    warning(paste(sQuote("nclass"), "not used when",
-                          sQuote("breaks"), "specified"))
+	    warning("`nclass' not used when `breaks' specified")
     }
     else if(!is.null(nclass) && length(nclass) == 1)
 	breaks <- nclass
@@ -28,8 +27,7 @@ hist.default <-
     else {				# construct vector of breaks
 	if(!include.lowest) {
 	    include.lowest <- TRUE
-	    warning(paste(sQuote("include.lowest"), "ignored as",
-                          sQuote("breaks"), "is not a vector"))
+	    warning("include.lowest ignored as `breaks' is not a vector")
 	}
 	if(is.character(breaks)) {
 	    breaks <- match.arg(tolower(breaks),
@@ -126,8 +124,7 @@ plot.histogram <-
 	if(is.logical(x$equidist)) x$equidist
 	else { h <- diff(x$breaks) ; diff(range(h)) < 1e-7 * mean(h) }
     if(freq && !equidist)
-	warning(paste("the AREAS in the plot are wrong -- rather use ",
-                      sQuote("freq=FALSE"), "!", sep = ""))
+	warning("the AREAS in the plot are wrong -- rather use `freq=FALSE'!")
 
     y <- if (freq) x$counts else { ## x$density -- would be enough, but
 	## for back compatibility

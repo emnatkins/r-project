@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995-1998	Robert Gentleman and Ross Ihaka.
- *  Copyright (C) 2000-2004	The R Development Core Team.
+ *  Copyright (C) 2000-2003	The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -291,9 +291,6 @@ static void PrintGenericVector(SEXP s, SEXP env)
 		} else
 		pbuf = Rsprintf("Character,%d", LENGTH(tmp));
 		break;
-	    case RAWSXP:
-		pbuf = Rsprintf("Raw,%d", LENGTH(tmp));
-		break;
 	    case LISTSXP:
 	    case VECSXP:
 		pbuf = Rsprintf("List,%d", length(tmp));
@@ -425,10 +422,6 @@ static void printList(SEXP s, SEXP env)
 		pbuf = Rsprintf("Character,%d", LENGTH(CAR(s)));
 		break;
 
-	    case RAWSXP:
-		pbuf = Rsprintf("Raw,%d", LENGTH(CAR(s)));
-		break;
-
 	    case LISTSXP:
 		pbuf = Rsprintf("List,%d", length(CAR(s)));
 		break;
@@ -506,7 +499,7 @@ static void PrintExpression(SEXP s)
     SEXP u;
     int i, n;
 
-    u = deparse1(s, 0, TRUE, FALSE);
+    u = deparse1(s, 0);
     n = LENGTH(u);
     for (i = 0; i < n ; i++)
 	Rprintf("%s\n", CHAR(STRING_ELT(u, i)));
@@ -542,7 +535,7 @@ void PrintValueRec(SEXP s,SEXP env)
 	break;
     case SYMSXP: /* Use deparse here to handle backtick quotification
 		  * of "weird names" */
-	t = deparse1(s, 0, TRUE, FALSE);
+	t = deparse1(s, 0);
 	Rprintf("%s\n", CHAR(STRING_ELT(t, 0)));
 	break;
     case SPECIALSXP:
@@ -551,7 +544,7 @@ void PrintValueRec(SEXP s,SEXP env)
 	break;
     case CHARSXP:
 	Rprintf("<CHARSXP: ");
-	Rprintf(EncodeString(s, 0, '"', Rprt_adj_left));
+	Rprintf(EncodeString(CHAR(s), 0, '"', Rprt_adj_left));
 	Rprintf(">\n");
 	break;
     case EXPRSXP:
@@ -561,7 +554,7 @@ void PrintValueRec(SEXP s,SEXP env)
     case LANGSXP:
 	t = getAttrib(s, R_SourceSymbol);
 	if (isNull(t))
-	    t = deparse1(s, 0, TRUE, FALSE);
+	    t = deparse1(s, 0);
 	for (i = 0; i < LENGTH(t); i++)
 	    Rprintf("%s\n", CHAR(STRING_ELT(t, i)));
 #ifdef BYTECODE
@@ -593,7 +586,6 @@ void PrintValueRec(SEXP s,SEXP env)
     case REALSXP:
     case STRSXP:
     case CPLXSXP:
-    case RAWSXP:
 	PROTECT(t = getAttrib(s, R_DimSymbol));
 	if (TYPEOF(t) == INTSXP) {
 	    if (LENGTH(t) == 1) {
@@ -695,10 +687,12 @@ static void printAttributes(SEXP s, SEXP env, Rboolean useSlots)
 		goto nextattr;
 	    if(useSlots)
 		sprintf(ptag, "Slot \"%s\":",
-			EncodeString(PRINTNAME(TAG(a)), 0, 0, Rprt_adj_left));
+			EncodeString(CHAR(PRINTNAME(TAG(a))), 0, 0,
+				     Rprt_adj_left));
 	    else
 		sprintf(ptag, "attr(,\"%s\")",
-			EncodeString(PRINTNAME(TAG(a)), 0, 0, Rprt_adj_left));
+			EncodeString(CHAR(PRINTNAME(TAG(a))), 0, 0,
+				     Rprt_adj_left));
 	    Rprintf("%s", tagbuf); Rprintf("\n");
 	    if (isObject(CAR(a))) {
 		/* Need to construct a call to

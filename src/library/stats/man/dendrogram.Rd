@@ -37,9 +37,9 @@ as.dendrogram(object, \dots)
 
 \method{rev}{dendrogram}(x)
 
-\method{str}{dendrogram}(object, max.level = 2, digits.d = 3,
+\method{str}{dendrogram}(object, max.level = 0, digits.d = 3,
     give.attr = FALSE, wid = getOption("width"),
-    nest.lev = 0, indent.str = "", stem = "--", \dots)
+    nest.lev = 0, indent.str = "", \dots)
 }
 \arguments{
   \item{object}{any \R object that can be made into one of class
@@ -73,11 +73,8 @@ as.dendrogram(object, \dots)
     \code{\link{print.default}}.}
   \item{max.level, digits.d, give.attr, wid, nest.lev, indent.str}{%
     arguments to \code{str}, see \code{\link{str.default}()}.  Note that
-    by default, \code{max.level = 2}, only the first two levels are
-    displayed by \code{str()} and that \code{give.attr = FALSE} still
-    shows \code{height} and \code{members} attributes for each node.}
-  \item{stem}{a string used for \code{str()} specifying the \emph{stem}
-    to use for each dendrogram branch.}
+    by default \code{give.attr = FALSE}, it still shows \code{height}
+    and \code{members} attributes for each node.}
 }
 \details{
   Warning: This documentation is preliminary.
@@ -121,9 +118,6 @@ as.dendrogram(object, \dots)
   Objects of class \code{"hclust"} can be converted to class
   \code{"dendrogram"} using method \code{as.dendrogram}.
 
-  \code{rev.dendrogram} simply returns the dendrogram \code{x} with
-  reversed nodes, see also \code{\link{reorder.dendrogram}}.
-
   \code{isLeaf()}, \code{plotNode()} and \code{plotNodeLimit()} are helper
   functions.
 }
@@ -136,7 +130,6 @@ data(USArrests)
 hc <- hclust(dist(USArrests), "ave")
 (dend1 <- as.dendrogram(hc)) # "print()" method
 str(dend1) # "str()" method
-str(dend1, max=0)# to show all levels down to the leaves
 
 op <- par(mfrow= c(2,2), mar = c(3,3,1,1))
 plot(dend1)

@@ -28,14 +28,8 @@
 #ifndef RMATH_H
 #define RMATH_H
 
-#ifdef  __cplusplus
-extern "C" {
-#endif
-
 /*-- Mathlib as part of R --  define this for standalone : */
 /* #undef MATHLIB_STANDALONE */
-
-#define R_VERSION_STRING "@PACKAGE_VERSION@"
 
 #ifndef HAVE_LOG1P
 @RMATH_HAVE_LOG1P@
@@ -321,6 +315,9 @@ double  Rlog1p(double);
 #undef trunc
 #define	trunc	ftrunc
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
 
 	/* R's versions with !R_FINITE checks */
 
@@ -576,13 +573,16 @@ double	gamma_cody(double);
 #ifdef MATHLIB_STANDALONE
 #ifndef MATHLIB_PRIVATE_H
 
+#ifdef IEEE_754
 # define ISNAN(x) (isnan(x)!=0)
-
-/* We don't have config information available to do anything else */
+#else
+# define ISNAN(x)      R_IsNaNorNA(x)
+#endif
 #define R_FINITE(x)    R_finite(x)
+int R_IsNaNorNA(double);
 int R_finite(double);
 
-#ifdef WIN32  /* not Win32 as no config information */
+#ifdef WIN32
 # define NA_REAL (*_imp__NA_REAL)
 # define R_NegInf (*_imp__R_NegInf)
 # define R_PosInf (*_imp__R_PosInf)

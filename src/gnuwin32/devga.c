@@ -171,7 +171,6 @@ typedef struct {
     Rboolean buffered;
     int timeafter, timesince;
     SEXP psenv;
-    double res_dpi;
 } gadesc;
 
 rect getregion(gadesc *xd)
@@ -266,7 +265,7 @@ static void GA_Text(double x, double y, char *str,
 		    R_GE_gcontext *gc,
 		    NewDevDesc *dd);
 static Rboolean GA_Open(NewDevDesc*, gadesc*, char*, double, double,
-			Rboolean, int, int, double, int, int, int);
+			Rboolean, int, int, double, int, int);
 
 	/********************************************************/
 	/* end of list of required device driver actions 	*/
@@ -284,7 +283,7 @@ void UnLoad_Rbitmap_Dll();
 static void SaveAsPng(NewDevDesc *dd, char *fn);
 static void SaveAsJpeg(NewDevDesc *dd, int quality, char *fn);
 static void SaveAsBmp(NewDevDesc *dd, char *fn);
-static void SaveAsBitmap(NewDevDesc *dd, int res);
+static void SaveAsBitmap(NewDevDesc *dd);
 
 static void PrivateCopyDevice(NewDevDesc *dd, NewDevDesc *ndd, char *name)
 {
@@ -325,7 +324,7 @@ static void SaveAsWin(NewDevDesc *dd, char *display)
 		       fromDeviceHeight(toDeviceHeight(-1.0, GE_NDC, gdd),
 					GE_INCHES, gdd),
 		       ((gadesc*) dd->deviceSpecific)->basefontsize,
-		       0, 1, White, White, 1, NA_INTEGER, NA_INTEGER, FALSE,
+		       0, 1, White, 1, NA_INTEGER, NA_INTEGER, FALSE,
 		       R_GlobalEnv))
         PrivateCopyDevice(dd, ndd, display);
 }
@@ -877,6 +876,11 @@ static void grpopupact(control m)
 
 /* plot history */
 
+
+#ifdef PLOTHISTORY
+
+/* extern SEXP savedSnapshot;*/
+
 /* NB: this puts .SavedPlots in .GlobalEnv */
 #define GROWTH 4
 #define GETDL SEXP vDL=findVar(install(".SavedPlots"), R_GlobalEnv)
@@ -1066,7 +1070,7 @@ static void menuprev(control m)
     }
 }
 
-static void menugrclear(control m)
+static void menuclear(control m)
 {
     defineVar(install(".SavedPlots"), R_NilValue, R_GlobalEnv);
 }
@@ -1102,7 +1106,7 @@ static void menusvar(control m)
 	return;
     defineVar(install(v), vDL, R_GlobalEnv);
 }
-/* end of plot history */
+#endif
 
 static void menuconsole(control m)
 {
@@ -1149,6 +1153,7 @@ static void menufix(control m)
 
 static void CHelpKeyIn(control w, int key)
 {
+#ifdef PLOTHISTORY
     NewDevDesc *dd = (NewDevDesc *) getdata(w);
     gadesc *xd = (gadesc *) dd->deviceSpecific;
 
@@ -1164,6 +1169,7 @@ static void CHelpKeyIn(control w, int key)
 	menunext(xd->mnext);
 	break;
     }
+#endif
 }
 
 static void NHelpKeyIn(control w,int key)
@@ -1187,6 +1193,7 @@ static void NHelpKeyIn(control w,int key)
 
 static void mbarf(control m)
 {
+#ifdef PLOTHISTORY
     NewDevDesc *dd = (NewDevDesc *) getdata(m);
     gadesc *xd = (gadesc *) dd->deviceSpecific;
 
@@ -1240,6 +1247,7 @@ static void mbarf(control m)
 	disable(xd->mclpbm);
     }
     draw(xd->mbar);
+#endif
 }
 
 
@@ -1288,11 +1296,11 @@ setupScreenDevice(NewDevDesc *dd, gadesc *xd, double w, double h,
     double dw, dw0, dh, d;
 
     xd->kind = SCREEN;
-    if (R_FINITE(user_xpinch) && user_xpinch > 0.0)
+    if (R_finite(user_xpinch) && user_xpinch > 0.0)
 	dw = dw0 = (int) (w * user_xpinch);
     else
 	dw = dw0 = (int) (w / pixelWidth(NULL));
-    if (R_FINITE(user_ypinch) && user_ypinch > 0.0)
+    if (R_finite(user_ypinch) && user_ypinch > 0.0)
 	dh = (int) (w * user_ypinch);
     else
 	dh = (int) (h / pixelHeight(NULL));
@@ -1407,6 +1415,7 @@ setupScreenDevice(NewDevDesc *dd, gadesc *xd, double w, double h,
     MCHECK(xd->mprint = newmenuitem("Print...\tCTRL+P", 0, menuprint));
     MCHECK(newmenuitem("-", 0, NULL));
     MCHECK(xd->mclose = newmenuitem("close Device", 0, menuclose));
+#ifdef PLOTHISTORY
     MCHECK(newmenu("History"));
     MCHECK(xd->mrec = newmenuitem("Recording", 0, menurec));
     if(recording) check(xd->mrec);
@@ -1420,7 +1429,8 @@ setupScreenDevice(NewDevDesc *dd, gadesc *xd, double w, double h,
     MCHECK(xd->msvar = newmenuitem("Save to variable...", 0, menusvar));
     MCHECK(xd->mgvar = newmenuitem("Get from variable...", 0, menugvar));
     MCHECK(newmenuitem("-", 0, NULL));
-    MCHECK(xd->mclear = newmenuitem("Clear history", 0, menugrclear));
+    MCHECK(xd->mclear = newmenuitem("Clear history", 0, menuclear));
+#endif
     MCHECK(newmenu("Resize"));
     MCHECK(xd->mR = newmenuitem("R mode", 0, menuR));
     if(resize == 1) check(xd->mR);
@@ -1497,7 +1507,7 @@ setupScreenDevice(NewDevDesc *dd, gadesc *xd, double w, double h,
 static Rboolean GA_Open(NewDevDesc *dd, gadesc *xd, char *dsp,
 			double w, double h, Rboolean recording,
 			int resize, int canvascolor, double gamma,
-			int xpos, int ypos, int bg)
+			int xpos, int ypos)
 {
     rect  rr;
     char buf[600]; /* allow for pageno formats */
@@ -1506,7 +1516,7 @@ static Rboolean GA_Open(NewDevDesc *dd, gadesc *xd, char *dsp,
 	RFontInit();
 
     /* Foreground and Background Colors */
-    xd->bg = dd->startfill = bg; /* 0xffffffff; transparent */
+    xd->bg = dd->startfill = 0xffffffff; /* transparent */
     xd->col = dd->startcol = R_RGB(0, 0, 0);
 
     xd->fgcolor = Black;
@@ -1525,7 +1535,6 @@ static Rboolean GA_Open(NewDevDesc *dd, gadesc *xd, char *dsp,
 	if (!xd->gawin)
 	    return FALSE;
     } else if (!strncmp(dsp, "png:", 4) || !strncmp(dsp,"bmp:", 4)) {
-	xd->res_dpi = (xpos == NA_INTEGER) ? 0 : xpos;
 	if(R_OPAQUE(canvascolor))
 	    xd->bg = dd->startfill = GArgb(canvascolor, 1.0);
 	else
@@ -1556,7 +1565,6 @@ static Rboolean GA_Open(NewDevDesc *dd, gadesc *xd, char *dsp,
 	}
     } else if (!strncmp(dsp, "jpeg:", 5)) {
         char *p = strchr(&dsp[5], ':');
-	xd->res_dpi = (xpos == NA_INTEGER) ? 0 : xpos;
 	xd->bg = dd->startfill = GArgb(canvascolor, 1.0);
         xd->kind = JPEG;
 	if (!p) return FALSE;
@@ -1842,19 +1850,21 @@ static void GA_NewPage(R_GE_gcontext *gc,
     if ((xd->kind == PNG || xd->kind == JPEG || xd->kind == BMP)
 	&& xd->needsave) {
 	char buf[600];
-	SaveAsBitmap(dd, xd->res_dpi);
+	SaveAsBitmap(dd);
 	snprintf(buf, 600, xd->filename, xd->npage);
 	if ((xd->fp = fopen(buf, "wb")) == NULL)
 	    error("Unable to open file `%s' for writing", buf);
     }
     if (xd->kind == SCREEN) {
         if(xd->buffered) SHOW;
+#ifdef PLOTHISTORY
 	if (xd->recording && xd->needsave)
 	    AddtoPlotHistory(dd->savedSnapshot, 0);
 	if (xd->replaying)
 	    xd->needsave = FALSE;
 	else
 	    xd->needsave = TRUE;
+#endif
     }
     xd->bg = gc->fill;
     if (!R_OPAQUE(xd->bg))
@@ -1900,7 +1910,7 @@ static void GA_Close(NewDevDesc *dd)
 	del(xd->bm);
 	if (xd == GA_xd) GA_xd = NULL;
     } else if ((xd->kind == PNG) || (xd->kind == JPEG) || (xd->kind == BMP)) {
-      SaveAsBitmap(dd, xd->res_dpi);
+      SaveAsBitmap(dd);
     }
     del(xd->font);
     del(xd->gawin);
@@ -2315,7 +2325,7 @@ static void GA_Hold(NewDevDesc *dd)
 
 Rboolean GADeviceDriver(NewDevDesc *dd, char *display, double width,
 			double height, double pointsize,
-			Rboolean recording, int resize, int bg, int canvas,
+			Rboolean recording, int resize, int canvas,
 			double gamma, int xpos, int ypos, Rboolean buffered,
 			SEXP psenv)
 {
@@ -2351,7 +2361,7 @@ Rboolean GADeviceDriver(NewDevDesc *dd, char *display, double width,
     /* Start the Device Driver and Hardcopy.  */
 
     if (!GA_Open(dd, xd, display, width, height, recording, resize, canvas,
-		 gamma, xpos, ypos, bg)) {
+		 gamma, xpos, ypos)) {
 	free(xd);
 	return FALSE;
     }
@@ -2411,11 +2421,11 @@ Rboolean GADeviceDriver(NewDevDesc *dd, char *display, double width,
 
     /* Inches per raster unit */
 
-    if (R_FINITE(user_xpinch) && user_xpinch > 0.0)
+    if (R_finite(user_xpinch) && user_xpinch > 0.0)
 	dd->ipr[0] = 1.0/user_xpinch;
     else
 	dd->ipr[0] = pixelWidth(xd->gawin);
-    if (R_FINITE(user_ypinch) && user_ypinch > 0.0)
+    if (R_finite(user_ypinch) && user_ypinch > 0.0)
 	dd->ipr[1] = 1.0/user_ypinch;
     else
 	dd->ipr[1] = pixelHeight(xd->gawin);
@@ -2550,7 +2560,7 @@ static unsigned long privategetpixel2(void *d,int i, int j)
 }
 
 /* This is the device version */
-static void SaveAsBitmap(NewDevDesc *dd, int res)
+static void SaveAsBitmap(NewDevDesc *dd)
 {
     rect r, r2;
     gadesc *xd = (gadesc *) dd->deviceSpecific;
@@ -2565,13 +2575,13 @@ static void SaveAsBitmap(NewDevDesc *dd, int res)
 	    if (xd->kind == PNG)
 		R_SaveAsPng(data, xd->windowWidth, xd->windowHeight,
 			    privategetpixel2, 0, xd->fp,
-			    R_OPAQUE(xd->bg) ? 0 : xd->pngtrans, res) ;
+			    R_OPAQUE(xd->bg) ? 0 : xd->pngtrans) ;
 	    else if (xd->kind == JPEG)
 		R_SaveAsJpeg(data, xd->windowWidth, xd->windowHeight,
-			     privategetpixel2, 0, xd->quality, xd->fp, res) ;
+			     privategetpixel2, 0, xd->quality, xd->fp) ;
 	    else
 		R_SaveAsBmp(data, xd->windowWidth, xd->windowHeight,
-			    privategetpixel2, 0, xd->fp, res);
+			    privategetpixel2, 0, xd->fp);
 	    free(data);
 	} else
 	    warning("processing of the plot ran out of memory");
@@ -2607,7 +2617,7 @@ static void SaveAsPng(NewDevDesc *dd,char *fn)
     if(data) {
 	png_rows = r2.width;
 	R_SaveAsPng(data, xd->windowWidth, xd->windowHeight,
-		    privategetpixel2, 0, fp, 0, 0) ;
+		    privategetpixel2, 0, fp, 0) ;
 	free(data);
     } else
 	warning("processing of the plot ran out of memory");
@@ -2640,7 +2650,7 @@ static void SaveAsJpeg(NewDevDesc *dd,int quality,char *fn)
     if(data) {
 	png_rows = r2.width;
 	R_SaveAsJpeg(data,xd->windowWidth, xd->windowHeight,
-		     privategetpixel2, 0, quality, fp, 0) ;
+		     privategetpixel2, 0, quality, fp) ;
 	free(data);
     } else
 	warning("processing of the plot ran out of memory");
@@ -2675,7 +2685,7 @@ static void SaveAsBmp(NewDevDesc *dd,char *fn)
     if(data) {
 	png_rows = r2.width;
 	R_SaveAsBmp(data, xd->windowWidth, xd->windowHeight,
-		    privategetpixel2, 0, fp, 0) ;
+		    privategetpixel2, 0, fp) ;
 	free(data);
     } else
 	warning("processing of the plot ran out of memory");
@@ -2709,18 +2719,4 @@ SEXP do_bringtotop(SEXP call, SEXP op, SEXP args, SEXP env)
 	BringToTop(xd->gawin, stay);
     }
     return R_NilValue;
-}
-
-int getDeviceHandle(int dev)
-{
-    GEDevDesc *gdd;
-    gadesc *xd;
-
-    if (dev == -1) return(getHandle(RConsole));
-    if (dev < 1 || dev > R_MaxDevices || dev == NA_INTEGER) return(0);
-    gdd = (GEDevDesc *) GetDevice(dev - 1);
-    if (!gdd) return(0);
-    xd = (gadesc *) gdd->dev->deviceSpecific;
-    if (!xd) return(0);
-    return(getHandle(xd->gawin));
 }

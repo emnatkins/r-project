@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996	Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2004	The R Development Core Team.
+ *  Copyright (C) 1998--2003	The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -299,7 +299,6 @@ SEXP eval(SEXP e, SEXP rho)
     case REALSXP:
     case STRSXP:
     case CPLXSXP:
-    case RAWSXP:
     case SPECIALSXP:
     case BUILTINSXP:
     case ENVSXP:
@@ -2268,6 +2267,7 @@ static SEXP cmp_arith2(SEXP call, int opval, SEXP opsym, SEXP x, SEXP y)
 #define Math1(which) Builtin1(do_math1,which)
 #define Relop2(opval,opsym) NewBuiltin2(cmp_relop,opval,opsym)
 
+#ifdef IEEE_754
 # define DO_FAST_BINOP(op,a,b) do { \
     SEXP val = allocVector(REALSXP, 1); \
     REAL(val)[0] = (a) op (b); \
@@ -2293,6 +2293,9 @@ static SEXP cmp_arith2(SEXP call, int opval, SEXP opsym, SEXP x, SEXP y)
     } \
     Arith2(opval, opsym); \
 } while (0)
+#else
+# define FastBinary(op,opval,opsym) Arith2(opval,opsym)
+#endif
 
 #define BCNPUSH(v) do { \
   SEXP __value__ = (v); \
@@ -2548,7 +2551,6 @@ static void checkVectorSubscript(SEXP vec, int k)
     case STRSXP:
     case VECSXP:
     case EXPRSXP:
-    case RAWSXP:
 	if (k < 0 || k >= LENGTH(vec))
 	    error("subscript out of bounds");
 	break;
@@ -2567,7 +2569,6 @@ static SEXP numVecElt(SEXP vec, SEXP idx)
     case INTSXP: return ScalarInteger(INTEGER(vec)[i]);
     case LGLSXP: return ScalarLogical(LOGICAL(vec)[i]);
     case CPLXSXP: return ScalarComplex(COMPLEX(vec)[i]);
-    case RAWSXP: return ScalarRaw(RAW(vec)[i]);
     default:
 	error("not a simple vector");
 	return R_NilValue; /* keep -Wall happy */

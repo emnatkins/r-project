@@ -20,6 +20,8 @@ RPREFIX = $(shell perl fixed/rwver.pl ../../VERSION)
 
 DATE = $(shell date +%F)
 
+PACKAGES = $(filter-out tcltk, $(R_PKGS_BASE))
+
 RLIB = $(RHOME)/library
 PKGDIR = $(RHOME)/src/library
 
@@ -43,17 +45,17 @@ else
 R-DLLFLAGS = -mwindows
 endif
 R-DLLLIBS =-L. $(FLIBS) -lRblas -lcomctl32 -lversion
-SOURCES = \
-  console.c dataentry.c devga.c dodevga.c dynload.c edit.c editor.c extra.c \
-  opt.c pager.c preferences.c psignal.c rhome.c rui.c run.c shext.c \
-  sys-win32.c system.c
+#SOURCES = $(filter-out malloc.c blas00.c,$(wildcard *.c *.f))
+SOURCES = console.c dataentry.c devga.c dodevga.c dynload.c edit.c extra.c \
+   opt.c pager.c preferences.c psignal.c rhome.c rui.c run.c shext.c \
+    sys-common.c sys-win32.c system.c
 OBJS = $(SOURCES:.c=.o) e_pow.o
-MAINLIBS = ../main/libmain.a ../appl/libappl.a ../nmath/libnmath.a
-EXTRALIBS = graphapp/ga.a getline/gl.a ../extra/xdr/xdr.a \
-   ../extra/zlib/libz.a ../extra/pcre/libRpcre.a ../extra/bzip2/libbz2.a
+MAINLIBS = libmain.a libappl.a libmath.a
+EXTRALIBS = ga.a gl.a xdr.a ../extra/zlib/libz.a ../extra/pcre/libRpcre.a \
+   ../extra/bzip2/libbz2.a
 
-PKGS = $(foreach i,$(R_PKGS_BASE) ,pkg-$i)
-PKGCLEAN = $(foreach i,$(R_PKGS_BASE),pkgclean-$i)
+PKGS = $(foreach i,$(PACKAGES) $(R_PKGS_STUBS),pkg-$i)
+PKGCLEAN = $(foreach i,$(R_PKGS_BASE) $(R_PKGS_STUBS),pkgclean-$i)
 
 # flags to ensure that Doug Lea's malloc is used:
 ifdef LEA_MALLOC
@@ -64,6 +66,10 @@ endif
 
 .PHONY:  clean veryclean  rlibs fixfiles front-ends rmodules
 
+
+# separate as Tcl/Tk headers are needed.
+tcl:
+	@$(MAKE) --no-print-directory pkg-tcltk
 
 CFLAGS = $(OPTFLAGS) -I../include -I. -DHAVE_CONFIG_H -DR_DLL_BUILD
 FFLAGS = $(FOPTFLAGS)
@@ -77,6 +83,7 @@ front-ends/Rpwd.exe:
 ## watch out: R.dll and Rblas.dll depend on each other.
 rbuild:
 	@$(MAKE) --no-print-directory fixfiles
+	@$(MAKE) --no-print-directory rlibs
 	@$(MAKE) --no-print-directory makeMakedeps
 	@$(MAKE) --no-print-directory libRblas.a
 	@$(MAKE) --no-print-directory ../../bin/R.dll libR.a
@@ -106,8 +113,8 @@ rpackage: ../../library/R.css
 
 rlibs:
 	$(MAKE) --no-print-directory -C ../appl  OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
-	$(MAKE) --no-print-directory -C ../nmath OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
 	$(MAKE) --no-print-directory -C ../main  OPTFLAGS='$(OPTFLAGS_M)' -f Makefile.win
+	$(MAKE) --no-print-directory -C ../nmath OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
 	$(MAKE) --no-print-directory -C ./graphapp
 	$(MAKE) --no-print-directory -C ./getline
 	$(MAKE) --no-print-directory -C ../extra/xdr -f Makefile.win
@@ -125,7 +132,7 @@ fixfiles: docfiles
 	@$(MAKE) --no-print-directory -C ./fixed BUILD=$(BUILD)
 
 fixed/fixdesc:
-	@sh fixed/GETDESC $(R_PKGS_BASE)
+	@sh fixed/GETDESC $(R_PKGS_BASE) $(R_PKGS_STUBS)
 
 dllversion.o: ../include/Rversion.h
 
@@ -338,7 +345,7 @@ data-%:
 #                          ===== cleaning ======
 
 clean: cleanwin $(PKGCLEAN)
-	$(RM) -f ../*/*.o ../*/*.a *.a ../*/*.d ../*/Makedeps fixed/fixdesc
+	$(RM) -f ../*/*.o $(WINOBJS) *.a ../*/*.d ../*/Makedeps fixed/fixdesc
 	-$(MAKE) --no-print-directory -C ../../doc/manual -f Makefile.win distclean
 	-$(MAKE) --no-print-directory -C ../nmath/standalone -f Makefile.win distclean
 	-$(MAKE) --no-print-directory -C ../modules -f Makefile.win clean
@@ -369,7 +376,7 @@ distclean veryclean: clean clean-recommended
 	../include/Platform.h ../../tests/*.Rout ../../tests/*.Rout.fail
 	$(MAKE) -C fixed distclean
 	-$(MAKE) -C installer distclean
-	@for pkg in $(R_PKGS_BASE); do \
+	@for pkg in $(R_PKGS_BASE) $(R_PKGS_STUBS); do \
 	  $(RM) ../library/$${pkg}/DESCRIPTION; \
 	done
 	$(RM) rw-FAQ fixed/html/rw-FAQ.html
@@ -385,7 +392,7 @@ cleanwin:
 	$(MAKE) -C getline clean
 	$(MAKE) -C help clean
 	$(MAKE) -C front-ends clean
-	$(MAKE) -C ../extra/xdr -f Makefile.win distclean
+	$(MAKE) -C ../extra/xdr -f Makefile.win clean
 	$(MAKE) -C ../extra/pcre -f Makefile.win distclean
 	$(MAKE) -C ../extra/bzip2 -f Makefile.win clean
 	$(MAKE) -C ../extra/zlib -f Makefile.win distclean
@@ -403,7 +410,7 @@ test-Basic:
 	-@$(MAKE) --no-print-directory -C $(RHOME)/tests -f Makefile.win
 
 
-PKGS-CHK = $(foreach i, $(R_PKGS_BASE), pkgcheck-$i)
+PKGS-CHK = $(foreach i, $(PACKAGES), pkgcheck-$i)
 pkgtests: $(PKGS-CHK)
 
 check-devel: check
@@ -426,14 +433,14 @@ ifeq ($(strip $(BUILD)),CROSS)
 	@for pkg in $(R_PKGS_BASE); do \
 	  if test -d "../library/$${pkg}/inst/doc"; then \
 	    echo "building/updating vignettes for package '$${pkg}' ..."; \
-	    (echo "tools:::.install_package_vignettes(\"../library/$${pkg}\", \"../../library/$${pkg}\")") | R_DEFAULT_PACKAGES="utils,tools" $(R_EXE) --vanilla --slave  > /dev/null; \
+	    (echo "tools:::.installPackageVignettes(\"../library/$${pkg}\", \"../../library/$${pkg}\")") | R_DEFAULT_PACKAGES="utils,tools" $(R_EXE) --vanilla --slave  > /dev/null; \
 	  fi; \
 	done
 else
 	@for pkg in $(R_PKGS_BASE); do \
 	  if test -d "../library/$${pkg}/inst/doc"; then \
 	    echo "building/updating vignettes for package '$${pkg}' ..."; \
-	    (echo "tools:::.install_package_vignettes(\"../library/$${pkg}\", \"../../library/$${pkg}\")") | ../../bin/Rterm.exe --vanilla --slave R_DEFAULT_PACKAGES="utils,tools" > /dev/null; \
+	    (echo "tools:::.installPackageVignettes(\"../library/$${pkg}\", \"../../library/$${pkg}\")") | ../../bin/Rterm.exe --vanilla --slave R_DEFAULT_PACKAGES="utils,tools" > /dev/null; \
 	  fi; \
 	done
 endif
@@ -513,6 +520,7 @@ distribution:
 	$(MAKE) rpackage
 	$(MAKE) rdocs
 	$(MAKE) bitmapdll
+	$(MAKE) tcl
 	$(MAKE) recommended
 	$(MAKE) docs
 	$(MAKE) rinstaller
@@ -521,8 +529,8 @@ distribution:
 
 ## ============= End of maintainer targets ========================
 
-# Dependencies : blas00.c malloc.c don't have any
-CSOURCES=$(SOURCES) blasGoto.c
+# Dependencies
+CSOURCES=$(filter-out malloc.c blas00.c,$(wildcard *.c))
 DEPS=$(CSOURCES:.c=.d)
 
 makeMakedeps: $(DEPS)

@@ -1,4 +1,4 @@
-### $Id: nls.R,v 1.5 2004/06/10 11:25:28 ripley Exp $
+### $Id: nls.R,v 1.2.4.1 2004/06/10 15:27:16 ripley Exp $
 ###
 ###            Nonlinear least squares for R
 ###
@@ -532,9 +532,6 @@ print.summary.nls <-
     cat("\n")
     invisible(x)
 }
-
-# Unusually, this uses `parameters' not `coefficients'
-coef.summary.nls <- function (object, ...) object$parameters
 
 weights.nls <- function( object, ... ) object$weights
 

@@ -22,7 +22,7 @@
 
 <p>This is a guide to installation and administration for R.
 
-   <p>The current version of this document is 2.0.0 (2004-06-16).
+   <p>The current version of this document is 1.9.1 (2004-06-21).
 
    ISBN 3-900051-02-X
 
@@ -337,7 +337,7 @@ work.
    <p>Your file system must allow long file names (as is likely except
 perhaps for some network-mounted systems).
 
-   <p>Installation is <em>via</em> the installers <code>rw2000dev.exe</code>
+   <p>Installation is <em>via</em> the installers <code>rw1091.exe</code>
 or <code>miniR.exe</code>.  Just double-click on the icon and follow the
 instructions.  You can uninstall R from the Control Panel.
 
@@ -357,12 +357,12 @@ that a <code>samba</code>-mounted file system (which maps all file names to
 lower case) did not work.  Open a commands window at a directory <em>whose
 path does not contain spaces</em>, and run something like
 
-<pre class="smallexample">     tar zxvf R-2.0.0.tgz
-     cd R-2.0.0\src\gnuwin32
-     make all recommended
+<pre class="smallexample">     tar zxvf R-1.9.1.tgz
+     cd R-1.9.1\src\gnuwin32
+     make
      </pre>
 
-<p>sit back and wait (for about 15 minutes on 1GHz PIII with a fast local
+<p>sit back and wait (for about 5 minutes on 1GHz PIII with a fast local
 disc).
 
    <p>For further details, including how to make the documentation and how to
@@ -391,8 +391,8 @@ mentioned <a href="http://cran.r-project.org/bin/macosx/RMacOSX-FAQ.html">R for 
 and install some tools as explained in the document. Than you have to
 expand the R sources and configure R appropriately, for example
 
-<pre class="smallexample">     tar zxvf R-2.0.0.tgz
-     cd R-2.0.0
+<pre class="smallexample">     tar zxvf R-1.9.1.tgz
+     cd R-1.9.1
      ./configure --with-blas='-framework vecLib' --with-lapack --with-aqua
      make
      </pre>
@@ -749,16 +749,10 @@ negatives.
    <p>You will want to use <code>--disable-R-profiling</code> if you are building
 a profiled executable of R (e.g. with <code>-pg)</code>.
 
-   <p>Flag <code>--enable-R-shlib</code> causes the make process to build R as
-a dynamic (shared) library, typically called <code>libR.so</code>, and link
-the main R executable <code>R.bin</code> against that library.  This can
-only be done if all the code (including system libraries) can be
-compiled into a dynamic library, and there may be a small performance
-penalty.  So you probably only want this if you will be using an
-application which embeds R.  Note that C code in packages installed
-on a R system linked with <code>--enable-R-shlib</code> are linked
-against the dynamic library and so such packages cannot be used from a
-R system built in the default way.
+   <p>Flag <code>--enable-R-shlib</code> causes the make process to build R as a
+shared library, typically called <code>libR.so</code>, and to take
+considerably longer, so you probably only want this if you will be using
+an application which embeds R.
 
 <a name="Configuration%20variables"></a>
 
@@ -1230,10 +1224,11 @@ specified in the C9x draft standard.  In particular, this means that
 <code>finite</code> has been replaced by <code>isfinite</code>.  A <code>gcc</code>
 configured for HP-UX 10.2 run on 11.0 will not find <code>isfinite</code>, and
 as a result <code>configure</code> does not recognize the machine as fully
-supporting <small>IEEE</small> arithmetic and so will not complete.  The best
-solution is to install a properly configured <code>gcc</code>.  An
-alternative work-around is to add <code>-DIEEE_754</code> to the
-<code>CFLAGS</code> variable.
+supporting <small>IEEE</small> arithmetic and does not define <code>IEEE_754</code>
+when compiling C code.  This results in a failure in <code>make
+check</code>.  The best solution is to install a properly configured
+<code>gcc</code>.  An alternative work-around is to add <code>-DIEEE_754</code>
+to the <code>CFLAGS</code> variable.
 
    <p>You can configure R to use both the native <code>cc</code> and
 <code>fort77</code> with
@@ -1350,8 +1345,6 @@ R 1.9.0 under AIX 5.1 in 64-bit mode with
 <code>Makeconf</code> file to be edited to replace <code>/lib/crt0.o</code> by
 <code>/lib/crt0_64.o</code> in <code>R_XTRA_LIBS</code>, and <code>configure</code> now
 tries to detect this.
-
-   <p>We understand that <code>--enable-R-shlib</code> does not work under AIX.
 
 <a name="Enabling%20search%20in%20HTML%20help"></a>
 

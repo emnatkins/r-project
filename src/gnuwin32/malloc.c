@@ -278,6 +278,19 @@ static int cpuinfo (int whole, unsigned long*kernel, unsigned long*user);
 
 #endif
 
+/*
+  __STD_C should be nonzero if using ANSI-standard C compiler, a C++
+  compiler, or a C compiler sufficiently close to ANSI to get away
+  with it.
+*/
+
+#ifndef __STD_C
+#if defined(__STDC__) || defined(_cplusplus)
+#define __STD_C     1
+#else
+#define __STD_C     0
+#endif 
+#endif /*__STD_C*/
 
 
 /*
@@ -285,10 +298,18 @@ static int cpuinfo (int whole, unsigned long*kernel, unsigned long*user);
 */
 
 #ifndef Void_t
+#if (__STD_C || defined(WIN32))
 #define Void_t      void
+#else
+#define Void_t      char
+#endif
 #endif /*Void_t*/
 
+#if __STD_C
 #include <stddef.h>   /* for size_t */
+#else
+#include <sys/types.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -576,12 +597,18 @@ extern "C" {
 #endif
 
 
-#if (defined(HAVE_MEMCPY))
+#if (__STD_C || defined(HAVE_MEMCPY))
+
 #ifdef WIN32
 /* On Win32 memset and memcpy are already declared in windows.h */
 #else
+#if __STD_C
 void* memset(void*, int, size_t);
 void* memcpy(void*, const void*, size_t);
+#else
+Void_t* memset();
+Void_t* memcpy();
+#endif
 #endif
 #endif
 
@@ -594,8 +621,13 @@ void* memcpy(void*, const void*, size_t);
 */
 
 #ifndef MALLOC_FAILURE_ACTION
+#if __STD_C
 #define MALLOC_FAILURE_ACTION \
    errno = ENOMEM;
+
+#else
+#define MALLOC_FAILURE_ACTION
+#endif
 #endif
 
 /*
@@ -605,7 +637,11 @@ void* memcpy(void*, const void*, size_t);
 
 #ifdef LACKS_UNISTD_H
 #if !defined(__FreeBSD__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
+#if __STD_C
 extern Void_t*     sbrk(ptrdiff_t);
+#else
+extern Void_t*     sbrk();
+#endif
 #endif
 #endif
 
@@ -866,7 +902,11 @@ void Rf_warning(const char *, ...);
   differs across systems, but is in all cases less than the maximum
   representable value of a size_t.
 */
+#if __STD_C
 Void_t*  public_mALLOc(size_t);
+#else
+Void_t*  public_mALLOc();
+#endif
 
 /*
   free(Void_t* p)
@@ -879,14 +919,22 @@ Void_t*  public_mALLOc(size_t);
   when possible, automatically trigger operations that give
   back unused memory to the system, thus reducing program footprint.
 */
+#if __STD_C
 void     public_fREe(Void_t*);
+#else
+void     public_fREe();
+#endif
 
 /*
   calloc(size_t n_elements, size_t element_size);
   Returns a pointer to n_elements * element_size bytes, with all locations
   set to zero.
 */
+#if __STD_C
 Void_t*  public_cALLOc(size_t, size_t);
+#else
+Void_t*  public_cALLOc();
+#endif
 
 /*
   realloc(Void_t* p, size_t n)
@@ -915,8 +963,11 @@ Void_t*  public_cALLOc(size_t, size_t);
   The old unix realloc convention of allowing the last-free'd chunk
   to be used as an argument to realloc is not supported.
 */
-
+#if __STD_C
 Void_t*  public_rEALLOc(Void_t*, size_t);
+#else
+Void_t*  public_rEALLOc();
+#endif
 
 /*
   memalign(size_t alignment, size_t n);
@@ -930,14 +981,23 @@ Void_t*  public_rEALLOc(Void_t*, size_t);
 
   Overreliance on memalign is a sure way to fragment space.
 */
+#if __STD_C
 Void_t*  public_mEMALIGn(size_t, size_t);
+#else
+Void_t*  public_mEMALIGn();
+#endif
 
 /*
   valloc(size_t n);
   Equivalent to memalign(pagesize, n), where pagesize is the page
   size of the system. If the pagesize is unknown, 4096 is used.
 */
+#if __STD_C
 Void_t*  public_vALLOc(size_t);
+#else
+Void_t*  public_vALLOc();
+#endif
+
 
 
 /*
@@ -961,7 +1021,11 @@ Void_t*  public_vALLOc(size_t);
   M_MMAP_THRESHOLD -3         256*1024   any   (or 0 if no MMAP support)
   M_MMAP_MAX       -4         65536      any   (0 disables use of mmap)
 */
+#if __STD_C
 int      public_mALLOPt(int, int);
+#else
+int      public_mALLOPt();
+#endif
 
 
 /*
@@ -987,7 +1051,11 @@ int      public_mALLOPt(int, int);
   be kept as longs, the reported values may wrap around zero and 
   thus be inaccurate.
 */
+#if __STD_C
 struct mallinfo public_mALLINFo(void);
+#else
+struct mallinfo public_mALLINFo();
+#endif
 
 /*
   independent_calloc(size_t n_elements, size_t element_size, Void_t* chunks[]);
@@ -1041,7 +1109,11 @@ struct mallinfo public_mALLINFo(void);
     return first;
   }
 */
+#if __STD_C
 Void_t** public_iCALLOc(size_t, size_t, Void_t**);
+#else
+Void_t** public_iCALLOc();
+#endif
 
 /*
   independent_comalloc(size_t n_elements, size_t sizes[], Void_t* chunks[]);
@@ -1102,7 +1174,11 @@ Void_t** public_iCALLOc(size_t, size_t, Void_t**);
   since it cannot reuse existing noncontiguous small chunks that
   might be available for some of the elements.
 */
+#if __STD_C
 Void_t** public_iCOMALLOc(size_t, size_t*, Void_t**);
+#else
+Void_t** public_iCOMALLOc();
+#endif
 
 
 /*
@@ -1110,7 +1186,11 @@ Void_t** public_iCOMALLOc(size_t, size_t*, Void_t**);
   Equivalent to valloc(minimum-page-that-holds(n)), that is,
   round up n to nearest pagesize.
  */
+#if __STD_C
 Void_t*  public_pVALLOc(size_t);
+#else
+Void_t*  public_pVALLOc();
+#endif
 
 /*
   cfree(Void_t* p);
@@ -1120,7 +1200,11 @@ Void_t*  public_pVALLOc(size_t);
   for odd historical reasons (such as: cfree is used in example 
   code in the first edition of K&R).
 */
+#if __STD_C
 void     public_cFREe(Void_t*);
+#else
+void     public_cFREe();
+#endif
 
 /*
   malloc_trim(size_t pad);
@@ -1146,7 +1230,11 @@ void     public_cFREe(Void_t*);
   On systems that do not support "negative sbrks", it will always
   rreturn 0.
 */
+#if __STD_C
 int      public_mTRIm(size_t);
+#else
+int      public_mTRIm();
+#endif
 
 /*
   malloc_usable_size(Void_t* p);
@@ -1163,7 +1251,11 @@ int      public_mTRIm(size_t);
   assert(malloc_usable_size(p) >= 256);
 
 */
+#if __STD_C
 size_t   public_mUSABLe(Void_t*);
+#else
+size_t   public_mUSABLe();
+#endif
 
 /*
   malloc_stats();
@@ -1185,7 +1277,11 @@ size_t   public_mUSABLe(Void_t*);
   More information can be obtained by calling mallinfo.
 
 */
+#if __STD_C
 void     public_mSTATs();
+#else
+void     public_mSTATs();
+#endif
 
 /* mallopt tuning options */
 
@@ -1413,6 +1509,7 @@ void     public_mSTATs();
 #ifdef USE_PUBLIC_MALLOC_WRAPPERS
 
 /* Declare all routines as internal */
+#if __STD_C
 static Void_t*  mALLOc(size_t);
 static void     fREe(Void_t*);
 static Void_t*  rEALLOc(Void_t*, size_t);
@@ -1428,6 +1525,23 @@ static size_t   mUSABLe(Void_t*);
 static void     mSTATs();
 static int      mALLOPt(int, int);
 static struct mallinfo mALLINFo(void);
+#else
+static Void_t*  mALLOc();
+static void     fREe();
+static Void_t*  rEALLOc();
+static Void_t*  mEMALIGn();
+static Void_t*  vALLOc();
+static Void_t*  pVALLOc();
+static Void_t*  cALLOc();
+static Void_t** iCALLOc();
+static Void_t** iCOMALLOc();
+static void     cFREe();
+static int      mTRIm();
+static size_t   mUSABLe();
+static void     mSTATs();
+static int      mALLOPt();
+static struct mallinfo mALLINFo();
+#endif
 
 /*
   MALLOC_PREACTION and MALLOC_POSTACTION should be
@@ -2363,7 +2477,11 @@ static struct malloc_state av_;  /* never directly referenced */
   optimization at all. (Inlining it in malloc_consolidate is fine though.)
 */
 
+#if __STD_C
 static void malloc_init_state(mstate av)
+#else
+static void malloc_init_state(av) mstate av;
+#endif
 {
   int     i;
   mbinptr bin;
@@ -2396,12 +2514,21 @@ static void malloc_init_state(mstate av)
    Other internal utilities operating on mstates
 */
 
+#if __STD_C
 static Void_t*  sYSMALLOc(INTERNAL_SIZE_T, mstate);
 #ifndef MORECORE_CANNOT_TRIM        
 static int      sYSTRIm(size_t, mstate);
 #endif
 static void     malloc_consolidate(mstate);
 static Void_t** iALLOc(size_t, size_t*, int, Void_t**);
+#else
+static Void_t*  sYSMALLOc();
+#ifndef MORECORE_CANNOT_TRIM        
+static int      sYSTRIm();
+#endif
+static void     malloc_consolidate();
+static Void_t** iALLOc();
+#endif
 
 /*
   Debugging support
@@ -2434,7 +2561,11 @@ static Void_t** iALLOc(size_t, size_t*, int, Void_t**);
   Properties of all chunks
 */
 
+#if __STD_C
 static void do_check_chunk(mchunkptr p)
+#else
+static void do_check_chunk(p) mchunkptr p;
+#endif
 {
   mstate av = get_malloc_state();
   CHUNK_SIZE_T  sz = chunksize(p);
@@ -2480,7 +2611,11 @@ static void do_check_chunk(mchunkptr p)
   Properties of free chunks
 */
 
+#if __STD_C
 static void do_check_free_chunk(mchunkptr p)
+#else
+static void do_check_free_chunk(p) mchunkptr p;
+#endif
 {
   mstate av = get_malloc_state();
 
@@ -2516,7 +2651,11 @@ static void do_check_free_chunk(mchunkptr p)
   Properties of inuse chunks
 */
 
+#if __STD_C
 static void do_check_inuse_chunk(mchunkptr p)
+#else
+static void do_check_inuse_chunk(p) mchunkptr p;
+#endif
 {
   mstate av = get_malloc_state();
   mchunkptr next;
@@ -2553,7 +2692,11 @@ static void do_check_inuse_chunk(mchunkptr p)
   Properties of chunks recycled from fastbins
 */
 
+#if __STD_C
 static void do_check_remalloced_chunk(mchunkptr p, INTERNAL_SIZE_T s)
+#else
+static void do_check_remalloced_chunk(p, s) mchunkptr p; INTERNAL_SIZE_T s;
+#endif
 {
   INTERNAL_SIZE_T sz = p->size & ~PREV_INUSE;
 
@@ -2573,7 +2716,11 @@ static void do_check_remalloced_chunk(mchunkptr p, INTERNAL_SIZE_T s)
   Properties of nonrecycled chunks at the point they are malloced
 */
 
+#if __STD_C
 static void do_check_malloced_chunk(mchunkptr p, INTERNAL_SIZE_T s)
+#else
+static void do_check_malloced_chunk(p, s) mchunkptr p; INTERNAL_SIZE_T s;
+#endif
 {
   /* same as recycled case ... */
   do_check_remalloced_chunk(p, s);
@@ -2728,7 +2875,11 @@ static void do_check_malloc_state()
   be extended or replaced.
 */
 
+#if __STD_C
 static Void_t* sYSMALLOc(INTERNAL_SIZE_T nb, mstate av)
+#else
+static Void_t* sYSMALLOc(nb, av) INTERNAL_SIZE_T nb; mstate av;
+#endif
 {
   mchunkptr       old_top;        /* incoming value of av->top */
   INTERNAL_SIZE_T old_size;       /* its size */
@@ -3174,7 +3325,11 @@ static Void_t* sYSMALLOc(INTERNAL_SIZE_T nb, mstate av)
   returns 1 if it actually released any memory, else 0.
 */
 
+#if __STD_C
 static int sYSTRIm(size_t pad, mstate av)
+#else
+static int sYSTRIm(pad, av) size_t pad; mstate av;
+#endif
 {
   long  top_size;        /* Amount of top-most memory */
   long  extra;           /* Amount to release */
@@ -3233,7 +3388,11 @@ static int sYSTRIm(size_t pad, mstate av)
 */
 
 
+#if __STD_C
 Void_t* mALLOc(size_t bytes)
+#else
+  Void_t* mALLOc(bytes) size_t bytes;
+#endif
 {
   mstate av = get_malloc_state();
 
@@ -3582,7 +3741,11 @@ Void_t* mALLOc(size_t bytes)
   ------------------------------ free ------------------------------
 */
 
+#if __STD_C
 void fREe(Void_t* mem)
+#else
+void fREe(mem) Void_t* mem;
+#endif
 {
   mstate av = get_malloc_state();
 
@@ -3746,7 +3909,11 @@ void fREe(Void_t* mem)
   initialization code.
 */
 
+#if __STD_C
 static void malloc_consolidate(mstate av)
+#else
+static void malloc_consolidate(av) mstate av;
+#endif
 {
   mfastbinptr*    fb;                 /* current fastbin being consolidated */
   mfastbinptr*    maxfb;              /* last fastbin (for loop control) */
@@ -3845,7 +4012,11 @@ static void malloc_consolidate(mstate av)
 */
 
 
+#if __STD_C
 Void_t* rEALLOc(Void_t* oldmem, size_t bytes)
+#else
+Void_t* rEALLOc(oldmem, bytes) Void_t* oldmem; size_t bytes;
+#endif
 {
   mstate av = get_malloc_state();
 
@@ -4067,7 +4238,11 @@ Void_t* rEALLOc(Void_t* oldmem, size_t bytes)
   ------------------------------ memalign ------------------------------
 */
 
+#if __STD_C
 Void_t* mEMALIGn(size_t alignment, size_t bytes)
+#else
+Void_t* mEMALIGn(alignment, bytes) size_t alignment; size_t bytes;
+#endif
 {
   INTERNAL_SIZE_T nb;             /* padded  request size */
   char*           m;              /* memory returned by malloc call */
@@ -4168,7 +4343,11 @@ Void_t* mEMALIGn(size_t alignment, size_t bytes)
   ------------------------------ calloc ------------------------------
 */
 
+#if __STD_C
 Void_t* cALLOc(size_t n_elements, size_t elem_size)
+#else
+Void_t* cALLOc(n_elements, elem_size) size_t n_elements; size_t elem_size;
+#endif
 {
   mchunkptr p;
   CHUNK_SIZE_T  clearsize;
@@ -4233,7 +4412,11 @@ Void_t* cALLOc(size_t n_elements, size_t elem_size)
   ------------------------------ cfree ------------------------------
 */
 
+#if __STD_C
 void cFREe(Void_t *mem)
+#else
+void cFREe(mem) Void_t *mem;
+#endif
 {
   fREe(mem);
 }
@@ -4242,7 +4425,11 @@ void cFREe(Void_t *mem)
   ------------------------- independent_calloc -------------------------
 */
 
+#if __STD_C
 Void_t** iCALLOc(size_t n_elements, size_t elem_size, Void_t* chunks[])
+#else
+Void_t** iCALLOc(n_elements, elem_size, chunks) size_t n_elements; size_t elem_size; Void_t* chunks[];
+#endif
 {
   size_t sz = elem_size; /* serves as 1-element array */
   /* opts arg of 3 means all elements are same size, and should be cleared */
@@ -4253,7 +4440,11 @@ Void_t** iCALLOc(size_t n_elements, size_t elem_size, Void_t* chunks[])
   ------------------------- independent_comalloc -------------------------
 */
 
+#if __STD_C
 Void_t** iCOMALLOc(size_t n_elements, size_t sizes[], Void_t* chunks[])
+#else
+Void_t** iCOMALLOc(n_elements, sizes, chunks) size_t n_elements; size_t sizes[]; Void_t* chunks[];
+#endif
 {
   return iALLOc(n_elements, sizes, 0, chunks);
 }
@@ -4270,10 +4461,14 @@ Void_t** iCOMALLOc(size_t n_elements, size_t sizes[], Void_t* chunks[])
 */
 
 
+#if __STD_C
 static Void_t** iALLOc(size_t n_elements, 
                        size_t* sizes,  
                        int opts,
                        Void_t* chunks[])
+#else
+static Void_t** iALLOc(n_elements, sizes, opts, chunks) size_t n_elements; size_t* sizes; int opts; Void_t* chunks[];
+#endif
 {
   mstate av = get_malloc_state();
   INTERNAL_SIZE_T element_size;   /* chunksize of each element, if all same */
@@ -4390,7 +4585,11 @@ static Void_t** iALLOc(size_t n_elements,
   ------------------------------ valloc ------------------------------
 */
 
+#if __STD_C
 Void_t* vALLOc(size_t bytes)
+#else
+Void_t* vALLOc(bytes) size_t bytes;
+#endif
 {
   /* Ensure initialization */
   mstate av = get_malloc_state();
@@ -4403,7 +4602,11 @@ Void_t* vALLOc(size_t bytes)
 */
 
 
+#if __STD_C
 Void_t* pVALLOc(size_t bytes)
+#else
+Void_t* pVALLOc(bytes) size_t bytes;
+#endif
 {
   mstate av = get_malloc_state();
   size_t pagesz;
@@ -4419,7 +4622,11 @@ Void_t* pVALLOc(size_t bytes)
   ------------------------------ malloc_trim ------------------------------
 */
 
+#if __STD_C
 int mTRIm(size_t pad)
+#else
+int mTRIm(pad) size_t pad;
+#endif
 {
   mstate av = get_malloc_state();
   /* Ensure initialization/consolidation */
@@ -4437,7 +4644,11 @@ int mTRIm(size_t pad)
   ------------------------- malloc_usable_size -------------------------
 */
 
+#if __STD_C
 size_t mUSABLe(Void_t* mem)
+#else
+size_t mUSABLe(mem) Void_t* mem;
+#endif
 {
   mchunkptr p;
   if (mem != 0) {
@@ -4584,7 +4795,11 @@ void mSTATs()
   ------------------------------ mallopt ------------------------------
 */
 
+#if __STD_C
 int mALLOPt(int param_number, int value)
+#else
+int mALLOPt(param_number, value) int param_number; int value;
+#endif
 {
   mstate av = get_malloc_state();
   /* Ensure initialization/consolidation */

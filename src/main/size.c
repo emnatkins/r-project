@@ -64,9 +64,6 @@ static unsigned long objectsize(SEXP s)
     case SPECIALSXP:
     case BUILTINSXP:
 	break;
-    case RAWSXP:
-	vcnt = BYTE2VEC(length(s));
-	break;
     case CHARSXP:
 	vcnt = BYTE2VEC(length(s)+1);
 	break;

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2004   The R Development Core Team.
+ *  Copyright (C) 1998-2003   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -184,24 +184,6 @@ strtoc(const char *nptr, char **endptr, Rboolean NA, LocalData *d)
     }
     *endptr = endp;
     return(z);
-}
-
-static Rbyte 
-strtoraw (const char *nptr, char **endptr) 
-{
-    char *p = (char *) nptr;
-    int i, val = 0;
-    /* should have whitespace plus exactly 2 hex digits */
-    while(isspace((int)*p)) p++;
-    for(i = 1; i <= 2; i++, p++) {
-	val *= 16;
-	if(*p >= '0' && *p <= '9') val += *p - '0';
-	else if (*p >= 'A' && *p <= 'F') val += *p - 'A' + 10;
-	else if (*p >= 'a' && *p <= 'f') val += *p - 'a' + 10;
-	else {val = 0; break;}
-    }
-    *endptr = p;
-    return (Rbyte) val;
 }
 
 static int scanchar(Rboolean inQuote, LocalData *d)
@@ -432,15 +414,6 @@ static void extractItem(char *buffer, SEXP ans, int i, LocalData *d)
 	else
 	    SET_STRING_ELT(ans, i, mkChar(buffer));
 	break;
-    case RAWSXP:
-	if (isNAstring(buffer, 0, d))
-	    RAW(ans)[i] = 0;
-	else {
-	    RAW(ans)[i] = strtoraw(buffer, &endp);
-	    if (!isBlankString(endp))
-		expected("a raw", buffer, d);
-	}
-	break;
     }
 }
 
@@ -536,10 +509,6 @@ static SEXP scanVector(SEXPTYPE type, int maxitems, int maxlines,
     case STRSXP:
 	for (i = 0; i < n; i++)
 	    SET_STRING_ELT(bns, i, STRING_ELT(ans, i));
-	break;
-    case RAWSXP:
-	for (i = 0; i < n; i++)
-	    RAW(bns)[i] = RAW(ans)[i];
 	break;
     }
     UNPROTECT(1);
@@ -694,10 +663,6 @@ static SEXP scanFrame(SEXP what, int maxitems, int maxlines, int flush,
 	    for (j = 0; j < n; j++)
 		SET_STRING_ELT(new, j, STRING_ELT(old, j));
 	    break;
-	case RAWSXP:
-	    for (j = 0; j < n; j++)
-		RAW(new)[j] = RAW(old)[j];
-	    break;
 	}
 	SET_VECTOR_ELT(ans, i, new);
     }
@@ -810,7 +775,6 @@ SEXP do_scan(SEXP call, SEXP op, SEXP args, SEXP rho)
     case REALSXP:
     case CPLXSXP:
     case STRSXP:
-    case RAWSXP:
 	ans = scanVector(TYPEOF(what), nmax, nlines, flush, stripwhite, 
 			 blskip, &data);
 	break;
@@ -826,7 +790,6 @@ SEXP do_scan(SEXP call, SEXP op, SEXP args, SEXP rho)
     }
     if (!data.ttyflag && !data.wasopen)
 	data.con->close(data.con);
-    if (data.quotesave) free(data.quotesave);
     return ans;
 }
 
@@ -980,7 +943,6 @@ SEXP do_countfields(SEXP call, SEXP op, SEXP args, SEXP rho)
     for (i = 0; i <= nlines; i++)
 	INTEGER(bns)[i] = INTEGER(ans)[i];
     UNPROTECT(1);
-    if (data.quotesave) free(data.quotesave);
     return bns;
 }
 
@@ -1362,7 +1324,6 @@ SEXP do_readtablehead(SEXP call, SEXP op, SEXP args, SEXP rho)
     UNPROTECT(1);
     free(buf);
     if(!data.wasopen) data.con->close(data.con);
-    if (data.quotesave) free(data.quotesave);
     return ans;
 
 no_more_lines:
@@ -1380,6 +1341,5 @@ no_more_lines:
     for(i = 0; i < nread; i++)
 	SET_STRING_ELT(ans2, i, STRING_ELT(ans, i));
     UNPROTECT(2);
-    if (data.quotesave) free(data.quotesave);
     return ans2;
 }

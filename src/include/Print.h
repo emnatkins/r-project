@@ -25,7 +25,6 @@
 #include "Defn.h"
 
 #define formatFactor        Rf_formatFactor
-#define formatRaw           Rf_formatRaw
 #define formatString        Rf_formatString
 #define EncodeFactor        Rf_EncodeFactor
 #define EncodeElement       Rf_EncodeElement
@@ -50,7 +49,6 @@ extern R_print_par_t R_print;
 
 /* Computation of printing formats */
 void formatFactor(int *, int, int *, SEXP, int);
-void formatRaw(Rbyte *, int, int *);
 void formatString(SEXP*, int, int*, int);
 
 /* Formating of values */

@@ -1,5 +1,4 @@
 #include <Rinternals.h>
-#include "embeddedRCall.h"
 
 static void doCtestExample();
 static void doMVAExample();

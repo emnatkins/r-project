@@ -20,13 +20,13 @@ writeChar(object, con, nchars = nchar(object), eos = "")
   \item{what}{Either an object whose mode will give the mode of the
     vector to be read, or a character vector of length one describing
     the mode: one of \code{"numeric", "double", "integer", "int",
-      "logical", "complex", "character", "raw"}.}
+      "logical", "complex", "character"}.}
   \item{n}{integer.  The (maximal) number of records to be
     read. You can use an over-estimate here, but not too large as
     storage is reserved for \code{n} items.}
   \item{size}{integer.  The number of bytes per element in the byte
     stream.  The default, \code{NA}, uses the natural size.  Size changing
-    is not supported for raw and complex vectors.}
+    is not supported for complex vectors.}
   \item{signed}{logical. Only used for integers of sizes 1 and 2,
     when it determines if the quantity on file
     should be regarded as a signed or unsigned integer.}
@@ -76,11 +76,11 @@ writeChar(object, con, nchars = nchar(object), eos = "")
   bytes) will be available only if that type is available and different
   from \code{double}.
 
-  As from \R 2.0.0, character strings containing ASCII \code{nul} will
-  be read correctly by \code{readChar} and appear as embedded nuls in
-  the character vector returned.  (In earlier versions of \R they
-  terminated the strings returned.)
-  
+  Note that as \R character strings cannot contain ASCII \code{nul},
+  strings read by \code{readChar} which contain such characters will
+  appear to be shorter than requested, but the additional bytes are read
+  from the file.
+
   If the character length requested for \code{readChar} is longer than
   the data available on the connection, what is available is returned.
   For \code{writeChar} if too many characters are requested the output

@@ -69,9 +69,8 @@ rbind <- function(..., deparse.level=1) {
 
 deparse <-
     function(expr, width.cutoff = 60,
-	     backtick = mode(expr) %in% c("call","expression","("),
-	     forDisplay = TRUE, useSource = FALSE)
-	.Internal(deparse(expr, width.cutoff, backtick, forDisplay, useSource))
+	     backtick = mode(expr) %in% c("call","expression","("))
+	.Internal(deparse(expr, width.cutoff, backtick))
 
 
 do.call <- function(what,args).Internal(do.call(what,args))

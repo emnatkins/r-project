@@ -40,10 +40,10 @@
 #include "Defn.h"
 #include "Print.h"
 
-#ifndef HAVE_KEYSYM
-#define KeySym int
-#endif
 
+/* <FIXME> this is wrong  as KeySym is defined nowadays */
+#define KeySym int
+/* </FIXME> */
 #define DEEvent XEvent
 
 typedef enum { UP, DOWN, LEFT, RIGHT } DE_DIRECTION;

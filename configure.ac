@@ -395,8 +395,6 @@ AC_PROG_YACC
 R_PROG_AR
 R_PROG_INSTALL
 AC_PATH_PROG(JAVAC, javac)
-## we would like a POSIX sed, and need one on Solaris
-AC_PATH_PROGS(SED, sed, /bin/sed, [/usr/xpg4/bin:$PATH])
 ## Make
 : ${MAKE=make}
 AC_SUBST(MAKE)
@@ -561,7 +559,6 @@ R_TYPE_SOCKLEN
 
 AC_C_BIGENDIAN
 AC_C_CONST
-R_C_INLINE
 if test "${cross_compiling}" = yes; then
   warn_xcompile_sizeof_int="assuming C ints are 4 byte on ${host}"
   AC_MSG_WARN([${warn_xcompile_sizeof_int}])
@@ -1173,25 +1170,17 @@ AC_SUBST(LAPACK_LDFLAGS)
 
 AC_FUNC_ALLOCA
 AC_CHECK_FUNCS(access chdir expm1 fcntl finite ftruncate getcwd \
-  getgrgid getpwuid getuid hypot isascii log1p matherr mkfifo \
+  getgrgid getpwuid getuid hypot isascii isnan log1p matherr mkfifo \
   popen putenv rint setenv strcoll stat strptime symlink \
   system times unsetenv)
-## isfinite and isnan are in math.h but might be macros
-AC_CHECK_DECLS([isfinite, isnan], , , [#include <math.h>])
 ## <NOTE>
 ## No need checking for bcopy bzero memcpy mempcpy even though ifnames
 ## might report corresponding HAVE_FOO conditionals.
 ## </NOTE>
 
-## IEEE 754. We rely on this in e.g. the working log test.
-R_IEEE_754
-
 ## check whether nl_langinfo(CODESET) is in langinfo.h
 ## defines HAVE_LANGINFO_CODESET if it's there
 AM_LANGINFO_CODESET
-
-## check if X11 typedefs KeySym
-R_HAVE_KEYSYM
 
 ## Used to build src/include/Rmath.h.
 ## <NOTE>
@@ -1223,12 +1212,7 @@ AC_SEARCH_LIBS(gethostbyname, [nsl socket])
 AC_SEARCH_LIBS(xdr_string, [nsl])
 R_FUNC___SETFPUCW
 R_FUNC_CALLOC
-if test "${ac_cv_func_finite}" = "yes"; then
 R_FUNC_FINITE
-fi
-if test "${ac_cv_have_decl_isfinite}" = "yes"; then
-R_FUNC_ISFINITE
-fi
 R_FUNC_LOG
 R_FUNC_LOG1P
 R_FUNC_STRPTIME
@@ -1248,7 +1232,7 @@ if test "${use_lapack}" = "yes"; then
   R_LAPACK_LIBS
 fi
 if test "${acx_lapack_ok}" != "yes"; then
-  LAPACK_LIBS="-L\${R_HOME}/lib -lRlapack"
+  LAPACK_LIBS="-L\${R_HOME}/bin -lRlapack"
 fi
 AC_SUBST(LAPACK_LIBS)
 AM_CONDITIONAL(USE_EXTERNAL_LAPACK, [test "${acx_lapack_ok}" = "yes"])
@@ -1281,6 +1265,9 @@ AC_SUBST(use_aqua)
 
 ## Tcl/Tk.
 R_TCLTK
+
+## IEEE 754.
+R_IEEE_754
 
 ## BSD networking.
 R_BSD_NETWORKING
@@ -1419,20 +1406,36 @@ AC_CONFIG_FILES(
   src/library/Makefile
   src/library/base/DESCRIPTION
   src/library/base/Makefile
+  src/library/ctest/DESCRIPTION
+  src/library/ctest/Makefile
+  src/library/eda/DESCRIPTION
+  src/library/eda/Makefile
   src/library/graphics/DESCRIPTION
   src/library/graphics/Makefile
   src/library/grid/DESCRIPTION
   src/library/grid/Makefile
   src/library/grid/src/Makefile
+  src/library/lqs/DESCRIPTION
+  src/library/lqs/Makefile
   src/library/methods/DESCRIPTION
   src/library/methods/Makefile
   src/library/methods/src/Makefile
+  src/library/mle/DESCRIPTION
+  src/library/mle/Makefile
+  src/library/modreg/DESCRIPTION
+  src/library/modreg/Makefile
+  src/library/mva/DESCRIPTION
+  src/library/mva/Makefile
+  src/library/nls/DESCRIPTION
+  src/library/nls/Makefile
   src/library/profile/Makefile
   src/library/stats/DESCRIPTION
   src/library/stats/Makefile
   src/library/stats/src/Makefile
   src/library/stats4/DESCRIPTION
   src/library/stats4/Makefile
+  src/library/stepfun/DESCRIPTION
+  src/library/stepfun/Makefile
   src/library/splines/DESCRIPTION
   src/library/splines/Makefile
   src/library/splines/src/Makefile
@@ -1442,6 +1445,8 @@ AC_CONFIG_FILES(
   src/library/tools/DESCRIPTION
   src/library/tools/Makefile
   src/library/tools/src/Makefile
+  src/library/ts/DESCRIPTION
+  src/library/ts/Makefile
   src/library/utils/DESCRIPTION
   src/library/utils/Makefile
   src/main/Makefile

@@ -8,11 +8,11 @@
 }
 \usage{
 bmp(filename = "Rplot\%03d.bmp", width = 480, height = 480, pointsize = 12,
-    bg = "white", res = NA)
+    bg = "white")
 jpeg(filename = "Rplot\%03d.jpg", width = 480, height = 480, pointsize = 12,
-     quality = 75, bg = "white", res = NA)
+     quality = 75, bg = "white")
 png(filename = "Rplot\%03d.png", width = 480, height = 480, pointsize = 12,
-    bg = "white", res = NA)
+    bg = "white")
 }
 \arguments{
   \item{filename}{the name of the output file, up to 511 characters.
@@ -28,8 +28,6 @@ png(filename = "Rplot\%03d.png", width = 480, height = 480, pointsize = 12,
  \item{quality}{the \sQuote{quality} of the JPEG image, as a
    percentage. Smaller values will give more compression but also more
    degradation of the image.}
- \item{res}{The nominal resolution in dpi which will be recorded in the
-   bitmap file, if a positive integer.}
 }
 \details{
   Plots in PNG and JPEG format can easily be converted to many other
@@ -48,11 +46,6 @@ png(filename = "Rplot\%03d.png", width = 480, height = 480, pointsize = 12,
   It seems \code{width} and \code{height} are limited to
   \eqn{2^{15}-1}{2^15-1} and there is a 16Mb limit on the total amount
   of memory in Windows 95/98/Me.
-
-  By default no resolution is recorded in the file.  Readers will often
-  assume nominal resolution of 72dpi when none is recorded.  As
-  resolutions in PNG files are recorded in pixels/metre, the dpi value
-  will be changed slightly.
 }
 \value{
   A plot device is opened: nothing is returned to the \R interpreter.

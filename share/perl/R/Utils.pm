@@ -13,8 +13,7 @@ use Text::Tabs;
 	     list_files list_files_with_exts list_files_with_type
 	     make_file_exts
 	     read_lines
-	     shell_quote_file_path
-	     sQuote dQuote);
+	     shell_quote_file_path);
 
 ### ********************************************************************
 
@@ -193,7 +192,7 @@ sub list_files_with_exts {
     @files = grep { /\.$exts$/ && -f "$dir/$_" } readdir(DIR);
     closedir(DIR);
     ## We typically want the paths to the files, see also the R variant
-    ## list_files_with_exts() used in some of the QC tools.
+    ## .listFilesWithExts() used in some of the QC tools.
     my @paths;
     foreach my $file (@files) {
 	push(@paths, &file_path($dir, $file));
@@ -252,22 +251,6 @@ sub shell_quote_file_path {
     ## version is to isolate the quoting into a separate function rather
     ## than hard-wiring a specific solution.
     return("'" . $_[0] . "'");
-}
-
-### * sQuote
-
-sub sQuote {
-    ## Single quote text.
-    ## Currently does not work for lists.
-    return("'" . $_[0] . "'");
-}
-
-### * dQuote
-
-sub dQuote {
-    ## Double quote text.
-    ## Currently does not work for lists.
-    return('"' . $_[0] . '"');
 }
 
 ### * Non-exported functions

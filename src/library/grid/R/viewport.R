@@ -28,11 +28,9 @@ valid.viewport <- function(x, y, width, height, just,
                    off=NA,
                    inherit=FALSE,
                    stop("Invalid clip value"))
-  if (!is.numeric(xscale) || length(xscale) != 2 ||
-      any(!is.finite(xscale)))
+  if (!is.numeric(xscale) || length(xscale) != 2)
     stop("Invalid xscale in viewport")
-  if (!is.numeric(yscale) || length(yscale) != 2 ||
-      any(!is.finite(yscale)))
+  if (!is.numeric(yscale) || length(yscale) != 2)
     stop("Invalid yscale in viewport")
   if (!is.numeric(angle) || length(angle) != 1)
     stop("Invalid angle in viewport")

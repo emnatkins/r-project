@@ -175,8 +175,8 @@ structure for a new package: see its help page for details.
 
 @menu
 * The DESCRIPTION file::        
-* The INDEX file::              
-* The install.R and R_PROFILE.R files::  
+* The INDEX file::     
+* The install.R and R_PROFILE.R files::
 * Package subdirectories::      
 * Package bundles::             
 @end menu
@@ -745,11 +745,7 @@ only).
 The @file{DESCRIPTION} file is checked for completeness, and some of its
 entries for correctness.  Unless installation tests are skipped,
 checking is aborted if the package dependencies cannot be resolved at
-run time.  One check is that the package name is not that of a standard
-package, nor of the defunct standard packages (@code{ctest}, @code{eda},
-@code{lqs}, @code{mle}, @code{modreg}, @code{mva}, @code{nls},
-@code{stepfun} and @code{ts}) which are handled specially by
-@code{library}.
+run time.
 
 @item
 Available index information (in particular, for demos and vignettes) is
@@ -3107,14 +3103,15 @@ functions that have been used to implement the core parts of @R{}
 through @code{.Internal} calls.  A public subset of these is defined in
 the header file @file{Rinternals.h} in the directory
 @file{@var{R_HOME}/include} that should be available on any @R{}
-installation.
+installation.  (Users of C++ should note that this is a C header and
+needs to be declared as @code{extern "C"}.)
 
 Another approach is to use @R{} versions of the macros and functions
 defined for the @Sl{} version 4 interface @code{.Call}, which are
-defined in the header file @file{Rdefines.h}.  This is a somewhat
-simpler approach, and is certainly to be preferred if the code might be
-shared with @Sl{} at any stage.  However, it is less well documented and
-less tested.
+defined in the header file @file{Rdefines.h} (again, a C and not a C++
+header).  This is a somewhat simpler approach, and is certainly to be
+preferred if the code might be shared with @Sl{} at any stage.  However,
+it is less well documented and less tested.
 
 A substantial amount of @R{} is implemented using the functions and
 macros described here, so the @R{} source code provides a rich source of
@@ -3146,7 +3143,6 @@ force the variant object to the right type.
 * Classes::                     
 * Handling lists::              
 * Finding and setting variables::  
-* Named objects and copying::   
 @end menu
 
 @node Garbage Collection, Allocating storage, Handling R objects in C, Handling R objects in C
@@ -3223,8 +3219,8 @@ and then those in @file{Rinternals.h}:
 @end smallexample
 
 Now, the reader may ask how the @R{} object could possibly get removed
-during those manipulations, as it is just our C code that is running.
-As it happens, we can do without the protection in this example, but in
+during those manipulations, as it is just our C code that is running. As
+it happens, we can do without the protection in this example, but in
 general we do not know (nor want to know) what is hiding behind the @R{}
 macros and functions we use, and any of them might cause memory to be
 allocated, hence garbage collection and hence our object @code{ab} to be
@@ -3232,9 +3228,9 @@ removed. It is usually wise to err on the side of caution and assume
 that any of the @R{} macros and functions might remove the object.
 
 In some cases it is necessary to keep better track of whether protection
-is really needed.  Be particularly aware of situations where a large
-number of objects are generated.  The pointer protection stack has a
-fixed size (default 10,000) and can become full.  It is not a good idea
+is really needed. Be particularly aware of situations where a large
+number of objects are generated. The pointer protection stack has a
+fixed size (default 10,000) and can become full. It is not a good idea
 then to just @code{PROTECT} everything in sight and @code{UNPROTECT}
 several thousand objects at the end. It will almost invariably be
 possible to either assign the objects as part of another object (which
@@ -3250,8 +3246,8 @@ the parser (the R sources have one example, in
 @file{src/main/plot3d.c}).
 @findex UNPROTECT_PTR
 
-Sometimes an object is changed (for example duplicated, coerced or
-grown) yet the current value needs to be protected.  For these cases
+Sometimes an object is changed (for example coerced or grown) yet the
+current value needs to be protected. For these cases
 @code{PROTECT_WITH_INDEX} saves an index of the protection location that
 can be used to replace the protected value using @code{REPROTECT}.
 @findex PROTECT_WITH_INDEX
@@ -3590,7 +3586,7 @@ and enables us to say
 @end group
 @end smallexample
 
-@node Finding and setting variables, Named objects and copying, Handling lists, Handling R objects in C
+@node Finding and setting variables,  , Handling lists, Handling R objects in C
 @subsection Finding and setting variables
 @cindex Finding variables
 @cindex Setting variables
@@ -3649,87 +3645,6 @@ If a binding is found, its value is changed to @code{value}.  Otherwise,
 a new binding with the specified value is created in the global
 environment.  This corresponds to @code{assign(symbol, value, envir =
 rho, inherits = TRUE)}.
-
-@node Named objects and copying,  , Finding and setting variables, Handling R objects in C
-@subsection Named objects and copying
-@findex duplicate
-@cindex Copying objects
-
-When assignments are done in @R{} such as
-
-@smallexample
-x <- 1:10
-y <- x
-@end smallexample
-
-@noindent
-the named object is not necessarily copied, so after those two
-assignments @code{y} and @code{x} are bound to the same @code{SEXPREC}
-(the structure a @code{SEXP} points to).  This means that any code which
-alters one of them has to make a copy before modifying the copy if the
-usual @R{} semantics are to apply.  Note that whereas @code{.C} and
-@code{.Fortran} do copy their arguments (unless the dangerous @code{dup
-= FALSE} is used), @code{.Call} and @code{.External} do not.  So
-@code{duplicate} is commonly called on arguments to @code{.Call} before
-modifying them.
-
-However, at least some of this copying is unneeded.  In the first
-assignment shown, @code{x <- 1:10}, @R{} first creates an object with
-value @code{1:10} and then assigns it to @code{x} but if @code{x} is
-modified no copy is necessary as the temporary object with value
-@code{1:10} cannot be referred to again.  @R{} distinguishes between
-named and unnamed objects @emph{via} a field in a @code{SEXPREC} that
-can be accessed via the macros @code{NAMED} and @code{SET_NAMED}.  This
-can take values
-
-@table @code
-@item 0
-The object is not bound to any symbol
-@item 1
-The object has been bound to exactly one symbol
-@item 2
-The object has potentially been bound to two or more symbols, and one
-should act as if another variable is currently bound to this value.
-@end table
-
-@noindent
-Note the past tenses: @R{} does not do full reference counting and there
-may currently be fewer bindings.
-
-It is safe to modify the value of any @code{SEXP} for which
-@code{NAMED(foo)} is zero, and if @code{NAMED(foo)} is two, the value
-should be duplicated (via a call to @code{duplicate}) before any
-modification.  Note that it is the responsibility of the author of the
-code making the modification to do the duplication, even if it is
-@code{x} whose value is being modified after @code{y <- x}.
-
-The case @code{NAMED(foo) == 1} allows some optimization, but it can be
-ignored (and duplication done whenever @code{NAMED(foo) > 0}).  This
-optimization is unlikely to be worthwhile in user code.  It is intended
-for use within assignment functions.  Suppose we used
-@smallexample
-x <- 1:10
-foo(x) <- 3
-@end smallexample
-
-@noindent
-which is computed as
-@smallexample
-x <- 1:10
-x <- "foo<-"(x)
-@end smallexample
-
-@noindent
-Then inside @code{"foo<-"} the object pointing to the current value of
-@code{x} will have @code{NAMED(foo)} as one, and it would be safe to
-modify it as the only symbol bound to it is @code{x} and that will be
-rebound immediately.  (Provided the remaining code in @code{"foo<-"}
-make no reference to @code{x}, and no one is going to attempt a direct
-call such as @code{y <- "foo<-"(x)}.)
-
-Another possible example of optimizing @code{NAMED(foo) == 1} is inside
-@code{.Call} code which alters an argument and the calling @R{} code is
-written to be aware that the argument will be altered.
 
 
 @node Interface functions .Call and .External, Evaluating R expressions from C, Handling R objects in C, System and foreign language interfaces
@@ -3980,7 +3895,7 @@ code.  In this example the special values are no problem, as
 implementation this is also true of @code{NA} as it is a type of
 @code{NaN}, but it is unwise to rely on such details.  Thus we will
 re-write the code to handle @code{NA}s using macros defined in
-@file{R_exts/Arith.h} included by @file{R.h}.
+@file{Arith.h} included by @file{R.h}.
 
 The code changes are the same in any of the versions of @code{convolve2}
 or @code{convolveE}:
@@ -4462,7 +4377,7 @@ is only guaranteed to show the current interface: it is liable to
 change.}.
 
 An example of the usage can be found in the (example) Windows package
-@pkg{windlgs} included in the @R{} source tree.  The essential part is
+@pkg{windlgs} included in the @R{} source tres.  The essential part is
 
 @smallexample
 @group
@@ -4697,7 +4612,6 @@ $7 = 5
 * Utility functions::           
 * Allowing interrupts::         
 * Platform and version information::  
-* Inlining C functions::        
 * Standalone Mathlib::          
 @end menu
 
@@ -4729,9 +4643,9 @@ conflicts (notably with Windows headers), and the known
 problematic defines can be removed by defining @code{STRICT_R_HEADERS}.
 
 Most of these header files, including all those included by @file{R.h},
-can be used from C++ code.  Some others need to be included within an
-@code{extern "C"} declaration, and for clarity this is advisable for all
-@R{} header files.
+can be used from C++ code.  Others (including @file{Rinternals.h} and
+@code{Rdefines.h} should be included within an @code{extern "C"}
+declaration, and for clarity this is advisable for all @R{} header files.
 
 @quotation
 @strong{Note:} Because @R{} re-maps many of its external names to avoid
@@ -4810,9 +4724,6 @@ it, by noting the current position with a call to @code{vmaxget} and
 clearing memory allocated subsequently by a call to @code{vmaxset}.
 This is only recommended for experts.
 
-Note that this memory will be freed on error or user interrupt
-(if allowed: @pxref{Allowing interrupts}).
-
 @node User-controlled,  , Transient, Memory allocation
 @subsection User-controlled memory
 @findex Calloc
@@ -4836,19 +4747,10 @@ void Free(@var{any} *@var{p})
 
 @noindent
 providing analogues of @code{calloc}, @code{realloc} and @code{free}.
-If there is an error during allocation it is handled by @R{}, so if
-these routines return the memory has been successfully allocated or
-freed.  @code{Free} will set the pointer @var{p} to @code{NULL}.  (Some
-but not all versions of @Sl{} do so.)
-
-Users should arrange to @code{Free} this memory when no longer needed,
-including on error or user interrupt.  This can often be done most
-conveniently from an @code{on.exit} action in the calling @R{} function
--- see @code{pwilcox} for an example.
-
-Do not assume that memory allocated by @code{Calloc}/@code{Realloc}
-comes from the same pool as used by @code{malloc}: in particular do not
-use @code{free} or @code{strdup} with it.
+If there is an error it is handled by @R{}, so if these routines return
+the memory has been successfully allocated or freed.  @code{Free} will
+set the pointer @var{p} to @code{NULL}.  (Some but not all versions of
+@Sl{} do so.)
 
 @node Error handling, Random numbers, Memory allocation, The R API
 @section Error handling
@@ -4978,8 +4880,12 @@ enclosed in calls to @code{GetRNGstate} and @code{PutRNGstate}.
 @findex R_NegInf
 @findex NA_REAL
 
-A set of functions is provided to test for @code{NA}, @code{Inf},
-@code{-Inf} and @code{NaN}.  These functions are accessed via macros:
+It is possible to compile @R{} on a platform without @acronym{IEC} 559
+(more commonly known as @acronym{IEEE} 754)-compatible arithmetic, so
+users should not assume that it is available.  Rather a set of functions
+is provided to test for @code{NA}, @code{Inf}, @code{-Inf} (which exists
+on all platforms) and @code{NaN}.  These functions are accessed via
+macros:
 
 @smallexample
 @group
@@ -4990,15 +4896,9 @@ R_FINITE(@var{x})    @r{False for @code{Inf}, @code{-Inf}, @code{NA}, @code{NaN}
 @end smallexample
 
 @noindent
-and via function function @code{R_IsNaN} which is true for @code{NaN}
-but not @code{NA}.
-
-Do use @code{R_FINITE} rather than @code{isfinite} or @code{finite}; the
-latter is often mendacious and @code{isfinite} is only available on a
-few platforms.
-
-Currently @code{ISNAN} is a macro calling @code{isnan}, although this
-was not necessariyl true before @R{} 2.0.0.
+and function @code{R_IsNaN} is true for @code{NaN} but not @code{NA}.
+Do use these rather than @code{isnan} or @code{finite}; the latter in
+particular is often mendacious.
 
 You can check for @code{Inf} or @code{-Inf} by testing equality to
 @code{R_PosInf} or @code{R_NegInf}, and set (but not test) an @code{NA}
@@ -5007,6 +4907,10 @@ as @code{NA_REAL}.
 All of the above apply to @emph{double} variables only.  For integer
 variables there is a variable accessed by the macro @code{NA_INTEGER}
 which can used to set or test for missingness.
+
+Beware that these special values may be represented by extreme values
+which could occur in ordinary computations which run out of control,
+so you may need to test that they have not been generated inadvertently.
 
 
 @node Printing, Calling C from FORTRAN and vice versa, Missing and IEEE values, The R API
@@ -5025,7 +4929,7 @@ complete lines (including the @code{"\n"}) before returning to @R{}.
 
 The function @code{REprintf} is similar but writes on the error stream
 (@code{stderr}) which may or may not be different from the standard
-output stream.  Functions @code{Rvprintf} and @code{REvprintf} are
+output stream.  Functions @code{Rvprintf} and @code{REvprintf} are the
 analogues using the @code{vprintf} interface.
 
 @menu
@@ -5246,10 +5150,10 @@ distributions.
 @end quotation
 
 @noindent
-Entries marked with an asterisk only have @samp{p} and @samp{q}
-functions available.  After a call to @code{dwilcox}, @code{pwilcox} or
-@code{qwilcox} the function @code{wilcox_free()} should be called, and
-similarly for the signed rank functions.
+Entries marked only have @samp{p} and @samp{q} functions available.
+After a call to @code{dwilcox}, @code{pwilcox} or @code{qwilcox} the
+function @code{wilcox_free()} should be called, and similarly for the
+signed rank functions.
 
 The argument names are not all quite the same as the @R{} ones.
 @c ^^^ FIXME ?? (argument names in the C code wouldn't change the API ..) ^^
@@ -5333,19 +5237,18 @@ still works when both @var{a} and @var{b} are between @code{1e200} and
 Computes @code{log(1 + @var{x})} (@emph{log 1 @b{p}lus x}), accurately
 even for small @var{x}, i.e., @eqn{|x| \ll 1, |x| << 1}.
 
-This may be provided by your platform, in which case it is not included
-in @file{Rmath.h}, but is (probably) in @file{math.h} which
-@file{Rmath.h} includes.  For backwards compatibility with @R{} versions
-prior to 1.5.0, the entry point @code{Rf_log1p} is still provided.
+This may be provided by your platform, in which case it is not
+included in @file{Rmath.h}, but is (probably) in @file{math.h}.  For
+backwards compatibility with @R{} versions prior to 1.5.0, the entry
+point @code{Rf_log1p} is still provided.
 @end deftypefun
 
 @deftypefun double expm1 (@var{x})
 Computes @code{exp(@var{x}) - 1} (@emph{exp x @b{m}inus 1}), accurately
 even for small @var{x}, i.e., @eqn{|x| \ll 1, |x| << 1}.
 
-This may be provided by your platform, in which case it is not included
-in @file{Rmath.h}, but is (probably) in @file{math.h} which
-@file{Rmath.h} includes.
+This may be provided by your platform, in which case it is not
+included in @file{Rmath.h}, but is (probably) in @file{math.h}.
 @end deftypefun
 
 @deftypefun int imax2 (int @var{x}, int @var{y})
@@ -5748,12 +5651,8 @@ subroutine rchkusr()
 These check if the user has requested an interrupt, and if so branch to
 @R{}'s error handling functions.
 
-Note that it is possible that the code behind one of the entry points
-defined here if called from your C or Fortran code could be interruptible
-or generate an error and so not return to your code.
 
-
-@node Platform and version information, Inlining C functions, Allowing interrupts, The R API
+@node Platform and version information, Standalone Mathlib, Allowing interrupts, The R API
 @section Platform and version information
 @cindex Version information from C
 @findex R_Version
@@ -5768,16 +5667,17 @@ The macro @code{WORDS_BIGENDIAN} is defined on big-endian systems
 (such as @code{i686} under Linux or Windows). It can be useful when
 manipulating binary files.
 
-Header file @file{Rversion.h} (@strong{not} included by @file{R.h})
-defines a macro @code{R_VERSION} giving the version number encoded as an
-integer, plus a macro @code{R_Version} to do the encoding.  This can be
-used to test if the version of @R{} is late enough, or to include
-back-compatibility features.  For protection against earlier versions of
-@R{} which did not have this macro, use a construction such as
+Header file @file{Rversion.h} (@strong{not} included by @file{R.h} as from
+@R{} 1.6.0) defines a macro @code{R_VERSION} giving the version number
+encoded as an integer, plus a macro @code{R_Version} to do the encoding.
+This can be used to test if the version of @R{} is late enough, or to
+include back-compatibility features.  For protection against earlier
+versions of @R{} which did not have this macro, use a construction such
+as
 
 @smallexample
 @group
-#if defined(R_VERSION) && R_VERSION >= R_Version(1, 9, 0)
+#if defined(R_VERSION) && R_VERSION >= R_Version(0, 99, 0)
   ...
 #endif
 @end group
@@ -5786,35 +5686,9 @@ back-compatibility features.  For protection against earlier versions of
 More detailed information is available in the macros @code{R_MAJOR},
 @code{R_MINOR}, @code{R_YEAR}, @code{R_MONTH} and @code{R_DAY}: see the
 header file @file{Rversion.h} for their format.  Note that the minor
-version includes the patchlevel (as in @samp{9.0}).
+version includes the patchlevel (as in @samp{99.0}).
 
-@node Inlining C functions, Standalone Mathlib, Platform and version information, The R API
-@section Inlining C functions
-@findex R_INLINE
-
-The C99 keyword @code{inline} is recognized by some compilers used to
-build R whereas others need @code{__inline__} or do not support
-inlining.  Portable code can be written using the macro @code{R_INLINE}
-(defined in file @code{Rconfig.h} included by @code{R.h}), as for
-example from package @pkg{cluster}
-
-@smallexample
-#include <R.h>
-
-static R_INLINE int ind_2(int l, int j)
-@{
-...
-@}
-@end smallexample
-
-Be aware that using inlining with functions in more than one compilation
-unit is almost impossible to do portably: see
-@uref{http://www.greenend.org.uk/rjk/2003/03/inline.html}.  All the @R{}
-configure code has checked is that  @code{R_INLINE} can be used in a
-single C file with the compiler used to build @R{}.  We recommend that
-packages making extensive use of inlining include their own configure code.
-
-@node Standalone Mathlib,  , Inlining C functions, The R API
+@node Standalone Mathlib,  , Platform and version information, The R API
 @section Using these functions in your own C code
 
 It is possible to build @code{Mathlib}, the @R{} set of mathematical

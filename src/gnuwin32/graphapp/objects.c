@@ -22,8 +22,6 @@
    WITHOUT ANY WARRANTY.
 
    See the file COPYLIB.TXT for details.
-
-   Copyright (C) 2004 The R Foundation
 */
 
 #include "internal.h"
@@ -438,7 +436,7 @@ static object match_object(object obj, HANDLE handle, int id, int key)
 /*
  *  Perform the multi-child tree traversal.
  */
-object tree_search(object top, HANDLE handle, int id, int key)
+static object tree_search(object top, HANDLE handle, int id, int key)
 {
 	object obj, first_object, found = NULL;
 
@@ -469,8 +467,6 @@ object tree_search(object top, HANDLE handle, int id, int key)
 		{	/* back at first object in sibling list */
 			/* climb the tree */
 			obj = obj->parent;
-			if (obj == top)
-				break;
 			if (obj->parent) {
 				first_object = obj->parent->child;
 				obj = obj->next;

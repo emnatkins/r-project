@@ -1325,9 +1325,8 @@ stopifnot(typeof(res) == "double")
 
 
 ## La.eigen() segfault
-#e1 <- La.eigen(m <- matrix(1:9,3))
-#stopifnot(e1$values == La.eigen(m, only.values = TRUE)$values)
-## 2.0.0: La.eigen is defunct
+e1 <- La.eigen(m <- matrix(1:9,3))
+stopifnot(e1$values == La.eigen(m, only.values = TRUE)$values)
 
 
 ## Patrick Connelly 2001-01-22, prediction with offsets failed
@@ -1431,7 +1430,7 @@ m <- matrix(1:4, 2)
 stopifnot(all.equal(s1$d, s2$d), all.equal(s1$u, s2$u),
 	  all.equal(s1$v, t(s2$vt)))
 (e1 <- eigen(m))
-# (e2 <- La.eigen(m)) # 2.0.0: La.eigen is defunct
+(e2 <- La.eigen(m))
 stopifnot(all.equal(e1$d, e1$d))
 
 
@@ -2266,7 +2265,7 @@ power.t.test(n=10, delta=NULL, power=.9, alternative="two.sided")
 A <- matrix(1)
 stopifnot(is.matrix(eigen(A)$vectors))
 stopifnot(is.matrix(eigen(A, EISPACK = TRUE)$vectors))
-# stopifnot(is.matrix(La.eigen(A)$vectors)) defunct in 2.0.0
+stopifnot(is.matrix(La.eigen(A)$vectors))
 ## gave vector in 1.7.0
 
 
@@ -3071,63 +3070,3 @@ stopifnot(order.dendrogram(d1) == hE2$order,
 
 
 ### end of tests added in 1.9.1 ###
-
-
-## names in columns of data frames
-x <- 1:10
-names(x) <- letters[x]
-DF <- data.frame(x=x)
-(nm <- names(DF$x))
-stopifnot(is.null(nm))
-DF$y1 <- x
-DF["y2"] <- x
-DF[, "y3"] <- x
-DF[["y4"]] <- x
-stopifnot(is.null(names(DF$y1)), is.null(names(DF$y2)),
-          is.null(names(DF$y3)), is.null(names(DF$y4)))
-# names were preserved in 1.9.x
-# check factors
-xx <- as.factor(x)
-DF <- data.frame(x=xx)
-(nm <- names(DF$xx))
-stopifnot(is.null(nm))
-DF$y1 <- xx
-DF["y2"] <- xx
-DF[, "y3"] <- xx
-DF[["y4"]] <- xx
-stopifnot(is.null(names(DF$y1)), is.null(names(DF$y2)),
-          is.null(names(DF$y3)), is.null(names(DF$y4)))
-# how about AsIs?  This should preserve names
-DF <- data.frame(x=I(x))
-(nm <- names(DF$x))
-stopifnot(identical(nm, names(x)))
-DF2 <- rbind(DF, DF[7:8,, drop=FALSE])
-(nm <- names(DF2$x))
-stopifnot(identical(nm, c(names(x), names(x)[7:8])))
-# and matrices?  Ordinary matrices will be split into columns
-x <- 1:10
-dim(x) <- c(5,2)
-dimnames(x) <- list(letters[1:5], c("i", "ii"))
-DF <- data.frame(x=I(x))
-DF2 <- rbind(DF, DF)
-(rn <- rownames(DF2$x))
-stopifnot(identical(rn, c(rownames(x), rownames(x))))
-class(x) <- "model.matrix"
-DF <- data.frame(x=x)
-DF2 <- rbind(DF, DF)
-(rn <- rownames(DF2$x))
-stopifnot(identical(rn, c(rownames(x), rownames(x))))
-## names were always preserved in 1.9.x, but rbind dropped names and dimnames.
-
-
-## cumsum etc dropped names
-x <- rnorm(10)
-names(x) <- nm <- letters[1:10]
-stopifnot(identical(names(cumsum(x)), nm),
-          identical(names(cumprod(x)), nm),
-          identical(names(cummax(x)), nm),
-          identical(names(cummin(x)), nm))
-x <- x+1i
-stopifnot(identical(names(cumsum(x)), nm),
-          identical(names(cumprod(x)), nm))
-## 1.9.x dropped names

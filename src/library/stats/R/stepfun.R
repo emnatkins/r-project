@@ -90,8 +90,7 @@ plot.stepfun <-
 	    sarg <- substitute(x)
 	    x <- ecdf(x)
 	    attr(x,"call") <- call("ecdf", sarg)
-	} else stop(paste("plot.stepfun called with wrong argument",
-                          sQuote("x")))
+	} else stop("plot.stepfun called with wrong argument `x'")
     }
     if(missing(main))
 	main <- {

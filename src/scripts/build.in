@@ -38,7 +38,7 @@ use Text::Wrap;
 ## Don't buffer output.
 $| = 1;
 
-my $revision = ' $Revision: 1.81 $ ';
+my $revision = ' $Revision: 1.77.2.3 $ ';
 my $version;
 my $name;
 $revision =~ / ([\d\.]*) /;
@@ -58,8 +58,7 @@ my @known_options = ("help|h", "version|v", "binary", "no-docs",
 if($WINDOWS) {
     die "Please set TMPDIR to a valid temporary directory\n"
 	unless (-e ${R::Vars::TMPDIR});
-    @known_options = ("help|h", "version|v", "binary", "docs:s",
-		      "auto-zip",
+    @known_options = ("help|h", "version|v", "binary", "docs:s", "auto-zip",
 		      "use-zip", "use-zip-help", "use-zip-data", 
 		      "force", "no-vignettes");
 }
@@ -105,8 +104,8 @@ foreach my $pkg (@ARGV) {
 
     my $description;
     $log->checking("for file '$pkg/DESCRIPTION'");
-    if(-r &file_path($pkg, "DESCRIPTION")) {
-	$description = new R::Dcf(&file_path($pkg, "DESCRIPTION"));
+    if(-r "$pkg/DESCRIPTION") {
+	$description = new R::Dcf("$pkg/DESCRIPTION");
 	$log->result("OK");
     }
     else {
@@ -115,24 +114,23 @@ foreach my $pkg (@ARGV) {
     }
 
     if($opt_binary) {
-	my $libdir = &file_path(${R::Vars::TMPDIR}, "Rbuild.$$");
+	my $libdir = "${R::Vars::TMPDIR}/Rbuild.$$";
 	mkdir("$libdir", 0755)
 	    or die "Error: cannot create directory '$libdir'\n";
 
 	if(R_system(join(" ",
 			 ("${R::Vars::R_CMD} INSTALL -l",
 			  &shell_quote_file_path($libdir),
-			  "$INSTALL_opts",
-			  &shell_quote_file_path($pkg))))) {
+			  "$INSTALL_opts '$pkg'")))) {
 	    $log->error("installation failed");
 	}
 	print("\n");
 	chdir($libdir);
 
 	my $pkgs = $pkgname;
-	## JG: top_level_files will be files that sit in the top level
-	## of a zip/tarball along with any included directories.
-	my $top_level_files;
+	## JG:  topLevelFiles will be files that sit in the top level of
+	## a zip/tarball along with any included directories.
+	my $topLevelFiles;
 	if($description->{"Contains"}) {
 	    $log->message("looks like '${pkg}' is a package bundle");
 	    $is_bundle = 1;
@@ -141,16 +139,15 @@ foreach my $pkg (@ARGV) {
 	    ## JG: Get a copy of the bundle's DESCRIPTION file and add
 	    ## it into the zip archive.
 	    $log->message("copying '$pkg/DESCRIPTION'");
-	    copy(&file_path($startdir, $pkg, "DESCRIPTION"),
-		 "DESCRIPTION");
-	    $top_level_files = "DESCRIPTION";
+	    copy("$startdir/$pkg/DESCRIPTION", "DESCRIPTION");
+	    $topLevelFiles = "DESCRIPTION";
 	}
 
 	my $filename;
 	if($WINDOWS) {
 	    $filename = "${pkgname}_" . $description->{"Version"};
 	    $log->message("building '$filename.zip'");
-	    unlink(&file_path($startdir, "$filename.zip"));
+	    unlink("$startdir/$filename.zip");
 	}
 	else {
 	    $filename = "${pkgname}_" . $description->{"Version"} .
@@ -159,19 +156,17 @@ foreach my $pkg (@ARGV) {
 	}
 	## <FIXME>
 	## As R CMD INSTALL recursively copies all of 'inst', we at
-	## least need to make sure that CVS and .svn subdirs are
-	## excluded.
+	## least need to make sure that CVS subdirs are excluded. 
 	## It is not clear whether more patterns should be excluded,
-	my $exclude =
-	    &file_path(${R::Vars::TMPDIR}, "Rbuild-exclude.$$");
+	my $exclude = "${R::Vars::TMPDIR}/Rbuild-exclude.$$";
 	open(EXCLUDE, "> $exclude")
 	    or die "Error: cannot open file '$exclude' for writing\n";
-	sub find_exclude_files {
+	sub findExcludeFiles {
 	    print EXCLUDE "$File::Find::name\n" if(-d $_ && /^CVS$/);
 	    print EXCLUDE "$File::Find::name\n" if(-d $_ && /^\.svn$/);
 	}
 	foreach my $p (split(/\s+/, $pkgs)) {
-	    find(\&find_exclude_files, "$p");
+	    find(\&findExcludeFiles, "$p");
 	}
 	close(EXCLUDE);
 	## Remove exclude files.
@@ -194,13 +189,13 @@ foreach my $pkg (@ARGV) {
 	    R_system(join(" ",
 			  ("zip -r9X",
 			   &shell_quote_file_path($filepath.".zip"),
-			   "$pkgs $top_level_files")));
+			   "$pkgs $topLevelFiles")));
 	}
 	else {
 	    R_system(join(" ",
 			  ("$tar chf ",
 			   &shell_quote_file_path($filepath),
-			   "$pkgs $top_level_files")));
+			   "$pkgs $topLevelFiles")));
 	    R_system(join(" ",
 			  ("gzip -9f ",
 			   &shell_quote_file_path($filepath))));
@@ -218,8 +213,7 @@ foreach my $pkg (@ARGV) {
 		$log->message("preparing '$ppkg' in bundle '$pkg':");
 		$log->setstars("**");
 		chdir($startdir);
-		prepare_pkg(&file_path("$pkg", "$ppkg"), $is_bundle,
-			    $description, $log);
+		prepare_pkg("$pkg/$ppkg", $is_bundle, $description, $log);
 		$log->setstars("*");
 	    }
 	}
@@ -233,10 +227,9 @@ foreach my $pkg (@ARGV) {
 	chdir($startdir);
 
 	$log->message("removing junk files");
-	find(\&unlink_junk_files, $pkg);
+	find(\&deleteJunkFiles, $pkg);
 
-	my $exclude =
-	    &file_path(${R::Vars::TMPDIR}, "Rbuild-exclude.$$");
+	my $exclude = "${R::Vars::TMPDIR}/Rbuild-exclude.$$";
 	open(EXCLUDE, "> $exclude")
 	  or die "Error: cannot open file '$exclude' for writing\n";
 	binmode EXCLUDE if $WINDOWS;
@@ -245,8 +238,8 @@ foreach my $pkg (@ARGV) {
 	## between build and check: the latter always works on a per
 	## package basis.  Maybe fix this once we know whether we want
 	## to keep bundles ...
-	if(-f &file_path($pkg, ".Rbuildignore")) {
-	    open(RBUILDIGNORE, &file_path($pkg, ".Rbuildignore"));
+	if(-f "$pkg/.Rbuildignore") {
+	    open(RBUILDIGNORE, "$pkg/.Rbuildignore");
 	    while(<RBUILDIGNORE>) {
 		chop;
 		push(@exclude_patterns, $_) if $_;
@@ -254,7 +247,7 @@ foreach my $pkg (@ARGV) {
 	    close(RBUILDIGNORE);
 	}
 	## </NOTE>
-	sub find_exclude_files {
+	sub findExcludeFiles {
 	    print EXCLUDE "$File::Find::name\n" if(-d $_ && /^check$/);
 	    print EXCLUDE "$File::Find::name\n" if(-d $_ && /^chm$/);
 	    print EXCLUDE "$File::Find::name\n" if(-d $_ && /[Oo]ld$/);
@@ -293,8 +286,8 @@ foreach my $pkg (@ARGV) {
 		}
 	    }
 	}
-	chdir(&file_path("$pkg", ".."));
-	find(\&find_exclude_files, "$pkgname");
+	chdir("$pkg/..");
+	find(\&findExcludeFiles, "$pkgname");
 	close(EXCLUDE);
 
 	my $filename = "${pkgname}_" . $description->{"Version"} . ".tar";
@@ -310,7 +303,7 @@ foreach my $pkg (@ARGV) {
 		      ("$tar chf",
 		       &shell_quote_file_path($filepath),
 		       "$pkgname")));
-	my $tmpdir = &file_path(${R::Vars::TMPDIR}, "Rbuild.$$");
+	my $tmpdir = "${R::Vars::TMPDIR}/Rbuild.$$";
 	## (Same as $libdir for building a binary package.)
 	rmtree($tmpdir) if(-d $tmpdir);
 	mkdir("$tmpdir", 0755)
@@ -397,8 +390,7 @@ sub prepare_pkg {
 	chdir("src");
 	$log->message("cleaning src");
 	if($WINDOWS) {
-	    ## A Windows Makefile.win might use
-	    ## $(RHOME)/src/gnuwin32/MkRules.
+	    ## a Windows Makefile.win might use $(RHOME)/src/gnuwin32/MkRules
 	    $ENV{RHOME} = $ENV{R_HOME};
 	    if(-r "Makefile.win") {
 		R_system("${R::Vars::MAKE} -f Makefile.win clean");
@@ -426,7 +418,7 @@ sub prepare_pkg {
     }
 
     ## Only update existing INDEX files.
-    &update_Rd_index("INDEX", "man", $log) if(-f "INDEX");
+    &updateRdIndex("INDEX", "man", $log) if(-f "INDEX");
 
     if((-d &file_path("inst", "doc"))
        && &list_files_with_type(&file_path("inst", "doc"),
@@ -437,7 +429,7 @@ sub prepare_pkg {
 	    $Rcmd .= "buildVignettes(dir = '.')\n";
 	    my @out = R_runR($Rcmd, "--vanilla --no-save --quiet");
 	    my @err = grep(/^Error/, @out);
-	    if(scalar(@err) > 0) {
+	    if($#err >= 0) {
 		@out = grep(!/^\>/, @out);
 		$log->error();
 		$log->print(join("\n", @out) . "\n");
@@ -452,7 +444,7 @@ sub prepare_pkg {
     1;
 }
 
-sub unlink_junk_files {
+sub deleteJunkFiles {
     unlink($_) if /^(\.RData|\.Rhistory)$/;
     if(/^DESCRIPTION$/) {
 	unlink($_) if (-f "DESCRIPTION.in");
@@ -460,7 +452,7 @@ sub unlink_junk_files {
 }
 
 
-sub update_index {
+sub updateIndex {
     my ($oldindex, $newindex, $log) = @_;
 
     $log->checking("whether '$oldindex' is up-to-date");
@@ -470,36 +462,36 @@ sub update_index {
 	    if($opt_force) {
 		$log->message("overwriting '${oldindex}' as " .
 			      "'--force' was given");
-		unlink($oldindex);
+		unlink $oldindex;
 		rename($newindex, $oldindex);
 	    }
 	    else {
 		$log->message("use '--force' to overwrite " .
 			      "the existing '${oldindex}'");
-		unlink($newindex);
+		unlink $newindex;
 	    }
 	}
 	else {
 	    $log->result("OK");
-	    unlink($newindex);
+	    unlink $newindex;
 	}
     }
     else {
 	$log->result("NO");
 	$log->message("creating new '$oldindex'");
-	unlink($oldindex);
+	unlink $oldindex;
 	rename($newindex, $oldindex);
     }
 
     1;
 }
 
-sub update_Rd_index {
-    my ($oldindex, $Rd_files, $log) = @_;
+sub updateRdIndex {
+    my ($oldindex, $Rdfiles, $log) = @_;
 
     my $newindex = ".Rbuildindex.$$";
 
-    my $Rcmd = "Rdindex(\"${Rd_files}\", \"${newindex}\")\n";
+    my $Rcmd = "Rdindex(\"${Rdfiles}\", \"${newindex}\")\n";
 
     my %result = 
 	R_run_R($Rcmd, "--vanilla --quiet", "R_DEFAULT_PACKAGES=tools");
@@ -513,7 +505,7 @@ sub update_Rd_index {
 	exit(1);
     }
 
-    update_index($oldindex, $newindex, $log);
+    updateIndex($oldindex, $newindex, $log);
     1;
 }
 

@@ -1,8 +1,8 @@
 ### * File utilities.
 
-### ** file_path_as_absolute
+### ** filePathAsAbsolute
 
-file_path_as_absolute <-
+filePathAsAbsolute <-
 function(x)
 {
     ## Turn a possibly relative file path absolute, performing tilde
@@ -13,7 +13,7 @@ function(x)
         stop(paste("file", sQuote(x), "does not exist"))
     cwd <- getwd()
     on.exit(setwd(cwd))
-    if(file_test("-d", epath)) {
+    if(fileTest("-d", epath)) {
         ## Combining dirname and basename does not work for e.g. '.' or
         ## '..' on Unix ...
         setwd(epath)
@@ -25,9 +25,9 @@ function(x)
     }
 }
 
-### ** file_path_sans_ext
+### ** filePathSansExt
 
-file_path_sans_ext <-
+filePathSansExt <-
 function(x)
 {
     ## Return the file paths without extensions.
@@ -35,9 +35,9 @@ function(x)
     sub("\\.[[:alpha:]]+$", "", x)
 }
 
-### ** file_test
+### ** fileTest
 
-file_test <-
+fileTest <-
 function(op, x, y)
 {
     ## Provide shell-style '-f', '-d', '-nt' and '-ot' tests.
@@ -57,9 +57,9 @@ function(op, x, y)
            stop(paste("test", sQuote(op), "is not available")))
 }
 
-### ** list_files_with_exts
+### ** listFilesWithExts
 
-list_files_with_exts <-
+listFilesWithExts <-
 function(dir, exts, all.files = FALSE, full.names = TRUE)
 {
     ## Return the paths or names of the files in @code{dir} with
@@ -74,25 +74,25 @@ function(dir, exts, all.files = FALSE, full.names = TRUE)
     files
 }
 
-### ** list_files_with_type
+### ** listFilesWithType
 
-list_files_with_type <-
+listFilesWithType <-
 function(dir, type, all.files = FALSE, full.names = TRUE)
 {
     ## Return a character vector with the paths of the files in
-    ## @code{dir} of type @code{type} (as in .make_file_exts()).
+    ## @code{dir} of type @code{type} (as in .makeFileExts()).
     ## When listing R code and documentation files, files in OS-specific
     ## subdirectories are included if present.
-    exts <- .make_file_exts(type)
+    exts <- .makeFileExts(type)
     files <-
-        list_files_with_exts(dir, exts, all.files = all.files,
+        listFilesWithExts(dir, exts, all.files = all.files,
                           full.names = full.names)
 
     if(type %in% c("code", "docs")) {
         OSdir <- file.path(dir, .OStype())
-        if(file_test("-d", OSdir)) {
+        if(fileTest("-d", OSdir)) {
             OSfiles <-
-                list_files_with_exts(OSdir, exts, all.files = all.files,
+                listFilesWithExts(OSdir, exts, all.files = all.files,
                                   full.names = FALSE)
             OSfiles <-
                 file.path(if(full.names) OSdir else .OStype(),
@@ -148,15 +148,6 @@ function(file, pdf = FALSE, clean = FALSE,
 
 ### * Internal utility functions.
 
-### ** %w/o%
-
-"%w/o%" <-
-function(x, y)
-{
-    ## x without y, as in the examples of ?match.
-    x[!x %in% y]
-}
-
 ### ** .OStype
 
 .OStype <-
@@ -166,9 +157,9 @@ function()
     if(nchar(OS)) OS else .Platform$OS.type
 }
 
-### ** .get_internal_S3_generics
+### ** .getInternalS3generics
 
-.get_internal_S3_generics <-
+.getInternalS3generics <-
 function()
 {
     ## Get the list of R internal S3 generics (via DispatchOrEval(),
@@ -193,11 +184,9 @@ function()
       )
 }
 
-### ** .get_namespace_package_depends
+### ** .getNamespacePackageDepends
 
-.get_namespace_package_depends <-
-function(dir)
-{
+.getNamespacePackageDepends <- function(dir) {
     nsInfo <- parseNamespaceFile(basename(dir), dirname(dir))
     depends <- c(sapply(nsInfo$imports, "[[", 1),
                  sapply(nsInfo$importClasses, "[[", 1),
@@ -205,44 +194,31 @@ function(dir)
     unique(sort(as.character(depends)))
 }
 
-### ** .get_namespace_S3_methods_db
+### ** .getNamespaceS3methodsList
 
-.get_namespace_S3_methods_db <-
+.getNamespaceS3methodsList <-
 function(nsInfo)
 {
-    ## Get the registered S3 methods for an 'nsInfo' object returned by
-    ## parseNamespaceFile(), as a 3-column character matrix with the
-    ## names of the generic, class and method (as a function).
-    S3_methods_list <- nsInfo$S3methods
-    if(!length(S3_methods_list)) return(matrix(character(), nc = 3))
-    idx <- is.na(S3_methods_list[, 3])
-    S3_methods_list[idx, 3] <-
-        paste(S3_methods_list[idx, 1],
-              S3_methods_list[idx, 2],
-              sep = ".")
-    S3_methods_list    
+    ## Get the list of the registered S3 methods for an 'nsInfo' object
+    ## returned by parseNamespaceFile().  Each element of the list is a
+    ## character vector of length 3 with the names of the generic, class
+    ## and method (as a function).
+    lapply(nsInfo$S3methods,
+           function(spec) {
+               if(length(spec) == 2)
+                   spec <-
+                       c(spec, paste(spec, collapse = "."))
+               spec
+           })
 }
 
-### ** .get_S3_group_generics
+### ** .getS3groupGenerics
 
-.get_S3_group_generics <-
-function()
-    c("Ops", "Math", "Summary", "Complex")
+.getS3groupGenerics <- function() c("Ops", "Math", "Summary", "Complex")
 
-### ** .get_standard_Rd_keywords
+### ** .isPrimitive
 
-.get_standard_Rd_keywords <-
-function()
-{
-    lines <- readLines(file.path(R.home(), "doc", "KEYWORDS.db"))
-    lines <- grep("^.*\\\|([^:]*):.*", lines, value = TRUE)
-    lines <- sub("^.*\\\|([^:]*):.*", "\\1", lines)
-    lines
-}
-
-### ** .is_primitive
-
-.is_primitive <-
+.isPrimitive <-
 function(fname, envir)
 {
     ## Determine whether object named 'fname' found in environment
@@ -251,9 +227,9 @@ function(fname, envir)
     is.function(f) && any(grep("^\\.Primitive", deparse(f)))
 }
 
-### ** .is_S3_generic
+### ** .isS3Generic
 
-.is_S3_generic <-
+.isS3Generic <-
 function(fname, envir, mustMatch = TRUE)
 {
     ## Determine whether object named 'fname' found in environment
@@ -308,16 +284,16 @@ function(fname, envir, mustMatch = TRUE)
     if(mustMatch) res == fname else nchar(res) > 0
 }
 
-### ** .load_package_quietly
+### ** .loadPackageQuietly
 
-.load_package_quietly <-
+.loadPackageQuietly <-
 function(package, lib.loc)
 {
     ## Load (reload if already loaded) @code{package} from
     ## @code{lib.loc}, capturing all output and messages.  All QC
     ## functions use this for loading packages because R CMD check
     ## interprets all output as indicating a problem.
-    .try_quietly({
+    .tryQuietly({
         pos <- match(paste("package", package, sep = ":"), search())
         if(!is.na(pos))
             detach(pos = pos)
@@ -326,9 +302,9 @@ function(package, lib.loc)
     })
 }
 
-### ** .make_file_exts
+### ** .makeFileExts
 
-.make_file_exts <-
+.makeFileExts <-
 function(type = c("code", "data", "demo", "docs", "vignette"))
 {
     ## Return a character vector with the possible/recognized file
@@ -345,9 +321,9 @@ function(type = c("code", "data", "demo", "docs", "vignette"))
                               paste, sep = "")))
 }
 
-### ** .make_S3_methods_stop_list
+### ** .makeS3MethodsStopList
 
-.make_S3_methods_stop_list <-
+.makeS3MethodsStopList <-
 function(package)
 {
     ## Return a character vector with the names of the functions in
@@ -402,29 +378,9 @@ function(packages = NULL, FUN, ...)
     out
 }
 
-### ** .read_description
+### ** .sourceAssignments
 
-.read_description <-
-function(dfile)
-{
-    ## Try reading in package metadata from a DESCRIPTION file.
-    ## (Never clear whether this should work on the path of the file
-    ## itself, or on that of the directory containing it.)
-    ## <NOTE>
-    ## As we do not have character "frames", we return a named character
-    ## vector.
-    ## </NOTE>
-    if(!file_test("-f", dfile))
-        stop(paste("file", sQuote(dfile), "does not exist"))
-    db <- try(read.dcf(dfile)[1, ], silent = TRUE)
-    if(inherits(db, "try-error"))
-        stop(paste("file", sQuote(dfile), "is not in valid DCF format"))
-    db
-}
-    
-### ** .source_assignments
-
-.source_assignments <-
+.sourceAssignments <-
 function(file, envir)
 {
     ## Read and parse expressions from @code{file}, and then
@@ -445,9 +401,9 @@ function(file, envir)
     invisible()
 }
 
-### ** .try_quietly
+### ** .tryQuietly
 
-.try_quietly <-
+.tryQuietly <-
 function(expr)
 {
     ## Try to run an expression, suppressing all 'output'.  In case of

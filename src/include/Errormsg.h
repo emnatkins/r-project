@@ -28,7 +28,11 @@
  *-- =====  ../main/errors.c ! (MM, who did the following in
  *				the first place ...) */
 
-#define R_MSG_NA		"NaNs produced"
+#ifdef IEEE_754
+# define R_MSG_NA		"NaNs produced"
+#else
+# define R_MSG_NA		"NAs produced"
+#endif
 
 #define R_MSG_NONNUM_MATH 	"Non-numeric argument to mathematical function"
 
