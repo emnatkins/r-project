@@ -1,0 +1,121 @@
+=================================================
+This is an automated summary of the status of the R-bugs
+repository.
+
+Note that this may be neither complete nor perfectly
+correct at any given instance: Not all bugs are reported,
+and some reported bugs may have been fixed, but the
+repository not yet updated.
+
+Some bug fixes are difficult to verify because they pertain
+to specific hardware or operating system versions. If you
+have information to contribute, please do so.
+
+If you happen to know how to fix a problem please send
+patches to the bug repository, too.
+
+New bugs are reported either through the web
+interface at r-bugs.biostat.ku.dk or via email to
+r-bugs@biostat.ku.dk. The bug.report() function can be
+used to automate parts of the procedure on many systems.
+Followups on older bugs can be done by including the string
+"(PR#999)" in the Subject of an email (change 999 to the
+actual reference number, of course!).
+=================================================
+
+Directory:  Accuracy
+
+none
+
+Directory:  Add-ons
+
+none
+
+Directory:  Analyses
+
+none
+
+Directory:  Documentation
+
+none
+
+Directory:  Graphics
+
+* PR# 202 *
+Subject: persp box occlusion bug
+From: wsi@gcal.ac.uk
+Date: Wed, 2 Jun 1999 15:02:03 +0200 (MET DST)
+--The persp algorithm does not apply the occlusion rules to the frame, 
+--which is always plotted first. 
+--A bug, but not very simple to fix.
+* PR# 400 *
+Subject: X11 troubles
+From: Peter Dalgaard BSA <p.dalgaard@biostat.ku.dk>
+Date: 13 Jan 2000 14:31:42 +0100
+--a) We don't handle multiple window closes well
+--b) X11 errors should be caught by an error handler, not kill R
+* PR# 414 *
+Subject:  graphics bugs: steep slopes and large values beyond ylim 
+From: Ben Bolker <bolker@zoo.ufl.edu>
+Date: Mon, 7 Feb 2000 18:28:04 -0500
+--Followup on R-devel showed this was due to generating integer coordinates 
+--outside +/- 2^15 in the X11 driver.
+
+Directory:  In-Out
+
+none
+
+Directory:  Installation
+
+none
+
+Directory:  Language
+
+* PR# 408 *
+Subject: convolution bug
+From: wsimpson@gcal.ac.uk
+Date: Fri, 28 Jan 2000 11:17:36 +0100 (MET)
+* PR# 412 *
+Subject: anomalies with call objects
+From: Peter Dalgaard BSA <p.dalgaard@biostat.ku.dk>
+Date: 06 Feb 2000 01:18:50 +0100
+
+Directory:  Low-level
+
+* PR# 391 *
+Subject: Segfault in dataentry()
+From: Peter Dalgaard BSA <p.dalgaard@pubhealth.ku.dk>
+Date: 29 Dec 1999 11:59:50 +0100
+--dataentry(0,0) segfaults
+
+Directory:  Misc
+
+none
+
+Directory:  Models
+
+none
+
+Directory:  Startup
+
+none
+
+Directory:  System-specific
+
+* PR# 452 *
+Subject: problem with glm
+From: Brad McNeney <mcneney@cs.sfu.ca>
+Date: Fri, 18 Feb 2000 17:51:54 -0800 (PST)
+--Problems on Alpha's with glm. Status unclear
+
+Directory:  TooMuchAtOnce
+
+none
+
+Directory:  Windows
+
+none
+
+Directory:  incoming
+
+none

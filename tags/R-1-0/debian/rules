@@ -1,0 +1,78 @@
+#!/usr/bin/make -f
+# debian/rules file for the Debian GNU/Linux r-base package
+# Copyright 1997-1999 by Douglas M. Bates <bates@stat.wisc.edu>
+
+package=r-base
+
+debbase		:= $(shell pwd)/debian
+debtmp		:= $(debbase)/tmp
+debdoc		:= $(debtmp)/usr/share/doc/$(package)
+
+# edd 10 Feb 98	See section 4.1 of Policy Manual
+arch 		= $(shell dpkg --print-architecture)-linux
+
+build:
+	dh_testdir
+	R_UNZIPCMD=/usr/bin/miniunzip R_ZIPCMD=/usr/bin/minizip\
+	LIBS='-L/usr/lib/atlas'
+	CFLAGS='-Wall -O2' FFLAGS='-Wall -O2'\
+	PATH=${PATH}:/usr/bin/X11\   # so /usr/bin/X11/imake is found
+	SHLIBLDFLAGS='-shared -lc' ./configure --prefix=/usr 		 \
+					--with-g77			 \
+					--mandir=$(debtmp)/usr/share/man \
+					--host $(arch)
+	make 
+	make help
+	make html
+
+	touch build
+
+clean:
+	dh_testdir
+	-rm -f build
+	-make distclean
+	-rm -f `find . -name "*~"`
+	-rm -rf debian/tmp debian/files* core debian/substvars
+	-rm -f doc/html/function.html doc/html/packages.html
+
+# Build architecture-independent files here.
+binary-indep: build
+# We have nothing to do by default.
+
+# Build architecture-dependent files here.
+binary-arch: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+	make; make check info pdf; make install prefix=`pwd`/debian/tmp/usr
+	sed -e '/{R_HOME=.*/s::{R_HOME=/usr/lib/R}:' \
+	  < bin/R > debian/tmp/usr/bin/R
+	sed -e '/{R_HOME=.*/s::{R_HOME=/usr/lib/R}:' \
+	  < bin/R > debian/tmp/usr/lib/R/bin/R
+# remove unneeded license files
+	rm -v $(debtmp)/usr/lib/R/library/base/help/license     	\
+	      $(debtmp)/usr/lib/R/library/base/latex/license.tex	\
+	      $(debtmp)/usr/lib/R/COPYING  
+	dh_installdocs BUGS Y2K 
+	dh_installinfo doc/manual/R-*.info*
+	(cd $(debdoc)/doc && ln -s ../../../../lib/R/doc/html .)
+	(cd $(debdoc) && ln -s ../../../lib/R/library .)
+	dh_installmenu
+	dh_installmanpages re_format.7 regex.3 getline.3
+	dh_installchangelogs NEWS 
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_makeshlibs
+	dh_md5sums -X'usr/bin/R'  -XLibIndex -Xindex.txt -Xfunction.html -Xpackages.html
+	dh_builddeb
+
+# Below here is fairly generic really
+
+binary:		binary-indep binary-arch
+
+.PHONY: binary binary-arch binary-indep clean checkroot
