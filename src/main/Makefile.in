@@ -157,8 +157,7 @@ installdirs:
 mostlyclean: clean
 clean:
 	@-rm -rf .libs _libs
-	@-rm -f *core Makedeps *.d *.o *.lo *.la *.$(SHLIB_EXT) \
-	  ${Rexecbin_PROGRAMS}
+	@-rm -f *core Makedeps *.d *.o *.lo *.la *.$(SHLIB_EXT)
 distclean: clean
 	@-rm -f Makefile
 maintainer-clean: distclean
