@@ -1,5 +1,5 @@
 #! @PERL@
-### $Id: lib2tex.in,v 1.5 1999/12/11 20:57:35 pd Exp $
+### $Id: lib2tex.in,v 1.4.8.1 1999/12/06 06:33:44 hornik Exp $
 
 ## Create a single pkgname-pkg.tex file from the Latex subdirectories
 ## Copyright (C) 1998 Douglas M. Bates <bates@stat.wisc.edu>

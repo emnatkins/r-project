@@ -17,7 +17,7 @@
  *  Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
  *  MA 02111-1307, USA
  *
- *  $Id: bdx.h,v 1.3 1999/12/11 20:57:35 pd Exp $
+ *  $Id: bdx.h,v 1.2.4.1 1999/12/09 16:47:17 ripley Exp $
  */
 
 #ifndef _BDX_H_
