@@ -101,7 +101,11 @@ static SEXP cummax(SEXP x, SEXP s)
 {
     int i;
     double max;
-    max = REAL(x)[0];
+#ifdef IEEE_754
+    max = R_NegInf;
+#else
+    max = NA_REAL;
+#endif
     for (i = 0 ; i < length(x) ; i++) {
 	if(ISNAN(REAL(x)[i]) || ISNAN(max))
 #ifdef IEEE_754
@@ -120,7 +124,11 @@ static SEXP cummin(SEXP x, SEXP s)
 {
     int i;
     double min;
-    min = REAL(x)[0];
+#ifdef IEEE_754
+    min = R_PosInf;
+#else
+    min = NA_REAL;
+#endif
     for (i = 0 ; i < length(x) ; i++ ) {
 	if (ISNAN(REAL(x)[i]) || ISNAN(min))
 #ifdef IEEE_754
@@ -158,10 +166,10 @@ SEXP do_cum(SEXP call, SEXP op, SEXP args, SEXP env)
 	    break;
 	case 3: /* cummax */
 	case 4: /* cummin */
-	    errorcall(call, "min/max not defined for complex numbers");
+	    errorcall(call, "min/max not defined for complex numbers\n");
 	    break;
 	default:
-	    errorcall(call,"unknown cumxxx function");
+	    errorcall(call,"unknown cumxxx function\n");
 	}
     }
     else { /* Non-Complex:  here, (sh|c)ould differentiate  real / int */
@@ -184,7 +192,7 @@ SEXP do_cum(SEXP call, SEXP op, SEXP args, SEXP env)
 	    return cummin(t,s);
 	    break;
 	default:
-	    errorcall(call,"Unknown cum function");
+	    errorcall(call,"Unknown cum function\n");
 	}
     }
     return R_NilValue; /* for -Wall */

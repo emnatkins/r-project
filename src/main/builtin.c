@@ -32,7 +32,7 @@ SEXP do_delay(SEXP call, SEXP op, SEXP args, SEXP rho)
     expr = CAR(args);
     env = eval(CADR(args), rho);
     if (!isEnvironment(env))
-	errorcall(call, "invalid argument");
+	errorcall(call, "invalid argument\n");
     return mkPROMISE(expr, env);
 }
 
@@ -48,7 +48,7 @@ SEXP do_onexit(SEXP call, SEXP op, SEXP args, SEXP rho)
 	code = CAR(args);
 	break;
     default:
-	errorcall(call, "invalid number of arguments");
+	errorcall(call, "invalid number of arguments\n");
 	code = R_NilValue;/* for -Wall */
     }
     ctxt = R_GlobalContext;
@@ -160,13 +160,13 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
     args = CDR(args);
 
     file = CAR(args);
-    if (!isString(file) || length(file) != 1)
-	errorcall(call, "invalid file= specification");
+    if (!isValidString(file))
+	errorcall(call, "invalid file= specification\n");
     args = CDR(args);
 
     sepr = CAR(args);
     if (!isString(sepr))
-	errorcall(call, "invalid sep= specification");
+	errorcall(call, "invalid sep= specification\n");
     nlsep = 0;
     for (i = 0; i < LENGTH(sepr); i++)
 	if (strstr(CHAR(STRING(sepr)[i]), "\n")) nlsep = 1;
@@ -174,7 +174,7 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     fill = CAR(args);
     if ((!isNumeric(fill) && !isLogical(fill)) || (length(fill) != 1))
-	errorcall(call, "invalid fill argument");
+	errorcall(call, "invalid fill argument\n");
     if (isLogical(fill)) {
 	if (asLogical(fill) == 1)
 	    pwidth = R_print.width;
@@ -186,36 +186,33 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     labs = CAR(args);
     if (!isString(labs) && labs != R_NilValue)
-	errorcall(call, "invalid label argument");
+	errorcall(call, "invalid label argument\n");
     lablen = length(labs);
     args = CDR(args);
 
     append = asLogical(CAR(args));
     if (append == NA_LOGICAL)
-	errorcall(call, "invalid append specification");
+	errorcall(call, "invalid append specification\n");
 
-    savefp = NULL;		/* -Wall */
     if (strlen(CHAR(STRING(file)[0])) > 0) {
 	savefp = R_Outputfile;
-	if (append)
-	    R_Outputfile
-		= R_fopen(R_ExpandFileName(CHAR(STRING(file)[0])), "a");
-	else
-	    R_Outputfile
-		= R_fopen(R_ExpandFileName(CHAR(STRING(file)[0])), "w");
-	if (!R_Outputfile) {
+	if(!(R_Outputfile = R_fopen(R_ExpandFileName(CHAR(STRING(file)[0])),
+				    (append) ? "a" : "w"))) {
 	    R_Outputfile = savefp;
-	    errorcall(call, "unable to open file");
+	    errorcall(call, "unable to open file\n");
 	}
 	havefile = 1;
     }
-    else havefile = 0;
+    else {
+        savefp = NULL;/* -Wall */
+        havefile = 0;
+    }
 
     nobjs = length(objs);
     /*
     for (i = 0; i < nobjs; i++) {
 	if (!isVector(VECTOR(objs)[i]) && !isNull(VECTOR(objs)[i]))
-	    errorcall(call, "argument %d has invalid type", i + 1);
+	    errorcall(call, "argument %d has invalid type\n", i + 1);
     }
     */
     width = 0;
@@ -237,12 +234,23 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 		p = CHAR(STRING(s)[0]);
             else if (isSymbol(s))
                 p = CHAR(PRINTNAME(s));
-	    else if (isVector(s)) {
+	    else if (isVectorAtomic(s)) {
 		p = EncodeElement(s, 0, 0);
 		strcpy(buf,p);
 		p=buf;
 	    }
-            else errorcall(call, "argument %d not handled by cat", iobj);
+#ifdef fixed_cat
+	    else if (isVectorList(s)) {
+	      /* FIXME:	 call EncodeElement() for every element of  s.
+
+		 Real Problem: `s' can be large;
+		 should do line breaking etc.. (buf is of limited size)
+	      */
+	    }
+#endif
+	    else
+		errorcall(call, "argument %d not yet handled by cat\n",1+iobj);
+	    /* FIXME : cat(...) should handle ANYTHING */
 	    w = strlen(p);
 	    cat_sepwidth(sepr, &sepw, ntot);
 	    if ((iobj > 0) && (width + w + sepw > pwidth)) {
@@ -315,7 +323,7 @@ SEXP do_makelist(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_namedlist(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
 }
-#endif NOT_used
+#endif /* NOT_used */
 
 
 SEXP do_expression(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -358,7 +366,7 @@ SEXP do_makevector(SEXP call, SEXP op, SEXP args, SEXP rho)
     len = asInteger(CADR(args));
     s = coerceVector(CAR(args), STRSXP);
     if (length(s) == 0)
-	error("vector: zero-length type argument");
+	error("vector: zero-length type argument\n");
     mode = str2type(CHAR(STRING(s)[0]));
     if (mode == -1 && streql(CHAR(STRING(s)[0]), "double"))
 	mode = REALSXP;
@@ -376,7 +384,7 @@ SEXP do_makevector(SEXP call, SEXP op, SEXP args, SEXP rho)
 	s = allocList(len);
 	break;
     default:
-	error("vector: cannot make a vector of mode \"%s\".",
+	error("vector: cannot make a vector of mode \"%s\".\n",
 	      CHAR(STRING(s)[0]));
     }
     if (mode == INTSXP || mode == LGLSXP)
@@ -406,12 +414,12 @@ SEXP do_lengthgets(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
     x = CAR(args);
     if (!isVector(x) && !isVectorizable(x))
-	error("length<- invalid first argument");
+	error("length<- invalid first argument\n");
     if (length(CADR(args)) != 1)
-	error("length<- invalid second argument");
+	error("length<- invalid second argument\n");
     len = asInteger(CADR(args));
     if (len == NA_INTEGER)
-	error("length<- missing value for length");
+	error("length<- missing value for length\n");
     lenx = length(x);
     if (lenx == len)
 	return (x);
@@ -497,12 +505,12 @@ SEXP switchList(SEXP el, SEXP rho)
 	if (TYPEOF(h) != DOTSXP) {
 	    if (h == R_MissingArg)
 		return R_MissingArg;
-	    error("... used in an incorrect context");
+	    error("... used in an incorrect context\n");
 	}
 	return h;
     }
     else {
-	error("invalid parameter in switch");
+	error("invalid parameter in switch \n");
 	return R_NilValue;/* for -Wall */
     }
 }
@@ -512,8 +520,8 @@ SEXP do_switch(SEXP call, SEXP op, SEXP args, SEXP rho)
     int argval;
     SEXP x, y, w;
     x = eval(CAR(args), rho);
-    if (!isVector(x) && length(x) != 1)
-	error("switch: EXPR must return a length 1 vector");
+    if (!isVector(x) || length(x) != 1)
+	error("switch: EXPR must return a length 1 vector\n");
     PROTECT(w = switchList(CDR(args), rho));
     if (isString(x)) {
 	for (y = w; y != R_NilValue; y = CDR(y))
@@ -540,3 +548,4 @@ SEXP do_switch(SEXP call, SEXP op, SEXP args, SEXP rho)
     UNPROTECT(1);
     return x;
 }
+

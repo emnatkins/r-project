@@ -139,7 +139,7 @@ SEXP do_deparse(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP ca1;
     int savecutoff, cut0;
     /*checkArity(op, args);*/
-    if(length(args) < 1) errorcall(call, "too few arguments");
+    if(length(args) < 1) errorcall(call, "too few arguments\n");
 
     ca1 = CAR(args); args = CDR(args);
     savecutoff = cutoff;
@@ -160,14 +160,14 @@ SEXP deparse1(SEXP call, int abbrev)
 {
 /* Argument  abbrev ("logical"):
 	If abbrev is 1(TRUE), then the returned value
-	is a STRSXP of length 1 with at most 10 characters.	 
-	This is used for plot labelling etc. 
+	is a STRSXP of length 1 with at most 10 characters.
+	This is used for plot labelling etc.
 */
     SEXP svec;
     int savedigits;
 
     PrintDefaults(R_NilValue);/* from global options() */
-    savedigits = R_print.digits; 
+    savedigits = R_print.digits;
     R_print.digits = DBL_DIG;/* MAX precision */
 
     svec = R_NilValue;
@@ -224,12 +224,14 @@ SEXP do_dput(SEXP call, SEXP op, SEXP args, SEXP rho)
 	UNPROTECT(1);
     }
     file = CADR(args);
-    
+    if (!isValidString(file))
+	errorcall(call, "file name must be a valid character string\n");
+
     fp = NULL;
     if (strlen(CHAR(STRING(file)[0])) > 0) {
 	fp = R_fopen(R_ExpandFileName(CHAR(STRING(file)[0])), "w");
 	if (!fp)
-	    errorcall(call, "unable to open file");
+	    errorcall(call, "unable to open file\n");
     }
     for (i = 0; i < LENGTH(tval); i++)
 	if (fp == NULL)
@@ -252,10 +254,10 @@ SEXP do_dump(SEXP call, SEXP op, SEXP args, SEXP rho)
     names = CAR(args);
     file = CADR(args);
     if(!isString(names) || !isString(file))
-	errorcall(call, "character arguments expected");
+	errorcall(call, "character arguments expected\n");
     nobjs = length(names);
     if(nobjs < 1 || length(file) < 1)
-	errorcall(call, "zero length argument");
+	errorcall(call, "zero length argument\n");
 
     fp = NULL;
 
@@ -279,7 +281,7 @@ SEXP do_dump(SEXP call, SEXP op, SEXP args, SEXP rho)
     }
     else {
 	if(!(fp = R_fopen(R_ExpandFileName(CHAR(STRING(file)[0])), "w")))
-	    errorcall(call, "unable to open file");
+	    errorcall(call, "unable to open file\n");
 	for (i = 0; i < nobjs; i++) {
 	    fprintf(fp, "\"%s\" <-\n", CHAR(STRING(names)[i]));
 	    tval = deparse1(CAR(o), 0);
@@ -405,10 +407,10 @@ static void deparse2buff(SEXP s)
 #if 1
 	print2buff(CHAR(PRINTNAME(s)));
 #else
-	/* I'm pretty sure this is WRONG: 
+	/* I'm pretty sure this is WRONG:
 	   Blindly putting special symbols in ""s causes more trouble
-	   than it solves 
-	   --pd 
+	   than it solves
+	   --pd
 	   */
 	if( isValidName(CHAR(PRINTNAME(s))) )
 	    print2buff(CHAR(PRINTNAME(s)));
@@ -498,9 +500,9 @@ static void deparse2buff(SEXP s)
 		    switch (length(s)) {
 		    case 1:
 			fop = PP_UNARY;
-			break; 
+			break;
 		    case 2:
-			break; 
+			break;
 		    default:
 			fop = PP_FUNCALL;
 			break;
@@ -753,7 +755,7 @@ static void print2buff(char *strng)
     bufflen = strlen(buff);
     /*if (bufflen + tlen > BUFSIZE) {
 	buff[0] = '\0';
-	error("string too long in deparse");
+	error("string too long in deparse\n");
 	}*/
     AllocBuffer(bufflen + tlen);
     strcat(buff, strng);

@@ -107,7 +107,7 @@ static SEXP ExtractSubset(SEXP x, SEXP result, SEXP index, SEXP call)
 	    tmp = CDR(tmp);
 	    break;
 	default:
-	    errorcall(call, "non-subsetable object");
+	    errorcall(call, "non-subsetable object\n");
 	}
     }
     return result;
@@ -187,14 +187,14 @@ SEXP MatrixSubset(SEXP x, SEXP s, SEXP call, int drop)
 	ii = INTEGER(sr)[i];
 	if (ii != NA_INTEGER) {
 	    if (ii < 1 || ii > nr)
-		errorcall(call, "subscript out of bounds");
+		errorcall(call, "subscript out of bounds\n");
 	    ii--;
 	}
 	for (j = 0; j < ncs; j++) {
 	    jj = INTEGER(sc)[j];
 	    if (jj != NA_INTEGER) {
 		if (jj < 1 || jj > nc)
-		    errorcall(call, "subscript out of bounds");
+		    errorcall(call, "subscript out of boundsn");
 		jj--;
 	    }
 	    ij = i + j * nrs;
@@ -332,7 +332,7 @@ static SEXP ArraySubset(SEXP x, SEXP s, SEXP call, int drop)
 		goto assignLoop;
 	    }
 	    if (jj < 1 || jj > INTEGER(xdims)[j])
-		errorcall(call, "subscript out of bounds");
+		errorcall(call, "subscript out of bounds\n");
 	    ii += (jj - 1) * offset[j];
 	}
 
@@ -486,8 +486,8 @@ SEXP do_subset(SEXP call, SEXP op, SEXP args, SEXP rho)
 	return x;
     }
     subs = CDR(args);
-    nsubs = length(subs);
-
+    if(0 == (nsubs = length(subs)))
+	errorcall(call, "no index specified\n");
     type = TYPEOF(x);
     PROTECT(dim = getAttrib(x, R_DimSymbol));
     ndim = length(dim);
@@ -510,8 +510,8 @@ SEXP do_subset(SEXP call, SEXP op, SEXP args, SEXP rho)
     }
     else PROTECT(ax = x);
 
-    if(!isVectorObject(ax))
-	errorcall(call, "object is not subsetable");
+    if(!isVector(ax))
+	errorcall(call, "object is not subsetable\n");
 
     /* This is the actual subsetting code. */
     /* The separation of arrays and matrices is purely an optimization. */
@@ -520,7 +520,7 @@ SEXP do_subset(SEXP call, SEXP op, SEXP args, SEXP rho)
 	ans = VectorSubset(ax, CAR(subs), call);
     else {
 	if (nsubs != length(dim))
-	    errorcall(call, "incorrect number of dimensions");
+	    errorcall(call, "incorrect number of dimensions\n");
 	if (nsubs == 2)
 	    ans = MatrixSubset(ax, subs, call, drop);
 	else
@@ -589,11 +589,12 @@ SEXP do_subset2(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* and check that any array subscripting is compatible. */
 
     subs = CDR(args);
-    nsubs = length(subs);
+    if(0 == (nsubs = length(subs)))
+	errorcall(call, "no index specified\n");
     dims = getAttrib(x, R_DimSymbol);
     ndims = length(dims);
     if(nsubs > 1 && nsubs != ndims)
-	errorcall(call, "incorrect number of subscripts");
+	errorcall(call, "incorrect number of subscripts\n");
 
     if (isVector(x) || isList(x) || isLanguage(x)) {
 
@@ -610,7 +611,7 @@ SEXP do_subset2(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    UNPROTECT(1);
 		    return R_NilValue;
 		}
-		else errorcall(call, "subscript out of bounds");
+		else errorcall(call, "subscript out of bounds\n");
 	    }
 	}
 	else {
@@ -626,7 +627,7 @@ SEXP do_subset2(SEXP call, SEXP op, SEXP args, SEXP rho)
 		subs = CDR(subs);
 		if (INTEGER(index)[i] < 0 ||
 		    INTEGER(index)[i] >= INTEGER(dims)[i])
-		    errorcall(call, "subscript out of bounds");
+		    errorcall(call, "subscript out of bounds\n");
 	    }
 	    offset = 0;
 	    for (i = (nsubs - 1); i > 0; i--)
@@ -635,7 +636,7 @@ SEXP do_subset2(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    UNPROTECT(1);
 	}
     }
-    else errorcall(call, "object is not subsettable");
+    else errorcall(call, "object is not subsettable\n");
 
     if(isPairList(x)) {
 	ans = CAR(nthcdr(x, offset));
@@ -719,7 +720,7 @@ SEXP do_subset3(SEXP call, SEXP op, SEXP args, SEXP env)
     else if(isString(nlist) )
 	input = STRING(nlist)[0];
     else {
-	errorcall(call, "invalid subscript type");
+	errorcall(call, "invalid subscript type\n");
 	return R_NilValue; /*-Wall*/
     }
 

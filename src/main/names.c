@@ -204,7 +204,7 @@ FUNTAB R_FunTab[] =
 {"log",		do_log,		10003,	11,	1,	PP_FUNCALL},
 {"signif",	do_signif,	10004,	11,	1,	PP_FUNCALL},
 
-{"abs",		do_math1,	0,	1,	1,	PP_FUNCALL},
+/* KH(1999/09/12) {"abs", do_math1, 0, 1, 1, PP_FUNCALL}, */
 {"floor",	do_math1,	1,	1,	1,	PP_FUNCALL},
 {"ceiling",	do_math1,	2,	1,	1,	PP_FUNCALL},
 {"sqrt",	do_math1,	3,	1,	1,	PP_FUNCALL},
@@ -281,7 +281,7 @@ FUNTAB R_FunTab[] =
 {"Mod",		do_cmathfuns,	3,	1,	1,	PP_FUNCALL},
 {"Arg",		do_cmathfuns,	4,	1,	1,	PP_FUNCALL},
 {"Conj",	do_cmathfuns,	5,	1,	1,	PP_FUNCALL},
-
+{"abs",		do_cmathfuns,	6,	1,	1,	PP_FUNCALL},
 
 /* Mathematical Functions of Three Variables */
 
@@ -386,9 +386,7 @@ FUNTAB R_FunTab[] =
 
 {"rhyper",	do_random3,	0,	11,	4,	PP_FUNCALL},
 
-{"sample",	do_sample,	0,	11,	4,	PP_FUNCALL},
-
-{"RNGkind",	do_RNGkind,	0,	11,	1,	PP_FUNCALL},
+{"sample",	do_sample,	0,	11,	4,	PP_FUNCALL},{"RNGkind",	do_RNGkind,	0,	11,	1,	PP_FUNCALL},
 
 /* Data Summaries */
 
@@ -493,13 +491,14 @@ FUNTAB R_FunTab[] =
 #endif
 #ifdef Win32
 {"tempfile",	do_tempfile,	0,	11,	1,	PP_FUNCALL},
-{"unlink",	do_unlink,	0,	11,	1,	PP_FUNCALL},   
+{"unlink",	do_unlink,	0,	11,	1,	PP_FUNCALL},
 {"getenv",	do_getenv,	0,	11,	1,	PP_FUNCALL},
-{"help.start",	do_helpstart,	0,	11,	0,	PP_FUNCALL},    
+{"help.start",	do_helpstart,	0,	11,	0,	PP_FUNCALL},
 {"show.help.item",do_helpitem,	0,	11,	3,	PP_FUNCALL},
 {"flush.console",do_flushconsole,0,     11,     0,      PP_FUNCALL},
 {"int.unzip",   do_int_unzip,   0,      11,    -1,      PP_FUNCALL},
 {"win.version", do_winver,      0,      11,     0,      PP_FUNCALL},
+{"saveDevga", do_saveDevga,     0,      11,     3,      PP_FUNCALL},
 #endif
 {"parse",	do_parse,	0,	11,	4,	PP_FUNCALL},
 {"save",	do_save,	0,	111,	3,	PP_FUNCALL},
@@ -531,7 +530,7 @@ FUNTAB R_FunTab[] =
 {".Fortran",	do_dotCode,	1,	1,	-1,	PP_FOREIGN},
 {".External",   do_External,    0,      1,      -1,     PP_FOREIGN},
 {".Call",       do_dotcall,     0,      1,      -1,     PP_FOREIGN},
-{"dyn.load",	do_dynload,	0,	111,	1,	PP_FUNCALL},
+{"dyn.load",	do_dynload,	0,	111,	3,	PP_FUNCALL},
 {"dyn.unload",	do_dynunload,	0,	111,	1,	PP_FUNCALL},
 {"ls",		do_ls,		1,	11,	2,	PP_FUNCALL},
 {"typeof",	do_typeof,	1,	11,	1,	PP_FUNCALL},
@@ -598,11 +597,11 @@ FUNTAB R_FunTab[] =
 /* Device Drivers */
 
 #ifdef Win32
-{"X11",		do_devga,	0,	111,	4,	PP_FUNCALL},
+{"devga",	do_devga,	0,	111,	4,	PP_FUNCALL},
 #else
 {"X11",		do_X11,		0,	111,	7,	PP_FUNCALL},
 #endif
-{"PS",		do_PS,		0,	111,	9,	PP_FUNCALL},
+{"PS",		do_PS,		0,	111,   11,	PP_FUNCALL},
 {"PicTeX",	do_PicTeX,	0,	111,	6,	PP_FUNCALL},
 {"Macintosh",	do_Macintosh,	0,	111,	4,	PP_FUNCALL},
 {"Gnome",       do_Gnome,       0,      111,    4,      PP_FUNCALL},
@@ -686,7 +685,7 @@ SEXP do_primitive(SEXP call, SEXP op, SEXP args, SEXP env)
     checkArity(op, args);
     name = CAR(args);
     if (!isString(name) || length(name) < 1 || STRING(name)[0] == R_NilValue)
-	errorcall(call, "string argument required");
+	errorcall(call, "string argument required\n");
     for (i = 0; R_FunTab[i].name; i++)
 	if (strcmp(CHAR(STRING(name)[0]), R_FunTab[i].name) == 0) {
 	    if ((R_FunTab[i].eval % 100 )/10)
@@ -694,7 +693,7 @@ SEXP do_primitive(SEXP call, SEXP op, SEXP args, SEXP env)
 	    else
 		return mkPRIMSXP(i, R_FunTab[i].eval % 10);
 	}
-    errorcall(call, "no such primitive function");
+    errorcall(call, "no such primitive function\n");
     return(R_NilValue);		/* -Wall */
 }
 
@@ -814,9 +813,9 @@ SEXP install(char *name)
     int i;
 
     if (*name == '\0')
-	error("attempt to use zero-length variable name");
+	error("attempt to use zero-length variable name\n");
     if (strlen(name) > MAXIDSIZE)
-	error("symbol print-name too long");
+	error("symbol print-name too long\n");
     strcpy(buf, name);
     i = hashpjw(buf);
     /* Check to see if the symbol is already present. */
@@ -839,11 +838,13 @@ SEXP do_internal(SEXP call, SEXP op, SEXP args, SEXP env)
     int save = R_PPStackTop;
     checkArity(op, args);
     s = CAR(args);
+    if (!isPairList(s))
+	errorcall(call, "invalid .Internal() argument\n");
     fun = CAR(s);
     if (!isSymbol(fun))
-	errorcall(call, "invalid internal function");
+	errorcall(call, "invalid internal function\n");
     if (INTERNAL(fun) == R_NilValue)
-	errorcall(call, "no internal function \"%s\"", CHAR(PRINTNAME(fun)));
+	errorcall(call, "no internal function \"%s\"\n", CHAR(PRINTNAME(fun)));
     args = CDR(s);
     if (TYPEOF(INTERNAL(fun)) == BUILTINSXP)
 	args = evalList(args, env);
@@ -852,7 +853,7 @@ SEXP do_internal(SEXP call, SEXP op, SEXP args, SEXP env)
     args = PRIMFUN(INTERNAL(fun)) (s, INTERNAL(fun), args, env);
     UNPROTECT(1);
     if (save != R_PPStackTop) {
-	REprintf("stack imbalance in internal %s, %d then %d",
+	REprintf("stack imbalance in internal %s, %d then %d\n",
 	       PRIMNAME(INTERNAL(fun)), save, R_PPStackTop);
     }
     return (args);

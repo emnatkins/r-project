@@ -86,6 +86,7 @@ void R_gtk_terminal_interrupt()
 
 void R_gtk_terminal_quit()
 {
+  R_gtk_gui_quit = TRUE;
   R_gtk_terminal_run("quit()\n");
 }
 
@@ -100,7 +101,7 @@ static void file_open_ok(GtkWidget *widget, gpointer data)
   fp = R_fopen(gtk_file_selection_get_filename(GTK_FILE_SELECTION(data)), "r");
 
   if(!fp) {
-    error("can't restore environment -- unable to open %s for reading", gtk_file_selection_get_filename(GTK_FILE_SELECTION(data)));
+    error("can't restore environment -- unable to open %s for reading\n", gtk_file_selection_get_filename(GTK_FILE_SELECTION(data)));
     return;
   }
 
@@ -172,7 +173,7 @@ static void file_saveas_ok(GtkWidget *widget, gpointer data)
   fp = R_fopen(gtk_file_selection_get_filename(GTK_FILE_SELECTION(data)), "w");
 		     
   if (!fp) {
-    error("can't save environment -- unable to open %s for writing", gtk_file_selection_get_filename(GTK_FILE_SELECTION(data)));
+    error("can't save environment -- unable to open %s for writing\n", gtk_file_selection_get_filename(GTK_FILE_SELECTION(data)));
     return;
   }
 

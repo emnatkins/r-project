@@ -60,7 +60,7 @@ SEXP do_relop(SEXP call, SEXP op, SEXP args, SEXP env)
 
     if (!isVector(x) || !isVector(y))
 	errorcall(call,
-		  "comparison (%d) is possible only for vector types",
+		  "comparison (%d) is possible only for vector types\n",
 		  PRIMVAL(op));
 
     if (LENGTH(x) <= 0 || LENGTH(y) <= 0)
@@ -75,7 +75,7 @@ SEXP do_relop(SEXP call, SEXP op, SEXP args, SEXP env)
     if (xarray || yarray) {
 	if (xarray && yarray) {
 	    if (!conformable(x, y))
-		errorcall(call, "non-conformable arrays");
+		errorcall(call, "non-conformable arrays\n");
 	    PROTECT(dims = getAttrib(x, R_DimSymbol));
 	}
 	else if (xarray) {
@@ -101,7 +101,7 @@ SEXP do_relop(SEXP call, SEXP op, SEXP args, SEXP env)
     if (xts || yts) {
 	if (xts && yts) {
 	    if (!tsConform(x, y))
-		errorcall(call, "Non-conformable time-series");
+		errorcall(call, "Non-conformable time-series\n");
 	    PROTECT(tsp = getAttrib(x, R_TspSymbol));
 	    PROTECT(class = getAttrib(x, R_ClassSymbol));
 	}
@@ -328,7 +328,7 @@ static SEXP complex_relop(int code, SEXP s1, SEXP s2)
     SEXP ans;
 
     if (code != EQOP && code != NEOP) {
-	errorcall(rcall, "illegal comparison with complex values");
+	errorcall(rcall, "illegal comparison with complex values\n");
     }
 
     n1 = LENGTH(s1);
@@ -365,6 +365,13 @@ static SEXP complex_relop(int code, SEXP s1, SEXP s2)
     UNPROTECT(2);
     return ans;
 }
+#ifdef HAVE_STRCOLL
+#define STRCMP strcoll
+#else
+#define STRCMP strcmp
+#endif
+
+
 
 static SEXP string_relop(int code, SEXP s1, SEXP s2)
 {
@@ -399,7 +406,7 @@ static SEXP string_relop(int code, SEXP s1, SEXP s2)
 	break;
     case LTOP:
 	for (i = 0; i < n; i++) {
-	    if (strcmp(CHAR(STRING(s1)[i % n1]),
+	    if (STRCMP(CHAR(STRING(s1)[i % n1]),
 		       CHAR(STRING(s2)[i % n2])) < 0)
 		LOGICAL(ans)[i] = 1;
 	    else
@@ -408,7 +415,7 @@ static SEXP string_relop(int code, SEXP s1, SEXP s2)
 	break;
     case GTOP:
 	for (i = 0; i < n; i++) {
-	    if (strcmp(CHAR(STRING(s1)[i % n1]),
+	    if (STRCMP(CHAR(STRING(s1)[i % n1]),
 		       CHAR(STRING(s2)[i % n2])) > 0)
 		LOGICAL(ans)[i] = 1;
 	    else
@@ -417,7 +424,7 @@ static SEXP string_relop(int code, SEXP s1, SEXP s2)
 	break;
     case LEOP:
 	for (i = 0; i < n; i++) {
-	    if (strcmp(CHAR(STRING(s1)[i % n1]),
+	    if (STRCMP(CHAR(STRING(s1)[i % n1]),
 		       CHAR(STRING(s2)[i % n2])) <= 0)
 		LOGICAL(ans)[i] = 1;
 	    else
@@ -426,7 +433,7 @@ static SEXP string_relop(int code, SEXP s1, SEXP s2)
 	break;
     case GEOP:
 	for (i = 0; i < n; i++) {
-	    if (strcmp(CHAR(STRING(s1)[i % n1]),
+	    if (STRCMP(CHAR(STRING(s1)[i % n1]),
 		       CHAR(STRING(s2)[i % n2])) >= 0)
 		LOGICAL(ans)[i] = 1;
 	    else
@@ -437,3 +444,4 @@ static SEXP string_relop(int code, SEXP s1, SEXP s2)
     UNPROTECT(2);
     return ans;
 }
+

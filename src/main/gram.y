@@ -72,9 +72,9 @@ static int 	xxcharcount, xxcharsave;
 
 /* FIXME: These arrays really ought to be dynamically extendable */
 
-#define MAXFUNSIZE 65536
-#define MAXLINESIZE 1024
-#define MAXNEST      265
+#define MAXFUNSIZE 131072
+#define MAXLINESIZE  1024
+#define MAXNEST       265
 
 static unsigned char FunctionSource[MAXFUNSIZE];
 static unsigned char SourceLine[MAXLINESIZE];
@@ -729,7 +729,7 @@ static SEXP TagArg(SEXP arg, SEXP tag)
     case SYMSXP:
 	return lang2(arg, tag);
     default:
-	error("incorrect tag type"); return R_NilValue/* -Wall */;
+	error("incorrect tag type\n"); return R_NilValue/* -Wall */;
     }
 }
 
@@ -1416,7 +1416,7 @@ static void CheckFormalArgs(SEXP formlist, SEXP new)
 {
     while (formlist != R_NilValue) {
 	if (TAG(formlist) == new) {
-	    error("Repeated formal argument");
+	    error("Repeated formal argument.\n");
 	}
 	formlist = CDR(formlist);
     }

@@ -35,8 +35,6 @@
 #include "terminal-menu.h"
 #include "terminal-prefs.h"
 
-#include "command-grep.h"
-
 /* Some menu callbacks are here, others are in terminal-functions.c */
 /* Find callbacks are in terminal-find.c */
 
@@ -83,6 +81,29 @@ static void edit_clear_cb(GtkWidget *widget, gpointer data)
 
 
 
+static void data_loadcode_cb(GtkWidget *widget, gpointer data)
+{
+  R_gtk_edititem *edititem;
+  struct stat sb;
+  GList *curfile = R_gtk_editfiles;
+
+  while(curfile != NULL) {
+    edititem = (R_gtk_edititem *) curfile->data;
+
+    stat(edititem->filename, &sb);
+
+    if(edititem->filetime != sb.st_mtime) {
+      /* the file has been modified */
+    }
+
+    edititem->filetime = sb.st_mtime;
+
+    curfile = g_list_next(curfile);
+  }
+}
+
+
+
 static void commands_interrupt_cb(GtkWidget *widget, gpointer data)
 {
   R_gtk_terminal_interrupt();
@@ -121,6 +142,7 @@ static void commands_source_cb(GtkWidget *widget, gpointer data)
 
   gtk_widget_show(fs);
 }
+
 
 
 static void graphics_new_cb(GtkWidget *widget, gpointer data) 
@@ -205,7 +227,7 @@ static void help_about_cb(GtkWidget *widget,
     NULL
   };
 
-  version = g_strdup_printf("%s.%s %s", R_MAJOR, R_MINOR, R_STATUS);
+  version = g_strdup_printf("%s.%s %s (%s %s, %s)", R_MAJOR, R_MINOR, R_STATUS, R_MONTH, R_DAY, R_YEAR);
   copyright = g_strdup_printf("Copyright (C) %s R Core Team", R_YEAR);
   
   g_assert(version != NULL);
@@ -300,7 +322,8 @@ static GnomeUIInfo commands_menu[] =
   GNOMEUIINFO_SUBTREE("_Data", data_menu),
   GNOMEUIINFO_SUBTREE("_Graphics", graphics_menu),
   GNOMEUIINFO_SEPARATOR,
-  GNOMEUIINFO_ITEM_NONE("grep...", "Search for matches to a regular expression within a vector of character strings", commands_grep_cb),
+  GNOMEUIINFO_ITEM_NONE("grep...", "Search for matches to a regular expression within a vector of character strings", generic_cb),
+  GNOMEUIINFO_ITEM_NONE("setwd...", "Set the working directory", generic_cb),
   GNOMEUIINFO_ITEM_NONE("source...", "Load a file containing R source", commands_source_cb),
   GNOMEUIINFO_END
 };

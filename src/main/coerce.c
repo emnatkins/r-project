@@ -372,7 +372,7 @@ static SEXP coerceToSymbol(SEXP v)
     SEXP ans = R_NilValue;
     int warn;
     if (length(v) <= 0)
-	error("Invalid data of mode \"%s\" (too short)",
+	error("Invalid data of mode \"%s\" (too short)\n",
 	      type2str(TYPEOF(v)));
     PROTECT(v);
     switch(TYPEOF(v)) {
@@ -551,7 +551,7 @@ static SEXP coerceToExpression(SEXP v)
 {
     SEXP ans;
     int i, n;
-    if (isVectorObject(v)) {
+    if (isVectorAtomic(v)) {
 	n = LENGTH(v);
 	PROTECT(ans = allocVector(EXPRSXP, n));
 	switch (TYPEOF(v)) {
@@ -575,13 +575,15 @@ static SEXP coerceToExpression(SEXP v)
 	    for (i = 0; i < n; i++)
 		VECTOR(ans)[i] = ScalarString(STRING(v)[i]);
 	    break;
+#ifdef never_used
 	case VECSXP:
 	    for (i = 0; i < n; i++)
 		VECTOR(ans)[i] = VECTOR(v)[i];
 	    break;
+#endif
 	}
     }
-    else {
+    else {/* not used either */
 	PROTECT(ans = allocVector(EXPRSXP, 1));
 	VECTOR(ans)[0] = duplicate(v);
     }
@@ -730,7 +732,7 @@ static SEXP coercePairList(SEXP v, SEXPTYPE type)
 	}
     }
     else
-	error("pairlist object cannot be coerced to  vector type [%d]",type);
+	error("pairlist object cannot be coerced to  vector type [%d]\n",type);
 
     /* If any tags are non-null then we */
     /* need to add a names attribute. */
@@ -802,7 +804,7 @@ static SEXP coerceVectorList(SEXP v, SEXPTYPE type)
 	}
     }
     else
-	error("(list) object cannot be coerced to vector type %d",type);
+	error("(list) object cannot be coerced to vector type %d\n",type);
 
     names = getAttrib(v, R_NamesSymbol);
     if (names != R_NilValue)
@@ -836,7 +838,7 @@ SEXP coerceVector(SEXP v, SEXPTYPE type)
 	ans = coerceVectorList(v, type);
 	break;
     case ENVSXP:
-	error("environments cannot be coerced to other types");
+	error("environments cannot be coerced to other types\n");
 	break;
     case LGLSXP:
     case INTSXP:
@@ -933,7 +935,7 @@ static SEXP ascommon(SEXP call, SEXP u, int type)
 	if (TYPEOF(u) == SYMSXP)
 	    return u;
 	if (!isString(u) || LENGTH(u) < 0 || CHAR(STRING(u)[0])[0] == '\0')
-	    errorcall(call, "character argument required");
+	    errorcall(call, "character argument required\n");
 	return install(CHAR(STRING(u)[0]));
     }
     else
@@ -967,7 +969,7 @@ static SEXP ascommon(SEXP call, SEXP u, int type)
 	STRING(v)[0] = PRINTNAME(u);
 	return v;
     }
-    else errorcall(call, "cannot coerce to vector");
+    else errorcall(call, "cannot coerce to vector\n");
     return u;/* -Wall */
 }
 
@@ -986,7 +988,7 @@ SEXP do_asvector(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
 
     if (!isString(CADR(args)) || LENGTH(CADR(args)) < 1)
-	errorcall(call, "invalid \"mode\" of argument");
+	errorcall(call, "invalid \"mode\" of argument\n");
 
     if (!strcmp("function", (CHAR(STRING(CADR(args))[0]))))
 	type = CLOSXP;
@@ -1007,7 +1009,7 @@ SEXP do_asvector(SEXP call, SEXP op, SEXP args, SEXP rho)
     case ANYSXP: /* any */
 	break;
     default:
-	errorcall(call, "invalid mode");
+	errorcall(call, "invalid mode\n");
     }
     ans = ascommon(call, CAR(args), type);
     switch(TYPEOF(ans)) {/* keep attributes for these:*/
@@ -1037,15 +1039,15 @@ SEXP do_asfunction(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     arglist = CAR(args);
     if (!isNewList(arglist))
-	errorcall(call, "list argument expected");
+	errorcall(call, "list argument expected\n");
 
     envir = CADR(args);
     if (!isNull(envir) && !isEnvironment(envir))
-	errorcall(call, "invalid environment");
+	errorcall(call, "invalid environment\n");
 
     n = length(arglist);
     if (n < 1)
-	errorcall(call, "argument must have length at least 1");
+	errorcall(call, "argument must have length at least 1\n");
     names = getAttrib(arglist, R_NamesSymbol);
     PROTECT(pargs = args = allocList(n - 1));
     for (i = 0; i < n - 1; i++) {
@@ -1075,8 +1077,9 @@ SEXP do_ascall(SEXP call, SEXP op, SEXP args, SEXP rho)
 	break;
     case VECSXP:
     case EXPRSXP:
+	if(0 == (n = length(args)))
+	    errorcall(call,"illegal length 0 argument\n");
 	names = getAttrib(args, R_NamesSymbol);
-	n = length(args);
 	PROTECT(ap = ans = allocList(n));
 	for (i = 0; i < n; i++) {
 	    CAR(ap) = VECTOR(args)[i];
@@ -1090,7 +1093,7 @@ SEXP do_ascall(SEXP call, SEXP op, SEXP args, SEXP rho)
 	ans = duplicate(args);
 	break;
     default:
-	errorcall(call, "invalid argument list");
+	errorcall(call, "invalid argument list\n");
 	ans = R_NilValue;
     }
     TYPEOF(ans) = LANGSXP;
@@ -1225,9 +1228,9 @@ SEXP do_is(SEXP call, SEXP op, SEXP args, SEXP rho)
 	break;
 
     case 999:		/* is.single */
-	errorcall(call, "type \"single\" unimplemented in R");
+	errorcall(call, "type \"single\" unimplemented in R\n");
     default:
-	errorcall(call, "unimplemented predicate");
+	errorcall(call, "unimplemented predicate\n");
     }
     UNPROTECT(1);
     return (ans);
@@ -1243,7 +1246,7 @@ SEXP do_isvector(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP ans, a;
     checkArity(op, args);
     if (!isString(CADR(args)) || LENGTH(CADR(args)) <= 0)
-	errorcall(call, "invalid \"mode\" of argument");
+	errorcall(call, "invalid \"mode\" of argument\n");
     PROTECT(ans = allocVector(LGLSXP, 1));
     if (streql(CHAR(STRING(CADR(args))[0]), "any")) {
 	LOGICAL(ans)[0] = isVector(CAR(args));/* from ./util.c */
@@ -1285,7 +1288,7 @@ SEXP do_isna(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
 #ifdef stringent_is
     if (!isList(CAR(args)) && !isVector(CAR(args)))
-	errorcall(call, "is.na applies only to lists and vectors");
+	errorcall(call, "is.na applies only to lists and vectors\n");
 #endif
     x = CAR(args);
     n = length(x);
@@ -1486,7 +1489,7 @@ SEXP do_isfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
 #ifdef stringent_is
     if (!isList(CAR(args)) && !isVector(CAR(args)))
-	errorcall(call, "is.finite applies only to lists and vectors");
+	errorcall(call, "is.finite applies only to lists and vectors\n");
 #endif
     x = CAR(args);
     n = length(x);
@@ -1536,7 +1539,7 @@ SEXP do_isinfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
 #ifdef stringent_is
     if (!isList(CAR(args)) && !isVector(CAR(args)))
-	errorcall(call, "is.infinite applies only to list and vectors");
+	errorcall(call, "is.infinite applies only to list and vectors\n");
 #endif
     x = CAR(args);
     n = length(x);
@@ -1596,7 +1599,7 @@ SEXP do_call(SEXP call, SEXP op, SEXP args, SEXP rho)
     PROTECT(rfun = eval(CAR(args), rho));
     if (!isString(rfun) || length(rfun) <= 0 ||
 	streql(CHAR(STRING(rfun)[0]), ""))
-	errorcall(call, "first argument must be a character string");
+	errorcall(call, "first argument must be a character string\n");
     PROTECT(rfun = install(CHAR(STRING(rfun)[0])));
     PROTECT(evargs = duplicate(CDR(args)));
     for (rest = evargs; rest != R_NilValue; rest = CDR(rest))
@@ -1617,10 +1620,10 @@ SEXP do_docall(SEXP call, SEXP op, SEXP args, SEXP rho)
     args = CADR(args);
 
     if (!isString(fun) || length(fun) <= 0 || CHAR(STRING(fun)[0]) == '\0')
-	    errorcall(call, "first argument must be a string");
+	    errorcall(call, "first argument must be a string\n");
 
     if (!isNull(args) && !isNewList(args))
-	errorcall(call, "second argument must be a list");
+	errorcall(call, "second argument must be a list\n");
     n = length(args);
     names = getAttrib(args, R_NamesSymbol);
 
@@ -1674,7 +1677,7 @@ SEXP substitute(SEXP lang, SEXP rho)
 #endif
 	    }
 	    else if (TYPEOF(t) == DOTSXP) {
-		error("... used in an incorrect context");
+		error("... used in an incorrect context\n");
 	    }
 	    if (rho != R_GlobalEnv)
 		return t;
@@ -1703,7 +1706,7 @@ SEXP substituteList(SEXP el, SEXP rho)
 	if (TYPEOF(h) != DOTSXP) {
 	    if (h == R_MissingArg)
 		return substituteList(CDR(el), rho);
-	    error("... used in an incorrect context");
+	    error("... used in an incorrect context\n");
 	}
 	PROTECT(h = substituteList(h, R_NilValue));
 	PROTECT(t = substituteList(CDR(el), rho));
@@ -1748,7 +1751,7 @@ SEXP do_substitute(SEXP call, SEXP op, SEXP args, SEXP rho)
 	UNPROTECT(2);
     }
     if (TYPEOF(env) != ENVSXP)
-	errorcall(call, "invalid environment specified");
+	errorcall(call, "invalid environment specified\n");
 
     PROTECT(env);
     PROTECT(t = duplicate(args));

@@ -41,7 +41,7 @@ SEXP do_logic(SEXP call, SEXP op, SEXP args, SEXP env)
     case 2:
 	return lbinary(call, op, args);
     default:
-	error("binary operations require two arguments");
+	error("binary operations require two arguments\n");
 	return R_NilValue;/* for -Wall */
     }
 }
@@ -54,7 +54,7 @@ static SEXP lbinary(SEXP call, SEXP op, SEXP args)
     x = CAR(args);
     y = CADR(args);
     if (!isNumeric(x) || !isNumeric(y))
-	errorcall(call, "operations are possible only for numeric or logical types");
+	errorcall(call, "operations are possible only for numeric or logical types\n");
     tsp = R_NilValue;		/* -Wall */
     class = R_NilValue;		/* -Wall */
     xarray = isArray(x);
@@ -64,7 +64,7 @@ static SEXP lbinary(SEXP call, SEXP op, SEXP args)
     if (xarray || yarray) {
 	if (xarray && yarray) {
 	    if (!conformable(x, y))
-		error("binary operation non-conformable arrays");
+		error("binary operation non-conformable arrays\n");
 	    PROTECT(dims = getAttrib(x, R_DimSymbol));
 	}
 	else if (xarray) {
@@ -90,7 +90,7 @@ static SEXP lbinary(SEXP call, SEXP op, SEXP args)
     if (xts || yts) {
 	if (xts && yts) {
 	    if (!tsConform(x, y))
-		errorcall(call, "Non-conformable time-series");
+		errorcall(call, "Non-conformable time-series\n");
 	    PROTECT(tsp = getAttrib(x, R_TspSymbol));
 	    PROTECT(class = getAttrib(x, R_ClassSymbol));
 	}
@@ -143,7 +143,7 @@ static SEXP lunary(SEXP call, SEXP op, SEXP arg)
     int i, len;
 
     if (!isLogical(arg) && !isNumeric(arg))
-	errorcall(call, "invalid argument type");
+	errorcall(call, "invalid argument type\n");
     len = LENGTH(arg);
     PROTECT(names = getAttrib(arg, R_NamesSymbol));
     PROTECT(dim = getAttrib(arg, R_DimSymbol));
@@ -180,7 +180,7 @@ SEXP do_logic2(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP ans;
 
     if (length(args) != 2)
-	error("binary &&/|| requires 2 arguments");
+	error("binary &&/|| requires 2 arguments\n");
 
     s1 = CAR(args);
     s2 = CADR(args);
@@ -190,15 +190,15 @@ SEXP do_logic2(SEXP call, SEXP op, SEXP args, SEXP env)
     case 1:
 	s1 = eval(s1, env);
 	if (!isNumeric(s1))
-	    error("binary operator applied to invalid types");
+	    error("binary operator applied to invalid types\n");
 	if ((x1 = asLogical(s1)) == NA_LOGICAL)
-	    error("missing value where logical needed");
+	    error("missing value where logical needed\n");
 	if (x1) {
 	    s2 = eval(s2, env);
 	    if (!isNumeric(s2))
-		error("binary operator applied to invalid types");
+		error("binary operator applied to invalid types\n");
 	    if ((x2 = asLogical(s2)) == NA_LOGICAL)
-		error("missing value where logical needed");
+		error("missing value where logical needed\n");
 	    LOGICAL(ans)[0] = x2;
 	}
 	else
@@ -208,15 +208,15 @@ SEXP do_logic2(SEXP call, SEXP op, SEXP args, SEXP env)
     case 2:
 	s1 = eval(s1, env);
 	if (!isNumeric(s1))
-	    error("binary operator applied to invalid types");
+	    error("binary operator applied to invalid types\n");
 	if ((x1 = asLogical(s1)) == NA_LOGICAL)
-	    error("missing value where logical needed");
+	    error("missing value where logical needed\n");
 	if (!x1) {
 	    s2 = eval(s2, env);
 	    if (!isNumeric(s2))
-		error("binary operator applied to invalid types");
+		error("binary operator applied to invalid types\n");
 	    if ((x2 = asLogical(s2)) == NA_LOGICAL)
-		error("missing value where logical needed");
+		error("missing value where logical needed\n");
 	    LOGICAL(ans)[0] = x2;
 	}
 	else
@@ -299,7 +299,7 @@ SEXP do_logic3(SEXP call, SEXP op, SEXP args, SEXP env)
 	    checkValues(LOGICAL(t), LENGTH(t));
 	}
 	else if(!isNull(t))
-	    errorcall(call, "incorrect argument type");
+	    errorcall(call, "incorrect argument type\n");
     }
     if (narm)
 	haveNA = 0;

@@ -97,13 +97,10 @@ static char HexDigits[] = "0123456789ABCDEF";
  *
  */
 
-#define	DEG2RAD		0.01745329251994329576
-
 double Log10(double x)
 {
     return (R_FINITE(x) && x > 0.0) ? log10(x) : NA_REAL;
 }
-
 
 /* In interpreted R, units are as follows:
  *	1 = "user"
@@ -290,7 +287,7 @@ double yDevtoCharUnits(double y, DevDesc *dd)
 
 static void BadUnitsError(char *where)
 {
-    error("Bad units specified in %s, please report!", where);
+    error("Bad units specified in %s, please report!\n", where);
 }
 
 /* the functions GConvertXUnits and ConvertYUnits convert a single */
@@ -1325,12 +1322,12 @@ void currentFigureLocation(int *row, int *col, DevDesc *dd)
     int maxcol, maxrow;
     if (dd->gp.layout)
 	figureExtent(col, &maxcol, row, &maxrow, dd->gp.currentFigure, dd);
-    else if (dd->gp.mfind) {
+    else if (dd->gp.mfind) { /* mfcol */
 	*row = (dd->gp.currentFigure - 1)%dd->gp.numrows;
-	*col = (dd->gp.currentFigure - 1)/dd->gp.numcols;
+	*col = (dd->gp.currentFigure - 1)/dd->gp.numrows;
     }
-    else {
-	*row = (dd->gp.currentFigure - 1)/dd->gp.numrows;
+    else { /* mfrow */
+	*row = (dd->gp.currentFigure - 1)/dd->gp.numcols;
 	*col = (dd->gp.currentFigure - 1)%dd->gp.numcols;
     }
 }
@@ -1746,7 +1743,7 @@ DevDesc *GNewPlot(int recording, int ask)
 	if (isString(defdev) && length(defdev) > 0) {
 	    PROTECT(defdev = lang1(install(CHAR(STRING(defdev)[0]))));
 	}
-	else error("No active or default device");
+	else error("No active or default device\n");
 	eval(defdev, R_GlobalEnv);
 	UNPROTECT(1);
     }
@@ -1766,7 +1763,7 @@ DevDesc *GNewPlot(int recording, int ask)
 	    if (dd->gp.ask && recording) {
 		NewFrameConfirm();
 		if (NoDevices())
-		    error("attempt to plot on null device");
+		    error("attempt to plot on null device\n");
 		else
 		    dd = CurrentDevice();
 	    }
@@ -1802,25 +1799,25 @@ DevDesc *GNewPlot(int recording, int ask)
     dd->dp.valid = dd->gp.valid = 0;
     if (!validOuterMargins(dd)) {
 	if (recording)
-	    invalidError("Outer margins too large (fig.region too small)", dd);
+	    invalidError("Outer margins too large (fig.region too small)\n", dd);
 	else
 	    GText(0.5,0.5,NFC,"Outer margins too large (fig.region too small)",
 		  0.5,0.5, 0, dd);
     } else if (!validFigureRegion(dd)) {
 	if (recording)
-	    invalidError("Figure region too large", dd);
+	    invalidError("Figure region too large\n", dd);
 	else
 	    GText(0.5,0.5,NFC,"Figure region too large",
 		  0.5,0.5, 0, dd);
     } else if (!validFigureMargins(dd)) {
 	if (recording)
-	    invalidError("Figure margins too large", dd);
+	    invalidError("Figure margins too large\n", dd);
 	else
 	    GText(0.5,0.5,NFC,"Figure margins too large",
 		  0.5,0.5, 0, dd);
     } else if (!validPlotRegion(dd)) {
 	if (recording)
-	    invalidError("Plot region too large", dd);
+	    invalidError("Plot region too large\n", dd);
 	else
 	    GText(0.5,0.5,NFC,"Plot region too large",
 		  0.5,0.5, 0, dd);
@@ -1883,7 +1880,7 @@ void GScale(double min, double max, int axis, DevDesc *dd)
     case 's':/* FIXME --- implement  's' and 'e' axis styles ! */
     case 'e':
     default:
-	error("axis style \"%c\" unimplemented", style);
+	error("axis style \"%c\" unimplemented\n", style);
     }
 
     if(axis == 1 || axis == 3) {
@@ -2130,7 +2127,7 @@ void copyGPar(GPar *source, GPar *dest)
 void GRestore(DevDesc *dd)
 {
     if (NoDevices())
-	error("No graphics device is active");
+	error("No graphics device is active\n");
     copyGPar(&(dd->dp), &(dd->gp));
 }
 
@@ -2310,7 +2307,7 @@ void GSetState(int newstate, DevDesc *dd)
 void GCheckState(DevDesc *dd)
 {
     if(dd->gp.state == 0)
-	error("plot.new has not been called yet");
+	error("plot.new has not been called yet\n");
     if (dd->gp.valid == 0)
 	onintr();
 }
@@ -2487,7 +2484,7 @@ static void CScliplines(int n, double *x, double *y, int coords, DevDesc *dd)
     xx = (double *) C_alloc(n, sizeof(double));
     yy = (double *) C_alloc(n, sizeof(double));
     if (xx == NULL || yy == NULL)
-	error("out of memory while clipping polyline");
+	error("out of memory while clipping polyline\n");
 
     xx[0] = x1 = x[0];
     yy[0] = y1 = y[0];
@@ -2560,7 +2557,7 @@ void GLine(double x1, double y1, double x2, double y2, int coords, DevDesc *dd)
 int GLocator(double *x, double *y, int coords, DevDesc *dd)
 {
     if(!dd->dp.locator)
-	error("no locator capability in device driver");
+	error("no locator capability in device driver\n");
     if(dd->dp.locator(x, y, dd)) {
 	GConvert(x, y, DEVICE, coords, dd);
 	return 1;
@@ -2573,11 +2570,14 @@ int GLocator(double *x, double *y, int coords, DevDesc *dd)
 void GMetricInfo(int c, double *ascent, double *descent, double *width,
 		 int units, DevDesc *dd)
 {
+#ifdef BUG61
     if(dd->dp.metricInfo)
 	dd->dp.metricInfo(c, ascent, descent, width, dd);
     else
-	error("detailed character metric information unavailable");
-
+	error("detailed character metric information unavailable\n");
+#else
+    dd->dp.metricInfo(c & 0xFF, ascent, descent, width, dd);
+#endif
     if (units != DEVICE) {
 	*ascent = GConvertYUnits(*ascent, DEVICE, units, dd);
 	*descent = GConvertYUnits(*descent, DEVICE, units, dd);
@@ -2596,7 +2596,7 @@ void GMetricInfo(int c, double *ascent, double *descent, double *width,
 void GMode(int mode, DevDesc *dd)
 {
     if (NoDevices())
-	error("No graphics device is active");
+	error("No graphics device is active\n");
     if(mode != dd->gp.devmode)
 	dd->dp.mode(mode, dd);
     dd->gp.new = dd->dp.new = 0;
@@ -2963,7 +2963,7 @@ static void clipRect(double x0, double y0, double x1, double y1, int coords,
     else {
 	int npts;
 	double *xcc, *ycc;
-	xcc = ycc = 0;		/* -Wall */	
+	xcc = ycc = 0;		/* -Wall */
 	npts = GClipPolygon(xc, yc, 4, coords, 0, xcc, ycc, dd);
 	if (npts > 1) {
 	    xcc = (double*)R_alloc(npts, sizeof(double));
@@ -3009,7 +3009,7 @@ double GStrWidth(char *str, int units, DevDesc *dd)
 	double wdash;
 	sbuf = (char*)malloc(strlen(str) + 1);
         if (sbuf == NULL)
-            error("unable to allocate memory (in GStrWidth)");
+            error("unable to allocate memory (in GStrWidth)\n");
 	sb = sbuf;
         for(s = str; ; s++) {
             if (*s == '\n' || *s == '\0') {
@@ -3034,14 +3034,18 @@ double GStrWidth(char *str, int units, DevDesc *dd)
 
 
 /* Compute string height. */
+/* Just return the height of n lines in the current font */
+/* If you want more detail, use GMetricInfo */
 double GStrHeight(char *str, int units, DevDesc *dd)
 {
-#ifdef OLD
+#ifdef BUG61
+    /* VERY old stuff */
     double h = dd->gp.cex * dd->gp.cra[1];
     if (units != DEVICE)
 	h = GConvertYUnits(h, DEVICE, units, dd);
     return h;
-#else
+    /* #else */
+    /* old stuff */
     double h;
     char *s;
     int n;
@@ -3054,11 +3058,25 @@ double GStrHeight(char *str, int units, DevDesc *dd)
     if (units != DEVICE)
 	h = GConvertYUnits(h, DEVICE, units, dd);
     return h;
+#else
+    double h;
+    char *s;
+    int n;
+    /* Count the lines of text */
+    n = 1;
+    for(s = str; *s ; s++)
+	if (*s == '\n')
+	    n += 1;
+    h = n * GConvertYUnits(1, CHARS, DEVICE, dd);
+    if (units != DEVICE)
+	h = GConvertYUnits(h, DEVICE, units, dd);
+    return h;
 #endif
 }
 
-
 /* Draw text in a plot. */
+/* If you want EXACT centering of text (e.g., like in GSymbol) */
+/* then pass NA_REAL for xc and yc */
 void GText(double x, double y, int coords, char *str,
 	   double xc, double yc, double rot, DevDesc *dd)
 {
@@ -3072,7 +3090,10 @@ void GText(double x, double y, int coords, char *str,
     if(str && *str) {
         char *s, *sbuf, *sb;
 	int i, n;
-	double xoff, yoff, yadj;
+	double xoff, yoff;
+	double sin_rot, cos_rot;/* sin() & cos() of rot{ation} in radians */
+#ifdef BUG61
+	double yadj;
 	/* Fixup for string centering. */
 	/* Higher functions send in NA_REAL */
 	/* when true text centering is desired */
@@ -3084,6 +3105,11 @@ void GText(double x, double y, int coords, char *str,
 	if (!R_FINITE(xc)) xc = 0.5;
 	/* We work in NDC coordinates */
 	GConvert(&x, &y, coords, NDC, dd);
+#else
+	double xleft, ybottom;
+	/* We work in INCHES */
+	GConvert(&x, &y, coords, INCHES, dd);
+#endif
 	/* Count the lines of text */
 	n = 1;
         for(s = str; *s ; s++)
@@ -3093,23 +3119,88 @@ void GText(double x, double y, int coords, char *str,
 	sbuf = (char*)malloc(strlen(str) + 1);
 	sb = sbuf;
 	i = 0;
+	sin_rot = DEG2RAD * rot;
+	cos_rot = cos(sin_rot);
+	sin_rot = sin(sin_rot);
         for(s = str; ; s++) {
             if (*s == '\n' || *s == '\0') {
 		*sb = '\0';
+#ifdef BUG61
 		/* Compute the approriate offset. */
 		/* (translate verticaly then rotate). */
                 yoff = (1 - yc) * (n - 1) - i - yadj;
 		yoff = GConvertYUnits(yoff, CHARS, INCHES, dd);
-		xoff = - yoff * sin(DEG2RAD * rot);
-		yoff = yoff * cos(DEG2RAD * rot);
+		xoff = - yoff * sin_rot;
+		yoff = yoff * cos_rot;
 		GConvert(&xoff, &yoff, INCHES, NDC, dd);
 		xoff = x + xoff;
 		yoff = y + yoff;
+#else
+		if (n > 1) {
+		    /* first determine location of THIS line */
+		    if (!R_FINITE(xc))
+			xc = 0.5;
+		    if (!R_FINITE(yc))
+			yc = 0.5;
+		    yoff = (1 - yc)*(n - 1) - i;
+		    yoff = GConvertYUnits(yoff, CHARS, INCHES, dd);
+		    xoff = - yoff*sin_rot;
+		    yoff = yoff*cos_rot;
+		    xoff = x + xoff;
+		    yoff = y + yoff;
+		} else {
+		    xoff = x;
+		    yoff = y;
+		}
+		/* now determine bottom-left for THIS line */
+		if(xc != 0.0 || yc != 0) {
+		    double width, height;
+		    width = GStrWidth(sbuf, INCHES, dd);
+		    if (!R_FINITE(xc))
+			xc = 0.5;
+		    if (!R_FINITE(yc)) {
+			/* "exact" vertical centering */
+			/* If font metric info is available AND */
+			/* there is only one line, use GMetricInfo & yc=0.5 */
+			/* Otherwise use GStrHeight and fiddle yc */
+			double h, d, w;
+			GMetricInfo(0, &h, &d, &w, INCHES, dd);
+			if (n>1 || (h==0 && d==0 && w==0)) {
+			    height = GStrHeight(sbuf, INCHES, dd);
+			    yc = dd->dp.yCharOffset;
+			} else {
+			    double maxHeight = 0;
+			    double maxDepth = 0;
+			    char *ss;
+			    for (ss=sbuf; *ss; ss++) {
+				GMetricInfo((unsigned char) *ss, &h, &d, &w,
+					    INCHES, dd);
+				if (h > maxHeight) maxHeight = h;
+				if (d > maxDepth) maxDepth = d;
+			    }
+			    height = maxHeight - maxDepth;
+			    yc = 0.5;
+			}
+		    } else {
+			height = GStrHeight(sbuf, INCHES, dd);
+		    }
+		    xleft  = xoff - xc*width*cos_rot + yc*height*sin_rot;
+		    ybottom= yoff - xc*width*sin_rot - yc*height*cos_rot;
+		} else {
+		    xleft = xoff;
+		    ybottom = yoff;
+		}
+#endif
 		if(dd->dp.canClip) {
 		    GClip(dd);
+#ifdef BUG61
 		    dd->dp.text(xoff, yoff, NDC, sbuf, xc, yc, rot, dd);
+#else
+		    dd->dp.text(xleft, ybottom, INCHES, sbuf, 0., 0., rot, dd);
+#endif
 		}
 		else {
+#ifdef BUG61
 		    double xtest = xoff;
 		    double ytest = yoff;
 		    switch (dd->gp.xpd) {
@@ -3122,9 +3213,28 @@ void GText(double x, double y, int coords, char *str,
 		    case 2:
 			break;
 		    }
+#else
+		    double xtest = xleft;
+		    double ytest = ybottom;
+		    switch (dd->gp.xpd) {
+		    case 0:
+			GConvert(&xtest, &ytest, INCHES, NPC, dd);
+			break;
+		    case 1:
+			GConvert(&xtest, &ytest, INCHES, NFC, dd);
+			break;
+		    case 2:
+			GConvert(&xtest, &ytest, INCHES, NDC, dd);
+			break;
+		    }
+#endif
 		    if (xtest < 0 || ytest < 0 || xtest > 1 || ytest > 1)
 			    return;
+#ifdef BUG61
 		    dd->dp.text(xoff, yoff, NDC, sbuf, xc, yc, rot, dd);
+#else
+		    dd->dp.text(xleft, ybottom, INCHES, sbuf, 0., 0., rot, dd);
+#endif
 		}
 		sb = sbuf;
 		i += 1;
@@ -3164,28 +3274,29 @@ void GArrow(double xfrom, double yfrom, double xto, double yto, int coords,
 
     GConvert(&xfromInch, &yfromInch, coords, INCHES, dd);
     GConvert(&xtoInch, &ytoInch, coords, INCHES, dd);
+    angle *= DEG2RAD;
     if(code & 1) {
 	xc = xtoInch - xfromInch;
 	yc = ytoInch - yfromInch;
 	rot= atan2(yc, xc);
-	x[0] = xfromInch + length * cos(rot+angle*DEG2RAD);
-	y[0] = yfromInch + length * sin(rot+angle*DEG2RAD);
+	x[0] = xfromInch + length * cos(rot+angle);
+	y[0] = yfromInch + length * sin(rot+angle);
 	x[1] = xfromInch;
 	y[1] = yfromInch;
-	x[2] = xfromInch + length * cos(rot-angle*DEG2RAD);
-	y[2] = yfromInch + length * sin(rot-angle*DEG2RAD);
+	x[2] = xfromInch + length * cos(rot-angle);
+	y[2] = yfromInch + length * sin(rot-angle);
 	GPolyline(3, x, y, INCHES, dd);
     }
     if(code & 2) {
 	xc = xfromInch - xtoInch;
 	yc = yfromInch - ytoInch;
 	rot= atan2(yc, xc);
-	x[0] = xtoInch + length * cos(rot+angle*DEG2RAD);
-	y[0] = ytoInch + length * sin(rot+angle*DEG2RAD);
+	x[0] = xtoInch + length * cos(rot+angle);
+	y[0] = ytoInch + length * sin(rot+angle);
 	x[1] = xtoInch;
 	y[1] = ytoInch;
-	x[2] = xtoInch + length * cos(rot-angle*DEG2RAD);
-	y[2] = ytoInch + length * sin(rot-angle*DEG2RAD);
+	x[2] = xtoInch + length * cos(rot-angle);
+	y[2] = ytoInch + length * sin(rot-angle);
 	GPolyline(3, x, y, INCHES, dd);
     }
 }
@@ -3249,7 +3360,7 @@ void GBox(int which, DevDesc *dd)
 	GPolygon(4, x, y, NDC, NA_INTEGER, dd->gp.col, dd);
 	break;
     default:
-	error("invalid GBox argument");
+	error("invalid GBox argument\n");
     }
 }
 
@@ -3308,11 +3419,11 @@ void GPretty(double *lo, double *up, int *ndiv)
     int ns, nu, nd0;
     short i_small;
     if(*ndiv <= 0)
-	error("invalid axis extents [GPretty(.,.,n=%d)", *ndiv);
+	error("invalid axis extents [GPretty(.,.,n=%d)\n", *ndiv);
     if(*lo == R_PosInf || *up == R_PosInf ||
        *lo == R_NegInf || *up == R_NegInf ||
        !R_FINITE(dx = *up - *lo)) {
-	error("Infinite axis extents [GPretty(%g,%g,%d)]", *lo, *up, *ndiv);
+	error("Infinite axis extents [GPretty(%g,%g,%d)]\n", *lo, *up, *ndiv);
 	return;/*-Wall*/
     }
 
@@ -3375,11 +3486,11 @@ void GPretty(double *lo, double *up, int *ndiv)
     double high_u_fact[2] = { .8, 1.7 };
 
     if(*ndiv <= 0)
-	error("invalid axis extents [GPretty(.,.,n=%d)", *ndiv);
+	error("invalid axis extents [GPretty(.,.,n=%d)\n", *ndiv);
     if(*lo == R_PosInf || *up == R_PosInf ||
        *lo == R_NegInf || *up == R_NegInf ||
        !R_FINITE(*up - *lo)) {
-	error("Infinite axis extents [GPretty(%g,%g,%d)]", *lo, *up, *ndiv);
+	error("Infinite axis extents [GPretty(%g,%g,%d)]\n", *lo, *up, *ndiv);
 	return;/*-Wall*/
     }
 
@@ -3433,15 +3544,14 @@ void GSymbol(double x, double y, int coords, int pch, DevDesc *dd)
     int ltysave;
 
     if(' ' <= pch && pch <= 255) {
-	str[0] = pch;
-	str[1] = '\0';
-	GText(x, y, coords, str,
-	      dd->gp.xCharOffset, dd->gp.yCharOffset, 0., dd);
-	/*--- FIXME --- *MUST* adjust not only with [xy]CharOffset,
-	 *--- ===== --- but also depending on  pch -- to *CENTER* the symbol!
-	 *---  e.g. for	 pch = '.'
-	 *+++ Yes, but the metric information is not always available.
-	 */
+	if (pch == '.') {
+	    GConvert(&x, &y, coords, DEVICE, dd);
+	    GRect(x-.5, y-.5, x+.5, y+.5, DEVICE, NA_INTEGER, dd->gp.col, dd);
+	} else {
+	    str[0] = pch;
+	    str[1] = '\0';
+	    GText(x, y, coords, str, NA_REAL, NA_REAL, 0., dd);
+	}
     }
     else {
 	ltysave = dd->gp.lty;
@@ -3700,6 +3810,8 @@ void GSymbol(double x, double y, int coords, int pch, DevDesc *dd)
 
 
 /* Draw text in plot margins. */
+/* "las" gives the style of axis labels. 0=always parallel to the axis, */
+/* 1=always horizontal, 2=always perpendicular to the axis. */
 void GMtext(char *str, int side, double line, int outer, double at, int las,
 	    DevDesc *dd)
 {
@@ -3809,7 +3921,7 @@ void hsv2rgb(double *h, double *s, double *v, double *r, double *g, double *b)
     int i;
 
     t = 6 * modf(*h, &f);/* h = t/6 + f = fract. + int. */
-    i = floor(t);/* 0..5 */
+    i = floor(t+1e-5);/* 0..5 */
     f = modf(t, &p);
     p = *v * (1 - *s);
     q = *v * (1 - *s * f);
@@ -3846,7 +3958,7 @@ void hsv2rgb(double *h, double *s, double *v, double *r, double *g, double *b)
 	*b = q;
 	break;
     default:
-	error("bad hsv to rgb color conversion");
+	error("bad hsv to rgb color conversion\n");
     }
 }
 
@@ -4564,7 +4676,7 @@ static unsigned int hexdigit(int digit)
     if('0' <= digit && digit <= '9') return digit - '0';
     else if('A' <= digit && digit <= 'F') return 10 + digit - 'A';
     else if('a' <= digit && digit <= 'f') return 10 + digit - 'a';
-    else error("invalid hex digit in color");
+    else error("invalid hex digit in color\n");
     return digit - '0';	/* never occurs but avoid compiler warnings */
 }
 
@@ -4603,7 +4715,7 @@ unsigned int rgb2col(char *rgb)
 {
     unsigned int r, g, b;
     if(rgb[0] != '#' || strlen(rgb) != 7)
-	error("invalid RGB specification");
+	error("invalid RGB specification\n");
     r = 16 * hexdigit(rgb[1]) + hexdigit(rgb[2]);
     g = 16 * hexdigit(rgb[3]) + hexdigit(rgb[4]);
     b = 16 * hexdigit(rgb[5]) + hexdigit(rgb[6]);
@@ -4619,7 +4731,7 @@ unsigned int name2col(char *nm)
 	if(StrMatch(ColorDataBase[i].name, nm))
 	    return ColorDataBase[i].code;
     }
-    error("invalid color name");
+    error("invalid color name\n");
     return 0;		/* never occurs but avoid compiler warnings */
 }
 
@@ -4630,7 +4742,7 @@ unsigned int number2col(char *nm)
     int index;
     char *ptr;
     index = strtod(nm, &ptr);
-    if(*ptr) error("invalid color specification");
+    if(*ptr) error("invalid color specification\n");
     if(index == 0) return CurrentDevice()->dp.bg;
     else return R_ColorTable[(index-1) % R_ColorTableSize];
 }
@@ -4681,7 +4793,7 @@ char *col2name(unsigned int col)
 unsigned int str2col(char *s)
 {
     if(s[0] == '#') return rgb2col(s);
-    else if(isdigit(s[0])) return number2col(s);
+    else if(isdigit((int)s[0])) return number2col(s);
     else return name2col(s);
 }
 
@@ -4750,6 +4862,8 @@ static LineTYPE linetype[] = {
     { "dashed",	 LTY_DASHED  },
     { "dotted",	 LTY_DOTTED  },
     { "dotdash", LTY_DOTDASH },
+    { "longdash",LTY_LONGDASH},
+    { "twodash", LTY_TWODASH },
     { NULL,	 0	     },
 };
 
@@ -4788,7 +4902,7 @@ unsigned int LTYpar(SEXP value, int index)
 	code = (code-1) % nlinetype;
 	return linetype[code].pattern;
     }
-    else error("invalid line type");
+    else error("invalid line type\n");
     /*NOTREACHED*/
     return 0;		/* never occurs but avoid compiler warnings */
 }
@@ -4867,7 +4981,7 @@ DevDesc nullDevice;
 void devError()
 {
     error("No graphics device is active -- "
-	  "SHOULDN'T happen anymore -- please report");
+	  "SHOULDN'T happen anymore -- please report\n");
 }
 
 

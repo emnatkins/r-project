@@ -47,7 +47,7 @@ typedef enum {
     BoldFont	   = 2,
     ItalicFont	   = 3,
     BoldItalicFont = 4,
-    SymbolFont	   = 5,
+    SymbolFont	   = 5
 } FontType;
 
 /*
@@ -302,7 +302,7 @@ static double TeX(TEXPAR which)
     case xi13:	  /* big_op_spacing5 */
 	return 0.15 * XHeight();
     default:/* never happens (enum type) */
-	error("invalid `which' in TeX()!"); return 0;/*-Wall*/
+	error("invalid `which' in TeX()!\n"); return 0;/*-Wall*/
     }
 }
 
@@ -349,7 +349,7 @@ static void SetStyle(STYLE newstyle)
 	MathDevice->gp.cex = 0.5 * BaseCex;
 	break;
     default:
-	error("invalid math style encountered");
+	error("invalid math style encountered\n");
     }
     CurrentStyle = newstyle;
 }
@@ -1009,7 +1009,7 @@ static BBOX RenderSymbolStr(char *str, int draw)
     if (str) {
 	char *s = str;
 	while (*s) {
-	    if (isdigit(*s) && font != PlainFont) {
+	    if (isdigit((int)*s) && font != PlainFont) {
 		font = PlainFont;
 		SetFont(PlainFont);
 	    }
@@ -1210,7 +1210,7 @@ static BBOX RenderSpace(SEXP expr, int draw)
 	return opBBox;
     }
     else
-	error("invalid mathematical annotation");
+	error("invalid mathematical annotation\n");
 
     return NullBBox();		/* -Wall */
 }
@@ -1342,7 +1342,7 @@ static BBOX RenderBin(SEXP expr, int draw)
 	return CombineBBoxes(bbox, RenderElement(CADR(expr), draw));
     }
     else
-	error("invalid mathematical annotation");
+	error("invalid mathematical annotation\n");
 
     return NullBBox();		/* -Wall */
 
@@ -1620,7 +1620,7 @@ static int AccentAtom(SEXP expr)
 
 static void InvalidAccent(SEXP expr)
 {
-    errorcall(expr, "invalid accent");
+    errorcall(expr, "invalid accent\n");
 }
 
 static BBOX RenderAccent(SEXP expr, int draw)
@@ -1829,7 +1829,7 @@ static int DelimCode(SEXP expr, SEXP head)
 	    code = '.';
     }
     if (code == 0)
-	errorcall(expr, "invalid group delimiter");
+	errorcall(expr, "invalid group delimiter\n");
     return code;
 }
 
@@ -1854,7 +1854,7 @@ static BBOX RenderGroup(SEXP expr, int draw)
     BBOX bbox;
     int code;
     if (length(expr) != 4)
-	errorcall(expr, "invalid group specification");
+	errorcall(expr, "invalid group specification\n");
     bbox = NullBBox();
     code = DelimCode(expr, CADR(expr));
     MathDevice->gp.cex = DelimSymbolMag * MathDevice->gp.cex;
@@ -1923,7 +1923,7 @@ static BBOX RenderDelim(int which, double dist, int draw)
 	top = 252; ext = 239; bot = 254; mid = 253;
 	break;
     default:
-	error("group is incomplete");
+	error("group is incomplete\n");
 	return ansBBox;/*never reached*/
     }
     topBBox = GlyphBBox(top);
@@ -1996,7 +1996,7 @@ static BBOX RenderBGroup(SEXP expr, int draw)
     double extra = 0.2 * xHeight();
     int delim1, delim2;
     if (length(expr) != 4)
-	errorcall(expr, "invalid group specification");
+	errorcall(expr, "invalid group specification\n");
     bbox = NullBBox();
     delim1 = DelimCode(expr, CADR(expr));
     delim2 = DelimCode(expr, CADDDR(expr));
@@ -2474,7 +2474,7 @@ static BBOX RenderRel(SEXP expr, int draw)
 	bbox = CombineBBoxes(bbox, RenderGap(gap, draw));
 	return CombineBBoxes(bbox, RenderElement(CADDR(expr), draw));
     }
-    else error("invalid mathematical annotation");
+    else error("invalid mathematical annotation\n");
 
     return NullBBox();		/* -Wall */
 }
@@ -2879,6 +2879,17 @@ void GMathText(double x, double y, int coords, SEXP expr,
 	       double xc, double yc, double rot, DevDesc *dd)
 {
     BBOX bbox;
+
+#ifdef BUG61
+#else
+    /* IF font metric information is not available for device */
+    /* then bail out */
+    double ascent, descent, width;
+    GMetricInfo(0, &ascent, &descent, &width, DEVICE, dd);
+    if ((ascent==0) && (descent==0) && (width==0))
+	error("Metric information not yet available for this device\n");
+#endif
+
     MathDevice = dd;
     BaseCex = MathDevice->gp.cex;
     BoxColor = name2col("pink");
@@ -2911,6 +2922,16 @@ void GMMathText(SEXP str, int side, double line, int outer,
 {
     int coords = 0;
     double a, xadj, yadj;
+
+#ifdef BUG61
+#else
+    /* IF font metric information is not available for device */
+    /* then bail out */
+    double ascent, descent, width;
+    GMetricInfo(0, &ascent, &descent, &width, DEVICE, dd);
+    if ((ascent==0) && (descent==0) && (width==0))
+	error("Metric information not yet available for this device\n");
+#endif
 
     MathDevice = dd;
 

@@ -41,10 +41,10 @@ typedef struct {
     double cex;				/* Character expansion */
     double srt;				/* String rotation */
 
-    gint bg;					/* Background */
+    gint bg;				/* Background */
 
-    int fontface;				/* Typeface */
-    int fontsize;				/* Size in points */
+    int fontface;			/* Typeface */
+    int fontsize;			/* Size in points */
 
     gint lty, lwd;                      /* line params */
 
@@ -53,16 +53,14 @@ typedef struct {
     int windowWidth;			/* Window width (pixels) */
     int windowHeight;			/* Window height (pixels) */
     int resize;				/* Window resized */
-    GtkWidget *window;			/* Graphics frame */
-    GtkWidget *drawing;                 /* Drawable window */
-
-    GdkPixmap *pixmap;                  /* Backing store */
+    GtkWidget *window;			/* Graphics Window */
+    GtkWidget *drawing;
 
     GdkGC *wgc;
     GdkColor gcol_bg;
     GdkRectangle clip;
     GdkCursor *gcursor;
-  
+
     int usefixed;
     GdkFont *font;
 
@@ -82,7 +80,7 @@ static void   GTK_Deactivate(DevDesc *);
 static void   GTK_Hold(DevDesc*);
 static void   GTK_Line(double, double, double, double, int, DevDesc*);
 static int    GTK_Locator(double*, double*, DevDesc*);
-static void   GTK_Mode(int, DevDesc*);
+static void   GTK_Mode(int);
 static void   GTK_NewPage(DevDesc*);
 static int    GTK_Open(DevDesc*, gtkDesc*, char*, double, double);
 static void   GTK_Polygon(int, double*, double*, int, int, int, DevDesc*);
@@ -172,7 +170,7 @@ static gint SetBaseFont(gtkDesc *gtkd)
 
   if(gtkd->font != NULL)
     return 1;
-  
+
   return 0;
 }
 
@@ -204,7 +202,7 @@ static void SetFont(DevDesc *dd, gint face, gint size)
 				 weight[(face-1)%2],
 				 slant[((face-1)/2)%2],
 				 10 * size);
-      
+
     tmp_font = RGTKLoadFont(fontname);
     g_free(fontname);
 
@@ -252,18 +250,18 @@ static void SetLineType(DevDesc *dd, int newlty, int newlwd)
     else {
       if(newlwd < 1)
 	newlwd = 1;
-    
+
       for(i = 0; (i < 8) && (newlty != 0); i++) {
 	j = newlty & 15;
-	
+
 	if(j == 0)
 	  j = 1;
-    
+
 	j = j * newlwd;
-	
+
 	if(j > 255)
 	  j = 255;
-    
+
 	dashlist[i] = j;
 	newlty = newlty >> 4;
       }
@@ -346,10 +344,8 @@ static gint expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer data
   if(gtkd->resize != 0) {
     dd->dp.resize(dd);
   }
-  
-  gdk_draw_pixmap(gtkd->drawing->window, gtkd->wgc, gtkd->pixmap,
-		  event->area.x, event->area.y, event->area.x, event->area.y,
-		  event->area.width, event->area.height);
+
+  playDisplayList(dd);
 
   return FALSE;
 }
@@ -411,18 +407,16 @@ static int GTK_Open(DevDesc *dd, gtkDesc *gtkd, char *dsp, double w, double h)
   gtkd->windowWidth = iw = w / pixelWidth();
   gtkd->windowHeight = ih = h / pixelHeight();
 
-  gtkd->window = gnome_app_new("R.graphics", "R Graphics");
+  gtkd->window = gnome_app_new("R.gnome.graphics", "R Graphics");
 
   gtk_window_set_policy(GTK_WINDOW(gtkd->window), TRUE, TRUE, FALSE);
   gtk_widget_realize(gtkd->window);
-  
+
   /* create toolbar */
   gnome_app_create_toolbar_with_data(GNOME_APP(gtkd->window), graphics_toolbar, (gpointer) dd);
 
   /* create drawingarea */
   gtkd->drawing = gtk_drawing_area_new();
-  gtk_widget_set_events(gtkd->drawing,
-			GDK_EXPOSURE_MASK | GDK_BUTTON_PRESS_MASK);
 
   /* connect to signal handlers, etc */
   gtk_signal_connect(GTK_OBJECT(gtkd->drawing), "realize",
@@ -449,18 +443,10 @@ static int GTK_Open(DevDesc *dd, gtkDesc *gtkd, char *dsp, double w, double h)
 
   /* show everything */
   gtk_widget_show_all(gtkd->window);
-  
+
   /* initialise line params */
   gtkd->lty = -1;
   gtkd->lwd = -1;
-
-  /* create offscreen drawable */
-  gtkd->pixmap = gdk_pixmap_new(gtkd->drawing->window,
-				gtkd->windowWidth, gtkd->windowHeight,
-				-1);
-  gdk_gc_set_foreground(gtkd->wgc, &gtkd->gcol_bg);
-  gdk_draw_rectangle(gtkd->pixmap, gtkd->wgc, TRUE, 0, 0,
-		     gtkd->windowWidth, gtkd->windowHeight);
 
   /* let other widgets use the default colour settings */
   gtk_widget_pop_visual();
@@ -483,7 +469,7 @@ static double GTK_StrWidth(char *str, DevDesc *dd)
 
   size = dd->gp.cex * dd->gp.ps + 0.5;
   SetFont(dd, dd->gp.font, size);
-  
+
   return (double) gdk_string_width(gtkd->font, str);
 }
 
@@ -546,14 +532,6 @@ static void GTK_Resize(DevDesc *dd)
     dd->dp.bottom = dd->gp.bottom = gtkd->windowHeight;
     dd->dp.top = dd->gp.top = 0.0;
     gtkd->resize = 0;
-
-    gdk_pixmap_unref(gtkd->pixmap);
-    gtkd->pixmap = gdk_pixmap_new(gtkd->drawing->window,
-				  gtkd->windowWidth, gtkd->windowHeight,
-				  -1);
-    gdk_gc_set_foreground(gtkd->wgc, &gtkd->gcol_bg);
-    gdk_draw_rectangle(gtkd->pixmap, gtkd->wgc, TRUE, 0, 0,
-		       gtkd->windowWidth, gtkd->windowHeight);
   }
 }
 
@@ -576,10 +554,6 @@ static void GTK_NewPage(DevDesc *dd)
   }
 
   gdk_window_clear(gtkd->drawing->window);
-
-  gdk_gc_set_foreground(gtkd->wgc, &gtkd->gcol_bg);
-  gdk_draw_rectangle(gtkd->pixmap, gtkd->wgc, TRUE, 0, 0,
-		     gtkd->windowWidth, gtkd->windowHeight);
 }
 
 /* kill off the window etc */
@@ -588,8 +562,6 @@ static void GTK_Close(DevDesc *dd)
   gtkDesc *gtkd = (gtkDesc *) dd->deviceSpecific;
 
   gtk_widget_destroy(gtkd->window);
-
-  gdk_pixmap_unref(gtkd->pixmap);
 
   numGTKDevices--;
 
@@ -672,24 +644,14 @@ static void GTK_Rect(double x0, double y0, double x1, double y1,
 		       (gint) x0, (gint) y0,
 		       (gint) x1 - (gint) x0,
 		       (gint) y1 - (gint) y0);
-    gdk_draw_rectangle(gtkd->pixmap,
-		       gtkd->wgc, TRUE,
-		       (gint) x0, (gint) y0,
-		       (gint) x1 - (gint) x0,
-		       (gint) y1 - (gint) y0);
   }
   if(fg != NA_INTEGER) {
-    SetColor(&gcol_outline, fg); 
+    SetColor(&gcol_outline, fg);
     gdk_gc_set_foreground(gtkd->wgc, &gcol_outline);
-    
+
     SetLineType(dd, dd->gp.lty, dd->gp.lwd);
 
     gdk_draw_rectangle(gtkd->drawing->window,
-		       gtkd->wgc, FALSE,
-		       (gint) x0, (gint) y0,
-		       (gint) x1 - (gint) x0,
-		       (gint) y1 - (gint) y0);
-    gdk_draw_rectangle(gtkd->pixmap,
 		       gtkd->wgc, FALSE,
 		       (gint) x0, (gint) y0,
 		       (gint) x1 - (gint) x0,
@@ -718,10 +680,6 @@ static void GTK_Circle(double x, double y, int coords,
 		 gtkd->wgc, TRUE,
 		 ix, iy, ir, ir,
 		 0, 23040);
-    gdk_draw_arc(gtkd->pixmap,
-		 gtkd->wgc, TRUE,
-		 ix, iy, ir, ir,
-		 0, 23040);
   }
   if(border != NA_INTEGER) {
     SetColor(&gcol_outline, border);
@@ -730,10 +688,6 @@ static void GTK_Circle(double x, double y, int coords,
     SetLineType(dd, dd->gp.lty, dd->gp.lwd);
 
     gdk_draw_arc(gtkd->drawing->window,
-		 gtkd->wgc, FALSE,
-		 ix, iy, ir, ir,
-		 0, 23040);
-    gdk_draw_arc(gtkd->pixmap,
 		 gtkd->wgc, FALSE,
 		 ix, iy, ir, ir,
 		 0, 23040);
@@ -760,8 +714,6 @@ static void GTK_Line(double x1, double y1, double x2, double y2,
     SetLineType(dd, dd->gp.lty, dd->gp.lwd);
 
     gdk_draw_line(gtkd->drawing->window,
-		  gtkd->wgc, ix1, iy1, ix2, iy2);
-    gdk_draw_line(gtkd->pixmap,
 		  gtkd->wgc, ix1, iy1, ix2, iy2);
   }
 }
@@ -790,8 +742,6 @@ static void GTK_Polyline(int n, double *x, double *y, int coords, DevDesc *dd)
     SetLineType(dd, dd->gp.lty, dd->gp.lwd);
 
     gdk_draw_lines(gtkd->drawing->window,
-		   gtkd->wgc, points, n);
-    gdk_draw_lines(gtkd->pixmap,
 		   gtkd->wgc, points, n);
   }
 
@@ -822,8 +772,6 @@ static void GTK_Polygon(int n, double *x, double *y, int coords,
 
     gdk_draw_polygon(gtkd->drawing->window,
 		     gtkd->wgc, TRUE, points, n);
-    gdk_draw_polygon(gtkd->pixmap,
-		     gtkd->wgc, TRUE, points, n);
   }
   if(fg != NA_INTEGER) {
     SetColor(&gcol_outline, fg);
@@ -833,14 +781,10 @@ static void GTK_Polygon(int n, double *x, double *y, int coords,
 
     gdk_draw_polygon(gtkd->drawing->window,
 		     gtkd->wgc, FALSE, points, n);
-    gdk_draw_polygon(gtkd->pixmap,
-		     gtkd->wgc, FALSE, points, n);
   }
 
   g_free(points);
 }
-
-double deg2rad = 0.01745329251994329576;
 
 static void GTK_Text(double x, double y, int coords,
 		     char *str, double xc, double yc, double rot, DevDesc *dd)
@@ -848,7 +792,7 @@ static void GTK_Text(double x, double y, int coords,
   gtkDesc *gtkd = (gtkDesc *) dd->deviceSpecific;
   GdkColor gcol_fill;
   gint size;
-  double x1, y1;
+  double x1, y1, rrot = DEG2RAD * rot;
 
   GConvert(&x, &y, coords, DEVICE, dd);
 
@@ -862,93 +806,26 @@ static void GTK_Text(double x, double y, int coords,
   if(xc != 0.0 || yc != 0.0) {
     x1 = GTK_StrWidth(str, dd);
     y1 = GConvertYUnits(1, CHARS, DEVICE, dd);
-    x += -xc * x1 * cos(deg2rad * rot) +
-      yc * y1 * sin(deg2rad * rot);
-    y -= -xc * x1 * sin(deg2rad * rot) -
-      yc * y1 * cos(deg2rad * rot);
+    x += -xc * x1 * cos(rrot) + yc * y1 * sin(rrot);
+    y -= -xc * x1 * sin(rrot) - yc * y1 * cos(rrot);
   }
 
   gdk_draw_text_rot(gtkd->drawing->window,
-		    gtkd->font, gtkd->wgc, 
+		    gtkd->font, gtkd->wgc,
 		    (int) x, (int) y,
 		    gtkd->windowWidth, gtkd->windowHeight,
-		    str, strlen(str), deg2rad * rot);
-  gdk_draw_text_rot(gtkd->pixmap,
-		    gtkd->font, gtkd->wgc, 
-		    (int) x, (int) y,
-		    gtkd->windowWidth, gtkd->windowHeight,
-		    str, strlen(str), deg2rad * rot);
-}
-
-
-typedef struct _GTK_locator_info GTK_locator_info;
-
-struct _GTK_locator_info {
-    guint x;
-    guint y;
-    gboolean button1;
-};
-
-static gboolean locator_button_press(GtkWidget *widget,
-				     GdkEventButton *event,
-				     gpointer user_data)
-{
-  GTK_locator_info *info;
-
-  info = (GTK_locator_info *) user_data;
-
-  info->x = event->x;
-  info->y = event->y;
-  if(event->button == 1)
-      info->button1 = TRUE;
-  else
-      info->button1 = FALSE;
-
-  gtk_main_quit();
+		    str, strlen(str), rrot);
 }
 
 static int GTK_Locator(double *x, double *y, DevDesc *dd)
 {
-  gtkDesc *gtkd = (gtkDesc *) dd->deviceSpecific;
-  GTK_locator_info *info;
-  guint handler_id;
-  gboolean button1;
-
-  info = g_new(GTK_locator_info, 1);
-
-  /* Flush any pending events */
-  while(gtk_events_pending())
-      gtk_main_iteration();
-
-  /* connect signal */
-  handler_id = gtk_signal_connect(GTK_OBJECT(gtkd->drawing), "button-press-event",
-				  (GtkSignalFunc) locator_button_press, (gpointer) info);
-
-  /* run the handler */
-  gtk_main();
-
-  *x = (double) info->x;
-  *y = (double) info->y;
-  button1 = info->button1;
-
-  /* clean up */
-  gtk_signal_disconnect(GTK_OBJECT(gtkd->drawing), handler_id);
-  g_free(info);
-
-  if(button1)
-      return 1;
-
+  /* FIXME: implement this */
+  g_message("locator");
   return 0;
 }
 
-static void GTK_Mode(gint mode, DevDesc *dd)
+static void GTK_Mode(gint mode)
 {
-#ifdef XSYNC
-    if(mode == 0)
-	gdk_flush();
-#else
-    gdk_flush();
-#endif
 }
 
 static void GTK_Hold(DevDesc *dd)
@@ -978,7 +855,7 @@ int X11DeviceDriver(DevDesc *dd, char *display, double width, double height, dou
   gtkd->fontsize = -1;
   dd->dp.font = 1;
   dd->dp.ps = ps;
-  
+
   /* device driver start */
   if(!GTK_Open(dd, gtkd, display, width, height)) {
     free(gtkd);

@@ -128,7 +128,7 @@ int usemethod(char *generic, SEXP obj, SEXP call, SEXP args,
 
     cptr = R_GlobalContext;
     if (cptr->callflag != CTXT_RETURN || cptr->cloenv != rho)
-	error("UseMethod used in an inappropriate fashion");
+	error("UseMethod used in an inappropriate fashion\n");
 
     /* Create a new environment without any */
     /* of the formals to the generic in it. */
@@ -218,7 +218,7 @@ SEXP do_usemethod(SEXP call, SEXP op, SEXP args, SEXP env)
     nargs = length(args);
 
 if (nargs < 0)
-    errorcall(call, "corrupt internals!");
+    errorcall(call, "corrupt internals!\n");
 
     if (nargs)
 	PROTECT(meth = eval(CAR(args), env));
@@ -235,7 +235,7 @@ if (nargs < 0)
 	    cptr = cptr->nextcontext;
 	}
 	if (cptr == NULL)
-	    error("UseMethod called from outside a closure");
+	    error("UseMethod called from outside a closure\n");
 	if (meth == R_MissingArg)
 	    PROTECT(meth = mkString(CHAR(PRINTNAME(CAR(cptr->call)))));
 	PROTECT(obj = GetObject(cptr));
@@ -244,7 +244,7 @@ if (nargs < 0)
     if (TYPEOF(meth) != STRSXP ||
 	LENGTH(meth) < 1 ||
 	strlen(CHAR(STRING(meth)[0])) == 0)
-	errorcall(call, "first argument must be a method name");
+	errorcall(call, "first argument must be a method name\n");
 
     strcpy(buf, CHAR(STRING(meth)[0]));
 
@@ -255,7 +255,7 @@ if (nargs < 0)
 	UNPROTECT(1);
     }
     else
-	error("no applicable method for \"%s\"", buf);
+	error("no applicable method for \"%s\"\n", buf);
     return R_NilValue; /* NOT Used */
 }
 
@@ -315,14 +315,14 @@ SEXP do_nextmethod(SEXP call, SEXP op, SEXP args, SEXP env)
 	cptr = cptr->nextcontext;
     }
     if (cptr == NULL)
-	error("NextMethod called from outside a closure");
+	error("NextMethod called from outside a closure\n");
 
     PROTECT(newcall = duplicate(cptr->call));
 
     /* set up the arglist */
     s = findFun(CAR(cptr->call), cptr->sysparent);
     if (TYPEOF(s) != CLOSXP)
-	errorcall(cptr->call, "function is not a closure");
+	errorcall(cptr->call, "function is not a closure\n");
 
     /* get formals and actuals; attach the names of the formals to
        the actuals, expanding any ... that occurs */
@@ -405,7 +405,7 @@ SEXP do_nextmethod(SEXP call, SEXP op, SEXP args, SEXP env)
 	}
     }
     else
-	errorcall(call,"wrong argument ...");
+	errorcall(call,"wrong argument ...\n");
 
     /*
       .Class is used to determine the next method; if it doesn't
@@ -419,7 +419,7 @@ SEXP do_nextmethod(SEXP call, SEXP op, SEXP args, SEXP env)
     if (class == R_UnboundValue) {
 	s = GetObject(cptr);
 	if (!isObject(s))
-	    errorcall(call, "object not specified");
+	    errorcall(call, "object not specified\n");
 	class = getAttrib(s, R_ClassSymbol);
     }
 
@@ -432,9 +432,9 @@ SEXP do_nextmethod(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(generic);
 
     if (!isString(generic) || length(generic) > 1)
-	errorcall(call,"invalid generic argument to NextMethod");
+	errorcall(call,"invalid generic argument to NextMethod\n");
     if (strlen(CHAR(STRING(generic)[0])) == 0)
-	errorcall(call,"generic function not specified");
+	errorcall(call,"generic function not specified\n");
 
     group = dynamicfindVar(install(".Group"), R_GlobalContext);
     PROTECT(realgroup = duplicate(group));
@@ -444,7 +444,7 @@ SEXP do_nextmethod(SEXP call, SEXP op, SEXP args, SEXP env)
 	PROTECT(realgroup = mkString(""));
     }
     if (!isString(group) || length(group) > 1)
-	errorcall(call, "invalid group argument found in NextMethod");
+	errorcall(call, "invalid group argument found in NextMethod\n");
     if (strlen(CHAR(STRING(group)[0])) == 0)
 	group = generic;
 
@@ -485,12 +485,12 @@ SEXP do_nextmethod(SEXP call, SEXP op, SEXP args, SEXP env)
 	    t = install(CHAR(STRING(generic)[0]));
 	    nextfun = findVar(t,env);
 	    if (!isFunction(nextfun))
-		error("No method to invoke");
+		error("No method to invoke\n");
 	    if (TYPEOF(nextfun) == CLOSXP) {
 		if (INTERNAL(t) != R_NilValue)
 		    nextfun = INTERNAL(t);
 		else
-		    error("No method to invoke");
+		    error("No method to invoke\n");
 	    }
 	}
     }

@@ -62,7 +62,7 @@ SEXP eval(SEXP e, SEXP rho)
 #ifdef EVAL_LIMIT
     int depthsave = R_EvalDepth++;
     if (R_EvalDepth > EVAL_LIMIT)
-	error("expression too complex for evaluator");
+	error("expression too complex for evaluator\n");
 #endif
 #ifdef Macintosh
     /* check for a user abort */
@@ -104,19 +104,19 @@ SEXP eval(SEXP e, SEXP rho)
     case SYMSXP:
 	R_Visible = 1;
 	if (e == R_DotsSymbol)
-	    error("... used in an incorrect context");
+	    error("... used in an incorrect context\n");
 	if( DDVAL(e) )
 		tmp = ddfindVar(e,rho);
 	else
 		tmp = findVar(e, rho);
 	if (tmp == R_UnboundValue)
-	    error("Object \"%s\" not found", CHAR(PRINTNAME(e)));
+	    error("Object \"%s\" not found\n", CHAR(PRINTNAME(e)));
 	/* if ..d is missing then ddfindVar will signal */
 	else if (tmp == R_MissingArg && !DDVAL(e) ) {
 	    char *n = CHAR(PRINTNAME(e));
-	    if(*n) error("Argument \"%s\" is missing, with no default",
+	    if(*n) error("Argument \"%s\" is missing, with no default\n",
 			 CHAR(PRINTNAME(e)));
-	    else error("Argument is missing, with no default");
+	    else error("Argument is missing, with no default\n");
 	}
 	else if (TYPEOF(tmp) == PROMSXP) {
 	    PROTECT(tmp);
@@ -141,7 +141,7 @@ SEXP eval(SEXP e, SEXP rho)
 	if (PRVALUE(e) == R_UnboundValue) {
 	    if(PRSEEN(e))
 		errorcall(R_GlobalContext->call,
-			  "recursive default argument reference");
+			  "recursive default argument reference\n");
 	    PRSEEN(e) = 1;
 	    val = eval(PREXPR(e), PRENV(e));
 	    PRSEEN(e) = 0;
@@ -196,11 +196,11 @@ SEXP eval(SEXP e, SEXP rho)
 	    UNPROTECT(1);
 	}
 	else
-	    error("attempt to apply non-function");
+	    error("attempt to apply non-function\n");
 	UNPROTECT(1);
 	break;
     case DOTSXP:
-	error("... used in an incorrect context");
+	error("... used in an incorrect context\n");
     default:
 	UNIMPLEMENTED("eval");
     }
@@ -374,7 +374,7 @@ static SEXP EnsureLocal(SEXP symbol, SEXP rho)
 
     vl = eval(symbol, ENCLOS(rho));
     if (vl == R_UnboundValue)
-	error("Object \"%s\" not found", CHAR(PRINTNAME(symbol)));
+	error("Object \"%s\" not found\n", CHAR(PRINTNAME(symbol)));
 
     PROTECT(vl = duplicate(vl));
     defineVar(symbol, vl, rho);
@@ -426,7 +426,7 @@ SEXP do_if(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     int cond = asLogical(eval(CAR(args), rho));
     if (cond == NA_LOGICAL)
-	errorcall(call, "missing value where logical needed");
+	errorcall(call, "missing value where logical needed\n");
     else if (cond)
 	return (eval(CAR(CDR(args)), rho));
     else if (length(args) > 2)
@@ -447,6 +447,8 @@ SEXP do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
     sym = CAR(args);
     val = CADR(args);
     body = CADDR(args);
+
+    if ( !isSymbol(sym) ) errorcall(call, "non-symbol loop variable\n");
 
     PROTECT(args);
     PROTECT(rho);
@@ -548,7 +550,7 @@ SEXP do_while(SEXP call, SEXP op, SEXP args, SEXP rho)
     t = R_NilValue;
     for (;;) {
 	if ((cond = asLogical(s)) == NA_LOGICAL)
-	    errorcall(call, "missing value where logical needed");
+	    errorcall(call, "missing value where logical needed\n");
 	else if (!cond)
 	    break;
 	if (bgn && DEBUG(rho)) {
@@ -691,7 +693,7 @@ SEXP do_function(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP rval;
 
-    if (length(args) < 3)
+    if (length(args) < 2)
 	WrongArgCount("lambda");
     CheckFormals(CAR(args));
     rval = mkCLOSXP(CAR(args), CADR(args), rho);
@@ -717,7 +719,7 @@ static SEXP evalseq(SEXP expr, SEXP rho, int forcelocal, SEXP tmploc)
 {
     SEXP val, nval, nexpr;
     if (isNull(expr))
-	error("invalid (NULL) left side of assignment");
+	error("invalid (NULL) left side of assignment\n");
     if (isSymbol(expr)) {
 	PROTECT(expr);
 	if(forcelocal) {
@@ -739,7 +741,7 @@ static SEXP evalseq(SEXP expr, SEXP rho, int forcelocal, SEXP tmploc)
 	UNPROTECT(4);
 	return CONS(nval, val);
     }
-    else error("Target of assignment expands to non-language object");
+    else error("Target of assignment expands to non-language object\n");
     return R_NilValue;	/*NOTREACHED*/
 }
 
@@ -782,9 +784,12 @@ SEXP applydefine(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     tmpsym = install("*tmp*");
     defineVar(tmpsym, R_NilValue, rho);
+    tmploc = findVarLocInFrame(rho, tmpsym);
+#ifdef OLD
     tmploc = FRAME(rho);
     while(tmploc != R_NilValue && TAG(tmploc) != tmpsym)
 	tmploc = CDR(tmploc);
+#endif
 
     /*  Do a partial evaluation down through the LHS. */
     lhs = evalseq(CADR(expr), rho, PRIMVAL(op)==1, tmploc);
@@ -855,7 +860,7 @@ SEXP do_set(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    R_Visible = 0;
 	    return applydefine(call, op, args, rho);
 	}
-	else errorcall(call,"invalid (do_set) left-hand side to assignment");
+	else errorcall(call,"invalid (do_set) left-hand side to assignment\n");
     case 2:						/* <<- */
 	if (isSymbol(CAR(args))) {
 	    s = eval(CADR(args), rho);
@@ -870,7 +875,7 @@ SEXP do_set(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	else if (isLanguage(CAR(args)))
 	    return applydefine(call, op, args, rho);
-	else error("invalid assignment lhs");
+	else error("invalid assignment lhs\n");
 
     default:
 	UNIMPLEMENTED("do_set");
@@ -912,7 +917,7 @@ SEXP evalList(SEXP el, SEXP rho)
 		}
 	    }
 	    else if (h != R_MissingArg)
-		error("... used in an incorrect context");
+		error("... used in an incorrect context\n");
 	}
 	else if (CAR(el) != R_MissingArg) {
 	    CDR(tail) = CONS(eval(CAR(el), rho), R_NilValue);
@@ -961,7 +966,7 @@ SEXP evalListKeepMissing(SEXP el, SEXP rho)
 		}
 	    }
 	    else if(h != R_MissingArg)
-		error("... used in an incorrect context");
+		error("... used in an incorrect context\n");
 	}
 	else if (CAR(el) == R_MissingArg) {
 	    CDR(tail) = CONS(R_MissingArg, R_NilValue);
@@ -1015,7 +1020,7 @@ SEXP promiseArgs(SEXP el, SEXP rho)
 		}
 	    }
 	    else if (h != R_MissingArg)
-		error("... used in an incorrect context");
+		error("... used in an incorrect context\n");
 	}
 	else if (CAR(el) == R_MissingArg) {
 	    CDR(tail) = CONS(R_MissingArg, R_NilValue);
@@ -1041,7 +1046,7 @@ void CheckFormals(SEXP ls)
     if (isList(ls))
 	for (; ls != R_NilValue; ls = CDR(ls))
 	    if (TYPEOF(TAG(ls)) != SYMSXP)
-		error("invalid formal argument list for \"function\"");
+		error("invalid formal argument list for \"function\"\n");
 }
 
 
@@ -1062,7 +1067,7 @@ SEXP do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
     env = CADR(args);
     encl = CADDR(args);
     if ( !isNull(encl) && !isEnvironment(encl) )
-	errorcall(call, "invalid 3rd argument");
+	errorcall(call, "invalid 3rd argument\n");
     switch(TYPEOF(env)) {
     case NILSXP:
     case ENVSXP:
@@ -1082,14 +1087,14 @@ SEXP do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
     case REALSXP:
 	nback = asInteger(env);
 	if (nback==NA_INTEGER)
-	    errorcall(call,"invalid environment");
+	    errorcall(call,"invalid environment\n");
 	if (nback > 0 )
 	    nback -= framedepth(R_GlobalContext);
 	nback = -nback;
 	PROTECT(env = R_sysframe(nback,R_GlobalContext));
 	break;
     default:
-	errorcall(call, "invalid second argument");
+	errorcall(call, "invalid second argument\n");
     }
     if(isLanguage(expr) || isSymbol(expr)) {
 	PROTECT(expr);
@@ -1149,7 +1154,7 @@ SEXP do_recall(SEXP call, SEXP op, SEXP args, SEXP rho)
 	cptr = cptr->nextcontext;
     }
     if (cptr == NULL)
-	error("Recall called from outside a closure");
+	error("Recall called from outside a closure\n");
     if( TYPEOF(CAR(cptr->call)) == SYMSXP)
 	PROTECT(s = findFun(CAR(cptr->call), cptr->sysparent));
     else
@@ -1323,7 +1328,7 @@ int DispatchGroup(char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 
     PROTECT(s = promiseArgs(CDR(call), rho));
     if (length(s) != length(args))
-	errorcall(call,"dispatch error");
+	errorcall(call,"dispatch error\n");
     for (m = s ; m != R_NilValue ; m = CDR(m), args = CDR(args) )
 	PRVALUE(CAR(m)) = CAR(args);
 

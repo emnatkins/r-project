@@ -62,7 +62,7 @@ SEXP do_tempfile(SEXP call, SEXP op, SEXP args, SEXP env)
     HANDLE h;
     checkArity(op, args);
     if (!isString(CAR(args)) || LENGTH(CAR(args)) != 1)
-	errorcall(call, "invalid file name argument");
+	errorcall(call, "invalid file name argument\n");
     tn = CHAR(STRING(CAR(args))[0]);
     /* try to get a new file name */
     tmp = getenv("TMP");
@@ -79,12 +79,15 @@ SEXP do_tempfile(SEXP call, SEXP op, SEXP args, SEXP env)
         tm[0] = '\0';
     }
     if(!done)
-	error("cannot find unused tempfile name");
+	error("cannot find unused tempfile name\n");
     PROTECT(ans = allocVector(STRSXP, 1));
     STRING(ans)[0] = mkChar(tm);
     UNPROTECT(1);
     return (ans);
 }
+
+#include <sys/types.h>
+#include <sys/stat.h>
 
 SEXP do_unlink(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -93,16 +96,24 @@ SEXP do_unlink(SEXP call, SEXP op, SEXP args, SEXP env)
     WIN32_FIND_DATA find_data;
     HANDLE fh;
     int i, nfiles, failures = 0;
+    struct stat sb;
 
     checkArity(op, args);
     fn = CAR(args);
     nfiles = length(fn);
     if (!isString(fn) || nfiles < 1)
-	errorcall(call, "invalid file name argument");
+	errorcall(call, "invalid file name argument\n");
     for(i = 0; i < nfiles; i++) {
 	strcpy(tmp, CHAR(STRING(fn)[i]));
 	for(p = tmp; *p != '\0'; p++)
 	    if(*p == '/') *p = '\\';
+	if(stat(tmp, &sb))
+	    /* Is this a directory? */
+	    if(sb.st_mode & _S_IFDIR) {
+		if(rmdir(tmp)) failures++;
+		continue;
+	    }
+	/* Regular file (or more) */
 	strcpy(dir, tmp);
 	if ((p = strrchr(dir, '\\'))) *(++p) = '\0'; else *dir = '\0';
 	/* check for wildcard matches */
@@ -128,30 +139,26 @@ SEXP do_unlink(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP do_helpstart(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP  ans;
     char *home, buf[MAX_PATH];
     FILE *ff;
 
     checkArity(op, args);
     home = getenv("R_HOME");
     if (home == NULL)
-	error("R_HOME not set");
+	error("R_HOME not set\n");
     sprintf(buf, "%s\\doc\\html\\index.html", home);
     ff = fopen(buf, "r");
     if (!ff) {
 	sprintf(buf, "%s\\doc\\html\\index.htm", home);
 	ff = fopen(buf, "r");
 	if (!ff) {
-	    sprintf(buf, "%s\\doc\\html\\index.htm[l] not found", home);
+	    sprintf(buf, "%s\\doc\\html\\index.htm[l] not found\n", home);
 	    error(buf);
 	}
     }
     fclose(ff);
     ShellExecute(NULL, "open", buf, NULL, home, SW_SHOW);
-    PROTECT(ans = allocVector(STRSXP, 1));
-    STRING(ans)[0] = mkChar("");
-    UNPROTECT(1);
-    return (ans);
+    return R_NilValue;
 }
 
 static int nhfiles = 0;
@@ -173,40 +180,40 @@ SEXP do_helpitem(SEXP call, SEXP op, SEXP args, SEXP env)
 
     checkArity(op, args);
     if (!isString(CAR(args)))
-	errorcall(call, "invalid topic argument");
+	errorcall(call, "invalid topic argument\n");
     item = CHAR(STRING(CAR(args))[0]);
     type = asInteger(CADR(args));
     if (type == 1) {
 	ff = fopen(item, "r");
 	if (!ff) {
-	    sprintf(buf, "%s not found", item);
+	    sprintf(buf, "%s not found\n", item);
 	    error(buf);
 	}
 	fclose(ff);
 	home = getenv("R_HOME");
 	if (home == NULL)
-	    error("R_HOME not set");
+	    error("R_HOME not set\n");
 	ShellExecute(NULL, "open", item, NULL, home, SW_SHOW);
     } else if (type == 2) {
 	if (!isString(CADDR(args)))
-	    errorcall(call, "invalid hlpfile argument");
+	    errorcall(call, "invalid hlpfile argument\n");
 	hfile = CHAR(STRING(CADDR(args))[0]);
 	if (!WinHelp((HWND) 0, hfile, HELP_KEY, (DWORD) item))
-	    warning("WinHelp call failed");
+	    warning("WinHelp call failed\n");
 	else {
 	    if (nhfiles >= 50)
-		error("too many .hlp files opened");
+		error("too many .hlp files opened\n");
 	    hfiles[nhfiles] = malloc(strlen(hfile) * sizeof(char));
 	    strcpy(hfiles[nhfiles++], hfile);
 	}
     } else if (type == 3) {
 	if (!isString(CADDR(args)))
-	    warningcall(call, "invalid hlpfile argument");
+	    warningcall(call, "invalid hlpfile argument\n");
 	hfile = CHAR(STRING(CADDR(args))[0]);
 	if (!WinHelp((HWND) 0, hfile, HELP_QUIT, (DWORD) 0))
-	    error("WinHelp call failed");
+	    error("WinHelp call failed\n");
     } else
-	warning("type not yet implemented");
+	warning("type not yet implemented\n");
     return R_NilValue;
 }
 

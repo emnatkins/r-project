@@ -125,7 +125,7 @@ SEXP do_gc(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 void mem_err_heap(long size)
 {
-    error("heap memory (%ld Kb) exhausted [needed %ld Kb more]\n       See \"help(Memory)\" on how to increase the heap size.",
+    error("heap memory (%ld Kb) exhausted [needed %ld Kb more]\n       See \"help(Memory)\" on how to increase the heap size.\n",
 	  (R_VSize * sizeof(VECREC))/1024,
   (size * sizeof(VECREC))/1024);
 }
@@ -133,7 +133,7 @@ void mem_err_heap(long size)
 
 void mem_err_cons()
 {
-    error("cons memory (%ld cells) exhausted\n       See \"help(Memory)\" on how to increase the number of cons cells.", R_NSize);
+    error("cons memory (%ld cells) exhausted\n       See \"help(Memory)\" on how to increase the number of cons cells.\n", R_NSize);
 }
 
 #ifdef OLD_Macintosh
@@ -308,7 +308,7 @@ SEXP allocVector(SEXPTYPE type, int length)
     long size=0;
     if (length < 0 )
 	errorcall(R_GlobalContext->call,
-		  "negative length vectors are not allowed");
+		  "negative length vectors are not allowed\n");
     /* number of vector cells to allocate */
     switch (type) {
     case NILSXP:
@@ -351,7 +351,7 @@ SEXP allocVector(SEXPTYPE type, int length)
     case LISTSXP:
 	return allocList(length);
     default:
-	error("invalid type/length (%d/%d) in vector allocation", type, length);
+	error("invalid type/length (%d/%d) in vector allocation\n", type, length);
     }
     /* we need to do the gc here so allocSExp doesn't! */
     if (FORCE_GC || R_FreeSEXP == NULL || R_VMax - R_VTop < size) {
@@ -641,7 +641,7 @@ void scanPhase(void)
 SEXP protect(SEXP s)
 {
     if (R_PPStackTop >= R_PPStackSize)
-	error("protect(): stack overflow");
+	error("protect(): stack overflow\n");
     R_PPStack[R_PPStackTop] = s;
     R_PPStackTop++;
     return s;
@@ -655,7 +655,7 @@ void unprotect(int l)
     if (R_PPStackTop > 0)
 	R_PPStackTop = R_PPStackTop - l;
     else
-	error("unprotect(): stack imbalance");
+	error("unprotect(): stack imbalance\n");
 }
 
 /* "unprotect_ptr" remove pointer from somewhere in R_PPStack */
@@ -668,7 +668,7 @@ void unprotect_ptr(SEXP s)
     /* (should be among the top few items) */
     do {
     	if (i == 0)
-	    error("unprotect_ptr: pointer not found");
+	    error("unprotect_ptr: pointer not found\n");
     } while ( R_PPStack[--i] != s );
 
     /* OK, got it, and  i  is indexing its location */
@@ -720,11 +720,11 @@ char *C_alloc(long nelem, int eltsize)
 	if(C_Pointers[i] == NULL) {
 	    C_Pointers[i] = malloc(nelem * eltsize);
 	    if(C_Pointers[i] == NULL)
-		error("C_alloc(): unable to malloc memory");
+		error("C_alloc(): unable to malloc memory\n");
 	    else return C_Pointers[i];
 	}
     }
-    error("C_alloc(): all pointers in use (sorry)");
+    error("C_alloc(): all pointers in use (sorry)\n");
     /*-Wall:*/return C_Pointers[0];
 }
 
@@ -738,7 +738,7 @@ void C_free(char *p)
 	    return;
 	}
     }
-    error("C_free(): attempt to free pointer not allocated by C_alloc()");
+    error("C_free(): attempt to free pointer not allocated by C_alloc()\n");
 }
 
 /* S-like wrappers for calloc, realloc and free that check for error
@@ -752,14 +752,14 @@ void *R_chk_calloc(size_t nelem, size_t elsize)
 	return(NULL);
 #endif
     p = calloc(nelem, elsize);
-    if(!p) error("Calloc could not allocate memory");
+    if(!p) error("Calloc could not allocate memory\n");
     return(p);
 }
 void *R_chk_realloc(void *ptr, size_t size)
 {
     void *p;
     p = realloc(ptr, size);
-    if(!p) error("Realloc could not re-allocate memory");
+    if(!p) error("Realloc could not re-allocate memory\n");
     return(p);
 }
 void R_chk_free(void *ptr)

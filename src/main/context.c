@@ -55,13 +55,6 @@
  *	CTXT_RETURN	target for "return" (i.e. a closure)
  *	CTXT_BROWSER    target for "return" to exit from browser
  *	CTXT_CCODE	other functions that need clean up if an error occurs
- *      CTXT_RESTART    a function call to restart was made inside the 
- *                      closure.
- *
- *      Code (such as the sys.xxx) that looks for CTXT_RETURN must also
- *      look for a CTXT_RESTART. The mechanism used by restart is to change
- *      the context type; error/errorcall then looks for a RESTART and does
- *      a long jump there if it finds one.
  *
  *  A context is created with a call to
  *
@@ -156,13 +149,13 @@ void findcontext(int mask, SEXP env, SEXP val)
 	if (cptr->callflag & CTXT_LOOP)
 	    jumpfun(cptr, mask, val);
 	else
-	    error("No loop to break from, jumping to top level");
+	    error("No loop to break from, jumping to top level\n");
     }
     else {				/* return; or browser */
 	for (cptr = R_GlobalContext; cptr; cptr = cptr->nextcontext)
 	    if ((cptr->callflag & mask) && cptr->cloenv == env)
 		jumpfun(cptr, mask, val);
-	error("No function to return from, jumping to top level");
+	error("No function to return from, jumping to top level\n");
     }
 }
 
@@ -185,10 +178,10 @@ SEXP R_sysframe(int n, RCNTXT *cptr)
 
     if(n < 0)
 	errorcall(R_GlobalContext->call,
-		  "not that many enclosing environments");
+		  "not that many enclosing environments\n");
 
     while (cptr->nextcontext != NULL) {
-	if (cptr->callflag == CTXT_RETURN || cptr->callflag == CTXT_RESTART) {
+	if (cptr->callflag == CTXT_RETURN) {
 	    if (n == 0) {  /* we need to detach the enclosing env */
 		return cptr->cloenv;
 	    }
@@ -200,7 +193,7 @@ SEXP R_sysframe(int n, RCNTXT *cptr)
     if(n == 0 && cptr->nextcontext == NULL)
 	return R_GlobalEnv;
     else
-	error("sys.frame: not that many enclosing functions");
+	error("sys.frame: not that many enclosing functions\n");
     return R_NilValue;     /* just for -Wall */
 }
 
@@ -217,22 +210,21 @@ int R_sysparent(int n, RCNTXT *cptr)
     SEXP s;
     if(n <= 0)
 	errorcall( R_ToplevelContext->call,
-		   "only positive arguments are allowed");
+		   "only positive arguments are allowed\n");
     while (cptr->nextcontext != NULL && n > 1) {
-	if (cptr->callflag == CTXT_RETURN || cptr->callflag == CTXT_RESTART)
+	if (cptr->callflag == CTXT_RETURN)
 	    n--;
 	cptr = cptr->nextcontext;
     }
     /* make sure we're looking at a return context */
-    while (cptr->nextcontext != NULL && cptr->callflag != CTXT_RETURN 
-	&&  cptr->callflag != CTXT_RESTART)
+    while (cptr->nextcontext != NULL && cptr->callflag != CTXT_RETURN )
 	cptr = cptr->nextcontext;
     s = cptr->sysparent;
     if(s == R_GlobalEnv)
 	return 0;
     j = 0;
     while (cptr != NULL ) {
-	if (cptr->callflag == CTXT_RETURN || cptr->callflag == CTXT_RESTART) {
+	if (cptr->callflag == CTXT_RETURN) {
 	    j++;
 	    if( cptr->cloenv == s )
 		n=j;
@@ -240,10 +232,8 @@ int R_sysparent(int n, RCNTXT *cptr)
 	cptr = cptr->nextcontext;
     }
     n = j - n + 1;
-    if (n == 0)
-	n = 1;
     if (n < 0)
-	error("sys.parent: not that many enclosing functions");
+	n = 0;
     return n;
 }
 
@@ -251,7 +241,7 @@ int framedepth(RCNTXT *cptr)
 {
     int nframe = 0;
     while (cptr->nextcontext != NULL) {
-	if (cptr->callflag == CTXT_RETURN || cptr->callflag == CTXT_RESTART)
+	if (cptr->callflag == CTXT_RETURN)
 	    nframe++;
 	cptr = cptr->nextcontext;
     }
@@ -267,9 +257,9 @@ SEXP R_syscall(int n, RCNTXT *cptr)
     else
 	n = - n;
     if(n < 0 )
-	errorcall(R_GlobalContext->call, "illegal frame number");
+	errorcall(R_GlobalContext->call, "illegal frame number\n");
     while (cptr->nextcontext != NULL) {
-	if (cptr->callflag == CTXT_RETURN || cptr->callflag == CTXT_RESTART) {
+	if (cptr->callflag == CTXT_RETURN) {
 	    if (n == 0)
 		return (duplicate(cptr->call));
 	    else
@@ -279,7 +269,7 @@ SEXP R_syscall(int n, RCNTXT *cptr)
     }
     if (n == 0 && cptr->nextcontext == NULL)
 	return (duplicate(cptr->call));
-    errorcall(R_GlobalContext->call, "not that many enclosing functions");
+    errorcall(R_GlobalContext->call, "not that many enclosing functions\n");
     return R_NilValue;  /* just for -Wall */
 }
 
@@ -291,9 +281,9 @@ SEXP R_sysfunction(int n, RCNTXT *cptr)
     else
 	n = - n;
     if (n < 0 )
-	errorcall(R_GlobalContext->call, "illegal frame number");
+	errorcall(R_GlobalContext->call, "illegal frame number\n");
     while (cptr->nextcontext != NULL) {
-	if (cptr->callflag == CTXT_RETURN || cptr->callflag == CTXT_RESTART) {
+	if (cptr->callflag == CTXT_RETURN) {
 	    if (n == 0) {
 		s = CAR(cptr->call);
 		if (isSymbol(s))
@@ -311,11 +301,11 @@ SEXP R_sysfunction(int n, RCNTXT *cptr)
     }
     if (n == 0 && cptr->nextcontext == NULL)
 	return(findVar(CAR(cptr->call),cptr->sysparent));
-    errorcall(R_GlobalContext->call, "not that many enclosing functions");
+    errorcall(R_GlobalContext->call, "not that many enclosing functions\n");
     return R_NilValue;  /* just for -Wall */
 }
 
-/*some real insanity: to keep Duncan sane*/
+/* some real insanity to keep Duncan sane */
 
 SEXP do_restart(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -323,13 +313,8 @@ SEXP do_restart(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     checkArity(op, args);
     
-    if( !isLogical(CAR(args)) )
-	errorcall(call, "argument to restart must be a logical");
-
-    if( !asLogical(CAR(args)) ) /* FALSE */
-	return(R_NilValue); 
-
-    /* else TRUE */
+    if( !asLogical(CAR(args)) )
+	return(R_NilValue);
     for(cptr = R_GlobalContext->nextcontext; cptr!= R_ToplevelContext; 
 	    cptr = cptr->nextcontext) {
 	if (cptr->callflag == CTXT_RETURN) {
@@ -337,8 +322,8 @@ SEXP do_restart(SEXP call, SEXP op, SEXP args, SEXP rho)
 		break;
 	}
     }
-    if( cptr == R_ToplevelContext ) /* didn't find a closure to restart */
-	errorcall(call, "no function to restart");
+    if( cptr == R_ToplevelContext )
+	errorcall(call, "no function to restart\n");
     return(R_NilValue);
 }
 
@@ -357,7 +342,7 @@ SEXP do_sys(SEXP call, SEXP op, SEXP args, SEXP rho)
     cptr = R_GlobalContext;
     t = cptr->sysparent;
     while (cptr != R_ToplevelContext) {
-	if (cptr->callflag == CTXT_RETURN || cptr->callflag == CTXT_RESTART)
+	if (cptr->callflag == CTXT_RETURN)
 	    if (cptr->cloenv == t)
 		break;
 	cptr = cptr->nextcontext;
@@ -371,11 +356,17 @@ SEXP do_sys(SEXP call, SEXP op, SEXP args, SEXP rho)
 	n = - 1;
 
     if(n == NA_INTEGER)
-	errorcall(call, "invalid number of environment levels");
+	errorcall(call, "invalid number of environment levels\n");
     switch (PRIMVAL(op)) {
     case 1: /* parent */
+	nframe = framedepth(cptr);
 	rval = allocVector(INTSXP,1);
-	INTEGER(rval)[0] = R_sysparent(n, cptr);
+	i = nframe;
+	/* This is a pretty awful kludge, but the alternative would be
+	   a major redesign of everything... -pd */
+	while (n-- > 0)
+	    i = R_sysparent(nframe - i + 1, cptr);
+	INTEGER(rval)[0] = i;
 	return rval;
     case 2: /* call */
 	return R_syscall(n, cptr);
@@ -402,8 +393,8 @@ SEXP do_sys(SEXP call, SEXP op, SEXP args, SEXP rho)
 	UNPROTECT(1);
 	return rval;
     case 7: /* sys.on.exit */
-	if( R_GlobalContext->conexit )
-	    return R_GlobalContext->conexit;
+	if( R_GlobalContext->nextcontext != NULL )
+	    return R_GlobalContext->nextcontext->conexit;
 	else
 	    return R_NilValue;
     case 8: /* sys.parents */
@@ -415,7 +406,7 @@ SEXP do_sys(SEXP call, SEXP op, SEXP args, SEXP rho)
     case 9: /* sys.function */
 	return(R_sysfunction(n, cptr));
     default:
-	error("internal error in do_sys");
+	error("internal error in do_sys\n");
 	return R_NilValue;/* just for -Wall */
     }
 }

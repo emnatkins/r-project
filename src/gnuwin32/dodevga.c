@@ -35,7 +35,7 @@ static char *SaveString(SEXP sxp, int offset)
     char *s;
 
     if (!isString(sxp) || length(sxp) <= offset)
-	errorcall(gcall, "invalid string argument");
+	errorcall(gcall, "invalid string argument\n");
     s = R_alloc(strlen(CHAR(STRING(sxp)[offset])) + 1, sizeof(char));
     strcpy(s, CHAR(STRING(sxp)[offset]));
     return s;
@@ -76,10 +76,10 @@ SEXP do_devga(SEXP call, SEXP op, SEXP args, SEXP env)
     GInit(&dd->dp);
     if (!X11DeviceDriver(dd, display, width, height, ps)) {
 	free(dd);
-	errorcall(call, "unable to start device devga");
+	errorcall(call, "unable to start device devga\n");
     }
     gsetVar(install(".Device"),
-	    mkString(display[0] ? display : "X11"), R_NilValue);
+	    mkString(display[0] ? display : "windows"), R_NilValue);
     addDevice(dd);
     initDisplayList(dd);
     vmaxset(vmax);
