@@ -1,0 +1,120 @@
+#
+# ${R_HOME}/src/library/Makefile
+
+VPATH = @srcdir@
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+
+top_builddir = ../..
+subdir = src/library
+
+include $(top_builddir)/Makeconf
+
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+DISTFILES = Makefile.in
+
+SUBDIRS = profile $(R_PKGS_BASE) Recommended
+
+## <NOTE>
+## Apparently needed for gnuwin32?
+PKGS = $(R_PKGS_BASE)
+## </NOTE>
+
+## <NOTE>
+## Need to use R CMD to ensure that R_HOME is set (or do this ourselves).
+## Need to go through Rcmd rather than just call $(PERL) to ensure that
+## PERL5LIB/PERLLIB are set appropriately (or do this ourselves).
+## See e.g. @file{src/gnuwin32/help/Makefile}.
+R_CMD_BUILD_HELP = $(top_builddir)/bin/R CMD perl $(top_builddir)/share/perl/build-help.pl
+## </NOTE>
+
+R_EXE = $(top_builddir)/bin/R --vanilla
+
+all: Makefile R
+
+Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
+	@cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+
+R:
+	@$(MKINSTALLDIRS) $(top_builddir)/library
+	@for pkg in profile $(R_PKGS_BASE); do \
+	  (cd $${pkg} && $(MAKE)) || exit 1; \
+	done
+	@$(INSTALL_DATA) $(top_srcdir)/doc/html/R.css \
+	  $(top_builddir)/library
+
+docs:
+	@echo "building all R object docs (text, HTML, LaTeX, examples)"
+	@$(MAKE) DOCS
+	@$(MAKE) indices
+	@touch stamp-docs
+help:
+	@OPTS="--txt" $(MAKE) DOCS
+html:
+	@OPTS="--html" $(MAKE) DOCS
+	@$(MAKE) indices
+latex:
+	@OPTS="--latex" $(MAKE) DOCS
+examples:
+	@OPTS="--example" $(MAKE) DOCS
+
+indices:
+	@$(R_CMD_BUILD_HELP) --htmllists
+
+DOCS:
+	@if @NO_PERL5@; then \
+	  echo "you need Perl version 5 to build the R object docs"; \
+	  exit 1; \
+	fi
+	@for pkg in $(R_PKGS_BASE); do \
+	  $(R_CMD_BUILD_HELP) $${OPTS} $(srcdir)/$${pkg}; \
+	  ( echo ".installPackageIndices(\"$(srcdir)/$${pkg}\","; \
+	    echo " \"$(top_builddir)/library/$${pkg}\")") | \
+	      R_DEFAULT_PACKAGES=tools $(R_EXE) --slave > /dev/null; \
+	done; \
+	cat $(top_builddir)/library/*/CONTENTS \
+	  > $(top_builddir)/doc/html/search/index.txt
+
+install: installdirs
+	@echo "installing packages ..."
+	@cp -r $(top_builddir)/library $(rhome) || \
+	  (cd $(top_builddir)/library; \
+	    $(TAR) cf - . | (cd $(rhome)/library; $(TAR) xmof -))
+	@echo "  building HTML index ..."
+	@$(R_CMD_BUILD_HELP) --rhome $(rhome) --htmllists
+installdirs:
+	@$(MKINSTALLDIRS) $(rhome)/library
+install-strip:
+	$(MAKE) INSTALL_PROGRAM="${INSTALL_PROGRAM} -s" install
+uninstall:
+	@echo "uninstalling packages ..."
+	@(cd $(rhome)/library; \
+	  for p in $(R_PKGS); do rm -rf $${p}; done)
+
+mostlyclean: clean
+clean:
+	@(for d in $(SUBDIRS); do rsd="$${d} $${rsd}"; done; \
+	  for d in $${rsd}; do (cd $${d} && $(MAKE) $@); done)
+	-@rm -f stamp-*
+distclean:
+	@(for d in $(SUBDIRS); do rsd="$${d} $${rsd}"; done; \
+	  for d in $${rsd}; do (cd $${d} && $(MAKE) $@); done)
+	-@rm -f Makefile
+maintainer-clean: distclean
+
+TAGS info dvi check:
+
+distdir: $(DISTFILES)
+	@for f in $(DISTFILES); do \
+	  test -f $(distdir)/$${f} \
+	    || ln $(srcdir)/$${f} $(distdir)/$${f} 2>/dev/null \
+	    || cp -p $(srcdir)/$${f} $(distdir)/$${f}; \
+	done
+	@for d in $(SUBDIRS); do \
+	  test -d $(distdir)/$${d} \
+	    || mkdir $(distdir)/$${d} \
+	    || exit 1; \
+	  chmod 755 $(distdir)/$${d}; \
+	  (cd $${d} && $(MAKE) distdir) \
+	    || exit 1; \
+	done
