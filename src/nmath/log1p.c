@@ -34,7 +34,7 @@
  *	written by W. Fullerton of Los Alamos Scientific Laboratory.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 double log1p(double x)
 {

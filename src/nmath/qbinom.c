@@ -29,7 +29,7 @@
  *	1 or 2.	 A search is then conducted of values close to
  *	this initial start point.
  */
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 
 #ifdef DEBUG_qbinom

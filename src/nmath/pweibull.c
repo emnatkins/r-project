@@ -22,7 +22,7 @@
  *    The distribution function of the Weibull distribution.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 
 double pweibull(double x, double shape, double scale, int lower_tail, int log_p)

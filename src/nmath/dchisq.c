@@ -22,7 +22,7 @@
  *    The density of the chi-squared disribution.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 
 double dchisq(double x, double df, int give_log)

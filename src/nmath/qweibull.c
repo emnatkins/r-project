@@ -22,7 +22,7 @@
  *    The quantile function of the Weibull distribution.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 
 double qweibull(double p, double shape, double scale, int lower_tail, int log_p)

@@ -4,7 +4,7 @@ HELP=YES
 WINHELP=BOTH # NO, CHM, BOTH
 
 PACKAGES=base ctest eda lqs modreg mva nls splines stepfun ts
-RPREFIX=rw1010
+RPREFIX=rw1001
 RVER=$(shell cut -d' ' -f1 ../../VERSION)
 
 RHOME=$(shell cd ../..; pwd)# must be absolute path

@@ -25,7 +25,7 @@
  * (Algorithms BB and BC)
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 #define expmax	(DBL_MAX_EXP * M_LN2)/* = log(DBL_MAX) */
 

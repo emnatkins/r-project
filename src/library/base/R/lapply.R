@@ -2,7 +2,7 @@ lapply <- function (X, FUN, ...)
 {
     FUN <- match.fun(FUN)
     if (!is.list(X)) X <- as.list(X)
-    rval <-.Internal(lapply(X, FUN))
+    rval <-.Internal(lapply(length(X), function(i) FUN(X[[i]], ...)))
     names(rval) <- names(X)
     return(rval)
 }

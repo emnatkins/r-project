@@ -23,7 +23,7 @@
 /* From http://www.netlib.org/specfun/rjbesl	Fortran translated by f2c,...
  *	------------------------------=#----	Martin Maechler, ETH Zurich
  */
-#include "nmath.h"
+#include "Mathlib.h"
 
 double bessel_j(double x, double alpha)
 {

@@ -25,9 +25,6 @@ if(!interactive())
 
 ###--- Discrete Distributions: Simple Consistency Checks  pZZ = cumsum(dZZ)
 
-all(dpois(0:5,0)           == c(1, rep(0,5)))
-all(dpois(0:5,0, log=TRUE) == c(0, rep(-Inf, 5)))
-
 ## Currently, just Wilcoxon  [should do this for all !]
 is.sym <- TRUE
 for(n in rpois(5, lam=6))

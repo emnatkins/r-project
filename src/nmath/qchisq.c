@@ -22,7 +22,7 @@
  *	The quantile function of the chi-squared distribution.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 
 double qchisq(double p, double df, int lower_tail, int log_p)

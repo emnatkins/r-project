@@ -31,7 +31,7 @@
  *    Calls rgamma to do the real work.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 double rchisq(double df)
 {

@@ -45,7 +45,7 @@
  *	Applied Statistics 37, 1988.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 /*----------- DEBUGGING -------------
  *	make CFLAGS='-DDEBUG_p -g -I/usr/local/include -I../include'

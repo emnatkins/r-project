@@ -34,7 +34,7 @@
  *	Applied Statistics 24, page 385.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 
 #ifdef DEBUG_q

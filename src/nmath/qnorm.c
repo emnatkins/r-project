@@ -41,7 +41,7 @@
  *	Applied Statistics, 26, 118-121.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 
 #ifdef DEBUG_qnorm

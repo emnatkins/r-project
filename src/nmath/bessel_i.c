@@ -23,7 +23,7 @@
 /* From http://www.netlib.org/specfun/ribesl	Fortran translated by f2c,...
  *	------------------------------=#----	Martin Maechler, ETH Zurich
  */
-#include "nmath.h"
+#include "Mathlib.h"
 
 static double exparg = 709.;/* maximal x for UNscaled answer, see below */
 

@@ -22,7 +22,7 @@
  *	The distribution function of the non-central F distribution.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 
 double pnf(double x, double n1, double n2, double ncp,

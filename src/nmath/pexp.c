@@ -21,7 +21,7 @@
  *
  *	The distribution function of the exponential distribution.
  */
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 
 double pexp(double x, double scale, int lower_tail, int log_p)
