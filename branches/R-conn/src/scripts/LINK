@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# ${R_HOME}/bin/LINK
+
+if test -z "${R_HOME}"; then
+  echo "Fatal error: R_HOME was not set"
+  exit 1
+fi
+
+Rexeclibdir=${R_HOME}/bin
+linkopts="-avoid-version -rpath ${Rexeclibdir}"
+
+exec ${R_HOME}/bin/libtool --mode=link ${*} ${linkopts}
+
+### Local Variables: ***
+### mode: sh ***
+### sh-indentation: 2 ***
+### End: ***

@@ -1,0 +1,289 @@
+=================================================
+This is an automated summary of the status of the R-bugs
+repository.
+
+Note that this may be neither complete nor perfectly
+correct at any given instance: Not all bugs are reported,
+and some reported bugs may have been fixed, but the
+repository not yet updated.
+
+Some bug fixes are difficult to verify because they pertain
+to specific hardware or operating system versions. If you
+have information to contribute, please do so.
+
+If you happen to know how to fix a problem please send
+patches to the bug repository, too.
+
+New bugs are reported either through the web
+interface at r-bugs.r-project.org or via email to
+r-bugs@r-project.org. The bug.report() function can be
+used to automate parts of the procedure on many systems.
+Followups on older bugs can be done by including the string
+"(PR#999)" in the Subject of an email (change 999 to the
+actual reference number, of course!).
+=================================================
+
+Directory:  Accuracy
+
+* PR# 699 *
+Subject: bug in pnorm
+From: ratjamm@alum.mit.edu
+Date: Fri, 20 Oct 2000 21:46:18 +0200 (MET DST)
+--accuracy issues in pnorm
+* PR# 631 *
+Subject: svd error 
+From: =?iso-8859-1?Q?J=F6rg?= Polzehl <polzehl@wias-berlin.de>
+Date: Thu, 10 Aug 2000 16:54:46 +0200
+* PR# 630 *
+Subject: lda and svd error
+From: Torsten Hothorn <Torsten.Hothorn@rzmail.uni-erlangen.de>
+Date: Thu, 10 Aug 2000 15:13:38 +0200 (CEST)
+* PR# 594 *
+Subject: svd() (Linpack) problems/bug for ill-conditioned matrices
+From: Martin Maechler <maechler@stat.math.ethz.ch>
+Date: Wed, 5 Jul 2000 18:32:01 +0200 (CEST)
+
+Directory:  Add-ons
+
+* PR# 700 *
+Subject: Probable bug in RODBC 0.7.x
+From: emmanuel.charpentier@sap.ap-hop-paris.fr
+Date: Mon, 23 Oct 2000 13:15:55 +0200 (MET DST)
+--Package maintainer is aware of this
+* PR# 503 *
+Subject: dmvnorm() bug in e1071
+From: "Gregory R. Warnes" <warnes@biostat.washington.edu>
+Date: Fri, 24 Mar 2000 03:24:45 +0000 (GMT)
+* PR# 496 *
+From: bonneau@epi.roazhon.inra.fr (en148)
+Date: Tue, 21 Mar 2000 10:57:13 +0100 (MET)
+--base R has no est.variogram function.
+--This appears to be a bug report on sgeostat.
+* PR# 567 *
+Subject: ctest not works
+From: George Diniz <george@cpqam.fiocruz.br>
+Date: Sun, 12 Mar 2000 12:03:45 -0200
+--possibly the RH6.2 Fortran bug
+
+Directory:  Analyses
+
+* PR# 653 *
+Subject: bug in spline()?
+From: Ian White <imsw@holyrood.ed.ac.uk>
+Date: Mon, 4 Sep 2000 12:29:26 +0100 (BST)
+--bug in spline: replace by interSpline in package spline?
+--address problems are fixed
+
+Directory:  Documentation
+
+none
+
+Directory:  Graphics
+
+* PR# 726 *
+Subject: par(las=.)  gives wrong "adj" for mtext()
+From: Martin Maechler <maechler@stat.math.ethz.ch>
+Date: Tue, 7 Nov 2000 13:03:58 +0100
+* PR# 693 *
+Subject:  Bug report
+From: "Amaratunga, Rohith" <Rohith.Amaratunga@dsto.defence.gov.au>
+Date: Thu, 12 Oct 2000 14:08:31 +1100
+--grid problem: note a report on 0.90.1 and nothing to reproduce this
+* PR# 660 *
+Subject: identify.default ignores any setting of cex.
+From: Prof Brian Ripley <ripley@stats.ox.ac.uk>
+Date: Fri, 15 Sep 2000 10:23:39 +0100 (BST)
+* PR# 202 *
+Subject: persp box occlusion bug
+From: wsi@gcal.ac.uk
+Date: Wed, 2 Jun 1999 15:02:03 +0200 (MET DST)
+--The persp algorithm does not apply the occlusion rules to the frame, 
+--which is always plotted first. 
+--A bug, but not very simple to fix.
+
+Directory:  In-Out
+
+* PR# 649 *
+Subject: Unable to read.table with > 256? columns
+From: r@marksmucker.com
+Date: Thu, 31 Aug 2000 07:28:02 +0200 (MET DST)
+--Unable to reproduce from information supplied 
+--(and there is no 256 col limit)
+
+Directory:  Installation
+
+* PR# 697 *
+Subject: build errors in configure script
+From: flip@skidmore.edu
+Date: Mon, 16 Oct 2000 03:03:59 +0200 (MET DST)
+--Mac OS X / Dylan lacks a -lm
+* PR# 597 *
+Subject: multiply defined symbols
+From: plucas@csd.abdn.ac.uk
+Date: Fri, 7 Jul 2000 12:23:44 +0200 (MET DST)
+--Probably system-specific due to use of fort77
+
+Directory:  Language
+
+* PR# 731 *
+Subject: substitute(x$y)) corrupts 'y' component
+From: "Charles C. Berry" <cberry@tajo.ucsd.edu>
+Date: Wed, 08 Nov 2000 11:01:48 -0800
+* PR# 587 *
+Subject: dim(a <- ...) sets invisible flag erronously
+From: Martin Maechler <maechler@stat.math.ethz.ch>
+Date: Fri, 30 Jun 2000 20:15:59 +0200 (MET DST)
+--Not specific to dim: R differs from S for most functions here.
+* PR# 412 *
+Subject: anomalies with call objects
+From: Peter Dalgaard BSA <p.dalgaard@biostat.ku.dk>
+Date: 06 Feb 2000 01:18:50 +0100
+* PR# 408 *
+Subject: convolution bug
+From: wsimpson@gcal.ac.uk
+Date: Fri, 28 Jan 2000 11:17:36 +0100 (MET)
+* PR# 669 *
+Subject: Bug(s) w/ rbind.data.frame(); fix also read.table(*, as.is = TRUE) ?
+From: Martin Maechler <maechler@stat.math.ethz.ch>
+Date: Mon, 25 Sep 2000 10:17:15 +0200
+--status of AsIs columns
+* PR# 645 *
+Subject: unlisting a list with names components
+From: Peter Perkins <pperkins@ucsd.edu>
+Date: Fri, 25 Aug 2000 23:07:47 -0700
+* PR# 642 *
+Subject:  Method dispatch fails for autoloaded methods 
+From: maechler@stat.math.ethz.ch
+Date: Thu, 24 Aug 2000 17:09:09 +0200
+--fixed for next (1.2) R version
+* PR# 694 *
+Subject:  syntax confusion with function/non-function objects 
+From: J.C.Rougier@durham.ac.uk
+Date: Fri, 13 Oct 2000 12:07:41 +0100 (BST)
+* PR# 674 *
+Subject: all.equal.list() sometimes fails with unnamed and named components
+From: "Charles C. Berry" <cberry@tajo.ucsd.edu>
+Date: Fri, 29 Sep 2000 14:20:47 -0700 (PDT)
+* PR# 715 *
+Subject: Printing list elements w/attributes
+From: Peter Dalgaard BSA <p.dalgaard@biostat.ku.dk>
+Date: 31 Oct 2000 12:15:09 +0100
+* PR# 698 *
+Subject:  print problem with data frames 
+From: J.C.Rougier@durham.ac.uk
+Date: Mon, 16 Oct 2000 14:01:43 +0100 (BST)
+
+Directory:  Low-level
+
+* PR# 551 *
+Subject: Bus Error crash
+From: kjetikj@astro.uio.no
+Date: Mon, 22 May 2000 13:06:48 +0200 (MET DST)
+--- ??? -- not (yet) reproducible with small examples
+--- after load()ing large objects
+--- on two different DEC alpha versions
+* PR# 545 *
+Subject: Segmentation Fault of unknown cause
+From: kjetikj@astro.uio.no
+Date: Mon, 15 May 2000 16:29:29 +0200 (MET DST)
+* PR# 536 *
+Subject: Problem with match.arg()
+From: kjetikj@astro.uio.no
+Date: Sun, 7 May 2000 13:58:21 +0200 (MET DST)
+--1.0.0 bug fixed for 1.0.1 ??
+* PR# 505 *
+Subject: interrupted save 
+From: Thomas Lumley <thomas@biostat.washington.edu>
+Date: Sat, 25 Mar 2000 12:16:50 -0800 (PST)
+
+Directory:  Misc
+
+* PR# 663 *
+Subject: bug.report("unused argument(s) crash R when options(error=quote
+From: zivan.karaman@limagrain.com
+Date: Tue, 19 Sep 2000 13:51:33 +0200
+
+Directory:  Models
+
+* PR# 628 *
+Subject: Re: [Rd] predict.lm is broken in 1.1.0-patched (2000-August-7)
+From: Prof Brian D Ripley <ripley@stats.ox.ac.uk>
+Date: Mon, 7 Aug 2000 22:41:50 +0100 (BST)
+--We've fixed the predict() problem, but need to make coef.lm and coef.aov
+--consistent
+
+Directory:  Startup
+
+* PR# 486 *
+Subject: Re: autoload error in profile {was anova-bug in R-version  1.0.0?}
+From: Martin Maechler <maechler@stat.math.ethz.ch>
+Date: Tue, 14 Mar 2000 10:32:43 +0100 (MET)
+--workaround to the origin problem in 1.0.1
+--New report: try does not work from the profile.
+
+Directory:  System-specific
+
+* PR# 732 *
+Subject: R with redhat 7
+From: hyu@stats.uwo.ca
+Date: Wed, 8 Nov 2000 22:32:48 +0100 (MET)
+* PR# 521 *
+Subject: akima core dumps on loading
+From: santini@dsi.unimi.it
+Date: Mon, 17 Apr 2000 11:30:41 +0200 (MET DST)
+--Probably compiler-specific
+* PR# 452 *
+Subject: problem with glm
+From: Brad McNeney <mcneney@cs.sfu.ca>
+Date: Fri, 18 Feb 2000 17:51:54 -0800 (PST)
+--Problems on Alpha's with glm. Status unclear
+* PR# 534 *
+Subject: wsfe bug report just made
+From: mallen@tntech.edu
+Date: Thu, 4 May 2000 19:20:35 +0200 (MET DST)
+--follow up to PR#533
+* PR# 533 *
+Subject: acepack, akima and tripack will not load 
+From: mallen@tntech.edu
+Date: Thu, 4 May 2000 19:18:59 +0200 (MET DST)
+--related to PR#521: probably compiler-specific
+* PR# 547 *
+Subject: system(.., ignore.stderr = TRUE)  problem on Solaris
+From: Martin Maechler <maechler@stat.math.ethz.ch>
+Date: Fri, 19 May 2000 21:12:02 +0200 (CEST)
+--redirection of stderr to /dev/null in system occurs before the command
+--is tried on some systems and after on others.
+* PR# 537 *
+Subject: eigen broken on AIX with R-devel?
+From: Thomas J Vogels <tov@ece.cmu.edu>
+Date: 08 May 2000 12:01:04 -0400
+--AIX, probably compiler-specific
+* PR# 672 *
+Subject: R 1.1.0: scan
+From: Peter Kleiweg <kleiweg@let.rug.nl>
+Date: Wed, 27 Sep 2000 11:45:34 +0200 (CEST)
+--HP-UX specific bug
+* PR# 592 *
+Subject: tseries bug
+From: przemat@itti.com.pl
+Date: Tue, 4 Jul 2000 14:52:17 +0200 (MET DST)
+--Still broken?
+
+Directory:  TooMuchAtOnce
+
+none
+
+Directory:  Windows
+
+none
+
+Directory:  incoming
+
+* PR# 734 *
+Subject:  Assigning into a dataframe 
+From: J.C.Rougier@durham.ac.uk
+Date: Fri, 10 Nov 2000 16:00:31 GMT
+* PR# 733 *
+Subject: gnome-support problems
+From: olav@melvin.jordforsk.no
+Date: Fri, 10 Nov 2000 10:55:31 +0100 (MET)

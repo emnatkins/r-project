@@ -1,0 +1,8 @@
+#!/bin/sh
+
+exec ${R_HOME}/bin/Rdconv -t txt ${1}
+
+### Local Variables: ***
+### mode: sh ***
+### sh-indentation: 2 ***
+### End: ***
