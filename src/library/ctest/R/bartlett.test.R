@@ -1,6 +1,4 @@
-bartlett.test <- function(x, ...) UseMethod("bartlett.test")
-
-bartlett.test.default <- function(x, g) {
+bartlett.test <- function(x, g) {
     LM <- FALSE
     if (is.list(x)) {
         if (length(x) < 2)
@@ -40,32 +38,16 @@ bartlett.test.default <- function(x, g) {
     v.total <- sum(n * v) / n.total
     STATISTIC <- ((n.total * log(v.total) - sum(n * log(v))) /
                   (1 + (sum(1 / n) - 1 / n.total) / (3 * (k - 1))))
-    names(STATISTIC) <- "Bartlett's K-squared"
     PARAMETER <- k - 1
+    PVAL <- pchisq(STATISTIC, PARAMETER, lower = FALSE)    
+    names(STATISTIC) <- "Bartlett's K-squared"
     names(PARAMETER) <- "df"
   
     RVAL <- list(statistic = STATISTIC,
                  parameter = PARAMETER,
-                 p.value = pchisq(STATISTIC, PARAMETER, lower = FALSE),
+                 p.value = PVAL,
                  data.name = DNAME,
                  method = "Bartlett test for homogeneity of variances")
     class(RVAL) <- "htest"
     return(RVAL)
-}
-
-bartlett.test.formula <- function(formula, data, subset, na.action) {
-    if(missing(formula) || (length(formula) != 3))
-        stop("formula missing or incorrect")
-    if(missing(na.action))
-        na.action <- getOption("na.action")
-    m <- match.call(expand.dots = FALSE)
-    if(is.matrix(eval(m$data, parent.frame())))
-        m$data <- as.data.frame(data)
-    m[[1]] <- as.name("model.frame")
-    mf <- eval(m, parent.frame())
-    DNAME <- paste(names(mf), collapse = " and ")
-    names(mf) <- NULL
-    y <- do.call("bartlett.test", as.list(mf))
-    y$data.name <- DNAME
-    y
 }

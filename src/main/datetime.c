@@ -300,10 +300,10 @@ static struct tm * localtime0(const double *tp, const int local)
 SEXP do_systime(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     time_t res = time(NULL);
+    SEXP ans = allocVector(REALSXP, 1);
 #ifdef USING_LEAPSECONDS
     res -= 22;
 #endif
-    SEXP ans = allocVector(REALSXP, 1);
     if(res != (time_t)(-1)) REAL(ans)[0] = (double) res;
     else REAL(ans)[0] = NA_REAL;
     return ans;
@@ -458,9 +458,8 @@ SEXP do_asPOSIXlt(SEXP call, SEXP op, SEXP args, SEXP env)
 	makelt(ptm, ans, i, valid);
     }
     setAttrib(ans, R_NamesSymbol, ansnames);
-    PROTECT(class = allocVector(STRSXP, 2));
-    SET_STRING_ELT(class, 0, mkChar("POSIXt"));
-    SET_STRING_ELT(class, 1, mkChar("POSIXlt"));
+    PROTECT(class = allocVector(STRSXP, 1));
+    SET_STRING_ELT(class, 0, mkChar("POSIXlt"));
     classgets(ans, class);
     if (isgmt) {
 	PROTECT(tzone = allocVector(STRSXP, 1));
@@ -642,9 +641,8 @@ SEXP do_strptime(SEXP call, SEXP op, SEXP args, SEXP env)
 	makelt(&tm, ans, i, !invalid);
     }
     setAttrib(ans, R_NamesSymbol, ansnames);
-    PROTECT(class = allocVector(STRSXP, 2));
-    SET_STRING_ELT(class, 0, mkChar("POSIXt"));
-    SET_STRING_ELT(class, 1, mkChar("POSIXlt"));
+    PROTECT(class = allocVector(STRSXP, 1));
+    SET_STRING_ELT(class, 0, mkChar("POSIXlt"));
     classgets(ans, class);
     UNPROTECT(3);
     return ans;

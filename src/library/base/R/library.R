@@ -9,8 +9,9 @@ function(package, help, lib.loc = .lib.loc, character.only = FALSE,
 	    package <- as.character(substitute(package))
 	pkgname <- paste("package", package, sep = ":")
 	if(is.na(match(pkgname, search()))) {
-            pkgpath <- .find.package(package, lib.loc, quiet = TRUE)
-            if(length(pkgpath) == 0) {
+            which.lib.loc <-
+                lib.loc[file.exists(file.path(lib.loc, package))]
+            if(length(which.lib.loc) == 0) {
                 txt <- paste("There is no package called",
                              fQuote(package))
                 if (logical.return) {
@@ -19,7 +20,14 @@ function(package, help, lib.loc = .lib.loc, character.only = FALSE,
 		}
 		else stop(txt)
             }
-            which.lib.loc <- dirname(pkgpath)
+            if(length(which.lib.loc) > 1) {
+                which.lib.loc <- which.lib.loc[1]
+                warning(paste("Package ",
+                              fQuote(package),
+                              "found more than once,\n",
+                              "using the one found in",
+                              fQuote(which.lib.loc)))
+            }
             codeFile <- file.path(which.lib.loc, package, "R", package)
 	    ## create environment
 	    env <- attach(NULL, name = pkgname)
@@ -87,34 +95,42 @@ function(package, help, lib.loc = .lib.loc, character.only = FALSE,
 	if(!character.only)
 	    help <- as.character(substitute(help))
         help <- help[1]                 # only give help on one package
-        
-        pkgpath <- .find.package(help, lib.loc)
+        which.lib.loc <-
+            lib.loc[file.exists(file.path(lib.loc, help))]
+        if(length(which.lib.loc) == 0)
+            stop(paste("No documentation for package", fQuote(help)))
+        if(length(which.lib.loc) > 1) {
+            which.lib.loc <- which.lib.loc[1]
+            warning(paste("Package ",
+                          fQuote(help),
+                          "found more than once,\n",
+                          "using the one found in",
+                          fQuote(which.lib.loc)))
+        }
         outFile <- tempfile("Rlibrary")
-        outConn <- file(outFile, open = "w")
-        docFiles <- file.path(pkgpath,
+        docFiles <- file.path(which.lib.loc, help,
                               c("TITLE", "DESCRIPTION", "INDEX"))
         headers <- c("", "Description:\n\n", "Index:\n\n")
         footers <- c("\n", "\n", "")
         for(i in which(file.exists(docFiles))) {
-            writeLines(headers[i], outConn)
-            writeLines(readLines(docFiles[i]), outConn)
-            writeLines(footers[i], outConn)
+            cat(headers[i], file = outFile, append = TRUE)
+            file.append(outFile, docFiles[i])
+            cat(footers[i], file = outFile, append = TRUE)
         }
-        close(outConn)
         file.show(outFile, delete.file = TRUE,
                   title = paste("Documentation for package",
                   fQuote(help)))
     }
     else {
 	## library():
-	outFile <- tempfile("Rlibrary")
-        outConn <- file(outFile, open = "w")
+	libfil <- tempfile("R.")
 	avail <- NULL
 	for (lib in lib.loc) {
 	    cat("\nPackages in library `", lib, "':\n\n", sep = "",
-		file = outConn, append = TRUE)
-	    if (file.exists(libind <- file.path(lib, "LibIndex"))) {
-                writeLines(readLines(libind), outConn)
+		file = libfil, append = TRUE)
+	    if (file.exists(libind <- file.path(lib, "LibIndex")))
+	    {
+		file.append(libfil, libind)
 		## This gives warnings and partly garbage,
 		## since contrib's LibIndex isn't really "clean":
 		## scan(libind, what=list("",""), sep="\t",
@@ -125,16 +141,13 @@ function(package, help, lib.loc = .lib.loc, character.only = FALSE,
 		for (i in sort(a)) {
 		    title <- file.path(lib, i, "TITLE")
 		    if(file.exists(title))
-                        writeLines(readLines(title), outConn)
-		    else
-                        writeLines(i, outConn)
+			file.append(libfil, title)
+		    else cat(i, "\n", file = libfil, append = TRUE)
 		}
 	    }
 	    avail <- c(avail, a)
 	}
-        close(outConn)
-	file.show(outFile, delete.file = TRUE,
-                  title = "R packages available")
+	file.show(libfil, delete.file = TRUE, title = "R packages available")
 	return(invisible(avail))
     }
     if (logical.return)
@@ -146,32 +159,26 @@ library.dynam <-
 function(chname, package = .packages(), lib.loc = .lib.loc, verbose =
          getOption("verbose"), file.ext = .Platform$dynlib.ext, ...)
 {
-    if (!exists(".Dyn.libs"))
-        assign(".Dyn.libs", character(0), envir = .AutoloadEnv)
-    if (missing(chname) || (LEN <- nchar(chname)) == 0)
-        return(.Dyn.libs)
-    nc.ext <- nchar(file.ext)
-    if (substr(chname, LEN - nc.ext + 1, LEN) == file.ext)
-        chname <- substr(chname, 1, LEN - nc.ext)
-    if (is.na(match(chname, .Dyn.libs))) {
-        for(pkg in .find.package(package, lib.loc, missing(lib.loc),
-                                 quiet = TRUE)) {
-            file <- file.path(pkg, "libs",
-                              paste(chname, file.ext, sep = ""))
-            if(file.exists(file)) break
-            else
-                file <- ""
-        }
-        if(file == "") {
-            stop(paste("dynamic library `", chname, "' not found",
-                       sep = ""))
-        }
-        if (verbose)
-            cat("now dyn.load(", file, ")..\n", sep = "")
-        dyn.load(file, ...)
-        assign(".Dyn.libs", c(.Dyn.libs, chname), envir = .AutoloadEnv)
+  if (!exists(".Dyn.libs"))
+    assign(".Dyn.libs", character(0), envir = .AutoloadEnv)
+  if (missing(chname) || (LEN <- nchar(chname)) == 0)
+    return(.Dyn.libs)
+  nc.ext <- nchar(file.ext)
+  if (substr(chname, LEN - nc.ext + 1, LEN) == file.ext)
+    chname <- substr(chname, 1, LEN - nc.ext)
+  if (is.na(match(chname, .Dyn.libs))) {
+    file <- system.file(file.path("libs", paste(chname, file.ext,
+			      sep = "")), pkg = package, lib = lib.loc)[1]
+    if (file == "") {
+      stop(paste("dynamic library `", chname, "' not found",
+		 sep = ""))
     }
-    invisible(.Dyn.libs)
+    if (verbose)
+      cat("now dyn.load(", file, ")..\n", sep = "")
+    dyn.load(file, ...)
+    assign(".Dyn.libs", c(.Dyn.libs, chname), envir = .AutoloadEnv)
+  }
+  invisible(.Dyn.libs)
 }
 
 require <- function(package, quietly = FALSE, warn.conflicts = TRUE,
@@ -221,51 +228,4 @@ require <- function(package, quietly = FALSE, warn.conflicts = TRUE,
         pos <- pos[!m]
     }
     unlist(searchpaths[pos], use.names=FALSE)
-}
-
-.find.package <-
-function(package, lib.loc = .lib.loc, use.attached, quiet = FALSE) {
-    
-    if(missing(use.attached))
-        use.attached <- missing(lib.loc)
-    else if(is.null(use.attached))
-        use.attached <- FALSE
-    else if(!is.logical(use.attached))
-        stop("incorrect value for `use.attached'")
-    
-    fQuote <- function(s) paste("`", s, "'", sep = "")
-
-    n <- length(package)
-    if(n == 0)
-        return(character(0))
-
-    bad <- character(0)                 # names of packages not found    
-    paths <- character(0)               # paths to packages found
-
-    for(pkg in package) {
-        fp <- file.path(lib.loc, pkg)
-        if(use.attached)
-            fp <- c(.path.package(pkg, TRUE), fp)
-        fp <- unique(fp[file.exists(fp)])
-        if(length(fp) == 0) {
-            bad <- c(bad, pkg)
-            next
-        }
-        if(length(fp) > 1) {
-            fp <- fp[1]
-            warning(paste("package `", pkg, "' found more than once,\n",
-                          "using the one found in `", dirname(fp), "'",
-                          sep = ""))
-        }
-        paths <- c(paths, fp)
-    }
-
-    if(!quiet && (length(bad) > 0)) {
-        if(length(paths) == 0)
-            stop("none of the packages were found")
-        for(pkg in bad)
-            warning(paste("there is no package called", fQuote(pkg)))
-    }
-
-    paths
 }

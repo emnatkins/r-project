@@ -138,21 +138,18 @@ gofX.manova <- manova(formula = cbind(A, B, C, D) ~ groups, data = gofX.df)
 try(summary(gofX.manova))
 ## should fail with an error message `residuals have rank 3 < 4'
 
-## Prior to 1.3.0 dist did not handle missing values, and the
-## internal C code was incorrectly scaling for missing values.
-library(mva)
-data(trees)
-z <- as.matrix(t(trees))
-z[1,1] <- z[2,2] <- z[3,3] <- z[2,4] <- NA
-dist(z, method="euclidean")
-dist(z, method="maximum")
-dist(z, method="manhattan")
-dist(z, method="canberra")
-detach("package:mva")
-
 ## F. Tusell 2001-03-07.  printing kernels.
 library(ts)
 kernel("daniell", m=5)
 kernel("modified.daniell", m=5)
 kernel("daniell", m=c(3,5,7))
 ## fixed by patch from Adrian Trapletti 2001-03-08
+
+
+## PR 883 (cor(x,y) when is.null(y))
+try(cov(rnorm(10), NULL))
+try(cor(rnorm(10), NULL))
+## gave the variance and 1 respectively in 1.2.2.
+try(var(NULL))
+try(var(numeric(0)))
+## gave NA in 1.2.2

@@ -1,6 +1,6 @@
 install.packages <- function(pkgs, lib, CRAN=getOption("CRAN"),
                              contriburl=contrib.url(CRAN),
-                             method, available=NULL, destdir=NULL)
+                             method="auto", available=NULL, destdir=NULL)
 {
     if(missing(lib) || is.null(lib)) {
         lib <- .lib.loc[1]
@@ -60,7 +60,7 @@ install.packages <- function(pkgs, lib, CRAN=getOption("CRAN"),
 download.packages <- function(pkgs, destdir, available=NULL,
                               CRAN=getOption("CRAN"),
                               contriburl=contrib.url(CRAN),
-                              method)
+                              method="auto")
 {
     localcran <- length(grep("^file:", contriburl)) > 0
     if(is.null(available))

@@ -6,6 +6,7 @@
 \alias{download.packages}
 \alias{install.packages}
 \alias{contrib.url}
+\alias{newerVersion}
 \title{Download Packages from CRAN}}
 \description{
   These functions can be used to automatically compare the version
@@ -15,22 +16,23 @@
 \usage{
 update.packages(lib.loc = .lib.loc, CRAN = getOption("CRAN"),
                 contriburl = contrib.url(CRAN),
-                method, instlib = NULL,
+                method = "auto", instlib = NULL,
                 ask=TRUE, available=NULL, destdir=NULL)
 
 installed.packages(lib.loc = .lib.loc)
-CRAN.packages(CRAN = getOption("CRAN"), method,
+CRAN.packages(CRAN = getOption("CRAN"), method = "auto",
               contriburl = contrib.url(CRAN))
 old.packages(lib.loc = .lib.loc, CRAN = getOption("CRAN"),
              contriburl = contrib.url(CRAN),
-             method, available = NULL)
+             method = "auto", available = NULL)
 
 download.packages(pkgs, destdir, available = NULL,
                   CRAN = getOption("CRAN"), 
-                  contriburl = contrib.url(CRAN), method)
+                  contriburl = contrib.url(CRAN), method = "auto")
 install.packages(pkgs, lib, CRAN = getOption("CRAN"),
                  contriburl = contrib.url(CRAN),
-                 method, available = NULL, destdir = NULL)
+                 method = "auto", available = NULL, destdir = NULL)
+newerVersion(a, b)
 }
 \arguments{ 
   \item{lib.loc}{A character vector describing the location of R
@@ -51,6 +53,8 @@ install.packages(pkgs, lib, CRAN = getOption("CRAN"),
     install the packages.}
   \item{ask}{If \code{TRUE}, ask before packages are actually downloaded
     and installed.}
+  \item{a, b}{Version strings of R packages, valid seperators are
+    \code{.} and \code{-}.}
 }
 \details{
   \code{installed.packages} scans the \file{DESCRIPTION} files of each
@@ -60,7 +64,7 @@ install.packages(pkgs, lib, CRAN = getOption("CRAN"),
   available in the contrib section of CRAN, the comprehensive R archive
   network.  The current list of packages is downloaded over the internet
   (or copied from a local CRAN mirror). Both functions use
-  \code{\link{read.dcf}} for parsing the description files.
+  \code{\link{parse.dcf}} for parsing the description files.
   \code{old.packages} compares the two lists and reports installed
   packages that have newer versions on CRAN.
 
@@ -104,6 +108,9 @@ install.packages(pkgs, lib, CRAN = getOption("CRAN"),
   \code{NULL} (the default) a temporary directory is used, and the user
   will be given the option of deleting the temporary files once the
   packages are installed.
+
+  \code{newerVersion(a, b)} is a helper function that returns
+  \code{TRUE} when version \code{a} is newer than version \code{b}.
 }
 #ifdef windows
 \note{
@@ -118,6 +125,6 @@ install.packages(pkgs, lib, CRAN = getOption("CRAN"),
   \code{\link{INSTALL}}, \code{\link{REMOVE}},
 #endif
   \code{\link{library}}, \code{\link{.packages}},
-  \code{\link{read.dcf}}, \code{\link{download.file}}
+  \code{\link{parse.dcf}}, \code{\link{download.file}}
 }
 \keyword{utilities}

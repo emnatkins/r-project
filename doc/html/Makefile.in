@@ -21,9 +21,10 @@ INSTFILES = \
 	template.html \
 	thanks.html
 ## FIXME:
+## Remove resources.html when releasing 1.3.0
 ## build-help really should not create function.html and package.html
 ## in *this* directory.
-CLEANFILES = function.html packages.html
+CLEANFILES = $(INSTFILES) function.html packages.html resource.html
 ## </FIXME>
 DISTFILES = Makefile.in $(INSTFILES) index-default.html
 SUBDIRS = search
@@ -38,7 +39,7 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	  $(SHELL) ./config.status
 
 R: Makefile $(OBJECTS)
-	@if test "$(BUILDDIR_IS_SRCDIR)" = no ; then \
+	@if [ "$(srcdir)" != "." ]; then \
 	  $(MAKE) rhome=$(top_builddir) install-sources; \
 	fi
 	@for d in $(SUBDIRS); do \
@@ -84,10 +85,10 @@ clean:
 	@for d in $(SUBDIRS); do \
 	  (cd $${d} && $(MAKE) $@); \
 	done
-	@if test "$(BUILDDIR_IS_SRCDIR)" = no ; then \
-	  rm -f $(INSTFILES); \
+	@if [ "$(srcdir)" != "." ]; then \
+	  rm -f $(CLEANFILES); \
 	fi
-	@rm -f $(CLEANFILES) $(OBJECTS)
+	@rm -f $(OBJECTS)
 distclean: clean
 	@for d in $(SUBDIRS); do \
 	  (cd $${d} && $(MAKE) $@); \

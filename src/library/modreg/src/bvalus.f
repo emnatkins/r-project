@@ -1,4 +1,5 @@
       subroutine bvalus(n,knot,coef,nk,x,s,order)
+      implicit none
 C Args
       integer n, nk, order
       double precision knot(*),coef(*),x(*),s(*)

@@ -5,11 +5,14 @@
 \alias{print.POSIXlt}
 \alias{summary.POSIXct}
 \alias{summary.POSIXlt}
-\alias{+.POSIXt}
-\alias{-.POSIXt}
-\alias{Ops.POSIXt}
-\alias{Math.POSIXt}
+\alias{+.POSIXct}
+\alias{-.POSIXct}
+\alias{Ops.POSIXct}
+\alias{Math.POSIXct}
 \alias{Summary.POSIXct}
+\alias{+.POSIXlt}
+\alias{-.POSIXlt}
+\alias{Ops.POSIXlt}
 \alias{Math.POSIXlt}
 \alias{Summary.POSIXlt}
 \alias{[.POSIXct}
@@ -24,16 +27,6 @@
 \alias{as.matrix.POSIXlt}
 \alias{mean.POSIXct}
 \alias{mean.POSIXlt}
-\alias{difftime}
-\alias{print.difftime}
-\alias{round.difftime}
-
-% back-compatibility functions
-\alias{-.POSIXct}
-\alias{-.POSIXlt}
-\alias{Ops.POSIXct}
-\alias{Ops.POSIXlt}
-
 \title{Date-Time Classes}
 \description{
   Description of the classes \code{"POSIXlt"} and \code{"POSIXct"}
@@ -49,8 +42,6 @@ summary.POSIXlt(object, digits = 15, ...)
 time + number
 time - number
 time1 lop time2
-difftime(time1, time2, tz = "",
-         units = c("auto", "secs", "mins", "hours", "days"))
 
 c(time1, ...)
 mean(time)
@@ -65,9 +56,6 @@ mean(time)
   \item{number}{a numeric object.}
   \item{lop}{One of \code{==}, \code{!=}, \code{<}, \code{<=}, \code{>}
     or \code{>=}.}
-  \item{units}{character.  Units in which the results are desired. If
-    \code{"auto"}, a suitable set of units is chosen, the largest
-    possible in which all the absolute differences are greater than one.}
 }
 \details{
   There are two basic classes of date/times.  Class \code{"POSIXct"}
@@ -92,17 +80,11 @@ mean(time)
   their names.
 
   \code{"POSIXct"} is more convenient for including in data frames, and
-  \code{"POSIXlt"} is closer to human-readable forms.
-  A virtual class \code{"POSIXt"}inherits from both of the classes: it
-  is used to allow operations such as subtraction to mix the two classes.
-
-  Logical comparisons and limited arithmetic are available for both classes.
-  One can add or subtract a number of seconds from a date-time object,
-  but not add two date-time objects. Subtraction of two date-time objects
-  is equivalent to using \code{difftime}; see the details below.  Be aware
-  that \code{"POSIXlt"} objects will be interpreted as being in the
-  current timezone for these operations, unless a timezone has been
-  specified.
+  \code{"POSIXlt"} is closer to human-readable forms.  Logical
+  comparisons and limited arithmetic are available for both classes.
+  Differences between objects are returned as the number of (non-leap)
+  seconds between them.  One can add or subtract a number of seconds
+  from a date-time object, but not add two date-time objects.
 
   \code{"POSIXlt"} objects will often have an attribute \code{"tzone"},
   a character vector of length 3 giving the timezone name from the
@@ -128,11 +110,6 @@ mean(time)
 
   Using \code{c} on \code{"POSIXlt"} objects converts them to the
   current time zone.
-
-  Function \code{difftime} takes a difference of two date/time objects
-  (of either class) and returns an object of class \code{"difftime"}
-  with an attribute indicating the units.  There is a \code{\link{round}}
-  method for objects of this class.
 }
 \seealso{
   \code{\link{as.POSIXct}} and \code{\link{as.POSIXlt}} for conversion

@@ -19,11 +19,6 @@ eigen(x, symmetric, only.values=FALSE)
   interface to the EISPACK routines \code{RS}, \code{RG}, \code{CH}
   and \code{CG}.
 }
-\details{
-  If \code{symmetric} is unspecified, the code attempts to
-  determine if the matrix is symmetric up to plausible numerical
-  inaccuracies.  It is faster and surer to set the value yourself.
-}
 \value{
   The spectral decomposition of \code{x} is returned
   as components of a list.

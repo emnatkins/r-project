@@ -156,17 +156,6 @@ getOption(x)
     to be used in the data editor \code{\link{dataentry}}.  If this is
     unset, 0, negative or \code{NA}, variable cell widths are used.}
 
-  \item{encoding}{An integer vector of length 256 holding an input
-    encoding.  Defaults to \code{native.enc} (= \code{0:255}).
-    See \code{\link{connections}}.}
-
-  \item{timeout}{Integer.  The timeout for Internet operations,
-    in seconds.  Default 60 seconds.}
-
-  \item{internet.info}{The minimum level of information to be printed on
-    url downloads etc. Default is 2, for failure causes.  Set to 1 or 0
-    to get more information.}
-
   \item{x}{a character string holding one of the above option names.}
 }
 \description{

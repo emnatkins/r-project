@@ -616,10 +616,10 @@ SEXP do_unclass(SEXP call, SEXP op, SEXP args, SEXP env)
     return CAR(args);
 }
 
-/* ___unused___  InheritsClass() and RemoveClass() */
-Rboolean InheritsClass(SEXP x, char *name)
+/* InheritsClass  -  does an object inherit from a class */
+
+int InheritsClass(SEXP x, char *name)
 {
-/* does an object inherit from a class ? */
     SEXP class;
     int i, nclass;
     if (isObject(x)) {
@@ -627,9 +627,9 @@ Rboolean InheritsClass(SEXP x, char *name)
 	nclass = length(class);
 	for (i = 0; i < nclass; i++)
 	    if (!strcmp(CHAR(STRING_ELT(class, i)), name))
-		return TRUE;
+		return 1;
     }
-    return FALSE;
+    return 0;
 }
 
 void RemoveClass(SEXP x, char *name)

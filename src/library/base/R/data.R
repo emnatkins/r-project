@@ -18,11 +18,12 @@ function (..., list = character(0),
         else
             show.data(lib.loc = lib.loc)
     } else for (name in names) {
-        paths <- .find.package(package, lib.loc, quiet = TRUE)
-        if(missing(lib.loc))
-            paths <- c(.path.package(package, TRUE), getwd(), paths)
-        paths <- file.path(paths, "data")
-        paths <- unique(paths[file.exists(paths)])
+        paths <- system.file("data", pkg = package, lib = lib.loc)
+        if(missing(lib.loc)) {
+            paths0 <- file.path(c(.path.package(package, TRUE), getwd()),
+                                "data")
+            paths <- c(paths0[file.exists(paths0)], paths)
+        }
         files <- NULL
         for (p in paths) {
             if(file.exists(file.path(p, "Rdata.zip"))) {
@@ -82,15 +83,14 @@ show.data <-
 function(package = .packages(), lib.loc = .lib.loc)
 {
     ## give `index' of all possible data sets
-    paths <- .find.package(package, lib.loc)
-    if(missing(lib.loc))
-        paths <- unique(c(.path.package(package, TRUE), getwd(), paths))
-    
+    file <- tempfile("R.")
+    on.exit(file.remove(file))
+    file.create(file)
     first <- TRUE
     nodata <- noindex <- character(0)
-    outFile <- tempfile("Rdata.")
-    outConn <- file(outFile, open = "w")
-
+    paths <- system.file(pkg = package, lib = lib.loc)
+    if(missing(lib.loc))
+        paths <- unique(c(.path.package(package, TRUE), getwd(), paths))
     for (path in paths) {
         pkg <- basename(path)
         if(!file.exists(path)) next
@@ -99,14 +99,12 @@ function(package = .packages(), lib.loc = .lib.loc)
             next
         }
         INDEX <- file.path(path, "data", "00Index")
-        if(!file.exists(INDEX))
+        if(INDEX == "")
             INDEX <- file.path(path, "data", "index.doc")
-        if(file.exists(INDEX)) {
-            writeLines(paste(ifelse(first, "", "\n"),
-                             "Data sets in package `",
-                             pkg, "':\n\n", sep = ""),
-                       outConn)
-            writeLines(readLines(INDEX), outConn)
+        if(INDEX != "") {
+            cat(paste(ifelse(first, "", "\n"), "Data sets in package `",
+                      pkg, "':\n\n", sep = ""), file = file, append = TRUE)
+            file.append(file, INDEX)
             first <- FALSE
         } else {
             ## no index: check for datasets -- won't work if zipped
@@ -116,19 +114,7 @@ function(package = .packages(), lib.loc = .lib.loc)
     }
     if (first) {
         warning("no data listings found")
-        close(outConn)
-    }
-    else {
-        if(missing(package))
-            writeLines(paste("\n",
-                             "Use `data(package = ",
-                             ".packages(all.available = TRUE))'\n",
-                             "to list the data sets in all ",
-                             "*available* packages.", sep = ""),
-                       outConn)
-        close(outConn)
-        file.show(outFile, delete.file = TRUE, title = "R data sets")
-    }
+    } else file.show(file, delete.file = TRUE, title = "R data sets")
     if(!missing(package)) {
         if(length(nodata) > 1)
             warning(paste("packages `", paste(nodata, collapse=", "),

@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000, 2001   The R Development Core Team.
+ *  Copyright (C) 2000	    The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,9 +30,8 @@ typedef struct Rconn
     void (*destroy)(struct Rconn *); /* when closing connection */
     int (*vfprintf)(struct Rconn *, const char *, va_list);
     int (*fgetc)(struct Rconn *);
-/*    int (*ungetc)(int c, struct Rconn *); */
-    long (*seek)(struct Rconn *, int, int);
-    void (*truncate)(struct Rconn *);
+    int (*ungetc)(int c, struct Rconn *);
+    long (*seek)(struct Rconn *, int);
     int (*fflush)(struct Rconn *);
     size_t (*read)(void *, size_t, size_t, struct Rconn *);
     size_t (*write)(const void *, size_t, size_t, struct Rconn *);
@@ -40,20 +39,12 @@ typedef struct Rconn
     int nPushBack, posPushBack; /* number of lines, position on top line */
     char **PushBack;
     int save, save2;
-    unsigned char encoding[256];
     void *private;
 } *Rconnection;
 
 typedef struct fileconn {
     FILE *fp;
 } *Rfileconn;
-
-#ifdef HAVE_LIBZ
-typedef struct gzfileconn {
-    void *fp;
-    int cp;
-} *Rgzfileconn;
-#endif
 
 typedef struct textconn {
     char *data;  /* all the data */
@@ -69,30 +60,15 @@ typedef struct outtextconn {
     char lastline[LAST_LINE_LEN];
 } *Routtextconn;
 
-typedef enum {HTTPsh, FTPsh} UrlScheme;
-
-typedef struct urlconn {
-    void *ctxt;
-    UrlScheme type;
-} *Rurlconn;
-
-typedef struct sockconn {
-    int port;
-    int server;
-    int fd;
-    char *host;
-} *Rsockconn;
-
 int Rconn_fgetc(Rconnection con);
 int Rconn_ungetc(int c, Rconnection con);
-int Rconn_getline(Rconnection con, char *buf, int bufsize);
 int Rconn_printf(Rconnection con, const char *format, ...);
 Rconnection getConnection(int n);
-Rconnection getConnection_no_err(int n);
-Rboolean switch_stdout(int icon, int closeOnExit);
+void switch_stdout(int icon);
 SEXP R_ParseConn(Rconnection con, int n, int *status);
 void con_close(int i);
-void Rconn_setEncoding(Rconnection con, SEXP enc);
-void R_SinkReset(void);
 
-int R_OutputCon, R_ErrorCon;
+
+
+
+

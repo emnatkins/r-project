@@ -17,7 +17,11 @@ DISTFILES = $(INSTFILES) \
 	acconfig.h acinclude.m4 aclocal.m4 \
 	config.site configure configure.in \
 	date-stamp
-SUBDIRS = src afm doc etc share tests tools
+## FIXME:
+## Update when releasing 1.3.0
+CLEANFILES = $(INSTFILES) MIRROR-SITES
+## </FIXME>
+SUBDIRS = src afm demos doc etc share tests tools
 
 GZIP = --best
 
@@ -42,12 +46,12 @@ libtool: $(LIBTOOL_DEPS)
 	$(SHELL) ./config.status --recheck
 
 R: Makefile
-	@if test "$(BUILDDIR_IS_SRCDIR)" = no ; then \
+	@if [ "$(srcdir)" != "." ]; then \
 	  for f in $(INSTFILES); do \
 	    $(INSTALL_DATA) $(srcdir)/$${f} $(top_builddir); \
 	  done; \
 	fi
-	@for d in tools afm doc etc share src; do \
+	@for d in tools afm doc etc share src demos; do \
 	  (cd $${d} && $(MAKE) R) || exit 1; \
 	done
 	@if [ ! -f src/library/stamp-docs ]; then \
@@ -62,7 +66,7 @@ help html latex examples: FORCE
 FORCE:
 
 install: installdirs
-	@for d in afm doc etc share; do \
+	@for d in afm demos doc etc share; do \
 	  (cd $${d} && $(MAKE) $@) || exit 1; \
 	done
 	@for f in $(INSTFILES); do \
@@ -141,21 +145,20 @@ uninstall:
 	@rm -rf $(rhome)/bin
 	@rm -rf $(rhome)/gnome
 	@rm -f $(bindir)/R
-	@for f in $(INSTFILES); do \
+	@for f in $(CLEANFILES); do \
 	  rm -f $(rhome)/$${f}; \
 	done
-	@for d in afm doc etc share; do \
+	@for d in afm demos doc etc share; do \
 	  (cd $${d} && $(MAKE) $@); \
 	done
-	@rm -rf $(rhome)/demos
 
 mostlyclean: clean
 clean:
 	@for d in $(SUBDIRS); do \
 	  (cd $${d} && $(MAKE) $@); \
 	done
-	@if test "$(BUILDDIR_IS_SRCDIR)" = no ; then \
-	  rm -f $(INSTFILES); \
+	@if [ "$(srcdir)" != "." ]; then \
+	  rm -f $(CLEANFILES); \
 	fi
 distclean: clean
 	@for d in $(SUBDIRS); do \

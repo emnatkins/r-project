@@ -1,4 +1,4 @@
-link.html.help <- function(verbose=FALSE, lib.loc=.Library)
+link.html.help <- function(verbose=FALSE)
 {
     if(!file.exists(file.path(R.home(), "doc", "html")))
        return(invisible(NULL))
@@ -6,13 +6,13 @@ link.html.help <- function(verbose=FALSE, lib.loc=.Library)
         cat("updating HTML package descriptions\n")
         flush.console()
     }
-    make.packages.html(lib.loc)
-    make.function.html(lib.loc)
-    make.search.html(lib.loc)
+    make.packages.html()
+    make.function.html()
+    make.search.html()
 }
 
 
-make.packages.html <- function(lib.loc=.Library)
+make.packages.html <- function()
 {
     f.tg <- file.path(R.home(), "doc/html/packages.html")
     f.hd <- file.path(R.home(), "doc/html/packages-head.html")
@@ -20,9 +20,9 @@ make.packages.html <- function(lib.loc=.Library)
     file.append(f.tg, f.hd)
     out <- file(f.tg, open="a")
     cat('<table align="center" summary="R Package list">\n', file=out)
-    pg <- sort(.packages(all.available = TRUE, lib.loc = lib.loc))
+    pg <- sort(.packages(all.available = TRUE, lib.loc = .Library))
     for (i in  pg) {
-        t.file <- system.file("TITLE", package = i)
+        t.file <- system.file("TITLE", pkg = i)
         if (nchar(t.file) > 0)
             f.t <- scan(t.file, what="c", quiet=TRUE, quote="")
         else {
@@ -30,9 +30,8 @@ make.packages.html <- function(lib.loc=.Library)
             if (title == "NA") title <- "-- Title is missing --"
             f.t <- c(i, title)
         }
-        lib <- gsub(":", "|", system.file(package=i))
         cat('<tr align="left" valign="top">\n',
-            "<td><a href=\"file:///", lib, "/html/00Index.html\">",
+            "<td><a href=\"../../library/", i ,"/html/00Index.html\">",
             f.t[1], "</a></td><td>", paste(f.t[-1], collapse=" "),
             "</td></tr>\n", file=out, sep="")
     }
@@ -42,20 +41,20 @@ make.packages.html <- function(lib.loc=.Library)
 }
 
 
-make.function.html <- function(lib.loc=.Library)
+make.function.html <- function()
 {
     f.tg <- file.path(R.home(), "/doc/html/function.html")
     f.hd <- file.path(R.home(), "/doc/html/function-head.html")
     file.create(f.tg)
     file.append(f.tg,f.hd)
     out <- file(f.tg, open="a")
-    pg <- .packages(all.available=TRUE, lib.loc=lib.loc)
+    pg <- .packages(all.available=TRUE, lib.loc=.Library)
     for (p in pg) {
-        f1 <- system.file("help", "AnIndex", package = p)
+        f1 <- system.file("/help/AnIndex", pkg=p)
         if (f1=="") next
         b <- scan(f1, what="c", sep="\t", quiet = TRUE, quote="")
         b <- matrix(b, ncol=2, byrow=TRUE)
-        f1 <- system.file("help", "00Titles", package = p)
+        f1 <- system.file("/help/00Titles", pkg = p)
         d <- scan(f1, what="c", sep="\t", quiet = TRUE, quote="")
         d <- matrix(d, ncol=2, byrow=TRUE)
         m <- match(b[, 1], d[, 1])
@@ -90,13 +89,13 @@ make.function.html <- function(lib.loc=.Library)
     invisible(fun)
 }
 
-make.search.html <- function(lib.loc=.Library)
+make.search.html <- function()
 {
     f.tg <- file.path(R.home(), "doc/html/search/index.txt")
     if(file.exists(f.tg)) unlink(f.tg)
     out <- file(f.tg, open="w")
-    for (i in  .packages(all.available=TRUE, lib.loc=lib.loc)) {
-        cfile <- system.file("CONTENTS", package = i)
+    for (i in  .packages(all.available=TRUE, lib.loc=.Library)) {
+        cfile <- system.file("CONTENTS", pkg = i)
         if(nchar(cfile)) writeLines(readLines(cfile), out)
     }
     close(out)

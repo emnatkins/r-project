@@ -1,14 +1,11 @@
 \name{friedman.test}
 \alias{friedman.test}
-\alias{friedman.test.default}
-\alias{friedman.test.formula}
 \title{Friedman Rank Sum Test}
 \description{
   Performs a Friedman rank sum test with unreplicated blocked data.
 }
 \usage{
-\method{friedman.test}{default}(y, groups, blocks)
-\method{friedman.test}{formula}(formula, data, subset, na.action)
+friedman.test(y, groups, blocks)
 }
 \arguments{
   \item{y}{either a numeric vector of data values, or a data matrix.}
@@ -18,16 +15,6 @@
   \item{blocks}{a vector giving the block for the corresponding
     elements of \code{y} if this is a vector;  ignored if \code{y}
     is a matrix.  If not a factor object, it is coerced to one.}
-  \item{formula}{a formula of the form \code{a ~ b | c}, where \code{a},
-    \code{b} and \code{c} give the data values and corresponding groups
-    and blocks, respectively.}
-  \item{data}{an optional data frame containing the variables in the
-    model formula.}
-  \item{subset}{an optional vector specifying a subset of observations
-    to be used.}
-  \item{na.action}{a function which indicates what should happen when
-    the data contain \code{NA}s.  Defaults to
-    \code{getOption("na.action")}.}  
 }
 \details{
   \code{friedman.test} can be used for analyzing unreplicated complete
@@ -107,6 +94,5 @@ wb <- aggregate(warpbreaks$breaks,
                 FUN = mean)
 wb
 friedman.test(wb$x, wb$w, wb$t)
-friedman.test(x ~ w | t, data = wb)
 }
 \keyword{htest}

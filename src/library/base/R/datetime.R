@@ -1,5 +1,5 @@
 Sys.time <- function()
-    structure(.Internal(Sys.time()), class = c("POSIXt", "POSIXct"))
+    structure(.Internal(Sys.time()), class = "POSIXct")
 
 Sys.timezone <- function() as.vector(Sys.getenv("TZ"))
 
@@ -37,7 +37,7 @@ as.POSIXct.date <- function(x, ...)
 {
     if(inherits(x, "date")) {
         x <- (x - 3653) * 86400 # origin 1960-01-01
-        return(structure(x, class = c("POSIXt", "POSIXct")))
+        return(structure(x, class = "POSIXct"))
     } else stop(paste("`", deparse(substitute(x)),
                       "' is not a \"dates\" object", sep=""))
 }
@@ -50,7 +50,7 @@ as.POSIXct.dates <- function(x, ...)
         x <- as.numeric(x) * 86400
         if(length(z) == 3 && is.numeric(z))
             x  <- x - as.numeric(ISOdate(z[3], z[1], z[2], 0))
-        return(structure(x, class = c("POSIXt", "POSIXct")))
+        return(structure(x, class = "POSIXct"))
     } else stop(paste("`", deparse(substitute(x)),
                       "' is not a \"dates\" object", sep=""))
 }
@@ -58,7 +58,7 @@ as.POSIXct.dates <- function(x, ...)
 as.POSIXct.POSIXlt <- function(x, tz = "")
 {
     if(missing(tz) && !is.null(attr(x, "tzone"))) tz <- attr(x, "tzone")[1]
-    structure(.Internal(as.POSIXct(x, tz)), class = c("POSIXt", "POSIXct"))
+    structure(.Internal(as.POSIXct(x, tz)), class = "POSIXct")
 }
 
 as.POSIXct.default <- function(x, tz = "")
@@ -116,43 +116,37 @@ summary.POSIXlt <- function(object, digits = 15, ...)
     summary(as.POSIXct(object), digits = digits, ...)
 
 
-"+.POSIXt" <- function(e1, e2)
+"+.POSIXct" <- function(e1, e2)
 {
     if (nargs() == 1) return(e1)
     # only valid if one of e1 and e2 is a scalar.
-    if(inherits(e1, "POSIXt") && inherits(e2, "POSIXt"))
-        stop("binary + is not defined for POSIXt objects")
-    if(inherits(e1, "POSIXlt")) e1 <- as.POSIXct(e1)
-    if(inherits(e2, "POSIXlt")) e2 <- as.POSIXct(e2)
-    structure(unclass(e1) + unclass(e2), class = c("POSIXt", "POSIXct"))
+    if(inherits(e1, "POSIXct") && inherits(e2, "POSIXct"))
+        stop("binary + is not defined for POSIXct objects")
+    structure(NextMethod(), class = "POSIXct")
 }
 
-"-.POSIXt" <- function(e1, e2)
+"-.POSIXct" <- function(e1, e2)
 {
-    if(!inherits(e1, "POSIXt"))
-        stop("Can only subtract from POSIXt objects")
-    if (nargs() == 1) stop("unary - is not defined for POSIXt objects")
-    if(inherits(e2, "POSIXt")) return(difftime(e1, e2))
-    if(!is.null(class(e2)))
-        stop("can only subtract numbers from POSIXt objects")
-    structure(unclass(as.POSIXct(e1)) - e2, class = c("POSIXt", "POSIXct"))
+    if(!inherits(e1, "POSIXct"))
+        stop("Can only subtract from POSIXct objects")
+    if (nargs() == 1) stop("unary - is not defined for POSIXct objects")
+    res<- NextMethod()
+    if(inherits(e2, "POSIXct")) unclass(res) else res
 }
 
-Ops.POSIXt <- function(e1, e2)
+Ops.POSIXct <- function(e1, e2)
 {
     if (nargs() == 1)
-        stop(paste("unary", .Generic, "not defined for POSIXt objects"))
+        stop(paste("unary", .Generic, "not defined for POSIXct objects"))
     boolean <- switch(.Generic, "<" = , ">" = , "==" = ,
-                      "!=" = , "<=" = , ">=" = TRUE, FALSE)
-    if (!boolean) stop(paste(.Generic, "not defined for POSIXt objects"))
-    if(inherits(e1, "POSIXlt")) e1 <- as.POSIXct(e1)
-    if(inherits(e2, "POSIXlt")) e2 <- as.POSIXct(e2)
+                 "!=" = , "<=" = , ">=" = TRUE, FALSE)
+    if (!boolean) stop(paste(.Generic, "not defined for POSIXct objects"))
     NextMethod(.Generic)
 }
 
-Math.POSIXt <- function (x, ...)
+Math.POSIXct <- function (x, ...)
 {
-    stop(paste(.Generic, "not defined for POSIXt objects"))
+    stop(paste(.Generic, "not defined for POSIXct objects"))
 }
 
 Summary.POSIXct <- function (x, ...)
@@ -164,13 +158,50 @@ Summary.POSIXct <- function (x, ...)
     val
 }
 
+"+.POSIXlt" <- function(e1, e2)
+{
+    if (nargs() == 1) return(e1)
+    # only valid if one of e1 and e2 is a scalar.
+    if(inherits(e1, "POSIXlt") && inherits(e2, "POSIXlt"))
+        stop("binary + is not defined for POSIXlt objects")
+    if(inherits(e1, "POSIXlt")) e1 <- as.POSIXct(e1)
+    if(inherits(e2, "POSIXlt")) e2 <- as.POSIXct(e2)
+    e1 + e2
+}
+
+"-.POSIXlt" <- function(e1, e2)
+{
+    if (nargs() == 1)
+        stop("unary - is not defined for dt objects")
+    if(inherits(e1, "POSIXlt")) e1 <- as.POSIXct(e1)
+    if(inherits(e2, "POSIXlt")) e2 <- as.POSIXct(e2)
+    e1 - e2
+}
+
+Ops.POSIXlt <- function(e1, e2)
+{
+    if (nargs() == 1)
+        stop(paste("unary", .Generic, "not defined for POSIXlt objects"))
+    boolean <- switch(.Generic, "<" = , ">" = , "==" = ,
+                 "!=" = , "<=" = , ">=" = TRUE, FALSE)
+    if (!boolean) stop(paste(.Generic, "not defined for POSIXlt objects"))
+    e1 <- as.POSIXct(e1)
+    e2 <- as.POSIXct(e2)
+    NextMethod(.Generic)
+}
+
+Math.POSIXlt <- function (x, ...)
+{
+    stop(paste(.Generic, "not defined for dt objects"))
+}
+
 Summary.POSIXlt <- function (x, ...)
 {
     ok <- switch(.Generic, max = , min = , range = TRUE, FALSE)
     if (!ok) stop(paste(.Generic, "not defined for POSIXlt objects"))
     x <- as.POSIXct(x)
     val <- NextMethod(.Generic)
-    as.POSIXlt(structure(val, class = c("POSIXt", "POSIXct")))
+    as.POSIXct(val)
 }
 
 "[.POSIXct" <-
@@ -212,11 +243,11 @@ as.data.frame.POSIXct <- .Alias(as.data.frame.vector)
 
 is.na.POSIXlt <- function(x) is.na(as.POSIXct(x))
 
-c.POSIXct <- function(...)
+c.POSIXct <- function(..., recursive=FALSE)
     structure(c(unlist(lapply(list(...), unclass))), class="POSIXct")
 
 ## we need conversion to POSIXct as POSIXlt objects can be in different tz.
-c.POSIXlt <- function(...)
+c.POSIXlt <- function(..., recursive=FALSE)
     as.POSIXlt(do.call("c", lapply(list(...), as.POSIXct)))
 
 ## force absolute comparisons
@@ -252,10 +283,10 @@ axis.POSIXct <- function(side, x, format, ...)
     if(d < 60*60*24*50) {
         zz <- pretty(z/sc)
         z <- zz*sc
-        class(z) <- c("POSIXt", "POSIXct")
+        class(z) <- "POSIXct"
         if(missing(format)) format <- "%b %d"
     } else if(d < 1.1*60*60*24*365) { # months
-        class(z) <- c("POSIXt", "POSIXct")
+        class(z) <- "POSIXct"
         zz <- as.POSIXlt(z)
         zz$mday <- 1; zz$isdst <- zz$hour <- zz$min <- zz$sec <- 0
         zz$mon <- pretty(zz$mon)
@@ -265,7 +296,7 @@ axis.POSIXct <- function(side, x, format, ...)
         z <- as.POSIXct(zz)
         if(missing(format)) format <- "%b"
     } else { # years
-        class(z) <- c("POSIXt", "POSIXct")
+        class(z) <- "POSIXct"
         zz <- as.POSIXlt(z)
         zz$mday <- 1; zz$isdst <- zz$mon <- zz$hour <- zz$min <- zz$sec <- 0
         zz$year <- pretty(zz$year)
@@ -305,90 +336,7 @@ as.matrix.POSIXlt <- function(x)
 }
 
 mean.POSIXct <- function (x, ...)
-    structure(mean(unclass(x), ...), class = c("POSIXt", "POSIXct"))
+    structure(mean(unclass(x), ...), class = "POSIXct")
 
 mean.POSIXlt <- function (x, ...)
     as.POSIXlt(mean(as.POSIXct(x), ...))
-
-difftime <-
-    function(time1, time2, tz = "",
-             units = c("auto", "secs", "mins", "hours", "days"))
-{
-    time1 <- as.POSIXct(time1, tz = tz)
-    time2 <- as.POSIXct(time2, tz = tz)
-    z <- unclass(time1) - unclass(time2)
-    zz <- min(abs(z))
-    if(units == "auto") {
-        if(zz < 60) units <- "secs"
-        else if(zz < 3600) units <- "mins"
-        else if(zz < 86400) units <- "hours"
-        else units <- "days"
-    }
-    switch(units,
-           "secs" = structure(z, units="secs", class="difftime"),
-           "mins" = structure(z/60, units="mins", class="difftime"),
-           "hours"= structure(z/3600, units="hours", class="difftime"),
-           "days" = structure(z/86400, units="days", class="difftime")
-           )
-}
-
-print.difftime <- function(x, digits = getOption("digits"), ...)
-{
-    if(length(x) > 1)
-        cat("Time differences of ",
-            paste(format(unclass(x), digits=digits), collapse = ", "), " ",
-            attr(x, "units"), "\n", sep="")
-    else
-        cat("Time difference of ", format(unclass(x), digits=digits), " ",
-            attr(x, "units"), "\n", sep="")
-
-    invisible(x)
-}
-
-round.difftime <- function (x, digits = 0)
-{
-   units <- attr(x, "units")
-   structure(NextMethod(), units=units, class="difftime")
-}
-
-## for back-compatibility only: POSIXt versions are used as from 1.3.0
-
-"-.POSIXct" <- function(e1, e2)
-{
-    if(!inherits(e1, "POSIXct"))
-        stop("Can only subtract from POSIXct objects")
-    if (nargs() == 1) stop("unary - is not defined for POSIXct objects")
-    res<- NextMethod()
-    if(inherits(e2, "POSIXct")) unclass(res) else res
-}
-
-"-.POSIXlt" <- function(e1, e2)
-{
-    if (nargs() == 1)
-        stop("unary - is not defined for dt objects")
-    if(inherits(e1, "POSIXlt")) e1 <- as.POSIXct(e1)
-    if(inherits(e2, "POSIXlt")) e2 <- as.POSIXct(e2)
-    e1 - e2
-}
-
-Ops.POSIXct <- function(e1, e2)
-{
-    if (nargs() == 1)
-        stop(paste("unary", .Generic, "not defined for POSIXct objects"))
-    boolean <- switch(.Generic, "<" = , ">" = , "==" = ,
-                      "!=" = , "<=" = , ">=" = TRUE, FALSE)
-    if (!boolean) stop(paste(.Generic, "not defined for POSIXct objects"))
-    NextMethod(.Generic)
-}
-
-Ops.POSIXlt <- function(e1, e2)
-{
-    if (nargs() == 1)
-        stop(paste("unary", .Generic, "not defined for POSIXlt objects"))
-    boolean <- switch(.Generic, "<" = , ">" = , "==" = ,
-                      "!=" = , "<=" = , ">=" = TRUE, FALSE)
-    if (!boolean) stop(paste(.Generic, "not defined for POSIXlt objects"))
-    e1 <- as.POSIXct(e1)
-    e2 <- as.POSIXct(e2)
-    NextMethod(.Generic)
-}

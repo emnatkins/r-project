@@ -30,7 +30,9 @@
 \examples{
 plot.mlm         # to see how the ``NotYetImplemented''
                  # reference is made automagically
-try(plot.mlm())
+\testonly{options(error = expression(NULL))# allowing "make check"}
+plot.mlm()
+\testonly{options(error = NULL) # back to Default}
 
 barplot(1:5, inside = TRUE) # `inside' is not yet used
 }

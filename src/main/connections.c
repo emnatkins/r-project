@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000, 2001   The R Development Core Team.
+ *  Copyright (C) 2000,2001   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,10 +27,6 @@
 #include <R_ext/Complex.h>
 /* #include <fcntl.h> not yet */
 
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
-
 /* Win32 does have popen, but it does not work in GUI applications,
    so test that later */
 #ifdef Win32
@@ -40,13 +36,8 @@
 #endif
 
 #define NCONNECTIONS 50
-#define NSINKS 21
 
 static Rconnection Connections[NCONNECTIONS];
-
-static int R_SinkNumber, R_SinkSaved;
-static int SinkCons[NSINKS], SinkConsClose[NSINKS];
-
 
 /* ------------- admin functions (see also at end) ----------------- */
 
@@ -71,29 +62,6 @@ Rconnection getConnection(int n)
 
 }
 
-/* for use in REvprintf */
-Rconnection getConnection_no_err(int n)
-{
-    Rconnection con = NULL;
-
-    if(n < 0 || n == NA_INTEGER || !(con = Connections[n]))
-	return NULL;
-    return con;
-
-}
-
-void Rconn_setEncoding(Rconnection con, SEXP enc)
-{
-    int i;
-
-    if(!isInteger(enc) || length(enc) != 256)
-	error("invalid `enc' argument");
-    for(i = 0; i < 256; i++)
-	con->encoding[i] = (unsigned char) INTEGER(enc)[i];
-}
-
-
-
 /* ------------------- null connection functions --------------------- */
 
 static void null_open(Rconnection con)
@@ -113,15 +81,16 @@ static int null_fgetc(Rconnection con)
     return 0; /* -Wall */
 }
 
-static long null_seek(Rconnection con, int where, int origin)
+static int null_ungetc(int c, Rconnection con)
 {
-    error("seek not enabled for this connection");
+    error("ungetc not enabled for this connection");
     return 0; /* -Wall */
 }
 
-static void null_truncate(Rconnection con)
+static long null_seek(Rconnection con, int where)
 {
-    error("truncate not enabled for this connection");
+    error("seek not enabled for this connection");
+    return 0; /* -Wall */
 }
 
 static int null_fflush(Rconnection con)
@@ -189,45 +158,23 @@ static int file_vfprintf(Rconnection con, const char *format, va_list ap)
 static int file_fgetc(Rconnection con)
 {
     FILE *fp = ((Rfileconn)(con->private))->fp;
-    int c = con->encoding[fgetc(fp)];
+    int c = fgetc(fp);
     return feof(fp) ? R_EOF : c;
 }
 
-static long file_seek(Rconnection con, int where, int origin)
+static int file_ungetc(int c, Rconnection con)
+{
+    FILE *fp = ((Rfileconn)(con->private))->fp;
+    return ungetc(c, fp);
+}
+
+static long file_seek(Rconnection con, int where)
 {
     FILE *fp = ((Rfileconn)(con->private))->fp;
     long pos = ftell(fp);
-    int whence = SEEK_SET;
 
-    switch(origin) {
-    case 2: whence = SEEK_CUR;
-    case 3: whence = SEEK_END;
-    default: whence = SEEK_SET;
-    }
-    if(where >= 0) fseek(fp, where, whence);
+    if(where >= 0) fseek(fp, where, SEEK_SET);
     return pos;
-}
-
-static void file_truncate(Rconnection con)
-{
-    FILE *fp = ((Rfileconn)(con->private))->fp;
-    int fd = fileno(fp);
-    int size = lseek(fd, 0, SEEK_CUR);
-
-    if(!con->isopen || !con->canwrite)
-	error("can only truncate connections open for writing");
-
-#ifdef HAVE_FTRUNCATE
-    if(ftruncate(fd, size))
-	error("file truncation failed");
-#else
-# ifdef Win32
-    if(chsize(fd, size))
-	error("file truncation failed");
-# else
-    error("Unavailable on this platform");
-# endif
-#endif
 }
 
 static int file_fflush(Rconnection con)
@@ -278,8 +225,8 @@ static Rconnection newfile(char *description, char *mode)
     new->destroy = &file_destroy;
     new->vfprintf = &file_vfprintf;
     new->fgetc = &file_fgetc;
+    new->ungetc = &file_ungetc;
     new->seek = &file_seek;
-    new->truncate = &file_truncate;
     new->fflush = &file_fflush;
     new->read = &file_read;
     new->write = &file_write;
@@ -294,9 +241,9 @@ static Rconnection newfile(char *description, char *mode)
 
 SEXP do_file(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP sfile, sopen, ans, class, enc;
+    SEXP sfile, sopen, ans, class;
     char *file, *open;
-    int i, ncon, block;
+    int ncon, block;
     Rconnection con = NULL;
 
     checkArity(op, args);
@@ -312,14 +259,9 @@ SEXP do_file(SEXP call, SEXP op, SEXP args, SEXP env)
     block = asLogical(CADDR(args));
     if(block == NA_LOGICAL)
 	error("invalid `block' argument");
-    enc = CADDDR(args);
-    if(!isInteger(enc) || length(enc) != 256)
-	error("invalid `enc' argument");
     open = CHAR(STRING_ELT(sopen, 0));
     ncon = NextConnection();
     con = Connections[ncon] = newfile(file, strlen(open) ? open : "r");
-    for(i = 0; i < 256; i++)
-	con->encoding[i] = (unsigned char) INTEGER(enc)[i];
 
     /* open it if desired */
     if(strlen(open)) con->open(con);
@@ -391,8 +333,8 @@ static Rconnection newpipe(char *description, char *mode)
     new->destroy = &pipe_destroy;
     new->vfprintf = &file_vfprintf;
     new->fgetc = &file_fgetc;
+    new->ungetc = &file_ungetc;
     new->seek = &null_seek;
-    new->truncate = &null_truncate;
     new->fflush = &file_fflush;
     new->read = &file_read;
     new->write = &file_write;
@@ -413,9 +355,9 @@ extern Rconnection newWpipe(char *description, char *mode);
 SEXP do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
 {
 #ifdef HAVE_POPEN
-    SEXP scmd, sopen, ans, class, enc;
+    SEXP scmd, sopen, ans, class;
     char *file, *open;
-    int i, ncon;
+    int ncon;
     Rconnection con = NULL;
 
     checkArity(op, args);
@@ -429,9 +371,6 @@ SEXP do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
     if(!isString(sopen) || length(sopen) != 1)
 	error("invalid `open' argument");
     open = CHAR(STRING_ELT(sopen, 0));
-    enc = CADDR(args);
-    if(!isInteger(enc) || length(enc) != 256)
-	error("invalid `enc' argument");
 
     ncon = NextConnection();
 #ifdef Win32
@@ -443,8 +382,6 @@ SEXP do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
     con = newpipe(file, strlen(open) ? open : "r");
 #endif
     Connections[ncon] = con;
-    for(i = 0; i < 256; i++)
-	con->encoding[i] = (unsigned char) INTEGER(enc)[i];
 
     /* open it if desired */
     if(strlen(open)) con->open(con);
@@ -467,210 +404,6 @@ SEXP do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
     return R_NilValue; /* -Wall */
 #endif
 }
-
-/* ------------------- gzipped file connections --------------------- */
-
-#ifdef HAVE_LIBZ
-#include <zlib.h>
-
-static void gzfile_open(Rconnection con)
-{
-    gzFile fp;
-
-    fp = gzopen(R_ExpandFileName(con->description), con->mode);
-    if(!fp) error("cannot open compressed file `%s'",
-		  R_ExpandFileName(con->description));
-    ((Rgzfileconn)(con->private))->fp = fp;
-    con->isopen = TRUE;
-    con->canwrite = (con->mode[0] == 'w' || con->mode[0] == 'a');
-    con->canread = !con->canwrite;
-    con->save = -1000;
-}
-
-static void gzfile_close(Rconnection con)
-{
-    gzclose(((Rgzfileconn)(con->private))->fp);
-    con->isopen = FALSE;
-}
-
-static void gzfile_destroy(Rconnection con)
-{
-    free(con->private);
-}
-
-#define BUFSIZE 1000
-static int gzfile_vfprintf(Rconnection con, const char *format, va_list ap)
-{
-    gzFile fp = ((Rgzfileconn)(con->private))->fp;
-    char buf[BUFSIZE], *b = buf, *vmax = vmaxget();
-    int res, usedRalloc = FALSE;
-
-#ifdef HAVE_VSNPRINTF
-    res = vsnprintf(buf, BUFSIZE, format, ap);
-    if(res >= BUFSIZE) { /* res is the desired output length */
-	usedRalloc = TRUE;
-	b = R_alloc(res + 1, sizeof(char));
-	vsprintf(buf, format, ap);
-    } else if(res < 0) { /* just a failure indication */
-	usedRalloc = TRUE;
-	b = R_alloc(10*BUFSIZE, sizeof(char));
-	res = vsnprintf(buf, 10*BUFSIZE, format, ap);
-	if (res < 0) {
-	    *(b + 10*BUFSIZE) = '\0';
-	    warning("printing of extremely long output is truncated");
-	    res = 10*BUFSIZE;
-	}
-    }
-    gzwrite(fp, b, res);
-#else
-    /* allocate a large buffer and hope */
-    b = R_alloc(10*BUFSIZE, sizeof(char));
-    res = vsprintf(b, format, ap);
-    gzwrite(fp, b, res);
-#endif
-    if(usedRalloc) vmaxset(vmax);
-    return res;
-}
-
-static int gzfile_fgetc(Rconnection con)
-{
-    gzFile fp = ((Rgzfileconn)(con->private))->fp;
-
-    /* Looks like eof is signalled one char early */
-    if(gzeof(fp)) return R_EOF;
-    return con->encoding[gzgetc(fp)];
-}
-
-static long gzfile_seek(Rconnection con, int where, int origin)
-{
-    gzFile  fp = ((Rgzfileconn)(con->private))->fp;
-    long pos = gztell(fp);
-    int whence = SEEK_SET;
-
-    switch(origin) {
-    case 2: whence = SEEK_CUR;
-    case 3: whence = SEEK_END;
-    default: whence = SEEK_SET;
-    }
-    if(where >= 0) gzseek(fp, where, whence);
-    return pos;
-}
-
-static int gzfile_fflush(Rconnection con)
-{
-    gzFile fp = ((Rgzfileconn)(con->private))->fp;
-
-    return gzflush(fp, Z_SYNC_FLUSH);
-}
-
-static size_t gzfile_read(void *ptr, size_t size, size_t nitems,
-			Rconnection con)
-{
-    gzFile fp = ((Rgzfileconn)(con->private))->fp;
-    return gzread(fp, ptr, size*nitems)/size;
-}
-
-static size_t gzfile_write(const void *ptr, size_t size, size_t nitems,
-			   Rconnection con)
-{
-    gzFile fp = ((Rgzfileconn)(con->private))->fp;
-    return gzwrite(fp, (const voidp)ptr, size*nitems)/size;
-}
-
-static Rconnection newgzfile(char *description, char *mode, int compress)
-{
-    Rconnection new;
-    new = (Rconnection) malloc(sizeof(struct Rconn));
-    if(!new) error("allocation of file connection failed");
-    new->class = (char *) malloc(strlen("gzfile") + 1);
-    if(!new->class) {
-	free(new);
-	error("allocation of gzfile connection failed");
-    }
-    strcpy(new->class, "gzfile");
-    new->description = (char *) malloc(strlen(description) + 1);
-    if(!new->description) {
-	free(new->class); free(new);
-	error("allocation of gzfile connection failed");
-    }
-    strcpy(new->description, description);
-    strncpy(new->mode, mode, 1);
-    sprintf(new->mode+1, "b%1d", compress);
-
-    new->isopen = new->incomplete = FALSE;
-    new->canread = new->canwrite = TRUE; /* in principle */
-    new->canseek = TRUE;
-    new->text = FALSE;
-    new->open = &gzfile_open;
-    new->close = &gzfile_close;
-    new->destroy = &gzfile_destroy;
-    new->vfprintf = &gzfile_vfprintf;
-    new->fgetc = &gzfile_fgetc;
-    new->seek = &gzfile_seek;
-    new->truncate = &null_truncate;
-    new->fflush = &gzfile_fflush;
-    new->read = &gzfile_read;
-    new->write = &gzfile_write;
-    new->nPushBack = 0;
-    new->private = (void *) malloc(sizeof(struct fileconn));
-    if(!new->private) {
-	free(new->description); free(new->class); free(new);
-	error("allocation of gzfile connection failed");
-    }
-    return new;
-}
-
-SEXP do_gzfile(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP sfile, sopen, ans, class, enc;
-    char *file, *open;
-    int i, ncon, compress;
-    Rconnection con = NULL;
-
-    checkArity(op, args);
-    sfile = CAR(args);
-    if(!isString(sfile) || length(sfile) < 1)
-	errorcall(call, "invalid `description' argument");
-    if(length(sfile) > 1)
-	warning("only first element of `description' argument used");
-    file = CHAR(STRING_ELT(sfile, 0));
-    sopen = CADR(args);
-    if(!isString(sopen) || length(sopen) != 1)
-	error("invalid `open' argument");
-    enc = CADDR(args);
-    if(!isInteger(enc) || length(enc) != 256)
-	error("invalid `enc' argument");
-    compress = asInteger(CADDDR(args));
-    if(compress == NA_LOGICAL || compress < 0 || compress > 9)
-	error("invalid `compress' argument");
-    open = CHAR(STRING_ELT(sopen, 0));
-    ncon = NextConnection();
-    con = Connections[ncon] = newgzfile(file, strlen(open) ? open : "r",
-					compress);
-
-    for(i = 0; i < 256; i++)
-	con->encoding[i] = (unsigned char) INTEGER(enc)[i];
-
-    /* open it if desired */
-    if(strlen(open)) con->open(con);
-
-    PROTECT(ans = allocVector(INTSXP, 1));
-    INTEGER(ans)[0] = ncon;
-    PROTECT(class = allocVector(STRSXP, 2));
-    SET_STRING_ELT(class, 0, mkChar("file"));
-    SET_STRING_ELT(class, 1, mkChar("connection"));
-    classgets(ans, class);
-    UNPROTECT(2);
-
-    return ans;
-}
-#else
-SEXP do_gzfile(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    error("zlib is not available on this system");
-    return R_NilValue; /* -Wall */
-}
-#endif
 
 /* ------------------- terminal connections --------------------- */
 
@@ -696,9 +429,20 @@ static int ConsoleGetchar()
     return *ConsoleBufp++;
 }
 
+static int save = 0;
 static int stdin_fgetc(Rconnection con)
 {
-    return ConsoleGetchar();
+    if (save) {
+	int c = save;
+	save = 0;
+	return c;
+    } else return ConsoleGetchar();
+}
+
+static int stdin_ungetc(int c, Rconnection con)
+{
+    save = c;
+    return c;
 }
 
 static int stdout_vfprintf(Rconnection con, const char *format, va_list ap)
@@ -755,8 +499,8 @@ static Rconnection newterminal(char *description, char *mode)
     new->destroy = &null_open;
     new->vfprintf = &null_vfprintf;
     new->fgetc = &null_fgetc;
+    new->ungetc = &null_ungetc;
     new->seek = &null_seek;
-    new->truncate = &null_truncate;
     new->fflush = &null_fflush;
     new->read = &null_read;
     new->write = &null_write;
@@ -797,6 +541,28 @@ SEXP do_stdout(SEXP call, SEXP op, SEXP args, SEXP env)
     classgets(ans, class);
     UNPROTECT(2);
     return ans;
+}
+
+/* Switch output to connection number icon.
+   We don't close the old connection.
+ */
+void switch_stdout(int icon)
+{
+    if(icon == R_OutputCon) return;
+    if(icon >= 3) {
+	Rconnection con = getConnection(icon); /* checks validity */
+	if(!con->isopen) {
+	    con->open(con);
+	    if(R_SinkCon_to_close == 0) R_SinkCon_to_close = 2;
+	}
+	R_OutputCon = icon;
+    } else if(icon == 0)
+	error("cannot switch output to stdin");
+    else if(icon == 2)
+	error("cannot switch output to stderr");
+    else {
+	R_OutputCon = 1;
+    }
 }
 
 
@@ -870,7 +636,14 @@ static int text_fgetc(Rconnection con)
     else return (int) (this->data[this->cur++]);
 }
 
-static long text_seek(Rconnection con, int where, int origin)
+static int text_ungetc(int c, Rconnection con)
+{
+    Rtextconn this = (Rtextconn)con->private;
+    this->save = c;
+    return c;
+}
+
+static long text_seek(Rconnection con, int where)
 {
     if(where >= 0) error("seek is not relevant for text connection");
     return 0; /* if just asking, always at the beginning */
@@ -903,8 +676,8 @@ static Rconnection newtext(char *description, SEXP text)
     new->destroy = &text_destroy;
     new->vfprintf = &null_vfprintf;
     new->fgetc = &text_fgetc;
+    new->ungetc = &text_ungetc;
     new->seek = &text_seek;
-    new->truncate = &null_truncate;
     new->fflush = &null_fflush;
     new->read = &null_read;
     new->write = &null_write;
@@ -1058,8 +831,8 @@ static Rconnection newouttext(char *description, SEXP sfile, char *mode)
     new->destroy = &outtext_destroy;
     new->vfprintf = &text_vfprintf;
     new->fgetc = &null_fgetc;
+    new->ungetc = &null_ungetc;
     new->seek = &text_seek;
-    new->truncate = &null_truncate;
     new->fflush = &null_fflush;
     new->read = &null_read;
     new->write = &null_write;
@@ -1110,170 +883,6 @@ SEXP do_textconnection(SEXP call, SEXP op, SEXP args, SEXP env)
     SET_STRING_ELT(class, 1, mkChar("connection"));
     classgets(ans, class);
     UNPROTECT(2);
-    return ans;
-}
-
-/* ------------------- socket connections  --------------------- */
-
-/* R interface (Rsock.c) :*/
-void Rsockopen(int *port);
-void Rsocklisten(int *sock, char **buf, int *len);
-void Rsockconnect(int *port, char **host);
-void Rsockclose(int *sockp);
-void Rsockread (int *sockp, char **buf, int *maxlen);
-void Rsockwrite(int *sockp, char **buf, int *start, int *end, int *len);
-
-
-static void sock_open(Rconnection con)
-{
-    Rsockconn this = (Rsockconn)con->private;
-    int port = this->port, len = 256;
-    char buf[256], *ptr = buf;
-
-    if(this->server) {
-	Rsockopen(&port);
-	Rsocklisten(&port, &ptr, &len);
-    } else {
-	Rsockconnect(&port, &(con->description));
-    }
-    this->fd = port;
-    
-    con->isopen = TRUE;
-    con->canwrite = (con->mode[0] == 'w' || con->mode[0] == 'a');
-    con->canread = !con->canwrite;
-    if(strlen(con->mode) >= 2 && con->mode[1] == 'b') con->text = FALSE;
-    else con->text = TRUE;
-    con->save = -1000;
-}
-
-static void sock_close(Rconnection con)
-{
-    /* close socket here */
-    con->isopen = FALSE;
-}
-
-static void sock_destroy(Rconnection con)
-{
-    free(con->private);
-}
-
-static size_t sock_read(void *ptr, size_t size, size_t nitems,
-			Rconnection con)
-{
-    Rsockconn this = (Rsockconn)con->private;
-    char *buf = ptr;
-    int len = size * nitems;
-
-    Rsockread(&(this->fd), &buf, &len);
-    return len;
-}
-
-static size_t sock_write(const void *ptr, size_t size, size_t nitems,
-			 Rconnection con)
-{
-    Rsockconn this = (Rsockconn)con->private;
-    char *buf = ptr;
-    int len = size * nitems, start = 0, end = len;
-
-    Rsockwrite(&(this->fd), &buf, &start, &end, &len);
-    return len;
-}
-
-static Rconnection newsock(char *host, int port, int server, int blocking,
-			   char *mode)
-{
-    Rconnection new;
-
-    new = (Rconnection) malloc(sizeof(struct Rconn));
-    if(!new) error("allocation of file connection failed");
-    new->class = (char *) malloc(strlen("socket") + 1);
-    if(!new->class) {
-	free(new);
-	error("allocation of socket connection failed");
-    }
-    strcpy(new->class, "socket");
-    new->description = (char *) malloc(strlen(host) + 10);
-    if(!new->description) {
-	free(new->class); free(new);
-	error("allocation of socket connection failed");
-    }
-    strcpy(new->description, host);
-    strncpy(new->mode, mode, 4); new->mode[4] = '\0';
-    new->isopen = new->incomplete = FALSE;
-    new->canread = new->canwrite = TRUE; /* in principle */
-    new->canseek = TRUE;
-    new->text = TRUE;
-    new->open = &sock_open;
-    new->close = &sock_close;
-    new->destroy = &sock_destroy;
-    new->vfprintf = &null_vfprintf;
-    new->fgetc = &null_fgetc;
-    new->seek = &null_seek;
-    new->truncate = &null_truncate;
-    new->fflush = &null_fflush;
-    new->read = &null_read;
-    new->write = &null_write;
-    new->nPushBack = 0;
-    new->private = (void *) malloc(sizeof(struct sockconn));
-    if(!new->private) {
-	free(new->description); free(new->class); free(new);
-	error("allocation of socket connection failed");
-    }
-    ((Rsockconn)new->private)-> port = port;
-    ((Rsockconn)new->private)-> server = server;
-    return new;
-}
-
-/* socketConnection(host, port, server, blocking, open, encoding) */
-SEXP do_sockconn(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP scmd, sopen, ans, class, enc;
-    char *host, *open;
-    int i, ncon, port, server, blocking;
-    Rconnection con = NULL;
-
-    checkArity(op, args);
-    error("socket connections are not yet operational");
-    scmd = CAR(args);
-    if(!isString(scmd) || length(scmd) != 1)
-	error("invalid `host' argument");
-    host = CHAR(STRING_ELT(scmd, 0));
-    args = CDR(args);
-    port = asInteger(CAR(args));
-    if(port == NA_INTEGER || port < 0)
-	error("invalid `port' argument");
-    args = CDR(args);
-    server = asLogical(CAR(args));
-    if(server == NA_LOGICAL)
-	error("invalid `server' argument");
-    args = CDR(args);
-    blocking = asLogical(CAR(args));
-    if(blocking == NA_LOGICAL)
-	error("invalid `blocking' argument");
-    sopen = CAR(args);
-    if(!isString(sopen) || length(sopen) != 1)
-	error("invalid `open' argument");
-    open = CHAR(STRING_ELT(sopen, 0));
-    enc = CADDR(args);
-    if(!isInteger(enc) || length(enc) != 256)
-	error("invalid `enc' argument");
-
-    ncon = NextConnection();
-    Connections[ncon] = newsock(host, port, server, blocking, open);
-    for(i = 0; i < 256; i++)
-	con->encoding[i] = (unsigned char) INTEGER(enc)[i];
-
-    /* open it if desired */
-    if(strlen(open)) con->open(con);
-
-    PROTECT(ans = allocVector(INTSXP, 1));
-    INTEGER(ans)[0] = ncon;
-    PROTECT(class = allocVector(STRSXP, 2));
-    SET_STRING_ELT(class, 0, mkChar("sockconn"));
-    SET_STRING_ELT(class, 1, mkChar("connection"));
-    classgets(ans, class);
-    UNPROTECT(2);
-
     return ans;
 }
 
@@ -1365,47 +974,31 @@ void con_close(int i)
 
 SEXP do_close(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    int i, j;
+    int i;
 
     checkArity(op, args);
     i = asInteger(CAR(args));
     if(i < 3) error("cannot close standard connections");
-    for(j = 0; j < R_SinkNumber; j++)
-	if(i == SinkCons[j])
-	    error("cannot close output sink connection");
-    if(i == R_ErrorCon)
-	error("cannot close messages sink connection");
+    if(i == R_SinkCon) error("cannot close sink connection");
     con_close(i);
     return R_NilValue;
 }
 
-/* seek(con, where = numeric(), origin = "start") */
+/* seek(con, where = numeric(), rw = "") */
 SEXP do_seek(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    int where, origin;
+    int where;
     SEXP ans;
     Rconnection con = NULL;
 
     checkArity(op, args);
     con = getConnection(asInteger(CAR(args)));
     where = asInteger(CADR(args));
-    origin = asInteger(CADDR(args));
     if(where == NA_INTEGER || where < 0) where = -1;
     PROTECT(ans = allocVector(INTSXP, 1));
-    INTEGER(ans)[0] = con->seek(con, where, origin);
+    INTEGER(ans)[0] = con->seek(con, where);
     UNPROTECT(1);
     return ans;
-}
-
-/* truncate(con) */
-SEXP do_truncate(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    Rconnection con = NULL;
-
-    checkArity(op, args);
-    con = getConnection(asInteger(CAR(args)));
-    con->truncate(con);
-    return R_NilValue;
 }
 
 /* ------------------- read, write  text --------------------- */
@@ -1452,29 +1045,6 @@ int Rconn_ungetc(int c, Rconnection con)
     con->save = c;
     return c;
 }
-
-/* read one line (without trailing newline) from con and store it in buf */
-/* return number of characters read, -1 on EOF */
-int Rconn_getline(Rconnection con, char *buf, int bufsize)
-{
-    int nbuf = -1;
-    char c;
-    
-    while((c = Rconn_fgetc(con)) != R_EOF) {
-	if(nbuf >= bufsize) {
-	    error("Line longer than buffer size");
-	}
-	if(c != '\n'){
-	    buf[++nbuf] = c;
-	}
-	else{
-	    buf[++nbuf] = '\0';
-	    break;
-	}
-    }
-    return(nbuf);
-}
-
 
 int Rconn_printf(Rconnection con, const char *format, ...)
 {
@@ -1958,126 +1528,6 @@ SEXP do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
     return R_NilValue;
 }
 
-static SEXP readFixedString(Rconnection con, int len)
-{
-    char *buf, *p;
-    int  pos, m;
-
-    buf = (char *) R_alloc(len+1, sizeof(char));
-    buf[len] = '\0';
-    for(pos = 0; pos < len; pos++) {
-	p = buf + pos;
-	m = con->read(p, sizeof(char), 1, con);
-	if(!m) return R_NilValue;
-    }
-    return mkChar(buf);
-}
-
-
-/* readChar(con, nchars) */
-SEXP do_readchar(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP ans = R_NilValue, onechar, nchars;
-    int i, len, n, m = 0;
-    Rboolean wasopen;
-    Rconnection con = NULL;
-
-    checkArity(op, args);
-    i = asInteger(CAR(args));
-    if(i == NA_INTEGER || !(con = Connections[i]))
-	error("invalid connection");
-    if(!con->canread)
-	error("cannot read from this connection");
-    nchars = CADR(args);
-    n = LENGTH(nchars);
-    if(n == 0) return allocVector(STRSXP, 0);
-
-    wasopen = con->isopen;
-    if(!wasopen) con->open(con);
-
-    PROTECT(ans = allocVector(STRSXP, n));
-    for(i = 0, m = i+1; i < n; i++) {
-	len = INTEGER(nchars)[i];
-	if(len == NA_INTEGER || len < 0)
-	    error("supplied length is invalid");
-	onechar = readFixedString(con, len);
-	if(onechar != R_NilValue) {
-	    SET_STRING_ELT(ans, i, onechar);
-	    m++;
-	} else break;
-    }
-    if(!wasopen) con->close(con);
-    if(m < n) {
-	PROTECT(ans = lengthgets(ans, m));
-	UNPROTECT(1);
-    }
-    UNPROTECT(1);
-    return ans;
-}
-
-/* writeChar(object, con, nchars, sep) */
-SEXP do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP object, nchars, sep;
-    int i, len, n, nwrite=0, slen, tlen;
-    char *s, *buf, *ssep = "";
-    Rboolean wasopen, usesep;
-    Rconnection con = NULL;
-
-    checkArity(op, args);
-    object = CAR(args);
-    i = asInteger(CADR(args));
-    if(i == NA_INTEGER || !(con = Connections[i]))
-	error("invalid connection");
-    if(!con->canwrite)
-	error("cannot write to this connection");
-
-    nchars = CADDR(args);
-    sep = CADDDR(args);
-    if(isNull(sep)) {
-	usesep = FALSE;
-	slen = 0;
-    } else {
-	usesep = TRUE;
-	if (!isString(sep) || length(sep) != 1)
-	    error("invalid value of `sep'");
-	ssep = CHAR(STRING_ELT(sep, 0));
-	slen = strlen(ssep) + 1;
-    }
-    n = LENGTH(nchars);
-    if(n == 0) return R_NilValue;
-
-    len = 0;
-    for(i = 0; i < n; i++) {
-	tlen = strlen(CHAR(STRING_ELT(object, i)));
-	if (tlen > len) len = tlen;
-    }
-    buf = (char *) R_alloc(len + slen, sizeof(char));
-
-    wasopen = con->isopen;
-    if(!wasopen) con->open(con);
-
-    if(TYPEOF(object) == STRSXP) {
-	for(i = 0; i < n; i++) {
-	    len = INTEGER(nchars)[i];
-	    s = CHAR(STRING_ELT(object, i));
-	    memset(buf, '\0', len + slen);
-	    strncpy(buf, s, len);
-	    if (usesep) {
-		strcat(buf, ssep);
-		len += slen;
-	    }
-	    nwrite = con->write(buf, sizeof(char), len, con);
-	    if(!nwrite) {
-		warning("problem writing to connection");
-		break;
-	    }
-	}
-    }
-    if(!wasopen) con->close(con);
-    return R_NilValue;
-}
-
 /* ------------------- push back text  --------------------- */
 
 
@@ -2142,104 +1592,6 @@ SEXP do_pushbacklength(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 
-/* ------------------- sink functions  --------------------- */
-
-/* Switch output to connection number icon, or popd stack if icon < 0
- */
-Rboolean switch_stdout(int icon, int closeOnExit)
-{
-    int toclose;
-
-    if(icon == R_OutputCon) return FALSE;
-
-    if(icon >= 0 && R_SinkNumber >= NSINKS - 1)
-	error("sink stack is full");
-
-    if(icon == 0)
-	error("cannot switch output to stdin");
-    else if(icon == 1) {
-	R_OutputCon = SinkCons[++R_SinkNumber] = 1;
-	SinkConsClose[R_SinkNumber] = 0;
-    } else if(icon == 2)
-	error("cannot switch output to stderr");
-    else if(icon >= 3) {
-	Rconnection con = getConnection(icon); /* checks validity */
-	toclose = 2*closeOnExit;
-	if(!con->isopen) {
-	    con->open(con);
-	    toclose = 1;
-	}
-	R_OutputCon = SinkCons[++R_SinkNumber] = icon;
-	SinkConsClose[R_SinkNumber] = toclose;
-    } else { /* removing a sink */
-	if (R_SinkNumber <= 0) {
-	    warning("no sink to remove");
-	    return FALSE;
-	} else {
-	    R_SinkNumber--;
-	    if((icon = SinkCons[R_SinkNumber + 1]) >= 3) {
-		Rconnection con = getConnection(icon);
-		if(SinkConsClose[R_SinkNumber + 1] == 1) /* close it */
-		    con->close(con);
-		else if (SinkConsClose[R_SinkNumber + 1] == 2) /* destroy it */
-		    con_close(icon);
-	    }
-	    R_OutputCon = SinkCons[R_SinkNumber];
-	}
-    }
-    return TRUE;
-}
-
-SEXP do_sink(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    int icon, closeOnExit, errcon;
-
-    checkArity(op, args);
-    icon = asInteger(CAR(args));
-    closeOnExit = asLogical(CADR(args));
-    if(closeOnExit == NA_LOGICAL)
-	error("invalid value for closeOnExit");
-    errcon = asLogical(CADDR(args));
-    if(errcon == NA_LOGICAL) error("invalid value for type");
-
-    if(!errcon) {
-	/* allow space for cat() to use sink() */
-	if(icon >= 0 && R_SinkNumber >= NSINKS - 2)
-	    error("sink stack is full");
-	switch_stdout(icon, closeOnExit);
-	R_SinkSaved = R_SinkNumber;
-    } else {
-	if(icon < 0) R_ErrorCon = 2;
-	else {
-	    getConnection(icon); /* check validity */
-	    R_ErrorCon = icon;
-	}
-    }
-
-    return R_NilValue;
-}
-
-SEXP do_sinknumber(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP ans;
-    int errcon;
-    checkArity(op, args);
-
-    errcon = asLogical(CAR(args));
-    if(errcon == NA_LOGICAL)
-	error("invalid value for type");
-    PROTECT(ans = allocVector(INTSXP, 1));
-    INTEGER(ans)[0] = errcon ? R_SinkNumber : R_ErrorCon;
-    UNPROTECT(1);
-    return ans;
-}
-
-void R_SinkReset()
-{
-    R_SinkNumber = R_SinkSaved;
-}
-
-
 /* ------------------- admin functions  --------------------- */
 
 void InitConnections()
@@ -2247,6 +1599,7 @@ void InitConnections()
     int i;
     Connections[0] = newterminal("stdin", "r");
     Connections[0]->fgetc = stdin_fgetc;
+    Connections[0]->ungetc = stdin_ungetc;
     Connections[1] = newterminal("stdout", "w");
     Connections[1]->vfprintf = stdout_vfprintf;
     Connections[1]->fflush = stdout_fflush;
@@ -2254,9 +1607,6 @@ void InitConnections()
     Connections[2]->vfprintf = stderr_vfprintf;
     Connections[2]->fflush = stderr_fflush;
     for(i = 3; i < NCONNECTIONS; i++) Connections[i] = NULL;
-    R_OutputCon = 1;
-    R_SinkSaved = R_SinkNumber = 0;
-    SinkCons[0] = 1; R_ErrorCon = 2;
 }
 
 SEXP do_getallconnections(SEXP call, SEXP op, SEXP args, SEXP env)
@@ -2300,879 +1650,4 @@ SEXP do_sumconnection(SEXP call, SEXP op, SEXP args, SEXP env)
     setAttrib(ans, R_NamesSymbol, names);
     UNPROTECT(2);
     return ans;
-}
-
-/* ------------------- internet access functions  --------------------- */
-
-#if defined(USE_WININET_ASYNC) && !defined(USE_WININET)
-#define USE_WININET 2
-#endif
-
-#ifdef HAVE_BSD_NETWORKING
-#define HAVE_LIBXML 1
-#endif
-
-#include <R_ext/R-ftp-http.h>
-
-static Rboolean IDquiet=TRUE;
-
-static void url_open(Rconnection con)
-{
-    void *ctxt;
-    char *url = con->description;
-    UrlScheme type = ((Rurlconn)(con->private))->type;
-
-    if(con->mode[0] != 'r')
-	error("can only open URLs for reading");
-
-    switch(type) {
-    case HTTPsh:
-	ctxt = R_HTTPOpen(url);
-	if(ctxt == NULL) error("cannot open URL `%s'", url);
-	((Rurlconn)(con->private))->ctxt = ctxt;
-	break;
-    case FTPsh:
-	ctxt = R_FTPOpen(url);
-	if(ctxt == NULL) error("cannot open URL `%s'", url);
-	((Rurlconn)(con->private))->ctxt = ctxt;
-	break;
-    default:
-	error("unknown URL scheme");
-    }
-
-    con->isopen = TRUE;
-    con->canwrite = (con->mode[0] == 'w' || con->mode[0] == 'a');
-    con->canread = !con->canwrite;
-    if(strlen(con->mode) >= 2 && con->mode[1] == 'b') con->text = FALSE;
-    else con->text = TRUE;
-    con->save = -1000;
-}
-
-static void url_close(Rconnection con)
-{
-    UrlScheme type = ((Rurlconn)(con->private))->type;
-    switch(type) {
-    case HTTPsh:
-	R_HTTPClose(((Rurlconn)(con->private))->ctxt);
-	break;
-    case FTPsh:
-	R_FTPClose(((Rurlconn)(con->private))->ctxt);
-	break;
-    }
-    con->isopen = FALSE;
-}
-
-static void url_destroy(Rconnection con)
-{
-    free(con->private);
-}
-
-
-static int url_fgetc(Rconnection con)
-{
-    UrlScheme type = ((Rurlconn)(con->private))->type;
-    void * ctxt = ((Rurlconn)(con->private))->ctxt;
-    unsigned char c;
-    size_t n = 0; /* -Wall */
-
-    switch(type) {
-    case HTTPsh:
-	n = R_HTTPRead(ctxt, &c, 1);
-	break;
-    case FTPsh:
-	n = R_FTPRead(ctxt, &c, 1);
-	break;
-    }
-    return (n == 1) ? c : R_EOF;
-}
-
-static size_t url_read(void *ptr, size_t size, size_t nitems,
-		       Rconnection con)
-{
-    UrlScheme type = ((Rurlconn)(con->private))->type;
-    void * ctxt = ((Rurlconn)(con->private))->ctxt;
-    size_t n = 0; /* -Wall */
-
-    switch(type) {
-    case HTTPsh:
-	n = R_HTTPRead(ctxt, ptr, size*nitems);
-	break;
-    case FTPsh:
-	n = R_FTPRead(ctxt, ptr, size*nitems);
-	break;
-    }
-    return n/size;
-}
-
-
-static Rconnection newurl(char *description, char *mode)
-{
-    Rconnection new;
-
-    new = (Rconnection) malloc(sizeof(struct Rconn));
-    if(!new) error("allocation of url connection failed");
-    new->class = (char *) malloc(strlen("file") + 1);
-    if(!new->class) {
-	free(new);
-	error("allocation of url connection failed");
-    }
-    strcpy(new->class, "url");
-    new->description = (char *) malloc(strlen(description) + 1);
-    if(!new->description) {
-	free(new->class); free(new);
-	error("allocation of url connection failed");
-    }
-    strcpy(new->description, description);
-    strncpy(new->mode, mode, 4); new->mode[4] = '\0';
-    new->isopen = new->incomplete = FALSE;
-    new->canread = new->canwrite = TRUE; /* in principle */
-    new->canseek = FALSE;
-    new->text = TRUE;
-    new->open = &url_open;
-    new->close = &url_close;
-    new->destroy = &url_destroy;
-    new->vfprintf = &null_vfprintf;
-    new->fgetc = &url_fgetc;
-    new->seek = &null_seek;
-    new->truncate = &null_truncate;
-    new->fflush = &null_fflush;
-    new->read = &url_read;
-    new->write = &null_write;
-    new->nPushBack = 0;
-    new->private = (void *) malloc(sizeof(struct urlconn));
-    if(!new->private) {
-	free(new->description); free(new->class); free(new);
-	error("allocation of url connection failed");
-    }
-
-    IDquiet = TRUE;
-    return new;
-}
-
-
-/* url(description, open, encoding) */
-SEXP do_url(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP scmd, sopen, ans, class, enc;
-    char *url, *open, *class2 = "url";
-    int i, ncon;
-    Rconnection con = NULL;
-#if defined(HAVE_LIBXML) || defined(USE_WININET)
-    UrlScheme type = HTTPsh; /* -Wall */
-#endif
-
-    checkArity(op, args);
-    scmd = CAR(args);
-    if(!isString(scmd) || length(scmd) < 1)
-	error("invalid `description' argument");
-    if(length(scmd) > 1)
-	warning("only first element of `description' argument used");
-    url = CHAR(STRING_ELT(scmd, 0));
-#if defined(HAVE_LIBXML) || defined(USE_WININET)
-    if (strncmp(url, "http://", 7) == 0) {
-	type = HTTPsh;
-    } else if (strncmp(url, "ftp://", 6) == 0) {
-	type = FTPsh;
-    } else
-#endif
-	error("unsupported URL scheme");
-
-    sopen = CADR(args);
-    if(!isString(sopen) || length(sopen) != 1)
-	error("invalid `open' argument");
-    open = CHAR(STRING_ELT(sopen, 0));
-    enc = CADDR(args);
-    if(!isInteger(enc) || length(enc) != 256)
-	error("invalid `enc' argument");
-
-    ncon = NextConnection();
-    if(strncmp(url, "file://", 7) == 0) {
-       con = newfile(url + 7, strlen(open) ? open : "r");
-       class2 = "file";
-#if defined(HAVE_LIBXML) || defined(USE_WININET)
-    } else if (strncmp(url, "http://", 7) == 0 ||
-	       strncmp(url, "ftp://", 6) == 0) {
-       con = newurl(url, strlen(open) ? open : "r");
-       ((Rurlconn)con->private)->type = type;
-#endif
-    } else
-	error("unsupported URL scheme");
-
-    Connections[ncon] = con;
-    for(i = 0; i < 256; i++)
-	con->encoding[i] = (unsigned char) INTEGER(enc)[i];
-
-    /* open it if desired */
-    if(strlen(open)) con->open(con);
-
-    PROTECT(ans = allocVector(INTSXP, 1));
-    INTEGER(ans)[0] = ncon;
-    PROTECT(class = allocVector(STRSXP, 2));
-    SET_STRING_ELT(class, 0, mkChar(class2));
-    SET_STRING_ELT(class, 1, mkChar("connection"));
-    classgets(ans, class);
-    UNPROTECT(2);
-
-    return ans;
-}
-
-void putdots(int *pold, int new)
-{
-    int i, old = *pold;
-    *pold = new;
-    for(i = old; i < new; i++) {
-	REprintf(".");
-	if((i+1) % 50 == 0) REprintf("\n");
-	else if((i+1) % 10 == 0) REprintf(" ");
-    }
-    if(R_Consolefile) fflush(R_Consolefile);
-#ifdef Win32
-    R_FlushConsole();
-#endif
-}
-
-/* note, ALL the possible structures have the first two elements */
-typedef struct {
-    int length;
-    char *type;
-    void *ctxt;
-} inetconn;
-
-#ifdef Win32
-#include <graphapp/ga.h>
-#endif
-
-/* download(url, destfile, quiet) */
-
-#define CPBUFSIZE 65536
-#define IBUFSIZE 4096
-SEXP do_download(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP ans, scmd, sfile, smode;
-    char *url, *file, *mode;
-    int quiet, status = 0;
-#ifdef Win32
-    window wprog;
-    progressbar pb;
-    label l_url;
-#endif
-
-
-    checkArity(op, args);
-    scmd = CAR(args);
-    if(!isString(scmd) || length(scmd) < 1)
-	error("invalid `url' argument");
-    if(length(scmd) > 1)
-	warning("only first element of `url' argument used");
-    url = CHAR(STRING_ELT(scmd, 0));
-    sfile = CADR(args);
-    if(!isString(sfile) || length(sfile) < 1)
-	error("invalid `destfile' argument");
-    if(length(sfile) > 1)
-	warning("only first element of `destfile' argument used");
-    file = CHAR(STRING_ELT(sfile, 0));
-    IDquiet = quiet = asLogical(CADDR(args));
-    if(quiet == NA_LOGICAL)
-	error("invalid `quiet' argument");
-    smode =  CADDDR(args);
-    if(!isString(smode) || length(smode) != 1)
-	error("invalid `mode' argument");
-    mode = CHAR(STRING_ELT(smode, 0));
-
-    if(strncmp(url, "file://", 7) == 0) {
-	FILE *in, *out;
-	char *buf[CPBUFSIZE];
-	size_t n;
-
-	/* Use binary transfers */
-	in = R_fopen(R_ExpandFileName(url+7), (mode[2] == 'b') ? "rb" : "r");
-	if(!in) error("cannot open URL `%s'", url);
-	out = R_fopen(R_ExpandFileName(file), mode);
-	if(!out) error("cannot open destfile `%s'", file);
-	while((n = fread(buf, 1, CPBUFSIZE, in)) > 0)
-	    fwrite(buf, 1, n, out);
-	fclose(out); fclose(in);
-
-#if defined(HAVE_LIBXML) || defined(USE_WININET)
-    } else if (strncmp(url, "http://", 7) == 0) {
-
-	FILE *out;
-	void *ctxt;
-	int len, total, guess, ndots = 0, nnew, nbytes = 0;
-	char buf[IBUFSIZE];
-
-	out = R_fopen(R_ExpandFileName(file), mode);
-	if(!out) error("cannot open destfile `%s'", file);
-
-	R_Busy(1);
-	if(!quiet) REprintf("trying URL `%s'\n", url);
-	ctxt = R_HTTPOpen(url);
-	if(ctxt == NULL) status = 1;
-	else {
-	    if(!quiet) REprintf("opened URL\n", url);
-	    guess = total = ((inetconn *)ctxt)->length;
-	    if (guess <= 0) guess = 100 * 1024;
-#ifdef Win32
-	    wprog = newwindow("Download progress", rect(0, 0, 540, 100),
-			      Titlebar | Centered);
-	    setbackground(wprog, LightGrey);
-	    strcpy(buf, "URL: ");
-	    if(strlen(url) > 60) {
-		strcat(buf, "... ");
-		strcat(buf, url + (strlen(url) - 60));
-	    } else strcat(buf, url);
-	    l_url = newlabel(buf, rect(10, 15, 520, 25), AlignCenter);
-	    pb = newprogressbar(rect(20, 50, 500, 20), 0, guess, 1024, 1);
-	    show(wprog);
-#endif
-	    while ((len = R_HTTPRead(ctxt, buf, sizeof(buf))) > 0) {
-		fwrite(buf, 1, len, out);
-		nbytes += len;
-		nnew = nbytes/1024;
-#ifdef Win32
-		if(nbytes > guess) {
-		    guess *= 2;
-		    setprogressbarrange(pb, 0, guess);
-		}
-		setprogressbar(pb, nbytes);
-#else
-		if(!quiet) putdots(&ndots, nnew);
-#endif
-	    }
-	    R_HTTPClose(ctxt);
-	    fclose(out);
-	    if(!quiet) {
-		if(nbytes > 10240)
-		    REprintf("\ndownloaded %dKb\n\n", nbytes/1024, url);
-		else
-		    REprintf("\ndownloaded %d bytes\n\n", nbytes, url);
-	    }
-#ifdef Win32
-	    hide(wprog);
-	    del(l_url);
-	    del(pb);
-	    del(wprog);
-#endif
-	    if (total > 0 && total != nbytes)
-		warning("downloaded length %d != reported length %d",
-			nbytes, total);
-	}
-	R_Busy(0);
-	if (status == 1) error("cannot open URL `%s'", url);
-
-    } else if (strncmp(url, "ftp://", 6) == 0) {
-
-	FILE *out;
-	void *ctxt;
-	int len, total, guess, ndots = 0, nnew, nbytes = 0;
-	char buf[IBUFSIZE];
-
-	out = R_fopen(R_ExpandFileName(file), mode);
-	if(!out) error("cannot open destfile `%s'", file);
-
-	R_Busy(1);
-	if(!quiet) REprintf("trying URL `%s'\n", url);
-	ctxt = R_FTPOpen(url);
-	if(ctxt == NULL) status = 1;
-	else {
-	    if(!quiet) REprintf("opened URL\n", url);
-	    guess = total = ((inetconn *)ctxt)->length;
-	    if (guess <= 0) guess = 100 * 1024;
-#ifdef Win32
-	    wprog = newwindow("Download progress", rect(0, 0, 540, 100),
-			      Titlebar | Centered);
-	    setbackground(wprog, LightGrey);
-	    strcpy(buf, "URL: ");
-	    if(strlen(url) > 60) {
-		strcat(buf, "... ");
-		strcat(buf, url + (strlen(url) - 60));
-	    } else strcat(buf, url);
-	    l_url = newlabel(buf, rect(10, 15, 520, 25), AlignCenter);
-	    pb = newprogressbar(rect(20, 50, 500, 20), 0, guess, 1024, 1);
-	    show(wprog);
-#endif
-	    while ((len = R_FTPRead(ctxt, buf, sizeof(buf))) > 0) {
-		fwrite(buf, 1, len, out);
-		nbytes += len;
-		nnew = nbytes/1024;
-#ifdef Win32
-		if(nbytes > guess) {
-		    guess *= 2;
-		    setprogressbarrange(pb, 0, guess);
-		}
-		setprogressbar(pb, nbytes);
-#else
-		if(!quiet) putdots(&ndots, nnew);
-#endif
-	    }
-	    R_FTPClose(ctxt);
-	    fclose(out);
-	    if(!quiet) {
-		if(nbytes > 10240)
-		    REprintf("\ndownloaded %dKb\n\n", nbytes/1024, url);
-		else
-		    REprintf("\ndownloaded %d bytes\n\n", nbytes, url);
-	    }
-#ifdef Win32
-	    hide(wprog);
-	    del(l_url);
-	    del(pb);
-	    del(wprog);
-#endif
-	    if (total > 0 && total != nbytes)
-		warning("downloaded length %d != reported length %d",
-			nbytes, total);
-	}
-	R_Busy(0);
-	if (status == 1) error("cannot open URL `%s'", url);
-#endif
-
-    } else
-	error("unsupported URL scheme");
-
-    PROTECT(ans = allocVector(INTSXP, 1));
-    INTEGER(ans)[0] = status;
-    UNPROTECT(1);
-    return ans;
-}
-
-
-#ifdef HAVE_LIBXML
-#define INTERNET 1
-
-
-void *R_HTTPOpen(const char *url)
-{
-    inetconn *con;
-    void *ctxt;
-    int timeout = asInteger(GetOption(install("timeout"), R_NilValue));
-    int len = -1;
-    char *type = NULL;
-
-    if(timeout == NA_INTEGER || timeout <= 0) timeout = 60;
-
-    RxmlNanoHTTPTimeout(timeout);
-    ctxt = RxmlNanoHTTPOpen(url, NULL);
-    if(ctxt != NULL) {
-	int rc = RxmlNanoHTTPReturnCode(ctxt);
-	if(rc != 200) {
-	    RxmlNanoHTTPClose(ctxt);
-	    error("cannot open: HTTP status was `%d'", rc);
-	    return NULL;
-	} else {
-	    type = RxmlNanoHTTPContentType(ctxt);
-	    len = RxmlNanoHTTPContentLength(ctxt);
-	    if(!IDquiet){
-		Rprintf("Content type `%s'", type ? type : "unknown");
-		if(len >= 0) Rprintf(" length %d bytes\n", len);
-		else Rprintf(" length unknown\n", len);
-#ifdef Win32
-		R_FlushConsole();
-#endif
-	    }
-	}
-    }
-    con = (inetconn *) malloc(sizeof(inetconn));
-    if(con) {
-	con->length = len;
-	con->type = type;
-	con->ctxt = ctxt;
-    }
-    return con;
-}
-
-int R_HTTPRead(void *ctx, char *dest, int len)
-{
-    return RxmlNanoHTTPRead(((inetconn *)ctx)->ctxt, dest, len);
-}
-
-void R_HTTPClose(void *ctx)
-{
-    if(ctx) {
-	RxmlNanoHTTPClose(((inetconn *)ctx)->ctxt);
-	free(ctx);
-    }
-}
-
-
-void *R_FTPOpen(const char *url)
-{
-    inetconn *con;
-    void *ctxt;
-    int timeout = asInteger(GetOption(install("timeout"), R_NilValue));
-    int len = 0;
-
-    if(timeout == NA_INTEGER || timeout <= 0) timeout = 60;
-    RxmlNanoFTPTimeout(timeout);
-    ctxt = RxmlNanoFTPOpen(url);
-    if(!ctxt) return NULL;
-    if(!IDquiet) {
-	len = RxmlNanoFTPContentLength(ctxt);
-	if(len >= 0)
-	    Rprintf("ftp data connection made, file length %d bytes\n", len);
-	else
-	    Rprintf("ftp data connection made, file length unknown\n");
-#ifdef Win32
-	R_FlushConsole();
-#endif
-    }
-    con = (inetconn *) malloc(sizeof(inetconn));
-    if(con) {
-	con->length = len;
-	con->type = NULL;
-	con->ctxt = ctxt;
-    }
-    return con;
-}
-
-int R_FTPRead(void *ctx, char *dest, int len)
-{
-    return RxmlNanoFTPRead(((inetconn *)ctx)->ctxt, dest, len);
-}
-
-void R_FTPClose(void *ctx)
-{
-    if(ctx) {
-	RxmlNanoFTPClose(((inetconn *)ctx)->ctxt);
-	free(ctx);
-    }
-}
-#endif /* HAVE_LIBXML */
-
-
-#ifdef USE_WININET
-#define INTERNET 2
-
-#include <windows.h>
-#include <wininet.h>
-typedef struct wictxt {
-    int length;
-    char * type;
-    HINTERNET hand;
-    HINTERNET session;
-} wIctxt, *WIctxt;
-
-#ifdef USE_WININET_ASYNC
-#undef  INTERNET
-#define INTERNET 3
-static int timeout;
-
-static int callback_status;
-static LPINTERNET_ASYNC_RESULT callback_res;
-
-static void CALLBACK
-InternetCallback(HINTERNET hInternet, DWORD context, DWORD Status,
-		 LPVOID lpvStatusInformation,
-		 DWORD dwStatusInformationLength)
-{
-    callback_status = Status;
-    /* printf("callback with context %ld, code %ld\n", context, Status); */
-    if(Status == INTERNET_STATUS_REQUEST_COMPLETE) {
-	callback_res = (LPINTERNET_ASYNC_RESULT) lpvStatusInformation;
-    }
-}
-#endif
-
-void *R_HTTPOpen(const char *url)
-{
-    WIctxt  wictxt;
-    DWORD status, d1 = 4, d2 = 0, d3 = 100;
-    char buf[101];
-
-/*	BOOL res = InternetAttemptConnect(0);
-
-	if (res != ERROR_SUCCESS) {
-	warning("no Internet connection available");
-	return NULL;
-	}*/
-
-    wictxt = (WIctxt) malloc(sizeof(wIctxt));
-    wictxt->length = -1;
-    wictxt->type = NULL;
-    wictxt->hand =
-	InternetOpen("R", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL,
-#ifdef USE_WININET_ASYNC
-		     INTERNET_FLAG_ASYNC
-#else
-		     0
-#endif
-	             );
-    if(!wictxt->hand) {
-	free(wictxt);
-	error("cannot open Internet connection");
-    }
-
-#ifdef USE_WININET_ASYNC
-    timeout = asInteger(GetOption(install("timeout"), R_NilValue));
-    if(timeout == NA_INTEGER || timeout <= 0) timeout = 60;
-    InternetSetStatusCallback(wictxt->hand,
-			      (INTERNET_STATUS_CALLBACK) InternetCallback);
-    if(!IDquiet) {
-	Rprintf("using Asynchronous WinInet calls, timeout %d secs\n",
-		timeout);
-	R_FlushConsole();
-    }
-
-    callback_status = 0;
-    InternetOpenUrl(wictxt->hand, url,
-		    NULL, 0,
-        INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_CACHE_WRITE,
-		    17);
-
-    {
-	DWORD t1 = GetTickCount();
-	while(callback_status != INTERNET_STATUS_REQUEST_COMPLETE
-	      && GetTickCount() < t1 + 1000*timeout) {
-	    R_ProcessEvents();
-	    Sleep(100);
-	}
-	if(callback_status != INTERNET_STATUS_REQUEST_COMPLETE) {
-	    InternetCloseHandle(wictxt->hand);
-	    free(wictxt);
-	    error("InternetOpenUrl timed out");
-	}
-    }
-
-    wictxt->session = (HINTERNET) callback_res->dwResult;
-#else
-    if(!IDquiet) {
-	Rprintf("using Synchronous WinInet calls\n");
-	R_FlushConsole();
-    }
-    wictxt->session = InternetOpenUrl(wictxt->hand, url,
-				      NULL, 0,
-        INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_CACHE_WRITE,
-				      0);
-#endif /* USE_WININET_ASYNC */
-    if(!wictxt->session) {
-	DWORD err1 = GetLastError(), err2, blen = 101;
-	InternetCloseHandle(wictxt->hand);
-	free(wictxt);
-	if (err1 == ERROR_INTERNET_EXTENDED_ERROR) {
-	    InternetGetLastResponseInfo(&err2, buf, &blen);
-	    error("InternetOpenUrl failed: `%s'", buf);
-	} else {
-	    FormatMessage( 
-		FORMAT_MESSAGE_FROM_HMODULE,
-		GetModuleHandle("wininet.dll"),
-		err1,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		buf, 101, NULL);
-	    error("InternetOpenUrl failed: `%s'", buf);
-	}
-    }
-
-    HttpQueryInfo(wictxt->session,
-		  HTTP_QUERY_STATUS_CODE | HTTP_QUERY_FLAG_NUMBER,
-		  &status, &d1, &d2);
-    if(status != 200) {
-	d2 = 0;
-	HttpQueryInfo(wictxt->session,
-		      HTTP_QUERY_STATUS_TEXT, &buf, &d3, &d2);
-	InternetCloseHandle(wictxt->session);
-	InternetCloseHandle(wictxt->hand);
-	free(wictxt);
-	error("cannot open: HTTP status was `%d %s'", status, buf);
-    }
-
-    HttpQueryInfo(wictxt->session,
-		  HTTP_QUERY_CONTENT_TYPE, &buf, &d3, &d2);
-    d2 = 0;
-    HttpQueryInfo(wictxt->session,
-		  HTTP_QUERY_CONTENT_LENGTH | HTTP_QUERY_FLAG_NUMBER,
-		  &status, &d1, &d2);
-    wictxt->length = status;
-    wictxt->type = strdup(buf);
-    if(!IDquiet) {
-	Rprintf("Content type `%s' length %d bytes\n", buf, status);
-	R_FlushConsole();
-    }
-
-    R_ProcessEvents();
-    return (void *)wictxt;
-}
-
-int R_HTTPRead(void *ctx, char *dest, int len)
-{
-    DWORD nread;
-
-    InternetReadFile(((WIctxt)ctx)->session, dest, len, &nread);
-#ifdef USE_WININET_ASYNC
-    {
-	DWORD t1 = GetTickCount();
-	while(callback_status != INTERNET_STATUS_REQUEST_COMPLETE
-	      && GetTickCount() < t1 + 1000*timeout) {
-	    R_ProcessEvents();
-	    Sleep(100);
-	}
-	if(callback_status != INTERNET_STATUS_REQUEST_COMPLETE) {
-	    warning("Internet read timed out");
-	    nread = 0;
-	}
-    }
-#endif
-    R_ProcessEvents();
-    return (int) nread;
-}
-
-void R_HTTPClose(void *ctx)
-{
-    InternetCloseHandle(((WIctxt)ctx)->session);
-    InternetCloseHandle(((WIctxt)ctx)->hand);
-    if(((WIctxt)ctx)->type) free(((WIctxt)ctx)->type);
-    free(ctx);
-}
-
-void *R_FTPOpen(const char *url)
-{
-    WIctxt  wictxt;
-
-    wictxt = (WIctxt) malloc(sizeof(wIctxt));
-    wictxt->length = -1;
-    wictxt->type = NULL;
-
-    wictxt->hand =
-	InternetOpen("R", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL,
-#ifdef USE_WININET_ASYNC
-		     INTERNET_FLAG_ASYNC
-#else
-		     0
-#endif
-	             );
-    if(!wictxt->hand) {
-	free(wictxt);
-	error("cannot open Internet connection");
-    }
-
-#ifdef USE_WININET_ASYNC
-    timeout = asInteger(GetOption(install("timeout"), R_NilValue));
-    if(timeout == NA_INTEGER || timeout <= 0) timeout = 60;
-    InternetSetStatusCallback(wictxt->hand,
-			      (INTERNET_STATUS_CALLBACK) InternetCallback);
-    if(!IDquiet) {
-	Rprintf("using Asynchronous WinInet calls, timeout %d secs\n",
-		timeout);
-	R_FlushConsole();
-    }
-
-    callback_status = 0;
-    InternetOpenUrl(wictxt->hand, url,
-		    NULL, 0,
-        INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_CACHE_WRITE,
-		    17);
-    {
-	DWORD t1 = GetTickCount();
-	while(callback_status != INTERNET_STATUS_REQUEST_COMPLETE
-	      && GetTickCount() < t1 + 1000*timeout) {
-	    R_ProcessEvents();
-	    Sleep(100);
-	}
-	if(callback_status != INTERNET_STATUS_REQUEST_COMPLETE) {
-	    InternetCloseHandle(wictxt->hand);
-	    free(wictxt);
-	    error("InternetOpenUrl timed out");
-	}
-    }
-
-    wictxt->session = (HINTERNET) callback_res->dwResult;
-#else
-    if(!IDquiet) {
-	Rprintf("using Synchronous WinInet calls\n");
-	R_FlushConsole();
-    }
-    wictxt->session = InternetOpenUrl(wictxt->hand, url,
-				      NULL, 0,
-        INTERNET_FLAG_KEEP_CONNECTION | INTERNET_FLAG_NO_CACHE_WRITE,
-				      0);
-    if(!wictxt->session) {
-	char buf[256];
-	DWORD err1 = GetLastError(), err2, blen = 256;
-	InternetCloseHandle(wictxt->hand);
-	free(wictxt);
-	if (err1 == ERROR_INTERNET_EXTENDED_ERROR) {
-	    InternetGetLastResponseInfo(&err2, buf, &blen);
-	    error("InternetOpenUrl failed: `%s'", buf);
-	} else {
-	    FormatMessage( 
-		FORMAT_MESSAGE_FROM_HMODULE,
-		GetModuleHandle("wininet.dll"),
-		err1,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		buf, 101, NULL);
-	    error("InternetOpenUrl failed: `%s'", buf);
-	}
-    }
-#endif /* USE_WININET_ASYNC */
-    R_ProcessEvents();
-    return (void *)wictxt;
-}
-
-int R_FTPRead(void *ctx, char *dest, int len)
-{
-    int nread = R_HTTPRead(ctx, dest, len);
-    R_ProcessEvents();
-    return nread;
-}
-
-void R_FTPClose(void *ctx)
-{
-    R_HTTPClose(ctx);
-}
-#endif
-
-#ifndef INTERNET
-void *R_HTTPOpen(const char *url)
-{
-    return NULL;
-}
-
-int R_HTTPRead(void *ctx, char *dest, int len)
-{
-    return -1;
-}
-
-void R_HTTPClose(void *ctx)
-{
-}
-
-void *R_FTPOpen(const char *url)
-{
-    return NULL;
-}
-
-int R_FTPRead(void *ctx, char *dest, int len)
-{
-    return -1;
-}
-
-void R_FTPClose(void *ctx)
-{
-}
-#endif
-
-
-#define MBUFSIZE 8192
-void RxmlMessage(int level, const char *format, ...)
-{
-    int clevel;
-    char buf[MBUFSIZE], *p;
-    va_list(ap);
-
-    clevel = asInteger(GetOption(install("internet.info"), R_NilValue));
-    if(clevel == NA_INTEGER) clevel = 2;
-    
-    if(level < clevel) return;
-
-    va_start(ap, format);
-#ifdef HAVE_VSNPRINTF
-    vsnprintf(buf, MBUFSIZE, format, ap);
-    buf[MBUFSIZE-1] = '\0';
-#else
-    vsprintf(buf, format, ap);
-#endif
-    va_end(ap);
-    p = buf + strlen(buf) - 1;
-    if(strlen(buf) > 0 && *p == '\n') *p = '\0';
-    Rprintf(buf);
-    Rprintf("\n");
 }

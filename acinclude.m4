@@ -401,16 +401,16 @@ EOF
       cat > conftest.c <<EOF
 main() { try_(); }
 EOF
-      ${CC} ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} -o conftest \
-	conftest.c conftestf.o 1>&AC_FD_CC 2>&AC_FD_CC
+      ${CC} ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} -o conftest${ac_exeext} \
+	conftest.c conftestf.${ac_objext} 1>&AC_FD_CC 2>&AC_FD_CC
       if test ${?} = 0; then
 	r_cv_prog_f77_append_underscore=yes
       else
 	cat > conftest.c <<EOF
 main() { try(); }
 EOF
-	${CC} ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} -o conftest \
-	  conftest.c conftestf.o 1>&AC_FD_CC 2>&AC_FD_CC
+	${CC} ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} -o conftest${ac_exeext} \
+	  conftest.c conftestf.${ac_objext} 1>&AC_FD_CC 2>&AC_FD_CC
 	if test ${?} = 0; then
 	  r_cv_prog_f77_append_underscore=no
 	fi
@@ -483,9 +483,10 @@ EOF
 	## This should really use MAIN_LD, and hence come after this is
 	## determined.  Or maybe we can always use ${CC} eventually?
 	## Also, this used to have `-lm' hardwired ...
-	if ${CC-cc} ${LDFLAGS} ${MAIN_LDFLAGS} -o conftest conftest.o \
-            conftestf.o ${FLIBS} ${LIBM} 1>&AC_FD_CC 2>&AC_FD_CC; then
-          output=`./conftest 2>&1`
+	if ${CC-cc} ${LDFLAGS} ${MAIN_LDFLAGS} -o conftest${ac_exeext} \
+	    conftest.${ac_objext} conftestf.${ac_objext} ${FLIBS} \
+	    ${LIBM} 1>&AC_FD_CC 2>&AC_FD_CC; then
+          output=`./conftest${ac_exeext} 2>&1`
 	  if test ${?} = 0; then
 	    r_cv_prog_f77_cc_compat=yes
 	  fi
@@ -537,7 +538,7 @@ int MAIN_ () { return 0; }
 int MAIN__ () { return 0; }
 EOF
       if AC_TRY_EVAL(ac_compile); then
-	${AR} ${ARFLAGS} libconftest.a conftest.o 1>&AC_FD_CC
+	${AR} ${ARFLAGS} libconftest.a conftest.${ac_objext} 1>&AC_FD_CC
 	if test -n "${RANLIB}"; then
 	  ${RANLIB} libconftest.a 1>&AC_FD_CC
 	fi
@@ -705,30 +706,6 @@ AC_DEFUN([R_HEADER_GLIBC2],
     AC_DEFINE(HAVE_GLIBC2)
   fi])
 ##
-## R_TYPE_SOCKLEN
-##
-AC_DEFUN([R_TYPE_SOCKLEN], [
-AC_CHECK_HEADER(sys/socket.h)
-AC_MSG_CHECKING([for type of socket length])
-if test "${ac_cv_header_sys_socket_h}" = yes; then
-  AC_CACHE_VAL(r_cv_type_socklen, [
-    for t in socklen_t size_t int; do
-      AC_TRY_COMPILE([
-#include <stddef.h>
-#include <sys/types.h>
-#include <sys/socket.h>], [
-          (void)getsockopt (1, 1, 1, NULL, (${t} *)NULL)],
-	[ r_cv_type_socklen=${t}; break ],
-	[ r_cv_type_socklen= ])
-    done])
-fi
-if test "x${r_cv_type_socklen}" = x; then
-  AC_MSG_WARN(could not determine)
-else
-  AC_MSG_RESULT([${r_cv_type_socklen} *])
-fi
-AC_DEFINE_UNQUOTED(SOCKLEN_T, ${r_cv_type_socklen})
-])
 ##
 ## R_C_IEEE_754
 ##
@@ -741,7 +718,7 @@ AC_DEFUN([R_C_IEEE_754],
     AC_EGREP_CPP(yes,
       changequote(<<, >>)dnl
       <<
-#include "conftest.h"
+#include "confdefs.h"
 #if defined(HAVE_FINITE) && defined(HAVE_ISNAN)
   yes
 #endif
@@ -757,7 +734,7 @@ AC_DEFUN([R_C_IEEE_754],
 ## R_C_OPTIEEE
 ##
 AC_DEFUN([R_C_OPTIEEE],
-  [ AC_CACHE_CHECK([whether compilers need -OPT:IEEE_NaN_inf=ON],
+  [ AC_CACHE_CHECK([whether C compiler needs -OPT:IEEE_NaN_inf=ON],
       r_cv_c_optieee,
       AC_TRY_RUN(
 	changequote(<<, >>)dnl
@@ -775,7 +752,6 @@ int main () {
 	r_cv_c_optieee=no))
     if test "${r_cv_c_optieee}" = yes; then
       R_XTRA_CFLAGS="${R_XTRA_CFLAGS} -OPT:IEEE_NaN_inf=ON"
-      R_XTRA_FFLAGS="${R_XTRA_FFLAGS} -OPT:IEEE_NaN_inf=ON"
     fi
   ])
 ##
@@ -801,29 +777,6 @@ AC_DEFUN([R_GNOME], [
   fi
   AC_SUBST(HAVE_GNOME)
   AC_SUBST(GNOME_IF_FILES)])
-##
-## R_BSD_NETWORKING
-##
-AC_DEFUN([R_BSD_NETWORKING], [
-AC_CACHE_CHECK([for BSD networking],
-  r_cv_bsd_networking,
-  [ if test "${ac_cv_header_netdb_h}" = yes \
-        && test "${ac_cv_header_netinet_in_h}" = yes \
-        && test "${ac_cv_header_netinet_tcp_h}" = yes \
-        && test "${ac_cv_header_sys_socket_h}" = yes \
-        && (test "${ac_cv_func_connect}" = yes \
-          || test "${ac_cv_lib_socket_connect}" = yes) \
-        && (test "${ac_cv_func_gethostbyname}" = yes \
-          || test "${ac_cv_lib_nsl_gethostbyname}" = yes); then
-      r_cv_bsd_networking=yes
-    else
-      r_cv_bsd_networking=no
-    fi])
-if test "${r_cv_bsd_networking}" = yes; then
-  AC_DEFINE(HAVE_BSD_NETWORKING)
-fi
-AM_CONDITIONAL(USE_LIBXML, test "${r_cv_bsd_networking}" = yes)
-])
 ##
 ## R_BITMAPS
 ##
@@ -1123,7 +1076,7 @@ AC_SUBST(BLAS_LIBS)
 ##
 AC_DEFUN([R_USES_LEAPSECONDS],
  [AC_MSG_CHECKING([whether leap seconds are counted])
-  AC_CACHE_VAL(r_cv_uses_leapseconds,
+  AC_CACHE_VAL(uses_leapseconds,
     [ cat > conftest.c <<EOF
 #include <time.h>
 #include <stdio.h>
@@ -1140,17 +1093,17 @@ int main () {
   exit(0);
 }
 EOF
-      if ${CC-cc} ${CFLAGS} -o conftest conftest.c; then
-          output=`./conftest`
+      if ${CC-cc} ${CFLAGS} -o conftest${ac_exeext} conftest.c; then
+          output=`./conftest${ac_exeext}`
 	  if test ${?} -eq 0; then
             if test ${output} -gt 0; then
-	      r_cv_uses_leapseconds=yes
+	      uses_leapseconds=yes
             fi
 	  fi
       fi
     ])
   rm -rf conftest conftest.* core
-  if test -n "${r_cv_uses_leapseconds}"; then
+  if test -n "${uses_leapseconds}"; then
     AC_MSG_RESULT([yes])
     AC_DEFINE(USING_LEAPSECONDS, 1)
   else
@@ -1163,61 +1116,6 @@ EOF
 ## GNOME macros which are in gnome.m4.  We currently include libtool.m4
 ## because the release version 1.3.3 e.g. refuses to link a shared lib
 ## against a static one.
-
-
-## <FIXME>
-## Private versions of AM_INIT_AUTOMAKE and AM_MISSING_PROG.
-## Necessary to work around a problem in the current release version of
-## automake/aclocal in determining missing_dir with zsh (problem with
-## CDPATH and pwd; see the docs in the autoconf CVS for more info).
-## Note that the current (2001-04-27) automake CVS has a 2-arg only
-## version of AM_MISSING_PROG.
-
-dnl Usage:
-dnl AM_INIT_AUTOMAKE(package,version, [no-define])
-
-AC_DEFUN(AM_INIT_AUTOMAKE,
-[AC_REQUIRE([AC_PROG_INSTALL])
-PACKAGE=[$1]
-AC_SUBST(PACKAGE)
-VERSION=[$2]
-AC_SUBST(VERSION)
-dnl test to see if srcdir already configured
-if test "`cd $srcdir && pwd`" != "`pwd`" && test -f $srcdir/config.status; then
-  AC_MSG_ERROR([source directory already configured; run "make distclean" there 
-first])
-fi
-ifelse([$3],,
-AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE", [Name of package])
-AC_DEFINE_UNQUOTED(VERSION, "$VERSION", [Version number of package]))
-AC_REQUIRE([AM_SANITY_CHECK])
-AC_REQUIRE([AC_ARG_PROGRAM])
-dnl FIXME This is truly gross.
-missing_dir=`CDPATH=${ZSH_VERSION+.}: && cd $ac_aux_dir && pwd`
-AM_MISSING_PROG(ACLOCAL, aclocal, $missing_dir)
-AM_MISSING_PROG(AUTOCONF, autoconf, $missing_dir)
-AM_MISSING_PROG(AUTOMAKE, automake, $missing_dir)
-AM_MISSING_PROG(AUTOHEADER, autoheader, $missing_dir)
-AM_MISSING_PROG(MAKEINFO, makeinfo, $missing_dir)
-AC_REQUIRE([AC_PROG_MAKE_SET])])
-
-dnl AM_MISSING_PROG(NAME, PROGRAM, DIRECTORY)
-dnl The program must properly implement --version.
-AC_DEFUN(AM_MISSING_PROG,
-[AC_MSG_CHECKING(for working $2)
-# Run test in a subshell; some versions of sh will print an error if
-# an executable is not found, even if stderr is redirected.
-# Redirect stdin to placate older versions of autoconf.  Sigh.
-if ($2 --version) < /dev/null > /dev/null 2>&1; then
-   $1=$2
-   AC_MSG_RESULT(found)
-else
-   $1="$3/missing $2"
-   AC_MSG_RESULT(missing)
-fi
-AC_SUBST($1)])
-
-## </FIXME>
 
 
 ## gnome.m4
@@ -2253,8 +2151,8 @@ AC_MSG_RESULT($objdir)
 
 ## FIXME: this should be a separate macro
 ##
-AC_ARG_WITH(pic, [dnl
-  --with-pic              try to use only PIC/non-PIC objects [default=use both]],
+AC_ARG_WITH(pic, 
+[  --with-pic              try to use only PIC/non-PIC objects [default=use both]],
 pic_mode="$withval", pic_mode=default)
 test -z "$pic_mode" && pic_mode=default
 
@@ -2275,9 +2173,6 @@ AC_CACHE_VAL(lt_cv_prog_cc_pic,
     lt_cv_prog_cc_static='-static'
 
     case $host_os in
-    beos* | irix5* | irix6* | osf3* | osf4* | osf5*)
-      # PIC is the default for these OSes.
-      ;;
     aix*)
       # Below there is a dirty hack to force normal static linking with -ldl
       # The problem is because libdl dynamically linked with both libc and
@@ -2287,16 +2182,24 @@ AC_CACHE_VAL(lt_cv_prog_cc_pic,
       # we not sure about C++ programs.
       lt_cv_prog_cc_static="$lt_cv_prog_cc_static ${lt_cv_prog_cc_wl}-lC"
       ;;
-    cygwin* | mingw* | pw32* | os2*)
-      # This hack is so that the source file can tell whether it is being
-      # built for inclusion in a dll (and should export symbols for example).
-      lt_cv_prog_cc_pic='-DDLL_EXPORT'
-      ;;
     amigaos*)
       # FIXME: we need at least 68020 code to build shared libraries, but
       # adding the `-m68020' flag to GCC prevents building anything better,
       # like `-m68040'.
       lt_cv_prog_cc_pic='-m68020 -resident32 -malways-restore-a4'
+      ;;
+    beos* | irix5* | irix6* | osf3* | osf4* | osf5*)
+      # PIC is the default for these OSes.
+      ;;
+    darwin* | rhapsody*)
+      # PIC is the default on this platform
+      # Common symbols not allowed in MH_DYLIB files
+      lt_cv_prog_cc_pic='-fno-common'
+      ;;
+    cygwin* | mingw* | pw32* | os2*)
+      # This hack is so that the source file can tell whether it is being
+      # built for inclusion in a dll (and should export symbols for example).
+      lt_cv_prog_cc_pic='-DDLL_EXPORT'
       ;;
     sysv4*MP*)
       if test -d /usr/nec; then
@@ -2706,7 +2609,7 @@ EOF
       test -f $output_objdir/impgen.exe || (cd $output_objdir && \
       if test "x$HOST_CC" != "x" ; then $HOST_CC -o impgen impgen.c ; \
       else $CC -o impgen impgen.c ; fi)~
-      $output_objdir/impgen $dir/$soname > $output_objdir/$soname-def'
+      $output_objdir/impgen $dir/$soroot > $output_objdir/$soname-def'
 
     old_archive_from_expsyms_cmds='$DLLTOOL --as=$AS --dllname $soname --def $output_objdir/$soname-def --output-lib $output_objdir/$newlib'
 
@@ -2764,11 +2667,11 @@ EOF
         done;
       fi~
       '"$ltdll_cmds"'
-      $CC -Wl,--base-file,$output_objdir/$soname-base '$lt_cv_cc_dll_switch' -Wl,-e,'$dll_entry' -o $lib '$ltdll_obj'$libobjs $deplibs $compiler_flags~
+      $CC -Wl,--base-file,$output_objdir/$soname-base '$lt_cv_cc_dll_switch' -Wl,-e,'$dll_entry' -o $output_objdir/$soname '$ltdll_obj'$libobjs $deplibs $compiler_flags~
       $DLLTOOL --as=$AS --dllname $soname --exclude-symbols '$dll_exclude_symbols' --def $output_objdir/$soname-def --base-file $output_objdir/$soname-base --output-exp $output_objdir/$soname-exp~
-      $CC -Wl,--base-file,$output_objdir/$soname-base $output_objdir/$soname-exp '$lt_cv_cc_dll_switch' -Wl,-e,'$dll_entry' -o $lib '$ltdll_obj'$libobjs $deplibs $compiler_flags~
-      $DLLTOOL --as=$AS --dllname $soname --exclude-symbols '$dll_exclude_symbols' --def $output_objdir/$soname-def --base-file $output_objdir/$soname-base --output-exp $output_objdir/$soname-exp~
-      $CC $output_objdir/$soname-exp '$lt_cv_cc_dll_switch' -Wl,-e,'$dll_entry' -o $lib '$ltdll_obj'$libobjs $deplibs $compiler_flags'
+      $CC -Wl,--base-file,$output_objdir/$soname-base $output_objdir/$soname-exp '$lt_cv_cc_dll_switch' -Wl,-e,'$dll_entry' -o $output_objdir/$soname '$ltdll_obj'$libobjs $deplibs $compiler_flags~
+      $DLLTOOL --as=$AS --dllname $soname --exclude-symbols '$dll_exclude_symbols' --def $output_objdir/$soname-def --base-file $output_objdir/$soname-base --output-exp $output_objdir/$soname-exp --output-lib $output_objdir/$libname.dll.a~
+      $CC $output_objdir/$soname-exp '$lt_cv_cc_dll_switch' -Wl,-e,'$dll_entry' -o $output_objdir/$soname '$ltdll_obj'$libobjs $deplibs $compiler_flags'
     ;;
 
   netbsd*)
@@ -2922,15 +2825,13 @@ else
     ;;
 
   darwin* | rhapsody*)
-    allow_undefined_flag='-undefined warning'
-    archive_cmds='$CC `if test "$module" = "yes"; then echo -bundle; else
-      echo -dynamiclib; fi` -o $lib $libobjs $deplibs $linkopts'
-    archive_expsym_cmds="$archive_cmds"' && strip -s $export_symbols'
-    ## What we need is to hardcode the path to the library, not the search path
-    #hardcode_direct=yes
-    #hardcode_libdir_flag_spec='-install_name $libdir/$lib'
+    allow_undefined_flag='-undefined suppress'
+    archive_cmds='$CC `test .$module = .yes && echo -bundle || echo -dynamiclib` $allow_undefined_flag -o $lib $libobjs $deplibs$linkopts -install_name $rpath/$soname `test -n "$verstring" -a x$verstring != x0.0 && echo $verstring`'
+    # We need to add '_' to the symbols in $export_symbols first
+    #archive_expsym_cmds="$archive_cmds"' && strip -s $export_symbols'
+    hardcode_direct=yes
     hardcode_shlibpath_var=no
-    whole_archive_flag_spec='-all_load'
+    whole_archive_flag_spec='-all_load $convenience'
     ;;
 
   freebsd1*)
@@ -3300,7 +3201,15 @@ cygwin* | mingw* | pw32*)
   need_lib_prefix=no
   case $GCC,$host_os in
   yes,cygwin*)
-    library_names_spec='`echo ${libname} | sed -e 's/^lib/cyg/'``echo ${release} | [sed -e 's/[.]/-/g']`${versuffix}.dll'
+    library_names_spec='$libname.dll.a'
+    soname_spec='`echo ${libname} | sed -e 's/^lib/cyg/'``echo ${release} | [sed -e 's/[.]/-/g']`${versuffix}.dll'
+    postinstall_cmds='dlpath=`bash 2>&1 -c '\''. $dir/${file}i;echo \$dlname'\''`~
+      dldir=$destdir/`dirname \$dlpath`~
+      test -d \$dldir || mkdir -p \$dldir~
+      $install_prog .libs/$dlname \$dldir/$dlname'
+    postuninstall_cmds='dldll=`bash 2>&1 -c '\''. $file; echo \$dlname'\''`~
+      dlpath=$dir/\$dldll~
+       $rm \$dlpath'
     ;;
   yes,mingw*)
     library_names_spec='${libname}`echo ${release} | [sed -e 's/[.]/-/g']`${versuffix}.dll'
@@ -3319,12 +3228,14 @@ cygwin* | mingw* | pw32*)
   ;;
 
 darwin* | rhapsody*)
+  dynamic_linker="$host_os dyld"
+  version_type=darwin
   need_lib_prefix=no
   need_version=no
-  library_names_spec='${libname}.`if test "$module" = "yes"; then echo so; else echo dylib; fi`'
+  library_names_spec='${libname}${release}${versuffix}.`test .$module = .yes && echo so || echo dylib` ${libname}${release}${major}.`test .$module = .yes && echo so || echo dylib` ${libname}.`test .$module = .yes && echo so || echo dylib`'
+  soname_spec='${libname}${release}${major}.`test .$module = .yes && echo so || echo dylib`'
   shlibpath_overrides_runpath=yes
   shlibpath_var=DYLD_LIBRARY_PATH
-  postinstall_cmds='chmod +x $lib'
   ;;
 
 freebsd1*)
@@ -4116,7 +4027,7 @@ EOF
 #     filename = argv[1];
 #
 #     dll = open(filename, O_RDONLY|O_BINARY);
-#     if (!dll)
+#     if (dll < 1)
 # 	return 1;
 #
 #     dll_name = filename;
@@ -4524,10 +4435,16 @@ cygwin* | mingw* | pw32*)
   lt_cv_file_magic_cmd='$OBJDUMP -f'
   ;;
 
-darwin*|rhapsody*)
-  lt_cv_deplibs_check_method='file_magic Mach-O dynamically linked shared library'
-  lt_cv_file_magiic_cmd=/usr/bin/file
-  lt_cv_file_magic_test_file=`echo /System/Library/Frameworks/System.framework/Versions/*/System | head -1`
+darwin* | rhapsody*)
+  lt_cv_file_magic_cmd='/usr/bin/file -L'
+  case "$host_os" in
+  rhapsody* | darwin1.[012])
+    lt_cv_file_magic_test_file=`echo /System/Library/Frameworks/System.framework/Versions/*/System | head -1`
+    ;;
+  *) # Darwin 1.3 on
+    lt_cv_file_magic_test_file='/usr/lib/libSystem.dylib'
+    ;;
+  esac
   ;;
 
 freebsd*)
@@ -4591,12 +4508,10 @@ linux-gnu*)
 
 netbsd*)
   if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
-    [lt_cv_deplibs_check_method='file_magic NetBSD/[a-z0-9]* demand paged shared library']
+    [lt_cv_deplibs_check_method='match_pattern /lib[^/\.]+\.so\.[0-9]+\.[0-9]+$']
   else
-    [lt_cv_deplibs_check_method='file_magic ELF [0-9][0-9]*-bit [LM]SB shared object']
+    [lt_cv_deplibs_check_method='match_pattern /lib[^/\.]+\.so$']
   fi
-  lt_cv_file_magic_cmd='/usr/bin/file -L'
-  lt_cv_file_magic_test_file=`echo /usr/lib/libc.so*`
   ;;
 
 newos6*)

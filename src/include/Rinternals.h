@@ -472,7 +472,6 @@ extern SEXP	R_BlankString;	    /* "" as a CHARSXP */
 #define isSymbol		Rf_isSymbol
 #define isTs			Rf_isTs
 #define isUnordered		Rf_isUnordered
-#define isUnsorted		Rf_isUnsorted
 #define isUserBinop		Rf_isUserBinop
 #define isValidString		Rf_isValidString
 #define isValidStringF		Rf_isValidStringF
@@ -648,7 +647,6 @@ Rboolean isString(SEXP);
 Rboolean isSymbol(SEXP);
 Rboolean isTs(SEXP);
 Rboolean isUnordered(SEXP);
-Rboolean isUnsorted(SEXP);
 Rboolean isUserBinop(SEXP);
 Rboolean isValidString(SEXP);
 Rboolean isValidStringF(SEXP);

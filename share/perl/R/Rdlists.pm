@@ -45,7 +45,7 @@ sub buildinit {
     my $pkg = $ARGV[0];
     my $lib = $ARGV[1];
 
-    my $currentdir = cwd();
+    my $currentdir = getcwd();
 
     if($pkg){
 	die("Package $pkg does not exist\n") unless (-d $pkg);
@@ -59,7 +59,7 @@ sub buildinit {
     if($lib){
         mkdir "$lib", $dir_mod || die "Could not create $lib: $!\n";
 	chdir $lib;
-	$lib=cwd();
+	$lib=getcwd();
 	chdir $currentdir;
     }
     else{
@@ -69,12 +69,12 @@ sub buildinit {
     chdir $currentdir;
 
     chdir($pkg) or die("Cannot change to $pkg\n");
-    $tmp = cwd();
+    $tmp = getcwd();
     if($main::OSdir eq "windows") {
 	$tmp =~ s+\\+/+g; # need Unix-style path here
     }
     $pkg = basename($tmp);
-#    $pkg = basename(cwd());
+#    $pkg = basename(getcwd());
 
     chdir "man" or die("There are no man pages in $pkg\n");
     opendir man, '.';
@@ -547,7 +547,7 @@ sub html_pagehead
     my ($title, $top, $up, $uptext, $prev, $prevtext, $next, $nextext) = @_;
 
     my $retval = "<html><head><title>R: $title</title>\n" .
-	"<link rel=\"stylesheet\" type=\"text/css\" href=\"../../R.css\">\n" .
+	"<link rel=\"stylesheet\" type=\"text/css\" href=\"$top/R.css\">\n" .
 	"</head><body>\n" .
 	"<h1>$title " .
 	"<img class=\"toplogo\" src=\"$top/logo.jpg\" alt=\"[R logo]\"></h1>\n\n" .

@@ -50,12 +50,8 @@ png(filename ="Rplot.png", width = 480, height = 480, pointsize = 12,
 }
 \author{Guido Masarotto and Brian Ripley}
 
-\seealso{
-  \code{\link{Devices}}, \code{\link{dev.print}}, \code{\link{bitmap}}.
-
-  \code{\link{capabilities}} to see if these devices are
-  supported by this build of \R.
-}
+\seealso{\code{\link{Devices}}, \code{\link{dev.print}},
+  \code{\link{bitmap}}}
 \examples{
 ## copy current plot to a PNG file
 \dontrun{dev.print(png, file="myplot.png", width=480, height=480)}

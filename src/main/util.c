@@ -316,7 +316,7 @@ Rboolean isVectorAtomic(SEXP s)
     case CPLXSXP:
     case STRSXP:
 	return TRUE;
-    default: /* including NULL */
+    default:
 	return FALSE;
     }
 }
@@ -339,6 +339,7 @@ Rboolean isVector(SEXP s)/* === isVectorList() or isVectorAtomic() */
 }
 
 
+
 Rboolean isFrame(SEXP s)
 {
     SEXP class;
@@ -351,15 +352,18 @@ Rboolean isFrame(SEXP s)
     return FALSE;
 }
 
+
 Rboolean isEnvironment(SEXP s)
 {
     return (TYPEOF(s) == NILSXP || TYPEOF(s) == ENVSXP);
 }
 
+
 Rboolean isExpression(SEXP s)
 {
     return TYPEOF(s) == EXPRSXP;
 }
+
 
 Rboolean isLanguage(SEXP s)
 {
@@ -378,6 +382,7 @@ Rboolean isMatrix(SEXP s)
     return FALSE;
 }
 
+
 Rboolean isArray(SEXP s)
 {
     SEXP t;
@@ -394,6 +399,7 @@ Rboolean isTs(SEXP s)
 {
     return (isVector(s) && getAttrib(s, R_TspSymbol) != R_NilValue);
 }
+
 
 Rboolean tsConform(SEXP x, SEXP y)
 {

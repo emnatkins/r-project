@@ -1,13 +1,11 @@
 \name{sort}
 \alias{sort}
-\alias{is.unsorted}
-\title{Sorting a Vector}
+\title{Sort a Vector}
 \description{
   Sort a numeric or complex vector (partially) into ascending order.
 }
 \usage{
 sort(x, partial = NULL, na.last = NA)
-is.unsorted(x, na.rm = FALSE)
 }
 \arguments{
   \item{x}{a numeric or complex vector.}
@@ -24,10 +22,6 @@ is.unsorted(x, na.rm = FALSE)
   values smaller than these values are guaranteed to have a smaller
   index in the sorted array and any values which are greater are
   guaranteed to have a bigger index in the sorted array.
-
-  \code{is.unsorted} returns a logical indicating if \code{x} is sorted
-  increasingly, i.e. \code{is.unsorted(x)} is true if \code{any(x !=
-    sort(x))} (and there are no \code{NA}s).
 }
 \seealso{
   \code{\link{order}}, \code{\link{rank}}.
@@ -37,10 +31,6 @@ data(swiss)
 x <- swiss$Education[1:25]
 x; sort(x); sort(x, partial = c(10, 15))
 median # shows you another example for `partial'
-
-stopifnot(!is.unsorted(sort(x)),
-          !is.unsorted(LETTERS),
-           is.unsorted(c(NA,1:3,2), na.rm = TRUE))
 }
 \keyword{univar}
 \keyword{manip}

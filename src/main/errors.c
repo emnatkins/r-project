@@ -22,10 +22,9 @@
 #include <config.h>
 #endif
 
-#include <Defn.h>
+#include "Defn.h"
 /* -> Errormsg.h */
-#include <Startup.h> /* rather cleanup ..*/
-#include <Rconnections.h>
+#include "Startup.h" /* rather cleanup ..*/
 
 /* limit on call length at which errorcall/warningcall is split over
    two lines */
@@ -415,7 +414,11 @@ void jump_to_toplevel()
 	REprintf("Execution halted\n");
 	R_CleanUp(SA_NOSAVE, 1, 0); /* quit, no save, no .Last, status=1 */
     }
-    R_SinkReset();
+#ifdef OLD
+    if (R_Sinkfile) R_Outputfile = R_Sinkfile;
+    else R_Outputfile = R_Consolefile;
+#endif
+    R_OutputCon = R_SinkCon;
 
     PROTECT(s = allocList(nback));
     t = s;

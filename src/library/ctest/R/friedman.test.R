@@ -1,6 +1,4 @@
-friedman.test <- function(x, ...) UseMethod("friedman.test")
-
-friedman.test.default <- function(y, groups, blocks) {
+friedman.test <- function(y, groups, blocks) {
     DNAME <- deparse(substitute(y))
     if (is.matrix(y)) {
         groups <- as.factor(c(col(y)))
@@ -30,40 +28,14 @@ friedman.test.default <- function(y, groups, blocks) {
                    - (sum(unlist(lapply(TIES, function (u) {u^3 - u}))) /
                       (k - 1))))
     PARAMETER <- k - 1
+    PVAL <- pchisq(STATISTIC, PARAMETER, lower = FALSE)
     names(STATISTIC) <- "Friedman chi-squared"
     names(PARAMETER) <- "df"
 
     structure(list(statistic = STATISTIC,
                    parameter = PARAMETER,
-                   p.value = pchisq(STATISTIC, PARAMETER, lower = FALSE),
+                   p.value = PVAL,
                    method = "Friedman rank sum test",
                    data.name = DNAME),
               class = "htest")
-}
-
-friedman.test.formula <- function(formula, data, subset, na.action) {
-    if(missing(formula))
-        stop("formula missing")
-    ## <FIXME>
-    ## Maybe put this into an internal rewriteTwoWayFormula() when
-    ## adding support for strata()
-    if((length(formula) != 3)
-       || (length(formula[[3]]) != 3)
-       || (formula[[3]][[1]] != as.name("|")))
-        stop("incorrect specification for `formula'")
-    formula[[3]][[1]] <- as.name("+")
-    ## </FIXME>
-    if(missing(na.action))
-        na.action <- getOption("na.action")
-    m <- match.call(expand.dots = FALSE)
-    m$formula <- formula
-    if(is.matrix(eval(m$data, parent.frame())))
-        m$data <- as.data.frame(data)
-    m[[1]] <- as.name("model.frame")
-    mf <- eval(m, parent.frame())
-    DNAME <- paste(names(mf), collapse = " and ")
-    names(mf) <- NULL
-    y <- do.call("friedman.test", as.list(mf))
-    y$data.name <- DNAME
-    y
 }

@@ -48,7 +48,7 @@ R: $(OBJECTS)
 $(OBJECTS): $(top_builddir)/config.status
 
 install: installdirs install-gnome
-	@echo "installing $(subdir) ..."
+	@echo "installing etc ..."
 	@for f in $(OBJECTS) $(EXPORTFILE); do \
 	  $(INSTALL_DATA) $${f} $(rhome)/etc; \
 	done
@@ -63,10 +63,9 @@ install-gnome:
 	fi
 install-strip: install
 uninstall:
-	@echo "uninstalling $(subdir) ..."
-	@if test -d $(rhome)/$(subdir) \
-	  && test "`cd $(rhome); $(GETWD)`" \
-	       != "`cd $(top_builddir); $(GETWD)`"; then \
+	@echo "uninstalling etc ..."
+	@if test -d $(rhome)/etc -a \
+	  "`cd $(rhome); pwd`" != "`cd $(top_builddir); pwd`"; then \
 	  (cd $(rhome)/etc && \
 	    rm -f *.pl $(OBJECTS) $(EXPORTFILE) $(GNOME_IF_FILES)); \
 	  rmdir $(rhome)/etc 2> /dev/null \
@@ -75,7 +74,7 @@ uninstall:
 
 mostlyclean: clean
 clean:
-	@if test "$(BUILDDIR_IS_SRCDIR)" = no ; then \
+	@if [ "$(srcdir)" != "." ]; then \
 	  rm -f *.pl $(GNOME_IF_FILES); \
 	fi
 	@rm -f $(EXPORTFILE)

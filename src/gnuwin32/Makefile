@@ -1,18 +1,11 @@
 include MkRules
 
-all: rbuild rpackage rdocs
-
-## configuration macros
 HELP = YES
-WINHELP = CHM# NO, CHM, BOTH
-
-LEA_MALLOC=YES
-#USE_LIBXML=YES
-USE_WININET=YES
+WINHELP = BOTH# NO, CHM, BOTH
 
 PACKAGES = base ctest eda lqs modreg mva nls splines stepfun ts
 ALLPACKAGES = $(PACKAGES) tcltk
-RPREFIX = rw1030
+RPREFIX = rw1023
 
 RHOME = $(shell perl pwd.pl ../..)# must be absolute path
 RLIB = $(RHOME)/library
@@ -32,31 +25,22 @@ R-DLLLIBS = -L. $(FLIBS) -lwsock32 -lcomctl32 -lversion
 SOURCES = $(filter-out malloc.c,$(wildcard *.c *.f))
 OBJS = $(foreach i, $(SOURCES), $(basename $i).o)
 MAINLIBS = libmain.a libappl.a libmath.a
-EXTRALIBS = ga.a gl.a xdr.a em.a bitmap/zlib/libz.a
+EXTRALIBS = ga.a gl.a xdr.a em.a
 
 LIBFILES = $(foreach i, $(ALLPACKAGES), ../../library/$i) ../../library/R.css
 PKGS = $(foreach i,$(PACKAGES),pkg-$i)
 PKGCLEAN = $(foreach i,$(ALLPACKAGES),pkgclean-$i)
 
+LEA_MALLOC=YES
 # flags to ensure that Doug Lea's malloc is used:
 ifdef LEA_MALLOC
 extra-CFLAGS+=-DLEA_MALLOC
 OBJS-EXTRA=malloc.o
 endif
 
-ifdef USE_LIBXML
-EXTRALIBS+= Rlibxml.a
-OPTFLAGS+=-DHAVE_LIBXML
-endif
-
-ifdef USE_WININET
-R-DLLLIBS+=-lwininet
-OPTFLAGS+=-DUSE_WININET
-#OPTFLAGS+=-DUSE_WININET_ASYNC
-endif
-
 .PHONY:  clean veryclean  rlibs fixfiles front-ends
 
+all: rbuild rpackage rdocs
 
 # separate as Tcl/Tk headers are needed.
 tcl: 
@@ -80,11 +64,8 @@ rlibs:
 	$(MAKE) -C ../nmath OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
 	$(MAKE) -C ./graphapp
 	$(MAKE) -C ./getline
-	$(MAKE) -C ../extra/xdr
+	$(MAKE) -C ./xdr
 	$(MAKE) -C ./math
-ifdef USE_LIBXML
-	$(MAKE) -C ../extra/libxml OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
-endif
 
 
 COPYRIGHTS: $(RHOME)/COPYRIGHTS COPYRIGHTS.win
@@ -102,7 +83,12 @@ fixed/fixdesc:
 
 dllversion.o: ../include/Rversion.h
 
-R.dll: R.a $(OBJS-EXTRA) $(MAINLIBS) $(EXTRALIBS) dllversion.o
+R1.a: R.a $(OBJS-EXTRA)
+	$(CP) R.a R1.a
+	$(AR) cr R1.a $(OBJS-EXTRA)
+	$(RANLIB) R1.a
+
+R.dll: R1.a $(MAINLIBS) $(EXTRALIBS) dllversion.o
 
 Rdll: makeMakedeps ../../bin/R.dll
 
@@ -141,9 +127,6 @@ R.exp1: R.a $(MAINLIBS) $(EXTRALIBS) exported-vars
 
 ../../library/R.css: ../../doc/html/R.css
 	$(CP) $< $@
-
-bitmap/zlib/libz.a:
-	$(MAKE) -C bitmap buildzlib
 
 rdocs:
 	@$(MAKE) -C ../../doc/manual -f Makefile.win html
@@ -237,7 +220,7 @@ cleanwin:
 	$(MAKE) -C getline clean
 	$(MAKE) -C help clean
 	$(MAKE) -C front-ends clean
-	$(MAKE) -C ../extra/xdr clean
+	$(MAKE) -C xdr clean
 	$(MAKE) -C math clean
 	$(MAKE) -C bitmap clean
 	-$(MAKE) -C installer clean ISclean
@@ -296,13 +279,13 @@ distribution: bindist packagedist docsdist
 bindist: docfiles
 	$(RM) -rf $(RPREFIX)
 	$(MKDIR) $(RPREFIX)
-	$(CP) -pr ../../bin ../../afm ../../unzip $(RPREFIX)
+	$(CP) -pr ../../bin ../../afm ../../demos  ../../unzip $(RPREFIX)
 	$(MKDIR) $(RPREFIX)/library
 	$(CP) -pr $(LIBFILES) $(RPREFIX)/library
 	$(RM) $(RPREFIX)/*/Makefile.in
 	(cd $(RPREFIX)/bin; $(RM) Rcmd.exe INSTALL REMOVE SHLIB build check \
 	   massage-Examples.sh Rd2dvi.sh Rd2txt Rdconv Rdiff.sh Rdindex \
-           extract-usage Sd2Rd Rprof)
+           extract-usage Sd2Rd)
 	$(MKDIR) $(RPREFIX)/etc
 	$(CP) -p ../../etc/Rprofile $(RPREFIX)/etc/Rprofile
 	$(CP) -p ../../etc/Rconsole $(RPREFIX)/etc/Rconsole
@@ -384,7 +367,7 @@ packagedist:
 	  ../../bin/build ../../bin/check ../../bin/massage-Examples.sh \
 	  ../../bin/Rd2dvi.sh ../../bin/Rd2txt ../../bin/Rdconv \
 	  ../../bin/Rdindex ../../bin/Rdiff.sh ../../bin/extract-usage \
-	  ../../bin/Sd2Rd ../../bin/Rprof ../../bin/Rcmd.exe \
+	  ../../bin/Sd2Rd ../../bin/Rcmd.exe \
           $(RPREFIX)/bin
 	$(CP) ../../etc/Makeconf-tests $(RPREFIX)/etc
 	$(CP) -p graphapp/graphapp.h $(RPREFIX)/src/include

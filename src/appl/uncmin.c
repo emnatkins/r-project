@@ -28,6 +28,7 @@
 #else
 #include <fp.h>
 #endif /* mac */
+#include <R.h>
 #include <R_ext/Applic.h>
 #include <R_ext/PrtUtil.h> /* printRealVector */
 #include <R_ext/Linpack.h> /* ddot, dnrm2, dtrsl, dscal */
@@ -46,8 +47,8 @@
 #endif
 
 
-void fdhess(int n, double *x, double fval, fcn_p fun, void *state, 
-	    double *h, int nfd, double *step, double *f,
+void fdhess(int n, double *x, double fval, fcn_p fun, void
+	    *state, double *h, int nfd, double *step, double *f,
 	    int ndigit, double *typx)
 {
 /*	this subroutine calculates a numerical approximation to the upper
@@ -444,11 +445,11 @@ qrupdt(int nr, int n, double *a, double *u, double *v)
 } /* qrupdt_ */
 
 static void
-tregup(int nr, int n, double *x, double f, double *g, double *a, fcn_p fcn, 
-       void *state, double *sc, double *sx, int nwtake, 
-       double stepmx, double steptl, double *dlt, int *iretcd, 
-       double *xplsp, double *fplsp, double *xpls, double *fpls, int *mxtake, 
-       int method, double *udiag)
+tregup(int nr, int n, double *x, double f, double *g, double *a, fcn_p
+       fcn, void *state, double *sc, double *sx, int nwtake, double
+       stepmx, double steptl, double *dlt, int *iretcd, double *xplsp,
+       double *fplsp, double *xpls, double *fpls, int *mxtake, int
+       method, double *udiag)
 {
 /* Decide whether to accept xpls=x+sc as the next iterate and update the
  * trust region dlt.
@@ -749,8 +750,9 @@ lnsrch(int n, double *x, double f, double *g, double *p, double *xpls,
 
 static void
 dogstp(int nr, int n, double *g, double *a, double *p, double *sx,
-       double rnwtln, double *dlt, int *nwtake, int *fstdog, double *ssd, 
-       double *v, double *cln, double *eta, double *sc, double stepmx)
+       double rnwtln, double *dlt, int *nwtake, int *fstdog, double
+       *ssd, double *v, double *cln, double *eta, double *sc, double
+       stepmx)
 {
 /* Find new step by double dogleg algorithm
 
@@ -782,8 +784,9 @@ dogstp(int nr, int n, double *g, double *a, double *p, double *sx,
 
  *	cln		 length of cauchy step */
 
+  double alam, beta;
   int i, j, one = 1;
-  double alam, bet, alpha, tmp, dot1, dot2;
+  double alpha, tmp, dot1, dot2;
 
   /*	can we take newton step */
 
@@ -806,20 +809,20 @@ dogstp(int nr, int n, double *g, double *a, double *p, double *sx,
     for (i = 0; i < n; ++i) {
       alpha += g[i] * g[i] / (sx[i] * sx[i]);
     }
-    bet = 0.;
+    beta = 0.;
     for (i = 0; i < n; ++i) {
       tmp = 0.;
       for (j = i; j < n; ++j) {
 	tmp += a[j + i * nr] * g[j] / (sx[j] * sx[j]);
       }
-      bet += tmp * tmp;
+      beta += tmp * tmp;
     }
     for (i = 0; i < n; ++i) {
-      ssd[i] = -(alpha / bet) * g[i] / sx[i];
+      ssd[i] = -(alpha / beta) * g[i] / sx[i];
     }
-    *cln = alpha * sqrt(alpha) / bet;
+    *cln = alpha * sqrt(alpha) / beta;
     *eta = (alpha * .8 * alpha /
-	    (-bet * F77_CALL(ddot)(&n, g, &one, p, &one))) + .2;
+	    (-beta * F77_CALL(ddot)(&n, g, &one, p, &one))) + .2;
     for (i = 0; i < n; ++i) {
       v[i] = *eta * sx[i] * p[i] - ssd[i];
     }
@@ -858,7 +861,8 @@ static void
 dogdrv(int nr, int n, double *x, double f, double *g, double *a, double *p,
        double *xpls, double *fpls, fcn_p fcn, void *state, double *sx,
        double stepmx, double steptl, double *dlt, int *iretcd, int *mxtake,
-       double *sc, double *wrk1, double *wrk2, double *wrk3, int *itncnt)
+       double *sc, double *wrk1, double *wrk2, double *wrk3, int
+       *itncnt)
 {
 /* Find a next newton iterate (xpls) by the double dogleg method.
 
@@ -895,8 +899,10 @@ dogdrv(int nr, int n, double *x, double f, double *g, double *a, double *p,
  *	wrk3(n)	     --> workspace
  *	ipr	     --> device to which to send output */
 
-  int i, fstdog, nwtake;
-  double fplsp, rnwtln, eta, cln, tmp;
+  int i;
+  double fplsp;
+  int fstdog, nwtake;
+  double rnwtln, eta, cln, tmp;
 
   *iretcd = 4;
   fstdog = 1;
@@ -923,8 +929,8 @@ dogdrv(int nr, int n, double *x, double f, double *g, double *a, double *p,
 
 static void
 hookst(int nr, int n, double *g, double *a, double *udiag, double *p,
-       double *sx, double rnwtln, double *dlt, double *amu, double dltp, 
-       double *phi, double *phip0, int *fstime, double *sc,
+       double *sx, double rnwtln, double *dlt, double *amu, double
+       dltp, double *phi, double *phip0, int *fstime, double *sc,
        int *nwtake, double *wrk0, double epsm)
 {
 /*	 find new step by more-hebdon algorithm
@@ -1067,10 +1073,10 @@ hookst(int nr, int n, double *g, double *a, double *udiag, double *p,
 static void
 hookdr(int nr, int n, double *x, double f, double *g, double *a,
        double *udiag, double *p, double *xpls, double *fpls, fcn_p fcn,
-       void *state, double *sx, double stepmx, double steptl, double *dlt, 
-       int *iretcd, int *mxtake, double *amu, double *dltp, 
-       double *phi, double *phip0, double *sc, double *xplsp, 
-       double *wrk0, double epsm, int itncnt)
+       void *state, double *sx, double stepmx, double steptl, double *
+       dlt, int *iretcd, int *mxtake, double *amu, double *
+       dltp, double *phi, double *phip0, double *sc, double *
+       xplsp, double *wrk0, double epsm, int itncnt)
 {
 /* Find a next newton iterate (xpls) by the more-hebdon method.
 
@@ -1114,8 +1120,11 @@ hookdr(int nr, int n, double *x, double f, double *g, double *a,
  *	ipr	     --> device to which to send output
 */
 
-  int i, j, fstime, nwtake;
-  double bet, alpha, fplsp, rnwtln, tmp;
+  double beta;
+  int i, j;
+  double alpha, fplsp;
+  int fstime, nwtake;
+  double rnwtln, tmp;
 
   *iretcd = 4;
   fstime = 1;
@@ -1137,15 +1146,15 @@ hookdr(int nr, int n, double *x, double f, double *g, double *a,
       for (i = 0; i < n; ++i) {
 	alpha += g[i] * g[i] / (sx[i] * sx[i]);
       }
-      bet = 0.;
+      beta = 0.;
       for (i = 0; i < n; ++i) {
 	tmp = 0.;
 	for (j = i; j < n; ++j) {
 	  tmp += a[j + i * nr] * g[j] / (sx[j] * sx[j]);
 	}
-	bet += tmp * tmp;
+	beta += tmp * tmp;
       }
-      *dlt = alpha * sqrt(alpha) / bet;
+      *dlt = alpha * sqrt(alpha) / beta;
       *dlt = fmin2(*dlt, stepmx);
     }
   }
@@ -1168,8 +1177,8 @@ hookdr(int nr, int n, double *x, double f, double *g, double *a,
 
 static void
 secunf(int nr, int n, double *x, double *g, double *a, double *udiag,
-       double *xpls, double *gpls, double epsm, int itncnt, double rnf, 
-       int iagflg, int *noupdt, double *s, double *y, double *t)
+       double *xpls, double *gpls, double epsm, int itncnt, double
+       rnf, int iagflg, int *noupdt, double *s, double *y, double *t)
 {
 /* Update hessian by the bfgs unfactored method
 
@@ -2066,9 +2075,9 @@ optstp(int n, double *xpls, double fpls, double *gpls, double *x,
 
 static void
 optchk(int n, double *x, double *typsiz, double *sx, double *fscale,
-       double gradtl, int *itnlim, int *ndigit, double epsm, double *dlt, 
-       int *method, int *iexp, int *iagflg, int *iahflg, double *stepmx, 
-       int *msg)
+       double gradtl, int *itnlim, int *ndigit, double epsm, double
+       *dlt, int *method, int *iexp, int *iagflg, int *iahflg, double
+       *stepmx, int *msg)
 {
 /* Check input for reasonableness .
 
@@ -2292,8 +2301,8 @@ optdrv_end(int nr, int n, double *xpls, double *x, double *gpls,
 	   double *g, double *fpls, double f, double *a, double *p,
 	   int itncnt, int itrmcd, int *msg,
 	   void (*print_result)(int, int, const double *, double,
-				const double *, const double *,
-				const double *, int, int))
+				const double *, const double *, const
+				double *, int, int))
 {
   int i;
 
@@ -2683,8 +2692,8 @@ dfault(int n, double *x, double *typsiz,
 
 void
 optif0(int nr, int n, double *x, fcn_p fcn, void *state,
-       double *xpls, double *fpls, double *gpls, int *itrmcd,
-       double *a, double *wrk)
+       double *xpls, double *fpls, double *gpls, int *itrmcd, double
+       *a, double *wrk)
 {
 /* Provide simplest interface to minimization package.
  * User has no control over options.

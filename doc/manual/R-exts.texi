@@ -1303,10 +1303,11 @@ recommended for the source code of @R{} itself.
 @cindex Profiling
 @findex Rprof
 
-It is possible to profile @R{} code on most Unix-like versions of @R{},
-@R{} has to be built to enable this, by supplying the option
-@option{--enable-R-profiling}, profiling being enabled in a default
-build.  Profiling is also available on Windows.
+As from @R{} version 1.2.0 it is possible to profile @R{} code on most
+Unix-like versions of @R{}.  @R{} has to be built to enable this, by
+supplying the option @option{--enable-R-profiling}, profiling being
+enabled in a default build.  Unfortunately, this is not yet available on
+Windows, but will be from version 1.3.0.
 
 The command @code{Rprof} is used to control profiling, and its help page
 can be consulted for full details.  Profiling works by recording at
@@ -1314,7 +1315,6 @@ fixed intervals (by default every 20 msecs) which @R{} function
 is being used, and recording the results in a file (default
 @file{Rprof.out} in the working directory).  Then the utility @code{R
 CMD Rprof @var{Rprof.out}} can be used to summarize the activity.
-(Use @code{Rcmd Rprof @var{Rprof.out}} on Windows.)
 
 As an example, consider the following code (from Venables & Ripley,
 1999).
@@ -1881,6 +1881,7 @@ force the variant object to the right type.
 * Classes::                     
 * Handling lists::              
 * Finding and setting variables::  
+* Changes in R version 1.2::    
 @end menu
 
 @node Garbage Collection, Allocating storage, Handling R objects in C, Handling R objects in C
@@ -2277,7 +2278,7 @@ and enables us to say
   g = REAL(getListElement(a, "g"))[0];
 @end smallexample
 
-@node Finding and setting variables,  , Handling lists, Handling R objects in C
+@node Finding and setting variables, Changes in R version 1.2, Handling lists, Handling R objects in C
 @subsection Finding and setting variables
 @cindex Finding variables
 @cindex Setting variables
@@ -2333,6 +2334,77 @@ a new binding with the specified value is created in the global
 environment.  This corresponds to @code{assign(symbol, value, envir =
 rho, inherits = TRUE)}.
 
+@node Changes in R version 1.2,  , Finding and setting variables, Handling R objects in C
+@subsection Changes in R version 1.2
+
+@R{} version 1.2.0 introduces a new ``generational'' garbage collector
+which means that strings and vectors (and language objects) are handled
+differently from the numerical atomic types.
+
+Earlier code was written in a style like
+@smallexample
+  VECTOR(dimnames)[0] = getAttrib(x, R_NamesSymbol);
+@end smallexample
+
+@noindent
+but that is no longer allowed.  The functions @code{VECTOR_ELT} and
+@code{SET_VECTOR_ELT} must now be used to access and set elements of a
+generic vector.  There are analogous functions @code{STRING_ELT} and
+@code{SET_STRING_ELT} for character vectors.
+@findex VECTOR_ELT
+@findex SET_VECTOR_ELT
+@findex STRING_ELT
+@findex SET_STRING_ELT
+
+To convert existing code, use the following replacements.
+
+@quotation
+@multitable @columnfractions 0.35 0.5
+
+@item @strong{Original} @tab @strong{Replacement}
+
+@item @code{foo = VECTOR(bar)[i]} @tab @code{foo = VECTOR_ELT(bar, i)}
+@item @code{VECTOR(foo)[j] = bar} @tab @code{SET_VECTOR_ELT(foo, j, bar)}
+@item @code{foo = STRING(bar)[i]} @tab @code{foo = STRING_ELT(bar, i)}
+@item @code{STRING(foo)[j] = bar} @tab @code{SET_STRING_ELT(foo, j, bar)}
+
+@end multitable
+@end quotation
+
+The new garbage collector requires that all assignments into fields
+containing @code{SEXP} values go through functions such as
+@code{SET_VECTOR_ELT}.  Packages compiled under older versions of @R{}
+may contain binary code that modifies these fields directly.  These
+packages @emph{must} be recompiled and re-installed.  Failure to do so
+may confuse the memory manager and result in heap corruption.
+
+In order to achieve maximal source compatibility in the @R{} 1.x series,
+add-on packages should either use conditionals of the form
+
+@smallexample
+#if R_VERSION >= R_Version(1, 2, 0)
+  @var{new-style-code}
+#else
+  @var{old-style-code}
+#endif
+@end smallexample
+
+@noindent
+or, maybe preferably in order to avoid unnecessarily duplicating code, use
+the new-style interface along with a @strong{private} header file
+containing the following code:
+
+@smallexample
+#if R_VERSION < R_Version(1, 2, 0)
+# define STRING_ELT(x,i)        (STRING(x)[i])
+# define VECTOR_ELT(x,i)        (VECTOR(x)[i])
+# define SET_STRING_ELT(x,i,v)  (STRING(x)[i] = (v))
+# define SET_VECTOR_ELT(x,i,v)  (VECTOR(x)[i] = (v))
+#endif
+@end smallexample
+
+More extensive changes may be needed in code which manipulates language
+objects.
 
 @node Interface functions .Call and .External, Evaluating R expressions from C, Handling R objects in C, System and foreign language interfaces
 @section Interface functions @code{.Call} and @code{.External}
@@ -3725,7 +3797,6 @@ use @code{ln(x)} for the natural logarithm (@code{log(x)} in @R{}).
 @item @code{M_SQRT_3}       @tab = sqrt(3)         @tab 1.7320508
 @item @code{M_SQRT_32}      @tab = sqrt(32)        @tab 5.6568542
 @item @code{M_LOG10_2}      @tab = log10(2)        @tab 0.3010300
-@item @code{M_2PI}          @tab = 2 pi            @tab 6.2831853
 @item @code{M_SQRT_PI}      @tab = sqrt(pi)        @tab 1.7724539
 @item @code{M_1_SQRT_2PI}   @tab = 1/sqrt(2pi)     @tab 0.3989423
 @item @code{M_SQRT_2dPI}    @tab = sqrt(2/pi)      @tab 0.7978846

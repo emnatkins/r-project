@@ -1,6 +1,6 @@
 
 R : Copyright 2001, The R Development Core Team
-Version 1.2.2 Patched (2001-03-20)
+Version 1.2.2 Patched (2001-04-09)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -301,30 +301,6 @@ Residual Deviance: 5.656 	AIC: 71.35
 Error in summary.manova(gofX.manova) : residuals have rank 3 < 4
 > ## should fail with an error message `residuals have rank 3 < 4'
 > 
-> ## Prior to 1.3.0 dist did not handle missing values, and the
-> ## internal C code was incorrectly scaling for missing values.
-> library(mva)
-> data(trees)
-> z <- as.matrix(t(trees))
-> z[1,1] <- z[2,2] <- z[3,3] <- z[2,4] <- NA
-> dist(z, method="euclidean")
-          Girth   Height
-Height 352.4365         
-Volume 123.5503 261.5802
-> dist(z, method="maximum")
-       Girth Height
-Height  72.7       
-Volume  56.4   63.3
-> dist(z, method="manhattan")
-           Girth   Height
-Height 1954.8821         
-Volume  557.1448 1392.343
-> dist(z, method="canberra")
-          Girth   Height
-Height 21.66477         
-Volume 10.96200 13.63365
-> detach("package:mva")
-> 
 > ## F. Tusell 2001-03-07.  printing kernels.
 > library(ts)
 > kernel("daniell", m=5)
@@ -387,4 +363,17 @@ coef[ 13] = 0.0051948
 coef[ 14] = 0.0025974
 coef[ 15] = 0.0008658
 > ## fixed by patch from Adrian Trapletti 2001-03-08
+> 
+> 
+> ## PR 883 (cor(x,y) when is.null(y))
+> try(cov(rnorm(10), NULL))
+Error in cov(rnorm(10), NULL) : supply both x and y or a matrix-like x
+> try(cor(rnorm(10), NULL))
+Error in cor(rnorm(10), NULL) : supply both x and y or a matrix-like x
+> ## gave the variance and 1 respectively in 1.2.2.
+> try(var(NULL))
+Error in var(NULL) : `x' is empty
+> try(var(numeric(0)))
+Error in var(numeric(0)) : `x' is empty
+> ## gave NA in 1.2.2
 > 

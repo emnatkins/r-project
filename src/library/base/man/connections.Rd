@@ -1,10 +1,6 @@
-\name{connections}
-\alias{connection}
+\name{connection}
 \alias{file}
 \alias{pipe}
-\alias{gzfile}
-\alias{url}
-\alias{socketConnection}
 \alias{open}
 \alias{open.connection}
 \alias{isOpen}
@@ -14,31 +10,19 @@
 \alias{close.connection}
 \alias{seek}
 \alias{seek.connection}
-\alias{truncate}
-\alias{truncate.connection}
 \alias{print.connection}
 \alias{summary.connection}
-\alias{ISOLatin1}
-\alias{MacRoman}
-\alias{WinAnsi}
-\alias{native.enc}
 \title{Functions to Manipulate Connections}
 \description{
   Functions to create, open, close and position connections.
 }
 \usage{
-file(description, open = "", blocking = TRUE, encoding = getOption("encoding"))
-pipe(description, open = "", encoding = getOption("encoding"))
-gzfile(description, open = "", encoding = getOption("encoding"),
-       compression = 6)
-url(description, open = "", encoding = getOption("encoding"))
-socketConnection(host = "localhost", port, server = FALSE, blocking = TRUE,
-                 open = "r", encoding = getOption("encoding"))
+file(description, open = "", blocking = TRUE)
+pipe(description, open = "")
 
 \method{open}{connection}(con, open = "r", blocking = TRUE)
 \method{close}{connection}(con, type = "rw")
-\method{seek}{connection}(con, where = NA, origin="start", \dots)
-\method{truncate}{connection}(con, \dots)
+\method{seek}{connection}(con, where = NA, rw = "")
 
 isOpen(con, rw = "")
 isIncomplete(con)
@@ -46,37 +30,20 @@ isSeekable(con)
 }
 \arguments{
   \item{description}{character. A description of the connection. For
-    \code{file} and \code{pipe} this is a path to the file to be opened.
-    For \code{url} it is a complete URL, including schemes
-    (\code{http://}, \code{ftp://} or \code{file://}).
+    \code{file} this is a path to the file to be opened.
   }
-  \item{host}{character.  Host name for port.}
-  \item{port}{integer.  The TCP port number.}
-  \item{server}{logical.  Should the socket be a client or a server?}
   \item{open}{character.  A description of how to open the connection
     (if at all). See Details for possible values.}
-  \item{blocking}{logical.  Currently ignored.}
-  \item{encoding}{An integer vector of length 256.}
-  \item{compression}{integer in 0--9.  The amount of compression to be
-    applied when writing, from none to maximal.  The default is a good
-    space/time compromise.}
+  \item{blocking}{logical. Currently ignored.}
   \item{type}{character. Currently ignored.}
-  \item{where}{integer.  A file position (relative to the origin
-    specified by \code{origin}), or \code{NA}.}
+  \item{where}{integer.  A file position, or \code{NA}.}
   \item{rw}{character.  Currently ignored.}
-  \item{origin}{character.  One of \code{"start"}, \code{"current"},
-    \code{"end"}.}
 }
 \details{
-  The first five functions create connections.  By default the connection
-  is not opened (except for \code{socketConnection}, but may be opened
-  by setting a non-empty value of
-  argument \code{open}.  \code{gzfile} applies to files compressed by
-  \code{gzip}: such connections can only be binary.
+  The first two functions create connections.  By default the connection
+  is not opened, but may be opened by setting a non-empty value of
+  argument \code{open}.
 
-  Proxies can be specified for \code{url} connections: see
-  \code{\link{download.file}}.
-  
   \code{open}, \code{close} and \code{seek} are generic functions: the
   following applies to the methods relevant to connections.
   
@@ -96,10 +63,6 @@ isSeekable(con)
   on Windows systems, at least for text files.
 #endif
 
-  \code{truncate} truncates a file opened for writing at its current
-  position.  It works only for \code{file} connections, and is not
-  implemented on all platforms.
-
   Possible values for the mode \code{open} to open a connection are
   \describe{
     \item{\code{"r"}}{or \code{"rt"}. Open for reading in text mode.}
@@ -109,24 +72,19 @@ isSeekable(con)
     \item{\code{"wb"}}{Open for writing in binary mode.}
     \item{\code{"ab"}}{Open for appending in binary mode.}
   }
-  \emph{These are liable to change.}  URLs can only be opened for reading.
-  For many connections there is little or no difference between text and binary
+  \emph{These are likely to change.}  Some connections (e.g. text
+  connections) can only be opened for reading or writing.  For many
+  connections there is little or no difference between text and binary
   modes, but there is for file-like connections on Windows, and
   \code{\link{pushBack}} is text-oriented and is only allowed on
   connections open for reading in text mode.
-
-  The encoding vector is used to map the input from a file or pipe to
-  the platform's native character set.  Supplied examples are
-  \code{native.enc} as well as \code{MacRoman}, \code{WinAnsi} and
-  \code{ISOLatin1}, whose actual encoding is platform-dependent. Missing
-  characters are mapped to a space in these encodings.
 }
 \value{
-  \code{file}, \code{pipe} and \code{url} return a connection object
-  which inherits from class \code{"connection"}.
+  \code{file} and \code{pipe} return a connection object which inherits
+  from class \code{"connection"}.
 
   \code{seek} returns the current position, as a byte offset, if
-  relevant, or \code{0} if not.
+  relevant.
 
   \code{isOpen} returns a logical value, whether the connection is
   currently open.
@@ -157,10 +115,7 @@ isSeekable(con)
 
 \seealso{
   \code{\link{textConnection}}, \code{\link{readLines}},
-  \code{\link{showConnections}}, \code{\link{pushBack}}.
-
-  \code{\link{capabilities}} to see if \code{gzfile} and \code{url} are
-  supported by this build of \R.
+  \code{\link{showConnections}}, \code{\link{pushBack}}
 }
 
 \examples{
@@ -170,14 +125,6 @@ cat("One more line\n", file = zz)
 close(zz)
 readLines("ex.data")
 unlink("ex.data")
-
-if(capabilities("libz")) {
-  zz <- gzfile("ex.gz", "w")  # compressed file
-  cat("TITLE extra line", "2 3 5 7", "", "11 13 17", file = zz, sep = "\n")
-  close(zz)
-  print(readLines(gzfile("ex.gz")))
-  unlink("ex.gz")
-}
 
 \dontrun{## Unix examples of use of pipes
 

@@ -52,33 +52,42 @@ help.search <- function(pattern, fields = c("alias", "title"),
         if((file.exists(dir) || dir.create(dir)) && (unlink(dbfile) == 0))
             save.db <- TRUE
         ## Create the help db
+        if(verbose)
+            RepC <- function(n, ch = " ") paste(rep(ch, n), collapse="")
         db <- NULL
-        if(verbose) {
-            cat("Packages:\n")
-            np <- 0
-        }
-        if(is.null(packages))
-            packages <-.packages(all.available = TRUE, lib.loc = lib.loc)
-        for(p in packages) {
-            if(verbose)
-                cat("", p, if((np <- np + 1)%% 5 == 0) "\n")
-            path <- .find.package(p, lib.loc)
-            lib <- dirname(path)
-            cfile <- file.path(path, "CONTENTS")
-            if(file.exists(cfile)) {
-                ctext <- read.dcf(cfile,
-                                 fields = c("Entry", "Aliases",
-                                 "Description", "Keywords"))
-                if((nr <- NROW(ctext)) > 0){
-                    db <- rbind(db,
-                                cbind(rep(p, nr), rep(lib, nr), ctext))
-                } else {
-                    warning(paste("Empty `CONTENTS' file of pkg", p,
-                                  "in", lib))
+        for (lib in lib.loc) {
+            if(verbose) {
+                cat("\nLIBRARY ", lib, "\n",
+                    RepC(8), RepC(ch = "=", nchar(lib)), "\n", sep = "")
+                np <- 0
+            }
+            pkgs <- {
+                if(is.null(packages))
+                    .packages(all.available = TRUE, lib.loc = lib)
+                else packages
+            }
+            for (p in pkgs) {
+                if(verbose)
+                    cat("", p, if((np <- np + 1)%% 5 == 0) "\n")
+                cfile <- system.file("CONTENTS", pkg = p, lib = lib)
+                if(cfile != "") {
+                    ctext <- scan("", file = cfile, sep = "\n",
+                                  quote="", quiet = TRUE)
+                    if(length(ctext) > 0) {
+                        ctext <- parse.dcf(ctext,
+                                           fields = c("Entry", "Aliases",
+                                           "Description", "Keywords"))
+                        nr <- NROW(ctext)
+                        db <- rbind(db,
+                                    cbind(rep(p, nr), rep(lib, nr), ctext))
+                    } else {
+                        warning(paste("Empty `CONTENTS' file of pkg", p,
+                                      "in", lib))
+                    }
                 }
             }
+            if(verbose && np %% 5) cat("\n")
         }
-        if(verbose && (np %% 5 == 0)) cat("\n")
         colnames(db) <- c("pkg", "lib", TABLE)
         ## Maybe save the help db
         if(save.db) {
@@ -101,17 +110,15 @@ help.search <- function(pattern, fields = c("alias", "title"),
     ## Output
     fields <- paste(fields, collapse = " or ")
     if (NROW(db) > 0) {
-        outFile <- tempfile()
-        outConn <- file(outFile, open = "w")
-        writeLines(paste("Help files with ", fields, " matching `",
-                         pattern, "':\n", "Type `?FOO' to inspect ",
-                         "entry `FOO(PKG) TITLE'.\n\n", sep = ""),
-                   outConn)
+        FILE <- tempfile()
+        cat("Help files with ", fields, " matching `", pattern, "':\n",
+            "Type `?FOO' to inspect entry `FOO(PKG) TITLE'.\n\n",
+            sep = "", file = FILE)
         dbnam <- paste(db[ , "name"], "(", db[, "pkg"], ")", sep = "")
         dbtit <- paste(db[ , "title"], sep = "")
-        writeLines(formatDL(dbnam, dbtit), outConn)
-        close(outConn)
-        file.show(outFile, delete.file = TRUE)
+        cat(paste(format(dbnam), dbtit, sep = "   "),
+            sep = "\n", file = FILE, append = TRUE)
+        file.show(FILE, delete.file = TRUE)
     } else {
         cat(paste("No help files found with ", fields, " matching `",
                   pattern, "'\n", sep = ""))

@@ -1,5 +1,5 @@
 /*
- *  $Id: nls.c,v 1.10 2001/02/27 10:41:35 pd Exp $
+ *  $Id: nls.c,v 1.8.2.2 2001/02/21 10:59:47 ripley Exp $
  *
  *  Routines used in calculating least squares solutions in a
  *  nonlinear model in nls library for R.

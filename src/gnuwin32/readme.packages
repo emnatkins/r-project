@@ -80,7 +80,7 @@ At this point there are two approaches:
 
 1) Streamlined way
 
-Assuming that ...\rw1030\bin is in your path, use
+Assuming that ...\rw1023\bin is in your path, use
 
 	Rcmd INSTALL package
 

@@ -30,8 +30,11 @@ help <-
         else if (!is.na(match(topic, c("%*%"))))
             topic <- "matmult"
         type <- if(offline) "latex" else if (htmlhelp) "html" else "help"
-        INDICES <- .find.package(package, lib.loc, missing(lib.loc),
-                                 quiet = FALSE)
+        INDICES <-
+            if(missing(lib.loc))
+                c(.path.package(package, TRUE),
+                  system.file(pkg = package, lib = lib.loc))
+            else system.file(pkg = package, lib = lib.loc)
         file <- index.search(topic, INDICES, "AnIndex", type)
         if (length(file) && file != "") {
             if (verbose)
@@ -108,7 +111,7 @@ help <-
                 pkgs <- libs <- character(0)
                 for (lib in lib.loc)
                     for (pkg in packages) {
-                        INDEX <- system.file(package = pkg, lib.loc = lib)
+                        INDEX <- system.file(pkg = pkg, lib = lib)
                         file <- index.search(topic, INDEX, "AnIndex", "help")
                         if(length(file) && file != "") {
                             pkgs <- c(pkgs, pkg)
