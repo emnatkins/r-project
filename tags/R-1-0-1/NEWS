@@ -1,0 +1,116 @@
+				Dear Emacs, please make this -*-Text-*- mode!
+	**************************************************
+	*						 *
+	*	       1.0 SERIES NEWS			 *
+	*						 *
+	**************************************************
+
+
+		CHANGES IN R VERSION 1.0.1
+
+
+BUG FIXES
+
+    o	pgamma(Inf, 1, Inf) gives NaN instead of an infinite loop, PR#462.
+
+    o	Inline xaxt and yaxt parameters were ignored.
+
+    o	Setting the normal RNG was not always recorded in .Random.seed.
+
+    o	\link[pkg]{foo} links were wrongly translated to HTML.
+
+    o	Direct use of show.data() with no args was incorrect.
+
+    o	print.coefmat does sensible things if options
+	show.signif.stars and show.coef.Pvalues are not set correctly.
+
+    o	x <- list(a=1, b=2) ; x["c"] <- 3 now (again) stretches the list
+	rather than give a "subscript out of bounds" error.
+
+    o	Models with response appearing on rhs could cause segfault.
+
+    o	as.data.frame.matrix will now ensure the columns added have
+	non-empty names.
+
+    o	Some (strange?) model formulas could cause memory corruption
+	(thanks to John Fox for digging this up).
+
+    o	Matrix multiplication in cases such as 1:3 %*% t(1:2) is accepted.
+
+    o	Options --nsize and --vsize to R CMD check gave warning
+	messages and only one was accepted.
+
+    o	The autoload()s during startup are "wrapped" such
+	that conflicting objects don't break startup.
+
+    o	cor.test(*, meth="spear") {pkg ctest} now works (again) for n <= 6
+
+    o	scale = 0 in biplot.princomp() now works.
+
+    o	The scores given by princomp(, cor = TRUE) and the rotated
+	values given by prcomp(, scale = TRUE) are now computed from the
+	scaled data.
+
+    o	barplot now works okay when length(col) < length(legend.txt),
+	thanks to Ben Bolker, PR#494.
+
+    o	kernel("dirichlet", m=10, r=1) in package ts now works.
+
+    o	save/restore of	 environments containing "..." object should
+	work now.
+
+    o	qhyper should work better for large N.
+
+    o	qbinom(1-1e-16, n, p) , qpois() and qnbinom(*) looped for ever.
+
+    o	as.matrix.data.frame no longer escapes quotes in character
+	vectors.
+
+    o	R would try to save the readline history at the end of
+	non-interactive sessions, causing crashes on some systems.
+
+    o	Subtle roundoff problems caused arrays to be allocated short in
+	loess.c in some cases, leading to segfaults.
+
+    o	Document that postscript(file="") sends the output directly to
+	the default printer.
+
+    o	ts.union(, dframe=TRUE) had a long-standing typo, now works.
+
+    o	save(, ascii=TRUE) had problem with octal escapes in strings
+	when there was a digit following, should work now.
+
+    o	matpoints() and matlines() now also have a "type =" argument
+	with defaults "p" and "l", respectively; PR#506.
+
+    o	The new Perl 5.6 broke our version-detection mechanism. A
+	better one has been inserted.
+
+    o	X11(colortype="gray") failed to work on 8-bit screens, and
+	more generally when colour allocation failed X11() did not
+	revert to monochrome correctly (and did not say it was doing so).
+
+	It was not documented in the help that to change the X11
+	colortype one needs to close all open X11 devices.
+
+    o	loessf.f in modreg defined DSIGN unecessarily and this caused
+	a conflict on AIX.
+
+    o	plot.lm will now work with rlm objects.
+
+    o	start and end behave better when the frequency is not an integer.
+
+    o	aggregate.ts is closer to S-PLUS's aggregate.rts.
+
+    o	quantile(x) now works when x contains several +/- Inf's.
+
+    o   guard against segfault in dataentry(0,0) (or, more
+        realistically, when mistyping data.entry(x,y) as
+	dataentry(x,y))
+
+
+	*********************************************************
+	*							*
+	*	News of 1.0.0 and earlier is in file `ONEWS'	*
+	*							*
+	*********************************************************
