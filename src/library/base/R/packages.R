@@ -18,7 +18,7 @@ CRAN.packages <- function(CRAN=getOption("CRAN"), method="auto",
 update.packages <- function(lib.loc=.lib.loc, CRAN=getOption("CRAN"),
                             contriburl=contrib.url(CRAN),
                             method="auto", instlib=NULL, ask=TRUE,
-                            available=NULL, destdir=NULL)
+                            available=NULL)
 {
     if(is.null(available))
         available <- CRAN.packages(contriburl=contriburl, method=method)
@@ -52,7 +52,7 @@ update.packages <- function(lib.loc=.lib.loc, CRAN=getOption("CRAN"),
         install.packages(update[,"Package"], instlib,
                          contriburl=contriburl,
                          method=method,
-                         available=available, destdir=destdir)
+                         available=available)
     }
 }
 

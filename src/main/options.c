@@ -220,8 +220,9 @@ void InitOptions(void)
     v = CDR(v);
 
     TAG(v) = install("keep.source");
-    CAR(v) = ScalarLogical(R_KeepSource);
-
+    CAR(v) = allocVector(LGLSXP, 1);
+    LOGICAL(CAR(v))[0] = 0;	/* no storage of function source */
+                                /* turned on after load of base  */
     TAG(v) = install("error.messages");
     CAR(v) = allocVector(LGLSXP, 1);
     LOGICAL(CAR(v))[0] = 1;
@@ -348,13 +349,6 @@ SEXP do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    errorcall(call, "expressions parameter invalid");
 		R_Expressions = k;
 		VECTOR(value)[i] = SetOption(tag, ScalarInteger(k));
-	    }
-	    else if (streql(CHAR(namei), "keep.source")) {
-		if (TYPEOF(argi) != LGLSXP || LENGTH(argi) != 1)
-		    errorcall(call, "keep.source parameter invalid");
-		k = asInteger(argi);
-		R_KeepSource = k;
-		VECTOR(value)[i] = SetOption(tag, ScalarLogical(k));
 	    }
 	    else if (streql(CHAR(namei), "editor")) {
 		s = asChar(argi);

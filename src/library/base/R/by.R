@@ -11,8 +11,7 @@ by.data.frame <- function(data, INDICES, FUN, ...)
         names(IND) <- deparse(substitute(INDICES))
     } else IND <- INDICES
     FUNx <- function(x) FUN(data[x,], ...)
-    nd <- nrow(data)
-    ans <- eval(substitute(tapply(1:nd, IND, FUNx)), data)
+    ans <- eval(substitute(tapply(1:nrow(data), IND, FUNx)), data)
     attr(ans, "call") <- match.call()
     class(ans) <- "by"
     ans

@@ -87,13 +87,11 @@ source <-
     invisible(yy)
 }
 
-sys.source <-
-    function(file, envir = NULL, chdir = FALSE,
-             keep.source = getOption("keep.source"))
+sys.source <- function(file, envir = NULL, chdir = FALSE)
 {
     if(!(is.character(file) && file.exists(file)))
 	stop(paste("`", file, "' is not an existing file", sep = ""))
-    oop <- options(keep.source = as.logical(keep.source))
+    oop <- options(keep.source = FALSE)
     on.exit(options(oop))
     exprs <- parse(n = -1, file = file)
     if (length(exprs) == 0)

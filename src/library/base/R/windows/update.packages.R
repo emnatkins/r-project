@@ -1,6 +1,6 @@
 install.packages <- function(pkgs, lib, CRAN=getOption("CRAN"),
                              contriburl=contrib.url(CRAN),
-                             method="auto", available=NULL, destdir=NULL)
+                             method="auto", available=NULL)
 {
     if(missing(lib) || is.null(lib)) {
         lib <- .lib.loc[1]
@@ -13,10 +13,8 @@ install.packages <- function(pkgs, lib, CRAN=getOption("CRAN"),
     }
     localcran <- length(grep("^file:", contriburl)) > 0
     if(!localcran) {
-        if (is.null(destdir)){
-            tmpd <- tempfile("Rinstdir")
-            dir.create(tmpd)
-        } else tmpd <- destdir
+        tmpd <- tempfile("Rinstdir")
+        dir.create(tmpd)
     }
 
     foundpkgs <- download.packages(pkgs, destdir=tmpd,
@@ -39,9 +37,8 @@ install.packages <- function(pkgs, lib, CRAN=getOption("CRAN"),
             }
         }
         cat("\n")
-        if(!localcran && is.null(destdir)){
-            answer <- substr(readline("Delete downloaded files (y/N)? "), 1,
-1)
+        if(!localcran){
+            answer <- substr(readline("Delete downloaded files (y/N)? "), 1, 1)
             if(answer == "y" | answer == "Y") {
                 for(file in foundpkgs[, 2]) unlink(file)
                 unlink(tmpd)
@@ -81,7 +78,7 @@ download.packages <- function(pkgs, destdir, available=NULL,
             else{
                 url <- paste(contriburl, fn, sep="/")
                 destfile <- file.path(destdir, fn)
-
+                
                 if(download.file(url, destfile, method) == 0)
                     retval <- rbind(retval, c(p, destfile))
                 else
