@@ -1,0 +1,112 @@
+#-*- Makefile -*-
+# Makefile for packages, only.
+
+include MkRules
+
+RVER = @RVER@
+
+HELP = YES
+WINHELP = NO # Use one of NO, CHM, BOTH (chm and winhelp)
+
+## must be absolute and space-free paths
+ifneq ($(strip $(BUILD)),CROSS)
+RHOME = $(shell ./Rpwd.exe ../..)
+PKGD = $(shell ./Rpwd.exe $(PKGDIR))
+else
+RHOME = $(shell perl pwd.pl ../..)
+PKGD = $(shell perl pwd.pl $(PKGDIR))
+endif
+
+RLIB = $(RHOME)/library
+PKGDIR = $(RHOME)/src/library
+
+
+all: libR.a libRblas.a
+
+libR.a:  R.exp
+	$(DLLTOOL) $(DLLTOOLFLAGS) $(R-DLLTOOLFLAGS) --dllname R.dll --def R.exp --output-lib libR.a
+
+libRblas.a:  Rblas.def
+	$(DLLTOOL) $(DLLTOOLFLAGS) $(R-DLLTOOLFLAGS) --dllname Rblas.dll \
+	  --def Rblas.def --output-lib libRblas.a
+
+
+#                          ===== Packages ======
+
+MASS-HELP = ziponly
+MASS-ZIPDATA = zip
+boot-HELP = ziponly
+boot-ZIPDATA = zip
+cluster-HELP = ziponly
+cluster-ZIPDATA = zip
+grid-HELP = ziponly
+grid-ZIPDATA = zip
+lattice-HELP = ziponly
+lattice-ZIPDATA = zip
+nlme-HELP = ziponly
+nlme-ZIPDATA = zip
+rpart-HELP = ziponly
+rpart-ZIPDATA = zip
+survival-HELP = ziponly
+survival-ZIPDATA = zip
+
+# need special-case handling for bundle, as --auto-zip is not enabled
+dse1-HELP = ziponly
+dse2-HELP = ziponly
+
+bundle-%:
+	@$(PERL) fixed/dobundle.pl $* $(PKGD) $(RLIB)
+
+pkg-%:
+	@$(MAKE) --no-print-directory DLLNM=$($*-DLLNM)  FLIBS="$(FLIBS)" BUILD=$(BUILD) \
+	  -C $(PKGDIR)/$* PKG=$* RHOME=$(RHOME) RLIB=$(RLIB) RVER=$(RVER) \
+	  -f $(RHOME)/src/gnuwin32/MakePkg
+	@if test -d $(RLIB)/$*/data ; then \
+	  $(MAKE) --no-print-directory $($*-ZIPDATA)data-$* ; \
+	fi
+ifeq ($(strip $(HELP)),YES)
+	@$(ECHO) "  installing help"
+	@$(MAKE) --no-print-directory -C ./help RHOME=$(RHOME) PKGDIR=$(PKGD) RLIB=$(RLIB) $($*-HELP)help-$*
+ifeq ($(strip $(WINHELP)),CHM)
+	@$(MAKE) --no-print-directory -C ./help RHOME=$(RHOME) PKGDIR=$(PKGD) RLIB=$(RLIB) chm-$*
+endif
+ifeq ($(strip $(WINHELP)),BOTH)
+	@$(MAKE) --no-print-directory -C ./help RHOME=$(RHOME) PKGDIR=$(PKGD) RLIB=$(RLIB) winhlp-$* # also makes chm
+endif
+endif
+	@$(MAKE) --no-print-directory BUILD=$(BUILD) \
+	  -C $(PKGDIR)/$* PKG=$* RHOME=$(RHOME) RLIB=$(RLIB)  \
+	  -f $(RHOME)/src/gnuwin32/MakePkg md5sums
+
+pkgclean-%:
+	$(MAKE) --no-print-directory DLLNM=$($*-DLLNM) RHOME=$(RHOME) BUILD=$(BUILD) \
+	  -C $(PKGDIR)/$* PKG=$* -f $(RHOME)/src/gnuwin32/MakePkg clean
+
+pkgcheck-%:
+	@$(ECHO) -------- Testing package $* --------
+	-@$(MKDIR) -p $(PKGDIR)/$*/check
+	@$(MAKE) --no-print-directory -C $(PKGDIR)/$*/check PKG=$* RHOME=$(RHOME) RLIB=$(RLIB) \
+	  -f $(RHOME)/src/gnuwin32/check/PkgCheck
+	@if test -d $(PKGDIR)/$*/tests ; then \
+	  $(MAKE) --no-print-directory -C $(PKGDIR)/$*/tests PKG=$* RHOME=$(RHOME) RLIB=$(RLIB) \
+	    -f $(RHOME)/src/gnuwin32/check/PkgCheck tests;\
+	fi
+
+ziphelp-%:
+	$(MAKE) --no-print-directory -C ./help RHOME=$(RHOME) PKGDIR=$(PKGD) RLIB=$(RLIB) ziphelp-$*
+
+ziponly-%:
+	$(MAKE) --no-print-directory -C ./help RHOME=$(RHOME) PKGDIR=$(PKGD) RLIB=$(RLIB) ziponlyhelp-$*
+
+zipdata-%:
+	@$(ECHO) "  zipping data"
+	@(cd $(RLIB)/$*/data; \
+	  if test -f Rdata.zip ; then \
+	    unzip -qou Rdata; \
+	  fi; \
+	  $(RM) Rdata.zip filelist ; \
+	  ls -1 > filelist; \
+	  zip -rmq9X Rdata * -x filelist 00Index)
+
+data-%:
+	@$(ECHO) "  not zipping data"
