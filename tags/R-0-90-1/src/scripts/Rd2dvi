@@ -1,0 +1,121 @@
+#!/bin/sh
+#  Rd2dvi -- check man pages (*.Rd help files) by LaTeX..
+#
+# Examples:
+#  R CMD Rd2dvi /path/to/Rsrc/src/library/base/man/Normal.Rd
+#  R CMD Rd2dvi `grep -l "\\keyword\\{distr" \
+#                  /path/to/Rsrc/src/library/base/man/*.Rd | sort | uniq`
+
+START_DIR=`pwd`
+
+CLEAN=true
+DEBUG=false
+USE_XDVI=true
+
+file_sed='s/[_$]/\\\\&/g'
+
+while test -n "${1}"; do
+  case ${1} in
+    --clean=[nN]*)
+      CLEAN=false ;;
+    --clean=[yY]*)
+      CLEAN=true ;;
+    --debug=[nN]*)
+      DEBUG=false ;;
+    --debug=[yY]*)
+      DEBUG=true ;;
+    --use-xdvi=[nN]*)
+      USE_XDVI=false ;;
+    --use-xdvi=[yY]*)
+      USE_XDVI=true ;;
+    --|*)
+      break ;;
+  esac
+  shift
+done
+
+TOC="\\Rdcontents{\\R{} objects documented:}"
+if [ ${#} -eq 1 -a -d ${1} ]; then
+  if test -d ${1}/man; then
+    dir=${1}/man
+  else
+    dir=${1}
+  fi
+  if ${DEBUG}; then
+    echo "Rd2dvi: \`Rdconv -t latex' ${dir}/ Rd files ..."
+  fi
+  files=`find ${dir} -name "*.[Rr]d" -print`
+  subj="all in \\file{`echo ${dir} | sed ${file_sed}`}"
+  if ${DEBUG}; then  
+    echo "files = ${files}"
+  fi
+else
+  files="${@}"
+  if [ ${#} -gt 1 ]; then
+    subj=" etc.";
+  else
+    subj=
+    TOC=
+  fi
+  subj="\\file{`echo ${1} | sed ${file_sed}`}${subj}"
+  if ${DEBUG}; then
+    echo "Rd2dvi: Collecting files and \`Rdconv -t latex'ing them ..."
+  fi
+fi
+
+if ${DEBUG}; then
+  echo ""; echo "subj:"; echo "${subj}"; echo ""
+fi
+
+if test -f Rd2.dvi; then
+  echo "file \`Rd2.dvi' exists; please remove first"
+  exit 1
+fi
+BUILD_DIR=.Rd2dvi${$}
+if test -d ${BUILD_DIR}; then
+  rm -rf ${BUILD_DIR} || echo "cannot write to build dir" && exit 2
+fi
+mkdir ${BUILD_DIR}
+cd ${BUILD_DIR}
+
+sed 's/markright{#1}/markboth{#1}{#1}/' \
+  ${R_HOME}/doc/manual/Rd.sty > Rd2.sty
+
+cat > Rd2.tex <<EOF
+\\documentclass[${R_PAPERSIZE}]{book}
+\\usepackage{Rd2}
+\\usepackage{makeidx}
+\\makeindex
+\\begin{document}
+\\chapter*{}
+\\begin{center}
+  {\\textbf{\\huge\\R{} documentation}}
+  \\par\\bigskip{\\Large of ${subj}}
+  \\par\\medskip{\\large \\today}
+\\end{center}
+${TOC}
+EOF
+
+for f in ${files}; do
+  if ${DEBUG}; then echo ${f}; fi
+  R CMD Rdconv -t latex ${f} >> Rd2.tex
+done
+
+cat >> Rd2.tex <<EOF  
+\\printindex
+\\end{document}
+EOF
+
+${R_LATEXCMD} Rd2
+${R_MAKEINDEXCMD} Rd2
+${R_LATEXCMD} Rd2
+cp Rd2.dvi ..
+cd ${START_DIR}
+if ${CLEAN}; then
+  rm -rf ${BUILD_DIR}
+else
+  echo "You may want to clean up by \`rm -rf ${BUILD_DIR}'"
+fi
+if ${USE_XDVI}; then
+  xdvi Rd2.dvi
+fi
