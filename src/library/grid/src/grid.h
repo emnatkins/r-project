@@ -463,8 +463,6 @@ SEXP viewportWidth(SEXP vp);
 
 SEXP viewportHeight(SEXP vp);
 
-SEXP viewportgpar(SEXP vp);
-
 char* viewportFontFamily(SEXP vp);
 
 int viewportFont(SEXP vp);

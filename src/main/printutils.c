@@ -356,8 +356,6 @@ char *EncodeElement(SEXP x, int indx, int quote)
     case RAWSXP:
 	EncodeRaw(RAW(x)[indx]);
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("EncodeElement", x);
     }
     return buffer->data;
 }

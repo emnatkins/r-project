@@ -23,14 +23,7 @@
 #include <stdio.h>
 #include <Rversion.h>
 
-extern char *getRHOME(), *getRUser(); /* in ../rhome.c */
-
-void R_Suicide(char *s) /* for use in ../rhome.o */
-{
-    fprintf(stderr, "FATAL ERROR:%s\n", s);
-    exit(2);
-}
-
+extern char *getRHOME(); /* in ../rhome.c */
 
 static int pwait(HANDLE p)
 {
@@ -71,12 +64,11 @@ int rcmdfn (int cmdarg, int argc, char **argv)
        set PATH to include R_HOME\bin
        set PERL5LIB to %R_HOME%/share/perl;%Perl5LIB%
        set TEXINPUTS to %R_HOME%/share/texmf;%TEXINPUTS%
-       set HOME if unset
        launch %R_HOME%\bin\$*
      */
     int i, iused, res, status = 0;
     char *RHome, PERL5LIB[MAX_PATH], TEXINPUTS[MAX_PATH], PATH[10000],
-	RHOME[MAX_PATH], *p, cmd[10000], Rversion[25], HOME[MAX_PATH + 10];
+	RHOME[MAX_PATH], *p, cmd[10000], Rversion[25];
     char RCMD[] = "R CMD";
     int len = strlen(argv[0]);
     
@@ -214,7 +206,8 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 	return(pwait(pi.hProcess));
     } else {
 	RHome = getRHOME();
-	if (argc > cmdarg+1 && strcmp(argv[cmdarg+1], "RHOME") == 0) {	    fprintf(stdout, "%s", RHome);
+	if (argc > cmdarg+1 && strcmp(argv[cmdarg+1], "RHOME") == 0) {
+	    fprintf(stdout, "%s", RHome);
 	    return(0);
 	}
 	strcpy(RHOME, "R_HOME=");
@@ -249,11 +242,6 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 	if ( (p = getenv("TEXINPUTS")) ) strcat(TEXINPUTS, p);
 	putenv(TEXINPUTS);
 
-	if( !getenv("HOME") ) {
-	    strcpy(HOME, "HOME=");
-	    strcat(HOME, getRUser());
-	    putenv(HOME);
-	}
 	if (cmdarg > 0 && argc > cmdarg) {
 	    p = argv[cmdarg];
 	    if (strcmp(p, "Rd2dvi") == 0) {

@@ -21,10 +21,6 @@ tempdir()
   \code{tempfile}.
 
   For \code{tempdir}, the path of the per-session temporary directory.
-#ifdef windows
-
-  Both will use backslash as the path separator.
-#endif
 }
 \details{
   If \code{pattern} has length greater than one then the result is of the
@@ -43,7 +39,7 @@ tempdir()
   otherwise \code{"/tmp"}.
 #endif
 #ifdef windows
-  \code{tempdir()} gives a subdirectory of the first found
+  By default, \code{tempdir()} gives a subdirectory of the first found
   of the environment variables \env{TMP}, \env{TEMP} and \env{R\_USER}
   (see \code{\link{Rconsole}}) which points to a writeable directory.
   If the path to the directory contains a space in any of the

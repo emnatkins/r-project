@@ -113,7 +113,7 @@ SEXP do_apply(SEXP call, SEXP op, SEXP args, SEXP rho)
 		RAW(X1)[j] = RAW(X)[j + inr];
 	    break;
 	default:
-	    UNIMPLEMENTED_TYPE("apply", X);
+	    error("unsupported type of array in apply");
 	}
 	/* careful: we have altered X1 and might have FUN = function(x) x */
 	SET_VECTOR_ELT(ans, i, duplicate(eval(R_fcall, rho)));

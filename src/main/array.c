@@ -64,9 +64,7 @@ SEXP do_matrix(SEXP call, SEXP op, SEXP args, SEXP rho)
     vals = CAR(args);
     snr = CADR(args);
     snc = CADDR(args);
-    byrow = asLogical(CADR(CDDR(args)));
-    if (byrow == NA_INTEGER)
-	error("matrix: invalid byrow value");
+    byrow = asInteger(CADR(CDDR(args)));
 
     /* R wrapper does as.vector
     if (isVector(vals) || isList(vals)) {
@@ -153,9 +151,6 @@ SEXP do_matrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 		for (j = 0; j < nc; j++)
 		    RAW(snr)[i + j * nr] = 0;
 	    break;
-	default: 
-	    /* don't fill with anything */
-	    ;
 	}
     }
     UNPROTECT(1);
@@ -966,7 +961,7 @@ SEXP do_aperm(SEXP call, SEXP op, SEXP args, SEXP rho)
 	break;
 
     default:
-	UNIMPLEMENTED_TYPE("aperm", a);
+	errorcall(call, "unsupported type of array");
     }
 
     /* handle the resize */
@@ -1063,9 +1058,6 @@ SEXP do_colsum(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    if (*ix != NA_LOGICAL) {cnt++; sum += *ix;}
 		    else if (keepNA) {sum = NA_REAL; break;}
 		break;
-	    default:
-		/* we checked the type above, but be sure */
-		UNIMPLEMENTED_TYPEt("do_colsum", type);
 	    }
 	    if (OP == 1) {
 		if (cnt > 0) sum /= cnt; else sum = NA_REAL;
@@ -1133,9 +1125,6 @@ SEXP do_colsum(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    if (*ix != NA_LOGICAL) {cnt++; sum += *ix;}
 		    else if (keepNA) {sum = NA_REAL; break;}
 		break;
-	    default:
-		/* we checked the type above, but be sure */
-		UNIMPLEMENTED_TYPEt("do_colsum", type);
 	    }
 	    if (OP == 3) {
 		if (cnt > 0) sum /= cnt; else sum = NA_REAL;

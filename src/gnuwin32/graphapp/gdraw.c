@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998--2004  Guido Masarotto and Brian Ripley
+ *  Copyright (C) 1998--2001  Guido Masarotto and Brian Ripley
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -182,17 +182,16 @@ static void CALLBACK  gLineHelper(int x, int y, LPARAM aa)
 }
 
 void gdrawline(drawing d, int width, int style, rgb c, point p1, point p2,
-	       int fast, int lend, int ljoin, float lmitre)
+	       int fast)
 {
    point p[2];
    p[0] = p1;
    p[1] = p2;
-   gdrawpolyline( d, width, style, c, p, 2, 0, fast, lend, ljoin, lmitre);
+   gdrawpolyline( d, width, style, c, p, 2, 0, fast);
 }
 
 void gdrawpolyline(drawing d, int width, int style, rgb c,
-                   point p[], int n, int closepath, int fast, 
-		   int lend, int ljoin, float lmitre)
+                   point p[], int n, int closepath, int fast)
 {
     int tmpx, tmpy, tmp;
     HDC dc = GETHDC(d);
@@ -200,34 +199,29 @@ void gdrawpolyline(drawing d, int width, int style, rgb c,
     LOGBRUSH lb;
     HPEN gpen;
     int i;
-    float oldmitre;
 
     if (n < 2) return;
     lb.lbStyle = BS_SOLID;
     lb.lbColor = winrgb;
     lb.lbHatch = 0;
-    SetMiterLimit(dc, lmitre, &oldmitre);
     if (!style) {
 	if (fast)
 	    gpen = CreatePen(PS_INSIDEFRAME, width, winrgb);
 	else
-	    gpen = ExtCreatePen(PS_GEOMETRIC|PS_SOLID|lend|ljoin,
+	    gpen = ExtCreatePen(PS_GEOMETRIC|PS_SOLID|PS_ENDCAP_FLAT|PS_JOIN_ROUND,
 				width, &lb, 0, NULL);
 	SelectObject(dc, gpen);
 	SetROP2(dc, R2_COPYPEN);
-	BeginPath(dc);
         MoveToEx(dc, p[0].x, p[0].y, NULL);
         for (i = 1; i < n ; i++)
 	      LineTo(dc, p[i].x, p[i].y);
         if (closepath) LineTo(dc, p[0].x, p[0].y);
-	EndPath(dc);
-	StrokePath(dc);
 	SelectObject(dc, GetStockObject(NULL_PEN));
 	DeleteObject(gpen);
     }
      else {
 	DashStruct a;
-	gpen = ExtCreatePen(PS_GEOMETRIC|PS_SOLID|lend|ljoin,
+	gpen = ExtCreatePen(PS_GEOMETRIC|PS_SOLID|PS_ENDCAP_FLAT|PS_JOIN_ROUND,
 			    width, &lb, 0, NULL);
 	SelectObject(dc, gpen);
 	SetROP2(dc, R2_COPYPEN);
@@ -275,8 +269,7 @@ void gdrawpolyline(drawing d, int width, int style, rgb c,
     }
 }
 
-void gdrawrect(drawing d, int width, int style, rgb c, rect r, int fast,
-	       int lend, int ljoin, float lmitre)
+void gdrawrect(drawing d, int width, int style, rgb c, rect r, int fast)
 {
     int x0 = r.x;
     int y0 = r.y;
@@ -287,7 +280,7 @@ void gdrawrect(drawing d, int width, int style, rgb c, rect r, int fast,
     p[1] = pt(x1,y0);
     p[2] = pt(x1,y1);
     p[3] = pt(x0,y1);
-    gdrawpolyline(d, width, style, c, p, 4, 1, fast, lend, ljoin, lmitre);
+    gdrawpolyline(d, width, style, c, p, 4, 1, fast);
 }
 
 void gfillrect(drawing d, rgb fill, rect r)
@@ -301,22 +294,18 @@ void gfillrect(drawing d, rgb fill, rect r)
     DeleteObject(br);
 }
 
-void gdrawellipse(drawing d, int width, rgb border, rect r, int fast,
-		  int lend, int ljoin, float lmitre)
+void gdrawellipse(drawing d, int width, rgb border, rect r, int fast)
 {
     HDC dc = GETHDC(d);
     LOGBRUSH lb;
     HPEN gpen;
-    float oldmitre;
-
     if (fast)
 	gpen = CreatePen(PS_INSIDEFRAME, width, getwinrgb(d, border));
     else {
-	SetMiterLimit(dc, lmitre, &oldmitre);
 	lb.lbStyle = BS_SOLID;
 	lb.lbColor = getwinrgb(d, border);
 	lb.lbHatch = 0;
-	gpen = ExtCreatePen(PS_GEOMETRIC|PS_SOLID|lend|ljoin,
+	gpen = ExtCreatePen(PS_GEOMETRIC|PS_SOLID|PS_ENDCAP_FLAT|PS_JOIN_ROUND,
 			    width, &lb, 0, NULL);
     }
     SelectObject(dc, gpen);

@@ -7,9 +7,8 @@ ecdf <- function (x)
     x <- sort(x) # drops NAs
     n <- length(x)
     if(n < 1) stop("x must have 1 or more non-missing values")
-    vals <- sort(unique(x))
-    rval <- approxfun(vals, cumsum(tabulate(match(x, vals)))/n,
-		      method = "constant", yleft = 0, yright = 1, f = 0,
+    rval <- approxfun(x, (1:n)/n,
+		      method = "constant", yleft=0, yright=1, f = 0,
                       ties = "ordered")
     class(rval) <- c("ecdf", "stepfun", class(rval))
     attr(rval, "call") <- sys.call()
@@ -32,8 +31,7 @@ print.ecdf <- function (x, digits= getOption("digits") - 2, ...)
 summary.ecdf <- function(object, ...)
 {
     cat("Empirical CDF:	 ",
-	eval(expression(n), env = environment(object)),
-        "unique values with summary\n")
+	eval(expression(n),env = environment(object)),"obs.\n")
     summary(knots(object), ...)
 }
 

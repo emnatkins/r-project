@@ -15,8 +15,7 @@ UseMethod(generic, object)
 NextMethod(generic = NULL, object = NULL, \dots)
 }
 \arguments{
-  \item{generic}{a character string naming a function. Required for
-    \code{UseMethod}.}
+  \item{generic}{a character string naming a function.}
   \item{object}{an object whose class will determine the method to be
     dispatched.  Defaults to the first argument of the enclosing function.}
   \item{\dots}{further arguments to be passed to the method.}
@@ -90,10 +89,10 @@ NextMethod(generic = NULL, object = NULL, \dots)
   meant for \R internal use only.
 }
 \section{Warning}{
-  Prior to \R 2.1.0 \code{UseMethod} accepted a call with no arguments
-  and tried to deduce the generic from the context.  This was
-  undocumented on the help page.  It is allowed but
-  \sQuote{strongly discouraged} in S-PLUS, and is no longer allowed in \R.
+  \code{UseMethod} accepts a call with no arguments and tries to deduce
+  the generic from the context.  This was undocumented on the help page
+  and is now deprecated.  It is allowed but \sQuote{strongly discouraged} in
+  S-PLUS.
 }
 \seealso{
   \code{\link{methods}}, \code{\link[base]{class}}, \code{\link{getS3method}}

@@ -834,7 +834,7 @@ SEXP do_subset2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    RAW(ans)[0] = RAW(x)[offset];
 	    break;
 	default:
-	    UNIMPLEMENTED_TYPE("do_subset2", x);
+	    UNIMPLEMENTED("do_subset2");
 	}
     }
     UNPROTECT(1);

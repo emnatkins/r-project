@@ -69,10 +69,6 @@ while test -n "${1}"; do
   shift
 done
 
-if test -r "${HOME}/.Rmakeconf"; then
-  makefiles="${makefiles} -f \"${HOME}/.Rmakeconf\""
-fi
-
 makeobjs="OBJECTS=\"${objs}\""
 if test -r Makevars; then
   makefiles="-f Makevars ${makefiles}"

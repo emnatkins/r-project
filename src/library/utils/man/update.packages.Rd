@@ -2,7 +2,6 @@
 \alias{update.packages}
 \alias{CRAN.packages}
 \alias{old.packages}
-\alias{new.packages}
 \alias{download.packages}
 \alias{install.packages}
 \alias{contrib.url}
@@ -17,16 +16,12 @@ update.packages(lib.loc = NULL, CRAN = getOption("CRAN"),
                 contriburl = contrib.url(CRAN),
                 method, instlib = NULL,
                 ask = TRUE, available = NULL, destdir = NULL,
-		installWithVers = FALSE, checkBuilt = FALSE)
+		installWithVers = FALSE)
 
 CRAN.packages(CRAN = getOption("CRAN"), method,
               contriburl = contrib.url(CRAN))
 
 old.packages(lib.loc = NULL, CRAN = getOption("CRAN"),
-             contriburl = contrib.url(CRAN),
-             method, available = NULL, checkBuilt = FALSE)
-
-new.packages(lib.loc = NULL, CRAN = getOption("CRAN"),
              contriburl = contrib.url(CRAN),
              method, available = NULL)
 
@@ -45,17 +40,18 @@ install.packages(pkgs, lib, CRAN = getOption("CRAN"),
   \item{CRAN}{character, the base URL of the CRAN mirror to use, i.e.,
     the URL of a CRAN root such as \code{"http://cran.r-project.org"}
     (the default) or its Statlib mirror,
-    \code{"http://lib.stat.cmu.edu/R/CRAN"}, or a vector of such URLs.
+    \code{"http://lib.stat.cmu.edu/R/CRAN"}.
 #ifdef windows
     Can also be \code{NULL} to install from local \code{.zip} files.
 #endif
   }
-  \item{contriburl}{URL(s) of the contrib section of CRAN.  Use this argument
+  \item{contriburl}{URL of the contrib section of CRAN. Use this argument
     only if your CRAN mirror is incomplete, e.g., because you burned
     only the contrib section on a CD.  Overrides argument \code{CRAN}.}
   \item{method}{Download method, see \code{\link{download.file}}.}
-  \item{pkgs}{character vector of the short names of packages whose
-    current versions should be downloaded from \code{CRAN}.
+  \item{pkgs}{character vector of the short names of
+    packages whose current versions should be downloaded from
+    \code{CRAN}.
 #ifdef windows
     If \code{CRAN = NULL}, a vector of file names of \code{.zip} files.
 #endif
@@ -69,8 +65,6 @@ install.packages(pkgs, lib, CRAN = getOption("CRAN"),
     downloaded and installed.}
   \item{installWithVers}{If \code{TRUE}, will invoke the install of the
     package such that it can be referenced by package version.}
-  \item{checkBuilt}{If \code{TRUE}, a package built under an earlier
-    minor version of \R is considered to be \sQuote{old}.}
   \item{instlib}{character string giving the library directory where to
     install the packages.}
   \item{dependencies}{logical indicating to also install uninstalled
@@ -90,12 +84,7 @@ install.packages(pkgs, lib, CRAN = getOption("CRAN"),
   
   \code{old.packages} compares the information from \code{CRAN.packages}
   with that from \code{\link{installed.packages}} and reports installed
-  packages/bundles that have newer versions on CRAN or, if
-  \code{checkBuilt = TRUE}, that were built under an earlier minor
-  version of \R (for example under 2.0.x and running \R 2.1.1).
-
-  \code{new.packages} does the same comparison but reports uninstalled
-  packages that are available on CRAN.
+  packages/bundles that have newer versions on CRAN.
 
   \code{download.packages} takes a list of package/bundle names and a
   destination directory, downloads the newest versions of the package
@@ -139,14 +128,11 @@ install.packages(pkgs, lib, CRAN = getOption("CRAN"),
 #endif
 
   For \code{install.packages} and \code{update.packages}, \code{destdir}
-  is the directory to which packages will be downloaded.  If it is
-  \code{NULL} (the default) a directory \code{downloaded_packages} of
-  the session temporary directory will be used (and the files will be
-  deleted at the end of the session).
-  
-  If \code{CRAN} or \code{contriburl} is a vector of length greater than
-  one, the newest version of the package is fetched from the first
-  repository on the list within which it is found.
+  is the directory to which packages will be downloaded. If it is
+  \code{NULL} (the default) a temporary directory is used, and the user
+  will be given the option of deleting the temporary files once the
+  packages are installed.  (They will always be deleted at the end of
+  the \R session.)
 }
 \value{
   For \code{CRAN.packages}, a matrix with one row per package/bundle,
@@ -160,17 +146,10 @@ install.packages(pkgs, lib, CRAN = getOption("CRAN"),
   \code{"Installed"} and \code{"CRAN"}.  (The last two columns are
   version numbers.)
 
-  For \code{new.packages} a character vector of package/bundle names.
-
   For \code{download.packages}, a two-column matrix of names and
   destination file names, for those packages/bundles successfully downloaded.
 
   \code{install.packages} and \code{update.packages} have no return value.
-}
-\section{Warning}{
-  Not enough information is recorded to know if a bundle is completely
-  installed, so a bundle is regarded as installed if any of its
-  component packages is.
 }
 \seealso{
   \code{\link{installed.packages}}.

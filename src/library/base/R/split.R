@@ -4,7 +4,7 @@ split.default <- function(x, f)
 {
     if (is.list(f)) f <- interaction(f)
     f <- factor(f)                  # drop extraneous levels
-    if (is.null(attr(x, "class")))
+    if (is.null(attr(x, "class")) && is.null(names(x)))
         return(.Internal(split(x, f)))
     ## else
     lf <- levels(f)

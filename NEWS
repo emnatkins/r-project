@@ -1,200 +1,9 @@
 				Dear Emacs, please make this -*-Text-*- mode!
 	**************************************************
 	*						 *
-	*	       2.1 SERIES NEWS			 *
-	*						 *
-	**************************************************
-
-
-		CHANGES IN R VERSION 2.1.0
-
-
-NEW FEATURES
-
-    o	Faster algorithm in summaryRprof().
-
-    o	update.packages() and old.packages() have a new option
-	'checkBuilt' to allow packages installed under earlier
-	versions of R to be updated.
-
-    o	na.contiguous() is now (S3) generic with first argument
-	renamed to 'object'.
-
-    o	Plotmath now allows underline in expressions.  (PR#7286,
-	contributed by Uwe Ligges.)
-
-    o	BATCH on Unix no longer sets --gui="none" as the X11 module
-	is only loaded if needed.
-
-    o	The X11 module (and the hence X11(), jpeg() and png() devices
-	and the X-based dataentry editor) is now in principle
-	available under all Unix GUIs except --gui="none", and this is
-	reflected in capabilities().  capabilities("X11") determines
-	if an X server can be accessed, and so is more likely to be
-	accurate.
-
-    o	binomial() has a new "cauchit" link (suggested by Roger Koenker).
-
-    o	ecdf() now has jumps of the correct size (a multiple of 1/n)
-	if there are ties.  (wished by PR#7292).
-
-    o	Printing of arrays now honours the 'right' argument if there
-	are more than two dimensions.
-
-    o	Tabular printing of numbers now has headers right-justified, as
-	they were prior to version 1.7.0 (spotted by Rob Baer).
-
-    o	dir.create() has a new argument 'recursive' serving the same
-	purpose as Unix's mkdir -p.
-
-    o	scatter.smooth() and loess.smooth() now handle missing values
-	in their inputs.
-
-    o	The use of UseMethod() with no argument was not documented on
-	the help page and is now regarded as an error.
-
-    o	Added colorRamp() and colorRampPalette() for color interpolation.
-
-    o	install.packages() and friends now accept a vector of URLs for
-	'CRAN' or 'contriburl' and get the newest available version of
-	a package from the first repository on the list in which it is
-	found.
-
-     	New function new.packages() to report uninstalled packages
-	available at the requested repositories.
-
-    o	New argument 'immediate.' to warning() to send an immediate
-	warning.
-
-    o	file.append() has been tuned, including for the case of
-	appending many files to a single file.
-
-    o	subset() now has a method for matrices, similar to that for
-	data frames.
-
-    o	install.packages() no longer asks if downloaded packages
-	should be deleted: they will be deleted at the end of the
-	session anyway (and can be deleted by the user at any time).
-
-    o	R CMD check will now work on a source tarball and prints out
-	information about the version of R and the package.
-
-    o	warnings() now looks only in the workspace for `last.warning'
-	(suggested by PR#7363).
-
-    o	The search for browsers now starts with firefox, and has mozilla
-	ahead of netscape.
-
-
-UTILITIES
-
-    o	New functions mirror2html() and checkCRAN().
-
-    o	R CMD check has a new option '--use-valgrind'.
-
-    o	tools:::.install_package_code_files() (used to collate R files
-	when installing packages) ensures files are separated by a
-	line feed.
-
-
-DOCUMENTATION
-
-    o	File doc/html/faq.html no longer exists, and doc/manual/R-FAQ.html
-	(which has active links to other manuals) is used instead.
-	(If makeinfo >= 4.5 is not available, the version on CRAN is
-	linked to.)
-
-    o	Manual 'Writing R Extensions' has further details on writing
-	new front-ends for R using the new public header files.
-
-    o	There are no longer any restrictions on characters in the
-	\name{} field of a .Rd file: in particular _ is supported.
-
-
-
-C-LEVEL FACILITIES
-
-    o	There are new public C/C++ header files Rinterface.h and
-	R_ext/RStartup.h for use with external GUIs.
-
-
-DEPRECATED & DEFUNCT
-
-    o	The aqua module for MacOS X has been removed: --with-aqua now
-	refers to the unbundled Cocoa GUI.
-
-    o	Capabilities "bzip2", "GNOME, "libz" and "PCRE" are defunct.
-
-    o	Capability "IEEE754" is deprecated.
-
-
-INSTALLATION CHANGES
-
-    o	R_XTRA_[CF]FLAGS are now used during the configuration tests,
-	and [CF]PICFLAGS if --enable-R-shlib was specified.  This
-	ensures that features such as inlining are only used if the
-	compilation flags specified support them.  (PR#7257)
-
-    o	Files FAQ, RESOURCES, doc/html/resources.html are no longer in
-	the SVN sources but are made by 'make dist'.
-
-    o	The GNOME GUI is unbundled, currently available by Subversion only.
-
-    o	Configuring without having the recommended packages is now an
-	error unless --with-recommended-packages=no is used.
-
-
-BUG FIXES
-
-    o	Configuring for Tcl/Tk makes use of ${TK_LIB_SPEC} ${TK_LIBS}
-	not ${TK_LIB_SPEC} ${TK_XLIBSW}, which is correct for
-	recent versions of Tk, but conceivably not for old
-	tkConfig.sh files.
-
-    o	detach() was not recomputing the methods for primitives
-	correctly.
-
-    o	"expression" partly fixed in basic classes, so S4 classes
-	can extend these (but "expression" is pretty broken as a
-	vector class in R).
-
-    o	Collected warnings had messages with unneeded trailing space.
-
-    o	Methods for primitive functions must be exported from
-	namespaces; this is now done automatically.
-	Note that is.primitive() is now in "base", not "methods" anymore.
-
-    o	subset() now throws an error if its 'subset' argument is not
-	logical whereas it could appear to work and give wrong answers
-	with e.g. a numeric 'subset' argument.
-
-    o   package grid:
-
-	- Fixed bug in grid.text() when "rot" argument has length 0.
-          (reported by Emmanuel Paradis)
-
-
-
-
-	**************************************************
-	*						 *
 	*	       2.0 SERIES NEWS			 *
 	*						 *
 	**************************************************
-
-
-		CHANGES IN R VERSION 2.0.1 patched
-
-
-BUG FIXES
-
-    o	split() was accepting raw and list vectors as input, but
-	not populating the output correctly.
-
-	split() now handles vectors with names internally and so is
-	almost as fast as on vectors without names (and maybe 100x
-	faster than before).
-
 
 
 		CHANGES IN R VERSION 2.0.1
@@ -206,8 +15,8 @@ NEW FEATURES
 	testPlatformEquivalence() which ignores the 'vendor' field and
 	can be customized by cognescenti.
 
-    o   The assignment form of split() allows recycling of vectors
-	within the value list. In particular, things like
+    o   The assignment form of split() allows recycling of vectors 
+	within the value list. In particular, things like 
 	    split(x, g) <- lapply(split(x, g), mean)
 	now work
 
@@ -333,7 +142,7 @@ BUG FIXES
 
     o	capabilities() was wrong for the Aqua GUI on MacOS X.
 
-    o   Using Rprof() with a non-writable 'file' argument is now a
+    o   Using Rprof() with a non-writable 'file' argument is now a 
 	non-fatal error and does not abort R.
 
     o   binom.test() did not deparse its arguments early enough such
@@ -374,8 +183,8 @@ BUG FIXES
 
     o	str() removed any class from externalptr objects.
 
-    o	logLik() and hence AIC() failed or gave incorrect answers
-	on "lm" fits with na.action = na.exclude (and perhaps other
+    o	logLik() and hence AIC() failed or gave incorrect answers 
+	on "lm" fits with na.action = na.exclude (and perhaps other 
 	na.actions's except na.omit and na.fail).
 
     o	pmax() and pmin() sometimes used NAs in internal subassignments,
@@ -390,10 +199,10 @@ BUG FIXES
     o	sort(partial=) silently ignored some other arguments: using
 	'decreasing' or 'index.return' or supplying a factor are now
 	errors.
-
-    o   The ave() function had trouble if the grouping contained
-        unused levels.
-
+	
+    o   The ave() function had trouble if the grouping contained 
+        unused levels. 
+	
     o   read.fwf() got confused by skip > 0 and could infinite loop
 	under some circumstances.  (PR#7350)
 

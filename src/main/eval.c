@@ -418,7 +418,7 @@ SEXP eval(SEXP e, SEXP rho)
     case DOTSXP:
 	error("... used in an incorrect context");
     default:
-	UNIMPLEMENTED_TYPE("eval", e);
+	UNIMPLEMENTED("eval");
     }
     R_EvalDepth = depthsave;
     return (tmp);

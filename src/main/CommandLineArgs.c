@@ -23,8 +23,8 @@
 #include <config.h>
 #endif
 
-#include <Defn.h>
-#include <R_ext/RStartup.h>
+#include "Defn.h"
+#include "Startup.h"
 
 
 /* Remove and process common command-line arguments

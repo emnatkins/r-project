@@ -83,19 +83,10 @@ if test -r "${cfile}"; then
   echo "loading site script '${cfile}'"
   . "${cfile}"
 fi
-cfile="${HOME}/.Rconfig"
+cfile="${HOME}/.Rconf"
 if test -r "${cfile}"; then
   echo "loading user script '${cfile}'"
   . "${cfile}"
-## <FIXME>
-## Remove support for ~/.Rconf eventually.
-else
-  cfile="${HOME}/.Rconf"
-  if test -r "${cfile}"; then
-    echo "loading user script '${cfile}'"
-    . "${cfile}"
-  fi
-## </FIXME>
 fi
 cfile="./config.site"
 if test -r "${cfile}"; then
@@ -105,6 +96,8 @@ fi
 
 ## We provide these defaults so that headers and libraries in
 ## '/usr/local' are found (by the native tools, mostly).
+## We do it here because AC_ARG_WITH(gnome) may add to CPPFLAGS and
+## LDFLAGS.
 if test -f "/sw/etc/fink.conf"; then
   : ${CPPFLAGS="-I/sw/include -I/usr/local/include"}
   : ${LDFLAGS="-L/sw/lib -L/usr/local/lib"}
@@ -176,7 +169,13 @@ AC_ARG_ENABLE([R-shlib],
                 [build R as a shared library @<:@no@:>@])],
 [want_R_shlib="${enableval}"],
 [want_R_shlib="${want_R_framework}"])
-## processed after GNOME, which can set this.
+AM_CONDITIONAL(WANT_R_SHLIB, [test "x${want_R_shlib}" = xyes])
+if test "${want_R_shlib}" = yes; then
+  LIBR="-L\$(R_HOME)/lib -lR"
+else
+  LIBR=
+fi
+AC_SUBST(LIBR)
 
 ## Enable maintainer-specific portions of Makefiles.
 AC_ARG_ENABLE([maintainer-mode],
@@ -229,6 +228,22 @@ AC_ARG_WITH([readline],
                 [use readline library (if available) @<:@yes@:>@])],
 [R_ARG_USE(readline)],
 [use_readline=yes])
+
+## GNOME.
+AC_ARG_WITH([gnome],
+[AC_HELP_STRING([--with-gnome],
+                [use GNOME, or specify its prefix @<:@no@:>@])],
+[if test "${withval}" = no; then
+  want_gnome=no
+elif test "${withval}" = yes; then
+  want_gnome=yes
+else
+  want_gnome=yes
+  CPPFLAGS="${CPPFLAGS} -I${withval}/include"
+  LDFLAGS="${LDFLAGS} -L${withval}/lib"
+  gnome_prefix="${withval}/lib"
+fi],
+[want_gnome=no])
 
 ## Aqua.
 AC_ARG_WITH([aqua],
@@ -288,14 +303,6 @@ AC_ARG_WITH([pcre],
 [R_ARG_USE(pcre)],
 [use_pcre=no])
 
-## needs to come after GNOME
-AM_CONDITIONAL(WANT_R_SHLIB, [test "x${want_R_shlib}" = xyes])
-if test "${want_R_shlib}" = yes; then
-  LIBR="-L\$(R_HOME)/lib -lR"
-else
-  LIBR=
-fi
-AC_SUBST(LIBR)
 
 ## <FIXME>
 ## Completely disable using libtool for building shlibs until libtool
@@ -614,10 +621,10 @@ R_PROG_CXX_MAKEFRAG
 ### ** Platform-specific overrides for the C, Fortran 77 and C++ compilers.
 
 case "${host_cpu}" in
-  i*86|x86_64)
+  i*86)
     R_PROG_CC_FLAG_D__NO_MATH_INLINES
     ## We used to add -mieee-fp here, but it seems it is really a
-    ## linker flag for old Linuxen adding -lieee to a non-shared link.
+    ## gcc linker flag for old Linuxen adding -lieee to a non-shared link.
     ;;
   alpha*)
     ## <NOTE>
@@ -1165,23 +1172,6 @@ AC_SUBST(LIBR_LDFLAGS)
 AC_SUBST(RLAPACK_LDFLAGS)
 AC_SUBST(LAPACK_LDFLAGS)
 
-### Now we have found all the flags, we need to use them to test appropriately.
-### We don't currently have any C++ tests, but future-proof.
-### In principle we should do this before testing for C-Fortran compatibility.
-
-CFLAGS_KEEP=${CFLAGS}
-FFLAGS_KEEP=${FFLAGS}
-CXXFLAGS_KEEP=${CXXFLAGS}
-if test "${want_R_shlib}" = yes; then
-  CFLAGS="${CFLAGS} ${CPICFLAGS} ${R_XTRA_CFLAGS}"
-  FFLAGS="${FFLAGS} ${FPICFLAGS} ${R_XTRA_FFLAGS}"
-  CXXFLAGS="${CXXFLAGS} ${CXXPICFLAGS} ${R_XTRA_CXXFLAGS}"
-else
-  CFLAGS="${CFLAGS} ${R_XTRA_CFLAGS}"
-  FFLAGS="${FFLAGS} ${R_XTRA_FFLAGS}"
-  CXXFLAGS="${CXXFLAGS} ${R_XTRA_CXXFLAGS}"
-fi
-
 ### * Checks for library functions.
 
 AC_CHECK_TYPES([off_t])
@@ -1208,6 +1198,9 @@ R_IEEE_754
 ## check whether nl_langinfo(CODESET) is in langinfo.h
 ## defines HAVE_LANGINFO_CODESET if it's there
 AM_LANGINFO_CODESET
+
+## check if X11 typedefs KeySym
+R_HAVE_KEYSYM
 
 ## Used to build src/include/Rmath.h.
 ## <NOTE>
@@ -1272,20 +1265,27 @@ AM_CONDITIONAL(USE_EXTERNAL_LAPACK, [test "${acx_lapack_ok}" = "yes"])
 
 ### * Checks for system services.
 
-AC_SUBST(R_MODULES)
+AC_SUBST(R_GUIS)
 
 ## X11.
 R_X11
 if test "${use_X11}" = yes; then
-  R_MODULES=X11
+  R_GUIS=X11
 else
-  R_MODULES=
+  R_GUIS=
 fi
-## check if X11 typedefs KeySym
-R_TYPE_KEYSYM
+
+## GNOME.
+R_GNOME
+if test "${use_gnome}" = yes; then
+  R_SH_VAR_ADD(R_GUIS, [gnome]);
+fi
 
 ## Aqua
 R_AQUA
+if test "${use_aqua}" = yes; then
+  R_SH_VAR_ADD(R_GUIS, [aqua]);
+fi
 AM_CONDITIONAL(BUILD_AQUA, [test "x${use_aqua}" = xyes])
 AC_SUBST(use_aqua)
 
@@ -1494,6 +1494,10 @@ AC_CONFIG_FILES(
   src/main/Makefile
   src/modules/Makefile
   src/modules/X11/Makefile
+  src/modules/aqua/Makefile
+  src/modules/aqua/Info.plist
+  src/modules/aqua/Contents/Info.plist
+  src/modules/gnome/Makefile
   src/modules/internet/Makefile
   src/modules/lapack/Makefile
   src/modules/vfonts/Makefile
@@ -1522,11 +1526,6 @@ AC_CONFIG_FILES(
 AC_CONFIG_COMMANDS([stamp-h],
 [test -f src/include/stamp-h || echo timestamp > src/include/stamp-h])
 
-### now reset flags
-CFLAGS=${CFLAGS_KEEP}
-FFLAGS=${FFLAGS_KEEP}
-CXXFLAGS=${CXXFLAGS_KEEP}
-
 AC_OUTPUT
 
 ## Summarize configure results.
@@ -1542,7 +1541,7 @@ else
   r_f77_compiler="${F2C} ${F2CFLAGS}"
 fi
 r_interfaces=
-for item in X11 aqua tcltk; do
+for item in X11 gnome aqua tcltk; do
   if eval "test \${use_${item}} = yes"; then
     R_SH_VAR_ADD(r_interfaces, [${item}], [, ])
   fi

@@ -1,13 +1,11 @@
-na.contiguous <- function(object, ...) UseMethod("na.contiguous")
-
-na.contiguous.default <- function(object, ...)
+na.contiguous <- function(frame)
 {
-    tm <- time(object)
-    xfreq <- frequency(object)
+    tm <- time(frame)
+    xfreq <- frequency(frame)
     ## use (first) maximal contiguous length of non-NAs
-    if(is.matrix(object))
-        good <- apply(!is.na(object), 1, all)
-    else  good <- !is.na(object)
+    if(is.matrix(frame))
+        good <- apply(!is.na(frame), 1, all)
+    else  good <- !is.na(frame)
     if(!sum(good)) stop("all times contain an NA")
     tt <- cumsum(!good)
     ln <- sapply(0:max(tt), function(i) sum(tt==i))
@@ -17,16 +15,16 @@ na.contiguous.default <- function(object, ...)
     if(!good[st]) st <- st + 1
     en <- max(which(keep))
     omit <- integer(0)
-    n <- NROW(object)
+    n <- NROW(frame)
     if(st > 1) omit <- c(omit, 1:(st-1))
     if(en < n) omit <- c(omit, (en+1):n)
-    cl <- class(object)
+    cl <- class(frame)
     if(length(omit)) {
-        object <- if(is.matrix(object)) object[st:en,] else object[st:en]
+        frame <- if(is.matrix(frame)) frame[st:en,] else frame[st:en]
         attr(omit, "class") <- "omit"
-        attr(object, "na.action") <- omit
-        tsp(object) <- c(tm[st], tm[en], xfreq)
-        if(!is.null(cl)) class(object) <- cl
+        attr(frame, "na.action") <- omit
+        tsp(frame) <- c(tm[st], tm[en], xfreq)
+        if(!is.null(cl)) class(frame) <- cl
     }
-    object
+    frame
 }

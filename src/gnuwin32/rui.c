@@ -382,30 +382,32 @@ static void menupkgupdatebioc(control m)
 }
 
 
-static void menupkginstallbioc(control m) 
-{
+static void menupkginstallbioc(control m) {
     if (!ConsoleAcceptCmd) return;
-    consolecmd(RConsole, "utils:::menuInstallBioc()");
+    consolecmd(RConsole,
+	       "local({a<- CRAN.packages(CRAN=getOption(\"BIOC\"))\ninstall.packages(select.list(a[,1],,TRUE), .libPaths()[1], available=a, CRAN=getOption(\"BIOC\"), dependencies=TRUE)})");
 }
 
 
 static void menupkgcranmirror(control m)
 {
     if (!ConsoleAcceptCmd) return;
-    consolecmd(RConsole, "utils:::chooseCRANmirror()");
+    consolecmd(RConsole,
+	       "local({m <- read.csv(file.path(R.home(), \"doc/CRAN_mirrors.csv\"), as.is=TRUE); URL <- m[m[, 1]==select.list(m[,1],,FALSE), 'URL']; if(!is.na(URL)) options(CRAN=URL)})");
 }
 
 static void menupkginstallcran(control m)
 {
     if (!ConsoleAcceptCmd) return;
-    consolecmd(RConsole, "utils:::menuInstallCran()");
+    consolecmd(RConsole,
+	       "local({a <- CRAN.packages()\ninstall.packages(select.list(a[,1],,TRUE), .libPaths()[1], available=a, dependencies=TRUE)})");
 /*    show(RConsole); */
 }
 
 static void menupkginstalllocal(control m)
 {
     if (!ConsoleAcceptCmd) return;
-    consolecmd(RConsole, "utils:::menuInstallLocal()");
+    consolecmd(RConsole,"install.packages(choose.files('',filters=Filters[c('zip','All'),]), .libPaths()[1], CRAN = NULL)");
 }
 
 static void menuconsolehelp(control m)
@@ -496,12 +498,12 @@ static void menuhelpstart(control m)
 
 static void menuFAQ(control m)
 {
-    internal_shellexec("doc\\manual\\R-FAQ.html");
+    internal_shellexec("doc\\html\\faq.html");
 }
 
 static void menurwFAQ(control m)
 {
-    internal_shellexec("doc\\html\\rw-FAQ.html");
+    internal_shellexec("doc\\html\\rw-faq.html");
 }
 
 static void menuabout(control m)
@@ -921,9 +923,9 @@ int RguiCommonHelp(menu m)
     addto(m);
 
     MCHECK(mFAQ = newmenuitem("FAQ on R", 0, menuFAQ));
-    if (!check_doc_file("doc\\manual\\R-FAQ.html")) disable(mFAQ);
+    if (!check_doc_file("doc\\html\\faq.html")) disable(mFAQ);
     MCHECK(mrwFAQ = newmenuitem("FAQ on R for &Windows", 0, menurwFAQ));
-    if (!check_doc_file("doc\\html\\rw-FAQ.html")) disable(mrwFAQ);
+    if (!check_doc_file("doc\\html\\rw-faq.html")) disable(mrwFAQ);
 
     lmanintro = check_doc_file("doc\\manual\\R-intro.pdf");
     lmanref = check_doc_file("doc\\manual\\refman.pdf");

@@ -219,8 +219,6 @@ static void HashTableSetup(SEXP x, HashData *d)
 	d->equal = rawequal;
 	MKsetup(256, d);
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("HashTableSetup", x);
     }
     d->HashTable = allocVector(INTSXP, d->M);
 }
@@ -334,8 +332,6 @@ SEXP do_duplicated(SEXP call, SEXP op, SEXP args, SEXP env)
 	    if (LOGICAL(dup)[i] == 0)
 		RAW(ans)[k++] = RAW(x)[i];
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("duplicated", x);
     }
     return ans;
 }

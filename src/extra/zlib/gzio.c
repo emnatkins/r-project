@@ -16,13 +16,8 @@
 #define f_seek fseeko
 #define f_tell ftello
 #else
-#ifdef Win32
-#define f_seek fseeko64
-#define f_tell ftello64
-#else
 #define f_seek fseek
 #define f_tell ftell
-#endif
 #endif
 
 

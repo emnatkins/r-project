@@ -6,7 +6,6 @@ export(.checkMFClasses, .getXlevels, .MFclass)
 export(add.scope, add1, addmargins, aggregate, aggregate.data.frame,
        aggregate.default, aggregate.ts, AIC, alias, anova, anova.glm,
        anova.glmlist, anova.lm, anova.lmlist, anova.mlm, aov,
-       approx, approxfun,
        as.formula, as.ts, ave, binomial, bw.bcv, bw.nrd, bw.nrd0,
        bw.SJ, bw.ucv, C, case.names, cbind.ts, coef, coefficients,
        complete.cases, confint, constrOptim, contr.helmert,
@@ -138,7 +137,6 @@ S3method(makepredictcall, poly)
 S3method(model.tables, aov)
 S3method(model.tables, aovlist)
 S3method(na.action, default)
-S3method(na.contiguous, default)
 S3method(na.exclude, data.frame)
 S3method(na.exclude, default)
 S3method(na.fail, default)

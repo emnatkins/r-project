@@ -94,8 +94,8 @@ file.access <- function(names, mode = 0)
     res
 }
 
-dir.create <- function(path, showWarnings = TRUE, recursive = FALSE)
-    invisible(.Internal(dir.create(path, showWarnings, recursive)))
+dir.create <- function(path, showWarnings = TRUE)
+    invisible(.Internal(dir.create(path, showWarnings)))
 
 format.octmode <- function(x, ...)
 {

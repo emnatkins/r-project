@@ -11,7 +11,6 @@ test-out = $(test-src:.R=.Rout)
 R = srcdir=$(srcdir) $(R_HOME)/bin/R --vanilla
 RDIFF = $(R_HOME)/bin/R CMD Rdiff
 USE_GCT = 0
-R_OPTS =
 
 .SUFFIXES:
 .SUFFIXES: .R .Rin .Rout
@@ -24,7 +23,7 @@ R_OPTS =
 	@rm -f $@ $@.fail
 	@echo "  Running '$<'"
 	@(if test "$(USE_GCT)" != 0; then echo "gctorture(TRUE)"; fi; \
-	  cat $<) | R_LIBS=$(R_LIBS) $(R) $(R_OPTS) > $@ 2>&1 || \
+	  cat $<) | R_LIBS=$(R_LIBS) $(R) > $@ 2>&1 || \
 	  (mv $@ $@.fail && exit 1)
 	@if test -f $(srcdir)/$@.save; then \
 	  mv $@ $@.fail; \

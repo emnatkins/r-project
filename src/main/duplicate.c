@@ -170,7 +170,7 @@ SEXP duplicate(SEXP s)
 	return s;
 	break;
     default:
-	UNIMPLEMENTED_TYPE("duplicate", s);
+	UNIMPLEMENTED("duplicate");
 	t = s;/* for -Wall */
     }
     if(TYPEOF(t) == TYPEOF(s) ) /* surely it only makes sense in this case*/
@@ -215,7 +215,7 @@ void copyVector(SEXP s, SEXP t)
 	    RAW(s)[i] = RAW(t)[i % nt];
 	break;
     default:
-	UNIMPLEMENTED_TYPE("copyVector", s);
+	UNIMPLEMENTED("copyVector");
     }
 }
 
@@ -299,7 +299,7 @@ void copyMatrix(SEXP s, SEXP t, Rboolean byrow)
 		    RAW(s)[i + j * nr] = RAW(t)[k++ % nt];
 	    break;
 	default:
-	    UNIMPLEMENTED_TYPE("copyMatrix", s);
+	    UNIMPLEMENTED("copyMatrix");
 	}
     }
     else

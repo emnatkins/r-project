@@ -70,7 +70,6 @@ The current version of this document is @value{VERSION}.
 * Add-on packages::             
 * Essential and useful other programs::  
 * Configuration on Unix::       
-* Building the GNOME console::  
 * Enabling search in HTML help::  
 * New platforms::               
 * Function and variable index::  
@@ -82,8 +81,9 @@ The current version of this document is @value{VERSION}.
 @cindex Obtaining R
 
 Sources, binaries and documentation for @R{} can be obtained via
-@acronym{CRAN}, the ``Comprehensive R Archive Network'' whose current
-members are listed at @uref{http://cran.r-project.org/mirrors.html}.
+@acronym{CRAN}, the ``Comprehensive R Archive Network''.  See the file
+@file{RESOURCES} in the R distribution for information on
+@acronym{CRAN}.
 
 @menu
 * Getting and unpacking the sources::  
@@ -166,8 +166,8 @@ svn checkout https://svn.r-project.org/R/trunk/ @var{path}
 @noindent
 to check out r-devel into directory @var{path}.
 
-Note that @samp{https:} is required, and that the SSL certificate for
-the Subversion server of the R project is
+Note that @code{https:} is required, and that the SSL certificate for the
+Subversion server of the R project is
 
 @smallexample
 Certificate information:
@@ -400,11 +400,10 @@ a different papersize, you should first delete the file
 There are some issues with making the reference manual, and in
 particular with the PDF version @file{refman.pdf}.  The help files
 contain both ISO Latin1 characters (e.g. in @file{text.Rd}) and upright
-quotes, neither of which are contained in the standard La@TeX{} Computer
+quotes, neither of which are contained in the standard LaTeX Computer
 Modern fonts.  We have provided four alternatives:
-
-@table @code
-@item times
+@itemize @bullet
+@item @code{times}
 Using standard PostScript fonts.  This works well both for on-screen
 viewing and for printing, and is the default from @R{} 2.0.0.  The one
 disadvantage is that the Usage and Examples sections may come out rather
@@ -412,7 +411,7 @@ wide.
 
 @item @code{lm}
 Using the @emph{Latin Modern} fonts.  These are not often installed as
-part of a @TeX{} distribution, but can obtained from
+part of a TeX distribution, but can obtained from
 @uref{http://www.ctan.org/tex-archive/fonts/ps-type1/lm} and mirrors.
 This uses fonts rather similar to Computer Modern, but is not so good
 on-screen as @code{times}.
@@ -431,9 +430,8 @@ previous two options.  There are three fonts for which it will need to
 use bitmapped fonts, @file{tctt0900.600pk}, @file{tctt1000.600pk} and 
 @file{tcrm1000.600pk}.  Unfortunately, if those files are not available,
 Acrobat Reader will substitute completely incorrect glyphs so you need
-to examine the logs carefully.  This was the default in @R{} version
-1.x.y.
-@end table
+to examine the logs carefully.  This was the default in @R{} version 1.x.y.
+@end itemize
 
 Both Unix and Windows installations default to @code{times}.  The choice
 can be overridden by setting the environment variable @code{R_RD4PDF}.
@@ -595,12 +593,12 @@ and install some tools as explained in the document. Than you have to
 expand the @R{} sources and configure @R{} appropriately, for example
 
 
-@example
+@smallexample
 tar zxvf R-@value{VERSIONno}.tgz
 cd R-@value{VERSIONno}
 ./configure --with-blas='-framework vecLib' --with-lapack --with-aqua 
 make
-@end example
+@end smallexample
 
 @noindent
 sit back and wait. The last option @option{--with-aqua} is needed only
@@ -703,7 +701,7 @@ interface to @code{install.packages}, @code{update.packages} and
 On Mac OS X @code{install.packages} works as it does on other Unix
 systems, but there is an additional function @code{install.binaries}
 that will download and install binary packages from @acronym{CRAN}.
-These Macintosh binary package files have the extension @samp{tgz}.  The
+These Macintosh binary package files have the extension @code{tgz}. The
 Aqua GUI provides for installation of either binary or source packages,
 from @acronym{CRAN} or local files.
 
@@ -797,8 +795,8 @@ You will not be able to build the info files unless you have
 The typeset documentation and building vignettes needs @command{tex} and
 @command{latex}, or @command{pdftex} and @command{pdflatex}.
 
-If you want to build from the R Subversion repository you need Perl,
-@command{makeinfo} and @command{pdflatex}.
+If you want to build from the R Subversion repository you need
+@command{pdflatex}.
 
 
 @node Useful libraries and programs,  , Essential programs, Essential and useful other programs
@@ -979,7 +977,7 @@ So if @R{} is re-built after ATLAS is installed, then packages such as
 @pkg{quantreg} will need to be re-installed.
 
 
-@node Configuration on Unix, Building the GNOME console, Essential and useful other programs, Top
+@node Configuration on Unix, Enabling search in HTML help, Essential and useful other programs, Top
 @appendix Configuration on Unix
 
 @menu
@@ -988,6 +986,7 @@ So if @R{} is re-built after ATLAS is installed, then packages such as
 * Using make::                  
 * Using FORTRAN::               
 * Compile and load flags::      
+* Building the GNOME interface::  
 * Platform notes::              
 @end menu
 
@@ -1024,7 +1023,7 @@ You can use @option{--without-foo} or @option{--disable-foo} for the
 negatives.
 
 You will want to use @option{--disable-R-profiling} if you are building
-a profiled executable of @R{} (e.g.@: with @samp{-pg)}.
+a profiled executable of @R{} (e.g. with @samp{-pg)}.
 
 Flag @option{--enable-R-shlib} causes the make process to build @R{} as
 a dynamic (shared) library, typically called @file{libR.so}, and link
@@ -1193,7 +1192,7 @@ If you use @command{f2c} you may need to ensure that the FORTRAN type
 @file{f2c.h} contains @samp{typedef long int integer;}, which will work
 on a 32-bit platform but not on a 64-bit platform.
 
-@node Compile and load flags, Platform notes, Using FORTRAN, Configuration on Unix
+@node Compile and load flags, Building the GNOME interface, Using FORTRAN, Configuration on Unix
 @section Compile and load flags
 
 A wide range of flags can be set in the file @file{config.site} or as
@@ -1247,9 +1246,74 @@ possible issue is the alignment of doubles, another is the way
 structures are passed.
 
 
+@node Building the GNOME interface, Platform notes, Compile and load flags, Configuration on Unix
+@section Building the @acronym{GNOME} interface
+
+This interface is experimental and incomplete.  The console offers a
+basic command line editing and history mechanism, along with tool and
+button bars that give a point-and-click interface to some @R{} commands.
+Many of the features of the console are currently stubs.  Its present
+form is deprecated, and it will be replaced by an unbundled
+@acronym{GNOME} console as from @R 2.1.0.
+
+Two graphics devices have been available but are currently
+unbundled. The @code{gtk()} graphics device is a port of the
+@code{x11()} device to @acronym{GDK} (the GIMP Drawing Kit), and is
+available from CRAN as package @pkg{gtkDevice}.  The @code{gnome()}
+device uses the @acronym{GNOME} canvas, and is not currently available.
+
+Due to its experimental nature, the @acronym{GNOME} interface for @R{}
+will not be built automatically.  You must specify it by running
+configure with the @option{--with-gnome} option.  For example, you might
+run
+
+@smallexample
+./configure --with-gnome
+@end smallexample
+
+@noindent
+but please check you have all the requirements first.  You need at least
+the following libraries (or later) installed
+
+@smallexample
+audiofile-0.2.1
+esound-0.2.23
+glib-1.2.10
+gtk+-1.2.10
+imlib-1.9.10
+ORBit-0.5.12
+gnome-libs-1.4.1.2
+libxml-1.8.16
+libglade-0.17
+@end smallexample
+
+@noindent
+It is preferable to have a complete installation of the @acronym{GNOME}
+desktop environment.  If you use Linux, then this should be provided
+with your distribution.
+
+Remember that some package management systems (such as @acronym{RPM} and
+deb) make a distinction between the user version of a package and the
+developer version.  The latter usually has the same name but with the
+extension @samp{-devel}.  If you use a pre-packaged version of
+@acronym{GNOME} then you must have the developer versions of the above
+packages in order to compile the R-GNOME interface.
+
+The full list of @acronym{GNOME} options to configure is
+
+@table @option
+@item --with-gnome
+use @acronym{GNOME}, or specify its prefix [no]
+@item --with-gnome-includes=@var{DIR}
+specify location of @acronym{GNOME} headers
+@item --with-gnome-libs=@var{DIR}
+specify location of @acronym{GNOME} libs
+@item --with-libglade-config=@var{LIBGLADE_CONFIG}
+specify location of @command{libglade-config}
+@end table
 
 
-@node Platform notes,  , Compile and load flags, Configuration on Unix
+@node Platform notes,  , Building the GNOME interface, Configuration on Unix
 @section Platform notes
 
 This section provides some notes on building @R{} on different Unix-like
@@ -1312,10 +1376,10 @@ A discussion of which Linux systems support large files can be found at
 @uref{http://www.suse.de/~aj/linux_lfs.html}: it has been available
 since about 2001.
 
-R used to include the compiler flag @option{-mieee-fp}, but it seems
-this was really an alias for the linker flag @option{-lieee}.  Neither
-are needed for a modern Linux (e.g.@: using @code{glibc} 2.2 or 2.3) but
-could conceivably be needed on an older version.
+R used to include the compiler flag @option{-mieee-fp}, but it seems this
+was really an alias for the linker flag @option{-lieee}.  Neither are
+needed for a modern Linux (e.g. using @code{glibc} 2.2 or 2.3) but could
+conceivably be needed on an older version.
 
 
 @node Mac OS X, Solaris, Linux, Platform notes
@@ -1369,7 +1433,7 @@ needed prior to Solaris 2.7 for building other than in the source tree,
 and perhaps even then.
 
 The Solaris versions of several of the tools needed to build @R{}
-(e.g.@: @command{make}, @command{ar} and @command{ld}) are in
+(e.g. @command{make}, @command{ar} and @command{ld}) are in
 @code{/usr/ccs/bin}, so if using those tools ensure this is in your
 path.
 
@@ -1401,7 +1465,7 @@ fail.  The maximal set of optimization options known to work is
 We have found little performance difference between @command{gcc} and
 @command{cc} but considerable benefit from using a SunPro Fortran
 compiler: the @command{gcc}/@command{f77} combination works well.  For
-many C++ applications (e.g.@: package @pkg{Matrix}) Forte 7 requires
+many C++ applications (e.g. package @pkg{Matrix}) Forte 7 requires
 @code{-lCstd}, which the configure script will add to
 @code{SHLIB_CXXLDFLAGS} if it identifies the compiler correctly.
 
@@ -1514,12 +1578,12 @@ last paragraph.  Static libraries that might be found and would cause
 problems are
 
 @smallexample
-BLAS                   @r{use @option{--without-blas}}
-Tcl/Tk                 @r{use @option{--without-tcltk}}
-GNOME                  @r{not built by default}
-libpng                 @r{use @option{--without-libpng}}
-jpeg                   @r{use @option{--without-jpeglib}}
-zlib                   @r{use @option{--without-zlib}}
+BLAS                   use --without-blas
+Tcl/Tk                 use --without-tcltk
+GNOME                  not built by default
+libpng                 use --without-libpng
+jpeg                   use --without-jpeglib
+zlib                   use --without-zlib
 @end smallexample
 
 @noindent
@@ -1593,7 +1657,7 @@ check} but failed @command{make test-all-extras} in the complex LAPACK
 tests.
 
 George N. White III reports that the @code{strptime} tests in 1.9.0 fail
-on IRIX 6.5 systems prior to 6.5.22m (e.g.@: 6.5.19m and 6.5.21m) unless
+on IRIX 6.5 systems prior to 6.5.22m (e.g. 6.5.19m and 6.5.21m) unless
 Arthur Olson's timezone data @uref{ftp://elsie.nci.nih.gov/pub/} (see
 also @uref{http://cspry.co.uk/computing/Indy_admin/TIMEZONE.html}) are
 installed and @code{-ltz} is added to the list of libraries (for
@@ -1657,11 +1721,11 @@ success building @R{} 1.7.0 under AIX 5.1 with
 CC=xlc
 F77=xlf
 CXX=xlC
-CFLAGS='-O3 -qstrict -qmaxmem=8192'
-FFLAGS='-O3 -qstrict -qmaxmem=8192'
-CXXFLAGS='-O2 -qmaxmem=8192'
-MAIN_LDFLAGS='-Wl,-brtl'
-SHLIB_LDFLAGS='-Wl,-G'
+CFLAGS=-O3 -qstrict -qmaxmem=8192
+FFLAGS=-O3 -qstrict -qmaxmem=8192
+CXXFLAGS=-O2 -qmaxmem=8192
+MAIN_LDFLAGS=-Wl,-brtl
+SHLIB_LDFLAGS=-Wl,-G
 @end smallexample
 
 @noindent
@@ -1691,87 +1755,7 @@ tries to detect this.
 We understand that @option{--enable-R-shlib} does not work under AIX.
 
 
-@node Building the GNOME console, Enabling search in HTML help, Configuration on Unix, Top
-@chapter Building the @acronym{GNOME} console
-
-This interface is experimental and incomplete.  The console offers a
-basic command line editing and history mechanism, along with tool and
-button bars that give a point-and-click console to some @R{} commands.
-Many of the features of the console are currently stubs.
-
-Two graphics devices have been available but are currently unbundled.
-The @code{gtk()} graphics device is a port of the @code{x11()} device to
-@acronym{GDK} (the GIMP Drawing Kit), and is available from CRAN as
-package @pkg{gtkDevice}: this cooperates rather better with the console
-that the @code{x11()} device.  The @code{gnome()} device uses the
-@acronym{GNOME} canvas, and is not currently available.
-
-The sources for the @acronym{GNOME} console for @R{} are currently
-only available by
-@example
-svn co https://svn.r-project.org/R-packages/trunk/gnomeGUI
-@end example
-
-You need to have built @R{} first with the @option{--enable-R-shlib}
-option, and installed @R{} to where you are going to use it from.
-
-Please check you have all the requirements.  You need at least the
-following packages (or later) installed
-
-@example
-audiofile-0.2.1
-esound-0.2.23
-glib-1.2.10
-gtk+-1.2.10
-imlib-1.9.10
-ORBit-0.5.12
-gnome-libs-1.4.1.2
-libxml-1.8.16
-libglade-0.17
-@end example
-
-@noindent
-It is preferable to have a complete installation of the @acronym{GNOME}
-desktop environment.  If you use Linux, then this should be provided
-with your distribution.
-
-Remember that some package management systems (such as @acronym{RPM} and
-deb) make a distinction between the user version of a package and the
-developer version.  The latter usually has the same name but with the
-extension @samp{-devel}.  If you use a pre-packaged version of
-@acronym{GNOME} then you must have the developer versions of the above
-packages in order to compile the R-GNOME console.
-
-The console is a separate front-end program that is configured and
-built independently of @R{}.  Create a build directory, and from there
-run
-
-@example
-/path/to/gnomeGUI/configure R_HOME=/path/to/R/installation
-make
-make install
-@end example
-
-@noindent
-This installs the two files @file{bin/exec/Rgnome} and
-@file{share/glade/gnome-interface.glade} in @file{@var{R_HOME}}.
-
-The full list of options to this @command{configure} is
-
-@table @option
-@item R_HOME
-the directory (containing @file{bin/R}) of the @R{} installation
-@item --with-gnome
-specify the prefix for the @acronym{GNOME} dirs
-@item --with-gnome-includes=@var{DIR}
-specify location of @acronym{GNOME} headers
-@item --with-gnome-libs=@var{DIR}
-specify location of @acronym{GNOME} libs
-@item --with-libglade-config=@var{LIBGLADE_CONFIG}
-specify location of @command{libglade-config}
-@end table
-
-@node Enabling search in HTML help, New platforms, Building the GNOME console, Top
+@node Enabling search in HTML help, New platforms, Configuration on Unix, Top
 @chapter Enabling search in HTML help
 
 There is a search engine available from the front page of the
@@ -1836,7 +1820,10 @@ Environment @code{j2re 1.4.2_03} does not work under Solaris, whereas
 @code{jre 1.5.0} and @code{j2re 1.4.2_01} (available from
 @uref{http://java.sun.com/products/archive/}) do.
 
-See @uref{http://www.MedAnalytics.com/INSTALL} for more information.
+@smallexample
+http://www.MedAnalytics.com/INSTALL
+@end smallexample
+
 
 @node Java Virtual Machines on Windows, Java Virtual Machines on Mac OS X, Java Virtual Machines on Unix, Enabling search in HTML help
 @section Java Virtual Machines on Windows

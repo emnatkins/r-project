@@ -456,11 +456,7 @@ do_install_source () {
     ${MKDIR_P} "${R_PACKAGE_DIR}/libs"
     if test -f src/Makefile; then
       cd src;
-      makefiles="-f \"${R_HOME}\"/share/make/shlib.mk"
-      if test -r "${HOME}/.Rmakeconf"; then
-        makefiles="${makefiles} -f \"${HOME}/.Rmakeconf\""
-      fi
-      makefiles="${makefiles} -f Makefile"
+      makefiles="-f \"${R_HOME}\"/share/make/shlib.mk -f Makefile"
       if test -r Makevars; then
 	makefiles="-f Makevars ${makefiles}"
       fi
@@ -727,7 +723,6 @@ do_install_source () {
     echo "No man pages found in package '${pkg_name}'"
   fi
 
-  message "building package indices ..."
   echo "invisible(.libPaths(c(\"${lib}\", .libPaths()))); tools:::.install_package_indices(\".\", \"${R_PACKAGE_DIR}\")" | \
     R_DEFAULT_PACKAGES=NULL LANG=C "${R_EXE}" --vanilla >/dev/null
   if test ${?} -ne 0; then

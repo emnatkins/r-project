@@ -195,7 +195,7 @@ static SEXP rep2(SEXP s, SEXP ncopy)
 		RAW(a)[n++] = RAW(s)[i];
 	break;
     default:
-	UNIMPLEMENTED_TYPE("rep2", s);
+	UNIMPLEMENTED("rep2");
     }
     if (inherits(s, "factor")) {
 	SEXP tmp;
@@ -280,7 +280,7 @@ static SEXP rep(SEXP s, SEXP ncopy)
 	    RAW(a)[i] = RAW(s)[i % ns];
 	break;
     default:
-	UNIMPLEMENTED_TYPE("rep", s);
+	UNIMPLEMENTED("rep");
     }
     if (inherits(s, "factor")) {
 	SEXP tmp;

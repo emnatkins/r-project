@@ -28,10 +28,7 @@ compilation.
 
 Report bugs to <r-bugs@r-project.org>."
 
-makefiles="-f \"${R_HOME}/etc/Makeconf\""
-if test -r "${HOME}/.Rmakeconf"; then
-  makefiles="${makefiles} -f \"${HOME}/.Rmakeconf\""
-fi
+makefiles="-f ${R_HOME}/etc/Makeconf"
 if test -r Makevars; then
   makefiles="-f Makevars ${makefiles}"
 fi

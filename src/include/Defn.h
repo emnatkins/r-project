@@ -682,6 +682,7 @@ void	R_ResetConsole(void);
 void	R_FlushConsole(void);
 void	R_ClearerrConsole(void);
 void	R_Busy(int);
+int	R_ShowFile(char*, char*);
 int	R_ShowFiles(int, char **, char **, char *, Rboolean, char *);
 int     R_EditFiles(int, char **, char **, char *);
 int	R_ChooseFile(int, char*, int);
@@ -861,10 +862,6 @@ int yywrap(void);
 int	Rstrlen(SEXP, int);
 char *EncodeRaw(Rbyte);
 char *EncodeString(SEXP, int, int, int);
-
-/* main/util.c */
-void UNIMPLEMENTED_TYPE(char *s, SEXP x);
-void UNIMPLEMENTED_TYPEt(char *s, SEXPTYPE t);
 
 /* Macros for suspending interrupts */
 #define BEGIN_SUSPEND_INTERRUPTS do { \

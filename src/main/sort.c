@@ -117,7 +117,7 @@ Rboolean isUnsorted(SEXP x)
 		    return TRUE;
 	    break;
 	default:
-	    UNIMPLEMENTED_TYPE("isUnsorted", x);
+	    error("unknown atomic type in isUnsorted() -- should not happen");
 	}
     return FALSE;/* sorted */
 }
@@ -263,7 +263,7 @@ SEXP do_sort(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     decreasing = asLogical(CADR(args));
     if(decreasing == NA_LOGICAL)
-	error("'decreasing' must be TRUE or FALSE");
+	error("`decreasing' must be TRUE or FALSE");
     if(CAR(args) == R_NilValue) return R_NilValue;
     if(!isVectorAtomic(CAR(args)))
 	errorcall(call, "only atomic vectors can be sorted");
@@ -385,8 +385,6 @@ void sortVector(SEXP s, Rboolean decreasing)
 	case STRSXP:
 	    ssort2(STRING_PTR(s), n, decreasing);
 	    break;
-	default:
-	    UNIMPLEMENTED_TYPE("sortVector", s);
 	}
 }
 
@@ -465,8 +463,6 @@ static void Psort(SEXP x, int k)
     case STRSXP:
 	sPsort(STRING_PTR(x), LENGTH(x), k);
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("Psort", x);
     }
 }
 
@@ -519,7 +515,7 @@ static int equal(int i, int j, SEXP x, Rboolean nalast)
 	c = scmp(STRING_ELT(x, i), STRING_ELT(x, j), nalast);
 	break;
     default:
-	UNIMPLEMENTED_TYPE("equal", x);
+	error("non-atomic type in equal");
 	break;
     }
     if (c == 0)
@@ -546,7 +542,7 @@ static int greater(int i, int j, SEXP x, Rboolean nalast, Rboolean decreasing)
 	c = scmp(STRING_ELT(x, i), STRING_ELT(x, j), nalast);
 	break;
     default:
-	UNIMPLEMENTED_TYPE("greater", x);
+	error("non-atomic type in greater");
 	break;
     }
     if (decreasing) c = -c;
@@ -576,8 +572,6 @@ static int listgreater(int i, int j, SEXP key, Rboolean nalast,
 	case STRSXP:
 	    c = scmp(STRING_ELT(x, i), STRING_ELT(x, j), nalast);
 	    break;
-	default:
-	    UNIMPLEMENTED_TYPE("listgreater", x);
 	}
 	if (decreasing) c = -c;
 	if (c > 0)
@@ -643,8 +637,6 @@ static void orderVector1(int *indx, int n, SEXP key, Rboolean nalast,
     case STRSXP:
 	for (i = 0; i < n; i++) isna[i] = (sx[i] == NA_STRING);
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("orderVector1", key);
     }
     for (i = 0; i < n; i++) numna += isna[i];
 
@@ -653,7 +645,7 @@ static void orderVector1(int *indx, int n, SEXP key, Rboolean nalast,
 	case LGLSXP:
 	case INTSXP:
 	case REALSXP:
-	case STRSXP:
+    case STRSXP:
 	    if (!nalast) for (i = 0; i < n; i++) isna[i] = !isna[i];
 	    for (t = 0; incs[t] > n; t++);
 #define less(a, b) (isna[a] > isna[b] || (isna[a] == isna[b] && a > b))
@@ -715,11 +707,11 @@ SEXP do_order(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     nalast = asLogical(CAR(args));
     if(nalast == NA_LOGICAL)
-	error("'na.last' is invalid");
+	error("`na.last' is invalid");
     args = CDR(args);
     decreasing = asLogical(CAR(args));
     if(decreasing == NA_LOGICAL)
-	error("'decreasing' must be TRUE or FALSE");
+	error("`decreasing' must be TRUE or FALSE");
     args = CDR(args);
     if (args == R_NilValue)
 	return R_NilValue;
@@ -815,10 +807,10 @@ SEXP do_radixsort(SEXP call, SEXP op, SEXP args, SEXP rho)
     x = CAR(args);
     nalast = asLogical(CADR(args));
     if(nalast == NA_LOGICAL)
-	error("'na.last' is invalid");
+	error("`na.last' is invalid");
     decreasing = asLogical(CADDR(args));
     if(decreasing == NA_LOGICAL)
-	error("'decreasing' must be TRUE or FALSE");
+	error("`decreasing' must be TRUE or FALSE");
     off = nalast^decreasing ? 0 : 1;
     n = LENGTH(x);
     PROTECT(ans = allocVector(INTSXP, n));

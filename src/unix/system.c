@@ -44,14 +44,18 @@
 #include "Rdevices.h"		/* KillAllDevices() [nothing else?] */
 
 #define __SYSTEM__
-#define R_INTERFACE_PTRS 1
-#include <Rinterface.h>
+#include "devUI.h"		/* includes Startup.h */
 #undef __SYSTEM__
 
 #include "Runix.h"
 
 
+#ifdef HAVE_AQUA
+void R_StartConsole(Rboolean OpenConsole) { ptr_R_StartConsole(); }
+#endif
+
 Rboolean UsingReadline = TRUE;  /* used in sys-std.c & ../main/platform.c */
+extern SA_TYPE SaveAction;
 
 /* call pointers to allow interface switching */
 
@@ -73,7 +77,10 @@ int R_ChooseFile(int new, char *buf, int len)
 { return ptr_R_ChooseFile(new, buf, len); }
 
 
+void (*ptr_gnome_start)(int ac, char **av, Rstart Rp);
+
 void R_setStartTime(void); /* in sys-unix.c */
+void R_load_gnome_shlib(void); /* in dynload.c */
 
 
 #ifdef HAVE_AQUA
@@ -81,30 +88,15 @@ void R_setStartTime(void); /* in sys-unix.c */
 	and in unix/aqua.c
 */
 Rboolean useaqua = FALSE;
+Rboolean CocoaGUI = FALSE;
+Rboolean useCocoa = FALSE;
 #endif
 
 
-void R_setupHistory()
-{
-    int value, ierr;
-    char *p;
-
-    if ((R_HistoryFile = getenv("R_HISTFILE")) == NULL)
-        R_HistoryFile = ".Rhistory";
-    R_HistorySize = 512;
-    if ((p = getenv("R_HISTSIZE"))) {
-        value = R_Decode2Long(p, &ierr);
-        if (ierr != 0 || value < 0)
-            R_ShowMessage("WARNING: invalid R_HISTSIZE ignored;");
-        else
-            R_HistorySize = value;
-    }
-}
-
 int Rf_initialize_R(int ac, char **av)
 {
-    int i, ioff = 1, j;
-    Rboolean useX11 = TRUE, useTk = FALSE;
+    int i, ioff = 1, j, value, ierr;
+    Rboolean useX11 = TRUE, usegnome = FALSE, useTk = FALSE;
     char *p, msg[1024], **avv;
     structRstart rstart;
     Rstart Rp = &rstart;
@@ -122,7 +114,6 @@ int Rf_initialize_R(int ac, char **av)
     ptr_R_ChooseFile = Rstd_ChooseFile;
     ptr_R_loadhistory = Rstd_loadhistory;
     ptr_R_savehistory = Rstd_savehistory;
-    ptr_R_EditFile = NULL; /* for future expansion */
     R_timeout_handler = NULL;
     R_timeout_val = 0;
 
@@ -159,12 +150,12 @@ int Rf_initialize_R(int ac, char **av)
 	    if(!strcmp(p, "none"))
 		useX11 = FALSE;
 	    else if(!strcmp(p, "gnome") || !strcmp(p, "GNOME"))
-		;
+		usegnome = TRUE;
 #ifdef HAVE_AQUA
 	    else if(!strcmp(p, "aqua") || !strcmp(p, "AQUA"))
 		useaqua = TRUE;
 	    else if(!strcmp(p, "cocoa") || !strcmp(p, "COCOA"))
-		useaqua = TRUE;
+		useCocoa = TRUE;
 #endif
 	    else if(!strcmp(p, "X11") || !strcmp(p, "x11"))
 		useX11 = TRUE;
@@ -190,10 +181,27 @@ int Rf_initialize_R(int ac, char **av)
     }
 
 #ifdef HAVE_X11
-    if(useX11) R_GUIType = "X11";
+    if(useX11) {
+	if(!usegnome) {
+	    R_GUIType = "X11";
+	} else {
+#ifndef HAVE_GNOME
+	    R_Suicide("GNOME GUI is not available in this version");
+#endif
+	    R_load_gnome_shlib();
+	    R_GUIType = "GNOME";
+	    ptr_gnome_start(ac, av, Rp);
+	    /* this will never return, but for safety */
+	    return 0;
+	}
+    }
 #endif /* HAVE_X11 */
 #ifdef HAVE_AQUA
-    if(useaqua)
+    if(useaqua) {
+	R_load_aqua_shlib();
+	R_GUIType = "AQUA";
+    }
+	if(useCocoa)
 	R_GUIType = "AQUA";
 #endif
 #ifdef HAVE_TCLTK
@@ -258,10 +266,24 @@ int Rf_initialize_R(int ac, char **av)
 	Rp->SaveAction != SA_NOSAVE)
 	R_Suicide("you must specify `--save', `--no-save' or `--vanilla'");
 
-    R_setupHistory();
+    if ((R_HistoryFile = getenv("R_HISTFILE")) == NULL)
+	R_HistoryFile = ".Rhistory";
+    R_HistorySize = 512;
+    if ((p = getenv("R_HISTSIZE"))) {
+	value = R_Decode2Long(p, &ierr);
+	if (ierr != 0 || value < 0)
+	    R_ShowMessage("WARNING: invalid R_HISTSIZE ignored;");
+	else
+	    R_HistorySize = value;
+    }
     if (R_RestoreHistory)
 	Rstd_read_history(R_HistoryFile);
     fpu_setup(1);
+
+#ifdef HAVE_AQUA
+    if(useaqua & !CocoaGUI)
+		R_StartConsole(TRUE);
+#endif
 
  return(0);
 }
@@ -271,7 +293,7 @@ int Rf_initialize_R(int ac, char **av)
        editors.  If the file does not exist then the editor should be
        opened to create a new file.  On GUI platforms multiple files
        can be opened in separate editor windows, but this currently
-       only works on Windows and Aqua.
+       only works on Windows, not Aqua.
     */
 
     /*
@@ -279,15 +301,12 @@ int Rf_initialize_R(int ac, char **av)
      *     file    = array of filenames
      *     editor  = editor to be used.
      */
-/*#ifdef HAVE_AQUA
-extern DL_FUNC ptr_Raqua_Edit;
-#endif
-*/
+
 int R_EditFiles(int nfile, char **file, char **title, char *editor)
 {
     char  buf[1024];
 #if defined(HAVE_AQUA)
-	if (useaqua){
+	if (useCocoa){
 		return(ptr_R_EditFiles(nfile, file, title, editor));		
 	}
 #endif
@@ -297,8 +316,8 @@ int R_EditFiles(int nfile, char **file, char **title, char *editor)
 	    R_ShowMessage("WARNING: Only editing the first in the list of files");
 
 #if defined(HAVE_AQUA)
-	if (ptr_R_EditFile)
-	    ptr_R_EditFile(file[0]);
+	if (!strcmp(R_GUIType, "AQUA"))
+	    Raqua_Edit(file[0]);
 	else {
 #endif
 	    /* Quote path if necessary */

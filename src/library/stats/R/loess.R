@@ -406,8 +406,7 @@ scatter.smooth <-
     function(x, y, span = 2/3, degree = 1,
 	     family = c("symmetric", "gaussian"),
 	     xlab = deparse(substitute(x)), ylab = deparse(substitute(y)),
-	     ylim = range(y, prediction$y, na.rm = TRUE),
-             evaluation = 50, ...)
+	     ylim = range(y, prediction$y), evaluation = 50, ...)
 {
     if(inherits(x, "formula")) {
 	if(length(x) < 3) stop("need response in formula")
@@ -426,13 +425,12 @@ loess.smooth <-
   function(x, y, span = 2/3, degree = 1, family = c("symmetric", "gaussian"),
 	   evaluation = 50, ...)
 {
-    notna <- !(is.na(x) | is.na(y))
-    new.x <- seq(min(x[notna]), max(x[notna]), length = evaluation)
+    notna <- x[!(is.na(x) | is.na(y))]
+    new.x <- seq(min(notna), max(notna), length = evaluation)
 
     control <- loess.control(...)
     ##	x <- matrix(x, ncol = 1)
     ##	n <- length(y)
-    x <- x[notna]; y <- y[notna]
     w <- rep(1, length(y))
     family <- match.arg(family)
     iterations <- if(family == "gaussian") 1 else control$iterations

@@ -308,7 +308,8 @@ function(fname, envir)
 {
     ## Determine whether object named 'fname' found in environment
     ## 'envir' is a primitive function.
-    is.primitive(get(fname, envir = envir, inherits = FALSE))
+    f <- get(fname, envir = envir, inherits = FALSE)
+    is.function(f) && any(grep("^\\.Primitive", deparse(f)))
 }
 
 ### ** .is_S3_generic

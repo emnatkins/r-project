@@ -339,7 +339,7 @@ int usemethod(char *generic, SEXP obj, SEXP call, SEXP args,
 
 SEXP do_usemethod(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP ans, generic = R_NilValue /* -Wall */, obj;
+    SEXP ans, generic, obj;
     SEXP callenv, defenv;
     int nargs;
     RCNTXT *cptr;
@@ -360,8 +360,8 @@ SEXP do_usemethod(SEXP call, SEXP op, SEXP args, SEXP env)
 
     if (nargs)
 	PROTECT(generic = eval(CAR(args), env));
-    else 
-	errorcall(call, "There must be a first argument");
+    else
+	generic = R_MissingArg;
 
     if (nargs > 2)  /* R-lang says there should be a warning */
 	warningcall(call, "Arguments after the first two are ignored");
@@ -376,8 +376,8 @@ SEXP do_usemethod(SEXP call, SEXP op, SEXP args, SEXP env)
 	}
 	if (cptr == NULL)
 	    error("UseMethod called from outside a closure");
-	/* if (generic == R_MissingArg)
-	   PROTECT(generic = mkString(CHAR(PRINTNAME(CAR(cptr->call))))); */
+	if (generic == R_MissingArg)
+	    PROTECT(generic = mkString(CHAR(PRINTNAME(CAR(cptr->call)))));
 	PROTECT(obj = GetObject(cptr));
     }
 
@@ -916,13 +916,11 @@ static SEXP dispatchNonGeneric(SEXP name, SEXP env, SEXP fdef)
 	fun = findVarInFrame3(rho, symbol, TRUE);
 	if(fun == R_UnboundValue) continue;
 	switch(TYPEOF(fun)) {
+	case BUILTINSXP:  case SPECIALSXP: break;
 	case CLOSXP:
 	    value = findVarInFrame3(CLOENV(fun), dot_Generic, TRUE);
 	    if(value == R_UnboundValue) break;
-	case BUILTINSXP:  case SPECIALSXP:
-	default:
-	    /* in all other cases, go on to the parent environment */
-	    break;
+	    /*in all other cases, go on to the parent environment */
 	}
 	fun = R_UnboundValue;
     }

@@ -1,20 +1,18 @@
 \name{na.contiguous}
 \alias{na.contiguous}
-\alias{na.contiguous.default}
 \title{Find Longest Contiguous Stretch of non-NAs}
 \description{
   Find the longest consecutive stretch of non-missing values in a time
   series object.  (In the event of a tie, the first such stretch.)
 }
 \usage{
-na.contiguous(object, \dots)
+na.contiguous(frame)
 }
 \arguments{
-  \item{object}{a univariate or multivariate time series.}
-  \item{\dots}{further arguments passed to or from other methods.}
+  \item{frame}{a univariate or multivariate time series.}
 }
 \value{
-  A time series without missing values.  The class of \code{object} will
+  A time series without missing values.  The class of \code{frame} will
   be preserved.
 }
 \seealso{

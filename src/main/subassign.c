@@ -142,8 +142,6 @@ static SEXP EnlargeVector(SEXP x, R_len_t newlen)
 	for (i = len; i < newlen; i++)
 	    RAW(newx)[i] = (Rbyte) 0;
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("EnlargeVector", x);
     }
 
     /* Adjust the attribute list. */
@@ -285,8 +283,7 @@ static int SubassignTypeFix(SEXP *x, SEXP *y, int stretch, int level, SEXP call)
 	break;
 
     default:
-	errorcall(call, 
-		  "incompatible types (%d) in subassignment type fix", which);
+	errorcall(call, "incompatible types");
 
     }
 
@@ -413,12 +410,10 @@ static SEXP VectorAssign(SEXP call, SEXP x, SEXP s, SEXP y)
     /* any changes we make now are (likely to be) permanent.  Beware! */
 
     switch(which) {
-	/* because we have called SubassignTypeFix the commented
-	   values cannot occur (and would be unsafe) */
 
     case 1010:	/* logical   <- logical	  */
     case 1310:	/* integer   <- logical	  */
-    /* case 1013:  logical   <- integer	  */
+    case 1013:	/* logical   <- integer	  */
     case 1313:	/* integer   <- integer	  */
 
 	for (i = 0; i < n; i++) {
@@ -444,8 +439,8 @@ static SEXP VectorAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 	}
 	break;
 
-    /* case 1014:  logical   <- real	  */
-    /* case 1314:  integer   <- real	  */
+    case 1014:	/* logical   <- real	  */
+    case 1314:	/* integer   <- real	  */
     case 1414:	/* real	     <- real	  */
 
 	for (i = 0; i < n; i++) {
@@ -493,9 +488,9 @@ static SEXP VectorAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 	}
 	break;
 
-    /* case 1015:  logical   <- complex	  */
-    /* case 1315:  integer   <- complex	  */
-    /* case 1415:  real	     <- complex	  */
+    case 1015:	/* logical   <- complex	  */
+    case 1315:	/* integer   <- complex	  */
+    case 1415:	/* real	     <- complex	  */
     case 1515:	/* complex   <- complex	  */
 
 	for (i = 0; i < n; i++) {
@@ -511,10 +506,10 @@ static SEXP VectorAssign(SEXP call, SEXP x, SEXP s, SEXP y)
     case 1614:	/* character <- real	  */
     case 1615:	/* character <- complex	  */
     case 1616:	/* character <- character */
-    /* case 1016:  logical   <- character */
-    /* case 1316:  integer   <- character */
-    /* case 1416:  real	     <- character */
-    /* case 1516:  complex   <- character */
+    case 1016:	/* logical   <- character */
+    case 1316:	/* integer   <- character */
+    case 1416:	/* real	     <- character */
+    case 1516:	/* complex   <- character */
 
 	for (i = 0; i < n; i++) {
 	    ii = INTEGER(indx)[i];
@@ -524,17 +519,17 @@ static SEXP VectorAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 	}
 	break;
 
-    /* case 1019:  logial     <- vector   */
-    /* case 1319:  integer    <- vector   */
-    /* case 1419:  real       <- vector   */
-    /* case 1519:  complex    <- vector   */
-    /* case 1619:  character  <- vector   */
+    case 1019:  /* logial     <- vector   */
+    case 1319:  /* integer    <- vector   */
+    case 1419:  /* real       <- vector   */
+    case 1519:  /* complex    <- vector   */
+    case 1619:  /* character  <- vector   */
 
-    /* case 1910:  vector     <- logical    */
-    /* case 1913:  vector     <- integer    */
-    /* case 1914:  vector     <- real       */
-    /* case 1915:  vector     <- complex    */
-    /* case 1916:  vector     <- character  */
+    case 1910:  /* vector     <- logical    */
+    case 1913:  /* vector     <- integer    */
+    case 1914:  /* vector     <- real       */
+    case 1915:  /* vector     <- complex    */
+    case 1916:  /* vector     <- character  */
 
     case 1919:  /* vector     <- vector     */
 
@@ -546,13 +541,13 @@ static SEXP VectorAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 	}
 	break;
 
-    /* case 2001: */
-    /* case 2006:  expression <- language   */
-    /* case 2010:  expression <- logical    */
-    /* case 2013:  expression <- integer    */
-    /* case 2014:  expression <- real	    */
-    /* case 2015:  expression <- complex    */
-    /* case 2016:  expression <- character  */
+    case 2001:
+    case 2006:	/* expression <- language   */
+    case 2010:	/* expression <- logical    */
+    case 2013:	/* expression <- integer    */
+    case 2014:	/* expression <- real	    */
+    case 2015:	/* expression <- complex    */
+    case 2016:	/* expression <- character  */
     case 2019:	/* expression <- vector, needed if we have promoted a
 		   RHS  to a list */
     case 2020:	/* expression <- expression */
@@ -687,12 +682,10 @@ static SEXP MatrixAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 
     k = 0;
     switch (which) {
-	/* because we have called SubassignTypeFix the commented
-	   values cannot occur (and would be unsafe) */
 
     case 1010:	/* logical   <- logical	  */
     case 1310:	/* integer   <- logical	  */
-    /* case 1013: logical   <- integer	  */
+    case 1013:	/* logical   <- integer	  */
     case 1313:	/* integer   <- integer	  */
 
 	for (j = 0; j < ncs; j++) {
@@ -732,8 +725,8 @@ static SEXP MatrixAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 	}
 	break;
 
-    /* case 1014:  logical   <- real	  */ 
-    /* case 1314:  integer   <- real	  */
+    case 1014:	/* logical   <- real	  */
+    case 1314:	/* integer   <- real	  */
     case 1414:	/* real	     <- real	  */
 
 	for (j = 0; j < ncs; j++) {
@@ -802,9 +795,9 @@ static SEXP MatrixAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 	}
 	break;
 
-    /* case 1015:  logical   <- complex	  */
-    /* case 1315:  integer   <- complex	  */
-    /* case 1415:  real	     <- complex	  */
+    case 1015:	/* logical   <- complex	  */
+    case 1315:	/* integer   <- complex	  */
+    case 1415:	/* real	     <- complex	  */
     case 1515:	/* complex   <- complex	  */
 
 	for (j = 0; j < ncs; j++) {
@@ -827,10 +820,10 @@ static SEXP MatrixAssign(SEXP call, SEXP x, SEXP s, SEXP y)
     case 1614:	/* character <- real	  */
     case 1615:	/* character <- complex	  */
     case 1616:	/* character <- character */
-    /* case 1016:  logical   <- character */
-    /* case 1316:  integer   <- character */
-    /* case 1416:  real	     <- character */
-    /* case 1516:  complex   <- character */
+    case 1016:	/* logical   <- character */
+    case 1316:	/* integer   <- character */
+    case 1416:	/* real	     <- character */
+    case 1516:	/* complex   <- character */
 
 	for (j = 0; j < ncs; j++) {
 	    jj = INTEGER(sc)[j];
@@ -863,8 +856,7 @@ static SEXP MatrixAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 	}
 	break;
     default:
-	error("incompatible types (case %d) in matrix subset assignment", 
-	      which);
+	error("incompatible types in subset assignment");
     }
     UNPROTECT(2);
     return x;
@@ -965,7 +957,7 @@ static SEXP ArrayAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 
 	case 1010:	/* logical   <- logical	  */
 	case 1310:	/* integer   <- logical	  */
-	/* case 1013:	   logical   <- integer	  */
+	case 1013:	/* logical   <- integer	  */
 	case 1313:	/* integer   <- integer	  */
 
 	    INTEGER(x)[ii] = INTEGER(y)[i % ny];
@@ -981,8 +973,8 @@ static SEXP ArrayAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 		REAL(x)[ii] = iy;
 	    break;
 
-	/* case 1014:	   logical   <- real	  */
-	/* case 1314:	   integer   <- real	  */
+	case 1014:	/* logical   <- real	  */
+	case 1314:	/* integer   <- real	  */
 	case 1414:	/* real	     <- real	  */
 
 	    REAL(x)[ii] = REAL(y)[i % ny];
@@ -1015,9 +1007,9 @@ static SEXP ArrayAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 	    }
 	    break;
 
-	/* case 1015:	   logical   <- complex	  */
-	/* case 1315:	   integer   <- complex	  */
-	/* case 1415:	   real	     <- complex	  */
+	case 1015:	/* logical   <- complex	  */
+	case 1315:	/* integer   <- complex	  */
+	case 1415:	/* real	     <- complex	  */
 	case 1515:	/* complex   <- complex	  */
 
 	    COMPLEX(x)[ii] = COMPLEX(y)[i % ny];
@@ -1028,10 +1020,10 @@ static SEXP ArrayAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 	case 1614:	/* character <- real	  */
 	case 1615:	/* character <- complex	  */
 	case 1616:	/* character <- character */
-	/* case 1016:	   logical   <- character */
-	/* case 1316:	   integer   <- character */
-	/* case 1416:	   real	     <- character */
-	/* case 1516:	   complex   <- character */
+	case 1016:	/* logical   <- character */
+	case 1316:	/* integer   <- character */
+	case 1416:	/* real	     <- character */
+	case 1516:	/* complex   <- character */
 
 	    SET_STRING_ELT(x, ii, STRING_ELT(y, i % ny));
 	    break;
@@ -1042,8 +1034,7 @@ static SEXP ArrayAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 	    break;
 
 	default:
-	    error("incompatible types (%d) in array subset assignment", 
-		  which);
+	    error("incompatible types in subset assignment");
 	}
     next_i:
 	;
@@ -1488,8 +1479,6 @@ SEXP do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	PROTECT(x);
 
 	switch (which) {
-	    /* confusingly, unlike the [<- case, 'which' here is
-	       before coercion, not afterwards */
 
 	case 1010:	/* logical   <- logical	  */
 	case 1310:	/* integer   <- logical	  */
@@ -1602,7 +1591,7 @@ SEXP do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    break;
 
 	default:
-	    error("incompatible types (%d) in [[ assignment", which);
+	    error("incompatible types in subset assignment");
 	}
 	/* If we stretched, we may have a new name. */
 	/* In this case we must create a names attribute */

@@ -108,12 +108,13 @@ install.packages <- function(pkgs, lib, CRAN = getOption("CRAN"),
         link.html.help(verbose=TRUE)
         return(invisible())
     }
-    tmpd <- destdir
-    nonlocalcran <- length(grep("^file:", contriburl)) < length(contriburl)
-    if(is.null(destdir) && nonlocalcran) {
-        tmpd <- file.path(tempdir(), "downloaded_packages")
-        if (!file.exists(tmpd) && !dir.create(tmpd))
-            stop('Unable to create temp directory ', tmpd)
+    localcran <- length(grep("^file:", contriburl)) > 0
+    if(!localcran) {
+        if (is.null(destdir)) {
+            tmpd <- tempfile("Rinstdir")
+            if (!dir.create(tmpd))
+                stop('Unable to create temp directory ', tmpd)
+        } else tmpd <- destdir
     }
 
     if(dependencies && !oneLib) {
@@ -171,26 +172,31 @@ install.packages <- function(pkgs, lib, CRAN = getOption("CRAN"),
                               installWithVers)
             }
         }
-        if(!is.null(tmpd) && is.null(destdir))
-            ## tends to be a long path on Windows
-            cat("\nThe downloaded packages are in\n    ", tmpd, "\n", sep = "")
+        cat("\n")
+        if(!localcran && is.null(destdir)) {
+            answer <- substr(readline("Delete downloaded files (y/N)? "), 1, 1)
+            if(answer == "y" | answer == "Y") {
+                for(file in foundpkgs[, 2]) unlink(file)
+                unlink(tmpd, TRUE)
+            } else
+                cat("The packages are in", tmpd)
+            cat("\n")
+        }
         link.html.help(verbose = TRUE)
-    } else if(!is.null(tmpd) && is.null(destdir)) unlink(tmpd, TRUE)
-
+    } else unlink(tmpd, TRUE)
     invisible()
 }
 
 
-download.packages <- function(pkgs, destdir, available = NULL,
-                              CRAN = getOption("CRAN"),
-                              contriburl = contrib.url(CRAN),
+download.packages <- function(pkgs, destdir, available=NULL,
+                              CRAN=getOption("CRAN"),
+                              contriburl=contrib.url(CRAN),
                               method)
 {
     dirTest <- function(x) !is.na(isdir <- file.info(x)$isdir) & isdir
 
-    nonlocalcran <- length(grep("^file:", contriburl)) < length(contriburl)
-    if(nonlocalcran && !dirTest(destdir))
-        stop("destdir is not a directory")
+    localcran <- length(grep("^file:", contriburl)) > 0
+    if(!localcran && !dirTest(destdir)) stop("destdir is not a directory")
     if(is.null(available))
         available <- CRAN.packages(contriburl=contriburl, method=method)
 
@@ -201,20 +207,14 @@ download.packages <- function(pkgs, destdir, available = NULL,
         ok <- ok & !is.na(ok)
         if(!any(ok))
             warning(paste("No package \"", p, "\" on CRAN.", sep=""))
-        else {
-            if(sum(ok) > 1) { # have multiple copies
-                vers <- package_version(available[ok, "Version"])
-                keep <- vers == max(vers)
-                keep[duplicated(keep)] <- FALSE
-                ok[ok][!keep] <- FALSE
-            }
-            fn <- paste(p, "_", available[ok, "Version"], ".zip", sep="")
-            repos <- available[ok, "Repository"]
-            if(length(grep("^file:", repos)) > 0) { # local repository
-                fn <- paste(substring(repos, 6), fn, sep = "/")
+        else{
+            fn <- paste(p, "_", available[ok, "Version"], ".zip", sep="")[1]
+            if(localcran){
+                fn <- paste(substring(contriburl, 6), fn, sep="/")
                 retval <- rbind(retval, c(p, fn))
-            } else {
-                url <- paste(repos, fn, sep="/")
+            }
+            else{
+                url <- paste(contriburl, fn, sep="/")
                 destfile <- file.path(destdir, fn)
 
                 if(download.file(url, destfile, method, mode="wb") == 0)
@@ -228,42 +228,8 @@ download.packages <- function(pkgs, destdir, available = NULL,
     retval
 }
 
-menuInstallCran <- function()
-{
-    a <- CRAN.packages()
-    install.packages(select.list(a[,1],,TRUE), .libPaths()[1], available=a,
-                     dependencies=TRUE)
-}
-
-menuInstallLocal <- function()
-{
-    install.packages(choose.files('',filters=Filters[c('zip','All'),]),
-                     .libPaths()[1], CRAN = NULL)
-}
-
-menuInstallBioc <- function()
-{
-    a<- CRAN.packages(CRAN=getOption("BIOC"))
-    install.packages(select.list(a[,1],,TRUE), .libPaths()[1],
-                     available=a, CRAN=getOption("BIOC"),
-                     dependencies=TRUE)
-}
-
-chooseCRANmirror <- function()
-{
-    m <- read.csv(file.path(R.home(), "doc/CRAN_mirrors.csv"), as.is=TRUE)
-    URL <- m[m[, 1] == select.list(m[,1],,FALSE, "CRAN mirror"), 'URL']
-    if(!is.na(URL)) options(CRAN=gsub("/$", "", URL))
-}
-
 contrib.url <- function(CRAN)
 {
-    if(!nchar(CRAN) && .Platform$OS.type == "windows") {
-        cat("--- Please select a CRAN mirror for use in this session ---\n")
-        flush.console()
-        chooseCRANmirror()
-        CRAN <- getOption("CRAN")
-    }
     ver <- paste(R.version$major, substring(R.version$minor,1,1), sep=".")
     file.path(gsub("/$", "", CRAN), "bin", "windows", "contrib", ver)
 }

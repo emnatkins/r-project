@@ -49,7 +49,7 @@ typedef long long int _lli_t;
 /* Win32 does have popen, but it does not work in GUI applications,
    so test that later */
 #ifdef Win32
-# include <R_ext/RStartup.h>
+# include <Startup.h>
   extern UImode  CharacterMode;
 #endif
 
@@ -249,13 +249,8 @@ void init_con(Rconnection new, char *description, char *mode)
 #define f_seek fseeko
 #define f_tell ftello
 #else
-#ifdef Win32
-#define f_seek fseeko64
-#define f_tell ftello64
-#else
 #define f_seek fseek
 #define f_tell ftell
-#endif
 #endif
 
 static Rboolean file_open(Rconnection con)
@@ -1986,7 +1981,6 @@ SEXP do_isopen(SEXP call, SEXP op, SEXP args, SEXP env)
     case 0: break;
     case 1: res = res & con->canread; break;
     case 2: res = res & con->canwrite; break;
-    default: errorcall(call, "unknown 'rw' value");
     }
     PROTECT(ans = allocVector(LGLSXP, 1));
     LOGICAL(ans)[0] = res;
@@ -2447,7 +2441,7 @@ SEXP do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 		break;
 	    default:
-		errorcall(call, "size %d is unknown on this machine", size);
+		error("That size is unknown on this machine");
 	    }
 	    PROTECT(ans = allocVector(INTSXP, n));
 	    p = (void *) INTEGER(ans);
@@ -2465,7 +2459,7 @@ SEXP do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 		break;
 	    default:
-		errorcall(call, "size %d is unknown on this machine", size);
+		error("That size is unknown on this machine");
 	    }
 	    PROTECT(ans = allocVector(LGLSXP, n));
 	    p = (void *) LOGICAL(ans);
@@ -2476,7 +2470,7 @@ SEXP do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
 	    case 1:
 		break;
 	    default:
-		errorcall(call, "raw is always of size 1");
+		error("raw is always of size 1");
 	    }
 	    PROTECT(ans = allocVector(RAWSXP, n));
 	    p = (void *) RAW(ans);
@@ -2491,7 +2485,7 @@ SEXP do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 		break;
 	    default:
-		errorcall(call, "size %d is unknown on this machine", size);
+		error("That size is unknown on this machine");
 	    }
 	    PROTECT(ans = allocVector(REALSXP, n));
 	    p = (void *) REAL(ans);
@@ -2530,9 +2524,6 @@ SEXP do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
 			INTEGER(ans)[i] = (int)*((_lli_t *)buf);
 			break;
 #endif
-		    default:
-			errorcall(call, "size %d is unknown on this machine", 
-				  size);
 		    }
 		}
 	    } else if (mode == 2) {
@@ -2549,9 +2540,6 @@ SEXP do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
 			REAL(ans)[i] = (double)*((long double *)buf);
 			break;
 #endif
-		    default:
-			errorcall(call, "size %d is unknown on this machine", 
-				  size);
 		    }
 		}
 	    }
@@ -2622,7 +2610,7 @@ SEXP do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 		break;
 	    default:
-		errorcall(call, "size %d is unknown on this machine", size);
+		error("That size is unknown on this machine");
 	    }
 	    break;
 	case REALSXP:
@@ -2635,7 +2623,7 @@ SEXP do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 		break;
 	    default:
-		errorcall(call, "size %d is unknown on this machine", size);
+		error("That size is unknown on this machine");
 	    }
 	    break;
 	case CPLXSXP:
@@ -2649,7 +2637,7 @@ SEXP do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 		error("size changing is not supported for raw vectors");
 	    break;
 	default:
-	    UNIMPLEMENTED_TYPE("writeBin", object);
+	    error("That type is unimplemented");
 	}
 	buf = R_chk_calloc(len, size); /* R_alloc(len, size); */
 	switch(TYPEOF(object)) {
@@ -2693,8 +2681,6 @@ SEXP do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 		for (i = 0; i < len; i++)
 		    buf[i] = (signed char) INTEGER(object)[i];
 		break;
-	    default:
-		errorcall(call, "size %d is unknown on this machine", size);
 	    }
 	    break;
 	case REALSXP:
@@ -2722,8 +2708,6 @@ SEXP do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 		break;
 	    }
 #endif
-	    default:
-		errorcall(call, "size %d is unknown on this machine", size);
 	    }
 	    break;
 	case CPLXSXP:

@@ -155,9 +155,8 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
             return(if (logical.return) TRUE else invisible(.packages()))
         }
         if(package == "lqs") {
-            warning("package ", sQuote("lqs"),
-                " has been moved back to package ", sQuote("MASS"),
-                    call. = FALSE, immediate. = TRUE)
+            cat("Package", sQuote("lqs"),
+                "has been moved back to package", sQuote("MASS"), "\n")
             have.VR <- "package:MASS" %in% search()
             if(!have.VR) {
                 if(require("MASS", quietly=TRUE))

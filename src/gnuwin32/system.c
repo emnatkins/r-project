@@ -39,6 +39,7 @@
 #include "run.h"
 #include "Startup.h"
 #include <stdlib.h>		/* for exit */
+#include "shext.h"		/* for ShellGetPersonalDirectory */
 void CleanTempDir();		/* from extra.c */
 void editorcleanall();                  /* from editor.c */
 
@@ -47,7 +48,7 @@ R_size_t R_max_memory = INT_MAX;
 Rboolean UseInternet2 = FALSE;
 
 extern SA_TYPE SaveAction; /* from ../main/startup.c */
-Rboolean DebugMenuitem = FALSE;  /* exported for rui.c */
+Rboolean DebugMenuitem = FALSE;
 
 __declspec(dllexport) UImode  CharacterMode;
 int ConsoleAcceptCmd;
@@ -60,7 +61,7 @@ void set_workspace_name(char *fn); /* ../unix/sys-common.c */
 Rboolean AllDevicesKilled = FALSE;
 int   setupui(void);
 void  delui(void);
-int (*R_YesNoCancel)(char *s);
+int (*R_yesnocancel)(char *s);
 
 static DWORD mainThreadId;
 
@@ -362,7 +363,7 @@ void R_CleanUp(SA_TYPE saveact, int status, int runLast)
 
     if(saveact == SA_SAVEASK) {
 	if(R_Interactive) {
-	    switch (R_YesNoCancel("Save workspace image?")) {
+	    switch (R_yesnocancel("Save workspace image?")) {
 	    case YES:
 		saveact = SA_SAVE;
 		break;
@@ -559,7 +560,7 @@ static void char_message(char *s)
     } else R_WriteConsole(s, strlen(s));
 }
 
-static int char_YesNoCancel(char *s)
+static int char_yesnocancel(char *s)
 {
     char  ss[128];
     unsigned char a[3];
@@ -583,7 +584,8 @@ static int char_YesNoCancel(char *s)
 
 static char RHome[MAX_PATH + 7];
 static char UserRHome[MAX_PATH + 7];
-extern char *getRHOME(), *getRUser(); /* in rhome.c */
+static char RUser[MAX_PATH];
+char *getRHOME(); /* in rhome.c */
 void R_setStartTime();
 
 
@@ -611,9 +613,10 @@ void R_SetWin32(Rstart Rp)
     TrueReadConsole = Rp->ReadConsole;
     TrueWriteConsole = Rp->WriteConsole;
     R_CallBackHook = Rp->CallBack;
-    pR_ShowMessage = Rp->ShowMessage;
-    R_YesNoCancel = Rp->YesNoCancel;
-    my_R_Busy = Rp->Busy;
+    pR_ShowMessage = Rp->message;
+    R_yesnocancel = Rp->yesnocancel;
+    my_R_Busy = Rp->busy;
+    DebugMenuitem = Rp->DebugMenuitem;
     /* Process R_HOME/etc/Renviron.site, then
        .Renviron or ~/.Renviron, if it exists.
        Only used here in embedded versions */
@@ -682,12 +685,13 @@ char *PrintUsage(void)
 }
 
 
+#include <winbase.h>
 
 int cmdlineoptions(int ac, char **av)
 {
     int   i, ierr;
     R_size_t value;
-    char *p;
+    char *p, *q;
     char  s[1024];
     structRstart rstart;
     Rstart Rp = &rstart;
@@ -719,12 +723,13 @@ int cmdlineoptions(int ac, char **av)
 
     R_DefParams(Rp);
     Rp->CharacterMode = CharacterMode;
+    Rp->DebugMenuitem = DebugMenuitem;
     for (i = 1; i < ac; i++)
 	if (!strcmp(av[i], "--no-environ") || !strcmp(av[i], "--vanilla"))
 		Rp->NoRenviron = TRUE;
 
+/* Here so that --ess and similar can change */
     Rp->CallBack = R_DoNothing;
-    /* Here so that --ess and similar can change */
     InThreadReadConsole = NULL;
     if (CharacterMode == RTerm) {
 	if (isatty(0) && isatty(1)) {
@@ -751,19 +756,19 @@ int cmdlineoptions(int ac, char **av)
 	R_Consolefile = stderr; /* used for errors */
 	R_Outputfile = stdout;  /* used for sink-able output */
         Rp->WriteConsole = TermWriteConsole;
-	Rp->ShowMessage = char_message;
-	Rp->YesNoCancel = char_YesNoCancel;
-	Rp->Busy = CharBusy;
+	Rp->message = char_message;
+	Rp->yesnocancel = char_yesnocancel;
+	Rp->busy = CharBusy;
     } else {
 	Rp->R_Interactive = TRUE;
 	Rp->ReadConsole = GuiReadConsole;
 	Rp->WriteConsole = GuiWriteConsole;
-	Rp->ShowMessage = askok;
-	Rp->YesNoCancel = askyesnocancel;
-	Rp->Busy = GuiBusy;
+	Rp->message = askok;
+	Rp->yesnocancel = askyesnocancel;
+	Rp->busy = GuiBusy;
     }
 
-    pR_ShowMessage = Rp->ShowMessage; /* used here */
+    pR_ShowMessage = Rp->message; /* used here */
     TrueWriteConsole = Rp->WriteConsole;
     R_CallBackHook = Rp->CallBack;
 
@@ -823,7 +828,7 @@ int cmdlineoptions(int ac, char **av)
 		} else
 		    R_max_memory = value;
 	    } else if(!strcmp(*av, "--debug")) {
-		DebugMenuitem = TRUE;
+		Rp->DebugMenuitem = TRUE;
 		breaktodebugger();
 	    } else if(!strcmp(*av, "--args")) {
 		break;
@@ -862,7 +867,30 @@ int cmdlineoptions(int ac, char **av)
     Rp->rhome = R_Home;
 
     R_tcldo = tcl_do_none;
-    Rp->home = getRUser();
+/*
+ * try R_USER then HOME then Windows homes then working directory
+ */
+
+    if ((p = getenv("R_USER"))) {
+	if(strlen(p) >= MAX_PATH) R_Suicide("Invalid R_USER");
+	strcpy(RUser, p);
+    } else if ((p = getenv("HOME"))) {
+	if(strlen(p) >= MAX_PATH) R_Suicide("Invalid HOME");
+	strcpy(RUser, p);
+    } else if (ShellGetPersonalDirectory(RUser)) {
+	/* nothing to do */;
+    } else if ((p = getenv("HOMEDRIVE")) && (q = getenv("HOMEPATH"))) {
+	if(strlen(p) >= MAX_PATH) R_Suicide("Invalid HOMEDRIVE");
+	strcpy(RUser, p);
+	if(strlen(RUser) + strlen(q) >= MAX_PATH)
+	    R_Suicide("Invalid HOMEDRIVE+HOMEPATH");
+	strcat(RUser, q);
+    } else {
+	GetCurrentDirectory(MAX_PATH, RUser);
+    }
+    p = RUser + (strlen(RUser) - 1);
+    if (*p == '/' || *p == '\\') *p = '\0';
+    Rp->home = RUser;
     R_SetParams(Rp);
 
 /*

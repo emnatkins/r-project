@@ -22,7 +22,7 @@
 #endif
 
 #include <Defn.h>
-#ifdef HAVE_X11
+#if defined(HAVE_X11)
 
 #include <Rmodules/RX11.h>   /* typedefs for the module routine types */
 
@@ -39,32 +39,26 @@ R_setX11Routines(R_X11Routines *routines)
     return tmp;
 }
 
-int R_X11_Init(void)
+static void X11_Init(void)
 {
     int res;
 
-    if(initialized) return initialized;
-
     initialized = -1;
-    if(strcmp(R_GUIType, "none") == 0) {
+    if(strcmp(R_GUIType, "X11") && strcmp(R_GUIType, "GNOME") &&
+	    strcmp(R_GUIType, "Tk")  && strcmp(R_GUIType, "AQUA")) {
 	warning("X11 module is not available under this GUI");
-	return initialized;
+	return;
     }
     res = moduleCdynload("R_X11", 1, 1);
-    if(!res) return initialized;
+    if(!res) return;
     initialized = 1;    
-    return initialized;
+    return;
 }
 
-Rboolean R_access_X11(void)
-{
-    R_X11_Init();
-    return (initialized > 0) ? (*ptr->access)() > 0 : FALSE;
-}
 
 SEXP do_X11(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    R_X11_Init();
+    if(!initialized) X11_Init();
     if(initialized > 0)
 	return (*ptr->X11)(call, op, args, rho);
     else {
@@ -75,15 +69,8 @@ SEXP do_X11(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 #ifndef HAVE_AQUA
 SEXP do_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho)
-#else
-/*  This copy of do_dataentry is needed when R is built under MacOSX along
-    with the aqua module which contains a definition of do_dataentry. If R
-    is not launched with --gui=aqua then a bus error is raised. S.I.
- */
-SEXP X11_do_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho)
-#endif
 {
-    R_X11_Init();
+    if(!initialized) X11_Init();
     if(initialized > 0)
 	return (*ptr->de)(call, op, args, rho);
     else {
@@ -91,10 +78,26 @@ SEXP X11_do_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho)
 	return R_NilValue;
     }
 }
+#else
+/*  This copy of do_dataentry is needed when R is built under MacOSX along
+	with the aqua module which contains a definition of do_dataentry. If R
+	is not launched with --gui=aqua then a bus error is raised. S.I.
+*/	 
+SEXP X11_do_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+    if(!initialized) X11_Init();
+    if(initialized > 0)
+	return (*ptr->de)(call, op, args, rho);
+    else {
+	error("R_X11 module cannot be loaded");
+	return R_NilValue;
+    }
+}
+#endif
 
 Rboolean R_GetX11Image(int d, void *pximage, int *pwidth, int *pheight)
 {
-    R_X11_Init();
+    if(!initialized) X11_Init();
     if(initialized > 0)
 	return (*ptr->image)(d, pximage, pwidth, pheight);
     else {
@@ -103,12 +106,7 @@ Rboolean R_GetX11Image(int d, void *pximage, int *pwidth, int *pheight)
     }
 }
 
-#else /* No HAVE_X11 */
-
-Rboolean R_access_X11(void)
-{
-    return FALSE;
-}
+#else
 
 SEXP do_X11(SEXP call, SEXP op, SEXP args, SEXP rho)
 {

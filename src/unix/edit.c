@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998, 2000, 2003-4  The R Development Core Team
+ *  Copyright (C) 1998, 2000, 2003  The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,11 +36,11 @@
 int Rgui_Edit(char *filename, char *title, int modal);
 #endif
 
-#ifdef Unix
-#define R_INTERFACE_PTRS 1
-#include <Rinterface.h> /* for editor ptr */
+#ifdef HAVE_AQUA
+extern  DL_FUNC ptr_Raqua_Edit;
+extern  Rboolean useCocoa;
+int Raqua_Edit(char *filename) {ptr_Raqua_Edit(filename);}
 #endif
-
 
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>		/* for unlink() */
@@ -91,7 +91,7 @@ SEXP do_edit(SEXP call, SEXP op, SEXP args, SEXP rho)
     char *title;
 #endif
 
-	checkArity(op, args);
+    checkArity(op, args);
 
     vmaxsave = vmaxget();
 
@@ -153,12 +153,17 @@ SEXP do_edit(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    warningcall(call, "editor ran but returned error status");
     }
 #else
-    if (ptr_R_EditFile)
-        rc = ptr_R_EditFile(filename);
+# if defined(HAVE_AQUA)
+    if (!strcmp(R_GUIType,"AQUA") || useCocoa)	
+      rc = Raqua_Edit(filename);
     else {
-        sprintf(editcmd, "%s %s", cmd, filename);
-        rc = R_system(editcmd);
+      sprintf(editcmd, "%s %s", cmd, filename);
+      rc = R_system(editcmd);
     }
+# else
+    sprintf(editcmd, "%s %s", cmd, filename);
+    rc = R_system(editcmd);
+# endif
     if (rc != 0)
 	errorcall(call, "problem with running editor %s", cmd);
 #endif

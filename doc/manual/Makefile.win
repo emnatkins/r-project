@@ -39,8 +39,6 @@ endif
 
 MAKEINFO_HTML_OPTS = --html --no-split
 TEXI2HTML = $(MAKEINFO) $(MAKEINFO_HTML_OPTS)
-MAKEINFO_TEXT_OPTS = --number-sections --fill-column=76 --no-split --no-headers
-TEXI2TEXT = $(MAKEINFO) $(MAKEINFO_TEXT_OPTS)
 
 R_PAPERSIZE = a4
 R_RD4DVI = ae
@@ -346,11 +344,3 @@ distclean: clean
 	@-rm -f *.pdf *.dvi *.info* *.html
 maintainer-clean: distclean
 
-../../FAQ: R-FAQ.texi
-	@$(TEXI2TEXT) -o $@ $<
-../../RESOURCES: resources.texi
-	@$(TEXI2TEXT) -o $@ $<
-../html/resources.html: resources.texi
-	@$(TEXI2HTML) --no-headers -o $@ $<
-
-svnonly: ../../FAQ ../../RESOURCES ../html/resources.html

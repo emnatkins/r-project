@@ -317,7 +317,7 @@ static void PrintGenericVector(SEXP s, SEXP env)
 	}
 	else {
 	    names = GetArrayDimnames(s);
-	    printArray(t, dims, 0, 0, names);
+	    printArray(t, dims, 0, names);
 	}
 	UNPROTECT(2);
     }
@@ -452,7 +452,7 @@ static void printList(SEXP s, SEXP env)
 	}
 	else {
 	    dimnames = getAttrib(s, R_DimNamesSymbol);
-	    printArray(t, dims, 0, 0, dimnames);
+	    printArray(t, dims, 0, dimnames);
 	}
 	UNPROTECT(2);
     }
@@ -621,7 +621,7 @@ void PrintValueRec(SEXP s,SEXP env)
 	    else {
 		SEXP dimnames;
 		dimnames = GetArrayDimnames(s);
-		printArray(s, t, R_print.quote, R_print.right, dimnames);
+		printArray(s, t, R_print.quote, dimnames);
 	    }
 	}
 	else {
@@ -646,9 +646,9 @@ void PrintValueRec(SEXP s,SEXP env)
 	Rprintf("<weak reference>\n");
 	break;
     default:
-	UNIMPLEMENTED_TYPE("PrintValueRec", s);
+	UNIMPLEMENTED("PrintValueRec");
     }
-    printAttributes(s, env, FALSE);
+    printAttributes(s,env, FALSE);
 }
 
 /* 2000-12-30 PR#715: remove list tags from tagbuf here

@@ -626,8 +626,7 @@ sub rdoc2html { # (filename) ; 0 for STDOUT
     }
     $using_chm = 0;
     print $htmlout (html_functionhead(html_striptitle($blocks{"title"}),
-				      $pkgname, 
-				      &html_escape_name($blocks{"name"})));
+				      $pkgname, $blocks{"name"}));
 
     html_print_block("description", "Description");
     html_print_codeblock("usage", "Usage");
@@ -657,15 +656,6 @@ sub html_striptitle {
     $text =~ s/\`/\'/g;		# @samp{'} could be an apostroph ...
     $text;
 }
-
-sub html_escape_name {
-    my ($text) = @_;
-    $text = unmark_brackets($text);
-    $text =~ s/\\%/%/g;
-    $text =~ s/\\\\/\\/g;
-    $text;
-}
-
 
 
 ## Convert a Rdoc text string to HTML, i.e., convert \code to <tt> etc.
@@ -1265,7 +1255,7 @@ sub rdoc2txt { # (filename); 0 for STDOUT
     if ($pkgname) {
 	my $pad = 75 - length($blocks{"name"}) - length($pkgname) - 30;
 	$pad = int($pad/2);
-	print $txtout  &html_escape_name($blocks{"name"}), " " x $pad,
+	print $txtout  $blocks{"name"}, " " x $pad,
 	"package:$pkgname", " " x $pad,"R Documentation\n\n";
     }
     print $txtout (txt_header(txt_striptitle($blocks{"title"})), "\n");
@@ -2328,7 +2318,7 @@ sub foldorder {uc($a) cmp uc($b) or $a cmp $b;}
 
 sub rdoc2latex {# (filename)
 
-    my $c, $a, $blname;
+    my $c, $a;
 
     local $latexout;
     if($_[0]) {
@@ -2337,9 +2327,8 @@ sub rdoc2latex {# (filename)
     } else {
 	$latexout = "STDOUT";
     }
-    $blname = &latex_escape_name($blocks{"name"});
     print $latexout "\\HeaderA\{";
-    print $latexout $blname;
+    print $latexout $blocks{"name"};
     print $latexout "\}\{";
     print $latexout &ltxstriptitle($blocks{"title"});
     print $latexout "\}\{";
@@ -2363,11 +2352,12 @@ sub rdoc2latex {# (filename)
 	print STDERR "rdoc2l: alias='$_', code2l(.)='$c', latex_c_a(.)='$a'\n"
 	    if $debug;
 	printf $latexout "\\%s\{%s\}\{%s\}\{%s\}\n", $cmd, $a, 
-	       $blname, latex_link_trans0($a)
+	       $blocks{"name"}, latex_link_trans0($a)
 	unless /^\Q$blocks{"name"}\E$/; # Q..E : Quote (escape) Metacharacters
     }
     foreach (@keywords) {
-	printf $latexout "\\keyword\{%s\}\{%s\}\n", $_, $blname unless /^$/ ;
+	printf $latexout "\\keyword\{%s\}\{%s\}\n", $_, $blocks{"name"}
+	unless /^$/ ;
     }
     latex_print_block("description", "Description");
     latex_print_codeblock("usage", "Usage");
@@ -2624,24 +2614,6 @@ sub latex_unescape_codes {
     $text;
 }
 
-sub latex_escape_name {
-    my $c = $_[0];
-
-    $c = unmark_brackets($c);
-    if($c =~ /[$LATEX_SPECIAL]/){
-	$c =~ s/[$LATEX_SPECIAL]/\\$&/go; #- escape them
-    }
-    $c =~ s/\\\^/\\textasciicircum{}/go;# ^ is SPECIAL
-    $c =~ s/\\~/\\textasciitilde{}/go;
-    $c =~ s/\\\\\\%/\\Rpercent{}/go;
-    $c =~ s/\\\{/\\textbraceleft{}/go;
-    $c =~ s/\\\}/\\textbraceright{}/go;
-    $c =~ s/\\\\\\\\/\\textbackslash{}/go;
-    ## avoid conversion to guillemots
-    $c =~ s/<</<\{\}</;
-    $c =~ s/>>/>\{\}>/;
-    $c;
-}
 
 ## The next two should transform links and aliases identically so use
 ## common subroutines
@@ -2690,27 +2662,12 @@ sub latex_code_cmd {
 
 sub latex_link_trans0 {
     my $c = $_[0];
-
-    $c = unmark_brackets($c);
     $c =~ s/\\Rdash/.Rdash./go;
     $c =~ s/-/.Rdash./go;
     $c =~ s/\\_/.Rul./go;
     $c =~ s/\\\$/.Rdol./go;
-    $c =~ s/\\\^/.Rcaret./go;
-    $c =~ s/\^/.Rcaret./go;
     $c =~ s/_/.Rul./go;
     $c =~ s/\$/.Rdol./go;
-    $c =~ s/\\#/.Rhash./go;
-    $c =~ s/#/.Rhash./go;
-    $c =~ s/\\&/.Ramp./go;
-    $c =~ s/&/.Ramp./go;
-    $c =~ s/\\~/.Rtilde./go;
-    $c =~ s/~/.Rtilde./go;
-    $c =~ s/\\%/.Rpcent./go;
-    $c =~ s/%/.Rpcent./go;
-    $c =~ s/\\\\/.Rbl./go;
-    $c =~ s/\{/.Rlbrace./go;
-    $c =~ s/\}/.Rrbrace./go;
     $c;
 }
 
@@ -2742,7 +2699,7 @@ sub rdoc2chm { # (filename) ; 0 for STDOUT
     $using_chm = 1;
     $nlink = 0;
     print $htmlout (chm_functionhead(striptitle($blocks{"title"}), $pkgname,
-				     &html_escape_name($blocks{"name"})));
+				   $blocks{"name"}));
 
     html_print_block("description", "Description");
     html_print_codeblock("usage", "Usage");

@@ -339,8 +339,6 @@ SEXP do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if(LENGTH(argnames) != n)
 	    errorcall(call,"list argument has no names or invalid ones");
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("options", args);
     }
 
     R_Visible = 0;
@@ -356,8 +354,6 @@ SEXP do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    argi = VECTOR_ELT(args, i);
 	    namei = EnsureString(STRING_ELT(argnames, i));
 	    break;
-	default: /* already checked, but be safe here */
-	    UNIMPLEMENTED_TYPE("options", args);
 	}
 
 	if (*CHAR(namei)) { /* name = value  ---> assignment */

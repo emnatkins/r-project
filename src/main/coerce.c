@@ -421,8 +421,6 @@ static SEXP coerceToSymbol(SEXP v)
     case RAWSXP:
 	ans = StringFromRaw(RAW(v)[0], &warn);
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("coerceToSymbol", v);
     }
     if (warn) CoercionWarning(warn);/*2000/10/23*/
     ans = install(CHAR(ans));
@@ -457,8 +455,6 @@ static SEXP coerceToLogical(SEXP v)
 	for (i = 0; i < n; i++)
 	    LOGICAL(ans)[i] = LogicalFromInteger((int)RAW(v)[i], &warn);
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("coerceToLogical", v);
     }
     if (warn) CoercionWarning(warn);
     UNPROTECT(1);
@@ -492,8 +488,6 @@ static SEXP coerceToInteger(SEXP v)
 	for (i = 0; i < n; i++)
 	    INTEGER(ans)[i] = (int)RAW(v)[i];
 	    break;
-    default:
-	UNIMPLEMENTED_TYPE("coerceToInteger", v);
     }
     if (warn) CoercionWarning(warn);
     UNPROTECT(1);
@@ -527,8 +521,6 @@ static SEXP coerceToReal(SEXP v)
 	for (i = 0; i < n; i++)
 	    REAL(ans)[i] = RealFromInteger((int)RAW(v)[i], &warn);
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("coerceToReal", v);
     }
     if (warn) CoercionWarning(warn);
     UNPROTECT(1);
@@ -562,8 +554,6 @@ static SEXP coerceToComplex(SEXP v)
 	for (i = 0; i < n; i++)
 	    COMPLEX(ans)[i] = ComplexFromInteger((int)RAW(v)[i], &warn);
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("coerceToComplex", v);
     }
     if (warn) CoercionWarning(warn);
     UNPROTECT(1);
@@ -628,8 +618,6 @@ static SEXP coerceToRaw(SEXP v)
 	    RAW(ans)[i] = (Rbyte) tmp;
 	}
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("coerceToRaw", v);
     }
     if (warn) CoercionWarning(warn);
     UNPROTECT(1);
@@ -669,8 +657,6 @@ static SEXP coerceToString(SEXP v)
 	for (i = 0; i < n; i++)
 	    SET_STRING_ELT(ans, i, StringFromRaw(RAW(v)[i], &warn));
 	break;
-    default:
-	UNIMPLEMENTED_TYPE("coerceToString", v);
     }
     if (warn) CoercionWarning(warn);/*2000/10/23*/
     UNPROTECT(1);
@@ -709,8 +695,6 @@ static SEXP coerceToExpression(SEXP v)
 	    for (i = 0; i < n; i++)
 		SET_VECTOR_ELT(ans, i, ScalarRaw(RAW(v)[i]));
 	    break;
-	default:
-	    UNIMPLEMENTED_TYPE("coerceToExpression", v);
 	}
     }
     else {/* not used either */
@@ -761,7 +745,7 @@ static SEXP coerceToVectorList(SEXP v)
 	}
 	break;
     default:
-	UNIMPLEMENTED_TYPE("coerceToVectorList", v);
+	UNIMPLEMENTED("coerceToVectorList");
     }
     tmp = getAttrib(v, R_NamesSymbol);
     if (tmp != R_NilValue)
@@ -809,7 +793,7 @@ static SEXP coerceToPairList(SEXP v)
 	    SETCAR(ansp, VECTOR_ELT(v, i));
 	    break;
 	default:
-	    UNIMPLEMENTED_TYPE("coerceToPairList", v);
+	    UNIMPLEMENTED("coerceToPairList");
 	}
 	ansp = CDR(ansp);
     }
@@ -873,7 +857,7 @@ static SEXP coercePairList(SEXP v, SEXPTYPE type)
 		RAW(rval)[i] = (Rbyte) asInteger(CAR(vp));
 	    break;
 	default:
-	    UNIMPLEMENTED_TYPE("coercePairList", v);
+	    UNIMPLEMENTED("coercePairList");
 	}
     }
     else
@@ -959,7 +943,7 @@ static SEXP coerceVectorList(SEXP v, SEXPTYPE type)
 		RAW(rval)[i] = (Rbyte) asInteger(VECTOR_ELT(v, i));
 	    break;
 	default:
-	    UNIMPLEMENTED_TYPE("coerceVectorList", v);
+	    UNIMPLEMENTED("coerceVectorList");
 	}
     }
     else
@@ -2034,14 +2018,14 @@ static int class2type(char *s)
        this type.
     */
     int i; char *si;
-    for(i = 0; ; i++) {
+    for(i=0; ; i++) {
 	si = classTable[i].s;
 	if(!si)
 	    return -1;
 	if(!strcmp(s, si))
 	    return i;
     }
-    /* cannot get here return -1; */
+    return -1;
 }
 
 /* set the class to value, and return the modified object.  This is

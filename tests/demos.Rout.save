@@ -1,6 +1,6 @@
 
 R : Copyright 2004, The R Foundation for Statistical Computing
-Version 2.1.0 Under development (unstable) (2004-11-08), ISBN 3-900051-07-0
+Version 2.0.0 beta (2004-10-01), ISBN 3-900051-07-0
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -58,7 +58,7 @@ Type 'q()' to quit R.
 
 Number of base objects:		 1011 
 Number of builtin functions:	 997 
-	 starting with 'is.' :	  46 
+	 starting with 'is.' :	  45 
 
 > is.primitive <- function(obj) is.function(obj) && 
     is.null(args(obj))
@@ -112,7 +112,6 @@ is.object          : .
 is.ordered         : . 
 is.package_version : . 
 is.pairlist        : | 
-is.primitive       : . 
 is.qr              : . 
 is.real            : . 
 is.recursive       : . 
@@ -167,7 +166,6 @@ is.object          : .
 is.ordered         : . 
 is.package_version : . 
 is.pairlist        : . 
-is.primitive       : . 
 is.qr              : . 
 is.real            : . 
 is.recursive       : . 
@@ -204,7 +202,6 @@ is.object          : .
 is.ordered         : . 
 is.package_version : . 
 is.pairlist        : . 
-is.primitive       : . 
 is.qr              : . 
 is.real            : . 
 is.recursive       : . 
@@ -241,7 +238,6 @@ is.object          : .
 is.ordered         : . 
 is.package_version : . 
 is.pairlist        : . 
-is.primitive       : . 
 is.qr              : . 
 is.real            : | 
 is.recursive       : . 
@@ -280,7 +276,6 @@ is.object          : .
 is.ordered         : . 
 is.package_version : . 
 is.pairlist        : . 
-is.primitive       : . 
 is.qr              : . 
 is.real            : . 
 is.recursive       : | 
@@ -321,7 +316,6 @@ is.object          : |
 is.ordered         : . 
 is.package_version : . 
 is.pairlist        : . 
-is.primitive       : . 
 is.qr              : . 
 is.real            : . 
 is.recursive       : | 
@@ -361,12 +355,12 @@ logical(0)
              FALSE              FALSE              FALSE              FALSE 
            is.name            is.null         is.numeric          is.object 
              FALSE              FALSE               TRUE              FALSE 
-        is.ordered is.package_version        is.pairlist       is.primitive 
+        is.ordered is.package_version        is.pairlist              is.qr 
              FALSE              FALSE              FALSE              FALSE 
-             is.qr            is.real       is.recursive          is.symbol 
-             FALSE               TRUE              FALSE              FALSE 
-          is.table        is.unsorted          is.vector 
-             FALSE              FALSE               TRUE 
+           is.real       is.recursive          is.symbol           is.table 
+              TRUE              FALSE              FALSE              FALSE 
+       is.unsorted          is.vector 
+             FALSE               TRUE 
 
 > ispi <- unlist(is.ALL(pi))
 
@@ -410,7 +404,6 @@ is.object          : .
 is.ordered         : . 
 is.package_version : . 
 is.pairlist        : . 
-is.primitive       : . 
 is.qr              : . 
 is.real            : . 
 is.recursive       : . 
@@ -457,7 +450,6 @@ is.object          : |
 is.ordered         : . 
 is.package_version : . 
 is.pairlist        : . 
-is.primitive       : . 
 is.qr              : . 
 is.real            : . 
 is.recursive       : | 
@@ -494,7 +486,6 @@ is.object          : .
 is.ordered         : . 
 is.package_version : . 
 is.pairlist        : . 
-is.primitive       : . 
 is.qr              : . 
 is.real            : . 
 is.recursive       : . 
@@ -588,7 +579,7 @@ Your balance is 120
 
 > try(ross$withdraw(500))
 Error in ross$withdraw(500) : You don't have that much money!
-In addition: Warning messages:
+In addition: Warning messages: 
 1: is.nan() applied to non-(list or vector) in: fn(obj) 
 2: is.nan() applied to non-(list or vector) in: fn(obj) 
 3: is.na() applied to non-(list or vector) in: fn(obj) 
@@ -1242,5 +1233,5 @@ sm     3    3    3    3    4    4    4    4    2     2     2
 > par(op)
 > 
 > cat("Time elapsed: ", proc.time() - .ptime, "\n")
-Time elapsed:  2.13 0.14 3 0 0 
+Time elapsed:  5 0.21 5.3 NA NA 
 > 

@@ -173,11 +173,16 @@ SEXP do_date(SEXP call, SEXP op, SEXP args, SEXP rho)
     return mkString(R_Date());
 }
 
-/*  file.show
+/*  show.file
  *
- *  Display file(s) so that a user can view it.  The function calls
- *  "R_ShowFiles" which is a platform-dependent hook that arranges
- *  for the file(s) to be displayed.
+ *  Display a file so that a user can view it.  The function calls
+ *  "R_ShowFile" which is a platform dependent hook that arranges
+ *  for the file to be displayed. A reasonable approach would be to
+ *  open a read-only edit window with the file displayed in it.
+ *
+ *  FIXME : this should in fact take a vector of filenames and titles
+ *  and display them concatenated in a window.  For a pure console
+ *  version, write down a pipe to a pager.
  */
 
 SEXP do_fileshow(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -289,15 +294,9 @@ SEXP do_fileedit(SEXP call, SEXP op, SEXP args, SEXP rho)
  *
  *  Given two file names as arguments and arranges for
  *  the second file to be appended to the second.
- *  op = 2 is codeFiles.append.
  */
 
-#if defined(BUFSIZ) && (APPENDBUFSIZE > 512)
-/* OS's buffer size in stdio.h, probably */
-# define APPENDBUFSIZE BUFSIZ
-#else
-# define APPENDBUFSIZE 512
-#endif
+#define APPENDBUFSIZE 512
 
 static int R_AppendFile(char *file1, char *file2)
 {
@@ -340,50 +339,18 @@ SEXP do_fileappend(SEXP call, SEXP op, SEXP args, SEXP rho)
         errorcall(call, "invalid second filename");
     if (n1 < 1)
 	errorcall(call, "nothing to append to");
-    if (PRIMVAL(op) > 0 && n1 > 1)
-	errorcall(call, "outFile' must be a single file");
     if (n2 < 1)
 	return allocVector(LGLSXP, 0);
     n = (n1 > n2) ? n1 : n2;
-    PROTECT(ans = allocVector(LGLSXP, n)); /* all FALSE */
-    if (n1 == 1) { /* common case */
-	FILE *fp1, *fp2;
-	char buf[APPENDBUFSIZE];
-	int nchar, status = 0;
-	if(!(fp1 = R_fopen(R_ExpandFileName(CHAR(STRING_ELT(f1, 0))), "ab")))
-	   goto done;
-	for(i = 0; i < n; i++) {
-	    status = 0;
-	    if(!(fp2 = R_fopen(R_ExpandFileName(CHAR(STRING_ELT(f2, i))),
-			       "rb"))) continue;
-	    while((nchar = fread(buf, 1, APPENDBUFSIZE, fp2)) == APPENDBUFSIZE)
-		if(fwrite(buf, 1, APPENDBUFSIZE, fp1) != APPENDBUFSIZE)
-		    goto append_error;
-	    if(fwrite(buf, 1, nchar, fp1) != nchar) goto append_error;
-	    if(PRIMVAL(op) == 1 && buf[nchar - 1] != '\n') {
-		if(fwrite("\n", 1, 1, fp1) != 1) goto append_error;
-	    }
-	    
-	    status = 1;
-	append_error:
-	    if (status == 0)
-		warning("write error during file append!");
-	    LOGICAL(ans)[i] = status;
-	    fclose(fp2);
-	}
-	fclose(fp1);
-    } else {
-	for(i = 0; i < n; i++) {
-	    if (STRING_ELT(f1, i%n1) == R_NilValue ||
-		STRING_ELT(f2, i%n2) == R_NilValue)
-		LOGICAL(ans)[i] = 0;
-	    else
-		LOGICAL(ans)[i] =
-		    R_AppendFile(CHAR(STRING_ELT(f1, i%n1)),
-				 CHAR(STRING_ELT(f2, i%n2)));
-	}
+    PROTECT(ans = allocVector(LGLSXP, n));
+    for(i = 0; i < n; i++) {
+        if (STRING_ELT(f1, i%n1) == R_NilValue || STRING_ELT(f2, i%n2) == R_NilValue)
+            LOGICAL(ans)[i] = 0;
+        else
+            LOGICAL(ans)[i] =
+		R_AppendFile(CHAR(STRING_ELT(f1, i%n1)),
+			     CHAR(STRING_ELT(f2, i%n2)));
     }
-done:
     UNPROTECT(1);
     return ans;
 }
@@ -1133,46 +1100,25 @@ SEXP do_pathexpand(SEXP call, SEXP op, SEXP args, SEXP rho)
     return ans;
 }
 
-#ifdef Unix
-static int var_R_can_use_X11 = -1;
-
-extern Rboolean R_access_X11(void); /* from src/unix/X11.c */
-
-static Rboolean R_can_use_X11()
-{
-    if (var_R_can_use_X11 < 0) {
-#ifdef HAVE_X11
-	if(strcmp(R_GUIType, "none") != 0) {
-	    /* At this point we have permission to use the module, so try it */
-	    var_R_can_use_X11 = R_access_X11();
-	} else {
-	    var_R_can_use_X11 = 0;
-	}
-#else
-	var_R_can_use_X11 = 0;
-#endif
-    }
-
-    return var_R_can_use_X11 > 0;
-}
-#endif
-
 
 SEXP do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans, ansnames;
     int i = 0;
 #ifdef Unix
-    Rboolean X11 = R_can_use_X11();
+    Rboolean X11 = (strcmp(R_GUIType, "X11") == 0) ||
+	(strcmp(R_GUIType, "Tk") == 0) ||
+	(strcmp(R_GUIType, "GNOME") == 0)  || 
+	(strcmp(R_GUIType, "AQUA") == 0);
 #endif
 
     checkArity(op, args);
-    PROTECT(ans = allocVector(LGLSXP, 10));
-    PROTECT(ansnames = allocVector(STRSXP, 10));
+    PROTECT(ans = allocVector(LGLSXP, 14));
+    PROTECT(ansnames = allocVector(STRSXP, 14));
 
     SET_STRING_ELT(ansnames, i, mkChar("jpeg"));
 #ifdef HAVE_JPEG
-#if defined(Unix) && !defined(__APPLE_CC__)
+#ifdef Unix
     LOGICAL(ans)[i++] = X11;
 #else
     LOGICAL(ans)[i++] = TRUE;
@@ -1183,7 +1129,7 @@ SEXP do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     SET_STRING_ELT(ansnames, i, mkChar("png"));
 #ifdef HAVE_PNG
-#if defined(Unix) && !defined(__APPLE_CC__)
+#ifdef Unix
     LOGICAL(ans)[i++] = X11;
 #else
     LOGICAL(ans)[i++] = TRUE;
@@ -1200,15 +1146,21 @@ SEXP do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
 #endif
 
     SET_STRING_ELT(ansnames, i, mkChar("X11"));
-#ifdef HAVE_X11
-#if defined(Unix) && !defined(__APPLE_CC__)
+#ifdef Unix
     LOGICAL(ans)[i++] = X11;
-#else
-	LOGICAL(ans)[i++] = TRUE;
-#endif
 #else
     LOGICAL(ans)[i++] = FALSE;
 #endif
+
+    SET_STRING_ELT(ansnames, i, mkChar("GNOME"));
+#ifdef Unix
+    LOGICAL(ans)[i++] = strcmp(R_GUIType, "GNOME") == 0;
+#else
+    LOGICAL(ans)[i++] = FALSE;
+#endif
+
+    SET_STRING_ELT(ansnames, i, mkChar("libz"));
+    LOGICAL(ans)[i++] = TRUE;	/* always true in this version */
 
     SET_STRING_ELT(ansnames, i, mkChar("http/ftp"));
 #if HAVE_INTERNET
@@ -1239,16 +1191,16 @@ SEXP do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
 #endif
 
     /* This one is complex.  Set it to be true only in interactive use,
-       with the Windows and GNOME GUIs (but not Tk GUI) or under Unix
-       if readline is available and in use. */
+       with any of the GUIs or under Unix if readline is available and in
+       use */
     SET_STRING_ELT(ansnames, i, mkChar("cledit"));
     LOGICAL(ans)[i] = FALSE;
 #if defined(Win32)
     if(R_Interactive) LOGICAL(ans)[i] = TRUE;
 #endif
 #ifdef Unix
-    if(strcmp(R_GUIType, "GNOME") == 0) {  /* always interactive */
-	LOGICAL(ans)[i] = TRUE;  /* also AQUA ? */
+    if(strcmp(R_GUIType, "GNOME") == 0) {
+	if(R_Interactive) LOGICAL(ans)[i] = TRUE;
     } else {
 #ifdef HAVE_LIBREADLINE
 	extern Rboolean UsingReadline;
@@ -1264,6 +1216,13 @@ SEXP do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
 #else
     LOGICAL(ans)[i++] = FALSE;
 #endif
+
+    SET_STRING_ELT(ansnames, i, mkChar("bzip2"));
+    LOGICAL(ans)[i++] = TRUE; /* we always have this */
+
+    SET_STRING_ELT(ansnames, i, mkChar("PCRE"));
+    LOGICAL(ans)[i++] = TRUE; /* we always have this */
+
     setAttrib(ans, R_NamesSymbol, ansnames);
     UNPROTECT(2);
     return ans;
@@ -1328,8 +1287,7 @@ SEXP do_sysgetpid(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP path, ans;
-    int res, show, recursive;
-    char *p, dir[PATH_MAX];
+    int res, show;
 
     checkArity(op, args);
     path = CAR(args);
@@ -1337,22 +1295,9 @@ SEXP do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
 	errorcall(call, "invalid path argument");
     show = asLogical(CADR(args));
     if(show == NA_LOGICAL) show = 0;
-    recursive = asLogical(CADDR(args));
-    if(recursive == NA_LOGICAL) recursive = 0;
-    strcpy(dir, R_ExpandFileName(CHAR(STRING_ELT(path, 0))));
-    if(recursive) {
-	p = dir;
-	while((p = strchr(p+1, '/'))) {
-	    *p = '\0';
-	    res = mkdir(dir, 0777);
-	    if(res && errno != EEXIST) goto end;
-	    *p = '/';
-	}
-    }
-     res = mkdir(dir, 0777);
+    res = mkdir(R_ExpandFileName(CHAR(STRING_ELT(path, 0))), 0777);
     if(show && res && errno == EEXIST)
-	warning("'%s' already exists", dir);
-end:
+	warning("'%s' already exists", CHAR(STRING_ELT(path, 0)));
     PROTECT(ans = allocVector(LGLSXP, 1));
     LOGICAL(ans)[0] = (res==0);
     UNPROTECT(1);
@@ -1364,7 +1309,7 @@ SEXP do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP  path, ans;
     char *p, dir[MAX_PATH];
-    int res, show, recursive;
+    int res, show;
 
     checkArity(op, args);
     path = CAR(args);
@@ -1372,25 +1317,13 @@ SEXP do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
 	errorcall(call, "invalid path argument");
     show = asLogical(CADR(args));
     if(show == NA_LOGICAL) show = 0;
-    recursive = asLogical(CADDR(args));
-    if(recursive == NA_LOGICAL) recursive = 0;
-    strcpy(dir, R_ExpandFileName(CHAR(STRING_ELT(path, 0))));
+    strcpy(dir, CHAR(STRING_ELT(path, 0)));
     /* need DOS paths on Win 9x */
     for(p = dir; *p != '\0'; p++)
 	if(*p == '/') *p = '\\';
-    if(recursive) {
-	p = dir;
-	while((p = strchr(p+1, '\\'))) {
-	    *p = '\0';
-	    res = mkdir(dir);
-	    if(res && errno != EEXIST) goto end;
-	    *p = '\\';
-	}
-    }
-    res = mkdir(dir);
+    res = mkdir(R_ExpandFileName(dir));
     if(show && res && errno == EEXIST)
 	warning("'%s' already exists", dir);
-end:
     PROTECT(ans = allocVector(LGLSXP, 1));
     LOGICAL(ans)[0] = (res==0);
     UNPROTECT(1);

@@ -1532,20 +1532,6 @@ without @code{valgrind}, and in some cases even slower than that.
 cpu-specific instructions (3D now, SSE2 and similar) so you may need to
 build a version of @R{} specifically to use with @code{valgrind}.
 
-
-It is possible to run all the examples, tests and vignettes covered by
-@code{R CMD check} under @code{valgrind} by using the option
-@code{--use-valgrind}.  If you do this you will need to select the
-@code{valgrind} options some other way, for example by having a
-@file{~/.valgrindrc} file containing
-@smallexample
---tool=memcheck
---memcheck:leak-check=yes
-@end smallexample
-@noindent
-or setting the environment variable @env{VALGRIND_OPTS}.
-
-
 @item
 The Mac OS X linker has some restrictions not found on other platforms.
 Try to ensure that C entry points shared between source files are
@@ -1673,10 +1659,9 @@ particular, functions) are given in this subsection.
 @findex \name
 @var{name} typically is the basename of the Rd file containing the
 documentation.  It is the ``name'' of the Rd object represented by the
-file and has to be unique in a package.
-@c and must not contain La@TeX{}
-@c special characters (@samp{#}, @samp{$}, @samp{%}, @samp{&}, @samp{~},
-@c @samp{_}, @samp{^}, @samp{\}, @samp{@{}, @samp{@}}).
+file, has to be unique in a package, and must not contain La@TeX{}
+special characters (@samp{#}, @samp{$}, @samp{%}, @samp{&}, @samp{~},
+@samp{_}, @samp{^}, @samp{\}, @samp{@{}, @samp{@}}).
 
 @item \alias@{@var{topic}@}
 @findex \alias
@@ -4926,7 +4911,6 @@ $7 = 5
 * Platform and version information::  
 * Inlining C functions::        
 * Standalone Mathlib::          
-* Organization of header files::  
 @end menu
 
 There are a large number of entry points in the @R{} executable/DLL that
@@ -6045,7 +6029,7 @@ configure code has checked is that  @code{R_INLINE} can be used in a
 single C file with the compiler used to build @R{}.  We recommend that
 packages making extensive use of inlining include their own configure code.
 
-@node Standalone Mathlib, Organization of header files, Inlining C functions, The R API
+@node Standalone Mathlib,  , Inlining C functions, The R API
 @section Using these functions in your own C code
 
 It is possible to build @code{Mathlib}, the @R{} set of mathematical
@@ -6094,63 +6078,6 @@ get_seed(unsigned int *, unsigned int *)
 
 @noindent
 to read the seeds).
-
-@node Organization of header files,  , Standalone Mathlib, The R API
-@section Organization of header files
-
-The header files which @R{} installs are in directory
-@file{R_HOME/include}.  This currently contains
-
-@quotation
-@multitable {R_ext/RConvertors.h}   {RRR storage.mode DOUBLE PRECISION}
-@item @code{R.h} @tab includes many other files
-@item @code{S.h} @tab different version for code ported from @Sl{}
-@item @code{Rinternals.h} @tab definitions for using @R{}'s internal structures
-@item @code{Rdefines.h} @tab macros for an @Sl{}-like interface to the above.
-@item @code{Rmath.h} @tab standalone math library
-@item @code{Rversion.h} @tab @R{} version information
-@item @code{Rinterface.h} @tab for add-on front-ends
-@item @code{R_ext/RStartup.h} @tab ditto
-@item @code{R_ext/eventloop.h} @tab ditto, and for packages that need to
-share in the @R{} event loops 
-@item @code{R_ext/Applic.h} @tab optimization and integration
-@item @code{R_ext/BLAS.h} @tab C definitions for BLAS routines
-@item @code{R_ext/Lapack.h} @tab C definitions for some LAPACK routines
-@item @code{R_ext/Linpack.h} @tab C definitions for some LINPACK
-routines, not all of which are included in @R{}
-@item @code{R_ext/GetX11Image.h} @tab X11Image interface used by package @pkg{trkplot}
-@item @code{R_ext/Parse.h} @tab a small part of @R{}'s parse interface
-@item @code{R_ext/Callbacks.h} @tab C (and R function) top-level task handlers
-@item @code{R_ext/RConvertors.h} @tab 
-@item @code{R_ext/Rdynload.h} @tab Needed to register compiled code in packages
-@item @code{R_ext/R-ftp-http.h} @tab interface to internal method of @code{download.file} 
-@end multitable
-@end quotation
-
-The following headers are included by @code{R.h}:
-@quotation
-@multitable {R_ext/RConvertors.h}   {RRR storage.mode DOUBLE PRECISION}
-@item @code{Rconfig.h} @tab configuration info that is made available
-@item @code{R_ext/Arith.h} @tab handling for NAs, NaNa, +/-Inf
-@item @code{R_ext/Boolean.h} @tab TRUE/FALSE type
-@item @code{R_ext/Complex.h} @tab C typedefs for @R{}'s @code{complex}
-@item @code{R_ext/Constants.h} @tab constants
-@item @code{R_ext/Error.h}  @tab error handling
-@item @code{R_ext/Memory.h} @tab memory allocation
-@item @code{R_ext/Print.h} @tab @code{Rprintf} and variations.
-@item @code{R_ext/Random.h} @tab random number generation
-@item @code{R_ext/RS.h} @tab definitions common to @code{R.h} and
-@code{S.h}, including @code{F77_CALL} etc.
-@item @code{R_ext/Utils.h} @tab sorting and other utilities
-@item @code{R_ext/libextern.h} @tab definitions for exports from R.dll
-on Windows.
-@end multitable
-@end quotation
-
-The graphics systems are exposed in @code{Rdevices.h} (for writing
-graphics devices), @code{Rgraphics.h} and
-@code{R_ext/Graphics@{Base,Device,Engine@}.h}.
-
 
 @node Generic functions and methods, Linking GUIs and other front-ends to R, The R API, Top
 @chapter Generic functions and methods
@@ -6350,12 +6277,13 @@ others.  The source for @file{R_HOME/bin/exec/R} is in file
 
 @smallexample
 int Rf_initialize_R(int ac, char **av); /* in ../unix/system.c */
-void Rf_mainloop();                     /* in main.c */
 
 int main(int ac, char **av)
 @{
     Rf_initialize_R(ac, av);
-    Rf_mainloop(); /* does not return */
+
+    Rf_mainloop();
+    /*++++++  in main.c */
     return 0;
 @}
 @end smallexample
@@ -6442,256 +6370,8 @@ array, for example by
 
 However, to make a GUI we do want to run @code{run_Rmainloop} after
 setting up various parts of @R{} to talk to our GUI, and arranging for
-our GUI callbacks to be called during the @R{} mainloop.
-
-@menu
-* Setting R callbacks::         
-* Meshing event loops::         
-@end menu
-
-@node Setting R callbacks, Meshing event loops, Embedding R under Unix-alikes, Embedding R under Unix-alikes
-@subsection Setting R callbacks
-
-As from @R{} version 2.1.0 there is a public header file
-@file{Rinterface.h} that makes it possible to change the standard
-callbacks used by @R{} in a documented way.  This defines pointers (if
-@code{R_INTERFACE_PTRS} is defined)
-
-@smallexample
-extern void (*ptr_R_Suicide)(char *);
-extern void (*ptr_R_ShowMessage)(char *);
-extern int  (*ptr_R_ReadConsole)(char *, unsigned char *, int, int);
-extern void (*ptr_R_WriteConsole)(char *, int);
-extern void (*ptr_R_ResetConsole)();
-extern void (*ptr_R_FlushConsole)();
-extern void (*ptr_R_ClearerrConsole)();
-extern void (*ptr_R_Busy)(int);
-extern void (*ptr_R_CleanUp)(SA_TYPE, int, int);
-extern int  (*ptr_R_ShowFiles)(int, char **, char **, char *, Rboolean, char *);
-extern int  (*ptr_R_ChooseFile)(int, char *, int);
-extern int  (*ptr_R_EditFile)(char *);
-extern void (*ptr_R_loadhistory)(SEXP, SEXP, SEXP, SEXP);
-extern void (*ptr_R_savehistory)(SEXP, SEXP, SEXP, SEXP);
-@end smallexample
-
-@noindent
-which allow standard @R{} callbacks to be redirected to your GUI.
-What these do is generally documented in the file @file{src/unix/system.txt}.
-
-@deftypefun void R_ShowMessage (char *message)
-This should display the message, which may have multiple lines:
-it should be brought to the user's attention immediately.
-@end deftypefun
-
-@deftypefun void R_Busy (int which)
-This function invokes actions (such as change of cursor) when
-@R{} embarks on an extended computation (@code{which=1}) and when such a
-state terminates (@code{which=0}).
-@end deftypefun
-
-@deftypefun int R_ReadConsole (char *prompt, char *buf, int buflen, int hist)
-@deftypefunx void R_WriteConsole (char *buf, int buflen)
-@deftypefunx void R_ResetConsole ()
-@deftypefunx void R_FlushConsole ()
-@deftypefunx void R_ClearErrConsole ()
-
-These functions interact with a console.  
-
-@code{R_ReadConsole} prints the given prompt at the console and then
-does a @code{gets(3)}--like operation, transferring up to "buflen"
-characters into the buffer @code{"buf"}. The last two characters should
-be set to @code{"\n\0"} to preserve sanity.  If @code{"hist"} is
-non-zero, then the line should be added to any command history which is
-being maintained.  The return value is 0 on success and >0 on failure.
-
-@code{R_WriteConsole} writes the given buffer to the console.
-
-@code{R_ResetConsole} is called when the system is reset after an error.
-@code{R_FlushConsole} is called to flush any pending output to the
-system console.
-@code{R_ClearerrConsole} clears any errors associated with reading from the
-console.
-@end deftypefun
-
-
-@deftypefun void R_ShowFiles (int nfile, char **file, char **headers, char *wtitle, Rboolean del, char *pager)
-
-This function is used to display the contents of files.
-@end deftypefun
-
-@deftypefun int R_ChooseFile (int new, char *buf, int len)
-
-Choose a file and return its name in @code{buf} of length @code{len}.
-Return value is 0 for success, > 0 otherwise.
-@end deftypefun
-
-@deftypefun int R_EditFile (char *buf)
-Send a file to an editor window.
-@end deftypefun
-
-@deftypefun SEXP R_loadhistory (SEXP, SEXP, SEXP, SEXP);
-@deftypefunx SEXP R_savehistory (SEXP, SEXP, SEXP, SEXP);
-
-@code{.Internal} functions for @code{loadhistory} and
-@code{savehistory}: these are called after checking the number of
-arguments.  If the console has no history mechanism these can be as
-simple as
-@smallexample
-SEXP R_loadhistory (SEXP call, SEXP op , SEXP args, SEXP env)
-@{
-    errorcall(call, "loadhistory is not implemented");
-    return R_NilValue;
-@}
-SEXP R_savehistory (SEXP call, SEXP op , SEXP args, SEXP env)
-@{
-    errorcall(call, "savehistory is not implemented");
-    return R_NilValue;
-@}
-@end smallexample
-@end deftypefun
-
-@deftypefun void R_Suicide (char *message)
-This should abort @R{} as rapidly as possible, displaying the message.
-A possible implementation is
-@smallexample
-void R_Suicide (char *message)
-@{
-    char  pp[1024];
-    snprintf(pp, 1024, "Fatal error: %s\n", s);
-    R_ShowMessage(pp);
-    R_CleanUp(SA_SUICIDE, 2, 0);
-@}
-@end smallexample
-@end deftypefun
-
-@deftypefun void R_CleanUp (SA_TYPE saveact, int status, int RunLast)
-
-This function invokes any actions which occur at system termination.
-It needs to be quite complex:
-@smallexample
-#include <Rinterface.h>
-#include <Rdevices.h>    /* for KillAllDevices */
-
-void R_CleanUp (SA_TYPE saveact, int status, int RunLast)
-@{
-    char *tmpdir;
-
-    if(saveact == SA_DEFAULT) saveact = SaveAction;
-    if(saveact == SA_SAVEASK) @{ 
-       /* ask what to do and set saveact */
-    @}
-    switch (saveact) @{
-    case SA_SAVE:
-        if(runLast) R_dot_Last();
-        if(R_DirtyImage) R_SaveGlobalEnv();
-        /* save the console history in R_HistoryFile */
-        break;
-    case SA_NOSAVE:
-        if(runLast) R_dot_Last();
-        break;
-    case SA_SUICIDE:
-    default:
-        break;
-    @}
-
-    R_RunExitFinalizers();
-    /* clean up after the editor e.g. CleanEd() */
-
-    if((tmpdir = getenv("R_SESSION_TMPDIR"))) @{
-        char buf[1024]
-        snprintf((char *)buf, 1024, "rm -rf %s", tmpdir);
-        R_system((char *)buf);
-    @}
-
-    /* close all the graphics devices */
-    if(saveact != SA_SUICIDE) KillAllDevices();
-    fpu_setup(FALSE);
-
-    exit(status);    
-@}
-@end smallexample
-@end deftypefun
-
-
-@node Meshing event loops,  , Setting R callbacks, Embedding R under Unix-alikes
-@subsection Meshing event loops
-
-One of the most difficult issues in interfacing @R{} to a front-end is
-the handling of event loops, at least if a single thread is used.  @R{}
-uses events and timers for
-
-@itemize
-@item 
-Running X11 windows such as the graphics device and data editor, and
-interacting with them (e.g. using @code{locator()}).
-
-@item
-Supporting Tcl/Tk events for the @pkg{tcltk} package.
-
-@item
-Preparing input.
-
-@item
-Timing operations, for example for profiling @R{} code and
-@code{Sys.sleep()}.
-
-@item
-Interrupts, where permitted.
-@end itemize
-
-@noindent
-Specifically, the Unix command-line version of @R{} runs separate event
-loops for
-
-@itemize
-@item
-Preparing input at the console command-line, in file
-@file{src/unix/sys-unix.c}.
-
-@item
-Waiting for a response from a socket in the internal functions
-underlying FTP and HTTP transfers in @code{download.file()} and for
-direct socket access, in files @file{src/modules/internet/nanoftp.c},
-@file{src/modules/internet/nanohttp.c} and
-@file{src/modules/internet/Rsock.c}
-
-@item
-Mouse and window events when displaying the X11-based dataentry window,
-in file @file{src/modules/X11/dataentry.c}.  This is regarded as
-@emph{modal}, and no other events are serviced whilst it is active.
-@end itemize
-
-There is a protocol for adding event handlers to the first two types of
-event loops, using types and functions declared in the header
-@code{<R_ext/eventloop.h>} and described in comments in file
-@file{src/unix/sys-std.c}.  It is possible to add (or remove) an input
-handler for events on a particular file descriptor, or to set a polling
-interval (@emph{via} @code{R_wait_usec}) and a function to be called
-periodically via @code{R_PolledEvents}: the polling mechanism is used by
-the @pkg{tcltk} package.
-
-An alternative front-end needs both to make provision for other @R{}
-events whilst waiting for input, and to ensure that it is not frozen out
-during events of the second type.  This is not handled very well in the
-existing examples.  The GNOME front-end runs its own handler for polled
-events by setting
-
-@smallexample
-extern int (*R_timeout_handler)();
-extern long R_timeout_val;
-
-      if (R_timeout_handler && R_timeout_val)
-          gtk_timeout_add(R_timeout_val, R_timeout_handler, NULL);
-      gtk_main ();
-@end smallexample
-
-@noindent
-whilst it is waiting for console input.  This obviously handles events
-for Gtk windows (such as the graphics device in the @pkg{gtkDevice}
-package), but not X11 events (such as the @code{X11()} device) or for
-other event handlers that might have been registered with @R{}.  It does
-not attempt to keep itself alive whilst @R{} is waiting on sockets.
-
+our GUI callbacks to be called during the @R{} mainloop.  That is
+covered by public header files in @R{} 2.1.0, but not in this release.
 
 
 @node Embedding R under Windows,  , Embedding R under Unix-alikes, Linking GUIs and other front-ends to R
@@ -6745,194 +6425,10 @@ with a little care).
 
 Examples of calling @code{R.dll} directly are provided in the directory
 @file{src/gnuwin32/front-ends}, including @code{Rproxy.dll} used by
-@code{StatConnector} and a simple command-line front end @file{rtest.c}
-whose code is
+@code{StatConnector} and a simple command-line front-end @file{rtest.c}.
+More details will be given in @R{} 2.1.0 which will have public header
+files documenting the interface.
 
-@smallexample
-#define Win32
-#include <windows.h>
-#include <stdio.h>
-#include <Rversion.h>
-#include <R_ext/RStartup.h>
-/* for askok and askyesnocancel */
-#include "graphapp/graphapp.h"
-
-/* for signal-handling code */
-#include <psignal.h>
-
-void R_Suicide(char*); /* In Rinterface.h */
-void R_CleanUp(SA_TYPE, int, int); /* from Startup.h */
-
-/* one way to allow user interrupts: called in ProcessEvents */
-__declspec(dllimport) int UserBreak;
-
-/* calls into the R DLL */
-extern char *getDLLVersion(), *getRUser(), *get_R_HOME();
-extern void R_DefParams(Rstart), R_SetParams(Rstart), R_setStartTime();
-extern void setup_term_ui(void), ProcessEvents(void);
-extern void run_Rmainloop(void), end_Rmainloop(void), R_ReplDLLinit(void);
-extern int R_ReplDLLdo1();
-
-/* simple input, simple output */
-
-/* This version blocks all events: a real one needs to call ProcessEvents
-   frequently. See rterm.c and ../system.c for one approach using
-   a separate thread for input.
-*/
-int myReadConsole(char *prompt, char *buf, int len, int addtohistory)
-@{
-    fputs(prompt, stdout);
-    fflush(stdout);
-    if(fgets(buf, len, stdin)) return 1; else return 0;
-@}
-
-void myWriteConsole(char *buf, int len)
-@{
-    printf("%s", buf);
-@}
-
-void myCallBack()
-@{
-    /* called during i/o, eval, graphics in ProcessEvents */
-@}
-
-void myBusy(int which)
-@{
-    /* set a busy cursor ... if which = 1, unset if which = 0 */
-@}
-
-static void my_onintr(int sig) @{ UserBreak = 1; @}
-
-int main (int argc, char **argv)
-@{
-    structRstart rp;
-    Rstart Rp = &rp;
-    char Rversion[25], *RHome;
-
-    sprintf(Rversion, "%s.%s", R_MAJOR, R_MINOR);
-    if(strcmp(getDLLVersion(), Rversion) != 0) @{
-        fprintf(stderr, "Error: R.DLL version does not match\n");
-        exit(1);
-    @}
-
-    R_setStartTime();
-    R_DefParams(Rp);
-    if((RHome = get_R_HOME()) == NULL) @{
-         fprintf(stderr, "R_HOME must be set in the environment or Registry\n");
-         exit(1);
-    @}
-    Rp->rhome = RHome;
-    Rp->home = getRUser();
-    Rp->CharacterMode = LinkDLL;
-    Rp->ReadConsole = myReadConsole;
-    Rp->WriteConsole = myWriteConsole;
-    Rp->CallBack = myCallBack;
-    Rp->ShowMessage = askok;
-    Rp->YesNoCancel = askyesnocancel;
-    Rp->Busy = myBusy;
-
-    Rp->R_Quiet = TRUE;
-    Rp->R_Interactive = FALSE;
-    Rp->RestoreAction = SA_RESTORE;
-    Rp->SaveAction = SA_NOSAVE;
-    R_SetParams(Rp); /* so R_ShowMessage is set */
-    R_SizeFromEnv(Rp);
-    R_SetParams(Rp);
-    R_set_command_line_arguments(argc, argv);
-
-    FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE));
-
-    signal(SIGBREAK, my_onintr);
-    setup_term_ui(); /* initialize graphapp, eventloop, read Rconsole */ 
-    setup_Rmainloop();
-#ifdef SIMPLE_CASE
-    run_Rmainloop();
-    end_Rmainloop();
-#else
-    R_ReplDLLinit();
-    while(R_ReplDLLdo1() > 0) @{
-/* add user actions here if desired */
-    @}
-/* only get here on EOF (not q()) */
-    R_CleanUp(SA_DEFAULT, 0, 1);
-#endif
-    end_Rmainloop();
-    return 0;
-@}
-@end smallexample
-
-The ideas are
-
-@itemize
-@item
-Check that the front-end and the linked @code{R.dll} match -- other
-front-ends may allow a looser match.
-
-@item
-Find and set the @R{} home directory and the user's home directory.  The
-former may be available from the Windows Registry: it will normally be
-in @code{HKEY_LOCAL_MACHINE\Software\R-core\R\InstallPath} and can be
-set there by running the program @code{R_HOME\bin\RSetReg.exe}.
-
-@item
-Define startup conditions and callbacks via the @code{Rstart} structure.
-@code{R_DefParams} sets the defaults, and @code{R_SetParams} sets
-updated values.
-
-@item
-Record the command-line arguments used by
-@code{R_set_command_line_arguments} for use by the @R{} function 
-@code{commandArgs()}.
-
-@item
-Set up the signal handler and the basic user interface.
-
-@item
-Run the main @R{} loop, possibly with our actions intermeshed.
-
-@item
-Arrange to clean up.
-@end itemize
-
-An underlying theme is the need to keep the GUI `alive', and this has
-not been done in this example.  The @R{} callback @code{ProcessEvents}
-needs to be called frequently to ensure that Windows events in @R{}
-windows are handled expeditiously.  Conversely, @R{} needs to allow the
-GUI code (which is running in the same process) to update itself as
-needed -- two ways are provided to allow this:
-
-@itemize
-@item
-@code{ProcessEvents} calls the callback registered by
-@code{Rp->callback}.  A version of this is used to run package Tcl/Tk
-for @pkg{tcltk} under Windows, for the code is
-@smallexample
-void R_ProcessEvents(void)
-@{
-    while (peekevent()) doevent(); /* Windows events for GraphApp */
-    if (UserBreak) @{ UserBreak = FALSE; onintr(); @}
-    R_CallBackHook();
-    if(R_tcldo) R_tcldo();
-@}
-@end smallexample
-
-@item
-The mainloop can be split up to allow the calling application to take
-some action after each line of input has been dealt with: see the
-alternative code below @code{#ifdef SIMPLE_CASE}.
-@end itemize
-
-It may be that no @R{} GraphApp windows need to be considered, although
-these include pagers, the @code{windows()} graphics device, the @R{}
-data and script editors and various popups such as @code{choose.file()}
-and @code{select.list()}.  It would be possible to replace all of these,
-but it seems easier to allow GraphApp to handle most of them.
-
-It is possible to run @R{} in a GUI in a single thread (as
-@file{RGui.exe} shows) but it will normally be easier@footnote{An
-attempt to use only threads in the late 1990s failed to work correctly
-under Windows 95, the predominant version of Windows at that time.} to
-use multiple threads.
 
 @node R (internal) programming miscellanea, R coding standards, Linking GUIs and other front-ends to R, Top
 @appendix R (internal) programming miscellanea
