@@ -33,7 +33,7 @@
  *    by W. Fullerton of Los Alamos Scientific Laboratory.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 /* FIXME: We need an ifdef'ed version of this which gives  */
 /* the exact values when we are using IEEE 754 arithmetic. */

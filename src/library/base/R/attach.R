@@ -1,14 +1,5 @@
-attach <- function(what, pos=2, name=deparse(substitute(what))){
-    if (is.character(what) && (length(what)==1)){
-        if (!file.exists(what))
-            stop(paste("File",what," not found.",sep=""))
-        name<-paste("file:",what,sep="")
-        .Internal(attach(NULL,pos,name))
-        load(what,envir=pos.to.env(pos))
-    }
-    else
-        .Internal(attach(what, pos, name))
-}
+attach <- function(what, pos=2, name=deparse(substitute(what)))
+    .Internal(attach(what, pos, name))
 
 detach <- function(name, pos=2)
 {

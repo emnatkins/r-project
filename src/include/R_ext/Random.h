@@ -34,8 +34,7 @@ typedef enum {
 typedef enum {
     KINDERMAN_RAMAGE,
     AHRENS_DIETER,
-    BOX_MULLER,
-    USER_NORM
+    BOX_MULLER
 } N01type;
 
 
@@ -53,5 +52,4 @@ void user_unif_init(Int32);
 int * user_unif_nseed();
 int * user_unif_seedloc();
 
-double * user_norm_rand();
 #endif

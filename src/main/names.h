@@ -48,7 +48,6 @@ SEXP do_X11(SEXP, SEXP, SEXP, SEXP);
 SEXP do_PS(SEXP, SEXP, SEXP, SEXP);
 SEXP do_PicTeX(SEXP, SEXP, SEXP, SEXP);
 SEXP do_Gnome(SEXP, SEXP, SEXP, SEXP);
-SEXP do_XFig(SEXP, SEXP, SEXP, SEXP);
 
 /* Function Names */
 
@@ -110,7 +109,6 @@ SEXP do_c(SEXP, SEXP, SEXP, SEXP);
 SEXP do_call(SEXP, SEXP, SEXP, SEXP);
 SEXP do_cat(SEXP, SEXP, SEXP, SEXP);
 SEXP do_charmatch(SEXP, SEXP, SEXP, SEXP);
-SEXP do_chartr(SEXP, SEXP, SEXP, SEXP);
 SEXP do_class(SEXP, SEXP, SEXP, SEXP);
 SEXP do_classgets(SEXP, SEXP, SEXP, SEXP);
 SEXP do_colors(SEXP, SEXP, SEXP, SEXP);
@@ -253,9 +251,6 @@ SEXP do_pause(SEXP, SEXP, SEXP, SEXP);
 SEXP do_persp(SEXP, SEXP, SEXP, SEXP);
 SEXP do_polyroot(SEXP, SEXP, SEXP, SEXP);
 SEXP do_pos2env(SEXP, SEXP, SEXP, SEXP);
-#ifdef HAVE_TIMES
-SEXP do_proctime(SEXP, SEXP, SEXP, SEXP);
-#endif
 SEXP do_abline(SEXP, SEXP, SEXP, SEXP);
 SEXP do_plot_xy(SEXP, SEXP, SEXP, SEXP);
 SEXP do_plot_new(SEXP, SEXP, SEXP, SEXP);
@@ -331,8 +326,9 @@ SEXP do_tempfile(SEXP, SEXP, SEXP, SEXP);
 SEXP do_termsform(SEXP, SEXP, SEXP, SEXP);
 SEXP do_text(SEXP, SEXP, SEXP, SEXP);
 SEXP do_tilde(SEXP, SEXP, SEXP, SEXP);
-SEXP do_tolower(SEXP, SEXP, SEXP, SEXP);
-SEXP do_toupper(SEXP, SEXP, SEXP, SEXP);
+#ifdef HAVE_TIMES
+SEXP do_proctime(SEXP, SEXP, SEXP, SEXP);
+#endif
 SEXP do_transpose(SEXP, SEXP, SEXP, SEXP);
 SEXP do_typecvt(SEXP, SEXP, SEXP, SEXP);
 SEXP do_typeof(SEXP, SEXP, SEXP, SEXP);

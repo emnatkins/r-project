@@ -32,15 +32,7 @@ getOption(x)
     on UNIX.}
 
   \item{pager}{the (stand-alone) program used for displaying ASCII files on
-    \R's console.
-#ifdef unix
-   Defaults to \file{\$R\_HOME/bin/pager}.
-#endif
-#ifdef windows
-   Defaults to \code{"internal"}, which uses a pager similar to the GUI
-   console. Another possibility is \code{"console"} to use the console itself.
-#endif
-  }
+    \R's console.  Defaults to \file{\$R\_HOME/bin/pager} on UNIX.}
 
   \item{browser}{default HTML browser used by \code{\link{help.start}()}
     on UNIX.}
@@ -66,14 +58,13 @@ getOption(x)
   \item{na.action}{the name of a function for treating missing values
     (\code{\link{NA}}'s) for certain situations.}
 
-  \item{papersize}{the default paper format used by \code{\link{postscript}};
-    set by environment variable \code{R_PAPERSIZE} when \R is started
-    and defaulting to \code{"a4"} if that is unset or invalid.}
+  \item{papersize}{the paper format used for graphics printing; currently
+    \bold{read-only}, set by environment variable \code{R_PAPERSIZE}, or in
+    \file{config.site}.}
 
-  \item{printcmd}{the command used by \code{\link{postscript}} for
-    printing; set by environment variable \code{R_PRINTCMD} when \R is
-    started. This should be a command that expects either input to be piped
-    to \file{stdin} or to be given a single filename argument.}
+  \item{printcmd}{the command used for graphics printing; currently
+    \bold{read-only}, set by environment variable \code{R_PRINTCMD}, or in
+    \file{config.site}.}
 #ifdef unix
   \item{latexcmd, dvipscmd}{character strings giving commands to be used
     in off-line printing of help pages.}

@@ -33,7 +33,7 @@
 
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 
 static double ***w;
@@ -76,11 +76,11 @@ w_init_maybe(int m, int n)
 	n = imax2(n, WILCOX_MAX);
 	w = (double ***) calloc(m + 1, sizeof(double **));
 	if (!w)
-	    MATHLIB_ERROR("wilcox allocation error %d", 1);
+	    error("wilcox allocation error 1");
 	for (i = 0; i <= m; i++) {
 	    w[i] = (double **) calloc(n + 1, sizeof(double *));
 	    if (!w[i])
-		MATHLIB_ERROR("wilcox allocation error %d", 2);
+		error("wilcox allocation error 2");
 	}
     }
 }

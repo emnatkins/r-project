@@ -17,7 +17,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 double fmin2(double x, double y)
 {

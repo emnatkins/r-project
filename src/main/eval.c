@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995, 1996	Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2000	The R Development Core Team.
+ *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
+ *  Copyright (C) 1998-2000   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -59,8 +59,7 @@ SEXP eval(SEXP e, SEXP rho)
     /* too complex error" is quite likely. */
 
     int depthsave = R_EvalDepth++;
-
-    if (R_EvalDepth > R_Expressions)
+    if (R_EvalDepth > asInteger(GetOption(install("expressions"), rho)))
 	error("evaluation is nested too deeply: infinite recursion?");
 #ifdef Macintosh
     /* check for a user abort */
@@ -750,7 +749,7 @@ static char *asym[] = {":=", "<-", "<<-"};
 
 static SEXP applydefine(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP expr, lhs, rhs, saverhs, tmp, tmp2, tmploc;
+    SEXP expr, lhs, rhs, saverhs, tmp, tmp2, tmploc, tmpsym;
     char buf[32];
 
     expr = CAR(args);
@@ -779,13 +778,14 @@ static SEXP applydefine(SEXP call, SEXP op, SEXP args, SEXP rho)
 	in the computation.  For efficiency reasons we record the
 	location where this variable is stored.  */
 
+    tmpsym = install("*tmp*");
     if (rho == R_NilValue)
 	errorcall(call, "cannot do complex assignments in NULL environment");
-    defineVar(R_TmpvalSymbol, R_NilValue, rho);
-    tmploc = findVarLocInFrame(rho, R_TmpvalSymbol);
+    defineVar(tmpsym, R_NilValue, rho);
+    tmploc = findVarLocInFrame(rho, tmpsym);
 #ifdef OLD
     tmploc = FRAME(rho);
-    while(tmploc != R_NilValue && TAG(tmploc) != R_TmpvalSymbol)
+    while(tmploc != R_NilValue && TAG(tmploc) != tmpsym)
 	tmploc = CDR(tmploc);
 #endif
 
@@ -817,7 +817,7 @@ static SEXP applydefine(SEXP call, SEXP op, SEXP args, SEXP rho)
 			      install(buf), TAG(tmploc), CDDR(expr), tmp));
     expr = eval(expr, rho);
     UNPROTECT(5);
-    unbindVar(R_TmpvalSymbol, rho);
+    unbindVar(tmpsym, rho);
     return duplicate(saverhs);
 }
 
@@ -1220,8 +1220,8 @@ int DispatchOrEval(SEXP call, SEXP op, SEXP args, SEXP rho,
 
 
 /* gr needs to be protected on return from this function */
-static void findmethod(SEXP class, char *group, char *generic,
-		       SEXP *sxp,  SEXP *gr, SEXP *meth, int *which,
+static void findmethod(SEXP class, char *group, char *generic, 
+		       SEXP *sxp,  SEXP *gr, SEXP *meth, int *which, 
 		       char *buf, SEXP rho)
 {
     int len, whichclass;
@@ -1324,7 +1324,7 @@ int DispatchGroup(char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 	    lwhich=rwhich;
 	    strcpy(lbuf, rbuf);
 	}
-    }
+    }   
 
     /* we either have a group method or a class method */
 

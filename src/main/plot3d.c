@@ -493,7 +493,7 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, double zc,
     double xStart, yStart;
     double dx, dy, dxy;
     double labelHeight;
-    SEXP label1 = allocVector(REALSXP, 8);
+    SEXP label1 = PROTECT(allocVector(REALSXP, 8));
     SEXP label2;
     SEXP lab;
     int gotLabel = 0;
@@ -924,7 +924,8 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, double zc,
 			    FindCorners(labelDistance, labelHeight, label2,
 					xxx[index], yyy[index], 
 					xxx[index+range], yyy[index+range], dd);
-			    labelList = CONS(label2, labelList);
+			    UNPROTECT_PTR(labelList);
+			    labelList = PROTECT(CONS(label2, labelList));
 			    
 			    ddl = 0;
 			    /* draw an extra bit of segment if the label
@@ -1014,7 +1015,10 @@ static void contour(SEXP x, int nx, SEXP y, int ny, SEXP z, double zc,
 		C_free((char *) yyy);
 	    }
 	}
-}
+    UNPROTECT_PTR(label1); /* pwwwargh! This is messy, but last thing
+			      protected is likely labelList, and that needs
+			      to be preserved across calls */
+ }
 
 /* contour(x,y,z, levels, col, lty) */
 
@@ -1163,7 +1167,7 @@ SEXP do_contour(SEXP call, SEXP op, SEXP args, SEXP env)
     colsave = dd->gp.col;
     lwdsave = dd->gp.lwd;
     cexsave = dd->gp.cex;
-    labelList = R_NilValue;
+    labelList = PROTECT(R_NilValue);
     GMode(1, dd);
     for (i = 0; i < nc; i++) {
 	vmax = vmaxget();
@@ -1188,7 +1192,7 @@ SEXP do_contour(SEXP call, SEXP op, SEXP args, SEXP env)
     dd->gp.col = colsave;
     dd->gp.lwd = lwdsave;
     dd->gp.cex = cexsave;
-    UNPROTECT(4);
+    UNPROTECT(5);
     /* NOTE: only record operation if no "error"  */
     /* NOTE: on replay, call == R_NilValue */
     if (call != R_NilValue)
@@ -1420,14 +1424,14 @@ SEXP do_filledcontour(SEXP call, SEXP op, SEXP args, SEXP env)
 	/*  I m a g e   R e n d e r i n g  */
 
 
-/* image(x, y, z, col, breaks) */
+/* image(x, y, z, zlim, col) */
 SEXP do_image(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP oargs, sx, sy, sz, sc;
-    double *x, *y;
-    int *z, tmp;
+    SEXP oargs, sx, sy, sz, szlim, sc;
+    double *x, *y, *z;
     unsigned *c;
-    int i, j, nx, ny, nc, colsave, xpdsave;
+    double xlow, zmin = 0., zmax = 0.;
+    int i, j, nx, ny, nz, ic, nc, colsave, xpdsave;
     DevDesc *dd = CurrentDevice();
 
     GCheckState(dd);
@@ -1446,17 +1450,38 @@ SEXP do_image(SEXP call, SEXP op, SEXP args, SEXP env)
     args = CDR(args);
 
     sz = CAR(args);
-    internalTypeCheck(call, sz, INTSXP);
+    internalTypeCheck(call, sz, REALSXP);
+    nz = length(sz);
     args = CDR(args);
 
-    PROTECT(sc = FixupCol(CAR(args), NA_INTEGER));   
-    nc = LENGTH(sc);
+    szlim = CAR(args);
+    internalTypeCheck(call, szlim, REALSXP);
+    if (length(szlim) != 2 ||
+       !R_FINITE(REAL(szlim)[0]) ||
+       !R_FINITE(REAL(szlim)[1]) ||
+       (zmin = REAL(szlim)[0]) > (zmax = REAL(szlim)[1]))
+	errorcall(call, "invalid z limits");
+    if(zmin == zmax) {/* fix them up, as in graphics.c's GScale(): */
+	if(zmin == 0) {
+	    zmin = -1;
+	    zmax =  1;
+	}
+	else {
+	    xlow = .4 * fabs(zmin);
+	    zmin -= xlow;
+	    zmax += xlow;
+	}
+    }
+    args = CDR(args);
+
+    PROTECT(sc = FixupCol(CAR(args), NA_INTEGER));
+    nc = length(sc);
 
     /* Shorthand Pointers */
 
     x = REAL(sx);
     y = REAL(sy);
-    z = INTEGER(sz);
+    z = REAL(sz);
     c = (unsigned*)INTEGER(sc);
 
     /* Check of grid coordinates */
@@ -1476,13 +1501,13 @@ SEXP do_image(SEXP call, SEXP op, SEXP args, SEXP env)
     dd->gp.xpd = 0;
 
     GMode(1, dd);
-    
+
     for (i = 0; i < nx - 1 ; i++) {
 	for (j = 0; j < ny - 1; j++) {
-	    tmp = z[i + j * (nx - 1)];
-	    if (tmp >= 0 && tmp < nc && tmp != NA_INTEGER)
-		GRect(x[i], y[j], x[i+1], y[j+1], USER, c[tmp], 
-		      NA_INTEGER, dd);
+	    if (R_FINITE(z[i + j * (nx - 1)])) {
+		ic = floor((nc - 1) * (z[i + j * (nx-1)]-zmin)/(zmax - zmin) + 0.5);
+		GRect(x[i], y[j], x[i+1], y[j+1], USER, c[ic], NA_INTEGER, dd);
+	    }
 	}
     }
     GMode(0, dd);
@@ -1914,8 +1939,7 @@ static void PerspAxis(double *x, double *y, double *z,
 		      char *label, DevDesc *dd) {
     Vector3d u1, u2, u3, v1, v2, v3;
     double tickLength = .03; /* proportion of axis length */
-    double min, max;
-    double *range = NULL; /* -Wall */
+    double min, max, *range;
     double axp[3];
     int nint, i;
     SEXP at, lab;

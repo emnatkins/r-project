@@ -4,7 +4,7 @@
  *=========== was part of	ribesl (Bessel I(.))
  *===========			~~~~~~
  */
-#include "nmath.h"
+#include "Mathlib.h"
 
 double gamma_cody(double x)
 {

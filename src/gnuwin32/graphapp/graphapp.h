@@ -283,7 +283,7 @@ void	setrgb(rgb c);
 
 #define DarkBlue	0x00000080UL
 #define DarkGreen	0x00008000UL
-#define DarkRed		0x008B0000UL
+#define DarkRed		0x00800000UL
 #define LightBlue	0x0080C0FFUL
 #define LightGreen	0x0080FF80UL
 #define LightRed	0x00FFC0FFUL
@@ -687,7 +687,6 @@ char *	askpassword(char *question, char *default_string);
 char *	askcdstring(char *question, char *default_string);
 char *	askfilename(char *title, char *default_name);
 char *	askfilesave(char *title, char *default_name);
-char *	askfilesavewithdir(char *title, char *default_name, char *dir);
 
 /*
  *  Time functions.

@@ -1,7 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995, 1996	Robert Gentleman and Ross Ihaka
- *  Copyright (C) 2000		The R Development Core Team.
+ *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -54,8 +53,8 @@ static void printLogicalMatrix(SEXP sx, int offset, int r, int c,
 
     if (rn) {
 	rnw = strlen(rn);
-	if ( rnw < rlabw + R_MIN_LBLOFF )
-	    lbloff = R_MIN_LBLOFF;
+	if ( rnw < rlabw + MIN_LBLOFF )
+	    lbloff = MIN_LBLOFF;
 	else
 	    lbloff = rnw - rlabw;
 
@@ -122,8 +121,8 @@ static void printIntegerMatrix(SEXP sx, int offset, int r, int c,
 
     if (rn) {
 	rnw = strlen(rn);
-	if ( rnw < rlabw + R_MIN_LBLOFF )
-	    lbloff = R_MIN_LBLOFF;
+	if ( rnw < rlabw + MIN_LBLOFF )
+	    lbloff = MIN_LBLOFF;
 	else
 	    lbloff = rnw - rlabw;
 
@@ -190,8 +189,8 @@ static void printRealMatrix(SEXP sx, int offset, int r, int c,
 
     if (rn) {
 	rnw = strlen(rn);
-	if ( rnw < rlabw + R_MIN_LBLOFF )
-	    lbloff = R_MIN_LBLOFF;
+	if ( rnw < rlabw + MIN_LBLOFF )
+	    lbloff = MIN_LBLOFF;
 	else
 	    lbloff = rnw - rlabw;
 
@@ -264,8 +263,8 @@ static void printComplexMatrix(SEXP sx, int offset, int r, int c,
 
     if (rn) {
 	rnw = strlen(rn);
-	if ( rnw < rlabw + R_MIN_LBLOFF )
-	    lbloff = R_MIN_LBLOFF;
+	if ( rnw < rlabw + MIN_LBLOFF )
+	    lbloff = MIN_LBLOFF;
 	else
 	    lbloff = rnw - rlabw;
 
@@ -292,7 +291,7 @@ static void printComplexMatrix(SEXP sx, int offset, int r, int c,
     /* Determine the column widths */
 
     for (j = 0; j < c; j++) {
-	formatComplex(&x[j * r], r,
+	formatComplex(&x[j * r], r, 
 		      &wr[j], &dr[j], &er[j],
 		      &wi[j], &di[j], &ei[j]);
 	if (!isNull(cl))
@@ -331,7 +330,7 @@ static void printComplexMatrix(SEXP sx, int offset, int r, int c,
 		if (ISNA(x[i + j * r].r) || ISNA(x[i + j * r].i))
 		    Rprintf("%s", EncodeReal(NA_REAL, w[j], 0, 0));
 		else
-		    Rprintf("%s",
+		    Rprintf("%s", 
 			    EncodeComplex(x[i + j * r],
 					  wr[j] + R_print.gap, dr[j], er[j],
 					  wi[j], di[j], ei[j]));
@@ -359,8 +358,8 @@ static void printStringMatrix(SEXP sx, int offset, int r, int c,
 
     if (rn) {
 	rnw = strlen(rn);
-	if ( rnw < rlabw + R_MIN_LBLOFF )
-	    lbloff = R_MIN_LBLOFF;
+	if ( rnw < rlabw + MIN_LBLOFF )
+	    lbloff = MIN_LBLOFF;
 	else
 	    lbloff = rnw - rlabw;
 

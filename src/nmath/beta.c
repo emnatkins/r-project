@@ -35,7 +35,7 @@
  *    conform to the IEEE 754 standard.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 double beta(double a, double b)
 {

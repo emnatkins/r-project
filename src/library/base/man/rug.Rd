@@ -1,7 +1,7 @@
 \name{rug}
 \title{Add a Rug to a Plot}
 \usage{
-rug(x, ticksize=0.03, side=1, lwd=0.5, col)
+rug(x, ticksize=0.03, side=1, lwd=0.5)
 }
 \alias{rug}
 \arguments{
@@ -11,7 +11,6 @@ rug(x, ticksize=0.03, side=1, lwd=0.5, col)
  \item{side}{On which side of the plot box the rug will be
    plotted. Normally 1 (bottom) or 3 (top).}
  \item{lwd}{The line width of the ticks.}
- \item{col}{The colour the ticks are plotted in, default is black.}
 }
 \description{
   Adds a \emph{rug} representation (1-d plot) of the data to the plot.
@@ -21,10 +20,6 @@ rug(x, ticksize=0.03, side=1, lwd=0.5, col)
   that fall within the plot region are included. There will be a
   warning if any finite values are omitted, bu non-finite values are
   omitted silently.
-
-  Because of the way colours are done the axis itself is coloured the
-  same as the ticks. You can always replot the box in black if you don't
-  like this feature.
 }
 \author{B. D. Ripley}
 \seealso{\code{\link{jitter}} which you may want for ties in \code{x}.}

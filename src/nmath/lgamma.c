@@ -38,7 +38,7 @@
  *    library.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 int signgam;
 

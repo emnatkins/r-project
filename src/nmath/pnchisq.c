@@ -8,7 +8,7 @@
  *  parameter theta
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 
 /*----------- DEBUGGING -------------

@@ -42,7 +42,7 @@
  *    parameter p/(1-p).  Return a Poisson deviate with mean lambda.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 double rnbinom(double n, double p)
 {

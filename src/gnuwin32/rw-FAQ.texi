@@ -410,13 +410,11 @@ variable in the global environment.
 There is only one graphics history shared by all the windows devices.'
 @end quotation
 @noindent
-The R console and graphics windows have configuration files stored in
-the @file{RHOME\etc} directory called @file{Rconsole} and @file{Rdevga};
-you can keep personal copies in your @file{HOME} directory. They contain
-comments which should suffice for you to edit them to your
-preferences. For more details see @code{?Rconsole}.  From @code{rw1010}
-there is a Preferences editor invoked from the @code{Edit} menu which
-can be used to edit the file @file{Rconsole}.
+The R console and graphics windows have configuration files stored in the
+@file{RHOME\etc} directory called @file{Rconsole} and @file{Rdevga}; you can
+keep personal copies in your @file{HOME} directory. They contain comments which
+should suffice for you to edit them to your preferences. For more details
+see @code{?Rconsole}.
 
 @newchap{}
 @node Workspaces, The R Console and Fonts, Windows Features, Top

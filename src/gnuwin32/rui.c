@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
- *  Copyright (C) 1998--1999  Guido Masarotto and Brian Ripley
+ *  Copyright (C) 1998--2000  Guido Masarotto and Brian Ripley
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,8 +45,8 @@ static window RFrame;
 extern int ConsoleAcceptCmd;
 static menubar RMenuBar;
 static menuitem msource, mdisplay, mload, msave, mpaste, mcopy, 
-    mcopypaste, mlazy, mconfig,
-    mls, mrm, msearch, mhelp, mmanintro, mmanref, 
+    mcopypaste, mlazy;
+static menuitem mls, mrm, msearch, mhelp, mmanintro, mmanref, 
     mmanext, mapropos, mhelpstart;
 static int lhelpstart, lmanintro, lmanref, lmanext;
 static menu m, mman;
@@ -181,12 +181,6 @@ static void menucopypaste(control m)
 	consolepaste(RConsole);
     } else
 	askok("No selection");
-    show(RConsole);
-}
-
-static void menuconfig(control m)
-{
-    Rgui_configure();
     show(RConsole);
 }
 
@@ -533,6 +527,7 @@ static void popupact(control m)
 	disable(ConsolePopup[1].m);
 }
 
+
 int setupui()
 {
     initapp(0, 0);
@@ -623,9 +618,6 @@ int setupui()
     MCHECK(mcopypaste = newmenuitem("Copy And Paste  \tCTRL+X", 
 				    0, menucopypaste));
     MCHECK(newmenuitem("Select all", 0, menuselectall));
-    MCHECK(newmenuitem("-", 0, NULL));
-    MCHECK(mconfig = newmenuitem("GUI preferences", 0, menuconfig));
-
     MCHECK(newmenu("Misc"));
     MCHECK(newmenuitem("Stop current computation           \tESC", 0, menukill));
     MCHECK(newmenuitem("-", 0, NULL));
@@ -663,14 +655,6 @@ int setupui()
     show(RConsole);
     return 1;
 }
-
-static RECT RframeRect; /* for use by pagercreate */
-RECT *RgetMDIsize()
-{
-    GetClientRect(hwndClient, &RframeRect);
-    return &RframeRect;
-}
-
 
 extern int  CharacterMode;
 int DialogSelectFile(char *buf, int len)

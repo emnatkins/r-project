@@ -189,11 +189,6 @@ void InitMemory()
     CDR(&R_NHeap[R_NSize - 1]) = NULL;
     R_FreeSEXP = &R_NHeap[0];
 
-#if 0 
-
-/* This can't be right! R_NilValue is defined by the first allocSExp
-   call so is undefined here -pd Apr 1, 2000 */
-
     /* This is not making the mess smaller, but it has to be done
        somewhere between the creation of R_NilValue and the first
        garbage collection... -pd */
@@ -204,12 +199,6 @@ void InitMemory()
        will persist across garbage collects... -ihaka */
 
     R_PreciousList =  R_NilValue;
-
-#endif
-
-    /* unmark all nodes to preserver the invariant */
-    /* not really needed as long as allocSExp unmarks on allocation */
-    unmarkPhase();
 }
 
 
@@ -417,20 +406,27 @@ SEXP allocList(int n)
 
 void R_gc(void)
 {
+#ifdef HAVE_SIGLONGJMP
+    sigset_t mask, omask;
+#endif
     int vcells;
     double vfrac;
 
     gc_count++;
     if (gc_reporting)
 	REprintf("Garbage collection [nr. %d]...", gc_count);
-
-    BEGIN_SUSPEND_INTERRUPTS {
-      /* unmarkPhase(); */ 
-      markPhase();
-      compactPhase();
-      scanPhase();
-    } END_SUSPEND_INTERRUPTS;
-
+#ifdef HAVE_SIGLONGJMP
+    sigemptyset(&mask);
+    sigaddset(&mask,SIGINT);
+    sigprocmask(SIG_BLOCK, &mask, &omask);
+#endif
+    unmarkPhase();
+    markPhase();
+    compactPhase();
+    scanPhase();
+#ifdef HAVE_SIGLONGJMP
+    sigprocmask(SIG_SETMASK, &omask, &mask);
+#endif
     if (gc_reporting) {
 	REprintf("\n%ld cons cells free (%ld%%)\n",
 		 R_Collected, (100 * R_Collected / R_NSize));
@@ -446,7 +442,8 @@ SEXP do_memoryprofile(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, nms;
     int i;
-
+    unmarkPhase();
+    markPhase();
     PROTECT(ans = allocVector(INTSXP, 21));
     PROTECT(nms = allocVector(STRSXP, 21));
     for (i = 0; i < 21; i++) {
@@ -472,15 +469,10 @@ SEXP do_memoryprofile(SEXP call, SEXP op, SEXP args, SEXP env)
     STRING(nms)[ANYSXP]     = mkChar("ANYSXP");
     STRING(nms)[VECSXP]     = mkChar("VECSXP");
     STRING(nms)[EXPRSXP]    = mkChar("EXPRSXP");
-    setAttrib(ans, R_NamesSymbol, nms);
-
-    BEGIN_SUSPEND_INTERRUPTS {
-    markPhase();
     for (i = 0; i < R_NSize; i++)
 	if(MARK(&R_NHeap[i]))
             INTEGER(ans)[TYPEOF(&R_NHeap[i])] += 1;
-    unmarkPhase(); /* could be done smarter */
-    } END_SUSPEND_INTERRUPTS;
+    setAttrib(ans, R_NamesSymbol, nms);
     UNPROTECT(2);
     return ans;
 }
@@ -489,9 +481,9 @@ SEXP do_memoryprofile(SEXP call, SEXP op, SEXP args, SEXP env)
 
 void unmarkPhase(void)
 {
-    int i; SEXP p = R_NHeap;
-    for (i = R_NSize; i-- ; )
-	MARK(p++) = 0;
+    int i;
+    for (i = 0; i < R_NSize; i++)
+	MARK(&R_NHeap[i]) = 0;
 }
 
 
@@ -509,7 +501,7 @@ void markPhase(void)
     markSExp(R_MissingArg);
     markSExp(R_CommentSxp);
 
-    markSExp(R_GlobalEnv);	           /* Global environment */
+    markSExp(R_GlobalEnv);	           /* Global environent */
     markSExp(R_Warnings);	           /* Warnings, if any */
 
     for (i = 0; i < HSIZE; i++)	           /* Symbol table */
@@ -539,7 +531,6 @@ void markPhase(void)
 void markSExp(SEXP s)
 {
     int i;
-    
     if (s && !MARK(s)) {
 	MARK(s) = 1;
 	if (ATTRIB(s) != R_NilValue)
@@ -640,22 +631,18 @@ void compactPhase(void)
 
 void scanPhase(void)
 {
-    register int i;
-    register SEXP p = R_NHeap, tmp = NULL;
+    int i;
 
-    tmp = NULL;
+    R_FreeSEXP = NULL;
     R_Collected = 0;
-    for (i = R_NSize; i--; ) {
-	if (!MARK(p)) {
+    for (i = 0; i < R_NSize; i++) {
+	if (!MARK(&R_NHeap[i])) {
 	    /* Call Destructors Here */
-	    CDR(p) = tmp;
-	    tmp = p++;
+	    CDR(&R_NHeap[i]) = R_FreeSEXP;
+	    R_FreeSEXP = &R_NHeap[i];
 	    R_Collected++;
-	} else {
-            MARK(p++) = 0;
-        }
+	}
     }
-    R_FreeSEXP = tmp;
 }
 
 
@@ -669,7 +656,8 @@ SEXP protect(SEXP s)
 {
     if (R_PPStackTop >= R_PPStackSize)
 	errorcall(R_NilValue,"protect(): stack overflow");
-    R_PPStack[R_PPStackTop++] = s;
+    R_PPStack[R_PPStackTop] = s;
+    R_PPStackTop++;
     return s;
 }
 
@@ -678,8 +666,8 @@ SEXP protect(SEXP s)
 
 void unprotect(int l)
 {
-    if (R_PPStackTop >=  l)
-	R_PPStackTop -= l;
+    if (R_PPStackTop > 0)
+	R_PPStackTop = R_PPStackTop - l;
     else
 	error("unprotect(): stack imbalance");
 }

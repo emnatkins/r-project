@@ -439,9 +439,6 @@ FUNTAB R_FunTab[] =
 {"sub",		do_gsub,	0,	11,	5,	PP_FUNCALL},
 {"gsub",	do_gsub,	1,	11,	5,	PP_FUNCALL},
 {"regexpr",	do_regexpr,	1,	11,	3,	PP_FUNCALL},
-{"tolower",	do_tolower,	1,	11,	1,	PP_FUNCALL},
-{"toupper",	do_toupper,	1,	11,	1,	PP_FUNCALL},
-{"chartr",	do_chartr,	1,	11,	3,	PP_FUNCALL},
 
 
 /* Type Checking */
@@ -584,7 +581,7 @@ FUNTAB R_FunTab[] =
 {"sink",	do_sink,	0,	111,	1,	PP_FUNCALL},
 {"lib.fixup",	do_libfixup,	0,	111,	2,	PP_FUNCALL},
 {"pos.to.env",	do_pos2env,	0,	1,	1,	PP_FUNCALL},
-{"lapply",	do_lapply,	0,	10,	2,	PP_FUNCALL},
+{"lapply",	do_lapply,	0,	11,	2,	PP_FUNCALL},
 {"apply",	do_apply,	0,	11,	3,	PP_FUNCALL},
 
 /* Functions To Interact with the Operating System */
@@ -618,11 +615,10 @@ FUNTAB R_FunTab[] =
 #else
 {"X11",		do_X11,		0,	111,	7,	PP_FUNCALL},
 #endif
-{"PS",		do_PS,		0,	111,   14,	PP_FUNCALL},
+{"PS",		do_PS,		0,	111,   11,	PP_FUNCALL},
 {"PicTeX",	do_PicTeX,	0,	111,	6,	PP_FUNCALL},
 {"Macintosh",	do_Macintosh,	0,	111,	4,	PP_FUNCALL},
 {"Gnome",       do_Gnome,       0,      111,    4,      PP_FUNCALL},
-{"XFig",	do_XFig,	0,	111,   12,	PP_FUNCALL},
 
 /* Graphics */
 
@@ -661,7 +657,7 @@ FUNTAB R_FunTab[] =
 {"strheight",	do_strheight,	0,	11,	3,	PP_FUNCALL},
 {"strwidth",	do_strwidth,	0,	11,	3,	PP_FUNCALL},
 {"contour",	do_contour,	0,	11,	12,	PP_FUNCALL},
-{"image",	do_image,	0,	11,	4,	PP_FUNCALL},
+{"image",	do_image,	0,	11,	5,	PP_FUNCALL},
 {"dend",	do_dend,	0,	111,	6,	PP_FUNCALL},
 {"dend.window",	do_dendwindow,	0,	111,	6,	PP_FUNCALL},
 {"replay",	do_replay,	0,	111,	0,	PP_FUNCALL},
@@ -721,7 +717,6 @@ int StrToInternal(char *s)
     return 0;
 }
 
-#ifdef OLD
 /* string hashing */
 int hashpjw(char *s)
 {
@@ -736,7 +731,6 @@ int hashpjw(char *s)
     }
     return h % HSIZE;
 }
-#endif
 
 static void installFunTab(int i)
 {
@@ -752,8 +746,6 @@ static void SymbolShortcuts()
 {
     R_Bracket2Symbol = install("[[");
     R_BracketSymbol = install("[");
-    R_BraceSymbol = install("{");
-    R_TmpvalSymbol = install("*tmp*");
     R_ClassSymbol = install("class");
     R_DimNamesSymbol = install("dimnames");
     R_DimSymbol = install("dim");
@@ -771,8 +763,6 @@ static void SymbolShortcuts()
     R_CommentSymbol = install("comment");
     R_SourceSymbol = install("source");
 }
-
-extern SEXP framenames;
 
 /* initialize the symbol table */
 void InitNames()
@@ -821,7 +811,6 @@ void InitNames()
 	installFunTab(i);
     /*  Unbound values which are to be preserved through GCs */
     R_PreciousList = R_NilValue;
-    framenames = R_NilValue;
 }
 
 
@@ -833,15 +822,14 @@ SEXP install(char *name)
 {
     char buf[MAXIDSIZE+1];
     SEXP sym;
-    int i, hashcode;
+    int i;
 
     if (*name == '\0')
 	error("attempt to use zero-length variable name");
     if (strlen(name) > MAXIDSIZE)
 	error("symbol print-name too long");
     strcpy(buf, name);
-    hashcode = R_Newhashpjw(buf);
-    i = hashcode % HSIZE;
+    i = hashpjw(buf);
     /* Check to see if the symbol is already present. */
     /* If it is return it. */
     for (sym = R_SymbolTable[i]; sym != R_NilValue; sym = CDR(sym))
@@ -849,8 +837,6 @@ SEXP install(char *name)
 	    return (CAR(sym));
     /* Create a new symbol node and link it into the table. */
     sym = mkSYMSXP(mkChar(buf), R_UnboundValue);
-    HASHVALUE(PRINTNAME(sym)) = hashcode;
-    HASHASH(PRINTNAME(sym)) = 1;
     R_SymbolTable[i] = CONS(sym, R_SymbolTable[i]);
     return (sym);
 }

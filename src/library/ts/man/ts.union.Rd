@@ -28,7 +28,6 @@ cbind.ts(..., dframe = FALSE, union = TRUE)
   A time series object if \code{dframe} is \code{FALSE}, otherwise
   a data frame.
 }
-\seealso{\code{\link{cbind}} for the generic.}
 \author{B. D. Ripley}
 \examples{
 data(UKLungDeaths)
