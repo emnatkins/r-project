@@ -1,0 +1,445 @@
+		CHANGES IN R VERSION 0.61.3
+
+NEW FEATURES
+
+    o   find(.) function [on wish of many...]
+
+BUG FIXES
+
+    o   Remove "Alpha" revision from opening blurb. Didn't make sense
+	with our development model
+
+    o   set SHELL=/bin/sh in Makefile and use $(MAKE). Avoid use of 
+	wildcards in $(MANSRC) for non-gnu "make" (notably Solaris).
+
+    o   rhyper gave wrong results in degenerate cases
+
+    o   Using get with pos=length(search()) or envir=NULL was
+	actually actually starting the search in .GlobalEnv.
+
+    o   first=0 (or negative) argument to substr() caused trouble.
+
+    o   1%o%1 would segfault
+
+    o   .Dyn.libs would linger in .RData causing code not to be dyn.loaded.
+	Now removed in .First(), if necessary
+
+    o	system.time() expression could not access local variables in
+	functions.
+
+		CHANGES IN R VERSION 0.61.2
+
+BUG FIXES
+
+    o   Output of correlation matrix in summary.glm() no longer default
+
+    o   Docs for predict.lm
+
+    o   Subset and transform functions (to make life with dataframes
+	easier) copied from 0.62.
+
+    o   (copy from 0.62) check.names argument to data.frame,
+	default rownames 1:n
+
+    o   Axes were labeled strangely for extreme extents.  This should be
+	much better thanks to a fix to GPretty(.) in graphics/graphics.c
+
+    o   pretty(999) resulted in an infinite loop due to integer overflow.
+	pretty(.) now sometimes returns different results than before.
+
+    o   pi:6  now works as in S.
+
+    o	[.data.frame caused segfault if called with non-dataframe argument
+
+    o	hist() now is more compatible to S, has a new `labels' argument,
+	and should work ok for non-equidistant breaks.
+
+    o   lgamma(-1e7) segfaulted.
+
+    o   formatC(pi,dig=20,wid=2) segfaulted.
+
+    o   quantile(..., pr = c(1,2,5)/1000)  gave all names as "0%".
+
+    o   In 0.61.1, model.matrix was fixed to pay attention to the names of
+	the names of its data arg, but the data arg was defaulting to an
+	unnamed list, so  model.matrix(~x)  failed...
+
+    o   Indexing with [[]] and a zero-length vector segfaulted.
+
+    o   Coercion of factors as in S-plus
+
+    o   dyn.load statement in demos/dynload/zero.R fixed
+
+    o   Factors could get allocated without the OBJECT bit, which
+	nearly drove Kurt mad trying to write plot.factor...
+
+    o   Fixed confidence limit problem in t.test
+
+		CHANGES IN R VERSION 0.61.1
+
+NEW FEATURES
+
+    o   None (by definition, x.y.z releases are bugfix releases now)
+
+BUG FIXES
+
+    o   Return statements of the form return(x,y) will now return
+        a list with named components.
+
+    o   Parsing of nested "if" statments was broken.  This is fixed now.
+	(Reported by Paul Gilbert).
+
+    o   Wrong declaration of ConsoleBufCnt in src/main/scan.c caused crash
+	in Irix (George White <gwhite@bodnext.bio.dfo.ca>)
+
+    o   if(nmatch = 0) bug in src/main/character.c fixed (Doug Bates)
+
+    o   R_alloc/S_alloc fixes. The former allocated 4 times more than
+	needed, the latter zeroed half of what it got, sizeof() mistakes
+	in both cases.
+
+    o   c(ordered factor) caused segfault (uninitalised pointer), now
+	fixed.
+
+    o   behaviour of as.numeric() on factors changed recently; now
+	documented.
+
+    o   model.matrix() now pays attention to the names on its dataframe
+	argument.
+
+    o   Fixes to group methods.
+
+    o   autoload() caused infinite loop if function  wasn't found in
+	library on loading
+
+    o   The pager ate the rest of stdin in batch mode, now fixed. Also,
+	stdout was not flushed before call to system(). "make tests"
+	should work now.
+
+    o   Empty directories now created by configure (so that it doesn't
+        matter that "CVS export" doesn't do it)
+
+    o   as.name() made idempotent (i.e. if is.name(x) then as.name(x)==x)
+
+    o   3 problems with glm, 2 in glm.fit and a one in print.glm fixed
+	[Jim Lindsey]
+
+    o   binomial (family) now works when 'n=0'. [J.Lindsey]
+
+    o	split() now also works in split(1:10,1:2)
+
+    o	strsplit() now also works for strsplit(c,NULL)
+
+    o   A LANG='..' environment variable no longer affects  scan()ing of
+	numbers.
+
+    o   seq(.) doesn't segfault anymore in  gl(2,3):gl(1,6)
+
+    o   contour(.) now also works with integer arguments
+
+
+		CHANGES IN R VERSION 0.61
+
+We try to make development more flexible by creating a "CVS branch". This
+should make it easier to produce patches for obvious bugs in the releases,
+without having to wait for changes in other areas to stabilize.
+
+NEW FEATURES
+
+    o	New functions "all.vars" and "all.names" added.
+
+    o	There has been a small change in the include file structure.
+	All include files now live in RHOME/src/include and are
+	copied to RHOME/include when needed.
+
+    o   The "noquote" functions are now documented.
+
+    o   A new `language' demo, "is.things", is provided.
+
+    o   symnum(.) function
+
+    o   The files in R/library/base/data have had a .R suffix added.
+
+BUG_FIXES
+
+    o	A nasty bug which showed when attempt was made to create
+	a zero length call has been fixed.
+
+    o   model.matrix(.) now allows a  contrasts argument.
+
+    o   barplot(.) now also works for barplot(table(rpois(100,3))).
+
+    o   make clean ; make    now should work;  ./Makefile.in eliminated
+
+    o   format(.) is now generic;  the default method has a `digits' argument.
+
+
+		CHANGES IN R VERSION 0.60.1
+
+NEW FEATURES
+
+    o	"split" is now a generic function, with a method for data frames.
+	(contributed by Doug Bates).
+
+    o	S compatible functions "all.names" and "all.vars" added.
+
+
+
+BUG FIXES
+
+    o	A file was closed multiple times if an error message occurred
+	after sourcing a file.	In some versions of Linux this caused
+	a core dump.
+
+    o   The inclusion <readline/history.h> was causing problems with
+	some versions of readline because the file did not exist.
+	This is now detected by configure.
+
+
+
+		CHANGES IN R VERSION 0.60
+
+R is about to become an official part of the GNU project.
+To quote RMS (Richard Stallman)
+
+		``I hereby dub R GNU software!''
+
+
+NEW FEATURES
+
+    o	There has been a major change in directory structure
+	masterminded by Kurt Hornik.
+	library(.) now attaches ``package''s which are better
+	integrated, see "?library".  Packages may be available from outside
+	the RHOME path via the .lib.loc variable.
+
+    o	The documentation format (of files in src/library/<package>/man/ )
+	has changed to a more easily parsable LaTeX like format.
+	The doc files now all end in `.Rd'.
+	etc/Rman2Rd  can be used to translate old-style documentation to
+	the new one.
+	The translation to *roff, LaTeX and HTML is now done using
+	etc/Rdconv, written in Perl by Fritz Leisch.
+
+	The HTML online help produced has now links which work.
+	The manual (in doc/manual/) now includes a section on the
+	documentation format and on mathematical text in graphs.
+
+	etc/ further contains `Sd2Rd' for (partial) translation of S `.d'
+	documentation to Rd, and
+	`Rd2txt' and `Rd2dvi' for easy previewing of single Rd files.
+
+    o	The use of "names" on one dimensional arrays will now produce
+	sensible results.  This means that for most purposes,
+	one dimensional arrays can be treated like vectors.
+
+    o	We have a applied a patch from mward@wolf.hip.berkeley.edu
+	which should substantially improve the speed of (vector)
+	arithmetic.
+
+    o	The modeling formula handler has been expanded so that it
+	accepts y ~ 0 + x as a "through the origin" specification.
+	models with no parameters are now acceptable.
+
+    o	"cov", "cor" and "var" now produce a matrix result if either
+	of their x or y arguments is a matrix.	Dimnames are propagated
+	in a sensible fashion.
+
+    o   New chisq.test(.) and prop.test() from Kurt Hornik.
+
+    o   New read.fwf(.) for reading fixed width format (KH).
+
+    o   New str(.) [alternative to summary(.) for programmers] (MM).
+
+    o   New example data sets "esoph", "infert" and "anscombe" (TL),
+	"iris3" (KH) and "stackloss" (MM).
+
+    o   source(.) has several new arguments, notably ``echo = FALSE''.
+	This is applied in the new function  demo(.) which runs all the
+	code in demos/ (but dynload).
+
+    o   strheight(.) is new, accompanying strwidth(.).
+	Both now work for mathematical expressions (Paul Murrell).
+
+    o   The LaTeX version of the manual (-> doc/manual/) now has an index.
+
+    o   EVERY *.Rd file in src/library/base/man/ has now at least one \keyword
+
+    o	New package (`library(.)') "stepfun" for step functions, incl.
+	empirical distributions.
+
+
+BUG FIXES
+
+    o   Regular expression matching is now done with system versions
+	of the regexp library.  This should fix compilation problems
+	on some platforms.
+
+    o	"approx" and "approxfun", have had some minor adjustments.
+	which fix the interpretation of the rule= argument.  The
+	code for piecewise constant case is now internal C code
+	that than interpreted.	This should boost performance in
+	this case.
+
+    o	There has been a minor fixup of "model.frame" to ensure that
+	subsets, weights, etc are handled properly.
+
+    o	Model fitting of the form
+
+		 lm(y~., data=df)
+		glm(y~., data=df)
+
+	will now work.	The RHS of the model will consist of an
+	additive model containing all (non-response) variables in the
+	given data frame.
+
+    o	The following type of assignment to data frame subsets
+
+		z <- data.frame(x=rnorm(10),y=rnorm(10),z=rnorm(10))
+		z[,1:2] <- matrix(1:20,nc=2)
+
+	was producing incorrect results.  The solution was to wrap
+	an implicit "as.data.frame" around the RHS.
+
+    o	"[.data.frame" no longer has a default drop=TRUE argument.
+	This means that subsetting a data frame with "[" will always
+	yield a data frame.
+
+    o	There was a swap of coordinates internally in "mtext" which
+	meant that labels were coming out in the wrong place.  Fixed.
+
+    o	Syntax errors in parse(text="...") would cause R to terminate
+	with a segmentation violation.	This no longer happens, although
+	the result is still not perfect (the parse() returns).
+	This will be fixed by a future parse rewrite.
+
+    o   rainbow, topo.colors, etc., now also work with n in {1,2};
+	don't return duplicate neighbor colors anymore.
+
+    o   legend has new `text.width' argument and now also works with
+	mathematical expressions as text.
+
+    o   hist() now works better, has a `plot = TRUE' argument, and returns
+	something useful.
+
+    o   barplot() improved for `names', now returns vector of midpoints.
+
+    o   lm(), lm.fit, lm.wfit (was `lm.w.fit'):  Made more compatible.
+	Dealing with (close to) collinear situations is still not flexible
+	enough.
+
+    o	internal postscript() improved (missing lines in boxplot(.)).
+
+    o   Improvement to many (even most ?) documentation (.Rd) files.
+
+    o   Numerous other fixes of minor things ...
+
+
+
+		  CHANGES IN R VERSION 0.50
+
+WARNING!!!
+
+ o  A change in the way that "expressions" are implemented means that
+    saved data images which contain expressions will probably not
+    restore properly.
+
+NEW FEATURES
+
+ o  The installation of documentation has now been streamlined.
+    Many manual entries have been revised.
+
+ o  "expressions" are now implemented as a basic type rather than as
+    a class of object.  This change was made as move toward compatibility
+    with S and also to implement mathematical annotation in graphs.
+    For some examples of the latter, see ?text and ?title.
+
+ o  "eigen" can now handle complex and non-symmetric matrices.
+
+ o  Libraries are now attached by loading their code into newly created
+    environment frames on the search path rather than in with the general
+    system code.  This means that libraries can be unloaded as well as
+    loaded.  They can also have .First.lib and .Last.lib functions.
+    The variable .Libraries has been replaced by .library() but should not
+    be needed much anymore.
+
+ o  There is now an experimental function called "delay" which creates
+    a promise to evaluate an expression.  This provides direct access
+    to the lazy evaluation mechanism used by R.
+
+ o  >>>>  'make tests'   allows to test--run all the help() examples.
+
+ o  New functions   matplot / matpoints / matlines.
+
+ o  cut has 2 new arguments. 'right = TRUE' gives intervals closed on the
+	right, open to the left (as S); 'right = FALSE' allows to reverse
+	this. The code for default label construction has been enhanced,
+	and can be controlled by the new argument 'dig.lab'.
+
+ o  legend(.) has 2 new arguments 'cex' (obvious) and 'merge = FALSE'.
+	-> ?legend.
+ o  deparse  has a 2nd argument allowing for a kind of line width.
+ o  There is now print.density (method).
+
+ o  many help(.) pages have been updated with working examples,
+	and several new ones have been created.
+
+ o  influence.measures() and lm.influence now allow to get at the usual
+    regression diagnostics.
+
+BUG FIXES
+
+ o  The "is.object" function has been with drawn.
+
+ o  A bug which prevented the "pictex" graphics driver from working
+    has been fixed.
+
+ o  Regression diagnostics obtained with "lm.influence" now work when
+    there are weights.	This means they should work for glms.
+
+ o  There was a problem in parsing files from statements which were
+    separated from following statements by ";" (e.g. data(iris); iris).
+    This is fixed.
+
+ o  Comments are handled better in functions.  The rule is that they
+    are shifted to just before their statements.  Comments after the
+    last statement of a function are lost.
+
+ o  It is now possible to perform complicated mutations of expressions.
+    For example
+	e <- quote(f(x=1,y=2))
+	names(e)[[2]] <- "a"
+    will change the x= argument tag into a=.  In the past this produced
+    odd error messages.
+
+ o  The length function now tries to return a "sensible" value for all
+    the built-in types.	 For example, symbols now have length 1.
+
+ o  "update" should now work in both "lm" and "glm" models.
+
+ o  The functions Re, Im, Mod, Arg and Conj will now accept real-valued
+    arguments and return the obvious results.
+
+ o  Minor graphics cleanup.
+
+ o  A fix for convergence problems in glm from Thomas Lumley included.
+
+ o  A new version of qt() should not take infinitely long to get an
+    answer in the large degrees if freedom case.  The underlying code
+    (Hill 1970, CACM) appears to be much faster and more accurate than
+    Splus.
+
+ o  A final Newton step has been added to give a final "polish" to
+    the quantiles produced by pnorm().	These should be close to full
+    accuracy now.
+
+ o  A bug in qbeta found by Martin Maechler has been fixed.  This should
+    speed up quantile computation for the F and Beta distributions.
+    Further improvements in qbeta(.) by MM.  No infinite loops anymore.
+
+ o  rainbow(.) now allows "start > end" indexing the "color circle".
+    topo.colors(n), terrain.colors(n), heat.colors(n) now also work for n=1,2.
+
+ o  ?"+" now works.
+
+ o  tapply has been fixed as indicated by T. Lumley.
