@@ -60,7 +60,7 @@ export(add.scope, add1, addmargins, aggregate, aggregate.data.frame,
        terms.terms, time, ts, tsp, "tsp<-", TukeyHSD, TukeyHSD.aov,
        uniroot, update, update.default, update.formula, var,
        variable.names, vcov, weighted.mean, weighted.residuals,
-       weights, window, "window<-", write.ftable, xtabs, pbirthday, qbirthday)
+       weights, window, write.ftable, xtabs, pbirthday, qbirthday)
 
 
 importFrom(graphics, identify, lines, plot)
@@ -87,7 +87,6 @@ S3method(case.names, lm)
 S3method(coef, aov)
 S3method(coef, default)
 S3method(coef, listof)
-S3method(coef, summary.nls)
 S3method(confint, lm)
 S3method(cooks.distance, glm)
 S3method(cooks.distance, lm)
@@ -122,7 +121,6 @@ S3method(fitted, default)
 S3method(formula, data.frame)
 S3method(formula, default)
 S3method(formula, formula)
-S3method(formula, glm)
 S3method(formula, lm)
 S3method(formula, terms)
 S3method(frequency, default)
@@ -225,7 +223,6 @@ S3method(weights, default)
 S3method(weights, glm)
 S3method(window, default)
 S3method(window, ts)
-S3method("window<-", ts)
 
 
 ## from ctest
@@ -301,13 +298,10 @@ S3method(summary, ppr)
 
 ## from mva
 
-export(as.dist, as.hclust, biplot, cancor, cmdscale,
-       cophenetic, cutree, dist, factanal, hclust, kmeans,
-       loadings, plclust, prcomp, princomp, promax,
-       rect.hclust, screeplot, varimax)
-## dendro*
-export(as.dendrogram, dendrapply, heatmap, is.leaf,
-       order.dendrogram, reorder)
+export(as.dendrogram, as.dist, as.hclust, biplot, cancor, cmdscale,
+       cophenetic, cutree, dist, factanal, hclust, heatmap, kmeans,
+       loadings, order.dendrogram, plclust, prcomp, princomp, promax,
+       rect.hclust, reorder, screeplot, varimax)
 
 ## methods which are documented but not exported
 ## export(as.hclust.default, as.matrix.dist,
@@ -328,7 +322,6 @@ S3method(biplot, prcomp)
 S3method(cut, dendrogram)
 S3method(format, dist)
 S3method(identify, hclust)
-S3method(labels, dendrogram)
 S3method(names, dist)
 S3method("names<-", dist)
 S3method(plot, dendrogram)

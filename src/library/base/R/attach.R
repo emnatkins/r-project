@@ -46,9 +46,8 @@ detach <- function(name, pos=2, version)
         if(!is.null(libpath)) try(.Last.lib(libpath))
     }
     .Internal(detach(pos))
-    ## Check for detaching a  package required by another package (not
-    ## by .GlobalEnv because detach() can't currently fix up the
-    ## .required there)
+    ## check for detaching a  package required by another package (not by .GlobalEnv
+    ## because detach() can't currently fix up the .required there)
     for(pkgs in search()[-1]) {
         if(!isNamespace(as.environment(pkgs)) &&
            exists(".required", pkgs, inherits = FALSE) &&
@@ -80,14 +79,11 @@ ls <- objects <-
             ll != length(grep("]", pattern, fixed=TRUE))) {
             if (pattern == "[") {
                 pattern <- "\\["
-                warning(paste("replaced regular expression pattern",
-                              sQuote("["), "by", sQuote("\\\\[")))
+                warning("replaced regular expression pattern `[' by `\\\\['")
             }
             else if (length(grep("[^\\\\]\\[<-", pattern) > 0)) {
                 pattern <- sub("\\[<-", "\\\\\\[<-", pattern)
-                warning(paste("replaced", sQuote("[<-"),
-                              "by", sQuote("\\\\[<-"),
-                              "in regular expression pattern"))
+                warning("replaced `[<-' by `\\\\[<-' in regular expression pattern")
             }
         }
         grep(pattern, all.names, value = TRUE)

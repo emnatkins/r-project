@@ -81,11 +81,10 @@ Makedeps: Makefile $(DEPENDS)
 
 R: Makefile
 	@$(MAKE) Makedeps
-@WANT_R_SHLIB_FALSE@	@$(MAKE) $(noinst_LIBRARIES)
+	@$(MAKE) $(noinst_LIBRARIES)
 @WANT_R_SHLIB_TRUE@	@$(MAKE) stamp-lo
 
 libnmath.a: $(libnmath_a_OBJECTS)
-	rm -rf $@
 	$(AR) cr $@ $(libnmath_a_OBJECTS)
 	$(RANLIB) $@
 

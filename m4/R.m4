@@ -362,7 +362,7 @@ if test -n "${r_cv_prog_cc_m}"; then
 .c.d:
 	@echo "making \$[@] from \$<"
 	@${r_cv_prog_cc_m} \$(ALL_CPPFLAGS) $< | \\
-	  \$(SED) -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > \$[@]
+	  sed -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > \$[@]
 EOF
 else
   cat << \EOF >> ${r_cc_rules_frag}
@@ -519,15 +519,15 @@ if test "${r_cv_prog_cxx_m}" = yes; then
 .cc.d:
 	@echo "making $[@] from $<"
 	@$(CXX) -M $(ALL_CPPFLAGS) $< | \
-	  $(SED) -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > $[@]
+	  sed -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > $[@]
 .cpp.d:
 	@echo "making $[@] from $<"
 	@$(CXX) -M $(ALL_CPPFLAGS) $< | \
-	  $(SED) -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > $[@]
+	  sed -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > $[@]
 .C.d:
 	@echo "making $[@] from $<"
 	@$(CXX) -M $(ALL_CPPFLAGS) $< | \
-	  $(SED) -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > $[@]
+	  sed -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > $[@]
 EOF
 else
   cat << \EOF >> ${r_cxx_rules_frag}
@@ -1229,30 +1229,6 @@ if test "x${r_cv_func_finite_works}" = xyes; then
 fi
 ])# R_FUNC_FINITE
 
-## R_FUNC_ISFINITE
-## ---------------
-AC_DEFUN([R_FUNC_ISFINITE],
-[AC_CACHE_CHECK([for working isfinite], [r_cv_func_isfinite_works],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <math.h>
-#include "confdefs.h"
-int main () {
-#ifdef HAVE_DECL_ISFINITE
-  exit(isfinite(1./0.) | isfinite(0./0.) | isfinite(-1./0.));
-#else
-  exit(1);
-#endif
-}
-]])],
-               [r_cv_func_isfinite_works=yes],
-               [r_cv_func_isfinite_works=no],
-               [r_cv_func_isfinite_works=no])])
-if test "x${r_cv_func_isfinite_works}" = xyes; then
-  AC_DEFINE(HAVE_WORKING_ISFINITE, 1,
-            [Define if isfinite() is correct for -Inf/NaN/Inf.])
-fi
-])# R_FUNC_ISFINITE
-
 ## R_FUNC_LOG
 ## ----------
 AC_DEFUN([R_FUNC_LOG],
@@ -1261,8 +1237,11 @@ AC_DEFUN([R_FUNC_LOG],
 #include <math.h>
 #include "confdefs.h"
 int main () {
-/* we require isnan as from R 2.0.0 */
+#ifdef HAVE_ISNAN
   exit(!(log(0.) == -1. / 0. && isnan(log(-1.))));
+#else
+  exit(log(0.) != -1. / 0);
+#endif
 }
 ]])],
                [r_cv_func_log_works=yes],
@@ -1279,7 +1258,6 @@ fi
 ## Suggested by Nelson H. F. Beebe <beebe@math.utah.edu> to deal with
 ## inaccuracies on at least NetBSD 1.6 and OpenBSD 3.2.
 ## However, don't test all the way into denormalized x (he had k > -1074)
-## and at x = 2^-54 (d - x)/x is around 3e-17. 
 AC_DEFUN([R_FUNC_LOG1P],
 [AC_CACHE_CHECK([for working log1p], [r_cv_func_log1p_works],
 [AC_RUN_IFELSE([AC_LANG_SOURCE([[
@@ -1289,11 +1267,10 @@ int main () {
 #ifdef HAVE_LOG1P
   int k;
   double d;
-  double x = 1.0;
-  for(k = 0; k < 53; k++) x /= 2.0;
-
+  double x;
   /* log(1+x) = x - (1/2)x^2 + (1/3)x^3 - (1/4)x^4 ... */
   /*          = x for x sufficiently small */
+  x = pow(2.0, -53.0);
   for(k = -54; k > -1022; --k) {	
     x /= 2.0;
     if(x == 0.0)
@@ -1301,8 +1278,7 @@ int main () {
     d = log1p(x);
     if(d == 0.0)
       exit(1);			/* ERROR: inaccurate log1p() */
-    /* for large k, ((1/2)x^2)/x might appear in the guard digits */
-    if(k < -80 && d != x)
+    if(d != x)
       exit(1);			/* ERROR: inaccurate log1p() */
   }	
   exit(0);
@@ -1514,8 +1490,6 @@ fi])
 if test "${r_cv_ieee_754}" = yes; then
   AC_DEFINE(IEEE_754, 1,
             [Define if you have IEEE 754 floating point arithmetic.])
-else
-  AC_MSG_ERROR([IEEE 754 floating-point arithmetic is required])
 fi
 ])# R_IEEE_754
 
@@ -2464,50 +2438,6 @@ for pkg in ${recommended_pkgs}; do
 done])
 use_recommended_packages=${r_cv_misc_recommended_packages}
 ])# R_RECOMMENDED_PACKAGES
-
-## R_HAVE_KEYSYM
-## -------------
-## check in X11 has KeySym typedef-ed
-AC_DEFUN([R_HAVE_KEYSYM],
-[
-  AC_CACHE_CHECK([for KeySym], r_cv_have_keysym,
-    [AC_TRY_LINK([#include <X11/X.h>],
-      [KeySym iokey;],
-      r_cv_have_keysym=yes,
-      r_cv_have_keysym=no)
-    ])
-  if test $r_cv_have_keysym = yes; then
-    AC_DEFINE(HAVE_KEYSYM, 1,
-      [Define if you have KeySym defined in X11.])
-  fi
-])# R_HAVE_KEYSYM
-
-## R_C_INLINE
-## ----------
-## modified version of AC_C_INLINE to use R_INLINE not inline
-AC_DEFUN([R_C_INLINE],
-[AC_REQUIRE([AC_PROG_CC_STDC])dnl
-AC_CACHE_CHECK([for inline], r_cv_c_inline,
-[r_cv_c_inline=""
-for ac_kw in inline __inline__ __inline; do
-  AC_COMPILE_IFELSE([AC_LANG_SOURCE(
-[#ifndef __cplusplus
-static $ac_kw int static_foo () {return 0; }
-$ac_kw int foo () {return 0; }
-#endif
-])],
-                    [r_cv_c_inline=$ac_kw; break])
-done
-])
-case $r_cv_c_inline in
-  no) AC_DEFINE(R_INLINE,,
-                [Define as `inline', or `__inline__' or `__inline' 
-                 if that's what the C compiler calls it,
-                 or to nothing if it is not supported.]) ;;
-  *)  AC_DEFINE_UNQUOTED(R_INLINE, $r_cv_c_inline) ;;
-esac
-])# R_C_INLINE
-
 
 ### Local variables: ***
 ### mode: outline-minor ***

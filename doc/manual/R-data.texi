@@ -527,9 +527,9 @@ function @code{count.fields} can be useful to investigate further.
 
 Efficiency can be important when reading large data grids.  It will help
 to specify @code{colClasses} as one of the atomic vector types (logical,
-integer, numeric, complex, character or perhaps raw) for each column,
-and to give @code{nrows}, the number of rows to be read (and a mild
-over-estimate is better than not specifying this at all).
+integer, numeric, complex or character) for each column, and to give
+@code{nrows}, the number of rows to be read (and a mild over-estimate is
+better than not specifying this at all).
 
 
 @node Fixed-width-format files, Using scan directly, Variations on read.table, Spreadsheet-like data
@@ -756,14 +756,13 @@ some cases these function may require substantially less memory than
 Stata @file{.dta} files are a binary file format. Files from versions
 5.0, 6.0 and 7.0 of Stata can be read and written by functions
 @code{read.dta} and @code{write.dta}. Stata variables with value labels
-are optionally converted to (and from) @R{} factor. 
+are optionally converted to (and from) @R{} factor.
 
 @cindex EpiInfo
-@cindex EpiData
 @findex read.epiinfo
 EpiInfo versions 5 and 6 stored data in a  self-describing fixed-width
 text format. @code{read.epiinfo} will read these @code{.REC} files into
-an @R{} data frame. EpiData also produces data in this format.
+an @R{} data frame.
 
 @cindex Minitab
 @findex read.mtp
@@ -780,18 +779,11 @@ Transport format.  It then calls @code{read.xport} to read the resulting
 file.
 
 @cindex SPSS
-@cindex SPSS Data Entry
 @findex read.spss
 Function @code{read.spss} can read files created by the `save' and
 `export' commands in @acronym{SPSS}.  It returns a list with one
 component for each variable in the saved data set. @acronym{SPSS}
 variables with value labels are optionally converted to @R{} factors.
-
-@acronym{SPSS} Data Entry is an application for creating data entry
-forms. By default it creates data files with extra formatting
-information that @code{read.spss} cannot handle, but it is possible to
-export the data in an ordinary @acronym{SPSS} format.
-
 
 
 @cindex S-PLUS
@@ -1862,10 +1854,9 @@ given it is assumed to specify a file name.
 
 It is slightly simpler to describe writing, so we will do that first.
 @code{object} should be an atomic vector object, that is a vector of
-mode @code{numeric}, @code{integer}, @code{logical}, @code{character},
-@code{complex} or @code{raw}, without attributes.  By default this is
-written to the file as a stream of bytes exactly as it is represented in
-memory.
+mode @code{numeric}, @code{integer}, @code{logical}, @code{character} or
+@code{complex}, without attributes.  By default this is written to the
+file as a stream of bytes exactly as it is represented in memory.
 
 @code{readBin} reads a stream of bytes from the file and interprets them
 as a vector of mode given by @code{what}.  This can be either an object

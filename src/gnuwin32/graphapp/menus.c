@@ -17,7 +17,7 @@
    This file is part of GraphApp, a cross-platform C graphics library.
 
    GraphApp is free software; you can redistribute it and/or modify it
-   under the terms of the GNU Library General Public License.
+   under the terms of the GNU Library General Public License. 
    GraphApp is distributed in the hope that it will be useful, but
    WITHOUT ANY WARRANTY.
 
@@ -29,11 +29,6 @@
  *  to the currentwindow. Menus are added to the current_menubar and
  *  menuitems are added to the current_menu.
  */
-
-/* Copyright (C) 2004 	The R Foundation
-
-   Change for R - Chris Jackson.  Enabled menu shortcut keys, don't
-   execute shortcut if menu item is grayed out */
 
 #include "internal.h"
 
@@ -192,8 +187,8 @@ static int find_shortcut(object me, char *search)
 				break; /* can't use this shortcut */
 
 		}
-	}
-
+	}	
+ 
 	return 0;
 }
 
@@ -287,7 +282,7 @@ menu newsubmenu(menu parent, char *name)
 		flags |= MF_HELP;
 	}
 
-	if (parent->kind == WindowObject)
+	if (parent->kind == WindowObject) 
            hm = CreatePopupMenu();
         else
            hm = CreateMenu();
@@ -300,7 +295,7 @@ menu newsubmenu(menu parent, char *name)
 		name = str;
 		current_menu = obj;
 	}
-	if (parent->kind != WindowObject)
+	if (parent->kind != WindowObject) 
              AppendMenu(parent->handle, flags, (UINT) hm, name);
 	if (parent == current_menubar)
 		DrawMenuBar(current_menubar->parent->handle);
@@ -337,7 +332,6 @@ menuitem newmenuitem(char *name, int key, menufn fn)
 		obj->action = fn;
 		obj->value = 0;
 		obj->text = new_string(name);
-		obj->state |= Enabled;
 
 		if (name[0] == '-') {
 			flags = MF_SEPARATOR;
@@ -437,22 +431,12 @@ static void adjust_menus_top_down(object obj)
 		activatecontrol(obj);
 }
 
-/* Only search for the key within the menus of the focused window.
-   If key is not found fall through to user's key handler. CJ */
-
 PROTECTED
-int handle_menu_key(WPARAM wParam)
+void handle_menu_key(WPARAM wParam)
 {
-    object win, obj;
-    win = find_by_handle(GetFocus());
-    if (win->kind != WindowObject)
-	win = win->parent;
-    obj = find_by_key(win, wParam);
-    if (obj) {
-	    adjust_menus_top_down(obj);
-	    if (isenabled(obj)) /* Don't do menu actions which are greyed out. CJ */
+	object obj = find_by_key(wParam);
+	if (obj) {
+		adjust_menus_top_down(obj);
 		activatecontrol(obj);
-	    return 1;
 	}
-    return 0;
 }

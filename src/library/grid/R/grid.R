@@ -76,7 +76,7 @@ pushViewport <- function(..., recording=TRUE) {
     vps <- list(...)
     lapply(vps, push.vp, recording)
   }
-  invisible()
+  current.viewport()
 }
 
 # Helper functions called from C
@@ -137,7 +137,7 @@ downViewport.vpPath <- function(name, strict=FALSE, recording=TRUE) {
   } else {
     stop(paste("Viewport", name, "was not found"))
   }
-  invisible(result)
+  current.viewport()
 }
 
 # Similar to down.viewport() except it starts searching from the
@@ -193,7 +193,7 @@ popViewport <- function(n=1, recording=TRUE) {
       record(n)
     }
   }
-  invisible()
+  current.viewport()
 }
 
 up.vp <- function(last.one, recording) {
@@ -225,7 +225,7 @@ upViewport <- function(n=1, recording=TRUE) {
       record(n)
     }
   }
-  invisible()
+  current.viewport()
 }
 
 # Function to obtain the current viewport

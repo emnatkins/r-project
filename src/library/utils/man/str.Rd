@@ -11,16 +11,15 @@ str(object, \dots)
     indent.str = paste(rep(" ", max(0, nest.lev + 1)), collapse = ".."),
     \dots)
 
- ls.str(pos = 1, pattern, \dots,  envir = as.environment(pos), mode = "any")
+ ls.str(pos = 1, pattern, \dots,  envir = as.environment(pos), mode = "any",
+        max.level = 1, give.attr = FALSE)
 lsf.str(pos = 1, \dots, envir = as.environment(pos))
-\method{print}{ls_str}(x, max.level = 1, give.attr = FALSE, \dots)
 }
 \alias{str}
 \alias{str.default}
 \alias{str.data.frame}
 \alias{ls.str}
 \alias{lsf.str}
-\alias{print.ls_str}
 \description{
   Compactly display the internal \bold{str}ucture of an \R object, a
   \dQuote{diagnostic} function and an alternative to \code{\link{summary}}
@@ -30,9 +29,10 @@ lsf.str(pos = 1, \dots, envir = as.environment(pos))
   lists.  The idea is to give reasonable output for \bold{any} \R
   object.  It calls \code{\link{args}} for (non-primitive) function objects.
 
-  \code{\link{ls.str}} and \code{\link{lsf.str}} are \dQuote{variations}
-  of \code{\link{ls}} applying \code{str()} to each matched name, see
-  section \sQuote{Value}.
+  \code{\link{ls.str}} and \code{\link{lsf.str}} are useful \dQuote{versions}
+  of \code{\link{ls}}, calling \code{str} on each object.  They are not
+  foolproof and should rather not be used for programming, but are
+  provided for their usefulness.
 }
 \arguments{
   \item{object}{any \R object about which you want to have some
@@ -58,6 +58,7 @@ lsf.str(pos = 1, \dots, envir = as.environment(pos))
     \code{str}.}
   \item{indent.str}{the indentation string to use.}
   \item{\dots}{potential further arguments (required for Method/Generic reasons).}
+
 %% The following line is swallowed, unfortunately..  fixme??
   For \code{ls.str} and \code{lsf.str}:
 
@@ -67,19 +68,13 @@ lsf.str(pos = 1, \dots, envir = as.environment(pos))
     Only names matching \code{pattern} are considered.}
   \item{mode}{character specifying the \code{\link{mode}} of objects to
     consider.  Passed to \code{\link{exists}} and \code{\link{get}}.}
-%% print.ls_str:
-  \item{x}{an object of class \code{"ls_str"}.}
-
 }
 \value{
   \code{str} does not return anything, for efficiency reasons.
   The obvious side effect is output to the terminal.
 
-  \code{ls.str} and \code{lsf.str} return an object of class
-  \code{"ls_str"}, basically the character vector of matching names
-  (functions only for \code{\link{lsf.str}}), similarly to
-  \code{\link{ls}}, with a \code{print()} method that calls \code{str()}
-  on each object.
+  \code{ls.str} and \code{lsf.str} invisibly return a character vector
+  of the matching names, similarly to \code{\link{ls}}.
 }
 \author{Martin Maechler \email{maechler@stat.math.ethz.ch} since 1990.
 }
@@ -119,18 +114,6 @@ lsf.str(pos = length(search()), pattern = "file")
  str(factor(character(0)))
  str(as.data.frame(NULL))
 }
-\dontshow{
-had.stats4 <- "package:stats4" \%in\% search()
-if(!had.stats4)
-   rs <-
-}
-## S4 classes :
-require(stats4)
-x <- 0:10; y <- c(26, 17, 13, 12, 20, 5, 9, 8, 5, 4, 8)
-ll <- function(ymax=15, xh=6) -sum(dpois(y, lambda=ymax/(1+x/xh), log=TRUE))
-fit <- mle(ll)
-str(fit)
-\dontshow{if(!had.stats4 && rs) detach("package:stats4")}
 }
 \keyword{print}
 \keyword{documentation}

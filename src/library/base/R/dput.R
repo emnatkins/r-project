@@ -1,12 +1,11 @@
-dput <- function(x, file = "", control = "showAttributes")
+dput <- function(x, file = "")
 {
     if(is.character(file))
         if(nchar(file) > 0) {
             file <- file(file, "wt")
             on.exit(close(file))
         } else file <- stdout()
-    opts <- .deparseOpts(control)
-    .Internal(dput(x, file, opts))
+    .Internal(dput(x, file))
 }
 
 dget <- function(file)

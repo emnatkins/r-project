@@ -42,7 +42,10 @@ typedef struct {
   Uitem *mItems;
 } menuItems;
 
-#include <R_ext/Error.h> /* for R_ShowMessage */
+void Rconsolecmd(char *);
+
+void R_ShowMessage(char *s);
+
 int check_doc_file(char *);
 void internal_shellexec(char *);
 int internal_ShowFile(char *, char *);
@@ -70,8 +73,3 @@ int RgetMDIwidth();
 int RgetMDIheight();
 #endif
 
-void menuconfig();
-void menuclear(control m);
-int RguiPackageMenu();
-int RguiCommonHelp();
-void closeconsole(control m);

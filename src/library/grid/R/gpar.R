@@ -12,10 +12,6 @@ is.gpar <- function(x) {
   inherits(x, "gpar")
 }
 
-print.gpar <- function(x, ...) {
-  print(unclass(x))
-}
-
 validGP <- function(gpars) {
   # Check a (non-NULL) gpar is not of length 0
   check.length <- function(gparname) {
@@ -48,11 +44,6 @@ validGP <- function(gpars) {
     else
       check.length("lty")
   }
-  # alpha should be 0 to 1
-  if (!is.na(match("alpha", names(gpars)))) {
-    if (any(gpars$alpha < 0 || gpars$alpha > 1))
-      stop("Invalid alpha value")
-  }    
   # font should be integer and not NULL
   if (!is.na(match("font", names(gpars)))) {
     if (is.null(gpars$font))
@@ -85,7 +76,7 @@ validGP <- function(gpars) {
         gpars$font <- as.integer(gpars$fontface)
       else {
         temp.char <- as.character(gpars$fontface)
-        temp.num <- integer(length(temp.char))
+        temp.num <- 0
         for (i in 1:length(temp.char))
           temp.num[i] <- switch(temp.char[i],
                                 plain=1,
@@ -97,8 +88,7 @@ validGP <- function(gpars) {
                                 # These are Hershey variants
                                 cyrillic=5,
                                 cyrillic.oblique=6,
-                                EUC=7,
-                                stop("Invalid font face"))
+                                EUC=7)
         gpars$font <- as.integer(temp.num)
       }
     }

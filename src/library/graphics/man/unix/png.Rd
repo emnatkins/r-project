@@ -7,18 +7,18 @@
 }
 \usage{
 jpeg(filename = "Rplot\%03d.jpeg", width = 480, height = 480,
-     pointsize = 12, quality = 75, bg = "white", res = NA, \dots)
+     pointsize = 12, quality = 75, bg = "white", \dots)
 png(filename ="Rplot\%03d.png", width = 480, height = 480,
-    pointsize = 12, bg = "white",  res = NA,\dots)
+    pointsize = 12, bg = "white", \dots)
 }
 \synopsis{
 jpeg(filename = "Rplot\%03d.jpeg", width = 480, height = 480, pointsize = 12,
      quality = 75, gamma = 1,
      colortype = getOption("X11colortype"), maxcubesize = 256, bg = "white",
-    fonts = getOption("X11fonts"), res = NA)
+    fonts = getOption("X11fonts"))
 png(filename ="Rplot\%03d.png", width = 480, height = 480, pointsize = 12,
     gamma = 1, colortype = getOption("X11colortype"), maxcubesize = 256,
-    bg = "white", fonts = getOption("X11fonts"), res = NA)
+    bg = "white", fonts = getOption("X11fonts"))
 }
 \arguments{
   \item{filename}{the name of the output file.
@@ -33,8 +33,6 @@ png(filename ="Rplot\%03d.png", width = 480, height = 480, pointsize = 12,
     percentage.  Smaller values will give more compression but also more
     degradation of the image.}
   \item{bg}{default background colour.}
- \item{res}{The nominal resolution in dpi which will be recorded in the
-   bitmap file, if a positive integer.}
   \item{\dots}{additional arguments to the \code{\link{X11}} device.}
 }
 \details{
@@ -56,11 +54,6 @@ png(filename ="Rplot\%03d.png", width = 480, height = 480, pointsize = 12,
   been started with \samp{--gui=none} (and will give a different error
   message), and they may not be usable unless the X11 display is
   available to the owner of the \R process.
-
-  By default no resolution is recorded in the file.  Readers will often
-  assume nominal resolution of 72dpi when none is recorded.  As
-  resolutions in PNG files are recorded in pixels/metre, the dpi value
-  will be changed slightly.
 }
 \value{
   A plot device is opened: nothing is returned to the \R interpreter.

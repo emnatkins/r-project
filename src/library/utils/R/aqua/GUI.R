@@ -169,6 +169,7 @@ Rapp.updates <- function() {
  strsplit(rapp.ver,"\\.") -> ver
  rapp.ver <- as.numeric(ver[[1]])
 
+ rapp.ver <- as.numeric(ver[[1]])
  this.ver <- sum(rapp.ver * c(10000,100,1))
  new.ver <- sum(cran.ver * c(10000,100,1))
  if (new.ver > this.ver) {
@@ -337,8 +338,7 @@ install.binaries <- function(pkgs, lib, CRAN=getOption("CRAN"),
     if(missing(lib) || is.null(lib)) {
       lib <- .libPaths()[1]
       if(length(.libPaths()) > 1)
-        warning(paste("argument", sQuote("lib"),
-                      "is missing: using", lib))
+        warning(paste("argument `lib' is missing: using", lib))
     }
     pkgnames <- basename(pkgs)
     pkgnames <- sub("\\.tgz$", "", pkgnames)

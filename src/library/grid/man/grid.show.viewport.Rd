@@ -6,11 +6,7 @@
   a Grid viewport.
 }
 \usage{
-grid.show.viewport(v, parent.layout = NULL, newpage = TRUE,
-                   border.fill="light grey",
-                   vp.col="blue", vp.fill="light blue",
-                   scale.col="red",
-                   vp = NULL)
+grid.show.viewport(v, parent.layout = NULL, newpage = TRUE, vp = NULL)
 }
 \arguments{
   \item{v}{A Grid viewport object.}
@@ -20,16 +16,12 @@ grid.show.viewport(v, parent.layout = NULL, newpage = TRUE,
     \code{v} occupies within the layout.}
   \item{newpage}{A logical value to indicate whether to move to
     a new page before drawing the diagram.}
-  \item{border.fill}{Colour to fill the border margin.}
-  \item{vp.col}{Colour for the border of the viewport region.}
-  \item{vp.fill}{Colour to fill the viewport region.}
-  \item{scale.col}{Colour to draw the viewport axes.}
   \item{vp}{A Grid viewport object (or NULL).}
 }
 \details{
   A viewport is created within \code{vp} to provide a margin for
   annotation, and the diagram is drawn within that new viewport.
-  By default, the margin is filled with light grey, the new viewport is filled
+  The margin is filled with light grey, the new viewport is filled
   with white and framed with a black border, and the viewport region
   is filled with light blue and framed with a blue border.
   The diagram is annotated with the width and height (including units)

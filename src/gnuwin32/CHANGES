@@ -4,35 +4,6 @@
 See the file NEWS for changes that affect all versions of R.
 
 
-rw2000
-======
-
-Added Rgui script editor by Chris Jackson.  Supports object name
-in window caption in edit() and fix().
-
-Changed preferences menu "Finish" to "OK".
-
-Changed search order for user home directory to use "My Documents" 
-directory after HOME and before HOMEDRIVE/HOMEPATH.
-
-Added functions setWindowTitle(), getWindowTitle(), and 
-getIdentification().
-
-Added function getWindowsHandle().
-
-The windows() device has new 'bg' argument to set the background colour
-(which still defaults to "transparent").
-
-C headers files are now installed into R_HOME/include rather than
-R_HOME/src/include (as on Unix).
-
-choose.files() now expands '~' to the user's home directory, as 
-most other file system functions do.
-
-(For those building R:) The Makefile now aborts if sub-makes in any of
-several for-loops fail.
-
-
 rw1091
 ======
 

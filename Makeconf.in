@@ -1,9 +1,6 @@
 PACKAGE = @PACKAGE@
 VERSION = @VERSION@
 
-abs_top_srcdir = @abs_top_srcdir@
-abs_top_builddir = @abs_top_builddir@
-
 include $(top_srcdir)/share/make/vars.mk
 
 AR = @AR@
@@ -49,8 +46,8 @@ LATEX = @LATEX@
 LDFLAGS = @LDFLAGS@
 LIBGLADE_CFLAGS = @LIBGLADE_CFLAGS@
 LIBGLADE_LIBS = @LIBGLADE_LIBS@
-LIBM = @LIBM@
 LIBR = @LIBR@
+LIBR_EXT = @LIBR_EXT@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
@@ -73,7 +70,6 @@ R_XTRA_CPPFLAGS = @R_XTRA_CPPFLAGS@ -I. -I$(top_builddir)/src/include -I$(top_sr
 R_XTRA_FFLAGS = @R_XTRA_FFLAGS@
 R_XTRA_LIBS = @R_XTRA_LIBS@
 RANLIB = @RANLIB@
-SED = @SED@
 SHELL = @SHELL@
 SHLIB_EXT = @SHLIB_EXT@
 SHLIB_CFLAGS = @SHLIB_CFLAGS@
@@ -108,7 +104,6 @@ bindir = @bindir@
 datadir = @datadir@
 libdir = @libdir@
 mandir = @mandir@
-includedir = @includedir@
 
 rhome = @libdir@/R
 
@@ -118,8 +113,8 @@ rhome = @libdir@/R
 @WANT_R_FRAMEWORK_TRUE@mandir = $(rhome)
 
 Rexecbindir = $(rhome)/bin
-Rexeclibdir = $(rhome)/lib
-## FIXME:
+## FIXME: should be 'lib' eventually
+Rexeclibdir = $(rhome)/bin
 ## Alternatively, we could try to set pkglibdir = $(rhome)/lib when
 ## switching to automake.
 ## </FIXME>
