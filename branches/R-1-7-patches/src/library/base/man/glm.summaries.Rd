@@ -1,0 +1,36 @@
+\name{glm.summaries}
+\alias{family.glm}
+\alias{residuals.glm}
+\title{Accessing Generalized Linear Model Fits}
+\usage{
+\method{family}{glm}(object, \dots)
+\method{residuals}{glm}(object, type = c("deviance", "pearson", "working",
+                      "response", "partial"), \dots)
+}
+\arguments{
+  \item{object}{an object of class \code{glm}, typically the result of
+    a call to \code{\link{glm}}.}
+  \item{type}{the type of residuals which should be returned.
+    The alternatives are: \code{"deviance"} (default), \code{"pearson"},
+    \code{"working"}, \code{"response"}, and \code{"partial"}.}
+  \item{\dots}{further arguments passed to or from other methods.}
+}
+\description{
+  These functions are all \code{\link{methods}} for class \code{glm} or
+  \code{summary.glm} objects.
+}
+\details{
+  The partial residuals are a matrix of working residuals, with each
+  column formed by omitting a term from the model.
+}
+\seealso{
+  \code{\link{glm}} for computing \code{glm.obj}, \code{\link{anova.glm}};
+  the corresponding \emph{generic} functions, \code{\link{summary.glm}},
+  \code{\link{coef}}, \code{\link{deviance}},
+  \code{\link{df.residual}},
+  \code{\link{effects}}, \code{\link{fitted}},
+  \code{\link{residuals}}.
+}
+\keyword{models}
+\keyword{regression}
+

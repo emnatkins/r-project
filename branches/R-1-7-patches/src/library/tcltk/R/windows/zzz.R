@@ -1,0 +1,36 @@
+.First.lib <- function(lib, pkg)
+{
+    if(nchar(Sys.getenv("MY_TCLTK"))) {
+        library.dynam("tcltk", pkg, lib)
+    } else {
+        if(!file.exists(file.path(R.home(), "Tcl")))
+            stop("Tcl/Tk support files were not installed", call.=FALSE)
+        Sys.putenv("TCL_LIBRARY"=file.path(R.home(), "Tcl/lib/tcl8.4"))
+        opath <-  Sys.getenv("PATH")
+        tclbin <- file.path(R.home(), "Tcl/bin")
+        Sys.putenv(PATH=paste(tclbin, opath, sep=";"))
+        library.dynam("tcltk", pkg, lib)
+        Sys.putenv(PATH=opath)
+    }
+    .C("tcltk_start", PACKAGE="tcltk")
+    bringToTop(-1) # restore focus to console
+    extra <- system.file("exec", package = "tcltk")
+    extra <- gsub("\\\\", "/", extra)
+    invisible(addTclPath(extra))
+}
+
+.Last.lib <- function(libpath) {
+    if(is.loaded(symbol.C("tcltk_end"))) {
+        .C("tcltk_end", PACKAGE="tcltk")
+        dyn.unload(file.path(libpath, "libs", "tcltk.dll"))
+        ## <NOTE>
+        ## Versions of R prior to 1.4.0 had .Dyn.libs in .AutoloadEnv
+        ## (and did not always ensure getting it from there).
+        ## Until 1.6.0, we consistently used the base environment.
+        ## Now we have a dynamic variable instead.
+        ## </NOTE>
+        .Dyn.libs <- .dynLibs()
+        num <- match("tcltk", .Dyn.libs)
+        .dynLibs(.Dyn.libs[-num])
+    }
+}
