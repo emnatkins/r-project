@@ -1,3 +1,5 @@
+options(repositories=c(CRAN = "http://cran.r-project.org/src/contrib"))
+
 packageStatus <- function(lib.loc = NULL,
                            repositories = getOption("repositories"))
 {

@@ -1067,16 +1067,6 @@ stopifnot(length(junk) == 1, nchar(junk[1]) == 200)
 ## and split truncated on 1.6.1
 
 
-## missing group generics for `difftime' (related to PR#2345)
-x <- as.difftime(c("0:3:20", "11:23:15"))
-y <- ISOdate(2001, 4, 26) - ISOdate(2001, 2, 26)
-x + x
-2*x
-x < y
-x < 100
-## all but last failed in R < 1.7.0
-
-
 ## PR 2358 (part)
 mm <- 1:2
 names(mm)[2] <- 'y'

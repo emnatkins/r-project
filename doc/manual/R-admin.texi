@@ -394,10 +394,10 @@ work.
 Your file system must allow long file names (as is likely except
 perhaps for some network-mounted systems).
 
-The simplest way is to use @file{@value{RWVERSION}.exe} or
-@file{miniR.exe}.  Just double-click on the icon and follow the
-instructions.  If you installed R this way you can uninstall it from the
-Control Panel.
+The simplest way is to use @file{rw1062.exe} or @file{miniR.exe}.  Just
+double-click on the icon and follow the instructions.  If you installed
+R this way you can uninstall it from the Control Panel or Start Menu
+(unless you suppressed making a group for @R{}).
 
 See the @uref{http://www.stats.ox.ac.uk/pub/R/rw-FAQ.html, R Windows
 @acronym{FAQ}} for more details.
@@ -420,8 +420,8 @@ lower case) did not work.  Open a commands window at a directory @emph{whose
 path does not contain spaces}, and run something like
 
 @smallexample
-tar zxvf R-@value{VERSIONno}.tgz
-cd R-@value{VERSIONno}\src\gnuwin32
+tar zxvf R-1.6.2.tgz
+cd R-1.6.2\src\gnuwin32
 make
 @end smallexample
 
@@ -472,8 +472,7 @@ setting the environment variable @env{R_LIBS} or using the @R{} function
 @section Installing packages
 @cindex Packages, installing
 
-Installing source packages requires that Perl 5.004 or later be
-installed.
+Installing source packages requires that Perl 5.005 or later be installed.
 
 Note that you need to specify implicitly or explicitly the library to
 which the package is to be installed.  This is only an issue if you have
@@ -565,14 +564,11 @@ can be removed by
 @smallexample
 R CMD REMOVE -l /path/to/library @var{pkg1} @var{pkg2} @dots{}
 @end smallexample
-
 @noindent
 (Unix) or
-
 @smallexample
 Rcmd REMOVE -l /path/to/library @var{pkg1} @var{pkg2} @dots{}
 @end smallexample
-
 @noindent
 (Windows).
 
@@ -610,8 +606,7 @@ FORTRAN}).  Some add-on packages also need a C++ compiler.
 
 You will need Perl version 5.004 or later, available via
 @uref{http://www.perl.com/CPAN/}, to build any of the on-line
-documentation.  (The @command{Rdindex} utility requires version 5.005 or
-later, but has an @R{} equivalent in package @pkg{tools}.)
+documentation, and version 5.005 is needed for some of the utilities,
 
 You will not be able to build the info files unless you have
 @command{makeinfo} version 4 or later installed (and some Linux
@@ -643,15 +638,13 @@ The @code{bitmap} and @code{dev2bitmap} devices make use of ghostscript
 (@uref{http://www.cs.wisc.edu/~ghost}).
 
 @code{bzfile} connections make use of @code{libbz2}, part of
-@code{bzip2} (@uref{http://sources.redhat.com/bzip2}).  If no installed
-version is found, that in the @R{} sources will be compiled in.
+@code{bzip2} (@uref{http://sources.redhat.com/bzip2}).
 
 @code{grep} and related functions will make use of PCRE if installed.
 The sources are at
 @uref{ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/}; the
 Debian package is @code{libpcre3-dev} and the RPM something like
-@code{pcre-devel-3.4-2}.  If no installed version is found, that in the
-@R{} sources will be compiled in.
+@code{pcre-devel-3.4-2}.
 
 @menu
 * Tcl/Tk::                      
@@ -710,32 +703,14 @@ in a future release.
 Note that the BLAS library will be used for several add-on packages as
 well as for @R{} itself.  This means that it is better to use a shared
 BLAS library, as most of a static library will be compiled into the @R{}
-executable and each BLAS-using package.  In any case, the BLAS library
-must be usable with dynamically-loadable code.
+executable and each BLAS-using package.
 
 You will need double-precision and double-complex versions of the BLAS,
 but not single-precision nor complex routines.
 
-@cindex LAPACK library
-As from @R{} 1.7.0, provision is made for using an external LAPACK
-library, principally to cope with BLAS libraries which contain a copy
-of LAPACK (such as @code{libsunperf} on Solaris and @code{vecLib} on
-MacOS 10.2.2).  However, the likely performance gains are thought to
-be small, and the default is not to search for a suitable LAPACK
-library.  You can specify a specific LAPACK library or a search for a
-generic library by the configuration option @option{--with-lapack}.
-The default for @option{--with-lapack} is to check the BLAS library and 
-then look for an external library @code{-llapack}.
-
-If you do use @option{--with-lapack}, be aware of potential problems
-with bugs in the LAPACK 3.0 sources (or in the posted corrections to those
-sources).  In particular, bugs in @code{DGEEV} and @code{DGESDD} have
-resulted in error messages such as
-@smallexample
-DGEBRD gave error code -10
-@end smallexample
-@noindent
-(from the Debian @code{-llapack} which was current in late 2002).
+Optimized versions of LAPACK are available, but no provision is made for
+using them with @R{} as the likely performance gains are thought to be
+small.
 
 As with all libraries, you need to ensure that they and @R{} were
 compiled with compatible compilers and flags.  For example, this means
@@ -846,10 +821,6 @@ compiler/linker does not support re-ordering of @option{-L} and
 the native @command{cc}).  In this case, use a different compiler (or a
 front end shell script which does the re-ordering).
 
-Another precious variable is @env{R_BROWSER}, the default browser, which
-should take a value of an executable in the user's path or specify
-a full path.
-
 If you find you need to alter configure variables, it is worth noting
 that some settings may be cached in the file @file{config.cache}, and it
 is a good idea to remove that file (if it exists) before re-configuring.
@@ -886,10 +857,10 @@ GNU @command{make} is called @samp{gmake}, you need to set the variable
 To compile @R{}, you need a FORTRAN compiler or @command{f2c}, the
 FORTRAN-to-C converter (@uref{http://www.netlib.org/f2c}).  The default
 is to search for @command{g77}, @command{f77}, @command{xlf},
-@command{frt}, @command{pgf77}, @command{fl32}, @command{af77},
-@command{fort77}, @command{f90}, @command{xlf90}, @command{pgf90},
-@command{epcf90}, @command{f95}, @command{fort}, @command{xlf95},
-@command{lf95}, @command{g95}, and @command{fc} (in that
+@command{cf77}, @command{cft77}, @command{pgf77}, @command{fl32},
+@command{af77}, @command{fort77}, @command{f90}, @command{xlf90},
+@command{pgf90}, @command{epcf90}, @command{f95}, @command{xlf95},
+@command{lf9}5, @command{g95}, and @command{fc} (in that
 order)@footnote{On HP-UX @command{fort77} is the @acronym{POSIX}
 compliant FORTRAN compiler, and comes second in the search list.}, and
 then for @command{f2c}, and use whichever is found first; if none is
@@ -1088,25 +1059,13 @@ binary distribution and needed to be installed directly; for example for
 fink install g77
 @end smallexample
 
-@cindex BLAS library
-@cindex LAPACK library
-The @code{vecLib} library of MacOS >= 10.2.2 can be used @emph{via} the 
-configuration options
-@smallexample
---with-blas="-framework vecLib" --with-lapack
-@end smallexample
-
-@noindent
-to provide higher-performance versions of the BLAS and LAPACK routines.
-
-
 @node Solaris, HP-UX, MacOS X, Platform notes
 @subsection Solaris on Sparc
 @cindex Solaris
 
 @R{} has been built successfully on Solaris 2.7 aka Solaris 7 aka SunOS
 5.7 using @command{gcc}/@command{g77} and the SunPro @w{WorkShop 6}
-compilers, and less regularly on Solaris 2.5.1, 2.6, 8 and 9.  GNU
+compilers, and less regularly on Solaris 2.5.1, 2.6 and 8.  GNU
 @command{make} is needed prior to 2.7 for building other than in the
 source tree, and perhaps even then.
 
@@ -1114,7 +1073,7 @@ source tree, and perhaps even then.
 Solaris, but versions 3.1 and 3.2 work correctly.
 
 If using @command{gcc}, do ensure that the compiler was compiled for the
-version of Solaris in use.  (This can be ascertained from @command{gcc
+version of Solaris in use.  (This can be discerned from @command{gcc
 -v}.)  @command{gcc} makes modified versions of some header files, and
 so (for example) @command{gcc} compiled under Solaris 2.6 will not
 compile @R{} under Solaris 2.7.  Also, do ensure that it was compiled
@@ -1149,7 +1108,9 @@ CXXFLAGS="-xO5 -xlibmil -dalign -xarch=v9"
 @end smallexample
 
 @noindent
-in @file{config.site}.
+in @file{config.site}.  Note that using @command{f95} allows the Sun
+performance library to be selected: it will not work with @command{f77},
+nor with @command{g77}.
 
 For 64-bit compilation with @command{gcc} 3.2 we used
 
@@ -1159,21 +1120,8 @@ FFLAGS="-m64 -g -O2"
 CXXFLAGS="-m64 -g -O2"
 LDFLAGS="-L/usr/local/lib/sparcv9 -L/usr/local/lib"
 @end smallexample
-
 @noindent
 This @emph{does} work with @command{gcc} 3.2.1.
-
-
-@cindex BLAS library
-@cindex LAPACK library
-
-Note that using @command{f95} allows the Sun
-performance library @code{libsunperf} to be selected: it will not work
-with @command{f77}, nor with @command{g77}.  @code{libsunperf}
-contains both BLAS and LAPACK code, and @option{--with-lapack} is 
-recommended for 32-bit builds using @command{f95}, but not for
-64-bit builds where on our test system some of the routines in 
-@code{libsunperf} took excessively large amounts of memory.
 
 Some care is needed to ensure that libraries found by
 @command{configure} are compatible with the R executable and modules, as
@@ -1243,20 +1191,15 @@ libraries.  If you cannot install shared versions you will need to tell
 not in the library path.  The symptom will the linker error shown in the
 last paragraph.  Static libraries that might be found and would cause
 problems are
-
 @smallexample
 BLAS                   use --without-blas
 Tcl/Tk                 use --without-tcltk
 GNOME                  not built by default
-libpng                 use --without-libpng
-jpeg                   use --without-jpeglib
-zlib                   use --without-zlib
+libpng  jpeg  zlib     (need not to be in the path) 
 @end smallexample
-
 @noindent
 and @code{bzip2} and @code{pcre} are problematic when building
-@file{libR.so}, only.  These can be avoided by @option{--without-bzlib}
-and @option{--without-pcre} respectively.
+@file{libR.so}, only.
 
 Some versions of @command{gcc} may contain what appears to be a bug at
 the @option{-O2} optimization level that causes

@@ -1,4 +1,3 @@
-#-*- Makefile -*-
 R: $(DPKG)/R $(DPKG)/R/$(PKG) $(DPKG)/R/all.rda
 
 $(DPKG)/R:
@@ -11,7 +10,7 @@ $(DPKG)/R/$(PKG): $(RHOME)/share/R/firstlib.R
 $(DPKG)/R/all.rda: R/${PKG}
 	@echo "  dumping R code in package \`$(PKG)'"
 ifeq ($(strip $(BUILD)),CROSS)
-	$(R_EXE) --vanilla --slave < $<
+	R --vanilla --slave < $<
 else
 	$(RHOME)/bin/rterm --vanilla --slave < $<
 endif

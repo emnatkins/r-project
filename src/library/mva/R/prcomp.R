@@ -2,12 +2,7 @@ prcomp <- function(x, retx = TRUE, center = TRUE, scale. = FALSE,
                    tol = NULL) {
     x <- as.matrix(x)
     x <- scale(x, center = center, scale = scale.)
-    dn <- dim(x)
-    if(dn[1] < dn[2]) {
-        s <- La.svd(x, nu = 0)
-        s$v <- t(s$vt)
-        s$vt <- NULL
-    } else s <- svd(x, nu = 0)
+    s <- svd(x, nu = 0)
     if (!is.null(tol)) {
         rank <- sum(s$d > (s$d[1]*tol))
         if (rank < ncol(x))

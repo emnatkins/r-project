@@ -15,8 +15,6 @@
 \alias{isIncomplete}
 \alias{close}
 \alias{close.connection}
-\alias{flush}
-\alias{flush.connection}
 \alias{print.connection}
 \alias{summary.connection}
 \alias{ISOLatin1}
@@ -45,7 +43,6 @@ socketConnection(host = "localhost", port, server = FALSE,
 
 \method{open}{connection}(con, open = "r", blocking = TRUE, ...)
 \method{close}{connection}(con, type = "rw", ...)
-\method{flush}{connection}(con)
 
 isOpen(con, rw = "")
 isIncomplete(con)
@@ -103,6 +100,8 @@ isIncomplete(con)
   connections will open them if they are not open, but then close them
   again, so to leave a connection open call \code{open} explicitly.
 
+  \code{close} closes and destroys a connection.
+
   Possible values for the mode \code{open} to open a connection are
   \describe{
     \item{\code{"r"} or \code{"rt"}}{Open for reading in text mode.}
@@ -125,11 +124,6 @@ isIncomplete(con)
   connections on Windows, and \code{\link{pushBack}} is text-oriented and
   is only allowed on connections open for reading in text mode.
 
-  \code{close} closes and destroys a connection.
-
-  \code{flush} flushes the output stream of a connection open for
-  write/append (where implemented).
-
   If for a \code{file} connection the description is \code{""}, the file
   is immediately opened in \code{"w+"} mode and unlinked from the file
   system.  This provides a temporary file to write to and then read from.
@@ -137,7 +131,7 @@ isIncomplete(con)
   The encoding vector is used to map the input from a file or pipe to
   the platform's native character set.  Supplied examples are
   \code{native.enc} as well as \code{MacRoman}, \code{WinAnsi} and
-  \code{ISOLatin1}, whose actual encoding is platform-dependent.  Missing
+  \code{ISOLatin1}, whose actual encoding is platform-dependent. Missing
   characters are mapped to a space in these encodings.
 }
 \value{
@@ -183,19 +177,6 @@ isIncomplete(con)
   append to fifos) connects both sides of the fifo to the \R process,
   and provides an similar facility to \code{file()}.
 }
-#ifdef windows
-\section{Clipboard}{
-  Under Windows, \code{file} can also be used with \code{description =
-    "clipboard"} in mode \code{"w"} and \code{"w"} only.
-  
-  When the clipboard is opened for reading, the contents are immediately
-  copied to internal storage in the connection.
-
-  When writing to the clipboard, the output is
-  copied to the clipboard only when the connection is closed or flushed.
-  There is a 32Kb limit of the text to be written to the clipboard.
-}
-#endif
 \note{
   \R's connections are modelled on those in S version 4 (see Chambers,
   1998). However \R goes well beyond the Svr4 model, for example
@@ -204,12 +185,6 @@ isIncomplete(con)
   The default mode in \R is \code{"r"} except for socket
   connections. This differs from Svr4, where it is the equivalent of
   \code{"r+"}, known as \code{"*"}.
-
-  On platforms where \code{vsnprintf} does not return the needed length
-  of output (e.g. Windows) there is a 100,000 character output limit on the
-  length of line for \code{fifo}, \code{gzfile} and \code{bzfile}
-  connections: longer lines will be truncated with a warning.
-}
 }
 \references{
   Chambers, J. M. (1998)

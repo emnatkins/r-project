@@ -1,5 +1,4 @@
 \name{nottem}
-\docType{data}
 \alias{nottem}
 \title{
   Average Monthly Temperatures at Nottingham, 1920--1939

@@ -167,19 +167,18 @@ kernapply.ts <- function (x, k, circular = FALSE, ...)
     ts (y, end=end(x), frequency=frequency(x))
 }
 
-kernapply.tskernel <- function (x, k2, ...)
+kernapply.tskernel <- function (k1, k2)
 {
-    if (!is.tskernel(x))
+    if (!is.tskernel(k1))
         stop ("k1 is not a kernel")
-    if (!is.tskernel(x))
+    if (!is.tskernel(k2))
         stop ("k2 is not a kernel")
     n <- k2$m
-    xx <- c(rep(0,n), x[-x$m:x$m], rep(0,n))
-    coef <- kernapply(xx, k2, circular = TRUE)
+    x <- c(rep(0,n), k1[-k1$m:k1$m], rep(0,n))
+    coef <- kernapply(x, k2, circular = TRUE)
     m <- length(coef)%/%2
     kernel(coef[(m+1):length(coef)],m,
-           paste("Composite(", attr(x, "name"), ",",
-                 attr(k2, "name"), ")", sep=""))
+           paste("Composite(", attr(k1, "name"),",",attr(k2, "name"),")",sep=""))
 }
 
 

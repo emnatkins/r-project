@@ -14,7 +14,7 @@
 }
 \synopsis{
 postscript(file = ifelse(onefile, "Rplots.ps", "Rplot\%03d.ps"),
-           onefile = TRUE, family, title = "R Graphics Output", \dots)
+           onefile = TRUE, family, \dots)
 ps.options(\dots, reset = FALSE, override.check = FALSE)
 }
 %% The definitive doc is the source :-)
@@ -24,7 +24,7 @@ postscript(file = ifelse(onefile, "Rplots.ps", "Rplot\%03d.ps"),
            onefile = TRUE,
            paper, family, encoding, bg, fg,
            width, height, horizontal, pointsize,
-           pagecentre, print.it, command, title = "R Graphics Output")
+           pagecentre, print.it, command)
 
 % paper, horizontal, width, height, family, pointsize, bg, fg)
 ps.options(paper, horizontal, width, height, family, encoding,
@@ -93,7 +93,6 @@ ps.options(paper, horizontal, width, height, family, encoding,
     compatibility reasons.}
   \item{reset, override.check}{logical arguments passed to
     \code{\link{check.options}}.  See the Examples.}
-  \item{title}{title string to embed in the file.}
 }
 \details{
   \code{postscript} opens the file \code{file} and the PostScript

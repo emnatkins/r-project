@@ -36,11 +36,6 @@ This is a small installation, containing text and compiled HTML help
 and the Introduction to R and Data Import/Export manuals in PDF.
 
 
-For more details, including command-line options for the installers 
-and how to uninstall, see the rw-FAQ.  If you are reading this as part of
-an installed version of R, that's both file rw-FAQ in this directory
-and file doc\html\rw-FAQ.html.
-
 
 Usage
 =====
@@ -100,7 +95,7 @@ Rterm.exe --no-restore --no-save < infile > outfile
 
 although users will probably want to set up simple .bat or .cmd files
 to run batch jobs. You can also use it via Rcmd BATCH: see ?BATCH or
-Rcmd BATCH --help.  (You will Perl installed and in your path.)
+Rcmd BATCH --help.  (You will need @RWVER@sp.zip and Perl installed.)
 
 Use with ESS: You can use Rterm.exe to provide inferior R-mode in ESS
 under NTEmacs, for example with ess-5.1.20.  The pager is
@@ -217,7 +212,11 @@ search engine can be updated from a running R process by the command
 	link.html.help()
 
 provided the owner of the process has write permission on
-@RWVER@\doc\html.
+@RWVER@\doc\html.  If you have the source-package files and Perl
+installed you can (and should in preference) use
+
+	cd ...\@RWVER@\src\gnuwin32\help
+	make indices
 
 Private libraries of packages can be used and can be specified by the
 environment variable R_LIBS.  (Separate directories by ";" in this
@@ -264,21 +263,21 @@ Using package tcltk
 ===================
 
 The package tcltk supports building graphical interfaces with Tcl/Tk.
-To use this you need to install ActiveTcl 8.4.x from
+To use this you need to install ActiveTcl 8.3.x from
 http://aspn.activestate.com/ASPN/Downloads/ActiveTcl/ and you will
 need to have the Tcl and Tk dlls in your path (which the installer
 will probably do for you).  Also, you need to set the environment
-variable TCL_LIBRARY, to something like c:/Program Files/Tcl/lib/tcl8.4.
+variable TCL_LIBRARY, to something like c:/Program Files/Tcl/lib/tcl8.3.
 
 How you set environmental variables under Windows is system-dependent,
 but with R you can always use the form
-TCL_LIBRARY="c:/Program Files/Tcl/lib/tcl8.4"
+TCL_LIBRARY="c:/Program Files/Tcl/lib/tcl8.3"
 at the end of the command line or Target field of a shortcut.
 
 The demos(tk*) (available after loading the tcltk library) will work
 on Windows.
 
-N.B. ActiveTcl 8.3.x will not work with the binary releases, but the
+N.B. ActiveTcl 8.4.x will not work with the binary releases, but the
 sources can be configured to build against it.
 
 

@@ -57,12 +57,10 @@ MAKEINDEX = @MAKEINDEX@
 MKINSTALLDIRS = $(top_srcdir)/tools/mkinstalldirs
 PERL = @PERL@
 R_GUIS = @R_GUIS@
-R_OSTYPE = @R_OSTYPE@
 R_PKGS_BASE = base ctest eda lqs methods modreg mva nls splines stepfun tcltk tools ts
 R_PKGS_RECOMMENDED = survival boot cluster foreign grid lattice KernSmooth mgcv nlme rpart VR
 R_PKGS_RECOMMENDED_EXPANDED = survival boot cluster foreign grid lattice KernSmooth mgcv nlme rpart MASS nnet spatial class
 R_PKGS = $(R_PKGS_BASE) @USE_RECOMMENDED_PACKAGES_TRUE@ $(R_PKGS_RECOMMENDED)
-R_PLATFORM = @R_PLATFORM@
 R_XTRA_CFLAGS = @R_XTRA_CFLAGS@
 R_XTRA_CPPFLAGS = @R_XTRA_CPPFLAGS@ -I. -I$(top_builddir)/src/include -I$(top_srcdir)/src/include
 R_XTRA_FFLAGS = @R_XTRA_FFLAGS@
@@ -93,8 +91,8 @@ ALL_FFLAGS_LO = $(R_XTRA_FFLAGS) $(FPICFLAGS) $(SHLIB_FFLAGS) $(FFLAGS)
 .SUFFIXES:
 .SUFFIXES: .c .f .d .lo .o
 
-@r_cc_rules_frag@
-@r_f77_rules_frag@
+@cc_rules_frag@
+@f77_rules_frag@
 
 prefix = @prefix@
 exec_prefix = @exec_prefix@

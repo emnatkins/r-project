@@ -10,14 +10,7 @@ help.start <- function(update = TRUE, gui = "irrelevant",
         cat("updating HTML package listing\n")
         flush.console()
         try(make.packages.html(.libPaths()))
-        cat("updating HTML search index\n")
-        flush.console()
-        try(make.search.html(.libPaths()))
-        if(any(.libPaths() != .Library)) {
-            cat("fixing URLs in non-standard libraries\n")
-            flush.console()
-            try(fixup.libraries.URLs(.libPaths()))
-        }
+        try(make.search.html(.Library))
     }
     a <- gsub("/", "\\\\", a)
     cat("If nothing happens, you should open `", a, "' yourself\n")

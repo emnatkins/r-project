@@ -3,7 +3,7 @@ function(..., list = character(0),
          package = .packages(), lib.loc = NULL,
          verbose = getOption("verbose"))
 {
-    sQuote <- function(s) paste("'", s, "'", sep = "")
+    sQuote <- function(s) paste("`", s, "'", sep = "")
 
     names <- c(as.character(substitute(list(...))[-1]), list)
     if(!missing(package))
@@ -20,8 +20,8 @@ function(..., list = character(0),
     paths <- unique(paths[file.exists(paths)])
 
     ## Find the directories with a 'data' subdirectory.
-    nodata <- !(file.exists(file.path(paths, "data"))
-                & file.info(file.path(paths, "data"))$isdir)
+    nodata <- !file.exists(file.path(paths, "data"))
+    nodata[!file.info(file.path(paths, "data"))$isdir] <- TRUE
     if(any(nodata)) {
         if(!missing(package) && (length(package) > 0)) {
             ## Warn about given packages which do not have a 'data'
@@ -50,38 +50,23 @@ function(..., list = character(0),
         db <- matrix(character(0), nr = 0, nc = 4)
         noindex <- character(0)
         for(path in paths) {
-            entries <- NULL
+            INDEX <- file.path(path, "data", "00Index")
             ## <NOTE>
-            ## Check for new-style '00Index.rds' (and intermediate
-            ## '00Index.dcf'), then for '00Index'. 
             ## Earlier versions also used to check for 'index.doc'.
             ## </NOTE>
-            if(file.exists(INDEX <-
-                           file.path(path, "data", "00Index.rds"))) {
-                entries <- .readRDS(INDEX)
-            }
-            ## <FIXME>
-            ## Remove this once 1.7.0 is out.
-            ## (The 1.7 development versions for some time used an index
-            ## serialized in DCF.)
-            else if(file.exists(INDEX <-
-                                file.path(path, "data", "00Index.dcf"))) {
-                entries <- read.dcf(INDEX)
-                entries <- cbind(colnames(entries), c(entries))
-            }
-            ## </FIXME>
-            else if(file.exists(INDEX <-
-                                file.path(path, "data", "00Index")))
+            if(file.exists(INDEX)) {
                 entries <- read.00Index(INDEX)
+                if(NROW(entries) > 0) {
+                    db <- rbind(db,
+                                cbind(basename(path),
+                                      dirname(path),
+                                      entries))
+                }
+            }
             else {
-                ## No index: check whether subdir 'data' contains files.
+                ## no index: check whether subdir 'data' contains files.
                 if(length(list.files(file.path(path, "data"))) > 0)
                     noindex <- c(noindex, basename(path))
-            }
-            if(NROW(entries) > 0) {
-                db <- rbind(db,
-                            cbind(basename(path), dirname(path),
-                                  entries))
             }
         }
         colnames(db) <- c("Package", "LibPath", "Item", "Title")

@@ -61,14 +61,6 @@ file.copy <- function(from, to, overwrite=FALSE)
     file.append(to, from)
 }
 
-file.symlink <- function(from, to) {
-    if (!(length(from))) stop("no files to link from")
-    if (!(nt <- length(to)))   stop("no files/dir to link to")
-    if (nt == 1 && file.exists(to) && file.info(to)$isdir)
-        to <- file.path(to, basename(from))
-    .Internal(file.symlink(from, to))
-}
-
 file.info <- function(...)
 {
     res <- .Internal(file.info(fn <- c(...)))
@@ -111,10 +103,18 @@ print.octmode <- function(x, ...)
 }
 
 system.file <-
-function(..., package = "base", lib.loc = NULL)
+function(..., package = "base", lib.loc = NULL, pkg, lib)
 {
     if(nargs() == 0)
         return(file.path(.Library, "base"))
+    if(!missing(pkg)) {
+        warning("argument `pkg' is deprecated.  Use `package' instead.")
+        if(missing(package)) package <- pkg
+    }
+    if(!missing(lib)) {
+        warning("argument `lib' is deprecated.  Use `lib.loc' instead.")
+        if(missing(lib.loc)) lib.loc <- lib
+    }
     if(length(package) != 1)
         stop("argument `package' must be of length 1")
     packagePath <- .find.package(package, lib.loc, quiet = TRUE)

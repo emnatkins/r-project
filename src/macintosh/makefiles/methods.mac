@@ -36,9 +36,7 @@ LibDir     		= :::::library:{DLib}:libs
 SrcFiles        = 	do_substitute_direct.c ¶
   					method_meta_data.c ¶
   					methods_list_dispatch.c ¶
-  					slot.c ¶
-  					class_support.c
-  					
+  					slot.c 
 
 
 ### Object Files ###
@@ -46,9 +44,7 @@ SrcFiles        = 	do_substitute_direct.c ¶
 ObjFiles-PPC    = 	do_substitute_direct.o ¶
   					method_meta_data.o ¶
   					methods_list_dispatch.o ¶
-  					slot.o ¶
-  					class_support.o
-  					
+  					slot.o 
 
 
 ### Libraries ###
@@ -99,7 +95,6 @@ do_substitute_direct.o Ä do_substitute_direct.c
 method_meta_data.o Ä method_meta_data.c
 methods_list_dispatch.o Ä methods_list_dispatch.c
 slot.o Ä slot.c
-class_support.o Ä class_support.c
 
 ### Optional Dependencies ###
 ### Build this target to generate "include file" dependencies. ###

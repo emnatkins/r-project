@@ -24,8 +24,8 @@ SweaveSyntConv(file, syntax, output=NULL)
 }
 \seealso{\code{\link{RweaveLatex}}, \code{\link{Rtangle}}}
 \examples{
-testfile <- system.file("Sweave", "Sweave-test-1.Rnw",
-		        package = "tools")
+testfile <- file.path(.path.package("tools"),
+                      "Sweave", "Sweave-test-1.Rnw")
 
 ## convert the file to latex syntax
 SweaveSyntConv(testfile, SweaveSyntaxLatex)

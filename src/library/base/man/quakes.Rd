@@ -1,14 +1,8 @@
 \name{quakes}
-\docType{data}
-\alias{quakes}
 \title{Locations of Earthquakes off Fiji}
-\description{
-  The data set give the locations of 1000 seismic events of MB > 4.0.
-  The events occurred in a cube near Fiji since 1964.
-}
 \usage{data(quakes)}
-\format{
-  A data frame with 1000 observations on 5 variables.
+\alias{quakes}
+\format{A data frame with 1000 observations on 5 variables.
   \tabular{rlll}{
     [,1] \tab lat      \tab numeric \tab Latitude of event\cr
     [,2] \tab long     \tab numeric \tab Longitude\cr
@@ -22,9 +16,13 @@
   obtained it from Dr. John Woodhouse, Dept. of Geophysics, Harvard
   University.
 }
+\description{
+  The data set give the locations of 1000 seismic events of MB > 4.0.
+  The events occurred in a cube near Fiji since 1964.
+}
 \details{
-  There are two clear planes of seismic activity.  One is a major plate
-  junction; the other is the Tonga trench off New Zealand.  These data
+  There are two clear planes of seismic activity.  One is a major
+  plate junction; the other is a trench off New Zealand.  These data
   constitute a subsample from a larger dataset of containing 5000
   observations.
 }

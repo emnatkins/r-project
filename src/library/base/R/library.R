@@ -29,14 +29,12 @@ function(package, help, lib.loc = NULL, character.only = FALSE,
             }
             if(.Platform$OS.type == "unix") {
                 platform <- builtFields[2]
-                if(length(grep("\\w", platform))) {
-                    ## allow for small mismatches, e.g. OS version number.
-                    m <- agrep(platform, R.version$platform)
-                    if(!length(m))
-                        stop(paste("package", fields[1, "Package"],
-                                   "was built for", platform),
-                             call. = FALSE)
-		}
+                ## allow for small mismatches, e.g. OS version number.
+                m <- agrep(platform, R.version$platform)
+                if(!length(m))
+                    stop(paste("package", fields[1, "Package"],
+                               "was built for", platform),
+                         call. = FALSE)
             }
         }
         else
@@ -44,7 +42,7 @@ function(package, help, lib.loc = NULL, character.only = FALSE,
                        "See the Note in ?library"))
     }
 
-    sQuote <- function(s) paste("'", s, "'", sep = "")
+    sQuote <- function(s) paste("`", s, "'", sep = "")
     if(!missing(package)) {
 	if(!character.only)
 	    package <- as.character(substitute(package))
@@ -56,10 +54,10 @@ function(package, help, lib.loc = NULL, character.only = FALSE,
             ## package.
             ## Only if it is _already_ here do we do cacheMetaData.
             ## The methods package caches all other libs when it is
-            ## attached.
+            ## attached. 
             ## Note for detail: this does _not_ test whether dispatch is
             ## currently on, but rather whether the package is attached
-            ## (cf .isMethodsDispatchOn).
+            ## (cf .isMethodsDispachOn).
             hasMethods <- !is.na(match("package:methods", search()))
             pkgpath <- .find.package(package, lib.loc, quiet = TRUE,
                                      verbose = verbose)
@@ -125,17 +123,6 @@ function(package, help, lib.loc = NULL, character.only = FALSE,
                                ".Last.value", ".Random.seed")
 		lib.pos <- match(pkgname, search())
 		ob <- objects(lib.pos)
-                ## ignore generics not defined for the package
-                if(!is.na(match("package:methods", search()))) {
-                    if( length(ob) > 0 )
-                        ob <- ob[sapply(ob, function(f) {
-                            f<- get(f, pos = lib.pos)
-                            fAttr <- c(class(f), attr(f, "package"))
-                            (length(fAttr) == 2
-                             && fAttr[1] == "genericFunction"
-                             && fAttr[2] != package)
-                        }) == FALSE]
-                }
 		fst <- TRUE
 		ipos <- seq(along = sp <- search())[-c(lib.pos,
 			    match("Autoloads", sp))]
@@ -169,18 +156,10 @@ function(package, help, lib.loc = NULL, character.only = FALSE,
 	    help <- as.character(substitute(help))
         pkgName <- help[1]              # only give help on one package
         pkgPath <- .find.package(pkgName, lib.loc, verbose = verbose)
-        docFiles <- file.path(pkgPath, c("DESCRIPTION", "INDEX"))
-        ## This is a bit ugly, but in the future we might also have
-        ## DESCRIPTION or INDEX files as serialized R objects ...
-        if(file.exists(vignetteIndexRDS <-
-                       file.path(pkgPath, "doc", "00Index.rds")))
-            docFiles <- c(docFiles, vignetteIndexRDS)
-        else
-            docFiles <- c(docFiles,
-                          file.path(pkgPath, "doc", "00Index.dcf"))
+        docFiles <- file.path(pkgPath,
+                              c("TITLE", "DESCRIPTION", "INDEX",
+                                file.path("doc", "00Index.dcf")))
         pkgInfo <- vector(length = 4, mode = "list")
-        pkgInfo[[1]] <- paste("\n\t\tInformation on Package",
-                              sQuote(pkgName))
         readDocFile <- function(f) {
             if(basename(f) %in% c("DESCRIPTION", "00Index.dcf")) {
                 ## This should be in valid DCF format ...
@@ -198,14 +177,12 @@ function(package, help, lib.loc = NULL, character.only = FALSE,
                 else
                     NULL
             }
-            else if(basename(f) == "00Index.rds")
-                txt <- .readRDS(f)
             else
                 txt <- readLines(f)
             txt
         }
         for(i in which(file.exists(docFiles)))
-            pkgInfo[[i+1]] <- readDocFile(docFiles[i])
+            pkgInfo[[i]] <- readDocFile(docFiles[i])
         y <- list(name = pkgName, path = pkgPath, info = pkgInfo)
         class(y) <- "packageInfo"
         return(y)
@@ -220,8 +197,11 @@ function(package, help, lib.loc = NULL, character.only = FALSE,
         for(lib in lib.loc) {
             a <- .packages(all.available = TRUE, lib.loc = lib)
             for(i in sort(a)) {
-                title <- package.description(i, lib.loc = lib, field="Title")
-                if(is.na(title)) title <- ""
+                INDEX <- file.path(lib, i, "TITLE")
+                title <- if(file.exists(INDEX))
+                    read.00Index(INDEX)[, 2]
+                else ""
+                if(length(title) == 0) title <- ""
                 db <- rbind(db, cbind(i, lib, title))
             }
             if(length(a) == 0)
@@ -253,7 +233,7 @@ library.dynam <-
 function(chname, package = .packages(), lib.loc = NULL, verbose =
          getOption("verbose"), file.ext = .Platform$dynlib.ext, ...)
 {
-    sQuote <- function(s) paste("'", s, "'", sep = "")
+    sQuote <- function(s) paste("`", s, "'", sep = "")
 
     .Dyn.libs <- .dynLibs()
     if(missing(chname) || (ncChname <- nchar(chname)) == 0)
@@ -282,10 +262,9 @@ function(chname, package = .packages(), lib.loc = NULL, verbose =
 
 require <-
 function(package, quietly = FALSE, warn.conflicts = TRUE,
-         keep.source = getOption("keep.source.pkgs"), character.only=FALSE)
+         keep.source = getOption("keep.source.pkgs"))
 {
-    if( !character.only )
-        package <- as.character(substitute(package)) # allowing "require(eda)"
+    package <- as.character(substitute(package)) # allowing "require(eda)"
     if (is.na(match(paste("package", package, sep = ":"), search()))) {
 	if (!quietly) cat("Loading required package:", package, "\n")
 	library(package, char = TRUE, logical = TRUE,
@@ -342,7 +321,7 @@ function(package = .packages(), quiet = FALSE)
 function(package, lib.loc = NULL, quiet = FALSE,
          verbose = getOption("verbose"))
 {
-    sQuote <- function(s) paste("'", s, "'", sep = "")
+    sQuote <- function(s) paste("`", s, "'", sep = "")
 
     useAttached <- FALSE
     if(is.null(lib.loc)) {
@@ -392,7 +371,7 @@ print.packageInfo <-
 function(x, ...)
 {
     if(!inherits(x, "packageInfo")) stop("wrong class")
-    sQuote <- function(s) paste("'", s, "'", sep = "")
+    sQuote <- function(s) paste("`", s, "'", sep = "")
     outFile <- tempfile("RpackageInfo")
     outConn <- file(outFile, open = "w")
     vignetteMsg <-
@@ -406,7 +385,7 @@ function(x, ...)
                        "\n\n", sep = ""))
     footers <- c("\n", "\n", "\n", "")
     formatDocEntry <- function(entry) {
-        if(is.list(entry) || is.matrix(entry))
+        if(is.list(entry))
             formatDL(entry, style = "list")
         else
             entry

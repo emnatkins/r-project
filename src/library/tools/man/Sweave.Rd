@@ -80,8 +80,8 @@ Stangle(file, driver=RTangle(), syntax=getOption("SweaveSyntax"), ...)
 }
 \seealso{\code{\link{RweaveLatex}}, \code{\link{Rtangle}}}
 \examples{
-testfile <- system.file("Sweave", "Sweave-test-1.Rnw",
-		        package = "tools")
+testfile <- file.path(.path.package("tools"),
+                      "Sweave", "Sweave-test-1.Rnw")
 
 ## create a LaTeX file
 Sweave(testfile)

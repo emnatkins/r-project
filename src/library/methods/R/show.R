@@ -49,8 +49,7 @@ print.default <- function(x, ...) {
 }
 
 .InitShowMethods <- function(envir) {
-    if(!isGeneric("show"))
-        setGeneric("show", where = envir)
+    setGeneric("show", where = envir)
     setMethod("show", "MethodDefinition",
               function(object) {
                   cat("Method Definition (Class \"", class(object), "\"):\n\n", sep = "")

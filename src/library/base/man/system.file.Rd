@@ -1,7 +1,7 @@
 \name{system.file}
 \title{Find Names of R System Files}
 \usage{
-system.file(\dots, package = "base", lib.loc = NULL)
+system.file(\dots, package = "base", lib.loc = NULL, pkg, lib)
 }
 \alias{system.file}
 \arguments{
@@ -14,6 +14,8 @@ system.file(\dots, package = "base", lib.loc = NULL)
     \code{NULL}.  The default value of \code{NULL} corresponds to all
     libraries currently known.  If the default is used, the loaded
     packages are searched before the libraries.}
+  \item{pkg}{previous name for argument \code{package}.  Deprecated.}
+  \item{lib}{previous name for argument \code{lib.loc}.  Deprecated.}
 }
 \description{
   Finds the full file names of files in packages etc.

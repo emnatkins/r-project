@@ -4,9 +4,7 @@ interaction.plot <-
              trace.label=deparse(substitute(trace.factor)), fixed=FALSE,
              xlab = deparse(substitute(x.factor)), ylab = ylabel,
              ylim = range(cells, na.rm=TRUE),
-             lty = nc:1, col = 1, pch = c(1:9, 0, letters),
-             xpd = NULL, leg.bg = par("bg"), leg.bty = "n",
-             xtick = FALSE, xaxt = par("xaxt"), axes = TRUE, ...)
+             lty = nc:1, col = 1, pch = c(1:9, 0, letters), ...)
 {
     ylabel <- paste(deparse(substitute(fun)), "of ",
                     deparse(substitute(response)))
@@ -29,24 +27,15 @@ interaction.plot <-
     if(is.null(ylabs)) ylabs <- as.character(1:nc)
     xlim <- range(xvals)
     xleg <- xlim[2] + 0.05 * diff(xlim)
-    xlim <- xlim + c(-0.2/nr, if(legend) 0.2 + 0.02*nch else 0.2/nr) * diff(xlim)
+    xlim <- if(legend) xlim + c(-0.2/nr, 0.2 + 0.02*nch) * diff(xlim)
+    else xlim + c(-0.2/nr, 0.2/nr) * diff(xlim)
     matplot(xvals, cells, ..., type = type,  xlim = xlim, ylim = ylim,
-            xlab = xlab, ylab = ylab, axes = axes, xaxt = "n",
+            xlab = xlab, ylab = ylab, xaxt = "n",
             col = col, lty = lty, pch = pch)
-    ## old (<= 1.6.x)  mtext(xlabs, 1, at = xvals)
-    ## new:
-    if(axes && xaxt != "n") {
-        mgp. <- par("mgp") ; if(!xtick) mgp.[2] <- 0
-        axis(1, at = xvals, labels = xlabs, tick = xtick, mgp = mgp., xaxt = xaxt, ...)
-    }
+    mtext(xlabs, 1, at = xvals)
     if(legend) {
         yrng <- diff(ylim)
         yleg <- ylim[2] - 0.1 * yrng
-        if(!is.null(xpd) || { xpd. <- par("xpd")
-                              !is.na(xpd.) && !xpd. && (xpd <- TRUE)}) {
-            op <- par(xpd = xpd)
-            on.exit(par(op))
-        }
         text(xleg, ylim[2] - 0.05 * yrng, paste("  ", trace.label), adj = 0)
         if(!fixed) {
             ## sort them on the value at the last level of x.factor
@@ -57,11 +46,10 @@ interaction.plot <-
             pch <- pch[ord]
         }
         if(type == "l")
-            legend(xleg, yleg, legend = ylabs, col = col, lty = lty,
-                   bty = leg.bty, bg = leg.bg)
+            legend(xleg, yleg, bty = "n", legend = ylabs, lty = lty, col = col)
         else
-            legend(xleg, yleg, legend = ylabs, col = col, pch = pch,
-                   bty = leg.bty, bg = leg.bg)
+            legend(xleg, yleg, bty = "n", legend = ylabs, col = col, pch = pch)
     }
     invisible()
 }
+

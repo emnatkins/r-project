@@ -1,4 +1,5 @@
 include MkRules
+include RWVERSION
 
 ## This is done so Rpwd.exe gets built first under a native build,
 ## but it is not used in Makefile under a cross-build.
@@ -25,8 +26,6 @@ RHOME = $(shell perl pwd.pl ../..)
 PKGD = $(shell perl pwd.pl $(PKGDIR))
 endif
 
-RPREFIX = $(shell perl fixed/rwver.pl ../../VERSION)
-
 RLIB = $(RHOME)/library
 PKGDIR = $(RHOME)/src/library
 
@@ -42,7 +41,8 @@ else
 endif
 
 R-DLLFLAGS = -mwindows
-R-DLLLIBS =-L. $(FLIBS) -lRblas -lcomctl32 -lversion
+R-DLLLIBS =-L. $(FLIBS) -lcomctl32 -lversion
+FLIBS+=-lRblas
 SOURCES = $(filter-out malloc.c blas00.c,$(wildcard *.c *.f))
 OBJS = $(SOURCES:.c=.o)
 MAINLIBS = libmain.a libappl.a libmath.a
@@ -77,25 +77,9 @@ front-ends/Rpwd.exe:
 
 ## watch out: R.dll and Rblas.dll depend on each other.
 rbuild: fixfiles rlibs makeMakedeps libRblas.a ../../bin/R.dll libR.a \
-	 ../../bin/Rblas.dll CHTML front-ends COPYRIGHTS rmodules Rcode
+	 ../../bin/Rblas.dll CHTML front-ends COPYRIGHTS rmodules
 
-## used to build skeletal versions of packages, enough to run
-## package tools to install them properly
-## need ctest as it is in the main .Rprofile.
-INITPACKAGES = base tools ctest
-Rcode: fixed/fixdesc 
-	@$(ECHO) "  making bootstrap versions of packages ..."
-	@for pkg in $(INITPACKAGES); do \
-	  if ! test -f $(RHOME)/library/$${pkg}/DESCRIPTION ; then \
-	  $(ECHO) "  --" $$pkg; \
-	  $(MAKE) --no-print-directory -C $(PKGDIR)/$${pkg} PKG=$${pkg} \
-	    RHOME=$(RHOME) -f $(RHOME)/src/gnuwin32/MakePkg Rcode; \
-	  fi; \
-	done
-	@$(ECHO) "  ... done"
-
-
-rpackage: ../../library/R.css
+rpackage: fixed/fixdesc ../../library/R.css
 	@$(MAKE) --no-print-directory $(PKGS)
 
 rinstaller:
@@ -103,6 +87,8 @@ rinstaller:
 	@$(MAKE) --no-print-directory -C installer clean
 
 rlibs:
+# need pcre.h built before main is built
+	$(MAKE) --no-print-directory -C ../extra/pcre -f Makefile.win
 	$(MAKE) --no-print-directory -C ../appl  OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
 	$(MAKE) --no-print-directory -C ../main  OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
 	$(MAKE) --no-print-directory -C ../nmath OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
@@ -111,8 +97,8 @@ rlibs:
 	$(MAKE) --no-print-directory -C ../extra/xdr -f Makefile.win
 
 rmodules: libRm.a
-	$(MAKE) --no-print-directory -C ../modules \
-	  OPTFLAGS='$(OPTFLAGS)' FOPTFLAGS='$(FOPTFLAGS)' -f Makefile.win
+	$(MAKE) --no-print-directory -C ../modules OPTFLAGS='$(OPTFLAGS)' FOPTFLAGS='$(FOPTFLAGS)' \
+	  -f Makefile.win
 
 COPYRIGHTS: $(RHOME)/COPYRIGHTS COPYRIGHTS.win
 	cat $^ > $@
@@ -132,7 +118,7 @@ R.dll: R.a $(OBJS-EXTRA) $(MAINLIBS) $(EXTRALIBS) dllversion.o
 Rdll: makeMakedeps ../../bin/R.dll
 
 ../../bin/R.dll: fixfiles rlibs R.dll
-	@$(MKDIR) -p ../../bin
+	$(MKDIR) -p ../../bin
 	$(CP) R.dll ../../bin/
 
 front-ends: libR.a
@@ -271,8 +257,8 @@ pkg-%:
 	  $(MAKE) --no-print-directory $($*-ZIPDATA)data-$* ; \
 	fi
 ifeq ($(strip $(HELP)),YES)
-	@$(ECHO) "  installing help"
 	@$(MAKE) --no-print-directory -C ./help RHOME=$(RHOME) PKGDIR=$(PKGD) RLIB=$(RLIB) $($*-HELP)help-$*
+	@$(MAKE) --no-print-directory -C ./help RHOME=$(RHOME) PKGDIR=$(PKGD) RLIB=$(RLIB) contents-$*
 ifeq ($(strip $(WINHELP)),CHM)
 	@$(MAKE) --no-print-directory -C ./help RHOME=$(RHOME) PKGDIR=$(PKGD) RLIB=$(RLIB) chm-$*
 endif
@@ -287,7 +273,7 @@ pkgclean-%:
 
 pkgcheck-%:
 	@$(ECHO) -------- Testing package $* --------
-	-@$(MKDIR) -p $(PKGDIR)/$*/check
+	-@mkdir -p $(PKGDIR)/$*/check
 	@$(MAKE) --no-print-directory -C $(PKGDIR)/$*/check PKG=$* RHOME=$(RHOME) RLIB=$(RLIB) \
 	  -f $(RHOME)/src/gnuwin32/check/PkgCheck
 	@if test -d $(PKGDIR)/$*/tests ; then \
@@ -302,7 +288,7 @@ ziponly-%:
 	$(MAKE) --no-print-directory -C ./help RHOME=$(RHOME) PKGDIR=$(PKGD) RLIB=$(RLIB) ziponlyhelp-$*
 
 zipdata-%:
-	@$(ECHO) "  zipping data"
+	@echo "  zipping data"
 	@(cd $(RLIB)/$*/data; \
 	  if test -f Rdata.zip ; then \
 	    unzip -qou Rdata; \
@@ -312,7 +298,7 @@ zipdata-%:
 	  zip -rmq9X Rdata * -x filelist 00Index)
 
 data-%:
-	@$(ECHO) "  not zipping data"
+	@echo "  not zipping data"
 
 
 #                          ===== cleaning ======
@@ -329,7 +315,7 @@ clean: cleanwin $(PKGCLEAN)
 	done
 
 distclean veryclean: clean clean-recommended
-	$(RM) -r ../../bin ../../lib ../../library ../../modules
+	$(RM) -r ../../bin ../../library ../../modules
 	$(RM) ../include/config.h ../include/psignal.h \
 	../include/Rconfig.h ../include/Rversion.h ../include/Rmath.h
 	$(RM) ../library/*/src/*.o ../library/*/src/*.a
@@ -350,7 +336,6 @@ distclean veryclean: clean clean-recommended
 	@for pkg in $(ALLPACKAGES); do \
 	  $(RM) ../library/$${pkg}/DESCRIPTION; \
 	done
-	$(RM) rw-FAQ fixed/html/rw-FAQ.html
 	$(RM) Rpwd.exe # do this last of all
 
 cleanwin:
@@ -416,9 +401,9 @@ bindist: tcl bitmapdll docfiles
 # morley.tab is needed for R-intro Appendix A
 	$(CP) -p ../library/base/data/morley.tab $(RPREFIX)/library/base/data
 	$(RM) $(RPREFIX)/*/Makefile.in
-	(cd $(RPREFIX)/bin; $(RM) INSTALL REMOVE SHLIB build check \
+	(cd $(RPREFIX)/bin; $(RM) Rcmd.exe INSTALL REMOVE SHLIB build check \
 	   massage-Examples Rd2dvi.sh Rd2txt Rdconv Rdiff.sh Rdindex \
-           Sd2Rd)
+           Sd2Rd Rprof)
 	$(MKDIR) $(RPREFIX)/etc
 	$(CP) -p ../../etc/Rprofile $(RPREFIX)/etc/Rprofile
 	$(CP) -p ../../etc/Rconsole $(RPREFIX)/etc/Rconsole
@@ -461,7 +446,7 @@ endif
 #	-zip -rm9X $(RPREFIX)wh.zip $(RPREFIX)/library/*/winhlp
 	zip -rm9X $(RPREFIX)l.zip $(RPREFIX)/library/*/latex $(RPREFIX)/share/texmf
 	$(RM) -r $(RPREFIX)/doc
-	$(MKDIR) -p  $(RPREFIX)/doc/html
+	mkdir -p  $(RPREFIX)/doc/html
 	$(CP) -p ../../doc/html/faq.html ../../doc/html/rw-FAQ.html \
 	  $(RPREFIX)/doc/html
 	zip -rm9X $(RPREFIX)m.zip $(RPREFIX)/library/*/man
@@ -501,9 +486,8 @@ packagedist:
 	  ../../bin/build ../../bin/check ../../bin/massage-Examples \
 	  ../../bin/Rd2dvi.sh ../../bin/Rd2txt ../../bin/Rdconv \
 	  ../../bin/Rdindex ../../bin/Rdiff.sh \
-	  ../../bin/Sd2Rd  \
+	  ../../bin/Sd2Rd ../../bin/Rprof ../../bin/Rcmd.exe \
           $(RPREFIX)/bin
-	$(CP) -pr ../../lib $(RPREFIX)
 	$(CP) ../../share/make/wintests.mk $(RPREFIX)/share/make
 	$(CP) -pr ../../share/R $(RPREFIX)/share
 	$(CP) -p graphapp/graphapp.h graphapp/ga.h $(RPREFIX)/src/include
@@ -536,18 +520,18 @@ rsync-recommended:
 	(cd ../library/Recommended; for i in ${RECOMMENDED} ; do cp -p $${i}*.tar.gz $${i}.tgz ; done)
 
 ../library/%/DESCRIPTION: ../library/Recommended/%.tgz
-	@$(ECHO) "---- $*"
+	@echo "---- $*"
 	(cd ../library; rm -rf $*; tar zxf Recommended/$*.tgz; touch $@)
 
 unpack-recommended:
-	@$(ECHO) "--- Unpacking recommended packages"
+	@echo "--- Unpacking recommended packages"
 	@for i in ${RECOMMENDED} ; do $(MAKE) -s --no-print-directory ../library/$$i/DESCRIPTION ; done
 
 clean-recommended:
 	@for i in ${RECOMMENDED} ; do $(RM) -r ../library/$${i} ; done
 
 recommended: unpack-recommended
-	@$(ECHO) "--- Making recommended packages"
+	@echo "--- Making recommended packages"
 	@$(MAKE) --no-print-directory bundle-VR
 	@for p in $(REC_NONBUNDLES); do \
 	  $(MAKE) --no-print-directory pkg-$$p; \

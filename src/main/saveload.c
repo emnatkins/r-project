@@ -1979,10 +1979,9 @@ SEXP do_save(SEXP call, SEXP op, SEXP args, SEXP env)
     return R_NilValue;
 }
 
-static SEXP RestoreToEnv(SEXP ans, SEXP aenv)
+static void RestoreToEnv(SEXP ans, SEXP aenv)
 {
-    SEXP a, names;
-    int cnt = 0;
+    SEXP a;
     /* Store the components of the list in aenv.  We either replace
      * the existing objects in aenv or establish new bindings for
      * them.  Note that we try to convert old "pairlist" objects
@@ -1991,6 +1990,7 @@ static SEXP RestoreToEnv(SEXP ans, SEXP aenv)
     /* allow ans to be a vector-style list */
     if (TYPEOF(ans) == VECSXP) {
 	int i;
+	SEXP names;
 	PROTECT(ans);
 	PROTECT(names = getAttrib(ans, R_NamesSymbol)); /* PROTECT needed?? */
 	if (TYPEOF(names) != STRSXP || LENGTH(names) != LENGTH(ans))
@@ -2000,34 +2000,28 @@ static SEXP RestoreToEnv(SEXP ans, SEXP aenv)
 	    defineVar(sym, ConvertPairToVector(VECTOR_ELT(ans, i)), aenv);
 	}
 	UNPROTECT(2);
-	return names;
+	return;
     }
 
     if (! isList(ans))
 	error("loaded data is not in pair list form");
 
-    a = ans;
-    while (a != R_NilValue) {a = CDR(a); cnt++;}
-    PROTECT(names = allocVector(STRSXP, cnt));
-    cnt = 0;
     PROTECT(a = ans);
     while (a != R_NilValue) {
-	SET_VECTOR_ELT(names, cnt++, PRINTNAME(TAG(a)));
         defineVar(TAG(a), ConvertPairToVector(CAR(a)), aenv);
         a = CDR(a);
     }
-    UNPROTECT(2);
-    return names;
+    UNPROTECT(1);
 }
     
-static SEXP R_LoadSavedData(FILE *fp, SEXP aenv)
+static void R_LoadSavedData(FILE *fp, SEXP aenv)
 {
-    return RestoreToEnv(R_LoadFromFile(fp, 0), aenv);
+    RestoreToEnv(R_LoadFromFile(fp, 0), aenv);
 }
 
 SEXP do_load(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP fname, aenv, val;
+    SEXP fname, aenv;
     FILE *fp;
     RCNTXT cntxt;
 
@@ -2054,14 +2048,13 @@ SEXP do_load(SEXP call, SEXP op, SEXP args, SEXP env)
     cntxt.cend = &saveload_cleanup;
     cntxt.cenddata = fp;
 
-    PROTECT(val = R_LoadSavedData(fp, aenv));
+    R_LoadSavedData(fp, aenv);
 
     /* end the context after anything that could raise an error but before
        closing the file so it doesn't get done twice */
     endcontext(&cntxt);
     fclose(fp);
-    UNPROTECT(1);
-    return val;
+    return R_NilValue;
 }
 
 /* defined in Rinternals.h
@@ -2271,5 +2264,6 @@ SEXP do_loadFromConn(SEXP call, SEXP op, SEXP args, SEXP env)
 	error("invalid envir argument");
 
     R_InitConnInPStream(&in, con, R_pstream_any_format, NULL, NULL);
-    return RestoreToEnv(R_Unserialize(&in), aenv);
+    RestoreToEnv(R_Unserialize(&in), aenv);
+    return R_NilValue;
 }

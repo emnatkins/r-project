@@ -4,6 +4,8 @@
 \alias{.Rprofile}
 #ifndef mac
 \alias{Rprofile.site}
+#endif
+#ifdef unix
 \alias{Renviron.site}
 #endif
 \alias{.Renviron}
@@ -17,7 +19,7 @@
 \description{
   In \R, the startup mechanism is as follows.
 
-#ifndef mac
+#ifdef unix
   Unless \code{--no-environ} was given on the command line,
   \R searches for user and site
   files to process for setting environment variables.  The name of the
@@ -29,6 +31,16 @@
   current or in the user's home directory (in that order).
   See \bold{Details} for how the files are read.
 
+#endif
+#ifdef windows
+  Unless \code{--no-environ} was given on the command line,
+  \R searches for a user file to process for setting environment variables.
+  The search is for \file{.Renviron} in the
+  current or in the user's home directory (in that order).
+  See \bold{Details} for how the file is read.
+
+#endif
+#ifndef mac
   Then \R searches for the site-wide startup profile unless the command
   line option \code{--no-site-file} was given.  The name of this file is
   taken from the value of the \code{R\_PROFILE} environment variable.

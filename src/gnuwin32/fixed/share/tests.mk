@@ -2,6 +2,10 @@
 #
 # ${R_HOME}/share/make/wintests.mk
 
+ECHO_C =
+ECHO_N = -n
+ECHO_T =
+
 makevars =
 srcdir = .
 

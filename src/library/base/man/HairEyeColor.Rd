@@ -1,14 +1,13 @@
 \name{HairEyeColor}
-\docType{data}
 \alias{HairEyeColor}
 \title{Hair and Eye Color of Statistics Students}
+\usage{data(HairEyeColor)}
 \description{
   Distribution of hair and eye color and sex in 592 statistics students.
 }
-\usage{data(HairEyeColor)}
-\format{
-  A 3-dimensional array resulting from cross-tabulating 592 observations
-  on 3 variables.  The variables and their levels are as follows:
+\format{A 3-dimensional array resulting from cross-tabulating 592
+  observations on 3 variables.  The variables and their levels are as 
+  follows:
 
   \tabular{rll}{
     No \tab Name \tab Levels \cr

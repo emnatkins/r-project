@@ -3,7 +3,6 @@
 #include <Rinternals.h>
 #include <R_ext/RS.h>
 
-
 /* Level 3 BLAS */
 
 /* DGEMM - perform one of the matrix-matrix operations    */
@@ -14,6 +13,15 @@ void F77_NAME(dgemm)(const char *transa, const char *transb,
 		     const double *a, const int *lda,
 		     const double *b, const int *ldb,
 		     const double *beta, double *c, const int *ldc);
+
+/* DGEEV - compute for an N-by-N real nonsymmetric matrix A, the   */
+/* eigenvalues and, optionally, the left and/or right eigenvectors */
+void F77_NAME(dgeev)(const char *jobvl, const char *jobvr,
+		     const int *n, double *a, const int *lda,
+		     double *wr, double *wi,
+		     double *vl, const int *ldvl,
+		     double *vr, const int *ldvr,
+		     double *work, const int *lwork, int *info);
 
 /* DGESVD - compute the singular value decomposition (SVD); of a   */
 /* real M-by-N matrix A, optionally computing the left and/or      */
@@ -36,26 +44,16 @@ void F77_NAME(dgesdd)(const char *jobz,
 		      double *vt, const int *ldvt,
 		      double *work, const int *lwork, int *iwork, int *info);
 
-#ifdef HAVE_LAPACK
-/* DGEEV - compute for an N-by-N real nonsymmetric matrix A, the   */
-/* eigenvalues and, optionally, the left and/or right eigenvectors */
-void F77_NAME(dgeev)(const char *jobvl, const char *jobvr,
-		     const int *n, double *a, const int *lda,
-		     double *wr, double *wi,
-		     double *vl, const int *ldvl,
-		     double *vr, const int *ldvr,
-		     double *work, const int *lwork, int *info);
-
 /* DSYEV - compute all eigenvalues and, optionally, eigenvectors   */
 /* of a real symmetric matrix A                                    */
-void F77_NAME(dsyev)(const char *jobz, const char *uplo,
+void F77_NAME(rsyev)(const char *jobz, const char *uplo,
 		     const int *n, double *a, const int *lda,
 		     double *w, double *work, const int *lwork,
 		     int *info);
 
 /* DSYEVR - compute all eigenvalues and, optionally, eigenvectors   */
 /* of a real symmetric matrix A                                    */
-void F77_NAME(dsyevr)(const char *jobz, const char *range, const char *uplo,
+void F77_NAME(rsyevr)(const char *jobz, const char *range, const char *uplo,
 		      const int *n, double *a, const int *lda,
 		      const double *vl, const double *vu,
 		      const int *il, const int *iu,
@@ -64,27 +62,6 @@ void F77_NAME(dsyevr)(const char *jobz, const char *range, const char *uplo,
 		      double *work, const int *lwork,
 		      int *iwork, const int *liwork,
 		      int *info);
-#else /* remapped to avoid conflicts */
-void F77_NAME(rgeev)(const char *jobvl, const char *jobvr,
-		     const int *n, double *a, const int *lda,
-		     double *wr, double *wi,
-		     double *vl, const int *ldvl,
-		     double *vr, const int *ldvr,
-		     double *work, const int *lwork, int *info);
-void F77_NAME(rsyev)(const char *jobz, const char *uplo,
-                     const int *n, double *a, const int *lda,
-                     double *w, double *work, const int *lwork,
-                     int *info);
-void F77_NAME(rsyevr)(const char *jobz, const char *range, const char *uplo,
-                      const int *n, double *a, const int *lda,
-                      const double *vl, const double *vu,
-                      const int *il, const int *iu,
-                      const double *abstol, int *m, double *w,
-                      double *z, const int *ldz, int *isuppz,
-                      double *work, const int *lwork,
-                      int *iwork, const int *liwork,
-                      int *info);
-#endif
 
 /* DPOTRF - compute the Cholesky factorization of a real */
 /* symmetric positive definite matrix A */

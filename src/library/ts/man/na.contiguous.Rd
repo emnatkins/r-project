@@ -1,6 +1,6 @@
 \name{na.contiguous}
 \alias{na.contiguous}
-\title{Find Longest Contiguous Stretch of non-NAs}
+\title{NA Handling Routines for Time Series}
 \description{
   Find the longest consecutive stretch of non-missing values in a time
   series object.  (In the event of a tie, the first such stretch.)

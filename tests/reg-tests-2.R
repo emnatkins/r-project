@@ -180,9 +180,7 @@ format(a, justify="right")
 
 
 ## PR 963
-res <- svd(rbind(1:7))## $v lost dimensions in 1.2.3
-if(res$u[1,1] < 0) {res$u <- -res$u; res$v <- -res$v}
-res
+svd(rbind(1:7))## $v lost dimensions in 1.2.3
 
 
 ## Make sure  on.exit() keeps being evaluated in the proper env [from PD]:

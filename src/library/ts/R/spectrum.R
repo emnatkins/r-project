@@ -188,7 +188,6 @@ plot.spec <-
     }
 
     plot.type <- match.arg(plot.type)
-    log <- match.arg(log)
     m <- match.call()
     if(plot.type == "coherency") {
         m[[1]] <- as.name("plot.spec.coherency")

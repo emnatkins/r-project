@@ -34,8 +34,7 @@ SOURCES_C = \
 	saveload.c scan.c seq.c serialize.c size.c sort.c source.c split.c \
 	sprintf.c subassign.c subscript.c subset.c summary.c \
 	unique.c util.c \
-	version.c vfonts.c \
-        registration.c
+	version.c vfonts.c
 SOURCES_F = \
 	xxxpr.f
 EXTRA_SOURCES_C = \
@@ -48,7 +47,6 @@ OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_F:.f=.o)
 HEADERS = \
 	RBufferUtils.h Rregex.h Rstrptime.h \
 	arithmetic.h apse.h \
-	basedecl.h \
 	par-common.c \
 	qsort-body.c \
 	unzip.h
@@ -63,17 +61,11 @@ DISTFILES = Makefile.in Makefile.win \
 
 ## these are built with CPICFLAGS so safe to use in libR.so
 ZLIB_CPPFLAGS = @BUILD_ZLIB_TRUE@ -I$(top_srcdir)/src/extra/zlib
-BZLIB_CPPFLAGS = @BUILD_BZLIB_TRUE@ -I$(top_srcdir)/src/extra/bzip2
-PCRE_CPPFLAGS = @BUILD_PCRE_TRUE@ -I$(top_srcdir)/src/extra/pcre
-
-ALL_CPPFLAGS = $(ZLIB_CPPFLAGS) $(BZLIB_CPPFLAGS) $(PCRE_CPPFLAGS) \
-  $(R_XTRA_CPPFLAGS) $(CPPFLAGS) $(DEFS)
-
 ## use an explicit library: there might be an unsatisfactory -lz around
 R_ZLIBS = @BUILD_ZLIB_TRUE@ ../extra/zlib/libz.a
-R_BZLIBS = @BUILD_BZLIB_TRUE@ ../extra/bzip2/libbz2.a
-R_PCRE = @BUILD_PCRE_TRUE@ ../extra/pcre/libpcre.a
 R_XDR = @BUILD_XDR_TRUE@ ../extra/xdr/libxdr.a
+
+ALL_CPPFLAGS = $(ZLIB_CPPFLAGS) $(R_XTRA_CPPFLAGS) $(CPPFLAGS) $(DEFS)
 
 ## <FIXME>
 ## Names in here should use '$(top_builddir)' instead ...
@@ -88,10 +80,10 @@ R_bin_OBJECTS = $(OBJECTS)
 ## -export-symbols SYMFILE.
 @USE_LIBTOOL_TRUE@R_bin_LDFLAGS = -export-dynamic
 ## </FIXME>
-R_bin_LDADD = @LIBOBJS@ @ALLOCA@ $(RLIBS) $(BLAS_LIBS) $(FLIBS) $(R_XTRA_LIBS) $(R_ZLIBS) $(R_BZLIBS) $(R_PCRE)
+R_bin_LDADD = @LIBOBJS@ @ALLOCA@ $(RLIBS) $(BLAS_LIBS) $(FLIBS) $(R_XTRA_LIBS) $(R_ZLIBS)
 ## <NOTE>
 ## Automake would figure this out itself.
-R_bin_DEPENDENCIES = @LIBOBJS@ @ALLOCA@ $(RLIBS) @USE_EXPORTFILES_TRUE@ $(top_builddir)/etc/R.exp
+R_bin_DEPENDENCIES = @LIBOBJS@ @ALLOCA@ $(RLIBS) @USE_EXPORTFILE_TRUE@ $(top_builddir)/etc/R.exp
 ## </NOTE>
 
 ## <FIXME>
@@ -106,9 +98,8 @@ libR_la_OBJECTS = $(OBJECTS:.o=.lo)
 ## <FIXME>
 ## This should also have `ls ../appl/*.lo ../nmath/*.lo ../unix/*.lo`, but
 ## of course this will not work when the files do not exist yet :-)
-libR_la_LIBADD = @LTLIBOBJS@ $(BLAS_LIBS) $(FLIBS) $(R_XTRA_LIBS) \
-  $(R_ZLIBS) $(R_BZLIBS) $(R_PCRE) $(R_XDR)
-libR_la_DEPENDENCIES = @LTLIBOBJS@ ../appl/stamp-lo ../nmath/stamp-lo ../unix/stamp-lo @USE_EXPORTFILES_TRUE@ $(top_builddir)/etc/R.exp
+libR_la_LIBADD = @LTLIBOBJS@ @LTALLOCA@ $(BLAS_LIBS) $(FLIBS) $(R_XTRA_LIBS) $(R_ZLIBS) $(R_XDR)
+libR_la_DEPENDENCIES = @LTLIBOBJS@ @LTALLOCA@ ../appl/stamp-lo ../nmath/stamp-lo ../unix/stamp-lo @USE_EXPORTFILE_TRUE@ $(top_builddir)/etc/R.exp
 ## </FIXME>
 @USE_LIBTOOL_TRUE@libR_la_LDFLAGS = -avoid-version -rpath $(Rexeclibdir)
 

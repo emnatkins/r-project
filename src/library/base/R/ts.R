@@ -34,12 +34,11 @@ ts <- function(data = NA, start = 1, end = numeric(0), frequency = 1,
 	frequency <- round(frequency)
 
     if(length(start) > 1) {
-## strange: this never checked for < 1!  commented for 1.7.0
-##	if(start[2] > frequency) stop("invalid start")
+	if(start[2] > frequency) stop("invalid start")
 	start <- start[1] + (start[2] - 1)/frequency
     }
     if(length(end) > 1) {
-##	if(end[2] > frequency) stop("invalid end")
+	if(end[2] > frequency) stop("invalid end")
 	end <- end[1] + (end[2] - 1)/frequency
     }
     if(missing(end))

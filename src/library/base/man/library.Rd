@@ -29,7 +29,7 @@ library(package, help, lib.loc = NULL, character.only = FALSE,
         keep.source = getOption("keep.source.pkgs"),
         verbose = getOption("verbose"))
 require(package, quietly = FALSE, warn.conflicts = TRUE,
-        keep.source = getOption("keep.source.pkgs"), character.only=FALSE)
+        keep.source = getOption("keep.source.pkgs"))
 
 .First.lib(libname, pkgname)
 .Last.lib(libpath)
@@ -158,22 +158,16 @@ require(package, quietly = FALSE, warn.conflicts = TRUE,
   with argument \code{new}, the library search path is set to
   \code{unique(new, .Library)} and this is returned.  If given no
   argument, a character vector with the currently known library trees is
-  returned.
-
+  returned.  The library search path is initialized at startup from the
+  environment variable \code{R_LIBS} (which should be a
 #ifdef unix
-  The library search path is initialized at startup from the
-  environment variable \code{R_LIBS} (which should be a
   colon-separated
-  list of directories at which \R library trees are rooted) by calling
-  \code{.libPaths} with the directories specified in \code{R_LIBS}.
 #endif
-#ifdef windows  
-  The library search path is initialized at startup from the
-  environment variable \code{R_LIBS} (which should be a
+#ifdef windows
   semicolon-separated
+#endif
   list of directories at which \R library trees are rooted) by calling
   \code{.libPaths} with the directories specified in \code{R_LIBS}.
-#endif
 }
 \value{
   \code{library} returns the list of loaded (or available) packages
@@ -189,11 +183,7 @@ require(package, quietly = FALSE, warn.conflicts = TRUE,
   re-installed.
 
   Under Unix-alikes, the code checks that the package was installed
-  under a similar operating system as given by
-  \code{.Platform$canonical.name}, provided it contains compiled code.
-  Packages which do not contain compiled code can be shared between
-  Unix-alikes, but not to other OSes because of potential problems with
-  line endings and OS-specific help files.
+  under a similar operating system as given by \code{.Platform$canonical.name}.
 }
 \author{R core;  Guido Masarotto for the \code{all.available=TRUE}
   part of \code{.packages}.}
@@ -218,9 +208,6 @@ detach("package:eda")
 # if the package name is in a character vector, use
 pkg <- "eda"
 library(pkg, character.only = TRUE)
-detach(pos = match(paste("package", pkg, sep=":"), search()))
-
-require(pkg, character.only = TRUE)
 detach(pos = match(paste("package", pkg, sep=":"), search()))
 
 .path.package()

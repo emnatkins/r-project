@@ -54,7 +54,6 @@ void Rf_callToplevelHandlers(SEXP expr, SEXP value, Rboolean succeeded, Rboolean
 
 static int ParseBrowser(SEXP, SEXP);
 
-extern void InitDynload();
 
 
 	/* Read-Eval-Print Loop [ =: REPL = repl ] with input from a file */
@@ -396,7 +395,6 @@ void setup_Rmainloop(void)
     volatile SEXP baseEnv; 
     SEXP cmd;
     FILE *fp;
-    char *p = getenv("R_NO_UNDERLINE");
 
     InitConnections(); /* needed to get any output at all */
 
@@ -435,7 +433,7 @@ void setup_Rmainloop(void)
     InitMemory();
     InitNames();
     InitGlobalEnv();
-    InitDynload();
+    InitFunctionHashing();
     InitOptions();
     InitEd();
     InitArithmetic();
@@ -470,10 +468,6 @@ void setup_Rmainloop(void)
 #else
     baseEnv = R_NilValue;
 #endif
-
-    /* Temporary flag to disable _ for a session */
-    if(p && strlen(p)) R_no_underline = TRUE;
-
     /* Set up some global variables */
     Init_R_Variables(baseEnv);
 
@@ -560,7 +554,7 @@ void end_Rmainloop(void)
     R_CleanUp(SA_DEFAULT, 0, 1);
 }
 
-static void onpipe(int dummy)
+static void onpipe()
 {
 #ifndef __MRC__
     /* do nothing */

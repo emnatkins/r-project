@@ -1,7 +1,7 @@
 # Makefile for R for Windows Installers
 
 include ../MkRules
-RPREFIX = $(shell perl ../fixed/rwver.pl ../../../VERSION)
+include ../RWVERSION
 
 all: $(RPREFIX).exe miniR.exe
 

@@ -1,4 +1,4 @@
-You can make an install package (rw????.exe) in the current Windows
+You can make an install package (rw1062.exe) in the current Windows
 style by using the installer kit Inno Setup 3.0.x, x >= 6 from
 jrsoftware.org.  (Inno Setup 2.0.x, x >= 17 will also work if MkRules
 is edited correctly.)
@@ -18,7 +18,7 @@ Then edit ISDIR and IS_VERSION in ../MkRules and run
 make
 make clean
 
-You will have rw1???.exe and a set of files miniR* for the floppy-sized
+You will have rw1062.exe and a set of files miniR* for the floppy-sized
 distribution.
 
 

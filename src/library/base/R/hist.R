@@ -25,10 +25,6 @@ hist.default <-
     if(use.br)
         breaks <- sort(breaks)
     else {                              # construct vector of breaks
-        if(!include.lowest) {
-            include.lowest <- TRUE
-            warning("include.lowest ignored as `breaks' is not a vector")
-        }
         if(is.character(breaks)) {
             breaks <- match.arg(tolower(breaks),
                                 c("sturges", "fd",
@@ -72,17 +68,17 @@ hist.default <-
 	c(rep(-diddle, length(breaks) - 1),
 	    if(include.lowest) diddle else -diddle)
 
-    fuzzybreaks <- breaks + fuzz
-    h <- diff(fuzzybreaks)
+    breaks <- breaks + fuzz
+    h <- diff(breaks)
 
     storage.mode(x) <- "double"
-    storage.mode(fuzzybreaks) <- "double"
+    storage.mode(breaks) <- "double"
     ## With the fuzz adjustment above, the "right" and "include"
     ## arguments are really irrelevant
     counts <- .C("bincount",
                  x,
                  n,
-                 fuzzybreaks,
+                 breaks,
                  nB,
                  counts = integer(nB - 1),
                  right = as.logical(right),

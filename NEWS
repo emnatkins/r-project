@@ -1,256 +1,6 @@
 				Dear Emacs, please make this -*-Text-*- mode!
 	**************************************************
 	*						 *
-	*	       1.7 SERIES NEWS			 *
-	*						 *
-	**************************************************
-
-
-		CHANGES IN R VERSION 1.7.0
-
-
-USER-VISIBLE CHANGES
-
-    o	eigen() and svd() now use LAPACK routines unless a new
-	back-compatibility option is turned on.	 The signs and
-	normalization of eigen/singular vectors may change from
-	earlier versions.
-
-
-NEW FEATURES
-
-    o	library() was changed so that when the methods package is
-	attached it no longer complains about generic functions not
-	specific to the library.
-
-    o	require() has a new argument, character.only,
-	  -- to make it align with library.
-
-    o	New function file.symlink() to create symbolic file links
-	where supported by the OS.
-
-    o	basename() and dirname() are now vectorized.
-
-    o	mosaicplot() has a new default for `main', and supports the
-	`las' argument (contributed by Uwe Ligges and Wolfram Fischer).
-
-    o	optim(method = "SANN") can now cover combinatorial
-	optimization by supplying a move function as the `gr'
-	argument (contributed by Adrian Trapletti).
-
-    o	New function as.difftime() for time(-interval) data.
-
-    o	PDF files produced by pdf() have more extensive information
-	fields, including the version of R that produced them.
-
-    o	Installed packages under Unix without compiled code are no
-	longer stamped with the platform and can be copied to other
-	Unix-alike platforms (but not to other OSes because of
-	potential problems with line endings and OS-specific help files).
-
-    o	New generic function flush() with a method to flush connections.
-
-    o	princomp() no longer allows the use of more variables than
-	units: use prcomp() instead.
-
-    o	prcomp() is now fast for n x m inputs with m >> n.
-
-    o	medpolish() {eda} now has an `na.rm' argument (PR#2298).
-
-    o	The internal random number generators will now never return
-	values of 0 or 1 for runif.  This might affect simulation
-	output in extremely rare cases.	 Note that this is not
-	guaranteed for user-supplied random-number generators, nor
-	when the standalone Rmath library is used.
-
-     o	New function constrOptim() for optimisation under linear inequality
-	constraints.
-
-     o	if() and while() give a warning if called with a vector condition.
-
-     o	ts() now allows arbitrary values for y in start/end = c(x, y):
-	it always allowed y < 1 but objected to y > frequency.
-
-     o	Add `difftime' subscript method and methods for the group
-	generics. (Thereby fixing PR#2345)
-
-     o	When assigning names to a vector, a value that is too short is
-	padded by character NAs. (Wishlist part of PR#2358)
-
-     o	The postscript() and PDF() drivers now allow the title to be set.
-
-     o	table() now allows exclude= with factor arguments (requested by
-	Michael Friendly).
-
-     o	New convenience function loadURL() to allow loading data files
-	from URLs (requested by Frank Harrell).
-
-     o	biplot.default() {mva} allows `xlab' and `ylab' parameters to
-	be set (without partially matching to `xlabs' and `ylabs').
-	(Thanks to Uwe Ligges.)
-
-     o	On Unix(-alike) systems the default PDF viewer is now determined
-	during configuration, and available as the 'pdfviewer' option.
-
-     o	If a prompt() method is called with 'filename' as 'NA', a
-	list-style representation of the documentation shell generated
-	is returned.  New function promptData() for documenting objects
-	as data sets.
-
-     o	New argument `local' for example() (suggested by Andy Liaw).
-
-     o	load() now returns invisibly a character vector of the names
-	of the objects which were restored.
-
-     o	It is now recommended to use the 'SystemRequirements:' field in
-	the DESCRIPTION file for specifying dependencies external to the
-	R system.
-
-     o	Output text connections no longer have a line-length limit.
-
-     o	On platforms where vsnprintf does not return the needed buffer
-	size the output line-length limit for fifo(), gzfile() and
-	bzfile() has been raised from 10k to 100k chars.
-
-     o	help.search() can now reliably match individual aliases and
-	keywords, provided that all packages searched were installed
-	using R 1.7.0 or newer.
-
-     o	dump() has a new argument `envir'.  The search for named
-	objects now starts by default in the environment from which
-	dump() is called.
-
-     o	interaction.plot() has several new arguments, and the legend
-	is not clipped anymore by default.  It internally uses axis(1,*)
-	instead of mtext().
-	This also addresses "bugs" PR#820, PR#1305, PR#1899.
-
-     o	legend() has a new `plot' argument.  Setting it `FALSE' gives
-	size information without plotting (suggested by U.Ligges).
-
-     o  To guard against unthinking use, `include.lowest' in
-	hist.default is now ignored, with a warning, unless `breaks'
-	is a vector.  (It either generated an error or had no effect,
-	depending how prettification of the range operated.)
-
-     o  pie(...) has always accepted graphical pars but only passed
-	them on to title().  Now pie(, cex=1.5) works.
-
-     o  The Math group generic does not check the number of arguments
-	supplied before dispatch: it used to if the default method had
-	one argument but not if it had two.  This allows trunc.POSIXt()
-	to be called via the group generic trunc().
-
-     o  hist.default now returns the nominal break points, not those
-	adjusted for numerical tolerances.
-
-
-INSTALLATION CHANGES
-
-    o	TITLE files in packages are no longer used, the Title field
-	in the DESCRIPTION file being preferred.  TITLE files will be
-	ignored both in installed packages and source packages.
-
-    o	When searching for a Fortran 77 compiler, configure by default
-	now also looks for Fujitsu's frt and Compaq's fort, but no
-	longer for cf77 and cft77.
-
-    o	Configure checks that mixed C/Fortran code can be run before
-	checking compatibility on ints and doubles: the latter test
-	was sometimes failing because the Fortran libraries were not
-	found.
-
-    o	PCRE and bzip2 are built from versions in the R sources if the
-	appropriate library is not found.
-
-    o	New configure option --with-lapack to allow high-performance
-	LAPACK libraries to be used: a generic LAPACK library will be
-	used if found.	This option is not the default.
-
-    o	New configure options --with-libpng, --with-jpeglib, --with-zlib,
-	--with-bzlib and --with-pcre, principally to allow these
-	libraries to be avoided if they are unsuitable.
-
-    o	If the precious variable R_BROWSER is set at configure time
-	it overrides the automatic selection of the default browser.
-	It should be set to the full path unless the browser appears
-	at different locations on different client machines.
-
-    o	Perl requirements are down again to 5.004 or newer.
-
-    o	Autoconf 2.57 or later is required to build the configure
-	script.
-
-    o	Configure provides a more comprehensive summary of its results.
-
-    o	Index generation now happens when installing source packages
-	using R code in package tools.	An existing 'INDEX' file is used
-	as is; otherwise, it is automatically generated from the \name
-	and \title entries in the Rd files.  Data, demo and vignette
-	indices are computed from all available files of the respective
-	kind, and the corresponding index information (in the Rd files,
-	the 'demo/00Index' file, and the \VignetteIndexEntry{} entries,
-	respectively).	These index files, as well as the package Rd
-	contents data base, are serialized as R objects, allowing for
-	faster and more reliable index-based computations (e.g., in
-	help.search()).
-
-    o	The Rd contents data base is now computed when installing source
-	packages using R code in package tools.	 The information is
-	represented as a data frame without collapsing the aliases and
-	keywords, and serialized as an R object.  (The 'CONTENTS' file
-	in Debian Control Format is still written, as it is used by the
-	HTML search engine.)
-
-
-DEPRECATED & DEFUNCT
-
-    o	The assignment operator `_' will be removed in the next
-	release and users are now warned on every usage: you may even see
-	multiple warnings for each usage.
-
-	If environment variable R_NO_UNDERLINE is set to anything of
-	positive length then use of `_' becomes a syntax error.
-
-    o	machine(), Machine() and Platform() are defunct.
-
-    o	restart() is defunct.  Use try(), as has long been recommended.
-
-    o	The deprecated arguments `pkg' and `lib' of system.file() have
-	been removed.
-
-
-UTILITIES
-
-    o	R CMD check more compactly displays the tests of DESCRIPTION
-	meta-information.  It now reports demos and vignettes without
-	available index information.  Unless installation tests are
-	skipped, checking is aborted if the package dependencies cannot
-	be resolved at run time.  Rd files are now also explicitly
-	checked for empty \name and \title entries.
-
-
-C-LEVEL FACILITIES
-
-    o	A full double-precision LAPACK shared library is made
-	available as -lRlapack.  To use this include
-	$(LAPACK_LIBS) $(BLAS_LIBS) in PKG_LIBS.
-	[Not currently operational on MacOS X unless vecLib is used,
-	and vecLib and libsunperf give incomplete libraries.]
-
-
-BUG FIXES
-
-    o	Sys.sleep() on Unix was having trouble with waits of less than 0.5s
-
-    o	Printing numbers near the minimum could get the number of
-	significant figures wrong due to underflow: for example 4e-308
-	might print as 4.00000e-307.  (Seen on some Windows builds.)
-
-
-
-	**************************************************
-	*						 *
 	*	       1.6 SERIES NEWS			 *
 	*						 *
 	**************************************************
@@ -320,12 +70,6 @@ BUG FIXES
     o	c() was converting NA names to "NA": now proper NA strings are
 	used wherever possible. (PR#2358)
 
-    o	Checks in the C code prevent possible memory faults when
-	standardGeneric is called invalidly.
-
-    o	Macros NEW_OBJECT (aka NEW) and MAKE_CLASS added; required by
-	the .Call interface to generate arbitrary objects.
-
     o	A typo was causing segfaults when using data.entry under SuSE.
 
     o	mostattributes<-() was failing to copy across dimnames when
@@ -359,16 +103,21 @@ BUG FIXES
     o	Sweave now uses anonymous file rather than text connections
 	to avoid the limits of the latter (see previous item).
 
-    o   parsing did not work on connections when pushback was used (as
-	it had never been implemented).  (PR#2396)
+    o	parsing did not work on connections when pushback was used (as
+	it had never been implemented).	 (PR#2396)
 
-    o   max.col() only found NAs in the first column (typo).
+    o	max.col() only found NAs in the first column (typo).
 
-    o   Added a workaround for recent versions of glibc (e.g. RedHat 8.0)
-        with inconsistent mktime/localtime functions which caused
-        conversion to/from POSIXct times prior to 1970-01-01 to be
-        inconsistent.  On such platforms this is a run-time test to
-        allow e.g. R compiled on RH7.2 to run on RH8.0.
+    o	Added a workaround for recent versions of glibc (e.g. RedHat 8.0)
+	with inconsistent mktime/localtime functions which caused
+	conversion to/from POSIXct times prior to 1970-01-01 to be
+	inconsistent.  On such platforms this is a run-time test to
+	allow e.g. R compiled on RH7.2 to run on RH8.0.
+
+    o	Clipping was not being reset properly between plots on the gtk()
+	device (the default under the GNOME interface). (PR#2366)
+
+    o	axis(*, fg= cc) now works (again) the same as axis(*, col = cc).
 
 
 

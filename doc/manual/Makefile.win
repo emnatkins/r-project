@@ -146,7 +146,7 @@ else
 	  $(PDFLATEX) '\nonstopmode\input{refman.tex}'
 endif
 
-version.tex: $(top_srcdir)/VERSION
+version.tex: ../../bin/Rterm.exe $(top_srcdir)/VERSION
 	@echo "creating $(subdir)/$@"
 	@(v=`cat $(top_srcdir)/VERSION`; \
 	  v="$${v} (`sed 's|/|-|g' $(top_srcdir)/date-stamp`)"; \
@@ -194,11 +194,8 @@ R-intro.pdf: R-intro.texi $(texiincludes)
 version.texi: Makefile.win $(top_srcdir)/VERSION $(top_srcdir)/date-stamp
 	@echo "creating $(subdir)/$@"
 	@(v=`sed 's/\([^ ]*\).*/\1/' $(top_srcdir)/VERSION`; \
-	  echo "@set VERSIONno $${v}" > $@; \
 	  v="$${v} (`sed 's|/|-|g' $(top_srcdir)/date-stamp`)"; \
-	  echo "@set VERSION $${v}" >> $@; \
-	  rwv=$(shell perl $(top_srcdir)/src/gnuwin32/fixed/rwver.pl $(top_srcdir)/VERSION); \
-	  echo "@set RWVERSION $${rwv}" >> $@ )
+	  echo "@set VERSION $${v}" > $@)
 
 
 mostlyclean: clean

@@ -21,13 +21,17 @@
 # include <config.h>
 #endif
 
+/* override for this file only */
+#ifndef HAVE_ZLIB
+# define HAVE_ZLIB 1
+#endif
+
 #include <Defn.h>
 #include <Fileio.h>
 #include <Rconnections.h>
 #include <R_ext/Complex.h>
 #include <R_ext/R-ftp-http.h>
-#include <R_ext/RS.h> /* R_chk_calloc and Free */
-#undef ERROR /* for compilation on Windows */
+#include <R_ext/RS.h>
 
 int R_OutputCon;		/* used in printutils.c */
 
@@ -139,14 +143,14 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 	usedRalloc = TRUE;
 	b = R_alloc(res + 1, sizeof(char));
 	vsprintf(b, format, ap);
-    } else if(res < 0) { /* just a failure indication -- e.g. Windows */
+    } else if(res < 0) { /* just a failure indication */
 	usedRalloc = TRUE;
-	b = R_alloc(100*BUFSIZE, sizeof(char));
-	res = vsnprintf(b, 100*BUFSIZE, format, ap);
+	b = R_alloc(10*BUFSIZE, sizeof(char));
+	res = vsnprintf(b, 10*BUFSIZE, format, ap);
 	if (res < 0) {
-	    *(b + 100*BUFSIZE - 1) = '\0';
+	    *(b + 10*BUFSIZE - 1) = '\0';
 	    warning("printing of extremely long output is truncated");
-	    res = 100*BUFSIZE;
+	    res = 10*BUFSIZE;
 	}
     }
     con->write(b, 1, res, con);
@@ -758,6 +762,7 @@ SEXP do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
 
 /* ------------------- gzipped file connections --------------------- */
 
+#if defined(HAVE_ZLIB)
 #include <zlib.h>
 
 static Rboolean gzfile_open(Rconnection con)
@@ -922,10 +927,18 @@ SEXP do_gzfile(SEXP call, SEXP op, SEXP args, SEXP env)
 
     return ans;
 }
+#else
+SEXP do_gzfile(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    error("zlib is not available on this system");
+    return R_NilValue;		/* -Wall */
+}
+#endif
 
 /* ------------------- bzipped file connections --------------------- */
 
-#if defined(HAVE_BZLIB) || defined(Unix) || defined(Win32)
+#if defined(HAVE_BZLIB)
+#undef ERROR /* for compilation on Windows */
 #include <bzlib.h>
 
 static Rboolean bzfile_open(Rconnection con)
@@ -1107,223 +1120,10 @@ SEXP do_bzfile(SEXP call, SEXP op, SEXP args, SEXP env)
 #else
 SEXP do_bzfile(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    error("bzfile is not available on this system");
+    error("libbzip2 is not available on this system");
     return R_NilValue;		/* -Wall */
 }
 #endif
-
-
-/* ------------------- clipboard connections --------------------- */
-
-#ifdef Win32
-#include <windows.h>
-extern int clipboardhastext(); /* from ga.h */
-
-
-static Rboolean clp_open(Rconnection con)
-{
-    Rclpconn this = con->private;
-    HGLOBAL hglb;
-    char *pc;
-
-    con->isopen = TRUE;
-    con->canwrite = (con->mode[0] == 'w' || con->mode[0] == 'a');
-    con->canread = !con->canwrite;
-    this->pos = 0;
-    if(con->canread) {
-	/* copy the clipboard contents now */
-	if(clipboardhastext() &&
-	   OpenClipboard(NULL) &&
-	   (hglb = GetClipboardData(CF_TEXT)) &&
-	   (pc = (char *)GlobalLock(hglb))) {
-	    int len = strlen(pc);
-	    this->buff = (char *)malloc(len + 1);
-	    this->last = this->len = len;
-	    if(this->buff) {
-		strcpy(this->buff, pc);
-		GlobalUnlock(hglb);
-		CloseClipboard();
-	    } else {
-		GlobalUnlock(hglb);
-		CloseClipboard();
-		warning("memory allocation to copy clipboard failed");
-		return FALSE;
-	    }
-	} else {
-	    warning("clipboard cannot be opened or contains no text");
-	    return FALSE;
-	}
-    } else {
-	int len = 32*1024;
-	this->buff = (char *)malloc(len + 1);
-	this->len = len;
-	this->last = 0;
-	if(!this->buff) {
-	    warning("memory allocation to open clipboard failed");
-	    return FALSE;
-	}
-    }
-    con->text = TRUE;
-    con->save = -1000;
-
-    return TRUE;
-}
-
-static void clp_writeout(Rconnection con)
-{
-    Rclpconn this = con->private;
-
-    HGLOBAL hglb;
-    char *s, *p;
-    if ( (hglb = GlobalAlloc(GHND, this->len)) &&
-	 (s = (char *)GlobalLock(hglb)) ) {
-	p = this->buff;
-	while(p < this->buff + this->pos) *s++ = *p++;
-	*s = '\0';
-	GlobalUnlock(hglb);
-	if (!OpenClipboard(NULL) || !EmptyClipboard()) {
-	    warning("Unable to open the clipboard");
-	    GlobalFree(hglb);
-	} else {
-	    if(!SetClipboardData(CF_TEXT, hglb)) {
-		warning("Unable to write to the clipboard");
-		GlobalFree(hglb);
-	    }
-	    CloseClipboard();
-	}	    
-    }
-}
-
-static void clp_close(Rconnection con)
-{
-    Rclpconn this = con->private;
-
-    con->isopen = FALSE;
-    if(con->canwrite)
-	clp_writeout(con);
-    free(this->buff);
-}
-
-static int clp_fgetc(Rconnection con)
-{
-    Rclpconn this = con->private;
-    int c;
-
-    if (this->pos >= this->len) return R_EOF;
-    c = this->buff[this->pos++];
-    return con->encoding[c];
-}
-
-static long clp_seek(Rconnection con, int where, int origin, int rw)
-{
-    Rclpconn this = con->private;
-    int newpos, oldpos = this->pos;
-
-    if(where == NA_INTEGER) return oldpos;
-
-    switch(origin) {
-    case 2: newpos = this->pos + where; break;
-    case 3: newpos = this->last + where; break;
-    default: newpos = where;
-    }
-    if(newpos < 0 || newpos >= this->last)
-	error("attempt to seek outside the range of the clipboard");
-    else this->pos = newpos;
-
-    return oldpos;
-}
-
-static void clp_truncate(Rconnection con)
-{
-    Rclpconn this = con->private;
-
-    if(!con->isopen || !con->canwrite)
-	error("can only truncate connections open for writing");
-    this->last = this->pos;
-}
-
-static int clp_fflush(Rconnection con)
-{
-    if(!con->isopen || !con->canwrite) return 1;
-    clp_writeout(con);
-    return 0;
-}
-
-static size_t clp_read(void *ptr, size_t size, size_t nitems,
-			Rconnection con)
-{
-    Rclpconn this = con->private;
-    int available = this->len - this->pos, request = size*nitems, used;
-    used = (request < available) ? request : available;
-    strncpy(ptr, this->buff, used);
-    return (size_t) used/size;
-}
-
-static size_t clp_write(const void *ptr, size_t size, size_t nitems,
-			 Rconnection con)
-{
-    Rclpconn this = con->private;
-    int i, len = size * nitems, used = 0;
-    char c, *p = (char *)ptr, *q = this->buff + this->pos;
-
-    /* clipboard requires CRLF termination */
-    for(i = 0; i < len; i++) {
-	if(this->pos >= this->len) break;
-	c = *p++;
-	if(c == '\n') {
-	    *q++ = '\r';
-	    this->pos++;
-	    if(this->pos >= this->len) break;
-	}
-	*q++ = c;
-	this->pos++;
-	used++;
-    }
-    if(this->last < this->pos) this->last = this->pos;
-    return (size_t) used/size;
-}
-
-static Rconnection newclp(char *mode)
-{
-    Rconnection new;
-    char description[] = "clipboard";
-
-    if(strlen(mode) != 1 ||
-       (mode[0] != 'r' && mode[0] != 'w'))
-	error("`mode' for the clipboard must be `r' or `w'");
-    new = (Rconnection) malloc(sizeof(struct Rconn));
-    if(!new) error("allocation of clipboard connection failed");
-    new->class = (char *) malloc(strlen(description) + 1);
-    if(!new->class) {
-	free(new);
-	error("allocation of clipboard connection failed");
-    }
-    strcpy(new->class, description);
-    new->description = (char *) malloc(strlen(description) + 1);
-    if(!new->description) {
-	free(new->class); free(new);
-	error("allocation of clipboard connection failed");
-    }
-    init_con(new, description, mode);
-    new->open = &clp_open;
-    new->close = &clp_close;
-    new->vfprintf = &dummy_vfprintf;
-    new->fgetc = &clp_fgetc;
-    new->seek = &clp_seek;
-    new->truncate = &clp_truncate;
-    new->fflush = &clp_fflush;
-    new->read = &clp_read;
-    new->write = &clp_write;
-    new->canseek = TRUE;
-    new->private = (void *) malloc(sizeof(struct clpconn));
-    if(!new->private) {
-	free(new->description); free(new->class); free(new);
-	error("allocation of clipboard connection failed");
-    }
-    return new;
-}
-
-#endif /* Win32 */
 
 /* ------------------- terminal connections --------------------- */
 
@@ -1564,12 +1364,9 @@ static void outtext_close(Rconnection con)
 
 static void outtext_destroy(Rconnection con)
 {
-    Routtextconn this = (Routtextconn)con->private;
-    free(this->lastline);
 }
 
-#define LAST_LINE_LEN 256
-
+#define BUFSIZE 1000
 static int text_vfprintf(Rconnection con, const char *format, va_list ap)
 {
     Routtextconn this = (Routtextconn)con->private;
@@ -1596,8 +1393,8 @@ static int text_vfprintf(Rconnection con, const char *format, va_list ap)
 	strcpy(b, this->lastline);
 	p = b + already;
 	vsprintf(p, format, ap);
-    } else if(res < 0) { /* just a failure indication -- e.g. Windows */
-#define NBUFSIZE (already + 100*BUFSIZE)
+    } else if(res < 0) { /* just a failure indication */
+#define NBUFSIZE (already + 10*BUFSIZE)
 	usedRalloc = TRUE;
 	b = R_alloc(NBUFSIZE, sizeof(char));
 	strncpy(b, this->lastline, NBUFSIZE);
@@ -1622,12 +1419,13 @@ static int text_vfprintf(Rconnection con, const char *format, va_list ap)
 	    UNPROTECT(1);
 	} else {
 	    /* retain the last line */
-	    if(strlen(p) >= this->lastlinelength) {
-		int newlen = strlen(p) + 1;
-		this->lastline = realloc(this->lastline, newlen);
-		this->lastlinelength = newlen;
+	    if(strlen(p) < LAST_LINE_LEN) {
+		strcpy(this->lastline, p);
+	    } else {
+		strncpy(this->lastline, p, LAST_LINE_LEN - 1);
+		this->lastline[LAST_LINE_LEN - 1] = '\0';
+		warning("line truncated in output text connection");
 	    }
-	    strcpy(this->lastline, p);
 	    con->incomplete = strlen(this->lastline) > 0;
 	    break;
 	}
@@ -1660,15 +1458,12 @@ static void outtext_init(Rconnection con, char *mode)
     this->len = LENGTH(val);
     this->data = val;
     this->lastline[0] = '\0';
-    this->lastlinelength = LAST_LINE_LEN;
 }
 
 
 static Rconnection newouttext(char *description, SEXP sfile, char *mode)
 {
     Rconnection new;
-    void *tmp;
-
     new = (Rconnection) malloc(sizeof(struct Rconn));
     if(!new) error("allocation of text connection failed");
     new->class = (char *) malloc(strlen("textConnection") + 1);
@@ -1692,12 +1487,6 @@ static Rconnection newouttext(char *description, SEXP sfile, char *mode)
     new->seek = &text_seek;
     new->private = (void*) malloc(sizeof(struct outtextconn));
     if(!new->private) {
-	free(new->description); free(new->class); free(new);
-	error("allocation of text connection failed");
-    }
-    ((Routtextconn)new->private)->lastline = tmp = malloc(LAST_LINE_LEN);
-    if(!tmp) {
-	free(new->private);
 	free(new->description); free(new->class); free(new);
 	error("allocation of text connection failed");
     }
@@ -1862,7 +1651,7 @@ SEXP do_unz(SEXP call, SEXP op, SEXP args, SEXP env)
     return ans;
 }
 
-/* -------------- open, close, seek, truncate, flush ------------------ */
+/* ------------------- open, close, seek --------------------- */
 
 SEXP do_open(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -1873,8 +1662,6 @@ SEXP do_open(SEXP call, SEXP op, SEXP args, SEXP env)
     Rboolean success;
 
     checkArity(op, args);
-    if(!inherits(CAR(args), "connection"))
-	errorcall(call, "`con' is not a connection");
     i = asInteger(CAR(args));
     con = getConnection(i);
     if(i < 3) error("cannot open standard connections");
@@ -1922,8 +1709,6 @@ SEXP do_isincomplete(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP ans;
 
     checkArity(op, args);
-    if(!inherits(CAR(args), "connection"))
-	errorcall(call, "`con' is not a connection");
     con = getConnection(asInteger(CAR(args)));
     PROTECT(ans = allocVector(LGLSXP, 1));
     LOGICAL(ans)[0] = con->incomplete != FALSE;
@@ -1937,8 +1722,6 @@ SEXP do_isseekable(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP ans;
 
     checkArity(op, args);
-    if(!inherits(CAR(args), "connection"))
-	errorcall(call, "`con' is not a connection");
     con = getConnection(asInteger(CAR(args)));
     PROTECT(ans = allocVector(LGLSXP, 1));
     LOGICAL(ans)[0] = con->canseek != FALSE;
@@ -1972,8 +1755,6 @@ SEXP do_close(SEXP call, SEXP op, SEXP args, SEXP env)
     int i, j;
 
     checkArity(op, args);
-    if(!inherits(CAR(args), "connection"))
-	errorcall(call, "`con' is not a connection");
     i = asInteger(CAR(args));
     if(i < 3) error("cannot close standard connections");
     for(j = 0; j < R_SinkNumber; j++)
@@ -1993,8 +1774,6 @@ SEXP do_seek(SEXP call, SEXP op, SEXP args, SEXP env)
     Rconnection con = NULL;
 
     checkArity(op, args);
-    if(!inherits(CAR(args), "connection"))
-	errorcall(call, "`con' is not a connection");
     con = getConnection(asInteger(CAR(args)));
     if(!con->isopen) error("connection is not open");
     where = asInteger(CADR(args));
@@ -2012,22 +1791,8 @@ SEXP do_truncate(SEXP call, SEXP op, SEXP args, SEXP env)
     Rconnection con = NULL;
 
     checkArity(op, args);
-    if(!inherits(CAR(args), "connection"))
-	errorcall(call, "`con' is not a connection");
     con = getConnection(asInteger(CAR(args)));
     con->truncate(con);
-    return R_NilValue;
-}
-
-SEXP do_flush(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    Rconnection con = NULL;
-
-    checkArity(op, args);
-    if(!inherits(CAR(args), "connection"))
-	errorcall(call, "`con' is not a connection");
-    con = getConnection(asInteger(CAR(args)));
-    if(con->canwrite) con->fflush(con);
     return R_NilValue;
 }
 
@@ -2127,8 +1892,6 @@ SEXP do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
     char *buf;
 
     checkArity(op, args);
-    if(!inherits(CAR(args), "connection"))
-	errorcall(call, "`con' is not a connection");
     con = getConnection(asInteger(CAR(args)));
     n = asInteger(CADR(args));
     if(n == NA_INTEGER)
@@ -2223,8 +1986,6 @@ SEXP do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
     checkArity(op, args);
     text = CAR(args);
     if(!isString(text)) error("invalid `text' argument");
-    if(!inherits(CADR(args), "connection"))
-	errorcall(call, "`con' is not a connection");
     con = getConnection(asInteger(CADR(args)));
     sep = CADDR(args);
     if(!isString(sep)) error("invalid `sep' argument");
@@ -3050,12 +2811,7 @@ SEXP do_url(SEXP call, SEXP op, SEXP args, SEXP env)
     } else {
 	if(PRIMVAL(op)) { /* call to file() */
 	    if(strlen(url) == 0) open ="w+";
-#ifdef Win32
-	    if(strcmp(url, "clipboard") == 0)
-		con = newclp(strlen(open) ? open : "r");
-	    else
-#endif
-		con = newfile(url, strlen(open) ? open : "r");
+	    con = newfile(url, strlen(open) ? open : "r");
 	    class2 = "file";
 	} else {
 	    error("unsupported URL scheme");

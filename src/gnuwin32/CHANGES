@@ -4,63 +4,6 @@
 See the file NEWS for changes that affect all versions of R.
 
 
-rw1070
-======
-
-There is a new option to use file("clipboard") to read from or write
-to the clipboard.  As most input/output functions in R use file(),
-this makes it possible to read data from or write data to the
-clipboard in many ways, including direct use of read/writeClipboard().
-
-Removed some calls to reset the size of the console, so it will 
-stay maximized through window operations.
-
-The output from formatC uses e+/-0n not e+/-00n for compatibility with
-other platforms and with format.
-
-A site-wide environment file R_HOME/etc/Renviron.site (or as set by
-the `R_ENVIRON' environment variable) is now implemented on Windows.
-
-The format of packages.html has changed, with packages listed by
-library tree (as happens on Unix) when there is more than one tree.
-
-The Java-based search index now covers all packages in all current
-library trees.
-
-When using help.start() with more than one library tree, an attempt is
-made to correct the URLs in non-standard libraries which point to the
-R_HOME/doc directory or to the base package.  Once this is done a
-stamp `fixedHTMLlinks' is placed in the package directory, and
-correction will only be done again if the R installation directory
-is changed.
-
-The variable .SavedPlots in which plots are stored has been moved from
-base to the user's workspace.
-
-Rcmd.exe and Rprof have been moved to the main distribution (although
-to use them you will need perl installed).
-
-The default version of Tcl/Tk (and hence that used in the binary
-distribution) is 8.4.x.
-
-Files in the top-level directory of a source package are no longer
-installed automatically: files to be installed must be put in an `inst'
-sub-directory (as has long been recommended).  (The `demo' and `exec'
-directories are also installed, as before.)
-
-Added (temporarily?) a warning to the internal dyn.load() 
-whenever the loaded DLL changes the floating point control word.
-If changed, it will be changed back to the R default.  NB:  if 
-the warning says "DLL attempted to change FPU control word from 
-XXXXX to 8001f", that's a sign of an internal bug somewhere else:
-8001f is the R default value.
-
-The BLAS library Rblas.dll is no longer automatically linked against
-when building a package: as on Unix PKG_LIBS=$(BLAS_LIBS) is required
-in Makevars(.win).
-
-
-
 rw1062
 ======
 
@@ -224,7 +167,7 @@ different but generally more accurate results.
 rw1041
 ======
 
-Updating HTML indices, e.g. in help.start(), is done within a
+Updating HTML indices, e.g. in help.start(), is done within a 
 try() construct.
 
 help.start() has a new argument `update'.
@@ -408,7 +351,7 @@ WinSock calls.  There is an alternative modules\internet2.dll which uses
 WinInet calls (and so needs Internet Explorer installed) which can be
 used as a replacement.  (Remove modules\internet.dll and then
 rename modules\internet2.dll to modules\internet.dll.)
-
+ 
 
 
 rw1023
@@ -537,7 +480,7 @@ need to be re-compiled for 1.2.0 on all platforms, and any that used
 malloc directly need to be recompiled on this one.)
 
 
-This release has a number of changes to bring its behaviour closer to that
+This release has a number of changes to bring its behaviour closer to that 
 of Unix versions of R.
 
 -   The default font for graphics on windows(), win.printer() and
@@ -565,7 +508,7 @@ of Unix versions of R.
     environment, although this is not usually supported by Windows,
     and setting individual LC_* such as LC_COLLATE will also work.)
 
--   It is possible to make DVI and HTML versions of the manuals:
+-   It is possible to make DVI and HTML versions of the manuals: 
     see file INSTALL in the source distribution.
 
 -   New utility Rcmd.exe to emulate R CMD : see below.
@@ -708,7 +651,7 @@ The range of allowed text sizes in a windows/win.print device has been
 increased, so smaller values of cex will work.  (The smallest allowed
 text size is 2pt not 8pt.)
 
-Interactive use of Rterm.exe on Windows 2000 systems is now possible
+Interactive use of Rterm.exe on Windows 2000 systems is now possible 
 (including under ESS).
 
 Better rendering of wide (lwd > 1) and dashed (lty != "solid") lines
@@ -747,7 +690,7 @@ Characters using the AltGr key now work in interactive use of Rterm.
 
 Ctrl+V now works as described in a pager (pasting to the console).
 
-Other versions of Tcl/Tk may be used by setting TCL_VERSION in
+Other versions of Tcl/Tk may be used by setting TCL_VERSION in 
 MkRules (but only 8.31 and 8.32 have been tested).
 
 A file Makevars.win in the src directory of a package will be used in
@@ -781,7 +724,7 @@ There is a new item on the File menu in Rgui to save the commands
 history at that point in a session, and a new function savehistory()
 (only applicable in Rgui and Rterm).
 
-Colours in Rconsole can be specified as "Windows" and will be taken
+Colours in Rconsole can be specified as "Windows" and will be taken 
 from the current Windows colour scheme. (The preferences editor will
 save the actual colour, though.)
 

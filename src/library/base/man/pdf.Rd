@@ -9,12 +9,12 @@
 }
 \synopsis{
 pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
-    width = 6, height = 6, onefile = TRUE, title = "R Graphics Output", \dots)
+    width = 6, height = 6, onefile = TRUE, \dots)
 }
 \usage{
 pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
     width = 6, height = 6, onefile = TRUE, family = "Helvetica",
-    encoding, bg, fg, pointsize, title = "R Graphics Output")
+    encoding, bg, fg, pointsize)
 }
 \arguments{
   \item{file}{a character string giving the name of the file.}
@@ -43,7 +43,6 @@ pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
   \item{pointsize}{the default point size to be used.}
   \item{bg}{the default background color to be used.}
   \item{fg}{the default foreground color to be used.}
-  \item{title}{title string to embed in the file.}
 }
 \details{
   \code{pdf()} opens the file \code{file} and the PDF commands needed to

@@ -212,10 +212,10 @@ FUNTAB R_FunTab[] =
 
 
 /* Mathematical Functions */
-{"round",	do_Math2,	10001,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"round",	do_round,	10001,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"atan",	do_atan,	10002,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
-{"log",		do_log,		10003,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
-{"signif",	do_Math2,	10004,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"log",		do_log,		10003,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"signif",	do_signif,	10004,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"abs",		do_abs,		6,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 
 /* KH(1999/09/12)-> complex: {"abs", do_math1, 0, 1, 1, {PP_FUNCALL, PREC_FN,	0}}, */
@@ -558,11 +558,9 @@ FUNTAB R_FunTab[] =
 {"saveToConn",	do_saveToConn,	0,	111,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"load",	do_load,	0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"loadFromConn",do_loadFromConn,0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
-{"serializeToConn",	do_serializeToConn,	0,	111,	5,	{PP_FUNCALL, PREC_FN,	0}},
-{"unserializeFromConn",	do_unserializeFromConn,	0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"deparse",	do_deparse,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"dput",	do_dput,	0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
-{"dump",	do_dump,	0,	111,	3,	{PP_FUNCALL, PREC_FN,	0}},
+{"dump",	do_dump,	0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"substitute",	do_substitute,	0,	0,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"quote",	do_quote,	0,	0,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"quit",	do_quit,	0,	111,	3,	{PP_FUNCALL, PREC_FN,	0}},
@@ -658,7 +656,6 @@ FUNTAB R_FunTab[] =
 {"file.remove",	do_fileremove,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.rename",	do_filerename,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.append",	do_fileappend,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
-{"file.symlink",do_filesymlink,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"list.files",	do_listfiles,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.exists", do_fileexists,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.choose", do_filechoose,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -691,12 +688,12 @@ FUNTAB R_FunTab[] =
 
 /* Device Drivers */
 
-{"PS",		do_PS,		0,	111,   16,	{PP_FUNCALL, PREC_FN,	0}},
+{"PS",		do_PS,		0,	111,   15,	{PP_FUNCALL, PREC_FN,	0}},
 {"PicTeX",	do_PicTeX,	0,	111,	6,	{PP_FUNCALL, PREC_FN,	0}},
 {"XFig",	do_XFig,	0,	111,   11,	{PP_FUNCALL, PREC_FN,	0}},
-{"PDF",		do_PDF,		0,	111,   10,	{PP_FUNCALL, PREC_FN,	0}},
+{"PDF",		do_PDF,		0,	111,    9,	{PP_FUNCALL, PREC_FN,	0}},
 #ifdef Win32
-{"devga",	do_devga,	0,	111,   10,	{PP_FUNCALL, PREC_FN,	0}},
+{"devga",	do_devga,	0,	111,	10,	{PP_FUNCALL, PREC_FN,	0}},
 #endif
 #ifdef Unix
 {"X11",		do_X11,		0,	111,	8,	{PP_FUNCALL, PREC_FN,	0}},
@@ -813,7 +810,6 @@ FUNTAB R_FunTab[] =
 {"isIncomplete",do_isincomplete,0,      11,     1,      {PP_FUNCALL, PREC_FN,	0}},
 {"isSeekable", 	do_isseekable,	0,      11,     1,      {PP_FUNCALL, PREC_FN,	0}},
 {"close", 	do_close,	0,      11,     2,      {PP_FUNCALL, PREC_FN,	0}},
-{"flush", 	do_flush,	0,      11,     1,      {PP_FUNCALL, PREC_FN,	0}},
 {"file", 	do_url,		1,      11,     4,      {PP_FUNCALL, PREC_FN,	0}},
 {"url", 	do_url,		0,      11,     4,      {PP_FUNCALL, PREC_FN,	0}},
 {"pipe", 	do_pipe,	0,      11,     3,      {PP_FUNCALL, PREC_FN,	0}},

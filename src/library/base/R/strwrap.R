@@ -113,12 +113,11 @@ function(x, y, style = c("table", "list"),
     else if(length(x) != length(y))
         stop("x and y must have the same length")
     x <- as.character(x)
-    if(length(x) == 0) return(x)
     y <- as.character(y)
 
     style <- match.arg(style)
 
-    if(is.null(indent))
+    if(missing(indent))
         indent <- switch(style, table = width / 3, list = width / 9)
     if(indent > 0.5 * width)
         stop("incorrect values of indent and width")

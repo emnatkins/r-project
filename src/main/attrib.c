@@ -477,12 +477,6 @@ SEXP namesgets(SEXP vec, SEXP val)
 
     /* Check that the lengths and types are compatible */
 
-    if (length(val) < length(vec)) {
-	val = lengthgets(val, length(vec));
-	UNPROTECT(1);
-	PROTECT(val);
-    }
-
     checkNames(vec, val);
 
     /* Special treatment for one dimensional arrays */
@@ -986,11 +980,7 @@ SEXP R_do_slot(SEXP obj, SEXP name) {
 	return data_part(obj);
     value = getAttrib(obj, name);
     if(value == R_NilValue) {
-	SEXP input = name, classString;
-	classString = GET_CLASS(obj);
-	if(isNull(classString))
-	    error("Trying to get a slot at the C level with a pointer that has no class (maybe not an S object)");
-	
+	SEXP input = name;
 	if(isSymbol(name) ) {
 	    input = PROTECT(allocVector(STRSXP, 1));  nprotect++;
 	SET_STRING_ELT(input, 0, PRINTNAME(name));
@@ -998,9 +988,8 @@ SEXP R_do_slot(SEXP obj, SEXP name) {
  	/* not there.  But since even NULL really does get stored, this
 	   implies that there is no slot of this name.  Or somebody
 	   screwed up by using atttr(..) <- NULL */
-	
-	error("No slot of name \"%s\" for this object of class \"%s\"",
-	      CHAR(asChar(input)), CHAR(asChar(classString)));
+	error("\"%s\" is not a valid slot for this object (or was mistakenly deleted)",
+	      CHAR(asChar(input)));
     }
     else if(value == pseudo_NULL)
 	value = R_NilValue;

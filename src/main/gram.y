@@ -1693,6 +1693,8 @@ static int SymbolValue(int c)
     return SYMBOL;
 }
 
+static int not_warned_on_underline = 1;
+
 /* Split the input stream into tokens. */
 /* This is the lowest of the parsing levels. */
 
@@ -1745,9 +1747,11 @@ static int token()
 
     /* gag, barf, but the punters want it */
 
-    if (!R_no_underline && c == '_') {
+    if (c == '_') {
 	yylval = install("<-");
-	    warning("The use of _ is soon to be removed: you will be warned repeatedly");
+	if(not_warned_on_underline) 
+	    warning("The use of _ is deprecated: you will be warned only once per session");
+	not_warned_on_underline = 0;
 	return LEFT_ASSIGN;
     }
 

@@ -1,5 +1,4 @@
 \name{UKDriverDeaths}
-\docType{data}
 \alias{UKDriverDeaths}
 \alias{Seatbelts}
 \title{

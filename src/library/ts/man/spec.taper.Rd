@@ -1,6 +1,6 @@
 \name{spec.taper}
 \alias{spec.taper}
-\title{Taper a Time Series by a Cosine Bell}
+\title{Taper a Time Series}
 \usage{
 spec.taper(x, p=0.1)
 }

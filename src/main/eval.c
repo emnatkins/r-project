@@ -676,8 +676,6 @@ static SEXP assignCall(SEXP op, SEXP symbol, SEXP fun,
 static Rboolean asLogicalNoNA(SEXP s, SEXP call)
 {
     Rboolean cond = asLogical(s);
-    if (length(s) > 1)
-	warningcall(call, "the condition has length > 1 and only the first element will be used");
     if (cond == NA_LOGICAL) {
 	char *msg = isLogical(s) ?
 	    "missing value where logical needed" :
