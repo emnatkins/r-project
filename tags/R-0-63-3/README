@@ -1,0 +1,81 @@
+
+			THE BASIC R README
+
+
+	   (See "RESOURCES" for additional resources)
+	   (See "INSTALL"   for help on installation)
+
+# NOTE: This file is getting badly out of date, but I don't want to 
+# edit it at this point. The most blatant errors are that Brian Ripley 
+# and Guido Masarotto are now members of the Core Team, and that we do
+# actually have drop1, add1 and step nowadays. Also, there is in fact a 
+# substantial body of documentation, detailing almost every single R
+# function available, although we still lack an actual language
+# specification -- pd, March 6, 1999
+
+
+1. INTRODUCTION
+
+This directory contains the Unix source code tree for R, which is
+a language which is not entirely unlike the S language developed
+at AT&T Bell Laboratories by Rick Becker, John Chambers and Allan
+Wilks.  Indeed in the (present) absence of an R manual, you can
+(mostly) get along by using the S manual.
+
+R is free software distributed under a GNU-style copyleft.
+
+Currently the software is undergoing active development.  Discussion
+of the development process is carried out on the "r-devel" mailing
+list.  See the file RESOURCES for details on how to subscribe to
+this list.
+
+
+2. HISTORY
+
+R was initially written by Robert Gentleman and Ross Ihaka of the
+Statistics Department of the University of Auckland.  In addition,
+a large group of individuals has contributed to R by sending code
+and bug reports.
+
+Since mid-1997 there has been a core group who can modify the R
+source code CVS archive.  The group currently consists of
+
+	Douglas Bates, Peter Dalgaard, Robert Gentleman,
+	Kurt Hornik, Ross Ihaka, Friedrich Leisch, Thomas Lumley,
+	Martin Maechler, Paul Murrell, Heiner Schwarte,
+	and Luke Tierney.
+
+As noted above, discussions of the development process take
+place in the r-devel mailing list.
+
+
+3. PRESENT STATUS
+
+The present version implements most of the functionality in the
+first S book (the "Blue Book") and many of the applications.  In
+addition, we have implemented a certain amount of functionality
+from the second S book (the "White Book").  In particular we have
+a functioning versions of "lm" and "glm" and their associated
+"summary" and "anova" methods (it would be nice to have "drop1",
+"add1" and "step", but there hasn't been time to complete these
+yet).
+
+What we have in the way of manual is in the directory in an
+"output independent" form which can be used to create versions
+for HTML, LaTeX, troff etc.
+
+
+4. GOALS
+
+Our aim at the start of this project was to demonstrate that it was
+possible to produce an S-like environment which did not suffer from
+the memory-demands and performance problems which S has.  It is only
+recently that we have started trying to turn R into a "real" system.
+In the short term we hope to create a small portable free system
+which will provide most of the functionality of S and perhaps some
+extensions.
+
+Future versions will see R converted to GNU coding standards.
+
+Sincerely,
+The R Core.
