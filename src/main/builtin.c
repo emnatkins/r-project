@@ -1,6 +1,6 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995-1998  Robert Gentleman and Ross Ihaka
+ *  R : A Computer Langage for Statistical Data Analysis
+ *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -46,7 +46,6 @@ SEXP do_onexit(SEXP call, SEXP op, SEXP args, SEXP rho)
 		break;
 	default:
 		errorcall(call, "invalid number of arguments\n");
-		code = R_NilValue;/* for -Wall */
 	}
 	ctxt = R_GlobalContext;
 	while (ctxt != R_ToplevelContext && ctxt->callflag != CTXT_RETURN)
@@ -290,6 +289,42 @@ SEXP do_makelist(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 
 
+SEXP do_makefactor(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+	SEXP x, y;
+	int i, j, nx, nl, ord;
+
+	checkArity(op, args);
+	x = CAR(args) = coerceVector(CAR(args), INTSXP);
+	nl = asInteger(CADR(args));
+	if (nl == NA_INTEGER || nl < 0)
+		errorcall(call, "invalid number of factor levels\n");
+	ord = asLogical(CADDR(args));
+	if(ord == NA_LOGICAL) ord = 0;
+	nx = LENGTH(x);
+	PROTECT(y = allocVector(ord ? ORDSXP : FACTSXP, nx));
+	LEVELS(y) = nl;
+	for (i = 0; i < nx; i++) {
+		j = INTEGER(x)[i];
+		if (1 <= j && j <= nl)
+			FACTOR(y)[i] = j;
+		else
+			FACTOR(y)[i] = NA_INTEGER;
+	}
+	if(ord) {
+		PROTECT(x = allocVector(STRSXP, 2));
+		STRING(x)[0] = mkChar("ordered");
+		STRING(x)[1] = mkChar("factor");
+	}
+	else {
+		PROTECT(x = allocVector(STRSXP, 1));
+		STRING(x)[0] = mkChar("factor");
+	}
+	setAttrib(y, R_ClassSymbol, x);
+	UNPROTECT(2);
+	return y;
+}
+
 SEXP do_expression(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
 	SEXP a, blank, ans, nms;
@@ -321,7 +356,6 @@ SEXP do_expression(SEXP call, SEXP op, SEXP args, SEXP rho)
 	return ans;
 }
 
-/* vector(mode="logical", length=0) */
 SEXP do_makevector(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
 	int len, i;
@@ -342,11 +376,13 @@ SEXP do_makevector(SEXP call, SEXP op, SEXP args, SEXP rho)
 	else if (mode == LISTSXP)
 		s = allocList(len);
 	else
-		error("vector: cannot make a vector of mode \"%s\".\n",
-		      CHAR(STRING(s)[0]));
+		error("vector: cannot make a vector of the type specified\n");
 	if (mode == INTSXP || mode == LGLSXP)
 		for (i = 0; i < len; i++)
 			INTEGER(s)[i] = 0;
+	if (mode == FACTSXP || mode == ORDSXP)
+		for (i = 0; i < len; i++)
+			FACTOR(s)[i] = 1;
 	else if (mode == REALSXP)
 		for (i = 0; i < len; i++)
 			REAL(s)[i] = 0.0;
@@ -392,10 +428,11 @@ SEXP do_lengthgets(SEXP call, SEXP op, SEXP args, SEXP rho)
 	PROTECT(xnames = getAttrib(x, R_NamesSymbol));
 	if (xnames != R_NilValue)
 		names = allocVector(STRSXP, len);
-	else names = R_NilValue;/*- just for -Wall --- should we do this ? */
 
 	switch (TYPEOF(x)) {
 	case LGLSXP:
+	case FACTSXP:
+	case ORDSXP:
 	case INTSXP:
 		for (i = 0; i < len; i++)
 			if (i < lenx) {
@@ -416,6 +453,7 @@ SEXP do_lengthgets(SEXP call, SEXP op, SEXP args, SEXP rho)
 			else
 				REAL(rval)[i] = NA_REAL;
 		break;
+#ifdef COMPLEX_DATA
 	case CPLXSXP:
 		for (i = 0; i < len; i++)
 			if (i < lenx) {
@@ -428,6 +466,7 @@ SEXP do_lengthgets(SEXP call, SEXP op, SEXP args, SEXP rho)
 				COMPLEX(rval)[i].i = NA_REAL;
 			}
 		break;
+#endif
 	case STRSXP:
 		for (i = 0; i < len; i++)
 			if (i < lenx) {
@@ -504,10 +543,9 @@ SEXP do_remove(SEXP call, SEXP op, SEXP args, SEXP rho)
 		error("invalid first argument to remove.\n");
 
 	if (CADR(args) != R_NilValue) {
-		if (TYPEOF(CADR(args)) != ENVSXP) {
+		if (TYPEOF(CADR(args)) != ENVSXP)
 			error("invalid envir argument\n");
-			aenv = R_NilValue;/* -Wall */
-		} else
+		else
 			aenv = CADR(args);
 	}
 	else
@@ -568,10 +606,8 @@ SEXP do_get(SEXP call, SEXP op, SEXP args, SEXP rho)
 	/* It must be present and a string */
 
 	if (!isString(CAR(args)) || length(CAR(args)) < 1
-	    || strlen(CHAR(STRING(CAR(args))[0])) == 0) {
+	    || strlen(CHAR(STRING(CAR(args))[0])) == 0)
 		errorcall(call, "invalid first argument\n");
-		t1 = R_NilValue;
-	}
 	else
 		t1 = install(CHAR(STRING(CAR(args))[0]));
 
@@ -579,14 +615,12 @@ SEXP do_get(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 	if (TYPEOF(CADR(args)) == REALSXP || TYPEOF(CADR(args)) == INTSXP) {
 		where = asInteger(CADR(args));
-		genv = R_sysframe(where,R_GlobalContext);
+		genv = sysframe(where,R_GlobalContext);
 	}
 	else if (TYPEOF(CADR(args)) == ENVSXP || CADR(args) == R_NilValue)
 		genv = CADR(args);
-	else {
+	else 
 		errorcall(call,"invalid envir argument\n");
-		genv = R_NilValue;/* -Wall */
-	}
 
 	/* The mode of the object being sought */
 
@@ -595,10 +629,7 @@ SEXP do_get(SEXP call, SEXP op, SEXP args, SEXP rho)
 			gmode = FUNSXP;
 		else
 			gmode = str2type(CHAR(STRING(CAR(CDDR(args)))[0]));
-	} else {
-		errorcall(call,"invalid mode argument\n");
-		gmode = FUNSXP;/* -Wall */
-	}
+	} else errorcall(call,"invalid mode argument\n");
 
 	if (isLogical(CAR(nthcdr(args, 3))))
 		ginherits = LOGICAL(CAR(nthcdr(args, 3)))[0];
@@ -679,10 +710,8 @@ SEXP switchList(SEXP el, SEXP rho)
 		}
 		return h;
 	}
-	else {
+	else
 		error("bad parameter in switch \n");
-		return R_NilValue;/* for -Wall */
-	}
 }
 
 SEXP do_switch(SEXP call, SEXP op, SEXP args, SEXP rho)

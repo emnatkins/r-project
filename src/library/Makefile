@@ -1,13 +1,13 @@
 all:
-	@cd base; make
-	@cd profile; make
+	@cd base; $(MAKE)
+	@cd profile; $(MAKE)
 
 libs:
-	@echo Building application packages..
+	@echo Building application libraries..
 	@sh LIBSETUP
 
 clean:
-	@echo Cleaning in src/library
+	@echo Cleaning in library..
 	@sh LIBCLEAN
-
 realclean: clean
+	@rm LIBCLEAN

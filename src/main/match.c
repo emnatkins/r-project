@@ -97,7 +97,6 @@ int pmatch(SEXP formal, SEXP tag, int exact)
 
 fail:
 	error("invalid partial string match\n");
-	return 0;/* for -Wall */
 }
 
 /**************************************************/
@@ -137,12 +136,12 @@ SEXP matchArg(SEXP tag, SEXP * list)
 
 #define ARGUSED(x) LEVELS(x)
 
-/* we need to leave supplied unchanged in case we call UseMethod */
+/* we need to leave supplied unchanged in case we call UseMethod */ 
 
 SEXP matchArgs(SEXP formals, SEXP supplied)
 {
-	int i, seendots;
-	SEXP f, a, b, dots, actuals;
+	int i, nargs, seendots;
+	SEXP mp, f, a, b, dots, actuals;
 
 	actuals = R_NilValue;
 	for(f=formals ; f!=R_NilValue ; f=CDR(f)) {
@@ -151,7 +150,7 @@ SEXP matchArgs(SEXP formals, SEXP supplied)
 		ARGUSED(f) = 0;
 	}
 
-	for(b = supplied; b != R_NilValue; b=CDR(b))
+	for(b = supplied; b != R_NilValue; b=CDR(b)) 
 		ARGUSED(b) = 0;
 
 	PROTECT(actuals);
@@ -277,7 +276,7 @@ SEXP matchArgs(SEXP formals, SEXP supplied)
 			a = allocList(i);
 			TYPEOF(a) = DOTSXP;
 			f=a;
-			for(b=supplied;b!=R_NilValue;b=CDR(b))
+			for(b=supplied;b!=R_NilValue;b=CDR(b)) 
 				if(!ARGUSED(b)) {
 					CAR(f)=CAR(b);
 					TAG(f)=TAG(b);
@@ -290,7 +289,7 @@ SEXP matchArgs(SEXP formals, SEXP supplied)
 		/* Check that all arguments are used */
 		for (b = supplied; b != R_NilValue; b = CDR(b))
 			if (!ARGUSED(b) && CAR(b) != R_MissingArg)
-				errorcall(R_GlobalContext->call,
+				errorcall(R_GlobalContext->call, 
 					"unused argument to function\n");
 	}
 	UNPROTECT(1);

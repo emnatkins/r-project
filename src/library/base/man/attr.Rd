@@ -1,12 +1,12 @@
 \name{attr}
 \title{Object Attributes}
 \usage{
-attr(x, which)
-attr(x, which) <- value
+attr(obj, which)
+attr(obj, which) <- value
 }
 \alias{attr}
 \arguments{
-\item{x}{an object whose attributes are to be accessed.}
+\item{obj}{an object whose attributes are to be accessed.}
 \item{which}{a character string specifying which attribute is to be accessed.}
 }
 \value{

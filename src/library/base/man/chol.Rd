@@ -9,9 +9,8 @@ chol(x)
 }
 \value{
 This function computes the Choleski factorization
-of the square matrix \code{x}.  It returns the upper triangular
-factor of the decomposition, i.e., the matrix \eqn{R} such that
-\eqn{R'R = x} (see example).
+of its argument.  It returns the upper triangular
+factor of the decomposition as its value.
 }
 \references{
 Dongarra, J. J., J. R. Bunch, C. B. Moler and G. W. Stewart (1978).
@@ -21,12 +20,6 @@ Dongarra, J. J., J. R. Bunch, C. B. Moler and G. W. Stewart (1978).
 \code{\link{backsolve}},
 \code{\link{qr}},
 \code{\link{svd}}.
-}
-\examples{
-( m <- matrix(c(5,1,1,3),2,2) )
-( cm <- chol(m) )
-t(cm) \%*\% cm  #-- = 'm'
-all(abs(m  -  t(cm) \%*\% cm) < 100* .Machine$double.eps) # TRUE
 }
 \keyword{algebra}
 \keyword{array}

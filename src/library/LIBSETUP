@@ -1,9 +1,8 @@
 #! /bin/sh
 # ${RHOME}/src/library/LIBSETUP
+# Set up packages (by default, all but `base' and `profile')
 
 RHOME=${RHOME:-`cd ../..; pwd`}
-
-# Set up packages (by default, all but `base' and `profile')
 PKGS=`ls|sed '
 /CVS/d
 /LIBCLEAN/d
@@ -13,6 +12,10 @@ PKGS=`ls|sed '
 /profile/d
 '`
 
-# Install packages without documentation
+# install base packages without documentation
+
 export RHOME
-sh ${RHOME}/etc/INSTALL --no-docs ${PKGS}
+for pkg in ${PKGS}
+do
+    sh ${RHOME}/etc/INSTALL -docs ${pkg}
+done

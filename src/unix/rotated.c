@@ -26,11 +26,10 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <string.h>
 #include "rotated.h"
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -1245,7 +1244,7 @@ static void XRotAddToLinkedList(dpy, item)
     }
 #endif
 
-    DEBUG_PRINT4("current cache size=%ld, new item=%ld, limit=%d\n",
+    DEBUG_PRINT4("current cache size=%ld, new item=%ld, limit=%ld\n",
 		 current_size, item->size, CACHE_SIZE_LIMIT*1024);
 
     /* if this item is bigger than whole cache, forget it */
@@ -1258,7 +1257,7 @@ static void XRotAddToLinkedList(dpy, item)
     /* remove elements from cache as needed */
     while(i1 && current_size+item->size>CACHE_SIZE_LIMIT*1024) {
 
-	DEBUG_PRINT2("Removed %ld bytes\n", i1->size);
+	DEBUG_PRINT2("Removed %d bytes\n", i1->size);
 
 	if(i1->font_name!=NULL)
 	    DEBUG_PRINT5("  (`%s'\n   %s\n   angle=%f align=%d)\n",

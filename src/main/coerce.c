@@ -1,6 +1,6 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995-1998  Robert Gentleman and Ross Ihaka
+ *  R : A Computer Langage for Statistical Data Analysis
+ *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@
 #include "Print.h"
 
 static SEXP coerceToLogical(SEXP v);
+static SEXP coerceToFactor(SEXP v);
+static SEXP coerceToOrdered(SEXP v);
 static SEXP coerceToInteger(SEXP v);
 static SEXP coerceToReal(SEXP v);
 static SEXP coerceToComplex(SEXP v);
@@ -29,6 +31,62 @@ static SEXP coerceToString(SEXP v);
 static SEXP coerceToExpression(SEXP v);
 static SEXP coerceToList(SEXP v);
 
+SEXP do_codes(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+	SEXP x, y, s;
+	int i, n;
+
+	checkArity(op, args);
+	x = CAR(args);
+	if(!isFactor(x))
+		errorcall(call, "not a factor\n");
+	n = LENGTH(x);
+	PROTECT(y = allocVector(INTSXP, n));
+	for(i=0 ; i<n ; i++)
+		INTEGER(y)[i] = INTEGER(x)[i];
+	if((s=getAttrib(x, R_DimSymbol)) != R_NilValue) {
+		setAttrib(y, R_DimSymbol, s);
+		setAttrib(y, R_DimNamesSymbol, getAttrib(x,R_DimNamesSymbol));
+	}
+	else {
+		setAttrib(y, R_NamesSymbol, getAttrib(x, R_NamesSymbol));
+	}
+	UNPROTECT(1);
+	return y;
+}
+
+SEXP do_codesgets(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+	SEXP x, y;
+	int i, iy, lx, nx, ny;
+
+	checkArity(op, args);
+	x = CAR(args);
+	y = CADR(args);
+	if(!isFactor(x)) errorcall(call, "lhs not a factor\n");
+	if(!isNumeric(y)) errorcall(call, "rhs not numeric\n");
+	nx = LENGTH(x);
+	ny = LENGTH(x);
+	lx = LEVELS(x);
+	if(nx != ny) errorcall(call, "unequal lengths\n");
+	for(i=0 ; i<nx ; i++) {
+		switch(TYPEOF(y)) {
+			case INTSXP:
+				iy = INTEGER(y)[i];
+				break;
+			case REALSXP:
+				if(FINITE(REAL(y)[i])) iy = REAL(y)[i] + 0.5;
+				else iy = NA_INTEGER;
+				break;
+		}
+		if(iy == NA_INTEGER || (1 <= iy && iy <= lx))
+			INTEGER(x)[i] = iy;
+		else
+			errorcall(call, "invalid factor level\n");
+	}
+	NAMED(x) = 0;
+	return x;
+}
 
 SEXP CreateTag(SEXP x)
 {
@@ -82,107 +140,87 @@ static SEXP asFunction(SEXP x)
 	return f;
 }
 
-static SEXP ascommon(SEXP call, SEXP u, int type)
-{
-	SEXP n, v;
-
-	if (type == SYMSXP) {
-		if (TYPEOF(u) == SYMSXP)
-			return u;
-		if (!isString(u) || LENGTH(u) < 0 ||
-			streql(CHAR(STRING(u)[0]), ""))
-				errorcall(call, "character argument required\n");
-		return install(CHAR(STRING(u)[0]));
-	}
-	else if (type == CLOSXP) {
-		return asFunction(u);
-	}
-	else if (isVector(u) || isList(u) || isLanguage(u)) {
-		if(NAMED(u)) v = duplicate(u);
-		else v = u;
-		if (type != ANYSXP) {
-			PROTECT(v);
-			v = coerceVector(v, type);
-			UNPROTECT(1);
-		}
-		PROTECT(v);
-		PROTECT(n = getAttrib(u, R_NamesSymbol));
-		ATTRIB(v) = R_NilValue;
-		if(n != R_NilValue)
-			setAttrib(v, R_NamesSymbol, n);
-		OBJECT(v) = 0;
-		UNPROTECT(2);
-		return v;
-	}
-	else if(isSymbol(u) && type == STRSXP) {
-		v = allocVector(STRSXP, 1);
-		STRING(v)[0] = PRINTNAME(u);
-		return v;
-	}
-	else errorcall(call, "cannot coerce to vector\n");
-	return u;/* -Wall */
-}
-
-/* as.logical */
-/* as.integer */
-/* as.real */
-/* as.numeric*/
-/* as.complex */
-/* as.character */
-/* as.list */
-/* as.expression */
-/* as.function */
-/* as.name */
-
 SEXP do_as(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-	checkArity(op, args);
-	return ascommon(call, CAR(args), PRIMVAL(op));
-}
-
-
-SEXP do_asvector(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-	SEXP ans;
+	SEXP n, u, v;
 	int type;
 
-	if(DispatchOrEval(call, op, args, rho, &ans, 1))
-		return(ans);
-
-	/* Method dispatch has failed, we now just */
-	/* run the generic internal code */
-
-	PROTECT(args = ans);
 	checkArity(op, args);
 
-	if (!isString(CADR(args)) || LENGTH(CADR(args)) < 1)
-		errorcall(call, "invalid type argument\n");
+	switch (PRIMVAL(op)) {
 
-	if(!strcmp("function", (CHAR(STRING(CADR(args))[0]))))
-		type = CLOSXP;
-	else
+	/* as.factor */
+	/* as.ordered */
+
+	case FACTSXP:
+	case ORDSXP:
+		return coerceVector(CAR(args), PRIMVAL(op));
+
+	/* as.vector */
+
+	case 101:
+		if (!isString(CADR(args)) || LENGTH(CADR(args)) < 1)
+			error("as.vector: invalid type argument\n");
+
+		if(!strcmp("function", (CHAR(STRING(CADR(args))[0]))))
+			return asFunction(CAR(args));
+
 		type = str2type(CHAR(STRING(CADR(args))[0]));
 
-	switch(type) {
-	case SYMSXP:
-	case LGLSXP:
-	case INTSXP:
-	case REALSXP:
-	case CPLXSXP:
-	case STRSXP:
-	case EXPRSXP:
-	case LISTSXP:
-	case CLOSXP:
-	case ANYSXP:
-		break;
-	default:
-		errorcall(call, "invalid mode\n");
-	}
-	ans = ascommon(call, CAR(args), type);
-	UNPROTECT(1);
-	return ans;
-}
+		switch(type) {
+		case LGLSXP:
+		case FACTSXP:
+		case ORDSXP:
+		case INTSXP:
+		case REALSXP:
+		case CPLXSXP:
+		case STRSXP:
+		case EXPRSXP:
+		case LISTSXP:
+		case ANYSXP:
+			break;
+		default:
+			errorcall(call, "mode \"%s\" is invalid\n", CHAR(STRING(CADR(args))[0]));
+		}
+		
+		u = CAR(args);
+		if (isVector(u) || isList(u) || isLanguage(u)) {
+			if(NAMED(u)) v = duplicate(u);
+			else v = u;
+			if (type != ANYSXP) {
+				PROTECT(v);
+				v = coerceVector(v, type);
+				UNPROTECT(1);
+			}
+			PROTECT(v);
+			PROTECT(n = getAttrib(u, R_NamesSymbol));
+			ATTRIB(v) = R_NilValue;
+			if(n != R_NilValue)
+				setAttrib(v, R_NamesSymbol, n);
+			OBJECT(v) = 0;
+			UNPROTECT(2);
+			return v;
+		}
+		else if(isSymbol(u) && type == STRSXP) {
+			u = mkString(CHAR(PRINTNAME(u)));
+			/* UNPROTECT(1); */
+			return u;
+		}
+		else errorcall(call, "cannot coerce to vector\n");
 
+	/* as.name */
+	case 102:
+                u = CAR(args);
+                if (TYPEOF(u) == SYMSXP)
+                        return u;
+                if (!isString(u) || LENGTH(u) < 0 ||
+                        streql(CHAR(STRING(u)[0]), ""))
+                                errorcall(call, "character argument required\n");
+                return install(CHAR(STRING(u)[0]));
+	default:
+		errorcall(call, "unimplemented coersion\n");
+	}
+}
 
 SEXP do_ascall(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -228,6 +266,12 @@ SEXP do_is(SEXP call, SEXP op, SEXP args, SEXP rho)
 		break;
 	case LGLSXP:		/* is.logical */
 		LOGICAL(ans)[0] = (TYPEOF(CAR(args)) == LGLSXP);
+		break;
+	case FACTSXP:		/* is.factor */
+		LOGICAL(ans)[0] = (TYPEOF(CAR(args)) == FACTSXP);
+		break;
+	case ORDSXP:		/* is.ordered */
+		LOGICAL(ans)[0] = (TYPEOF(CAR(args)) == ORDSXP);
 		break;
 	case INTSXP:		/* is.integer */
 		LOGICAL(ans)[0] = (TYPEOF(CAR(args)) == INTSXP);
@@ -282,6 +326,8 @@ SEXP do_is(SEXP call, SEXP op, SEXP args, SEXP rho)
 		case NILSXP:
 		case CHARSXP:
 		case LGLSXP:
+		case FACTSXP:
+		case ORDSXP:
 		case INTSXP:
 		case REALSXP:
 		case CPLXSXP:
@@ -334,10 +380,10 @@ SEXP do_is(SEXP call, SEXP op, SEXP args, SEXP rho)
 	return (ans);
 }
 
-/* What should is.vector do ?
- * In S, if an object has no attributes it is a vector, otherwise it isn't.
- * It seems to make more sense to check for a dim attribute.
- */
+/* What should is.vector do ? */
+/* In S, if an object has no attributes it is a vector */
+/* otherwise it is.  It seems to make more sense to check */
+/* for a dim attribute. */
 
 SEXP do_isvector(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -353,8 +399,7 @@ SEXP do_isvector(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if (streql(CHAR(STRING(CADR(args))[0]), "any")) {
 		LOGICAL(ans)[0] = isVector(CAR(args));
 	}
-	else if (streql(CHAR(STRING(CADR(args))[0]),
-			CHAR(type2str(TYPEOF(CAR(args)))))) {
+	else if (streql(CHAR(STRING(CADR(args))[0]), CHAR(type2str(TYPEOF(CAR(args)))))) {
 		LOGICAL(ans)[0] = 1;
 	}
 	else
@@ -380,19 +425,18 @@ SEXP do_isvector(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_isna(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
 	SEXP ans, dims, names, x;
-	int i, n;
+	int i, lenx;
 
-	if(DispatchOrEval(call, op, args, rho, &ans, 1))
-		return(ans);
+        if(DispatchOrEval(call, op, args, rho, &ans, 1))
+                return(ans);
 
 	PROTECT(args = ans);
 	checkArity(op, args);
 
 	if (!isList(CAR(args)) && !isVector(CAR(args)))
-		errorcall(call, "is.na applies only to lists and vectors\n");
+		error("is.na applies only to lists and vectors\n");
 	ans = allocVector(LGLSXP, length(CAR(args)));
 	x = CAR(args);
-	n = length(x);
 	if (isVector(x)) {
 		PROTECT(dims = getAttrib(x, R_DimSymbol));
 		if (isArray(x))
@@ -402,43 +446,47 @@ SEXP do_isna(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	switch (TYPEOF(x)) {
 	case LGLSXP:
+	case FACTSXP:
+	case ORDSXP:
 	case INTSXP:
 		for (i = 0; i < length(x); i++)
 			LOGICAL(ans)[i] = (INTEGER(x)[i] == NA_INTEGER);
 		break;
 	case REALSXP:
 		for (i = 0; i < length(x); i++)
-			LOGICAL(ans)[i] = ISNAN(REAL(x)[i]);
+			LOGICAL(ans)[i] = !FINITE(REAL(x)[i]);
 		break;
 	case CPLXSXP:
 		for (i = 0; i < length(x); i++)
-			LOGICAL(ans)[i] = (ISNAN(COMPLEX(x)[i].r)
-					|| ISNAN(COMPLEX(x)[i].i));
+			LOGICAL(ans)[i] = !(FINITE(COMPLEX(x)[i].r)
+					&& FINITE(COMPLEX(x)[i].i));
 		break;
 	case STRSXP:
 		for (i = 0; i < length(x); i++)
 			LOGICAL(ans)[i] = (STRING(x)[i] == NA_STRING);
 		break;
 	case LISTSXP:
-		n = length(x);
-		for (i = 0; i < n; i++) {
+		lenx = length(x);
+		for (i = 0; i < lenx; i++) {
 			if (!isVector(CAR(x)) || length(CAR(x)) > 1)
 				LOGICAL(ans)[i] = 0;
 			else {
 				switch (TYPEOF(CAR(x))) {
 				case LGLSXP:
+				case FACTSXP:
+				case ORDSXP:
 				case INTSXP:
 					LOGICAL(ans)[i] = (INTEGER(CAR(x))[0] == NA_INTEGER);
 					break;
 				case REALSXP:
-					LOGICAL(ans)[i] = ISNAN(REAL(CAR(x))[0]);
+					LOGICAL(ans)[i] = !FINITE(REAL(CAR(x))[0]);
 					break;
 				case STRSXP:
 					LOGICAL(ans)[i] = (STRING(CAR(x))[0] == NA_STRING);
 					break;
 				case CPLXSXP:
-					LOGICAL(ans)[i] = (ISNAN(COMPLEX(CAR(x))[0].r)
-						|| ISNAN(COMPLEX(CAR(x))[0].i));
+					LOGICAL(ans)[i] = !(FINITE(COMPLEX(CAR(x))[0].r)
+						&& FINITE(COMPLEX(CAR(x))[0].i));
 					break;
 				}
 			}
@@ -456,203 +504,6 @@ SEXP do_isna(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	UNPROTECT(1);
 	return ans;
-}
-
-SEXP do_isnan(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-	SEXP ans, dims, names, x;
-	int i, n;
-
-	if(DispatchOrEval(call, op, args, rho, &ans, 1))
-		return(ans);
-
-	PROTECT(args = ans);
-	checkArity(op, args);
-
-	if (!isList(CAR(args)) && !isVector(CAR(args)))
-		errorcall(call, "is.nan applies only to lists and vectors\n");
-	ans = allocVector(LGLSXP, length(CAR(args)));
-	x = CAR(args);
-	if (isVector(x)) {
-		PROTECT(dims = getAttrib(x, R_DimSymbol));
-		if (isArray(x))
-			PROTECT(names = getAttrib(x, R_DimNamesSymbol));
-		else
-			PROTECT(names = getAttrib(x, R_NamesSymbol));
-	}
-	switch (TYPEOF(x)) {
-	case LGLSXP:
-	case INTSXP:
-	case STRSXP:
-		for (i = 0; i < length(x); i++)
-			LOGICAL(ans)[i] = 0;
-		break;
-	case REALSXP:
-		for (i = 0; i < length(x); i++)
-#ifdef IEEE_754
-			LOGICAL(ans)[i] = R_IsNaN(REAL(x)[i]);
-#else
-			LOGICAL(ans)[i] = 0;
-#endif
-		break;
-	case CPLXSXP:
-		for (i = 0; i < length(x); i++)
-#ifdef IEEE_754
-			LOGICAL(ans)[i] = (R_IsNaN(COMPLEX(x)[i].r)
-					|| R_IsNaN(COMPLEX(x)[i].i));
-#else
-			LOGICAL(ans)[i] = 0;
-#endif
-		break;
-	case LISTSXP:
-		n = length(x);
-		for (i = 0; i < n; i++) {
-			if (!isVector(CAR(x)) || length(CAR(x)) > 1)
-				LOGICAL(ans)[i] = 0;
-			else {
-				switch (TYPEOF(CAR(x))) {
-				case LGLSXP:
-				case INTSXP:
-				case STRSXP:
-					LOGICAL(ans)[i] = 1;
-					break;
-				case REALSXP:
-#ifdef IEEE_754
-					LOGICAL(ans)[i] = R_IsNaN(REAL(CAR(x))[0]);
-#else
-					LOGICAL(ans)[i] = 0;
-#endif
-					break;
-				case CPLXSXP:
-#ifdef IEEE_754
-					LOGICAL(ans)[i] = (R_IsNaN(COMPLEX(CAR(x))[0].r)
-						|| R_IsNaN(COMPLEX(CAR(x))[0].i));
-#else
-					LOGICAL(ans)[i] = 0;
-#endif
-					break;
-				}
-			}
-			x = CDR(x);
-		}
-		break;
-	}
-	if (isVector(x)) {
-		setAttrib(ans, R_DimSymbol, dims);
-		if (isArray(x))
-			setAttrib(ans, R_DimNamesSymbol, names);
-		else
-			setAttrib(ans, R_NamesSymbol, names);
-		UNPROTECT(2);
-	}
-	UNPROTECT(1);
-	return ans;
-}
-
-SEXP do_isfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-  SEXP ans, x, names, dims;
-  int i, n;
-  checkArity(op, args);
-  if (!isList(CAR(args)) && !isVector(CAR(args)))
-    errorcall(call, "is.finite applies only to vectors\n");
-  x = CAR(args);
-  n = length(x);
-  ans = allocVector(LGLSXP, n);
-  if (isVector(x)) {
-    dims = getAttrib(x, R_DimSymbol);
-    if (isArray(x))
-      names = getAttrib(x, R_DimNamesSymbol);
-    else
-      names = getAttrib(x, R_NamesSymbol);
-  }
-  else dims = names = R_NilValue;
-  switch (TYPEOF(x)) {
-  case LGLSXP:
-  case INTSXP:
-    for(i=0 ; i<n ; i++)
-      INTEGER(ans)[i] = (INTEGER(x)[i] != NA_INTEGER);
-    break;
-  case REALSXP:
-    for(i=0 ; i<n ; i++)
-      INTEGER(ans)[i] = FINITE(REAL(x)[i]);
-    break;
-  case CPLXSXP:
-    for(i=0 ; i<n ; i++)
-      INTEGER(ans)[i] = (FINITE(COMPLEX(x)[i].r) && FINITE(COMPLEX(x)[i].i));
-    break;
-  default:
-    for(i=0 ; i<n ; i++)
-      INTEGER(ans)[i] = 0;
-  }
-  if (dims != R_NilValue)
-    setAttrib(ans, R_DimSymbol, dims);
-  if (names != R_NilValue) {
-    if (isArray(x))
-      setAttrib(ans, R_DimNamesSymbol, names);
-    else
-      setAttrib(ans, R_NamesSymbol, names);
-  }
-  return ans;
-}
-
-SEXP do_isinfinite(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-  SEXP ans, x, names, dims;
-  double xr, xi;
-  int i, n;
-  checkArity(op, args);
-  if (!isList(CAR(args)) && !isVector(CAR(args)))
-    errorcall(call, "is.infinite applies only to vectors\n");
-  x = CAR(args);
-  n = length(x);
-  ans = allocVector(LGLSXP, n);
-  if (isVector(x)) {
-    dims = getAttrib(x, R_DimSymbol);
-    if (isArray(x))
-      names = getAttrib(x, R_DimNamesSymbol);
-    else
-      names = getAttrib(x, R_NamesSymbol);
-  }
-  else dims = names = R_NilValue;
-#ifdef IEEE_754
-  switch (TYPEOF(x)) {
-  case REALSXP:
-    for(i=0 ; i<n ; i++) {
-      xr = REAL(x)[i];
-      if (xr != xr || FINITE(xr))
-	INTEGER(ans)[i] = 0;
-      else
-        INTEGER(ans)[i] = 1;
-    }
-    break;
-  case CPLXSXP:
-    for(i=0 ; i<n ; i++) {
-      xr = COMPLEX(x)[i].r;
-      xr = COMPLEX(x)[i].i;
-      if ((xr != xr || FINITE(xr)) && (xi != xi || FINITE(xi)))
-	INTEGER(ans)[i] = 0;
-      else
-        INTEGER(ans)[i] = 1;
-    }
-    break;
-  default:
-    for(i=0 ; i<n ; i++)
-      INTEGER(ans)[i] = 0;
-  }
-#else
-  for(i=0 ; i<n ; i++)
-    INTEGER(ans)[i] = 0;
-#endif
-  if (!isNull(dims))
-    setAttrib(ans, R_DimSymbol, dims);
-  if (!isNull(names)) {
-    if (isArray(x))
-      setAttrib(ans, R_DimNamesSymbol, names);
-    else
-      setAttrib(ans, R_NamesSymbol, names);
-  }
-  return ans;
 }
 
 SEXP coerceVector(SEXP v, SEXPTYPE type)
@@ -686,6 +537,12 @@ SEXP coerceVector(SEXP v, SEXPTYPE type)
 	switch (type) {
 	case LGLSXP:
 		ans = coerceToLogical(v);
+		break;
+	case FACTSXP:
+		ans = coerceToFactor(v);
+		break;
+	case ORDSXP:
+		ans = coerceToOrdered(v);
 		break;
 	case INTSXP:
 		ans = coerceToInteger(v);
@@ -744,6 +601,8 @@ SEXP coerceList(SEXP v, SEXPTYPE type)
 			t = coerceVector(CAR(v), type);
 			switch (type) {
 			case LGLSXP:
+			case FACTSXP:
+			case ORDSXP:
 			case INTSXP:
 				INTEGER(rval)[i] = INTEGER(t)[0];
 				break;
@@ -782,35 +641,41 @@ SEXP coerceList(SEXP v, SEXPTYPE type)
 
 static SEXP coerceToLogical(SEXP v)
 {
-	SEXP ans;
+	SEXP ans, levs;
 	int i, n;
 
 	ans = allocVector(LGLSXP, n = length(v));
 	PROTECT(ans);
 	ATTRIB(ans) = duplicate(ATTRIB(v));
 	switch (TYPEOF(v)) {
+	case FACTSXP:
+	case ORDSXP:
+		for (i = 0; i < n; i++) {
+			if(INTEGER(v)[i] == NA_INTEGER)
+				LOGICAL(ans)[i] = NA_LOGICAL;
+			else 
+				LOGICAL(ans)[i] = (INTEGER(v)[i] != 0);
+		}
+		break;
 	case INTSXP:
 		for (i = 0; i < n; i++) {
 			if(INTEGER(v)[i] == NA_INTEGER)
 				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
+			else 
 				LOGICAL(ans)[i] = (INTEGER(v)[i] != 0);
 		}
 		break;
 	case REALSXP:
 		for (i = 0; i < n; i++) {
-			if(ISNAN(REAL(v)[i]))
-				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
-				LOGICAL(ans)[i] = (REAL(v)[i] != 0);
+			if(FINITE(REAL(v)[i])) LOGICAL(ans)[i] = (REAL(v)[i] != 0);
+			else LOGICAL(ans)[i] = NA_LOGICAL;
 		}
 		break;
 	case CPLXSXP:
 		for (i = 0; i < n; i++) {
-			if(ISNAN(COMPLEX(v)[i].r) || ISNAN(COMPLEX(v)[i].i))
-				LOGICAL(ans)[i] = NA_LOGICAL;
-			else
+			if(FINITE(COMPLEX(v)[i].r) && FINITE(COMPLEX(v)[i].i))
 				LOGICAL(ans)[i] = (COMPLEX(v)[i].r != 0 || COMPLEX(v)[i].i != 0);
+			else LOGICAL(ans)[i] = NA_LOGICAL;
 		}
 		break;
 	case STRSXP:
@@ -829,10 +694,92 @@ static SEXP coerceToLogical(SEXP v)
 	return ans;
 }
 
+static SEXP coerceToFactor(SEXP v)
+{
+	SEXP ans, levs;
+	int i, n;
+
+	PROTECT(ans = allocVector(FACTSXP, n = LENGTH(v)));
+	ATTRIB(ans) = duplicate(ATTRIB(v));
+	switch (TYPEOF(v)) {
+	case LGLSXP:
+		LEVELS(ans) = 2;
+		for (i = 0; i < n; i++) {
+			FACTOR(ans)[i] = (LOGICAL(v)[i] == NA_LOGICAL) ?
+				NA_FACTOR : ((LOGICAL(v)[i] == 0) ? 1 : 2);
+		}
+		PROTECT(levs = allocVector(STRSXP, 2));
+		STRING(levs)[0] = mkChar("FALSE");
+		STRING(levs)[1] = mkChar("TRUE");
+		setAttrib(ans, R_LevelsSymbol, levs);
+		UNPROTECT(1);
+		break;
+	case ORDSXP:
+		LEVELS(ans) = LEVELS(v);
+		for (i = 0; i < n; i++) {
+			FACTOR(ans)[i] = FACTOR(v)[i];
+		}
+		break;
+	case INTSXP:
+	case REALSXP:
+	case CPLXSXP:
+	case STRSXP:
+		error("use \"factor\", \"ordered\" or \"cut\" to create factors\n");
+		break;
+	}
+	PROTECT(levs = allocVector(STRSXP, 1));
+	STRING(levs)[0] = mkChar("factor");
+	setAttrib(ans, R_ClassSymbol, levs);
+        UNPROTECT(2);
+	return ans;
+}
+
+static SEXP coerceToOrdered(SEXP v)
+{
+	SEXP ans, levs;
+	int i, n;
+
+	ans = allocVector(ORDSXP, n = LENGTH(v));
+	PROTECT(ans);
+	ATTRIB(ans) = duplicate(ATTRIB(v));
+	switch (TYPEOF(v)) {
+	case LGLSXP:
+		LEVELS(ans) = 2;
+		for (i = 0; i < n; i++) {
+			FACTOR(ans)[i] = (LOGICAL(v)[i] == NA_LOGICAL) ?
+				NA_FACTOR : ((LOGICAL(v)[i] == 0) ? 1 : 2);
+		}
+		PROTECT(levs = allocVector(STRSXP, 2));
+		STRING(levs)[0] = mkChar("FALSE");
+		STRING(levs)[1] = mkChar("TRUE");
+		setAttrib(ans, R_LevelsSymbol, levs);
+		UNPROTECT(1);
+		break;
+	case FACTSXP:
+		LEVELS(ans) = LEVELS(v);
+		for (i = 0; i < n; i++) {
+			FACTOR(ans)[i] = FACTOR(v)[i];
+		}
+		break;
+	case INTSXP:
+	case REALSXP:
+	case CPLXSXP:
+	case STRSXP:
+		error("use \"factor\", \"ordered\" or \"cut\" to create factors\n");
+		break;
+	}
+	PROTECT(levs = allocVector(STRSXP, 2));
+	STRING(levs)[0] = mkChar("ordered");
+	STRING(levs)[1] = mkChar("factor");
+	setAttrib(ans, R_ClassSymbol, levs);
+	UNPROTECT(2);
+	return ans;
+}
+
 static SEXP coerceToInteger(SEXP v)
 {
-	SEXP ans;
-	int i, n, warn;
+	SEXP ans, lv;
+	int i, li, n, warn;
 	double out;
 	char *endp;
 
@@ -846,38 +793,41 @@ static SEXP coerceToInteger(SEXP v)
 				NA_INTEGER : LOGICAL(v)[i];
 		}
 		break;
+	case FACTSXP:
+	case ORDSXP:
+		for (i = 0; i < n ; i++) {
+			li = FACTOR(v)[i];
+			INTEGER(ans)[i] = (li == NA_FACTOR) ?
+				NA_INTEGER : li;
+		}
+		break;
 	case REALSXP:
 		for (i = 0; i < n; i++) {
-			if(ISNAN(REAL(v)[i]) )
+			if( !FINITE(REAL(v)[i]) )
 				INTEGER(ans)[i] = NA_INTEGER;
-			else if (REAL(v)[i] > INT_MAX) {
-				INTEGER(ans)[i] = INT_MAX;
+			else if ( REAL(v)[i] >= LONG_MAX+1.0 || REAL(v)[i]<= LONG_MIN-1.0 ) {
 				warn = 1;
+				INTEGER(ans)[i] = NA_INTEGER;
 			}
-			else if(REAL(v)[i]<= INT_MIN) {
-				INTEGER(ans)[i] = INT_MIN+1;
-				warn = 1;
-			}
-			else INTEGER(ans)[i] = REAL(v)[i];
+			else
+				INTEGER(ans)[i] = REAL(v)[i];
 		}
 		break;
 	case CPLXSXP:
 		for (i = 0; i < n; i++) {
-			if (ISNAN(COMPLEX(v)[i].r) || ISNAN(COMPLEX(v)[i].i))
+			if( (FINITE(COMPLEX(v)[i].r) && FINITE(COMPLEX(v)[i].i)) )
 				INTEGER(ans)[i] = NA_INTEGER;
-			else if (COMPLEX(v)[i].r > INT_MAX) {
+			else if ( COMPLEX(v)[i].r >= LONG_MAX+1.0 || COMPLEX(v)[i].r <= LONG_MIN-1.0 ) {     
 				warn = 1;
-				INTEGER(ans)[i] = INT_MAX;
+				INTEGER(ans)[i] = NA_INTEGER;
 			}
-			else if (COMPLEX(v)[i].r < INT_MIN) {
-				warn = 1;
-				INTEGER(ans)[i] = INT_MIN+1;
-			}
-			else INTEGER(ans)[i] = COMPLEX(v)[i].r;
+			else
+
+				INTEGER(ans)[i] = COMPLEX(v)[i].r;
 		}
 		break;
 	case STRSXP:
-		/*  Jeez!  Why was this again?	I've forgotten!
+		/*  Jeez!  Why was this again?  I've forgotten!
 		 *  for reasons best known to ourselves we implement this by
 		 *  first converting to real and then from real to integer  */
 		for (i = 0; i < n; i++) {
@@ -890,7 +840,7 @@ static SEXP coerceToInteger(SEXP v)
 						warn = 1;
 						INTEGER(ans)[i] = NA_INTEGER;
 					}
-					else
+					else 
 						INTEGER(ans)[i] = out;
 				}
 				else
@@ -900,14 +850,14 @@ static SEXP coerceToInteger(SEXP v)
 		break;
 	}
 	UNPROTECT(2);
-	if( warn ) warning("inaccurate integer conversion\n");
+	if( warn ) warning("integer conversion: some values were too large and were converted to NA\n");
 	return ans;
 }
 
 static SEXP coerceToReal(SEXP v)
 {
-	SEXP ans;
-	int i, n;
+	SEXP ans, lv;
+	int i, li, n;
 	double out;
 	char *endp;
 
@@ -919,6 +869,14 @@ static SEXP coerceToReal(SEXP v)
 		for (i = 0; i < n; i++) {
 			REAL(ans)[i] = (LOGICAL(v)[i] == NA_LOGICAL) ?
 				NA_REAL : LOGICAL(v)[i];
+		}
+		break;
+	case FACTSXP:
+	case ORDSXP:
+		for (i = 0; i < n ; i++) {
+			li = FACTOR(v)[i];
+			REAL(ans)[i] = (li == NA_FACTOR) ?
+				NA_REAL : li;
 		}
 		break;
 	case INTSXP:
@@ -955,10 +913,10 @@ static SEXP coerceToReal(SEXP v)
 
 static SEXP coerceToComplex(SEXP v)
 {
-	SEXP ans;
+	SEXP ans, lv;
 	double outr, outi;
 	char *endp;
-	int i, n;
+	int i, li, n;
 
 	n = LENGTH(v);
 	PROTECT(ans = allocVector(CPLXSXP, n));
@@ -972,6 +930,31 @@ static SEXP coerceToComplex(SEXP v)
 			}
 			else {
 				COMPLEX(ans)[i].r = LOGICAL(v)[i];
+				COMPLEX(ans)[i].i = 0.0;
+			}
+		}
+		break;
+	case FACTSXP:
+	case ORDSXP:
+		for (i = 0; i < n ; i++) {
+			li = FACTOR(v)[i];
+			if(li == NA_FACTOR) {
+				COMPLEX(ans)[i].r = NA_REAL;
+				COMPLEX(ans)[i].i = NA_REAL;
+			}
+			else {
+				COMPLEX(ans)[i].r = li;
+				COMPLEX(ans)[i].i = 0;
+			}
+		}
+		break;
+		for (i = 0; i < n; i++) {
+			if (FACTOR(v)[i] == NA_FACTOR) {
+				COMPLEX(ans)[i].r = NA_REAL;
+				COMPLEX(ans)[i].i = NA_REAL;
+			}
+			else {
+				COMPLEX(ans)[i].r = FACTOR(v)[i];
 				COMPLEX(ans)[i].i = 0.0;
 			}
 		}
@@ -990,7 +973,7 @@ static SEXP coerceToComplex(SEXP v)
 		break;
 	case REALSXP:
 		for (i = 0; i < n; i++) {
-			if (ISNA(REAL(v)[i])) {
+			if (!FINITE(REAL(v)[i])) {
 				COMPLEX(ans)[i].r = NA_REAL;
 				COMPLEX(ans)[i].i = NA_REAL;
 			}
@@ -1039,7 +1022,7 @@ static SEXP coerceToComplex(SEXP v)
 static SEXP coerceToString(SEXP v)
 {
 	SEXP ans, tmpchar;
-	int i, n, savedigits;
+	int i, j, n;
 	char *strp;
 
 	PrintDefaults(R_NilValue);
@@ -1048,19 +1031,31 @@ static SEXP coerceToString(SEXP v)
 	ans = allocVector(STRSXP, n);
 	PROTECT(ans);
 	ATTRIB(ans) = duplicate(ATTRIB(v));
-	savedigits = print_digits;
-	print_digits = DBL_DIG;/*- MAXIMAL precision */
-	for (i = 0; i < n; i++) {
-		strp = EncodeElement( v, i, 0);
-		if (streql(strp, "NA"))
-			STRING(ans)[i] = NA_STRING;
-		else {
-			tmpchar = allocString(strlen(strp));
-			strcpy(CHAR(tmpchar), strp);
-			STRING(ans)[i] = tmpchar;
+	if (isFactor(v)
+		&& (tmpchar = getAttrib(v, install("levels"))) != R_NilValue
+		&& TYPEOF(tmpchar) == STRSXP
+		&& LENGTH(tmpchar) == (int)LEVELS(v)) {
+		for (i = 0; i < n; i++) {
+			j = FACTOR(v)[i];
+			if (j < 1 || j > (int)LEVELS(v))
+				STRING(ans)[i] = NA_STRING;
+			else
+				STRING(ans)[i] = STRING(tmpchar)[j - 1];
+		}
+		setAttrib(ans, install("levels"), R_NilValue);
+	}
+	else {
+		for (i = 0; i < n; i++) {
+			strp = EncodeElement( v, i, 0);
+			if (streql(strp, "NA"))
+				STRING(ans)[i] = NA_STRING;
+			else {
+				tmpchar = allocString(strlen(strp));
+				strcpy(CHAR(tmpchar), strp);
+				STRING(ans)[i] = tmpchar;
+			}
 		}
 	}
-	print_digits = savedigits;
 	UNPROTECT(1);
 	return (ans);
 }
@@ -1076,6 +1071,8 @@ static SEXP coerceToExpression(SEXP v)
 		PROTECT(ans = allocVector(EXPRSXP, n));
 		switch (TYPEOF(v)) {
 		case LGLSXP:
+		case FACTSXP:
+		case ORDSXP:
 		case INTSXP:
 			if(isFactor(v)) newtype = INTSXP;
 			else newtype = TYPEOF(v);
@@ -1109,18 +1106,6 @@ static SEXP coerceToExpression(SEXP v)
 			break;
 		}
 	}
-#if 0
-/* This code believed to be WRONG */
-	else if(TYPEOF(v) == LANGSXP) {
-		n = length(v);
-		PROTECT(ans = allocVector(EXPRSXP, n));
-		tmp = v;
-		for(i=0 ; i<n ; i++) {
-			VECTOR(ans)[i] = CAR(tmp);
-			tmp = CDR(tmp);
-		}
-	}
-#endif
 	else {
 		PROTECT(ans = allocVector(EXPRSXP, 1));
 		VECTOR(ans)[0] = duplicate(v);
@@ -1142,6 +1127,8 @@ static SEXP coerceToList(SEXP v)
 	for (i = 0; i < n; i++) {
 		switch (TYPEOF(v)) {
 		case LGLSXP:
+		case FACTSXP:
+		case ORDSXP:
 		case INTSXP:
 			CAR(tmp) = allocVector(INTSXP, 1);
 			INTEGER(CAR(tmp))[0] = INTEGER(v)[i];
@@ -1208,9 +1195,9 @@ SEXP do_docall(SEXP call, SEXP op, SEXP args, SEXP rho)
  * values as found in the environment. There is no inheritance so only the
  * supplied environment is searched. If no environment is specified the
  * environment in which substitute was called is used. If the specified
- * environment is R_NilValue then R_GlobalEnv is used.
- *
- * Arguments to do_substitute should not be evaluated.
+ * environment is R_NilValue then R_GlobalEnv is used. Arguments to
+ * do_substitute should not be evaluated.
+ * 
  */
 
 SEXP substituteList(SEXP, SEXP);
@@ -1295,7 +1282,7 @@ SEXP substituteList(SEXP el, SEXP rho)
 
 SEXP do_substitute(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-	SEXP env, s, t;
+	SEXP env, s;
 
 		/* set up the environment for substitution */
 
@@ -1305,21 +1292,12 @@ SEXP do_substitute(SEXP call, SEXP op, SEXP args, SEXP rho)
 		env = eval(CADR(args), rho);
 	if (env == R_NilValue)
 		env = R_GlobalEnv;
-
-	if (TYPEOF(env) == LISTSXP){
-		PROTECT(s = duplicate(env));
-		PROTECT(env = allocSExp(ENVSXP));
-		FRAME(env) = s;
-		UNPROTECT(2);
-	}
-
 	if (TYPEOF(env) != ENVSXP)
 		errorcall(call, "invalid environment specified\n");
 
 	PROTECT(env);
-	PROTECT(t = duplicate(args));
-	CDR(t) = R_NilValue;
-	s = substituteList(t, env);
-	UNPROTECT(2);
+	CDR(args) = R_NilValue;
+	s = substituteList(args, env);
+	UNPROTECT(1);
 	return CAR(s);
 }

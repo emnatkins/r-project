@@ -87,6 +87,8 @@ SEXP duplicate(SEXP s)
 		break;
 	case STRSXP:
 	case LGLSXP:
+	case FACTSXP:
+	case ORDSXP:
 	case INTSXP:
 	case REALSXP:
 	case CPLXSXP:
@@ -94,23 +96,20 @@ SEXP duplicate(SEXP s)
 		PROTECT(s);
 		t = allocVector(TYPEOF(s), LENGTH(s));
 		copyVector(t, s);
+		LEVELS(t) = LEVELS(s);
 		PROTECT(t);
 		ATTRIB(t) = duplicate(ATTRIB(s));
 		UNPROTECT(2);
 		break;
 	case PROMSXP: /* duplication requires that we evaluate the promise */
-#ifdef OLD
 		if (PRVALUE(s) == R_UnboundValue) {
 			t = eval(PREXPR(s), PRENV(s));
 			PRVALUE(s) = t;
 		}
 		t = duplicate(PRVALUE(s));
-#endif
-		return s;
 		break;
 	default:
 		UNIMPLEMENTED("duplicate");
-		t = s;/* for -Wall */
 	}
 	if(TYPEOF(t) == TYPEOF(s) ) /* surely it only makes sense in this case*/
 		OBJECT(t) = OBJECT(s);
@@ -133,6 +132,11 @@ void copyVector(SEXP s, SEXP t)
 		for (i = 0; i < ns; i++)
 			LOGICAL(s)[i] = LOGICAL(t)[i % nt];
 		break;
+	case FACTSXP:
+	case ORDSXP:
+		for (i = 0; i < ns; i++)
+			FACTOR(s)[i] = FACTOR(t)[i % nt];
+		break;
 	case INTSXP:
 		for (i = 0; i < ns; i++)
 			INTEGER(s)[i] = INTEGER(t)[i % nt];
@@ -141,10 +145,12 @@ void copyVector(SEXP s, SEXP t)
 		for (i = 0; i < ns; i++)
 			REAL(s)[i] = REAL(t)[i % nt];
 		break;
+#ifdef COMPLEX_DATA
 	case CPLXSXP:
 		for (i = 0; i < ns; i++)
 			COMPLEX(s)[i] = COMPLEX(t)[i % nt];
 		break;
+#endif
 	default:
 		UNIMPLEMENTED("copyVector");
 	}
@@ -204,6 +210,12 @@ void copyMatrix(SEXP s, SEXP t, int byrow)
 				for (j = 0; j < nc; j++)
 					LOGICAL(s)[i + j * nr] = LOGICAL(t)[k++ % nt];
 			break;
+		case FACTSXP:
+		case ORDSXP:
+			for (i = 0; i < nr; i++)
+				for (j = 0; j < nc; j++)
+					FACTOR(s)[i + j * nr] = FACTOR(t)[k++ % nt];
+			break;
 		case INTSXP:
 			for (i = 0; i < nr; i++)
 				for (j = 0; j < nc; j++)
@@ -214,11 +226,13 @@ void copyMatrix(SEXP s, SEXP t, int byrow)
 				for (j = 0; j < nc; j++)
 					REAL(s)[i + j * nr] = REAL(t)[k++ % nt];
 			break;
+#ifdef COMPLEX_DATA
 		case CPLXSXP:
 			for (i = 0; i < nr; i++)
 				for (j = 0; j < nc; j++)
 					COMPLEX(s)[i + j * nr] = COMPLEX(t)[k++ % nt];
 			break;
+#endif
 		default:
 			UNIMPLEMENTED("copyMatrix");
 		}

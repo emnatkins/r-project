@@ -23,7 +23,6 @@
 static char szFilter[RBuffLen + 2];
 static char szImgFilter[] = "R Image File(*.RMG)|*.rmg";
 static char szOpenFilter[] = "Text Files (*.TXT)|*.txt|All Files(*.*)|*.*";
-static char szDataFilter[] = "Data Files (*.DAT)|*.dat|All Files(*.*)|*.*";
 static char szDirName[RBuffLen];
 extern char RFName[RBuffLen];
 
@@ -61,10 +60,7 @@ int Win_ROpenDlg(HWND hwnd, char *iname)
         int i, n;
         char title[512];
 
-        if( !strcmp(iname, "Open") )
-                strcpy(szFilter, szImgFilter);
-        else
-                strcpy(szFilter, szOpenFilter);
+        strcpy(szFilter, szOpenFilter);
         sprintf(title,"R %s File",iname);
         n = strlen(szFilter);
         for (i = 0; i < n; i++)
@@ -116,39 +112,6 @@ int Win_RSaveDlg(HWND hwnd)
         ofn.lpstrInitialDir = szDirName;
         ofn.Flags = OFN_OVERWRITEPROMPT;
         ofn.lpstrTitle = "R Save Image";
-
-        return (int) GetSaveFileName(&ofn);
-}
-
-int Win_RDataDlg(HWND hwnd, char* datadirname)
-{
-        int i, n;
-
-        strcpy(szFilter, szDataFilter);
-
-        n = strlen(szFilter);
-        for (i = 0; i < n; i++)
-                if (szFilter[i] == '|')
-                        szFilter[i] = '\0';
-        szFilter[n] = '\0';
-        szFilter[n + 1] = '\0';
-
-        if( strlen(datadirname) == 0 )
-                if (! GetCurrentDirectory(sizeof(szDirName), szDirName))
-                        return 0;
-        else
-                strcpy(szDirName,datadirname);
-
-        ofninit();
-        
-       
-        ofn.lpstrFilter = szFilter;
-        ofn.nFilterIndex = 1;
-        ofn.lpstrFile = RFName;
-        ofn.nMaxFile = RBuffLen;
-        ofn.lpstrInitialDir = szDirName;
-        ofn.Flags = OFN_OVERWRITEPROMPT;
-        ofn.lpstrTitle = "R Read Data";
 
         return (int) GetSaveFileName(&ofn);
 }

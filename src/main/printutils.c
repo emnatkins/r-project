@@ -61,6 +61,17 @@ char *EncodeLogical(int x, int w)
 	return Encodebuf;
 }
 
+char *EncodeFactor(int x, int nlev, int w, SEXP levels)
+{
+	if (x == NA_INTEGER || x < 1 || x > nlev)
+		sprintf(Encodebuf, "%*s", w, CHAR(print_na_string));
+	else if(!isNull(levels))
+		sprintf(Encodebuf, "%*s", w, CHAR(STRING(levels)[x-1]));
+	else
+		sprintf(Encodebuf, "%*d", w, x);
+	return Encodebuf;
+}
+
 char *EncodeInteger(int x, int w)
 {
 	if (x == NA_INTEGER) sprintf(Encodebuf, "%*s", w, CHAR(print_na_string));
@@ -71,17 +82,10 @@ char *EncodeInteger(int x, int w)
 char *EncodeReal(double x, int w, int d, int e)
 {
 	char fmt[20];
-	/* IEEE allows signed zeros (yuck!) */
+	/* BUG - Sun IEEE  & -0 */
 	if (x == 0.0) x = 0.0;
 	if (!FINITE(x)) {
-#ifdef IEEE_754
-		if(ISNA(x)) sprintf(Encodebuf, "%*s", w, CHAR(print_na_string));
-		else if(ISNAN(x)) sprintf(Encodebuf, "%*s", w, "NaN");
-		else if(x > 0) sprintf(Encodebuf, "%*s", w, "Inf");
-		else sprintf(Encodebuf, "%*s", w, "-Inf");
-#else
 		sprintf(Encodebuf, "%*s", w, CHAR(print_na_string));
-#endif
 	}
 	else if (e) {
 		if(d) {
@@ -100,37 +104,72 @@ char *EncodeReal(double x, int w, int d, int e)
 	return Encodebuf;
 }
 
+#ifdef COMPLEX_DATA
+
 char *EncodeComplex(complex x, int wr, int dr, int er, int wi, int di, int ei)
 {
-    char fmt[64], *efr, *efi;
+	char fmt[64], *hashr, *hashi, *efr, *efi, *sgni;
 
-    /* IEEE allows signed zeros */
-    /* We strip these here */
+	/* BUG - Sun IEEE  & -0 */
+	if (x.r == 0.0) x.r = 0.0;
+	if (x.i == 0.0) x.i = 0.0;
+	if (!FINITE(x.r) || !FINITE(x.i)) {
+		sprintf(Encodebuf, "%*s", wr+wi+2, CHAR(print_na_string));
+	}
+	if (x.r == 0.0) {
+		if(ei) {
+			efi = "e";
+			if(di) hashi = "#";
+			else hashi = "";
+		}
+		else {
+			efi = "f";
+			hashi = "";
+		}
+		sprintf(fmt, "%%%s%d.%d%si",
+				hashi, wi, di, efi);
 
-    if (x.r == 0.0) x.r = 0.0;
-    if (x.i == 0.0) x.i = 0.0;
+		sprintf(Encodebuf, fmt, x.i);
+	}
+	else {
+		if(x.i < 0) {
+			x.i = -x.i;
+			wi -= 1;
+			sgni = "-";
+		}
+		else sgni = "+";
+		if(er) {
+			efr = "e";
+			if(dr) hashr = "#";
+			else hashr = "";
+		}
+		else {
+			efr = "f";
+			hashr = "";
+		}
+		if(ei) {
+			efi = "e";
+			if(di) hashi = "#";
+			else hashi = "";
+		}
+		else {
+			efi = "f";
+			hashi = "";
+		}
+		sprintf(fmt, "%%%s%d.%d%s%s%%%s%d.%d%si",
+				hashr, wr, dr, efr, sgni,
+				hashi, wi, di, efi);
 
-    if (ISNA(x.r) || ISNA(x.i)) {
-	sprintf(Encodebuf, "%*s%*s", PRINT_GAP, "", wr+wi+2,
-		CHAR(print_na_string));
-    }
-    else {
-	if(er) efr = "e";
-	else efr = "f";
-	if(ei) efi = "e";
-	else efi = "f";
-	sprintf(fmt,"%%%d.%d%s%%+%d.%d%si", wr, dr, efr, wi, di, efi);
-	sprintf(Encodebuf, fmt, x.r, x.i);
-
-    }
-    return Encodebuf;
+		sprintf(Encodebuf, fmt, x.r, x.i);
+	}
+	return Encodebuf;
 }
+#endif
 
 	/* There is a heavy ASCII emphasis here */
 	/* Latin1 types are (rightfully) upset */
 	/* WHAT NEEDS TO CHANGE */
 
-/* UNUSED: */
 static int hexdigit(unsigned int x)
 {
 	return ((x <= 9)? '0' :	 'A'-10) + x;
@@ -174,12 +213,12 @@ int Rstrlen(char *s)
 	return len;
 }
 
-char *EncodeString(char *s, int w, int quote, int right)
+char *EncodeString(char *s, int w, int quote, int left)
 {
 	int b, i;
 	char *p, *q;
 	q = Encodebuf;
-	if(right) { /*Right justifying */
+	if(!left) { /*Right justifying */
 		b = w - Rstrlen(s) - (quote ? 2 : 0);
 		for(i=0 ; i<b ; i++) *q++ = ' ';
 	}
@@ -227,7 +266,7 @@ char *EncodeString(char *s, int w, int quote, int right)
 		p++;
 	}
 	if(quote) *q++ = quote;
-	if(!right) { /* Left justifying */
+	if(left) { /* Left justifying */
 		*q = '\0';
 		b = w - strlen(Encodebuf);
 		for(i=0 ; i<b ; i++) *q++ = ' ';
@@ -246,6 +285,12 @@ char *EncodeElement(SEXP x, int index, int quote)
 			formatLogical(&INTEGER(x)[index], 1, &w);
 			EncodeLogical(INTEGER(x)[index], w);
 			break;
+		case FACTSXP:
+		case ORDSXP:
+			lev = getAttrib(x, R_LevelsSymbol);
+			formatFactor(&INTEGER(x)[index], 1, &w, lev, LEVELS(x));
+			EncodeFactor(INTEGER(x)[index], LEVELS(x), w, lev);
+			break;
 		case INTSXP:
 			formatInteger(&INTEGER(x)[index], 1, &w);
 			EncodeInteger(INTEGER(x)[index], w);
@@ -258,12 +303,14 @@ char *EncodeElement(SEXP x, int index, int quote)
 			formatString(&STRING(x)[index], 1, &w, quote);
 			EncodeString(CHAR(STRING(x)[index]), w, quote, adj_left);
 			break;
+#ifdef COMPLEX_DATA
 		case CPLXSXP:
 			formatComplex(&COMPLEX(x)[index], 1,
 				&w, &d, &e, &wi, &di, &ei);
 			EncodeComplex(COMPLEX(x)[index],
 				w, d, e, wi, di, ei);
 			break;
+#endif
 	}
 	return Encodebuf;
 }
@@ -358,19 +405,6 @@ void MatrixColumnLabel(SEXP cl, int j, int w)
 	}
 }
 
-void RightMatrixColumnLabel(SEXP cl, int j, int w)
-{
-	int l;
-
-	if (!isNull(cl)) {
-		l = Rstrlen(CHAR(STRING(cl)[j]));
-		Rprintf("%*s", PRINT_GAP+w,
-			EncodeString(CHAR(STRING(cl)[j]), l, 0, adj_right));
-	}
-	else {
-		Rprintf("%*s[,%ld]%*s", PRINT_GAP, "", j+1, w-IndexWidth(j+1)-3, "");
-	}
-}
 void LeftMatrixColumnLabel(SEXP cl, int j, int w)
 {
 	int l;

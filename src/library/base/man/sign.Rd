@@ -17,9 +17,5 @@ sign(x)
 \seealso{
   \code{\link{abs}}
 }
-\examples{
-sign(pi) # == 1
-sign(-2:3)# -1 -1 0 1 1 1
-}
 \keyword{arith}
 

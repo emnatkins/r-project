@@ -21,7 +21,7 @@ and it is possible to step through the remainder of
 the function one line at a time.
 }
 \seealso{
-\code{\link{debug}}, and \code{\link{traceback}} for the stack an error.
+\code{\link{debug}}.
 }
 \keyword{programming}
 \keyword{environment}

@@ -133,7 +133,7 @@ static int InstallVar(SEXP var)
 
 void CheckRHS(SEXP v)
 {
-	int i, j;
+	int i, j, ind;
 	SEXP s, t;
 
 	while ((isList(v) || isLanguage(v)) && v != R_NilValue ) {
@@ -993,6 +993,7 @@ SEXP do_termsform(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 static SEXP ExpandDots(SEXP object, SEXP value)
 {
+	int paren;
 	SEXP op;
 
 	if(TYPEOF(object) == SYMSXP) {
@@ -1132,9 +1133,8 @@ SEXP do_updateform(SEXP call, SEXP op, SEXP args, SEXP rho)
 		/* The old one must be a valid model */
 		/* formula with an lhs and rhs. */
 
-	if(TYPEOF(old) != LANGSXP ||
-	   (TYPEOF(new) != LANGSXP && CAR(old) != tildeSymbol) ||
-	   CAR(new) != tildeSymbol)
+	if(TYPEOF(old) != LANGSXP || TYPEOF(new) != LANGSXP &&
+		CAR(old) != tildeSymbol || CAR(new) != tildeSymbol)
 			errorcall(call, "formula expected\n");
 	if(length(old) != 3)
 		errorcall(call, "invalid first formula\n");
@@ -1190,6 +1190,8 @@ SEXP do_updateform(SEXP call, SEXP op, SEXP args, SEXP rho)
  *
  *  Q: Is this really needed, or can we get by with less info?
  */
+
+static SEXP SubsetSymbol;
 
 static SEXP ProcessDots(SEXP dots, char *buf)
 {
@@ -1320,14 +1322,10 @@ SEXP do_modelframe(SEXP call, SEXP op, SEXP args, SEXP rho)
 	PROTECT(data);
 	PROTECT(subset);
 
-		/* Turn the data "list" into a "data.frame" */
-		/* so that subsetting methods will work. */
-		/* To do this we must attach "class"  and */
-		/* "row.names" attributes */
+		/* Glue on the row names. Create some if they */
+		/* don't exist - use as.character(1:nr). */
 
-	PROTECT(tmp = mkString("data.frame"));
-	setAttrib(data, R_ClassSymbol, tmp);
-	UNPROTECT(1);
+	DataFrameClass(data);
 	if(length(row_names) == nr) {
 		setAttrib(data, R_RowNamesSymbol, row_names);
 	}
@@ -1341,7 +1339,7 @@ SEXP do_modelframe(SEXP call, SEXP op, SEXP args, SEXP rho)
 		UNPROTECT(1);
 	}
 
-		/* Do the subsetting, if required. */
+		/* Do the subsetting if required. */
 
 	if(subset != R_NilValue) {
 		PROTECT(tmp = lang4(install("["), data, subset, R_MissingArg));
@@ -1471,7 +1469,7 @@ static char *AppendInteger(char *buf, int i)
 SEXP do_modelmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
 	SEXP expr, factors, terms, v, vars, vnames, assign, xnames, tnames;
-	SEXP count, contrast, contr1, contr2, nlevs, ordered, columns, x;
+	SEXP count, contrast, contr1, contr2, nlevels, ordered, columns, x;
 	SEXP variable, var_i;
 	int fik, first, i, j, k, kk, ll, n, nc, nterms, nvar;
 	int intercept, jstart, jnext, response, index;
@@ -1543,7 +1541,7 @@ SEXP do_modelmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 		/* in a term in the model. */
 
 	PROTECT(variable = allocVector(VECSXP, nvar));
-	PROTECT(nlevs = allocVector(INTSXP, nvar));
+	PROTECT(nlevels = allocVector(INTSXP, nvar));
 	PROTECT(ordered = allocVector(LGLSXP, nvar));
 	PROTECT(columns = allocVector(INTSXP, nvar));
 
@@ -1554,24 +1552,24 @@ SEXP do_modelmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 			errorcall(call, "variable lengths differ\n");
 		if(i == response - 1) {
 			LOGICAL(ordered)[0] = 0;
-			INTEGER(nlevs)[0] = 0;
+			INTEGER(nlevels)[0] = 0;
 			INTEGER(columns)[0] = 0;
 		}
 		else if(isOrdered(var_i)) {
 			LOGICAL(ordered)[i] = 1;
-			INTEGER(nlevs)[i] = nlevels(var_i);
+			INTEGER(nlevels)[i] = LEVELS(var_i);
 			INTEGER(columns)[i] = ncols(var_i);
 		}
 		else if(isUnordered(var_i)) {
 			LOGICAL(ordered)[i] = 0;
-			INTEGER(nlevs)[i] = nlevels(var_i);
+			INTEGER(nlevels)[i] = LEVELS(var_i);
 			INTEGER(columns)[i] = ncols(var_i);
 		}
 		else if(isNumeric(var_i)) {
 			VECTOR(variable)[i] = coerceVector(var_i, REALSXP);
 			var_i = VECTOR(variable)[i];
 			LOGICAL(ordered)[i] = 0;
-			INTEGER(nlevs)[i] = 0;
+			INTEGER(nlevels)[i] = 0;
 			INTEGER(columns)[i] = ncols(var_i);
 		}
 		else errorcall(call, "invalid variable type\n");
@@ -1586,7 +1584,7 @@ SEXP do_modelmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if(!intercept) {
 		for(j=0 ; j<nterms ; j++) {
 			for(i=response ; i<nvar ; i++) {
-				if(INTEGER(nlevs)[i] > 1
+				if(INTEGER(nlevels)[i] > 1
 				&& INTEGER(factors)[i+j*nvar] == 1) {
 					INTEGER(factors)[i+j*nvar] = 2;
 					goto alldone;
@@ -1602,7 +1600,7 @@ alldone:
 		/* expression to evaluate these, substituting */
 		/* the required arguments at call time. */
 		/* The calls have the following form: */
-		/* (contrast.type nlevs contrasts) */
+		/* (contrast.type nlevels contrasts) */
 
 	PROTECT(contr1 = allocVector(VECSXP, nvar));
 	PROTECT(contr2 = allocVector(VECSXP, nvar));
@@ -1620,7 +1618,7 @@ alldone:
 		/* specs before we try the evaluation below. */
 
 	for(i=0 ; i<nvar ; i++) {
-		if(INTEGER(nlevs)[i]) {
+		if(INTEGER(nlevels)[i]) {
 			k = 0;
 			for(j=0 ; j<nterms ; j++) {
 				if(INTEGER(factors)[i+j*nvar] == 1)
@@ -1652,7 +1650,7 @@ alldone:
 		k = 1;
 		for(i=0 ; i<nvar ; i++) {
 			if(INTEGER(factors)[i+j*nvar]) {
-				if(INTEGER(nlevs)[i]) {
+				if(INTEGER(nlevels)[i]) {
 					switch(INTEGER(factors)[i+j*nvar]) {
 					case 1:
 						k *= ncols(VECTOR(contr1)[i]);
@@ -1765,7 +1763,7 @@ alldone:
 					break;
 				}
 				if(jnext == jstart) {
-					if(INTEGER(nlevs)[i] > 0) {
+					if(INTEGER(nlevels)[i] > 0) {
 						firstfactor(&REAL(x)[jstart*n], n, jnext-jstart, REAL(contrast), nrows(contrast), ncols(contrast), INTEGER(var_i));
 						jnext = jnext+ncols(contrast);
 					}
@@ -1775,7 +1773,7 @@ alldone:
 					}
 				}
 				else {
-					if(INTEGER(nlevs)[i] > 0) {
+					if(INTEGER(nlevels)[i] > 0) {
 						addfactor(&REAL(x)[jstart*n], n, jnext-jstart, REAL(contrast), nrows(contrast), ncols(contrast), INTEGER(var_i));
 						jnext = jnext+(jnext-jstart)*(ncols(contrast)-1);
 					}

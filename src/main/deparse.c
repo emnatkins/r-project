@@ -74,7 +74,6 @@ static void scalar2buff(SEXP);
 static void writeline(void);
 static void factor2buff(SEXP, int);
 static void vector2buff(SEXP);
-static void vec2buff(SEXP);
 static void linebreak();
 void deparse2(SEXP, SEXP);
 
@@ -335,7 +334,7 @@ static void printcomment(SEXP s)
 static void deparse2buff(SEXP s)
 {
 	int fop, lookahead, lbreak = 0;
-	SEXP op, t;
+	SEXP op, cmnt, t;
 	char tpb[120];
 
 	switch (TYPEOF(s)) {
@@ -345,12 +344,9 @@ static void deparse2buff(SEXP s)
 	case SYMSXP:
 		print2buff(CHAR(PRINTNAME(s)));
 		break;
-	case CHARSXP:
-		print2buff(CHAR(s));
-		break;
 	case SPECIALSXP:
 	case BUILTINSXP:
-		sprintf(tpb, ".Primitive(\"%s\")", PRIMNAME(s));
+		sprintf(tpb, "<primitive: %s>", PRIMNAME(s));
 		print2buff(tpb);
 		break;
 	case PROMSXP:
@@ -368,11 +364,7 @@ static void deparse2buff(SEXP s)
 		break;
 	case EXPRSXP:
 		if(length(s) <= 0) print2buff("expression()");
-		else {
-			print2buff("expression(");
-			vec2buff(s);
-			print2buff(")");
-		}
+		else deparse2buff(VECTOR(s)[0]);
 		break;
 	case LISTSXP:
 		attr1(s);
@@ -613,6 +605,16 @@ static void deparse2buff(SEXP s)
 		vector2buff(s);
 		attr2(s);
 		break;
+	case FACTSXP:
+		attr1(s);
+		factor2buff(s, 0);
+		attr2(s);
+		break;
+	case ORDSXP:
+		attr1(s);
+		factor2buff(s, 1);
+		attr2(s);
+		break;
 	default:
 		UNIMPLEMENTED("deparse2buff");
 	}
@@ -672,6 +674,8 @@ static void vector2buff(SEXP vector)
 	if (tlen == 0) {
 		switch(TYPEOF(vector)) {
 		case LGLSXP: print2buff("logical(0)"); break;
+		case FACTSXP: print2buff("unordered(0)"); break;
+		case ORDSXP: print2buff("ordered(0)"); break;
 		case INTSXP: print2buff("numeric(0)"); break;
 		case REALSXP: print2buff("numeric(0)"); break;
 		case CPLXSXP: print2buff("complex(0)"); break;
@@ -718,34 +722,6 @@ static void factor2buff(SEXP vector, int ordered)
 	print2buff(")");
 }
 
-/* vec2buff : New Code */
-/* Deparse vectors of S-expressions. */
-/* In particular, this deparses objects of mode expression. */
-
-static void vec2buff(SEXP v)
-{
-	SEXP nv;
-	int i, lbreak, n;
-
-	lbreak = 0;
-	n = length(v);
-	nv = getAttrib(v, R_NamesSymbol);
-	if (length(nv) == 0) nv = R_NilValue;
-
-	for(i=0 ; i<n ; i++) {
-		if (i > 0)
-			print2buff(", ");
-		linebreak(&lbreak);
-		if (!isNull(nv) && !isNull(STRING(nv)[i])
-		    && *CHAR(STRING(nv)[i])) {
-			deparse2buff(STRING(nv)[i]);
-			print2buff(" = ");
-		}
-		deparse2buff(VECTOR(v)[i]);
-	}
-	if (lbreak)
-		indent--;
-}
 
 static void args2buff(SEXP arglist, int lineb, int formals)
 {
@@ -768,6 +744,9 @@ static void args2buff(SEXP arglist, int lineb, int formals)
 			}
 		}
 		else deparse2buff(CAR(arglist));
+		/*
+		linebreak(&lbreak);
+		*/
 		arglist = CDR(arglist);
 		if (arglist != R_NilValue) {
 			print2buff(", ");

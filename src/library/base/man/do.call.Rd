@@ -1,11 +1,11 @@
 \name{do.call}
 \title{Execute a Function Call}
 \usage{
-do.call(what, args)
+do.call(fun, args)
 }
 \alias{do.call}
 \arguments{
-  \item{what}{a character string naming the function to be called.}
+  \item{fun}{a character string naming the function to be called.}
   \item{args}{a \emph{list} of arguments to the function call.  The
     \code{names} attribute of \code{args} gives the argument names.}
 }

@@ -56,9 +56,9 @@ methods(generic.function, class)
 methods(summary)
 
 cat("methods(print):\n")
-methods(print)
+print(methods(print))
 
 cat("methods(class = data.frame):\n")
-methods(class = data.frame)
+print(methods(class = data.frame))
 }
 \keyword{methods}

@@ -4,7 +4,7 @@
 ceiling(x)
 floor(x)
 round(x, digits = 0)
-signif(x, digits = 6)
+signif(x, digits)
 trunc(x)
 }
 \alias{ceiling}
@@ -39,7 +39,7 @@ trunc(x)
 }
 \examples{
 round(.5 + -2:4) # IEEE rounding: -2  0  0  2  2  4  4
-( x1 <- seq(-2, 4, by = .5) )
+print(x1 <- seq(-2, 4, by = .5))
 round(x1)#-- IEEE rounding !
 x1[trunc(x1) != floor(x1)]
 x1[round(x1) != floor(x1 + .5)]

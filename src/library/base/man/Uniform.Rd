@@ -10,12 +10,6 @@ runif(n, min=0, max=1)
 \alias{punif}
 \alias{qunif}
 \alias{runif}
-\arguments{
-\item{x,q}{vector of quantiles.}
-\item{p}{vector of probabilities.}
-\item{n}{number of observations to generate.}
-\item{min,max}{lower and upper limits of the distribution.}
-}
 \description{
 These functions provide information about the uniform distribution
 on the interval from \code{min} to \code{max}.  \code{dunif} gives the
@@ -31,8 +25,7 @@ The uniform distribution has density
 for \eqn{min \le x \le max}.
 }
 \seealso{
-  \code{\link{.Random.seed}} about random number generation,
-  \code{\link{rnorm}}, etc for other distributions.
+\code{\link{.Random.seed}}, \code{\link{rnorm}}, \ldots.
 }
 \examples{
 var(runif(10000))#- ~ = 1/12 = .08333

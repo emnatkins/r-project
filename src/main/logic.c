@@ -38,7 +38,6 @@ SEXP do_logic(SEXP call, SEXP op, SEXP args, SEXP env)
 		return lbinary(call, op, args);
 	default:
 		error("binary operations require two arguments\n");
-		return R_NilValue;/* for -Wall */
 	}
 }
 
@@ -138,30 +137,16 @@ static SEXP lunary(SEXP call, SEXP op, SEXP arg)
 	SEXP x, dim, dimnames, names;
 	int i, len;
 
-	if (!isLogical(arg) && !isNumeric(arg))
-		errorcall(call, "invalid argument type\n");
+	if (TYPEOF(arg) != LGLSXP)
+		error("unary ! is only defined for logical vectors\n");
 	len = LENGTH(arg);
 	PROTECT(names = getAttrib(arg, R_NamesSymbol));
 	PROTECT(dim = getAttrib(arg, R_DimSymbol));
 	PROTECT(dimnames = getAttrib(arg, R_DimNamesSymbol));
 	PROTECT(x = allocVector(LGLSXP, len));
-	switch(TYPEOF(arg)) {
-	case LGLSXP:
-		for (i = 0; i < len; i++)
-			LOGICAL(x)[i] = (LOGICAL(arg)[i] == NA_LOGICAL) ?
-				NA_LOGICAL : LOGICAL(arg)[i] == 0;
-		break;
-	case INTSXP:
-		for (i = 0; i < len; i++)
-			LOGICAL(x)[i] = (INTEGER(arg)[i] == NA_INTEGER) ?
-				NA_LOGICAL : INTEGER(arg)[i] == 0;
-		break;
-	case REALSXP:
-		for (i = 0; i < len; i++)
-			LOGICAL(x)[i] = ISNAN(REAL(arg)[i]) ?
-				NA_LOGICAL : REAL(arg)[i] == 0;
-		break;
-	}
+	for (i = 0; i < len; i++)
+		LOGICAL(x)[i] = (LOGICAL(arg)[i] == NA_LOGICAL) ?
+			NA_LOGICAL : LOGICAL(arg)[i] == 0;
 	if(names != R_NilValue) setAttrib(x, R_NamesSymbol, names);
 	if(dim != R_NilValue) setAttrib(x, R_DimSymbol, dim);
 	if(dimnames != R_NilValue) setAttrib(x, R_DimNamesSymbol, dimnames);
@@ -220,7 +205,7 @@ SEXP do_logic2(SEXP call, SEXP op, SEXP args, SEXP env)
 		UNPROTECT(1);
 		return ans;
 	}
-	return R_NilValue;/*NOTREACHED*/
+	/*NOTREACHED*/
 }
 
 static SEXP binaryLogic(int code, SEXP s1, SEXP s2)

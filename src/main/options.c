@@ -86,9 +86,8 @@ SEXP GetOption(SEXP tag, SEXP rho)
 {
 #ifdef OLD
 	SEXP opt = findVar(Options(), rho);
-#else
-	SEXP opt = findVar(Options(), R_NilValue);
 #endif
+	SEXP opt = findVar(Options(), R_NilValue);
 	if(!isList(opt))
 		error("corrupted options list\n");
 	opt = FindTaggedItem(opt, tag);
@@ -125,7 +124,7 @@ int GetOptionDigits(SEXP rho)
 */
 static SEXP SetOption(SEXP tag, SEXP value)
 {
-	SEXP opt, old, t;
+	SEXP opt, old, s, t;
 
 	t = opt = SYMVALUE(Options());
 	if(!isList(opt))

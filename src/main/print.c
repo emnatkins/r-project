@@ -1,6 +1,7 @@
+
 /*
- *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995-1998  Robert Gentleman and Ross Ihaka
+ *  R : A Computer Langage for Statistical Data Analysis
+ *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,7 +18,7 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-/*== see ./printutils.c for general remarks on Printing and the Encode.. utils.
+/*== see ./printutils.c	 for general remarks on Printing and the Encode.. utils.
  */
 #include "Defn.h"
 #include "Print.h"
@@ -67,7 +68,6 @@ SEXP do_sink(SEXP call, SEXP op, SEXP args, SEXP rho)
 		return R_NilValue;
 	default:
 		checkArity(op, args);
-		return call;/* never used, just for -Wall */
 	}
 }
 
@@ -80,7 +80,6 @@ SEXP do_invisible(SEXP call, SEXP op, SEXP args, SEXP rho)
 		return CAR(args);
 	default:
 		checkArity(op, args);
-		return call;/* never used, just for -Wall */
 	}
 }
 
@@ -102,7 +101,7 @@ SEXP do_printmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 	PROTECT(oldnames = getAttrib(x,R_DimNamesSymbol));
 	/* fix up the dimnames */
-	if(length(rowlab) || length(collab) || rowlab==R_NilValue ||
+	if( length(rowlab) || length(collab) || rowlab==R_NilValue ||
 			collab==R_NilValue ) {
 		a = oldnames;
 		if( a == R_NilValue )
@@ -115,7 +114,7 @@ SEXP do_printmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 		setAttrib(x,R_DimNamesSymbol,a);
 		UNPROTECT(1);
 	}
-	printMatrix(x, 0, getAttrib(x,R_DimSymbol), quote, right);
+	printMatrix(x, 0, getAttrib(x,R_DimSymbol),quote);
 	setAttrib(x,R_DimNamesSymbol, oldnames);
 	UNPROTECT(1);
 	return x;
@@ -124,13 +123,6 @@ SEXP do_printmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 SEXP do_printdefault(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-  /* .Internal(print.default(x, digits, quote, na.print, print.gap)) */
-  /*
-   * Should now also dispatch to e.g.,	print.matrix(..)
-   * The 'digits' must be "stored" here, since print.matrix (aka prmatrix)
-   * does NOT accept a digits argument...
-   *
-   */
 	SEXP x, naprint;
 
 	checkArity(op, args);
@@ -170,7 +162,7 @@ SEXP do_printdefault(SEXP call, SEXP op, SEXP args, SEXP rho)
 	return x;
 }
 
-static void printList(SEXP s)
+static printList(SEXP s)
 {
 	int i, taglen;
 	SEXP dims, t, newcall;
@@ -190,13 +182,19 @@ static void printList(SEXP s)
 				case LGLSXP:
 					pbuf = Rsprintf("Logical,%d", LENGTH(CAR(s)));
 					break;
+				case FACTSXP:
+				case ORDSXP:
+					pbuf = Rsprintf("Factor,%d", LENGTH(CAR(s)));
+					break;
 				case INTSXP:
 				case REALSXP:
 					pbuf = Rsprintf("Numeric,%d", LENGTH(CAR(s)));
 					break;
+#ifdef COMPLEX_DATA
 				case CPLXSXP:
 					pbuf = Rsprintf("Complex,%d", LENGTH(CAR(s)));
 					break;
+#endif
 				case STRSXP:
 					pbuf = Rsprintf("Character,%d", LENGTH(CAR(s)));
 					break;
@@ -214,7 +212,7 @@ static void printList(SEXP s)
 			s = CDR(s);
 		}
 		if (LENGTH(dims) == 2)
-			printMatrix(t, 0, dims, 0, 0);
+			printMatrix(t, 0, dims, 0);
 		else
 			printArray(t, 0);
 		UNPROTECT(2);
@@ -265,35 +263,26 @@ static void PrintExpression(SEXP s)
 	SEXP u, v, nms;
 	int i, n;
 
-#ifdef OLD
 	PROTECT(u = v = allocList(LENGTH(s)+1));
 	TYPEOF(u) = LANGSXP;
 	CAR(u) = install("expression");
 	u = CDR(u);
+#ifdef NEW
 	nms = getAttrib(s, R_NamesSymbol);
+#endif
 	n = LENGTH(s);
 	for(i=0 ; i<n ; i++) {
 		CAR(u) = VECTOR(s)[i];
-		if(nms != R_NilValue && length(STRING(nms)[i]) != 0)
-			TAG(u) = install(CHAR(STRING(nms)[i]));
 		u = CDR(u);
 	}
 	u = deparse1(v, 0);
-#else
-	u = deparse1(s, 0);
-#endif
 	n = LENGTH(u);
 	for (i=0; i<n ; i++)
 		Rprintf("%s\n", CHAR(STRING(u)[i]));
-#ifdef OLD
 	UNPROTECT(1);
-#endif
 }
 
-	/* PrintValueRec - recursively print an SEXP
-	 *
-	 * This is the "dispatching" function for  print.default()
-	 */
+	/* PrintValueRec - recursively print an SEXP */
 
 void PrintValueRec(SEXP s)
 {
@@ -309,7 +298,7 @@ void PrintValueRec(SEXP s)
 		break;
 	case SPECIALSXP:
 	case BUILTINSXP:
-		Rprintf(".Primitive(\"%s\")\n", PRIMNAME(s));
+		Rprintf("<primitive: %s>\n", PRIMNAME(s));
 		break;
 	case CHARSXP:
 		Rprintf("\"%s\"\n", EncodeString(CHAR(s),0,'"', adj_left));
@@ -341,10 +330,14 @@ void PrintValueRec(SEXP s)
 		printList(s);
 		break;
 	case LGLSXP:
+	case FACTSXP:
+	case ORDSXP:
 	case INTSXP:
 	case REALSXP:
 	case STRSXP:
+#ifdef COMPLEX_DATA
 	case CPLXSXP:
+#endif
 		PROTECT(t = getAttrib(s, R_DimSymbol));
 		if (TYPEOF(t) == INTSXP) {
 			if (LENGTH(t) == 1) {
@@ -356,7 +349,7 @@ void PrintValueRec(SEXP s)
 				UNPROTECT(1);
 			}
 			else if (LENGTH(t) == 2)
-				printMatrix(s, 0, t, print_quote, 0);
+				printMatrix(s, 0, t, print_quote);
 			else
 				printArray(s, print_quote);
 		}

@@ -17,6 +17,11 @@
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
+	/* NOTE ON FACTORS */
+	/* For us, c(factor1, factor2) is legal only if factor1 */
+	/* and factor2 are either both ordered or both unordered */
+	/* and have the same levels.  Any attempt at combining */
+	/* factors with anything else is stamped on. */
 
 #include "Defn.h"
 
@@ -63,9 +68,14 @@ static void answertype(SEXP x, int recurse, int usenames)
 				ans_flags |= 1;
 				ans_length += LENGTH(CAR(t));
 				break;
-
-			/* factors here previously */
-
+			case FACTSXP:
+				ans_flags |= 2;
+				ans_length += LENGTH(CAR(t));
+				break;
+			case ORDSXP:
+				ans_flags |= 4;
+				ans_length += LENGTH(CAR(t));
+				break;
 			case INTSXP:
 				ans_flags |= 8;
 				ans_length += LENGTH(CAR(t));
@@ -74,10 +84,12 @@ static void answertype(SEXP x, int recurse, int usenames)
 				ans_flags |= 16;
 				ans_length += LENGTH(CAR(t));
 				break;
+#ifdef COMPLEX_DATA
 			case CPLXSXP:
 				ans_flags |= 32;
 				ans_length += LENGTH(CAR(t));
 				break;
+#endif
 			case STRSXP:
 				ans_flags |= 64;
 				ans_length += LENGTH(CAR(t));
@@ -116,6 +128,16 @@ static void listanswer(SEXP x, int recurse)
 			ans_ptr = CDR(ans_ptr);
 		}
 		break;
+	case FACTSXP:
+	case ORDSXP:
+		for(i=0 ; i<LENGTH(x) ; i++) {
+			CAR(ans_ptr) = allocVector(TYPEOF(x), 1);
+			LEVELS(CAR(ans_ptr)) = LEVELS(x);
+			setAttrib(CAR(ans_ptr), R_LevelsSymbol, getAttrib(x, R_LevelsSymbol));
+			INTEGER(CAR(ans_ptr))[0] = INTEGER(x)[i];
+			ans_ptr = CDR(ans_ptr);
+		}
+		break;
 	case REALSXP:
 		for(i=0 ; i<LENGTH(x) ; i++) {
 			CAR(ans_ptr) = allocVector(REALSXP, 1);
@@ -123,6 +145,7 @@ static void listanswer(SEXP x, int recurse)
 			ans_ptr = CDR(ans_ptr);
 		}
 		break;
+#ifdef COMPLEX_DATA
 	case CPLXSXP:
 		for(i=0 ; i<LENGTH(x) ; i++) {
 			CAR(ans_ptr) = allocVector(CPLXSXP, 1);
@@ -130,6 +153,7 @@ static void listanswer(SEXP x, int recurse)
 			ans_ptr = CDR(ans_ptr);
 		}
 		break;
+#endif
 	case STRSXP:
 		for(i=0 ; i<LENGTH(x) ; i++) {
 			CAR(ans_ptr) = allocVector(STRSXP, 1);
@@ -175,7 +199,7 @@ static void stringanswer(SEXP x)
 		break;
 	default:
 		PROTECT(x = coerceVector(x, STRSXP));
-		nx = LENGTH(x);
+		nx = LENGTH(x);  
 		for (i = 0; i < nx; i++)
 			STRING(ans_ptr)[ans_length++] = STRING(x)[i];
 		UNPROTECT(1);
@@ -197,7 +221,7 @@ static void integeranswer(SEXP x)
 		}
 		break;
 	default:
-		nx = LENGTH(x);
+		nx = LENGTH(x);  
 		for (i = 0; i < nx; i++)
 			INTEGER(ans_ptr)[ans_length++] = INTEGER(x)[i];
 		break;
@@ -218,12 +242,12 @@ static void realanswer(SEXP x)
 		}
 		break;
 	case REALSXP:
-		nx = LENGTH(x);
+		nx = LENGTH(x);  
 		for (i = 0; i < nx; i++)
 			REAL(ans_ptr)[ans_length++] = REAL(x)[i];
 		break;
 	default:
-		nx = LENGTH(x);
+		nx = LENGTH(x);  
 		for (i = 0; i < nx; i++) {
 			xi = INTEGER(x)[i];
 			if(xi == NA_INTEGER)
@@ -234,6 +258,7 @@ static void realanswer(SEXP x)
 	}
 }
 
+#ifdef COMPLEX_DATA
 static void complexanswer(SEXP x)
 {
 	int i, nx, xi;
@@ -248,7 +273,7 @@ static void complexanswer(SEXP x)
 		}
 		break;
 	case REALSXP:
-		nx = LENGTH(x);
+		nx = LENGTH(x);  
 		for (i = 0; i < nx; i++) {
 			COMPLEX(ans_ptr)[ans_length].r = REAL(x)[i];
 			COMPLEX(ans_ptr)[ans_length].i = 0.0;
@@ -256,12 +281,12 @@ static void complexanswer(SEXP x)
 		}
 		break;
 	case CPLXSXP:
-		nx = LENGTH(x);
+		nx = LENGTH(x);  
 		for (i = 0; i < nx; i++)
 			COMPLEX(ans_ptr)[ans_length++] = COMPLEX(x)[i];
 		break;
 	default:
-		nx = LENGTH(x);
+		nx = LENGTH(x);  
 		for (i = 0; i < nx; i++) {
 			xi = INTEGER(x)[i];
 			if(xi == NA_INTEGER)
@@ -271,8 +296,9 @@ static void complexanswer(SEXP x)
 		break;
 	}
 }
+#endif
 
-/*
+/* 
    TagName can get either a SYMSXP, a STRSXP or a CHARSXP or NILSXP
    for either tag or base; the first part extracts the CHARSXP needed;
    the remainer acts on that
@@ -336,9 +362,9 @@ static SEXP TagName(SEXP tag, SEXP base, int i)
 	return ans;
 }
 
-/*
-   since ExtractNames is done recursively and it contains a check on the
-   names found there must be some mechanism for saying not to check to them;
+/* 
+   since ExtractNames is done recursively and it contains a check on the 
+   names found there must be some mechanism for saying not to check to them; 
    hence check
 */
 static void ExtractNames(SEXP args, int recurse, int check, SEXP base)
@@ -349,7 +375,7 @@ static void ExtractNames(SEXP args, int recurse, int check, SEXP base)
 	PROTECT(blank=mkChar(""));
 
 	while(args != R_NilValue) {
-		if(!isNull(CAR(args)))
+		if(!isNull(CAR(args))) 
   		    if(isVector(CAR(args))) {
 			if(!isNull(TAG(args))) {
 				switch(length(CAR(args))) {
@@ -376,11 +402,11 @@ static void ExtractNames(SEXP args, int recurse, int check, SEXP base)
 				}
 				else {
 					if(isNull(s = getAttrib(CAR(args), R_NamesSymbol))) {
-						for(i=0 ; i<length(CAR(args)) ; i++)
+						for(i=0 ; i<length(CAR(args)) ; i++) 
 							STRING(ans_names)[ans_nnames++] = TagName(base,R_NilValue,i+1+offset);
 					}
 					else {
-						for(i=0 ; i<length(CAR(args)) ; i++)
+						for(i=0 ; i<length(CAR(args)) ; i++) 
 							STRING(ans_names)[ans_nnames++] = TagName(STRING(s)[i],base,offset);
 					}
 					offset+=i;
@@ -399,7 +425,7 @@ static void ExtractNames(SEXP args, int recurse, int check, SEXP base)
 					if( isNull(base) ) {
 						if(!isNull(TAG(s)))
 							STRING(ans_names)[ans_nnames++] = TagName(TAG(s),base,0);
-						else
+						else 
 							STRING(ans_names)[ans_nnames++] = blank;
 					}
 					else {
@@ -508,7 +534,7 @@ SEXP do_c(SEXP call, SEXP op, SEXP args, SEXP env)
 		/* (perhaps a list if recursive=F) then we must */
 		/* return a list.  Otherwise, if there was a character */
 		/* mode argument we must return a character vector. */
-		/* and otherwise, we use the natural coercion. */
+		/* and otherwise, we use the natural coersion. */
 		/* The exception is "factor" vectors.  These can */
 		/* only be combined with factors of exactly the */
 		/* same "orderedness", number of levels and */
@@ -520,12 +546,34 @@ SEXP do_c(SEXP call, SEXP op, SEXP args, SEXP env)
 	else {
 		if (ans_flags & 1)
 			mode = LGLSXP;
+		if (ans_flags & 2) {
+			if(ans_flags != 2) ErrorMessage(call, ERROR_INCOMPAT_ARGS);
+			t = CDR(args);
+			while(t != R_NilValue) {
+				if(!factorsConform(CAR(args), CAR(t)))
+					ErrorMessage(call, ERROR_INCOMPAT_FACTORS);
+				t = CDR(t);
+			}
+			mode = FACTSXP;
+		}
+		if (ans_flags & 4) {
+			if(ans_flags != 4) ErrorMessage(call, ERROR_INCOMPAT_ARGS);
+                        t = CDR(args);
+ 			while(t != R_NilValue){
+				if(!factorsConform(CAR(args), CAR(t)))
+					ErrorMessage(call, ERROR_INCOMPAT_FACTORS);
+				t = CDR(t);
+			}
+			mode = ORDSXP;
+		}
 		if (ans_flags & 8)
 			mode = INTSXP;
 		if (ans_flags & 16)
 			mode = REALSXP;
+#ifdef COMPLEX_DATA
 		if (ans_flags & 32)
 			mode = CPLXSXP;
+#endif
 	}
 	PROTECT(ans = allocVector(mode, ans_length));
 	ans_ptr = ans;
@@ -544,12 +592,18 @@ SEXP do_c(SEXP call, SEXP op, SEXP args, SEXP env)
 	}
 	else if(mode == STRSXP)
 		stringanswer(args);
+#ifdef COMPLEX_DATA
 	else if(mode == CPLXSXP)
 		complexanswer(args);
+#endif
 	else if(mode == REALSXP)
 		realanswer(args);
 	else
 		integeranswer(args);
+	if(mode == FACTSXP || mode == ORDSXP) {
+		LEVELS(ans) = LEVELS(CAR(args));
+		setAttrib(ans, R_LevelsSymbol, getAttrib(CAR(args), R_LevelsSymbol));
+	}
 	args = t;
 	if(ans_nnames && ans_length > 0) {
 		PROTECT(ans_names = allocVector(STRSXP, ans_length));
@@ -570,49 +624,8 @@ SEXP substituteList(SEXP, SEXP);
 
 SEXP do_bind(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-	int mode=ANYSXP; 	/* for -Wall; none from the ones below */
-	SEXP a, p, t;
-
-		/* First we check to see if any of the */
-		/* arguments are data frames.  If there */
-		/* are, we need to a special dispatch */
-		/* to the interpreted data.frame functions. */
-
-	mode = 0;
-	for (a = args; a != R_NilValue ; a = CDR(a)) {
-		if (isFrame(CAR(a)))
-			mode = 1;
-	}
-	if (mode) {
-		a = args;
-		t = CDR(call);
-		while (a != R_NilValue) {
-			if(t == R_NilValue)
-				errorcall(call, "corrupt data frame args!\n");
-			p = mkPROMISE(CAR(t), rho);
-			PRVALUE(p) = CAR(a);
-			CAR(a) = p;
-			t = CDR(t);
-			a = CDR(a);
-		}
-		switch(PRIMVAL(op)) {
-		    case 1:
-			op = install("cbind.data.frame");
-			break;
-		    case 2:
-			op = install("rbind.data.frame");
-			break;
-		}
-		PROTECT(op = findFun(op, env));
-		if (TYPEOF(op) != CLOSXP)
-			errorcall(call, "non closure invoked in rbind/cbind\n");
-		args = applyClosure(call, op, args, env, R_NilValue);
-		UNPROTECT(1);
-		return args;
-	}
-
-		/* There are no data frames in the argument list. */
-		/*  Perform default action */
+	int mode;
+	SEXP t;
 
 	rho = env;
 	ans_flags = 0;
@@ -634,17 +647,40 @@ SEXP do_bind(SEXP call, SEXP op, SEXP args, SEXP env)
 	else {
 		if (ans_flags & 1)
 			mode = LGLSXP;
+		if (ans_flags & 2) {
+			if(ans_flags != 2) ErrorMessage(call, ERROR_INCOMPAT_ARGS);
+			t = CDR(args);
+			while(t != R_NilValue) {
+				if(!factorsConform(CAR(args), CAR(t)))
+					ErrorMessage(call, ERROR_INCOMPAT_FACTORS);
+				t = CDR(t);
+			}
+			mode = FACTSXP;
+		}
+		if (ans_flags & 4) {
+			if(ans_flags != 4) ErrorMessage(call, ERROR_INCOMPAT_ARGS);
+			while(t != R_NilValue) {
+				if(!factorsConform(CAR(args), CAR(t)))
+					ErrorMessage(call, ERROR_INCOMPAT_FACTORS);
+				t = CDR(t);
+			}
+			mode = ORDSXP;
+		}
 		if (ans_flags & 8)
 			mode = INTSXP;
 		if (ans_flags & 16)
 			mode = REALSXP;
+#ifdef COMPLEX_DATA
 		if (ans_flags & 32)
 			mode = CPLXSXP;
+#endif
 	}
 
 	switch(mode) {
 		case NILSXP:
 		case LGLSXP:
+		case FACTSXP:
+		case ORDSXP:
 		case INTSXP:
 		case REALSXP:
 		case CPLXSXP:
@@ -653,14 +689,13 @@ SEXP do_bind(SEXP call, SEXP op, SEXP args, SEXP env)
 		default:
 			errorcall(call, "cannot create a matrix from these types\n");
 	}
-
+	
 	switch (PRIMVAL(op)) {
 	case 1:
 		return cbind(call, args, mode);
 	case 2:
 		return rbind(call, args, mode);
 	}
-	return call;/* never used; just for -Wall */
 }
 
 
@@ -746,7 +781,7 @@ static SEXP cbind(SEXP call, SEXP args, SEXPTYPE mode)
 	n = 0;
 
 	if (mode == STRSXP) {
-		for (t = args; t != R_NilValue; t = CDR(t)) {
+		for (t = args; t != R_NilValue; t = CDR(t)) { 
 			if( length(CAR(t)) > 0 ) {
 				u = CAR(t) = coerceVector(CAR(t), STRSXP);
 				k = LENGTH(u);
@@ -756,6 +791,7 @@ static SEXP cbind(SEXP call, SEXP args, SEXPTYPE mode)
 			}
 		}
 	}
+#ifdef COMPLEX_DATA
 	else if(mode == CPLXSXP) {
 		for (t = args; t != R_NilValue; t = CDR(t)) {
 			if( length(CAR(t)) > 0 ) {
@@ -767,6 +803,7 @@ static SEXP cbind(SEXP call, SEXP args, SEXPTYPE mode)
 			}
 		}
 	}
+#endif
 	else {
 		for (t = args; t != R_NilValue; t = CDR(t)) {
 			if( length(CAR(t)) > 0 ) {
@@ -789,6 +826,10 @@ static SEXP cbind(SEXP call, SEXP args, SEXPTYPE mode)
 				}
 			}
 		}
+	}
+	if(mode == FACTSXP || mode == ORDSXP) {
+		LEVELS(result) = LEVELS(CAR(args));
+		setAttrib(result, R_LevelsSymbol, getAttrib(CAR(args), R_LevelsSymbol));
 	}
 	if(have_cnames | have_rnames) {
 		PROTECT(blank = mkChar(""));
@@ -921,6 +962,7 @@ static SEXP rbind(SEXP call, SEXP args, SEXPTYPE mode)
 		UNPROTECT(1);
 		return result;
 	}
+#ifdef COMPLEX_DATA
 	else if (mode == CPLXSXP) {
 		for (t = args; t != R_NilValue; t = CDR(t)) {
 			if (length(CAR(t))>0) {
@@ -937,6 +979,7 @@ static SEXP rbind(SEXP call, SEXP args, SEXPTYPE mode)
 		UNPROTECT(1);
 		return result;
 	}
+#endif
 	for (t = args; t != R_NilValue; t = CDR(t)) {
 		if (length(CAR(t))>0) {
 			u = CAR(t);
@@ -963,6 +1006,10 @@ static SEXP rbind(SEXP call, SEXP args, SEXPTYPE mode)
 				n += mrows;
 			}
 		}
+	}
+	if(mode == FACTSXP || mode == ORDSXP) {
+		LEVELS(result) = LEVELS(CAR(args));
+		setAttrib(result, R_LevelsSymbol, getAttrib(CAR(args), R_LevelsSymbol));
 	}
 	if(have_rnames | have_cnames) {
 		PROTECT(blank = mkChar(""));

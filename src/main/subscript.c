@@ -1,5 +1,5 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
+ *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -51,7 +51,7 @@ int get1index(SEXP s, SEXP names, int pok)
 						k = -2;
 			}
 		}
-
+			
 	}
 	else if (isSymbol(s)) {
 		k = -1;
@@ -117,17 +117,17 @@ static SEXP logicalSubscript(SEXP s, int ns, int nx)
 	int count, i;
 	SEXP index;
 
-	if (ns > nx)
-		error("subscript (\%d) out of bounds, should be at most %d\n",ns,nx);
+	if (ns != nx)
+		error("invalid subscript type\n");
 	count = 0;
 	for (i = 0; i < nx; i++)
-		if (LOGICAL(s)[i%ns])
+		if (LOGICAL(s)[i])
 			count++;
 	index = allocVector(INTSXP, count);
 	count = 0;
 	for (i = 0; i < nx; i++)
-		if (LOGICAL(s)[i%ns]) {
-			if (LOGICAL(s)[i%ns] == NA_LOGICAL)
+		if (LOGICAL(s)[i]) {
+			if (LOGICAL(s)[i] == NA_LOGICAL)
 				INTEGER(index)[count++] = NA_INTEGER;
 			else
 				INTEGER(index)[count++] = i + 1;
@@ -319,6 +319,8 @@ SEXP makeSubscript(SEXP x, SEXP s, int *stretch)
 		case LGLSXP:
 			*stretch = 0;
 			return logicalSubscript(s, ns, nx);
+		case FACTSXP:
+		case ORDSXP:
 		case INTSXP:
 			return integerSubscript(s, ns, nx, stretch);
 		case REALSXP:
@@ -340,5 +342,5 @@ SEXP makeSubscript(SEXP x, SEXP s, int *stretch)
 		}
 	}
 	else error("subscripting on non-vector\n");
-	return x;/*NOTREACHED*/
+	/*NOTREACHED*/
 }

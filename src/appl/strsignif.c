@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) Martin Maechler, 1994, 1998
+ *  Copyright (C) Martin Maechler, 1994
  *
  *  This code is to be understood as Free Software in the sense of
  *  GNU Copyright.  You can freely use and redistribute this software
@@ -14,7 +14,7 @@
  *  bill@stat.washington.edu
  *  Wed Feb 21, 1990
  *
- *  Much improved by Martin Maechler, including the "fg" format.
+ *  Much improved by Martin Maechler
  *
  *  Patched by Friedrich.Leisch@ci.tuwien.ac.at
  *  Fri Nov 22, 1996
@@ -25,7 +25,7 @@
  *  Integer arguments changed from "long" to "int"
  *  Bus error due to non-writable strings fixed
  *
- *	type	"double" or "integer" (R - numeric `mode').
+ *	type	"double", "single" or "integer" (S - numeric `mode').
  *
  *	width	The total field width; width < 0 means to left justify
  *		the number in this field (equivalent to flag = "-").
@@ -40,19 +40,15 @@
  *		"e" and "E" give n.ddde<nn> or n.dddE<nn> (scientific format);
  *		"g" and "G" puts them into scientific format if it saves
  *		space to do so.
- *	    NEW: "fg" gives numbers in "xxx.xxx" format as "f",
- *		  ~~  however, digits are *significant* digits and no
- *		      trailing zeros are produced, as in "g".
  *
  *	flag	Format modifier as in K&R "C", 2nd ed., p.243;
  *		e.g., "0" pads leading zeros; "-" does left adjustment
  *		the other possible flags are  "+", " ", and "#".
- *	  New (Feb.98): if flag has more than one character, all are passed..
+ *
  */
 
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
 
 void str_signif(char *x, int *n, char **type, int *width, int *digits,
 	char **format, char **flag, char **result)
@@ -60,93 +56,37 @@ void str_signif(char *x, int *n, char **type, int *width, int *digits,
 	int wid = *width;
 	int dig = *digits;
 	int i, nn = *n;
-	int short do_fg = !strcmp("fg",*format);/* == 1	 iff  format == "fg" */
-	double xx;
-	int iex, j, jL;
-
-
+	char form[10];
 	void error(char*);
-	char f0[12], form[12]; /* ---- Really, instead :
-	  char *form;
-	  form = Calloc(strlen(*flag)+strlen(*format)+ 4+1, char);
-	*/
 
 	if (wid == 0) error("Width cannot be zero\n");
 
 	if (strcmp("d", *format) == 0) {
 		if (strlen(*flag) == 0) strcpy(form, "%*d");
 		else {
-			strcpy(form, "%");
-			strcat(form, *flag);
-			strcat(form, "*d");
+			strcpy(form, "% *d");
+			form[1] = *flag[0];
 		}
 		if (strcmp("integer", *type) == 0)
-		  for (i=0; i < nn; i++)
-			sprintf(result[i], form, wid, (int)((long *)x)[i]);
-		else
+			for (i=0; i < nn; i++)
+				sprintf(result[i], form, wid, (int)((long *)x)[i]);
+		else 
 			error("`type' must be \"integer\" for  \"d\"-format\n");
 	}
-	else { /* --- floating point --- */
-		if (strlen(*flag) == 0) {
-			strcpy(form, "%*.*");
-		} else {
-			strcpy(form, "%");
-			strcat(form, *flag);
-			strcat(form, "*.*");
+	else {
+		if (strlen(*flag) == 0) { 
+			strcpy(form, "%*.*#");
+			form[4] = *format[0];
 		}
-
-		if(do_fg) {
-			strcpy(f0, "%");
-			strcat(f0, *flag);
-			strcat(f0, ".*f");
-			strcat(form, "g");
+		else { 
+			strcpy(form, "% *.*#");
+			form[1] = *flag[0];
+			form[5] = *format[0];
 		}
-		else	strcat(form, *format);
-#ifdef DEBUG
-		fprintf(stderr, "strsignif.c: form=«%s», wid=%d, dig=%d\n",
-			form, wid, dig);
-		if(do_fg) fprintf(stderr, "\t\"fg\": f0=«%s».", f0);
-#endif
-		if (strcmp("double", *type) == 0)
-		  if(do_fg) /* do smart "f" : */
-		    for (i=0; i < nn; i++) {
-		      xx = ((double *)x)[i];
-		      if(xx == 0.) strcpy(result[i], "0");
-		      else {
-			iex= (int)floor(log10(fabs(xx)));
-			if(iex == -4 && fabs(xx)< 1e-4) {/* VERY rare case */
-			  iex = -5;
-			}
-			if(iex < -4) {
-			  /* "g" would result in 'e-' representation:*/
-			  sprintf(result[i], f0, dig-1 + -iex, xx);
-#ifdef DEBUG
-			  fprintf(stderr, " x[%d]=%g, iex%d\n", i, xx, iex);
-			  fprintf(stderr, "\tres. = '%s'; ", result[i]);
-#endif
-			  /* Remove trailing  "0"s : */
-			  jL = j = strlen(result[i])-1;
-			  while(result[i][j] == '0') j--;
-			  result[i][j+1] = '\0';
-#ifdef DEBUG
-			  fprintf(stderr, "\t>>> jL=%d, j=%d; new res= '%s'\n",
-				  jL, j, result[i]);
-#endif
-			} else { /* iex >= -4:	NOT "e-" */
-			  /* if iex >= dig, would have "e+" representation */
-#ifdef DEBUG
-			  fprintf(stderr, "\t  iex >= -4; using %d for 'dig'\n",
-				  (iex >= dig) ? (iex+1) : dig);
-#endif
-			  sprintf(result[i], form, wid,
-				  (iex >= dig) ? (iex+1) : dig, xx);
-			}
-		      } /* xx != 0 */
-		    } /* if(do_fg) for(i..) */
-		  else
-		    for (i=0; i < nn; i++)
-			sprintf(result[i], form, wid, dig, ((double *)x)[i]);
-		else
-			error("`type' must be \"real\" for this format\n");
+		if (strcmp("real", *type) == 0)
+			for (i=0; i < nn; i++)
+				sprintf(result[i], form, wid, dig, ((double *)x)[i]) ;
+		else 
+			error("`type' must be \"double\" or \"single\" for this format\n");
 	}
 }

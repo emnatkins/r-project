@@ -1,8 +1,7 @@
 \name{rect}
 \title{Draw a Rectangle}
 \usage{
-rect(xleft, ybottom, xright, ytop,
-     col=NULL, border=par("fg"), lty=NULL, xpd=FALSE)
+rect(xleft, ybottom, xright, ytop, \dots)
 }
 \alias{rect}
 \arguments{
@@ -10,11 +9,8 @@ rect(xleft, ybottom, xright, ytop,
   \item{ybottom}{a vector (or scalar) of bottom y positions.}
   \item{xright}{a vector (or scalar) of right x positions.}
   \item{ytop}{a vector (or scalar) of top y positions.}
-  \item{col}{color(s) to fill the rectangle(s) with.}
-  \item{border}{color for rectangle border(s).}
-  \item{lty}{line type for borders; defaults to \code{"solid"}.}
-  \item{xpd}{logical (\emph{``expand''}); if \code{FLASE}, everything is
-    clipped to the plot region.}
+  \item{\dots}{Further graphical parameters (see \code{\link{par}}) may
+    also be supplied as arguments.}
 }
 \description{
   \code{rect} draws a rectangle (or sequence of rectangles) with the

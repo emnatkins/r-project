@@ -2,10 +2,8 @@
 \title{Divide into Groups}
 \usage{
 split(x, f)
-split.default(x, f)
 }
 \alias{split}
-\alias{split.default}
 \arguments{
 \item{x}{vector containing the values to be divided into groups.}
 \item{f}{a ``factor'' such that \code{as.factor(f)} defines the grouping.}

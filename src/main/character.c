@@ -1,5 +1,5 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
+ *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -74,8 +74,8 @@ SEXP do_substr(SEXP call, SEXP op, SEXP args, SEXP env)
 		start = INTEGER(sa)[i % k];
 		stop = INTEGER(so)[i % l];
 		slen = strlen(CHAR(STRING(x)[i]));
-                if ( start < 1 )
-                        start = 1;
+		if ( start < 1 )
+			start = 1;
 		if (start > stop || start > slen) {
 			buff[0]='\0';
 			STRING(s)[i] = mkChar(buff);
@@ -94,7 +94,7 @@ SEXP do_substr(SEXP call, SEXP op, SEXP args, SEXP env)
 /* strsplit is going to split the strings in the first argument
    into tokens depending on the second argument. The characters
    of the second argument are used to split the first argument.
-   A list of vectors is returned of length equal to the input vector x,
+   A list of vectors is returned of length equal to the input vector x, 
    each element of the list is the collection of splits for the corresponding
    element of x.
  */
@@ -178,7 +178,7 @@ static SEXP stripchars(SEXP inchar, int minlen)
 	for(i=0 ; i<upper ; i++ )
 		if(isspace(buff1[i]))
 			j++;
-		else
+		else 
 			break;
 
 	strcpy(buff1,&buff1[j]);
@@ -187,7 +187,7 @@ static SEXP stripchars(SEXP inchar, int minlen)
 	if(strlen(buff1)<minlen)
 		goto donesc;
 
-	for (i=upper; i>0; i--) {
+	for (i=upper; i>0; i--) { 
 		if( isspace(buff1[i]))
 			nspace++;
 			/*strcpy(buff1[i],buff1[i+1]);*/
@@ -198,7 +198,7 @@ static SEXP stripchars(SEXP inchar, int minlen)
 	upper=strlen(buff1)-1;
 
 	for (i=upper; i>=0; i--) {
-		if( (buff1[i]=='a' || buff1[i]=='e' || buff1[i]=='i' ||
+		if( (buff1[i]=='a' || buff1[i]=='e' || buff1[i]=='i' || 
 			buff1[i]=='o' || buff1[i]=='u') ) {
 			if (i>0) {
 				if(!(isspace(buff1[i-1]) && isspace(buff1[i+1])) )
@@ -210,7 +210,7 @@ static SEXP stripchars(SEXP inchar, int minlen)
 		if(strlen(buff1)-nspace <= minlen)
 			goto donesc;
 	}
-
+	
 	upper=strlen(buff1)-1;
 
 	for (i=upper; i>=0; i--) {
@@ -235,14 +235,14 @@ static SEXP stripchars(SEXP inchar, int minlen)
 		if(strlen(buff1)-nspace <= minlen)
 			goto donesc;
 	}
-
+	
 donesc:
 	upper=strlen(buff1);
 	if(upper > minlen )
-		for (i=upper-1; i>0; i--)
+		for (i=upper-1; i>0; i--) 
 			if(isspace(buff1[i]))
 				strcpy(&buff1[i],&buff1[i+1]);
-
+	
 	return(mkChar(buff1));
 }
 
@@ -261,44 +261,10 @@ SEXP do_abbrev(SEXP call, SEXP op, SEXP args, SEXP env)
 	minlen=asInteger(CADR(args));
 	uclass=asLogical(CAR(CDDR(args)));
 
-	for(i=0 ; i<len ; i++)
+	for(i=0 ; i<len ; i++) 
 		STRING(ans)[i]=stripchars(STRING(CAR(args))[i],minlen);
 	UNPROTECT(1);
 	return(ans);
-}
-
-SEXP do_makenames(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-	SEXP arg, ans;
-	int i, l, n;
-	char *p;
-
-	checkArity(op ,args);
-	arg = CAR(args);
-	if(!isString(arg))
-		errorcall(call, "non-character names\n");
-	n = length(arg);
-	PROTECT(ans = allocVector(STRSXP, n));
-	for(i=0 ; i<n ; i++) {
-		l = strlen(CHAR(STRING(arg)[i]));
-		if (isalpha(CHAR(STRING(arg)[i])[0])) {
-			STRING(ans)[i] = allocString(l);
-			strcpy(CHAR(STRING(ans)[i]), CHAR(STRING(arg)[i]));
-		}
-		else {
-			STRING(ans)[i] = allocString(l+1);
-			strcpy(CHAR(STRING(ans)[i]), "X");
-			strcat(CHAR(STRING(ans)[i]), CHAR(STRING(arg)[i]));
-		}
-		p = CHAR(STRING(ans)[i]);
-		while(*p) {
-			if(!isalnum(*p) && *p != '.')
-				*p = '.';
-			p++;
-		}
-	}
-	UNPROTECT(1);
-	return ans;
 }
 
 #ifdef HAVE_REGCOMP
@@ -436,8 +402,8 @@ SEXP do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
 	SEXP pat, rep, vec, ans;
 	regex_t reg;
 	regmatch_t regmatch[10];
-	int i, j, n, ns, nmatch, offset;
-	int global, igcase_opt, extended_opt, eflags;
+	int i, j, n, ns, nsubexp, nmatch, offset;
+	int global, igcase_opt, extended_opt, value_opt, eflags;
 	char *s, *t, *u;
 
 	checkArity(op, args);

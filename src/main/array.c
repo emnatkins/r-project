@@ -20,19 +20,15 @@
 #include "Defn.h"
 #include "Mathlib.h"
 
-#ifdef not_used_currently
-
 static void CheckDims(SEXP dims)
 {
 	int i;
 
 	for (i = 0; i < LENGTH(dims); i++) {
-		if (INTEGER(dims)[i] < 0)
+		if (INTEGER(dims)[i] <= 0)
 			error("invalid array extent\n");
 	}
 }
-
-#endif
 
 SEXP do_matrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -46,7 +42,7 @@ SEXP do_matrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 	byrow = asInteger(CADR(CDDR(args)));
 
 	if (isVector(vals) || isList(vals)) {
-		if(length(vals) < 0)
+		if(length(vals) <= 0)
 			errorcall(call, "argument has length zero\n");
 	} else errorcall(call, "invalid matrix element type\n");
 
@@ -57,9 +53,9 @@ SEXP do_matrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 	nr = asInteger(snr);
 	nc = asInteger(snc);
 
-
+	
 	if( lendat != 1 && (nr*nc) % lendat != 0 ) {
-		if( ((lendat>nr) && (lendat/nr)*nr != lendat ) ||
+		if( ((lendat>nr) && (lendat/nr)*nr != lendat ) || 
 			((lendat< nr) && (nr/lendat) * lendat != nr ))
 			warning("Replacement length not a multiple of the elements to replace in matrix(...) \n");
 		else if( ((lendat>nc) && (lendat/nc)*nc != lendat ) ||
@@ -68,6 +64,7 @@ SEXP do_matrix(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 
 	PROTECT(snr = allocMatrix(TYPEOF(vals), nr, nc));
+	LEVELS(snr) = LEVELS(vals);
 	if(isVector(vals))
 		copyMatrix(snr, vals, byrow);
 	else
@@ -82,8 +79,8 @@ SEXP allocMatrix(SEXPTYPE mode, int nrow, int ncol)
 	SEXP s, t;
 	int n;
 
-	if (nrow < 0 || ncol < 0)
-		error("negative extents to matrix\n");
+	if (nrow <= 0 || ncol <= 0)
+		error("nonpositive extents to matrix\n");
 	n = nrow * ncol;
 	PROTECT(s = allocVector(mode, n));
 	PROTECT(t = allocVector(INTSXP, 2));
@@ -93,8 +90,6 @@ SEXP allocMatrix(SEXPTYPE mode, int nrow, int ncol)
 	UNPROTECT(2);
 	return s;
 }
-
-#ifdef use_do_array/*--- unused (1998, April 24 -- 0.62 unstable */
 
 SEXP do_array(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -109,14 +104,13 @@ SEXP do_array(SEXP call, SEXP op, SEXP args, SEXP rho)
 		PROTECT(dims = coerceVector(dims, INTSXP));
 		CheckDims(dims);
 		PROTECT(ans = allocArray(TYPEOF(vals), dims));
+		LEVELS(ans) = LEVELS(vals);
 		copyVector(ans, vals);
 		UNPROTECT(2);
 		return ans;
 	}
 	else error("bad arguments to array\n");
-	return call;/* never used; just for -Wall */
 }
-#endif
 
 SEXP allocArray(SEXPTYPE mode, SEXP dims)
 {
@@ -225,7 +219,7 @@ SEXP do_drop(SEXP call, SEXP op, SEXP args, SEXP rho)
 		n = LENGTH(xdims);
 		shorten = 0;
 		for(i=0 ; i<n ; i++)
-			if(INTEGER(xdims)[i] == 1) shorten = 1;
+			if(INTEGER(xdims)[i] <= 1) shorten = 1;
 		if(shorten) {
 			if(NAMED(x)) x = duplicate(x);
 			x = DropDims(x);
@@ -239,10 +233,54 @@ SEXP do_drop(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_length(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
 	SEXP ans;
+
 	if (length(args) != 1)
 		error("incorrect number of args to length\n");
+
 	ans = allocVector(INTSXP, 1);
+
+#ifdef OLD
+	switch(TYPEOF(CAR(args))) {
+	    case NILSXP:
+		INTEGER(ans)[0] = 0;
+		break;
+	    case LGLSXP:
+	    case FACTSXP:
+	    case ORDSXP:
+	    case INTSXP:
+	    case REALSXP:
+	    case CPLXSXP:
+	    case STRSXP:
+	    case EXPRSXP:
+		INTEGER(ans)[0] = LENGTH(CAR(args));
+		break;
+	    case LISTSXP:
+	    case LANGSXP:
+		INTEGER(ans)[0] = length(CAR(args));
+		break;
+	    case ENVSXP:
+		INTEGER(ans)[0] = length(FRAME(CAR(args)));
+		break;
+	    default:
+		INTEGER(ans)[0] = 1;
+		break;
+	}
+#else
 	INTEGER(ans)[0] = length(CAR(args));
+#endif
+	return ans;
+}
+
+SEXP do_nlevels(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+	SEXP ans;
+
+	checkArity(op, args);
+	ans = allocVector(INTSXP, 1);
+	if (isFactor(CAR(args)))
+		INTEGER(ans)[0] = LEVELS(CAR(args));
+	else
+		INTEGER(ans)[0] = NA_INTEGER;
 	return ans;
 }
 
@@ -277,8 +315,6 @@ SEXP do_rowscols(SEXP call, SEXP op, SEXP args, SEXP rho)
 	return ans;
 }
 
-/* FIXME - What about non IEEE overflow ??? */
-
 static void matprod(double *x, int nrx, int ncx, double *y, int nry, int ncy, double *z)
 {
 	int i, j, k;
@@ -291,17 +327,13 @@ static void matprod(double *x, int nrx, int ncx, double *y, int nry, int ncy, do
 			for (j = 0; j < ncx; j++) {
 				xij = x[i + j * nrx];
 				yjk = y[j + k * nry];
-#ifndef IEEE_754
-				if (ISNAN(xij) || ISNAN(yjk))
+				if (!FINITE(xij) || !FINITE(yjk))
 					goto next_ik;
-#endif
 				sum += xij * yjk;
 			}
 			z[i + k * nrx] = sum;
-#ifndef IEEE_754
 		next_ik:
 			;
-#endif
 		}
 }
 
@@ -322,20 +354,16 @@ static void cmatprod(complex *x, int nrx, int ncx,
 				xij_i = x[i+j*nrx].i;
 				yjk_r = y[j+k*nry].r;
 				yjk_i = y[j+k*nry].i;
-#ifndef IEEE_754
-				if (ISNAN(xij_r) || ISNAN(xij_i)
-					|| ISNAN(yjk_r) || ISNAN(yjk_i))
+				if (!FINITE(xij_r) || !FINITE(xij_i)
+						|| !FINITE(yjk_r) || !FINITE(yjk_i))
 					goto next_ik;
-#endif
 				sum_r += (xij_r * yjk_r - xij_i * yjk_i);
 				sum_i += (xij_r * yjk_i + xij_i * yjk_r);
 			}
 			z[i+k*nrx].r = sum_r;
 			z[i+k*nrx].i = sum_i;
-#ifndef IEEE_754
 		next_ik:
 			;
-#endif
 		}
 }
 
@@ -351,20 +379,17 @@ static void crossprod(double *x, int nrx, int ncx, double *y, int nry, int ncy, 
 			for (j = 0; j < nrx; j++) {
 				xji = x[j + i * nrx];
 				yjk = y[j + k * nry];
-#ifndef IEEE_754
-				if (ISNAN(xji) || ISNAN(yjk))
+				if (!FINITE(xji) || !FINITE(yjk))
 					goto next_ik;
-#endif
 				sum += xji * yjk;
 			}
 			z[i + k * ncx] = sum;
-#ifndef IEEE_754
 		next_ik:
 			;
-#endif
 		}
 }
 
+#ifdef COMPLEX_DATA
 static void ccrossprod(complex *x, int nrx, int ncx, complex *y, int nry, int ncy, complex *z)
 {
 	int i, j, k;
@@ -381,30 +406,31 @@ static void ccrossprod(complex *x, int nrx, int ncx, complex *y, int nry, int nc
 				xji_i = x[j + i * nrx].i;
 				yjk_r = y[j + k * nry].r;
 				yjk_i = y[j + k * nry].i;
-#ifndef IEEE_754
-				if (ISNAN(xji_r) || ISNAN(xji_i)
-					|| ISNAN(yjk_r) || ISNAN(yjk_i))
+				if (!FINITE(xji_r) || !FINITE(xji_i)
+						|| !FINITE(yjk_r) || !FINITE(yjk_i))
 					goto next_ik;
-#endif
 				sum_r += (xji_r * yjk_r - xji_i * yjk_i);
 				sum_i += (xji_r * yjk_i + xji_i * yjk_r);
 			}
 			z[i + k * ncx].r = sum_r;
 			z[i + k * ncx].i = sum_i;
-#ifndef IEEE_754
 		next_ik:
 			;
-#endif
 		}
 }
+#endif
 
 SEXP do_matprod(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
 	int ldx, ldy, nrx, ncx, nry, ncy, mode;
 	SEXP x, y, xdims, ydims, ans;
 
+#ifdef COMPLEX_DATA
 	if (!(isNumeric(CAR(args)) || isComplex(CAR(args))) ||
 	    !(isNumeric(CADR(args)) || isComplex(CADR(args))))
+#else
+	if (!isNumeric(CAR(args)) || !isNumeric(CADR(args)))
+#endif
 		error("%%*%% requires numeric matrix/vector arguments\n");
 
 	x = CAR(args);
@@ -486,18 +512,22 @@ SEXP do_matprod(SEXP call, SEXP op, SEXP args, SEXP rho)
 			errorcall(call, "non-conformable arguments\n");
 	}
 
+#ifdef COMPLEX_DATA
 	if(isComplex(CAR(args)) || isComplex(CADR(args)))
 		mode = CPLXSXP;
 	else
+#endif
 		mode = REALSXP;
 	CAR(args) = coerceVector(CAR(args), mode);
 	CADR(args) = coerceVector(CADR(args), mode);
 
 	if(PRIMVAL(op) == 0) {
 		PROTECT(ans = allocMatrix(mode, nrx, ncy));
+#ifdef COMPLEX_DATA
 		if(mode == CPLXSXP)
 			cmatprod(COMPLEX(CAR(args)), nrx, ncx, COMPLEX(CADR(args)), nry, ncy, COMPLEX(ans));
 		else
+#endif
 			matprod(REAL(CAR(args)), nrx, ncx, REAL(CADR(args)), nry, ncy, REAL(ans));
 		PROTECT(xdims = getAttrib(CAR(args), R_DimNamesSymbol));
 		PROTECT(ydims = getAttrib(CADR(args), R_DimNamesSymbol));
@@ -507,9 +537,11 @@ SEXP do_matprod(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	else {
 		PROTECT(ans = allocMatrix(mode, ncx, ncy));
+#ifdef COMPLEX_DATA
 		if(mode == CPLXSXP)
 			ccrossprod(COMPLEX(CAR(args)), nrx, ncx, COMPLEX(CADR(args)), nry, ncy, COMPLEX(ans));
 		else
+#endif
 			crossprod(REAL(CAR(args)), nrx, ncx, REAL(CADR(args)), nry, ncy, REAL(ans));
 		PROTECT(xdims = getAttrib(CAR(args), R_DimNamesSymbol));
 		PROTECT(ydims = getAttrib(CADR(args), R_DimNamesSymbol));
@@ -524,7 +556,7 @@ SEXP do_matprod(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_transpose(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
 	SEXP a, r, dims, dn;
-	int i, len=0, ncol=0, nrow=0;
+	int i, len, ncol, nrow;
 
 	checkArity(op, args);
 	a = CAR(args);
@@ -559,6 +591,8 @@ SEXP do_transpose(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 	switch (TYPEOF(a)) {
 	case LGLSXP:
+	case FACTSXP:
+	case ORDSXP:
 	case INTSXP:
 		for (i = 0; i < len; i++)
 			INTEGER(r)[i] = INTEGER(a)[(i / ncol) + (i % ncol) * nrow];
@@ -567,10 +601,12 @@ SEXP do_transpose(SEXP call, SEXP op, SEXP args, SEXP rho)
 		for (i = 0; i < len; i++)
 			REAL(r)[i] = REAL(a)[(i / ncol) + (i % ncol) * nrow];
 		break;
+#ifdef COMPLEX_DATA
 	case CPLXSXP:
 		for (i = 0; i < len; i++)
 			COMPLEX(r)[i] = COMPLEX(a)[(i / ncol) + (i % ncol) * nrow];
 		break;
+#endif
 	case STRSXP:
 		for (i = 0; i < len; i++)
 			STRING(r)[i] = STRING(a)[(i / ncol) + (i % ncol) * nrow];
@@ -605,7 +641,6 @@ SEXP do_transpose(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 not_matrix:
 	errorcall(call, "argument is not a matrix\n");
-	return call;/* never used; just for -Wall */
 }
 
 
@@ -667,6 +702,8 @@ SEXP do_aperm(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 	switch (TYPEOF(a)) {
 	case INTSXP:
+	case FACTSXP:
+	case ORDSXP:
 	case LGLSXP:
 		for (i = 0; i < len; i++) {
 			j = swap(i, dimsa, dimsr, perm, ind1, ind2);
@@ -679,12 +716,14 @@ SEXP do_aperm(SEXP call, SEXP op, SEXP args, SEXP rho)
 			REAL(r)[j] = REAL(a)[i];
 		}
 		break;
+#ifdef COMPLEX_DATA
 	case CPLXSXP:
 		for (i = 0; i < len; i++) {
 			j = swap(i, dimsa, dimsr, perm, ind1, ind2);
 			COMPLEX(r)[j] = COMPLEX(a)[i];
 		}
 		break;
+#endif
 	case STRSXP:
 		for (i = 0; i < len; i++) {
 			j = swap(i, dimsa, dimsr, perm, ind1, ind2);

@@ -20,7 +20,7 @@
 #include "Defn.h"
 #include "Print.h"
 #include "Fileio.h"
-#include "IOStuff.h"
+#include "IOSupport.h"
 #include "Parse.h"
 #include <stdio.h>
 

@@ -3,8 +3,7 @@
 \usage{
 arrows(x0, y0, x1, y1, length = 0.25, angle = 30, code = 2,
        col = par("fg"), lty = NULL, xpd = FALSE)
-segments(x0, y0, x1, y1,
-       col = par("fg"), lty = par("lty"), xpd = FALSE)
+segments(x0, y0, x1, y1, col = par("fg"), lty = par("lty"))
 }
 \alias{arrows}
 \alias{segments}

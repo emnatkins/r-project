@@ -1,5 +1,5 @@
 /*
- *  R : A Computer Language for Statistical Data Analysis
+ *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -64,7 +64,7 @@ A context is created with a call to
 sysp, SEXP promargs)
 
 which sets up the context pointed to by cptr in the appropriate way.
-When the context goes "out-of-scope" a call to
+When the context goes "out-of-scope" a call to 
 
 	void endcontext(RCNTXT *cptr)
 
@@ -154,19 +154,19 @@ static void jumpfun(RCNTXT * cptr, int mask, SEXP val)
 }
 
 /*
- * R_sysframe - look back up the context stack until the nth closure
- * context and return that cloenv.
- * R_sysframe(0) means the R_GlobalEnv environment
+ * sysframe - look back up the context stack until the nth closure 
+ * context and return that cloenv. 
+ * sysframe(0) means the R_GlobalEnv environment
  * negative n counts back from the current frame
  * positive n counts up from the globalEnv
 */
-
-SEXP R_sysframe(int n, RCNTXT *cptr)
+ 
+SEXP sysframe(int n, RCNTXT *cptr)
 {
 	if (n == 0)
 		return(R_GlobalEnv);
 
-	if (n > 0)
+	if (n > 0) 
 		n = framedepth(cptr) - n;
 	else
 		n = -n;
@@ -176,22 +176,19 @@ SEXP R_sysframe(int n, RCNTXT *cptr)
 			"not that many enclosing environments\n");
 
 	while (cptr->nextcontext != NULL) {
-         	if (cptr->callflag == CTXT_RETURN) {
+		if (cptr->callflag == CTXT_RETURN)
 			if (n == 0) { /* we need to detach the enclosing env */
 				return cptr->cloenv;
 			}
 			else
 				n--;
-		}
 		cptr = cptr->nextcontext;
 	}
 	if(n == 0 && cptr->nextcontext == NULL)
 		return R_GlobalEnv;
-	else
+	else 
 		error("sys.frame: not that many enclosing functions\n");
-	return R_NilValue;/* just for -Wall */
 }
-
 
 /*
 	We need to find the environment that can be returned by sys.frame
@@ -201,11 +198,11 @@ SEXP R_sysframe(int n, RCNTXT *cptr)
 	but then we wouldn't be compatible with S.
 */
 
-int R_sysparent(int n, RCNTXT *cptr)
+int sysparent(int n, RCNTXT *cptr)
 {
 	int j;
 	SEXP s;
-
+	
 	if(n<=0)
 		errorcall( R_ToplevelContext->call,
 			"only positive arguments are allowed\n");
@@ -236,7 +233,7 @@ int R_sysparent(int n, RCNTXT *cptr)
 
 	if( n == 0 )
 		n=1;
-        if( n < 0 )
+        if( n < 0 ) 
 		error("sys.parent: not that many enclosing functions\n");
 
 	return n;
@@ -254,36 +251,34 @@ int framedepth(RCNTXT *cptr)
 	return nframe;
 }
 
-SEXP R_syscall(int n, RCNTXT *cptr)
+SEXP syscall(int n, RCNTXT *cptr)
 {
-	/* negative n counts back from the current frame
+	/* negative n counts back from the current frame 
 	   positive n counts up from the globalEnv
 	*/
-	if (n > 0)
+	if (n > 0) 
 		n=framedepth(cptr)-n;
-	else
+	else 
 		n=-n;
-	if(n < 0 )
-		errorcall(R_GlobalContext->call,
+	if(n < 0 ) 
+		errorcall(R_GlobalContext->call, 
 			"illegal frame number\n");
-
+	
 	while (cptr->nextcontext != NULL) {
- 	        if (cptr->callflag == CTXT_RETURN) {
+		if (cptr->callflag == CTXT_RETURN)
                         if (n == 0)
                                 return (duplicate(cptr->call));
                         else
                                 n--;
-                }
-		cptr = cptr->nextcontext;
+                cptr = cptr->nextcontext;
         }
 	if( n == 0 && cptr->nextcontext == NULL )
 		return (duplicate(cptr->call));
 	errorcall(R_GlobalContext->call,
 			"not that many enclosing functions\n");
-	return R_NilValue;/* just for -Wall */
 }
 
-SEXP R_sysfunction(int n, RCNTXT *cptr)
+SEXP sysfunction(int n, RCNTXT *cptr)
 {
 	SEXP s,t;
 
@@ -295,8 +290,8 @@ SEXP R_sysfunction(int n, RCNTXT *cptr)
 		errorcall(R_GlobalContext->call,
 				"illegal frame number\n");
 	while (cptr->nextcontext != NULL) {
-	        if (cptr->callflag == CTXT_RETURN) {
-			if (n == 0) {
+		if (cptr->callflag == CTXT_RETURN)
+			if (n == 0) { 
 				s=CAR(cptr->call);
 				if( isSymbol(s) )
 					t=findVar(s,cptr->sysparent);
@@ -308,17 +303,15 @@ SEXP R_sysfunction(int n, RCNTXT *cptr)
 			}
 			else
 				n--;
-		}
 		cptr = cptr->nextcontext;
 	}
 	if( n == 0 && cptr->nextcontext == NULL )
 		return( findVar(CAR(cptr->call),cptr->sysparent) );
 	errorcall(R_GlobalContext->call,
 		"not that many enclosing functions\n");
-	return R_NilValue;/* just for -Wall */
 }
-
-/*
+	
+/*   
 	An implementation of S's frame access functions. They usually
 	count up from the globalEnv while we like to count down from
 	the currentEnv. So if the argument is negative count down if
@@ -356,12 +349,12 @@ SEXP do_sys(SEXP call, SEXP op, SEXP args, SEXP rho)
 	switch (PRIMVAL(op)) {
 		case 1: /* parent */
 			rval=allocVector(INTSXP,1);
-			INTEGER(rval)[0]=R_sysparent(n, cptr);
+			INTEGER(rval)[0]=sysparent(n, cptr);
 			return rval;
 		case 2: /* call */
-        		return R_syscall(n, cptr);
+        		return syscall(n, cptr);
 		case 3: /* frame */
-			return R_sysframe(n, cptr);
+			return sysframe(n, cptr);
 		case 4: /* sys.nframe */
 			rval=allocVector(INTSXP,1);
 			INTEGER(rval)[0]=framedepth(cptr);
@@ -370,8 +363,8 @@ SEXP do_sys(SEXP call, SEXP op, SEXP args, SEXP rho)
 			nframe=framedepth(cptr);
 			PROTECT(rval=allocList(nframe));
 			t=rval;
-			for(i=1 ; i<=nframe; i++, t=CDR(t))
-				CAR(t)=R_syscall(i,cptr);
+			for(i=1 ; i<=nframe; i++, t=CDR(t)) 
+				CAR(t)=syscall(i,cptr);
 			UNPROTECT(1);
 			return rval;
 		case 6: /* sys.frames */
@@ -379,7 +372,7 @@ SEXP do_sys(SEXP call, SEXP op, SEXP args, SEXP rho)
 			PROTECT(rval=allocList(nframe));
 			t=rval;
 			for(i=1 ; i<=nframe ; i++, t=CDR(t))
-				CAR(t)=R_sysframe(i,cptr);
+				CAR(t)=sysframe(i,cptr);
 			UNPROTECT(1);
 			return rval;
 		case 7: /* sys.on.exit */
@@ -391,12 +384,11 @@ SEXP do_sys(SEXP call, SEXP op, SEXP args, SEXP rho)
 			nframe=framedepth(cptr);
 			rval=allocVector(INTSXP,nframe);
 			for(i=0; i<nframe ; i++ )
-				INTEGER(rval)[i]= R_sysparent(nframe-i,cptr);
+				INTEGER(rval)[i]= sysparent(nframe-i,cptr);
 			return rval;
 		case 9: /* sys.function */
-			return(R_sysfunction(n, cptr));
+			return(sysfunction(n, cptr));
 		default:
 			error("internal error in do_sys\n");
-			return R_NilValue;/* just for -Wall */
 	}
 }

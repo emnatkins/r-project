@@ -132,10 +132,12 @@ SEXP do_paste(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-	SEXP l, x, y;
-	int i, n, trim;
+	SEXP l, nastring, x, y;
+	int i, n, nl, trim;
 	int w, d, e;
+#ifdef COMPLEX_DATA
 	int wi, di, ei;
+#endif
 	char *strp;
 
 	PrintDefaults(env);
@@ -150,7 +152,7 @@ SEXP do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 			errorcall(call, "invalid \"trim\" argument\n");
 		break;
 	default:
-		errorcall(call, "incorrect number of arguments\n"); trim=0;
+		errorcall(call, "incorrect number of arguments\n");
 	}
 
 	if (!isVector(x = CAR(args)))
@@ -172,6 +174,39 @@ SEXP do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 		}
 		UNPROTECT(1);
 		break;
+	case FACTSXP:
+	case ORDSXP:
+		PROTECT(y = allocVector(STRSXP, n));
+		l = getAttrib(x, R_LevelsSymbol);
+		nl = LEVELS(x);
+		if(l == R_NilValue) {
+			PROTECT(l = allocVector(STRSXP, nl));
+			for(i=0 ; i<nl ; i++) {
+				strp = Rsprintf("%d", i+1);
+				STRING(l)[i] = mkChar(strp);
+			}
+		}
+		else {
+			l = duplicate(l);
+			PROTECT(l);
+		}
+		nastring = NA_STRING;
+		if(!trim) {
+			formatString(STRING(l), nl, &w, 0);
+			for(i=0 ; i<nl ; i++) {
+				strp = EncodeString(CHAR(STRING(l)[i]), w, 0, adj_left);
+				STRING(l)[i] = mkChar(strp);
+			}
+			nastring = mkChar(EncodeString(CHAR(nastring), w, 0, adj_left));
+		}
+		for(i=0 ; i<n ; i++) {
+			if(INTEGER(x)[i] < 1 || INTEGER(x)[i] > nl)
+				STRING(y)[i] = nastring;
+			else
+				STRING(y)[i] = STRING(l)[INTEGER(x)[i]-1];
+		}
+		UNPROTECT(2);
+		break;
 	case INTSXP:
 		PROTECT(y = allocVector(STRSXP, n));
 		if (trim) w = 0;
@@ -192,6 +227,7 @@ SEXP do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 		}
 		UNPROTECT(1);
 		break;
+#ifdef COMPLEX_DATA
 	case CPLXSXP:
 		formatComplex(COMPLEX(x), n, &w, &d, &e, &wi, &di, &ei);
 		if (trim) wi = w = 0;
@@ -202,6 +238,7 @@ SEXP do_format(SEXP call, SEXP op, SEXP args, SEXP env)
 		}
 		UNPROTECT(1);
 		break;
+#endif
 	case STRSXP:
 		formatString(STRING(x), n, &w, 0);
 		if (trim) w = 0;
@@ -230,9 +267,11 @@ SEXP do_format(SEXP call, SEXP op, SEXP args, SEXP env)
  */
 SEXP do_formatinfo(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-	SEXP x;
+	SEXP l, x;
 	int n, w, d, e;
+#ifdef COMPLEX_DATA
 	int wi, di, ei;
+#endif
 	checkArity(op, args);
 	x = CAR(args);
 	n = LENGTH(x);
@@ -244,17 +283,24 @@ SEXP do_formatinfo(SEXP call, SEXP op, SEXP args, SEXP env)
 		case LGLSXP:
 			formatLogical(LOGICAL(x), n, &w);
 			break;
+		case FACTSXP:
+		case ORDSXP:
+			l = getAttrib(x, R_LevelsSymbol);
+			formatFactor(INTEGER(x), n, &w, l, LEVELS(x));
+			break;
 		case INTSXP:
 			formatInteger(INTEGER(x), n, &w);
 			break;
 		case REALSXP:
 			formatReal(REAL(x), n, &w, &d, &e);
 			break;
+#ifdef COMPLEX_DATA
 		case CPLXSXP:
 			wi = di = ei = 0;
 			formatComplex(COMPLEX(x), n, &w, &d, &e, &wi, &di, &ei);
 			n = -1;/* complex 'code' */
 			break;
+#endif
 		case STRSXP:
 			formatString(STRING(x), n, &w, 0);
 			break;

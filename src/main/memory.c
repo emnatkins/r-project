@@ -18,7 +18,6 @@
  */
 
 #include "Defn.h"
-#include "Graphics.h"
 
 /*      MEMORY MANAGEMENT
  *
@@ -51,7 +50,7 @@
  */
 
 static int gc_reporting = 0;
-	
+
 void installIntVector(SEXP, int, FILE *);
 
 SEXP do_gcinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -317,6 +316,8 @@ SEXP allocVector(SEXPTYPE type, int length)
 		break;
 	case LGLSXP:
 	case INTSXP:
+	case FACTSXP:
+	case ORDSXP:
 		if (length <= 0)
 			size = 0;
 		else
@@ -328,12 +329,14 @@ SEXP allocVector(SEXPTYPE type, int length)
 		else
 			size = 1 + FLOAT2VEC(length);
 		break;
+#ifdef COMPLEX_DATA
 	case CPLXSXP:
 		if (length <= 0)
 			size = 0;
 		else
 			size = 1 + COMPLEX2VEC(length);
 		break;
+#endif
 	case STRSXP:
 	case EXPRSXP:
 	case VECSXP:
@@ -369,6 +372,7 @@ SEXP allocVector(SEXPTYPE type, int length)
 #endif
 	LENGTH(s) = length;
 	NAMED(s) = 0;
+	OBJECT(s) = (type == FACTSXP || type == ORDSXP);
 	ATTRIB(s) = R_NilValue;
 	if (size > 0) {
 		CHAR(s) = (char *) (R_VTop + 1);
@@ -443,7 +447,6 @@ void unmarkPhase(void)
 void markPhase(void)
 {
 	int i;
-	DevDesc *dd;
 
 	markSExp(R_NilValue);	/* Builtin constants */
 	markSExp(NA_STRING);
@@ -458,12 +461,6 @@ void markPhase(void)
 
 	if (R_CurrentExpr != NULL)	/* Current expression */
 		markSExp(R_CurrentExpr);
-
-	for (i = 0; i < R_MaxDevices; i++) {	/* Device Display Lists */
-		dd = GetDevice(i);
-		if (dd)
-			markSExp(dd->displayList);
-	}
 
 	for (i = 0; i < R_PPStackTop; i++)	/* protected pointers */
 		markSExp(R_PPStack[i]);
@@ -485,9 +482,13 @@ void markSExp(SEXP s)
 		case SPECIALSXP:
 		case CHARSXP:
 		case LGLSXP:
+		case FACTSXP:
+		case ORDSXP:
 		case INTSXP:
 		case REALSXP:
+#ifdef COMPLEX_DATA
 		case CPLXSXP:
+#endif
 			break;
 		case STRSXP:
 		case EXPRSXP:
@@ -532,15 +533,19 @@ void compactPhase(void)
 			size = LENGTH(s) + 1;
 			break;
 		case LGLSXP:
+		case FACTSXP:
+		case ORDSXP:
 		case INTSXP:
 			size = LENGTH(s) * sizeof(int);
 			break;
 		case REALSXP:
 			size = LENGTH(s) * sizeof(double);
 			break;
+#ifdef COMPLEX_DATA
 		case CPLXSXP:
 			size = LENGTH(s) * sizeof(complex);
 			break;
+#endif
 		case STRSXP:
 		case EXPRSXP:
 		case VECSXP:
@@ -615,56 +620,4 @@ void unprotect(int l)
 void initStack(void)
 {
 	R_PPStackTop = 0;
-}
-
-
-	/* Wrappers for malloc/alloc/free */
-	/* These allow automatic freeing of malloc-ed */
-	/* blocks during error recovery. */
-
-#define MAXPOINTERS 100
-static char *C_Pointers[MAXPOINTERS];
-
-void Init_C_alloc()
-{
-	int i;
-	for(i=0 ; i<MAXPOINTERS ; i++)
-		C_Pointers[i] = NULL;
-}
-
-void Reset_C_alloc()
-{
-	int i;
-	for(i=0 ; i<MAXPOINTERS ; i++) {
-		if(C_Pointers[i] != NULL)
-			free(C_Pointers[i]);
-		C_Pointers[i] = NULL;
-	}
-}
-
-char *C_alloc(long nelem, int eltsize)
-{
-	int i;
-	for(i=0 ; i<MAXPOINTERS ; i++) {
-		if(C_Pointers[i] == NULL) {
-			C_Pointers[i] = malloc(nelem * eltsize);
-			if(C_Pointers[i] == NULL)
-				error("unable to malloc memory in C_alloc\n");
-			else return C_Pointers[i];
-		}
-	}
-	error("all C_alloc pointers in use (sorry)\n");
-}
-
-void C_free(char *p)
-{
-	int i;
-	for(i=0 ; i<MAXPOINTERS ; i++) {
-		if(C_Pointers[i] == p) {
-			free(p);
-			C_Pointers[i] = NULL;
-			return;
-		}
-	}
-	error("attempt free pointer not allocated by C_alloc()\n");
 }
