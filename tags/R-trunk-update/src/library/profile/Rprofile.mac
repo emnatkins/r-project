@@ -1,0 +1,10 @@
+###-*- R -*- Macintosh Specific ----
+
+.Library <- paste(R.home(), "library", sep=.Platform$file.sep)
+.lib.loc <- .Library
+options(papersize = "a4")
+options(device="macintosh")
+options(editor="macintosh")
+options(pager="macintosh")
+options(unzip="mac.unzip")
+options(mailer="none")
