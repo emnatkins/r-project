@@ -20,7 +20,7 @@ SOURCES_C = \
 	bakslv.c binning.c \
 	chisqsim.c chull.c cpoly.c cumsum.c \
 	distance.c \
-	fft.c fmin.c \
+	fft.c fmin.c fortran.c \
 	lbfgsb.c loglin.c lowess.c \
 	machar.c maxcol.c massdist.c \
 	pretty.c \

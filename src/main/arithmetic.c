@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996, 1997  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2000	    The R Development Core Team.
+ *  Copyright (C) 1998--2001	    The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -237,8 +237,8 @@ SEXP do_Machine(SEXP call, SEXP op, SEXP args, SEXP env)
     machar(&ibeta, &it, &irnd, &ngrd, &machep, &negep, &iexp,
 	   &minexp, &maxexp, &eps, &epsneg, &xmin, &xmax);
 
-    PROTECT(ans = allocVector(VECSXP, 17));
-    PROTECT(nms = allocVector(STRSXP, 17));
+    PROTECT(ans = allocVector(VECSXP, 14));
+    PROTECT(nms = allocVector(STRSXP, 14));
     SET_STRING_ELT(nms, 0, mkChar("double.eps"));
     SET_VECTOR_ELT(ans, 0, ScalarReal(eps));
 
@@ -280,15 +280,6 @@ SEXP do_Machine(SEXP call, SEXP op, SEXP args, SEXP env)
 
     SET_STRING_ELT(nms, 13, mkChar("integer.max"));
     SET_VECTOR_ELT(ans, 13, ScalarInteger(INT_MAX));
-
-    SET_STRING_ELT(nms, 14, mkChar("sizeof.long"));
-    SET_VECTOR_ELT(ans, 14, ScalarInteger(SIZEOF_LONG));
-
-    SET_STRING_ELT(nms, 15, mkChar("sizeof.longlong"));
-    SET_VECTOR_ELT(ans, 15, ScalarInteger(SIZEOF_LONG_LONG));
-
-    SET_STRING_ELT(nms, 16, mkChar("sizeof.longdouble"));
-    SET_VECTOR_ELT(ans, 16, ScalarInteger(SIZEOF_LONG_DOUBLE));
     setAttrib(ans, R_NamesSymbol, nms);
     UNPROTECT(2);
     return ans;

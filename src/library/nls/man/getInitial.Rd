@@ -1,4 +1,4 @@
-% $Id: getInitial.Rd,v 1.6 2001/02/07 19:13:08 pd Exp $
+% $Id: getInitial.Rd,v 1.4.4.1 2001/01/24 12:20:54 ripley Exp $
 \name{getInitial}
 \title{Get Initial Parameter Estimates}
 \alias{getInitial}

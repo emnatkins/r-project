@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2000  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--2001  Robert Gentleman, Ross Ihaka and the
  *                            R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -608,10 +608,9 @@ SEXP labelformat(SEXP labels)
 {
     /* format(labels): i.e. from numbers to strings */
     SEXP ans = R_NilValue;/* -Wall*/
-    int save_digits, i, n, w, d, e, wi, di, ei;
+    int i, n, w, d, e, wi, di, ei;
     char *strp;
     n = length(labels);
-    save_digits = R_print.digits;
     R_print.digits = 7;/* maximally 7 digits -- ``burnt in'';
 			  S-PLUS <= 5.x has about 6 
 			  (but really uses single precision..) */
@@ -1758,6 +1757,16 @@ SEXP do_arrows(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 
+static void drawPolygon(int n, double *x, double *y, 
+			int lty, int fill, int border, DevDesc *dd)
+{
+    if (lty == NA_INTEGER)
+	dd->gp.lty = dd->dp.lty;
+    else
+	dd->gp.lty = lty;
+    GPolygon(n, x, y, USER, fill, border, dd);
+}
+
 SEXP do_polygon(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     /* polygon(x, y, col, border, lty, xpd, ...) */
@@ -1824,11 +1833,6 @@ SEXP do_polygon(SEXP call, SEXP op, SEXP args, SEXP env)
 
     GMode(1, dd);
 
-    if (INTEGER(lty)[0] == NA_INTEGER)
-	dd->gp.lty = dd->dp.lty;
-    else
-	dd->gp.lty = INTEGER(lty)[0];
-
     x = REAL(sx);
     y = REAL(sy);
     xold = NA_REAL;
@@ -1843,14 +1847,18 @@ SEXP do_polygon(SEXP call, SEXP op, SEXP args, SEXP env)
 	else if ((R_FINITE(xold) && R_FINITE(yold)) &&
 		 !(R_FINITE(xx) && R_FINITE(yy))) {
 	    if (i-start > 1) {
-		GPolygon(i-start, x+start, y+start, USER,
-			 INTEGER(col)[num%ncol], INTEGER(border)[0], dd);
+		drawPolygon(i-start, x+start, y+start, 
+			    INTEGER(lty)[num%nlty],
+			    INTEGER(col)[num%ncol], 
+			    INTEGER(border)[num%nborder], dd);
 		num++;
 	    }
 	}
 	else if ((R_FINITE(xold) && R_FINITE(yold)) && (i == nx-1)) { /* last */
-	    GPolygon(nx-start, x+start, y+start, USER,
-		     INTEGER(col)[num%ncol], INTEGER(border)[0], dd);
+	    drawPolygon(nx-start, x+start, y+start, 
+			INTEGER(lty)[num%nlty],
+			INTEGER(col)[num%ncol], 
+			INTEGER(border)[num%nborder], dd);
 	    num++;
 	}
 	xold = xx;
@@ -2038,7 +2046,6 @@ static double ComputeAdjValue(double adj, int side, int las)
 	    case 2: adj = 1.0; break;
 	    case 4: adj = 0.0; break;
 	    }
-	    break;
 	case 2:/* perpendicular to axis */
 	    switch(side) {
 	    case 1:
@@ -2046,7 +2053,6 @@ static double ComputeAdjValue(double adj, int side, int las)
 	    case 3:
 	    case 4: adj = 0.0; break;
 	    }
-	    break;
 	case 3:/* vertical */
 	    switch(side) {
 	    case 1: adj = 1.0; break;
@@ -2054,74 +2060,21 @@ static double ComputeAdjValue(double adj, int side, int las)
 	    case 2:
 	    case 4: adj = 0.5; break;
 	    }
-	    break;
 	}
     }
     return adj;
 }
 
-static double ComputeAtValueFromAdj(double adj, int side, int outer, 
-				    DevDesc *dd) 
-{
-    double at;
-    switch(side % 2) {
-    case 0:
-	at  = outer ? adj : yNPCtoUsr(adj, dd);
-	break;
-    case 1:
-	at = outer ? adj : xNPCtoUsr(adj, dd);
-	break;
-    }
-    return at;
-}
-
-static double ComputeAtValue(double at, double adj, 
-			     int side, int las, int outer,
+static double ComputeAtValue(double at, double adj, int side, int outer,
 			     DevDesc *dd)
 {
     if (!R_FINITE(at)) {
-	/* If the text is parallel to the axis, use "adj" for "at"
-	 * Otherwise, centre the text
-	 */
-	switch(las) {
-	case 0:/* parallel to axis */
-	    at = ComputeAtValueFromAdj(adj, side, outer, dd);
+	switch(side % 2) {
+	case 0:
+	    at  = outer ? adj : yNPCtoUsr(adj, dd);
 	    break;
-	case 1:/* horizontal */
-	    switch(side) {
-	    case 1:
-	    case 3: 
-		at = ComputeAtValueFromAdj(adj, side, outer, dd);
-		break;
-	    case 2: 
-	    case 4: 
-		at = outer ? 0.5 : yNPCtoUsr(0.5, dd);
-		break;
-	    }
-	    break;
-	case 2:/* perpendicular to axis */
-	    switch(side) {
-	    case 1:
-	    case 3: 
-		at = outer ? 0.5 : xNPCtoUsr(0.5, dd);
-		break;
-	    case 2:
-	    case 4: 
-		at = outer ? 0.5 : yNPCtoUsr(0.5, dd);
-		break;
-	    }
-	    break;
-	case 3:/* vertical */
-	    switch(side) {
-	    case 1: 
-	    case 3:
-		at = outer ? 0.5 : xNPCtoUsr(0.5, dd);
-		break;
-	    case 2:
-	    case 4: 
-		at = ComputeAtValueFromAdj(adj, side, outer, dd);
-		break;
-	    }
+	case 1:
+	    at = outer ? adj : xNPCtoUsr(adj, dd);
 	    break;
 	}
     }
@@ -2277,8 +2230,7 @@ SEXP do_mtext(SEXP call, SEXP op, SEXP args, SEXP env)
 	dd->gp.font = (fontval == NA_INTEGER) ? fontsave : fontval;
 	dd->gp.col = (colval == NA_INTEGER) ? colsave : colval;
 	dd->gp.adj = ComputeAdjValue(adjval, sideval, dd->gp.las);
-	atval = ComputeAtValue(atval, dd->gp.adj, sideval, dd->gp.las,
-			       outerval, dd);
+	atval = ComputeAtValue(atval, dd->gp.adj, sideval, outerval, dd);
 
 	if (vectorFonts) {
 #ifdef GMV_implemented

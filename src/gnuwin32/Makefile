@@ -1,11 +1,11 @@
 include MkRules
 
 HELP = YES
-WINHELP = CHM# NO, CHM, BOTH
+WINHELP = BOTH# NO, CHM, BOTH
 
 PACKAGES = base ctest eda lqs modreg mva nls splines stepfun ts
 ALLPACKAGES = $(PACKAGES) tcltk
-RPREFIX = rw1030
+RPREFIX = rw1022
 
 RHOME = $(shell perl pwd.pl ../..)# must be absolute path
 RLIB = $(RHOME)/library
@@ -83,7 +83,12 @@ fixed/fixdesc:
 
 dllversion.o: ../include/Rversion.h
 
-R.dll: R.a $(OBJS-EXTRA) $(MAINLIBS) $(EXTRALIBS) dllversion.o
+R1.a: R.a $(OBJS-EXTRA)
+	$(CP) R.a R1.a
+	$(AR) cr R1.a $(OBJS-EXTRA)
+	$(RANLIB) R1.a
+
+R.dll: R1.a $(MAINLIBS) $(EXTRALIBS) dllversion.o
 
 Rdll: makeMakedeps ../../bin/R.dll
 
@@ -340,7 +345,7 @@ packagedist:
 	$(CP) ../../doc/html/logo.jpg $(RPREFIX)/doc/html
 	$(CP) -p ../../doc/manual/Rd.sty $(RPREFIX)/doc/manual
 	$(CP) -p exported-vars R.exp MkRules MakePkg MakeDll \
-	  maketitle.awk pwd.pl makeDllRes.pl $(RPREFIX)/src/gnuwin32
+	  pwd.pl makeDllRes.pl $(RPREFIX)/src/gnuwin32
 	$(CP) -p Makefile.packages $(RPREFIX)/src/gnuwin32/Makefile
 	$(CP) fixed/dobundle.pl $(RPREFIX)/src/gnuwin32/fixed
 	$(CP) -pr help check $(RPREFIX)/src/gnuwin32

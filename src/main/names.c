@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2000  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--2001  Robert Gentleman, Ross Ihaka and the
  *                            R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -635,10 +635,9 @@ FUNTAB R_FunTab[] =
 
 /* Device Drivers */
 
-{"PS",		do_PS,		0,	111,   15,	PP_FUNCALL},
+{"PS",		do_PS,		0,	111,   14,	PP_FUNCALL},
 {"PicTeX",	do_PicTeX,	0,	111,	6,	PP_FUNCALL},
-{"XFig",	do_XFig,	0,	111,   11,	PP_FUNCALL},
-{"PDF",		do_PDF,		0,	111,    9,	PP_FUNCALL},
+{"XFig",	do_XFig,	0,	111,   12,	PP_FUNCALL},
 #ifdef Win32
 {"devga",	do_devga,	0,	111,	5,	PP_FUNCALL},
 #endif
@@ -746,8 +745,8 @@ FUNTAB R_FunTab[] =
 {"isIncomplete",do_isincomplete,0,      11,     1,      PP_FUNCALL},
 {"isSeekable", 	do_isseekable,	0,      11,     1,      PP_FUNCALL},
 {"close", 	do_close,	0,      11,     2,      PP_FUNCALL},
-{"file", 	do_file,	0,      11,     4,      PP_FUNCALL},
-{"pipe", 	do_pipe,	0,      11,     3,      PP_FUNCALL},
+{"file", 	do_file,	0,      11,     3,      PP_FUNCALL},
+{"pipe", 	do_pipe,	0,      11,     2,      PP_FUNCALL},
 {"seek", 	do_seek,	0,      11,     3,      PP_FUNCALL},
 {"pushBack", 	do_pushback,	0,      11,     3,      PP_FUNCALL},
 {"pushBackLength",do_pushbacklength,0,  11,     1,      PP_FUNCALL},

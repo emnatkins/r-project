@@ -1,4 +1,4 @@
-% $Id: asOneSidedFormula.Rd,v 1.2 2001/02/07 19:13:08 pd Exp $
+% $Id: asOneSidedFormula.Rd,v 1.1.24.1 2001/01/24 10:08:09 ripley Exp $
 \name{asOneSidedFormula}
 \title{Convert to One-Sided Formula}
 \usage{

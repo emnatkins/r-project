@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2000  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--2001  Robert Gentleman, Ross Ihaka and the
  *			      R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -416,7 +416,7 @@ static double xOMA1toDev(double x, DevDesc *dd)
 
 static double yOMA1toDev(double y, DevDesc *dd)
 {
-    return yLinetoDev((dd->gp.oma[0] - y), dd);
+    return yLinetoDev((dd->gp.oma[0] - y - 1), dd);
 }
 
 static double xOMA2toyDev(double x, DevDesc *dd)
@@ -447,7 +447,7 @@ static double xOMA4toyDev(double x, DevDesc *dd)
 
 static double yOMA4toxDev(double y, DevDesc *dd)
 {
-    double ndc = 1.0-xDevtoNDC(xLinetoDev(dd->gp.oma[3]-y, dd), dd);
+    double ndc = 1.0-xDevtoNDC(xLinetoDev(dd->gp.oma[3]-y-1, dd), dd);
     return xNDCtoDev(ndc, dd);
 }
 
@@ -1786,7 +1786,7 @@ DevDesc *GNewPlot(Rboolean recording)
 	    dd->dp.currentFigure = dd->gp.currentFigure = 1;
 	}
 
-	dd->dp.new = dd->gp.new = TRUE;
+	dd->gp.new = dd->gp.new = TRUE;
 	GReset(dd);
 	if (dd->dp.canClip)
 	    GForceClip(dd);
@@ -2387,7 +2387,7 @@ static void setClipRect(double *x1, double *y1, double *x2, double *y2,
 /* Update the device clipping region (depends on GP->xpd). */
 void GClip(DevDesc *dd)
 {
-    if (dd->gp.xpd != dd->gp.oldxpd) { 
+    if (dd->gp.xpd != dd->gp.oldxpd) {
 	double x1, y1, x2, y2;
 	setClipRect(&x1, &y1, &x2, &y2, DEVICE, dd);
 	dd->dp.clip(x1, x2, y1, y2, dd);
@@ -2439,53 +2439,118 @@ static int clipcode(double x, double y, cliprect *cr)
 }
 
 static Rboolean 
-CSclipline(double *x1, double *y1, double *x2, double *y2,
-	   int *clipped1, int *clipped2, int coords, cliprect *cr)
+CSclipline(double *x1, double *y1, double *x2, double *y2, cliprect *cr,
+	   int *clipped1, int *clipped2, int coords, DevDesc *dd)
 {
     int c, c1, c2;
-    double x, y;
+    double x, y, xl, xr, yb, yt;
+    cliprect cr2;
 
     *clipped1 = 0;
     *clipped2 = 0;
     c1 = clipcode(*x1, *y1, cr);
     c2 = clipcode(*x2, *y2, cr);
-    x = cr->xl;		/* keep -Wall happy */
-    y = cr->yb;		/* keep -Wall happy */
-    while( c1 || c2 ) {
-	if(c1 & c2)
-	    return FALSE;
-	if( c1 )
-	    c = c1;
-	else
-	    c = c2;
-	if( c & CS_LEFT ) {
-	    y = *y1 + (*y2 - *y1) * (cr->xl - *x1) / (*x2 - *x1);
-	    x = cr->xl;
-	}
-	else if( c & CS_RIGHT ) {
-	    y = *y1 + (*y2 - *y1) * (cr->xr - *x1) / (*x2 -  *x1);
-	    x = cr->xr;
-	}
-	else if( c & CS_BOTTOM ) {
-	    x = *x1 + (*x2 - *x1) * (cr->yb - *y1) / (*y2 - *y1);
-	    y = cr->yb;
-	}
-	else if( c & CS_TOP ) {
-	    x = *x1 + (*x2 - *x1) * (cr->yt - *y1)/(*y2 - *y1);
-	    y = cr->yt;
+    if ( !c1 && !c2 ) 
+	return TRUE;
+
+    xl = cr->xl;
+    xr = cr->xr;
+    yb = cr->yb;
+    yt = cr->yt;
+    if (dd->gp.xlog || dd->gp.ylog) {
+
+	GConvert(x1, y1, coords, NDC, dd);
+	GConvert(x2, y2, coords, NDC, dd);
+	GConvert(&xl, &yb, coords, NDC, dd);
+	GConvert(&xr, &yt, coords, NDC, dd);
+
+	cr2.xl = xl;
+	cr2.xr = xr;
+	cr2.yb = yb;
+	cr2.yt = yt;
+
+	x = xl;		/* keep -Wall happy */
+	y = yb;		/* keep -Wall happy */
+	while( c1 || c2 ) {
+	    if(c1 & c2)
+		return FALSE;
+	    if( c1 )
+		c = c1;
+	    else
+		c = c2;
+	    if( c & CS_LEFT ) {
+		y = *y1 + (*y2 - *y1) * (xl - *x1) / (*x2 - *x1);
+		x = xl;
+	    }
+	    else if( c & CS_RIGHT ) {
+		y = *y1 + (*y2 - *y1) * (xr - *x1) / (*x2 -  *x1);
+		x = xr;
+	    }
+	    else if( c & CS_BOTTOM ) {
+		x = *x1 + (*x2 - *x1) * (yb - *y1) / (*y2 - *y1);
+		y = yb;
+	    }
+	    else if( c & CS_TOP ) {
+		x = *x1 + (*x2 - *x1) * (yt - *y1)/(*y2 - *y1);
+		y = yt;
+	    }
+
+	    if( c==c1 ) {
+		*x1 = x;
+		*y1 = y;
+		*clipped1 = 1;
+		c1 = clipcode(x, y, &cr2);
+	    }
+	    else {
+		*x2 = x;
+		*y2 = y;
+		*clipped2 = 1;
+		c2 = clipcode(x, y, &cr2);
+	    }
 	}
 
-	if( c==c1 ) {
-	    *x1 = x;
-	    *y1 = y;
-	    *clipped1 = 1;
-	    c1 = clipcode(x, y, cr);
-	}
-	else {
-	    *x2 = x;
-	    *y2 = y;
-	    *clipped2 = 1;
-	    c2 = clipcode(x, y, cr);
+	GConvert(x1, y1, NDC, coords, dd);
+	GConvert(x2, y2, NDC, coords, dd);
+
+    } else {
+	x = xl;		/* keep -Wall happy */
+	y = yb;		/* keep -Wall happy */
+	while( c1 || c2 ) {
+	    if(c1 & c2)
+		return FALSE;
+	    if( c1 )
+		c = c1;
+	    else
+		c = c2;
+	    if( c & CS_LEFT ) {
+		y = *y1 + (*y2 - *y1) * (xl - *x1) / (*x2 - *x1);
+		x = xl;
+	    }
+	    else if( c & CS_RIGHT ) {
+		y = *y1 + (*y2 - *y1) * (xr - *x1) / (*x2 -  *x1);
+		x = xr;
+	    }
+	    else if( c & CS_BOTTOM ) {
+		x = *x1 + (*x2 - *x1) * (yb - *y1) / (*y2 - *y1);
+		y = yb;
+	    }
+	    else if( c & CS_TOP ) {
+		x = *x1 + (*x2 - *x1) * (yt - *y1)/(*y2 - *y1);
+		y = yt;
+	    }
+
+	    if( c==c1 ) {
+		*x1 = x;
+		*y1 = y;
+		*clipped1 = 1;
+		c1 = clipcode(x, y, cr);
+	    }
+	    else {
+		*x2 = x;
+		*y2 = y;
+		*clipped2 = 1;
+		c2 = clipcode(x, y, cr);
+	    }
 	}
     }
     return TRUE;
@@ -2526,7 +2591,7 @@ static void CScliplines(int n, double *x, double *y, int coords, DevDesc *dd)
     for (i = 1; i < n; i++) {
 	x2 = x[i];
 	y2 = y[i];
-	if (CSclipline(&x1, &y1, &x2, &y2, &ind1, &ind2, coords, &cr)) {
+	if (CSclipline(&x1, &y1, &x2, &y2, &cr, &ind1, &ind2, coords, dd)) {
 	    if (ind1 && ind2) {
 		xx[0] = x1;
 		yy[0] = y1;
@@ -2596,7 +2661,7 @@ clipLine(double *x1, double *y1, double *x2, double *y2,
 	cr.yt = temp;
     }
 
-    result = CSclipline(x1, y1, x2, y2, &dummy1, &dummy2, coords, &cr);
+    result = CSclipline(x1, y1, x2, y2, &cr, &dummy1, &dummy2, coords, dd);
 
     if (toDevice)
 	dd->gp.xpd = xpdsaved;
@@ -3967,7 +4032,7 @@ void GMtext(char *str, int side, double line, int outer, double at, int las,
 	 3 = always vertical.
 */
     double angle, xadj, yadj;
-    int coords, subcoords;
+    int coords;
 
     /* Init to keep -Wall happy: */
     angle = 0.;
@@ -3977,67 +4042,64 @@ void GMtext(char *str, int side, double line, int outer, double at, int las,
     yadj = 0.;		/* Default; currently all cases */
     if(outer) {
 	switch(side) {
-	case 1:	    coords = OMA1;	break;
-	case 2:	    coords = OMA2;	break;
-	case 3:	    coords = OMA3;	break;
-	case 4:	    coords = OMA4;	break;
+	case 1:	    angle = 0;	    coords = OMA1;	break;
+	case 2:	    angle = 90;	    coords = OMA2;	break;
+	case 3:	    angle = 0;	    coords = OMA3;	break;
+	case 4:	    angle = 90;	    coords = OMA4;	break;
 	}
-	subcoords = NIC;
+	GText(at, line, coords, str, xadj, yadj, angle, dd);
     }
     else {
+	/* Note: I changed dd->gp.yLineBias to 0.3 here. */
+	/* Purely visual tuning. RI */
 	switch(side) {
-	case 1:	    coords = MAR1;	break;
-	case 2:	    coords = MAR2;	break;
-	case 3:	    coords = MAR3;	break;
-	case 4:	    coords = MAR4;	break;
+	case 1:
+	    if(las == 2 || las == 3) {
+		at = at + GConvertXUnits(0.3, LINES, USER, dd);
+		angle = 90;
+	    }
+	    else {
+		line = line + 1 - dd->gp.yLineBias;
+		angle = 0;
+	    }
+	    coords = MAR1;
+	    break;
+	case 2:
+	    if(las == 1 || las == 2) {
+		at = at - GConvertYUnits(0.3, LINES, USER, dd);
+		angle = 0;
+	    }
+	    else {
+		line = line + dd->gp.yLineBias;
+		angle = 90;
+	    }
+	    coords = MAR2;
+	    break;
+	case 3:
+	    if(las == 2 || las == 3) {
+		at = at + GConvertXUnits(0.3, LINES, USER, dd);
+		angle = 90;
+	    }
+	    else {
+		line = line + dd->gp.yLineBias;
+		angle = 0;
+	    }
+	    coords = MAR3;
+	    break;
+	case 4:
+	    if(las == 1 || las == 2) {
+		at = at - GConvertYUnits(0.3, LINES, USER, dd);
+		angle = 0;
+	    }
+	    else {
+		line = line + 1 - dd->gp.yLineBias;
+		angle = 90;
+	    }
+	    coords = MAR4;
+	    break;
 	}
-	subcoords = USER;
+	GText(at, line, coords, str, xadj, yadj, angle, dd);
     }
-    /* Note: I changed dd->gp.yLineBias to 0.3 here. */
-    /* Purely visual tuning. RI */
-    switch(side) {
-    case 1:
-	if(las == 2 || las == 3) {
-	    at = at + GConvertXUnits(0.3, LINES, subcoords, dd);
-	    angle = 90;
-	}
-	else {
-	    line = line + 1 - dd->gp.yLineBias;
-	    angle = 0;
-	}
-	break;
-    case 2:
-	if(las == 1 || las == 2) {
-	    at = at - GConvertYUnits(0.3, LINES, subcoords, dd);
-	    angle = 0;
-	}
-	else {
-	    line = line + dd->gp.yLineBias;
-	    angle = 90;
-	}
-	break;
-    case 3:
-	if(las == 2 || las == 3) {
-	    at = at + GConvertXUnits(0.3, LINES, subcoords, dd);
-	    angle = 90;
-	}
-	else {
-	    line = line + dd->gp.yLineBias;
-	    angle = 0;
-	}
-	break;
-    case 4:
-	if(las == 1 || las == 2) {
-	    at = at - GConvertYUnits(0.3, LINES, subcoords, dd);
-	    angle = 0;
-	}
-	else {
-	    line = line + 1 - dd->gp.yLineBias;
-	    angle = 90;
-	}
-	break;
-    }
-    GText(at, line, coords, str, xadj, yadj, angle, dd);
 }/* GMtext */
 
 
@@ -5185,8 +5247,8 @@ void InitGraphics(void)
 
 static SEXP getSymbolValue(char *symbolName)
 {
-    SEXP s, t;
-    t = findVar(s = install(symbolName), R_NilValue);
+    SEXP t;
+    t = findVar(install(symbolName), R_NilValue);
     return t;
 }
 

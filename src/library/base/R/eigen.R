@@ -6,17 +6,13 @@ eigen <- function(x, symmetric, only.values=FALSE)
 	stop("non-square matrix in eigen")
     complex.x <- is.complex(x)
     if(complex.x) {
-	if(missing(symmetric)) {
-            test <- all.equal.numeric(x, Conj(t(x)), 100*.Machine$double.eps)
-	    symmetric <- is.logical(test) && test
-        }
+	if(missing(symmetric))
+	    symmetric <- all(x == Conj(t(x)))
     }
     else if(is.numeric(x)) {
 	storage.mode(x) <- "double"
-	if(missing(symmetric)) {
-            test <- all.equal.numeric(x, t(x), 100*.Machine$double.eps)
-	    symmetric <- is.logical(test) && test
-        }
+	if(missing(symmetric))
+	    symmetric <- all(x == t(x))
     }
     else stop("numeric or complex values required in eigen")
 

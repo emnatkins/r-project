@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000	    The R Development Core Team.
+ *  Copyright (C) 2000,2001   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -158,7 +158,7 @@ static int file_vfprintf(Rconnection con, const char *format, va_list ap)
 static int file_fgetc(Rconnection con)
 {
     FILE *fp = ((Rfileconn)(con->private))->fp;
-    int c = con->encoding[fgetc(fp)];
+    int c = fgetc(fp);
     return feof(fp) ? R_EOF : c;
 }
 
@@ -241,9 +241,9 @@ static Rconnection newfile(char *description, char *mode)
 
 SEXP do_file(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP sfile, sopen, ans, class, enc;
+    SEXP sfile, sopen, ans, class;
     char *file, *open;
-    int i, ncon, block;
+    int ncon, block;
     Rconnection con = NULL;
 
     checkArity(op, args);
@@ -259,14 +259,9 @@ SEXP do_file(SEXP call, SEXP op, SEXP args, SEXP env)
     block = asLogical(CADDR(args));
     if(block == NA_LOGICAL)
 	error("invalid `block' argument");
-    enc = CADDDR(args);
-    if(!isInteger(enc) || length(enc) != 256)
-	error("invalid `enc' argument");
     open = CHAR(STRING_ELT(sopen, 0));
     ncon = NextConnection();
     con = Connections[ncon] = newfile(file, strlen(open) ? open : "r");
-    for(i = 0; i < 256; i++)
-	con->encoding[i] = (unsigned char) INTEGER(enc)[i];
 
     /* open it if desired */
     if(strlen(open)) con->open(con);
@@ -360,9 +355,9 @@ extern Rconnection newWpipe(char *description, char *mode);
 SEXP do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
 {
 #ifdef HAVE_POPEN
-    SEXP scmd, sopen, ans, class, enc;
+    SEXP scmd, sopen, ans, class;
     char *file, *open;
-    int i, ncon;
+    int ncon;
     Rconnection con = NULL;
 
     checkArity(op, args);
@@ -376,9 +371,6 @@ SEXP do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
     if(!isString(sopen) || length(sopen) != 1)
 	error("invalid `open' argument");
     open = CHAR(STRING_ELT(sopen, 0));
-    enc = CADDR(args);
-    if(!isInteger(enc) || length(enc) != 256)
-	error("invalid `enc' argument");
 
     ncon = NextConnection();
 #ifdef Win32
@@ -390,8 +382,6 @@ SEXP do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
     con = newpipe(file, strlen(open) ? open : "r");
 #endif
     Connections[ncon] = con;
-    for(i = 0; i < 256; i++)
-	con->encoding[i] = (unsigned char) INTEGER(enc)[i];
 
     /* open it if desired */
     if(strlen(open)) con->open(con);

@@ -1,4 +1,4 @@
-% $Id: sortedXyData.Rd,v 1.2 2001/01/24 12:15:04 bates Exp $
+% $Id: sortedXyData.Rd,v 1.1.24.1 2001/01/24 12:20:54 ripley Exp $
 \name{sortedXyData}
 \title{Create a sortedXyData object}
 \alias{sortedXyData}

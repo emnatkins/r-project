@@ -35,6 +35,10 @@
 #endif
 
 
+#ifdef FORTRAN_H
+#error __MUST__include "Mathlib.h"  _before_  "Fortran.h"
+#endif
+
 #include <errno.h>
 #include <limits.h>
 #include <float.h>

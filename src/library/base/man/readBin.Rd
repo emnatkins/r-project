@@ -6,7 +6,7 @@
   Read binary data from a connection, or write binary data to a connection.
 }
 \usage{
-readBin(con, what, n = -1, size = NA, endian = .Platform$endian)
+readBin(con, what, n = 1, size = NA, endian = .Platform$endian)
 writeBin(object, con, size = NA, endian = .Platform$endian)
 }
 \arguments{
@@ -16,8 +16,8 @@ writeBin(object, con, size = NA, endian = .Platform$endian)
     the mode: one of \code{"numeric", "double", "integer", "int",
       "logical", "complex", "character"}.}
   \item{n}{integer.  The (maximal) number of records to be
-    read. Negative values indicate that one should read up to the end of
-    the connection.}
+    read. You can use an over-estimate here, but not too large as
+    storage is reserved for \code{n} items.}
   \item{size}{integer.  The number of bytes per element in the byte
     stream.  The default, \code{NA}, uses the natural size.  Size changing
     is not supported for complex vectors.}
@@ -54,16 +54,12 @@ writeBin(object, con, size = NA, endian = .Platform$endian)
 }
 \value{
   For \code{readBin}, a vector of appropriate mode and the number of
-  items read (which might be less than \code{m}).
+  items read (which might be less than \code{n}).
 
   For \code{writeBin}, none.
 }
 \seealso{
-  \code{\link{connections}}, \code{\link{readLines}},
-  \code{\link{writeLines}}.
-
-  \code{\link{.Machine}} for the sizes of \code{long}, \code{long long}
-  and \code{long double}.
+  \code{\link{connection}}, \code{\link{readLines}}, \code{\link{writeLines}}
 }
 \examples{
 zz <- file("testbin", "wb")
@@ -75,9 +71,6 @@ writeBin(pi+3i, zz)
 writeBin("A test of a connection", zz)
 z <- paste("A very long string", 1:100, collapse=" + ")
 writeBin(z, zz)
-if(.Machine$sizeof.long == 8 || .Machine$sizeof.longlong == 8)
-    writeBin(as.integer(5^(1:10)), zz, size = 8)
-if((s <-.Machine$sizeof.longdouble) > 8) writeBin((pi/3)^(1:10), zz, size = s)
 close(zz)
 
 zz <- file("testbin", "rb")
@@ -89,9 +82,6 @@ readBin(zz, numeric(), size=4, endian="swap")
 readBin(zz, complex(), 1)
 readBin(zz, character(), 1)
 z2 <- readBin(zz, character(), 1)
-if(.Machine$sizeof.long == 8 || .Machine$sizeof.longlong == 8)
-    readBin(zz, integer(), 10,  size = 8)
-if((s <-.Machine$sizeof.longdouble) > 8) readBin(zz, numeric(), 10, size = s)
 close(zz)
 unlink("testbin")
 stopifnot(z2 == z)

@@ -1,4 +1,4 @@
-### $Id: selfStart.R,v 1.2 2001/01/15 14:51:58 pd Exp $
+### $Id: selfStart.R,v 1.1.24.1 2001/01/08 20:38:45 bates Exp $
 ###
 ###            self-starting nonlinear regression models
 ###
