@@ -1,0 +1,33 @@
+		Macintosh-specific changes to R
+		===============================
+
+rm131
+=====
+* Added the "Config" menu
+* Fixed a bug in the lapack module. Complex functions are now
+  available.
+* Added MPW makefiles to build standard libraries and modules 
+* Added experimental script to build R via Apple's MRC compiler
+* Now R needs a new shared library "f2c" lib that will increase
+  portability for all fortran based packages
+* Added support for apple events. R begins to be a scriptable
+  application. Very limited support by now but will increase soon.
+  Some demo scripts have been added.
+* link.html.help() function has been added by picking windows code.
+
+rm130
+=====
+* Fixed a bug when saving from menus
+* Added module support
+* Fixed a bug that crashes R under System 8.6 due to a calling
+  to a non-existent function under 8.6
+* Stack and memory settings changed to work on System 8.6
+* R main project file and packages project files have been changed
+* Added back the "Save" menu
+* file.choose() works correctly now
+* Now R takes track of file names associated to each window
+* Fixed a bug with printer dialog
+* Now R can handle "user breaks" in evaluation and printing loops
+
+
+
