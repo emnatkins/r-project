@@ -20,7 +20,6 @@
 
 /*---------------- BIG "FIXME" : Accept "lwd" wherever there's	lty !!! ----
  *		   ====================================================
- *---> need  FixupLwd ?
  */
 
 #include "Defn.h"
@@ -95,17 +94,15 @@ SEXP do_devoff(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 
-/*  P A R A M E T E R    U T I L I T I E S  */
+    /*	P A R A M E T E R    U T I L I T I E S	*/
 
 
 int Specify2(char*, SEXP, DevDesc*);
 
-
-/* ProcessInLinePars handles inline par specifications in graphics */
-/* functions.  It does this by calling Specify2 which is in par.c */
-
 void ProcessInlinePars(SEXP s, DevDesc *dd)
 {
+    /* ProcessInLinePars handles inline par specifications in graphics */
+    /* functions.  It does this by calling Specify2 which is in par.c */
     if(isList(s)) {
 	while(s != R_NilValue) {
 	    if(isList(CAR(s)))
@@ -118,17 +115,16 @@ void ProcessInlinePars(SEXP s, DevDesc *dd)
 }
 
 
-/* GetPar is intended for looking through a list typically that bound */
-/* to ... for a particular parameter value.  This is easier than trying */
-/* to match every graphics parameter in argument lists explicitly. */
-/* FIXME : This needs to be destructive, so that "ProcessInlinePars" */
-/* can be safely called afterwards. */
-
 SEXP GetPar(char *which, SEXP parlist)
 {
+    /* GetPar is intended for looking through a list */
+    /* typically that bound to ... for a particular */
+    /* parameter value.	 This is easier than trying */
+    /* to match every graphics parameter in argument */
+    /* lists and passing them explicitly. */
     SEXP w, p;
     w = install(which);
-    for (p = parlist ; p != R_NilValue ; p = CDR(p)) {
+    for(p=parlist ; p!=R_NilValue ; p=CDR(p)) {
 	if(TAG(p) == w)
 	    return CAR(p);
     }
@@ -457,7 +453,14 @@ static void GetAxisLimits(double left, double right, double *low, double *high)
 }
 
 
-/* axis(side, at, labels, ...) */
+/*
+ *  SYNOPSIS
+ *
+ *    axis(side, at, labels, ...)
+ *
+ *  DESCRIPTION
+ *
+ */
 
 static SEXP labelformat(SEXP labels)
 {
@@ -543,19 +546,19 @@ static SEXP CreateAtVector(double *axp, double *usr, int nint, int log)
 	case 1:
 	    n = floor(log10(axp[1])) - ceil(log10(axp[0])) + 0.25;
 	    nint = n / nint + 1;
-	    rng = pow(10.0, (double)nint);
+	    rng = pow(10., (double)nint);
 	    dn = axp[0];
 	    n = 0;
 	    while(dn < umax) {
 		n++;
-		dn = rng * dn;
+		dn *= rng;
 	    }
 	    at = allocVector(REALSXP, n);
 	    dn = axp[0];
 	    n = 0;
 	    while(dn < umax) {
 		REAL(at)[n++] = dn;
-		dn = rng * dn;
+		dn *= rng;
 	    }
 	    break;
 	case 2:
@@ -934,16 +937,10 @@ SEXP do_plot_xy(SEXP call, SEXP op, SEXP args, SEXP env)
 
     /* Required Arguments */
     sxy = CAR(args);
-    if (isNewList(sxy) && length(sxy) >= 2) {
-        internalTypeCheck(call, sx = VECTOR(sxy)[0], REALSXP);
-        internalTypeCheck(call, sy = VECTOR(sxy)[1], REALSXP);
-    }
-    else if (isList(sxy) && length(sxy) >= 2) {
-        internalTypeCheck(call, sx = CAR(sxy), REALSXP);
-        internalTypeCheck(call, sy = CADR(sxy), REALSXP);
-    }
-    else
+    if (!isList(sxy) || length(sxy) < 2)
 	errorcall(call, "invalid plotting structure\n");
+    internalTypeCheck(call, sx = CAR(sxy), REALSXP);
+    internalTypeCheck(call, sy = CADR(sxy), REALSXP);
     if (LENGTH(sx) != LENGTH(sy))
 	error("x and y lengths differ for plot\n");
     n = LENGTH(sx);
@@ -972,7 +969,7 @@ SEXP do_plot_xy(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(cex = FixupCex(CAR(args)));		args = CDR(args);
     ncex = LENGTH(cex);
 
-    /* Miscellaneous Graphical Parameters -- e.g., lwd */
+    /* Miscellaneous Graphical Parameters */
     GSavePars(dd);
     ProcessInlinePars(args, dd);
 
@@ -1154,11 +1151,11 @@ static void xypoints(SEXP call, SEXP args, int *n)
 
 SEXP do_segments(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    /* segments(x0, y0, x1, y1, col, lty, lwd, xpd) */
-    SEXP sx0, sx1, sy0, sy1, col, lty, lwd;
+    /* segments(x0, y0, x1, y1, col, lty, xpd) */
+    SEXP sx0, sx1, sy0, sy1, col, lty;
     double *x0, *x1, *y0, *y1;
     double xx[2], yy[2];
-    int nx0, nx1, ny0, ny1, i, n, ncol, nlty, nlwd, xpd;
+    int nx0, nx1, ny0, ny1, i, n, ncol, nlty, xpd;
     SEXP originalArgs = args;
     DevDesc *dd = CurrentDevice();
 
@@ -1177,9 +1174,6 @@ SEXP do_segments(SEXP call, SEXP op, SEXP args, SEXP env)
 
     PROTECT(lty = FixupLty(GetPar("lty", args), dd));
     nlty = length(lty);
-
-    PROTECT(lwd = GetPar("lwd", args));
-    nlwd = length(lwd);
 
     xpd = asLogical(GetPar("xpd", args));
     if (xpd == NA_LOGICAL)
@@ -1207,14 +1201,13 @@ SEXP do_segments(SEXP call, SEXP op, SEXP args, SEXP env)
 	    if (dd->gp.col == NA_INTEGER)
 		dd->gp.col = dd->dp.col;
 	    dd->gp.lty = INTEGER(lty)[i % nlty];
-	    dd->gp.lwd = REAL(lwd)[i % nlwd];
 	    GLine(xx[0], yy[0], xx[1], yy[1], DEVICE, dd);
 	}
     }
     GMode(dd, 0);
     GRestorePars(dd);
 
-    UNPROTECT(3);
+    UNPROTECT(2);
     /* NOTE: only record operation if no "error"  */
     /* NOTE: on replay, call == R_NilValue */
     if (call != R_NilValue)
@@ -1294,13 +1287,13 @@ SEXP do_rect(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP do_arrows(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    /* arrows(x0, y0, x1, y1, length, angle, code, col, lty, lwd, xpd) */
-    SEXP sx0, sx1, sy0, sy1, col, lty, lwd;
+    /* arrows(x0, y0, x1, y1, length, angle, code, col, lty, xpd) */
+    SEXP sx0, sx1, sy0, sy1, col, lty;
     double *x0, *x1, *y0, *y1;
     double xx0, yy0, xx1, yy1;
     double hlength, angle;
     int code;
-    int nx0, nx1, ny0, ny1, i, n, ncol, nlty, nlwd, xpd;
+    int nx0, nx1, ny0, ny1, i, n, ncol, nlty, xpd;
     SEXP originalArgs = args;
     DevDesc *dd = CurrentDevice();
 
@@ -1332,11 +1325,6 @@ SEXP do_arrows(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(lty = FixupLty(GetPar("lty", args), dd));
     nlty = length(lty);
 
-    PROTECT(lwd = GetPar("lwd", args));/*need  FixupLwd ?*/
-    nlwd = length(lwd);
-    if(nlwd == 0)
-	errorcall(call, "'lwd' must be numeric of length >=1");
-
     xpd = asLogical(GetPar("xpd", args));
     if (xpd == NA_LOGICAL)
 	xpd = dd->gp.xpd;
@@ -1366,7 +1354,6 @@ SEXP do_arrows(SEXP call, SEXP op, SEXP args, SEXP env)
 		dd->gp.lty = dd->dp.lty;
 	    else
 		dd->gp.lty = INTEGER(lty)[i % nlty];
-	    dd->gp.lwd = REAL(lwd)[i % nlwd];
 	    GArrow(xx0, yy0, xx1, yy1, DEVICE,
 		   hlength, angle, code, dd);
 	}
@@ -1374,7 +1361,7 @@ SEXP do_arrows(SEXP call, SEXP op, SEXP args, SEXP env)
     GMode(dd, 0);
     GRestorePars(dd);
 
-    UNPROTECT(3);
+    UNPROTECT(2);
     /* NOTE: only record operation if no "error"  */
     /* NOTE: on replay, call == R_NilValue */
     if (call != R_NilValue)
@@ -1486,16 +1473,10 @@ SEXP do_text(SEXP call, SEXP op, SEXP args, SEXP env)
     if(length(args) < 3) errorcall(call, "too few arguments\n");
 
     sxy = CAR(args);
-    if (isNewList(sxy) && length(sxy) >= 2) {
-	    internalTypeCheck(call, sx = VECTOR(sxy)[0], REALSXP);
-	    internalTypeCheck(call, sy = VECTOR(sxy)[1], REALSXP);
-    }
-    else if (isList(sxy) && length(sxy) >= 2) {
-	    internalTypeCheck(call, sx = CAR(sxy), REALSXP);
-	    internalTypeCheck(call, sy = CADR(sxy), REALSXP);
-    }
-    else
+    if (!isList(sxy) || length(sxy) < 2)
 	errorcall(call, "invalid plotting structure\n");
+    internalTypeCheck(call, sx = CAR(sxy), REALSXP);
+    internalTypeCheck(call, sy = CADR(sxy), REALSXP);
     if (LENGTH(sx) != LENGTH(sy))
 	error("x and y lengths differ for plot\n");
     n = LENGTH(sx);
@@ -2020,8 +2001,8 @@ SEXP do_locator(SEXP call, SEXP op, SEXP args, SEXP env)
     while(i < n) {
 	if(!GLocator(&(REAL(x)[i]), &(REAL(y)[i]), USER, dd))
 	    break;
-	if (dd->gp.xlog) REAL(x)[i] = pow(10, REAL(x)[i]);
-	if (dd->gp.ylog) REAL(y)[i] = pow(10, REAL(y)[i]);
+	if (dd->gp.xlog) REAL(x)[i] = pow(10., REAL(x)[i]);
+	if (dd->gp.ylog) REAL(y)[i] = pow(10., REAL(y)[i]);
 	i += 1;
     }
     GMode(dd, 0);
@@ -2051,18 +2032,23 @@ double hypot(double x, double y)
 
 SEXP do_identify(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP ans, x, y, l, ind, pos;
+    SEXP ans, x, y, l, ind, pos, Offset;
     double xi, yi, xp, yp, d, dmin, offset;
-    int i, imin, k, n;
+    int i, imin, k, n, npts, plot;
     DevDesc *dd = CurrentDevice();
 
     GCheckState(dd);
 
     checkArity(op, args);
     x = CAR(args);
-    y = CADR(args);
-    l = CADDR(args);
-    if(!isReal(x) || !isReal(y) || !isString(l))
+    args = CDR(args); y = CAR(args);
+    args = CDR(args); l = CAR(args);
+    args = CDR(args); npts = asInteger(CAR(args));
+    args = CDR(args); plot = asLogical(CAR(args));
+    args = CDR(args); Offset = CAR(args);
+    if(npts <= 0 || npts == NA_INTEGER)
+	error("invalid number of points in identify\n");
+    if(!isReal(x) || !isReal(y) || !isString(l) || !isReal(Offset))
 	errorcall(call, "incorrect argument type\n");
     if(LENGTH(x) != LENGTH(y) || LENGTH(x) != LENGTH(l))
 	errorcall(call, "different argument lengths\n");
@@ -2072,7 +2058,7 @@ SEXP do_identify(SEXP call, SEXP op, SEXP args, SEXP env)
 	return NULL;
     }
 
-    offset = GConvertXUnits(0.5, CHARS, INCHES, dd);
+    offset = GConvertXUnits(asReal(Offset), CHARS, INCHES, dd);
     PROTECT(ind = allocVector(LGLSXP, n));
     PROTECT(pos = allocVector(INTSXP, n));
     for(i=0 ; i<n ; i++)
@@ -2080,7 +2066,7 @@ SEXP do_identify(SEXP call, SEXP op, SEXP args, SEXP env)
 
     k = 0;
     GMode(dd, 2);
-    while(k < n) {
+    while(k < npts) {
 	if(!GLocator(&xp, &yp, INCHES, dd)) break;
 	dmin = DBL_MAX;
 	imin = -1;
@@ -2109,14 +2095,14 @@ SEXP do_identify(SEXP call, SEXP op, SEXP args, SEXP env)
 		if(xp >= xi) {
 		    INTEGER(pos)[imin] = 4;
 		    xi = xi+offset;
-		    GText(xi, yi, INCHES,
+		    if(plot) GText(xi, yi, INCHES,
 			  CHAR(STRING(l)[imin]), 0.0,
 			  dd->gp.yCharOffset, 0.0, dd);
 		}
 		else {
 		    INTEGER(pos)[imin] = 2;
 		    xi = xi-offset;
-		    GText(xi, yi, INCHES,
+		    if(plot) GText(xi, yi, INCHES,
 			  CHAR(STRING(l)[imin]), 1.0,
 			  dd->gp.yCharOffset, 0.0, dd);
 		}
@@ -2125,14 +2111,14 @@ SEXP do_identify(SEXP call, SEXP op, SEXP args, SEXP env)
 		if(yp >= yi) {
 		    INTEGER(pos)[imin] = 3;
 		    yi = yi+offset;
-		    GText(xi, yi, INCHES,
+		    if(plot) GText(xi, yi, INCHES,
 			  CHAR(STRING(l)[imin]), 0.5,
 			  0.0, 0.0, dd);
 		}
 		else {
 		    INTEGER(pos)[imin] = 1;
 		    yi = yi-offset;
-		    GText(xi, yi, INCHES,
+		    if(plot) GText(xi, yi, INCHES,
 			  CHAR(STRING(l)[imin]), 0.5,
 			  1-(0.5-dd->gp.yCharOffset),
 			  0.0, dd);

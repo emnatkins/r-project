@@ -20,7 +20,6 @@
 #include "Defn.h"
 #include "Mathlib.h"
 
-
 static int naflag;
 
 SEXP complex_unary(int code, SEXP s1)
@@ -94,24 +93,28 @@ static void complex_pow(complex *r, complex *a, complex *b)
 
     logr = log(hypot(a->r, a->i) );
     logi = atan2(a->i, a->r);
+
     x = exp( logr * b->r - logi * b->i );
     y = logr * b->i + logi * b->r;
+
     r->r = x * cos(y);
     r->i = x * sin(y);
 }
-
-/* FIXME : Use the trick in arithmetic.c to eliminate "modulo" ops */
 
 SEXP complex_binary(int code, SEXP s1, SEXP s2)
 {
     int i, n, n1, n2;
     complex x1, x2;
     SEXP ans;
+
     n1 = LENGTH(s1);
     n2 = LENGTH(s2);
     n = (n1 > n2) ? n1 : n2;
+
     /* Note: "s1" and "s1" are protected in the calling code. */
+
     ans = allocVector(CPLXSXP, n);
+
     if (n1 < 1 || n2 < 1) {
 	for (i = 0; i < n; i++) {
 	    COMPLEX(ans)[i].r = NA_REAL;
@@ -119,6 +122,7 @@ SEXP complex_binary(int code, SEXP s1, SEXP s2)
 	}
 	return ans;
     }
+
     switch (code) {
     case PLUSOP:
 	for (i = 0; i < n; i++) {
@@ -210,7 +214,9 @@ SEXP complex_binary(int code, SEXP s1, SEXP s2)
     default:
 	error("unimplemented complex operation\n");
     }
+
     /* Copy attributes from longest argument. */
+
     if (n1 > n2)
 	copyMostAttrib(s1, ans);
     else if (n1 == n2) {
@@ -219,10 +225,9 @@ SEXP complex_binary(int code, SEXP s1, SEXP s2)
     }
     else
 	copyMostAttrib(s2, ans);
+
     return ans;
 }
-
-/* FIXME : Use the trick in arithmetic.c to eliminate "modulo" ops */
 
 SEXP do_cmathfuns(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -234,16 +239,19 @@ SEXP do_cmathfuns(SEXP call, SEXP op, SEXP args, SEXP env)
     n = length(x);
     if (isComplex(x)) {
 	switch(PRIMVAL(op)) {
+
 	case 1:	/* Re */
 	    y = allocVector(REALSXP, n);
 	    for(i=0 ; i<n ; i++)
 		REAL(y)[i] = COMPLEX(x)[i].r;
 	    break;
+
 	case 2:	/* Im */
 	    y = allocVector(REALSXP, n);
 	    for(i=0 ; i<n ; i++)
 		REAL(y)[i] = COMPLEX(x)[i].i;
 	    break;
+
 	case 3:	/* Mod */
 	    y = allocVector(REALSXP, n);
 	    for(i=0 ; i<n ; i++) {
@@ -259,6 +267,7 @@ SEXP do_cmathfuns(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 	    }
 	    break;
+
 	case 4:	/* Arg */
 	    y = allocVector(REALSXP, n);
 	    for(i=0 ; i<n ; i++) {
@@ -274,6 +283,7 @@ SEXP do_cmathfuns(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 	    }
 	    break;
+
 	case 5:	/* Conj */
 	    y = allocVector(CPLXSXP, n);
 	    for(i=0 ; i<n ; i++) {
@@ -415,7 +425,7 @@ static void z_tan(complex *r, complex *z)
     r->i = sinh(y2)/den;
 }
 
-	/* Complex Arcsin and Arccos Functions */
+	/* Complex Arcsin Function */
 	/* Equation (4.4.37) Abramowitz and Stegun */
 
 static void z_asin(complex *r, complex *z)
@@ -457,6 +467,7 @@ static void z_atan2(complex *r, complex *csn, complex *ccs)
 {
     static double pi = 3.14159265358979323846;
     complex tmp;
+
     if (ccs->r == 0 && ccs->i == 0) {
 	if(csn->r == 0 && csn->r == 0) {
 	    r->r = NA_REAL;
@@ -534,7 +545,8 @@ static void z_tanh(complex *r, complex *z)
 static void cmath1(void (*f)(), complex *x, complex *y, int n)
 {
     int i;
-    for (i = 0 ; i < n ; i++) {
+
+    for (i=0; i<n; i++) {
 	if (ISNA(x[i].r) || ISNA(x[i].i)) {
 	    y[i].r = NA_REAL;
 	    y[i].i = NA_REAL;
@@ -591,14 +603,13 @@ SEXP complex_math1(SEXP call, SEXP op, SEXP args, SEXP env)
 	MATH1(41, gamma);
 #endif
 
+
     default:
 	errorcall(call, "unimplemented complex function\n");
     }
     if (naflag) warning("NAs produced in function \"%s\"\n", PRIMNAME(op));
     return y;
 }
-
-/* FIXME : Use the trick in arithmetic.c to eliminate "modulo" ops */
 
 static SEXP cmath2(SEXP op, SEXP sa, SEXP sb, void (*f)())
 {
@@ -660,26 +671,26 @@ static SEXP cmath2(SEXP op, SEXP sa, SEXP sb, void (*f)())
 
 SEXP complex_math2(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    switch (PRIMVAL(op)) {
-    case 10001:
-	return cmath2(op, CAR(args), CADR(args), z_rround);
-    case 10002:
-	return cmath2(op, CAR(args), CADR(args), z_atan2);
-    case 10003:
-	return cmath2(op, CAR(args), CADR(args), z_logbase);
-    case 10004:
-	return cmath2(op, CAR(args), CADR(args), z_prec);
-    case 0:
-	return cmath2(op, CAR(args), CADR(args), z_atan2);
-    default:
-	errorcall(call, "unimplemented complex function\n");
-	return call;/* just for -Wall */
-    }
+  switch (PRIMVAL(op)) {
+  case 10001:
+    return cmath2(op, CAR(args), CADR(args), z_rround);
+  case 10002:
+    return cmath2(op, CAR(args), CADR(args), z_atan2);
+  case 10003:
+    return cmath2(op, CAR(args), CADR(args), z_logbase);
+  case 10004:
+    return cmath2(op, CAR(args), CADR(args), z_prec);
+  case 0:
+    return cmath2(op, CAR(args), CADR(args), z_atan2);
+  default:
+    errorcall(call, "unimplemented complex function\n");
+    return call;/* just for -Wall */
+  }
 }
 
 SEXP do_complex(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    /* complex(length, real, imaginary) */
+  /* complex(length, real, imaginary) */
     SEXP ans, re, im;
     int i, na, nr, ni;
     na = asInteger(CAR(args));
@@ -689,10 +700,10 @@ SEXP do_complex(SEXP call, SEXP op, SEXP args, SEXP rho)
     PROTECT(im = coerceVector(CADDR(args), REALSXP));
     nr = length(re);
     ni = length(im);
-    /* is always true: if (na >= 0) {*/
-    na = (nr > na) ? nr : na;
-    na = (ni > na) ? ni : na;
-    /* }*/
+    /*is always true: if(na >= 0) {*/
+	na = (nr > na) ? nr : na;
+	na = (ni > na) ? ni : na;
+    /*}*/
     ans = allocVector(CPLXSXP, na);
     for(i=0 ; i<na ; i++) {
 	COMPLEX(ans)[i].r = 0;
@@ -717,7 +728,9 @@ SEXP do_polyroot(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP z, zr, zi, r, rr, ri;
     int degree, fail, i, n;
+
     checkArity(op, args);
+
     z = CAR(args);
     switch(TYPEOF(z)) {
     case CPLXSXP:
@@ -731,8 +744,10 @@ SEXP do_polyroot(SEXP call, SEXP op, SEXP args, SEXP rho)
     default:
 	errorcall(call, "invalid argument type\n");
     }
+
     n = length(z);
     degree = n - 1;
+
     if(degree >= 1) {
 	if(n > 49) errorcall(call, "polynomial degree too high (49 max)\n");
 	if(COMPLEX(z)[n-1].r == 0.0 && COMPLEX(z)[n-1].i == 0.0)
@@ -749,8 +764,7 @@ SEXP do_polyroot(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    REAL(zr)[degree-i] = COMPLEX(z)[i].r;
 	    REAL(zi)[degree-i] = COMPLEX(z)[i].i;
 	}
-	F77_SYMBOL(cpoly)(REAL(zr), REAL(zi), &degree,
-			  REAL(rr), REAL(ri), &fail);
+	F77_SYMBOL(cpoly)(REAL(zr), REAL(zi), &degree, REAL(rr), REAL(ri), &fail);
 	if(fail) errorcall(call, "root finding code failed\n");
 	UNPROTECT(2);
 	r = allocVector(CPLXSXP, degree);

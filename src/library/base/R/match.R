@@ -2,7 +2,7 @@ match <- function(x, table, nomatch=NA)
   .Internal(match(as.character(x), as.character(table), nomatch))
 
 match.call <-
-function(definition=NULL, call=sys.call(sys.parent()), expand.dots=T)
+function(definition=NULL, call=sys.call(sys.parent()), expand.dots=TRUE)
         .Internal(match.call(definition,call,expand.dots))
 
 pmatch <-
@@ -13,7 +13,8 @@ function(x, table, nomatch=NA, duplicates.ok=FALSE)
 	y
 }
 
-"%in%" <- function(x, y) match(x, y, nomatch = 0) > 0
+"%in%" <- function(x, y)
+match(x, y, nomatch = 0) > 0
 
 match.arg <- function (arg, choices) {
   if (missing(choices)) {
@@ -22,8 +23,8 @@ match.arg <- function (arg, choices) {
   }
   if (all(arg == choices)) return(choices[1])
   i <- pmatch(arg, choices)
-  if (is.na(i))
-    stop(paste("ARG should be one of", paste(choices, collapse = ", "),
+  if (is.na(i)) 
+    stop(paste("ARG should be one of", paste(choices, collapse = ", "), 
                sep = " "))
   if (length(i) > 1) stop("there is more than one match in match.arg")
   choices[i]

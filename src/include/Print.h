@@ -67,8 +67,8 @@ void VectorIndex(int, int);
 
 /*  REprintf(char*, ...); ... --> all in Defn.h */
 
-void printArray(SEXP, SEXP, int, SEXP);
-void printMatrix(SEXP, int, SEXP, int, int, SEXP, SEXP);
+void printArray(SEXP, int);
+void printMatrix(SEXP, int, SEXP, int, int);
 void printNamedVector(SEXP, SEXP, int);
 void printVector(SEXP, int, int);
 void printRealVector(double *x, int n, int index);

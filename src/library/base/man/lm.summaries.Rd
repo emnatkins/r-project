@@ -7,13 +7,11 @@ summary(object, correlation = FALSE)
 coefficients(x) ; coef(x)
 deviance(x)
 df.residual(x)
-effects(x)
 family(x)
 formula(x)
 fitted.values(x)
 residuals(x)
 weights(x)
-plot(x)
 
 print.summary(summary.lm.obj, digits = max(3, .Options$digits - 3),
               symbolic.cor = p > 4,
@@ -27,14 +25,12 @@ print.summary(summary.lm.obj, digits = max(3, .Options$digits - 3),
 \alias{coefficients.lm}
 \alias{deviance.lm}
 \alias{df.residual.lm}
-# \alias{effects.lm}
 \alias{family.lm}
 \alias{formula.lm}
 \alias{fitted.values.lm}
 \alias{residuals.lm}
 \alias{weights}
 \alias{weights.lm}
-\alias{plot.lm}
 \alias{print.lm}
 \alias{print.lm.null}
 \alias{print.summary.lm}
@@ -45,20 +41,19 @@ print.summary(summary.lm.obj, digits = max(3, .Options$digits - 3),
     \code{\link{lm}(..)}.}
 }
 \description{
-These functions are all \code{\link{methods}} for class \code{lm} or
+All these functions are \code{\link{methods}} for class \code{lm} or
 \code{summary.lm} and \code{anova.lm} objects.
-
+}
+\details{
 \code{print.summary.lm} tries to be smart about formatting the
 coefficients, standard errors, etc. and additionally gives
-``significance stars'' if \code{signif.stars= TRUE}. 
+``significance stars'' if \code{signif.stars} is \code{TRUE}.
 
 \code{anova.lm} produces an analysis of variance (\code{anova}) table.
 
 The generic accessor functions \code{coefficients}, \code{effects},
 \code{fitted.values} and \code{residuals} can be used to extract
 various useful features of the value returned by \code{lm}.
-
-
 }
 \value{
   The function \code{summary.lm} computes and returns a list of summary

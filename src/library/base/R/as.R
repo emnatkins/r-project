@@ -1,29 +1,15 @@
-as.logical <- function(x,...) UseMethod("as.logical")
-as.logical.default<-function(x) .Internal(as.vector(x,"logical"))
-
-as.integer <- function(x,...) UseMethod("as.integer")
-as.integer.default <- function(x) .Internal(as.vector(x,"integer"))
-
-as.double <- function(x,...) UseMethod("as.double")
-as.double.default <- function(x) .Internal(as.vector(x,"double"))
+as.logical <- function(x) .Internal(as.vector(x,"logical"))
+as.integer <- function(x) .Internal(as.vector(x,"integer"))
+as.double <- function(x) .Internal(as.vector(x,"double"))
 as.real <- .Alias(as.double)
-
-as.complex <- function(x,...) UseMethod("as.complex")
-as.complex.default <- function(x) .Internal(as.vector(x, "complex"))
-
-as.single <- function(x,...) UseMethod("as.single")
-as.single.default <- function(x) {
+as.complex <- function(x) .Internal(as.vector(x, "complex"))
+as.single <- function(x) {
   warning("type single is not supported in R")
   .Internal(as.vector(x,"double"))
 }
-as.character<- function(x,...) UseMethod("as.character")
-as.character.default <- function(x) .Internal(as.vector(x,"character"))
-
-as.expression <- function(x,...) UseMethod("as.expression")
-as.expression.default <- function(x) .Internal(as.vector(x,"expression"))
-
-as.list <- function(x,...) UseMethod("as.list")
-as.list.default <-
+as.character <- function(x) .Internal(as.vector(x,"character"))
+as.expression <- function(x) .Internal(as.vector(x,"expression"))
+"as.list" <-
 function (x) 
 {
   if (is.function(x)) 
@@ -35,8 +21,6 @@ function (x)
   }
   .Internal(as.vector(x, "list"))
 }
-
-#as.vector dispatches internally so no need for a generic
 as.vector <- function(x, mode="any") .Internal(as.vector(x,mode))
 as.matrix <- function(x) UseMethod("as.matrix")
 as.matrix.default <- function(x) {
@@ -45,14 +29,26 @@ as.matrix.default <- function(x) {
   else
     array(x, c(length(x),1), if(!is.null(names(x))) list(names(x), NULL) else NULL)
 }
-as.null <- function(x,...) UseMethod("as.null")
-as.null.default <- function(x) NULL
-
+as.null <- function(x) NULL
 as.function <- function(x,...) UseMethod("as.function")
 "as.function.default" <-
 function (l, envir = sys.frame(sys.parent())) 
-.Internal(as.function.default(l, envir))
-
+{
+  if (!is.list(l)) 
+    stop("Can't coerce object to function")
+  ln <- length(l)
+  alist <- l[-ln]
+  body <- l[[ln]]
+  if (is.expression(body)) 
+    body <- body[[1]]
+  if (ln < 2) 
+    e <- substitute(function() body)
+  else {
+    e <- substitute(function(x) body)
+    e[[2]] <- alist
+  }
+  eval(e, envir)
+}
 as.array <- function(x)
 {
 	if( is.array(x) )

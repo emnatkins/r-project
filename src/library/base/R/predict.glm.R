@@ -1,5 +1,6 @@
-#### copyright (C) 1998 W. N. Venables and B. D. Ripley
-
+# file predict.glm.R
+# copyright (C) 1998 W. N. Venables and B. D. Ripley
+#
 predict.glm <-
 function(object, newdata = NULL, type = c("link", "response"),
          se.fit = FALSE, dispersion = NULL, ...)

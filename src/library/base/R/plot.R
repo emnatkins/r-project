@@ -82,14 +82,15 @@ function (x, y=NULL, type="p", main=NULL, col=par("fg"), bg=NA,
  panel.first
  plot.xy(xy, type, col=col, pch=pch, cex=cex, bg=bg, lty=lty, lwd=lwd, ...)
  panel.last
+ pars <- list(...)
  if (axes) {
-	axis(1, ...)
-	axis(2, ...)
+	axis(1, pars=pars)
+	axis(2, pars=pars)
  }
  if (frame.plot)
 	box(...)
  if (ann)
-	title(main=main, xlab=xlab, ylab=ylab, ...)
+	title(main=main, xlab=xlab, ylab=ylab, pars=pars)
  invisible()
 }
 
@@ -105,7 +106,7 @@ function(x, y, ...) {
 plot.formula <-
 function(formula, data = NULL, subset, na.action, ..., ask = TRUE) {
   if (missing(na.action)) na.action <- options()$na.action
-  m <- match.call(expand.dots = F)
+  m <- match.call(expand.dots = FALSE)
   if (is.matrix(eval(m$data, sys.parent())))
     m$data <- as.data.frame(data)
   m$... <- NULL

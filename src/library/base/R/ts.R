@@ -175,11 +175,13 @@ function (x, type="l", xlim=NULL, ylim=NULL, xlab = "Time", ylab, log="",
 		lines.default(time.x, x, col=col[1], bg=bg, lty=lty[1],
 			pch=pch[1], type=type)
 	}
+
+	pars <- list(...)
 	if (ann)
-		title(main = main, xlab = xlab, ylab = ylab, ...)
+		title(main = main, xlab = xlab, ylab = ylab, pars = pars)
 	if (axes) {
-		axis(1, ...)
-		axis(2, ...)
+		axis(1, pars = pars)
+		axis(2, pars = pars)
 	}
         if (frame.plot) box(...)
 }
@@ -225,12 +227,12 @@ window.ts <- function(x, start, end)
  }
  i <- trunc((start - xtsp[1]) * freq + 1.5):
       trunc(( end  - xtsp[1]) * freq + 1.5)
- x <- if(is.matrix(x)) x[i, , drop = F] else x[i]
+ x <- if(is.matrix(x)) x[i, , drop = FALSE] else x[i]
  tsp(x) <- c(start, end, freq)
  x
 }
 
-"[.ts" <- function (x, i, j, drop = T)
+"[.ts" <- function (x, i, j, drop = TRUE)
 {
  y <- NextMethod("[")
  if (missing(i))

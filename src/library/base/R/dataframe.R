@@ -19,6 +19,8 @@ row.names.default <- function(x) attr(x,"row.names")
   }
   x
 }
+"row.names<-.default" <- function(x, value)
+    "row.names<-.data.frame"(as.data.frame(x),value)
 
 "is.na.data.frame" <- function (x)
 {
@@ -132,7 +134,7 @@ as.data.frame.vector <- function(x, row.names = NULL, optional = FALSE)
 }
 
 as.data.frame.ts <-
-function(x, row.names=NULL, optional=F)
+function(x, row.names=NULL, optional=FALSE)
 {
   if(is.matrix(x)) as.data.frame.matrix(x, row.names, optional)
   else as.data.frame.vector(x, row.names, optional)
@@ -616,13 +618,13 @@ rbind.data.frame <- function(..., deparse.level = 1)
 	seq(from = nrow + 1, length = ni)
       else ri
     }
-  allargs <- list(...)
-  n <- length(allargs)
+  n <- nargs()
   if(n == 0)
     return(structure(list(), class = "data.frame", row.names = character()))
-  nms <- names(allargs)
+  all <- list(...)
+  nms <- names(all)
   if(is.null(nms))
-    nms <- character(length(allargs))
+    nms <- character(length(all))
   cl <- NULL
   perm <- rows <- rlabs <- vector("list", n)
   nrow <- 0
@@ -630,7 +632,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
   all.levs <- list()
   for(i in 1:n) {
     ## check the arguments, develop row and column labels
-    xi <- allargs[[i]]
+    xi <- all[[i]]
     nmi <- nms[i]
     if(inherits(xi, "data.frame")) {
       if(is.null(cl))
@@ -639,11 +641,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
       ni <- length(ri)
       if(is.null(clabs))
 	clabs <- names(xi)
-      else {
-	pi <- match.names(clabs, names(xi))
-	if( !is.null(pi) )
-		perm[[i]] <- pi
-      }
+      else perm[[i]] <- pi <- match.names(clabs, names(xi))
       rows[[i]] <- nii <- seq(from = nrow + 1, length = ni)
       rlabs[[i]] <- Make.row.names(nmi, ri, ni, nrow)
       nrow <- nrow + ni
@@ -654,8 +652,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
 	has.dim <- logical(nvar)
 	for(j in 1:nvar) {
 	  xj <- value[[j]]
-	  if( !is.null(levels(xj)) )
-	  	all.levs[[j]] <- levels(xj)
+	  all.levs[[j]] <- levels(xj)
 	  has.dim[j] <- length(dim(xj)) == 2
 	}
       }
@@ -678,11 +675,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
       if(length(nmi <- names(xi)) > 0) {
 	if(is.null(clabs))
 	  clabs <- nmi
-	else {
-	  tmp<-match.names(clabs, nmi)
-	  if( !is.null(tmp) )
-	  	perm[[i]] <- tmp
-        }
+	else perm[[i]] <- match.names(clabs, nmi)
       }
     }
     else if(length(xi) > 0) {
@@ -692,7 +685,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
   }
   nvar <- length(clabs)
   if(nvar == 0)
-    nvar <- max(sapply(allargs, length))	# only vector args
+    nvar <- max(sapply(all, length))	# only vector args
   if(nvar == 0)
     return(structure(list(), class = "data.frame",
 		     row.names = character()))
@@ -719,7 +712,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
       }
   }
   for(i in 1:n) {
-    xi <- unclass(allargs[[i]])
+    xi <- unclass(all[[i]])
     if(!is.list(xi))
       if(length(xi) != nvar)
 	xi <- rep(xi, length = nvar)
@@ -855,10 +848,10 @@ Ops.data.frame <- function(e1, e2 = NULL)
   rclass <- !unary && (nchar(.Method[2]) > 0)
   value <- list()
   ## set up call as op(left, right)
-  f <- sys.call()
-  f[[1]] <- as.name(.Generic)
-  f[[2]] <- as.name("left")
-  if(!unary) f[[3]] <- as.name("right")
+  FUN <- get(.Generic, envir = sys.frame(sys.parent()),mode="function")
+  f <- if (unary) 
+    quote(FUN(left))
+  else quote(FUN(left, right))
   lscalar <- rscalar <- FALSE
   if(lclass && rclass) {
     rn <- row.names(e1)
