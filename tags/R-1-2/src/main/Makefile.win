@@ -1,0 +1,29 @@
+#-*- Makefile -*-
+include ../gnuwin32/MkRules
+
+all: makeMakedeps ../gnuwin32/libmain.a
+
+CFLAGS=$(OPTFLAGS) -I../include -DHAVE_CONFIG_H
+FFLAGS=$(OPTFLAGS)
+SOURCES=$(filter-out strdup.c, $(wildcard *.c *.f))
+OBJS=$(foreach i, $(SOURCES), $(basename $i).o)
+
+gram.c: ;
+
+saveload-CFLAGS=-I../gnuwin32/xdr
+
+../gnuwin32/libmain.a: $(OBJS)
+
+# Dependencies
+CSOURCES=$(wildcard *.c)
+DEPS=$(foreach i, $(CSOURCES), $(basename $i).d)
+
+.c.d:
+	@echo "making $@ from $<"
+	@$(CC)  -M $(CFLAGS) $($*-CFLAGS) $< -o $@
+
+makeMakedeps: $(DEPS)
+	@$(RM) Makedeps
+	@cat $(DEPS) >> Makedeps
+
+-include Makedeps
