@@ -1,0 +1,88 @@
+#
+# ${R_HOME}/etc/Makefile
+
+VPATH = @srcdir@
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+
+top_builddir = ..
+subdir = etc
+
+include $(top_builddir)/Makeconf
+
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+DISTFILES = Rdconvlib.pl buildlib.pl html-layout.pl \
+	Makeconf.in Makeconf-tests.in Makefile.in \
+	colors.big colors.small test-things.Rd \
+	gnome-interface.glade
+
+EXPORTFILE = @EXPORTFILE@
+GNOME_IF_FILES = @GNOME_IF_FILES@
+
+all: Makefile Makeconf Makeconf-tests R
+
+Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
+Makeconf: $(srcdir)/Makeconf.in $(top_builddir)/config.status
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
+Makeconf-tests: $(srcdir)/Makeconf-tests.in $(top_builddir)/config.status
+	@cd $(top_builddir) && \
+	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
+	  $(SHELL) ./config.status
+
+R: Makeconf Makeconf-tests
+	@if [ "$(srcdir)" != "." ]; then \
+	  $(MAKE) rhome=$(top_builddir) install-perl; \
+	  $(MAKE) rhome=$(top_builddir) install-gnome; \
+	fi
+
+install: installdirs install-perl install-gnome
+	@echo "installing etc ..."
+	@for f in Makeconf Makeconf-tests $(EXPORTFILE); do \
+	  $(INSTALL_DATA) $${f} $(rhome)/etc; \
+	done
+installdirs:
+	@$(MKINSTALLDIRS) $(rhome)/etc
+install-perl:
+	@for f in $(srcdir)/*.pl; do \
+	  $(INSTALL_DATA) $${f} $(rhome)/etc; \
+	done
+install-gnome:
+	@if test -n "$(GNOME_IF_FILES)"; then \
+	  $(MKINSTALLDIRS) $(rhome)/gnome ;\
+	  for f in "$(GNOME_IF_FILES)"; do \
+	    $(INSTALL_DATA) $(srcdir)/$${f} $(rhome)/gnome; \
+	  done; \
+	fi
+install-strip: install
+uninstall:
+	@echo "uninstalling etc ..."
+	@if test -d $(rhome)/etc -a \
+	  "`cd $(rhome); pwd`" != "`cd $(top_builddir); pwd`"; then \
+	  (cd $(rhome)/etc && \
+	    rm -f *.pl Makeconf Makeconf-tests \
+	          $(EXPORTFILE) $(GNOME_IF_FILES)); \
+	  rmdir $(rhome)/etc 2> /dev/null \
+	    || echo "  subdir etc not removed"; \
+	fi
+
+mostlyclean: clean
+clean:
+	@if [ "$(srcdir)" != "." ]; then \
+	  rm -f *.pl $(GNOME_IF_FILES); \
+	fi
+	@rm -f $(EXPORTFILE)
+distclean: clean
+	@rm -f Makeconf Makeconf-tests Makefile
+maintainer-clean: distclean
+
+distdir: $(DISTFILES)
+	@for f in $(DISTFILES); do \
+	  test -f $(distdir)/$${f} \
+	    || ln $(srcdir)/$${f} $(distdir)/$${f} 2>/dev/null \
+	    || cp -p $(srcdir)/$${f} $(distdir)/$${f}; \
+	done
