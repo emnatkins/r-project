@@ -1,0 +1,250 @@
+=================================================
+This is an automated summary of the status of the R-bugs
+repository.
+
+Note that this may be neither complete nor perfectly
+correct at any given instance: Not all bugs are reported,
+and some reported bugs may have been fixed, but the
+repository not yet updated.
+
+Some bug fixes are difficult to verify because they pertain
+to specific hardware or operating system versions. If you
+have information to contribute, please do so.
+
+If you happen to know how to fix a problem please send
+patches to the bug repository, too.
+
+New bugs are reported either through the web
+interface at r-bugs.biostat.ku.dk or via email to
+r-bugs@biostat.ku.dk. The bug.report() function can be
+used to automate parts of the procedure on many systems.
+Followups on older bugs can be done by including the string
+"(PR#999)" in the Subject of an email (change 999 to the
+actual reference number, of course!).
+=================================================
+
+Directory:  Accuracy
+
+* PR# 594 *
+Subject: svd() (Linpack) problems/bug for ill-conditioned matrices
+From: Martin Maechler <maechler@stat.math.ethz.ch>
+Date: Wed, 5 Jul 2000 18:32:01 +0200 (CEST)
+
+Directory:  Add-ons
+
+* PR# 567 *
+Subject: ctest not works
+From: George Diniz <george@cpqam.fiocruz.br>
+Date: Sun, 12 Mar 2000 12:03:45 -0200
+--possibly the RH6.2 Fortran bug
+* PR# 503 *
+Subject: dmvnorm() bug in e1071
+From: "Gregory R. Warnes" <warnes@biostat.washington.edu>
+Date: Fri, 24 Mar 2000 03:24:45 +0000 (GMT)
+* PR# 496 *
+From: bonneau@epi.roazhon.inra.fr (en148)
+Date: Tue, 21 Mar 2000 10:57:13 +0100 (MET)
+--base R has no est.variogram function.
+--This appears to be a bug report on sgeostat.
+
+Directory:  Analyses
+
+none
+
+Directory:  Documentation
+
+none
+
+Directory:  Graphics
+
+* PR# 625 *
+Subject: Re: [Rd] Re: [R] problem clipping R postscript plots within latex
+From: Prof Brian D Ripley <ripley@stats.ox.ac.uk>
+Date: Wed, 2 Aug 2000 21:38:31 +0100 (GMT Daylight Time)
+* PR# 623 *
+Subject: Re: [R] problem clipping R postscript plots within latex
+From: Peter Dalgaard BSA <p.dalgaard@biostat.ku.dk>
+Date: 02 Aug 2000 15:01:52 +0200
+* PR# 584 *
+Subject: par(lty = "1") -- lty storage-etc bug
+From: Martin Maechler <maechler@stat.math.ethz.ch>
+Date: Tue, 27 Jun 2000 09:11:36 +0200 (CEST)
+* PR# 202 *
+Subject: persp box occlusion bug
+From: wsi@gcal.ac.uk
+Date: Wed, 2 Jun 1999 15:02:03 +0200 (MET DST)
+--The persp algorithm does not apply the occlusion rules to the frame, 
+--which is always plotted first. 
+--A bug, but not very simple to fix.
+
+Directory:  In-Out
+
+none
+
+Directory:  Installation
+
+* PR# 597 *
+Subject: multiply defined symbols
+From: plucas@csd.abdn.ac.uk
+Date: Fri, 7 Jul 2000 12:23:44 +0200 (MET DST)
+--Probably system-specific due to use of fort77
+* PR# 467 *
+Subject: Re: [R] Re: R-1.0.0 is released
+From: Peter Dalgaard BSA <p.dalgaard@biostat.ku.dk>
+Date: 01 Mar 2000 20:26:40 +0100
+--followup to PR#466
+* PR# 466 *
+Subject: Re: R-1.0.0 is released
+From: bhoel@server.python.net (Berthold=?iso-8859-1?q?_H=F6llmann?=)
+Date: 01 Mar 2000 16:00:54 +0100
+* PR# 571 *
+Subject:  Missing -lc for compilation on AIX (R 1.1.0) 
+From: Thomas Vogels <tov@infiniti.ece.cmu.edu>
+Date: Thu, 15 Jun 2000 13:42:50 -0400
+* PR# 485 *
+Subject: Install R1.0.0
+From: Lynn Zhang <lyzhang@umich.edu>
+Date: Mon, 13 Mar 2000 16:10:52 -0500 (EST)
+
+Directory:  Language
+
+* PR# 589 *
+Subject: Bug with lists and expressions
+From: dmurdoch@pair.com (Duncan Murdoch)
+Date: Tue, 04 Jul 2000 02:26:41 GMT
+* PR# 587 *
+Subject: dim(a <- ...) sets invisible flag erronously
+From: Martin Maechler <maechler@stat.math.ethz.ch>
+Date: Fri, 30 Jun 2000 20:15:59 +0200 (MET DST)
+--Not specific to dim: R differs from S for most functions here.
+* PR# 412 *
+Subject: anomalies with call objects
+From: Peter Dalgaard BSA <p.dalgaard@biostat.ku.dk>
+Date: 06 Feb 2000 01:18:50 +0100
+* PR# 408 *
+Subject: convolution bug
+From: wsimpson@gcal.ac.uk
+Date: Fri, 28 Jan 2000 11:17:36 +0100 (MET)
+
+Directory:  Low-level
+
+* PR# 608 *
+Subject: seg.fault in eval.c
+From: Adrian Vance Custer <acuster@nopause.berkeley.edu>
+Date: Sat, 15 Jul 2000 01:22:23 -0700
+* PR# 536 *
+Subject: Problem with match.arg()
+From: kjetikj@astro.uio.no
+Date: Sun, 7 May 2000 13:58:21 +0200 (MET DST)
+--1.0.0 bug fixed for 1.0.1 ??
+* PR# 505 *
+Subject: interrupted save 
+From: Thomas Lumley <thomas@biostat.washington.edu>
+Date: Sat, 25 Mar 2000 12:16:50 -0800 (PST)
+* PR# 551 *
+Subject: Bus Error crash
+From: kjetikj@astro.uio.no
+Date: Mon, 22 May 2000 13:06:48 +0200 (MET DST)
+--- ??? -- not (yet) reproducible with small examples
+--- after load()ing large objects
+--- on two different DEC alpha versions
+* PR# 545 *
+Subject: Segmentation Fault of unknown cause
+From: kjetikj@astro.uio.no
+Date: Mon, 15 May 2000 16:29:29 +0200 (MET DST)
+
+Directory:  Misc
+
+none
+
+Directory:  Models
+
+* PR# 621 *
+Subject: anova() on three or more objects behaves inconsistently
+From: Prof Brian D Ripley <ripley@stats.ox.ac.uk>
+Date: Tue, 1 Aug 2000 10:02:18 +0100 (BST)
+* PR# 614 *
+Subject: scoping problems
+From: halvorsen <kjetilh@umsanet.edu.bo>
+Date: Mon, 24 Jul 2000 17:48:49 -0400
+--issue here is the definition of quasi().
+
+Directory:  Startup
+
+* PR# 486 *
+Subject: Re: autoload error in profile {was anova-bug in R-version  1.0.0?}
+From: Martin Maechler <maechler@stat.math.ethz.ch>
+Date: Tue, 14 Mar 2000 10:32:43 +0100 (MET)
+--workaround to the origin problem in 1.0.1
+--New report: try does not work from the profile.
+
+Directory:  System-specific
+
+* PR# 592 *
+Subject: tseries bug
+From: przemat@itti.com.pl
+Date: Tue, 4 Jul 2000 14:52:17 +0200 (MET DST)
+* PR# 490 *
+Subject: R-1.0.0 on alpha/osf1 memory glitch
+From: Ray Brownrigg <Ray.Brownrigg@mcs.vuw.ac.nz>
+Date: Fri, 17 Mar 2000 11:25:30 +1300 (NZDT)
+* PR# 452 *
+Subject: problem with glm
+From: Brad McNeney <mcneney@cs.sfu.ca>
+Date: Fri, 18 Feb 2000 17:51:54 -0800 (PST)
+--Problems on Alpha's with glm. Status unclear
+* PR# 533 *
+Subject: acepack, akima and tripack will not load 
+From: mallen@tntech.edu
+Date: Thu, 4 May 2000 19:18:59 +0200 (MET DST)
+--related to PR#521: probably compiler-specific
+* PR# 521 *
+Subject: akima core dumps on loading
+From: santini@dsi.unimi.it
+Date: Mon, 17 Apr 2000 11:30:41 +0200 (MET DST)
+--Probably compiler-specific
+* PR# 547 *
+Subject: system(.., ignore.stderr = TRUE)  problem on Solaris
+From: Martin Maechler <maechler@stat.math.ethz.ch>
+Date: Fri, 19 May 2000 21:12:02 +0200 (CEST)
+--redirection of stderr to /dev/null in system occurs before the command
+--is tried on some systems and after on others.
+* PR# 537 *
+Subject: eigen broken on AIX with R-devel?
+From: Thomas J Vogels <tov@ece.cmu.edu>
+Date: 08 May 2000 12:01:04 -0400
+--AIX, probably compiler-specific
+* PR# 534 *
+Subject: wsfe bug report just made
+From: mallen@tntech.edu
+Date: Thu, 4 May 2000 19:20:35 +0200 (MET DST)
+--follow up to PR#533
+
+Directory:  TooMuchAtOnce
+
+* PR# 532 *
+Subject: Bug report -- 1.0.1, HP-UX
+From: Russ Lenth <russell-lenth@uiowa.edu>
+Date: Wed, 03 May 2000 12:15:26 -0500
+--1) is a user error.
+--2) command-line history has no information
+--3) help.start looks like a permissions problem. 
+
+Directory:  Windows
+
+none
+
+Directory:  incoming
+
+* PR# 628 *
+Subject: Re: [Rd] predict.lm is broken in 1.1.0-patched (2000-August-7)
+From: Prof Brian D Ripley <ripley@stats.ox.ac.uk>
+Date: Mon, 7 Aug 2000 22:41:50 +0100 (BST)
+* PR# 627 *
+Subject: Re: [Rd] predict.lm is broken in 1.1.0-patched (2000-August-7)
+From: Thomas Lumley <thomas@biostat.washington.edu>
+Date: Mon, 7 Aug 2000 12:58:22 -0700 (PDT)
+* PR# 626 *
+Subject: predict.lm is broken in 1.1.0-patched (2000-August-7)
+From: Prof Brian D Ripley <ripley@stats.ox.ac.uk>
+Date: Mon, 7 Aug 2000 19:43:38 +0100 (BST)

@@ -1,0 +1,51 @@
+#-*- Makefile -*-
+all:  $(DLLNAME).dll
+
+SOURCES=$(wildcard -f *.c *.f)
+CXXSOURCES=$(wildcard -f *.cc *.cpp *.C)
+OBJSA=$(foreach i,$(SOURCES) $(CXXSOURCES),$(basename $i).o)
+
+include $(RHOME)/src/gnuwin32/MkRules
+
+ifneq ($(strip $(CXXSOURCES)),)
+  DLL_LDMAIN=g++
+endif
+
+ifdef DEBUG
+  DLLFLAGS=
+  DEBUGFLAG=-g -Wall
+else
+  DLLFLAGS=-s
+  DEBUGFLAG=-Wall
+endif
+
+CPPFLAGS=$(PKG_CPPFLAGS) -I$(RHOME)/src/include -include $(RHOME)/src/include/globalvar.h 
+CFLAGS=$(CPPFLAGS) $(DEBUGFLAG) -O2 $(PKG_CFLAGS)
+CXXFLAGS=$(CPPFLAGS) $(DEBUGFLAG) -O2 $(PKG_CXXFLAGS)
+FFLAGS=-O2 $(DEBUGFLAG)
+DLLLIBS=-L$(RHOME)/src/gnuwin32 $(PKG_LIBS) $(FLIBS) -lR 
+
+ifeq ($(PKG),RODBC)
+  DLLLIBS+=-lodbc32
+endif 
+
+
+AA=$(wildcard Makefile)
+ifeq ($(AA),Makefile)
+ include Makefile
+else
+ OBJS=$(filter-out $(OBJS-NO),$(OBJSA))
+endif
+AA=$(wildcard Makevars.win)
+ifeq ($(AA),Makevars.win)
+ include Makevars.win
+else
+-include Makevars
+endif
+
+$(DLLNAME).a: $(OBJS) #
+	$(RM) -f $@
+	$(AR) cr $@ *.o
+	$(RANLIB) $@
+
+$(DLLNAME).dll : $(DLLNAME).a
