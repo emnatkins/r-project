@@ -53,9 +53,13 @@ extern int _finite(double);
 #undef HAVE_STRCOLL
 
 /* Inverse Hyperbolics */
-#undef HAVE_ASINH
-#undef HAVE_ACOSH
-#undef HAVE_ATANH
+#define HAVE_ASINH
+#define HAVE_ACOSH
+#define HAVE_ATANH
+double asinh(double);
+double acosh(double);
+double atanh(double);
+
 
 /* Unix commands through a subshell */
 #undef HAVE_SYSTEM
@@ -137,11 +141,11 @@ extern int _finite(double);
 #define R_VENDOR	"IBM"
 #define R_OS		"Win32"
 #define R_MAJOR		"0"
-#define R_MINOR		"65.0"
-#define R_STATUS	"Unstable"
+#define R_MINOR		"64.0"
+#define R_STATUS	"Patched"
 #define R_STATUS_REV	"0"
-#define R_DAY		"28"
-#define R_MONTH		"April"
+#define R_DAY		"5"
+#define R_MONTH		"May"
 #define R_YEAR		"1999"
 
 

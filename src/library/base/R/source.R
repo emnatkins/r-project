@@ -160,3 +160,4 @@ function (topic, package = .packages(), lib.loc = .lib.loc, echo = TRUE,
     source(zfile, echo = echo, prompt.echo = prompt.echo, verbose = verbose,
            max.deparse.length = 250)
 }
+

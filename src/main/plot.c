@@ -1,7 +1,8 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--1999  Robert Gentleman, Ross Ihaka and the R core team.
+ *  Copyright (C) 1997--1999  Robert Gentleman, Ross Ihaka and the
+ *                            R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -557,10 +558,10 @@ static SEXP CreateAtVector(double *axp, double *usr, int nint, int log)
 	/* Debugging: When does the following happen... ? */
 	if(umin > umax)
 	    warning("CreateAtVector \"log\"(from axis()): "
-		    "usr[0] = %g > %g = usr[1] !", umin, umax);
+		    "usr[0] = %g > %g = usr[1] !\n", umin, umax);
 	dn = axp[0];
 	if(dn < 1e-300)
-	    warning("CreateAtVector \"log\"(from axis()): axp[0] = %g !", dn);
+	    warning("CreateAtVector \"log\"(from axis()): axp[0] = %g !\n", dn);
 
 	/* You get the 3 cases below by
 	 *  for(y in 1e-5*c(1,2,8))  plot(y, log = "y")
@@ -1560,9 +1561,9 @@ SEXP do_polygon(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP do_text(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP sx, sy, sxy, txt, adj, pos, cex, col, font;
+    SEXP sx, sy, sxy, txt, adj, cex, col, font;
     int i, n, ncex, ncol, nfont, ntxt, xpd;
-    double adjx = 0, adjy = 0, offset = 0.5;
+    double adjx=0, adjy=0;
     double *x, *y;
     double xx, yy;
     SEXP originalArgs = args;
@@ -1614,15 +1615,6 @@ SEXP do_text(SEXP call, SEXP op, SEXP args, SEXP env)
     else errorcall(call, "invalid adj value\n");
     args = CDR(args);
 
-    PROTECT(pos = coerceVector(CAR(args), INTSXP));
-    for (i = 0; i < length(pos); i++)
-        if (INTEGER(pos)[i] < 1 || INTEGER(pos)[i] > 4)
-	    errorcall(call, "invalid pos value\n");
-    args = CDR(args);
-
-    offset = GConvertXUnits(asReal(CAR(args)), CHARS, INCHES, dd);
-    args = CDR(args);
-
     PROTECT(cex = FixupCex(GetPar("cex", args)));
     ncex = LENGTH(cex);
 
@@ -1635,7 +1627,7 @@ SEXP do_text(SEXP call, SEXP op, SEXP args, SEXP env)
 
     xpd = asLogical(GetPar("xpd", args));
     if (xpd == NA_LOGICAL)
-	xpd = dd->gp.xpd; /* was 0 */
+	xpd = dd->gp.xpd;/* was 0 */
 
     x = REAL(sx);
     y = REAL(sy);
@@ -1650,7 +1642,7 @@ SEXP do_text(SEXP call, SEXP op, SEXP args, SEXP env)
     for (i = 0; i < n; i++) {
 	xx = x[i % n];
 	yy = y[i % n];
-	GConvert(&xx, &yy, USER, INCHES, dd);
+	GConvert(&xx, &yy, USER, DEVICE, dd);
 	if (FINITE(xx) && FINITE(yy)) {
 	    if (ncol && INTEGER(col)[i % ncol] != NA_INTEGER)
 		dd->gp.col = INTEGER(col)[i % ncol];
@@ -1664,36 +1656,12 @@ SEXP do_text(SEXP call, SEXP op, SEXP args, SEXP env)
 		dd->gp.font = INTEGER(font)[i % nfont];
 	    else
 		dd->gp.font = dd->dp.font;
-	    if (length(pos) > 0) {
-		switch(INTEGER(pos)[i%length(pos)]) {
-		case 1:
-		    yy = yy - offset;
-		    adjx = 0.5;
-		    adjy = 1 - (0.5 - dd->gp.yCharOffset);
-		    break;
-		case 2:
-		    xx = xx - offset;
-		    adjx = 1;
-		    adjy = dd->gp.yCharOffset;
-		    break;
-		case 3:
-		    yy = yy + offset;
-		    adjx = 0.5;
-		    adjy = 0;
-		    break;
-		case 4:
-		    xx = xx + offset;
-		    adjx = 0;
-		    adjy = dd->gp.yCharOffset;
-		    break;
-		}
-	    }
 	    if(isExpression(txt))
-		GMathText(xx, yy, INCHES,
+		GMathText(xx, yy, DEVICE,
 			  VECTOR(txt)[i % ntxt],
 			  adjx, adjy, dd->gp.srt, dd);
 	    else
-		GText(xx, yy, INCHES,
+		GText(xx, yy, DEVICE,
 		      CHAR(STRING(txt)[i % ntxt]),
 		      adjx, adjy, dd->gp.srt, dd);
 	}
@@ -1701,7 +1669,7 @@ SEXP do_text(SEXP call, SEXP op, SEXP args, SEXP env)
     GMode(0, dd);
 
     GRestorePars(dd);
-    UNPROTECT(5);
+    UNPROTECT(4);
     /* NOTE: only record operation if no "error"  */
     /* NOTE: on replay, call == R_NilValue */
     if (call != R_NilValue)

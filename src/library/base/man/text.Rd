@@ -2,8 +2,7 @@
 \title{Add Text to a Plot}
 \usage{
 text (x, ...)
-text.default (x, y = NULL, labels = seq(along = x), adj = NULL,
-              pos = NULL, offset = 0.5, \dots)
+text.default (x, y = NULL, labels = seq(along = x), adj = NULL, \dots)
 }
 \alias{text}
 \alias{text.default}
@@ -13,16 +12,8 @@ text.default (x, y = NULL, labels = seq(along = x), adj = NULL,
     \code{y} differs, the shorter one is recycled.}
   \item{labels}{character or expression with the \emph{text} to be
     written.}
-  \item{adj}{one or two numeric values which specify the x
-    (and optionally y) adjustment of the labels.}
-  \item{pos}{a position specifier for the text.  If specified this
-    overrides any \code{adj} value given.  Values of \code{1},
-    \code{1}, \code{1} and \code{1}, respectively indicate
-    positions below, to the left of, above and to the right of
-    the specified coordinates.}
-  \item{offset}{when \code{pos} is specified, this value gives the
-    offset of the label from the specified coordinate in fractions
-    of a character width.}
+  \item{adj}{character or expression with the \emph{text} to be
+    written.}
   \item{\dots}{further graphical parameters (from \code{\link{par}}),
     such as \code{cex}, etc.}
 }
@@ -39,10 +30,6 @@ text.default (x, y = NULL, labels = seq(along = x), adj = NULL,
   greek letters, fractions, etc.
 
   \code{adj} allows \emph{adj}ustment of the text with respect to \code{(x,y)}.
-
-  The \code{pos} and \code{offset} arguments can be used in conjunction
-  with values returned by \code{identify} to recreate an interactively
-  labelled plot.
 }
 \seealso{
   \code{\link{mtext}}, \code{\link{title}}.
