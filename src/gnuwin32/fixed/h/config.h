@@ -33,10 +33,6 @@
    */
 /* #undef HAVE_ALLOCA_H */
 
-/* Define if you have the Aqua headers and libraries, and want the Aqua GUI to
-   be built. */
-/* undef HAVE_AQUA */
-
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 /* #undef HAVE_ARPA_INET_H */
 
@@ -311,9 +307,6 @@
 
 /* Define to 1 if you have the `strptime' function. */
 /* #undef HAVE_STRPTIME */
-
-/* Define to 1 if you have the `symlink' function. */
-/* #undef HAVE_SYMLINK */
 
 /* Define to 1 if you have the `system' function. */
 #define HAVE_SYSTEM 1

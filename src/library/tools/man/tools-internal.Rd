@@ -1,11 +1,9 @@
 \name{tools-internal}
 \title{Internal tools functions}
 \alias{.convertFilePathToAbsolute}
-\alias{.isS3Generic}
 \alias{.listFilesWithExts}
 \alias{.loadPackageQuietly}
 \alias{.makeS3MethodsStopList}
-\alias{.shTest}
 \alias{.sourceAssignments}
 \alias{sQuote}
 \alias{SweaveParseOptions}
@@ -28,11 +26,9 @@
 \usage{
 sQuote(s)
 .convertFilePathToAbsolute(path)
-.isS3Generic(fname, envir)
 .listFilesWithExts(dir, exts, path = TRUE)
 .loadPackageQuietly(package, lib.loc)
 .makeS3MethodsStopList(package)
-.shTest(op, x, y)
 .sourceAssignments(file, envir)
 }
 \details{

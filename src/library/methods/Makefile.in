@@ -10,7 +10,7 @@ subdir = src/library/methods
 
 include $(top_builddir)/Makeconf
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-DISTFILES = LICENSE INDEX DESCRIPTION.in Makefile.in
+DISTFILES = LICENSE INDEX TITLE DESCRIPTION.in Makefile.in
 
 pkg = methods
 
@@ -21,7 +21,7 @@ all: Makefile DESCRIPTION
           echo ".packageName <- \"$(pkg)\"" >  $${f}; \
 	  cat `ls $(srcdir)/R/*.R` >> $${f}; \
 	  $(top_srcdir)/tools/move-if-change $${f} all.R)
-	@for f in COPYRIGHTS INDEX; do \
+	@for f in COPYRIGHTS INDEX TITLE; do \
 	if test -f $(srcdir)/$${f}; then \
 	  $(INSTALL_DATA) $(srcdir)/$${f} \
 	    $(top_builddir)/library/$(pkg); \

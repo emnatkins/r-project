@@ -312,9 +312,6 @@
 /* Define to 1 if you have the `strptime' function. */
 #undef HAVE_STRPTIME
 
-/* Define to 1 if you have the `symlink' function. */
-#undef HAVE_SYMLINK
-
 /* Define to 1 if you have the `system' function. */
 #undef HAVE_SYSTEM
 

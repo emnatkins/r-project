@@ -3,7 +3,6 @@
 %
 % Manually converted to Rd data file description format by KH.
 \name{rock}
-\docType{data}
 \alias{rock}
 \title{Measurements on Petroleum Rock Samples}
 \description{

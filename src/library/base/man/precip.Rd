@@ -1,12 +1,11 @@
 \name{precip}
-\docType{data}
-\alias{precip}
 \title{Annual Precipitation in US Cities}
+\usage{data(precip)}
+\alias{precip}
 \description{
   The average amount of precipitation (rainfall) in inches for each of
   70 United States (and Puerto Rico) cities.
 }
-\usage{data(precip)}
 \format{
   A named vector of length 70.
 }
@@ -15,7 +14,7 @@
 }
 \references{
   McNeil, D. R. (1977)
-  \emph{Interactive Data Analysis}.
+  \emph{Interactive Data Analysis.}
   New York: Wiley.
 }
 \examples{

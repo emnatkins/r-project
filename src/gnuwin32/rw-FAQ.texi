@@ -323,12 +323,6 @@ or your home directory, for example containing the line
 R_LIBS=p:/myRlib
 @end example
 
-If you have permission to do so, you can also create an environment file
-@file{etc\Renviron.site} and set environmental variables in that file in
-the same way.  This is useful for variables which should be set for all
-users and all usages of this R installation.  (Their values can be
-overridden in a @file{.Renviron} or on the command line.)
-
 See @code{?Startup} for more details of environment files.
 
 @item
@@ -569,7 +563,7 @@ installed.  Download ActiveTcl 8.3.x from
 it.  (Most of the installers that ActiveTcl uses will put the @file{bin}
 directory containing the Tcl and Tk DLLs in your path, but you should
 check.  From R, run @code{Sys.getenv("PATH")} to do so.)  Note that you
-do need 8.3.x and not 8.4.x: follow the links to 8.4.x and you will find
+do need 8.3.x and not 8.4.0: follow the links to 8.4.0 and you will find
 8.3.x available there.
 
 You then need to set the environment variable

@@ -366,28 +366,6 @@ setSubclassMetaData <-
       obj[[subClass]] # return subclass info; used by setIs to update cached class def'n
   }
 
-removeSubclassMetaData <-
-    function(ClassDef1, ClassDef2) {
-        what <- subclassesMetaName(ClassDef1)
-        where <- find(what)
-        foundIt <- FALSE
-        for(pos in where) {
-            if(!exists(what, pos, inherits = FALSE))
-                next
-            obj <- get(what, pos)
-            subClass <- getClassName(ClassDef2)
-            if(!is.null(elNamed(obj, subClass))) {
-                elNamed(obj, subClass) <- NULL
-                foundIt <- TRUE
-                if(length(obj) > 0)
-                    assign(what, obj, pos)
-                else
-                    rm(list = what, pos = pos)
-            }
-        }
-        foundIt
-    }
-
 getPrototype <-
   ## extract the class's Prototype information from the class representation (only, not from
   ## the name of the class)
@@ -1172,9 +1150,7 @@ newClassRepresentation <- function(...) {
 .newClassRepresentation <- function(...)
     new("classRepresentation", ...)
 
-.removeSubclassLinks <- function(classDef) {
-    Class <- classDef@className
-    subclasses <- classDef@subclasses
+.removeSubclassLinks <- function(Class, package, subclasses) {
     for(subclass in names(subclasses)) {
         subclassDef <- getClassDef(subclass)
         if(!is(subclassDef, "classRepresentation"))
@@ -1193,12 +1169,6 @@ newClassRepresentation <- function(...) {
             }
         }
     }
-    superClasses <- names(classDef@contains)
-    for(what in superClasses) {
-        if(isClass(what)) 
-            removeSubclassMetaData(getClassDef(what), classDef)
-    }
-    TRUE
 }
 
 .insertExpr <- function(expr, el) {

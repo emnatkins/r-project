@@ -2,7 +2,6 @@
 % copyright (C) 1994-9 W. N. Venables and B. D. Ripley
 %
 \name{UKLungDeaths}
-\docType{data}
 \alias{UKLungDeaths}
 \alias{ldeaths}
 \alias{fdeaths}

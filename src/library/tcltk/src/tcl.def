@@ -22,6 +22,4 @@ EXPORTS
  Tcl_NewIntObj
  Tcl_NewDoubleObj
  Tcl_GetStringFromObj
- Tcl_FindExecutable
-
 

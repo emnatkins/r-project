@@ -1,6 +1,6 @@
 # Subroutines for building R documentation
 
-# Copyright (C) 1997-2002 R Development Core Team
+# Copyright (C) 1997-2000 R Development Core Team
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@ use Cwd;
 use File::Basename;
 use R::Utils;
 use R::Vars;
-use R::Dcf;
 
 if($main::opt_dosnames) { $HTML = ".htm"; } else { $HTML = ".html"; }
 
@@ -120,17 +119,17 @@ sub read_titles {
     foreach $pkg (@libs) {
 	if(-d file_path($lib, $pkg)){
 	    if(! ( ($pkg =~ /^CVS$/) || ($pkg =~ /^\.+$/))){
-		if(-r file_path($lib, $pkg, "DESCRIPTION")){
-		    my $rdcf = R::Dcf->new(file_path($lib, $pkg, "DESCRIPTION"));
-		    my $pkgname = $pkg;
-		    if($rdcf->{"Package"}) {
-			 $pkgname = $rdcf->{"Package"};
+		if(-r file_path($lib, $pkg, "TITLE")){
+		    open rtitle, "<" . file_path($lib, $pkg, "TITLE");
+		    $_ = <rtitle>;
+		    /^(\S*)\s*(.*)/;
+		    my $pkgname = $1;
+		    $tit{$pkgname} = $2;
+		    while(<rtitle>){
+			/\s*(.*)/;
+			$tit{$pkgname} = $tit{$pkgname} . "\n" .$1;
 		    }
-		    if($rdcf->{"Title"}) {
-			$tit{$pkgname} = $rdcf->{"Title"};
-		    } else {
-			$tit{$pkgname} = "-- Title is missing --";
-		    }
+		    close rtitle;
 		}
 	    }
 	}
@@ -201,7 +200,7 @@ sub read_anindex {
 
 
 
-### Build $R_HOME/doc/html/packages.html from the $pkg/DESCRIPTION files
+### Build $R_HOME/doc/html/packages.html from the $pkg/TITLE files
 
 sub build_htmlpkglist {
 
@@ -266,14 +265,11 @@ sub build_index { # lib, dest
         mkdir("$dest", $dir_mod) or die "Could not create directory $dest: $!\n";
     }
 
-    my $title = "";
-    if(-r "../DESCRIPTION") {
-	my $rdcf = R::Dcf->new("../DESCRIPTION");
-	if($rdcf->{"Title"}) {
-	    $title = $rdcf->{"Title"};
-	    chomp $title;
-	}
-    }
+    open title, "<../TITLE";
+    my $title = <title>;
+    close title;
+    chomp $title;
+    $title =~ s/^\S*\s*(.*)/$1/;
 
     my $tdir = file_path($dest, "help");
     if(! -d $tdir) {

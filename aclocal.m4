@@ -20,15 +20,6 @@ else
 fi
 ])# R_ARG_USE
 
-AC_DEFUN([R_SH_VAR_ADD],
-[separator="$3"
-test -z "${separator}" && separator=" "
-if test -z "${[$1]}"; then
-  $1="$2"
-else
-  $1="${[$1]}${separator}$2"
-fi])# R_SH_VAR_ADD
-
 
 AC_DEFUN([R_PROG_AR],
 [AC_CHECK_PROGS(AR, [${AR} ar])
@@ -206,44 +197,44 @@ rm -rf conftest* TMP])
 ])# R_PROG_CC_C_O_LO
 
 AC_DEFUN([R_PROG_CC_MAKEFRAG],
-[r_cc_rules_frag=Makefrag.cc
+[cc_rules_frag=Makefrag.cc
 AC_REQUIRE([R_PROG_CC_M])
 AC_REQUIRE([R_PROG_CC_C_O_LO])
-cat << \EOF > ${r_cc_rules_frag}
+cat << \EOF > ${cc_rules_frag}
 .c.o:
 	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c $< -o $[@]
 EOF
 if test "${r_cv_prog_cc_m}" = yes; then
-  cat << \EOF >> ${r_cc_rules_frag}
+  cat << \EOF >> ${cc_rules_frag}
 .c.d:
 	@echo "making $[@] from $<"
 	@$(CC) -M $(ALL_CPPFLAGS) $< | \
 	  sed -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > $[@]
 EOF
 else
-  cat << \EOF >> ${r_cc_rules_frag}
+  cat << \EOF >> ${cc_rules_frag}
 .c.d:
 	@echo > $[@]
 EOF
 fi
 if test "${r_cv_prog_cc_c_o_lo}" = yes; then
-  cat << \EOF >> ${r_cc_rules_frag}
+  cat << \EOF >> ${cc_rules_frag}
 .c.lo:
 	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS_LO) -c $< -o $[@]
 EOF
 else
-  cat << \EOF >> ${r_cc_rules_frag}
+  cat << \EOF >> ${cc_rules_frag}
 .c.lo:
 	@test -d .libs || mkdir .libs
 	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS_LO) -c $< -o .libs/$[*].o
 	mv .libs/$[*].o $[*].lo
 EOF
 fi
-AC_SUBST_FILE(r_cc_rules_frag)
+AC_SUBST_FILE(cc_rules_frag)
 ])# R_PROG_CC_MAKEFRAG
 
 AC_DEFUN([R_PROG_CC_FLAG],
-[ac_safe=AS_TR_SH($1)
+[ac_safe=`echo "$1" | sed 'y%./+-:=%__p___%'`
 AC_MSG_CHECKING([whether ${CC} accepts $1])
 AC_CACHE_VAL([r_cv_prog_cc_flag_${ac_safe}],
 [AC_LANG_PUSH(C)
@@ -270,7 +261,7 @@ AC_DEFUN([R_PROG_CC_FLAG_D__NO_MATH_INLINES],
   yes
 #endif
 ],
-              [R_SH_VAR_ADD(R_XTRA_CFLAGS, [-D__NO_MATH_INLINES])])
+              [R_XTRA_CFLAGS="${R_XTRA_CFLAGS} -D__NO_MATH_INLINES"])
 ])# R_PROG_CC_FLAG_D__NO_MATH_INLINES
 
 AC_DEFUN([R_C_OPTIEEE],
@@ -287,7 +278,7 @@ int main () {
 	   [r_cv_c_optieee=no],
 	   [r_cv_c_optieee=no]))
 if test "${r_cv_c_optieee}" = yes; then
-  R_SH_VAR_ADD(R_XTRA_CFLAGS, [-OPT:IEEE_NaN_inf=ON])
+  R_XTRA_CFLAGS="${R_XTRA_CFLAGS} -OPT:IEEE_NaN_inf=ON"
 fi
 ])# R_C_OPTIEEE
 
@@ -322,10 +313,10 @@ rm -rf conftest* TMP])
 ])# R_PROG_CXX_C_O_LO
 
 AC_DEFUN([R_PROG_CXX_MAKEFRAG],
-[r_cxx_rules_frag=Makefrag.cxx
+[cxx_rules_frag=Makefrag.cxx
 AC_REQUIRE([R_PROG_CXX_M])
 AC_REQUIRE([R_PROG_CXX_C_O_LO])
-cat << \EOF > ${r_cxx_rules_frag}
+cat << \EOF > ${cxx_rules_frag}
 .cc.o:
 	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS) -c $< -o $[@]
 .cpp.o:
@@ -334,7 +325,7 @@ cat << \EOF > ${r_cxx_rules_frag}
 	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS) -c $< -o $[@]
 EOF
 if test "${r_cv_prog_cxx_m}" = yes; then
-  cat << \EOF >> ${r_cxx_rules_frag}
+  cat << \EOF >> ${cxx_rules_frag}
 .cc.d:
 	@echo "making $[@] from $<"
 	@$(CXX) -M $(ALL_CPPFLAGS) $< | \
@@ -349,7 +340,7 @@ if test "${r_cv_prog_cxx_m}" = yes; then
 	  sed -e 's/^\([[^:]]*\)\.o\([[ 	]]\)*:/\1.o \1.lo\2:/' > $[@]
 EOF
 else
-  cat << \EOF >> ${r_cxx_rules_frag}
+  cat << \EOF >> ${cxx_rules_frag}
 .cc.d:
 	@echo > $[@]
 .cpp.d:
@@ -359,7 +350,7 @@ else
 EOF
 fi
 if test "${r_cv_prog_cxx_c_o_lo}" = yes; then
-  cat << \EOF >> ${r_cxx_rules_frag}
+  cat << \EOF >> ${cxx_rules_frag}
 .cc.lo:
 	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS_LO) -c $< -o $[@]
 .cpp.lo:
@@ -368,7 +359,7 @@ if test "${r_cv_prog_cxx_c_o_lo}" = yes; then
 	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS_LO) -c $< -o $[@]
 EOF
 else
-  cat << \EOF >> ${r_cxx_rules_frag}
+  cat << \EOF >> ${cxx_rules_frag}
 .cc.lo:
 	@test -d .libs || mkdir .libs
 	$(CXX) $(ALL_CPPFLAGS) $(ALL_CXXFLAGS_LO) -c $< -o .libs/$[*].o
@@ -383,11 +374,11 @@ else
 	mv .libs/$[*].o $[*].lo
 EOF
 fi
-AC_SUBST_FILE(r_cxx_rules_frag)
+AC_SUBST_FILE(cxx_rules_frag)
 ])# R_PROG_CXX_MAKEFRAG
 
 AC_DEFUN([R_PROG_CXX_FLAG],
-[ac_safe=AS_TR_SH($1)
+[ac_safe=`echo "$1" | sed 'y%./+-:=%__p___%'`
 AC_MSG_CHECKING([whether ${CXX-c++} accepts $1])
 AC_CACHE_VAL([r_cv_prog_cxx_flag_${ac_safe}],
 [AC_LANG_PUSH(C++)
@@ -421,12 +412,12 @@ elif test -z "${F2C}"; then
   F77=
   case "${host_os}" in
     hpux*)
-      AC_CHECK_PROGS(F77, [g77 fort77 f77 xlf frt pgf77 fl32 af77 f90 \
-                           xlf90 pgf90 epcf90 f95 fort xlf95 lf95 g95 fc])
+      AC_CHECK_PROGS(F77, [g77 fort77 f77 xlf cf77 cft77 pgf77 fl32 af77 \
+                           f90 xlf90 pgf90 epcf90 f95 xlf95 lf95 g95 fc])
       ;;
     *)
-      AC_CHECK_PROGS(F77, [g77 f77 xlf frt pgf77 fl32 af77 fort77 f90 \
-                           xlf90 pgf90 epcf90 f95 fort xlf95 lf95 g95 fc])
+      AC_CHECK_PROGS(F77, [g77 f77 xlf cf77 cft77 pgf77 fl32 af77 fort77 \
+                           f90 xlf90 pgf90 epcf90 f95 xlf95 lf95 g95 fc])
       ;;
   esac
   if test -z "${F77}"; then
@@ -445,11 +436,7 @@ fi
 ])# R_PROG_F77_OR_F2C
 
 AC_DEFUN([R_PROG_F77_FLIBS],
-[AC_BEFORE([$0], [AC_F77_LIBRARY_LDFLAGS])
-r_save_LIBS="${LIBS}"
-LIBS=
-AC_F77_LIBRARY_LDFLAGS
-LIBS="${r_save_LIBS}"
+[AC_REQUIRE([AC_F77_LIBRARY_LDFLAGS])
 flibs=
 if test "${GCC}" = yes; then
   linker_option="-Wl,"
@@ -686,30 +673,30 @@ rm -rf conftest* TMP])
 
 AC_DEFUN([R_PROG_F77_MAKEFRAG],
 [AC_REQUIRE([R_PROG_F77_C_O_LO])
-r_f77_rules_frag=Makefrag.f77
-cat << \EOF > ${r_f77_rules_frag}
+f77_rules_frag=Makefrag.f77
+cat << \EOF > ${f77_rules_frag}
 .f.c:
 .f.o:
 	$(F77) $(ALL_FFLAGS) -c $< -o $[@]
 EOF
 if test "${r_cv_prog_f77_c_o_lo}" = yes; then
-  cat << \EOF >> ${r_f77_rules_frag}
+  cat << \EOF >> ${f77_rules_frag}
 .f.lo:
 	$(F77) $(ALL_FFLAGS_LO) -c $< -o $[@]
 EOF
 else
-  cat << \EOF >> ${r_f77_rules_frag}
+  cat << \EOF >> ${f77_rules_frag}
 .f.lo:
 	@test -d .libs || mkdir .libs
 	$(F77) $(ALL_FFLAGS_LO) -c $< -o .libs/$[*].o
 	mv .libs/$[*].o $[*].lo
 EOF
 fi
-AC_SUBST_FILE(r_f77_rules_frag)
+AC_SUBST_FILE(f77_rules_frag)
 ])# R_PROG_F77_MAKEFRAG
 
 AC_DEFUN([R_PROG_F77_FLAG],
-[ac_safe=AS_TR_SH($1)
+[ac_safe=`echo "$1" | sed 'y%./+-:=%__p___%'`
 AC_MSG_CHECKING([whether ${F77} accepts $1])
 AC_CACHE_VAL([r_cv_prog_f77_flag_${ac_safe}],
 [AC_LANG_PUSH(Fortran 77)
@@ -769,8 +756,8 @@ fi
 
 AC_DEFUN([R_PROG_F2C_MAKEFRAG],
 [AC_REQUIRE([R_PROG_CC_C_O_LO])
-r_f77_rules_frag=Makefrag.f77
-cat << \EOF > ${r_f77_rules_frag}
+f77_rules_frag=Makefrag.f77
+cat << \EOF > ${f77_rules_frag}
 .f.o:
 	$(F2C) $(F2CFLAGS) < $< > $[*].c
 	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS) -c $[*].c -o $[@]
@@ -779,20 +766,20 @@ cat << \EOF > ${r_f77_rules_frag}
 	$(F2C) $(F2CFLAGS) < $< > $[*].c
 EOF
 if test "${r_cv_prog_cc_c_o_lo}" = yes; then
-  cat << \EOF >> ${r_f77_rules_frag}
+  cat << \EOF >> ${f77_rules_frag}
 	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS_LO) -c $[*].c -o $[@]
 EOF
 else
-  cat << \EOF >> ${r_f77_rules_frag}
+  cat << \EOF >> ${f77_rules_frag}
 	@test -d .libs || mkdir .libs
 	$(CC) $(ALL_CPPFLAGS) $(ALL_CFLAGS_LO) -c $[*].c -o .libs/$[*].o
 	mv .libs/$[*].o $[*].lo
 EOF
 fi
-cat << \EOF >> ${r_f77_rules_frag}
+cat << \EOF >> ${f77_rules_frag}
 	@rm -f $[*].c
 EOF
-AC_SUBST_FILE(r_f77_rules_frag)
+AC_SUBST_FILE(f77_rules_frag)
 ])# R_PROG_F2C_MAKEFRAG
 
 
@@ -970,19 +957,6 @@ AC_DEFINE_UNQUOTED(SOCKLEN_T, ${r_cv_type_socklen},
                    [Type for socket lengths: socklen_t, sock_t, int?])
 ])# R_TYPE_SOCKLEN
 
-
-AC_DEFUN([R_X11],
-[AC_PATH_XTRA			# standard X11 search macro
-if test -z "${no_x}"; then
-  ## We force the use of -lX11 (perhaps this is not necessary?).
-  X_LIBS="${X_LIBS} -lX11"
-  use_X11="yes"
-  AC_DEFINE(HAVE_X11, 1,
-            [Define if you have the X11 headers and libraries, and want
-             the X11 GUI to be built.])
-else
-  use_X11="no"
-fi])# R_X11
 
 AC_DEFUN([R_GNOME], 
 [if test ${want_gnome} = yes; then
