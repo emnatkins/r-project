@@ -37,7 +37,11 @@ extern void R_ProcessEvents(void);
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
+#if defined(Macintosh)
+#include <types.h>
+#else
 #include <sys/types.h>
+#endif
 /* #include <errno.h>*/
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

@@ -66,6 +66,11 @@ void R_ProcessEvents(void);
 # define FILESEP     "/"
 #endif /* Unix */
 
+#ifdef Macintosh
+# define OSTYPE      "mac"
+# define FILESEP     ":"
+#endif /* Macintosh */
+
 #ifdef Win32
 # define OSTYPE      "windows"
 # define FILESEP     "/"
@@ -103,7 +108,11 @@ typedef unsigned long R_size_t;
 #define	R_VSIZE		6291456L
 #endif
 
+#ifdef Macintosh
+#include <fp.h>
+#else
 #include <math.h>
+#endif
 
 /* declare substitutions */
 #if defined(HAVE_DECL_ACOSH) && !HAVE_DECL_ACOSH
@@ -167,7 +176,7 @@ extern int vsnprintf (char *str, size_t count, const char *fmt, va_list arg);
 /* Availability of timing: on Unix, we need times(2).
    On Windows and the Mac, we can do without.
 */
-#if (defined(HAVE_TIMES) || defined(Win32))
+#if (defined(HAVE_TIMES) || defined(Win32) || defined(Macintosh))
 # define _R_HAVE_TIMING_ 1
 #endif
 
@@ -460,7 +469,9 @@ extern int	R_BrowseLevel	INI_as(0);	/* how deep the browser is */
 
 extern int	R_Expressions	INI_as(500);	/* options(expressions) */
 extern Rboolean	R_KeepSource	INI_as(FALSE);	/* options(keep.source) */
+#ifdef EXPERIMENTAL_NAMESPACES
 extern int	R_UseNamespaceDispatch INI_as(TRUE);
+#endif
 extern int	R_WarnLength	INI_as(1000);	/* Error/warning max length */
 
 /* File Input/Output */
@@ -511,6 +522,9 @@ SEXP R_primitive_methods(SEXP op);
 /* slot management (in attrib.c) */
 SEXP R_do_slot(SEXP obj, SEXP name);
 SEXP R_do_slot_assign(SEXP obj, SEXP name, SEXP value);
+
+/* temporary switch to control underline-as-assigment */
+extern Rboolean R_no_underline		INI_as(FALSE);
 
 /* smallest decimal exponent, needed in format.c, set in Init_R_Machine */
 extern int R_dec_min_exponent		INI_as(-308);
@@ -629,7 +643,6 @@ char*	R_Date(void);
 char*	R_HomeDir(void);
 Rboolean R_FileExists(char*);
 Rboolean R_HiddenFile(char*);
-double	R_FileMtime(char*);
 
 /* environment cell access */
 typedef struct R_varloc_st *R_varloc_t;
@@ -722,7 +735,6 @@ SEXP R_LoadFromFile(FILE*, int);
 SEXP R_NewHashedEnv(SEXP);
 extern int R_Newhashpjw(char*);
 FILE* R_OpenLibraryFile(char *);
-char *R_LibraryFileName(char *, char *, size_t);
 void R_PreserveObject(SEXP);
 void R_ReleaseObject(SEXP);
 void R_RestoreGlobalEnv(void);
@@ -752,9 +764,12 @@ void unbindVar(SEXP, SEXP);
 #ifdef ALLOW_OLD_SAVE
 void unmarkPhase(void);
 #endif
+#ifdef EXPERIMENTAL_NAMESPACES
 SEXP R_LookupMethod(SEXP, SEXP, SEXP, SEXP);
 int usemethod(char*, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP*);
-
+#else
+int usemethod(char*, SEXP, SEXP, SEXP, SEXP, SEXP*);
+#endif
 /* ../main/errors.c : */
 void errorcall(SEXP, const char*, ...);
 void warningcall(SEXP, const char*,...);

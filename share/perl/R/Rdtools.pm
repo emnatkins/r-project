@@ -45,11 +45,7 @@ sub get_usages {
     ##   $delimround->quote("\'");
     ## </FIXME>
 
-    my %usages;			# usages for funs, vars and data
-    my %funs;
-    my @vars;			# names of vars with \usage entry
-    my @data;			# names of data with \usage entry
-
+    my %usages;
     my @text;
     my $name;
     my $maybe_is_data_set_doc = 0;
@@ -74,9 +70,9 @@ sub get_usages {
 
     ## In 'codoc' mode, use \synopsis in case there is one, but warn
     ## about doing so if verbose.
-    @text = split(/\\synopsis/, $text) if($mode eq "codoc");
+    @text = split(/\\synopsis/, $text) if ($mode eq "codoc");
     if($#text > 0) {
-	print "Using synopsis in '$name'\n" if($verbose);
+	print "Using synopsis in '$name'\n" if ($verbose);
     } else {
 	@text = split(/\\usage/, $text);
     }
@@ -87,21 +83,13 @@ sub get_usages {
 
 	my $usage = $delimcurly->match($text);
 
-	## Get rid of leading and trailing braces.
-	$usage = substr($usage, 1, -1) if($usage);
-
 	while($usage) {
 	    $usage =~ s/^[\s\n]*//g;
 
-	    ## Try to match usage for variables (i.e., a syntactic name
-	    ## on a single line).
-	    if($usage =~ /^([\.[:alpha:]][\.[:alnum:]]*)\s*(\n|$)/) {
-		push(@vars, $1);
-		$usage =~ s/^.*(\n|$)//g;
-		next;
-	    }
-
-	    my ($generic, $class);
+	    ## <FIXME>
+	    ## Need to do something smarter about documentation for
+	    ## assignment objects.
+	    ## </FIXME>
 
 	    ## Try to match the next '(...)' arglist from $usage.
 	    my ($prefix, $match, $rest) = $delimround->match($usage);
@@ -114,14 +102,9 @@ sub get_usages {
 	    ## Leading semicolons?
 	    ##   $prefix =~ s/^;//;
 	    ## </FIXME>
-	    if($prefix =~
-	       /\\method\{([[:alnum:].]+)\}\{([[:alnum:].]+)\}/) {
-		## We need a little magic for replacement *methods*, and
-		## hence remember \method{GENERIC}{CLASS} markup found.
-		$generic = $1;
-		$class = $2;
-		$prefix = "$generic.$class" unless($mode eq "style");
-	    }
+	    $prefix =~
+		s/\\method\{([a-zA-Z0-9.]+)\}\{([a-zA-Z0-9.]+)\}/$1\.$2/g
+		    unless($mode eq "style");
 
 	    ## Play with $match.
 	    $match =~ s/=\s*([,\)])/$1/g;
@@ -129,29 +112,24 @@ sub get_usages {
 	    $match =~ s/>>/>>\"/g; # foo = <<see below>> style
 	    $match =~ s/\\%/%/g; # comments
 
-	    if($rest =~ /^\s*([\#\n]|$)/) {
-		## Note that we need to allow for R comments in the
-		## above regexp.
+	    if ($rest =~ /^\s*[\n\}]/) {
 		if($prefix) {
 		    ## $prefix should now be the function name, and
 		    ## $match its arg list.
-		    ## <NOTE>
+		    ## <FIXME>
 		    ## Heuristics for data set documentation once more.
-		    if($maybe_is_data_set_doc
-		       && ($prefix eq "data")
-		       && ($match !~ /\,/)) {
-			push(@data, substr($match, 1, -1));
-			last;
-		    }
-		    ## </NOTE>
-		    if($funs{$prefix}) {
+		    return if($maybe_is_data_set_doc
+			      && ($prefix eq "data")
+			      && ($match !~ /\,/));
+		    ## </FIXME>
+		    if($usages{$prefix}) {
 			## Multiple usages for a function are trouble.
 			## We could try to build the full arglist for
 			## the function from the usages.  A simple idea
 			## is to do
-			##   chop($funs{$prefix});
+			##   chop($usages{$prefix});
 			##   my $foo = ", " . substr($match, 1);
-			##   $funs{$prefix} .= $foo;
+			##   $usages{$prefix} .= $foo;
 			## which adds the 'new' args to the 'old' ones.
 			## This is not good enough, as it could give
 			## duplicate args which is not allowed.  In
@@ -167,49 +145,26 @@ sub get_usages {
 			## unless in mode 'args', where we can cheat.
 			if(($mode eq "args") || ($mode eq "style")) {
 			    my $save_prefix = $prefix . "0";
-			    while($funs{$save_prefix}) {
+			    while($usages{$save_prefix}) {
 				$save_prefix .= "0";
 			    }
-			    $funs{$save_prefix} = $match;
+			    $usages{$save_prefix} = $match;
 			}
 			else {
 			    print("Multiple usage for $prefix() " .
 				  "in $name\n");
 			}
 		    } else {
-			$funs{$prefix} = $match;
+			$usages{$prefix} = $match;
 		    }
 		}
+	    } else {
+		$rest =~ s/^.*[\n\}]//g;
 	    }
-	    elsif($rest =~ /^\s*<-\s*([[:alpha:]]+)\s*(\n|$)/) {
-		## Looks like documentation for a replacement function.
-		if($generic) {
-		    ## Documentation for a replacement *method* in the
-		    ## form
-		    ##   \method{GENERIC}{CLASS}(ARGLIST) <- RHS
-		    ## with GENERIC *without* the trailing '<-'.
-		    ## Rewrite as
-		    ##   "GENERIC<-.CLASS" (ARGLIST, VALUE)
-		    ## We could also deal with
-		    ##   \method{GENERIC<-}{CLASS}(ARGLIST) <- RHS
-		    ## here but Rdconv() would not get this right for
-		    ## the time being ...
-		    $prefix = "$generic<-.$class";
-		} else {
-		    $prefix = "$prefix<-";
-		}
-		$funs{"\"$prefix\""} = substr($match, 0, -1) . ", $1)";
-	    }
-
-	    $rest =~ s/^.*(\n|$)//g;
 	    $usage = $rest;
 	}
 
     }
-
-    @{$usages{"funs"}} = %funs;
-    @{$usages{"vars"}} = @vars;
-    @{$usages{"data"}} = @data;
 
     %usages;
 }
@@ -260,7 +215,7 @@ sub Rdpp {
     my @skip_state;
     my $skip;
     my $text;
-    $OS = "unix" unless $OS;
+    $OS = "unix" unless $OS;    
     while(<$fh>) {
         if (/^#ifdef\s+([A-Za-z0-9]+)/o) {
 	    $skip = $1 ne $OS;

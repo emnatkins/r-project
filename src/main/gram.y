@@ -819,6 +819,17 @@ static void PopComment(void)
 	R_CommentSxp = CDR(R_CommentSxp);
 }
 
+#ifdef NOT_used
+int IsComment(SEXP l)
+{
+    if (isList(l) && isString(CAR(l))
+	&& !strncmp(CHAR(STRING(CAR(l))[0]), "#", 1))
+	return 1;
+    else
+	return 0;
+}
+#endif
+
 static void AddComment(SEXP l)
 {
     SEXP tcmt, cmt;
@@ -1731,6 +1742,14 @@ static int token()
 
     if (c == '.' || isalpha(c))
 	return SymbolValue(c);
+
+    /* gag, barf, but the punters want it */
+
+    if (!R_no_underline && c == '_') {
+	yylval = install("<-");
+	    warning("The use of _ is soon to be removed: you will be warned repeatedly");
+	return LEFT_ASSIGN;
+    }
 
     /* compound tokens */
 

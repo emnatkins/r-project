@@ -5,10 +5,6 @@
 \alias{loadNamespace}
 \alias{loadedNamespaces}
 \alias{unloadNamespace}
-\alias{unloadNamespace}
-\alias{.onLoad}
-\alias{.onUnload}
-\alias{.onAttach}
 
 \usage{
 attachNamespace(ns, pos = 2)
@@ -51,16 +47,11 @@ unloadNamespace(ns)
   time by the \code{.onLoad} hook.
 
   \code{loadedNamespaces} returns a character vector of the names of
-  the loaded name spaces.
-
-  \code{unloadNamespace} can be used to force
+  the loaded name spaces. \code{unloadNamespace} can be used to force
   a name space to be unloaded.  An error is signaled if the name space
   is imported by other loaded name spaces.  If defined, a hook
   function \code{.onUnload}, analogous to \code{.Last.lib}, is run
-  before removing the name space from the internal registry.
-  \code{unloadNamespace} will first \code{\link{detach}} a package of
-  the same name if one is on the path, thereby running a
-  \code{.Last.lib} function in the package if one is exported.
+  after removing the name space from the internal registry.
 }
 \keyword{internal}
 \author{Luke Tierney}

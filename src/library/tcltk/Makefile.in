@@ -11,7 +11,7 @@ subdir = src/library/tcltk
 include $(top_builddir)/Makeconf
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-DISTFILES = DESCRIPTION.in Makefile.in NAMESPACE
+DISTFILES = DESCRIPTION.in Makefile.in
 
 pkg = tcltk
 
@@ -26,10 +26,6 @@ all: Makefile DESCRIPTION
 	  fi; \
 	  $(top_srcdir)/tools/move-if-change $${f} \
 	    $(top_builddir)/library/$(pkg)/R/$(pkg))
-	@if test @use_tcltk@ = yes; then \
-	  $(INSTALL_DATA) $(srcdir)/NAMESPACE \
-	    $(top_builddir)/library/$(pkg); \
-	fi;
 	@for f in COPYRIGHTS INDEX SOURCES; do \
 	  if test -f $(srcdir)/$${f}; then \
 	    $(INSTALL_DATA) $(srcdir)/$${f} \

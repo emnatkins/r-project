@@ -89,7 +89,8 @@
 #include <unistd.h>
 #endif
 
-#include <Defn.h>
+/* Need "" rather than <> for the Macintosh, apparently. */
+#include "Defn.h"
 #include <Rmath.h>
 
 #include <Rdynpriv.h>
@@ -112,6 +113,11 @@
 #   define HAVE_NO_SYMBOL_UNDERSCORE
 #  endif /* HAVE_ELF_H */
 # endif /* HAVE_NO_SYMBOL_UNDERSCORE */
+#endif
+
+#ifdef Macintosh
+# define HAVE_NO_SYMBOL_UNDERSCORE 
+# define HAVE_DYNAMIC_LOADING
 #endif
 
 #ifdef Win32
@@ -445,6 +451,9 @@ DL_FUNC Rf_lookupCachedSymbol(const char *name, const char *pkg, int all)
 {
 #ifdef CACHE_DLL_SYM
     int i;
+#ifdef Macintosh
+    all = 0;
+#endif
     for (i = 0; i < nCPFun; i++)
 	if (!strcmp(name, CPFun[i].name) && 
 	    (all || !strcmp(pkg, CPFun[i].pkg)))
@@ -763,7 +772,11 @@ DL_FUNC R_FindSymbol(char const *name, char const *pkg,
 		     R_RegisteredNativeSymbol *symbol)
 {
     DL_FUNC fcnptr = (DL_FUNC) NULL;
+#ifndef Macintosh
     int i, all = (strlen(pkg) == 0), doit;
+#else /* cannot load locally */
+    int i, all = (strlen("") == 0), doit;
+#endif
 
     if(R_osDynSymbol->lookupCachedSymbol)
 	fcnptr = R_osDynSymbol->lookupCachedSymbol(name, pkg, all);
@@ -855,7 +868,11 @@ SEXP do_dynunload(SEXP call, SEXP op, SEXP args, SEXP env)
 
 int moduleCdynload(char *module, int local, int now)
 {
+#ifndef Macintosh
     char dllpath[PATH_MAX], *p = getenv("R_HOME");
+#else
+    char dllpath[PATH_MAX], *p = R_Home;
+#endif
     int res;
 
     if(!p) return 0;
@@ -1006,6 +1023,10 @@ R_getSymbolInfo(SEXP sname, SEXP spackage)
 
 void InitFunctionHashing()
 {
+#ifdef OLD
+    NaokSymbol = install("NAOK");
+    DupSymbol = install("DUP");
+#endif
 }
 
 DL_FUNC R_FindSymbol(char const *name, char const *pkg, 

@@ -50,8 +50,9 @@ seq.default <-
 	    from <- to - length.out + 1
 	if(length.out > 2)
 	    if(from == to)
-		rep.int(from, length.out)
-	    else as.vector(c(from, from + (1:(length.out - 2)) * by, to))
+		rep(from, length.out)
+	    else as.vector(c(from, from + (1:(length.out - 2)) *
+			     by, to))
 	else as.vector(c(from, to))[1:length.out]
     }
     else if(missing(to))

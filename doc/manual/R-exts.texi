@@ -114,7 +114,8 @@ Once a source package is created, it must be installed.  Under
 Unix-alikes that is done by @code{R CMD INSTALL}.  Under Windows,
 @code{Rcmd INSTALL} is used, but please see the file
 @file{readme.packages} (in the top-level directory of the binary
-installation) for the tools that you need to have installed.
+installation) for the tools that you need to have installed.  (No simple
+way to install packages is available for Classic MacOS users.)
 
 @menu
 * Package structure::           
@@ -134,18 +135,11 @@ A package consists of a subdirectory containing the files
 @file{R}, @file{data}, @file{demo}, @file{exec}, @file{inst},
 @file{man}, @file{src}, and @file{tests} (some of which can be missing).
 
-The package subdirectory should be given the same name as the package.
-Because some file systems (e.g., those on Windows) are not
-case-sensitive, to maintain portability it is strongly recommended that
-case distinctions not be used to distinguish different packages.  For
-example, if you have a package named @file{foo}, do not also create a
-package named @file{Foo}.
-
-To ensure that file names are valid across file systems and supported
-operating system platforms, the @acronym{ASCII} control characters as
-well as the characters @samp{"}, @samp{*}, @samp{:}, @samp{/}, @samp{<},
-@samp{>}, @samp{?}, @samp{\}, and @samp{|} are not allowed in file
-names.
+The package subdirectory should be given the same name as the package.  Because
+some file systems (e.g. those on Windows) are not case-sensitive, to maintain
+portability it is strongly recommended that case distinctions not be used to
+distinguish different packages.  For example, if you have a package 
+named @file{foo}, do not also create a package named @file{Foo}.
 
 Optionally the package can contain (Bourne shell) script files
 @file{configure} and @file{cleanup} which are executed before and
@@ -293,7 +287,7 @@ to be called by the user.  See e.g.@: the sources for package
 @pkg{tools} in the @R{} distribution for an example.
 
 The @file{R} and @file{man} subdirectories may contain OS-specific
-subdirectories named @file{unix} or @file{windows}.
+subdirectories named @file{unix}, @file{windows} or @file{mac}.
 
 The C, C++, or FORTRAN@footnote{Note that Ratfor is not supported.  If
 you have Ratfor source code, you need to convert it to FORTRAN.  On many
@@ -409,7 +403,7 @@ Description: Functions for kriging and point pattern analysis.
 @section Configure and cleanup
 
 Note that most of this section is Unix-specific: see the comments
-later on about the Windows port of R.
+later on about the Windows and classic MacOS ports of R.
 
 If your package needs some system-dependent configuration before
 installation you can include a (Bourne shell) script @file{configure} in
@@ -510,7 +504,7 @@ configure information by direct extraction (using grep and sed) from
 recorded there as literals.  R 1.5.0 has added @code{R CMD config} for
 getting the value of the basic configuration variables, or the header
 and library flags necessary for linking against @R{}, see @kbd{R CMD
-config --help} for details.
+config --help} for more information.
 
 If @R{} was configured to use the FORTRAN-to-C converter (f2c),
 configure variable @code{F77} is set to a shell script wrapper to
@@ -533,8 +527,7 @@ FORTRAN 77 code works on all R platforms.  Calls to the Autoconf macro
 @code{AC_F77_LIBRARY_LDFLAGS}, which would overwrite @code{FLIBS}, must
 not be used (and hence e.g.@: removed from @code{ACX_BLAS}).  (Recent
 versions of Autoconf in fact allow an already set @code{FLIBS} to
-override the test for the Fortran linker flags.  Also, recent versions
-of @R{} can detect external BLAS and LAPACK libraries.)
+override the test for the Fortran linker flags.)
 
 You should bear in mind that the configure script may well not work on
 Windows systems (this seems normally to be the case for those generated
@@ -542,6 +535,9 @@ by Autoconf, although simple shell scripts do work).  If your package is
 to be made publicly available, please give enough information for a user
 on a non-Unix platform to configure it manually, or provide a
 @file{configure.win} script to be used on that platform.
+
+It is essential to provide manual configuration information if the
+package is to be usable on classic MacOS.
 
 In some rare circumstances, the configuration and cleanup scripts need
 to know the location into which the package is being installed.  An
@@ -641,10 +637,6 @@ The package is installed.  This will warn about missing cross-references
 and duplicate aliases in help files.
 
 @item
-The file names are checked to be valid across file systems and supported
-operating system platforms.
-
-@item
 The files and directories are checked for sufficient permissions (Unix
 only).
 
@@ -665,7 +657,7 @@ The R files are checked for syntax errors.
 The R files are checked for correct calls to @code{library.dynam} (with
 no extension).  In addition, it is checked whether methods have all
 arguments of the corresponding generic, and whether the final argument
-of replacement functions is called @samp{value}.
+of assignment functions is called @samp{value}.
 
 @item
 The Rd files are checked for the mandatory (@code{\name}, @code{\alias},
@@ -740,8 +732,7 @@ directory.  These patterns should be Perl regexps, one per line, to be
 matched against the file names relative to the top-level source
 directory.  In addition, files called @file{CVS} or @file{GNUMakefile},
 or with base names starting with @samp{.#}, or starting and ending with
-@samp{#}, or ending in @samp{~} or @samp{.bak} or @samp{.swp}, are
-excluded by default.
+@samp{#}, or ending in @samp{~} or @samp{.swp}, are excluded by default.
 
 @quotation
 @strong{Note:} file exclusion does not work correctly with @acronym{GNU}
@@ -1330,14 +1321,6 @@ For example, @file{print.ts.Rd} contains
 @end group
 @end smallexample
 
-Usage for replacement functions should be given in the style of
-@code{dim(x) <- value} rather than explicitly indicating the name of the
-replacement function (@w{@code{"dim<-"}} in the above).  Similarly, one
-can use @code{\method@{@var{generic}@}@{@var{class}@}(@var{arglist}) <-
-value} to indicate the usage of an S3 replacement method for the generic
-replacement function @code{"@var{generic}<-"} for objects inheriting
-from class @code{"@var{class}"}.
-
 @item \arguments@{@dots{}@}
 @findex \arguments
 Description of the function's arguments, using an entry of the form
@@ -1773,9 +1756,9 @@ and @samp{|} must only be used in math mode, i.e., within @code{\eqn} or
 @section Platform-specific documentation
 @cindex Platform-specific documentation
 
-Sometimes the documentation needs to differ by platform.  Currently two
-OS-specific options are available, @samp{unix} and @samp{windows}, and
-lines in the help source file can be enclosed in
+Sometimes the documentation needs to differ by platform.  Currently
+three OS-specific options are available, @samp{unix}, @samp{windows} and
+@samp{mac}, and lines in the help source file can be enclosed in
 
 @smallexample
 @group
@@ -1801,7 +1784,7 @@ for OS-specific inclusion or exclusion.
 
 If the differences between platforms are extensive or the @R{} objects
 documented are only relevant to one platform, platform-specific Rd files
-can be put in a @file{unix} or @file{windows} subdirectory.
+can be put in a @file{unix}, @file{windows} or @file{mac} subdirectory.
 
 @node Processing Rd format,  , Platform-specific sections, Writing R help files
 @section Processing Rd format
@@ -1934,7 +1917,7 @@ recommended for the source code of @R{} itself.
 It is possible to profile @R{} code on most Unix-like versions of @R{},
 @R{} has to be built to enable this, by supplying the option
 @option{--enable-R-profiling}, profiling being enabled in a default
-build.  Profiling is also available on Windows.
+build.  Profiling is also available on Windows, but not on the Macintosh.
 
 The command @command{Rprof} is used to control profiling, and its help
 page can be consulted for full details.  Profiling works by recording at
@@ -4180,10 +4163,10 @@ appropriate header files when using these entry points.
 @end quotation
 
 This remapping can cause problems@footnote{known problems are redefining
-@code{error}, @code{length}, @code{vector} and @code{warning}}, and can
-be eliminated by defining @code{R_NO_REMAP} and prepending @code{Rf_} to
-@emph{all} the function names used from @file{Rinternals.h} and
-@file{R_exts/Error.h}.
+@code{error}, @code{length}, @code{vector} and @code{warning}}, and it
+can be eliminated by defining @code{R_NO_REMAP} and prepending
+@code{Rf_} to @emph{all} the function names used from
+@file{Rinternals.h} and @file{R_exts/Error.h}.
 
 @node Memory allocation, Error handling, The R API, The R API
 @section Memory allocation
@@ -5196,21 +5179,14 @@ double unif_rand(void)
 @noindent
 or use the one supplied (and with a dynamic library or DLL you will have
 to use the one supplied, which is the Marsaglia-multicarry with an entry
-points
+point
 
 @smallexample
 set_seed(unsigned int, unsigned int)
 @end smallexample
 
 @noindent
-to set its seeds and
-
-@smallexample
-get_seed(unsigned int *, unsigned int *)
-@end smallexample
-
-@noindent
-to read the seeds).
+to set its seeds).
 
 @node Generic functions and methods, R (internal) programming miscellanea, The R API, Top
 @chapter Generic functions and methods

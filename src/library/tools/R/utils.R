@@ -1,5 +1,9 @@
 ### Internal utility functions.
 
+### * sQuote
+
+sQuote <- function(s) paste("'", s, "'", sep = "")
+
 ### * .convertFilePathToAbsolute
 
 .convertFilePathToAbsolute <-
@@ -72,77 +76,29 @@ function(x)
     sub("\\.[[:alpha:]]+$", "", x)
 }
 
-### * .getNamespaceS3methodNames
-
-.getNamespaceS3methodNames <-
-function(ns, dir, nsInfo)
-{
-    ## Get the names of the registered S3 methods for a namespace 'ns',
-    ## or a @file{NAMESPACE} file in directory 'dir', or an 'nsInfo'
-    ## object returned by parseNamespaceFile().  (Note that when doing
-    ## QC on non-installed packages with a @file{NAMESPACE} file, we
-    ## parse the @file{NAMESPACE} file anyway to determine the exports.
-    S3methods <- if(!missing(ns))
-        sapply(getNamespaceInfo(ns, "S3methods"), "[[", 3)
-    else {
-        if(!missing(dir))
-            nsInfo <- parseNamespaceFile(basename(dir), dirname(dir))
-        sapply(nsInfo$S3methods,
-               function(x) {
-                   if(length(x) > 2)
-                       x[3]
-                   else
-                       paste(x, collapse = ".")
-               })
-    }
-    if(!length(S3methods)) S3methods <- character(0) # list() if empty
-    S3methods
-}
-
 ### * .isS3Generic
 
 .isS3Generic <-
-function(fname, envir = NULL) {
+function(fname, envir = NULL)
+{
     ## Determine whether object named 'fname' in environment 'envir' is
-    ## (to be considered) an S3 generic function.
-    ##
-    ## Provided by LT with the following comments:
-    ##
-    ## This is tricky.  Figuring out what could possibly dispatch
-    ## successfully some of the time is pretty much impossible given R's
-    ## semantics.  Something containing a literal call to UseMethod is
-    ## too broad in the sense that a UseMethod call in a local function
-    ## doesn't produce a dispatch on the outer function ...
-    ##
-    ## If we use something like: a generic has to be
-    ##      function(e) <UME>  # UME = UseMethod Expression
-    ## with
-    ##	    <UME> = UseMethod(...) |
-    ##             if (...) <UME> [else ...] |
-    ##             if (...) ... else <UME>
-    ##             { ... <UME> ... }
-    ## then a recognizer for UME might be as follows.
-    
+    ## (to be considered) an S3 generic function.  In most cases, these
+    ## just call UseMethod() in their body, so we test for this after
+    ## possibly stripping braces.  This fails when e.g. it is attempted
+    ## to dispatch on data.class, hence we need to hard-code a few known
+    ## exceptions.
+    ## <FIXME>
+    ## This is not good enough for generics which dispatch in C code
+    ## (base only?).
+    ## We should also add group methods.
+    ## </FIXME>
     f <- get(fname, envir = envir)
     if(!is.function(f)) return(FALSE)
-    isUMEbrace <- function(e) {
-        for (ee in as.list(e[-1])) if (isUME(ee)) return(TRUE)
-        FALSE
-    }
-    isUMEif <- function(e) {
-        if (length(e) == 3) isUME(e[[3]])
-        else isUME(e[[3]]) || isUME(e[[4]])
-    }
-    isUME <- function(e) {
-        if (is.call(e) && (is.name(e[[1]]) || is.character(e[[1]])))
-            switch(as.character(e[[1]]),
-                   UseMethod = TRUE,
-                   "{" = isUMEbrace(e),
-                   "if" = isUMEif(e),
-                   FALSE)
-        else FALSE
-    }
-    isUME(body(f))
+    if(fname %in% c("as.data.frame", "plot")) return(TRUE)
+    e <- body(f)
+    while(is.call(e) && (length(e) > 1) && (e[[1]] == as.name("{")))
+        e <- e[[2]]
+    is.call(e) && (e[[1]] == as.name("UseMethod"))
 }
 
 ### * .listFilesWithExts
@@ -232,23 +188,19 @@ function(package)
 {
     ## Return a character vector with the names of the functions in
     ## @code{package} which 'look' like S3 methods, but are not.
-    ## using package=NULL returns all known examples
-    stopList <- list(base = c("boxplot.stats",
+    switch(package,
+	   base = c("boxplot.stats",
 	   "close.screen", "close.socket",
 	   "flush.console",
 	   "format.char", "format.info", "format.pval",
 	   "influence.measures",
 	   "plot.new", "plot.window", "plot.xy", "print.coefmat",
-           "rep.int",
 	   "split.screen",
 	   "update.packages"),
-           XML = "text.SAX",
 	   quadprog = c("solve.QP", "solve.QP.compact"),
 	   sm = "print.graph",
-	   ts = "lag.plot")
-    if(is.null(package)) return(unlist(stopList))
-    thisPkg <- stopList[[package]]
-    if(!length(thisPkg)) character(0) else thisPkg
+	   ts = "lag.plot",
+	   character(0))
 }
 
 ### * .sourceAssignments
@@ -263,7 +215,7 @@ function(file, envir)
     oop <- options(keep.source = FALSE)
     on.exit(options(oop))
     assignmentSymbol <- as.name("<-")
-    exprs <- try(parse(n = -1, file = file))
+    exprs <- parse(n = -1, file = file)
     if(length(exprs) == 0)
         return(invisible())
     for(e in exprs) {

@@ -11,7 +11,11 @@ help <- function(topic, offline = FALSE, package = .packages(),
         if (is.name(y <- substitute(package)))
             package <- as.character(y)
     if (!missing(topic)) {
-        if (!is.character(topic)) topic <- deparse(substitute(topic))
+        topic <- substitute(topic)
+        if (is.name(topic))
+            topic <- as.character(topic)
+        else if (!is.character(topic))
+            stop("Unimplemented help feature")
         # for cmd/help ..
         if (!is.na(match(topic, c("+", "-", "*", "/", "^", "%%"))))
             topic <- "Arithmetic"

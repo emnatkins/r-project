@@ -138,9 +138,6 @@ static Rboolean compute_identical(SEXP x, SEXP y)
     case SYMSXP:
     case EXTPTRSXP:
     case WEAKREFSXP:
-#ifdef BYTECODE
-    case BCODESXP: /**** is this the best approach? */
-#endif
 	return(x == y ? TRUE : FALSE);
 	/*  case PROMSXP: */
 	/* test for equality of the substituted expression -- or should
@@ -152,8 +149,7 @@ static Rboolean compute_identical(SEXP x, SEXP y)
     default:
 	/* these are all supposed to be types that represent constant
 	   entities, so no further testing required ?? */
-	printf("Unknown Type: %s (%x)\n", CHAR(type2str(TYPEOF(x))), 
-	       TYPEOF(x));
+	printf("Unknown Type: %s(%x)\n", /*type2str(TYPEOF(x))*/"",TYPEOF(x));
 	return TRUE;
     }
 }

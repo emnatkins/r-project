@@ -1,5 +1,4 @@
 ### Regression tests for which the printed output is the issue
-### _and_ must work (no Recommended packages, please)
 
 postscript("reg-tests-2.ps")
 RNGversion("1.6.2")
@@ -923,26 +922,3 @@ A
 dimnames(A)
 ## 1.7.0 gave internal codes as display and dimnames()
 ## 1.7.1beta gave NAs via dimnames()
-## 1.8.0 converts factors to character
-
-
-## wishlist PR#2776: aliased coefs in lm/glm
-set.seed(123)
-x2 <- x1 <- 1:10
-x3 <- 0.1*(1:10)^2
-y <- x1 + rnorm(10)
-(fit <- lm(y ~ x1 + x2 + x3))
-summary(fit, cor = TRUE)
-(fit <- glm(y ~ x1 + x2 + x3))
-summary(fit, cor = TRUE)
-## omitted silently in summary.glm < 1.8.0
-
-
-## list-like indexing of data frames with drop specified
-data(women)
-women["height"]
-women["height", drop = FALSE]  # same with a warning
-women["height", drop = TRUE]   # ditto
-women[,"height", drop = FALSE] # no warning
-women[,"height", drop = TRUE]  # a vector
-## second and third were interpreted as women["height", , drop] in 1.7.x

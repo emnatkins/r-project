@@ -1,6 +1,7 @@
 \name{RClassUtils}
 %% FIXME the following are undocumented utilities (Sep 23/02)
 \alias{completeSubclasses}
+\alias{getClassPackage}
 \alias{newClassRepresentation}
 \alias{print.classRepresentation}
 \alias{setExtendsMetaData}
@@ -15,10 +16,17 @@
 \alias{makePrototypeFromClassDef}
 \alias{newEmptyObject}
 \alias{completeClassDefinition}
+\alias{getProperties}
 \alias{getSlots}
+\alias{getExtends}
+\alias{getAccess}
 \alias{getAllSuperClasses}
 \alias{superClassDepth}
+\alias{getPrototype}
+\alias{getVirtual}
 \alias{isVirtualClass}
+\alias{getSubclasses}
+\alias{getClassName}
 \alias{assignClassDef}
 \alias{newBasic}
 \alias{makeExtends}
@@ -65,13 +73,29 @@ newEmptyObject()
 
 completeClassDefinition(Class, ClassDef)
 
+getProperties(ClassDef)
+
 getSlots(x, complete = TRUE)
+
+getExtends(ClassDef)
+
+getAccess(ClassDef)
 
 getAllSuperClasses(ClassDef)
 
 superClassDepth(ClassDef, soFar)
 
+getPrototype(ClassDef)
+
+getVirtual(ClassDef)
+
 isVirtualClass(Class)
+
+getSubclasses(ClassDef)
+
+getClassName(ClassDef)
+
+assignClassDef(Class, def, where=.GlobalEnv)
 
 newBasic(Class, ...)
 
@@ -184,6 +208,11 @@ setDataPart(object, value)
 
 
 
+    \item{\code{getProperties}:}{ 
+      Extracts the class's Properties information from the class
+      representation (only, not from the name of the class).
+    }
+    
 
     \item{\code{getSlots}:}{
       Returns a named character vector.  The names are the names of the
@@ -191,6 +220,14 @@ setDataPart(object, value)
       \code{complete} is \code{TRUE}, all slots from all superclasses
       will be included.  The argument \code{x} can either be the name of
       a class or an object having that class.
+    }
+
+    \item{\code{getExtends}:}{ 
+      Extracts the class's Extends information from the class
+      representation (only, not from the name of the class)
+
+      Contrast with the \code{possibleExtends} and \code{is} functions, both
+      of which use indirect information as well.
     }
 
     \item{\code{getAllSuperClasses}, \code{superClassDepth}:}{ 
@@ -213,6 +250,21 @@ setDataPart(object, value)
       network of class relationships.
     }
 
+    \item{\code{getPrototype}:}{ 
+      extract the class's Prototype information from the class
+      representation (only, not from the name of the class)
+    }
+    
+    \item{\code{getAccess}:}{ 
+      extract the class's Access information from the class
+      representation (only, not from the name of the class)
+    }
+
+    \item{\code{getVirtual}:}{ 
+      extract the class's Virtual information from the class
+      representation (only, not from the name of the class)
+    }
+    
     \item{\code{isVirtualClass}:}{ 
       Is the named class a virtual class?  
   
@@ -221,6 +273,15 @@ setDataPart(object, value)
     }
 
     
+    \item{\code{getSubclasses}:}{ 
+      extract the class's Subclasses information from the class
+      representation (only, not from the name of the class)
+    }
+    
+
+    \item{\code{getClassName}:}{ 
+      The internal property in the class definition for the class name.
+    }
     
     \item{\code{assignClassDef}:}{ 
       assign the definition of the class to the specially named object

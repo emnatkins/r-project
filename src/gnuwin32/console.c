@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  file console.c
- *  Copyright (C) 1998--2003  Guido Masarotto and Brian Ripley
+ *  Copyright (C) 1998--2002  Guido Masarotto and Brian Ripley
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1178,15 +1178,14 @@ FVOIDEND
 font consolefn = NULL;
 char fontname[LF_FACESIZE+1];
 int fontsty, pointsize;
-int consoler = 25, consolec = 80, consolex = 0, consoley = 0;
+int consoler = 25, consolec = 80;
 int pagerrow = 25, pagercol = 80;
 int pagerMultiple = 1, haveusedapager = 0;
 int consolebufb = DIMLBUF, consolebufl = MLBUF;
 
 void
 setconsoleoptions(char *fnname,int fnsty, int fnpoints,
-                  int rows, int cols, int consx, int consy, 
-		  rgb nfg, rgb nufg, rgb nbg, rgb high,
+                  int rows, int cols, rgb nfg, rgb nufg, rgb nbg, rgb high,
 		  int pgr, int pgc, int multiplewindows, int widthonresize,
 		  int bufbytes, int buflines)
 {
@@ -1215,8 +1214,6 @@ setconsoleoptions(char *fnname,int fnsty, int fnpoints,
     }
     consoler = rows;
     consolec = cols;
-    consolex = consx;
-    consoley = consy;
     consolefg = nfg;
     consoleuser = nufg;
     consolebg = nbg;
@@ -1415,7 +1412,7 @@ console newconsole(char *name, int flags)
 		       consolefg, consoleuser, consolebg,
 		       CONSOLE);
     if (!p) return NULL;
-    c = (console) newwindow(name, rect(consolex, consoley, WIDTH, HEIGHT),
+    c = (console) newwindow(name, rect(0, 0, WIDTH, HEIGHT),
 			    flags | TrackMouse | VScrollbar | HScrollbar);
     HEIGHT = getheight(c);
     WIDTH  = getwidth(c);

@@ -86,8 +86,6 @@ void PrintDefaults(SEXP rho)
     R_print.quote = 1;
     R_print.right = 0;
     R_print.digits = GetOptionDigits(rho);
-    R_print.scipen = asInteger(GetOption(install("scipen"), rho));
-    if (R_print.scipen == NA_INTEGER) R_print.scipen = 0;
     R_print.gap = 1;
     R_print.width = GetOptionWidth(rho);
 }
@@ -519,9 +517,11 @@ static void PrintEnvir(SEXP rho)
     else if (R_IsPackageEnv(rho))
 	Rprintf("<environment: %s>\n",
 		CHAR(STRING_ELT(R_PackageEnvName(rho), 0)));
+#ifdef EXPERIMENTAL_NAMESPACES
     else if (R_IsNamespaceEnv(rho))
 	Rprintf("<environment: namespace:%s>\n",
 		CHAR(STRING_ELT(R_NamespaceEnvSpec(rho), 0)));
+#endif
     else Rprintf("<environment: %p>\n", rho);
 }
 
@@ -624,11 +624,6 @@ void PrintValueRec(SEXP s,SEXP env)
     case EXTPTRSXP:
 	Rprintf("<pointer: %p>\n", R_ExternalPtrAddr(s));
 	break;
-#ifdef BYTECODE
-    case BCODESXP:
-	Rprintf("<bytecode: %p>\n", s);
-	break;
-#endif
     case WEAKREFSXP:
 	Rprintf("<weak reference>\n");
 	break;

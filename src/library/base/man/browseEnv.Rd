@@ -43,7 +43,8 @@ browseEnv(envir = .GlobalEnv, pattern, excludepatt = "^last\\.warning",
   its argument list will certainly change.
 
   Most probably, this should rather work through using the \file{tkWidget}
-  package (from \url{www.Bioconductor.org}).
+  package (from \url{www.Bioconductor.org}) but the \file{tcltk} package
+  is not yet available for the Carbon version for MacOS.
 }
 \seealso{
   \code{\link{str}}, \code{\link{ls}}.

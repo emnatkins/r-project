@@ -105,7 +105,7 @@ lm.fit <- function (x, y, offset = NULL, method = "qr", tol = 1e-07, ...)
     pivot <- z$pivot
     r1 <- seq(len=z$rank)
     dn <- colnames(x); if(is.null(dn)) dn <- paste("x", 1:p, sep="")
-    nmeffects <- c(dn[pivot[r1]], rep.int("", n - z$rank))
+    nmeffects <- c(dn[pivot[r1]], rep("", n - z$rank))
     if (is.matrix(y)) {
 	coef[-r1, ] <- NA
 	coef[pivot, ] <- coef
@@ -183,7 +183,7 @@ lm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-7, ...)
     pivot <- z$pivot
     r1 <- seq(len=z$rank)
     dn <- colnames(x); if(is.null(dn)) dn <- paste("x", 1:p, sep="")
-    nmeffects <- c(dn[pivot[r1]], rep.int("", n - z$rank))
+    nmeffects <- c(dn[pivot[r1]], rep("", n - z$rank))
     if (is.matrix(y)) {
 	coef[-r1, ] <- NA
 	coef[pivot, ] <- coef
@@ -279,7 +279,6 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
     dimnames(ans$coefficients)<-
 	list(names(z$coefficients)[Qr$pivot[p1]],
 	     c("Estimate", "Std. Error", "t value", "Pr(>|t|)"))
-    ans$aliased <- is.na(coef(object))  # used in print method
     ans$sigma <- sqrt(resvar)
     ans$df <- c(p, rdf, NCOL(Qr$qr))
     if (p != attr(z$terms, "intercept")) {
@@ -329,14 +328,8 @@ print.summary.lm <-
 	cat("\nCoefficients: (", nsingular,
 	    " not defined because of singularities)\n", sep = "")
     else cat("\nCoefficients:\n")
-    coefs <- x$coefficients
-    if(!is.null(aliased <- x$aliased) && any(aliased)) {
-        cn <- names(aliased)
-        coefs <- matrix(NA, length(aliased), 4, dimnames=list(cn, colnames(coefs)))
-        coefs[!aliased, ] <- x$coefficients
-    }
 
-    printCoefmat(coefs, digits=digits, signif.stars=signif.stars, na.print="NA", ...)
+    print.coefmat(x$coef, digits=digits, signif.stars=signif.stars, ...)
     ##
     cat("\nResidual standard error:",
 	format(signif(x$sigma, digits)), "on", rdf, "degrees of freedom\n")
@@ -523,12 +516,64 @@ anova.lmlist <- function (object, ..., scale = 0, test = "F")
 }
 
 
+anovalist.lm <- function (object, ..., test = NULL)
+{
+    objects <- list(object, ...)
+    responses <- as.character(lapply(objects,
+				     function(x) as.character(x$terms[[2]])))
+    sameresp <- responses == responses[1]
+    if (!all(sameresp)) {
+	objects <- objects[sameresp]
+	warning("Models with response ", deparse(responses[!sameresp]),
+                " removed because response differs from ", "model 1")
+    }
+    ## calculate the number of models
+    nmodels <- length(objects)
+    if (nmodels == 1)
+	return(anova.lm(object))
+
+    models <- as.character(lapply(objects, function(x) x$terms))
+
+    ## extract statistics
+    df.r <- unlist(lapply(objects, df.residual))
+    ss.r <- unlist(lapply(objects, deviance))
+    df <- c(NA, -diff(df.r))
+    ss <- c(NA, -diff(ss.r))
+    ms <- ss/df
+    f <- p <- rep(NA,nmodels)
+    for(i in 2:nmodels) {
+	if(df[i] > 0) {
+	    f[i] <- ms[i]/(ss.r[i]/df.r[i])
+	    p[i] <- pf(f[i], df[i], df.r[i], lower.tail = FALSE)
+	}
+	else if(df[i] < 0) {
+	    f[i] <- ms[i]/(ss.r[i-1]/df.r[i-1])
+	    p[i] <- pf(f[i], -df[i], df.r[i-1], lower.tail = FALSE)
+	}
+	else { # df[i] == 0
+	    ss[i] <- 0
+	}
+    }
+    table <- data.frame(df.r,ss.r,df,ss,f,p)
+    dimnames(table) <- list(1:nmodels, c("Res.Df", "Res.Sum Sq", "Df",
+					 "Sum Sq", "F value", "Pr(>F)"))
+    ## construct table and title
+    title <- "Analysis of Variance Table\n"
+    topnote <- paste("Model ", format(1:nmodels),": ",
+		     models, sep="", collapse="\n")
+
+    ## calculate test statistic if needed
+    structure(table, heading = c(title, topnote),
+	      class= c("anova", "data.frame"))# was "tabular"
+}
+
 ## code originally from John Maindonald 26Jul2000
 predict.lm <-
-    function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf,
+    function(object, newdata,
+	     se.fit = FALSE, scale = NULL, df = Inf,
 	     interval = c("none", "confidence", "prediction"),
 	     level = .95,  type = c("response", "terms"),
-	     terms = NULL, na.action = na.pass, ...)
+	     terms = NULL, ...)
 {
     tt <- terms(object)
     if(missing(newdata) || is.null(newdata)) {
@@ -537,10 +582,9 @@ predict.lm <-
 	offset <- object$offset
     }
     else {
-        Terms <- delete.response(tt)
-        m <- model.frame(Terms, newdata, na.action = na.action,
-                         xlev = object$xlevels)
-        X <- model.matrix(Terms, m, contrasts = object$contrasts)
+	X <- model.matrix(delete.response(tt), newdata,
+			  contrasts = object$contrasts,
+			  xlev = object$xlevels)
 	offset <- if (!is.null(off.num <- attr(tt, "offset")))
 	    eval(attr(tt, "variables")[[off.num+1]], newdata)
 	else if (!is.null(object$offset))
@@ -613,7 +657,7 @@ predict.lm <-
 	}
 	if(hasintercept)
 	    X <- sweep(X, 2, avx)
-	unpiv <- rep.int(0, NCOL(X))
+	unpiv <- rep(0, NCOL(X))
 	unpiv[piv] <- p1
 	## Predicted values will be set to 0 for any term that
 	## corresponds to columns of the X-matrix that are
@@ -629,7 +673,7 @@ predict.lm <-
 		ip[, i] <-
 		    if(any(iipiv) > 0)
 			as.matrix(X[, iipiv, drop = FALSE] %*%
-				  Rinv[ii, , drop = FALSE])^2 %*% rep.int(res.var, p)
+				  Rinv[ii, , drop = FALSE])^2 %*% rep(res.var, p)
 		    else 0
 	}
 
@@ -658,7 +702,7 @@ predict.lm <-
 	    upr <- predictor - hwid
 	}
     }
-    if(se.fit) se <- sqrt(ip)
+    if(se.fit) se<-sqrt(ip)
     if(missing(newdata) && !is.null(na.act <- object$na.action)) {
 	predictor <- napredict(na.act, predictor)
 	if(se.fit) se <- napredict(na.act, se)
@@ -704,8 +748,7 @@ model.matrix.lm <- function(object, ...)
 }
 
 ##---> SEE ./mlm.R  for more methods, etc. !!
-predict.mlm <-
-    function(object, newdata, se.fit = FALSE, na.action = na.pass, ...)
+predict.mlm <- function(object, newdata, se.fit = FALSE, ...)
 {
     if(missing(newdata)) return(object$fitted)
     if(se.fit)
@@ -716,10 +759,9 @@ predict.mlm <-
     }
     else {
         tt <- terms(object)
-        Terms <- delete.response(tt)
-        m <- model.frame(Terms, newdata, na.action = na.action,
-                         xlev = object$xlevels)
-        X <- model.matrix(Terms, m, contrasts = object$contrasts)
+        X <- model.matrix(delete.response(tt), newdata,
+			  contrasts = object$contrasts,
+                          xlev = object$xlevels)
 	offset <- if (!is.null(off.num <- attr(tt, "offset")))
 	    eval(attr(tt, "variables")[[off.num+1]], newdata)
 	else if (!is.null(object$offset))

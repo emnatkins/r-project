@@ -5,8 +5,7 @@ read.dcf <- function(file, fields = NULL)
         on.exit(close(file))
     }
     if(!inherits(file, "connection"))
-        stop(paste("argument", sQuote("file"),
-                   "must be a character string or connection"))
+        stop("argument `file' must be a character string or connection")
     .Internal(readDCF(file, fields))
 }
 
@@ -27,16 +26,15 @@ function(x, file = "", append = FALSE,
         on.exit(close(file))
     }
     if(!inherits(file, "connection"))
-        stop(paste("argument", sQuote("file"),
-                   "must be a character string or connection"))
+        stop("argument `file' must be a character string or connection")
 
     nr <- nrow(x)
     nc <- ncol(x)
-
+    
     eor <- character(nr * nc)
     eor[seq(1, nr - 1) * nc] <- "\n"    # newline for end of record
 
-    writeLines(paste(formatDL(rep.int(colnames(x), nr), c(t(x)), style =
+    writeLines(paste(formatDL(rep(colnames(x), nr), c(t(x)), style =
                      "list", width = width, indent = indent),
                      eor, sep = ""),
                file)

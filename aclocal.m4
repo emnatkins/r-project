@@ -512,7 +512,7 @@ FLIBS="${flibs}"
 if test "${G77}" = yes; then
   r_save_LIBS="${LIBS}"
   flibs=`echo "${FLIBS}" | sed 's/-lg2c/-lg2c-pic/'`
-  LIBS="${flibs} ${LIBS}"
+  LIBS="${LIBS} ${flibs}"
   AC_LANG_PUSH(C)
   AC_LINK_IFELSE([AC_LANG_PROGRAM()], [FLIBS="${flibs}"], [])
   AC_LANG_POP(C)
@@ -1431,13 +1431,6 @@ if test -z "${TCLTK_CPPFLAGS}"; then
     fi
   fi
 fi
-if test "${have_tcltk}" = yes; then
-  if test -n "${TK_XINCLUDES}"; then
-    TCLTK_CPPFLAGS="${TCLTK_CPPFLAGS} ${TK_XINCLUDES}"
-  else
-    TCLTK_CPPFLAGS="${TCLTK_CPPFLAGS} ${X_CFLAGS}"
-  fi
-fi
 ])# _R_TCLTK_CPPFLAGS
 
 AC_DEFUN([_R_TCLTK_LIBS],
@@ -1501,45 +1494,15 @@ if test -z "${TCLTK_LIBS}"; then
       done
       ;;
   esac
-  ## Force evaluation ('-ltcl8.3${TCL_DBGX}' and friends ...).
-  eval "TCLTK_LIBS=\"${TCLTK_LIBS}\""
 fi
 ])# _R_TCLTK_LIBS
-
-AC_DEFUN([_R_TCLTK_WORKS],
-[AC_CACHE_CHECK([whether compiling/linking Tcl/Tk code works],
-                [r_cv_tcltk_works],
-[AC_LANG_PUSH(C)
-r_save_CPPFLAGS="${CPPFLAGS}"
-r_save_LIBS="${LIBS}"
-CPPFLAGS="${CPPFLAGS} ${TCLTK_CPPFLAGS}"
-LIBS="${LIBS} ${TCLTK_LIBS}"
-AC_LINK_IFELSE([AC_LANG_PROGRAM(
-[[#include <tcl.h>
-#include <tk.h>
-]],
-[[static char * p1 = (char *) Tcl_Init;
-static char * p2 = (char *) Tk_Init;
-]])],
-r_cv_tcltk_works=yes,
-r_cv_tcltk_works=no)
-CPPFLAGS="${r_save_CPPFLAGS}"
-LIBS="${r_save_LIBS}"
-AC_LANG_POP(C)])
-])# _R_TCLTK_WORKS
 
 AC_DEFUN([R_TCLTK],
 [if test "${want_tcltk}" = yes; then
   have_tcltk=yes
-  ## (Note that the subsequent 3 macros assume that have_tcltk has been
-  ## set appropriately.)
   _R_TCLTK_CONFIG
   _R_TCLTK_CPPFLAGS  
   _R_TCLTK_LIBS
-  if test "${have_tcltk}" = yes; then
-    _R_TCLTK_WORKS
-    have_tcltk=${r_cv_tcltk_works}
-  fi
 else
   have_tcltk=no
   ## Just making sure.
@@ -1551,6 +1514,11 @@ if test "${have_tcltk}" = yes; then
             [Define if you have the Tcl/Tk headers and libraries and
 	     want Tcl/Tk support to be built.])
   use_tcltk=yes
+  if test -n "${TK_XINCLUDES}"; then
+    TCLTK_CPPFLAGS="${TCLTK_CPPFLAGS} ${TK_XINCLUDES}"
+  else
+    TCLTK_CPPFLAGS="${TCLTK_CPPFLAGS} ${X_CFLAGS}"
+  fi
 else
   use_tcltk=no
 fi
@@ -1584,15 +1552,15 @@ else
 fi
 
 acx_blas_save_LIBS="${LIBS}"
-LIBS="${FLIBS} ${LIBS}"
+LIBS="${LIBS} ${FLIBS}"
 
 if test "${acx_blas_ok}" = no; then
   if test "x${BLAS_LIBS}" != x; then
-    r_save_LIBS="${LIBS}"; LIBS="${BLAS_LIBS} ${LIBS}"
+    save_LIBS="${LIBS}"; LIBS="${BLAS_LIBS} ${LIBS}"
     AC_MSG_CHECKING([for ${sgemm} in ${BLAS_LIBS}])
     AC_TRY_LINK_FUNC(${sgemm}, [acx_blas_ok=yes], [BLAS_LIBS=""])
     AC_MSG_RESULT([${acx_blas_ok}])
-    LIBS="${r_save_LIBS}"
+    LIBS="$save_LIBS"
   fi
 fi
 
@@ -1660,7 +1628,6 @@ AC_DEFUN([R_LAPACK_LIBS],
 [AC_REQUIRE([R_PROG_F77_FLIBS])
 AC_REQUIRE([R_PROG_F77_APPEND_UNDERSCORE])
 AC_REQUIRE([R_PROG_F2C_FLIBS])
-AC_REQUIRE([R_BLAS_LIBS])
 
 acx_lapack_ok=no
 case "${with_lapack}" in
@@ -1679,13 +1646,8 @@ else
   zgeev=zgeev
 fi
 
-# We cannot use LAPACK if BLAS is not found
-if test "x${acx_blas_ok}" != xyes; then
-  acx_lapack_ok=noblas
-fi
-
 acx_lapack_save_LIBS="${LIBS}"
-LIBS="${BLAS_LIBS} ${FLIBS} ${LIBS}"
+LIBS="${LIBS} ${BLAS_LIBS} ${FLIBS}"
 
 if test "${acx_lapack_ok}" = no; then
   AC_CHECK_FUNC(${zgeev}, [acx_lapack_ok=yes])
@@ -1693,11 +1655,11 @@ fi
 
 if test "${acx_lapack_ok}" = no; then
   if test "x${LAPACK_LIBS}" != x; then
-    r_save_LIBS="${LIBS}"; LIBS="${LAPACK_LIBS} ${LIBS}"
+    save_LIBS="${LIBS}"; LIBS="${LAPACK_LIBS} ${LIBS}"
     AC_MSG_CHECKING([for ${zgeev} in ${LAPACK_LIBS}])
     AC_TRY_LINK_FUNC(${zgeev}, [acx_lapack_ok=yes], [LAPACK_LIBS=""])
     AC_MSG_RESULT([${acx_lapack_ok}])
-    LIBS="${r_save_LIBS}"
+    LIBS="$save_LIBS"
   fi
 fi
 
@@ -1716,6 +1678,7 @@ fi
 
 AC_SUBST(LAPACK_LIBS)
 ])# R_LAPACK_LIBS
+
 
 AC_DEFUN([R_XDR],
 [AC_CHECK_HEADER(rpc/types.h)
@@ -1764,14 +1727,14 @@ AM_CONDITIONAL(USE_MMAP_ZLIB,
 ])# R_ZLIB
 
 AC_DEFUN([_R_HEADER_ZLIB],
-[AC_CACHE_CHECK([if zlib version >= 1.1.4],
+[AC_CACHE_CHECK([if zlib version >= 1.1.3],
                 [r_cv_header_zlib_h],
 [AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <string.h>
 #include <zlib.h>
 int main() {
 #ifdef ZLIB_VERSION
-  exit(strcmp(ZLIB_VERSION, "1.1.4") < 0);
+  exit(strcmp(ZLIB_VERSION, "1.1.3") < 0);
 #else
   exit(1);
 #endif
@@ -2317,9 +2280,6 @@ hpux*) # Its linker distinguishes data from code symbols
 irix* | nonstopux*)
   symcode='[[BCDEGRST]]'
   ;;
-osf*)
-  symcode='[[BCDEGQRST]]'
-  ;;
 solaris* | sysv5*)
   symcode='[[BDT]]'
   ;;
@@ -2416,7 +2376,7 @@ EOF
 	  save_CFLAGS="$CFLAGS"
 	  LIBS="conftstm.$ac_objext"
 	  CFLAGS="$CFLAGS$no_builtin_flag"
-	  if AC_TRY_EVAL(ac_link) && test -s conftest$ac_exeext; then
+	  if AC_TRY_EVAL(ac_link) && test -s conftest; then
 	    pipe_works=yes
 	  fi
 	  LIBS="$save_LIBS"
@@ -3534,12 +3494,10 @@ else
       # need to do runtime linking.
       case $host_os in aix4.[[23]]|aix4.[[23]].*|aix5*)
 	for ld_flag in $LDFLAGS; do
-	  case $ld_flag in
-	  *-brtl*)
+	  if (test $ld_flag = "-brtl" || test $ld_flag = "-Wl,-brtl"); then
 	    aix_use_runtimelinking=yes
 	    break
-	  ;;
-	  esac
+	  fi
 	done
       esac
 
@@ -3611,7 +3569,7 @@ else
 	allow_undefined_flag='${wl}-berok'
 	# This is a bit strange, but is similar to how AIX traditionally builds
 	# it's shared libraries.
-	archive_expsym_cmds="\$CC $shared_flag"' -o $output_objdir/$soname $libobjs $deplibs $compiler_flags ${allow_undefined_flag} '"\${wl}$no_entry_flag \${wl}$exp_sym_flag:\$export_symbols"' ~$AR -crlo $output_objdir/$libname$release.a $output_objdir/$soname'
+	archive_expsym_cmds="\$CC $shared_flag"' -o $output_objdir/$soname $libobjs $deplibs $compiler_flags ${allow_undefined_flag} '"\${wl}$no_entry_flag \${wl}$exp_sym_flag:\$export_symbols"' ~$AR -crlo $objdir/$libname$release.a $objdir/$soname'
       fi
     fi
     ;;
@@ -3655,7 +3613,7 @@ else
     #        cross-compilation, but unfortunately the echo tests do not
     #        yet detect zsh echo's removal of \ escapes.  Also zsh mangles
     #	     `"' quotes if we put them in here... so don't!
-    archive_cmds='$CC -r -keep_private_externs -nostdlib -o ${lib}-master.o $libobjs && $CC $(test .$module = .yes && echo -bundle || echo -dynamiclib) $allow_undefined_flag -o $lib ${lib}-master.o $deplibs$linker_flags $(test .$module != .yes && echo -install_name $rpath/$soname $verstring)'
+    archive_cmds='$nonopt $(test .$module = .yes && echo -bundle || echo -dynamiclib) $allow_undefined_flag -o $lib $libobjs $deplibs$linker_flags -install_name $rpath/$soname $verstring'
     # We need to add '_' to the symbols in $export_symbols first
     #archive_expsym_cmds="$archive_cmds"' && strip -s $export_symbols'
     hardcode_direct=yes
@@ -3710,11 +3668,10 @@ else
   irix5* | irix6* | nonstopux*)
     if test "$GCC" = yes; then
       archive_cmds='$CC -shared $libobjs $deplibs $compiler_flags ${wl}-soname ${wl}$soname `test -n "$verstring" && echo ${wl}-set_version ${wl}$verstring` ${wl}-update_registry ${wl}${output_objdir}/so_locations -o $lib'
-      hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
     else
       archive_cmds='$LD -shared $libobjs $deplibs $linker_flags -soname $soname `test -n "$verstring" && echo -set_version $verstring` -update_registry ${output_objdir}/so_locations -o $lib'
-      hardcode_libdir_flag_spec='-rpath $libdir'
     fi
+    hardcode_libdir_flag_spec='${wl}-rpath ${wl}$libdir'
     hardcode_libdir_separator=:
     link_all_deplibs=yes
     ;;
@@ -3742,7 +3699,7 @@ else
     hardcode_direct=yes
     hardcode_shlibpath_var=no
     if test -z "`echo __ELF__ | $CC -E - | grep __ELF__`" || test "$host_os-$host_cpu" = "openbsd2.8-powerpc"; then
-      archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags'
+      archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $linker_flags'
       hardcode_libdir_flag_spec='${wl}-rpath,$libdir'
       export_dynamic_flag_spec='${wl}-E'
     else
@@ -3752,7 +3709,7 @@ else
 	hardcode_libdir_flag_spec='-R$libdir'
         ;;
       *)
-        archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $compiler_flags'
+        archive_cmds='$CC -shared $pic_flag -o $lib $libobjs $deplibs $linker_flags'
         hardcode_libdir_flag_spec='${wl}-rpath,$libdir'
         ;;
       esac
@@ -4021,9 +3978,6 @@ aix3*)
 
 aix4* | aix5*)
   version_type=linux
-  need_lib_prefix=no
-  need_version=no
-  hardcode_into_libs=yes
   if test "$host_cpu" = ia64; then
     # AIX 5 supports IA64
     library_names_spec='${libname}${release}.so$major ${libname}${release}.so$versuffix $libname.so'
@@ -4062,7 +4016,6 @@ aix4* | aix5*)
     fi
     shlibpath_var=LIBPATH
   fi
-  hardcode_into_libs=yes
   ;;
 
 amigaos*)
@@ -4140,18 +4093,6 @@ darwin* | rhapsody*)
 
 freebsd1*)
   dynamic_linker=no
-  ;;
-
-freebsd*-gnu*)
-  version_type=linux
-  need_lib_prefix=no
-  need_version=no
-  library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so$major $libname.so'
-  soname_spec='${libname}${release}.so$major'
-  shlibpath_var=LD_LIBRARY_PATH
-  shlibpath_overrides_runpath=no
-  hardcode_into_libs=yes
-  dynamic_linker='GNU/FreeBSD ld.so'
   ;;
 
 freebsd*)
@@ -4319,13 +4260,11 @@ os2*)
 osf3* | osf4* | osf5*)
   version_type=osf
   need_version=no
-  need_lib_prefix=no
-  soname_spec='${libname}${release}.so$major'
-  library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so$major $libname.so'
+  soname_spec='${libname}${release}.so'
+  library_names_spec='${libname}${release}.so$versuffix ${libname}${release}.so $libname.so'
   shlibpath_var=LD_LIBRARY_PATH
   sys_lib_search_path_spec="/usr/shlib /usr/ccs/lib /usr/lib/cmplrs/cc /usr/lib /usr/local/lib /var/shlib"
   sys_lib_dlsearch_path_spec="$sys_lib_search_path_spec"
-  hardcode_into_libs=yes
   ;;
 
 sco3.2v5*)
@@ -5722,7 +5661,7 @@ $debug ||
     # Check for GNU sed and select it if it is found.
     if "${_sed}" --version 2>&1 < /dev/null | egrep '(GNU)' > /dev/null; then
       lt_cv_path_SED=${_sed}
-      break
+      break;
     fi
     while true; do
       cat "$tmp/sed.in" "$tmp/sed.in" >"$tmp/sed.tmp"

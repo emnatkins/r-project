@@ -65,6 +65,13 @@ sub file_path {
     my $filesep = "/";
     my $v;
 
+    if($R::Vars::OSTYPE eq "mac") {
+	foreach $v (@args) {
+	    $v =~ s/:\z//;
+	}
+	$filesep = ":";
+    }
+
     join($filesep, @args);
 }
 
@@ -93,7 +100,12 @@ sub list_files_with_exts {
     my @files;
     $exts = ".*" unless $exts;
     opendir(DIR, $dir) or die "cannot opendir $dir: $!";
-    @files = grep { /\.$exts$/ && -f "$dir/$_" } readdir(DIR);
+    if($R::Vars::OSTYPE eq "mac"){
+	@files = grep { /\.$exts$/ && -f "$dir:$_" } readdir(DIR);
+    }
+    else{
+	@files = grep { /\.$exts$/ && -f "$dir/$_" } readdir(DIR);
+    }
     closedir(DIR);
     ## We typically want the paths to the files, see also the R variant
     ## .listFilesWithExts() used in some of the QC tools.
@@ -133,15 +145,16 @@ sub get_exclude_patterns {
     ## Return list of file patterns excluded by R CMD build and check.
     ## Kept here so that we ensure that the lists are in sync, but not
     ## exported.
-    ## <NOTE>
-    ## Has Unix-style '/' path separators hard-coded.
     my @exclude_patterns = ("^.Rbuildignore\$", "^.DS_Store\$",
-			    "\~\$", "\\.bak\$", "\\.swp\$",
-			    "(^|/)\\.#[^/]*\$", "(^|/)#[^/]*#\$",
-			    "^TITLE\$", "^data/00Index\$",
-			    "^inst/doc/00Index.dcf\$"
-			    );
-    ## </NOTE>
+			    "\~\$", "\\.swp\$", "\\.bak\$",
+			    "^.*/\\.#[^/]*\$", "^.*/#[^/]*#\$",
+			    "^TITLE\$");
+    ## <FIXME>
+    ## Add
+    ##   "^data/00Index\$"
+    ##   "^inst/doc/00Index.dcf\$"
+    ## once 1.7 is out ...
+    ## </FIXME>
     @exclude_patterns;
 }
 

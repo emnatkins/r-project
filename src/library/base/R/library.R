@@ -1,5 +1,5 @@
 library <-
-function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
+function(package, help, lib.loc = NULL, character.only = FALSE,
          logical.return = FALSE, warn.conflicts = TRUE,
          keep.source = getOption("keep.source.pkgs"),
          verbose = getOption("verbose"), version)
@@ -112,6 +112,8 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 	out
     }
 
+    sQuote <- function(s) paste("'", s, "'", sep = "")
+
     if (is.null(lib.loc)) lib.loc <- .libPaths()
 
     if(!missing(package)) {
@@ -141,8 +143,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
         }
 
         if(length(package) != 1)
-            stop(paste("argument", sQuote("package"),
-                       "must be of length 1"))
+            stop("argument `package' must be of length 1")
 	pkgname <- paste("package", package, sep = ":")
 	newpackage <- is.na(match(pkgname, search()))
 	if(newpackage) {
@@ -172,12 +173,12 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
             which.lib.loc <- dirname(pkgpath)
             descfile <- system.file("DESCRIPTION", package = package,
                                     lib.loc = which.lib.loc)
-            if(!nchar(descfile))
-            	stop("This is not a valid package -- no DESCRIPTION exists")
-
+            if(!nchar(descfile)) 
+            	stop("This is not a valid package -- no DESCRIPTION exists") 
+	
             descfields <- read.dcf(descfile, fields =
-                           c("Package", "Depends", "Built"))
-            testRversion(descfields)
+                           c("Package", "Depends", "Built")) 
+            testRversion(descfields)                           
 
             ## Check for inconsistent naming
             if(descfields[1, "Package"] != libraryPkgName(package)) {
@@ -190,15 +191,6 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
             	pkgname <- paste("package", package, sep = ":")
             	newpackage <- is.na(match(pkgname, search()))
 	    }
-            if(is.character(pos)) {
-                npos <- match(pos, search())
-                if(is.na(npos)) {
-                    warning(paste(sQuote(pos),
-                                  "not found on search path, using",
-                                  sQuote("pos=2")))
-                    pos <- 2
-                } else pos <- npos
-            }
             if(newpackage) {
 		## If the name space mechanism is available and the package
 		## has a name space, then the name space loading mechanism
@@ -206,7 +198,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 		if (packageHasNamespace(package, which.lib.loc)) {
 		    tt <- try({
 			ns <- loadNamespace(package, c(which.lib.loc, lib.loc))
-			env <- attachNamespace(ns, pos = pos)
+			env <- attachNamespace(ns)
 		    })
 		    if (inherits(tt, "try-error"))
 			if (logical.return)
@@ -236,7 +228,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 		    warning(paste("Package ", sQuote(package),
 				  "contains no R code"))
 		## now transfer contents of loadenv to an attached frame
-		env <- attach(NULL, pos = pos, name = pkgname)
+		env <- attach(NULL, name = pkgname)
 		## detach does not allow character vector args
 		on.exit(do.call("detach", list(name = pkgname)))
 		attr(env, "path") <- file.path(which.lib.loc, package)
@@ -320,7 +312,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
                     cbind(basename(gsub("\\.[[:alpha:]]+$", "",
                                         txt$File)),
                           paste(txt$Title,
-                                paste(rep.int("(source", NROW(txt)),
+                                paste(rep("(source", NROW(txt)),
                                       ifelse(txt$PDF != "",
                                              ", pdf",
                                              ""),
@@ -380,6 +372,8 @@ library.dynam <-
 function(chname, package = .packages(), lib.loc = NULL, verbose =
          getOption("verbose"), file.ext = .Platform$dynlib.ext, ...)
 {
+    sQuote <- function(s) paste("'", s, "'", sep = "")
+
     .Dyn.libs <- .dynLibs()
     if(missing(chname) || (ncChname <- nchar(chname)) == 0)
         return(.Dyn.libs)
@@ -473,6 +467,8 @@ function(package, quietly = FALSE, warn.conflicts = TRUE,
     function(package, lib.loc = NULL, quiet = FALSE,
              verbose = getOption("verbose"))
 {
+    sQuote <- function(s) paste("'", s, "'", sep = "")
+
     useAttached <- FALSE
     if(is.null(lib.loc)) {
         useAttached <- TRUE
@@ -520,6 +516,7 @@ function(package, quietly = FALSE, warn.conflicts = TRUE,
 print.packageInfo <- function(x, ...)
 {
     if(!inherits(x, "packageInfo")) stop("wrong class")
+    sQuote <- function(s) paste("'", s, "'", sep = "")
     outFile <- tempfile("RpackageInfo")
     outConn <- file(outFile, open = "w")
     vignetteMsg <-

@@ -217,7 +217,7 @@ static char *register_new_class(char *extra, WNDPROC proc)
 	return new_class_name;
 }
 
-static HWND new_mdi_window(char *name, rect r, unsigned long sty)
+static HWND new_mdi_window(char *name, rect r,unsigned long sty)
 {
 	HWND hwnd;
 	MDICREATESTRUCT mdi;
@@ -266,7 +266,7 @@ static rect fix_win_rect(rect r, long flags)
 
 	win_rect = r;
 
-        if ((r.width==0)||(r.height==0))
+        if ((flags & Workspace)||(r.width==0)||(r.height==0))
               return rect(CW_USEDEFAULT,CW_USEDEFAULT,
                           CW_USEDEFAULT,CW_USEDEFAULT);
 	/* Find out the maximum rectangle we are allowed. */
@@ -420,7 +420,6 @@ static object new_window_object(HWND hwnd, char *name, rect r,
 /*
  *  Create and return a new window.
  */
-static int MDIsizeSet=0;
 window newwindow(char *name, rect r, long flags)
 {
 	object obj;
@@ -434,7 +433,6 @@ window newwindow(char *name, rect r, long flags)
 		flags &= ~Document;
 	if ((flags & Menubar) && (flags & Document))
 		flags &= ~Menubar;
-	if (flags & Workspace && r.width != 0) MDIsizeSet = 1;
 	fix_win_style(&flags, &state, &win_style);
 	r = fix_win_rect(r, flags);
 	ex_style = 0L; /* extended style */
@@ -615,11 +613,11 @@ void show_window(object obj)
 	}
 	obj->state |= Visible;
         if (hwndClient && (hwnd==hwndFrame) && (MDIFrameFirstTime)) {
-	    ShowWindow(hwnd, MDIsizeSet ? SW_SHOWNORMAL : SW_SHOWMAXIMIZED);
-	    MDIFrameFirstTime = 0;
+	  	     ShowWindow(hwnd, SW_SHOWMAXIMIZED);
+                     MDIFrameFirstTime = 0;
         }
         else
-	    ShowWindow(hwnd, SW_SHOWNORMAL);
+                     ShowWindow(hwnd, SW_SHOWNORMAL);
         if (obj->menubar) {
           if (hwndClient) {
             menu mdi = (obj->menubar)->menubar;
@@ -672,18 +670,3 @@ int ismdi() {
  return (hwndClient!=NULL);
 }
 
-PROTECTED
-rect GetCurrentWinPos(object obj)
-{
-    rect r;
-    WINDOWPLACEMENT W;
-
-    if (! obj || obj->kind != WindowObject) return rect(0,0,0,0);
-    W.length = sizeof(WINDOWPLACEMENT);
-    GetWindowPlacement(obj->handle, &W);
-    r.x = W.rcNormalPosition.left;
-    r.y = W.rcNormalPosition.top;
-    r.width = W.rcNormalPosition.right - r.x;
-    r.height = W.rcNormalPosition.bottom - r.y;
-    return r;
-}

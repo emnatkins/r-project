@@ -38,7 +38,6 @@ typedef struct {
     int na_width;
     int na_width_noquote;
     int digits;
-    int scipen;
     int gap;
     int quote;
     int right;

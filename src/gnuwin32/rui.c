@@ -53,7 +53,6 @@ console RConsole = NULL;
 int   RguiMDI = RW_MDI | RW_TOOLBAR | RW_STATUSBAR;
 int   MDIset = 0;
 static window RFrame;
-rect MDIsize;
 #endif
 extern int ConsoleAcceptCmd, R_is_running;
 static menubar RMenuBar;
@@ -485,8 +484,7 @@ static void menuact(control m)
 
 void readconsolecfg()
 {
-    int   consoler, consolec, consolex, consoley, pagerrow, pagercol, 
-	multiplewin, widthonresize;
+    int   consoler, consolec, pagerrow, pagercol, multiplewin, widthonresize;
     int   bufbytes, buflines;
     rgb   consolebg, consolefg, consoleuser, highlight ;
     int   ok, fnchanged, done, cfgerr;
@@ -498,7 +496,6 @@ void readconsolecfg()
 
     consoler = 32;
     consolec = 90;
-    consolex = consoley = 0;
     consolebg = White;
     consolefg = Black;
     consoleuser = gaRed;
@@ -514,7 +511,6 @@ void readconsolecfg()
 	RguiMDI |= RW_MDI;
     if (MDIset == -1)
 	RguiMDI &= ~RW_MDI;
-    MDIsize = rect(0, 0, 0, 0);
 #endif
     sprintf(optf, "%s/RConsole", getenv("R_USER"));
     if (!optopenfile(optf)) {
@@ -560,22 +556,6 @@ void readconsolecfg()
 		consolec = atoi(opt[1]);
 		done = 1;
 	    }
-	    if (!strcmp(opt[0], "xconsole")) {
-		consolex = atoi(opt[1]);
-		done = 1;
-	    }
-	    if (!strcmp(opt[0], "yconsole")) {
-		consoley = atoi(opt[1]);
-		done = 1;
-	    }
-	    if (!strcmp(opt[0], "xgraphics")) {
-		graphicsx = atoi(opt[1]);
-		done = 1;
-	    }
-	    if (!strcmp(opt[0], "ygraphics")) {
-		graphicsy = atoi(opt[1]);
-		done = 1;
-	    }
 	    if (!strcmp(opt[0], "pgrows")) {
 		pagerrow = atoi(opt[1]);
 		done = 1;
@@ -619,31 +599,6 @@ void readconsolecfg()
 		    RguiMDI |= RW_STATUSBAR;
 		else if (!strcmp(opt[1], "no"))
 		    RguiMDI &= ~RW_STATUSBAR;
-		done = 1;
-	    }
-	    if (!strcmp(opt[0], "MDIsize")) { /* wxh+x+y */
-		int x=0, y=0, w=0, h=0, sign;
-		char *p = opt[1];
-
-		if(*p == '-') {sign = -1; p++;} else sign = +1;
-		for(w=0; isdigit(*p); p++) w = 10*w + (*p - '0');
-		w *= sign;
-		p++;
-
-		if(*p == '-') {sign = -1; p++;} else sign = +1;
-		for(h=0; isdigit(*p); p++) h = 10*h + (*p - '0');
-		h *= sign;
-
-		if(*p == '-') sign = -1; else sign = +1;
-		p++;
-		for(x=0; isdigit(*p); p++) x = 10*x + (*p - '0');
-		x *= sign;
-		if(*p == '-') sign = -1; else sign = +1;
-		p++;
-		for(y=0; isdigit(*p); p++) y = 10*y + (*p - '0');
-		y *= sign;
-
-		MDIsize = rect(x, y, w, h);
 		done = 1;
 	    }
 #endif
@@ -695,9 +650,8 @@ void readconsolecfg()
 	app_cleanup();
 	exit(10);
     }
-    setconsoleoptions(fn, sty, pointsize, consoler, consolec,
-		      consolex, consoley,
-		      consolefg, consoleuser, consolebg, highlight,
+    setconsoleoptions(fn, sty, pointsize, consoler, consolec, consolefg,
+		      consoleuser, consolebg, highlight,
 		      pagerrow, pagercol, multiplewin, widthonresize,
 		      bufbytes, buflines);
 }
@@ -771,7 +725,7 @@ int setupui()
 #ifdef USE_MDI
     if (RguiMDI & RW_MDI) {
 	TRACERUI("Rgui");
-	RFrame = newwindow("RGui", MDIsize,
+	RFrame = newwindow("RGui", rect(0, 0, 0, 0),
 			   StandardWindow | Menubar | Workspace);
 	setclose(RFrame, closeconsole);
 	show(RFrame);

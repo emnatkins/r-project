@@ -538,6 +538,21 @@ FUNTAB R_FunTab[] =
 {"writeClipboard",do_writeClipboard,0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"chooseFiles", do_chooseFiles, 0,  11, 5,  {PP_FUNCALL, PREC_FN,   0}},
 #endif
+#ifdef Macintosh
+{"unlink",	do_unlink,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"int.unzip",	do_int_unzip,	0,	11,    -1,	{PP_FUNCALL, PREC_FN,	0}},
+{"dir.create",	do_dircreate,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"file.edit",	do_fileedit,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"new.file",	do_newfile,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"add.menu.cmd",do_addmenucmd,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"del.menu.cmd",do_delmenucmd,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"get.menu.cmd",do_getmenucmd,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"get.num.cmd",	do_getnumcmd,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"del.num.cmd",	do_delnumcmd,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"del.usr.cmd",	do_delusrcmd,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
+{"wsbrowser",	do_wsbrowser,	0,	11,	8,	{PP_FUNCALL, PREC_FN,	0}},
+{"truepath",	do_truepath,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
+#endif
 #if defined(Unix) && defined(HAVE_AQUA)
 {"wsbrowser",	do_wsbrowser,	0,	11,	8,	{PP_FUNCALL, PREC_FN,	0}},
 #endif
@@ -685,12 +700,17 @@ FUNTAB R_FunTab[] =
 {"XFig",	do_XFig,	0,	111,   11,	{PP_FUNCALL, PREC_FN,	0}},
 {"PDF",		do_PDF,		0,	111,   10,	{PP_FUNCALL, PREC_FN,	0}},
 #ifdef Win32
-{"devga",	do_devga,	0,	111,   12,	{PP_FUNCALL, PREC_FN,	0}},
+{"devga",	do_devga,	0,	111,   10,	{PP_FUNCALL, PREC_FN,	0}},
 #endif
 #ifdef Unix
 {"X11",		do_X11,		0,	111,	8,	{PP_FUNCALL, PREC_FN,	0}},
 {"gnome",	do_Gnome,	0,	111,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"GTK",		do_GTK,		0,	111,	4,	{PP_FUNCALL, PREC_FN,	0}},
+{"Quartz",	do_Quartz,	0,	111,	7,	{PP_FUNCALL, PREC_FN,	0}},
+#endif
+#ifdef Macintosh
+{"Macintosh",	do_Macintosh,	0,	111,	4,	{PP_FUNCALL, PREC_FN,	0}},
+{"applescript",	do_applescript,	0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"Quartz",	do_Quartz,	0,	111,	7,	{PP_FUNCALL, PREC_FN,	0}},
 #endif
 
@@ -826,21 +846,26 @@ FUNTAB R_FunTab[] =
 {"setToCConverterActiveStatus", do_setToCConverterActiveStatus, 0, 11, 2, {PP_FUNCALL, PREC_FN, 0}},
 {"removeToCConverterActiveStatus", do_setToCConverterActiveStatus, 1, 11, 1, {PP_FUNCALL, PREC_FN, 0}},
 
+#ifdef ENVIRONMENT_LOCKING
 {"lockEnvironment", do_lockEnv,		0, 11,  2,      {PP_FUNCALL, PREC_FN,	0}},
 {"environmentIsLocked",	do_envIsLocked,	0, 11,  1,      {PP_FUNCALL, PREC_FN,	0}},
+#endif
+#ifdef FANCY_BINDINGS
 {"lockBinding", do_lockBnd,		0, 11,	2,      {PP_FUNCALL, PREC_FN,	0}},
 {"unlockBinding", do_lockBnd,		1, 11,	2,      {PP_FUNCALL, PREC_FN,	0}},
 {"bindingIsLocked", do_bndIsLocked,	0, 11,	2,      {PP_FUNCALL, PREC_FN,	0}},
 {"makeActiveBinding", do_mkActiveBnd,	0, 11,	3,      {PP_FUNCALL, PREC_FN,	0}},
 {"bindingIsActive", do_bndIsActive,	0, 11,	2,      {PP_FUNCALL, PREC_FN,	0}},
 {"mkUnbound",	do_mkUnbound,		0, 11,	1,      {PP_FUNCALL, PREC_FN,	0}},
+#endif
+#ifdef EXPERIMENTAL_NAMESPACES
 {"isNamespaceEnv",do_isNSEnv,		0, 11,	1,      {PP_FUNCALL, PREC_FN,	0}},
 {"registerNamespace",do_regNS,		0, 11,	2,      {PP_FUNCALL, PREC_FN,	0}},
 {"unregisterNamespace",do_unregNS,	0, 11,  1,      {PP_FUNCALL, PREC_FN,	0}},
 {"getRegisteredNamespace",do_getRegNS,	0, 11,  1,      {PP_FUNCALL, PREC_FN,	0}},
 {"getNamespaceRegistry",do_getNSRegistry, 0, 11, 0,     {PP_FUNCALL, PREC_FN,	0}},
 {"importIntoEnv",do_importIntoEnv, 0, 11, 4,     {PP_FUNCALL, PREC_FN,	0}},
-
+#endif
 
 {NULL,		NULL,		0,	0,	0,	{0,	PREC_FN,	0}},
 };
@@ -873,6 +898,23 @@ int StrToInternal(char *s)
 	if (strcmp(s, R_FunTab[i].name) == 0) return i;
     return 0;
 }
+
+#ifdef OLD
+/* string hashing */
+int hashpjw(char *s)
+{
+    char *p;
+    unsigned h = 0, g;
+    for (p = s; *p; p = p + 1) {
+	h = (h << 4) + (*p);
+	if ((g = h & 0xf0000000) != 0) {
+	    h = h ^ (g >> 24);
+	    h = h ^ g;
+	}
+    }
+    return h % HSIZE;
+}
+#endif
 
 static void installFunTab(int i)
 {

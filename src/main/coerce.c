@@ -594,6 +594,12 @@ static SEXP coerceToExpression(SEXP v)
 	    for (i = 0; i < n; i++)
 		SET_VECTOR_ELT(ans, i, ScalarString(STRING_ELT(v, i)));
 	    break;
+#ifdef never_used
+	case VECSXP:
+	    for (i = 0; i < n; i++)
+		SET_VECTOR_ELT(ans, i, VECTOR_ELT(v, i));
+	    break;
+#endif
 	}
     }
     else {/* not used either */
@@ -748,8 +754,7 @@ static SEXP coercePairList(SEXP v, SEXPTYPE type)
 	}
     }
     else
-	error("pairlist object cannot be coerced to %s",
-	      CHAR(type2str(type)));
+	error("pairlist object cannot be coerced to  vector type [%d]",type);
 
     /* If any tags are non-null then we */
     /* need to add a names attribute. */
@@ -822,8 +827,7 @@ static SEXP coerceVectorList(SEXP v, SEXPTYPE type)
 	}
     }
     else
-	error("(list) object cannot be coerced to %s",
-	      CHAR(type2str(type)));
+	error("(list) object cannot be coerced to vector type %d",type);
 
     names = getAttrib(v, R_NamesSymbol);
     if (names != R_NilValue)
@@ -961,6 +965,16 @@ static SEXP ascommon(SEXP call, SEXP u, int type)
 {
     /* -> as.vector(..) or as.XXX(.) : coerce 'u' to 'type' : */
     SEXP  v;
+#ifdef OLD
+    if (type == SYMSXP) {
+	if (TYPEOF(u) == SYMSXP)
+	    return u;
+	if (!isString(u) || LENGTH(u) < 0 || CHAR(STRING_ELT(u, 0))[0] == '\0')
+	    errorcall(call, "character argument required");
+	return install(CHAR(STRING_ELT(u, 0)));
+    }
+    else
+#endif
     if (type == CLOSXP) {
 	return asFunction(u);
     }
@@ -1081,8 +1095,13 @@ SEXP do_asfunction(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* Check the arguments; we need a list and environment. */
 
     arglist = CAR(args);
+#if OLD
+    if (length(arglist) > 1 && !isNewList(arglist))
+	errorcall(call, "list argument expected");
+#else
     if (!isNewList(arglist))
 	errorcall(call, "list argument expected");
+#endif
 
     envir = CADR(args);
     if (!isNull(envir) && !isEnvironment(envir))
@@ -1102,7 +1121,14 @@ SEXP do_asfunction(SEXP call, SEXP op, SEXP args, SEXP rho)
 	pargs = CDR(pargs);
     }
     CheckFormals(args);
+#if OLD
+    if( n == 1 )
+	args =  mkCLOSXP(args, arglist, envir);
+    else
+	args =  mkCLOSXP(args, VECTOR_ELT(arglist, n - 1), envir);
+#else
     args =  mkCLOSXP(args, VECTOR_ELT(arglist, n - 1), envir);
+#endif
     UNPROTECT(1);
     return args;
 }
@@ -1260,9 +1286,6 @@ SEXP do_is(SEXP call, SEXP op, SEXP args, SEXP rho)
 	case ANYSXP:
 	case EXPRSXP:
 	case EXTPTRSXP:
-#ifdef BYTECODE
-	case BCODESXP:
-#endif
 	case WEAKREFSXP:
 	    LOGICAL(ans)[0] = 1;
 	    break;
@@ -1727,6 +1750,10 @@ SEXP substitute(SEXP lang, SEXP rho)
 		}
 		while(TYPEOF(t) == PROMSXP);
 		return t;
+#ifdef OLD
+		return substitute(PREXPR(t), rho);
+		return PREXPR(t);
+#endif
 	    }
 	    else if (TYPEOF(t) == DOTSXP) {
 		error("... used in an incorrect context");
@@ -1768,6 +1795,11 @@ SEXP substituteList(SEXP el, SEXP rho)
 	UNPROTECT(2);
 	return t;
     }
+#ifdef OLD
+    else if (CAR(el) == R_MissingArg) {
+	return substituteList(CDR(el), rho);
+    }
+#endif
     else {
 	PROTECT(h = substitute(CAR(el), rho));
 	PROTECT(t = substituteList(CDR(el), rho));
@@ -1892,7 +1924,7 @@ SEXP R_set_class(SEXP obj, SEXP value, SEXP call)
 	    }
 	    else if(valueType != TYPEOF(obj))
 		error("\"%s\" can only be set as the class if the object has this type; found \"%s\"",
-		      valueString, CHAR(type2str(TYPEOF(obj))));
+		      valueString, type2str(TYPEOF(obj)));
 	    /* else, leave alone */
 	}
 	else if(!strcmp("numeric", valueString)) {

@@ -40,8 +40,8 @@ axis.POSIXct(side, x, at, format, ...)
   \link{DateTimeClasses} for details of the classes.
 }
 \examples{
-res <- try(data(beav1, package = MASS))
-if(!inherits(res, "try-error")) {
+if(require(MASS, quietly = TRUE)) {
+data(beav1)
 attach(beav1)
 time <- strptime(paste(1990, day, time \%/\% 100, time \%\% 100),
                  "\%Y \%j \%H \%M")
@@ -52,6 +52,7 @@ r <- as.POSIXct(round(range(time), "hours"))
 axis.POSIXct(1, at=seq(r[1], r[2], by="hour"), format="\%H")
 rm(time)
 detach(beav1)
+detach(package:MASS)
 }
 
 plot(.leap.seconds, 1:22, type="n", yaxt="n",

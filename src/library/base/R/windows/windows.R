@@ -1,8 +1,7 @@
 windows <- function(width = 7, height = 7, pointsize = 12,
                     record = getOption("graphics.record"),
                     rescale = c("R", "fit", "fixed"), xpinch, ypinch,
-                    canvas = "white", gamma = getOption("gamma"),
-                    xpos = NA, ypos = NA)
+                    canvas = "white", gamma = getOption("gamma"))
 {
     rescale <- match.arg(rescale)
     rescale <- match(rescale, c("R", "fit", "fixed"))
@@ -14,9 +13,7 @@ windows <- function(width = 7, height = 7, pointsize = 12,
     ypinch <- as.double(ypinch)
     .Internal(devga("", width, height, pointsize, record, rescale,
                     xpinch, ypinch, canvas,
-                    if(is.null(gamma)) 1 else gamma,
-                    as.integer(xpos), as.integer(ypos)
-                    ))
+                    if(is.null(gamma)) 1 else gamma))
 }
 
 win.graph <- function(width = 7, height = 7, pointsize = 12)

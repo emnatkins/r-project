@@ -3,11 +3,14 @@
 undoc <-
 function(package, dir, lib.loc = NULL)
 {
+    nsInfo <- NULL
+
     ## Argument handling.
     if(!missing(package)) {
         if(length(package) != 1)
             stop(paste("argument", sQuote("package"),
                        "must be of length 1"))
+
         dir <- .find.package(package, lib.loc)
         ## Using package installed in @code{dir} ...
         helpIndex <- file.path(dir, "help", "AnIndex")
@@ -25,15 +28,13 @@ function(package, dir, lib.loc = NULL)
         if(!isBase)
             .loadPackageQuietly(package, lib.loc)
         codeEnv <-
-            as.environment(paste("package", package, sep = ":"))
-
-        codeObjs <- ls(envir = codeEnv, all.names = TRUE)
+            as.environment(match(paste("package", package, sep = ":"),
+                                 search()))
     }
     else {
         if(missing(dir))
             stop(paste("you must specify", sQuote("package"),
                        "or", sQuote("dir")))
-        ## Using sources from directory @code{dir} ...
         if(!.fileTest("-d", dir))
             stop(paste("directory", sQuote(dir), "does not exist"))
         else
@@ -45,8 +46,9 @@ function(package, dir, lib.loc = NULL)
         isBase <- basename(dir) == "base"
 
         ## Find all documented topics from the Rd sources.
+        files <- .listFilesWithType(docsDir, "docs")
         aliases <- character(0)
-        for(f in .listFilesWithType(docsDir, "docs")) {
+        for(f in files) {
             aliases <- c(aliases,
                          grep("^\\\\alias", readLines(f), value = TRUE))
         }
@@ -61,37 +63,33 @@ function(package, dir, lib.loc = NULL)
             ## Collect code in codeFile.
             codeFile <- tempfile("Rcode")
             on.exit(unlink(codeFile))
+            files <- .listFilesWithType(codeDir, "code")
             file.create(codeFile)
-            file.append(codeFile, .listFilesWithType(codeDir, "code"))
-            ## Read code from codeFile into codeEnv.
+            file.append(codeFile, files)
+            ## Read code from codeFile into codeEnv
             yy <- try(.sourceAssignments(codeFile, env = codeEnv))
             if(inherits(yy, "try-error")) {
                 stop("cannot source package code")
             }
+            if(file.exists(file.path(dir, "NAMESPACE")))
+                nsInfo <- parseNamespaceFile(basename(dir), dirname(dir))
         }
-        
-        codeObjs <- ls(envir = codeEnv, all.names = TRUE)
-        
-        ## Does the package have a NAMESPACE file?  Note that when
-        ## working on the sources we (currently?) cannot deal with the
-        ## (experimental) alternative way of specifying the namespace.
-        if(file.exists(file.path(dir, "NAMESPACE"))) {
-            nsInfo <- parseNamespaceFile(basename(dir), dirname(dir))
-            ## Look only at exported objects (and not declared S3
-            ## methods).
-            OK <- codeObjs[codeObjs %in% nsInfo$exports]
-            for(p in nsInfo$exportPatterns)
-                OK <- c(OK, grep(p, codeObjs, value = TRUE))
-            codeObjs <- unique(OK)
+    }
 
-        }
+    codeObjs <- ls(envir = codeEnv, all.names = TRUE)
+    if(length(nsInfo)) {
+        ## Look only at exported objects (and not declared S3 methods).
+        OK <- codeObjs[codeObjs %in% nsInfo$exports]
+        for (p in nsInfo$exportPatterns)
+            OK <- c(OK, grep(p, codeObjs, value = TRUE))
+        codeObjs <- unique(OK)
     }
 
     dataObjs <- character(0)
     dataDir <- file.path(dir, "data")
     if(.fileTest("-d", dataDir)) {
         files <- .listFilesWithType(dataDir, "data")
-        files <- files[!duplicated(.filePathSansExt(files))]
+        files <- files[!duplicated(sub("\\.[A-Za-z]*$", "", files))]
         dataEnv <- new.env()
         if(any(i <- grep("\\.\(R\|r\)$", files))) {
             for(f in files[i]) {
@@ -116,7 +114,8 @@ function(package, dir, lib.loc = NULL)
             files <- files[-i]
         }
         if(length(files) > 0)
-            dataObjs <- c(dataObjs, basename(.filePathSansExt(files)))
+            dataObjs <- c(dataObjs,
+			  sapply(sub("\\.[A-Za-z]*$", "", files), basename))
     }
 
     ## Undocumented objects?
@@ -205,13 +204,8 @@ function(package, dir, lib.loc = NULL,
          ignore.generic.functions = FALSE,
          verbose = getOption("verbose"))
 {
-    ## If a package has a namespace, we need to determine the S3 methods
-    ## which are registered but not exported: these *may* have explicit
-    ## usage documentation (e.g., if they have 'surprising arguments'),
-    ## and hence not be included in the information about objects with
-    ## usage but 'missing from the code'.
     S3reg <- character(0)
-    hasNamespace <- FALSE
+    nsInfo <- NULL
     
     ## Argument handling.
     if(!missing(package)) {
@@ -234,16 +228,16 @@ function(package, dir, lib.loc = NULL,
         if(!isBase)
             .loadPackageQuietly(package, lib.loc)
         codeEnv <-
-            as.environment(paste("package", package, sep = ":"))
-
-        lsCode <- ls(envir = codeEnv, all.names = TRUE)
-        
-        ## Does the package have a namespace?
-        if(packageHasNamespace(package, dirname(dir))) {
-            hasNamespace <- TRUE
-            ## Determine unexported but declared S3 methods.
-            S3reg <- .getNamespaceS3methodNames(package)
-            S3reg <- S3reg[! S3reg %in% lsCode]
+            as.environment(match(paste("package", package, sep = ":"),
+                                 search()))
+        ## If there is a NAMESPACE, find non-exported methods declared
+        ## in S3methods directives. 
+        if(file.exists(file.path(dir, "NAMESPACE"))) {
+            S3reg <- sapply(getNamespaceInfo(package, "S3methods"),
+                            function(x) x[[3]])
+            S3reg <- if(length(S3reg))
+                S3reg[! S3reg %in% ls(codeEnv, all.names = TRUE) ]
+            else character(0)           # sapply gives list()
         }
     }
     else {
@@ -268,8 +262,9 @@ function(package, dir, lib.loc = NULL,
         ## Collect code in codeFile.
         codeFile <- tempfile("Rcode")
         on.exit(unlink(codeFile))
+        files <- .listFilesWithType(codeDir, "code")
         file.create(codeFile)
-        file.append(codeFile, .listFilesWithType(codeDir, "code"))
+        file.append(codeFile, files)
 
         ## Read code from codeFile into codeEnv.
         codeEnv <- new.env()
@@ -279,24 +274,24 @@ function(package, dir, lib.loc = NULL,
         if(inherits(yy, "try-error")) {
             stop("cannot source package code")
         }
-
-        lsCode <- ls(envir = codeEnv, all.names = TRUE)
-        
-        ## Does the package have a NAMESPACE file?  Note that when
-        ## working on the sources we (currently?) cannot deal with the
-        ## (experimental) alternative way of specifying the namespace.
-        if(file.exists(file.path(dir, "NAMESPACE"))) {
-            hasNamespace <- TRUE
+        if(file.exists(file.path(dir, "NAMESPACE")))
             nsInfo <- parseNamespaceFile(basename(dir), dirname(dir))
-            ## Look only at exported objects.
-            OK <- lsCode[lsCode %in% nsInfo$exports]
-            for(p in nsInfo$exportPatterns)
-                OK <- c(OK, grep(p, lsCode, value = TRUE))
-            lsCode <- unique(OK)
-            ## Determine unexported but declared S3 methods.
-            S3reg <- .getNamespaceS3methodNames(nsInfo = nsInfo)
-            S3reg <- S3reg[! S3reg %in% lsCode]
-        }
+    }
+
+    lsCode <- ls(envir = codeEnv, all.names = TRUE)
+    if(length(nsInfo)) {
+        ## Look only at exported objects.
+        OK <- lsCode[lsCode %in% nsInfo$exports]
+        for (p in nsInfo$exportPatterns)
+            OK <- c(OK, grep(p, lsCode, value = TRUE))
+        lsCode <- unique(OK)
+        ## S3reg are unexported but declared S3 methods.
+        S3m <- sapply(nsInfo$S3methods,
+                      function(x) {
+                          if(length(x) > 2) x[3] else paste(x, collapse=".")
+                      })
+        ## S3m = list() if empty.
+        S3reg <- if(length(S3m)) S3m[! S3m %in% lsCode] else character(0)
     }
 
     ## Find the function objects to work on.
@@ -347,16 +342,16 @@ function(package, dir, lib.loc = NULL,
     ## Collect usages into docsFile.
     docsFile <- tempfile("Rdocs")
     on.exit(unlink(docsFile), add = TRUE)
+    files <- .listFilesWithType(docsDir, "docs")
     docsList <- tempfile("Rdocs")
     on.exit(unlink(docsList), add = TRUE)
-    writeLines(.listFilesWithType(docsDir, "docs"), docsList)
+    writeLines(files, docsList)
     .Script("perl", "extract-usage.pl",
             paste(if(verbose) "--verbose", docsList, docsFile))
 
     ## Process the usages in the documentation objects, one at a time.
     badDocObjs <- list()
     lsDocs <- character()
-    usagesNotInCode <- list()
     if(verbose)
         cat("Reading docs from", sQuote(docsFile), "\n")
     txt <- readLines(docsFile)
@@ -374,7 +369,7 @@ function(package, dir, lib.loc = NULL,
         }
         exprs <- try(parse(n = -1, text = readLines(txtConn, n)))
         if(inherits(exprs, "try-error"))
-            stop(paste("cannot parse usages in documentation object",
+            stop(paste("cannot source usages in documentation object",
                        sQuote(docObj)))
         for(i in exprs) {
             yy <- try(eval(i, env = docsEnv))
@@ -390,41 +385,28 @@ function(package, dir, lib.loc = NULL,
         if(length(badUsagesInFile) > 0)
             badDocObjs[[docObj]] <- badUsagesInFile
 
-        ## Determine functions with a \usage entry in the documentation
-        ## but 'missing from the code'.  Entries for S3 methods which
-        ## are registered but not exported are ok (as these methods
-        ## might have 'surprising' arguments).
-        ## <NOTE>
-        ## Older versions only printed this information without
-        ## returning it.  We now aggregate it into usagesNotInCode and
-        ## add this as an attribute to the badDocObjs object returned.
-        ## It might be nicer to do this differently ...
-        ## </NOTE>
-        badUsagesInFile <- usages[! usages %in% c(lsCode, S3reg)]
-        if(length(badUsagesInFile) > 0)
-            usagesNotInCode[[docObj]] <- badUsagesInFile
+        usagesNotInCode <- usages[! usages %in% lsCode]
+        usagesNotInCode <- usagesNotInCode[! usagesNotInCode %in% S3reg]
+        if(length(usagesNotInCode) > 0) {
+            writeLines(paste("Objects with usage in documentation",
+                             "object", sQuote(docObj),
+                             "but missing from code:"))
+            print(unique(usagesNotInCode))
+            writeLines("")
+        }
 
         lsDocs <- c(lsDocs, usages)
         rm(list = usages, envir = docsEnv)
-
     }
-    
-    ## Determine (function) objects in the code without a \usage entry.
-    ## Of course, these could still be 'documented' via \alias.
-    ## </NOTE>
-    ## Older versions only printed this information without returning it
-    ## (in case 'verbose' was true).  We now add this as an attribute to
-    ## the badDocObjs returned.
-    ## </NOTE>
-    codeNotInUsages <- lsCode[! lsCode %in% lsDocs]
-    funsNotInUsages <- funs[funs %in% codeNotInUsages]
-    ## (Note that 'funs' does not necessarily contain all (exported)
-    ## functions in the package.)
 
-    attr(badDocObjs, "codeNotInUsages") <- codeNotInUsages
-    attr(badDocObjs, "usagesNotInCode") <- usagesNotInCode
-    attr(badDocObjs, "funsNotInUsages") <- funsNotInUsages
-    attr(badDocObjs, "hasNamespace") <- hasNamespace
+    ## Objects without usage information.
+    ## Could still be documented via \alias.
+    undocObjs <- lsCode[!lsCode %in% lsDocs]
+    if(verbose) {
+        writeLines("\nObjects without usage information:")
+        print(undocObjs)
+        writeLines("")
+    }
 
     class(badDocObjs) <- "codoc"
     badDocObjs
@@ -433,46 +415,6 @@ function(package, dir, lib.loc = NULL,
 print.codoc <-
 function(x, ...)
 {
-    ## In general, functions in the code which only have an \alias but
-    ## no \usage entry are not necessarily a problem---they might be
-    ## mentioned in other parts of the Rd object documenting them, or be
-    ## 'internal'.  However, if a package has a namespace (and this was
-    ## used in the codoc() computations), then clearly all *exported*
-    ## functions should have \usage entries.
-    ## <FIXME>
-    ## Things are not quite that simple.
-    ## E.g., for generic functions with just a default and a formula
-    ## method we typically do not have \usage for the generic itself.
-    ## Also, extract-usage.pl currently only provides code for functions
-    ## (names of variables and data sets are available via comments) so
-    ## variables will come out as 'without usage information' ...
-    ## As we can always access the information via
-    ##    attr(codoc("foo"), "codeNotInUsages")
-    ## disable reporting this for the time being ...
-    ## <COMMENT>
-    ##     codeNotInUsages <- attr(x, "codeNotInUsages")
-    ##     if(length(codeNotInUsages)
-    ##        && identical(TRUE, attr(x, "hasNamespace"))) {
-    ##         if(length(codeNotInUsages)) {
-    ##             writeLines("Exported objects without usage information:")
-    ##             print(codeNotInUsages)
-    ##             writeLines("")
-    ##         }
-    ##     }
-    ## </COMMENT>
-    ## </FIXME>
-    
-    usagesNotInCode <- attr(x, "usagesNotInCode")
-    if(length(usagesNotInCode) > 0) {
-        for(fname in names(usagesNotInCode)) {
-            writeLines(paste("Objects with usage in documentation",
-                             "object", sQuote(fname),
-                             "but missing from code:"))
-            print(unique(usagesNotInCode[[fname]]))
-            writeLines("")
-        }
-    }
-            
     if(length(x) == 0)
         return(invisible(x))
     hasOnlyNames <- is.character(x[[1]][[1]][["code"]])
@@ -500,7 +442,104 @@ function(x, ...)
                                  indent = 2, exdent = 17)))
         writeLines("")
     }
+    invisible(x)
+}
+
+### * checkAssignFuns
+
+checkAssignFuns <-
+function(package, dir, lib.loc = NULL)
+{
+    S3reg <- character(0)
     
+    ## Argument handling.
+    if(!missing(package)) {
+        if(length(package) != 1)
+            stop(paste("argument", sQuote("package"),
+                       "must be of length 1"))
+        dir <- .find.package(package, lib.loc)
+        ## Using package installed in @code{dir} ...
+        codeDir <- file.path(dir, "R")
+        if(!.fileTest("-d", codeDir))
+            stop(paste("directory", sQuote(dir),
+                       "does not contain R code"))
+        isBase <- basename(dir) == "base"
+
+        ## Load package into codeEnv.
+        if(!isBase)
+            .loadPackageQuietly(package, lib.loc)
+        codeEnv <-
+            as.environment(match(paste("package", package, sep = ":"),
+                                 search()))
+        ## If there is a NAMESPACE, we want to test any non-exported
+        ## replacement methods declared in S3method directives.
+        if(file.exists(file.path(dir, "NAMESPACE"))) {
+            S3reg <- sapply(getNamespaceInfo(package, "S3methods"),
+                             function(x) x[[3]])
+            if(!length(S3reg)) S3reg <- character(0)
+            S3reg <- S3reg[! S3reg %in% ls(codeEnv, all.names = TRUE)]
+            S3reg <- grep("<-", S3reg, value = TRUE)
+            if(length(S3reg) > 0) {
+                S3Table <- get(".__S3MethodsTable__.", envir = NULL)
+                ## <FIXME>
+                ## methods are not in that table if their generic is in the
+                ## package.  Let's ignore those for now.
+                S3reg <- S3reg[S3reg %in% ls(S3Table, all.names = TRUE)]
+                ## </FIXME>
+            }
+        }
+    }
+    else {
+        if(missing(dir))
+            stop(paste("you must specify", sQuote("package"),
+                       "or", sQuote("dir")))
+        ## Using sources from directory @code{dir} ...
+        if(!.fileTest("-d", dir))
+            stop(paste("directory", sQuote(dir), "does not exist"))
+        else
+            dir <- .convertFilePathToAbsolute(dir)
+        codeDir <- file.path(dir, "R")
+        if(!.fileTest("-d", codeDir))
+            stop(paste("directory", sQuote(dir),
+                       "does not contain R code"))
+        isBase <- basename(dir) == "base"
+
+        ## Collect code into codeFile.
+        codeFile <- tempfile("Rcode")
+        on.exit(unlink(codeFile))
+        files <- .listFilesWithType(codeDir, "code")
+        file.create(codeFile)
+        file.append(codeFile, files)
+
+        ## Read code from codeFile into codeEnv.
+        codeEnv <- new.env()
+        yy <- try(.sourceAssignments(codeFile, env = codeEnv))
+        if(inherits(yy, "try-error")) {
+            stop("cannot source package code")
+        }
+    }
+
+    lsCode <- ls(envir = codeEnv, all.names = TRUE)
+
+    ## Find the assignment functions in the given package.
+    assignFuns <- c(lsCode[grep("<-", lsCode)], S3reg)
+    ## Find the assignment functions with last arg not named 'value'.
+    badAssignFuns <-
+        assignFuns[sapply(assignFuns, function(f) {
+            gf <- if(f %in% S3reg) get(f, envir = S3Table)
+                  else get(f, envir = codeEnv)
+            argNames <- names(formals(gf))
+            argNames[length(argNames)] != "value"
+        }) == TRUE]
+
+    class(badAssignFuns) <- "checkAssignFuns"
+    badAssignFuns
+}
+
+print.checkAssignFuns <-
+function(x, ...)
+{
+    if(length(x) > 0) print(unclass(x), ...)
     invisible(x)
 }
 
@@ -537,9 +576,10 @@ function(package, dir, lib.loc = NULL)
     ## Collect usages into docsFile.
     docsFile <- tempfile("Rdocs")
     on.exit(unlink(docsFile))
+    files <- .listFilesWithType(docsDir, "docs")
     docsList <- tempfile("Rdocs")
     on.exit(unlink(docsList), add = TRUE)
-    writeLines(.listFilesWithType(docsDir, "docs"), docsList)
+    writeLines(files, docsList)
     .Script("perl", "extract-usage.pl",
             paste("--mode=args", docsList, docsFile))
 
@@ -566,7 +606,7 @@ function(package, dir, lib.loc = NULL)
         }
         exprs <- try(parse(n = -1, text = readLines(txtConn, n)))
         if(inherits(exprs, "try-error"))
-            stop(paste("cannot parse usages in documentation object",
+            stop(paste("cannot source usages in documentation object",
                        sQuote(docObj)))
         for(i in exprs) {
             yy <- try(eval(i, env = argsEnv))
@@ -586,27 +626,15 @@ function(package, dir, lib.loc = NULL)
 
         argsInUsageMissingInArgList <-
             argsInUsage[!argsInUsage %in% argsInArgList]
-        argsInArgListMissingInUsage <-
-            argsInArgList[!argsInArgList %in% argsInUsage]
 
-        ## <NOTE>
-        ## Currently, we only record 'over-documented' arguments in case
-        ## we found arguments in \usage.  On the one hand, this allows
-        ## dealing with Rd files documenting e.g. shell utilities (or
-        ## non-function syntax).  However, an empty \usage together with
-        ## a non-empty documented list of arguments would go unnoticed.
-        ## </NOTE>
         if((length(argsInUsageMissingInArgList) > 0)
-           || any(duplicated(argsInArgList))
-           || ((length(argsInArgListMissingInUsage) > 0)
-               && (length(argsInUsage) > 0)))
+           || any(duplicated(argsInArgList)))
             badDocObjs[[docObj]] <-
                 list(missing = argsInUsageMissingInArgList,
                      duplicated =
-                     argsInArgList[duplicated(argsInArgList)],
-                     overdoc = argsInArgListMissingInUsage)
+                     argsInArgList[duplicated(argsInArgList)])
 
-        ## Clean up argsEnv.
+        ## Clean up argsEnv
         rm(list = lsArgs, envir = argsEnv)
     }
 
@@ -618,10 +646,8 @@ print.checkDocArgs <-
 function(x, ...)
 {
     for(docObj in names(x)) {
-        needLineAtEOR <- FALSE
         argsInUsageMissingInArgList <- x[[docObj]][["missing"]]
         if(length(argsInUsageMissingInArgList) > 0) {
-            needLineAtEOR <- TRUE
             writeLines(paste("Undocumented arguments",
                              " in documentation object ",
                              sQuote(docObj), ":", sep = ""))
@@ -629,33 +655,12 @@ function(x, ...)
         }
         duplicatedArgsInArgList <- x[[docObj]][["duplicated"]]
         if(length(duplicatedArgsInArgList) > 0) {
-            needLineAtEOR <- TRUE
             writeLines(paste("Duplicated \\argument entries",
                              " in documentation object ",
                              sQuote(docObj), ":", sep = ""))
             print(duplicatedArgsInArgList)
         }
-        ## It would be nice if we could also realibly warn about
-        ## arguments documented in \arguments but not in \usage.  The
-        ## current code for analyzing \usage sections cannot deal with
-        ## non-function syntax, e.g. in 'base/man/DateTimeClasses.Rd'.
-        ## We could special-case the problem cases in the high-priority
-        ## packages, but it seems better to find a general solution.
-        ## E.g., one could try matching the words in the \usage sections
-        ## for the missing arguments ...
-        ## As we can always access the information via
-        ##    lapply(checkDocArgs("foo"), "[[", "overdoc")
-        ## disable reporting this for the time being ...
-        ## <COMMENT>
-        ##    argsInArgListMissingInUsage <- x[[docObj]][["overdoc"]]
-        ##    if(length(argsInArgListMissingInUsage) > 0) {
-        ##       writeLines(paste("Documented arguments not in \\usage",
-        ##                        " in documentation object ",
-        ##                        sQuote(docObj), ":", sep = ""))
-        ##       print(unique(argsInArgListMissingInUsage))
-        ##    }
-        ## </COMMENT>
-        if(needLineAtEOR) writeLines("")
+        writeLines("")
     }
     invisible(x)
 }
@@ -665,10 +670,6 @@ function(x, ...)
 checkDocStyle <-
 function(package, dir, lib.loc = NULL)
 {
-    ## If an installed package has a namespace, we also want to test all
-    ## S3 methods which are registered but not exported.
-    S3reg <- character(0)
-
     ## Argument handling.
     if(!missing(package)) {
         if(length(package) != 1)
@@ -690,16 +691,8 @@ function(package, dir, lib.loc = NULL)
         if(!isBase)
             .loadPackageQuietly(package, lib.loc)
         codeEnv <-
-            as.environment(paste("package", package, sep = ":"))
-        
-        lsCode <- ls(envir = codeEnv, all.names = TRUE)
-
-        ## Does the package have a namespace?
-        if(packageHasNamespace(package, dirname(dir))) {
-            ## Determine unexported but declared S3 methods.
-            S3reg <- .getNamespaceS3methodNames(package)
-            S3reg <- S3reg[! S3reg %in% lsCode]
-        }
+            as.environment(match(paste("package", package, sep = ":"),
+                                 search()))
     }
     else {
         if(missing(dir))
@@ -723,8 +716,9 @@ function(package, dir, lib.loc = NULL)
         ## Collect code into codeFile.
         codeFile <- tempfile("Rcode")
         on.exit(unlink(codeFile))
+        files <- .listFilesWithType(codeDir, "code")
         file.create(codeFile)
-        file.append(codeFile, .listFilesWithType(codeDir, "code"))
+        file.append(codeFile, files)
 
         ## Read code from codeFile into codeEnv.
         codeEnv <- new.env()
@@ -732,15 +726,14 @@ function(package, dir, lib.loc = NULL)
         if(inherits(yy, "try-error")) {
             stop("cannot source package code")
         }
-
-        lsCode <- ls(envir = codeEnv, all.names = TRUE)
     }
+
+    lsCode <- ls(envir = codeEnv, all.names = TRUE)
 
     ## Find the function objects in the given package.
     funs <-
         lsCode[sapply(lsCode, function(f)
                       is.function(get(f, envir = codeEnv))) == TRUE]
-    funs <- c(funs, S3reg)
 
     ## Find all generic functions in the given package and (the current)
     ## base package.
@@ -770,9 +763,10 @@ function(package, dir, lib.loc = NULL)
     ## Collect usages into docsFile.
     docsFile <- tempfile("Rdocs")
     on.exit(unlink(docsFile), add = TRUE)
+    files <- .listFilesWithType(docsDir, "docs")
     docsList <- tempfile("Rdocs")
     on.exit(unlink(docsList), add = TRUE)
-    writeLines(.listFilesWithType(docsDir, "docs"), docsList)
+    writeLines(files, docsList)
     .Script("perl", "extract-usage.pl",
             paste("--mode=style", docsList, docsFile))
 
@@ -790,12 +784,10 @@ function(package, dir, lib.loc = NULL)
         docObj <- gsub("^# usages in documentation object ", "",
                        readLines(txtConn, 1))
         usageTxt <- readLines(txtConn, n)
-        ## <NOTE>
-        ## Special \method{GENERIC}{CLASS} Rd markup was preserved by
-        ## calling extract-usage in mode @code{style}.  We keep this in
-        ## usageTxt for later, but of course need to replace it by the
-        ## GENERIC.CLASS S3 function names for parsing.
-        ## </NOTE>
+        ## Note: Special \method{GENERIC}{CLASS} Rd markup was preserved
+        ## by calling extract-usage in mode @code{style}.  We keep this
+        ## in usageTxt for later, but of course need to replace it by
+        ## the GENERIC.CLASS S3 function names for parsing.
         exprs <- try(parse(n = -1,
                            text = gsub(paste("\\\\method",
                                              "{([a-zA-Z0-9.]+)}",
@@ -803,7 +795,7 @@ function(package, dir, lib.loc = NULL)
                                              sep = ""),
                                        "\\1.\\2", usageTxt)))
         if(inherits(exprs, "try-error"))
-            stop(paste("cannot parse usages in documentation object",
+            stop(paste("cannot source usages in documentation object",
                        sQuote(docObj)))
         for(i in exprs) {
             yy <- try(eval(i, env = docsEnv))
@@ -880,16 +872,14 @@ function(package, dir, file, lib.loc = NULL,
         if(length(package) != 1)
             stop(paste("argument", sQuote("package"),
                        "must be of length 1"))
-        ## Using package installed in @code{dir} ...
-        dir <- .find.package(package, lib.loc)
-        file <- file.path(dir, "R", "all.rda")
+        packageDir <- .find.package(package, lib.loc)
+        file <- file.path(packageDir, "R", "all.rda")
         if(file.exists(file))
             useSaveImage <- TRUE
         else
-            file <- file.path(dir, "R", package)
+            file <- file.path(packageDir, "R", package)
     }
     else if(!missing(dir)) {
-        ## Using sources from directory @code{dir} ...
         if(!.fileTest("-d", dir))
             stop(paste("directory", sQuote(dir), "does not exist"))
         else
@@ -898,10 +888,11 @@ function(package, dir, file, lib.loc = NULL,
         if(!.fileTest("-d", codeDir))
             stop(paste("directory", sQuote(dir),
                        "does not contain R code"))
+        codeFiles <- .listFilesWithType(codeDir, "code")
         file <- tempfile()
         on.exit(unlink(file))
         file.create(file)
-        file.append(file, .listFilesWithType(codeDir, "code"))
+        file.append(file, codeFiles)
     }
     else if(missing(file)) {
         stop(paste("you must specify ", sQuote("package"), ", ",
@@ -961,9 +952,7 @@ function(package, dir, file, lib.loc = NULL,
                })
     }
     else
-        try(parse(file = file, n = -1))
-    if(inherits(exprs, "try-error"))
-        stop(paste("parse error in file", sQuote(file)))
+        parse(file = file, n = -1)
     for(i in seq(along = exprs)) findBadExprs(exprs[[i]])
     class(badExprs) <- "checkFF"
     if(verbose)
@@ -994,8 +983,6 @@ function(x, ...)
 checkMethods <-
 function(package, dir, lib.loc = NULL)
 {
-    ## If an installed package has a namespace, we also want to test all
-    ## S3 methods which are registered but not exported.
     S3reg <- character(0)
     
     ## Argument handling.
@@ -1015,15 +1002,15 @@ function(package, dir, lib.loc = NULL)
         if(!isBase)
             .loadPackageQuietly(package, lib.loc)
         codeEnv <-
-            as.environment(paste("package", package, sep = ":"))
-
-        lsCode <- ls(envir = codeEnv, all.names = TRUE)
-
-        ## Does the package have a namespace?
-        if(packageHasNamespace(package, dirname(dir))) {
-            ## Determine unexported but declared S3 methods.
-            S3reg <- .getNamespaceS3methodNames(package)
-            S3reg <- S3reg[! S3reg %in% lsCode]
+            as.environment(match(paste("package", package, sep = ":"),
+                                 search()))
+        ## If there is a NAMESPACE, we want to test any non-exported
+        ## methods declared in S3method directives.
+        if(file.exists(file.path(dir, "NAMESPACE"))) {
+            S3reg <- sapply(getNamespaceInfo(package, "S3methods"),
+                            function(x) x[[3]])
+            if(!length(S3reg)) S3reg <- character(0)
+            S3reg <- S3reg[! S3reg %in% ls(codeEnv, all.names = TRUE)]
         }
     }
     else {
@@ -1044,8 +1031,9 @@ function(package, dir, lib.loc = NULL)
         ## Collect code into codeFile.
         codeFile <- tempfile("Rcode")
         on.exit(unlink(codeFile))
+        files <- .listFilesWithType(codeDir, "code")
         file.create(codeFile)
-        file.append(codeFile, .listFilesWithType(codeDir, "code"))
+        file.append(codeFile, files)
 
         ## Read code from codeFile into codeEnv.
         codeEnv <- new.env()
@@ -1053,9 +1041,9 @@ function(package, dir, lib.loc = NULL)
         if(inherits(yy, "try-error")) {
             stop("cannot source package code")
         }
-
-        lsCode <- ls(envir = codeEnv, all.names = TRUE)
     }
+
+    lsCode <- ls(envir = codeEnv, all.names = TRUE)
 
     ## Find the function objects in the given package.
     funs <-
@@ -1081,8 +1069,7 @@ function(package, dir, lib.loc = NULL)
             else .BaseNamespaceEnv
             S3Table <- get(".__S3MethodsTable__.", envir = defenv)
             if(!exists(m, envir = S3Table)) {
-                warning(paste("declared S3 method", sQuote(m),
-                              "not found"),
+                warning("declared S3 method `", m, "' not found",
                         call. = FALSE)
                 return(NULL)
             } else get(m, envir = S3Table)
@@ -1104,9 +1091,9 @@ function(package, dir, lib.loc = NULL)
         dotsPos <- which(mArgs == "...")
         if(length(dotsPos) > 0)
             ipos <- ipos[seq(from = 1, length = dotsPos - 1)]
-        posMatchOK <- identical(gArgs[ipos], mArgs[ipos])
-        argMatchOK <- all(gArgs %in% mArgs) || length(dotsPos) > 0
-        if(posMatchOK && argMatchOK)
+        PosMatchOK <- identical(gArgs[ipos], mArgs[ipos])
+        ArgMatchOK <- all(gArgs %in% mArgs) || length(dotsPos) > 0
+        if(PosMatchOK && ArgMatchOK)
             NULL
         else {
             l <- list(ogArgs, omArgs)
@@ -1157,111 +1144,6 @@ function(x, ...)
     invisible(x)
 }
 
-### * checkReplaceFuns
-
-checkReplaceFuns <-
-function(package, dir, lib.loc = NULL)
-{
-    ## If an installed package has a namespace, we also want to test all
-    ## S3 replacement methods which are registered but not exported.
-    S3reg <- character(0)
-    
-    ## Argument handling.
-    if(!missing(package)) {
-        if(length(package) != 1)
-            stop(paste("argument", sQuote("package"),
-                       "must be of length 1"))
-        dir <- .find.package(package, lib.loc)
-        ## Using package installed in @code{dir} ...
-        codeDir <- file.path(dir, "R")
-        if(!.fileTest("-d", codeDir))
-            stop(paste("directory", sQuote(dir),
-                       "does not contain R code"))
-        isBase <- basename(dir) == "base"
-
-        ## Load package into codeEnv.
-        if(!isBase)
-            .loadPackageQuietly(package, lib.loc)
-        codeEnv <-
-            as.environment(paste("package", package, sep = ":"))
-
-        lsCode <- ls(envir = codeEnv, all.names = TRUE)
-        
-        ## Does the package have a namespace?
-        if(packageHasNamespace(package, dirname(dir))) {
-            ## Determine unexported but declared S3 replacement methods.
-            S3reg <- .getNamespaceS3methodNames(package)
-            S3reg <- S3reg[! S3reg %in% lsCode]
-            S3reg <- grep("<-", S3reg, value = TRUE)
-            if(length(S3reg) > 0) {
-                S3Table <- get(".__S3MethodsTable__.", envir = NULL)
-                ## <FIXME>
-                ## Methods are not in that table if their generic is in
-                ## the package.  Let's ignore those for now.
-                S3reg <- S3reg[S3reg %in% ls(S3Table, all.names = TRUE)]
-                ## </FIXME>
-            }
-        }
-    }
-    else {
-        if(missing(dir))
-            stop(paste("you must specify", sQuote("package"),
-                       "or", sQuote("dir")))
-        ## Using sources from directory @code{dir} ...
-        if(!.fileTest("-d", dir))
-            stop(paste("directory", sQuote(dir), "does not exist"))
-        else
-            dir <- .convertFilePathToAbsolute(dir)
-        codeDir <- file.path(dir, "R")
-        if(!.fileTest("-d", codeDir))
-            stop(paste("directory", sQuote(dir),
-                       "does not contain R code"))
-        isBase <- basename(dir) == "base"
-
-        ## Collect code into codeFile.
-        codeFile <- tempfile("Rcode")
-        on.exit(unlink(codeFile))
-        file.create(codeFile)
-        file.append(codeFile, .listFilesWithType(codeDir, "code"))
-
-        ## Read code from codeFile into codeEnv.
-        codeEnv <- new.env()
-        yy <- try(.sourceAssignments(codeFile, env = codeEnv))
-        if(inherits(yy, "try-error")) {
-            stop("cannot source package code")
-        }
-
-        lsCode <- ls(envir = codeEnv, all.names = TRUE)
-    }
-
-    ## Find the replacement functions in the given package.
-    replaceFuns <- c(grep("<-", lsCode, value = TRUE), S3reg)
-    ## Find the replacement functions (which have formal arguments) with
-    ## last arg not named 'value'.
-    badReplaceFuns <-
-        replaceFuns[sapply(replaceFuns, function(f) {
-            gf <- if(f %in% S3reg)
-                get(f, envir = S3Table)
-            else
-                get(f, envir = codeEnv)
-            argNames <- names(formals(gf))
-            if(!length(argNames))
-                TRUE                    # most likely a .Primitive()
-            else
-                identical(argNames[length(argNames)], "value")
-        }) == FALSE]
-
-    class(badReplaceFuns) <- "checkReplaceFuns"
-    badReplaceFuns
-}
-
-print.checkReplaceFuns <-
-function(x, ...)
-{
-    if(length(x) > 0) print(unclass(x), ...)
-    invisible(x)
-}
-
 ### * checkTnF
 
 checkTnF <-
@@ -1274,23 +1156,20 @@ function(package, dir, file, lib.loc = NULL)
         if(length(package) != 1)
             stop(paste("argument", sQuote("package"),
                        "must be of length 1"))
-        ## Using package installed in @code{dir} ...
-        dir <- .find.package(package, lib.loc)
-        if(file.exists(file.path(dir, "R", "all.rda"))) {
+        packageDir <- .find.package(package, lib.loc)
+        if(file.exists(file.path(packageDir, "R", "all.rda"))) {
             warning("cannot check R code installed as image")
         }
-        codeFile <- file.path(dir, "R", package)
+        codeFile <- file.path(packageDir, "R", package)
         if(file.exists(codeFile))       # could be data-only
             codeFiles <- codeFile
-        exampleDir <- file.path(dir, "R-ex")
+        exampleDir <- file.path(packageDir, "R-ex")
         if(.fileTest("-d", exampleDir)) {
             codeFiles <- c(codeFiles,
                            .listFilesWithExts(exampleDir, "R"))
-            
         }
     }
     else if(!missing(dir)) {
-        ## Using sources from directory @code{dir} ...
         if(!.fileTest("-d", dir))
             stop(paste("directory", sQuote(dir), "does not exist"))
         else
@@ -1327,9 +1206,7 @@ function(package, dir, file, lib.loc = NULL)
                 for(i in seq(along = e)) Recall(e[[i]], e)
             }
         }
-        exprs <- try(parse(file = file, n = -1))
-        if(inherits(exprs, "try-error"))
-            stop(paste("parse error in file", sQuote(file)))
+        exprs <- parse(file = file, n = -1)
         for(i in seq(along = exprs))
             findBadExprs(exprs[[i]], NULL)
         matches

@@ -1,5 +1,7 @@
 strsplit <- function(x, split, extended = TRUE)
-    .Internal(strsplit(x, as.character(split), as.logical(extended)))
+    .Internal(strsplit(as.character(x),
+                       as.character(split),
+                       as.logical(extended)))
 
 substr <- function(x, start, stop)
     .Internal(substr(x, as.integer(start), as.integer(stop)))
@@ -25,13 +27,13 @@ abbreviate <-
 {
     ## we just ignore use.classes
     if(minlength <= 0)
-	return(rep.int("", length(names.arg)))
+	return(rep("",length(names.arg)))
     names.arg <- as.character(names.arg)
     dups <- duplicated(names.arg)
     old <- names.arg
     if(any(dups))
 	names.arg <- names.arg[!dups]
-    dup2 <- rep.int(TRUE, length(names.arg))
+    dup2 <- rep(TRUE, length(names.arg))
     x <- these <- names.arg
     repeat {
 	ans <- .Internal(abbreviate(these,minlength,use.classes))
@@ -71,12 +73,3 @@ toupper <- function(x) .Internal(toupper(x))
 
 casefold <- function(x, upper = FALSE)
     if(upper) toupper(x) else tolower(x)
-
-sQuote <- function(x) {
-    if(length(x) == 0) return(character())
-    paste("'", x, "'", sep = "")
-}
-dQuote <- function(x) {
-    if(length(x) == 0) return(character())
-    paste("\"", x, "\"", sep = "")
-}

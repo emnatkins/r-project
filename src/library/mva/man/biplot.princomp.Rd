@@ -1,12 +1,11 @@
 \name{biplot.princomp}
 \alias{biplot.princomp}
-\alias{biplot.prcomp}
 \title{
 Biplot for Principal Components
 }
 \description{
   Produces a biplot (in the strict sense) from the output of
-  \code{\link{princomp}} or \code{\link{prcomp}}
+  \code{\link{princomp}}.
 }
 \usage{
 \method{biplot}{princomp}(x, choices = 1:2, scale = 1, pc.biplot = FALSE, \dots)

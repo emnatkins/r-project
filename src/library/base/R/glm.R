@@ -86,7 +86,7 @@ glm <- function(formula, family=gaussian, data=list(), weights=NULL,
 }
 
 
-glm.control <- function(epsilon = 1e-8, maxit = 25, trace = FALSE)
+glm.control <- function(epsilon = 0.0001, maxit = 10, trace = FALSE)
 {
     if(!is.numeric(epsilon) || epsilon <= 0)
 	stop("value of epsilon must be > 0")
@@ -119,9 +119,9 @@ glm.fit <-
     }
     ## define weights and offset if needed
     if (is.null(weights))
-	weights <- rep.int(1, nobs)
+	weights <- rep(1, nobs)
     if (is.null(offset))
-	offset <- rep.int(0, nobs)
+	offset <- rep(0, nobs)
     ## get family functions:
     variance <- family$variance
     dev.resids <- family$dev.resids
@@ -280,7 +280,7 @@ glm.fit <-
     ## than 0 for non-estimable parameters
     if (fit$rank < nvars) coef[fit$pivot][seq(fit$rank+1, nvars)] <- NA
     xxnames <- xnames[fit$pivot]
-    residuals <- rep.int(NA, nobs)
+    residuals <- rep(NA, nobs)
     residuals[good] <- z - (eta - offset)[good] # z does not have offset in.
     fit$qr <- as.matrix(fit$qr)
     nr <- min(sum(good), nvars)
@@ -298,13 +298,13 @@ glm.fit <-
     names(mu) <- ynames
     names(eta) <- ynames
     # for compatibility with lm, which has a full-length weights vector
-    wt <- rep.int(0, nobs)
+    wt <- rep(0, nobs)
     wt[good] <- w^2
     names(wt) <- ynames
     names(weights) <- ynames
     names(y) <- ynames
     names(fit$effects) <-
-	c(xxnames[seq(fit$rank)], rep.int("", sum(good) - fit$rank))
+	c(xxnames[seq(fit$rank)], rep("", sum(good) - fit$rank))
     ## calculate null deviance -- corrected in glm() if offset and intercept
     wtdmu <-
 	if (intercept) sum(weights * y)/sum(weights) else linkinv(offset)
@@ -354,7 +354,7 @@ anova.glm <- function(object, ..., dispersion=NULL, test=NULL)
     ## check for multiple objects
     dotargs <- list(...)
     named <- if (is.null(names(dotargs)))
-	rep(FALSE, length(dotargs)) else (names(dotargs) != "")
+	rep(FALSE,length(dotargs)) else (names(dotargs) != "")
     if(any(named))
 	warning("The following arguments to anova.glm(..) are invalid and dropped: ",
 		paste(deparse(dotargs[named]), collapse=", "))
@@ -534,8 +534,7 @@ summary.glm <- function(object, dispersion = NULL,
     p <- object$rank
     p1 <- 1:p
 
-    aliased <- is.na(coef(object))  # used in print method
-    ## WATCHIT! doesn't this rely on pivoting not permuting 1:p? -- that's quaranteed
+    ## WATCHIT! doesn't this rely on pivoting not permuting 1:p?
     coef.p <- object$coefficients[Qr$pivot[p1]]
     covmat.unscaled <- chol2inv(Qr$qr[p1,p1,drop=FALSE])
     dimnames(covmat.unscaled) <- list(names(coef.p),names(coef.p))
@@ -569,9 +568,8 @@ summary.glm <- function(object, dispersion = NULL,
 		      "df.residual","null.deviance","df.null","iter")],
 	     list(deviance.resid= residuals(object, type = "deviance"),
 		  coefficients=coef.table,
-                  aliased=aliased,
 		  dispersion=dispersion,
-		  df=c(object$rank, df.r, NCOL(Qr$qr)),
+		  df=c(object$rank, df.r),
 		  cov.unscaled=covmat.unscaled,
 		  cov.scaled=covmat))
 
@@ -588,7 +586,7 @@ summary.glm <- function(object, dispersion = NULL,
 print.summary.glm <-
     function (x, digits = max(3, getOption("digits") - 3),
 	      symbolic.cor = x$symbolic.cor,
-	      signif.stars = getOption("show.signif.stars"), ...)
+	      signif.stars= getOption("show.signif.stars"), ...)
 {
     cat("\nCall:\n")
     cat(paste(deparse(x$call), sep="\n", collapse="\n"), "\n\n", sep="")
@@ -599,18 +597,8 @@ print.summary.glm <-
     }
     print.default(x$deviance.resid, digits=digits, na = "", print.gap = 2)
 
-    ## df component added in 1.8.0
-    if (!is.null(df<- x$df) && (nsingular <- df[3] - df[1]))
-	cat("\nCoefficients: (", nsingular,
-	    " not defined because of singularities)\n", sep = "")
-    else cat("\nCoefficients:\n")
-    coefs <- x$coefficients
-    if(!is.null(aliased <- x$aliased) && any(aliased)) {
-        cn <- names(aliased)
-        coefs <- matrix(NA, length(aliased), 4, dimnames=list(cn, colnames(coefs)))
-        coefs[!aliased, ] <- x$coefficients
-    }
-    printCoefmat(coefs, digits=digits, signif.stars=signif.stars, na.print="NA", ...)
+    cat("\nCoefficients:\n")
+    print.coefmat(x$coef, digits=digits, signif.stars=signif.stars, ...)
     ##
     cat("\n(Dispersion parameter for ", x$family$family,
 	" family taken to be ", format(x$dispersion), ")\n\n",
@@ -627,12 +615,6 @@ print.summary.glm <-
 
     correl <- x$correlation
     if(!is.null(correl)) {
-# looks most sensible not to give NAs for undefined coefficients
-#         if(!is.null(aliased) && any(aliased)) {
-#             nc <- length(aliased)
-#             correl <- matrix(NA, nc, nc, dimnames = list(cn, cn))
-#             correl[!aliased, !aliased] <- x$correl
-#         }
 	p <- NCOL(correl)
 	if(p > 1) {
 	    cat("\nCorrelation of Coefficients:\n")
@@ -677,7 +659,7 @@ residuals.glm <-
 		  deviance = if(object$df.res > 0) {
 		      d.res <- sqrt(pmax((object$family$dev.resids)(y, mu, wts), 0))
 		      ifelse(y > mu, d.res, -d.res)
-		  } else rep.int(0, length(mu)),
+		  } else rep(0, length(mu)),
 		  pearson = (y-mu)*sqrt(wts)/sqrt(object$family$variance(mu)),
 		  working = r,
 		  response = y - mu,

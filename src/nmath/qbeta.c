@@ -32,7 +32,12 @@
 #include "dpq.h"
 
 /* set the exponent of accu to -2r-2 for r digits of accuracy */
-/*---- NEW ---- -- still fails for p = 1e11, q=.5*/
+#ifdef OLD
+#define acu 1.0e-32
+#define lower 0.0001
+#define upper 0.9999
+
+#else/*---- NEW ---- -- still fails for p = 1e11, q=.5*/
 
 #define fpu 3e-308
 /* acu_min:  Minimal value for accuracy 'acu' which will depend on (a,p);
@@ -40,6 +45,8 @@
 #define acu_min 1e-300
 #define lower fpu
 #define upper 1-2.22e-16
+
+#endif
 
 #define const1 2.30753
 #define const2 0.27061
@@ -86,7 +93,7 @@ double qbeta(double alpha, double p, double q, int lower_tail, int log_p)
 
     /* calculate the initial approximation */
 
-    r = sqrt(-log(a * a));
+    r = sqrt(-2 * log(a));
     y = r - (const1 + const2 * r) / (1. + (const3 + const4 * r) * r);
     if (pp > 1 && qq > 1) {
 	r = (y * y - 3.) / 6.;
@@ -100,7 +107,7 @@ double qbeta(double alpha, double p, double q, int lower_tail, int log_p)
 	t = 1. / (9. * qq);
 	t = r * pow(1. - t + y * sqrt(t), 3.0);
 	if (t <= 0.)
-	    xinbta = 1. - exp((log((1. - a) * qq) + logbeta) / qq);
+	    xinbta = 1. - exp((log1p(-a)+ log(qq) + logbeta) / qq);
 	else {
 	    t = (4. * pp + r - 2.) / t;
 	    if (t <= 1.)

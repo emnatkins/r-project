@@ -4,27 +4,6 @@
 See the file NEWS for changes that affect all versions of R.
 
 
-rw1080
-======
-
-The scrollbars on the data editor work better for very large matrices,
-and correctly for more than 65535 columns.
-
-The initial size and position of the MDI frame can be set in Rconsole:
-see the comments in .../etc/Rconsole.  The initial position of the
-console window and graphics windows can be set in Rconsole and in the
-GUI Preferences editor.
-
-The windows() graphics device has now arguments xpos, ypos to set the
-initial position, overriding the settings in Rconsole.
-
-The windows() device has a form of double-buffering: the visible plot
-is updated only when there has been no plotting for 0.1sec or if the
-plot has not been updated for 0.5sec. [Currently only enabled if
-BUFFERED is defined in src/gnuwin32/devga.c.]
-
-
-
 rw1071
 ======
 

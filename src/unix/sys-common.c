@@ -70,13 +70,6 @@ FILE *R_OpenLibraryFile(char *file)
     return fp;
 }
 
-char *R_LibraryFileName(char *file, char *buf, size_t bsize)
-{
-    if (snprintf(buf, bsize, "%s/library/base/R/%s", R_Home, file) < 0)
-	error("R_LibraryFileName: buffer too small");
-    return buf;
-}     
-     
 FILE *R_OpenSysInitFile(void)
 {
     char buf[256];
@@ -148,24 +141,10 @@ Rboolean R_FileExists(char *path)
     struct stat sb;
     return stat(R_ExpandFileName(path), &sb) == 0;
 }
-
-double R_FileMtime(char *path)
-{
-    struct stat sb;
-    if (stat(R_ExpandFileName(path), &sb) != 0)
-	error("cannot determine file modification time of %s", path);
-    return sb.st_mtime;
-}
 #else
 Rboolean R_FileExists(char *path)
 {
     error("file existence is not available on this system");
-}
-
-double R_FileMtime(char *path)
-{
-    error("file modification time is not available on this system");
-    return 0.0; /* not reached */
 }
 #endif
 
@@ -200,7 +179,6 @@ char *R_HomeDir()
  *  7) PLATFORM DEPENDENT FUNCTIONS
  */
 
-/* The __APPLE__ code below is for OS X */
 #ifdef Win32
 # include <windows.h>
 #elif defined(__APPLE__)

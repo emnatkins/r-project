@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2003  Guido Masarotto and Brian Ripley
+ *  Copyright (C) 1998--2002  Guido Masarotto and Brian Ripley
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,11 +21,6 @@
 /*--- Device Driver for Windows; this file started from
  *  ../unix/X11/devX11.c --
  */
-
-/* uncomment to enable double-buffering.
-#define BUFFERED
-*/
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -44,8 +39,6 @@
 
 extern console RConsole;
 extern Rboolean AllDevicesKilled;
-
-int graphicsx = -25, graphicsy = 0;
 
 /* a colour used to represent the background on png if transparent
    NB: used as RGB and BGR
@@ -86,20 +79,10 @@ static rgb GArgb(int color, double gamma)
 #define MM_PER_INCH	25.4	/* mm -> inch conversion */
 
 #define TRACEDEVGA(a)
-#define CLIP if (xd->clip.width>0) gsetcliprect(_d,xd->clip)
-#ifdef BUFFERED
-
-static drawing _d;
-#define DRAW(a) {if(xd->kind==SCREEN) _d=xd->bm;else _d=xd->gawin; CLIP;a;}
-#define SHOW  if(xd->kind==SCREEN) gbitblt(xd->gawin,xd->bm,pt(0,0),getrect(xd->bm));
-#define SH if(xd->kind==SCREEN) GA_Timer(xd)
-#else
 #define NOBM(a) if(xd->kind==SCREEN){a;}
+#define CLIP if (xd->clip.width>0) gsetcliprect(_d,xd->clip)
 #define DRAW(a) {drawing _d=xd->gawin;CLIP;a;NOBM(_d=xd->bm;CLIP;a;)}
 #define SHOW  gbitblt(xd->gawin,xd->bm,pt(0,0),getrect(xd->bm));
-#define SH
-#endif
-
 
 #define SF 20  /* scrollbar resolution */
 
@@ -187,36 +170,6 @@ rect getregion(gadesc *xd)
     return r;
 }
 
-#ifdef BUFFERED
-/* Update the screen 100ms after last plotting call or 500ms after last
-   update */
-
-static UINT TimerNo = 0;
-static gadesc *GA_xd;
-static DWORD GALastUpdate = 0;
-
-static VOID CALLBACK
-GA_timer_proc(HWND hwnd, UINT message, UINT tid, DWORD time)
-{
-    if ((message != WM_TIMER) || tid != TimerNo) return;
-    gbitblt(GA_xd->gawin, GA_xd->bm, pt(0,0), getrect(GA_xd->bm));
-    GALastUpdate = time;
-}
-
-static void GA_Timer(gadesc *xd)
-{
-    DWORD now = GetTickCount();
-    if(TimerNo != 0) KillTimer(0, TimerNo);
-    if(now > GALastUpdate + 500) {
-	gbitblt(xd->gawin, xd->bm, pt(0,0), getrect(xd->bm));
-	GALastUpdate = now;
-    } else {
-	GA_xd = xd;
-	TimerNo = SetTimer(0, 0, (UINT) 100, GA_timer_proc);
-    }
-}
-#endif
-
 	/********************************************************/
 	/* There are a number of actions that every device 	*/
 	/* driver is expected to perform (even if, in some	*/
@@ -268,7 +221,7 @@ static void GA_Text(double x, double y, char *str,
 		    int col, double gamma, int font, double cex, double ps,
 		    NewDevDesc *dd);
 static Rboolean GA_Open(NewDevDesc*, gadesc*, char*, double, double,
-			Rboolean, int, int, double, int, int);
+			Rboolean, int, int, double);
 
 	/********************************************************/
 	/* end of list of required device driver actions 	*/
@@ -311,7 +264,7 @@ static void SaveAsWin(NewDevDesc *dd, char *display)
     NewDevDesc *ndd = (NewDevDesc *) calloc(1, sizeof(NewDevDesc));
     GEDevDesc* gdd = (GEDevDesc*) GetDevice(devNumber((DevDesc*) dd));
     if (!ndd) {
-	R_ShowMessage("Not enough memory to copy graphics window");
+	R_ShowMessage("No enough memory to copy graphics window");
 	return;
     }
     if(!R_CheckDeviceAvailableBool()) {
@@ -327,7 +280,7 @@ static void SaveAsWin(NewDevDesc *dd, char *display)
 		       fromDeviceHeight(toDeviceHeight(-1.0, GE_NDC, gdd),
 					GE_INCHES, gdd),
 		       ((gadesc*) dd->deviceSpecific)->basefontsize,
-		       0, 1, White, 1, NA_INTEGER, NA_INTEGER))
+		       0, 1, White, 1))
         PrivateCopyDevice(dd, ndd, display);
 }
 
@@ -722,9 +675,7 @@ static void HelpMouseClick(window w, int button, point pt)
 	if (!xd->locator)
 	    return;
 	if (button & LeftButton) {
-	    int useBeep = asLogical(GetOption(install("locatorBell"), 
-					      R_NilValue));
-	    if(useBeep) gabeep();
+	    gabeep();
 	    xd->clicked = 1;
 	    xd->px = pt.x;
 	    xd->py = pt.y;
@@ -1258,7 +1209,7 @@ static void devga_sbf(control c, int pos)
 
 static int
 setupScreenDevice(NewDevDesc *dd, gadesc *xd, double w, double h,
-		  Rboolean recording, int resize, int xpos, int ypos)
+		  Rboolean recording, int resize)
 {
     menu  m;
     int   iw, ih;
@@ -1291,17 +1242,11 @@ setupScreenDevice(NewDevDesc *dd, gadesc *xd, double w, double h,
     iw = dw + 0.5;
     ih = dh + 0.5;
     if (resize == 2) xd->rescale_factor = dw/dw0;
-    {
-	int grx, gry;
-	grx = (xpos == NA_INTEGER) ? graphicsx : xpos;
-	gry = (ypos == NA_INTEGER) ? graphicsy : ypos;
-	if (grx < 0) grx = devicewidth(NULL)  - iw + grx;
-	if (gry < 0) gry = deviceheight(NULL) - ih + gry;
-	if (!(xd->gawin = newwindow("R Graphics",
-				    rect(grx, gry, iw, ih),
-				    Document | StandardWindow | Menubar |
-				    VScrollbar | HScrollbar)))
-	    return 0;
+    if (!(xd->gawin = newwindow("R Graphics",
+				rect(devicewidth(NULL) - iw - 25, 0, iw, ih),
+				Document | StandardWindow | Menubar |
+				VScrollbar | HScrollbar))) {
+	return 0;
     }
     gchangescrollbar(xd->gawin, VWINSB, 0, ih/SF-1, ih/SF, 0);
     gchangescrollbar(xd->gawin, HWINSB, 0, iw/SF-1, iw/SF, 0);
@@ -1462,8 +1407,7 @@ setupScreenDevice(NewDevDesc *dd, gadesc *xd, double w, double h,
 
 static Rboolean GA_Open(NewDevDesc *dd, gadesc *xd, char *dsp,
 			double w, double h, Rboolean recording,
-			int resize, int canvascolor, double gamma,
-			int xpos, int ypos)
+			int resize, int canvascolor, double gamma)
 {
     rect  rr;
     char buf[512];
@@ -1483,7 +1427,7 @@ static Rboolean GA_Open(NewDevDesc *dd, gadesc *xd, char *dsp,
     xd->xshift = xd->yshift = 0;
     xd->npage = 0;
     if (!dsp[0]) {
-	if (!setupScreenDevice(dd, xd, w, h, recording, resize, xpos, ypos))
+	if (!setupScreenDevice(dd, xd, w, h, recording, resize))
 	    return FALSE;
     } else if (!strncmp(dsp, "win.print:", 10)) {
 	xd->kind = PRINTER;
@@ -1946,7 +1890,6 @@ static void GA_Rect(double x0, double y0, double x1, double y1,
 	SetLinetype(lty, lwd, dd);
 	DRAW(gdrawrect(_d, xd->lwd, xd->lty, xd->fgcolor, r, 0));
     }
-    SH;
 }
 
 	/********************************************************/
@@ -1973,7 +1916,11 @@ static void GA_Circle(double x, double y, double r,
     rect  rr;
 
     TRACEDEVGA("circle");
+#ifdef OLD
+    ir = ceil(r);
+#else
     ir = floor(r + 0.5);
+#endif
     if (ir < 1) ir = 1;
     /* In-place conversion ok */
 
@@ -1989,7 +1936,6 @@ static void GA_Circle(double x, double y, double r,
 	SetColor(col, gamma, dd);
 	DRAW(gdrawellipse(_d, xd->lwd, xd->fgcolor, rr, 0));
     }
-    SH;
 }
 
 	/********************************************************/
@@ -2019,7 +1965,6 @@ static void GA_Line(double x1, double y1, double x2, double y2,
     if (R_OPAQUE(xd->fgcolor))
 	DRAW(gdrawline(_d, xd->lwd, xd->lty, xd->fgcolor,
 		       pt(xx1, yy1), pt(xx2, yy2), 0));
-    SH;
 }
 
 	/********************************************************/
@@ -2054,7 +1999,6 @@ static void GA_Polyline(int n, double *x, double *y,
 	DRAW(gdrawpolyline(_d, xd->lwd, xd->lty, xd->fgcolor, p, n, 0, 0));
     }
     vmaxset(vmax);
-    SH;
 }
 
 	/********************************************************/
@@ -2099,7 +2043,6 @@ static void GA_Polygon(int n, double *x, double *y,
 	DRAW(gdrawpolygon(_d, xd->lwd, xd->lty, xd->fgcolor, points, n, 0 ));
     }
     vmaxset(vmax);
-    SH;
 }
 
 
@@ -2143,7 +2086,6 @@ static void GA_Text(double x, double y, char *str,
 	DRAW(gdrawstr1(_d, xd->font, xd->fgcolor, pt(x, y), str, hadj));
 #endif
     }
-    SH;
 }
 
 	/********************************************************/
@@ -2172,9 +2114,7 @@ static Rboolean GA_Locator(double *x, double *y, NewDevDesc *dd)
     gsetcursor(xd->gawin, CrossCursor);
     setstatus("Locator is active");
     while (!xd->clicked) {
-#ifdef BUFFERED
-	SHOW;
-#endif
+      /*	SHOW;*/
         WaitMessage();
 	R_ProcessEvents();
     }
@@ -2255,7 +2195,7 @@ static void GA_Hold(NewDevDesc *dd)
 Rboolean GADeviceDriver(NewDevDesc *dd, char *display, double width,
 			double height, double pointsize,
 			Rboolean recording, int resize, int canvas,
-			double gamma, int xpos, int ypos)
+			double gamma)
 {
     /* if need to bail out with some sort of "error" then */
     /* must free(dd) */
@@ -2289,7 +2229,7 @@ Rboolean GADeviceDriver(NewDevDesc *dd, char *display, double width,
     /* Start the Device Driver and Hardcopy.  */
 
     if (!GA_Open(dd, xd, display, width, height, recording, resize, canvas,
-		 gamma, xpos, ypos)) {
+		 gamma)) {
 	free(xd);
 	return FALSE;
     }

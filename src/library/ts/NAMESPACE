@@ -21,6 +21,9 @@ export(acf, acf2AR, ar, ar.burg, ar.mle, ar.ols, ar.yw, arima,
 #        tsdiag.Arima, tsdiag.arima0, tsdiag.StructTS,
 #        tsSmooth.StructTS)
 
+## needed if acf is called with a non-ts object, it seems
+export(pacf.mts)
+
 S3method("[", tskernel)
 S3method(ar.burg, default)
 S3method(ar.burg, mts)
@@ -41,6 +44,7 @@ S3method(monthplot, stl)
 S3method(monthplot, StructTS)
 S3method(monthplot, ts)
 S3method(pacf, default)
+S3method(pacf, mts)
 S3method(plot, acf)
 S3method(plot, decomposed.ts)
 S3method(plot, HoltWinters)

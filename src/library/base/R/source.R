@@ -9,6 +9,7 @@ function(file, local = FALSE, echo = verbose, print.eval = echo,
 		  enclos = if (is.list(envir) || is.pairlist(envir))
 		  parent.frame())
 	.Internal(eval.with.vis(expr, envir, enclos))
+    sQuote <- function(s) paste("'", s, "'", sep = "")
 
     envir <- if (local)
 	parent.frame()
@@ -92,6 +93,8 @@ sys.source <-
 function(file, envir = NULL, chdir = FALSE,
          keep.source = getOption("keep.source.pkgs"))
 {
+    sQuote <- function(s) paste("'", s, "'", sep = "")
+
     if(!(is.character(file) && file.exists(file)))
 	stop(paste(sQuote(file), "is not an existing file"))
     oop <- options(keep.source = as.logical(keep.source))
@@ -115,6 +118,8 @@ function(topic, device = getOption("device"),
          package = .packages(), lib.loc = NULL,
          character.only = FALSE, verbose = getOption("verbose"))
 {
+    sQuote <- function(s) paste("'", s, "'", sep = "")
+
     paths <- .find.package(package, lib.loc, verbose = verbose)
 
     ## Find the directories with a 'demo' subdirectory.
@@ -125,7 +130,7 @@ function(topic, device = getOption("device"),
             ## Warn about given packages which do not have a 'demo'
             ## subdirectory.
             packagesWithNoDemo <-
-                package[package %in% basename(paths[nodemo])]
+                package[package %in% sapply(paths[nodemo], basename)]
             if(length(packagesWithNoDemo) > 1) {
                 warning(paste("packages",
                               paste(sQuote(packagesWithNoDemo),
@@ -149,11 +154,29 @@ function(topic, device = getOption("device"),
         noindex <- character(0)
         for(path in paths) {
             entries <- NULL
-            ## Check for new-style 'Meta/demo.rds', then for '00Index'.
+            ## <NOTE>
+            ## Check for new-style 'Meta/demo.rds' (and intermediate
+            ## 'demo/00Index.rds' and 'demo/00Index.dcf'), then for
+            ## '00Index'.
+            ## </NOTE>
             if(file.exists(INDEX <-
                            file.path(path, "Meta", "demo.rds"))) {
                 entries <- .readRDS(INDEX)
             }
+            ## <FIXME>
+            ## Remove this once 1.7.0 is out.
+            ## (The 1.7 development versions for some time used indices
+            ## serialized as 'demo/00Index.rds' and 'demo/00Index.dcf'.)
+            else if(file.exists(INDEX <-
+                           file.path(path, "demo", "00Index.rds"))) {
+                entries <- .readRDS(INDEX)
+            }
+            else if(file.exists(INDEX <-
+                           file.path(path, "demo", "00Index.dcf"))) {
+                entries <- read.dcf(INDEX)
+                entries <- cbind(colnames(entries), c(entries))
+            }
+            ## </FIXME>
             else if(file.exists(INDEX <-
                                 file.path(path, "demo", "00Index")))
                 entries <- read.00Index(INDEX)
@@ -197,8 +220,8 @@ function(topic, device = getOption("device"),
                   sep = "")
         else
             NULL
-        y <- list(title = "Demos", header = NULL, results = db,
-                  footer = footer)
+        y <- list(type = "demo", title = "Demos",
+                  header = NULL, results = db, footer = footer)
         class(y) <- "packageIQR"
         return(y)
     }
@@ -242,6 +265,8 @@ function(topic, package = .packages(), lib.loc = NULL, local = FALSE,
          echo = TRUE, verbose = getOption("verbose"),
          prompt.echo = paste(abbreviate(topic, 6), "> ", sep = ""))
 {
+    sQuote <- function(s) paste("'", s, "'", sep = "")
+
     topic <- substitute(topic)
     if(!is.character(topic))
 	topic <- deparse(topic)[1]

@@ -30,11 +30,14 @@ fix(x, \dots)
  fix(my.data.frame, factor.mode="char") # use of ...
 }
 \testonly{
-oo <- options(editor="touch") # not really changing anything
-fix(pi)
-if(!is.numeric(pi) || length(pi)!=1 ||
-   !is.null(attributes(pi)) || abs(pi - 3.1415) > 1e-4)
-      stop("OOPS:  fix() is broken ...")
-rm(pi); options(oo)
-}}
+ if(.Platform$OS.type != "mac") {
+  oo <- options(editor="touch") # not really changing anything
+  fix(pi)
+  if(!is.numeric(pi) || length(pi)!=1 ||
+     !is.null(attributes(pi)) || abs(pi - 3.1415) > 1e-4)
+        stop("OOPS:  fix() is broken ...")
+  rm(pi); options(oo)
+ }
+}
+}
 \keyword{utilities}

@@ -76,7 +76,6 @@ extern DL_FUNC ptr_R_Suicide, ptr_R_ShowMessage, ptr_R_ReadConsole,
 extern DL_FUNC ptr_R_ReadConsole, ptr_R_WriteConsole, ptr_R_ResetConsole, 
     ptr_R_FlushConsole, ptr_R_ClearerrConsole, ptr_R_StartConsole;
 
-DL_FUNC ptr_do_wsbrowser;
 
 /* This is called too early to use moduleCdynload */
 void R_load_aqua_shlib(void)
@@ -122,9 +121,6 @@ void R_load_aqua_shlib(void)
     if(!ptr_R_FlushConsole) R_Suicide("Cannot load R_FlushConsole");
     ptr_R_ClearerrConsole = Rdlsym(handle, "Raqua_ClearerrConsole");
     if(!ptr_R_ClearerrConsole) R_Suicide("Cannot load R_ClearerrConsole");
-    ptr_do_wsbrowser = Rdlsym(handle, "Raqua_do_wsbrowser");
-    if(!ptr_do_wsbrowser) R_Suicide("Cannot load do_wsbrowser");
-    
 /*
     ptr_R_Busy = Rdlsym(handle, "Rgnome_Busy");
     if(!ptr_R_Busy) R_Suicide("Cannot load R_Busy");
@@ -146,13 +142,6 @@ void R_load_aqua_shlib(void)
     if(!ptr_GnomeDeviceDriver) R_Suicide("Cannot load GnomeDeviceDriver");
 */    
 }
-
-SEXP do_wsbrowser(SEXP call, SEXP op, SEXP args, SEXP env)
-{
- return(ptr_do_wsbrowser(call, op, args, env));
-}
-
-
 
 #else
 

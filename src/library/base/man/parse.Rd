@@ -6,7 +6,7 @@
   list.  Each element of the list is of mode \code{expression}.
 }
 \usage{
-parse(file = "", n = NULL, text = NULL, prompt = "?")
+parse(file = "", n = NULL, text = NULL, prompt = "?", white = FALSE)
 }
 \arguments{
   \item{file}{a connection, or a character string giving the name of a
@@ -19,7 +19,7 @@ parse(file = "", n = NULL, text = NULL, prompt = "?")
     as if they were lines of a file.}
   \item{prompt}{the prompt to print when parsing from the keyboard.
     \code{NULL} means to use \R's prompt, \code{getOption("prompt")}.}
-    \code{NULL} means to use \R's prompt, \code{getOption("prompt")}.}
+  \item{white}{\emph{Unimplemented and deprecated}.}
 }
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)

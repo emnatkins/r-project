@@ -4,8 +4,7 @@
 \description{
   Return the matrix obtained by converting all the variables in a data
   frame to numeric mode and then binding them together as the columns of
-  a matrix.  Factors and ordered factors are replaced by their internal
-  codes.
+  a matrix.  Factors and ordered factors are replaced by their codes.
 }
 \usage{
 data.matrix(frame)
@@ -16,6 +15,7 @@ data.matrix(frame)
 }
 \seealso{
   \code{\link{as.matrix}},
+  \code{\link{codes}},
   \code{\link{data.frame}},
   \code{\link{matrix}}.
 }

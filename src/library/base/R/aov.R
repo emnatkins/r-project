@@ -544,7 +544,7 @@ se.contrast.aov <-
             stop("The contrast defined is empty (has no TRUE elements)")
     } else {
         contrast <- contrast.obj
-        if(any(round(rep.int(1, nrow(contrast)) %*% contrast, 8) != 0))
+        if(any(round(rep(1, nrow(contrast)) %*% contrast, 8) != 0))
             stop("Columns of contrast.obj must define a contrast (sum to zero)")
         if(length(colnames(contrast)) == 0)
             colnames(contrast) <- paste("Contrast", seq(ncol(contrast)))
@@ -556,7 +556,7 @@ se.contrast.aov <-
     if(!is.null(wt)) resid <- resid * wt^0.5
     rse <- sum(resid^2)/rdf
     if(!is.matrix(contrast.obj)) sqrt(sum(weights) * rse)
-    else sqrt(rse * (rep.int(1, nrow(weights)) %*% weights))
+    else sqrt(rse * (rep(1, nrow(weights)) %*% weights))
 }
 
 se.contrast.aovlist <-
@@ -572,7 +572,7 @@ se.contrast.aovlist <-
         e.assign <- attr(e.qr$qr, "assign")
         n.object <- length(object)
         e.assign <- c(e.assign,
-                      rep.int(n.object - 1, nrow(c.qr) - length(e.assign)))
+                      rep(n.object - 1, nrow(c.qr) - length(e.assign)))
         res <- vector(length = n.object, mode = "list")
         names(res) <- names(object)
         for(j in seq(along=names(object))) {
@@ -638,7 +638,7 @@ se.contrast.aovlist <-
     }
     else {
         contrast <- contrast.obj
-        if(any(round(rep.int(1, nrow(contrast)) %*% contrast, 8) != 0))
+        if(any(round(rep(1, nrow(contrast)) %*% contrast, 8) != 0))
             stop("Columns of contrast.obj must define a contrast(sum to zero)")
         if(length(colnames(contrast)) == 0)
             colnames(contrast) <- paste("Contrast", seq(ncol(contrast)))

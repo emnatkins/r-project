@@ -21,11 +21,11 @@ function(object, class2)
 extends <-
   ## Does the first class extend the second class?
   ## Returns `maybe' if the extension includes a non-trivial test.
-  function(class1, class2, maybe = TRUE, fullInfo = FALSE)
+  function(class1, class2, maybe = TRUE)
 {
     if(is(class1, "classRepresentation")) {
         classDef1 <- class1
-        class1 <- classDef1@className
+        class1 <- getClassName(classDef1)
     }
     else if(is.character(class1) && length(class1)==1)
         classDef1 <- getClass(class1, TRUE)
@@ -34,29 +34,22 @@ extends <-
     if(missing(class2)) {
         if(is.null(classDef1))
             return(class1)
-        ext <- classDef1@contains
-        if(!identical(maybe, TRUE))
-        {
+        ext <- getExtends(classDef1)
+        if(identical(maybe, TRUE))
+            return(c(class1, names(ext)))
+        else {
             noTest <- sapply(ext, function(obj)identical(obj@test, .simpleExtTest))
-            ext <- ext[noTest]
+            return(c(class1, names(ext[noTest])))
         }
-        if(fullInfo) {
-            elNamed(ext, class1) <- TRUE
-            return(ext)
-        }
-        else
-            return(c(class1,names(ext)))
     }
     if(identical(class1, class2))
         return(TRUE)
     if(is(class2, "classRepresentation"))
-        class2 <- class2@className
+        class2 <- getClassName(class2)
     else if(!(is.character(class2) && length(class2) == 1))
         stop("class2 must be the name of a class or a class definition")
     value <- possibleExtends(class1, class2)
-    if(fullInfo)
-        value
-    else if(is.logical(value))
+    if(is.logical(value))
         value
     else if(value@simple || identical(value@test, .simpleExtTest))
         TRUE

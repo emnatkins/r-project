@@ -31,6 +31,32 @@
 
 SEXP do_browser(SEXP, SEXP, SEXP, SEXP);
 
+#ifdef Macintosh
+
+/* Now R correctly handles user breaks
+   This is the fastest way to do handle user breaks
+   and performance are no rather good. 
+   Jago, 13 Jun 2001, Stefano M. Iacus
+*/
+extern Boolean Interrupt;
+
+void isintrpt()
+{
+   if(!Interrupt)
+     return;
+     
+   if(CheckEventQueueForUserCancel()){  
+	Rprintf("\n");
+	error("user break");
+	raise(SIGINT);
+	return;
+    }
+
+}
+
+#endif /* Macintosh */
+
+
 #ifdef R_PROFILING
 
 /* BDR 2000-07-15
@@ -267,6 +293,13 @@ SEXP eval(SEXP e, SEXP rho)
 
     if (R_EvalDepth > R_Expressions)
 	error("evaluation is nested too deeply: infinite recursion?");
+#ifdef Macintosh
+    /* check for a user abort */
+    if ((R_EvalCount++ % 100) == 0) {
+	isintrpt();
+	R_EvalCount = 0 ;
+    }
+#endif /* Macintosh */
 #ifdef Win32
     if ((R_EvalCount++ % 100) == 0) {
 	R_ProcessEvents();
@@ -295,7 +328,9 @@ SEXP eval(SEXP e, SEXP rho)
     case VECSXP:
     case EXTPTRSXP:
     case WEAKREFSXP:
+#ifndef OLD
     case EXPRSXP:
+#endif
 	tmp = e;
 	/* Make sure constants in expressions are NAMED before being
            used as values.  Setting NAMED to 2 makes sure weird calls
@@ -323,11 +358,21 @@ SEXP eval(SEXP e, SEXP rho)
 	else if (TYPEOF(tmp) == PROMSXP) {
 	    PROTECT(tmp);
 	    tmp = eval(tmp, rho);
+#ifdef old
+	    if (NAMED(tmp) == 1) SET_NAMED(tmp, 2);
+	    else SET_NAMED(tmp, 1);
+#else
 	    SET_NAMED(tmp, 2);
+#endif
 	    UNPROTECT(1);
 	}
+#ifdef OLD
+	else if (!isNull(tmp))
+	    SET_NAMED(tmp, 1);
+#else
 	else if (!isNull(tmp) && NAMED(tmp) < 1)
 	    SET_NAMED(tmp, 1);
+#endif
 	break;
     case PROMSXP:
 	if (PRVALUE(e) == R_UnboundValue) {
@@ -343,7 +388,21 @@ SEXP eval(SEXP e, SEXP rho)
 	}
 	tmp = PRVALUE(e);
 	break;
+#ifdef OLD
+    case EXPRSXP:
+	{
+	    int i, n;
+	    n = LENGTH(e);
+	    for(i=0 ; i<n ; i++)
+		tmp = eval(VECTOR_ELT(e, i), rho);
+	}
+	break;
+#endif
     case LANGSXP:
+#ifdef R_PROFILING
+/*	if (R_ProfileOutfile == NULL)
+	    R_InitProfiling(PROFOUTNAME, 0); */
+#endif
 	if (TYPEOF(CAR(e)) == SYMSXP)
 	    PROTECT(op = findFun(CAR(e), rho));
 	else
@@ -1052,7 +1111,6 @@ SEXP do_return(SEXP call, SEXP op, SEXP args, SEXP rho)
 	v = CAR(vals);
 	break;
     default:
-	warningcall(call, "multi-argument returns are deprecated");
 	for (v = vals; v != R_NilValue; v = CDR(v)) {
 	    if (CAR(v) == R_MissingArg)
 		error("empty expression in return value");
@@ -1156,12 +1214,18 @@ static SEXP applydefine(SEXP call, SEXP op, SEXP args, SEXP rho)
 	data frame defined by the system hash table.  The structure there
 	is different.  Should we special case here?  */
 
+#ifdef HASHING
+@@@@@@
+#endif
+
     /*  We need a temporary variable to hold the intermediate values
 	in the computation.  For efficiency reasons we record the
 	location where this variable is stored.  */
 
+#ifdef EXPERIMENTAL_NAMESPACES
     if (rho == R_BaseNamespace)
 	errorcall(call, "cannot do complex assignments in base namespace");
+#endif
     if (rho == R_NilValue)
 	errorcall(call, "cannot do complex assignments in NULL environment");
     defineVar(R_TmpvalSymbol, R_NilValue, rho);
@@ -1670,7 +1734,11 @@ int DispatchOrEval(SEXP call, SEXP op, char *generic, SEXP args, SEXP rho,
 	    PROTECT(pargs = promiseArgs(args, rho)); nprotect++;
 	    SET_PRVALUE(CAR(pargs), x);
 	    begincontext(&cntxt, CTXT_RETURN, call, rho, rho, pargs, op);
+#ifdef EXPERIMENTAL_NAMESPACES
 	    if(usemethod(generic, x, call, pargs, rho, rho, R_NilValue, ans))
+#else
+	    if(usemethod(generic, x, call, pargs, rho, ans))
+#endif
 	    {
 		endcontext(&cntxt);
 		UNPROTECT(nprotect);
@@ -1710,7 +1778,11 @@ int DispatchOrEval(SEXP call, SEXP op, char *generic, SEXP args, SEXP rho,
 	    /* PROTECT(args = promiseArgs(args, rho)); */
 	    SET_PRVALUE(CAR(args), x);
 	    begincontext(&cntxt, CTXT_RETURN, call, rho, rho, args, op);
+#ifdef EXPERIMENTAL_NAMESPACES
 	    if(usemethod(generic, x, call, args, rho, rho, R_NilValue, ans)) {
+#else
+	    if(usemethod(generic, x, call, args, rho, ans)) {
+#endif
 		endcontext(&cntxt);
 		UNPROTECT(nprotect);
 		return 1;
@@ -1742,7 +1814,11 @@ static void findmethod(SEXP class, char *group, char *generic,
     for (whichclass = 0 ; whichclass < len ; whichclass++) {
 	sprintf(buf, "%s.%s", generic, CHAR(STRING_ELT(class, whichclass)));
 	*meth = install(buf);
+#ifdef EXPERIMENTAL_NAMESPACES
 	*sxp = R_LookupMethod(*meth, rho, rho, R_NilValue);
+#else
+	*sxp = findVar(*meth, rho);
+#endif
 	if (isFunction(*sxp)) {
 	    *gr = mkString("");
 	    break;
@@ -1891,10 +1967,12 @@ int DispatchGroup(char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 	SET_STRING_ELT(t, j, duplicate(STRING_ELT(lclass, lwhich++)));
     defineVar(install(".Class"), t, newrho);
     UNPROTECT(1);
+#ifdef EXPERIMENTAL_NAMESPACES
     if (R_UseNamespaceDispatch) {
 	defineVar(install(".GenericCallEnv"), rho, newrho);
 	defineVar(install(".GenericDefEnv"), R_NilValue, newrho);
     }
+#endif
 
     PROTECT(t = LCONS(lmeth,CDR(call)));
 

@@ -1,6 +1,6 @@
 "promptClass" <-
 function (clName, filename = paste(topicName(type, clName), ".Rd", sep = ""), type = "class",
-          keywords = "classes", where = -1)
+          keywords = "classes", where = find(classMetaName(clName)))
 {
     classesInSig <- function(g, where) {
     # given a generic g, obtain list of all classes
@@ -71,7 +71,7 @@ function (clName, filename = paste(topicName(type, clName), ".Rd", sep = ""), ty
     }
     slotClassWithSource <- function(clname) {
         clDef <- getClassDef(clname)
-        extds <- names(clDef@contains)
+        extds <- names(getExtends(clDef))
         allslots <- getSlots(clDef) ## establishes all slots, in the right order
         for(j in rev(seq(along=extds))) {
             i <- extds[[j]]
@@ -95,22 +95,12 @@ function (clName, filename = paste(topicName(type, clName), ".Rd", sep = ""), ty
         paste("(", paste(xn, "\"", x, "\"", sep="", collapse = ", "),
         ")", sep = "")
     }
-    whereClass <- find(classMetaName(clName))
-    if(length(whereClass) == 0)
+    if(length(where) == 0)
         stop(paste0("No definition of class \"", clName,"\" found"))
-    else if(length(whereClass) > 1) {
-        if(identical(where, -1)) {
-            whereClass <- whereClass[[1]]
-            warning("Multiple definitions of \"", clName, "\" found; using the one on ",
-                    whereClass)
-        }
-        else {
-            if(exists(classMetaName(clName), where, inherits = FALSE))
-                whereClass <- where
-            else
-                stop("No definition of class \"", clName, "\" in the specified position, ",
-                     where, "; definition(s) on :", paste(whereClass, collapse = ", "))
-        }
+    else if(length(where) > 1) {
+        where <- where[[1]]
+        warning("Multiple definitions of \"", clName, "\" found; using the one on ",
+                where)
     }
     fullName <- topicName("class", clName)
     clDef <- getClass(clName)
@@ -148,7 +138,7 @@ function (clName, filename = paste(topicName(type, clName), ".Rd", sep = ""), ty
     }
     else
         .slots <- character()
-    .extends <- clDef@contains
+    .extends <- getExtends(clDef)
     if(length(.extends)>0) {
          .extends <- showExtends(.extends, print=FALSE)
         .extends <- c("\\section{Extends}{",

@@ -636,7 +636,7 @@ by @code{attributes<-},
 individual components are accessed using @code{attr} and @code{attr<-}.
 @findex attr
 @findex attr<-
-@c Shouldn't we discuss replacement functions before this?
+@c Shouldn't we discuss assignment functions before this?
 
 Some attributes have special accessor 
 @cindex function, accessor
@@ -1719,11 +1719,8 @@ are the indices.  In the case of @code{$}, the index argument is of mode
 
 The most important example of a class method for @code{[} is that used
 for data frames.  It is not be described in detail here, but in broad
-terms, if two indices are supplied (even if one is empty) it creates
-matrix-like indexing for a structure that is basically a list of vectors
-of the same length.  If a single index is supplied, it is interpreted as
-indexing the list of columns---in that case the @code{drop} argument is
-ignored, with a warning.
+terms, it creates matrix-like indexing for a structure that is basically
+a list of vectors of the same length.
 
 @node Subset assignment,  , Indexing other structures, Indexing
 @subsection Subset assignment
@@ -2688,8 +2685,8 @@ other function calls.  The syntax of a call to it is
 the name of the generic function, @var{object} is the object used to
 determine which method should be chosen.  @code{UseMethod} can only be
 called from inside a function.  The @Sl{} definition of @code{UseMethod}
-contains an additional argument of @samp{...} that can affect the
-default values for subsequent methods.  @R{} produces a warning if there
+contains an additional argument of @samp{...} that appears to have no
+effect on any subsequent computations.  @R{} produces a warning if there
 are more than two arguments to @code{UseMethod} and ignores these
 additional arguments.
 

@@ -20,7 +20,11 @@
 #include <R.h>
 #include "ts.h"
 
+#ifdef Macintosh
+#include <fp.h>
+#else
 #include <math.h>
+#endif
 
 #ifndef max
 #define max(a,b) ((a < b)?(b):(a))

@@ -9,7 +9,11 @@
 # include <config.h>
 #endif
 
-#include <math.h>
+#ifdef Macintosh
+# include <fp.h>
+#else
+# include <math.h>
+#endif
 
 #include <stdio.h>
 #include <R_ext/Memory.h>

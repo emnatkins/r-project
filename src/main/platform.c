@@ -40,8 +40,8 @@ static void Init_R_Machine(SEXP rho)
 	   &minexp, &maxexp, &eps, &epsneg, &xmin, &xmax);
 
     R_dec_min_exponent = floor(log10(xmin)); /* smallest decimal exponent */
-    PROTECT(ans = allocVector(VECSXP, 18));
-    PROTECT(nms = allocVector(STRSXP, 18));
+    PROTECT(ans = allocVector(VECSXP, 17));
+    PROTECT(nms = allocVector(STRSXP, 17));
     SET_STRING_ELT(nms, 0, mkChar("double.eps"));
     SET_VECTOR_ELT(ans, 0, ScalarReal(eps));
 
@@ -92,9 +92,6 @@ static void Init_R_Machine(SEXP rho)
 
     SET_STRING_ELT(nms, 16, mkChar("sizeof.longdouble"));
     SET_VECTOR_ELT(ans, 16, ScalarInteger(SIZEOF_LONG_DOUBLE));
-
-    SET_STRING_ELT(nms, 17, mkChar("sizeof.pointer"));
-    SET_VECTOR_ELT(ans, 17, ScalarInteger(sizeof(SEXP)));
     setAttrib(ans, R_NamesSymbol, nms);
     defineVar(install(".Machine"), ans, rho);
     UNPROTECT(2);
@@ -180,6 +177,23 @@ SEXP do_date(SEXP call, SEXP op, SEXP args, SEXP rho)
  *  version, write down a pipe to a pager.
  */
 
+#ifdef OLD
+SEXP do_fileshow(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+    SEXP fn, tl;
+    checkArity(op, args);
+    fn = CAR(args);
+    tl = CADR(args);
+    if (!isString(fn) || length(fn) < 1 || STRING_ELT(fn, 0) == R_NilValue)
+	errorcall(call, "invalid filename");
+    if (!isString(tl) || length(tl) < 1 || STRING_ELT(tl, 0) == R_NilValue)
+	errorcall(call, "invalid filename");
+    if (!R_ShowFile(R_ExpandFileName(CHAR(STRING_ELT(fn, 0))),
+                    CHAR(STRING_ELT(tl, 0))))
+	error("unable to display file \"%s\"", CHAR(STRING_ELT(fn, 0)));
+    return R_NilValue;
+}
+#else
 SEXP do_fileshow(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP fn, tl, hd, pg;
@@ -227,6 +241,7 @@ SEXP do_fileshow(SEXP call, SEXP op, SEXP args, SEXP rho)
     vmaxset(vm);
     return R_NilValue;
 }
+#endif
 
 
 /*  append.file
@@ -392,7 +407,7 @@ SEXP do_filesymlink(SEXP call, SEXP op, SEXP args, SEXP rho)
 #endif
 }
 
-#if defined(Win32)
+#if defined(Win32) || defined(Macintosh)
 # include <errno.h>
 #endif
 
@@ -423,16 +438,30 @@ SEXP do_filerename(SEXP call, SEXP op, SEXP args, SEXP rho)
     return Rwin_rename(from, to) == 0 ? mkTrue() : mkFalse();
 #endif
 
+#if defined(Macintosh)
+    /* rename() on Windows/Mac does not overwrite files */
+    if (!unlink(to))
+	if (errno == EACCES) return mkFalse();
+#endif
     return rename(from, to) == 0 ? mkTrue() : mkFalse();
 }
 
 #ifdef HAVE_STAT
-# ifdef HAVE_SYS_TYPES_H
-#  include <sys/types.h>
-# endif
-# ifdef HAVE_SYS_STAT_H
-#  include <sys/stat.h>
-# endif
+# ifndef Macintosh
+#  ifdef HAVE_SYS_TYPES_H
+#   include <sys/types.h>
+#  endif
+#  ifdef HAVE_SYS_STAT_H
+#   include <sys/stat.h>
+#  endif
+# else /* Macintosh */
+#  include <types.h>
+#  ifndef __MRC__
+#   include <stat.h>
+#  else
+#   include <mpw_stat.h>
+#  endif
+# endif /* Macintosh */
 
 # if defined(Unix) && defined(HAVE_PWD_H) && defined(HAVE_GRP_H) \
   && defined(HAVE_GETPWUID) && defined(HAVE_GETGRGID)
@@ -536,7 +565,11 @@ SEXP do_fileinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 #endif
 
+#ifndef Macintosh
 # include <sys/types.h>
+#else
+# include <types.h>
+#endif /* mac */
 
 #if HAVE_DIRENT_H
 # include <dirent.h>
@@ -546,6 +579,8 @@ SEXP do_fileinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
 # include <sys/dir.h>
 #elif HAVE_NDIR_H
 # include <ndir.h>
+#elif defined(Macintosh)
+# include "dirent.h"		/* use a local equivalent to dirent.h */
 #endif
 
 #ifdef USE_SYSTEM_REGEX
@@ -1110,7 +1145,7 @@ SEXP do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
        use */
     SET_STRING_ELT(ansnames, i, mkChar("cledit"));
     LOGICAL(ans)[i] = FALSE;
-#if defined(Win32)
+#if defined(Win32) || defined(Macintosh)
     if(R_Interactive) LOGICAL(ans)[i] = TRUE;
 #endif
 #ifdef Unix

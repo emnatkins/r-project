@@ -1,18 +1,9 @@
 \name{rep}
 \alias{rep}
-\alias{rep.default}
 \alias{rep.int}
 \title{Replicate Elements of Vectors and Lists}
-\description{
-  \code{rep} replicates the values in \code{x}. It is a generic
-  function, and the default method is described here.
-
-  \code{rep.int} is a faster simplified version for the commonest case.
-}
 \usage{
-rep(x, times, \dots)
-\method{rep}{default}(x, times, length.out, each, \dots)
-
+rep(x, times, length.out, each)
 rep.int(x, times)
 }
 \arguments{
@@ -24,7 +15,11 @@ rep.int(x, times)
     output vector.}
   \item{each}{optional integer. Each element of \code{x} is
     repeated \code{each} times.}
-  \item{\dots}{further arguments to be passed to or from other methods.}
+}
+\description{
+  \code{rep} replicates the values in \code{x}
+  according to the values given in \code{times}
+  and \code{length.out}.
 }
 
 \details{

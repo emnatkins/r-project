@@ -1,7 +1,7 @@
 
 functionBody <- get("body", mode = "function")
 
-.ff <- function(fun, envir = environment(fun), value) fun
+.ff <- function(f, value, envir = environment(f)) f
 
 body(.ff, envir = .GlobalEnv) <- body(get("body<-"))
 

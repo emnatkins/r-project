@@ -368,14 +368,22 @@ FILE* R_OpenSysInitFile(void);
 FILE* R_OpenSiteFile(void);
 FILE* R_OpenInitFile(void);
 
+#ifdef OLD
+static void R_LoadProfile(FILE *fp)
+#else
 static void R_LoadProfile(FILE *fparg, SEXP env)
+#endif
 {
     FILE * volatile fp = fparg; /* is this needed? */
     if (fp != NULL) {
 	if (! SETJMP(R_Toplevel.cjmpbuf)) {
 	    R_GlobalContext = R_ToplevelContext = &R_Toplevel;
 	    signal(SIGINT, onintr);
+#ifdef OLD
+	    R_ReplFile(fp, R_NilValue, 0, 0);
+#else
 	    R_ReplFile(fp, env, 0, 0);
+#endif
 	}
 	fclose(fp);
     }
@@ -391,6 +399,7 @@ void setup_Rmainloop(void)
     volatile SEXP baseEnv;
     SEXP cmd;
     FILE *fp;
+    char *p = getenv("R_NO_UNDERLINE");
 
     InitConnections(); /* needed to get any output at all */
 
@@ -417,7 +426,7 @@ void setup_Rmainloop(void)
     /* setlocale(LC_MESSAGES,""); */
 #endif
 #endif
-#if defined(Unix) || defined(Win32)
+#if defined(Unix) || defined(Win32) || defined(Macintosh)
     InitTempDir(); /* must be before InitEd */
 #endif
     InitMemory();
@@ -451,7 +460,14 @@ void setup_Rmainloop(void)
 
     R_Warnings = R_NilValue;
 
+#ifdef EXPERIMENTAL_NAMESPACES
     baseEnv = R_BaseNamespace;
+#else
+    baseEnv = R_NilValue;
+#endif
+
+    /* Temporary flag to disable _ for a session */
+    if(p && strlen(p)) R_no_underline = TRUE;
 
     /* Set up some global variables */
     Init_R_Variables(baseEnv);

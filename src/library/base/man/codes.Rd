@@ -1,11 +1,12 @@
 \name{codes}
-\alias{codes-deprecated}
+\alias{codes}
+\alias{codes.factor}
+\alias{codes.ordered}
+\alias{codes<-}
 \title{Factor Codes}
 \description{
   This (generic) function returns a numeric coding of a factor.  It can
   also be used to assign to a factor using the coded form.
-
-  It is now \code{\link{Deprecated}}.
 }
 \usage{
 codes(x, \dots)
@@ -14,7 +15,7 @@ codes(x, \dots) <- value
 \arguments{
   \item{x}{an object from which to extract or set the codes.}
   \item{\dots}{further arguments passed to or from other methods.}
-  \item{value}{replacement value.}
+  \item{value}
 }
 \value{
   For an ordered factor, it returns the internal coding (1 for the
@@ -42,7 +43,7 @@ codes(x, \dots) <- value
 \seealso{
   \code{\link{factor}}, \code{\link{levels}}, \code{\link{nlevels}}.
 }
-\examples{\dontrun{
+\examples{
 codes(rep(factor(c(20,10)),3))
 
 x <- gl(3,5)
@@ -54,7 +55,7 @@ data(esoph)
 codes(ag)
 
 codes(factor(1:10)) # BEWARE!
-}}
+}
 \keyword{category}
 \keyword{classes}
 

@@ -8,54 +8,37 @@ NextMethod <- function(generic=NULL, object=NULL, ...)
 
 methods <- function (generic.function, class)
 {
-    S3MethodsStopList <- tools::.makeS3MethodsStopList(NULL)
-    S3groupGenerics <- c("Ops", "Math", "Summary")
+    ## this list is taken from .makeS3MethodsStopList in tools/R/utils.R
+    S3MethodsStopList <-
+        c("boxplot.stats", "close.screen", "close.socket", "flush.console",
+          "format.char", "format.info", "format.pval", "influence.measures",
+          "plot.new", "plot.window", "plot.xy", "print.coefmat",
+          "split.screen",
+          "update.packages", "solve.QP", "solve.QP.compact", "print.graph",
+          "lag.plot")
+    groupGenerics <- c("Ops", "Math", "Summary")
 
     an <- lapply(seq(along=(sp <- search())), ls)
     names(an) <- sp
     an <- unlist(an)
-    an <- an[!duplicated(an)] # removed masked objects, *keep* names
-    names(an) <- sub("[0-9]*$", "", names(an))
-    info <- data.frame(visible = rep.int(TRUE, length(an)),
-                       from = names(an),
-                       row.names = an)
-    an <- as.vector(an) # drop names
     if (!missing(generic.function)) {
 	if (!is.character(generic.function))
 	    generic.function <- deparse(substitute(generic.function))
-        genfun <- get(generic.function)
-        gf <- paste(deparse(genfun), collapse="\n")
-        if(length(grep("UseMethod", gf))) {
-            ## look for the generic dispatched on: not 100% reliable!
-            truegf <- sub('(.*)UseMethod\\(\"([^"]*)(.*)', "\\2", gf)
-            if(truegf != generic.function) {
-                warning(paste("Generic `", generic.function,
-                              "' dispatches methods for generic `",
-                              truegf, "'", sep=""))
-                genfun <- get(generic.function <- truegf)
-            }
-        }
+        ## <FIXME> generalize this later
+        if(generic.function == "coefficients") generic.function <- "coef"
+        if(generic.function == "fitted.values") generic.function <- "fitted"
 	name <- paste("^", generic.function, ".", sep = "")
         ## also look for registered methods from namespaces
-        if(generic.function %in% S3groupGenerics)
+        if(generic.function %in% groupGenerics)
             defenv <- .BaseNamespaceEnv
         else {
+            genfun <- get(generic.function)
             defenv <- if (typeof(genfun) == "closure") environment(genfun)
             else .BaseNamespaceEnv
         }
         S3reg <- ls(get(".__S3MethodsTable__.", envir = defenv))
-        if(length(S3reg)) {
-            msg <- paste("registered S3method for", generic.function)
-            nmS3reg <- rep.int(msg, length(S3reg))
-            an <- c(an, S3reg)
-            info <- rbind(info,
-                          data.frame(visible = rep.int(FALSE, length(S3reg)),
-                                     from = nmS3reg,
-                                     row.names = S3reg))
-            ## might both export and register a method
-            dups <- duplicated(an)
-            an <- an[!dups]; info <- info[!dups,]
-        }
+        ## might both export and register a method
+        an <- unique(c(an, S3reg))
     }
     else if (!missing(class)) {
 	if (!is.character(class))
@@ -63,25 +46,8 @@ methods <- function (generic.function, class)
 	name <- paste(".", class, "$", sep = "")
     }
     else stop("must supply generic.function or class")
-    keep <- grep(gsub("([.[])", "\\\\\\1", name), an)
-    res <- an[keep]; info <- info[keep,]
-    keep <- ! res %in% S3MethodsStopList
-    res <- res[keep]; info <- info[keep,]
-    ord <- sort.list(res)
-    res <- res[ord]; info <- info[ord,]
-    class(res) <- "MethodsFunction"
-    attr(res, "info") <- info
-    res
-}
-
-print.MethodsFunction <- function(x, ...)
-{
-    visible <- attr(x, "info")[["visible"]]
-    z <- paste(x, ifelse(visible, "", "*"), sep="")
-    print(z, quote=FALSE, ...)
-    if(any(!visible))
-        cat("\n    Non-visible functions are asterisked\n")
-    invisible(x)
+    res <- sort(grep(gsub("([.[])", "\\\\\\1", name), an, value = TRUE))
+    res[! res %in% S3MethodsStopList]
 }
 
 data.class <- function(x) {
@@ -98,12 +64,9 @@ data.class <- function(x) {
 getS3method <-  function(f, class, optional = FALSE)
 {
     groupGenerics <- c("Ops", "Math", "Summary")
-    gf <- paste(deparse(get(f)), collapse="\n")
-    if(length(grep("UseMethod", gf))) {
-        ## look for the generic dispatched on: not 100% reliable!
-        truegf <- sub('(.*)UseMethod\\(\"([^"]*)(.*)', "\\2", gf)
-        if(truegf != f) f <- truegf
-    }
+    ## <FIXME> generalize this later
+    if(f == "coefficients") f <- "coef"
+    if(f == "fitted.values") f <- "fitted"
     method <- paste(f, class, sep=".")
     if(exists(method)) return(get(method))
     ## also look for registered method in namespaces

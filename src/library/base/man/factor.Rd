@@ -134,7 +134,7 @@ a.factor[i, drop = FALSE]
 \examples{
 ff <- factor(substring("statistics", 1:10, 1:10), levels=letters)
 ff
-as.integer(ff) # the internal codes
+codes(ff)
 factor(ff)      # drops the levels that do not occur
 ff[, drop=TRUE] # the same
 factor(factor(letters[7:10])[2:3]) # exercise indexing and reduction

@@ -1,7 +1,7 @@
 #! @PERL@
 #-*- perl -*-
 
-# Copyright (C) 2000-2003 R Development Core Team
+# Copyright (C) 2000-2002 R Development Core Team
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ use Text::Wrap;
 ## don't buffer output
 $| = 1;
 
-my $revision = ' $Revision: 1.138 $ ';
+my $revision = ' $Revision: 1.133.2.1 $ ';
 my $version;
 my $name;
 $revision =~ / ([\d\.]*) /;
@@ -142,7 +142,6 @@ if(defined($ENV{'R_CHECK_WITH_T_N_F_AS_NULL'})
     $log->close();
 }
 $ENV{'R_CHECK_WITH_T_N_F_AS_NULL'} = "yes";
-## </FIXME>
 
 ## This is the main loop over all packages to be checked.
 ($#ARGV >= 0) or die "Error: no packages were specified";
@@ -292,70 +291,6 @@ sub check_pkg {
 
     chdir($pkgdir);
 
-    ## Build list of exclude patterns.
-
-    my @exclude_patterns = R::Utils::get_exclude_patterns();
-    ## <FIXME>
-    ## This is not right for bundles where the build ignore pattern
-    ## file is in the top-level bundle dir.  We could fix this by
-    ## using '../.Rbuildignore' instead, but then e.g.
-    ##   find(\&find_wrong_perms_A, ".");
-    ##   find(\&find_wrong_perms_B, ".");
-    ## are wrong because the exclude patterns are relative to '..'.
-    if(-f "./.Rbuildignore") {
-	open(RBUILDIGNORE, "./.Rbuildignore");
-	while(<RBUILDIGNORE>) {
-	    chop;
-	    push(@exclude_patterns, $_) if $_;
-	}
-	close(RBUILDIGNORE);
-    }
-    ## </FIXME>
-
-    ## Check for portable file names.
-
-    ## Ensure that the names of the files in the package are valid for
-    ## at least the supported OS types.  Under Unix, we definitely
-    ## cannot have '/'; under Windows, the control characters as well as
-    ##   " * : < > ? \ |
-    ## (i.e., ASCII characters 1 to 31 and 34, 36, 58, 60, 62, 63, 92,
-    ## and 124) are or can be invalid.  (In addition, one cannot have
-    ## one-character file names consisting of just ' ', '.', or '~'.)
-    ## Based on information by Uwe Ligges, Duncan Murdoch, and Brian
-    ## Ripley.
-    $log->checking("for portable file names");
-    my @bad_files = ();
-    sub find_wrong_names {
-	my $filename = $File::Find::name;
-	$filename =~ s/^[^\/]*\///;
-	foreach my $p (@exclude_patterns) {
-	    if($WINDOWS) {
-		## Argh: Windows is case-honoring but not
-		## case-insensitive ...
-		return 0 if($filename =~ /$p/i);
-	    }
-	    else {
-		return 0 if($filename =~ /$p/);
-	    }
-	}
-	push(@bad_files, $filename)
-	    if(grep(/[[:cntrl:]\"\*\/\:\<\>\?\\\|]/,
-		    basename($filename)));
-    }
-    find(\&find_wrong_names, ".");
-    if($#bad_files >= 0) {
-	$log->error();
-	$log->print("Found the following files with " .
-		    "non-portable file names:\n");
-	$log->print("  " . join("\n  ", @bad_files) . "\n");
-	$log->print("These are not valid file names " .
-		    "on all R platforms.\n" .
-		    "Please rename the files and try again.\n");
-	exit(1);
-    }
-
-    $log->result("OK");
-
     ## Check for sufficient file permissions (Unix only).
 
     ## This is a bit controversial, and hence there is a command line
@@ -365,7 +300,7 @@ sub check_pkg {
     ## * All dirs or files must be at least 555 or 444, respectively.
     ## * Everything that gets installed must be writeable.  This
     ##   includes
-    ##     DESCRIPTION COPYING INDEX NAMESPACE README
+    ##     DESCRIPTION COPYING INDEX NAMESPACE
     ##     data/* demo/* exec/* inst/*.
     ## * All directories used for building 'objects' must be at least
     ##   755.  This includes '.' and src.
@@ -374,20 +309,43 @@ sub check_pkg {
     if($opt_perms && ($R::Vars::OSTYPE eq "unix")) {
 	$log->checking("for sufficient/correct file permissions");
 	my @bad_files = ();
+	my @excludepatterns = R::Utils::get_exclude_patterns();
+	## <FIXME>
+	## This is not right for bundles where the build ignore pattern
+	## file is in the top-level bundle dir.  We could fix this by
+	## using '../.Rbuildignore' instead, but then
+	##   find(\&find_wrong_perms_A, ".");
+	##   find(\&find_wrong_perms_B, ".");
+	## are wrong because the exclude patterns are relative to '..'.
+	if(-f "./.Rbuildignore") {
+	    open(RBUILDIGNORE, "./.Rbuildignore");
+	    while(<RBUILDIGNORE>) {
+		chop;
+		push(@exclude_patterns, $_) if $_;
+	    }
+	    close(RBUILDIGNORE);
+	}
+	## </FIXME>
 
 	## Phase A.  Directories at least 755, files at least 644.
 	sub find_wrong_perms_A {
 	    my $filename = $File::Find::name;
 	    $filename =~ s/^[^\/]*\///;
 	    foreach my $p (@exclude_patterns) {
-		## Unix only, so no special casing for Windows.
-		return 0 if($filename =~ /$p/);
+		if($WINDOWS) {
+ 		    ## Argh: Windows is case-honoring but not
+		    ## case-insensitive ...
+		    return 0 if($filename =~ /$p/i);
+		}
+		else {
+		    return 0 if($filename =~ /$p/);
+		}
 	    }
 	    if(-d $_ && (((stat $_)[2] & 00755) < oct("755"))) {
-		push(@bad_files, $filename);
+		push(@bad_files, $File::Find::name);
 	    }
 	    if(-f $_ && (((stat $_)[2] & 00644) < oct("644"))) {
-		push(@bad_files, $filename);
+		push(@bad_files, $File::Find::name);
 	    }
 	}
         find(\&find_wrong_perms_A, ".");
@@ -416,13 +374,12 @@ sub check_pkg {
 	    my $filename = $File::Find::name;
 	    $filename =~ s/^[^\/]*\///;
 	    foreach my $p (@exclude_patterns) {
-		## Unix only, so no special casing for Windows.
 		return 0 if($filename =~ /$p/);
 	    }
 	    if(-f $_ && (((stat $_)[2] & 00777) != oct("644"))) {
 		foreach my $p (@textfile_patterns) {
 		    if($filename =~ /$p/) {
-			push(@bad_files, $filename);
+			push(@bad_files, $File::Find::name);
 			last;
 		    }
 		}
@@ -518,7 +475,7 @@ sub check_pkg {
     }
 
     ## Optional entries in DESCRIPTION:
-    ##   Depends, Namespace.
+    ##   Depends.
     ## These must be correct if present.
 
     if($description->{"Depends"}) {
@@ -565,15 +522,6 @@ sub check_pkg {
 	    $log->print("Malformed Depends field.\n");
 	    $log->print("Offending entry is: '$bad_dep_entry'.\n");
 	    $log->print(wrap("", "", @bad_dep_error));
-	    $log->print(wrap("", "", @msg_DESCRIPTION));
-	    exit(1);
-	}
-    }
-
-    if($description->{"Namespace"}) {
-	if($description->{"Namespace"} ne $description->{"Package"}) {
-	    $log->error();
-	    $log->print("Namespace and Package fields differ.\n");
 	    $log->print(wrap("", "", @msg_DESCRIPTION));
 	    exit(1);
 	}
@@ -829,25 +777,25 @@ sub check_pkg {
 	}
     }
 
-    ## Check whether replacement functions have their final argument
+    ## Check whether assignment functions have their final argument
     ## named 'value'.
 
     if(-d "R") {
-	$log->checking("for replacement functions with final arg not " .
+	$log->checking("for assignment functions with final arg not " .
 		       "named 'value'");
 	my $Rcmd = "library(tools)\n";
 	if($opt_install) {
-	    $Rcmd .= "checkReplaceFuns(package = \"${pkgname}\")\n";
+	    $Rcmd .= "checkAssignFuns(package = \"${pkgname}\")\n";
 	}
 	else {
-	    $Rcmd .= "checkReplaceFuns(dir = \"${pkgdir}\")\n";
+	    $Rcmd .= "checkAssignFuns(dir = \"${pkgdir}\")\n";
 	}
 
         my @out = R_runR($Rcmd, "${R_opts} --quiet");
         @out = grep(!/^\>/, @out);
 	if($#out >= 0) {
 	    ## <NOTE>
-	    ## We really want to stop if we find offending replacement
+	    ## We really want to stop if we find offending assignment
 	    ## functions.  But we cannot use error() because output may
 	    ## contain warnings ...
 	    $log->warning();
@@ -890,6 +838,20 @@ sub check_pkg {
 
 	my @Rd_files =
 	  &list_files_with_type("man", "docs", $R::Vars::OSTYPE);
+
+	## Rd files with illegal file names?
+
+	my @bad_files = grep(/</, @Rd_files);
+	if($#bad_files >= 0) {
+	    $log->error();
+	    $log->print("Cannot handle Rd file names containing '<'.\n" .
+			"These are not legal file names on all R " .
+			"platforms.\n" .
+			"Please rename the following files and " .
+			"try again:\n");
+	    $log->print("  " . join("\n  ", @bad_files) . "\n");
+	    exit(1);
+	}
 
 	@Rd_files = sort(@Rd_files);
 
@@ -1327,8 +1289,6 @@ sub check_pkg {
         $log->result("OK");
     }
 
-    ## Check package vignettes.
-
     chdir($pkgoutdir);
 
     if((-d &file_path($pkgdir, "inst", "doc"))
@@ -1370,8 +1330,7 @@ sub check_pkg {
 	    }
 
 	    my @out = R_runR($Rcmd, "${R_opts} --quiet");
-	    ## Vignette could redefine the prompt, e.g. to 'R>' ...
-	    @out = grep(!/^[[:alnum:]]*\>/, @out);
+	    @out = grep(!/^\>/, @out);
 	    if($#out >= 0) {
 		$log->warning() unless($any);
 		$any++;
@@ -1421,7 +1380,8 @@ sub check_pkg {
                 ## this in case of problems.  But does this really help?
 		my $cmd = "${R::Vars::LATEX}";
 		$cmd .= " '\\nonstopmode{}\\input{${pkgname}-manual.tex}'";
-		$cmd .= " >/dev/null 2>&1";
+		$cmd .= " >/dev/null";
+		$cmd .= " 2>&1" if($R::Vars::OSTYPE eq "unix");
 		## </NOTE>
 		if(R_system($cmd)) {
 		    $log->error();
@@ -1435,8 +1395,9 @@ sub check_pkg {
 	else {
 	    if($HAVE_LATEX) {
 		$log->checking("DVI version of manual");
-		my $cmd = "${R::Vars::R_CMD} Rd2dvi --batch --no-preview";
-		$cmd .= " -o ${pkgname}-manual.dvi >/dev/null 2>&1";
+		my $cmd = "${R::Vars::R_CMD} Rd2dvi --batch " .
+		  "--no-preview -o ${pkgname}-manual.dvi >/dev/null 2>&1";
+		$cmd .= " 2>&1" if($R::Vars::OSTYPE eq "unix");
 		$cmd .= " $pkgdir";
 		if(R_system($cmd)) {
 		    $log->error();

@@ -3,6 +3,8 @@ function(..., list = character(0),
          package = .packages(), lib.loc = NULL,
          verbose = getOption("verbose"))
 {
+    sQuote <- function(s) paste("'", s, "'", sep = "")
+
     names <- c(as.character(substitute(list(...))[-1]), list)
     if(!missing(package))
         if(is.name(y <- substitute(package)))
@@ -25,7 +27,7 @@ function(..., list = character(0),
             ## Warn about given packages which do not have a 'data'
             ## subdirectory.
             packagesWithNoData <-
-                package[package %in% basename(paths[nodata])]
+                package[package %in% sapply(paths[nodata], basename)]
             if(length(packagesWithNoData) > 1) {
                 warning(paste("packages",
                               paste(sQuote(packagesWithNoData),
@@ -49,12 +51,30 @@ function(..., list = character(0),
         noindex <- character(0)
         for(path in paths) {
             entries <- NULL
-            ## Check for new-style 'Meta/data.rds', then for '00Index'.
+            ## <NOTE>
+            ## Check for new-style 'Meta/data.rds' (and intermediate
+            ## 'data/00Index.rds' and 'data/00Index.dcf'), then for
+            ## '00Index'.
             ## Earlier versions also used to check for 'index.doc'.
+            ## </NOTE>
             if(file.exists(INDEX <-
                            file.path(path, "Meta", "data.rds"))) {
                 entries <- .readRDS(INDEX)
             }
+            ## <FIXME>
+            ## Remove this once 1.7.0 is out.
+            ## (The 1.7 development versions for some time used indices
+            ## serialized as 'data/00Index.rds' and 'data/00Index.dcf'.)
+            else if(file.exists(INDEX <-
+                                file.path(path, "data", "00Index.rds"))) {
+                entries <- .readRDS(INDEX)
+            }
+            else if(file.exists(INDEX <-
+                                file.path(path, "data", "00Index.dcf"))) {
+                entries <- read.dcf(INDEX)
+                entries <- cbind(colnames(entries), c(entries))
+            }
+            ## </FIXME>
             else if(file.exists(INDEX <-
                                 file.path(path, "data", "00Index")))
                 entries <- read.00Index(INDEX)
@@ -98,8 +118,8 @@ function(..., list = character(0),
                   sep = "")
         else
             NULL
-        y <- list(title = "Data sets", header = NULL, results = db,
-                  footer = footer)
+        y <- list(type = "data", title = "Data sets",
+                  header = NULL, results = db, footer = footer)
         class(y) <- "packageIQR"
         return(y)
     }
@@ -150,19 +170,16 @@ function(..., list = character(0),
                 else {
                     zfile <- zip.file.extract(file, "Rdata.zip")
                     switch(ext,
-                           R = , r =
-                             source(zfile, chdir = TRUE),
+                           R = , r = source(zfile, chdir = TRUE),
                            RData = , rdata = , rda =
                              load(zfile, envir = .GlobalEnv),
                            TXT = , txt = , tab =
-                             assign(name,
-                                    read.table(zfile, header = TRUE),
+                             assign(name, read.table(zfile, header = TRUE),
                                     env = .GlobalEnv),
                            CSV = , csv =
                              assign(name,
-                                    read.table(zfile, header = TRUE,
-                                               sep = ";"),
-                                    env = .GlobalEnv),
+                                    read.table(zfile, header = TRUE, sep = ";"),
+                                   env = .GlobalEnv),
                            found <- FALSE)
                     if (zfile != file) unlink(zfile)
                 }

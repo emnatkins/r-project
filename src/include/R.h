@@ -33,10 +33,14 @@ extern "C" {
 #include <stdio.h>
 #include <limits.h>
 #include <float.h>
-#include <math.h>
-
+#ifdef Macintosh
+# include <fp.h>
+#else
+# include <math.h>
+#endif
 
 #include <Rconfig.h>
+/* #include <Rversion.h>	       R_VERSION */
 #include <R_ext/Arith.h>      /* R_FINITE, ISNAN, ... */
 #include <R_ext/Boolean.h>    /* Rboolean type */
 #include <R_ext/Complex.h>    /* Rcomplex type */

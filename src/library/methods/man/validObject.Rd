@@ -1,6 +1,7 @@
 \name{validObject}
 \alias{validObject}
 \alias{setValidity}
+\alias{getValidity}
 \title{ Test the Validity of an Object }
 \description{
   The validity of \code{object} related to its class definition is
@@ -9,9 +10,8 @@
   or an error is generated (according to whether \code{test} is
   \code{TRUE}).
 
-  The function \code{setValidity}  sets
-  the validity method of a class (but more normally, this method will
-  be supplied as the \code{validity} argument to \code{\link{setClass}}).  The method should be a function of one
+  The functions \code{getValidity} and \code{setValidity} get and set
+  the validity method of a class.  This method is a function of one
   object that returns \code{TRUE} or a description of the non-validity.
 }
 \usage{

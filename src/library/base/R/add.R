@@ -184,7 +184,7 @@ add1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
                           "rows from a combined fit"))
     }
     n <- nrow(x)
-    if(is.null(wt)) wt <- rep.int(1, n)
+    if(is.null(wt)) wt <- rep(1, n)
     Terms <- attr(Terms, "term.labels")
     asgn <- attr(x, "assign")
     ousex <- match(asgn, match(oTerms, Terms), 0) > 0
@@ -388,7 +388,7 @@ drop1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
     if(is.null(y)) y <- model.response(model.frame(object), "numeric")
     na.coef <- (1:length(object$coefficients))[!is.na(object$coefficients)]
     wt <- object$prior.weights
-    if(is.null(wt)) wt <- rep.int(1, n)
+    if(is.null(wt)) wt <- rep(1, n)
     rank <- object$rank
     for(i in 1:ns) {
 	ii <- seq(along=asgn)[asgn == ndrop[i]]
@@ -482,7 +482,7 @@ factor.scope <- function(factor, scope)
 	} else nmdrop <- colnames(factor)
 	if(ncol(facs) > 1) {
             ## check no interactions will be left without margins.
-	    keep <- rep.int(TRUE, ncol(facs))
+	    keep <- rep(TRUE, ncol(facs))
 	    f <- crossprod(facs > 0)
 	    for(i in seq(keep)) keep[i] <- max(f[i, - i]) != f[i, i]
 	    nmdrop <- nmdrop[keep]
@@ -500,7 +500,7 @@ factor.scope <- function(factor, scope)
 	    add <- add[, -where, drop = FALSE]
 	}
 	if(ncol(add) > 1) {             # check marginality:
-	    keep <- rep.int(TRUE, ncol(add))
+	    keep <- rep(TRUE, ncol(add))
 	    f <- crossprod(add > 0)
 	    for(i in seq(keep)) keep[-i] <- keep[-i] & (f[i, -i] < f[i, i])
 	    nmadd <- nmadd[keep]

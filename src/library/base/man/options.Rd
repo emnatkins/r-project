@@ -94,8 +94,9 @@ getOption(x)
       before the base package is initialized (see \code{\link{Startup}}).}
 
     \item{\code{expressions}:}{sets a limit on the number of nested
-      expressions that will be evaluated.
-      Valid values are 25\dots100000 with default 500.}
+      expressions that will be evaluated.  This is especially important
+      on the Macintosh since stack overflow is likely if this is set too
+      high.  Valid values are 25\dots100000 with default 500.}
 
     \item{\code{keep.source}:}{When \code{TRUE}, the source code for
       functions (newly defined or loaded) is stored in their
@@ -223,6 +224,10 @@ getOption(x)
       Defaults to \code{"internal"} when the internal unzip code is
       used.}
 #endif
+#ifdef mac
+      Defaults to \code{"internal"} when the internal unzip code is
+      used.}
+#endif
     
     \item{\code{de.cellwidth}:}{integer: the cell widths (number of
       characters) to be used in the data editor \code{\link{dataentry}}.
@@ -240,16 +245,6 @@ getOption(x)
     \item{\code{internet.info}:}{The minimum level of information to be
       printed on URL downloads etc.  Default is 2, for failure causes.
       Set to 1 or 0 to get more information.}
-
-    \item{\code{scipen}:}{integer.  A penalty to be applied
-      when deciding to print numeric values in fixed or exponential
-      notation.  Positive values bias towards fixed and negative towards
-      scientific notation: fixed notation will be preferred unless it is
-      more than \code{scipen} digits wider.}
-
-    \item{\code{locatorBell}:}{logical.  Should selection in \code{locator}
-      and \code{identify} be confirmed by a bell.  Default \code{TRUE}.
-      Honoured at least on \code{X11} and \code{windows} devices.}
   }
 
   The default settings of some of these options are
@@ -269,8 +264,7 @@ getOption(x)
     \code{warn} \tab \code{0}\tab
     \code{warning.length} \tab \code{1000}\cr
     \code{echo} \tab \code{TRUE} \tab
-    \code{verbose} \tab \code{FALSE} \cr
-    \code{scipen} \tab \code{0} \tab \code{locatorBell} \tab \code{TRUE}
+    \code{verbose} \tab \code{FALSE}
   }
   Others are set from environment variables or are platform-dependent.
 }
@@ -296,10 +290,6 @@ old.o
 
 options(check.bounds = TRUE)
 x <- NULL; x[4] <- "yes" # gives a warning
-
-options(digits=5)
-print(1e5)
-options(scipen=3); print(1e5)
 
 options(op)     # reset (all) initial options
 options('digits')

@@ -1,17 +1,17 @@
 \name{length}
-\alias{length}
-\alias{length<-}
 \title{Length of a Vector or List}
-\description{
-  Get or set the length of vectors (including lists).
-}
 \usage{
 length(x)
-length(x) <- value
+length(x) <- n
 }
+\alias{length}
+\alias{length<-}
 \arguments{
   \item{x}{a vector or list.}
-  \item{value}{an integer.}
+  \item{n}{an integer.}
+}
+\description{
+  Get or set the length of vectors (including lists).
 }
 \value{
   The length of \code{x} as an \code{\link{integer}} of length 1,
@@ -19,12 +19,14 @@ length(x) <- value
   \code{length} returns \code{NA}.
 }
 \details{
-  \code{length} is generic: you can write methods to handle of specific
-  classes of objects, see \link{InternalMethods}.
+  \code{length} is generic: you can write methods to handle
+  of specific classes of objects, see \link{InternalMethods}.
 
-  The replacement form can be used to reset the length of a vector.  If
-  a vector is shortened, extra values are discarded and when a vector is
-  lengthened, it is padded out to its new length with \code{\link{NA}}s.
+  The replacement form can be used to reset
+  the length of a vector.
+  If a vector is shortened, extra values are discarded
+  and when a vector is lengthened, it is padded out to
+  its new length with \code{\link{NA}}s.
 }
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)

@@ -1,7 +1,6 @@
 predict.glm <-
   function(object, newdata = NULL, type = c("link", "response", "terms"),
-           se.fit = FALSE, dispersion = NULL, terms=NULL,
-           na.action = na.pass, ...)
+           se.fit = FALSE, dispersion = NULL, terms=NULL, ...)
 {
     ## 1998/06/23 KH:  predict.lm() now merged with the version in lm.R
 
@@ -21,7 +20,7 @@ predict.glm <-
 	} else {
 	    pred <- predict.lm(object, newdata, se.fit, scale = 1,
                                type = ifelse(type=="link", "response", type),
-                               terms = terms, na.action = na.action)
+                               terms = terms)
 	    switch(type,
 		   response = {pred <- family(object)$linkinv(pred)},
 		   link =, terms= )
@@ -34,7 +33,7 @@ predict.glm <-
 	residual.scale <- as.vector(sqrt(dispersion))
 	pred <- predict.lm(object, newdata, se.fit, scale = residual.scale,
                            type = ifelse(type=="link", "response", type),
-                           terms = terms, na.action = na.action)
+                           terms = terms)
 	fit <- pred$fit
 	se.fit <- pred$se.fit
 	switch(type,

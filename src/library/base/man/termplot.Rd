@@ -61,8 +61,7 @@ termplot(model, data=NULL, envir=environment(formula(model)),
 \seealso{For (generalized) linear models, \code{\link{plot.lm}} and
   \code{\link{predict.glm}}.}
 \examples{
-had.splines <- "package:splines" \%in\% search()
-if(!had.splines) rs <- require(splines)
+rs <- require(splines)
 x <- 1:100
 z <- factor(rep(LETTERS[1:4],25))
 y <- rnorm(100,sin(x/10)+as.numeric(z))
@@ -74,7 +73,7 @@ termplot(model, rug=TRUE)
 termplot(model, partial=TRUE, rug= TRUE,
          main="termplot(..., partial = TRUE, rug = TRUE)")
 termplot(model, partial=TRUE, se = TRUE, main = TRUE)
-if(!had.splines && rs) detach("package:splines")
+if(rs) detach("package:splines")
 }
 \keyword{hplot}
 \keyword{regression}

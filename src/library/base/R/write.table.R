@@ -26,10 +26,10 @@ function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
 	quote <- if(quote) 1 : p else NULL
     else if(is.numeric(quote)) {
 	if(any(quote < 1 | quote > p))
-	    stop(paste("invalid numbers in", sQuote("quote")))
+	    stop("invalid numbers in `quote'")
     }
     else
-	stop(paste("invalid", sQuote("quote"), "specification"))
+	stop("invalid `quote' specification")
 
     rn <- FALSE
     if(is.logical(row.names)) {
@@ -43,8 +43,7 @@ function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
 	if(length(row.names) == nrow(x))
 	    x <- cbind(row.names, x)
 	else
-	    stop(paste("invalid", sQuote("row.names"),
-                       "specification"))
+	    stop("invalid `row.names' specification")
     }
     if(!is.null(quote) && (p < ncol(x)))
 	quote <- c(0, quote) + 1
@@ -55,7 +54,7 @@ function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
     else {
 	col.names <- as.character(col.names)
 	if(length(col.names) != p)
-	    stop(paste("invalid", sQuote("col.names"), "specification"))
+	    stop("invalid `col.names' specification")
     }
 
     if(file == "")
@@ -65,8 +64,7 @@ function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
         on.exit(close(file))
     }
     if(!inherits(file, "connection"))
-        stop(paste("argument", sQuote("file"),
-                   "must be a character string or connection"))
+        stop("argument `file' must be a character string or connection")
 
     if(!is.null(col.names)) {
 	if(append)
@@ -84,7 +82,7 @@ function (x, file = "", append = FALSE, quote = TRUE, sep = " ",
 	x[, i] <- paste('"', gsub('"', qstring, as.character(x[, i])),
                         '"', sep = "")
 
-    writeLines(paste(c(t(x)), c(rep.int(sep, ncol(x) - 1), eol),
+    writeLines(paste(c(t(x)), c(rep(sep, ncol(x) - 1), eol),
                      sep = "", collapse = ""),
                file, sep = "")
 }

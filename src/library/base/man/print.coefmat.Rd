@@ -1,5 +1,5 @@
-\name{printCoefmat}
-\alias{printCoefmat}
+\name{print.coefmat}
+\alias{print.coefmat}
 \title{Print Coefficient Matrices}
 \description{
   Utility function to be used in ``higher level'' \code{\link{print}}
@@ -9,14 +9,14 @@
   that often, only \code{x} needs to be specified.
 }
 \usage{
-printCoefmat(x, digits=max(3, getOption("digits") - 2),
-             signif.stars = getOption("show.signif.stars"),
-             dig.tst = max(1, min(5, digits - 1)),
-             cs.ind = 1:k, tst.ind = k + 1, zap.ind = integer(0),
-             P.values = NULL,
-             has.Pvalue = nc >= 4 && substr(colnames(x)[nc],1,3) == "Pr(",
-             eps.Pvalue = .Machine$double.eps,
-             na.print = "NA", \dots)
+print.coefmat(x, digits=max(3, getOption("digits") - 2),
+              signif.stars = getOption("show.signif.stars"),
+              dig.tst = max(1, min(5, digits - 1)),
+              cs.ind = 1:k, tst.ind = k + 1, zap.ind = integer(0),
+              P.values = NULL,
+              has.Pvalue = nc >= 4 && substr(colnames(x)[nc],1,3) == "Pr(",
+              eps.Pvalue = .Machine$double.eps,
+              na.print = "", \dots)
 }
 \arguments{
   \item{x}{a numeric matrix like object, to be printed.}
@@ -50,6 +50,11 @@ printCoefmat(x, digits=max(3, getOption("digits") - 2),
     printed output.}
  \item{\dots}{further arguments for \code{\link{print}}.}
 }
+\details{
+  Despite its name, this is \emph{not} (yet) a method for the generic
+  \code{\link{print}} function, because there is no class
+  \code{"coefmat"}.
+}
 \value{Invisibly returns its argument, \code{x}.}}
 \author{Martin Maechler}
 \seealso{
@@ -62,11 +67,11 @@ cmat <- cbind(rnorm(3, 10), sqrt(rchisq(3, 12)))
 cmat <- cbind(cmat, cmat[,1]/cmat[,2])
 cmat <- cbind(cmat, 2*pnorm(-cmat[,3]))
 colnames(cmat) <- c("Estimate", "Std.Err", "Z value", "Pr(>z)")
-printCoefmat(cmat[,1:3])
-printCoefmat(cmat)
+print.coefmat(cmat[,1:3])
+print.coefmat(cmat)
 options(show.coef.Pvalues = FALSE)
-printCoefmat(cmat, digits=2)
-printCoefmat(cmat, digits=2, P.values = TRUE)
+print.coefmat(cmat, digits=2)
+print.coefmat(cmat, digits=2, P.values = TRUE)
 options(show.coef.Pvalues = TRUE)# revert
 }
 \keyword{print}

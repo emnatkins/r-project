@@ -7,21 +7,12 @@
       file<-textConnection("rval",ifelse(append,"a","w"))
       sink(file)
       on.exit({sink();close(file)})
-    }else if (inherits(file,"connection")){
-	rval<-invisible(NULL)
-	if (!isOpen(file)){
-	  open(file,ifelse(append,"a","w"))
-	  sink(file)
-	  on.exit({sink();close(file)})  
-	} else{
-	   sink(file) 
-	   on.exit(sink())
-	}
-    } else {
+    }else {
       file <- file(file, ifelse(append,"a","w"))
       rval <- invisible(NULL)
       sink(file)
-      on.exit({sink();close(file)})
+      on.exit(sink())
+
     } 
     
     pf<-parent.frame()

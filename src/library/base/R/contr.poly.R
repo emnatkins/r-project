@@ -1,8 +1,8 @@
-contr.poly <- function (n, scores = 1:n, contrasts = TRUE)
+contr.poly <- function (n, contrasts = TRUE)
 {
-    make.poly <- function(n, scores)
+    make.poly <- function(n)
     {
-	y <- scores - mean(scores)
+	y <- seq(length=n) - n %/% 2 - 1
 	X <- outer(y, seq(length=n) - 1, "^")
 	QR <- qr(X)
 	z <- QR$qr
@@ -12,7 +12,6 @@ contr.poly <- function (n, scores = 1:n, contrasts = TRUE)
 	colnames(Z) <- paste("^", 1:n - 1, sep="")
 	Z
     }
-
     if (is.numeric(n) && length(n) == 1) levs <- 1:n
     else {
 	levs <- n
@@ -22,11 +21,7 @@ contr.poly <- function (n, scores = 1:n, contrasts = TRUE)
 	stop(paste("Contrasts not defined for", n - 1, "degrees of freedom"))
     if (n > 95)
         stop(paste("Orthogonal polynomials cannot be represented accurately enough for", n - 1, "degrees of freedom"))
-    if (length(scores) != n)
-        stop("scores argument is of the wrong length")
-    if (!is.numeric(scores) || any(duplicated(scores)))
-        stop("scores must all be different numbers")
-    contr <- make.poly(n, scores)
+    contr <- make.poly(n)
     if (contrasts) {
 	dn <- colnames(contr)
 	dn[2:min(4,n)] <- c(".L", ".Q", ".C")[1:min(3, n-1)]
@@ -111,7 +106,7 @@ polym <- function(..., degree = 1)
     n <- sapply(dots, length)
     if(any(n != n[1]))
         stop("arguments must have the same length")
-    z <- do.call("expand.grid", rep.int(list(0:degree), nd))
+    z <- do.call("expand.grid", rep(list(0:degree), nd))
     s <- rowSums(z)
     ind <- (s > 0) & (s <= degree)
     z <- z[ind, ]; s <- s[ind]

@@ -388,7 +388,7 @@ predict.Arima <-
         se <- ts(sqrt(z[[2]] * object$sigma2),
                  start = xtsp[2] + deltat(rsd),
                  frequency = xtsp[3])
-        return(list(pred=pred, se=se))
+        return(pred, se)
     }
     else return(pred)
 }
@@ -421,8 +421,7 @@ makeARIMA <- function(phi, theta, Delta, kappa = 1e6)
     if(r > 1) Pn[1:r, 1:r] <- .Call("getQ0", phi, theta, PACKAGE = "ts")
     else Pn[1, 1] <- 1/(1 - phi^2)
     if(d > 0) Pn[cbind(r+1:d, r+1:d)] <- kappa
-    return(list(phi=phi, theta=theta, Delta=Delta, Z=Z, a=a, P=P, T=T, V=V,
-                h=h, Pn=Pn))
+    return(phi, theta, Delta, Z, a, P, T, V, h, Pn)
 }
 
 coef.Arima <- function (object, ...) object$coef

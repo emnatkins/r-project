@@ -22,6 +22,8 @@
 
 /* NOTE:
    Needed at least on FreeBSD so that fd_set is defined.
+   This will not work on Mac OS Classic (where we want <types.h>) which
+   however currently does not use <R_ext/eventloop.h>.
 */
 #include <sys/types.h>
 

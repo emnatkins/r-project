@@ -23,23 +23,19 @@ ftable.default <- function(..., exclude = c(NA, NaN),
         if(is.character(row.vars)) {
             i <- pmatch(row.vars, names(dn))
             if(any(is.na(i)))
-                stop(paste("incorrect specification for",
-                           sQuote("row.vars")))
+                stop("incorrect specification for `row.vars'")
             row.vars <- i
         } else if(any((row.vars < 1) | (row.vars > n)))
-            stop(paste("incorrect specification for",
-                       sQuote("row.vars")))
+            stop("incorrect specification for `row.vars'")
     }
     if(!is.null(col.vars)) {
         if(is.character(col.vars)) {
             i <- pmatch(col.vars, names(dn))
             if(any(is.na(i)))
-                stop(paste("incorrect specification for",
-                           sQuote("col.vars")))
+                stop("incorrect specification for `col.vars'")
             col.vars <- i
         } else if(any((col.vars < 1) | (col.vars > n)))
-            stop(paste("incorrect specification for",
-                       sQuote("col.vars")))
+            stop("incorrect specification for `col.vars'")
     }
     i <- 1 : n
     if(!is.null(row.vars) && !is.null(col.vars)) {
@@ -82,8 +78,7 @@ ftable.formula <- function(formula, data = NULL, subset, na.action, ...)
     rhs.has.dot <- any(rvars == ".")
     lhs.has.dot <- any(cvars == ".")
     if(lhs.has.dot && rhs.has.dot)
-        stop(paste("formula has", sQuote("."),
-                   "in both left and right hand side"))
+        stop("formula has `.' in both left and right hand side")
     m <- match.call(expand.dots = FALSE)
     edata <- eval(m$data, parent.frame())
     if(inherits(edata, "ftable")
@@ -138,7 +133,7 @@ ftable.formula <- function(formula, data = NULL, subset, na.action, ...)
 as.table.ftable <- function(x, ...)
 {
     if(!inherits(x, "ftable"))
-        stop(paste("x must be an", sQuote("ftable")))
+        stop("x must be an `ftable'")
     xrv <- rev(attr(x, "row.vars"))
     xcv <- rev(attr(x, "col.vars"))
     x <- array(data = c(x),
@@ -157,7 +152,7 @@ write.ftable <- function(x, file = "", quote = TRUE,
                          digits = getOption("digits"))
 {
     if(!inherits(x, "ftable"))
-        stop(paste("x must be an", sQuote("ftable")))
+        stop("x must be an `ftable'")
     ox <- x
     charQuote <- function(s)
         if(quote) paste("\"", s, "\"", sep = "") else s
@@ -204,7 +199,7 @@ read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
                         col.vars, skip = 0)
 {
     ## <NOTE>
-    ## Currently, 'file' must really be a character string naming a
+    ## Currently, `file' must really be a character string naming a
     ## file, connections are not supported.  We need to count.fields()
     ## on the whole thing, so we could extend this to connections which
     ## can seek the origin (file connections only, it seems).
@@ -245,7 +240,7 @@ read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
             ## We cannot determine the names and levels of the column
             ## variables, and also not the names of the row variables.
             if(missing(row.var.names)) {
-                ## 'row.var.names' should be a character vector (or
+                ## `row.var.names' should be a character vector (or
                 ## factor) with the names of the row variables.
                 stop("row.var.names missing")
             }
@@ -253,7 +248,7 @@ read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
             row.vars <- vector("list", length = n.row.vars)
             names(row.vars) <- as.character(row.var.names)
             if(missing(col.vars) || !is.list(col.vars)) {
-                ## 'col.vars' should be a list.
+                ## `col.vars' should be a list.
                 stop("col.vars missing or incorrect")
             }
             col.vars <- lapply(col.vars, as.character)
