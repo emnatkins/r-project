@@ -53,35 +53,35 @@ static struct {
 Family[] = {
 
     { "AvantGarde",
-      {"agw_____.afm", "agd_____.afm", "agwo____.afm", "agdo____.afm" }
+      {"agw_____.lt1", "agd_____.lt1", "agwo____.lt1", "agdo____.lt1" }
     },
 
     { "Bookman",
-      {"bkl_____.afm", "bkd_____.afm", "bkli____.afm", "bkdi____.afm"}
+      {"bkl_____.lt1", "bkd_____.lt1", "bkli____.lt1", "bkdi____.lt1"}
     },
 
     { "Courier",
-      {"com_____.afm", "cob_____.afm", "coo_____.afm", "cobo____.afm"}
+      {"com_____.lt1", "cob_____.lt1", "coo_____.lt1", "cobo____.lt1"}
     },
 
     { "Helvetica",
-      {"hv______.afm", "hvb_____.afm", "hvo_____.afm", "hvbo____.afm"}
+      {"hv______.lt1", "hvb_____.lt1", "hvo_____.lt1", "hvbo____.lt1"}
     },
 
     { "Helvetica-Narrow",
-      {"hvn_____.afm", "hvnb____.afm", "hvno____.afm", "hvnbo___.afm"}
+      {"hvn_____.lt1", "hvnb____.lt1", "hvno____.lt1", "hvnbo___.lt1"}
     },
 
     { "NewCenturySchoolbook",
-      {"ncr_____.afm", "ncb_____.afm", "nci_____.afm", "ncbi____.afm"}
+      {"ncr_____.lt1", "ncb_____.lt1", "nci_____.lt1", "ncbi____.lt1"}
     },
 
     { "Palatino",
-      {"por_____.afm", "pob_____.afm", "poi_____.afm", "pobi____.afm"}
+      {"por_____.lt1", "pob_____.lt1", "poi_____.lt1", "pobi____.lt1"}
     },
 
     { "Times",
-      {"tir_____.afm", "tib_____.afm", "tii_____.afm", "tibi____.afm"}
+      {"tir_____.lt1", "tib_____.lt1", "tii_____.lt1", "tibi____.lt1"}
     },
 
     { NULL }
@@ -132,7 +132,6 @@ static char familyname[5][50];
 /* These are the basic entities in the AFM file */
 
 #define BUFSIZE 512
-#define NA_SHORT -30000
 
 typedef struct {
     unsigned char c1;
@@ -401,7 +400,7 @@ PostScriptLoadFontMetrics(char *fontpath, FontMetricInfo *metrics,
     mode = 0;
     for (ii = 0; ii < 256; ii++) {
 	charnames[ii][0] = '\0';
-	metrics->CharInfo[ii].WX = NA_SHORT;
+	metrics->CharInfo[ii].WX = 0;
 	for(j = 0; j < 4; j++) metrics->CharInfo[ii].BBox[j] = 0;
     }
     while (fgets(buf, BUFSIZE, fp)) {
@@ -488,17 +487,12 @@ static double
 PostScriptStringWidth(unsigned char *p, FontMetricInfo *metrics)
 {
     int sum = 0, i;
-    short wx;
     unsigned char p1, p2;
     for ( ; *p; p++) {
 	if (*p == '-' && isdigit(p[1]))
-	    wx = metrics->CharInfo[(int)PS_minus].WX;
+	    sum += metrics->CharInfo[(int)PS_minus].WX;
 	else
-	    wx = metrics->CharInfo[*p].WX;
-	if(wx == NA_SHORT)
-	    warning("font width unknown for character `%c'");
-	else sum += wx;
-	
+	    sum += metrics->CharInfo[*p].WX;
 	/* check for kerning adjustment */
 	p1 = p[0]; p2 = p[1];
 	for (i =  metrics->KPstart[p1]; i < metrics->KPend[p1]; i++)
@@ -516,8 +510,6 @@ static void
 PostScriptMetricInfo(int c, double *ascent, double *descent,
 		     double *width, FontMetricInfo *metrics)
 {
-    short wx;
-    
     if (c == 0) {
 	*ascent = 0.001 * metrics->FontBBox[3];
 	*descent = -0.001 * metrics->FontBBox[1];
@@ -526,12 +518,7 @@ PostScriptMetricInfo(int c, double *ascent, double *descent,
     else {
 	*ascent = 0.001 * metrics->CharInfo[c].BBox[3];
 	*descent = -0.001 * metrics->CharInfo[c].BBox[1];
-	wx = metrics->CharInfo[c].WX;
-	if(wx == NA_SHORT) {
-	    warning("font metrics unknown for character `%c'");
-	    wx = 0;
-	}
-	*width = 0.001 * wx;
+	*width = 0.001 * metrics->CharInfo[c].WX;
     }
 }
 
