@@ -1,0 +1,224 @@
+#
+# ${R_HOME}/Makefile
+
+VPATH = @srcdir@
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+
+top_builddir = .
+
+include $(top_builddir)/Makeconf
+
+distdir = $(PACKAGE)-$(VERSION)
+INSTFILES = AUTHORS COPYING COPYING.LIB COPYRIGHTS FAQ NEWS RESOURCES THANKS
+DISTFILES = $(INSTFILES) \
+	BUGS ChangeLog INSTALL ONEWS README VERSION Y2K \
+	Makeconf.in Makefile.in \
+	acconfig.h acinclude.m4 aclocal.m4 \
+	config.site configure configure.in \
+	date-stamp
+## FIXME:
+## Update when releasing 1.3.0
+CLEANFILES = $(INSTFILES) MIRROR-SITES
+## </FIXME>
+SUBDIRS = src afm demos doc etc share tests tools
+
+GZIP = --best
+
+all: Makefile Makeconf R docs
+
+Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
+	@cd $(top_builddir) \
+	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+Makeconf: $(srcdir)/Makeconf.in $(top_builddir)/config.status
+	@cd $(top_builddir) \
+	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+config.status: $(srcdir)/configure
+	@$(SHELL) ./config.status --recheck
+$(srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(srcdir)/configure.in $(srcdir)/aclocal.m4
+	@cd $(srcdir) && $(AUTOCONF)
+$(srcdir)/aclocal.m4: @MAINTAINER_MODE_TRUE@ $(srcdir)/configure.in $(srcdir)/acinclude.m4
+	@cd $(srcdir) && $(ACLOCAL)
+
+LIBTOOL_DEPS = @LIBTOOL_DEPS@
+libtool: $(LIBTOOL_DEPS)
+	$(SHELL) ./config.status --recheck
+
+R: Makefile
+	@if [ "$(srcdir)" != "." ]; then \
+	  for f in $(INSTFILES); do \
+	    $(INSTALL_DATA) $(srcdir)/$${f} $(top_builddir); \
+	  done; \
+	fi
+	@for d in tools afm doc etc share src demos; do \
+	  (cd $${d} && $(MAKE) R) || exit 1; \
+	done
+	@if [ ! -f src/library/stamp-docs ]; then \
+	  echo "you should \`make docs' now ..."; \
+	fi
+
+docs: FORCE
+	-@(cd doc && $(MAKE) $@)
+	-@(cd src/library && $(MAKE) $@)
+help html latex examples: FORCE
+	-@(cd src/library && $(MAKE) $@)
+FORCE:
+
+install: installdirs
+	@for d in afm demos doc etc share; do \
+	  (cd $${d} && $(MAKE) $@) || exit 1; \
+	done
+	@for f in $(INSTFILES); do \
+	  $(INSTALL_DATA) $(srcdir)/$${f} $(rhome); \
+	done
+## FIXME:
+## This is really ugly, but should disappear anyway when we convert to
+## Automake.
+	@echo "installing executables ..."
+	@$(INSTALL_PROGRAM) bin/R.bin $(rhome)/bin
+	@sed "s@R_HOME_DIR=.*@R_HOME_DIR=$(rhome)@" < bin/R \
+	  > $(rhome)/bin/R
+	@rm -f $(bindir)/R
+	@sed "s@R_HOME_DIR=.*@R_HOME_DIR=$(rhome)@" < bin/R \
+	  > $(bindir)/R
+	@chmod 755 $(bindir)/R $(rhome)/bin/R
+	@for f in `find bin -type f -print \
+	             | grep -v '^bin/R$$' \
+	             | grep -v '^bin/R.bin' \
+	             | grep -v '^bin/libR' \
+	             | grep -v '^bin/R_'`; do \
+	  $(INSTALL_SCRIPT) $${f} $(Rexecbindir); \
+	done
+	@echo "installing shlibs ..."
+## FIXME:
+## Add bin/*.la when using libtool for shlibs
+## Note: if there are no shared libraries, the ls call may generate an error.
+	@-for f in `ls bin/*.$(SHLIB_EXT) 2> /dev/null`; do \
+	  $(INSTALL_PROGRAM) $${f} $(Rexeclibdir); \
+	done
+## </FIXME>
+@USE_LIBTOOL_TRUE@	@$(LIBTOOL) --quiet --mode=finish $(Rexeclibdir)
+## FIMXE:
+## Add gnome/*.la when using libtool for shlibs
+	@if test -f gnome/R_gnome.$(SHLIB_EXT); then \
+	  $(MKINSTALLDIRS) $(rhome)/gnome; \
+	  for f in `ls gnome/*.$(SHLIB_EXT)`; do \
+	    $(INSTALL_PROGRAM) $${f} $(rhome)/gnome; \
+	  done; \
+	fi
+## </FIXME>
+	@echo "installing headers ..."
+	@for f in include/*.h; do \
+	  $(INSTALL_DATA) $${f} $(rhome)/include; \
+	done
+	@for f in include/R_ext/*.h; do \
+	  $(INSTALL_DATA) $${f} $(rhome)/include/R_ext; \
+	done
+## </FIXME>
+	@echo "installing packages ..."
+	@cp -r library $(rhome) || \
+	  (cd library; \
+	    $(TAR) cf - [a-z]* | (cd $(rhome)/library; $(TAR) xof -))
+	@echo "  building help index ..."
+	@(cd $(rhome)/library; cat */TITLE > LibIndex 2> /dev/null)
+	@echo "  building HTML index ..."
+	@$(rhome)/bin/R CMD build-help --rhome $(rhome) --htmllists
+installdirs:
+	@$(MKINSTALLDIRS) $(bindir)
+	@$(MKINSTALLDIRS) $(rhome)/bin
+	@$(MKINSTALLDIRS) $(rhome)/include
+	@$(MKINSTALLDIRS) $(rhome)/include/R_ext
+	@$(MKINSTALLDIRS) $(rhome)/library
+install-strip:
+	$(MAKE) INSTALL_PROGRAM="${INSTALL_PROGRAM} -s" install
+uninstall:
+	@echo "uninstalling library ..."
+	@(cd $(rhome)/library; \
+	  for p in $(R_PKGS); do rm -rf $${p}; done)
+	@echo "  rebuilding help index ..."
+	@(cd $(rhome)/library; \
+	  cat */TITLE > LibIndex 2> /dev/null || echo "" > LibIndex)
+	@echo "uninstalling headers ..."
+	@rm -rf $(rhome)/include
+	@echo "uninstalling executables ..."
+	@rm -rf $(rhome)/bin
+	@rm -rf $(rhome)/gnome
+	@rm -f $(bindir)/R
+	@for f in $(CLEANFILES); do \
+	  rm -f $(rhome)/$${f}; \
+	done
+	@for d in afm demos doc etc share; do \
+	  (cd $${d} && $(MAKE) $@); \
+	done
+
+mostlyclean: clean
+clean:
+	@for d in $(SUBDIRS); do \
+	  (cd $${d} && $(MAKE) $@); \
+	done
+	@if [ "$(srcdir)" != "." ]; then \
+	  rm -f $(CLEANFILES); \
+	fi
+distclean: clean
+	@for d in $(SUBDIRS); do \
+	  (cd $${d} && $(MAKE) $@); \
+	done
+	@rm -rf bin include library gnome
+	@rm -f Makeconf Makefile Makefile.bak Makefrag.* \
+	  config.cache config.log config.status libtool
+## FIXME:
+## This should really do something!
+maintainer-clean: distclean
+	@echo "This command is intended for maintainers to use; it"
+	@echo "deletes files that may need special rules to rebuild"
+## </FIXME>
+
+dist: dist-unix
+dist-unix: distdir
+	-chmod -R a+r $(distdir)
+	GZIP=$(GZIP) $(TAR) chzf $(distdir).tar.gz $(distdir)
+	rm -rf $(distdir)
+dist-win:
+distdir: $(DISTFILES)
+	@rm -rf $(distdir)
+	@mkdir $(distdir)
+	@-chmod 755 $(distdir)
+	@for f in $(DISTFILES); do \
+	  test -f $(distdir)/$${f} \
+	    || ln $(srcdir)/$${f} $(distdir)/$${f} 2>/dev/null \
+	    || cp -p $(srcdir)/$${f} $(distdir)/$${f}; \
+	done
+	@for d in $(SUBDIRS); do \
+	  test -d $(distdir)/$${d} \
+	    || mkdir $(distdir)/$${d} \
+	    || exit 1; \
+	  chmod 755 $(distdir)/$${d}; \
+	  (cd $${d} && $(MAKE) distdir) \
+	    || exit 1; \
+	done
+	@for d in debian; do \
+	  ((cd $(srcdir); $(TAR) -c -f - --exclude=CVS $${d}) \
+	    | (cd $(distdir); $(TAR) -x -f -)) \
+	    || exit 1; \
+	done
+
+dvi info pdf::
+	-@(cd doc && $(MAKE) $@)
+install-dvi install-info install-pdf::
+	-@(cd doc/manual && $(MAKE) $@)
+uninstall-dvi uninstall-info uninstall-pdf::
+	-@(cd doc/manual && $(MAKE) $@)
+
+TAGS:
+
+check test:: test-All
+test-All test-Examples test-Specific::
+	@(cd tests && $(MAKE) $@)
+check-force: test-All-force
+test-All-force:
+	@(cd tests && $(MAKE) test-All FORCE=FORCE)
+test-Examples-force:
+	@(cd tests && $(MAKE) test-Examples FORCE=FORCE)
+test-Specific-force:
+	@(cd tests && $(MAKE) test-Specific FORCE=FORCE)
