@@ -139,10 +139,6 @@
 #undef FINITE_BROKEN
 #undef LOG_BROKEN
 
-/* IPC stuff */
-#undef HAVE_BSD_NETWORKING
-#undef HAVE_POPEN
-
 /* Some platforms other than ELF drop the leading _ */
 #undef HAVE_NO_SYMBOL_UNDERSCORE
 #ifndef HAVE_NO_SYMBOL_UNDERSCORE
@@ -173,10 +169,6 @@
 
 /* Used for buffer-overflow in printutils.c if available */
 #undef HAVE_VSNPRINTF
-
-/* Which GUIs can we use? */
-#undef HAVE_X11
-#undef HAVE_GNOME
 
 /* for platform.c to put in .Platform */
 #ifdef Unix

@@ -18,7 +18,6 @@ export R_PAPERSIZE
 # Choose one of the following:
 # R_PRINTCMD="lpr"
 # R_PRINTCMD="lp"
-# R_PRINTCMD=""
 : ${R_PRINTCMD=@R_PRINTCMD@}
 export R_PRINTCMD
 
@@ -70,9 +69,10 @@ Options:
   --silent              Same as --quiet
   --slave               Make R run as quietly as possible
   --verbose             Print more information about progress
-  -d, --debugger=NAME   Run R through debugger NAME
-  -g, --gui=TYPE	Use TYPE as GUI; possible values are \`X11'
-			(default), \`none' and \`GNOME'
+  -d NAME, --debugger=NAME
+                        Run R through debugger NAME
+  --gui=TYPE		Use TYPE as GUI; possible values are \`X11'
+			(default) and \`GNOME'
 
 Commands:
   BATCH			Run R in batch mode
@@ -108,10 +108,20 @@ while test -n "${1}"; do
       cmd="${1}"; shift; exec sh "${R_HOME}/bin/${cmd}" "${@}" ;;
     CMD)
       shift; PATH="${R_HOME}/bin:${PATH}" exec "${@}" ;;
-    --gnome)
+    -g|--gnome)
       echo "option \`${1}' is defunct, use \`--gui=GNOME'"
       exit 1
       ;;
+    --gui)
+      if test -n "`echo ${2} | sed 's/^-.*//'`"; then
+	gui="${2}"; shift
+      else
+	echo "ERROR: option \`${1}' requires an argument"
+	exit 1
+      fi
+      ;;
+    --gui=*)
+      gui=`echo "${1}" | sed -e 's/[^=]*=//'` ;;
     -d|--debugger)
       if test -n "`echo ${2} | sed 's/^-.*//'`"; then      
 	debugger="${2}"; shift
@@ -143,8 +153,12 @@ if [ ! -x ${R_HOME} ]; then
   exit 1
 fi
 
-R_binary=R.X11
-
+if test -x ${R_HOME}/bin/R.${gui}; then
+  R_binary="R.${gui}"
+else
+  echo "GUI \`${gui}' is not supported"
+  exit 1
+fi
 
 # Startup
 if ${use_r_environ}; then # use the one in current dir, or default

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998, 1999  Guido Masarotto and Brian Ripley
+ *  Copyright (C) 1998--2000  Guido Masarotto and Brian Ripley
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -164,7 +164,7 @@ static void   X11_Polyline(int, double*, double*, int, DevDesc*);
 static void   X11_Rect(double, double, double, double, int, int, int, DevDesc*);
 static void   X11_Resize(DevDesc*);
 static double X11_StrWidth(char*, DevDesc*);
-static void   X11_Text(double, double, int, char*, double, double, DevDesc*);
+static void   X11_Text(double, double, int, char*, double, DevDesc*);
 static void   X11_MetricInfo(int, double*, double*, double*, DevDesc*);
 
 	/********************************************************/
@@ -215,7 +215,7 @@ static void SaveAsWin(DevDesc *dd, char *display)
 			 GConvertXUnits(1.0, NDC, INCHES, dd),
 			 GConvertYUnits(1.0, NDC, INCHES, dd),
 			 dd->gp.ps))
-        PrivateCopyDevice(dd, ndd, display);
+        PrivateCopyDevice(dd,ndd,display);
 }
 
 
@@ -233,29 +233,29 @@ static void SaveAsPostscript(DevDesc *dd, char *fn)
    GInit(&ndd->dp);
 
    /* Set default values... */
-   strcpy(family, "Helvetica");
-   strcpy(paper, "default");
-   strcpy(bg, "white");
-   strcpy(fg, "black");
+   strcpy(family,"Helvetica");
+   strcpy(paper,"default");
+   strcpy(bg,"white");
+   strcpy(fg,"black");
    /* and then try to get it from .PostScript.Options */
    if ((s!=R_UnboundValue) && (s!=R_NilValue)) {
       SEXP names = getAttrib(s, R_NamesSymbol);
       int i,done;
-      for (i=0, done=0; (done<4) && (i<length(s)) ; i++) {
-        if(!strcmp("family", CHAR(STRING(names)[i]))) {
-           strcpy(family, CHAR(STRING(VECTOR(s)[i])[0]));
+      for (i=0,done=0; (done<4) && (i<length(s)) ;i++) {
+        if(!strcmp("family",CHAR(STRING(names)[i]))) {
+           strcpy(family,CHAR(STRING(VECTOR(s)[i])[0]));
            done += 1;
         }
-        if(!strcmp("paper", CHAR(STRING(names)[i]))) {
-           strcpy(paper, CHAR(STRING(VECTOR(s)[i])[0]));
+        if(!strcmp("paper",CHAR(STRING(names)[i]))) {
+           strcpy(paper,CHAR(STRING(VECTOR(s)[i])[0]));
            done += 1;
         }
-        if(!strcmp("bg", CHAR(STRING(names)[i]))) {
-           strcpy(bg, CHAR(STRING(VECTOR(s)[i])[0]));
+        if(!strcmp("bg",CHAR(STRING(names)[i]))) {
+           strcpy(bg,CHAR(STRING(VECTOR(s)[i])[0]));
            done += 1;
         }
-        if(!strcmp("fg", CHAR(STRING(names)[i]))) {
-           strcpy(fg, CHAR(STRING(VECTOR(s)[i])[0]));
+        if(!strcmp("fg",CHAR(STRING(names)[i]))) {
+           strcpy(fg,CHAR(STRING(VECTOR(s)[i])[0]));
            done += 1;
         }
       }
@@ -263,8 +263,8 @@ static void SaveAsPostscript(DevDesc *dd, char *fn)
    if (PSDeviceDriver(ndd, fn, paper, family, bg, fg,
 		      GConvertXUnits(1.0, NDC, INCHES, dd),
 		      GConvertYUnits(1.0, NDC, INCHES, dd),
-		      (double)0, dd->gp.ps, 0, 1, 0, ""))
-    /* horizontal=F, onefile=F, pagecentre=T, print.it=F */
+		      (double)0, dd->gp.ps, 0, 1))
+    /* horizontal=F, onefile=F, pagecentre=T */
      PrivateCopyDevice(dd, ndd, "postscript");
 }
 
@@ -595,11 +595,11 @@ static void menufilebitmap(control m)
     fixslash(fn);
     gsetcursor(xd->gawin, WatchCursor);
     show(xd->gawin);
-    if (m==xd->mpng) SaveAsPng(dd, fn);
-    else if (m==xd->mbmp) SaveAsBmp(dd, fn);
-    else if (m==xd->mjpeg50) SaveAsJpeg(dd, 50, fn);
-    else if (m==xd->mjpeg75) SaveAsJpeg(dd, 75, fn);
-    else SaveAsJpeg(dd, 100, fn);
+    if (m==xd->mpng) SaveAsPng(dd,fn);
+    else if (m==xd->mbmp) SaveAsBmp(dd,fn);
+    else if (m==xd->mjpeg50) SaveAsJpeg(dd,50,fn);
+    else if (m==xd->mjpeg75) SaveAsJpeg(dd,75,fn);
+    else SaveAsJpeg(dd,100,fn);
     gsetcursor(xd->gawin, ArrowCursor);
     show(xd->gawin);
 }
@@ -1693,7 +1693,7 @@ static void X11_Polygon(int n, double *x, double *y, int coords,
 
 
 static void X11_Text(double x, double y, int coords,
-		     char *str, double rot, double hadj, DevDesc *dd)
+		     char *str, double rot, DevDesc *dd)
 {
     int   size;
     double pixs, xl, yl, rot1;
@@ -1933,7 +1933,6 @@ X11DeviceDriver
     dd->dp.canRotateText = 1;
     dd->dp.canResizeText = 1;
     dd->dp.canClip = 1;
-    dd->dp.canHAdj = 0;
 
     /* initialise x11 device description (most of the work */
     /* has been done in X11_Open) */

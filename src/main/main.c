@@ -369,7 +369,7 @@ void setup_Rmainloop(void)
     /* Perhaps it makes more sense to quit gracefully? */
 
     fp = R_OpenLibraryFile("base");
-    R_Inputfile = NULL;
+    R_Inputfile = fp;
     if (fp == NULL) {
 	R_Suicide("unable to open the base package\n");
     }
@@ -378,12 +378,11 @@ void setup_Rmainloop(void)
     SETJMP(R_Toplevel.cjmpbuf);
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
     signal(SIGINT, onintr);
-    signal(SIGUSR1,onsigusr1);
-    signal(SIGUSR2,onsigusr2);
     if (!doneit) {
 	doneit = 1;
 	R_ReplFile(fp, R_NilValue, 0, 0);
     }
+    R_Inputfile = NULL;
     fclose(fp);
 
     /* This is where we try to load a user's */
@@ -398,8 +397,6 @@ void setup_Rmainloop(void)
     SETJMP(R_Toplevel.cjmpbuf);
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
     signal(SIGINT, onintr);
-    signal(SIGUSR1,onsigusr1);
-    signal(SIGUSR2,onsigusr2);
     if (!doneit) {
 	doneit = 1;
 	R_InitialData();
@@ -456,8 +453,6 @@ void run_Rmainloop(void)
     SETJMP(R_Toplevel.cjmpbuf);
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
     signal(SIGINT, onintr);
-    signal(SIGUSR1,onsigusr1);
-    signal(SIGUSR2,onsigusr2);
 
     R_ReplConsole(R_GlobalEnv, 0, 0);
 }

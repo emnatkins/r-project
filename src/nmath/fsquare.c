@@ -26,7 +26,7 @@
  *    This function returns the square of its argument.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 double fsquare(double x)
 {

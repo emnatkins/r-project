@@ -37,28 +37,12 @@ function(x, ..., range = 1.5, width = NULL, varwidth = FALSE, notch =
     }
     for(i in 1:n)
 	groups[i] <- list(boxplot.stats(groups[[i]], range)) # do.conf=notch)
-    stats<-matrix(0,nr=5,nc=n)
-    conf<-matrix(0,nr=2,nc=n)
-    ng<-vector(length=0)
-    out<-vector(length=0)
-    group<-vector(length=0)
-    ct<-1
-    for(i in groups) {
-	stats[,ct]<-i$stats
-        ng<-c(ng, i$n)
-        conf[,ct]<-i$conf
-	out<-c(out,i$out)
-        group<-c(group, rep(ct, length(i$out)))
-        ct<-ct+1
-    }
-    z<-list(stats = stats, n = ng, conf = conf, out = out, group = group,
-         names = names)
     if(plot) {
-	bxp(z, width, varwidth = varwidth, notch = notch, border =
-            border, col = col, log = log, pars = pars) 
-	invisible(z)
+	bxp(groups, width, varwidth = varwidth, notch = notch, border =
+            border, col = col, log = log, pars = pars, znames = names) 
+	invisible(groups)
     }
-    else z
+    else groups
 }
 
 boxplot.formula <- function(formula, data = NULL, subset, na.action, ...)
@@ -94,7 +78,7 @@ boxplot.stats <- function(x, coef = 1.5, do.conf=TRUE, do.out=TRUE)
 bxp <- function(z, notch=FALSE, width=NULL, varwidth=FALSE,
 		notch.frac = 0.5,
 		border=par("fg"), col=NULL, log="", pars=NULL,
-		 ...)
+		znames=names(z), ...)
 {
     bplt <- function(x, wid, stats, out, conf, notch, border, col)
     {
@@ -134,27 +118,22 @@ bxp <- function(z, notch=FALSE, width=NULL, varwidth=FALSE,
 	}
     }## bplt
 
-    if(!is.list(z) || 0 == (n <- length(z$n)))
+    if(!is.list(z) || 0 == (n <- length(z)))
 	stop("invalid first argument")
     limits <- numeric(0)
     nmax <- 0
-    #just for compatibility with S
-    if( is.null(z$out) )
-	z$out<-vector(length=0)
-    if( is.null(z$group) )
-        z$group<-vector(length=0) 
     for(i in 1:n) {
-	nmax <- max(nmax,z$n)
+	nmax <- max(nmax,z[[i]]$n)
 	limits <- range(limits,
-                        z$stats[is.finite(z$stats)],
-                        z$out[is.finite(z$out)])
+                        z[[i]]$stats[is.finite(z[[i]]$stats)],
+                        z[[i]]$out[is.finite(z[[i]]$out)])
     }
     width <- if(!is.null(width)) {
 	if(length(width) != n | any(is.na(width)) | any(width <= 0))
 	    stop("invalid boxplot widths")
 	0.8 * width/max(width)
     }
-    else if(varwidth) 0.8 * sqrt(z$n)/nmax
+    else if(varwidth) 0.8 * sqrt(unlist(lapply(z, "[[", "n"))/nmax)
     else if(n == 1) 0.4
     else rep(0.8, n)
 
@@ -168,9 +147,9 @@ bxp <- function(z, notch=FALSE, width=NULL, varwidth=FALSE,
 
     for(i in 1:n)
 	bplt(i, wid=width[i],
-	     stats= z$stats[,i],
-	     out  = z$out[z$group==i],
-	     conf = z$conf[,i],
+	     stats= z[[i]]$stats,
+	     out  = z[[i]]$out,
+	     conf = z[[i]]$conf,
 	     notch= notch,
 	     border=border[(i-1)%%length(border)+1],
 	     col=if(is.null(col)) col else col[(i-1)%%length(col)+1])
@@ -178,7 +157,7 @@ bxp <- function(z, notch=FALSE, width=NULL, varwidth=FALSE,
     axes <- is.null(pars$axes)
     if(!axes) { axes <- pars$axes; pars$axes <- NULL }
     if(axes) {
-	if(n > 1) axis(1, at=1:n, labels=z$names)
+	if(n > 1) axis(1, at=1:n, labels=znames)
 	axis(2)
     }
     do.call("title", pars)

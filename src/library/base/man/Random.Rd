@@ -93,7 +93,7 @@ set.seed(seed, kind = NULL)
   }
 
   \code{normal.kind} can be \code{"Kinderman-Ramage"} (the default) or
-  \code{"Ahrens-Dieter"} or \code{"Box-Muller"} or \code{"user-supplied"}.
+  \code{"Ahrens-Dieter"} or \code{"Box-Muller"}.
 
   \code{set.seed} uses its single integer argument to set as many seeds
   as are required.  It is intended as a simple way to get quite different

@@ -24,6 +24,7 @@ distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 DISTFILES = Makefile.in \
 	GETCONFIG GETMAKEVAL GETSYMBOLS GETVERSION \
 	Rd.files \
+	Rdiff \
 	config.guess \
 	config.sub \
 	copy-if-change \

@@ -36,7 +36,7 @@
  *    library.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 double gammafn(double x)
 {

@@ -108,7 +108,6 @@ double atanh(double);
 #undef HAVE_MEMCPY
 #undef HAVE_BCOPY
 
-/* POSIX.1 sigsetjmp/siglongjmp available */
 #define HAVE_POSIX_SETJMP 1
 #define PSIGNAL
 
@@ -147,11 +146,6 @@ double atanh(double);
 #undef CALLOC_BROKEN
 #undef FINITE_BROKEN
 #undef LOG_BROKEN
-
-/* IPC stuff */
-#undef HAVE_BSD_NETWORKING
-/* have popen, but it is said not to work in Windows applications */
-#undef HAVE_POPEN
 
 /* Some platforms other than ELF drop the leading _ */
 #undef HAVE_NO_SYMBOL_UNDERSCORE
@@ -228,6 +222,7 @@ double atanh(double);
 #define gamma(x) gammafn(x)
 #define lgamma(x) lgammafn(x)
 
-
+/* 27/03/2000 win32-api needs this */
+#define NONAMELESSUNION
 
 #endif

@@ -240,6 +240,7 @@ static int AddDLL(char *path, int asLocal, int now)
 }
 
  /*
+
     Computes the flag to be passed as the second argument to dlopen(),
     controlling whether the local or global symbol integration
     and lazy or eager resolution of the undefined symbols.
@@ -255,62 +256,58 @@ static int AddDLL(char *path, int asLocal, int now)
 static int
 computeDLOpenFlag(int asLocal, int now)
 {
-#if !defined(RTLD_LOCAL) || !defined(RTLD_GLOBAL) || !defined(RTLD_NOW) || !defined(RTLD_LAZY)
-    static char *warningMessages[] = {
-	"Explicit local dynamic loading not supported on this platform. Using default.",
-	"Explicit global dynamic loading not supported on this platform. Using default.",
-	"Explicit non-lazy dynamic loading not supported on this platform. Using default.",
-	"Explicit lazy dynamic loading not supported on this platform. Using default."
-    };
-    /* Define a local macro for issuing the warnings.
-       This allows us to redefine it easily so that it only emits the
-       warning once as in
+ static char *warningMessages[] = {
+  "Explicit local dynamic loading not supported on this platform. Using default.",
+  "Explicit global dynamic loading not supported on this platform. Using default.",
+  "Explicit non-lazy dynamic loading not supported on this platform. Using default.",
+  "Explicit lazy dynamic loading not supported on this platform. Using default."
+ };
+  /* Define a local macro for issuing the warnings.
+     This allows us to redefine it easily so that it only emits the warning
+     once as in
          DL_WARN(i) if(warningMessages[i]) {\
                      warning(warningMessages[i]); \
                      warningMessages[i] = NULL; \
     	            }
-       or to control the emission via the options currently in effect at
-       call time.
-       */
-# define DL_WARN(i) \
-    if(asInteger(GetOption(install("warn"), R_NilValue)) == 1 || \
-       asInteger(GetOption(install("verbose"), R_NilValue)) > 0) \
-        warning(warningMessages[i]);
-#endif
+     or to control the emission via the options currently in effect at call time.
+   */
+#define DL_WARN(i) \
+   if(asInteger(GetOption(install("warn"),R_NilValue)) == 1 || \
+         asInteger(GetOption(install("verbose"),R_NilValue)) > 0) \
+                      warning(warningMessages[i]);
 
-    int openFlag = 0;		/* Default value so no-ops for undefined
-				   flags should do nothing in the
-				   resulting dlopen(). */
+ int openFlag = 0; /* Default value so no-ops for undefined flags should do nothing
+                      in the resulting dlopen(). */
 
-    if(asLocal != 0) {
+if(asLocal != 0) {
 #ifndef RTLD_LOCAL
-	DL_WARN(0)
+  DL_WARN(0)
 #else
-	openFlag = RTLD_LOCAL;
+  openFlag = RTLD_LOCAL;
 #endif
-    } else {
+} else {
 #ifndef RTLD_GLOBAL
-	DL_WARN(1)
+  DL_WARN(1)
 #else
-	openFlag = RTLD_GLOBAL;
+  openFlag = RTLD_GLOBAL;
 #endif
-    }
+}
 
-    if(now != 0) {
+if(now != 0) {
 #ifndef RTLD_NOW
-	DL_WARN(2)
+  DL_WARN(2)
 #else
-	openFlag |= RTLD_NOW;
+  openFlag |= RTLD_NOW;
 #endif
-    } else {
+} else {
 #ifndef RTLD_LAZY
-	DL_WARN(3)
+  DL_WARN(3)
 #else
-	openFlag |= RTLD_LAZY;
+  openFlag |= RTLD_LAZY;
 #endif
-    }
+}
 
-    return(openFlag);
+ return(openFlag);
 }
 
 
@@ -433,94 +430,7 @@ SEXP do_dynunload(SEXP call, SEXP op, SEXP args, SEXP env)
     return R_NilValue;
 }
 
-
-#include "Runix.h"
-
-extern DL_FUNC X11ConnectionNumber, pR_ProcessEvents, 
-    X11DeviceDriver, ptr_dataentry;
-
-void R_load_X11_shlib()
-{
-    char X11_DLL[PATH_MAX];
-    void *handle;
-    strcpy(X11_DLL, getenv("R_HOME"));
-    strcat(X11_DLL, "/bin/R_X11.");
-    strcat(X11_DLL, SHLIBEXT); /* from config.h */
-/* cannot use computeDLOpenFlag as warnings will crash R at this stage */
-#ifdef RTLD_NOW
-    handle = dlopen(X11_DLL, RTLD_NOW);
 #else
-    handle = dlopen(X11_DLL, 0);
-#endif
-    if(handle == NULL) {
-	printf("error was %s\n", dlerror());fflush(stdout);
-	R_Suicide("Cannot load the X11 shared library");
-    }
-    X11ConnectionNumber = (DL_FUNC) dlsym(handle, "X11ConnectionNumber");
-    if(!X11ConnectionNumber) R_Suicide("Cannot load X11ConnectionNumber");
-    pR_ProcessEvents = (DL_FUNC) dlsym(handle, "R_ProcessEvents");
-    if(!pR_ProcessEvents) R_Suicide("Cannot load R_ProcessEvents");
-    X11DeviceDriver = (DL_FUNC) dlsym(handle, "X11DeviceDriver");
-    if(!X11DeviceDriver) R_Suicide("Cannot load X11DeviceDriver");
-    ptr_dataentry = (DL_FUNC) dlsym(handle, "RX11_dataentry");
-    if(!ptr_dataentry) R_Suicide("Cannot load do_dataentry");
-}
-
-extern DL_FUNC ptr_R_Suicide, ptr_R_ShowMessage, ptr_R_ReadConsole,
-    ptr_R_WriteConsole, ptr_R_ResetConsole, ptr_R_FlushConsole,
-    ptr_R_ClearerrConsole, ptr_R_Busy, ptr_R_CleanUp, ptr_R_ShowFiles,
-    ptr_R_ChooseFile, gnome_start;
-
-
-void R_load_gnome_shlib()
-{
-    char gnome_DLL[PATH_MAX];
-    void *handle;
-    strcpy(gnome_DLL, getenv("R_HOME"));
-    strcat(gnome_DLL, "/bin/R_gnome.");
-    strcat(gnome_DLL, SHLIBEXT); /* from config.h */
-/* cannot use computeDLOpenFlag as warnings will crash R at this stage */
-#ifdef RTLD_NOW
-    handle = dlopen(gnome_DLL, RTLD_NOW);
-#else
-    handle = dlopen(gnome_DLL, 0);
-#endif
-    if(handle == NULL) {
-/*	printf("error was %s\n", dlerror());fflush(stdout);*/
-	R_Suicide("Probably no GNOME support: cannot load the shared library");
-    }
-    ptr_R_Suicide = (DL_FUNC) dlsym(handle, "Rgnome_Suicide");
-    if(!ptr_R_Suicide) Rstd_Suicide("Cannot load R_Suicide");
-    ptr_R_ShowMessage = (DL_FUNC) dlsym(handle, "Rgnome_ShowMessage");
-    if(!ptr_R_ShowMessage) R_Suicide("Cannot load R_ShowMessage");
-    ptr_R_ReadConsole = (DL_FUNC) dlsym(handle, "Rgnome_ReadConsole");
-    if(!ptr_R_ReadConsole) R_Suicide("Cannot load R_ReadConsole");
-    ptr_R_WriteConsole = (DL_FUNC) dlsym(handle, "Rgnome_WriteConsole");
-    if(!ptr_R_WriteConsole) R_Suicide("Cannot load R_WriteConsole");
-    ptr_R_ResetConsole = (DL_FUNC) dlsym(handle, "Rgnome_ResetConsole");
-    if(!ptr_R_ResetConsole) R_Suicide("Cannot load R_ResetConsole");
-    ptr_R_FlushConsole = (DL_FUNC) dlsym(handle, "Rgnome_FlushConsole");
-    if(!ptr_R_FlushConsole) R_Suicide("Cannot load R_FlushConsole");
-    ptr_R_ClearerrConsole = (DL_FUNC) dlsym(handle, "Rgnome_ClearerrConsole");
-    if(!ptr_R_ClearerrConsole) R_Suicide("Cannot load R_ClearerrConsole");
-    ptr_R_Busy = (DL_FUNC) dlsym(handle, "Rgnome_Busy");
-    if(!ptr_R_Busy) R_Suicide("Cannot load R_Busy");
-    ptr_R_CleanUp = (DL_FUNC) dlsym(handle, "Rgnome_CleanUp");
-    if(!ptr_R_CleanUp) R_Suicide("Cannot load R_CleanUp");
-    ptr_R_ShowFiles = (DL_FUNC) dlsym(handle, "Rgnome_ShowFiles");
-    if(!ptr_R_ShowFiles) R_Suicide("Cannot load R_ShowFiles");
-    ptr_R_ChooseFile = (DL_FUNC) dlsym(handle, "Rgnome_ChooseFile");
-    if(!ptr_R_ChooseFile) R_Suicide("Cannot load R_ChooseFile");
-    gnome_start = (DL_FUNC) dlsym(handle, "gnome_start");
-    if(!gnome_start) R_Suicide("Cannot load gnome_start");
-    X11DeviceDriver = (DL_FUNC) dlsym(handle, "X11DeviceDriver");
-    if(!X11DeviceDriver) R_Suicide("Cannot load X11DeviceDriver");
-    ptr_dataentry = (DL_FUNC) dlsym(handle, "RX11_dataentry");
-    if(!ptr_dataentry) R_Suicide("Cannot load do_dataentry");
-}
-
-
-#else /* no dyn.load support */
 
 void InitFunctionHashing()
 {
@@ -549,14 +459,4 @@ SEXP do_dynunload(SEXP call, SEXP op, SEXP args, SEXP env)
     error("no dyn.load support in this R version");
 }
 
-void R_load_X11_shlib()
-{
-    R_Suicide("no support to load X11 shared library in this R version");
-}
-
-
-void R_load_gnome_shlib()
-{
-    R_Suicide("no support to load gnome shared library in this R version");
-}
 #endif

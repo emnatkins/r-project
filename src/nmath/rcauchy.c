@@ -27,7 +27,7 @@
  *    Random variates from the normal distribution.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 double rcauchy(double location, double scale)
 {

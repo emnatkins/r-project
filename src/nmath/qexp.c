@@ -23,7 +23,7 @@
  *
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 #include "dpq.h"
 
 double qexp(double p, double scale, int lower_tail, int log_p)

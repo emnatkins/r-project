@@ -58,7 +58,7 @@ define(PERL5_CHECK,
 >>)
 changequote([, ]) dnl
 AC_DEFUN(R_PROG_PERL,
- [AC_PATH_PROGS(PERL, [${PERL} perl])
+ [AC_PATH_PROG(PERL, perl)
   if test -n "${PERL}"; then
     AC_CACHE_CHECK([whether perl version is at least 5],
       r_cv_prog_perl_v5, [PERL5_CHECK()] )
@@ -78,17 +78,17 @@ dnl R_PROG_TEXMF
 dnl
 AC_DEFUN(R_PROG_TEXMF,
  [AC_REQUIRE([R_PROG_PERL])
-  AC_PATH_PROGS(DVIPS, [${DVIPS} dvips], false)
-  AC_PATH_PROGS(LATEX, [${LATEX} latex], false)
+  AC_PATH_PROG(DVIPS, [${DVIPS} dvips], false)
+  AC_PATH_PROG(LATEX, [${LATEX} latex], false)
   if test "{ac_cv_path_LATEX}" = false; then
     AC_MSG_WARN([you cannot build DVI versions of the R manuals])
   fi
-  AC_PATH_PROGS(MAKEINDEX, [${MAKEINDEX} makeindex], false)
-  AC_PATH_PROGS(PDFLATEX, [${PDFLATEX} pdflatex], false)
+  AC_PATH_PROG(MAKEINDEX, [${MAKEINDEX} makeindex], false)
+  AC_PATH_PROG(PDFLATEX, [${PDFLATEX} pdflatex], false)
   if test "{ac_cv_path_PDFLATEX}" = false; then
     AC_MSG_WARN([you cannot build PDF versions of the R manuals])
   fi
-  AC_PATH_PROGS(MAKEINFO, [${MAKEINFO} makeinfo])
+  AC_PATH_PROG(MAKEINFO, [${MAKEINFO} makeinfo])
   if test -n "${MAKEINFO}"; then
     AC_CACHE_CHECK([whether makeinfo version is at least 4],
       r_cv_prog_makeinfo_v4,
@@ -111,7 +111,7 @@ AC_DEFUN(R_PROG_TEXMF,
     INSTALL_INFO="\$(top_builddir)/tools/install-info"
     AC_SUBST(INSTALL_INFO)
   else
-    AC_PATH_PROGS(INSTALL_INFO, [${INSTALL_INFO} install-info], false)
+    AC_PATH_PROG(INSTALL_INFO, [${INSTALL_INFO} install-info], false)
   fi
   : ${R_RD4DVI="ae"}
   AC_SUBST(R_RD4DVI)
@@ -159,43 +159,15 @@ AC_DEFUN(R_PROG_CC_FLAG,
   [ ac_safe=`echo "$1" | sed 'y%./+-%__p_%'`
     AC_MSG_CHECKING([whether ${CC-cc} accepts $1])
     AC_CACHE_VAL(r_cv_prog_cc_flag_${ac_safe},
-      [ AC_LANG_SAVE
-        AC_LANG_C
+      [ AC_LANG_C
 	XCFLAGS="${CFLAGS}"
 	CFLAGS="${CFLAGS} $1"
 	AC_TRY_LINK([], [],
 	  eval "r_cv_prog_cc_flag_${ac_safe}=yes",
 	  eval "r_cv_prog_cc_flag_${ac_safe}=no")
 	CFLAGS="${XCFLAGS}"
-	AC_LANG_RESTORE
       ])
     if eval "test \"`echo '$r_cv_prog_cc_flag_'$ac_safe`\" = yes"; then
-      AC_MSG_RESULT(yes)
-      [$2]
-    else
-      AC_MSG_RESULT(no)
-    fi
-  ])
-dnl
-dnl R_PROG_CXX_FLAG
-dnl
-dnl Test whether the C++ compiler handles a command line option
-dnl
-AC_DEFUN(R_PROG_CXX_FLAG,
-  [ ac_safe=`echo "$1" | sed 'y%./+-%__p_%'`
-    AC_MSG_CHECKING([whether ${CXX-c++} accepts $1])
-    AC_CACHE_VAL(r_cv_prog_cxx_flag_${ac_safe},
-      [ AC_LANG_SAVE
-        AC_LANG_CPLUSPLUS
-	XCXXFLAGS="${CXXFLAGS}"
-	CXXFLAGS="${CXXFLAGS} $1"
-	AC_TRY_LINK([], [],
-	  eval "r_cv_prog_cxx_flag_${ac_safe}=yes",
-	  eval "r_cv_prog_cxx_flag_${ac_safe}=no")
-	CXXFLAGS="${XCXXFLAGS}"
-	AC_LANG_RESTORE
-      ])
-    if eval "test \"`echo '$r_cv_prog_cxx_flag_'$ac_safe`\" = yes"; then
       AC_MSG_RESULT(yes)
       [$2]
     else
@@ -743,10 +715,7 @@ AC_DEFUN(R_GNOME, [
     RGNOMEDIR=
     RGNOMEBIN=
     GNOME_IF_FILES=
-  else
-    AC_DEFINE(HAVE_GNOME, 1)
   fi
-  AC_SUBST(HAVE_GNOME)
   AC_SUBST(RGNOMEDIR)
   AC_SUBST(RGNOMEBIN)
   AC_SUBST(GNOME_IF_FILES)])

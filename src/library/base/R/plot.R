@@ -172,21 +172,6 @@ plot.formula <- function(formula, ..., data = parent.frame(), subset,
     if (response) {
 	varnames <- names(mf)
 	y <- mf[[response]]
-        funname<-NULL
-        if( is.object(y) ) {
-            found<-FALSE
-            for(j in class(y)) {
-                funname<-paste("plot.",j,sep="")
-                if( exists(funname) ) {
-                    found<-TRUE
-                    break;
-                }
-            }
-            if( !found )
-                funname<-NULL
-        }
-        if( is.null(funname) )
-            funname<-"plot"
 	if (length(varnames) > 2) {
 	    opar <- par(ask = ask)
 	    on.exit(par(opar))
@@ -194,38 +179,20 @@ plot.formula <- function(formula, ..., data = parent.frame(), subset,
 	xn <- varnames[-response]
 	if (is.null(dots[["xlab"]])) {
 	    for (i in xn)
-                if( length(dots) > 0 )
-                    do.call(funname,
-                            c(list(mf[[i]], y, ylab = ylab, xlab = i),
-                              dots))
-                else
-                    do.call(funname,
-                            c(list(mf[[i]], y, ylab = ylab, xlab = i)))
+                do.call("plot",
+                        c(list(mf[[i]], y, ylab = ylab, xlab = i), dots))
 	} else {
 	    for (i in xn)
-                if( length(dots) > 0 )
-                    do.call(funname,
-                            c(list(mf[[i]], y, ylab = ylab), dots))
-                else
-                    do.call(funname,
-                            c(list(mf[[i]], y, ylab = ylab)))
+                do.call("plot",
+                        c(list(mf[[i]], y, ylab = ylab), dots))
         }
         if (length(xn) == 0)
-            if (is.null(dots[["xlab"]])) {
-                if( length(dots) > 0 )
-                    do.call(funname,
-                            c(list(y, ylab = ylab, xlab = i), dots))
-                else
-                    do.call(funname,
-                            c(list(y, ylab = ylab, xlab = i)))
-            } else {
-                if(length(dots) > 0 )
-                    do.call(funname,
-                            c(list(y, ylab = ylab), dots))
-                else
-                   do.call(funname,
-                            c(list(y, ylab = ylab)))
-            }
+            if (is.null(dots[["xlab"]]))
+                do.call("plot",
+                        c(list(y, ylab = ylab, xlab = i), dots))
+            else
+                do.call("plot",
+                        c(list(y, ylab = ylab), dots))
     }
     else plot.data.frame(mf)
 }

@@ -26,7 +26,7 @@
  *    This function returns the cube of its argument.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 double fcube(double x)
 {

@@ -67,10 +67,10 @@ SEXP do_onexit(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (ctxt->callflag & CTXT_FUNCTION)
     {
 	if (addit && (oldcode = ctxt->conexit) != R_NilValue ) {
-	    if ( CAR(oldcode) != R_BraceSymbol )
+	    if ( CAR(oldcode) != install("{") )
 	    {
 		PROTECT(tmp = allocList(3));
-		CAR(tmp) = R_BraceSymbol;
+		CAR(tmp) = install("{");
 		CADR(tmp) = oldcode;
 		CADDR(tmp) = code;
 		TYPEOF(tmp) = LANGSXP;
@@ -151,7 +151,7 @@ static void cat_newline(SEXP labels, int *width, int lablen, int ntot)
     *width = 0;
     if (labels != R_NilValue) {
 	Rprintf("%s ", EncodeString(CHAR(STRING(labels)[ntot % lablen]),
-				    1, 0, Rprt_adj_left));
+				    1, 0, adj_left));
 	*width += Rstrlen(CHAR(STRING(labels)[ntot % lablen])) + 1;
     }
 }
@@ -179,9 +179,9 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP objs, file, fill, sepr, labs, s;
     FILE *savefp;
-    int havefile, usepopen = 0, append;
+    int havefile, append;
     int w, i, iobj, n, nobjs, pwidth, width, sepw, lablen, ntot, nlsep, nlines;
-    char *p = "", *pfile, buf[512];
+    char *p = "", buf[512];
 
     checkArity(op, args);
 
@@ -226,22 +226,12 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (append == NA_LOGICAL)
 	errorcall(call, "invalid append specification");
 
-    if (strlen(pfile = CHAR(STRING(file)[0])) > 0) {
+    if (strlen(CHAR(STRING(file)[0])) > 0) {
 	savefp = R_Outputfile;
-	if (pfile[0] == '|') {
-#ifndef HAVE_POPEN
-	    error("file = \"|cmd\" is not implemented in this version");
-#else
-	    R_Outputfile = popen(pfile + 1, "w");
-	    usepopen = 1;
-#endif
-	} else {
-	    R_Outputfile = R_fopen(R_ExpandFileName(pfile),
-				   (append) ? "a" : "w");
-	    if (!R_Outputfile) {
-		R_Outputfile = savefp;
-		errorcall(call, "unable to open file");
-	    }
+	if(!(R_Outputfile = R_fopen(R_ExpandFileName(CHAR(STRING(file)[0])),
+				    (append) ? "a" : "w"))) {
+	    R_Outputfile = savefp;
+	    errorcall(call, "unable to open file");
 	}
 	havefile = 1;
     }
@@ -324,7 +314,7 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
     if ((pwidth != INT_MAX) || nlsep)
 	Rprintf("\n");
     if (havefile) {
-	if (usepopen) pclose(R_Outputfile); else fclose(R_Outputfile);
+	fclose(R_Outputfile);
 	R_Outputfile = savefp;
     }
     else
@@ -519,7 +509,7 @@ SEXP lengthgets(SEXP x, int len)
 		if (xnames != R_NilValue)
 		    STRING(names)[i] = STRING(xnames)[i];
 	    }
-	break;
+	break;	
     }
     if (isVector(x) && xnames != R_NilValue)
 	setAttrib(rval, R_NamesSymbol, names);

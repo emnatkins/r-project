@@ -48,7 +48,7 @@
 /*	R_PPSSIZE  The pointer protection stack size  */
 /*	R_NSIZE	   The number of cons cells	 */
 /*	R_VSIZE	   The vector heap size in bytes */
-/*  These values are defaults and can be overriden in config.h
+/*  These values are defaults and can be overriden in config.h	
     The maxima and minima are in ../unix/sys-common.c */
 
 #ifndef R_PPSSIZE
@@ -171,9 +171,6 @@ typedef struct {
 #define PRVALUE(x)	((x)->u.promsxp.value)
 #define PRSEEN(x)	((x)->sxpinfo.gp)
 
-/* Hashing Macros */
-#define HASHASH(x)      ((x)->sxpinfo.gp)
-#define HASHVALUE(x)    ((x)->u.vecsxp.truelength)
 
 /* Vector Heap Structure */
 typedef struct {
@@ -338,8 +335,6 @@ extern int	R_EvalDepth	INI_as(0);	/* Evaluation recursion depth */
 extern int	R_EvalCount	INI_as(0);	/* Evaluation count */
 extern int	R_BrowseLevel	INI_as(0);	/* how deep the browser is */
 
-extern int	R_Expressions	INI_as(500);	/* options(expressions) */
-
 /* File Input/Output */
 extern int	R_Interactive	INI_as(1);	/* Non-zero during interactive use */
 extern int	R_Quiet		INI_as(0);	/* Be as quiet as possible */
@@ -443,8 +438,6 @@ extern int	R_ShowErrorMessages INI_as(1);  /* show error messages? */
 #define NewEnvironment		Rf_NewEnvironment
 #define OneIndex		Rf_OneIndex
 #define onintr			Rf_onintr
-#define onsigusr1               Rf_onsigusr1
-#define onsigusr2               Rf_onsigusr2
 #define parse			Rf_parse
 #define PrintGreeting		Rf_PrintGreeting
 #define PrintVersion		Rf_PrintVersion
@@ -562,8 +555,6 @@ SEXP mkSYMSXP(SEXP, SEXP);
 SEXP mkTrue(void);
 SEXP NewEnvironment(SEXP, SEXP, SEXP);
 void onintr();
-void onsigusr1();
-void onsigusr2();
 int OneIndex(SEXP, SEXP, int, int, SEXP*);
 SEXP parse(FILE*, int);
 void PrintGreeting(void);
@@ -572,7 +563,6 @@ void PrintWarnings(void);
 SEXP promiseArgs(SEXP, SEXP);
 void RemoveClass(SEXP, char *);
 SEXP R_LoadFromFile(FILE*, int);
-extern int R_Newhashpjw(char*);
 FILE* R_OpenLibraryFile(char *);
 void R_PreserveObject(SEXP);
 void R_ReleaseObject(SEXP);
@@ -609,20 +599,6 @@ int yylex();
 int yyparse(void);
 void yyprompt(char *format, ...);
 int yywrap(void);
-
-/* Macros for suspending interrupts */
-#ifdef HAVE_POSIX_SETJMP
-#define BEGIN_SUSPEND_INTERRUPTS do { \
-    sigset_t mask, omask; \
-    sigemptyset(&mask); \
-    sigaddset(&mask,SIGINT); \
-    sigprocmask(SIG_BLOCK, &mask, &omask);
-#define END_SUSPEND_INTERRUPTS sigprocmask(SIG_SETMASK, &omask, &mask); \
-    } while(0)
-#else
-#define BEGIN_SUSPEND_INTERRUPTS do {
-#define END_SUSPEND_INTERRUPTS } while (0)
-#endif
 
 #endif
 /*

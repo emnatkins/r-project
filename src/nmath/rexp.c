@@ -28,7 +28,7 @@
  *
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 double rexp(double scale)
 {

@@ -11,7 +11,17 @@ subdir = tests
 include $(top_builddir)/Makeconf
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
-test-src-strict-1 = \
+DISTFILES = Makefile.in README \
+	$(TESTsrc-strict-1) $(TESTsrc-strict-1:.R=.Rout.save) \
+	$(TESTsrc-sloppy-1) $(TESTsrc-sloppy-1:.R=.Rout.save) \
+	make-isas-tests.R isas-tests.Rout.save \
+	make-no-segfault.R
+SUBDIRS = Examples
+
+R = LC_ALL=C $(top_builddir)/bin/R --vanilla
+RDIFF = $(top_srcdir)/tools/Rdiff
+
+TESTsrc-strict-1 = \
 	arith-true.R \
 	arith.R \
 	d-p-q-r-tests.R \
@@ -19,35 +29,32 @@ test-src-strict-1 = \
 	is-things.R \
 	lm-tests.R \
 	primitive-funs.R \
-	method-dispatch.R \
+	mode-methods.R \
 	simple-true.R
-test-src-strict-auto = \
+TESTsrc-strict-auto = \
 	isas-tests.R
-test-src-sloppy-1 = \
+TESTsrc-sloppy-1 = \
 	print-tests.R
-test-src-sloppy-auto = \
+TESTsrc-sloppy-auto = \
 	no-segfault.R
-DISTFILES = Makefile.in README \
-	$(test-src-strict-1) $(test-src-strict-1:.R=.Rout.save) \
-	$(test-src-sloppy-1) $(test-src-sloppy-1:.R=.Rout.save) \
-	isas-tests.Rin isas-tests.Rout.save \
-	no-segfault.Rin
-SUBDIRS = Examples
 
-R = LC_ALL=C $(top_builddir)/bin/R --vanilla
-RDIFF = $(top_builddir)/bin/Rdiff
+TESTsrc-strict = $(TESTsrc-strict-1) $(TESTsrc-strict-auto)
+TESTsrc-sloppy = $(TESTsrc-sloppy-1) $(TESTsrc-sloppy-auto)
+# These two "hand made":
+#TESTsrc-Rdiff = $(TESTsrc-strict) $(TESTsrc-sloppy-1)
+#TESTsrc-NO-diff = no-segfault.R
 
-test-src-strict = $(test-src-strict-1) $(test-src-strict-auto)
-test-src-sloppy = $(test-src-sloppy-1) $(test-src-sloppy-auto)
-test-src-auto = $(test-src-strict-auto) $(test-src-sloppy-auto)
-test-src = $(test-src-strict) $(test-src-sloppy)
+TESTsrc = $(TESTsrc-strict) $(TESTsrc-sloppy)
+TESTsrc-auto = $(TESTsrc-strict-auto) $(TESTsrc-sloppy-auto)
 
-test-out-strict = $(test-src-strict:.R=.Rout)
-test-out-sloppy = $(test-src-sloppy:.R=.Rout)
-test-out = $(test-src:.R=.Rout)
+TESTout-strict = $(TESTsrc-strict:.R=.Rout)
+TESTout-sloppy = $(TESTsrc-sloppy:.R=.Rout)
+TESTout = $(TESTsrc:.R=.Rout)
+#TESTout-Rdiff = $(TESTsrc-Rdiff:.R=.Rout)
+#TESTout-NO-diff = $(TESTsrc-NO-diff:.R=.Rout)
 
 .SUFFIXES:
-.SUFFIXES: .R .Rin .Rout
+.SUFFIXES: .R .Rout
 
 all: Makefile test-All
 
@@ -56,7 +63,7 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	  CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= \
 	  $(SHELL) ./config.status
 Makedeps: Makefile
-	@(for f in $(test-src); do \
+	@(for f in $(TESTsrc); do \
 	    if [ -f $(srcdir)/${f}out.save ]; then \
 	      echo "$${f}out: $${f} \$$(srcdir)/$${f}out.save \$$(FORCE)"; \
 	    else \
@@ -66,11 +73,10 @@ Makedeps: Makefile
 	@touch $@
 FORCE:
 
-.Rin.R: stamp-R
-	@echo "creating \`$@'"
+%.R : $(srcdir)/make-%.R stamp-R
 	@$(R) < $< > /dev/null
 
-.R.Rout:
+%.Rout : %.R
 	@rm -f $@ $@.fail
 	@echo "running \`$<'"
 	@$(R) < $< > $@
@@ -88,8 +94,8 @@ test-All: Makefile
 	@$(MAKE) test-Specific
 test-Examples:
 	@(cd Examples && $(MAKE) $@)
-test-Specific-strict: $(test-out-strict)
-test-Specific-sloppy: $(test-out-sloppy)
+test-Specific-strict: $(TESTout-strict)
+test-Specific-sloppy: $(TESTout-sloppy)
 test-Specific:
 	@echo "updating test dependencies"
 	@$(MAKE) Makedeps
@@ -111,9 +117,10 @@ test-undoc:
 	  echo; \
 	done
 
-$(test-out): Makefile stamp-R
+$(TESTout): Makefile stamp-R
 
 stamp-R: $(top_builddir)/bin/R.X11 $(top_builddir)/library/base/R/base
+	@cd $(top_builddir) && $(MAKE) R
 	@touch $@
 
 mostlyclean: clean
@@ -121,9 +128,9 @@ clean:
 	-(cd Examples; $(MAKE) $@)
 	rm -f stamp-R Makedeps Rplots.* *.Rd
 distclean: clean
-	@rm -f $(test-out)
+	@rm -f $(TESTout)
 	-(cd Examples; $(MAKE) $@)
-	@rm -f Makefile $(test-src-auto)
+	@rm -f Makefile $(TESTsrc-auto)
 maintainer-clean: distclean
 
 distdir: $(DISTFILES)

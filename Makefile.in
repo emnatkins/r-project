@@ -12,7 +12,7 @@ include $(top_builddir)/Makeconf
 distdir = $(PACKAGE)-$(VERSION)
 INSTFILES = COPYING COPYRIGHTS FAQ MIRROR-SITES NEWS RESOURCES 
 DISTFILES = $(INSTFILES) \
-	BUGS INSTALL ONEWS README VERSION Y2K \
+	BUGS INSTALL README VERSION Y2K \
 	Makeconf.in Makefile.in \
 	aclocal.m4 config.site configure configure.in \
 	date-stamp
@@ -23,16 +23,16 @@ GZIP = --best
 all: Makefile Makeconf R docs
 
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
-	@cd $(top_builddir) \
+	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 Makeconf: $(srcdir)/Makeconf.in $(top_builddir)/config.status
-	@cd $(top_builddir) \
+	cd $(top_builddir) \
 	  && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 config.status: $(srcdir)/configure
-	@$(SHELL) ./config.status --recheck
+	$(SHELL) ./config.status --recheck
 $(srcdir)/configure: $(srcdir)/configure.in $(srcdir)/aclocal.m4
-	@cd $(srcdir) && autoconf
+	cd $(srcdir) && autoconf
 
 R:
 	@if [ "$(srcdir)" != "." ]; then \
@@ -47,17 +47,22 @@ R:
 	  echo "you should \`make docs' now ..."; \
 	fi
 
+src/include/config.h: $(srcdir)/configure \
+  $(srcdir)/src/include/config.h.in
+	$(top_srcdir)/configure --srcdir $(top_srcdir) @config_opts@
+
 docs help html latex examples:: FORCE
 	-@(cd src/library && $(MAKE) $@)
 FORCE:
 
-install: installdirs
+install: all installdirs
 	@for d in afm demos doc etc; do \
 	  (cd $${d} && $(MAKE) $@) || exit 1; \
 	done
-	@for f in $(INSTFILES); do \
-	  $(INSTALL_DATA) $(srcdir)/$${f} $(rhome); \
-	done
+	@(cd $(srcdir); \
+	  for f in $(INSTFILES); do \
+	    $(INSTALL_DATA) $${f} $(rhome); \
+	  done)
 	@echo "installing executables ..."
 	@$(INSTALL_PROGRAM) bin/R.X11 $(rhome)/bin
 	@if test -x bin/R.GNOME; then \

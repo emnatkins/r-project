@@ -19,12 +19,9 @@ write.table <-
     else
 	stop("invalid quote specification")
 
-    rn <- FALSE
     if (is.logical(row.names)) {
-	if (row.names) {
+	if (row.names)
 	    x <- cbind(d[[1]], x)
-            rn <- TRUE
-        }
     }
     else {
 	row.names <- as.character(row.names)
@@ -37,8 +34,7 @@ write.table <-
 	quote <- c(0, quote) + 1
 
     if (is.logical(col.names))
-        col.names <- if(is.na(col.names) && rn) c("", d[[2]])
-        else if (col.names) d[[2]] else NULL
+	col.names <- if (col.names) d[[2]] else NULL
     else {
 	col.names <- as.character(col.names)
 	if (length(col.names) != p)

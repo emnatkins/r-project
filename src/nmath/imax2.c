@@ -26,7 +26,7 @@
  *    Compute maximum of two integers.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 int imax2(int x, int y)
 {

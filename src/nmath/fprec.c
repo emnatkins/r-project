@@ -35,7 +35,7 @@
  *    conform to the IEEE 754 standard.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 /* Improvements by Martin Maechler, May 1997;
    further ones, Feb.2000:

@@ -26,7 +26,7 @@
  *    This function calls rchisq and rnorm to do the real work.
  */
 
-#include "nmath.h"
+#include "Mathlib.h"
 
 double rt(double df)
 {

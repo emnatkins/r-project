@@ -28,7 +28,7 @@
  *
  *    Binomial coefficients.
  */
-#include "nmath.h"
+#include "Mathlib.h"
 
 double lfastchoose(double n, double k)
 {

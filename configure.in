@@ -30,11 +30,22 @@ AC_CONFIG_AUX_DIR(tools)
 
 ### Platform & Version
 
-AC_CANONICAL_HOST
+## In an ideal world we would use AC_CANONICAL_HOST here, but this fails
+## on platforms like the i686 (aka Pentium-Pro) because of some sort of
+## sanity check written into configure.  We bypass the check by invoking
+## config.guess directly and parsing the results ourselves.
+
+AC_MSG_CHECKING(host system type)
+host=`${srcdir}/tools/config.guess`
+set `echo ${host} | tr '-' ' '`
+host_cpu=${1}
+host_vendor=${2}
+host_os=${3}
 AC_DEFINE_UNQUOTED(R_PLATFORM, "${host}")
 AC_DEFINE_UNQUOTED(R_CPU, "${host_cpu}")
 AC_DEFINE_UNQUOTED(R_VENDOR, "${host_vendor}")
 AC_DEFINE_UNQUOTED(R_OS, "${host_os}")
+AC_MSG_RESULT([${host}])
 
 PACKAGE="R"
 VERSION=`cat ${srcdir}/VERSION | cut -d' ' -f1`
@@ -124,15 +135,6 @@ AC_ARG_WITH(dxml,
     fi],
   use_dxml=true)
 
-AC_ARG_WITH(atlas,
-  [  --with-atlas            use ATLAS library (if available)],
-  [ if test "${withval}" = no; then
-      use_atlas=false;
-    else
-      use_atlas=true;
-    fi],
-  use_atlas=true)
-
 AC_ARG_WITH(readline,
   [  --with-readline         use readline library (if available)],
   [ if test "${withval}" = no; then
@@ -144,16 +146,20 @@ AC_ARG_WITH(readline,
 
 AC_ARG_WITH(gnome,
   [  --with-gnome            use GNOME, or specify its prefix],
-  [ if test "${withval}" = no; then
+  if test "${withval}" = yes; then
+    want_gnome=yes
+    dnl Note that an empty true branch is not valid sh syntax.
+    ifelse([$1], [], :, [$1])
+  else
+    if test "${withval}" = no; then
       want_gnome=no
-    elif test "${withval}" = yes; then
-      want_gnome=yes
     else
       want_gnome=yes
-      LIBS="${LIBS} -L${withval}/lib"
-      CPPFLAGS="${CPPFLAGS} -I${withval}/include"
+      LDFLAGS="$LDFLAGS -L${withval}/lib"
+      CFLAGS="$CFLAGS -I${withval}/include"
       gnome_prefix=${withval}/lib
-    fi],
+    fi
+  fi,
   want_gnome=no)
 
 ### Programs.
@@ -181,7 +187,7 @@ AC_PROG_LN_S
 AC_PROG_RANLIB
 AC_PROG_YACC
 ## Ar.
-AC_CHECK_PROGS(AR, [${AR} ar], ar)
+AC_CHECK_PROG(AR, [${AR} ar], ar)
 : ${ARFLAGS="rc"}
 AC_SUBST(ARFLAGS)
 ## Echo.
@@ -189,6 +195,9 @@ R_PROG_ECHO_N
 ## Make.
 : ${MAKE=make}
 AC_SUBST(MAKE)
+## Nroff && friends
+AC_PATH_PROG(NROFF, [${NROFF} nroff], false)
+AC_PATH_PROG(TBL, [${TBL} tbl], false)
 ## Perl.
 R_PROG_PERL
 ## Tar.
@@ -197,8 +206,8 @@ AC_SUBST(TAR)
 ## TeXMF stuff
 R_PROG_TEXMF
 ## Unzip && zip
-AC_PATH_PROGS(R_UNZIPCMD, [${UNZIP} unzip], "")
-AC_PATH_PROGS(R_ZIPCMD, [${ZIP} zip], "")
+AC_PATH_PROG(R_UNZIPCMD, [${UNZIP} unzip], "")
+AC_PATH_PROG(R_ZIPCMD, [${ZIP} zip], "")
 
 ## C compiler.
 
@@ -210,7 +219,6 @@ dnl Yes, we already need this at configure time ...
 case "${host}" in
   *aix*)
     AC_AIX
-    LIBS="${LIBS} -lc"
     ;;
   *hpux*)
     case "${CC}" in
@@ -266,7 +274,7 @@ elif ${use_f2c}; then
 else
   F77=
   for name in g77 fort77 f77 f90 xlf cf77 fc; do
-    AC_PATH_PROG(F77, ${name})
+    AC_PATH_PROGS(F77, ${name})
     if test -n "${F77}"; then
       if test -n "`file ${F77} | grep script`"; then
 	dnl If F77 found above is a shell or perl script, do not use it.
@@ -278,14 +286,15 @@ else
     fi
   done
   if test -z "${F77}"; then
-    AC_CHECK_PROG(F2C, f2c)
+    AC_CHECK_PROGS(F2C, f2c)
   fi
 fi
 
 if test -n "${F77}"; then
   FC=${F77}
-  AC_PROG_F77
-  AC_F77_LIBRARY_LDFLAGS
+  R_PROG_F77_WORKS
+  R_PROG_F77_GNU
+  OCTAVE_FLIBS
   R_PROG_F77_APPEND_UNDERSCORE
   R_PROG_F77_CC_COMPAT
   f77_rules_frag=Makefrag.f77
@@ -310,11 +319,6 @@ fi
 AC_SUBST(FC)
 AC_SUBST(F2C)
 AC_SUBST_FILE(f77_rules_frag)
-
-## C++ compiler.
-
-AC_PROG_CXX
-AC_PROG_CXXCPP
 
 ### Libraries.
 
@@ -344,40 +348,12 @@ AC_CHECK_LIB(ncurses, main,,
 ))
 AC_CHECK_LIB(dl, dlopen)
 AC_CHECK_LIB(z, main)
-
-## Special checks for odd OS specific things
-AC_CHECK_FUNC(gethostbyname)
-if test "${ac_cv_func_gethostbyname}" = no; then
-  AC_CHECK_LIB(nsl, gethostbyname)
-fi
-AC_CHECK_FUNC(connect)
-if test "${ac_cv_func_connect}" = no; then
-  AC_CHECK_LIB(socket, connect)
-fi
-
-## BLAS
 BLAS="blas.o"
-if test "${r_cv_prog_f77_append_underscore}" = yes; then
-  fun=dgemm_
-else
-  fun=dgemm
-fi
 if ${use_dxml}; then
-  AC_CHECK_LIB(dxml, ${fun}, FLIBS="-ldxml ${FLIBS}" BLAS="")
-fi
-if test -n "${BLAS}" && ${use_atlas}; then
-  AC_CHECK_LIB(atlas, ATL_xerbla,
-    [ FLIBS="-latlas ${FLIBS}" BLAS=""
-      AC_CHECK_LIB(cblas, cblas_dgemm,
-        [ FLIBS="-lcblas ${FLIBS}"
-	  AC_CHECK_LIB(f77blas, ${fun},
-            FLIBS="-lf77blas ${FLIBS}", , ${FLIBS}),
-	], ,${FLIBS})
-    ], ,
-    ${FLIBS})
+  AC_CHECK_LIB(dxml, main, FLIBS="-ldxml ${FLIBS}" BLAS="")
 fi
 if test -n "${BLAS}" && ${use_blas}; then
-  AC_CHECK_LIB(blas, ${fun},
+  AC_CHECK_LIB(blas, main,
     [ FLIBS="-lblas ${FLIBS}" BLAS=""
       if ${use_blas_risc}; then
         AC_CHECK_LIB(blas_risc, main,
@@ -409,7 +385,7 @@ AC_FUNC_ALLOCA
 AC_FUNC_VFORK
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS(acosh asinh atanh bcopy finite getcwd isnan matherr \
-  memcpy memmove popen rint strcoll system times vsnprintf)
+  memcpy memmove rint strcoll system times vsnprintf)
 AC_REPLACE_FUNCS(strdup)
 R_FUNC___SETFPUCW
 R_FUNC_CALLOC
@@ -426,26 +402,11 @@ AC_CHECK_HEADERS(dl.h dlfcn.h elf.h floatingpoint.h fpu_control.h \
   ieee754.h ieeefp.h locale.h readline/history.h readline/readline.h \
   rpc/rpc.h rpc/xdr.h string.h sys/param.h sys/stat.h sys/time.h \
   sys/times.h unistd.h)
-AC_CHECK_HEADERS(netdb.h netinet/in.h netinet/tcp.h sys/socket.h)
 case "${host}" in
   *sunos4*)
     AC_DEFINE(SunOS4) ;;
 esac
 R_HEADER_SETJMP
-AC_MSG_CHECKING([for BSD networking])
-if test "${ac_cv_header_netdb_h}" = yes \
-  -a "${ac_cv_header_netinet_in_h}" = yes \
-  -a "${ac_cv_header_netinet_tcp_h}" = yes \
-  -a "${ac_cv_header_sys_socket_h}" = yes \
-  -a \( "${ac_cv_func_connect}" = yes \
-        -o "${ac_cv_lib_socket_connect}" = yes \) \
-  -a \( "${ac_cv_func_gethostbyname}" = yes \
-        -o "${ac_cv_lib_nsl_gethostbyname}" = yes \) ; then
-  AC_DEFINE(HAVE_BSD_NETWORKING)
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no])
-fi
 
 ### Typedefs.
 
@@ -463,13 +424,16 @@ if test "${cross_compiling}" = yes; then
 fi
 AC_CHECK_SIZEOF(long, 4)
 
+if test "${GCC}" = yes; then
+  case "${host}" in
+    i[[3456789]]86-*-*)
+      R_PROG_CC_FLAG(-mieee-fp,
+	R_XTRA_CFLAGS="${R_XTRA_CFLAGS} -mieee-fp")
+      ;;
+  esac
+fi
+
 case "${host}" in
-  i[[3456789]]86-*-*)
-    R_PROG_CC_FLAG(-mieee-fp,
-      R_XTRA_CFLAGS="${R_XTRA_CFLAGS} -mieee-fp")
-    R_PROG_CXX_FLAG(-mieee-fp,
-      R_XTRA_CXXFLAGS="${R_XTRA_CXXFLAGS} -mieee-fp")
-    ;;
   *aix4.[[2-9]]*)
     AC_DEFINE(HAVE_NO_SYMBOL_UNDERSCORE)
     if test "${GCC}" = yes; then
@@ -481,23 +445,23 @@ case "${host}" in
   alpha*osf*)
     AC_DEFINE(HAVE_NO_SYMBOL_UNDERSCORE)
     ## <Albrecht.Gebhardt@uni-klu.ac.at>
-    if test "${GCC}" = yes; then
-      R_PROG_CC_FLAG(-mieee,
-        R_XTRA_CFLAGS="${R_XTRA_CFLAGS} -mieee")
-    else
+    if test -z "${GCC}"; then
       R_PROG_CC_FLAG(-ieee_with_inexact,
         R_XTRA_CFLAGS="${R_XTRA_CFLAGS} -ieee_with_inexact")
       R_PROG_CC_FLAG(-std1,
         R_XTRA_CFLAGS="${R_XTRA_CFLAGS} -std1")
-    fi
-    if test "${G77}" = yes; then
-      R_XTRA_FFLAGS="${R_XTRA_FFLAGS} -mieee"
     else
+      R_PROG_CC_FLAG(-mieee,
+        R_XTRA_CFLAGS="${R_XTRA_CFLAGS} -mieee")
+    fi
+    if test -z "${G77}"; then
       R_XTRA_FFLAGS="${R_XTRA_FFLAGS} -fpe3"
+    else
+      R_XTRA_FFLAGS="${R_XTRA_FFLAGS} -mieee"
     fi
     ## </Albrecht.Gebhardt@uni-klu.ac.at>
     ;;
-  alpha*linux*)
+  alpha*linux)
     R_PROG_CC_FLAG(-mieee,
       R_XTRA_CFLAGS="${R_XTRA_CFLAGS} -mieee"
       R_XTRA_FFLAGS="${R_XTRA_FFLAGS} -mieee")
@@ -517,11 +481,9 @@ case "${host}" in
 esac
 
 AC_SUBST(CFLAGS)
-AC_SUBST(CXXFLAGS)
 AC_SUBST(FFLAGS)
 AC_SUBST(F2CFLAGS)
 AC_SUBST(R_XTRA_CFLAGS)
-AC_SUBST(R_XTRA_CXXFLAGS)
 AC_SUBST(R_XTRA_FFLAGS)
 AC_SUBST(R_XTRA_LIBS)
 
@@ -529,11 +491,11 @@ AC_SUBST(R_XTRA_LIBS)
 
 ## We need to determine the following:
 ##
-## MAINLD, MAINLDFLAGS
+## LDCMD, DLLFLAGS
 ##   command and flags for loading the main binary so that it will load
 ##   shared libraries (DLLs) at runtime
-## CPICFLAGS, CXXPICFLAGS, FPICFLAGS
-##   flags for compiling C, C++, and Fortran library code
+## CPICFLAGS, FPICFLAGS
+##   flags for compiling C and Fortran library code
 ## SHLIBLD, SHLIBLDFLAGS
 ##   command and flags for creating DLLs
 ##
@@ -544,7 +506,7 @@ AC_SUBST(R_XTRA_LIBS)
 ## *) As a final safeguard, values from the environment (as specified in
 ##    one of the configuration files) override anything we figure out.
 
-mainld=${CC}
+ldcmd=${CC}
 shlibld=${CC}
 SHLIBEXT=so
 
@@ -560,18 +522,11 @@ if test -n "${XMKMF}"; then
     cpicflags=`${srcdir}/tools/GETMAKEVAL PICFLAGS`
     fpicflags=${cpicflags}
   fi
-  cxx=`${srcdir}/tools/GETMAKEVAL CXX`
-  if test "`which ${cxx}`" = "`which ${CXX}`"; then
-    cxxpicflags=`${srcdir}/tools/GETMAKEVAL CXXPICFLAGS`
-  fi
   rm -f Imakefile Makefile
 fi
 if test "${GCC}" = yes; then
   cpicflags=-fPIC
   shlibldflags=-shared
-fi
-if test "${GXX}" = yes; then
-  cxxpicflags=-fPIC
 fi
 if test "${G77}" = yes; then
   fpicflags=-fPIC
@@ -583,27 +538,26 @@ AC_MSG_RESULT(done)
 case "${host}" in
   *aix4.[[2-9]]*)
     EXPORTFILE="\$(top_builddir)/etc/R.exp"
-    mainld=ld
-    mainldflags="-bdynamic -bE:${EXPORTFILE} -bM:SRE"
+    ldcmd=ld
+    dllflags="-bdynamic -bE:${EXPORTFILE} -bM:SRE -lc -lm"
     if test "${GCC}" = yes; then
-      mainldflags="${mainldflags} `${CC} -print-libgcc-file-name`"
+      dllflags="${dllflags} `${CC} -print-libgcc-file-name`"
     fi
     shlibld=ld
     shlibldflags="-bM:SRE -H512 -T512 -bnoentry -bexpall \
-      -bI:\$(R_HOME)/etc/R.exp"
+      -bI:\$(R_HOME)/etc/R.exp -lc -lm"
     ;;
   alpha*osf*)
-    mainld="${FC} -g -nofor_main -fpe3 "
+    ldcmd="${FC} -g -nofor_main -fpe3 "
     cpicflags=
-    cxxpicflags=
     shlibld=${FC}
     shlibldflags=-shared
     ;;
-  alpha*linux*)
-    mainldflags=-export-dynamic
+  alpha*linux)
+    dllflags=-export-dynamic
     ;;
   *freebsd3.*)
-    mainldflags=-export-dynamic
+    dllflags=-export-dynamic
     shlibldflags="-shared"
     ;;
   *hpux*)
@@ -612,23 +566,23 @@ case "${host}" in
         cpicflags="+z" ;;
     esac
     case "${FC}" in
-      f77|fort77|f90)
+      f77|fort77)
         fpicflags="+z" ;;
     esac
-    mainldflags="-Wl,-E"
+    dllflags="-Wl,-E"
     shlibld=ld
     shlibldflags="-b"
     SHLIBEXT=sl
     ;;
-  *linux*aout)
+  *linuxaout)
     sed '/HAVE_ELF_H/d' confdefs.h > tmp.h ; mv tmp.h confdefs.h
     ;;
-  *linux*)
-    mainldflags=-export-dynamic
+  *linux)
+    dllflags=-export-dynamic
     ;;
   *netbsd*)
     if ${CPP} - -dM < /dev/null | grep -q __ELF__; then
-      mainldflags="-export-dynamic"
+      dllflags="-export-dynamic"
       shlibldflags="-shared"
     else
       shlibldflags="-Bshareable"
@@ -654,7 +608,7 @@ case "${host}" in
       ld=`${CC} -print-prog-name=ld`
       ldoutput=`${ld} -v 2>&1 | grep GNU`
       if test -n "${ldoutput}"; then
-	mainldflags="-Wl,-export-dynamic"
+	dllflags="-Wl,-export-dynamic"
 	shlibldflags="-shared"
       fi
     else
@@ -668,8 +622,8 @@ case "${host}" in
     ;;
 esac
 
-: ${MAINLD=${mainld}}
-: ${MAINLDFLAGS=${mainldflags}}
+: ${LDCMD=${ldcmd}}
+: ${DLLFLAGS=${dllflags}}
 : ${CPICFLAGS=${cpicflags}}
 if test -z "${CPICFLAGS}"; then
   case "${host}" in
@@ -682,16 +636,6 @@ if test -z "${CPICFLAGS}"; then
   esac
 fi
 : ${FPICFLAGS=${fpicflags}}
-: ${CXXPICFLAGS=${cxxpicflags}}
-if test -z "${CXXPICFLAGS}"; then
-  case "${host}" in
-    alpha*osf*)
-      ;;
-    *)
-      AC_MSG_WARN([Could not determine CXXPICFLAGS.])
-      ;;
-  esac
-fi
 : ${SHLIBLD=${shlibld}}
 : ${SHLIBLDFLAGS=${shlibldflags}}
 if test -z "${SHLIBLDFLAGS}"; then
@@ -699,11 +643,10 @@ if test -z "${SHLIBLDFLAGS}"; then
   AC_MSG_ERROR([See the file INSTALL for more information.])
 fi
 
-AC_SUBST(MAINLD)
-AC_SUBST(MAINLDFLAGS)
+AC_SUBST(LDCMD)
+AC_SUBST(DLLFLAGS)
 AC_SUBST(CPICFLAGS)
 AC_SUBST(FPICFLAGS)
-AC_SUBST(CXXPICFLAGS)
 AC_SUBST(SHLIBLDFLAGS)
 AC_SUBST(SHLIBEXT)
 AC_SUBST(SHLIBLD)
@@ -720,17 +663,7 @@ AC_SUBST(EXPORTFILE)
 AC_PATH_XTRA
 if test -z "${no_x}"; then
   X_LIBS="${X_LIBS} -lX11"
-  NO_X=""
-  RX11DIR="X11"
-  use_X11="yes"
-  AC_DEFINE(HAVE_X11, 1)
-else
-  NO_X="#"
-  RX11DIR=""
-  use_X11="no"
 fi
-AC_SUBST(NO_X)
-AC_SUBST(RX11DIR)
 
 ### Miscellaneous.
 
@@ -768,9 +701,9 @@ AC_OUTPUT(Makeconf
   doc/manual/Makefile
   etc/Makefile
   etc/Makeconf
-  etc/Makeconf-tests  
   src/Makefile
   src/appl/Makefile
+  src/gnome/Makefile
   src/include/Makefile
   src/library/Makefile
   src/library/base/DESCRIPTION
@@ -816,12 +749,9 @@ AC_OUTPUT(Makeconf
   src/scripts/SHLIB
   src/scripts/Sd2Rd
   src/scripts/build-help
-  src/scripts/check
   src/scripts/fwf2table
   src/scripts/help.pretty
   src/unix/Makefile
-  src/unix/X11/Makefile
-  src/unix/gnome/Makefile
   tests/Makefile
   tests/Examples/Makefile
   tools/Makefile
@@ -841,7 +771,6 @@ AC_OUTPUT_COMMANDS(
   tools/keyword-test \
   tools/keywords2html \
   tools/pkg2tex
-  echo timestamp > src/include/stamp-h
 )
 
 if test -z "${F77}"; then
@@ -858,7 +787,6 @@ R is now configured for ${host}
   Installation directory:   ${prefix}
   C compiler:               ${CC} ${R_XTRA_CFLAGS} ${CFLAGS}
   FORTRAN compiler:         ${FORT}
-  X11 support:              ${use_X11}
   Gnome support:            ${use_gnome}
 ])
 
