@@ -1,0 +1,8 @@
+NOTE:
+----	Adding new functionality here usually needs an entry in each of
+	       	Makefile.in
+		ROUTINES
+		../include/R_ext/Applic.h
+	and usually as well in
+		NEWS
+		../../doc/manual/R-exts.texi
