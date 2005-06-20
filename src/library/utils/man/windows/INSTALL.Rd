@@ -1,9 +1,7 @@
 \name{INSTALL}
 \title{Install Add-on Packages from Sources}
 \alias{INSTALL}
-\usage{
-\special{R CMD INSTALL [options] [-l lib] pkgs}
-}
+\usage{R CMD INSTALL [options] [-l lib] pkgs}
 \arguments{
   \item{pkgs}{A space-separated list with the path names of the sources of the
     packages to be installed.}

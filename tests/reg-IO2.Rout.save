@@ -1,6 +1,6 @@
 
 R : Copyright 2005, The R Foundation for Statistical Computing
-Version 2.2.0 Under development (unstable) (2005-05-13), ISBN 3-900051-07-0
+Version 2.2.0 Under development (unstable) (2005-05-11), ISBN 3-900051-07-0
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -198,12 +198,5 @@ logical(0)
 4     2           0.6           2
 5     3           0.8           3
 > unlink("test.dat")
-> 
-> ## test on Windows Unicode file
-> if(capabilities("iconv")) {
-+     print(scan(file(file.path(Sys.getenv("SRCDIR"), "WinUnicode.dat"),
-+                     encoding="UCS-2LE"), 0, quiet=TRUE))
-+ } else print(1:8)
-[1] 1 2 3 4 5 6 7 8
 > ## end of tests
 > 

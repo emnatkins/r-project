@@ -18,30 +18,30 @@ function(pattern, x, ignore.case = FALSE, extended = TRUE, perl = FALSE,
 
 sub <-
 function(pattern, replacement, x, ignore.case = FALSE, extended = TRUE,
-         perl = FALSE, fixed = FALSE, useBytes = FALSE)
+         perl = FALSE, fixed = FALSE)
 {
     if (is.na(pattern))
         return(rep.int(as.character(NA), length(x)))
 
     if(perl)
-        .Internal(sub.perl(pattern, replacement, x, ignore.case, useBytes))
+        .Internal(sub.perl(pattern, replacement, x, ignore.case))
     else
         .Internal(sub(pattern, replacement, x, ignore.case,
-                      extended, fixed, useBytes))
+                      extended, fixed))
 }
 
 gsub <-
 function(pattern, replacement, x, ignore.case = FALSE, extended = TRUE,
-         perl = FALSE, fixed = FALSE, useBytes = FALSE)
+         perl = FALSE, fixed = FALSE)
 {
   if (is.na(pattern))
       return(rep.int(as.character(NA), length(x)))
 
   if(perl)
-        .Internal(gsub.perl(pattern, replacement, x, ignore.case, useBytes))
+        .Internal(gsub.perl(pattern, replacement, x, ignore.case))
     else
         .Internal(gsub(pattern, replacement, x, ignore.case,
-                       extended, fixed, useBytes))
+                       extended, fixed))
 }
 
 regexpr <-

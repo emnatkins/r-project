@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-06-09 10:58\n"
+"POT-Creation-Date: 2005-04-27 15:02\n"
 "PO-Revision-Date: 2005-05-26 15:05+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -602,30 +602,11 @@ msgstr "'ColSideColors'는 길이가 ncol(x)의 문자 벡터가 아니면 되�
 msgid "'RowSideColors' must be a character vector of length nrow(x)"
 msgstr "'RowSideColors' nrows(x)의 문자벡터가 아니면 되지 않습니다"
 
-#, fuzzy
-msgid "non-matched further arguments are disregarded"
-msgstr "불필요한 인수는 버려졌습니다"
-
 msgid "argument 'x' must be numeric"
 msgstr "인수 'x'는 수치가 아니면 되지 않습니다"
 
 msgid "'x' contains missing values"
 msgstr "'x'는 결측치를 포함하고 있습니다"
-
-#, fuzzy
-msgid "'x' and 'weights' have unequal length"
-msgstr "'x'와 'g'는 동일 길이를 가지지 않으면 되지 않습니다"
-
-#, fuzzy
-msgid "'weights' must all be finite"
-msgstr "예측자는 모두 수치가 아니면 되지 않습니다"
-
-#, fuzzy
-msgid "'weights' must not be negative"
-msgstr "'x'는 non-negative가 나오지 않으면 되지 않습니다"
-
-msgid "sum(weights) != 1  -- will not get true density"
-msgstr ""
 
 msgid "need at least 2 points to select a bandwidth automatically"
 msgstr ""
@@ -1477,13 +1458,6 @@ msgstr "f()의 end point에서의 값이 다른 부호를 가지지 않습니다
 msgid "_NOT_ converged in"
 msgstr "연속으로 묶지 않았습니다"
 
-#, fuzzy
-msgid "control argument must be a named list"
-msgstr "'split' 인수는 리스트가 아니면 되지 않습니다"
-
-msgid "Logical `hessian' argument not allowed.  See documentation."
-msgstr ""
-
 msgid "'params' has wrong length"
 msgstr "'parames'는 잘못한 길이입니다"
 
@@ -1562,8 +1536,7 @@ msgstr "그룹이 너무 적습니다"
 msgid "use only with \"lm\" objects"
 msgstr "\"lm\" 오브젝트에 대해서만 사용해주십시오"
 
-#, fuzzy
-msgid "'which' must be in 1:6"
+msgid "'which' must be in 1:4"
 msgstr "'which'는 1:4에서 없으면 되지 않습니다"
 
 msgid "'id.n' must be in {1,..,%d}"
@@ -1782,9 +1755,6 @@ msgstr "NA lev[]; 아마도 smoothing 파라메타 'spar'가 너무 큽니다"
 
 msgid "setting df = 1  __use with care!__"
 msgstr "df = 1의 설정은 주의해서 사용하지 않으면 안됩니다!"
-
-msgid "need result of smooth.spline(*, keep.data=TRUE)"
-msgstr ""
 
 msgid "not a valid \"smooth.spline\" object"
 msgstr "유효한 \"smooth.spline\" 오브젝트가 아닙니다"

@@ -96,10 +96,4 @@ cat('%comment\n\n%another\n%\n%\n',
     file = "test.dat", sep="")
 read.table("test.dat", comment.char = "%")
 unlink("test.dat")
-
-## test on Windows Unicode file
-if(capabilities("iconv")) {
-    print(scan(file(file.path(Sys.getenv("SRCDIR"), "WinUnicode.dat"),
-                    encoding="UCS-2LE"), 0, quiet=TRUE))
-} else print(1:8)
 ## end of tests

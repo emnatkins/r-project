@@ -1558,16 +1558,13 @@ C
           DH12=ONE
           DFLAG=-ONE
    90 CONTINUE
-      IF (IGO .EQ. 120) GOTO 120
-      IF (IGO .EQ. 150) GOTO 150
-      IF (IGO .EQ. 180) GOTO 180
-      IF (IGO .EQ. 210) GOTO 210
+      GO TO IGO,(120,150,180,210)
 C     PROCEDURE..SCALE-CHECK
   100 CONTINUE
   110     CONTINUE
           IF(.NOT. DD1 .LE. RGAMSQ) GO TO 130
                IF(DD1 .EQ. ZERO) GO TO 160
-               IGO = 120
+               ASSIGN 120 TO IGO
 C              FIX-H..
                GO TO 70
   120          CONTINUE
@@ -1579,7 +1576,7 @@ C              FIX-H..
   130 CONTINUE
   140     CONTINUE
           IF(.NOT. DD1 .GE. GAMSQ) GO TO 160
-               IGO = 150
+               ASSIGN 150 TO IGO
 C              FIX-H..
                GO TO 70
   150          CONTINUE
@@ -1592,7 +1589,7 @@ C              FIX-H..
   170     CONTINUE
           IF(.NOT. DABS(DD2) .LE. RGAMSQ) GO TO 190
                IF(DD2 .EQ. ZERO) GO TO 220
-               IGO = 180
+               ASSIGN 180 TO IGO
 C              FIX-H..
                GO TO 70
   180          CONTINUE
@@ -1603,7 +1600,7 @@ C              FIX-H..
   190 CONTINUE
   200     CONTINUE
           IF(.NOT. DABS(DD2) .GE. GAMSQ) GO TO 220
-               IGO = 210
+               ASSIGN 210 TO IGO
 C              FIX-H..
                GO TO 70
   210          CONTINUE

@@ -31,7 +31,6 @@
 \alias{mean.POSIXct}
 \alias{mean.POSIXlt}
 \alias{str.POSIXt}
-\alias{check_tzones}
 
 \title{Date-Time Classes}
 \description{
@@ -43,9 +42,9 @@
 
 \method{summary}{POSIXct}(object, digits = 15, \dots)
 
-\special{time + number}
-\special{time - number}
-\special{time1 lop time2}
+time + number
+time - number
+time1 lop time2
 }
 \arguments{
   \item{x, object}{An object to be printed or summarized from one of the

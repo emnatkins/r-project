@@ -51,8 +51,6 @@
 \alias{tetragamma}
 \alias{pentagamma}
 \alias{package.description}
-\alias{loadURL}
-\alias{delay}
 %
 \description{
   The functions or variables listed here are no longer part of \R as
@@ -145,10 +143,6 @@ tetragamma(x)
 pentagamma(x)
 package.description(pkg, lib.loc = NULL, fields = NULL)
 % </Removed 2.0.0>
-% Removed in 2.2.0
-loadURL(url, envir = parent.frame(), quiet = TRUE, \dots)
-delay(x, env = .GlobalEnv)
-% </Removed 2.2.0>
 }
 \details{
   \code{category} has been an old-S function before there were factors;
@@ -240,11 +234,6 @@ delay(x, env = .GlobalEnv)
 
   \code{package.description} has been replaced by
   \code{\link{packageDescription}}.
-
-  \code{loadURL} has been superseded by \code{\link{load}(url())}.
-  
-  \code{delay} has been replaced by \code{\link{delayedAssign}}. 
-  As from \R 2.1.0 promises should never be visible unevaluated.
 }
 \seealso{\code{\link{Defunct}}, \code{\link{base-deprecated}}}
 \keyword{internal}

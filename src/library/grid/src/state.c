@@ -43,16 +43,11 @@ int gridRegisterIndex;
  *   Used by grid.Call.graphics to avoid unnecessary recording on 
  *   engine display list
  * GSS_ASK 14 = should we prompt the user before starting a new page?
- * GSS_SCALE 15 = a scale or "zoom" factor for all output 
- *   (to support "fit to window" resizing on windows device)
- * 
- * NOTE: if you add to this list you MUST change the size of the vector
- * allocated in createGridSystemState() below.
 */
 
 SEXP createGridSystemState()
 {
-    return allocVector(VECSXP, 16);
+    return allocVector(VECSXP, 15);
 }
 
 void initDL(GEDevDesc *dd)
@@ -98,7 +93,7 @@ void initOtherState(GEDevDesc* dd)
 void fillGridSystemState(SEXP state, GEDevDesc* dd) 
 {
     SEXP devsize, currloc, prevloc, dlon, enginedlon, recording;
-    SEXP griddev, gridask, gridscale;
+    SEXP griddev, gridask;
     PROTECT(devsize = allocVector(REALSXP, 2));
     REAL(devsize)[0] = 0;
     REAL(devsize)[1] = 0;
@@ -139,10 +134,7 @@ void fillGridSystemState(SEXP state, GEDevDesc* dd)
     PROTECT(gridask = allocVector(LGLSXP, 1));
     LOGICAL(gridask)[0] = FALSE;
     SET_VECTOR_ELT(state, GSS_ASK, gridask);
-    PROTECT(gridscale = allocVector(REALSXP, 1));
-    REAL(gridscale)[0] = 1.0;
-    SET_VECTOR_ELT(state, GSS_SCALE, gridscale);
-    UNPROTECT(9);
+    UNPROTECT(8);
 }
 
 SEXP gridStateElement(GEDevDesc *dd, int elementIndex)
@@ -195,7 +187,7 @@ static void globaliseState(SEXP state)
 
 SEXP gridCallback(GEevent task, GEDevDesc *dd, SEXP data) {
     SEXP result = R_NilValue;
-    SEXP valid, scale;
+    SEXP valid;
     SEXP gridState;
     GESystemDesc *sd;
     SEXP currentgp;
@@ -265,7 +257,7 @@ SEXP gridCallback(GEevent task, GEDevDesc *dd, SEXP data) {
 		 * to the dev->newPage primitive
 		 */ 
 		currentgp = gridStateElement(dd, GSS_GPAR);
-		gcontextFromgpar(currentgp, 0, &gc, dd);
+		gcontextFromgpar(currentgp, 0, &gc);
 		GENewPage(&gc, dd);
 		initGPar(dd);
 		initVP(dd);
@@ -294,14 +286,6 @@ SEXP gridCallback(GEevent task, GEDevDesc *dd, SEXP data) {
     case GE_RestoreSnapshotState:
 	break;
     case GE_ScalePS:
-	/*
-	 * data is a numeric scale factor
-	 */
-	PROTECT(scale = allocVector(REALSXP, 1));
-	REAL(scale)[0] = REAL(gridStateElement(dd, GSS_SCALE))[0]*
-	    REAL(data)[0];
-	setGridStateElement(dd, GSS_SCALE, scale);
-	UNPROTECT(1);
 	break;
     }
     return result;

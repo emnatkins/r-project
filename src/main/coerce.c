@@ -94,35 +94,6 @@ void CoercionWarning(int warn)
 	warning(_("out-of-range values treated as 0 in coercion to raw"));
 }
 
-/* allows integers including hex representations */
-static double R_strtol(const char *nptr, char **endptr)
-{
-    double ret = 0, sign = +1;
-    const char *p = nptr;
-
-    if(strlen(p) >= 2 && p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) {
-	/* a hex number */
-	p +=2;
-	for(; p; p++) {
-	    if('0' <= *p && *p <= '9') ret = 16*ret + (*p -'0');
-	    else if('a' <= *p && *p <= 'f') ret = 16*ret + (*p -'a' + 10);
-	    else if('A' <= *p && *p <= 'F') ret = 16*ret + (*p -'A' + 10);
-	    else goto done;
-	}    
-    }
-    
-    for(p = nptr; p; p++) {
-	if(*p == '+') continue;
-	if(*p == '-') { sign = -1; continue;}
-	if('0' <= *p && *p <= '9') ret = 10*ret + (*p -'0');
-	else goto done;	
-    }
-	
-done:
-    if(endptr) *endptr = (char *)p;
-    return sign*ret;
-}
-
 double R_strtod(const char *c, char **end)
 {
     double x;
@@ -139,9 +110,7 @@ double R_strtod(const char *c, char **end)
     else if (strncmp(c, "-Inf", 4) == 0) {
 	x = R_NegInf; *end = (char *)c + 4;
     }
-    else if (!strncmp(c, "0x", 2) || !strncmp(c, "0x", 2)) {
-	x = R_strtol(c, end);
-    } else
+    else
         x = strtod(c, end);
     return x;
 }
@@ -208,13 +177,12 @@ int IntegerFromComplex(Rcomplex x, int *warn)
     return x.r;
 }
 
-
 int IntegerFromString(SEXP x, int *warn)
 {
     double xdouble;
     char *endp;
     if (x != R_NaString && !isBlankString(CHAR(x))) {
-	xdouble = R_strtod(CHAR(x), &endp);
+	xdouble = strtod(CHAR(x), &endp);
 	if (isBlankString(endp)) {
 	    if (xdouble > INT_MAX) {
 		*warn |= WARN_INACC;
@@ -357,7 +325,7 @@ SEXP StringFromReal(double x, int *warn)
     int w, d, e;
     formatReal(&x, 1, &w, &d, &e, 0);
     if (ISNA(x)) return NA_STRING;
-    else return mkChar(EncodeReal(x, w, d, e, OutDec));
+    else return mkChar(EncodeReal(x, w, d, e));
 }
 
 SEXP StringFromComplex(Rcomplex x, int *warn)
@@ -366,7 +334,7 @@ SEXP StringFromComplex(Rcomplex x, int *warn)
     formatComplex(&x, 1, &wr, &dr, &er, &wi, &di, &ei, 0);
     if (ISNA(x.r) || ISNA(x.i)) return NA_STRING;
     else
-	return mkChar(EncodeComplex(x, wr, dr, er, wi, di, ei, OutDec));
+	return mkChar(EncodeComplex(x, wr, dr, er, wi, di, ei));
 }
 
 SEXP StringFromRaw(Rbyte x, int *warn)
@@ -1292,7 +1260,7 @@ SEXP do_asvector(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 SEXP do_asfunction(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-	SEXP arglist, envir, names, pargs, body;
+    SEXP arglist, envir, names, pargs;
     int i, n;
 
     checkArity(op, args);
@@ -1321,21 +1289,8 @@ SEXP do_asfunction(SEXP call, SEXP op, SEXP args, SEXP rho)
 	pargs = CDR(pargs);
     }
     CheckFormals(args);
-    PROTECT(body = VECTOR_ELT(arglist, n-1));
-    /* the main (only?) thing to rule out is body being 
-       a function already. If we test here then
-       mkCLOSXP can continue to overreact when its 
-       test fails (PR#1880, 7535, 7702) */
-    if(isList(body) || isLanguage(body) || isSymbol(body)
-       || isExpression(body) || isVector(body)
-#ifdef BYTECODE
-       || isByteCode(body)
-#endif
-       )
-	    args =  mkCLOSXP(args, body, envir);
-    else
-	    errorcall(call, _("invalid body for function"));
-    UNPROTECT(2);
+    args =  mkCLOSXP(args, VECTOR_ELT(arglist, n - 1), envir);
+    UNPROTECT(1);
     return args;
 }
 

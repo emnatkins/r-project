@@ -14,8 +14,9 @@
   the repositories and update outdated packages on the fly.
 }
 \usage{
-update.packages(lib.loc = NULL, repos = getOption("repos"),
+update.packages(lib.loc = NULL, repos = CRAN,
                 contriburl = contrib.url(repos, type),
+                CRAN = getOption("repos"),
                 method, instlib = NULL,
                 ask = TRUE, available = NULL, destdir = NULL,
 		installWithVers = FALSE, checkBuilt = FALSE,
@@ -26,21 +27,25 @@ available.packages(contriburl = contrib.url(getOption("repos")), method)
 CRAN.packages(CRAN = getOption("repos"), method,
               contriburl = contrib.url(CRAN))
 
-old.packages(lib.loc = NULL, repos = getOption("repos"),
+old.packages(lib.loc = NULL, repos = CRAN,
              contriburl = contrib.url(repos),
+             CRAN = getOption("repos"),
              method, available = NULL, checkBuilt = FALSE)
 
-new.packages(lib.loc = NULL, repos = getOption("repos"),
+new.packages(lib.loc = NULL, repos = CRAN,
              contriburl = contrib.url(repos),
+             CRAN = getOption("repos"),
              method, available = NULL, ask = FALSE)
 
 download.packages(pkgs, destdir, available = NULL,
-                  repos = getOption("repos"),
+                  repos = CRAN,
                   contriburl = contrib.url(repos, type),
-                  method, type = getOption("pkgType"))
+                  CRAN = getOption("repos"), method,
+                  type = getOption("pkgType"))
 
-install.packages(pkgs, lib, repos = getOption("repos"),
+install.packages(pkgs, lib, repos = CRAN,
                  contriburl = contrib.url(repos, type),
+                 CRAN = getOption("repos"),
                  method, available = NULL, destdir = NULL,
 		 installWithVers = FALSE, dependencies = FALSE,
                  type = getOption("pkgType"))
@@ -167,8 +172,7 @@ contrib.url(repos, type = getOption("pkgType"))
   argument, it is obtained from repositories.  If a repository is local,
   i.e., the URL starts with \code{"file:"}, then the packages are not
   downloaded but used directly.  (Both \code{"file:"} and
-  \code{"file:///"} are allowed as prefixes to a file path, the latter
-  for an absolute file path.)
+  \code{"file://"} are allowed as prefixes to a file path.)
 
   The main function of the set is \code{update.packages}.  First a list
   of all packages/bundles found in \code{lib.loc} is created and
@@ -231,8 +235,7 @@ contrib.url(repos, type = getOption("pkgType"))
   \code{"Built"} (the version built under), \code{"ReposVer"} and
   \code{"Repository"}.
   
-  For \code{new.packages} a character vector of package/bundle names,
-  \emph{after} any have been installed.
+  For \code{new.packages} a character vector of package/bundle names.
 
   For \code{download.packages}, a two-column matrix of names and
   destination file names, for those packages/bundles successfully downloaded.

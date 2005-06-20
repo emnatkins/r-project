@@ -11,9 +11,9 @@ FULLVERSION=`cat ../../../VERSION`
 RPREFIX = $(shell perl ../fixed/rwver.pl $(R_HOME)/VERSION)
 LIBFILES = $(foreach i, $(R_PKGS_BASE) $(R_PKGS_RECOMMENDED) $(EXTRA_PKGS), $(R_HOME)/library/$i) $(R_HOME)/library/R.css
 
-INFO_FILES = AUTHORS COPYING COPYING.LIB FAQ NEWS README RESOURCES \
+INFO_FILES = AUTHORS COPYING COPYING.LIB FAQ NEWS ONEWS README RESOURCES \
 	THANKS Y2K
-GW_INFO_FILES = CHANGES COPYRIGHTS README.Rterm rw-FAQ
+GW_INFO_FILES = CHANGES CHANGES1 COPYRIGHTS README.Rterm rw-FAQ
 
 ETC_FILES = Rprofile Rconsole Rdevga rgb.txt repositories
 
@@ -108,10 +108,10 @@ $(RPREFIX).exe: R.iss
 	"$(ISDIR)/iscc" R.iss > $(RPREFIX).log 2>&1
 
 clean:
-	rm -rf R.iss *.log $(RPREFIX) 
+	rm -rf R.iss Rsmall.iss *.log $(RPREFIX) 
 
 distclean: clean
-	rm -f $(RPREFIX)-win32.exe
+	rm -f $(RPREFIX).exe
 
 myR:
 	$(CAT) $(IMAGEDIR)/library/*/CONTENTS >  \

@@ -64,7 +64,7 @@ $(srcdir)/stamp-h.in: @MAINTAINER_MODE_TRUE@ $(top_srcdir)/configure.ac $(top_bu
 	@echo timestamp > $@ 2> /dev/null
 Rconfig.h: config.h $(top_srcdir)/tools/GETCONFIG
 	@$(SHELL) $(top_srcdir)/tools/GETCONFIG > $@
-Rversion.h: $(top_srcdir)/VERSION $(top_srcdir)/tools/GETVERSION $(top_builddir)/SVN-REVISION
+Rversion.h: $(top_srcdir)/VERSION $(top_srcdir)/date-stamp
 	@$(SHELL) $(top_srcdir)/tools/GETVERSION > $@
 
 ## <NOTE>
@@ -82,15 +82,15 @@ install: installdirs install-intl-@USE_INCLUDED_LIBINTL@
 	  (cd $${d} && $(MAKE) $@) || exit 1; \
 	done
 	@for f in $(SRC_HEADERS); do \
-	  $(INSTALL_DATA) $(srcdir)/$${f} "$(rincludedir)"; \
+	  $(INSTALL_DATA) $(srcdir)/$${f} "$(rhome)/include"; \
 	done
 	@for f in $(OBJ_HEADERS); do \
-	  $(INSTALL_DATA) $${f} "$(rincludedir)"; \
+	  $(INSTALL_DATA) $${f} "$(rhome)/include"; \
 	done
 installdirs:
-	@$(MKINSTALLDIRS) "$(rincludedir)"
+	@$(MKINSTALLDIRS) "$(rhome)/include"
 install-intl-yes:
-	@$(INSTALL_DATA) libintl.h "$(rincludedir)"
+	@$(INSTALL_DATA) libintl.h "$(rhome)/include"
 install-intl-no:
 
 install-strip:
@@ -99,7 +99,7 @@ uninstall:
 	@for d in $(SUBDIRS); do \
 	  (cd $${d} && $(MAKE) $@) || exit 1; \
 	done
-	@rm -rf "$(rincludedir)"
+	@rm -rf "$(rhome)/include"
 
 mostlyclean: clean
 clean:

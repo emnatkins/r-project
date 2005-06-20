@@ -80,7 +80,8 @@ that version.  The main R FAQ can be found at
 @end display
 
 The information here applies only to recent versions of R for Windows,
-(@code{2.2.0} or later).
+(@code{2.1.0} or later); the current version is often called something like
+@code{@value{VERSION}} (although not officially).
 
 
 
@@ -121,7 +122,7 @@ The information here applies only to recent versions of R for Windows,
 Go to any CRAN site (see @uref{http://cran.r-project.org/mirrors.html}
 for a list), navigate to the @code{bin/windows/base} directory and
 collect the file(s) you need.  The current release is distributed as an
-installer @code{@RWVER@-win32.exe} of about 25Mb.  This contains all the
+installer @code{@RWVER@.exe} of about 25Mb.  This contains all the
 components and allows as complete as installation as you choose.
 
 There are also links on that page to the @code{r-patched} and
@@ -144,7 +145,7 @@ If you want to be able to build packages from sources, we recommend that
 you choose an installation path not containing spaces.  (Using a path
 with spaces in will probably work, but is little-tested.)
 
-To install use @code{@RWVER@-win32.exe}.  Just double-click on the icon and
+To install use @code{@RWVER@.exe}.  Just double-click on the icon and
 follow the instructions.  If you installed R this way you can uninstall
 it from the Control Panel or Start Menu (unless you supressed making a
 group for R).
@@ -190,13 +191,13 @@ Slovenian.
 @node I want to run R in Chinese/Japanese/Korean, How do I check an installation?, The installer does not offer my language, Installation and Usage
 @section I want to run R in Chinese/Japanese/Korean
 
-This is possible by installing R with support for `East Asian' languages
-(with a suitable version of Windows -- Western installations of Windows
-XP do not by default have such support).  You will need
-@file{msvcp60.dll} installed: it is part of modern versions of Windows,
-and is often installed by other programs.  So if it is not found
-automatically it is worth searching your machine and copying it from
-another program's directory to R's @file{bin} directory.
+As from R 2.1.0 this is possible by installing R with support for `East
+Asian' languages (with a suitable version of Windows -- Western
+installations of Windows XP do not by default have such support). You
+will need @file{msvcp60.dll} installed: it is part of modern versions of
+Windows, and is often installed by other programs.  So if it is not
+found automatically it is worth searching your machine and copying it
+from another program's directory to R's @file{bin} directory.
 
 In such locales @file{Rterm.exe} should be used for batch use only, but
 @file{RGui.exe} will support single- and double-width characters.
@@ -311,7 +312,7 @@ version of Windows, but otherwise does mean that it may not be possible
 to run R without creating a shortcut in a writable folder.
 
 R 2.0.x ran more slowly from a slow storage medium but this is no longer
-true.
+true as from 2.1.0.
 
 
 @node How do I UNinstall R?, What's the best way to upgrade?, Can I run R from a CD or USB drive?, Installation and Usage
@@ -675,7 +676,7 @@ You can install pre-compiled packages either from CRAN or from a local
 There are menu items on the @code{Packages} menu to provide a
 point-and-click interface to package installation.  The packages for
 each minor (2.x) version will be stored in a separate area, so for R
-2.2.? the files are in @code{bin/windows/contrib/2.2}.  You can try
+2.1.? the files are in @code{bin/windows/contrib/2.1}.  You can try
 those compiled for earlier versions (but not before 2.0.0), at your own
 risk.
 

@@ -2,9 +2,7 @@
 \alias{REMOVE}
 \title{Remove Add-on Packages}
 \description{Utility for removing add-on packages.}
-\usage{
-\special{R CMD REMOVE [options] [-l lib] pkgs}
-}
+\usage{R CMD REMOVE [options] [-l lib] pkgs}
 \arguments{
   \item{pkgs}{a list with the names of the packages to be removed.}
   \item{lib}{the path name of the \R library tree to remove from.  May

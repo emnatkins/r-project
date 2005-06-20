@@ -195,7 +195,7 @@ static unsigned int combineAlpha(double alpha, int col)
 /* 
  * Generate an R_GE_gcontext from a gpar
  */
-void gcontextFromgpar(SEXP gp, int i, R_GE_gcontext *gc, GEDevDesc *dd) 
+void gcontextFromgpar(SEXP gp, int i, R_GE_gcontext *gc) 
 {
     /* 
      * Combine gpAlpha with col and fill
@@ -205,19 +205,14 @@ void gcontextFromgpar(SEXP gp, int i, R_GE_gcontext *gc, GEDevDesc *dd)
     gc->gamma = gpGamma(gp, i);
     /*
      * Combine gpLex with lwd
-     * Also scale by GSS_SCALE (a "zoom" factor)
      */
-    gc->lwd = gpLineWidth(gp, i) * gpLex(gp, i) * 
-	REAL(gridStateElement(dd, GSS_SCALE))[0];
+    gc->lwd = gpLineWidth(gp, i) * gpLex(gp, i);
     gc->lty = gpLineType(gp, i);
     gc->lend = gpLineEnd(gp, i);
     gc->ljoin = gpLineJoin(gp, i);
     gc->lmitre = gpLineMitre(gp, i);
     gc->cex = gpCex(gp, i);
-    /*
-     * Scale by GSS_SCALE (a "zoom" factor)
-     */
-    gc->ps = gpFontSize(gp, i) * REAL(gridStateElement(dd, GSS_SCALE))[0];
+    gc->ps = gpFontSize(gp, i);
     gc->lineheight = gpLineHeight(gp, i);
     gc->fontface = gpFont(gp, i);
     strcpy(gc->fontfamily, gpFontFamily(gp, i));

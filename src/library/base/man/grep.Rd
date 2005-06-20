@@ -18,12 +18,10 @@ grep(pattern, x, ignore.case = FALSE, extended = TRUE, perl = FALSE,
      value = FALSE, fixed = FALSE, useBytes = FALSE)
 
 sub(pattern, replacement, x,
-    ignore.case = FALSE, extended = TRUE, perl = FALSE, fixed = FALSE,
-    useBytes = FALSE)
+    ignore.case = FALSE, extended = TRUE, perl = FALSE, fixed = FALSE)
 
 gsub(pattern, replacement, x,
-     ignore.case = FALSE, extended = TRUE, perl = FALSE, fixed = FALSE,
-     useBytes = FALSE)
+     ignore.case = FALSE, extended = TRUE, perl = FALSE, fixed = FALSE)
 
 regexpr(pattern, text, extended = TRUE, perl = FALSE, fixed = FALSE,
         useBytes = FALSE)
@@ -51,10 +49,7 @@ regexpr(pattern, text, extended = TRUE, perl = FALSE, fixed = FALSE,
   \item{replacement}{a replacement for matched pattern in \code{sub} and
     \code{gsub}.  Coerced to character if possible.  This can include
     backreferences \code{"\\1"} to \code{"\\9"} to parenthesized
-    subexpressions of \code{pattern}.  For \code{perl = TRUE} only, it
-    can also contain \code{"\\U"} or \code{"\\L"} to convert the rest of
-    the replacement to upper or lower case.
-  }
+    subexpressions of \code{pattern}.}
 }
 \details{
   Arguments which should be character strings or character vectors are
@@ -172,10 +167,6 @@ str = 'Now is the time      '
 sub(' +$', '', str)  ## spaces only
 sub('[[:space:]]+$', '', str) ## white space, POSIX-style
 sub('\\\\s+$', '', str, perl = TRUE) ## Perl-style white space
-
-## capitalizing
-gsub("(\\\\w)(\\\\w*)", "\\\\U\\\\1\\\\L\\\\2", "a test of capitalizing", perl=TRUE)
-gsub("\\\\b(\\\\w)", "\\\\U\\\\1", "a test of capitalizing", perl=TRUE)
 }
 \keyword{character}
 \keyword{utilities}

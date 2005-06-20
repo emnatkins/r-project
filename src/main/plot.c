@@ -738,7 +738,7 @@ SEXP labelformat(SEXP labels)
 	formatReal(REAL(labels), n, &w, &d, &e, 0);
 	PROTECT(ans = allocVector(STRSXP, n));
 	for (i = 0; i < n; i++) {
-	    strp = EncodeReal(REAL(labels)[i], 0, d, e, OutDec);
+	    strp = EncodeReal(REAL(labels)[i], 0, d, e);
 	    SET_STRING_ELT(ans, i, mkChar(strp));
 	}
 	UNPROTECT(1);
@@ -747,8 +747,7 @@ SEXP labelformat(SEXP labels)
 	formatComplex(COMPLEX(labels), n, &w, &d, &e, &wi, &di, &ei, 0);
 	PROTECT(ans = allocVector(STRSXP, n));
 	for (i = 0; i < n; i++) {
-	    strp = EncodeComplex(COMPLEX(labels)[i], 0, d, e, 0, di, ei,
-				 OutDec);
+	    strp = EncodeComplex(COMPLEX(labels)[i], 0, d, e, 0, di, ei);
 	    SET_STRING_ELT(ans, i, mkChar(strp));
 	}
 	UNPROTECT(1);
@@ -3167,6 +3166,8 @@ SEXP do_locator(SEXP call, SEXP op, SEXP args, SEXP env)
     }
 }
 
+#define THRESHOLD	0.25
+
 static void drawLabel(double xi, double yi, int pos, double offset, char *l,
 		      DevDesc *dd)
 {
@@ -3191,18 +3192,14 @@ static void drawLabel(double xi, double yi, int pos, double offset, char *l,
 	GText(xi, yi, INCHES, l, 0.5,
 	      1-(0.5-Rf_gpptr(dd)->yCharOffset),
 	      0.0, dd);
-	break;
-    case 0:
-	GText(xi, yi, INCHES, l, 0.0, 0.0, 0.0, dd);
-	break;
     }
 }
 
 SEXP do_identify(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, x, y, l, ind, pos, Offset, draw, saveans;
-    double xi, yi, xp, yp, d, dmin, offset, tol;
-    int atpen, i, imin, k, n, npts, plot, posi, warn;
+    double xi, yi, xp, yp, d, dmin, offset;
+    int i, imin, k, n, npts, plot, posi, warn;
     DevDesc *dd = CurrentDevice();
 
     /* If we are replaying the display list, then just redraw the
@@ -3216,15 +3213,6 @@ SEXP do_identify(SEXP call, SEXP op, SEXP args, SEXP env)
 	l = CAR(args); args = CDR(args);
 	draw = CAR(args);
 	n = length(x);
-	/*
-	 * Most of the appropriate settings have been set up in
-	 * R code by par(...)
-	 * Hence no GSavePars() or ProcessInlinePars() here
-	 * (also because this function is unusual in that it does
-	 *  different things when run by a user compared to when
-	 *  run from the display list)
-	 * BUT par(cex) only sets cexbase, so here we set cex from cexbase
-	 */
 	Rf_gpptr(dd)->cex = Rf_gpptr(dd)->cexbase;
 	offset = GConvertXUnits(asReal(Offset), CHARS, INCHES, dd);
 	for (i = 0; i < n; i++) {
@@ -3243,24 +3231,18 @@ SEXP do_identify(SEXP call, SEXP op, SEXP args, SEXP env)
 	GCheckState(dd);
 
 	checkArity(op, args);
-	x = CAR(args); args = CDR(args); 
-	y = CAR(args); args = CDR(args); 
-	l = CAR(args); args = CDR(args); 
-	npts = asInteger(CAR(args)); args = CDR(args); 
-	plot = asLogical(CAR(args)); args = CDR(args); 
-	Offset = CAR(args); args = CDR(args); 
-	tol = asReal(CAR(args)); args = CDR(args); 
-	atpen = asLogical(CAR(args));
+	x = CAR(args);
+	args = CDR(args); y = CAR(args);
+	args = CDR(args); l = CAR(args);
+	args = CDR(args); npts = asInteger(CAR(args));
+	args = CDR(args); plot = asLogical(CAR(args));
+	args = CDR(args); Offset = CAR(args);
 	if (npts <= 0 || npts == NA_INTEGER)
 	    error(_("invalid number of points in identify()"));
 	if (!isReal(x) || !isReal(y) || !isString(l) || !isReal(Offset))
 	    errorcall(call, _("incorrect argument type"));
-	if (tol <= 0 || ISNAN(tol))
-	    errorcall(call, _("invalid value for 'tolerance'"));	    
 	if (plot == NA_LOGICAL)
 	    errorcall(call, _("invalid value for 'plot'"));	    
-	if (atpen == NA_LOGICAL)
-	    errorcall(call, _("invalid value for 'atpen'"));	    
 	if (LENGTH(x) != LENGTH(y) || LENGTH(x) != LENGTH(l))
 	    errorcall(call, _("different argument lengths"));
 	n = LENGTH(x);
@@ -3269,35 +3251,17 @@ SEXP do_identify(SEXP call, SEXP op, SEXP args, SEXP env)
 	    return NULL;
 	}
 
-	/*
-	 * Most of the appropriate settings have been set up in
-	 * R code by par(...)
-	 * Hence no GSavePars() or ProcessInlinePars() here
-	 * (also because this function is unusual in that it does
-	 *  different things when run by a user compared to when
-	 *  run from the display list)
-	 * BUT par(cex) only sets cexbase, so here we set cex from cexbase
-	 */
 	Rf_gpptr(dd)->cex = Rf_gpptr(dd)->cexbase;
 	offset = GConvertXUnits(asReal(Offset), CHARS, INCHES, dd);
 	PROTECT(ind = allocVector(LGLSXP, n));
 	PROTECT(pos = allocVector(INTSXP, n));
-	for (i = 0; i < n; i++) LOGICAL(ind)[i] = 0;
+	for (i = 0; i < n; i++)
+	    LOGICAL(ind)[i] = 0;
 
 	k = 0;
 	GMode(2, dd);
-	PROTECT(x = duplicate(x));
-	PROTECT(y = duplicate(y));
 	while (k < npts) {
 	    if (!GLocator(&xp, &yp, INCHES, dd)) break;
-	    /*
-	     * Repeat cex setting from cexbase within loop
-	     * so that if window is redrawn 
-	     * (e.g., conver/uncover window)
-	     * during identifying (i.e., between clicks) 
-	     * we reset cex properly.
-	     */
-	    Rf_gpptr(dd)->cex = Rf_gpptr(dd)->cexbase;
 	    dmin = DBL_MAX;
 	    imin = -1;
 	    for (i = 0; i < n; i++) {
@@ -3314,9 +3278,10 @@ SEXP do_identify(SEXP call, SEXP op, SEXP args, SEXP env)
 	    /* can't use warning because we want to print immediately  */
 	    /* might want to handle warn=2? */
 	    warn = asInteger(GetOption(install("warn"), R_NilValue));
-	    if (dmin > tol) {
+	    if (dmin > THRESHOLD) {
 	        if(warn >= 0) {
-		    REprintf(_("warning: no point with %.2f inches\n"), tol);
+		    REprintf(_("warning: no point with %.2f inches\n"),
+			     THRESHOLD);
 		    R_FlushConsole();
 		}
 	    }
@@ -3330,27 +3295,23 @@ SEXP do_identify(SEXP call, SEXP op, SEXP args, SEXP env)
 		k++;
 		LOGICAL(ind)[imin] = 1;
 
-		if (atpen) {
-		    xi = xp;
-		    yi = yp;
-		    INTEGER(pos)[imin] = 0;
-		    /* now record where to replot if necessary */
-		    GConvert(&xp, &yp, INCHES, USER, dd);
-		    REAL(x)[imin] = xp; REAL(y)[imin] = yp;
-		} else {
-		    xi = REAL(x)[imin];
-		    yi = REAL(y)[imin];
-		    GConvert(&xi, &yi, USER, INCHES, dd);
-		    if (fabs(xp-xi) >= fabs(yp-yi)) {
-			if (xp >= xi)
-			    INTEGER(pos)[imin] = 4;
-			else
-			    INTEGER(pos)[imin] = 2;
-		    } else {
-			if (yp >= yi)
-			    INTEGER(pos)[imin] = 3;
-			else
-			    INTEGER(pos)[imin] = 1;
+		xi = REAL(x)[imin];
+		yi = REAL(y)[imin];
+		GConvert(&xi, &yi, USER, INCHES, dd);
+		if (fabs(xp-xi) >= fabs(yp-yi)) {
+		    if (xp >= xi) {
+			INTEGER(pos)[imin] = 4;
+		    }
+		    else {
+			INTEGER(pos)[imin] = 2;
+		    }
+		}
+		else {
+		    if (yp >= yi) {
+			INTEGER(pos)[imin] = 3;
+		    }
+		    else {
+			INTEGER(pos)[imin] = 1;
 		    }
 		}
 		if (plot)
@@ -3377,7 +3338,7 @@ SEXP do_identify(SEXP call, SEXP op, SEXP args, SEXP env)
 	   redraw the text labels beside identified points */
 	if (GRecording(call, dd))
 	    recordGraphicOperation(op, saveans, dd);
-	UNPROTECT(7);
+	UNPROTECT(5);
 
 	return ans;
     }

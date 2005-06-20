@@ -14,7 +14,7 @@ distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
 DISTFILES = Makefile.in
 
 ## subdirectories of R_HOME/share
-SUBDIRS_WITH_NO_BUILD = R encodings licenses make perl sh texmf
+SUBDIRS_WITH_NO_BUILD = R licenses make perl sh texmf
 ## subdirectories of R_HOME/share/perl
 SUBDIRS_SHARE_PERL = R Text
 
@@ -25,7 +25,7 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 
 R: FORCE
 	@if test "$(BUILDDIR_IS_SRCDIR)" = "no" ; then \
-	  $(MAKE) rsharedir=$(top_builddir)/share install-sources; \
+	  $(MAKE) rhome=$(top_builddir) install-sources; \
 	fi
 FORCE:
 
@@ -33,52 +33,48 @@ docs:
 
 install: install-message installdirs install-sources
 installdirs:
-	@$(MKINSTALLDIRS) "$(rsharedir)"
-	@$(MKINSTALLDIRS) "$(rsharedir)/R"
-	@$(MKINSTALLDIRS) "$(rsharedir)/encodings"
-	@$(MKINSTALLDIRS) "$(rsharedir)/licenses"
-	@$(MKINSTALLDIRS) "$(rsharedir)/make"
-	@$(MKINSTALLDIRS) "$(rsharedir)/perl"
+	@$(MKINSTALLDIRS) "$(rhome)/share"
+	@$(MKINSTALLDIRS) "$(rhome)/share/R"
+	@$(MKINSTALLDIRS) "$(rhome)/share/licenses"
+	@$(MKINSTALLDIRS) "$(rhome)/share/make"
+	@$(MKINSTALLDIRS) "$(rhome)/share/perl"
 	@for d in $(SUBDIRS_SHARE_PERL); do \
-	  $(MKINSTALLDIRS) "$(rsharedir)/perl/$${d}"; \
+	  $(MKINSTALLDIRS) "$(rhome)/share/perl/$${d}"; \
 	done
-	@$(MKINSTALLDIRS) "$(rsharedir)/sh"
-	@$(MKINSTALLDIRS) "$(rsharedir)/texmf"
+	@$(MKINSTALLDIRS) "$(rhome)/share/sh"
+	@$(MKINSTALLDIRS) "$(rhome)/share/texmf"
 install-message:
 	@echo "installing share ..."
 install-sources: installdirs
 	@for f in $(srcdir)/R/*.R; do \
-	  $(INSTALL_DATA) $${f} "$(rsharedir)/R"; \
-	done
-	@for f in $(srcdir)/encodings/*; do \
-	  $(INSTALL_DATA) $${f} "$(rsharedir)/encodings"; \
+	  $(INSTALL_DATA) $${f} "$(rhome)/share/R"; \
 	done
 	@for f in $(srcdir)/licenses/*; do \
-	  $(INSTALL_DATA) $${f} "$(rsharedir)/licenses"; \
+	  $(INSTALL_DATA) $${f} "$(rhome)/share/licenses"; \
 	done
 	@for f in $(srcdir)/make/*.mk; do \
-	  $(INSTALL_DATA) $${f} "$(rsharedir)/make"; \
+	  $(INSTALL_DATA) $${f} "$(rhome)/share/make"; \
 	done
 	@for d in $(SUBDIRS_SHARE_PERL); do \
 	  for f in $(srcdir)/perl/$${d}/*.pm; do \
-	    $(INSTALL_DATA) $${f} "$(rsharedir)/perl/$${d}"; \
+	    $(INSTALL_DATA) $${f} "$(rhome)/share/perl/$${d}"; \
 	  done; \
 	done
 	@for f in $(srcdir)/perl/*.pl; do \
-	  $(INSTALL_DATA) $${f} "$(rsharedir)/perl"; \
+	  $(INSTALL_DATA) $${f} "$(rhome)/share/perl"; \
 	done
 	@for f in $(srcdir)/sh/*.sh; do \
-	  $(INSTALL_DATA) $${f} "$(rsharedir)/sh"; \
+	  $(INSTALL_DATA) $${f} "$(rhome)/share/sh"; \
 	done
 	@for f in $(srcdir)/texmf/*.sty \
 		  $(srcdir)/texmf/*.fd; do \
-	  $(INSTALL_DATA) $${f} "$(rsharedir)/texmf"; \
+	  $(INSTALL_DATA) $${f} "$(rhome)/share/texmf"; \
 	done
 install-strip: install
 
 uninstall:
 	@echo "uninstalling share ..."
-	@rm -rf "$(rsharedir)"
+	@rm -rf "$(rhome)/share"
 
 ## we cannot remove make/vars.mk until distclean as etc/Makeconf includes it.
 mostlyclean:

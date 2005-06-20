@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-05-21 08:10\n"
+"POT-Creation-Date: 2005-05-11 15:43\n"
 "PO-Revision-Date: 2005-02-16 08:34\n"
 "Last-Translator: Stefano M. Iacus <Stefano.Iacus@R-project.org>\n"
 "Language-Team: Italian\n"
@@ -454,9 +454,6 @@ msgstr "non definito per oggetti \"POSIXt\""
 
 msgid "not defined for POSIXt objects"
 msgstr "non definito per oggetti POSIXt"
-
-msgid "'tzone' attributes are inconsistent"
-msgstr ""
 
 msgid "not defined for \"POSIXct\" objects"
 msgstr "non definito per oggetti \"POSIXct\""
@@ -1291,12 +1288,6 @@ msgstr "'cmd' non può essere eseguito"
 
 msgid "'cmd' execution failed with error code %d"
 msgstr "l'esecuzione di 'cmd' non è fallita con errore"
-
-msgid "package '%s' has a non-function '.First.lib'"
-msgstr ""
-
-msgid "cannot find name space environment"
-msgstr ""
 
 msgid "deparse option %s is not recognized"
 msgid_plural "deparse options %s are not recognized"

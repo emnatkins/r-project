@@ -140,14 +140,12 @@ package.skeleton <-
     outFile <- tempfile()
     outConn <- file(outFile, "w")
     sink(outConn, type = "output")
-    yy <- try({ promptPackage(name, filename = file.path(path, name, "man", 
-                                                   paste(name, "package.Rd", sep=".")));
-                sapply(list,
+    yy <- try(sapply(list,
 		     function(item) {
 			 prompt(name = item,
 				filename = file.path(path, name, "man",
 				paste(list0[item], "Rd", sep=".")))
-		     })})
+		     }))
     sink(type = "output")
     close(outConn)
     unlink(outFile)

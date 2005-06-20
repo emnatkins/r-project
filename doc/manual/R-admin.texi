@@ -182,9 +182,6 @@ Certificate information:
 (currently, there is no ``trusted certificate'').  You can accept this
 certificate permanently and will not be asked about it anymore.
 
-Note that retrieving the sources by e.g. @command{wget -r} from that URL
-will not work: the Subversion information is needed to build @R{}.
-
 The Subversion repository does not contain the current sources for the
 recommended packages, which can be obtained by @code{rsync} or
 downloaded from @acronym{CRAN}.  To use @code{rsync} to install the
@@ -192,8 +189,8 @@ appropriate sources for the recommended packages, run
 @command{./tools/rsync-recommended} from the top-level of the @R{}
 sources.
 
-If downloading manually from @acronym{CRAN}, do ensure that you have the
-correct versions of the recommended packages: if the number in the file
+If downloading manually from @acronym{CRAN}, do ensure that you have the correct
+versions of the recommended packages: if the number in the file
 @file{VERSION} is @samp{@var{x}.@var{y}.@var{z}} you need to download
 the contents of @samp{http://CRAN.R-project.org/src/contrib/@var{dir}},
 where @var{dir} is @samp{@var{x}.@var{y}.@var{z}/Recommended} for
@@ -479,10 +476,8 @@ This will install to the following directories:
 the front-end shell script
 @item @var{prefix}/man/man1 or @var{mandir}/man1
 the man page
-@item @var{prefix}/$LIBnn/R or @var{libdir}/R
-all the rest (libraries, on-line help system, @dots{}).  Here
-@code{$LIBnn} is usually @code{lib}, but may be @code{lib64} on some
-64-bit Linux systems.
+@item @var{prefix}/lib/R or @var{libdir}/R
+all the rest (libraries, on-line help system, @dots{})
 @end table
 
 @noindent
@@ -510,40 +505,9 @@ make prefix=/path/to/here install
 at least with GNU @command{make}.
 
 More precise control is available at configure time via options: see
-@command{configure --help} for details.  (However, many of them are
-currently unused.)
-
-Configure options @option{--bindir} and @option{--mandir} are supported and
-govern where a copy of the @command{R} script and the @code{man} page
-are installed.
-
-The configure option @option{--libdir} controls where the main @R{} files
-are installed: the default is in fact
-@example
-libdir=EPREFIX/$@{LIBnn@}
-@end example
-
-All of @code{bindir} and @code{mandir} and @code{libdir} can also be
-specified on the @command{make install} command line.
-
-The @command{configure} or @command{make} variables @code{rdocdir} and
-@code{rsharedir} can be used to install the system-independent
-@file{doc} and @file{share} directories to somewhere other than
-@code{libdir}.  The C header files can be installed to the value of
-@code{rincludedir}: note that as the headers are not installed into a
-subdirectory you probably want something like
-@code{rincludedir=/usr/local/include/R-2.2.0}.
-
-If you have made @R{} as a shared/dynamic library you can install it in
-your system's library directory by
-
-@example
-make prefix=/path/to/here install-libR
-@end example
-
-@noindent
-where @code{prefix} is optional, and @code{libdir} will give more
-precise control.
+@command{configure --help} for details.  (However, most of them are
+currently ignored, but @code{bindir}, @code{libdir} and @code{mandir}
+are supported.)
 
 
 @cindex Manuals, installing
@@ -557,13 +521,9 @@ make install-pdf
 @end example
 
 @noindent
-Once again, it is optional to specify @code{prefix}.  
-
-More precise control is possible.  For info, the setting used is that of
-@code{infodir} (default @code{@var{prefix}/info}, set by configure
-option @option{--infodir}).  The DVI and PDF files are installed into
-the @R{} @file{doc} tree, set by the @command{make} variable
-@code{rdocdir}.
+Once again, it is optional to specify @code{prefix}. For info, the
+setting used is that of @code{infodir} (default
+@code{@var{prefix}/info}, set by configure option @option{--infodir}).
 
 @node Uninstallation,  , Installation, Installing R under Unix-alikes
 @section Uninstallation
@@ -946,10 +906,10 @@ for testing) use
 @example
 cd installer
 make imagedir
-zip -r9X R-2.0.0.zip R-2.2.0  # or something similar
+zip -r9X rw2010.zip rw2010  # or something similar
 @end example
-We have not found a reliable way to convert base to lazy-loading when
-cross-building, so it is left in the old format.
+Currently we have not found a reliable way to convert base to lazy-loading
+when cross-building, so it is left in the old format.
 
 
 @node Installing R under Mac OS X, Add-on packages, Installing R under Windows, Top
@@ -1939,9 +1899,9 @@ readline, in non-system directories, use the variables @code{LDFLAGS}
 (for libraries, using @samp{-L} flags to be passed to the linker) and
 @code{CPPFLAGS} (for header files, using @samp{-I} flags to be passed to
 the C/C++ preprocessors), respectively, to specify these locations.
-These default to @code{LDFLAGS=-L/usr/local/lib}
-(@code{/usr/local/lib64} on most 64-bit Linux OSes) and
-@code{CPPFLAGS=-I/usr/local/include} to catch the most common cases.  If
+These default to @code{LDFLAGS=-L/usr/local/lib} and
+@code{CPPFLAGS=-I/usr/local/include} to catch the most common cases (but
+beware that @code{LDFLAGS} may need altering for 64-bit OSes).  If
 libraries are still not found, then maybe your compiler/linker does not
 support re-ordering of @option{-L} and @option{-l} flags (this has been
 reported to be a problem on HP-UX with the native @command{cc}).  In
@@ -2085,8 +2045,6 @@ for shared libraries
 additional flags for the main link
 @item SHLIB_LDFLAGS
 additional flags for linking the shared libraries
-@item LIBnn
-the primary library directory, @file{lib} or @file{lib64}
 @end table
 
 @noindent
@@ -2862,7 +2820,7 @@ any other version of the Cygwin dlls in your path.
 You will need suitable versions of at least @code{basename}, @code{cat},
 @code{comm}, @code{cp}, @code{cut}, @code{diff}, @code{echo},
 @code{egrep}, @code{expr}, @code{find}, @code{gawk}, @code{grep},
-@code{gzip}, @code{head}, @code{ls}, @code{make}, @code{makeinfo}, @code{mkdir},
+@code{gzip}, @code{ls}, @code{make}, @code{makeinfo}, @code{mkdir},
 @code{mv}, @code{rm}, @code{sed}, @code{sh}, @code{sort},
 @code{texindex} and @code{touch}; we use those from the Cygwin
 distribution (@url{http://www.cygwin.com}) or compiled from the sources.

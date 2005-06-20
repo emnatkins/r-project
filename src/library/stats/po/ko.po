@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2005-06-09 10:57+0100\n"
+"POT-Creation-Date: 2005-02-16 08:34+0000\n"
 "PO-Revision-Date: 2005-05-26 15:32+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -44,16 +44,6 @@ msgstr "distance(): 부적절한 p"
 #: distance.c:217
 msgid "distance(): invalid distance"
 msgstr "distance() : 부적절한 distance"
-
-#: family.c:12 family.c:26 family.c:46
-#, c-format
-msgid "Argument %s must be a nonempty numeric vector"
-msgstr ""
-
-#: family.c:76 family.c:79
-#, c-format
-msgid "argument %s must be a numeric vector of length 1 or length %d"
-msgstr ""
 
 #: ksmooth.c:66
 msgid "only 2500 rows are allowed for sm.method=\"spline\""
@@ -158,43 +148,6 @@ msgstr "forkal 에러 code는 %d입니다"
 #: pacf.c:445
 msgid "invalid value of lag.max"
 msgstr "부적절한 lag.max 값입니다"
-
-#: port.c:111
-#, c-format
-msgid "Rf_divset: alg = %d must be 1, 2, 3, or 4"
-msgstr ""
-
-#: port.c:297
-#, c-format
-msgid "gradient function must return a numeric vector of length %d"
-msgstr ""
-
-#: port.c:306
-#, c-format
-msgid "Hessian function must return a square numeric matrix of order %d"
-msgstr ""
-
-#: port.c:353
-#, fuzzy
-msgid "`rho' must be an environment"
-msgstr "rho는 환경이 나오지 않으면 되지 않습니다"
-
-#: port.c:355
-msgid "`d' must be a nonempty numeric vector"
-msgstr ""
-
-#: port.c:357
-msgid "When Hessian defined must also have gradient defined"
-msgstr ""
-
-#: port.c:360
-#, c-format
-msgid "environment `rho' must contain a numeric vector `.par' of length %d"
-msgstr ""
-
-#: port.c:370
-msgid "lowerb and upperb must be numeric vectors"
-msgstr ""
 
 #: qr.c:30
 msgid "assert failed in src/library/ts/src/carray.c"

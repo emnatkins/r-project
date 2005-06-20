@@ -5,10 +5,6 @@
 /* For inclusion by datetime.c if needed. A slightly modified version of
    code from the GNU C library with locale support removed. */
 
-#ifdef HAVE_LOCALE_H
-# include <locale.h>
-#endif
-
 static void get_locale_strings(void);
 #ifdef SUPPORT_MBCS
 static void get_locale_w_strings(void);
@@ -1107,20 +1103,11 @@ strptime (const char *buf, const char *format, struct tm *tm)
 }
 
 #ifdef HAVE_LOCALE_H
-/* We check for a changed locale here, as setting the locale strings is
-   on some systems slow compared to the conversions. */
-
 static void get_locale_strings(void)
 {
     int i;
     struct tm tm;
     char buff[4];
-
-    static char *last_LC_TIME="unknown";
-    char *tmp;
-    tmp = setlocale(LC_TIME, NULL);
-    if (streql(tmp, last_LC_TIME)) return;
-    last_LC_TIME = tmp;
 
     tm.tm_sec = tm.tm_min = tm.tm_hour = tm.tm_mday = tm.tm_mon
 	= tm.tm_isdst = 0;
@@ -1153,12 +1140,6 @@ static void get_locale_w_strings(void)
     int i;
     struct tm tm;
     wchar_t buff[4];
-
-    static char *last_LC_TIME="unknown";
-    char *tmp;
-    tmp = setlocale(LC_TIME, NULL);
-    if (streql(tmp, last_LC_TIME)) return;
-    last_LC_TIME = tmp;
 
     tm.tm_sec = tm.tm_min = tm.tm_hour = tm.tm_mday = tm.tm_mon
 	= tm.tm_isdst = 0;

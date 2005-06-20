@@ -1,14 +1,12 @@
 \name{match.arg}
 \title{Argument Verification Using Partial Matching}
 \usage{
-match.arg(arg, choices, several.ok = FALSE)
+match.arg(arg, choices)
 }
 \alias{match.arg}
 \arguments{
   \item{arg}{a character string}
   \item{choices}{a character vector of candidate values}
-  \item{several.ok}{logical specifying if \code{arg} should be allowed
-    to have more than one element.}
 }
 \description{
   \code{match.arg} matches \code{arg} against a table of candidate
@@ -24,9 +22,7 @@ match.arg(arg, choices, several.ok = FALSE)
 }
 \value{
   The unabbreviated version of the unique partial match if there is one;
-  otherwise, an error is signalled if \code{several.ok} is false, as per
-  default. When \code{several.ok} is true and there is more than one
-  match, all unabbreviated versions of matches are returned.
+  otherwise, an error is signalled.
 }
 \seealso{
   \code{\link{pmatch}},
@@ -47,11 +43,5 @@ x <- rcauchy(10)
 center(x, "t")       # Works
 center(x, "med")     # Works
 try(center(x, "m"))  # Error
-
-## Allowing more than one match:
-% '3 of 4' -> warning when match.arg() is not coded well enough:
-match.arg(c("gauss", "rect", "ep"),
-          c("gaussian", "epanechnikov", "rectangular", "triangular"),
-          several.ok = TRUE)
 }
 \keyword{programming}

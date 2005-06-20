@@ -541,8 +541,6 @@ extern SEXP	R_RestartStack;	/* Stack of available restarts */
 LibExtern Rboolean utf8locale  INI_as(FALSE);  /* is this a UTF-8 locale? */
 LibExtern Rboolean mbcslocale  INI_as(FALSE);  /* is this a MBCS locale? */
 
-extern char OutDec	INI_as('.');  /* decimal point used for output */
-
 /* Initialization of the R environment when it is embedded */
 extern int Rf_initEmbeddedR(int argc, char **argv);
 
@@ -956,20 +954,6 @@ typedef struct {
 } AccuracyInfo;
 
 extern AccuracyInfo R_AccuracyInfo;
-
-/* FreeBSD defines alloca in stdlib.h, _and_ does not allow a definition
-   as here.  (Since it uses GCC, it should use the first clause.) */
-#ifdef __GNUC__
-# undef alloca
-# define alloca(x) __builtin_alloca((x))
-#else
-# ifdef HAVE_ALLOCA_H
-#  include <alloca.h>
-# endif
-# if !HAVE_DECL_ALLOCA  && !defined(__FreeBSD__)
-extern char *alloca(size_t);
-# endif
-#endif
 
 #endif /* DEFN_H_ */
 /*

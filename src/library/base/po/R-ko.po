@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-05-21 08:10\n"
+"POT-Creation-Date: 2005-05-11 15:43\n"
 "PO-Revision-Date: 2005-05-31 09:39+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -442,9 +442,6 @@ msgstr "\"POSIXt\" 오브젝트에 대해서는 정의 되어 있지 않습니�
 msgid "not defined for POSIXt objects"
 msgstr "POSIXt 오브젝트에 대해서는 정의 되어 있지 않습니다"
 
-msgid "'tzone' attributes are inconsistent"
-msgstr ""
-
 msgid "not defined for \"POSIXct\" objects"
 msgstr "\"POSTIXct\" 오브젝트에 대해서는 정의 되어 있지 않습니다"
 
@@ -699,9 +696,7 @@ msgid "package '%s' already present in search()"
 msgstr "패키지'%s'는  이미 search()에 존재합니다"
 
 msgid "'DESCRIPTION' has 'Encoding' field and re-encoding is not possible"
-msgstr ""
-"'DESCRIPTION' 는 'Encoding' 필드를 가지고 있습니다. 그리고 re-encoding는 가능"
-"하지는 않습니다"
+msgstr "'DESCRIPTION' 는 'Encoding' 필드를 가지고 있습니다. 그리고 re-encoding는 가능하지는 않습니다"
 
 msgid "%sPackages in library '%s':"
 msgstr "라이브러리 '%s'에서의 %s패키지:"
@@ -1283,14 +1278,6 @@ msgstr "'cmd'는 실행할수가 없었습니다"
 
 msgid "'cmd' execution failed with error code %d"
 msgstr "'cmd'의 실행은 에러부호 %d로 실패했습니다"
-
-#, fuzzy
-msgid "package '%s' has a non-function '.First.lib'"
-msgstr "패케지'%s'는 '%s'에 병합되었습니다"
-
-#, fuzzy
-msgid "cannot find name space environment"
-msgstr "이름 공간이 아닙니다"
 
 msgid "deparse option %s is not recognized"
 msgid_plural "deparse options %s are not recognized"

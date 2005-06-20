@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-06-09 10:58\n"
+"POT-Creation-Date: 2005-04-27 15:02\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -584,25 +584,10 @@ msgstr ""
 msgid "'RowSideColors' must be a character vector of length nrow(x)"
 msgstr ""
 
-msgid "non-matched further arguments are disregarded"
-msgstr ""
-
 msgid "argument 'x' must be numeric"
 msgstr ""
 
 msgid "'x' contains missing values"
-msgstr ""
-
-msgid "'x' and 'weights' have unequal length"
-msgstr ""
-
-msgid "'weights' must all be finite"
-msgstr ""
-
-msgid "'weights' must not be negative"
-msgstr ""
-
-msgid "sum(weights) != 1  -- will not get true density"
 msgstr ""
 
 msgid "need at least 2 points to select a bandwidth automatically"
@@ -1379,12 +1364,6 @@ msgstr ""
 msgid "_NOT_ converged in"
 msgstr ""
 
-msgid "control argument must be a named list"
-msgstr ""
-
-msgid "Logical `hessian' argument not allowed.  See documentation."
-msgstr ""
-
 msgid "'params' has wrong length"
 msgstr ""
 
@@ -1457,7 +1436,7 @@ msgstr ""
 msgid "use only with \"lm\" objects"
 msgstr ""
 
-msgid "'which' must be in 1:6"
+msgid "'which' must be in 1:4"
 msgstr ""
 
 msgid "'id.n' must be in {1,..,%d}"
@@ -1659,9 +1638,6 @@ msgid "NA lev[]; probably smoothing parameter 'spar' way too large!"
 msgstr ""
 
 msgid "setting df = 1  __use with care!__"
-msgstr ""
-
-msgid "need result of smooth.spline(*, keep.data=TRUE)"
 msgstr ""
 
 msgid "not a valid \"smooth.spline\" object"

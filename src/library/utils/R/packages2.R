@@ -1,6 +1,7 @@
 install.packages <-
-    function(pkgs, lib, repos = getOption("repos"),
+    function(pkgs, lib, repos = CRAN,
              contriburl = contrib.url(repos, type),
+             CRAN = getOption("repos"),
              method, available = NULL, destdir = NULL,
              installWithVers = FALSE, dependencies = FALSE,
              type = getOption("pkgType"))
@@ -82,13 +83,13 @@ install.packages <-
         if(type == "win.binary")
             stop("cannot install Windows binary packages on this plaform")
 
-        if(!file.exists(file.path(R.home("bin"), "INSTALL")))
+        if(!file.exists(file.path(R.home(), "bin", "INSTALL")))
             stop("This version of R is not set up to install source packages\nIf it was installed from an RPM, you may need the R-devel RPM")
     }
 
     if(is.null(repos) & missing(contriburl)) {
         update <- cbind(pkgs, lib) # for side-effect of recycling to same length
-        cmd0 <- paste(file.path(R.home("bin"),"R"), "CMD INSTALL")
+        cmd0 <- paste(file.path(R.home(),"bin","R"), "CMD INSTALL")
         if (installWithVers)
             cmd0 <- paste(cmd0, "--with-package-versions")
         for(i in 1:nrow(update)) {
@@ -180,7 +181,7 @@ install.packages <-
             ## can't use update[p0, ] due to possible multiple matches
             update <- update[sort.list(match(pkgs, p0)), ]
         }
-        cmd0 <- paste(file.path(R.home("bin"),"R"), "CMD INSTALL")
+        cmd0 <- paste(file.path(R.home(),"bin","R"), "CMD INSTALL")
         if (installWithVers)
             cmd0 <- paste(cmd0, "--with-package-versions")
         for(i in 1:nrow(update)) {

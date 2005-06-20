@@ -11,8 +11,7 @@
         if(is.function(f))
             f(libname, pkgname)
         else
-            stop(gettextf("package '%s' has a non-function '.First.lib'",
-                          pkgname),
-                 domain = NA)
+            stop(paste("package \"", pkgname,
+                       "\"has a non-function .First.lib", sep=""))
     }
 }

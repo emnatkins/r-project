@@ -213,7 +213,6 @@ static void *RObjToCPtr(SEXP s, int naok, int dup, int narg, int Fort,
 			const char *name, R_toCConverter **converter,
 			int targetType, char* encname)
 {
-    unsigned char *rawptr;
     int *iptr;
     float *sptr;
     double *rptr;
@@ -252,16 +251,6 @@ static void *RObjToCPtr(SEXP s, int naok, int dup, int narg, int Fort,
     }
 
     switch(TYPEOF(s)) {
-    case RAWSXP:
-    n = LENGTH(s);
-    rawptr = RAW(s);
-    if (dup) {
-        rawptr = (unsigned char *) R_alloc(n, sizeof(unsigned char));
-        for (i = 0; i < n; i++)
-            rawptr[i] = RAW(s)[i];
-    }
-    return (void *) rawptr;
-    break;
     case LGLSXP:
     case INTSXP:
 	n = LENGTH(s);
@@ -398,7 +387,6 @@ static void *RObjToCPtr(SEXP s, int naok, int dup, int narg, int Fort,
 static SEXP CPtrToRObj(void *p, SEXP arg, int Fort,
 		       R_NativePrimitiveArgType type, char *encname)
 {
-    unsigned char *rawptr;
     int *iptr, n=length(arg);
     float *sptr;
     double *rptr;
@@ -409,12 +397,6 @@ static SEXP CPtrToRObj(void *p, SEXP arg, int Fort,
     SEXP s, t;
 
     switch(type) {
-    case RAWSXP:
-    s = allocVector(type, n);
-    rawptr = (unsigned char *)p;
-    for (i = 0; i < n; i++)
-        RAW(s)[i] = rawptr[i];
-    break;
     case LGLSXP:
     case INTSXP:
 	s = allocVector(type, n);
@@ -1485,37 +1467,10 @@ static SEXP
 Rf_getCallingDLL()
 {
     SEXP e, ans;
-    RCNTXT *cptr;
-    SEXP rho = R_NilValue;
-    Rboolean found = FALSE;
-
-    /* First find the environment of the caller.
-       Testing shows this is the right caller, despite the .C/.Call ...
-     */
-    for (cptr = R_GlobalContext;
-	 cptr != NULL && cptr->callflag != CTXT_TOPLEVEL;
-	 cptr = cptr->nextcontext)
-	    if (cptr->callflag & CTXT_FUNCTION) {
-		/* PrintValue(cptr->call); */
-		rho = cptr->cloenv;
-		break;
-	    }
-    /* Then search up until we hit a namespace or globalenv.
-       The idea is that we will not find a namespace unless the caller
-       was defined in one. */
-    while(rho != R_NilValue) {
-	if (rho == R_GlobalEnv) break;
-	else if (R_IsNamespaceEnv(rho)) {
-	    found = TRUE;
-	    PrintValue(rho);
-	    break;
-	}
-	rho = ENCLOS(rho);
-    }
-    if(!found) return R_NilValue;
-
-    PROTECT(e = lang2(Rf_install("getCallingDLLe"), rho));
+    PROTECT(e = allocVector(LANGSXP, 1));
+    SETCAR(e, Rf_install("getCallingDLL"));
     ans = eval(e,  R_GlobalEnv);
+
     UNPROTECT(1);
     return(ans);
 }
@@ -1538,7 +1493,6 @@ R_FindNativeSymbolFromDLL(char *name, DllReference *dll,
     DL_FUNC fun = NULL;
 
     if(dll->obj == NULL) {
-	/* Rprintf("\nsearching for %s\n", name); */
 	dll->obj = Rf_getCallingDLL();
 	PROTECT(dll->obj); numProtects++;
     }

@@ -1471,16 +1471,7 @@ SEXP mkString(yyconst char *s)
 SEXP mkFloat(char *s)
 {
     SEXP t = allocVector(REALSXP, 1);
-    if(strlen(s) > 2 && (s[1] == 'x' || s[1] == 'X')) {
-	double ret = 0; char *p = s + 2;
-	for(; p; p++) {
-	    if('0' <= *p && *p <= '9') ret = 16*ret + (*p -'0');
-	    else if('a' <= *p && *p <= 'f') ret = 16*ret + (*p -'a' + 10);
-	    else if('A' <= *p && *p <= 'F') ret = 16*ret + (*p -'A' + 10);
-	    else break;
-	}	
-	REAL(t)[0] = ret;
-    } else REAL(t)[0] = atof(s);
+    REAL(t)[0] = atof(s);
     return t;
 }
 
@@ -1566,25 +1557,10 @@ static int NumericValue(int c)
 {
     int seendot = (c == '.');
     int seenexp = 0;
-    int last = c;
-    int nd = 0;
     DECLARE_YYTEXT_BUFP(yyp);
     YYTEXT_PUSH(c, yyp);
     /* We don't care about other than ASCII digits */
-    while (isdigit(c = xxgetc()) || c == '.' || c == 'e' || c == 'E' 
-	   || c == 'x' || c == 'X') 
-    {
-	if (c == 'x' || c == 'X') {
-	    if (last != '0') break;
-	    YYTEXT_PUSH(c, yyp);
-	    while(isdigit(c = xxgetc()) || ('a' <= c && c <= 'f') ||
-		  ('A' <= c && c <= 'F')) {
-		YYTEXT_PUSH(c, yyp);
-		nd++;
-	    }
-	    if(nd == 0) return ERROR;
-	    break;
-	}
+    while (isdigit(c = xxgetc()) || c == '.' || c == 'e' || c == 'E') {
 	if (c == 'E' || c == 'e') {
 	    if (seenexp)
 		break;
@@ -1592,12 +1568,8 @@ static int NumericValue(int c)
 	    seendot = 1;
 	    YYTEXT_PUSH(c, yyp);
 	    c = xxgetc();
-	    if (!isdigit(c) && c != '+' && c != '-') return ERROR;
-	    if (c == '+' || c == '-') {
-		YYTEXT_PUSH(c, yyp);
-		c = xxgetc();
-		if (!isdigit(c)) return ERROR;
-	    }
+	    if (!isdigit(c) && c != '+' && c != '-')
+		break;
 	}
 	if (c == '.') {
 	    if (seendot)
@@ -1605,7 +1577,6 @@ static int NumericValue(int c)
 	    seendot = 1;
 	}
 	YYTEXT_PUSH(c, yyp);
-	last = c;
     }
     YYTEXT_PUSH('\0', yyp);
     if(c == 'i') {

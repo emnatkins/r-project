@@ -372,7 +372,7 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
             else if (isSymbol(s))
                 p = CHAR(PRINTNAME(s));
 	    else if (isVectorAtomic(s)) {
-		p = EncodeElement(s, 0, 0, OutDec);
+		p = EncodeElement(s, 0, 0);
 		strcpy(buf,p);
 		p=buf;
 	    }
@@ -403,7 +403,7 @@ SEXP do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    if (isString(s))
 			p = CHAR(STRING_ELT(s, i+1));
 		    else {
-			p = EncodeElement(s, i+1, 0, OutDec);
+			p = EncodeElement(s, i+1, 0);
 			strcpy(buf,p);
 			p = buf;
 		    }

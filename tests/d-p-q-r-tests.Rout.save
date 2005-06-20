@@ -1,7 +1,6 @@
 
 R : Copyright 2005, The R Foundation for Statistical Computing
-Version 2.2.0 Under development (unstable) (2005-06-06 r34587)
-ISBN 3-900051-07-0
+Version 2.1.0 Patched (2005-06-07), ISBN 3-900051-07-0
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -1048,5 +1047,5 @@ p.sI    0  0.5  0.5  0.5  0.5  0.5  0.5  0.5  0.5     1
 > 
 > 
 > cat("Time elapsed: ", proc.time() - .ptime,"\n")
-Time elapsed:  5.37 0.02 5.41 0 0 
+Time elapsed:  1.81 0.01 1.81 0 0 
 > 

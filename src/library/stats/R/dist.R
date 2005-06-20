@@ -106,5 +106,3 @@ print.dist <-
     }
     invisible(x)
 }
-
-labels.dist <- function (object, ...) attr(object,"Labels")

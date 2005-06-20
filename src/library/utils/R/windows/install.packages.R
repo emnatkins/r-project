@@ -1,13 +1,7 @@
-## called as
-# .install.winbinary(pkgs = pkgs, lib = lib, contriburl = contriburl,
-#                    method = method, available = available,
-#                    destdir = destdir,
-#                    installWithVers = installWithVers,
-#                    dependencies = dependencies)
-
 .install.winbinary <-
-    function(pkgs, lib, repos = getOption("repos"),
+    function(pkgs, lib, repos = CRAN,
              contriburl = contrib.url(repos),
+             CRAN = getOption("repos"),
              method, available = NULL, destdir = NULL,
              installWithVers = FALSE, dependencies = FALSE)
 {
@@ -58,7 +52,7 @@
                     for(lang in langs) {
                         path0 <- file.path(fp, lang, "LC_MESSAGES")
                         mos <- dir(path0, full.names = TRUE)
-                        path <- file.path(R.home("share"), "locale", lang,
+                        path <- file.path(R.home(), "share", "locale", lang,
                                           "LC_MESSAGES")
                         if(!file.exists(path))
                             if(!dir.create(path, FALSE, TRUE))
@@ -249,6 +243,14 @@ menuInstallLocal <- function()
     install.packages(choose.files('',filters=Filters[c('zip','All'),]),
                      .libPaths()[1], repos = NULL)
 }
+
+# menuInstallBioc <- function()
+# {
+#     a <- available.packages(contrib.url(getOption("BIOC")))
+#     install.packages(select.list(a[,1], , TRUE), .libPaths()[1],
+#                      available = a, repos = getOption("BIOC"),
+#                      dependencies = TRUE)
+# }
 
 ### the following function supports .install.winbinaries()
 

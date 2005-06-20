@@ -52,10 +52,9 @@ preview=xdvi
 verbose=false
 OSdir=${R_OSTYPE-"unix"}
 
-: ${R_SHARE_DIR}=${R_HOME}/share
 ## Need a `safe' echo which does not interpret backslash-escaped
 ## characters in SysV style.
-echo="sh ${R_SHARE_DIR}/sh/echo.sh"
+echo="sh ${R_HOME}/share/sh/echo.sh"
 
 while test -n "${1}"; do
   case ${1} in
@@ -100,7 +99,7 @@ done
 
 if ${debug}; then set -x; fi
 
-. ${R_SHARE_DIR}/sh/dcf.sh	# get_dcf_field()
+. ${R_HOME}/share/sh/dcf.sh	# get_dcf_field()
 
 Rdconv_dir_or_files_to_LaTeX () {
   ## Convert Rd files in a dir or a list of Rd files to LaTeX, appending
@@ -143,9 +142,7 @@ Rd_DESCRIPTION_to_LaTeX () {
   ${echo} "\\begin{description}"
   ${echo} "\\raggedright{}"
   for f in `${echo} "${fields}" | sed '/Package/d; /Bundle/d;'`; do
-    text=`get_dcf_field ${f} ${1} | \
-      tr '\n' ' ' | \
-      sed "s/\"\([^\"]*\)\"/\\\`\\\`\\1''/g"`
+    text=`get_dcf_field ${f} ${1}`
     ${echo} "\\item[${f}] \\AsIs{${text}}"
   done
   ${echo} "\\end{description}"

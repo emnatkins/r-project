@@ -109,8 +109,7 @@ AC_DEFUN([AM_GNU_GETTEXT],
     ifelse(gt_included_intl, yes, [
       AC_MSG_CHECKING([whether included gettext is requested])
       AC_ARG_WITH(included-gettext,
-        [AC_HELP_STRING([--with-included-gettext],
-                        [use the GNU gettext library included here])],
+        [  --with-included-gettext use the GNU gettext library included here],
         nls_cv_force_use_gnu_gettext=$withval,
         nls_cv_force_use_gnu_gettext=no)
       AC_MSG_RESULT($nls_cv_force_use_gnu_gettext)
@@ -1096,8 +1095,7 @@ AC_DEFUN([AC_LIB_RPATH],
   hardcode_minus_L="$acl_cv_hardcode_minus_L"
   dnl Determine whether the user wants rpath handling at all.
   AC_ARG_ENABLE(rpath,
-    [AC_HELP_STRING([--disable-rpath],
-                    [do not hardcode runtime library paths])],
+    [  --disable-rpath         do not hardcode runtime library paths],
     :, enable_rpath=yes)
 ])
 
@@ -1767,8 +1765,7 @@ AC_DEFUN([AM_NLS],
   AC_MSG_CHECKING([whether NLS is requested])
   dnl Default is enabled NLS
   AC_ARG_ENABLE(nls,
-    [AC_HELP_STRING([--disable-nls],
-                    [do not use Native Language Support])],
+    [  --disable-nls           do not use Native Language Support],
     USE_NLS=$enableval, USE_NLS=yes)
   AC_MSG_RESULT($USE_NLS)
   AC_SUBST(USE_NLS)

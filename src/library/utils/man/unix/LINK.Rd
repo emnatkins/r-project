@@ -5,7 +5,7 @@
   Front-end for creating executable programs.
 }
 \usage{
-\special{R CMD LINK [options] linkcmd}
+R CMD LINK [options] linkcmd
 }
 \arguments{
   \item{linkcmd}{a list of commands to link together suitable object

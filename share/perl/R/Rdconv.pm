@@ -617,23 +617,6 @@ sub transform_S3method {
 	}
 	$text =~ s/$S3method_RE/$str/s;
     }
-    ## Also try to handle markup for S3 methods for binary ops.
-    $S3method_RE = "([ \t]*)\\\\(S3)?method" .
-	"\{(" .
-	join("|",
-	     ("\\\+", "\\\-", "\\\*", "\\\/", "\\\^",
-	      "<=?", ">=?", "!=", "==", "\\\&", "\\\|",
-	      "\\\%[[:alnum:][:punct:]]*\\\%")) .
-	")\}\{([\\w.]+)\}\\\(([^)]+)\\\)";
-    while($text =~ /$S3method_RE/) {
-	$str = "$1\#\# S3 method for class '$4':\n$1";
-	$name = $3;
-	@args = split(/,\s*/, $5);
-	## These are all binary ops, so we should really check on
-	## scalar(@args) to be 2 ...
-	$str .= "$args[0] $name $args[1]";
-	$text =~ s/$S3method_RE/$str/s;
-    }
     $text;
 }
 
@@ -779,8 +762,6 @@ sub text2html {
 	$text =~ s/$EOB/\{/go;
 	$text =~ s/$ECB/\}/go;
     }
-
-    $text = undefine_command($text, "special");
 
     $text = replace_command($text, "emph", "<EM>", "</EM>");
     $text = replace_command($text, "bold", "<B>", "</B>");
@@ -957,8 +938,6 @@ sub code2html {
     $text =~ s/\\%/%/go;
     $text =~ s/\\ldots/.../go;
     $text =~ s/\\dots/.../go;
-
-    $text = undefine_command($text, "special");
 
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\link")
@@ -1439,8 +1418,6 @@ sub text2txt {
     $text =~ s/$EOB/\{/go;
     $text =~ s/$ECB/\}/go;
 
-    $text = undefine_command($text, "special");
-    
     $text = undefine_command($text, "link");
     $text = undefine_command($text, "textbf");
     $text = undefine_command($text, "mathbf");
@@ -1548,8 +1525,6 @@ sub code2txt {
     $text =~ s/\\%/%/go;
     $text =~ s/\\ldots/.../go;
     $text =~ s/\\dots/.../go;
-
-    $text = undefine_command($text, "special");    
 
     $text = undefine_command($text, "link");
     $text = replace_addnl_command($text, "dontrun",
@@ -2131,8 +2106,6 @@ sub text2nroff {
     $text =~ s/$EOB/\{/go;
     $text =~ s/$ECB/\}/go;
 
-    $text = undefine_command($text, "special");
-
     $text = undefine_command($text, "link");
     $text = undefine_command($text, "textbf");
     $text = undefine_command($text, "mathbf");
@@ -2253,8 +2226,6 @@ sub code2nroff {
     $text =~ s/\\ldots/.../go;
     $text =~ s/\\dots/.../go;
     $text =~ s/\\n/\\\\n/g;
-
-    $text = undefine_command($text, "special");    
 
     $text = undefine_command($text, "link");
     $text = replace_addnl_command($text, "dontrun",
@@ -2390,8 +2361,6 @@ sub code2examp {
     $text =~ s/\\ldots/.../go;
     $text =~ s/\\dots/.../go;
 
-    $text = undefine_command($text, "special");
-    
     $text = undefine_command($text, "link");
 
     $text = replace_prepend_command($text, "dontshow",
@@ -2492,8 +2461,6 @@ sub text2latex {
     $text =~ s/$EOB/\\\{/go;
     $text =~ s/$ECB/\\\}/go;
 
-    $text = undefine_command($text, "special");   
-
     $text =~ s/\\cite/\\Cite/go;
 
     $text =~ s/\\itemize/\\Itemize/go;
@@ -2574,8 +2541,6 @@ sub code2latex {
     $text =~ s/\\%/%/go;
     $text =~ s/\\ldots/.../go;
     $text =~ s/\\dots/.../go;
-
-    $text = undefine_command($text, "special");    
 
     ##    $text =~ s/\\\\/\\bsl{}/go;
     if($hyper) {
@@ -2989,8 +2954,6 @@ sub text2Ssgm {
 	$text =~ s/$ECB/\}/go;
     }
 
-    $text = undefine_command($text, "special");
-
     $text = replace_command($text, "emph", "<em>", "</em>");
     $text = replace_command($text, "bold", "<bf>", "</bf>");
     $text = replace_command($text, "strong", "<bf>", "</bf>");
@@ -3099,8 +3062,6 @@ sub code2Ssgm {
     $text =~ s/\\%/%/go;
     $text =~ s/\\ldots/.../go;
     $text =~ s/\\dots/.../go;
-
-    $text = undefine_command($text, "special");    
 
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\link")

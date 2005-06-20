@@ -1,5 +1,6 @@
 \name{write.table}
 \alias{write.table}
+\alias{write.table0}
 \alias{write.csv}
 \alias{write.csv2}
 \title{Data Output}

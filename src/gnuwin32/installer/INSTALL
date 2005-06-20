@@ -1,9 +1,9 @@
 Making the standard installer
 =============================
 
-You can make an install package (R-x.y.z-win32.exe) in the current
-Windows style by using the installer kit Inno Setup 5.1.2 or later
-from jrsoftware.org.
+You can make an install package (rw????.exe) in the current Windows
+style by using the installer kit Inno Setup 5.1.2 or later from
+jrsoftware.org.
 
 You need the R installation built completely (see ../INSTALL: this
 includes making bitmap and Tcl/Tk support and the manuals).
@@ -14,7 +14,7 @@ Go to the parent of this directory and edit ISDIR in ../MkRules and run
 make distribution
 make clean
 
-You will have R-x.y.z-win32.exe both in this dir and in the cran dir.
+You will have rw????.exe both here and in the ../cran directory.
 
 Note that building the installer needs ca 85Mb of free memory.
 

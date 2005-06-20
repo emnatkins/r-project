@@ -209,7 +209,7 @@ void InitOptions(void)
     SEXP t, val, v;
     char *p;
 
-    PROTECT(v = val = allocList(14));
+    PROTECT(v = val = allocList(13));
 
     SET_TAG(v, install("prompt"));
     SETCAR(v, mkString("> "));
@@ -276,11 +276,6 @@ void InitOptions(void)
     SET_TAG(v, install("warnings.length"));
     SETCAR(v, allocVector(INTSXP, 1));
     INTEGER(CAR(v))[0] = 1000;
-    v = CDR(v);
-
-    SET_TAG(v, install("OutDec"));
-    SETCAR(v, allocVector(STRSXP, 1));
-    SET_STRING_ELT(CAR(v), 0, mkChar("."));
 
     SET_SYMVALUE(install(".Options"), val);
     UNPROTECT(2);
@@ -467,13 +462,6 @@ SEXP do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 		   */
 		R_Slave = !k;
 		SET_VECTOR_ELT(value, i, SetOption(tag, ScalarLogical(k)));
-	    }
-	    else if (streql(CHAR(namei), "OutDec")) {
-		if (TYPEOF(argi) != STRSXP || LENGTH(argi) != 1 ||
-		    strlen(CHAR(STRING_ELT(argi, 0))) !=1)
-		    errorcall(call, _("OutDec parameter invalid"));
-		OutDec = CHAR(STRING_ELT(argi, 0))[0];
-		SET_VECTOR_ELT(value, i, SetOption(tag, duplicate(argi)));
 	    }
 	    else {
 		SET_VECTOR_ELT(value, i, SetOption(tag, duplicate(argi)));

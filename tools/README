@@ -15,13 +15,11 @@ The files are as follows.
   GETCONFIG
 	create API 'Rconfig.h' from the configure information in
 	'config.h'.
-  GETDISTNAME
-	get the name of the distribution tarball.
   GETMAKEVAL
 	get the value of a Make variable from a Makefile [this needs to
 	be improved].
   GETVERSION
-	create API 'Rversion.h' from 'VERSION' and 'SVN-REVISION'.
+	create API 'Rversion.h' from 'VERSION' and 'date-stamp'.
   
   Rdnewer.pl
 	determine whether any Rd file in an Rd tree is newer than a

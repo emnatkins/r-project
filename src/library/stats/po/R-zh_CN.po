@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-06-09 10:58\n"
+"POT-Creation-Date: 2005-04-27 15:02\n"
 "PO-Revision-Date: 2005-04-08 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -599,30 +599,11 @@ msgstr "'ColSideColors'必需是长度为ncol(x)的字节向量"
 msgid "'RowSideColors' must be a character vector of length nrow(x)"
 msgstr "'RowSideColors'必需是长度为nrow(x)的字节向量"
 
-#, fuzzy
-msgid "non-matched further arguments are disregarded"
-msgstr "额外变元不用"
-
 msgid "argument 'x' must be numeric"
 msgstr "变元'x'必需是数值"
 
 msgid "'x' contains missing values"
 msgstr "'x'内含遺漏值"
-
-#, fuzzy
-msgid "'x' and 'weights' have unequal length"
-msgstr "'x'和'g'的长度必需相同"
-
-#, fuzzy
-msgid "'weights' must all be finite"
-msgstr "従属変数必需都是数值"
-
-#, fuzzy
-msgid "'weights' must not be negative"
-msgstr "'x'必需为非负数"
-
-msgid "sum(weights) != 1  -- will not get true density"
-msgstr ""
 
 msgid "need at least 2 points to select a bandwidth automatically"
 msgstr "自动选择頻寬至少需要两个数据点"
@@ -1447,13 +1428,6 @@ msgstr "位于极点边的f()值之正负号不相反"
 msgid "_NOT_ converged in"
 msgstr "没有聚合于"
 
-#, fuzzy
-msgid "control argument must be a named list"
-msgstr "'split' 变元必需是串列"
-
-msgid "Logical `hessian' argument not allowed.  See documentation."
-msgstr ""
-
 msgid "'params' has wrong length"
 msgstr "'params'的长度不对"
 
@@ -1527,8 +1501,7 @@ msgstr "组数不够"
 msgid "use only with \"lm\" objects"
 msgstr "只对\"lm\"目标对象适用"
 
-#, fuzzy
-msgid "'which' must be in 1:6"
+msgid "'which' must be in 1:4"
 msgstr "'which'必需在1:4之间"
 
 msgid "'id.n' must be in {1,..,%d}"
@@ -1740,9 +1713,6 @@ msgstr "NA lev[];很可能平滑参数'spar'的值太大了!"
 
 msgid "setting df = 1  __use with care!__"
 msgstr "设定df = 1  小心使用!"
-
-msgid "need result of smooth.spline(*, keep.data=TRUE)"
-msgstr ""
 
 msgid "not a valid \"smooth.spline\" object"
 msgstr " \"smooth.spline\"目标对象不对"

@@ -112,21 +112,6 @@ if test -r "${cfile}"; then
   . "${cfile}"
 fi
 
-## We need to establish suitable defaults for a 64-bit OS
-libnn=lib
-case "${host_os}" in
-  linux*)
-    case "${host_cpu}" in
-      x86_64|mips64|ppc64|sparc64|s390x)
-        libnn=lib64
-      ;;
-    esac
-    ;;
-  solaris*)
-    ## libnn=lib/sparcv9 ## on 64-bit only, but that's compiler-specific
-    ;;  
-esac
-: ${LIBnn=$libnn}
 ## We provide these defaults so that headers and libraries in
 ## '/usr/local' are found (by the native tools, mostly).
 if test -f "/sw/etc/fink.conf"; then
@@ -134,36 +119,8 @@ if test -f "/sw/etc/fink.conf"; then
   : ${LDFLAGS="-L/sw/lib -L/usr/local/lib"}
 else
   : ${CPPFLAGS="-I/usr/local/include"}
-  : ${LDFLAGS="-L/usr/local/${LIBnn}"}
+  : ${LDFLAGS="-L/usr/local/lib"}
 fi
-AC_SUBST(LIBnn)
-## take care not to  override the command-line setting
-if test "${libdir}" = '${exec_prefix}/lib'; then
-  libdir='${exec_prefix}/${LIBnn}'
-fi
-
-## R installation directories
-m4_divert_once([HELP_BEGIN], [
-R installation directories:
-  --libdir=DIR        R files to R_HOME=DIR/R @<:@EPREFIX/$LIBnn@:>@
-    rdocdir=DIR       R doc files to DIR      @<:@R_HOME/doc@:>@
-    rincludedir=DIR   R include files to DIR  @<:@R_HOME/include@:>@
-    rsharedir=DIR     R share files to DIR    @<:@R_HOME/share@:>@])dnl
-
-if test -z ${rdocdir}; then
-  rdocdir='${rhome}/doc'
-fi
-AC_SUBST([rdocdir])
-
-if test -z ${rincludedir}; then
-  rincludedir='${rhome}/include'
-fi
-AC_SUBST([rincludedir])
-
-if test -z ${rsharedir}; then
-  rsharedir='${rhome}/share'
-fi
-AC_SUBST([rsharedir])
 
 ### ** Handle arguments to configure.
 
@@ -430,7 +387,6 @@ AC_ARG_VAR([BLAS_LIBS],
            [flags needed for linking against external BLAS libraries])
 AC_ARG_VAR([LAPACK_LIBS],
            [flags needed for linking against external LAPACK libraries])
-AC_ARG_VAR([LIBnn], ['lib' or 'lib64' for dynamic libraries])
 
 ### ** Check whether we build in srcdir.
 
@@ -1264,10 +1220,7 @@ fi
 
 AC_CHECK_TYPES([off_t])
 AC_FUNC_ALLOCA
-AC_CHECK_DECLS([alloca], , , 
-[#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#endif])
+AC_CHECK_DECLS([alloca], , , [#include <alloca.h>])
 AC_CHECK_FUNCS(access chdir expm1 fcntl finite fseeko ftello ftruncate \
   getcwd getgrgid getpwuid getuid hypot isascii log1p \
   matherr mkdtemp mkfifo popen putenv realpath rint \

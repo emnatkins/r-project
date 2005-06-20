@@ -137,9 +137,9 @@ char *EncodeRaw(Rbyte x)
     return buffer->data;
 }
 
-char *EncodeReal(double x, int w, int d, int e, char cdec)
+char *EncodeReal(double x, int w, int d, int e)
 {
-    char *p, fmt[20];
+    char fmt[20];
 
     R_AllocStringBuffer(0, buffer);
     /* IEEE allows signed zeros (yuck!) */
@@ -184,15 +184,10 @@ char *EncodeReal(double x, int w, int d, int e, char cdec)
 	sprintf(fmt,"%%%d.%df", w, d);
 	sprintf(buffer->data, fmt, x);
     }
-
-    if(cdec != '.')
-      for(p = buffer->data; *p; p++) if(*p == '.') *p = cdec;
-
     return buffer->data;
 }
 
-char *EncodeComplex(Rcomplex x, int wr, int dr, int er, int wi, int di, int ei,
-		    char cdec)
+char *EncodeComplex(Rcomplex x, int wr, int dr, int er, int wi, int di, int ei)
 {
     char *Re, *Im, *tmp;
     int  flagNegIm = 0;
@@ -209,13 +204,13 @@ char *EncodeComplex(Rcomplex x, int wr, int dr, int er, int wi, int di, int ei,
     else {
 	/* EncodeReal returns pointer to static storage so copy */
 
-	tmp = EncodeReal(x.r, wr, dr, er, cdec);
+	tmp = EncodeReal(x.r, wr, dr, er);
 	Re = Calloc(strlen(tmp)+1, char);
 	strcpy(Re, tmp);
 
 	if ( (flagNegIm = (x.i < 0)) )
 	    x.i = -x.i;
-	tmp = EncodeReal(x.i, wi, di, ei, cdec);
+	tmp = EncodeReal(x.i, wi, di, ei);
 	Im = Calloc(strlen(tmp)+1, char);
 	strcpy(Im, tmp);
 
@@ -229,21 +224,19 @@ char *EncodeComplex(Rcomplex x, int wr, int dr, int er, int wi, int di, int ei,
 #ifdef SUPPORT_MBCS
 #include <wchar.h>
 #include <wctype.h>
-#if !HAVE_DECL_WCWIDTH
-extern int wcwidth(wchar_t c);
-#endif
 #endif
 /* strlen() using escaped rather than literal form,
    and allows for embedded nuls.
-   In MBCS locales it works in characters, and reports in display width.
+   In MBCS locales it works in characters.
  */
-int Rstrwid(char *str, int slen, int quote)
+int Rstrlen(SEXP s, int quote)
 {
-    char *p = str;
+    char *p;
     int len, i;
 
     len = 0;
-    for (i = 0; i < slen; i++) {
+    p = CHAR(s);
+    for (i = 0; i < LENGTH(s); i++) {
 
 	/* ASCII */
 	if((unsigned char) *p < 0x80) {
@@ -277,13 +270,7 @@ int Rstrwid(char *str, int slen, int quote)
 	    int res; wchar_t wc;
 	    res = mbrtowc(&wc, p, MB_CUR_MAX, NULL);
 	    if(res > 0) {
-		len += iswprint((wint_t)wc) ?
-#ifdef HAVE_WCWIDTH
-		    wcwidth(wc)
-#else
-		    1
-#endif
-		    : (wc > 0xffff ? 10 : 6);
+		len += iswprint((int)wc) ? 1 : (wc > 0xffff ? 10 : 6);
 		i += (res - 1);
 		p += res;
 	    } else {
@@ -300,11 +287,6 @@ int Rstrwid(char *str, int slen, int quote)
 	}
     }
     return len;
-}
-
-int Rstrlen(SEXP s, int quote)
-{
-    return Rstrwid(CHAR(s), LENGTH(s), quote);
 }
 
 /* Here w appears to be the minimum field width */
@@ -407,7 +389,7 @@ char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
     return buffer->data;
 }
 
-char *EncodeElement(SEXP x, int indx, int quote, char dec)
+char *EncodeElement(SEXP x, int indx, int quote)
 {
     int w, d, e, wi, di, ei;
 
@@ -422,7 +404,7 @@ char *EncodeElement(SEXP x, int indx, int quote, char dec)
 	break;
     case REALSXP:
 	formatReal(&REAL(x)[indx], 1, &w, &d, &e, 0);
-	EncodeReal(REAL(x)[indx], w, d, e, dec);
+	EncodeReal(REAL(x)[indx], w, d, e);
 	break;
     case STRSXP:
 	formatString(&STRING_PTR(x)[indx], 1, &w, quote);
@@ -432,7 +414,7 @@ char *EncodeElement(SEXP x, int indx, int quote, char dec)
 	formatComplex(&COMPLEX(x)[indx], 1,
 		      &w, &d, &e, &wi, &di, &ei, 0);
 	EncodeComplex(COMPLEX(x)[indx],
-		      w, d, e, wi, di, ei, dec);
+		      w, d, e, wi, di, ei);
 	break;
     case RAWSXP:
 	EncodeRaw(RAW(x)[indx]);

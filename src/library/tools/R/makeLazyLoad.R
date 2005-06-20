@@ -129,10 +129,8 @@ data2LazyLoadDB <- function(package, lib.loc = NULL, compress = TRUE)
             }
             dup<- duplicated(loaded)
             if(any(dup))
-                warning(gettextf("object(s) %s are created by more than one data call",
-                                 paste(sQuote(loaded[dup]),
-                                       collapse=", ")),
-                        domain = NA)
+                warning("object(s) ", paste(sQuote(loaded[dup]), collapse=", "),
+                    " are created by more than one data call")
 
             if(length(loaded)) {
                 dbbase <- file.path(dataDir, "Rdata")
@@ -262,9 +260,9 @@ makeLazyLoading <-
     if (package == "base")
         stop("this cannot be used for package 'base'")
     else if (packageHasNamespace(package, dirname(pkgpath)))
-        loaderFile <- file.path(R.home("share"), "R", "nspackloader.R")
+        loaderFile <- file.path(R.home(), "share", "R", "nspackloader.R")
     else
-        loaderFile <- file.path(R.home("share"), "R", "packloader.R")
+        loaderFile <- file.path(R.home(), "share", "R", "packloader.R")
     codeFile <- file.path(pkgpath, "R", barepackage)
 
     if (!file.exists(codeFile)) {

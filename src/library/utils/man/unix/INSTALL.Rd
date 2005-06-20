@@ -2,9 +2,7 @@
 \alias{INSTALL}
 \title{Install Add-on Packages}
 \description{Utility for installing add-on packages.}
-\usage{
-\special{R CMD INSTALL [options] [-l lib] pkgs}
-}
+\usage{R CMD INSTALL [options] [-l lib] pkgs}
 \arguments{
   \item{pkgs}{A space-separated list with the path names of the packages to be
     installed.}

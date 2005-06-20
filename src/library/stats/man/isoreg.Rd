@@ -3,7 +3,6 @@
 \alias{isoreg}
 %\alias{fitted.isoreg}
 %\alias{residuals.isoreg}
-\concept{monotonic regression}
 \description{
   Compute the isotonic (monotonely increasing nonparametric) least
   squares regression which is piecewise constant.
@@ -16,6 +15,7 @@ isoreg(x, y = NULL)
     points.  Alternatively a single \dQuote{plotting} structure can be
     specified: see \code{\link{xy.coords}}.
   }
+  \item{\dots}{potentially further arguments passed to methods.}
 }
 \details{
   The algorithm determines the convex minorant \eqn{m(x)} of the

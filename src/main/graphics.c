@@ -2077,7 +2077,6 @@ void GInit(GPar *dp)
     dp->colaxis = R_RGB(0, 0, 0);
     dp->gamma = 1;
 
-    dp->scale = 1.0;
     /* dp->ps = 10; */	/* Device Specific */
     dp->metricInfo = 0;
     strcpy(dp->family, "");
@@ -2483,19 +2482,13 @@ void gcontextFromGP(R_GE_gcontext *gc, DevDesc *dd)
     gc->col = Rf_gpptr(dd)->col;
     gc->fill = Rf_gpptr(dd)->bg;  /* This may need manual adjusting */
     gc->gamma = Rf_gpptr(dd)->gamma;
-    /* 
-     * Scale by "zoom" factor to allow for fit-to-window resizing in Windows
-     */
-    gc->lwd = Rf_gpptr(dd)->lwd * Rf_gpptr(dd)->scale;
+    gc->lwd = Rf_gpptr(dd)->lwd;
     gc->lty = Rf_gpptr(dd)->lty;
     gc->lend = Rf_gpptr(dd)->lend;
     gc->ljoin = Rf_gpptr(dd)->ljoin;
     gc->lmitre = Rf_gpptr(dd)->lmitre;
     gc->cex = Rf_gpptr(dd)->cex;
-    /* 
-     * Scale by "zoom" factor to allow for fit-to-window resizing in Windows
-     */
-    gc->ps = (double) Rf_gpptr(dd)->ps * Rf_gpptr(dd)->scale;
+    gc->ps = (double) Rf_gpptr(dd)->ps;
     gc->lineheight = Rf_gpptr(dd)->lheight;
     gc->fontface = Rf_gpptr(dd)->font;
     strcpy(gc->fontfamily, Rf_gpptr(dd)->family);

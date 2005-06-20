@@ -411,14 +411,8 @@ foreach my $pkg (@ARGV) {
 			copy(substr($opt_install, 6), $out);
 			$opt_install = "check";
 			@lines = &read_lines($out);
-			## <NOTE>
-			## We used to have
-			## $install_error =
-			##    ($lines[$#lines] !~ /^\* DONE/);
-			## but what if there is output from do_cleanup
-			## in (Unix) R CMD INSTALL?
 			$install_error =
-			    (scalar(grep(/^\* DONE/, @lines)) == 0);
+			    ($lines[$#lines] !~ /^\* DONE/);
 		    }
 		    else {
 			$cmd .= " >" .
@@ -1263,9 +1257,7 @@ sub check_pkg {
 	my @msg_doc_files =
 	  ("Functions with \\usage entries",
 	   "need to have the appropriate \\alias entries,",
-	   "and all their arguments documented.\n",
-	   "The \\usage entries must correspond to syntactically",
-	   "valid R code.\n");
+	   "and all their arguments documented.\n");
 
 	my $Rcmd = "options(warn=1)\n";
 	if($opt_install) {
@@ -1385,8 +1377,8 @@ sub check_pkg {
 		join(" ",
 		     (&shell_quote_file_path(${R::Vars::R_EXE}),
 		      "CMD perl",
-		      &shell_quote_file_path(&file_path(${R::Vars::R_SHARE_DIR},
-							"perl",
+		      &shell_quote_file_path(&file_path(${R::Vars::R_HOME},
+							"share", "perl",
 							"massage-Examples.pl")),
 		      "${pkgname}",
 		      &shell_quote_file_path(${Rexdir}),
@@ -1495,10 +1487,11 @@ sub check_pkg {
 	    copy($file, basename($file));
 	}
         my $makefiles = "-f " .
-	    &shell_quote_file_path(&file_path(${R::Vars::R_SHARE_DIR},
-					      "make", "tests.mk"));
+	    &shell_quote_file_path(&file_path(${R::Vars::R_HOME},
+					      "share", "make",
+					      "tests.mk"));
         if($WINDOWS) {
-            $makefiles = "-f ${R::Vars::R_SHARE_DIR}/make/wintests.mk";}
+            $makefiles = "-f ${R::Vars::R_HOME}/share/make/wintests.mk";}
         my $makevars = "";
         if($WINDOWS && (-r "$testsrcdir/Makefile.win")) {
             $makefiles .= " -f $testsrcdir/Makefile.win";
@@ -1577,7 +1570,7 @@ sub check_pkg {
 	}
 
 	## Can we run the code in the vignettes?
-	if($opt_install && $opt_vignettes) {
+	if($opt_vignettes) {
 	    ## Should checking the vignettes assume the system default
 	    ## packages, or just base?
 	    my $Rcmd = "options(warn=1)\nlibrary(tools)\n";
@@ -1614,7 +1607,7 @@ sub check_pkg {
         my $latex_dir = &file_path($library, $pkgname, "latex");
 	if(-d $latex_dir) {
 	    $ENV{'TEXINPUTS'} =
-	      env_path(&file_path($R::Vars::R_SHARE_DIR, "texmf"),
+	      env_path(&file_path($R::Vars::R_HOME, "share", "texmf"),
 		       $ENV{'TEXINPUTS'});
             my $is_zipped = 0;
             # latex files might have been zipped

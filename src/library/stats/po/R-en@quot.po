@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.2.0\n"
+"Project-Id-Version: R 2.1.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-06-09 10:58\n"
-"PO-Revision-Date: 2005-06-09 10:58\n"
+"POT-Creation-Date: 2005-04-27 15:02\n"
+"PO-Revision-Date: 2005-04-27 15:02\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -619,26 +619,11 @@ msgstr "‘ColSideColors’ must be a character vector of length ncol(x)"
 msgid "'RowSideColors' must be a character vector of length nrow(x)"
 msgstr "‘RowSideColors’ must be a character vector of length nrow(x)"
 
-msgid "non-matched further arguments are disregarded"
-msgstr "non-matched further arguments are disregarded"
-
 msgid "argument 'x' must be numeric"
 msgstr "argument ‘x’ must be numeric"
 
 msgid "'x' contains missing values"
 msgstr "‘x’ contains missing values"
-
-msgid "'x' and 'weights' have unequal length"
-msgstr "‘x’ and ‘weights’ have unequal length"
-
-msgid "'weights' must all be finite"
-msgstr "‘weights’ must all be finite"
-
-msgid "'weights' must not be negative"
-msgstr "‘weights’ must not be negative"
-
-msgid "sum(weights) != 1  -- will not get true density"
-msgstr "sum(weights) != 1  -- will not get true density"
 
 msgid "need at least 2 points to select a bandwidth automatically"
 msgstr "need at least 2 points to select a bandwidth automatically"
@@ -1467,12 +1452,6 @@ msgstr "f() values at end points not of opposite sign"
 msgid "_NOT_ converged in"
 msgstr "_NOT_ converged in"
 
-msgid "control argument must be a named list"
-msgstr "control argument must be a named list"
-
-msgid "Logical `hessian' argument not allowed.  See documentation."
-msgstr "Logical ‘hessian’ argument not allowed.  See documentation."
-
 msgid "'params' has wrong length"
 msgstr "‘params’ has wrong length"
 
@@ -1547,8 +1526,8 @@ msgstr "too few groups"
 msgid "use only with \"lm\" objects"
 msgstr "use only with “lm” objects"
 
-msgid "'which' must be in 1:6"
-msgstr "‘which’ must be in 1:6"
+msgid "'which' must be in 1:4"
+msgstr "‘which’ must be in 1:4"
 
 msgid "'id.n' must be in {1,..,%d}"
 msgstr "‘id.n’ must be in {1,..,%d}"
@@ -1760,9 +1739,6 @@ msgstr "NA lev[]; probably smoothing parameter ‘spar’ way too large!"
 
 msgid "setting df = 1  __use with care!__"
 msgstr "setting df = 1  __use with care!__"
-
-msgid "need result of smooth.spline(*, keep.data=TRUE)"
-msgstr "need result of smooth.spline(*, keep.data=TRUE)"
 
 msgid "not a valid \"smooth.spline\" object"
 msgstr "not a valid “smooth.spline” object"

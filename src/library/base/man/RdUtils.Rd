@@ -11,15 +11,15 @@
 }
 \usage{
 
-\special{R CMD Rdconv [options] file}
+R CMD Rdconv [options] file
 #ifdef unix
-\special{R CMD Rd2dvi [options] files}
+R CMD Rd2dvi [options] files
 #endif
 #ifdef windows
-\special{R CMD Rd2dvi.sh [options] files}
+R CMD Rd2dvi.sh [options] files
 #endif
-\special{R CMD Rd2txt [options] file}
-\special{R CMD Sd2Rd [options] file}
+R CMD Rd2txt [options] file
+R CMD Sd2Rd [options] file
 }
 \arguments{
   \item{file}{the path to a file to be processed.}

@@ -91,7 +91,7 @@
 \usage{
 par(\dots, no.readonly = FALSE)
 
-\special{<highlevel plot> (\dots, <tag> = <value>)}
+<highlevel plot> (\dots, <tag> = <value>)
 }
 
 \arguments{

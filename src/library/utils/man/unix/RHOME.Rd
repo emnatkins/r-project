@@ -6,7 +6,5 @@
   Returns the location of the \R home directory, which is the root of
   the installed \R tree.
 }
-\usage{
-\special{R RHOME}
-}
+\usage{R RHOME}
 \keyword{utilities}

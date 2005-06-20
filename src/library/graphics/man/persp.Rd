@@ -79,13 +79,14 @@ persp(x, \dots)
   \item{\dots}{additional graphical parameters (see \code{\link{par}}).}
 }
 \value{
-  \code{persp()} returns the \emph{viewing transformation matrix}, say
-  \code{VT}, a \eqn{4 \times 4}{4 x 4} matrix suitable for projecting 3D coordinates
+  The \emph{viewing transformation matrix}, say \code{VT}, a
+  \eqn{4 \times 4}{4 x 4} matrix suitable for projecting 3D coordinates
   \eqn{(x,y,z)} into the 2D plane using homogenous 4D coordinates
   \eqn{(x,y,z,t)}.
   It can be used to superimpose additional graphical elements on the 3D
-  plot, by \code{\link{lines}()} or \code{\link{points}()},
-  using the simple function \code{\link{trans3d}()}.
+  plot, by \code{\link{lines}()} or \code{\link{points}()}, e.g.
+  using the function \code{trans3d} given in the last examples section
+  below.
 }
 \details{
   The plots are produced by first transforming the
@@ -113,7 +114,7 @@ persp(x, \dots)
   Wadsworth \& Brooks/Cole.
 }
 \seealso{
-  \code{\link{contour}} and \code{\link{image}}; \code{\link{trans3d}}.
+  \code{\link{contour}} and \code{\link{image}}.
 }
 \examples{
 ## More examples in  demo(persp) !!
@@ -135,8 +136,12 @@ persp(x, y, z, theta = 30, phi = 30, expand = 0.5, col = "lightblue",
 ) -> res
 round(res, 3)
 
-# (2) Add to existing persp plot - using trans3d() :
+# (2) Add to existing persp plot :
 
+trans3d <- function(x,y,z, pmat) {
+  tr <- cbind(x,y,z,1) \%*\% pmat
+  list(x = tr[,1]/tr[,4], y= tr[,2]/tr[,4])
+}
 xE <- c(-10,10); xy <- expand.grid(xE, xE)
 points(trans3d(xy[,1], xy[,2], 6, pm = res), col = 2, pch =16)
 lines (trans3d(x, y=10, z= 6 + sin(x), pm = res), col = 3)

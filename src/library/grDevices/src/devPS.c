@@ -32,7 +32,7 @@
 #endif
 
 #include "Defn.h"
-#include <Rmath.h>		/* for rround */
+#include "Rmath.h" /* for rround */
 #include "Graphics.h"
 #include <R_ext/Error.h>
 #include "Fileio.h"
@@ -43,6 +43,12 @@
 #include <errno.h>
 #else
 extern int errno;
+#endif
+
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#elif !defined (__FreeBSD__)
+extern char *alloca(size_t);
 #endif
 
 #define INVALID_COL 0xff0a0b0c
@@ -5129,7 +5135,7 @@ SEXP PostScript(SEXP args)
 	if(!PSDeviceDriver(dev, file, paper, family, afms, encoding, bg, fg,
 			   width, height, (double)horizontal, ps, onefile,
 			   pagecentre, printit, cmd, title, fonts)) {
-	    /* free(dev); No, dev freed inside PSDeviceDrive */
+	    free(dev);
 	    error(_("unable to start device PostScript"));
 	}
 	gsetVar(install(".Device"), mkString("postscript"), R_NilValue);
@@ -5195,7 +5201,7 @@ SEXP XFig(SEXP args)
 	dev->savedSnapshot = R_NilValue;
 	if(!XFigDeviceDriver(dev, file, paper, family, bg, fg, width, height,
 			     (double) horizontal, ps, onefile, pagecentre)) {
-	    /* free(dev); No, freed inside XFigDeviceDriver */
+	    free(dev);
 	    error(_("unable to start device xfig"));
 	}
 	gsetVar(install(".Device"), mkString("xfig"), R_NilValue);
@@ -5268,7 +5274,7 @@ SEXP PDF(SEXP args)
 	if(!PDFDeviceDriver(dev, file, paper, family, encoding, bg, fg, 
 			    width, height, ps, onefile, pagecentre,
 			    title, fonts, major, minor)) {
-	    /* free(dev); PDFDeviceDriver now frees */
+	    free(dev);
 	    error(_("unable to start device pdf"));
 	}
 	gsetVar(install(".Device"), mkString("pdf"), R_NilValue);

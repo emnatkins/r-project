@@ -152,9 +152,6 @@ sub read_titles {
 		    } else {
 			$tit{$pkgname} = "-- Title is missing --";
 		    }
-		    if($rdcf->{"Encoding"}) {
-			## decide what to do
-		    }
 		}
 	    }
 	}
@@ -260,7 +257,7 @@ sub build_htmlpkglist {
     print htmlfile html_pagehead("Package Index", ".",
 				 "index$HTML", "Top",
 				 "", "",
-				 "", "", "./R.css", "iso-8859-1");
+				 "", "", "./R.css");
 
     print htmlfile "<p><h3>Packages in the standard library</h3>\n", 
     "<p>\n<table width=\"100%\" summary=\"R Package list\">\n";
@@ -296,30 +293,6 @@ sub encodealias { # text
 
 sub foldorder {uc($a) cmp uc($b) or $a cmp $b;}
 
-sub isNonASCII {
-    return $_[0] =~ /[^A-Za-z0-9[:punct:][:space:]]/
-}
-
-## use preferred MIME encoding, not IANA registered name
-sub canonical_encoding {
-    my $encoding = lc($_[0]);
-    if(/iso_8859-([0-9]+)/) {$encoding = "iso-8859-$1";}
-    $encoding = "iso-8859-1"  if $encoding eq "latin1";
-    $encoding = "iso-8859-2"  if $encoding eq "latin2";
-    $encoding = "iso-8859-3"  if $encoding eq "latin3";
-    $encoding = "iso-8859-4"  if $encoding eq "latin4";
-    $encoding = "iso-8859-5"  if $encoding eq "cyrillic";
-    $encoding = "iso-8859-6"  if $encoding eq "arabic";
-    $encoding = "iso-8859-7"  if $encoding eq "greek";
-    $encoding = "iso-8859-8"  if $encoding eq "hebrew";
-    $encoding = "iso-8859-9"  if $encoding eq "latin5";
-    $encoding = "iso-8859-10" if $encoding eq "latin6";
-    $encoding = "iso-8859-14" if $encoding eq "latin8";
-    $encoding = "iso-8859-15" if $encoding eq "latin-9";
-    $encoding = "iso-8859-16" if $encoding eq "latin10";
-    return $encoding;
-}
-
 sub build_index { # lib, dest, version, [chmdir]
     my $lib = $_[0];
     my $dest = $_[1];
@@ -336,7 +309,6 @@ sub build_index { # lib, dest, version, [chmdir]
 
     my $title = "";
     my $pkg_name = "";
-    my $pkg_encoding = "unknown";
     ## did not work if builddir ne srcdir
     if(-r &file_path($dest, "DESCRIPTION")) {
 	my $rdcf = R::Dcf->new(&file_path($dest, "DESCRIPTION"));
@@ -348,16 +320,7 @@ sub build_index { # lib, dest, version, [chmdir]
 	    $title = $rdcf->{"Title"};
 	    chomp $title;
 	}
-	if($rdcf->{"Encoding"}) {
-	    ## we use this even if the pkg title is ASCII
-	    $pkg_encoding = $rdcf->{"Encoding"};
-	    chomp $pkg_encoding;
-	    $pkg_encoding = canonical_encoding($pkg_encoding);
-	}
     }
-
-    $pkg_encoding = "iso-8859-1" if lc($pkg_encoding) eq "latin1";
-    $pkg_encoding = "iso-8859-2" if lc($pkg_encoding) eq "latin2";
 
     my $tdir = file_path($dest, "help");
     if(! -d $tdir) {
@@ -381,7 +344,6 @@ sub build_index { # lib, dest, version, [chmdir]
 
 	    my $rdname = basename($manfile, (".Rd", ".rd"));
 	    my $internal = 0;
-	    my $encoding = "unknown";
 
 	    if($main::opt_dosnames){
 		$manfilebase = "x" . $nmanfiles++;
@@ -401,19 +363,7 @@ sub build_index { # lib, dest, version, [chmdir]
 	    $rdtitle =~ s/\n/ /sg;
 	    $rdtitle =~ s/\\R/R/g; # don't use \R in titles
 	    $internal = 1 if $text =~ /\\keyword\{\s*internal\s*\}/;
-	    if($text =~ /\\encoding\{\s*([^\}]+)\s*\}/s) {
-		$encoding = canonical_encoding($1);
-		if(isNonASCII($rdtitle)) {
-		    if($pkg_encoding eq "unknown") {
-			$pkg_encoding = $encoding;
-		    } elsif($encoding ne $pkg_encoding) {
-			warn "Warning: " .
-			    "encoding of Rd title in '$encoding'".
-			    " is inconsistent with ".
-			    "earlier encoding '$pkg_encoding'\n";
-		    }
-		}
-	    }
+
 	    $main::filenm{$rdname} = $manfilebase;
 	    if($main::opt_chm) {
 		$main::title2file{$rdtitle} = $manfilebase;
@@ -459,15 +409,11 @@ sub build_index { # lib, dest, version, [chmdir]
 	open(chmfile, "> $chmdir/00Index$HTML") or
 	    die "Could not open $chmdir/00Index$HTML";
     }
-    $pkg_encoding = canonical_encoding($pkg_encoding);
-
-    $pkg_encoding = "iso-8859-1" if $pkg_encoding eq "unknown";
 
     print htmlfile html_pagehead("$title", "../../../doc/html",
 				 "../../../doc/html/index$HTML", "Top",
 				 "../../../doc/html/packages$HTML",
-				 "Package List", "", "", "../../R.css",
-				 $pkg_encoding);
+				 "Package List", "", "", "../../R.css");
 
     if($main::opt_chm) {
 	print chmfile chm_pagehead("$title");
@@ -585,10 +531,10 @@ sub html_alphabet
 sub html_pagehead
 {
     my ($title, $top, $up, $uptext, $prev, $prevtext, $next, $nextext, 
-	$cssloc, $enc) = @_;
+	$cssloc) = @_;
 
     my $retval = "<html><head><title>R: $title</title>\n" .
-	"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=$enc\">\n" .
+	"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">\n" .
 	"<link rel=\"stylesheet\" type=\"text/css\" href=\"$cssloc\">\n" .
 	"</head><body>\n" .
 	"<h1>$title " .

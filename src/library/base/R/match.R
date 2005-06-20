@@ -24,22 +24,16 @@ pmatch <-
 
 "%in%" <- function(x, table) match(x, table, nomatch = 0) > 0
 
-match.arg <- function (arg, choices, several.ok = FALSE)
-{
+match.arg <- function (arg, choices) {
     if (missing(choices)) {
 	formal.args <- formals(sys.function(sys.parent()))
 	choices <- eval(formal.args[[deparse(substitute(arg))]])
     }
-    if (!several.ok) { # most important (default) case:
-        if(all(arg == choices)) return(choices[1])
-    } else {
-        if (identical(arg, choices)) return(choices)
-    }
+    if (all(arg == choices)) return(choices[1])
     i <- pmatch(arg, choices)
-    if (any(is.na(i)))
+    if (is.na(i))
 	stop("'arg' should be one of ", paste(choices, collapse = ", "))
-    if (!several.ok && length(i) > 1)
-        stop("there is more than one match in 'match.arg'")
+    if (length(i) > 1) stop("there is more than one match in 'match.arg'")
     choices[i]
 }
 

@@ -144,12 +144,20 @@ SEXP baseCallback(GEevent task, GEDevDesc *dd, SEXP data) {
 	ddpSaved = &(((baseSystemState*) sd->systemSpecific)->dpSaved);
 	if (isReal(data) && LENGTH(data) == 1) {
 	  double rf = REAL(data)[0];
-	  ddp->scale *= rf;
+	  /* The pointsize appears to be being scaled somewhere else
+	   * Can't see where yet;  this seems to work and will have
+	   * to do while we're in feature freeze (!?)
+	   * ddp->ps *= rf;
+	   */
 	  ddp->cra[0] *= rf; 
 	  ddp->cra[1] *= rf;
 	  /* Modify the saved settings so effects dislpay list too
 	   */
-	  ddpSaved->scale *= rf;
+	  /* The pointsize appears to be being scaled somewhere else
+	   * Can't see where yet;  this seems to work and will have
+	   * to do while we're in feature freeze (!?)
+	   * ddpSaved->ps *= rf;
+	   */
 	  ddpSaved->cra[0] *= rf; 
 	  ddpSaved->cra[1] *= rf;
 	}

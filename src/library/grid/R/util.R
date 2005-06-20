@@ -10,10 +10,13 @@ STATE <- function() {
   get(".GRID.STATE", envir=.GridEvalEnv)
 }
 
-is.even <- function(x) x %% 2 == 0
+is.odd <- function(x) {
+  (x %% 2 == 0)
+}
 
-is.odd <- function(x) !is.even(x)
-
+is.even <- function(x) {
+  !is.odd(x)
+}
 
 grid.pretty <- function(range) {
   if (!is.numeric(range))
