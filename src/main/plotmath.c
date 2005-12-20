@@ -1,11 +1,10 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996, 1997 Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2005	The R Development Core Team
+ *  Copyright (C) 1998-2000	The R Development Core Team
  *
  *  This source code module:
  *  Copyright (C) 1997, 1998 Paul Murrell and Ross Ihaka
- *  Copyright (C) 1998-2005	The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,16 +30,15 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#include <Defn.h>
 
 #include <ctype.h>
 #ifdef SUPPORT_MBCS
-# include <R_ext/rlocale.h>
 # include <wchar.h>
 # include <wctype.h>
 #endif
 
 
+#include <Defn.h>
 #include <Rmath.h>
 #include <Graphics.h>
 
@@ -701,7 +699,6 @@ SymbolTable[] = {
     { "Eta",		 72 },
     { "Iota",		 73 },
     { "theta1",		 74 },
-    { "vartheta",	 74 },
     { "Kappa",		 75 },
     { "Lambda",		 76 },
     { "Mu",		 77 },
@@ -714,8 +711,6 @@ SymbolTable[] = {
     { "Tau",		 84 },
     { "Upsilon",	 85 },
     { "sigma1",		 86 },
-    { "varsigma",	 86 },
-    { "stigma",		 86 },
     { "Omega",		 87 },
     { "Xi",		 88 },
     { "Psi",		 89 },
@@ -738,7 +733,6 @@ SymbolTable[] = {
     { "eta",		104 },
     { "iota",		105 },
     { "phi1",		106 },
-    { "varphi",		106 },
     { "kappa",		107 },
     { "lambda",		108 },
     { "mu",		109 },
@@ -866,7 +860,6 @@ static int SymbolCode(SEXP expr)
     return 0;
 }
 
-/* this is the one really used: */
 static int TranslatedSymbol(SEXP expr)
 {
     int code = SymbolCode(expr);
@@ -1037,7 +1030,7 @@ static BBOX RenderSymbolStr(char *str, int draw, mathContext *mc,
 	    wchar_t wc;
 	    mbstate_t mb_st;
 	    size_t res;
-
+	    
 	    memset(&mb_st, 0, sizeof(mb_st));
 	    while (*s) {
 		wc = 0;

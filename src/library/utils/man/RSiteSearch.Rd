@@ -1,8 +1,8 @@
 \name{RSiteSearch}
 \alias{RSiteSearch}
 \title{
-  Search for Key Words or Phrases in the R-help Mailing List Archives
-  or Documentation
+  Search for key words or phrases in the R-help mailing list archives
+  or documentation.
 }
 \description{
   Search for key words or phrases in the R-help mailing list

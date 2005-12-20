@@ -30,10 +30,8 @@ ARMAacf(ar = numeric(0), ma = numeric(0), lag.max = r, pacf = FALSE)
   Brockwell, P. J. and Davis, R. A. (1991) \emph{Time Series: Theory and
     Methods}, Second Edition.  Springer.
 }
-\seealso{\code{\link{arima}}, \code{\link{ARMAtoMA}},
-  \code{\link{acf2AR}} for inverting part of \code{ARMAacf}; further
-  \code{\link{filter}}.
-}
+\seealso{\code{\link{arima}}, \code{\link{ARMAtoMA}}, \code{\link{filter}}.}
+
 \examples{
 ARMAacf(c(1.0, -0.25), 1.0, lag.max = 10)
 

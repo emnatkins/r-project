@@ -122,14 +122,13 @@ convertNative <- function(unit, dimension="x", type="location") {
 
 # NOTE: the order of the strings in these conversion functions must
 # match the order of the enums in ../src/grid.h
-# AND in ../src/unit.c (see UnitTable)
 .grid.unit.list <- c("npc", "cm", "inches", "lines",
                      "native", "null", "snpc", "mm",
                      "points", "picas", "bigpts",
                      "dida", "cicero", "scaledpts",
                      "strwidth", "strheight",
                      "vplayoutwidth", "vplayoutheight", "char",
-                     "grobx", "groby", "grobwidth", "grobheight",
+                     "grobwidth", "grobheight",
                      "mylines", "mychar", "mystrwidth", "mystrheight")
 
 # Make sure that and "str*" and "grob*" units have data
@@ -558,86 +557,15 @@ unit.length.unit.arithmetic <- function(unit) {
 #########################
 
 stringWidth <- function(string) {
-    n <- length(string)
-    if (is.language(string)) {
-        data <- vector("list", n)
-        for (i in 1:n)
-            data[[i]] <- string[i]
-    } else {
-        data <- as.list(as.character(string))
-    }
-    unit(rep(1, n), "strwidth", data=data)
+  string <- as.character(string)
+  unit(rep(1, length(string)), "strwidth", data=as.list(string))
 }
 
 stringHeight <- function(string) {
-    n <- length(string)
-    if (is.language(string)) {
-        data <- vector("list", n)
-        for (i in 1:n)
-            data[[i]] <- string[i]
-    } else {
-        data <- as.list(as.character(string))
-    }
-    unit(rep(1, n), "strheight", data=data)
+  string <- as.character(string)
+  unit(rep(1, length(string)), "strheight", data=as.list(string))
 }
 
-convertTheta <- function(theta) {
-    if (is.character(theta))
-        # Allow some aliases for common angles
-        switch(theta,
-               east=0,
-               north=90,
-               west=180,
-               south=270,
-               stop("Invalid theta"))
-    else
-        # Ensure theta in [0, 360)
-        theta <- as.numeric(theta) %% 360
-}
-
-# grobX
-grobX <- function(x, theta) {
-    UseMethod("grobX", x)
-}
-
-grobX.grob <- function(x, theta) {
-  unit(convertTheta(theta), "grobx", data=x)
-}
-
-grobX.gList <- function(x, theta) {
-  unit(rep(convertTheta(theta), length(gList)), "grobx", data=x)
-}
-
-grobX.gPath <- function(x, theta) {
-  unit(convertTheta(theta), "grobx", data=x)
-}
-
-grobX.default <- function(x, theta) {
-  unit(convertTheta(theta), "grobx", data=gPathDirect(as.character(x)))
-}
-
-# grobY
-grobY <- function(x, theta) {
-    UseMethod("grobY", x)
-}
-
-grobY.grob <- function(x, theta) {
-  unit(convertTheta(theta), "groby", data=x)
-}
-
-grobY.gList <- function(x, theta) {
-  unit(rep(convertTheta(theta), length(gList)), "groby", data=x)
-}
-
-grobY.gPath <- function(x, theta) {
-  unit(convertTheta(theta), "groby", data=x)
-}
-
-grobY.default <- function(x, theta) {
-  unit(convertTheta(theta), "groby", data=gPathDirect(as.character(x)))
-}
-
-# grobWidth
 grobWidth <- function(x) {
   UseMethod("grobWidth")
 }
@@ -658,7 +586,6 @@ grobWidth.default <- function(x) {
   unit(1, "grobwidth", data=gPathDirect(as.character(x)))
 }
 
-# grobHeight
 grobHeight <- function(x) {
   UseMethod("grobHeight")
 }

@@ -1116,7 +1116,6 @@ SEXP do_makeunique(SEXP call, SEXP op, SEXP args, SEXP env)
 	       that will be recovered if interrupted. */
 	    cnts = (int *) R_alloc(n,  sizeof(int));
 	}
-	R_CheckStack();
 	for(i = 0; i < n; i++) cnts[i] = 1;
 	data.nomatch = 0;
 	PROTECT(newx = allocVector(STRSXP, 1));

@@ -1311,11 +1311,7 @@ SEXP do_asfunction(SEXP call, SEXP op, SEXP args, SEXP rho)
 	errorcall(call, _("list argument expected"));
 
     envir = CADR(args);
-    if (isNull(envir)) {
-	warning(_("use of NULL environment is deprecated"));
-	envir = R_BaseEnv;
-    } else    
-    if (!isEnvironment(envir))
+    if (!isNull(envir) && !isEnvironment(envir))
 	errorcall(call, _("invalid environment"));
 
     n = length(arglist);

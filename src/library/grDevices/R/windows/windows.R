@@ -4,8 +4,7 @@ windows <- function(width = 7, height = 7, pointsize = 12,
                     bg = "transparent", canvas = "white",
                     gamma = getOption("gamma"),
                     xpos = NA, ypos = NA,
-                    buffered = getOption("windowsBuffered"),
-                    restoreConsole = FALSE)
+                    buffered = getOption("windowsBuffered"))
 {
     rescale <- match.arg(rescale)
     rescale <- match(rescale, c("R", "fit", "fixed"))
@@ -19,10 +18,10 @@ windows <- function(width = 7, height = 7, pointsize = 12,
                         xpinch, ypinch, canvas,
                         if(is.null(gamma)) 1 else gamma,
                         as.integer(xpos), as.integer(ypos), buffered,
-                        .PSenv, bg, restoreConsole, PACKAGE = "grDevices"))
+                        .PSenv, bg, PACKAGE = "grDevices"))
 }
 
-win.graph <- function(width = 7, height = 7, pointsize = 12, restoreConsole = FALSE)
+win.graph <- function(width = 7, height = 7, pointsize = 12)
 {
     gamma <- getOption("gamma")
     if(!length(xpinch <- getOption("xpinch"))) xpinch <- NA
@@ -33,40 +32,40 @@ win.graph <- function(width = 7, height = 7, pointsize = 12, restoreConsole = FA
                         if(is.null(gamma)) 1 else gamma,
                         as.integer(NA), as.integer(NA),
                         getOption("windowsBuffered"),
-                        .PSenv, NA, restoreConsole, PACKAGE = "grDevices"))
+                        .PSenv, NA, PACKAGE = "grDevices"))
 }
 
-win.print <- function(width = 7, height = 7, pointsize = 12, printer = "", restoreConsole = TRUE)
+win.print <- function(width = 7, height = 7, pointsize = 12, printer = "")
     invisible(.External("devga", paste("win.print:", printer, sep=""),
                         width, height, pointsize, FALSE, 1,
                         NA, NA, "white", 1, as.integer(NA), as.integer(NA),
-                        FALSE, .PSenv, NA, restoreConsole, PACKAGE = "grDevices"))
+                        FALSE, .PSenv, NA, PACKAGE = "grDevices"))
 
-win.metafile <- function(filename = "", width = 7, height = 7, pointsize = 12, restoreConsole = TRUE)
+win.metafile <- function(filename = "", width = 7, height = 7, pointsize = 12)
     invisible(.External("devga", paste("win.metafile:", filename, sep=""),
                         width, height, pointsize, FALSE, 1, NA, NA, "white", 1,
-                        as.integer(NA), as.integer(NA), FALSE, .PSenv, NA, restoreConsole,
+                        as.integer(NA), as.integer(NA), FALSE, .PSenv, NA,
                         PACKAGE = "grDevices"))
 
 png <- function(filename = "Rplot%03d.png", width = 480, height = 480,
-                pointsize = 12, bg = "white", res = NA, restoreConsole = TRUE)
+                pointsize = 12, bg = "white", res = NA)
     invisible(.External("devga", paste("png:", filename, sep=""),
                         width, height, pointsize, FALSE, 1, NA, NA, bg, 1,
-                        as.integer(res), as.integer(NA), FALSE, .PSenv, NA, restoreConsole,
+                        as.integer(res), as.integer(NA), FALSE, .PSenv, NA,
                         PACKAGE = "grDevices"))
 
 bmp <- function(filename = "Rplot%03d.bmp", width = 480, height = 480,
-                pointsize = 12, bg = "white", res = NA, restoreConsole = TRUE)
+                pointsize = 12, bg = "white", res = NA)
     invisible(.External("devga", paste("bmp:", filename, sep=""),
                         width, height, pointsize, FALSE, 1, NA, NA, bg, 1,
-                        as.integer(res), as.integer(NA), FALSE, .PSenv, NA, restoreConsole,
+                        as.integer(res), as.integer(NA), FALSE, .PSenv, NA,
                         PACKAGE = "grDevices"))
 
 jpeg <- function(filename = "Rplot%03d.jpg", width = 480, height = 480,
-                 pointsize = 12, quality=75, bg = "white", res = NA, restoreConsole = TRUE)
+                 pointsize = 12, quality=75, bg = "white", res = NA)
     invisible(.External("devga", paste("jpeg:", quality, ":",filename, sep=""),
                         width, height, pointsize, FALSE, 1, NA, NA, bg, 1,
-                        as.integer(res), as.integer(NA), FALSE, .PSenv, NA, restoreConsole,
+                        as.integer(res), as.integer(NA), FALSE, .PSenv, NA,
                         PACKAGE = "grDevices"))
 
 bringToTop <- function(which = dev.cur(), stay = FALSE)
@@ -82,8 +81,7 @@ bringToTop <- function(which = dev.cur(), stay = FALSE)
 savePlot <- function(filename = "Rplot",
                      type = c("wmf", "emf", "png", "jpeg", "jpg", "bmp",
                      "ps", "eps", "pdf"),
-                     device = dev.cur(),
-                     restoreConsole = TRUE)
+                     device = dev.cur())
 {
     type <- match.arg(type)
     devlist <- dev.list()
@@ -93,7 +91,7 @@ savePlot <- function(filename = "Rplot",
     if(devname != "windows") stop("can only copy from 'windows' devices")
     if(filename == "clipboard" && type == "wmf") filename <- ""
     if(nchar(filename) > 0) filename <- paste(filename, type, sep=".")
-    invisible(.External("savePlot", device, filename, type, restoreConsole,
+    invisible(.External("savePlot", device, filename, type,
                         PACKAGE = "grDevices"))
 }
 

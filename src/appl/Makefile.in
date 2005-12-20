@@ -38,7 +38,7 @@ SOURCES_F = \
 	lminfl.f
 DEPENDS = $(SOURCES_C:.c=.d)
 OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_F:.f=.o) \
-  @USE_EXTERNAL_BLAS_FALSE@ blas.o @COMPILE_FORTRAN_DOUBLE_COMPLEX_FALSE@ cmplxblas.o
+  @USE_EXTERNAL_BLAS_FALSE@ blas.o @COMPILE_FORTRAN_DOUBLE_COMPLEX_FALSE@ zgemm.o
 HEADERS =
 
 distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
@@ -47,10 +47,20 @@ DISTFILES = COPYRIGHT COPYRIGHT.ftn README lowess.doc \
 	$(HEADERS) \
 	$(SOURCES_C) \
 	$(SOURCES_F) \
-	blas.f cmplxblas.f
+	blas.f zgemm.f
 
-@WANT_R_SHLIB_TRUE@ALL_CFLAGS = $(ALL_CFLAGS_LO)
-@WANT_R_SHLIB_TRUE@ALL_FFLAGS = $(ALL_FFLAGS_LO)
+noinst_LIBRARIES = libappl.a
+libappl_a_SOURCES = $(SOURCES)
+libappl_a_OBJECTS = $(OBJECTS)
+
+## <FIXME>
+## We most likely will not want a separate shared library.
+## If we have a final decision, remove libappl.la target.
+noinst_LTLIBRARIES = libappl.la
+## </FIXME>
+libappl_la_SOURCES = $(SOURCES)
+libappl_la_OBJECTS = $(OBJECTS:.o=.lo)
+@USE_LIBTOOL_TRUE@libappl_la_LDFLAGS = -avoid-version -rpath "$(Rexeclibdir)"
 
 all: Makefile Makedeps R
 
@@ -63,16 +73,18 @@ Makedeps: Makefile $(DEPENDS)
 
 R: Makefile
 	@$(MAKE) Makedeps
-@WANT_R_SHLIB_FALSE@	@$(MAKE) libappl.a
+@WANT_R_SHLIB_FALSE@	@$(MAKE) $(noinst_LIBRARIES)
 @WANT_R_SHLIB_TRUE@	@$(MAKE) stamp-lo
 
-libappl.a: $(OBJECTS)
+libappl.a: $(libappl_a_OBJECTS)
 	rm -f $@
-	$(AR) cr $@ $(OBJECTS)
+	$(AR) cr $@ $(libappl_a_OBJECTS)
 	$(RANLIB) $@
 
-stamp-lo: $(OBJECTS)
+stamp-lo: $(libappl_la_OBJECTS)
 	@touch $@
+libappl.la: stamp-lo
+	$(SHLIB_LINK) -o $@ $(libappl_la_LDFLAGS) $(libappl_la_OBJECTS)
 
 mostlyclean: clean
 clean:

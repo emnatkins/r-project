@@ -5,7 +5,7 @@
         fromPackage <- getPackageName(where)
     }
     else fromPackage <- ""
-    whereF <- NULL
+    whereF <- baseenv()
     pname <- character()
     def <- NULL
     if(is.function(what)) {
@@ -56,7 +56,7 @@
     }
     if(nargs() == 1)
         return(.primTrace(what)) # for back compatibility
-    if(is.null(whereF)) {
+    if(identical(whereF, baseenv())) {
         allWhere <- findFunction(what, where = where)
         if(length(allWhere)==0)
             stop(gettextf("no function definition for '%s' found", what),
@@ -127,7 +127,7 @@
     if(!global) {
         action <- if(untrace)"Untracing" else "Tracing"
         location <- if(.identC(fromPackage, "")) {
-            if(length(pname)==0  && !is.null(whereF))
+            if(length(pname)==0  && !identical(whereF, baseenv()))
                 pname <- getPackageName(whereF)
             if(length(pname)==0)
                 "\""
@@ -368,7 +368,11 @@ trySilent <- function(expr) {
     else {
         whereF <- .genEnv(what, where)
     }
-    if(!is.null(attr(whereF, "name")))
+    if(is.null(whereF)) { ## stupid convention that NULL == base package
+        whereF <- .BaseNamespaceEnv
+        pname <- "base"
+    }
+    else if(!is.null(attr(whereF, "name")))
         pname <- gsub("^.*:", "", attr(whereF, "name"))
     else if(isNamespace(whereF))
         pname <- .searchNamespaceNames(whereF)

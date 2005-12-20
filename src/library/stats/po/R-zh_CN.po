@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.2.0\n"
+"Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-11-28 07:35\n"
+"POT-Creation-Date: 2005-12-12 09:04\n"
 "PO-Revision-Date: 2005-04-08 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -108,9 +108,6 @@ msgstr "範疇不是项标记集的子集"
 
 msgid "no 'drop1' method for \"mlm\" models"
 msgstr "\"mlm\" 模型没有'drop1'方法"
-
-msgid "F test assumes 'quasi%s' family"
-msgstr "F检验假設'quasi%s'家族"
 
 msgid "lower scope is not included in model"
 msgstr "模型里没有下範疇"
@@ -729,10 +726,10 @@ msgid "link not recognised"
 msgstr "没有这样的鏈結"
 
 msgid ""
-"link \"%s\" not available for Poisson family; available links are \"identity"
+"link \"%s\" not available for poisson family; available links are \"identity"
 "\", \"log\" and \"sqrt\""
 msgstr ""
-"Poisson分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是\"identity\", \"log\"和"
+"poisson分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是\"identity\", \"log\"和"
 "\"sqrt\""
 
 msgid "negative values not allowed for the Poisson family"
@@ -854,11 +851,8 @@ msgstr "必需在\"two.sided\", \"less\"或\"greater\"中选一个"
 msgid "'or' must be a single number between 0 and Inf"
 msgstr "'or'必需是在0和Inf之间的一个数值"
 
-msgid "need 2 or more non-zero row marginals"
-msgstr ""
-
-msgid "need 2 or more non-zero column marginals"
-msgstr ""
+msgid "p-values may be incorrect"
+msgstr "p-值可能有错"
 
 msgid "'hybrid' is ignored for a 2 x 2 table"
 msgstr ""
@@ -1012,12 +1006,6 @@ msgstr "以下'anova.glm'的变元不对因此略过不用:"
 msgid ","
 msgstr ","
 
-msgid "using F test with a %s family is inappropriate"
-msgstr ""
-
-msgid "using F test with a fixed dispersion is inappropriate"
-msgstr ""
-
 msgid "models with response"
 msgstr "模型带反应"
 
@@ -1026,9 +1014,6 @@ msgstr "被删除了，因为反应同模型1不相对"
 
 msgid "models were not all fitted to the same size of dataset"
 msgstr "模型拟合时没有用同样大小的数据集"
-
-msgid "using F test with a '%s' family is inappropriate"
-msgstr ""
 
 msgid "observations with zero weight not used for calculating dispersion"
 msgstr "计算离散度时0重量的观察量略过不用"
@@ -1494,6 +1479,9 @@ msgstr "setVarying : vary的长度必需同参数的长度相符"
 
 msgid "singular gradient matrix at initial parameter estimates"
 msgstr "参数初始估计值里有奇异梯度矩阵"
+
+msgid "argument 'weights' is currently ignored"
+msgstr ""
 
 msgid "Upper or lower bounds ignored unless algorithm = \"port\""
 msgstr "除非algorithm = \"port\"，上限或下限将略过不用"
@@ -1976,9 +1964,6 @@ msgstr "'ma'度数设定有矛盾"
 msgid "number of differences must be a positive integer"
 msgstr "差異数目必需是正整数"
 
-msgid "'start.innov' is too short: need %d points"
-msgstr ""
-
 msgid "insufficient observations"
 msgstr "观察量数目不够"
 
@@ -2063,27 +2048,3 @@ msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "参数%s没有在模型公式里出现过"
 msgstr[1] ""
-
-#~ msgid "p-values may be incorrect"
-#~ msgstr "p-值可能有错"
-
-#~ msgid "'shape' must be strictly positive"
-#~ msgstr "'shape'必需是正数"
-
-#~ msgid "p-values may be incorrect due to ties"
-#~ msgstr "因为有连结p-值算得可能不准"
-
-#~ msgid "one-argument anova() not implemented for 'mlm' objects"
-#~ msgstr "没有为'mlm'目标对象实现单变元的anova()功能"
-
-#~ msgid "'m' is negative"
-#~ msgstr "'m'是负数"
-
-#~ msgid "need response in formula"
-#~ msgstr "公式里没有反应"
-
-#~ msgid "non-integer counts in a Poisson glm!"
-#~ msgstr "Poisson通用线性模型里不能有负计数!"
-
-#~ msgid "'if 'x' is not a matrix, 'y' must be given"
-#~ msgstr "'如果'x'不是矩阵的话, 必需提供'y'值"

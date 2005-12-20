@@ -29,19 +29,16 @@
 # include <config.h>
 #endif
 
-#include <Defn.h>
-
 #include <string.h>
 #include <stdlib.h>
 
+#include <Defn.h>
 #include <Rmath.h>
 
 #include <Graphics.h>
 
 #include <R_ext/RConverters.h>
-#ifdef HAVE_ICONV
 #include <R_ext/Riconv.h>
-#endif
 
 #ifndef max
 #define max(a, b) ((a > b)?(a):(b))
@@ -220,6 +217,8 @@ checkNativeType(int targetType, int actualType)
 
     return(TRUE);
 }
+
+#include <R_ext/Riconv.h>
 
 static void *RObjToCPtr(SEXP s, int naok, int dup, int narg, int Fort,
 			const char *name, R_toCConverter **converter,
@@ -704,36 +703,25 @@ SEXP do_symbol(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP do_isloaded(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans;
-    char *sym, *pkg= "", *type="";
+    char *sym, *pkg= "";
     int val = 1, nargs = length(args);
     R_RegisteredNativeSymbol symbol = {R_FORTRAN_SYM, {NULL}, NULL};
 
     if (nargs < 1) errorcall(call, _("no arguments supplied"));
-    if (nargs > 3) errorcall(call, _("too many arguments"));
+    if (nargs > 2) errorcall(call, _("too many arguments"));
 
     if(!isValidString(CAR(args)))
 	errorcall(call, R_MSG_IA);
     sym = CHAR(STRING_ELT(CAR(args), 0));
-    if(nargs >= 2) {
+    if(nargs == 2) {
 	if(!isValidString(CADR(args)))
 	    errorcall(call, R_MSG_IA);
 	pkg = CHAR(STRING_ELT(CADR(args), 0));
     }
-    if(nargs >= 3) {
-	if(!isValidString(CADDR(args)))
-	    errorcall(call, R_MSG_IA);
-	type = CHAR(STRING_ELT(CADDR(args), 0));
-	if(strcmp(type, "C") == 0) symbol.type = R_C_SYM;
-	else if(strcmp(type, "Fortran") == 0) symbol.type = R_FORTRAN_SYM;
-	else if(strcmp(type, "Call") == 0) symbol.type = R_CALL_SYM;
-	else if(strcmp(type, "External") == 0) symbol.type = R_EXTERNAL_SYM;
-    }
-    if(strlen(type)) {
-	if(!(R_FindSymbol(sym, pkg, &symbol))) val = 0;
-    } else {
-	if (!(R_FindSymbol(sym, pkg, NULL)) && 
-	    !(R_FindSymbol(sym, pkg, &symbol))) val = 0;
-    }
+    /* We don't know if this is for .C, .Fortran, .Call or .External.
+       So look up all, which needs Fortran done separately. */
+    if (!(R_FindSymbol(sym, pkg, NULL)) && 
+	!(R_FindSymbol(sym, pkg, &symbol))) val = 0;
     ans = allocVector(LGLSXP, 1);
     LOGICAL(ans)[0] = val;
     return ans;

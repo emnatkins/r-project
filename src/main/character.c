@@ -39,22 +39,33 @@
 # include <config.h>
 #endif
 
-#include <Defn.h>
+#include <sys/types.h>
 
-#include <sys/types.h> /* probably not needed */
+#include "Defn.h"
 #include <R_ext/RS.h>  /* for Calloc/Free */
 #include <Rmath.h>     /* for imax2 */
 
 
 #ifdef SUPPORT_MBCS
-# include <R_ext/rlocale.h>
 # include <wchar.h>
 # include <wctype.h>
+#if !HAVE_DECL_WCWIDTH
+extern int wcwidth(wchar_t c);
+#endif
+#if !HAVE_DECL_WCSWIDTH
+extern int wcswidth(const wchar_t *s, size_t n);
+#endif
 #endif
 
 
 /* The next must come after other header files to redefine RE_DUP_MAX */
-#include "Rregex.h"
+#ifdef USE_SYSTEM_REGEX
+/* for 2.1.0, this option is not functional */
+#error USE_SYSTEM_REGEX is no longer supported
+# include <regex.h>
+#else
+# include "Rregex.h"
+#endif
 
 #include <Print.h> /* for R_print */
 
@@ -98,12 +109,14 @@ static void DeallocBuffer(R_StringBuffer *cbuff)
 SEXP do_nchar(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP d, s, x, stype;
-    int i, len, ntype;
+    int i, len;
     char *type;
 #ifdef SUPPORT_MBCS
     int nc;
     char *xi;
+#ifdef HAVE_WCSWIDTH
     wchar_t *wc;
+#endif
 #endif
 
     checkArity(op, args);
@@ -115,14 +128,12 @@ SEXP do_nchar(SEXP call, SEXP op, SEXP args, SEXP env)
     if(!isString(stype) || LENGTH(stype) != 1)
 	errorcall(call, _("invalid '%s' argument"), "type");
     type = CHAR(STRING_ELT(stype, 0));
-    ntype = strlen(type);
-    if(ntype == 0) errorcall(call, _("invalid '%s' argument"), "type");
     PROTECT(s = allocVector(INTSXP, len));
     for (i = 0; i < len; i++) {
-	if(strncmp(type, "bytes", ntype) == 0) {
+	if(strcmp(type, "bytes") == 0) {
 	    /* This works for NA strings too */	
     INTEGER(s)[i] = length(STRING_ELT(x, i));
-	} else if(strncmp(type, "chars", ntype) == 0) {
+	} else if(strcmp(type, "chars") == 0) {
 	    if(STRING_ELT(x, i) == NA_STRING) {
 		INTEGER(s)[i] = 2;
 	    } else {
@@ -134,7 +145,7 @@ SEXP do_nchar(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 		    INTEGER(s)[i] = strlen(CHAR(STRING_ELT(x, i)));
 	    }
-	} else if(strncmp(type, "width", ntype) == 0) {
+	} else { /* display width */
 	    if(STRING_ELT(x, i) == NA_STRING) {
 		INTEGER(s)[i] = 2;
 	    } else {
@@ -142,22 +153,23 @@ SEXP do_nchar(SEXP call, SEXP op, SEXP args, SEXP env)
 		if(mbcslocale) {
 		xi = CHAR(STRING_ELT(x, i));
 		nc = mbstowcs(NULL, xi, 0);
+#ifdef HAVE_WCSWIDTH
 		if(nc >= 0) {
 		    AllocBuffer((nc+1)*sizeof(wchar_t), &cbuff);
 		    wc = (wchar_t *) cbuff.data;
 		    mbstowcs(wc, xi, nc + 1);
-		    INTEGER(s)[i] = Ri18n_wcswidth(wc, 2147483647);
+		    INTEGER(s)[i] = wcswidth(wc, 2147483647);
 		    if(INTEGER(s)[i] < 1) INTEGER(s)[i] = nc;
 		} else
-		    INTEGER(s)[i] = NA_INTEGER;
+#endif
+		    INTEGER(s)[i] = nc >= 0 ? nc : NA_INTEGER;
 		} else
 #endif
 		INTEGER(s)[i] = strlen(CHAR(STRING_ELT(x, i)));
 	    }
-	} else
-	    errorcall(call, _("invalid '%s' argument"), "type");
+	}
     }
-#if defined(SUPPORT_MBCS)
+#if defined(SUPPORT_MBCS) && defined(HAVE_WCSWIDTH)
     DeallocBuffer(&cbuff);
 #endif
     if ((d = getAttrib(x, R_DimSymbol)) != R_NilValue)
@@ -1455,7 +1467,6 @@ static SEXP gregexpr_NAInputAns(void)
     return ans;
 }
 
-#ifdef SUPPORT_MBCS
 static SEXP gregexpr_BadStringAns(void)
 {
     SEXP ans, matchlen;
@@ -1466,7 +1477,6 @@ static SEXP gregexpr_BadStringAns(void)
     UNPROTECT(2);
     return ans;
 }
-#endif
 
 SEXP do_gregexpr(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -2298,7 +2308,7 @@ static int mbrtoint(int *w, const char *s)
             return 5;
         } else return -1;
     }
-    return -2; /* not reached */
+    return -2;
 }
 
 SEXP do_utf8ToInt(SEXP call, SEXP op, SEXP args, SEXP env)
@@ -2393,7 +2403,7 @@ SEXP do_strtrim(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP s, x, width;
     int i, len, nw, w, nc;
     char *this;
-#if defined(SUPPORT_MBCS)
+#if defined(SUPPORT_MBCS) && defined(HAVE_WCWIDTH)
     char *p, *q;
     int w0, wsum, k, nb;
     wchar_t wc;
@@ -2423,12 +2433,12 @@ SEXP do_strtrim(SEXP call, SEXP op, SEXP args, SEXP env)
         this = CHAR(STRING_ELT(x, i));
         nc = strlen(this);
         AllocBuffer(nc, &cbuff);
-#if defined(SUPPORT_MBCS)
+#if defined(SUPPORT_MBCS) && defined(HAVE_WCWIDTH)
         wsum = 0;
         mbs_init(&mb_st);
         for(p = this, w0 = 0, q = cbuff.data; *p ;) {
             nb =  Mbrtowc(&wc, p, MB_CUR_MAX, &mb_st);
-            w0 = Ri18n_wcwidth(wc);
+            w0 = wcwidth(wc);
             if(w0 < 0) { p += nb; continue; }/* skip non-printable chars */
             wsum += w0;
             if(wsum <= w) {

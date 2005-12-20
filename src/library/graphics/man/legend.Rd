@@ -2,7 +2,7 @@
 \alias{legend}
 \title{Add Legends to Plots}
 \usage{
-legend(x, y = NULL, legend, fill = NULL, col = par("col"),
+legend(x, y = NULL, legend, fill = NULL, col = "black",
        lty, lwd, pch,
        angle = 45, density = NULL, bty = "o", bg = par("bg"),
        pt.bg = NA, cex = 1, pt.cex = cex, pt.lwd = lwd,
@@ -132,8 +132,6 @@ legend(x, y = NULL, legend, fill = NULL, col = par("col"),
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
   \emph{The New S Language}.
   Wadsworth \& Brooks/Cole.
-
-  Murrell, P. (2005) \emph{R Graphics}. Chapman & Hall/CRC Press.
 }
 \seealso{
   \code{\link{plot}}, \code{\link{barplot}} which uses \code{legend()}, and
@@ -243,9 +241,9 @@ legend("bottomright", "(x,y)", pch=1, title="bottomright")
 legend("bottom", "(x,y)", pch=1, title="bottom")
 legend("bottomleft", "(x,y)", pch=1, title="bottomleft")
 legend("left", "(x,y)", pch=1, title="left")
-legend("topleft", "(x,y)", pch=1, title="topleft, inset = .05", inset = .05)
+legend("topleft", "(x,y)", pch=1, title="topleft")
 legend("top", "(x,y)", pch=1, title="top")
-legend("topright", "(x,y)", pch=1, title="topright, inset = .02", inset = .02)
+legend("topright", "(x,y)", pch=1, title="topright")
 legend("right", "(x,y)", pch=1, title="right")
 legend("center", "(x,y)", pch=1, title="center")
 }

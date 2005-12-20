@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.3.0\n"
+"Project-Id-Version: R 2.2.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-11-28 07:35\n"
+"POT-Creation-Date: 2005-12-12 09:04\n"
 "PO-Revision-Date: 2005-05-26 15:05+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -105,10 +105,6 @@ msgstr "scope는 label항의 부분 집합이 아닙니다"
 
 msgid "no 'drop1' method for \"mlm\" models"
 msgstr "메소드 'drop1'는 mlm 모델에서 실제 적용되어 있지 않습니다"
-
-#, fuzzy
-msgid "F test assumes 'quasi%s' family"
-msgstr "F test는 동일한 %s패밀리입니다"
 
 msgid "lower scope is not included in model"
 msgstr "하위의 scpoe는 모델에서 포함하고 되지 않습니다"
@@ -739,9 +735,8 @@ msgstr "이러한 초기값으로부터 최적화를 할수가 없습니다"
 msgid "link not recognised"
 msgstr "인정 받지 않는 link입니다"
 
-#, fuzzy
 msgid ""
-"link \"%s\" not available for Poisson family; available links are \"identity"
+"link \"%s\" not available for poisson family; available links are \"identity"
 "\", \"log\" and \"sqrt\""
 msgstr ""
 "link\"%s\"는 포아송 패밀리에서 이용할수가 없습니다: 이용 할수 있는 link는\n"
@@ -874,11 +869,8 @@ msgstr ""
 msgid "'or' must be a single number between 0 and Inf"
 msgstr "'or'는 단일의 수치 또는 0 과 inf 간의 단일의 수가 아니면 되지 않습니다"
 
-msgid "need 2 or more non-zero row marginals"
-msgstr ""
-
-msgid "need 2 or more non-zero column marginals"
-msgstr ""
+msgid "p-values may be incorrect"
+msgstr "p 값은 올바르지 않을지도 모릅니다"
 
 msgid "'hybrid' is ignored for a 2 x 2 table"
 msgstr ""
@@ -1036,12 +1028,6 @@ msgstr "'anova.glm'에의 다음의 인수는 무효이고, 제거 되었습니�
 msgid ","
 msgstr ","
 
-msgid "using F test with a %s family is inappropriate"
-msgstr ""
-
-msgid "using F test with a fixed dispersion is inappropriate"
-msgstr ""
-
 msgid "models with response"
 msgstr "응답"
 
@@ -1050,9 +1036,6 @@ msgstr "응답이 모델 1과 다르므로 제거해졌습니다"
 
 msgid "models were not all fitted to the same size of dataset"
 msgstr "model는 모두 동일 사이즈의 데이터 세트에 적용시킬수 없습니다"
-
-msgid "using F test with a '%s' family is inappropriate"
-msgstr ""
 
 msgid "observations with zero weight not used for calculating dispersion"
 msgstr "중량감이 0의 관측값이 표준편차의 계산으로 사용되지 않습니다"
@@ -1537,6 +1520,9 @@ msgstr ""
 msgid "singular gradient matrix at initial parameter estimates"
 msgstr "파라미터의 초기 추정값으로 구매 행렬이 특이합니다"
 
+msgid "argument 'weights' is currently ignored"
+msgstr ""
+
 msgid "Upper or lower bounds ignored unless algorithm = \"port\""
 msgstr ""
 
@@ -1594,7 +1580,7 @@ msgid "use only with \"lm\" objects"
 msgstr "\"lm\" 오브젝트에 대해서만 사용해주십시오"
 
 msgid "'which' must be in 1:6"
-msgstr "'which'는 1:4에서 없으면 되지 않습니다"
+msgstr "'which'는 1:6에서 없으면 되지 않습니다"
 
 msgid "'id.n' must be in {1,..,%d}"
 msgstr "'id.n' {1,..,%d}에서 없으면 되지 않습니다"
@@ -2038,9 +2024,6 @@ msgstr "'ma' 차수가 모순된 지정입니다"
 msgid "number of differences must be a positive integer"
 msgstr "계차의 수는 positive 정수가 아니면 되지 않습니다"
 
-msgid "'start.innov' is too short: need %d points"
-msgstr ""
-
 msgid "insufficient observations"
 msgstr "관측값의 수가 불충분합니다 "
 
@@ -2128,25 +2111,3 @@ msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] ""
 "모델식에서 파라미터 %s가 없습니다\n"
 "모델식에서 파라미터(복수) %s가 없습니다"
-
-#~ msgid "p-values may be incorrect"
-#~ msgstr "p 값은 올바르지 않을지도 모릅니다"
-
-#~ msgid "'shape' must be strictly positive"
-#~ msgstr "'shape' 파라미터는 positive가 아니면 되지 않습니다"
-
-#~ msgid "p-values may be incorrect due to ties"
-#~ msgstr "p-values는 ties 때문에 정확한 p값을 계산할수가 없습니다"
-
-#~ msgid "one-argument anova() not implemented for 'mlm' objects"
-#~ msgstr ""
-#~ "one-argument anova()는 mlm의 오브젝트에 대해서는 실제 적용되지 않습니다"
-
-#~ msgid "'m' is negative"
-#~ msgstr "'m'은 negative입니다"
-
-#~ msgid "need response in formula"
-#~ msgstr "모델식에 응답이 필요합니다"
-
-#~ msgid "non-integer counts in a Poisson glm!"
-#~ msgstr "포아송 glm에서 정수가 아닌 카운터가 있었습니다!"

@@ -1,11 +1,11 @@
 /*
+ *  $Id: nls.c,v 1.2 2004/05/17 08:12:39 ripley Exp $
+ *
  *  Routines used in calculating least squares solutions in a
  *  nonlinear model in nls library for R.
  *
  *  Copyright 1999-2001 Douglas M. Bates <bates@stat.wisc.edu>,
  *                      Saikat DebRoy <saikat@stat.wisc.edu>
- *
- *  Copyright 2005 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -72,25 +72,25 @@ nls_iter(SEXP m, SEXP control, SEXP doTraceArg) {
     doTrace = asLogical(doTraceArg);
 
     if(!isNewList(control))
-	error(_("'control' must be a list"));
+	error(_("control must be a list"));
     if(!isNewList(m))
-	error(_("'m' must be a list"));
+	error(_("m must be a list"));
 
     PROTECT(tmp = getAttrib(control, R_NamesSymbol));
 
     conv = getListElement(control, tmp, "maxiter");
     if(conv == NULL || !isNumeric(conv))
-	error(_("'%s' absent"), "control$maxiter");
+	error(_("control$maxiter absent"));
     maxIter = asInteger(conv);
 
     conv = getListElement(control, tmp, "tol");
     if(conv == NULL || !isNumeric(conv))
-	error(_("'%s' absent"), "control$tol");
+	error(_("control$tol absent"));
     tolerance = asReal(conv);
 
     conv = getListElement(control, tmp, "minFactor");
     if(conv == NULL || !isNumeric(conv))
-	error(_("'%s' absent"), "control$minFactor");
+	error(_("control$minFactor absent"));
     minFac = asReal(conv);
 
     UNPROTECT(1);
@@ -99,32 +99,32 @@ nls_iter(SEXP m, SEXP control, SEXP doTraceArg) {
 
     conv = getListElement(m, tmp, "conv");
     if(conv == NULL || !isFunction(conv))
-	error(_("'%s' absent"), "m$conv()");
+	error(_("m$conv() absent"));
     PROTECT(conv = lang1(conv));
 
     incr = getListElement(m, tmp, "incr");
     if(incr == NULL || !isFunction(incr))
-	error(_("'%s' absent"), "m$incr()");
+	error(_("m$incr() absent"));
     PROTECT(incr = lang1(incr));
 
     deviance = getListElement(m, tmp, "deviance");
     if(deviance == NULL || !isFunction(deviance))
-	error(_("'%s' absent"), "m$deviance()");
+	error(_("m$deviance() absent"));
     PROTECT(deviance = lang1(deviance));
 
     trace = getListElement(m, tmp, "trace");
     if(trace == NULL || !isFunction(trace))
-	error(_("'%s' absent"), "m$trace()");
+	error(_("m$trace() absent"));
     PROTECT(trace = lang1(trace));
 
     setPars = getListElement(m, tmp, "setPars");
     if(setPars == NULL || !isFunction(setPars))
-	error(_("'%s' absent"), "m$setPars()");
+	error(_("m$setPars() absent"));
     PROTECT(setPars);
 
     getPars = getListElement(m, tmp, "getPars");
     if(getPars == NULL || !isFunction(getPars))
-	error(_("'%s' absent"), "m$getPars()");
+	error(_("m$getPars() absent"));
     PROTECT(getPars = lang1(getPars));
 
     PROTECT(pars = eval(getPars, R_GlobalEnv));
@@ -138,11 +138,11 @@ nls_iter(SEXP m, SEXP control, SEXP doTraceArg) {
 
     PROTECT(newPars = allocVector(REALSXP, nPars));
     for (i = 0; i < maxIter; i++) {
-	if((convNew = asReal(eval(conv, R_GlobalEnv))) < tolerance) {
+	if((convNew = asReal(eval(conv,R_GlobalEnv))) < tolerance) {
 	    hasConverged = TRUE;
 	    break;
 	}
-	PROTECT(newIncr = eval(incr, R_GlobalEnv));
+	PROTECT(newIncr = eval(incr,R_GlobalEnv));
 
 	while(fac >= minFac) {
 	    for(j = 0; j < nPars; j++)
@@ -173,7 +173,7 @@ nls_iter(SEXP m, SEXP control, SEXP doTraceArg) {
 	    error(_("step factor %g reduced below 'minFactor' of %g"),
 		  fac, minFac);
 	}
-	if(doTrace) eval(trace, R_GlobalEnv);
+	if(doTrace) eval(trace,R_GlobalEnv);
     }
 
     if(!hasConverged) {
@@ -199,13 +199,9 @@ numeric_deriv(SEXP expr, SEXP theta, SEXP rho)
     int start, i, j, k, lengthTheta = 0;
 
     if(!isString(theta))
-	error(_("'theta' should be of type character"));
-    if (isNull(rho)) {
-	warning(_("use of NULL environment is deprecated"));
-	rho = R_BaseEnv;
-    } else	
+	error(_("theta should be of type character"));
 	if(!isEnvironment(rho))
-	    error(_("'rho' should be an environment"));
+	    error(_("rho should be an environment"));
 
     PROTECT(pars = allocVector(VECSXP, LENGTH(theta)));
 

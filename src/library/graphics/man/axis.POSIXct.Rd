@@ -18,18 +18,17 @@ axis.Date(side, x, at, format, labels = TRUE, \dots)
 \method{plot}{Date}(x, y, xlab = "", \dots)
 }
 \arguments{
-  \item{x, at}{A date-time or date object.}
+  \item{x, at}{A date-time object.}
   \item{y}{numeric values to be plotted against \code{x}.}
   \item{xlab}{a character string giving the label for the x axis.}
   \item{side}{See \code{\link{axis}}.}
   \item{format}{See \code{\link{strptime}}.}
   \item{labels}{Either a logical value specifying whether
-    annotations are to be made at the tickmarks, or a vector of character
-    strings to be placed at the tickpoints.}
+  annotations are to be made at the tickmarks, or a vector of character
+  strings to be placed at the tickpoints.}
   \item{\dots}{Further arguments to be passed from or to other methods,
     typically graphical parameters or arguments of
-    \code{\link{plot.default}}.  For the \code{plot} methods, also
-    \code{format}.}
+    \code{\link{plot.default}}.}
 }
 \details{
   The functions plot against an x-axis of date-times.

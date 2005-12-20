@@ -64,24 +64,21 @@ ecdf(x)
 \examples{
 ##-- Simple didactical  ecdf  example:
 Fn <- ecdf(rnorm(12))
-Fn
-tt <- seq(-2,2, by = 0.1)
-12* Fn(tt) # Fn is a `simple' function {with values k/12}
-summary(Fn)
-knots(Fn)# the unique data values {12 of them if there were no ties}
+Fn; summary(Fn)
+12*Fn(knots(Fn)) == 1:12 ## == 1:12  if and only if there are no ties !
 
 y <- round(rnorm(12),1); y[3] <- y[1]
 Fn12 <- ecdf(y)
 Fn12
-knots(Fn12)# unique values (always less than 12!)
+print(knots(Fn12), dig=2)
+12*Fn12(knots(Fn12)) ## ~= 1:12  if there were no ties
+
 summary(Fn12)
 summary.stepfun(Fn12)
-
-## Advanced: What's inside the function closure?
 print(ls.Fn12 <- ls(env= environment(Fn12)))
 ##[1] "f"  "method"  "n"  "x"  "y"  "yleft"  "yright"
-utils::ls.str(environment(Fn12))
 
+12 * Fn12((-20:20)/10)
 
 ###----------------- Plotting --------------------------
 
@@ -93,22 +90,19 @@ summary(F10)
 plot(F10)
 plot(F10, verticals= TRUE, do.p = FALSE)
 
-plot(Fn12 , lwd = 2) ; mtext("lwd = 2", adj=1)
+plot(Fn12)# , lwd=2) dis-regarded
 xx <- unique(sort(c(seq(-3,2, length=201), knots(Fn12))))
 lines(xx, Fn12(xx), col='blue')
 abline(v=knots(Fn12),lty=2,col='gray70')
 
-plot(xx, Fn12(xx), type='o', cex=.1)#- plot.default {ugly}
+plot(xx, Fn12(xx), type='b', cex=.1)#- plot.default
 plot(Fn12, col.h='red', add= TRUE)  #- plot method
 abline(v=knots(Fn12),lty=2,col='gray70')
-## luxury plot
 plot(Fn12, verticals=TRUE, col.p='blue', col.h='red',col.v='bisque')
+par(op)
 
 ##-- this works too (automatic call to  ecdf(.)):
 plot.ecdf(rnorm(24))
-title("via  simple  plot.ecdf(x)", adj=1)
-
-par(op)
 }
 \keyword{dplot}
 \keyword{hplot}

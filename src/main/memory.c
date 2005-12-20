@@ -1232,8 +1232,6 @@ static void RunGenCollect(R_size_t size_needed)
     FORWARD_NODE(R_CommentSxp);
 
     FORWARD_NODE(R_GlobalEnv);	           /* Global environment */
-    FORWARD_NODE(R_BaseEnv);
-    FORWARD_NODE(R_EmptyEnv);
     FORWARD_NODE(R_Warnings);	           /* Warnings, if any */
 
 #ifdef NEW_CONDITION_HANDLING
@@ -2078,7 +2076,7 @@ static void gc_end_timing(void)
 #endif /* _R_HAVE_TIMING_ */
 }
 
-#define R_MAX(a,b) (a) < (b) ? (b) : (a)
+#define MAX(a,b) (a) < (b) ? (b) : (a)
 
 static void R_gc_internal(R_size_t size_needed)
 {
@@ -2090,8 +2088,8 @@ static void R_gc_internal(R_size_t size_needed)
 
     gc_count++;
 
-    R_N_maxused = R_MAX(R_N_maxused, R_NodesInUse);
-    R_V_maxused = R_MAX(R_V_maxused, R_VSize - VHEAP_FREE());
+    R_N_maxused = MAX(R_N_maxused, R_NodesInUse);
+    R_V_maxused = MAX(R_V_maxused, R_VSize - VHEAP_FREE());
 
     BEGIN_SUSPEND_INTERRUPTS {
       gc_start_timing();

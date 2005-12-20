@@ -32,10 +32,12 @@
 # include <config.h>
 #endif
 
-#include <Defn.h>
-#include <Fileio.h>
+#include "Defn.h"
+#include "Fileio.h"
 #include "Runix.h"
+#include <sys/stat.h> /* for mkdir */
 
+/* HP-UX headers need this before CLK_TCK */
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif
@@ -149,16 +151,6 @@ SEXP do_machine(SEXP call, SEXP op, SEXP args, SEXP env)
 # ifdef HAVE_SYS_TIMES_H
 #  include <sys/times.h>
 # endif
-
-static clock_t StartTime;
-static struct tms timeinfo;
-static double clk_tck;
-
-void R_setStartTime(void)
-{
-#ifdef HAVE_SYSCONF
-    clk_tck = (double) sysconf(_SC_CLK_TCK);
-#else
 # ifndef CLK_TCK
 /* this is in ticks/second, generally 60 on BSD style Unix, 100? on SysV
  */
@@ -168,24 +160,29 @@ void R_setStartTime(void)
 #   define CLK_TCK 60
 #  endif
 # endif /* not CLK_TCK */
-    clk_tck = (double) CLK_TCK;
-#endif
-    /* printf("CLK_TCK = %d\n", CLK_TCK); */
+
+static clock_t StartTime;
+static struct tms timeinfo;
+
+void R_setStartTime(void)
+{
     StartTime = times(&timeinfo);
 }
 
 void R_getProcTime(double *data)
 {
-    data[2] = (times(&timeinfo) - StartTime) / clk_tck;
-    data[0] = timeinfo.tms_utime / clk_tck;
-    data[1] = timeinfo.tms_stime / clk_tck;
-    data[3] = timeinfo.tms_cutime / clk_tck;
-    data[4] = timeinfo.tms_cstime / clk_tck;
+    double elapsed;
+    elapsed = (times(&timeinfo) - StartTime) / (double)CLK_TCK;
+    data[0] = timeinfo.tms_utime / (double)CLK_TCK;
+    data[1] = timeinfo.tms_stime / (double)CLK_TCK;
+    data[2] = elapsed;
+    data[3] = timeinfo.tms_cutime / (double)CLK_TCK;
+    data[4] = timeinfo.tms_cstime / (double)CLK_TCK;
 }
 
 double R_getClockIncrement(void)
 {
-  return 1.0 / clk_tck;
+  return 1.0 / (double) CLK_TCK;
 }
 
 SEXP do_proctime(SEXP call, SEXP op, SEXP args, SEXP env)
@@ -208,8 +205,10 @@ SEXP do_proctime(SEXP call, SEXP op, SEXP args, SEXP env)
 #define INTERN_BUFSIZE 8096
 SEXP do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP tlist = R_NilValue;
-    int read=0;
+    FILE *fp;
+    char *x = "r", buf[INTERN_BUFSIZE];
+    int read=0, i, j;
+    SEXP tlist = R_NilValue, tchar, rval;
 
     checkArity(op, args);
     if (!isValidStringF(CAR(args)))
@@ -218,11 +217,6 @@ SEXP do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
 	read = INTEGER(CADR(args))[0];
     if (read) {
 #ifdef HAVE_POPEN
-	FILE *fp;
-	char *x = "r", buf[INTERN_BUFSIZE];
-	int i, j;
-	SEXP tchar, rval;
-
 	PROTECT(tlist);
 	fp = R_popen(CHAR(STRING_ELT(CAR(args), 0)), x);
 	for (i = 0; fgets(buf, INTERN_BUFSIZE, fp); i++) {
@@ -260,6 +254,85 @@ SEXP do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
 	return tlist;
     }
 }
+
+void InitTempDir()
+{
+    char *tmp, *tm, tmp1[PATH_MAX+10], *p;
+    int len;
+#ifndef HAVE_MKDTEMP
+    int res;
+#endif
+
+    tmp = getenv("R_SESSION_TMPDIR");
+    if (!tmp) {
+        /* This looks like it will only be called in the embedded case
+           since this is done in the script. Also should test if directory
+           exists rather than just attempting to remove it. 
+	*/
+	char *buf;
+	tm = getenv("TMPDIR");
+	if (!tm) tm = getenv("TMP");
+	if (!tm) tm = getenv("TEMP");
+	if (!tm) tm = "/tmp";
+#ifdef HAVE_MKDTEMP
+	sprintf(tmp1, "%s/RtmpXXXXXX", tm);
+	tmp = mkdtemp(tmp1);
+	if(!tmp) R_Suicide(_("cannot mkdir R_TempDir"));
+#else
+	sprintf(tmp1, "rm -rf %s/Rtmp%u", tm, (unsigned int)getpid());
+	R_system(tmp1);
+	sprintf(tmp1, "%s/Rtmp%u", tm, (unsigned int)getpid());
+	res = mkdir(tmp1, 0755);
+	if(res) {
+	    /* Try one more time, in case a dir left around from that
+	       process number from another user */
+	    sprintf(tmp1, "rm -rf %s/Rtmp%u-%d", tm, (unsigned int)getpid(), 
+		    rand() % 1000);
+	    R_system(tmp1);
+	    sprintf(tmp1, "%s/Rtmp%u-%d", tm, (unsigned int)getpid(), 
+		    rand() % 1000);
+	    res = mkdir(tmp1, 0755);
+	}
+	if(res) R_Suicide(_("cannot mkdir R_TempDir"));
+#endif
+	tmp = tmp1;
+	buf = (char *) malloc((strlen(tmp) + 20) * sizeof(char));
+	if(buf) {
+	    sprintf(buf, "R_SESSION_TMPDIR=%s", tmp);
+	    putenv(buf);
+	    /* no free here: storage remains in use */
+	}
+    }
+
+    len = strlen(tmp) + 1;
+    p = (char *) malloc(len);
+    if(!p) R_Suicide(_("cannot allocate R_TempDir"));
+    else {
+	R_TempDir = p;
+	strcpy(R_TempDir, tmp);
+    }
+}
+
+char * R_tmpnam(const char * prefix, const char * tempdir)
+{
+    char tm[PATH_MAX], tmp1[PATH_MAX], *res;
+    unsigned int n, done = 0;
+
+    if(!prefix) prefix = "";	/* NULL */
+    strcpy(tmp1, tempdir);
+    for (n = 0; n < 100; n++) {
+	/* try a random number at the end */
+	sprintf(tm, "%s/%s%x", tmp1, prefix, rand());
+        if(!R_FileExists(tm)) { done = 1; break; }
+    }
+    if(!done)
+	error(_("cannot find unused tempfile name"));
+    res = (char *) malloc((strlen(tm)+1) * sizeof(char));
+    strcpy(res, tm);
+    return res;
+}
+
+
 
 #ifdef HAVE_SYS_UTSNAME_H
 # include <sys/utsname.h>

@@ -2112,6 +2112,7 @@ void GInit(GPar *dp)
     dp->tck = NA_REAL;
     dp->tcl = -0.5;
     dp->tmag = 1.2;
+    dp->type = 'p';
     dp->xaxp[0] = 0.0;
     dp->xaxp[1] = 1.0;
     dp->xaxp[2] = 5.0;
@@ -2221,7 +2222,7 @@ static int	collabsave;	/* col.lab */
 static int	colsubsave;	/* col.sub */
 static int	colaxissave;	/* col.axis */
 static double	crtsave;	/* character rotation */
-static char     familysave[201];
+static char     familysave[50];
 static int	fontsave;	/* font */
 static int	fontmainsave;	/* font.main */
 static int	fontlabsave;	/* font.lab */
@@ -2272,7 +2273,7 @@ void GSavePars(DevDesc *dd)
     colaxissave = Rf_gpptr(dd)->colaxis;
     crtsave = Rf_gpptr(dd)->crt;
     errsave = Rf_gpptr(dd)->err;
-    strncpy(familysave, Rf_gpptr(dd)->family, 201);
+    strncpy(familysave, Rf_gpptr(dd)->family, 50);
     fontsave = Rf_gpptr(dd)->font;
     fontmainsave = Rf_gpptr(dd)->fontmain;
     fontlabsave = Rf_gpptr(dd)->fontlab;
@@ -2332,7 +2333,7 @@ void GRestorePars(DevDesc *dd)
     Rf_gpptr(dd)->colaxis = colaxissave;
     Rf_gpptr(dd)->crt = crtsave;
     Rf_gpptr(dd)->err = errsave;
-    strncpy(Rf_gpptr(dd)->family, familysave, 201);
+    strncpy(Rf_gpptr(dd)->family, familysave, 50);
     Rf_gpptr(dd)->font = fontsave;
     Rf_gpptr(dd)->fontmain = fontmainsave;
     Rf_gpptr(dd)->fontlab = fontlabsave;
@@ -2497,7 +2498,7 @@ void gcontextFromGP(R_GE_gcontext *gc, DevDesc *dd)
     gc->ps = (double) Rf_gpptr(dd)->ps * Rf_gpptr(dd)->scale;
     gc->lineheight = Rf_gpptr(dd)->lheight;
     gc->fontface = Rf_gpptr(dd)->font;
-    strncpy(gc->fontfamily, Rf_gpptr(dd)->family, 201);
+    strncpy(gc->fontfamily, Rf_gpptr(dd)->family, 50);
 }
 
 /* Draw a line. */
@@ -4268,7 +4269,7 @@ unsigned int RGBpar(SEXP x, int i)
 	if(indx < 0) return Rf_dpptr(CurrentDevice())->bg;
 	else return R_ColorTable[indx % R_ColorTableSize];
     }
-    warning(_("supplied color is not numeric nor character"));
+    warning("supplied color is not numeric nor character");
     return 0;
 }
 
@@ -4848,7 +4849,7 @@ void restoredpSaved(DevDesc *dd)
     Rf_dpptr(dd)->err = Rf_dpSavedptr(dd)->err;
     Rf_dpptr(dd)->fg = Rf_dpSavedptr(dd)->fg;
     Rf_dpptr(dd)->font = Rf_dpSavedptr(dd)->font;
-    strncpy(Rf_dpptr(dd)->family, Rf_dpSavedptr(dd)->family, 201);
+    strncpy(Rf_dpptr(dd)->family, Rf_dpSavedptr(dd)->family, 50);
     Rf_dpptr(dd)->gamma = Rf_dpSavedptr(dd)->gamma;
     Rf_dpptr(dd)->lab[0] = Rf_dpSavedptr(dd)->lab[0];
     Rf_dpptr(dd)->lab[1] = Rf_dpSavedptr(dd)->lab[1];
@@ -4870,6 +4871,7 @@ void restoredpSaved(DevDesc *dd)
     Rf_dpptr(dd)->tck = Rf_dpSavedptr(dd)->tck;
     Rf_dpptr(dd)->tcl = Rf_dpSavedptr(dd)->tcl;
     Rf_dpptr(dd)->tmag = Rf_dpSavedptr(dd)->tmag;
+    Rf_dpptr(dd)->type = Rf_dpSavedptr(dd)->type;
     Rf_dpptr(dd)->xaxp[0] = Rf_dpSavedptr(dd)->xaxp[0];
     Rf_dpptr(dd)->xaxp[1] = Rf_dpSavedptr(dd)->xaxp[1];
     Rf_dpptr(dd)->xaxp[2] = Rf_dpSavedptr(dd)->xaxp[2];

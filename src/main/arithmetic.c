@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996, 1997  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2005	    The R Development Core Team.
+ *  Copyright (C) 1998--2003	    The R Development Core Team.
  *  Copyright (C) 2003-4       	    The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -24,11 +24,6 @@
 #include <config.h>
 #endif
 
-#if defined(HAVE_GLIBC2)
-/* for matherr etc */
-# define _SVID_SOURCE 1
-#endif
-
 #ifdef __OpenBSD__
 /* for definition of "struct exception" in math.h */
 # define __LIBM_PRIVATE
@@ -45,9 +40,7 @@
 
 #ifdef HAVE_MATHERR
 
-/* Override the SVID matherr function:
-   the main difference here is not to print warnings.
- */
+/* Override the SVID matherr function */
 
 int matherr(struct exception *exc)
 {
@@ -62,11 +55,6 @@ int matherr(struct exception *exc)
     case UNDERFLOW:
 	exc->retval = 0.0;
 	break;
-	/* 
-	   There are cases TLOSS and PLOSS which are ignored here.
-	   According to the Solaris man page, there are for
-	   trigonometric algorithms and not needed for good ones.
-	 */
     }
     return 1;
 }
@@ -279,12 +267,6 @@ double R_pow_di(double x, int n)
 
 static double logbase(double x, double base)
 {
-#if defined(HAVE_WORKING_LOG)  && defined(HAVE_LOG10)
-    if(base == 10) return log10(x);
-#endif
-#if defined(HAVE_WORKING_LOG)  && defined(HAVE_LOG2)
-    if(base == 2) return log2(x);
-#endif
     return R_log(x) / log(base);
 }
 
@@ -1138,10 +1120,14 @@ SEXP do_atan(SEXP call, SEXP op, SEXP args, SEXP env)
 	    return complex_math1(call, op, args, env);
 	else
 	    return math1(CAR(args), atan, call);
-    /* prior to 2.3.0, 2 args were allowed, 
-       but this was never documented */ 
+    case 2:
+	warning("use of atan() with 2 arguments is deprecated: use atan2()");
+	if (isComplex(CAR(args)) || isComplex(CDR(args)))
+	    return complex_math2(call, op, args, env);
+	else
+	    return math2(CAR(args), CADR(args), atan2, call);
     default:
-	error(_("%d arguments passed to 'atan' which requires 1"), n);
+	error(_("%d arguments passed to 'atan' which requires 1 or 2"), n);
     }
     return s;			/* never used; to keep -Wall happy */
 }

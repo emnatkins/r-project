@@ -22,7 +22,7 @@ mle(minuslogl, start = formals(minuslogl), method = "BFGS",
   parameters is obtained by inverting the Hessian matrix at the optimum.
 }
 \value{
-  An object of class \code{\link{mle-class}}.
+  An object of class \code{"mle"}.
 }
 \note{
   Be careful to note that the argument is -log L (not -2 log L). It

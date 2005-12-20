@@ -55,7 +55,7 @@ Rboolean GADeviceDriver(NewDevDesc *dd, char *display, double width,
 			double height, double pointsize,
 			Rboolean recording, int resize, int bg, int canvas,
 			double gamma, int xpos, int ypos, Rboolean buffered,
-			SEXP psenv, Rboolean restoreConsole);
+			SEXP psenv);
 
 
 /* a colour used to represent the background on png if transparent
@@ -256,7 +256,7 @@ static void PrivateCopyDevice(NewDevDesc *dd, NewDevDesc *ndd, char *name)
     show(xd->gawin);
 }
 
-static void SaveAsWin(NewDevDesc *dd, char *display, Rboolean restoreConsole)
+static void SaveAsWin(NewDevDesc *dd, char *display)
 {
     NewDevDesc *ndd = (NewDevDesc *) calloc(1, sizeof(NewDevDesc));
     GEDevDesc* gdd = (GEDevDesc*) GetDevice(devNumber((DevDesc*) dd));
@@ -278,7 +278,7 @@ static void SaveAsWin(NewDevDesc *dd, char *display, Rboolean restoreConsole)
 					GE_INCHES, gdd),
 		       ((gadesc*) dd->deviceSpecific)->basefontsize,
 		       0, 1, White, White, 1, NA_INTEGER, NA_INTEGER, FALSE,
-		       R_GlobalEnv, restoreConsole))
+		       R_GlobalEnv))
         PrivateCopyDevice(dd, ndd, display);
 }
 
@@ -289,8 +289,8 @@ static void SaveAsPostscript(NewDevDesc *dd, char *fn)
     NewDevDesc *ndd = (NewDevDesc *) calloc(1, sizeof(NewDevDesc));
     GEDevDesc* gdd = (GEDevDesc*) GetDevice(devNumber((DevDesc*) dd));
     gadesc *xd = (gadesc *) dd->deviceSpecific;
-    char family[256], encoding[256], paper[256], cidfamily[256], 
-	bg[256], fg[256], **afmpaths = NULL;
+    char family[256], encoding[256], paper[256], bg[256], fg[256],
+	**afmpaths = NULL;
 
     if (!ndd) {
 	R_ShowMessage(_("Not enough memory to copy graphics window"));
@@ -308,7 +308,6 @@ static void SaveAsPostscript(NewDevDesc *dd, char *fn)
     /* Set default values and pad with zeroes ... */
     strncpy(family, "Helvetica", 256);
     strcpy(encoding, "ISOLatin1.enc");
-    strcpy(cidfamily, "default");
     strncpy(paper, "default", 256);
     strncpy(bg, "transparent", 256);
     strncpy(fg, "black", 256);
@@ -336,22 +335,7 @@ static void SaveAsPostscript(NewDevDesc *dd, char *fn)
 	    }
 	}
     }
-    if(!strcmp("default", cidfamily))
-        switch(GetACP()) {
-        case 932:/* Japan1 */
-	    strcpy(cidfamily, "Japan1"); break;
-        case 949:
-	    strcpy(cidfamily, "Korea1"); break;
-        case 936:
-	    strcpy(cidfamily, "GB1"); break;
-        case 950:
-    	    strcpy(cidfamily, "CNS1"); break;
-        default:
-	    strcpy(cidfamily, ""); break;
-        }
-    /* <FIXME> work out how to deal with this */
-    if (PSDeviceDriver(ndd, fn, paper, family, afmpaths, encoding,
-                       bg, fg,
+    if (PSDeviceDriver(ndd, fn, paper, family, afmpaths, encoding, bg, fg,
 		       fromDeviceWidth(toDeviceWidth(1.0, GE_NDC, gdd),
 				       GE_INCHES, gdd),
 		       fromDeviceHeight(toDeviceHeight(-1.0, GE_NDC, gdd),
@@ -369,8 +353,7 @@ static void SaveAsPDF(NewDevDesc *dd, char *fn)
     NewDevDesc *ndd = (NewDevDesc *) calloc(1, sizeof(NewDevDesc));
     GEDevDesc* gdd = (GEDevDesc*) GetDevice(devNumber((DevDesc*) dd));
     gadesc *xd = (gadesc *) dd->deviceSpecific;
-    char family[256], encoding[256], cidfamily[256], bg[256], fg[256],
-	**afmpaths = NULL;
+    char family[256], encoding[256], bg[256], fg[256];
 
     if (!ndd) {
 	R_ShowMessage(_("Not enough memory to copy graphics window"));
@@ -388,7 +371,6 @@ static void SaveAsPDF(NewDevDesc *dd, char *fn)
     s = findVar(install(".PostScript.Options"), xd->psenv);
     strncpy(family, "Helvetica", 256);
     strcpy(encoding, "ISOLatin1.enc");
-    strcpy(cidfamily, "default");
     strncpy(bg, "transparent", 256);
     strncpy(fg, "black", 256);
     /* and then try to get it from .PostScript.Options */
@@ -410,21 +392,7 @@ static void SaveAsPDF(NewDevDesc *dd, char *fn)
 	    }
 	}
     }
-    if(!strcmp("default", cidfamily))
-        switch(GetACP()) {
-        case 932:/* Japan1 */
-	    strcpy(cidfamily, "Japan1"); break;
-        case 949:
-	    strcpy(cidfamily, "Korea1"); break;
-        case 936:
-	    strcpy(cidfamily, "GB1"); break;
-        case 950:
-    	    strcpy(cidfamily, "CNS1"); break;
-        default:
-	    strcpy(cidfamily, ""); break;
-        }
-    if (PDFDeviceDriver(ndd, fn, "special", family, afmpaths, encoding,
-                        bg, fg,
+    if (PDFDeviceDriver(ndd, fn, "special", family, encoding, bg, fg,
 			fromDeviceWidth(toDeviceWidth(1.0, GE_NDC, gdd),
 					GE_INCHES, gdd),
 			fromDeviceHeight(toDeviceHeight(-1.0, GE_NDC, gdd),
@@ -932,14 +900,14 @@ static void menuwm(control m)
 	return;
     }
     sprintf(display, "win.metafile:%s", fn);
-    SaveAsWin(dd, display, TRUE);
+    SaveAsWin(dd, display);
 }
 
 
 static void menuclpwm(control m)
 {
     NewDevDesc *dd = (NewDevDesc *) getdata(m);
-    SaveAsWin(dd, "win.metafile", TRUE);
+    SaveAsWin(dd, "win.metafile");
 }
 
 static void menuclpbm(control m)
@@ -964,7 +932,7 @@ static void menustayontop(control m)
 static void menuprint(control m)
 {
     NewDevDesc *dd = (NewDevDesc *) getdata(m);
-    SaveAsWin(dd, "win.print:", TRUE);
+    SaveAsWin(dd, "win.print:");
 }
 
 static void menuclose(control m)
@@ -2562,7 +2530,7 @@ Rboolean GADeviceDriver(NewDevDesc *dd, char *display, double width,
 			double height, double pointsize,
 			Rboolean recording, int resize, int bg, int canvas,
 			double gamma, int xpos, int ypos, Rboolean buffered,
-			SEXP psenv, Rboolean restoreConsole)
+			SEXP psenv)
 {
     /* if need to bail out with some sort of "error" then */
     /* must free(dd) */
@@ -2699,7 +2667,7 @@ Rboolean GADeviceDriver(NewDevDesc *dd, char *display, double width,
     }
     xd->newFrameConfirm = GA_NewFrameConfirm;
     dd->displayListOn = (xd->kind == SCREEN);
-    if (RConsole && restoreConsole) show(RConsole);
+    if (RConsole && (xd->kind!=SCREEN)) show(RConsole);
     return TRUE;
 }
 
@@ -2709,7 +2677,6 @@ SEXP savePlot(SEXP args)
     char *fn, *tp, display[550];
     int device;
     NewDevDesc* dd;
-    Rboolean restoreConsole;
 
     args = CDR(args); /* skip entry point name */
     device = asInteger(CAR(args));
@@ -2726,8 +2693,7 @@ SEXP savePlot(SEXP args)
     if (!isString(type) || LENGTH(type) != 1)
 	error(_("invalid type argument in savePlot"));
     tp = CHAR(STRING_ELT(type, 0));
-    restoreConsole = asLogical(CADDDR(args));
-    
+
     if(!strcmp(tp, "png")) {
 	SaveAsPng(dd, fn);
     } else if (!strcmp(tp,"bmp")) {
@@ -2741,7 +2707,7 @@ SEXP savePlot(SEXP args)
 	    return R_NilValue;
 	}
 	sprintf(display, "win.metafile:%s", fn);
-	SaveAsWin(dd, display, restoreConsole);
+	SaveAsWin(dd, display);
     } else if (!strcmp(tp, "ps") || !strcmp(tp, "eps")) {
 	SaveAsPostscript(dd, fn);
     } else if (!strcmp(tp, "pdf")) {
@@ -2939,7 +2905,6 @@ SEXP devga(SEXP args)
     char *display, *vmax;
     double height, width, ps, xpinch, ypinch, gamma;
     int recording = 0, resize = 1, bg, canvas, xpos, ypos, buffered;
-    Rboolean restoreConsole;
     SEXP sc, psenv;
 
     vmax = vmaxget();
@@ -2987,8 +2952,6 @@ SEXP devga(SEXP args)
     if (!isString(sc) && !isInteger(sc) && !isLogical(sc) && !isReal(sc))
 	error(_("invalid value of 'bg' in devWindows"));
     bg = RGBpar(sc, 0);
-    args = CDR(args);
-    restoreConsole = asLogical(CAR(args));
     
     R_CheckDeviceAvailable();
     BEGIN_SUSPEND_INTERRUPTS {
@@ -3004,7 +2967,7 @@ SEXP devga(SEXP args)
 	GAsetunits(xpinch, ypinch);
 	if (!GADeviceDriver(dev, display, width, height, ps, 
 			    (Rboolean)recording, resize, bg, canvas, gamma,
-			    xpos, ypos, (Rboolean)buffered, psenv, restoreConsole)) {
+			    xpos, ypos, (Rboolean)buffered, psenv)) {
 	    free(dev);
 	    error(_("unable to start device devWindows"));
 	}

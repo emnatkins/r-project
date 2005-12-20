@@ -173,17 +173,9 @@ SEXP R_LookupMethod(SEXP method, SEXP rho, SEXP callrho, SEXP defrho)
     SEXP val;
 
     if (R_UseNamespaceDispatch) {
-	if (TYPEOF(callrho) == NILSXP) {
-	    warning(_("use of NULL environment is deprecated"));
-	    callrho = R_BaseEnv;
-	} else
-	if (TYPEOF(callrho) != ENVSXP)
+	if (TYPEOF(callrho) != ENVSXP && callrho != R_BaseEnv)
 	    error(_("bad generic call environment"));
-	if (TYPEOF(defrho) == NILSXP) {
-	    warning(_("use of NULL environment is deprecated"));
-	    defrho = R_BaseEnv;
-	} else
-	if (TYPEOF(defrho) != ENVSXP)
+	if (TYPEOF(defrho) != ENVSXP && defrho != R_BaseEnv)
 	    error(_("bad generic definition environment"));
 	if (defrho == R_BaseEnv)
 	    defrho = R_BaseNamespace;
@@ -366,7 +358,7 @@ SEXP do_usemethod(SEXP call, SEXP op, SEXP args, SEXP env)
     if ( !(cptr->callflag & CTXT_FUNCTION) || cptr->cloenv != env)
 	error(_("'UseMethod' used in an inappropriate fashion"));
     callenv = cptr->sysparent;
-    defenv = ENCLOS(env);
+    defenv = TYPEOF(env) == ENVSXP ? ENCLOS(env) : R_BaseEnv;
 
     if (nargs)
 	PROTECT(generic = eval(CAR(args), env));
@@ -937,7 +929,7 @@ static SEXP dispatchNonGeneric(SEXP name, SEXP env, SEXP fdef)
     /* find a non-generic function */
     symbol = install(CHAR(asChar(name)));
     dot_Generic = install(".Generic");
-    for(rho = ENCLOS(env); rho != R_EmptyEnv;
+    for(rho = ENCLOS(env); rho != R_BaseEnv && isEnvironment(rho);
 	rho = ENCLOS(rho)) {
 	fun = findVarInFrame3(rho, symbol, TRUE);
 	if(fun == R_UnboundValue) continue;

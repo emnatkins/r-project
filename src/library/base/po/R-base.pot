@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.3.0\n"
+"Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-11-28 07:35\n"
+"POT-Creation-Date: 2005-11-09 11:07\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,6 +30,30 @@ msgid "See help(\"Deprecated\") and help(\"%s-deprecated\")."
 msgstr ""
 
 msgid "See help(\"Deprecated\")"
+msgstr ""
+
+msgid "invalid numbers in 'quote'"
+msgstr ""
+
+msgid "invalid 'quote' specification"
+msgstr ""
+
+msgid "invalid 'row.names' specification"
+msgstr ""
+
+msgid "col.names = NA makes no sense when row.names = FALSE"
+msgstr ""
+
+msgid "invalid 'col.names' specification"
+msgstr ""
+
+msgid "'file' must be a character string or connection"
+msgstr ""
+
+msgid "appending column names to file"
+msgstr ""
+
+msgid "format.char: coercing 'x' to 'character'"
 msgstr ""
 
 msgid "argument to 'La.svd' must be numeric or complex"
@@ -461,9 +485,6 @@ msgstr ""
 msgid "'to' must be a POSIXt object"
 msgstr ""
 
-msgid "'file' must be a character string or connection"
-msgstr ""
-
 msgid "'x' must be a square matrix"
 msgstr ""
 
@@ -558,6 +579,9 @@ msgid "no files to link from"
 msgstr ""
 
 msgid "no files/directory to link to"
+msgstr ""
+
+msgid "calling wrong method"
 msgstr ""
 
 msgid "'package' must be of length 1"
@@ -779,9 +803,6 @@ msgstr ""
 msgid "invalid 'category' argument"
 msgstr ""
 
-msgid "must specify formal argument names to vectorize"
-msgstr ""
-
 msgid "'arg' should be one of"
 msgstr ""
 
@@ -857,21 +878,6 @@ msgstr ""
 msgid "namespace '%s' is already sealed in loadNamespace"
 msgstr ""
 
-msgid "failed to assign NativeSymbolInfo for"
-msgstr ""
-
-msgid "to"
-msgstr ""
-
-msgid "since"
-msgstr ""
-
-msgid "is already defined in the"
-msgstr ""
-
-msgid "namespace"
-msgstr ""
-
 msgid "package '%s' does not have a name space"
 msgstr ""
 
@@ -933,15 +939,6 @@ msgid "undefined exports :"
 msgstr ""
 
 msgid "package '%s' has no NAMESPACE file"
-msgstr ""
-
-msgid "duplicated symbol names"
-msgstr ""
-
-msgid "in useDynLib("
-msgstr ""
-
-msgid ")"
 msgstr ""
 
 msgid "bad 'S3method' directive: %s"
@@ -1050,9 +1047,6 @@ msgid "not all columns named in 'as.is' exist"
 msgstr ""
 
 msgid "'as.is' has the wrong length %d  != cols = %d"
-msgstr ""
-
-msgid "invalid 'row.names' specification"
 msgstr ""
 
 msgid "'x' must be a vector"
@@ -1242,21 +1236,6 @@ msgid "No traceback available"
 msgstr ""
 
 msgid "argument to 'which' is not logical"
-msgstr ""
-
-msgid "invalid numbers in 'quote'"
-msgstr ""
-
-msgid "invalid 'quote' specification"
-msgstr ""
-
-msgid "col.names = NA makes no sense when row.names = FALSE"
-msgstr ""
-
-msgid "invalid 'col.names' specification"
-msgstr ""
-
-msgid "appending column names to file"
 msgstr ""
 
 msgid "attempt to change '%s' ignored"

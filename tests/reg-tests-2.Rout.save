@@ -4220,35 +4220,35 @@ Warning message:
 > 
 > ## split was not handling lists and raws
 > split(as.list(1:3), c(1,1,2))
-$`1`
-$`1`[[1]]
+$"1"
+$"1"[[1]]
 [1] 1
 
-$`1`[[2]]
+$"1"[[2]]
 [1] 2
 
 
-$`2`
-$`2`[[1]]
+$"2"
+$"2"[[1]]
 [1] 3
 
 
 > (y <- charToRaw("A test string"))
  [1] 41 20 74 65 73 74 20 73 74 72 69 6e 67
 > (z <- split(y, rep(1:5, times=c(1,1,4,1,6))))
-$`1`
+$"1"
 [1] 41
 
-$`2`
+$"2"
 [1] 20
 
-$`3`
+$"3"
 [1] 74 65 73 74
 
-$`4`
+$"4"
 [1] 20
 
-$`5`
+$"5"
 [1] 73 74 72 69 6e 67
 
 > sapply(z, rawToChar)
@@ -4821,30 +4821,13 @@ Error in "[<-.data.frame"(`*tmp*`, 2, 1:3, value = NULL) :
 > A <- list(1, 2)
 > names(A) <- c("NA", NA)
 > A
-$`NA`
+$"NA"
 [1] 1
 
 $<NA>
 [1] 2
 
 > ## both printed as "NA" in 2.2.0
-> 
-> 
-> ## subscripting with both NA and "NA" names
-> x <- 1:4
-> names(x) <- c(NA, "NA", "a", "")
-> x[names(x)]
-<NA>   NA    a <NA> 
-  NA    2    3   NA 
-> ## 2.2.0 had the second matching the first.
-> lx <- as.list(x)
-> lx[[as.character(NA)]]
-NULL
-> lx[as.character(NA)]
-$<NA>
-NULL
-
-> ## 2.2.0 had both matching element 1
 > 
 > 
 > ## data frame replacement subscripting
@@ -4888,9 +4871,4 @@ NULL
 > 
 > 
 > ### end of tests added in 2.2.0 patched ###
-> 
-> 
-> ## test of fix of trivial warning PR#8252
-> pairs(iris[1:4], oma=rep(3,4))
-> ## warned in 2.2.0 only
 > 

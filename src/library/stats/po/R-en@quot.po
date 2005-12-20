@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.3.0\n"
+"Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-11-28 07:35\n"
-"PO-Revision-Date: 2005-11-28 07:35\n"
+"POT-Creation-Date: 2005-12-12 09:04\n"
+"PO-Revision-Date: 2005-12-12 09:04\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -125,9 +125,6 @@ msgstr "scope is not a subset of term labels"
 
 msgid "no 'drop1' method for \"mlm\" models"
 msgstr "no ‘drop1’ method for “mlm” models"
-
-msgid "F test assumes 'quasi%s' family"
-msgstr "F test assumes ‘quasi%s’ family"
 
 msgid "lower scope is not included in model"
 msgstr "lower scope is not included in model"
@@ -749,10 +746,10 @@ msgid "link not recognised"
 msgstr "link not recognised"
 
 msgid ""
-"link \"%s\" not available for Poisson family; available links are \"identity"
+"link \"%s\" not available for poisson family; available links are \"identity"
 "\", \"log\" and \"sqrt\""
 msgstr ""
-"link “%s” not available for Poisson family; available links are “identity”, "
+"link “%s” not available for poisson family; available links are “identity”, "
 "“log” and “sqrt”"
 
 msgid "negative values not allowed for the Poisson family"
@@ -875,11 +872,8 @@ msgstr "alternative must be “two.sided”, “less” or “greater”"
 msgid "'or' must be a single number between 0 and Inf"
 msgstr "‘or’ must be a single number between 0 and Inf"
 
-msgid "need 2 or more non-zero row marginals"
-msgstr "need 2 or more non-zero row marginals"
-
-msgid "need 2 or more non-zero column marginals"
-msgstr "need 2 or more non-zero column marginals"
+msgid "p-values may be incorrect"
+msgstr "p-values may be incorrect"
 
 msgid "'hybrid' is ignored for a 2 x 2 table"
 msgstr "‘hybrid’ is ignored for a 2 x 2 table"
@@ -1035,12 +1029,6 @@ msgstr "the following arguments to ‘anova.glm’ are invalid and dropped:"
 msgid ","
 msgstr ","
 
-msgid "using F test with a %s family is inappropriate"
-msgstr "using F test with a %s family is inappropriate"
-
-msgid "using F test with a fixed dispersion is inappropriate"
-msgstr "using F test with a fixed dispersion is inappropriate"
-
 msgid "models with response"
 msgstr "models with response"
 
@@ -1049,9 +1037,6 @@ msgstr "removed because response differs from model 1"
 
 msgid "models were not all fitted to the same size of dataset"
 msgstr "models were not all fitted to the same size of dataset"
-
-msgid "using F test with a '%s' family is inappropriate"
-msgstr "using F test with a ‘%s’ family is inappropriate"
 
 msgid "observations with zero weight not used for calculating dispersion"
 msgstr "observations with zero weight not used for calculating dispersion"
@@ -1520,6 +1505,9 @@ msgstr "setVarying : vary length must match length of parameters"
 
 msgid "singular gradient matrix at initial parameter estimates"
 msgstr "singular gradient matrix at initial parameter estimates"
+
+msgid "argument 'weights' is currently ignored"
+msgstr "argument ‘weights’ is currently ignored"
 
 msgid "Upper or lower bounds ignored unless algorithm = \"port\""
 msgstr "Upper or lower bounds ignored unless algorithm = “port”"
@@ -2007,9 +1995,6 @@ msgstr "inconsistent specification of ‘ma’ order"
 
 msgid "number of differences must be a positive integer"
 msgstr "number of differences must be a positive integer"
-
-msgid "'start.innov' is too short: need %d points"
-msgstr "‘start.innov’ is too short: need %d points"
 
 msgid "insufficient observations"
 msgstr "insufficient observations"

@@ -7,6 +7,8 @@
 \alias{.Tcl.callback}
 \alias{.Tcl.args}
 \alias{.Tcl.args.objv}
+\alias{$.tclvar}
+\alias{$<-.tclvar}
 \alias{tclvar}
 \alias{tclVar}
 \alias{as.character.tclVar}
@@ -41,6 +43,7 @@
 \alias{.Tk.subwin}
 \alias{is.tkwin}
 \alias{tkdestroy}
+\alias{.TkWin}
 \alias{.TkRoot}
 \alias{addTclPath}
 \alias{tclRequire}
@@ -60,6 +63,7 @@
 .Tk.ID(win)
 .Tk.newwin(ID)
 .Tk.subwin(parent)
+.TkWin
 .TkRoot
 
 tkdestroy(win)
@@ -78,6 +82,12 @@ tclArray()
 \method{[[}{tclArray}(x,...) <- value
 \method{$}{tclArray}(x, i)
 \method{$}{tclArray}(x, i) <- value
+% When the above did not yet work  ...
+%# S3 methods for tclArray objects
+%x[[...]]
+%x[[...]] <- value
+%x$name
+%x$name <- value
 
 \method{names}{tclArray}(x)
 \method{length}{tclArray}(x)

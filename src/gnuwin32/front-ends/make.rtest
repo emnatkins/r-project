@@ -8,12 +8,12 @@ else
   LINKFLAGS=-s
 endif
 
-LIBS=-L../../../lib $(LIBUNICOWS) -lR
+LIBS=-L.. $(LIBUNICOWS) -lR
 CFLAGS=-Wall
 
-rtest-CFLAGS=-I.. -I../../include $(DEBUGFLAG)
+rtest-CFLAGS=-I.. -I../../include
 Rtest.exe: rtest.o R.dll Rblas.dll
-	$(CC) $(LINKFLAGS) -o $@ rtest.o R.dll
+	$(CC) -o $@ rtest.o R.dll
 
 rtest.c: ../../include/Rversion.h
 

@@ -21,11 +21,6 @@
 # include <config.h>
 #endif
 
-#if defined(HAVE_GLIBC2)
-/* for fileno */
-# define _POSIX_SOURCE 1
-#endif
-
 #include <Defn.h>
 #include <Fileio.h>
 #include <zlib.h>		/* needs to be before Rconnections.h */
@@ -186,48 +181,15 @@ static int null_vfprintf(Rconnection con, const char *format, va_list ap)
     return 0;			/* -Wall */
 }
 
-/* va_copy is C99, but a draft standard had __va_copy.  Glibc has
-   __va_copy declared uncondiitonally */
-
-
-#if !HAVE_VA_COPY && HAVE___VA_COPY
-# define va_copy __va_copy
-# undef HAVE_VA_COPY
-# define HAVE_VA_COPY 1
-#endif
-
-#ifdef HAVE_VA_COPY
-# define BUFSIZE 10000
-#else
-# define BUFSIZE 100000
-#endif
+/* On some systems the first call to vsnprintf can change ap.
+   The C99 solution is to use va_copy, which we will do for 2.3.0.
+*/
+#define BUFSIZE 100000
 int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 {
-    char buf[BUFSIZE], *b = buf;
+    char buf[BUFSIZE];
     int res;
-#ifdef HAVE_VA_COPY
-    char *vmax = vmaxget();
-    int usedRalloc = FALSE;
-    va_list aq;
 
-    va_copy(aq, ap);
-    res = vsnprintf(buf, BUFSIZE, format, aq);
-    va_end(aq);
-    if(res >= BUFSIZE) { /* res is the desired output length */
-	usedRalloc = TRUE;
-	b = R_alloc(res + 1, sizeof(char));
-	vsprintf(b, format, ap);
-    } else if(res < 0) { /* just a failure indication -- e.g. Windows */
-	usedRalloc = TRUE;
-	b = R_alloc(10*BUFSIZE, sizeof(char));
-	res = vsnprintf(b, 10*BUFSIZE, format, ap);
-	if (res < 0) {
-	    b[10*BUFSIZE - 1] = '\0';
-	    warning(_("printing of extremely long output is truncated"));
-	    res = 10*BUFSIZE;
-	}
-    }
-#else
     res = vsnprintf(buf, BUFSIZE, format, ap);
     if(res >= BUFSIZE || res < 0) { 
 	/* res is the desired output length or just a failure indication */
@@ -235,10 +197,9 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 	    warning(_("printing of extremely long output is truncated"));
 	    res = BUFSIZE;
     }
-#endif
 #ifdef HAVE_ICONV
     if(con->outconv) { /* translate the buffer */
-	char outbuf[BUFSIZE+1], *ib = b, *ob;
+	char outbuf[BUFSIZE+1], *ib = buf, *ob;
 	size_t inb = res, onb, ires;
 	Rboolean again = FALSE;
 	int ninit = strlen(con->init_out);
@@ -259,10 +220,7 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 	} while(again);
     } else
 #endif
-	con->write(b, 1, res, con);
-#ifdef HAVE_VA_COPY
-    if(usedRalloc) vmaxset(vmax);
-#endif
+	con->write(buf, 1, res, con);
     return res;
 }
 
@@ -543,7 +501,6 @@ static double file_seek(Rconnection con, double where, int origin, int rw)
 static void file_truncate(Rconnection con)
 {
     Rfileconn this = con->private;
-#ifdef HAVE_FTRUNCATE
     FILE *fp = this->fp;
     int fd = fileno(fp);
 #ifdef HAVE_OFF_T
@@ -553,7 +510,6 @@ static void file_truncate(Rconnection con)
     __int64 size = lseek64(fd, 0, SEEK_CUR);
 #else
     int size = lseek(fd, 0, SEEK_CUR);
-#endif
 #endif
 #endif
 
@@ -993,12 +949,8 @@ SEXP do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
 static Rboolean gzfile_open(Rconnection con)
 {
     gzFile fp;
-    char mode[6];
-    
-    strcpy(mode, con->mode);
-    if(!strchr(mode, 'b')) strcat(mode, "b");
 
-    fp = gzopen(R_ExpandFileName(con->description), mode);
+    fp = gzopen(R_ExpandFileName(con->description), con->mode);
     if(!fp) {
 	warning(_("cannot open compressed file '%s'"),
 	      R_ExpandFileName(con->description));
@@ -1997,11 +1949,7 @@ SEXP do_textconnection(SEXP call, SEXP op, SEXP args, SEXP env)
     error(_("invalid '%s' argument"), "open");
     open = CHAR(STRING_ELT(sopen, 0));
     venv = CADDDR(args);
-    if (isNull(venv)) {
-	warning(_("use of NULL environment is deprecated"));
-	venv = R_BaseEnv;
-    } else      
-    if (!isEnvironment(venv))
+    if (!isEnvironment(venv) && venv != R_BaseEnv)
 	error(_("invalid '%s' argument"), "environment");
     ncon = NextConnection();
     if(!strlen(open) || strncmp(open, "r", 1) == 0)

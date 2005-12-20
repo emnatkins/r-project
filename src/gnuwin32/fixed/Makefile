@@ -26,6 +26,7 @@ endif
 	@$(RM) bins.zip
 
 fixhtml:  html/rwin.html $(R_HOME)/doc/html/search/SearchEngine.html
+	$(CP) -p html/rwin.html $(R_HOME)/doc/html
 	$(CP) -p html/rwin.html $(R_HOME)/doc/html/index.html
 	@$(ECHO) done > fixhtml
 

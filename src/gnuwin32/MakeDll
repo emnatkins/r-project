@@ -9,20 +9,15 @@ RCNAME=${DLLNAME}_res
 RCOBJ=$(RCNAME).o
 
 # Don't use SOURCES as this get passed on for libR.
-CFSOURCES=$(wildcard -f *.c *.f *.f90 *.f95)
+CFSOURCES=$(wildcard -f *.c *.f)
 CSOURCES=$(wildcard -f *.c)
 CXXSOURCES=$(wildcard -f *.cc *.cpp *.C)
-FSOURCES=$(wildcard -f *.f)
-OBJSA=$(foreach i,$(CSOURCES) $(FSOURCES) $(CXXSOURCES),$(basename $i).o)
+OBJSA=$(foreach i,$(CFSOURCES) $(CXXSOURCES),$(basename $i).o)
 
 include $(RHOME)/src/gnuwin32/MkRules
 
 ifneq ($(strip $(CXXSOURCES)),)
   DLL_LDMAIN=g++
-endif
-
-ifneq ($(strip $(FSOURCES)),)
-  EXTRA_LIBS=$(FLIBS)
 endif
 
 ifdef DEBUG
@@ -37,15 +32,10 @@ CPPFLAGS=$(PKG_CPPFLAGS) -I$(RHOME)/include
 CFLAGS=$(CPPFLAGS) $(DEBUGFLAG) -O2 $(PKG_CFLAGS)
 CXXFLAGS=$(CPPFLAGS) $(DEBUGFLAG) -O2 $(PKG_CXXFLAGS)
 FFLAGS=-O2 $(DEBUGFLAG) $(PKG_FFLAGS)
-DLLLIBS=-L$(RHOME)/lib $(PKG_LIBS) $(EXTRA_LIBS) -lR
+DLLLIBS=-L$(RHOME)/src/gnuwin32 $(LIBUNICOWS) $(PKG_LIBS) $(FLIBS) -lR 
 RESFLAGS=--include-dir $(RHOME)/include
-# Note: DLLLIBS has already set -L$(RHOME)/lib
 BLAS_LIBS=-lRblas
-ifeq ($(strip $(USE_ACML_LAPACK)),YES)
-LAPACK_LIBS=-L"$(ACML_PATH)" -lacml -lg2c
-else
-LAPACK_LIBS=-lRlapack
-endif
+LAPACK_LIBS=-L$(RHOME)/lib $(LIBUNICOWS) -lRlapack 
 # for use by Makevars.win
 R_HOME=$(RHOME)
 
@@ -63,8 +53,8 @@ else
 endif
 
 libR:
-	@$(MAKE) -s --no-print-directory -C $(RHOME)/src/gnuwin32 ../../lib/libR.a
-	@$(MAKE) -s --no-print-directory -C $(RHOME)/src/gnuwin32 ../../lib/libRblas.a
+	@$(MAKE) -s --no-print-directory -C $(RHOME)/src/gnuwin32 libR.a
+	@$(MAKE) -s --no-print-directory -C $(RHOME)/src/gnuwin32 libRblas.a
 
 $(DLLNAME)_res.rc:
 	@PERL5LIB=$(RHOME)/share/perl perl $(RHOME)/src/gnuwin32/makeDllRes.pl $(DLLNAME) > $@

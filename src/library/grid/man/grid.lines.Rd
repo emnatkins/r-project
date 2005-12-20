@@ -8,13 +8,11 @@
 \usage{
 grid.lines(x = unit(c(0, 1), "npc", units.per.obs),
        y = unit(c(0, 1), "npc", units.per.obs), 
-       default.units = "npc", units.per.obs = FALSE,
-       arrow = NULL, name = NULL,
+       default.units = "npc", units.per.obs = FALSE, name = NULL,
        gp=gpar(), draw = TRUE, vp = NULL)
 linesGrob(x = unit(c(0, 1), "npc", units.per.obs),
        y = unit(c(0, 1), "npc", units.per.obs), 
-       default.units = "npc", units.per.obs = FALSE,
-       arrow = NULL, name = NULL,
+       default.units = "npc", units.per.obs = FALSE, name = NULL,
        gp=gpar(), vp = NULL)
 }
 \arguments{
@@ -24,8 +22,6 @@ linesGrob(x = unit(c(0, 1), "npc", units.per.obs),
     if \code{x} or \code{y} are only given as numeric vectors.}  
   \item{units.per.obs}{A logical value to indicate whether each
     individual (x, y) location has its own unit(s) specified.}
-  \item{arrow}{A list describing arrow heads to place at either end
-    of the line, as produced by the \code{arrow} function.}
   \item{name}{ A character identifier. }
   \item{gp}{An object of class \code{gpar}, typically the output
     from a call to the function \code{gpar}.  This is basically
@@ -46,7 +42,6 @@ linesGrob(x = unit(c(0, 1), "npc", units.per.obs),
 \author{Paul Murrell}
 \seealso{
   \link{Grid},
-  \code{\link{viewport}},
-  \code{\link{arrow}}}
+  \code{\link{viewport}}
 }
 \keyword{dplot}

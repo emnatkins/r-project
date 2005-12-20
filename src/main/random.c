@@ -328,11 +328,10 @@ walker_ProbSampleReplace(int n, double *p, int *a, int nans, int *ans)
        and L ... H[n-1] label those >= 1.
        By rounding error we could have q[i] < 1. or > 1. for all entries.
      */
-    if(n <= 10000) {
+    if(n <= 100000) {
 	/* might do this repeatedly, so speed matters */
 	HL = (int *)alloca(n * sizeof(int));
 	q = (double *) alloca(n * sizeof(double));
-	R_CheckStack();
     } else {
 	/* Slow enough anyway not to risk overflow */
 	HL = Calloc(n, int);

@@ -1,5 +1,4 @@
 \name{Special}
-\title{Special Functions of Mathematics}
 \alias{Special}
 \alias{beta}
 \alias{lbeta}
@@ -12,10 +11,7 @@
 \alias{lchoose}
 \alias{factorial}
 \alias{lfactorial}
-\concept{tetragamma}% existed till 1.9.0
-\concept{pentagamma}
-\concept{binomial coefficient}
-\concept{psi function}
+\title{Special Functions of Mathematics}
 \description{
   Special mathematical functions related to the beta and gamma
   functions.

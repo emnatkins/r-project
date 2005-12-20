@@ -1425,11 +1425,6 @@ const char * BZ_API(BZ2_bzlibVersion)(void)
 #else
 #   define SET_BINARY_MODE(file)
 #endif
-
-#if !defined(fdopen) && defined(HAVE_FDOPEN)
-  FILE *fdopen(int fildes, const char *mode);
-#endif
-
 static
 BZFILE * bzopen_or_bzdopen
                ( const char *path,   /* no use when bzdopen */
@@ -1476,7 +1471,7 @@ BZFILE * bzopen_or_bzdopen
         fp = fopen(path,mode2);
       }
    } else {
-#ifndef HAVE_FDOPEN
+#ifdef BZ_STRICT_ANSI
       fp = NULL;
 #else
       fp = fdopen(fd,mode2);

@@ -28,9 +28,6 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#ifdef HAVE_GLIBC2
-# define _POSIX_SOURCE
-#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -76,7 +73,6 @@ static int Sock_error(Sock_error_t perr, int e, int he)
     return -1;
 }
 
-/* <FIXME> is this classic MacOS X? */
 #ifdef MACINTOSH
 extern void __sinit(void);
 extern int __initialize (void *ignoredParameter);
@@ -85,7 +81,6 @@ int __initialize(void *ignoredParameter) {
     return(0);
 }
 #endif
-/* </FIXME> */
 
 /* Initialize the socket services */
 int Sock_init()
@@ -174,7 +169,7 @@ int Sock_listen(int fd, char *cname, int buflen, Sock_error_t perr)
 {
 #ifdef HAVE_SOCKETS 
     struct sockaddr_in net_client;
-    R_SOCKLEN_T len = sizeof(struct sockaddr);
+    SOCKLEN_T len = sizeof(struct sockaddr);
     int retval;
     struct hostent *hostptr;
 

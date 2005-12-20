@@ -133,13 +133,13 @@ release.
 @node How do I install R for Windows?, How do I check an installation?, Where can I find the latest version?, Installation and Usage
 @section How do I install R for Windows?
 
-You need Windows 95 or later.  There is no specific version for
-Windows64, but the standard 32-bit version should work.
+You need Windows 95 or later: Windows 3.11+win32s will not work.  There
+is no specific version for Windows64, but the standard 32-bit version
+should work.
 
 Your file system must allow case-honouring long file names (as is likely
 except perhaps for some network-mounted systems).  A full installation
-@c East Asian is larger that `Full'
-takes up about 60Mb of disk space and a minimal one about 19Mb.
+takes up about 56Mb of disk space and a minimal one about 18Mb.
 
 If you want to be able to build packages from sources, we recommend that
 you choose an installation path not containing spaces.  (Using a path
@@ -644,14 +644,16 @@ and is often installed by other programs.  So if it is not found
 automatically it is worth searching your machine and copying it from
 another program's directory to R's @file{bin} directory.
 
-As from R 2.3.0 both @file{Rterm.exe} and @file{RGui.exe} support
-single- and double-width characters.  It will be necessary to select
-suitable fonts in @file{Rconsole} and @file{Rdevga} (see
-@code{?Rconsole} or the comments in the files: the system versions are
-in the @file{etc} folder); in the latter you can replace @code{Arial} by
-@code{Arial Unicode MS}, and we tried @code{FixedSys} and @code{MS
-Mincho} in @file{Rconsole}.  (Note that @file{Rdevga} only applies to
-Windows graphics devices and not, say, to @code{pdf}.)
+In such locales @file{Rterm.exe} should be used for batch use only, but
+@file{RGui.exe} will support single- and double-width characters.
+
+It will be necessary to select suitable fonts in @file{Rconsole} and
+@file{Rdevga} (see @code{?Rconsole} or the comments in the files: the
+system versions are in the @file{etc} folder); in the latter you can
+replace @code{Arial} by @code{Arial Unicode MS}, and we tried
+@code{FixedSys} and @code{MS Mincho} in @file{Rconsole}.  (Note that
+@file{Rdevga} only applies to Windows graphics devices and not, say, to
+@code{pdf}.)
 
 You do need to ensure that R is running in a suitable locale: use
 @code{Sys.getlocale()} to find out.  (CJK users may be used to their
@@ -667,9 +669,6 @@ several places to select the language under the `Regional and Language
 Options' part of the control panel, and the appropriate language has to
 be set under @emph{both} the `Regional Options' and `Advanced' tabs.
 (The @code{RGui} menus may be corrupted if this is not done.)
-
-When using @code{Rterm} the window in which it is run has to be set up
-to use a suitable font and a suitable codepage.
 
 @node I selected English for Installation but R runs in Chinese, I would like to be able to use Japanese fonts, I want to run R in Chinese/Japanese/Korean, Languages and Internationalization
 @section I selected English for Installation but R runs in Chinese.
@@ -1170,9 +1169,10 @@ An alternative for those building from sources is to use AMD's Core Math
 Library (ACML) @url{http://www.amd.com/acml}.  See the
 @emph{R Installation and Administration Manual} for details.
 
-Hand-coded routines used to be available as DLLs from Dr Kazushige
-Goto for certain CPUs, but these have been withdrawn (as has the support
-in R).
+Even faster hand-coded routines used to be available as DLLs from Dr
+Kazushige Goto for certain CPUs (Pentium III and 4 and Opteron).  He
+does not allow redistribution: there is support in the R sources to
+build @file{R_HOME\bin\Rblas.dll} to link to one of his DLLs.
 
 
 @node  How do I include compiled C code?, How do I debug code that I have compiled and dyn.load-ed?, Can I use a fast BLAS?, Building from Source
@@ -1386,14 +1386,14 @@ If you want output to be updated on the console, call
 @html
 <hr WIDTH="100%">
 <address>
-Last edited 2005 November 14: comments to
+Last edited 2005 Decempber 08: comments to
 <code><a href="mailto:Rwindows@@R-project.org">Rwindows@@r-project.org</a></code>
 </address>
 @end html
 @end ifhtml
 @ifinfo
 @sp 2
-Last edited 2005 November 14: comments to <Rwindows@@r-project.org>
+Last edited 2005 December 08: comments to <Rwindows@@r-project.org>
 @end ifinfo
 
 @bye

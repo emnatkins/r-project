@@ -2024,11 +2024,7 @@ SEXP do_load(SEXP call, SEXP op, SEXP args, SEXP env)
     /* the loaded objects can be placed where desired  */
 
     aenv = CADR(args);
-    if (TYPEOF(aenv) == NILSXP) {
-    	warning(_("use of NULL environment is deprecated"));
-    	aenv = R_BaseEnv;
-    } else
-    if (TYPEOF(aenv) != ENVSXP)
+    if (TYPEOF(aenv) != ENVSXP && aenv != R_BaseEnv)
 	error(_("invalid '%s' argument"), "envir");
 
     /* Process the saved file to obtain a list of saved objects. */
@@ -2261,11 +2257,7 @@ SEXP do_loadFromConn(SEXP call, SEXP op, SEXP args, SEXP env)
 
     con = getConnection(asInteger(CAR(args)));
     aenv = CADR(args);
-    if (TYPEOF(aenv) == NILSXP) {
-    	warning(_("use of NULL environment is deprecated"));
-    	aenv = R_BaseEnv;
-    } else
-    if (TYPEOF(aenv) != ENVSXP)
+    if (TYPEOF(aenv) != ENVSXP && aenv != R_BaseEnv)
 	error(_("invalid '%s' argument"), "envir");
 
     R_InitConnInPStream(&in, con, R_pstream_any_format, NULL, NULL);

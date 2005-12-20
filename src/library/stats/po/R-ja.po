@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.3.0\n"
+"Project-Id-Version: R 2.1.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-11-28 07:35\n"
+"POT-Creation-Date: 2005-12-12 09:04\n"
 "PO-Revision-Date: 2005-06-02 16:05+0900\n"
 "Last-Translator: Shigeru Mase\n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp>\n"
@@ -104,10 +104,6 @@ msgstr "スコープは項ラベルの部分集合ではありません"
 
 msgid "no 'drop1' method for \"mlm\" models"
 msgstr "'drop1' は mlm モデルには実装されていません"
-
-#, fuzzy
-msgid "F test assumes 'quasi%s' family"
-msgstr "F テストは疑似%sファミリ"
 
 msgid "lower scope is not included in model"
 msgstr "下位のスコープはモデル中に含まれません"
@@ -732,9 +728,8 @@ msgstr "これらの初期値からは最適化ができません"
 msgid "link not recognised"
 msgstr "というリンクはポアッソンファミリに対しては利用できません。"
 
-#, fuzzy
 msgid ""
-"link \"%s\" not available for Poisson family; available links are \"identity"
+"link \"%s\" not available for poisson family; available links are \"identity"
 "\", \"log\" and \"sqrt\""
 msgstr ""
 "リンク%sはポアソンファミリには利用できません。利用できるリンクは \"identity"
@@ -861,11 +856,8 @@ msgstr ""
 msgid "'or' must be a single number between 0 and Inf"
 msgstr "'or' は単一の数値もしくは 0 と inf 間の単一の数でなければなりません"
 
-msgid "need 2 or more non-zero row marginals"
-msgstr ""
-
-msgid "need 2 or more non-zero column marginals"
-msgstr ""
+msgid "p-values may be incorrect"
+msgstr "p 値は正しくないかもしれません"
 
 msgid "'hybrid' is ignored for a 2 x 2 table"
 msgstr "'hybrid' は 2 x 2 分割表に対しては無視されます"
@@ -1021,12 +1013,6 @@ msgstr "'anova.glm' への次の引数は無効であり、除去されました
 msgid ","
 msgstr ","
 
-msgid "using F test with a %s family is inappropriate"
-msgstr ""
-
-msgid "using F test with a fixed dispersion is inappropriate"
-msgstr ""
-
 msgid "models with response"
 msgstr "応答"
 
@@ -1035,9 +1021,6 @@ msgstr "応答がモデル 1 と異なるので取除かれました"
 
 msgid "models were not all fitted to the same size of dataset"
 msgstr "モデルは全て同じサイズのデータセットに当てはめられませんでした"
-
-msgid "using F test with a '%s' family is inappropriate"
-msgstr ""
 
 msgid "observations with zero weight not used for calculating dispersion"
 msgstr "重みが 0 の観測値は標準偏差の計算で使われません"
@@ -1507,6 +1490,9 @@ msgstr "setVarying: vary 長はパラメータの長さに一致しなければ�
 
 msgid "singular gradient matrix at initial parameter estimates"
 msgstr "パラメータの初期推定値で勾配行列が特異です"
+
+msgid "argument 'weights' is currently ignored"
+msgstr ""
 
 msgid "Upper or lower bounds ignored unless algorithm = \"port\""
 msgstr "algorithm = \"port\" でない限り上限もしくは下限は無視されます"
@@ -2002,9 +1988,6 @@ msgstr "'ma' 次数の矛盾した指定です"
 msgid "number of differences must be a positive integer"
 msgstr "階差の数は正整数でなければなりません"
 
-msgid "'start.innov' is too short: need %d points"
-msgstr ""
-
 msgid "insufficient observations"
 msgstr "観測値の数が不十分です"
 
@@ -2089,201 +2072,3 @@ msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "モデル式中にパラメータ %s がありません"
 msgstr[1] "モデル式中にパラメータ(複数) %s がありません"
-
-#~ msgid "p-values may be incorrect"
-#~ msgstr "p 値は正しくないかもしれません"
-
-#~ msgid "'shape' must be strictly positive"
-#~ msgstr "'shape' パラメータは正でなければなりません"
-
-#~ msgid "p-values may be incorrect due to ties"
-#~ msgstr "p 値はタイのために不正確かもしれません"
-
-#~ msgid "one-argument anova() not implemented for 'mlm' objects"
-#~ msgstr "one-argument anova() は mlm のオブジェクトに対してはまだ未実装です"
-
-#~ msgid "'m' is negative"
-#~ msgstr "'m' は負です"
-
-#~ msgid "need response in formula"
-#~ msgstr "モデル式に応答が必要です"
-
-#~ msgid "non-integer counts in a Poisson glm!"
-#~ msgstr "ポアソン glm 中に整数でないカウントがありました!"
-
-#~ msgid "'if 'x' is not a matrix, 'y' must be given"
-#~ msgstr "'x' が行列でなければ、'y' を与えなければなりません"
-
-#~ msgid "using the"
-#~ msgstr "結合された当てはめから、行"
-
-#~ msgid "/"
-#~ msgstr "または"
-
-#~ msgid "family"
-#~ msgstr "を仮定します"
-
-#~ msgid "Length of FUN,"
-#~ msgstr "FUN の長さ "
-
-#~ msgid "to"
-#~ msgstr "から以下へ変更できません："
-
-#~ msgid "conf.level must be a single number between 0 and 1"
-#~ msgstr "conf.level は 0 と 1 の間の単一の数値でなければなりません"
-
-#~ msgid "must be logical"
-#~ msgstr " の各要素は論理値でなければなりません"
-
-#~ msgid "Each element of"
-#~ msgstr "... の各要素"
-
-#~ msgid "invalid x"
-#~ msgstr "無効な x です"
-
-#~ msgid "object"
-#~ msgstr "オブジェクト"
-
-#~ msgid "some of the first"
-#~ msgstr "最初のいくつか"
-
-#~ msgid "contrasts not defined for"
-#~ msgstr "対比を定義できません。自由度が "
-
-#~ msgid "argument must be numeric"
-#~ msgstr "引数は数値でなければなりません"
-
-#~ msgid "variables"
-#~ msgstr "変数"
-
-#~ msgid "rows"
-#~ msgstr "行"
-
-#~ msgid "formula is incorrect or missing"
-#~ msgstr "モデル式が不正確か、またはありません"
-
-#~ msgid "negative wts not allowed"
-#~ msgstr "負の wts は許されません"
-
-#~ msgid "number of offsets is"
-#~ msgstr "オフセットの数は"
-
-#~ msgid ", should equal"
-#~ msgstr "ですが、以下に等しい必要があります："
-
-#~ msgid "(number of observations)"
-#~ msgstr "(観測値の数)"
-
-#~ msgid "length of start should equal"
-#~ msgstr "start の長さは"
-
-#~ msgid "X matrix has rank"
-#~ msgstr "X 行列はランク"
-
-#~ msgid "but only"
-#~ msgstr "をもちますが、しかし"
-
-#~ msgid "observations"
-#~ msgstr "個の観測値しかありません"
-
-#~ msgid "observations with zero weight"
-#~ msgstr "重みゼロを持つ観測値は，"
-
-#~ msgid "not used for calculating dispersion"
-#~ msgstr "偏差(dispersion)の計算には使用されません"
-
-#~ msgid "() method"
-#~ msgstr "() メソッド"
-
-#~ msgid "method ="
-#~ msgstr "メソッド ="
-
-#~ msgid "`x' must be a matrix"
-#~ msgstr "`x' は行列でなければなりません"
-
-#~ msgid "inconsistent residual degrees of freedom. -- please report!"
-#~ msgstr "矛盾した残差自由度です。報告してください!"
-
-#~ msgid "X matrix has"
-#~ msgstr "X 行列は"
-
-#~ msgid "responses, Y"
-#~ msgstr "個の応答を持ちますが、Y"
-
-#~ msgid "has"
-#~ msgstr "は以下の個数の応答を持っています："
-
-#~ msgid "number of weights ="
-#~ msgstr "重みの数 ="
-
-#~ msgid "(number of responses)"
-#~ msgstr "(応答の数)"
-
-#~ msgid "type"
-#~ msgstr "タイプ"
-
-#~ msgid "SEs for type"
-#~ msgstr "タイプのための SE です"
-
-#~ msgid "variable"
-#~ msgstr "変数 "
-
-#~ msgid "was fitted with class"
-#~ msgstr "は以下のクラスとして当てはめられました："
-
-#~ msgid "but class"
-#~ msgstr "しかしクラス"
-
-#~ msgid "was supplied"
-#~ msgstr "が提供されました"
-
-#~ msgid "'newdata' had"
-#~ msgstr "'newdata' は "
-
-#~ msgid "factor"
-#~ msgstr "因子"
-
-#~ msgid "omit"
-#~ msgstr "省略しました"
-
-#~ msgid "Anova is only defined for sequences of nls objects"
-#~ msgstr "Anova は nls オブジェクトの系列に対してだけ定義されています"
-
-#~ msgid "formula"
-#~ msgstr "モデル式 "
-
-#~ msgid "sig.level"
-#~ msgstr "sig.level"
-
-#~ msgid "must be numeric in [0, 1]"
-#~ msgstr "[0,1] 中の数字でなければなりません"
-
-#~ msgid "ref ="
-#~ msgstr "ref ="
-
-#~ msgid ") are really varying"
-#~ msgstr ") は実際は変化しています"
-
-#~ msgid "objects"
-#~ msgstr "オブジェクト"
-
-#~ msgid "ifault="
-#~ msgstr "ifault ="
-
-#~ msgid "'symbols' must be unique, but are ="
-#~ msgstr "'symbols' は重複があってはいけませんが、以下のようになっています："
-
-#~ msgid "|"
-#~ msgstr "|"
-
-#~ msgid "x must be numeric"
-#~ msgstr "x は数値でなければなりません"
-
-#~ msgid "y must be numeric"
-#~ msgstr "y は数値でなければなりません"
-
-#~ msgid "y missing for paired test"
-#~ msgstr "対検定で、y が欠損しています"
-
-#~ msgid "formula is incorrect"
-#~ msgstr "式が正しくありません"

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2005  Robert Gentleman, Ross Ihaka
+ *  Copyright (C) 1997--2004  Robert Gentleman, Ross Ihaka
  *                            and the R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -33,18 +33,12 @@
 # include <config.h>
 #endif
 
-#if defined(HAVE_GLIBC2)
-/* for fileno */
-# define _POSIX_SOURCE 1
-#endif
-
-#include <Defn.h>
-
 #ifdef HAVE_STRINGS_H
    /* may be needed to define bzero in FD_ZERO (eg AIX) */
   #include <strings.h>
 #endif
 
+#include "Defn.h"
 #include "Fileio.h"
 #include <Rdevices.h>		/* for KillAllDevices */
 #include "Runix.h"
@@ -588,7 +582,7 @@ int Rstd_ReadConsole(char *prompt, unsigned char *buf, int len,
 	}
 	/* translate if necessary */
 	if(strlen(R_StdinEnc) && strcmp(R_StdinEnc, "native.enc")) {
-#if defined(HAVE_ICONV) && defined(ICONV_LATIN1)
+#if HAVE_DECL_ICONV
 	    size_t res, inb = strlen((char *)buf), onb = len;
 	    char obuf[1001];
 	    char *ib = (char *)buf, *ob = obuf;
@@ -791,7 +785,7 @@ void Rstd_CleanUp(SA_TYPE saveact, int status, int runLast)
     R_RunExitFinalizers();
     CleanEd();
     if(saveact != SA_SUICIDE) KillAllDevices();
-    if((tmpdir = R_TempDir)) {
+    if((tmpdir = getenv("R_SESSION_TMPDIR"))) {
 	snprintf((char *)buf, 1024, "rm -rf %s", tmpdir);
 	R_system((char *)buf);
     }
@@ -964,7 +958,7 @@ void Rstd_savehistory(SEXP call, SEXP op, SEXP args, SEXP env)
 
 
 
-#define R_MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 SEXP do_syssleep(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -982,7 +976,7 @@ SEXP do_syssleep(SEXP call, SEXP op, SEXP args, SEXP rho)
     start = times(&timeinfo);
     for (;;) {
 	fd_set *what;
-        Timeout = R_wait_usec ? R_MIN(tm, R_wait_usec) : tm;
+        Timeout = R_wait_usec ? MIN(tm, R_wait_usec) : tm;
 	what = R_checkActivity(Timeout, 1);
 
 	/* Time up? */

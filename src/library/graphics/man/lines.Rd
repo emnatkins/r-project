@@ -9,17 +9,20 @@
 \usage{
 lines(x, \dots)
 
-\method{lines}{default}(x, y = NULL, type = "l", \dots)
+\method{lines}{default}(x, y = NULL, type = "l", col = par("col"),
+      lty = par("lty"), \dots)
 }
 \arguments{
   \item{x, y}{coordinate vectors of points to join.}
   \item{type}{character indicating the type of plotting; actually any of
-    the \code{type}s as in \code{\link{plot.default}}.}
+    the \code{type}s as in \code{\link{plot}}.}
+  \item{col}{color to use. This can be vector of length greater than
+    one, but only the first value will be used for lines (but all will
+    be used for symbols).}
+  \item{lty}{line type to use.}
   \item{\dots}{Further graphical parameters (see \code{\link{par}}) may
-    also be supplied as arguments, particularly, line type, \code{lty},
-    line width, \code{lwd}, color, \code{col} and for \code{type = "b"},
-    \code{pch}.  Also the line characteristics \code{lend}, \code{ljoin}
-    and \code{lmitre}.}
+    also be supplied as arguments, particularly, line width, \code{lwd}
+    and, for \code{type = "b"}, \code{pch}.}
 }
 \details{
   The coordinates can be passed to \code{lines} in a plotting structure
@@ -45,7 +48,7 @@ lines(x, \dots)
 \seealso{
   \code{\link{points}}, particularly for \code{type \%in\% c("p","b","o")},
   \code{\link{plot}},
-  and the workhorse function \code{\link{plot.xy}}.
+  and the underlying \dQuote{primitive} \code{\link{plot.xy}}.
 
   \code{\link{par}} for how to specify colors.
 }

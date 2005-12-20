@@ -86,7 +86,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
             ob <- ob[!(ob %in% gen)]
         }
         fst <- TRUE
-        ipos <- seq(along = sp)[-c(lib.pos, match(c("Autoloads", "CheckExEnv"), sp, 0))]
+        ipos <- seq(along = sp)[-c(lib.pos, match("Autoloads", sp))]
         for (i in ipos) {
             obj.same <- match(objects(i, all = TRUE), ob, nomatch = 0)
             if (any(obj.same > 0)) {
@@ -94,15 +94,6 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
                 same <- same[!(same %in% dont.mind)]
                 Classobjs <- grep("^\\.__", same)
                 if(length(Classobjs)) same <- same[-Classobjs]
-                ## report only objects which are both functions or
-                ## both non-functions.
-                is_fn1 <- sapply(same, function(x)
-                                 exists(x, where = i, mode = "function",
-                                        inherits = FALSE))
-                is_fn2 <- sapply(same, function(x)
-                                 exists(x, where = lib.pos, mode = "function",
-                                        inherits = FALSE))
-                same <- same[is_fn1 == is_fn2]
                 if(length(same)) {
                     if (fst) {
                         fst <- FALSE
@@ -539,7 +530,7 @@ function(chname, package = NULL, lib.loc = NULL,
     }
     if(file == "")
         stop(gettextf("shared library '%s' not found", chname), domain = NA)
-    ind <- sapply(dll_list, function(x) x[["path"]] == file)
+    ind <- sapply(dll_list, function(x) x$path == file)
     if(any(ind)) {
         if(verbose)
             message(gettextf("shared library '%s' already loaded", chname),
@@ -584,7 +575,7 @@ function(chname, libpath, verbose = getOption("verbose"),
 
     file <- file.path(libpath, "libs",
                       paste(chname, file.ext, sep = ""))
-    pos <- which(sapply(dll_list, function(x) x[["path"]] == file))
+    pos <- which(sapply(dll_list, function(x) x$path == file))
     if(!length(pos))
         stop(gettextf("shared library '%s' was not loaded", chname),
              domain = NA)
@@ -599,7 +590,7 @@ function(chname, libpath, verbose = getOption("verbose"),
 }
 
 require <-
-function(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
+function(package, quietly = FALSE, warn.conflicts = TRUE,
          keep.source = getOption("keep.source.pkgs"),
          character.only = FALSE, version, save = TRUE)
 {
@@ -618,9 +609,9 @@ function(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
     if (!loaded) {
 	if (!quietly)
             cat(gettextf("Loading required package: %s\n", package))
-	value <- library(package, lib.loc = lib.loc, character.only = TRUE,
-                         logical = TRUE, warn.conflicts = warn.conflicts,
-                         keep.source = keep.source, version = version)
+	value <- library(package, character.only = TRUE, logical = TRUE,
+		warn.conflicts = warn.conflicts, keep.source = keep.source,
+                version = version)
     } else value <- TRUE
 
     if(identical(save, FALSE)) {}

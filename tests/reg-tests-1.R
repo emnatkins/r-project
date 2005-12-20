@@ -608,7 +608,7 @@ for(p in list(c(1,2,5), 1:3, 3:1, 2:0, 0:2, c(1,2,1), c(0,0,1))) {
 # which=4 failed in R 1.0.1
 par(mfrow=c(1,1), oma= rep(0,4))
 summary(lm.fm2 <- lm(Employed ~ . - Population - GNP.deflator, data = longley))
-for(wh in 1:6) plot(lm.fm2, which = wh)
+for(wh in 1:4) plot(lm.fm2, which = wh)
 ## end of moved from plot.lm.Rd
 
 
@@ -1116,6 +1116,7 @@ pm <- promax(ability.FA$loadings)
 tmp1 <- as.vector(ability.FA$loadings %*% pm$rotmat)
 tmp2 <- as.vector(pm$loadings)
 stopifnot(all.equal(tmp1, tmp2))
+rm(ability.cov)
 
 
 ## PR 1155. On some systems strptime was not setting the month or mday
@@ -1519,6 +1520,25 @@ stopifnot(length(x) == length(predict(ss,deriv=1)$x))# not yet in 1.5.0
 ## pweibull(large, log=T):
 stopifnot(pweibull(seq(1,50,len=1001), 2,3, log = TRUE) < 0)
 
+## selfStart.default() w/ no parameters:
+## --> make this into example(selfStart) {with data and nls()!}
+logist <- deriv( ~Asym/(1+exp(-(x-xmid)/scal)), c("Asym", "xmid", "scal"),
+		function(x, Asym, xmid, scal){} )
+logistInit <- function(mCall, LHS, data) {
+    xy <- sortedXyData(mCall[["x"]], LHS, data)
+    if(nrow(xy) < 3) stop("Too few distinct input values to fit a logistic")
+    Asym <- max(abs(xy[,"y"]))
+    if (Asym != max(xy[,"y"])) Asym <- -Asym  # negative asymptote
+    xmid <- NLSstClosestX(xy, 0.5 * Asym)
+    scal <- NLSstClosestX(xy, 0.75 * Asym) - xmid
+    value <- c(Asym, xmid, scal)
+    names(value) <- mCall[c("Asym", "xmid", "scal")]
+    value
+}
+logist <- selfStart( logist, initial = logistInit ) ##-> Error in R 1.5.0
+str(logist)
+
+
 ## part of PR 1662: fisher.test with total one
 fisher.test(cbind(0, c(0,0,0,1)))
 ## crashed in R <= 1.5.0
@@ -1850,10 +1870,8 @@ stopifnot(length(res) == 1 && res == 1)
 tmp <- tempfile()
 long <- paste(rep("0123456789", 20), collapse="")
 cat(long, "\n", sep="", file=tmp)
-# system(intern=TRUE) depends on popen.
-junk <- try(system(paste("cat", tmp), intern = TRUE))
-if(!inherits(junk, "try-error"))
-    stopifnot(length(junk) == 1, nchar(junk[1]) == 200)
+junk <- system(paste("cat", tmp), intern = TRUE)
+stopifnot(length(junk) == 1, nchar(junk[1]) == 200)
 ## and split truncated on 1.6.1
 
 
@@ -3516,8 +3534,6 @@ summary(data.frame(mat = I(matrix(1:8, 2))))
 summary(data.frame(x = gl(2,2), I(matrix(1:8, 4))))
 ##
 
-
-
 ### fixes for 2.1.1 ###
 
 ## PR#7792: predict.glm dropped names
@@ -3576,7 +3592,6 @@ plot(x, exp(x), log = "y", ylim = c(30,1))
 ## gave error (and warning) in  log - axis(), 'at' creation
 
 ### end of tests added in 2.1.0 patched ###
-
 
 
 ## Multibyte character set regular expressions had buffer overrun
@@ -3912,63 +3927,17 @@ stopifnot(is.nan(cooks.distance(Uniform)[Ind]))
 plot(Uniform)
 ##
 
+## alg="port" in nls and bounds (PR#8401)
+x <- runif(200)
+a <- b <- 1
+c <- -0.1
+y <- a+b*x+c*x^2+rnorm(200, sd=0.05)
+plot(x,y)
+curve(a+b*x+c*x^2, add=TRUE)
+nls(y~a+b*x+c*I(x^2), start=c(a=1,b=1,c=0.1), algorithm="port")
+nls(y~a+b*x+c*I(x^2), start=c(a=1,b=1,c=0.1), algorithm="port",
+    lower = c(0,0,0))
+## failed in 2.2.0
+
 
 ### end of tests added in 2.2.1 ###
-
-
-## sort used to preserve inappropriate attributes and not always sort names.
-x <- runif(10)
-tsp(x) <- c(1,10,1)
-(z <- sort(x))                 # kept tsp attribute
-stopifnot(is.null(attributes(z)))
-(z <- sort(x, method="quick")) # same
-stopifnot(is.null(attributes(z)))
-(z <- sort(x, partial = 1:10)) # same
-stopifnot(is.null(attributes(z)))
-
-names(x) <- letters[1:10]
-o <- sort.list(x)
-z2 <- structure(c(x)[o], names=names(x)[o])
-(z <- sort(x))                 # sorted names, dropped the tsp attribute
-stopifnot(identical(z, z2))
-(z <- sort(x, method="quick")) # sorted names, kept the tsp attribute.
-stopifnot(identical(z, z2))
-(z <- sort(x, partial = 1:10)) # did not sort names, kept tsp attribute
-stopifnot(is.null(attributes(z)))
-## fixed for 2.3.0 to sort names (except partial), drop all other attributes.
-
-
-## formatC on as.single (PR#8211)
-# not documented to work but someone tried it.
-(z <- formatC(as.single(1)))
-stopifnot(identical(z, "1"))
-## was wrong < 2.3.0
-
-
-## outer on factors was broken in pre-2.3.0
-x <- factor(1:3)
-outer(x, x, "!=")
-## failed 2005-10-17
-
-
-## add tests for < 0 shape in [dpqr]gamma
-dgamma(1, -2)
-pgamma(1, -2)
-qgamma(0.95, -2)
-rgamma(3, -20)
-## all errors < 2.1.1, now NaNs
-
-
-## Make sure reference to local environment is serialized
-f <- function() { function(){} }
-serialize(f(), NULL)
-##
-
-
-## dummy_vfprintf with overlong format
-xx <- paste(rep("a", 10000), collapse="+")
-con <- gzfile("test.gz", "w")
-writeLines(xx, con)
-close(con)
-unlink("test.gz")
-## segfaulted in 2.2.0 on some x86_64 systems.

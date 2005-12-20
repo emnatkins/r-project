@@ -90,14 +90,6 @@ extern void R_ProcessEvents(void);
 #endif
 
 
-#if !defined(strdup) && defined(HAVE_DECL_STRDUP) && !HAVE_DECL_STRDUP
-extern char *strdup(const char *s1);
-#endif
-#if !defined(snprintf) && defined(HAVE_DECL_SNPRINTF) && !HAVE_DECL_SNPRINTF
-extern int snprintf (char *s, size_t n, const char *format, ...);
-#endif
-
-
 #define xmlFree free
 #define xmlMalloc malloc
 #define xmlMemStrdup strdup
@@ -1138,7 +1130,7 @@ RxmlNanoFTPGetConnection(void *ctx) {
     unsigned char ad[6], *adp, *portp;
     unsigned int temp[6];
     struct sockaddr_in dataAddr;
-    R_SOCKLEN_T dataAddrLen;
+    SOCKLEN_T dataAddrLen;
 
     ctxt->dataFd = socket (AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (ctxt->dataFd < 0) {

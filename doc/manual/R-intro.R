@@ -388,7 +388,6 @@ plot(ecdf(B), do.points=FALSE, verticals=TRUE, add=TRUE)
 
 ## "Simulate starting a new R session, by
 rm(list=ls(all=TRUE))
-set.seed(123) # for repeatability
 
 if(interactive())
     help.start()
@@ -424,7 +423,7 @@ rm(fm, fm1, lrf, x, dummy)
 
 
 filepath <- system.file("data", "morley.tab" , package="datasets")
-if(interactive()) file.show(filepath)
+file.show(filepath)
 mm <- read.table(filepath)
 mm
 mm$Expt <- factor(mm$Expt)

@@ -146,12 +146,8 @@ function(package, dir, lib.loc = NULL)
     }
 
     ## Undocumented objects?
-    if(!missing(package)
-       && (length(code_objs) == 0)
-       && (length(data_objs) == 0))
+    if((length(code_objs) == 0) && (length(data_objs) == 0))
         warning("neither code nor data objects found")
-    ## When working on the sources, we will not get any code objects in
-    ## case a package provides "just" S4 classes and methods.
 
     if(!is_base) {
         ## Code objects in add-on packages with names starting with a
@@ -262,24 +258,22 @@ function(package, dir, lib.loc = NULL)
             }
             ## Exclude methods inherited from the 'appropriate' parent
             ## environment.
-            ## <NOTE>
-            ## Keep this in sync with similar code in checkFF().
+            makeSigs <- function(cls)
+                unlist(lapply(cls, paste, collapse = "#"))
             penv <- .Internal(getRegisteredNamespace(as.name(package)))
             if(is.environment(penv))
                 penv <- parent.env(penv)
             else
                 penv <- parent.env(code_env)
-            if((f %in% methods::getGenerics(penv))
-               && !is.null(mlist_from_penv <-
-                           methods::getMethodsMetaData(f, penv))) {
-                classes_from_penv <-
-                    methods::slot(methods::linearizeMlist(mlist_from_penv),
+            mlistFromPenv <- methods::getMethodsMetaData(f, penv)
+            if(!is.null(mlistFromPenv)) {
+                classesFromPenv <-
+                    methods::slot(methods::linearizeMlist(mlistFromPenv),
                                   "classes")
-                ind <- is.na(match(.make_signatures(classes),
-                                   .make_signatures(classes_from_penv)))
+                ind <- is.na(match(makeSigs(classes),
+                                   makeSigs(classesFromPenv)))
                 classes <- classes[ind]
             }
-            ## </NOTE>
             sigs <- sapply(classes, paste, collapse = ",")
             if(length(sigs))
                 paste(f, ",", sigs, sep = "")
@@ -1679,24 +1673,9 @@ function(package, dir, file, lib.loc = NULL,
     ## </FIXME>
 
     bad_exprs <- list()
-    FF_funs <- FF_fun_names <- c(".C", ".Fortran", ".Call", ".External",
-                                 ".Call.graphics", ".External.graphics")
-    ## As pointed out by DTL, packages could use non-base FF calls for
-    ## which missing 'PACKAGE' arguments are not necessarily a problem.
-    if(!missing(package)) {
-        is_FF_fun_from_base <-
-            sapply(FF_funs,
-                   function(f) {
-                       e <- .find_owner_env(f, code_env)
-                       (identical(e, baseenv())
-                        || identical(e, .BaseNamespaceEnv))
-                   })
-        FF_funs <- FF_funs[is_FF_fun_from_base]
-    }
-    ## Also, need to handle base::.Call() etc ...
-    FF_funs <- c(FF_funs, sprintf("base::%s", FF_fun_names))
-    
-    find_bad_exprs <- function(e) {
+    FF_funs <- c(".C", ".Fortran", ".Call", ".External",
+                 ".Call.graphics", ".External.graphics")
+    find_bad_exprs <- function(e, level) {
         if(is.call(e) || is.expression(e)) {
             ## <NOTE>
             ## This picks up all calls, e.g. a$b, and they may convert
@@ -1704,18 +1683,19 @@ function(package, dir, file, lib.loc = NULL,
             ## the calls we are interested in.
             ## BDR 2002-11-28
             ## </NOTE>
-            if(deparse(e[[1]])[1] %in% FF_funs) {
-                parg <- e[["PACKAGE"]]
-                parg <- if(!is.null(parg) && (parg != "")) "OK"
+            if(as.character(e[[1]])[1] %in% FF_funs) {
+                parg <- if(!is.null(e[["PACKAGE"]])) "OK"
+                ## level 0 will be setMethod calls etc
                 else if(!hasNamespace) {
                     bad_exprs <<- c(bad_exprs, e)
                     "MISSING"
                 } else "MISSING but in a function in a namespace"
-                if(verbose)
-                    cat(deparse(e[[1]]), "(", deparse(e[[2]]),
-                        ", ...): ", parg, "\n", sep = "")
+                if(verbose) {
+                    cat(e[[1]], "(", deparse(e[[2]]), ", ...): ", parg,
+                        "\n", sep = "")
+                }
             }
-            for(i in seq(along = e)) Recall(e[[i]])
+            for(i in seq(along = e)) Recall(e[[i]], level+1)
         }
     }
 
@@ -1738,40 +1718,45 @@ function(package, dir, file, lib.loc = NULL,
                 bodies <- lapply(methods::slot(meths, "methods"), body)
                 ## Exclude methods inherited from the 'appropriate'
                 ## parent environment.
-                ## <NOTE>
-                ## Keep this in sync with similar code in undoc().
+                ## <FIXME>
+                ## Basically the same as in undoc(), unify the exclusion
+                ## into a helper function.
                 ## Note that direct comparison of
-                ##   lapply(methods::slot(meths, "methods"), environment)
+                ##   lapply(methods::slot(meths, "methods"),
+                ##          environment)
                 ## to code_env is not quite right ...
+                make_sigs <- function(cls)
+                    unlist(lapply(cls, paste, collapse = "#"))
                 penv <- .Internal(getRegisteredNamespace(as.name(package)))
                 if(is.environment(penv))
                     penv <- parent.env(penv)
                 else
                     penv <- parent.env(code_env)
                 if((f %in% methods::getGenerics(penv))
-                    && !is.null(mlist_from_penv <-
+                    && !is.null(mlistFromPenv <-
                                 methods::getMethodsMetaData(f, penv))) {
                     classes_from_cenv <-
                         methods::slot(meths, "classes")
                     classes_from_penv <-
-                        methods::slot(methods::linearizeMlist(mlist_from_penv),
+                        methods::slot(methods::linearizeMlist(mlistFromPenv),
                                       "classes")
-                    ind <- is.na(match(.make_signatures(classes_from_cenv),
-                                       .make_signatures(classes_from_penv)))
+                    ind <- is.na(match(make_sigs(classes_from_cenv),
+                                       make_sigs(classes_from_penv)))
                     bodies <- bodies[ind]
                 }
-                ## </NOTE>
                 exprs <- c(exprs, bodies)
             }
         }
+        base_level <- 0
     }
     else {
         exprs <- try(parse(file = file, n = -1))
         if(inherits(exprs, "try-error"))
             stop(gettextf("parse error in file '%s'", file),
                  domain = NA)
+        base_level <- -2
     }
-    for(i in seq(along = exprs)) find_bad_exprs(exprs[[i]])
+    for(i in seq(along = exprs)) find_bad_exprs(exprs[[i]], base_level)
     class(bad_exprs) <- "checkFF"
     if(verbose)
         invisible(bad_exprs)
@@ -1912,7 +1897,7 @@ function(package, dir, lib.loc = NULL)
                 else .BaseNamespaceEnv
             if(!exists(".__S3MethodsTable__.", envir = defenv,
                        inherits = FALSE)) {
-                ## Happens e.g. if for some reason, we get "plot" as
+                ## Happens e.g. if for some reason, we get "plot" as 
                 ## standardGeneric for "plot" defined from package
                 ## "graphics" with its own environment which does not
                 ## contain an S3 methods table ...
@@ -2058,7 +2043,7 @@ function(package, dir, lib.loc = NULL)
             ## Find registered methods for generic g.
             methods <- c(methods, ns_S3_methods[ns_S3_generics == g])
         }
-
+        
         for(m in methods)
             ## both all() and all.equal() are generic.
             bad_methods <- if(g == "all") {
@@ -3130,7 +3115,7 @@ function(x, ...)
         writeLines(strwrap(x, indent = 0, exdent = 2))
     invisible(x)
 }
-
+    
 ### * as.alist.call
 
 as.alist.call <-
@@ -3224,17 +3209,6 @@ function(x)
      && (identical(x[[1]], as.symbol("<-")))
      && (length(x[[2]]) > 1)
      && is.symbol(x[[3]]))
-}
-
-### * .make_signatures
-
-.make_signatures <-
-function(cls)
-{
-    ## Note that (thanks JMC), when comparing signatures, the signature
-    ## has to be stripped of trailing "ANY" elements (which are always
-    ## implicit) or padded to a fixed length.
-    sub("(#ANY)*$", "", unlist(lapply(cls, paste, collapse = "#")))
 }
 
 ### * .package_env

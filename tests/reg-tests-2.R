@@ -1659,17 +1659,6 @@ A
 ## both printed as "NA" in 2.2.0
 
 
-## subscripting with both NA and "NA" names
-x <- 1:4
-names(x) <- c(NA, "NA", "a", "")
-x[names(x)]
-## 2.2.0 had the second matching the first.
-lx <- as.list(x)
-lx[[as.character(NA)]]
-lx[as.character(NA)]
-## 2.2.0 had both matching element 1
-
-
 ## data frame replacement subscripting
 # Charles C. Berry, R-devel, 2005-10-26
 a.frame <- data.frame( x=letters[1:5] )
@@ -1687,8 +1676,3 @@ a.frame
 
 
 ### end of tests added in 2.2.0 patched ###
-
-
-## test of fix of trivial warning PR#8252
-pairs(iris[1:4], oma=rep(3,4))
-## warned in 2.2.0 only

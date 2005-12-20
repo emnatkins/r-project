@@ -172,6 +172,16 @@ tkdestroy  <- function(win) {
 
 is.tkwin <- function(x) inherits(x, "tkwin")
 
+"$.tclvar" <- function(x, name) {
+	.Deprecated("tclVar and tclvalue")
+	.Tcl(paste("set", name))
+}
+"$<-.tclvar" <- function(x, name, value) {
+    .Deprecated("tclVar and tclvalue<-")
+    .Tcl(paste("set ", name, " {", value,"}", sep=""))
+    x
+}
+
 tclVar <- function(init="") {
    n <- evalq(TclVarCount <- TclVarCount + 1, .TkRoot$env)
    name <- paste("::RTcl", n, sep="")
@@ -307,6 +317,7 @@ tktoplevel    <- function(parent=.TkRoot,...) {
 ### ------ Window & Geometry managers, widget commands &c ------
 
 tcl <- function(...) .Tcl.objv(.Tcl.args.objv(...))
+tkcmd <- tcl # for backward compatibility
 
 tktitle <- function(x) tcl("wm", "title", x)
 
@@ -374,13 +385,14 @@ tkpopup          <- function(...) tcl("tk_popup", ...)
 
 
 ## File handling functions
+## tkxxx variants for compatibility
 
-tclfile.tail <- function(...) tcl("file", "tail", ...)
-tclfile.dir  <- function(...) tcl("file", "dir", ...)
-tclopen      <- function(...) tcl("open", ...)
-tclclose     <- function(...) tcl("close", ...)
-tclputs      <- function(...) tcl("puts", ...)
-tclread      <- function(...) tcl("read", ...)
+tclfile.tail <- tkfile.tail      <- function(...) tcl("file", "tail", ...)
+tclfile.dir  <- tkfile.dir       <- function(...) tcl("file", "dir", ...)
+tclopen      <- tkopen           <- function(...) tcl("open", ...)
+tclclose     <- tkclose          <- function(...) tcl("close", ...)
+tclputs      <- tkputs           <- function(...) tcl("puts", ...)
+tclread      <- tkread           <- function(...) tcl("read", ...)
 
 ## Tkwinfo actually has a bazillion subcommands, but it's rarely
 ## used, so let's be lazy

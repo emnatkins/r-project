@@ -27,10 +27,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.3.0\n"
+"Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2005-12-17 10:22+0000\n"
-"PO-Revision-Date: 2005-12-17 10:22+0000\n"
+"POT-Creation-Date: 2005-11-16 22:59+0000\n"
+"PO-Revision-Date: 2005-11-16 22:59+0000\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -46,23 +46,23 @@ msgstr "bandwidth/span of running medians is larger than n"
 msgid "probabilities outside [0,1] in qansari()"
 msgstr "probabilities outside [0,1] in qansari()"
 
-#: arima.c:71 arima.c:178 arima.c:354
+#: arima.c:60 arima.c:167 arima.c:343
 msgid "invalid argument type"
 msgstr "invalid argument type"
 
-#: arima.c:413 arima.c:497 pacf.c:311 pacf.c:351
+#: arima.c:402 arima.c:490 pacf.c:302 pacf.c:342
 msgid "can only transform 100 pars in arima0"
 msgstr "can only transform 100 pars in arima0"
 
-#: distance.c:151
+#: distance.c:145
 msgid "dist(.,\"binary\"): treating non-finite values as NA"
 msgstr "dist(.,“binary”): treating non-finite values as NA"
 
-#: distance.c:220
+#: distance.c:214
 msgid "distance(): invalid p"
 msgstr "distance(): invalid p"
 
-#: distance.c:223
+#: distance.c:217
 msgid "distance(): invalid distance"
 msgstr "distance(): invalid distance"
 
@@ -98,18 +98,48 @@ msgid "Burg's algorithm failed to find partial correlation"
 msgstr "Burg's algorithm failed to find partial correlation"
 
 #: nls.c:75
-msgid "'control' must be a list"
-msgstr "‘control’ must be a list"
+msgid "control must be a list"
+msgstr "control must be a list"
 
-#: nls.c:77
-msgid "'m' must be a list"
-msgstr "‘m’ must be a list"
+#: nls.c:77 port.c:510
+msgid "m must be a list"
+msgstr "m must be a list"
 
-#: nls.c:83 nls.c:88 nls.c:93 nls.c:102 nls.c:107 nls.c:112 nls.c:117
-#: nls.c:122 nls.c:127
-#, c-format
-msgid "'%s' absent"
-msgstr "‘%s’ absent"
+#: nls.c:83
+msgid "control$maxiter absent"
+msgstr "control$maxiter absent"
+
+#: nls.c:88
+msgid "control$tol absent"
+msgstr "control$tol absent"
+
+#: nls.c:93
+msgid "control$minFactor absent"
+msgstr "control$minFactor absent"
+
+#: nls.c:102
+msgid "m$conv() absent"
+msgstr "m$conv() absent"
+
+#: nls.c:107
+msgid "m$incr() absent"
+msgstr "m$incr() absent"
+
+#: nls.c:112
+msgid "m$deviance() absent"
+msgstr "m$deviance() absent"
+
+#: nls.c:117
+msgid "m$trace() absent"
+msgstr "m$trace() absent"
+
+#: nls.c:122
+msgid "m$setPars() absent"
+msgstr "m$setPars() absent"
+
+#: nls.c:127
+msgid "m$getPars() absent"
+msgstr "m$getPars() absent"
 
 #: nls.c:154
 msgid "singular gradient"
@@ -126,46 +156,42 @@ msgid "number of iterations exceeded maximum of %d"
 msgstr "number of iterations exceeded maximum of %d"
 
 #: nls.c:202
-msgid "'theta' should be of type character"
-msgstr "‘theta’ should be of type character"
+msgid "theta should be of type character"
+msgstr "theta should be of type character"
 
-#: nls.c:204 port.c:359
-msgid "use of NULL environment is deprecated"
-msgstr "use of NULL environment is deprecated"
+#: nls.c:204
+msgid "rho should be an environment"
+msgstr "rho should be an environment"
 
-#: nls.c:208
-msgid "'rho' should be an environment"
-msgstr "‘rho’ should be an environment"
-
-#: nls.c:224 nls.c:252
+#: nls.c:220 nls.c:248
 msgid "Missing value or an infinity produced when evaluating the model"
 msgstr "Missing value or an infinity produced when evaluating the model"
 
-#: nls.c:230
+#: nls.c:226
 #, c-format
 msgid "variable '%s' is integer, not numeric"
 msgstr "variable ‘%s’ is integer, not numeric"
 
-#: nls.c:232
+#: nls.c:228
 #, c-format
 msgid "variable '%s' is not numeric"
 msgstr "variable ‘%s’ is not numeric"
 
-#: pacf.c:81
+#: pacf.c:72
 msgid "bad Starma struct"
 msgstr "bad Starma struct"
 
-#: pacf.c:227
+#: pacf.c:218
 #, c-format
 msgid "starma error code %d"
 msgstr "starma error code %d"
 
-#: pacf.c:290
+#: pacf.c:281
 #, c-format
 msgid "forkal error code %d"
 msgstr "forkal error code %d"
 
-#: pacf.c:454
+#: pacf.c:445
 msgid "invalid value of lag.max"
 msgstr "invalid value of lag.max"
 
@@ -184,57 +210,49 @@ msgstr "gradient function must return a numeric vector of length %d"
 msgid "Hessian function must return a square numeric matrix of order %d"
 msgstr "Hessian function must return a square numeric matrix of order %d"
 
-#: port.c:363
-msgid "'rho' must be an environment"
+#: port.c:360
+msgid "`rho' must be an environment"
 msgstr "‘rho’ must be an environment"
 
-#: port.c:365 port.c:512
-msgid "'d' must be a nonempty numeric vector"
+#: port.c:362 port.c:509
+msgid "`d' must be a nonempty numeric vector"
 msgstr "‘d’ must be a nonempty numeric vector"
 
-#: port.c:367
+#: port.c:364
 msgid "When Hessian defined must also have gradient defined"
 msgstr "When Hessian defined must also have gradient defined"
 
-#: port.c:370
+#: port.c:367
 #, c-format
-msgid "environment 'rho' must contain a numeric vector '.par' of length %d"
+msgid "environment `rho' must contain a numeric vector `.par' of length %d"
 msgstr "environment ‘rho’ must contain a numeric vector ‘.par’ of length %d"
 
-#: port.c:380
-msgid "'lower' and 'upper' must be numeric vectors"
-msgstr "‘lower’ and ‘upper’ must be numeric vectors"
+#: port.c:377 port.c:529
+msgid "lowerb and upperb must be numeric vectors"
+msgstr "lowerb and upperb must be numeric vectors"
 
-#: port.c:426
-msgid "'getElement' applies only to named lists"
-msgstr "‘getElement’ applies only to named lists"
+#: port.c:423
+msgid "getElement applies only to named lists"
+msgstr "getElement applies only to named lists"
 
-#: port.c:447
+#: port.c:444
 #, c-format
 msgid "%s$%s() not found"
 msgstr "%s$%s() not found"
 
-#: port.c:460
+#: port.c:457
 #, c-format
-msgid "'gradient' must be a numeric matrix of dimension (%d,%d)"
-msgstr "‘gradient’ must be a numeric matrix of dimension (%d,%d)"
+msgid "gradient must be a numeric matrix of dimension (%d,%d)"
+msgstr "gradient must be a numeric matrix of dimension (%d,%d)"
 
-#: port.c:481
+#: port.c:478
 #, c-format
 msgid "fcn produced mode %d, length %d - wanted mode %d, length %d"
 msgstr "fcn produced mode %d, length %d - wanted mode %d, length %d"
 
-#: port.c:494
+#: port.c:491
 msgid "invalid type for eval_check_store"
 msgstr "invalid type for eval_check_store"
-
-#: port.c:513
-msgid "m must be a list"
-msgstr "m must be a list"
-
-#: port.c:532
-msgid "'lowerb' and 'upperb' must be numeric vectors"
-msgstr "‘lowerb’ and ‘upperb’ must be numeric vectors"
 
 #: qr.c:30
 msgid "assert failed in src/library/ts/src/carray.c"
@@ -265,7 +283,7 @@ msgstr "allocation error in smooth(*, '3RSS')."
 msgid "allocation error in smooth(*, '3R')."
 msgstr "allocation error in smooth(*, '3R')."
 
-#: starma.c:366
+#: starma.c:361
 #, c-format
 msgid "missing value in last %d observations"
 msgstr "missing value in last %d observations"

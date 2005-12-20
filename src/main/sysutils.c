@@ -25,8 +25,6 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
-#include <stdlib.h> /* for putenv */
 #include <Defn.h>
 #include <R_ext/Riconv.h>
 
@@ -46,12 +44,10 @@
  */
 
 #ifdef HAVE_STAT
-# ifdef HAVE_SYS_TYPES_H
-#  include <sys/types.h>
-# endif
-# ifdef HAVE_SYS_STAT_H
-#  include <sys/stat.h>
-# endif
+#include <sys/types.h>
+#ifdef HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif
 
 #if HAVE_AQUA
 extern int (*ptr_CocoaSystem)(char*);
@@ -292,7 +288,7 @@ SEXP do_putenv(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 
-/* Unfortunately glibc and Solaris differ in the const in the iconv decl.
+/* Unfortunately glibc and Solaris diff in the const in the iconv decl.
    libiconv agrees with Solaris here.
  */
 #ifdef HAVE_ICONV_H
@@ -365,7 +361,7 @@ SEXP do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 {
 #if defined(HAVE_ICONV) && defined(ICONV_LATIN1)
     SEXP ans, x = CAR(args);
-    void * obj;
+    iconv_t obj;
     int i, j;
     char *inbuf; /* Solaris headers have const char*  here */
     char *outbuf;
@@ -399,8 +395,8 @@ SEXP do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 	if(STRING_ELT(CADDDR(args), 0) == NA_STRING) sub = NULL;
 	else sub = CHAR(STRING_ELT(CADDDR(args), 0));
 
-	obj = Riconv_open(CHAR(STRING_ELT(CADDR(args), 0)),
-			  CHAR(STRING_ELT(CADR(args), 0)));
+	obj = iconv_open(CHAR(STRING_ELT(CADDR(args), 0)),
+			 CHAR(STRING_ELT(CADR(args), 0)));
 	if(obj == (iconv_t)(-1))
 	    errorcall(call, _("unsupported conversion"));
 	PROTECT(ans = duplicate(x));
@@ -410,7 +406,7 @@ SEXP do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 	    inbuf = CHAR(STRING_ELT(x, i)); inb = strlen(inbuf);
 	    outbuf = cbuff.data; outb = cbuff.bufsize - 1;
 	    /* First initialize output */
-	    Riconv (obj, NULL, NULL, &outbuf, &outb);
+	    iconv (obj, NULL, NULL, &outbuf, &outb);
         next_char:
 	    /* Then convert input  */
 	    res = iconv(obj, &inbuf , &inb, &outbuf, &outb);
@@ -445,7 +441,7 @@ SEXP do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 		SET_STRING_ELT(ans, i, mkChar(cbuff.data));
 	    else SET_STRING_ELT(ans, i, NA_STRING);
 	}
-	Riconv_close(obj);
+	iconv_close(obj);
 	R_FreeStringBuffer(&cbuff);
     }
     UNPROTECT(1);
@@ -460,14 +456,13 @@ SEXP do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 void * Riconv_open (char* tocode, char* fromcode)
 {
 #ifdef Win32
-    char *cp = "UTF-8";
     iconv_Init();
-#ifndef SUPPORT_UTF8
-    cp = locale2charset(NULL);
+#ifdef SUPPORT_UTF8
+    if(!strcmp(tocode, ""))  return iconv_open("UTF-8", fromcode);
+    else if(!!strcmp(fromcode, "")) return iconv_open(tocode, "UTF-8");
+    else
 #endif
-    if(strcmp(tocode, "") == 0)  return iconv_open(cp, fromcode);
-    else if(strcmp(fromcode, "") == 0) return iconv_open(tocode, cp);
-    else return iconv_open(tocode, fromcode);
+	return iconv_open(tocode, fromcode);
 #else
     return iconv_open(tocode, fromcode);
 #endif
@@ -503,127 +498,3 @@ int Riconv_close (void * cd)
     return -1;
 }
 #endif
-
-/* moved from src/unix/sys-unix.c and src/gnuwin32/extra.c */
-
-#ifdef HAVE_STAT
-# ifdef HAVE_ACCESS
-#  ifdef HAVE_UNISTD_H
-#   include <unistd.h>
-#  endif
-# endif
-
-#if !defined(S_IFDIR) && defined(__S_IFDIR)
-# define S_IFDIR __S_IFDIR
-#endif
-
-static int isDir(char *path)
-{
-    struct stat sb;
-    int isdir = 0;
-    if(!path) return 0;
-    if(stat(path, &sb) == 0) {
-	isdir = (sb.st_mode & S_IFDIR) > 0; /* is a directory */
-#ifdef HAVE_ACCESS
-	/* We want to know if the directory is writable by this user,
-	   which mode does not tell us */
-	isdir &= (access(path, W_OK) == 0);
-#endif
-    }
-    return isdir;
-}
-#else
-static int isDir(char *path)
-{
-    return 1;
-}
-#endif /* HAVE_STAT */
-
-#if !HAVE_DECL_MKDTEMP
-extern char * mkdtemp (char *template);
-#endif
-
-void InitTempDir()
-{
-    char *tmp, *tm, tmp1[PATH_MAX+11], *p;
-    int len;
-#ifdef Win32
-    char tmp2[MAX_PATH];
-    int hasspace = 0;
-#endif
-
-    tmp = NULL; /* getenv("R_SESSION_TMPDIR");   no longer set in R.sh */
-    if (!tmp) {
-	tm = getenv("TMPDIR");
-	if (!isDir(tm)) {
-	    tm = getenv("TMP");
-	    if (!isDir(tm)) { 
-		tm = getenv("TEMP");
-		if (!isDir(tm)) 
-#ifdef Win32
-		    tm = getenv("R_USER"); /* this one will succeed */
-#else
-		    tm = "/tmp";
-#endif
-	    }
-	}
-#ifdef Win32
-	/* make sure no spaces in path */
-	for (p = tm; *p; p++)
-	    if (isspace(*p)) { hasspace = 1; break; }
-	if (hasspace) {
-	    GetShortPathName(tm, tmp2, MAX_PATH);
-	    tm = tmp2;
-	}
-#endif
-	sprintf(tmp1, "%s/RtmpXXXXXX", tm);
-	tmp = mkdtemp(tmp1);
-	if(!tmp) R_Suicide(_("cannot mkdir R_TempDir"));
-#if defined(HAVE_PUTENV) && !defined(Win32)
-	{
-	    char * buf = (char *) malloc((strlen(tmp) + 20) * sizeof(char));
-	    if(buf) {
-		sprintf(buf, "R_SESSION_TMPDIR=%s", tmp);
-		putenv(buf);
-		/* no free here: storage remains in use */
-	    }
-	}
-#endif
-    }
-
-    len = strlen(tmp) + 1;
-    p = (char *) malloc(len);
-    if(!p) 
-	R_Suicide(_("cannot allocate R_TempDir"));
-    else {
-	R_TempDir = p;
-	strcpy(R_TempDir, tmp);
-    }
-}
-
-char * R_tmpnam(const char * prefix, const char * tempdir)
-{
-    char tm[PATH_MAX], tmp1[PATH_MAX], *res;
-    unsigned int n, done = 0;
-
-    if(!prefix) prefix = "";	/* NULL */
-    if(strlen(tempdir) >= PATH_MAX) error(_("invalid 'tempdir' in R_tmpnam"));
-    strcpy(tmp1, tempdir);
-    for (n = 0; n < 100; n++) {
-	/* try a random number at the end.  Need at least 6 hex digits */
-#if RAND_MAX > 16777215
-	sprintf(tm, "%s/%s%x", tmp1, prefix, rand());
-#else
-	sprintf(tm, "%s/%s%x%x", tmp1, prefix, rand(), rand());
-#endif
-        if(!R_FileExists(tm)) { 
-	    done = 1; 
-	    break; 
-	}
-    }
-    if(!done)
-	error(_("cannot find unused tempfile name"));
-    res = (char *) malloc((strlen(tm)+1) * sizeof(char));
-    strcpy(res, tm);
-    return res;
-}

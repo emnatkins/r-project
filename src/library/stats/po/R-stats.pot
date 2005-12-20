@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.3.0\n"
+"Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-11-28 07:35\n"
+"POT-Creation-Date: 2005-12-12 09:04\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -102,9 +102,6 @@ msgid "scope is not a subset of term labels"
 msgstr ""
 
 msgid "no 'drop1' method for \"mlm\" models"
-msgstr ""
-
-msgid "F test assumes 'quasi%s' family"
 msgstr ""
 
 msgid "lower scope is not included in model"
@@ -713,7 +710,7 @@ msgstr ""
 msgid "link not recognised"
 msgstr ""
 
-msgid "link \"%s\" not available for Poisson family; available links are \"identity\", \"log\" and \"sqrt\""
+msgid "link \"%s\" not available for poisson family; available links are \"identity\", \"log\" and \"sqrt\""
 msgstr ""
 
 msgid "negative values not allowed for the Poisson family"
@@ -806,10 +803,7 @@ msgstr ""
 msgid "'or' must be a single number between 0 and Inf"
 msgstr ""
 
-msgid "need 2 or more non-zero row marginals"
-msgstr ""
-
-msgid "need 2 or more non-zero column marginals"
+msgid "p-values may be incorrect"
 msgstr ""
 
 msgid "'hybrid' is ignored for a 2 x 2 table"
@@ -962,12 +956,6 @@ msgstr ""
 msgid ","
 msgstr ""
 
-msgid "using F test with a %s family is inappropriate"
-msgstr ""
-
-msgid "using F test with a fixed dispersion is inappropriate"
-msgstr ""
-
 msgid "models with response"
 msgstr ""
 
@@ -975,9 +963,6 @@ msgid "removed because response differs from model 1"
 msgstr ""
 
 msgid "models were not all fitted to the same size of dataset"
-msgstr ""
-
-msgid "using F test with a '%s' family is inappropriate"
 msgstr ""
 
 msgid "observations with zero weight not used for calculating dispersion"
@@ -1431,6 +1416,9 @@ msgid "setVarying : vary length must match length of parameters"
 msgstr ""
 
 msgid "singular gradient matrix at initial parameter estimates"
+msgstr ""
+
+msgid "argument 'weights' is currently ignored"
 msgstr ""
 
 msgid "Upper or lower bounds ignored unless algorithm = \"port\""
@@ -1902,9 +1890,6 @@ msgid "inconsistent specification of 'ma' order"
 msgstr ""
 
 msgid "number of differences must be a positive integer"
-msgstr ""
-
-msgid "'start.innov' is too short: need %d points"
 msgstr ""
 
 msgid "insufficient observations"

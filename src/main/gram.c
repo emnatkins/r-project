@@ -132,7 +132,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 1 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 1 "gram.y"
 
 /*
  *  R : A Computer Langage for Statistical Data Analysis
@@ -166,13 +166,14 @@
 #include <config.h>
 #endif
 
+#ifdef HAVE_ALLOCA_H
+#include <alloca.h>
+#endif
+
 #include "IOStuff.h"		/*-> Defn.h */
 #include "Fileio.h"
 #include "Parse.h"
 
-#ifdef HAVE_ALLOCA_H
-#include <alloca.h>
-#endif
 
 #define yyconst const
 
@@ -211,81 +212,9 @@ static int	xxgetc();
 static int	xxungetc();
 static int 	xxcharcount, xxcharsave;
 
-#if defined(SUPPORT_MBCS)
-# include <R_ext/Riconv.h>
-# include <R_ext/rlocale.h>
+#ifdef SUPPORT_MBCS
 # include <wchar.h>
 # include <wctype.h>
-# include <sys/param.h>
-#ifdef HAVE_LANGINFO_CODESET
-# include <langinfo.h>
-#endif
-
-/* Previous versions (< 2.3.0) assumed wchar_t was in Unicode (and it
-   commonly is).  This version does not. */
-# ifdef Win32
-static const char UNICODE[] = "UCS-2LE";
-# else
-#  ifdef WORDS_BIGENDIAN
-static const char UNICODE[] = "UCS-4BE";
-#  else
-static const char UNICODE[] = "UCS-4LE";
-# endif
-#endif
-#include <errno.h>
-
-static size_t ucstomb(char *s, wchar_t wc, mbstate_t *ps)
-{
-    char     tocode[128];
-    char     buf[16];
-    void    *cd = NULL ;
-    wchar_t  wcs[2];
-    char    *inbuf = (char *) wcs;
-    size_t   inbytesleft = sizeof(wchar_t);
-    char    *outbuf = buf;
-    size_t   outbytesleft = sizeof(buf);
-    size_t   status;
-    
-    if(wc == L'\0') {
-	*s = '\0';
-        return 1;
-    }
-    
-    strcpy(tocode, "");
-    memset(buf, 0, sizeof(buf));
-    memset(wcs, 0, sizeof(wcs));
-    wcs[0] = wc;
-
-    if((void *)(-1) == (cd = Riconv_open("", (char *)UNICODE))) {
-#ifndef  Win32
-        /* locale set fuzzy case */
-    	strncpy(tocode, locale2charset(NULL), sizeof(tocode));
-	if((void *)(-1) == (cd = Riconv_open(tocode, (char *)UNICODE)))
-            return (size_t)(-1); 
-#else
-        return (size_t)(-1);
-#endif
-    }
-    
-    status = Riconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
-    Riconv_close(cd);
-
-    if (status == (size_t) -1) {
-        switch(errno){
-        case EINVAL:
-            return (size_t) -2;
-        case EILSEQ:
-            return (size_t) -1;
-        case E2BIG:
-            break;
-        default:
-            errno = EILSEQ;
-            return (size_t) -1;
-        }
-    }
-    strncpy(s, buf, sizeof(buf) - 1); /* ensure 0-terminated */
-    return strlen(buf);
-}
 
 static int mbcs_get_next(int c, wchar_t *wc)
 {
@@ -411,16 +340,9 @@ typedef int YYSTYPE;
 
 
 /* Line 214 of yacc.c.  */
-#line 415 "y.tab.c"
+#line 344 "y.tab.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
-
-# ifndef YYFREE
-#  define YYFREE free
-# endif
-# ifndef YYMALLOC
-#  define YYMALLOC malloc
-# endif
 
 /* The parser invokes alloca or malloc; define the necessary symbols.  */
 
@@ -446,8 +368,8 @@ typedef int YYSTYPE;
 #   include <stdlib.h> /* INFRINGES ON USER NAME SPACE */
 #   define YYSIZE_T size_t
 #  endif
-#  define YYSTACK_ALLOC YYMALLOC
-#  define YYSTACK_FREE YYFREE
+#  define YYSTACK_ALLOC malloc
+#  define YYSTACK_FREE free
 # endif
 #endif /* ! defined (yyoverflow) || YYERROR_VERBOSE */
 
@@ -625,15 +547,15 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned short yyrline[] =
 {
-       0,   284,   284,   285,   286,   287,   288,   291,   292,   295,
-     298,   299,   300,   301,   303,   304,   306,   307,   308,   309,
-     310,   312,   313,   314,   315,   316,   317,   318,   319,   320,
-     321,   322,   323,   324,   325,   326,   327,   328,   329,   331,
-     332,   333,   335,   336,   337,   338,   339,   340,   341,   342,
-     343,   344,   345,   346,   347,   348,   349,   350,   351,   352,
-     353,   354,   355,   356,   360,   363,   366,   370,   371,   372,
-     373,   374,   375,   378,   379,   382,   383,   384,   385,   386,
-     387,   388,   389,   392,   393,   394,   395,   396,   399
+       0,   213,   213,   214,   215,   216,   217,   220,   221,   224,
+     227,   228,   229,   230,   232,   233,   235,   236,   237,   238,
+     239,   241,   242,   243,   244,   245,   246,   247,   248,   249,
+     250,   251,   252,   253,   254,   255,   256,   257,   258,   260,
+     261,   262,   264,   265,   266,   267,   268,   269,   270,   271,
+     272,   273,   274,   275,   276,   277,   278,   279,   280,   281,
+     282,   283,   284,   285,   289,   292,   295,   299,   300,   301,
+     302,   303,   304,   307,   308,   311,   312,   313,   314,   315,
+     316,   317,   318,   321,   322,   323,   324,   325,   328
 };
 #endif
 
@@ -1540,445 +1462,445 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 284 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 213 "gram.y"
     { return 0; }
     break;
 
   case 3:
-#line 285 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 214 "gram.y"
     { return xxvalue(NULL,2); }
     break;
 
   case 4:
-#line 286 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 215 "gram.y"
     { return xxvalue(yyvsp[-1],3); }
     break;
 
   case 5:
-#line 287 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 216 "gram.y"
     { return xxvalue(yyvsp[-1],4); }
     break;
 
   case 6:
-#line 288 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 217 "gram.y"
     { YYABORT; }
     break;
 
   case 7:
-#line 291 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 220 "gram.y"
     { yyval = yyvsp[0]; }
     break;
 
   case 8:
-#line 292 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 221 "gram.y"
     { yyval = yyvsp[0]; }
     break;
 
   case 9:
-#line 295 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 224 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 10:
-#line 298 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 227 "gram.y"
     { yyval = yyvsp[0]; }
     break;
 
   case 11:
-#line 299 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 228 "gram.y"
     { yyval = yyvsp[0]; }
     break;
 
   case 12:
-#line 300 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 229 "gram.y"
     { yyval = yyvsp[0]; }
     break;
 
   case 13:
-#line 301 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 230 "gram.y"
     { yyval = yyvsp[0]; }
     break;
 
   case 14:
-#line 303 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 232 "gram.y"
     { yyval = xxexprlist(yyvsp[-2],yyvsp[-1]); }
     break;
 
   case 15:
-#line 304 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 233 "gram.y"
     { yyval = xxparen(yyvsp[-2],yyvsp[-1]); }
     break;
 
   case 16:
-#line 306 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 235 "gram.y"
     { yyval = xxunary(yyvsp[-1],yyvsp[0]); }
     break;
 
   case 17:
-#line 307 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 236 "gram.y"
     { yyval = xxunary(yyvsp[-1],yyvsp[0]); }
     break;
 
   case 18:
-#line 308 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 237 "gram.y"
     { yyval = xxunary(yyvsp[-1],yyvsp[0]); }
     break;
 
   case 19:
-#line 309 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 238 "gram.y"
     { yyval = xxunary(yyvsp[-1],yyvsp[0]); }
     break;
 
   case 20:
-#line 310 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 239 "gram.y"
     { yyval = xxunary(yyvsp[-1],yyvsp[0]); }
     break;
 
   case 21:
-#line 312 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 241 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 22:
-#line 313 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 242 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 23:
-#line 314 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 243 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 24:
-#line 315 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 244 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 25:
-#line 316 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 245 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 26:
-#line 317 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 246 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 27:
-#line 318 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 247 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 28:
-#line 319 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 248 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 29:
-#line 320 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 249 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 30:
-#line 321 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 250 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 31:
-#line 322 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 251 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 32:
-#line 323 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 252 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 33:
-#line 324 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 253 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 34:
-#line 325 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 254 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 35:
-#line 326 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 255 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 36:
-#line 327 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 256 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 37:
-#line 328 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 257 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 38:
-#line 329 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 258 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 39:
-#line 331 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 260 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 40:
-#line 332 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 261 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[0],yyvsp[-2]); }
     break;
 
   case 41:
-#line 334 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 263 "gram.y"
     { yyval = xxdefun(yyvsp[-5],yyvsp[-3],yyvsp[0]); }
     break;
 
   case 42:
-#line 335 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 264 "gram.y"
     { yyval = xxfuncall(yyvsp[-3],yyvsp[-1]); }
     break;
 
   case 43:
-#line 336 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 265 "gram.y"
     { yyval = xxif(yyvsp[-2],yyvsp[-1],yyvsp[0]); }
     break;
 
   case 44:
-#line 337 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 266 "gram.y"
     { yyval = xxifelse(yyvsp[-4],yyvsp[-3],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 45:
-#line 338 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 267 "gram.y"
     { yyval = xxfor(yyvsp[-2],yyvsp[-1],yyvsp[0]); }
     break;
 
   case 46:
-#line 339 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 268 "gram.y"
     { yyval = xxwhile(yyvsp[-2],yyvsp[-1],yyvsp[0]); }
     break;
 
   case 47:
-#line 340 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 269 "gram.y"
     { yyval = xxrepeat(yyvsp[-1],yyvsp[0]); }
     break;
 
   case 48:
-#line 341 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 270 "gram.y"
     { yyval = xxsubscript(yyvsp[-4],yyvsp[-3],yyvsp[-2]); }
     break;
 
   case 49:
-#line 342 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 271 "gram.y"
     { yyval = xxsubscript(yyvsp[-3],yyvsp[-2],yyvsp[-1]); }
     break;
 
   case 50:
-#line 343 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 272 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 51:
-#line 344 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 273 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 52:
-#line 345 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 274 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 53:
-#line 346 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 275 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 54:
-#line 347 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 276 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 55:
-#line 348 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 277 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 56:
-#line 349 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 278 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 57:
-#line 350 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 279 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 58:
-#line 351 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 280 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 59:
-#line 352 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 281 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 60:
-#line 353 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 282 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 61:
-#line 354 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 283 "gram.y"
     { yyval = xxbinary(yyvsp[-1],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 62:
-#line 355 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 284 "gram.y"
     { yyval = xxnxtbrk(yyvsp[0]); }
     break;
 
   case 63:
-#line 356 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 285 "gram.y"
     { yyval = xxnxtbrk(yyvsp[0]); }
     break;
 
   case 64:
-#line 360 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 289 "gram.y"
     { yyval = xxcond(yyvsp[-1]); }
     break;
 
   case 65:
-#line 363 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 292 "gram.y"
     { yyval = xxifcond(yyvsp[-1]); }
     break;
 
   case 66:
-#line 366 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 295 "gram.y"
     { yyval = xxforcond(yyvsp[-3],yyvsp[-1]); }
     break;
 
   case 67:
-#line 370 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 299 "gram.y"
     { yyval = xxexprlist0(); }
     break;
 
   case 68:
-#line 371 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 300 "gram.y"
     { yyval = xxexprlist1(yyvsp[0]); }
     break;
 
   case 69:
-#line 372 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 301 "gram.y"
     { yyval = xxexprlist2(yyvsp[-2],yyvsp[0]); }
     break;
 
   case 70:
-#line 373 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 302 "gram.y"
     { yyval = yyvsp[-1]; }
     break;
 
   case 71:
-#line 374 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 303 "gram.y"
     { yyval = xxexprlist2(yyvsp[-2],yyvsp[0]); }
     break;
 
   case 72:
-#line 375 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 304 "gram.y"
     { yyval = yyvsp[-1];}
     break;
 
   case 73:
-#line 378 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 307 "gram.y"
     { yyval = xxsublist1(yyvsp[0]); }
     break;
 
   case 74:
-#line 379 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 308 "gram.y"
     { yyval = xxsublist2(yyvsp[-3],yyvsp[0]); }
     break;
 
   case 75:
-#line 382 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 311 "gram.y"
     { yyval = xxsub0(); }
     break;
 
   case 76:
-#line 383 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 312 "gram.y"
     { yyval = xxsub1(yyvsp[0]); }
     break;
 
   case 77:
-#line 384 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 313 "gram.y"
     { yyval = xxsymsub0(yyvsp[-1]); }
     break;
 
   case 78:
-#line 385 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 314 "gram.y"
     { yyval = xxsymsub1(yyvsp[-2],yyvsp[0]); }
     break;
 
   case 79:
-#line 386 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 315 "gram.y"
     { yyval = xxsymsub0(yyvsp[-1]); }
     break;
 
   case 80:
-#line 387 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 316 "gram.y"
     { yyval = xxsymsub1(yyvsp[-2],yyvsp[0]); }
     break;
 
   case 81:
-#line 388 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 317 "gram.y"
     { yyval = xxnullsub0(); }
     break;
 
   case 82:
-#line 389 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 318 "gram.y"
     { yyval = xxnullsub1(yyvsp[0]); }
     break;
 
   case 83:
-#line 392 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 321 "gram.y"
     { yyval = xxnullformal(); }
     break;
 
   case 84:
-#line 393 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 322 "gram.y"
     { yyval = xxfirstformal0(yyvsp[0]); }
     break;
 
   case 85:
-#line 394 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 323 "gram.y"
     { yyval = xxfirstformal1(yyvsp[-2],yyvsp[0]); }
     break;
 
   case 86:
-#line 395 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 324 "gram.y"
     { yyval = xxaddformal0(yyvsp[-2],yyvsp[0]); }
     break;
 
   case 87:
-#line 396 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 325 "gram.y"
     { yyval = xxaddformal1(yyvsp[-4],yyvsp[-2],yyvsp[0]); }
     break;
 
   case 88:
-#line 399 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 328 "gram.y"
     { EatLines = 1; }
     break;
 
 
     }
 
-/* Line 1000 of yacc.c.  */
-#line 1982 "y.tab.c"
+/* Line 993 of yacc.c.  */
+#line 1904 "y.tab.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2203,7 +2125,7 @@ yyreturn:
 }
 
 
-#line 401 "/users/ripley/R/svn/R-devel/src/main/gram.y"
+#line 330 "gram.y"
 
 
 
@@ -3555,73 +3477,51 @@ static int StringValue(int c)
 		}
 		c = val;
 	    }
-	    else if(c == 'u') {
-		if(!mbcslocale) 
-		     error(_("\\uxxxx sequences are only valid in multibyte locales"));
-#if defined(SUPPORT_MBCS)
-		else {	
-		    wint_t val = 0; int i, ext; size_t res;
-		    char buff[5]; Rboolean delim = FALSE;
-		    if((c = xxgetc()) == '{') delim = TRUE; else xxungetc(c);
-		    for(i = 0; i < 4; i++) {
-			c = xxgetc();
-			if(c >= '0' && c <= '9') ext = c - '0';
-			else if (c >= 'A' && c <= 'F') ext = c - 'A' + 10;
-			else if (c >= 'a' && c <= 'f') ext = c - 'a' + 10;
-			else {xxungetc(c); break;}
-			val = 16*val + ext;
-		    }
-		    if(delim)
-			if((c = xxgetc()) != '}')
-			    error(_("invalid \\u{xxxx} sequence"));
-		
-		    res = ucstomb(buff, val, NULL);
-		    if((int)res <= 0) {
-			if(delim)
-			    error(_("invalid \\u{xxxx} sequence"));
-			else
-			    error(_("invalid \\uxxxx sequence"));
-		    }
-		    for(i = 0; i <  res - 1; i++) YYTEXT_PUSH(buff[i], yyp);
-		    c = buff[res - 1]; /* pushed below */
-		}
-#endif
-	    }
-	    else if(c == 'U') {
-#ifdef Win32
-		error(_("\\Uxxxxxxxx sequences are not supported on Windows"));
-#else
-		if(!mbcslocale) 
-		     error(_("\\Uxxxxxxxx sequences are only valid in multibyte locales"));
 #ifdef SUPPORT_MBCS
-		else {
-		    wint_t val = 0; int i, ext; size_t res;
-		    char buff[9]; Rboolean delim = FALSE;
-		    if((c = xxgetc()) == '{') delim = TRUE; else xxungetc(c);
-		    for(i = 0; i < 8; i++) {
-			c = xxgetc();
-			if(c >= '0' && c <= '9') ext = c - '0';
-			else if (c >= 'A' && c <= 'F') ext = c - 'A' + 10;
-			else if (c >= 'a' && c <= 'f') ext = c - 'a' + 10;
-			else {xxungetc(c); break;}
-			val = 16*val + ext;
-		    }
-		    if(delim)
-			if((c = xxgetc()) != '}')
-			    error(_("invalid \\U{xxxxxxxx} sequence"));
-		    res = ucstomb(buff, val, NULL);
-		    if((int)res <= 0) {
-			if(delim)
-			    error(_("invalid \\U{xxxxxxxx} sequence"));
-			else
-			    error(("invalid \\Uxxxxxxxx sequence"));
-		    }
-		    for(i = 0; i <  res - 1; i++) YYTEXT_PUSH(buff[i], yyp);
-		    c = buff[res - 1]; /* pushed below */
+	    /* Only realy valid in UTF-8, but useful shorthand elsewhere */
+	    else if(mbcslocale && c == 'u') {
+		wint_t val = 0; int i, ext; size_t res;
+		char buff[5]; Rboolean delim = FALSE;
+		if((c = xxgetc()) == '{') delim = TRUE; else xxungetc(c);
+		for(i = 0; i < 4; i++) {
+		    c = xxgetc();
+		    if(c >= '0' && c <= '9') ext = c - '0';
+		    else if (c >= 'A' && c <= 'F') ext = c - 'A' + 10;
+		    else if (c >= 'a' && c <= 'f') ext = c - 'a' + 10;
+		    else {xxungetc(c); break;}
+		    val = 16*val + ext;
 		}
-#endif
-#endif /* Win32 */
+		if(delim)
+		    if((c = xxgetc()) != '}')
+			error(_("invalid \\u{xxxx} sequence"));
+		res = wcrtomb(buff, val, NULL); /* should always be valid */
+		if((int)res <= 0) error(_("invalid \\uxxxx sequence"));
+		for(i = 0; i <  res - 1; i++) YYTEXT_PUSH(buff[i], yyp);
+		c = buff[res - 1]; /* pushed below */
 	    }
+#ifndef Win32
+	    else if(mbcslocale && c == 'U') {
+		wint_t val = 0; int i, ext; size_t res;
+		char buff[9]; Rboolean delim = FALSE;
+		if((c = xxgetc()) == '{') delim = TRUE; else xxungetc(c);
+		for(i = 0; i < 8; i++) {
+		    c = xxgetc();
+		    if(c >= '0' && c <= '9') ext = c - '0';
+		    else if (c >= 'A' && c <= 'F') ext = c - 'A' + 10;
+		    else if (c >= 'a' && c <= 'f') ext = c - 'a' + 10;
+		    else {xxungetc(c); break;}
+		    val = 16*val + ext;
+		}
+		if(delim)
+		    if((c = xxgetc()) != '}')
+			error(_("invalid \\U{xxxxxxxx} sequence"));
+		res = wcrtomb(buff, val, NULL); /* should always be valid */
+		if((int)res <= 0) error(("invalid \\Uxxxxxxxx sequence"));
+		for(i = 0; i <  res - 1; i++) YYTEXT_PUSH(buff[i], yyp);
+		c = buff[res - 1]; /* pushed below */
+	    }
+#endif
+#endif
 	    else {
 		switch (c) {
 		case 'a':
@@ -3651,7 +3551,7 @@ static int StringValue(int c)
 		}
 	    }
 	}
-#if defined(SUPPORT_MBCS)
+#ifdef SUPPORT_MBCS
        else if(mbcslocale) {
            int i, clen;
            wchar_t wc = L'\0';
@@ -3749,7 +3649,7 @@ static int SymbolValue(int c)
 {
     int kw;
     DECLARE_YYTEXT_BUFP(yyp);
-#if defined(SUPPORT_MBCS)
+#ifdef SUPPORT_MBCS
     if(mbcslocale) {
 	wchar_t wc; int i, clen;
 	clen = utf8locale ? utf8clen(c) : mbcs_get_next(c, &wc);
@@ -3798,7 +3698,7 @@ static int SymbolValue(int c)
 static int token()
 {
     int c;
-#if defined(SUPPORT_MBCS)
+#ifdef SUPPORT_MBCS
     wchar_t wc;
 #endif
 
@@ -3844,7 +3744,7 @@ static int token()
  symbol:
 
     if (c == '.') return SymbolValue(c);
-#if defined(SUPPORT_MBCS)
+#ifdef SUPPORT_MBCS
     if(mbcslocale) {
 	mbcs_get_next(c, &wc);
 	if (iswalpha(wc)) return SymbolValue(c);

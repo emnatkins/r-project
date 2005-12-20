@@ -17,10 +17,7 @@ formula.formula <- function(x, ...) x
 formula.terms <- function(x, ...) {
     env<- environment(x)
     attributes(x) <- list(class="formula")
-    if (!is.null(env))
-    	environment(x) <- env
-    else
-    	environment(x) <- globalenv()
+    environment(x) <- env
     x
 }
 
@@ -61,7 +58,7 @@ as.formula <- function(object,env=parent.frame()){
            object
     else{
         rval<-formula(object,env=baseenv())
-        if (identical(environment(rval), baseenv()) || !missing(env))
+        if (is.null(environment(rval)) || !missing(env))
             environment(rval)<-env
         rval
     }

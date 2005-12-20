@@ -1,12 +1,11 @@
 \name{crossprod}
 \alias{crossprod}
-\alias{tcrossprod}
 \title{Matrix Crossproduct}
 \description{
-  Given matrices \code{x} and \code{y} as arguments, return a matrix
-  cross-product. This is formally equivalent to (but faster than) the
-  call \code{t(x) \%*\% y} (\code{crossprod}) or \code{x \%*\% t(y)}
-  (\code{tcrossprod}).
+  Given matrices \code{x} and \code{y} as arguments,
+  \code{crossprod} returns their matrix cross-product.
+  This is formally equivalent to, but faster than, the
+  call \code{t(x) \%*\% y}.
 }
 \usage{
 crossprod(x, y = NULL)

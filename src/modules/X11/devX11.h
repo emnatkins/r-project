@@ -59,7 +59,7 @@ typedef enum {
 
 
 Rboolean newX11DeviceDriver(DevDesc*, char*, double, double, double, double, 
-			    X_COLORTYPE, int, int, int, SEXP, int, int, int);
+			    X_COLORTYPE, int, int, int, SEXP, int);
 
 
 	/********************************************************/
@@ -142,8 +142,7 @@ int      Rf_setNewX11DeviceData(NewDevDesc *dd, double gamma_fac, newX11Desc *xd
 Rboolean newX11_Open(NewDevDesc *dd, newX11Desc *xd, 
 		     char *dsp, double w, double h, 
 		     double gamma_fac, X_COLORTYPE colormodel, 
-		     int maxcube, int bgcolor, int canvascolor, 
-		     int res, int xpos, int ypos);
+		     int maxcube, int bgcolor, int canvascolor, int res);
 
 #endif /* R_X11_DEVICE */
 

@@ -26,10 +26,8 @@ function(x, ..., range = 1.5, width = NULL, varwidth = FALSE,
 	    attr(groups, "names") <- 1:n
         names <- attr(groups, "names")
     }
-    cls <- sapply(groups, function(x) class(x)[1])
-    cl <- if(all(cls == cls[1])) cls[1] else NULL
     for(i in 1:n)
-	groups[i] <- list(boxplot.stats(unclass(groups[[i]]), range)) # do.conf=notch)
+	groups[i] <- list(boxplot.stats(groups[[i]], range)) # do.conf=notch)
     stats <- matrix(0,nr=5,nc=n)
     conf  <- matrix(0,nr=2,nc=n)
     ng <- out <- group <- numeric(0)
@@ -44,12 +42,11 @@ function(x, ..., range = 1.5, width = NULL, varwidth = FALSE,
         }
         ct <- ct+1
     }
-    if(length(cl) && cl != "numeric") oldClass(stats) <- cl
     z <- list(stats = stats, n = ng, conf = conf, out = out, group = group,
               names = names)
     if(plot) {
 	bxp(z, width, varwidth = varwidth, notch = notch, log = log,
-            border = border, boxfill = col, pars = pars,
+            border = border, col = col, pars = pars,
             outline = outline, horizontal = horizontal, add = add, at = at)
 	invisible(z)
     }
@@ -78,8 +75,6 @@ bxp <- function(z, notch=FALSE, width=NULL, varwidth=FALSE, outline = TRUE,
                 add = FALSE, at = NULL, show.names = NULL, ...)
 {
     pars <- c(pars, list(...))
-    if(!missing(col))
-        warning("argument 'col' is deprecated in favour of 'boxfill'")
 
     bplt <- function(x, wid, stats, out, conf, notch, xlog, i)
     {
@@ -242,12 +237,12 @@ bxp <- function(z, notch=FALSE, width=NULL, varwidth=FALSE, outline = TRUE,
     if(!axes) { axes <- pars$axes; pars$axes <- NULL }
     if(axes) {
 	ax.pars <- pars[names(pars) %in% c("xaxt", "yaxt", "las",
-					   "cex.axis", "col.axis", "format")]
+					   "cex.axis", "col.axis")]
 	if (is.null(show.names)) show.names <- n > 1
 	if (show.names)
 	    do.call("axis", c(list(side = 1 + horizontal,
 				   at = at, labels = z$names), ax.pars))
-	do.call("Axis", c(list(x = z$stats, side = 2 - horizontal), ax.pars))
+	do.call("axis", c(list(side = 2 - horizontal), ax.pars))
     }
     do.call("title",
             pars[names(pars) %in% c("main", "cex.main", "col.main",

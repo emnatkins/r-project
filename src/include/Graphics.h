@@ -137,7 +137,7 @@ typedef struct {
     double din[2];	/* device size in inches */
     int	err;		/* Error repporting level */
     rcolor fg;		/* **R ONLY** Foreground Color */
-    char family[201];  /* **R ONLY** Font family 
+    char family[50];  /* **R ONLY** Font family 
 			   Simple name which is mapped by device-specific
 			   font database to device-specific name.
 			   Only used if not "".
@@ -167,7 +167,7 @@ typedef struct {
     double tck;		/* Tick size as in S */
     double tcl;		/* Tick size in "lines" */
     double tmag;	/* **R ONLY** Title Magnification */
-    /* int	type;	    type of plot desired -- removed in 2.3.0 */
+    int	type;		/* type of plot desired */
     double xaxp[3];	/* X Axis annotation */
 			/* [0] = coordinate of lower tick */
 			/* [1] = coordinate of upper tick */

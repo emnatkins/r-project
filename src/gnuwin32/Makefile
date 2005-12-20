@@ -32,7 +32,7 @@ DATE = $(shell date +%F)
 RLIB = $(RHOME)/library
 PKGDIR = $(RHOME)/src/library
 
-OPTFLAGS=-O2 -Wall -pedantic -std=gnu99
+OPTFLAGS=-O2 -Wall -pedantic --std=gnu99
 FOPTFLAGS=-O2 -Wall
 ifdef DEBUG
  OPTFLAGS+=-g
@@ -50,10 +50,10 @@ R-DLLFLAGS = -mwindows
 endif
 
 ## we may not need msvcp60, but no harm to include it.
-R-DLLLIBS =-L../../lib $(FLIBS) -lRblas -lcomctl32 -lversion -lmsvcp60 $(LIBEXTRAS)
+R-DLLLIBS =-L. $(FLIBS) -lRblas -lcomctl32 -lversion -lmsvcp60 $(LIBEXTRAS)
 dllversion-RESFLAGS =--include-dir ../include
 SOURCES = \
-  console.c dataentry.c dynload.c edit.c editor.c extra.c \
+  console.c dataentry.c dynload.c edit.c editor.c extra.c mkdtemp.c \
   opt.c pager.c preferences.c psignal.c rhome.c rui.c run.c shext.c \
   sys-win32.c system.c
 OBJS = $(SOURCES:.c=.o) e_pow.o
@@ -89,9 +89,9 @@ rbuild:
 	@$(MAKE) --no-print-directory fixfiles
 	@$(MAKE) --no-print-directory -C ../include -f Makefile.win
 	@$(MAKE) --no-print-directory -C ../scripts -f Makefile.win
-	@$(MAKE) --no-print-directory ../../lib/libRblas.a
+	@$(MAKE) --no-print-directory libRblas.a
 	@$(MAKE) --no-print-directory ../../bin/R.dll
-	@$(MAKE) --no-print-directory ../../lib/libR.a
+	@$(MAKE) --no-print-directory libR.a
 	@$(MAKE) --no-print-directory ../../bin/Rblas.dll CHTML
 	@$(MAKE) --no-print-directory front-ends COPYRIGHTS rmodules Rcode
 
@@ -159,7 +159,7 @@ rlibs:
 	$(MAKE) --no-print-directory -C ../extra/intl -f Makefile.win
 	$(MAKE) --no-print-directory -C ../appl  OPTFLAGS='$(OPTFLAGS)' FOPTFLAGS='$(FOPTFLAGS)' -f Makefile.win
 	$(MAKE) --no-print-directory -C ../nmath OPTFLAGS='$(OPTFLAGS)' -f Makefile.win
-	$(MAKE) --no-print-directory -C ../main  OPTFLAGS='$(OPTFLAGS_M)' FFLAGS='$(FOPTFLAGS)' -f Makefile.win
+	$(MAKE) --no-print-directory -C ../main  OPTFLAGS='$(OPTFLAGS_M)' -f Makefile.win
 	$(MAKE) --no-print-directory -C ./graphapp
 	$(MAKE) --no-print-directory -C ./getline
 	@for ex in pcre bzip2 zlib xdr; do \
@@ -171,7 +171,7 @@ rmodules:
 	  OPTFLAGS='$(OPTFLAGS)' FOPTFLAGS='$(FOPTFLAGS)' -f Makefile.win
 	$(CP) unicode/iconv.dll ../../modules/
 
-COPYRIGHTS: $(RHOME)/doc/COPYRIGHTS COPYRIGHTS.win
+COPYRIGHTS: $(RHOME)/COPYRIGHTS COPYRIGHTS.win
 	cat $^ > $@
 
 
@@ -186,7 +186,7 @@ dllversion.o: ../include/Rversion.h
 
 R.dll: R.a $(OBJS-EXTRA) $(MAINLIBS) $(EXTRALIBS) dllversion.o
 
-Rdll: makeMakedeps ../../lib/libRblas.a ../../bin/R.dll
+Rdll: makeMakedeps libRblas.a ../../bin/R.dll
 
 ../../bin/R.dll: FORCE
 	@$(MAKE) --no-print-directory fixfiles
@@ -203,7 +203,7 @@ endif
 
 FORCE:
 
-front-ends: ../../lib/libR.a
+front-ends: libR.a
 	$(MAKE) --no-print-directory -C front-ends
 
 R.a: $(OBJS)
@@ -216,8 +216,8 @@ R.a: $(OBJS)
 # R.dll exports all global symbols BUT import library (libR.a)
 # only (all functions) + (global vars listed in exported-vars))
 
-../../lib/libR.a:  R.exp
-	$(DLLTOOL) $(DLLTOOLFLAGS) $(R-DLLTOOLFLAGS) --dllname R.dll --def R.exp --output-lib $@
+libR.a:  R.exp
+	$(DLLTOOL) $(DLLTOOLFLAGS) $(R-DLLTOOLFLAGS) --dllname R.dll --def R.exp --output-lib libR.a
 
 R.exp: R.exp1
 	@(diff R.exp R.exp1 > /dev/null 2>&1) || $(CP) R.exp1 R.exp
@@ -252,37 +252,48 @@ htmldocs:
 Rblas: ../../bin/Rblas.dll
 
 Rblas-clean:
-	$(RM) ../../bin/Rblas.dll blas00.o blas00.d blas.o cmplxblas.o
+	$(RM) ../../bin/Rblas.dll blas00.o blas00.d blas.o cmplxblas.o \
+	  zgemm.o blasGoto.o libgoto.a
 
-../../lib/libRblas.a:  Rblas.def
-	@$(MKDIR) -p ../../lib
+Rblas-DLLLIBS=-L. $(LIBUNICOWS) -lR
+
+libRblas.a:  Rblas.def
 	$(DLLTOOL) $(DLLTOOLFLAGS) $(R-DLLTOOLFLAGS) --dllname Rblas.dll \
-	  --def Rblas.def --output-lib $@
+	  --def Rblas.def --output-lib libRblas.a
 
 ## suppress lots of warnings: this is a dummy
 blas00.o: blas00.c
 	$(CC) -O2  -c $< -o $@
 blas.o: ../appl/blas.f
 	$(F77) $(FFLAGS) -c $< -o $@
-cmplxblas.o: ../appl/cmplxblas.f
+zgemm.o: ../appl/zgemm.f
+	$(F77) $(FOPTFLAGS) -c $< -o $@
+cmplxblas.o: ../modules/lapack/cmplxblas.f
 	$(F77) $(FOPTFLAGS) -c $< -o $@
 
-## Rblas.dll imports xerbla_ from R.dll
 ifeq ($(strip $(USE_ACML)),YES)
 ../../bin/Rblas.dll: blas00.o dllversion.o
 	@$(ECHO) -------- Building $@ --------
-	$(DLL) -shared $(DLLFLAGS) -o $@ $^ Rblas.def \
-	   -L../../lib -lR  -L"$(ACML_PATH)" -lacml -lg2c
+	$(DLL) -shared $(DLLFLAGS) -o $@ $^ Rblas.def -L"$(ACML_PATH)" \
+	   -L. $(LIBUNICOWS) -lR -lacml -lg2c
+else
+ifeq ($(strip $(USE_GOTO)),YES)
+libgoto.a:  libgoto.def
+	$(DLLTOOL) $(DLLTOOLFLAGS) --dllname $(GOTO_DLL) --def $< --output-lib $@
+../../bin/Rblas.dll: blas00.o blasGoto.o cmplxblas.o zgemm.o dllversion.o libgoto.a
+	@$(ECHO) -------- Building $@ --------
+	$(DLL) -shared $(DLLFLAGS) -o $@ $^ Rblas.def -L. $(LIBUNICOWS) -lR -lg2c -lgoto
 else
 ifeq ($(strip $(USE_ATLAS)),YES)
 ../../bin/Rblas.dll: blas00.o dllversion.o
 	@$(ECHO) -------- Building $@ --------
-	$(DLL) -shared $(DLLFLAGS) -o $@ $^ Rblas.def \
-	   -L../../lib -lR  -L"$(ATLAS_PATH)" -lf77blas -latlas
+	$(DLL) -shared $(DLLFLAGS) -o $@ $^ Rblas.def -L"$(ATLAS_PATH)" \
+	   -L. $(LIBUNICOWS) -lR -lg2c -lf77blas -latlas
 else
-../../bin/Rblas.dll: blas.o cmplxblas.o dllversion.o
+../../bin/Rblas.dll: blas.o cmplxblas.o zgemm.o dllversion.o
 	@$(ECHO) -------- Building $@ --------
-	$(DLL) -shared $(DLLFLAGS) -o $@ $^ Rblas.def -L../../lib -lR -lg2c
+	$(DLL) -shared $(DLLFLAGS) -o $@ Rblas.def $^ -L. $(LIBUNICOWS) -lR
+endif
 endif
 endif
 
@@ -366,12 +377,6 @@ pkgcheck-%:
 	    -f $(RHOME)/src/gnuwin32/check/PkgCheck tests;\
 	fi
 
-pkgcheck2-%:
-	@$(ECHO) -------- Testing package $* --------
-	-@$(MKDIR) -p $(PKGD)/$*/check
-	@$(MAKE) --no-print-directory -C $(PKGD)/$*/check PKG=$* RHOME=$(RHOME) RLIB=$(RLIB) \
-	  -f $(RHOME)/src/gnuwin32/check/PkgCheck
-
 lazyload-%:
 	@$(MAKE) --no-print-directory PKG=$* RHOME=$(RHOME) RLIB=$(RLIB) BUILD=$(BUILD) -C $(PKGD)/$* SPKG=$(PKGD)/$* -f $(RHOME)/src/gnuwin32/MakePkg lazyload
 
@@ -446,7 +451,7 @@ distclean veryclean: clean clean-recommended
 	$(RM) -r cran/*.html cran/*.htm cran/ReadMe cran/README* cran/*.exe \
 		cran/md5sum.txt cran/*.$(RPREFIX) 
 	$(RM) -r .vignettes # it gets left behind sometimes
-	$(RM) ../../doc/FAQ ../../doc/RESOURCES ../../doc/html/resources.html \
+	$(RM) ../../FAQ ../../RESOURCES ../../doc/html/resources.html \
 	  ../../SVN-REVISION # not in SVN sources
 	$(RM) -r ../../share/locale
 	$(RM) XINSTALL # from cross-building
@@ -479,7 +484,7 @@ test-Basic:
 	-@$(MAKE) --no-print-directory -C $(RHOME)/tests -f Makefile.win
 
 
-PKGS-CHK = $(foreach i, $(R_PKGS_BASE), pkgcheck2-$i)
+PKGS-CHK = $(foreach i, $(R_PKGS_BASE), pkgcheck-$i)
 pkgtests: $(PKGS-CHK)
 
 check-devel: check
@@ -602,7 +607,7 @@ rbuild-no-mbcs:
 	@$(MAKE) --no-print-directory -C ../include -f Makefile.win
 	@$(MAKE) --no-print-directory -C ../scripts -f Makefile.win
 	@$(SED) -e '/SUPPORT_MBCS/d' fixed/h/config.h > ../include/config.h
-	@$(MAKE) --no-print-directory ../../lib/libRblas.a
+	@$(MAKE) --no-print-directory libRblas.a
 	@$(MAKE) --no-print-directory ../../bin/R.dll
 	@mv ../../bin/R.dll ../../bin/Rnombcs.dll
 	@$(RM) ../include/config.h ../include/Rconfig.h
@@ -627,7 +632,7 @@ distribution:
 ## ============= End of maintainer targets ========================
 
 # Dependencies : blas00.c malloc.c don't have any
-CSOURCES=$(SOURCES)
+CSOURCES=$(SOURCES) blasGoto.c
 DEPS=$(CSOURCES:.c=.d)
 
 makeMakedeps: $(DEPS)

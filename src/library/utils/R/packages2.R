@@ -87,7 +87,7 @@ install.packages <-
     }
 
     if(is.null(repos) & missing(contriburl)) {
-        update <- cbind(path.expand(pkgs), lib) # for side-effect of recycling to same length
+        update <- cbind(pkgs, lib) # for side-effect of recycling to same length
         cmd0 <- paste(file.path(R.home("bin"),"R"), "CMD INSTALL")
         if (installWithVers)
             cmd0 <- paste(cmd0, "--with-package-versions")
@@ -129,12 +129,15 @@ install.packages <-
     if(depends) { # check for dependencies, recursively
         p0 <- p1 <- unique(pkgs) # this is ok, as 1 lib only
         have <- .packages(all.available = TRUE)
-        not_avail <- character(0)
 	repeat {
 	    if(any(miss <- ! p1 %in% row.names(available))) {
-                not_avail <- c(not_avail, p1[miss])
-                p1 <- p1[!miss]
+		cat(sprintf(ngettext(sum(miss),
+				     "dependency '%s' is not available",
+				     "dependencies '%s' are not available"),
+		    paste(sQuote(p1[miss]), collapse=", ")), "\n\n", sep ="")
+		flush.console()
 	    }
+	    p1 <- p1[!miss]
 	    deps <- as.vector(available[p1, dependencies])
 	    deps <- .clean_up_dependencies(deps, available)
 	    if(!length(deps)) break
@@ -143,15 +146,6 @@ install.packages <-
 	    pkgs <- c(toadd, pkgs)
 	    p1 <- toadd
 	}
-        if(length(not_avail)) {
-            cat(sprintf(ngettext(sum(miss),
-                                 "dependency '%s' is not available",
-                                 "dependencies '%s' are not available"),
-                        paste(sQuote(not_avail), collapse=", ")),
-                "\n\n", sep ="")
-            flush.console()
-        }
-
         for(bundle in names(bundles))
             pkgs[ pkgs %in% bundles[[bundle]] ] <- bundle
         pkgs <- unique(pkgs)

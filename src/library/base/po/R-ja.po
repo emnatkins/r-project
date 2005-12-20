@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-11-28 07:35\n"
+"POT-Creation-Date: 2005-08-26 09:41\n"
 "PO-Revision-Date: 2005-06-02 15:29+0900\n"
 "Last-Translator: Shigeru Mase\n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp>\n"
@@ -31,6 +31,30 @@ msgstr "help(\"Deprecated\") と help(\"%s-deprecated\") を見て下さい"
 
 msgid "See help(\"Deprecated\")"
 msgstr "help(\"Deprecated\") を見て下さい"
+
+msgid "invalid numbers in 'quote'"
+msgstr "'quote' 中にの無効な数値があります"
+
+msgid "invalid 'quote' specification"
+msgstr "無効な 'quote' 指定です"
+
+msgid "invalid 'row.names' specification"
+msgstr "無効な 'row.names' の指定です"
+
+msgid "col.names = NA makes no sense when row.names = FALSE"
+msgstr "row.names = FALSE の時 col.names = NA は意味をなしません"
+
+msgid "invalid 'col.names' specification"
+msgstr "無効な 'col.names' 指定です"
+
+msgid "'file' must be a character string or connection"
+msgstr "'file' は文字列かコネクションでなければなりません"
+
+msgid "appending column names to file"
+msgstr "ファイルへの列名を加えます"
+
+msgid "format.char: coercing 'x' to 'character'"
+msgstr "format.char: 'x' を強 'character' へ強制変換します"
 
 msgid "argument to 'La.svd' must be numeric or complex"
 msgstr "'La.svd' への引数は数値か複素数でなければなりません"
@@ -471,9 +495,6 @@ msgstr "'from' は POSIXt オブジェクトでなければなりません"
 msgid "'to' must be a POSIXt object"
 msgstr "'to' POSIXt のオブジェクトでなければなりません"
 
-msgid "'file' must be a character string or connection"
-msgstr "'file' は文字列かコネクションでなければなりません"
-
 msgid "'x' must be a square matrix"
 msgstr "'x' 正方行列でなければなりません"
 
@@ -576,6 +597,9 @@ msgstr "リンクすべきファイルがありません"
 
 msgid "no files/directory to link to"
 msgstr "リンクすべきファイルもしくはディレクトリがありません"
+
+msgid "calling wrong method"
+msgstr "間違ったメソッドの呼出しです"
 
 msgid "'package' must be of length 1"
 msgstr "'package' は長さ 1 でなければなりません"
@@ -817,9 +841,6 @@ msgstr "[以前にセーブされたワークスペースを復帰します]"
 msgid "invalid 'category' argument"
 msgstr "無効な 'category' 引数です"
 
-msgid "must specify formal argument names to vectorize"
-msgstr ""
-
 msgid "'arg' should be one of"
 msgstr "'arg' は以下の一つでなければなりません："
 
@@ -900,22 +921,6 @@ msgstr "%s は '%s' のための 'loadNamespace' に失敗しました"
 msgid "namespace '%s' is already sealed in loadNamespace"
 msgstr "名前空間 '%s' は既に loadNamespace 中に密封さ れる"
 
-msgid "failed to assign NativeSymbolInfo for"
-msgstr ""
-
-msgid "to"
-msgstr ""
-
-msgid "since"
-msgstr ""
-
-msgid "is already defined in the"
-msgstr ""
-
-#, fuzzy
-msgid "namespace"
-msgstr "名前空間ではありません"
-
 msgid "package '%s' does not have a name space"
 msgstr "パッケージ '%s' は名前空間を持っていません"
 
@@ -982,16 +987,6 @@ msgstr "未定義のエクスポートです："
 
 msgid "package '%s' has no NAMESPACE file"
 msgstr "パッケージ '%s' は名前空間ファイルを持っていません"
-
-#, fuzzy
-msgid "duplicated symbol names"
-msgstr "重複したインポート名です"
-
-msgid "in useDynLib("
-msgstr ""
-
-msgid ")"
-msgstr ""
 
 msgid "bad 'S3method' directive: %s"
 msgstr "誤った 'S3method' 指令です：%s"
@@ -1103,9 +1098,6 @@ msgstr "'as.is' に名前があげられた列の中に存在しないものが�
 
 msgid "'as.is' has the wrong length %d  != cols = %d"
 msgstr "'as.is' は間違った長さ %d != cols = %d を持ちます"
-
-msgid "invalid 'row.names' specification"
-msgstr "無効な 'row.names' の指定です"
 
 msgid "'x' must be a vector"
 msgstr "'x' はベクトルでなければなりません"
@@ -1299,21 +1291,6 @@ msgstr "利用できる traceback がありません"
 msgid "argument to 'which' is not logical"
 msgstr "'which' への引数は論理値ではありません"
 
-msgid "invalid numbers in 'quote'"
-msgstr "'quote' 中にの無効な数値があります"
-
-msgid "invalid 'quote' specification"
-msgstr "無効な 'quote' 指定です"
-
-msgid "col.names = NA makes no sense when row.names = FALSE"
-msgstr "row.names = FALSE の時 col.names = NA は意味をなしません"
-
-msgid "invalid 'col.names' specification"
-msgstr "無効な 'col.names' 指定です"
-
-msgid "appending column names to file"
-msgstr "ファイルへの列名を加えます"
-
 msgid "attempt to change '%s' ignored"
 msgstr "'%s' を変更しようとしましたが無視します"
 
@@ -1373,8 +1350,3 @@ msgid_plural "Warning messages:\n"
 msgstr[0] "警告メッセージ：\n"
 msgstr[1] "警告メッセージ(複数)：\n"
 
-#~ msgid "format.char: coercing 'x' to 'character'"
-#~ msgstr "format.char: 'x' を強 'character' へ強制変換します"
-
-#~ msgid "calling wrong method"
-#~ msgstr "間違ったメソッドの呼出しです"

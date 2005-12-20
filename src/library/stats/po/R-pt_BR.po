@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.3.0\n"
+"Project-Id-Version: R 2.2.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-11-28 07:35\n"
-"PO-Revision-Date: 2005-12-17 11:31-0200\n"
+"POT-Creation-Date: 2005-12-12 09:04\n"
+"PO-Revision-Date: 2005-11-05 18:35-0200\n"
 "Last-Translator: Fernando Henrique Ferraz P. da Rosa <feferraz@.ime.usp.br>\n"
 "Language-Team: Portuguese <ldp-br@bazar.conectiva.com.br>\n"
 "MIME-Version: 1.0\n"
@@ -113,9 +113,6 @@ msgstr "escopo não é um subconjunto dos rótulos dos termos"
 
 msgid "no 'drop1' method for \"mlm\" models"
 msgstr "nenhum método 'drop1' para modelos \"mlm\""
-
-msgid "F test assumes 'quasi%s' family"
-msgstr "teste F supõe família 'quasi%s'"
 
 msgid "lower scope is not included in model"
 msgstr "escopo inferior não incluído no modelo"
@@ -746,7 +743,7 @@ msgid "link not recognised"
 msgstr "link não reconhecido"
 
 msgid ""
-"link \"%s\" not available for Poisson family; available links are \"identity"
+"link \"%s\" not available for poisson family; available links are \"identity"
 "\", \"log\" and \"sqrt\""
 msgstr ""
 "ligação \"%s\" não disponível para a família Poisson; ligações disponíveis "
@@ -873,11 +870,8 @@ msgstr "alternative deve ser \"two.sided\", \"less\" ou \"greater\""
 msgid "'or' must be a single number between 0 and Inf"
 msgstr "'or' deve ser um único número entre 0 e Inf"
 
-msgid "need 2 or more non-zero row marginals"
-msgstr "2 ou mais marginais das linhas precisam ser diferentes de 0"
-
-msgid "need 2 or more non-zero column marginals"
-msgstr "2 ou mais marginais das colunas precisam ser diferentes de 0"
+msgid "p-values may be incorrect"
+msgstr "níveis descritivos podem estar incorretos"
 
 msgid "'hybrid' is ignored for a 2 x 2 table"
 msgstr "'hybrid' é ignorado para uma tabela 2 x 2"
@@ -1037,12 +1031,6 @@ msgstr ""
 msgid ","
 msgstr ","
 
-msgid "using F test with a %s family is inappropriate"
-msgstr "uso do teste F com a família %s é inapropriado"
-
-msgid "using F test with a fixed dispersion is inappropriate"
-msgstr "uso do teste F com dispersão fixa é inapropriado"
-
 msgid "models with response"
 msgstr "modelos sem resposta"
 
@@ -1052,9 +1040,6 @@ msgstr "removido porque resposta difere do modelo 1"
 msgid "models were not all fitted to the same size of dataset"
 msgstr ""
 "modelos não foram todos ajustados a conjuntos de dados de mesmo tamanho"
-
-msgid "using F test with a '%s' family is inappropriate"
-msgstr "uso do teste F com a família '%s' é inapropriado"
 
 msgid "observations with zero weight not used for calculating dispersion"
 msgstr "observações com peso zero não foram usadas para calcular a dispersão"
@@ -1405,7 +1390,7 @@ msgid "type '%s' is not implemented yet"
 msgstr "tipo '%s' ainda não implementado"
 
 msgid "this fit does not inherit from \"lm\""
-msgstr "esse ajuste não herda de \"lm\""
+msgstr ""
 
 msgid "'cterms' argument must match terms in model object"
 msgstr "argumento 'cterms' deve corresponder aos termos do objeto do modelo"
@@ -1533,6 +1518,9 @@ msgstr ""
 
 msgid "singular gradient matrix at initial parameter estimates"
 msgstr "matriz gradiente singular nas estimativas iniciais dos parâmetros"
+
+msgid "argument 'weights' is currently ignored"
+msgstr ""
 
 msgid "Upper or lower bounds ignored unless algorithm = \"port\""
 msgstr ""
@@ -2028,9 +2016,6 @@ msgstr "especificação de ordem 'ma' inconsistente"
 msgid "number of differences must be a positive integer"
 msgstr "número de diferenças deve ser um inteiro positivo"
 
-msgid "'start.innov' is too short: need %d points"
-msgstr "'start.innov' é muito curto: são necessários %d pontos"
-
 msgid "insufficient observations"
 msgstr "observações insuficientes"
 
@@ -2134,9 +2119,3 @@ msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "parâmetro %s não ocorre na fórmula do modelo"
 msgstr[1] "parâmetros %s não ocorrem na fórmula do modelo"
-
-#~ msgid "p-values may be incorrect"
-#~ msgstr "níveis descritivos podem estar incorretos"
-
-#~ msgid "'shape' must be strictly positive"
-#~ msgstr "'shape' deve ser estritamente positivo"

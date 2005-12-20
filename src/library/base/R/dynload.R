@@ -4,43 +4,30 @@ dyn.load <- function(x, local=TRUE, now=TRUE)
 dyn.unload <- function(x)
     .Internal(dyn.unload(x))
 
-is.loaded <- function(symbol, PACKAGE = "", type = "")
-    .Internal(is.loaded(symbol, PACKAGE, type))
-
-getNativeSymbolInfo <- function(name, PACKAGE, unlist = TRUE)
+getNativeSymbolInfo <- function(name, PACKAGE)
 {
     if(missing(PACKAGE)) PACKAGE <- ""
 
     if(is.character(PACKAGE))
         pkgName <- PACKAGE
     else if(inherits(PACKAGE, "DLLInfo")) {
-        pkgName <- PACKAGE[["path"]]
-        PACKAGE <- PACKAGE[["info"]]
+        pkgName <- PACKAGE$path
+        PACKAGE <- PACKAGE$info
     } else if(inherits(PACKAGE, "DLLInfoReference")) {
         pkgName <- character()
     } else
-        stop("must pass a package name, DLLInfo or DllInfoReference object")
+    stop("must pass a package name, DLLInfo or DllInfoReference object")
 
-
-    syms = lapply(name, function(id) {
-       v <- .Call("R_getSymbolInfo", as.character(id), PACKAGE,  PACKAGE = "base")
-       if(is.null(v)) {
-           msg <- paste("no such symbol", id)
-           if(length(pkgName) && nchar(pkgName))
-               msg <- paste(msg, "in package", pkgName)
-           stop(msg)
-       }
-       names(v) <- c("name", "address", "package", "numParameters")[1:length(v)]
-       v
-      })
-
-
-   if(length(name) == 1 && unlist == TRUE)
-     syms = syms[[1]]
-   else
-     names(syms) = name
-
-   syms
+    v <- .Call("R_getSymbolInfo", as.character(name), PACKAGE,
+               PACKAGE = "base")
+    if(is.null(v)) {
+        msg <- paste("no such symbol", name)
+        if(length(pkgName) && nchar(pkgName))
+            msg <- paste(msg, "in package", pkgName)
+        stop(msg)
+    }
+    names(v) <- c("name", "address", "package", "numParameters")[1:length(v)]
+    v
 }
 
 getLoadedDLLs <- function()
@@ -51,14 +38,14 @@ getLoadedDLLs <- function()
 }
 
 
-getDLLRegisteredRoutines <- function(dll, addNames = TRUE)
+getDLLRegisteredRoutines <- function(dll)
     UseMethod("getDLLRegisteredRoutines")
 
 
-getDLLRegisteredRoutines.character <- function(dll, addNames = TRUE)
+getDLLRegisteredRoutines.character <- function(dll)
 {
     dlls <- getLoadedDLLs()
-    w <- sapply(dlls, function(x) x[["name"]] == dll || x[["path"]] == dll)
+    w <- sapply(dlls, function(x) x$name == dll || x$path == dll)
 
     if(!any(w))
         stop("No DLL currently loaded with name or path ", dll)
@@ -66,28 +53,26 @@ getDLLRegisteredRoutines.character <- function(dll, addNames = TRUE)
     dll <- which(w)[1]
     if(sum(w) > 1)
         warning(gettextf("multiple DLLs match '%s'. Using '%s'",
-                         dll, dll[["path"]]), domain = NA)
+                         dll, dll$path), domain = NA)
 
-    getDLLRegisteredRoutines(dlls[[dll]], addNames)
+    getDLLRegisteredRoutines(dlls[[dll]])
 }
 
 
-getDLLRegisteredRoutines.DLLInfo <- function(dll, addNames = TRUE)
+getDLLRegisteredRoutines.DLLInfo <- function(dll)
 {
     ## Provide methods for the different types.
     if(!inherits(dll, "DLLInfo"))
         stop("must specify DLL via a DLLInfo object. See getLoadedDLLs()")
 
-    info <- dll[["info"]]
+    info <- dll$info
     els <- .Call("R_getRegisteredRoutines", info, PACKAGE = "base")
     ## Put names on the elements by getting the names from each element.
-    if(addNames) {
-      els <- lapply(els, function(x) {
-                              if(length(x))
-                                 names(x) <- sapply(x, function(z) z$name)
-                              x
-                         })
-    }
+    els <- lapply(els, function(x) {
+        if(length(x))
+            names(x) <- sapply(x, function(z) z$name)
+        x
+    })
     class(els) <- "DLLRegisteredRoutines"
     els
 }
@@ -134,10 +119,9 @@ function(x, ...)
 
 getCallingDLLe <- function(e)
 {
-    if (is.null(env <- e$".__NAMESPACE__.")) env <- baseenv()
-    if(exists("DLLs", envir = env) &&
-       length(env$DLLs))
-        return(env$DLLs[[1]])
+    if(exists("DLLs", envir = e$".__NAMESPACE__.") &&
+       length(e$".__NAMESPACE__."$DLLs))
+        return(e$".__NAMESPACE__."$DLLs[[1]])
     NULL
 }
 
@@ -154,9 +138,8 @@ function(f = sys.function(-1), doStop = FALSE)
     }
 
        # Please feel free to replace with a more encapsulated way to do this.
-    if (is.null(env <- e$".__NAMESPACE__.")) env <- baseenv()
-    if(exists("DLLs", envir = env) && length(env$DLLs))
-        return(env$DLLs[[1]])
+    if(exists("DLLs", envir = e$".__NAMESPACE__.") && length(e$".__NAMESPACE__."$DLLs))
+        return(e$".__NAMESPACE__."$DLLs[[1]])
     else {
         if(doStop)
             stop("looking for DLL for native routine call, but no DLLs in namespace of call")
@@ -184,12 +167,3 @@ print.DLLInfoList <- function(x, ...)
     }
     invisible(x)
 }
-
-
-`$.DLLInfo` <- function(x, name)
-{
-  getNativeSymbolInfo(as.character(name), PACKAGE = x)
-}
-
-
-

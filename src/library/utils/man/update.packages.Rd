@@ -27,9 +27,8 @@ old.packages(lib.loc = NULL, repos = getOption("repos"),
              method, available = NULL, checkBuilt = FALSE)
 
 new.packages(lib.loc = NULL, repos = getOption("repos"),
-             contriburl = contrib.url(repos, type),
-             method, available = NULL, ask = FALSE, \dots,
-             type = getOption("pkgType"))
+             contriburl = contrib.url(repos),
+             method, available = NULL, ask = FALSE)
 
 download.packages(pkgs, destdir, available = NULL,
                   repos = getOption("repos"),
@@ -79,7 +78,6 @@ contrib.url(repos, type = getOption("pkgType"))
 #ifdef unix
     \file{.tar.gz} files.  These can be source archives or binary
     package/bundle archive files (as created by \code{R CMD build --binary}).
-    Tilde-expansion will be done on the file paths.
 #endif
     If this is a zero-length character vector, a listbox of available
     packages (including those contained in bundles) is presented where
@@ -110,8 +108,6 @@ contrib.url(repos, type = getOption("pkgType"))
     Can also be a character vector, a subset of
     \code{c("Depends", "Imports", "Suggests")}.
   }
-  \item{\dots}{(for \code{new.packages}).  Arguments such as \code{destdir}
-    and \code{dependencies} to be passed to \code{install.packages}.}
   \item{type}{character, indicating the type of package to download and
     install.
 #ifdef unix
@@ -156,8 +152,7 @@ contrib.url(repos, type = getOption("pkgType"))
   give warnings about incompletely installed bundles (provided the
   information is available) and bundles whose contents has changed.
   If \code{ask != FALSE} it asks which packages should be installed
-  in the first element of \code{lib.loc}.  NB: versioned installs are
-  not installs of a named package.
+  in the first element of \code{lib.loc}.
 
   \code{download.packages} takes a list of package/bundle names and a
   destination directory, downloads the newest versions and saves them in

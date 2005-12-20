@@ -101,7 +101,7 @@ getOption(x)
 
     \item{\code{expressions}:}{sets a limit on the number of nested
       expressions that will be evaluated.  Valid values are
-      25\dots500000 with default 5000.  If you increase it, you may
+      25\dots500000 with default 1000.  If you increase it, you may
       also want to start \R with a larger protection stack;
       see \code{--max-ppsize} in \code{\link{Memory}}.  Note too that
       you may cause a segfault from overflow of the C stack, and on OSes
@@ -270,10 +270,6 @@ getOption(x)
 
     \item{\code{X11fonts}:}{character vector of length 2.
       See \code{\link{X11}}.}
-
-    \item{\code{gamma}:}{double.  The default value of
-      \code{gamma} for \code{\link{X11}} devices, defaulting to 1
-      if unset (the default).}
 #endif
 #ifdef windows
     \item{\code{gamma}:}{double. The default value of

@@ -3,43 +3,18 @@
 .X11env <- new.env()
 
 X11 <- function(display = "", width = 7, height = 7, pointsize = 12,
-                gamma = getOption("gamma"),
-                colortype = getOption("X11colortype"),
+                gamma = 1, colortype = getOption("X11colortype"),
                 maxcubesize = 256, bg = "transparent", canvas = "white",
-                fonts = getOption("X11fonts"), xpos = NA, ypos = NA)
+                fonts = getOption("X11fonts"))
 {
 
   if(display == "" && .Platform$GUI == "AQUA" && Sys.getenv("DISPLAY") == "")
       Sys.putenv(DISPLAY = ":0")
-  ## we need to know internally if the user has overridden X11 resources
-  if(missing(width)) width <- as.double(NA)
-  if(missing(height)) height <- as.double(NA)
-  .Internal(X11(display, width, height, pointsize,
-                if(is.null(gamma)) 1 else gamma, colortype,
-                maxcubesize, bg, canvas, fonts, NA, xpos, ypos))
+  .Internal(X11(display, width, height, pointsize, gamma, colortype,
+                maxcubesize, bg, canvas, fonts, NA))
 }
 
 x11 <- X11
-
-
-png <- function(filename = "Rplot%03d.png",
-                width=480, height=480, pointsize=12,
-                gamma = 1, colortype = getOption("X11colortype"),
-                maxcubesize = 256, bg = "white",
-                fonts = getOption("X11fonts"), res = NA)
-    .Internal(X11(paste("png::", filename, sep=""),
-                  width, height, pointsize, gamma,
-                  colortype, maxcubesize, bg, bg, fonts, res, 0, 0))
-
-jpeg <- function(filename = "Rplot%03d.jpeg",
-                 width=480, height=480, pointsize=12,
-                 quality = 75,
-                 gamma = 1, colortype = getOption("X11colortype"),
-                 maxcubesize = 256, bg = "white",
-                 fonts = getOption("X11fonts"), res = NA)
-    .Internal(X11(paste("jpeg::", quality, ":", filename, sep=""),
-                  width, height, pointsize, gamma,
-                  colortype, maxcubesize, bg, bg, fonts, res, 0, 0))
 
 ####################
 # X11 font database
@@ -104,14 +79,12 @@ X11Fonts <- function(...) {
     nnames <- length(fontNames)
     if (nnames == 0) {
       if (!all(sapply(fonts, is.character)))
-          stop(gettextf("invalid arguments in '%s' (must be font names)",
-                        "X11Fonts"), domain = NA)
+        stop("invalid arguments in X11Fonts (must be font names)")
       else
         get(".X11.Fonts", envir=.X11env)[unlist(fonts)]
     } else {
       if (ndots != nnames)
-          stop(gettextf("invalid arguments in '%s' (need named args)",
-                        "X11Fonts"), domain = NA)
+        stop("invalid arguments in X11Fonts (need named args)")
       setX11Fonts(fonts, fontNames)
     }
   }

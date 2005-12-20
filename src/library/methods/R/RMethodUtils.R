@@ -960,7 +960,7 @@ metaNameUndo <- function(strings, prefix = "M", searchForm = FALSE) {
         ## the static environments for this namespace, ending with the base namespace
         value <- list(env)
         repeat {
-            if(identical(env, emptyenv()))
+            if(identical(env, baseenv()))
                 stop("botched namespace: failed to find 'base' namespace in its parents")
             env <- parent.env(env)
             value <- c(value, list(env))
@@ -1027,8 +1027,6 @@ metaNameUndo <- function(strings, prefix = "M", searchForm = FALSE) {
     while(!isNamespace(ev)) {
         if(identical(ev, baseenv())) {
             value[[length(value)]] <- .BaseNamespaceEnv
-            break
-        } else if(identical(ev, emptyenv())) {
             break
         }
         ev <- parent.env(ev)

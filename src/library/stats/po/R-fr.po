@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-12-08 17:25\n"
+"POT-Creation-Date: 2005-12-12 09:04\n"
 "PO-Revision-Date: 2005-12-06 23:59+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -116,9 +116,6 @@ msgstr ""
 
 msgid "no 'drop1' method for \"mlm\" models"
 msgstr "aucune méhode 'drop1' pour les modèles \"mlm\""
-
-msgid "F test assumes 'quasi%s' family"
-msgstr "le test F implique une famille 'quasi%s'"
 
 msgid "lower scope is not included in model"
 msgstr "la formule inférieure n'est pas incluse dans le modèle"
@@ -758,10 +755,10 @@ msgid "link not recognised"
 msgstr "lien non reconnu"
 
 msgid ""
-"link \"%s\" not available for Poisson family; available links are \"identity"
+"link \"%s\" not available for poisson family; available links are \"identity"
 "\", \"log\" and \"sqrt\""
 msgstr ""
-"le lien \"%s\" n'est pas possible pour la famille Poisson ; les liens "
+"le lien \"%s\" n'est pas possible pour la famille poisson ; les liens "
 "possibles sont \"identity\", \"log\" et \"sqrt\""
 
 msgid "negative values not allowed for the Poisson family"
@@ -888,11 +885,8 @@ msgstr "l'alternative doit être \"two.sided\", \"less\" or \"greater\""
 msgid "'or' must be a single number between 0 and Inf"
 msgstr "'or' doit être un nombre positif ou nul"
 
-msgid "need 2 or more non-zero row marginals"
-msgstr ""
-
-msgid "need 2 or more non-zero column marginals"
-msgstr ""
+msgid "p-values may be incorrect"
+msgstr "les p-values peuvent être incorrectes"
 
 msgid "'hybrid' is ignored for a 2 x 2 table"
 msgstr "'hybrid' est ignoré pour une table 2 x 2"
@@ -1053,12 +1047,6 @@ msgstr "les arguments de 'anova.glm' suivants sont incorrects et ignorés :"
 msgid ","
 msgstr ","
 
-msgid "using F test with a %s family is inappropriate"
-msgstr ""
-
-msgid "using F test with a fixed dispersion is inappropriate"
-msgstr ""
-
 msgid "models with response"
 msgstr "modèles avec réponse"
 
@@ -1068,9 +1056,6 @@ msgstr "enlevé car la réponse diffère du modèle 1"
 msgid "models were not all fitted to the same size of dataset"
 msgstr ""
 "tous les modèles n'ont pas été ajustés à la même taille du jeu de données"
-
-msgid "using F test with a '%s' family is inappropriate"
-msgstr ""
 
 msgid "observations with zero weight not used for calculating dispersion"
 msgstr ""
@@ -1565,6 +1550,9 @@ msgstr ""
 msgid "singular gradient matrix at initial parameter estimates"
 msgstr ""
 "matrice de gradient singulière pour les estimations initiales des paramètres"
+
+msgid "argument 'weights' is currently ignored"
+msgstr ""
 
 msgid "Upper or lower bounds ignored unless algorithm = \"port\""
 msgstr ""
@@ -2073,9 +2061,6 @@ msgstr "l'ordre de 'ma' spécifié est incohérent"
 msgid "number of differences must be a positive integer"
 msgstr "le nombre de différences doit être un entier positif"
 
-msgid "'start.innov' is too short: need %d points"
-msgstr ""
-
 msgid "insufficient observations"
 msgstr "observations insuffisantes"
 
@@ -2179,9 +2164,3 @@ msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "le paramètre %s n'apparaît pas dans la formule du modèle"
 msgstr[1] "les paramètres %s n'apparaîssent pas dans la formule du modèle"
-
-#~ msgid "p-values may be incorrect"
-#~ msgstr "les p-values peuvent être incorrectes"
-
-#~ msgid "'shape' must be strictly positive"
-#~ msgstr "'shape' doit être strictement positif"

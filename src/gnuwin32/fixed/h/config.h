@@ -65,11 +65,62 @@
 /* Define this if you have support for C99 complex types. */
 #define HAVE_C99_COMPLEX 1
 
+/* Define to 1 if you have the `cacos' function. */
+#define HAVE_CACOS 1
+
+/* Define to 1 if you have the `cacosh' function. */
+#define HAVE_CACOSH 1
+
+/* Define to 1 if you have the `casin' function. */
+#define HAVE_CASIN 1
+
+/* Define to 1 if you have the `casinh' function. */
+#define HAVE_CASINH 1
+
+/* Define to 1 if you have the `catan' function. */
+#define HAVE_CATAN 1
+
+/* Define to 1 if you have the `catanh' function. */
+#define HAVE_CATANH 1
+
+/* Define to 1 if you have the `ccos' function. */
+#define HAVE_CCOS 1
+
+/* Define to 1 if you have the `ccosh' function. */
+#define HAVE_CCOSH 1
+
+/* Define to 1 if you have the `cexp' function. */
+#define HAVE_CEXP 1
+
 /* Define to 1 if you have the `chdir' function. */
 #define HAVE_CHDIR 1
 
+/* Define to 1 if you have the `clog' function. */
+#define HAVE_CLOG 1
+
+/* Define to 1 if you have the <complex.h> header file. */
+#define HAVE_COMPLEX_H 1
+
 /* Defined if framework CoreFoundation is present */
 /* #undef HAVE_COREFOUNDATION_FW */
+
+/* Define to 1 if you have the `cpow' function. */
+#define HAVE_CPOW 1
+
+/* Define to 1 if you have the `csin' function. */
+#define HAVE_CSIN 1
+
+/* Define to 1 if you have the `csinh' function. */
+#define HAVE_CSINH 1
+
+/* Define to 1 if you have the `csqrt' function. */
+#define HAVE_CSQRT 1
+
+/* Define to 1 if you have the `ctan' function. */
+#define HAVE_CTAN 1
+
+/* Define to 1 if you have the `ctanh' function. */
+#define HAVE_CTANH 1
 
 /* Define if the GNU dcgettext() function is already present or preinstalled.
    */
@@ -111,22 +162,6 @@
    */
 #define HAVE_DECL_ISNAN 1
 
-/* Define to 1 if you have the declaration of `mkdtemp', and to 0 if you
-   don't. */
-#define HAVE_DECL_MKDTEMP 0
-
-/* Define to 1 if you have the declaration of `putenv', and to 0 if you don't.
-   */
-#define HAVE_DECL_PUTENV 1
-
-/* Define to 1 if you have the declaration of `siglongjmp', and to 0 if you
-   don't. */
-#define HAVE_DECL_SIGLONGJMP 1
-
-/* Define to 1 if you have the declaration of `sigsetjmp', and to 0 if you
-   don't. */
-#define HAVE_DECL_SIGSETJMP 1
-
 /* Define to 1 if you have the declaration of `SIZE_MAX', and to 0 if you
    don't. */
 #define HAVE_DECL_SIZE_MAX 1
@@ -146,6 +181,14 @@
 /* Define to 1 if you have the declaration of `vsnprintf', and to 0 if you
    don't. */
 #define HAVE_DECL_VSNPRINTF 1
+
+/* Define to 1 if you have the declaration of `wcswidth', and to 0 if you
+   don't. */
+#define HAVE_DECL_WCSWIDTH 0
+
+/* Define to 1 if you have the declaration of `wcwidth', and to 0 if you
+   don't. */
+#define HAVE_DECL_WCWIDTH 0
 
 /* Define to 1 if you have the declaration of `_snprintf', and to 0 if you
    don't. */
@@ -182,9 +225,6 @@
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #define HAVE_FCNTL_H 1
-
-/* Define to 1 if you have the `fdopen' function. */
-#define HAVE_FDOPEN 1
 
 /* Define to 1 if you have the `finite' function. */
 #define HAVE_FINITE 1
@@ -232,14 +272,8 @@
 /* Define to 1 if you have the `getpwuid' function. */
 /* #undef HAVE_GETPWUID */
 
-/* Define to 1 if you have the `getrlimit' function. */
-/* #undef HAVE_GETRLIMIT */
-
 /* Define if the GNU gettext() function is already present or preinstalled. */
 /* #undef HAVE_GETTEXT */
-
-/* Define to 1 if you have the `gettimeofday' function. */
-/* #undef HAVE_GETTIMEOFDAY */
 
 /* Define to 1 if you have the `getuid' function. */
 /* #undef HAVE_GETUID */
@@ -285,17 +319,11 @@
    declares uintmax_t. */
 #define HAVE_INTTYPES_H_WITH_UINTMAX 1
 
-/* Define to 1 if you have the `isblank' function. */
-/* #undef HAVE_ISBLANK */
+/* Define to 1 if you have the `isascii' function. */
+#define HAVE_ISASCII 1
 
 /* Define to 1 if you have the `isnan' function. */
 #define HAVE_ISNAN 1
-
-/* Define to 1 if you have the `iswblank' function. */
-/* #undef HAVE_ISWBLANK */
-
-/* Define to 1 if you have the `iswctype' function. */
-#define HAVE_ISWCTYPE 1
 
 /* Define if you have the JPEG headers and libraries. */
 #define HAVE_JPEG 1
@@ -305,6 +333,9 @@
 
 /* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
 /* #undef HAVE_LANGINFO_CODESET */
+
+/* Define if external LAPACK is available. */
+/* #undef HAVE_LAPACK */
 
 /* Define if your <locale.h> file defines LC_MESSAGES. */
 /* #undef HAVE_LC_MESSAGES */
@@ -339,14 +370,8 @@
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
 
-/* Define to 1 if you have the `log10' function. */
-#define HAVE_LOG10 1
-
 /* Define to 1 if you have the `log1p' function. */
 #define HAVE_LOG1P 1
-
-/* Define to 1 if you have the `log2' function. */
-#define HAVE_LOG2 1
 
 /* Define if you have the 'long double' type. */
 #define HAVE_LONG_DOUBLE 1
@@ -452,23 +477,11 @@
 /* Define to 1 if you have the `setlocale' function. */
 #define HAVE_SETLOCALE 1
 
-/* Define to 1 if you have the `sigaction' function. */
-/* #undef HAVE_SIGACTION */
-
-/* Define to 1 if you have the `sigaltstack' function. */
-/* #undef HAVE_SIGALTSTACK */
-
-/* Define to 1 if you have the `sigemptyset' function. */
-/* #undef HAVE_SIGEMPTYSET */
-
 /* Define to 1 if you have the `snprintf' function. */
 #define HAVE_SNPRINTF 1
 
 /* Define if you have support for sockets. */
 #define HAVE_SOCKETS 1
-
-/* Define to 1 if the system has the type `stack_t'. */
-/* #undef HAVE_STACK_T */
 
 /* Define to 1 if you have the `stat' function. */
 #define HAVE_STAT 1
@@ -522,9 +535,6 @@
 /* Define to 1 if you have the `symlink' function. */
 /* #undef HAVE_SYMLINK */
 
-/* Define to 1 if you have the `sysconf' function. */
-/* #undef HAVE_SYSCONF */
-
 /* Define to 1 if you have the `system' function. */
 #define HAVE_SYSTEM 1
 
@@ -538,9 +548,6 @@
 
 /* Define to 1 if you have the <sys/param.h> header file. */
 #define HAVE_SYS_PARAM_H 1
-
-/* Define to 1 if you have the <sys/resource.h> header file. */
-/* #undef HAVE_SYS_RESOURCE_H */
 
 /* Define to 1 if you have the <sys/select.h> header file. */
 /* #undef HAVE_SYS_SELECT_H */
@@ -573,9 +580,6 @@
 /* Define to 1 if you have the `times' function. */
 #define HAVE_TIMES 1
 
-/* Define to 1 if you have the <time.h> header file. */
-#define HAVE_TIME_H 1
-
 /* Define to 1 if you have the `tsearch' function. */
 /* #undef HAVE_TSEARCH */
 
@@ -590,9 +594,6 @@
 
 /* Define if you have the 'unsigned long long' type. */
 #define HAVE_UNSIGNED_LONG_LONG 1
-
-/* Define to 1 if you have the `va_copy' function. */
-#define HAVE_VA_COPY 1
 
 /* Defined if framework vecLib is present */
 /* #undef HAVE_VECLIB_FW */
@@ -621,17 +622,20 @@
 /* Define to 1 if you have the `wcstombs' function. */
 #define HAVE_WCSTOMBS 1
 
+/* Define to 1 if you have the `wcswidth' function. */
+#define HAVE_WCSWIDTH 1
+
 /* Define to 1 if you have the `wctrans' function. */
 #define HAVE_WCTRANS 1
 
 /* Define to 1 if the system has the type `wctrans_t'. */
 #define HAVE_WCTRANS_T 1
 
-/* Define to 1 if you have the `wctype' function. */
-#define HAVE_WCTYPE 1
-
 /* Define to 1 if you have the <wctype.h> header file. */
 #define HAVE_WCTYPE_H 1
+
+/* Define to 1 if you have the `wcwidth' function. */
+#define HAVE_WCWIDTH 1
 
 /* Define if you have the 'wint_t' type. */
 #define HAVE_WINT_T 1
@@ -703,13 +707,10 @@
 /* Define to 1 if you have the `__fsetlocking' function. */
 /* #undef HAVE___FSETLOCKING */
 
-/* Define to 1 if you have the `__va_copy' function. */
-#define HAVE___VA_COPY 1
-
 /* Define as const if the declaration of iconv() needs const. */
 /* #undef ICONV_CONST */
 
-/* Define if `iconv' accepts "UTF-8", "latin1" and "UCS-*". */
+/* Define if `iconv' accepts "UTF-8" and "latin1". */
 #define ICONV_LATIN1 1
 
 /* Define if you have IEEE 754 floating point arithmetic. */
@@ -740,13 +741,13 @@
 #define PACKAGE_NAME "R"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "R 2.3.0"
+#define PACKAGE_STRING "R 2.2.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "R"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.3.0"
+#define PACKAGE_VERSION "2.2.0"
 
 /* Define if <inttypes.h> exists and defines unusable PRI* macros. */
 /* #undef PRI_MACROS_BROKEN */
@@ -773,9 +774,6 @@
 /* Define this to enable R-level profiling. */
 #define R_PROFILING 1
 
-/* Type for socket lengths: socklen_t, sock_t, int? */
-#define R_SOCKLEN_T int
-
 /* Define this to be the name of the vendor of your system. */
 #define R_VENDOR "pc"
 
@@ -798,6 +796,9 @@
 /* Define as the maximum value of type 'size_t', if the system doesn't define
    it. */
 /* #undef SIZE_MAX */
+
+/* Type for socket lengths: socklen_t, sock_t, int? */
+#define SOCKLEN_T int
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
@@ -840,7 +841,7 @@
 #define VALGRIND_LEVEL 0
 
 /* Version number of package */
-#define VERSION "2.3.0"
+#define VERSION "2.2.0"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */

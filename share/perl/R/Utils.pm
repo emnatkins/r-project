@@ -75,7 +75,7 @@ sub R_tempfile {
 			   $pat . $$ . sprintf("%05d", rand(10**5)));
 
     my $n=0;
-    while(-e $retval) { # was -f, but want to be able to create such a file
+    while(-f $retval){
 	$retval = file_path($R::Vars::TMPDIR,
 			    $pat . $$ . sprintf("%05d", rand(10**5)));
 	croak "Cannot find unused name for temporary file"
@@ -343,20 +343,13 @@ sub get_exclude_patterns {
     ## exported.
     ## <NOTE>
     ## Has Unix-style '/' path separators hard-coded.
-    my @exclude_patterns = ("^\\.Rbuildignore\$",
-			    "(^|/)\\.DS_Store\$",
+    my @exclude_patterns = ("^.Rbuildignore\$", "(^|/)\\.DS_Store\$",
 			    "\~\$", "\\.bak\$", "\\.swp\$",
 			    "(^|/)\\.#[^/]*\$", "(^|/)#[^/]*#\$",
-			    ## Outdated ...
 			    "^TITLE\$", "^data/00Index\$",
-			    "^inst/doc/00Index\\.dcf\$",
-			    ## Autoconf
+			    "^inst/doc/00Index.dcf\$",
 			    "^config\\.(cache|log|status)\$",
-			    "^autom4te\\.cache\$",
-			    ## Windows dependency files
-			    "^src/.*\\.d\$", "^src/Makedeps\$",
-			    ## IRIX
-			    "^src/so_locations\$"
+			    "^autom4te.cache\$"
 			    );
     ## </NOTE>
     @exclude_patterns;

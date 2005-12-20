@@ -52,7 +52,7 @@ string that identifies the PCRE version that is in use. */
 #define STRING(a)  # a
 #define XSTRING(s) STRING(s)
 
-PCRE_EXPORT const char *
+EXPORT const char *
 pcre_version(void)
 {
 return XSTRING(PCRE_MAJOR) "." XSTRING(PCRE_MINOR) " " XSTRING(PCRE_DATE);

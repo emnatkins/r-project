@@ -3,7 +3,6 @@ useDynLib("grid")
 import(grDevices)
 
 export(
-       "arcCurvature", "arrow",
        # Conversion of units
        "convertUnit", "convertX", "convertY",
        "convertWidth", "convertHeight",
@@ -31,8 +30,7 @@ export(
        "unit",
        "is.unit",
        "unit.c", "unit.length", "unit.pmax", "unit.pmin", "unit.rep",
-       "stringWidth", "stringHeight",
-       "grobX", "grobY", "grobWidth", "grobHeight",
+       "stringWidth", "stringHeight", "grobWidth", "grobHeight",
        "absolute.size",
 
        "viewport", "vpList", "vpStack", "vpTree", "vpPath",
@@ -60,15 +58,14 @@ export(
        "setChildren",
 
        # Creating and drawing predefined grobs and gTrees
-       "grid.arrows", "grid.circle", "grid.curve",
+       "grid.arrows", "grid.circle",
        "grid.line.to", "grid.lines", "grid.move.to",
-       "grid.points", "grid.polygon", "grid.xspline",
+       "grid.points", "grid.polygon",
        "grid.rect", "grid.segments", "grid.text",
        "grid.xaxis", "grid.yaxis",
-       "arrowsGrob", "circleGrob", "curveGrob",
-       "linesGrob", "lineToGrob", "moveToGrob",
+       "arrowsGrob", "circleGrob", "linesGrob", "lineToGrob", "moveToGrob",
        "pointsGrob", "polygonGrob", "rectGrob", "segmentsGrob", "textGrob",
-       "xaxisGrob", "yaxisGrob", "xsplineGrob",
+       "xaxisGrob", "yaxisGrob",
 
        # Frames and packing
        "grid.frame", "grid.pack", "grid.place",
@@ -93,8 +90,6 @@ export("layout.torture")
 ## </FIXME>
 
 ## S3 methods for generics in base
-S3method("[", "arrow")
-S3method("[", "gpar")
 S3method("[", "unit")
 S3method("[", "unit.arithmetic")
 S3method("[", "unit.list")
@@ -134,14 +129,12 @@ S3method("grid.draw", "pop")
 S3method("grid.draw", "up")
 S3method("drawDetails", "arrows")
 S3method("drawDetails", "circle")
-S3method("drawDetails", "curve")
 S3method("drawDetails", "grob")
 S3method("drawDetails", "line.to")
 S3method("drawDetails", "lines")
 S3method("drawDetails", "move.to")
 S3method("drawDetails", "points")
 S3method("drawDetails", "polygon")
-S3method("drawDetails", "xspline")
 S3method("drawDetails", "rect")
 S3method("drawDetails", "segments")
 S3method("drawDetails", "text")
@@ -158,17 +151,8 @@ S3method("grobWidth", "grob")
 S3method("grobWidth", "gList")
 S3method("grobWidth", "gPath")
 S3method("grobWidth", "default")
-S3method("grobX", "grob")
-S3method("grobX", "gList")
-S3method("grobX", "gPath")
-S3method("grobX", "default")
-S3method("grobY", "grob")
-S3method("grobY", "gList")
-S3method("grobY", "gPath")
-S3method("grobY", "default")
 S3method("heightDetails", "arrows")
 S3method("heightDetails", "circle")
-S3method("heightDetails", "curve")
 S3method("heightDetails", "default")
 S3method("heightDetails", "frame")
 S3method("heightDetails", "lines")
@@ -177,7 +161,6 @@ S3method("heightDetails", "polygon")
 S3method("heightDetails", "rect")
 S3method("heightDetails", "segments")
 S3method("heightDetails", "text")
-S3method("heightDetails", "xspline")
 #S3method("height.details", "viewport")
 S3method("postDraw", "grob")
 S3method("preDraw", "grob")
@@ -190,7 +173,6 @@ S3method("record", "viewport")
 S3method("record", "vpPath")
 S3method("validDetails", "arrows")
 S3method("validDetails", "circle")
-S3method("validDetails", "curve")
 S3method("validDetails", "grob")
 S3method("validDetails", "lines")
 S3method("validDetails", "line.to")
@@ -202,7 +184,6 @@ S3method("validDetails", "segments")
 S3method("validDetails", "text")
 S3method("widthDetails", "arrows")
 S3method("widthDetails", "circle")
-S3method("widthDetails", "curve")
 S3method("widthDetails", "default")
 S3method("widthDetails", "frame")
 S3method("widthDetails", "lines")
@@ -211,26 +192,7 @@ S3method("widthDetails", "polygon")
 S3method("widthDetails", "rect")
 S3method("widthDetails", "segments")
 S3method("widthDetails", "text")
-S3method("widthDetails", "xspline")
 #S3method("width.details", "viewport")
-S3method("xDetails", "circle")
-S3method("xDetails", "curve")
-S3method("xDetails", "lines")
-S3method("xDetails", "points")
-S3method("xDetails", "polygon")
-S3method("xDetails", "rect")
-S3method("xDetails", "segments")
-S3method("xDetails", "text")
-S3method("xDetails", "xspline")
-S3method("yDetails", "circle")
-S3method("yDetails", "curve")
-S3method("yDetails", "lines")
-S3method("yDetails", "points")
-S3method("yDetails", "polygon")
-S3method("yDetails", "rect")
-S3method("yDetails", "segments")
-S3method("yDetails", "text")
-S3method("yDetails", "xspline")
 
 # S3 methods for internal generics that are used in calls to external fns
 S3method("depth", "viewport")

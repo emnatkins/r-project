@@ -32,7 +32,6 @@ extern "C" {
 #include <R_ext/Memory.h>
 #include <R_ext/PrtUtil.h>
 #include <R_ext/Utils.h>
-/*#include <R_ext/rlocale.h> this cannot be right */
 
 #include <errno.h>
 #include <stdio.h>
@@ -385,9 +384,7 @@ typedef int PROTECT_INDEX;
 /* Evaluation Environment */
 LibExtern SEXP	R_GlobalEnv;	    /* The "global" environment */
 
-LibExtern SEXP  R_EmptyEnv;	    /* An empty environment at the root of the 
-				    	environment tree */
-LibExtern SEXP  R_BaseEnv;	    /* The base environment; formerly R_NilValue */
+LibExtern SEXP  R_BaseEnv;	    /* The base environment; currently R_NilValue */
 LibExtern SEXP	R_BaseNamespace;    /* The (fake) name space for base */
 LibExtern SEXP	R_NamespaceRegistry;/* Registry for registerd name spaces */
 

@@ -6755,9 +6755,9 @@ or, via the @code{R CMD} interface, as a wrapper to various @R{} tools
 (e.g., for processing files in @R{} documentation format or manipulating
 add-on packages) which are not intended to be called ``directly''.
 
-You need to ensure that either the environment variable @env{TMPDIR} is
-unset or it points to a valid place to create temporary files and
-directories.
+Under UNIX you do need to ensure that either the environment variable
+@env{TMPDIR} is unset or it points to a valid place to create temporary
+files and directories.
 
 Most options control what happens at the beginning and at the end of an
 @R{} session.  The startup mechanism is as follows (see also the on-line
@@ -7016,10 +7016,6 @@ and environment variables @env{HOMEDRIVE} and @env{HOMEPATH} are defined
 (and they normally are under Windows NT/2000/XP) these define the home
 directory.  Failing all those, the home directory is taken to be the
 starting directory.
-
-You need to ensure that either the environment variables @env{TMPDIR},
-@env{TMP} and @env{TEMP} are either unset or one of them points to a
-valid place to create temporary files and directories.
 
 Environment variables can be supplied as @samp{@var{name}=@var{value}}
 pairs at the end of the command line.

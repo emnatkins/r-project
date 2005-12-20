@@ -40,33 +40,29 @@
 # include <config.h>
 #endif
 
-#if defined(HAVE_GLIBC2)
-#include <features.h>
-# ifndef __USE_POSIX
-#  define __USE_POSIX		/* for tzset */
-# endif
-# ifndef __USE_BSD
-#  define __USE_BSD		/* so that we get unsetenv() */
-# endif
-# ifndef __USE_XOPEN
-#  define __USE_XOPEN		/* so that we get strptime() */
-# endif
-# ifndef __USE_MISC
-#  define __USE_MISC		/* for finite */
-# endif
+#if defined(HAVE_GLIBC2) && !defined(__USE_BSD)
+# define __USE_BSD		/* so that we get unsetenv() */
+# include <stdlib.h>
+# undef __USE_BSD		/* used later */
+#else
+# include <stdlib.h>
 #endif
 
-#include <time.h>
-#include <stdlib.h> /* for putenv */
-#include <Defn.h>
+#if defined(HAVE_WORKING_STRPTIME) && defined(HAVE_GLIBC2) && !defined(__USE_XOPEN)
+# define __USE_XOPEN		/* so that we get strptime() */
+# include <time.h>
+# undef __USE_XOPEN		/* just to make sure */
+#else
+# include <time.h>
+#endif
+
+#include "Defn.h"
 
 /* The glibc in RH8.0 is broken and assumes that dates before 1970-01-01
    do not exist. So does Windows, but at least there we do not need a
    run-time test.  As from 1.6.2, test the actual mktime code and cache the
    result on glibc >= 2.2. (It seems this started between 2.2.5 and 2.3,
    and RH8.0 has an unreleased version in that gap.)
-
-   Sometime in late 2004 this was reverted in glibc.
 */
 
 static Rboolean have_broken_mktime(void)
@@ -231,43 +227,22 @@ static double mktime00 (struct tm *tm)
 static double guess_offset (struct tm *tm)
 {
     double offset, offset1, offset2;
-    int i, wday, year, oldmonth, oldyear, olddst, oldwday, oldyday, oldmday;
+    int oldmonth, oldyear, olddst, oldwday, oldyday;
 
     /*
-       Adjust as best we can for timezones: if isdst is unknown, use
-       the smaller offset at same day in Jan or July of a valid year.
-       We don't know the timezone rules, but if we choose a year with
-       July 1 on the same day of the week we will likely get guess
-       right (since they are usually on Sunday mornings).
+       adjust as best we can for timezones: if isdst is unknown,
+       use the smaller offset at same day in Jan or July 2000
     */
     oldmonth = tm->tm_mon;
     oldyear = tm->tm_year;
     olddst = tm->tm_isdst;
     oldwday = tm->tm_wday;
     oldyday = tm->tm_yday;
-    oldmday = tm->tm_mday;
-
-    /* so now look for a suitable year */
-    tm->tm_mon = 6;
-    tm->tm_mday = 1;
-    tm->tm_isdst = -1;
-    mktime00(tm);  /* to get wday valid */
-    wday = tm->tm_wday;
-    for(i = 70; i < 78; i++) { /* These cover all the possibilities */
-	tm->tm_year = i;
-	mktime(tm);
-	if(tm->tm_wday == wday) break;
-    }
-    year = i;
-
-    /* Now look up offset in January */
-    tm->tm_mday = oldmday;
     tm->tm_mon = 0;
-    tm->tm_year = year;
+    tm->tm_year = 100;
     tm->tm_isdst = -1;
     offset1 = (double) mktime(tm) - mktime00(tm);
-    /* and in July */
-    tm->tm_year = year;
+    tm->tm_year = 100;
     tm->tm_mon = 6;
     tm->tm_isdst = -1;
     offset2 = (double) mktime(tm) - mktime00(tm);
@@ -394,46 +369,17 @@ static struct tm * localtime0(const double *tp, const int local, struct tm *ltm)
 }
 
 
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
-#endif
-#ifdef Win32
-# include <windows.h>
-#endif
 
 SEXP do_systime(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP ans = allocVector(REALSXP, 1);
-#ifdef HAVE_GETTIMEOFDAY
-    struct timeval tv;
-    int res = gettimeofday(&tv, NULL);
-    if(res == 0) {
-	double tmp = (double) tv.tv_sec + 1e-6 * (double) tv.tv_usec;
-#ifndef HAVE_POSIX_LEAPSECONDS
-	tmp -= 22;
-#endif
-	REAL(ans)[0] = tmp;
-    } else 
-	REAL(ans)[0] = NA_REAL;
-    return ans;
-#else
     time_t res = time(NULL);
-    double tmp = res;
-    if(res != (time_t)(-1)) {
+    SEXP ans = allocVector(REALSXP, 1);
 #ifndef HAVE_POSIX_LEAPSECONDS
-	tmp -= 22;
+    res -= 22;
 #endif
-#ifdef Win32
-	{
-	    SYSTEMTIME st;
-	    GetSystemTime(&st);
-	    tmp += 1e-3 * st.wMilliseconds;
-	}
-#endif
-	REAL(ans)[0] = tmp;
-    }
+    if(res != (time_t)(-1)) REAL(ans)[0] = (double) res;
+    else REAL(ans)[0] = NA_REAL;
     return ans;
-#endif
 }
 
 

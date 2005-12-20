@@ -26,7 +26,6 @@
  *  the side.  (Note: the lack of 11 and 12 indices here is due to the
  *  removal of built-in factors).
  *
- *  NB these tables are out of date, and exclude tupes 21, 22, 23, 24 ...
  *
  x \ y   NIL  SYM CLOS  ENV PROM LANG SPE- BUI-  LGL  INT REAL CPLX  STR  VEC EXPR  FUN
 			              CIAL LTIN
@@ -163,19 +162,9 @@ static SEXP EnlargeVector(SEXP x, R_len_t newlen)
     return newx;
 }
 
-/* Level 1 is used in VectorAssign, MatrixAssign, ArrayAssign.
-   That coerces RHS to a list or expression.
-
-   Level 2 is used in do_subassign2_dflt. 
-   This does not coerce when assigning into a list.
-*/
-
-static int SubassignTypeFix(SEXP *x, SEXP *y, int stretch, int level, 
-			    SEXP call)
+static int SubassignTypeFix(SEXP *x, SEXP *y, int stretch, int level, SEXP call)
 {
-    /* A rather pointless optimization, but level 2 used to be handled
-       differently */
-    Rboolean redo_which = TRUE;
+    Rboolean redo_which =  (level == 1);
     int which = 100 * TYPEOF(*x) + TYPEOF(*y);
     /* coercion can lose the object bit */
     Rboolean x_is_object = OBJECT(*x);
@@ -237,6 +226,10 @@ static int SubassignTypeFix(SEXP *x, SEXP *y, int stretch, int level,
 	*x = coerceVector(*x, STRSXP);
 	break;
 
+	/* <FIXME> For level = 2 we convert things here to one-element
+	   lists, and then we convert them back in do_subassign2_dflt.
+	   We need to ensure duplication occurs if necessary, though.
+	*/
     case 1901:  /* vector     <- symbol   */
     case 1904:  /* vector     <- environment   */
     case 1905:  /* vector     <- promise   */
@@ -258,9 +251,14 @@ static int SubassignTypeFix(SEXP *x, SEXP *y, int stretch, int level,
 	if (level == 1) {
 	    /* Coerce the RHS into a list */
 	    *y = coerceVector(*y, VECSXP);
-	} else {
-	    /* Nothing to do here: duplicate when used (if needed) */
-	    redo_which = FALSE;
+	}
+	else {
+	    /* Wrap the RHS in a list */
+	    SEXP tmp;
+	    PROTECT(tmp = allocVector(VECSXP, 1));
+	    SET_VECTOR_ELT(tmp, 0, NAMED(*y) ? duplicate(*y) : *y);
+	    *y = tmp;
+	    UNPROTECT(1);
 	}
 	break;
 
@@ -1497,11 +1495,12 @@ SEXP do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	PROTECT(x);
 
 	switch (which) {
-	    /* as from 2.3.0 'which' is after conversion */
+	    /* confusingly, unlike the [<- case, 'which' here is
+	       before coercion, not afterwards */
 
 	case 1010:	/* logical   <- logical	  */
 	case 1310:	/* integer   <- logical	  */
-        /* case 1013:	   logical   <- integer	  */
+	case 1013:	/* logical   <- integer	  */
 	case 1313:	/* integer   <- integer	  */
 
 	    INTEGER(x)[offset] = INTEGER(y)[0];
@@ -1515,8 +1514,9 @@ SEXP do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    else
 		REAL(x)[offset] = INTEGER(y)[0];
 	    break;
-        /* case 1014:	   logical   <- real	  */
-	/* case 1314:	   integer   <- real	  */
+
+	case 1014:	/* logical   <- real	  */
+	case 1314:	/* integer   <- real	  */
 	case 1414:	/* real	     <- real	  */
 
 	    REAL(x)[offset] = REAL(y)[0];
@@ -1547,9 +1547,9 @@ SEXP do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    }
 	    break;
 
-	/* case 1015:	   logical   <- complex	  */
-	/* case 1315:	   integer   <- complex	  */
-	/* case 1415:	   real	     <- complex	  */
+	case 1015:	/* logical   <- complex	  */
+	case 1315:	/* integer   <- complex	  */
+	case 1415:	/* real	     <- complex	  */
 	case 1515:	/* complex   <- complex	  */
 
 	    COMPLEX(x)[offset] = COMPLEX(y)[0];
@@ -1560,10 +1560,10 @@ SEXP do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	case 1614:	/* character <- real	  */
 	case 1615:	/* character <- complex	  */
 	case 1616:	/* character <- character */
-	/* case 1016:	   logical   <- character */
-	/* case 1316:	   integer   <- character */
-	/* case 1416:	   real	     <- character */
-	/* case 1516:	   complex   <- character */
+	case 1016:	/* logical   <- character */
+	case 1316:	/* integer   <- character */
+	case 1416:	/* real	     <- character */
+	case 1516:	/* complex   <- character */
 
 	    SET_STRING_ELT(x, offset, STRING_ELT(y, 0));
 	    break;
@@ -1574,6 +1574,8 @@ SEXP do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	case 1519:      /* complex    <- vector     */
 	case 1619:      /* character  <- vector     */
 
+	/* <FIXME> we convert things in SubassignTypeFix to
+	   one-element lists, and then we convert them back here. */
 	case 1901:  /* vector     <- symbol     */
 	case 1904:  /* vector     <- environment*/
 	case 1905:  /* vector     <- promise    */
@@ -1592,7 +1594,8 @@ SEXP do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	case 1924:  /* vector     <- raw */
 	case 1903: case 1907: case 1908: case 1999: /* functions */
 
-	    /* drop through: vectors and expressions are treated the same */
+	    SET_VECTOR_ELT(x, offset, VECTOR_ELT(y, 0));
+	    break;
 
 	case 2001:	/* expression <- symbol	    */
 	case 2006:	/* expression <- language   */

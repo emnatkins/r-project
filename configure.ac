@@ -442,14 +442,13 @@ AC_ARG_VAR([TCLTK_LIBS],
 AC_ARG_VAR([TCLTK_CPPFLAGS],
            [flags needed for finding the tcl.h and tk.h headers])
 AC_ARG_VAR([MAKE], [Make command])
+AC_ARG_VAR([F2C], [Fortran-to-C converter command])
 AC_ARG_VAR([R_BROWSER], [default browser])
 AC_ARG_VAR([BLAS_LIBS],
            [flags needed for linking against external BLAS libraries])
 AC_ARG_VAR([LAPACK_LIBS],
            [flags needed for linking against external LAPACK libraries])
 AC_ARG_VAR([LIBnn], ['lib' or 'lib64' for dynamic libraries])
-AC_ARG_VAR([SAFE_FFLAGS],
-	   [Safe Fortran 77 compiler flags for e.g. dlamc.f])
 
 ### ** Check whether we build in srcdir.
 
@@ -506,12 +505,12 @@ AC_PROG_CC
 AC_PROG_GCC_TRADITIONAL
 AC_PROG_CPP
 R_PROG_CPP_CPPFLAGS
-R_PROG_F77
+R_PROG_F77_OR_F2C
 AC_PROG_CXX
 AC_PROG_CXXCPP
 
 ## Libtool.
-## (Run this after R_PROG_F77, as AC_PROG_LIBTOOL checks for a
+## (Run this after R_PROG_F77_OR_F2C, as AC_PROG_LIBTOOL checks for a
 ## Fortran 77 compiler and sets F77 accordingly.)
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
@@ -646,13 +645,13 @@ AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS(arpa/inet.h dl.h dlfcn.h elf.h fcntl.h floatingpoint.h \
   fpu_control.h grp.h ieee754.h ieeefp.h limits.h locale.h \
   netdb.h netinet/in.h pwd.h strings.h \
-  sys/param.h sys/select.h sys/socket.h sys/stat.h sys/resource.h \
-  sys/time.h sys/times.h sys/utsname.h time.h unistd.h)
+  sys/param.h sys/select.h sys/socket.h sys/stat.h sys/time.h \
+  sys/times.h sys/utsname.h unistd.h)
 ## </NOTE>
 ## <NOTE>
 ## These are ANSI C headers but some C code (written to work also
 ## without assuming ANSI C) may need the corresponding conditionals.
-AC_CHECK_HEADERS(errno.h inttypes.h stdarg.h stdint.h string.h)
+AC_CHECK_HEADERS(errno.h stdarg.h string.h)
 ## </NOTE>
 ## <NOTE>
 ## src/main/regex.c uses HAVE_LIBINTL_H.
@@ -681,9 +680,6 @@ AH_TEMPLATE([blkcnt_t],
             [Define to 'long' if <sys/types.h> does not define.
              Apparently necessary to fix a GCC bug on AIX?])
 R_TYPE_SOCKLEN
-AC_CHECK_TYPES([stack_t], HAVE_STACK_T_01=1, HAVE_STACK_T_01=0,
-               [#include <signal.h>])
-AC_SUBST(HAVE_STACK_T_01)
 
 ### * Checks for compiler characteristics.
 
@@ -710,23 +706,29 @@ AC_CHECK_SIZEOF(long, 4)
 AC_CHECK_SIZEOF(long long, 0)
 AC_CHECK_SIZEOF(long double, 0)
 
-if test "$ac_test_CFLAGS" != set; then
-  if test "$GCC" = yes; then
-    R_PROG_CC_FLAG([-std=gnu99], R_SH_VAR_ADD(CFLAGS, [-std=gnu99]))
-  fi
-fi
-
 R_PROG_CC_MAKEFRAG
-R_PROG_CC_LO_MAKEFRAG
 
 ### *** Fortran 77 compiler.
 
-R_PROG_F77_FLIBS
-R_PROG_F77_APPEND_UNDERSCORE
-R_PROG_F77_CAN_RUN
-R_PROG_F77_CC_COMPAT
-R_PROG_F77_CC_COMPAT_COMPLEX
+if test -n "${F77}"; then
+  R_PROG_F77_FLIBS
+  R_PROG_F77_APPEND_UNDERSCORE
+  R_PROG_F77_CAN_RUN
+  R_PROG_F77_CC_COMPAT
+  R_PROG_F77_CC_COMPAT_COMPLEX
+  R_PROG_F77_MAKEFRAG  
+else
+  if test ${ac_cv_sizeof_long} -gt 4 ; then
+    AC_MSG_ERROR([Cannot use f2c on a > 32-bit machine])
+  fi
+  R_PROG_F2C_FLIBS
+  AC_DEFINE(HAVE_F77_UNDERSCORE, 1)
+  AC_DEFINE(HAVE_FORTRAN_DOUBLE_COMPLEX, 1)
+  R_PROG_F2C_MAKEFRAG
+  F77="\$(SHELL) \$(R_HOME)/bin/f77"
+fi
 
+AC_SUBST(F2C)
 AM_CONDITIONAL(COMPILE_FORTRAN_DOUBLE_COMPLEX,
                [test "x${HAVE_FORTRAN_DOUBLE_COMPLEX}" != x])
 
@@ -839,101 +841,6 @@ case "${host_os}" in
     fi
     ## </NOTE>
     ;;
-  linux*)
-    case  "${CC}" in
-      ## Intel compiler
-      *icc)
-	## icc declares __GNUC__, so it picks up CFLAGS intended for gcc.
-	if test "$ac_test_CFLAGS" != set; then
-          if test $ac_cv_prog_cc_g = yes; then
-	    case "${host_cpu}" in
-	      x86_64)
-	        CFLAGS="-g -O2 -std=c99"
-		;;
-	      *)
-	        ## on ix86 optimization fails
-                CFLAGS="-g -std=c99"
-		;;
-	    esac
-          else
-	    case "${host_cpu}" in
-	      x86_64)
-	        CFLAGS="-O2 -std=c99"
-		;;
-	      *)
-                CFLAGS="-std=c99"
-		;;
-	    esac
-          fi
-        fi
-	## -mp is the preferred form of -mieee-fp
-        R_PROG_CC_FLAG([-mp],
-                       R_SH_VAR_ADD(R_XTRA_CFLAGS, [-mp]))
-        ;;
-      ## Portland Group (information from Jennifer Lai)
-      *pgcc)
-        R_PROG_CC_FLAG([-mieee-fp],
-                       R_SH_VAR_ADD(R_XTRA_CFLAGS, [-mieee-fp]))
-	;;
-    esac
-    case  "${F77}" in
-      ## Intel compilers
-      *ifc|*ifort)
-	if test "$ac_test_FFLAGS" != set; then
-          if test $ac_cv_prog_f77_g = yes; then
-	    case "${host_cpu}" in
-	      x86_64)
-	        FFLAGS="-g -O2"
-		;;
-	      *)
-                FFLAGS="-g"
-		;;
-	    esac
-          else
-	    case "${host_cpu}" in
-	      x86_64)
-	        FFLAGS="-O2"
-		;;
-	      *)
-	        ## on ix86 optimization of dlamc.f fails
-                FFLAGS=
-		;;
-	    esac
-          fi
-        fi
-        R_PROG_CC_FLAG([-mp],
-                       R_SH_VAR_ADD(R_XTRA_FFLAGS, [-mp]))
-        ;;
-    esac
-    case  "${CXX}" in
-      ## Intel compilers
-      *icpc|*icc)
-	if test "$ac_test_CXXFLAGS" != set; then
-          if test $ac_cv_prog_cxx_g = yes; then
-	    case "${host_cpu}" in
-	      x86_64)
-	        CXXFLAGS="-g -O2"
-		;;
-	      *)
-                CXXFLAGS="-g"
-		;;
-	    esac
-          else
-	    case "${host_cpu}" in
-	      x86_64)
-	        CXXFLAGS="-O2"
-		;;
-	      *)
-                CXXFLAGS=
-		;;
-	    esac
-          fi
-        fi
-        R_PROG_CC_FLAG([-mp],
-                       R_SH_VAR_ADD(R_XTRA_CXXFLAGS, [-mp]))
-        ;;
-    esac
-    ;;
   openbsd*)
     if test -z "`echo __ELF__ | $CC -E - | grep __ELF__`"; then
       AC_DEFINE(HAVE_NO_SYMBOL_UNDERSCORE)
@@ -944,24 +851,15 @@ case "${host_os}" in
     ;;  
 esac
 
-if test "${SAFE_FFLAGS+set}" != set; then
-  if test "x${ac_cv_f77_compiler_gnu}" = xyes; then
-    SAFE_FFLAGS="${FFLAGS} -ffloat-store"
-  else
-    SAFE_FFLAGS=${FFLAGS}
-  fi
-fi
-
-
 AC_SUBST(CFLAGS)
 AC_SUBST(MAIN_CFLAGS)
 AC_SUBST(SHLIB_CFLAGS)
 AC_SUBST(CXXFLAGS)
 AC_SUBST(SHLIB_CXXFLAGS)
 AC_SUBST(FFLAGS)
-AC_SUBST(SAFE_FFLAGS)
 AC_SUBST(MAIN_FFLAGS)
 AC_SUBST(SHLIB_FFLAGS)
+AC_SUBST(F2CFLAGS)
 AC_SUBST(R_XTRA_CFLAGS)
 AC_SUBST(R_XTRA_CPPFLAGS)
 AC_SUBST(R_XTRA_CXXFLAGS)
@@ -1156,6 +1054,30 @@ case "${host_os}" in
       ## Intel compiler
       *icc)
         cpicflags="-fPIC"
+	## icc declares __GNUC__, so it picks up CFLAGS intended for gcc.
+	if test "$ac_test_CFLAGS" != set; then
+          if test $ac_cv_prog_cc_g = yes; then
+	    case "${host_cpu}" in
+	      x86_64)
+	        ## need -mp for IEC60559 compliance
+	        CFLAGS="-mp -g -O2"
+		;;
+	      *)
+	        ## on ix86 optimization fails
+                CFLAGS="-g"
+		;;
+	    esac
+          else
+	    case "${host_cpu}" in
+	      x86_64)
+	        CFLAGS="-mp -O2"
+		;;
+	      *)
+                CFLAGS=
+		;;
+	    esac
+          fi
+        fi
         ;;
       ## Portland Group (information from Jennifer Lai)
       *pgcc)
@@ -1168,6 +1090,28 @@ case "${host_os}" in
       ## Intel compilers
       *ifc|*ifort)
         fpicflags="-fPIC"
+	if test "$ac_test_FFLAGS" != set; then
+          if test $ac_cv_prog_f77_g = yes; then
+	    case "${host_cpu}" in
+	      x86_64)
+	        FFLAGS="-mp -g -O2"
+		;;
+	      *)
+                FFLAGS="-g"
+		;;
+	    esac
+          else
+	    case "${host_cpu}" in
+	      x86_64)
+	        FFLAGS="-mp -O2"
+		;;
+	      *)
+	        ## on ix86 optimization of dlamc.f fails
+                FFLAGS=
+		;;
+	    esac
+          fi
+        fi
         ;;
       ## Portland Group
       *pgf77)
@@ -1178,6 +1122,27 @@ case "${host_os}" in
       ## Intel compilers
       *icpc|*icc)
         cxxpicflags="-fPIC"
+	if test "$ac_test_CXXFLAGS" != set; then
+          if test $ac_cv_prog_cxx_g = yes; then
+	    case "${host_cpu}" in
+	      x86_64)
+	        CXXFLAGS="-mp -g -O2"
+		;;
+	      *)
+                CXXFLAGS="-g"
+		;;
+	    esac
+          else
+	    case "${host_cpu}" in
+	      x86_64)
+	        CXXFLAGS="-mp -O2"
+		;;
+	      *)
+                CXXFLAGS=
+		;;
+	    esac
+          fi
+        fi
         ;;
       ## Portland Group
       *pgCC)
@@ -1280,7 +1245,8 @@ if test -z "${CPICFLAGS}"; then
 fi
 
 : ${FPICFLAGS="${fpicflags}"}
-if test -z "${FPICFLAGS}"; then
+if test -z "${FPICFLAGS}" \
+    && test -z "${F2C}"; then
   case "${host_os}" in
     aix*|irix*|mingw*|osf*)
       ;;
@@ -1399,11 +1365,9 @@ AC_SUBST(FW_VERSION)
 ### We don't currently have any C++ tests, but future-proof.
 ### In principle we should do this before testing for C-Fortran compatibility.
 
-CPPFLAGS_KEEP=${CPPFLAGS}
 CFLAGS_KEEP=${CFLAGS}
 FFLAGS_KEEP=${FFLAGS}
 CXXFLAGS_KEEP=${CXXFLAGS}
-CPPFLAGS="${CPPFLAGS} ${R_XTRA_CPPFLAGS}"
 if test "${want_R_shlib}" = yes; then
   CFLAGS="${CFLAGS} ${CPICFLAGS} ${R_XTRA_CFLAGS}"
   FFLAGS="${FFLAGS} ${FPICFLAGS} ${R_XTRA_FFLAGS}"
@@ -1422,31 +1386,12 @@ AC_CHECK_DECLS([alloca], , ,
 [#ifdef HAVE_ALLOCA_H
 # include <alloca.h>
 #endif])
-## fseeko/ftello may be macros, matherr is redefined
-## strptime is awkward since it needs _XOPEN_SOURCE before features.h
-AC_CHECK_FUNCS(fseeko ftello isblank matherr strptime)
-R_CHECK_FUNCS([fcntl], [#include <fcntl.h>])
-R_CHECK_FUNCS([getgrgid], [#include <grp.h>])
-R_CHECK_FUNCS([expm1 hypot log1p log2 log10 rint], [#include <math.h>])
-R_CHECK_FUNCS([getpwuid], [#include <pwd.h>])
-R_CHECK_FUNCS([sigaction sigaltstack sigemptyset], [#include <signal.h>])
-R_CHECK_FUNCS([va_copy __va_copy], [#include <stdarg.h>])
-R_CHECK_FUNCS([fdopen popen], [#include <stdio.h>])
-R_CHECK_FUNCS([realpath setenv system unsetenv], [#include <stdlib.h>])
-R_CHECK_FUNCS([strcoll strerror], [#include <string.h>])
-R_CHECK_FUNCS([getrlimit], [#include <sys/resource.h>])
-R_CHECK_FUNCS([mkfifo stat], [#include <sys/stat.h>])
-R_CHECK_FUNCS([gettimeofday], [#include <sys/time.h>])
-R_CHECK_FUNCS([times], [#include <sys/times.h>])
-R_CHECK_FUNCS([access chdir ftruncate getcwd getuid symlink sysconf],
-[#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif])
-## We really need putenv, and make check fails without it so it seems
-## everyone has it, possibly not declared.
-AC_CHECK_FUNCS(putenv)
-AC_CHECK_DECLS([putenv], , , [#include <stdlib.h>])
-
+AC_CHECK_FUNCS(access chdir expm1 fcntl finite fseeko ftello ftruncate \
+  getcwd getgrgid getpwuid getuid hypot isascii log1p \
+  matherr mkdtemp mkfifo popen putenv realpath rint \
+  setenv strcoll stat strerror strptime symlink system times unsetenv)
+## isfinite and isnan are in math.h but might be macros
+AC_CHECK_DECLS([isfinite, isnan], , , [#include <math.h>])
 ## <NOTE>
 ## No need checking for bcopy bzero memcpy mempcpy even though ifnames
 ## might report corresponding HAVE_FOO conditionals.
@@ -1485,10 +1430,10 @@ fi
 AC_SUBST(RMATH_HAVE_LOG1P)
 
 ## Do we need substitutes?
-AC_REPLACE_FUNCS(acosh asinh atanh mkdtemp snprintf strdup strncasecmp vsnprintf)
+AC_REPLACE_FUNCS(acosh asinh atanh snprintf strdup strncasecmp vsnprintf)
 ## Enable declarations in Defn.h?
 AC_CHECK_DECLS([acosh, asinh, atanh], , , [#include <math.h>])
-AC_CHECK_DECLS([mkdtemp, snprintf, strdup, strncasecmp, vsnprintf])
+AC_CHECK_DECLS([snprintf, strdup, strncasecmp, vsnprintf])
 
 AC_SEARCH_LIBS(connect, [socket])
 AC_SEARCH_LIBS(gethostbyname, [nsl socket])
@@ -1558,16 +1503,11 @@ AM_CONDITIONAL(USE_EXTERNAL_LAPACK, [test "${acx_lapack_ok}" = "yes"])
 
 AC_SUBST(R_MODULES)
 
+## UTF-8 locales - support for MBCS and specifically UTF-8
+R_MBCS
+
 ## iconv headers and function.
 R_ICONV
-
-## support for MBCS
-case "${host_os}" in
-  mingw*)
-    r_cv_iconv_latin1=yes
-    ;;
-esac
-R_MBCS
 
 ## X11.
 R_X11
@@ -1748,17 +1688,14 @@ AM_CONDITIONAL(USE_NLS, [test "x${USE_NLS}" = xyes])
 ### * Win32 overrides
 case "${host_os}" in
   mingw*)
-    AC_DEFINE(HAVE_ICONV, 1)
-    AC_DEFINE(HAVE_ICONVLIST, 1)
-    AC_DEFINE(HAVE_ICONV_H, 1)
     AC_DEFINE(HAVE_INTERNET, 1)
     AC_DEFINE(HAVE_JPEG, 1)
+    AC_DEFINE(SUPPORT_LIBXML, 1)
     AC_DEFINE(HAVE_PNG, 1)
     AC_DEFINE(HAVE_POSIX_SETJMP, 1)
     AC_DEFINE(HAVE_SOCKETS, 1)
     AC_DEFINE(HAVE_TCLTK, 1)
     AC_DEFINE(HAVE_TIMES, 1)
-    AC_DEFINE(ICONV_LATIN1, 1)
     want_R_profiling=yes
     AC_DEFINE(R_PROFILING, 1)
     AC_DEFINE(SUPPORT_LIBXML, 1)
@@ -1845,6 +1782,7 @@ AC_CONFIG_FILES(
   src/scripts/Sd2Rd
   src/scripts/build
   src/scripts/check
+  src/scripts/f77
   src/unix/Makefile
   tests/Makefile
   tests/Embedding/Makefile
@@ -1857,7 +1795,6 @@ AC_CONFIG_COMMANDS([stamp-h],
 [test -f src/include/stamp-h || echo timestamp > src/include/stamp-h])
 
 ### now reset flags
-CPPFLAGS=${CPPFLAGS_KEEP}
 CFLAGS=${CFLAGS_KEEP}
 FFLAGS=${FFLAGS_KEEP}
 CXXFLAGS=${CXXFLAGS_KEEP}
@@ -1871,7 +1808,11 @@ AC_OUTPUT
 ## </NOTE>
 r_c_compiler="${CC} ${R_XTRA_CFLAGS} ${CFLAGS}"
 r_cxx_compiler="${CXX} ${R_XTRA_CXXFLAGS} ${CXXFLAGS}"
-r_f77_compiler="${F77} ${R_XTRA_FFLAGS} ${FFLAGS}"
+if test -z "${F2C}"; then
+  r_f77_compiler="${F77} ${R_XTRA_FFLAGS} ${FFLAGS}"
+else
+  r_f77_compiler="${F2C} ${F2CFLAGS}"
+fi
 r_interfaces=
 for item in X11 aqua tcltk; do
   if eval "test \${use_${item}} = yes"; then
@@ -1956,8 +1897,14 @@ R is now configured for ${host}
 
   Recommended packages:      ${use_recommended_packages} 
 ])
+if test -n "${warn_F77_and_F2C}"; then
+  AC_MSG_WARN([${warn_F77_and_F2C}])
+fi
 if test -n "${warn_f77_cc_double_complex}"; then
   AC_MSG_WARN([${warn_f77_cc_double_complex}])
+fi
+if test -n "${warn_f2c_flibs}"; then
+  AC_MSG_WARN([${warn_f2c_flibs}])
 fi
 if test -n "${warn_xcompile_sizeof_int}"; then
   AC_MSG_WARN([${warn_xcompile_sizeof_int}])

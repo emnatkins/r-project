@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.3.0\n"
+"Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2005-11-28 07:35\n"
+"POT-Creation-Date: 2005-08-26 09:41\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -36,6 +36,30 @@ msgstr "见help(\"Deprecated\")和help(\"%s-deprecated\")。"
 
 msgid "See help(\"Deprecated\")"
 msgstr "见help(\"Deprecated\")"
+
+msgid "invalid numbers in 'quote'"
+msgstr "'quote'里的数不对"
+
+msgid "invalid 'quote' specification"
+msgstr "'quote'的设定不对"
+
+msgid "invalid 'row.names' specification"
+msgstr "'row.names'的设定不对"
+
+msgid "col.names = NA makes no sense when row.names = FALSE"
+msgstr "当row.names = FALSE时col.names = NA是没有意义的"
+
+msgid "invalid 'col.names' specification"
+msgstr "'col.names'的设定不对"
+
+msgid "'file' must be a character string or connection"
+msgstr "'file'要么是字符串，要么是连接"
+
+msgid "appending column names to file"
+msgstr "把列名附加到文件上"
+
+msgid "format.char: coercing 'x' to 'character'"
+msgstr "format.char：'x'被强迫转成'character'"
 
 msgid "argument to 'La.svd' must be numeric or complex"
 msgstr "'La.svd'的变元必需是数值或是复数"
@@ -468,9 +492,6 @@ msgstr "'from'一定得是POSIXt对象"
 msgid "'to' must be a POSIXt object"
 msgstr "'to'一定得是POSIXt对象"
 
-msgid "'file' must be a character string or connection"
-msgstr "'file'要么是字符串，要么是连接"
-
 msgid "'x' must be a square matrix"
 msgstr "'x'必需是正方形矩阵"
 
@@ -568,6 +589,9 @@ msgstr "鏈結时没有可以读的文件"
 msgid "no files/directory to link to"
 msgstr "鏈結时没有可以写的文件/目錄"
 
+msgid "calling wrong method"
+msgstr "调用的方法不对"
+
 msgid "'package' must be of length 1"
 msgstr "'package'的长度必需为1"
 
@@ -663,7 +687,7 @@ msgid "there is no package called '%s'"
 msgstr "不存在叫'%s'这个名称的程辑包"
 
 msgid "no library trees found in 'lib.loc'"
-msgstr "在'lib.loc'里找不到常式庫\t树"
+msgstr "在'lib.loc'里找不到常式庫	树"
 
 msgid "'%s' is not a valid package -- installed < 2.0.0?"
 msgstr "'%s'不是正当的程辑包--是不是在R版本2.0.0之前装的？"
@@ -796,9 +820,6 @@ msgstr "[原来保存的工作空间已还原]"
 msgid "invalid 'category' argument"
 msgstr "'category'变元有错"
 
-msgid "must specify formal argument names to vectorize"
-msgstr ""
-
 msgid "'arg' should be one of"
 msgstr "'arg'应当是这些其中的一个"
 
@@ -876,21 +897,6 @@ msgstr "'%2$s'的'loadNamespace'出了错：%1$s "
 msgid "namespace '%s' is already sealed in loadNamespace"
 msgstr "名字空间'%s'已经在loadNamespace封條了"
 
-msgid "failed to assign NativeSymbolInfo for"
-msgstr ""
-
-msgid "to"
-msgstr ""
-
-msgid "since"
-msgstr ""
-
-msgid "is already defined in the"
-msgstr ""
-
-msgid "namespace"
-msgstr "名字空间"
-
 msgid "package '%s' does not have a name space"
 msgstr "程辑包'%s'没有名字空间"
 
@@ -953,16 +959,6 @@ msgstr "出口不存在："
 
 msgid "package '%s' has no NAMESPACE file"
 msgstr "程辑包'%s' 没有NAMESPACE这一文件"
-
-#, fuzzy
-msgid "duplicated symbol names"
-msgstr "重复进口名字"
-
-msgid "in useDynLib("
-msgstr ""
-
-msgid ")"
-msgstr ""
 
 msgid "bad 'S3method' directive: %s"
 msgstr "不是'S3method'指令：%s"
@@ -1071,9 +1067,6 @@ msgstr "as.is里有些列名不存在"
 
 msgid "'as.is' has the wrong length %d  != cols = %d"
 msgstr "'as.is'的长度不对%d  != cols = %d "
-
-msgid "invalid 'row.names' specification"
-msgstr "'row.names'的设定不对"
 
 msgid "'x' must be a vector"
 msgstr "'x'必需为向量"
@@ -1264,21 +1257,6 @@ msgstr "无traceback"
 msgid "argument to 'which' is not logical"
 msgstr "'which'的变元不是逻辑值"
 
-msgid "invalid numbers in 'quote'"
-msgstr "'quote'里的数不对"
-
-msgid "invalid 'quote' specification"
-msgstr "'quote'的设定不对"
-
-msgid "col.names = NA makes no sense when row.names = FALSE"
-msgstr "当row.names = FALSE时col.names = NA是没有意义的"
-
-msgid "invalid 'col.names' specification"
-msgstr "'col.names'的设定不对"
-
-msgid "appending column names to file"
-msgstr "把列名附加到文件上"
-
 msgid "attempt to change '%s' ignored"
 msgstr "改变'%s'没有起作用"
 
@@ -1332,222 +1310,3 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "警告信息：\n"
 msgstr[1] "警告信息：\n"
-
-#~ msgid "calling wrong method"
-#~ msgstr "调用的方法不对"
-
-#~ msgid "format.char: coercing 'x' to 'character'"
-#~ msgstr "format.char：'x'被强迫转成'character'"
-
-#~ msgid "x must be numeric"
-#~ msgstr "x必需为数值"
-
-#~ msgid "file' must be a character string or connection"
-#~ msgstr "'file'必需是字符串或链结"
-
-#~ msgid "invalid 'row.names 'specification"
-#~ msgstr "'row.names'的设定不对"
-
-#~ msgid "found"
-#~ msgstr "找到了"
-
-#~ msgid "File"
-#~ msgstr "文件"
-
-#~ msgid "not found."
-#~ msgstr "不存在。"
-
-#~ msgid "in"
-#~ msgstr "在里面"
-
-#~ msgid "cannot coerce class"
-#~ msgstr "无法强迫改变类别"
-
-#~ msgid "into a data.frame"
-#~ msgstr "变成数据框"
-
-#~ msgid "invalid row.names, length"
-#~ msgstr "row.names不对，长度是"
-
-#~ msgid "for a data frame with"
-#~ msgstr "数据框"
-
-#~ msgid "rows"
-#~ msgstr "行"
-
-#~ msgid "supplied"
-#~ msgstr "提供"
-
-#~ msgid "row names for"
-#~ msgstr "行名"
-
-#~ msgid "rows, data has"
-#~ msgstr "行，但数据有"
-
-#~ msgid "items, need"
-#~ msgstr "项，需要"
-
-#~ msgid "is a matrix/data frame of"
-#~ msgstr "是矩阵/数据框，内有"
-
-#~ msgid "rows, need"
-#~ msgstr "行，需要"
-
-#~ msgid "has"
-#~ msgstr "已有"
-
-#~ msgid "rows to replace"
-#~ msgstr "行可以被替换"
-
-#~ msgid "provided"
-#~ msgstr "已经提供了"
-
-#~ msgid "variables"
-#~ msgstr "变数"
-
-#~ msgid "not meaningful"
-#~ msgstr "没有意义"
-
-#~ msgid "to class \"Date\""
-#~ msgstr "到\"Date\"类别"
-
-#~ msgid "to class \"POSIXlt\""
-#~ msgstr "到\"POSIXlt\"类别"
-
-#~ msgid "to class \"POSIXct\""
-#~ msgstr "到\"POSIXct\"类别"
-
-#~ msgid "in eigen"
-#~ msgstr "在eigen"
-
-#~ msgid "should be 1 or"
-#~ msgstr "应为1或"
-
-#~ msgid "Level sets of factors are different"
-#~ msgstr "因子的层次集不同"
-
-#~ msgid "package"
-#~ msgstr "程辑包"
-
-#~ msgid "has been merged into 'stats4'"
-#~ msgstr "已经被合并到‘stats4’ "
-
-#~ msgid "There is no package called"
-#~ msgstr "不存在叫这个名称的程辑包"
-
-#~ msgid "found more than once,"
-#~ msgstr "不止一个，"
-
-#~ msgid "using the one found in"
-#~ msgstr "所用的位于"
-
-#~ msgid "required by"
-#~ msgstr "被要求的是"
-
-#~ msgid "could not be found"
-#~ msgstr "无法找到"
-
-#~ msgid "was found, but"
-#~ msgstr "是找到了，但"
-
-#~ msgid "could not be loaded"
-#~ msgstr "载入失败"
-
-#~ msgid "is loaded, but"
-#~ msgstr "是载入成功了，但"
-
-#~ msgid "Unable to load R code in package"
-#~ msgstr "载入程辑包里R写码的时个出错"
-
-#~ msgid "In"
-#~ msgstr "在"
-
-#~ msgid "name space"
-#~ msgstr "名字空间"
-
-#~ msgid "is loaded"
-#~ msgstr "已载入"
-
-#~ msgid "failed in"
-#~ msgstr "失败于"
-
-#~ msgid "object(s)"
-#~ msgstr "对象"
-
-#~ msgid "are not exported by"
-#~ msgstr "不被出口"
-
-#~ msgid "previous export(s)"
-#~ msgstr "以前的出口"
-
-#~ msgid "S3 method"
-#~ msgstr "S3方法"
-
-#~ msgid "object"
-#~ msgstr "对象"
-
-#~ msgid "found an S4 version of"
-#~ msgstr "找到S4版本"
-
-#~ msgid "S3 method(s)"
-#~ msgstr "S3方法"
-
-#~ msgid "were declared in NAMESPACE but not found"
-#~ msgstr "在NAMESPACE里有声明但不存在"
-
-#~ msgid "invalid version spec"
-#~ msgstr "版本不对"
-
-#~ msgid "'to' must be later than 'from'"
-#~ msgstr "‘to’必需晚于‘from’"
-
-#~ msgid "was not loaded"
-#~ msgstr "无法载入"
-
-#~ msgid "Use"
-#~ msgstr "用"
-
-#~ msgid "and help(\""
-#~ msgstr "还可以见help(\""
-
-#~ msgid "-defunct\")."
-#~ msgstr "-defunc\")。"
-
-#~ msgid "not recognized"
-#~ msgstr "找不到"
-
-#~ msgid ". Using"
-#~ msgstr "。用"
-
-#~ msgid "form must be a two-sided formula"
-#~ msgstr "‘form’必需是双边公式"
-
-#~ msgid "This is R"
-#~ msgstr "我是R"
-
-#~ msgid ", package"
-#~ msgstr "，程辑包"
-
-#~ msgid "needs"
-#~ msgstr "需要"
-
-#~ msgid "libraries"
-#~ msgstr "图书馆"
-
-#~ msgid "library"
-#~ msgstr "图书馆"
-
-#~ msgid "package(s)"
-#~ msgstr "程辑包"
-
-#~ msgid "are not loaded"
-#~ msgstr "载入失败"
-
-#~ msgid "error"
-#~ msgstr "错误"
-
-#~ msgid "in dsvdc"
-#~ msgstr "dsvdc里"
-
-#~ msgid "'x' must inherit from class"
-#~ msgstr "‘x’必需继承于这一类别"

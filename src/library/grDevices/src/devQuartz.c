@@ -29,9 +29,6 @@
 #include <Graphics.h>
 #include <Rdevices.h>
 #include "grDevices.h"
-#ifdef SUPPORT_MBCS
-#include <wchar.h>
-#endif
 
 
 #if defined(__APPLE_CC__) && defined(HAVE_AQUA)
@@ -1570,25 +1567,15 @@ static void 	Quartz_MetricInfo(int c,
 {
     FMetricRec myFMetric;
     QuartzDesc *xd = (QuartzDesc *) dd-> deviceSpecific;
-    char testo[12];
+    char testo[2];
 	char *ff;
     CGrafPtr savedPort;
     Rect bounds;
     CGPoint position;
 	unsigned char tmp;
 
-#ifdef SUPPORT_MBCS
-    wchar_t wc[2] = L" ";
-    wchar_t *wcs=wc;
-
-    memset(testo,0,sizeof(testo));
-    wc[0] = (unsigned int) c;
-
-    wcsrtombs(testo, (const wchar_t **)&wcs, sizeof(wchar_t), NULL); 
-#else
     testo[0] = c;
     testo[1] = '\0';
-#endif
 /*    fprintf(stderr,"c=%c,>%s<\n",c,testo);
   */  GetPort(&savedPort);
 

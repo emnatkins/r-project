@@ -13,7 +13,7 @@
 dyn.load(x, local = TRUE, now = TRUE)
 dyn.unload(x)
 
-is.loaded(symbol, PACKAGE = "", type = "")
+is.loaded(symbol, PACKAGE = "")
 symbol.C(name)
 symbol.For(name)
 }
@@ -50,8 +50,6 @@ symbol.For(name)
   \item{name}{a character string giving either the name of a C function
     or Fortran subroutine.  Fortran names probably need to be given
     entirely in lower case (but this may be system-dependent).}
-  \item{type}{The type of symbol to look for: can be any (\code{""}, the
-  default), \code{"Fortran"}, \code{"Call"} or \code{"External"}.}
 }
 \details{
   See
@@ -149,10 +147,12 @@ symbol.For(name)
   \code{.Exernal}: it requires the name you would give to \code{.C} etc
   and \strong{not} that remapped by \code{symbol.C} or
   \code{symbol.For}.  It will succeed if any one of the four calling
-  functions would succeed in using the entry point unless \code{type}
-  is specified: for Fortran entry points
-  \code{is.loaded(symbol.For("symbol"))} will also succeed \emph{unless}
-  the registration mechanism has been used.
+  functions would succeed in using the entry point: for Fortran
+  entry points \code{is.loaded(symbol.For("symbol"))} will also succeed
+  \emph{unless} the registration mechanism has been used.
+
+  \code{is.loaded} is a primitive function so positional matching of
+  arguments is used (and argument names are ignored).
 }
 \note{
   The creation of shared libraries and the runtime linking of them into
@@ -190,8 +190,5 @@ symbol.For(name)
 }
 \examples{
 is.loaded("hcass2") #-> probably TRUE, as stats is loaded
-is.loaded("supsmu") # Fortran entry point in stats
-is.loaded("supsmu", "stats", "Fortran")
-is.loaded("PDF", type = "External")
 }
 \keyword{interface}

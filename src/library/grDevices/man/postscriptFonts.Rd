@@ -1,44 +1,54 @@
 \name{postscriptFonts}
+\alias{postscriptFont}
 \alias{postscriptFonts}
-\alias{pdfFonts}
 \concept{fonts}
 \concept{encoding}
-\title{PostScript and PDF Font Families}
+\title{PostScript Fonts}
 \description{
-  These functions handle the translation of a \R graphics
-  font family name to a PostScript or PDF font description, used by the
-  \code{\link{postscript}} or \code{\link{pdf}} graphics devices.
+  These functions handle the translation of a device-independent R graphics
+  font family name to a PostScript font description, used by both the
+  \code{\link{postscript}} and \code{\link{pdf}} graphics devices.
 }
 \usage{
-postscriptFonts(...)
-pdfFonts(...)
+postscriptFont(family, metrics, encoding = "default")
+
+postscriptFonts(...)	   
 }
 \arguments{
+  \item{family}{a character string giving the name of an Adobe Type 1
+    font family.}
+  \item{metrics}{a vector of four or five strings giving paths
+    to the afm (font metric) files for the Type 1 font.}
+  \item{encoding}{the name of an encoding file.  Defaults to
+    \code{"default"}, which maps to
+#ifdef unix
+"ISOLatin1.enc"
+#endif
+#ifdef windows
+"WinAnsi.enc"
+#endif
+    Otherwise, a file name in the \file{afm} directory of the
+    \pkg{grDevices} package, which is used if the path does not contain
+    a path separator.  An extension \code{".enc"} can be omitted.}
   \item{\dots}{either character strings naming mappings to display,
-    or named arguments specifying mappings to add or change.}
+    or new (named) mappings to define.}
 }
 \details{
-  If these functions are called with no argument they list all the
-  existing mappings, whereas if they are called with named arguments
-  they add (or change) mappings.
-  
-  A PostScript or PDF device is created with a default font family (see the
+  A PostScript device is created with a default font (see the
   documentation for \code{\link{postscript}}), but it is also possible
   to specify a font family when drawing to the device (for example, see
-  the documentation for \code{"family"} in \code{\link{par}} and for
-  \code{"fontfamily"} in \code{\link{gpar}} in the grid package).
+  the documentation for \code{\link{gpar}} in the grid package).
+  The font mechanism is shared with the \code{\link{pdf}} device.
 
   The font family sent to the device is a simple string name, which must be
-  mapped to a set of PostScript fonts.  Separate lists of mappings for
-  \code{postscript} and \code{pdf} devices are  maintained for the
-  current \R session and can be added to by the user.
+  mapped to something more specific to PostScript fonts.  A list of
+  mappings is maintained and can be modified by the user.
 
-  The \code{postscriptFonts} and \code{pdfFonts} functions can be used
-  to list existing mappings and to define new mappings.  The
-  \code{\link{Type1Font}} and \code{\link{CIDFont}} functions can be
-  used to create new mappings, when the \code{xxxFonts} function is used
-  to add them to the database.  See the examples.
+  The \code{postscriptFonts} function can be used to list existing
+  translations and to define new mappings.  The \code{postscriptFont}
+  function can be used to create a new mapping.
 
+  The argument \code{family} specifies the font family to be used.
   Default mappings are provided for four device-independent family
   names: \code{"sans"} for a sans-serif font, \code{"serif"} for a serif
   font, \code{"mono"} for a monospaced font, and \code{"symbol"} for a
@@ -53,42 +63,25 @@ pdfFonts(...)
   \code{"NimbusSan"} (synonym \code{"URWHelvetica"}),
   \code{"NimbusSanCond"}, \code{"CenturySch"}, \code{"URWPalladio"} and
   \code{"NimbusRom"} (synonym \code{"URWTimes"}).
-  
-  There are also mappings for \code{"ComputerModern"} and
-  \code{"ComputerModernItalic"}.
 
-  Finally, there are some default mappings for East Asian locales:
-  \code{"Japan1"}, \code{"Japan1HeiMin"}, \code{"Japan1GothicBBB"},
-  and \code{"Japan1Ryumin"} for Japanese;
-  \code{"Korea1"} and \code{"Korea1deb"} for Korean;
-  \code{"GB1"} (Simplified Chinese) for China and Singapore;
-  \code{"CNS1"} (Traditional Chinese) for Hong Kong and Taiwan.
-                
+  There is also a mapping for \code{"ComputerModern"}.
+
   The specification of font metrics and encodings is described in the help
   for the \code{\link{postscript}} function.
 
-  The fonts are not embedded in the resulting PostScript or PDF file, so
-  software including the PostScript or PDF plot file should either embed
-  the font outlines (usually from \file{.pfb} or \file{.pfa} files) or
-  use DSC comments to instruct the print spooler to do so.
-
-  A font family has both an \R-level name, the argument name used when
-  \code{postscriptFonts} was called, and an internal name, the
-  \code{family} component.  These two names are the same for all the
-  pre-defined font families.
-
-  Once a font family is in use it cannot be changed.  \sQuote{In use}
-  means that it has been specified \emph{via} a \code{family} or
-  \code{fonts} argument to an invocation of the same graphics device
-  already in the \R session.  (For these purposes \code{xfig} counts the
-  same as \code{postscript} but only uses some of the predefined mappings.)
+  The fonts are not embedded in the resulting PostScript file, so
+  software including the PostScript plot
+  file should either embed the font outlines (usually from \file{.pfb}
+  or \file{.pfa} files) or use DSC comments to instruct the print
+  spooler to do so.
 }
 \value{
-  A list of one or more font mappings.
+  \code{postscriptFont} returns a PostScript font description.
+
+  \code{postscriptFonts} returns one or more font mappings.
 }
 \seealso{
-  \code{\link{postscript}} and \code{\link{pdf}};  \code{\link{Type1Font}}
-  and \code{\link{CIDFont}} for specifying new font mappings.
+  \code{\link{postscript}}
 }
 \author{
   Support for Computer Modern fonts is based on a contribution by
@@ -96,23 +89,10 @@ pdfFonts(...)
 }
 \examples{
 postscriptFonts()
-## This duplicates "ComputerModernItalic".
-CMitalic <- Type1Font("ComputerModern2",
-                      c("CM_regular_10.afm", "CM_boldx_10.afm",
-                        "cmti10.afm", "cmbxti10.afm",
-                         "CM_symbol_10.afm"),
-                      encoding = "TeXtext.enc")
-postscriptFonts(CMitalic = CMitalic)
-
-## A CID font for Japanese using a different CMap and
-## corresponding cmapEncoding. 
-`Jp_UCS-2` <- CIDFont("TestUCS2",
-                  c("Adobe-Japan1-UniJIS-UCS2-H.afm",
-                    "Adobe-Japan1-UniJIS-UCS2-H.afm",
-                    "Adobe-Japan1-UniJIS-UCS2-H.afm",
-                    "Adobe-Japan1-UniJIS-UCS2-H.afm"),
-                  "UniJIS-UCS2-H", "UCS-2")
-pdfFonts(`Jp_UCS-2` = `Jp_UCS-2`)
-names(pdfFonts())
+CMitalic <- postscriptFont("ComputerModern",
+                           c("CM_regular_10.afm", "CM_boldx_10.afm",
+                             "cmti10.afm", "cmbxti10.afm",
+                             "CM_symbol_10.afm"))
+postscriptFonts(CMitalic=CMitalic)
 }
 \keyword{device}

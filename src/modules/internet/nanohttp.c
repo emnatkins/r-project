@@ -108,10 +108,6 @@ extern void R_FlushConsole(void);
 
 #define BAD_CAST (unsigned char *)
 
-#if !defined(strdup) && defined(HAVE_DECL_STRDUP) && !HAVE_DECL_STRDUP
-extern char *strdup(const char *s1);
-#endif
-
 #define xmlFree free
 #define xmlMalloc malloc
 #define xmlRealloc realloc
@@ -158,7 +154,7 @@ setSelectMask(InputHandler *handlers, fd_set *readMask)
 #if defined(HAVE_STRINGS_H) && !defined(Win32)
 # include <strings.h>
 #endif
-#if !defined(strncasecmp) && defined(HAVE_DECL_STRNCASECMP) && !HAVE_DECL_STRNCASECMP
+#if defined(HAVE_DECL_STRNCASECMP) && !HAVE_DECL_STRNCASECMP
 extern int strncasecmp(const char *s1, const char *s2, size_t n);
 #endif
 #define xmlStrncasecmp(a, b, n) strncasecmp((char *)a, (char *)b, n)
@@ -925,7 +921,7 @@ RxmlNanoHTTPConnectAttempt(struct sockaddr *addr)
 	}
 
 	if ( FD_ISSET(s, &wfd) ) {
-	    R_SOCKLEN_T len;
+	    SOCKLEN_T len;
 	    len = sizeof(status);
 	    if (getsockopt(s, SOL_SOCKET, SO_ERROR, (char*)&status, &len) < 0){
 		/* Solaris error code */

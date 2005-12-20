@@ -38,9 +38,7 @@ stripchart(x, method = "overplot", jitter = 0.1, offset = 1/3,
   \item{at}{numeric vector giving the locations where the charts should
     be drawn, particularly when \code{add = TRUE};
     defaults to \code{1:n} where \code{n} is the number of boxes.}
-  \item{main, ylab, xlab}{labels: see \code{\link{title}}.}
-  \item{xlim, ylim}{plot limits: see \code{\link{plot.window}}.}
-  \item{log, pch, col, cex}{Graphical parameters: see \code{\link{par}}.}
+  \item{xlim, ylim, main, ylab, xlab, log, pch, col, cex}{Graphical parameters.}
 }
 \details{
   Extensive examples of the use of this kind of plot can be found in

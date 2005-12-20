@@ -849,10 +849,11 @@ may need to be included in @code{PKG_LIBS}.
 @vindex BLAS_LIBS
 A macro containing the BLAS libraries used when building @R{}.  This may
 need to be included in @code{PKG_LIBS}.  Beware that if it is empty then
-the @R{} executable will contain all the double-precision and
-double-complex BLAS routines, but no single-precision or complex
-routines.  If @code{BLAS_LIBS} is included, then @code{FLIBS} also needs
-to be, as most BLAS libraries are written in FORTRAN.
+the @R{} executable will contain all the double-precision BLAS routines,
+but no single-precision or complex routines and only some of the
+double-complex routines.  If @code{BLAS_LIBS} is included, then
+@code{FLIBS} also needs to be, as most BLAS libraries are written in
+FORTRAN.
 
 @item LAPACK_LIBS
 @vindex LAPACK_LIBS
@@ -1027,19 +1028,13 @@ $(SHLIB): $(OBJECTS)
         $(SHLIB_LINK) -o $@@ $(OBJECTS) $(ALL_LIBS)
 @end example
 
-There is a MinGW build of @command{gfortran} available from
-@uref{http://gcc.gnu.org/wiki/GFortranBinaries,
-@code{http://@/gcc.gnu.org/@/wiki/@/GFortranBinaries}} and a MinGW
-build@footnote{Remember to set @env{LIBRARY_PATH} to point to your MinGW
-@file{lib} directory} of @command{g95} from @uref{http://www.g95.org}.
-Set @code{F95} in @code{MkRules} to point to the installed compiler.
-Then a suitable @file{Makevars.win} could be
-
-@example
-F95SOURCES=$(wildcard -f *.f95 *.f90)
-OBJS+= $(F95SOURCES:.f95=.o)
-DLL=$(F95)
-@end example
+It is possible to use the Windows build of @command{g95} from
+@uref{http://www.g95.org} to build F95 sources in a package on Windows.
+See
+@uref{https://stat.ethz.ch/pipermail/r-devel/2005-September/034811.html}
+for a suitable @file{src/Makefile.win}.  Probably this would also work
+with the Windows build of @command{gfortran} from
+@uref{http://gcc.gnu.org/wiki/GFortranBinaries}.
 
 
 @node Checking and building packages, Writing package vignettes, Configure and cleanup, Creating R packages
@@ -1249,7 +1244,7 @@ The following configuration variables are currently available.
 If true, record the output from installing a package as part of its
 check to a log file (@file{00install.out} by default), even when running
 interactively.
-Default: true.
+Default: false.
 @item $R_check_all_non_ISO_C
 If true, do not ignore compiler (typically GCC) warnings about non ISO C
 code in @emph{system} headers.
@@ -1379,18 +1374,16 @@ warnings that you understand and have reasons not to eliminate.  In
 principle, packages must pass @code{R CMD check} without warnings to be
 admitted to the main @acronym{CRAN} package area.
 
-When all the testing is done, upload the @file{.tar.gz} file, using
-@code{anonymous} as log-in name and your e-mail address as password, to
+When all the testing is done, upload the @file{.tar.gz} file to
 
 @example
-@url{ftp://cran.R-project.org/incoming/}
+@url{ftp://ftp.ci.tuwien.ac.at/incoming}
 @end example
 
 @noindent
-(note: use @code{ftp} and not @code{sftp} to connect to this server) and
-send a message to @email{cran@@r-project.org}
-about it.  The @acronym{CRAN} maintainers will run these tests before
-putting a submission in the main archive.
+and send a message to @email{cran@@r-project.org} about it.  The
+@acronym{CRAN} maintainers will run these tests before putting a
+submission in the main archive.
 
 Currently, packages containing compiled code should contain at most one
 dot in their name to work smoothly under Windows.
@@ -1617,153 +1610,6 @@ object can use the @code{useDynLib} directive instead.
 
 User-level hooks are also available: see the help on function
 @code{setHook}.
-
-The @code{useDynLib} directive also accepts the names of the native
-routines that are to be used in @R{} via the @code{.C}, @code{.Call},
-@code{.Fortran} and @code{.External} interface functions.  These are given as
-additional arguments to the directive, for example, 
-
-@example
-useDynLib(foo, myRoutine, myOtherRoutine)
-@end example
-
-By specifying these names in the @code{useDynLib} directive, the
-native symbols are resolved when the package is loaded and @R{} variables
-identifying these symbols are added to the package's name space with
-these names.  These can be used in the @code{.C}, @code{.Call},
-@code{.Fortran} and @code{.External} calls in place of the
-name of the routine and the @code{PACKAGE} argument.
-For instance, we can call the routine @code{myRoutine} from R
-with the code
-
-@example
- .Call(myRoutine, x, y)
-@end example
-
-@noindent
-rather than
-
-@example
- .Call("myRoutine", x, y, PACKAGE = "foo")
-@end example
-
-There are at least two benefits to this approach.  Firstly, the symbol
-lookup is done just once for each symbol rather than each time it the
-routine is invoked. Secondly, this removes any ambiguity in resolving
-symbols that might be present in several compiled libraries.  In
-particular, it allows for correctly resolving routines when different
-versions of the same package are loaded concurrently in the same @R{}
-session.
-
-In some circumstances, there will already be an @R{} variable in the
-package with the same name as a native symbol. For example, we may have
-an @R{} function in the package named @code{myRoutine}.  In this case,
-it is necessary to map the native symbol to a different @R{} variable
-name. This can be done in the @code{useDynLib} directive by using named
-arguments. For instance, to map the native symbol name @code{myRoutine}
-to the @R{} variable @code{myRoutine_sym}, we would use
-
-@example
-useDynLib(foo, myRoutine_sym = myRoutine, myOtherRoutine)
-@end example
-
-We could then call that routine from @R{} using the command
-
-@example
- .Call(myRoutine_sym, x, y)
-@end example
-
-Symbols without explicit names are assigned to the @R{} variable with
-that name.
-
-In some cases, it may be preferable not to create @R{} variables in the
-package's name space that identify the native routines.  It may be too
-costly to compute these for many routines when the package is loaded
-if many of these routines are not likely to be used.  In this case, 
-one can still perform the symbol resolution correctly using the DLL,
-but do this each time the routine is called.  Given a reference to the
-DLL as an @R{} variable, say @code{dll}, we can call the routine
-@code{myRoutine} using the expression
-
-@example
- .Call(dll$myRoutine, x, y)
-@end example
-
-The @code{$} operator resolves the routine with the given name in the
-DLL using a call to @code{getNativeSymbol}.  This is the same
-computation as above where we resolve the symbol when the package is
-loaded. The only difference is that this is done each time in the case
-of @code{dll$myRoutine}.
-
-In order to use this dynamic approach (e.g. @code{dll$myRoutine}), one
-needs the reference to the DLL as an @R{} variable in the package.  The
-DLL can be assigned to a variable by using the @code{variable =
-dllName} format used above for mapping symbols to @R{} variables.  For
-example, if we wanted to assign the DLL reference for the DLL
-@code{foo} in the example above to the variable @code{myDLL}, we would
-use the following directive in the @file{NAMESPACE} file:
-
-@example
-myDLL = useDynLib(foo, myRoutine_sym = myRoutine, myOtherRoutine)
-@end example
-
-Then, the @R{} variable @code{myDLL} is in the package's name space and
-available for calls such as @code{myDLL$dynRoutine} to access routines
-that are not explicitly resolved at load time.
-
-If the package has registration information (see @ref{Registering native
-routines}), then we can use that directly rather than specifying the
-list of symbols again in the @code{useDynLib} directive in the
-@file{NAMESPACE} file.  Each routine in the registration information is
-specified by giving a name by which the routine is to be specified along
-with the address of the routine and any information about the number and
-type of the parameters.  Using the @code{.registration} argument of
-@code{useDynLib}, we can instruct the name space mechanism to create
-@R{} variables for these symbols.  For example, suppose we have the
-following registration information for a DLL named @code{myDLL}:
-
-@example
-R_CMethodDef cMethods[] = @{
-   @{"foo", &foo, 4, @{REALSXP, INTSXP, STRSXP, LGLSXP@}@},
-   @{"bar_sym", &bar, 0@},
-   @{NULL, NULL, 0@}
-@};
-
-R_CallMethodDef callMethods[] = @{
-   @{"R_call_sym", &R_call, 4@},
-   @{"R_version_sym", &R_version, 0@},
-   @{NULL, NULL, 0@}
-@};
-@end example
-
-Then, the directive in the @file{NAMESPACE} file
-
-@example
-useDynLib(myDLL, .registration = TRUE)
-@end example
-
-causes the DLL to be loaded and also for the @R{} variables @code{foo},
-@code{bar_sym}, @code{R_call_sym} and @code{R_version_sym} to be
-defined in the package's name space.
-
-Note that the names for the @R{} variables are taken from the entry in the
-registration information and do not need to be the same as the name of
-the native routine.  This allows the creator of the registration
-information to map the native symbols to non-conflicting variable names
-in @R{}, e.g. @code{R_version} to @code{R_version_sym} for use in an @R{}
-function such as
-
-@example
-R_version <- function()
-@{
-  .Call(R_version_sym)
-@}
-@end example
-
-
-More information about this symbol lookup, along with some approaches
-for customizing it, is available from
-@url{http://www.omegahat.org/example/RDotCall}.
 
 @node An example, Summary -- converting an existing package, Load hooks, Package name spaces
 @subsection An example
@@ -2065,7 +1911,6 @@ described in the next section to extract all the messages can give a
 useful overview of your consistency (or lack of it).
 
 Some guidelines follow.
-
 @itemize
 @item
 Messages are sentence fragments, and not viewed in isolation.  So it is
@@ -2090,15 +1935,11 @@ using @code{sQuote} or @code{dQuote} except where the argument is a
 variable.
 
 Conventionally single quotation marks are used for quotations such as
-
 @example
 'ord' must be a positive integer, at most the number of knots
 @end example
-
-@noindent
 and double quotation marks when referring to an @R{} character string
 such as
-
 @example
 'format' must be "normal" or "short" - using "normal"
 @end example
@@ -2118,7 +1959,6 @@ Occasionally messages need to be singular or plural (and in other
 languages there may be no such concept or several plural forms --
 Slovenian has four).  So avoid constructions such as was once used in
 @code{library}
-
 @example
 if((length(nopkgs) > 0) && !missing(lib.loc)) @{
     if(length(nopkgs) > 1)
@@ -2130,10 +1970,8 @@ if((length(nopkgs) > 0) && !missing(lib.loc)) @{
                 " contains no package")
 @}
 @end example
-
 @noindent
 and was replaced by
-
 @example
 if((length(nopkgs) > 0) && !missing(lib.loc)) @{
     pkglist <- paste(sQuote(nopkgs), collapse = ", ")
@@ -2144,7 +1982,6 @@ if((length(nopkgs) > 0) && !missing(lib.loc)) @{
     warning(msg, domain=NA)
 @}
 @end example
-
 @noindent
 Note that it is much better to have complete clauses as here, since
 in another language one might need to say `There is no package in library
@@ -2165,8 +2002,7 @@ The procedures make use of @code{msgfmt} and @code{xgettext} which are
 part of @acronym{GNU} @code{gettext} and this will need to be installed:
 Windows users can find pre-compiled binaries at the @acronym{GNU}
 archive mirrors and packaged with the @code{poEdit} package
-@uref{http://poedit.sourceforge.net/download.php#win32,
-@code{http://@/poedit.sourceforge.net/@/download.php#win32}}.
+@uref{http://poedit.sourceforge.net/download.php#win32}.
 
 @menu
 * C-level messages::
@@ -2182,7 +2018,6 @@ The process of enabling translations is
 @item
 In a header file that will be included in all the C files
 containing messages that should be translated, declare
-
 @example
 #include <R.h>  /* to include Rconfig.h */
 
@@ -2198,18 +2033,15 @@ containing messages that should be translated, declare
 @item
 For each message that should be translated, wrap it in @code{_(...)},
 for example
-
 @example
 error(_("'ord' must be a positive integer"));
 @end example
 
 @item
 In the package's @file{src} directory run
-
 @example
 xgettext --keyword=_ -o @var{pkg}.pot *.c
 @end example
-
 @end itemize
 
 The file @file{src/@var{pkg}.pot} is the template file, and
@@ -2288,14 +2120,13 @@ CMD check} will check the type and skip it.
 
 Conventionally, a translation package for language @var{ll} is called
 @pkg{Translation-@var{ll}} and has @code{Type: Translation}.  It needs
-to contain the directories @file{share/@/locale/@var{ll}} and
-@file{library/@/@var{pkgname}/@/po/@/@var{ll}}, or at least those for
-which translations are available.  The files @file{.mo} are installed in
-the parallel places in the @R{} installation tree.
+to contain the directories @file{share/locale/@var{ll}}
+and @file{library/@var{pkgname}/po/@var{ll}}, or at least those for
+which translations are available.  The files @file{.mo} are installed in the
+parallel places in the @R{} installation tree.
 
 For example, a package @pkg{Translation-it} might be prepared from an
 installed (and tested) version of @R{} by
-
 @example
 mkdir Translation-it
 cd Translation-it
@@ -2310,7 +2141,6 @@ R CMD build Translation-it
 It is probably appropriate to give the package a version number based on
 the version of @R{} which has been translated.  So the
 @file{DESCRIPTION} file might look like
-
 @example
 Package: Translation-it
 Type: Translation
@@ -2599,9 +2429,7 @@ text}, and @ref{Cross-references}).
 @findex \examples
 @item \examples@{@dots{}@}
 Examples of how to use the function.  These are set as formatted in
-typewriter font: see @ref{Insertions} for when characters need to be
-escaped.  (Markup @code{\link} and @code{\var} will be interpreted, but
-no other.)
+typewriter font: see @ref{Insertions} for when characters need to be escaped.
 
 Examples are not only useful for documentation purposes, but also
 provide test code used for diagnostic checking of @R{}.  By default,
@@ -2869,7 +2697,7 @@ fragment of @R{} code or the name of an @R{} object, using
 braces always need to be escaped (by a backslash) inside @code{\code}:
 backslash will need to be escaped if it precedes @samp{%}, @samp{@{} or
 @samp{@}}.  The only markup interpreted inside @code{\code} is
-@code{\link} and @code{\var}.
+@code{\link}.
 
 @item \preformatted@{@var{text}@}
 @findex \preformatted
@@ -6195,8 +6023,7 @@ to access a FORTRAN common block from C
 @end table
 
 On most current platforms these are all the same, but it is unwise to
-rely on this.  Note that names with underscores are not legal in FORTRAN
-77, and are not portably handled by the above macros.
+rely on this.
 
 For example, suppose we want to call R's normal random numbers from
 FORTRAN.  We need a C wrapper along the lines of
@@ -6244,9 +6071,13 @@ further examples.
 @R{} contains a large number of mathematical functions for its own use,
 for example numerical linear algebra computations and special functions.
 
-The header files @file{R_ext/BLAS.h}, @file{R_ext/Lapack.h} and
-@file{R_ext/Linpack.h} contains declarations of the BLAS, LAPACK and
-LINPACK/EISPACK linear algebra functions included in @R{}.  These
+@c FIXME: Change this paragraph!
+@c 1. @file{R_ext/BLAS.h}
+@c 2. @file{R_ext/Lapack.h}
+@c 3. @file{R_ext/Linpack.h} is older and you should use Lapack.h,
+@c    but we won't drop support for it soon...
+The header file @file{R_ext/Linpack.h} contains details of the BLAS,
+LINPACK and EISPACK linear algebra functions included in @R{}.  These
 are expressed as calls to FORTRAN subroutines, and they will also be
 usable from users' FORTRAN code.  Although not part of the official
 @acronym{API}, this set of subroutines is unlikely to change (but might
@@ -7613,10 +7444,9 @@ Preparing input at the console command-line, in file
 @item
 Waiting for a response from a socket in the internal functions
 underlying FTP and HTTP transfers in @code{download.file()} and for
-direct socket access, in files
-@file{src/@/modules/@/internet/@/nanoftp.c},
-@file{src/@/modules/@/internet/@/nanohttp.c} and
-@file{src/@/modules/@/internet/@/Rsock.c}
+direct socket access, in files @file{src/modules/internet/nanoftp.c},
+@file{src/modules/internet/nanohttp.c} and
+@file{src/modules/internet/Rsock.c}
 
 @item
 Mouse and window events when displaying the X11-based dataentry window,
@@ -7690,12 +7520,11 @@ currently available that interface directly with @R{} and provide a
 @item
 There is a (D)COM server called @code{StatConnector} written by Thomas
 Baier available on CRAN
-(@url{http://cran.r-project.org/other-software.html,
-@code{http://@/cran.r-project.org/@/other-software.html}}) which works
-with @file{Rproxy.dll} (in the R distribution) and @file{R.dll} to
-support transfer of data to and from R and remote execution of R
-commands, as well as embedding of an R graphics window.  The @pkg{rcom}
-package on CRAN provides a (D)COM server in a running @R{} session.
+(@url{http://cran.r-project.org/other-software.html}) which works with
+@file{Rproxy.dll} (in the R distribution) and @file{R.dll} to support
+transfer of data to and from R and remote execution of R commands, as
+well as embedding of an R graphics window.  The @pkg{rcom} package on
+CRAN provides a (D)COM server in a running @R{} session.
 
 @item
 Another (D)COM server, @code{RDCOMServer}, is available from
@@ -7711,7 +7540,7 @@ points.  Calling it directly will be tricky except from C code (or C++
 with a little care).
 
 Examples of calling @file{R.dll} directly are provided in the directory
-@file{src/@/gnuwin32/@/front-ends}, including @file{Rproxy.dll} used by
+@file{src/gnuwin32/front-ends}, including @file{Rproxy.dll} used by
 @code{StatConnector} and a simple command-line front end @file{rtest.c}
 whose code is
 
@@ -8053,8 +7882,7 @@ globalenv    pos.to.env  unclass
 
 @noindent
 (where @emph{xxx} stands for almost 30 different notions, such as
-@code{function}, @code{vector}, @code{numeric}, and so forth, but not
-@code{is.loaded}).
+@code{function}, @code{vector}, @code{numeric}, and so forth).
 
 @item
 The programming and session management utilities
@@ -8090,9 +7918,9 @@ efficiency reasons:
 @example
 @group
 :          ~          c           list
-call       as.call    expression  substitute  as.environment
+call       as.call    expression  substitute
 UseMethod  invisible
-.C         .Fortran   .Call       .External
+.C         .Fortran   .Call
 @end group
 @end example
 

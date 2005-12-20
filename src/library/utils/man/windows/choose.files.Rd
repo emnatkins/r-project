@@ -1,6 +1,5 @@
 \name{choose.files}
 \alias{choose.files}
-\alias{choose.dir}
 \alias{Filters}
 \title{Choose a List of Files Interactively}
 \description{
@@ -12,8 +11,6 @@ choose.files(default = "", caption = "Select files",
 	     multi = TRUE, filters = Filters, index = nrow(Filters))
 
 Filters
-
-choose.dir(default = "", caption = "Select folder")
 }
 \arguments{
   \item{default}{which filename to show initially}
@@ -23,18 +20,14 @@ choose.dir(default = "", caption = "Select folder")
   \item{index}{which row of filters to use by default}
 }
 \value{
-  For \code{choose.files}, a character vector giving zero or more file
-  paths.
-
-  For \code{choose.dir}, a character string, \code{NA} if
-  \sQuote{Cancel} was selected. 
+  A character vector giving zero or more file paths.
 }
 \details{
-  Unlike \code{\link{file.choose}}, \code{choose.files} will always
-  attempt to return a character vector giving a list of files.  If the
-  user cancels the dialog, then zero files are returned, whereas
-  \code{\link{file.choose}} would signal an error.  \code{choose.dir}
-  chooses a directory.
+  Unlike \code{\link{file.choose}}, this function will always
+  attempt to return a character vector
+  giving a list of files.  If the user cancels the dialog, then
+  zero files are returned, whereas \code{\link{file.choose}} would
+  signal an error.
 
   Windows file dialog boxes include a list of \dQuote{filters}, which allow
   the file selection to be limited to files of specific types.
@@ -63,8 +56,5 @@ choose.dir(default = "", caption = "Select folder")
 \examples{
   if (interactive()) 
 	choose.files(filters = Filters[c("zip", "All"),])
-
-  if (interactive()) 
-	choose.dir(getwd(), "Choose a suitable folder")
 }
 \keyword{file}

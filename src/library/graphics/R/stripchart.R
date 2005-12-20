@@ -48,10 +48,10 @@ function(x, method="overplot", jitter=0.1, offset=1/3, vertical=FALSE,
 	box()
 	if(vertical) {
 	    if(n > 1) axis(1, at=at, labels=names(groups))
-	    Axis(x, side = 2)
+	    axis(2)
 	}
 	else {
-	    Axis(x, side = 1)
+	    axis(1)
 	    if(n > 1) axis(2, at=at, labels=names(groups))
 	}
     }

@@ -200,49 +200,6 @@ loadNamespace <- function (package, lib.loc = NULL,
             bindtextdomain(pkgname, popath)
             bindtextdomain(paste("R", pkgname, sep="-"), popath)
         }
-
-        assignNativeRoutines <- function(dll, lib, env) {
-            if(length(nsInfo$nativeRoutines) == 0
-                || length(symNames <- nsInfo$nativeRoutines[[lib]]) == 0)
-               return(NULL)
-
-
-            idx = match(".registration", names(symNames))
-            if(!is.na(idx) && symNames[idx] == "TRUE") {
-               # Use the registration information to register ALL the symbols
-               #
-               routines = getDLLRegisteredRoutines.DLLInfo(dll, addNames = FALSE)
-               lapply(routines,
-                      function(type) {
-                          lapply(type,
-                                 function(sym) {
-                                     assign(sym$name, sym, envir = env)
-                                 })
-                      })
-               if(length(symNames) == 1)
-                 return(routines)
-
-               symNames = symNames[-idx]                        
-             }
-            
-            symbols <- getNativeSymbolInfo(symNames, dll, unlist = FALSE)
-            sapply(seq(along = symNames),
-                    function(i) {
-                        varName = names(symNames)[i]
-                        origVarName = symNames[i]                                                
-                        if(exists(varName, envir = env))
-                           warning("failed to assign NativeSymbolInfo for ", origVarName,
-                                   ifelse(origVarName != varName, paste(" to", varName), ""),
-                                   " since ", varName, " is already defined in the ", package, " namespace")
-                           else
-                              assign(varName, symbols[[origVarName]], envir = env)
-                    })
-                   
-
-
-            symbols
-        }
-        
         # find package and check it has a name space
         pkgpath <- .find.package(package, lib.loc, quiet = TRUE)
         if (length(pkgpath) == 0)
@@ -291,8 +248,7 @@ loadNamespace <- function (package, lib.loc = NULL,
                                                      c(lib.loc, .libPaths())),
                                    imp[[2]])
 
-       
-        
+
         # dynamic variable to allow/disable .Import and friends
         "__NamespaceDeclarativeOnly__" <- declarativeOnly
 
@@ -330,16 +286,8 @@ loadNamespace <- function (package, lib.loc = NULL,
         # We provide a way out for cross-building where we can't dynload
         if(!nchar(Sys.getenv("R_CROSS_BUILD"))) {
             dlls = list()
-            for (i in seq(along = nsInfo$dynlibs)) {
-               lib = nsInfo$dynlibs[i]
+            for (lib in nsInfo$dynlibs) {
                dlls[[lib]]  = library.dynam(lib, package, package.lib)
-               assignNativeRoutines(dlls[[lib]], lib, env)
-               # If the DLL has a name as in useDynLib( alias = foo ),
-               # then assign DLL reference to alias.
-               # Check if names() is NULL to handle case that the nsInfo.rds file
-               # was created before the names were added to the dynlibs vector.
-               if(!is.null(names(nsInfo$dynlibs)) && names(nsInfo$dynlibs)[i] != "")
-                  assign(names(nsInfo$dynlibs)[i], dlls[[lib]], envir = env)
             }
             setNamespaceInfo(env, "DLLs", dlls)
         }
@@ -449,11 +397,10 @@ saveNamespaceImage <- function (package, rdafile, lib.loc = NULL,
 
 topenv <- function(envir = parent.frame(),
                    matchThisEnv = getOption("topLevelEnvironment")) {
-    while (! identical(envir, emptyenv())) {
+    while (! identical(envir, baseenv())) {
         if (! is.null(attr(envir, "name")) ||
             identical(envir, matchThisEnv) ||
             identical(envir, .GlobalEnv) ||
-            identical(envir, baseenv()) ||
             .Internal(isNamespaceEnv(envir)) ||
             exists(".packageName", envir = envir, inherits = FALSE))
             return(envir)
@@ -816,7 +763,6 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE) {
     importClasses <- list()
     dynlibs <- character(0)
     S3methods <- matrix(as.character(NA), 500, 3)
-    nativeRoutines <- list()
     nS3 <- 0
     parseDirective <- function(e) {
         switch(as.character(e[[1]]),
@@ -825,16 +771,6 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE) {
                       else if (length(e) == 4)
                           parseDirective(e[[4]]),
                "{" =  for (ee in as.list(e[-1])) parseDirective(ee),
-               "=" = {
-                   parseDirective(e[[3]])
-                   if(as.character(e[[3]][[1]]) == "useDynLib") 
-                       names(dynlibs)[length(dynlibs)] <<- as.character(e[[2]])
-               },
-               "<-" = {
-                   parseDirective(e[[3]])
-                   if(as.character(e[[3]][[1]]) == "useDynLib") 
-                       names(dynlibs)[length(dynlibs)] <<- as.character(e[[2]])
-               },               
                export = {
                    exp <- e[-1]
                    exp <- structure(as.character(exp), names=names(exp))
@@ -874,26 +810,8 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE) {
                    importMethods <<- c(importMethods, list(imp))
                },
                useDynLib = {
-                   dyl <- as.character(e[2])
-                     # Do we want to check that var is not already a name in the vector of DLLs?
-                   dynlibs <<- structure(c(dynlibs, dyl), names = c(names(dynlibs), ifelse(!is.null(names(e)) && names(e)[2] != "", names(e)[2], "")))
-#                   names(dynlibs)[length(dynlibs)] <<- 
-                   if (length(e) > 2) {
-                       tmp <- as.character(e[-c(1, 2)])
-                       names(tmp) <- names(e[-c(1, 2)])
-                       if (length(names(tmp)) == 0)
-                           names(tmp) = tmp
-                       else if (any(w <- names(tmp) == "")) {
-                           names(tmp)[w] = tmp[w]
-                       }
-                       # We have separate collections for different DLLs.
-                       # E.g. if we have useDynLib(foo, a, b, c) and useDynLib(bar, a, x, y)
-                       # we would maintain and resolve them separately.
-                       dup = duplicated(tmp)
-                       if (any(dup))
-                          warning("duplicated symbol names ",  paste(tmp[dup], collapse = ", "), " in useDynLib(", dyl, ")")
-                       nativeRoutines[[ dyl ]] <<-  tmp[!dup]
-                   }
+                   dyl <- e[-1]
+                   dynlibs <<- c(dynlibs, as.character(dyl))
                },
                S3method = {
                    spec <- e[-1]
@@ -914,8 +832,7 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE) {
     list(imports=imports, exports=exports, exportPatterns = exportPatterns,
          importClasses=importClasses, importMethods=importMethods,
          exportClasses=exportClasses, exportMethods=exportMethods,
-         dynlibs=dynlibs, nativeRoutines = nativeRoutines,
-         S3methods = S3methods[seq(len=nS3), ,drop=FALSE])
+         dynlibs=dynlibs, S3methods = S3methods[seq(len=nS3), ,drop=FALSE])
 }
 
 registerS3method <- function(genname, class, method, envir = parent.frame()) {

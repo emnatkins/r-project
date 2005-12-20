@@ -5,7 +5,7 @@
 \concept{margins}
 
 \title{
-  Puts Arbitrary Margins on Multidimensional Tables or Arrays
+  Puts arbitrary margins on multidimensional tables or arrays.
 } 
 
 \description{

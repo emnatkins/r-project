@@ -7,7 +7,7 @@
 }
 \usage{
 polygon(x, y = NULL, density = NULL, angle = 45,
-        border = NULL, col = NA, lty = par("lty"), \dots)
+        border = NULL, col = NA, lty = NULL, xpd = NULL, \dots)
 }
 \arguments{
   \item{x,y}{vectors containing the coordinates of the vertices
@@ -32,8 +32,10 @@ polygon(x, y = NULL, density = NULL, angle = 45,
     and \code{TRUE} is equivalent to \code{NULL} (use the foreground colour),
   }
   \item{lty}{the line type to be used, as in \code{\link{par}}.}
-  \item{\dots}{graphical parameters such as \code{xpd}, \code{lend},
-    \code{ljoin} and \code{lmitre} can be given as arguments.}
+  \item{xpd}{(where) should clipping take place?  Defaults to
+    \code{\link{par}("xpd")}.}
+  \item{\dots}{graphical parameters can be given as arguments to
+    \code{polygon}.}
 }
 \details{
   The coordinates can be passed in a plotting structure
@@ -66,8 +68,6 @@ polygon(x, y = NULL, density = NULL, angle = 45,
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
   \emph{The New S Language}.
   Wadsworth \& Brooks/Cole.
-
-  Murrell, P. (2005) \emph{R Graphics}. Chapman & Hall/CRC Press.
 }
 \seealso{
   \code{\link{segments}} for even more flexibility, \code{\link{lines}},

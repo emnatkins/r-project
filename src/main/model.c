@@ -366,8 +366,6 @@ static SEXP StripTerm(SEXP term, SEXP list)
 	intercept = 0;
     if (list == R_NilValue)
 	return list;
-    /* This can be highly recursive */
-    R_CheckStack();
     tail = StripTerm(term, CDR(list));
     if (TermEqual(term, CAR(list)))
 	return tail;
@@ -382,7 +380,6 @@ static SEXP StripTerm(SEXP term, SEXP list)
 
 static SEXP TrimRepeats(SEXP list)
 {
-    /* Highly recursive, but StripTerm does the checking */
     if (list == R_NilValue)
 	return R_NilValue;
     if (TermZero(CAR(list)))
@@ -1235,8 +1232,6 @@ SEXP do_updateform(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* value, but it can't hurt. */
 
     SET_ATTRIB(new, R_NilValue);
-    setAttrib(new, R_DotEnvSymbol, getAttrib(old, R_DotEnvSymbol)); 
-    
     return new;
 }
 

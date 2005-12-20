@@ -129,17 +129,6 @@ validGP <- function(gpars) {
   gpars
 }
 
-# Method for subsetting "gpar" objects
-"[.gpar" <- function(x, index, ...) {
-    if (length(x) == 0)
-        return(gpar())
-    maxn <- do.call("max", lapply(x, length))
-    newgp <- lapply(x, rep, length.out=maxn)
-    newgp <- lapply(newgp, "[", index, ...)
-    class(newgp) <- "gpar"
-    newgp
-}
-
 # possible gpar names
 # The order must match the GP_* values in grid.h
 .grid.gpar.names <- c("fill", "col", "gamma", "lty", "lwd", "cex",
@@ -182,11 +171,10 @@ set.gpar <- function(gp) {
 }
 
 get.gpar <- function(names=NULL) {
-  if (is.null(names)) {
-    result <- grid.Call("L_getGPar")
+  if (is.null(names))
     # drop gamma
-    result$gamma <- NULL
-  } else {
+    result <- grid.Call("L_getGPar")[-3]
+  else {
     if (!is.character(names) ||
         !all(names %in% .grid.gpar.names))
       stop("Must specify only valid 'gpar' names")

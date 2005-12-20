@@ -76,8 +76,8 @@ function (x = seq(0, 1, len = nrow(z)),
     if (missing(plot.axes)) {
         if (axes) {
             title(main="", xlab="", ylab="")
-            Axis(x, side=1)
-            Axis(y, side=2)
+            axis(1)
+            axis(2)
         }
     }
     else plot.axes

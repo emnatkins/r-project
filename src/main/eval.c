@@ -289,7 +289,6 @@ SEXP eval(SEXP e, SEXP rho)
     if (R_EvalDepth > R_Expressions)
 	errorcall(R_NilValue,
 _("evaluation nested too deeply: infinite recursion / options(expressions=)?"));
-    R_CheckStack();
     if (++evalcount > 100) {
 	R_CheckUserInterrupt();
 	evalcount = 0 ;
@@ -1531,8 +1530,7 @@ SEXP do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
     expr = CAR(args);
     env = CADR(args);
     encl = CADDR(args);
-    if (isNull(encl)) encl = R_BaseEnv;
-    else if ( !isEnvironment(encl) )
+    if ( !isNull(encl) && !isEnvironment(encl) )
 	errorcall(call, _("invalid '%s' argument"), "enclos");
     switch(TYPEOF(env)) {
     case NILSXP:
@@ -3383,11 +3381,7 @@ SEXP do_bcclose(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (! isByteCode(body))
 	errorcall(call, _("invalid environment"));
 
-    if (isNull(env)) {
-	warning(_("use of NULL environment is deprecated"));
-	env = R_BaseEnv;
-    } else  
-    if (!isEnvironment(env))
+    if (!isNull(env) && !isEnvironment(env))
 	errorcall(call, _("invalid environment"));
 
     return mkCLOSXP(forms, body, env);

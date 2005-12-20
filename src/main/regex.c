@@ -18,9 +18,9 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-/* constructed from glibc 2.3.6/posix via
-   cat regex.c regex_internal.h regex_internal.c regcomp.c regexec.c > Rregex.c
-   pasng through protoize and hand-editing */
+/* constructed from glibc 2.3.5 via
+   cat regec.c regex_internal.h regex_internal.c regcomp.c regexec.c > Rregex.c
+   and hand-editing */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -28,6 +28,7 @@
 /* for declaration of mempcpy */
 #define _GNU_SOURCE 1
 
+#ifndef USE_SYSTEM_REGEX
 #include <R_ext/Error.h>
 
 #include <ctype.h>
@@ -84,9 +85,6 @@
 #if defined HAVE_WCTYPE_H || defined _LIBC
 # include <wctype.h>
 #endif /* HAVE_WCTYPE_H || _LIBC */
-#ifdef SUPPORT_MBCS
-# include <R_ext/rlocale.h>
-#endif
 
 /* In case that the system doesn't have isblank().  */
 #if !defined _LIBC && !defined HAVE_ISBLANK && !defined isblank
@@ -5865,7 +5863,7 @@ build_charclass (unsigned char *trans, re_bitset_ptr_t sbcset,
 		 re_charset_t *mbcset, int *char_class_alloc, 
 		 const unsigned char *class_name, reg_syntax_t syntax)
 #else /* not RE_ENABLE_I18N */
-build_charclass (unsigned RE_TRANSLATE_TYPE trans, re_bitset_ptr_t sbcset, 
+build_charclass (unsigned char *trans, re_bitset_ptr_t sbcset, 
 		 const unsigned char *class_name, reg_syntax_t syntax)
 #endif /* not RE_ENABLE_I18N */
 {
@@ -5937,7 +5935,7 @@ build_charclass (unsigned RE_TRANSLATE_TYPE trans, re_bitset_ptr_t sbcset,
 }
 
 static bin_tree_t *
-build_charclass_op (re_dfa_t *dfa, unsigned RE_TRANSLATE_TYPE trans, 
+build_charclass_op (re_dfa_t *dfa, unsigned char *trans, 
 		    const unsigned char *class_name, 
 		    const unsigned char *extra, int non_match, 
 		    reg_errcode_t *err)
@@ -10435,3 +10433,7 @@ Rregexec (const regex_t *__restrict preg, const char *__restrict string,
 			      length, nmatch, pmatch, eflags);
   return err != REG_NOERROR;
 }
+#else /* not USE_SYSTEM_REGEX */
+/* for 2.1.0, this option is not functional */
+#error USE_SYSTEM_REGEX is no longer supported
+#endif

@@ -16,8 +16,7 @@ segments(x0, y0, x1, y1,
     \code{\link{par}}, possibly vectors.  \code{NA} values in \code{col}
     cause the segment to be omitted.}
   \item{\dots}{further graphical parameters (from \code{\link{par}}),
-    such as \code{xpd} and the line characteristics \code{lend}, \code{ljoin}
-    and \code{lmitre}.}
+    such as \code{xpd}.}
 }
 \details{
   For each \code{i}, a line segment is drawn between the point

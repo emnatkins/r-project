@@ -15,7 +15,8 @@ CFLAGS=$(OPTFLAGS) -I../../include
 all: $(R_HOME)/bin/Rgui.exe $(R_HOME)/bin/Rterm.exe \
      $(R_HOME)/bin/Rcmd.exe  $(R_HOME)/bin/RSetReg.exe  \
      $(R_HOME)/bin/Rproxy.dll $(R_HOME)/bin/R.exe \
-     $(R_HOME)/bin/md5check.exe
+     $(R_HOME)/bin/md5check.exe \
+     ../librproxy.a
 
 $(R_HOME)/bin/Rgui.exe: Rgui.exe
 	$(MKDIR) -p $(R_HOME)/bin
@@ -48,9 +49,9 @@ rgui-CFLAGS=-DWin32
 rterm-CFLAGS=-DWin32
 Rgui-LINKFLAGS=-mwindows
 
-Rterm-LIBS=-luser32 -L../../../lib -lR
-Rgui-LIBS=-L../../../lib -lR
-Rpwd-LIBS=-lkernel32
+Rterm-LIBS=$(LIBUNICOWS) -luser32 -L.. -lR
+Rgui-LIBS=-L.. $(LIBUNICOWS) -lR
+Rpwd-LIBS=$(LIBUNICOWS) -lkernel32
 
 ## needs binutils > 2.15.90 which is what the cross-compiler toolkit has.
 ifneq ($(strip $(BUILD)),CROSS)
@@ -89,10 +90,17 @@ bdx_util-CFLAGS=-D_IN_RPROXY_
 bdx_com-CFLAGS=-D_IN_RPROXY_
 bdx_SEXP-CFLAGS=-D_IN_RPROXY_
 rproxy-DLLFLAGS=-mwindows
-rproxy-DLLLIBS=-L../../../lib -lR -lole32 -luuid -loleaut32
+rproxy-DLLLIBS=-L.. $(LIBUNICOWS) -lR -lole32 -luuid -loleaut32
 rproxy.dll: rproxy.o rproxy_dev.o rproxy_impl.o com_util.o \
 	bdx_util.o bdx_SEXP.o bdx_com.o rtico.o
 
-$(R_HOME)/bin/Rproxy.dll: rproxy.dll
+librproxy.a: rproxy.dll rproxy.df
+	$(DLLTOOL_WIN32) $(DLLTOOLFLAGS) $(RPROXY-DLLTOOLFLAGS) --dllname rproxy.dll --def rproxy.df --output-lib $@
+
+
+../librproxy.a: librproxy.a
+	@$(CP) $< $@
+
+$(R_HOME)/bin/Rproxy.dll: rproxy.dll librproxy.a
 	$(MKDIR) -p $(R_HOME)/bin
 	$(CP) rproxy.dll $@	

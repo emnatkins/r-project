@@ -87,7 +87,6 @@ double GVStrWidth (const unsigned char *s, int typeface, int fontindex,
 #ifdef SUPPORT_MBCS
     if(mbcslocale && !utf8strIsASCII(str)) {
 	buff = alloca(strlen(str)+1); /* Output string cannot be longer */
-        R_CheckStack();
 	if(!buff) error(_("allocation failure in GVStrWidth"));
 	mbcsToLatin1((char*) s, buff);
 	str = buff;
@@ -125,7 +124,6 @@ double GVStrHeight (const unsigned char *s, int typeface, int fontindex,
 #ifdef SUPPORT_MBCS
     if(mbcslocale && !utf8strIsASCII(str)) {
 	buff = alloca(strlen(str)+1); /* Output string cannot be longer */
-        R_CheckStack();
 	if(!buff) error(_("allocation failure in GVStrHeight"));
 	mbcsToLatin1((char *) s, buff);
 	str = buff;
@@ -170,7 +168,6 @@ void GVText (double x, double y, int unit, char *s,
 #ifdef SUPPORT_MBCS
     if(mbcslocale && !utf8strIsASCII(str)) {
 	buff = alloca(strlen(str)+1); /* Output string cannot be longer */
-	R_CheckStack();
 	if(!buff) error(_("allocation failure in GVText"));
 	mbcsToLatin1(s, buff);
 	str = buff;

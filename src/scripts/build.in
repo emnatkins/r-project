@@ -57,7 +57,7 @@ my @known_options = ("help|h", "version|v", "binary", "no-docs",
 
 if($WINDOWS) {
     die "Please set TMPDIR to a valid temporary directory\n"
-	unless (-d ${R::Vars::TMPDIR});
+	unless (-e ${R::Vars::TMPDIR});
     @known_options = ("help|h", "version|v", "binary", "docs:s",
 		      "auto-zip",
 		      "use-zip", "use-zip-help", "use-zip-data",
@@ -76,7 +76,7 @@ my $startdir = R_cwd();
 my $R_platform = R_getenv("R_PLATFORM", "unknown-binary");
 my $gzip = R_getenv("R_GZIPCMD", "gzip");
 my $tar = R_getenv("TAR", "tar");
-my $libdir = R_tempfile("Rinst");
+my $libdir = &file_path(${R::Vars::TMPDIR}, "Rinst.$$");
 
 my $INSTALL_opts = "";
 $INSTALL_opts .= " --use-zip" if $opt_use_zip;
@@ -156,7 +156,7 @@ foreach my $pkg (@ARGV) {
     $log->message("removing junk files");
     find(\&unlink_junk_files, $pkg);
 
-    my $exclude = R_tempfile("Rbuild-exclude");
+    my $exclude = &file_path(${R::Vars::TMPDIR}, "Rbuild-exclude.$$");
     open(EXCLUDE, "> $exclude")
 	or die "Error: cannot open file '$exclude' for writing\n";
     binmode EXCLUDE if $WINDOWS;
@@ -181,8 +181,14 @@ foreach my $pkg (@ARGV) {
 	print EXCLUDE "$File::Find::name\n" if(-d $_ && /^CVS$/);
 	print EXCLUDE "$File::Find::name\n" if(-d $_ && /^\.svn$/);
 	print EXCLUDE "$File::Find::name\n" if(-d $_ && /^\.arch-ids$/);
-	## Windows DLL resource file
-	push(@exclude_patterns, "^src/" . $pkgname . "_res\\.rc");
+	if($WINDOWS) {
+	    ## exclude stray dependency files
+	    print EXCLUDE "$File::Find::name\n" if /\.d$/;
+	    print EXCLUDE "$File::Find::name\n" if /^Makedeps$/;
+	    ## and the DLL resource file
+	    my $resname = $pkgname . "_res.rc";
+	    print EXCLUDE "$File::Find::name\n" if /^$resname$/;
+	}
 	my $filename = $File::Find::name;
 	$filename =~ s/^[^\/]*\///;
 	foreach my $p (@exclude_patterns) {
@@ -226,7 +232,7 @@ foreach my $pkg (@ARGV) {
 		  ("$tar chf",
 		   &shell_quote_file_path($filepath),
 		   "$pkgname")));
-    my $tmpdir = R_tempfile("Rbuild");
+    my $tmpdir = &file_path(${R::Vars::TMPDIR}, "Rbuild.$$");
     rmtree($tmpdir) if(-d $tmpdir);
     mkdir("$tmpdir", 0755)
 	or die "Error: cannot create directory '$tmpdir'\n";
@@ -434,8 +440,6 @@ sub prepare_pkg {
 	    if($doit && R_system($cmd)) {
 		$log->error();
 		$log->print("Installation failed.\n");
-		$log->print("Removing '$libdir'\n");
-		rmtree($libdir);
 		exit(1);
 	    }
 	    my $R_LIBS = $ENV{'R_LIBS'};

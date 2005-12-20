@@ -20,16 +20,16 @@ LEA_MALLOC=YES
 
 # Set to YES and specify the path if you want to use the ATLAS BLAS.
 USE_ATLAS=NO
-ATLAS_PATH=/R/ATLAS/lib/WinNT_P4SSE2
+ATLAS_PATH=/R/ATLAS/lib/WinNT_PIIISSE1
 
 # Set to YES and specify the path to libacml.a 
 # if you want to use the AMD's ACML BLAS.
 USE_ACML=NO
-ACML_PATH=c:/Program Files/AMD/acml2.7.0/gnu32/lib
-## Set this to YES if you want to use ACML's LAPACK not R's.
-USE_ACML_LAPACK=NO
+ACML_PATH=c:/packages/AMD/acml2.7.0/gnu32/lib
 
-# Support for the Goto BLAS has been withdrawn: see R-admin.html
+# Set to YES and specify the DLL name if you want to use K. Goto's BLAS.
+USE_GOTO=NO
+GOTO_DLL=libgoto_p4_512-r0.9.dll
 
 # Where does 'HTML Help Workshop' live? (unused if compiled HTML help is
 # not requested. Spaces allowed.)
@@ -47,17 +47,10 @@ TCL_VERSION = 84
 # USE_SVNVERSION = YES
 
 
-## ====== configuration macros for building installer ===========
+## ====== configuration macros for building installers ===========
 
 # location where Inno Setup 5.1.x was installed. Spaces allowed.
 ISDIR=C:/packages/Inno51
-
-## ====== configuration macros for building packages ================
-
-## For a package using F90/95 set the name or path of gfortran.exe 
-## or g95.exe.  No spaces.
-F95=c:/packages/gfortran/bin/gfortran
-F95FLAGS=-O2
 
 ## =================== cross-compilation settings  =================
 
@@ -133,7 +126,7 @@ NM=$(BINPREF)nm
 CPP=$(CC) -E
 RESCOMP=$(BINPREF)windres
 
-.SUFFIXES: .c .cc .cpp .C .f .o .a .def .exp .dll .exe .d .f90 .f95
+.SUFFIXES: .c .cc .cpp .C .f .o .a .def .exp .dll .exe .d
 
 .c.d:
 	@echo "making $@ from $<"
@@ -191,8 +184,3 @@ lib%.a: %.def
 
 %.o: %.rc
 	$(RESCOMP) $(RESFLAGS) $($*-RESFLAGS) -i $< -o $@
-
-.f90.o:
-	$(F95) $(F95FLAGS) -c $< -o $@
-.f95.o:
-	$(F95) $(F95FLAGS) -c $< -o $@

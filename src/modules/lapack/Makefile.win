@@ -4,36 +4,24 @@ include ../../gnuwin32/MkRules
 MODULE=lapack
 all: 
 	@$(MAKE) --no-print-directory -f Makefile.win -s makeMakedeps 
-ifneq ($(strip $(USE_ACML)),YES)
 	@$(MAKE) --no-print-directory -f Makefile.win ../../../bin/Rlapack.dll 
 	@$(MAKE) --no-print-directory -f Makefile.win ../../../lib/libRlapack.a
-endif
 	@$(MAKE) --no-print-directory -f Makefile.win ../../../modules/$(MODULE).dll
 
 CSOURCES = Lapack.c
-OBJS=$(CSOURCES:.c=.o) dllversion.o
-LIBSOURCES = dlamc.f dlapack0.f dlapack1.f dlapack2.f dlapack3.f cmplx.f
-LIBOBJECTS = $(LIBSOURCES:.f=.o)
-
-# will be overridden on call from src/gnuwin32/Makefile
-OPTFLAGS=-O2 -Wall -pedantic -std=gnu99
-FOPTFLAGS=-O2
+FSOURCES = rgeev.f rsyev.f
 
 CFLAGS=$(OPTFLAGS) -I../../include -DHAVE_CONFIG_H
 FFLAGS=$(FOPTFLAGS)
 dlamc-FFLAGS=-ffloat-store
+OBJS=$(CSOURCES:.c=.o) $(FSOURCES:.f=.o) dllversion.o
 
 ../../../modules/$(MODULE).dll: $(MODULE).dll
 	$(MKDIR) -p ../../../modules
 	$(CP) $< $@
 
-ifeq ($(strip $(USE_ACML_LAPACK)),YES)
-lapack-DLLLIBS=-L../../../lib -lRblas -L"$(ACML_PATH)" -lacml -lg2c -lR
-else
-lapack-DLLLIBS=-L../../../lib -lRlapack -lRblas -lR
-endif
-
-Rlapack-DLLLIBS=-L../../../lib -lR -lRblas -lg2c
+lapack-DLLLIBS=-L../../../lib $(LIBUNICOWS) -lRlapack
+DLLLIBS=-L../../gnuwin32 $(LIBUNICOWS) -lR -lRblas -lg2c
 
 $(MODULE).dll: $(OBJS)
 
@@ -45,13 +33,13 @@ clean:
 
 
 # Rlapack.* section
-Rlapack.dll: $(LIBOBJECTS)
+Rlapack.dll: dlamc.o dlapack0.o dlapack1.o dlapack2.o dlapack3.o cmplx.o Rlapackrc.o
 	@$(ECHO) LIBRARY Rlapack > Rlapack.def
 	@$(ECHO) EXPORTS >> Rlapack.def
 	@$(NM) $^ > Defs
 	@$(SED) -n '/^........ [BCDRT] _/s/^........ [BCDRT] _/ /p' Defs >> $*.def
 	@$(RM) Defs
-	$(DLL) --shared $(DLLFLAGS) -o $@ Rlapack.def $^ $(Rlapack-DLLLIBS)
+	$(DLL) --shared $(DLLFLAGS) -o $@ Rlapack.def $^ $(DLLLIBS)
 
 libRlapack.a: Rlapack.def
 

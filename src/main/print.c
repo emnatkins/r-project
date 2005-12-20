@@ -360,7 +360,7 @@ static void PrintGenericVector(SEXP s, SEXP env)
 		    else if( isValidName(CHAR(STRING_ELT(names, i))) )
 			sprintf(ptag, "$%s", CHAR(STRING_ELT(names, i)));
 		    else
-			sprintf(ptag, "$`%s`", CHAR(STRING_ELT(names, i)));
+			sprintf(ptag, "$\"%s\"", CHAR(STRING_ELT(names, i)));
 		}
 	    }
 	    else {
@@ -496,7 +496,7 @@ static void printList(SEXP s, SEXP env)
 		    else if( isValidName(CHAR(PRINTNAME(TAG(s)))) )
 			sprintf(ptag, "$%s", CHAR(PRINTNAME(TAG(s))));
 		    else
-			sprintf(ptag, "$`%s`", CHAR(PRINTNAME(TAG(s))));
+			sprintf(ptag, "$\"%s\"", CHAR(PRINTNAME(TAG(s))));
 		}
 	    }
 	    else {
@@ -548,8 +548,6 @@ static void PrintEnvir(SEXP rho)
 	Rprintf("<environment: R_GlobalEnv>\n");
     else if (rho == R_BaseEnv)
     	Rprintf("<environment: base>\n");	
-    else if (rho == R_EmptyEnv)
-    	Rprintf("<environment: R_EmptyEnv>\n");
     else if (R_IsPackageEnv(rho))
 	Rprintf("<environment: %s>\n",
 		CHAR(STRING_ELT(R_PackageEnvName(rho), 0)));

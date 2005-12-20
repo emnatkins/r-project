@@ -57,7 +57,18 @@ DISTFILES = Makefile.in Makefile.win $(SOURCES) $(HEADERS)
 
 SUBDIRS_WITH_NO_BUILD = standalone
 
-@WANT_R_SHLIB_TRUE@ALL_CFLAGS = $(ALL_CFLAGS_LO)
+noinst_LIBRARIES = libnmath.a
+libnmath_a_SOURCES = $(SOURCES)
+libnmath_a_OBJECTS = $(OBJECTS)
+
+## <FIXME>
+## We most likely will not want a separate shared library.
+## If we have a final decision, remove libnmath.la target.
+## </FIXME>
+noinst_LTLIBRARIES = libnmath.la
+libnmath_la_SOURCES = $(SOURCES)
+libnmath_la_OBJECTS = $(OBJECTS:.o=.lo)
+@USE_LIBTOOL_TRUE@libnmath_la_LDFLAGS = -avoid-version -rpath "$(Rexeclibdir)"
 
 all: Makefile Makedeps R
 
@@ -70,16 +81,18 @@ Makedeps: Makefile $(DEPENDS)
 
 R: Makefile
 	@$(MAKE) Makedeps
-@WANT_R_SHLIB_FALSE@	@$(MAKE) libnmath.a
+@WANT_R_SHLIB_FALSE@	@$(MAKE) $(noinst_LIBRARIES)
 @WANT_R_SHLIB_TRUE@	@$(MAKE) stamp-lo
 
-libnmath.a: $(OBJECTS)
+libnmath.a: $(libnmath_a_OBJECTS)
 	rm -rf $@
-	$(AR) cr $@ $(OBJECTS)
+	$(AR) cr $@ $(libnmath_a_OBJECTS)
 	$(RANLIB) $@
 
-stamp-lo: $(OBJECTS)
+stamp-lo: $(libnmath_la_OBJECTS)
 	@touch $@
+libnmath.la: stamp-lo
+	$(SHLIB_LINK) -o $@  $(libnmath_la_LDFLAGS) $(libnmath_la_OBJECTS)
 
 mostlyclean: clean
 clean:
