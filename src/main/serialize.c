@@ -1917,12 +1917,14 @@ static void free_mem_buffer(void *data)
     }
 }
 
+/* <FIXME> for 2.4.0 use a raw vector instead, or perhaps if ascii = FALSE */
 static SEXP CloseMemOutPStream(R_outpstream_t stream)
 {
     SEXP val;
     membuf_t mb = stream->data;
-    PROTECT(val = allocVector(RAWSXP, mb->count));
-    memcpy(RAW(val), mb->buf, mb->count);
+    PROTECT(val = allocVector(CHARSXP, mb->count));
+    memcpy(CHAR(val), mb->buf, mb->count);
+    val = ScalarString(val);
     free_mem_buffer(mb);
     UNPROTECT(1);
     return val;
@@ -2009,11 +2011,11 @@ SEXP R_unserialize(SEXP icon, SEXP fun)
 
 #define IS_PROPER_STRING(s) (TYPEOF(s) == STRSXP && LENGTH(s) > 0)
 
-/* Appends a raw vector to the end of a file using binary mode.
+/* Appends a scalar string to the end of a file using binary mode.
    Returns an integer vector of the initial offset of the string in
-   the file and the length of the vector. */
+   the file and the length of the string. */
 
-static SEXP appendRawToFile(SEXP file, SEXP bytes)
+static SEXP appendStringToFile(SEXP file, SEXP string)
 {
     FILE *fp;
     size_t len, out;
@@ -2022,8 +2024,8 @@ static SEXP appendRawToFile(SEXP file, SEXP bytes)
 
     if (! IS_PROPER_STRING(file))
 	error(_("not a proper file name"));
-    if (TYPEOF(bytes) != RAWSXP)
-	error(_("not a proper raw vector"));
+    if (! IS_PROPER_STRING(string))
+	error(_("not a proper string"));
 #ifdef HAVE_WORKING_FTELL
     /* Windows' ftell returns position 0 with "ab" */
     if ((fp = fopen(CHAR(STRING_ELT(file, 0)), "ab")) == NULL)
@@ -2034,9 +2036,9 @@ static SEXP appendRawToFile(SEXP file, SEXP bytes)
     fseek(fp, 0, SEEK_END);
 #endif
 
-    len = LENGTH(bytes);
+    len = LENGTH(STRING_ELT(string, 0));
     pos = ftell(fp);
-    out = fwrite(RAW(bytes), 1, len, fp);
+    out = fwrite(CHAR(STRING_ELT(string, 0)), 1, len, fp);
     fclose(fp);
 
     if (out != len) error(_("write failed"));
@@ -2074,9 +2076,9 @@ SEXP attribute_hidden R_lazyLoadDBflush(SEXP file)
 
 
 /* Reads, in binary mode, the bytes in the range specified by a
-   position/length vector and returns them as raw vector. */
+   position/length vector and returns them as a scalar string. */
 
-static SEXP readRawFromFile(SEXP file, SEXP key)
+static SEXP readStringFromFile(SEXP file, SEXP key)
 {
     FILE *fp;
     int offset, len, in, i, icache = -1, filelen;
@@ -2091,12 +2093,13 @@ static SEXP readRawFromFile(SEXP file, SEXP key)
     offset = INTEGER(key)[0];
     len = INTEGER(key)[1];
 
-    val = allocVector(RAWSXP, len);
+    val = allocVector(CHARSXP, len);
+    val = ScalarString(val);
     /* Do we have this database cached? */
     for (i = 0; i < used; i++)
 	if(strcmp(cfile, names[i]) == 0) {icache = i; break;}
     if (icache >= 0) {
-	memcpy(RAW(val), ptr[icache]+offset, len);
+	memcpy(CHAR(STRING_ELT(val, 0)), ptr[icache]+offset, len);
 	return val;
     }
 
@@ -2124,7 +2127,7 @@ static SEXP readRawFromFile(SEXP file, SEXP key)
 	in = fread(ptr[icache], 1, filelen, fp);
 	fclose(fp);
 	if (filelen != in) error(_("read failed on %s"), cfile);
-	memcpy(RAW(val), ptr[icache]+offset, len);
+	memcpy(CHAR(STRING_ELT(val, 0)), ptr[icache]+offset, len);
     } else {
 	if ((fp = fopen(cfile, "rb")) == NULL)
 	    error(_("open failed on %s"), cfile);
@@ -2132,7 +2135,7 @@ static SEXP readRawFromFile(SEXP file, SEXP key)
 	    fclose(fp);
 	    error(_("seek failed on %s"), cfile);
 	}
-	in = fread(RAW(val), 1, len, fp);
+	in = fread(CHAR(STRING_ELT(val, 0)), 1, len, fp);
 	fclose(fp);
 	if (len != in) error(_("read failed on %s"), cfile);
     }
@@ -2151,7 +2154,7 @@ SEXP attribute_hidden R_getVarsFromFrame(SEXP vars, SEXP env, SEXP forcesxp)
     int i, len;
 
     if (TYPEOF(env) == NILSXP) {
-    	error(_("use of NULL environment is defunct"));
+    	warning(_("use of NULL environment is deprecated"));
     	env = R_BaseEnv;
     } else
     if (TYPEOF(env) != ENVSXP)
@@ -2203,7 +2206,7 @@ R_lazyLoadDBinsertValue(SEXP value, SEXP file, SEXP ascii,
     PROTECT_WITH_INDEX(value, &vpi);
     if (compress)
 	REPROTECT(value = R_compress1(value), vpi);
-    key = appendRawToFile(file, value);
+    key = appendStringToFile(file, value);
     UNPROTECT(1);
     return key;
 }
@@ -2219,7 +2222,7 @@ R_lazyLoadDBfetch(SEXP key, SEXP file, SEXP compsxp, SEXP hook)
     Rboolean compressed = asLogical(compsxp);
     SEXP val;
 
-    PROTECT_WITH_INDEX(val = readRawFromFile(file, key), &vpi);
+    PROTECT_WITH_INDEX(val = readStringFromFile(file, key), &vpi);
     if (compressed)
 	REPROTECT(val = R_decompress1(val), vpi);
     val = R_unserialize(val, hook);

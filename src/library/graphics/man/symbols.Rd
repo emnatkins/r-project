@@ -118,7 +118,7 @@ text(x,y, apply(format(round(z3, dig=2)), 1, paste, collapse = ","),
 
 ## Note that  example(trees)  shows more sensible plots!
 N <- nrow(trees)
-with(trees, {
+attach(trees)
 ## Girth is diameter in inches
 symbols(Height, Volume, circles=Girth/24, inches=FALSE,
         main="Trees' Girth")# xlab and ylab automatically
@@ -126,8 +126,7 @@ symbols(Height, Volume, circles=Girth/24, inches=FALSE,
 palette(rainbow(N, end = 0.9))
 symbols(Height, Volume, circles=Girth/16, inches=FALSE, bg = 1:N,
         fg="gray30", main="symbols(*, circles=Girth/16, bg = 1:N)")
-palette("default")
-})
+palette("default"); detach()
 }
 \keyword{aplot}
 \keyword{hplot}

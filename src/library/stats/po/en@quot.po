@@ -27,10 +27,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.4.0\n"
+"Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2006-04-18 13:06+0100\n"
-"PO-Revision-Date: 2006-04-18 13:06+0100\n"
+"POT-Creation-Date: 2006-04-18 12:45+0100\n"
+"PO-Revision-Date: 2006-04-18 12:45+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -138,8 +138,8 @@ msgid "'theta' should be of type character"
 msgstr "‘theta’ should be of type character"
 
 #: nls.c:204 port.c:359
-msgid "use of NULL environment is defunct"
-msgstr "use of NULL environment is defunct"
+msgid "use of NULL environment is deprecated"
+msgstr "use of NULL environment is deprecated"
 
 #: nls.c:208
 msgid "'rho' should be an environment"

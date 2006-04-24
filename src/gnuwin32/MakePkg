@@ -2,7 +2,7 @@
 RLIB=../../../library
 DPKG=$(RLIB)/$(PKG)
 SPKG=.
-SAVE=false
+SAVE=CHECK
 LAZY=false
 LAZYDATA=false
 
@@ -324,7 +324,7 @@ lazyload:
 	      LC_COLLATE=C R_OSTYPE=windows $(REXE) > /dev/null || exit 1; \
 	    rm -f $(DPKG)/R/all.rda ; \
 	    if test -r install.R ; then \
-	      echo "WARNING:use of install.R is no longer supported" ; \
+	      cat install.R >> $(DPKG)/R/$(PKG) ; \
 	    fi ; \
 	  fi ; \
 	fi

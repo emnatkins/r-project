@@ -77,8 +77,7 @@ sub do_header {
     $outfile->print("\n\\chapter\{The \\texttt\{$pkgname\} package\}\n");
 }
 
-sub foldorder {($b =~ /-package$/) cmp ($a =~ /-package$/) or uc($a) cmp uc($b) or $a cmp $b;}
-
+sub foldorder {uc($a) cmp uc($b) or $a cmp $b;}
 sub do_tex_files {
     my( $latexDir, $outfile ) = @_;
     my $fh = new FileHandle;
@@ -93,11 +92,9 @@ sub do_tex_files {
     {
 	$fh->open( $latexDir . $fname ) 
 	    or croak "unable to open file $_:$!\n";
-	    
-	## first line is usually \HeaderA{object}{object}{...}	
-	## but may need to skip \inputencoding line	
-	$fline = <$fh> until $fline =~ s/\\HeaderA\{\s*([^}]*)\}//;
-
+	$fline = <$fh>;
+	## first line is \HeaderA{object}{object}{...}
+	$fline =~ s/\\HeaderA\{\s*([^}]*)\}//;
         ## omit internal help pages
         my $internal = 0;
         while(<$fh>) {

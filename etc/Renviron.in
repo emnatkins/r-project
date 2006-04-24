@@ -5,8 +5,7 @@
 ### Record R system environment variables.
 
 R_PLATFORM=${R_PLATFORM-'@R_PLATFORM@'}
-## Default printer paper size: first record if user set R_PAPERSIZE
-R_PAPERSIZE_USER=${R_PAPERSIZE}
+## Default printer paper size
 R_PAPERSIZE=${R_PAPERSIZE-'@R_PAPERSIZE@'}
 ## Default print command
 R_PRINTCMD=${R_PRINTCMD-'@R_PRINTCMD@'}

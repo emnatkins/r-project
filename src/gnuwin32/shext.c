@@ -2,7 +2,7 @@
  *  R : A Computer Language for Statistical Data Analysis
  *  file shext.c
  *  Copyright (C) 2001  Guido Masarotto and Brian Ripley
- *                2004-6  R Development Core Team
+ *                2004  R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ InitBrowseCallbackProc( HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData )
 
 /* browse for a folder under the Desktop, return the path in the argument */
 
-void selectfolder(char *folder, char *title)
+void selectfolder(char *folder)
 {
     char buf[MAX_PATH];
     LPMALLOC g_pMalloc;
@@ -47,7 +47,7 @@ void selectfolder(char *folder, char *title)
     bi.hwndOwner = hwnd;
     bi.pidlRoot = NULL;
     bi.pszDisplayName = buf;
-    bi.lpszTitle = title;
+    bi.lpszTitle = "Choose a directory";
     bi.ulFlags = BIF_RETURNONLYFSDIRS;
     bi.lpfn = (BFFCALLBACK) InitBrowseCallbackProc;
     bi.lParam = (int) folder;

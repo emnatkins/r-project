@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-04-18 13:05\n"
+"POT-Creation-Date: 2006-04-18 12:45\n"
 "PO-Revision-Date: 2005-05-31 09:39+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -104,7 +104,6 @@ msgstr "이하에 의해 요구되었습니다 :"
 msgid "(still attached)"
 msgstr "(아직 attached되어 있습니다)"
 
-#, fuzzy
 msgid "replaced regular expression pattern '[' by  '\\\\['"
 msgstr "정규 표현 패턴'['를 '\\\\['로 옮겨놓았습니다"
 
@@ -215,8 +214,7 @@ msgstr "무효인 'row.names' 길이입니다"
 msgid "duplicate 'row.names' are not allowed"
 msgstr "중복한 'row.names'는 허용되지 않습니다"
 
-#, fuzzy
-msgid "missing values in 'row.names' are not allowed"
+msgid "missing 'row.names' are not allowed"
 msgstr "'row.names'가 빠져 있어 되지 않습니다"
 
 msgid "invalid 'dimnames' given for data frame"

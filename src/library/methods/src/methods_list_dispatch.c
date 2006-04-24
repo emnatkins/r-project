@@ -659,7 +659,7 @@ SEXP R_missingArg(SEXP symbol, SEXP ev) {
 	error(_("invalid symbol in checking for missing argument in method dispatch: expected a name, got an object of class \"%s\""),
 	     class_string(symbol));
     if (isNull(ev)) {
-	error(_("use of NULL environment is defunct"));
+	warning(_("use of NULL environment is deprecated"));
 	ev = R_BaseEnv;
     } else	     
     if(!isEnvironment(ev))

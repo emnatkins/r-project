@@ -174,13 +174,13 @@ SEXP R_LookupMethod(SEXP method, SEXP rho, SEXP callrho, SEXP defrho)
 
     if (R_UseNamespaceDispatch) {
 	if (TYPEOF(callrho) == NILSXP) {
-	    error(_("use of NULL environment is defunct"));
+	    warning(_("use of NULL environment is deprecated"));
 	    callrho = R_BaseEnv;
 	} else
 	if (TYPEOF(callrho) != ENVSXP)
 	    error(_("bad generic call environment"));
 	if (TYPEOF(defrho) == NILSXP) {
-	    error(_("use of NULL environment is defunct"));
+	    warning(_("use of NULL environment is deprecated"));
 	    defrho = R_BaseEnv;
 	} else
 	if (TYPEOF(defrho) != ENVSXP)
@@ -1124,7 +1124,7 @@ SEXP do_set_prim_method(SEXP op, char *code_string, SEXP fundef, SEXP mlist)
     else if(fundef && !isNull(fundef) && !prim_generics[offset]) {
 	if(TYPEOF(fundef) != CLOSXP)
 	    error(_("the formal definition of a primitive generic must be a function object (got type '%s')"),
-		  type2char(TYPEOF(fundef)));
+		  CHAR(type2str(TYPEOF(fundef))));
 	R_PreserveObject(fundef);
 	prim_generics[offset] = fundef;
     }

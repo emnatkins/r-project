@@ -221,28 +221,28 @@ check_tzones <- function(...)
     if(length(tzs)) tzs[1] else NULL
 }
 
-Summary.POSIXct <- function (..., na.rm)
+Summary.POSIXct <- function (x, ..., na.rm)
 {
     ok <- switch(.Generic, max = , min = , range = TRUE, FALSE)
     if (!ok) stop(.Generic, " not defined for \"POSIXct\" objects")
-    args <- list(...)
+    args <- list(x, ...)
     args$na.rm <- NULL
     tz <- do.call("check_tzones", args)
     val <- NextMethod(.Generic)
-    class(val) <- oldClass(args[[1]])
+    class(val) <- oldClass(x)
     attr(val, "tzone") <- tz
     val
 }
 
-Summary.POSIXlt <- function (..., na.rm)
+Summary.POSIXlt <- function (x, ..., na.rm)
 {
     ok <- switch(.Generic, max = , min = , range = TRUE, FALSE)
     if (!ok) stop(.Generic, " not defined for \"POSIXlt\" objects")
-    args <- list(...)
+    args <- list(x, ...)
     args$na.rm <- NULL
     tz <- do.call("check_tzones", args)
-    args <- lapply(args, as.POSIXct)
-    val <- do.call(.Generic, c(args, na.rm = na.rm))
+    x <- as.POSIXct(x)
+    val <- NextMethod(.Generic)
     as.POSIXlt(structure(val, class = c("POSIXt", "POSIXct"), tzone = tz))
 }
 
@@ -483,7 +483,7 @@ mean.difftime <- function (x, ..., na.rm = FALSE)
     }
 }
 
-Summary.difftime <- function (..., na.rm)
+Summary.difftime <- function (x, ..., na.rm)
 {
     coerceTimeUnit <- function(x)
     {
@@ -493,7 +493,7 @@ Summary.difftime <- function (..., na.rm)
     }
     ok <- switch(.Generic, max = , min = , range = TRUE, FALSE)
     if (!ok) stop(.Generic, " not defined for \"difftime\" objects")
-    args <- c(lapply(list(...), coerceTimeUnit), na.rm = na.rm)
+    args <- c(lapply(list(x, ...), coerceTimeUnit), na.rm = na.rm)
     structure(do.call(.Generic, args), units="secs", class="difftime")
 }
 

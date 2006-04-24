@@ -3305,7 +3305,7 @@ stopifnot(labels(lm.D9) == "group")
 
 ## sprintf had no length check (PR#7554)
 a <- matrix (ncol=100, nrow=100, data=c(1,2,3,4,5))
-a.serial <- rawToChar(serialize(a, NULL, ascii=TRUE))
+a.serial <- serialize(a, NULL, ascii=TRUE)
 try(sprintf('foo: %s\n', a.serial))
 ## seqfaulted in 2.0.1
 
@@ -4157,19 +4157,3 @@ apply(a,1,sum)
 ## NULL results in apply()
 apply(as.matrix(1), 1, function(x) NULL)
 ## was error in 2.2.1.
-
-
-## sum on data frames (PR#8385)
-DF <- data.frame(m1=1:2, m2=3:4)
-sum(DF)
-sum(DF=DF)  # needed arg named x
-sum(DF, DF) # failed
-DF[1, 1] <- NA
-stopifnot(is.na(sum(DF)), sum(DF, na.rm=TRUE) == 9)
-## failures < 2.4.0
-
-op <- par(mfrow = c(2,2), mar = .1+c(3,3,2,1), mgp = c(1.5, .6, 0))
-y <- rt(200, df= 3)
-plot(lm(y ~ 1))
-par(op)
-## 4th plot (which = 5: "leverages") failed in 2.2.0 <= R <= 2.3.0

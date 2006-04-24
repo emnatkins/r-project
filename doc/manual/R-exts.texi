@@ -144,13 +144,14 @@ A package consists of a subdirectory containing a file
 @file{demo}, @file{exec}, @file{inst}, @file{man}, @file{po},
 @file{src}, and @file{tests} (some of which can be missing).  The
 package subdirectory may also contain files @file{INDEX},
+@file{install.R} (deprecated), @file{R_PROFILE.R} (deprecated),
 @file{NAMESPACE}, @file{configure}, @file{cleanup}, and @file{COPYING}.
 Other files such as @file{README}, @file{NEWS} or @file{ChangeLog} will
 be ignored by @R{}, but may be useful to end-users.
 
-The @file{DESCRIPTION} and @file{INDEX} files are described in the
-sections below.  The @file{NAMESPACE} file is described in @ref{Package
-name spaces}.
+The @file{DESCRIPTION}, @file{INDEX}, @file{install.R} and
+@file{R_PROFILE.R} files are described in the sections below.  The
+@file{NAMESPACE} file is described in @ref{Package name spaces}.
 
 @cindex configure file
 @cindex cleanup file
@@ -195,6 +196,7 @@ structure for a new package: see its help page for details.
 @menu
 * The DESCRIPTION file::        
 * The INDEX file::              
+* The install.R and R_PROFILE.R files::  
 * Package subdirectories::      
 * Package bundles::             
 @end menu
@@ -363,8 +365,8 @@ options of @code{R CMD INSTALL}, @samp{--[no-]lazy} and
 @samp{--[no-]lazy-data}.
 
 The optional @samp{SaveImage} field controls whether the @R{} objects
-are stored in a saved image.  (It takes the same values as the field
-@samp{LazyLoad}.)
+are stored in a saved image @pxref{The install.R and R_PROFILE.R files}.
+(It takes the same values as the field @samp{LazyLoad}.)
 
 If the package you are writing uses the @pkg{methods} package, specify
 (preferably) @samp{LazyLoad: yes} or @samp{SaveImage: yes}.
@@ -390,7 +392,7 @@ added by the package management tools.
 @end quotation
 
 
-@node The INDEX file, Package subdirectories, The DESCRIPTION file, Package structure
+@node The INDEX file, The install.R and R_PROFILE.R files, The DESCRIPTION file, Package structure
 @subsection The @file{INDEX} file
 @cindex INDEX file
 
@@ -408,7 +410,41 @@ information about the package into an overview man page
 (@pxref{Documenting packages}) and/or a vignette (@pxref{Writing package
 vignettes}).
 
-@node Package subdirectories, Package bundles, The INDEX file, Package structure
+@node The install.R and R_PROFILE.R files, Package subdirectories, The INDEX file, Package structure
+@subsection The @file{install.R} and @file{R_PROFILE.R} files
+@cindex install.R file
+@cindex R_PROFILE.R file
+
+@strong{NB:} This mechanism is now deprecated and will be removed at
+@R{} 2.4.0.
+
+The optional file @file{install.R} serves two purposes.  First, its
+presence tells the @code{INSTALL} utility to create a binary image of the
+package workspace.  A binary image is created by executing the code in
+the @file{R} subdirectory and saving the resulting objects.  When the
+package is attached, the code is not executed again but @code{load}ed
+from the saved image.  It is preferable to use the @samp{SaveImage}
+field in the @file{DESCRIPTION} file, which takes precedence over the
+presence of an @file{install.R} file.
+
+The second purpose for @file{install.R} is to hold code that needs to be
+executed each time the package is attached, before the image is
+loaded.  Very few packages have a need for such code.
+
+The optional file @file{R_PROFILE.R} is executed before the code in the
+@file{R} subdirectory when saving an image or preparing for
+lazy-loading, and should be used to set up an environment needed only to
+evaluate the code (which is run with the @option{--vanilla} command-line
+flag).  Packages should not need such code, as the packages in the
+@samp{Depends} field should suffice.
+
+Both @file{install.R} and @file{R_PROFILE.R} should be viewed as
+experimental; the mechanism to execute code before attaching or
+installing the package may change in the near future.  With the other
+facilities available as from @R{} 2.0.0 they should be removed if possible.
+
+
+@node Package subdirectories, Package bundles, The install.R and R_PROFILE.R files, Package structure
 @subsection Package subdirectories
 @cindex Package subdirectories
 
@@ -8355,8 +8391,7 @@ the @pkg{tcltk} package.
 Enbedded @R{} is designed to be run in the main thread, and all the
 testing is done in that context.  There is a potential issue with the
 stack-checking mechanism where threads are involved.  This uses two
-variables declared in @file{Rinterface.h} (if @code{CSTACK_DEFNS} is
-defined) as
+variables declared in the internal headers
 
 @example
 extern uintptr_t R_CStackLimit;	/* C stack limit */
@@ -8364,9 +8399,8 @@ extern uintptr_t R_CStackStart;	/* Initial stack address */
 @end example
 
 @noindent
-Note that @code{uintptr_t} is a C99 type for which a substitute is
-defined in @R{}, so your code needs to define @code{HAVE_UINTPTR_T}
-appropriately.
+Note that @code{uintptr_t} is a C99 type for which a substitute
+@code{unsigned long} is defined in @R{} if needed.
 
 These will be set@footnote{at least on platforms where the values are
 available, that is having @code{getrlimit} and on Linux or having
@@ -8817,10 +8851,13 @@ efficiency reasons:
 :          ~          c           list
 call       as.call    as.character
 expression  substitute  as.environment
-UseMethod  invisible  standardGeneric
+invisible
 .C         .Fortran   .Call       .External
 .Call.graphics        .External.graphics
-.subset    .subset2   .primTrace  .primUntrace
+.subset    .subset2
+.primTrace            .primUntrace
+reg.finalizer         gc.time
+UseMethod             standardGeneric
 @end group
 @end example
 

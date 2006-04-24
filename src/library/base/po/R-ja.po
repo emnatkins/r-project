@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-04-18 08:46\n"
+"POT-Creation-Date: 2006-04-18 12:45\n"
 "PO-Revision-Date: 2005-06-02 15:29+0900\n"
 "Last-Translator: Shigeru Mase\n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp>\n"
@@ -104,7 +104,6 @@ msgstr "が以下により要求されました："
 msgid "(still attached)"
 msgstr "(まだアタッチされています)"
 
-#, fuzzy
 msgid "replaced regular expression pattern '[' by  '\\\\['"
 msgstr "正規表現パターン '[' を  '\\\\[' で置き換えました"
 
@@ -214,8 +213,7 @@ msgstr "無効な 'row.names'長です"
 msgid "duplicate 'row.names' are not allowed"
 msgstr "重複した 'row.names' は許されません"
 
-#, fuzzy
-msgid "missing values in 'row.names' are not allowed"
+msgid "missing 'row.names' are not allowed"
 msgstr "'row.names' が欠けていてはなりません"
 
 msgid "invalid 'dimnames' given for data frame"

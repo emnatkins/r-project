@@ -422,7 +422,8 @@ CIDFont <- function(family, cmap, cmapEncoding, pdfresource="")
 # Deprecated in favour of Type1Font()
 postscriptFont <- function(family, metrics, encoding="default")
 {
-    .Defunct("Type1Font")
+    .Deprecated("Type1Font")
+    Type1Font(family, metrics, encoding)
 }
 
 

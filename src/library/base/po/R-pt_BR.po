@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-04-18 08:46\n"
-"PO-Revision-Date: 2005-12-17 10:55-0200\n"
+"POT-Creation-Date: 2006-04-18 12:45\n"
+"PO-Revision-Date: 2006-04-16 19:17-0300\n"
 "Last-Translator: Fernando Henrique Ferraz P. da Rosa <feferraz@ime.usp.br>\n"
 "Language-Team: Portuguese <ldp-br@bazar.conectiva.com.br>\n"
 "MIME-Version: 1.0\n"
@@ -110,7 +110,6 @@ msgstr "é exigido por"
 msgid "(still attached)"
 msgstr "(ainda anexado)"
 
-#, fuzzy
 msgid "replaced regular expression pattern '[' by  '\\\\['"
 msgstr "padrão de expressão regular '[' trocado por '\\\\['"
 
@@ -219,8 +218,7 @@ msgstr "'row.names' com comprimento inválido"
 msgid "duplicate 'row.names' are not allowed"
 msgstr "'row.names' duplicados não são permitidos"
 
-#, fuzzy
-msgid "missing values in 'row.names' are not allowed"
+msgid "missing 'row.names' are not allowed"
 msgstr "'row.names' faltantes não são permitidos"
 
 msgid "invalid 'dimnames' given for data frame"
@@ -614,12 +612,11 @@ msgstr "'flag' pode conter somente '0+- #'"
 msgid "corrupt data frame: columns will be truncated or padded with NAs"
 msgstr "data frame corrompido: colunas serão truncadas ou completadas com NAs"
 
-#, fuzzy
 msgid "'zero.print' has length > 1"
-msgstr "'input' deve ter comprimento 1"
+msgstr "'zero.print' tem comprimento > 1"
 
 msgid "'zero.print' must be character, logical or NULL"
-msgstr ""
+msgstr "'zero.print' deve ser do tipo caracter, lógico ou NULL"
 
 msgid "'subset' must evaluate to logical"
 msgstr "'subset' deve poder ser avaliado logicamente"
@@ -664,9 +661,8 @@ msgstr "pacote '%s' foi compilado na versão do R %s"
 msgid "package '%s' was built for %s"
 msgstr "pacote '%s' foi compilado para %s"
 
-#, fuzzy
 msgid "package '%s' is not installed for 'arch=%s'"
-msgstr "pacote '%s' não foi instalado corretamente"
+msgstr "pacote '%s' não está instalado para 'arch=%s'"
 
 msgid "package '%s' has not been installed properly"
 msgstr "pacote '%s' não foi instalado corretamente"
@@ -906,9 +902,8 @@ msgstr "%s falhou em 'loadNamespace' para '%s'"
 msgid "namespace '%s' is already sealed in loadNamespace"
 msgstr "espaço de nomes '%s' já está selado em loadNamespace"
 
-#, fuzzy
 msgid "failed to assign RegisteredNativeSymbol for"
-msgstr "falha na atribuição de NativeSymbolInfo para"
+msgstr "falha na atribuição de RegisteredNativeSymbol para"
 
 msgid "to"
 msgstr "para"
@@ -989,9 +984,8 @@ msgstr "exportações não definidas:"
 msgid "package '%s' has no NAMESPACE file"
 msgstr "pacote '%s' não tem arquivo NAMESPACE"
 
-#, fuzzy
 msgid "empty name in directive '%s' in NAMESPACE file"
-msgstr "pacote '%s' não tem arquivo NAMESPACE"
+msgstr "nome vazio na diretiva '%s' do arquivo NAMESPACE"
 
 msgid "duplicated symbol names"
 msgstr "símbolos de importação duplicados"
@@ -1175,9 +1169,8 @@ msgstr "matriz singular 'a' em 'solve'"
 msgid "only square matrices can be inverted"
 msgstr "somente matrizes quadradas podem ser invertidas"
 
-#, fuzzy
 msgid "'b' must be compatible with 'a'"
-msgstr "'by' deve ter comprimento 1"
+msgstr "'b' deve ser compatível com 'a'"
 
 msgid "solve.default called with a \"qr\" object: use 'qr.solve'"
 msgstr "solve.default chamado com um objeto \"qr\": use 'qr.solve'"
@@ -1227,15 +1220,14 @@ msgstr "'chdir = TRUE' não faz sentido para uma conexão"
 msgid "'%s' is not an existing file"
 msgstr "'%s' não é um arquivo existente"
 
-#, fuzzy
 msgid "is not"
-msgstr "não é TRUE"
+msgstr "não é"
 
 msgid "all"
-msgstr ""
+msgstr "todo"
 
 msgid "TRUE"
-msgstr ""
+msgstr "TRUE"
 
 msgid "incorrect value for 'x'"
 msgstr "valor incorreto para 'x'"
@@ -1363,11 +1355,10 @@ msgid_plural "packages %s are not loaded"
 msgstr[0] "pacote %s não está carregado"
 msgstr[1] "pacotes %s não estão carregados"
 
-#, fuzzy
 msgid "there is no package called"
 msgid_plural "there are no packages called"
 msgstr[0] "não há nenhum pacote chamado '%s'"
-msgstr[1] "não há nenhum pacote chamado '%s'"
+msgstr[1] "não há pacotes chamados '%s'"
 
 msgid "object %s is not exported by 'namespace:%s'"
 msgid_plural "objects %s are not exported by 'namespace:%s'"
@@ -1388,22 +1379,3 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Mensagem de aviso:\n"
 msgstr[1] "Mensagens de aviso:\n"
-
-#~ msgid "none of the packages were found"
-#~ msgstr "nenhum dos pacotes foi encontrado"
-
-#~ msgid "no input is available"
-#~ msgstr "nenhuma entrada disponível"
-
-#~ msgid ""
-#~ "the input does not start with a magic number compatible with loading from "
-#~ "a connection"
-#~ msgstr ""
-#~ "a entrada não começa com um número mágico compatível com carregamento a "
-#~ "partir de uma conexão"
-
-#~ msgid "calling wrong method"
-#~ msgstr "chamada do método errado"
-
-#~ msgid "format.char: coercing 'x' to 'character'"
-#~ msgstr "format.char: fazendo coerção de 'x' para 'character' "

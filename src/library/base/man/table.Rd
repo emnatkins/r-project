@@ -92,8 +92,10 @@ as.data.frame.table(x, row.names = NULL, optional = FALSE,
 require(stats) # for rpois and xtabs
 ## Simple frequency distribution
 table(rpois(100,5))
+attach(warpbreaks)
 ## Check the design:
-with(warpbreaks, table(wool, tension))
+table(wool, tension)
+detach()
 table(state.division, state.region)
 
 # simple two-way contingency table

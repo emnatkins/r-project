@@ -153,7 +153,7 @@
 
 /* Define to 1 if you have the declaration of `vasprintf', and to 0 if you
    don't. */
-#define HAVE_DECL_VASPRINTF 1
+#define HAVE_DECL_VASPRINTF 0
 
 /* Define to 1 if you have the declaration of `vsnprintf', and to 0 if you
    don't. */
@@ -185,10 +185,6 @@
 
 /* Define to 1 if you have the `expm1' function. */
 #define HAVE_EXPM1 1
-
-/* Define if your Fortran compiler appends an extra_underscore to external
-   names containing an underscore. */
-#define HAVE_F77_EXTRA_UNDERSCORE 1
 
 /* Define if your Fortran compiler appends an underscore to external names. */
 #define HAVE_F77_UNDERSCORE 1
@@ -321,9 +317,6 @@
 
 /* Define if you have the JPEG headers and libraries. */
 #define HAVE_JPEG 1
-
-/* Define if KERN_USRSTACK sysctl is supported. */
-/* #undef HAVE_KERN_USRSTACK */
 
 /* Define if you have KeySym defined in X11. */
 /* #undef HAVE_KEYSYM */
@@ -617,7 +610,7 @@
 #define HAVE_UNSIGNED_LONG_LONG 1
 
 /* Define to 1 if you have the `vasprintf' function. */
-#define HAVE_VASPRINTF 1
+/* #undef HAVE_VASPRINTF */
 
 /* Define to 1 if you have the `va_copy' function. */
 #define HAVE_VA_COPY 1
@@ -768,22 +761,19 @@
 #define PACKAGE_NAME "R"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "R 2.4.0"
+#define PACKAGE_STRING "R 2.3.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "R"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.4.0"
+#define PACKAGE_VERSION "2.3.0"
 
 /* Define if <inttypes.h> exists and defines unusable PRI* macros. */
 /* #undef PRI_MACROS_BROKEN */
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
-
-/* Define this to use architecture-dependent subdirectories of this name. */
-#define R_ARCH ""
 
 /* Define this to be the name of the CPU of your system. */
 #define R_CPU "i386"
@@ -871,7 +861,7 @@
 #define VALGRIND_LEVEL 0
 
 /* Version number of package */
-#define VERSION "2.4.0"
+#define VERSION "2.3.0"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
@@ -924,30 +914,6 @@
 /* Define to unsigned long or unsigned long long if <stdint.h> and
    <inttypes.h> don't define. */
 /* #undef uintmax_t */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-int trio_printf(const char *format, ...);
-int trio_vprintf(const char *format, va_list args);
-int trio_fprintf(FILE *file, const char *format, ...);
-int trio_sprintf(char *buffer, const char *format, ...);
-int trio_vsprintf(char *buffer, const char *format, va_list args);
-int trio_vfprintf(FILE *file, const char *format, va_list args);
-int trio_snprintf(char *buffer, size_t max, const char *format, ...);
-int trio_vsnprintf(char *buffer, size_t bufferSize, const char *format,
-		   va_list args);
-int trio_vasprintf(char **ret, const char *format, va_list args);
-
-#define printf trio_printf
-#define vprintf trio_vprintf
-#define fprintf trio_fprintf
-#define vfprintf trio_vfprintf
-#define sprintf trio_sprintf
-#define snprintf trio_snprintf
-#define vsprintf trio_vsprintf
-#define vsnprintf trio_vsnprintf
-#define vasprintf trio_vasprintf
 
 
 #endif /* not R_CONFIG_H */

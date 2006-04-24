@@ -2827,7 +2827,7 @@ static SEXP NextArg(SEXP l, SEXP s, SEXP tag)
  *  Parsing Entry Points:
  *
  *  The Following entry points provide language parsing facilities.
- *  Note that there are separate entry points for parsing IoBuffers
+ *  Note that there are separate entry points for parsing IOBuffers
  *  (i.e. interactve use), files and R character strings.
  *
  *  The entry points provide the same functionality, they just
@@ -2840,7 +2840,7 @@ static SEXP NextArg(SEXP l, SEXP s, SEXP tag)
  *
  *	SEXP R_Parse1Vector(TextBuffer *text, int gencode, ParseStatus *status)
  *
- *	SEXP R_Parse1Buffer(IoBuffer *buffer, int gencode, ParseStatus *status)
+ *	SEXP R_Parse1Buffer(IOBuffer *buffer, int gencode, ParseStatus *status)
  *
  *
  *  The success of the parse is indicated as folllows:
@@ -2858,9 +2858,9 @@ static SEXP NextArg(SEXP l, SEXP s, SEXP tag)
  *
  *	SEXP R_ParseFile(FILE *fp, int n, ParseStatus *status)
  *
- *	SEXP R_ParseVector(SEXP *text, int n, ParseStatus *status)
+ *	SEXP R_ParseVector(TextBuffer *text, int n, ParseStatus *status)
  *
- *	SEXP R_ParseBuffer(IoBuffer *buffer, int n, ParseStatus *status)
+ *	SEXP R_ParseBuffer(IOBuffer *buffer, int n, ParseStatus *status)
  *
  *  Here, status is 1 for a successful parse and 0 if parsing failed
  *  for some reason.
@@ -3553,33 +3553,35 @@ static int StringValue(int c)
 		c = val;
 	    }
 	    else if(c == 'u') {
-#ifndef SUPPORT_MBCS
-		error(_("\\uxxxx sequences not supported"));
-#else
-		wint_t val = 0; int i, ext; size_t res;
-		char buff[5]; Rboolean delim = FALSE;
-		if((c = xxgetc()) == '{') delim = TRUE; else xxungetc(c);
-		for(i = 0; i < 4; i++) {
-		    c = xxgetc();
-		    if(c >= '0' && c <= '9') ext = c - '0';
-		    else if (c >= 'A' && c <= 'F') ext = c - 'A' + 10;
-		    else if (c >= 'a' && c <= 'f') ext = c - 'a' + 10;
-		    else {xxungetc(c); break;}
-		    val = 16*val + ext;
-		}
-		if(delim)
-		    if((c = xxgetc()) != '}')
-			error(_("invalid \\u{xxxx} sequence"));
-		
-		res = ucstomb(buff, val, NULL);
-		if((int)res <= 0) {
+		if(!mbcslocale) 
+		     error(_("\\uxxxx sequences are only valid in multibyte locales"));
+#if defined(SUPPORT_MBCS)
+		else {	
+		    wint_t val = 0; int i, ext; size_t res;
+		    char buff[5]; Rboolean delim = FALSE;
+		    if((c = xxgetc()) == '{') delim = TRUE; else xxungetc(c);
+		    for(i = 0; i < 4; i++) {
+			c = xxgetc();
+			if(c >= '0' && c <= '9') ext = c - '0';
+			else if (c >= 'A' && c <= 'F') ext = c - 'A' + 10;
+			else if (c >= 'a' && c <= 'f') ext = c - 'a' + 10;
+			else {xxungetc(c); break;}
+			val = 16*val + ext;
+		    }
 		    if(delim)
-			error(_("invalid \\u{xxxx} sequence"));
-		    else
-			error(_("invalid \\uxxxx sequence"));
+			if((c = xxgetc()) != '}')
+			    error(_("invalid \\u{xxxx} sequence"));
+		
+		    res = ucstomb(buff, val, NULL);
+		    if((int)res <= 0) {
+			if(delim)
+			    error(_("invalid \\u{xxxx} sequence"));
+			else
+			    error(_("invalid \\uxxxx sequence"));
+		    }
+		    for(i = 0; i <  res - 1; i++) YYTEXT_PUSH(buff[i], yyp);
+		    c = buff[res - 1]; /* pushed below */
 		}
-		for(i = 0; i <  res - 1; i++) YYTEXT_PUSH(buff[i], yyp);
-		c = buff[res - 1]; /* pushed below */
 #endif
 	    }
 	    else if(c == 'U') {

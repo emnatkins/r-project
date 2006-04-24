@@ -344,7 +344,7 @@ static pager pagercreate()
     p = newconsoledata((consolefn) ? consolefn : FixedFont,
 		       pagerrow, pagercol, 0, 0,
 		       consolefg, consoleuser, consolebg,
-		       PAGER, 0);
+		       PAGER);
     if (!p) return NULL;
 
 /*    if (ismdi()) {

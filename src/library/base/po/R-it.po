@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-04-18 13:05\n"
+"POT-Creation-Date: 2006-04-18 12:45\n"
 "PO-Revision-Date: 2005-02-16 08:34\n"
 "Last-Translator: Stefano M. Iacus <Stefano.Iacus@R-project.org>\n"
 "Language-Team: Italian\n"
@@ -112,7 +112,6 @@ msgstr "richiesto da"
 msgid "(still attached)"
 msgstr "(ancora attaccato)"
 
-#, fuzzy
 msgid "replaced regular expression pattern '[' by  '\\\\['"
 msgstr "nell'espressione regolare il pattern '[' è sostituito con '\\\\['"
 
@@ -221,8 +220,7 @@ msgstr "lunghezza di 'row.names' non ammissibile"
 msgid "duplicate 'row.names' are not allowed"
 msgstr "'row.names' duplicate non sono permesse"
 
-#, fuzzy
-msgid "missing values in 'row.names' are not allowed"
+msgid "missing 'row.names' are not allowed"
 msgstr "'row.names' mancanti non sono permesse"
 
 msgid "invalid 'dimnames' given for data frame"

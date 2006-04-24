@@ -226,12 +226,9 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 #else
     if(res >= BUFSIZE) { /* res is the desired output length */
 	usedRalloc = TRUE;
-	/* apparently some implementations count short,
-	   <http://unixpapa.com/incnote/stdio.html>
-	   so add some margin here */
-	b = R_alloc(res + 101, sizeof(char));
-	vsnprintf(b, res+100, format, ap);
-    } else if(res < 0) { /* just a failure indication */
+	b = R_alloc(res + 1, sizeof(char));
+	vsprintf(b, format, ap);
+    } else if(res < 0) { /* just a failure indication -- e.g. Windows */
 	usedRalloc = TRUE;
 	b = R_alloc(10*BUFSIZE, sizeof(char));
 	res = vsnprintf(b, 10*BUFSIZE, format, ap);
@@ -242,7 +239,7 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 	}
     }
 #endif /* HAVE_VASPRINTF */
-#else  /* no VA_COPY */
+#else
     res = vsnprintf(buf, BUFSIZE, format, ap);
     if(res >= BUFSIZE || res < 0) { 
 	/* res is the desired output length or just a failure indication */
@@ -258,7 +255,7 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 	Rboolean again = FALSE;
 	int ninit = strlen(con->init_out);
 	do {
-	    onb = BUFSIZE; /* leave space for nul */
+	    onb = BUFSIZE; /* space for nul */
 	    ob = outbuf;
 	    if(ninit) {
 		strcpy(ob, con->init_out);
@@ -2015,7 +2012,7 @@ SEXP attribute_hidden do_textconnection(SEXP call, SEXP op, SEXP args, SEXP env)
     open = CHAR(STRING_ELT(sopen, 0));
     venv = CADDDR(args);
     if (isNull(venv)) {
-	error(_("use of NULL environment is defunct"));
+	warning(_("use of NULL environment is deprecated"));
 	venv = R_BaseEnv;
     } else      
     if (!isEnvironment(venv))
@@ -4023,18 +4020,18 @@ SEXP R_compress1(SEXP in)
     Bytef *buf;
     SEXP ans;
 
-    if(TYPEOF(in) != RAWSXP)
-	error(_("R_decompress1 requires a raw vector"));
-    inlen = LENGTH(in);
+    if(!isString(in) || length(in) !=1)
+	error(_("R_compress1 requires a scalar string"));
+    inlen = LENGTH(STRING_ELT(in, 0));
     outlen = 1.001*inlen + 20;
     buf = (Bytef *) R_alloc(outlen, sizeof(Bytef));
     /* we want this to be system-independent */
     *((unsigned int *)buf) = (unsigned int) uiSwap(inlen);
-    res = compress(buf + 4, &outlen, (Bytef *)RAW(in), inlen);
+    res = compress(buf + 4, &outlen, (Bytef *)CHAR(STRING_ELT(in, 0)), inlen);
     if(res != Z_OK) error(_("internal error in R_compress1"));
-    ans = allocVector(RAWSXP, outlen + 4);
-    memcpy(RAW(ans), buf, outlen + 4);
-    return ans;
+    ans = allocVector(CHARSXP, outlen + 4);
+    memcpy(CHAR(ans), buf, outlen + 4);
+    return ScalarString(ans);
 }
 
 attribute_hidden
@@ -4043,19 +4040,19 @@ SEXP R_decompress1(SEXP in)
     uLong inlen, outlen;
     int res;
     Bytef *buf;
-    unsigned char *p = RAW(in);
+    char *p = CHAR(STRING_ELT(in, 0));
     SEXP ans;
 
-    if(TYPEOF(in) != RAWSXP)
-	error(_("R_decompress1 requires a raw vector"));
-    inlen = LENGTH(in);
+    if(!isString(in) || length(in) !=1)
+	error(_("R_decompress1 requires a scalar string"));
+    inlen = LENGTH(STRING_ELT(in, 0));
     outlen = (uLong) uiSwap(*((unsigned int *) p));
     buf = (Bytef *) R_alloc(outlen, sizeof(Bytef));
     res = uncompress(buf, &outlen, (Bytef *)(p + 4), inlen - 4);
     if(res != Z_OK) error(_("internal error in R_decompress1"));
-    ans = allocVector(RAWSXP, outlen);
-    memcpy(RAW(ans), buf, outlen);
-    return ans;
+    ans = allocVector(CHARSXP, outlen);
+    memcpy(CHAR(ans), buf, outlen);
+    return ScalarString(ans);
 }
 
 SEXP attribute_hidden do_sockselect(SEXP call, SEXP op, SEXP args, SEXP rho)

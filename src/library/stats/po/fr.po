@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: stats 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2006-04-18 13:06+0100\n"
+"POT-Creation-Date: 2006-04-18 12:45+0100\n"
 "PO-Revision-Date: 2006-04-18 08:56+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -116,8 +116,8 @@ msgid "'theta' should be of type character"
 msgstr "'theta' doit être de type caractère"
 
 #: nls.c:204 port.c:359
-msgid "use of NULL environment is defunct"
-msgstr "l'utilisation de l'environnement NULL n'est plus autorisée"
+msgid "use of NULL environment is deprecated"
+msgstr "l'utilisation de l'environnement NULL est obsolète"
 
 #: nls.c:208
 msgid "'rho' should be an environment"

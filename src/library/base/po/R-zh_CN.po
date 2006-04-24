@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-04-18 13:05\n"
+"POT-Creation-Date: 2006-04-18 12:45\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -109,7 +109,6 @@ msgstr "需要"
 msgid "(still attached)"
 msgstr "(仍连接着)"
 
-#, fuzzy
 msgid "replaced regular expression pattern '[' by  '\\\\['"
 msgstr "正规表现'['被换成'\\\\['"
 
@@ -218,8 +217,7 @@ msgstr "'row.names'的长度不对"
 msgid "duplicate 'row.names' are not allowed"
 msgstr "不允许有重复的'row.names'"
 
-#, fuzzy
-msgid "missing values in 'row.names' are not allowed"
+msgid "missing 'row.names' are not allowed"
 msgstr "不允许有遗漏的'row.names'"
 
 msgid "invalid 'dimnames' given for data frame"
