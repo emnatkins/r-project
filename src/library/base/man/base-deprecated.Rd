@@ -1,7 +1,7 @@
 \name{base-deprecated}
 \alias{base-deprecated}
-\alias{symbol.C}
-\alias{symbol.For}
+\alias{La.chol}
+\alias{La.chol2inv}
 %------ NOTE:  ../R/Deprecated.R   must be synchronized with this!
 \title{Deprecated Functions in Base package}
 %------ PLEASE: put \alias{.} here for EACH !
@@ -11,26 +11,25 @@
 }
 \usage{
 %% put usage here.
-symbol.C(name)
-symbol.For(name)
+La.chol(x)
+La.chol2inv(x, size = ncol(x))
 }
 \arguments{
-  \item{name}{a character string giving either the name of a C function
-    or Fortran subroutine.}
+  \item{x}{a suitable matrix}
+  \item{size}{the number of columns of \code{x} containing the
+    Choleski decomposition.}
 }
-\details{
+\details{  
   The original help page for these functions is often
   available at \code{help("oldName-deprecated")} (note the quotes).
   Functions in packages other than the base package are listed in
   \code{help("pkg-deprecated")}.
 
-  Functions \code{symbol.C} and \code{symbol.For} are for historical
-  compatibility with S.  \code{symbol.C} just returns its argument
-  unchanged, whereas \code{symbol.For} will map to lower case and
-  append an underscore on those platforms (almost all) which do so for
-  Fortran symbols.  These are no longer of much use in \R.
+  \code{La.chol} and \code{La.chol2inv} are pre-1.7.0 interfaces to the
+  same code as the default options of \code{\link{chol}} and
+  \code{\link{chol2inv}} respectively.
 }
 \seealso{
-  \code{\link{Deprecated}}, \code{\link{base-defunct}}
+  \code{\link{Deprecated}}
 }
 \keyword{misc}

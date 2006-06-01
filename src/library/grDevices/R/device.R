@@ -1,9 +1,6 @@
-dev.interactive <- function(orNone = FALSE) {
-    iDevs <- c("X11", "GTK", "gnome", "quartz", "windows", "JavaGD")
-    interactive() &&
-    (.Device %in% iDevs ||
-     (orNone && .Device == "null device" && getOption("device") %in% iDevs))
-}
+dev.interactive <- function()
+  interactive() &&
+  .Device %in% c("X11", "GTK", "gnome", "quartz", "windows", "JavaGD")
 
 dev.list <- function()
 {

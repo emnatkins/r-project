@@ -1,13 +1,6 @@
-## As from R 2.4.0, row.names can be either character or integer.
-## row.names() will always return character.
-## attr(, "row.names") will return either character or integer.
-##
-## Do not assume that the internal representation is either, since
-## 1:n is stored as the integer vector c(NA, n) to save space (and
-## the C-level code to get/set the attribute makes the appropriate
-## translations (whereas attributes does not).
 
 row.names <- function(x) UseMethod("row.names")
+## expand.grid was setting integer row.names
 row.names.data.frame <- function(x) as.character(attr(x, "row.names"))
 row.names.default <- function(x) if(!is.null(dim(x))) rownames(x)# else NULL
 
@@ -16,21 +9,14 @@ row.names.default <- function(x) if(!is.null(dim(x))) rownames(x)# else NULL
     if (!is.data.frame(x))
 	x <- as.data.frame(x)
     old <- attr(x, "row.names")
-    if(is.null(value)) {
-        n <- length(old)
-        attr(x, "row.names") <-
-            if(n > 2) c(as.integer(NA), n) else seq(length = n)
-        return(x)
-    }
     ## do this here, as e.g. POSIXlt changes length when coerced.
-    if(is.object(value) || !(is.integer(value)) )
-        value <- as.character(value)
+    value <- as.character(value)
     if (!is.null(old) && length(value) != length(old))
 	stop("invalid 'row.names' length")
     if (any(duplicated(value)))
 	stop("duplicate 'row.names' are not allowed")
     if (any(is.na(value)))
-	stop("missing values in 'row.names' are not allowed")
+	stop("missing 'row.names' are not allowed")
     attr(x, "row.names") <- value
     x
 }
@@ -64,7 +50,7 @@ t.data.frame <- function(x) {
 
 dim.data.frame <- function(x) c(length(attr(x,"row.names")), length(x))
 
-dimnames.data.frame <- function(x) list(row.names(x), names(x))
+dimnames.data.frame <- function(x) list(attr(x,"row.names"), names(x))
 
 "dimnames<-.data.frame" <- function(x, value)
 {
@@ -81,13 +67,12 @@ dimnames.data.frame <- function(x) list(row.names(x), names(x))
     x
 }
 
-as.data.frame <- function(x, row.names = NULL, optional = FALSE, ...) {
+as.data.frame <- function(x, row.names = NULL, optional = FALSE) {
     if(is.null(x))			# can't assign class to NULL
 	return(as.data.frame(list()))
     UseMethod("as.data.frame")
 }
-
-as.data.frame.default <- function(x, ...)
+as.data.frame.default <- function(x, row.names = NULL, optional = FALSE)
     stop(gettextf("cannot coerce class \"%s\" into a data.frame", class(x)),
          domain = NA)
 
@@ -95,13 +80,13 @@ as.data.frame.default <- function(x, ...)
 ###  Here are methods ensuring that the arguments to "data.frame"
 ###  are in a form suitable for combining into a data frame.
 
-as.data.frame.data.frame <- function(x, row.names = NULL, ...)
+as.data.frame.data.frame <- function(x, row.names = NULL, optional = FALSE)
 {
     cl <- oldClass(x)
     i <- match("data.frame", cl)
     if(i > 1)
 	class(x) <- cl[ - (1:(i-1))]
-    if(!is.null(row.names)){
+    if(is.character(row.names)){
 	if(length(row.names) == length(attr(x, "row.names")))
 	    attr(x, "row.names") <- row.names
 	else stop(gettextf("invalid 'row.names', length %d for a data frame with %d rows",
@@ -112,12 +97,11 @@ as.data.frame.data.frame <- function(x, row.names = NULL, ...)
 }
 
 ## prior to 1.8.0 this coerced names - PR#3280
-as.data.frame.list <- function(x, row.names = NULL, optional = FALSE, ...)
+as.data.frame.list <- function(x, row.names = NULL, optional = FALSE)
 {
     ## need to protect names in x.
     cn <- names(x)
-    m <- match(c("row.names", "check.rows", "check.names", "stringsAsFactors"),
-               cn, 0)
+    m <- match(c("row.names", "check.rows", "check.names"), cn, 0)
     if(any(m > 0)) {
         cn[m] <- paste("..adfl.", cn[m], sep="")
         names(x) <- cn
@@ -125,7 +109,7 @@ as.data.frame.list <- function(x, row.names = NULL, optional = FALSE, ...)
     x <- eval(as.call(c(expression(data.frame), x, check.names = !optional)))
     if(any(m > 0)) names(x) <- sub("^\\.\\.adfl\\.", "", names(x))
     if(!is.null(row.names)) {
-	# row.names <- as.character(row.names)
+	row.names <- as.character(row.names)
 	if(length(row.names) != dim(x)[[1]])
             stop(gettextf("supplied %d row names for %d rows",
                           length(row.names), dim(x)[[1]]), domain = NA)
@@ -134,17 +118,17 @@ as.data.frame.list <- function(x, row.names = NULL, optional = FALSE, ...)
     x
 }
 
-as.data.frame.vector <- function(x, row.names = NULL, optional = FALSE, ...)
+as.data.frame.vector <- function(x, row.names = NULL, optional = FALSE)
 {
     nrows <- length(x)
-    nm <- paste(deparse(substitute(x), width.cutoff = 500), collapse=" ")
+    nm <- paste(deparse(substitute(x), width.cutoff=500), collapse=" ")
     if(is.null(row.names)) {
 	if (nrows == 0)
 	    row.names <- character(0)
 	else if(length(row.names <- names(x)) == nrows &&
 		!any(duplicated(row.names))) {}
 	else if(optional) row.names <- character(nrows)
-	else row.names <- seq(length = nrows)
+	else row.names <- as.character(1:nrows)
     }
     names(x) <- NULL # remove names as from 2.0.0
     value <- list(x)
@@ -154,12 +138,12 @@ as.data.frame.vector <- function(x, row.names = NULL, optional = FALSE, ...)
     value
 }
 
-as.data.frame.ts <- function(x, ...)
+as.data.frame.ts <- function(x, row.names=NULL, optional=FALSE)
 {
     if(is.matrix(x))
-	as.data.frame.matrix(x, ...)
+	as.data.frame.matrix(x, row.names, optional)
     else
-	as.data.frame.vector(x, ...)
+	as.data.frame.vector(x, row.names, optional)
 }
 
 as.data.frame.raw  <- as.data.frame.vector
@@ -169,23 +153,12 @@ as.data.frame.integer <- as.data.frame.vector
 as.data.frame.numeric <- as.data.frame.vector
 as.data.frame.complex <- as.data.frame.vector
 
-default.stringsAsFactors <- function()
-{
-    val <- getOption("stringsAsFactors")
-    if(is.null(val)) val <- TRUE
-    if(!is.logical(val) || is.na(val) || length(val) != 1)
-        stop("options('stringsAsFactors') not set to TRUE or FALSE")
-    val
-}
-
-
-as.data.frame.character <-
-    function(x, ..., stringsAsFactors = default.stringsAsFactors())
-    as.data.frame.vector(if(stringsAsFactors) factor(x) else x, ...)
+as.data.frame.character <- function(x, row.names = NULL, optional = FALSE)
+    as.data.frame.vector(factor(x), row.names, optional)
 
 as.data.frame.logical <- as.data.frame.vector
 
-as.data.frame.matrix <- function(x, row.names = NULL, optional = FALSE, ...)
+as.data.frame.matrix <- function(x, row.names = NULL, optional = FALSE)
 {
     d <- dim(x)
     nrows <- d[1]; ir <- seq(length = nrows)
@@ -193,7 +166,7 @@ as.data.frame.matrix <- function(x, row.names = NULL, optional = FALSE, ...)
     dn <- dimnames(x)
     ## surely it cannot be right to override the supplied row.names?
     ## changed in 1.8.0
-    if(is.null(row.names)) row.names <- dn[[1]]
+    if(missing(row.names)) row.names <- dn[[1]]
     collabs <- dn[[2]]
     if(any(empty <- nchar(collabs)==0))
 	collabs[empty] <- paste("V", ic, sep = "")[empty]
@@ -206,7 +179,7 @@ as.data.frame.matrix <- function(x, row.names = NULL, optional = FALSE, ...)
 	    value[[i]] <- as.vector(x[,i])
     }
     if(length(row.names) != nrows)
-	row.names <- if(optional) character(nrows) else ir
+	row.names <- if(optional) character(nrows) else as.character(ir)
     if(length(collabs) == ncols)
 	names(value) <- collabs
     else if(!optional)
@@ -216,8 +189,7 @@ as.data.frame.matrix <- function(x, row.names = NULL, optional = FALSE, ...)
     value
 }
 
-as.data.frame.model.matrix <-
-    function(x, row.names = NULL, optional = FALSE, ...)
+as.data.frame.model.matrix <- function(x, row.names = NULL, optional = FALSE)
 {
     d <- dim(x)
     nrows <- d[1]
@@ -231,22 +203,22 @@ as.data.frame.model.matrix <-
                           length(row.names), nrows), domain = NA)
     }
     else if(optional) row.names <- character(nrows)
-    else row.names <- seq(length = nrows)
+    else row.names <- as.character(1:nrows)
     if(!optional) names(value) <- deparse(substitute(x))[[1]]
     attr(value, "row.names") <- row.names
     class(value) <- "data.frame"
     value
 }
 
-as.data.frame.array <- function(x, row.names = NULL, optional = FALSE, ...)
+as.data.frame.array <- function(x, row.names = NULL, optional = FALSE)
 {
     d <- dim(x)
     if(length(d) == 1) { ## same as as.data.frame.vector, but deparsed here
-        value <- as.data.frame.vector(drop(x), row.names, optional, ...)
+        value <- as.data.frame.vector(drop(x), row.names, optional)
         if(!optional) names(value) <- deparse(substitute(x))[[1]]
         value
     } else if (length(d) == 2) {
-        as.data.frame.matrix(x, row.names, optional, ...)
+        as.data.frame.matrix(x, row.names, optional)
     } else {
         dn <- dimnames(x)
         dim(x) <- c(d[1], prod(d[-1]))
@@ -256,14 +228,14 @@ as.data.frame.array <- function(x, row.names = NULL, optional = FALSE, ...)
                 if(is.null(dn[[i]])) dn[[i]] <- seq(len=d[i])
             colnames(x) <- interaction(expand.grid(dn[-1]))
         }
-        as.data.frame.matrix(x, row.names, optional, ...)
+        as.data.frame.matrix(x, row.names, optional)
     }
 }
 
 ## will always have a class here
 "[.AsIs" <- function(x, i, ...) structure(NextMethod("["), class = class(x))
 
-as.data.frame.AsIs <- function(x, row.names = NULL, optional = FALSE, ...)
+as.data.frame.AsIs <- function(x, row.names = NULL, optional = FALSE)
 {
     ## why not remove class and NextMethod here?
     if(length(dim(x))==2)
@@ -277,7 +249,7 @@ as.data.frame.AsIs <- function(x, row.names = NULL, optional = FALSE, ...)
             else if(length(row.names <- names(x)) == nrows &&
                     !any(duplicated(row.names))) {}
             else if(optional) row.names <- character(nrows)
-            else row.names <- seq(length = nrows)
+            else row.names <- as.character(1:nrows)
         }
         value <- list(x)
         if(!optional) names(value) <- nm
@@ -292,14 +264,12 @@ as.data.frame.AsIs <- function(x, row.names = NULL, optional = FALSE, ...)
 ###  It does everything by calling the methods presented above.
 
 data.frame <-
-    function(..., row.names = NULL, check.rows = FALSE, check.names = TRUE,
-             stringsAsFactors = default.stringsAsFactors())
+    function(..., row.names = NULL, check.rows = FALSE, check.names = TRUE)
 {
     data.row.names <-
 	if(check.rows && missing(row.names))
 	    function(current, new, i) {
-		if(is.character(current)) new <- as.character(new)
-		if(is.character(new)) current <- as.character(current)
+		new <- as.character(new)
 		if(any(duplicated(new)))
 		    return(current)
 		if(is.null(current))
@@ -310,7 +280,7 @@ data.frame <-
 	    }
 	else function(current, new, i) {
 	    if(is.null(current)) {
-		if(any(dup <- duplicated(new))) {
+		if(any(dup <- duplicated(new <- as.character(new)))) {
 		    warning("some row.names duplicated: ",
                             paste(which(dup), collapse=","),
                             " --> row.names NOT used")
@@ -332,12 +302,7 @@ data.frame <-
     vlist <- vnames <- as.list(vnames)
     nrows <- ncols <- integer(n)
     for(i in 1:n) {
-        ## do it this way until all as.data.frame methods have been updated
-	xi <- if(is.character(x[[i]]))
-                 as.data.frame(x[[i]], optional = TRUE,
-                               stringsAsFactors = stringsAsFactors)
-        else as.data.frame(x[[i]], optional = TRUE)
-
+	xi <- as.data.frame(x[[i]], optional=TRUE)
 	rowsi <- attr(xi, "row.names")
 	ncols[i] <- length(xi)
 	namesi <- names(xi)
@@ -408,8 +373,7 @@ data.frame <-
         row.names <- NULL
     }
     if(length(row.names) == 0) row.names <- seq(length = nr)
-    else if(is.object(row.names) || !is.integer(row.names))
-        row.names <- as.character(row.names)
+    row.names <- as.character(row.names)
     if(any(is.na(row.names)))
         stop("row names contain missing values")
     if(any(duplicated(row.names)))
@@ -441,8 +405,7 @@ data.frame <-
 	if(any(is.na(nm))) stop("undefined columns selected")
         ## added in 1.8.0
         if(any(duplicated(nm))) names(y) <- make.unique(nm)
-	return(structure(y, class = oldClass(x),
-                         row.names = attr(x, "row.names")))
+	return(structure(y, class = oldClass(x), row.names = row.names(x)))
     }
 
     ## preserve the attributes for later use ...
@@ -461,7 +424,7 @@ data.frame <-
     }
     else { # df[i, j] or df[i , ]
 	if(is.character(i))
-	    i <- pmatch(i, as.character(rows), duplicates.ok = TRUE)
+	    i <- pmatch(i, rows, duplicates.ok = TRUE)
 	rows <- rows[i]
 	if(!missing(j)) { # df[i, j]
 	    x <- x[j]
@@ -497,7 +460,7 @@ data.frame <-
 	names(x) <- cols
         ## row names might have NAs.
 	if(any(is.na(rows) | duplicated(rows))) {
-            rows[is.na(rows)] <- "NA"  # will coerce to character if needed
+            rows[is.na(rows)] <- "NA"
 	    rows <- make.unique(rows)
         }
         ## new in 1.8.0  -- might have duplicate columns
@@ -903,7 +866,7 @@ xpdrows.data.frame <- function(x, old.rows, new.rows)
 	    x[[i]] <- y
 	}
     }
-    attr(x, "row.names") <- c(old.rows, new.rows)
+    attr(x, "row.names") <- as.character(c(old.rows, new.rows))
     x
 }
 
@@ -946,7 +909,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
     if(n == 0)
 	return(structure(list(),
 			 class = "data.frame",
-			 row.names = integer()))
+			 row.names = character()))
     nms <- names(allargs)
     if(is.null(nms))
 	nms <- character(length(allargs))
@@ -964,7 +927,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
 	if(inherits(xi, "data.frame")) {
 	    if(is.null(cl))
 		cl <- oldClass(xi)
-	    ri <- attr(xi, "row.names")
+	    ri <- row.names(xi)
 	    ni <- length(ri)
 	    if(is.null(clabs))
 		clabs <- names(xi)
@@ -1033,7 +996,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
 	nvar <- max(sapply(allargs, length))	# only vector args
     if(nvar == 0)
 	return(structure(list(), class = "data.frame",
-			 row.names = integer()))
+			 row.names = character()))
     pseq <- 1:nvar
     if(is.null(value)) {
 	value <- list()
@@ -1081,9 +1044,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
             }
 	}
     }
-    rlabs <- unlist(rlabs)
-    if(any(duplicated(rlabs)))
-        rlabs <- make.unique(as.character(unlist(rlabs)), sep = "")
+    rlabs <- make.unique(as.character(unlist(rlabs)), sep = "")
     if(is.null(cl)) {
 	as.data.frame(value, row.names = rlabs)
     } else {
@@ -1189,7 +1150,7 @@ Math.data.frame <- function (x, ...)
     if (all(mode.ok)) {
 	r <- lapply(x, var.f)
 	class(r) <- oldClass(x)
-	attr(r, "row.names") <- attr(x, "row.names")
+	row.names(r) <- row.names(x)
 	return(r)
     }
     else {
@@ -1208,7 +1169,9 @@ Ops.data.frame <- function(e1, e2 = NULL)
     value <- list()
     ## set up call as op(left, right)
     FUN <- get(.Generic, envir = parent.frame(), mode="function")
-    f <- if (unary) quote(FUN(left)) else quote(FUN(left, right))
+    f <- if (unary)
+	quote(FUN(left))
+    else quote(FUN(left, right))
     lscalar <- rscalar <- FALSE
     if(lclass && rclass) {
 	rn <- row.names(e1)

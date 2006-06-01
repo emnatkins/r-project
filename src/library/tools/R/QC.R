@@ -1878,14 +1878,8 @@ function(package, dir, lib.loc = NULL)
             ## See registerS3method() in namespace.R.
             defenv <-
                 if (g %in% S3_group_generics) .BaseNamespaceEnv
-                else {
-                    if(.isMethodsDispatchOn()
-                       && methods::is(genfun, "genericFunction"))
-                        genfun <-
-                            methods::slot(genfun, "default")@methods$ANY
-                    if (typeof(genfun) == "closure") environment(genfun)
-                    else .BaseNamespaceEnv
-                }
+                else if (typeof(genfun) == "closure") environment(genfun)
+                else .BaseNamespaceEnv
             if(!exists(".__S3MethodsTable__.", envir = defenv,
                        inherits = FALSE)) {
                 ## Happens e.g. if for some reason, we get "plot" as
@@ -3522,38 +3516,6 @@ function(x, ...)
         .pretty_print(x[[i]])
     }
     invisible(x)
-}
-
-### * .check_package_ASCII_code
-
-.check_package_ASCII_code <- function(dir)
-{
-    OS_subdirs <- c("unix", "windows")
-    if(!file_test("-d", dir))
-        stop(gettextf("directory '%s' does not exist", dir), domain = NA)
-    else
-        dir <- file_path_as_absolute(dir)
-
-    code_dir <- file.path(dir, "R")
-    wrong_things <- character(0)
-    if(file_test("-d", code_dir)) {
-        R_files <- list_files_with_type(code_dir, "code",
-                                        full.names = FALSE,
-                                        OS_subdirs = OS_subdirs)
-        for(f in R_files) {
-            text <- readLines(file.path(code_dir, f), warn = FALSE)
-            ## remove comments, even trailing comments
-            ## this does not respect quotes ....
-            text <- gsub("#.*$", "", text)
-            as_raw <- unlist(lapply(text, charToRaw))
-            bad <- as_raw > as.raw(0x7f) | as_raw < as.raw(0x20)
-	    bad <- bad & as_raw != as.raw(0x09) & as_raw != as.raw(0x0C)
-	    ## allow tabs and formfeeds
-            if(any(bad)) wrong_things <- c(wrong_things, f)
-        }
-    }
-    if(length(wrong_things)) cat(wrong_things, sep="\n")
-    invisible(wrong_things)
 }
 
 ### Local variables: ***

@@ -234,19 +234,19 @@ SEXP type2str(SEXPTYPE t)
 	if (TypeTable[i].type == t)
 	    return mkChar(TypeTable[i].str);
     }
-    error(_("type %d is unimplemented in '%s'"), t, "type2str");
+    error(_("type %d is unimplemented in type2str"), t);
     return R_NilValue; /* for -Wall */
 }
 
-char * type2char(SEXPTYPE t)
+char *type2char(SEXPTYPE t)
 {
     int i;
 
     for (i = 0; TypeTable[i].str; i++) {
 	if (TypeTable[i].type == t)
-	    return (char *) TypeTable[i].str;
+	    return TypeTable[i].str;
     }
-    error(_("type %d is unimplemented in '%s'"), t, "type2char");
+    error(_("type %d is unimplemented in type2str"), t);
     return ""; /* for -Wall */
 }
 
@@ -260,7 +260,7 @@ SEXP type2symbol(SEXPTYPE t)
 	if (TypeTable[i].type == t)
 	    return install((char *)&TypeTable[i].str);
     }
-    error(_("type %d is unimplemented in '%s'"), t, "type2symbol");
+    error(_("type %d is unimplemented in type2symbol"), t);
     return R_NilValue; /* for -Wall */
 }
 
@@ -294,6 +294,93 @@ static const char UCS2ENC[] = "UCS-2BE";
 static const char UCS2ENC[] = "UCS-2LE";
 # endif
 
+#if 0
+/* <FIXME>
+ * It would make a lot of sense to cache cd here, but it would need to be 
+ * refreshed if the locale was changed.  However, this seems the
+ * wrong way to do this, as mbrlen will do the job correctly.
+ */
+size_t mbcsMblen(char *in)
+{
+    unsigned int ucs4buf[1];
+    unsigned short ucs2buf[1];
+    void *cd = NULL, *buftype;
+    char *i_buf, *o_buf;
+    size_t i_len, o_len, status;
+    int i;
+
+    /* 6 == MB_LEN_MAX ? shift state is ignored... */
+    for (i = 1 ; i <= 6 ; i++) {
+	buftype = (void *) ucs4buf;
+	if((void*)-1 == (cd = Riconv_open((char*)UCS4ENC, ""))) {
+	    buftype = (void *)ucs2buf;
+	    if ((void*)-1 == (cd = Riconv_open((char*)UCS2ENC, ""))) {
+		return (size_t)(-1);
+	    }
+	}
+
+	i_buf = in;
+	i_len = i;
+	o_buf = buftype == (void *) ucs4buf ?
+	    (char *) ucs4buf : (char *) ucs2buf;
+	o_len = buftype == (void *) ucs4buf ? 4 : 2;
+	memset (o_buf, 0 , o_len);
+	status = Riconv(cd, (char **)&i_buf, (size_t *)&i_len,
+			(char **)&o_buf, (size_t *)&o_len);
+	Riconv_close(cd);
+	if (status == (size_t) -1) {
+	    switch (errno){
+	    case EINVAL:
+		/* next char */
+		break;
+	    case E2BIG:
+		return (size_t) -1;
+	    case EILSEQ:
+		return (size_t) -1;
+	    }
+	} else if ((size_t) 0 == status)
+	    /* normal status */
+	    return (size_t) i;
+	else
+	    return (size_t) status;
+    }
+    return (size_t) -1;
+}
+
+/* Currently only used in this file */
+size_t ucs2Mblen(ucs2_t *in)
+{
+    char mbbuf[16];
+    void *cd = NULL;
+    char *i_buf, *o_buf;
+    size_t i_len, o_len, status;
+
+    if ((void*) -1 == (cd = Riconv_open("", (char *)UCS2ENC)))
+	return (size_t) -1;
+
+    memset(mbbuf, 0, sizeof(mbbuf));
+    i_buf = (char *)in;
+    i_len = sizeof(ucs2_t);
+    o_buf = mbbuf;
+    o_len = sizeof(mbbuf);
+    memset(o_buf, 0 , o_len);
+    status = Riconv(cd, (char **)&i_buf, (size_t *)&i_len,
+		    (char **)&o_buf, (size_t *)&o_len);
+    Riconv_close(cd);
+    if ((size_t) -1 == status)
+	switch (errno) {
+	case EINVAL:
+	    /* not case */
+	    return (size_t) -1;
+	case E2BIG:
+	    /* probably few case */
+	    return (size_t) -1;
+	case EILSEQ:
+	    return (size_t) -1;
+	}
+    return (size_t) strlen(mbbuf);
+}
+#endif
 
 /*
  * out=NULL returns the number of the MBCS chars
@@ -308,6 +395,15 @@ size_t mbcsToUcs2(char *in, ucs2_t *out, int nout)
     size_t  i_len, o_len, status, wc_len;
 
     /* out length */
+    /* i_buf = in;
+    wc_len = 0;
+    while(*i_buf){
+	int rc;
+	rc = (int) mbcsMblen(i_buf);
+	if (rc < 0) return rc;
+	i_buf += rc;
+	wc_len++;
+	} */
     wc_len = mbstowcs(NULL, in, 0);
     if (out == NULL || (int)wc_len < 0) return wc_len;
 
@@ -337,6 +433,55 @@ size_t mbcsToUcs2(char *in, ucs2_t *out, int nout)
     }
     return wc_len; /* status would be better? */
 }
+
+#if 0
+/*
+ * out returns the number of the bytes in the case of NULL
+ */
+/* Also does not terminate out, and currently unused */
+size_t ucs2ToMbcs(ucs2_t *in, char *out)
+{
+    void   *cd = NULL ;
+    ucs2_t *ucs = in ;
+    char   *i_buf = (char *)in, *o_buf;
+    size_t  i_len, o_len, status;
+
+    /* out length */
+    o_len = 0;
+    i_len = 0;
+    while(*ucs) {
+	int rc;
+	rc = ucs2Mblen(ucs);
+	if(rc < 0) return rc;
+	o_len += rc;
+	i_len += sizeof(ucs2_t);
+    }
+    if ( out == NULL ) return o_len;
+
+    if ((void*)-1 == (cd = Riconv_open("", (char *)UCS2ENC)))
+	return((size_t)(-1));
+
+    o_buf = (char *)out;
+    status = Riconv(cd, (char **)&i_buf, (size_t *)&i_len,
+		    (char **)&o_buf, (size_t *)&o_len);
+
+    Riconv_close(cd);
+    if (status == (size_t)-1){
+        switch(errno){
+        case EINVAL:
+            return (size_t) -2;
+        case EILSEQ:
+            return (size_t) -1;
+        case E2BIG:
+            break;
+        default:
+	    errno=EILSEQ;
+	    return (size_t) -1;
+        }
+    }
+    return strlen(out);
+}
+#endif
 #endif /* SUPPORT_MBCS */
 
 
@@ -507,39 +652,12 @@ SEXP dcdr(SEXP l)
     return(CDR(l));
 }
 
-
-static void isort_with_index(int *x, int *indx, int n)
-{
-    int i, j, h, iv, v;
-
-    for (h = 1; h <= n / 9; h = 3 * h + 1);
-    for (; h > 0; h /= 3)
-	for (i = h; i < n; i++) {
-	    v = x[i]; iv = indx[i];
-	    j = i;
-	    while (j >= h && x[j - h] > v)
-		 { x[j] = x[j - h]; indx[j] = indx[j-h]; j -= h; }
-	    x[j] = v; indx[j] = iv;
-	}
-}
-
-
 /* merge(xinds, yinds, all.x, all.y) */
-/* xinds, yinds are along x and y rows matching into the (numeric)
-   common indices, with 0 for non-matches.
-
-   all.x and all.y are boolean.
-
-   The return value is a list with 4 elements (xi, yi, x.alone, y.alone),
-   which are index vectors for rows of x or y.
-*/
 SEXP attribute_hidden do_merge(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP xi, yi, ansx, ansy, ans, ansnames, x_lone, y_lone;
-    int nx = 0, ny = 0, i, j, k, nans = 0, nx_lone = 0, ny_lone = 0;
+    int y, nx = 0, ny = 0, i, j, k, nans = 0, nx_lone = 0, ny_lone = 0;
     int all_x = 0, all_y = 0, ll = 0/* "= 0" : for -Wall */;
-    int *ix, *iy, tmp, nnx, nny, i0, j0;
-    char *vmax = vmaxget();
 
     checkArity(op, args);
     xi = CAR(args);
@@ -552,62 +670,43 @@ SEXP attribute_hidden do_merge(SEXP call, SEXP op, SEXP args, SEXP rho)
 	errorcall(call, _("'all.x' must be TRUE or FALSE"));
     if(!LENGTH(ans = CADDDR(args))|| NA_LOGICAL == (all_y = asLogical(ans)))
 	errorcall(call, _("'all.y' must be TRUE or FALSE"));
-
-    /* 0. sort the indices */
-    ix = (int *) R_alloc(nx, sizeof(int));
-    iy = (int *) R_alloc(ny, sizeof(int));
-    for(i = 0; i < nx; i++) ix[i] = i+1;
-    for(i = 0; i < ny; i++) iy[i] = i+1;
-    isort_with_index(INTEGER(xi), ix, nx);
-    isort_with_index(INTEGER(yi), iy, ny);
-
     /* 1. determine result sizes */
-    for (i = 0; i < nx; i++) if (INTEGER(xi)[i] > 0) break; nx_lone = i;
-    for (i = 0; i < ny; i++) if (INTEGER(yi)[i] > 0) break; ny_lone = i;
-    for (i = nx_lone, j = ny_lone; i < nx; i = nnx, j = nny) {
-	tmp = INTEGER(xi)[i];
-	for(nnx = i; nnx < nx; nnx++) if(INTEGER(xi)[nnx] != tmp) break;
-	/* the next is not in theory necessary,
-	   since we have the common values only */
-	for(; j < ny; j++) if(INTEGER(yi)[j] >= tmp) break;
-	for(nny = j; nny < ny; nny++) if(INTEGER(yi)[nny] != tmp) break;
-	/* printf("i %d nnx %d j %d nny %d\n", i, nnx, j, nny); */
-	nans += (nnx-i)*(nny-j);
+    if(all_x) {
+	for (i = 0; i < nx; i++)
+	    if (INTEGER(xi)[i] == 0) nx_lone++;
     }
-    
-
+    for (j = 0; j < ny; j++)
+	if ((y = INTEGER(yi)[j]) > 0) {
+	    for (i = 0; i < nx; i++) {
+		if (INTEGER(xi)[i] == y) nans++;
+	    }
+        } else /* y == 0 */ if (all_y) ny_lone++;
     /* 2. allocate and store result components */
     PROTECT(ans = allocVector(VECSXP, 4));
     ansx = allocVector(INTSXP, nans);    SET_VECTOR_ELT(ans, 0, ansx);
     ansy = allocVector(INTSXP, nans);    SET_VECTOR_ELT(ans, 1, ansy);
-
     if(all_x) {
 	x_lone = allocVector(INTSXP, nx_lone);
 	SET_VECTOR_ELT(ans, 2, x_lone);
-	for (i = 0, ll = 0; i < nx_lone; i++)
-	    INTEGER(x_lone)[ll++] = ix[i];
+	ll = 0;
+	for (i = 0; i < nx; i++)
+	    if (INTEGER(xi)[i] == 0) INTEGER(x_lone)[ll++] = i + 1;
     }
-
     if(all_y) {
 	y_lone = allocVector(INTSXP, ny_lone);
 	SET_VECTOR_ELT(ans, 3, y_lone);
-	for (i = 0, ll = 0; i < ny_lone; i++)
-	    INTEGER(y_lone)[ll++] = iy[i];
-    }
-
-    for (i = nx_lone, j = ny_lone, k = 0; i < nx; i = nnx, j = nny) {
-	tmp = INTEGER(xi)[i];
-	for(nnx = i; nnx < nx; nnx++) if(INTEGER(xi)[nnx] != tmp) break;
-	for(; j < ny; j++) if(INTEGER(yi)[j] >= tmp) break;
-	for(nny = j; nny < ny; nny++) if(INTEGER(yi)[nny] != tmp) break;
-	for(i0 = i; i0 < nnx; i0++)
-	    for(j0 = j; j0 < nny; j0++) {
-		INTEGER(ansx)[k]   = ix[i0];
-		INTEGER(ansy)[k++] = iy[j0];		
+	ll = 0;
+    } else
+	y_lone = R_NilValue;
+    for (j = 0, k = 0; j < ny; j++)
+	if ((y = INTEGER(yi)[j]) > 0) {
+	    for (i = 0; i < nx; i++)
+		if (INTEGER(xi)[i] == y) {
+		INTEGER(ansx)[k]   = i + 1;
+		INTEGER(ansy)[k++] = j + 1;
 	    }
-    }
+	} else /* y == 0 */ if (all_y) INTEGER(y_lone)[ll++] = j + 1;
 
-    vmaxset(vmax);
     PROTECT(ansnames = allocVector(STRSXP, 4));
     SET_STRING_ELT(ansnames, 0, mkChar("xi"));
     SET_STRING_ELT(ansnames, 1, mkChar("yi"));

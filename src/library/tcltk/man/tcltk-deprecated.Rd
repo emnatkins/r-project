@@ -1,6 +1,6 @@
-\name{tcltk-defunct}
-%------ NOTE:  ../R/tcltk-defunct.R   must be synchronized with this!
-\alias{tcltk-defunct}
+\name{tcltk-deprecated}
+%------ NOTE:  ../R/tcltk-deprecated.R   must be synchronized with this!
+\alias{tcltk-deprecated}
 \alias{$.tclvar}
 \alias{$<-.tclvar}
 \alias{tkcmd}
@@ -11,10 +11,10 @@
 \alias{tkputs}        
 \alias{tkread}        
 
-\title{Defunct Functions in Package tcltk}
+\title{Deprecated Functions in Package tcltk}
 \description{
-  The functions or variables listed here are no longer part of \R as
-  they are not needed (any more).
+  These functions are provided for compatibility with older versions of
+  \R only, and may be defunct as soon as of the next release.
 }
 \usage{
 tkcmd(...)
@@ -39,6 +39,6 @@ tkread(...)
   favour of \code{\link{tclVar}} and \code{\link{tclvalue}}.
 }
 \seealso{
-  \code{\link{Defunct}}
+  \code{\link{Deprecated}}, \code{\link{Defunct}}
 }
-\keyword{internal}
+\keyword{misc}

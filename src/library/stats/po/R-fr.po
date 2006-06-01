@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-05-12 08:44\n"
+"POT-Creation-Date: 2006-05-29 07:58\n"
 "PO-Revision-Date: 2006-04-18 09:00+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -754,10 +754,6 @@ msgstr "pas de valeurs initiales fournies"
 msgid "unable to optimize from these starting value(s)"
 msgstr "optimisation impossible à partir de ces valeurs initiales"
 
-#, fuzzy
-msgid "invalid argument 'lambda'"
-msgstr "argument 'omit' incorrect"
-
 msgid "link not recognised"
 msgstr "lien non reconnu"
 
@@ -817,12 +813,11 @@ msgstr ""
 "ou une matrice à 2 colonnes où la col 1 est le nombre de succès et la col 2 "
 "le nombre d'échecs"
 
-#, fuzzy
 msgid ""
 "link not available for quasibinomial family, available links are \"logit\", "
 "\"probit\", \"cloglog\", \"cauchit\" and \"log\""
 msgstr ""
-"le lien \"%s\" n'est pas possible pour la famille binomial ; les liens "
+"le lien \"%s\" n'est pas possible pour la famille quasibinomial ; les liens "
 "possibles sont \"logit\", \"\"probit\", \"cloglog\", \"cauchit\" et \"log\""
 
 msgid "for the quasibinomial family, y must be a vector of 0 and 1's"
@@ -976,9 +971,8 @@ msgstr "'family' non reconnu"
 msgid "invalid 'method':"
 msgstr "'method' incorrect"
 
-#, fuzzy
 msgid "'weights' must be a numeric vector"
-msgstr "'y' doit être un vecteur numérique"
+msgstr "'weights' doit être un vecteur numérique"
 
 msgid "negative weights not allowed"
 msgstr "poids négatifs non autorisés"
@@ -1282,6 +1276,9 @@ msgid "prediction from a rank-deficient fit may be misleading"
 msgstr ""
 "les prédiction venant d'un modèle de rang faible peuvent être trompeuses"
 
+msgid "prediction intervals are only relevant to new data"
+msgstr ""
+
 msgid "'object' has no 'effects' component"
 msgstr "'object' n'a pas de composante 'effects'"
 
@@ -1498,9 +1495,8 @@ msgstr "la variable '%s' n'est pas un facteur"
 msgid "factor '%s' has new level(s) %s"
 msgstr "le facteur '%s' a un(des) nouveau(x) niveau(x) %s"
 
-#, fuzzy
 msgid "'offset' must be numeric"
-msgstr "'x' doit être numérique"
+msgstr "'offset' doit être numérique"
 
 msgid "model frame and formula mismatch in model.matrix()"
 msgstr ""
@@ -1580,6 +1576,10 @@ msgstr ""
 msgid "singular gradient matrix at initial parameter estimates"
 msgstr ""
 "matrice de gradient singulière pour les estimations initiales des paramètres"
+
+#, fuzzy
+msgid "'data' must be a list or an environment"
+msgstr "'newdata' doit être une matrice ou un tableau de données"
 
 msgid "Upper or lower bounds ignored unless algorithm = \"port\""
 msgstr ""
@@ -1689,6 +1689,9 @@ msgstr "'x' et 'y' ne correspondent pas"
 msgid "wrong number of columns in 'x'"
 msgstr "le nombre de colonnes de 'x' est incorrect"
 
+msgid "cannot rescale a constant/zero column to unit variance"
+msgstr ""
+
 msgid "PCA applies only to numerical variables"
 msgstr "l'ACP ne s'applique qu'à des valeurs numériques"
 
@@ -1718,6 +1721,9 @@ msgid "'princomp' can only be used with more units than variables"
 msgstr ""
 "'princomp' ne peut être utilisé que si le nombre d'unités est supérieur au "
 "nombre de variables"
+
+msgid "cannot use cor=TRUE with a constant variable"
+msgstr ""
 
 msgid "covariance matrix is not non-negative definite"
 msgstr "la matrice de covariance contient des valeurs négatives définies"
@@ -2195,11 +2201,6 @@ msgid "there are %d Error terms: only 1 is allowed"
 msgid_plural "there are %d Error terms: only 1 is allowed"
 msgstr[0] "il y a %d terme d'erreur : un seul est autorisé"
 msgstr[1] "il y a %d termes d'erreur : un seul est autorisé"
-
-msgid "%d observation deleted due to missingness"
-msgid_plural "%d observations deleted due to missingness"
-msgstr[0] ""
-msgstr[1] ""
 
 msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"

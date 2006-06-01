@@ -3,6 +3,7 @@
 \alias{UseMethod}
 \alias{NextMethod}
 \alias{S3Methods}
+\alias{.isMethodsDispatchOn}
 \description{
   \R possesses a simple generic function mechanism which can be used for
   an object-oriented style of programming.  Method dispatch takes place
@@ -38,7 +39,8 @@ NextMethod(generic = NULL, object = NULL, \dots)
   applies it to the object.  If no such function is found a function
   called \code{fun.second} is tried.  If no class name produces a
   suitable function, the function \code{fun.default} is used, if it
-  exists, or an error results.
+  exists, or an error results.  [Prior to \R 2.4.0, any object of the
+  name is searched for, but only if a function is found is it used.]
 
   Function \code{\link{methods}} can be used to find out about the
   methods for a particular generic function or class.
@@ -88,7 +90,7 @@ NextMethod(generic = NULL, object = NULL, \dots)
   two places: first in the environment in which the generic function
   is called, and then in the registration data base for the
   environment in which the generic is defined (typically a name space).
-  So methods for a generic function need to be available in the
+  So methods for a generic function need to either be available in the
   environment of the call to the generic, or they must be registered.
   (It does not matter whether they are visible in the environment in
   which the generic is defined.)
@@ -97,8 +99,22 @@ NextMethod(generic = NULL, object = NULL, \dots)
   This scheme is called \emph{S3} (S version 3).  For new projects,
   it is recommended to use the more flexible and robust \emph{S4} scheme
   provided in the \pkg{methods} package. 
+
+  The function \code{.isMethodsDispatchOn()} returns \code{TRUE} if
+  the S4 method dispatch has been turned on in the evaluator. It is
+  meant for \R internal use only.
 }
 \section{Warning}{
+  The internal code assumes that when \code{UseMethod} is used that
+  \code{"generic"} is the name of the enclosing function, and so any
+  registered methods will be found in the name space defining the
+  enclosing function.  This is not correct, and functions can be generic
+  and dispatch on a different generic (an example is
+  \code{\link{coefficients}}): this will only work if the other generic
+  is defined in the same name space.  It also means that it is incorrect
+  to use a \link{primitive} function or operator (e.g. \code{"$"}) for
+  \code{generic}.
+
   Prior to \R 2.1.0 \code{UseMethod} accepted a call with no arguments
   and tried to deduce the generic from the context.  This was
   undocumented on the help page.  It is allowed but

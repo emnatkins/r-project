@@ -11,13 +11,11 @@
 }
 \usage{
 read.table(file, header = FALSE, sep = "", quote = "\"'",
-           dec = ".", row.names, col.names,
-           as.is = !stringsAsFactors,
+           dec = ".", row.names, col.names, as.is = FALSE,
            na.strings = "NA", colClasses = NA, nrows = -1,
            skip = 0, check.names = TRUE, fill = !blank.lines.skip,
            strip.white = FALSE, blank.lines.skip = TRUE,
-           comment.char = "#", allowEscapes = FALSE, flush = FALSE,
-           stringsAsFactors = default.stringsAsFactors())
+           comment.char = "#", allowEscapes = FALSE, flush = FALSE)
 
 read.csv(file, header = TRUE, sep = ",", quote="\"", dec=".",
          fill = TRUE, \dots)
@@ -158,9 +156,6 @@ read.delim2(file, header = TRUE, sep = "\t", quote="\"", dec=",",
   \item{flush}{logical: if \code{TRUE}, \code{scan} will flush to the
     end of the line after reading the last of the fields requested.
     This allows putting comments after the last field.}
-
-  \item{stringsAsFactors}{logical: should character vectors be converted
-    to factors?}
 
   \item{\dots}{Further arguments to \code{read.table}.}
 }

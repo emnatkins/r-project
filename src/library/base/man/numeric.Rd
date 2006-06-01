@@ -23,8 +23,8 @@ is.numeric(x)
 
   \code{is.numeric} is generic: you can write methods to handle
   specific classes of objects, see \link{InternalMethods}.
-  \cr
-  Note that \code{is.numeric()} returns \code{FALSE} for a factor via its
+
+  Note that factors are false for \code{is.numeric} since there is a
   \code{"factor"} method.
 }
 \value{
@@ -34,9 +34,8 @@ is.numeric(x)
   \code{as.numeric} attempts to coerce its argument to a numeric \link{type}
   (either integer or real).
   \code{as.numeric} for factors yields the codes underlying the factor
-  levels, not the numeric representation of the labels, see also
-  \code{\link{factor}}.
-
+  levels, not the numeric representation of the labels.
+    
   \code{is.numeric} returns \code{TRUE} if its argument is of
   \link{mode} \code{"numeric"} (\link{type} \code{"double"} or type
   \code{"integer"}) and not a factor, and \code{FALSE} otherwise.

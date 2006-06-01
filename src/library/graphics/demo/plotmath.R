@@ -1,7 +1,8 @@
-require(datasets)
 require(graphics)
-opar <- par(ask = dev.interactive(orNone = TRUE))
+if(dev.cur() <= 1) get(getOption("device"))()
 
+opar <- par(ask = interactive() &&
+            (.Device %in% c("X11", "GTK", "gnome", "windows","quartz")))
 
 ## --- "math annotation" in plots :
 

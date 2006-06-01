@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.1\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2006-04-18 08:47+0100\n"
-"PO-Revision-Date: 2005-12-17 10:57-0200\n"
+"POT-Creation-Date: 2006-04-18 12:45+0100\n"
+"PO-Revision-Date: 2006-04-16 19:17-0300\n"
 "Last-Translator: Cesar Torres <chtorres@linux.ime.usp.br>\n"
 "Language-Team: Portuguese <ldp-br@bazar.conectiva.com.br>\n"
 "MIME-Version: 1.0\n"
@@ -119,8 +119,7 @@ msgid "'theta' should be of type character"
 msgstr "'theta' deve ser do tipo caractere"
 
 #: nls.c:204 port.c:359
-#, fuzzy
-msgid "use of NULL environment is defunct"
+msgid "use of NULL environment is deprecated"
 msgstr "uso do ambiente NULL é obsoleto"
 
 #: nls.c:208
@@ -128,9 +127,8 @@ msgid "'rho' should be an environment"
 msgstr "'rho' deve ser um ambiente"
 
 #: nls.c:210
-#, fuzzy
 msgid "'dir' is not a numeric vector of the correct length"
-msgstr "argumento %s deve ser um vetor numérico com comprimento 1 ou %d"
+msgstr "'dir' não é um vetor numérico com o comprimento correto"
 
 #: nls.c:227 nls.c:255
 msgid "Missing value or an infinity produced when evaluating the model"
@@ -254,33 +252,3 @@ msgstr "erro na alocação em smooth(*, '3R')."
 #, c-format
 msgid "missing value in last %d observations"
 msgstr "valor faltante nas últimas %d observações"
-
-#~ msgid "assert failed in src/library/ts/src/carray.c"
-#~ msgstr "declaração falhou em src/library/ts/src/carray.c:"
-
-#~ msgid "'control$maxiter' absent"
-#~ msgstr "'control$maxiter' ausente"
-
-#~ msgid "'control$tol' absent"
-#~ msgstr "'control$tol' ausente"
-
-#~ msgid "'control$minFactor' absent"
-#~ msgstr "'control$minFactor' ausente"
-
-#~ msgid "'m$conv()' absent"
-#~ msgstr "'m$conv()' ausente"
-
-#~ msgid "m$incr() absent"
-#~ msgstr "'m$incr()' ausente"
-
-#~ msgid "'m$deviance()' absent"
-#~ msgstr "'m$deviance()' ausente"
-
-#~ msgid "'m$trace()' absent"
-#~ msgstr "'m$trace()' ausente"
-
-#~ msgid "'m$setPars()' absent"
-#~ msgstr "m$setPars() ausente"
-
-#~ msgid "lowerb and upperb must be numeric vectors"
-#~ msgstr "'lowerb' e 'upperb' devem ser vetores numéricos"

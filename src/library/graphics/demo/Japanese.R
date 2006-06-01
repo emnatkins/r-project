@@ -1,6 +1,8 @@
 require(graphics)
+if(dev.cur() <= 1) get(getOption("device"))()
 
-opar <- par(ask = dev.interactive(orNone = TRUE))
+opar <- par(ask = interactive() &&
+            (.Device %in% c("X11", "GTK", "gnome", "windows","quartz")))
 
 ## --- Japanese characters in the Hershey Vector Fonts
 

@@ -3305,7 +3305,7 @@ stopifnot(labels(lm.D9) == "group")
 
 ## sprintf had no length check (PR#7554)
 a <- matrix (ncol=100, nrow=100, data=c(1,2,3,4,5))
-a.serial <- rawToChar(serialize(a, NULL, ascii=TRUE))
+a.serial <- serialize(a, NULL, ascii=TRUE)
 try(sprintf('foo: %s\n', a.serial))
 ## seqfaulted in 2.0.1
 
@@ -4226,24 +4226,9 @@ y <- ts(rnorm(120), start=3)
 ccf(x, y)
 ## needed na.action=na.contiguous in 2.3.0
 
-
 ## merge.data.frame was not making column names unique when
 ## doing a Cartesian product.
 DF <- data.frame(col=1:3)
 DF2 <- merge(DF, DF, by=numeric(0))
 stopifnot(identical(names(DF2), c("col.x", "col.y")))
 ## both were 'col' in 2.3.0.
-
-
-## [<- could extend a ts but not change tsp.
-xx <- x <- ts(rnorm(6), frequency=7)
-try(x[8] <- NA)
-stopifnot(identical(x, xx))
-## Allowed in R < 2.4.0, but corrupted tsp.
-
-
-## Looking up generic in UseMethod
-mycoef <- function(object, ....) UseMethod("coef")
-x <- list(coefficients=1:3)
-mycoef(x)
-## failed to find default method < 2.4.0

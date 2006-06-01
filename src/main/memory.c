@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2006  The R Development Core Team.
+ *  Copyright (C) 1998--2005  The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -102,11 +102,6 @@ static int gc_count = 0;
 # define FORCE_GC !gc_inhibit_torture
 #else
 # define FORCE_GC 0
-#endif
-
-#ifdef R_MEMORY_PROFILING
-static void R_ReportAllocation(R_size_t);
-static void R_ReportNewPage();
 #endif
 
 extern SEXP framenames;
@@ -615,9 +610,6 @@ static void GetNewPage(int node_class)
     page = malloc(R_PAGE_SIZE);
     if (page == NULL)
 	mem_err_heap((R_size_t) NodeClassSize[node_class]);
-#ifdef R_MEMORY_PROFILING
-    R_ReportNewPage();
-#endif 
     page->next = R_GenHeap[node_class].pages;
     R_GenHeap[node_class].pages = page;
     R_GenHeap[node_class].PageCount++;
@@ -1134,20 +1126,14 @@ void R_RegisterCFinalizer(SEXP s, R_CFinalizer_t fun)
 
 SEXP attribute_hidden do_regFinaliz(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    int onexit;
-    
     checkArity(op, args);
 
     if (TYPEOF(CAR(args)) != ENVSXP && TYPEOF(CAR(args)) != EXTPTRSXP)
 	errorcall(call, _("first argument must be environment or external pointer"));
     if (TYPEOF(CADR(args)) != CLOSXP)
 	errorcall(call, _("second argument must be a function"));
-
-    onexit = asLogical(CADDR(args));
-    if(onexit == NA_LOGICAL)
-	errorcall(call, _("third argument must be 'TRUE' or 'FALSE'"));
     
-    R_RegisterFinalizerEx(CAR(args), CADR(args), onexit);
+    R_RegisterFinalizer(CAR(args), CADR(args));
     return R_NilValue;
 }
 
@@ -1439,18 +1425,6 @@ SEXP attribute_hidden do_gcinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
     return old;
 }
 
-/* reports memory use to profiler in eval.c */
-
-void attribute_hidden get_current_mem(unsigned long *smallvsize, 
-				      unsigned long *largevsize,
-				      unsigned long *nodes)
-{
-    *smallvsize=R_SmallVallocSize;
-    *largevsize=R_LargeVallocSize;
-    *nodes=(R_NodesInUse*sizeof(SEXPREC));
-     return;
-	
-}
 
 SEXP attribute_hidden do_gc(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -1640,8 +1614,6 @@ char *R_alloc(long nelem, int eltsize)
     }
     else return NULL;
 }
-
-
 
 /* S COMPATIBILITY */
 
@@ -1964,9 +1936,6 @@ SEXP allocVector(SEXPTYPE type, R_len_t length)
 		    s = malloc(sizeof(SEXPREC_ALIGN) + size * sizeof(VECREC));
 		}
 		if (s != NULL) success = TRUE;
-#ifdef R_MEMORY_PROFILING
-		R_ReportAllocation(sizeof(SEXPREC_ALIGN) + size * sizeof(VECREC));
-#endif		
 	    }
 	    if (! success) {
 		/* reset the vector heap limit */
@@ -2598,109 +2567,3 @@ int (HASHVALUE)(SEXP x) { return HASHVALUE(x); }
 
 void (SET_HASHASH)(SEXP x, int v) { SET_HASHASH(x, v); }
 void (SET_HASHVALUE)(SEXP x, int v) { SET_HASHVALUE(x, v); }
-
-/*******************************************/
-/* Non-sampling memory use profiler
-   reports all large vector heap 
-   allocations and all calls to GetNewPage */
-/*******************************************/
-
-#ifndef R_MEMORY_PROFILING
-
-SEXP attribute_hidden do_Rprofmem(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    errorcall(call,_("memory profiling is not available on this system"));
-    return R_NilValue; /* not reached */
-}
-
-#else
-static int R_IsMemReporting;
-static FILE *R_MemReportingOutfile;
-static R_size_t R_MemReportingThreshold;
-
-static void R_OutputStackTrace(FILE *file)
-{
-    int newline=0;
-    RCNTXT *cptr;
-
-    for (cptr = R_GlobalContext; cptr; cptr = cptr->nextcontext) {
-	if ((cptr->callflag & (CTXT_FUNCTION | CTXT_BUILTIN))
-	    && TYPEOF(cptr->call) == LANGSXP) {
-		SEXP fun = CAR(cptr->call);
-		if (!newline) newline = 1;
-		fprintf(file, "\"%s\" ",
-		    TYPEOF(fun) == SYMSXP ? CHAR(PRINTNAME(fun)) :
-		    "<Anonymous>");
-	}
-    }
-    if (newline) fprintf(file, "\n");
-}
-
-static void R_ReportAllocation(R_size_t size)
-{
-    int newline=0;
-    
-    if (R_IsMemReporting){
-	if(size>R_MemReportingThreshold){
-	   fprintf(R_MemReportingOutfile,"%ld :", (unsigned long) size);
-	   R_OutputStackTrace(R_MemReportingOutfile);
-	}
-    } 
-    return;
-}
-
-static void R_ReportNewPage(void)
-{
-    int newline=0;
-
-    if (R_IsMemReporting){
-	fprintf(R_MemReportingOutfile,"new page:");
-	R_OutputStackTrace(R_MemReportingOutfile);
-    }
-    return;
-}
-
-
-static void R_EndMemReporting()
-{
-     if(R_MemReportingOutfile != NULL){
-	  fflush(R_MemReportingOutfile);
-	  fclose(R_MemReportingOutfile);
-	  R_MemReportingOutfile=NULL;
-     }
-     R_IsMemReporting=0;
-     return;
-}
-
-static void R_InitMemReporting(char *filename, int append, 
-			       R_size_t threshold)
-{
-    if(R_MemReportingOutfile != NULL) R_EndMemReporting();
-    R_MemReportingOutfile = fopen(filename, append ? "a" : "w");
-    if (R_MemReportingOutfile == NULL)
-	error(_("Rprofmem: cannot open output file '%s'"), filename);
-    R_MemReportingThreshold=threshold;
-    R_IsMemReporting=1;
-    return;
-}
-
-SEXP attribute_hidden do_Rprofmem(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    char *filename;
-    R_size_t threshold;
-    int append_mode;
-
-    checkArity(op, args);
-    if (!isString(CAR(args)) || (LENGTH(CAR(args))) != 1)
-	errorcall(call, _("invalid '%s' argument"), "filename");
-    append_mode = asLogical(CADR(args));
-    filename = R_ExpandFileName(CHAR(STRING_ELT(CAR(args), 0)));
-    threshold = REAL(CADDR(args))[0];
-    if (strlen(filename))
-	 R_InitMemReporting(filename, append_mode, threshold);
-    else
-	 R_EndMemReporting();
-    return R_NilValue;
-}
-
-#endif /* R_MEMORY_PROFILING */

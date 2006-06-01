@@ -32,7 +32,7 @@ sum(\dots, na.rm = FALSE)
 
   Logical true values are regarded as one, false values as zero.
   For historical reasons, \code{NULL} is accepted and treated as if it
-  were \code{integer(0)}.
+  were \code{numeric(0)}.
 }
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)

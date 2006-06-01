@@ -12,12 +12,8 @@
                               NULL, where = .GlobalEnv, edit = FALSE,
                               from = NULL, untrace = FALSE) {
     if(is.function(where)) {
-        ## start from the function's environment:  important for
-        ## tracing from a namespace
-        if(is(where, "genericFunction"))
-            where <- parent.env(environment(where))
-        else
-            where <- environment(where)
+        ## start from the function's environment:  important for tracing from a namespace
+        where <- environment(where)
         fromPackage <- getPackageName(where)
     }
     else fromPackage <- ""
@@ -84,9 +80,6 @@
                  domain = NA)
         whereF <- as.environment(allWhere[[1]])
     }
-    ## detect use with no action specified (old-style R trace())
-    if(is.null(tracer) && is.null(exit) && identical(edit, FALSE))
-      tracer <- quote({})
         if(is.null(def))
             def <- getFunction(what, where = whereF)
         if(is(def, "traceable") && identical(edit, FALSE) && !untrace)

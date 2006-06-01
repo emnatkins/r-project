@@ -20,13 +20,12 @@ function(x, na.strings = "NA", as.is = FALSE, dec = ".")
 
 read.table <-
 function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
-         row.names, col.names, as.is = !stringsAsFactors,
+         row.names, col.names, as.is = FALSE,
          na.strings = "NA", colClasses = NA,
          nrows = -1, skip = 0,
          check.names = TRUE, fill = !blank.lines.skip,
          strip.white = FALSE, blank.lines.skip = TRUE,
-         comment.char = "#", allowEscapes = FALSE, flush = FALSE,
-         stringsAsFactors = default.stringsAsFactors())
+         comment.char = "#", allowEscapes = FALSE, flush = FALSE)
 {
     if(is.character(file)) {
         file <- file(file, "r")

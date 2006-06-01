@@ -7,8 +7,10 @@ lm <- function (formula, data, subset, weights, na.action,
     ret.y <- y
     cl <- match.call()
     mf <- match.call(expand.dots = FALSE)
-    m <- match(c("formula", "data", "subset", "weights", "na.action", "offset"),
-	       names(mf), 0)
+#    mf$singular.ok <- mf$model <- mf$method <- NULL
+#    mf$x <- mf$y <- mf$qr <- mf$contrasts <- mf$... <- NULL
+    m <- match(c("formula", "data", "subset", "weights", "na.action",
+                 "offset"), names(mf), 0)
     mf <- mf[c(1, m)]
     mf$drop.unused.levels <- TRUE
     mf[[1]] <- as.name("model.frame")
@@ -304,7 +306,6 @@ summary.lm <- function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
     est <- z$coefficients[Qr$pivot[p1]]
     tval <- est/se
     ans <- z[c("call", "terms")]
-    if(!is.null(z$na.action)) ans$na.action <- z$na.action
     ans$residuals <- r
     ans$coefficients <-
 	cbind(est, se, tval, 2*pt(abs(tval), rdf, lower.tail = FALSE))
@@ -376,7 +377,6 @@ print.summary.lm <-
     ##
     cat("\nResidual standard error:",
 	format(signif(x$sigma, digits)), "on", rdf, "degrees of freedom\n")
-    if(nchar(mess <- naprint(x$na.action))) cat("  (",mess, ")\n", sep="")
     if (!is.null(x$fstatistic)) {
 	cat("Multiple R-Squared:", formatC(x$r.squared, digits=digits))
 	cat(",\tAdjusted R-squared:",formatC(x$adj.r.squared,digits=digits),
@@ -597,7 +597,7 @@ predict.lm <-
     function(object, newdata, se.fit = FALSE, scale = NULL, df = Inf,
 	     interval = c("none", "confidence", "prediction"),
 	     level = .95,  type = c("response", "terms"),
-	     terms = NULL, na.action = na.pass, pred.var = res.var, ...)
+	     terms = NULL, na.action = na.pass, ...)
 {
     tt <- terms(object)
     if(missing(newdata) || is.null(newdata)) {
@@ -664,11 +664,11 @@ predict.lm <-
 	## asgn <- attrassign(mm, tt) :
 	aa <- attr(mm, "assign")
 	ll <- attr(tt, "term.labels")
-	hasintercept <- attr(tt, "intercept") > 0
-	if (hasintercept)
+	if (attr(tt, "intercept") > 0)
 	    ll <- c("(Intercept)", ll)
 	aaa <- factor(aa, labels = ll)
 	asgn <- split(order(aa), aaa)
+	hasintercept <- attr(tt, "intercept") > 0
 	if (hasintercept) {
 	    asgn$"(Intercept)" <- NULL
 	    if(!mmDone) { mm <- model.matrix(object); mmDone <- TRUE }
@@ -723,7 +723,7 @@ predict.lm <-
 	tfrac <- qt((1 - level)/2, df)
 	hwid <- tfrac * switch(interval,
 			       confidence = sqrt(ip),
-			       prediction = sqrt(ip+pred.var)
+			       prediction = sqrt(ip+res.var)
 			       )
 	if(type != "terms") {
 	    predictor <- cbind(predictor, predictor + hwid %o% c(1, -1))

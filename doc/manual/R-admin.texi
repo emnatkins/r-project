@@ -370,8 +370,8 @@ make vignettes
 @end example
 
 @noindent
-which makes the @pkg{grid} vignettes (which are contained in the
-tarballs):  it takes several minutes.
+which makes the @samp{grid} vignettes (which are contained in the tarballs):
+it takes several minutes.
 
 Now @code{rehash} if necessary, type @kbd{R}, and read the @R{} manuals
 and the @R{} @acronym{FAQ} (files @file{FAQ} or
@@ -1116,11 +1116,7 @@ of many of which are set in file @file{R_HOME/etc/Renviron} (there are
 none set by default on Windows and hence no such file).  These are set
 at @command{configure} time, and you would not normally want to change
 them -- a possible exception is @env{R_PAPERSIZE} (@pxref{Setting paper
-size}).  As from @R{} 2.4.0 the paper size will be deduced from the
-@samp{LC_PAPER} locale category if it exists and @env{R_PAPERSIZE} is
-unset, and this will normally produce the right choice from @code{a4} and 
-@code{letter} on modern Unix-alikes (but can always be overridden by
-setting @env{R_PAPERSIZE}).
+size}).
 
 Various environment variables can be set to determine where @R{} creates
 its per-session temporary directory.  The environment variables
@@ -1268,8 +1264,8 @@ Compiler Collection.
 @findex WINHELP
 
 This section describes ways to customize package compilation using the
-standard C, C++ and FORTRAN compilers and tools.  For instructions on
-using non-standard tools, see the @file{README.packages} file.
+standard C / C++ / FORTRAN compilers and tools.  For instructions on using
+non-standard tools, see the @file{README.packages} file.
 
 The Makefiles can be customized: in particular the name of the DLL can
 be set (for example we once needed @code{integrate-DLLNM=adapt}), the
@@ -1445,24 +1441,23 @@ Utilities such as @code{install.packages} can be pointed at any
 CRAN-style repository, and @R{} users may want to set up their own.  The
 `base' of a repository is a URL such as
 @url{http://www.omegahat.org/R}: this must be an URL scheme that
-@code{download.packages} supports (which also includes @samp{ftp://} and
-@samp{file://}).  Under that base URL there should be directory trees
+@code{download.packages} supports (which also includes @code{ftp://} and
+@code{file://}).  Under that base URL there should be directory trees
 for one or more of the following types of package distributions:
 
 @itemize
 @item 
-@code{"source"}: located at @file{src/contrib} and containing
+@code{"source"}: located at @code{src/contrib} and containing
 @file{.tar.gz} files.
 
 @item 
-@code{"win.binary"}: located at @file{bin/windows/contrib/@var{x.y}} for
-@R{} versions @var{x.y.z} and containing @file{.zip} files.
+@code{"win.binary"}: located at @code{bin/windows/contrib/x.y} for @R{}
+versions @code{x.y.z} and containing @file{.zip} files.
 
 @item 
-@code{"mac.binary"}: located at
-@file{bin/macosx/powerpc/contrib/@var{x.y}} or
-@file{bin/macosx/i686/contrib/@var{x.y}} for @R{} versions @var{x.y.z}
-and containing @file{.tgz} files.
+@code{"mac.binary"}: located at @code{bin/macosx/powerpc/contrib/x.y}
+or @code{bin/macosx/i686/contrib/x.y}
+for @R{} versions @code{x.y.z} and containing @file{.tgz} files.
 @end itemize
 
 Each terminal directory must also contain a @file{PACKAGES} file.  This
@@ -1616,9 +1611,9 @@ correspond to XPG language names and so @env{LANGUAGE} may need to be
 set.  (One example is @samp{LC_ALL=es} on Windows which sets the locale
 to Estonian and the language to Spanish.)
 
-It is usually possible (not Windows) to change the language once @R{} is
-running @emph{via} @code{Sys.setlocale("LC_MESSAGES", "new_locale")},
-but not by setting environment variables such as @env{LANGUAGE}.
+Note that you should not expect to be able to change the language once R
+is running, and so @env{LC_MESSAGES} is not supported by
+@code{Sys.setlocale}.
 
 Messages are divided into @emph{domains}, and translations may be
 available for some or all messages in a domain.  @R{} makes use of the
@@ -1780,7 +1775,7 @@ compiler should be @acronym{IEC}@tie{}60059@footnote{also known as
 possible.  @R{} tries to choose suitable flags for the C compilers it
 knows about, but you may have to set @code{CFLAGS} suitably.  For recent
 versions of @command{gcc} with @code{glibc} this means including
-@option{-std=gnu99} in @code{CFLAGS} (@option{-std=c99} excludes POSIX
+@code{-std=gnu99} in @code{CFLAGS} (@code{-std=c99} excludes POSIX
 functionality).
 
 Unless you do not want to view graphs on-screen you need @samp{X11}
@@ -1926,10 +1921,9 @@ since the basic BLAS is incomplete.
 
 Another tuned BLAS which is available for some processors under Linux is
 by Kazushige Goto, currently available @emph{for academic use only}
-(after registering) via
-@url{http://www.tacc.utexas.edu/resources/software/software.php,
-@code{www.tacc.utexas.edu/resources/software/software.php}}.
-(Recent versions are multi-@/threaded only.)  Once this is installed, it
+(after registering) via@*
+@url{http://www.tacc.utexas.edu/resources/software/software.php}.@*
+(Recent versions are multi-threaded only.)  Once this is installed, it
 can be used by configuring with
 
 @example
@@ -2229,8 +2223,7 @@ One common variable to change is @env{R_PAPERSIZE}, which defaults to
 @samp{letter}, @samp{legal} and @samp{executive}.)
 
 This is used both when configuring @R{} to set the default, and when
-running @R{} to override the default.  It is also used to set the
-papersize when making DVI and PDF manuals.
+running @R{} to override the default.
 
 The configure default will most often be @samp{a4} if @env{R_PAPERSIZE}
 is unset.  (If the (Debian Linux) program @command{paperconf} is found

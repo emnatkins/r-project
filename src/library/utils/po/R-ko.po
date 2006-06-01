@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-05-12 08:45\n"
+"POT-Creation-Date: 2006-05-12 08:33\n"
 "PO-Revision-Date: 2005-05-31 09:50+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -590,10 +590,6 @@ msgstr "'object'는 유효한 levels()을 가지고 있지 않습니다"
 
 msgid "'str.default': 'le' is NA"
 msgstr "'str.default': 'le'는 NA입니다"
-
-#, fuzzy
-msgid "profile does not contain memory information"
-msgstr "유형 정보를 회복할 수 없었습니다"
 
 msgid "no events were recorded"
 msgstr "events는 기록되지 않았습니다"

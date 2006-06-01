@@ -1,6 +1,6 @@
 
-R version 2.4.0 Under development (unstable) (2006-05-16 r38086)
-Copyright (C) 2006 The R Foundation for Statistical Computing
+R : Copyright 2006, The R Foundation for Statistical Computing
+Version 2.3.0 Patched (2006-05-16 r38088)
 ISBN 3-900051-07-0
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -367,7 +367,7 @@ NULL data frame with 0 rows
 > !identical(d00, d000)
 [1] TRUE
 > dput(d00)
-structure(list(), .Names = character(0), row.names = integer(0), class = "data.frame")
+structure(list(), .Names = character(0), row.names = character(0), class = "data.frame")
 > dput(d000)
 structure(list(), row.names = character(0), class = "data.frame")
 > stopifnot(identical(d, cbind(d, d0)),
@@ -1912,23 +1912,23 @@ y    2    5 8
 > test <- as.data.frame(matrix(1:25, 5, 5))
 > test1 <- matrix(-(1:10), 2, 5)
 > rbind(test, test1)
-  V1 V2 V3 V4  V5
-1  1  6 11 16  21
-2  2  7 12 17  22
-3  3  8 13 18  23
-4  4  9 14 19  24
-5  5 10 15 20  25
-6 -1 -3 -5 -7  -9
-7 -2 -4 -6 -8 -10
+   V1 V2 V3 V4  V5
+1   1  6 11 16  21
+2   2  7 12 17  22
+3   3  8 13 18  23
+4   4  9 14 19  24
+5   5 10 15 20  25
+11 -1 -3 -5 -7  -9
+21 -2 -4 -6 -8 -10
 > rbind(test1, test)
-  V1 V2 V3 V4  V5
-1 -1 -3 -5 -7  -9
-2 -2 -4 -6 -8 -10
-3  1  6 11 16  21
-4  2  7 12 17  22
-5  3  8 13 18  23
-6  4  9 14 19  24
-7  5 10 15 20  25
+   V1 V2 V3 V4  V5
+1  -1 -3 -5 -7  -9
+2  -2 -4 -6 -8 -10
+11  1  6 11 16  21
+21  2  7 12 17  22
+3   3  8 13 18  23
+4   4  9 14 19  24
+5   5 10 15 20  25
 > ## 1.6.1 treated matrix as a vector.
 > 
 > 
@@ -5172,13 +5172,6 @@ Error in sum(..., na.rm = na.rm) : invalid 'type' (raw) of argument
 Error in prod(..., na.rm = na.rm) : invalid 'type' (raw) of argument
 > ## Inf, -Inf, list(NULL) etc in 2.2.1
 > 
-> r <- hist(rnorm(100), plot = FALSE, breaks = 12,
-+           ## arguments which don't make sense for plot=FALSE - give a warning:
-+           right = FALSE, col = "blue")
-Warning message:
-arguments 'right', 'col' are not made use of in: hist.default(rnorm(100), plot = FALSE, breaks = 12, right = FALSE,  
-> ## gave no warning in 2.3.0 and earlier
-> 
 > 
 > ## rbind.data.frame on permuted cols (PR#8868)
 > d1 <- data.frame(x=1:10, y=letters[1:10], z=1:10)
@@ -5196,19 +5189,19 @@ arguments 'right', 'col' are not made use of in: hist.default(rnorm(100), plot =
 9   9 i  9
 10 10 j 10
 11  7 A  5
-12  8 B  4
-13  9 C  3
-14 10 D  2
-15 11 E  1
+21  8 B  4
+31  9 C  3
+41 10 D  2
+51 11 E  1
 > # got factor y  wrong in 2.3.0
 > # and failed with duplicated col names.
 > d1 <- data.frame(x=1:2, y=5:6, x=8:9, check.names=FALSE)
 > d2 <- data.frame(x=3:4, x=-(1:2), y=8:9, check.names=FALSE)
 > rbind(d1, d2)
-  x y  x
-1 1 5  8
-2 2 6  9
-3 3 8 -1
-4 4 9 -2
+   x y  x
+1  1 5  8
+2  2 6  9
+11 3 8 -1
+21 4 9 -2
 > ## corrupt in 2.3.0
 > 

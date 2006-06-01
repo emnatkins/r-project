@@ -511,7 +511,6 @@ LibExtern SEXP	R_SourceSymbol;     /* "source" */
 LibExtern SEXP	R_DotEnvSymbol;     /* ".Environment" */
 LibExtern SEXP	R_RecursiveSymbol;  /* "recursive" */
 LibExtern SEXP	R_UseNamesSymbol;   /* "use.names" */
-LibExtern SEXP	R_RowNamesSymbol;   /* "row.names" */
 
 /* Missing Values - others from Arith.h */
 #define NA_STRING	R_NaString
@@ -711,6 +710,9 @@ Rboolean R_HasFancyBindings(SEXP rho);
 /* needed for R_load/savehistory handling in front ends */
 void Rf_errorcall(SEXP, const char*, ...);
 void Rf_warningcall(SEXP, const char*, ...);
+
+/* Experimental Changes in Dispatching */
+void R_SetUseNamespaceDispatch(Rboolean val);
 
 /* Save/Load Interface */
 #define R_XDR_DOUBLE_SIZE 8

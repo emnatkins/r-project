@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000-6   The R Development Core Team.
+ *  Copyright (C) 2000-5   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -228,12 +228,9 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 #else
     if(res >= BUFSIZE) { /* res is the desired output length */
 	usedRalloc = TRUE;
-	/* apparently some implementations count short,
-	   <http://unixpapa.com/incnote/stdio.html>
-	   so add some margin here */
-	b = R_alloc(res + 101, sizeof(char));
-	vsnprintf(b, res+100, format, ap);
-    } else if(res < 0) { /* just a failure indication */
+	b = R_alloc(res + 1, sizeof(char));
+	vsprintf(b, format, ap);
+    } else if(res < 0) { /* just a failure indication -- e.g. Windows */
 	usedRalloc = TRUE;
 	b = R_alloc(10*BUFSIZE, sizeof(char));
 	res = vsnprintf(b, 10*BUFSIZE, format, ap);
@@ -244,7 +241,7 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 	}
     }
 #endif /* HAVE_VASPRINTF */
-#else  /* no VA_COPY */
+#else
     res = vsnprintf(buf, BUFSIZE, format, ap);
     if(res >= BUFSIZE || res < 0) { 
 	/* res is the desired output length or just a failure indication */
@@ -260,7 +257,7 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 	Rboolean again = FALSE;
 	int ninit = strlen(con->init_out);
 	do {
-	    onb = BUFSIZE; /* leave space for nul */
+	    onb = BUFSIZE; /* space for nul */
 	    ob = outbuf;
 	    if(ninit) {
 		strcpy(ob, con->init_out);
@@ -2017,7 +2014,7 @@ SEXP attribute_hidden do_textconnection(SEXP call, SEXP op, SEXP args, SEXP env)
     open = CHAR(STRING_ELT(sopen, 0));
     venv = CADDDR(args);
     if (isNull(venv)) {
-	error(_("use of NULL environment is defunct"));
+	warning(_("use of NULL environment is deprecated"));
 	venv = R_BaseEnv;
     } else      
     if (!isEnvironment(venv))
@@ -2440,12 +2437,12 @@ int Rconn_printf(Rconnection con, const char *format, ...)
 }
 
 
-/* readLines(con = stdin(), n = 1, ok = TRUE, warn = TRUE) */
+/* readLines(con = stdin(), n = 1, ok = TRUE) */
 #define BUF_SIZE 1000
 SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans = R_NilValue, ans2;
-    int i, n, nn, nnn, ok, warn, nread, c, nbuf, buf_size = BUF_SIZE;
+    int i, n, nn, nnn, ok, nread, c, nbuf, buf_size = BUF_SIZE;
     Rconnection con = NULL;
     Rboolean wasopen;
     char *buf;
@@ -2456,13 +2453,10 @@ SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
     con = getConnection(asInteger(CAR(args)));
     n = asInteger(CADR(args));
     if(n == NA_INTEGER)
-	errorcall(call, _("invalid value for '%s'"), "n");
+	errorcall(call, _("invalid value for 'n'"));
     ok = asLogical(CADDR(args));
     if(ok == NA_LOGICAL)
-	errorcall(call, _("invalid value for '%s'"), "ok");
-    warn = asLogical(CADDDR(args));
-    if(warn == NA_LOGICAL)
-	errorcall(call, _("invalid value for '%s'"), "warn");
+	errorcall(call, _("invalid value for 'ok'"));
     if(!con->canread)
 	errorcall(call, _("cannot read from this connection"));
     wasopen = con->isopen;
@@ -2513,9 +2507,8 @@ no_more_lines:
     if(nbuf > 0) { /* incomplete last line */
 	if(con->text && con->blocking) {
 	    nread++;
-	    if(warn)
-		warning(_("incomplete final line found by readLines on '%s'"),
-			con->description);
+	    warning(_("incomplete final line found by readLines on '%s'"),
+		    con->description);
 	} else {
 	    /* push back the rest */
 	    con_pushback(con, 0, buf);
@@ -2682,17 +2675,17 @@ SEXP attribute_hidden do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
     args = CDR(args);
     swhat = CAR(args); args = CDR(args);
     if(!isString(swhat) || length(swhat) != 1)
-	error(_("invalid value for '%s'"), "what");
+	error(_("invalid value of 'what'"));
     what = CHAR(STRING_ELT(swhat, 0));
     n = asInteger(CAR(args)); args = CDR(args);
-    if(n == NA_INTEGER || n < 0) error(_("invalid value for '%s'"), "n");
+    if(n == NA_INTEGER || n < 0) error(_("invalid value of 'n'"));
     size = asInteger(CAR(args)); args = CDR(args);
     signd = asLogical(CAR(args)); args = CDR(args);
     if(signd == NA_LOGICAL)
-	error(_("invalid value for '%s'"), "signed");
+	error(_("invalid value of 'signed'"));
     swap = asLogical(CAR(args));
     if(swap == NA_LOGICAL)
-	error(_("invalid value for '%s'"), "swap");
+	error(_("invalid value of 'swap'"));
     if(!isRaw) {
 	if(!con->canread)
 	    error(_("cannot read from this connection"));
@@ -2894,7 +2887,7 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
     size = asInteger(CADDR(args));
     swap = asLogical(CADDDR(args));
     if(swap == NA_LOGICAL)
-	error(_("invalid value for '%s'"), "swap");
+	error(_("invalid value of 'swap'"));
     len = LENGTH(object);
     if(len == 0) {
 	if(isRaw) return allocVector(RAWSXP, 0); else return R_NilValue;
@@ -3198,7 +3191,7 @@ SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
     } else {
 	usesep = TRUE;
 	if (!isString(sep) || length(sep) != 1)
-	    error(_("invalid value for '%s'"), "sep");
+	    error(_("invalid value of 'sep'"));
 	ssep = CHAR(STRING_ELT(sep, 0));
 	slen = strlen(ssep) + 1;
     }
@@ -3435,11 +3428,11 @@ SEXP attribute_hidden do_sink(SEXP call, SEXP op, SEXP args, SEXP rho)
     icon = asInteger(CAR(args));
     closeOnExit = asLogical(CADR(args));
     if(closeOnExit == NA_LOGICAL)
-	error(_("invalid value for '%s'"), "closeOnExit");
+	error(_("invalid value for 'closeOnExit'"));
     errcon = asLogical(CADDR(args));
-    if(errcon == NA_LOGICAL) error(_("invalid value for '%s'"), "type");
+    if(errcon == NA_LOGICAL) error(_("invalid value for 'type'"));
     tee = asLogical(CADDDR(args));
-    if(tee == NA_LOGICAL) error(_("invalid value for '%s'"), "split");
+    if(tee == NA_LOGICAL) error(_("invalid value for 'split'"));
 
 #ifndef HAVE_VA_COPY
     if(tee) error(_("this platform does not support 'split=TRUE'"));
@@ -3469,7 +3462,7 @@ SEXP attribute_hidden do_sinknumber(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     errcon = asLogical(CAR(args));
     if(errcon == NA_LOGICAL)
-	error(_("invalid value for '%s'"), "type");
+	error(_("invalid value for 'type'"));
     PROTECT(ans = allocVector(INTSXP, 1));
     INTEGER(ans)[0] = errcon ? R_SinkNumber : R_ErrorCon;
     UNPROTECT(1);
@@ -4029,18 +4022,18 @@ SEXP R_compress1(SEXP in)
     Bytef *buf;
     SEXP ans;
 
-    if(TYPEOF(in) != RAWSXP)
-	error(_("R_decompress1 requires a raw vector"));
-    inlen = LENGTH(in);
+    if(!isString(in) || length(in) !=1)
+	error(_("R_compress1 requires a scalar string"));
+    inlen = LENGTH(STRING_ELT(in, 0));
     outlen = 1.001*inlen + 20;
     buf = (Bytef *) R_alloc(outlen, sizeof(Bytef));
     /* we want this to be system-independent */
     *((unsigned int *)buf) = (unsigned int) uiSwap(inlen);
-    res = compress(buf + 4, &outlen, (Bytef *)RAW(in), inlen);
+    res = compress(buf + 4, &outlen, (Bytef *)CHAR(STRING_ELT(in, 0)), inlen);
     if(res != Z_OK) error(_("internal error in R_compress1"));
-    ans = allocVector(RAWSXP, outlen + 4);
-    memcpy(RAW(ans), buf, outlen + 4);
-    return ans;
+    ans = allocVector(CHARSXP, outlen + 4);
+    memcpy(CHAR(ans), buf, outlen + 4);
+    return ScalarString(ans);
 }
 
 attribute_hidden
@@ -4049,19 +4042,19 @@ SEXP R_decompress1(SEXP in)
     uLong inlen, outlen;
     int res;
     Bytef *buf;
-    unsigned char *p = RAW(in);
+    char *p = CHAR(STRING_ELT(in, 0));
     SEXP ans;
 
-    if(TYPEOF(in) != RAWSXP)
-	error(_("R_decompress1 requires a raw vector"));
-    inlen = LENGTH(in);
+    if(!isString(in) || length(in) !=1)
+	error(_("R_decompress1 requires a scalar string"));
+    inlen = LENGTH(STRING_ELT(in, 0));
     outlen = (uLong) uiSwap(*((unsigned int *) p));
     buf = (Bytef *) R_alloc(outlen, sizeof(Bytef));
     res = uncompress(buf, &outlen, (Bytef *)(p + 4), inlen - 4);
     if(res != Z_OK) error(_("internal error in R_decompress1"));
-    ans = allocVector(RAWSXP, outlen);
-    memcpy(RAW(ans), buf, outlen);
-    return ans;
+    ans = allocVector(CHARSXP, outlen);
+    memcpy(CHAR(ans), buf, outlen);
+    return ScalarString(ans);
 }
 
 SEXP attribute_hidden do_sockselect(SEXP call, SEXP op, SEXP args, SEXP rho)

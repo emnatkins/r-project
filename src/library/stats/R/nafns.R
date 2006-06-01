@@ -155,9 +155,7 @@ naresid.exclude <- function(omit, x, ...)
 naprint <- function(x, ...) UseMethod("naprint")
 naprint.default <- function(x, ...) return("")
 naprint.exclude <- naprint.omit <- function(x, ...)
-    sprintf(ngettext(n <- length(x), "%d observation deleted due to missingness",
-                     "%d observations deleted due to missingness"),
-            n)
+    paste(length(x), "observations deleted due to missing")
 
 napredict <- function(omit, x, ...) UseMethod("napredict")
 napredict.default <- function(omit, x, ...) x

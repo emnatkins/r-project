@@ -62,6 +62,7 @@
 \concept{srt}
 \concept{tck}
 \concept{tcl}
+\concept{tmag}
 \concept{usr}
 \concept{xaxp}
 \concept{xaxs}
@@ -448,6 +449,7 @@ par(\dots, no.readonly = FALSE)
     \item{\code{tcl}}{The length of tick marks as a fraction of the
       height of a line of text.  The default value is \code{-0.5};
       setting \code{tcl = NA} sets \code{tck = -0.01} which is S' default.}
+    \item{\code{tmag}}{Currently unused: defaults to \code{1.2}.}
     \item{\code{usr}}{A vector of the form \code{c(x1, x2, y1, y2)}
       giving the extremes of the user coordinates of the plotting
       region.  When a logarithmic scale is in use (i.e.,
@@ -560,10 +562,11 @@ par(\dots, no.readonly = FALSE)
 
   Note that \code{NA} is not a valid value for \code{lty}.
 
-  Prior to \R 2.4.0, zero hex digits were accepted and handled in a
-  device-dependent way, e.g. \code{X11()} mapped them to one, \code{pdf()}
-  regarded zero as terminating the string and \code{windows()} gave a
-  zero-length stretch.
+  Currently zero hex digits are accepted and handled in a
+  device-dependent way, e.g. \code{X11()} maps them to one, \code{pdf()}
+  regards zero as terminating the string and \code{windows()} gives a
+  zero-length stretch.  Do not rely on such behaviour, which will change
+  in \R 2.4.0.
 }
 
 \note{

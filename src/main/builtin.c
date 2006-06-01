@@ -38,7 +38,7 @@ SEXP attribute_hidden do_delay(SEXP call, SEXP op, SEXP args, SEXP rho)
     expr = CAR(args);
     env = eval(CADR(args), rho);
     if (isNull(env)) {
-	error(_("use of NULL environment is defunct"));
+	warning(_("use of NULL environment is deprecated"));
 	env = R_BaseEnv;
     } else    
     if (!isEnvironment(env))
@@ -61,7 +61,7 @@ SEXP attribute_hidden do_delayed(SEXP call, SEXP op, SEXP args, SEXP rho)
     args = CDR(args);
     eenv = CAR(args);
     if (isNull(eenv)) {
-	error(_("use of NULL environment is defunct"));
+	warning(_("use of NULL environment is deprecated"));
 	eenv = R_BaseEnv;
     } else
     if (!isEnvironment(eenv))
@@ -70,7 +70,7 @@ SEXP attribute_hidden do_delayed(SEXP call, SEXP op, SEXP args, SEXP rho)
     args = CDR(args);
     aenv = CAR(args);
     if (isNull(aenv)) {
-	error(_("use of NULL environment is defunct"));
+	warning(_("use of NULL environment is deprecated"));
 	aenv = R_BaseEnv;
     } else
     if (!isEnvironment(aenv))
@@ -196,7 +196,7 @@ SEXP attribute_hidden do_envirgets(SEXP call, SEXP op, SEXP args, SEXP rho)
     if (TYPEOF(CAR(args)) == CLOSXP 
         && (isEnvironment(env) || isNull(env))) {
 	if (isNull(env)) {
-	    error(_("use of NULL environment is defunct"));
+	    warning(_("use of NULL environment is deprecated"));
 	    env = R_BaseEnv;
 	}     
 	SET_CLOENV(CAR(args), env);
@@ -219,7 +219,7 @@ SEXP attribute_hidden do_newenv(SEXP call, SEXP op, SEXP args, SEXP rho)
     hash = asInteger(CAR(args));
     enclos = CADR(args);
     if (isNull(enclos)) {
-	error(_("use of NULL environment is defunct"));
+	warning(_("use of NULL environment is deprecated"));
 	enclos = R_BaseEnv;
     } else    
     if( !isEnvironment(enclos) )
@@ -249,7 +249,7 @@ SEXP attribute_hidden do_parentenvgets(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     env = CAR(args);
     if (isNull(env)) {
-	error(_("use of NULL environment is defunct"));
+	warning(_("use of NULL environment is deprecated"));
 	env = R_BaseEnv;
     } else
     if( !isEnvironment(env) )
@@ -258,7 +258,7 @@ SEXP attribute_hidden do_parentenvgets(SEXP call, SEXP op, SEXP args, SEXP rho)
     	errorcall(call, _("can not set parent of the empty environment"));
     parent = CADR(args);
     if (isNull(parent)) {
-	error(_("use of NULL environment is defunct"));
+	warning(_("use of NULL environment is deprecated"));
 	parent = R_BaseEnv;
     } else    
     if( !isEnvironment(parent) )
@@ -389,6 +389,12 @@ SEXP attribute_hidden do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
     cntxt.cenddata = &ci;
 
     nobjs = length(objs);
+    /*
+    for (i = 0; i < nobjs; i++) {
+	if (!isVector(VECTOR_ELT(objs, i)) && !isNull(VECTOR_ELT(objs, i)))
+	    errorcall(call, "argument %d has invalid type", i + 1);
+    }
+    */
     width = 0;
     ntot = 0;
     nlines = 0;

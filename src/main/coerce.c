@@ -436,7 +436,7 @@ static SEXP coerceToSymbol(SEXP v)
     int warn = 0;
     if (length(v) <= 0)
 	error(_("invalid data of mode \"%s\" (too short)"),
-	      type2char(TYPEOF(v)));
+	      CHAR(type2str(TYPEOF(v))));
     PROTECT(v);
     switch(TYPEOF(v)) {
     case LGLSXP:
@@ -914,7 +914,7 @@ static SEXP coercePairList(SEXP v, SEXPTYPE type)
     }
     else
 	error(_("'pairlist' object cannot be coerced to '%s'"),
-	      type2char(type));
+	      CHAR(type2str(type)));
 
     /* If any tags are non-null then we */
     /* need to add a names attribute. */
@@ -1005,7 +1005,8 @@ static SEXP coerceVectorList(SEXP v, SEXPTYPE type)
 	}
     }
     else
-	error(_("(list) object cannot be coerced to '%s'"), type2char(type));
+	error(_("(list) object cannot be coerced to '%s'"),
+	      CHAR(type2str(type)));
 
     if (warn) CoercionWarning(warn);
     names = getAttrib(v, R_NamesSymbol);
@@ -1098,7 +1099,7 @@ SEXP coerceVector(SEXP v, SEXPTYPE type)
 
 #define COERCE_ERROR						\
 	error(_("cannot coerce type %s to %s vector"),		\
-	      type2char(TYPEOF(v)), type2char(type))
+	      CHAR(type2str(TYPEOF(v))), CHAR(type2str(type)))
 
 	switch (type) {
 	case SYMSXP:
@@ -1317,7 +1318,7 @@ SEXP attribute_hidden do_asfunction(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     envir = CADR(args);
     if (isNull(envir)) {
-	error(_("use of NULL environment is defunct"));
+	warning(_("use of NULL environment is deprecated"));
 	envir = R_BaseEnv;
     } else    
     if (!isEnvironment(envir))
@@ -1557,7 +1558,7 @@ SEXP attribute_hidden do_isvector(SEXP call, SEXP op, SEXP args, SEXP rho)
 			   !isLogical(CAR(args)));
     }
     else if (streql(CHAR(STRING_ELT(CADR(args), 0)),
-		    type2char(TYPEOF(CAR(args))))) {
+		    CHAR(type2str(TYPEOF(CAR(args)))))) {
 	LOGICAL(ans)[0] = 1;
     }
     else
@@ -2171,7 +2172,7 @@ SEXP R_set_class(SEXP obj, SEXP value, SEXP call)
 	    }
 	    else if(valueType != TYPEOF(obj))
 		error(_("\"%s\" can only be set as the class if the object has this type; found \"%s\""),
-		      valueString, type2char(TYPEOF(obj)));
+		      valueString, CHAR(type2str(TYPEOF(obj))));
 	    /* else, leave alone */
 	}
 	else if(!strcmp("numeric", valueString)) {

@@ -1,19 +1,17 @@
 \name{reg.finalizer}
 \alias{reg.finalizer}
-\title{Finalization of Objects}
+\title{Finalization of objects}
 \description{
   Registers an \R function to be called upon garbage collection of
-  object or (optionally) at the end of an \R session.
+  object.
 }
 \usage{
-  reg.finalizer(e, f, onexit = FALSE)
+  reg.finalizer(e, f)
 }
 \arguments{
   \item{e}{Object to finalize. Must be environment or external pointer.}
   \item{f}{Function to call on finalization. Must accept a single argument,
     which will be the object to finalize.}
-  \item{onexit}{logical: should the finalizer be run if the object is
-    still uncollected at the end of the \R session?}
 }
 \value{
   \code{NULL}.

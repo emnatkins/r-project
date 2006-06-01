@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-05-12 08:44\n"
+"POT-Creation-Date: 2006-05-29 07:58\n"
 "PO-Revision-Date: 2006-04-16 19:17-0300\n"
 "Last-Translator: Fernando Henrique Ferraz P. da Rosa <feferraz@.ime.usp.br>\n"
 "Language-Team: Portuguese <ldp-br@bazar.conectiva.com.br>\n"
@@ -742,10 +742,6 @@ msgstr "nenhum valor de início especificado"
 msgid "unable to optimize from these starting value(s)"
 msgstr "não foi possível otimizar a partir desse(s) valore(s) iniciai(s)"
 
-#, fuzzy
-msgid "invalid argument 'lambda'"
-msgstr "argumento 'omit' inválido"
-
 msgid "link not recognised"
 msgstr "link não reconhecido"
 
@@ -804,13 +800,12 @@ msgstr ""
 "ou uma matriz com 2 colunas, onde a coluna 1 é o num. de sucessos e a coluna "
 "2 é o num. de fracassos"
 
-#, fuzzy
 msgid ""
 "link not available for quasibinomial family, available links are \"logit\", "
 "\"probit\", \"cloglog\", \"cauchit\" and \"log\""
 msgstr ""
-"ligação \"%s\" não disponível para família binomial, ligações disponíveis "
-"são \"logit\", \"\"probit\", \"cloglog\", \"cauchit\" e \"log\""
+"ligação \"%s\" não disponível para família quasibinomial, ligações "
+"disponíveis são \"logit\", \"\"probit\", \"cloglog\", \"cauchit\" e \"log\""
 
 msgid "for the quasibinomial family, y must be a vector of 0 and 1's"
 msgstr "para a família quasi-binomial, y deve ser um vetor de 0's e 1's"
@@ -959,9 +954,8 @@ msgstr "'family' não reconhecido"
 msgid "invalid 'method':"
 msgstr "'method' inválido:"
 
-#, fuzzy
 msgid "'weights' must be a numeric vector"
-msgstr "'y' deve ser um vetor numérico"
+msgstr "'weights' deve ser um vetor numérico"
 
 msgid "negative weights not allowed"
 msgstr "pesos negativos não permitidos"
@@ -1259,6 +1253,9 @@ msgid "prediction from a rank-deficient fit may be misleading"
 msgstr ""
 "predição a partir de um ajuste com posto deficiente pode ser engadonara"
 
+msgid "prediction intervals are only relevant to new data"
+msgstr ""
+
 msgid "'object' has no 'effects' component"
 msgstr "'object' não tem componente 'effects'"
 
@@ -1466,9 +1463,8 @@ msgstr "variável '%s' não é um fator"
 msgid "factor '%s' has new level(s) %s"
 msgstr "fator '%s' tem novo(s) nívei(s) %s"
 
-#, fuzzy
 msgid "'offset' must be numeric"
-msgstr "'x' deve ser numérico"
+msgstr "'offset' deve ser numérico"
 
 msgid "model frame and formula mismatch in model.matrix()"
 msgstr "estrutura do modelo e da fórmula incompatível em model.matrix()"
@@ -1546,6 +1542,10 @@ msgstr ""
 
 msgid "singular gradient matrix at initial parameter estimates"
 msgstr "matriz gradiente singular nas estimativas iniciais dos parâmetros"
+
+#, fuzzy
+msgid "'data' must be a list or an environment"
+msgstr "'newdata' deve ser uma matriz um data frame"
 
 msgid "Upper or lower bounds ignored unless algorithm = \"port\""
 msgstr ""
@@ -1651,6 +1651,9 @@ msgstr "'x' e 'y' não pareados"
 msgid "wrong number of columns in 'x'"
 msgstr "número de colunas errado em 'x'"
 
+msgid "cannot rescale a constant/zero column to unit variance"
+msgstr ""
+
 msgid "PCA applies only to numerical variables"
 msgstr "PCA se aplica somente para variáveis numéricas"
 
@@ -1678,6 +1681,9 @@ msgstr "tanto 'x' quando 'covmat' foram especificados: 'x' vai ser ignorado"
 
 msgid "'princomp' can only be used with more units than variables"
 msgstr "'princomp' só pode ser usado com mais unidades do que variáveis"
+
+msgid "cannot use cor=TRUE with a constant variable"
+msgstr ""
 
 msgid "covariance matrix is not non-negative definite"
 msgstr "matriz de covariância não é não-negativa definida"
@@ -2148,11 +2154,6 @@ msgid "there are %d Error terms: only 1 is allowed"
 msgid_plural "there are %d Error terms: only 1 is allowed"
 msgstr[0] "há %d termos Error: somente 1 é permitido"
 msgstr[1] "há %d termos Error: somente 1 é permitido"
-
-msgid "%d observation deleted due to missingness"
-msgid_plural "%d observations deleted due to missingness"
-msgstr[0] ""
-msgstr[1] ""
 
 msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"

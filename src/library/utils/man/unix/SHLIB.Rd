@@ -11,10 +11,8 @@
 }
 \arguments{
   \item{files}{a list specifying the object files to be included in the
-    shared library.  You can also include the name of source files (for
-    which the object files are automagically made from their sources)
-    and library linking commands.
-  }
+    shared library.  You can also include the name of source files, for
+    which the object files are automagically made from their sources.}
   \item{libname}{the full name of the shared library to be built,
     including the extension (typically \file{.so} on Unix systems).  If
     not given, the name of the library is taken from the first file.}
@@ -28,11 +26,6 @@
   \sQuote{Writing R Extensions} for how to customize it (for example to
   add \code{cpp} flags and to add libraries to the link step) and for
   details of some of its quirks.
-
-  Items in \code{files} with extensions \code{.c}, \code{.cpp},
-  \code{.cc}, \code{.C}, \code{.f}, \code{.f90} and \code{f95} are
-  regarded as source files, and those with extension \code{.o} as object
-  files.  All other items are passed to the linker. 
 }
 \note{
   Some binary distributions of \R have \code{SHLIB} in a separate
@@ -49,7 +42,4 @@
 
   The \sQuote{Writing R Extensions} manual.
 }
-\examples{\dontrun{
-R CMD SHLIB -o mylib.so a.f b.f -L/opt/acml3.1.0/gnu64/lib -lacml
-}}
 \keyword{utilities}

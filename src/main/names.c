@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2006  The R Development Core Team
+ *  Copyright (C) 1997--2005  The R Development Core Team
  *  Copyright (C) 2003, 2004  The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -587,8 +587,8 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"aqua.custom.print", do_aqua_custom_print, 0, 11, 2,   {PP_FUNCALL, PREC_FN,   0}},
 #endif
 {"parse",	do_parse,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
-{"save",	do_save,	0,	111,	6,	{PP_FUNCALL, PREC_FN,	0}},
-{"saveToConn",	do_saveToConn,	0,	111,	6,	{PP_FUNCALL, PREC_FN,	0}},
+{"save",	do_save,	0,	111,	5,	{PP_FUNCALL, PREC_FN,	0}},
+{"saveToConn",	do_saveToConn,	0,	111,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"load",	do_load,	0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"loadFromConn",do_loadFromConn,0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"loadFromConn2",do_loadFromConn2,0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
@@ -667,7 +667,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"environment",	do_envir,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"environment<-",do_envirgets,	0,	1,	2,	{PP_FUNCALL, PREC_LEFT,	1}},
 {"env2list",	do_env2list,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
-{"reg.finalizer",do_regFinaliz,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
+{"reg.finalizer",do_regFinaliz,	0,	1,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"options",	do_options,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"sink",	do_sink,	0,	111,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"sink.number",	do_sinknumber,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -680,10 +680,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"colMeans",	do_colsum,	1,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"rowSums",	do_colsum,	2,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"rowMeans",	do_colsum,	3,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
-{"Rprof",	do_Rprof,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
-{"Rprofmem",	do_Rprofmem,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
-{"memtrace",    do_memtrace,    0,      11,     1,      {PP_FUNCALL, PREC_FN,	0}},
-{"memuntrace",  do_memuntrace,  0,      11,     1,      {PP_FUNCALL, PREC_FN,	0}},
+{"Rprof",	do_Rprof,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"object.size",	do_objectsize,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"mem.limits",	do_memlimits,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"merge",	do_merge,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
@@ -856,7 +853,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"stdin", 	do_stdin,	0,      11,     0,      {PP_FUNCALL, PREC_FN,	0}},
 {"stdout", 	do_stdout,	0,      11,     0,      {PP_FUNCALL, PREC_FN,	0}},
 {"stderr", 	do_stderr,	0,      11,     0,      {PP_FUNCALL, PREC_FN,	0}},
-{"readLines", 	do_readLines,	0,      11,     4,      {PP_FUNCALL, PREC_FN,	0}},
+{"readLines", 	do_readLines,	0,      11,     3,      {PP_FUNCALL, PREC_FN,	0}},
 {"writeLines", 	do_writelines,	0,      11,     3,      {PP_FUNCALL, PREC_FN,	0}},
 {"readBin", 	do_readbin,	0,      11,     6,      {PP_FUNCALL, PREC_FN,	0}},
 {"writeBin", 	do_writebin,	0,      11,     4,      {PP_FUNCALL, PREC_FN,	0}},
@@ -982,7 +979,6 @@ static void SymbolShortcuts()
     R_DotEnvSymbol = install(".Environment");
     R_RecursiveSymbol = install("recursive");
     R_UseNamesSymbol = install("use.names");
-    R_RowNamesSymbol = install("row.names");
 }
 
 extern SEXP framenames; /* from model.c */

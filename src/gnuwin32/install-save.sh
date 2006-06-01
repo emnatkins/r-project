@@ -6,14 +6,11 @@ BUILD=$5
 RX_EXE=$6
 DPKG=$7
 
-R_SAVE_IMAGE=$1
+case $1 in
+    CHECK|'') if test -r install.R; then R_SAVE_IMAGE=true; else R_SAVE_IMAGE=false; fi;;
+    *) R_SAVE_IMAGE=$1;;
+esac
 export R_SAVE_IMAGE
-if test -r install.R; then 
-    echo "WARNING: use of install.R is no longer supported"
-fi
-if test -r R_PROFILE.R; then 
-    echo "WARNING: use of R_PROFILE.R is no longer supported"
-fi
 
 ## R_START_PACKAGES is set to NULL during bootstrapping
 R_DEFAULT_PACKAGES=${R_START_PACKAGES}
@@ -31,7 +28,7 @@ fi
 R_PACKAGE_NAME=${pkg}
 export R_PACKAGE_NAME
 
-if test "x${R_SAVE_IMAGE}" = "xtrue"; then
+if ${R_SAVE_IMAGE}; then
     echo "  save image"
     if test "x${BUILD}" = "xCROSS"; then
         mkdir -p ${lib1}/${pkg}
@@ -54,8 +51,9 @@ if test "x${R_SAVE_IMAGE}" = "xtrue"; then
         R_SAVE_EXE="--save"
     fi
     (echo "options(save.image.defaults=${save_image_defaults})"; \
+      if test -s R_PROFILE.R; then cat R_PROFILE.R; fi; \
       echo "invisible(.libPaths(c(.Library,\"${lib}\",.libPaths()))); .getRequiredPackages()"; \
-      ${code_cmd}) | ${R_EXE} ${R_SAVE_EXE} LC_ALL=C
+      ${code_cmd}) | ${R_EXE} ${R_SAVE_EXE}
     if test ${?} -ne 0; then
       echo "execution of package source for '${pkg}' failed"
       exit 1
@@ -70,4 +68,10 @@ if test "x${R_SAVE_IMAGE}" = "xtrue"; then
     rm "${code_file}"
     # mv "${code_file}" "${code_file}.R"
     cat "${R_HOME}/share/R/${loader_file}" > "${code_file}"
+    ## if install.R is non-empty, arrange to evaluate the R code it
+    ## contains after the package source (maybe for some kind of
+    ## cleanup).
+    if test -s install.R; then
+      cat install.R >> ${lib}/${pkg}/R/${pkg}
+    fi
 fi

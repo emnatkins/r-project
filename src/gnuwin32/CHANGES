@@ -4,35 +4,6 @@
 See the file NEWS for changes that affect all versions of R.
 
 
-R 2.4.0
-=======
-
-The language for menus and messages can be set in the 'Rconsole' file and
-(for future messages/sessions) from the GUI preferences.
-
-The initial setting for console buffering can be set in the 'Rconsole'
-file and (for future sessions) from the GUI preferences.
-
-Installing packages (in particular saving an image and preparing for
-lazy-loading and lazydata) is now done in a C locale for consistency
-with Unix.  (This will only possibly affect CJK locales, where some
-checks on the validity of symbols and strings might be
-locale-dependent.)
-
-
-C-level changes
----------------
-
-The C-level printf functions have been replaced by those from the trio
-library, which ensures a higher level of C99 compliance without the
-need for lots of Windows-specific workarounds.
-
-Entry points which are hidden in libR.so on Unix are now also hidden
-in R.dll.  (Just over half the entry points are hidden, which speeds up
-loading.)
-
-
-
 R 2.3.1
 =======
 

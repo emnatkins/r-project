@@ -24,7 +24,7 @@ load <- function (file, envir = parent.frame())
 save <- function(..., list = character(0),
                  file = stop("'file' must be specified"),
                  ascii = FALSE, version = NULL, envir = parent.frame(),
-                 compress = !ascii, eval.promises = TRUE)
+                 compress = !ascii)
 {
     opts <- getOption("save.defaults")
     if (missing(compress) && ! is.null(opts$compress))
@@ -36,8 +36,7 @@ save <- function(..., list = character(0),
     names <- as.character( substitute( list(...)))[-1]
     list<- c(list, names)
     if (! is.null(version) && version == 1)
-        invisible(.Internal(save(list, file, ascii, version, envir,
-                                 eval.promises)))
+        invisible(.Internal(save(list, file, ascii, version, envir)))
     else {
         if (is.character(file)) {
             if (file == "") stop("'file' must be non-empty string")
@@ -50,13 +49,12 @@ save <- function(..., list = character(0),
         else stop("bad file argument")
         if(isOpen(con) && summary(con)$text != "binary")
             stop("can only save to a binary connection")
-        invisible(.Internal(saveToConn(list, con, ascii, version, envir,
-                                       eval.promises)))
+        invisible(.Internal(saveToConn(list, con, ascii, version, envir)))
     }
 }
 
 save.image <- function (file = ".RData", version = NULL, ascii = FALSE,
-                        compress = !ascii, safe = TRUE) {
+                        compress = FALSE, safe = TRUE) {
     if (! is.character(file) || file == "")
         stop("'file' must be non-empty string")
 
@@ -65,10 +63,10 @@ save.image <- function (file = ".RData", version = NULL, ascii = FALSE,
 
     if (missing(safe) && ! is.null(opts$safe))
         safe <- opts$safe
-    if (missing(ascii) && ! is.null(opts$ascii))
-        ascii <- opts$ascii
     if (missing(compress) && ! is.null(opts$compress))
         compress <- opts$compress
+    if (missing(ascii) && ! is.null(opts$ascii))
+        ascii <- opts$ascii
     if (missing(version)) version <- opts$version
 
     if (safe) {

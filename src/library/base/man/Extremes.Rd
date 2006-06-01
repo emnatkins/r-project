@@ -15,7 +15,7 @@ pmax(\dots, na.rm=FALSE)
 pmin(\dots, na.rm=FALSE)
 }
 \arguments{
-  \item{\dots}{numeric arguments (see Note).}
+  \item{\dots}{numeric arguments.}
   \item{na.rm}{a logical indicating whether missing values should be
     removed.}
 }
@@ -27,9 +27,12 @@ pmin(\dots, na.rm=FALSE)
 
   The minimum and maximum of an empty set are \code{+Inf} and \code{-Inf}
   (in this order!) which ensures \emph{transitivity}, e.g.,
-  \code{min(x1, min(x2)) == min(x1, x2)}.  From \R version 1.5.0,
-  \code{max(x) == -Inf} and \code{min(x) == +Inf} whenever
-  \code{length(x) == 0} (after removing missing values if requested).
+  \code{min(x1, min(x2)) == min(x1,x2)}.
+  In \R versions before 1.5, \code{min(integer(0)) == .Machine$integer.max},
+  and analogously for \code{max}, preserving argument \emph{type},
+  whereas from \R version 1.5.0, \code{max(x) == -Inf} and
+  \code{min(x) == +Inf} whenever \code{length(x) == 0} (after removing
+  missing values if requested).
 
   If \code{na.rm} is \code{FALSE} an \code{NA} value in any of the
   arguments will cause a value of \code{NA} to be returned, otherwise
@@ -61,11 +64,6 @@ pmin(\dots, na.rm=FALSE)
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
   \emph{The New S Language}.
   Wadsworth \& Brooks/Cole.
-}
-\note{
-  \sQuote{Numeric} arguments are vectors of type integer and numeric,
-  and logical (coerced to integer).  For historical reasons, \code{NULL}
-  is accepted as equivalent to \code{integer(0)}.% PR#1283
 }
 \seealso{
   \code{\link{range}} (\emph{both} min and max) and

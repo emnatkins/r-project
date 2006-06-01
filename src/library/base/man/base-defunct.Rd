@@ -40,8 +40,6 @@
 \alias{delay}
 \alias{write.table0}
 \alias{format.char}
-\alias{La.chol}
-\alias{La.chol2inv}
 %
 \description{
   The functions or variables listed here are no longer part of \R as
@@ -108,10 +106,6 @@ delay(x, env = .GlobalEnv)
 % Removed in 2.3.0
 format.char(x, width = NULL, flag = "-")
 % </Removed 2.3.0>
-% Removed in 2.4.0
-La.chol(x)
-La.chol2inv(x, size = ncol(x))
-% </Removed 2.4.0>
 }
 \details{
   \code{category} has been an old-S function before there were factors;
@@ -186,9 +180,6 @@ La.chol2inv(x, size = ncol(x))
 
   \code{format.char} was an auxiliary function for \code{\link{formatC}}
   whose functionality (and more) is provided by \code{\link{format.default}}.
-
-  \code{La.chol} and \code{La.chol2inv} became the default methods for
-  \code{\link{chol}} and \code{\link{chol2inv}}.
 }
 \seealso{
   \code{\link{Defunct}}, \code{\link{base-deprecated}}

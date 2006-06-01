@@ -356,7 +356,7 @@ SEXP attribute_hidden do_strsplit(SEXP call, SEXP op, SEXP args, SEXP env)
     if(perl == NA_INTEGER) perl = 0;
 
 #ifdef SUPPORT_MBCS
-    if(!fixed && perl) {
+    if(perl) {
 	if(utf8locale) options = PCRE_UTF8;
 	else if(mbcslocale)
 	    warning(_("perl = TRUE is only fully implemented in UTF-8 locales"));
@@ -1197,7 +1197,7 @@ SEXP attribute_hidden do_regexpr(SEXP call, SEXP op, SEXP args, SEXP env)
     useBytes = asLogical(CAR(args)); args = CDR(args);
     if (useBytes == NA_INTEGER || !fixed_opt) useBytes = 0;
 
-    /* allow 'text' to be zero-length from 2.4.0 */
+    /* allow 'text' to be zero-length from 2.3.1 */
     if (length(pat) < 1) errorcall(call, R_MSG_IA);
     if (!isString(pat)) PROTECT(pat = coerceVector(pat, STRSXP));
     else PROTECT(pat);
@@ -1325,10 +1325,7 @@ static SEXP gregexpr_Regexc(const regex_t *reg, const char *string,
             st = regmatch[0].rm_so;
             INTEGER(matchbuf)[matchIndex] = st + 1; /* index from one */
             INTEGER(matchlenbuf)[matchIndex] = regmatch[0].rm_eo - st;
-            if (INTEGER(matchlenbuf)[matchIndex] == 0)
-                offset = st + 1;
-            else
-                offset = regmatch[0].rm_eo;
+            offset = st + 1;
 #ifdef SUPPORT_MBCS
             if(!useBytes && mbcslocale) {
                 int mlen = regmatch[0].rm_eo - st;
@@ -1405,8 +1402,8 @@ static SEXP gregexpr_fixed(char *pattern, char *string, int useBytes)
         INTEGER(matchbuf)[matchIndex] = st + 1; /* index from one */
         INTEGER(matchlenbuf)[matchIndex] = patlen;
         while(!foundAll) {
-            string += st + patlen;
-            curpos += st + patlen;
+            string += st + 1;
+            curpos += st + 1;
             st = fgrep_one(pattern, string, useBytes);
             if (st >= 0) {
                 if ((matchIndex + 1) == bufsize) {

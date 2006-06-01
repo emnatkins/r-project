@@ -311,9 +311,9 @@ char *askfilesavewithdir(char *title, char *default_name, char *dir)
 /*
  *  Some strings to use:
  */
-/*	static char * OKAY_STRING	= "OK";
+	static char * OKAY_STRING	= "OK";
 	static char * CANCEL_STRING	= "Cancel";
-	static char * BROWSE_STRING	= "Browse"; */
+	static char * BROWSE_STRING	= "Browse";
 
 	static char * QUESTION_TITLE	= "Question";
 	static char * PASSWORD_TITLE	= "Password Entry";
@@ -354,15 +354,53 @@ static void hit_button(control c)
 	hide(w);
 }
 
+#ifndef OLD
+
 static void browse_button(control c)
 {
     window w = parentwindow(c);
     dialog_data *d = data(w);
     char strbuf[MAX_PATH];
     strcpy(strbuf, gettext(d->text));
-    selectfolder(strbuf, G_("Choose a folder"));
+    selectfolder(strbuf);
     if(strlen(strbuf)) settext(d->text, strbuf);
 }
+#else
+static void browse_button(control c)
+{
+    window w = parentwindow(c);
+    dialog_data *d = data(w);
+
+    OPENFILENAME ofn;
+    char strbuf[_MAX_PATH] = "anything", *p;
+
+    ofn.lStructSize     = sizeof(OPENFILENAME);
+    ofn.hwndOwner       = 0;
+    ofn.hInstance       = 0;
+    ofn.lpstrFilter     = "All files (*.*)\0*.*\0\0";
+    ofn.lpstrCustomFilter = NULL;
+    ofn.nMaxCustFilter  = 0;
+    ofn.nFilterIndex    = 0;
+    ofn.lpstrFile       = strbuf;
+    ofn.nMaxFile        = _MAX_PATH;
+    ofn.lpstrFileTitle  = NULL;
+    ofn.nMaxFileTitle   = _MAX_FNAME + _MAX_EXT;
+    ofn.lpstrInitialDir = gettext(d->text);
+    ofn.lpstrTitle      = G_("Select working directory");
+    ofn.Flags           = OFN_HIDEREADONLY;
+    ofn.nFileOffset     = 0;
+    ofn.nFileExtension  = 0;
+    ofn.lpstrDefExt     = "";
+    ofn.lCustData       = 0L;
+    ofn.lpfnHook        = NULL;
+    ofn.lpTemplateName  = NULL;
+
+    if(GetSaveFileName(&ofn) && strlen(strbuf)) {
+	 p = strrchr(strbuf,'\\'); if(p) *p ='\0';
+	 settext(d->text, strbuf);
+    }
+}
+#endif
 
 static void hit_key(window w, int key)
 {
@@ -439,7 +477,7 @@ static window init_askstr_dialog(char *title, char *question,
 	if (! default_str)
 		default_str = "";
 
-	tw = strwidth(SystemFont, G_("Cancel")) * 8;
+	tw = strwidth(SystemFont, CANCEL_STRING) * 8;
 	h = getheight(SystemFont);
 
 	if (tw < 150) tw = 150;
@@ -452,9 +490,9 @@ static window init_askstr_dialog(char *title, char *question,
 	d->question = newlabel(question, rect(10,h,tw+4,h*2+2),
 			AlignLeft);
 	if (title == FINDDIR_TITLE) {
-	    bw = strwidth(SystemFont, G_("Browse")) * 3/2;
+	    bw = strwidth(SystemFont, G_(BROWSE_STRING)) * 3/2;
 	    d->text = newfield(default_str, rect(10,h*4,tw+4-bw,h*3/2));
-	    newbutton(G_("Browse"), rect(20+tw-bw, h*4-2, bw, h+10),
+	    newbutton(G_(BROWSE_STRING), rect(20+tw-bw, h*4-2, bw, h+10),
 		      browse_button);
 	}
 	else if (title == PASSWORD_TITLE)
@@ -463,13 +501,13 @@ static window init_askstr_dialog(char *title, char *question,
 		d->text = newfield(default_str, rect(10,h*4,tw+4,h*3/2));
 
 	middle = (tw+30)/2;
-	bw = strwidth(SystemFont, G_("Cancel")) * 3/2;
+	bw = strwidth(SystemFont, CANCEL_STRING) * 3/2;
 
-	d->yes = newbutton(G_("OK"),
+	d->yes = newbutton(OKAY_STRING,
 			rect(middle-bw-10, h*7, bw, h+10), hit_button);
 	setvalue(d->yes, YES);
 
-	d->cancel = newbutton(G_("Cancel"),
+	d->cancel = newbutton(CANCEL_STRING,
 			rect(middle+10, h*7, bw, h+10), hit_button);
 	setvalue(d->cancel, CANCEL);
 
@@ -544,7 +582,7 @@ char *askUserPass(char *title)
     if (! win) {
 	int tw, bw, h, middle;
 
-	tw = strwidth(SystemFont, G_("Cancel")) * 8;
+	tw = strwidth(SystemFont, CANCEL_STRING) * 8;
 	h = getheight(SystemFont);
 	if (tw < 150) tw = 150;
 	win = newwindow(title, rect(0, 0, tw+30, h*9+12),
@@ -558,14 +596,14 @@ char *askUserPass(char *title)
 	newlabel(_("Password"), rect(10, h*4, tw+4, h*2+2), AlignLeft);
 	d->pass = newpassword("", rect(20+bw, h*4, tw-6-bw, h*3/2));
 	middle = (tw+30)/2;
-	bw = strwidth(SystemFont, G_("Cancel")) * 3/2;
+	bw = strwidth(SystemFont, CANCEL_STRING) * 3/2;
 
-	d->yes = newbutton(G_("OK"),
-			   rect(middle-bw-10, h*7, bw, h+10), hit_button);
+	d->yes = newbutton(OKAY_STRING,
+			rect(middle-bw-10, h*7, bw, h+10), hit_button);
 	setvalue(d->yes, YES);
 
-	d->cancel = newbutton(G_("Cancel"),
-			      rect(middle+10, h*7, bw, h+10), hit_button);
+	d->cancel = newbutton(CANCEL_STRING,
+			rect(middle+10, h*7, bw, h+10), hit_button);
 	setvalue(d->cancel, CANCEL);
 
 	setkeydown(win, hit_key);

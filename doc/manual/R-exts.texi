@@ -144,13 +144,14 @@ A package consists of a subdirectory containing a file
 @file{demo}, @file{exec}, @file{inst}, @file{man}, @file{po},
 @file{src}, and @file{tests} (some of which can be missing).  The
 package subdirectory may also contain files @file{INDEX},
+@file{install.R} (deprecated), @file{R_PROFILE.R} (deprecated),
 @file{NAMESPACE}, @file{configure}, @file{cleanup}, and @file{COPYING}.
 Other files such as @file{README}, @file{NEWS} or @file{ChangeLog} will
 be ignored by @R{}, but may be useful to end-users.
 
-The @file{DESCRIPTION} and @file{INDEX} files are described in the
-sections below.  The @file{NAMESPACE} file is described in @ref{Package
-name spaces}.
+The @file{DESCRIPTION}, @file{INDEX}, @file{install.R} and
+@file{R_PROFILE.R} files are described in the sections below.  The
+@file{NAMESPACE} file is described in @ref{Package name spaces}.
 
 @cindex configure file
 @cindex cleanup file
@@ -195,6 +196,7 @@ structure for a new package: see its help page for details.
 @menu
 * The DESCRIPTION file::        
 * The INDEX file::              
+* The install.R and R_PROFILE.R files::  
 * Package subdirectories::      
 * Package bundles::             
 @end menu
@@ -363,8 +365,8 @@ options of @code{R CMD INSTALL}, @samp{--[no-]lazy} and
 @samp{--[no-]lazy-data}.
 
 The optional @samp{SaveImage} field controls whether the @R{} objects
-are stored in a saved image.  (It takes the same values as the field
-@samp{LazyLoad}.)
+are stored in a saved image @pxref{The install.R and R_PROFILE.R files}.
+(It takes the same values as the field @samp{LazyLoad}.)
 
 If the package you are writing uses the @pkg{methods} package, specify
 (preferably) @samp{LazyLoad: yes} or @samp{SaveImage: yes}.
@@ -390,7 +392,7 @@ added by the package management tools.
 @end quotation
 
 
-@node The INDEX file, Package subdirectories, The DESCRIPTION file, Package structure
+@node The INDEX file, The install.R and R_PROFILE.R files, The DESCRIPTION file, Package structure
 @subsection The @file{INDEX} file
 @cindex INDEX file
 
@@ -408,7 +410,41 @@ information about the package into an overview man page
 (@pxref{Documenting packages}) and/or a vignette (@pxref{Writing package
 vignettes}).
 
-@node Package subdirectories, Package bundles, The INDEX file, Package structure
+@node The install.R and R_PROFILE.R files, Package subdirectories, The INDEX file, Package structure
+@subsection The @file{install.R} and @file{R_PROFILE.R} files
+@cindex install.R file
+@cindex R_PROFILE.R file
+
+@strong{NB:} This mechanism is now deprecated and will be removed at
+@R{} 2.4.0.
+
+The optional file @file{install.R} serves two purposes.  First, its
+presence tells the @code{INSTALL} utility to create a binary image of the
+package workspace.  A binary image is created by executing the code in
+the @file{R} subdirectory and saving the resulting objects.  When the
+package is attached, the code is not executed again but @code{load}ed
+from the saved image.  It is preferable to use the @samp{SaveImage}
+field in the @file{DESCRIPTION} file, which takes precedence over the
+presence of an @file{install.R} file.
+
+The second purpose for @file{install.R} is to hold code that needs to be
+executed each time the package is attached, before the image is
+loaded.  Very few packages have a need for such code.
+
+The optional file @file{R_PROFILE.R} is executed before the code in the
+@file{R} subdirectory when saving an image or preparing for
+lazy-loading, and should be used to set up an environment needed only to
+evaluate the code (which is run with the @option{--vanilla} command-line
+flag).  Packages should not need such code, as the packages in the
+@samp{Depends} field should suffice.
+
+Both @file{install.R} and @file{R_PROFILE.R} should be viewed as
+experimental; the mechanism to execute code before attaching or
+installing the package may change in the near future.  With the other
+facilities available as from @R{} 2.0.0 they should be removed if possible.
+
+
+@node Package subdirectories, Package bundles, The install.R and R_PROFILE.R files, Package structure
 @subsection Package subdirectories
 @cindex Package subdirectories
 
@@ -1101,9 +1137,7 @@ To allow a @file{configure} script to generate suitable files, files
 ending in @samp{.in} will be allowed in the @file{R} directory.
 
 @item
-The R files are checked for syntax errors.  Bytes which are non-ASCII
-are reported as warnings, but these should be regarded as errors unless
-it is known that the package will always be used in the same locale.
+The R files are checked for syntax errors.
 
 @item
 The R files are checked for correct calls to @code{library.dynam} (with
@@ -3318,8 +3352,7 @@ Rd2dvi} also the tools to build packages from source as described in the
 
 @menu
 * Tidying R code::              
-* Profiling R code for speed::  
-* Profiling R code for memory use::  
+* Profiling R code::            
 * Profiling compiled code::     
 @end menu
 
@@ -3328,7 +3361,7 @@ available for others to use is worth documenting, tidying up and perhaps
 optimizing. The last two of these activities are the subject of this
 chapter.
 
-@node Tidying R code, Profiling R code for speed, Tidying and profiling R code, Tidying and profiling R code
+@node Tidying R code, Profiling R code, Tidying and profiling R code, Tidying and profiling R code
 @section Tidying R code
 @cindex Tidying R code
 
@@ -3394,8 +3427,8 @@ See @ref{R coding standards} for style options within the ESS[S] mode
 recommended for the source code of @R{} itself.
 
 
-@node Profiling R code for speed, Profiling R code for memory use, Tidying R code, Tidying and profiling R code
-@section Profiling R code for speed
+@node Profiling R code, Profiling compiled code, Tidying R code, Tidying and profiling R code
+@section Profiling R code
 @cindex Profiling
 @findex Rprof
 
@@ -3509,155 +3542,7 @@ will charge to whichever function happens to provoke it.  It may be
 useful to compare profiling code immediately after a call to @code{gc()}
 with a profiling run without a preceding call to @code{gc}.
 
-@node Profiling R code for memory use, Profiling compiled code, Profiling R code for speed, Tidying and profiling R code
-@section Profiling R code for memory use
-@cindex Profiling
-@cindex Memory use
-
-Measuring memory use in @R{} code is useful either when the code takes
-more memory than is conveniently available or when memory allocation
-and copying of objects is responsible for slow code. There are three
-ways to profile memory use over time in @R{} code. All three require
-@R{} to have been compiled with @code{R_MEMORY_PROFILING} defined. All
-can be misleading, for different reasons.
-
-In understanding the memory profiles it is useful to know a little
-more about @R{}'s memory allocation. Looking at the results of
-@code{gc()} shows a division of memory into @code{Vcells} used to
-store the contents of vectors and @code{Ncells} used to store
-everything else, including all the administrative overhead for vectors
-such as type and length information.  In fact the vector contents are
-divided into two pools. Memory for small vectors (by default 128 bytes
-or less) is obtained in large chunks and then parcelled out by R;
-memory for larger vectors is obtained directly from the operating
-system.
-
-Some memory allocation is obvious in interpreted code, for example,
-@smallexample
-y <- x + 1
-@end smallexample
-@noindent
-allocates memory for a new vector @code{y}. Other memory allocation is
-less obvious and occurs because @code{R} is forced to make good on its
-promise of `call-by-value' argument passing.  When an argument is
-passed to a function it is not immediately copied. Copying occurs (if
-necessary) only when the argument is modified.  This can lead to
-surprising memory use. For example, in the `survey' package we have
-@smallexample
-print.svycoxph <- function (x, ...)
-@{
-    print(x$survey.design, varnames = FALSE, design.summaries = FALSE,
-        ...)
-    x$call <- x$printcall
-    NextMethod()
-@}
-@end smallexample
-@noindent
-It may not be obvious that the assignment to @code{x$call} will cause
-the entire object @code{x} to be copied.  This copying to preserve the
-call-by-value illusion is usually done by the internal C function
-@code{duplicate}.
-
-The main reason that memory-use profiling is difficult is garbage
-collection. Memory is allocated at well-defined times in an @R{}
-program, but is freed whenever the garbage collector happens to run.
-
-@menu
-* Memory statistics from Rprof::
-* Tracking memory allocations::                     
-* Tracing copies of an object::                     
-@end menu
-
-@node Memory statistics from Rprof, Tracking memory allocations, , Profiling R code for memory use
-@subsection Memory statistics from @code{Rprof}
-@findex Rprof
-@findex summaryRprof
-
-The sampling profiler @code{Rprof} described in the previous section
-can be given the option @code{memory.profiling=TRUE}. It then writes
-the total @R{} memory allocation in small vectors, large vectors, and
-cons cells or nodes at each sampling interval. It also writes out the
-number of calls to the internal function @code{duplicate}, which is
-called to copy R objects. @code{summaryRprof} provides summaries of
-this information.  The main reason that this can be misleading is that
-the memory use is attributed to the function running at the end of the
-sampling interval. A second reason is that garbage collection can make
-the amount of memory in use decrease, so a function appears to use
-little memory. Running under @code{gctorture} helps with both
-problems: it slows down the code to effectively increase the sampling
-frequency and it makes each garbage collection release a smaller of
-memory.  Changing the memory limits with @code{mem.limits()} may also
-be useful, to see how the code would run under different memory
-conditions.
-
-@node Tracking memory allocations, Tracing copies of an object, Memory statistics from Rprof, Profiling R code for memory use
-@subsection Tracking memory allocations
-@findex Rprofmem
-
-The second method of memory profiling uses a memory-allocation
-profiler, @code{Rprofmem()}, which writes out a stack trace to an
-output file every time a large vector is allocated (with a
-user-specified threshold for `large') or a new page of memory is
-allocated for the R heap. Summary functions for this output are still
-being designed. 
-
-Running the example from the previous section with
-@smallexample
-> Rprofmem("boot.memprof",threshold=1000)
-> storm.boot <- boot(rs, storm.bf, R = 4999)
-> Rprofmem(NULL)
-@end smallexample
-@noindent
-shows that apart from some initial and final work in @code{boot} there
-are no vector allocations over 1000 bytes.
-
-@node  Tracing copies of an object, , Tracking memory allocations, Profiling R code for memory use
-@subsection Tracing copies of an object
-@findex tracemem
-@findex untracemem
-
-The third method of memory profiling involves tracing copies made of a specific
-(presumably large) R object. Calling @code{tracemem} on an object
-marks it so that a message is printed to standard output when the
-object is copied. This approach can be misleading because not all
-memory allocation happens via @code{duplicate}, and because
-@code{duplicate} may be called on a component of an object such as a
-data frame rather than on the whole object. It may be helpful to use
-@code{tracemem} on these components.
-
-
-In the example above we can run @code{tracemem} on the data frame @code{st}
-@smallexample
-> tracemem(st)
-[1] "<0x9abd5e0>"
-> storm.boot <- boot(rs, storm.bf, R = 4)
-memtrace[0x9abd5e0->0x92a6d08]: statistic boot
-memtrace[0x92a6d08->0x92a6d80]: $<-.data.frame $<- statistic boot
-memtrace[0x92a6d80->0x92a6df8]: $<-.data.frame $<- statistic boot
-memtrace[0x9abd5e0->0x9271318]: statistic boot
-memtrace[0x9271318->0x9271390]: $<-.data.frame $<- statistic boot
-memtrace[0x9271390->0x9271408]: $<-.data.frame $<- statistic boot
-memtrace[0x9abd5e0->0x914f558]: statistic boot
-memtrace[0x914f558->0x914f5f8]: $<-.data.frame $<- statistic boot
-memtrace[0x914f5f8->0x914f670]: $<-.data.frame $<- statistic boot
-memtrace[0x9abd5e0->0x972cbf0]: statistic boot
-memtrace[0x972cbf0->0x972cc68]: $<-.data.frame $<- statistic boot
-memtrace[0x972cc68->0x972cd08]: $<-.data.frame $<- statistic boot
-memtrace[0x9abd5e0->0x98ead98]: statistic boot
-memtrace[0x98ead98->0x98eae10]: $<-.data.frame $<- statistic boot
-memtrace[0x98eae10->0x98eae88]: $<-.data.frame $<- statistic boot
-@end smallexample
-@noindent
-The object is duplicated fifteen times, three times for each of the
-@code{R+1} calls to @code{storm.bf}.  This is surprising, since none of the duplications happen inside @code{nls}. Stepping through @code{storm.bf} in the debugger shows that all three happen in the line
-@smallexample
-st$Time <- st$fit + rs[i]
-@end smallexample
-Data frames are slower than matrices and this is an example of why.
-Using @code{tracemem(st$Viscosity)} does not reveal any additional
-copying.
-
-@node Profiling compiled code,  , Profiling R code for memory use, Tidying and profiling R code
+@node Profiling compiled code,  , Profiling R code, Tidying and profiling R code
 @section Profiling compiled code
 @cindex Profiling
 
@@ -4270,47 +4155,6 @@ speed. Level 2 will detect many other memory use bugs but makes @R{}
 much slower when running under @code{valgrind}.  Using this in
 conjuction with @code{gctorture} can be even more effective (and even
 slower).
-
-An example of @code{valgrind} output is
-@smallexample
-==12539== Invalid read of size 4
-==12539==    at 0x1CDF6CBE: csc_compTr (Mutils.c:273)
-==12539==    by 0x1CE07E1E: tsc_transpose (dtCMatrix.c:25)
-==12539==    by 0x80A67A7: do_dotcall (dotcode.c:858)
-==12539==    by 0x80CACE2: Rf_eval (eval.c:400)
-==12539==    by 0x80CB5AF: R_execClosure (eval.c:658)
-==12539==    by 0x80CB98E: R_execMethod (eval.c:760)
-==12539==    by 0x1B93DEFA: R_standardGeneric (methods_list_dispatch.c:624)
-==12539==    by 0x810262E: do_standardGeneric (objects.c:1012)
-==12539==    by 0x80CAD23: Rf_eval (eval.c:403)
-==12539==    by 0x80CB2F0: Rf_applyClosure (eval.c:573)
-==12539==    by 0x80CADCC: Rf_eval (eval.c:414)
-==12539==    by 0x80CAA03: Rf_eval (eval.c:362)
-==12539==  Address 0x1C0D2EA8 is 280 bytes inside a block of size 1996 alloc'd
-==12539==    at 0x1B9008D1: malloc (vg_replace_malloc.c:149)
-==12539==    by 0x80F1B34: GetNewPage (memory.c:610)
-==12539==    by 0x80F7515: Rf_allocVector (memory.c:1915)
-...
-@end smallexample
-@noindent
-This example is from an instrumented version of R, while tracking down
-a bug in the `Matrix' package in January, 2006. The first line
-indicates that @R{} has tried to read 4 bytes from a memory address
-that it does not have access to. This is followed by a C stack trace
-showing where the error occurred. Next is a description of the memory
-that was accessed. It is inside a block allocated by @code{malloc},
-called from @code{GetNewPage}, that is, in the internal R heap.  Since
-this memory all belongs to @R{}, @code{valgrind} would not (and did not)
-detect the problem in an uninstrumented build of @R{}.  In this
-example the stack trace was enough to isolate and fix the bug, which
-was in @code{tsc_transpose}, and in this example running under
-@code{gctorture()} did not provide any additional information. When
-the stack trace is not sufficiently informative the option
-@code{--db-attach=yes} to @code{valgrind} may be helpful. This starts a
-post-mortem debugger (by default @code{gdb}) so that variables in the
-C code can be inspected (@pxref{Inspecting R objects}).
-
-
 
 It is possible to run all the examples, tests and vignettes covered by
 @code{R CMD check} under @code{valgrind} by using the option
@@ -5005,11 +4849,11 @@ Under Unix, shared objects for loading into @R{} can be created using
 @command{R CMD SHLIB}.  This accepts as arguments a list of files which
 must be object files (with extension @file{.o}) or C, C++, or FORTRAN
 sources (with extensions @file{.c}, @file{.cc} or @file{.cpp} or
-!@file{.C}, and @file{.f} or @file{.f90} or @file{.f95}, respectively) or
-commands to be passed to the linker.  See @kbd{R CMD SHLIB --help}, or
-the on-line help for @code{SHLIB}, for usage information.  If compiling
-the source files does not work ``out of the box'', you can specify
-additional flags by setting some of the variables
+@file{.C}, and @file{.f} or @file{.f90} or @file{.f95}, respectively).
+See @kbd{R CMD SHLIB --help}, or the on-line help for @code{SHLIB}, for
+usage information.  If compiling the source files does not work ``out of
+the box'', you can specify additional flags by setting some of the
+variables
 @vindex PKG_CPPFLAGS
 @code{PKG_CPPFLAGS} (for the C preprocessor, typically @samp{-I} flags),
 @vindex PKG_CFLAGS
@@ -5024,8 +4868,7 @@ create the object files directly from the command line).
 Similarly, variable @code{PKG_LIBS} in @file{Makevars} can be used for
 additional @samp{-l} and @samp{-L} flags to be passed to the linker when
 building the shared object.  (On most systems the @code{PKG_*} flags can
-be set in the environment instead of in @file{Makevars}, but they can
-also be set as part of the command line of @command{R CMD SHLIB}.)
+be set in the environment instead of in @file{Makevars}.)
 
 Flags which are set in file @file{etc/Makeconf} can be overridden by the
 environment variable @env{MAKEFLAGS} (at least for systems using
@@ -9064,6 +8907,7 @@ UseMethod  invisible  standardGeneric
 .C         .Fortran   .Call       .External
 .Call.graphics        .External.graphics
 .subset    .subset2   .primTrace  .primUntrace
+reg.finalizer
 @end group
 @end example
 

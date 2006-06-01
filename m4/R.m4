@@ -903,27 +903,6 @@ if test "${r_cv_prog_f77_append_underscore}" = yes; then
             [Define if your Fortran compiler appends an underscore to
              external names.])
 fi
-AC_MSG_CHECKING([whether ${F77} appends extra underscores to external names])
-AC_CACHE_VAL([r_cv_prog_f77_append_second_underscore],
-[case "${ac_cv_f77_mangling}" in
-  *", extra underscore")
-    r_cv_prog_f77_append_second_underscore=yes
-    ;;
-  *", no extra underscore")
-    r_cv_prog_f77_append_second_underscore=no
-    ;;
-esac])
-if test -n "${r_cv_prog_f77_append_second_underscore}"; then
-  AC_MSG_RESULT([${r_cv_prog_f77_append_second_underscore}])
-else
-  AC_MSG_RESULT([unknown])
-  AC_MSG_ERROR([cannot use Fortran])
-fi
-if test "${r_cv_prog_f77_append_second_underscore}" = yes; then
-  AC_DEFINE(HAVE_F77_EXTRA_UNDERSCORE, 1,
-            [Define if your Fortran compiler appends an extra_underscore to
-             external names containing an underscore.])
-fi
 ])# R_PROG_F77_APPEND_UNDERSCORE
 
 ## R_PROG_F77_CAN_RUN
@@ -2953,16 +2932,12 @@ if test "$want_mbcs_support" = yes ; then
 fi
 ## it seems IRIX has wctrans but not wctrans_t: we check this when we
 ## know we have the headers and wctrans().
-## Also Solaris 2.6 (very old) seems to be missing mbstate_t
 if test "$want_mbcs_support" = yes ; then
-  AC_CHECK_TYPES([wctrans_t, mbstate_t], , , [#include <wchar.h>
+  AC_CHECK_TYPES([wctrans_t], , , [#include <wchar.h>
        #include <wctype.h>])
   if test $ac_cv_type_wctrans_t != yes; then
     want_mbcs_support=no
   fi 
-  if test $ac_cv_type_mbstate_t != yes; then
-    want_mbcs_support=no
-  fi
 fi
 if test "x${want_mbcs_support}" = xyes; then
 AC_DEFINE(SUPPORT_UTF8, 1, [Define this to enable support for UTF-8 locales.])

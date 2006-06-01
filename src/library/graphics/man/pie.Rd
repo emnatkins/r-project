@@ -13,9 +13,8 @@ pie(x, labels = names(x), edges = 200, radius = 0.8,
 \arguments{
   \item{x}{a vector of positive quantities.
     The values in \code{x} are displayed as the areas of pie slices.}
-  \item{labels}{one or more expressions or character strings giving
-    names for the slices.  For empty or \code{NA} (after coercion to
-    character) labels, no label and pointing line is drawn.}
+  \item{labels}{a vector of character strings giving names for the
+    slices.  For empty or NA labels, no pointing line is drawn either.}
   \item{edges}{the circular outline of the pie is approximated by a
     polygon with this many edges.}
   \item{radius}{the pie is drawn centered in a square box whose sides

@@ -52,7 +52,7 @@ getOption(x)
       many (simulated) smooths should be added.  This is currently only
       used by \code{\link[stats]{plot.lm}}.}
 
-      \item{\code{check.bounds}:}{logical, defaulting to \code{FALSE}.  If
+    \item{\code{check.bounds}:}{logical, defaulting to \code{FALSE}.  If
       true, a \link{warning} is produced whenever a \dQuote{generalized
       vector} (atomic or \code{\link{list}}) is extended, by something
       like \code{x <- 1:3; x[5] <- 6}.}
@@ -165,11 +165,10 @@ getOption(x)
       \env{R\_PAPERSIZE} when \R is started: if that is unset or invalid
       it defaults to
 #ifdef unix
-      a value derived from the locale category \code{LC_PAPER}, or
-      if that is unavailable to a default set when \R was built.}
+      \code{"a4"}.}
 #endif
 #ifdef windows
-      \code{"a4"}, or \code{"letter"} in US and Canadian locales.}
+    \code{"a4"}, or \code{"letter"} in US and Canadian locales.}
 #endif
 
     \item{\code{printcmd}:}{the command used by \code{\link{postscript}}
@@ -193,9 +192,6 @@ getOption(x)
     \item{\code{show.error.messages}:}{a logical.  Should error messages
       be printed?  Intended for use with \code{\link{try}} or a
       user-installed error handler.}
-
-    \item{\code{stringsAsFactors}:}{The default setting for arguments of
-      \code{\link{data.frame}} and \code{\link{read.table}}.}
 
     \item{\code{texi2dvi}:}{used by the unexported function
       \code{texi2dvi} in namespace \pkg{tools}.}
@@ -358,9 +354,6 @@ getOption(x)
     \item{\code{editor}:}{sets the default text editor, e.g., for
       \code{\link{edit}}.  Set from the environment variable
       \code{VISUAL} on UNIX.}
-
-    \item{\code{example.ask}:}{default for the \code{ask} argument of
-      \code{\link{example}}.}
 
     \item{\code{help.try.all.packages}:}{default for an argument of
       \code{\link{help}}.}
