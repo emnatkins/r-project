@@ -1,0 +1,46 @@
+\name{attr}
+\alias{attr}
+\alias{attr<-}
+\title{Object Attributes}
+\description{
+  Get or set specific attributes of an object.
+}
+\usage{
+attr(x, which)
+attr(x, which) <- value
+}
+\arguments{
+  \item{x}{an object whose attributes are to be accessed.}
+  \item{which}{a character string specifying which attribute is to be
+    accessed.}
+  \item{value}{an object, the new value of the attribute, or \code{NULL}
+    to remove the attribute.}
+}
+\value{
+  These functions provide access to a single attribute of an object.  The
+  first form returns the value of the named attribute.  The
+  replacement form causes the named attribute to take the value specified.
+
+  The first form first looks for an exact match to \code{which} amongst the
+  attributes of \code{x}, then a partial match.  If no exact match is
+  found and more than one partial match is found, the result is \code{NULL}.
+
+  Note that some attributes (namely \code{class}, \code{comment},
+  \code{dim}, \code{dimnames}, \code{names}, (from \R 2.4.0) \code{row.names}
+  and \code{tsp}) are treated specially and have restrictions on the
+  values which can be set.
+}
+\references{
+  Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
+  \emph{The New S Language}.
+  Wadsworth \& Brooks/Cole.
+}
+\seealso{
+  \code{\link{attributes}}
+}
+\examples{
+# create a 2 by 5 matrix
+x <- 1:10
+attr(x,"dim") <- c(2, 5)
+}
+\keyword{attribute}
