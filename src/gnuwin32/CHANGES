@@ -4,17 +4,6 @@
 See the file NEWS for changes that affect all versions of R.
 
 
-R 2.5.0
-=======
-
-There is a new menu item in Rgui to 'Stop all computations' which
-kills all R computations immediately, skips any on.exit conditions and
-returns to the comand prompt.
-
-More of the messages from the script editor are translatable.
-
-
-
 R 2.4.0
 =======
 

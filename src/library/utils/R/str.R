@@ -24,12 +24,6 @@ str.data.frame <- function(object, ...)
     else invisible(NextMethod("str", give.length=FALSE,...))
 }
 
-str.POSIXt <- function(object, ...) {
-    cl <- oldClass(object)
-    cat("'", cl[min(2, length(cl))],"', format:", sep = "")
-    str(format(object), ...)
-}
-
 strOptions <- function(strict.width = "no", digits.d = 3, vec.len = 4)
     list(strict.width = strict.width, digits.d = digits.d, vec.len = vec.len)
 
@@ -352,7 +346,7 @@ str.default <-
 	    if(give.mode) str1 <- P0(str1, ', mode "', mod,'":')
 
 	} else if(is.logical(object)) {
-	    v.len <- 1.5 * v.len # was '3' originally (but S prints 'T' 'F' ..)
+	    v.len <- 3 * v.len
 	    format.fun <- format
 	} else if(is.numeric(object)) {
 	    iv.len <- round(2.5 * v.len)

@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.5.0\n"
+"Project-Id-Version: R 2.4.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-09-26 14:40\n"
-"PO-Revision-Date: 2006-09-26 14:40\n"
+"POT-Creation-Date: 2006-09-26 14:33\n"
+"PO-Revision-Date: 2006-09-26 14:33\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -44,12 +44,6 @@ msgstr "See help(“Defunct”) and help(“%s-defunct”)."
 
 msgid "See help(\"Defunct\")"
 msgstr "See help(“Defunct”)"
-
-msgid "'symbol.C' is not needed: please remove it"
-msgstr "‘symbol.C’ is not needed: please remove it"
-
-msgid "'symbol.For' is not needed: please remove it"
-msgstr "‘symbol.For’ is not needed: please remove it"
 
 msgid "'%s' is deprecated."
 msgstr "‘%s’ is deprecated."
@@ -636,6 +630,9 @@ msgstr "‘subset’ must evaluate to logical"
 msgid "'subset' must be logical"
 msgstr "‘subset’ must be logical"
 
+msgid "'form' must be a two-sided formula"
+msgstr "‘form’ must be a two-sided formula"
+
 msgid "value for '"
 msgstr "value for '"
 
@@ -1129,6 +1126,39 @@ msgstr "‘k’ is too large"
 msgid "need larger value of 'ncol' as pivoting occurred"
 msgstr "need larger value of ‘ncol’ as pivoting occurred"
 
+msgid "no lines available in input"
+msgstr "no lines available in input"
+
+msgid "empty beginning of file"
+msgstr "empty beginning of file"
+
+msgid "header and 'col.names' are of different lengths"
+msgstr "header and ‘col.names’ are of different lengths"
+
+msgid "more columns than column names"
+msgstr "more columns than column names"
+
+msgid "more column names than columns"
+msgstr "more column names than columns"
+
+msgid "first five rows are empty: giving up"
+msgstr "first five rows are empty: giving up"
+
+msgid "not all columns named in 'colClasses' exist"
+msgstr "not all columns named in ‘colClasses’ exist"
+
+msgid "invalid numeric 'as.is' expression"
+msgstr "invalid numeric ‘as.is’ expression"
+
+msgid "not all columns named in 'as.is' exist"
+msgstr "not all columns named in ‘as.is’ exist"
+
+msgid "'as.is' has the wrong length %d  != cols = %d"
+msgstr "‘as.is’ has the wrong length %d  != cols = %d"
+
+msgid "invalid 'row.names' specification"
+msgstr "invalid ‘row.names’ specification"
+
 msgid "'x' must be a vector"
 msgstr "‘x’ must be a vector"
 
@@ -1328,6 +1358,27 @@ msgstr "No traceback available"
 
 msgid "argument to 'which' is not logical"
 msgstr "argument to ‘which’ is not logical"
+
+msgid "'quote' must be 'TRUE', 'FALSE' or numeric"
+msgstr "‘quote’ must be 'TRUE', ‘FALSE’ or numeric"
+
+msgid "invalid numbers in 'quote'"
+msgstr "invalid numbers in ‘quote’"
+
+msgid "invalid 'quote' specification"
+msgstr "invalid ‘quote’ specification"
+
+msgid "col.names = NA makes no sense when row.names = FALSE"
+msgstr "col.names = NA makes no sense when row.names = FALSE"
+
+msgid "invalid 'col.names' specification"
+msgstr "invalid ‘col.names’ specification"
+
+msgid "appending column names to file"
+msgstr "appending column names to file"
+
+msgid "attempt to change '%s' ignored"
+msgstr "attempt to change ‘%s’ ignored"
 
 msgid "invalid 'digits'"
 msgstr "invalid ‘digits’"

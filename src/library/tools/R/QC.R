@@ -735,7 +735,7 @@ function(x, ...)
             paste("function(", paste(s, collapse = ", "), ")", sep = "")
         else {
             s <- paste(deparse(s), collapse = "")
-            s <- gsub(" = ([,\\)])", "\\1", s)
+            s <- gsub(" = \([,\\)]\)", "\\1", s)
             gsub("^list", "function", s)
         }
     }
@@ -867,7 +867,7 @@ function(package, lib.loc = NULL)
 
     ## Build Rd data base.
     db <- Rd_db(package, lib.loc = dirname(dir))
-    db <- lapply(db, Rd_pp)
+    db <- lapply(db, function(f) Rd_pp(f))
 
     ## Need some heuristics now.  When does an Rd object document just
     ## one S4 class so that we can compare (at least) the slot names?
@@ -909,7 +909,7 @@ function(package, lib.loc = NULL)
         txt <- unlist(sapply(txt, get_Rd_items))
         if(!length(txt)) return(character())
         ## And now strip enclosing '\code{...}:'
-        txt <- gsub("\\\\code\\{([^}]*)\\}:?", "\\1", as.character(txt))
+        txt <- gsub("\\\\code\\{([^\}]*)\\}:?", "\\1", as.character(txt))
         txt <- unlist(strsplit(txt, ", *"))
         txt <- sub("^[[:space:]]+", "", txt)
         txt <- sub("[[:space:]]+$", "", txt)
@@ -1006,7 +1006,7 @@ function(package, lib.loc = NULL)
 
     ## Build Rd data base.
     db <- Rd_db(package, lib.loc = dirname(dir))
-    db <- lapply(db, Rd_pp)
+    db <- lapply(db, function(f) Rd_pp(f))
 
     ## Need some heuristics now.  When does an Rd object document a
     ## data.frame (could add support for other classes later) variable
@@ -1170,7 +1170,7 @@ function(package, dir, lib.loc = NULL)
     else
         Rd_db(dir = dir)
 
-    db <- lapply(db, Rd_pp)
+    db <- lapply(db, function(f) Rd_pp(f))
     ## Do vectorized computations for metadata first.
     db_aliases <- lapply(db, .get_Rd_metadata_from_Rd_lines, "alias")
     db_keywords <- lapply(db, .get_Rd_metadata_from_Rd_lines, "keyword")
@@ -1402,8 +1402,7 @@ function(package, dir, lib.loc = NULL)
             stop(gettextf("directory '%s' does not contain Rd sources",
                           dir),
                  domain = NA)
-        package_name <- package
-        is_base <- package_name == "base"
+        is_base <- basename(dir) == "base"
 
         ## Load package into code_env.
         if(!is_base)
@@ -1441,8 +1440,7 @@ function(package, dir, lib.loc = NULL)
             stop(gettextf("directory '%s' does not contain Rd sources",
                           dir),
                  domain = NA)
-        package_name <- basename(dir)
-        is_base <- package_name == "base"        
+        is_base <- basename(dir) == "base"
 
         code_env <- new.env()
         .source_assignments_in_code_dir(code_dir, code_env)
@@ -1536,12 +1534,6 @@ function(package, dir, lib.loc = NULL)
     db <- lapply(db, function(f) paste(Rd_pp(f), collapse = "\n"))
     names(db) <- db_names <- .get_Rd_names_from_Rd_db(db)
 
-    ## Ignore pkg-deprecated.Rd and pkg-defunct.Rd.
-    ind <- db_names %in% paste(package_name, c("deprecated", "defunct"),
-                               sep = "-")
-    db <- db[!ind]
-    db_names <- db_names[!ind]
-
     db_usage_texts <-
         .apply_Rd_filter_to_Rd_db(db, get_Rd_section, "usage")
     db_usages <- lapply(db_usage_texts, .parse_usage_as_much_as_possible)
@@ -1616,7 +1608,9 @@ function(x, ...) {
         if(length(methods_with_full_name > 0)) {
             writeLines(gettextf("S3 methods shown with full name in documentation object '%s':",
                                 docObj))
-            .pretty_print(methods_with_full_name)
+            writeLines(strwrap(paste(methods_with_full_name,
+                                     collapse = " "),
+                               indent = 2, exdent = 2))
             writeLines("")
         }
     }
@@ -2478,7 +2472,7 @@ function(x, ...)
     if(length(bad <- x$missing_vignette_depends)) {
         writeLines(gettext("Vignette dependencies not required:"))
         .pretty_print(bad)
-        msg <- gettext("Vignette dependencies (\\VignetteDepends{} entries) must be contained in the DESCRIPTION Depends/Suggests/Imports entries.")
+        msg <- gettext("Vignette dependencies (\\VignetteDepends{} entries) must be contained in the DESCRIPTION Depends/Suggests entries.")
         writeLines(strwrap(msg))
         writeLines("")
     }
@@ -2908,8 +2902,7 @@ function(dfile)
     ##   Maintainer.
     required_fields <- c("Package", "Version", "License", "Description",
                          "Title", "Author", "Maintainer")
-    if(any(i <- which(is.na(match(required_fields, names(db))) |
-                      is.na(db[required_fields]))))
+    if(any(i <- which(is.na(match(required_fields, names(db))))))
         out$missing_required_fields <- required_fields[i]
 
     val <- package_name <- db["Package"]
@@ -3392,11 +3385,6 @@ function(txt)
     ## throw it, rather than "basically ignore" it by putting it in the
     ## bad_lines attribute.
     txt <- gsub("(<<?see below>>?)", "`\\1`", txt)
-    ## 'LanguageClasses.Rd' in package methods has '"\{"' in its usage:
-    ## the docs say that unpaired braces in \code need to be escaped, so
-    ## let's assume that this is also true for \usage.
-    txt <- gsub("\\\\\\{", "{", txt)
-    txt <- gsub("\\\\\\}", "}", txt)
     .parse_text_as_much_as_possible(txt)
 }
 
@@ -3746,29 +3734,13 @@ function(package, dir, lib.loc = NULL)
         if(is.call(e) || is.expression(e)) {
             Call <- deparse(e[[1]])[1]
             if(length(e) >= 2) pkg <- deparse(e[[2]])
-            if(Call %in% c("library", "require")) {
+            if(Call %in% c("library", "requires")) {
                 ## Zelig has library()
                 if(length(e) >= 2) {
                     pkg <- sub('^"(.*)"$', '\\1', pkg)
-                    ## <NOTE>
-                    ## Using code analysis, we really don't know which
-                    ## package was called if character.only = TRUE and
-                    ## the package argument is not a string constant.
-                    ## (Btw, what if character.only is given a value
-                    ## which is an expression evaluating to TRUE?)
-                    dunno <- FALSE
-                    pos <- which(!is.na(pmatch(names(e),
-                                               "character.only")))
-                    if(length(pos)
-                       && identical(e[[pos]], TRUE)
-                       && !identical(class(e[[2]]), "character"))
-                        dunno <- TRUE
-                    ## <NOTE>
-                    ## </NOTE>
                     ## <FIXME> could be inside substitute or a variable
                     ## and is in e.g. R.oo
-                    if(! dunno
-                       && ! pkg %in% c(depends_suggests, common_names))
+                    if(! pkg %in% c(depends_suggests, common_names))
                         bad_exprs <<- c(bad_exprs, pkg)
                 }
             } else if(Call %in%  "::") {

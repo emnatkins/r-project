@@ -104,7 +104,15 @@ svnonly:
 	  touch non-tarball ; \
 	  (cd $(srcdir); LC_ALL=C TZ=GMT svn info || echo "Revision: unknown") 2> /dev/null \
 	    | sed -n -e '/^Revision/p' -e '/^Last Changed Date/'p \
-	    | cut -d' ' -f1,2,3,4 > SVN-REVISION-tmp ; \
+	    |  cut -d' ' -f1,2,3,4 > SVN-REVISION-tmp ; \
+	  if grep unknown SVN-REVISION-tmp > /dev/null ; then \
+	    echo "Last Changed Date: Today" >> SVN-REVISION-tmp ; \
+	    if test -f "$(srcdir)/.svn/entries" ; then \
+	      rev=`grep committed-rev "$(srcdir)/.svn/entries" | head -1 | sed -e 's/^ *committed-rev=\"//' -e 's/\"//'`; \
+	      cdate=`grep committed-date "$(srcdir)/.svn/entries" | head -1 | sed -e 's/^ *committed-date=\"//' -e 's/T.*//'`; \
+	      sed -e "s/unknown/$${rev}/" -e "s/Today/$${cdate}/" SVN-REVISION-tmp > SVN-REVISION-tmp2; mv SVN-REVISION-tmp2 SVN-REVISION-tmp ; \
+	    fi ; \
+	  fi ; \
 	  $(top_srcdir)/tools/move-if-change SVN-REVISION-tmp SVN-REVISION ; \
 	  rm -f SVN-REVISION-tmp ; \
 	else \
@@ -249,10 +257,6 @@ install-R-framework:
 	      install_name_tool -id "$(R_FRAMEWORK_DIR)/Versions/$(FW_VERSION)/Resources/lib/lib$${lib}.dylib" \
 	      "$(R_FRAMEWORK_DIR)/Versions/$(FW_VERSION)/Resources/lib/lib$${lib}.dylib"; \
 	    fi; \
-	    for rexe in `ls "$(R_FRAMEWORK_DIR)/Versions/$(FW_VERSION)"/Resources/bin/exec/*/R "$(R_FRAMEWORK_DIR)/Versions/$(FW_VERSION)/Resources/bin/exec/R" 2>/dev/null`; do \
-	     install_name_tool -change lib$${lib}.dylib \
-	     "$(R_FRAMEWORK_DIR)/Versions/$(FW_VERSION)/Resources/lib/lib$${lib}.dylib" "$$rexe" ; \
-	    done; \
            fi; \
           done)
 	@(cp -R $(srcdir)/src/include $(R_FRAMEWORK_DIR)/Versions/Current/PrivateHeaders && \

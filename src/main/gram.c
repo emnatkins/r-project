@@ -2679,7 +2679,7 @@ static SEXP xxsubscript(SEXP a1, SEXP a2, SEXP a3)
 {
     SEXP ans;
     if (GenerateCode)
-	PROTECT(ans = LCONS(a2, CONS(a1, CDR(a3))));
+	PROTECT(ans = LCONS(a2, LCONS(a1, CDR(a3))));
     else
 	PROTECT(ans = R_NilValue);
     UNPROTECT_PTR(a3);
@@ -3600,18 +3600,6 @@ static int StringValue(int c)
 		    break;
 		case '\\':
 		    c = '\\';
-		    break;
-		case '"':
-		case '\'':
-		case ' ':
-		case '\n':
-		    break;
-		case '%':
-		    warning(_("'\\%%%%' is an unrecognized escape in a character string"));
-		    break;
-		default:
-		    warning(_("'\\%c' is an unrecognized escape in a character string"), c);
-
 		    break;
 		}
 	    }

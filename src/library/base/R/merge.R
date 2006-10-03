@@ -28,6 +28,7 @@ merge.data.frame <-
     }
 
     nx <- nrow(x <- as.data.frame(x)); ny <- nrow(y <- as.data.frame(y))
+    if (nx == 0 || ny == 0) stop("no rows to match")
     by.x <- fix.by(by.x, x)
     by.y <- fix.by(by.y, y)
     if((l.b <- length(by.x)) != length(by.y))
@@ -43,7 +44,7 @@ merge.data.frame <-
             cnm <- nm.y %in% nm
             names(y)[cnm] <- paste(nm.y[cnm], suffixes[2], sep="")
         }
-        ij <- expand.grid(seq_len(nx), seq_len(ny))
+        ij <- expand.grid(1:nx, 1:ny)
         res <- cbind(x[ij[,1], , drop = FALSE], y[ij[,2], , drop = FALSE])
     }
     else {
@@ -55,8 +56,8 @@ merge.data.frame <-
             y <- cbind(Row.names = I(row.names(y)), y)
             by.y <- by.y + 1
         }
-        row.names(x) <- seq_len(nx)
-        row.names(y) <- seq_len(ny)
+        row.names(x) <- 1:nx
+        row.names(y) <- 1:ny
         ## create keys from 'by' columns:
         if(l.b == 1) {                  # (be faster)
             bx <- x[, by.x]; if(is.factor(bx)) bx <- as.character(bx)
@@ -67,18 +68,17 @@ merge.data.frame <-
             bx <- x[, by.x, drop=FALSE]; by <- y[, by.y, drop=FALSE]
             names(bx) <- names(by) <- paste("V", 1:ncol(bx), sep="")
             bz <- do.call("paste", c(rbind(bx, by), sep = "\r"))
-            bx <- bz[seq_len(nx)]
-            by <- bz[nx + seq_len(ny)]
+            bx <- bz[1:nx]
+            by <- bz[nx + (1:ny)]
         }
         comm <- match(bx, by, 0)
         bxy <- bx[comm > 0]             # the keys which are in both
         xinds <- match(bx, bxy, 0)
         yinds <- match(by, bxy, 0)
-        if(nx > 0 && ny > 0)
-            m <- .Internal(merge(xinds, yinds, all.x, all.y))
-        else
-            m <- list(xi=integer(0), yi=integer(0),
-                      x.alone=seq_len(nx), y.alone=seq_len(ny))
+        ## R-only solution {when !all.x && !all.y} :
+        ##   o <- outer(xinds, yinds, function(x, y) (x > 0) & x==y)
+        ##   m <- list(xi = row(o)[o], yi = col(o)[o])
+        m <- .Internal(merge(xinds, yinds, all.x, all.y))
         nm <- nm.x <- names(x)[-by.x]
         nm.by <- names(x)[by.x]
         nm.y <- names(y)[-by.y]

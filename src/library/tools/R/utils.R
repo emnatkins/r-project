@@ -152,7 +152,7 @@ function(file, topic)
 ### ** delimMatch
 
 delimMatch <-
-function(x, delim = c("{", "}"), syntax = "Rd")
+function(x, delim = c("\{", "\}"), syntax = "Rd")
 {
     if(!is.character(x))
         stop("argument 'x' must be a character vector")
@@ -352,8 +352,8 @@ function()
 function()
 {
     lines <- readLines(file.path(R.home("doc"), "KEYWORDS.db"))
-    lines <- grep("^.*\\|([^:]*):.*", lines, value = TRUE)
-    lines <- sub( "^.*\\|([^:]*):.*", "\\1", lines)
+    lines <- grep("^.*\\\|([^:]*):.*", lines, value = TRUE)
+    lines <- sub("^.*\\\|([^:]*):.*", "\\1", lines)
     lines
 }
 
@@ -548,7 +548,6 @@ function(package)
              "hist.FD", "hist.scott"),
              XML = "text.SAX",
              ape = "sort.index",
-             boot = "exp.tilt",
              car = "scatterplot.matrix",
              grDevices = "boxplot.stats",
              graphics = c("close.screen",
@@ -579,12 +578,7 @@ function(packages = NULL, FUN, ...)
     if(is.null(packages))
         packages <-
             unique(utils::installed.packages(priority = "high")[ , 1])
-    out <- lapply(packages, function(p)
-                  tryCatch(FUN(p, ...),
-                           error = function(e)
-                           noquote(paste("Error:",
-                                         conditionMessage(e)))))
-    ## (Just don't throw the error ...)
+    out <- lapply(packages, FUN, ...)
     names(out) <- packages
     out
 }

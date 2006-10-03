@@ -2,12 +2,12 @@
 # Copyright (C) 2005 The R Foundation
 # This file is distributed under the same license as the PACKAGE package.
 # 陈斐 <feic@avaya.com>, 2006.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-09-21 15:22\n"
+"POT-Creation-Date: 2006-09-16 09:01\n"
 "PO-Revision-Date: 2005-04-08 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -735,26 +735,30 @@ msgid "link not recognised"
 msgstr "没有这样的鏈結"
 
 msgid "link \"%s\" not available for poisson family; available links are %s"
-msgstr "Poisson分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是%s"
+msgstr ""
+"Poisson分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是%s"
 
 msgid "negative values not allowed for the Poisson family"
 msgstr "Poisson分布族不能用负数"
 
 msgid ""
 "link \"%s\" not available for quasipoisson family; available links are %s"
-msgstr "quasipoisson分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是%s"
+msgstr ""
+"quasipoisson分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是%s"
 
 msgid "negative values not allowed for the quasiPoisson family"
 msgstr "quasiPoisson分布族不能用负数"
 
 msgid "link \"%s\" not available for gaussian family; available links are %s"
-msgstr "gaussian分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是%s"
+msgstr ""
+"gaussian分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是%s"
 
 msgid "cannot find valid starting values: please specify some"
 msgstr "找不到有效的初始值: 请设定"
 
 msgid "link \"%s\" not available for binomial family; available links are %s"
-msgstr "binomial分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是%s"
+msgstr ""
+"binomial分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是%s"
 
 msgid "y values must be 0 <= y <= 1"
 msgstr "y值必需满足0 <= y <= 1"
@@ -774,20 +778,23 @@ msgstr "或是有两个列的矩阵，第一列是成功的计数，第二列是
 
 msgid ""
 "link \"%s\" not available for quasibinomial family; available links are %s"
-msgstr "quasibinomial分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是%s"
+msgstr ""
+"quasibinomial分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是%s"
 
 msgid "for the quasibinomial family, y must be a vector of 0 and 1's"
 msgstr "quasibinomial分布族中的y必需由0和1组成的向量"
 
 msgid "link \"%s\" not available for gamma family; available links are %s"
-msgstr "gamma分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是%s"
+msgstr ""
+"gamma分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是%s"
 
 msgid "non-positive values not allowed for the gamma family"
 msgstr "gamma分布族不允许有负值"
 
 msgid ""
 "link \"%s\" not available for inverse.gaussian family; available links are %s"
-msgstr "inverse.gaussian分布族里没有\"%s\"这一鏈結函数；可以用的鏈結%s"
+msgstr ""
+"inverse.gaussian分布族里没有\"%s\"这一鏈結函数；可以用的鏈結%s"
 
 msgid "positive values only allowed for the inverse.gaussian family"
 msgstr "inverse.gaussian分布族只允许正值"
@@ -1523,6 +1530,9 @@ msgstr "'data'里的参数没有被设定初始值"
 msgid "Upper or lower bounds ignored unless algorithm = \"port\""
 msgstr "除非algorithm = \"port\"，上限或下限将略过不用"
 
+msgid "Convergence failure:"
+msgstr "没有收斂："
+
 msgid "cannot calculate REML log-likelihood for \"nls\" objects"
 msgstr "无法为\"nls\"目标对象计算REML log-likelihood"
 
@@ -2112,9 +2122,6 @@ msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "参数%s没有在模型公式里出现过"
 msgstr[1] ""
 
-#~ msgid "Convergence failure:"
-#~ msgstr "没有收斂："
-
 #~ msgid ""
 #~ "link \"%s\" not available for binomial family, available links are \"logit"
 #~ "\", \"\"probit\", \"cloglog\", \"cauchit\" and \"log\""
@@ -2157,3 +2164,4 @@ msgstr[1] ""
 #~ msgstr ""
 #~ "quasibinomial分布族里没有\"%s\"这一鏈結函数；可以用的鏈結是\"logit\", \", "
 #~ "\"\"probit\"和\"cloglog\""
+

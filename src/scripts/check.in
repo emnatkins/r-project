@@ -116,8 +116,6 @@ my $R_check_use_codetools =
     &R_getenv("_R_CHECK_USE_CODETOOLS_", "FALSE");
 my $R_check_force_suggests =
     &R_getenv("_R_CHECK_FORCE_SUGGESTS_", "TRUE");
-my $R_check_Rd_style =
-    &R_getenv("_R_CHECK_RD_STYLE_", "FALSE");
 
 ## Maybe move basic configuration (and documentation) to
 ##   &file_path($R::Vars::R_HOME, "etc", "check.conf")
@@ -154,8 +152,6 @@ $R_check_Rd_xrefs =
     &config_val_to_logical($R_check_Rd_xrefs);
 $R_check_use_codetools =
     &config_val_to_logical($R_check_use_codetools);
-$R_check_Rd_style =
-    &config_val_to_logical($R_check_Rd_style);
 ## <NOTE>
 ## This looks a bit strange, but tools:::.check_package_depends()
 ## currently gets the information about forcing suggests via an
@@ -389,22 +385,20 @@ foreach my $pkg (@ARGV) {
 	    ## package vignette must require its own package, which OTOH is
 	    ## not required in the package DESCRIPTION file.
 	    ## Namespace imports must really be in Depends.
-	    my $Rcmd = "options(warn=1);tools:::.check_package_depends(\"${pkgdir}\")\n";
+	    my $Rcmd = "tools:::.check_package_depends(\"${pkgdir}\")\n";
 	    my @out = R_runR($Rcmd, "${R_opts} --quiet",
 			     "R_DEFAULT_PACKAGES=NULL");
 	    @out = grep(!/^\>/, @out);
-	    @out = grep(!/^Warning.*unrecognized escape/, @out);
 	    if(scalar(@out) > 0) {
 		$log->error();
 		$log->print(join("\n", @out) . "\n");
 		$log->print(wrap("", "", @msg_DESCRIPTION));
 		exit(1);
 	    }
-	    my $Rcmd = "options(warn=1);tools:::.check_packages_used(dir=\"${pkgdir}\")\n";
+	    my $Rcmd = "tools:::.check_packages_used(dir=\"${pkgdir}\")\n";
 	    my @out = R_runR($Rcmd, "${R_opts} --quiet",
 			     "R_DEFAULT_PACKAGES=NULL");
 	    @out = grep(!/^\>/, @out);
-	    @out = grep(!/^Warning:.*unrecognized escape/, @out);
 	    if(scalar(@out) > 0) {
 		$log->warning();
 		$log->print(join("\n", @out) . "\n");
@@ -666,7 +660,6 @@ foreach my $pkg (@ARGV) {
 			$log->print("Found the following " .
 				    "significant warnings:\n");
 			$log->print("  " . join("\n  ", @lines) . "\n");
-			$log->print("See '$out' for details.\n");
 		    }
 		    else {
 			$log->result("OK");
@@ -1173,19 +1166,16 @@ sub check_pkg {
 
     if(!$is_base_pkg && (-d "R")) {
 	$log->checking("R files for syntax errors");
-	my $Rcmd = "options(warn=1);tools:::.check_package_code_syntax(\"R\")";
+	my $Rcmd = "tools:::.check_package_code_syntax(\"R\")";
         my @out = R_runR($Rcmd, "${R_opts} --quiet",
 			 "R_DEFAULT_PACKAGES=NULL");
 	@out = grep(!/^\>/, @out);
-	my @out2 = grep(!/^Warning:.*unrecognized escape/, @out);
-	if(scalar(@out2) > 0) {
+	if(scalar(@out) > 0) {
 	    $log->error();
 	    $log->print(join("\n", @out) . "\n");
 	    exit(1);
-	} elsif(scalar(@out) > 0) {
-	    $log->warning();
-	    $log->print(join("\n", @out) . "\n");
-	} else {
+	}
+	else {
 	    $log->result("OK");
 	}
 	
@@ -1385,11 +1375,10 @@ sub check_pkg {
 	my $any;
 
 	if(!$is_base_pkg) {
-	    my $Rcmd = "options(warn=1);tools:::.check_package_code_shlib(\"R\")";
+	    my $Rcmd = "tools:::.check_package_code_shlib(\"R\")";
 	    my @out = R_runR($Rcmd, "${R_opts} --quiet",
 			     "R_DEFAULT_PACKAGES=NULL");
 	    @out = grep(!/^\>/, @out);
-	    @out = grep(!/^Warning:.*unrecognized escape/, @out);
 	    if(scalar(@out) > 0) {
 		$log->error();
 		$log->print(wrap("", "",
@@ -1411,7 +1400,6 @@ sub check_pkg {
 	    my @out = R_runR($Rcmd, "${R_opts} --quiet",
 			     "R_DEFAULT_PACKAGES=NULL");
 	    @out = grep(!/^\>/, @out);
-	    @out = grep(!/^Warning:.*unrecognized escape/, @out);
 	    if(scalar(@out) > 0) {
 		$log->warning() unless $any;
 		$any++;
@@ -1430,7 +1418,6 @@ sub check_pkg {
 	    my @out = R_runR($Rcmd, "${R_opts} --quiet",
 			     "R_DEFAULT_PACKAGES=NULL");
 	    @out = grep(!/^\>/, @out);
-	    @out = grep(!/^Warning:.*unrecognized escape/, @out);
 	    if(scalar(@out) > 0) {
 		$log->warning() unless $any;
 		$any++;
@@ -1614,8 +1601,6 @@ sub check_pkg {
     if(-d "man") {
 	$log->checking("Rd \\usage sections");
 
-	my $any;
-
 	my @msg_doc_files =
 	  ("Functions with \\usage entries",
 	   "need to have the appropriate \\alias entries,",
@@ -1635,40 +1620,14 @@ sub check_pkg {
 			 "R_DEFAULT_PACKAGES='utils,grDevices,graphics,stats'");
 	@out = grep(!/^\>/, @out);
 	if(scalar(@out) > 0) {
-	    $any++;
 	    $log->warning();
 	    $log->print(join("\n", @out) . "\n");
 	    $log->print(wrap("", "", @msg_doc_files));
 	    $log->print(wrap("", "", @msg_writing_Rd));
 	}
-
-	if($R_check_Rd_style) {
-
-	    my @msg_doc_style =
-		("The \\usage entries for S3 methods should use",
-		 "the \\method markup and not their full name.\n");
-	    
-	    $Rcmd = "options(warn=1)\n";
-	    if($opt_install) {
-		$Rcmd .= "tools::checkDocStyle(package = \"${pkgname}\")\n";
-	    }
-	    else {
-		$Rcmd .= "tools::checkDocStyle(dir = \"${pkgdir}\")\n";
-	    }
-	    
-	    my @out = R_runR($Rcmd, "${R_opts} --quiet",
-			     "R_DEFAULT_PACKAGES='utils,grDevices,graphics,stats'");
-	    @out = grep(!/^\>/, @out);
-	    if(scalar(@out) > 0) {
-		$log->warning() unless($any);
-		$any++;
-		$log->print(join("\n", @out) . "\n");
-		$log->print(wrap("", "", @msg_doc_style));
-		$log->print(wrap("", "", @msg_writing_Rd));
-	    }
+	else {
+	    $log->result("OK");
 	}
-
-	$log->result("OK") unless($any);
     }
 
     ## Check C/C++/Fortran sources/headers for CRLF line endings.
@@ -1892,35 +1851,11 @@ sub check_pkg {
 			      "the next release of R.\n")));
 	}
 	$log->result("OK") unless($any);
-
-	## Try to compare results from running the examples to a saved
-	## previous version.
-	my $Rex_out_save =
-	    &file_path($pkgdir, "tests", "Examples",
-		       "${pkgname}-Ex.Rout.save");
-	if(-f $Rex_out_save) {
-	    $log->checking("differences from '${pkgname}-Ex.Rout' to '${pkgname}-Ex.Rout.save'");
-	    $cmd = join(" ",
-			(${R::Vars::R_CMD},
-			 "Rdiff",
-			 &shell_quote_file_path("${pkgname}-Ex.Rout"),
-			 &shell_quote_file_path("${Rex_out_save}"),
-			 "0"));
-	    if(R_system($cmd)) {
-		$log->error();
-		$log->print("Comparison failed.\n");
-		exit(1);
-	    }
-	    $log->result("OK");
-	}
     }
 
     ## Run the package-specific tests.
 
-    if($opt_install
-       && $opt_tests
-       && (-d &file_path($pkgdir, "tests"))
-       && &list_files(&file_path($pkgdir, "tests"))) {
+    if($opt_install && $opt_tests && (-d &file_path($pkgdir, "tests"))) {
         $log->checking("tests");
         my $testsrcdir = &file_path($pkgdir, "tests");
         my $testdir = &file_path($pkgoutdir, "tests");

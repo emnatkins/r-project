@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2006-09-26 14:40+0100\n"
+"POT-Creation-Date: 2006-09-26 14:33+0100\n"
 "PO-Revision-Date: 2005-05-31 10:31+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -471,131 +471,131 @@ msgstr "plot 히스토리는 corrupt가 있는것처럼 보입니다"
 msgid "no plot history!"
 msgstr "plot history가 없습니다!"
 
-#: devWindows.c:1702
+#: devWindows.c:1697
 #, c-format
 msgid "filename too long in %s() call"
 msgstr "%s() 호출에 대해서 너무 긴 파일명입니다"
 
-#: devWindows.c:1706 devWindows.c:1735
+#: devWindows.c:1701 devWindows.c:1730
 msgid "Unable to load Rbitmap.dll"
 msgstr "Rbitmap.dll를 적재 할수가 없습니다"
 
-#: devWindows.c:1711 devWindows.c:1744
+#: devWindows.c:1706 devWindows.c:1739
 #, c-format
 msgid "'width=%d, height=%d' are unlikely values in pixels"
 msgstr ""
 
-#: devWindows.c:1719 devWindows.c:1747
+#: devWindows.c:1714 devWindows.c:1742
 msgid "Unable to allocate bitmap"
 msgstr "bitmap 할당 할수가 없습니다"
 
-#: devWindows.c:1725 devWindows.c:1753 devWindows.c:2032
+#: devWindows.c:1720 devWindows.c:1748 devWindows.c:2027
 #, c-format
 msgid "Unable to open file '%s' for writing"
 msgstr "쓰기 위해서 파일 '%s'을 열수가 없습니다"
 
-#: devWindows.c:1741
+#: devWindows.c:1736
 msgid "filename too long in jpeg() call"
 msgstr "jpeg() 호출에 대해서 너무 긴 파일명입니다"
 
-#: devWindows.c:1771
+#: devWindows.c:1766
 msgid "filename too long in win.metafile() call"
 msgstr "win.metafile()에 대해 너무 긴 파일명입니다"
 
-#: devWindows.c:1781
+#: devWindows.c:1776
 #, c-format
 msgid "Unable to open metafile '%s' for writing"
 msgstr "쓰기 위해서 metafile '%s'를 열 수가 없습니다"
 
-#: devWindows.c:1783
+#: devWindows.c:1778
 msgid "Unable to open clipboard to write metafile"
 msgstr "metafile를 쓰기 위해서 clipboard를 열수가 없습니다"
 
-#: devWindows.c:1793
+#: devWindows.c:1788
 msgid "can't find any fonts"
 msgstr "font를 검색해낼수가 없습니다"
 
-#: devWindows.c:1989
+#: devWindows.c:1984
 msgid "Insufficient memory for resize. Killing device"
 msgstr "불충분한 메모리 때문에 사이즈 변경합니다. Killing 디바이스"
 
-#: devWindows.c:2017
+#: devWindows.c:2012
 msgid "A clipboard metafile can store only one figure."
 msgstr "clipboard metafile은 단지 하나의 figure만을 저장할수가 있습니다"
 
-#: devWindows.c:2023
+#: devWindows.c:2018
 #, c-format
 msgid "metafile '%s' could not be created"
 msgstr "'%s' metafile 하는것을 작성할 수 없습니다"
 
-#: devWindows.c:2437 devWindows.c:3024
+#: devWindows.c:2432 devWindows.c:3019
 msgid "R Graphics"
 msgstr "R Graphics"
 
-#: devWindows.c:2682
+#: devWindows.c:2677
 msgid "option 'windowsTimeouts' should be integer"
 msgstr "옵션 'windowsTimeouts'는 정수가 아니면 되지 않습니다"
 
-#: devWindows.c:2704
+#: devWindows.c:2699
 msgid "invalid device number in savePlot"
 msgstr "savePlot의 무효인 디바이스번호입니다"
 
-#: devWindows.c:2706
+#: devWindows.c:2701
 msgid "invalid device in savePlot"
 msgstr "savePlot의 무효인 디비이스입니다"
 
-#: devWindows.c:2709
+#: devWindows.c:2704
 msgid "invalid filename argument in savePlot"
 msgstr "savaPlot에서 무효인 파일명 인수입니다"
 
-#: devWindows.c:2713
+#: devWindows.c:2708
 msgid "invalid type argument in savePlot"
 msgstr "savePlot에서 무효인 유형 인수입니다"
 
-#: devWindows.c:2736
+#: devWindows.c:2731
 msgid "unknown type in savePlot"
 msgstr "savePlot의 의미없는 유형입니다"
 
-#: devWindows.c:2811 devWindows.c:2847 devWindows.c:2879 devWindows.c:2914
+#: devWindows.c:2806 devWindows.c:2842 devWindows.c:2874 devWindows.c:2909
 msgid "processing of the plot ran out of memory"
 msgstr "plot 처리는 메모리를 전부 소모 했습니다"
 
-#: devWindows.c:2827 devWindows.c:2860 devWindows.c:2893
+#: devWindows.c:2822 devWindows.c:2855 devWindows.c:2888
 msgid "Impossible to load Rbitmap.dll"
 msgstr "Rbitmap.dll를 적재하는데 가능하지 않습니다"
 
-#: devWindows.c:2899
+#: devWindows.c:2894
 msgid "Impossible to open "
 msgstr "여는 것이 불가능합니다"
 
-#: devWindows.c:2940
+#: devWindows.c:2935
 msgid "invalid width or height in devWindows"
 msgstr "devWindow에서 무효인 폭 또는 높이 입니다"
 
-#: devWindows.c:2945
+#: devWindows.c:2940
 msgid "invalid value of 'recording' in devWindows"
 msgstr "devWindows에서 'recording'의 무효인 값입니다"
 
-#: devWindows.c:2949
+#: devWindows.c:2944
 msgid "invalid value of 'resize' in devWindows"
 msgstr "devWindwos에서 'resize'의 무효인 값입니다"
 
-#: devWindows.c:2957
+#: devWindows.c:2952
 msgid "invalid value of 'canvas' in devWindows"
 msgstr "devWindows에서 'canvas'의 무효인 값입니다"
 
-#: devWindows.c:2968
+#: devWindows.c:2963
 msgid "invalid value of 'buffered' in devWindows"
 msgstr "devWindows에서 'buffered'의 무효인 값입니다"
 
-#: devWindows.c:2974
+#: devWindows.c:2969
 msgid "invalid value of 'bg' in devWindows"
 msgstr "devWindows에서 'bg'의 무효인 값입니다"
 
-#: devWindows.c:2996
+#: devWindows.c:2991
 msgid "unable to start device devWindows"
 msgstr "장치 debWindows를 시작할수 없습니다"
 
-#: devWindows.c:3069
+#: devWindows.c:3064
 msgid "recursive use of getGraphicsEvent not supported"
 msgstr "지원되지 않는 getGraphicsEvent의 재귀적으로 사용합니다"

@@ -2,12 +2,12 @@
 # Copyright (C) 2005 The R Foundation
 # This file is distributed under the same license as the PACKAGE package.
 # 陈斐 <feic@avaya.com>, 2006.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-09-21 15:21\n"
+"POT-Creation-Date: 2006-09-18 09:04\n"
 "PO-Revision-Date: 2005-03-15 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -521,8 +521,8 @@ msgid ""
 "the function being used as %s in making a generic function for \"%s\" is "
 "currently traced; the function used will have tracing removed"
 msgstr ""
-"在为'%2$s'制造同屬函数时用的%1$s这一个函数现在已经被追踪；因此删除了对所用函"
-"数的追踪"
+"在为'%2$s'制造同屬函数时用的%1$s这一个函数现在已经被追踪；因此删除了对所用函数的"
+"追踪"
 
 msgid ""
 "the 'genericFunction' argument must be NULL or a generic function object; "
@@ -565,8 +565,8 @@ msgid ""
 "'genericFunction object' or a primitive function, got an object of class \"%s"
 "\""
 msgstr ""
-"'getAllMethods'里为'%s'用的'fdef'不对；需要的是'genericFunction object'或基元"
-"函数，现在得到的却是类别为\"%s\"的目标对象"
+"'getAllMethods'里为'%s'用的'fdef'不对；需要的是'genericFunction object'或基"
+"元函数，现在得到的却是类别为\"%s\"的目标对象"
 
 msgid "formal arguments in method and function do not appear in the same order"
 msgstr "方法里的正式变元和函数两都的顺序不同"
@@ -596,8 +596,7 @@ msgstr ""
 msgid ""
 "Argument f must be a string, generic function, or primitive: got an ordinary "
 "function"
-msgstr ""
-"f变元要么是字符，要么是同属函数，要么是原始函数：现在得到的却是普通函数"
+msgstr "f变元要么是字符，要么是同属函数，要么是原始函数：现在得到的却是普通函数"
 
 msgid "methods cannot be defined for the primitive function \"%s\""
 msgstr "无法为基元函数'%s'定义方法"
@@ -1116,11 +1115,6 @@ msgstr "\"被锁住了；在新的类别上用基本环境"
 msgid "not a package name: \"%s\""
 msgstr "不程輯包名: '%s'"
 
-msgid ""
-"apparently bad method or class metadata in saved environment; move the file "
-"or remove the class/method"
-msgstr ""
-
 msgid "in the method signature for function \"%s\" no definition for class: %s"
 msgid_plural ""
 "in the method signature for function \"%s\" no definition for classes: %s"
@@ -1138,3 +1132,4 @@ msgstr[1] "函数'%s'的方法标记中没有类别定义：%s"
 
 #~ msgid "trying to use new() on a virtual class"
 #~ msgstr "不能在虛擬类别上用new()这一函数"
+

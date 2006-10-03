@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.5.0\n"
+"Project-Id-Version: R 2.4.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-09-21 15:21\n"
-"PO-Revision-Date: 2006-09-21 15:21\n"
+"POT-Creation-Date: 2006-09-18 09:04\n"
+"PO-Revision-Date: 2006-09-18 09:04\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -1275,13 +1275,6 @@ msgstr "\" is locked; using base environment for new class"
 
 msgid "not a package name: \"%s\""
 msgstr "not a package name: “%s”"
-
-msgid ""
-"apparently bad method or class metadata in saved environment; move the file "
-"or remove the class/method"
-msgstr ""
-"apparently bad method or class metadata in saved environment; move the file "
-"or remove the class/method"
 
 msgid "in the method signature for function \"%s\" no definition for class: %s"
 msgid_plural ""

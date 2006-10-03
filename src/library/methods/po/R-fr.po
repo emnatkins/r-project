@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-09-21 15:21\n"
+"POT-Creation-Date: 2006-09-18 09:04\n"
 "PO-Revision-Date: 2006-04-18 08:55+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -1412,11 +1412,6 @@ msgstr ""
 #, fuzzy
 msgid "not a package name: \"%s\""
 msgstr "ceci n'est pas un nom de package : '%s'"
-
-msgid ""
-"apparently bad method or class metadata in saved environment; move the file "
-"or remove the class/method"
-msgstr ""
 
 #, fuzzy
 msgid "in the method signature for function \"%s\" no definition for class: %s"

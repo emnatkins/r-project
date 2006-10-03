@@ -57,8 +57,7 @@ nlsModel.plinear <- function(form, data, start, wts)
     storage.mode(lhs) <- "double"
     rhs <- eval(form[[3]], envir = env)
     storage.mode(rhs) <- "double"
-    .swts <- if(!missing(wts) && (length(wts) != 0))
-        sqrt(wts) else rep(1, length=length(rhs))
+    .swts <- if(!missing(wts)) sqrt(wts) else rep(1, length=length(rhs))
     assign(".swts", .swts, envir = env)
     p1 <- if(is.matrix(rhs)) ncol(rhs) else 1
     p <- p1 + p2
@@ -245,8 +244,7 @@ nlsModel <- function(form, data, start, wts, upper=NULL)
     useParams <- rep(TRUE, parLength)
     lhs <- eval(form[[2]], envir = env)
     rhs <- eval(form[[3]], envir = env)
-    .swts <- if(!missing(wts) && (length(wts) != 0))
-        sqrt(wts) else rep(1, length=length(rhs))
+    .swts <- if(!missing(wts)) sqrt(wts) else rep(1, length=length(rhs))
     assign(".swts", .swts, envir = env)
     resid <- .swts * (lhs - rhs)
     dev <- sum(resid^2)
@@ -317,71 +315,69 @@ nlsModel <- function(form, data, start, wts, upper=NULL)
     on.exit(remove(i, data, parLength, start, temp, m))
     ## must use weighted resid for use with "port" algorithm.
     m <-
-	list(resid = function() resid,
-	     fitted = function() rhs,
-	     formula = function() form,
-	     deviance = function() dev,
-	     lhs = function() lhs,
-	     gradient = function() .swts * attr(rhs, "gradient"),
-	     conv = function() {
-		 if(npar == 0) return(0)
-		 rr <- qr.qty(QR, resid) # rotated residual vector
-		 sqrt( sum(rr[1:npar]^2) / sum(rr[-(1:npar)]^2))
-	     },
-	     incr = function() qr.coef(QR, resid),
-	     setVarying = function(vary = rep(TRUE, length(useParams))) {
-		 assign("useParams",
-			if(is.character(vary)) {
-			    temp <- logical(length(useParams))
-			    temp[unlist(ind[vary])] <- TRUE
-			    temp
-			} else if(is.logical(vary) &&
-				  length(vary) != length(useParams))
-			stop("setVarying : 'vary' length must match length of parameters")
-			else {
-			    vary
-			}, envir = thisEnv)
-		 gradCall[[length(gradCall) - 1]] <<- useParams
-		 if(all(useParams)) {
-		     assign("setPars", setPars.noVarying, envir = thisEnv)
-		     assign("getPars", getPars.noVarying, envir = thisEnv)
-		     assign("getRHS", getRHS.noVarying, envir = thisEnv)
-		     assign("npar", length(useParams), envir = thisEnv)
-		 } else {
-		     assign("setPars", setPars.varying, envir = thisEnv)
-		     assign("getPars", getPars.varying, envir = thisEnv)
-		     assign("getRHS", getRHS.varying, envir = thisEnv)
-		     assign("npar", length((1:length(useParams))[useParams]),
-			    envir = thisEnv)
-		 }
-	     },
-	     setPars = function(newPars) {
-		 setPars(newPars)
-		 assign("resid", .swts *
-			(lhs - assign("rhs", getRHS(), envir = thisEnv)),
-			envir = thisEnv)
-		 assign("dev", sum(resid^2), envir = thisEnv)
-		 assign("QR", qr(.swts * attr(rhs, "gradient")),
-			envir = thisEnv )
-		 return(QR$rank < min(dim(QR$qr))) # to catch the singular gradient matrix
-	     },
-	     getPars = function() getPars(),
-	     getAllPars = function() getPars(),
-	     getEnv = function() env,
-	     trace = function() cat(format(dev),": ", format(getPars()), "\n"),
-	     Rmat = function() qr.R(QR),
-	     predict = function(newdata = list(), qr = FALSE)
-	     eval(form[[3]], as.list(newdata), env)
-	     )
-
+        list(resid = function() resid,
+             fitted = function() rhs,
+             formula = function() form,
+             deviance = function() dev,
+             lhs = function() lhs,
+             gradient = function() .swts * attr(rhs, "gradient"),
+             conv = function()
+         {
+             if(npar == 0) return(0)
+             rr <- qr.qty(QR, resid)    # rotated residual vector
+             sqrt( sum(rr[1:npar]^2) / sum(rr[-(1:npar)]^2))
+         },
+             incr = function() qr.coef(QR, resid),
+             setVarying = function(vary = rep(TRUE, length(useParams)))
+         {
+             assign("useParams", if(is.character(vary)) {
+                 temp <- logical(length(useParams))
+                 temp[unlist(ind[vary])] <- TRUE
+                 temp
+             } else if(is.logical(vary) && length(vary) != length(useParams))
+                    stop("setVarying : 'vary' length must match length of parameters")
+                    else {
+                        vary
+                    }, envir = thisEnv)
+             gradCall[[length(gradCall) - 1]] <<- useParams
+             if(all(useParams)) {
+                 assign("setPars", setPars.noVarying, envir = thisEnv)
+                 assign("getPars", getPars.noVarying, envir = thisEnv)
+                 assign("getRHS", getRHS.noVarying, envir = thisEnv)
+                 assign("npar", length(useParams), envir = thisEnv)
+             } else {
+                 assign("setPars", setPars.varying, envir = thisEnv)
+                 assign("getPars", getPars.varying, envir = thisEnv)
+                 assign("getRHS", getRHS.varying, envir = thisEnv)
+                 assign("npar", length((1:length(useParams))[useParams]),
+                        envir = thisEnv)
+             }
+         },
+             setPars = function(newPars)
+         {
+             setPars(newPars)
+             assign("resid",
+                    .swts * (lhs - assign("rhs", getRHS(), envir = thisEnv)),
+                    envir = thisEnv)
+             assign("dev", sum(resid^2), envir = thisEnv)
+             assign("QR", qr(.swts * attr(rhs, "gradient")), envir = thisEnv )
+             return(QR$rank < min(dim(QR$qr))) # to catch the singular gradient matrix
+         },
+             getPars = function() getPars(),
+             getAllPars = function() getPars(),
+             getEnv = function() env,
+             trace = function() cat(format(dev),": ", format(getPars()), "\n"),
+             Rmat = function() qr.R(QR),
+             predict = function(newdata = list(), qr = FALSE)
+             eval(form[[3]], as.list(newdata), env)
+             )
     class(m) <- "nlsModel"
     m
 }
 
-nls.control <- function(maxiter = 50, tol = 0.00001, minFactor = 1/1024,
-			printEval = FALSE, warnOnly = FALSE)
-    list(maxiter = maxiter, tol = tol, minFactor = minFactor,
-	 printEval = printEval, warnOnly = warnOnly)
+nls.control <- function(maxiter = 50, tol = 0.00001, minFactor = 1/1024)
+    list(maxiter = maxiter, tol = tol, minFactor = minFactor)
+
 
 nls_port_fit <- function(m, start, lower, upper, control, trace)
 {
@@ -391,16 +387,14 @@ nls_port_fit <- function(m, start, lower, upper, control, trace)
     v <- double(105 + (p * (2 * p + 20)))
     .Call(R_port_ivset, 1, iv, v)
     if (length(control)) {
-	if (!is.list(control) || is.null(nms <- names(control)))
-	    stop("control argument must be a named list")
-	## remove those components that do not apply here
-	for(noN in intersect(nms, c("tol", "minFactor", "warnOnly", "printEval")))
-	    control[[noN]] <- NULL
-	nms <- names(control)
-	cpos <- c(eval.max = 17, maxiter = 18, trace = 19, abs.tol = 31,
-		  rel.tol = 32, x.tol = 33, step.min = 34, step.max = 35,
-		  scale.init = 38, sing.tol = 37, diff.g = 42)
-	pos <- pmatch(nms, names(cpos))
+        control $tol <- control$minFactor <- NULL
+        nms <- names(control)
+        if (!is.list(control) || is.null(nms))
+            stop("control argument must be a named list")
+        cpos <- c(eval.max = 17, maxiter = 18, trace = 19, abs.tol = 31,
+                  rel.tol = 32, x.tol = 33, step.min = 34, step.max = 35,
+                  scale.init = 38, sing.tol = 37, diff.g = 42)
+        pos <- pmatch(nms, names(cpos))
         if (any(nap <- is.na(pos))) {
             warning(paste("unrecognized control element(s) named `",
                           paste(nms[nap], collapse = ", "),
@@ -427,7 +421,7 @@ nls_port_fit <- function(m, start, lower, upper, control, trace)
         }
     }
     if(p > 0) {
-        ## driver routine port_nlsb() in ../src/port.c -- modifies m & iv
+        ## Call driver routine
         .Call(R_port_nlsb, m,
               d = rep(as.double(scale), length = length(par)),
               df = m$gradient(), iv, v, low, upp)
@@ -531,78 +525,85 @@ nls <-
 	stop("missing or negative weights not allowed")
 
     m <- switch(algorithm,
-		plinear = nlsModel.plinear(formula, mf, start, wts),
-		port = nlsModel(formula, mf, start, wts, upper),
-                ## Default:
-		nlsModel(formula, mf, start, wts))
+                plinear = nlsModel.plinear(formula, mf, start, wts),
+                port = nlsModel(formula, mf, start, wts, upper),
+                nlsModel(formula, mf, start, wts))
 
     ctrl <- nls.control()
     if(!missing(control)) {
-	control <- as.list(control)
-	ctrl[names(control)] <- control
+        control <- as.list(control)
+        ctrl[names(control)] <- control
     }
     if (algorithm != "port") {
-	if (!missing(lower) || !missing(upper))
-	    warning('Upper or lower bounds ignored unless algorithm = "port"')
-        convInfo <- .Call(R_nls_iter, m, ctrl, trace)
-	nls.out <- list(m = m, convInfo = convInfo,
-			data = substitute(data), call = match.call())
-    }
-    else { ## "port" i.e., PORT algorithm
-	iv <- nls_port_fit(m, start, lower, upper, control, trace)
-	nls.out <- list(m = m, data = substitute(data), call = match.call())
-        ## FIXME: this is really a logical for  *NON*convergence:
-	nls.out$convergence <- as.integer(if (iv[1] %in% 3:6) 0 else 1)
-	nls.out$message <-
-	    switch(as.character(iv[1]),
-		   "3" = "X-convergence (3)",
-		   "4" = "relative convergence (4)",
-		   "5" = "both X-convergence and relative convergence (5)",
-		   "6" = "absolute function convergence (6)",
-
-		   "7" = "singular convergence (7)",
-		   "8" = "false convergence (8)",
-		   "9" = "function evaluation limit reached without convergence (9)",
-		   "10" = "iteration limit reached without convergence (9)",
-		   "14" = "storage has been allocated (?) (14)",
-
-		   "15" = "LIV too small (15)",
-		   "16" = "LV too small (16)",
-		   "63" = "fn cannot be computed at initial par (63)",
-		   "65" = "gr cannot be computed at initial par (65)",
-		   "300" = "initial par violates constraints")
-	if (is.null(nls.out$message))
-	    nls.out$message <-
-		paste("See PORT documentation.	Code (", iv[1], ")", sep = "")
-	if (nls.out$convergence) {
-            msg <- paste("Convergence failure:", nls.out$message)
-            if(ctrl$warnOnly) {
-                warning(msg)
-            } else stop(msg)
-        }
-
-	## we need these (evaluated) for profiling
-	nls.out$call$lower <- lower
-	nls.out$call$upper <- upper
+        if (!missing(lower) || !missing(upper))
+            warning('Upper or lower bounds ignored unless algorithm = "port"')
+        nls.out <- list(m = .Call(R_nls_iter, m, ctrl, trace),
+                        data = substitute(data), call = match.call())
+        ## we need these (evaluated) for profiling
+        nls.out$call$control <- ctrl
+        nls.out$call$trace <- trace
+        nls.out$call$algorithm <- algorithm
+        nls.out$na.action <- attr(mf, "na.action")
+        nls.out$dataClasses <- attr(attr(mf, "terms"), "dataClasses")
+        if(model) nls.out$model <- mf
+        if(!mWeights) nls.out$weights <- wts
+        class(nls.out) <- "nls"
+        return(nls.out)
     }
 
+    iv <- nls_port_fit(m, start, lower, upper, control, trace)
+    nls.out <- list(m = m, data = substitute(data), call = match.call())
     ## we need these (evaluated) for profiling
     nls.out$call$algorithm <- algorithm
-    nls.out$call$control <- ctrl
+    nls.out$call$lower <- lower
+    nls.out$call$upper <- upper
+    nls.out$call$control <- control
     nls.out$call$trace <- trace
+    nls.out$convergence <- as.integer(if (iv[1] %in% 3:6) 0 else 1)
+    nls.out$message <-
+        switch(as.character(iv[1]),
+               "3" = "X-convergence (3)",
+               "4" = "relative convergence (4)",
+               "5" = "both X-convergence and relative convergence (5)",
+               "6" = "absolute function convergence (6)",
 
+               "7" = "singular convergence (7)",
+               "8" = "false convergence (8)",
+               "9" = "function evaluation limit reached without convergence (9)",
+               "10" = "iteration limit reached without convergence (9)",
+               "14" = "storage has been allocated (?) (14)",
+
+               "15" = "LIV too small (15)",
+               "16" = "LV too small (16)",
+               "63" = "fn cannot be computed at initial par (63)",
+               "65" = "gr cannot be computed at initial par (65)",
+               "300" = "initial par violates constraints")
+    if (is.null(nls.out$message))
+        nls.out$message <-
+            paste("See PORT documentation.  Code (", iv[1], ")", sep = "")
+    if (nls.out$convergence)
+        stop(paste("Convergence failure:", nls.out$message))
     nls.out$na.action <- attr(mf, "na.action")
     nls.out$dataClasses <- attr(attr(mf, "terms"), "dataClasses")
-    if(model)
-	nls.out$model <- mf
-    if(!mWeights)
-	nls.out$weights <- wts
-    nls.out$control <- control
+    if(model) nls.out$model <- mf
+    if(!mWeights) nls.out$weights <- wts
     class(nls.out) <- "nls"
     nls.out
 }
 
 coef.nls <- function(object, ...) object$m$getAllPars()
+
+print.nls <- function(x, ...)
+{
+    cat("Nonlinear regression model\n")
+    cat("  model: ", deparse(formula(x)), "\n")
+    cat("   data: ", deparse(x$data), "\n")
+    print(x$m$getAllPars())
+    cat(" ", if(!is.null(x$weights) && diff(range(x$weights))) "weighted ",
+        "residual sum-of-squares: ", format(x$m$deviance()), "\n",
+        sep  = "")
+    invisible(x)
+}
 
 summary.nls <-
     function (object, correlation = FALSE, symbolic.cor = FALSE, ...)
@@ -618,56 +619,21 @@ summary.nls <-
     XtXinv <- chol2inv(object$m$Rmat())
     dimnames(XtXinv) <- list(pnames, pnames)
     se <- sqrt(diag(XtXinv) * resvar)
+    ans <- list(formula = formula(object), residuals = r, sigma = sqrt(resvar),
+                df = c(p, rdf), cov.unscaled = XtXinv)
     tval <- param/se
     param <- cbind(param, se, tval, 2 * pt(abs(tval), rdf, lower.tail = FALSE))
     dimnames(param) <-
         list(pnames, c("Estimate", "Std. Error", "t value", "Pr(>|t|)"))
-    ans <- list(formula = formula(object), residuals = r, sigma = sqrt(resvar),
-                df = c(p, rdf), cov.unscaled = XtXinv,
-                call = object$call,
-                convInfo = object$convInfo,
-                control = object$control,
-                na.action = object$na.action,
-                coefficients = param,
-                parameters = param)# never documented, for back-compatibility
+    ans$coefficients <- param
+    ans$parameters <- param  # always been undocumented, for back-compatibility
     if(correlation && rdf > 0) {
         ans$correlation <- (XtXinv * resvar)/outer(se, se)
         ans$symbolic.cor <- symbolic.cor
     }
-    if(identical(object$call$algorithm, "port"))
-	ans$message <- object$message
+    ans$na.action <- object$na.action
     class(ans) <- "summary.nls"
     ans
-}
-
-.p.nls.convInfo <- function(x, digits)
-{
-    if(identical(x$call$algorithm, "port"))
-	cat("\nAlgorithm \"port\", convergence message:",
-	    x$message, "\n")
-    else
-	with(x$convInfo, {
-	    cat("\nNumber of iterations",
-		if(isConv) "to convergence:" else "till stop:", finIter,
-		"\nAchieved convergence tolerance:",
-                format(finTol, digits=digits),"\n")
-	    if(!isConv)
-		cat("Reason stopped:", stopMessage, "\n")
-	})
-    invisible()
-}
-
-print.nls <- function(x, digits = max(3, getOption("digits") - 3), ...)
-{
-    cat("Nonlinear regression model\n")
-    cat("  model: ", deparse(formula(x)), "\n")
-    cat("   data: ", deparse(x$data), "\n")
-    print(x$m$getAllPars(), digits = digits, ...)
-    cat(" ", if(!is.null(x$weights) && diff(range(x$weights))) "weighted ",
-	"residual sum-of-squares: ", format(x$m$deviance(), digits = digits),
-	"\n", sep = '')
-    .p.nls.convInfo(x, digits = digits)
-    invisible(x)
 }
 
 print.summary.nls <-
@@ -698,9 +664,6 @@ print.summary.nls <-
             }
         }
     }
-
-    .p.nls.convInfo(x, digits = digits)
-
     if(nchar(mess <- naprint(x$na.action))) cat("  (", mess, ")\n", sep="")
     cat("\n")
     invisible(x)

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-09-26 14:40\n"
+"POT-Creation-Date: 2006-09-26 14:33\n"
 "PO-Revision-Date: 2006-04-18 08:33+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -27,12 +27,6 @@ msgstr "Voir help(\"Defunct\") et help(\"%s-defunct\")."
 
 msgid "See help(\"Defunct\")"
 msgstr "Voir help(\"Defunct\")"
-
-msgid "'symbol.C' is not needed: please remove it"
-msgstr ""
-
-msgid "'symbol.For' is not needed: please remove it"
-msgstr ""
 
 msgid "'%s' is deprecated."
 msgstr "'%s' est obsolète."
@@ -657,6 +651,9 @@ msgstr "'subset' doit être évaluée comme une valeur logique"
 msgid "'subset' must be logical"
 msgstr "'subset' doit être une valeur logique"
 
+msgid "'form' must be a two-sided formula"
+msgstr "'form' doit être une formule ayant des membres à gauche et à droite"
+
 msgid "value for '"
 msgstr "valeur pour '"
 
@@ -1168,6 +1165,39 @@ msgstr ""
 "une valeur plus grande de 'ncol' est nécessaire car un pivotement s'est "
 "produit"
 
+msgid "no lines available in input"
+msgstr "aucune ligne disponible depuis l'entrée"
+
+msgid "empty beginning of file"
+msgstr "début de fichier vide"
+
+msgid "header and 'col.names' are of different lengths"
+msgstr "l'entête et 'col.names' n'ont pas la même longueur"
+
+msgid "more columns than column names"
+msgstr "plus de colonnes que de noms de colonnes"
+
+msgid "more column names than columns"
+msgstr "plus de noms de colonnes que de colonnes"
+
+msgid "first five rows are empty: giving up"
+msgstr "les cinq premières lignes sont vides : abandon"
+
+msgid "not all columns named in 'colClasses' exist"
+msgstr "certaines des colonnes nommées dans 'colClasses' n'existent pas"
+
+msgid "invalid numeric 'as.is' expression"
+msgstr "expression 'as.is' numérique incorrecte"
+
+msgid "not all columns named in 'as.is' exist"
+msgstr "certaines des colonnes nommées dans 'as.is' n'existent pas"
+
+msgid "'as.is' has the wrong length %d  != cols = %d"
+msgstr "'as.is' n'a pas la bonne longueur %d != cols = %d"
+
+msgid "invalid 'row.names' specification"
+msgstr "spécification de 'row.names' incorrecte"
+
 msgid "'x' must be a vector"
 msgstr "'x' doit être un vecteur"
 
@@ -1364,6 +1394,27 @@ msgstr "Pas d'historique des fonctions appelées ('traceback') disponible"
 msgid "argument to 'which' is not logical"
 msgstr "l'argument pour 'which' n'est pas une valeur logique"
 
+msgid "'quote' must be 'TRUE', 'FALSE' or numeric"
+msgstr ""
+
+msgid "invalid numbers in 'quote'"
+msgstr "nombres incorrects dans 'quote'"
+
+msgid "invalid 'quote' specification"
+msgstr "spécification de 'quote' incorrecte"
+
+msgid "col.names = NA makes no sense when row.names = FALSE"
+msgstr "col.names = NA n'a pas de sens lorsque row.names = FALSE"
+
+msgid "invalid 'col.names' specification"
+msgstr "spécification de 'col.names' incorrecte"
+
+msgid "appending column names to file"
+msgstr "ajout des noms de colonnes dans le fichier"
+
+msgid "attempt to change '%s' ignored"
+msgstr "tentative de modification de '%s' ignorée"
+
 msgid "invalid 'digits'"
 msgstr "'digits' incorrect"
 
@@ -1423,60 +1474,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Message d'avis :\n"
 msgstr[1] "Messages d'avis :\n"
-
-#~ msgid "'form' must be a two-sided formula"
-#~ msgstr "'form' doit être une formule ayant des membres à gauche et à droite"
-
-#~ msgid "no lines available in input"
-#~ msgstr "aucune ligne disponible depuis l'entrée"
-
-#~ msgid "empty beginning of file"
-#~ msgstr "début de fichier vide"
-
-#~ msgid "header and 'col.names' are of different lengths"
-#~ msgstr "l'entête et 'col.names' n'ont pas la même longueur"
-
-#~ msgid "more columns than column names"
-#~ msgstr "plus de colonnes que de noms de colonnes"
-
-#~ msgid "more column names than columns"
-#~ msgstr "plus de noms de colonnes que de colonnes"
-
-#~ msgid "first five rows are empty: giving up"
-#~ msgstr "les cinq premières lignes sont vides : abandon"
-
-#~ msgid "not all columns named in 'colClasses' exist"
-#~ msgstr "certaines des colonnes nommées dans 'colClasses' n'existent pas"
-
-#~ msgid "invalid numeric 'as.is' expression"
-#~ msgstr "expression 'as.is' numérique incorrecte"
-
-#~ msgid "not all columns named in 'as.is' exist"
-#~ msgstr "certaines des colonnes nommées dans 'as.is' n'existent pas"
-
-#~ msgid "'as.is' has the wrong length %d  != cols = %d"
-#~ msgstr "'as.is' n'a pas la bonne longueur %d != cols = %d"
-
-#~ msgid "invalid 'row.names' specification"
-#~ msgstr "spécification de 'row.names' incorrecte"
-
-#~ msgid "invalid numbers in 'quote'"
-#~ msgstr "nombres incorrects dans 'quote'"
-
-#~ msgid "invalid 'quote' specification"
-#~ msgstr "spécification de 'quote' incorrecte"
-
-#~ msgid "col.names = NA makes no sense when row.names = FALSE"
-#~ msgstr "col.names = NA n'a pas de sens lorsque row.names = FALSE"
-
-#~ msgid "invalid 'col.names' specification"
-#~ msgstr "spécification de 'col.names' incorrecte"
-
-#~ msgid "appending column names to file"
-#~ msgstr "ajout des noms de colonnes dans le fichier"
-
-#~ msgid "attempt to change '%s' ignored"
-#~ msgstr "tentative de modification de '%s' ignorée"
 
 #, fuzzy
 #~ msgid "rows are empty: giving up"

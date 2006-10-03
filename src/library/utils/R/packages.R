@@ -2,6 +2,14 @@ available.packages <-
     function(contriburl = contrib.url(getOption("repos")), method,
              fields = NULL)
 {
+    .checkRversion <- function(x) {
+        if(is.na(xx <- x["Depends"])) return(TRUE)
+        xx <- tools:::.split_dependencies(xx)
+        if(length(z <- xx[["R"]]) > 1)
+            eval(parse(text=paste("currentR", z$op, "z$version")))
+        else TRUE
+    }
+
     requiredFields <-
         tools:::.get_standard_repository_db_fields()
     if (is.null(fields))
@@ -78,7 +86,6 @@ available.packages <-
     }
     ## ignore packages which don't fit our version of R
     if(length(res)) {
-        currentR <- getRversion()        
         .checkRversion <- function(x) {
             if(is.na(xx <- x["Depends"])) return(TRUE)
             xx <- tools:::.split_dependencies(xx)
@@ -86,6 +93,7 @@ available.packages <-
                 eval(parse(text=paste("currentR", z$op, "z$version")))
             else TRUE
         }
+        currentR <- getRversion()
         res <- res[apply(res, 1, .checkRversion), , drop=FALSE]
     }
     res
@@ -413,7 +421,7 @@ remove.packages <- function(pkgs, lib, version) {
         ## for consistency with packages, need unversioned names
         ## and let .find.packages() figure out what to do.
         add <- have[have[, "Bundle"] %in% p, "Package"]
-        add <- unique(sub("_[0-9.-]*$", "", add))
+        add <- unique(sub("_[0-9.\-]*$", "", add))
         if(hv) add <- manglePackageName(add, version[p])
         pkgs <- c(pkgs, add)
     }

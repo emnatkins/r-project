@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2006-09-26 14:39+0100\n"
+"POT-Creation-Date: 2006-09-26 14:32+0100\n"
 "PO-Revision-Date: 2006-04-16 19:17-0300\n"
 "Last-Translator: Fernando Henrique Ferraz P. da Rosa <feferraz@ime.usp.br>\n"
 "Language-Team: Portuguese <ldp-br@bazar.conectiva.com.br>\n"
@@ -111,8 +111,8 @@ msgstr "'names' inválidos em 'R_unlink'"
 #: src/main/envir.c:1596 src/main/envir.c:1690 src/main/envir.c:1698
 #: src/main/envir.c:1706 src/main/envir.c:1720 src/main/envir.c:1726
 #: src/main/envir.c:1730 src/main/envir.c:2293 src/main/envir.c:2566
-#: src/main/envir.c:3115 src/main/eval.c:279 src/main/eval.c:1622
-#: src/main/eval.c:1646 src/main/eval.c:1650 src/main/memory.c:2858
+#: src/main/envir.c:3115 src/main/eval.c:279 src/main/eval.c:1633
+#: src/main/eval.c:1657 src/main/eval.c:1661 src/main/memory.c:2858
 #: src/main/model.c:1597 src/main/model.c:1605 src/main/optim.c:229
 #: src/main/paste.c:71 src/main/paste.c:163 src/main/paste.c:170
 #: src/main/paste.c:177 src/main/paste.c:182 src/main/paste.c:187
@@ -475,13 +475,13 @@ msgstr "segundo argumento deve ser uma string de caracteres"
 msgid "second argument must be a list"
 msgstr "segundo argumento deve ser uma lista"
 
-#: src/include/Errormsg.h:42 src/main/eval.c:2704 src/main/subscript.c:228
+#: src/include/Errormsg.h:42 src/main/eval.c:2715 src/main/subscript.c:228
 #: src/main/subscript.c:333 src/main/subscript.c:336 src/main/subscript.c:436
 msgid "subscript out of bounds"
 msgstr "índice fora de limites"
 
-#: src/include/Errormsg.h:43 src/main/subassign.c:1390
-#: src/main/subassign.c:1749
+#: src/include/Errormsg.h:43 src/main/subassign.c:1380
+#: src/main/subassign.c:1739
 msgid "object is not subsettable"
 msgstr "não é possível dividir o objeto em subconjuntos"
 
@@ -1113,8 +1113,8 @@ msgstr "argumento formal repetido 'use.names'"
 msgid "argument not a list"
 msgstr "argumento não é uma lista"
 
-#: src/main/bind.c:961 src/main/bind.c:1021 src/main/eval.c:1934
-#: src/main/eval.c:1944 src/main/objects.c:262 src/main/objects.c:292
+#: src/main/bind.c:961 src/main/bind.c:1021 src/main/eval.c:1945
+#: src/main/eval.c:1955 src/main/objects.c:262 src/main/objects.c:292
 #: src/main/objects.c:647 src/main/objects.c:664
 #, c-format
 msgid "class name too long in '%s'"
@@ -1154,7 +1154,7 @@ msgstr "tamanho de vetor especificado é muito grande"
 #: src/main/envir.c:1683 src/main/envir.c:2323 src/main/envir.c:2376
 #: src/main/envir.c:2659 src/main/envir.c:2687 src/main/envir.c:2707
 #: src/main/envir.c:2729 src/main/envir.c:2763 src/main/envir.c:2783
-#: src/main/envir.c:3107 src/main/envir.c:3111 src/main/eval.c:3487
+#: src/main/envir.c:3107 src/main/envir.c:3111 src/main/eval.c:3498
 #: src/main/objects.c:175 src/main/objects.c:181 src/main/saveload.c:2072
 #: src/main/saveload.c:2338 src/main/saveload.c:2387 src/main/serialize.c:2175
 msgid "use of NULL environment is defunct"
@@ -1497,7 +1497,7 @@ msgstr "coerção para vetor impossível"
 msgid "list argument expected"
 msgstr "lista esperada como argumento"
 
-#: src/main/coerce.c:1404 src/main/eval.c:3484 src/main/eval.c:3491
+#: src/main/coerce.c:1404 src/main/eval.c:3495 src/main/eval.c:3502
 msgid "invalid environment"
 msgstr "ambiente inválido"
 
@@ -2304,7 +2304,7 @@ msgstr "argumento de comprimento zero"
 msgid "bad environment"
 msgstr "ambiente inválido"
 
-#: src/main/deparse.c:360 src/main/eval.c:2573
+#: src/main/deparse.c:360 src/main/eval.c:2584
 #, c-format
 msgid "Object \"%s\" not found"
 msgstr "Objeto \"%s\" não encontrado"
@@ -2722,7 +2722,7 @@ msgstr "A lista ... não contém %d elementos"
 msgid "..%d used in an incorrect context, no ... to look in"
 msgstr "..%d usado em um contexto incorreto, nenhum ... para procurar"
 
-#: src/main/envir.c:1190 src/main/eval.c:388 src/main/eval.c:2576
+#: src/main/envir.c:1190 src/main/eval.c:388 src/main/eval.c:2587
 #, c-format
 msgid "argument \"%s\" is missing, with no default"
 msgstr "argumento \"%s\" ausente, sem padrão"
@@ -3085,8 +3085,8 @@ msgid ""
 msgstr "avaliação aninhada demais; recursão infinita / options(expressions=)?"
 
 #: src/main/eval.c:378 src/main/eval.c:463 src/main/eval.c:1460
-#: src/main/eval.c:1512 src/main/eval.c:1566 src/main/eval.c:1801
-#: src/main/eval.c:3138 src/main/eval.c:3230
+#: src/main/eval.c:1523 src/main/eval.c:1577 src/main/eval.c:1812
+#: src/main/eval.c:3149 src/main/eval.c:3241
 msgid "'...' used in an incorrect context"
 msgstr "'...' usado em um contexto incorreto"
 
@@ -3095,15 +3095,15 @@ msgstr "'...' usado em um contexto incorreto"
 msgid "object \"%s\" not found"
 msgstr "objeto \"%s\" não encontrado"
 
-#: src/main/eval.c:390 src/main/eval.c:2577
+#: src/main/eval.c:390 src/main/eval.c:2588
 msgid "argument is missing, with no default"
 msgstr "argumento ausente, sem padrão"
 
-#: src/main/eval.c:405 src/main/eval.c:2521
+#: src/main/eval.c:405 src/main/eval.c:2532
 msgid "recursive default argument reference"
 msgstr "referência de argumento padrão recursiva"
 
-#: src/main/eval.c:459 src/main/eval.c:3086
+#: src/main/eval.c:459 src/main/eval.c:3097
 msgid "attempt to apply non-function"
 msgstr "tentativa de aplicar uma não-função"
 
@@ -3188,174 +3188,174 @@ msgstr "lado esquerdo da atribuição inválida (do_set)"
 msgid "invalid assignment left-hand side"
 msgstr "atribuição do lado esquerdo inválida"
 
-#: src/main/eval.c:1467
+#: src/main/eval.c:1478
 #, c-format
 msgid "element %d is empty"
 msgstr ""
 
-#: src/main/eval.c:1597
+#: src/main/eval.c:1608
 msgid "invalid formal argument list for \"function\""
 msgstr "lista de argumento formal inválida para \"function\""
 
-#: src/main/eval.c:1643
+#: src/main/eval.c:1654
 msgid "numeric 'envir' arg not of length one"
 msgstr "argumento 'envir' numérico não tem comprimento um"
 
-#: src/main/eval.c:1665 src/main/eval.c:1684
+#: src/main/eval.c:1676 src/main/eval.c:1695
 msgid "restarts not supported in 'eval'"
 msgstr "reinícios não suportados em 'eval'"
 
-#: src/main/eval.c:1731
+#: src/main/eval.c:1742
 msgid "'Recall' called from outside a closure"
 msgstr "'Recall' chamada fora de um fechamento"
 
-#: src/main/eval.c:1795
+#: src/main/eval.c:1806
 msgid "value in '...' is not a promise"
 msgstr "valor em '...' não é uma promessa"
 
-#: src/main/eval.c:1988 src/main/objects.c:639
+#: src/main/eval.c:1999 src/main/objects.c:639
 #, c-format
 msgid "call name too long in '%s'"
 msgstr "nome de chamada muito longo em '%s'"
 
-#: src/main/eval.c:2009
+#: src/main/eval.c:2020
 #, c-format
 msgid "generic name too long in '%s'"
 msgstr "nome genérico muito longo em '%s'"
 
-#: src/main/eval.c:2041
+#: src/main/eval.c:2052
 #, c-format
 msgid "Incompatible methods (\"%s\", \"%s\") for \"%s\""
 msgstr "Métodos incompatíveis (\"%s\", \"%s\") para \"%s\""
 
-#: src/main/eval.c:2103
+#: src/main/eval.c:2114
 msgid "dispatch error"
 msgstr "erro de despacho"
 
-#: src/main/eval.c:2485
+#: src/main/eval.c:2496
 msgid "node stack overflow"
 msgstr "estouro da pilha de nós"
 
-#: src/main/eval.c:2491
+#: src/main/eval.c:2502
 msgid "integer stack overflow"
 msgstr "estouro da pilha de inteiros"
 
-#: src/main/eval.c:2559
+#: src/main/eval.c:2570
 msgid "Bad opcode"
 msgstr "Código de operador defeituoso"
 
-#: src/main/eval.c:2706
+#: src/main/eval.c:2717
 msgid "not a vector object"
 msgstr "não é um objeto vetorial"
 
-#: src/main/eval.c:2714 src/main/eval.c:2736 src/main/eval.c:2760
-#: src/main/eval.c:2784
+#: src/main/eval.c:2725 src/main/eval.c:2747 src/main/eval.c:2771
+#: src/main/eval.c:2795
 msgid "can only handle simple real vectors"
 msgstr "somente vetores reais simples são suportados"
 
-#: src/main/eval.c:2723 src/main/eval.c:2770
+#: src/main/eval.c:2734 src/main/eval.c:2781
 msgid "not a simple vector"
 msgstr "não é um vetor simples"
 
-#: src/main/eval.c:2740 src/main/eval.c:2788 src/main/subassign.c:952
+#: src/main/eval.c:2751 src/main/eval.c:2799 src/main/subassign.c:942
 #: src/main/subset.c:749
 msgid "incorrect number of subscripts"
 msgstr "número de índices incorretos"
 
-#: src/main/eval.c:2751 src/main/eval.c:2802
+#: src/main/eval.c:2762 src/main/eval.c:2813
 msgid "not a simple matrix"
 msgstr "não é uma matriz simples"
 
-#: src/main/eval.c:2836
+#: src/main/eval.c:2847
 msgid "bytecode version mismatch; using eval"
 msgstr "incompatibilidade da versão bytecode; usando eval"
 
-#: src/main/eval.c:2841
+#: src/main/eval.c:2852
 msgid "bytecode version is too old"
 msgstr "versão bytecode é muito velha"
 
-#: src/main/eval.c:2842
+#: src/main/eval.c:2853
 msgid "bytecode version is too new"
 msgstr "versão bytecode é muito nova"
 
-#: src/main/eval.c:2847
+#: src/main/eval.c:2858
 msgid "byte code version mismatch"
 msgstr "incompatibilidade da versão bytecode"
 
-#: src/main/eval.c:2863
+#: src/main/eval.c:2874
 msgid "missing value where logical needed"
 msgstr "valores ausentes onde lógicos esperados"
 
-#: src/main/eval.c:2864
+#: src/main/eval.c:2875
 msgid "argument of if(*) is not interpretable as logical"
 msgstr "argumento de if(*) não é interpretável como lógico"
 
-#: src/main/eval.c:2898
+#: src/main/eval.c:2909
 msgid "invalid sequence argument in for loop"
 msgstr "seqüência de argumentos inválida em loop for"
 
-#: src/main/eval.c:3048 src/main/eval.c:3069 src/main/eval.c:3176
+#: src/main/eval.c:3059 src/main/eval.c:3080 src/main/eval.c:3187
 msgid "not a BUILTIN function"
 msgstr "não é uma função NATIVA"
 
-#: src/main/eval.c:3164
+#: src/main/eval.c:3175
 msgid "bad function"
 msgstr "função defeituosa"
 
-#: src/main/eval.c:3197
+#: src/main/eval.c:3208
 msgid "not a SPECIAL function"
 msgstr "não é uma função ESPECIAL"
 
-#: src/main/eval.c:3426
+#: src/main/eval.c:3437
 msgid "cannot find index for threaded code address"
 msgstr "não é possível encontrar um índice para código de endereço encadeado"
 
-#: src/main/eval.c:3504
+#: src/main/eval.c:3515
 msgid "invalid symbol"
 msgstr "símbolo inválido"
 
-#: src/main/eval.c:3548
+#: src/main/eval.c:3559
 msgid "argument is not a byte code object"
 msgstr "argumento não é um objeto bytecode"
 
-#: src/main/eval.c:3571
+#: src/main/eval.c:3582
 msgid "bad file name"
 msgstr "nome de arquivo inválido"
 
-#: src/main/eval.c:3575 src/main/eval.c:3596
+#: src/main/eval.c:3586 src/main/eval.c:3607
 msgid "unable to open 'file'"
 msgstr "não é possível abrir 'file'"
 
-#: src/main/eval.c:3590 src/main/saveload.c:1956
+#: src/main/eval.c:3601 src/main/saveload.c:1956
 msgid "'file' must be non-empty string"
 msgstr "'file' deve ser uma string não vazia"
 
-#: src/main/eval.c:3592 src/main/saveload.c:1958 src/main/saveload.c:2234
+#: src/main/eval.c:3603 src/main/saveload.c:1958 src/main/saveload.c:2234
 #: src/main/serialize.c:1743
 msgid "'ascii' must be logical"
 msgstr "'ascii' deve ser um valor lógico"
 
-#: src/main/eval.c:3621 src/main/eval.c:3628
+#: src/main/eval.c:3632 src/main/eval.c:3639
 msgid "R_CompiledFileName: buffer too small"
 msgstr "R_CompiledFileName: buffer muito pequeno"
 
-#: src/main/eval.c:3661
+#: src/main/eval.c:3672
 msgid "code must be a generic vector"
 msgstr "code deve ser um vetor genérico"
 
-#: src/main/eval.c:3700
+#: src/main/eval.c:3711
 msgid "profile timer in use"
 msgstr "cronômetro de desempenho em uso"
 
-#: src/main/eval.c:3702
+#: src/main/eval.c:3713
 msgid "already byte code profiling"
 msgstr "análise de desempenho byte code já em andamento"
 
-#: src/main/eval.c:3720
+#: src/main/eval.c:3731
 msgid "setting profile timer failed"
 msgstr "especificação de um cronômetro de desempenho falhou"
 
-#: src/main/eval.c:3737
+#: src/main/eval.c:3748
 msgid "not byte code profiling"
 msgstr "análise de desempenho bytecode não está em andamento"
 
@@ -3585,8 +3585,12 @@ msgstr "linha de tipo inválido"
 msgid "no active or default device"
 msgstr "nenhum dispositivo ativo ou padrão"
 
-#: src/main/graphics.c:4565 src/main/graphics.c:4708
+#: src/main/graphics.c:4565
 msgid "too many open devices"
+msgstr "muitos dispositivos abertos"
+
+#: src/main/graphics.c:4708
+msgid "too many devices open"
 msgstr "muitos dispositivos abertos"
 
 #: src/main/internet.c:89
@@ -3981,31 +3985,31 @@ msgstr ""
 msgid "variables of type '%s' are not allowed in model matrices"
 msgstr "valores negativos não são permitidos na subscrição de matriz"
 
-#: src/main/names.c:933
+#: src/main/names.c:935
 msgid "string argument required"
 msgstr "argumento string requerido"
 
-#: src/main/names.c:941
+#: src/main/names.c:943
 msgid "no such primitive function"
 msgstr "não existe tal função primitiva"
 
-#: src/main/names.c:1054
+#: src/main/names.c:1056
 msgid "attempt to use zero-length variable name"
 msgstr "tentativa de usar um nome de variável com comprimento zero"
 
-#: src/main/names.c:1056
+#: src/main/names.c:1058
 msgid "symbol print-name too long"
 msgstr "nome de impressão de símbolo muito longo"
 
-#: src/main/names.c:1082
+#: src/main/names.c:1084
 msgid "invalid .Internal() argument"
 msgstr "argumento .Internal() inválido"
 
-#: src/main/names.c:1085
+#: src/main/names.c:1087
 msgid "invalid internal function"
 msgstr "função interna inválida"
 
-#: src/main/names.c:1087
+#: src/main/names.c:1089
 #, c-format
 msgid "no internal function \"%s\""
 msgstr "nenhuma função interna \"%s\""
@@ -6072,98 +6076,98 @@ msgstr "tentativa de alargar um objeto diferente de vetor"
 msgid "assignment outside vector/list limits (extending from %d to %d)"
 msgstr "atribuição fora dos limites do vetor/lista (extendendo de %d até %d)"
 
-#: src/main/subassign.c:340
+#: src/main/subassign.c:330
 #, c-format
 msgid "incompatible types (from %s to %s) in subassignment type fix"
 msgstr "tipos incompatíveis (de %s para %s) em correção de tipo subatribuição "
 
-#: src/main/subassign.c:432 src/main/subassign.c:702 src/main/subassign.c:705
-#: src/main/subassign.c:990
+#: src/main/subassign.c:422 src/main/subassign.c:692 src/main/subassign.c:695
+#: src/main/subassign.c:980
 msgid "NAs are not allowed in subscripted assignments"
 msgstr "NAs não são permitidos em atribuições por subscritos"
 
-#: src/main/subassign.c:446 src/main/subassign.c:716 src/main/subassign.c:982
-#: src/main/subassign.c:1169
+#: src/main/subassign.c:436 src/main/subassign.c:706 src/main/subassign.c:972
+#: src/main/subassign.c:1159
 msgid "nothing to replace with"
 msgstr "nada para colocar no lugar"
 
-#: src/main/subassign.c:448 src/main/subassign.c:718 src/main/subassign.c:984
-#: src/main/subassign.c:1171
+#: src/main/subassign.c:438 src/main/subassign.c:708 src/main/subassign.c:974
+#: src/main/subassign.c:1161
 msgid "number of items to replace is not a multiple of replacement length"
 msgstr ""
 "número de itens para para substituir não é um múltiplo do comprimento do "
 "substituto"
 
-#: src/main/subassign.c:684
+#: src/main/subassign.c:674
 msgid "incorrect number of subscripts on matrix"
 msgstr "número de subscritos incorretos na matriz"
 
-#: src/main/subassign.c:934
+#: src/main/subassign.c:924
 #, c-format
 msgid "incompatible types (from %s to %s) in matrix subset assignment"
 msgstr ""
 "tipos incompatíveis (de %s para %s) em atribuição de subconjunto de matriz"
 
-#: src/main/subassign.c:1118
+#: src/main/subassign.c:1108
 #, c-format
 msgid "incompatible types (from %s to %s) in array subset assignment"
 msgstr ""
 "tipos incompatíveis (de %s para %s) em atribuição de subconjunto de array"
 
-#: src/main/subassign.c:1143
+#: src/main/subassign.c:1133
 msgid "invalid number of subscripts to list assign"
 msgstr "número de subscritos inválidos em atribuição de lista"
 
-#: src/main/subassign.c:1288
+#: src/main/subassign.c:1278
 msgid "SubAssignArgs: invalid number of arguments"
 msgstr "SubAssignArgs: número de argumentos inválidos"
 
-#: src/main/subassign.c:1497
+#: src/main/subassign.c:1487
 msgid "wrong args for environment subassignment"
 msgstr "argumentos inválidos para subatribuição de ambiente"
 
-#: src/main/subassign.c:1507 src/main/subassign.c:1529
+#: src/main/subassign.c:1497 src/main/subassign.c:1519
 msgid "more elements supplied than there are to replace"
 msgstr "mais elementos fornecidos do que podem ser substituidos"
 
-#: src/main/subassign.c:1509
+#: src/main/subassign.c:1499
 msgid "[[ ]] with missing subscript"
 msgstr "[[ ]] com subscrito ausente"
 
-#: src/main/subassign.c:1517 src/main/subset.c:783
+#: src/main/subassign.c:1507 src/main/subset.c:783
 #, c-format
 msgid "recursive indexing failed at level %d\n"
 msgstr "indexação recursiva falhou no nível %d\n"
 
-#: src/main/subassign.c:1522 src/main/subset.c:787
+#: src/main/subassign.c:1512 src/main/subset.c:787
 #, c-format
 msgid "no such index at level %d\n"
 msgstr "nenhum índice no nível %d\n"
 
-#: src/main/subassign.c:1539 src/main/subassign.c:1556
+#: src/main/subassign.c:1529 src/main/subassign.c:1546
 msgid "[[ ]] subscript out of bounds"
 msgstr "subscrito [[ ]] fora de limites"
 
-#: src/main/subassign.c:1545 src/main/subassign.c:1727
+#: src/main/subassign.c:1535 src/main/subassign.c:1717
 msgid "[[ ]] improper number of subscripts"
 msgstr "número inadequado de subscritos em [[ ]]"
 
-#: src/main/subassign.c:1689
+#: src/main/subassign.c:1679
 #, c-format
 msgid "incompatible types (from %s to %s) in [[ assignment"
 msgstr "tipos incompatíveis (de %s para %s) em atribuição [["
 
-#: src/main/subassign.c:1737
+#: src/main/subassign.c:1727
 #, c-format
 msgid "[[ ]] subscript (%d) out of bounds"
 msgstr "subscrito (%d) em [[ ]] fora de limites"
 
-#: src/main/subassign.c:1779 src/main/subscript.c:111 src/main/subscript.c:188
+#: src/main/subassign.c:1769 src/main/subscript.c:111 src/main/subscript.c:188
 #: src/main/subscript.c:588 src/main/subset.c:923
 msgid "invalid subscript type"
 msgstr "tipo de subscrito inválido"
 
-#: src/main/subassign.c:1862
+#: src/main/subassign.c:1852
 msgid "Coercing LHS to a list"
 msgstr "Realizando coerção de LHD para uma lista"
 
@@ -7250,9 +7254,6 @@ msgstr "módulo X11 não pode ser carregado"
 #: src/unix/X11.c:129 src/unix/X11.c:136 src/unix/X11.c:143 src/unix/X11.c:149
 msgid "X11 is not available"
 msgstr "X11 não está disponível"
-
-#~ msgid "too many devices open"
-#~ msgstr "muitos dispositivos abertos"
 
 #~ msgid "supplied length is invalid"
 #~ msgstr "comprimento fornecido é inválido"

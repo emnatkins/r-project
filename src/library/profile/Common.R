@@ -18,9 +18,6 @@ version <- R.version            # for S compatibility
 ## for backwards compatibility only
 R.version.string <- R.version$version.string
 
-## NOTA BENE: options() for non-base package functionality are in places like
-##            --------- ../utils/R/zzz.R
-
 options(keep.source = interactive())
 options(warn = 0)
 # options(repos = c(CRAN="@CRAN@"))
@@ -53,5 +50,9 @@ local({dp <- as.vector(Sys.getenv("R_DEFAULT_PACKAGES"))
         if(!res)
             warning("package ", pkg,
                     ' in options("defaultPackages") was not found', call.=FALSE)
+    }
+    sch <- search()
+    if(! "package:stats" %in% sch) {
+        autoload("ts", "stats")
     }
 }

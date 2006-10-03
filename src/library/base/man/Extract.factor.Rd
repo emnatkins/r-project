@@ -7,9 +7,11 @@
   Extract or replace subsets of factors.
 }
 \usage{
-\method{[}{factor}(x, \dots, drop = FALSE)
-\method{[[}{factor}(x, i)
-\method{[}{factor}(x, \dots) <- value
+x[\dots, drop = FALSE]
+
+x[[i]]
+
+x[\dots] <- value
 }
 \arguments{
   \item{x}{a factor}

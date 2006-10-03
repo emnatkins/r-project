@@ -293,17 +293,7 @@ static int SubassignTypeFix(SEXP *x, SEXP *y, int stretch, int level,
     case 1419:  /* real       <- vector     */
     case 1519:  /* complex    <- vector     */
     case 1619:  /* character  <- vector     */
-    case 2419:  /* raw        <- vector     */
 	*x = coerceVector(*x, VECSXP);
-	break;
-
-    case 1020:  /* logical    <- expression */
-    case 1320:  /* integer    <- expression */
-    case 1420:  /* real       <- expression */
-    case 1520:  /* complex    <- expression */
-    case 1620:  /* character  <- expression */
-    case 2420:  /* raw        <- expression */
-	*x = coerceVector(*x, EXPRSXP);
 	break;
 
     case 2001:	/* expression <- symbol	    */

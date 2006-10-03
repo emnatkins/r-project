@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2006-09-21 15:21+0100\n"
+"POT-Creation-Date: 2006-09-22 12:33+0100\n"
 "PO-Revision-Date: 2005-04-14 18:06+0200\n"
 "Last-Translator: stefano iacus <stefano.iacus@r-project.org>\n"
 "Language-Team: Italian <it@li.org>\n"
@@ -83,64 +83,60 @@ msgstr "metodo non valido"
 msgid "Burg's algorithm failed to find partial correlation"
 msgstr "l'alrgoritmo di Burg non è riuscito a trovare correlazione parziale"
 
-#: nls.c:104
+#: nls.c:75
 msgid "'control' must be a list"
 msgstr "'control' deve essere di tipo list"
 
-#: nls.c:106
+#: nls.c:77
 msgid "'m' must be a list"
 msgstr "'m' deve essere di tipo list"
 
-#: nls.c:112 nls.c:117 nls.c:122 nls.c:127 nls.c:132 nls.c:173 nls.c:178
-#: nls.c:183 nls.c:188 nls.c:193 nls.c:198
+#: nls.c:83 nls.c:88 nls.c:93 nls.c:102 nls.c:107 nls.c:112 nls.c:117
+#: nls.c:122 nls.c:127
 #, c-format
 msgid "'%s' absent"
 msgstr "'%s' assente"
 
-#: nls.c:239
+#: nls.c:154
 msgid "singular gradient"
 msgstr "gradiente singolare"
 
-#: nls.c:260
+#: nls.c:173
 #, c-format
 msgid "step factor %g reduced below 'minFactor' of %g"
 msgstr "fattore di incremento %g sotto 'minFactor' %g"
 
-#: nls.c:269
+#: nls.c:181
 #, c-format
 msgid "number of iterations exceeded maximum of %d"
 msgstr "il numero di iterazioni ha superato il massimo di %d"
 
-#: nls.c:274
-msgid "converged"
-msgstr ""
-
-#: nls.c:295
+#: nls.c:202
 msgid "'theta' should be of type character"
 msgstr "'theta' deve essere di tipo character"
 
-#: nls.c:297 port.c:379
+#: nls.c:204 port.c:379
 msgid "use of NULL environment is defunct"
 msgstr ""
 
-#: nls.c:301
+#: nls.c:208
 msgid "'rho' should be an environment"
 msgstr "'rho' deve essere un environment"
 
-#: nls.c:303
+#: nls.c:210
 msgid "'dir' is not a numeric vector of the correct length"
 msgstr ""
 
-#: nls.c:320 nls.c:348
+#: nls.c:227 nls.c:255
 msgid "Missing value or an infinity produced when evaluating the model"
 msgstr "Valore mancante o infinito generato durante il calcolo del modello"
 
-#: nls.c:326
+#: nls.c:233
 #, c-format
 msgid "variable '%s' is integer, not numeric"
 msgstr ""
 
-#: nls.c:328
+#: nls.c:235
 #, c-format
 msgid "variable '%s' is not numeric"
 msgstr ""

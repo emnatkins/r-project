@@ -78,8 +78,7 @@ Rmath.h: Rmath.h0
 
 ## If we do not have svn, get the old file from SVN-REVISION.bak (if poss).
 ## This needs to be copy-on-change.
-## The date from svn info is not in GMT, but we have decided to live
-## with that as they changed the format in svn 1.4.x
+## We don't get the date from svn info as it is not in GMT.
 ## <FIXME> USE_SVNVERSION does not work if there is no 'svnversion'
 FORCE:
 $(R_HOME)/SVN-REVISION: FORCE
@@ -96,10 +95,9 @@ else
 	  rm svn-tmp; \
 	fi
 endif
-	@if test -f svn-tmp ; then \
-	  (cd ../..; LC_ALL=C TZ=GMT svn info || echo "Last Changed Date: unknown") 2> /dev/null \
-	    | sed -n '/^Last Changed Date:/p' | sed 's/[0-9][0-9]:.*//' \
-	    >> svn-tmp ; \
+	@if test -f svn-tmp && test -f "../../.svn/entries" ; then \
+	  cdate=`grep committed-date "../../.svn/entries" | sed -n 1p | sed -e 's/^ *committed-date=\"//' -e 's/T.*//'` ; \
+	  echo "Last Changed Date: $${cdate}" >> svn-tmp ; \
 	else \
 	  rm -f svn-tmp ; \
 	fi
@@ -110,7 +108,7 @@ endif
 	else \
 	  cp -p $(R_HOME)/SVN-REVISION.bak $@ 2> /dev/null || \
 	  (echo "Revision: 00000" > $@; \
-	   echo "Last Changed Date: 2006-00-00" >> $@) ; \
+	   echo "Last Changed Date: 2005-00-00" >> $@) ; \
 	fi 
 	@rm -f svn-tmp $(R_HOME)/SVN-REVISION.bak
 

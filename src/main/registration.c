@@ -140,7 +140,6 @@ static R_CMethodDef cMethods [] = {
     CDEF(massdist),
     CDEF(R_max_col),
     CDEF(R_pretty),
-    /* this is called by Hmisc, although no longer used in R */
     CDEF(R_rowsum),
 
     CDEF(spline_coef),
