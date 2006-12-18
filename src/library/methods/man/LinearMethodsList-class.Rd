@@ -17,13 +17,10 @@
     \item{\code{methods}:}{Object of class \code{"list"}, the method
       definitions.}
     \item{\code{arguments}:}{Object of class \code{"list"}, the
-      corresponding formal arguments, namely as many of the arguments
-      in the signature of the generic function as are active in the
-      relevant method table. }
+      corresponding formal arguments. }
     \item{\code{classes}:}{Object of class \code{"list"}, the
       corresponding classes in the signatures. }
-    \item{\code{generic}:}{Object of class \code{"genericFunction"};
-        the generic function to which the methods correspond. }
+    \item{\code{fromClasses}:}{Object of class \code{"list"} }
   }
 }
 

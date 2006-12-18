@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-11-25 12:18\n"
+"POT-Creation-Date: 2006-12-01 10:45\n"
 "PO-Revision-Date: 2006-04-16 19:17-0300\n"
 "Last-Translator: Fernando Henrique Ferraz P. da Rosa <feferraz@.ime.usp.br>\n"
 "Language-Team: Portuguese <ldp-br@bazar.conectiva.com.br>\n"
@@ -1503,9 +1503,6 @@ msgstr "argumento 'contrasts.arg' inválido"
 msgid "variable '%s' is absent, its contrast will be ignored"
 msgstr "variável '%s' ausente, e seus contrastes serão ignorados"
 
-msgid "using type=\"numeric\" with a factor response will be ignored"
-msgstr ""
-
 msgid "invalid response type"
 msgstr "tipo de resposta inválida"
 
@@ -1523,10 +1520,6 @@ msgstr "argumento 'omit' inválido"
 
 msgid "'print.level' must be in {0,1,2}"
 msgstr "'print.level' deve estar em {0,1,2}"
-
-#, fuzzy
-msgid "'interval' must be a vector of length 2"
-msgstr "'margins' deve ser um vetor numérico de comprimento 2"
 
 msgid "lower < upper  is not fulfilled"
 msgstr "lower < upper não satisfeito"
@@ -1606,6 +1599,9 @@ msgid "Upper or lower bounds ignored unless algorithm = \"port\""
 msgstr ""
 "Limites superiores ou inferiores ignorados a não ser que o algoritmo seja = "
 "\"port\""
+
+msgid "Convergence failure:"
+msgstr "Falha na convergência: "
 
 msgid "cannot calculate REML log-likelihood for \"nls\" objects"
 msgstr "não é possível calcular verossimilhança REML para objetos \"nls\""
@@ -2233,9 +2229,6 @@ msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "parâmetro %s não ocorre na fórmula do modelo"
 msgstr[1] "parâmetros %s não ocorrem na fórmula do modelo"
-
-#~ msgid "Convergence failure:"
-#~ msgstr "Falha na convergência: "
 
 #~ msgid ""
 #~ "link \"%s\" not available for binomial family, available links are \"logit"

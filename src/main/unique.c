@@ -84,9 +84,7 @@ static int ihash(SEXP x, int indx, HashData *d)
 }
 
 /* We use unions here because Solaris gcc -O2 has trouble with
-   casting + incrementing pointers.  We use tests here, but R currently
-   assumes int is 4 bytes and double is 8 bytes.
- */
+   casting + incrementing pointers */
 union foo {
     double d;
     unsigned int u[2];
@@ -100,15 +98,12 @@ static int rhash(SEXP x, int indx, HashData *d)
     /* we want all NaNs except NA equal, and all NAs equal */
     if (R_IsNA(tmp)) tmp = NA_REAL;
     else if (R_IsNaN(tmp)) tmp = R_NaN;
-#if 2*SIZEOF_INT == SIZEOF_DOUBLE
-    {
+    if (sizeof(double) >= sizeof(unsigned int)*2) {
 	union foo tmpu;
 	tmpu.d = tmp;
 	return scatter(tmpu.u[0] + tmpu.u[1], d);
-    }
-#else
-    return scatter(*((unsigned int *) (&tmp)), d);
-#endif
+    } else
+	return scatter(*((unsigned int *) (&tmp)), d);
 }
 
 static int chash(SEXP x, int indx, HashData *d)
@@ -122,19 +117,16 @@ static int chash(SEXP x, int indx, HashData *d)
     else if (R_IsNaN(tmp.r)) tmp.r = R_NaN;
     if (R_IsNA(tmp.i)) tmp.i = NA_REAL;
     else if (R_IsNaN(tmp.i)) tmp.i = R_NaN;
-#if 2*SIZEOF_INT == SIZEOF_DOUBLE
-    {
+    if (sizeof(double) >= sizeof(unsigned int)*2) {
 	union foo tmpu;
 	tmpu.d = tmp.r;
 	u = tmpu.u[0] ^ tmpu.u[1];
 	tmpu.d = tmp.i;
 	u ^= tmpu.u[0] ^ tmpu.u[1];
 	return scatter(u, d);
-    }
-#else
+    } else
 	return scatter((*((unsigned int *)(&tmp.r)) ^
 			(*((unsigned int *)(&tmp.i)))), d);
-#endif
 }
 
 static int shash(SEXP x, int indx, HashData *d)
@@ -210,51 +202,51 @@ static int vhash(SEXP x, int indx, HashData *d)
 {
     int i;
     unsigned int key;
-    SEXP _this = VECTOR_ELT(x, indx);
+    SEXP this = VECTOR_ELT(x, indx);
     
-    key = OBJECT(_this) + 2*TYPEOF(_this) + 100*length(_this);
+    key = OBJECT(this) + 2*TYPEOF(this) + 100*length(this);
     /* maybe we should also look at attributes, but that slows us down */
-    switch (TYPEOF(_this)) {
+    switch (TYPEOF(this)) {
     case LGLSXP:
 	/* This is not too clever: pack into 32-bits and then scatter? */
-	for(i = 0; i < LENGTH(_this); i++) {
-	    key ^= lhash(_this, i, d);
+	for(i = 0; i < LENGTH(this); i++) {
+	    key ^= lhash(this, i, d);
 	    key *= 97;
 	}
 	break;
     case INTSXP:
-	for(i = 0; i < LENGTH(_this); i++) {
-	    key ^= ihash(_this, i, d);
+	for(i = 0; i < LENGTH(this); i++) {
+	    key ^= ihash(this, i, d);
 	    key *= 97;
 	}
 	break;
     case REALSXP:
-	for(i = 0; i < LENGTH(_this); i++) {
-	    key ^= rhash(_this, i, d);
+	for(i = 0; i < LENGTH(this); i++) {
+	    key ^= rhash(this, i, d);
 	    key *= 97;
 	}
 	break;
     case CPLXSXP:
-	for(i = 0; i < LENGTH(_this); i++) {
-	    key ^= chash(_this, i, d);
+	for(i = 0; i < LENGTH(this); i++) {
+	    key ^= chash(this, i, d);
 	    key *= 97;
 	}
 	break;
     case STRSXP:
-	for(i = 0; i < LENGTH(_this); i++) {
-	    key ^= shash(_this, i, d);
+	for(i = 0; i < LENGTH(this); i++) {
+	    key ^= shash(this, i, d);
 	    key *= 97;
 	}
 	break;
     case RAWSXP:
-	for(i = 0; i < LENGTH(_this); i++) {
-	    key ^= scatter(rawhash(_this, i, d), d);
+	for(i = 0; i < LENGTH(this); i++) {
+	    key ^= scatter(rawhash(this, i, d), d);
 	    key *= 97;
 	}
 	break;
     case VECSXP:
-	for(i = 0; i < LENGTH(_this); i++) {
-	    key ^= vhash(_this, i, d);
+	for(i = 0; i < LENGTH(this); i++) {
+	    key ^= vhash(this, i, d);
 	    key *= 97;
 	}
 	break;
@@ -1116,7 +1108,7 @@ SEXP attribute_hidden do_makeunique(SEXP call, SEXP op, SEXP args, SEXP env)
     }
     if(n > 1) {
 	/* +2 for terminator and rounding error */
-	buf = (char *) alloca(maxlen + strlen(csep) + (int) (log((double)n)/log(10.0)) + 2);
+	buf = alloca(maxlen + strlen(csep) + log((double)n)/log(10.0) + 2);
 	if(n < 10000) {
 	    cnts = (int *) alloca(n * sizeof(int));
 	} else {

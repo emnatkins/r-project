@@ -175,37 +175,6 @@ char *EncodeReal(double x, int w, int d, int e, char cdec)
     return buff;
 }
 
-char *EncodeReal2(double x, int w, int d, int e)
-{
-    static char buff[NB];
-    char fmt[20];
-
-    /* IEEE allows signed zeros (yuck!) */
-    if (x == 0.0) x = 0.0;
-    if (!R_FINITE(x)) {
-	if(ISNA(x)) snprintf(buff, NB, "%*s", w, CHAR(R_print.na_string));
-	else if(ISNAN(x)) snprintf(buff, NB, "%*s", w, "NaN");
-	else if(x > 0) snprintf(buff, NB, "%*s", w, "Inf");
-	else snprintf(buff, NB, "%*s", w, "-Inf");
-    }
-    else if (e) {
-	if(d) {
-	    sprintf(fmt,"%%#%d.%de", w, d);
-	    snprintf(buff, NB, fmt, x);
-	}
-	else {
-	    sprintf(fmt,"%%%d.%de", w, d);
-	    snprintf(buff, NB, fmt, x);
-	}
-    }
-    else { /* e = 0 */
-	sprintf(fmt,"%%#%d.%df", w, d);
-	snprintf(buff, NB, fmt, x);
-    }
-    buff[NB-1] = '\0';
-    return buff;
-}
-
 void z_prec_r(Rcomplex *r, Rcomplex *x, double digits);
 
 char *EncodeComplex(Rcomplex x, int wr, int dr, int er, int wi, int di, int ei,
@@ -224,7 +193,7 @@ char *EncodeComplex(Rcomplex x, int wr, int dr, int er, int wi, int di, int ei,
 	snprintf(buff, NB, "%*s%*s", R_print.gap, "", wr+wi+2,
 		CHAR(R_print.na_string));
     } else {
-	/* formatComplex rounded, but this does not, and we need to
+	/* formatComplex rounded, but this does not, and we need to 
 	   keep it that way so we don't get strange trailing zeros.
 	   But we do want to avoid printing small exponentials that
 	   are probably garbage.
@@ -618,11 +587,7 @@ void REprintf(char *format, ...)
 }
 
 #if defined(HAVE_VASPRINTF) && !HAVE_DECL_VASPRINTF
-int vasprintf(char **strp, const char *fmt, va_list ap)
-#ifdef __cplusplus
-	throw ()
-#endif
-;
+int vasprintf(char **strp, const char *fmt, va_list ap);
 #endif
 
 #if !HAVE_VA_COPY && HAVE___VA_COPY
@@ -674,7 +639,7 @@ void Rcons_vprintf(const char *format, va_list arg)
 	    res = R_BUFSIZE;
     }
 #endif /* HAVE_VA_COPY */
-    R_WriteConsole(p, strlen(p));
+    R_WriteConsole(p, strlen(buf));
 #ifdef HAVE_VA_COPY
     if(usedRalloc) vmaxset(vmax);
     if(usedVasprintf) free(p);
@@ -747,10 +712,12 @@ void REvprintf(const char *format, va_list arg)
 	} else vfprintf(R_Consolefile, format, arg);
     } else {
 	char buf[BUFSIZE];
+	int slen;
 
 	vsnprintf(buf, BUFSIZE, format, arg);
 	buf[BUFSIZE-1] = '\0';
-	R_WriteConsole(buf, strlen(buf));
+	slen = strlen(buf);
+	R_WriteConsole(buf, slen);
     }
 }
 

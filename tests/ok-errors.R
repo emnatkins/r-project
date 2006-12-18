@@ -13,5 +13,3 @@ if(FALSE) {
 character(2^30+1)
 vector("list", 2^30+2)
 }
-
-getenv("USER") # should produce correct error message.

@@ -28,7 +28,6 @@
 
 #define __MAIN__
 #include "Defn.h"
-#include "Rinterface.h"
 #include "Graphics.h"
 #include <Rdevices.h>		/* for InitGraphics */
 #include "IOStuff.h"
@@ -90,7 +89,7 @@ static void R_ReplFile(FILE *fp, SEXP rho, int savestack, int browselevel)
 	case PARSE_NULL:
 	    break;
 	case PARSE_OK:
-	    R_Visible = FALSE;
+	    R_Visible = 0;
 	    R_EvalDepth = 0;
 	    count++;
 	    PROTECT(R_CurrentExpr);
@@ -250,7 +249,7 @@ Rf_ReplIteration(SEXP rho, int savestack, int browselevel, R_ReplState *state)
 		return(0);
 	    }
 	}
-	R_Visible = FALSE;
+	R_Visible = 0;
 	R_EvalDepth = 0;
 	PROTECT(R_CurrentExpr);
 	R_Busy(1);
@@ -293,7 +292,7 @@ Rf_ReplIteration(SEXP rho, int savestack, int browselevel, R_ReplState *state)
 static void R_ReplConsole(SEXP rho, int savestack, int browselevel)
 {
     int status;
-    R_ReplState state = { PARSE_NULL, 1, 0, "", NULL};
+    R_ReplState state = {0, 1, 0, "", NULL};
 
     R_IoBufferWriteReset(&R_ConsoleIob);
     state.buf[0] = '\0';
@@ -351,7 +350,7 @@ int R_ReplDLLdo1()
     case PARSE_OK:
 	R_IoBufferReadReset(&R_ConsoleIob);
 	R_CurrentExpr = R_Parse1Buffer(&R_ConsoleIob, 1, &status);
-	R_Visible = FALSE;
+	R_Visible = 0;
 	R_EvalDepth = 0;
 	PROTECT(R_CurrentExpr);
 	R_Busy(1);
@@ -1017,7 +1016,7 @@ static int ParseBrowser(SEXP CExpr, SEXP rho)
    is maintained across LONGJMP's */
 static void browser_cend(void *data)
 {
-    int *psaved = (int *) data;
+    int *psaved = data;
     R_BrowseLevel = *psaved - 1;
 }
 
@@ -1067,7 +1066,7 @@ SEXP attribute_hidden do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if (SETJMP(thiscontext.cjmpbuf)) {
 	    SET_RESTART_BIT_ON(thiscontext.callflag);
 	    R_ReturnedValue = R_NilValue;
-	    R_Visible = FALSE;
+	    R_Visible = 0;
 	}
 	R_GlobalContext = &thiscontext;
 	R_InsertRestartHandlers(&thiscontext, TRUE);
@@ -1110,8 +1109,7 @@ void R_dot_Last(void)
 SEXP attribute_hidden do_quit(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     char *tmp;
-    SA_TYPE ask=SA_DEFAULT;
-    int status, runLast;
+    int ask=SA_DEFAULT, status, runLast;
 
     if(R_BrowseLevel) {
 	warning(_("cannot quit from browser"));

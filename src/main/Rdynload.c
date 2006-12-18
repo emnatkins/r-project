@@ -420,19 +420,16 @@ Rf_freeDllInfo(DllInfo *info)
 }
 
 
-typedef void (*DllInfoUnloadCall)(DllInfo *);
-typedef DllInfoUnloadCall DllInfoInitCall;
-
 static Rboolean
 R_callDLLUnload(DllInfo *dllInfo)
 {
     char buf[1024];
-    DllInfoUnloadCall f;
+    DL_FUNC f;
     R_RegisteredNativeSymbol symbol;
     symbol.type = R_ANY_SYM;
 
     snprintf(buf, 1024, "R_unload_%s", dllInfo->name);
-    f = (DllInfoUnloadCall) R_dlsym(dllInfo, buf, &symbol);
+    f = R_dlsym(dllInfo, buf, &symbol);
     if(f)
        f(dllInfo);
 
@@ -538,7 +535,7 @@ static DllInfo* AddDLL(char *path, int asLocal, int now)
     */
     if(info) {
 	char *tmp;
-	DllInfoInitCall f;
+	DL_FUNC f;
 #ifdef HAVE_NO_SYMBOL_UNDERSCORE
 	tmp = (char*) malloc(sizeof(char)*(strlen("R_init_") +
 					   strlen(info->name)+ 1));
@@ -548,7 +545,7 @@ static DllInfo* AddDLL(char *path, int asLocal, int now)
 					   strlen(info->name)+ 2));
 	sprintf(tmp, "_%s%s","R_init_", info->name);
 #endif
-	f = (DllInfoInitCall) R_osDynSymbol->dlsym(info, tmp);
+	f = (DL_FUNC) R_osDynSymbol->dlsym(info, tmp);
 	free(tmp);
 	if(f)
 	    f(info);
@@ -570,7 +567,7 @@ static DllInfo *R_RegisterDLL(HINSTANCE handle, const char *path)
     */
     info->useDynamicLookup = TRUE;
 
-    dpath = (char *) malloc(strlen(path)+1);
+    dpath = malloc(strlen(path)+1);
     if(dpath == NULL) {
 	strcpy(DLLerror, _("could not allocate space for 'path'"));
 	R_osDynSymbol->closeLibrary(handle);
@@ -604,7 +601,7 @@ static int
 addDLL(char *dpath, char *DLLname, HINSTANCE handle)
 {
     int ans = CountDLL;
-    char *name = (char *) malloc(strlen(DLLname)+1);
+    char *name = malloc(strlen(DLLname)+1);
     if(name == NULL) {
 	strcpy(DLLerror, _("could not allocate space for 'name'"));
 	if(handle)
@@ -1303,7 +1300,7 @@ SEXP attribute_hidden do_dynunload(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 SEXP attribute_hidden
-R_getSymbolInfo(SEXP sname, SEXP spackage, SEXP withRegistrationInfo)
+R_getSymbolInfo(SEXP sname, SEXP spackage)
 {
     error(_("no dyn.load support in this R version"));
 }

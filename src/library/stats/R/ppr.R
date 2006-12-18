@@ -110,7 +110,7 @@ print.ppr <- function(x, ...)
 {
     if(!is.null(cl <- x$call)) {
 	cat("Call:\n")
-	dput(cl, control=NULL)
+	dput(cl)
     }
     mu <- x$mu; ml <- x$ml
     cat("\nGoodness of fit:\n")

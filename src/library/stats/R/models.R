@@ -107,10 +107,8 @@ delete.response <- function (termobj)
 
 reformulate <- function (termlabels, response=NULL)
 {
-    if(!is.character(termlabels) || !length(termlabels))
-        stop("'termlabels' must be a character vector of length at least one")
     has.resp <- !is.null(response)
-    termtext <- paste(if(has.resp) "response", "~",
+    termtext <- paste(if(has.resp)"response", "~",
 		      paste(termlabels, collapse = "+"),
 		      collapse = "")
     rval <- eval(parse(text = termtext)[[1]])
@@ -121,16 +119,14 @@ reformulate <- function (termlabels, response=NULL)
     rval
 }
 
-drop.terms <- function(termobj, dropx = NULL, keep.response = FALSE)
+drop.terms <- function(termobj, dropx=NULL, keep.response = FALSE)
 {
     if (is.null(dropx))
 	termobj
     else {
-        if(!inherits(termobj, "terms"))
-           stop("'termobj' must be a object of class \"terms\"")
 	newformula <- reformulate(attr(termobj, "term.labels")[-dropx],
 				  if (keep.response) termobj[[2]] else NULL)
-        environment(newformula) <- environment(termobj)
+        environment(newformula)<-environment(termobj)
 	terms(newformula, specials=names(attr(termobj, "specials")))
     }
 }
@@ -467,10 +463,7 @@ model.response <- function (data, type = "any")
     if (attr(attr(data, "terms"), "response")) {
 	if (is.list(data) | is.data.frame(data)) {
 	    v <- data[[1]]
-	    if (type == "numeric" && is.factor(v)) {
-		warning('using type="numeric" with a factor response will be ignored')
-	    } else if (type == "numeric" | type == "double")
-		storage.mode(v) <- "double"
+	    if (type == "numeric" | type == "double") storage.mode(v) <- "double"
 	    else if (type != "any") stop("invalid response type")
 	    if (is.matrix(v) && ncol(v) == 1) dim(v) <- NULL
 	    rows <- attr(data, "row.names")

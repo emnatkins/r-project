@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.5.0\n"
+"Project-Id-Version: R 2.4.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-12-11 10:49\n"
-"PO-Revision-Date: 2006-12-11 10:49\n"
+"POT-Creation-Date: 2006-12-11 10:41\n"
+"PO-Revision-Date: 2006-12-11 10:41\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -44,12 +44,6 @@ msgstr "See help(“Defunct”) and help(“%s-defunct”)."
 
 msgid "See help(\"Defunct\")"
 msgstr "See help(“Defunct”)"
-
-msgid "'symbol.C' is not needed: please remove it"
-msgstr "‘symbol.C’ is not needed: please remove it"
-
-msgid "'symbol.For' is not needed: please remove it"
-msgstr "‘symbol.For’ is not needed: please remove it"
 
 msgid "'%s' is deprecated."
 msgstr "‘%s’ is deprecated."
@@ -74,6 +68,9 @@ msgstr "‘nu’ must be 0, nrow(x) or ncol(x)"
 
 msgid "'nv' must be 0, nrow(x) or ncol(x)"
 msgstr "‘nv’ must be 0, nrow(x) or ncol(x)"
+
+msgid "'all' can not be used with other deparse options"
+msgstr "‘all’ can not be used with other deparse options"
 
 msgid "second argument must be a list"
 msgstr "second argument must be a list"
@@ -633,6 +630,9 @@ msgstr "‘subset’ must evaluate to logical"
 msgid "'subset' must be logical"
 msgstr "‘subset’ must be logical"
 
+msgid "'form' must be a two-sided formula"
+msgstr "‘form’ must be a two-sided formula"
+
 msgid "value for '"
 msgstr "value for '"
 
@@ -913,9 +913,6 @@ msgstr ""
 msgid "Expected a single logical value for the S4 object state"
 msgstr "Expected a single logical value for the S4 object state"
 
-msgid "invalid to change the storage mode of a factor"
-msgstr "invalid to change the storage mode of a factor"
-
 msgid "'%s' is not an exported object from 'namespace:%s'"
 msgstr "‘%s’ is not an exported object from ‘namespace:%s’"
 
@@ -1126,6 +1123,39 @@ msgstr "‘k’ is too large"
 msgid "need larger value of 'ncol' as pivoting occurred"
 msgstr "need larger value of ‘ncol’ as pivoting occurred"
 
+msgid "no lines available in input"
+msgstr "no lines available in input"
+
+msgid "empty beginning of file"
+msgstr "empty beginning of file"
+
+msgid "header and 'col.names' are of different lengths"
+msgstr "header and ‘col.names’ are of different lengths"
+
+msgid "more columns than column names"
+msgstr "more columns than column names"
+
+msgid "more column names than columns"
+msgstr "more column names than columns"
+
+msgid "first five rows are empty: giving up"
+msgstr "first five rows are empty: giving up"
+
+msgid "not all columns named in 'colClasses' exist"
+msgstr "not all columns named in ‘colClasses’ exist"
+
+msgid "invalid numeric 'as.is' expression"
+msgstr "invalid numeric ‘as.is’ expression"
+
+msgid "not all columns named in 'as.is' exist"
+msgstr "not all columns named in ‘as.is’ exist"
+
+msgid "'as.is' has the wrong length %d  != cols = %d"
+msgstr "‘as.is’ has the wrong length %d  != cols = %d"
+
+msgid "invalid 'row.names' specification"
+msgstr "invalid ‘row.names’ specification"
+
 msgid "'x' must be a vector"
 msgstr "‘x’ must be a vector"
 
@@ -1257,12 +1287,6 @@ msgstr "‘chdir = TRUE’ makes no sense for a connection"
 msgid "'%s' is not an existing file"
 msgstr "‘%s’ is not an existing file"
 
-msgid "Timestamp of '"
-msgstr "Timestamp of '"
-
-msgid "' has changed"
-msgstr "' has changed"
-
 msgid "is not"
 msgstr "is not"
 
@@ -1271,6 +1295,12 @@ msgstr "all"
 
 msgid "TRUE"
 msgstr "TRUE"
+
+msgid "adding class \"ts\": this is deprecated"
+msgstr "adding class “ts”: this is deprecated"
+
+msgid "conversion to factor is deprecated"
+msgstr "conversion to factor is deprecated"
 
 msgid "incorrect value for 'x'"
 msgstr "incorrect value for ‘x’"
@@ -1326,15 +1356,6 @@ msgstr "Removing"
 msgid "Registering evaluate as low-level callback"
 msgstr "Registering evaluate as low-level callback"
 
-msgid "user"
-msgstr "user"
-
-msgid "system"
-msgstr "system"
-
-msgid "elapsed"
-msgstr "elapsed"
-
 msgid "'width' must be positive"
 msgstr "‘width’ must be positive"
 
@@ -1343,6 +1364,27 @@ msgstr "No traceback available"
 
 msgid "argument to 'which' is not logical"
 msgstr "argument to ‘which’ is not logical"
+
+msgid "'quote' must be 'TRUE', 'FALSE' or numeric"
+msgstr "‘quote’ must be 'TRUE', ‘FALSE’ or numeric"
+
+msgid "invalid numbers in 'quote'"
+msgstr "invalid numbers in ‘quote’"
+
+msgid "invalid 'quote' specification"
+msgstr "invalid ‘quote’ specification"
+
+msgid "col.names = NA makes no sense when row.names = FALSE"
+msgstr "col.names = NA makes no sense when row.names = FALSE"
+
+msgid "invalid 'col.names' specification"
+msgstr "invalid ‘col.names’ specification"
+
+msgid "appending column names to file"
+msgstr "appending column names to file"
+
+msgid "attempt to change '%s' ignored"
+msgstr "attempt to change ‘%s’ ignored"
 
 msgid "invalid 'digits'"
 msgstr "invalid ‘digits’"

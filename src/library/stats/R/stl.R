@@ -79,7 +79,7 @@ stl <- function(x, s.window,
 print.stl <- function(x, ...)
 {
     cat(" Call:\n ")
-    dput(x$call, control=NULL)
+    dput(x$call)
     cat("\nComponents\n")
     print(x$time.series, ...)
     invisible(x)
@@ -88,7 +88,7 @@ print.stl <- function(x, ...)
 summary.stl <- function(object, digits = getOption("digits"), ...)
 {
     cat(" Call:\n ")
-    dput(object$call, control=NULL)
+    dput(object$call)
     cat("\n Time.series components:\n")
     print(summary(object$time.series, digits = digits, ...))
     cat(" IQR:\n")

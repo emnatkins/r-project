@@ -5,7 +5,7 @@ function(topic, package = NULL, lib.loc = NULL,
     paths <- .find.package(package, lib.loc, verbose = verbose)
 
     ## Find the directories with a 'demo' subdirectory.
-    paths <- paths[file_test("-d", file.path(paths, "demo"))]
+    paths <- paths[tools::file_test("-d", file.path(paths, "demo"))]
     ## Earlier versions remembered given packages with no 'demo'
     ## subdirectory, and warned about them.
 
@@ -17,7 +17,9 @@ function(topic, package = NULL, lib.loc = NULL,
 	for(path in paths) {
 	    entries <- NULL
 	    ## Check for new-style 'Meta/demo.rds', then for '00Index'.
-	    if(file_test("-f", INDEX <- file.path(path, "Meta", "demo.rds"))) {
+	    if(tools::file_test("-f",
+                                INDEX <-
+                                file.path(path, "Meta", "demo.rds"))) {
 		entries <- .readRDS(INDEX)
 	    }
 	    if(NROW(entries) > 0) {

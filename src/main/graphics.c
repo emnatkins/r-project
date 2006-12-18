@@ -4544,8 +4544,6 @@ DevDesc* CurrentDevice(void)
 	SEXP defdev = GetOption(install("device"), R_BaseEnv);
 	if (isString(defdev) && length(defdev) > 0)
 	    PROTECT(defdev = lang1(install(CHAR(STRING_ELT(defdev, 0)))));
-	else if(TYPEOF(defdev) == CLOSXP) 
-	    PROTECT(defdev = lang1(defdev));
 	else
 	    error(_("no active or default device"));
 	eval(defdev, R_GlobalEnv);
@@ -4702,12 +4700,12 @@ void addDevice(DevDesc *dd)
 
     /* In case a device driver did not call R_CheckDeviceAvailable
        before starting its allocation, we complete the allocation and
-       then call killDevice here.  This ensures that the device gets a
+       then call killDevice here.  This insures that the device gets a
        chance to deallocate its resources and the current active
        device is restored to a sane value. */
     if (i == R_LastDeviceEntry) {
         killDevice(i);
-        error(_("too many open devices"));
+        error(_("too many devices open"));
     }
 }
 

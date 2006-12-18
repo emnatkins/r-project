@@ -166,8 +166,8 @@ static SEXP ReadBC(SEXP ref_table, R_inpstream_t stream);
 
 /* The default version used when a stream Init function is called with
    version = 0 */
+static int R_DefaultSerializeVersion = 2;
 
-static const int R_DefaultSerializeVersion = 2;
 
 /*
  * Utility Functions
@@ -1379,7 +1379,7 @@ static SEXP ReadItem (SEXP ref_table, R_inpstream_t stream)
 	    break;
 	default:
 	    s = R_NilValue; /* keep compiler happy */
-	    error(_("ReadItem: unknown type %i, perhaps written by later version of R"), type);
+	    error(_("ReadItem: unknown type %i"), type);
 	}
 	SETLEVELS(s, levs);
 	SET_OBJECT(s, objf);

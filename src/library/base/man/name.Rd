@@ -17,13 +17,13 @@
 }
 \usage{
 as.symbol(x)
-is.symbol(x)
+is.symbol(y)
 
 as.name(x)
-is.name(x)
+is.name(y)
 }
 \arguments{
-  \item{x}{object to be coerced or tested.} 
+  \item{x, y}{objects to be coerced or tested.} 
 }
 \note{
   The term \dQuote{symbol} is from the LISP background of \R, whereas

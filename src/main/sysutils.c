@@ -29,7 +29,6 @@
 #include <stdlib.h> /* for putenv */
 #include <Defn.h>
 #include <R_ext/Riconv.h>
-#include <Rinterface.h>
 
 /*
   See ../unix/system.txt for a description of some of these functions.
@@ -641,24 +640,3 @@ char * R_tmpnam(const char * prefix, const char * tempdir)
     strcpy(res, tm);
     return res;
 }
-
-SEXP attribute_hidden do_proctime(SEXP call, SEXP op, SEXP args, SEXP env)
-#ifdef _R_HAVE_TIMING_
-{
-    SEXP ans = allocVector(REALSXP, 5), nm = allocVector(STRSXP, 5);
-    R_getProcTime(REAL(ans));
-    SET_STRING_ELT(nm, 0, mkChar("user.self"));
-    SET_STRING_ELT(nm, 1, mkChar("sys.self"));
-    SET_STRING_ELT(nm, 2, mkChar("elapsed"));
-    SET_STRING_ELT(nm, 3, mkChar("user.child"));
-    SET_STRING_ELT(nm, 4, mkChar("sys.child"));
-    setAttrib(ans, R_NamesSymbol, nm);
-    setAttrib(ans, R_ClassSymbol, mkString("proc_time"));
-    return ans;
-}
-#else
-{
-    error(_("proc.time() is not implemented on this system"));
-    return R_NilValue;		/* -Wall */
-}
-#endif

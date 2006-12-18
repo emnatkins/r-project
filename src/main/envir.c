@@ -313,7 +313,8 @@ static SEXP R_NewHashTable(int size, int growth_rate)
   size/growth settings.  The only non-static hash table function.
 */
 
-SEXP R_NewHashedEnv(SEXP enclos)
+SEXP attribute_hidden
+R_NewHashedEnv(SEXP enclos)
 {
     SEXP s;
 
@@ -1399,6 +1400,7 @@ SEXP attribute_hidden do_assign(SEXP call, SEXP op, SEXP args, SEXP rho)
     else
 	name = install(CHAR(STRING_ELT(CAR(args), 0)));
     PROTECT(val = CADR(args));
+    R_Visible = 0;
     aenv = CAR(CDDR(args));
     if (TYPEOF(aenv) == NILSXP)
     	error(_("use of NULL environment is defunct"));
@@ -2059,6 +2061,7 @@ SEXP attribute_hidden do_detach(SEXP call, SEXP op, SEXP args, SEXP env)
 	MARK_AS_LOCAL_FRAME(s); /* was _GLOBAL_ prior to 2.4.0 */
     }
 #endif
+    R_Visible = 0;
     UNPROTECT(1);
     return FRAME(s);
 }
@@ -2938,12 +2941,21 @@ SEXP R_PackageEnvName(SEXP rho)
 
 SEXP R_FindPackageEnv(SEXP info)
 {
-    SEXP expr, val;
+    SEXP fun, expr, val;
     PROTECT(info);
-    PROTECT(expr = LCONS(install("findPackageEnv"), LCONS(info, R_NilValue)));
-    val = eval(expr, R_GlobalEnv);
-    UNPROTECT(2);
-    return val;
+    fun = install("findPackageEnv");
+    if (findVar(fun, R_GlobalEnv) == R_UnboundValue) { /* not a perfect test */
+	warning(_("using .GlobalEnv instead of '%s'"),
+		CHAR(STRING_ELT(info, 0)));
+	UNPROTECT(1);
+	return R_GlobalEnv;
+    }
+    else {
+	PROTECT(expr = LCONS(fun, LCONS(info, R_NilValue)));
+	val = eval(expr, R_GlobalEnv);
+	UNPROTECT(2);
+	return val;
+    }
 }
 
 Rboolean R_IsNamespaceEnv(SEXP rho)
@@ -2996,12 +3008,20 @@ SEXP R_NamespaceEnvSpec(SEXP rho)
 
 SEXP R_FindNamespace(SEXP info)
 {
-    SEXP expr, val;
+    SEXP fun, expr, val;
     PROTECT(info);
-    PROTECT(expr = LCONS(install("getNamespace"), LCONS(info, R_NilValue)));
-    val = eval(expr, R_GlobalEnv);
-    UNPROTECT(2);
-    return val;
+    fun = install("getNamespace");
+    if (findVar(fun, R_GlobalEnv) == R_UnboundValue) { /* not a perfect test */
+	warning(_("namespaces not available; using .GlobalEnv"));
+	UNPROTECT(1);
+	return R_GlobalEnv;
+    }
+    else {
+	PROTECT(expr = LCONS(fun, LCONS(info, R_NilValue)));
+	val = eval(expr, R_GlobalEnv);
+	UNPROTECT(2);
+	return val;
+    }
 }
 
 static SEXP checkNSname(SEXP call, SEXP name)

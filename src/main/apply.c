@@ -143,7 +143,7 @@ SEXP attribute_hidden do_apply(SEXP call, SEXP op, SEXP args, SEXP rho)
 static SEXP do_one(SEXP X, SEXP FUN, SEXP classes, SEXP deflt, 
 		   Rboolean replace, SEXP rho)
 {
-    SEXP ans, names, klass, R_fcall;
+    SEXP ans, names, class, R_fcall;
     int i, j, n;
     Rboolean matched = FALSE;
     
@@ -163,10 +163,10 @@ static SEXP do_one(SEXP X, SEXP FUN, SEXP classes, SEXP deflt,
     if(strcmp(CHAR(STRING_ELT(classes, 0)), "ANY") == 0)
 	matched = TRUE;
     else {
-	PROTECT(klass = R_data_class(X, FALSE));
-	for(i = 0; i < LENGTH(klass); i++)
+	PROTECT(class = R_data_class(X, FALSE));
+	for(i = 0; i < LENGTH(class); i++)
 	    for(j = 0; j < length(classes); j++)
-		if(strcmp(CHAR(STRING_ELT(klass, i)),
+		if(strcmp(CHAR(STRING_ELT(class, i)),
 		      CHAR(STRING_ELT(classes, j))) == 0) matched = TRUE;
 	UNPROTECT(1);
     }
@@ -180,6 +180,9 @@ static SEXP do_one(SEXP X, SEXP FUN, SEXP classes, SEXP deflt,
     else return duplicate(deflt);
 }
 
+/* This is a special, so has unevaluated arguments.  It is called from a
+   closure wrapper, so X and FUN are promises. */
+
 SEXP attribute_hidden do_rapply(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP X, FUN, classes, deflt, how, ans, names;
@@ -187,7 +190,7 @@ SEXP attribute_hidden do_rapply(SEXP call, SEXP op, SEXP args, SEXP rho)
     Rboolean replace;
     
     checkArity(op, args);
-    X = CAR(args); args = CDR(args);
+    PROTECT(X = eval(CAR(args), rho)); args = CDR(args);
     FUN = CAR(args); args = CDR(args);
     if(!isFunction(FUN)) errorcall(call, _("invalid 'f' argument"));
     classes = CAR(args); args = CDR(args);
@@ -204,7 +207,7 @@ SEXP attribute_hidden do_rapply(SEXP call, SEXP op, SEXP args, SEXP rho)
     for(i = 0; i < n; i++)
 	SET_VECTOR_ELT(ans, i, do_one(VECTOR_ELT(X, i), FUN, classes, deflt,
 				      replace, rho));
-    UNPROTECT(1);
+    UNPROTECT(2);
     return ans;
 }
 

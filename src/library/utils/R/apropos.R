@@ -1,32 +1,24 @@
-apropos <- function (what, where = FALSE, ignore.case = TRUE, mode = "any",
-                     character.only = FALSE)
+apropos <- function (what, where = FALSE, mode = "any")
 {
-    if(character.only)
-	stopifnot(is.character(what))
-    else
+    if(!is.character(what))
 	what <- as.character(substitute(what))
     x <- character(0)
     check.mode <- mode != "any"
     for (i in seq_along(search())) {
-	li <-
-	    if(ignore.case)
-		grep(what, ls(pos = i, all.names = TRUE),
-		     ignore.case = TRUE, value = TRUE)
-	    else ls(pos = i, pattern = what, all.names = TRUE)
-	if(length(li)) {
+	ll <- length(li <- ls(pos = i, pattern = what, all.names = TRUE))
+	if (ll) {
 	    if(check.mode)
-		li <- li[sapply(li, exists, where = i,
-				mode = mode, inherits = FALSE)]
-	    x <- c(x, if(where) structure(li, names = rep.int(i, length(li))) else li)
+		ll <- length(li <- li[sapply(li, function(x)
+					     exists(x, where = i,
+						    mode = mode, inherits=FALSE))])
+	    x <- c(x, if (where) structure(li, names = rep.int(i, ll)) else li)
 	}
     }
     x
 }
 
-find <- function(what, mode = "any", numeric. = FALSE, simple.words=TRUE,
-		 character.only = is.character(what))
-{
-    if(!character.only)
+find <- function(what, mode = "any", numeric. = FALSE, simple.words=TRUE) {
+    if(!is.character(what))
 	what <- as.character(substitute(what))
     if(length(what) > 1) {
         warning("elements of 'what' after the first will be ignored")
@@ -40,6 +32,7 @@ find <- function(what, mode = "any", numeric. = FALSE, simple.words=TRUE,
     check.mode <- mode != "any"
     for (i in 1:len.s) {
         if(simple.words) {
+            li <- ls(pos = i, all.names = TRUE)
             found <- what %in% ls(pos = i, all.names = TRUE)
             if(found && check.mode)
                 found <- exists(what, where = i, mode = mode, inherits=FALSE)

@@ -1,8 +1,7 @@
 cut <- function(x, ...) UseMethod("cut")
 
-cut.default <-
-    function (x, breaks, labels = NULL, include.lowest = FALSE,
-              right = TRUE, dig.lab = 3, ordered_result = FALSE, ...)
+cut.default <- function (x, breaks, labels=NULL, include.lowest = FALSE,
+			 right=TRUE, dig.lab=3, ...)
 {
     if (!is.numeric(x)) stop("'x' must be numeric")
     if (length(breaks) == 1) {
@@ -48,5 +47,5 @@ cut.default <-
 	       NAOK= TRUE, DUP = FALSE, PACKAGE = "base") $code
     ## NB this relies on passing NAOK in that position!
     if(codes.only) code
-    else factor(code, seq_along(labels), labels, ordered = ordered_result)
+    else factor(code, seq_along(labels), labels)
 }

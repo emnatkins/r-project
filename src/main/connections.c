@@ -377,7 +377,7 @@ static size_t null_write(const void *ptr, size_t size, size_t nitems,
     return 0;			/* -Wall */
 }
 
-void init_con(Rconnection new, char *description, const char * const mode)
+void init_con(Rconnection new, char *description, char *mode)
 {
     strcpy(new->description, description);
     strncpy(new->mode, mode, 4); new->mode[4] = '\0';
@@ -2815,7 +2815,7 @@ SEXP attribute_hidden do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
 	    switch (size) {
 	    case sizeof(double):
 	    case sizeof(float):
-#if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
+#if SIZEOF_LONG_DOUBLE > 8
 	    case sizeof(long double):
 #endif
 		break;
@@ -2877,7 +2877,7 @@ SEXP attribute_hidden do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
 		    case sizeof(float):
 			REAL(ans)[i] = (double)*((float *)buf);
 			break;
-#if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
+#if SIZEOF_LONG_DOUBLE > 8
 		    case sizeof(long double):
 			REAL(ans)[i] = (double)*((long double *)buf);
 			break;
@@ -2987,7 +2987,7 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 	    switch (size) {
 	    case sizeof(double):
 	    case sizeof(float):
-#if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
+#if SIZEOF_LONG_DOUBLE > 8
 	    case sizeof(long double):
 #endif
 		break;
@@ -3068,7 +3068,7 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 		}
 		break;
 	    }
-#if SIZEOF_LONG_DOUBLE > SIZEOF_DOUBLE
+#if SIZEOF_LONG_DOUBLE > 8
 	    case sizeof(long double):
 	    {
 		long double ld1;
@@ -3114,10 +3114,8 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
     }
 
     if(!wasopen) con->close(con);
-    if(isRaw) {
-	R_Visible = TRUE;
-	UNPROTECT(1);
-    } else R_Visible = FALSE;
+    if(isRaw) UNPROTECT(1);
+    else R_Visible = 0;
     return ans;
 }
 
@@ -3658,7 +3656,6 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
 #else
 	       strcmp(url, "X11_primary") == 0
 	       || strcmp(url, "X11_secondary") == 0
-               || strcmp(url, "X11_clipboard") == 0
 #endif
 		)
 		con = newclp(url, strlen(open) ? open : "r");

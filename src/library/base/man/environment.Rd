@@ -10,7 +10,6 @@
 \alias{parent.env}
 \alias{parent.env<-}
 \alias{.BaseNamespaceEnv}
-\alias{environmentName}
 \title{Environment Access}
 \description{
   Get, set, test for and create environments.
@@ -19,7 +18,7 @@
 environment(fun = NULL)
 environment(fun) <- value
 
-is.environment(x)
+is.environment(obj)
 
 .GlobalEnv
 globalenv()
@@ -32,14 +31,12 @@ new.env(hash = FALSE, parent = parent.frame())
 
 parent.env(env)
 parent.env(env) <- value
-
-environmentName(env)
 }
 \arguments{
   \item{fun}{a \code{\link{function}}, a \code{\link{formula}}, or
     \code{NULL}, which is the default.}
   \item{value}{an environment to associate with the function}
-  \item{x}{an arbitrary \R object.}
+  \item{obj}{an arbitrary \R object.}
   \item{hash}{a logical, if \code{TRUE} the environment will be hashed}
   \item{parent}{an environment to be used as the enclosure of the
     environment created.}
@@ -63,11 +60,7 @@ environmentName(env)
   \code{parent.env} returns the parent environment of its argument.
 
   \code{parent.env<-} sets the enclosing environment of its first
-  argument.
-
-  \code{envrironmentName} returns a character string, that given when
-  the envrionment is printed or \code{""} if it is not a named environment.
-} 
+  argument. } 
 
 \details{     
   Environments consist of a \emph{frame}, or collection of named

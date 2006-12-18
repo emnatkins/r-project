@@ -1,5 +1,5 @@
 
-R version 2.5.0 Under development (unstable) (2006-12-07 r40137)
+R version 2.5.0 Under development (unstable) (2006-11-28 r40035)
 Copyright (C) 2006 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 
@@ -982,14 +982,12 @@ $B$subset
 > ## All entries show all 3 digits after the decimal point now.
 > 
 > ## Chong Gu 2001-Feb-16.  step on binomials
-> detg1 <-
-+ structure(list(Temp = structure(c(2L, 1L, 2L, 1L, 2L, 1L, 2L,
-+     1L, 2L, 1L, 2L, 1L), .Label = c("High", "Low"), class = "factor"),
-+     M.user = structure(c(1L, 1L, 2L, 2L, 1L, 1L, 2L, 2L, 1L,
-+     1L, 2L, 2L), .Label = c("N", "Y"), class = "factor"),
-+     Soft = structure(c(1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 3L),
-+     .Label = c("Hard", "Medium", "Soft"), class = "factor"),
-+     M = c(42, 30, 52, 43,
+> "detg1" <-
++ structure(list(Temp = structure(c(2, 1, 2, 1, 2, 1, 2, 1, 2,
++ 1, 2, 1), .Label = c("High", "Low"), class = "factor"), M.user = structure(c(1,
++ 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2), .Label = c("N", "Y"), class = "factor"),
++     Soft = structure(c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3), .Label = c("Hard",
++     "Medium", "Soft"), class = "factor"), M = c(42, 30, 52, 43,
 +     50, 23, 55, 47, 53, 27, 49, 29), X = c(68, 42, 37, 24, 66,
 +     33, 47, 23, 63, 29, 57, 19)), .Names = c("Temp", "M.user",
 + "Soft", "M", "X"), class = "data.frame", row.names = c("1", "3",
@@ -1097,8 +1095,10 @@ Residual Deviance: 5.656 	AIC: 71.35
 +     -0.756802495307928, 0.67546318055115, -0.0583741434275801
 +     ), groups = structure(c(1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2,
 +     2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3), class = "factor", .Label = c("1",
-+     "2", "3"))), .Names = c("A", "B", "C", "D", "groups"), row.names = 1:24,
-+             class = "data.frame")
++     "2", "3"))), .Names = c("A", "B", "C", "D", "groups"), row.names = c("1",
++ "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13",
++ "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"
++ ), class = "data.frame")
 > 
 > gofX.manova <- manova(formula = cbind(A, B, C, D) ~ groups, data = gofX.df)
 > try(summary(gofX.manova))
@@ -2248,7 +2248,8 @@ Warning messages:
 +                    y = c(78.5, 74.3, 104.3, 87.6, 95.9, 109.2, 102.7, 72.5,
 +                    93.1, 115.9, 83.8, 113.3, 109.4)),
 +               .Names = c("x1", "x2", "x3", "x4", "y"), class = "data.frame",
-+               row.names = 1:13)
++               row.names = c("1", "2", "3", "4", "5", "6", "7", "8", "9",
++               "10", "11", "12", "13"))
 > teststep <- function(formula, data)
 + {
 +     d2 <- data
@@ -4345,8 +4346,8 @@ Levels: "a" "a \" test" "b" NA
 [2,] Integer,2 5        
 > write.table(x)
 "V1" "V2"
-"1" 1 3:4
-"2" 1:2 5
+"1" 1 c(3, 4)
+"2" c(1, 2) 5
 > 
 > x1 <- data.frame(a=1:2, b=I(matrix(LETTERS[1:4], 2, 2)), c = c("(i)", "(ii)"))
 > x1
@@ -4705,11 +4706,11 @@ out-of-range values treated as 0 in coercion to raw
 3  3
 4  4
 > m1[m1 == 0] <- 2;   m1
-      a
-[1,] NA
-[2,]  2
-[3,]  3
-[4,]  4
+   a
+1 NA
+2  2
+3  3
+4  4
 > df2[df2 == 0] <- 2; df2  # not allowed in 2.{0,1}.z
    a
 1 NA
@@ -4717,11 +4718,11 @@ out-of-range values treated as 0 in coercion to raw
 3  2
 4  4
 > m2[m2 == 0] <- 2;   m2
-      a
-[1,] NA
-[2,]  2
-[3,]  2
-[4,]  4
+   a
+1 NA
+2  2
+3  2
+4  4
 > df1[df1 == 2] # this is first coerced to a matrix, and drops to a vector
 [1] NA  2
 > df3 <- data.frame(a=1:2, b=2:3)
@@ -5604,45 +5605,4 @@ $y
 > 
 > 
 > ### end of tests added in 2.4.1 ###
-> 
-> 
-> ## tests of deparsing
-> x <-list(a = NA, b = as.integer(NA), c=0+NA, d=0i+NA,
-+          e = 1, f = 1:1, g = 1:3, h = c(NA, 1:3),
-+          i = as.character(NA), j = c("foo", NA, "bar")
-+          )
-> dput(x, control=NULL)
-list(a = NA, b = NA, c = NA, d =  NA, e = 1, f = 1, g = 1:3, 
-    h = c(NA, 1, 2, 3), i = NA, j = c("foo", NA, "bar"))
-> dput(x, control="keepInteger")
-list(a = NA, b = NA_integer_, c = NA, d =  NA, e = 1, f = 1L, 
-    g = 1:3, h = c(NA, 1L, 2L, 3L), i = NA, j = c("foo", NA, 
-    "bar"))
-> dput(x, control="keepNA")
-list(a = NA, b = NA_integer_, c = NA_real_, d = NA_complex_, 
-    e = 1, f = 1, g = 1:3, h = c(NA, 1, 2, 3), i = NA_character_, 
-    j = c("foo", NA, "bar"))
-> dput(x)
-structure(list(a = NA, b = NA_integer_, c = NA_real_, d = NA_complex_, 
-    e = 1, f = 1L, g = 1:3, h = c(NA, 1L, 2L, 3L), i = NA_character_, 
-    j = c("foo", NA, "bar")), .Names = c("a", "b", "c", "d", 
-"e", "f", "g", "h", "i", "j"))
-> dput(x, control="all")
-structure(list(a = NA, b = NA_integer_, c = NA_real_, d = NA_complex_, 
-    e = 1, f = 1L, g = 1:3, h = c(NA, 1L, 2L, 3L), i = NA_character_, 
-    j = c("foo", NA, "bar")), .Names = c("a", "b", "c", "d", 
-"e", "f", "g", "h", "i", "j"))
-> dput(x, control=c("all", "S_compatible"))
-structure(list(a = NA, b = as.integer(NA), c = as.double(NA), 
-    d = as.complex( NA), e = 1., f = as.integer(1), g = 1:3, 
-    h = as.integer(c(NA, 1, 2, 3)), i = as.character(NA), j = c("foo", 
-    NA, "bar")), .Names = c("a", "b", "c", "d", "e", "f", "g", 
-"h", "i", "j"))
-> tmp <- tempfile()
-> dput(x, tmp, control="all")
-> stopifnot(identical(dget(tmp), x))
-> dput(x, tmp, control=c("all", "S_compatible"))
-> stopifnot(identical(dget(tmp), x))
-> unlink(tmp)
-> ## changes in 2.5.0
 > 

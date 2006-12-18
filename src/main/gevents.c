@@ -30,7 +30,6 @@
 
 #include <Defn.h>
 #include <Rmath.h>
-#include <Rinterface.h>
 #include <Graphics.h>
 #include <Rdevices.h>
 

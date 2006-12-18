@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-11-21 08:26\n"
+"POT-Creation-Date: 2006-09-22 12:31\n"
 "PO-Revision-Date: 2006-09-25 04:05-0800\n"
 "Last-Translator: Alexey Shipunov <iit512@yandex.ru>\n"
 "Language-Team: Russian\n"
@@ -80,9 +80,6 @@ msgstr "'at' должен иметь ту же длину, что и 'z$n', т.е."
 
 msgid "invalid boxplot widths"
 msgstr "неправильные ширины у ящиков-с-усами"
-
-msgid "some notches went outside hinges ('box'): maybe set notch=FALSE"
-msgstr ""
 
 msgid "'formula' should specify exactly two variables"
 msgstr "'formula' должна определять в точности две переменные"

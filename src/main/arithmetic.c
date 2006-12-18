@@ -48,7 +48,7 @@
 /* Override the SVID matherr function:
    the main difference here is not to print warnings.
  */
-#ifndef __cplusplus
+
 int matherr(struct exception *exc)
 {
     switch (exc->type) {
@@ -70,7 +70,6 @@ int matherr(struct exception *exc)
     }
     return 1;
 }
-#endif
 #endif
 
 #ifndef _AIX
@@ -340,12 +339,11 @@ SEXP attribute_hidden do_arith(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 {
-    SEXP klass, dims, tsp, xnames, ynames, val;
+    SEXP class, dims, tsp, xnames, ynames, val;
     int mismatch = 0, nx, ny, xarray, yarray, xts, yts;
     int xattr, yattr;
     SEXP lcall = call;
     PROTECT_INDEX xpi, ypi;
-    ARITHOP_TYPE oper = (ARITHOP_TYPE) PRIMVAL(op);
     int nprotect = 2; /* x and y */
 
 
@@ -438,23 +436,23 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 	    if (!tsConform(x, y))
 		errorcall(lcall, _("non-conformable time-series"));
 	    PROTECT(tsp = getAttrib(x, R_TspSymbol));
-	    PROTECT(klass = getAttrib(x, R_ClassSymbol));
+	    PROTECT(class = getAttrib(x, R_ClassSymbol));
 	}
 	else if (xts) {
 	    if (nx < ny)
 		ErrorMessage(lcall, ERROR_TSVEC_MISMATCH);
 	    PROTECT(tsp = getAttrib(x, R_TspSymbol));
-	    PROTECT(klass = getAttrib(x, R_ClassSymbol));
+	    PROTECT(class = getAttrib(x, R_ClassSymbol));
 	}
 	else {			/* (yts) */
 	    if (ny < nx)
 		ErrorMessage(lcall, ERROR_TSVEC_MISMATCH);
 	    PROTECT(tsp = getAttrib(y, R_TspSymbol));
-	    PROTECT(klass = getAttrib(y, R_ClassSymbol));
+	    PROTECT(class = getAttrib(y, R_ClassSymbol));
 	}
 	nprotect += 2;
     }
-    else klass = tsp = NULL; /* -Wall */
+    else class = tsp = NULL; /* -Wall */
 
     if (mismatch)
 	warningcall(lcall,
@@ -464,18 +462,14 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
     if (TYPEOF(x) == CPLXSXP || TYPEOF(y) == CPLXSXP) {
 	COERCE_IF_NEEDED(x, CPLXSXP, xpi);
 	COERCE_IF_NEEDED(y, CPLXSXP, ypi);
-	val = complex_binary(oper, x, y);
+	val = complex_binary(PRIMVAL(op), x, y);
     }
     else if (TYPEOF(x) == REALSXP || TYPEOF(y) == REALSXP) {
-	if(!(TYPEOF(x) == INTSXP || TYPEOF(y) == INTSXP
-	     /* || TYPEOF(x) == LGLSXP || TYPEOF(y) == LGLSXP*/)) {
-            /* Can get a LGLSXP. In base-Ex.R on 24 Oct '06, got 8 of these. */
-	    COERCE_IF_NEEDED(x, REALSXP, xpi);
-	    COERCE_IF_NEEDED(y, REALSXP, ypi);
-	}
-	val = real_binary(oper, x, y);
+	COERCE_IF_NEEDED(x, REALSXP, xpi);
+	COERCE_IF_NEEDED(y, REALSXP, ypi);
+	val = real_binary(PRIMVAL(op), x, y);
     }
-    else val = integer_binary(oper, x, y, lcall);
+    else val = integer_binary(PRIMVAL(op), x, y, lcall);
 
     /* quick return if there are no attributes */
     if (! xattr && ! yattr) {
@@ -508,7 +502,7 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 
     if (xts || yts) {		/* must set *after* dims! */
 	setAttrib(val, R_TspSymbol, tsp);
-	setAttrib(val, R_ClassSymbol, klass);
+	setAttrib(val, R_ClassSymbol, class);
     }
 
     UNPROTECT(nprotect);
@@ -517,15 +511,14 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 
 SEXP attribute_hidden R_unary(SEXP call, SEXP op, SEXP s1)
 {
-    ARITHOP_TYPE operation = (ARITHOP_TYPE) PRIMVAL(op);
     switch (TYPEOF(s1)) {
     case LGLSXP:
     case INTSXP:
-	return integer_unary(operation, s1);
+	return integer_unary(PRIMVAL(op), s1);
     case REALSXP:
-	return real_unary(operation, s1, call);
+	return real_unary(PRIMVAL(op), s1, call);
     case CPLXSXP:
-	return complex_unary(operation, s1);
+	return complex_unary(PRIMVAL(op), s1);
     default:
 	errorcall(call, _("invalid argument to unary operator"));
     }
@@ -651,7 +644,7 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
        if (TRACE(s1) && TRACE(s2)){
 	  if (n1>n2)
 	      memtrace_report(s1,ans);
-	  else
+	  else 
 	      memtrace_report(s2, ans);
        } else if (TRACE(s1))
 	   memtrace_report(s1,ans);
@@ -786,8 +779,6 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
     return ans;
 }
 
-#define R_INTEGER(robj, i) (double) (INTEGER(robj)[i] == NA_INTEGER ? NA_REAL : INTEGER(robj)[i])
-
 static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
 {
     int i, i1, i2, n, n1, n2;
@@ -807,7 +798,7 @@ static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
        if (TRACE(s1) && TRACE(s2)){
 	  if (n1>n2)
 	      memtrace_report(s1,ans);
-	  else
+	  else 
 	      memtrace_report(s2, ans);
        } else if (TRACE(s1))
 	   memtrace_report(s1,ans);
@@ -825,109 +816,38 @@ static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
 
     switch (code) {
     case PLUSOP:
-	if(TYPEOF(s1) == REALSXP && TYPEOF(s2) == REALSXP) {
-   	   mod_iterate(n1, n2, i1, i2) {
-   	         REAL(ans)[i] = REAL(s1)[i1] + REAL(s2)[i2];
-	     }
-	} else	if(TYPEOF(s1) == INTSXP ) {
-   	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = R_INTEGER(s1, i1) + REAL(s2)[i2];
-	     }
-	} else	if(TYPEOF(s2) == INTSXP ) {
-   	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = REAL(s1)[i1] + R_INTEGER(s2, i2);
-	     }
+	mod_iterate(n1, n2, i1, i2) {
+	    REAL(ans)[i] = REAL(s1)[i1] + REAL(s2)[i2];
 	}
-
 	break;
     case MINUSOP:
-	if(TYPEOF(s1) == REALSXP && TYPEOF(s2) == REALSXP) {
-   	   mod_iterate(n1, n2, i1, i2) {
-	      REAL(ans)[i] = REAL(s1)[i1] - REAL(s2)[i2];
-	   }
-	} else	if(TYPEOF(s1) == INTSXP ) {
-  	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = R_INTEGER(s1, i1) - REAL(s2)[i2];
-	   }
-	} else	if(TYPEOF(s2) == INTSXP ) {
-  	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = REAL(s1)[i1] - R_INTEGER(s2, i2);
-	   }
+	mod_iterate(n1, n2, i1, i2) {
+	    REAL(ans)[i] = REAL(s1)[i1] - REAL(s2)[i2];
 	}
 	break;
     case TIMESOP:
-	if(TYPEOF(s1) == REALSXP && TYPEOF(s2) == REALSXP) {
-	   mod_iterate(n1, n2, i1, i2) {
-		REAL(ans)[i] = REAL(s1)[i1] * REAL(s2)[i2];
-	    }
-	} else if(TYPEOF(s1) == INTSXP ) {
-  	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = R_INTEGER(s1, i1) * REAL(s2)[i2];
-	   }
-	} else	if(TYPEOF(s2) == INTSXP ) {
-  	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = REAL(s1)[i1] * R_INTEGER(s2, i2);
-	   }
+	mod_iterate(n1, n2, i1, i2) {
+	    REAL(ans)[i] = REAL(s1)[i1] * REAL(s2)[i2];
 	}
 	break;
     case DIVOP:
-	if(TYPEOF(s1) == REALSXP && TYPEOF(s2) == REALSXP) {
-	   mod_iterate(n1, n2, i1, i2) {
-		REAL(ans)[i] = REAL(s1)[i1] / REAL(s2)[i2];
-	    }
-	} else if(TYPEOF(s1) == INTSXP ) {
-   	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = R_INTEGER(s1, i1) / REAL(s2)[i2];
-	   }
-	} else	if(TYPEOF(s2) == INTSXP ) {
-  	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = REAL(s1)[i1] / R_INTEGER(s2, i2);
-	   }
+	mod_iterate(n1, n2, i1, i2) {
+	    REAL(ans)[i] = REAL(s1)[i1] / REAL(s2)[i2];
 	}
 	break;
     case POWOP:
-	if(TYPEOF(s1) == REALSXP && TYPEOF(s2) == REALSXP) {
-	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = R_pow(REAL(s1)[i1], REAL(s2)[i2]);
-	    }
-	} else if(TYPEOF(s1) == INTSXP ) {
-   	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = R_pow( R_INTEGER(s1, i1), REAL(s2)[i2]);
-	   }
-	} else	if(TYPEOF(s2) == INTSXP ) {
-  	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = R_pow(REAL(s1)[i1], R_INTEGER(s2, i2));
-	   }
+	mod_iterate(n1, n2, i1, i2) {
+	    REAL(ans)[i] = R_pow(REAL(s1)[i1], REAL(s2)[i2]);
 	}
 	break;
     case MODOP:
-	if(TYPEOF(s1) == REALSXP && TYPEOF(s2) == REALSXP) {
-	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = myfmod(REAL(s1)[i1], REAL(s2)[i2]);
-	    }
-	} else if(TYPEOF(s1) == INTSXP ) {
-   	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = myfmod( R_INTEGER(s1, i1), REAL(s2)[i2]);
-	   }
-	} else	if(TYPEOF(s2) == INTSXP ) {
-  	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = myfmod(REAL(s1)[i1], R_INTEGER(s2, i2));
-	   }
+	mod_iterate(n1, n2, i1, i2) {
+	    REAL(ans)[i] = myfmod(REAL(s1)[i1], REAL(s2)[i2]);
 	}
 	break;
     case IDIVOP:
-	if(TYPEOF(s1) == REALSXP && TYPEOF(s2) == REALSXP) {
-	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = myfloor(REAL(s1)[i1], REAL(s2)[i2]);
-	    }
-	} else if(TYPEOF(s1) == INTSXP ) {
-   	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = myfloor(R_INTEGER(s1, i1), REAL(s2)[i2]);
-	   }
-	} else	if(TYPEOF(s2) == INTSXP ) {
-  	   mod_iterate(n1, n2, i1, i2) {
-	       REAL(ans)[i] = myfloor(REAL(s1)[i1], R_INTEGER(s2,i2));
-	   }
+	mod_iterate(n1, n2, i1, i2) {
+	    REAL(ans)[i] = myfloor(REAL(s1)[i1], REAL(s2)[i2]);
 	}
 	break;
     }
@@ -956,7 +876,7 @@ static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
 
 /* Mathematical Functions of One Argument */
 
-static SEXP math1(SEXP sa, double(*f)(double), SEXP lcall)
+static SEXP math1(SEXP sa, double(*f)(), SEXP lcall)
 {
     SEXP sy;
     double *y, *a;
@@ -1007,7 +927,6 @@ SEXP attribute_hidden do_math1(SEXP call, SEXP op, SEXP args, SEXP env)
     checkArity(op, args);
 
     if (isComplex(CAR(args)))
-
 	return complex_math1(call, op, args, env);
 
 #define MATH1(x) math1(CAR(args), x, call);
@@ -1049,7 +968,7 @@ SEXP attribute_hidden do_math1(SEXP call, SEXP op, SEXP args, SEXP env)
     default:
 	errorcall(call, _("unimplemented real function of 1 argument"));
     }
-    return s; /* never used; to keep -Wall happy */
+    return s;			/* never used; to keep -Wall happy */
 }
 
 SEXP attribute_hidden do_abs(SEXP call, SEXP op, SEXP args, SEXP env)
@@ -1057,22 +976,7 @@ SEXP attribute_hidden do_abs(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP s;
     if (DispatchGroup("Math", call, op, args, env, &s))
 	return s;
-    checkArity(op, args);
-    if (isComplex(CAR(args)) || !(isInteger(CAR(args)) || isLogical(CAR(args))))
-	return do_cmathfuns(call, op, args, env);
-    else { /* integer or logical ==> return integer */
-	SEXP x = CAR(args);
-	int i, n;
-	n = length(x);
-	PROTECT(s = allocVector(INTSXP, n));
-	/* Note: relying on INTEGER(.) === LOGICAL(.) : */
-	for(i = 0 ; i < n ; i++)
-	    INTEGER(s)[i] = abs(INTEGER(x)[i]);
-	SET_ATTRIB(s, duplicate(ATTRIB(x)));
-	SET_OBJECT(s, OBJECT(x));
-	UNPROTECT(1);
-	return s;
-    }
+    return do_cmathfuns(call, op, args, env);
 }
 
 /* Mathematical Functions of Two Numeric Arguments (plus 1 int) */
@@ -1081,8 +985,7 @@ SEXP attribute_hidden do_abs(SEXP call, SEXP op, SEXP args, SEXP env)
 	if      (ISNA (a) || ISNA (b)) y = NA_REAL;	\
 	else if (ISNAN(a) || ISNAN(b)) y = R_NaN;
 
-static SEXP math2(SEXP sa, SEXP sb, double (*f)(double, double),
-		  SEXP lcall)
+static SEXP math2(SEXP sa, SEXP sb, double (*f)(), SEXP lcall)
 {
     SEXP sy;
     int i, ia, ib, n, na, nb, sao = OBJECT(sa), sbo = OBJECT(sb);
@@ -1122,7 +1025,7 @@ static SEXP math2(SEXP sa, SEXP sb, double (*f)(double, double),
        if (TRACE(sa) && TRACE(sb)){
 	  if (na>nb)
 	      memtrace_report(sa, sy);
-	  else
+	  else 
 	      memtrace_report(sb, sy);
        } else if (TRACE(sa))
 	   memtrace_report(sa, sy);
@@ -1161,8 +1064,7 @@ static SEXP math2(SEXP sa, SEXP sb, double (*f)(double, double),
     return sy;
 } /* math2() */
 
-static SEXP math2_1(SEXP sa, SEXP sb, SEXP sI,
-		    double (*f)(double, double, int), SEXP lcall)
+static SEXP math2_1(SEXP sa, SEXP sb, SEXP sI, double (*f)(), SEXP lcall)
 {
     SEXP sy;
     int i, ia, ib, n, na, nb, sao = OBJECT(sa), sbo = OBJECT(sb);
@@ -1181,7 +1083,7 @@ static SEXP math2_1(SEXP sa, SEXP sb, SEXP sI,
        if (TRACE(sa) && TRACE(sb)){
 	  if (na>nb)
 	      memtrace_report(sa, sy);
-	  else
+	  else 
 	      memtrace_report(sb, sy);
        } else if (TRACE(sa))
 	   memtrace_report(sa, sy);
@@ -1204,8 +1106,7 @@ static SEXP math2_1(SEXP sa, SEXP sb, SEXP sI,
     return sy;
 } /* math2_1() */
 
-static SEXP math2_2(SEXP sa, SEXP sb, SEXP sI1, SEXP sI2,
-		    double (*f)(double, double, int, int), SEXP lcall)
+static SEXP math2_2(SEXP sa, SEXP sb, SEXP sI1, SEXP sI2, double (*f)(), SEXP lcall)
 {
     SEXP sy;
     int i, ia, ib, n, na, nb, sao = OBJECT(sa), sbo = OBJECT(sb);
@@ -1224,7 +1125,7 @@ static SEXP math2_2(SEXP sa, SEXP sb, SEXP sI1, SEXP sI2,
        if (TRACE(sa) && TRACE(sb)){
 	  if (na>nb)
 	      memtrace_report(sa, sy);
-	  else
+	  else 
 	      memtrace_report(sb, sy);
        } else if (TRACE(sa))
 	   memtrace_report(sa, sy);
@@ -1381,8 +1282,7 @@ SEXP attribute_hidden do_log(SEXP call, SEXP op, SEXP args, SEXP env)
 	i3 = (++i3==n3) ? 0 : i3,				\
 	++i)
 
-static SEXP math3(SEXP sa, SEXP sb, SEXP sc,
-		  double (*f)(double, double, double), SEXP lcall)
+static SEXP math3(SEXP sa, SEXP sb, SEXP sc, double (*f)(), SEXP lcall)
 {
     SEXP sy;
     int i, ia, ib, ic, n, na, nb, nc,
@@ -1460,8 +1360,7 @@ static SEXP math3(SEXP sa, SEXP sb, SEXP sc,
     return sy;
 } /* math3 */
 
-static SEXP math3_1(SEXP sa, SEXP sb, SEXP sc, SEXP sI,
-		    double (*f)(double, double, double, int), SEXP lcall)
+static SEXP math3_1(SEXP sa, SEXP sb, SEXP sc, SEXP sI, double (*f)(), SEXP lcall)
 {
     SEXP sy;
     int i, ia, ib, ic, n, na, nb, nc,
@@ -1500,8 +1399,7 @@ static SEXP math3_1(SEXP sa, SEXP sb, SEXP sc, SEXP sI,
     return sy;
 } /* math3_1 */
 
-static SEXP math3_2(SEXP sa, SEXP sb, SEXP sc, SEXP sI, SEXP sJ,
-		    double (*f)(double, double, double, int, int), SEXP lcall)
+static SEXP math3_2(SEXP sa, SEXP sb, SEXP sc, SEXP sI, SEXP sJ, double (*f)(), SEXP lcall)
 {
     SEXP sy;
     int i, ia, ib, ic, n, na, nb, nc,
@@ -1632,8 +1530,7 @@ SEXP attribute_hidden do_math3(SEXP call, SEXP op, SEXP args, SEXP env)
 	i4 = (++i4==n4) ? 0 : i4,					\
 	++i)
 
-static SEXP math4(SEXP sa, SEXP sb, SEXP sc, SEXP sd,
-		  double (*f)(double, double, double, double), SEXP lcall)
+static SEXP math4(SEXP sa, SEXP sb, SEXP sc, SEXP sd, double (*f)(), SEXP lcall)
 {
     SEXP sy;
     int i, ia, ib, ic, id, n, na, nb, nc, nd,
@@ -1708,7 +1605,7 @@ static SEXP math4(SEXP sa, SEXP sb, SEXP sc, SEXP sd,
     return sy;
 } /* math4() */
 
-static SEXP math4_1(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP sI, double (*f)(double, double, double, double, int), SEXP lcall)
+static SEXP math4_1(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP sI, double (*f)(), SEXP lcall)
 {
     SEXP sy;
     int i, ia, ib, ic, id, n, na, nb, nc, nd,
@@ -1736,7 +1633,7 @@ static SEXP math4_1(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP sI, double (*f)(dou
 } /* math4_1() */
 
 static SEXP math4_2(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP sI, SEXP sJ,
-		    double (*f)(double, double, double, double, int, int), SEXP lcall)
+		    double (*f)(), SEXP lcall)
 {
     SEXP sy;
     int i, ia, ib, ic, id, n, na, nb, nc, nd,
@@ -1784,7 +1681,7 @@ SEXP attribute_hidden do_math4(SEXP call, SEXP op, SEXP args, SEXP env)
     switch (PRIMVAL(op)) {
 
 	/* Completely dummy for -Wall -- math4() at all! : */
-    case -99: return Math4(args, (double (*)(double, double, double, double))NULL);
+    case -99: return Math4(args, dhyper);
 
     case  1: return Math4_1(args, dhyper);
     case  2: return Math4_2(args, phyper);

@@ -98,10 +98,6 @@ list("!" = function(e1)
 {
     standardGeneric("dimnames<-")
 }
-, "names<-" = function(x, value)
-{
-    standardGeneric("names<-")
-}
 , "expression" = function(x, ...)
 {
     standardGeneric("expression")
@@ -113,10 +109,6 @@ list("!" = function(e1)
 , "length<-" = function(x, value)
 {
     standardGeneric("length<-")
-}
-, "levels<-" = function(x, value)
-{
-    standardGeneric("levels<-")
 }
 , "list" = function(x, ...)
 {
@@ -183,10 +175,6 @@ list("!" = function(e1)
 , "dimnames" = function(x)
 {
     standardGeneric("dimnames")
-}
-, "names" = function(x)
-{
-    standardGeneric("names")
 }
 , "invisible" = function(x)
 {

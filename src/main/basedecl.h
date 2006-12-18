@@ -29,8 +29,8 @@ void Rsockread(int *, char **, int *);
 void Rsockwrite(int *, char **, int *, int *, int *);
 SEXP call_dqagi(SEXP);
 SEXP call_dqags(SEXP);
-SEXP La_svd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-SEXP La_rs(SEXP, SEXP);
+SEXP La_svd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP La_rs(SEXP, SEXP, SEXP);
 SEXP La_rg(SEXP, SEXP);
 SEXP La_zgesv(SEXP, SEXP);
 SEXP La_zgeqp3(SEXP);
@@ -54,8 +54,7 @@ SEXP R_getTaskCallbackNames();
 SEXP R_removeTaskCallback(SEXP);
 SEXP R_addTaskCallback(SEXP, SEXP, SEXP, SEXP);
 
-
-SEXP R_getSymbolInfo(SEXP, SEXP, SEXP);
+SEXP R_getSymbolInfo(SEXP, SEXP);
 SEXP R_getDllTable();
 SEXP R_getRegisteredRoutines(SEXP);
 
@@ -70,7 +69,6 @@ SEXP Rrowsum_df(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP do_mapply(SEXP, SEXP, SEXP, SEXP);
 
 SEXP R_r2dtable(SEXP, SEXP, SEXP);
-SEXP R_shortRowNames(SEXP);
 
 void F77_SYMBOL(dchdc)(double *, int *, int *, double *, int *, int *, int *);
 void F77_SYMBOL(dpbfa)(double *, int *, int *, int *, int *);

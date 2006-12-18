@@ -22,7 +22,7 @@
 ### Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ### Boston, MA 02110-1301, USA
 
-AC_PREREQ(2.60)
+AC_PREREQ(2.59)
 
 ## We want to get the version number from file 'VERSION' (rather than
 ## specifying the version info in 'configure.ac'.  Hence, we need a bit
@@ -501,6 +501,7 @@ R_MISSING_PROG(ACLOCAL, aclocal)
 R_MISSING_PROG(AUTOCONF, autoconf)
 R_MISSING_PROG(AUTOMAKE, automake)
 R_MISSING_PROG(AUTOHEADER, autoheader)
+R_MISSING_PROG(MAKEINFO, makeinfo)
 AC_PROG_AWK
 AC_PROG_EGREP
 AC_PROG_LN_S
@@ -533,6 +534,8 @@ R_PROG_BROWSER
 R_PROG_PDFVIEWER
 
 AC_PROG_CC
+## next is a macro borrowed from autoconf 2.60
+AC_PROG_CC_C99
 
 AC_PROG_GCC_TRADITIONAL
 AC_PROG_CPP
@@ -542,18 +545,10 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 R_GCC4_VISIBILITY
 
-AC_PROG_OBJC
-## unfortunately autoconf sets OBJC to gcc even if there is no working compiler
-if test "${OBJC}" = gcc; then
-  AC_LANG_PUSH([Objective C])
-  AC_COMPILE_IFELSE([AC_LANG_PROGRAM(,[id foo;])],,[OBJC=''])
-  AC_LANG_POP([Objective C])
-fi
-R_PROG_OBJCXX
-
 ## This has to be R_DEFS as autoconf overrrides DEFS
 R_DEFS=${DEFS}
 AC_SUBST(R_DEFS)
+
 
 ## Libtool.
 ## (Run this after R_PROG_F77, as AC_PROG_LIBTOOL checks for a
@@ -561,6 +556,9 @@ AC_SUBST(R_DEFS)
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
+## Makeinfo
+R_PROG_MAKEINFO
+
 
 ### * Checks for libraries.
 
@@ -697,6 +695,13 @@ AC_CHECK_HEADERS(errno.h inttypes.h stdarg.h stdint.h string.h)
 ## AC_CHECK_HEADERS(libintl.h)
 ## </NOTE>
 
+case "${host_os}" in
+  sunos4*)
+    AC_DEFINE(SunOS4, 1,
+              [Define if your system is SunOS4, which is famous for
+               broken header files.])
+  ;;
+esac
 R_HEADER_SETJMP
 R_HEADER_GLIBC2
 
@@ -747,7 +752,6 @@ if test "${cross_compiling}" = yes; then
 fi
 AC_CHECK_SIZEOF(long, 4)
 AC_CHECK_SIZEOF(long long, 0)
-AC_CHECK_SIZEOF(double, 8)
 AC_CHECK_SIZEOF(long double, 0)
 
 R_PROG_CC_MAKEFRAG
@@ -767,11 +771,6 @@ AM_CONDITIONAL(COMPILE_FORTRAN_DOUBLE_COMPLEX,
 ### *** C++ compiler.
 
 R_PROG_CXX_MAKEFRAG
-
-### *** ObjC compiler
-
-R_PROG_OBJC_RUNTIME
-R_OBJC_FOUNDATION
 
 ### ** Platform-specific overrides for the C, Fortran 77 and C++ compilers.
 
@@ -1007,9 +1006,6 @@ AC_SUBST(R_XTRA_CPPFLAGS)
 AC_SUBST(R_XTRA_CXXFLAGS)
 AC_SUBST(R_XTRA_FFLAGS)
 AC_SUBST(R_XTRA_LIBS)
-AC_SUBST(OBJC_LIBS)
-AC_SUBST(OBJCFLAGS)
-AC_SUBST(OBJCXXFLAGS)
 
 ### ** DLL stuff.
 
@@ -1583,7 +1579,6 @@ R_CHECK_FUNCS([getrlimit getrusage], [#include <sys/resource.h>])
 R_CHECK_FUNCS([mkfifo stat], [#include <sys/stat.h>])
 R_CHECK_FUNCS([gettimeofday], [#include <sys/time.h>])
 R_CHECK_FUNCS([times], [#include <sys/times.h>])
-R_CHECK_FUNCS([time], [#include <time.h>])
 R_CHECK_FUNCS([access chdir ftruncate getcwd getuid symlink sysconf],
 [#ifdef HAVE_UNISTD_H
 # include <unistd.h>
@@ -1832,8 +1827,6 @@ else
 fi
 ## check if X11 typedefs KeySym
 R_TYPE_KEYSYM
-## check if Xmu is supported
-R_X11_Xmu
 
 ## check for CoreFoundation framework (chances are much higher
 ## that we can build AQUA if this one is present)
@@ -2135,19 +2128,6 @@ AC_SUBST(XTRA_INTL_CPPFLAGS)
 AM_CONDITIONAL(USE_NLS, [test "x${USE_NLS}" = xyes])
 AM_CONDITIONAL(BUILD_LIBINTL, [test "x${USE_INCLUDED_LIBINTL}" = xyes])
 
-### * bug fixes
-# PR#9375 claims that sh on OSF1 is not POSIX-compliant and that is 
-# not a bug in the OS: we add a workaround for such benighted OSes
-case "${host_os}" in
-  osf*)
-    OSF_SH_BUG='"${1+@}"'
-  ;;
-  *)
-    OSF_SH_BUG='"${@}"'
-  ;;
-esac
-AC_SUBST(OSF_SH_BUG)
-
 ### * Win32 overrides
 case "${host_os}" in
   mingw*)
@@ -2278,7 +2258,6 @@ r_c_compiler="${CC} ${R_XTRA_CFLAGS} ${CFLAGS}"
 r_cxx_compiler="${CXX} ${R_XTRA_CXXFLAGS} ${CXXFLAGS}"
 r_f77_compiler="${F77} ${R_XTRA_FFLAGS} ${FFLAGS}"
 r_f95_compiler="${FC} ${FCFLAGS}"
-r_objc_compiler="${OBJC} ${OBJCFLAGS}"
 r_interfaces=
 for item in X11 aqua tcltk; do
   if eval "test \${use_${item}} = yes"; then
@@ -2351,9 +2330,6 @@ fi
 if test "${want_linux_lfs}" = yes; then
   R_SH_VAR_ADD(r_options, [Linux LFS], [, ])
 fi
-if test -n "${JAVA}"; then
-  R_SH_VAR_ADD(r_options, [Java], [, ])
-fi
 
 AC_MSG_RESULT(
 [
@@ -2367,7 +2343,6 @@ R is now configured for ${host}
 
   C++ compiler:              ${r_cxx_compiler}
   Fortran 90/95 compiler:    ${r_f95_compiler}
-  Obj-C compiler:	     ${r_objc_compiler}
 
   Interfaces supported:      ${r_interfaces}
   External libraries:        ${r_external_libs}

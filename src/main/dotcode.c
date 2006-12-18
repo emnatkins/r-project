@@ -802,21 +802,17 @@ SEXP attribute_hidden do_isloaded(SEXP call, SEXP op, SEXP args, SEXP env)
 /*   Call dynamically loaded "internal" functions */
 /*   code by Jean Meloche <jean@stat.ubc.ca> */
 
-typedef SEXP (*R_ExternalRoutine)(SEXP);
-
 SEXP attribute_hidden do_External(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    DL_FUNC ofun = NULL;
-    R_ExternalRoutine fun = NULL;
+    DL_FUNC fun = NULL;
     SEXP retval;
     R_RegisteredNativeSymbol symbol = {R_EXTERNAL_SYM, {NULL}, NULL};
     /* I don't like this messing with vmax <TSL> */
     /* But it is needed for clearing R_alloc and to be like .Call <BDR>*/
     char *vmax = vmaxget(), buf[128];
 
-    args = resolveNativeRoutine(args, &ofun, &symbol, buf, NULL, NULL,
+    args = resolveNativeRoutine(args, &fun, &symbol, buf, NULL, NULL,
 				NULL, call);
-    fun = (R_ExternalRoutine) ofun;
 
     /* Some external symbols that are registered may have 0 as the
        expected number of arguments.  We may want a warning
@@ -838,17 +834,11 @@ SEXP attribute_hidden do_External(SEXP call, SEXP op, SEXP args, SEXP env)
     return retval;
 }
 
-#ifdef __cplusplus
-typedef SEXP (*VarFun)(...);
-#else
-typedef DL_FUNC VarFun;
-#endif
 
 /* .Call(name, <args>) */
 SEXP attribute_hidden do_dotcall(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    DL_FUNC ofun = NULL;
-    VarFun fun = NULL;
+    DL_FUNC fun = NULL;
     SEXP retval, nm, cargs[MAX_ARGS], pargs;
     R_RegisteredNativeSymbol symbol = {R_CALL_SYM, {NULL}, NULL};
     int nargs;
@@ -856,10 +846,9 @@ SEXP attribute_hidden do_dotcall(SEXP call, SEXP op, SEXP args, SEXP env)
     char buf[128];
 
     nm = CAR(args);
-    args = resolveNativeRoutine(args, &ofun, &symbol, buf, NULL, NULL,
+    args = resolveNativeRoutine(args, &fun, &symbol, buf, NULL, NULL,
 				NULL, call);
     args = CDR(args);
-    fun = (VarFun) ofun;
 
     for(nargs = 0, pargs = args ; pargs != R_NilValue; pargs = CDR(pargs)) {
         if (nargs == MAX_ARGS)
@@ -875,10 +864,9 @@ SEXP attribute_hidden do_dotcall(SEXP call, SEXP op, SEXP args, SEXP env)
     }
 
     retval = R_NilValue;	/* -Wall */
-    fun = (VarFun) ofun;
     switch (nargs) {
     case 0:
-	retval = (SEXP)ofun();
+	retval = (SEXP)fun();
 	break;
     case 1:
 	retval = (SEXP)fun(cargs[0]);
@@ -1663,8 +1651,7 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     void **cargs;
     int dup, havenames, naok, nargs, which;
-    DL_FUNC ofun = NULL;
-    VarFun fun = NULL;
+    DL_FUNC fun = NULL;
     SEXP ans, pargs, s;
     /* the post-call converters back to R objects. */
     R_toCConverter  *argConverters[65];
@@ -1687,9 +1674,9 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 	symbol.type = R_FORTRAN_SYM;
 
     args = enctrim(args, encname, 100);
-    args = resolveNativeRoutine(args, &ofun, &symbol, symName, &nargs,
+    args = resolveNativeRoutine(args, &fun, &symbol, symName, &nargs,
 				&naok, &dup, call);
-    fun = (VarFun) ofun;
+
 
     if(symbol.symbol.c && symbol.symbol.c->numArgs > -1) {
 	if(symbol.symbol.c->numArgs != nargs)
@@ -2497,23 +2484,23 @@ void call_R(char *func, long nargs, void **arguments, char **modes,
     case CPLXSXP:
     case STRSXP:
 	if(nres > 0)
-	    results[0] = (char *) RObjToCPtr(s, 1, 1, 0, 0, (const char *)NULL,
-					     NULL, 0, "");
+	    results[0] = RObjToCPtr(s, 1, 1, 0, 0, (const char *)NULL,
+				    NULL, 0, "");
 	break;
     case VECSXP:
 	n = length(s);
 	if (nres < n) n = nres;
 	for (i = 0 ; i < n ; i++) {
-	    results[i] = (char *) RObjToCPtr(VECTOR_ELT(s, i), 1, 1, 0, 0,
-					     (const char *)NULL, NULL, 0, "");
+	    results[i] = RObjToCPtr(VECTOR_ELT(s, i), 1, 1, 0, 0,
+				    (const char *)NULL, NULL, 0, "");
 	}
 	break;
     case LISTSXP:
 	n = length(s);
 	if(nres < n) n = nres;
 	for(i=0 ; i<n ; i++) {
-	    results[i] =(char *) RObjToCPtr(s, 1, 1, 0, 0, (const char *)NULL,
-					    NULL, 0, "");
+	    results[i] = RObjToCPtr(s, 1, 1, 0, 0, (const char *)NULL,
+				    NULL, 0, "");
 	    s = CDR(s);
 	}
 	break;

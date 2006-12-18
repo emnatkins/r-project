@@ -196,7 +196,7 @@ typedef void (*dropfn)(control c, char *data);
 #define newmenu    GA_newmenu
 #define newcontrol GA_newcontrol
 #define newwindow  GA_newwindow
-/* #define gettext    GA_gettext */
+#define gettext    GA_gettext
 #define settext    GA_settext
 
 #define R_REMAP

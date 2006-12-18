@@ -57,9 +57,6 @@ static double Q[] = {
 #define LOGE2 1.4426950408889634073599
 
 double asinh(double xx)
-#ifdef __cplusplus
-	throw ()
-#endif
 {
     double a, z, x;
     int sign;

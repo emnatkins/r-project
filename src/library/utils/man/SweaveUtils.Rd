@@ -1,14 +1,11 @@
 \name{SweaveUtils}
-\alias{RtangleWritedoc}
-\alias{RweaveChunkPrefix}
-\alias{RweaveEvalWithOpt}
-\alias{RweaveLatexFinish}
-\alias{RweaveLatexOptions}
-\alias{RweaveLatexWritedoc}
-\alias{RweaveTryStop}
-\alias{SweaveHooks}
 \alias{SweaveUtils}
-\alias{makeRweaveLatexCodeRunner}
+\alias{RtangleWritedoc}
+\alias{RweaveLatexOptions}
+\alias{RweaveChunkPrefix}
+\alias{SweaveHooks}
+\alias{RweaveTryStop}
+\alias{RweaveEvalWithOpt}
 \title{Sweave Driver Utilities}
 \description{
   These functions are handy for writing Sweave drivers and currently not
@@ -20,12 +17,10 @@
 RtangleWritedoc(object, chunk)
 RweaveChunkPrefix(options)
 RweaveEvalWithOpt(expr, options)
-RweaveLatexFinish(object, error=FALSE)
 RweaveLatexOptions(options)
 RweaveTryStop(err, options)
 SweaveHooks(options, run = FALSE, envir = .GlobalEnv)
-makeRweaveLatexCodeRunner(evalFunc=RweaveEvalWithOpt)
 }
-\author{Friedrich Leisch, with contributions by Seth Falcon}
+\author{Friedrich Leisch}
 \keyword{utilities}
 \keyword{internal}

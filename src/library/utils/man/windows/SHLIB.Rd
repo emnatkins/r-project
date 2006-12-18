@@ -35,9 +35,9 @@
   details of some of its quirks.
 
   Items in \code{files} with extensions \code{.c}, \code{.cpp},
-  \code{.cc}, \code{.C}, \code{.f}, \code{.f90}, \code{.f95} and \code{.m},
-  are regarded as source files, and those with extension \code{.o} as
-  object files.  All other items are passed to the linker.
+  \code{.cc}, \code{.C}, \code{.f}, \code{.f90} and \code{.f95} are
+  regarded as source files, and those with extension \code{.o} as object
+  files.  All other items are passed to the linker.
 }
 \seealso{
   \code{\link{dyn.load}}, \code{\link{library.dynam}}.

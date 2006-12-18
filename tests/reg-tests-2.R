@@ -312,14 +312,12 @@ summary(data.frame(x))
 ## All entries show all 3 digits after the decimal point now.
 
 ## Chong Gu 2001-Feb-16.  step on binomials
-detg1 <-
-structure(list(Temp = structure(c(2L, 1L, 2L, 1L, 2L, 1L, 2L,
-    1L, 2L, 1L, 2L, 1L), .Label = c("High", "Low"), class = "factor"),
-    M.user = structure(c(1L, 1L, 2L, 2L, 1L, 1L, 2L, 2L, 1L,
-    1L, 2L, 2L), .Label = c("N", "Y"), class = "factor"),
-    Soft = structure(c(1L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 3L),
-    .Label = c("Hard", "Medium", "Soft"), class = "factor"),
-    M = c(42, 30, 52, 43,
+"detg1" <-
+structure(list(Temp = structure(c(2, 1, 2, 1, 2, 1, 2, 1, 2,
+1, 2, 1), .Label = c("High", "Low"), class = "factor"), M.user = structure(c(1,
+1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2), .Label = c("N", "Y"), class = "factor"),
+    Soft = structure(c(1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3), .Label = c("Hard",
+    "Medium", "Soft"), class = "factor"), M = c(42, 30, 52, 43,
     50, 23, 55, 47, 53, 27, 49, 29), X = c(68, 42, 37, 24, 66,
     33, 47, 23, 63, 29, 57, 19)), .Names = c("Temp", "M.user",
 "Soft", "M", "X"), class = "data.frame", row.names = c("1", "3",
@@ -370,8 +368,10 @@ gofX.df<-
     -0.756802495307928, 0.67546318055115, -0.0583741434275801
     ), groups = structure(c(1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2,
     2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3), class = "factor", .Label = c("1",
-    "2", "3"))), .Names = c("A", "B", "C", "D", "groups"), row.names = 1:24,
-            class = "data.frame")
+    "2", "3"))), .Names = c("A", "B", "C", "D", "groups"), row.names = c("1",
+"2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13",
+"14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"
+), class = "data.frame")
 
 gofX.manova <- manova(formula = cbind(A, B, C, D) ~ groups, data = gofX.df)
 try(summary(gofX.manova))
@@ -845,7 +845,8 @@ par(mfrow = c(1,1))
                    y = c(78.5, 74.3, 104.3, 87.6, 95.9, 109.2, 102.7, 72.5,
                    93.1, 115.9, 83.8, 113.3, 109.4)),
               .Names = c("x1", "x2", "x3", "x4", "y"), class = "data.frame",
-              row.names = 1:13)
+              row.names = c("1", "2", "3", "4", "5", "6", "7", "8", "9",
+              "10", "11", "12", "13"))
 teststep <- function(formula, data)
 {
     d2 <- data
@@ -2007,23 +2008,3 @@ x[2, invisible(3)]
 
 
 ### end of tests added in 2.4.1 ###
-
-
-## tests of deparsing
-x <-list(a = NA, b = as.integer(NA), c=0+NA, d=0i+NA,
-         e = 1, f = 1:1, g = 1:3, h = c(NA, 1:3),
-         i = as.character(NA), j = c("foo", NA, "bar")
-         )
-dput(x, control=NULL)
-dput(x, control="keepInteger")
-dput(x, control="keepNA")
-dput(x)
-dput(x, control="all")
-dput(x, control=c("all", "S_compatible"))
-tmp <- tempfile()
-dput(x, tmp, control="all")
-stopifnot(identical(dget(tmp), x))
-dput(x, tmp, control=c("all", "S_compatible"))
-stopifnot(identical(dget(tmp), x))
-unlink(tmp)
-## changes in 2.5.0

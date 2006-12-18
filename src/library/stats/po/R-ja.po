@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2006-11-25 12:18\n"
+"POT-Creation-Date: 2006-12-01 10:45\n"
 "PO-Revision-Date: 2006-12-12 09:44+0900\n"
 "Last-Translator: Masafumi OKADA <mokada@mail.ne.jp>\n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp>\n"
@@ -1462,9 +1462,6 @@ msgstr "無効な 'contrasts.arg' 引数です"
 msgid "variable '%s' is absent, its contrast will be ignored"
 msgstr "変数 '%s' は存在しません。その対比は無視されます"
 
-msgid "using type=\"numeric\" with a factor response will be ignored"
-msgstr ""
-
 msgid "invalid response type"
 msgstr "無効な応答タイプです"
 
@@ -1482,10 +1479,6 @@ msgstr "無効な引数 'omit' です"
 
 msgid "'print.level' must be in {0,1,2}"
 msgstr "'print.level' は {0,1,2} 中でなければなりません"
-
-#, fuzzy
-msgid "'interval' must be a vector of length 2"
-msgstr "'margins' は長さ 2 の数値ベクトルでなければなりません"
 
 msgid "lower < upper  is not fulfilled"
 msgstr "lower < upper になっていません"
@@ -1558,6 +1551,9 @@ msgstr "'data' 中に初期値の無いパラメータがあります"
 
 msgid "Upper or lower bounds ignored unless algorithm = \"port\""
 msgstr "algorithm = \"port\" でない限り上限もしくは下限は無視されます"
+
+msgid "Convergence failure:"
+msgstr "収束の失敗："
 
 msgid "cannot calculate REML log-likelihood for \"nls\" objects"
 msgstr "\"nls\" オブジェクトのための REML 対数尤度を計算することができません"
@@ -2158,9 +2154,6 @@ msgstr[0] "欠損値のせいで %d 個の観測値が取り除かれました"
 msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "モデル式中にパラメータ %s がありません"
-
-#~ msgid "Convergence failure:"
-#~ msgstr "収束の失敗："
 
 #~ msgid ""
 #~ "link \"%s\" not available for binomial family, available links are \"logit"

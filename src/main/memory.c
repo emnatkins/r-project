@@ -230,7 +230,7 @@ R_size_t attribute_hidden R_GetMaxVSize(void)
 void attribute_hidden R_SetMaxVSize(R_size_t size)
 {
     if (size == R_SIZE_T_MAX) return;
-    if (size / vsfac >= R_VSize) R_MaxVSize = (size+1)/vsfac;
+    if (size / vsfac >= R_VSize) R_MaxVSize = (size+1)/sizeof(VECREC);
 }
 
 R_size_t attribute_hidden R_GetMaxNSize(void)
@@ -1460,38 +1460,40 @@ SEXP attribute_hidden do_gc(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP value;
     int ogc, reset_max;
-    R_size_t onsize = R_NSize /* can change during collection */;
+    R_size_t onsize = R_NSize;
 
     checkArity(op, args);
     ogc = gc_reporting;
     gc_reporting = asLogical(CAR(args));
-    reset_max = asLogical(CADR(args));
+    reset_max=asLogical(CADR(args));
     num_old_gens_to_collect = NUM_OLD_GENERATIONS;
     R_gc();
     gc_reporting = ogc;
     /*- now return the [used , gc trigger size] for cells and heap */
-    PROTECT(value = allocVector(REALSXP, 14));
-    REAL(value)[0] = onsize - R_Collected;
-    REAL(value)[1] = R_VSize - VHEAP_FREE();
-    REAL(value)[4] = R_NSize;
-    REAL(value)[5] = R_VSize;
+    PROTECT(value = allocVector(INTSXP, 14));
+    INTEGER(value)[0] = onsize - R_Collected;
+    /* careful here: we can't report large sizes in R's integer */
+    INTEGER(value)[1] = (R_VSize - VHEAP_FREE() < INT_MAX) ? 
+	R_VSize - VHEAP_FREE() : NA_INTEGER;  /* Overflows at 2Gb free */
+    INTEGER(value)[4] = (R_NSize < INT_MAX) ? R_NSize : NA_INTEGER;
+    INTEGER(value)[5] = (R_VSize < INT_MAX) ? R_VSize : NA_INTEGER;
     /* next four are in 0.1Mb, rounded up */
-    REAL(value)[2] = 0.1*ceil(10. * (onsize - R_Collected)/Mega * sizeof(SEXPREC));
-    REAL(value)[3] = 0.1*ceil(10. * (R_VSize - VHEAP_FREE())/Mega * vsfac);
-    REAL(value)[6] = 0.1*ceil(10. * R_NSize/Mega * sizeof(SEXPREC));
-    REAL(value)[7] = 0.1*ceil(10. * R_VSize/Mega * vsfac);
-    REAL(value)[8] = (R_MaxNSize < R_SIZE_T_MAX) ?
-	0.1*ceil(10. * R_MaxNSize/Mega * sizeof(SEXPREC)) : NA_REAL;
-    REAL(value)[9] = (R_MaxVSize < R_SIZE_T_MAX) ?
-	0.1*ceil(10. * R_MaxVSize/Mega * vsfac) : NA_REAL;
+    INTEGER(value)[2] = 10. * (onsize - R_Collected)/Mega * sizeof(SEXPREC) + 0.999;
+    INTEGER(value)[3] = 10. * (R_VSize - VHEAP_FREE())/Mega * vsfac + 0.999;
+    INTEGER(value)[6] = 10. * R_NSize/Mega * sizeof(SEXPREC) + 0.999;
+    INTEGER(value)[7] = 10. * R_VSize/Mega * vsfac + 0.999;
+    INTEGER(value)[8] = (R_MaxNSize < R_SIZE_T_MAX) ?
+	(10. * R_MaxNSize/Mega * sizeof(SEXPREC) + 0.999) : NA_INTEGER;
+    INTEGER(value)[9] = (R_MaxVSize < R_SIZE_T_MAX) ?
+	(10. * R_MaxVSize/Mega * vsfac + 0.999) : NA_INTEGER;
     if (reset_max){
-	    R_N_maxused = onsize - R_Collected;
-	    R_V_maxused = R_VSize - VHEAP_FREE();
+	    R_N_maxused = INTEGER(value)[0];
+	    R_V_maxused = INTEGER(value)[1];
     }
-    REAL(value)[10] = R_N_maxused;
-    REAL(value)[11] = R_V_maxused;
-    REAL(value)[12] = 0.1*ceil(10. * R_N_maxused/Mega*sizeof(SEXPREC));
-    REAL(value)[13] = 0.1*ceil(10. * R_V_maxused/Mega*vsfac);
+    INTEGER(value)[10] = (R_N_maxused < INT_MAX) ? R_N_maxused : NA_INTEGER;
+    INTEGER(value)[11] = (R_V_maxused < INT_MAX) ? R_V_maxused : NA_INTEGER;
+    INTEGER(value)[12] = 10. * R_N_maxused/Mega*sizeof(SEXPREC)+0.999;
+    INTEGER(value)[13] = 10. * R_V_maxused/Mega*vsfac +0.999;
     UNPROTECT(1);
     return value;
 }
@@ -1720,7 +1722,7 @@ static SEXP allocSExpNonCons(SEXPTYPE t)
     return s;
 }
 
-/* cons is defined directly to avoid the need to protect its arguments
+/* cons is defined directly do avoid the need to protect its arguments
    unless a GC will actually occur. */
 SEXP cons(SEXP car, SEXP cdr)
 {
@@ -2124,8 +2126,8 @@ static void gc_end_timing(void)
 
 static void R_gc_internal(R_size_t size_needed)
 {
-    R_size_t onsize = R_NSize /* can change during collection */;
-    double ncells, vcells, vfrac, nfrac;
+    R_size_t vcells;
+    double vfrac;
     Rboolean first = TRUE;
 
  again:
@@ -2142,17 +2144,14 @@ static void R_gc_internal(R_size_t size_needed)
     } END_SUSPEND_INTERRUPTS;
 
     if (gc_reporting) {
-	ncells = onsize - R_Collected;
-	nfrac = (100.0 * ncells) / R_NSize;
-	/* We try to make this consistent with the results returned by gc */
-	ncells = 0.1*ceil(10*ncells * sizeof(SEXPREC)/Mega);
-	REprintf("\n%.1f Mbytes of cons cells used (%d%%)\n",
-		 ncells, (int) (nfrac + 0.5));
-	vcells = R_VSize - VHEAP_FREE();
+	REprintf("\n%lu cons cells free (%d%%)\n",
+		 R_Collected, (100 * R_Collected / R_NSize));
+	vcells = VHEAP_FREE();
 	vfrac = (100.0 * vcells) / R_VSize;
-	vcells = 0.1*ceil(10*vcells * vsfac/Mega);
-	REprintf("%.1f Mbytes of vectors used (%d%%)\n",
-		 vcells, (int) (vfrac + 0.5));
+	/* arrange for percentage to be rounded down, or we get
+	   `100% free' ! */
+	REprintf("%.1f Mbytes of heap free (%d%%)\n",
+		 vcells * sizeof(VECREC) / Mega, (int)vfrac);
     }
 
     if (first) {
@@ -2802,9 +2801,11 @@ static void R_OutputStackTrace(FILE *file)
 
 static void R_ReportAllocation(R_size_t size)
 {
+    int newline = 0;
+
     if (R_IsMemReporting) {
 	if(size > R_MemReportingThreshold) {
-	    fprintf(R_MemReportingOutfile, "%ld :", (unsigned long) size);
+	    fprintf(R_MemReportingOutfile,"%ld :", (unsigned long) size);
 	    R_OutputStackTrace(R_MemReportingOutfile);
 	}
     }
@@ -2813,12 +2814,15 @@ static void R_ReportAllocation(R_size_t size)
 
 static void R_ReportNewPage(void)
 {
+    int newline = 0;
+
     if (R_IsMemReporting) {
 	fprintf(R_MemReportingOutfile, "new page:");
 	R_OutputStackTrace(R_MemReportingOutfile);
     }
     return;
 }
+
 
 static void R_EndMemReporting()
 {

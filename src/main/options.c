@@ -283,7 +283,6 @@ void attribute_hidden InitOptions(void)
 }
 
 
-/* This needs to manage R_Visible */
 SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP argi= R_NilValue, argnames= R_NilValue, namei= R_NilValue,
@@ -322,7 +321,6 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	setAttrib(value2, R_NamesSymbol, names2);
 	UNPROTECT(5);
-	R_Visible = TRUE;
 	return value2;
     }
 
@@ -355,7 +353,7 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 	UNIMPLEMENTED_TYPE("options", args);
     }
 
-    R_Visible = FALSE;
+    R_Visible = 0;
     for (i = 0 ; i < n ; i++) { /* i-th argument */
 
 	switch (TYPEOF(args)) {
@@ -503,7 +501,7 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    SET_VECTOR_ELT(value, i, duplicate(CAR(FindTaggedItem(options,
 				     install(CHAR(STRING_ELT(argi, 0)))))));
 	    SET_STRING_ELT(names, i, STRING_ELT(argi, 0));
-	    R_Visible = TRUE;
+	    R_Visible = 1;
 	}
     } /* for() */
     setAttrib(value, R_NamesSymbol, names);

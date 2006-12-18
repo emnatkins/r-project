@@ -266,13 +266,13 @@ INLINE_FUN SEXP asS4(SEXP s, Rboolean flag)
 
 INLINE_FUN Rboolean inherits(SEXP s, char *name)
 {
-    SEXP klass;
+    SEXP class;
     int i, nclass;
     if (isObject(s)) {
-	klass = getAttrib(s, R_ClassSymbol);
-	nclass = length(klass);
+	class = getAttrib(s, R_ClassSymbol);
+	nclass = length(class);
 	for (i = 0; i < nclass; i++) {
-	    if (!strcmp(CHAR(STRING_ELT(klass, i)), name))
+	    if (!strcmp(CHAR(STRING_ELT(class, i)), name))
 		return TRUE;
 	}
     }
@@ -387,12 +387,12 @@ INLINE_FUN Rboolean isVector(SEXP s)/* === isVectorList() or isVectorAtomic() */
 
 INLINE_FUN Rboolean isFrame(SEXP s)
 {
-    SEXP klass;
+    SEXP class;
     int i;
     if (isObject(s)) {
-	klass = getAttrib(s, R_ClassSymbol);
-	for (i = 0; i < length(klass); i++)
-	    if (!strcmp(CHAR(STRING_ELT(klass, i)), "data.frame")) return TRUE;
+	class = getAttrib(s, R_ClassSymbol);
+	for (i = 0; i < length(class); i++)
+	    if (!strcmp(CHAR(STRING_ELT(class, i)), "data.frame")) return TRUE;
     }
     return FALSE;
 }

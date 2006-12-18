@@ -3,19 +3,15 @@
 
 ###-- Group methods
 
-## previous versions used print() and hit an auto-printing bug.
-
 ### Arithmetic "Ops" :
-">.bar" <- function(...) {cat("using >.bar\n"); FALSE}
-">.foo" <- function(...) {cat("using >.foo\n"); TRUE}
+">.bar" <- function(...) print(">.bar")
+">.foo" <- function(...) print(">.foo")
 Ops.foo <- function(...) {
-    cat("using Ops.foo\n")
+    print("Ops.foo")
     NextMethod()
 }
-Ops.bar <- function(...) {
-    cat("using Ops.bar\n")
-    TRUE
-}
+Ops.bar <- function(...)
+    print("Ops.bar")
 
 x <- 2:4 ; class(x) <- c("foo", "bar")
 y <- 4:2 ; class(y) <- c("bar", "foo")

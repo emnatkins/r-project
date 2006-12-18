@@ -104,7 +104,7 @@ format.POSIXlt <- function(x, format = "", usetz = FALSE, ...)
         if(np >= 1) {
             for (i in (1:np)- 1) if(all( abs(secs - round(secs, i)) < 1e-6 )) {
                 np <- i
-                break
+                break;
             }
         }
         format <- if(all(times[!is.na(times)] == 0)) "%Y-%m-%d"
@@ -281,6 +281,12 @@ function(x, ..., value) {
 
 as.character.POSIXt <- function(x, ...) format(x, ...)
 
+str.POSIXt <- function(object, ...) {
+    cl <- oldClass(object)
+    cat("'", cl[min(2, length(cl))],"', format:", sep = "")
+    str(format(object), ...)
+}
+
 as.data.frame.POSIXct <- as.data.frame.vector
 
 is.na.POSIXlt <- function(x) is.na(as.POSIXct(x))
@@ -378,7 +384,7 @@ print.difftime <- function(x, digits = getOption("digits"), ...)
     invisible(x)
 }
 
-round.difftime <- function (x, digits = 0, ...)
+round.difftime <- function (x, digits = 0)
 {
    units <- attr(x, "units")
    structure(NextMethod(), units=units, class="difftime")

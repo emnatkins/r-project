@@ -145,7 +145,6 @@ MKDIR=mkdir
 CAT=cat
 CC=$(BINPREF)gcc $(MINGW32CFLAG)
 CXX=$(BINPREF)g++ $(MINGW32CFLAG)
-OBJC=$(BINPREF)gcc $(MINGW32CFLAG)
 AS=$(BINPREF)as
 DLL_LDMAIN=gcc
 DLL=$(BINPREF)$(DLL_LDMAIN) $(MINGW32LDFLAG)
@@ -159,7 +158,7 @@ NM=$(BINPREF)nm
 CPP=$(CC) -E
 RESCOMP=$(BINPREF)windres
 
-.SUFFIXES: .c .cc .cpp .C .f .o .a .def .exp .dll .exe .d .f90 .f95 .m
+.SUFFIXES: .c .cc .cpp .C .f .o .a .def .exp .dll .exe .d .f90 .f95
 
 .c.d:
 	@echo "making $@ from $<"
@@ -177,10 +176,6 @@ RESCOMP=$(BINPREF)windres
 	@echo "making $@ from $<"
 	@$(CXX) $(DEPARG) $(CXXFLAGS) $($*-CXXFLAGS) $< -o $@
 
-.m.d:
-	@echo "making $@ from $<"
-	@$(OBJC) $(DEPARG) $(OBJCFLAGS) $($*-OBJCFLAGS) $< -o $@
-
 .c.o:
 	$(CC) $(CFLAGS) $($*-CFLAGS) -c $< -o $@
 
@@ -196,15 +191,12 @@ RESCOMP=$(BINPREF)windres
 .C.o:
 	$(CXX) $(CXXFLAGS) $($*-CXXFLAGS) -c $< -o $@
 
-.m.o:
-	$(OBJC) $(OBJCFLAGS) $($*-OBJCFLAGS) -c $< -o $@
-
 %.exe:
 	$(LINKER) $(LINKFLAGS) $($*-LINKFLAGS) -o $@ $^ $($*-LIBS) $(LIBS)
 
 %.dll:
 	@$(ECHO) EXPORTS > $*.def
-	@$(NM) $^ | $(SED) -n 's/^.* [BCDRT] _/ /p' >> $*.def
+	@$(NM) $^ | $(SED) -n 's/^........ [BCDRT] _/ /p' >> $*.def
 	$(DLL) -shared $(DLLFLAGS) $($*-DLLFLAGS) -o $@ $*.def $^ $($*-DLLLIBS) $(DLLLIBS)
 	@$(RM) $*.def
 

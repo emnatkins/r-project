@@ -84,7 +84,7 @@ static void AllocBuffer(int len, R_StringBuffer *cbuff)
 {
     if(len >= 0) R_AllocStringBuffer(len, cbuff);
 }
-/* de-allocation is always safe as we statically initialize */
+/* de-allocation is alway safe as we statically initialize */
 static void DeallocBuffer(R_StringBuffer *cbuff)
 {
     if(cbuff->bufsize != MAXELTSIZE) R_FreeStringBuffer(cbuff);
@@ -601,14 +601,15 @@ static void mystrcpy(char *dest, const char *src)
 }
 
 
-/* abbreviate(inchar, minlen) */
 static SEXP stripchars(SEXP inchar, int minlen)
 {
-/* This routine used to use strcpy with overlapping dest and src.
+/* abbreviate(inchar, minlen) */
+
+/* This routine used strcpy with overlapping dest and src.
    That is not allowed by ISO C.
  */
     int i, j, nspace = 0, upper;
-    char *buff1 = cbuff.data;
+    char buff1[MAXELTSIZE];
 
     mystrcpy(buff1, CHAR(inchar));
     upper = strlen(buff1)-1;
@@ -711,13 +712,14 @@ SEXP attribute_hidden do_abbrev(SEXP call, SEXP op, SEXP args, SEXP env)
 
     PROTECT(ans = allocVector(STRSXP, len));
     minlen = asInteger(CADR(args));
-    uclass = asLogical(CADDR(args));
+    uclass = asLogical(CAR(CDDR(args)));
     for (i = 0 ; i < len ; i++) {
 	if (STRING_ELT(x, i) == NA_STRING)
 	    SET_STRING_ELT(ans, i, NA_STRING);
 	else {
 	    warn = warn | !utf8strIsASCII(CHAR(STRING_ELT(x, i)));
-	    AllocBuffer(strlen(CHAR(STRING_ELT(x, i))) +1, &cbuff);
+	    if(strlen(CHAR(STRING_ELT(x, i))) >= MAXELTSIZE)
+		errorcall(call, "element %d is too long", i+1);
 	    SET_STRING_ELT(ans, i,
 			   stripchars(STRING_ELT(x, i), minlen));
 	}
@@ -726,7 +728,6 @@ SEXP attribute_hidden do_abbrev(SEXP call, SEXP op, SEXP args, SEXP env)
     SET_ATTRIB(ans, duplicate(ATTRIB(x)));
     /* This copied the class, if any */
     SET_OBJECT(ans, OBJECT(x));
-    DeallocBuffer(&cbuff);
     UNPROTECT(1);
     return(ans);
 }
@@ -735,7 +736,7 @@ SEXP attribute_hidden do_makenames(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP arg, ans;
     int i, l, n, allow_;
-    char *p, *_this, *tmp;
+    char *p, *this, *tmp;
     Rboolean need_prefix;
 
     checkArity(op ,args);
@@ -748,18 +749,18 @@ SEXP attribute_hidden do_makenames(SEXP call, SEXP op, SEXP args, SEXP env)
 	errorcall(call, _("invalid value of 'allow_'"));
     PROTECT(ans = allocVector(STRSXP, n));
     for (i = 0 ; i < n ; i++) {
-	_this = CHAR(STRING_ELT(arg, i));
-	l = strlen(_this);
+	this = CHAR(STRING_ELT(arg, i));
+	l = strlen(this);
 	/* need to prefix names not beginning with alpha or ., as
 	   well as . followed by a number */
 	need_prefix = FALSE;
 #ifdef SUPPORT_MBCS
-	if (mbcslocale && _this[0]) {
+	if (mbcslocale && this[0]) {
 	    int nc = l, used;
 	    wchar_t wc;
 	    mbstate_t mb_st;
 
-	    p = _this;
+	    p = this;
 	    mbs_init(&mb_st);
 	    used = Mbrtowc(&wc, p, MB_CUR_MAX, &mb_st); p += used; nc -= used;
 	    if (wc == L'.') {
@@ -771,9 +772,9 @@ SEXP attribute_hidden do_makenames(SEXP call, SEXP op, SEXP args, SEXP env)
 	} else
 #endif
 	{
-	    if (_this[0] == '.') {
-		if (l >= 1 && isdigit(0xff & (int) _this[1])) need_prefix = TRUE;
-	    } else if (!isalpha(0xff & (int) _this[0])) need_prefix = TRUE;
+	    if (this[0] == '.') {
+		if (l >= 1 && isdigit(0xff & (int) this[1])) need_prefix = TRUE;
+	    } else if (!isalpha(0xff & (int) this[0])) need_prefix = TRUE;
 	}
 	if (need_prefix) {
 	    tmp = Calloc(l+2, char);
@@ -1613,9 +1614,8 @@ SEXP attribute_hidden do_tolower(SEXP call, SEXP op, SEXP args, SEXP env)
 
 
 #ifdef SUPPORT_MBCS
-typedef enum { WTR_INIT, WTR_CHAR, WTR_RANGE } wtr_type;
 struct wtr_spec {
-    wtr_type type;
+    enum { WTR_INIT, WTR_CHAR, WTR_RANGE } type;
     struct wtr_spec *next;
     union {
         wchar_t c;
@@ -1629,67 +1629,67 @@ struct wtr_spec {
 static void
 wtr_build_spec(const wchar_t *s, struct wtr_spec *trs) {
     int i, len = wcslen(s);
-    struct wtr_spec *_this, *_new;
+    struct wtr_spec *this, *new;
 
-    _this = trs;
+    this = trs;
     for(i = 0; i < len - 2; ) {
-        _new = Calloc(1, struct wtr_spec);
-        _new->next = NULL;
+        new = Calloc(1, struct wtr_spec);
+        new->next = NULL;
         if(s[i + 1] == L'-') {
-            _new->type = WTR_RANGE;
+            new->type = WTR_RANGE;
             if(s[i] > s[i + 2])
                 error(_("decreasing range specification ('%lc-%lc')"),
                       s[i], s[i + 2]);
-            _new->u.r.first = s[i];
-            _new->u.r.last = s[i + 2];
+            new->u.r.first = s[i];
+            new->u.r.last = s[i + 2];
             i = i + 3;
         } else {
-            _new->type = WTR_CHAR;
-            _new->u.c = s[i];
+            new->type = WTR_CHAR;
+            new->u.c = s[i];
             i++;
         }
-        _this = _this->next = _new;
+        this = this->next = new;
     }
     for( ; i < len; i++) {
-        _new = Calloc(1, struct wtr_spec);
-        _new->next = NULL;
-        _new->type = WTR_CHAR;
-        _new->u.c = s[i];
-        _this = _this->next = _new;
+        new = Calloc(1, struct wtr_spec);
+        new->next = NULL;
+        new->type = WTR_CHAR;
+        new->u.c = s[i];
+        this = this->next = new;
     }
 }
 
 static void
 wtr_free_spec(struct wtr_spec *trs) {
-    struct wtr_spec *_this, *next;
-    _this = trs;
-    while(_this) {
-        next = _this->next;
-        Free(_this);
-        _this = next;
+    struct wtr_spec *this, *next;
+    this = trs;
+    while(this) {
+        next = this->next;
+        Free(this);
+        this = next;
     }
 }
 
 static wchar_t
 wtr_get_next_char_from_spec(struct wtr_spec **p) {
     wchar_t c;
-    struct wtr_spec *_this;
+    struct wtr_spec *this;
 
-    _this = *p;
-    if(!_this)
+    this = *p;
+    if(!this)
         return('\0');
-    switch(_this->type) {
+    switch(this->type) {
         /* Note: this code does not deal with the WTR_INIT case. */
     case WTR_CHAR:
-        c = _this->u.c;
-        *p = _this->next;
+        c = this->u.c;
+        *p = this->next;
         break;
     case WTR_RANGE:
-        c = _this->u.r.first;
-        if(c == _this->u.r.last) {
-            *p = _this->next;
+        c = this->u.r.first;
+        if(c == this->u.r.last) {
+            *p = this->next;
         } else {
-            (_this->u.r.first)++;
+            (this->u.r.first)++;
         }
         break;
     default:
@@ -1699,9 +1699,9 @@ wtr_get_next_char_from_spec(struct wtr_spec **p) {
     return(c);
 }
 #endif
-typedef enum { TR_INIT, TR_CHAR, TR_RANGE } tr_spec_type;
+
 struct tr_spec {
-    tr_spec_type type;
+    enum { TR_INIT, TR_CHAR, TR_RANGE } type;
     struct tr_spec *next;
     union {
         unsigned char c;
@@ -1715,67 +1715,67 @@ struct tr_spec {
 static void
 tr_build_spec(const char *s, struct tr_spec *trs) {
     int i, len = strlen(s);
-    struct tr_spec *_this, *_new;
+    struct tr_spec *this, *new;
 
-    _this = trs;
+    this = trs;
     for(i = 0; i < len - 2; ) {
-        _new = Calloc(1, struct tr_spec);
-        _new->next = NULL;
+        new = Calloc(1, struct tr_spec);
+        new->next = NULL;
         if(s[i + 1] == '-') {
-            _new->type = TR_RANGE;
+            new->type = TR_RANGE;
             if(s[i] > s[i + 2])
                 error(_("decreasing range specification ('%c-%c')"),
                       s[i], s[i + 2]);
-            _new->u.r.first = s[i];
-            _new->u.r.last = s[i + 2];
+            new->u.r.first = s[i];
+            new->u.r.last = s[i + 2];
             i = i + 3;
         } else {
-            _new->type = TR_CHAR;
-            _new->u.c = s[i];
+            new->type = TR_CHAR;
+            new->u.c = s[i];
             i++;
         }
-        _this = _this->next = _new;
+        this = this->next = new;
     }
     for( ; i < len; i++) {
-        _new = Calloc(1, struct tr_spec);
-        _new->next = NULL;
-        _new->type = TR_CHAR;
-        _new->u.c = s[i];
-        _this = _this->next = _new;
+        new = Calloc(1, struct tr_spec);
+        new->next = NULL;
+        new->type = TR_CHAR;
+        new->u.c = s[i];
+        this = this->next = new;
     }
 }
 
 static void
 tr_free_spec(struct tr_spec *trs) {
-    struct tr_spec *_this, *next;
-    _this = trs;
-    while(_this) {
-        next = _this->next;
-        Free(_this);
-        _this = next;
+    struct tr_spec *this, *next;
+    this = trs;
+    while(this) {
+        next = this->next;
+        Free(this);
+        this = next;
     }
 }
 
 static unsigned char
 tr_get_next_char_from_spec(struct tr_spec **p) {
     unsigned char c;
-    struct tr_spec *_this;
+    struct tr_spec *this;
 
-    _this = *p;
-    if(!_this)
+    this = *p;
+    if(!this)
         return('\0');
-    switch(_this->type) {
+    switch(this->type) {
         /* Note: this code does not deal with the TR_INIT case. */
     case TR_CHAR:
-        c = _this->u.c;
-        *p = _this->next;
+        c = this->u.c;
+        *p = this->next;
         break;
     case TR_RANGE:
-        c = _this->u.r.first;
-        if(c == _this->u.r.last) {
-            *p = _this->next;
+        c = this->u.r.first;
+        if(c == this->u.r.last) {
+            *p = this->next;
         } else {
-            (_this->u.r.first)++;
+            (this->u.r.first)++;
         }
         break;
     default:
@@ -1787,20 +1787,20 @@ tr_get_next_char_from_spec(struct tr_spec **p) {
 
 SEXP attribute_hidden do_chartr(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP old, _new, x, y;
+    SEXP old, new, x, y;
     int i, n;
 
     checkArity(op, args);
     old = CAR(args); args = CDR(args);
-    _new = CAR(args); args = CDR(args);
+    new = CAR(args); args = CDR(args);
     x = CAR(args);
     if(!isString(old) || (length(old) < 1) ||
-       !isString(_new) || (length(_new) < 1) ||
+       !isString(new) || (length(new) < 1) ||
        !isString(x) )
         errorcall(call, R_MSG_IA);
 
     if (STRING_ELT(old,0) == NA_STRING ||
-        STRING_ELT(_new,0) == NA_STRING) {
+        STRING_ELT(new,0) == NA_STRING) {
         errorcall(call, _("invalid (NA) arguments."));
     }
 
@@ -1829,11 +1829,11 @@ SEXP attribute_hidden do_chartr(SEXP call, SEXP op, SEXP args, SEXP env)
         mbstowcs(wc, CHAR(STRING_ELT(old, 0)), nc + 1);
         wtr_build_spec(wc, trs_old);
 
-        nc = mbstowcs(NULL, CHAR(STRING_ELT(_new, 0)), 0);
+        nc = mbstowcs(NULL, CHAR(STRING_ELT(new, 0)), 0);
         if(nc < 0) errorcall(call, _("invalid multibyte string 'new'"));
         AllocBuffer((nc+1)*sizeof(wchar_t), &cbuff);
         wc = (wchar_t *) cbuff.data;
-        mbstowcs(wc, CHAR(STRING_ELT(_new, 0)), nc + 1);
+        mbstowcs(wc, CHAR(STRING_ELT(new, 0)), nc + 1);
         wtr_build_spec(wc, trs_new);
 
         /* Initialize the pointers for walking through the old and new
@@ -1897,7 +1897,7 @@ SEXP attribute_hidden do_chartr(SEXP call, SEXP op, SEXP args, SEXP env)
             trs_new->next = NULL;
             /* Build the old and new tr_spec lists. */
             tr_build_spec(CHAR(STRING_ELT(old, 0)), trs_old);
-            tr_build_spec(CHAR(STRING_ELT(_new, 0)), trs_new);
+            tr_build_spec(CHAR(STRING_ELT(new, 0)), trs_new);
             /* Initialize the pointers for walking through the old and new
                tr_spec lists and retrieving the next chars from the lists.
             */
@@ -2415,7 +2415,7 @@ SEXP attribute_hidden do_strtrim(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP s, x, width;
     int i, len, nw, w, nc;
-    char *_this;
+    char *this;
 #if defined(SUPPORT_MBCS)
     char *p, *q;
     int w0, wsum, k, nb;
@@ -2443,13 +2443,13 @@ SEXP attribute_hidden do_strtrim(SEXP call, SEXP op, SEXP args, SEXP env)
             continue;
         }
         w = INTEGER(width)[i % nw];
-        _this = CHAR(STRING_ELT(x, i));
-        nc = strlen(_this);
+        this = CHAR(STRING_ELT(x, i));
+        nc = strlen(this);
         AllocBuffer(nc, &cbuff);
 #if defined(SUPPORT_MBCS)
         wsum = 0;
         mbs_init(&mb_st);
-        for(p = _this, w0 = 0, q = cbuff.data; *p ;) {
+        for(p = this, w0 = 0, q = cbuff.data; *p ;) {
             nb =  Mbrtowc(&wc, p, MB_CUR_MAX, &mb_st);
             w0 = Ri18n_wcwidth(wc);
             if(w0 < 0) { p += nb; continue; } /* skip non-printable chars */
@@ -2465,7 +2465,7 @@ SEXP attribute_hidden do_strtrim(SEXP call, SEXP op, SEXP args, SEXP env)
             SET_STRING_ELT(s, i, STRING_ELT(x, i));
             continue;
         }
-        strncpy(cbuff.data, _this, w);
+        strncpy(cbuff.data, this, w);
         cbuff.data[w] = '\0';
 #endif
         SET_STRING_ELT(s, i, mkChar(cbuff.data));

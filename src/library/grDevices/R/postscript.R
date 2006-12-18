@@ -131,7 +131,7 @@ postscript <- function(file = ifelse(onefile, "Rplots.ps", "Rplot%03d.ps"),
                        title = "R Graphics Output", fonts = NULL,
                        encoding, bg, fg,
                        width, height, horizontal, pointsize,
-                       paper, pagecentre, print.it, command, colormodel)
+                       paper, pagecentre, print.it, command)
 {
     new <- list(onefile = onefile)
     if(!missing(paper)) new$paper <- paper
@@ -145,7 +145,6 @@ postscript <- function(file = ifelse(onefile, "Rplots.ps", "Rplot%03d.ps"),
     if(!missing(pagecentre)) new$pagecentre <- pagecentre
     if(!missing(print.it)) new$print.it <- print.it
     if(!missing(command)) new$command <- command
-    if(!missing(colormodel)) new$colormodel <- colormodel
 
     old <- check.options(new = new, envir = .PSenv,
                          name.opt = ".PostScript.Options",
@@ -192,7 +191,7 @@ postscript <- function(file = ifelse(onefile, "Rplots.ps", "Rplot%03d.ps"),
               file, old$paper, old$family, old$encoding, old$bg, old$fg,
               old$width, old$height, old$horizontal, old$pointsize,
               old$onefile, old$pagecentre, old$print.it, old$command,
-              title, fonts, old$colormodel)
+              title, fonts)
     # if .ps.prolog is searched for and fails, NULL got returned.
     invisible()
 }
@@ -286,8 +285,8 @@ pdf <- function(file = ifelse(onefile, "Rplots.pdf", "Rplot%03d.pdf"),
 "/c   { newpath 0 360 arc } def",
 "/r   { 4 2 roll moveto 1 copy 3 -1 roll exch 0 exch rlineto 0 rlineto -1 mul 0 exch rlineto closepath } def",
 "/p1  { stroke } def",
-"/p2  { gsave bg fill grestore newpath } def",
-"/p3  { gsave bg fill grestore stroke } def",
+"/p2  { gsave bg setrgbcolor fill grestore newpath } def",
+"/p3  { gsave bg setrgbcolor fill grestore stroke } def",
 "/t   { 6 -2 roll moveto gsave rotate",
 "       ps mul neg 0 2 1 roll rmoveto",
 "       1 index stringwidth pop",
@@ -537,8 +536,7 @@ assign(".PostScript.Options",
 	 print.it   = FALSE,
 	 append	    = FALSE,
 	 pagecentre = TRUE,
-	 command    = "default",
-         colormodel = "rgb"), envir = .PSenv)
+	 command    = "default"), envir = .PSenv)
 
 postscriptFonts(# Default Serif font is Times
                 serif=Type1Font("Times",

@@ -14,9 +14,9 @@ drop.terms(termobj, dropx = NULL, keep.response = FALSE)
 \arguments{
   \item{termobj}{A \code{terms} object}
   \item{termlabels}{character vector giving the right-hand side of a
-    model formula.  Cannot be zero-length.}
+    model formula.}
   \item{response}{character string, symbol or call giving the left-hand side of
-    a model formula, or \code{NULL}.}
+    a model formula.}
   \item{dropx}{vector of positions of variables to drop from the
     right-hand side of the model.}
   \item{keep.response}{Keep the response in the resulting object?}

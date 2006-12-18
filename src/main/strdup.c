@@ -31,7 +31,8 @@ char *strcpy ();
    or 0 if out of memory. */
 
 char *
-strdup (const char *str)
+strdup (str)
+     const char *str;
 {
   char *newstr;
 

@@ -32,14 +32,11 @@ diag <- function(x = 1, nrow, ncol = n)
 "diag<-" <- function(x, value)
 {
     dx <- dim(x)
-    if(length(dx) != 2)
-	## no further check, to also work with 'Matrix'
+    if(length(dx) != 2 || prod(dx) != length(x))
 	stop("only matrix diagonals can be replaced")
-    len.i <- min(dx)
-    i <- seq_len(len.i)
-    len.v <- length(value)
-    if(len.v != 1 && len.v != len.i)
+    i <- seq_len(min(dx))
+    if(length(value) != 1 && length(value) != length(i))
 	stop("replacement diagonal has wrong length")
-    if(len.i > 0) x[cbind(i, i)] <- value
+    if(length(i) > 0) x[cbind(i, i)] <- value
     x
 }

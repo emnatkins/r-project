@@ -69,7 +69,6 @@
 #include "Rconnections.h"
 #include <S.h>
 
-
 /* Global print parameter struct: */
 attribute_hidden R_print_par_t R_print;
 
@@ -87,7 +86,7 @@ void PrintDefaults(SEXP rho)
     R_print.na_width = strlen(CHAR(R_print.na_string));
     R_print.na_width_noquote = strlen(CHAR(R_print.na_string_noquote));
     R_print.quote = 1;
-    R_print.right = Rprt_adj_left;
+    R_print.right = 0;
     R_print.digits = GetOptionDigits(rho);
     R_print.scipen = asInteger(GetOption(install("scipen"), rho));
     if (R_print.scipen == NA_INTEGER) R_print.scipen = 0;
@@ -95,7 +94,6 @@ void PrintDefaults(SEXP rho)
     if (R_print.max == NA_INTEGER) R_print.max = 99999;
     R_print.gap = 1;
     R_print.width = GetOptionWidth(rho);
-    R_print.useSource = USESOURCE;
 }
 
 SEXP attribute_hidden do_invisible(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -133,7 +131,7 @@ SEXP attribute_hidden do_prmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
     collab = CAR(a); a = CDR(a);
 
     quote = asInteger(CAR(a)); a = CDR(a);
-    R_print.right = (Rprt_adj) asInteger(CAR(a)); a = CDR(a);
+    R_print.right = asInteger(CAR(a)); a = CDR(a);
     naprint = CAR(a);
     if(!isNull(naprint))  {
 	if(!isString(naprint) || LENGTH(naprint) < 1)
@@ -201,7 +199,7 @@ SEXP attribute_hidden do_printdefault(SEXP call, SEXP op, SEXP args, SEXP rho)
     }
     args = CDR(args);
 
-    R_print.right = (Rprt_adj) asLogical(CAR(args)); /* Should this be asInteger()? */
+    R_print.right = asLogical(CAR(args));
     if(R_print.right == NA_LOGICAL)
 	errorcall(call, _("invalid '%s' argument"), "right");
     args = CDR(args);
@@ -213,19 +211,13 @@ SEXP attribute_hidden do_printdefault(SEXP call, SEXP op, SEXP args, SEXP rho)
     }
     args = CDR(args);
 
-    R_print.useSource = asLogical(CAR(args));
-    if(R_print.useSource == NA_LOGICAL)
-    	errorcall(call, _("invalid '%s' argument"), "useSource");
-    if(R_print.useSource) R_print.useSource = USESOURCE;
-    
     tryS4 = asLogical(CAR(args));
     if(tryS4 == NA_LOGICAL)
 	errorcall(call, _("invalid 'tryS4' internal argument"));
 
     if(tryS4 && IS_S4_OBJECT(x) && isMethodsDispatchOn())
       callShow = TRUE;
-    args = CDR(args);
-    
+
     if(callShow) {
 	SEXP call;
 	PROTECT(call = lang2(install("show"), x));
@@ -344,7 +336,7 @@ static void PrintGenericVector(SEXP s, SEXP env)
 	}
 	else {
 	    names = GetArrayDimnames(s);
-	    printArray(t, dims, 0, Rprt_adj_left, names);
+	    printArray(t, dims, 0, 0, names);
 	}
 	UNPROTECT(2);
     }
@@ -402,15 +394,15 @@ static void PrintGenericVector(SEXP s, SEXP env)
 	else { /* ns = length(s) == 0 */
 	    /* Formal classes are represented as empty lists */
 	    char *className = NULL;
-	    SEXP klass;
+	    SEXP class;
 	    if(isObject(s) && isMethodsDispatchOn()) {
-		klass = getAttrib(s, R_ClassSymbol);
-		if(length(klass) == 1) {
+		class = getAttrib(s, R_ClassSymbol);
+		if(length(class) == 1) {
 		    /* internal version of isClass() */
 		    char str[201];
-		    snprintf(str, 200, ".__C__%s", CHAR(STRING_ELT(klass, 0)));
+		    snprintf(str, 200, ".__C__%s", CHAR(STRING_ELT(class, 0)));
 		    if(findVar(install(str), env) != R_UnboundValue)
-			className = CHAR(STRING_ELT(klass, 0));
+			className = CHAR(STRING_ELT(class, 0));
 		}
 	    }
 	    if(className) {
@@ -489,7 +481,7 @@ static void printList(SEXP s, SEXP env)
 	}
 	else {
 	    dimnames = getAttrib(s, R_DimNamesSymbol);
-	    printArray(t, dims, 0, Rprt_adj_left, dimnames);
+	    printArray(t, dims, 0, 0, dimnames);
 	}
 	UNPROTECT(2);
     }
@@ -547,7 +539,7 @@ static void PrintExpression(SEXP s)
     SEXP u;
     int i, n;
 
-    u = deparse1(s, 0, R_print.useSource);
+    u = deparse1(s, 0, SIMPLEDEPARSE);
     n = LENGTH(u);
     for (i = 0; i < n ; i++)
 	Rprintf("%s\n", CHAR(STRING_ELT(u, i)));
@@ -606,8 +598,8 @@ void attribute_hidden PrintValueRec(SEXP s,SEXP env)
     case CLOSXP:
     case LANGSXP:
 	t = getAttrib(s, R_SourceSymbol);
-	if (isNull(t) || !R_print.useSource)
-	    t = deparse1(s, 0, R_print.useSource);
+	if (isNull(t))
+	    t = deparse1(s, 0, SIMPLEDEPARSE);
 	for (i = 0; i < LENGTH(t); i++)
 	    Rprintf("%s\n", CHAR(STRING_ELT(t, i)));
 #ifdef BYTECODE
@@ -742,7 +734,7 @@ static void printAttributes(SEXP s, SEXP env, Rboolean useSlots)
 		if (TAG(a) == R_NamesSymbol)
 		    goto nextattr;
 	    }
-	    if(TAG(a) == R_CommentSymbol || TAG(a) == R_SourceSymbol || TAG(a) == R_SrcrefSymbol)
+	    if(TAG(a) == R_CommentSymbol || TAG(a) == R_SourceSymbol)
 		goto nextattr;
 	    if(useSlots)
 		sprintf(ptag, "Slot \"%s\":",
@@ -770,12 +762,10 @@ static void printAttributes(SEXP s, SEXP env, Rboolean useSlots)
 		*/
 		SEXP s, t, na_string = R_print.na_string,
 		    na_string_noquote = R_print.na_string_noquote;
-		int quote = R_print.quote, 
+		int quote = R_print.quote, right = R_print.right,
 		    digits = R_print.digits, gap = R_print.gap,
 		    na_width = R_print.na_width,
 		    na_width_noquote = R_print.na_width_noquote;
-		Rprt_adj right = R_print.right;
-
 		PROTECT(t = s = allocList(3));
 		SET_TYPEOF(s, LANGSXP);
 		SETCAR(t, install("print")); t = CDR(t);
@@ -924,7 +914,7 @@ int F77_NAME(realp0) (char *label, int *nchar, float *data, int *ndata)
 	Rprintf("\n");
     }
     if(nd > 0) {
-	ddata = (double *) malloc(nd*sizeof(double));
+	ddata = malloc(nd*sizeof(double));
 	if(!ddata) error(_("memory allocation error in realpr"));
 	for (k = 0; k < nd; k++) ddata[k] = (double) data[k];
 	printRealVector(ddata, nd, 1);

@@ -50,8 +50,7 @@
 # define attribute_hidden
 #endif
 
-#define MAXELTSIZE 8192 /* Used as a default for string buffer sizes,
-			   and occasionally as a limit. */
+#define MAXELTSIZE 8192 /* The largest string size */
 
 #include <R_ext/Complex.h>
 void Rf_CoercionWarning(int);/* warning code */
@@ -76,6 +75,13 @@ Rcomplex Rf_ComplexFromReal(double, int*);
 #include "Internal.h"		/* do_FOO */
 
 #include "Errormsg.h"
+
+/* SunOS 4 is famous for broken header files. */
+#ifdef SunOS4
+# ifndef NULL
+#  define	NULL		0
+# endif
+#endif /* SunOS4 */
 
 #if defined(Win32) || defined(HAVE_AQUA)
 extern void R_ProcessEvents(void);
@@ -248,7 +254,6 @@ typedef SEXP (*CCODE)();
 
 /* Information for Deparsing Expressions */
 typedef enum {
-    PP_INVALID  =  0,
     PP_ASSIGN   =  1,
     PP_ASSIGN2  =  2,
     PP_BINARY   =  3,
@@ -538,7 +543,7 @@ extern0 SEXP*	R_SymbolTable;	    /* The symbol table */
 LibExtern RCNTXT R_Toplevel;	    /* Storage for the toplevel environment */
 LibExtern RCNTXT* R_ToplevelContext;  /* The toplevel environment */
 LibExtern RCNTXT* R_GlobalContext;    /* The global environment */
-extern0 Rboolean R_Visible;	    /* Value visibility flag */
+LibExtern int	R_Visible;	    /* Value visibility flag */
 LibExtern int	R_EvalDepth	INI_as(0);	/* Evaluation recursion depth */
 extern0 int	R_BrowseLevel	INI_as(0);	/* how deep the browser is */
 extern0 int	R_BrowseLines	INI_as(0);	/* lines/per call in browser */
@@ -570,9 +575,6 @@ extern0 char	R_StdinEnc[31]  INI_as("");	/* Encoding assumed for stdin */
 /* Objects Used In Parsing  */
 extern0 SEXP	R_CommentSxp;	    /* Comments accumulate here */
 extern0 int	R_ParseError	INI_as(0); /* Line where parse error occured */
-extern0 SEXP	R_ParseErrorFile;   /* Source file where parse error was seen */
-#define PARSE_ERROR_SIZE 256	    /* Parse error messages saved here */
-extern0 char	R_ParseErrorMsg[PARSE_ERROR_SIZE] INI_as("");
 #define PARSE_CONTEXT_SIZE 256	    /* Recent parse context kept in a circular buffer */
 extern0 char	R_ParseContext[PARSE_CONTEXT_SIZE] INI_as("");
 extern0 int	R_ParseContextLast INI_as(0); /* last character in context buffer */
@@ -760,6 +762,7 @@ extern0 unsigned int max_contour_segments INI_as(25000);
 # define RemoveClass		Rf_RemoveClass
 # define sortVector		Rf_sortVector
 # define ssort			Rf_ssort
+# define str2type		Rf_str2type
 # define StringFromComplex	Rf_StringFromComplex
 # define StringFromInteger	Rf_StringFromInteger
 # define StringFromLogical	Rf_StringFromLogical
@@ -768,6 +771,8 @@ extern0 unsigned int max_contour_segments INI_as(25000);
 # define substituteList		Rf_substituteList
 # define tsConform		Rf_tsConform
 # define tspgets		Rf_tspgets
+# define type2char		Rf_type2char
+# define type2str		Rf_type2str
 # define type2symbol		Rf_type2symbol
 # define unbindVar		Rf_unbindVar
 # define usemethod		Rf_usemethod
@@ -817,11 +822,9 @@ void R_SetVarLocValue(R_varloc_t, SEXP);
 #define USESOURCE 		8
 #define WARNINCOMPLETE 		16
 #define DELAYPROMISES 		32
-#define KEEPNA			64
-#define S_COMPAT       		128
 /* common combinations of the above */
 #define SIMPLEDEPARSE		0
-#define FORSOURCING		95
+#define FORSOURCING		31
 
 /* Coercion functions */
 int Rf_LogicalFromString(SEXP, int*);
@@ -899,7 +902,7 @@ SEXP matchArg(SEXP, SEXP*);
 SEXP matchArgExact(SEXP, SEXP*);
 SEXP matchArgs(SEXP, SEXP);
 SEXP matchPar(char*, SEXP*);
-void memtrace_report(void *, void *);
+void memtrace_report(SEXP, SEXP);
 SEXP mkCLOSXP(SEXP, SEXP, SEXP);
 /* SEXP mkComplex(char *s); */
 /* SEXP mkEnv(SEXP, SEXP, SEXP); */
@@ -947,9 +950,9 @@ SEXP R_set_class(SEXP, SEXP, SEXP);
 int R_SetOptionWarn(int);
 int R_SetOptionWidth(int);
 void R_Suicide(char*);
-void R_getProcTime(double *data);
 void sortVector(SEXP, Rboolean);
 void ssort(SEXP*,int);
+SEXPTYPE str2type(char*);
 int StrToInternal(char*);
 SEXP substituteList(SEXP, SEXP);
 SEXP R_syscall(int,RCNTXT*);
@@ -958,6 +961,8 @@ SEXP R_sysframe(int,RCNTXT*);
 SEXP R_sysfunction(int,RCNTXT*);
 Rboolean tsConform(SEXP,SEXP);
 SEXP tspgets(SEXP, SEXP);
+char * type2char(SEXPTYPE);
+SEXP type2str(SEXPTYPE);
 SEXP type2symbol(SEXPTYPE);
 void unbindVar(SEXP, SEXP);
 #ifdef ALLOW_OLD_SAVE
@@ -1010,6 +1015,7 @@ SEXP R_subset3_dflt(SEXP, SEXP);
 
 /* main/subassign.c */
 SEXP R_subassign3_dflt(SEXP, SEXP, SEXP, SEXP);
+
 
 #ifdef SUPPORT_MBCS /* implies we have this header */
 #include <wchar.h>

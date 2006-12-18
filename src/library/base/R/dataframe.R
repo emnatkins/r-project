@@ -6,9 +6,6 @@
 ## 1:n is stored as the integer vector c(NA, n) to save space (and
 ## the C-level code to get/set the attribute makes the appropriate
 ## translations (whereas attributes does not).
-## .Call("R_shortRowNames", x) gives +nrow(x) internal c(NA, n) is used;
-##                                   -nrow(.) otherwise.
-## Consider changing the C function name, and switching the sign of the result
 
 row.names <- function(x) UseMethod("row.names")
 row.names.data.frame <- function(x) as.character(attr(x, "row.names"))
@@ -18,8 +15,9 @@ row.names.default <- function(x) if(!is.null(dim(x))) rownames(x)# else NULL
 "row.names<-.data.frame" <- function(x, value) {
     if (!is.data.frame(x))
 	x <- as.data.frame(x)
-    n <- abs(.Call("R_shortRowNames", x, PACKAGE = "base"))
-    if(is.null(value)) { # set integer row.names
+    old <- attr(x, "row.names")
+    if(is.null(value)) {
+        n <- length(old)
         attr(x, "row.names") <-
             if(n > 2) c(as.integer(NA), n) else seq_len(n)
         return(x)
@@ -27,7 +25,7 @@ row.names.default <- function(x) if(!is.null(dim(x))) rownames(x)# else NULL
     ## do this here, as e.g. POSIXlt changes length when coerced.
     if(is.object(value) || !(is.integer(value)) )
         value <- as.character(value)
-    if (n != 0 && length(value) != n)
+    if (!is.null(old) && length(value) != length(old))
 	stop("invalid 'row.names' length")
     if (any(duplicated(value)))
 	stop("duplicate 'row.names' are not allowed")
@@ -64,17 +62,9 @@ t.data.frame <- function(x) {
     NextMethod("t")
 }
 
-dim.data.frame <- function(x)
-    c(abs(.Call("R_shortRowNames", x, PACKAGE = "base")), length(x))
+dim.data.frame <- function(x) c(length(attr(x,"row.names")), length(x))
 
-if(FALSE) # Martin's proposal
-dimnames.data.frame <- function(x, maybeNULL = FALSE, ...)
-    list(if(maybeNULL && .Call("R_shortRowNames", x, PACKAGE = "base") >= 0)
-         NULL else row.names(x),
-	 names(x))
-## an alternative which leaves dimnames() generic with one single argument:
 dimnames.data.frame <- function(x) list(row.names(x), names(x))
-
 
 "dimnames<-.data.frame" <- function(x, value)
 {
@@ -463,7 +453,6 @@ data.frame <-
 
     ## preserve the attributes for later use ...
 
-### FIXME: memory-hog for large x with trivial rownames
     rows <- attr(x, "row.names")
     cols <- names(x)
     cl <- oldClass(x) # doesn't really matter unless called directly
@@ -492,6 +481,7 @@ data.frame <-
 	}
     }
     if(drop) {
+	drop <- FALSE
 	n <- length(x)
 	if(n == 1) {
 	    x <- x[[1]]
@@ -502,23 +492,20 @@ data.frame <-
 	    nrow <- if(length(dim(xj)) == 2) dim(xj)[1] else length(xj)
             ## for consistency with S: don't drop (to a list)
             ## if only one row unless explicitly asked for
-            drop <- !mdrop && nrow == 1
-            if(drop) {
+	    if(!mdrop && nrow == 1) {
+		drop <- TRUE
 		names(x) <- cols
 		attr(x, "row.names") <- NULL
 	    }
-	} else drop <- FALSE ## for n == 0
+	}
     }
     if(!drop) { # not else as previous section might reset drop
 	names(x) <- cols
         ## row names might have NAs.
-	if((ina <- any(is.na(rows))) | (dup <- any(duplicated(rows)))) {
-	    ## both will coerce integer 'rows' to character:
-	    if(ina)
-		rows[is.na(rows)] <- "NA"
-	    if(dup)
-		rows <- make.unique(as.character(rows))
-	}
+	if(any(is.na(rows) | duplicated(rows))) {
+            rows[is.na(rows)] <- "NA"  # will coerce to character if needed
+	    rows <- make.unique(rows)
+        }
         ## new in 1.8.0  -- might have duplicate columns
         if(any(duplicated(nm <- names(x)))) names(x) <- make.unique(nm)
 	attr(x, "row.names") <- rows
@@ -1132,16 +1119,10 @@ print.data.frame <-
     invisible(x)
 }
 
-as.matrix.data.frame <- function (x, rownames.force = FALSE)
+as.matrix.data.frame <- function (x)
 {
-    .dimnames <- function(x, maybeNULL = FALSE)
-        list(if(maybeNULL &&
-                .Call("R_shortRowNames", x, PACKAGE = "base") >= 0)
-             NULL else row.names(x),
-             names(x))
-
     dm <- dim(x)
-    dn <- .dimnames(x, maybeNULL = !rownames.force)
+    dn <- dimnames(x)
     if(any(dm == 0))
 	return(array(NA, dim = dm, dimnames = dn))
     p <- dm[2]
@@ -1187,7 +1168,7 @@ as.matrix.data.frame <- function (x, rownames.force = FALSE)
             miss <- is.na(xj)
 	    xj <- if(length(levels(xj))) as.vector(xj) else format(xj)
             is.na(xj) <- miss
-            X[[j]] <- xj
+            X[[j]]<-xj
 	}
     }
     X <- unlist(X, recursive = FALSE, use.names = FALSE)

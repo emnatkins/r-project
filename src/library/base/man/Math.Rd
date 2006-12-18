@@ -1,4 +1,4 @@
-\name{Math}
+\name{abs}
 \title{Miscellaneous Mathematical Functions}
 \usage{
 abs(x)
@@ -17,11 +17,9 @@ sqrt(x)
 \details{
   These are generic functions: methods can be defined for them
   individually or via the \code{\link[base:groupGeneric]{Math}}
-  group generic.  For complex arguments (and the default method), \code{z},
+  group generic.  For complex
+  arguments (and the default method), \code{z},
   \code{abs(z) == \link{Mod}(z)} and \code{sqrt(z) == z^0.5}.
-
-  \code{abs(x)} returns an \code{\link{integer}} vector when \code{x} is
-  \code{integer} or \code{\link{logical}}.
 }
 \seealso{
   \code{\link{Arithmetic}} for simple, \code{\link{log}} for logarithmic,
