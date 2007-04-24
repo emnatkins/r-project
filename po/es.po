@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.1\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2007-04-14 12:07+0100\n"
+"POT-Creation-Date: 2007-04-14 11:56+0100\n"
 "PO-Revision-Date: 2007-04-07 19:57-0300\n"
 "Last-Translator: Laura Pla <laurapla@yahoo.com>\n"
 "Language-Team: Spanish <RenEspanol@googlegroups.com>\n"
@@ -1171,7 +1171,7 @@ msgstr "tamaño del vector especificado es muy grande"
 
 #: src/main/builtin.c:68 src/main/builtin.c:91 src/main/builtin.c:100
 #: src/main/builtin.c:261 src/main/builtin.c:289 src/main/builtin.c:326
-#: src/main/builtin.c:335 src/main/coerce.c:1435 src/main/connections.c:2052
+#: src/main/builtin.c:335 src/main/coerce.c:1401 src/main/connections.c:2052
 #: src/main/engine.c:2686 src/main/envir.c:905 src/main/envir.c:999
 #: src/main/envir.c:1454 src/main/envir.c:1547 src/main/envir.c:1615
 #: src/main/envir.c:1731 src/main/envir.c:2374 src/main/envir.c:2427
@@ -1264,7 +1264,7 @@ msgstr "length<- segundo argumento inválido"
 msgid "length<- missing value for 'length'"
 msgstr "length<- valor faltante para 'length'"
 
-#: src/main/builtin.c:817 src/main/coerce.c:2234 src/main/coerce.c:2275
+#: src/main/builtin.c:817 src/main/coerce.c:2200 src/main/coerce.c:2241
 msgid "... used in an incorrect context"
 msgstr "... usado en un contexto incorrecto"
 
@@ -1534,60 +1534,60 @@ msgstr "el objeto de tipo %s no es coercionable al vector %s"
 msgid "cannot coerce to vector"
 msgstr "el objeto no puede coercionarse a un vector"
 
-#: src/main/coerce.c:1431
+#: src/main/coerce.c:1397
 msgid "list argument expected"
 msgstr "argumento de lista esperado"
 
-#: src/main/coerce.c:1439 src/main/eval.c:3473 src/main/eval.c:3480
+#: src/main/coerce.c:1405 src/main/eval.c:3473 src/main/eval.c:3480
 msgid "invalid environment"
 msgstr "entorno inválido"
 
-#: src/main/coerce.c:1443
+#: src/main/coerce.c:1409
 msgid "argument must have length at least 1"
 msgstr "el argumento debe tener al menos longitud 1"
 
-#: src/main/coerce.c:1468
+#: src/main/coerce.c:1434
 msgid "invalid body for function"
 msgstr "cuerpo inválido para la función"
 
-#: src/main/coerce.c:1487
+#: src/main/coerce.c:1453
 msgid "invalid length 0 argument"
 msgstr "longitud 0 del argumento inválida"
 
-#: src/main/coerce.c:1502
+#: src/main/coerce.c:1468
 msgid "invalid argument list"
 msgstr "argumento de lista inválido"
 
-#: src/main/coerce.c:1759
+#: src/main/coerce.c:1725
 msgid "type \"single\" unimplemented in R"
 msgstr "tipo \"single\" no implementado en R"
 
-#: src/main/coerce.c:1761
+#: src/main/coerce.c:1727
 msgid "unimplemented predicate"
 msgstr "predicado no implementado"
 
-#: src/main/coerce.c:1900 src/main/coerce.c:1997
+#: src/main/coerce.c:1866 src/main/coerce.c:1963
 #, c-format
 msgid "%s() applied to non-(list or vector)"
 msgstr "%s() aplicado a un objeto que no es (lista o vector)"
 
-#: src/main/coerce.c:2153 src/main/coerce.c:2155
+#: src/main/coerce.c:2119 src/main/coerce.c:2121
 msgid "first argument must be a character string or a function"
 msgstr "el primer argumento debe ser un string de caracteres o una función"
 
-#: src/main/coerce.c:2161
+#: src/main/coerce.c:2127
 msgid "'envir' must be an environment"
 msgstr "'envir' debe ser un entorno"
 
-#: src/main/coerce.c:2314
+#: src/main/coerce.c:2280
 msgid "invalid environment specified"
 msgstr "entorno especificado inválido"
 
-#: src/main/coerce.c:2391
+#: src/main/coerce.c:2357
 msgid "invalid replacement object to be a class string"
 msgstr "objeto inválido de reemplazo de clase string "
 
-#: src/main/coerce.c:2409
+#: src/main/coerce.c:2375
 #, c-format
 msgid ""
 "\"%s\" can only be set as the class if the object has this type; found \"%s\""
@@ -1595,7 +1595,7 @@ msgstr ""
 "\"%s\" sólo puede ser puesto como clase si el objeto tiene el tipo;  "
 "encontrado \"%s\""
 
-#: src/main/coerce.c:2425
+#: src/main/coerce.c:2391
 #, c-format
 msgid ""
 "invalid to set the class to matrix unless the dimension attribute is of "
@@ -1604,26 +1604,12 @@ msgstr ""
 "inválido poner la clase como matriz a menos que la dimensión del  atributo "
 "sea de longitud 2 (era %d)"
 
-#: src/main/coerce.c:2431
+#: src/main/coerce.c:2397
 msgid ""
 "cannot set class to \"array\" unless the dimension attribute has length > 0"
 msgstr ""
 "no es posible especificar la clase como \"array\" a menos que la dimensión "
 "del atributo tenga longitud > 0"
-
-#: src/main/coerce.c:2460 src/main/coerce.c:2483
-#, fuzzy
-msgid "'value' must be non-null character string"
-msgstr "'name' debe ser una cadena de caracteres no nula"
-
-#: src/main/coerce.c:2463 src/main/coerce.c:2498
-#, fuzzy
-msgid "invalid value"
-msgstr "valor de '%s' no válido"
-
-#: src/main/coerce.c:2466 src/main/coerce.c:2502
-msgid "invalid to change the storage mode of a factor"
-msgstr ""
 
 #: src/main/colors.c:40
 #, c-format
@@ -4132,31 +4118,31 @@ msgstr "no se permiten variables complejas en matrices de modelos"
 msgid "variables of type '%s' are not allowed in model matrices"
 msgstr "valores negativos no son permitidos en subscrito de matriz"
 
-#: src/main/names.c:963
+#: src/main/names.c:957
 msgid "string argument required"
 msgstr "se requiere el argumento del string"
 
-#: src/main/names.c:971
+#: src/main/names.c:965
 msgid "no such primitive function"
 msgstr "no existe esta función primitiva"
 
-#: src/main/names.c:1084
+#: src/main/names.c:1078
 msgid "attempt to use zero-length variable name"
 msgstr "se intenta usar un nombre de varible de longitud cero"
 
-#: src/main/names.c:1086
+#: src/main/names.c:1080
 msgid "symbol print-name too long"
 msgstr "el nombre impreso del símbolo es demasiado largo"
 
-#: src/main/names.c:1113
+#: src/main/names.c:1107
 msgid "invalid .Internal() argument"
 msgstr "el argumento .Internal() no es válido"
 
-#: src/main/names.c:1116
+#: src/main/names.c:1110
 msgid "invalid internal function"
 msgstr "la función interna no es válida"
 
-#: src/main/names.c:1118
+#: src/main/names.c:1112
 #, c-format
 msgid "no internal function \"%s\""
 msgstr "no hay ninguna función interna \"%s\""

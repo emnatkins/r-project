@@ -254,7 +254,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"ceiling",	do_math1,	2,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"sqrt",	do_math1,	3,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"sign",	do_math1,	4,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
-{"trunc",	do_trunc,	5,	1,	-1,	{PP_FUNCALL, PREC_FN,	0}},
+{"trunc",	do_math1,	5,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 
 {"exp",		do_math1,	10,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"expm1",	do_math1,	11,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -462,11 +462,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 /* Type coercion */
 
 {"as.character",do_ascharacter,	0,	1,	-1,	{PP_FUNCALL, PREC_FN,	0}},
-{"as.integer",	do_ascharacter,	1,	1,	-1,	{PP_FUNCALL, PREC_FN,	0}},
-{"as.double",	do_ascharacter,	2,	1,	-1,	{PP_FUNCALL, PREC_FN,	0}},
-{"as.complex",	do_ascharacter,	3,	1,	-1,	{PP_FUNCALL, PREC_FN,	0}},
-{"as.logical",	do_ascharacter,	4,	1,	-1,	{PP_FUNCALL, PREC_FN,	0}},
-{"as.raw",	do_ascharacter,	5,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"as.vector",	do_asvector,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"paste",	do_paste,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"format",	do_format,	0,	11,	8,	{PP_FUNCALL, PREC_FN,	0}},
@@ -477,7 +472,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"as.call",	do_ascall,	0,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"type.convert",do_typecvt,	1,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"as.environment",do_as_environment,0,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
-{"storage.mode<-",do_storage_mode,0,	1,	2,	{PP_FUNCALL, PREC_FN,	0}},
 
 
 /* String Manipulation */

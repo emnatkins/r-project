@@ -1260,18 +1260,20 @@ other package with a name space.
 
 Primitive functions are treated quite differently, for efficiency
 reasons: this results in different semantics.  @code{setGeneric} is
-disallowed for primitive functions.  The @pkg{methods} namespace
-contains a list @code{.BasicFunsList} named by primitive functions: the
-entries are either @code{FALSE} or a standard S4 generic showing the
-effective definition.  When @code{setMethod} (or @code{setReplaceMethod})
-is called, it fails if the list entry if @code{FALSE} or a method is set
-on the effective generic given in the list.
+disallowed for primitive functions.  The @pkg{methods} package contains
+a character vector @code{.ExcludePrimitiveGenerics} of primitives which
+are not internally generic, and S4 methods cannot be set on these.  Then
+there is a list @code{.BasicFunsList} named by primitive functions in
+@code{.BasicFunsList}: the entries are either @code{FALSE} or a standard
+S4 generic showing the effective definition.  When @code{setMethod} is
+called, either it fails if setting is disallowed or a method is set on
+the effective generic.
 
-Actual dispatch of S4 methods for almost all primitives piggy-backs on
-the S3 dispatch mechanism, so S4 methods can only be dispatched for
-primitives which are internally S3 generic.  When a primitive that is
-internally S3 generic is called with a first argument which is an object
-and S4 dispatch is on (that is, the @pkg{methods} name space is loaded),
+Actual dispatch of S4 methods for primitives piggy-backs on the S3
+dispatch mechanism, so S4 methods can only be dispatched for primitives
+which are internally S3 generic.  When a primitive that is internally S3
+generic is called with a first argument which is an object and S4
+dispatch is on (that is, the @pkg{methods} name space is loaded),
 @code{DispatchOrEval} calls @code{R_possible_dispatch} (defined in
 @file{src/main/objects.c}).  The latter first checks an internal table
 to see if any S4 methods are set for that generic (and S4 dispatch is
@@ -1279,30 +1281,10 @@ currently enabled for that generic), and if so proceeds to S4 dispatch
 using methods stored in another internal table.  Note that this means
 that dispatch will not occur for the pseudo-classes like
 @code{"function"} and @code{"matrix"}, but that it will occur for non-S4
-objects which have an S3 class.  All primitives are in the base name
-space, and this mechanism means that S4 methods can be set for (some)
-primitives and will always be used, in contrast to setting methods on
-non-primitives.
-
-The only exception is @code{%*%}, which is S4 generic but not S3 generic
-as its C code contains a call to @code{R_possible_dispatch}.
-
-The primitive @code{as.double} is special, as @code{as.numeric} and
-@code{as.real} are copies of it.  The @pkg{methods} package code partly
-refers to generics by name and partly by function, and has been modified
-to map @code{as.double} and @code{as.real} to @code{as.numeric} (since
-that is the name used by packages exporting methods for it).
-
-Some elements of the language are implemented as primitives, for example
-@code{@}}.  This includes the subset and subassignment `functions', and
-they are S4 generic, again piggybacking on S3 dispatch.
-
-@code{.BasicFunsList} is generated when @pkg{methods} is installed, by
-computing all primitives, initially disallowing methods on all and then
-setting generics for members of @code{.GenericArgsEnv}, the S4 group
-generics and a short exceptions list in @file{BasicFunsList.R}: this
-contains the subsetting and subassignment operators and overrides for
-@code{!} and @code{c}.
+objects which have an S3 class.  All primitives are in the base
+name space, and this mechanism means that S4 methods can be set for
+(some) primitives and will always be used, in contrast to setting
+methods on non-primitives.
 
 
 @node Internal use of global and base environments, Modules, S4 objects, R Internal Structures
@@ -1582,7 +1564,6 @@ dim         dim<-
 dimnames    dimnames<-
             environment<-
             levels<-
-            storage.mode<-
 @end group
 @end example
 
@@ -1601,8 +1582,7 @@ efficiency reasons:
 @example
 @group
 :          ~          c           list
-call       as.call    as.character as.complex  as.double
-as.integer as.logical as.raw
+call       as.call    as.character
 expression substitute as.environment
 UseMethod  invisible  standardGeneric
 .C         .Fortran   .Call       .External

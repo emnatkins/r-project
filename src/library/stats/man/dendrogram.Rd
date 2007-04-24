@@ -2,7 +2,6 @@
 \title{General Tree Structures}
 \alias{dendrogram}% the class
 \alias{as.dendrogram}
-\alias{as.dendrogram.dendrogram}
 \alias{as.dendrogram.hclust}
 \alias{cut.dendrogram}
 \alias{[[.dendrogram}

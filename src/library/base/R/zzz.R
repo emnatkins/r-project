@@ -72,7 +72,9 @@ assign("is.complex", function(x) NULL, envir = .ArgsEnv)
 assign("is.double", function(x) NULL, envir = .ArgsEnv)
 assign("is.environment", function(x) NULL, envir = .ArgsEnv)
 assign("is.expression", function(x) NULL, envir = .ArgsEnv)
+assign("is.finite", function(x) NULL, envir = .ArgsEnv)
 assign("is.function", function(x) NULL, envir = .ArgsEnv)
+assign("is.infinite", function(x) NULL, envir = .ArgsEnv)
 assign("is.integer", function(x) NULL, envir = .ArgsEnv)
 assign("is.language", function(x) NULL, envir = .ArgsEnv)
 assign("is.list", function(x) NULL, envir = .ArgsEnv)
@@ -99,7 +101,6 @@ assign("retracemem", function(x, previous = NULL) NULL, envir = .ArgsEnv)
 assign("seq_along", function(along.with) NULL, envir = .ArgsEnv)
 assign("seq_len", function(length.out) NULL, envir = .ArgsEnv)
 assign("standardGeneric", function(f) NULL, envir = .ArgsEnv)
-assign("storage.mode<-", function(x, value) NULL, envir = .ArgsEnv)
 assign("substitute", function(expr, env) NULL, envir = .ArgsEnv)
 assign("tracemem", function(x) NULL, envir = .ArgsEnv)
 assign("unclass", function(x) NULL, envir = .ArgsEnv)
@@ -108,12 +109,9 @@ assign("untracemem", function(x) NULL, envir = .ArgsEnv)
 assign("UseMethod", function(generic, object) NULL, envir = .ArgsEnv)
 
 
-.S3PrimitiveGenerics <-
-    c("as.character", "as.complex", "as.double", "as.integer",
-    "as.logical", "as.numeric", "as.raw", "as.real", "c", "dim",
-    "dim<-", "dimnames", "dimnames<-", "is.array", "is.finite",
-    "is.infinite", "is.matrix",
-    "is.na", "is.nan", "is.numeric", "length", "length<-", "levels<-",
+.S3PrimitiveGenerics <- c("as.character", "c", "dim", "dim<-",
+    "dimnames", "dimnames<-", "is.array", "is.matrix", "is.na",
+    "is.nan", "is.numeric", "length", "length<-", "levels<-",
     "names", "names<-", "rep", "seq.int")
 
 .GenericArgsEnv <- local({
@@ -126,9 +124,8 @@ assign("UseMethod", function(generic, object) NULL, envir = .ArgsEnv)
     }
     ## now add the group generics
     ## log, round, signif and the gamma fns are not primitive
-    ## trunc is handled below
     fx <- function(x) {}
-    for(f in c('abs', 'sign', 'sqrt', 'floor', 'ceiling', 'exp',
+    for(f in c('abs', 'sign', 'sqrt', 'floor', 'ceiling', 'trunc', 'exp',
                'cos', 'sin', 'tan', 'acos', 'asin', 'atan', 'cosh', 'sinh',
                'tanh', 'acosh', 'asinh', 'atanh',
                'cumsum', 'cumprod', 'cummax', 'cummin')) {
@@ -159,15 +156,6 @@ assign("UseMethod", function(generic, object) NULL, envir = .ArgsEnv)
 assign("!", function(x) UseMethod("!"), envir = .GenericArgsEnv)
 assign("as.character", function(x, ...) UseMethod("as.character"),
        envir = .GenericArgsEnv)
-assign("as.complex", function(x, ...) UseMethod("as.complex"),
-       envir = .GenericArgsEnv)
-assign("as.double", function(x, ...) UseMethod("as.double"),
-       envir = .GenericArgsEnv)
-assign("as.integer", function(x, ...) UseMethod("as.integer"),
-       envir = .GenericArgsEnv)
-assign("as.logical", function(x, ...) UseMethod("as.logical"),
-       envir = .GenericArgsEnv)
-assign("as.raw", function(x) UseMethod("as.raw"), envir = .GenericArgsEnv)
 assign("c", function(..., recursive = FALSE) UseMethod("c"),
        envir = .GenericArgsEnv)
 assign("dimnames", function(x) UseMethod("dimnames"), envir = .GenericArgsEnv)
@@ -183,10 +171,3 @@ assign("names<-", function(x, value) UseMethod("names<-"),
 assign("rep", function(x, ...) UseMethod("rep"), envir = .GenericArgsEnv)
 assign("seq.int", function(from, to, by, length.out, along.with, ...)
        UseMethod("seq.int"), envir = .GenericArgsEnv)
-assign("trunc", function(x, ...) UseMethod("trunc"), envir = .GenericArgsEnv)
-
-## make these the same object as as.double
-assign("as.numeric", get("as.double", envir = .GenericArgsEnv),
-       envir = .GenericArgsEnv)
-assign("as.real", get("as.double", envir = .GenericArgsEnv),
-       envir = .GenericArgsEnv)

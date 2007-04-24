@@ -451,7 +451,6 @@ getGeneric <-
 
 ## low-level version
 .getGeneric <- function(f, where, package = "") {
-    if(is.character(f) && f %in% c("as.double", "as.real")) f <- "as.numeric"
     if(isNamespace(where))
         value <-.Call("R_getGeneric", f, FALSE, where, package,
                      PACKAGE = "methods")
@@ -1377,12 +1376,7 @@ deletePrimMethods <- function(f, env) {
 }
 
 .primname <- function(object)
-{
-    ## the primitive name is 'as.double', but S4 methods are
-    ## traditionally set on 'as.numeric'
-    f <- .Call("R_get_primname", object, PACKAGE = "base")
-    if(f == "as.double") "as.numeric" else f
-}
+    .Call("R_get_primname", object, PACKAGE = "base")
 
 .copyMethodDefaults <- function(generic, method) {
     emptyDefault <- function(value) missing(value) || (is.name(value) && (nchar(as.character(value))>0))

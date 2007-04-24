@@ -81,12 +81,6 @@ sub warning {
     $x->{"warnings"}++;
 }
 
-sub note {
-    my ($x, $text) = @_;
-    $x->result("NOTE");
-    $x->message($text) if $text;
-}
-
 sub summary {
     my ($x) = @_;
     if($x->{'warnings'} > 1) {

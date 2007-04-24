@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2007-04-14 12:07+0100\n"
+"POT-Creation-Date: 2007-04-14 11:56+0100\n"
 "PO-Revision-Date: 2005-02-22 16:55+0000\n"
 "Last-Translator: Prof Brian Ripley <ripley@stats.ox.ac.uk>\n"
 "Language-Team: English\n"
@@ -1144,7 +1144,7 @@ msgstr ""
 
 #: src/main/builtin.c:68 src/main/builtin.c:91 src/main/builtin.c:100
 #: src/main/builtin.c:261 src/main/builtin.c:289 src/main/builtin.c:326
-#: src/main/builtin.c:335 src/main/coerce.c:1435 src/main/connections.c:2052
+#: src/main/builtin.c:335 src/main/coerce.c:1401 src/main/connections.c:2052
 #: src/main/engine.c:2686 src/main/envir.c:905 src/main/envir.c:999
 #: src/main/envir.c:1454 src/main/envir.c:1547 src/main/envir.c:1615
 #: src/main/envir.c:1731 src/main/envir.c:2374 src/main/envir.c:2427
@@ -1235,7 +1235,7 @@ msgstr ""
 msgid "length<- missing value for 'length'"
 msgstr ""
 
-#: src/main/builtin.c:817 src/main/coerce.c:2234 src/main/coerce.c:2275
+#: src/main/builtin.c:817 src/main/coerce.c:2200 src/main/coerce.c:2241
 msgid "... used in an incorrect context"
 msgstr ""
 
@@ -1499,88 +1499,75 @@ msgstr ""
 msgid "cannot coerce to vector"
 msgstr ""
 
-#: src/main/coerce.c:1431
+#: src/main/coerce.c:1397
 msgid "list argument expected"
 msgstr ""
 
-#: src/main/coerce.c:1439 src/main/eval.c:3473 src/main/eval.c:3480
+#: src/main/coerce.c:1405 src/main/eval.c:3473 src/main/eval.c:3480
 msgid "invalid environment"
 msgstr ""
 
-#: src/main/coerce.c:1443
+#: src/main/coerce.c:1409
 msgid "argument must have length at least 1"
 msgstr ""
 
-#: src/main/coerce.c:1468
+#: src/main/coerce.c:1434
 msgid "invalid body for function"
 msgstr ""
 
-#: src/main/coerce.c:1487
+#: src/main/coerce.c:1453
 msgid "invalid length 0 argument"
 msgstr ""
 
-#: src/main/coerce.c:1502
+#: src/main/coerce.c:1468
 msgid "invalid argument list"
 msgstr ""
 
-#: src/main/coerce.c:1759
+#: src/main/coerce.c:1725
 msgid "type \"single\" unimplemented in R"
 msgstr ""
 
-#: src/main/coerce.c:1761
+#: src/main/coerce.c:1727
 msgid "unimplemented predicate"
 msgstr ""
 
-#: src/main/coerce.c:1900 src/main/coerce.c:1997
+#: src/main/coerce.c:1866 src/main/coerce.c:1963
 #, c-format
 msgid "%s() applied to non-(list or vector)"
 msgstr ""
 
-#: src/main/coerce.c:2153 src/main/coerce.c:2155
+#: src/main/coerce.c:2119 src/main/coerce.c:2121
 msgid "first argument must be a character string or a function"
 msgstr ""
 
-#: src/main/coerce.c:2161
+#: src/main/coerce.c:2127
 msgid "'envir' must be an environment"
 msgstr ""
 
-#: src/main/coerce.c:2314
+#: src/main/coerce.c:2280
 msgid "invalid environment specified"
 msgstr ""
 
-#: src/main/coerce.c:2391
+#: src/main/coerce.c:2357
 msgid "invalid replacement object to be a class string"
 msgstr ""
 
-#: src/main/coerce.c:2409
+#: src/main/coerce.c:2375
 #, c-format
 msgid ""
 "\"%s\" can only be set as the class if the object has this type; found \"%s\""
 msgstr ""
 
-#: src/main/coerce.c:2425
+#: src/main/coerce.c:2391
 #, c-format
 msgid ""
 "invalid to set the class to matrix unless the dimension attribute is of "
 "length 2 (was %d)"
 msgstr ""
 
-#: src/main/coerce.c:2431
+#: src/main/coerce.c:2397
 msgid ""
 "cannot set class to \"array\" unless the dimension attribute has length > 0"
-msgstr ""
-
-#: src/main/coerce.c:2460 src/main/coerce.c:2483
-msgid "'value' must be non-null character string"
-msgstr ""
-
-#: src/main/coerce.c:2463 src/main/coerce.c:2498
-#, fuzzy
-msgid "invalid value"
-msgstr "invalid colour name"
-
-#: src/main/coerce.c:2466 src/main/coerce.c:2502
-msgid "invalid to change the storage mode of a factor"
 msgstr ""
 
 #: src/main/colors.c:40
@@ -4038,31 +4025,31 @@ msgstr ""
 msgid "variables of type '%s' are not allowed in model matrices"
 msgstr ""
 
-#: src/main/names.c:963
+#: src/main/names.c:957
 msgid "string argument required"
 msgstr ""
 
-#: src/main/names.c:971
+#: src/main/names.c:965
 msgid "no such primitive function"
 msgstr ""
 
-#: src/main/names.c:1084
+#: src/main/names.c:1078
 msgid "attempt to use zero-length variable name"
 msgstr ""
 
-#: src/main/names.c:1086
+#: src/main/names.c:1080
 msgid "symbol print-name too long"
 msgstr ""
 
-#: src/main/names.c:1113
+#: src/main/names.c:1107
 msgid "invalid .Internal() argument"
 msgstr ""
 
-#: src/main/names.c:1116
+#: src/main/names.c:1110
 msgid "invalid internal function"
 msgstr ""
 
-#: src/main/names.c:1118
+#: src/main/names.c:1112
 #, c-format
 msgid "no internal function \"%s\""
 msgstr ""

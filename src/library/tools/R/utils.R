@@ -282,8 +282,7 @@ function(primitive = TRUE) # primitive means 'include primitives'
     out <-
         ## Get the names of R internal S3 generics (via DispatchOrEval(),
         ## cf. zMethods.Rd).
-        c("[", "[[", "$", "[<-", "[[<-", "$<-",
-          "as.vector", "unlist",
+        c("[", "[[", "$", "[<-", "[[<-", "$<-", "as.vector", "unlist",
           .get_S3_primitive_generics(),
           ## and also the members of the group generics from
           ## groupGeneric.Rd
@@ -412,23 +411,7 @@ function()
 ### ** .get_S3_primitive_generics
 
 .get_S3_primitive_generics <-
-function(include_group_generics = TRUE)
-{
-    if(include_group_generics)
-        c(base::.S3PrimitiveGenerics,
-          "abs", "sign", "sqrt", "floor", "ceiling", "trunc", "round",
-          "signif", "exp", "log", "cos", "sin", "tan", "acos", "asin",
-          "atan", "cosh", "sinh", "tanh", "acosh", "asinh", "atanh",
-          "lgamma", "gamma", "gammaCody", "digamma", "trigamma",
-          "tetragamma", "pentagamma", "cumsum", "cumprod", "cummax",
-          "cummin",
-          "+", "-", "*", "/", "^", "%%", "%/%", "&", "|", "!", "==",
-          "!=", "<", "<=", ">=", ">",
-          "all", "any", "sum", "prod", "max", "min", "range",
-          "Arg", "Conj", "Im", "Mod", "Re")
-    else
-        base::.S3PrimitiveGenerics
-}
+function() base::.S3PrimitiveGenerics
 
 ### ** .get_standard_Rd_keywords
 
@@ -636,7 +619,15 @@ function(parent = parent.frame(), fixup = FALSE)
     for(f in ls(base::.GenericArgsEnv))
         assign(f, get(f, envir=base::.GenericArgsEnv), envir = env)
     if(fixup) {
-        ## now fixup the operators
+        ## now fixup the group generics
+        for(f in c('abs', 'sign', 'sqrt', 'floor', 'ceiling', 'trunc', 'exp',
+                   'cos', 'sin', 'tan', 'acos', 'asin', 'atan', 'cosh', 'sinh',
+                   'tanh', 'acosh', 'asinh', 'atanh',
+                   'cumsum', 'cumprod', 'cummax', 'cummin')) {
+            fx <- get(f, envir = env)
+            formals(fx) <- alist(x=)
+            assign(f, fx, envir = env)
+        }
         for(f in c('+', '-', '*', '/', '^', '%%', '%/%', '&', '|',
                    '==', '!=', '<', '<=', '>=', '>')) {
             fx <- get(f, envir = env)
@@ -679,19 +670,16 @@ function(package)
              "print.atomic", "print.coefmat",
              "rep.int", "round.POSIXt",
              "seq.int", "sort.int", "sort.list"),
-             BSDA = "sign.test",
-             Hmisc = c("abs.error.pred", "t.test.cluster"),
+             Hmisc = "t.test.cluster",
              HyperbolicDist = "log.hist",
              MASS = c("frequency.polygon",
              "gamma.dispersion", "gamma.shape",
              "hist.FD", "hist.scott"),
-             SMPracticals = "exp.gibbs",
              XML = "text.SAX",
              ape = "sort.index",
              boot = "exp.tilt",
              car = "scatterplot.matrix",
 	     calibrator = "t.fun",
-             equivalence = "sign.boot",
              grDevices = "boxplot.stats",
              graphics = c("close.screen",
              "plot.design", "plot.new", "plot.window", "plot.xy",
@@ -700,12 +688,11 @@ function(package)
              mratios = c("t.test.ratio.default", "t.test.ratio.formula"),
              quadprog = c("solve.QP", "solve.QP.compact"),
              reposTools = "update.packages2",
-             sac = "cumsum.test",
              sm = "print.graph",
              stats = c("anova.lmlist", "fitted.values", "lag.plot",
              "influence.measures", "t.test"),
-             supclust = c("sign.change", "sign.flip"),
-             utils = c("close.socket", "flush.console", "update.packages")
+             utils = c("close.socket", "flush.console",
+             "update.packages")
              )
     if(is.null(package)) return(unlist(stopList))
     thisPkg <- stopList[[package]]

@@ -21,9 +21,7 @@ sunflowerplot(x, y = NULL, number, log = "", digits = 6,
   \item{y}{numeric vector of \code{y}-coordinates of length \code{n}.}
   \item{number}{integer vector of length \code{n}. \code{number[i]} = number
     of replicates for \code{(x[i],y[i])}, may be 0.\cr
-    Default (\code{missing(number)}): compute the exact multiplicity of
-    the points \code{x[],y[]}, via
-    \code{\link[grDevices]{sunflowerTable}()}.}
+    Default: compute the exact multiplicity of the points \code{x[],y[]}.}
   \item{log}{character indicating log coordinate scale, see
     \code{\link{plot.default}}.}
   \item{digits}{when \code{number} is computed (i.e., not specified),
@@ -73,9 +71,6 @@ sunflowerplot(x, y = NULL, number, log = "", digits = 6,
   \item{x}{x coordinates}
   \item{y}{y coordinates}
   \item{number}{number}
-
-  Use \code{\link[grDevices]{sunflowerTable}()} (from package
-  \pkg{grDevices}) if you are only interested in this return value.
 }
 \references{
   Chambers, J. M., Cleveland, W. S., Kleiner, B. and Tukey, P. A. (1983)
@@ -92,8 +87,7 @@ sunflowerplot(x, y = NULL, number, log = "", digits = 6,
   1989--1993.  Port to \R by Martin Maechler
   \email{maechler@stat.math.ethz.ch}.
 }
-\seealso{\code{\link{density}}, \code{\link[grDevices]{sunflowerTable}}
-}
+\seealso{\code{\link{density}}}
 \examples{
 ## 'number' is computed automatically:
 sunflowerplot(iris[, 3:4])

@@ -90,7 +90,7 @@ as.POSIXct.default <- function(x, tz = "")
                   deparse(substitute(x))))
 }
 
-as.double.POSIXlt <- function(x, ...) as.POSIXct(x)
+as.numeric.POSIXlt <- function(x) as.POSIXct(x)
 
 format.POSIXlt <- function(x, format = "", usetz = FALSE, ...)
 {
@@ -706,7 +706,7 @@ quarters.POSIXt <- function(x, ...)
     paste("Q", x+1, sep = "")
 }
 
-trunc.POSIXt <- function(x, units=c("secs", "mins", "hours", "days"), ...)
+trunc.POSIXt <- function(x, units=c("secs", "mins", "hours", "days"))
 {
     units <- match.arg(units)
     x <- as.POSIXlt(x)

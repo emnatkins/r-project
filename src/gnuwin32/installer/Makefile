@@ -110,8 +110,7 @@ fixups:
 
 ## for Inno Setup installer
 
-R.iss: JRins.pl CustomMsg.txt imagedir fixups md5sums \
-  ../../../VERSION ../../../SVN-REVISION
+R.iss: JRins.pl CustomMsg.txt imagedir fixups md5sums
 	perl JRins.pl $(RPREFIX) $(RPREFIX) $(MDISDI) $(HelpStyle) $(Internet)
 
 $(RPREFIX)-win32.exe: R.iss

@@ -1,5 +1,4 @@
-load <-
-    function (file, envir = parent.frame())
+load <- function (file, envir = parent.frame())
 {
     if (is.character(file)) {
         ## files are allowed to be of an earlier format
