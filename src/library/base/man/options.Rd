@@ -212,15 +212,6 @@ getOption(x)
       scientific notation: fixed notation will be preferred unless it is
       more than \code{scipen} digits wider.}
 
-    \item{\code{showWarnCalls}, \code{showErrorCalls}:}{a logical.
-      Should warning and error messages show a summary of the call
-      stack?  By default error calls are shown in non-interactive
-      sessions.}
-
-    \item{\code{showNCalls}:}{a integer.  Controls how long the sequence
-      of calls must be (in bytes) before ellipses are used.  Defaults to
-      40 and should be at least 30 and no more than 500.}
-
     \item{\code{show.error.messages}:}{a logical.  Should error messages
       be printed?  Intended for use with \code{\link{try}} or a
       user-installed error handler.}
@@ -252,16 +243,6 @@ getOption(x)
       \code{\link{warnings}}.  If \code{warn} is one, warnings are
       printed as they occur.  If \code{warn} is two or larger all
       warnings are turned into errors.}
-
-    \item{\code{warnPartialMatchArgs}:}{logical.  If true, warns if
-      partial matching is used in argument matching.}
-
-    \item{\code{warnPartialMatchAttr}:}{logical.  If true, warns if
-      partial matching is used in extracting attributes via
-      \code{\link{attr}}.}
-
-    \item{\code{warnPartialMatchDollar}:}{logical.  If true, warns if
-      partial matching is used for extraction by \code{$}.}
 
     \item{\code{warning.expression}:}{an \R code expression to be called
       if a warning is generated, replacing the standard message.  If
@@ -321,9 +302,7 @@ getOption(x)
       type for that session.  The value of this option defaults to the
       normal screen device (e.g., \code{x11}, \code{windows} or
       \code{quartz}) for an interactive session, and \code{postscript}
-      in batch use or if a screen is not available.  If named, it is
-      looked for first from the global environment and then in the
-      \pkg{grDevices} namespace.}
+      in batch use or if a screen is not available.}
 
     \item{\code{locatorBell}:}{logical.  Should selection in \code{locator}
       and \code{identify} be confirmed by a bell?  Default \code{TRUE}.
@@ -502,7 +481,7 @@ getOption(x)
 }
 \examples{
 options() # printing all current options
-op <- options(); utils::str(op) # nicer printing
+op <- options(); str(op) # nicer printing
 
 getOption("width") == options()$width # the latter needs more memory
 options(digits = 15)

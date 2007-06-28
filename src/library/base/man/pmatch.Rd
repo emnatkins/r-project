@@ -1,7 +1,7 @@
 \name{pmatch}
 \title{Partial String Matching}
 \usage{
-pmatch(x, table, nomatch = NA_integer_, duplicates.ok = FALSE)
+pmatch(x, table, nomatch = NA, duplicates.ok = FALSE)
 }
 \alias{pmatch}
 \arguments{
@@ -9,8 +9,8 @@ pmatch(x, table, nomatch = NA_integer_, duplicates.ok = FALSE)
     \code{\link{as.character}}.}
   \item{table}{the values to be matched against: converted to a character
     vector.}
-  \item{nomatch}{the value to be returned at non-matching or multiply
-    partially matching positions.  Note that it is coerced to \code{integer}.}
+  \item{nomatch}{the (integer) value to be returned at non-matching or
+    multiply partially matching positions.}
   \item{duplicates.ok}{should elements be in \code{table} be used more
     than once?}
 }

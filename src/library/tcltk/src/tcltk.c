@@ -147,7 +147,7 @@ static int R_call_lang(ClientData clientData,
 }
 
 
-static Tcl_Obj * tk_eval(const char *cmd)
+static Tcl_Obj * tk_eval(char *cmd)
 {
 #ifdef SUPPORT_MBCS
     char *cmd_utf8;
@@ -195,7 +195,7 @@ static Tcl_Obj * tk_eval(const char *cmd)
 SEXP dotTcl(SEXP args)
 {
     SEXP ans;
-    const char *cmd;
+    char *cmd;
     Tcl_Obj *val;
     if(!isValidString(CADR(args)))
 	error(_("invalid argument"));
@@ -223,8 +223,7 @@ SEXP dotTclObjv(SEXP args)
     objv = (Tcl_Obj **) R_alloc(objc, sizeof(Tcl_Obj *));
 
     for (objc = i = 0; i < length(avec); i++){
-	const char *s;
-	char *tmp;
+	char *s, *tmp;
 	if (!isNull(nm) && strlen(s = translateChar(STRING_ELT(nm, i)))){
 	    tmp = calloc(strlen(s)+2, sizeof(char));
 	    *tmp = '-';
@@ -431,7 +430,11 @@ SEXP RTcl_ObjAsDoubleVector(SEXP args)
 
     /* First try for single value */
     ret = Tcl_GetDoubleFromObj(RTcl_interp, obj, &x);
-    if (ret == TCL_OK) return ScalarReal(x);
+    if (ret == TCL_OK) {
+	ans = allocVector(REALSXP, 1);
+	REAL(ans)[0] = x;
+	return ans;
+    }
 
     /* Then try as list */
     ret = Tcl_ListObjGetElements(RTcl_interp, obj, &count, &elem);
@@ -493,7 +496,11 @@ SEXP RTcl_ObjAsIntVector(SEXP args)
 
     /* First try for single value */
     ret = Tcl_GetIntFromObj(RTcl_interp, obj, &x);
-    if (ret == TCL_OK) return ScalarInteger(x);
+    if (ret == TCL_OK) {
+	ans = allocVector(INTSXP, 1);
+	INTEGER(ans)[0] = x;
+	return ans;
+    }
 
     /* Then try as list */
     ret = Tcl_ListObjGetElements(RTcl_interp, obj, &count, &elem);
@@ -537,7 +544,7 @@ SEXP RTcl_ObjFromIntVector(SEXP args)
 SEXP RTcl_GetArrayElem(SEXP args)
 {
     SEXP x, i;
-    const char *xstr, *istr;
+    char *xstr, *istr;
     Tcl_Obj *tclobj;
 
     x = CADR(args);
@@ -556,7 +563,7 @@ SEXP RTcl_GetArrayElem(SEXP args)
 SEXP RTcl_SetArrayElem(SEXP args)
 {
     SEXP x, i;
-    const char *xstr, *istr;
+    char *xstr, *istr;
     Tcl_Obj *value;
 
     x = CADR(args);
@@ -573,7 +580,7 @@ SEXP RTcl_SetArrayElem(SEXP args)
 SEXP RTcl_RemoveArrayElem(SEXP args)
 {
     SEXP x, i;
-    const char *xstr, *istr;
+    char *xstr, *istr;
 
     x = CADR(args);
     i = CADDR(args);
@@ -824,6 +831,7 @@ void tcltk_init(void)
 
 SEXP RTcl_ServiceMode(SEXP args)
 {
+    SEXP ans;
     int value;
     
     if (!isLogical(CADR(args)) || length(CADR(args)) > 1)
@@ -836,7 +844,9 @@ SEXP RTcl_ServiceMode(SEXP args)
     	if (value != TCL_SERVICE_NONE) Tcl_SetServiceMode(value); /* Tcl_GetServiceMode was not found */
     }
     
-    return ScalarLogical(value == TCL_SERVICE_ALL);
+    ans = allocVector(LGLSXP, 1);
+    LOGICAL(ans)[0] = value == TCL_SERVICE_ALL;
+    return ans;
 }
     
 #ifndef Win32

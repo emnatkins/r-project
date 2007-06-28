@@ -145,7 +145,7 @@ require(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
   \code{library} returns the list of loaded (or available) packages
   (or \code{TRUE} if \code{logical.return} is \code{TRUE}).
   \code{require} returns a logical indicating whether the required
-  package is available, invisibly
+  package is available.
 }
 \section{Packages that require other packages}{
   \bold{NB:} This mechanism has been almost entirely superseded by
@@ -233,7 +233,7 @@ require(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
 }
 \examples{
 library()                   # list all available packages
-library(lib.loc = .Library) # list all packages in the default library
+library(lib = .Library)     # list all packages in the default library
 library(help = splines)     # documentation on package 'splines'
 library(splines)            # load package 'splines'
 require(splines)            # the same

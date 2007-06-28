@@ -23,13 +23,16 @@ system <- function(command, intern = FALSE, ignore.stderr = FALSE,
     .Internal(system(command, as.integer(flag), f))
 }
 
+unlink <- function(x, recursive=FALSE)
+    invisible(.Internal(unlink(Sys.glob(x), recursive)))
+
 shell <- function(cmd, shell, flag="/c", intern=FALSE,
                   wait=TRUE, translate=FALSE, mustWork=FALSE, ...)
 {
     if(missing(shell)) {
         shell <- Sys.getenv("R_SHELL")
-        if(!nzchar(shell)) shell <- Sys.getenv("SHELL")
-        if(!nzchar(shell)) shell <- Sys.getenv("COMSPEC")
+        if(!nchar(shell)) shell <- Sys.getenv("SHELL")
+        if(!nchar(shell)) shell <- Sys.getenv("COMSPEC")
     }
     if(missing(flag) && any(!is.na(pmatch(c("bash", "tcsh"), basename(shell)))))
         flag <- "-c"

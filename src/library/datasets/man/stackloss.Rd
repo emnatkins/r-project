@@ -65,7 +65,6 @@ stack.loss
   \emph{Lecture Notes in Statistics} \bold{109}, Springer-Verlag, New York.
 }
 \examples{
-require(stats)
 summary(lm.stack <- lm(stack.loss ~ stack.x))
 }
 \keyword{datasets}

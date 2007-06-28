@@ -129,8 +129,6 @@ function(formula, data = parent.frame(), ..., subset,
     m$ylab <- m$... <- m$ask <- NULL
     subset.expr <- m$subset
     m$subset <- NULL
-    ## FIXME: model.frame is in stats
-    require(stats, quietly=TRUE)
     m[[1]] <- as.name("model.frame")
     m <- as.call(c(as.list(m), list(na.action = NULL)))
     mf <- eval(m, parent.frame())

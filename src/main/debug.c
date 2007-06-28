@@ -37,7 +37,7 @@ SEXP attribute_hidden do_debug(SEXP call, SEXP op, SEXP args, SEXP rho)
     find_char_fun
 
     if (TYPEOF(CAR(args)) != CLOSXP)
-	errorcall(call, _("argument must be a closure"));
+	errorcall(call, _("argument must be a function"));
     switch(PRIMVAL(op)) {
     case 0:
 	SET_DEBUG(CAR(args), 1);
@@ -80,8 +80,8 @@ static Rboolean tracing_state = TRUE;
 #define GET_TRACE_STATE tracing_state
 #define SET_TRACE_STATE(value) tracing_state = value
 
-SEXP R_traceOnOff(SEXP onOff)
-{
+SEXP R_traceOnOff(SEXP onOff) {
+    SEXP value;
     Rboolean prev = GET_TRACE_STATE;
     if(length(onOff) > 0) {
         Rboolean _new = asLogical(onOff);
@@ -90,7 +90,9 @@ SEXP R_traceOnOff(SEXP onOff)
         else
             error("Value for tracingState must be TRUE or FALSE");
     }
-    return ScalarLogical(prev);
+    value = allocVector(LGLSXP, 1);
+    LOGICAL(value)[0] = prev;
+    return value;
 }
 
 Rboolean attribute_hidden

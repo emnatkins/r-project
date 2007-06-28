@@ -75,8 +75,6 @@ monthplot(x, \dots)
 }
 
 \examples{
-require(graphics)
-
 ## The CO2 data
 fit <- stl(log(co2), s.window = 20, t.window = 20)
 plot(fit)

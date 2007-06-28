@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-05-25 12:20\n"
+"POT-Creation-Date: 2007-06-12 18:46\n"
 "PO-Revision-Date: 2006-04-16 19:17-0300\n"
 "Last-Translator: Fernando Henrique Ferraz P. da Rosa <feferraz@.ime.usp.br>\n"
 "Language-Team: Portuguese <ldp-br@bazar.conectiva.com.br>\n"
@@ -376,7 +376,10 @@ msgstr "amostra é muito esparsa para encontrar alph2"
 msgid "no solution in the specified range of bandwidths"
 msgstr "nenhuma solução no intervalo larguras de banda"
 
-msgid "increasing bw.SJ() search interval (%d)"
+msgid "increasing bw.SJ() search interval ("
+msgstr ""
+
+msgid ")"
 msgstr ""
 
 msgid "minimum occurred at one end of the range"
@@ -1488,14 +1491,13 @@ msgstr "'ColSideColors' deve ser um vetor de caracteres de comprimento ncol(x)"
 msgid "'termobj' must be a object of class \"terms\""
 msgstr "'centers' deve ser um número ou uma matriz"
 
-#, fuzzy
-msgid "variable '%s' was fitted with type \"%s\" but type \"%s\" was supplied"
+msgid ""
+"variable '%s' was fitted with class \"%s\" but class \"%s\" was supplied"
 msgstr ""
 "variável '%s' foi ajustada com a classe \"%s\" mas a classe \"%s\" foi "
 "especificada"
 
-#, fuzzy
-msgid "variables %s were specified with different types from the fit"
+msgid "variables %s were specified with different classes from the fit"
 msgstr "variáveis %s foram especificadas com classes diferentes do ajuste"
 
 msgid "'data' must be a data.frame, not a matrix or an array"

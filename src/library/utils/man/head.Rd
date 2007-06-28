@@ -84,6 +84,6 @@ tail(freeny.y)
 
 tail(library)
 
-head(stats::ftable(Titanic))
+head(ftable(Titanic))
 }
 \keyword{ manip }

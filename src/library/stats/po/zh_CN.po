@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2007-06-12 18:52+0100\n"
+"POT-Creation-Date: 2007-04-10 07:42+0100\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <feic@avaya.com>\n"
 "Language-Team: Chinese\n"
@@ -28,13 +28,12 @@ msgstr "qansari()里的概率值在[0,1]范围外"
 msgid "invalid argument type"
 msgstr "变元种类不对"
 
-#: arima.c:418 arima.c:502 pacf.c:308 pacf.c:348
+#: arima.c:418 arima.c:502 pacf.c:314 pacf.c:354
 msgid "can only transform 100 pars in arima0"
 msgstr "arima0里只能转换100个参数"
 
 #: distance.c:151
-#, fuzzy
-msgid "treating non-finite values as NA"
+msgid "dist(.,\"binary\"): treating non-finite values as NA"
 msgstr "dist(.,\"binary\")：所有无限值都作为NA来处理"
 
 #: distance.c:220
@@ -150,17 +149,17 @@ msgstr "变量'%s'不是数值"
 msgid "bad Starma struct"
 msgstr "Starma结构不对"
 
-#: pacf.c:227
+#: pacf.c:228
 #, c-format
 msgid "starma error code %d"
 msgstr "starma出错编号%d"
 
-#: pacf.c:287
+#: pacf.c:293
 #, c-format
 msgid "forkal error code %d"
 msgstr "forkal出错编号%d"
 
-#: pacf.c:451
+#: pacf.c:457
 msgid "invalid value of lag.max"
 msgstr "lag.max的值不对"
 

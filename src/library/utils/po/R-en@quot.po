@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.6.0\n"
+"Project-Id-Version: R 2.5.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-06-12 18:53\n"
-"PO-Revision-Date: 2007-06-12 18:53\n"
+"POT-Creation-Date: 2007-06-12 18:48\n"
+"PO-Revision-Date: 2007-06-12 18:48\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -261,9 +261,6 @@ msgstr "too many list items (at most up to number 3899)"
 
 msgid "'form' must be a two-sided formula"
 msgstr "‘form’ must be a two-sided formula"
-
-msgid "'form' must be a two-sided formula with one term on each side"
-msgstr "‘form’ must be a two-sided formula with one term on each side"
 
 msgid "No documentation for '%s' in specified packages and libraries:"
 msgstr "No documentation for ‘%s’ in specified packages and libraries:"
@@ -746,19 +743,6 @@ msgstr "empty beginning of file"
 
 msgid "first five rows are empty: giving up"
 msgstr "first five rows are empty: giving up"
-
-msgid "relist() requires recursively unlisted objects."
-msgstr "relist() requires recursively unlisted objects."
-
-msgid "The flesh argument does not contain a skeleton attribute."
-msgstr "The flesh argument does not contain a skeleton attribute."
-
-msgid ""
-"Either ensure you unlist a relistable object, or specify the skeleton "
-"separately."
-msgstr ""
-"Either ensure you unlist a relistable object, or specify the skeleton "
-"separately."
 
 msgid "cannot coerce 'x' to roman"
 msgstr "cannot coerce ‘x’ to roman"

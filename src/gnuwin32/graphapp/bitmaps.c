@@ -248,7 +248,7 @@ bitmap imagetobitmap(image img)
 /*
  *  The loadicon function returns a HBITMAP of an ICON from resources.
  */
-static bitmap loadicon(const char *name)
+static bitmap loadicon(char *name)
 {
 	HICON i;
 	HDC dc;
@@ -275,7 +275,7 @@ static bitmap loadicon(const char *name)
 /*
  *  The loadpict function returns BITMAP resources.
  */
-static bitmap loadpict(const char *name)
+static bitmap loadpict(char *name)
 {
 	BITMAP bm;
 	HBITMAP hb;
@@ -299,7 +299,7 @@ static bitmap loadpict(const char *name)
  *  The loadbitmap function finds and returns bitmaps from resources,
  *  or from an image file.
  */
-bitmap loadbitmap(const char *name)
+bitmap loadbitmap(char *name)
 {
 	bitmap obj;
 

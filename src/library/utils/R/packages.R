@@ -82,7 +82,7 @@ available.packages <-
         .checkRversion <- function(x) {
             if(is.na(xx <- x["Depends"])) return(TRUE)
             xx <- tools:::.split_dependencies(xx)
-            if(length(z <- xx[["R", exact=TRUE]]) > 1)
+            if(length(z <- xx[["R"]]) > 1)
                 eval(parse(text=paste("currentR", z$op, "z$version")))
             else TRUE
         }
@@ -218,7 +218,7 @@ old.packages <- function(lib.loc = NULL, repos = getOption("repos"),
            package_version(instp[k, "Version"])) next
         deps <- onRepos["Depends"]
         if(!is.na(deps)) {
-            Rdeps <- tools:::.split_dependencies(deps)[["R", exact=TRUE]]
+            Rdeps <- tools:::.split_dependencies(deps)[["R"]]
             if(length(Rdeps) > 1) {
                 target <- Rdeps$version
                 res <- eval(parse(text=paste("currentR", Rdeps$op, "target")))
@@ -352,7 +352,7 @@ installed.packages <-
             ## this excludes packages without DESCRIPTION files
             pkgs <- .packages(all.available = TRUE, lib.loc = lib)
             for(p in pkgs){
-                desc <- packageDescription(p, lib.loc = lib, fields = fields,
+                desc <- packageDescription(p, lib = lib, fields = fields,
                                            encoding = NA)
                 ## this gives NA if the package has no Version field
                 if (is.logical(desc)) {
@@ -542,8 +542,7 @@ chooseCRANmirror <- function(graphics = getOption("menu.graphics"))
     invisible()
 }
 
-setRepositories <-
-    function(graphics = getOption("menu.graphics"), ind = NULL)
+setRepositories <- function(graphics = getOption("menu.graphics"))
 {
     if(!interactive()) stop("cannot set repositories non-interactively")
     p <- file.path(Sys.getenv("HOME"), ".R", "repositories")
@@ -571,33 +570,30 @@ setRepositories <-
 
     default <- a[["default"]]
 
-    if(length(ind)) res <- as.integer(ind)
-    else {
-        res <- integer(0)
-        if(graphics) {
-            ## return a list of row numbers.
-            if(.Platform$OS.type == "windows" || .Platform$GUI == "AQUA")
-                res <- match(select.list(a[, 1], a[default, 1], multiple = TRUE,
-                                         "Repositories"), a[, 1])
-            else if(.Platform$OS.type == "unix" &&
-                    capabilities("tcltk") && capabilities("X11"))
-                res <- match(tcltk::tk_select.list(a[, 1], a[default, 1],
-                                                   multiple = TRUE, "Repositories"),
-                             a[, 1])
-        }
-        if(!length(res)) {
-            ## text-mode fallback
-            cat(gettext("--- Please select repositories for use in this session ---\n"))
-            nc <- length(default)
-            cat("", paste(seq_len(nc), ": ",
-                          ifelse(default, "+", " "), " ", a[, 1],
-                          sep=""),
-                "", sep="\n")
-            cat(gettext("Enter one or more numbers separated by spaces\n"))
-            res <- scan("", what=0, quiet=TRUE, nlines=1)
-            if(!length(res) || (length(res) == 1 && !res[1])) return(invisible())
-            res <- res[1 <= res && res <= nc]
-        }
+    res <- integer(0)
+    if(graphics) {
+        ## return a list of row numbers.
+        if(.Platform$OS.type == "windows" || .Platform$GUI == "AQUA")
+            res <- match(select.list(a[, 1], a[default, 1], multiple = TRUE,
+                                     "Repositories"), a[, 1])
+        else if(.Platform$OS.type == "unix" &&
+                capabilities("tcltk") && capabilities("X11"))
+            res <- match(tcltk::tk_select.list(a[, 1], a[default, 1],
+                                            multiple = TRUE, "Repositories"),
+                         a[, 1])
+    }
+    if(!length(res)) {
+        ## text-mode fallback
+        cat(gettext("--- Please select repositories for use in this session ---\n"))
+        nc <- length(default)
+        cat("", paste(seq_len(nc), ": ",
+                      ifelse(default, "+", " "), " ", a[, 1],
+                      sep=""),
+            "", sep="\n")
+        cat(gettext("Enter one or more numbers separated by spaces\n"))
+        res <- scan("", what=0, quiet=TRUE, nlines=1)
+        if(!length(res) || (length(res) == 1 && !res[1])) return(invisible())
+        res <- res[1 <= res && res <= nc]
     }
     if(length(res)) {
         repos <- a[["URL"]]

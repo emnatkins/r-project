@@ -48,7 +48,7 @@ promptPackage(package, lib.loc = NULL, filename = NULL,
 \seealso{\code{\link{prompt}}}
 \examples{
 filename <- tempfile()
-promptPackage("utils", filename = filename)
+promptPackage("utils", file=filename)
 file.show(filename)
 unlink(filename)
 }

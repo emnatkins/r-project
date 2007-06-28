@@ -35,11 +35,11 @@ browseURL <- function(url, browser = getOption("browser"))
     shQuote <- function(string)
         paste('"', gsub("\\$", "\\\\$", string), '"', sep="")
 
-    if(!is.character(url) || !(length(url) == 1) || !nzchar(url))
+    if(!is.character(url) || !(length(url) == 1) || (nchar(url) == 0))
         stop("'url' must be a non-empty character string")
     if(!is.character(browser)
        || !(length(browser) == 1)
-       || !nzchar(browser))
+       || (nchar(browser) == 0))
         stop("'browser' must be a non-empty character string")
 
     if (.Platform$GUI == "AQUA" ||

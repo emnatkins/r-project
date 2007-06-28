@@ -38,7 +38,6 @@
   \code{geyser} in package \pkg{MASS} for the Azzalini--Bowman version.
 }
 \examples{
-require(stats); require(graphics)
 f.tit <-  "faithful data: Eruptions of Old Faithful"
 
 ne60 <- round(e60 <- 60 * faithful$eruptions)

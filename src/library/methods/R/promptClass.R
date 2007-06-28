@@ -125,7 +125,7 @@ function (clName, filename = NULL, type = "class",
 	.slots <- character()
     .extends <- clDef@contains
     if(length(.extends) > 0) {
-	.extends <- showExtends(.extends, printTo = FALSE)
+	.extends <- showExtends(.extends, print = FALSE)
 	.extends <-
 	    c("\\section{Extends}{",
 	      paste0("Class \\code{\"\\linkS4class{",
@@ -215,7 +215,7 @@ function (clName, filename = NULL, type = "class",
 ## used in promptClass() above and in promptMethods() :
 .fileDesc <- function(file) {
     if(is.character(file)) {
-	if(nzchar(file))
+	if(nchar(file))
 	    paste(" to the file", sQuote(file))
 	else
 	    " to the standard output connection"

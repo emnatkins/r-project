@@ -90,7 +90,6 @@ setIs("trackMultiCurve", "trackCurve",
         y = as.numeric(slot(obj,"y")), smooth = as.numeric(slot(obj, "smooth")))})
 
 ## from setMethod
-require(graphics)
 
 setMethod("plot", "track",
  function(x, y, ...) plot(slot(x, "y"), y,  ...)

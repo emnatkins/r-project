@@ -60,18 +60,14 @@ Complex(z)
       contrary to Chambers(1998), on purpose.
     }
     \item{\code{Ops}}{\code{"Arith"}, \code{"Compare"}, \code{"Logic"}}
-    \item{\code{Math}}{\code{"abs"}, \code{"ceiling"}, \code{"floor"},
-      \code{"sqrt"},
-      \code{"cummax"}, \code{"cummin"}, \code{"cumprod"}, \code{"cumsum"},
-      \code{"log"}, \code{"log10"}, \code{"log1p"},
-      \code{"acos"}, \code{"acosh"},
+    \item{\code{Math}}{\code{"log"}, \code{"sqrt"}, \code{"log10"},
+      \code{"cumprod"}, \code{"abs"}, \code{"acos"}, \code{"acosh"},
       \code{"asin"}, \code{"asinh"}, \code{"atan"}, \code{"atanh"},
-      \code{"exp"}, \code{"expm1"}, \code{"cos"}, \code{"cosh"},
+      \code{"ceiling"}, \code{"cos"}, \code{"cosh"}, \code{"cumsum"},
+      \code{"exp"}, \code{"floor"}, \code{"gamma"}, \code{"lgamma"},
       \code{"sin"}, \code{"sinh"}, \code{"tan"}, \code{"tanh"},
-      \code{"gamma"}, \code{"lgamma"},
-      \code{"digamma"}, \code{"trigamma"},
-    }
-    \item{\code{Math2}}{\code{"round"}, \code{"signif"}, \code{"trunc"}}
+      \code{"trunc"}}
+    \item{\code{Math2}}{\code{"round"}, \code{"signif"}}
     \item{\code{Summary}}{\code{"max"}, \code{"min"}, \code{"range"},
       \code{"prod"}, \code{"sum"}, \code{"any"}, \code{"all"}}
     \item{\code{Complex}}{\code{"Arg"}, \code{"Conj"}, \code{"Im"},

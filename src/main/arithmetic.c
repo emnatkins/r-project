@@ -225,31 +225,32 @@ double R_pow(double x, double y) /* = x ^ y */
 	return(1.);
     if(x == 0.) {
 	if(y > 0.) return(0.);
-	/* y < 0 */ return(R_PosInf);
+	/* y < 0 */return(R_PosInf);
     }
-    if (R_FINITE(x) && R_FINITE(y))
-/* work around a bug in May 2007 snapshots of gcc pre-4.3.0 */
-#if __GNUC__ == 4 && __GNUC_MINOR__ == 3
-	return (y == 2.0) ? x*x : pow(x, y);
-#else
-	return (y == 2.0) ? x*x : ((y == 0.5) ? sqrt(x) : pow(x, y));
-#endif
+    if (R_FINITE(x) && R_FINITE(y)){
+      if (y == 2.0)  /* common special case */
+	return x*x;
+      else if (y == 0.5)  /* another common special case */
+	return sqrt(x);
+      else
+	return pow(x,y);
+    }
     if (ISNAN(x) || ISNAN(y))
 	return(x + y);
     if(!R_FINITE(x)) {
 	if(x > 0)		/* Inf ^ y */
-	    return (y < 0.)? 0. : R_PosInf;
+	    return((y < 0.)? 0. : R_PosInf);
 	else {			/* (-Inf) ^ y */
 	    if(R_FINITE(y) && y == floor(y)) /* (-Inf) ^ n */
-		return (y < 0.) ? 0. : (myfmod(y, 2.) ? x  : -x);
+		return((y < 0.) ? 0. : (myfmod(y,2.) ? x  : -x));
 	}
     }
     if(!R_FINITE(y)) {
 	if(x >= 0) {
 	    if(y > 0)		/* y == +Inf */
-		return (x >= 1) ? R_PosInf : 0.;
+		return((x >= 1)? R_PosInf : 0.);
 	    else		/* y == -Inf */
-		return (x < 1) ? R_PosInf : 0.;
+		return((x < 1) ? R_PosInf : 0.);
 	}
     }
     return(R_NaN);		/* all other cases: (-Inf)^{+-Inf,
@@ -279,20 +280,18 @@ double R_pow_di(double x, int n)
 
 static double logbase(double x, double base)
 {
-#ifdef HAVE_LOG10
-    if(base == 10) 
-        return x > 0 ? log10(x) : x < 0 ? R_NaN : R_NegInf;
+#if defined(HAVE_WORKING_LOG)  && defined(HAVE_LOG10)
+    if(base == 10) return log10(x);
 #endif
-#ifdef HAVE_LOG2
-    if(base == 2) 
-        return x > 0 ? log2(x) : x < 0 ? R_NaN : R_NegInf;
+#if defined(HAVE_WORKING_LOG)  && defined(HAVE_LOG2)
+    if(base == 2) return log2(x);
 #endif
     return R_log(x) / log(base);
 }
 
 SEXP R_unary(SEXP, SEXP, SEXP);
 SEXP R_binary(SEXP, SEXP, SEXP, SEXP);
-static SEXP integer_unary(ARITHOP_TYPE, SEXP, SEXP);
+static SEXP integer_unary(ARITHOP_TYPE, SEXP);
 static SEXP real_unary(ARITHOP_TYPE, SEXP, SEXP);
 static SEXP real_binary(ARITHOP_TYPE, SEXP, SEXP);
 static SEXP integer_binary(ARITHOP_TYPE, SEXP, SEXP, SEXP);
@@ -318,7 +317,7 @@ SEXP attribute_hidden do_arith(SEXP call, SEXP op, SEXP args, SEXP env)
     case 2:
 	return R_binary(call, op, CAR(args), CADR(args));
     default:
-	errorcall(call,_("operator needs one or two arguments"));
+	error(_("operator needs one or two arguments"));
     }
     return ans;			/* never used; to keep -Wall happy */
 }
@@ -459,7 +458,7 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 
     if (mismatch)
 	warningcall(lcall,
-		    _("longer object length is not a multiple of shorter object length"));
+		    _("longer object length\n\tis not a multiple of shorter object length"));
 
     /* need to preserve object here, as *_binary copies class attributes */
     if (TYPEOF(x) == CPLXSXP || TYPEOF(y) == CPLXSXP) {
@@ -522,18 +521,18 @@ SEXP attribute_hidden R_unary(SEXP call, SEXP op, SEXP s1)
     switch (TYPEOF(s1)) {
     case LGLSXP:
     case INTSXP:
-	return integer_unary(operation, s1, call);
+	return integer_unary(operation, s1);
     case REALSXP:
 	return real_unary(operation, s1, call);
     case CPLXSXP:
-	return complex_unary(operation, s1, call);
+	return complex_unary(operation, s1);
     default:
 	errorcall(call, _("invalid argument to unary operator"));
     }
     return s1;			/* never used; to keep -Wall happy */
 }
 
-static SEXP integer_unary(ARITHOP_TYPE code, SEXP s1, SEXP call)
+static SEXP integer_unary(ARITHOP_TYPE code, SEXP s1)
 {
     int i, n, x;
     SEXP ans;
@@ -552,7 +551,7 @@ static SEXP integer_unary(ARITHOP_TYPE code, SEXP s1, SEXP call)
 	}
 	return ans;
     default:
-	errorcall(call, _("invalid unary operator"));
+	error(_("invalid unary operator"));
     }
     return s1;			/* never used; to keep -Wall happy */
 }
@@ -1001,12 +1000,13 @@ SEXP attribute_hidden do_math1(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP s;
 
-    checkArity(op, args);
-
     if (DispatchGroup("Math", call, op, args, env, &s))
 	return s;
 
+    checkArity(op, args);
+
     if (isComplex(CAR(args)))
+
 	return complex_math1(call, op, args, env);
 
 #define MATH1(x) math1(CAR(args), x, call);
@@ -1015,7 +1015,7 @@ SEXP attribute_hidden do_math1(SEXP call, SEXP op, SEXP args, SEXP env)
     case 2: return MATH1(ceil);
     case 3: return MATH1(sqrt);
     case 4: return MATH1(sign);
-	/* case 5: return MATH1(trunc); separate from 2.6.0 */
+    case 5: return MATH1(trunc);
 
     case 10: return MATH1(exp);
     case 11: return MATH1(expm1);
@@ -1049,17 +1049,6 @@ SEXP attribute_hidden do_math1(SEXP call, SEXP op, SEXP args, SEXP env)
 	errorcall(call, _("unimplemented real function of 1 argument"));
     }
     return s; /* never used; to keep -Wall happy */
-}
-
-SEXP attribute_hidden do_trunc(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP s;
-    if (DispatchGroup("Math", call, op, args, env, &s))
-	return s;
-    checkArity(op, args);
-    if (isComplex(CAR(args)))
-	errorcall(call, _("unimplemented complex function"));
-    return math1(CAR(args), trunc, call);
 }
 
 SEXP attribute_hidden do_abs(SEXP call, SEXP op, SEXP args, SEXP env)
@@ -1329,7 +1318,7 @@ SEXP attribute_hidden do_atan(SEXP call, SEXP op, SEXP args, SEXP env)
     /* prior to 2.3.0, 2 args were allowed,
        but this was never documented */
     default:
-	errorcall(call,_("%d arguments passed to 'atan' which requires 1"), n);
+	error(_("%d arguments passed to 'atan' which requires 1"), n);
     }
     return s;			/* never used; to keep -Wall happy */
 }
@@ -1363,7 +1352,7 @@ SEXP attribute_hidden do_log(SEXP call, SEXP op, SEXP args, SEXP env)
 	    return math1(CAR(args), R_log, call);
     case 2:
 	if (length(CADR(args)) == 0)
-	    errorcall(call, _("invalid argument 'base' of length 0"));
+	    errorcall(call, _("invalid second argument of length 0"));
 	if (isComplex(CAR(args)) || isComplex(CDR(args)))
 	    return complex_math2(call, op, args, env);
 	else

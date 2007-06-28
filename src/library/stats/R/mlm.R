@@ -5,7 +5,7 @@ summary.mlm <- function(object, ...)
     ny <- ncol(coef)
     effects <- object$effects
     resid <- object$residuals
-    fitted <- object$fitted.values
+    fitted <- object$fitted
     ynames <- colnames(coef)
     if(is.null(ynames)) {
 	lhs <- object$terms[[2]]

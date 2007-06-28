@@ -68,16 +68,16 @@ static void	CheckFormalArgs(SEXP, SEXP);
 static SEXP	FirstArg(SEXP, SEXP);
 static SEXP	GrowList(SEXP, SEXP);
 static void	IfPush(void);
-static int	KeywordLookup(const char *);
+static int	KeywordLookup(char*);
 static SEXP	NewList(void);
 static SEXP	NextArg(SEXP, SEXP, SEXP);
 static SEXP	TagArg(SEXP, SEXP);
 
 /* These routines allocate constants */
 
-static SEXP	mkComplex(const char *);
+static SEXP	mkComplex(char *);
 SEXP		mkFalse(void);
-static SEXP     mkFloat(const char *);
+static SEXP     mkFloat(char *);
 static SEXP	mkNA(void);
 SEXP		mkTrue(void);
 
@@ -119,13 +119,13 @@ static const char UNICODE[] = "UCS-4LE";
 #endif
 #include <errno.h>
 
-static size_t ucstomb(char *s, const wchar_t wc, mbstate_t *ps)
+static size_t ucstomb(char *s, wchar_t wc, mbstate_t *ps)
 {
     char     tocode[128];
     char     buf[16];
     void    *cd = NULL ;
     wchar_t  wcs[2];
-    const char *inbuf = (const char *) wcs;
+    char    *inbuf = (char *) wcs;
     size_t   inbytesleft = sizeof(wchar_t);
     char    *outbuf = buf;
     size_t   outbytesleft = sizeof(buf);
@@ -141,11 +141,11 @@ static size_t ucstomb(char *s, const wchar_t wc, mbstate_t *ps)
     memset(wcs, 0, sizeof(wcs));
     wcs[0] = wc;
 
-    if((void *)(-1) == (cd = Riconv_open("", UNICODE))) {
+    if((void *)(-1) == (cd = Riconv_open("", (char *)UNICODE))) {
 #ifndef  Win32
         /* locale set fuzzy case */
     	strncpy(tocode, locale2charset(NULL), sizeof(tocode));
-	if((void *)(-1) == (cd = Riconv_open(tocode, UNICODE)))
+	if((void *)(-1) == (cd = Riconv_open(tocode, (char *)UNICODE)))
             return (size_t)(-1); 
 #else
         return (size_t)(-1);
@@ -837,11 +837,13 @@ static SEXP xxfuncall(SEXP expr, SEXP args)
 
 static SEXP mkChar2(const char *name)
 {
-    if(!utf8strIsASCII(name)) {
-	if(known_to_be_latin1) return mkCharEnc(name, LATIN1_MASK);
-	else if(known_to_be_utf8) return mkCharEnc(name, UTF8_MASK);
+    SEXP c = allocString(strlen(name));
+    strcpy(CHAR(c), name);
+    if(!utf8strIsASCII((char *) name)) {
+	if(known_to_be_latin1) SET_LATIN1(c);
+	else if(known_to_be_utf8) SET_UTF8(c);
     }
-    return mkChar(name);
+    return c;
 }
 
 static SEXP mkString2(const char *s)
@@ -1408,19 +1410,19 @@ SEXP R_ParseGeneral(int (*ggetc)(), int (*gungetc)(), int n,
 }
 #endif
 
-static const char *Prompt(SEXP prompt, int type)
+static char *Prompt(SEXP prompt, int type)
 {
     if(type == 1) {
 	if(length(prompt) <= 0) {
-	    return CHAR(STRING_ELT(GetOption(install("prompt"),
-					     R_BaseEnv), 0));
+	    return (char*)CHAR(STRING_ELT(GetOption(install("prompt"),
+						    R_BaseEnv), 0));
 	}
 	else
 	    return CHAR(STRING_ELT(prompt, 0));
     }
     else {
-	return CHAR(STRING_ELT(GetOption(install("continue"),
-					 R_BaseEnv), 0));
+	return (char*)CHAR(STRING_ELT(GetOption(install("continue"),
+						R_BaseEnv), 0));
     }
 }
 
@@ -1450,7 +1452,7 @@ SEXP R_ParseBuffer(IoBuffer *buffer, int n, ParseStatus *status, SEXP prompt, SE
     for(i = 0; ; ) {
 	if(n >= 0 && i >= n) break;
 	if (!*bufp) {
-	    if(R_ReadConsole((char *) Prompt(prompt, prompt_type),
+	    if(R_ReadConsole(Prompt(prompt, prompt_type),
 			     (unsigned char *)buf, 1024, 1) == 0)
 		goto finish;
 	    bufp = buf;
@@ -1593,7 +1595,7 @@ static keywords[] = {
 
 /* KeywordLookup has side effects, it sets yylval */
 
-static int KeywordLookup(const char *s)
+static int KeywordLookup(char *s)
 {
     int i;
     for (i = 0; keywords[i].name; i++) {
@@ -1665,11 +1667,11 @@ static int KeywordLookup(const char *s)
 }
 
 
-static SEXP mkFloat(const char *s)
+static SEXP mkFloat(char *s)
 {
     double f;
     if(strlen(s) > 2 && (s[1] == 'x' || s[1] == 'X')) {
-	double ret = 0; const char *p = s + 2;
+	double ret = 0; char *p = s + 2;
 	for(; p; p++) {
 	    if('0' <= *p && *p <= '9') ret = 16*ret + (*p -'0');
 	    else if('a' <= *p && *p <= 'f') ret = 16*ret + (*p -'a' + 10);
@@ -1681,11 +1683,11 @@ static SEXP mkFloat(const char *s)
     return ScalarReal(f);
 }
 
-static SEXP mkInt(const char *s)
+static SEXP mkInt(char *s)
 {
     double f;
     if(strlen(s) > 2 && (s[1] == 'x' || s[1] == 'X')) {
-	double ret = 0; const char *p = s + 2;
+	double ret = 0; char *p = s + 2;
 	for(; p; p++) {
 	    if('0' <= *p && *p <= '9') ret = 16*ret + (*p -'0');
 	    else if('a' <= *p && *p <= 'f') ret = 16*ret + (*p -'a' + 10);
@@ -1697,7 +1699,7 @@ static SEXP mkInt(const char *s)
     return ScalarInteger((int) f);
 }
 
-static SEXP mkComplex(const char *s)
+static SEXP mkComplex(char *s)
 {
     SEXP t = R_NilValue;
     double f;
@@ -2105,9 +2107,9 @@ static int SpecialValue(int c)
 }
 
 /* return 1 if name is a valid name 0 otherwise */
-int isValidName(const char *name)
+int isValidName(char *name)
 {
-    const char *p = name;
+    char *p = name;
     int i;
 
 #ifdef SUPPORT_MBCS

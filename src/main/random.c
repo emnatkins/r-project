@@ -31,7 +31,7 @@
 
 static void invalid(SEXP call)
 {
-    error(_("invalid arguments"));
+    errorcall(call, _("invalid arguments"));
 }
 
 static Rboolean random1(double (*f) (double), double *a, int na, double *x, int n)
@@ -96,7 +96,7 @@ SEXP attribute_hidden do_random1(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    error(_("internal error in do_random1"));
 	}
 	if (naflag)
-	    warning(_("NAs produced"));
+	    warningcall(call, _("NAs produced"));
 
 	PutRNGstate();
 	UNPROTECT(1);
@@ -178,7 +178,7 @@ SEXP attribute_hidden do_random2(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    error(_("internal error in do_random2"));
 	}
 	if (naflag)
-	    warning(_("NAs produced"));
+	    warningcall(call, _("NAs produced"));
 
 	PutRNGstate();
 	UNPROTECT(2);
@@ -256,7 +256,7 @@ SEXP attribute_hidden do_random3(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    error(_("internal error in do_random3"));
 	}
 	if (naflag)
-	    warning(_("NAs produced"));
+	    warningcall(call, _("NAs produced"));
 
 	PutRNGstate();
 	UNPROTECT(3);
@@ -310,8 +310,6 @@ static Rboolean Walker_warn = FALSE;
 /* A  version using Walker's alias method, based on Alg 3.13B in
    Ripley (1987).
  */
-
-#define SMALL 10000
 static void 
 walker_ProbSampleReplace(int n, double *p, int *a, int nans, int *ans) 
 {
@@ -330,7 +328,7 @@ walker_ProbSampleReplace(int n, double *p, int *a, int nans, int *ans)
        and L ... H[n-1] label those >= 1.
        By rounding error we could have q[i] < 1. or > 1. for all entries.
      */
-    if(n <= SMALL) {
+    if(n <= 10000) {
 	/* might do this repeatedly, so speed matters */
 	HL = (int *)alloca(n * sizeof(int));
 	q = (double *) alloca(n * sizeof(double));
@@ -363,7 +361,7 @@ walker_ProbSampleReplace(int n, double *p, int *a, int nans, int *ans)
 	k = (int) rU;
 	ans[i] = (rU < q[k]) ? k+1 : a[k]+1;
     }
-    if(n > SMALL) {
+    if(n > 10000) {
 	Free(HL);
 	Free(q);
     }
@@ -436,16 +434,16 @@ static void FixupProb(SEXP call, double *p, int n, int k, int replace)
     sum = 0.;
     for (i = 0; i < n; i++) {
 	if (!R_FINITE(p[i]))
-	    error(_("NA in probability vector"));
+	    errorcall(call, _("NA in probability vector"));
 	if (p[i] < 0)
-	    error(_("non-positive probability"));
+	    errorcall(call, _("non-positive probability"));
 	if (p[i] > 0) {
 	    npos++;
 	    sum += p[i];
 	}
     }
     if (npos == 0 || (!replace && k > npos))
-	error(_("too few positive probabilities"));
+	errorcall(call, _("too few positive probabilities"));
     for (i = 0; i < n; i++)
 	p[i] /= sum;
 }
@@ -464,17 +462,17 @@ SEXP attribute_hidden do_sample(SEXP call, SEXP op, SEXP args, SEXP rho)
     k = asInteger(CAR(args)); args = CDR(args);
     sreplace = CAR(args); args = CDR(args);
     if( length(sreplace) != 1 )
-         error(_("invalid '%s' argument"), "replace");
+         errorcall(call, _("invalid '%s' argument"), "replace");
     replace = asLogical(sreplace);
     prob = CAR(args);
     if (replace == NA_LOGICAL)
-	error(_("invalid '%s' argument"), "replace");
+	errorcall(call, _("invalid '%s' argument"), "replace");
     if (n == NA_INTEGER || n < 1)
-	error(_("invalid '%s' argument"), "x");
+	errorcall(call, _("invalid '%s' argument"), "x");
     if (k == NA_INTEGER || k < 0)
-	error(_("invalid '%s' argument"), "size");
+	errorcall(call, _("invalid '%s' argument"), "size");
     if (!replace && k > n)
-	error(_("cannot take a sample larger than the population when 'replace = FALSE'"));
+	errorcall(call, _("cannot take a sample larger than the population\n when 'replace = FALSE'"));
     GetRNGstate();
     PROTECT(y = allocVector(INTSXP, k));
     if (!isNull(prob)) {
@@ -483,7 +481,7 @@ SEXP attribute_hidden do_sample(SEXP call, SEXP op, SEXP args, SEXP rho)
 	PROTECT(prob);
 	p = REAL(prob);
 	if (length(prob) != n)
-	    error(_("incorrect number of probabilities"));
+	    errorcall(call, _("incorrect number of probabilities"));
 	FixupProb(call, p, n, k, replace);
 	PROTECT(x = allocVector(INTSXP, n));
 	if (replace) {
@@ -518,9 +516,9 @@ SEXP attribute_hidden do_rmultinom(SEXP call, SEXP op, SEXP args, SEXP rho)
     n	 = asInteger(CAR(args)); args = CDR(args);/* n= #{samples} */
     size = asInteger(CAR(args)); args = CDR(args);/* X ~ Multi(size, prob) */
     if (n == NA_INTEGER || n < 0)
-	error(_("invalid first argument 'n'"));
+	errorcall(call, _("invalid first argument 'n'"));
     if (size == NA_INTEGER || size < 0)
-	error(_("invalid second argument 'size'"));
+	errorcall(call, _("invalid second argument 'size'"));
     prob = CAR(args);
     prob = coerceVector(prob, REALSXP);
     k = length(prob);/* k = #{components or classes} = X-vector length */

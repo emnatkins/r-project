@@ -30,8 +30,8 @@ function(x, ..., range = 1.5, width = NULL, varwidth = FALSE,
     cl <- if(all(cls == cls[1])) cls[1] else NULL
     for(i in 1:n)
 	groups[i] <- list(boxplot.stats(unclass(groups[[i]]), range)) # do.conf=notch)
-    stats <- matrix(0, nrow=5, ncol=n)
-    conf  <- matrix(0, nrow=2, ncol=n)
+    stats <- matrix(0, nr=5, nc=n)
+    conf  <- matrix(0, nr=2, nc=n)
     ng <- out <- group <- numeric(0)
     ct <- 1
     for(i in groups) {
@@ -69,7 +69,6 @@ boxplot.formula <-
 	m$data <- as.data.frame(data)
     m$... <- NULL
     m$na.action <- na.action # force use of default for this method
-    require(stats, quietly = TRUE)
     m[[1]] <- as.name("model.frame")
     mf <- eval(m, parent.frame())
     response <- attr(attr(mf, "terms"), "response")

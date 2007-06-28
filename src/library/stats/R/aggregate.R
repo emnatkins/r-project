@@ -16,30 +16,24 @@ aggregate.data.frame <- function(x, by, FUN, ...) {
         names(by) <- paste("Group", seq_along(by), sep = ".")
     else {
         nam <- names(by)
-        ind <- which(!nzchar(nam))
+        ind <- which(nchar(nam) == 0)
         names(by)[ind] <- paste("Group", ind, sep = ".")
     }
     y <- lapply(x, tapply, by, FUN, ..., simplify = FALSE)
-    if(any(sapply(unlist(y, recursive = FALSE), length) > 1L))
+    if(any(sapply(unlist(y, recursive = FALSE), length) > 1))
         stop("'FUN' must always return a scalar")
-    z <- y[[1L]]
+    z <- y[[1]]
     d <- dim(z)
-    w <- vector("list", length(d))
+    w <- NULL
     for (i in seq_along(d)) {
-        j <- rep.int(rep.int(seq_len(d[i]),
-                             prod(d[seq_len(i - 1L)]) * rep.int(1L, d[i])),
-                     prod(d[seq.int(from = i + 1L, length.out = length(d) - i)]))
-        zz <- dimnames(z)[[i]][j]
-        ## zz is character, so match to the levels created in tapply
-        ## and not to as.character(by[[i]])
-        w[[i]] <- by[[i]][match(zz, as.factor(by[[i]]))]
+        j <- rep.int(rep.int(seq(1 : d[i]),
+                     prod(d[seq_len(i - 1)]) * rep.int(1, d[i])),
+                 prod(d[seq(from = i + 1, length = length(d) - i)]))
+        w <- cbind(w, dimnames(z)[[i]][j])
     }
-    ## this gives w row names that may not be consecutive.
-    w <- as.data.frame(w, stringsAsFactors = FALSE)[which(!unlist(lapply(z, is.null))), , drop = FALSE]
-    y <- data.frame(w, lapply(y, unlist, use.names = FALSE),
-                    stringsAsFactors = FALSE)
+    w <- w[which(!unlist(lapply(z, is.null))), , drop = FALSE]
+    y <- data.frame(w, lapply(y, unlist, use.names = FALSE))
     names(y) <- c(names(by), names(x))
-    row.names(y) <- NULL
     y
 }
 

@@ -28,7 +28,7 @@
   Wiley.
 }
 \examples{
-require(stats); require(graphics)
+require(stats)
 n <- length(dr <- c(VADeaths))
 nam <- names(VADeaths)
 d.VAD <- data.frame(

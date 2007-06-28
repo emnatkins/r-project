@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-05-25 12:20\n"
+"POT-Creation-Date: 2007-06-12 18:46\n"
 "PO-Revision-Date: 2007-04-05 21:42+0900\n"
 "Last-Translator: Shigeru Mase <maseshigeru@gmail.com>\n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp>\n"
@@ -369,7 +369,10 @@ msgstr " サンプルが疎過ぎるため alph2 を見つけることができ�
 msgid "no solution in the specified range of bandwidths"
 msgstr " 指定されたバンド幅の範囲内には解はありません"
 
-msgid "increasing bw.SJ() search interval (%d)"
+msgid "increasing bw.SJ() search interval ("
+msgstr ""
+
+msgid ")"
 msgstr ""
 
 msgid "minimum occurred at one end of the range"
@@ -1449,14 +1452,13 @@ msgstr " ’termlabels' は少なくとも長さ１の文字ベクトルでな�
 msgid "'termobj' must be a object of class \"terms\""
 msgstr " 'termobj' はクラス 'terms' のオブジェクトでなければなりません"
 
-#, fuzzy
-msgid "variable '%s' was fitted with type \"%s\" but type \"%s\" was supplied"
+msgid ""
+"variable '%s' was fitted with class \"%s\" but class \"%s\" was supplied"
 msgstr ""
 " 変数 '%s' はクラス \"%s\" として当てはめられていました、しかしクラス \"%s\" "
 "が与えられています"
 
-#, fuzzy
-msgid "variables %s were specified with different types from the fit"
+msgid "variables %s were specified with different classes from the fit"
 msgstr " 変数 %s は当てはめによるものとは異なったクラスを用いて指定されました"
 
 msgid "'data' must be a data.frame, not a matrix or an array"

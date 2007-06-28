@@ -85,30 +85,30 @@ SEXP attribute_hidden do_fmin(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     v = CAR(args);
     if (!isFunction(v))
-	error(_("attempt to minimize non-function"));
+	errorcall(call, _("attempt to minimize non-function"));
     args = CDR(args);
 
     /* xmin */
 
     xmin = asReal(CAR(args));
     if (!R_FINITE(xmin))
-	error(_("invalid '%s' value"), "xmin");
+	errorcall(call, _("invalid '%s' value"), "xmin");
     args = CDR(args);
 
     /* xmax */
 
     xmax = asReal(CAR(args));
     if (!R_FINITE(xmax))
-	error(_("invalid '%s' value"), "xmax");
+	errorcall(call, _("invalid '%s' value"), "xmax");
     if (xmin >= xmax)
-	error(_("'xmin' not less than 'xmax'"));
+	errorcall(call, _("'xmin' not less than 'xmax'"));
     args = CDR(args);
 
     /* tol */
 
     tol = asReal(CAR(args));
     if (!R_FINITE(tol) || tol <= 0.0)
-	error(_("invalid '%s' value"), "tol");
+	errorcall(call, _("invalid '%s' value"), "tol");
 
     info.R_env = rho;
     PROTECT(info.R_fcall = lang2(v, R_NilValue));
@@ -171,36 +171,36 @@ SEXP attribute_hidden do_zeroin(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     v = CAR(args);
     if (!isFunction(v))
-	error(_("attempt to minimize non-function"));
+	errorcall(call, _("attempt to minimize non-function"));
     args = CDR(args);
 
     /* xmin */
 
     xmin = asReal(CAR(args));
     if (!R_FINITE(xmin))
-	error(_("invalid '%s' value"), "xmin");
+	errorcall(call, _("invalid '%s' value"), "xmin");
     args = CDR(args);
 
     /* xmax */
 
     xmax = asReal(CAR(args));
     if (!R_FINITE(xmax))
-	error(_("invalid '%s' value"), "xmax");
+	errorcall(call, _("invalid '%s' value"), "xmax");
     if (xmin >= xmax)
-	error(_("'xmin' not less than 'xmax'"));
+	errorcall(call, _("'xmin' not less than 'xmax'"));
     args = CDR(args);
 
     /* tol */
 
     tol = asReal(CAR(args));
     if (!R_FINITE(tol) || tol <= 0.0)
-	error(_("invalid '%s' value"), "tol");
+	errorcall(call, _("invalid '%s' value"), "tol");
     args = CDR(args);
 
     /* maxiter */
     iter = asInteger(CAR(args));
     if (iter <= 0)
-	error(_("'maxiter' must be positive"));
+	errorcall(call, _("'maxiter' must be positive"));
 
     info.R_env = rho;
     PROTECT(info.R_fcall = lang2(v, R_NilValue)); /* the info used in fcn2() */
@@ -417,15 +417,15 @@ static double *fixparam(SEXP p, int *n, SEXP call)
     int i;
 
     if (!isNumeric(p))
-	error(_("numeric parameter expected"));
+	errorcall(call, _("numeric parameter expected"));
 
     if (*n) {
 	if (LENGTH(p) != *n)
-	    error(_("conflicting parameter lengths"));
+	    errorcall(call, _("conflicting parameter lengths"));
     }
     else {
 	if (LENGTH(p) <= 0)
-	    error(_("invalid parameter length"));
+	    errorcall(call, _("invalid parameter length"));
 	*n = LENGTH(p);
     }
 
@@ -435,19 +435,19 @@ static double *fixparam(SEXP p, int *n, SEXP call)
     case INTSXP:
 	for (i = 0; i < *n; i++) {
 	    if (INTEGER(p)[i] == NA_INTEGER)
-		error(_("missing value in parameter"));
+		errorcall(call, _("missing value in parameter"));
 	    x[i] = INTEGER(p)[i];
 	}
 	break;
     case REALSXP:
 	for (i = 0; i < *n; i++) {
 	    if (!R_FINITE(REAL(p)[i]))
-		error(_("missing value in parameter"));
+		errorcall(call, _("missing value in parameter"));
 	    x[i] = REAL(p)[i];
 	}
 	break;
     default:
-	error(_("invalid parameter type"));
+	errorcall(call, _("invalid parameter type"));
     }
     return x;
 }
@@ -455,7 +455,7 @@ static double *fixparam(SEXP p, int *n, SEXP call)
 
 static void invalid_na(SEXP call)
 {
-    error(_("invalid NA value in parameter"));
+    errorcall(call, _("invalid NA value in parameter"));
 }
 
 
@@ -533,6 +533,7 @@ SEXP attribute_hidden do_nlm(SEXP call, SEXP op, SEXP args, SEXP rho)
     int code, i, j, k, itnlim, method, iexp, omsg, msg,
 	n, ndigit, iagflg, iahflg, want_hessian, itncnt;
 
+    char *vmax;
 
 /* .Internal(
  *	nlm(function(x) f(x, ...), p, hessian, typsize, fscale,
@@ -542,6 +543,7 @@ SEXP attribute_hidden do_nlm(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     checkArity(op, args);
     PrintDefaults(rho);
+    vmax = vmaxget();
 
     state = (function_info *) R_alloc(1, sizeof(function_info));
 
@@ -701,7 +703,8 @@ SEXP attribute_hidden do_nlm(SEXP call, SEXP op, SEXP args, SEXP rho)
     k = 0;
 
     SET_STRING_ELT(names, k, mkChar("minimum"));
-    SET_VECTOR_ELT(value, k, ScalarReal(fpls));
+    SET_VECTOR_ELT(value, k, allocVector(REALSXP, 1));
+    REAL(VECTOR_ELT(value, k))[0] = fpls;
     k++;
 
     SET_STRING_ELT(names, k, mkChar("estimate"));
@@ -736,6 +739,7 @@ SEXP attribute_hidden do_nlm(SEXP call, SEXP op, SEXP args, SEXP rho)
     k++;
 
     setAttrib(value, R_NamesSymbol, names);
+    vmaxset(vmax);
     UNPROTECT(3);
     return value;
 }

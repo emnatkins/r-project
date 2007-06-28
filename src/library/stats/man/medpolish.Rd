@@ -50,8 +50,6 @@ medpolish(x, eps = 0.01, maxiter = 10, trace.iter = TRUE,
   Reading Massachusetts: Addison-Wesley.
 }
 \examples{
-require(graphics)
-
 ## Deaths from sport parachuting;  from ABC of EDA, p.224:
 deaths <-
     rbind(c(14,15,14),
@@ -65,7 +63,6 @@ deaths
 (med.d <- medpolish(deaths))
 plot(med.d)
 ## Check decomposition:
-all(deaths ==
-    med.d$overall + outer(med.d$row,med.d$col, "+") + med.d$residuals)
+all(deaths == med.d$overall + outer(med.d$row,med.d$col, "+") + med.d$resid)
 }
 \keyword{robust}

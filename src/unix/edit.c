@@ -88,8 +88,7 @@ SEXP attribute_hidden do_edit(SEXP call, SEXP op, SEXP args, SEXP rho)
     int   i, rc;
     ParseStatus status;
     SEXP  x, fn, envir, ti, ed, src, srcfile, Rfn;
-    char *filename, *editcmd, *vmaxsave;
-    const char *cmd;
+    char *filename, *editcmd, *vmaxsave, *cmd;
     FILE *fp;
 #ifdef Win32
     char *title;
@@ -109,7 +108,7 @@ SEXP attribute_hidden do_edit(SEXP call, SEXP op, SEXP args, SEXP rho)
 	error(_("invalid argument to edit()"));
 
     if (LENGTH(STRING_ELT(fn, 0)) > 0) {
-	const char *ss = translateChar(STRING_ELT(fn, 0));
+	char *ss = translateChar(STRING_ELT(fn, 0));
 	filename = R_alloc(strlen(ss), sizeof(char));
 	strcpy(filename, ss);
     }

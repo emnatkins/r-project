@@ -104,34 +104,34 @@ void attribute_hidden parseError(SEXP call, int linenum)
 
 	switch (len) {
 	case 0:
-	    error(_("%s%s on line %d"),
-		  filename, R_ParseErrorMsg, linenum);
+	    errorcall(call, _("%s%s on line %d"),
+		      filename, R_ParseErrorMsg, linenum);
 	    break;
 	case 1:
-	    error(_("%s%s at\n%d: %s"),
-		  filename, R_ParseErrorMsg, linenum,
-		  CHAR(STRING_ELT(context, 0)));
+	    errorcall(call, _("%s%s at\n%d: %s"),
+		      filename, R_ParseErrorMsg, linenum,
+		      CHAR(STRING_ELT(context, 0)));
 	    break;
 	default:
-	    error(_("%s%s at\n%d: %s\n%d: %s"),
-		  filename, R_ParseErrorMsg, linenum-1,
-		  CHAR(STRING_ELT(context, len-2)),
+	    errorcall(call, _("%s%s at\n%d: %s\n%d: %s"),
+		      filename, R_ParseErrorMsg, linenum-1,
+		      CHAR(STRING_ELT(context, len-2)),
 		      linenum, CHAR(STRING_ELT(context, len-1)));
 	    break;
 	}
     } else {
 	switch (len) {
 	case 0:
-	    error(_("%s"), R_ParseErrorMsg);
+	    errorcall(call, _("%s"), R_ParseErrorMsg);
 	    break;
 	case 1:
-	    error(_("%s in \"%s\""),
-		  R_ParseErrorMsg, CHAR(STRING_ELT(context, 0)));
+	    errorcall(call, _("%s in \"%s\""),
+		      R_ParseErrorMsg, CHAR(STRING_ELT(context, 0)));
 	    break;
 	default:
-	    error(_("%s in:\n\"%s\n%s\""),
-		  R_ParseErrorMsg, CHAR(STRING_ELT(context, len-2)),
-		  CHAR(STRING_ELT(context, len-1)));
+	    errorcall(call, _("%s in:\n\"%s\n%s\""),
+		      R_ParseErrorMsg, CHAR(STRING_ELT(context, len-2)),
+		      CHAR(STRING_ELT(context, len-1)));
 	    break;
 	}
     }
@@ -151,7 +151,7 @@ SEXP attribute_hidden do_parse(SEXP call, SEXP op, SEXP args, SEXP env)
     Rboolean wasopen, old_latin1=known_to_be_latin1,
 	old_utf8=known_to_be_utf8;
     int ifile, num;
-    const char *encoding;
+    char *encoding;
     ParseStatus status;
 
     checkArity(op, args);
@@ -169,7 +169,7 @@ SEXP attribute_hidden do_parse(SEXP call, SEXP op, SEXP args, SEXP env)
     prompt = CAR(args);					args = CDR(args);
     source = CAR(args);					args = CDR(args);
     if(!isString(CAR(args)) || LENGTH(CAR(args)) != 1)
-	error(_("invalid '%s' value"), "encoding");
+	errorcall(call, _("invalid '%s' value"), "encoding");
     encoding = CHAR(STRING_ELT(CAR(args), 0)); /* ASCII */
     known_to_be_latin1 = known_to_be_utf8 = FALSE;
     if(streql(encoding, "latin1")) known_to_be_latin1 = TRUE;

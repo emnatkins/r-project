@@ -150,7 +150,6 @@ mosaicplot(x, \dots)
   \code{\link{loglin}}.
 }
 \examples{
-require(stats)
 mosaicplot(Titanic, main = "Survival on the Titanic", color = TRUE)
 ## Formula interface for tabulated data:
 mosaicplot(~ Sex + Age + Survived, data = Titanic, color = TRUE)

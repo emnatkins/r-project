@@ -60,7 +60,7 @@ file <- function(description = "", open = "", blocking = TRUE,
 pipe <- function(description, open = "", encoding = getOption("encoding"))
     .Internal(pipe(description, open, encoding))
 
-fifo <- function(description, open = "", blocking = FALSE,
+fifo <- function(description = "", open = "", blocking = FALSE,
                  encoding = getOption("encoding"))
     .Internal(fifo(description, open, blocking, encoding))
 
@@ -143,7 +143,12 @@ showConnections <- function(all = FALSE)
 getAllConnections <- function()
     .Internal(getAllConnections())
 
-getConnection <- function(what) .Internal(getConnection(what))
+getConnection <- function(what)
+{
+    set <- getAllConnections()
+    if(what %in% set) structure(what, class="connection")
+    else NULL
+}
 
 closeAllConnections <- function()
 {

@@ -27,6 +27,8 @@
                   extras, device=device)
     toset <- !(names(op.utils) %in% names(op))
     if(any(toset)) options(op.utils[toset])
+
+    initPSandPDFfonts()
 }
 
 ### Used by text, mtext, strwidth, strheight, title, axis,

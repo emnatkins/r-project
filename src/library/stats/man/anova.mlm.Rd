@@ -80,8 +80,7 @@
   \code{\link{summary.manova}}
 }
 \examples{
-require(graphics)
-utils::example(SSD) # Brings in the mlmfit and reacttime objects
+example(SSD) # Brings in the mlmfit and reacttime objects
 
 mlmfit0 <- update(mlmfit, ~0)
 

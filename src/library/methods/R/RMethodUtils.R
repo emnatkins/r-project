@@ -379,13 +379,13 @@ rematchDefinition <- function(definition, generic, mnames, fnames, signature) {
         ## supplied by name).  The important special case is replacement methods, where
         ## value is the last argument.
         ntrail <- length(fnames) - dotsPos
-        trailingArgs <- fnames[seq.int(to = length(fnames), length.out = ntrail)]
-        if(!identical(mnames[seq.int(to = length(mnames), length.out = ntrail)],
+        trailingArgs <- fnames[seq(to = length(fnames), length = ntrail)]
+        if(!identical(mnames[seq(to = length(mnames), length = ntrail)],
                       trailingArgs))
             stop(gettextf("arguments after '...' in the generic (%s) must appear in the method, in the same place at the end of the argument list",
                           paste(trailingArgs, collapse=", ")), domain = NA)
         newCallNames <- character(length(newCall))
-        newCallNames[seq.int(to =length(newCallNames), length.out = ntrail)] <-
+        newCallNames[seq(to =length(newCallNames), length = ntrail)] <-
             trailingArgs
         names(newCall) <- newCallNames
     }
@@ -451,7 +451,6 @@ getGeneric <-
 
 ## low-level version
 .getGeneric <- function(f, where, package = "") {
-    if(is.character(f) && f %in% c("as.double", "as.real")) f <- "as.numeric"
     if(isNamespace(where))
         value <-.Call("R_getGeneric", f, FALSE, where, package,
                      PACKAGE = "methods")
@@ -466,7 +465,7 @@ getGeneric <-
               .cacheGeneric(f, value)
         }
     }
-    if(is.null(value) && nzchar(package) && !identical(package, "base")) {
+    if(is.null(value) && nchar(package)>0 && !identical(package, "base")) {
         env <- .requirePackage(package, FALSE)
         if(is.environment(env))
           value <- .Call("R_getGeneric", f, FALSE, env, package,
@@ -536,7 +535,7 @@ getGeneric <-
         value <- get(name, envir = .genericTable)
         if(is.list(value)) { # multiple generics with this name
             ## force a check of package name, even if argument is ""
-            if(!nzchar(pkg)) {
+            if(nchar(pkg) == 0) {
                 if(is.character(where))
                   pkg <- where
                 else {
@@ -558,7 +557,7 @@ getGeneric <-
            else
               return(NULL)
         }
-        else if(nzchar(pkg) && !identical(pkg, value@package))
+        else if(nchar(pkg) && !identical(pkg, value@package))
                 NULL
         else
           value
@@ -574,7 +573,7 @@ getGeneric <-
     value <- fdef
     ev <- environment(fdef)
     environment(value) <- newEv <- new.env(TRUE, parent.env(ev))
-    for(what in objects(ev, all.names=TRUE)) {
+    for(what in objects(ev, all=TRUE)) {
         obj <- get(what, envir = ev)
         if(is.environment(obj))
           obj <- .copyEnv(obj)
@@ -660,7 +659,7 @@ mlistMetaName <-
       else if(missing(name))
           methodsPackageMetaName("M","")
       else if(is.character(name)) {
-          if(!nzchar(package)) {
+          if(nchar(package) == 0) {
               pkg <- packageSlot(name)
               if(!is.null(pkg))
                 package <- pkg
@@ -671,11 +670,11 @@ mlistMetaName <-
               for(i in seq_along(value))
                   value[[i]] = methodsPackageMetaName("M", name[[i]])
           }
-          else if(nzchar(package))
+          else if(nchar(package))
              return(methodsPackageMetaName("M", paste(name, package, sep=":")))
           else {
               if(is.null(fdef)) {
-                  if(nzchar(package))
+                  if(nchar(package)>0)
                     return(methodsPackageMetaName("M",paste(name,package, sep=":")))
                   fdef <- getGeneric(name)
                   if(!is(fdef, "genericFunction"))
@@ -703,9 +702,9 @@ getGenerics <-
       if(missing(where)) {
           ## all the packages cached ==? all packages with methods
           ## globally visible.  Assertion based on cacheMetaData + setMethod
-          fnames <- as.list(objects(.genericTable, all.names=TRUE))
+          fnames <- as.list(objects(.genericTable, all=TRUE))
           packages <- vector("list", length(fnames))
-          for(i in seq_along(fnames)) {
+          for(i in seq(along = fnames)) {
               obj <- get(fnames[[i]], envir = .genericTable)
               if(is.list(obj))
                 fnames[[i]] <-  names(obj)
@@ -717,7 +716,7 @@ getGenerics <-
           if(is.environment(where)) where <- list(where)
           these <- character()
           for(i in where)
-            these <- c(these, objects(i, all.names=TRUE))
+            these <- c(these, objects(i, all=TRUE))
           metaNameUndo(unique(these), prefix = "M", searchForm = searchForm)
       }
   }
@@ -734,7 +733,7 @@ allGenerics <- getGenerics
     if(missing(where)) where <- .envSearch(topenv(parent.frame()))
     else if(is.environment(where)) where <- list(where)
     these <- character()
-    for(i in where) these <- c(these, objects(i, all.names=TRUE))
+    for(i in where) these <- c(these, objects(i, all=TRUE))
     these <- allThese <- unique(these)
     these <- these[substr(these, 1, 6) == ".__T__"]
     funNames <- gsub(".__T__(.*):([^:]+)", "\\1", these)
@@ -765,10 +764,10 @@ cacheMetaData <- function(where, attach = TRUE, searchWhere = as.environment(whe
     if(length(packages) <  length(generics))
       packages <- rep(packages, length = length(generics))
     pkg <- getPackageName(where)
-     for(i in seq_along(generics)) {
+     for(i in seq(along = generics)) {
          f <- generics[[i]]
          pkg <- packages[[i]]
-         fdef <- getGeneric(f, FALSE, searchWhere, pkg)
+        fdef <- getGeneric(f, FALSE, searchWhere, pkg)
         ## silently ignores all generics not visible from searchWhere
         if(is(fdef, "genericFunction")) {
           if(attach) {
@@ -1061,7 +1060,7 @@ methodSignatureMatrix <- function(object, sigSlots = c("target", "defined")) {
 
 metaNameUndo <- function(strings, prefix = "M", searchForm = FALSE) {
     pattern <- methodsPackageMetaName(prefix, "")
-    n <- nchar(pattern, "c")
+    n <- nchar(pattern)
     matched <- substr(strings, 1, n) == pattern
     value <- substring(strings[matched], n+1)
     pkg <- sub("^[^:]*", "", value) # will be "" if no : in the name
@@ -1089,7 +1088,7 @@ metaNameUndo <- function(strings, prefix = "M", searchForm = FALSE) {
             TRUE
         }
         else {
-            for(i in seq.int(from=2, length.out = length(x)-1)) {
+            for(i in seq(from=2, length = length(x)-1)) {
                 if(Recall(x[[i]], fname))
                     return(TRUE)
             }
@@ -1097,7 +1096,7 @@ metaNameUndo <- function(strings, prefix = "M", searchForm = FALSE) {
         }
     }
     else if(is(x, "language")) {
-        for(i in seq.int(from=2, length.out = length(x)-1)) {
+        for(i in seq(from=2, length = length(x)-1)) {
             if(Recall(x[[i]], fname))
                 return(TRUE)
         }
@@ -1240,7 +1239,7 @@ metaNameUndo <- function(strings, prefix = "M", searchForm = FALSE) {
     ## called more than nmax levels in could supply this argument
     if(nmax < 1) stop("got a negative maximum number of frames to look at")
     ev <- topenv(parent.frame()) # .GlobalEnv or the environment in which methods is being built.
-    for(back in seq.int(from = -n, length.out = nmax)) {
+    for(back in seq(from = -n, length = nmax)) {
         fun <- sys.function(back)
         if(is(fun, "function")) {
             ## Note that "fun" may actually be a method definition, and still will be counted.
@@ -1378,16 +1377,10 @@ deletePrimMethods <- function(f, env) {
 }
 
 .primname <- function(object)
-{
-    ## the primitive name is 'as.double', but S4 methods are
-    ## traditionally set on 'as.numeric'
-    f <- .Call("R_get_primname", object, PACKAGE = "base")
-    if(f == "as.double") "as.numeric" else f
-}
+    .Call("R_get_primname", object, PACKAGE = "base")
 
 .copyMethodDefaults <- function(generic, method) {
-    emptyDefault <- function(value) missing(value) ||
-    (is.name(value) && nzchar(as.character(value)) )
+    emptyDefault <- function(value) missing(value) || (is.name(value) && (nchar(as.character(value))>0))
     fg <- formals(generic)
     mg <- formals(method)
     mgn <- names(mg)

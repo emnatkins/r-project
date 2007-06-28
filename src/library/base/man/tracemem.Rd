@@ -61,7 +61,7 @@ b[1] <- 1
 untracemem(a)
 
 ## copying in lm
-d <- stats::rnorm(10)
+d <- rnorm(10)
 tracemem(d)
 lm(d ~ a+log(b))
 

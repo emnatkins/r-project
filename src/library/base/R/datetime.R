@@ -22,7 +22,7 @@ as.POSIXlt <- function(x, tz = "")
 	   !is.na(strptime(xx, f <- "%Y/%m/%d")))
         {
 	    res <- strptime(x, f)
-            if(nzchar(tz)) attr(res, "tzone") <- tz
+            if(nchar(tz)) attr(res, "tzone") <- tz
             return(res)
         }
 	stop("character string is not in a standard unambiguous format")
@@ -90,7 +90,7 @@ as.POSIXct.default <- function(x, tz = "")
                   deparse(substitute(x))))
 }
 
-as.double.POSIXlt <- function(x, ...) as.POSIXct(x)
+as.numeric.POSIXlt <- function(x) as.POSIXct(x)
 
 format.POSIXlt <- function(x, format = "", usetz = FALSE, ...)
 {
@@ -599,7 +599,7 @@ seq.POSIXt <-
         r1 <- as.POSIXlt(from)
         if(valid == 7) {
             if(missing(to)) { # years
-                yr <- seq.int(r1$year, by = by, length.out = length.out)
+                yr <- seq.int(r1$year, by = by, length = length.out)
             } else {
                 to <- as.POSIXlt(to)
                 yr <- seq.int(r1$year, to$year, by)
@@ -609,7 +609,7 @@ seq.POSIXt <-
             res <- as.POSIXct(r1)
         } else if(valid == 6) { # months
             if(missing(to)) {
-                mon <- seq.int(r1$mon, by = by, length.out = length.out)
+                mon <- seq.int(r1$mon, by = by, length = length.out)
             } else {
                 to <- as.POSIXlt(to)
                 mon <- seq.int(r1$mon, 12*(to$year - r1$year) + to$mon, by)
@@ -623,7 +623,7 @@ seq.POSIXt <-
                 length.out <- 2 + floor((unclass(as.POSIXct(to)) -
                                          unclass(as.POSIXct(from)))/86400)
             }
-            r1$mday <- seq.int(r1$mday, by = by, length.out = length.out)
+            r1$mday <- seq.int(r1$mday, by = by, length = length.out)
             r1$isdst <- -1
             res <- as.POSIXct(r1)
             ## now correct if necessary.
@@ -706,7 +706,7 @@ quarters.POSIXt <- function(x, ...)
     paste("Q", x+1, sep = "")
 }
 
-trunc.POSIXt <- function(x, units=c("secs", "mins", "hours", "days"), ...)
+trunc.POSIXt <- function(x, units=c("secs", "mins", "hours", "days"))
 {
     units <- match.arg(units)
     x <- as.POSIXlt(x)
@@ -806,8 +806,3 @@ unique.POSIXlt <- function(x, incomparables = FALSE, ...)
 
 sort.POSIXlt <- function(x, decreasing = FALSE, na.last = NA, ...)
     x[order(as.POSIXct(x), na.last = na.last, decreasing = decreasing)]
-
-
-# ---- additions in 2.6.0 -----
-
-is.numeric.POSIXt <- function(x) FALSE

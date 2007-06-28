@@ -10,16 +10,14 @@ unlist(x, recursive = TRUE, use.names = TRUE)
 }
 \alias{unlist}
 \arguments{
-  \item{x}{an \R object, typically a list or vector.}
+  \item{x}{An \R object, typically a list or vector.}
   \item{recursive}{logical.  Should unlisting be applied to list
     components of \code{x}?}
   \item{use.names}{logical.  Should names be preserved?}
 }
 \details{
   \code{unlist} is generic: you can write methods to handle
-  specific classes of objects, see \link{InternalMethods},
-  and note, e.g., \code{\link[utils]{relist}} with the \code{unlist} method
-  for \code{relistable} objects.
+  specific classes of objects, see \link{InternalMethods}.
 
 %never true
 %  If \code{x} has length zero the result is \code{NULL}.
@@ -69,7 +67,7 @@ unlist(x, recursive = TRUE, use.names = TRUE)
   Wadsworth \& Brooks/Cole.
 }
 \seealso{
-  \code{\link{c}}, \code{\link{as.list}}, \code{\link{relist}}.
+  \code{\link{c}}, \code{\link{as.list}}.
 }
 \examples{
 unlist(options())

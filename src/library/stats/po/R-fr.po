@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-05-25 12:20\n"
+"POT-Creation-Date: 2007-06-12 18:46\n"
 "PO-Revision-Date: 2007-04-13 12:31+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -381,7 +381,10 @@ msgstr "l'échantillon est trop clairsemé pour estimer alph2"
 msgid "no solution in the specified range of bandwidths"
 msgstr "pas de solution dans l'intervalle de largeur de fenêtre"
 
-msgid "increasing bw.SJ() search interval (%d)"
+msgid "increasing bw.SJ() search interval ("
+msgstr ""
+
+msgid ")"
 msgstr ""
 
 msgid "minimum occurred at one end of the range"
@@ -1506,14 +1509,13 @@ msgstr "'termlabels' doit être un vecteur de caractères de longueur >= 1"
 msgid "'termobj' must be a object of class \"terms\""
 msgstr "'termobj' doit être un objet de classe \"terms\""
 
-#, fuzzy
-msgid "variable '%s' was fitted with type \"%s\" but type \"%s\" was supplied"
+msgid ""
+"variable '%s' was fitted with class \"%s\" but class \"%s\" was supplied"
 msgstr ""
 "la variable '%s' a été ajustée avec la classe \"%s\" mais la classe \"%s\" a "
 "été fournie"
 
-#, fuzzy
-msgid "variables %s were specified with different types from the fit"
+msgid "variables %s were specified with different classes from the fit"
 msgstr ""
 "les variables %s ont été spécifiées avec des classes différentes de celles "
 "de l'ajustement"

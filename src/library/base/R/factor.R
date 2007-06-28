@@ -25,8 +25,7 @@ as.factor <- function(x) if (is.factor(x)) x else factor(x)
 ## Help old S users:
 category <- function(...) .Defunct()
 
-levels <- function(x) UseMethod("levels")
-levels.default <- function(x) attr(x, "levels")
+levels <- function(x) attr(x, "levels")
 nlevels <- function(x) length(levels(x))
 
 ## now a primitive
@@ -103,9 +102,9 @@ print.factor <- function (x, quote = FALSE, max.levels = NULL,
         T0 <- "Levels: "
         if(is.logical(maxl))
             maxl <- { ## smart default
-                width <- width - (nchar(T0, "w") + 3 + 1 + 3)
+                width <- width - (nchar(T0, type="w") + 3 + 1 + 3)
                                         # 3='...', 3=#lev, 1=extra
-                lenl <- cumsum(nchar(lev, "w") + nchar(colsep, "w"))
+                lenl <- cumsum(nchar(lev, type="w") + nchar(colsep, type="w"))
                 if(n <= 1 || lenl[n] <= width) n
                 else max(1, which(lenl > width)[1] - 1)
             }
@@ -132,16 +131,16 @@ Ops.factor <- function(e1, e2)
 	return(rep.int(NA, max(length(e1), if(!missing(e2))length(e2))))
     }
     nas <- is.na(e1) | is.na(e2)
-    if (nzchar(.Method[1])) {
+    if (nchar(.Method[1])) {
 	l1 <- levels(e1)
 	e1 <- l1[e1]
     }
-    if (nzchar(.Method[2])) {
+    if (nchar(.Method[2])) {
 	l2 <- levels(e2)
 	e2 <- l2[e2]
     }
-    if (all(nzchar(.Method) > 0) &&
-        (length(l1) != length(l2) || !all(sort.int(l2) == sort.int(l1))))
+    if (all(nchar(.Method)) && (length(l1) != length(l2) ||
+				!all(sort.int(l2) == sort.int(l1))))
 	stop("level sets of factors are different")
     value <- NextMethod(.Generic)
     value[nas] <- NA
@@ -207,16 +206,15 @@ function (e1, e2)
     nas <- is.na(e1) | is.na(e2)
     ord1 <- FALSE
     ord2 <- FALSE
-    if (nzchar(.Method[1])) {
+    if (nchar(.Method[1])) {
 	l1 <- levels(e1)
 	ord1 <- TRUE
     }
-    if (nzchar(.Method[2])) {
+    if (nchar(.Method[2])) {
 	l2 <- levels(e2)
 	ord2 <- TRUE
     }
-    if (all(nzchar(.Method)) &&
-        (length(l1) != length(l2) || !all(l2 == l1)))
+    if (all(nchar(.Method)) && (length(l1) != length(l2) || !all(l2 == l1)))
 	stop("level sets of factors are different")
     if (ord1 && ord2) {
 	e1 <- as.integer(e1) # was codes, but same thing for ordered factor.

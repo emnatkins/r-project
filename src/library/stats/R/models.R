@@ -212,15 +212,8 @@ deviance <- function(object, ...) UseMethod("deviance")
 deviance.default <- function(object, ...) object$deviance
 
 fitted <- function(object, ...) UseMethod("fitted")
-## we really do need partial matching here
 fitted.default <- function(object, ...)
     napredict(object$na.action, object$fitted)
-fitted.default <- function(object, ...)
-{
-    xx <- if("fitted.values" %in% names(object))
-        object$fitted.values else object$fitted
-    napredict(object$na.action, xx)
-}
 fitted.values <- fitted
 
 anova <- function(object, ...)UseMethod("anova")
@@ -260,12 +253,12 @@ offset <- function(object) object
         wrong <- old != new
         if(sum(wrong) == 1)
             stop(gettextf(
-    "variable '%s' was fitted with type \"%s\" but type \"%s\" was supplied",
+    "variable '%s' was fitted with class \"%s\" but class \"%s\" was supplied",
                           names(old)[wrong], old[wrong], new[wrong]),
                  call. = FALSE, domain = NA)
         else
             stop(gettextf(
-    "variables %s were specified with different types from the fit",
+    "variables %s were specified with different classes from the fit",
                  paste(sQuote(names(old)[wrong]), collapse=", ")),
                  call. = FALSE, domain = NA)
     }
@@ -281,11 +274,7 @@ offset <- function(object) object
     if(is.factor(x))  return("factor")
     if(is.matrix(x) && is.numeric(x))
         return(paste("nmatrix", ncol(x), sep="."))
-    ## this is unclear.  Prior to 2.6.0 we assumed numeric with attributes
-    ## meant something, but at least for now model.matrix does not
-    ## treat it differently.
-##    if(is.vector(x) && is.numeric(x)) return("numeric")
-    if(is.numeric(x)) return("numeric")
+    if(is.vector(x) && is.numeric(x)) return("numeric")
     return("other")
 }
 
@@ -381,7 +370,7 @@ model.frame.default <-
 	for(nm in names(xlev))
 	    if(!is.null(xl <- xlev[[nm]])) {
 		xi <- data[[nm]]
-		if(!is.factor(xi) || is.null(nxl <- levels(xi)))
+		if(is.null(nxl <- levels(xi)))
 		    warning(gettextf("variable '%s' is not a factor", nm),
                             domain = NA)
 		else {
@@ -550,10 +539,10 @@ makepredictcall.default  <- function(var, call)
 
 .getXlevels <- function(Terms, m)
 {
-    xvars <- sapply(attr(Terms, "variables"), deparse, width.cutoff=500)[-1]
+    xvars <- sapply(attr(Terms, "variables"),deparse,width.cutoff=500)[-1]
     if((yvar <- attr(Terms, "response")) > 0) xvars <- xvars[-yvar]
     if(length(xvars) > 0) {
-        xlev <- lapply(m[xvars], function(x) if(is.factor(x)) levels(x) else NULL)
+        xlev <- lapply(m[xvars], levels)
         xlev[!sapply(xlev, is.null)]
     } else NULL
 }

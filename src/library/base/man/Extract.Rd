@@ -16,8 +16,8 @@
 \usage{
 x[i]
 x[i, j, \dots , drop = TRUE]
-x[[i, exact = NA]]
-x[[i, j, \dots, exact = NA]]
+x[[i]]
+x[[i, j, \dots]]
 x$name
 }
 \arguments{
@@ -29,9 +29,9 @@ x$name
     \code{numeric} or \code{character} vectors or empty (missing) or
     \code{NULL}.  Numeric values are coerced to integer as by
     \code{\link{as.integer}} (and hence truncated towards zero).  For
-    extraction with \code{[[}, character vectors will be partially
-    matched to the \code{\link{names}} of the object based on the value
-    of the \code{exact} argument (also see under Environments).
+    extraction with \code{[[} character vectors are normally (see under
+    Environments) partially matched to the \code{\link{names}} of the
+    object.
 
     For \code{[}-indexing only: \code{i, j, \dots} can be logical
     vectors, indicating elements/slices to select.  Such vectors are
@@ -53,13 +53,7 @@ x$name
   }
   \item{drop}{For matrices and arrays.  If \code{TRUE} the result is
     coerced to the lowest possible dimension (see the examples).  This
-    only works for extracting elements, not for the replacement.
-  }
-  \item{exact}{Controls partial matching of \code{[[} when indexing with
-    character vectors.  The default value, \code{NA}, allows partial
-    matching, but issues a warning when it occurs.  When \code{TRUE}, no
-    partial matching is performed.  When \code{FALSE}, partial matching
-    is allowed and no warning is issued when it occurs.}
+    only works for extracting elements, not for the replacement.}
 }
 \details{
   These operators are generic.  You can write methods to handle indexing
@@ -89,10 +83,10 @@ x$name
   expression appears on the left side of an assignment (known as
   \emph{subassignment}) then that part of \code{x} is set to the value
   of the right hand side of the assignment.  In this case no partial
-  matching of character indices is done, and the left-hand-side is
-  coerced as needed to accept the values.  Attributes are preserved
-  (although \code{names}, \code{dim} and \code{dimnames} will be
-  adjusted suitably).
+  matching of indices is done, and the left-hand-side is coerced as
+  needed to accept the values.  Attributes are preserved (although
+  \code{names}, \code{dim} and \code{dimnames} will be adjusted
+  suitably).
 }
 \section{Atomic vectors}{
   The usual form of indexing is \code{"["}.  \code{"[["} can be used to
@@ -138,8 +132,7 @@ x$name
   Both \code{[[} and \code{$} select a single element of the list.  The
   main difference is that \code{$} does not allow computed indices,
   whereas \code{[[} does.  \code{x$name} is equivalent to
-  \code{x[["name", exact = FALSE]]}.  Also, the partial matching
-  behavior of \code{[[} can be controlled using the \code{exact} argument.
+  \code{x[["name"]]}.
 
   \code{[} and \code{[[} are sometimes applied to other recursive
   objects such as \link{call}s and \link{expression}s.  Pairlists are
@@ -159,10 +152,10 @@ x$name
 }
 \section{Environments}{
   Both \code{$} and \code{[[} can be applied to environments.  Only
-  character indices are allowed and no partial matching is done. The
+  character arguments are allowed and no partial matching is done. The
   semantics of these operations are those of \code{get(i, env=x,
     inherits=FALSE)}.  If no match is found then \code{NULL} is
-  returned.  The replacement versions, \code{$<-} and \code{[[<-}, can
+  returned.  The assignment versions, \code{$<-} and \code{[[<-}, can
   also be used.  Again, only character arguments are allowed.  The
   semantics in this case are those of \code{assign(i, value, env=x,
     inherits=FALSE)}.  Such an assignment will either create a new
@@ -190,12 +183,11 @@ x$name
   not true for the \code{data.frame} methods described in
   \code{\link{[.data.frame}}.
 
-  To avoid confusion, do not name index arguments (but \code{drop} and
-  \code{exact} must be named).
+  To avoid confusion, do not name index arguments (but \code{drop} must
+  be named).
 }
 \section{S4 methods}{
-  These operators are also S4 generic, but as primitives, S4 methods
-  will be dispatched only on S4 objects.
+  These operators are also (internally) S4 generic.
 
   S4 methods for \code{$} will be passed \code{name} as a character
   vector: despite the message given by \code{getGeneric("$")} you cannot
@@ -216,9 +208,6 @@ x$name
   Wadsworth \& Brooks/Cole.
 }
 \seealso{
-  \code{\link{options}(warnPartialMatchAttr = TRUE)} causes partial
-  matches in \code{$name} to give warnings.
-
   \code{\link{list}}, \code{\link{array}}, \code{\link{matrix}}.
 
   \code{\link{[.data.frame}} and \code{\link{[.factor}} for the
@@ -230,7 +219,7 @@ x$name
   %% 'info' from ESS, see \url{http://cran.R-project.org/manuals.html}.
 }
 \examples{
-x <- 1:12; m <- matrix(1:6, nrow=2); li <- list(pi=pi, e = exp(1))
+x <- 1:12; m <- matrix(1:6,nr=2); li <- list(pi=pi, e = exp(1))
 x[10]                 # the tenth element of x
 x <- x[-1]	      # delete the 1st element of x
 m[1,]                 # the first row of matrix m

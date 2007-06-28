@@ -40,7 +40,7 @@
 #include <stdlib.h> /* for div() */
 
 /* We need display width of a string */
-int Rstrwid(const char *str, int slen, int quote);  /* from printutils.c */
+int Rstrwid(char *str, int slen, int quote);  /* from printutils.c */
 #define strwidth(x) Rstrwid(x, strlen(x), 0)
 
 /* ceil_DIV(a,b) :=  ceil(a / b)  in _int_ arithmetic : */
@@ -51,88 +51,13 @@ int ceil_DIV(int a, int b)
     return div_res.quot + ((div_res.rem != 0) ? 1 : 0);
 }
 
-/* moved from printutils.c */
-
-static void MatrixColumnLabel(SEXP cl, int j, int w)
-{
-    int l;
-    SEXP tmp;
-
-    if (!isNull(cl)) {
-        tmp = STRING_ELT(cl, j);
-	if(tmp == NA_STRING) l = R_print.na_width_noquote;
-	else l = Rstrlen(tmp, 0);
-	Rprintf("%*s%s", w-l, "",
-		EncodeString(tmp, l, 0, Rprt_adj_left));
-    }
-    else {
-	Rprintf("%*s[,%ld]", w-IndexWidth(j+1)-3, "", j+1);
-    }
-}
-
-static void RightMatrixColumnLabel(SEXP cl, int j, int w)
-{
-    int l;
-    SEXP tmp;
-
-    if (!isNull(cl)) {
-        tmp = STRING_ELT(cl, j);
-	if(tmp == NA_STRING) l = R_print.na_width_noquote;
-	else l = Rstrlen(tmp, 0);
-	/* This does not work correctly at least on FC3
-	Rprintf("%*s", R_print.gap+w,
-		EncodeString(tmp, l, 0, Rprt_adj_right)); */
-	Rprintf("%*s%s", R_print.gap+w-l, "",
-	        EncodeString(tmp, l, 0, Rprt_adj_right));
-    }
-    else {
-	Rprintf("%*s[,%ld]%*s", R_print.gap, "", j+1, w-IndexWidth(j+1)-3, "");
-    }
-}
-
-static void LeftMatrixColumnLabel(SEXP cl, int j, int w)
-{
-    int l;
-    SEXP tmp;
-
-    if (!isNull(cl)) {
-        tmp= STRING_ELT(cl, j);
-	if(tmp == NA_STRING) l = R_print.na_width_noquote;
-	else l = Rstrlen(tmp, 0);
-	Rprintf("%*s%s%*s", R_print.gap, "",
-		EncodeString(tmp, l, 0, Rprt_adj_left), w-l, "");
-    }
-    else {
-	Rprintf("%*s[,%ld]%*s", R_print.gap, "", j+1, w-IndexWidth(j+1)-3, "");
-    }
-}
-
-static void MatrixRowLabel(SEXP rl, int i, int rlabw, int lbloff)
-{
-    int l;
-    SEXP tmp;
-
-    if (!isNull(rl)) {
-        tmp= STRING_ELT(rl, i);
-	if(tmp == NA_STRING) l = R_print.na_width_noquote;
-	else l = Rstrlen(tmp, 0);
-	Rprintf("\n%*s%s%*s", lbloff, "",
-		EncodeString(tmp, l, 0, Rprt_adj_left),
-		rlabw-l-lbloff, "");
-    }
-    else {
-	Rprintf("\n%*s[%ld,]", rlabw-3-IndexWidth(i + 1), "", i+1);
-    }
-}
-
-
 
 /* This is the first (of 6)  print<TYPE>Matrix()  functions.
  * We define macros that will be re-used in the other functions,
  * and comment the common code here (only):
 */
 static void printLogicalMatrix(SEXP sx, int offset, int r_pr, int r, int c,
-			       SEXP rl, SEXP cl, const char *rn, const char *cn)
+			       SEXP rl, SEXP cl, char *rn, char *cn)
 {
     int *x;
 
@@ -230,7 +155,7 @@ static void printLogicalMatrix(SEXP sx, int offset, int r_pr, int r, int c,
 }
 
 static void printIntegerMatrix(SEXP sx, int offset, int r_pr, int r, int c,
-			       SEXP rl, SEXP cl, const char *rn, const char *cn)
+			       SEXP rl, SEXP cl, char *rn, char *cn)
 {
     int *x;
 
@@ -271,7 +196,7 @@ static void printIntegerMatrix(SEXP sx, int offset, int r_pr, int r, int c,
 }
 
 static void printRealMatrix(SEXP sx, int offset, int r_pr, int r, int c,
-			    SEXP rl, SEXP cl, const char *rn, const char *cn)
+			    SEXP rl, SEXP cl, char *rn, char *cn)
 {
     SEXP sd, se;
     double *x;
@@ -319,7 +244,7 @@ static void printRealMatrix(SEXP sx, int offset, int r_pr, int r, int c,
 }
 
 static void printComplexMatrix(SEXP sx, int offset, int r_pr, int r, int c,
-			       SEXP rl, SEXP cl, const char *rn, const char *cn)
+			       SEXP rl, SEXP cl, char *rn, char *cn)
 {
     SEXP sdr, ser, swr, sdi, sei, swi;
     Rcomplex *x;
@@ -388,7 +313,7 @@ static void printComplexMatrix(SEXP sx, int offset, int r_pr, int r, int c,
 
 static void printStringMatrix(SEXP sx, int offset, int r_pr, int r, int c,
 			      int quote, int right, SEXP rl, SEXP cl,
-			      const char *rn, const char *cn)
+			      char *rn, char *cn)
 {
     SEXP *x;
     _PRINT_INIT_rl_rn;
@@ -434,7 +359,7 @@ static void printStringMatrix(SEXP sx, int offset, int r_pr, int r, int c,
 }
 
 static void printRawMatrix(SEXP sx, int offset, int r_pr, int r, int c,
-			   SEXP rl, SEXP cl, const char *rn, const char *cn)
+			   SEXP rl, SEXP cl, char *rn, char *cn)
 {
     Rbyte *x;
     _PRINT_INIT_rl_rn;
@@ -473,7 +398,7 @@ static void printRawMatrix(SEXP sx, int offset, int r_pr, int r, int c,
 }
 
 void printMatrix(SEXP x, int offset, SEXP dim, int quote, int right,
-		 SEXP rl, SEXP cl, const char *rn, const char *cn)
+		 SEXP rl, SEXP cl, char *rn, char *cn)
 {
 /* 'rl' and 'cl' are dimnames(.)[[1]] and dimnames(.)[[2]]  whereas
  * 'rn' and 'cn' are the  names(dimnames(.))
@@ -535,7 +460,7 @@ static void printArrayGeneral(SEXP x, SEXP dim, int quote, int right,
 /* == printArray(.) */
 
     int ndim = LENGTH(dim);
-    const char *rn = NULL, *cn = NULL;
+    char *rn = NULL, *cn = NULL;
 
     if (ndim == 1)
 	printVector(x, 1, quote);
@@ -566,8 +491,8 @@ static void printArrayGeneral(SEXP x, SEXP dim, int quote, int right,
 	    dnn = getAttrib(dimnames, R_NamesSymbol);
 	    has_dnn = !isNull(dnn);
 	    if ( has_dnn ) {
-		rn = (char *) translateChar(STRING_ELT(dnn, 0));
-		cn = (char *) translateChar(STRING_ELT(dnn, 1));
+		rn = translateChar(STRING_ELT(dnn, 0));
+		cn = translateChar(STRING_ELT(dnn, 1));
 	    }
 	}
 	/* nb := #{entries} in a slice such as x[1,1,..] or equivalently,

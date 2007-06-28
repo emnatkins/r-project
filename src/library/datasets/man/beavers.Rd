@@ -47,7 +47,6 @@ beaver2
   New York: John Wiley and Sons.
 }
 \examples{
-require(graphics)
 %% consider converting times to POSIXct (using 'yday' ?)
 (yl <- range(beaver1$temp, beaver2$temp))
 

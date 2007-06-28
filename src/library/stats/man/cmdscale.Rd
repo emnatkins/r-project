@@ -92,8 +92,6 @@ cmdscale(d, k = 2, eig = FALSE, add = FALSE, x.ret = FALSE)
   in package \pkg{MASS}.
 }
 \examples{
-require(graphics)
-
 loc <- cmdscale(eurodist)
 x <- loc[,1]
 y <- -loc[,2]
@@ -101,6 +99,6 @@ plot(x, y, type="n", xlab="", ylab="", main="cmdscale(eurodist)")
 text(x, y, rownames(loc), cex=0.8)
 
 cmdsE <- cmdscale(eurodist, k=20, add = TRUE, eig = TRUE, x.ret = TRUE)
-utils::str(cmdsE)
+str(cmdsE)
 }
 \keyword{multivariate}

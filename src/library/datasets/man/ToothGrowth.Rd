@@ -28,7 +28,6 @@
   New York: Wiley.
 }
 \examples{
-require(graphics)
 coplot(len ~ dose | supp, data = ToothGrowth, panel = panel.smooth,
        xlab = "ToothGrowth data: length vs dose, given type of supplement")
 }

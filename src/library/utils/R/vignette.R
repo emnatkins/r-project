@@ -1,8 +1,8 @@
 vignette <-
-function(topic, package = NULL, lib.loc = NULL, all = TRUE)
+function(topic, package = NULL, lib.loc = NULL)
 {
     if(is.null(package))
-        package <- .packages(all.available = all, lib.loc)
+        package <- .packages(all.available = TRUE, lib.loc)
     paths <- .find.package(package, lib.loc)
 
     ## Find the directories with a 'doc' subdirectory *possibly*
@@ -54,7 +54,7 @@ function(topic, package = NULL, lib.loc = NULL, all = TRUE)
     if(missing(topic)) {
         ## List all possible vignettes.
 
-        vDB <- matrix(character(0), nrow = 0, ncol = 4)
+        vDB <- matrix(character(0), nr = 0, nc = 4)
         colnames(vDB) <- c("Dir", "File", "Title", "PDF")
 
         for(db in vignettes[sapply(vignettes, length) > 0]) {
@@ -87,15 +87,9 @@ function(topic, package = NULL, lib.loc = NULL, all = TRUE)
                     LibPath = dirname(vDB[, "Dir"]),
                     Item = tools::file_path_sans_ext(basename(vDB[, "File"])),
                     Title = title)
-	footer <- if (all) NULL else
-		  paste("Use ",
-	                sQuote("vignette(all = TRUE)"),
-	                "\n",
-	                "to list the vignettes in all *available* packages.",
-                  	sep = "")
 
         y <- list(type = "vignette", title = "Vignettes", header = NULL,
-                  results = db, footer = footer)
+                  results = db, footer = NULL)
         class(y) <- "packageIQR"
         return(y)
     }

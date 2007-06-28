@@ -1124,10 +1124,9 @@ static String x_fallback_resources[] = {
 #endif
 
 Rboolean
-newX11_Open(NewDevDesc *dd, newX11Desc *xd, const char *dsp,
-	    double w, double h, double gamma_fac, X_COLORTYPE colormodel,
-	    int maxcube, int bgcolor, int canvascolor, int res,
-	    int xpos, int ypos)
+newX11_Open(NewDevDesc *dd, newX11Desc *xd, char *dsp, double w, double h,
+	 double gamma_fac, X_COLORTYPE colormodel, int maxcube,
+	 int bgcolor, int canvascolor, int res, int xpos, int ypos)
 {
     /* if we have to bail out with "error", then must free(dd) and free(xd) */
     /* That means the *caller*: the X11DeviceDriver code frees xd, for example */
@@ -1135,7 +1134,7 @@ newX11_Open(NewDevDesc *dd, newX11Desc *xd, const char *dsp,
     XEvent event;
     int iw, ih;
     X_GTYPE type;
-    const char *p = dsp;
+    char *p = dsp;
     XGCValues gcv;
     /* Indicates whether the display is created within this particular call: */
     Rboolean DisplayOpened = FALSE;
@@ -1175,15 +1174,13 @@ newX11_Open(NewDevDesc *dd, newX11Desc *xd, const char *dsp,
 	return FALSE;
 #else
 	char buf[PATH_MAX]; /* allow for pageno formats */
-	char tmp[PATH_MAX], *pp;
 	FILE *fp;
-	strcpy(tmp, dsp+6);
-	pp = strchr(tmp, ':'); *pp='\0';
+	p = strchr(dsp+6, ':'); *p='\0';
 	xd->quality = atoi(dsp+6);
-	if(strlen(pp+1) >= PATH_MAX)
+	if(strlen(p+1) >= PATH_MAX)
 	    error(_("filename too long in jpeg() call"));
-	strcpy(xd->filename, pp+1);
-	snprintf(buf, PATH_MAX, pp+1, 1); /* page 1 to start */
+	strcpy(xd->filename, p+1);
+	snprintf(buf, PATH_MAX, p+1, 1); /* page 1 to start */
 	if (!(fp = R_fopen(R_ExpandFileName(buf), "w"))) {
 	    warning(_("could not open JPEG file '%s'"), buf);
 	    return FALSE;
@@ -1464,7 +1461,7 @@ static char* translateFontFamily(char* family, newX11Desc* xd) {
     if (strlen(family) > 0) {
 	int found = 0;
 	for (i=0; i<nfonts && !found; i++) {
-	    const char* fontFamily = CHAR(STRING_ELT(fontnames, i));
+	    char* fontFamily = CHAR(STRING_ELT(fontnames, i));
 	    if (strcmp(family, fontFamily) == 0) {
 		found = 1;
 		result = SaveFontSpec(VECTOR_ELT(fontdb, i), 0);
@@ -2108,7 +2105,7 @@ static void newX11_Hold(NewDevDesc *dd)
 	/*	7) maxcube			*/
 
 Rboolean newX11DeviceDriver(DevDesc *dd,
-			    const char *disp_name,
+			    char *disp_name,
 			    double width,
 			    double height,
 			    double pointsize,
@@ -2122,7 +2119,7 @@ Rboolean newX11DeviceDriver(DevDesc *dd,
 			    int xpos, int ypos)
 {
     newX11Desc *xd;
-    const char *fn;
+    char *fn;
 
     xd = Rf_allocNewX11DeviceDesc(pointsize);
     if(!xd) return FALSE;
@@ -2410,9 +2407,9 @@ static char *SaveString(SEXP sxp, int offset)
 }
 
 static DevDesc*
-Rf_addX11Device(const char *display, double width, double height, double ps,
+Rf_addX11Device(char *display, double width, double height, double ps,
 		double gamma, int colormodel, int maxcubesize,
-		int bgcolor, int canvascolor, const char *devname, SEXP sfonts,
+		int bgcolor, int canvascolor, char *devname, SEXP sfonts,
 		int res, int xpos, int ypos)
 {
     NewDevDesc *dev = NULL;
@@ -2451,8 +2448,7 @@ Rf_addX11Device(const char *display, double width, double height, double ps,
 
 SEXP in_do_X11(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    const char *display, *cname, *devname;
-    char *vmax;
+    char *display, *vmax, *cname, *devname;
     double height, width, ps, gamma;
     int colormodel, maxcubesize, bgcolor, canvascolor, res, xpos, ypos;
     SEXP sc, sfonts;

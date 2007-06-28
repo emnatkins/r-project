@@ -17,13 +17,13 @@ RHOME = $(shell ./Rpwd.exe ../..)
 PKGD = $(shell ./Rpwd.exe "$(PKGDIR)")
 R_EXE = $(RHOME)/bin/rterm.exe
 else
-RHOME = $(shell $(PERL) pwd.pl ../..)
-PKGD = $(shell $(PERL) pwd.pl $(PKGDIR))
+RHOME = $(shell perl pwd.pl ../..)
+PKGD = $(shell perl pwd.pl $(PKGDIR))
 endif
 
 REXE = $(R_EXE) --vanilla --slave
 
-RPREFIX = $(shell $(PERL) fixed/rwver.pl ../../VERSION)
+RPREFIX = $(shell perl fixed/rwver.pl ../../VERSION)
 
 FULLVERSION=`cat ../../VERSION`
 
@@ -127,18 +127,10 @@ rpackage: ../../library/R.css rpackageindices
 	@R_START_PACKAGES=NULL $(MAKE) --no-print-directory pkg-base
 ifneq ($(strip $(BUILD)),CROSS)
 	@if ! test -f ../../library/base/R/base.rdb ; then \
-	  echo "  preparing package base for lazy loading" ; \
+	  echo "preparing package base for lazy loading" ; \
 	  (echo ".libPaths('../../library')"; \
 	    cat ../library/base/makebasedb.R) | \
 	    R_DEFAULT_PACKAGES=NULL LC_COLLATE=C $(REXE) > /dev/null; \
-          cp ../library/base/baseloader.R ../../library/base/R/base; \
-	fi
-else
-	@if ! test -f ../../library/base/R/base.rdb ; then \
-	  echo "  preparing package base for lazy loading" ; \
-	  (echo ".libPaths('../../library')"; \
-	    cat ../library/base/cross-makebasedb.R) | \
-	    R_CROSS_BUILD=yes R_DEFAULT_PACKAGES=NULL LC_COLLATE=C $(REXE); \
           cp ../library/base/baseloader.R ../../library/base/R/base; \
 	fi
 endif
@@ -147,7 +139,7 @@ endif
 	  echo "preparing package tools for lazy loading" ; \
 	  (cat ../library/tools/R/makeLazyLoad.R; \
 	    echo "makeLazyLoading(\"tools\", lib.loc=\"$(RLIB)\")") | \
-	    R_CROSS_BUILD=yes R_DEFAULT_PACKAGES=NULL LC_ALL=C $(R_EXE) --vanilla --slave > /dev/null ; \
+	    R_DEFAULT_PACKAGES=NULL LC_ALL=C $(R_EXE) --vanilla --slave > /dev/null ; \
 	fi
 	@$(ECHO)
 	@for pkg in $(R_PKGS0); do \
@@ -287,7 +279,7 @@ stats4-HELP = ziponly
 tcltk-HELP = ziponly
 tools-HELP = ziponly
 utils-HELP = ziponly
-stats4-LAZY = true
+stats4-SAVE = true
 
 KernSmooth-HELP = ziponly
 MASS-HELP = ziponly
@@ -561,7 +553,7 @@ recommended: unpack-recommended
 	@$(ECHO) "--- Making recommended packages"
 ifeq ($(strip $(BUILD)),CROSS)
 	@for p in $(R_PKGS_RECOMMENDED_SOURCES); do \
-          $(R_EXE) CMD $(PERL) XINSTALL --unsafe -l $(RHOME)/library --docs=normal ../library/$${p} || exit 1; \
+          $(R_EXE) CMD perl XINSTALL --unsafe -l $(RHOME)/library --docs=normal ../library/$${p} || exit 1; \
         done
 else
 	@for p in $(R_PKGS_RECOMMENDED_SOURCES); do \

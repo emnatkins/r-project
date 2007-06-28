@@ -152,7 +152,7 @@ int R_SelectEx(int  n,  fd_set  *readfds,  fd_set  *writefds,
 
 /*
    This object is used for the standard input and its file descriptor
-   value is reset by setSelectwblplotMask() each time to ensure that it points
+   value is reset by setSelectMask() each time to ensure that it points
    to the correct value of stdin.
  */
 static InputHandler BasicInputHandler = {StdinActivity, -1, NULL};
@@ -412,12 +412,10 @@ extern void rl_callback_read_char(void);
 extern char *tilde_expand (const char *);
 # endif
 
-#ifdef HAVE_RL_COMPLETION_MATCHES
 static void initialize_rlcompletion(void); /* forward declaration */
-#endif
 
-attribute_hidden
-char *R_ExpandFileName_readline(const char *s, char *buff)
+
+char attribute_hidden *R_ExpandFileName_readline(char *s, char *buff)
 {
     char *s2 = tilde_expand(s);
 
@@ -593,8 +591,7 @@ static SEXP
     RComp_getFileCompSym,
     RComp_retrieveCompsSym;
 
-attribute_hidden
-void set_rl_word_breaks(const char *str)
+void set_rl_word_breaks(char *str)
 {
     static char p1[201], p2[203];
     strncpy(p1, str, 200); p1[200]= '\0';
@@ -780,8 +777,7 @@ static char *R_completion_generator(const char *text, int state)
 
 /* ============================================================ */
 #else
-attribute_hidden
-void set_rl_word_breaks(const char *str)
+void set_rl_word_breaks(char *str)
 {
 }
 #endif /* HAVE_RL_COMPLETION_MATCHES */
@@ -819,8 +815,7 @@ Rstd_ReadConsole(char *prompt, unsigned char *buf, int len,
 #if defined(HAVE_ICONV) && defined(ICONV_LATIN1)
 	    size_t res, inb = strlen((char *)buf), onb = len;
 	    char obuf[CONSOLE_BUFFER_SIZE+1];
-	    const char *ib = (const char *)buf;
-            char *ob = obuf;
+	    char *ib = (char *)buf, *ob = obuf;
 	    if(!cd) {
 		cd = Riconv_open("", R_StdinEnc);
 		if(!cd) error(_("encoding '%s' is not recognised"), R_StdinEnc);
@@ -1161,8 +1156,7 @@ void attribute_hidden Rstd_read_history(char *s)
 void attribute_hidden Rstd_loadhistory(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP sfile;
-    char file[PATH_MAX];
-    const char *p;
+    char file[PATH_MAX], *p;
 
     sfile = CAR(args);
     if (!isString(sfile) || LENGTH(sfile) < 1)
@@ -1184,8 +1178,7 @@ void attribute_hidden Rstd_loadhistory(SEXP call, SEXP op, SEXP args, SEXP env)
 void attribute_hidden Rstd_savehistory(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP sfile;
-    char file[PATH_MAX];
-    const char *p;
+    char file[PATH_MAX], *p;
 
     sfile = CAR(args);
     if (!isString(sfile) || LENGTH(sfile) < 1)

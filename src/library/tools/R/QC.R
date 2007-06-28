@@ -205,18 +205,50 @@ function(package, dir, lib.loc = NULL)
         ## we only source the assignments, and hence do not get any
         ## S4 classes or methods.
         ## </NOTE>
-        .make_S4_method_siglist <- function(g) {
-            mlist <- .get_S4_methods_list(g, code_env)
-            sigs <- .make_siglist(mlist$classes)
+        methodsSignatures <- function(f) {
+            mlist <- methods::getMethodsMetaData(f, code_env)
+            meths <- methods::linearizeMlist(mlist, FALSE)
+            classes <- methods::slot(meths, "classes")
+            ## Don't look for doc on a generated default method.
+            default <-
+                as.logical(lapply(classes,
+                                  function(x)
+                                  identical(all(x == "ANY"), TRUE)))
+            if(any(default)
+               && methods::is(methods::finalDefaultMethod(mlist),
+                              "derivedDefaultMethod")) {
+                classes <- classes[!default]
+            }
+            ## Exclude methods inherited from the 'appropriate' parent
+            ## environment.
+            ## <NOTE>
+            ## Keep this in sync with similar code in checkFF().
+            penv <- .Internal(getRegisteredNamespace(as.name(package)))
+            if(is.environment(penv))
+                penv <- parent.env(penv)
+            else
+                penv <- parent.env(code_env)
+            if((f %in% .get_S4_generics_really_in_env(penv))
+               && !is.null(mlist_from_penv <-
+                           methods::getMethodsMetaData(f, penv))) {
+                classes_from_penv <-
+                    methods::slot(methods::linearizeMlist(mlist_from_penv),
+                                  "classes")
+                ind <- is.na(match(.make_signatures(classes),
+                                   .make_signatures(classes_from_penv)))
+                classes <- classes[ind]
+            }
+            ## </NOTE>
+            sigs <- sapply(classes, paste, collapse = ",")
             if(length(sigs))
-                paste(g, ",", sigs, sep = "")
+                paste(f, ",", sigs, sep = "")
             else
                 character()
         }
         S4_methods <- sapply(.get_S4_generics_really_in_env(code_env),
-                             .make_S4_method_siglist)
+                             methodsSignatures)
         S4_methods <- as.character(unlist(S4_methods, use.names = FALSE))
-
+        
         ## The bad ones:
         S4_methods <-
             S4_methods[!sapply(S4_methods,
@@ -233,11 +265,11 @@ function(package, dir, lib.loc = NULL)
     if(is_base) {
         ## we use .ArgsEnv and .GenericArgsEnv in checkS3methods and codoc,
         ## so we check here that the set of primiitives has not been changed.
-        base_funs <- ls("package:base", all.names=TRUE)
+        base_funs <- ls("package:base", all=TRUE)
         prim <- sapply(base_funs, function(x) is.primitive(get(x, "package:base")))
         prims <- base_funs[prim]
-        prototypes <- sort(c(ls(envir=.ArgsEnv, all.names=TRUE),
-                             ls(envir=.GenericArgsEnv, all.names=TRUE)))
+        prototypes <- sort(c(ls(envir=.ArgsEnv, all=TRUE),
+                             ls(envir=.GenericArgsEnv, all=TRUE)))
         extras <- prototypes %w/o% prims
         if(length(extras))
             undoc_things <- c(undoc_things, list(prim_extra=extras))
@@ -419,11 +451,11 @@ function(package, dir, lib.loc = NULL,
                 ".onLoad", ".onAttach", ".onUnload"))
         objects_in_code_or_namespace <- objects_in_code
         known_env <- .make_S3_primitive_generic_env(code_env, fixup=TRUE)
-        extras <- ls(known_env, all.names = TRUE)
+        extras <- ls(known_env, all = TRUE)
         functions_in_code <- c(functions_in_code, extras)
         code_env <- known_env
         known_env <- .make_S3_primitive_nongeneric_env(code_env)
-        extras <- ls(known_env, all.names = TRUE)
+        extras <- ls(known_env, all = TRUE)
         functions_in_code <- c(functions_in_code, extras)
         code_env <- known_env
     }
@@ -517,8 +549,6 @@ function(package, dir, lib.loc = NULL,
                 ## current layout, and it is also not clear whether we
                 ## should do this: formally, what we get is different
                 ## from what the authors thought and documented.
-                ## Also note that setAs() typically seems to give formals
-                ## (from, to, strict = TRUE).
                 ## </NOTE>
                 fun <- methods::slot(m, ".Data")
                 bdy <- body(fun)
@@ -535,11 +565,13 @@ function(package, dir, lib.loc = NULL,
             }
             lapply(.get_S4_generics_really_in_env(code_env),
                    function(f) {
-                       mlist <- .get_S4_methods_list(f, code_env)
-                       sigs <- .make_siglist(mlist$classes)
+                       meths <- .get_S4_methods_list(f, code_env)
+                       sigs <- sapply(methods::slot(meths, "classes"),
+                                      paste, collapse = ",")
                        if(!length(sigs)) return()
-                       nm <- sprintf("\\S4method{%s}{%s}", f, sigs)
-                       args <- lapply(mlist$methods,
+                       nm <- paste("\\S4method{", f, "}{", sigs, "}",
+                                   sep = "")
+                       args <- lapply(methods::slot(meths, "methods"),
                                       get_formals_from_method_definition)
                        names(args) <- nm
                        functions_in_code <<-
@@ -565,7 +597,7 @@ function(package, dir, lib.loc = NULL,
                 vffc <- as.character(ffc) # values
                 vffd <- as.character(ffd) # values
                 if(!identical(use.values, TRUE)) {
-                    ind <- nzchar(as.character(ffd))
+                    ind <- nchar(as.character(ffd)) > 0
                     vffc <- vffc[ind]
                     vffd <- vffd[ind]
                 }
@@ -1852,8 +1884,34 @@ function(package, dir, file, lib.loc = NULL,
             ## This may find things twice if a setMethod() with a bad FF
             ## call is from inside a function (e.g., InitMethods()).
             for(f in .get_S4_generics_really_in_env(code_env)) {
-                mlist <- .get_S4_methods_list(f, code_env)
-                exprs <- c(exprs, lapply(mlist$methods, body))
+                meths <- .get_S4_methods_list(f, code_env)
+                bodies <- lapply(methods::slot(meths, "methods"), body)
+                ## Exclude methods inherited from the 'appropriate'
+                ## parent environment.
+                ## <NOTE>
+                ## Keep this in sync with similar code in undoc().
+                ## Note that direct comparison of
+                ##   lapply(methods::slot(meths, "methods"), environment)
+                ## to code_env is not quite right ...
+                penv <- .Internal(getRegisteredNamespace(as.name(package)))
+                if(is.environment(penv))
+                    penv <- parent.env(penv)
+                else
+                    penv <- parent.env(code_env)
+                if((f %in% .get_S4_generics_really_in_env(penv))
+                    && !is.null(mlist_from_penv <-
+                                methods::getMethodsMetaData(f, penv))) {
+                    classes_from_cenv <-
+                        methods::slot(meths, "classes")
+                    classes_from_penv <-
+                        methods::slot(methods::linearizeMlist(mlist_from_penv),
+                                      "classes")
+                    ind <- is.na(match(.make_signatures(classes_from_cenv),
+                                       .make_signatures(classes_from_penv)))
+                    bodies <- bodies[ind]
+                }
+                ## </NOTE>
+                exprs <- c(exprs, bodies)
             }
         }
     }
@@ -1986,9 +2044,7 @@ function(package, dir, lib.loc = NULL)
         .filter(objects_in_code,
                 function(f) is.function(get(f, envir = code_env)))
 
-    ## This is the virtual groyp generics, not the members
     S3_group_generics <- .get_S3_group_generics()
-    ## This includes the primitive group generics as from R 2.6.0
     S3_primitive_generics <- .get_S3_primitive_generics()
 
     checkArgs <- function(g, m) {
@@ -2042,22 +2098,18 @@ function(package, dir, lib.loc = NULL)
         }
         dotsPos <- which(gArgs == "...")
         ipos <- if(length(dotsPos) > 0)
-            seq.int(from = 1, length.out = dotsPos[1] - 1)
+            seq.int(from = 1, length = dotsPos[1] - 1)
         else
             seq_along(gArgs)
 
         ## careful, this could match multiply in incorrect funs.
         dotsPos <- which(mArgs == "...")
         if(length(dotsPos) > 0)
-            ipos <- ipos[seq.int(from = 1, length.out = dotsPos[1] - 1)]
+            ipos <- ipos[seq.int(from = 1, length = dotsPos[1] - 1)]
         posMatchOK <- identical(gArgs[ipos], mArgs[ipos])
         argMatchOK <- all(gArgs %in% mArgs) || length(dotsPos) > 0
         margMatchOK <- all(mArgs %in% c("...", gArgs)) || "..." %in% ogArgs
         if(posMatchOK && argMatchOK && margMatchOK)
-            NULL
-        else if (g %in% c("+", "-", "*", "/", "^", "%%", "%/%", "&", "|",
-                          "!", "==", "!=", "<", "<=", ">=", ">")
-                 && (length(ogArgs) == length(omArgs)) )
             NULL
         else {
             l <- list(ogArgs, omArgs)
@@ -2246,14 +2298,18 @@ function(package, dir, lib.loc = NULL)
         bad_S4_replace_methods <-
             sapply(S4_generics,
                    function(f) {
-                       mlist <- .get_S4_methods_list(f, code_env)
-                       ind <- !as.logical(sapply(mlist$methods,
+                       meths <- .get_S4_methods_list(f, code_env)
+                       ind <- !as.logical(sapply(methods::slot(meths,
+                                                               "methods"),
                                                  .check_last_formal_arg))
                        if(!any(ind))
                            character()
                        else {
-                           sigs <- .make_siglist(mlist$classes[ind])
-                           sprintf("\\S4method{%s}{%s}", f, sigs)
+                           sigs <- sapply(methods::slot(meths,
+                                                        "classes")[ind],
+                                          paste, collapse = ",")
+                           paste("\\S4method{", f, "}{", sigs, "}",
+                                 sep = "")
                        }
                    })
         bad_replace_funs <-
@@ -2399,7 +2455,7 @@ function(x, ...)
     invisible(x)
 }
 
-### * .check__depends
+### * .check_package_depends
 
 ## changed in 2.3.0 to refer to a source dir.
 
@@ -2456,6 +2512,7 @@ function(dir)
 
     ## Are all namespace dependencies listed as package dependencies?
     if(file_test("-f", file.path(dir, "NAMESPACE"))) {
+        reqs <- .get_namespace_package_depends(dir)
         ## <FIXME>
         ## Not clear whether we want to require *all* namespace package
         ## dependencies listed in DESCRIPTION, or e.g. just the ones on
@@ -2553,8 +2610,7 @@ function(dir)
     ## the top-level package source directory ...
     Rd_files <- list_files_with_type(file.path(dir), "docs")
     db <- lapply(Rd_files, .read_Rd_lines_quietly)
-    z <- strsplit(Rd_files, "/", fixed = TRUE)
-    names(db) <- sapply(z, function(x) x[length(x)])
+    names(db) <- Rd_files
     .check_Rd_files_in_Rd_db(db)
 }
 
@@ -2675,7 +2731,7 @@ function(db)
     }
 
     ## db_aliases could be length 0, or could contain nothing
-    lens <- unlist(lapply(db_aliases, length))
+    lens <- sapply(db_aliases, length)
     db_aliases_by_db_names <- if(sum(lens))
         split(rep(names(db_aliases), lens),
               unlist(db_aliases, use.names = FALSE))
@@ -2909,7 +2965,7 @@ function(dfile)
         out$missing_encoding <- TRUE
     }
 
-    if(any(is.na(nchar(db, "c", TRUE)))) {
+    if(any(is.na(nchar(db, "c")))) {
         ## Ouch, invalid in the current locale.
         ## (Can only happen in a MBCS locale.)
         ## Try re-encoding from Latin1.
@@ -2989,7 +3045,7 @@ function(dfile)
                 bad_dep_entry <- c(bad_dep_entry, dep)
                 next
             }
-            if(nzchar(sub(dep_regexp, "\\2", dep))) {
+            if(nchar(sub(dep_regexp, "\\2", dep))) {
                 ## If not just a valid package name ...
                 if(!sub(dep_regexp, "\\3", dep) %in% c("<=", ">="))
                     bad_dep_op <- c(bad_dep_op, dep)
@@ -3085,62 +3141,6 @@ function(x, ...)
     invisible(x)
 }
 
-### * .check_package_description_encoding
-
-.check_package_description_encoding <-
-function(dfile)
-{
-    dfile <- file_path_as_absolute(dfile)
-    db <- .read_description(dfile)
-    out <- list()
-
-    ## Check encoding-related things.
-
-    ## All field tags must be ASCII.
-    if(any(ind <- !.is_ASCII(names(db))))
-        out$fields_with_non_ASCII_tags <- names(db)[ind]
-
-    if(! "Encoding" %in% names(db)) {
-        ind <- !.is_ASCII(db)
-        if(any(ind)) {
-            out$missing_encoding <- TRUE
-            out$fields_with_non_ASCII_values <- names(db)[ind]
-        }
-    } else {
-        enc <- db[["Encoding"]]
-        if (! enc %in% c("latin1", "latin2", "UTF-8"))
-            out$non_portable_encoding <- enc
-    }
-
-    class(out) <- "check_package_description_encoding"
-    out
-}
-
-print.check_package_description_encoding<-
-function(x, ...)
-{
-    if(length(x$non_portable_encoding))
-       writeLines(c(gettextf("Encoding '%s' is not portable",
-                             x$non_portable_encoding),
-                    ""))
-    if(length(x$missing_encoding))
-        writeLines(gettext("Unknown encoding with non-ASCII data"))
-    if(length(x$fields_with_non_ASCII_tags)) {
-        writeLines(gettext("Fields with non-ASCII tags:"))
-        .pretty_print(x$fields_with_non_ASCII_tags)
-        writeLines(c(gettext("All field tags must be ASCII."), ""))
-    }
-    if(length(x$fields_with_non_ASCII_values)) {
-        writeLines(gettext("Fields with non-ASCII values:"))
-        .pretty_print(x$fields_with_non_ASCII_values)
-    }
-    if(any(as.integer(sapply(x, length))))
-        writeLines(c(strwrap(gettextf("See the information on DESCRIPTION files in section 'Creating R packages' of the 'Writing R Extensions' manual.")),
-                     ""))
-
-    invisible(x)
-}
-
 ### * .check_make_vars
 
 .check_make_vars <-
@@ -3220,116 +3220,8 @@ function(x, ...)
 function(package, lib.loc = NULL)
 {
     is_base <- package == "base"
-    if(!is_base) {
+    if(!is_base)
         .load_package_quietly(package, lib.loc)
-
-        capture.output({
-        ## avoid warnings about code in other packages the package uses
-        desc <- .readRDS(file.path(.find.package(package, NULL),
-                                   "Meta", "package.rds"))
-        pkgs1 <- sapply(desc$Suggests, "[[", "name")
-        pkgs2 <- sapply(desc$Enhances, "[[", "name")
-	## add tcltk for now, as many packages require() but not Suggests it
-        for( pkg in unique(c(pkgs1, pkgs2, "tcltk")) )
-            ## tcltk warns if no DISPLAY variable
-            suppressWarnings(suppressMessages(try(require(pkg, character.only = TRUE, quietly=TRUE),
-                                                  silent = TRUE)))
-                       })
-
-        compat <- new.env(hash=TRUE)
-        if(.Platform$OS.type != "unix") {
-            assign("nsl", function(hostname) {}, envir = compat)
-            assign("X11Font", function(font) {}, envir = compat)
-            assign("X11Fonts", function(...) {}, envir = compat)
-            assign("quartz",
-                   function(display = "", width = 5, height = 5,
-                            pointsize = 12, family = "Helvetica",
-                            antialias = TRUE, autorefresh = TRUE) {},
-                   envir = compat)
-            assign("quartzFont", function(font) {}, envir = compat)
-            assign("quartzFonts", function(...) {}, envir = compat)
-        }
-        if(.Platform$OS.type != "windows") {
-            assign("bringToTop", function (which = dev.cur(), stay = FALSE) {},
-                   envir = compat)
-            assign("choose.dir",
-                   function (default = "", caption = "Select folder") {},
-                   envir = compat)
-            assign("choose.files",
-                   function (default = "", caption = "Select files",
-                             multi = TRUE, filters = Filters,
-                             index = nrow(Filters)) {}, envir = compat)
-            assign("DLL.version", function(path) {}, envir = compat)
-            assign("getClipboardFormats", function() {}, envir = compat)
-            assign("getIdentification", function() {}, envir = compat)
-            assign("getWindowsHandle", function(which = "Console") {},
-                   envir = compat)
-            assign("getWindowTitle", function() {}, envir = compat)
-            assign("readClipboard", function(format = 1, raw = FALSE) {},
-                   envir = compat)
-            assign("setWindowTitle",
-                   function(suffix, title = paste(getIdentification(), suffix)) {},
-                   envir = compat)
-            assign("shell",
-                   function(cmd, shell, flag = "/c", intern = FALSE,
-                            wait = TRUE, translate = FALSE, mustWork = FALSE,
-                            ...) {},
-                   envir = compat)
-            assign("shell.exec", function(file) {}, envir = compat)
-            assign("shortPathName", function(path) {}, envir = compat)
-            assign("win.version", function() {}, envir = compat)
-            assign("zip.unpack", function(zipname, dest) {}, envir = compat)
-
-            assign("bmp",
-                   function (filename = "Rplot%03d.bmp", width = 480,
-                             height = 480, units = "px", pointsize = 12,
-                             bg = "white", res = NA, restoreConsole = TRUE) {},
-                   envir = compat)
-            assign("savePlot",
-                   function (filename = "Rplot",
-                             type = c("wmf", "emf", "png", "jpeg", "jpg",
-                             "bmp", "ps", "eps", "pdf"),
-                             device = dev.cur(), restoreConsole = TRUE) {},
-                   envir = compat)
-            assign("win.graph",
-                   function(width = 7, height = 7, pointsize = 12,
-                            restoreConsole = FALSE) {}, envir = compat)
-            assign("win.metafile",
-                   function (filename = "", width = 7, height = 7,
-                             pointsize = 12, restoreConsole = TRUE) {},
-                   envir = compat)
-            assign("win.print",
-                   function(width = 7, height = 7, pointsize = 12,
-                            printer = "", restoreConsole = TRUE) {},
-                   envir = compat)
-            assign("windows",
-                   function(width = 7, height = 7, pointsize = 12,
-                            record = getOption("graphics.record"),
-                            rescale = c("R", "fit", "fixed"), xpinch, ypinch,
-                            bg = "transparent", canvas = "white",
-                            gamma = getOption("gamma"),
-                            xpos = NA, ypos = NA,
-                            buffered = getOption("windowsBuffered"),
-                            restoreConsole = FALSE) {}, envir = compat)
-            assign("windowsFont", function(font) {}, envir = compat)
-            assign("windowsFonts", function(...) {}, envir = compat)
-
-            assign("winDialog", function(type = "ok", message) {},
-                   envir = compat)
-            assign("winDialogString", function(message, default) {},
-                   envir = compat)
-            assign("winMenuAdd", function(menuname) {}, envir = compat)
-            assign("winMenuAddItem", function(menuname, itemname, action) {},
-                   envir = compat)
-            assign("winMenuDel", function(menuname) {}, envir = compat)
-            assign("winMenuDelItem", function(menuname, itemname) {},
-                   envir = compat)
-            assign("winMenuNames", function() {}, envir = compat)
-            assign("winMenuItems", function(menuname) {}, envir = compat)
-        }
-        attach(compat, name="compat", pos = length(search()),
-               warn.conflicts = FALSE)
-    }
 
     ## A simple function for catching the output from the codetools
     ## analysis using the checkUsage report mechanism.
@@ -3349,7 +3241,6 @@ function(package, lib.loc = NULL)
                                                   report = foo,
                                                   suppressLocalUnused = TRUE,
                                                   skipWith = TRUE))
-    out <- unique(out)
     class(out) <- "check_code_usage_in_package"
     out
 }
@@ -3380,17 +3271,13 @@ function(package, dir, lib.loc = NULL)
     ## Add the aliases from the package itself, and build a db with all
     ## \link xrefs in the package Rd objects.
     if(!missing(package)) {
-        aliases1 <- Rd_aliases(package, lib.loc = lib.loc)
-        if(!length(aliases1))
-            return(structure(NULL, class = "check_Rd_xrefs"))
-        aliases <- c(aliases, list(aliases1))
+        aliases <-
+            c(aliases, list(Rd_aliases(package, lib.loc = lib.loc)))
         db <- .build_Rd_xref_db(package, lib.loc = lib.loc)
     }
     else {
-        aliases1 <- Rd_aliases(dir = dir)
-        if(!length(aliases1))
-            return(structure(NULL, class = "check_Rd_xrefs"))
-        aliases <- c(aliases, list(aliases1))
+        aliases <-
+            c(aliases, list(Rd_aliases(dir = dir)))
         db <- .build_Rd_xref_db(dir = dir)
     }
 
@@ -3465,7 +3352,7 @@ function(pkgDir)
     setwd(old)
 
     non_ASCII <- latin1 <- utf8 <- character(0)
-    for(ds in ls(envir = dataEnv, all.names = TRUE))
+    for(ds in ls(envir = dataEnv, all = TRUE))
         check_one(get(ds, envir = dataEnv))
     structure(list(latin1 = unique(latin1), utf8 = unique(utf8),
                    unknown = unique(non_ASCII)),
@@ -3492,6 +3379,230 @@ print.check_package_datasets <- function(x, ...)
     }
     x
 }
+
+### * as.alist.call
+
+as.alist.call <-
+function(x)
+{
+    y <- as.list(x)
+    ind <- if(is.null(names(y)))
+        seq_along(y)
+    else
+        which(names(y) == "")
+    if(any(ind)) {
+        names(y)[ind] <- sapply(y[ind],as.character)
+        y[ind] <- rep.int(list(alist(irrelevant = )[[1]]), length(ind))
+    }
+    y
+}
+
+### * as.alist.symbol
+
+as.alist.symbol <-
+function(x)
+{
+    as.alist.call(call(as.character(x)))
+}
+
+### * .arg_names_from_call
+
+.arg_names_from_call <-
+function(x)
+{
+    y <- as.character(x)
+    if(!is.null(nx <- names(x))) {
+        ind <- which(nx != "")
+        y[ind] <- nx[ind]
+    }
+    y
+}
+
+### * .functions_to_be_ignored_from_usage
+
+.functions_to_be_ignored_from_usage <-
+function(package_name)
+{
+    c("<-", "=",
+      if(package_name == "base")
+      c("(", "{", "function", "if", "for", "while", "repeat",
+        "Math", "Ops", "Summary", "Complex"),
+      if(package_name == "utils") "?",
+      if(package_name == "methods") "@")
+}
+
+### * .functions_with_no_useful_S3_method_markup
+
+.functions_with_no_useful_S3_method_markup <-
+function()
+{
+    ## Once upon a time ... there was no useful markup for S3 methods
+    ## for subscripting/subassigning and binary operators.  There is
+    ## still no such markup for *unary* operators, and, strictly
+    ## speaking, for S3 Ops group methods for binary operators [but it
+    ## seems that people do not want to provide explicit documentation
+    ## for these].
+    ##
+    ## Support for S3 methods for subscripting/subassigning was added
+    ## for R 2.1, and for S3 methods for binary operators in 2.2.
+    ## Markup for the former is a bit controversial, as some legacy docs
+    ## have non-synopsis-style \usage entries for these methods.  E.g.,
+    ## as of 2005-05-21, \link[base]{Extract.data.frame} has
+    ##   x[i]
+    ##   x[i] <- value
+    ##   x[i, j, drop = TRUE]
+    ##   x[i, j] <- value
+    ## Hence, we provide internal environment variables for controlling
+    ## what should be ignored.
+    c(if(!identical(as.logical(Sys.getenv("_R_CHECK_RD_USAGE_METHOD_SUBSET_")),
+                    TRUE))
+      c("[", "[[", "$", "[<-", "[[<-", "$<-"),
+      if(identical(as.logical(Sys.getenv("_R_CHECK_RD_USAGE_METHOD_BINOPS_")),
+                   FALSE))
+      c("+", "-", "*", "/", "^", "<", ">", "<=", ">=", "!=", "==", "%%",
+        "%/%", "&", "|"),
+      ## Current, nothing for unary operators.
+      "!")
+}
+
+### * .is_call_from_replacement_function_usage
+
+.is_call_from_replacement_function_usage <-
+function(x)
+{
+    ((length(x) == 3)
+     && (identical(x[[1]], as.symbol("<-")))
+     && (length(x[[2]]) > 1)
+     && is.symbol(x[[3]]))
+}
+
+### * .make_signatures
+
+.make_signatures <-
+function(cls)
+{
+    ## Note that (thanks JMC), when comparing signatures, the signature
+    ## has to be stripped of trailing "ANY" elements (which are always
+    ## implicit) or padded to a fixed length.
+    sub("(#ANY)*$", "", unlist(lapply(cls, paste, collapse = "#")))
+}
+
+### * .package_env
+
+.package_env <-
+function(package_name)
+{
+    as.environment(paste("package", package_name, sep = ":"))
+}
+
+### * .parse_text_as_much_as_possible
+
+.parse_text_as_much_as_possible <-
+function(txt)
+{
+    exprs <- try(parse(text = txt), silent = TRUE)
+    if(!inherits(exprs, "try-error")) return(exprs)
+    exprs <- expression()
+    lines <- unlist(strsplit(txt, "\n"))
+    bad_lines <- character()
+    while((n <- length(lines)) > 0) {
+        i <- 1; txt <- lines[1]
+        while(inherits(yy <- try(parse(text = txt), silent = TRUE),
+                       "try-error")
+              && (i < n)) {
+            i <- i + 1; txt <- paste(txt, lines[i], collapse = "\n")
+        }
+        if(inherits(yy, "try-error")) {
+            bad_lines <- c(bad_lines, lines[1])
+            lines <- lines[-1]
+        }
+        else {
+            exprs <- c(exprs, yy)
+            lines <- lines[-seq_len(i)]
+        }
+    }
+    attr(exprs, "bad_lines") <- bad_lines
+    exprs
+}
+
+### * .parse_usage_as_much_as_possible
+
+.parse_usage_as_much_as_possible <-
+function(txt)
+{
+    txt <- gsub("\\\\l?dots", "...", txt)
+    txt <- gsub("\\\\%", "%", txt)
+    txt <- .Rd_transform_command(txt, "special", function(u) NULL)
+    txt <- gsub(.S3_method_markup_regexp, "\"\\\\\\1\"", txt)
+    txt <- gsub(.S4_method_markup_regexp, "\"\\\\\\1\"", txt)
+    ## Transform <<see below>> style markup so that we can catch and
+    ## throw it, rather than "basically ignore" it by putting it in the
+    ## bad_lines attribute.
+    txt <- gsub("(<<?see below>>?)", "`\\1`", txt)
+    ## \usage is only 'verbatim-like'
+    ## 'LanguageClasses.Rd' in package methods has '"\{"' in its usage
+    txt <- gsub("\\\\\\{", "{", txt)
+    txt <- gsub("\\\\\\}", "}", txt)
+    txt <- gsub("\\\\%", "%", txt)
+    ## yes really 16, as we want 4 in the Rd file coverted to 2.
+    txt <- gsub("\\\\\\\\\\\\\\\\", "\\\\\\\\", txt)
+    .parse_text_as_much_as_possible(txt)
+}
+
+### * .pretty_print
+
+.pretty_print <-
+function(x)
+{
+    writeLines(strwrap(paste(x, collapse = " "),
+                       indent = 2, exdent = 2))
+}
+
+### * .transform_S3_method_markup
+
+.transform_S3_method_markup <-
+function(x)
+{
+    ## Note how we deal with S3 replacement methods found.
+    ## These come out named "\method{GENERIC}{CLASS}<-" which we
+    ## need to turn into 'GENERIC<-.CLASS'.
+    sub(sprintf("%s(<-)?", .S3_method_markup_regexp),
+        "\\3\\5.\\4",
+        x)
+}
+
+### * .S3_method_markup_regexp
+
+## For matching \(S3)?method{GENERIC}{CLASS}.
+## GENERIC can be
+## * a syntactically valid name
+## * one of $ [ [[
+## * one of the binary operators
+##   + - * / ^ < <= > >= != == | & %something%
+## (as supported by Rdconv).
+## See also .functions_with_no_useful_S3_method_markup.
+
+.S3_method_markup_regexp <-
+    sprintf("(\\\\(S3)?method\\{(%s)\\}\\{(%s)\\})",
+            paste(c("[._[:alnum:]]*",
+                    ## Subscripting
+                    "\\$", "\\[\\[?",
+                    ## Binary operators
+                    "\\+", "\\-", "\\*", "\\/", "\\^", "<=?", ">=?",
+                    "!=", "==", "\\&", "\\|",
+                    "\\%[[:alnum:][:punct:]]*\\%"),
+                  collapse = "|"),
+            "[._[:alnum:]]*")
+
+### * .S4_method_markup_regexp
+
+## For matching \S4method{GENERIC}{SIGLIST}.
+
+.S4_method_markup_regexp <-
+    sprintf("(\\\\S4method\\{(%s)\\}\\{(%s)\\})",
+            "[._[:alnum:]]*",
+            "[._[:alnum:],]*")
+
 
 ### * .check_package_subdirs
 
@@ -3727,7 +3838,7 @@ function(x, ...)
         xi <- x[[i]]
         if(length(xi$Error)) {
             msg <- gsub("\n", "\n  ", sub("[^:]*: *", "", xi$Error),
-			perl = TRUE, useBytes = TRUE)
+			useBytes = TRUE)
             writeLines(c(sprintf("Error in file '%s':", xi$File),
                          paste(" ", msg)))
         }
@@ -3737,7 +3848,7 @@ function(x, ...)
                                           "Warnings in file '%s':"),
                                  xi$File),
                          paste(" ", gsub("\n\n", "\n  ", xi$Warnings,
-					 perl = TRUE, useBytes = TRUE))))
+					 useBytes = TRUE))))
     }
     invisible(x)
 }
@@ -3882,13 +3993,9 @@ function(package, dir, lib.loc = NULL)
     ## it is OK to refer to yourself and non-S4 standard packages
     standard_package_names <-
         .get_standard_package_names()$base %w/o% c("methods", "stats4")
-    ## It helps to know if non-default standard packages are require()d
-    default_package_names<-
-         standard_package_names %w/o% c("grid", "splines", "tcltk", "tools")
     depends_suggests <- c(depends, suggests, pkg_name, contains,
-                          default_package_names)
-    imports <- c(imports, depends, suggests, enhances, pkg_name, contains,
-                 standard_package_names)
+                          standard_package_names)
+    imports <- c(imports, depends_suggests, enhances)
     ## the first argument could be named, or could be a variable name.
     ## we just have a stop list here.
     common_names <- c("pkg", "pkgName", "package", "pos")
@@ -3926,10 +4033,10 @@ function(package, dir, lib.loc = NULL)
                         bad_exprs <<- c(bad_exprs, pkg)
                 }
             } else if(Call %in%  "::") {
+                ## <FIXME> fathom out if this package has a namespace
                 if(! pkg %in% imports)
                     bad_imports <<- c(bad_imports, pkg)
             } else if(Call %in%  ":::") {
-                ## <FIXME> fathom out if this package has a namespace
                 if(! pkg %in% imports)
                     bad_imports <<- c(bad_imports, pkg)
             } else if(Call %in% c("setClass", "setMethod")) {
@@ -3952,8 +4059,34 @@ function(package, dir, lib.loc = NULL)
             ## Also check the code in S4 methods.
             ## This may find things twice.
             for(f in .get_S4_generics_really_in_env(code_env)) {
-                mlist <- .get_S4_methods_list(f, code_env)
-                exprs <- c(exprs, lapply(mlist$methods, body))
+                meths <- .get_S4_methods_list(f, code_env)
+                bodies <- lapply(methods::slot(meths, "methods"), body)
+                ## Exclude methods inherited from the 'appropriate'
+                ## parent environment.
+                ## <NOTE>
+                ## Keep this in sync with similar code in undoc().
+                ## Note that direct comparison of
+                ##   lapply(methods::slot(meths, "methods"), environment)
+                ## to code_env is not quite right ...
+                penv <- .Internal(getRegisteredNamespace(as.name(package)))
+                if(is.environment(penv))
+                    penv <- parent.env(penv)
+                else
+                    penv <- parent.env(code_env)
+                if((f %in% .get_S4_generics_really_in_env(penv))
+                    && !is.null(mlist_from_penv <-
+                                methods::getMethodsMetaData(f, penv))) {
+                    classes_from_cenv <-
+                        methods::slot(meths, "classes")
+                    classes_from_penv <-
+                        methods::slot(methods::linearizeMlist(mlist_from_penv),
+                                      "classes")
+                    ind <- is.na(match(.make_signatures(classes_from_cenv),
+                                       .make_signatures(classes_from_penv)))
+                    bodies <- bodies[ind]
+                }
+                ## </NOTE>
+                exprs <- c(exprs, bodies)
             }
         }
     }
@@ -3994,7 +4127,7 @@ function(x, ...)
         writeLines(gettext("'library' or 'require' calls not declared from:"))
         .pretty_print(x$others)
     }
-    if(nzchar(x$methods_message))
+    if(nchar(x$methods_message))
         writeLines(x$methods_message)
     invisible(x)
 }
@@ -4050,10 +4183,10 @@ function(package, dir, lib.loc = NULL)
     bad_examples <- character()
 
     find_bad_closures <- function(env) {
-        objects_in_env <- objects(env, all.names = TRUE)
+        objects_in_env <- objects(env, all = TRUE)
         x <- lapply(objects_in_env,
                     function(o) {
-                        v <- get(o, envir = env)
+                        v <- get(o, env = env)
                         if (typeof(v) == "closure")
                             codetools::findGlobals(v)
                     })
@@ -4163,326 +4296,25 @@ print.check_T_and_F <- function(x, ...) {
     invisible(x)
 }
 
-### * .check_namespace
-
-.check_namespace <-
-function(dir)
-{
-    dir <- file_path_as_absolute(dir)
-    invisible(tryCatch(parseNamespaceFile(basename(dir), dirname(dir)),
-                       error = function(e) {
-                           writeLines("Invalid NAMESPACE file, parsing gives:")
-                           stop(e)
-                       }))
-}
-
-
-### * Utilities
-
-### ** as.alist.call
-
-as.alist.call <-
-function(x)
-{
-    y <- as.list(x)
-    ind <- if(is.null(names(y)))
-        seq_along(y)
-    else
-        which(names(y) == "")
-    if(any(ind)) {
-        names(y)[ind] <- sapply(y[ind],as.character)
-        y[ind] <- rep.int(list(alist(irrelevant = )[[1]]), length(ind))
-    }
-    y
-}
-
-### ** as.alist.symbol
-
-as.alist.symbol <-
-function(x)
-{
-    as.alist.call(call(as.character(x)))
-}
-
-### ** .arg_names_from_call
-
-.arg_names_from_call <-
-function(x)
-{
-    y <- as.character(x)
-    if(!is.null(nx <- names(x))) {
-        ind <- which(nx != "")
-        y[ind] <- nx[ind]
-    }
-    y
-}
-
-### ** .functions_to_be_ignored_from_usage
-
-.functions_to_be_ignored_from_usage <-
-function(package_name)
-{
-    c("<-", "=",
-      if(package_name == "base")
-      c("(", "{", "function", "if", "for", "while", "repeat",
-        "Math", "Ops", "Summary", "Complex"),
-      if(package_name == "utils") "?",
-      if(package_name == "methods") "@")
-}
-
-### ** .functions_with_no_useful_S3_method_markup
-
-.functions_with_no_useful_S3_method_markup <-
-function()
-{
-    ## Once upon a time ... there was no useful markup for S3 methods
-    ## for subscripting/subassigning and binary operators.  There is
-    ## still no such markup for *unary* operators, and, strictly
-    ## speaking, for S3 Ops group methods for binary operators [but it
-    ## seems that people do not want to provide explicit documentation
-    ## for these].
-    ##
-    ## Support for S3 methods for subscripting/subassigning was added
-    ## for R 2.1, and for S3 methods for binary operators in 2.2.
-    ## Markup for the former is a bit controversial, as some legacy docs
-    ## have non-synopsis-style \usage entries for these methods.  E.g.,
-    ## as of 2005-05-21, \link[base]{Extract.data.frame} has
-    ##   x[i]
-    ##   x[i] <- value
-    ##   x[i, j, drop = TRUE]
-    ##   x[i, j] <- value
-    ## Hence, we provide internal environment variables for controlling
-    ## what should be ignored.
-    c(if(!identical(as.logical(Sys.getenv("_R_CHECK_RD_USAGE_METHOD_SUBSET_")),
-                    TRUE))
-      c("[", "[[", "$", "[<-", "[[<-", "$<-"),
-      if(identical(as.logical(Sys.getenv("_R_CHECK_RD_USAGE_METHOD_BINOPS_")),
-                   FALSE))
-      c("+", "-", "*", "/", "^", "<", ">", "<=", ">=", "!=", "==", "%%",
-        "%/%", "&", "|"),
-      ## Current, nothing for unary operators.
-      "!")
-}
-
-### ** .get_S4_generics_really_in_env
+### .get_S4_generics_really_in_env
 
 .get_S4_generics_really_in_env <-
 function(env)
     .filter(methods::getGenerics(env),
             function(g) !is.null(methods::getGeneric(g, where = env)))
 
-### ** .get_S4_methods_list
-
 .get_S4_methods_list <-
 function(g, env)
 {
-    ## For the QC computations, we really only want the S4 methods
-    ## defined in a package, so we try to exclude derived default
-    ## methods as well as methods inherited from the "appropriate"
-    ## parent environment of 'env' or the associated name space env.
-
-    ## It was suggested that in 2.5.0 or later, we can use
+    ## Encapsulate what we used to do:
+    methods::linearizeMlist(methods::getMethodsMetaData(g, env),
+                            FALSE)
+    ## <FIXME>
+    ## Seems that from 2.5.0 on, we could also do
     ##   methods::listFromMethods(g, env)
-    ## instead of what we use below.  Not quite, compare e.g. the
-    ## difference we get for S4 generic coerce() and package methods:
-    ##    env <- as.environment("package:methods")
-    ##    mlist1 <- linearizeMlist(getMethodsMetaData("coerce", env))
-    ##    mlist2 <- listFromMethods("coerce", env)
-    ##    sigs1 <- tools:::.make_signatures(mlist1@classes)
-    ##    sigs2 <- tools:::.make_signatures(mlist2@classes)
-    ##    setdiff(sigs2, sigs1)
-    ## ???
-
-    mlist <- methods::getMethodsMetaData(g, env)
-
-    ## First, derived default methods.
-    has_derived_default <-
-        methods::is(methods::finalDefaultMethod(mlist),
-                    "derivedDefaultMethod")
-    mlist <- methods::linearizeMlist(mlist, FALSE)
-    classes <- methods::slot(mlist, "classes")
-    methods <- methods::slot(mlist, "methods")
-    ind <- as.logical(lapply(classes,
-                             function(x)
-                             identical(all(x == "ANY"), TRUE)))
-    if(any(ind) && has_derived_default) {
-        classes <- classes[!ind]
-        methods <- methods[!ind]
-    }
-
-    ## Second, inherited methods.
-    package <- sub(".*:([^_]*).*", "\\1", attr(env, "name", exact = TRUE))
-    ## (Ugly, but why not?)
-    penv <- if(length(package) && nzchar(package)) {
-        ## Seems that there is no other way to get the name space for a
-        ## given package (getNamespace() would try loading a name space
-        ## not found in the registry).
-        .Internal(getRegisteredNamespace(as.name(package)))
-    }
-    else
-        NULL
-    penv <- if(is.environment(penv))
-        parent.env(penv)
-    else
-        parent.env(env)
-    if((g %in% .get_S4_generics_really_in_env(penv))
-       && !is.null(mlist_from_penv <-
-                   methods::getMethodsMetaData(g, penv))) {
-        mlist_from_penv <-
-            methods::linearizeMlist(mlist_from_penv, FALSE)
-        classes_from_penv <- methods::slot(mlist_from_penv, "classes")
-        ind <- is.na(match(.make_signatures(classes),
-                           .make_signatures(classes_from_penv)))
-        classes <- classes[ind]
-        methods <- methods[ind]
-    }
-    ## Could now create a 'LinearMethodsList' object ...
-    list(classes = classes, methods = methods)
+    ## Maybe try this in 2.6.0?
+    ## </FIXME>
 }
-
-### ** .is_call_from_replacement_function_usage
-
-.is_call_from_replacement_function_usage <-
-function(x)
-{
-    ((length(x) == 3)
-     && (identical(x[[1]], as.symbol("<-")))
-     && (length(x[[2]]) > 1)
-     && is.symbol(x[[3]]))
-}
-
-### ** .make_siglist
-
-.make_siglist <-
-function(x)
-    as.character(sapply(x, paste, collapse = ","))
-
-### ** .make_signatures
-
-.make_signatures <-
-function(cls)
-{
-    ## Note that (thanks JMC), when comparing signatures, the signature
-    ## has to be stripped of trailing "ANY" elements (which are always
-    ## implicit) or padded to a fixed length.
-    sub("(#ANY)*$", "", unlist(lapply(cls, paste, collapse = "#")))
-}
-
-### ** .package_env
-
-.package_env <-
-function(package_name)
-{
-    as.environment(paste("package", package_name, sep = ":"))
-}
-
-### ** .parse_text_as_much_as_possible
-
-.parse_text_as_much_as_possible <-
-function(txt)
-{
-    exprs <- try(parse(text = txt), silent = TRUE)
-    if(!inherits(exprs, "try-error")) return(exprs)
-    exprs <- expression()
-    lines <- unlist(strsplit(txt, "\n"))
-    bad_lines <- character()
-    while((n <- length(lines)) > 0) {
-        i <- 1; txt <- lines[1]
-        while(inherits(yy <- try(parse(text = txt), silent = TRUE),
-                       "try-error")
-              && (i < n)) {
-            i <- i + 1; txt <- paste(txt, lines[i], collapse = "\n")
-        }
-        if(inherits(yy, "try-error")) {
-            bad_lines <- c(bad_lines, lines[1])
-            lines <- lines[-1]
-        }
-        else {
-            exprs <- c(exprs, yy)
-            lines <- lines[-seq_len(i)]
-        }
-    }
-    attr(exprs, "bad_lines") <- bad_lines
-    exprs
-}
-
-### ** .parse_usage_as_much_as_possible
-
-.parse_usage_as_much_as_possible <-
-function(txt)
-{
-    txt <- gsub("\\\\l?dots", "...", txt)
-    txt <- gsub("\\\\%", "%", txt)
-    txt <- .Rd_transform_command(txt, "special", function(u) NULL)
-    txt <- gsub(.S3_method_markup_regexp, "\"\\\\\\1\"", txt)
-    txt <- gsub(.S4_method_markup_regexp, "\"\\\\\\1\"", txt)
-    ## Transform <<see below>> style markup so that we can catch and
-    ## throw it, rather than "basically ignore" it by putting it in the
-    ## bad_lines attribute.
-    txt <- gsub("(<<?see below>>?)", "`\\1`", txt)
-    ## \usage is only 'verbatim-like'
-    ## 'LanguageClasses.Rd' in package methods has '"\{"' in its usage
-    txt <- gsub("\\\\\\{", "{", txt)
-    txt <- gsub("\\\\\\}", "}", txt)
-    txt <- gsub("\\\\%", "%", txt)
-    ## yes really 16, as we want 4 in the Rd file coverted to 2.
-    txt <- gsub("\\\\\\\\\\\\\\\\", "\\\\\\\\", txt)
-    .parse_text_as_much_as_possible(txt)
-}
-
-### ** .pretty_print
-
-.pretty_print <-
-function(x)
-{
-    writeLines(strwrap(paste(x, collapse = " "),
-                       indent = 2, exdent = 2))
-}
-
-### ** .transform_S3_method_markup
-
-.transform_S3_method_markup <-
-function(x)
-{
-    ## Note how we deal with S3 replacement methods found.
-    ## These come out named "\method{GENERIC}{CLASS}<-" which we
-    ## need to turn into 'GENERIC<-.CLASS'.
-    sub(sprintf("%s(<-)?", .S3_method_markup_regexp),
-        "\\3\\5.\\4",
-        x)
-}
-
-### ** .S3_method_markup_regexp
-
-## For matching \(S3)?method{GENERIC}{CLASS}.
-## GENERIC can be
-## * a syntactically valid name
-## * one of $ [ [[
-## * one of the binary operators
-##   + - * / ^ < <= > >= != == | & %something%
-## (as supported by Rdconv).
-## See also .functions_with_no_useful_S3_method_markup.
-
-.S3_method_markup_regexp <-
-    sprintf("(\\\\(S3)?method\\{(%s)\\}\\{(%s)\\})",
-            paste(c("[._[:alnum:]]*",
-                    ## Subscripting
-                    "\\$", "\\[\\[?",
-                    ## Binary operators
-                    "\\+", "\\-", "\\*", "\\/", "\\^", "<=?", ">=?",
-                    "!=", "==", "\\&", "\\|",
-                    "\\%[[:alnum:][:punct:]]*\\%"),
-                  collapse = "|"),
-            "[._[:alnum:]]*")
-
-### ** .S4_method_markup_regexp
-
-## For matching \S4method{GENERIC}{SIGLIST}.
-
-.S4_method_markup_regexp <-
-    sprintf("(\\\\S4method\\{(%s)\\}\\{(%s)\\})",
-            "[._[:alnum:]]*",
-            "[._[:alnum:],]*")
 
 ### Local variables: ***
 ### mode: outline-minor ***

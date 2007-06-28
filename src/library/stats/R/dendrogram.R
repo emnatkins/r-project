@@ -153,7 +153,7 @@ function (object, max.level = NA, digits.d = 3, give.attr = FALSE,
     if(!is.leaf(object)) {
 	le <- length(object)
 	if(give.attr) {
-	    if(nzchar(at <- pasteLis(at, c("class", "height", "members"))))
+	    if(nchar(at <- pasteLis(at, c("class", "height", "members"))))
 		at <- paste(",", at)
 	}
 	cat("[dendrogram w/ ", le, " branches and ", memb, " members at h = ",
@@ -177,7 +177,7 @@ function (object, max.level = NA, digits.d = 3, give.attr = FALSE,
 	if(memb != 1) #MM: when can this happen?
 	    cat(if(any.at)", " else {any.at <- TRUE; "("}, "memb= ",memb,sep="")
 	at <- pasteLis(at, c("class", "height", "members", "leaf", "label"))
-	if(any.at || nzchar(at)) cat(if(!any.at)"(", at, ")")
+	if(any.at || nchar(at)) cat(if(!any.at)"(", at, ")")
 	cat("\n")
     }
 }
@@ -261,8 +261,8 @@ plotNode <-
 	cat(if(inner)"inner node" else "leaf", ":")
 	if(!is.null(nPar)) { cat(" with node pars\n"); str(nPar) }
 	cat(if(inner)paste(" height", formatC(yTop),"; "),
-	    "(x1,x2)= (",formatC(x1,width=4),",",formatC(x2,width=4),")",
-	    "--> xTop=", formatC(xTop, width=8),"\n", sep="")
+	    "(x1,x2)= (",formatC(x1,wid=4),",",formatC(x2,wid=4),")",
+	    "--> xTop=", formatC(xTop, wid=8),"\n", sep="")
     }
 
     Xtract <- function(nam, L, default, indx)

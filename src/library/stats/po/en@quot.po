@@ -27,10 +27,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.6.0\n"
+"Project-Id-Version: R 2.5.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2007-06-12 18:52+0100\n"
-"PO-Revision-Date: 2007-06-12 18:52+0100\n"
+"POT-Creation-Date: 2007-04-10 07:42+0100\n"
+"PO-Revision-Date: 2007-04-10 07:42+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -50,13 +50,13 @@ msgstr "probabilities outside [0,1] in qansari()"
 msgid "invalid argument type"
 msgstr "invalid argument type"
 
-#: arima.c:418 arima.c:502 pacf.c:308 pacf.c:348
+#: arima.c:418 arima.c:502 pacf.c:314 pacf.c:354
 msgid "can only transform 100 pars in arima0"
 msgstr "can only transform 100 pars in arima0"
 
 #: distance.c:151
-msgid "treating non-finite values as NA"
-msgstr "treating non-finite values as NA"
+msgid "dist(.,\"binary\"): treating non-finite values as NA"
+msgstr "dist(.,“binary”): treating non-finite values as NA"
 
 #: distance.c:220
 msgid "distance(): invalid p"
@@ -171,17 +171,17 @@ msgstr "variable ‘%s’ is not numeric"
 msgid "bad Starma struct"
 msgstr "bad Starma struct"
 
-#: pacf.c:227
+#: pacf.c:228
 #, c-format
 msgid "starma error code %d"
 msgstr "starma error code %d"
 
-#: pacf.c:287
+#: pacf.c:293
 #, c-format
 msgid "forkal error code %d"
 msgstr "forkal error code %d"
 
-#: pacf.c:451
+#: pacf.c:457
 msgid "invalid value of lag.max"
 msgstr "invalid value of lag.max"
 

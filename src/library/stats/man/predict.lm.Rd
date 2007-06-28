@@ -107,8 +107,6 @@
   \code{\link{SafePrediction}}
 }
 \examples{
-require(graphics)
-
 ## Predictions
 x <- rnorm(15)
 y <- x + rnorm(15)

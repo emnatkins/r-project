@@ -67,8 +67,6 @@ termplot(model, data=NULL, envir=environment(formula(model)),
 \seealso{For (generalized) linear models, \code{\link{plot.lm}} and
   \code{\link{predict.glm}}.}
 \examples{
-require(graphics)
-
 had.splines <- "package:splines" \%in\% search()
 if(!had.splines) rs <- require(splines)
 x <- 1:100
@@ -79,8 +77,8 @@ model <- glm(y ~ ns(x,6) + z)
 par(mfrow=c(2,2)) ## 2 x 2 plots for same model :
 termplot(model, main = paste("termplot( ", deparse(model$call)," ...)"))
 termplot(model, rug=TRUE)
-termplot(model, partial.resid=TRUE, se = TRUE, main = TRUE)
-termplot(model, partial.resid=TRUE, smooth=panel.smooth,span.smth=1/4)
+termplot(model, partial=TRUE, se = TRUE, main = TRUE)
+termplot(model, partial=TRUE, smooth=panel.smooth,span.smth=1/4)
 if(!had.splines && rs) detach("package:splines")
 }
 \keyword{hplot}

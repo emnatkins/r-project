@@ -33,8 +33,13 @@ static Rboolean neWithNaN(double x,  double y);
 
 SEXP attribute_hidden do_identical(SEXP call, SEXP op, SEXP args, SEXP env)
 {
+    SEXP ans;
+
     checkArity(op, args);
-    return ScalarLogical( compute_identical(CAR(args), CADR(args)) );
+    PROTECT(ans = allocVector(LGLSXP, 1));
+    LOGICAL(ans)[0] = compute_identical(CAR(args), CADR(args));
+    UNPROTECT(1);
+    return(ans);
 }
 
 /* do the two objects compute as identical? */
@@ -70,7 +75,7 @@ Rboolean attribute_hidden compute_identical(SEXP x, SEXP y)
 	    /* They are the same length and should have 
 	       unique non-empty non-NA tags */
 	    for(elx = ax; elx != R_NilValue; elx = CDR(elx)) {
-		const char *tx = CHAR(PRINTNAME(TAG(elx)));
+		char *tx = CHAR(PRINTNAME(TAG(elx)));
 		for(ely = ay; ely != R_NilValue; ely = CDR(ely))
 		    if(streql(tx, CHAR(PRINTNAME(TAG(ely))))) {
 			/* We need to treat row.names specially here */

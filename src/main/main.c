@@ -132,12 +132,12 @@ char *R_PromptString(int browselevel, int type)
 		sprintf(BrowsePrompt, "Browse[%d]> ", browselevel);
 		return BrowsePrompt;
 	    }
-	    return (char *)CHAR(STRING_ELT(GetOption(install("prompt"),
-						     R_BaseEnv), 0));
+	    return (char*)CHAR(STRING_ELT(GetOption(install("prompt"),
+						    R_BaseEnv), 0));
 	}
 	else {
-	    return (char *)CHAR(STRING_ELT(GetOption(install("continue"),
-						     R_BaseEnv), 0));
+	    return (char*)CHAR(STRING_ELT(GetOption(install("continue"),
+						    R_BaseEnv), 0));
 	}
     }
 }
@@ -386,6 +386,11 @@ int R_ReplDLLdo1()
 /* specific tasks (dialog window creation etc) have been performed. */
 /* We can now print a greeting, run the .First function and then enter */
 /* the read-eval-print loop. */
+
+
+FILE* R_OpenSysInitFile(void);
+FILE* R_OpenSiteFile(void);
+FILE* R_OpenInitFile(void);
 
 static RETSIGTYPE handleInterrupt(int dummy)
 {
@@ -658,6 +663,7 @@ void setup_Rmainloop(void)
 #ifdef ENABLE_NLS
     char localedir[PATH_MAX+20];
 #endif
+
     InitConnections(); /* needed to get any output at all */
 
     /* Initialize the interpreter's internal structures. */
@@ -719,7 +725,6 @@ void setup_Rmainloop(void)
     InitRand();
     InitTempDir(); /* must be before InitEd */
     InitMemory();
-    InitStringHash(); /* must be before InitNames */
     InitNames();
     InitBaseEnv();
     InitGlobalEnv();
@@ -980,7 +985,7 @@ static int ParseBrowser(SEXP CExpr, SEXP rho)
 {
     int rval = 0;
     if (isSymbol(CExpr)) {
-	const char *expr = CHAR(PRINTNAME(CExpr));
+	char *expr = CHAR(PRINTNAME(CExpr));
 	if (!strcmp(expr, "n")) {
 	    SET_DEBUG(rho, 1);
 	    rval = 1;
@@ -1122,7 +1127,7 @@ void R_dot_Last(void)
 
 SEXP attribute_hidden do_quit(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    const char *tmp;
+    char *tmp;
     SA_TYPE ask=SA_DEFAULT;
     int status, runLast;
 
@@ -1136,7 +1141,7 @@ SEXP attribute_hidden do_quit(SEXP call, SEXP op, SEXP args, SEXP rho)
     if( !strcmp(tmp, "ask") ) {
 	ask = SA_SAVEASK;
 	if(!R_Interactive)
-	    warning(_("save=\"ask\" in non-interactive use: command-line default will be used"));
+	    warningcall(call, _("save=\"ask\" in non-interactive use: command-line default will be used"));
     } else if( !strcmp(tmp, "no") )
 	ask = SA_NOSAVE;
     else if( !strcmp(tmp, "yes") )
@@ -1147,12 +1152,12 @@ SEXP attribute_hidden do_quit(SEXP call, SEXP op, SEXP args, SEXP rho)
 	errorcall(call, _("unrecognized value of 'save'"));
     status = asInteger(CADR(args));
     if (status == NA_INTEGER) {
-        warning(_("invalid 'status', 0 assumed"));
+        warningcall(call, _("invalid 'status', 0 assumed"));
 	runLast = 0;
     }
     runLast = asLogical(CADDR(args));
     if (runLast == NA_LOGICAL) {
-        warning(_("invalid 'runLast', FALSE assumed"));
+        warningcall(call, _("invalid 'runLast', FALSE assumed"));
 	runLast = 0;
     }
     /* run the .Last function. If it gives an error, will drop back to main
@@ -1306,6 +1311,7 @@ R_removeTaskCallback(SEXP which)
 {
     int id;
     Rboolean val;
+    SEXP status;
 
     if(TYPEOF(which) == STRSXP) {
 	val = Rf_removeTaskCallbackByName(CHAR(STRING_ELT(which, 0)));
@@ -1313,7 +1319,10 @@ R_removeTaskCallback(SEXP which)
 	id = asInteger(which) - 1;
 	val = Rf_removeTaskCallbackByIndex(id);
     }
-    return ScalarLogical(val);
+    status = allocVector(LGLSXP, 1);
+    LOGICAL(status)[0] = val;
+
+    return(status);
 }
 
 SEXP
@@ -1332,7 +1341,8 @@ R_getTaskCallbackNames()
     n = 0;
     el = Rf_ToplevelTaskHandlers;
     while(el) {
-	SET_STRING_ELT(ans, n, mkChar(el->name));
+	SET_STRING_ELT(ans, n, allocString(strlen(el->name)));
+	strcpy(CHAR(STRING_ELT(ans, n)), el->name);
 	n++;
 	el = el->next;
     }
@@ -1414,9 +1424,11 @@ R_taskCallbackRoutine(SEXP expr, SEXP value, Rboolean succeeded,
     cur = CDR(cur);
     SETCAR(cur, value);
     cur = CDR(cur);
-    SETCAR(cur, ScalarLogical(succeeded));
+    SETCAR(cur, tmp = allocVector(LGLSXP, 1));
+    LOGICAL(tmp)[0] = succeeded;
     cur = CDR(cur);
-    SETCAR(cur, tmp = ScalarLogical(visible));
+    SETCAR(cur, tmp = allocVector(LGLSXP, 1));
+    LOGICAL(tmp)[0] = visible;
     if(useData) {
 	cur = CDR(cur);
 	SETCAR(cur, VECTOR_ELT(f, 1));
@@ -1444,7 +1456,7 @@ R_addTaskCallback(SEXP f, SEXP data, SEXP useData, SEXP name)
     SEXP internalData;
     SEXP index;
     R_ToplevelCallbackEl *el;
-    const char *tmpName = NULL;
+    char *tmpName = NULL;
 
     internalData = allocVector(VECSXP, 3);
     R_PreserveObject(internalData);
@@ -1461,7 +1473,10 @@ R_addTaskCallback(SEXP f, SEXP data, SEXP useData, SEXP name)
 			    INTEGER(index));
 
     if(length(name) == 0) {
-	PROTECT(name = mkString(el->name));
+	PROTECT(name = allocVector(STRSXP, 1));
+        SET_STRING_ELT(name, 0, allocString(strlen(el->name)));
+	strcpy(CHAR(STRING_ELT(name, 0)), el->name);
+
         setAttrib(index, R_NamesSymbol, name);
 	UNPROTECT(1);
     } else {

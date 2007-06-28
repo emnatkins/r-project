@@ -132,8 +132,8 @@ print(pi, digits = 16)
 LETTERS[1:16]
 print(LETTERS, quote = FALSE)
 
-M <- cbind(I=1, matrix(1:10000, ncol=10, dimnames=list(NULL, LETTERS[1:10])))
-utils::head(M) # makes more sense than
+M <- cbind(I=1, matrix(1:10000, nc=10, dimnames=list(NULL, LETTERS[1:10])))
+head(M) # makes more sense than
 print(M, max= 1000)# prints 90 rows and a message about omitting 910
 }
 \keyword{print}

@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.6.0\n"
+"Project-Id-Version: R 2.5.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-05-25 12:19\n"
-"PO-Revision-Date: 2007-05-25 12:19\n"
+"POT-Creation-Date: 2007-04-03 11:43\n"
+"PO-Revision-Date: 2007-04-03 11:43\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -165,9 +165,6 @@ msgid ""
 msgstr ""
 "the method for function “%s” and signature %s is sealed and cannot be re-"
 "defined"
-
-msgid "argument in method definition changed from (%s) to (%s)"
-msgstr "argument in method definition changed from (%s) to (%s)"
 
 msgid ""
 "primitive functions cannot be methods; they must be enclosed in a regular "

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-06-06 11:24\n"
+"POT-Creation-Date: 2007-06-12 18:43\n"
 "PO-Revision-Date: 2007-04-13 12:13+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -535,10 +535,6 @@ msgstr "seules les diagonales des matrices peuvent être remplacées"
 msgid "replacement diagonal has wrong length"
 msgstr "la diagonale a une mauvaise longueur pour le remplacement"
 
-#, fuzzy
-msgid "'fromLast' must be TRUE or FALSE"
-msgstr "'quote' doit être 'TRUE', 'FALSE' ou numérique"
-
 msgid "MARGIN ="
 msgstr "MARGIN ="
 
@@ -679,12 +675,12 @@ msgstr "' non trouvée"
 msgid "all arguments must be named"
 msgstr "tous les arguments doivent être nommés"
 
+#, fuzzy
+msgid "argument '%s' will be ignored"
+msgstr "l'argument 'drop' sera ignoré"
+
 msgid "'pattern' must be a non-empty character string"
 msgstr "'pattern' doit être une chaîne de caractères non vide"
-
-#, fuzzy
-msgid "invalid multibyte string for 'pattern'"
-msgstr "chaîne de caractères incorrecte pour 'by'"
 
 msgid "'max.distance' must be non-negative"
 msgstr "'max.distance' ne peut être négatif"
@@ -769,12 +765,6 @@ msgstr ""
 
 msgid "package/namespace load failed for '%s'"
 msgstr "le chargement du package / espace de noms a échoué pour '%s'"
-
-#, fuzzy
-msgid "package was installed prior to 2.4.0 and must be re-installed"
-msgstr ""
-"le package '%s' a été compilé avant R 2.0.0 : veuillez réinstaller une "
-"version plus récente, s'il-vous-plait"
 
 msgid "unable to load R code in package '%s'"
 msgstr "impossible de charger le code R depuis le package '%s'"
@@ -1444,6 +1434,9 @@ msgstr ""
 msgid "'input' must be a character vector or 'NULL'"
 msgstr "'input' doit être un vecteur de chaînes de caractères ou 'NULL'"
 
+msgid "argument must be character"
+msgstr "l'argument doit être de mode caractère"
+
 msgid "'cmd' could not be run"
 msgstr "'cmd' ne peut être exécuté"
 
@@ -1477,15 +1470,13 @@ msgid_plural "there are no packages called"
 msgstr[0] "aucun package nommé '%s' n'est trouvé"
 msgstr[1] "aucun packages nommé '%s' n'est trouvé"
 
-#, fuzzy
-msgid "object '%s' is not exported by 'namespace:%s'"
-msgid_plural "objects '%s' are not exported by 'namespace:%s'"
+msgid "object %s is not exported by 'namespace:%s'"
+msgid_plural "objects %s are not exported by 'namespace:%s'"
 msgstr[0] "l'objet %s n'est pas exporté par 'namespace:%s'"
 msgstr[1] "les objets %s ne sont pas exportés par 'namespace:%s'"
 
-#, fuzzy
-msgid "previous export '%s' is being replaced"
-msgid_plural "previous exports '%s' are being replaced"
+msgid "previous export %s is being replaced"
+msgid_plural "previous exports %s are being replaced"
 msgstr[0] "l'exportation précédente %s a été remplacée"
 msgstr[1] "les exportations précédentes %s ont été remplacées"
 
@@ -1499,9 +1490,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Message d'avis :\n"
 msgstr[1] "Messages d'avis :\n"
-
-#~ msgid "argument must be character"
-#~ msgstr "l'argument doit être de mode caractère"
 
 #~ msgid "'all' can not be used with other deparse options"
 #~ msgstr "'all' ne peut être utilisé avec d'autres options de 'deparse'"
@@ -1547,6 +1535,9 @@ msgstr[1] "Messages d'avis :\n"
 
 #~ msgid "conversion to factor is deprecated"
 #~ msgstr "la conversion en facteur est obsolète"
+
+#~ msgid "'quote' must be 'TRUE', 'FALSE' or numeric"
+#~ msgstr "'quote' doit être 'TRUE', 'FALSE' ou numérique"
 
 #~ msgid "invalid numbers in 'quote'"
 #~ msgstr "nombres incorrects dans 'quote'"

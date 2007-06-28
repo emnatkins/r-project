@@ -11,7 +11,7 @@
   for its left operand.
 }
 \usage{
-match(x, table, nomatch = NA_integer_, incomparables = FALSE)
+match(x, table, nomatch = NA, incomparables = FALSE)
 
 x \%in\% table
 }

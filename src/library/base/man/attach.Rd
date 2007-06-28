@@ -73,8 +73,6 @@ attach(what, pos = 2, name = deparse(substitute(what)),
   \code{\link{objects}}, \code{\link{environment}}, \code{\link{with}}.
 }
 \examples{
-require(utils)
-
 summary(women$height)   # refers to variable 'height' in the data frame
 attach(women)
 summary(height)         # The same variable now available by name

@@ -138,7 +138,7 @@ function(file, topic)
         on.exit(close(file))
     }
     valid_lines <- lines <- readLines(file, warn = FALSE)
-    valid_lines[is.na(nchar(lines, "c", TRUE))] <- ""
+    valid_lines[is.na(nchar(lines, "c"))] <- ""
     patt <- paste("^% --- Source file:.*/", topic, ".Rd ---$", sep="")
     if(length(top <- grep(patt, valid_lines)) != 1)
         stop("no or more than one match")
@@ -156,7 +156,6 @@ function(x, delim = c("{", "}"), syntax = "Rd")
 {
     if(!is.character(x))
         stop("argument 'x' must be a character vector")
-    ## FIXME: bytes or chars?
     if((length(delim) != 2) || any(nchar(delim) != 1))
         stop("argument 'delim' must specify two characters")
     if(syntax != "Rd")
@@ -212,7 +211,7 @@ function(x, y)
 function()
 {
     OS <- Sys.getenv("R_OSTYPE")
-    if(nzchar(OS)) OS else .Platform$OS.type
+    if(nchar(OS)) OS else .Platform$OS.type
 }
 
 ### ** .capture_output_from_print
@@ -257,7 +256,7 @@ function(x, f, ...)
 .find_owner_env <-
 function(v, env, last = NA, default = NA) {
     while(!identical(env, last))
-        if(exists(v, envir = env, inherits = FALSE))
+        if(exists(v, env = env, inherits = FALSE))
             return(env)
         else
             env <- parent.env(env)
@@ -283,11 +282,20 @@ function(primitive = TRUE) # primitive means 'include primitives'
     out <-
         ## Get the names of R internal S3 generics (via DispatchOrEval(),
         ## cf. zMethods.Rd).
-        c("[", "[[", "$", "[<-", "[[<-", "$<-",
-          "as.vector", "unlist",
-          .get_S3_primitive_generics()
-          ## ^^^^^^^ now contains the members of the group generics from groupGeneric.Rd
-          )
+        c("[", "[[", "$", "[<-", "[[<-", "$<-", "as.vector", "unlist",
+          .get_S3_primitive_generics(),
+          ## and also the members of the group generics from
+          ## groupGeneric.Rd
+          "abs", "sign", "sqrt", "floor", "ceiling", "trunc", "round",
+          "signif", "exp", "log", "cos", "sin", "tan", "acos", "asin",
+          "atan", "cosh", "sinh", "tanh", "acosh", "asinh", "atanh",
+          "lgamma", "gamma", "gammaCody", "digamma", "trigamma",
+          "tetragamma", "pentagamma", "cumsum", "cumprod", "cummax",
+          "cummin",
+          "+", "-", "*", "/", "^", "%%", "%/%", "&", "|", "!", "==",
+          "!=", "<", "<=", ">=", ">",
+          "all", "any", "sum", "prod", "max", "min", "range",
+          "Arg", "Conj", "Im", "Mod", "Re")
     if(!primitive)
         out <- out[!sapply(out, .is_primitive, baseenv())]
     out
@@ -314,7 +322,7 @@ function(nsInfo)
     ## parseNamespaceFile(), as a 3-column character matrix with the
     ## names of the generic, class and method (as a function).
     S3_methods_list <- nsInfo$S3methods
-    if(!length(S3_methods_list)) return(matrix(character(), ncol = 3))
+    if(!length(S3_methods_list)) return(matrix(character(), nc = 3))
     idx <- is.na(S3_methods_list[, 3])
     S3_methods_list[idx, 3] <-
         paste(S3_methods_list[idx, 1],
@@ -403,23 +411,7 @@ function()
 ### ** .get_S3_primitive_generics
 
 .get_S3_primitive_generics <-
-function(include_group_generics = TRUE)
-{
-    if(include_group_generics)
-        c(base::.S3PrimitiveGenerics,
-          "abs", "sign", "sqrt", "floor", "ceiling", "trunc", "round",
-          "signif", "exp", "log", "expm1", "log1p", "cos", "sin", "tan", "acos", "asin",
-          "atan", "cosh", "sinh", "tanh", "acosh", "asinh", "atanh",
-          "lgamma", "gamma", "gammaCody", "digamma", "trigamma",
-          "tetragamma", "pentagamma", "cumsum", "cumprod", "cummax",
-          "cummin",
-          "+", "-", "*", "/", "^", "%%", "%/%", "&", "|", "!", "==",
-          "!=", "<", "<=", ">=", ">",
-          "all", "any", "sum", "prod", "max", "min", "range",
-          "Arg", "Conj", "Im", "Mod", "Re")
-    else
-        base::.S3PrimitiveGenerics
-}
+function() base::.S3PrimitiveGenerics
 
 ### ** .get_standard_Rd_keywords
 
@@ -529,14 +521,14 @@ function(fname, envir, mustMatch = TRUE)
     f <- get(fname, envir = envir, inherits = FALSE)
     if(!is.function(f)) return(FALSE)
     isUMEbrace <- function(e) {
-        for (ee in as.list(e[-1])) if (nzchar(res <- isUME(ee))) return(res)
+        for (ee in as.list(e[-1])) if (nchar(res <- isUME(ee))) return(res)
         ""
     }
     isUMEif <- function(e) {
         if (length(e) == 3) isUME(e[[3]])
         else {
-            if (nzchar(res <- isUME(e[[3]]))) res
-            else if (nzchar(res <- isUME(e[[4]]))) res
+            if (nchar(res <- isUME(e[[3]]))) res
+            else if (nchar(res <- isUME(e[[4]]))) res
             else ""
         }
 
@@ -551,7 +543,7 @@ function(fname, envir, mustMatch = TRUE)
         } else ""
     }
     res <- isUME(body(f))
-    if(mustMatch) res == fname else nzchar(res)
+    if(mustMatch) res == fname else nchar(res) > 0
 }
 
 ### ** .load_package_quietly
@@ -571,7 +563,7 @@ function(package, lib.loc)
             pos <- match(paste("package", package, sep = ":"), search())
             if(!is.na(pos)) {
                 if(package == "methods") return()
-                detach(pos = pos, unload = TRUE)
+                detach(pos = pos)
             }
             library(package, lib.loc = lib.loc, character.only = TRUE,
                     verbose = FALSE)
@@ -627,7 +619,15 @@ function(parent = parent.frame(), fixup = FALSE)
     for(f in ls(base::.GenericArgsEnv))
         assign(f, get(f, envir=base::.GenericArgsEnv), envir = env)
     if(fixup) {
-        ## now fixup the operators
+        ## now fixup the group generics
+        for(f in c('abs', 'sign', 'sqrt', 'floor', 'ceiling', 'trunc', 'exp',
+                   'cos', 'sin', 'tan', 'acos', 'asin', 'atan', 'cosh', 'sinh',
+                   'tanh', 'acosh', 'asinh', 'atanh',
+                   'cumsum', 'cumprod', 'cummax', 'cummin')) {
+            fx <- get(f, envir = env)
+            formals(fx) <- alist(x=)
+            assign(f, fx, envir = env)
+        }
         for(f in c('+', '-', '*', '/', '^', '%%', '%/%', '&', '|',
                    '==', '!=', '<', '<=', '>=', '>')) {
             fx <- get(f, envir = env)
@@ -670,19 +670,16 @@ function(package)
              "print.atomic", "print.coefmat",
              "rep.int", "round.POSIXt",
              "seq.int", "sort.int", "sort.list"),
-             BSDA = "sign.test",
-             Hmisc = c("abs.error.pred", "t.test.cluster"),
+             Hmisc = "t.test.cluster",
              HyperbolicDist = "log.hist",
              MASS = c("frequency.polygon",
              "gamma.dispersion", "gamma.shape",
              "hist.FD", "hist.scott"),
-             SMPracticals = "exp.gibbs",
              XML = "text.SAX",
              ape = "sort.index",
              boot = "exp.tilt",
              car = "scatterplot.matrix",
 	     calibrator = "t.fun",
-             equivalence = "sign.boot",
              grDevices = "boxplot.stats",
              graphics = c("close.screen",
              "plot.design", "plot.new", "plot.window", "plot.xy",
@@ -691,15 +688,14 @@ function(package)
              mratios = c("t.test.ratio.default", "t.test.ratio.formula"),
              quadprog = c("solve.QP", "solve.QP.compact"),
              reposTools = "update.packages2",
-             sac = "cumsum.test",
              sm = "print.graph",
              stats = c("anova.lmlist", "fitted.values", "lag.plot",
              "influence.measures", "t.test"),
-             supclust = c("sign.change", "sign.flip"),
-             utils = c("close.socket", "flush.console", "update.packages")
+             utils = c("close.socket", "flush.console",
+             "update.packages")
              )
     if(is.null(package)) return(unlist(stopList))
-    thisPkg <- stopList[[package, exact = TRUE]] # 'st' matched 'stats'
+    thisPkg <- stopList[[package]]
     if(!length(thisPkg)) character(0) else thisPkg
 }
 
@@ -871,7 +867,7 @@ function(expr)
                                 grmbl = function(e, calls) {
                                     n <- length(sys.calls())
                                     ## Chop things off as needed ...
-                                    calls <- calls[-seq.int(length.out = n - 1)]
+                                    calls <- calls[-seq(length = n - 1)]
                                     calls <- rev(calls)[-c(1, 2)]
                                     tb <- lapply(calls, deparse)
                                     stop(conditionMessage(e),

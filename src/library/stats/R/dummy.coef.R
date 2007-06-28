@@ -51,7 +51,7 @@ dummy.coef.lm <- function(object, use.na=FALSE, ...)
         warning("some terms will have NAs due to the limits of the method")
         mm[is.na(mm)] <- NA
     }
-    coef <- object$coefficients
+    coef <- object$coef
     if(!use.na) coef[is.na(coef)] <- 0
     asgn <- attr(mm,"assign")
     res <- vector("list", length(tl))
@@ -122,7 +122,7 @@ dummy.coef.aovlist <- function(object, use.na = FALSE, ...)
     tl <- c("(Intercept)", tl)
     allasgn <- attr(mm, "assign")
     for(i in names(object)) {
-	coef <- object[[i]]$coefficients
+	coef <- object[[i]]$coef
 	if(!use.na) coef[is.na(coef)] <- 0
 	asgn <- object[[i]]$assign
 	uasgn <- unique(asgn)

@@ -377,8 +377,12 @@ the field's value to @samp{yes} or @samp{true} for lazy-loading and
 @samp{no} or @samp{false} for no lazy-loading.  (Capitalized values
 are also accepted.)
 
+The optional @samp{SaveImage} field controls whether the @R{} objects
+are stored in a saved image.  (It takes the same values as the field
+@samp{LazyLoad}.)
+
 If the package you are writing uses the @pkg{methods} package, specify
-@samp{LazyLoad: yes}.
+(preferably) @samp{LazyLoad: yes} or @samp{SaveImage: yes}.
 
 The optional @samp{ZipData} field controls whether the automatic
 Windows build will zip up the data directory or no: set this to
@@ -586,8 +590,8 @@ Test code can either be provided directly in a @file{.R} file, or via a
 and then calling them with the strangest arguments).  The results of
 running a @file{.R} file are written to a @file{.Rout} file.  If there
 is a corresponding @file{.Rout.save} file, these two are compared, with
-differences being reported but not causing an error.  The directory
-@file{tests} is copied to the check area, and the tests are run with the
+differences being reported but not causing an error.  All files in
+@file{tests} are copied to the check area, and the tests are run with the
 copy as the working directory and with @code{R_LIBS} set to ensure that
 the copy of the package installed during testing will be found by
 @code{library(@var{pkg_name})}.
@@ -1081,9 +1085,7 @@ specifies any special flags to be used.  There is no guarantee that
 compiled Fortran 90/95 code can be mixed with any other type of code,
 nor that a build of @R{} will have support for such packages.
 
-MinGW huilds of @command{gcc} @code{4.2.0} or later include a F95
-compiler.  For those using @command{gcc} @code{3.4.z}, there is a MinGW
-build of @command{gfortran} available from
+There is a MinGW build of @command{gfortran} available from
 @url{http://@/gcc.gnu.org/@/wiki/@/GFortranBinaries} and a MinGW
 build@footnote{Remember to set @env{LIBRARY_PATH} to point to your MinGW
 @file{lib} directory} of @command{g95} from @uref{http://www.g95.org}.
@@ -1349,11 +1351,6 @@ Default: false.
 @item $R_check_weave_vignettes
 If true, weave package vignettes in the process of checking them.
 Default: true.
-@item $R_check_latex_vignettes
-If true (and @code{$R_check_weave_vignettes} is also true), @LaTeX{}
-package vignettes in the process of checking them: this will show up
-@code{Sweave} source errors, including missing source files.
-Default: true.
 @item $R_check_subdirs_nocase
 If true, check the case of directories such as @file{R} and @file{man}.
 Default: false.
@@ -1363,14 +1360,6 @@ Default: @samp{default} (which checks only tarballs, and checks in the
 @file{src} only if there is no @file{configure} file).
 @item $R_check_force_suggests
 If true, give an error if suggested packages are not available.
-Default: true.
-@item $R_check_use_codetools
-If true, make use of the @pkg{codetools} package, which provides a
-detailed analysis of visibility of objects (but may give false
-positives).
-Default: true.
-@item $R_check_Rd_xrefs
-If true, check the cross-references in @file{.Rd} files.
 Default: true.
 @end table
 
@@ -1393,7 +1382,10 @@ Future versions of @R{} will enhance this customization mechanism, and
 provide a similar scheme for @code{R CMD build}.
 
 There are other internal settings that can be changed via environment
-variables @w{@env{_R_CHECK_*_}:} see the Perl source code.
+variables @w{@code{_R_CHECK_*_}:} see the Perl source code.  One that
+may be interesting is @code{_R_CHECK_USE_CODETOOLS_} to make use of the
+@pkg{codetools} package, which provides a detailed analysis of
+visibility of objects (but will give false positives).
 
 @node Writing package vignettes, Submitting a package to CRAN, Checking and building packages, Creating R packages
 @section Writing package vignettes
@@ -1431,8 +1423,9 @@ vignettes for distribution with the package sources.  By including the
 PDF version in the package sources it is not necessary that the
 vignettes can be compiled at install time, i.e., the package author can
 use private @LaTeX{} extensions which are only available on his machine.
-@footnote{provided the conditions of the licence are met: many would see
-this as incompatible with an Open Source licence.}
+Only the @R{} code inside the vignettes is part of the checking
+procedure, typesetting manuals is not part of the package quality
+control.
 
 By default @code{R CMD build} will run @code{Sweave} on all files in
 Sweave format.  If no @file{Makefile} is found in directory
@@ -3139,7 +3132,7 @@ Web.
 Indicate a metasyntactic variable.  In some cases this will be rendered
 distinctly, e.g.@: in italic, but not in all@footnote{Currently it is
 rendered differently only in HTML conversions, and latex conversion
-outside @samp{\usage} and @samp{\examples} environments.}.
+outside verbatim-like environments.}.
 @item \env@{@var{environment_variable}@}
 @findex \env
 Indicate an environment variable.
@@ -5262,8 +5255,8 @@ two routines declared as
 @findex R_RegisterCCallable
 @findex R_GetCCallable
 @example
-void R_RegisterCCallable(const char *package, const char *name, DL_FUNC fptr);
-DL_FUNC R_GetCCallable(const char *package, const char *name);
+void R_RegisterCCallable(char *package, char *name, DL_FUNC fptr);
+DL_FUNC R_GetCCallable(char *package, char *name);
 @end example
 
 A package @pkg{packA} that wants to make a C routine @code{myCfun}
@@ -5648,7 +5641,6 @@ right type.
 * Attributes::                  
 * Classes::                     
 * Handling lists::              
-* Handling character data::     
 * Finding and setting variables::  
 * Some convenience functions::  
 * Named objects and copying::   
@@ -6027,7 +6019,7 @@ Suppose we want to give the return value in our example the class
 @group
 #include <R.h>
 #include <Rdefines.h>
-    .... 
+    ....
   SEXP ans, dim, dimnames, class;
     ....
   PROTECT(class = allocVector(STRSXP, 1));
@@ -6044,7 +6036,7 @@ As the value is a character vector, we have to know how to create that
 from a C character array, which we do using the function
 @code{mkChar}.
 
-@node Handling lists, Handling character data, Classes, Handling R objects in C
+@node Handling lists, Finding and setting variables, Classes, Handling R objects in C
 @subsection Handling lists
 @cindex Handling lists
 
@@ -6079,7 +6071,7 @@ one in package @pkg{stats}) is very useful:
 @group
 /* get the list element named str, or return NULL */
 
-SEXP getListElement(SEXP list, const char *str)
+SEXP getListElement(SEXP list, char *str)
 @{
   SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
   int i;
@@ -6106,43 +6098,7 @@ and enables us to say
 @end group
 @end example
 
-@node Handling character data, Finding and setting variables, Handling lists, Handling R objects in C
-@subsection Handling character data
-@cindex handling character data
-
-R character vectors are stored as @code{STRSXP}s, a vector type like
-@code{VECSXP} where every element is of type @code{CHARSXP}.  The
-@code{CHARSXP} elements of @code{STRSXP}s are accessed using
-@code{STRING_ELT} and @code{SET_STRING_ELT}.
-
-As of @R{} 2.6.0, @code{CHARSXP}s are read-only objects and must never
-be modified.  In particular, the C-style string contained in a
-@code{CHARSXP} should be treated as read-only and for this reason the
-@code{CHAR} function used to access the character data of a
-@code{CHARSXP} returns @code{(const char *)} (this also allows compilers
-to issue warnings about improper use).  Since @code{CHARSXP}s are
-immutable, the same @code{CHARSXP} can be shared by any @code{STRSXP}
-needing an element representing the same string.  As of @R{} 2.6.0, @R{}
-maintains a global cache of @code{CHARSXP}s so that there is only ever
-one @code{CHARSXP} representing a given string in memory.
-
-You can obtain a @code{CHARSXP} by calling @code{mkChar} and providing a
-nul-terminated C-style string.  This function will return a pre-existing
-@code{CHARSXP} if one with a matching string already exists, otherwise
-it will create a new one and add it to the cache before returning it to
-you.
-
-Currently, it is still possible to create @code{CHARSXP}s using
-@code{allocVector} or @code{allocString}; @code{CHARSXP}s created in
-this way will not be captured by the global @code{CHARSXP} cache and
-this should be avoided.  In the future, all @code{CHARSXP}s will be
-captured by the cache and this will allow further optimizations, for
-example, replacing calls to @code{strcmp} with pointer comparisons.  A
-helper macro, @code{CallocCharBuf}, can be used to obtain a temporary
-character buffer for in-place string manipulation: this memory must be
-released using @code{Free}.
-
-@node Finding and setting variables, Some convenience functions, Handling character data, Handling R objects in C
+@node Finding and setting variables, Some convenience functions, Handling lists, Handling R objects in C
 @subsection Finding and setting variables
 @cindex Finding variables
 @cindex Setting variables
@@ -6235,7 +6191,7 @@ To return a length-one real vector we can use
 @noindent
 and there are versions of this for all the atomic vector types (those for
 a length-one character vector being @code{ScalarString} with argument a
-@code{CHARSXP} and @code{mkString} with argument @code{const char *}).
+@code{CHARSXP} and @code{mkString} with argument @code{char *}).
 
 Some of the @code{isXXXX} functions differ from their apparent
 @R{}-level counterparts: for example @code{isVector} is true for any
@@ -6522,8 +6478,8 @@ SEXP showArgs(SEXP args)
 @{
   int i, nargs;
   Rcomplex cpl;
-  const char *name;
-  SEXP el;
+  char *name;
+    SEXP el;
 @end group
 
 @group
@@ -7394,7 +7350,7 @@ Here @R{} will reclaim the memory at the end of the call to @code{.C}.
 Use
 
 @example
-char *R_alloc(size_t @var{n}, int @var{size})
+char* R_alloc(long @var{n}, int @var{size})
 @end example
 
 @noindent
@@ -7405,22 +7361,18 @@ which allocates @var{n} units of @var{size} bytes each.  A typical usage
 x = (int *) R_alloc(nrows(merge)+2, sizeof(int));
 @end example
 
-@noindent
-(@code{size_t} is defined in @file{stddef.h} which the header defining
-@code{R_alloc} includes.)
-
 There is a similar call, @code{S_alloc} (for compatibility with older
 versions of @Sl{}) which zeroes the memory allocated,
 
 @example
-char *S_alloc(long @var{n}, int @var{size})
+char* S_alloc(long @var{n}, int @var{size})
 @end example
 
 @noindent
 and
 
 @example
-char *S_realloc(char *@var{p}, long @var{new}, long @var{old}, int @var{size})
+char* S_realloc(char *@var{p}, long @var{new}, long @var{old}, int @var{size})
 @end example
 
 @noindent
@@ -8390,7 +8342,7 @@ HSV to RGB and back.  Note that all colours must be in [0,1].
 A system-independent interface to produce the name of a temporary
 file is provided as
 
-@deftypefun {char *} R_tmpnam (const char *@var{prefix})
+@deftypefun {char *} R_tmpnam (const char* @var{prefix})
 Return a pathname for a temporary file with name beginning with
 @var{prefix}.  A @code{NULL} prefix is replaced by @code{""}.
 @end deftypefun
@@ -8400,7 +8352,7 @@ Return a pathname for a temporary file with name beginning with
 There is also the internal function used to expand file names in several
 @R{} functions, and called directly by @code{path.expand}.
 
-@deftypefun {const char *} R_ExpandFileName (const char *@var{fn})
+@deftypefun {char *} R_ExpandFileName (char* @var{fn})
 Expand a path name @var{fn} by replacing a leading tilde by the user's
 home directory (if defined).  The precise meaning is platform-specific;
 it will usually be taken from the environment variable @env{HOME} if
@@ -8429,12 +8381,12 @@ implementations of @code{iconv}.
 
 These are declared in header file @file{R_ext/Riconv.h}.
 
-@deftypefun void *Riconv_open (const char *@var{to}, const char *@var{from})
+@deftypefun void *Riconv_open (char* @var{to}, char* @var{from})
 @end deftypefun
 Set up a pointer to an encoding object to be used to convert between two
 encodings: @code{""} indicates the current locale.
 
-@deftypefun size_t Riconv (void *@var{cd}, const char **@var{inbuf}, size_t *@var{inbytesleft}, char  **@var{outbuf}, size_t *@var{outbytesleft})
+@deftypefun size_t Riconv (void *@var{cd}, char **@var{inbuf}, size_t *@var{inbytesleft}, char  **@var{outbuf}, size_t *@var{outbytesleft})
 @end deftypefun
 Convert as much as possible of @code{inbuf} to @code{outbuf}.  Initially
 the @code{int} variables indicate the number of bytes available in the
@@ -8973,7 +8925,6 @@ change this.
 @menu
 * Compiling against the R shared library::  
 * Setting R callbacks::         
-* Registering symbols::         
 * Meshing event loops::         
 * Threading issues::            
 @end menu
@@ -8999,7 +8950,7 @@ pkg-config --libs libR
 
 
 
-@node Setting R callbacks, Registering symbols, Compiling against the R shared library, Embedding R under Unix-alikes
+@node Setting R callbacks, Meshing event loops, Compiling against the R shared library, Embedding R under Unix-alikes
 @subsection Setting R callbacks
 
 For Unix-alkes there is a public header file @file{Rinterface.h} that
@@ -9157,6 +9108,8 @@ It needs to be quite complex:
 
 void R_CleanUp (SA_TYPE saveact, int status, int RunLast)
 @{
+    char *tmpdir;
+
     if(saveact == SA_DEFAULT) saveact = SaveAction;
     if(saveact == SA_SAVEASK) @{
        /* ask what to do and set saveact */
@@ -9189,28 +9142,8 @@ void R_CleanUp (SA_TYPE saveact, int status, int RunLast)
 @end example
 @end deftypefun
 
-@node Registering symbols, Meshing event loops, Setting R callbacks, Embedding R under Unix-alikes
-@subsection Registering symbols
 
-An application embedding @R{} needs a different way of registering
-symbols because it is not a dynamic library loaded by @R{} as would be
-the case with a package.  Therefore @R{} reserves a special
-@code{DllInfo} entry for the embedding application such that it can
-register symbols to be used with @code{.C}, @code{.Call} etc.  This
-entry can be obtained by calling @code{getEmbeddingDllInfo}, so a
-typical use is
-
-@example
-DllInfo *info = R_getEmbeddingDllInfo();
-R_registerRoutines(info, cMethods, callMethods, NULL, NULL);
-@end example
-
-The native routines defined by @code{cMethod} and @code{callMethods}
-should be present in the embedding application.  See @ref{Registering
-native routines} for details on registering symbols in general.
-
-
-@node Meshing event loops, Threading issues, Registering symbols, Embedding R under Unix-alikes
+@node Meshing event loops, Threading issues, Setting R callbacks, Embedding R under Unix-alikes
 @subsection Meshing event loops
 
 One of the most difficult issues in interfacing @R{} to a front-end is

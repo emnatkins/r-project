@@ -38,7 +38,7 @@ function(y, groups, blocks, ...)
                    - (sum(unlist(lapply(TIES, function (u) {u^3 - u}))) /
                       (k - 1))))
     PARAMETER <- k - 1
-    PVAL <- pchisq(STATISTIC, PARAMETER, lower.tail = FALSE)
+    PVAL <- pchisq(STATISTIC, PARAMETER, lower = FALSE)
     names(STATISTIC) <- "Friedman chi-squared"
     names(PARAMETER) <- "df"
 

@@ -43,9 +43,7 @@ stderr()
   connection object has been lost or forgotten, \code{getConnection}
   will take a row number from the table and return a connection object
   for that connection, which can be used to close the connection,
-  for example.  However, if there is no \R level object referring to the
-  connection it will be closed automatically at the next garbage
-  collection.
+  for example.
 
   \code{closeAllConnections} closes (and destroys) all open user
   connections, restoring all \code{\link{sink}} diversions as it does so.

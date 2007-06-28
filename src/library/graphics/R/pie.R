@@ -38,12 +38,12 @@ pie <-
     }
     for (i in 1:nx) {
 	n <- max(2, floor(edges * dx[i]))
-	P <- t2xy(seq.int(x[i], x[i + 1], length.out = n))
+	P <- t2xy(seq(x[i], x[i + 1], length = n))
 	polygon(c(P$x, 0), c(P$y, 0), density = density[i], angle = angle[i],
                 border = border[i], col = col[i], lty = lty[i])
 	P <- t2xy(mean(x[i + 0:1]))
         lab <-  as.character(labels[i])
-        if(!is.na(lab) && nzchar(lab)) {
+        if(!is.na(lab) && nchar(lab)) {
             lines(c(1, 1.05)*P$x, c(1, 1.05)*P$y)
             text(1.1*P$x, 1.1*P$y, labels[i], xpd = TRUE,
                  adj = ifelse(P$x < 0, 1, 0), ...)

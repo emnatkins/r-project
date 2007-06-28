@@ -74,7 +74,6 @@ showMethods(f = character(), where = topenv(parent.frame()),
   particular function and signature of classes for the arguments.
 }
 \examples{
-require(graphics)
 \dontshow{
  setClass("track",
           representation(x="numeric", y="numeric"))
@@ -102,7 +101,7 @@ x = track, y = ANY}
 %% but not attached namespace. Except it doesn't work
 not.there <- !any("package:stats4" == search())
 if(not.there) library(stats4)
-showMethods(classes = "mle")
+showMethods(class = "mle")
 if(not.there) detach("package:stats4")
 }
 \keyword{methods}

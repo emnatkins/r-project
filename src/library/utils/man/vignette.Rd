@@ -7,7 +7,7 @@
   View a specified vignette, or list the available ones.
 }
 \usage{
-vignette(topic, package = NULL, lib.loc = NULL, all = TRUE)
+vignette(topic, package = NULL, lib.loc = NULL)
 
 \S3method{print}{vignette}(x, \ldots)
 \S3method{edit}{vignette}(name, \ldots)
@@ -16,14 +16,12 @@ vignette(topic, package = NULL, lib.loc = NULL, all = TRUE)
   \item{topic}{a character string giving the (base) name of the vignette
     to view. If omitted, all vignettes from all installed packages are listed.}
   \item{package}{a character vector with the names of packages to
-    search through, or \code{NULL} in which "all" packages (as defined
-    by argument \code{all}) are searched.}
+    search through, or \code{NULL} in which case \emph{all} available
+    packages in the library trees specified by \code{lib.loc} are
+    searched.}
   \item{lib.loc}{a character vector of directory names of \R libraries,
     or \code{NULL}.  The default value of \code{NULL} corresponds to all
     libraries currently known.}
-  \item{all}{logical; if \code{TRUE} search
-    all available packages in the library trees specified by \code{lib.loc}, 
-    and if \code{FALSE}, search only attached packages.}
   \item{x, name}{Object of class \code{vignette}.}
   \item{\ldots}{Ignored by the \code{print} method, passed on to
     \code{\link{file.edit}} by the \code{edit} method.}
@@ -52,11 +50,8 @@ vignette(topic, package = NULL, lib.loc = NULL, all = TRUE)
   see the examples below.
 }
 \examples{
-## List vignettes from all *attached* packages
-vignette(all = FALSE)
-
-## List vignettes from all *installed* packages (can take a long time!):
-vignette(all = TRUE)
+## List vignettes from all *installed* packages (can take long!):
+vignette()
 
 \dontrun{
 ## Open the grid intro vignette

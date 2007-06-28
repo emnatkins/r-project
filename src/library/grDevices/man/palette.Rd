@@ -36,8 +36,6 @@ palette(value)
   \code{\link{col2rgb}} for translating colors to RGB 3-vectors.
 }
 \examples{
-require(graphics)
-
 palette()               # obtain the current palette
 palette(rainbow(6))     # six color rainbow
 

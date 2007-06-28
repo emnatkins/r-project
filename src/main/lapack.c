@@ -60,7 +60,6 @@ static void La_Init(void)
     return;
 }
 
-/* Regretably, package 'party' calls this: attribute_hidden */
 SEXP La_svd(SEXP jobu, SEXP jobv, SEXP x, SEXP s, SEXP u, SEXP v, SEXP method)
 {
     if(!initialized) La_Init();
@@ -72,7 +71,6 @@ SEXP La_svd(SEXP jobu, SEXP jobv, SEXP x, SEXP s, SEXP u, SEXP v, SEXP method)
     }
 }
 
-attribute_hidden
 SEXP La_svd_cmplx(SEXP jobu, SEXP jobv, SEXP x, SEXP s, SEXP u, SEXP v)
 {
     if(!initialized) La_Init();
@@ -84,7 +82,6 @@ SEXP La_svd_cmplx(SEXP jobu, SEXP jobv, SEXP x, SEXP s, SEXP u, SEXP v)
     }
 }
 
-attribute_hidden
 SEXP La_rs(SEXP x, SEXP only_values)
 {
     if(!initialized) La_Init();
@@ -96,7 +93,6 @@ SEXP La_rs(SEXP x, SEXP only_values)
     }
 }
 
-attribute_hidden
 SEXP La_rs_cmplx(SEXP x, SEXP only_values)
 {
     if(!initialized) La_Init();
@@ -108,7 +104,6 @@ SEXP La_rs_cmplx(SEXP x, SEXP only_values)
     }
 }
 
-attribute_hidden
 SEXP La_rg(SEXP x, SEXP only_values)
 {
     if(!initialized) La_Init();
@@ -120,7 +115,6 @@ SEXP La_rg(SEXP x, SEXP only_values)
     }
 }
 
-attribute_hidden
 SEXP La_rg_cmplx(SEXP x, SEXP only_values)
 {
     if(!initialized) La_Init();
@@ -132,7 +126,6 @@ SEXP La_rg_cmplx(SEXP x, SEXP only_values)
     }
 }
 
-attribute_hidden
 SEXP La_chol(SEXP A)
 {
     if(!initialized) La_Init();
@@ -144,7 +137,6 @@ SEXP La_chol(SEXP A)
     }
 }
 
-attribute_hidden
 SEXP La_chol2inv(SEXP x, SEXP size)
 {
     if(!initialized) La_Init();
@@ -156,7 +148,6 @@ SEXP La_chol2inv(SEXP x, SEXP size)
     }
 }
 
-attribute_hidden
 SEXP La_zgesv(SEXP A, SEXP B)
 {
     if(!initialized) La_Init();
@@ -168,7 +159,6 @@ SEXP La_zgesv(SEXP A, SEXP B)
     }
 }
 
-attribute_hidden
 SEXP La_zgeqp3(SEXP A)
 {
     if(!initialized) La_Init();
@@ -180,7 +170,6 @@ SEXP La_zgeqp3(SEXP A)
     }
 }
 
-attribute_hidden
 SEXP qr_coef_cmplx(SEXP Q, SEXP B)
 {
     if(!initialized) La_Init();
@@ -192,7 +181,6 @@ SEXP qr_coef_cmplx(SEXP Q, SEXP B)
     }
 }
 
-attribute_hidden
 SEXP qr_qy_cmplx(SEXP Q, SEXP B, SEXP trans)
 {
     if(!initialized) La_Init();
@@ -204,7 +192,6 @@ SEXP qr_qy_cmplx(SEXP Q, SEXP B, SEXP trans)
     }
 }
 
-attribute_hidden
 SEXP La_dgesv(SEXP A, SEXP B, SEXP tol)
 {
     if(!initialized) La_Init();
@@ -216,7 +203,6 @@ SEXP La_dgesv(SEXP A, SEXP B, SEXP tol)
     }
 }
 
-attribute_hidden
 SEXP La_dgeqp3(SEXP A)
 {
     if(!initialized) La_Init();
@@ -228,7 +214,6 @@ SEXP La_dgeqp3(SEXP A)
     }
 }
 
-attribute_hidden
 SEXP qr_coef_real(SEXP Q, SEXP B)
 {
     if(!initialized) La_Init();
@@ -240,7 +225,6 @@ SEXP qr_coef_real(SEXP Q, SEXP B)
     }
 }
 
-attribute_hidden
 SEXP qr_qy_real(SEXP Q, SEXP B, SEXP trans)
 {
     if(!initialized) La_Init();
@@ -252,7 +236,6 @@ SEXP qr_qy_real(SEXP Q, SEXP B, SEXP trans)
     }
 }
 
-attribute_hidden
 SEXP det_ge_real(SEXP A, SEXP logarithm)
 {
     if(!initialized) La_Init();

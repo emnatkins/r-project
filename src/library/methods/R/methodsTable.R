@@ -1,6 +1,6 @@
 ### merge version called from namespace imports code.  Hope to avoid using generic
 .mergeMethodsTable2 <- function(table, newtable, envir, metaname) {
-    old <- objects(table, all.names=TRUE)
+    old <- objects(table, all=TRUE)
     mm <- 1
     for( what in old) {
       mm = get(what, envir =table)
@@ -9,7 +9,7 @@
           break
       }
     }
-    new = objects(newtable, all.names=TRUE)
+    new = objects(newtable, all=TRUE)
     ## check that signature length doesn't change
     canStore <- TRUE
     for(what in new) {
@@ -43,7 +43,7 @@
   n <- get(".SigLength", envir = fenv)
   anySig <- rep("ANY", n)
   anyLabel <- .sigLabel(anySig)
-  newMethods <- objects(newtable, all.names=TRUE)
+  newMethods <- objects(newtable, all=TRUE)
   for(what in newMethods) {
     obj <- get(what, envir = newtable)
     if(is.primitive(obj))
@@ -53,7 +53,7 @@
     else
       stop(gettextf(
                     "Invalid object in meta table of methods for \"%s\", label \"%s\", had class \"%s\"",
-                    generic@generic, what, class(obj)), domain=NA)
+                    generic@generic, what, class(obj)))
     ns <- length(sig)
     if(ns == n) {}
     else {
@@ -287,8 +287,7 @@
 	warning(gettextf(paste("Ambiguous method selection for \"%s\", target \"%s\"",
                                "(the first of the signatures shown will be used)\n%s\n"),
 			 fdef@generic, .sigLabel(classes),
-			 paste("   ", names(methods), collapse = "\n")),
-                domain = NA, call. = FALSE)
+			 paste("   ", names(methods), collapse = "\n")))
       methods <- methods[1]
   }
   if(doMtable  && length(methods)>0) {
@@ -458,7 +457,7 @@
     else {
       warning(gettextf(
               "Couldn't find methods table for \"%s\", package \"%s\" may be out of date",
-                       generic@generic, generic@package), domain=NA)
+                       generic@generic, generic@package))
       metaName <- mlistMetaName(generic)
       if(exists(metaName, envir = env, inherits = FALSE))
         .mlistAddToTable(generic, get(metaName, envir = env), mtable, attach)
@@ -482,12 +481,12 @@
 
 .resetInheritedMethods <- function(fenv, mtable) {
     allObjects <- character()
-    direct <- objects(mtable, all.names=TRUE)
+    direct <- objects(mtable, all=TRUE)
     if(exists(".AllMTable", envir = fenv, inherits = FALSE)) {
         ## remove all inherited methods.  Note that code (e.g. setMethod) that asigns
         ## a new method to mtable is responsible for copying it to allTable as well.
         allTable <- get(".AllMTable", envir = fenv)
-        allObjects <- objects(allTable, all.names=TRUE)
+        allObjects <- objects(allTable, all=TRUE)
         remove(list= allObjects[is.na(match(allObjects, direct))], envir = allTable)
     }
     else {
@@ -496,7 +495,7 @@
     }
     ## check for missing direct objects; usually a non-existent AllMTable?
     if(any(is.na(match(direct, allObjects)))) {
-        direct <- objects(mtable, all.names=TRUE)
+        direct <- objects(mtable, all=TRUE)
         for(what in direct)
           assign(what, get(what, envir = mtable), envir = allTable)
     }
@@ -512,8 +511,7 @@
 	if(!is.na(onOff))
 	    .assignOverBinding(".UseMethodsTables", onOff, where = where, FALSE)
 	else
-	    stop(gettextf(".UsingMethodsTables: 'onOff' is not TRUE or FALSE"),
-                 domain = NA)
+	    stop(gettextf(".UsingMethodsTables: 'onOff' is not TRUE or FALSE"))
     }
     prev
 }
@@ -536,7 +534,7 @@
     p <- packageSlot(f)
     if(is.null(p)) p <- "base"
     deflt <- new("signature", generic, "ANY")
-    labels <- objects(table, all.names = TRUE)
+    labels <- objects(table, all = TRUE)
     if(!is.null(classes) && length(labels) > 0) {
 	sigL <- strsplit(labels, split = "#")
 	keep <- !sapply(sigL, function(x, y) all(is.na(match(x, y))), classes)
@@ -563,8 +561,7 @@
 	    cf(sigString(t), "\n")
 	    if(!identical(t, d))
 		cf("    (inherited from: ", sigString(d), ")\n")
-            if(!.identC(m@generic, f) && length(m@generic) == 1 &&
-               nzchar(m@generic))
+            if(!.identC(m@generic, f) && length(m@generic) == 1 && nchar(m@generic)>0)
 		cf("    (definition from function \"", m@generic, "\")\n")
 	}
 	if(includeDefs) {
@@ -779,7 +776,7 @@ outerLabels <- function(labels, new) {
     if(is.null(generic)) {
       warning(gettextf(
        "Could not find generic function \"%s\" to initialize cached methods",
-                       name), domain=NA)
+                       name))
       next
     }
     table <- .getMethodsTable(generic)
@@ -826,7 +823,7 @@ listFromMethods <- function(generic, where, table) {
 		     envir = as.environment(where), inherits = FALSE)
     fev <- environment(fdef)
     nSigArgs <- .getGenericSigLength(fdef, fev)
-    names <- objects(table, all.names=TRUE)
+    names <- objects(table, all=TRUE)
     methods <- lapply(names, function(x)get(x, envir = table))
     if(nSigArgs > 1) {
         n <- length(names)

@@ -124,8 +124,12 @@ Rboolean isUnsorted(SEXP x)
 
 SEXP attribute_hidden do_isunsorted(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
+    SEXP ans;
+
     checkArity(op, args);
-    return ScalarLogical(isUnsorted(CAR(args)));
+    ans = allocVector(LGLSXP, 1);
+    LOGICAL(ans)[0] = isUnsorted(CAR(args));
+    return ans;
 }
 
 
@@ -263,9 +267,9 @@ SEXP attribute_hidden do_sort(SEXP call, SEXP op, SEXP args, SEXP rho)
 	error(_("'decreasing' must be TRUE or FALSE"));
     if(CAR(args) == R_NilValue) return R_NilValue;
     if(!isVectorAtomic(CAR(args)))
-	error(_("only atomic vectors can be sorted"));
+	errorcall(call, _("only atomic vectors can be sorted"));
     if(TYPEOF(CAR(args)) == RAWSXP)
-	error(_("raw vectors cannot be sorted"));
+	errorcall(call, _("raw vectors cannot be sorted"));
     /* we need consistent behaviour here, including dropping attibutes,
        so as from 2.3.0 we always duplicate. */
     ans = duplicate(CAR(args));
@@ -513,18 +517,18 @@ SEXP attribute_hidden do_psort(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
 
     if (!isVectorAtomic(CAR(args)))
-	error(_("only atomic vectors can be sorted"));
+	errorcall(call, _("only atomic vectors can be sorted"));
     if(TYPEOF(CAR(args)) == RAWSXP)
-	error(_("raw vectors cannot be sorted"));
+	errorcall(call, _("raw vectors cannot be sorted"));
     n = LENGTH(CAR(args));
     SETCADR(args, coerceVector(CADR(args), INTSXP));
     l = INTEGER(CADR(args));
     k = LENGTH(CADR(args));
     for (i = 0; i < k; i++) {
 	if (l[i] == NA_INTEGER)
-	    error(_("NA index"));
+	    errorcall(call, _("NA index"));
 	if (l[i] < 1 || l[i] > n)
-	    error(_("index %d outside bounds"), l[i]);
+	    errorcall(call, _("index %d outside bounds"), l[i]);
     }
     SETCAR(args, duplicate(CAR(args)));
     SET_ATTRIB(CAR(args), R_NilValue);  /* remove all attributes */
@@ -799,9 +803,9 @@ SEXP attribute_hidden do_order(SEXP call, SEXP op, SEXP args, SEXP rho)
 	n = LENGTH(CAR(args));
     for (ap = args; ap != R_NilValue; ap = CDR(ap), narg++) {
 	if (!isVector(CAR(ap)))
-	    error(_("argument %d is not a vector"), narg + 1);
+	    errorcall(call, _("argument %d is not a vector"), narg + 1);
 	if (LENGTH(CAR(ap)) != n)
-	    error(_("argument lengths differ"));
+	    errorcall(call, _("argument lengths differ"));
     }
     ans = allocVector(INTSXP, n);
     if (n != 0) {
@@ -822,7 +826,7 @@ SEXP attribute_hidden do_rank(SEXP call, SEXP op, SEXP args, SEXP rho)
     int *in;
     double *rk;
     int i, j, k, n;
-    const char *ties_str;
+    char *ties_str;
     enum {AVERAGE, MAX, MIN} ties_kind = AVERAGE;
 
     checkArity(op, args);
@@ -830,14 +834,14 @@ SEXP attribute_hidden do_rank(SEXP call, SEXP op, SEXP args, SEXP rho)
 	return R_NilValue;
     x = CAR(args);
     if (!isVectorAtomic(x))
-	error(_("argument is not an atomic vector"));
+	errorcall(call, _("argument is not an atomic vector"));
     if(TYPEOF(x) == RAWSXP)
-	error(_("raw vectors cannot be sorted"));
+	errorcall(call, _("raw vectors cannot be sorted"));
     n = LENGTH(x);
     PROTECT(indx = allocVector(INTSXP, n));
     PROTECT(rank = allocVector(REALSXP, n));
     UNPROTECT(2);
-    ties_str = CHAR(asChar(CADR(args)));
+    ties_str = CHAR(STRING_ELT(coerceVector(CADR(args), STRSXP), 0)); /* ASCII */
     if(!strcmp(ties_str, "average"))	ties_kind = AVERAGE;
     else if(!strcmp(ties_str, "max"))	ties_kind = MAX;
     else if(!strcmp(ties_str, "min"))	ties_kind = MIN;
@@ -896,7 +900,7 @@ SEXP attribute_hidden do_radixsort(SEXP call, SEXP op, SEXP args, SEXP rho)
     for(i = 0; i < n; i++) {
 	tmp = INTEGER(x)[i];
 	if(tmp == NA_INTEGER) continue;
-	if(tmp < 0) error(_("negative value in 'x'"));
+	if(tmp < 0) errorcall(call, _("negative value in 'x'"));
 	if(xmax == NA_INTEGER || tmp > xmax) xmax = tmp;
 	if(xmin == NA_INTEGER || tmp < xmin) xmin = tmp;
     }
@@ -907,7 +911,7 @@ SEXP attribute_hidden do_radixsort(SEXP call, SEXP op, SEXP args, SEXP rho)
     }
 
     xmax -= xmin;
-    if(xmax > 100000) error(_("too large a range of values in 'x'"));
+    if(xmax > 100000) errorcall(call, _("too large a range of values in 'x'"));
     napos = off ? 0 : xmax + 1;
     off -= xmin;
     /* alloca is fine here: we know this is small */

@@ -73,8 +73,7 @@
 }
 \examples{
 ## --- Continuing the Example from  '?glm':%\code{\link{glm}}:
-\dontshow{require(utils)
-example("glm", echo = FALSE)}
+\dontshow{example("glm", echo = FALSE)}
 anova(glm.D93)
 anova(glm.D93, test = "Cp")
 anova(glm.D93, test = "Chisq")

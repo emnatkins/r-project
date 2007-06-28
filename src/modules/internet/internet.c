@@ -161,7 +161,7 @@ static size_t url_read(void *ptr, size_t size, size_t nitems,
 }
 
 
-static Rconnection in_R_newurl(const char *description, const char * const mode)
+static Rconnection in_R_newurl(char *description, const char * const mode)
 {
     Rconnection new;
 
@@ -251,8 +251,8 @@ static void doneprogressbar(void *data)
 #define IBUFSIZE 4096
 static SEXP in_do_download(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP scmd, sfile, smode, sheaders, agentFun;
-    const char *url, *file, *mode, *headers;
+    SEXP ans, scmd, sfile, smode, sheaders, agentFun;
+    char *url, *file, *mode, *headers;
     int quiet, status = 0, cacheOK;
 
     checkArity(op, args);
@@ -387,10 +387,7 @@ static SEXP in_do_download(SEXP call, SEXP op, SEXP args, SEXP env)
 #ifndef Win32
 		REprintf("\n");
 #endif
-		if(nbytes > 1024*1024)
-		    REprintf("downloaded %0.1fMb\n\n", 
-			     (double)nbytes/1024/1024, url);
-		else if(nbytes > 10240)
+		if(nbytes > 10240)
 		    REprintf("downloaded %dKb\n\n", nbytes/1024, url);
 		else
 		    REprintf("downloaded %d bytes\n\n", nbytes, url);
@@ -472,10 +469,7 @@ static SEXP in_do_download(SEXP call, SEXP op, SEXP args, SEXP env)
 #ifndef Win32
 		REprintf("\n");
 #endif
-		if(nbytes > 1024*1024)
-		    REprintf("downloaded %0.1fMb\n\n", 
-			     (double)nbytes/1024/1024, url);
-		else if(nbytes > 10240)
+		if(nbytes > 10240)
 		    REprintf("downloaded %dKb\n\n", nbytes/1024, url);
 		else
 		    REprintf("downloaded %d bytes\n\n", nbytes, url);
@@ -496,8 +490,10 @@ static SEXP in_do_download(SEXP call, SEXP op, SEXP args, SEXP env)
     } else
 	error(_("unsupported URL scheme"));
 
-    UNPROTECT(1);
-    return ScalarInteger(status);
+    PROTECT(ans = allocVector(INTSXP, 1));
+    INTEGER(ans)[0] = status;
+    UNPROTECT(2);
+    return ans;
 }
 
 

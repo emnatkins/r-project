@@ -25,7 +25,7 @@
   Wiley.
 }
 \examples{
-require(stats); require(graphics)
+require(stats)
 plot(cars, xlab = "Speed (mph)", ylab = "Stopping distance (ft)",
      las = 1)
 lines(lowess(cars$speed, cars$dist, f = 2/3, iter = 3), col = "red")

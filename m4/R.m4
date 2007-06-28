@@ -988,12 +988,8 @@ rm -rf conftest conftest.* conftestf.* core
 if test -n "${r_cv_prog_f77_can_run}"; then
   AC_MSG_RESULT([yes])
 else
-  if test "${cross_compiling}" = yes; then
-    AC_MSG_RESULT([don't know (cross-compiling)])
-  else
-    AC_MSG_WARN([cannot run mixed C/Fortran code])
-    AC_MSG_ERROR([Maybe check LDFLAGS for paths to Fortran libraries?])
-  fi
+  AC_MSG_WARN([cannot run mixed C/Fortran code])
+  AC_MSG_ERROR([Maybe check LDFLAGS for paths to Fortran libraries?])
 fi
 ])# R_PROG_F77_CAN_RUN
 
@@ -1077,12 +1073,8 @@ rm -rf conftest conftest.* conftestf.* core
 if test -n "${r_cv_prog_f77_cc_compat}"; then
   AC_MSG_RESULT([yes])
 else
-  if test "${cross_compiling}" = yes; then
-    AC_MSG_RESULT([don't know (cross-compiling)])
-  else
-    AC_MSG_WARN([${F77} and ${CC} disagree on int and double])
-    AC_MSG_ERROR([Maybe change CFLAGS or FFLAGS?])
-  fi
+  AC_MSG_WARN([${F77} and ${CC} disagree on int and double])
+  AC_MSG_ERROR([Maybe change CFLAGS or FFLAGS?])
 fi
 ])# R_PROG_F77_CC_COMPAT
 
@@ -1204,16 +1196,18 @@ fi
 ## -------------------
 ## Check for ObjC runtime and style.
 ## Effects:
-##  * r_cv_objc_runtime
+##  * ac_cv_objc_runtime
 ##    either "none" or flags necessary to link ObjC runtime
 ##    in the latter case they are also appended to OBJC_LIBS
-##  * r_cv_objc_runtime_style
+##  * ac_cv_objc_runtime_style
 ##    one of: unknown, gnu, next
 ##  * conditionals OBJC_GNU_RUNTIME and OBJC_NEXT_RUNTIME
 AC_DEFUN([R_PROG_OBJC_RUNTIME],
 [
+  ac_has_objc_headers=no
+
   if test -z "${OBJC}"; then
-    r_cv_objc_runtime=none
+    ac_cv_objc_runtime=none
   else
 
   AC_LANG_PUSH([Objective C])
@@ -1227,10 +1221,10 @@ AC_DEFUN([R_PROG_OBJC_RUNTIME],
 
   # FIXME: we don't check whether the runtime needs -lpthread which is possible
   #        (empirically Linux GNU and Apple runtime don't)
-  AC_CACHE_CHECK([for ObjC runtime library], [r_cv_objc_runtime], [
+  AC_CACHE_CHECK([for ObjC runtime library], [ac_cv_objc_runtime], [
     save_OBJCFLAGS="$OBJCFLAGS"
     save_LIBS="$LIBS"
-    r_cv_objc_runtime=none
+    ac_cv_objc_runtime=none
     for libobjc in objc objc-gnu objc-lf objc-lf2; do
       LIBS="${save_LIBS} -l${libobjc}"
       #OBJCFLAGS="$OBJCFLAGS $PTHREAD_CFLAGS -fgnu-runtime"
@@ -1241,7 +1235,8 @@ AC_DEFUN([R_PROG_OBJC_RUNTIME],
   @<:@Object class@:>@;
 			])
 		      ], [
-		        r_cv_objc_runtime="-l${libobjc}"
+		        ac_cv_objc_runtime="-l${libobjc}"
+			OBJC_LIBS="${ac_cv_objc_runtime} ${OBJC_LIBS}"
 			break
 		      ])
     done
@@ -1249,13 +1244,11 @@ AC_DEFUN([R_PROG_OBJC_RUNTIME],
     OBJCFLAGS="$save_OBJCFLAGS"
   ])
 
-  OBJC_LIBS="${r_cv_objc_runtime} ${OBJC_LIBS}"
-
-  if test "${r_cv_objc_runtime}" != none; then
-  AC_CACHE_CHECK([for ObjC runtime style], [r_cv_objc_runtime_style], [
+  if test "${ac_cv_objc_runtime}" != none; then
+  AC_CACHE_CHECK([for ObjC runtime style], [ac_cv_objc_runtime_style], [
     save_OBJCFLAGS="$OBJCFLAGS"
     save_LIBS="$LIBS"
-    r_cv_objc_runtime_style=unknown
+    ac_cv_objc_runtime_style=unknown
     LIBS="${OBJC_LIBS} $LIBS"
     for objc_lookup_class in objc_lookup_class objc_lookUpClass; do
       AC_LINK_IFELSE([
@@ -1267,9 +1260,9 @@ AC_DEFUN([R_PROG_OBJC_RUNTIME],
 			])
 		      ], [
 		        if test ${objc_lookup_class} = objc_lookup_class; then
-			  r_cv_objc_runtime_style=gnu
+			  ac_cv_objc_runtime_style=gnu
 			else
-			  r_cv_objc_runtime_style=next
+			  ac_cv_objc_runtime_style=next
 			fi
 			break
 		      ])
@@ -1279,10 +1272,10 @@ AC_DEFUN([R_PROG_OBJC_RUNTIME],
   ])
   fi
 
-  if test "${r_cv_objc_runtime_style}" = gnu; then
+  if test "${ac_cv_objc_runtime_style}" = gnu; then
     AC_DEFINE([OBJC_GNU_RUNTIME], 1, [Define if using GNU-style Objective C runtime.])
   fi
-  if test "${r_cv_objc_runtime_style}" = next; then
+  if test "${ac_cv_objc_runtime_style}" = next; then
     AC_DEFINE([OBJC_NEXT_RUNTIME], 1, [Define if using NeXT/Apple-style Objective C runtime.])
   fi
 
@@ -1342,12 +1335,6 @@ fi
 AC_DEFUN([R_PROG_OBJCXX],
 [AC_BEFORE([AC_PROG_CXX], [$0])
 AC_BEFORE([AC_PROG_OBJC], [$0])
-
-r_cached_objcxx=yes
-AC_MSG_CHECKING([for cached ObjC++ compiler])
-AC_CACHE_VAL([r_ac_OBJCXX],[
- AC_MSG_RESULT([none])
- r_cached_objcxx=no
 if test -n "${OBJCXX}"; then
   AC_MSG_RESULT([defining OBJCXX to be ${OBJCXX}])
   R_PROG_OBJCXX_WORKS(${OBJCXX},,OBJCXX='')
@@ -1366,12 +1353,6 @@ if test -z "${OBJCXX}"; then
 else
   AC_MSG_RESULT([${OBJCXX}])
 fi
-r_ac_OBJCXX="${OBJCXX}"
-if test "${r_cached_objcxx}" = yes; then
-  AC_MSG_RESULT(["${r_ac_OBJCXX}"])
-fi
-])
-OBJCXX="${r_ac_OBJCXX}"
 AC_SUBST(OBJCXX)
 ])# R_PROG_OBJCXX
 
@@ -1836,20 +1817,6 @@ AC_DEFUN([R_OBJC_FOUNDATION],
   ac_objc_foundation=no
   if test -n "${OBJC}"; then
 
-  r_foundation_cached=yes
-  AC_MSG_CHECKING([for cached Foundation settings])
-  AC_CACHE_VAL([r_cv_cache_foundation_flags], [
-      r_cv_cache_foundation_flags=yes
-      r_foundation_cached=no])
-  AC_MSG_RESULT([${r_foundation_cached}])
-  # if so, fetch them from the cache                                                                                                          
-  if test "${r_foundation_cached}" = yes; then
-    AC_CACHE_CHECK([FOUNDATION_LIBS], [r_cv_FOUNDATION_LIBS])
-    FOUNDATION_LIBS="${r_cv_FOUNDATION_LIBS}"
-    AC_CACHE_CHECK([FOUNDATION_CPPFLAGS], [r_cv_FOUNDATION_CPPFLAGS])
-    FOUNDATION_CPPFLAGS="${r_cv_FOUNDATION_CPPFLAGS}"
-  else
-
   AC_LANG_PUSH([Objective C])
   rof_save_LIBS="${LIBS}"
   rof_save_CPPFLAGS="${CPPFLAGS}"
@@ -1911,16 +1878,12 @@ EOF
   CPPFLAGS="${rof_save_CPPFLAGS}"
   AC_SUBST(FOUNDATION_CPPFLAGS)
   AC_SUBST(FOUNDATION_LIBS)
-  AC_CACHE_VAL([r_cv_FOUNDATION_CPPFLAGS],[r_cv_FOUNDATION_CPPFLAGS="${FOUNDATION_CPPFLAGS}"])
-  AC_CACHE_VAL([r_cv_FOUNDATION_LIBS],[r_cv_FOUNDATION_LIBS="${FOUNDATION_LIBS}"])
   AC_LANG_POP([Objective C])
   ac_objc_foundation=${ac_objc_foundation_works}
 
-  fi # not cached flags
-
   fi # -n ${OBJC}
-
-  AC_CACHE_CHECK([for working Foundation implementation], [r_cv_objc_foundation], [r_cv_objc_foundation="${ac_objc_foundation}"])
+  AC_MSG_CHECKING([for working Foundation implementation])
+  AC_MSG_RESULT(${ac_objc_foundation})
 ])
 
 ## R_IEEE_754
@@ -3237,7 +3200,7 @@ int main () {
   exit(0);
 }
   ]])], [r_cv_iconv_latin1=yes], [r_cv_iconv_latin1=no], 
-    [r_cv_iconv_latin1=yes])])
+    [r_cv_iconv_latin1=no])])
 
   if test "$r_cv_iconv_latin1" = yes; then
     AC_DEFINE(ICONV_LATIN1, 1,
@@ -3612,42 +3575,6 @@ int main ()
   fi
 ])# R_FUNC_SIGACTION
 
-## R_CROSS_COMPILING
-## ---------
-## check for tools necessary for cross-compiling,
-## namely BUILD_CC and BUILD_R
-## This macro does nothing for native builds
-AC_DEFUN([R_CROSS_COMPILING],
-[
-if test "${cross_compiling}" = yes; then
-  AC_MSG_CHECKING([for build C compiler])
-  build_cc_works=no
-  echo "int main(void) { return 0; }" > conftest.c
-  if test -n "${BUILD_CC}" && "${BUILD_CC}" conftest.c -o conftest && ./conftest; then
-      build_cc_works=yes;
-  fi
-  if test "${build_cc_works}" = no; then
-    for prog in gcc cc; do
-      if "${prog}" conftest.c -o conftest >/dev/null 2>&1 && ./conftest; then
-        BUILD_CC="${prog}"; build_cc_works=yes; break
-      fi
-    done
-  fi
-  if test "${build_cc_works}" = no; then
-    AC_MSG_RESULT(none)
-    AC_MSG_ERROR([Build C compiler doesn't work. Set BUILD_CC to a compiler capable of creating a binary native to the build machine.])
-  fi
-  AC_MSG_RESULT([${BUILD_CC}])
-  AC_MSG_CHECKING([for build R])
-  : ${BUILD_R=R}
-  if echo 'cat(R.home())'|"${BUILD_R}" --vanilla --slave >/dev/null 2>&1; then
-    AC_MSG_RESULT([${BUILD_R}])
-  else
-    AC_MSG_RESULT(none)
-    AC_MSG_ERROR([Build R doesn't work. Set BUILD_R to a native build of the same R version that you want to cross-compile.])
-  fi
-fi
-])
 
 ### Local variables: ***
 ### mode: outline-minor ***

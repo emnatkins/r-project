@@ -1,5 +1,5 @@
 
-R version 2.6.0 Under development (unstable) (2007-05-22 r41673)
+R version 2.5.0 Patched (2007-05-24 r41704)
 Copyright (C) 2007 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 
@@ -67,8 +67,7 @@ Error in read.table("foo1") : no lines available in input
 Error in scan(file, what, nmax, sep, dec, quote, skip, nlines, na.strings,  : 
 	line 1 did not have 4 elements
 In addition: Warning message:
-In read.table("foo3", header = TRUE, col.names = letters[1:4]) :
-	header and 'col.names' are of different lengths 
+header and 'col.names' are of different lengths in: read.table("foo3", header = TRUE, col.names = letters[1:4]) 
 > unlink("foo3")
 > 
 > # incomplete last line
@@ -78,8 +77,7 @@ In read.table("foo3", header = TRUE, col.names = letters[1:4]) :
 1    2
 3    4
 Warning message:
-In read.table("foo4", header = TRUE) :
-	incomplete final line found by readTableHeader on 'foo4' 
+incomplete final line found by readTableHeader on 'foo4' in: read.table("foo4", header = TRUE) 
 > unlink("foo4")
 > 
 > # blank last line

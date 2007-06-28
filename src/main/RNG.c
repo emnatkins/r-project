@@ -276,7 +276,7 @@ static void Randomize(RNGtype kind)
 void GetRNGstate()
 {
     /* Get  .Random.seed  into proper variables */
-    int len_seed, j, tmp, *is;
+    int len_seed, j, tmp;
     SEXP seeds;
     RNGtype newRNG; N01type newN01;
     
@@ -286,17 +286,12 @@ void GetRNGstate()
 	Randomize(RNG_kind);
     }
     else {
+	seeds = coerceVector(seeds, INTSXP);
 	if (seeds == R_MissingArg)
 	    error(_(".Random.seed is a missing argument with no default"));
-	if (!isInteger(seeds)) {
-	    warning(_(".Random.seed is not an integer vector but of type '%s'"),
-		    type2char(TYPEOF(seeds)));
-	    seeds = coerceVector(seeds, INTSXP);
-	    if(!isInteger(seeds))
-		error(_("unable to coerce .Random.seed to an integer vector"));
-	}
-	is = INTEGER(seeds);
-	tmp = is[0];
+	if (!isVector(seeds))
+	    error(_(".Random.seed is not a vector"));
+	tmp = INTEGER(seeds)[0];
 	if (tmp == NA_INTEGER)
 	    error(_(".Random.seed[1] is not a valid integer"));
         /* How using two integers, with names in the options to identify the types. */
@@ -332,7 +327,7 @@ void GetRNGstate()
 	    Randomize(RNG_kind);
 	else {
 	    for(j = 1; j <= len_seed; j++) {
-		tmp = is[j];
+		tmp = INTEGER(seeds)[j];
 /* Some generators can generate NA_INTEGER as a valid integer value */
 /*		if(tmp == NA_INTEGER)
 		error(".Random.seed[%d] is not a valid integer", j+1);*/

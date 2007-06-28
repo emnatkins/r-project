@@ -136,8 +136,6 @@ as.dist(m, diag = FALSE, upper = FALSE)
   \code{\link{hclust}}.
 }
 \examples{
-require(graphics)
-
 x <- matrix(rnorm(100), nrow=5)
 dist(x)
 dist(x, diag = TRUE)

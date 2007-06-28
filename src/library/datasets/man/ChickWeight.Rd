@@ -47,9 +47,9 @@
     S and S-PLUS}, Springer.
 }
 \examples{
-require(stats); require(graphics)
+require(stats)
 coplot(weight ~ Time | Chick, data = ChickWeight,
-    type = "b", show.given = FALSE)
+    type = "b", show = FALSE)
 ## fit a representative chick
 fm1 <- nls(weight ~ SSlogis( Time, Asym, xmid, scal ),
     data = ChickWeight, subset = Chick == 1)

@@ -7,12 +7,12 @@
   A graphics device for BMP, JPEG or PNG format bitmap files.
 }
 \usage{
-bmp(filename = "Rplot\%03d.bmp", width = 480, height = 480, units = "px",
+bmp(filename = "Rplot\%03d.bmp", width = 480, height = 480,
     pointsize = 12, bg = "white", res = NA, restoreConsole = TRUE)
-jpeg(filename = "Rplot\%03d.jpg", width = 480, height = 480, units = "px",
+jpeg(filename = "Rplot\%03d.jpg", width = 480, height = 480,
      pointsize = 12, quality = 75, bg = "white", res = NA,
      restoreConsole = TRUE)
-png(filename = "Rplot\%03d.png", width = 480, height = 480, units = "px",
+png(filename = "Rplot\%03d.png", width = 480, height = 480,
     pointsize = 12, bg = "white", res = NA, restoreConsole = TRUE)
 }
 \arguments{
@@ -22,11 +22,8 @@ png(filename = "Rplot\%03d.png", width = 480, height = 480, units = "px",
     600 characters long.  See \code{\link{postscript}} for further
     details.)
   }
-  \item{width}{the width of the device.}
-  \item{height}{the height of the device.}
-  \item{units}{The units in which \code{height} and \code{width} are
-    given.  Can be \code{in} (inches), \code{px} (pixels), \code{cm} or
-    \code{mm}.}
+  \item{width}{the width of the device in pixels.}
+  \item{height}{the height of the device in pixels.}
   \item{pointsize}{the default pointsize of plotted text, interpreted at
     72 dpi, so one point is approximately one pixel.}
   \item{bg}{the initial background colour: can be overridden by setting
@@ -35,8 +32,7 @@ png(filename = "Rplot\%03d.png", width = 480, height = 480, units = "px",
     percentage.  Smaller values will give more compression but also more
     degradation of the image.}
   \item{res}{The nominal resolution in dpi which will be recorded in the
-    bitmap file, if a positive integer.  Also used for units other than
-    the default.}
+    bitmap file, if a positive integer.}
   \item{restoreConsole}{See the Details section of \code{\link{windows}}}
 }
 \details{

@@ -79,7 +79,7 @@ void set_workspace_name(char *fn); /* ../main/startup.c */
 
 /* used to avoid some flashing during cleaning up */
 Rboolean AllDevicesKilled = FALSE;
-static int (*R_YesNoCancel)(char *s);
+int (*R_YesNoCancel)(char *s);
 
 static DWORD mainThreadId;
 
@@ -205,8 +205,8 @@ static int
 GuiReadConsole(char *prompt, char *buf, int len, int addtohistory)
 {
     int res;
-    const char *NormalPrompt =
-	CHAR(STRING_ELT(GetOption(install("prompt"), R_BaseEnv), 0));
+    char *NormalPrompt =
+	(char *) CHAR(STRING_ELT(GetOption(install("prompt"), R_BaseEnv), 0));
 
     if(!R_is_running) {
 	R_is_running = 1;
@@ -290,7 +290,7 @@ FileReadConsole(char *prompt, char *buf, int len, int addhistory)
     /* translate if necessary */
     if(strlen(R_StdinEnc) && strcmp(R_StdinEnc, "native.enc")) {
 	size_t res, inb = strlen(buf), onb = len;
-	const char *ib = buf; char *ob, *obuf;
+	char *ib = buf, *ob, *obuf;
 	ob = obuf = alloca(len+1);
 	if(!cd) {
 	    cd = Riconv_open("", R_StdinEnc);
@@ -301,12 +301,12 @@ FileReadConsole(char *prompt, char *buf, int len, int addhistory)
 	err = (res == (size_t)(-1));
 	/* errors lead to part of the input line being ignored */
 	if(err) fputs(_("<ERROR: invalid input in encoding>\n"), stdout);
-	strncpy(buf, obuf, len);
+	strncpy((char *)buf, obuf, len);
     }
 
 /* according to system.txt, should be terminated in \n, so check this
    at eof or error */
-    ll = strlen(buf);
+    ll = strlen((char *)buf);
     if ((err || feof(ifp ? ifp: stdin))
 	&& buf[ll - 1] != '\n' && ll < len) {
 	buf[ll++] = '\n'; buf[ll] = '\0';
@@ -655,11 +655,6 @@ void R_SetWin32(Rstart Rp)
     strcat(UserRHome, Rp->home);
     putenv(UserRHome);
 
-    /* Rterm and Rgui set CharacterMode during startup, then set Rp->CharacterMode
-       from it in cmdlineoptions().  Rproxy never calls cmdlineoptions, so we need the 
-       line below */
-       
-    CharacterMode = Rp->CharacterMode;
     switch(CharacterMode) {
     case RGui:
 	R_GUIType = "Rgui";
@@ -761,17 +756,6 @@ void R_setupHistory()
     }
 }
 
-static void wrap_askok(char *info)
-{
-    askok(info);
-}
-
-static int wrap_askyesnocancel(char *question)
-{
-    return askyesnocancel(question);    
-}
-
-
 int cmdlineoptions(int ac, char **av)
 {
     int   i, ierr;
@@ -863,8 +847,8 @@ int cmdlineoptions(int ac, char **av)
 	Rp->R_Interactive = TRUE;
 	Rp->ReadConsole = GuiReadConsole;
 	Rp->WriteConsole = GuiWriteConsole;
-	Rp->ShowMessage = wrap_askok;
-	Rp->YesNoCancel = wrap_askyesnocancel;
+	Rp->ShowMessage = askok;
+	Rp->YesNoCancel = askyesnocancel;
 	Rp->Busy = GuiBusy;
     }
 

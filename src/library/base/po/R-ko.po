@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-06-06 11:24\n"
+"POT-Creation-Date: 2007-06-12 18:43\n"
 "PO-Revision-Date: 2005-05-31 09:39+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -515,9 +515,6 @@ msgstr "행렬의 대각성분만을 옮겨놓을수가 있습니다"
 msgid "replacement diagonal has wrong length"
 msgstr "치환대각 성분의 길이가 잘못되어 있습니다"
 
-msgid "'fromLast' must be TRUE or FALSE"
-msgstr ""
-
 msgid "MARGIN ="
 msgstr "MARGIN ="
 
@@ -660,12 +657,12 @@ msgstr "(을)를 찾아낼수가 없습니다"
 msgid "all arguments must be named"
 msgstr "모든 인수는 동일 길이가 나오지 않으면 되지 않습니다"
 
+#, fuzzy
+msgid "argument '%s' will be ignored"
+msgstr "drop인수는 무시됩니다"
+
 msgid "'pattern' must be a non-empty character string"
 msgstr "'pattern'는 비어 있지 않는 문자열이 아니면 되지 않습니다"
-
-#, fuzzy
-msgid "invalid multibyte string for 'pattern'"
-msgstr "'by'에 대한 무효인 문자열입니다"
 
 msgid "'max.distance' must be non-negative"
 msgstr "'max.distance'는 non-negative이 나오지 않으면 되지 않습니다"
@@ -751,10 +748,6 @@ msgstr "'%s'는 탐색 패스에서는 검색되지 않았습니다. pos = 2를 
 
 msgid "package/namespace load failed for '%s'"
 msgstr "'%s'에 대한 패키지 또는 이름 공간의 적재가 실패했습니다"
-
-#, fuzzy
-msgid "package was installed prior to 2.4.0 and must be re-installed"
-msgstr "패키지 '%s' R 2.0.0 이전 것입니다. 그것을 다시 인스톨을 해주십시오"
 
 msgid "unable to load R code in package '%s'"
 msgstr "패키지 '%s'에서의 R 코드를 적재할수가 없습니다"
@@ -1423,6 +1416,9 @@ msgstr ""
 msgid "'input' must be a character vector or 'NULL'"
 msgstr "'input' 그리고 'target'는 문자 벡터가 아니면 되지 않습니다"
 
+msgid "argument must be character"
+msgstr "인수는 문자가 아니면 되지 않습니다"
+
 msgid "'cmd' could not be run"
 msgstr "'cmd'는 실행할수가 없었습니다"
 
@@ -1460,16 +1456,14 @@ msgid "there is no package called"
 msgid_plural "there are no packages called"
 msgstr[0] "'%s'라는 이름의 패키지는 없습니다"
 
-#, fuzzy
-msgid "object '%s' is not exported by 'namespace:%s'"
-msgid_plural "objects '%s' are not exported by 'namespace:%s'"
+msgid "object %s is not exported by 'namespace:%s'"
+msgid_plural "objects %s are not exported by 'namespace:%s'"
 msgstr[0] ""
 "오브젝트%s는 'namespace:%s'에 의해 export되지 않습니다 \n"
 "오브젝트(복수)%s는 'namespace:%s'에 의해 export되지 않습니다"
 
-#, fuzzy
-msgid "previous export '%s' is being replaced"
-msgid_plural "previous exports '%s' are being replaced"
+msgid "previous export %s is being replaced"
+msgid_plural "previous exports %s are being replaced"
 msgstr[0] ""
 "이전의 export %s는 옮겨 놓을수 있습니다 \n"
 "이전의 exports %s는 옮겨 놓을수 있습니다"
@@ -1485,9 +1479,6 @@ msgid_plural "Warning messages:\n"
 msgstr[0] ""
 "경고 메세지:\n"
 "경고 메세지(복수)\n"
-
-#~ msgid "argument must be character"
-#~ msgstr "인수는 문자가 아니면 되지 않습니다"
 
 #~ msgid "'all' can not be used with other deparse options"
 #~ msgstr "deparse 옵션에서 모든것을 사용할수가 없습니다"

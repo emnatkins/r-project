@@ -1,4 +1,5 @@
-require(grDevices); require(graphics)
+require(graphics)
+
 opar <- par(ask = dev.interactive(orNone = TRUE))
 
 ## --- Japanese characters in the Hershey Vector Fonts

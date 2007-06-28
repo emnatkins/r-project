@@ -210,7 +210,7 @@ as.data.frame.matrix <- function(x, row.names = NULL, optional = FALSE, ...,
     ## changed in 1.8.0
     if(is.null(row.names)) row.names <- dn[[1L]]
     collabs <- dn[[2L]]
-    if(any(empty <- !nzchar(collabs)))
+    if(any(empty <- nchar(collabs) == 0L))
 	collabs[empty] <- paste("V", ic, sep = "")[empty]
     value <- vector("list", ncols)
     if(mode(x) == "character" && stringsAsFactors) {
@@ -353,7 +353,7 @@ data.frame <-
     vnames <- names(x)
     if(length(vnames) != n)
 	vnames <- character(n)
-    no.vn <- !nzchar(vnames)
+    no.vn <- nchar(vnames) == 0L
     vlist <- vnames <- as.list(vnames)
     nrows <- ncols <- integer(n)
     for(i in seq_len(n)) {
@@ -376,7 +376,7 @@ data.frame <-
             else if (no.vn[[i]]) {
                 tmpname <- deparse(object[[i]])[1L]
                 if( substr(tmpname, 1L, 2L) == "I(" ) {
-                    ntmpn <- nchar(tmpname, "c")
+                    ntmpn <- nchar(tmpname)
                     if(substr(tmpname, ntmpn, ntmpn) == ")")
                         tmpname <- substr(tmpname, 3L, ntmpn - 1L)
                 }
@@ -414,7 +414,7 @@ data.frame <-
     value <- unlist(vlist, recursive=FALSE, use.names=FALSE)
     ## unlist() drops i-th component if it has 0 columns
     vnames <- unlist(vnames[ncols > 0L])
-    noname <- !nzchar(vnames)
+    noname <- nchar(vnames) == 0L
     if(any(noname))
 	vnames[noname] <- paste("Var", seq_along(vnames), sep = ".")[noname]
     if(check.names)
@@ -642,7 +642,7 @@ data.frame <-
 	    ii <- match(i, rows)
 	    nextra <- sum(new.rows <- is.na(ii))
 	    if(nextra > 0L) {
-		ii[new.rows] <- seq.int(from = nrows + 1L, length.out = nextra)
+		ii[new.rows] <- seq.int(from = nrows + 1L, length = nextra)
 		new.rows <- i[new.rows]
 	    }
 	    i <- ii
@@ -855,7 +855,7 @@ data.frame <-
 	ii <- match(i, rows)
 	n <- sum(new.rows <- is.na(ii))
 	if(n > 0L) {
-	    ii[new.rows] <- seq.int(from = nrows + 1L, length.out = n)
+	    ii[new.rows] <- seq.int(from = nrows + 1L, length = n)
 	    new.rows <- i[new.rows]
 	}
 	i <- ii
@@ -977,7 +977,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
     {
 	if(identical(clabs, nmi)) NULL
 	else if(length(nmi) == length(clabs) && all(match(nmi, clabs, 0L))) {
-            ## we need 1-1 matches here
+            ## we need unique matches here
 	    m <- pmatch(nmi, clabs, 0L)
             if(any(m == 0L))
                 stop("names do not match previous names")
@@ -986,13 +986,13 @@ rbind.data.frame <- function(..., deparse.level = 1)
     }
     Make.row.names <- function(nmi, ri, ni, nrow)
     {
-	if(nzchar(nmi)) {
+	if(nchar(nmi) > 0L) {
             if(ni == 0L) character(0L)  # PR8506
 	    else if(ni > 1L) paste(nmi, ri, sep = ".")
 	    else nmi
 	}
 	else if(nrow > 0L && identical(ri, seq_len(ni)))
-	    as.integer(seq.int(from = nrow + 1L, length.out = ni))
+	    as.integer(seq.int(from = nrow + 1L, length = ni))
 	else ri
     }
     allargs <- list(...)
@@ -1034,12 +1034,11 @@ rbind.data.frame <- function(..., deparse.level = 1)
 	    if(is.null(clabs))
 		clabs <- names(xi)
 	    else {
-                if(length(xi) != length(clabs))
-                    stop("numbers of columns of arguments do not match")
 		pi <- match.names(clabs, names(xi))
-		if( !is.null(pi) ) perm[[i]] <- pi
+		if( !is.null(pi) )
+		    perm[[i]] <- pi
 	    }
-	    rows[[i]] <- seq.int(from = nrow + 1L, length.out = ni)
+	    rows[[i]] <- seq.int(from = nrow + 1L, length = ni)
 	    rlabs[[i]] <- Make.row.names(nmi, ri, ni, nrow)
 	    nrow <- nrow + ni
 	    if(is.null(value)) {
@@ -1077,23 +1076,22 @@ rbind.data.frame <- function(..., deparse.level = 1)
 		ni <- ni[1L]
 	    else stop("invalid list argument: all variables should have the same length")
 	    rows[[i]] <- ri <-
-                as.integer(seq.int(from = nrow + 1L, length.out = ni))
+                as.integer(seq.int(from = nrow + 1L, length = ni))
 	    nrow <- nrow + ni
 	    rlabs[[i]] <- Make.row.names(nmi, ri, ni, nrow)
 	    if(length(nmi <- names(xi)) > 0L) {
 		if(is.null(clabs))
 		    clabs <- nmi
 		else {
-                    if(length(xi) != length(clabs))
-                        stop("numbers of columns of arguments do not match")
-		    pi <- match.names(clabs, nmi)
-		    if( !is.null(pi) ) perm[[i]] <- pi
+		    tmp<-match.names(clabs, nmi)
+		    if( !is.null(tmp) )
+			perm[[i]] <- tmp
 		}
 	    }
 	}
 	else if(length(xi) > 0L) {
 	    rows[[i]] <- nrow <- nrow + 1L
-	    rlabs[[i]] <- if(nzchar(nmi)) nmi else as.integer(nrow)
+	    rlabs[[i]] <- if(nchar(nmi) > 0L) nmi else as.integer(nrow)
 	}
     }
     nvar <- length(clabs)
@@ -1278,8 +1276,8 @@ Ops.data.frame <- function(e1, e2 = NULL)
 {
     isList <- function(x) !is.null(x) && is.list(x)
     unary <- nargs() == 1L
-    lclass <- nzchar(.Method[1L])
-    rclass <- !unary && (nzchar(.Method[2L]))
+    lclass <- nchar(.Method[1L]) > 0L
+    rclass <- !unary && (nchar(.Method[2L]) > 0L)
     value <- list()
     rn <- NULL
     ## set up call as op(left, right)

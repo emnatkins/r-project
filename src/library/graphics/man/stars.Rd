@@ -96,9 +96,6 @@ stars(x, full = TRUE, scale = TRUE, radius = TRUE,
   Only one page of output is produced.
 }
 \author{Thomas S. Dye}
-\seealso{
-  \code{\link{symbols}} for another way to draw stars and other symbols.
-}
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
   \emph{The New S Language}.
@@ -112,7 +109,6 @@ stars(x, full = TRUE, scale = TRUE, radius = TRUE,
   documented as here.
 }
 \examples{
-require(grDevices)
 stars(mtcars[, 1:7], key.loc = c(14, 2),
       main = "Motor Trend Cars : stars(*, full = F)", full = FALSE)
 stars(mtcars[, 1:7], key.loc = c(14, 1.5),

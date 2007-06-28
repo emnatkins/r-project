@@ -51,8 +51,6 @@ convolve(x, y, conj = TRUE, type = c("circular", "open", "filter"))
   more appropriate.
 }
 \examples{
-require(graphics)
-
 x <- c(0,0,0,100,0,0,0)
 y <- c(0,0,1, 2 ,1,0,0)/4
 zapsmall(convolve(x,y))         #  *NOT* what you first thought.

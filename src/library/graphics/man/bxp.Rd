@@ -108,7 +108,6 @@ bxp(z, notch = FALSE, width = NULL, varwidth = FALSE,
   Wadsworth \& Brooks/Cole.
 }
 \examples{
-require(stats)
 set.seed(753)
 (bx.p <- boxplot(split(rt(100, 4), gl(5,20))))
 op <- par(mfrow= c(2,2))

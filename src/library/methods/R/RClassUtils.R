@@ -700,11 +700,10 @@ reconcilePropertiesAndPrototype <-
       what <- seq_along(properties)
       props <- properties[what]
       what <- slots[what]
-      nm <- names(attributes(prototype))
       for(i in seq_along(what)) {
           propName <- el(what, i)
-          if(!identical(propName, ".Data") && !propName %in% nm)
-#             is.null(attr(prototype, propName)))
+          if(!identical(propName, ".Data") &&
+             is.null(attr(prototype, propName)))
               slot(prototype, propName, FALSE) <- tryNew(el(props, i), where)
       }
       list(properties = properties, prototype = prototype)
@@ -802,7 +801,7 @@ showExtends <-
     }
     if(identical(printTo, FALSE))
         list(what = what, how = how)
-    else if(all(!nzchar(how)) ||  all(how == "directly")) {
+    else if(all(nchar(how)==0)|| all(how == "directly")) {
         what <- paste('"', what, '"', sep="")
         if(length(what)>1)
             what <- c(paste(what[-length(what)], ",", sep=""), what[[length(what)]])
@@ -1039,7 +1038,7 @@ requireMethods <-
 
 ## Construct an error message for an unsatisfied required method.
 .missingMethod <- function(f, message = "", method) {
-    if(nzchar(message))
+    if(nchar(message)>0)
         message <- paste("(", message, ")", sep="")
     message <- paste("for function", f, message)
     if(is(method, "MethodDefinition")) {
@@ -1560,32 +1559,31 @@ substituteFunctionArgs <- function(def, newArgs, args = formalArgs(def), silent 
 ## they use getClassDef and .getGeneric resp.  Also, .getEnv returns baseenv() rather
 ## than generating an error if no generic found (so getGeneric can return gen'c for prim'ves)
 
-.genEnv <-  function(f, default = .requirePackage("methods"), package = "")
-{
-    if(!nzchar(package))
-        package <- packageSlot(f)
-    if(is.null(package)) {
-        ## use the default, but check that the object is there, and if not
-        ## try a couple of other heuristics
-        value <- default
-        def <- .getGeneric(f, value)
-        if(is.null(def)) {
-            value <- .GlobalEnv
+.genEnv <-  function(f, default = .requirePackage("methods"), package = "") {
+        if(nchar(package) == 0)
+          package <- packageSlot(f)
+        if(is.null(package)) {
+            ## use the default, but check that the object is there, and if not
+            ## try a couple of other heuristics
+            value <- default
             def <- .getGeneric(f, value)
             if(is.null(def)) {
-                value <- .requirePackage("methods")
-                if(!identical(default, value)) # user supplied default
-                    def <- .getGeneric(f, value)
+                value <- .GlobalEnv
+                def <- .getGeneric(f, value)
+                if(is.null(def)) {
+                    value <- .requirePackage("methods")
+                    if(!identical(default, value)) # user supplied default
+                        def <- .getGeneric(f, value)
+                }
             }
+            if(is.null(def))
+                baseenv()
+            else
+                value
         }
-        if(is.null(def))
-            baseenv()
         else
-            value
+            .requirePackage(package)
     }
-    else
-        .requirePackage(package)
-}
 
 ## cache and retrieve class definitions  If there is a conflict with
 ## packages a list of  classes will be cached
@@ -1671,7 +1669,7 @@ substituteFunctionArgs <- function(def, newArgs, args = formalArgs(def), silent 
       subclasses <- class
     subs <- def@subclasses
     subNames <- names(subs)
-    for(i in seq_along(subs)) {
+    for(i in seq(along = subs)) {
         what <- subNames[[i]]
         subDef <- getClassDef(what)
         if(is.null(subDef))
@@ -1699,7 +1697,7 @@ substituteFunctionArgs <- function(def, newArgs, args = formalArgs(def), silent 
    subs <- def@subclasses
     subNames <- names(subs)
     extDefs <- def2@subclasses
-    for(i in seq_along(subs)) {
+    for(i in seq(along = subs)) {
         what <- subNames[[i]]
         if(.identC(what, class2))
           next # catch recursive relations
@@ -1745,8 +1743,8 @@ substituteFunctionArgs <- function(def, newArgs, args = formalArgs(def), silent 
         }
     }
 }
-
-
+      
+    
 ## remove subclass from the known subclasses of class
 ## both in the package environment and in the cache
 .removeSubClass <- function(class, subclass, where) {
@@ -1757,7 +1755,7 @@ substituteFunctionArgs <- function(def, newArgs, args = formalArgs(def), silent 
         newdef <- .deleteSubClass(cdef, subclass)
         if(!is.null(newdef))
           assignClassDef(class, newdef,  where, TRUE)
-        else { # check the cache
+        else { # check the cache 
             cdef <- .getClassFromCache(cdef@className, where)
             if(is.null(cdef)) {}
             else {

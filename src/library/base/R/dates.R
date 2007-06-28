@@ -250,7 +250,7 @@ seq.Date <- function(from, to, by, length.out=NULL, along.with=NULL, ...)
         r1 <- as.POSIXlt(from)
         if(valid == 4) {
             if(missing(to)) { # years
-                yr <- seq.int(r1$year, by = by, length.out = length.out)
+                yr <- seq.int(r1$year, by = by, length = length.out)
             } else {
                 to <- as.POSIXlt(to)
                 yr <- seq.int(r1$year, to$year, by)
@@ -259,7 +259,7 @@ seq.Date <- function(from, to, by, length.out=NULL, along.with=NULL, ...)
             res <- .Internal(POSIXlt2Date(r1))
         } else if(valid == 3) { # months
             if(missing(to)) {
-                mon <- seq.int(r1$mon, by = by, length.out = length.out)
+                mon <- seq.int(r1$mon, by = by, length = length.out)
             } else {
                 to <- as.POSIXlt(to)
                 mon <- seq.int(r1$mon, 12*(to$year - r1$year) + to$mon, by)
@@ -340,7 +340,7 @@ round.Date <- function(x, ...)
 }
 
 ## must avoid truncating dates prior to 1970-01-01 forwards.
-trunc.Date <- function(x, ...) round(x - 0.4999999)
+trunc.Date <- function(x) round(x - 0.4999999)
 
 rep.Date <- function(x, ...)
 {
@@ -364,7 +364,3 @@ diff.Date <- function (x, lag = 1, differences = 1, ...)
         r <- r[i1] - r[-length(r):-(length(r) - lag + 1)]
     r
 }
-
-# ---- additions in 2.6.0 -----
-
-is.numeric.Date <- function(x) FALSE

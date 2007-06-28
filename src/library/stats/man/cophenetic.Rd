@@ -51,8 +51,6 @@ cophenetic(x)
   \code{\link{hclust}}
 }
 \examples{
-require(graphics)
-
 d1 <- dist(USArrests)
 hc <- hclust(d1, "ave")
 d2 <- cophenetic(hc)
@@ -64,7 +62,7 @@ attributes(d0) <- list(Size = 5, diag=TRUE)
 class(d0) <- "dist"
 names(d0) <- letters[1:5]
 d0
-utils::str(upgma <- hclust(d0, method = "average"))
+str(upgma <- hclust(d0, method = "average"))
 plot(upgma, hang = -1)
 #
 (d.coph <- cophenetic(upgma))

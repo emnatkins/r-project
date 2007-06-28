@@ -1,7 +1,7 @@
 \name{charmatch}
 \title{Partial String Matching}
 \usage{
-charmatch(x, table, nomatch = NA_integer_)
+charmatch(x, table, nomatch = NA)
 }
 \alias{charmatch}
 \arguments{

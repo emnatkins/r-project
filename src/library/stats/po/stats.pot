@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2007-06-12 18:52+0100\n"
+"POT-Creation-Date: 2007-04-10 07:42+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,12 +28,12 @@ msgstr ""
 msgid "invalid argument type"
 msgstr ""
 
-#: arima.c:418 arima.c:502 pacf.c:308 pacf.c:348
+#: arima.c:418 arima.c:502 pacf.c:314 pacf.c:354
 msgid "can only transform 100 pars in arima0"
 msgstr ""
 
 #: distance.c:151
-msgid "treating non-finite values as NA"
+msgid "dist(.,\"binary\"): treating non-finite values as NA"
 msgstr ""
 
 #: distance.c:220
@@ -149,17 +149,17 @@ msgstr ""
 msgid "bad Starma struct"
 msgstr ""
 
-#: pacf.c:227
+#: pacf.c:228
 #, c-format
 msgid "starma error code %d"
 msgstr ""
 
-#: pacf.c:287
+#: pacf.c:293
 #, c-format
 msgid "forkal error code %d"
 msgstr ""
 
-#: pacf.c:451
+#: pacf.c:457
 msgid "invalid value of lag.max"
 msgstr ""
 

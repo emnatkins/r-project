@@ -25,8 +25,7 @@ boxplot.stats <- function(x, coef = 1.5, do.conf = TRUE, do.out = TRUE)
 
 ## Contour lines
 contourLines <-
-function (x = seq(0, 1, length.out = nrow(z)),
-          y = seq(0, 1, length.out = ncol(z)),
+function (x = seq(0, 1, len = nrow(z)), y = seq(0, 1, len = ncol(z)),
 	  z, nlevels = 10, levels = pretty(range(z, na.rm = TRUE), nlevels))
 {
     ## FIXME: This "validation" code for the x, y, z values
@@ -40,7 +39,7 @@ function (x = seq(0, 1, length.out = nrow(z)),
 		z <- x$z; y <- x$y; x <- x$x
 	    } else {
 		z <- x
-		x <- seq.int(0, 1, length.out = nrow(z))
+		x <- seq(0, 1, len = nrow(z))
 	    }
 	} else stop("no 'z' matrix specified")
     } else if (is.list(x)) {
@@ -92,28 +91,3 @@ nclass.FD <- function(x)
 }
 
 
-## Sunflower Plot computation:
-## Used to be part of ../../graphics/R/sunflowerplot.R :
-sunflowerTable <- function(x, y = NULL, digits)
-{
-    ## Compute number := multiplicities of (x[i], y[i])
-
-    x <- xy.coords(x, y)
-    ##     if(!is.null(y))
-    ##         x <- xy.coords(x, y)
-    ##     else ## assume 'x' is already xy.coords()-like ;  cheap check only:
-    ##         stopifnot(is.list(x), all(c("x","y") %in% names(x)))
-
-    ## must get rid of rounding fuzz:
-    y <- signif(x$y, digits=digits)
-    x <- signif(x$x, digits=digits)
-    n <- length(x)
-    orderxy <- order(x, y)
-    x <- x[orderxy]
-    y <- y[orderxy]
-    first <- c(TRUE, (x[-1] != x[-n]) | (y[-1] != y[-n]))
-    x <- x[first]
-    y <- y[first]
-    number <- diff(c((1:n)[first], n + 1))
-    list(x = x, y = y, number = number)
-}

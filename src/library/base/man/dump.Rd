@@ -94,7 +94,7 @@ dump(list, file = "dumpdata.R", append = FALSE,
 }
 \examples{
 x <- 1; y <- 1:10
-dump(ls(pattern = '^[xyz]'), "xyz.Rdmped")
+dump(ls(patt='^[xyz]'), "xyz.Rdmped")
 print(.Last.value)
 unlink("xyz.Rdmped")
 }

@@ -13,10 +13,9 @@ path.expand(path)
 }
 #ifdef unix
 \details{
-  On \emph{some} Unix versions, a leading \code{~user} will expand to
+  On \emph{some Unix} versions, a leading \code{~user} will expand to
   the home directory of \code{user}, but not on Unix versions without
-  \code{readline} installed, nor if \R is invoked with
-  \option{--no-readline}.
+  \code{readline} installed.
 }
 #endif
 #ifdef windows

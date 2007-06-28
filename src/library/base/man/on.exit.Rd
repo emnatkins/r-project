@@ -36,8 +36,6 @@ on.exit(expr, add = FALSE)
   evaluated.  
 }
 \examples{
-require(graphics)
-
 opar <- par(mai = c(1,1,1,1))
 on.exit(par(opar))
 \dontshow{par(opar)}

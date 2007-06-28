@@ -1,6 +1,6 @@
 #### --- Hershey Vector Fonts ---
 
-require(grDevices); require(graphics)
+require(graphics)
 opar <- par(ask = dev.interactive(orNone = TRUE))
 
 

@@ -7,6 +7,7 @@
 \usage{
 package.manager()
 }
+}
 \details{
   This interface shows the current state of packages present on your 
   system. A graphical browser shows which packages are currently
@@ -15,5 +16,6 @@ package.manager()
 }
 \seealso{
   \code{\link{library}}, \code{\link{detach}}.
+}
 }
 \keyword{documentation}

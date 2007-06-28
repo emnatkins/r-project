@@ -39,7 +39,6 @@ chull(x, y = NULL)
 \seealso{\code{\link{xy.coords}},\code{\link{polygon}}}
 
 \examples{
-require(stats)
 X <- matrix(rnorm(2000), ncol = 2)
 chull(X)
 \dontrun{

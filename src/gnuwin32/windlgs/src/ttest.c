@@ -1,9 +1,7 @@
-#include <R.h> /* for R_ProcessEvents */
+#include <windows.h>
 #include "ga.h"
 #include <stdlib.h> /* atof */
 #include <ctype.h> /* tolower */
-#define WIN32_LEAN_AND_MEAN 1
-#include <windows.h> /* for Sleep */
 
 
 static window win;
@@ -13,11 +11,13 @@ static field var1, var2, lvl;
 static checkbox paired, varequal;
 static listbox alt;
 
+extern void R_ProcessEvents();
+
 static int done = 0;
 static char *v[2];
 
 
-static const char *alts[] = {"two.sided", "greater", "less", NULL};
+static char *alts[] = {"two.sided", "greater", "less", NULL};
 
 /* keyboard shortcuts: CR or A/a accepts, ESC or C/c cancels */
 static void hit_key(window w, int key)

@@ -34,7 +34,6 @@
   New York: Wiley.
 }
 \examples{
-require(graphics)
 pairs(USArrests, panel = panel.smooth, main = "USArrests data")
 }
 \keyword{datasets}

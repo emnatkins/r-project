@@ -479,8 +479,6 @@ AC_ARG_VAR([SAFE_FFLAGS],
 AC_ARG_VAR([r_arch],
            [Use architecture-dependent subdirs with this name])
 AC_ARG_VAR([DEFS], [C defines for use when compiling R])
-AC_ARG_VAR([JAVA_HOME],
-           [Path to the root of the Java environment])
 
 if test -z "${r_arch}"; then
   R_ARCH=
@@ -550,7 +548,6 @@ R_PROG_F77
 AC_PROG_CXX
 AC_PROG_CXXCPP
 R_GCC4_VISIBILITY
-AC_GNU_SOURCE ## needed to libintl
 
 AC_PROG_OBJC
 ## unfortunately autoconf sets OBJC to gcc even if there is no working compiler
@@ -571,12 +568,6 @@ AC_SUBST(R_DEFS)
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 AC_SUBST(LIBTOOL_DEPS)
-
-## cross-compiling
-R_CROSS_COMPILING
-AC_SUBST(BUILD_CC)
-AC_SUBST(BUILD_R)
-AM_CONDITIONAL(CROSS_COMPILING, [test "${cross_compiling}" = yes])
 
 ### * Checks for libraries.
 
@@ -752,15 +743,22 @@ AC_CHECK_TYPES([intptr_t, uintptr_t], , , [#ifdef HAVE_INTTYPES_H
 AC_C_BIGENDIAN
 AC_C_CONST
 R_C_INLINE
-AC_CHECK_SIZEOF(int)
+if test "${cross_compiling}" = yes; then
+  warn_xcompile_sizeof_int="assuming C ints are 4 byte on ${host}"
+  AC_MSG_WARN([${warn_xcompile_sizeof_int}])
+fi
+AC_CHECK_SIZEOF(int, 4)
 if test "${ac_cv_sizeof_int}" = 4; then
   AC_DEFINE(INT_32_BITS, 1, [Define if you have 32 bit ints.])
 fi
-AC_CHECK_SIZEOF(long)
-AC_CHECK_SIZEOF(long long)
-AC_CHECK_SIZEOF(double)
-AC_CHECK_SIZEOF(long double)
-AC_CHECK_SIZEOF(size_t)
+if test "${cross_compiling}" = yes; then
+  warn_xcompile_sizeof_long="assuming C longs are 4 byte on ${host}"
+  AC_MSG_WARN([${warn_xcompile_sizeof_long}])
+fi
+AC_CHECK_SIZEOF(long, 4)
+AC_CHECK_SIZEOF(long long, 0)
+AC_CHECK_SIZEOF(double, 8)
+AC_CHECK_SIZEOF(long double, 0)
 
 R_PROG_CC_MAKEFRAG
 R_PROG_CC_LO_MAKEFRAG
@@ -1634,13 +1632,6 @@ R_CHECK_FUNCS([glob], [#ifdef HAVE_GLOB_H
 # include <glob.h>
 #endif])
 
-## we can't use dir() or unlink(recursive=TRUE) without these
-if test "${ac_cv_have_decl_stat}" = "no"; then
-   AC_MSG_ERROR([Building R requires the 'stat' system call])
-fi
-if test "${ac_cv_search_opendir}" = "no"; then
-   AC_MSG_ERROR([Building R requires the 'opendir' system call])
-fi
 
 
 ## <NOTE>
@@ -1701,10 +1692,7 @@ fi
 if test "${ac_cv_have_decl_isfinite}" = "yes"; then
 R_FUNC_ISFINITE
 fi
-## check value of log(0) and log(-1)
-## Solaris defines log(0) to be -HUGE_VAL, but we want -Inf
 R_FUNC_LOG
-## check accuracy of log1p
 R_FUNC_LOG1P
 R_FUNC_FTELL
 R_FUNC_SIGACTION
@@ -2132,35 +2120,37 @@ for arg in ${LDFLAGS} ${FLIBS} ${BLAS_LIBS} ${LAPACK_LIBS} ${X_LIBS} \
       ;;
   esac
 done
-## Handle JAVA_LD_LIBRARY_PATH specially so that users can conveniently set just
+## Handle JAVA_LIBS specially so that users can conveniently set just
 ## R_JAVA_LD_LIBRARY_PATH in their environment.
-if test -n "${JAVA_LD_LIBRARY_PATH}"; then
-   args=`echo ${JAVA_LD_LIBRARY_PATH} | sed -e s:\$\(JAVA_HOME\):${JAVA_HOME}:g`
-   r_save_IFS="${IFS}"; IFS="${PATH_SEPARATOR}"
-   for lib in ${args}; do
+for arg in ${JAVA_LIBS}; do
+  case "${arg}" in
+    -L*)
+      lib=`echo ${arg} | sed "s/^-L//"`
       r_want_lib=true
+      ## don't add anything for Darwin
+      case "${host_os}" in darwin*) r_want_lib=false ;; esac
       ## Do not add non-existent directories.
       test -d "${lib}" || r_want_lib=false
       if test x"${r_want_lib}" = xtrue; then
-        ## do NOT Canonicalize (/usr/lib/j2sdk1.5-sun/jre/../lib/i386).
-	## because we may lose the reference to ${JAVA_HOME} if it is a symlink (it often is)
-        ##lib=`cd "${lib}" && ${GETWD}`
+        ## Canonicalize (/usr/lib/j2sdk1.5-sun/jre/../lib/i386).
+        lib=`cd "${lib}" && ${GETWD}`
         ## Do not add something twice, or something already in
         ## R_LD_LIBRARY_PATH or the defaults.
+        r_save_IFS="${IFS}"; IFS="${PATH_SEPARATOR}"
         for dir in ${R_JAVA_LD_LIBRARY_PATH}${IFS}${R_LD_LIBRARY_PATH}${IFS}${r_ld_library_defaults}; do
           if test x"${dir}" = x"${lib}"; then
              r_want_lib=false
              break
           fi
         done
+        IFS="${r_save_IFS}"
         if test x"${r_want_lib}" = xtrue; then
-	  lib=`echo ${lib}|sed -e s:${JAVA_HOME}:\$\{JAVA_HOME\}:g`
           R_SH_VAR_ADD(R_JAVA_LD_LIBRARY_PATH, [${lib}], [${PATH_SEPARATOR}])
         fi
       fi
-   done
-   IFS="${r_save_IFS}"
-fi
+      ;;
+  esac
+done
 ## </FIXME>
 
 AC_SUBST(R_LD_LIBRARY_PATH)

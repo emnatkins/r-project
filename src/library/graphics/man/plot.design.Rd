@@ -63,7 +63,6 @@ plot.design(x, y = NULL, fun = mean, data = NULL, \dots,
 \seealso{\code{\link{interaction.plot}} for a \dQuote{standard graphic}
   of designed experiments.}
 \examples{
-require(stats)
 plot.design(warpbreaks)# automatic for data frame with one numeric var.
 
 Form <- breaks ~ wool + tension

@@ -116,14 +116,9 @@
 #if defined _LIBC
 # include <bits/libc-lock.h>
 #else
-/* gettext adds definitions to config.h for some of these */
-# undef __libc_lock_define
 # define __libc_lock_define(CLASS,NAME)
-# undef __libc_lock_init
 # define __libc_lock_init(NAME) do { } while (0)
-# undef __libc_lock_lock
 # define __libc_lock_lock(NAME) do { } while (0)
-# undef __libc_lock_unlock
 # define __libc_lock_unlock(NAME) do { } while (0)
 #endif
 
@@ -212,18 +207,6 @@
 # define __attribute(arg) __attribute__ (arg)
 #else
 # define __attribute(arg)
-#endif
-
-#if defined(Win32) && defined(LEA_MALLOC)
-#include <stddef.h>
-extern void *Rm_malloc(size_t n);
-extern void *Rm_calloc(size_t n_elements, size_t element_size);
-extern void Rm_free(void * p);
-extern void *Rm_realloc(void * p, size_t n);
-#define calloc Rm_calloc
-#define malloc Rm_malloc
-#define realloc Rm_realloc
-#define free Rm_free
 #endif
 
 /* extern const char __re_error_msgid[] attribute_hidden;

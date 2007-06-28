@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.6.0\n"
+"Project-Id-Version: R 2.5.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-06-06 11:24\n"
-"PO-Revision-Date: 2007-06-06 11:24\n"
+"POT-Creation-Date: 2007-06-12 18:43\n"
+"PO-Revision-Date: 2007-06-12 18:43\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -526,9 +526,6 @@ msgstr "only matrix diagonals can be replaced"
 msgid "replacement diagonal has wrong length"
 msgstr "replacement diagonal has wrong length"
 
-msgid "'fromLast' must be TRUE or FALSE"
-msgstr "‘fromLast’ must be TRUE or FALSE"
-
 msgid "MARGIN ="
 msgstr "MARGIN ="
 
@@ -660,11 +657,11 @@ msgstr "' not found"
 msgid "all arguments must be named"
 msgstr "all arguments must be named"
 
+msgid "argument '%s' will be ignored"
+msgstr "argument ‘%s’ will be ignored"
+
 msgid "'pattern' must be a non-empty character string"
 msgstr "‘pattern’ must be a non-empty character string"
-
-msgid "invalid multibyte string for 'pattern'"
-msgstr "invalid multibyte string for ‘pattern’"
 
 msgid "'max.distance' must be non-negative"
 msgstr "‘max.distance’ must be non-negative"
@@ -746,9 +743,6 @@ msgstr "‘%s’ not found on search path, using pos = 2"
 
 msgid "package/namespace load failed for '%s'"
 msgstr "package/namespace load failed for ‘%s’"
-
-msgid "package was installed prior to 2.4.0 and must be re-installed"
-msgstr "package was installed prior to 2.4.0 and must be re-installed"
 
 msgid "unable to load R code in package '%s'"
 msgstr "unable to load R code in package ‘%s’"
@@ -1402,6 +1396,9 @@ msgstr ""
 msgid "'input' must be a character vector or 'NULL'"
 msgstr "‘input’ must be a character vector or ‘NULL’"
 
+msgid "argument must be character"
+msgstr "argument must be character"
+
 msgid "'cmd' could not be run"
 msgstr "‘cmd’ could not be run"
 
@@ -1434,15 +1431,15 @@ msgid_plural "there are no packages called"
 msgstr[0] "there is no package called"
 msgstr[1] "there are no packages called"
 
-msgid "object '%s' is not exported by 'namespace:%s'"
-msgid_plural "objects '%s' are not exported by 'namespace:%s'"
-msgstr[0] "object ‘%s’ is not exported by ‘namespace:%s’"
-msgstr[1] "objects ‘%s’ are not exported by ‘namespace:%s’"
+msgid "object %s is not exported by 'namespace:%s'"
+msgid_plural "objects %s are not exported by 'namespace:%s'"
+msgstr[0] "object %s is not exported by ‘namespace:%s’"
+msgstr[1] "objects %s are not exported by ‘namespace:%s’"
 
-msgid "previous export '%s' is being replaced"
-msgid_plural "previous exports '%s' are being replaced"
-msgstr[0] "previous export ‘%s’ is being replaced"
-msgstr[1] "previous exports ‘%s’ are being replaced"
+msgid "previous export %s is being replaced"
+msgid_plural "previous exports %s are being replaced"
+msgstr[0] "previous export %s is being replaced"
+msgstr[1] "previous exports %s are being replaced"
 
 msgid "S3 method %s was declared in NAMESPACE but not found"
 msgid_plural "S3 methods %s were declared in NAMESPACE but not found"

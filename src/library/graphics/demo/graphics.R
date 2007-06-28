@@ -1,5 +1,5 @@
 require(datasets)
-require(grDevices); require(graphics)
+require(graphics)
 opar <- par(ask = dev.interactive(orNone = TRUE))
 
 
@@ -11,7 +11,7 @@ opar <- par(ask = dev.interactive(orNone = TRUE))
 ## the foreground color.
 
 
-x <- stats::rnorm(50)
+x <- rnorm(50)
 opar <- c(opar, par(bg = "white"))
 plot(x, ann = FALSE, type = "n")
 abline(h = 0, col = gray(.90))

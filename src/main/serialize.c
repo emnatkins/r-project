@@ -30,7 +30,6 @@
 #include <Rmath.h>
 #include <Fileio.h>
 #include <Rversion.h>
-#include <R_ext/RS.h>           /* for CallocCharBuf, Free */
 
 /* From time to time changes in R, such as the addition of a new SXP,
  * may require changes in the save file format.  Here are some
@@ -277,7 +276,7 @@ static void OutByte(R_outpstream_t stream, Rbyte i)
     }
 }
 
-static void OutString(R_outpstream_t stream, const char *s, int length)
+static void OutString(R_outpstream_t stream, char *s, int length)
 {
     if (stream->type == R_pstream_ascii_format) {
 	int i;
@@ -311,7 +310,7 @@ static void OutString(R_outpstream_t stream, const char *s, int length)
 	stream->OutChar(stream, '\n');
     }
     else
-	stream->OutBytes(stream, (void *)s, length); /* FIXME: is this case right? */
+	stream->OutBytes(stream, s, length);
 }
 
 
@@ -1199,7 +1198,6 @@ static SEXP ReadItem (SEXP ref_table, R_inpstream_t stream)
     SEXPTYPE type;
     SEXP s;
     int flags, levs, objf, hasattr, hastag, length, count;
-    char *cbuf;
 
     R_assert(TYPEOF(ref_table) == LISTSXP && TYPEOF(CAR(ref_table)) == VECSXP);
 
@@ -1312,20 +1310,19 @@ static SEXP ReadItem (SEXP ref_table, R_inpstream_t stream)
 	case SPECIALSXP:
 	case BUILTINSXP:
 	    length = InInteger(stream);
-            cbuf = CallocCharBuf(length);
-	    InString(stream, cbuf, length);
-	    PROTECT(s = mkPRIMSXP(StrToInternal(cbuf), type == BUILTINSXP));
-            Free(cbuf);
+	    PROTECT(s = allocVector(CHARSXP, length)); /* as buffer */
+	    InString(stream,CHAR(s), length);
+	    s = mkPRIMSXP(StrToInternal(CHAR(s)), type == BUILTINSXP);
+	    UNPROTECT(1);  /* pop the old s off the protect stack */
+	    PROTECT(s);    /* and push the new s on it */
 	    break;
 	case CHARSXP:
 	    length = InInteger(stream);
 	    if (length == -1)
 		PROTECT(s = NA_STRING);
 	    else {
-                cbuf = CallocCharBuf(length);
-		InString(stream, cbuf, length);
-                PROTECT(s = mkChar(cbuf));
-                Free(cbuf);
+		PROTECT(s = allocVector(CHARSXP, length));
+		InString(stream, CHAR(s), length);
 	    }
 	    break;
 	case LGLSXP:
@@ -1744,7 +1741,7 @@ do_serializeToConn(SEXP call, SEXP op, SEXP args, SEXP env)
     con = getConnection(asInteger(CADR(args)));
 
     if (TYPEOF(CADDR(args)) != LGLSXP)
-	error(_("'ascii' must be logical"));
+	errorcall(call, _("'ascii' must be logical"));
     ascii = INTEGER(CADDR(args))[0];
     if (ascii) type = R_pstream_ascii_format;
     else type = R_pstream_xdr_format;
@@ -1863,20 +1860,14 @@ SEXP attribute_hidden R_serializeb(SEXP object, SEXP icon, SEXP fun)
  */
 
 typedef struct membuf_st {
-    R_size_t size;
-    R_size_t count;
+    int size;
+    int count;
     unsigned char *buf;
 } *membuf_t;
 
-static void resize_buffer(membuf_t mb, R_size_t needed)
+static void resize_buffer(membuf_t mb, int needed)
 {
-    /* This used to allocate double 'needed', but that was problematic for
-       large buffers */
-    R_size_t newsize = needed;
-    /* we need to store the result in a RAWSXP */
-    if(needed > INT_MAX)
-	error(_("serialization is too large to store in a raw vector"));
-    if(needed < INT_MAX - MAXELTSIZE) needed += MAXELTSIZE;
+    int newsize = 2 * needed;
     mb->buf = realloc(mb->buf, newsize);
     if (mb->buf == NULL)
 	error(_("cannot allocate buffer"));
@@ -1894,16 +1885,13 @@ static void OutCharMem(R_outpstream_t stream, int c)
 static void OutBytesMem(R_outpstream_t stream, void *buf, int length)
 {
     membuf_t mb = stream->data;
-    R_size_t needed = mb->count + (R_size_t) length;
-    /* There is a potential overflow here on 32-bit systems */
-    if((double) mb->count + length > (double) INT_MAX)
-	error(_("serialization is too large to store in a raw vector"));
-    if (needed > mb->size) resize_buffer(mb, needed);
+    if (mb->count + length > mb->size)
+	resize_buffer(mb, mb->count + length);
     memcpy(mb->buf + mb->count, buf, length);
-    mb->count = needed;
+    mb->count += length;
 }
 
-static int InCharMem(R_inpstream_t stream)
+static int InCHarMem(R_inpstream_t stream)
 {
     membuf_t mb = stream->data;
     if (mb->count >= mb->size)
@@ -1914,7 +1902,7 @@ static int InCharMem(R_inpstream_t stream)
 static void InBytesMem(R_inpstream_t stream, void *buf, int length)
 {
     membuf_t mb = stream->data;
-    if (mb->count + (R_size_t) length > mb->size)
+    if (mb->count + length > mb->size)
 	error(_("read error"));
     memcpy(buf, mb->buf + mb->count, length);
     mb->count += length;
@@ -1928,7 +1916,7 @@ static void InitMemInPStream(R_inpstream_t stream, membuf_t mb,
     mb->size = length;
     mb->buf = buf;
     R_InitInPStream(stream, (R_pstream_data_t) mb, R_pstream_any_format,
-		    InCharMem, InBytesMem, phook, pdata);
+		    InCHarMem, InBytesMem, phook, pdata);
 }
 
 static void InitMemOutPStream(R_outpstream_t stream, membuf_t mb,
@@ -1956,9 +1944,6 @@ static SEXP CloseMemOutPStream(R_outpstream_t stream)
 {
     SEXP val;
     membuf_t mb = stream->data;
-    /* duplicate check, for future proofing */
-    if(mb->count > INT_MAX)
-	error(_("serialization is too large to store in a raw vector"));
     PROTECT(val = allocVector(RAWSXP, mb->count));
     memcpy(RAW(val), mb->buf, mb->count);
     free_mem_buffer(mb);
@@ -2018,7 +2003,7 @@ SEXP R_unserialize(SEXP icon, SEXP fun)
 
     if (TYPEOF(icon) == STRSXP && LENGTH(icon) > 0) {
         struct membuf_st mbs;
-	void *data = (void *)CHAR(STRING_ELT(icon, 0)); /* FIXME, is this right? */
+	void *data = CHAR(STRING_ELT(icon, 0));
 	int length = LENGTH(STRING_ELT(icon, 0));
 	InitMemInPStream(&in, &mbs, data,  length, hook, fun);
 	return R_Unserialize(&in);
@@ -2096,7 +2081,7 @@ static char *ptr[NC];
 SEXP attribute_hidden R_lazyLoadDBflush(SEXP file)
 {
     int i;
-    const char *cfile = CHAR(STRING_ELT(file, 0));
+    char *cfile = CHAR(STRING_ELT(file, 0));
 
     /* fprintf(stderr, "flushing file %s", cfile); */
     for (i = 0; i < used; i++)
@@ -2119,7 +2104,7 @@ static SEXP readRawFromFile(SEXP file, SEXP key)
     FILE *fp;
     int offset, len, in, i, icache = -1, filelen;
     SEXP val;
-    const char *cfile = CHAR(STRING_ELT(file, 0));
+    char *cfile = CHAR(STRING_ELT(file, 0));
 
     if (! IS_PROPER_STRING(file))
 	error(_("not a proper file name"));
@@ -2251,20 +2236,20 @@ R_lazyLoadDBinsertValue(SEXP value, SEXP file, SEXP ascii,
    If the result is a promise, then the promise is forced. */
 
 SEXP attribute_hidden
-do_lazyLoadDBfetch(SEXP call, SEXP op, SEXP args, SEXP env)
+R_lazyLoadDBfetch(SEXP key, SEXP file, SEXP compsxp, SEXP hook)
 {
-    SEXP key, file, compsxp, hook;
     PROTECT_INDEX vpi;
-    Rboolean compressed;
+    Rboolean compressed = asLogical(compsxp);
     SEXP val;
 
-    checkArity(op, args);
-    key = CAR(args); args = CDR(args);
-    file = CAR(args); args = CDR(args);
-    compsxp = CAR(args); args = CDR(args);
-    hook = CAR(args);
-    compressed = asLogical(compsxp);
-    
+    /* Temporary fix for R 2.5.1.
+       Note that we cannot use BEGIN/END_SUSPEND_INTERRUPTS as that
+       checks interrupts at the suspend, and we don't want it done until
+       after the return. */
+ 
+    Rboolean __oldsusp__ = R_interrupts_suspended;
+    R_interrupts_suspended = TRUE;
+
     PROTECT_WITH_INDEX(val = readRawFromFile(file, key), &vpi);
     if (compressed)
 	REPROTECT(val = R_decompress1(val), vpi);
@@ -2275,5 +2260,7 @@ do_lazyLoadDBfetch(SEXP call, SEXP op, SEXP args, SEXP env)
         SET_NAMED(val, 2);
     }
     UNPROTECT(1);
+    R_interrupts_suspended = __oldsusp__;
+
     return val;
 }

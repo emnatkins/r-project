@@ -593,20 +593,6 @@ SEXP LJOINget(R_GE_linejoin ljoin)
 }
 
 /****************************************************************
- * Code to convert string colour name/description to internal colour
- ****************************************************************
- */
-
-unsigned int R_GE_str2col(const char *s) {
-    /*
-     * Call the one in graphics.c 
-     * Ideally, move colour stuff from graphics.c to here
-     * and have the traditional graphics code call this.
-     */
-    return str2col(s);
-}
-
-/****************************************************************
  * Code to retrieve current clipping rect from device
  ****************************************************************
  */
@@ -823,7 +809,7 @@ static void CScliplines(int n, double *x, double *y,
     double *xx, *yy;
     double x1, y1, x2, y2;
     cliprect cr;
-    void *vmax = vmaxget();
+    char *vmax = vmaxget();
 
     if (toDevice)
 	getClipRectToDevice(&cr.xl, &cr.yb, &cr.xr, &cr.yt, dd);
@@ -1132,7 +1118,7 @@ void GEPolygon(int n, double *x, double *y,
      * Save (and reset below) the heap pointer to clean up
      * after any R_alloc's done by functions I call.
      */
-    void *vmaxsave = vmaxget();
+    char *vmaxsave = vmaxget();
     if (gc->lty == LTY_BLANK)
 	/* "transparent" border */
 	gc->col = R_TRANWHITE;
@@ -1233,7 +1219,7 @@ void GECircle(double x, double y, double radius,
 	      R_GE_gcontext *gc,
 	      GEDevDesc *dd)
 {
-    void *vmax;
+    char *vmax;
     double *xc, *yc;
     int result;
 
@@ -1355,7 +1341,7 @@ void GERect(double x0, double y0, double x1, double y1,
 	    R_GE_gcontext *gc,
 	    GEDevDesc *dd)
 {
-    void *vmax;
+    char *vmax;
     double *xc, *yc;
     int result;
 
@@ -1803,7 +1789,7 @@ SEXP GEXspline(int n, double *x, double *y, double *s, Rboolean open,
      * Save (and reset below) the heap pointer to clean up
      * after any R_alloc's done by functions I call.
      */
-    void *vmaxsave = vmaxget();
+    char *vmaxsave = vmaxget();
     if (open) {
       compute_open_spline(n, x, y, s, repEnds, LOW_PRECISION, dd);
       if (draw)
@@ -2288,7 +2274,7 @@ void GEMetricInfo(int c,
  * GEStrWidth
  ****************************************************************
  */
-double GEStrWidth(const char *str,
+double GEStrWidth(char *str,
 		  R_GE_gcontext *gc,
 		  GEDevDesc *dd)
 {
@@ -2299,14 +2285,13 @@ double GEStrWidth(const char *str,
     if (vfontcode >= 0) {
 	gc->fontfamily[0] = vfontcode;
 	gc->fontface = VFontFaceCode(vfontcode, gc->fontface);
-	return R_GE_VStrWidth(str, gc, dd);
+	return R_GE_VStrWidth((unsigned char *) str, gc, dd);
     } else {
 	double w;
 	char *sbuf = NULL;
 	w = 0;
 	if(str && *str) {
-	    const char *s;
-	    char *sb;
+	    char *s, *sb;
 	    double wdash;
 	    sbuf = (char*) R_alloc(strlen(str) + 1, sizeof(char));
 	    sb = sbuf;
@@ -2335,7 +2320,7 @@ double GEStrWidth(const char *str,
  * GEStrHeight
  ****************************************************************
  */
-double GEStrHeight(const char *str,
+double GEStrHeight(char *str,
 		   R_GE_gcontext *gc,
 		   GEDevDesc *dd)
 {
@@ -2346,10 +2331,10 @@ double GEStrHeight(const char *str,
     if (vfontcode >= 0) {
 	gc->fontfamily[0] = vfontcode;
 	gc->fontface = VFontFaceCode(vfontcode, gc->fontface);
-	return R_GE_VStrHeight(str, gc, dd);
+	return R_GE_VStrHeight((unsigned char *) str, gc, dd);
     } else {
 	double h;
-	const char *s;
+	char *s;
 	double asc, dsc, wid;
 	int n;
 	/* Count the lines of text minus one */
@@ -2694,15 +2679,15 @@ SEXP attribute_hidden do_recordGraphics(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP list = CADR(args);
     SEXP parentenv = CADDR(args);
     if (!isLanguage(code))
-	error(_("'expr' argument must be an expression"));
+      errorcall(call, _("'expr' argument must be an expression"));
     if (TYPEOF(list) != VECSXP)
-	error(_("'list' argument must be a list"));
+      errorcall(call, _("'list' argument must be a list"));
     if (isNull(parentenv)) {
 	error(_("use of NULL environment is defunct"));
 	parentenv = R_BaseEnv;
     } else        
     if (!isEnvironment(parentenv))
-	error(_("'env' argument must be an environment"));
+      errorcall(call, _("'env' argument must be an environment"));
     /*
      * This conversion of list to env taken from do_eval
      */

@@ -103,8 +103,6 @@ ccf(x, y, lag.max = NULL, type = c("correlation", "covariance"),
   autocorrelations of a given ARMA process.
 }
 \examples{
-require(graphics)
-
 ## Examples from Venables & Ripley
 acf(lh)
 acf(lh, type = "covariance")

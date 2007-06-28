@@ -52,7 +52,7 @@ typedef struct IoBuffer {
 
 
 typedef struct TextBuffer {
-	void	*vmax;				/* Memory stack top */
+	char	*vmax;				/* Memory stack top */
 	unsigned char	*buf;			/* Line buffer */
 	unsigned char	*bufp;			/* Line buffer location */
 	SEXP	text;				/* String Vector */

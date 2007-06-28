@@ -27,14 +27,14 @@ help.start <- function(update = TRUE, gui = "irrelevant",
 
 browseURL <- function(url, browser = getOption("browser"))
 {
-    if(!is.character(url) || !(length(url) == 1) || !nzchar(url))
+    if(!is.character(url) || !(length(url) == 1) || (nchar(url) == 0))
         stop("'url' must be a non-empty character string")
     if(is.null(browser))
         shell.exec(url)
     else {
         if(!is.character(browser)
            || !(length(browser) == 1)
-           || !nzchar(browser))
+           || (nchar(browser) == 0))
         stop("'browser' must be a non-empty character string")
         cmd <- paste('"', browser, '" ', url, sep="")
         system(cmd, wait=FALSE)

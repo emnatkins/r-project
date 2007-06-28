@@ -9,16 +9,16 @@
 }
 \usage{
 \method{round}{POSIXt}(x, units = c("secs", "mins", "hours", "days"))
-\method{trunc}{POSIXt}(x, units = c("secs", "mins", "hours", "days"), \dots)
+\method{trunc}{POSIXt}(x, units = c("secs", "mins", "hours", "days"))
 
 \method{round}{Date}(x, \dots)
-\method{trunc}{Date}(x, \dots)
+\method{trunc}{Date}(x)
 }
 \arguments{
   \item{x}{an object inheriting from \code{"POSIXt"} or \code{"Date"}.}
   \item{units}{one of the units listed.  Can be abbreviated.}
   \item{\dots}{arguments to be passed to or from other methods, notably
-    \code{digits} for \code{round}.}
+    \code{digits}.}
 }
 \details{
   The time is rounded or truncated to the second, minute, hour or day.
@@ -29,7 +29,7 @@
   fractional days.
 }
 \value{
-  An object of class \code{"POSIXlt"} or \code{"Date"}.
+  An object of class \code{"POSIXlt"}.
 }
 \seealso{
   \code{\link{round}} for the generic function and default methods.

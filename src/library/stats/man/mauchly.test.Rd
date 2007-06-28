@@ -60,7 +60,7 @@ mauchly.test(object, Sigma = diag(nrow = p),
 
 %% Probably use example from Baron/Li
 \examples{
-utils::example(SSD) # Brings in the mlmfit and reacttime objects
+example(SSD) # Brings in the mlmfit and reacttime objects
 
 ### traditional test of intrasubj. contrasts
 mauchly.test(mlmfit, X=~1) 

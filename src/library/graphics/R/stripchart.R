@@ -57,6 +57,7 @@ function(x, method="overplot", jitter=0.1, offset=1/3, vertical=FALSE,
     }
     csize <- cex*
 	if(vertical) xinch(par("cin")[1]) else yinch(par("cin")[2])
+    f <- function(x) seq.int(length=length(x))
     for(i in 1:n) {
 	x <- groups[[i]]
 	y <- rep.int(at[i], length(x))
@@ -64,7 +65,7 @@ function(x, method="overplot", jitter=0.1, offset=1/3, vertical=FALSE,
 	    y <- y + stats::runif(length(y), -jitter, jitter)
 	else if(method == 3) { ## stack
 	    xg <- split(x, factor(x))
-	    xo <- lapply(xg, seq_along)
+	    xo <- lapply(xg, f)
 	    x <- unlist(xg, use.names=FALSE)
 	    y <- rep.int(at[i], length(x)) +
 		(unlist(xo, use.names=FALSE) - 1) * offset * csize

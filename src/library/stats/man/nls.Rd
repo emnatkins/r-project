@@ -143,8 +143,6 @@ nls(formula, data, start, control, algorithm,
   \code{\link{profile.nls}}.
 }
 \examples{
-require(graphics)
-
 DNase1 <- subset(DNase, Run == 1)
 
 ## using a selfStart model
@@ -159,7 +157,7 @@ coef(summary(fm1DNase1))
 fm2DNase1 <- nls(density ~ 1/(1 + exp((xmid - log(conc))/scal)),
                  data = DNase1,
                  start = list(xmid = 0, scal = 1),
-                 algorithm = "plinear", trace = TRUE)
+                 alg = "plinear", trace = TRUE)
 summary(fm2DNase1)
 
 ## without conditional linearity

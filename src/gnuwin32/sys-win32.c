@@ -61,7 +61,7 @@ FILE *R_OpenInitFile(void)
 static int HaveHOME=-1;
 static char UserHOME[PATH_MAX];
 static char newFileName[PATH_MAX];
-const char *R_ExpandFileName(const char *s)
+char *R_ExpandFileName(char *s)
 {
     char *p;
 
@@ -262,7 +262,8 @@ SEXP do_system(SEXP call, SEXP op, SEXP args, SEXP rho)
 	UNPROTECT(1);
 	return (rval);
     } else {
-	tlist = ScalarLogical(ll);
+	tlist = allocVector(INTSXP, 1);
+	INTEGER(tlist)[0] = ll;
 	R_Visible = 0;
 	return tlist;
     }

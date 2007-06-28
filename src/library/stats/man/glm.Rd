@@ -275,7 +275,7 @@ anova(glm.D93)
 summary(glm.D93)
 
 ## an example with offsets from Venables & Ripley (2002, p.189)
-utils::data(anorexia, package="MASS")
+data(anorexia, package="MASS")
 
 anorex.1 <- glm(Postwt ~ Prewt + Treat + offset(Prewt),
                 family = gaussian, data = anorexia)

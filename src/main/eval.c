@@ -221,13 +221,12 @@ static void R_InitProfiling(SEXP filename, int append, double dinterval, int mem
 #endif
     int interval;
 
-#if !defined(Win32) && defined(_R_HAVE_TIMING_)
     /* according to man setitimer, it waits until the next clock
-       tick, usually 10ms, so avoid too small intervals here
+       tick, usually 10ms, so avoid too small intervals here */
+#if !defined(Win32) && defined(_R_HAVE_TIMING_)
     double clock_incr = R_getClockIncrement();
     int nclock = floor(dinterval/clock_incr + 0.5);
-    interval = 1e6 * ((nclock > 1)?nclock:1) * clock_incr + 0.5; */
-    interval = 1e6 * dinterval + 0.5;
+    interval = 1e6 * ((nclock > 1)?nclock:1) * clock_incr + 0.5;
 #else
     interval = 1e6 * dinterval + 0.5;
 #endif
@@ -281,7 +280,7 @@ SEXP attribute_hidden do_Rprof(SEXP call, SEXP op, SEXP args, SEXP rho)
 #endif
     checkArity(op, args);
     if (!isString(CAR(args)) || (LENGTH(CAR(args))) != 1)
-	error(_("invalid '%s' argument"), "filename");
+	errorcall(call, _("invalid '%s' argument"), "filename");
     append_mode = asLogical(CADR(args));
     dinterval = asReal(CADDR(args));
     mem_profiling = asLogical(CADDDR(args));
@@ -311,45 +310,11 @@ void attribute_hidden check_stack_balance(SEXP op, int save)
 }
 
 
-static SEXP forcePromise(SEXP e)
-{
-    if (PRVALUE(e) == R_UnboundValue) {
-	RPRSTACK prstack;
-	SEXP val;
-	if(PRSEEN(e)) {
-	    if (PRSEEN(e) == 1)
-		errorcall(R_GlobalContext->call,
-			  _("promise already under evaluation: recursive default argument reference or earlier problems?"));
-	    else warningcall(R_GlobalContext->call,
-			     _("restarting interrupted promise evaluation"));
-	}
-	/* Mark the promise as under evaluation and push it on a stack
-	   that can be used to unmark pending promises if a jump out
-	   of the evaluation occurs. */
-	SET_PRSEEN(e, 1);
-	prstack.promise = e;
-	prstack.next = R_PendingPromises;
-	R_PendingPromises = &prstack;
-
-	val = eval(PRCODE(e), PRENV(e));
-
-	/* Pop the stack, unmark the promise and set its value field.
-	   Also set the environment to R_NilValue to allow GC to
-	   reclaim the promise environment; this is also useful for
-	   fancy games with delayedAssign() */
-	R_PendingPromises = prstack.next;
-	SET_PRSEEN(e, 0);
-	SET_PRVALUE(e, val);
-	SET_PRENV(e, R_NilValue);
-    }
-    return PRVALUE(e);
-}
-
 /* Return value of "e" evaluated in "rho". */
 
 SEXP eval(SEXP e, SEXP rho)
 {
-    SEXP op, tmp;
+    SEXP op, tmp, val;
     static int evalcount = 0;
 
     /* The use of depthsave below is necessary because of the
@@ -422,7 +387,7 @@ SEXP eval(SEXP e, SEXP rho)
 	    error(_("object \"%s\" not found"), CHAR(PRINTNAME(e)));
 	/* if ..d is missing then ddfindVar will signal */
 	else if (tmp == R_MissingArg && !DDVAL(e) ) {
-	    const char *n = CHAR(PRINTNAME(e));
+	    char *n = CHAR(PRINTNAME(e));
 	    if(*n) error(_("argument \"%s\" is missing, with no default"),
 			 CHAR(PRINTNAME(e)));
 	    else error(_("argument is missing, with no default"));
@@ -437,11 +402,22 @@ SEXP eval(SEXP e, SEXP rho)
 	    SET_NAMED(tmp, 1);
 	break;
     case PROMSXP:
-	if (PRVALUE(e) == R_UnboundValue)
-	    /* We could just unconditionally use the return value from
-	       forcePromise; the test avoids the function call if the
-	       promise is already evaluated. */
-	    forcePromise(e);
+	if (PRVALUE(e) == R_UnboundValue) {
+	    if(PRSEEN(e))
+		errorcall(R_GlobalContext->call,
+			  _("promise already under evaluation: recursive default argument reference or earlier problems?"));
+	    /* We don't want to interrupt a lazyload evaluation, and that
+	       means we must not check when calling the wrapper function
+	       or the .Call call.  So delay checking for long enough. */
+	    if(evalcount > 95) evalcount = 95;
+	    SET_PRSEEN(e, 1);
+	    val = eval(PRCODE(e), PRENV(e));
+	    SET_PRSEEN(e, 0);
+	    SET_PRVALUE(e, val);
+	    /* allow GC to reclaim;
+	       also useful for fancy games with delayedAssign() */
+	    SET_PRENV(e, R_NilValue);
+	}
 	tmp = PRVALUE(e);
 	break;
     case LANGSXP:
@@ -457,7 +433,7 @@ SEXP eval(SEXP e, SEXP rho)
 	}
 	if (TYPEOF(op) == SPECIALSXP) {
 	    int save = R_PPStackTop, flag = PRIMPRINT(op);
-	    void *vmax = vmaxget();
+	    char *vmax = vmaxget();
 	    PROTECT(CDR(e));
 	    R_Visible = flag != 1;
 	    tmp = PRIMFUN(op) (e, op, CDR(e), rho);
@@ -477,7 +453,7 @@ SEXP eval(SEXP e, SEXP rho)
 	}
 	else if (TYPEOF(op) == BUILTINSXP) {
 	    int save = R_PPStackTop, flag = PRIMPRINT(op);
-	    void *vmax = vmaxget();
+	    char *vmax = vmaxget();
 	    RCNTXT cntxt;
 	    PROTECT(tmp = evalList(CDR(e), rho, op));
 	    if (flag < 2) R_Visible = flag != 1;
@@ -546,7 +522,7 @@ SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedenv)
 	contains the matched pairs.  Ideally this environment sould be
 	hashed.  */
 
-    PROTECT(actuals = matchArgs(formals, arglist, call));
+    PROTECT(actuals = matchArgs(formals, arglist));
     PROTECT(newrho = NewEnvironment(formals, actuals, savedrho));
 
     /*  Use the default code for unbound formals.  FIXME: It looks like
@@ -1193,7 +1169,7 @@ SEXP attribute_hidden do_return(SEXP call, SEXP op, SEXP args, SEXP rho)
 	warningcall(call, _("multi-argument returns are deprecated"));
 	for (v = vals; v != R_NilValue; v = CDR(v)) {
 	    if (CAR(v) == R_MissingArg)
-		errorcall(call, _("empty expression in return value"));
+		error(_("empty expression in return value"));
 	    if (NAMED(CAR(v)))
 		SETCAR(v, duplicate(CAR(v)));
 	}
@@ -1207,6 +1183,8 @@ SEXP attribute_hidden do_return(SEXP call, SEXP op, SEXP args, SEXP rho)
     return R_NilValue; /*NOTREACHED*/
 }
 
+
+static SEXP forcePromise(SEXP e);
 
 SEXP attribute_hidden do_function(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -1665,7 +1643,7 @@ SEXP attribute_hidden do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
 	   (and documented as such */
 	encl = R_BaseEnv;
     } else if ( !isEnvironment(encl) )
-	error(_("invalid '%s' argument"), "enclos");
+	errorcall(call, _("invalid '%s' argument"), "enclos");
     switch(TYPEOF(env)) {
     case NILSXP:
         env = encl;     /* so eval(expr, NULL, encl) works */
@@ -1686,14 +1664,14 @@ SEXP attribute_hidden do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
     case INTSXP:
     case REALSXP:
 	if (length(env) != 1)
-	    error(_("numeric 'envir' arg not of length one"));
+	    errorcall(call, _("numeric 'envir' arg not of length one"));
 	frame = asInteger(env);
 	if (frame == NA_INTEGER)
-	    error(_("invalid '%s' argument"), "envir");
+	    errorcall(call, _("invalid '%s' argument"), "envir");
 	PROTECT(env = R_sysframe(frame, R_GlobalContext));
 	break;
     default:
-	error(_("invalid '%s' argument"), "envir");
+	errorcall(call, _("invalid '%s' argument"), "envir");
     }
 
     /* isLanguage include NILSXP, and that does not need to be
@@ -1708,7 +1686,7 @@ SEXP attribute_hidden do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    expr = R_ReturnedValue;
 	    if (expr == R_RestartToken) {
 		cntxt.callflag = CTXT_RETURN;  /* turn restart off */
-		error(_("restarts not supported in 'eval'"));
+		errorcall(call, _("restarts not supported in 'eval'"));
 	    }
 	}
 	endcontext(&cntxt);
@@ -1727,7 +1705,7 @@ SEXP attribute_hidden do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    tmp = R_ReturnedValue;
 	    if (tmp == R_RestartToken) {
 		cntxt.callflag = CTXT_RETURN;  /* turn restart off */
-		error(_("restarts not supported in 'eval'"));
+		errorcall(call, _("restarts not supported in 'eval'"));
 	    }
 	}
 	endcontext(&cntxt);
@@ -1809,8 +1787,8 @@ static SEXP evalArgs(SEXP el, SEXP rho, SEXP op, int dropmissing)
  * at large in the world.
  */
 attribute_hidden
-int DispatchOrEval(SEXP call, SEXP op, const char *generic, SEXP args,
-                   SEXP rho, SEXP *ans, int dropmissing, int argsevald)
+int DispatchOrEval(SEXP call, SEXP op, char *generic, SEXP args, SEXP rho,
+		   SEXP *ans, int dropmissing, int argsevald)
 {
 /* DispatchOrEval is called very frequently, most often in cases where
    no dispatching is needed and the isObject or the string-based
@@ -1855,8 +1833,11 @@ int DispatchOrEval(SEXP call, SEXP op, const char *generic, SEXP args,
 	/* try to dispatch on the object */
     if( isObject(x) ) {
 	char *pt;
-	/* Try for formal method. */
-	if(IS_S4_OBJECT(x) && R_has_methods(op)) {
+	/* Try for formal method.
+	   It should be possible eventually to test by IS_S4_OBJECT
+	   here, but currently fails in limma's tests.
+	 */
+	if(R_has_methods(op)) {
 	    SEXP value, argValue;
 	    /* create a promise to pass down to applyClosure  */
 	    if(!argsevald) {
@@ -1928,7 +1909,7 @@ int DispatchOrEval(SEXP call, SEXP op, const char *generic, SEXP args,
 
 
 /* gr needs to be protected on return from this function */
-static void findmethod(SEXP Class, const char *group, const char *generic,
+static void findmethod(SEXP Class, char *group, char *generic,
 		       SEXP *sxp,  SEXP *gr, SEXP *meth, int *which,
 		       char *buf, SEXP rho)
 {
@@ -1940,7 +1921,7 @@ static void findmethod(SEXP Class, const char *group, const char *generic,
     /* eg if class(x) is "foo" "bar" then x>3 should invoke */
     /* "Ops.foo" rather than ">.bar" */
     for (whichclass = 0 ; whichclass < len ; whichclass++) {
-	const char *ss = translateChar(STRING_ELT(Class, whichclass));
+	char *ss = translateChar(STRING_ELT(Class, whichclass));
 	if(strlen(generic) + strlen(ss) + 2 > 512)
 	    error(_("class name too long in '%s'"), generic);
 	sprintf(buf, "%s.%s", generic, ss);
@@ -1964,14 +1945,13 @@ static void findmethod(SEXP Class, const char *group, const char *generic,
 }
 
 attribute_hidden
-int DispatchGroup(const char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
+int DispatchGroup(char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 		  SEXP *ans)
 {
     int i, j, nargs, lwhich, rwhich, set;
     SEXP lclass, s, t, m, lmeth, lsxp, lgr, newrho;
     SEXP rclass, rmeth, rgr, rsxp;
     char lbuf[512], rbuf[512], generic[128], *pt;
-    Rboolean useS4 = TRUE, isOps = FALSE;
 
     /* pre-test to avoid string computations when there is nothing to
        dispatch on because either there is only one argument and it
@@ -1982,20 +1962,9 @@ int DispatchGroup(const char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
     if (args != R_NilValue && ! isObject(CAR(args)) &&
         (CDR(args) == R_NilValue || ! isObject(CADR(args))))
 	return 0;
-
-    isOps = strcmp(group, "Ops") == 0;
-
     /* try for formal method */
-    if(length(args) == 1 && !IS_S4_OBJECT(CAR(args))) useS4 = FALSE;
-    if(length(args) == 2 && 
-       !IS_S4_OBJECT(CAR(args)) && !IS_S4_OBJECT(CADR(args))) useS4 = FALSE;
-    if(useS4 && R_has_methods(op)) {
-	SEXP value;
-	/* Remove argument names to ensure positional matching */
-	if(isOps)
-	    for(s = args; s != R_NilValue; s = CDR(s)) SET_TAG(s, R_NilValue);
-
-	value = R_possible_dispatch(call, op, args, rho);
+    if(R_has_methods(op)) {
+	SEXP value = R_possible_dispatch(call, op, args, rho);
 	if(value) {
 	    *ans = value;
 	    return 1;
@@ -2015,7 +1984,7 @@ int DispatchGroup(const char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 	    return 0;
     }
 
-    if(isOps)
+    if( !strcmp(group, "Ops") )
 	nargs = length(args);
     else
 	nargs = 1;
@@ -2048,7 +2017,7 @@ int DispatchGroup(const char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 	findmethod(rclass, group, generic, &rsxp, &rgr, &rmeth,
 		   &rwhich, rbuf, rho);
     else
-	rwhich = 0;
+	rwhich=0;
 
     PROTECT(rgr);
 
@@ -2057,7 +2026,7 @@ int DispatchGroup(const char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 	return 0; /* no generic or group method so use default*/
     }
 
-    if( lsxp != rsxp ) {
+    if( lsxp!=rsxp ) {
 	if( isFunction(lsxp) && isFunction(rsxp) ) {
 	    warning(_("Incompatible methods (\"%s\", \"%s\") for \"%s\""),
 		    CHAR(PRINTNAME(lmeth)), CHAR(PRINTNAME(rmeth)), generic);
@@ -2066,11 +2035,11 @@ int DispatchGroup(const char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 	}
 	/* if the right hand side is the one */
 	if( !isFunction(lsxp) ) { /* copy over the righthand stuff */
-	    lsxp = rsxp;
-	    lmeth = rmeth;
-	    lgr = rgr;
-	    lclass = rclass;
-	    lwhich = rwhich;
+	    lsxp=rsxp;
+	    lmeth=rmeth;
+	    lgr=rgr;
+	    lclass=rclass;
+	    lwhich=rwhich;
 	    strcpy(lbuf, rbuf);
 	}
     }
@@ -2100,20 +2069,20 @@ int DispatchGroup(const char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 
     defineVar(install(".Method"), m, newrho);
     UNPROTECT(1);
-    PROTECT(t = mkString(generic));
+    PROTECT(t=mkString(generic));
     defineVar(install(".Generic"), t, newrho);
     UNPROTECT(1);
     defineVar(install(".Group"), lgr, newrho);
-    set = length(lclass) - lwhich;
+    set=length(lclass)-lwhich;
     PROTECT(t = allocVector(STRSXP, set));
-    for(j = 0 ; j < set ; j++ )
+    for(j=0 ; j<set ; j++ )
 	SET_STRING_ELT(t, j, duplicate(STRING_ELT(lclass, lwhich++)));
     defineVar(install(".Class"), t, newrho);
     UNPROTECT(1);
     defineVar(install(".GenericCallEnv"), rho, newrho);
     defineVar(install(".GenericDefEnv"), R_BaseEnv, newrho);
 
-    PROTECT(t = LCONS(lmeth, CDR(call)));
+    PROTECT(t = LCONS(lmeth,CDR(call)));
 
     /* the arguments have been evaluated; since we are passing them */
     /* out to a closure we need to wrap them in promises so that */
@@ -2121,12 +2090,9 @@ int DispatchGroup(const char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 
     PROTECT(s = promiseArgs(CDR(call), rho));
     if (length(s) != length(args))
-	error(_("dispatch error"));
-    for (m = s ; m != R_NilValue ; m = CDR(m), args = CDR(args) ) {
+	errorcall(call, _("dispatch error"));
+    for (m = s ; m != R_NilValue ; m = CDR(m), args = CDR(args) )
 	SET_PRVALUE(CAR(m), CAR(args));
-	/* ensure positional matching for operators */
-	if(isOps) SET_TAG(m, R_NilValue);
-    }
 
     *ans = applyClosure(t, lsxp, s, rho, newrho);
     UNPROTECT(5);
@@ -2532,6 +2498,21 @@ SEXP R_ClosureExpr(SEXP p)
     return bytecodeExpr(BODY(p));
 }
 
+static SEXP forcePromise(SEXP e)
+{
+  if (PRVALUE(e) == R_UnboundValue) {
+    SEXP val;
+    if(PRSEEN(e))
+      errorcall(R_GlobalContext->call,
+		_("recursive default argument reference"));
+    SET_PRSEEN(e, 1);
+    val = eval(PRCODE(e), PRENV(e));
+    SET_PRSEEN(e, 0);
+    SET_PRVALUE(e, val);
+  }
+  return PRVALUE(e);
+}
+
 #ifdef THREADED_CODE
 typedef union { void *v; int i; } BCODE;
 
@@ -2577,7 +2558,7 @@ typedef int BCODE;
   if (value == R_UnboundValue) \
     error(_("Object \"%s\" not found"), CHAR(PRINTNAME(symbol))); \
   else if (value == R_MissingArg) { \
-    const char *n = CHAR(PRINTNAME(symbol)); \
+    char *n = CHAR(PRINTNAME(symbol)); \
     if(*n) error(_("argument \"%s\" is missing, with no default"), n); \
     else error(_("argument is missing, with no default")); \
   } \
@@ -3183,7 +3164,7 @@ static SEXP bcEval(SEXP body, SEXP rho)
 	SEXP call = VECTOR_ELT(constants, GETOP());
 	SEXP args = R_BCNodeStackTop[-2];
 	int flag;
-	void *vmax = vmaxget();
+	char *vmax = vmaxget();
 	if (TYPEOF(fun) != BUILTINSXP)
 	  error(_("not a BUILTIN function"));
 	flag = PRIMPRINT(fun);
@@ -3201,7 +3182,7 @@ static SEXP bcEval(SEXP body, SEXP rho)
 	SEXP symbol = CAR(call);
 	SEXP fun = SYMVALUE(symbol);
 	int flag;
-	void *vmax = vmaxget();
+	char *vmax = vmaxget();
 	if (TYPEOF(value) == PROMSXP) {
 	    value = forcePromise(value);
 	    SET_NAMED(value, 2);
@@ -3294,7 +3275,8 @@ static SEXP bcEval(SEXP body, SEXP rho)
 	  SEXP pargs, str;
 	  PROTECT(pargs = promiseArgs(CDR(call), rho));
 	  SET_PRVALUE(CAR(pargs), x);
-	  str = ScalarString(PRINTNAME(symbol));
+	  str = allocVector(STRSXP, 1);
+	  SET_STRING_ELT(str, 0, PRINTNAME(symbol));
 	  SET_PRVALUE(CADR(pargs), str);
 	  begincontext(&cntxt, CTXT_RETURN, call, rho, rho, pargs, R_NilValue);/**** FIXME: put in op */
 	  if (usemethod("$", x, call, pargs, rho, rho, R_BaseEnv, &value))
@@ -3320,7 +3302,8 @@ static SEXP bcEval(SEXP body, SEXP rho)
 	  SEXP pargs, str;
 	  PROTECT(pargs = promiseArgs(CDR(call), rho));
 	  SET_PRVALUE(CAR(pargs), x);
-	  str = ScalarString(PRINTNAME(symbol));
+	  str = allocVector(STRSXP, 1);
+	  SET_STRING_ELT(str, 0, PRINTNAME(symbol));
 	  SET_PRVALUE(CADR(pargs), str);
 	  SET_PRVALUE(CADDR(pargs), value);
 	  begincontext(&cntxt, CTXT_RETURN, call, rho, rho, pargs, R_NilValue);/**** FIXME: put in op */

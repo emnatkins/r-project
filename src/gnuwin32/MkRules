@@ -3,11 +3,8 @@
 
 ## ===== configuration macros for building packages or R  ===============
 
-# Alternatives GCC3 (MinGW gcc3), GCC4 (MinGW gcc4) or CROSS (e.g. Linux)
-
-## This is temporarily set to GCC3, until after the release of R 2.5.1,
-## when we will change the default to GCC4.
-BUILD=GCC3
+# Alternatives MINGW (MinGW gcc3), CROSS (e.g. Linux) GFORTRAN (MinGW gcc4)
+BUILD=MINGW
 
 ## These are overridden by R CMD INSTALL: they only apply to
 ## standard packages when building R and when using 'make pkg-foo'
@@ -73,12 +70,7 @@ WIXDIR=C:/packages/WiX
 
 ## For a package using F90/95 set the name or path of gfortran.exe 
 ## or g95.exe.  Spaces allowed.
-ifeq ($(strip $(BUILD)),GCC4)
-F95=gfortran
-else
-# needs to be set by user
-F95=
-endif
+F95=c:/MinGW/bin/gfortran
 F95FLAGS=-O3 $(PKG_FCFLAGS)
 
 ## =================== cross-compilation settings  =================
@@ -89,7 +81,7 @@ ifeq ($(strip $(BUILD)),CROSS)
 BINPREF=i586-mingw32-
 # Set this to where the mingw32 include files are. It must be accurate.
 # It should contain fcntl.h and windows.h
-HEADER=/home/ripley/R/mingw/include
+HEADER=/users/ripley/R/cross-tools5/i586-mingw32/include
 # path (possibly full path) to same version of R on the host system
 R_EXE='I failed to read the instructions to set R_EXE in MkRules'
 endif
@@ -100,7 +92,7 @@ DEPARG=-MM
 MINGW32LDFLAG=
 C99FLAG=-std=gnu99
 
-ifeq ($(strip $(BUILD)),GCC3)
+ifeq ($(strip $(BUILD)),MINGW)
 BINPREF=
 MINGW32CFLAG=
 F77=g77
@@ -108,7 +100,7 @@ FLIBS=-lg2c
 AWK=gawk
 endif
 
-ifeq ($(strip $(BUILD)),GCC4)
+ifeq ($(strip $(BUILD)),GFORTRAN)
 BINPREF=
 MINGW32CFLAG=
 F77=gfortran
@@ -138,30 +130,28 @@ ifdef USE_UNICOWS
 LIBEXTRAS+=-lunicows
 endif
 
-
-AR=$(BINPREF)ar
-AS=$(BINPREF)as
+PERL=perl
+RM=rm -f
+SED=sed
+ECHO=echo
+CP=cp
+MKDIR=mkdir
 CAT=cat
 CC=$(BINPREF)gcc $(MINGW32CFLAG)
-CP=cp
-CPP=$(CC) -E
 CXX=$(BINPREF)g++ $(MINGW32CFLAG)
+OBJC=$(BINPREF)gcc $(MINGW32CFLAG)
+AS=$(BINPREF)as
+DLL_LDMAIN=gcc
 DLL=$(BINPREF)$(DLL_LDMAIN) $(MINGW32LDFLAG)
 ## formerly used version without -k for front-ends/libproxy.a
 DLLTOOL_WIN32=$(BINPREF)dlltool --as $(AS)
 DLLTOOL=$(DLLTOOL_WIN32) -k
-DLL_LDMAIN=gcc
-ECHO=echo
-FIND=find
 LINKER=$(BINPREF)gcc $(MINGW32LDFLAG)
-MKDIR=mkdir
-NM=$(BINPREF)nm
-OBJC=$(BINPREF)gcc $(MINGW32CFLAG)
-PERL=perl
+AR=$(BINPREF)ar
 RANLIB=$(BINPREF)ranlib
+NM=$(BINPREF)nm
+CPP=$(CC) -E
 RESCOMP=$(BINPREF)windres
-RM=rm -f
-SED=sed
 
 .SUFFIXES:
 .SUFFIXES: .c .cc .cpp .C .f .o .a .def .exp .dll .exe .d .f90 .f95 .m .S

@@ -77,7 +77,7 @@ as.difftime(tim, format = "\%X", units="auto")
   same units as the \code{"difftime"} object.
 
   The units of a \code{"difftime"} object can be extracted by the
-  \code{units} function, which also has an replacement form.  If the units
+  \code{units} function, which also has an assignment form. If the units
   are changed, the numerical value is scaled accordingly.
 
   The \code{as.double} method returns the numeric value expressed in
@@ -94,7 +94,7 @@ as.difftime(tim, format = "\%X", units="auto")
 (z <- Sys.time() - 3600)
 Sys.time() - z                # just over 3600 seconds.
 
-## time interval between releases of R 1.2.2 and 1.2.3.
+## time interval between releases of 1.2.2 and 1.2.3.
 ISOdate(2001, 4, 26) - ISOdate(2001, 2, 26)
 
 as.difftime(c("0:3:20", "11:23:15"))

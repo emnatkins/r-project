@@ -447,7 +447,7 @@ trySilent <- function(expr) {
 ### a table in this direction anywhere?
 .searchNamespaceNames <- function(env) {
     namespaces <- .Internal(getNamespaceRegistry())
-    names <- objects(namespaces, all.names = TRUE)
+    names <- objects(namespaces, all = TRUE)
     for(what in names)
         if(identical(get(what, envir=namespaces), env))
             return(paste("namespace", what, sep=":"))
@@ -461,15 +461,15 @@ trySilent <- function(expr) {
         if(length(whereF)>0)
             whereF <- whereF[[1]]
         else return(list(pname = pname, whereF = baseenv()))
-    } else
+    }
+    else {
         whereF <- .genEnv(what, where)
-
-    ## avoid partial matches to "names"
-    if("name" %in% names(attributes(whereF)))
+    }
+    if(!is.null(attr(whereF, "name")))
         pname <- gsub("^.*:", "", attr(whereF, "name"))
     else if(isNamespace(whereF))
         pname <- .searchNamespaceNames(whereF)
-    list(pname = pname, whereF = whereF)
+    list(pname=pname, whereF = whereF)
 }
 
 .makeTraceClass <- function(traceClassName, className, verbose = TRUE) {

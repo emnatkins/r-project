@@ -38,6 +38,87 @@
 #include "graphapp/ga.h"
 #include "rui.h"
 
+
+#include <sys/types.h>
+#include <sys/stat.h>
+
+static int R_unlink(char *names, int recursive);
+
+static int R_unlink_one(char *dir, char *name, int recursive)
+{
+    char tmp[MAX_PATH];
+
+    if(strcmp(name, ".") == 0) return 0;
+    if(strcmp(name, "..") == 0) return 0;
+    if(strlen(dir)) {
+	strcpy(tmp, dir);
+	if(*(dir + strlen(dir) - 1) != '\\') strcat(tmp, "\\");
+	strcat(tmp, name);
+    } else strcpy(tmp, name);
+    return (recursive ? R_unlink(tmp, 1): unlink(tmp)) !=0;
+}
+
+static int R_unlink(char *names, int recursive)
+{
+    int failures = 0;
+    char *p, tmp[MAX_PATH], dir[MAX_PATH+2];
+    WIN32_FIND_DATA find_data;
+    HANDLE fh;
+    struct stat sb;
+
+    if(strlen(names) >= MAX_PATH) error(_("invalid 'names' in 'R_unlink'"));
+    strcpy(tmp, names);
+    for(p = tmp; *p != '\0'; p++) if(*p == '/') *p = '\\';
+    if(stat(tmp, &sb) == 0) {
+	/* Is this a directory? */
+	if(sb.st_mode & _S_IFDIR) {
+	    if(recursive) {
+		strcpy(dir, tmp); strcat(tmp, "\\*");
+		fh = FindFirstFile(tmp, &find_data);
+		if (fh != INVALID_HANDLE_VALUE) {
+		    failures += R_unlink_one(dir, find_data.cFileName, 1);
+		    while(FindNextFile(fh, &find_data))
+			failures += R_unlink_one(dir, find_data.cFileName, 1);
+		    FindClose(fh);
+		}
+		/* Use short path as e.g. ' test' fails */
+		GetShortPathName(dir, tmp, MAX_PATH);
+		if(rmdir(tmp)) failures++;
+	    } else failures++; /* don't try to delete dirs */
+	} else {/* Regular file */
+	    failures += R_unlink_one("", names, 0);
+	}
+    }
+    return failures;
+}
+
+
+SEXP do_unlink(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP  fn, ans;
+    int i, nfiles, failures = 0, recursive;
+
+    checkArity(op, args);
+    fn = CAR(args);
+    nfiles = length(fn);
+    if (nfiles > 0) {
+    	if (!isString(fn))
+	    errorcall(call, _("invalid '%s' argument"), "x");
+	recursive = asLogical(CADR(args));
+    	if (recursive == NA_LOGICAL)
+	    errorcall(call, _("invalid '%s' argument"), "recursive");
+    	for(i = 0; i < nfiles; i++)
+	    failures += R_unlink(CHAR(STRING_ELT(fn, i)), recursive);
+    }
+    PROTECT(ans = allocVector(INTSXP, 1));
+    if (!failures)
+	INTEGER(ans)[0] = 0;
+    else
+	INTEGER(ans)[0] = 1;
+    UNPROTECT(1);
+    return (ans);
+}
+
 SEXP do_flushconsole(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     R_FlushConsole();
@@ -141,9 +222,9 @@ SEXP do_winver(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 /* also used in rui.c */
-void internal_shellexec(const char * file)
+void internal_shellexec(char * file)
 {
-    const char *home;
+    char *home;
     unsigned int ret;
 
     home = getenv("R_HOME");
@@ -175,12 +256,10 @@ SEXP do_shellexec(SEXP call, SEXP op, SEXP args, SEXP env)
     return R_NilValue;
 }
 
-int winAccess(const char *path, int mode);
-
-int check_doc_file(const char * file)
+int check_doc_file(char * file)
 {
-    const char *home;
-    char path[MAX_PATH];
+    char *home, path[MAX_PATH];
+    struct stat sb;
 
     home = getenv("R_HOME");
     if (home == NULL)
@@ -189,13 +268,13 @@ int check_doc_file(const char * file)
     strcpy(path, home);
     strcat(path, "/");
     strcat(path, file);
-    return winAccess(path, 4) == 0;
+    return stat(path, &sb) == 0;
 }
 
 SEXP do_windialog(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP message;
-    const char * type;
+    char * type;
     int res=YES;
 
     checkArity(op, args);
@@ -222,7 +301,7 @@ SEXP do_windialog(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP do_windialogstring(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP  message, def;
-    const char *string;
+    char *string;
 
     checkArity(op, args);
     message = CAR(args);
@@ -580,7 +659,7 @@ SEXP do_memsize(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_dllversion(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP path=R_NilValue, ans;
-    const char *dll;
+    char *dll;
     DWORD dwVerInfoSize;
     DWORD dwVerHnd;
 
@@ -664,7 +743,7 @@ RECT *RgetMDIsize(); /* in rui.c */
 SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP list, preselect, ans = R_NilValue;
-    const char **clist;
+    char **clist;
     int i, j = -1, n, mw = 0, multiple, nsel = 0;
     int xmax, ymax, ylist, fht, h0;
     Rboolean haveTitle;
@@ -682,7 +761,7 @@ SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP rho)
 	error(_("invalid '%s' argument"), "preselect");
 
     n = LENGTH(list);
-    clist = (const char **) R_alloc(n + 1, sizeof(char *));
+    clist = (char **) R_alloc(n + 1, sizeof(char *));
     for(i = 0; i < n; i++) {
 	clist[i] = CHAR(STRING_ELT(list, i));
 	mw = max(mw, gstrwidth(NULL, SystemFont, clist[i]));
@@ -737,16 +816,17 @@ SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP rho)
 	} else { /* cancel */
 	    PROTECT(ans = allocVector(STRSXP, 0));
 	}
-    } else
-	PROTECT(ans = mkString(selected));
-
+    } else {
+	PROTECT(ans = allocVector(STRSXP, 1));
+	SET_STRING_ELT(ans, 0, mkChar(selected));
+    }
     cleanup();
     show(RConsole);
     UNPROTECT(1);
     return ans;
 }
 
-int Rwin_rename(const char *from, const char *to)
+int Rwin_rename(char *from, char *to)
 {
     int res = 0;
     OSVERSIONINFO verinfo;
@@ -763,6 +843,16 @@ int Rwin_rename(const char *from, const char *to)
 	res = (MoveFile(from, to) == 0);
     }
     return res;
+}
+
+
+void R_CleanTempDir()
+{
+    if(Sys_TempDir) {
+	/* Windows cannot delete the current working directory */
+	SetCurrentDirectory(R_HomeDir());
+	R_unlink(Sys_TempDir, 1);
+    }
 }
 
 SEXP do_getClipboardFormats(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -789,7 +879,7 @@ SEXP do_readClipboard(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans = R_NilValue;
     HGLOBAL hglb;
-    const char *pc;
+    char *pc;
     int j, format, raw, size;
 
     checkArity(op, args);
@@ -799,9 +889,10 @@ SEXP do_readClipboard(SEXP call, SEXP op, SEXP args, SEXP rho)
     if(OpenClipboard(NULL)) {
     	if(IsClipboardFormatAvailable(format) &&
     	   	(hglb = GetClipboardData(format)) &&
-    	   	(pc = (const char *)GlobalLock(hglb))) {
+    	   	(pc = (char *)GlobalLock(hglb))) {
 	    if(!raw) {
-		PROTECT(ans = mkString(pc));
+		PROTECT(ans = allocVector(STRSXP, 1));
+		SET_STRING_ELT(ans, 0, mkChar(pc));
 	    } else {
 		size = GlobalSize(hglb);
 		PROTECT(ans = allocVector(RAWSXP, size));
@@ -820,8 +911,7 @@ SEXP do_writeClipboard(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP text;
     int i, n, format;
     HGLOBAL hglb;
-    char *s;
-    const char *p;
+    char *s, *p;
     Rboolean success = FALSE, raw = FALSE;
 
     checkArity(op, args);
@@ -991,8 +1081,7 @@ SEXP do_shortpath(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_chooseFiles(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans, def, caption, filters;
-    char *temp, *cfilters, list[65520];
-    const char *p;
+    char *temp, *cfilters, list[65520],*p;
     char path[MAX_PATH], filename[MAX_PATH];
     int multi, filterindex, i, count, lfilters, pathlen;
 
@@ -1075,8 +1164,7 @@ SEXP do_chooseFiles(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP do_chooseDir(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans, def, caption;
-    const char *p;
-    char path[MAX_PATH];
+    char *p, path[MAX_PATH];
 
     checkArity(op, args);
     def = CAR(args);
@@ -1101,7 +1189,7 @@ extern window RFrame; /* from rui.c */
 
 SEXP getIdentification()
 {
-    const char *res = "" /* -Wall */;
+    char *res = "" /* -Wall */;
 
     switch(CharacterMode) {
     case RGui:
@@ -1138,7 +1226,7 @@ SEXP getWindowTitle()
     return mkString(res);
 }
 
-SEXP setTitle(const char *title)
+SEXP setTitle(char *title)
 {
     SEXP result = getWindowTitle();
 
@@ -1194,7 +1282,7 @@ SEXP do_setStatusBar(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 
 
-int getConsoleHandle(const char *which)
+int getConsoleHandle(char *which)
 {
     if (CharacterMode != RGui) return(0);
     else if (strcmp(which, "Console") == 0 && RConsole) 
@@ -1272,7 +1360,7 @@ static int getDeviceHandle(int dev)
    or $Graph<nn>LocPopup where <nn> is the
    device number.  We've already checked the $Graph prefix. */
 
-menu getGraphMenu(const char* menuname)
+menu getGraphMenu(char* menuname)
 {
     int devnum;
     GEDevDesc *gdd;

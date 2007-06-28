@@ -26,7 +26,8 @@ All.eq <- function(x,y) {
     all.equal.numeric(x,y, tolerance= 64*.Machine$double.eps,
                       scale = max(0, mean(abs(x), na.rm=TRUE)))
 }
-if(!interactive()) set.seed(123)
+if(!interactive())
+    .Random.seed <- c(0,rep(7654, 3))
 
 ## The prefixes of ALL the PDQ & R functions
 PDQRinteg <- c("binom", "geom", "hyper", "nbinom", "pois","signrank","wilcox")
@@ -259,8 +260,7 @@ all.equal(z[ok], qnorm(pz[ok]), tol= 1e-12)
 
 ###===== Random numbers -- first, just output:
 
-set.seed(123)
-# .Random.seed <- c(0L, 17292L, 29447L, 24113L)
+.Random.seed <- c(0, 17292, 29447, 24113)
 n <- 20
 ## for(pre in PDQR) { n <- paste("r",pre,sep=""); cat(n,": "); str(get(n))}
 (Rbeta	  <- rbeta    (n, shape1 = .8, shape2 = 2) )

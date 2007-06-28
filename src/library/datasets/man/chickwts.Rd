@@ -29,7 +29,7 @@
   New York: Wiley.
 }
 \examples{
-require(stats); require(graphics)
+require(stats)
 boxplot(weight ~ feed, data = chickwts, col = "lightgray",
     varwidth = TRUE, notch = TRUE, main = "chickwt data",
     ylab = "Weight at six weeks (gm)")

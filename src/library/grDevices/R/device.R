@@ -1,32 +1,17 @@
-
-.known_interactive.devices <- c("X11", "GTK", "quartz", "windows", "JavaGD")
 dev.interactive <- function(orNone = FALSE) {
-    iDevs <- .known_interactive.devices
+    iDevs <- c("X11", "GTK", "gnome", "quartz", "windows", "JavaGD")
     interactive() &&
     (.Device %in% iDevs ||
-     (dev.cur() > 1 && dev.displaylist()) ||
      (orNone && .Device == "null device" &&
       is.character(newdev <- getOption("device")) &&
       newdev %in% iDevs))
 }
 
-deviceIsInteractive <- function(name)
-{
-    if(length(name)) {
-        if(!is.character(name)) stop("'name'must be a character vector")
-        unlockBinding(".known_interactive.devices", asNamespace("grDevices"))
-        .known_interactive.devices <<- c(.known_interactive.devices, name)
-        lockBinding(".known_interactive.devices", asNamespace("grDevices"))
-    }
-    invisible(.known_interactive.devices)
-}
-
-
 dev.list <- function()
 {
     n <- if(exists(".Devices")) get(".Devices") else list("null device")
     n <- unlist(n)
-    i <- seq_along(n)[n != ""]
+    i <- seq(along = n)[n != ""]
     names(i) <- n[i]
     i <- i[-1]
     if(length(i) == 0) NULL else i
@@ -45,6 +30,12 @@ dev.set <-
     function(which = dev.next())
 {
     which <- .Internal(dev.set(as.integer(which)))
+#     if(exists(".Devices")) {
+# 	assign(".Device", get(".Devices")[[which]])
+#     }
+#     else {
+# 	.Devices <- list("null device")
+#     }
     names(which) <- .Devices[[which]]
     which
 }

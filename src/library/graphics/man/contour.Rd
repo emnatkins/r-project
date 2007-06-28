@@ -8,8 +8,8 @@
 \usage{
 contour(x, \dots)
 
-\method{contour}{default}(x = seq(0, 1, length.out = nrow(z)),
-        y = seq(0, 1, length.out = ncol(z)),
+\method{contour}{default}(x = seq(0, 1, len = nrow(z)),
+        y = seq(0, 1, len = ncol(z)),
         z,
         nlevels = 10, levels = pretty(zlim, nlevels), labels = NULL,
         xlim = range(x, finite = TRUE),
@@ -106,7 +106,6 @@ contour(x, \dots)
   graphics demo which can be invoked as \code{demo(graphics)}.
 }
 \examples{
-require(grDevices) # for colours
 x <- -6:16
 op <- par(mfrow = c(2, 2))
 contour(outer(x, x), method = "edge", vfont = c("sans serif", "plain"))

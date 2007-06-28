@@ -46,37 +46,50 @@
  * This call provides a simple interface to the "stat" system call.
  */
 
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
-#endif
+#ifdef HAVE_STAT
+# ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+# endif
+# ifdef HAVE_SYS_STAT_H
+#  include <sys/stat.h>
+# endif
 
 #if HAVE_AQUA
 extern int (*ptr_CocoaSystem)(char*);
 extern	Rboolean useaqua;
 #endif
 
-Rboolean attribute_hidden R_FileExists(const char *path)
+Rboolean attribute_hidden R_FileExists(char *path)
 {
     struct stat sb;
     return stat(R_ExpandFileName(path), &sb) == 0;
 }
 
-double attribute_hidden R_FileMtime(const char *path)
+double attribute_hidden R_FileMtime(char *path)
 {
     struct stat sb;
     if (stat(R_ExpandFileName(path), &sb) != 0)
 	error(_("cannot determine file modification time of '%s'"), path);
     return sb.st_mtime;
 }
+#else
+Rboolean attribute_hidden R_FileExists(char *path)
+{
+    error(_("file existence is not available on this system"));
+}
+
+double attribute_hidden R_FileMtime(char *path)
+{
+    error(_("file modification time is not available on this system"));
+    return 0.0; /* not reached */
+}
+#endif
 
     /*
      *  Unix file names which begin with "." are invisible.
      */
 
-Rboolean attribute_hidden R_HiddenFile(const char *name)
+Rboolean attribute_hidden R_HiddenFile(char *name)
 {
     if (name && name[0] != '.') return 0;
     else return 1;
@@ -96,7 +109,6 @@ FILE *R_fopen(const char *filename, const char *mode)
 
    On NT-based versions of Windows, file names are stored in 'Unicode'
    (UCS-2), and _wfopen is provided to access them by UCS-2 names.
-   This requires NT, so is currently disabled.
 */
 
 #if 0 && defined(Win32)
@@ -127,7 +139,7 @@ FILE *RC_fopen(const SEXP fn, const char *mode, const Rboolean expand)
 #else
 FILE *RC_fopen(const SEXP fn, const char *mode, const Rboolean expand)
 {
-    const char *filename = translateChar(fn);
+    char *filename = translateChar(fn);
     if(!filename) return NULL;
     if(expand) return fopen(R_ExpandFileName(filename), mode);
     else return fopen(filename, mode);
@@ -148,34 +160,41 @@ char *R_HomeDir()
 
 SEXP attribute_hidden do_interactive(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    return ScalarLogical( (R_Interactive) ? 1 : 0 );
+    SEXP rval;
+
+    rval=allocVector(LGLSXP, 1);
+    LOGICAL(rval)[0]= (R_Interactive) ? 1 : 0;
+    return rval;
 }
 
 SEXP attribute_hidden do_tempdir(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    checkArity(op, args);
-    return mkString(R_TempDir);
+    SEXP  ans;
+
+    PROTECT(ans = allocVector(STRSXP, 1));
+    SET_STRING_ELT(ans, 0, mkChar(R_TempDir));
+    UNPROTECT(1);
+    return (ans);
 }
 
 
 SEXP attribute_hidden do_tempfile(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP  ans, pattern, tempdir;
-    const char *tn, *td;
-    char *tm;
+    char *tn, *td, *tm;
     int i, n1, n2, slen;
 
     checkArity(op, args);
     pattern = CAR(args); n1 = length(pattern);
     tempdir = CADR(args); n2 = length(tempdir);
     if (!isString(pattern))
-        error(_("invalid filename pattern"));
+        errorcall(call, _("invalid filename pattern"));
     if (!isString(tempdir))
-        error(_("invalid '%s' value"), "tempdir");
+        errorcall(call, _("invalid '%s' value"), "tempdir");
     if (n1 < 1)
-	error(_("no 'pattern'"));
+	errorcall(call, _("no 'pattern'"));
     if (n2 < 1)
-	error(_("no 'tempdir'"));
+	errorcall(call, _("no 'tempdir'"));
     slen = (n1 > n2) ? n1 : n2;
     PROTECT(ans = allocVector(STRSXP, slen));
     for(i = 0; i < slen; i++) {
@@ -191,7 +210,7 @@ SEXP attribute_hidden do_tempfile(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 #ifdef HAVE_POPEN
-FILE *R_popen(const char *command, const char *type)
+FILE *R_popen(char *command, char *type)
 {
     FILE *fp;
 #ifdef __APPLE_CC__
@@ -209,7 +228,7 @@ FILE *R_popen(const char *command, const char *type)
 }
 #endif /* HAVE_POPEN */
 
-int R_system(const char *command)
+int R_system(char *command)
 {
     int val;
 #ifdef __APPLE_CC__
@@ -219,12 +238,8 @@ int R_system(const char *command)
     sigaddset(&ss, SIGPROF);
     sigprocmask(SIG_BLOCK, &ss,  NULL);
 #ifdef HAVE_AQUA
-    char *cmdcpy;
-    if(useaqua) {
-        /* FIXME, is Cocoa's interface not const char*? */
-        cmdcpy = acopy_string(command);
-	val = ptr_CocoaSystem(cmdcpy);
-    }
+    if(useaqua)
+	val = ptr_CocoaSystem(command);
     else
 #endif
     val = system(command);
@@ -235,7 +250,10 @@ int R_system(const char *command)
     return val;
 }
 
-#if defined(__APPLE__)
+#ifdef Win32
+# define WIN32_LEAN_AND_MEAN 1
+# include <windows.h>
+#elif defined(__APPLE__)
 # include <crt_externs.h>
 # define environ (*_NSGetEnviron())
 #else
@@ -251,18 +269,26 @@ SEXP attribute_hidden do_getenv(SEXP call, SEXP op, SEXP args, SEXP env)
     checkArity(op, args);
 
     if (!isString(CAR(args)))
-	error(_("wrong type for argument"));
+	errorcall(call, _("wrong type for argument"));
 
     if (!isString(CADR(args)) || LENGTH(CADR(args)) != 1)
-	error(_("wrong type for argument"));
+	errorcall(call, _("wrong type for argument"));
 
     i = LENGTH(CAR(args));
     if (i == 0) {
+#ifdef Win32
+	char **e;
+	for (i = 0, e = _environ; *e != NULL; i++, e++);
+	PROTECT(ans = allocVector(STRSXP, i));
+	for (i = 0, e = _environ; *e != NULL; i++, e++)
+	    SET_STRING_ELT(ans, i, mkChar(*e));
+#else
 	char **e;
 	for (i = 0, e = environ; *e != NULL; i++, e++);
 	PROTECT(ans = allocVector(STRSXP, i));
 	for (i = 0, e = environ; *e != NULL; i++, e++)
 	    SET_STRING_ELT(ans, i, mkChar(*e));
+#endif
     } else {
 	PROTECT(ans = allocVector(STRSXP, i));
 	for (j = 0; j < i; j++) {
@@ -282,7 +308,7 @@ SEXP attribute_hidden do_getenv(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 #if !defined(HAVE_SETENV) && defined(HAVE_PUTENV)
-static int Rputenv(const char *nm, const char *val)
+static int Rputenv(char *nm, char *val)
 {
     char *buf;
     buf = (char *) malloc((strlen(nm) + strlen(val) + 2) * sizeof(char));
@@ -304,11 +330,11 @@ SEXP attribute_hidden do_setenv(SEXP call, SEXP op, SEXP args, SEXP env)
     checkArity(op, args);
 
     if (!isString(nm = CAR(args)))
-	error(_("wrong type for argument"));
+	errorcall(call, _("wrong type for argument"));
     if (!isString(vars = CADR(args)))
-	error(_("wrong type for argument"));
+	errorcall(call, _("wrong type for argument"));
     if(LENGTH(nm) != LENGTH(vars))
-	error(_("wrong length for argument"));
+	errorcall(call, _("wrong length for argument"));
 
     n = LENGTH(vars);
     PROTECT(ans = allocVector(LGLSXP, n));
@@ -332,48 +358,36 @@ SEXP attribute_hidden do_setenv(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP attribute_hidden do_unsetenv(SEXP call, SEXP op, SEXP args, SEXP env)
 {
+#if defined(HAVE_UNSETENV) || defined(HAVE_PUTENV_UNSET) || defined(HAVE_PUTENV_UNSET2)
     int i, n;
     SEXP ans, vars;
 
     checkArity(op, args);
 
     if (!isString(vars = CAR(args)))
-        error(_("wrong type for argument"));
+	errorcall(call, _("wrong type for argument"));
     n = LENGTH(vars);
-
-#if defined(HAVE_UNSETENV) || defined(HAVE_PUTENV_UNSET) || defined(HAVE_PUTENV_UNSET2)
 #ifdef HAVE_UNSETENV
     for (i = 0; i < n; i++) unsetenv(translateChar(STRING_ELT(vars, i)));
 #elif defined(HAVE_PUTENV_UNSET)
     for (i = 0; i < n; i++) putenv(translateChar(STRING_ELT(vars, i)));
 #elif defined(HAVE_PUTENV_UNSET2)
-    for (i = 0; i < n; i++) {
+    {
 	char buf[1000];
-	snprintf(buf, 1000, "%s=", translateChar(STRING_ELT(vars, i)));
-	putenv(buf);
+	for (i = 0; i < n; i++) {
+	    snprintf(buf, 1000, "%s=", translateChar(STRING_ELT(vars, i)));
+	    putenv(buf);
+	}
     }
 #endif
-
-#elif defined(HAVE_PUTENV) || defined(HAVE_SETENV)
-    warning(_("this system cannot unset environment variables: setting to \"\""));
-    n = LENGTH(vars);
-    for (i = 0; i < n; i++) {
-#ifdef HAVE_SETENV
-	setenv(translateChar(STRING_ELT(vars, i)), "");
-#else
-	Rputenv(translateChar(STRING_ELT(vars, i)), "");
-#endif
-    }
-
-#else
-    warning(_("'Sys.unsetenv' is not available on this system"));
-#endif
-
-    PROTECT(ans = allocVector(LGLSXP, n));
+    ans = allocVector(LGLSXP, n);
     for (i = 0; i < n; i++)
-        LOGICAL(ans)[i] = !getenv(translateChar(STRING_ELT(vars, i)));
-    UNPROTECT(1);
+	LOGICAL(ans)[i] = !getenv(translateChar(STRING_ELT(vars, i)));
     return ans;
+#else
+        error(_("'Sys.unsetenv' is not available on this system"));
+    return R_NilValue; /* -Wall */
+#endif
 }
 
 
@@ -453,9 +467,9 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP ans, x = CAR(args);
     void * obj;
     int i, j;
-    const char *inbuf; /* Solaris headers have const char*  here */
+    char *inbuf; /* Solaris headers have const char*  here */
     char *outbuf;
-    const char *sub;
+    char *sub;
     size_t inb, outb, res;
     R_StringBuffer cbuff = {NULL, 0, MAXELTSIZE};
 
@@ -474,17 +488,17 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(ans = R_NilValue);
 #endif
     } else {
-	const char *from, *to;
+	char *from, *to;
 	Rboolean isLatin1 = FALSE, isUTF8 = FALSE;
 
 	if(TYPEOF(x) != STRSXP)
-	    error(_("'x' must be a character vector"));
+	    errorcall(call, _("'x' must be a character vector"));
 	if(!isString(CADR(args)) || length(CADR(args)) != 1)
-	    error(_("invalid '%s' argument"), "from");
+	    errorcall(call, _("invalid '%s' argument"), "from");
 	if(!isString(CADDR(args)) || length(CADDR(args)) != 1)
-	    error(_("invalid '%s' argument"), "to");
+	    errorcall(call, _("invalid '%s' argument"), "to");
 	if(!isString(CADDDR(args)) || length(CADDDR(args)) != 1)
-	    error(_("invalid '%s' argument"), "sub");
+	    errorcall(call, _("invalid '%s' argument"), "sub");
 	if(STRING_ELT(CADDDR(args), 0) == NA_STRING) sub = NULL;
 	else sub = translateChar(STRING_ELT(CADDDR(args), 0));
 	from = CHAR(STRING_ELT(CADR(args), 0)); /* ASCII */
@@ -496,9 +510,9 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 	if(streql(to, "") && known_to_be_utf8) isUTF8 = TRUE;
 	obj = Riconv_open(to, from);
 	if(obj == (iconv_t)(-1))
-	    error(_("unsupported conversion"));
+	    errorcall(call, _("unsupported conversion"));
 	PROTECT(ans = duplicate(x));
-	R_AllocStringBuffer(0, &cbuff);  /* 0 -> default */
+	R_AllocStringBuffer(0, &cbuff);  /* just default */
 	for(i = 0; i < LENGTH(x); i++) {
 	top_of_loop:
 	    inbuf = CHAR(STRING_ELT(x, i)); inb = strlen(inbuf);
@@ -507,7 +521,7 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 	    Riconv (obj, NULL, NULL, &outbuf, &outb);
         next_char:
 	    /* Then convert input  */
-	    res = iconv(obj, (char **) &inbuf , &inb, &outbuf, &outb);
+	    res = iconv(obj, &inbuf , &inb, &outbuf, &outb);
 	    *outbuf = '\0';
 	    /* other possible error conditions are incomplete
 	       and invalid multibyte chars */
@@ -554,7 +568,7 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 #if defined(HAVE_ICONV) && defined(ICONV_LATIN1)
-void * Riconv_open (const char* tocode, const char* fromcode)
+void * Riconv_open (char* tocode, char* fromcode)
 {
 #ifdef Win32
     char *cp = "UTF-8";
@@ -566,17 +580,14 @@ void * Riconv_open (const char* tocode, const char* fromcode)
     else if(strcmp(fromcode, "") == 0) return iconv_open(tocode, cp);
     else return iconv_open(tocode, fromcode);
 #else
-    /* const char * is right according to POSIX, but libiconv
-       plays games so that on Solaris 10 it needs the casts */
-    return iconv_open((char *)tocode, (char *)fromcode);
+    return iconv_open(tocode, fromcode);
 #endif
 }
 
-size_t Riconv (void *cd, const char **inbuf, size_t *inbytesleft,
+size_t Riconv (void *cd, char **inbuf, size_t *inbytesleft,
 	       char **outbuf, size_t *outbytesleft)
 {
-    return iconv((iconv_t) cd, (char **) inbuf, inbytesleft, 
-		 outbuf, outbytesleft);
+    return iconv((iconv_t) cd, inbuf, inbytesleft, outbuf, outbytesleft);
 }
 
 int Riconv_close (void *cd)
@@ -586,11 +597,10 @@ int Riconv_close (void *cd)
 
 static void *latin1_obj = NULL, *utf8_obj=NULL;
 
-const char *translateChar(SEXP x)
+char *translateChar(SEXP x)
 {
     void * obj;
-    const char *inbuf, *ans = CHAR(x);
-    char *outbuf, *p;
+    char *inbuf, *outbuf, *ans = CHAR(x), *p;
     size_t inb, outb, res;
     R_StringBuffer cbuff = {NULL, 0, MAXELTSIZE};
 
@@ -625,7 +635,7 @@ top_of_loop:
     Riconv (obj, NULL, NULL, &outbuf, &outb);
 next_char:
     /* Then convert input  */
-    res = Riconv(obj, &inbuf , &inb, &outbuf, &outb);
+    res = iconv(obj, &inbuf , &inb, &outbuf, &outb);
     if(res == -1 && errno == E2BIG) {
 	R_AllocStringBuffer(2*cbuff.bufsize, &cbuff);
 	goto top_of_loop;
@@ -647,14 +657,14 @@ next_char:
     return p;
 }
 #else
-void * Riconv_open (const char* tocode, const char* fromcode)
+void * Riconv_open (char* tocode, char* fromcode)
 {
     error(_("'iconv' is not available on this system"));
     return (void *)-1;
 }
 
-size_t Riconv (void *cd, const char *domain = "", const char **inbuf,
-               size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
+size_t Riconv (void *cd, char **inbuf, size_t *inbytesleft,
+	       char **outbuf, size_t *outbytesleft)
 {
     error(_("'iconv' is not available on this system"));
     return 0;
@@ -666,7 +676,7 @@ int Riconv_close (void * cd)
     return -1;
 }
 
-const char *translateChar(SEXP x)
+char *translateChar(SEXP x)
 {
     return CHAR(x);
 }
@@ -680,11 +690,6 @@ const char *translateChar(SEXP x)
 #   include <unistd.h>
 #  endif
 # endif
-
-#ifdef Win32
-# define WIN32_LEAN_AND_MEAN 1
-# include <windows.h> /* For GetShortPathName */
-#endif
 
 #if !defined(S_IFDIR) && defined(__S_IFDIR)
 # define S_IFDIR __S_IFDIR

@@ -7,7 +7,6 @@ C <- function(object, contr, how.many, ...)
 			helmert = "contr.helmert",
 			sum = "contr.sum",
 			treatment = "contr.treatment",
-			SAS = "contr.SAS",
 			contr
 			)
     if(missing(contr)) {

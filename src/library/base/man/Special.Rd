@@ -93,8 +93,6 @@ lfactorial(x)
   For the incomplete gamma function see \code{\link{pgamma}}.
 }
 \examples{
-require(graphics)
-
 choose(5, 2)
 for (n in 0:10) print(choose(n, k = 0:n))
 
@@ -132,7 +130,7 @@ for (ch in c("", "l","di","tri","tetra","penta")) {
 par(mfrow = c(1, 1))
 
 ## "Extended" Pascal triangle:
-fN <- function(n) formatC(n, width=2)
+fN <- function(n) formatC(n, wid=2)
 for (n in -4:10) cat(fN(n),":", fN(choose(n, k= -2:max(3,n+2))), "\n")
 
 ## R code version of choose()  [simplistic; warning for k < 0]:

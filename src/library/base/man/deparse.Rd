@@ -41,11 +41,6 @@ deparse(expr, width.cutoff = 60,
 
   Numeric and complex vectors are converted using 15 significant digits:
   see \code{\link{as.character}} for more details.
-
-  \code{width.cutoff} is a lower bound for the line lengths: deparsing a
-  line proceeds until at least \code{width.cutoff} \emph{bytes} have
-  been output and e.g. \code{arg = value} expressions will not be split
-  across lines.
 }
 \note{
   To avoid the risk of a source attribute out of sync with the actual
@@ -65,8 +60,7 @@ deparse(expr, width.cutoff = 60,
   \code{Quotes} for quoting conventions, including backticks.
 }
 \examples{
-require(stats); require(graphics)
-
+require(stats)
 deparse(args(lm))
 deparse(args(lm), width = 500)
 myplot <-

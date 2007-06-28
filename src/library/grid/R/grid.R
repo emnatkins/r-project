@@ -81,15 +81,15 @@ pushViewport <- function(..., recording=TRUE) {
 
 # Helper functions called from C
 no.children <- function(children) {
-  length(ls(children, all.names=TRUE)) == 0
+  length(ls(env=children, all.names=TRUE)) == 0
 }
 
 child.exists <- function(name, children) {
-  exists(name, envir=children, inherits=FALSE)
+  exists(name, env=children, inherits=FALSE)
 }
 
 child.list <- function(children) {
-  ls(children, all.names=TRUE)
+  ls(env=children, all.names=TRUE)
 }
 
 pathMatch <- function(path, pathsofar, strict) {
@@ -232,12 +232,12 @@ current.viewport <- function(vp=NULL) {
 }
 
 vpListFromNode <- function(node) {
-  childnames <- ls(node$children, all.names=TRUE)
+  childnames <- ls(env=node$children, all.names=TRUE)
   n <- length(childnames)
   children <- vector("list", n)
   index <- 1
   for (i in childnames) {
-    children[[index]] <- vpTreeFromNode(get(i, envir=node$children))
+    children[[index]] <- vpTreeFromNode(get(i, env=node$children))
     index <- index + 1
   }
   vpListFromList(children)
@@ -245,7 +245,7 @@ vpListFromNode <- function(node) {
 
 vpTreeFromNode <- function(node) {
   # If no children then just return viewport
-  if (length(ls(node$children, all.names=TRUE)) == 0)
+  if (length(ls(env=node$children, all.names=TRUE)) == 0)
     vpFromPushedvp(node)
   # Otherwise return vpTree
   else

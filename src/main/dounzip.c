@@ -57,8 +57,7 @@ static int R_mkdir(char *path)
 
 #define BUF_SIZE 4096
 static int
-extract_one(unzFile uf, const char *const dest, const char * const filename,
-	    SEXP names, int *nnames)
+extract_one(unzFile uf, char *dest, char *filename, SEXP names, int *nnames)
 {
     int err = UNZ_OK;
     FILE *fout;
@@ -119,7 +118,7 @@ extract_one(unzFile uf, const char *const dest, const char * const filename,
 
 
 static int 
-do_unzip(const char *zipname, const char *dest, int nfiles, const char **files,
+do_unzip(char *zipname, char *dest, int nfiles, char **files, 
 	 SEXP *pnames, int *nnames)
 {
     int   i, err = UNZ_OK;
@@ -166,34 +165,33 @@ do_unzip(const char *zipname, const char *dest, int nfiles, const char **files,
 SEXP attribute_hidden do_int_unzip(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP  fn, ans, names = R_NilValue;
-    char  zipname[PATH_MAX], dest[PATH_MAX];
-    const char *p, *topics[500];
+    char  zipname[PATH_MAX], *topics[500], dest[PATH_MAX], *p;
     int   i, ntopics, rc, nnames = 0;
 
     if (!isString(CAR(args)) || LENGTH(CAR(args)) != 1)
-	error(_("invalid zip name argument"));
+	errorcall(call, _("invalid zip name argument"));
     p = translateChar(STRING_ELT(CAR(args), 0));
     if (strlen(p) > PATH_MAX - 1)
-	error(_("zip path is too long"));
+	errorcall(call, _("zip path is too long"));
     strcpy(zipname, p);
     args = CDR(args);
     fn = CAR(args);
     ntopics = length(fn);
     if (ntopics > 0) {
 	if (!isString(fn) || ntopics > 500)
-	    error(_("invalid '%s' argument"), "topics");
+	    errorcall(call, _("invalid '%s' argument"), "topics");
 	for (i = 0; i < ntopics; i++)
 	    topics[i] = translateChar(STRING_ELT(fn, i));
     }
     args = CDR(args);
     if (!isString(CAR(args)) || LENGTH(CAR(args)) != 1)
-	error(_("invalid '%s' argument"), "destination");
+	errorcall(call, _("invalid '%s' argument"), "destination");
     p = R_ExpandFileName(translateChar(STRING_ELT(CAR(args), 0)));
     if (strlen(p) > PATH_MAX - 1)
-	error(_("'destination' is too long"));
+	errorcall(call, _("'destination' is too long"));
     strcpy(dest, p);
     if(!R_FileExists(dest))
-	error(_("'destination' does not exist"));
+	errorcall(call, _("'destination' does not exist"));
     
     if(ntopics > 0)
 	PROTECT(names = allocVector(STRSXP, ntopics));
@@ -221,7 +219,8 @@ SEXP attribute_hidden do_int_unzip(SEXP call, SEXP op, SEXP args, SEXP env)
 	default:
 	    warning(_("error %d in extracting from zip file"), rc);
 	}
-    PROTECT(ans = ScalarLogical(rc));
+    PROTECT(ans = allocVector(INTSXP, 1));
+    INTEGER(ans)[0] = rc;
     PROTECT(names = lengthgets(names, nnames));
     setAttrib(ans, install("extracted"), names);
     UNPROTECT(3);
@@ -236,18 +235,17 @@ static Rboolean unz_open(Rconnection con)
 {
     unzFile uf;
     char path[2*PATH_MAX], *p;
-    const char *tmp;
 
     if(con->mode[0] != 'r') {
 	warning(_("unz connections can only be opened for reading"));
 	return FALSE;
     }
-    tmp = R_ExpandFileName(con->description);
-    if (strlen(tmp) > PATH_MAX - 1) {
+    p = R_ExpandFileName(con->description);
+    if (strlen(p) > PATH_MAX - 1) {
 	warning(_("zip path is too long"));
 	return FALSE;
     }
-    strcpy(path, tmp);
+    strcpy(path, p);
     p = Rf_strrchr(path, ':');
     if(!p) {
 	warning(_("invalid description of unz connection"));
@@ -326,8 +324,7 @@ static int null_fflush(Rconnection con)
     return 0;
 }
 
-Rconnection attribute_hidden
-R_newunz(const char *description, const char *const mode)
+Rconnection attribute_hidden R_newunz(char *description, char *mode)
 {
     Rconnection new;
     new = (Rconnection) malloc(sizeof(struct Rconn));

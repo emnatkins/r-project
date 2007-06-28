@@ -75,7 +75,7 @@ validDetails.line.to <- function(x) {
   # Make sure that x and y are of length 1
   if (length(x$x) > 1 | length(x$y) > 1)
     stop("'x' and 'y' must have length 1")
-  if (!(is.null(x$arrow) || inherits(x$arrow, "arrow")))
+  if (!(is.null(x$arrow) || inherits(x$a, "arrow")))
       stop("invalid 'arrow' argument")
   x
 }
@@ -114,7 +114,7 @@ validDetails.lines <- function(x) {
   if (!is.unit(x$x) ||
       !is.unit(x$y))
     stop("'x' and 'y' must be units")
-  if (!(is.null(x$arrow) || inherits(x$arrow, "arrow")))
+  if (!(is.null(x$arrow) || inherits(x$a, "arrow")))
       stop("invalid 'arrow' argument")
   x
 }
@@ -206,7 +206,7 @@ validDetails.polyline <- function(x) {
       stop("'x' and 'y' and 'id.lengths' must specify same overall length")
   if (!is.null(x$id.lengths))
       x$id.lengths <- as.integer(x$id.lengths)
-  if (!(is.null(x$arrow) || inherits(x$arrow, "arrow")))
+  if (!(is.null(x$arrow) || inherits(x$a, "arrow")))
       stop("invalid 'arrow' argument")
   x
 }
@@ -224,7 +224,12 @@ drawDetails.polyline <- function(x, recording=TRUE) {
             n <- length(unique(x$id))
             id <- x$id
         }
-        index <- split(as.integer(1:length(x$x)), id)
+        index <- vector("list", n)
+        count <- 1
+        for (i in unique(id)) {
+            index[[count]] <- as.integer((1:length(x$x))[id == i])
+            count <- count + 1
+        }
         grid.Call.graphics("L_lines", x$x, x$y, index, x$arrow)
     }
 }
@@ -287,7 +292,7 @@ validDetails.segments <- function(x) {
   if (!is.unit(x$x0) || !is.unit(x$x1) ||
       !is.unit(x$y0) || !is.unit(x$y1))
     stop("'x0', 'y0', 'x1', and 'y1' must be units")
-  if (!(is.null(x$arrow) || inherits(x$arrow, "arrow")))
+  if (!(is.null(x$arrow) || inherits(x$a, "arrow")))
       stop("invalid 'arrow' argument")
   x
 }
@@ -571,7 +576,12 @@ drawDetails.polygon <- function(x, recording=TRUE) {
       n <- length(unique(x$id))
       id <- x$id
     }
-    index <- split(as.integer(1:length(x$x)), id)
+    index <- vector("list", n)
+    count <- 1
+    for (i in unique(id)) {
+      index[[count]] <- as.integer((1:length(x$x))[id == i])
+      count <- count + 1
+    }
     grid.Call.graphics("L_polygon", x$x, x$y, index)
   }
 }
@@ -655,7 +665,7 @@ validDetails.xspline <- function(x) {
     stop("'x' and 'y' and 'id.lengths' must specify same overall length")
   if (!is.null(x$id.lengths))
     x$id.lengths <- as.integer(x$id.lengths)
-  if (!(is.null(x$arrow) || inherits(x$arrow, "arrow")))
+  if (!(is.null(x$arrow) || inherits(x$a, "arrow")))
       stop("invalid 'arrow' argument")
   if (any(x$shape < -1 || x$shape > 1))
     stop("shape must be between -1 and 1")
@@ -681,7 +691,13 @@ xsplineIndex <- function(x) {
       n <- length(unique(x$id))
       id <- x$id
     }
-    split(as.integer(1:length(x$x)), id)
+    index <- vector("list", n)
+    count <- 1
+    for (i in unique(id)) {
+      index[[count]] <- as.integer((1:length(x$x))[id == i])
+      count <- count + 1
+    }
+    index
   }
 }
 

@@ -4,56 +4,9 @@
 	*	 See the file NEWS for changes that	 * 
 	*        affect all versions of R.		 *
 	*						 *
-	*	       2.6 SERIES NEWS			 *
-	*						 *
-	**************************************************
-	
-		CHANGES IN R VERSION 2.6.0
-		
-GUI CHANGES
-
-    o	The console now handles cut and paste and mouse clicks in the
-	input line in a more Windows standard way.  It also indicates
-	insert and overwrite mode with different cursors.
-
-
-FUNCTION CHANGES
-
-    o	embedFonts() now accepts paths in 'GS_CMD' which contain spaces.
-
-
-OTHERS
-
-    o	Cross-building does now lazy-load the base package.
-
-    o	The Lea malloc is now used by regex.c, src/extra/pcre and
-	src/extra/xdr.  (This is for potential performance gains.)
-
-    o	Rcnd INSTALL --docs=chm now means 'CHM only' and not 'all' as
-	in earlier versions of R.
-
-    o	[The default for a build environment is to use gcc >= 4.2.0.
-	Set BUILD=GCC3 if you have gcc 3.4.5.  (Binary tools for
-	gcc 4.2.0 are not yet released but expected in June 2007.)
-	This change has been reverted until then.]
-
-
-
-
-	**************************************************
-	*						 *
 	*	       2.5 SERIES NEWS			 *
 	*						 *
 	**************************************************
-
-
-		CHANGES IN R VERSION 2.5.1 patched
-		
-BUG FIXES
-
-    o	.Platform$GUI would report "Rgui" when no GUI was present in
-	R(D)COM.
-
 
 
 		CHANGES IN R VERSION 2.5.1

@@ -25,7 +25,7 @@
   \emph{American Statistician}, \bold{27}, 17--21.
 }
 \examples{
-require(stats); require(graphics)
+require(stats)
 summary(anscombe)
 
 ##-- now some "magic" to do the 4 regressions in a loop:
@@ -39,9 +39,8 @@ for(i in 1:4) {
 }
 
 ## See how close they are (numerically!)
-sapply(objects(pattern="lm\\\\.[1-4]$"), function(n) coef(get(n)))
-lapply(objects(pattern="lm\\\\.[1-4]$"),
-       function(n) coef(summary(get(n))))
+sapply(objects(pat="lm\\\\.[1-4]$"), function(n) coef(get(n)))
+lapply(objects(pat="lm\\\\.[1-4]$"), function(n) summary(get(n))$coef)
 
 ## Now, do what you should have done in the first place: PLOTS
 op <- par(mfrow=c(2,2), mar=.1+c(4,4,1,1), oma= c(0,0,2,0))

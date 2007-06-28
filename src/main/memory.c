@@ -1148,13 +1148,14 @@ SEXP attribute_hidden do_regFinaliz(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op, args);
 
     if (TYPEOF(CAR(args)) != ENVSXP && TYPEOF(CAR(args)) != EXTPTRSXP)
-	error(_("first argument must be environment or external pointer"));
+	errorcall(call, 
+		  _("first argument must be environment or external pointer"));
     if (TYPEOF(CADR(args)) != CLOSXP)
-	error(_("second argument must be a function"));
+	errorcall(call, _("second argument must be a function"));
 
     onexit = asLogical(CADDR(args));
     if(onexit == NA_LOGICAL)
-	error(_("third argument must be 'TRUE' or 'FALSE'"));
+	errorcall(call, _("third argument must be 'TRUE' or 'FALSE'"));
 
     R_RegisterFinalizerEx(CAR(args), CADR(args), onexit);
     return R_NilValue;
@@ -1178,7 +1179,7 @@ static void RunGenCollect(R_size_t size_needed)
     int i, gen, gens_collected;
     DevDesc *dd;
     RCNTXT *ctxt;
-    SEXP s, t;
+    SEXP s;
     SEXP forwarded_nodes;
 
     /* determine number of generations to collect */
@@ -1347,33 +1348,6 @@ static void RunGenCollect(R_size_t size_needed)
 
     DEBUG_CHECK_NODE_COUNTS("after processing forwarded list");
 
-    /* process CHARSXP cache */
-    { 
-	int nc = 0;
-	for (i = 0; i < length(R_StringHash); i++) {
-	    s = VECTOR_ELT(R_StringHash, i);
-	    t = R_NilValue;
-	    while (s != R_NilValue) {
-		if (! NODE_IS_MARKED(CAR(s))) { /* remove unused CHARSXP and cons cell */
-		    if (t == R_NilValue) /* head of list */
-			VECTOR_ELT(R_StringHash, i) = CDR(s);
-		    else
-			CDR(t) = CDR(s);
-		    s = CDR(s);
-		    continue;
-		}
-		FORWARD_NODE(s);
-		FORWARD_NODE(CAR(s));
-		t = s;
-		s = CDR(s);
-	    }
-	    if(VECTOR_ELT(R_StringHash, i) != R_NilValue) nc++;
-	}
-	SET_TRUELENGTH(R_StringHash, nc); /* SET_HASHPRI, really */
-    }
-    FORWARD_NODE(R_StringHash);
-    PROCESS_NODES();
-
     /* release large vector allocations */
     ReleaseLargeFreeVectors();
 
@@ -1448,10 +1422,11 @@ static void RunGenCollect(R_size_t size_needed)
 SEXP attribute_hidden do_gctorture(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     int i;
-    SEXP old = ScalarLogical(!gc_inhibit_torture);
+    SEXP old = allocVector(LGLSXP, 1);
 
     checkArity(op, args);
     i = asLogical(CAR(args));
+    LOGICAL(old)[0] = !gc_inhibit_torture;
     if (i != NA_LOGICAL)
 	gc_inhibit_torture = !i;
     return old;
@@ -1460,9 +1435,11 @@ SEXP attribute_hidden do_gctorture(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP attribute_hidden do_gcinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     int i;
-    SEXP old = ScalarLogical(gc_reporting);
+    SEXP old = allocVector(LGLSXP, 1);
+
     checkArity(op, args);
     i = asLogical(CAR(args));
+    LOGICAL(old)[0] = gc_reporting;
     if (i != NA_LOGICAL)
 	gc_reporting = i;
     return old;
@@ -1623,49 +1600,73 @@ void attribute_hidden InitMemory()
 }
 
 /* Since memory allocated from the heap is non-moving, R_alloc just
-   allocates off the heap as RAWSXP/REALSXP and maintains the stack of
+   allocates off the heap as CHARSXP's and maintains the stack of
    allocations through the ATTRIB pointer.  The stack pointer R_VStack
    is traced by the collector. */
-void *vmaxget(void)
+char *vmaxget(void)
 {
-    return (void *) R_VStack;
+    return (char *) R_VStack;
 }
 
-void vmaxset(const void *ovmax)
+void vmaxset(char *ovmax)
 {
     R_VStack = (SEXP) ovmax;
 }
 
-char *R_alloc(size_t nelem, int eltsize)
+/* <FIXME> this really needs to be R_size_t with an appropriate test.
+   That would mean exporting R_size_t.
+ */
+char *R_alloc(long nelem, int eltsize)
 {
     R_size_t size = nelem * eltsize;
     double dsize = (double)nelem * eltsize;
     if (dsize > 0) { /* precaution against integer overflow */
 	SEXP s;
-#if SIZEOF_SIZE_T > 4
+#if SIZEOF_LONG > 4
 	/* In this case by allocating larger units we can get up to
 	   size(double) * (2^31 - 1) bytes, approx 16Gb */
 	if(dsize < R_LEN_T_MAX)
-	    s = allocVector(RAWSXP, size + 1);
+	    s = allocString(size); /**** avoid extra null byte?? */
 	else if(dsize < sizeof(double) * (R_LEN_T_MAX - 1))
 	    s = allocVector(REALSXP, (int)(0.99+dsize/sizeof(double)));
 	else {
-	    error(_("cannot allocate memory block of size %0.1f Gb"), 
-		  dsize/1024.0/1024.0/1024.0);
 	    s = R_NilValue; /* -Wall */
+	    if(dsize > 1024.0*1024.0*1024.0)
+		error(_("cannot allocate memory block of size %0.1f Gb"), 
+		      dsize/1024.0/1024.0/1024.0);
+	    else if(dsize > 1024.0*1024.0)
+		error(_("cannot allocate memory block of size %0.1f Mb"), 
+		      dsize/1024.0/1024.0);
+	    else if(dsize > 1024.0)
+		error(_("cannot allocate memory block of size %0.1f Kb"), 
+		      dsize/1024.0);
+	    else
+		error(_("cannot allocate memory block of size %.0f"),
+		      dsize);
 	}
 #else
-	if(dsize > R_LEN_T_MAX) /* must be in the Gb range */
-	    error(_("cannot allocate memory block of size %0.1f Gb"), 
-		  dsize/1024.0/1024.0/1024.0);
-	s = allocVector(RAWSXP, size + 1); 
+	if(dsize > R_LEN_T_MAX) {
+	    if(dsize > 1024.0*1024.0*1024.0)
+		error(_("cannot allocate memory block of size %0.1f Gb"), 
+		      dsize/1024.0/1024.0/1024.0);
+	    else if(dsize > 1024.0*1024.0)
+		error(_("cannot allocate memory block of size %0.1f Mb"), 
+		      dsize/1024.0/1024.0);
+	    else if(dsize > 1024.0)
+		error(_("cannot allocate memory block of size %0.1f Kb"), 
+		      dsize/1024.0);
+	    else
+		error(_("cannot allocate memory block of size %.0f"),
+		      dsize);
+	}	
+	s = allocString(size); /**** avoid extra null byte?? */
 #endif
 	ATTRIB(s) = R_VStack;
 	R_VStack = s;
 #if VALGRIND_LEVEL > 0
-	VALGRIND_MAKE_WRITABLE(DATAPTR(s), (int) dsize);
+	VALGRIND_MAKE_WRITABLE(CHAR(s), (int) dsize);
 #endif
-	return (char *)DATAPTR(s);
+	return CHAR(s);
     }
     else return NULL;
 }
@@ -1676,17 +1677,19 @@ char *R_alloc(size_t nelem, int eltsize)
 
 char *S_alloc(long nelem, int eltsize)
 {
-    R_size_t size  = nelem * eltsize;
+    R_size_t /*i,*/ size  = nelem * eltsize;
     char *p = R_alloc(nelem, eltsize);
 
     memset(p, 0, size);
+    /* for(i = 0; i < size; i++)
+       p[i] = 0; */
     return p;
 }
 
 
 char *S_realloc(char *p, long new, long old, int size)
 {
-    int nold;
+    int /*i,*/ nold;
     char *q;
     /* shrinking is a no-op */
     if(new <= old) return p;
@@ -1694,6 +1697,10 @@ char *S_realloc(char *p, long new, long old, int size)
     nold = old * size;
     memcpy(q, p, nold);
     memset(q + nold, 0, new*size - nold);
+    /* for(i = 0; i < nold; i++)
+	q[i] = p[i];
+    for(i = nold; i < new*size; i++)
+        q[i] = 0; */
     return q;
 }
 
@@ -2053,7 +2060,7 @@ SEXP allocVector(SEXPTYPE type, R_len_t length)
 #if VALGRIND_LEVEL > 0
  	VALGRIND_MAKE_WRITABLE(CHAR(s), actual_size);
 #endif
-	CHAR_RW(s)[length] = 0;
+	CHAR(s)[length] = 0;
     }
     else if (type == REALSXP){
 #if VALGRIND_LEVEL > 0
@@ -2065,7 +2072,7 @@ SEXP allocVector(SEXPTYPE type, R_len_t length)
 	VALGRIND_MAKE_WRITABLE(INTEGER(s), actual_size);
 #endif
     }
-    /* <FIXME> why not valgrindify LGLSXP, CPLXSXP and RAWSXP? */
+    /* <FIXME> why not valgrindify LGLSXP, CPLXSXP and RAWSXP/ */
     return s;
 }
 
@@ -2509,13 +2516,13 @@ int (TRUELENGTH)(SEXP x) { return TRUELENGTH(x); }
 void (SETLENGTH)(SEXP x, int v) { SETLENGTH(x, v); }
 void (SET_TRUELENGTH)(SEXP x, int v) { SET_TRUELENGTH(x, v); }
 
-const char *(R_CHAR)(SEXP x) {
+char *(R_CHAR)(SEXP x) {
 #ifdef USE_TYPE_CHECKING
     if(TYPEOF(x) != CHARSXP) 
 	error("%s() can only be applied to a '%s', not a '%s'", 
 	      "CHAR", "CHARSXP", type2char(TYPEOF(x)));
 #endif
-    return (const char *)CHAR(x);
+    return CHAR(x);
 }
 
 SEXP (STRING_ELT)(SEXP x, int i) {
@@ -2788,17 +2795,6 @@ int (HASHVALUE)(SEXP x) { return HASHVALUE(x); }
 void (SET_HASHASH)(SEXP x, int v) { SET_HASHASH(x, v); }
 void (SET_HASHVALUE)(SEXP x, int v) { SET_HASHVALUE(x, v); }
 
-/* Test functions */
-Rboolean Rf_isNull(SEXP s) { return isNull(s); }
-Rboolean Rf_isSymbol(SEXP s) { return isSymbol(s); }
-Rboolean Rf_isLogical(SEXP s) { return isLogical(s); }
-Rboolean Rf_isReal(SEXP s) { return isReal(s); }
-Rboolean Rf_isComplex(SEXP s) { return isComplex(s); }
-Rboolean Rf_isExpression(SEXP s) { return isExpression(s); }
-Rboolean Rf_isEnvironment(SEXP s) { return isEnvironment(s); }
-Rboolean Rf_isString(SEXP s) { return isString(s); }
-Rboolean Rf_isObject(SEXP s) { return isObject(s); }
-
 /* Bindings accessors */
 Rboolean attribute_hidden 
 (IS_ACTIVE_BINDING)(SEXP b) {return IS_ACTIVE_BINDING(b);}
@@ -2827,7 +2823,7 @@ void attribute_hidden (UNSET_UTF8)(SEXP x) { UNSET_UTF8(x); }
 
 SEXP attribute_hidden do_Rprofmem(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    error(_("memory profiling is not available on this system"));
+    errorcall(call,_("memory profiling is not available on this system"));
     return R_NilValue; /* not reached */
 }
 
@@ -2886,7 +2882,7 @@ static void R_EndMemReporting()
     return;
 }
 
-static void R_InitMemReporting(const char *filename, int append,
+static void R_InitMemReporting(char *filename, int append,
 			       R_size_t threshold)
 {
     if(R_MemReportingOutfile != NULL) R_EndMemReporting();
@@ -2900,13 +2896,13 @@ static void R_InitMemReporting(const char *filename, int append,
 
 SEXP attribute_hidden do_Rprofmem(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    const char *filename;
+    char *filename;
     R_size_t threshold;
     int append_mode;
 
     checkArity(op, args);
     if (!isString(CAR(args)) || (LENGTH(CAR(args))) != 1)
-	error(_("invalid '%s' argument"), "filename");
+	errorcall(call, _("invalid '%s' argument"), "filename");
     append_mode = asLogical(CADR(args));
     filename = R_ExpandFileName(CHAR(STRING_ELT(CAR(args), 0)));
     threshold = REAL(CADDR(args))[0];
@@ -2918,59 +2914,3 @@ SEXP attribute_hidden do_Rprofmem(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 
 #endif /* R_MEMORY_PROFILING */
-
-/* RBufferUtils, moved from deparse.c */
-
-#include "RBufferUtils.h"
-
-attribute_hidden
-void *R_AllocStringBuffer(size_t blen, R_StringBuffer *buf)
-{
-    size_t blen1, bsize = buf->defaultSize;
-
-    /* for backwards compatibility, probably no longer needed */
-    if(blen == (size_t)-1) {
-	warning("R_AllocStringBuffer(-1) used: please report");
-	R_FreeStringBufferL(buf);
-	return NULL;
-    }
-
-    if(blen * sizeof(char) < buf->bufsize) return buf->data;
-    blen1 = blen = (blen + 1) * sizeof(char);
-    blen = (blen / bsize) * bsize;
-    if(blen < blen1) blen += bsize;
-
-    if(buf->data == NULL) {
-	buf->data = (char *) malloc(blen);
-	buf->data[0] = '\0';
-    } else
-	buf->data = (char *) realloc(buf->data, blen);
-    buf->bufsize = blen;
-    if(!buf->data) {
-	buf->bufsize = 0;
-	/* don't translate internal error message */
-	error("could not allocate memory (%u Mb) in C function 'R_AllocStringBuffer'",
-	      (unsigned int) blen/1024/1024);
-    }
-    return buf->data;
-}
-
-void attribute_hidden
-R_FreeStringBuffer(R_StringBuffer *buf)
-{
-    if (buf->data != NULL) {
-	free(buf->data);
-	buf->bufsize = 0;
-	buf->data = NULL;
-    }
-}
-
-void attribute_hidden
-R_FreeStringBufferL(R_StringBuffer *buf)
-{
-    if (buf->bufsize > buf->defaultSize) {
-	free(buf->data);
-	buf->bufsize = 0;
-	buf->data = NULL;
-    }
-}

@@ -43,11 +43,6 @@ Sys.unsetenv(x)
   Both are provided on Windows (although C-level \code{unsetenv} is not
   available).
 #endif
-#ifdef unix
-  If \code{Sys.unsetenv} is not supported, it will at least try to
-  set the value of the environment variable to \code{""}, with a 
-  warning.
-#endif
 }
 \seealso{
   \code{\link{Sys.getenv}}, \link{Startup} for ways to set environment
@@ -62,7 +57,7 @@ Sys.getenv("R_TEST")
 Sys.unsetenv("R_TEST")
 #endif
 #ifdef unix
-Sys.unsetenv("R_TEST")  # may warn and not succeed
+try(Sys.unsetenv("R_TEST"))  # may not be implemented
 #endif
 Sys.getenv("R_TEST", unset=NA)
 }

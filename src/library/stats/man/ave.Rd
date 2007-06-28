@@ -22,8 +22,6 @@ ave(x, \dots, FUN = mean)
 }
 \seealso{\code{\link{mean}}, \code{\link{median}}.}
 \examples{
-require(graphics)
-
 ave(1:3)# no grouping -> grand mean
 
 attach(warpbreaks)

@@ -30,10 +30,12 @@
 
 #include <Defn.h>
 #include <Rmath.h>
+#include <Rinterface.h>
 #include <Graphics.h>
+#include <Rdevices.h>
 
-SEXP attribute_hidden 
-do_getGraphicsEvent(SEXP call, SEXP op, SEXP args, SEXP env)
+
+SEXP attribute_hidden do_getGraphicsEvent(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP prompt, onMouseDown, onMouseMove, onMouseUp, onKeybd;
     GEDevDesc *dd;
@@ -45,54 +47,56 @@ do_getGraphicsEvent(SEXP call, SEXP op, SEXP args, SEXP env)
     nd = dd->dev;
     
     if (!nd->newDevStruct || !nd->getEvent) 
-    	error(_("graphics device does not support graphics events"));
+    	errorcall(call, _("graphics device does not support graphics events"));
     
     prompt = CAR(args);
-    if (!isString(prompt) || !length(prompt)) error(_("invalid prompt"));
+    if (!isString(prompt) || !length(prompt)) errorcall(call, _("invalid prompt"));
     args = CDR(args);
     
     onMouseDown = CAR(args);
     if (TYPEOF(onMouseDown) == NILSXP) onMouseDown = NULL;
     else if (!nd->canGenMouseDown)
-	error(_("'onMouseDown' not supported"));
+	errorcall(call, _("'onMouseDown' not supported"));
     else if (TYPEOF(onMouseDown) != CLOSXP) 
-	error(_("invalid 'onMouseDown' callback"));
+	errorcall(call, _("invalid 'onMouseDown' callback"));
     args = CDR(args);
     
     onMouseMove = CAR(args);
     if (TYPEOF(onMouseMove) == NILSXP) onMouseMove = NULL;
     else if (!nd->canGenMouseMove) 
-	error(_("'onMouseMove' not supported"));
+	errorcall(call, _("'onMouseMove' not supported"));
     else if (TYPEOF(onMouseMove) != CLOSXP)
-	error(_("invalid 'onMouseMove' callback"));
+	errorcall(call, _("invalid 'onMouseMove' callback"));
     args = CDR(args);
     
     onMouseUp = CAR(args);
     if (TYPEOF(onMouseUp) == NILSXP) onMouseUp = NULL;
     else if (!nd->canGenMouseUp) 
-	error(_("'onMouseUp' not supported"));
+	errorcall(call, _("'onMouseUp' not supported"));
     else if (TYPEOF(onMouseUp) != CLOSXP) 
-	error(_("invalid 'onMouseUp' callback"));
+	errorcall(call, _("invalid 'onMouseUp' callback"));
     args = CDR(args);
     
     onKeybd = CAR(args);
     if (TYPEOF(onKeybd) == NILSXP) onKeybd = NULL;
     else if (!nd->canGenKeybd) 
-	error(_("'onKeybd' not supported"));
+	errorcall(call, _("'onKeybd' not supported"));
     else if (TYPEOF(onKeybd) != CLOSXP)
-	error(_("invalid 'onKeybd' callback"));
+	errorcall(call, _("invalid 'onKeybd' callback"));
     
     /* NB:  cleanup of event handlers must be done by driver in onExit handler */
     
     return(nd->getEvent(env, translateChar(STRING_ELT(prompt,0))));
 }
     
-static const char * mouseHandlers[] = 
-{"onMouseDown", "onMouseUp", "onMouseMove"};
+#define leftButton   1
+#define middleButton 2
+#define rightButton  4
 
-/* used in devWindows.c and cairoDevice */
+static char * mouseHandlers[] = {"onMouseDown", "onMouseUp", "onMouseMove"};
+
 SEXP doMouseEvent(SEXP eventRho, NewDevDesc *dd, R_MouseEvent event,
-		  int buttons, double x, double y)
+			 int buttons, double x, double y)
 {
     int i;
     SEXP handler, bvec, sx, sy, temp, result;
@@ -113,10 +117,14 @@ SEXP doMouseEvent(SEXP eventRho, NewDevDesc *dd, R_MouseEvent event,
 	if (buttons & rightButton) INTEGER(bvec)[i++] = 2;
 	SETLENGTH(bvec, i);
 
-	PROTECT(sx = ScalarReal( (x - dd->left) / (dd->right - dd->left) ));
-	PROTECT(sy = ScalarReal((y - dd->bottom) / (dd->top - dd->bottom) ));
+	PROTECT(sx = allocVector(REALSXP, 1));
+	REAL(sx)[0] = (x - dd->left) / (dd->right - dd->left);
+	PROTECT(sy = allocVector(REALSXP, 1));
+	REAL(sy)[0] = (y - dd->bottom) / (dd->top - dd->bottom);
+
 	PROTECT(temp = lang4(handler, bvec, sx, sy));
 	PROTECT(result = eval(temp, eventRho));
+
 	R_FlushConsole();
 	UNPROTECT(5);    
     }
@@ -124,14 +132,12 @@ SEXP doMouseEvent(SEXP eventRho, NewDevDesc *dd, R_MouseEvent event,
     return result;
 }
 
-static const char * keynames[] = 
-{"Left", "Up", "Right", "Down",
- "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11","F12",
- "PgUp", "PgDn", "End", "Home", "Ins", "Del"};
+static char * keynames[] = {"Left", "Up", "Right", "Down",
+    			 "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10",
+    			 "F11","F12",
+    			 "PgUp", "PgDn", "End", "Home", "Ins", "Del"};
 
-/* used in devWindows.c and cairoDevice */
-SEXP doKeybd(SEXP eventRho, NewDevDesc *dd, R_KeyName rkey,
-	     const char *keyname)
+SEXP doKeybd(SEXP eventRho, NewDevDesc *dd, R_KeyName rkey, char *keyname)
 {
     SEXP handler, skey, temp, result;
     
@@ -143,12 +149,17 @@ SEXP doKeybd(SEXP eventRho, NewDevDesc *dd, R_KeyName rkey,
     	
     result = NULL;
     
-    if (handler != R_UnboundValue && handler != R_NilValue) {
-	PROTECT(skey = mkString(keyname ? keyname : keynames[rkey]));
+    if (handler != R_UnboundValue && handler != R_NilValue) {   
+    
+    	PROTECT(skey = allocVector(STRSXP, 1));
+    	if (keyname) SET_STRING_ELT(skey, 0, mkChar(keyname));
+    	else SET_STRING_ELT(skey, 0, mkChar(keynames[rkey]));
+    
     	PROTECT(temp = lang2(handler, skey));
-    	PROTECT(result = eval(temp, eventRho)); /* PROTECT not needed? */
+    	PROTECT(result = eval(temp, eventRho));
     	R_FlushConsole();
-    	UNPROTECT(2);
+    	UNPROTECT(3);
+    	
     }
     dd->gettingEvent = TRUE;
     return result;

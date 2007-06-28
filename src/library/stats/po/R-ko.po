@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-05-25 12:20\n"
+"POT-Creation-Date: 2007-06-12 18:46\n"
 "PO-Revision-Date: 2005-05-26 15:05+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -372,7 +372,10 @@ msgstr "sample이 너무 부족하기 때문에 alph2를 검색해낼 수가 없
 msgid "no solution in the specified range of bandwidths"
 msgstr "지정된 bandwidth의 범위내에서 해법은 없습니다"
 
-msgid "increasing bw.SJ() search interval (%d)"
+msgid "increasing bw.SJ() search interval ("
+msgstr ""
+
+msgid ")"
 msgstr ""
 
 msgid "minimum occurred at one end of the range"
@@ -1493,12 +1496,11 @@ msgstr "'ColSideColors'는 길이가 ncol(x)의 문자 벡터가 아니면 되�
 msgid "'termobj' must be a object of class \"terms\""
 msgstr "중심('centers')은 수치 또는 행렬이 아니면 되지 않습니다"
 
-#, fuzzy
-msgid "variable '%s' was fitted with type \"%s\" but type \"%s\" was supplied"
+msgid ""
+"variable '%s' was fitted with class \"%s\" but class \"%s\" was supplied"
 msgstr "변수 '%s'에 클래스 \"%s\" 이지만, 클래스 \"%s\"가 주어졌습니다"
 
-#, fuzzy
-msgid "variables %s were specified with different types from the fit"
+msgid "variables %s were specified with different classes from the fit"
 msgstr "변수 %s는 적용시키기 위한 것과는 다른 클래스로서 지정되었습니다"
 
 msgid "'data' must be a data.frame, not a matrix or an array"

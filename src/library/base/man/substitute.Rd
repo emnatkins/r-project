@@ -65,7 +65,6 @@ quote(expr)
   marks to strings.
 }
 \examples{
-require(graphics)
 (s.e <- substitute(expression(a + b), list(a = 1)))  #> expression(1 + b)
 (s.s <- substitute( a + b,            list(a = 1)))  #> 1 + b
 c(mode(s.e), typeof(s.e)) #  "call", "language"

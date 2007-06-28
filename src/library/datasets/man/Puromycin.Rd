@@ -43,7 +43,6 @@
   Toronto. 
 }
 \examples{
-require(stats); require(graphics)
 plot(rate ~ conc, data = Puromycin, las = 1,
      xlab = "Substrate concentration (ppm)",
      ylab = "Reaction velocity (counts/min/min)",

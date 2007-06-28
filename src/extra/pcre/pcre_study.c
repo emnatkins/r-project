@@ -6,7 +6,7 @@
 and semantics are as close as possible to those of the Perl 5 language.
 
                        Written by Philip Hazel
-           Copyright (c) 1997-2007 University of Cambridge
+           Copyright (c) 1997-2006 University of Cambridge
 
 -----------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without
@@ -394,13 +394,11 @@ do
       character with a value > 255. */
 
       case OP_NCLASS:
-#ifdef SUPPORT_UTF8
       if (utf8)
         {
         start_bits[24] |= 0xf0;              /* Bits for 0xc4 - 0xc8 */
         memset(start_bits+25, 0xff, 7);      /* Bits for 0xc9 - 0xff */
         }
-#endif
       /* Fall through */
 
       case OP_CLASS:
@@ -413,7 +411,6 @@ do
         value is > 127. In fact, there are only two possible starting bytes for
         characters in the range 128 - 255. */
 
-#ifdef SUPPORT_UTF8
         if (utf8)
           {
           for (c = 0; c < 16; c++) start_bits[c] |= tcode[c];
@@ -431,7 +428,6 @@ do
         /* In non-UTF-8 mode, the two bit maps are completely compatible. */
 
         else
-#endif
           {
           for (c = 0; c < 32; c++) start_bits[c] |= tcode[c];
           }
@@ -491,7 +487,7 @@ Returns:    pointer to a pcre_extra block, with study_data filled in and the
             NULL on error or if no optimization possible
 */
 
-PCRE_EXP_DEFN pcre_extra *
+PCRE_DATA_SCOPE pcre_extra *
 pcre_study(const pcre *external_re, int options, const char **errorptr)
 {
 uschar start_bits[32];

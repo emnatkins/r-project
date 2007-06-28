@@ -38,7 +38,6 @@ formals(fun, envir = environment(fun)) <- value
   \code{\link{function}}.
 }
 \examples{
-require(stats); require(graphics)
 length(formals(lm))      # the number of formal arguments
 names(formals(boxplot))  # formal arguments names
 

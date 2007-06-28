@@ -43,7 +43,6 @@
  DefaultPalette
  DialogSelectFile
  EhiWakeUp
- EncodeReal2
  GA_MDIFrame
  GA_MDIStatus
  GA_MDIToolbar
@@ -167,34 +166,21 @@
  GA_win_rgb
  GRecording
  GetCurrentWinPos
- INTERNAL
  IS_ACTIVE_BINDING
  IS_LATIN1
  IS_UTF8
  InitDynload
  Init_R_Variables
  LOCK_BINDING
- La_chol
- La_chol2inv
- La_dgeqp3
- La_dgesv
- La_rg
- La_rg_cmplx
- La_rs
- La_rs_cmplx
- La_svd_cmplx
- La_zgeqp3
- La_zgesv
+ LeftMatrixColumnLabel
  LoadInitFile
  MDIset
  MDIsize
  MainThread
+ MatrixColumnLabel
+ MatrixRowLabel
+ NextConnection
  OutDec
- PRCODE
- PRENV
- PRIMOFFSET
- PRSEEN
- PRVALUE
  PrintUsage
  ProfileEvent
  R_AllocStringBuffer
@@ -209,23 +195,16 @@
  R_CollectWarnings
  R_Collected
  R_CommentSxp
- R_CommentSymbol
  R_ConsoleIob
- R_DotEnvSymbol
  R_EditFiles
  R_ErrorCon
- R_ExactSymbol
  R_Expressions
  R_Expressions_keep
  R_FileExists
  R_FileMtime
  R_FreeSEXP
  R_FreeStringBuffer
- R_FreeStringBufferL
  R_FunTab
- R_GE_VStrHeight
- R_GE_VStrWidth
- R_GE_VText
  R_GetMaxNSize
  R_GetMaxVSize
  R_HandlerStack
@@ -242,19 +221,11 @@
  R_KT_ran_arr_ptr
  R_KT_ran_arr_sentinel
  R_KeepSource
- R_LastvalueSymbol
- R_LibraryFileName
  R_LoadFromFile
  R_Log10
  R_NHeap
- R_NShowCalls
  R_NSize
- R_NaRmSymbol
  R_Newhashpjw
- R_OpenInitFile
- R_OpenLibraryFile
- R_OpenSiteFile
- R_OpenSysInitFile
  R_OutputCon
  R_PPStack
  R_PPStackSize
@@ -266,9 +237,7 @@
  R_ParseContextLast
  R_ParseError
  R_ParseFile
- R_PromiseExpr
  R_Quiet
- R_RecursiveSymbol
  R_RestartStack
  R_RestartToken
  R_ReturnedValue
@@ -279,22 +248,14 @@
  R_SetOptionWarn
  R_SetOptionWidth
  R_SetWin32
- R_ShowErrorCalls
  R_ShowErrorMessages
- R_ShowWarnCalls
  R_ShowFiles
- R_SourceSymbol
- R_SrcfileSymbol
- R_SrcrefSymbol
  R_StdinEnc
- R_StringHash
  R_SymbolTable
  R_TextBufferFree
  R_TextBufferGetc
  R_TextBufferInit
- R_TmpvalSymbol
  R_ToplevelExec
- R_UseNamesSymbol
  R_VSize
  R_Verbose
  R_Visible
@@ -332,7 +293,6 @@
  R_lazyLoadDBinsertValue
  R_max_memory
  R_moduleCdynload
- R_newsock
  R_newunz
  R_newurl
  R_osDynSymbol
@@ -340,7 +300,6 @@
  R_print
  R_restore_globals
  R_run_onexits
- R_seemsOldStyleS4Object
  R_serializeb
  R_signgam
  R_subset3_dflt
@@ -349,8 +308,6 @@
  R_sysfunction
  R_sysparent
  R_unary
- R_warn_partial_match_args
- R_warn_partial_match_dollar
  Rconsolesetwidth
  Rf_CheckFormals
  Rf_CoercionWarning
@@ -370,9 +327,6 @@
  Rf_FixupPch
  Rf_FixupVFont
  Rf_GInit
- Rf_GVStrHeight
- Rf_GVStrWidth
- Rf_GVText
  Rf_GetOptionParAsk
  Rf_IndexWidth
  Rf_InitArithmetic
@@ -386,7 +340,6 @@
  Rf_InitMemory
  Rf_InitOptions
  Rf_InitRand
- Rf_InitStringHash
  Rf_InitTempDir
  Rf_IntegerFromComplex
  Rf_IntegerFromLogical
@@ -481,6 +434,7 @@
  Ri18n_iswctype
  Ri18n_wcswidth
  Ri18n_wctype
+ RightMatrixColumnLabel
  Rm_calloc
  Rm_cfree
  Rm_free
@@ -493,13 +447,6 @@
  Rregexec
  Rrowsum_df
  Rrowsum_matrix
- Rsockclose
- Rsockconnect
- Rsocklisten
- Rsockopen
- Rsockread
- Rsockselect
- Rsockwrite
  Rwin_rename
  SET_ACTIVE_BINDING_BIT
  SET_LATIN1
@@ -633,7 +580,6 @@
  deflateTune
  deflate_copyright
  deleditordata
- det_ge_real
  do_AT
  do_Cstack_info
  do_D
@@ -725,6 +671,7 @@
  do_dataviewer
  do_date
  do_debug
+ do_delay
  do_delayed
  do_dend
  do_dendwindow
@@ -815,7 +762,6 @@
  do_getWindowHandle
  do_getWindowTitle
  do_getallconnections
- do_getconnection
  do_getenv
  do_geterrmessage
  do_getlocale
@@ -885,7 +831,6 @@
  do_logic3
  do_ls
  do_machine
- do_makelazy
  do_makelist
  do_makenames
  do_makeunique
@@ -927,7 +872,6 @@
  do_nlm
  do_normalizepath
  do_nsl
- do_nzchar
  do_objectsize
  do_onexit
  do_open
@@ -1050,7 +994,6 @@
  do_stdin
  do_stdout
  do_stop
- do_storage_mode
  do_strheight
  do_strptime
  do_strsplit
@@ -1091,7 +1034,6 @@
  do_tolower
  do_trace
  do_transpose
- do_trunc
  do_truncate
  do_typecvt
  do_typeof
@@ -1121,7 +1063,6 @@
  do_writechar
  do_writelines
  do_writetable
- do_xspline
  do_zeroin
  dos_glob
  dos_globfree
@@ -1146,7 +1087,6 @@
  getGraphMenu
  getIdentification
  getParseContext
- getParseFilename
  getWindowTitle
  get_crc_table
  get_current_mem
@@ -1304,14 +1244,7 @@
  pkgmenuact
  pnchisq_raw
  pointsize
- process_site_Renviron
- process_system_Renviron
- process_user_Renviron
  pythag_
- qr_coef_cmplx
- qr_coef_real
- qr_qy_cmplx
- qr_qy_real
  raise
  realp0_
  reset_duplicate_counter
@@ -1520,7 +1453,7 @@
  trio_xstring_substring
  uncompress
  utf8clen
- winAccess
+ wcrtomb
  winNewFrameConfirm
  winaddmenu
  winaddmenuitem
@@ -1550,7 +1483,6 @@
  xdr_void
  xdr_wrapstring
  xdrstdio_create
- yylloc
  zError
  z_errmsg
  z_prec_r

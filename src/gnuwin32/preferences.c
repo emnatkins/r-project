@@ -50,12 +50,12 @@ void editorsetfont(font f);
 
 static void showDialog(Gui gui);
 
-extern const char *ColorName[]; /* from graphapp/rgb.c */
+extern char *ColorName[]; /* from graphapp/rgb.c */
 
-static int cmatch(char *col, const char **list)
+static int cmatch(char *col, char **list)
 {
     int i=0;
-    const char **pos = list;
+    char **pos = list;
     while(*pos != NULL) {
 	if(strcmpi(*pos, col) == 0) return(i);
 	i++; pos++;
@@ -64,9 +64,9 @@ static int cmatch(char *col, const char **list)
 }
 
 
-static const char *StyleList[] = {"normal", "bold", "italic", NULL};
-static const char *PointsList[] = {"6", "7", "8", "9", "10", "11", "12", "14", "16", "18", "20", "22", "24", "26", "28", "32", "36", NULL};
-static const char *FontsList[] = {"Courier", "Courier New", "FixedSys", "FixedFont", "Lucida Console", "Terminal", "BatangChe", "DotumChe", "GulimChe", "MingLiU", "MS Gothic", "MS Mincho", "NSimSun", NULL};
+static char *StyleList[] = {"normal", "bold", "italic", NULL};
+static char *PointsList[] = {"6", "7", "8", "9", "10", "11", "12", "14", "16", "18", "20", "22", "24", "26", "28", "32", "36", NULL};
+static char *FontsList[] = {"Courier", "Courier New", "FixedSys", "FixedFont", "Lucida Console", "Terminal", "BatangChe", "DotumChe", "GulimChe", "MingLiU", "MS Gothic", "MS Mincho", "NSimSun", NULL};
 
 
 static window wconfig;
@@ -449,7 +449,7 @@ static void load(button b) /* button callback */
     }
 }
 
-int loadRconsole(Gui gui, const char *optf)
+int loadRconsole(Gui gui, char *optf)
 {
     int ok, done, cfgerr;
     char *opt[2];    

@@ -14,7 +14,8 @@
 ## replacing the non-sep characters in the version string by their ASCII
 ## codes.)
 
-package_version <- function(x, strict = TRUE)
+package_version <-
+function(x, strict = TRUE)
 {
     ## Special-case R version lists.
     if(is.list(x) && all(c("major", "minor") %in% names(x)))
@@ -32,12 +33,16 @@ package_version <- function(x, strict = TRUE)
     y
 }
 
-is.package_version <- function(x) inherits(x, "package_version")
+is.package_version <-
+function(x)
+    inherits(x, "package_version")
 
 as.package_version <-
-function(x) if(is.package_version(x)) x else package_version(x)
+function(x)
+    if(is.package_version(x)) x else package_version(x)
 
-.encode_package_version <- function(x, base = NULL)
+.encode_package_version <-
+function(x, base = NULL)
 {
     if(!is.package_version(x)) stop("wrong class")
     if(is.null(base)) base <- max(unlist(x), 0, na.rm=TRUE) + 1
@@ -49,13 +54,14 @@ function(x) if(is.package_version(x)) x else package_version(x)
     ## decrement by 1 one again.
     x <- as.numeric(sapply(x,
                            function(t)
-                           sum(t / base^seq.int(0, length.out = length(t)))))
+                           sum(t / base^seq.int(0, length = length(t)))))
     attr(x, "base") <- base
     attr(x, "lens") <- lens
     x
 }
 
-.decode_package_version <- function(x, base = NULL)
+.decode_package_version <-
+function(x, base = NULL)
 {
     if(is.null(base)) base <- attr(x, "base")
     if(!is.numeric(base)) stop("wrong argument")
@@ -76,15 +82,18 @@ function(x) if(is.package_version(x)) x else package_version(x)
 }
 
 as.character.package_version <-
-function(x, ...) as.character(unlist(lapply(x, paste, collapse = ".")))
+function(x, ...)
+    as.character(unlist(lapply(x, paste, collapse = ".")))
 
-print.package_version <- function(x, ...)
+print.package_version <-
+function(x, ...)
 {
     print(noquote(sQuote(as.character(x))), ...)
     invisible(x)
 }
 
-Ops.package_version <- function(e1, e2)
+Ops.package_version <-
+function(e1, e2)
 {
     if(nargs() == 1)
         stop("unary ", .Generic, " not defined for package_version objects")
@@ -100,7 +109,8 @@ Ops.package_version <- function(e1, e2)
     NextMethod(.Generic)
 }
 
-Summary.package_version <- function(..., na.rm)
+Summary.package_version <-
+function(..., na.rm)
 {
     ok <- switch(.Generic, max = , min = TRUE, FALSE)
     if(!ok)
@@ -113,7 +123,8 @@ Summary.package_version <- function(..., na.rm)
            min = x[which.min(.encode_package_version(x))])
 }
 
-c.package_version <- function(..., recursive = FALSE)
+c.package_version <-
+function(..., recursive = FALSE)
 {
     x <- unlist(lapply(list(...), as.package_version),
                 recursive = FALSE)
@@ -121,7 +132,8 @@ c.package_version <- function(..., recursive = FALSE)
     x
 }
 
-`[.package_version` <- function(x, i, j)
+"[.package_version" <-
+function(x, i, j)
 {
     y <- if(missing(j))
         unclass(x)[i]
@@ -136,9 +148,12 @@ c.package_version <- function(..., recursive = FALSE)
     y
 }
 
-`[[.package_version` <- function(x, i) unclass(x)[[i]]
+"[[.package_version" <-
+function(x, i)
+    unclass(x)[[i]]
 
-`$.package_version` <- function(x, name)
+"$.package_version" <-
+function(x, name)
 {
     name <- pmatch(name, c("major", "minor", "patchlevel"))
     switch(name,
@@ -152,4 +167,5 @@ c.package_version <- function(..., recursive = FALSE)
 
 as.data.frame.package_version <- as.data.frame.vector
 
-getRversion <- function() package_version(R.version)
+getRversion <- function()
+    package_version(R.version)

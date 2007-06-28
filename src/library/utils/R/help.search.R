@@ -185,7 +185,7 @@ function(pattern, fields = c("alias", "concept", "title"),
 		   Concepts = do.call("rbind", dbMat[, 4]))
 	if(is.null(db$Concepts))
 	    db$Concepts <-
-		matrix(character(), ncol = 3,
+		matrix(character(), nc = 3,
 		       dimnames = list(NULL,
 		       c("Concepts", "ID", "Package")))
 	## Make the IDs globally unique by prefixing them with the
@@ -220,7 +220,7 @@ function(pattern, fields = c("alias", "concept", "title"),
 	bad_IDs <-
 	    unlist(sapply(db,
 			  function(u)
-			  u[rowSums(is.na(nchar(u, "c", TRUE))) > 0, "ID"]))
+			  u[rowSums(is.na(nchar(u, "c"))) > 0, "ID"]))
 	if(length(bad_IDs)) {
 	    warning("removing all entries with invalid multi-byte character data")
 	    for(i in seq_along(db)) {

@@ -129,8 +129,7 @@ static int	 ci_compare(const void *, const void *);
 static int	 g_Ctoc(const Char *, char *, STRLEN);
 static int	 g_lstat(Char *, Stat_t *, glob_t *);
 static DIR	*g_opendir(Char *, glob_t *);
-static const Char *
-		 g_strchr(const Char *, int);
+static Char	*g_strchr(Char *, int);
 static int	 glob0(const Char *, glob_t *);
 static int	 glob1(Char *, Char *, glob_t *, size_t *);
 static int	 glob2(Char *, Char *, Char *, Char *, Char *, Char *,
@@ -242,7 +241,7 @@ globexp1(const Char *pattern, glob_t *pglob)
     if (pattern[0] == BG_LBRACE && pattern[1] == BG_RBRACE && pattern[2] == BG_EOS)
 	return glob0(pattern, pglob);
 
-    while ((ptr = (const Char *) g_strchr(ptr, BG_LBRACE)) != NULL)
+    while ((ptr = (const Char *) g_strchr((Char *) ptr, BG_LBRACE)) != NULL)
 	if (!globexp2(ptr, pattern, pglob, &rv))
 	    return rv;
 
@@ -700,8 +699,13 @@ glob3(Char *pathbuf, Char *pathbuf_last, Char *pathend, Char *pathend_last,
     return(err);
 }
 
+extern void *R_chk_calloc(size_t, size_t);
+extern void *R_chk_realloc(void *, size_t);
+extern void R_chk_free(void *);
 
-#include <R_ext/RS.h> /* for Calloc, Realloc, Free */
+#define Calloc(n, t)   (t *) R_chk_calloc( (size_t) (n), sizeof(t) )
+#define Realloc(p,n,t) (t *) R_chk_realloc( (void *)(p), (size_t)((n) * sizeof(t)) )
+#define Free(p)        (R_chk_free( (void *)(p) ), (p) = NULL)
 
 /*
  * Extend the gl_pathv member of a glob_t structure to accomodate a new item,
@@ -877,8 +881,8 @@ g_lstat(register Char *fn, Stat_t *sb, glob_t *pglob)
     return(stat(buf, sb));
 }
 
-static const Char *
-g_strchr(const Char *str, int ch)
+static Char *
+g_strchr(Char *str, int ch)
 {
     do {
 	if (*str == ch)

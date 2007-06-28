@@ -30,11 +30,11 @@ aov <- function(formula, data = NULL, projections = FALSE, qr = TRUE,
         on.exit(options(opcons))
         allTerms <- Terms
         errorterm <-  attr(Terms, "variables")[[1 + indError]]
-        eTerm <- deparse(errorterm[[2]], width.cutoff = 500, backtick = TRUE)
+        eTerm <- deparse(errorterm[[2]], width = 500, backtick = TRUE)
         intercept <- attr(Terms, "intercept")
         ecall <- lmcall
         ecall$formula <-
-            as.formula(paste(deparse(formula[[2]], width.cutoff = 500,
+            as.formula(paste(deparse(formula[[2]], width = 500,
                                      backtick = TRUE), "~", eTerm,
                              if(!intercept) "- 1"),
                        env=environment(formula))
@@ -50,11 +50,11 @@ aov <- function(formula, data = NULL, projections = FALSE, qr = TRUE,
         nmstrata <- c("(Intercept)", nmstrata)
         qr.e <- er.fit$qr
         rank.e <- er.fit$rank
-        if(rank.e < length(er.fit$coefficients))
+        if(rank.e < length(er.fit$coef))
             warning("Error() model is singular")
-        qty <- er.fit$residuals
+        qty <- er.fit$resid
         maov <- is.matrix(qty)
-        asgn.e <- er.fit$assign[qr.e$pivot[1:rank.e]]
+        asgn.e <- er.fit$assign[qr.e$piv[1:rank.e]]
         ## we want this to label the rows of qtx, not cols of x.
         maxasgn <- length(nmstrata)-1
         nobs <- NROW(qty)
@@ -65,7 +65,8 @@ aov <- function(formula, data = NULL, projections = FALSE, qr = TRUE,
         } else result <- vector("list", maxasgn + 1)
         names(result) <- nmstrata
         lmcall$formula <- form <-
-            update(formula, paste(". ~ .-", deparse(errorterm, width.cutoff = 500, backtick = TRUE)))
+            update(formula, paste(". ~ .-", deparse(errorterm, width = 500,
+                                                    backtick = TRUE)))
         Terms <- terms(form)
         lmcall$method <- "model.frame"
         mf <- eval(lmcall, parent.frame())
@@ -140,7 +141,7 @@ function(x, intercept = FALSE, tol = .Machine$double.eps^0.5, ...)
     effects <- x$effects
     if(!is.null(effects))
         effects <- as.matrix(effects)[seq_along(asgn),,drop=FALSE]
-    rdf <- x$df.residual
+    rdf <- x$df.resid
     resid <- as.matrix(x$residuals)
     wt <- x$weights
     if(!is.null(wt)) resid <- resid * wt^0.5
@@ -174,7 +175,7 @@ function(x, intercept = FALSE, tol = .Machine$double.eps^0.5, ...)
             if(!is.matrix(ssp)) ssp <- t(ssp)
             tmp <- as.matrix(c(ssp, format(rdf)))
             if(length(ss) > 1) {
-                rn <- colnames(x$fitted.values)
+                rn <- colnames(x$fitted)
                 if(is.null(rn)) rn <- paste("resp", 1:length(ss))
             } else rn <- "Sum of Squares"
             dimnames(tmp) <- list(c(rn, "Deg. of Freedom"), "Residuals")
@@ -194,7 +195,7 @@ function(x, intercept = FALSE, tol = .Machine$double.eps^0.5, ...)
         ssp <- apply(zapsmall(ss), 2, format)
         tmp <- t(cbind(ssp, format(df)))
         if(ncol(effects) > 1) {
-            rn <- colnames(x$coeffficients)
+            rn <- colnames(x$coef)
             if(is.null(rn)) rn <- paste("resp", seq(ncol(effects)))
         } else rn <- "Sum of Squares"
         dimnames(tmp) <- list(c(rn, "Deg. of Freedom"), nmeffect)
@@ -207,7 +208,7 @@ function(x, intercept = FALSE, tol = .Machine$double.eps^0.5, ...)
             rs <- sqrt(RSS/rdf)
             cat("Residual standard error:", sapply(rs, format), "\n")
         }
-        coef <- as.matrix(x$coefficients)[,1]
+        coef <- as.matrix(x$coef)[,1]
         R <- x$qr$qr
         R <- R[1:min(dim(R)), ,drop=FALSE]
         R[lower.tri(R)] <- 0
@@ -220,7 +221,7 @@ function(x, intercept = FALSE, tol = .Machine$double.eps^0.5, ...)
         if(sum(abs(R))/d2 > tol)
             cat("Estimated effects may be unbalanced\n")
         else cat("Estimated effects are balanced\n")
-        if(nzchar(mess <- naprint(x$na.action))) cat(mess, "\n", sep="")
+        if(nchar(mess <- naprint(x$na.action))) cat(mess, "\n", sep="")
     }
     invisible(x)
 }
@@ -274,9 +275,9 @@ summary.aov <- function(object, intercept = FALSE, split,
     effects <- object$effects
     if(!is.null(effects))
         effects <- as.matrix(effects)[seq_along(asgn),,drop=FALSE]
-    rdf <- object$df.residual
+    rdf <- object$df.resid
     nmeffect <- c("(Intercept)", attr(object$terms, "term.labels"))
-    coef <- as.matrix(object$coefficients)
+    coef <- as.matrix(object$coef)
     resid <- as.matrix(object$residuals)
     wt <- object$weights
     if(!is.null(wt)) resid <- resid * wt^0.5
@@ -366,13 +367,13 @@ print.summary.aov <-
 {
     if (length(x) == 1)  print(x[[1]], ...)
     else NextMethod()
-    if(nzchar(mess <- naprint(attr(x, "na.action")))) cat(mess, "\n", sep="")
+    if(nchar(mess <- naprint(attr(x, "na.action")))) cat(mess, "\n", sep="")
     invisible(x)
 }
 
 coef.aov <- function(object, ...)
 {
-    z <- object$coefficients
+    z <- object$coef
     z[!is.na(z)]
 }
 
@@ -452,7 +453,7 @@ print.aovlist <- function(x, ...)
         cat("Note: The results below are on the weighted scale\n")
     nx <- names(x)
     if(nx[1] == "(Intercept)") {
-        mn <- x[[1]]$coefficients
+        mn <- x[[1]]$coef
         if(is.matrix(mn)) {
             cat("\nGrand Means:\n")
             print(format(mn[1,]), quote=FALSE)
@@ -556,7 +557,7 @@ se.contrast.aov <-
             colnames(contrast) <- paste("Contrast", seq(ncol(contrast)))
     }
     weights <- contrast.weight.aov(object, contrast)
-    rdf <- object$df.residual
+    rdf <- object$df.resid
     if(rdf == 0) stop("no degrees of freedom for residuals")
     resid <- as.matrix(object$residuals)
     wt <- object$weights
@@ -605,7 +606,7 @@ se.contrast.aovlist <-
     }
     SS <- function(aov.object)
     {
-        rdf <- aov.object$df.residual
+        rdf <- aov.object$df.resid
         if(is.null(rdf)) {
             nobs <- length(aov.object$residuals)
             rank <- aov.object$rank

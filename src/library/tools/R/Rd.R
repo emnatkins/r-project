@@ -10,7 +10,7 @@ function(lines)
 
     ## Re-encode if necessary (and possible).
     encoding <-
-        .get_Rd_metadata_from_Rd_lines(lines[!is.na(nchar(lines, "c", TRUE))],
+        .get_Rd_metadata_from_Rd_lines(lines[!is.na(nchar(lines, "c"))],
                                        "encoding")
     if(length(encoding)) {
         if((Sys.getlocale("LC_CTYPE") != "C")
@@ -22,10 +22,11 @@ function(lines)
     }
     else {
         ## No \encoding metadata.
-        ## Determine if ASCII
-        if(!all(.is_ASCII(lines))) encoding <- NA
+        ## Determine whether we can assume Latin1.
+        if(!all(.is_ISO_8859(lines)))
+            encoding <- NA
     }
-    if(any(is.na(nchar(lines, "c", TRUE)))) {
+    if(any(is.na(nchar(lines, "c")))) {
         ## Ouch, invalid in the current locale.
         ## (Can only happen in a MBCS locale.)
         ## Try re-encoding from Latin1.
@@ -71,7 +72,7 @@ function(lines)
     skipList <- integer(0)
     skipLevel <- 0
     skipIndices <- ppLineIndices
-    for(i in seq_along(ppTypes)) {
+    for(i in seq(along = ppTypes)) {
         if(!is.na(skip <- ppTypes[i])) {
             if(skipLevel == 0 && skip > 0) {
                 skipStart <- ppLineIndices[i]
@@ -84,8 +85,8 @@ function(lines)
         else {
             if(skipLevel == 1 && skipList[1] > 0) {
                 skipIndices <- c(skipIndices,
-                                 seq.int(from = skipStart,
-                                         to = ppLineIndices[i]))
+                                 seq(from = skipStart,
+                                     to = ppLineIndices[i]))
                 skipLevel <- 0
             }
             else
@@ -191,7 +192,7 @@ function(RdFiles)
                  "Keywords", "Encoding")
     contents <- vector("list", length(RdFiles) * length(entries))
     dim(contents) <- c(length(RdFiles), length(entries))
-    for(i in seq_along(RdFiles)) {
+    for(i in seq(along = RdFiles)) {
         contents[i, ] <- Rdinfo(RdFiles[i])
     }
     colnames(contents) <- entries
@@ -387,10 +388,10 @@ function(package, dir, lib.loc = NULL)
         db <- list()
         for(f in docsFiles) {
             valid_lines <- lines <- .read_Rd_lines_quietly(f)
-            valid_lines[is.na(nchar(lines, "c", TRUE))] <- ""
+            valid_lines[is.na(nchar(lines, "c"))] <- ""
             eofPos <- grep("\\eof$", valid_lines)
             db <- c(db, split(lines[-eofPos],
-                              rep(seq_along(eofPos),
+                              rep(seq(along = eofPos),
                                   times = diff(c(0, eofPos)))[-eofPos]))
         }
         ## If this was installed using a recent enough version of R CMD
@@ -545,10 +546,9 @@ function(package, dir, lib.loc = NULL)
     if(!missing(package)) {
         dir <- .find.package(package, lib.loc)
         rds <- file.path(dir, "Meta", "Rd.rds")
-        if(file_test("-f", rds)) {
-            aliases <- .readRDS(rds)$Aliases
-            if(length(aliases)) sort(unlist(aliases)) else character()
-        } else
+        if(file_test("-f", rds))
+            sort(unlist(.readRDS(rds)$Aliases))
+        else
             character()
         ## <NOTE>
         ## Alternatively, we could get the aliases from the help index
@@ -572,9 +572,7 @@ function(package, dir, lib.loc = NULL)
             db <- Rd_db(dir = dir)
             db <- lapply(db, Rd_pp)
             aliases <- lapply(db, .get_Rd_metadata_from_Rd_lines, "alias")
-            if(length(aliases))
-                sort(unique(unlist(aliases, use.names = FALSE)))
-            else character()
+            sort(unique(unlist(aliases, use.names = FALSE)))
         }
         else
             character()
@@ -773,7 +771,7 @@ function(txt)
 .get_Rd_xrefs <-
 function(txt)
 {
-    out <- matrix(character(), nrow = 0, ncol = 2)
+    out <- matrix(character(), nr = 0, nc = 2)
     if(length(txt) != 1) return(out)
     while((pos <-
            regexpr("\\\\link(\\[[^[]+\\])?\\{", txt)) != -1) {

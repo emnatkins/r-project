@@ -15,7 +15,6 @@ setGeneric <-
              package = NULL, signature = NULL,
              useAsDefault = NULL, genericFunction = NULL)
 {
-    name <- switch(name, "as.double" =, "as.real" = "as.numeric", name)
     if(exists(name, "package:base") &&
        typeof(get(name, "package:base")) != "closure") { # primitives
 
@@ -62,7 +61,7 @@ setGeneric <-
         if(is.null(genericFunction) && .NonstandardGenericTest(body(fdef), name, stdGenericBody))
             genericFunction <- new("nonstandardGenericFunction") # force this class for fdef
     }
-    if(is.null(package) || !nzchar(package))
+    if(is.null(package) || nchar(package) == 0)
         ## either no previous def'n or failed to find its package name
         package <- getPackageName(where)
     if(is.null(fdef))
@@ -115,7 +114,6 @@ isGeneric <-
   ## the generic.  (This argument is not available in S-Plus.)
   function(f, where = topenv(parent.frame()), fdef = NULL, getName = FALSE)
 {
-    if(is.character(f) && f %in% c("as.double", "as.real")) f <- "as.numeric"
     if(is.null(fdef))
         fdef <- .getGenericFromCache(f, where)
     if(is.null(fdef))
@@ -332,14 +330,13 @@ setMethod <-
           else
             stop("A function for argument \"f\" must be a generic function")
     }
-    ## slight subtlety:  calling getGeneric vs calling isGeneric
+      ## slight subtlety:  calling getGeneric vs calling isGeneric
     ## For primitive functions, getGeneric returns the (hidden) generic function,
     ## even if no methods have been defined.  An explicit generic MUST NOT be
     ## for these functions, dispatch is done inside the evaluator.
     else {
         where <- as.environment(where)
         gwhere <- .genEnv(f, where)
-        f <- switch(f, "as.double" =, "as.real" = "as.numeric", f)
         fdef <- getGeneric(f, where = if(identical(gwhere, baseenv())) where else gwhere)
     }
     if(.lockedForMethods(fdef, where))
@@ -407,17 +404,6 @@ setMethod <-
            closure = {
                fnames <- formalArgs(fdef)
                mnames <- formalArgs(definition)
-               ## fix up arg name for single-argument generics
-               ## useful for e.g. '!'
-               if(!identical(mnames, fnames) &&
-                  length(fnames) == length(mnames) && length(mnames) == 1) {
-                   warning(gettextf("argument in method definition changed from (%s) to (%s)",
-                                    mnames, fnames), domain = NA, call. = FALSE)
-                   formals(definition) <- formals(fdef)
-                   ll <- list(as.name(formalArgs(fdef))); names(ll) <- mnames
-                   body(definition) <- substituteDirect(body(definition), ll)
-                   mnames <- fnames
-               }
                if(!identical(mnames, fnames)) {
                    ## omitted classes in method => "missing"
                    fullSig <- conformMethod(signature, mnames, fnames, f)
@@ -830,14 +816,15 @@ showMethods <-
     if(length(f) == 0)
 	cat(file = con, "No applicable functions\n")
     else if(length(f) > 1) {
-	for(ff in f) { ## recall for each
-	    fdef <- getGeneric(ff, where = where)
-	    if(is.null(fdef))
-		next
-	    Recall(ff, where=where, classes=classes,
-		   includeDefs=includeDefs, inherited=inherited,
-		   showEmpty=showEmpty, printTo=printTo)
-	}
+            for(ff in f) { ## recall for each
+            fdef <- getGeneric(ff, where = where)
+            if(is.null(fdef))
+                next
+            Recall(ff, where=where, classes=classes,
+                   includeDefs=includeDefs, inherited=inherited,
+                   showEmpty=showEmpty, printTo=printTo)
+        }
+
     }
     else { ## f of length 1 --- the "workhorse" :
         out <- paste("\nFunction \"", f, "\":\n", sep="")
@@ -903,7 +890,7 @@ removeMethods <-
 
     methods <- getMethodsForDispatch(f, fdef) # list or table
     if(is.environment(methods)) {
-##      remove(list=objects(methods, all.names=TRUE), envir = methods)
+##      remove(list=objects(methods, all=TRUE), envir = methods)
       mlist <- getMethods(fdef) # always a methods list
     }
     else

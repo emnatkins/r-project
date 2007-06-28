@@ -54,8 +54,7 @@ delim_match(SEXP x, SEXP delims)
       Nevertheless, this is already useful for parsing Rd.
     */
 
-    char c;
-    const char *s, *s0, *delim_start, *delim_end;
+    char c, *s, *s0, *delim_start, *delim_end;
     Sint n, i, pos, start, end, delim_depth;
     int lstart, lend;
     Rboolean is_escaped, equal_start_and_end_delims;
@@ -155,8 +154,7 @@ check_nonASCII(SEXP text, SEXP ignore_quotes)
        in UTF-8.
     */
     int i, nbslash = 0; /* number of preceding backslashes */
-    const char *p;
-    char quote= '\0';
+    char *p, quote= '\0';
     Rboolean ign, inquote = FALSE;
 
     if(TYPEOF(text) != STRSXP) error("invalid input");

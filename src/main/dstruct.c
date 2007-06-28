@@ -109,8 +109,7 @@ Should NEVER happen; please bug.report() [mkCLOSXP]"));
 
 static int isDDName(SEXP name)
 {
-    const char *buf;
-    char *endp;
+    char *buf, *endp;
     long val;
 
     buf = CHAR(name);

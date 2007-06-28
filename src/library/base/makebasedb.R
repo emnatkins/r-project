@@ -59,7 +59,7 @@ local({
                                  enclos = parent.env(e))
                     key <- lazyLoadDBinsertValue(data, datafile, ascii,
                                                  compress, envhook)
-                    assign(name, key, envir = envenv)
+                    assign(name, key, env = envenv)
                 }
                 name
             }
@@ -83,14 +83,14 @@ local({
                                                 ascii, compress,  envhook)
             else key <- lazyLoadDBinsertListElement(from, i, datafile, ascii,
                                                     compress, envhook)
-            assign(vars[i], key, envir = varenv)
+            assign(vars[i], key, env = varenv)
         }
 
-        vals <- lapply(vars, get, envir = varenv, inherits = FALSE)
+        vals <- lapply(vars, get, env = varenv, inherits = FALSE)
         names(vals) <- vars
 
         rvars <- ls(envenv, all = TRUE)
-        rvals <- lapply(rvars, get, envir = envenv, inherits = FALSE)
+        rvals <- lapply(rvars, get, env = envenv, inherits = FALSE)
         names(rvals) <- rvars
 
         val <- list(variables = vals, references = rvals,
@@ -98,8 +98,7 @@ local({
        .saveRDS(val, mapfile)
     }
 
-    omit <- c(".Last.value", ".AutoloadEnv", ".BaseNamespaceEnv",
-              ".Device", ".Devices", ".Machine", ".Options", ".Platform")
+    omit <- c(".Last.value", ".AutoloadEnv")
 
     if (length(search()[search()!="Autoloads"]) != 2)
         stop("start R with NO packages loaded to create the data base")
@@ -109,9 +108,8 @@ local({
     if (file.info(baseFileBase)["size"] < 20000) # crude heuristic
         stop("may already be using lazy loading on base");
 
-    basevars <- ls(baseenv(), all.names=TRUE)
-    prims <- basevars[sapply(basevars, function(n) is.primitive(get(n, baseenv())))]
-    basevars <- basevars[! basevars %in% c(omit, prims)]
+    basevars <- ls(baseenv(), all=TRUE)
+    basevars <- basevars[! basevars %in% omit]
 
 # **** need prims too since some prims have several names (is.name, is.symbol)
 #    basevars <- ls(baseenv(), all=TRUE)
