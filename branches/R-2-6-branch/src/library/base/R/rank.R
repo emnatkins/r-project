@@ -1,0 +1,43 @@
+#  File src/library/base/R/rank.R
+#  Part of the R package, http://www.R-project.org
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  A copy of the GNU General Public License is available at
+#  http://www.r-project.org/Licenses/
+
+rank <- function(x, na.last = TRUE,
+                 ties.method=c("average", "first", "random", "max", "min"))
+{
+    nas <- is.na(x)
+    ties.method <- match.arg(ties.method)
+    y <- switch(ties.method,
+                "average"= , "min"= , "max" =
+                .Internal(rank(   x[!nas], ties.method)),
+                "first" = sort.list(sort.list(x[!nas])),
+                "random" = sort.list(order(   x[!nas],
+                stats::runif(sum(!nas)))))
+    if(!is.na(na.last) && any(nas)) {
+	## the internal code has ranks in [1, length(y)]
+	storage.mode(x) <- "double"
+	NAkeep <- (na.last == "keep")
+	if(NAkeep || na.last) {
+	    x[!nas] <- y
+	    if(!NAkeep) x[nas] <- (length(y) + 1L):length(x)
+	} else {
+	    len <- sum(nas)
+	    x[!nas] <- y + len
+	    x[nas] <- 1 : len
+	}
+	y <- x
+    } else names(y) <- names(x)[!nas]
+    y
+}

@@ -1,0 +1,616 @@
+# Korean translations for R package
+# R 패키지에 대한 한국어 번역문.
+# Copyright (C) 2005 The R Foundation
+# This file is distributed under the same license as the R package.
+# Korean <uiami@hanmail.com>, 2005.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: R 2.2.0\n"
+"Report-Msgid-Bugs-To: bugs@R-project.org\n"
+"POT-Creation-Date: 2007-08-22 12:25+0100\n"
+"PO-Revision-Date: 2005-05-31 10:31+0900\n"
+"Last-Translator: Korean <uiami@hanmail.com>\n"
+"Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: devNull.c:42 devNull.c:46
+msgid "unable to start NULL device"
+msgstr "NULL 디바이스를 시작할수가 없습니다"
+
+#: devPS.c:574
+#, fuzzy, c-format
+msgid "afm file '%s' could not be opened"
+msgstr "'%s' metafile 하는것을 작성할 수 없습니다"
+
+#: devPS.c:607
+msgid "FontBBox could not be parsed"
+msgstr ""
+
+#: devPS.c:615
+#, fuzzy
+msgid "CharInfo could not be parsed"
+msgstr "'%s' metafile 하는것을 작성할 수 없습니다"
+
+#: devPS.c:645
+msgid "unknown AFM entity encountered"
+msgstr "충돌한 AFM entity를 알수가 없습니다 "
+
+#: devPS.c:768 devPS.c:771 devPS.c:4070 devPS.c:6752 devPicTeX.c:501
+#: devPicTeX.c:503
+#, fuzzy, c-format
+msgid "invalid string in '%s'"
+msgstr "무효의 문자열 인수입니다"
+
+#: devPS.c:799
+#, c-format
+msgid "font width unknown for character 0x%x"
+msgstr "문자 0x%x에는 알수 없는 font폭 입니다"
+
+#: devPS.c:853
+#, c-format
+msgid "unknown encoding '%s' in 'PostScriptMetricInfo'"
+msgstr ""
+
+#: devPS.c:869 devPS.c:881
+#, fuzzy, c-format
+msgid "font metrics unknown for Unicode character U+%04x"
+msgstr "Unicode 문자 0x%x에는 알수 없는 font 척도입니다"
+
+#: devPS.c:889
+#, c-format
+msgid "font metrics unknown for character 0x%x"
+msgstr "문자 0x%x에는 알수 없는 font 척도입니다"
+
+#: devPS.c:904 devPS.c:911
+msgid ""
+"invalid character sent to 'PostScriptCIDMetricInfo' in a single-byte locale"
+msgstr ""
+
+#: devPS.c:1025
+#, fuzzy
+msgid "failed to allocate CID font info"
+msgstr "유형 1 font 정보를 할당하는데 실패되었습니다"
+
+#: devPS.c:1040
+#, fuzzy
+msgid "failed to allocate Type 1 font info"
+msgstr "유형 1 font 정보를 할당하는데 실패되었습니다"
+
+#: devPS.c:1060
+#, fuzzy
+msgid "failed to allocate encoding info"
+msgstr "encode 정보를 할당하는데 실패했습니다"
+
+#: devPS.c:1078
+#, fuzzy
+msgid "failed to allocate CID font family"
+msgstr "유형 1 font 패밀리를 할당하는데 실패했습니다"
+
+#: devPS.c:1091
+#, fuzzy
+msgid "failed to allocate Type 1 font family"
+msgstr "유형 1 font 패밀리를 할당하는데 실패했습니다"
+
+#: devPS.c:1130 devPS.c:1141
+#, fuzzy
+msgid "failed to allocate font list"
+msgstr "font 리스트를 할당하는데 실패되었습니다"
+
+#: devPS.c:1192
+#, fuzzy
+msgid "failed to allocated encoding list"
+msgstr "encode 리스트에 할당하는데 실패했습니다"
+
+#: devPS.c:1340
+#, fuzzy
+msgid "truncated string which was too long for copy"
+msgstr "복사에서 너무 긴 앞을 잘린 문자열입니다"
+
+#: devPS.c:1380
+#, fuzzy, c-format
+msgid "failed to load encoding file '%s'"
+msgstr "encode 파일을 적재하는데 실패되었습니다"
+
+#: devPS.c:1473 devPS.c:1506
+msgid "Invalid font name or more than one font name"
+msgstr "무효의 font명 또는 1개를 넘는 font명 입니다"
+
+#: devPS.c:1626 devPS.c:1660
+#, fuzzy
+msgid "font family not found in PostScript font database"
+msgstr "font 패밀리는 PostScript font 데이타베이스에서 검색되지 않았습니다"
+
+#: devPS.c:1731 devPS.c:1810 devPS.c:1836
+#, fuzzy
+msgid "font encoding not found in font database"
+msgstr "font encode는 PostScript 데이타베이스에서 검색되지 않았습니다"
+
+#: devPS.c:1757 devPS.c:1783
+#, fuzzy
+msgid "font CMap not found in font database"
+msgstr "font family는 Quartz font 데이타베이스로 검색되지 않았습니다"
+
+#: devPS.c:1974 devPS.c:2053 devPS.c:2121
+#, fuzzy, c-format
+msgid "cannot load afm file '%s'"
+msgstr "afm file %s를 읽을 수가 없습니다"
+
+#: devPS.c:2411
+msgid "Corrupt loaded encodings;  encoding not recorded"
+msgstr "오류가 있는 것을 적재한 encoding; 기록하지 않는 encoding 입니다"
+
+#: devPS.c:2422
+msgid "Failed to record device encoding"
+msgstr "encode 디바이스를 기록하는것을 실패했습니다"
+
+#: devPS.c:2592
+msgid "Object .ps.prolog is not a character vector"
+msgstr "오브젝트 ps.prolog는 문자 벡터가 아닙니다"
+
+#: devPS.c:2646 devPS.c:5737 devQuartz.c:1402 devWindows.c:707
+msgid "Invalid line end"
+msgstr "무효의 라인 종점입니다"
+
+#: devPS.c:2665 devPS.c:5756 devQuartz.c:1422 devWindows.c:720
+msgid "Invalid line join"
+msgstr "무효인 라인 조인입니다"
+
+#: devPS.c:2673 devQuartz.c:1432
+msgid "Invalid line mitre"
+msgstr "무효의 라인 mitre입니다"
+
+#: devPS.c:2884
+msgid "only gray colors are allowed in this color model"
+msgstr ""
+
+#: devPS.c:2964
+msgid "filename too long in postscript"
+msgstr "postscript에 대해서 너무 긴 파일명입니다"
+
+#: devPS.c:2983 devPS.c:5264
+msgid "encoding path is too long"
+msgstr "encoding 패스는 너무 깁니다"
+
+#: devPS.c:2998 devPS.c:4408
+#, fuzzy
+msgid "failed to load encoding"
+msgstr "encode 파일을 적재하는데 실패되었습니다"
+
+#: devPS.c:3041 devPS.c:3104 devPS.c:5323 devPS.c:5378 devPS.c:6552
+#, fuzzy
+msgid "Invalid font type"
+msgstr "무효의 font 명세입니다"
+
+#: devPS.c:3066 devPS.c:5346
+msgid "Failed to initialise default PostScript font"
+msgstr "default PostScript font를 초기화하는데 실패되었습니다"
+
+#: devPS.c:3136 devPS.c:5405
+msgid "Failed to initialise additional PostScript fonts"
+msgstr "추가의 PostScript font를 초기화하는데 실패되었습니다"
+
+#: devPS.c:3157
+msgid "invalid foreground/background color (postscript)"
+msgstr "무효의 전경/배경색 (psotscript)"
+
+#: devPS.c:3167
+msgid "'command' is too long"
+msgstr "'command'는 너무 깁니다"
+
+#: devPS.c:3171
+msgid "postscript(print.it=TRUE) used with an empty print command"
+msgstr ""
+"비어 있는 print command와 함께 사용되는 postscript 입니다(print.it=TRUE)"
+
+#: devPS.c:3224
+#, c-format
+msgid "invalid page type '%s' (postscript)"
+msgstr "무효의 페이지 유형 '%s' (postscript) 입니다"
+
+#: devPS.c:3348 devPS.c:4213 devWindows.c:2200
+msgid ""
+"semi-transparency is not supported on this device: reported only once per "
+"page"
+msgstr ""
+
+#: devPS.c:3439
+msgid "printing via file = \"\" is not implemented in this version"
+msgstr "파일 = \"\"에 의해 인쇄하는 것은 이 버전에서 실제로 적용되지 않습니다"
+
+#: devPS.c:3447 devPS.c:3460
+#, c-format
+msgid "cannot open 'postscript' pipe to '%s'"
+msgstr "'%s'에 'postscript' pipe를 열 수가 없습니다"
+
+#: devPS.c:3453
+msgid "file = \"|cmd\" is not implemented in this version"
+msgstr "file =\"cmd\"는 이 버전에서 실제로 적용되지 않습니다"
+
+#: devPS.c:3471
+#, c-format
+msgid "cannot open 'postscript' file argument '%s'"
+msgstr "'postscript'의 파일 인수 '%s'를 열수가 없습니다"
+
+#: devPS.c:3595 devPS.c:3610
+#, c-format
+msgid ""
+"error from postscript() in running:\n"
+"    %s"
+msgstr ""
+"실행에서 postscript()으로부터 에러입니다:\n"
+"%s"
+
+#: devPS.c:3645
+#, fuzzy, c-format
+msgid "CID family '%s' not included in PostScript device"
+msgstr "PostScript 디바이스에 포함하지 않는 family %s 입니다"
+
+#: devPS.c:3658 devPS.c:3669 devPS.c:3885 devPS.c:3916
+#, fuzzy, c-format
+msgid "family '%s' not included in PostScript device"
+msgstr "PostScript 디바이스에 포함하지 않는 family %s 입니다"
+
+#: devPS.c:3878 devPS.c:3906 devPS.c:4890 devPS.c:6602 devPS.c:6650
+#, c-format
+msgid "attempt to use invalid font %d replaced by font 1"
+msgstr "font 1과 변경할 수 있던 무효의 font %d를 사용하기 위하여 시도합니다"
+
+#: devPS.c:3966
+#, c-format
+msgid "unknown encoding '%s' in 'mbcsToSbcs'"
+msgstr ""
+
+#: devPS.c:3976
+msgid "conversion failure in 'mbcsToSbcs'"
+msgstr ""
+
+#: devPS.c:4056 devPS.c:4946 devPS.c:6738
+#, c-format
+msgid "failed in text conversion to encoding '%s'"
+msgstr ""
+
+#: devPS.c:4227
+msgid "run out of colors in xfig()"
+msgstr "xfig() 에서 colors를 전부 소모 해주십시오"
+
+#: devPS.c:4256
+#, c-format
+msgid "unimplemented line texture %08x: using Dash-double-dotted"
+msgstr ""
+"실제 적용되어 있지 않은 라인 texture %08x: Dash-double-dotted가 사용되어지고 "
+"있습니다"
+
+#: devPS.c:4327
+#, fuzzy, c-format
+msgid "unknown postscript font family '%s', using Helvetica"
+msgstr "%s 사용하는 알수 없는 postscript font 패밀리입니다"
+
+#: devPS.c:4367
+msgid "filename too long in xfig"
+msgstr "xfig에 대해서 너무 긴 파일명입니다"
+
+#: devPS.c:4393
+msgid "invalid foreground/background color (xfig)"
+msgstr "무효의 foreground/background 색(xfig)"
+
+#: devPS.c:4426
+msgid "Only Type 1 fonts supported for XFig"
+msgstr ""
+
+#: devPS.c:4439
+#, fuzzy
+msgid "Failed to initialise default XFig font"
+msgstr "default PostScript font를 초기화하는데 실패되었습니다"
+
+#: devPS.c:4476
+#, c-format
+msgid "invalid page type '%s' (xfig)"
+msgstr "무효의 페이지 유형 '%s'(xfig) 입니다"
+
+#: devPS.c:4484
+#, c-format
+msgid "xfig(%s, onefile=FALSE) will only return the last plot"
+msgstr "xfig(%s(onefile=FALSE)는  마지막 slot만을 돌려줄것이다"
+
+#: devPS.c:4603
+msgid "empty file name"
+msgstr "비어 있는 파일명입니다"
+
+#: devPS.c:4662 devPS.c:4714
+msgid "write failed"
+msgstr ""
+
+#: devPS.c:4935
+#, fuzzy, c-format
+msgid "unable to use encoding '%s'"
+msgstr "encode 파일을 적재하는데 실패되었습니다"
+
+#: devPS.c:4951
+msgid "re-encoding is not possible on this system"
+msgstr ""
+
+#: devPS.c:5184
+msgid "Corrupt loaded encodings;  font not added"
+msgstr "적재한 encodings를 corrupt 시켜주십시오; font는 증가하지 않습니다"
+
+#: devPS.c:5193
+msgid "Failed to record device encoding; font not added"
+msgstr "디바이스 encode를 기록하는것이 실패했습니다;font가 추가하지 않았습니다"
+
+#: devPS.c:5226
+msgid "filename too long in pdf"
+msgstr "pdf에 대해서 너무 긴 파일명입니다"
+
+#: devPS.c:5241
+msgid "cannot allocate pd->pos"
+msgstr "pd->pos를 할당할 수가 없습니다"
+
+#: devPS.c:5246
+msgid "cannot allocate pd->pageobj"
+msgstr "pd->pageobj를 할당할 수가 없습니다"
+
+#: devPS.c:5280
+#, fuzzy
+msgid "failed to load default encoding"
+msgstr "encode 파일을 적재하는데 실패되었습니다"
+
+#: devPS.c:5476
+#, c-format
+msgid "invalid paper type '%s' (pdf)"
+msgstr "무효의 paper 유형 '%s' (pdf) 입니다"
+
+#: devPS.c:5506
+msgid "invalid foreground/background color (pdf)"
+msgstr "무효의 foreground /background색(pdf) 입니다"
+
+#: devPS.c:5642
+msgid "Invalid alpha value in PDF"
+msgstr "PDF에서 무효의 alpha 값입니다"
+
+#: devPS.c:5667
+msgid "increasing the PDF version to 1.4"
+msgstr ""
+
+#: devPS.c:6059
+msgid "Corrupt encodings in PDF device"
+msgstr "PDF 디바이스에서의 Corrupt가 있는 encode 입니다"
+
+#: devPS.c:6140
+msgid "increasing the PDF version to 1.3"
+msgstr ""
+
+#: devPS.c:6238
+#, c-format
+msgid "cannot open 'pdf' file argument '%s'"
+msgstr "'pdf'파일 인수'%s'를 개시할수가 없습니다"
+
+#: devPS.c:6294
+msgid "unable to increase page limit: please shutdown the pdf device"
+msgstr ""
+"page limit을 증가 시킬수 없습니다: 그 pdf 디바이스를 shutdown 해주십시오"
+
+#: devPS.c:6307
+#, fuzzy, c-format
+msgid ""
+"cannot open 'pdf' file argument '%s'\n"
+"  please shut down the PDF device"
+msgstr ""
+"'pdf'파일 인수 '%s'를 열 수가 없습니다\n"
+" PDFdevice를 shut down 헤주십시오"
+
+#: devPS.c:6577 devPS.c:6856 devPS.c:6899
+msgid "Failed to find or load PDF font"
+msgstr "PDF font를 검색 또는 적재하는데 실패되었습니다"
+
+#: devPS.c:6693 devPS.c:6813
+#, fuzzy
+msgid "Failed to find or load PDF CID font"
+msgstr "PDF font를 검색 또는 적재하는데 실패되었습니다"
+
+#: devPS.c:7006 devPS.c:7010 devPS.c:7165 devPS.c:7169
+#, c-format
+msgid "invalid 'family' parameter in %s"
+msgstr "%s 에서 무효의 'family' 파라미터 입니다"
+
+#: devPS.c:7029 devPS.c:7181
+#, c-format
+msgid "invalid 'fonts' parameter in %s"
+msgstr "%s에서 무효의 'fonts' 파라미터 입니다"
+
+#: devPS.c:7046
+msgid "unable to start device PostScript"
+msgstr "디바이스 PostSscript를 시작할수 없습니다"
+
+#: devPS.c:7115
+msgid "unable to start device xfig"
+msgstr "디바이스 xfig를 시작할수 없습니다"
+
+#: devPS.c:7199
+msgid "unable to start device pdf"
+msgstr "디바이스 pdf를 시작할수가 없습니다"
+
+#: devPicTeX.c:782
+msgid "unable to start device PicTeX"
+msgstr "디바이스 PicTex를 시작할수가 없습니다"
+
+#: devQuartz.c:457
+msgid "invalid string argument"
+msgstr "무효의 문자열 인수입니다"
+
+#: devQuartz.c:495
+msgid "invalid width or height in quartz"
+msgstr "quartz에서 무효의 폭 또는 높이 입니다"
+
+#: devQuartz.c:529
+msgid "unable to start device Quartz"
+msgstr "디바이스 Quartz를 시작할수 없습니다"
+
+#: devQuartz.c:1024 devWindows.c:540
+msgid "Invalid font specification"
+msgstr "무효의 font 명세입니다"
+
+#: devQuartz.c:1069
+msgid "Font family not found in Quartz font database"
+msgstr "font family는 Quartz font 데이타베이스로 검색되지 않았습니다"
+
+#: devQuartz.c:1717
+msgid "Quartz device not available on this platform"
+msgstr "Quartz 디바이스는 이 platform에서 이용 가능하지는 않습니다"
+
+#: devWindows.c:272 devWindows.c:304 devWindows.c:369
+msgid "Not enough memory to copy graphics window"
+msgstr "graphics window를 복사하는데 충분한 메모리는 아닙니다"
+
+#: devWindows.c:277 devWindows.c:309 devWindows.c:374
+msgid "No device available to copy graphics window"
+msgstr "복사 graphics 윈도우에 이용 가능한 디바이스가 없습니다"
+
+#: devWindows.c:579
+msgid "Font family not found in Windows font database"
+msgstr "Font 패밀리는 Windows font 데이타베이스로 검색되지 않았습니다"
+
+#: devWindows.c:996
+msgid "plot history seems corrupted"
+msgstr "plot 히스토리는 corrupt가 있는것처럼 보입니다"
+
+#: devWindows.c:1003
+msgid "no plot history!"
+msgstr "plot history가 없습니다!"
+
+#: devWindows.c:1713
+#, c-format
+msgid "filename too long in %s() call"
+msgstr "%s() 호출에 대해서 너무 긴 파일명입니다"
+
+#: devWindows.c:1717 devWindows.c:1746
+msgid "Unable to load Rbitmap.dll"
+msgstr "Rbitmap.dll를 적재 할수가 없습니다"
+
+#: devWindows.c:1722 devWindows.c:1755
+#, c-format
+msgid "'width=%d, height=%d' are unlikely values in pixels"
+msgstr ""
+
+#: devWindows.c:1730 devWindows.c:1758
+msgid "Unable to allocate bitmap"
+msgstr "bitmap 할당 할수가 없습니다"
+
+#: devWindows.c:1736 devWindows.c:1764 devWindows.c:2053
+#, c-format
+msgid "Unable to open file '%s' for writing"
+msgstr "쓰기 위해서 파일 '%s'을 열수가 없습니다"
+
+#: devWindows.c:1752
+msgid "filename too long in jpeg() call"
+msgstr "jpeg() 호출에 대해서 너무 긴 파일명입니다"
+
+#: devWindows.c:1782
+msgid "filename too long in win.metafile() call"
+msgstr "win.metafile()에 대해 너무 긴 파일명입니다"
+
+#: devWindows.c:1792
+#, c-format
+msgid "Unable to open metafile '%s' for writing"
+msgstr "쓰기 위해서 metafile '%s'를 열 수가 없습니다"
+
+#: devWindows.c:1794
+msgid "Unable to open clipboard to write metafile"
+msgstr "metafile를 쓰기 위해서 clipboard를 열수가 없습니다"
+
+#: devWindows.c:1804
+msgid "can't find any fonts"
+msgstr "font를 검색해낼수가 없습니다"
+
+#: devWindows.c:2002
+msgid "Insufficient memory for resize. Killing device"
+msgstr "불충분한 메모리 때문에 사이즈 변경합니다. Killing 디바이스"
+
+#: devWindows.c:2009
+#, fuzzy
+msgid "Insufficient memory for resize. Disabling alpha blending"
+msgstr "불충분한 메모리 때문에 사이즈 변경합니다. Killing 디바이스"
+
+#: devWindows.c:2038
+msgid "A clipboard metafile can store only one figure."
+msgstr "clipboard metafile은 단지 하나의 figure만을 저장할수가 있습니다"
+
+#: devWindows.c:2044
+#, c-format
+msgid "metafile '%s' could not be created"
+msgstr "'%s' metafile 하는것을 작성할 수 없습니다"
+
+#: devWindows.c:2564 devWindows.c:3150
+msgid "R Graphics"
+msgstr "R Graphics"
+
+#: devWindows.c:2811
+msgid "option 'windowsTimeouts' should be integer"
+msgstr "옵션 'windowsTimeouts'는 정수가 아니면 되지 않습니다"
+
+#: devWindows.c:2833
+msgid "invalid device number in savePlot"
+msgstr "savePlot의 무효인 디바이스번호입니다"
+
+#: devWindows.c:2835
+msgid "invalid device in savePlot"
+msgstr "savePlot의 무효인 디비이스입니다"
+
+#: devWindows.c:2838
+msgid "invalid filename argument in savePlot"
+msgstr "savaPlot에서 무효인 파일명 인수입니다"
+
+#: devWindows.c:2842
+msgid "invalid type argument in savePlot"
+msgstr "savePlot에서 무효인 유형 인수입니다"
+
+#: devWindows.c:2865
+msgid "unknown type in savePlot"
+msgstr "savePlot의 의미없는 유형입니다"
+
+#: devWindows.c:2937 devWindows.c:2973 devWindows.c:3005 devWindows.c:3040
+msgid "processing of the plot ran out of memory"
+msgstr "plot 처리는 메모리를 전부 소모 했습니다"
+
+#: devWindows.c:2953 devWindows.c:2986 devWindows.c:3019
+msgid "Impossible to load Rbitmap.dll"
+msgstr "Rbitmap.dll를 적재하는데 가능하지 않습니다"
+
+#: devWindows.c:3025
+msgid "Impossible to open "
+msgstr "여는 것이 불가능합니다"
+
+#: devWindows.c:3066
+msgid "invalid width or height in devWindows"
+msgstr "devWindow에서 무효인 폭 또는 높이 입니다"
+
+#: devWindows.c:3071
+msgid "invalid value of 'recording' in devWindows"
+msgstr "devWindows에서 'recording'의 무효인 값입니다"
+
+#: devWindows.c:3075
+msgid "invalid value of 'resize' in devWindows"
+msgstr "devWindwos에서 'resize'의 무효인 값입니다"
+
+#: devWindows.c:3083
+msgid "invalid value of 'canvas' in devWindows"
+msgstr "devWindows에서 'canvas'의 무효인 값입니다"
+
+#: devWindows.c:3094
+msgid "invalid value of 'buffered' in devWindows"
+msgstr "devWindows에서 'buffered'의 무효인 값입니다"
+
+#: devWindows.c:3100
+msgid "invalid value of 'bg' in devWindows"
+msgstr "devWindows에서 'bg'의 무효인 값입니다"
+
+#: devWindows.c:3122
+msgid "unable to start device devWindows"
+msgstr "장치 debWindows를 시작할수 없습니다"
+
+#: devWindows.c:3195
+msgid "recursive use of getGraphicsEvent not supported"
+msgstr "지원되지 않는 getGraphicsEvent의 재귀적으로 사용합니다"
