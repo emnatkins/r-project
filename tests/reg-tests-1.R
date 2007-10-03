@@ -2279,8 +2279,7 @@ as.character(list())
 ## help on reserved words
 ## if else repeat while function for in next break  will fail
 if(.Platform$OS.type == "windows") options(pager="console")
-for(topic in c("TRUE", "FALSE",  "NULL", "NA", "Inf", "NaN",
-               "NA_integer_", "NA_real_", "NA_complex_", "NA_character_")) {
+for(topic in c("TRUE", "FALSE",  "NULL", "NA", "Inf", "NaN")) {
     eval(parse(text=paste("?", topic, sep="")))
     eval(parse(text=paste("help(", topic, ")", sep="")))
 }
@@ -4119,10 +4118,10 @@ options(op)
 ## were +/-Inf with warning in 2.2.1.
 
 
-## PR#8718: invalid usage in R >= 2.7.0
-#a <- matrix(2,2,2)
-#apply(a,1,"$","a")
-#apply(a,1,sum)
+## PR#8718
+a <- matrix(2,2,2)
+apply(a,1,"$","a")
+apply(a,1,sum)
 ## first apply was corrupting apply() code in 2.2.1
 
 
@@ -4890,12 +4889,3 @@ julian(as.POSIXlt("1999-2-1"), origin=as.POSIXlt("1999-1-1"))
 x <- structure(list(2), class="foo")
 str(x)
 ## gave infinite recursion < 2.6.0
-
-
-## tests of side-effects with CHARSXP caching
-x <- y <- "abc"
-Encoding(x) <- "UTF-8"
-stopifnot(Encoding(y) == "unknown") # was UTF-8 in 2.6.0
-x <- unserialize(serialize(x, NULL))
-stopifnot(Encoding(y) == "unknown") # was UTF-8 in 2.6.0
-##  problems in earlier versions of cache

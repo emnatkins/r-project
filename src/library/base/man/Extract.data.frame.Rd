@@ -16,7 +16,7 @@
 \usage{
 \method{[}{data.frame}(x, i, j, drop = )
 \method{[}{data.frame}(x, i, j) <- value
-\method{[[}{data.frame}(x, ..., exact = TRUE)
+\method{[[}{data.frame}(x, ...)
 \method{[[}{data.frame}(x, i, j) <- value
 \method{$}{data.frame}(x, i) <- value
 }
@@ -39,8 +39,6 @@
     number of times if necessary and it may be coerced: see the
     Coercion section.  If \code{NULL}, deletes the column if a single
     column is selected.}
-
-   \item{exact}{logical: see \code{\link{[}}, and applies to column names.}
 }
 \details{
   Data frames can be indexed in several modes.  When \code{[} and
@@ -85,8 +83,8 @@
   elements to be replaced in the same way as for a matrix.
 
   Both \code{[} and \code{[[} extraction methods partially match row
-  names.  By default neither partially match column names, but
-  \code{[[} will unless \code{exact=TRUE}.
+  names. \code{[[} partially matches column names (with a
+  warning) whereas \code{[} does not.
 }
 \section{Coercion}{
   The story over when replacement values are coerced is a complicated

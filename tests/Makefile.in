@@ -19,8 +19,7 @@ test-src-gct = \
 	arith.R \
 	lm-tests.R \
 	ok-errors.R \
-	method-dispatch.R \
-	datasets.R
+	method-dispatch.R
 test-src-strict-1 = \
 	$(test-src-gct) \
 	d-p-q-r-tests.R
@@ -28,6 +27,7 @@ test-src-strict-auto =
 test-src-sloppy-1 = \
 	complex.R \
 	print-tests.R \
+	datasets.R \
 	lapack.R
 test-src-sloppy-auto =
 
@@ -240,7 +240,7 @@ test-Vgct: $(test-out-valgct)
 test-Docs:
 	@echo "running tests of documentation examples"
 	@cp ${top_srcdir}/doc/manual/*.R .
-	@$(MAKE) R-intro.Rout RVAL_IF_DIFF=0
+	@$(MAKE) R-intro.Rout RVAL_IF_DIFF=1
 	@cp ${top_srcdir}/doc/manual/R-exts.c .
 	@$(top_builddir)/bin/R CMD SHLIB R-exts.c
 	@$(MAKE) R-exts.Rout
@@ -269,7 +269,7 @@ test-IsAs:
 
 test-Primitive:
 	@echo "running tests of primitives"
-	@$(MAKE) $(test-out-primitive) RVAL_IF_DIFF=1
+	@$(MAKE) $(test-out-primitive) RVAL_IF_DIFF=0
 
 test-Random:
 	@echo "running tests of random deviate generation"

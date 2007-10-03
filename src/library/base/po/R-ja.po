@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-09-17 10:30\n"
+"POT-Creation-Date: 2007-09-17 10:18\n"
 "PO-Revision-Date: 2007-09-11 16:22+0900 \n"
 "Last-Translator: Shigeru Mase <maseshigeru@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -442,30 +442,32 @@ msgstr " '%s' をクラス \"POSIXlt\" へ変換する方法が分かりませ�
 msgid "wrong class"
 msgstr " 間違ったクラスです "
 
-#, fuzzy
-msgid "binary '+' is not defined for \"POSIXt\" objects"
+msgid "binary + is not defined for \"POSIXt\" objects"
 msgstr " \"POSIXt\" オブジェクトには二項演算 + は定義されていません "
 
 msgid "Can only subtract from POSIXt objects"
 msgstr " POSIXt オブジェクトからしか引けません "
 
-#, fuzzy
-msgid "unary '-' is not defined for \"POSIXt\" objects"
+msgid "unary - is not defined for \"POSIXt\" objects"
 msgstr " 単項演算 - は \"POSIXt\" オブジェクトに対しては定義されていません "
 
 msgid "can only subtract numbers from POSIXt objects"
 msgstr " POSIXt オブジェクトからは数値しか引くことができません "
 
-#, fuzzy
-msgid "unary '%s' not defined for \"POSIXt\" objects"
-msgstr " 単項演算 - は \"POSIXt\" オブジェクトに対しては定義されていません "
-
-#, fuzzy
-msgid "'%s' not defined for \"POSIXt\" objects"
+msgid "not defined for \"POSIXt\" objects"
 msgstr " \"POSIXt\" オブジェクトに対しては定義されていません "
+
+msgid "not defined for POSIXt objects"
+msgstr " POSIXt オブジェクトに対しては定義されていません "
 
 msgid "'tzone' attributes are inconsistent"
 msgstr " 'tzone' 属性は整合性がありません "
+
+msgid "not defined for \"POSIXct\" objects"
+msgstr " \"POSIXct\" オブジェクトに対しては定義されていません "
+
+msgid "not defined for \"POSIXlt\" objects"
+msgstr " \"POSIXlt\" オブジェクトに対しては定義されていません "
 
 msgid "'tim' is not character or numeric"
 msgstr " 'tim' は文字、または数値ではありません "
@@ -476,12 +478,7 @@ msgstr " 数値変換の為に必要な明示的なユニットがありませ�
 msgid "invalid units specified"
 msgstr " 無効なユニット指定です "
 
-#, fuzzy
-msgid "unary '%s' not defined for \"difftime\" objects"
-msgstr " \"difftime\" オブジェクトに対しては定義されていません "
-
-#, fuzzy
-msgid "'%s' not defined for \"difftime\" objects"
+msgid "not defined for \"difftime\" objects"
 msgstr " \"difftime\" オブジェクトに対しては定義されていません "
 
 msgid "both arguments of * cannot be \"difftime\" objects"
@@ -1465,11 +1462,11 @@ msgstr " 'cmd' を実行できませんでした "
 msgid "'cmd' execution failed with error code %d"
 msgstr " 'cmd' の実行は失敗しました(エラーコード %d) "
 
-msgid "cannot find name space environment"
-msgstr " 名前空間環境を見つけられません "
-
 msgid "package '%s' has a non-function '.First.lib'"
 msgstr " パッケージ '%s' は関数でない '.First.lib' を持ちます "
+
+msgid "cannot find name space environment"
+msgstr " 名前空間環境を見つけられません "
 
 msgid "deparse option %s is not recognized"
 msgid_plural "deparse options %s are not recognized"
@@ -1504,15 +1501,6 @@ msgstr[0] ""
 msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] " 警告メッセージ： \n"
-
-#~ msgid "not defined for POSIXt objects"
-#~ msgstr " POSIXt オブジェクトに対しては定義されていません "
-
-#~ msgid "not defined for \"POSIXct\" objects"
-#~ msgstr " \"POSIXct\" オブジェクトに対しては定義されていません "
-
-#~ msgid "not defined for \"POSIXlt\" objects"
-#~ msgstr " \"POSIXlt\" オブジェクトに対しては定義されていません "
 
 #~ msgid "'within' requires a name for its 'data' argument"
 #~ msgstr " 'within' は 'data' の引数の名前でなければなりません "

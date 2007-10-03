@@ -187,7 +187,7 @@ attribute_hidden FUNTAB R_FunTab[] =
  * ---------	-------		------	----	-----	-------      ----------	----------*/
 {"vector",	do_makevector,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"complex",	do_complex,	0,	11,	3,	{PP_FUNCALL, PREC_FN, 	0}},
-{"matrix",	do_matrix,	0,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
+{"matrix",	do_matrix,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"length",	do_length,	0,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"length<-",	do_lengthgets,	0,	1,	2,	{PP_FUNCALL, PREC_LEFT,	1}},
 {"row",		do_rowscols,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -731,7 +731,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"file.choose", do_filechoose,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.info",	do_fileinfo,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.access",	do_fileaccess,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
-{"dir.create",	do_dircreate,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
+{"dir.create",	do_dircreate,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"tempfile",	do_tempfile,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"tempdir",	do_tempdir,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"R.home",	do_Rhome,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
@@ -744,7 +744,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"setwd",	do_setwd,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"basename",	do_basename,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"dirname",	do_dirname,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
-{"Sys.chmod",	do_syschmod,	0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"Sys.info",	do_sysinfo,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"Sys.sleep",	do_syssleep,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"Sys.getlocale",do_getlocale,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -1036,9 +1035,9 @@ void InitNames()
     SET_ATTRIB(R_RestartToken, R_NilValue);
     /* Parser Structures */
     R_CommentSxp = R_NilValue;
-    /* String constants (CHARSXP values) */
-    /* Note: we don't want NA_STRING to be in the CHARSXP cache, so that
-       mkChar("NA") is distinct from NA_STRING */
+    /* String constants (CHARSXP values */
+    /* Note: changed from mkChar so mkChar can see if it is getting
+       "NA" and then return NA_STRING rather than alloc a new CHAR */
     /* NA_STRING */
     NA_STRING = allocString(strlen("NA"));
     strcpy(CHAR_RW(NA_STRING), "NA");

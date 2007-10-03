@@ -709,8 +709,8 @@ AC_CHECK_HEADERS(arpa/inet.h dl.h dlfcn.h elf.h fcntl.h floatingpoint.h \
   sys/time.h sys/times.h sys/utsname.h time.h unistd.h)
 ## </NOTE>
 ## <NOTE>
-## These are C99 headers but some C code (written to work also
-## without assuming C99) may need the corresponding conditionals.
+## These are ANSI C headers but some C code (written to work also
+## without assuming ANSI C) may need the corresponding conditionals.
 AC_CHECK_HEADERS(errno.h inttypes.h stdarg.h stdint.h string.h)
 ## </NOTE>
 ## <NOTE>
@@ -1618,27 +1618,20 @@ AC_CHECK_DECLS([alloca], , ,
 [#ifdef HAVE_ALLOCA_H
 # include <alloca.h>
 #endif])
-
-## C99 functions: we don't as yet require a C99 compiler/runtime
-## (and not everyone has one).
-R_CHECK_FUNCS([expm1 hypot log1p log2 log10 rint], [#include <math.h>])
-
 ## fseeko/ftello may be macros, matherr is redefined
 ## is.blank should be a macro according to C99
 AC_CHECK_FUNCS(fseeko ftello isblank matherr)
-
 R_CHECK_FUNCS([fcntl], [#include <fcntl.h>])
 R_CHECK_FUNCS([getgrgid], [#include <grp.h>])
+R_CHECK_FUNCS([expm1 hypot log1p log2 log10 rint], [#include <math.h>])
 R_CHECK_FUNCS([getpwuid], [#include <pwd.h>])
 R_CHECK_FUNCS([sigaction sigaltstack sigemptyset], [#include <signal.h>])
-## va_copy is C99
 R_CHECK_FUNCS([va_copy __va_copy], [#include <stdarg.h>])
 R_CHECK_FUNCS([fdopen popen], [#include <stdio.h>])
-## system is C89: [un]setenv are POSIX and BSD
 R_CHECK_FUNCS([setenv system unsetenv], [#include <stdlib.h>])
 R_CHECK_FUNCS([strcoll strerror], [#include <string.h>])
 R_CHECK_FUNCS([getrlimit getrusage], [#include <sys/resource.h>])
-R_CHECK_FUNCS([chmod mkfifo stat], [#include <sys/stat.h>])
+R_CHECK_FUNCS([mkfifo stat], [#include <sys/stat.h>])
 R_CHECK_FUNCS([gettimeofday], [#include <sys/time.h>])
 R_CHECK_FUNCS([times], [#include <sys/times.h>])
 R_CHECK_FUNCS([time], [#include <time.h>])
@@ -1646,25 +1639,17 @@ R_CHECK_FUNCS([access chdir execv ftruncate getcwd getuid symlink sysconf],
 [#ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif])
-## We need setenv or putenv.  It seems that everyone does have
-## putenv, as earlier versions of R would have failed without it.
-## It is not always declared, so we do not require a declaration.
+## We really need putenv, and make check fails without it so it seems
+## everyone has it, possibly not declared.
 AC_CHECK_FUNCS(putenv)
 AC_CHECK_DECLS([putenv], , , [#include <stdlib.h>])
 ## this is a GNU extension so usually hidden
 AC_CHECK_FUNCS(vasprintf)
 AC_CHECK_DECLS([vasprintf], , , [#include <stdio.h>])
-## mempcpy is a GNU extension used by regex.c.  That defines
-## _GNU_SOURCE, so should be declared on glibc systems.
-## gettext will also check for this.
-AC_CHECK_FUNCS(mempcpy)
-## realpath is a BSD extension. 
-## Some early GNU libc systems had it in unistd.h.
+## this is a BSD extension. Some systems have it in unistd.h.
 AC_CHECK_FUNCS(realpath)
 AC_CHECK_DECLS([realpath], , , [#include <stdlib.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif])
+#include <unistd.h>])
 
 R_CHECK_FUNCS([glob], [#ifdef HAVE_GLOB_H
 # include <glob.h>
@@ -1680,7 +1665,7 @@ fi
 
 
 ## <NOTE>
-## No need checking for bcopy bzero memcpy even though ifnames
+## No need checking for bcopy bzero memcpy mempcpy even though ifnames
 ## might report corresponding HAVE_FOO conditionals.
 ## </NOTE>
 

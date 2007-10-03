@@ -105,26 +105,32 @@ static PROTECT_INDEX srindex;
 # include <langinfo.h>
 #endif
 
-#ifdef WORDS_BIGENDIAN
+/* Previous versions (< 2.3.0) assumed wchar_t was in Unicode (and it
+   commonly is).  This version does not. */
+# ifdef Win32
+static const char UNICODE[] = "UCS-2LE";
+# else
+#  ifdef WORDS_BIGENDIAN
 static const char UNICODE[] = "UCS-4BE";
-#else
+#  else
 static const char UNICODE[] = "UCS-4LE";
+# endif
 #endif
 #include <errno.h>
 
-static size_t ucstomb(char *s, const unsigned int wc, mbstate_t *ps)
+static size_t ucstomb(char *s, const wchar_t wc, mbstate_t *ps)
 {
     char     tocode[128];
     char     buf[16];
     void    *cd = NULL ;
-    unsigned int  wcs[2];
+    wchar_t  wcs[2];
     const char *inbuf = (const char *) wcs;
-    size_t   inbytesleft = sizeof(unsigned int); /* better be 4 */
+    size_t   inbytesleft = sizeof(wchar_t);
     char    *outbuf = buf;
     size_t   outbytesleft = sizeof(buf);
     size_t   status;
     
-    if(wc == 0) {
+    if(wc == L'\0') {
 	*s = '\0';
         return 1;
     }
@@ -1996,7 +2002,7 @@ static int StringValue(int c)
 #ifndef SUPPORT_MBCS
 		error(_("\\uxxxx sequences not supported"));
 #else
-		unsigned int val = 0; int i, ext; size_t res;
+		wint_t val = 0; int i, ext; size_t res;
 		char buff[16]; Rboolean delim = FALSE;
 		if((c = xxgetc()) == '{') {
 		    delim = TRUE; 
@@ -2027,11 +2033,14 @@ static int StringValue(int c)
 #endif
 	    }
 	    else if(c == 'U') {
-#ifndef SUPPORT_MBCS
-		error(_("\\Uxxxxxxxx sequences not supported"));
+#ifdef Win32
+		error(_("\\Uxxxxxxxx sequences are not supported on Windows"));
 #else
-		{
-		    unsigned int val = 0; int i, ext; size_t res;
+		if(!mbcslocale) 
+		     error(_("\\Uxxxxxxxx sequences are only valid in multibyte locales"));
+#ifdef SUPPORT_MBCS
+		else {
+		    wint_t val = 0; int i, ext; size_t res;
 		    char buff[16]; Rboolean delim = FALSE;
 		    if((c = xxgetc()) == '{') {
 			delim = TRUE;
@@ -2055,12 +2064,13 @@ static int StringValue(int c)
 			if(delim)
 			    error(_("invalid \\U{xxxxxxxx} sequence"));
 			else
-			    error(_("invalid \\Uxxxxxxxx sequence"));
+			    error(("invalid \\Uxxxxxxxx sequence"));
 		    }
 		    for(i = 0; i <  res - 1; i++) YYTEXT_PUSH(buff[i], yyp);
 		    c = buff[res - 1]; /* pushed below */
 		}
 #endif
+#endif /* Win32 */
 	    }
 	    else {
 		switch (c) {

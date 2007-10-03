@@ -1,73 +1,9 @@
 			Dear Emacs, please make this -*-Text-*- mode!
 	**************************************************
 	*						 *
-	*	       2.7 SERIES NEWS			 *
-	*						 *
-	**************************************************
-
-
-		CHANGES IN R VERSION 2.7.0
-
-
-NEW FEATURES
-
-    o	identify() recycles its 'labels' argument if necessary.
-
-    o	New function as.octmode() to create objects such as file
-	permissions.
-
-    o	dir.create() has a new argument 'mode', used on Unix-alikes
-	(only) to set the permissions on the created directory.
-
-    o	New function Sys.chmod(), a wrapper for 'chmod' on platforms
-	which support it.
-
-    o	as.POSIXlt() is now generic, and it and as.POSIXct() gain a
-	'...' argument.  The character/factor methods now accept a
-	'format' argument (analogous to that for as.Date).
-
-    o	as.Date(), as.POSIXct() and as.POSIXlt() now convert numeric
-	arguments (days or seconds since some epoch) provided the
-	'origin' argument is specified.
-
-    o	New higher-order function Negate().
-
-
-DEPRECATED & DEFUNCT
-
-    o	In package installation, SaveImage: yes is defunct and
-	lazyloading is attempted instead.
-
-    o	$ on an atomic vector or S4 object is now defunct.
-
-    o	Partial matching in [[ is now only performed if explicitly
-	requested (by exact=FALSE or exact=NA).
-
-
-BUG FIXES
-
-    o	Place holder
-
-
-
-	**************************************************
-	*						 *
 	*	       2.6 SERIES NEWS			 *
 	*						 *
 	**************************************************
-
-
-		CHANGES IN R VERSION 2.6.0 patched
-
-
-BUG FIXES
-
-    o	The "data.frame" and "factor" methods for [[ now support
-	the 'exact' argument introduced in 2.6.0.
-
-    o	iconv() is again able to translate character strings with
-	embedded nuls (such as those in UCS-2).
-
 
 
 		CHANGES IN R VERSION 2.6.0

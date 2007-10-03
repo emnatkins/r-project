@@ -14,7 +14,6 @@
 \alias{as.Date.POSIXlt}
 \alias{as.Date.date}
 \alias{as.Date.dates}
-\alias{as.Date.numeric}
 
 \title{Date Conversion Functions to and from Character}
 \description{
@@ -24,7 +23,6 @@
 \usage{
 as.Date(x, \ldots)
 \method{as.Date}{character}(x, format = "", \dots)
-\method{as.Date}{numeric}(x, origin, \dots)
 
 \method{format}{Date}(x, \dots)
 
@@ -34,8 +32,6 @@ as.Date(x, \ldots)
   \item{x}{An object to be converted.}
   \item{format}{A character string.  The default is
     \code{"\%Y-\%m-\%d"}.  For details see \code{\link{strftime}}.}
-  \item{origin}{a Date object, or something which can be coerced by
-    \code{as.Date(origin, \dots)} to such an object.}
   \item{\dots}{Further arguments to be passed from or to other methods,
     including \code{format} for \code{as.character} and \code{as.Date}
     methods.}
@@ -60,8 +56,8 @@ as.Date(x, \ldots)
   strings are processed as far as necessary for the format specified: any
   trailing characters are ignored.
 
-  \code{as.Date} will accept numeric data (the number of days since an
-  epoch), but \emph{only} is \code{origin} is supplied.
+  See the examples for how to convert a day given as the number of days
+  since an epoch.
 
   The \code{format} and \code{as.character} methods ignore any
   fractional part of the date.
@@ -127,7 +123,7 @@ dates <- c("02/27/92", "02/27/92", "01/14/92", "02/28/92", "02/01/92")
 as.Date(dates, "\%m/\%d/\%y")
 
 ## date given as number of days since 1900-01-01 (a date in 1989)
-as.Date(32768, origin="1900-01-01")
+as.Date("1900-01-01") + 32768
 }
 \keyword{utilities}
 \keyword{chron}

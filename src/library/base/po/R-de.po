@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-09-17 10:30\n"
+"POT-Creation-Date: 2007-09-17 10:18\n"
 "PO-Revision-Date: 2005-09-28 18:00+02:00\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R-core <r-core@r-project.org>\n"
@@ -453,30 +453,32 @@ msgstr "weiss nicht, wie '%s' in Klasse \"POSIXlt\" umgewandelt wird"
 msgid "wrong class"
 msgstr "falsche Klasse"
 
-#, fuzzy
-msgid "binary '+' is not defined for \"POSIXt\" objects"
+msgid "binary + is not defined for \"POSIXt\" objects"
 msgstr "binäres + ist für \"POSIXt\" Objekte nicht definiert"
 
 msgid "Can only subtract from POSIXt objects"
 msgstr "kann von POSIXt Objekten nur subtrahieren"
 
-#, fuzzy
-msgid "unary '-' is not defined for \"POSIXt\" objects"
+msgid "unary - is not defined for \"POSIXt\" objects"
 msgstr "unäres - ist für \"POSIXt\" Objekte nicht definiert"
 
 msgid "can only subtract numbers from POSIXt objects"
 msgstr "kann nur Zahlen von \"POSIXt\" Objekten subtrahieren"
 
-#, fuzzy
-msgid "unary '%s' not defined for \"POSIXt\" objects"
-msgstr "unäres - ist für \"POSIXt\" Objekte nicht definiert"
+msgid "not defined for \"POSIXt\" objects"
+msgstr "nicht definiert für \"POSIXt\" Objekte"
 
-#, fuzzy
-msgid "'%s' not defined for \"POSIXt\" objects"
+msgid "not defined for POSIXt objects"
 msgstr "nicht definiert für \"POSIXt\" Objekte"
 
 msgid "'tzone' attributes are inconsistent"
 msgstr ""
+
+msgid "not defined for \"POSIXct\" objects"
+msgstr "nicht definiert für \"POSIXct\" Objekte"
+
+msgid "not defined for \"POSIXlt\" objects"
+msgstr "nicht definiert für \"POSIXlt\" Objekte"
 
 #, fuzzy
 msgid "'tim' is not character or numeric"
@@ -489,12 +491,7 @@ msgstr ""
 msgid "invalid units specified"
 msgstr "ungültige 'quote' Spezifikation"
 
-#, fuzzy
-msgid "unary '%s' not defined for \"difftime\" objects"
-msgstr "nicht definiert für \"difftime\" Objekte"
-
-#, fuzzy
-msgid "'%s' not defined for \"difftime\" objects"
+msgid "not defined for \"difftime\" objects"
 msgstr "nicht definiert für \"difftime\" Objekte"
 
 msgid "both arguments of * cannot be \"difftime\" objects"
@@ -1463,11 +1460,11 @@ msgstr "'cmd' konnte nicht ausgeführt werden"
 msgid "'cmd' execution failed with error code %d"
 msgstr "'cmd' Ausführung mit Fehlerkode %d fehlgeschlagen"
 
-msgid "cannot find name space environment"
-msgstr "kann keine Namensraum-Umgebung finden"
-
 msgid "package '%s' has a non-function '.First.lib'"
 msgstr "Paket '%s' enthält eine nicht-Funktion '.First.lib'"
+
+msgid "cannot find name space environment"
+msgstr "kann keine Namensraum-Umgebung finden"
 
 msgid "deparse option %s is not recognized"
 msgid_plural "deparse options %s are not recognized"
@@ -1511,15 +1508,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Warnmeldung:\n"
 msgstr[1] "Warnmeldungen:\n"
-
-#~ msgid "not defined for POSIXt objects"
-#~ msgstr "nicht definiert für \"POSIXt\" Objekte"
-
-#~ msgid "not defined for \"POSIXct\" objects"
-#~ msgstr "nicht definiert für \"POSIXct\" Objekte"
-
-#~ msgid "not defined for \"POSIXlt\" objects"
-#~ msgstr "nicht definiert für \"POSIXlt\" Objekte"
 
 #, fuzzy
 #~ msgid "'data' must exist"

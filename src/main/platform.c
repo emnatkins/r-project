@@ -1399,8 +1399,8 @@ SEXP attribute_hidden do_pathexpand(SEXP call, SEXP op, SEXP args, SEXP rho)
     n = length(fn);
     PROTECT(ans = allocVector(STRSXP, n));
     for (i = 0; i < n; i++) {
-	SEXP tmp = markKnown(R_ExpandFileName(translateChar(STRING_ELT(fn, i))),
-			     STRING_ELT(fn, i));
+	SEXP tmp = mkChar(R_ExpandFileName(translateChar(STRING_ELT(fn, i))));
+	markKnown(tmp, STRING_ELT(fn, i));
 	SET_STRING_ELT(ans, i, tmp);
     }
     UNPROTECT(1);
@@ -1635,7 +1635,7 @@ SEXP attribute_hidden do_sysgetpid(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP attribute_hidden do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP path;
-    int res, show, recursive, mode;
+    int res, show, recursive;
     char *p, dir[PATH_MAX];
 
     checkArity(op, args);
@@ -1646,8 +1646,6 @@ SEXP attribute_hidden do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
     if(show == NA_LOGICAL) show = 0;
     recursive = asLogical(CADDR(args));
     if(recursive == NA_LOGICAL) recursive = 0;
-    mode = asInteger(CADDDR(args));
-    if(mode == NA_LOGICAL) mode = 0777;
     strcpy(dir, R_ExpandFileName(translateChar(STRING_ELT(path, 0))));
     /* remove trailing slashes */
     p = dir + strlen(dir) - 1;
@@ -1656,18 +1654,18 @@ SEXP attribute_hidden do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
 	p = dir;
 	while((p = Rf_strchr(p+1, '/'))) {
 	    *p = '\0';
-	    res = mkdir(dir, mode);
+	    res = mkdir(dir, 0777);
 	    if(res && errno != EEXIST) goto end;
 	    *p = '/';
 	}
     }
-     res = mkdir(dir, mode);
+     res = mkdir(dir, 0777);
     if(show && res && errno == EEXIST)
 	warning(_("'%s' already exists"), dir);
 end:
     return ScalarLogical(res == 0);
 }
-#else /* Win32 */
+#else
 #include <io.h> /* mkdir is defined here */
 SEXP attribute_hidden do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -1779,50 +1777,6 @@ SEXP attribute_hidden do_normalizepath(SEXP call, SEXP op, SEXP args, SEXP rho)
 #endif
 }
 #endif
-
-SEXP attribute_hidden do_syschmod(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-#ifdef HAVE_CHMOD
-    SEXP paths, ans;
-    int i, n, mode, res;
-
-    checkArity(op, args);
-    paths = CAR(args);
-    if (!isString(paths))
-	error(_("invalid '%s' argument"), "paths");
-    n = LENGTH(paths);
-    mode = asInteger(CADR(args));
-    if(mode == NA_LOGICAL) mode = 0777;
-#ifdef Win32
-    /* Windows' _chmod seems only to support read access or read-write access
-     */
-    mode = (mode & 0200) ? (_S_IWRITE | _S_IREAD): _S_IREAD;
-#endif
-    PROTECT(ans = allocVector(LGLSXP, n));
-    for(i = 0; i < n; i++) {
-	res = chmod(R_ExpandFileName(translateChar(STRING_ELT(paths, i))),
-		    mode);
-	LOGICAL(ans)[i] = res == 0;
-   }
-    UNPROTECT(1);
-    return ans;
-#else
-    SEXP paths, ans;
-    int i, n;
-    
-    checkArity(op, args);
-    paths = CAR(args);
-    if (!isString(paths))
-	error(_("invalid '%s' argument"), "paths");
-    n = LENGTH(paths);
-    warning("insufficient OS support on this platform");
-    PROTECT(ans = allocVector(LGLSXP, n));
-    for(i = 0; i < n; i++) LOGICAL(ans)[i] = 0;
-#endif
-    UNPROTECT(1);
-    return ans;
-}
-
 
 SEXP attribute_hidden do_Cstack_info(SEXP call, SEXP op, SEXP args, SEXP rho)
 {

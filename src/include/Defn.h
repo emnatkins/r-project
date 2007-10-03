@@ -26,8 +26,6 @@
 
 #define BYTECODE
 
-#define USE_CHAR_HASHING
-
 /* probably no longer needed */
 #define NEW_CONDITION_HANDLING
 
@@ -118,18 +116,6 @@ int IS_UTF8(SEXP x);
 void SET_UTF8(SEXP x);
 void UNSET_UTF8(SEXP x);
 #endif
-/* macros and declarations for managing CHARSXP cache */
-#ifdef USE_CHAR_HASHING
-# define USE_ATTRIB_FIELD_FOR_CHARSXP_CACHE_CHAINS
-# ifdef USE_ATTRIB_FIELD_FOR_CHARSXP_CACHE_CHAINS
-#  define CXHEAD(x) (x)
-#  define CXTAIL(x) ATTRIB(x)
-SEXP (SET_CXTAIL)(SEXP x, SEXP y);
-# else
-#  define CXHEAD(x) CAR(x)
-#  define CXTAIL(x) CDR(x)
-# endif /* USE_ATTRIB_FIELD_FOR_CHARSXP_CACHE_CHAINS */
-#endif /* USE_CHAR_HASHING */
 
 
 #include "Internal.h"		/* do_FOO */
@@ -984,7 +970,7 @@ void jump_to_toplevel(void);
 SEXP levelsgets(SEXP, SEXP);
 void mainloop(void);
 SEXP makeSubscript(SEXP, SEXP, int *, SEXP);
-SEXP markKnown(const char *, SEXP);
+void markKnown(SEXP, SEXP);
 SEXP mat2indsub(SEXP, SEXP, SEXP);
 SEXP matchArg(SEXP, SEXP*);
 SEXP matchArgExact(SEXP, SEXP*);
