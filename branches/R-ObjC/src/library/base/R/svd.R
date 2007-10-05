@@ -1,0 +1,79 @@
+#  File src/library/base/R/svd.R
+#  Part of the R package, http://www.R-project.org
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  A copy of the GNU General Public License is available at
+#  http://www.r-project.org/Licenses/
+
+svd <- function(x, nu = min(n,p), nv = min(n,p), LINPACK = FALSE)
+{
+    x <- as.matrix(x)
+    if (any(!is.finite(x))) stop("infinite or missing values in 'x'")
+    dx <- dim(x)
+    n <- dx[1]
+    p <- dx[2]
+    if(!n || !p) stop("0 extent dimensions")
+    if (is.complex(x)) {
+        res <- La.svd(x, nu, nv)
+        return(list(d = res$d, u = if(nu) res$u, v = if(nv) Conj(t(res$vt))))
+    }
+    if (!LINPACK) {
+        res <- La.svd(x, nu, nv)
+        return(list(d = res$d, u = if(nu) res$u, v = if(nv) t(res$vt)))
+    }
+    if(!is.numeric(x))
+	stop("argument to 'svd' must be numeric")
+
+    if(nu == 0) {
+	job <- 0
+	u <- double(0)
+    }
+    else if(nu == n) {
+	job <- 10
+	u <- matrix(0, n, n)
+    }
+    else if(nu == p) {
+	job <- 20
+	u <- matrix(0, n, p)
+    }
+    else
+	stop("'nu' must be 0, nrow(x) or ncol(x)")
+
+    job <- job +
+	if(nv == 0) 0 else if(nv == p || nv == n) 1 else
+    stop("'nv' must be 0 or ncol(x)")
+
+    v <- if(job == 0) double(0) else matrix(0, p, p)
+
+    mn <- min(n,p)
+    mm <- min(n+1,p)
+    z <- .Fortran("dsvdc",
+		  as.double(x),
+		  n,
+		  n,
+		  p,
+		  d=double(mm),
+		  double(p),
+		  u=u,
+		  n,
+		  v=v,
+		  p,
+		  double(n),
+		  as.integer(job),
+		  info=integer(1),
+		  DUP=FALSE, PACKAGE="base")[c("d","u","v","info")]
+    if(z$info)
+	stop(gettextf("error %d in 'dsvdc'", z$info), domain = NA)
+    z$d <- z$d[1:mn]
+    if(nv && nv < p) z$v <- z$v[, 1:nv, drop = FALSE]
+    z[c("d", if(nu) "u", if(nv) "v")]
+}
