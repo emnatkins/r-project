@@ -151,15 +151,15 @@ msgstr "encode 디바이스를 기록하는것을 실패했습니다"
 msgid "Object .ps.prolog is not a character vector"
 msgstr "오브젝트 ps.prolog는 문자 벡터가 아닙니다"
 
-#: devPS.c:2646 devPS.c:5737 devWindows.c:722
+#: devPS.c:2646 devPS.c:5737 devQuartz.c:1402 devWindows.c:722
 msgid "Invalid line end"
 msgstr "무효의 라인 종점입니다"
 
-#: devPS.c:2665 devPS.c:5756 devWindows.c:735
+#: devPS.c:2665 devPS.c:5756 devQuartz.c:1422 devWindows.c:735
 msgid "Invalid line join"
 msgstr "무효인 라인 조인입니다"
 
-#: devPS.c:2673
+#: devPS.c:2673 devQuartz.c:1432
 msgid "Invalid line mitre"
 msgstr "무효의 라인 mitre입니다"
 
@@ -437,23 +437,28 @@ msgstr "디바이스 pdf를 시작할수가 없습니다"
 msgid "unable to start device PicTeX"
 msgstr "디바이스 PicTex를 시작할수가 없습니다"
 
-#: devQuartz.c:919
-#, fuzzy
-msgid "invalid Quartz device size"
-msgstr "savePlot의 무효인 디비이스입니다"
+#: devQuartz.c:457
+msgid "invalid string argument"
+msgstr "무효의 문자열 인수입니다"
 
-#: devQuartz.c:946
-#, fuzzy
-msgid "Unable to create device description."
-msgstr "디바이스 PostSscript를 시작할수 없습니다"
+#: devQuartz.c:495
+msgid "invalid width or height in quartz"
+msgstr "quartz에서 무효의 폭 또는 높이 입니다"
 
-#: devQuartz.c:976
-msgid "Unable to create Quartz device target, given type may not be supported."
-msgstr ""
+#: devQuartz.c:529
+msgid "unable to start device Quartz"
+msgstr "디바이스 Quartz를 시작할수 없습니다"
 
-#: devQuartz.c:1000
-#, fuzzy
-msgid "Quartz device is not available on this platform."
+#: devQuartz.c:1024 devWindows.c:555
+msgid "Invalid font specification"
+msgstr "무효의 font 명세입니다"
+
+#: devQuartz.c:1069
+msgid "Font family not found in Quartz font database"
+msgstr "font family는 Quartz font 데이타베이스로 검색되지 않았습니다"
+
+#: devQuartz.c:1717
+msgid "Quartz device not available on this platform"
 msgstr "Quartz 디바이스는 이 platform에서 이용 가능하지는 않습니다"
 
 #: devWindows.c:272 devWindows.c:316 devWindows.c:383
@@ -463,10 +468,6 @@ msgstr "graphics window를 복사하는데 충분한 메모리는 아닙니다"
 #: devWindows.c:277 devWindows.c:321 devWindows.c:388
 msgid "No device available to copy graphics window"
 msgstr "복사 graphics 윈도우에 이용 가능한 디바이스가 없습니다"
-
-#: devWindows.c:555
-msgid "Invalid font specification"
-msgstr "무효의 font 명세입니다"
 
 #: devWindows.c:594
 msgid "Font family not found in Windows font database"
@@ -613,15 +614,3 @@ msgstr "장치 debWindows를 시작할수 없습니다"
 #: devWindows.c:3219
 msgid "recursive use of getGraphicsEvent not supported"
 msgstr "지원되지 않는 getGraphicsEvent의 재귀적으로 사용합니다"
-
-#~ msgid "invalid string argument"
-#~ msgstr "무효의 문자열 인수입니다"
-
-#~ msgid "invalid width or height in quartz"
-#~ msgstr "quartz에서 무효의 폭 또는 높이 입니다"
-
-#~ msgid "unable to start device Quartz"
-#~ msgstr "디바이스 Quartz를 시작할수 없습니다"
-
-#~ msgid "Font family not found in Quartz font database"
-#~ msgstr "font family는 Quartz font 데이타베이스로 검색되지 않았습니다"

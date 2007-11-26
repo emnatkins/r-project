@@ -24,8 +24,6 @@ help.start(update = TRUE, gui = "irrelevant",
   \item{gui}{just for compatibility with S-PLUS.}
   \item{browser}{the name of the program to be used as hypertext
     browser. It should be in the \env{PATH}, or a full path specified.
-    Alternatively, it can be a function which will be called with an
-    URL as its only argument.
   }
 #ifdef unix  
   \item{remote}{A character giving a valid URL for the \file{\$R\_HOME}
@@ -40,9 +38,8 @@ help.start(update = TRUE, gui = "irrelevant",
 #ifdef unix
   All the packages in the known library trees are linked to directory
   \file{.R} in the per-session temporary directory.  The links are
-  re-made each time \code{\link{make.packages.html}} or \code{help.start}
-  is run, which should be done after packages are installed, updated or
-  removed.
+  re-made each time \code{help.start} is run, which should be done
+  after packages are installed, updated or removed.
 
   A side effect is to set \code{options(htmlhelp = TRUE)} so that future
   help requests (by default) are sent to the browser.
@@ -50,8 +47,7 @@ help.start(update = TRUE, gui = "irrelevant",
   If the browser named by the \code{browser} argument is different from
   the default browser as specified by \code{options("browser")}, the
   default is changed to the given browser so that it gets used for all
-  future help requests.  (This only holds when \code{browser} is a name,
-  not a function.)
+  future help requests.
 #endif
 #ifdef windows
   The Windows file association mechanism is used to send the HTML file

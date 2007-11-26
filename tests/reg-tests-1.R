@@ -2279,8 +2279,7 @@ as.character(list())
 ## help on reserved words
 ## if else repeat while function for in next break  will fail
 if(.Platform$OS.type == "windows") options(pager="console")
-for(topic in c("TRUE", "FALSE",  "NULL", "NA", "Inf", "NaN",
-               "NA_integer_", "NA_real_", "NA_complex_", "NA_character_")) {
+for(topic in c("TRUE", "FALSE",  "NULL", "NA", "Inf", "NaN")) {
     eval(parse(text=paste("?", topic, sep="")))
     eval(parse(text=paste("help(", topic, ")", sep="")))
 }
@@ -3436,23 +3435,12 @@ options(contrasts = c("contr.treatment", "contr.poly"))
 stopifnot(all.equal(res, res2))
 
 ## related checks on eff.aovlist
-# from example(eff.aovlist) # helmert contrasts
-Block <- gl(8, 4)
-A<-factor(c(0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1))
-B<-factor(c(0,0,1,1,0,0,1,1,0,1,0,1,1,0,1,0,0,0,1,1,0,0,1,1,0,0,1,1,0,0,1,1))
-C<-factor(c(0,1,1,0,1,0,0,1,0,0,1,1,0,0,1,1,0,1,0,1,1,0,1,0,0,0,1,1,1,1,0,0))
-Yield <- c(101, 373, 398, 291, 312, 106, 265, 450, 106, 306, 324, 449,
-           272, 89, 407, 338, 87, 324, 279, 471, 323, 128, 423, 334,
-           131, 103, 445, 437, 324, 361, 302, 272)
-aovdat <- data.frame(Block, A, B, C, Yield)
-old <- getOption("contrasts")
-options(contrasts=c("contr.helmert", "contr.poly"))
-fit <- aov(Yield ~ A * B * C + Error(Block), data = aovdat)
+example(eff.aovlist) # helmert contrasts
 eff1 <- eff.aovlist(fit)
-options(contrasts = old)
 fit <- aov(Yield ~ A * B * C + Error(Block), data = aovdat)
 eff2 <- eff.aovlist(fit)
 stopifnot(all.equal(eff1, eff2)) # will have rounding-error differences
+options(contrasts = old)
 ## Were different in earlier versions
 
 
@@ -4130,10 +4118,10 @@ options(op)
 ## were +/-Inf with warning in 2.2.1.
 
 
-## PR#8718: invalid usage in R >= 2.7.0
-#a <- matrix(2,2,2)
-#apply(a,1,"$","a")
-#apply(a,1,sum)
+## PR#8718
+a <- matrix(2,2,2)
+apply(a,1,"$","a")
+apply(a,1,sum)
 ## first apply was corrupting apply() code in 2.2.1
 
 
@@ -4905,51 +4893,3 @@ str(x)
 curve(sin, -2*pi, 3*pi); pu1 <- par("usr")[1:2]
 curve(cos); stopifnot(all.equal(par("usr")[1:2], pu1))
 ## failed in R <= 2.6.0
-
-## tests of side-effects with CHARSXP caching
-x <- y <- "abc"
-Encoding(x) <- "UTF-8"
-stopifnot(Encoding(y) == "unknown") # was UTF-8 in 2.6.0
-x <- unserialize(serialize(x, NULL))
-stopifnot(Encoding(y) == "unknown") # was UTF-8 in 2.6.0
-##  problems in earlier versions of cache
-
-
-## regression test for adding functions to deriv()
-deriv3(~  gamma(y), namevec="y")
-deriv3(~  lgamma(y), namevec="y")
-# failed in R < 2.7.0
-D(quote(digamma(sin(x))),"x")
-D(quote(trigamma(sin(x))),"x")
-D(quote(psigamma(sin(x))),"x")
-D(quote(psigamma(sin(x), 3)),"x")
-n <- 2L; D(quote(psigamma(sin(x), n)),"x")
-## rest are new
-
-
-## .subset2 quirk
-iris[1, c(TRUE, FALSE, FALSE, FALSE, FALSE)]
-iris[1, c(FALSE, FALSE, FALSE, FALSE, TRUE)]
-## failed in 2.6.0
-
-
-## indexing by "": documented as 'no name' and no match
-x <- structure(1:4, names=c(letters[1:3], ""))
-stopifnot(is.na(x[""])) # always so
-stopifnot(is.na(x[NA_character_]))
-z <- tryCatch(x[[NA_character_]], error=function(...) {})
-stopifnot(is.null(z))
-z <- tryCatch(x[[""]], error=function(...) {})
-stopifnot(is.null(z)) # x[[""]] == 4 < 2.7.0
-x[[""]] <- 5  # no match, so should add an element, but replaced.
-stopifnot(length(x) == 5)
-x[""] <- 6    # also add
-stopifnot(length(x) == 6)
-xx <- list(a=1, 2)
-stopifnot(is.null(xx[[""]])) # 2 < 2.7.0
-##
-
-
-## negative n gave choose(n, k) == 0
-stopifnot(isTRUE(all.equal(choose(-1,3),-1)))
-##

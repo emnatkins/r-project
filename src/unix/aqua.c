@@ -1,6 +1,6 @@
 /* 
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999-2007 The R Development Core Team
+ *  Copyright (C) 1999-2004 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -46,22 +46,8 @@ DL_FUNC ptr_do_wsbrowser, ptr_GetQuartzParameters,
 DL_FUNC ptr_R_ProcessEvents, ptr_CocoaInnerQuartzDevice, 
     ptr_CocoaGetQuartzParameters, ptr_CocoaSystem;
 
-int (*ptr_Raqua_CustomPrint)(const char *, SEXP);
+int (*ptr_Raqua_CustomPrint)(char *, SEXP);
 
-DL_FUNC ptr_QuartzDeviceCreate;
-
-/* new general Quartz call */
-Rboolean QuartzDeviceCreate(NewDevDesc *dd,const char *type,const char *file,
-	double width,double height,double pointsize,const char *family,Rboolean antialias,Rboolean smooth,
-	Rboolean autorefresh,int quartzpos, int bg, const char *title, double *dpi)
-{
-  if(NULL == ptr_QuartzDeviceCreate) return FALSE;
-  return (Rboolean)ptr_QuartzDeviceCreate(dd, type, file, width, height,
-					  pointsize, family, antialias, smooth, autorefresh,
-					  quartzpos, bg, title, dpi);
-}
-
-/* obsolete Quartz Cocoa call */
 Rboolean CocoaInnerQuartzDevice(NewDevDesc *dd,char *display,
 				double width,double height,
 				double pointsize,char *family,
@@ -141,7 +127,7 @@ SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP do_aqua_custom_print(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     char *vm;
-    const char *ct;
+    char *ct;
     int cpr;  
     SEXP rv, objType, obj;
 
@@ -159,7 +145,6 @@ SEXP do_aqua_custom_print(SEXP call, SEXP op, SEXP args, SEXP env)
     ct=CHAR(STRING_ELT(objType,0));
     cpr=ptr_Raqua_CustomPrint(ct, obj);
 
-    /* FIXME: trying to store a pointer in an integer is wrong */
     PROTECT(rv=allocVector(INTSXP, 1));
     INTEGER(rv)[0]=cpr;
 
@@ -171,9 +156,11 @@ SEXP do_aqua_custom_print(SEXP call, SEXP op, SEXP args, SEXP env)
 
 void R_ProcessEvents(void)
 {
-  if (ptr_R_ProcessEvents)
-    ptr_R_ProcessEvents();
-  if (R_interrupts_pending)
-    onintr();
+    if(!useaqua){
+	if (R_interrupts_pending)
+	    onintr();
+	return;
+    } else
+	ptr_R_ProcessEvents();
 }
 #endif

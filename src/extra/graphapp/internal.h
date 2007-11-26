@@ -411,6 +411,7 @@ extern HWND hwndClient;
  *  Library internal variables.
  */
 
+  extern int    is_NT;
 #if defined(R_DLL_BUILD)
   extern
 #else

@@ -3217,6 +3217,7 @@ static SEXP readFixedString(Rconnection con, int len)
 {
     char *buf;
     int  pos, m;
+    SEXP ans;
 
 #ifdef SUPPORT_UTF8
     if(utf8locale) {
@@ -3248,7 +3249,9 @@ static SEXP readFixedString(Rconnection con, int len)
 	pos = m;
     }
     /* String may contain nuls so don't use mkChar */
-    return mkCharLen(buf, pos);
+    ans = allocString(pos);
+    memcpy(CHAR_RW(ans), buf, pos);
+    return ans;
 }
 
 
@@ -3306,7 +3309,7 @@ SEXP attribute_hidden do_readchar(SEXP call, SEXP op, SEXP args, SEXP env)
 /* writeChar(object, con, nchars, sep) */
 SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP object, nchars, sep, ans = R_NilValue, si;
+    SEXP object, nchars, sep, ans = R_NilValue;
     int i, len, lenb, lenc, n, nwrite=0, slen, tlen;
     char *buf;
     const char *s, *ssep = "";
@@ -3374,67 +3377,46 @@ SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
     	    
     for(i = 0; i < n; i++) {
 	len = INTEGER(nchars)[i];
-	si = STRING_ELT(object, i);
-	if(strlen(CHAR(si)) < LENGTH(si)) {
-	    if(len > LENGTH(si)) {
-		warning(_("writeChar: more bytes requested than are in the string - will zero-pad"));
-	    }
-	    memset(buf, '\0', len + slen);
-	    memcpy(buf, CHAR(si), len);
-	    if (usesep) {
-		strcat(buf, ssep);
-		len += slen;
-	    }
-	    if (!isRaw) {
-		nwrite = con->write(buf, sizeof(char), len, con);
-		if(!nwrite) {
-		    warning(_("problem writing to connection"));
-		    break;
-		}
-	    } else 
-		buf += len;
-	} else {
-	    s = translateChar(si);
-	    lenb = lenc = strlen(s);
+	s = translateChar(STRING_ELT(object, i));
+	lenb = lenc = strlen(s);
 #ifdef SUPPORT_MBCS
-	    if(mbcslocale) lenc = mbstowcs(NULL, s, 0);
+	if(mbcslocale) lenc = mbstowcs(NULL, s, 0);
 #endif
-	    /* As from 1.8.1, zero-pad if too many chars are requested. */
-	    if(len > lenc) {
-		warning(_("writeChar: more characters requested than are in the string - will zero-pad"));
-		lenb += (len - lenc);
-	    }
-	    if(len < lenc) {
-#ifdef SUPPORT_MBCS
-		if(mbcslocale) {
-		    /* find out how many bytes we need to write */
-		    int i, used;
-		    const char *p = s;
-		    mbs_init(&mb_st);
-		    for(i = 0, lenb = 0; i < len; i++) {
-			used = Mbrtowc(NULL, p, MB_CUR_MAX, &mb_st);
-			p += used;
-			lenb += used;
-		    }
-		} else
-#endif
-		    lenb = len;
-	    }
-	    memset(buf, '\0', lenb + slen);
-	    strncpy(buf, s, lenb);
-	    if (usesep) {
-		strcat(buf, ssep);
-		lenb += slen;
-	    }
-	    if (!isRaw) {
-		nwrite = con->write(buf, sizeof(char), lenb, con);
-		if(!nwrite) {
-		    warning(_("problem writing to connection"));
-	    	break;
-		}
-	    } else 
-		buf += lenb;
+	/* As from 1.8.1, zero-pad if too many chars are requested. */
+	if(len > lenc) {
+	    warning(_("writeChar: more characters requested than are in the string - will zero-pad"));
+	    lenb += (len - lenc);
 	}
+	if(len < lenc) {
+#ifdef SUPPORT_MBCS
+	    if(mbcslocale) {
+		/* find out how many bytes we need to write */
+		int i, used;
+		const char *p = s;
+		mbs_init(&mb_st);
+		for(i = 0, lenb = 0; i < len; i++) {
+		    used = Mbrtowc(NULL, p, MB_CUR_MAX, &mb_st);
+		    p += used;
+		    lenb += used;
+		}
+	    } else
+#endif
+		lenb = len;
+	}
+	memset(buf, '\0', lenb + slen);
+	strncpy(buf, s, lenb);
+	if (usesep) {
+	    strcat(buf, ssep);
+	    lenb += slen;
+	}
+	if (!isRaw) {
+	    nwrite = con->write(buf, sizeof(char), lenb, con);
+	    if(!nwrite) {
+	    	warning(_("problem writing to connection"));
+	    	break;
+	    }
+	} else 
+	    buf += lenb;
     }
     if(!wasopen) con->close(con);
     if(isRaw) {

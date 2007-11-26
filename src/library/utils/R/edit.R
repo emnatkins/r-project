@@ -53,9 +53,7 @@ edit.default <-
         edit.matrix(name=name, ...)
     else {
 	if (is.null(title)) title <- deparse(substitute(name))
-        if (is.function(editor))
-            invisible(editor(name, file, title))
-	else .Internal(edit(name, file, title, editor))
+	.Internal(edit(name, file, title, editor))
     }
 }
 
@@ -195,9 +193,7 @@ file.edit <-
   function (..., title = file, editor=getOption("editor"))
 {
     file <- c(...)
-    if (is.function(editor))
-        invisible(editor(file = file, title = rep(as.character(title), len=length(file))))
-    else .Internal(file.edit(file, rep(as.character(title), len=length(file)), editor))
+    .Internal(file.edit(file, rep(as.character(title), len=length(file)), editor))
 }
 
 vi <- function(name=NULL, file="")

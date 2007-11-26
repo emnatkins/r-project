@@ -170,6 +170,7 @@
  R_TextBufferGetc
  R_TextBufferInit
  R_TmpvalSymbol
+ R_ToplevelExec
  R_UseNamesSymbol
  R_VSize
  R_Verbose
@@ -968,7 +969,6 @@
  do_symbol
  do_symbols
  do_sys
- do_syschmod
  do_sysgetpid
  do_sysinfo
  do_syssleep
@@ -1135,6 +1135,7 @@
  libintl_vwprintf
  libintl_wprintf
  loadRconsole
+ localeCP
  locale_charset
  mallinfo
  malloc_footprint
@@ -1221,7 +1222,7 @@
  setCURCOL
  setTitle
  setWidthOnResize
- set_completion_available
+ set_rcompgen_available
  set_workspace_name
  setconsoleoptions
  setfirstcol

@@ -24,7 +24,6 @@ Options:
 
 Report bugs to <r-bugs@r-project.org>."
 
-SED=@SED@
 GETWD='@GETWD@'
 R_EXE="${R_HOME}/bin/R"
 
@@ -40,7 +39,7 @@ while test -n "${1}"; do
     -l)
       lib="${2}"; shift ;;
     --library=*)
-      lib=`echo "${1}" | ${SED} -e 's/[^=]*=//'` ;;
+      lib=`echo "${1}" | sed -e 's/[^=]*=//'` ;;
     *)
       pkgs="${pkgs} ${1}" ;;
   esac

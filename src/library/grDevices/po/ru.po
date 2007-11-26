@@ -143,15 +143,15 @@ msgstr "Не вышло записать кодировку устройства"
 msgid "Object .ps.prolog is not a character vector"
 msgstr "Объект .ps.prolog не является символьным вектором"
 
-#: devPS.c:2646 devPS.c:5737 devWindows.c:722
+#: devPS.c:2646 devPS.c:5737 devQuartz.c:1402 devWindows.c:722
 msgid "Invalid line end"
 msgstr "Неправильный конец строки"
 
-#: devPS.c:2665 devPS.c:5756 devWindows.c:735
+#: devPS.c:2665 devPS.c:5756 devQuartz.c:1422 devWindows.c:735
 msgid "Invalid line join"
 msgstr "Неправильное соединение линий"
 
-#: devPS.c:2673
+#: devPS.c:2673 devQuartz.c:1432
 msgid "Invalid line mitre"
 msgstr "Неправильный конец линии"
 
@@ -422,23 +422,28 @@ msgstr "не могу запустить устройство pdf"
 msgid "unable to start device PicTeX"
 msgstr "не могу запустить устройство PicTeX"
 
-#: devQuartz.c:919
-#, fuzzy
-msgid "invalid Quartz device size"
-msgstr "неправильное устройство в savePlot"
+#: devQuartz.c:457
+msgid "invalid string argument"
+msgstr "неправильный строковый аргумент"
 
-#: devQuartz.c:946
-#, fuzzy
-msgid "Unable to create device description."
-msgstr "не могу запустить устройство PostScript"
+#: devQuartz.c:495
+msgid "invalid width or height in quartz"
+msgstr "неправильная ширина или высота в quartz"
 
-#: devQuartz.c:976
-msgid "Unable to create Quartz device target, given type may not be supported."
-msgstr ""
+#: devQuartz.c:529
+msgid "unable to start device Quartz"
+msgstr "не могу запустить устройство Quartz"
 
-#: devQuartz.c:1000
-#, fuzzy
-msgid "Quartz device is not available on this platform."
+#: devQuartz.c:1024 devWindows.c:555
+msgid "Invalid font specification"
+msgstr "Неправильное указание шрифта"
+
+#: devQuartz.c:1069
+msgid "Font family not found in Quartz font database"
+msgstr "Семейство шрифтов не найдено в базе данных Quartz"
+
+#: devQuartz.c:1717
+msgid "Quartz device not available on this platform"
 msgstr "Устройство Quartz на этой платформе недоступно"
 
 #: devWindows.c:272 devWindows.c:316 devWindows.c:383
@@ -448,10 +453,6 @@ msgstr "Не хватает памяти, чтобы скопировать окно графики"
 #: devWindows.c:277 devWindows.c:321 devWindows.c:388
 msgid "No device available to copy graphics window"
 msgstr "Нет устройства, чтобы скопировать окно графики"
-
-#: devWindows.c:555
-msgid "Invalid font specification"
-msgstr "Неправильное указание шрифта"
 
 #: devWindows.c:594
 msgid "Font family not found in Windows font database"
@@ -597,15 +598,3 @@ msgstr "не могу запустить устройство devWindows"
 #: devWindows.c:3219
 msgid "recursive use of getGraphicsEvent not supported"
 msgstr "рекурсивное использование getGraphicsEvent не поддерживается"
-
-#~ msgid "invalid string argument"
-#~ msgstr "неправильный строковый аргумент"
-
-#~ msgid "invalid width or height in quartz"
-#~ msgstr "неправильная ширина или высота в quartz"
-
-#~ msgid "unable to start device Quartz"
-#~ msgstr "не могу запустить устройство Quartz"
-
-#~ msgid "Font family not found in Quartz font database"
-#~ msgstr "Семейство шрифтов не найдено в базе данных Quartz"

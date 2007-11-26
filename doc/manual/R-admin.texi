@@ -293,7 +293,8 @@ make
 @noindent
 (See @ref{Using make} if your make is not called @samp{make}.)
 
-Then check the built system works correctly by
+Then check the built system works correctly@footnote{This needs Perl to
+be available.}, by
 
 @example
 make check
@@ -365,7 +366,9 @@ pathname of the build directory should not contain spaces.)
 Make will also build plain text help pages as well as @HTML{} and
 @LaTeX{} versions of the @R{} object documentation (the three kinds can
 also be generated separately using @code{make help}, @code{make html}
-and @code{make latex}).
+and @code{make latex}).  Note that you need Perl version 5.8.x: if this
+is not available on your system, you can obtain PDF versions of the
+documentation files via @acronym{CRAN}.
 
 For those obtaining @R{} @emph{via} Subversion, one additional step is
 necessary:
@@ -707,8 +710,9 @@ wise to use explicit names for each, and you may also need to set
 
 The @file{bin/windows} directory of a @acronym{CRAN} site contains
 binaries for a base distribution and a large number of add-on packages
-from @acronym{CRAN} to run on Windows 2000 or later on ix86 CPUs
-(including AMD64/EM64T chips and Windows x64).
+from @acronym{CRAN} to run on Windows 95, 98, NT4, 2000, ME, XP, 2003
+Server and Vista (at least) on Intel x86 and clones (including
+AMD64/EM64T chips and Windows x64).
 
 Your file system must allow long file names (as is likely except
 perhaps for some network-mounted systems).
@@ -2290,9 +2294,10 @@ This is regarded as essential from @R{} 2.5.0: if you do not have it
 will need to configure with @option{--without-iconv} (or equivalent),
 and @command{make check} (and other checks) are likely to fail.
 
-Perl version 5.8.0 or later, available via
-@url{http://www.perl.com/CPAN/, @code{www.perl.com/CPAN}} is
-essential.
+You will need Perl version 5.8.0 or later, available via
+@url{http://www.perl.com/CPAN/, @code{www.perl.com/CPAN}}, to build any
+of the on-line documentation, which includes the examples needed for
+regression testing.
 
 You will not be able to build most of the manuals unless you have
 @command{makeinfo} version 4.7 or later installed, and if not some of
@@ -2308,7 +2313,7 @@ of the GNU @pkg{texinfo} distribution).
 The DVI and PDF documentation and building vignettes needs @command{tex}
 and @command{latex}, or @command{pdftex} and @command{pdflatex}.
 
-If you want to build from the R Subversion repository you need both
+If you want to build from the R Subversion repository you need Perl,
 @command{makeinfo} and @command{pdflatex}.
 @cindex Subversion
 
@@ -2353,7 +2358,7 @@ the @samp{libXmu} and @samp{libXmu-devel} RPMs.
 @node Tcl/Tk, Java support, Useful libraries and programs, Useful libraries and programs
 @subsection Tcl/Tk
 
-The @pkg{tcltk} package needs Tcl/Tk >= 8.3 installed: the sources are
+The @pkg{tcltk} package needs Tcl/Tk installed: the sources are
 available at @url{http://www.tcl.tk/, @code{www.tcl.tk}}.  To specify
 the locations of the Tcl/Tk files you may need the configuration options
 
@@ -2374,8 +2379,8 @@ the Tcl and Tk libraries and for finding the @file{tcl.h} and
 versions of Tcl/Tk installed, setting the paths to the correct config
 files may be necessary to avoid confusion between them.
 
-Versions of Tcl/Tk from 8.3 to 8.4.16 have been used successfully and
-beta versions of 8.5 have been tested.
+Versions of Tcl/Tk from 8.3 to 8.4.16 have been used successfully: 8.0 is
+no longer supported.
 
 @node Java support,  , Tcl/Tk, Useful libraries and programs
 @subsection Java support
@@ -3564,27 +3569,17 @@ routines.  Building @R{} without these options @emph{via}
 used not to work with earlier versions of @command{gcc}, but can be done
 with @command{gcc}@tie{}3.3 and later.
 
-@menu
-* 64-bit builds::               
-@end menu
+64-bit builds are supported as from @R{} 2.7.0 on 10.5 (Leopard) only.
 
-@node 64-bit builds,  , Mac OS X, Mac OS X
-@subsection 64-bit builds
-
-64-bit builds are supported as from @R{} 2.7.0 on 10.5 (Leopard).  All
-that is needed is to select suitable compiler options, e.g. for recent
-Intel Macs
+For @R{} 2.6.1 (and patched) on 10.5 (Leopard) only, use
 
 @example
-CC='gcc -arch x86_64'
-CXX='g++ -arch x86_64'
-F77='gfortran -arch x86_64'
-FC='gfortran -arch x86_64'
-OBJC='gcc -arch x86_64'
+CONFIG_SHELL=/bin/bash ./configure
 @end example
 
 @noindent
-in @file{config.site} or on the @command{configure} command line.
+since @R{} is built with @samp{SHELL=/bin/bash} to avoid some settings
+used for @file{/bin/sh} (in particular @samp{xpg_echo} is set).
 
 
 @node Solaris, HP-UX, Mac OS X, Platform notes
@@ -4323,8 +4318,11 @@ other updates to these instructions.  (Most Windows users will not need
 to build add-on packages from source; see @ref{Add-on packages} for
 details.)
 
-As from @R{} 2.7.0, only building with @command{gcc 4.y.z} is
-supported, and that compiler set works out-of-the-box on Windows Vista.
+There are known problems with one of the compilers sets in this toolset
+on Windows Vista: see the workaround below. (With that workaround it has
+been used on both 32- and 64-bit versions of Vista: the recommended
+@command{gcc 4.2.1} does not need the workaround, and it may indeed be
+harmful.)
 
 We have found that the build process for @R{} is quite sensitive to
 the choice of tools: please follow our instructions @strong{exactly},
@@ -4392,6 +4390,15 @@ tools in other directories, and they will @strong{not} work.  The
 ordering of the other directories is less important, but if in doubt,
 use the order above.
 
+On Vista systems when using the @command{gcc 3.4.5} compilers you will
+need to add
+@example
+c:\Rtools\MinGW\libexec\gcc\mingw\3.4.5
+@end example
+
+@noindent
+to the path.  (Do @strong{not} do this when using the recommended
+@command{gcc 4.2.1} compilers.)
 
 Edit @file{@var{R_HOME}/src/gnuwin32/MkRules} to set the appropriate
 paths as needed and to set the type(s) of help that you want built.

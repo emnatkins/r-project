@@ -45,6 +45,5 @@ function()
     list(valid_package_name = "[[:alpha:]][[:alnum:].]*",
          valid_package_version = "([[:digit:]]+[.-]){1,}[[:digit:]]+",
          valid_R_system_version =
-         "[[:digit:]]+\\.[[:digit:]]+\\.[[:digit:]]+",
-         valid_numeric_version = "([[:digit:]]+[.-])*[[:digit:]]+")
+         "[[:digit:]]+\\.[[:digit:]]+\\.[[:digit:]]+")
 }

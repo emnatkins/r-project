@@ -145,15 +145,15 @@ msgstr " デバイスのエンコーディングを記録することに失敗�
 msgid "Object .ps.prolog is not a character vector"
 msgstr " オブジェクト .ps.prolog は文字列ベクトルではありません "
 
-#: devPS.c:2646 devPS.c:5737 devWindows.c:722
+#: devPS.c:2646 devPS.c:5737 devQuartz.c:1402 devWindows.c:722
 msgid "Invalid line end"
 msgstr " 行末が不正です "
 
-#: devPS.c:2665 devPS.c:5756 devWindows.c:735
+#: devPS.c:2665 devPS.c:5756 devQuartz.c:1422 devWindows.c:735
 msgid "Invalid line join"
 msgstr " 行のつながりが不正です "
 
-#: devPS.c:2673
+#: devPS.c:2673 devQuartz.c:1432
 msgid "Invalid line mitre"
 msgstr " 不正な line mitre です "
 
@@ -427,23 +427,28 @@ msgstr " pdf デバイスを開始できませんでした "
 msgid "unable to start device PicTeX"
 msgstr " PicTeX デバイスを開始できませんでした "
 
-#: devQuartz.c:919
-#, fuzzy
-msgid "invalid Quartz device size"
-msgstr " savePlot 中に不正なデバイス "
+#: devQuartz.c:457
+msgid "invalid string argument"
+msgstr " 不正な文字列引数 "
 
-#: devQuartz.c:946
-#, fuzzy
-msgid "Unable to create device description."
-msgstr " ポストスクリプトデバイスを開始できませんでした "
+#: devQuartz.c:495
+msgid "invalid width or height in quartz"
+msgstr " quartz デバイスの幅か高さが不正です "
 
-#: devQuartz.c:976
-msgid "Unable to create Quartz device target, given type may not be supported."
-msgstr ""
+#: devQuartz.c:529
+msgid "unable to start device Quartz"
+msgstr " quartz デバイスを開始できません "
 
-#: devQuartz.c:1000
-#, fuzzy
-msgid "Quartz device is not available on this platform."
+#: devQuartz.c:1024 devWindows.c:555
+msgid "Invalid font specification"
+msgstr " 不正なフォント指定 "
+
+#: devQuartz.c:1069
+msgid "Font family not found in Quartz font database"
+msgstr " Quartz フォントのデータベースにフォントファミリが見付かりません "
+
+#: devQuartz.c:1717
+msgid "Quartz device not available on this platform"
 msgstr " Quartz デバイスはこのプラットフォームでは利用できません "
 
 #: devWindows.c:272 devWindows.c:316 devWindows.c:383
@@ -453,10 +458,6 @@ msgstr " グラフィックスウィンドをコピーするのに十分なメ�
 #: devWindows.c:277 devWindows.c:321 devWindows.c:388
 msgid "No device available to copy graphics window"
 msgstr " グラフィックスウィンドをコピーするのに使えるデバイスがありません "
-
-#: devWindows.c:555
-msgid "Invalid font specification"
-msgstr " 不正なフォント指定 "
 
 #: devWindows.c:594
 msgid "Font family not found in Windows font database"
@@ -602,15 +603,3 @@ msgstr " devWindows デバイスを開始できません "
 #: devWindows.c:3219
 msgid "recursive use of getGraphicsEvent not supported"
 msgstr " getGraphicsEvent の再帰的な使用はサポートされていません "
-
-#~ msgid "invalid string argument"
-#~ msgstr " 不正な文字列引数 "
-
-#~ msgid "invalid width or height in quartz"
-#~ msgstr " quartz デバイスの幅か高さが不正です "
-
-#~ msgid "unable to start device Quartz"
-#~ msgstr " quartz デバイスを開始できません "
-
-#~ msgid "Font family not found in Quartz font database"
-#~ msgstr " Quartz フォントのデータベースにフォントファミリが見付かりません "

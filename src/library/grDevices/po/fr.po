@@ -141,15 +141,15 @@ msgstr "Echec d'enregistrement de l'encodage du périphérique"
 msgid "Object .ps.prolog is not a character vector"
 msgstr "L'objet .ps.prolog n'est pas un vecteur de mode caractère"
 
-#: devPS.c:2646 devPS.c:5737 devWindows.c:722
+#: devPS.c:2646 devPS.c:5737 devQuartz.c:1402 devWindows.c:722
 msgid "Invalid line end"
 msgstr "Fin de ligne incorrecte"
 
-#: devPS.c:2665 devPS.c:5756 devWindows.c:735
+#: devPS.c:2665 devPS.c:5756 devQuartz.c:1422 devWindows.c:735
 msgid "Invalid line join"
 msgstr "Jointure de ligne incorrecte"
 
-#: devPS.c:2673
+#: devPS.c:2673 devQuartz.c:1432
 msgid "Invalid line mitre"
 msgstr "Mitre (jointure pointue) de ligne incorrecte"
 
@@ -419,23 +419,29 @@ msgstr "impossible de démarrer le périphérique pdf"
 msgid "unable to start device PicTeX"
 msgstr "impossible de démarrer le périphérique PicTeX"
 
-#: devQuartz.c:919
-#, fuzzy
-msgid "invalid Quartz device size"
-msgstr "périphérique incorrect dans savePlot"
+#: devQuartz.c:457
+msgid "invalid string argument"
+msgstr "argument chaîne de caractère incorrect"
 
-#: devQuartz.c:946
-#, fuzzy
-msgid "Unable to create device description."
-msgstr "impossible de démarrer le périphérique PostScript"
+#: devQuartz.c:495
+msgid "invalid width or height in quartz"
+msgstr "largeur ou hauteur incorrecte dans quartz"
 
-#: devQuartz.c:976
-msgid "Unable to create Quartz device target, given type may not be supported."
+#: devQuartz.c:529
+msgid "unable to start device Quartz"
+msgstr "impossible de démarrer le périphérique Quartz"
+
+#: devQuartz.c:1024 devWindows.c:555
+msgid "Invalid font specification"
+msgstr "Spécification de police incorrecte"
+
+#: devQuartz.c:1069
+msgid "Font family not found in Quartz font database"
 msgstr ""
+"Famille de police introuvable dans la base de données des polices Quartz"
 
-#: devQuartz.c:1000
-#, fuzzy
-msgid "Quartz device is not available on this platform."
+#: devQuartz.c:1717
+msgid "Quartz device not available on this platform"
 msgstr "Périphérique Quartz non disponible sur cette architecture"
 
 #: devWindows.c:272 devWindows.c:316 devWindows.c:383
@@ -445,10 +451,6 @@ msgstr "Mémoire insuffisante pour copier la fenêtre graphique"
 #: devWindows.c:277 devWindows.c:321 devWindows.c:388
 msgid "No device available to copy graphics window"
 msgstr "Aucun périphérique disponible pour copier la fenêtre graphique"
-
-#: devWindows.c:555
-msgid "Invalid font specification"
-msgstr "Spécification de police incorrecte"
 
 #: devWindows.c:594
 msgid "Font family not found in Windows font database"
@@ -598,16 +600,3 @@ msgstr "impossible de démarrer périphérique devWindows"
 #: devWindows.c:3219
 msgid "recursive use of getGraphicsEvent not supported"
 msgstr "l'utilisation récursive de getGraphicsEvent n'est pas supportée"
-
-#~ msgid "invalid string argument"
-#~ msgstr "argument chaîne de caractère incorrect"
-
-#~ msgid "invalid width or height in quartz"
-#~ msgstr "largeur ou hauteur incorrecte dans quartz"
-
-#~ msgid "unable to start device Quartz"
-#~ msgstr "impossible de démarrer le périphérique Quartz"
-
-#~ msgid "Font family not found in Quartz font database"
-#~ msgstr ""
-#~ "Famille de police introuvable dans la base de données des polices Quartz"

@@ -1044,15 +1044,12 @@ static BBOX RenderSymbolStr(const char *str, int draw, mathContext *mc,
 
     if (str) {
 #ifdef SUPPORT_MBCS
-	/* Need to advance by character, not byte, except in the symbol font.
-	   The latter would be hard to achieve, but perhaps not impossible.
-	 */
-	if(mbcslocale && gc->fontface != 5) {
+	if(mbcslocale) {  /* need to advance by character, not byte */
 	    wchar_t wc;
 	    mbstate_t mb_st;
 	    size_t res;
 
-	    mbs_init(&mb_st);
+	    memset(&mb_st, 0, sizeof(mb_st));
 	    while (*s) {
 		wc = 0;
 		res = mbrtowc(&wc, s, MB_LEN_MAX, &mb_st);
@@ -1157,12 +1154,11 @@ static BBOX RenderChar(int ascii, int draw, mathContext *mc,
 static BBOX RenderStr(const char *str, int draw, mathContext *mc,
 		      R_GE_gcontext *gc, GEDevDesc *dd)
 {
-    BBOX glyphBBox = NullBBox(); /* might be use do italic corr on str="" */
+    BBOX glyphBBox;
     BBOX resultBBox = NullBBox();
 
     if (str) {
 #ifdef SUPPORT_MBCS
-	/* need to advance by character, not byte, except in the symbol font */
 	if(mbcslocale && gc->fontface != 5) {
 	    int n = strlen(str), used;
 	    wchar_t wc;
@@ -2447,7 +2443,7 @@ static BBOX RenderOpSymbol(SEXP op, int draw, mathContext *mc,
 static BBOX RenderOp(SEXP expr, int draw, mathContext *mc,
 		     R_GE_gcontext *gc, GEDevDesc *dd)
 {
-    BBOX lowerBBox = NullBBox() /* -Wall */, upperBBox = NullBBox(), bodyBBox;
+    BBOX lowerBBox, upperBBox, bodyBBox;
     double savedX = mc->CurrentX;
     double savedY = mc->CurrentY;
     int nexpr = length(expr);

@@ -3,8 +3,7 @@ rlibdir=${rhome}/lib
 rincludedir=@rincludedir
 
 Name: libR
-Description: R as a library
+Description: The R shared library
 Version: @VERSION
 Libs: -L${rlibdir} -lR
 Cflags: -I${rincludedir}
-Libs.private:@libsprivate

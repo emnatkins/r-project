@@ -97,7 +97,7 @@ function(dir, exts, all.files = FALSE, full.names = TRUE)
     patt <- paste("\\.(", paste(exts, collapse="|"), ")$", sep = "")
     files <- grep(patt, files, value = TRUE)
     if(full.names)
-        files <- if(length(files) > 0L)
+        files <- if(length(files) > 0)
             file.path(dir, files)
         else
             character(0)
@@ -158,7 +158,7 @@ function(file, topic)
     valid_lines <- lines <- readLines(file, warn = FALSE)
     valid_lines[is.na(nchar(lines, "c", TRUE))] <- ""
     patt <- paste("^% --- Source file:.*/", topic, ".Rd ---$", sep="")
-    if(length(top <- grep(patt, valid_lines)) != 1L)
+    if(length(top <- grep(patt, valid_lines)) != 1)
         stop("no or more than one match")
     eofs <- grep("^\\\\eof$", valid_lines)
     end <- min(eofs[eofs > top]) - 1
@@ -175,7 +175,7 @@ function(x, delim = c("{", "}"), syntax = "Rd")
     if(!is.character(x))
         stop("argument 'x' must be a character vector")
     ## FIXME: bytes or chars?
-    if((length(delim) != 2L) || any(nchar(delim) != 1L))
+    if((length(delim) != 2) || any(nchar(delim) != 1))
         stop("argument 'delim' must specify two characters")
     if(syntax != "Rd")
         stop("only Rd syntax is currently supported")
@@ -338,9 +338,9 @@ function(primitive = TRUE) # primitive means 'include primitives'
 function(dir)
 {
     nsInfo <- parseNamespaceFile(basename(dir), dirname(dir))
-    depends <- c(sapply(nsInfo$imports, "[[", 1L),
-                 sapply(nsInfo$importClasses, "[[", 1L),
-                 sapply(nsInfo$importMethods, "[[", 1L))
+    depends <- c(sapply(nsInfo$imports, "[[", 1),
+                 sapply(nsInfo$importClasses, "[[", 1),
+                 sapply(nsInfo$importMethods, "[[", 1))
     unique(sort(as.character(depends)))
 }
 
@@ -354,10 +354,10 @@ function(nsInfo)
     ## names of the generic, class and method (as a function).
     S3_methods_list <- nsInfo$S3methods
     if(!length(S3_methods_list)) return(matrix(character(), ncol = 3))
-    idx <- is.na(S3_methods_list[, 3L])
-    S3_methods_list[idx, 3L] <-
-        paste(S3_methods_list[idx, 1L],
-              S3_methods_list[idx, 2L],
+    idx <- is.na(S3_methods_list[, 3])
+    S3_methods_list[idx, 3] <-
+        paste(S3_methods_list[idx, 1],
+              S3_methods_list[idx, 2],
               sep = ".")
     S3_methods_list
 }
@@ -415,7 +415,6 @@ function(dir, installed = TRUE, primitive = FALSE)
             reqs <- intersect(c(depends, imports), loadedNamespaces())
             if(length(reqs))
                 env_list <- c(env_list, lapply(reqs, getNamespace))
-            ## note .packages give versioned names.
             reqs <- intersect(depends %w/o% loadedNamespaces(),
                               .packages())
             if(length(reqs))
@@ -571,22 +570,22 @@ function(fname, envir, mustMatch = TRUE)
     f <- get(fname, envir = envir, inherits = FALSE)
     if(!is.function(f)) return(FALSE)
     isUMEbrace <- function(e) {
-        for (ee in as.list(e[-1L])) if (nzchar(res <- isUME(ee))) return(res)
+        for (ee in as.list(e[-1])) if (nzchar(res <- isUME(ee))) return(res)
         ""
     }
     isUMEif <- function(e) {
-        if (length(e) == 3L) isUME(e[[3L]])
+        if (length(e) == 3) isUME(e[[3]])
         else {
-            if (nzchar(res <- isUME(e[[3L]]))) res
-            else if (nzchar(res <- isUME(e[[4L]]))) res
+            if (nzchar(res <- isUME(e[[3]]))) res
+            else if (nzchar(res <- isUME(e[[4]]))) res
             else ""
         }
 
     }
     isUME <- function(e) {
-        if (is.call(e) && (is.name(e[[1L]]) || is.character(e[[1L]]))) {
-            switch(as.character(e[[1L]]),
-                   UseMethod = as.character(e[[2L]]),
+        if (is.call(e) && (is.name(e[[1]]) || is.character(e[[1]]))) {
+            switch(as.character(e[[1]]),
+                   UseMethod = as.character(e[[2]]),
                    "{" = isUMEbrace(e),
                    "if" = isUMEif(e),
                    "")
@@ -764,7 +763,7 @@ function(packages = NULL, FUN, ...)
     ## priority.
     if(is.null(packages))
         packages <-
-            unique(utils::installed.packages(priority = "high")[ , 1L])
+            unique(utils::installed.packages(priority = "high")[ , 1])
     out <- lapply(packages, function(p)
                   tryCatch(FUN(p, ...),
                            error = function(e)
@@ -787,21 +786,6 @@ function(con)
         on.exit(close(con))
     }
     .try_quietly(readLines(con, warn=FALSE))
-}
-
-### ** .read_collate_field
-
-.read_collate_field <-
-function(txt)
-{
-    ## Read Collate specifications in DESCRIPTION files.
-    ## These consist of file paths relative to the R code directory,
-    ## separated by white space, possibly quoted.  Note that we could
-    ## have newlines in DCF entries but do not allow them in file names,
-    ## hence we gsub() them out.
-    con <- textConnection(gsub("\n", " ", txt))
-    on.exit(close(con))
-    scan(con, what = character(), strip.white = TRUE, quiet = TRUE)
 }
 
 ### ** .read_description
@@ -845,10 +829,10 @@ function(file, envir, enc = NA)
         on.exit(close(con))
     } else con <- file
     exprs <- parse(n = -1, file = con)
-    if(length(exprs) == 0L)
+    if(length(exprs) == 0)
         return(invisible())
     for(e in exprs) {
-        if(e[[1L]] == assignmentSymbolLM || e[[1L]] == assignmentSymbolEq)
+        if(e[[1]] == assignmentSymbolLM || e[[1]] == assignmentSymbolEq)
             eval(e, envir)
     }
     invisible()
@@ -857,26 +841,20 @@ function(file, envir, enc = NA)
 ### .source_assignments_in_code_dir
 
 .source_assignments_in_code_dir <-
-function(dir, env, meta = character())
+function(dir, env, enc = NA)
 {
     ## Combine all code files in @code{dir}, read and parse expressions,
-    ## and successively evaluate the top-level assignments in @code{env}.
+    ## and successively evaluated the top-level assignments in
+    ## @code{env}.
     con <- tempfile("Rcode")
     on.exit(unlink(con))
     if(!file.create(con))
         stop("unable to create ", con)
-    ## If the (DESCRIPTION) metadata contain a Collate specification,
-    ## use this for determining the code files and their order.
-    txt <- meta[c(paste("Collate", .OStype(), sep = "."), "Collate")]
-    ind <- which(!is.na(txt))
-    files <- if(any(ind))
-        Filter(function(x) file_test("-f", x),
-               file.path(dir, .read_collate_field(txt[ind[1L]])))
-    else
-        list_files_with_type(dir, "code")
-    if(!all(.file_append_ensuring_LFs(con, files)))
+    if(!all(.file_append_ensuring_LFs(con,
+                                      list_files_with_type(dir,
+                                                           "code"))))
         stop("unable to write code files")
-    tryCatch(.source_assignments(con, env, enc = meta["Encoding"]),
+    tryCatch(.source_assignments(con, env, enc = enc),
              error =
              function(e)
              stop("cannot source package code\n",
@@ -969,15 +947,15 @@ function(expr)
 function(args, msg)
 {
     len <- length(args)
-    if(len == 0L)
+    if(len == 0)
         character()
-    else if(len == 1L)
+    else if(len == 1)
         paste("argument", sQuote(args), msg)
     else
         paste("arguments",
-              paste(c(rep.int("", len - 1L), "and "),
+              paste(c(rep.int("", len - 1), "and "),
                     sQuote(args),
-                    c(rep.int(", ", len - 1L), ""),
+                    c(rep.int(", ", len - 1), ""),
                     sep = "", collapse = ""),
               msg)
 }

@@ -18,7 +18,6 @@ tkStartGUI <- function() {
     ## Philippe Grosjean: this is added for more explicit error message under Windows
     if (.Platform$OS.type == "windows")
     	stop("The tkGUI is not available under Windows")
-    tclServiceMode(FALSE)
     tcl("source", file.path(.Library, "tcltk", "exec", "console.tcl"))
     .C("RTcl_ActivateConsole", PACKAGE = "tcltk")
     Menu <- .Tk.newwin(".menu")
@@ -58,7 +57,7 @@ tkStartGUI <- function() {
 
     loadpackageWidget <- function()
     {
-	pkglist <- .packages(all.available=TRUE)
+	pkglist <- .packages(all=TRUE)
         lvar <- tclVar()
 	tclObj(lvar) <- pkglist
 	box <- tklistbox(tt<-tktoplevel(),
@@ -137,5 +136,4 @@ tkStartGUI <- function() {
     })
     #tkadd(helpMenu,"command", label=gettext("Help on topic..."), command=topicHelp)
     assign(".GUIenv", environment(), envir=.GlobalEnv)
-    tclServiceMode(TRUE)
 }

@@ -924,27 +924,14 @@ static SEXP assignCall(SEXP op, SEXP symbol, SEXP fun,
 }
 
 
-static R_INLINE Rboolean asLogicalNoNA(SEXP s, SEXP call)
+/* It might be a tad more efficient to make the non-error part of this
+   into a macro, especially for while loops. */
+static Rboolean asLogicalNoNA(SEXP s, SEXP call)
 {
-    Rboolean cond = NA_LOGICAL;
-
+    Rboolean cond = asLogical(s);
     if (length(s) > 1)
 	warningcall(call,
 		    _("the condition has length > 1 and only the first element will be used"));
-    if (length(s) > 0) {
-	/* inline common cases for efficiency */
-	switch(TYPEOF(s)) {
-	case LGLSXP: 
-	    cond = LOGICAL(s)[0];
-	    break;
-	case INTSXP:
-	    cond = INTEGER(s)[0]; /* relies on NA_INTEGER == NA_LOGICAL */
-	    break;
-	default:
-	    cond = asLogical(s);
-	}
-    }
-
     if (cond == NA_LOGICAL) {
 	char *msg = length(s) ? (isLogical(s) ?
 				 _("missing value where TRUE/FALSE needed") :

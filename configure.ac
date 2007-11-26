@@ -90,6 +90,15 @@ case "${host_os}" in
 esac
 AC_SUBST(R_OSTYPE)
 
+case "${host_os}" in
+  darwin9*) ## test for bad /bin/sh on Leopard
+    if test `echo '\eof'` != '\eof'; then
+      AC_MSG_RESULT([Note: forcing SHELL=/bin/bash, because ${SHELL} is incompatible])
+      SHELL=/bin/bash
+    fi
+    ;;
+esac
+
 ### ** Defaults.
 
 cfile="${srcdir}/config.site"
@@ -251,19 +260,6 @@ AC_ARG_ENABLE([R-shlib],
 [want_R_shlib="${enableval}"],
 [want_R_shlib="${want_R_framework}"])
 AM_CONDITIONAL(WANT_R_SHLIB, [test "x${want_R_shlib}" = xyes])
-
-AC_ARG_ENABLE([R-static-lib],
-[AC_HELP_STRING([--enable-R-static-lib],
-                [build the static library 'libR.a' @<:@no@:>@])],
-[want_R_static="${enableval}"],
-[want_R_static="no"])
-if test "x${want_R_static}" = xyes; then
-  if test "x${want_R_shlib}" = xyes; then
-    AC_WARN([--enable-R-static-lib conflicts with --enable-R-shlib and will be ignored])
-    want_R_static=no
-  fi
-fi
-AM_CONDITIONAL(WANT_R_STATIC, [test "x${want_R_static}" = xyes])
 
 ## Build separate shared library containing R's BLAS if desired 
 AC_ARG_ENABLE([BLAS-shlib],
@@ -643,11 +639,6 @@ eval "export ${shlibpath_var}"
 ltout=`./libtool --config | grep '^striplib='`
 eval "${ltout}"
 AC_SUBST(striplib)
-## record how to strip static libraries.
-ltout=`./libtool --config | grep '^old_striplib='`
-eval "${ltout}"
-stripstaticlib=${old_striplib}
-AC_SUBST(stripstaticlib)
 
 ## <NOTE>
 ## This actually comes from libtool.m4.
@@ -727,8 +718,8 @@ AC_CHECK_HEADERS(arpa/inet.h dl.h dlfcn.h elf.h fcntl.h floatingpoint.h \
   sys/time.h sys/times.h sys/utsname.h time.h unistd.h)
 ## </NOTE>
 ## <NOTE>
-## These are C99 headers but some C code (written to work also
-## without assuming C99) may need the corresponding conditionals.
+## These are ANSI C headers but some C code (written to work also
+## without assuming ANSI C) may need the corresponding conditionals.
 AC_CHECK_HEADERS(errno.h inttypes.h stdarg.h stdint.h string.h)
 ## </NOTE>
 ## <NOTE>
@@ -806,7 +797,6 @@ R_PROG_CXX_MAKEFRAG
 
 ### *** ObjC compiler
 
-R_PROG_OBJC_MAKEFRAG
 R_PROG_OBJC_RUNTIME
 R_OBJC_FOUNDATION
 
@@ -881,9 +871,9 @@ case "${host_os}" in
     ## Need '-no-cpp-precomp' say J de Leeuw <deleeuw@stat.ucla.edu> and
     ## http://fink.sourceforge.net/doc/porting/basics.php.
     if test "${GCC}" = yes; then
-      ## only old Apple builds of gcc support (and need?) -no-cpp-precomp
-      APPLEBLD=`${CC} --version|sed -n -e 's:.*Apple.*build \([0-9]\{1,\}\).*:\1:p' 2>/dev/null`
-      if test -n "${APPLEBLD}" -a "${APPLEBLD}" -lt 5300; then
+      ## only Apple build of gcc supports (and needs?) -no-cpp-precomp
+      ${CC} --version|grep Apple >/dev/null 2>/dev/null
+      if test $? == 0; then
         R_SH_VAR_ADD(R_XTRA_CPPFLAGS, [-no-cpp-precomp])
       fi
     fi
@@ -1239,26 +1229,6 @@ case "${host_os}" in
           R_SH_VAR_ADD(main_ldflags, [-mdynamic-no-pic]) ;;
       esac
     fi
-    ## some linkers are broken and need to be set to a specific
-    ## Mac OS X version to work better
-    case "${host_os}" in
-       darwin8*)
-          # this is the 'old' way and it doesn't work with recent gcc as the driver
-	  # prepends its own version
-	  ### darwin_min_flag='Wl,-macosx_version_min -Wl,10.4'
-	  # this is the 'new' way, but it's not clear which driver version
-	  # started to support it (Xcode 2.5 is known to work and 2.4 should)
-	  # A work-around for older Xcode is to set MACOSX_DEPLOYMENT_TARGET
-	  # environment variable. It has its own problems, but we may as well
-	  # honor it, assuming that it fixes things.
-	  if test -z "${MACOSX_DEPLOYMENT_TARGET}"; then
-	      darwin_min_flag='-mmacosx-version-min=10.4'
-	  fi
-	  ;;
-       *)
-	  darwin_min_flag=''
-	  ;;
-    esac
     case "${host_os}" in
       ## According to Jan de Leeuw, OS X 10.1 is darwin 5, OS X 10.2 is
       ## darwin 6, and the real difference is between darwin < and >= 5.
@@ -1289,10 +1259,8 @@ case "${host_os}" in
         ## FIXME: strictly speaking it should be "yes" but libRblas still
 	## needs -lgfortran because the sharing is a one-way street
         ## dylib_undefined_allowed=yes
-
-	## we have to test this in case an outdated linker or non-Apple compiler is used
 	AC_MSG_CHECKING([whether linker supports dynamic lookup])
-	shlib_ldflags="-dynamiclib -Wl,-headerpad_max_install_names ${darwin_min_flag} -undefined dynamic_lookup -single_module -multiply_defined suppress"
+	shlib_ldflags="-dynamiclib -Wl,-headerpad_max_install_names -Wl,-macosx_version_min -Wl,10.4 -undefined dynamic_lookup -single_module -multiply_defined suppress"
 	AC_CACHE_VAL([r_cv_has_dynlookup],[
 [cat > conftest.c <<EOF
   void dummy() { }
@@ -1659,27 +1627,20 @@ AC_CHECK_DECLS([alloca], , ,
 [#ifdef HAVE_ALLOCA_H
 # include <alloca.h>
 #endif])
-
-## C99 functions: we don't as yet require a C99 compiler/runtime
-## (and not everyone has one).
-R_CHECK_FUNCS([expm1 hypot log1p log2 log10 rint], [#include <math.h>])
-
 ## fseeko/ftello may be macros, matherr is redefined
 ## is.blank should be a macro according to C99
 AC_CHECK_FUNCS(fseeko ftello isblank matherr)
-
 R_CHECK_FUNCS([fcntl], [#include <fcntl.h>])
 R_CHECK_FUNCS([getgrgid], [#include <grp.h>])
+R_CHECK_FUNCS([expm1 hypot log1p log2 log10 rint], [#include <math.h>])
 R_CHECK_FUNCS([getpwuid], [#include <pwd.h>])
 R_CHECK_FUNCS([sigaction sigaltstack sigemptyset], [#include <signal.h>])
-## va_copy is C99
 R_CHECK_FUNCS([va_copy __va_copy], [#include <stdarg.h>])
 R_CHECK_FUNCS([fdopen popen], [#include <stdio.h>])
-## system is C89: [un]setenv are POSIX and BSD
 R_CHECK_FUNCS([setenv system unsetenv], [#include <stdlib.h>])
 R_CHECK_FUNCS([strcoll strerror], [#include <string.h>])
 R_CHECK_FUNCS([getrlimit getrusage], [#include <sys/resource.h>])
-R_CHECK_FUNCS([chmod mkfifo stat], [#include <sys/stat.h>])
+R_CHECK_FUNCS([mkfifo stat], [#include <sys/stat.h>])
 R_CHECK_FUNCS([gettimeofday], [#include <sys/time.h>])
 R_CHECK_FUNCS([times], [#include <sys/times.h>])
 R_CHECK_FUNCS([time], [#include <time.h>])
@@ -1687,25 +1648,17 @@ R_CHECK_FUNCS([access chdir execv ftruncate getcwd getuid symlink sysconf],
 [#ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif])
-## We need setenv or putenv.  It seems that everyone does have
-## putenv, as earlier versions of R would have failed without it.
-## It is not always declared, so we do not require a declaration.
+## We really need putenv, and make check fails without it so it seems
+## everyone has it, possibly not declared.
 AC_CHECK_FUNCS(putenv)
 AC_CHECK_DECLS([putenv], , , [#include <stdlib.h>])
 ## this is a GNU extension so usually hidden
 AC_CHECK_FUNCS(vasprintf)
 AC_CHECK_DECLS([vasprintf], , , [#include <stdio.h>])
-## mempcpy is a GNU extension used by regex.c.  That defines
-## _GNU_SOURCE, so should be declared on glibc systems.
-## gettext will also check for this.
-AC_CHECK_FUNCS(mempcpy)
-## realpath is a BSD extension. 
-## Some early GNU libc systems had it in unistd.h.
+## this is a BSD extension. Some systems have it in unistd.h.
 AC_CHECK_FUNCS(realpath)
 AC_CHECK_DECLS([realpath], , , [#include <stdlib.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif])
+#include <unistd.h>])
 
 R_CHECK_FUNCS([glob], [#ifdef HAVE_GLOB_H
 # include <glob.h>
@@ -1721,7 +1674,7 @@ fi
 
 
 ## <NOTE>
-## No need checking for bcopy bzero memcpy even though ifnames
+## No need checking for bcopy bzero memcpy mempcpy even though ifnames
 ## might report corresponding HAVE_FOO conditionals.
 ## </NOTE>
 
@@ -2463,8 +2416,6 @@ if test "${want_R_framework}" = yes; then
   R_SH_VAR_ADD(r_options, [framework], [, ])
 elif test "${want_R_shlib}" = yes; then
   R_SH_VAR_ADD(r_options, [shared R library], [, ])
-elif test "${want_R_static}" = yes; then
-  R_SH_VAR_ADD(r_options, [static R library], [, ])
 fi
 if test "${use_blas_shlib}" = yes; then
   R_SH_VAR_ADD(r_options, [shared BLAS], [, ])

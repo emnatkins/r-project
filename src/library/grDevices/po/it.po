@@ -139,15 +139,15 @@ msgstr "Registrazione endocing device non riuscita"
 msgid "Object .ps.prolog is not a character vector"
 msgstr "L'ogetto .ps.prolog non è un vettore di caratteri"
 
-#: devPS.c:2646 devPS.c:5737 devWindows.c:722
+#: devPS.c:2646 devPS.c:5737 devQuartz.c:1402 devWindows.c:722
 msgid "Invalid line end"
 msgstr "'line end' non valida"
 
-#: devPS.c:2665 devPS.c:5756 devWindows.c:735
+#: devPS.c:2665 devPS.c:5756 devQuartz.c:1422 devWindows.c:735
 msgid "Invalid line join"
 msgstr "'line join' non valida"
 
-#: devPS.c:2673
+#: devPS.c:2673 devQuartz.c:1432
 msgid "Invalid line mitre"
 msgstr "'line mitre' non valida"
 
@@ -418,23 +418,28 @@ msgstr "impossibile aprire dispositivo pdf"
 msgid "unable to start device PicTeX"
 msgstr "impossibile aprire dispositivo PicTeX"
 
-#: devQuartz.c:919
-#, fuzzy
-msgid "invalid Quartz device size"
-msgstr "dispositivo non valido in savePlot"
+#: devQuartz.c:457
+msgid "invalid string argument"
+msgstr "argomento stringa non valido"
 
-#: devQuartz.c:946
-#, fuzzy
-msgid "Unable to create device description."
-msgstr "impossibile aprire dispositivo PostScript"
+#: devQuartz.c:495
+msgid "invalid width or height in quartz"
+msgstr "'width' o 'height' non validi in quartz"
 
-#: devQuartz.c:976
-msgid "Unable to create Quartz device target, given type may not be supported."
-msgstr ""
+#: devQuartz.c:529
+msgid "unable to start device Quartz"
+msgstr "impossibile aprire device Quartz"
 
-#: devQuartz.c:1000
-#, fuzzy
-msgid "Quartz device is not available on this platform."
+#: devQuartz.c:1024 devWindows.c:555
+msgid "Invalid font specification"
+msgstr "Specificazione font non valida"
+
+#: devQuartz.c:1069
+msgid "Font family not found in Quartz font database"
+msgstr "Famiglia font non presente nel database font di Quartz"
+
+#: devQuartz.c:1717
+msgid "Quartz device not available on this platform"
 msgstr "Il dispositivo Quartz non è disponibile per questa piattaforma"
 
 #: devWindows.c:272 devWindows.c:316 devWindows.c:383
@@ -444,10 +449,6 @@ msgstr "Non c'è abbastanza memoria per copiare la finestra grafica"
 #: devWindows.c:277 devWindows.c:321 devWindows.c:388
 msgid "No device available to copy graphics window"
 msgstr "Nessun dispositivo disponibile per copiarci la finestra grafica"
-
-#: devWindows.c:555
-msgid "Invalid font specification"
-msgstr "Specificazione font non valida"
 
 #: devWindows.c:594
 msgid "Font family not found in Windows font database"
@@ -594,15 +595,3 @@ msgstr "impossibile aprire devWindows"
 #: devWindows.c:3219
 msgid "recursive use of getGraphicsEvent not supported"
 msgstr "l'uso ricorsivo di getGraphicsEvent non è ammesso"
-
-#~ msgid "invalid string argument"
-#~ msgstr "argomento stringa non valido"
-
-#~ msgid "invalid width or height in quartz"
-#~ msgstr "'width' o 'height' non validi in quartz"
-
-#~ msgid "unable to start device Quartz"
-#~ msgstr "impossibile aprire device Quartz"
-
-#~ msgid "Font family not found in Quartz font database"
-#~ msgstr "Famiglia font non presente nel database font di Quartz"

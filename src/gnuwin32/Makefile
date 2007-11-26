@@ -33,7 +33,7 @@ RLIB = $(RHOME)/library
 PKGDIR = $(RHOME)/src/library
 
 OPTFLAGS=-O3 -Wall -pedantic
-FOPTFLAGS=-O3
+FOPTFLAGS=-O3 -Wall
 ifdef DEBUG
  OPTFLAGS+=$(G_FLAG)
  FOPTFLAGS+=$(G_FLAG)
@@ -85,7 +85,6 @@ endif
 CPPFLAGS = -I../include -I. -I../extra -DHAVE_CONFIG_H -DR_DLL_BUILD
 CFLAGS = $(OPTFLAGS)
 FFLAGS = $(FOPTFLAGS)
-extra-CPPFLAGS = -I../library/grDevices/src
 
 Rpwd.exe: front-ends/Rpwd.exe
 	$(CP) $< $@
@@ -232,6 +231,9 @@ Rdll: makeMakedeps libRblas.dll.a ../../bin/R.dll
 	@$(MKDIR) -p ../../bin
 	$(CP) R.dll ../../bin/
 	@$(MKDIR) -p ./../modules/
+ifdef USE_UNICOWS
+	$(CP) unicode/opencow.dll ../../bin/
+endif
 
 FORCE:
 
@@ -518,8 +520,6 @@ vignettes:
 	    (echo "tools:::.install_package_vignettes(\"../library/$${pkg}\", \"../../library/$${pkg}\")") | R_DEFAULT_PACKAGES="utils,tools" $(REXE) > /dev/null; \
 	  fi; \
 	done
-	@rm -rf .vignettes
-
 
 ## ===================== Maintainer targets ========================
 

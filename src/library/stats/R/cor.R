@@ -16,6 +16,7 @@
 
 #### cor() , cov() and var() : Based on the same C code
 
+## cor() and cov() only differ by one single letter :
 cor <-
 function(x, y=NULL, use="all.obs", method = c("pearson", "kendall", "spearman"))
 {
@@ -33,13 +34,16 @@ function(x, y=NULL, use="all.obs", method = c("pearson", "kendall", "spearman"))
     }
     if(method == "pearson")
         .Internal(cor(x, y, na.method, method == "kendall"))
-    else if (na.method != 3L) {
+    else if (na.method != 3) {
 	## Rank transform
-	Rank <- function(u) {
-            ## take care not to drop dims on a 0-row matrix
-            if(length(u) == 0L) u else
-            if(is.matrix(u)) apply(u, 2L, rank, na.last="keep")
-            else rank(u, na.last="keep")
+	Rank <- function(u)
+	    if(is.matrix(u)) apply(u, 2, rank, na.last="keep")
+	    else rank(u, na.last="keep")
+
+        if (na.method == 2){ # complete.obs
+            ok <- complete.cases(x,y)
+            x <- if (is.matrix(x)) x[ok,] else x[ok]
+            if(!is.null(y)) y <- if(is.matrix(y)) y[ok,] else y[ok]
         }
 
 	x <- Rank(x)
@@ -52,39 +56,37 @@ function(x, y=NULL, use="all.obs", method = c("pearson", "kendall", "spearman"))
          if (is.null(y)) {
              ncy <- ncx <- ncol(x)
              r <- matrix(0, nrow=ncx, ncol=ncy)
-             ## 2.6.0 assumed the diagonal was 1, but not so for all NAs,
-             ## nor single non-NA pairs.
-             for (i in seq.int(1L, length.out = ncx)) {
-                 for (j in seq_len(i)) {
+             for (i in seq.int(2, length.out = ncx - 1)) {
+                 for (j in seq_len(i - 1)) {
                      x2 <- x[,i]
                      y2 <- x[,j]
                      ok <- complete.cases(x2, y2)
                      x2 <- rank(x2[ok])
                      y2 <- rank(y2[ok])
-                     ## we've removed all NAs
-                     r[i, j] <- if(any(ok)) .Internal(cor(x2, y2, 1L, method == "kendall")) else NA
+                     r[i, j] <- .Internal(cor(x2, y2, na.method, method == "kendall"))
                  }
              }
-             r <- r + t(r) - diag(diag(r))
+             r <- r+t(r)
+             diag(r) <- 1
 	     rownames(r) <- colnames(x)
 	     colnames(r) <- colnames(x)
              r
          }
          ## matrix x matrix
          else {
-	     if (!is.matrix(x)) x <- matrix(x, ncol=1L)
-	     if (!is.matrix(y)) y <- matrix(y, ncol=1L)
+	     if (!is.matrix(x)) x <- matrix(x, ncol=1)
+	     if (!is.matrix(y)) y <- matrix(y, ncol=1)
              ncx <- ncol(x)
              ncy <- ncol(y)
              r <- matrix(0, nrow=ncx, ncol=ncy)
-             for (i in 1L:ncx) {
-                 for (j in 1L:ncy) {
+             for (i in 1:ncx) {
+                 for (j in 1:ncy) {
                      x2 <- x[,i]
                      y2 <- y[,j]
                      ok <- complete.cases(x2, y2)
                      x2 <- rank(x2[ok])
                      y2 <- rank(y2[ok])
-                     r[i, j] <- if(any(ok)) .Internal(cor(x2, y2, 1L, method == "kendall")) else NA
+                     r[i, j] <- .Internal(cor(x2, y2, na.method, method == "kendall"))
                  }
              }
 	     rownames(r) <- colnames(x)
@@ -111,12 +113,16 @@ function(x, y=NULL, use="all.obs", method = c("pearson", "kendall", "spearman"))
     }
     if(method == "pearson")
         .Internal(cov(x, y, na.method, method == "kendall"))
-    else if (na.method != 3L) {
+    else if (na.method != 3) {
 	## Rank transform
-	Rank <- function(u) {
-            if(length(u) == 0) u else
-            if(is.matrix(u)) apply(u, 2, rank, na.last="keep")
-            else rank(u, na.last="keep")
+	Rank <- function(u)
+	    if(is.matrix(u)) apply(u, 2, rank, na.last="keep")
+	    else rank(u, na.last="keep")
+
+        if (na.method == 2){ # complete.obs
+            ok <- complete.cases(x,y)
+            x <- if (is.matrix(x)) x[ok,] else x[ok]
+            if(!is.null(y)) y <- if(is.matrix(y)) y[ok,] else y[ok]
         }
 
 	x <- Rank(x)
@@ -145,7 +151,7 @@ cov2cor <- function(V)
     ## ----------------------------------------------------------------------
     ## Author: Martin Maechler, Date: 12 Jun 2003, 11:50
     p <- (d <- dim(V))[1]
-    if(!is.numeric(V) || length(d) != 2L || p != d[2L])
+    if(!is.numeric(V) || length(d) != 2 || p != d[2])
 	stop("'V' is not a square numeric matrix")
     Is <- sqrt(1/diag(V)) # diag( 1/sigma_i )
     if(any(!is.finite(Is)))
@@ -153,6 +159,6 @@ cov2cor <- function(V)
     r <- V # keep dimnames
     r[] <- Is * V * rep(Is, each = p)
     ##	== D %*% V %*% D  where D = diag(Is)
-    r[cbind(1L:p,1L:p)] <- 1 # exact in diagonal
+    r[cbind(1:p,1:p)] <- 1 # exact in diagonal
     r
 }

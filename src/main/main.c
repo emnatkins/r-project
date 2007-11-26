@@ -739,9 +739,7 @@ void setup_Rmainloop(void)
 
     InitTempDir(); /* must be before InitEd */
     InitMemory();
-#ifdef USE_CHAR_HASHING
     InitStringHash(); /* must be before InitNames */
-#endif
     InitNames();
     InitBaseEnv();
     InitGlobalEnv();
@@ -1500,15 +1498,3 @@ R_addTaskCallback(SEXP f, SEXP data, SEXP useData, SEXP name)
 }
 
 #undef __MAIN__
-
-#ifndef Win32
-/* this is here solely to pull in xxxpr.o */
-#include <R_ext/RS.h>
-void F77_SYMBOL(intpr) (const char *, int *, int *, int *);
-void attribute_hidden dummy12345(void)
-{
-    int i = 0;
-    F77_CALL(intpr)("dummy", &i, &i, &i);
-}
-#endif
-

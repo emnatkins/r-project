@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-10-12 06:06\n"
+"POT-Creation-Date: 2007-09-17 10:18\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -356,10 +356,6 @@ msgstr "只适用于全数值数据框"
 msgid "character string is not in a standard unambiguous format"
 msgstr "字符串的格式不够标准明确"
 
-#, fuzzy
-msgid "'origin' must be supplied"
-msgstr "'from'一定得给值"
-
 msgid "do not know how to convert '%s' to class \"Date\""
 msgstr "不知如何将'%s'转换成\"Date\""
 
@@ -442,30 +438,32 @@ msgstr "不知如何将'%s'转换成\"POSIXlt\"类别"
 msgid "wrong class"
 msgstr "类别不对"
 
-#, fuzzy
-msgid "binary '+' is not defined for \"POSIXt\" objects"
+msgid "binary + is not defined for \"POSIXt\" objects"
 msgstr "二进列+法不适用于\"POSIXt\" 的对象"
 
 msgid "Can only subtract from POSIXt objects"
 msgstr "只能从POSIXt对象那儿减"
 
-#, fuzzy
-msgid "unary '-' is not defined for \"POSIXt\" objects"
+msgid "unary - is not defined for \"POSIXt\" objects"
 msgstr "一进列的-法对\"POSIXt\"对象不适用"
 
 msgid "can only subtract numbers from POSIXt objects"
 msgstr "只能从POSIXt对象那儿减数值"
 
-#, fuzzy
-msgid "unary '%s' not defined for \"POSIXt\" objects"
-msgstr "一进列的-法对\"POSIXt\"对象不适用"
+msgid "not defined for \"POSIXt\" objects"
+msgstr "对\"POSIXt\"对象不适用"
 
-#, fuzzy
-msgid "'%s' not defined for \"POSIXt\" objects"
+msgid "not defined for POSIXt objects"
 msgstr "对\"POSIXt\"对象不适用"
 
 msgid "'tzone' attributes are inconsistent"
 msgstr "'tzone'的屬性相互有矛盾"
+
+msgid "not defined for \"POSIXct\" objects"
+msgstr "对\"POSIXct\"对象不适用"
+
+msgid "not defined for \"POSIXlt\" objects"
+msgstr "对\"POSIXlt\"对象不适用"
 
 msgid "'tim' is not character or numeric"
 msgstr "'tim'不是字符，也不是数值"
@@ -476,12 +474,7 @@ msgstr "数值转换需要显式单元"
 msgid "invalid units specified"
 msgstr "单元设定不对"
 
-#, fuzzy
-msgid "unary '%s' not defined for \"difftime\" objects"
-msgstr "对\"difftime\"对象不适用"
-
-#, fuzzy
-msgid "'%s' not defined for \"difftime\" objects"
+msgid "not defined for \"difftime\" objects"
 msgstr "对\"difftime\"对象不适用"
 
 msgid "both arguments of * cannot be \"difftime\" objects"
@@ -601,18 +594,6 @@ msgstr "鏈結时没有可以读的文件"
 
 msgid "no files/directory to link to"
 msgstr "鏈結时没有可以写的文件/目錄"
-
-#, fuzzy
-msgid "'x' must be have length 1"
-msgstr "'input'的长度一定得为一"
-
-#, fuzzy
-msgid "invalid digits"
-msgstr "'digits'的值不对"
-
-#, fuzzy
-msgid "'x' cannot be coerced to 'octmode'"
-msgstr "不能强迫变表"
 
 msgid "'package' must be of length 1"
 msgstr "'package'的长度必需为一"
@@ -1436,11 +1417,11 @@ msgstr "无法運行'cmd'"
 msgid "'cmd' execution failed with error code %d"
 msgstr "'cmd'运行失败，错误码为%d"
 
-msgid "cannot find name space environment"
-msgstr "找不到名字空间环境"
-
 msgid "package '%s' has a non-function '.First.lib'"
 msgstr "程辑包'%s'有一个非函数的'.First.lib'"
+
+msgid "cannot find name space environment"
+msgstr "找不到名字空间环境"
 
 msgid "deparse option %s is not recognized"
 msgid_plural "deparse options %s are not recognized"
@@ -1478,15 +1459,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "警告信息：\n"
 msgstr[1] "警告信息：\n"
-
-#~ msgid "not defined for POSIXt objects"
-#~ msgstr "对\"POSIXt\"对象不适用"
-
-#~ msgid "not defined for \"POSIXct\" objects"
-#~ msgstr "对\"POSIXct\"对象不适用"
-
-#~ msgid "not defined for \"POSIXlt\" objects"
-#~ msgstr "对\"POSIXlt\"对象不适用"
 
 #~ msgid "'within' requires a name for its 'data' argument"
 #~ msgstr "'within'的'data'变元必需带个名字"

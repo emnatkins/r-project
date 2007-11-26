@@ -8,7 +8,8 @@
 require(tcltk) || stop("tcl/tk library not available")
 require(graphics); require(stats)
 local({
-    tclServiceMode(FALSE) # don't display until complete
+
+
     top <- tktoplevel()
     tktitle(top) <- "Plot Demonstration"
 
@@ -133,7 +134,6 @@ local({
                    line <<- plotLine()
                })
     tkbind(canvas, "<B1-Motion>", plotMove)
-    tclServiceMode(TRUE)
 
     cat("******************************************************\n",
         "The source for this demo can be found in the file:\n",

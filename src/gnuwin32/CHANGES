@@ -4,62 +4,6 @@
 	*	 See the file NEWS for changes that	 * 
 	*        affect all versions of R.		 *
 	*						 *
-	*	       2.7 SERIES NEWS			 *
-	*						 *
-	**************************************************
-	
-
-		CHANGES IN R VERSION 2.7.0
-
-
-WINDOWS VERSIONS
-
-    o	Versions of Windows older than 2000 are no longer supported
-	(specifically, 95, 98, ME, NT4).
-
-
-GUI CHANGES
-
-    o	The folder selection dialog used by choose.dir() and
-	File | Change dir now has a status line showing the currently
-	selected path.
-
-
-PACKAGE INSTALLATION
-
-    o	Using PKG_C[XX]FLAGS instead of PKG_CPPFLAGS for -I and -D
-	flags is now a fatal error.
-
-    o	INSTALL does selection of lazyloading or not via an initial
-	dummy installation, so large packages which cannot be
-	installed without lazyloading and do not specify it may
-	succeed when they did not earlier.
-
-    o	The header iconv.h is now installed, and can be used by
-	packages in conjunction with PKG_LIBS=-liconv .
-
-
-OTHERS
-
-    o	bitmap(), dev2bitmap() and embedfonts() now look at environment
-	variable GSC if R_GSCMD is unset.  (This is the variable used
-	by ps2pdf and similar batch files.)
-
-    o	win.version() and Sys.info() know about recent and upcoming
-	Windows versions, including if they are running on a 64-bit
-	platform.
-
-
-BUILDING R
-
-    o	Support for the ACML BLAS has been withdrawn (there is no
-	version of ACML 4.0.0 for gcc under Windows, and none at all
-	for gfortran).
-
-
-
-	**************************************************
-	*						 *
 	*	       2.6 SERIES NEWS			 *
 	*						 *
 	**************************************************
@@ -102,6 +46,7 @@ BUG FIXES
 	the script editor. (PR#10402)
  
 		
+
 
 		CHANGES IN R VERSION 2.6.0
 		

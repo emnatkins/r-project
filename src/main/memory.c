@@ -1187,7 +1187,7 @@ static void RunGenCollect(R_size_t size_needed)
     int i, gen, gens_collected;
     DevDesc *dd;
     RCNTXT *ctxt;
-    SEXP s;
+    SEXP s, t;
     SEXP forwarded_nodes;
 
     /* determine number of generations to collect */
@@ -1356,10 +1356,8 @@ static void RunGenCollect(R_size_t size_needed)
 
     DEBUG_CHECK_NODE_COUNTS("after processing forwarded list");
 
-#ifdef USE_CHAR_HASHING
     /* process CHARSXP cache */
     { 
-	SEXP t;
 	int nc = 0;
 	for (i = 0; i < LENGTH(R_StringHash); i++) {
 	    s = VECTOR_ELT(R_StringHash, i);
@@ -1384,7 +1382,6 @@ static void RunGenCollect(R_size_t size_needed)
     }
     FORWARD_NODE(R_StringHash);
     PROCESS_NODES();
-#endif
 
     /* release large vector allocations */
     ReleaseLargeFreeVectors();

@@ -138,15 +138,15 @@ msgstr ""
 msgid "Object .ps.prolog is not a character vector"
 msgstr ""
 
-#: devPS.c:2646 devPS.c:5737 devWindows.c:722
+#: devPS.c:2646 devPS.c:5737 devQuartz.c:1402 devWindows.c:722
 msgid "Invalid line end"
 msgstr ""
 
-#: devPS.c:2665 devPS.c:5756 devWindows.c:735
+#: devPS.c:2665 devPS.c:5756 devQuartz.c:1422 devWindows.c:735
 msgid "Invalid line join"
 msgstr ""
 
-#: devPS.c:2673
+#: devPS.c:2673 devQuartz.c:1432
 msgid "Invalid line mitre"
 msgstr ""
 
@@ -411,20 +411,28 @@ msgstr ""
 msgid "unable to start device PicTeX"
 msgstr ""
 
-#: devQuartz.c:919
-msgid "invalid Quartz device size"
+#: devQuartz.c:457
+msgid "invalid string argument"
 msgstr ""
 
-#: devQuartz.c:946
-msgid "Unable to create device description."
+#: devQuartz.c:495
+msgid "invalid width or height in quartz"
 msgstr ""
 
-#: devQuartz.c:976
-msgid "Unable to create Quartz device target, given type may not be supported."
+#: devQuartz.c:529
+msgid "unable to start device Quartz"
 msgstr ""
 
-#: devQuartz.c:1000
-msgid "Quartz device is not available on this platform."
+#: devQuartz.c:1024 devWindows.c:555
+msgid "Invalid font specification"
+msgstr ""
+
+#: devQuartz.c:1069
+msgid "Font family not found in Quartz font database"
+msgstr ""
+
+#: devQuartz.c:1717
+msgid "Quartz device not available on this platform"
 msgstr ""
 
 #: devWindows.c:272 devWindows.c:316 devWindows.c:383
@@ -433,10 +441,6 @@ msgstr ""
 
 #: devWindows.c:277 devWindows.c:321 devWindows.c:388
 msgid "No device available to copy graphics window"
-msgstr ""
-
-#: devWindows.c:555
-msgid "Invalid font specification"
 msgstr ""
 
 #: devWindows.c:594

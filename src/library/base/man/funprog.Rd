@@ -7,7 +7,6 @@
 \alias{Reduce}
 \alias{Filter}
 \alias{Map}
-\alias{Negate}
 \title{Common Higher-Order Functions in Functional Programming
   Languages}
 \description{
@@ -15,20 +14,17 @@
   elements of a given vector and a possibly given initial value.
   \code{Filter} extracts the elements of a vector for which a predicate
   (logical) function gives true.  \code{Map} applies a function to the
-  corresponding elements of given vectors.  \code{Negate} creates the
-  negation of a given function.
+  corresponding elements of given vectors.
 }
 \usage{
 Reduce(f, x, init, right = FALSE, accumulate = FALSE)
 Filter(f, x)
 Map(f, ...)
-Negate(f)
 }
 \arguments{
   \item{f}{a function of the appropriate arity (binary for
     \code{Reduce}, unary for \code{Filter}, \eqn{k}-ary for \code{Map}
-    if this is called with \eqn{k} arguments.  An arbitrary predicate
-    function for \code{Negate}.}
+    if this is called with \eqn{k} arguments.}
   \item{x}{a vector.}
   \item{init}{an \R object of the same kind as the elements of
     \code{x}.}
@@ -76,10 +72,6 @@ Negate(f)
   attempt to simplify the result, similar to Common Lisp's \code{mapcar}
   (with arguments being recycled, however).  Future versions may allow
   some control of the result type.
-
-  \code{Negate} corresponds to Common Lisp's \code{complement}.  Given a
-  (predicate) function \code{f}, it creates a function which returns the
-  logical negation of what \code{f} returns.
 }
 \examples{
 ## A general-purpose adder:
@@ -129,8 +121,5 @@ names(Filter(function(f) length(formals(args(f))) > 10, funs))
 length(Filter(function(f)
               any(names(formals(args(f))) \%in\% "..."),
               funs))
-
-## Find all objects in the base environment which are *not* functions:
-Filter(Negate(is.function),  sapply(ls(baseenv()), get, baseenv()))
 }
 \keyword{programming}

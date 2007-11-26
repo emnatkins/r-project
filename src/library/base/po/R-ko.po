@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-10-12 06:06\n"
+"POT-Creation-Date: 2007-09-17 10:18\n"
 "PO-Revision-Date: 2005-05-31 09:39+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -360,10 +360,6 @@ msgstr "모든 수치 또는 복소수값의 변수는 데이터 프레임에 �
 msgid "character string is not in a standard unambiguous format"
 msgstr "문자열은 표준적인 애매함이 없는 서식으로 되고있지 않습니다"
 
-#, fuzzy
-msgid "'origin' must be supplied"
-msgstr "'from'를 지정하지 않으면 되지 않습니다"
-
 msgid "do not know how to convert '%s' to class \"Date\""
 msgstr "%s를 class \"Date\"에 변환하는 방법을 모릅니다"
 
@@ -448,30 +444,32 @@ msgstr "'%s'를 class\"POSIXlt\"에 변경하는 방법을 모릅니다"
 msgid "wrong class"
 msgstr "잘못된 class입니다"
 
-#, fuzzy
-msgid "binary '+' is not defined for \"POSIXt\" objects"
+msgid "binary + is not defined for \"POSIXt\" objects"
 msgstr "\"POSIXt\" 오브젝트에는 2항연산 + 는 정의되어 있지 않습니다"
 
 msgid "Can only subtract from POSIXt objects"
 msgstr "POSIXt 오브젝트로부터 나눌수가 없습니다"
 
-#, fuzzy
-msgid "unary '-' is not defined for \"POSIXt\" objects"
+msgid "unary - is not defined for \"POSIXt\" objects"
 msgstr "단항연산 - 는 \"POSIXt\" 오브젝트에 대해서는 정의 되어 있지 않습니다"
 
 msgid "can only subtract numbers from POSIXt objects"
 msgstr "POSIXt 오브젝트로부터 나눌수가 없습니다"
 
-#, fuzzy
-msgid "unary '%s' not defined for \"POSIXt\" objects"
-msgstr "단항연산 - 는 \"POSIXt\" 오브젝트에 대해서는 정의 되어 있지 않습니다"
-
-#, fuzzy
-msgid "'%s' not defined for \"POSIXt\" objects"
+msgid "not defined for \"POSIXt\" objects"
 msgstr "\"POSIXt\" 오브젝트에 대해서는 정의 되어 있지 않습니다"
+
+msgid "not defined for POSIXt objects"
+msgstr "POSIXt 오브젝트에 대해서는 정의 되어 있지 않습니다"
 
 msgid "'tzone' attributes are inconsistent"
 msgstr ""
+
+msgid "not defined for \"POSIXct\" objects"
+msgstr "\"POSTIXct\" 오브젝트에 대해서는 정의 되어 있지 않습니다"
+
+msgid "not defined for \"POSIXlt\" objects"
+msgstr "\"POSIXt\" 오브젝트에 대해서는 정의 되어 있지 않습니다"
 
 #, fuzzy
 msgid "'tim' is not character or numeric"
@@ -484,12 +482,7 @@ msgstr ""
 msgid "invalid units specified"
 msgstr "무효인 'quote' 지정입니다"
 
-#, fuzzy
-msgid "unary '%s' not defined for \"difftime\" objects"
-msgstr "\"difftime\"오브젝트에 대해서는 정의 되어 있지 않습니다"
-
-#, fuzzy
-msgid "'%s' not defined for \"difftime\" objects"
+msgid "not defined for \"difftime\" objects"
 msgstr "\"difftime\"오브젝트에 대해서는 정의 되어 있지 않습니다"
 
 msgid "both arguments of * cannot be \"difftime\" objects"
@@ -614,18 +607,6 @@ msgstr "link 해야할 파일이 없습니다"
 
 msgid "no files/directory to link to"
 msgstr "link 해야할 파일 또는 디렉토리가 없습니다"
-
-#, fuzzy
-msgid "'x' must be have length 1"
-msgstr "'input'는 길이 1 이 나오지 않으면 되지 않습니다"
-
-#, fuzzy
-msgid "invalid digits"
-msgstr "무효인 'digits'입니다"
-
-#, fuzzy
-msgid "'x' cannot be coerced to 'octmode'"
-msgstr "테이블에 강제 변환 할수 없습니다"
 
 msgid "'package' must be of length 1"
 msgstr "'package'는 길이 1이 나오지 않으면 되지 않습니다"
@@ -1487,12 +1468,12 @@ msgid "'cmd' execution failed with error code %d"
 msgstr "'cmd'의 실행은 에러부호 %d로 실패했습니다"
 
 #, fuzzy
-msgid "cannot find name space environment"
-msgstr "이름 공간이 아닙니다"
-
-#, fuzzy
 msgid "package '%s' has a non-function '.First.lib'"
 msgstr "패케지'%s'는 '%s'에 병합되었습니다"
+
+#, fuzzy
+msgid "cannot find name space environment"
+msgstr "이름 공간이 아닙니다"
 
 msgid "deparse option %s is not recognized"
 msgid_plural "deparse options %s are not recognized"
@@ -1542,15 +1523,6 @@ msgid_plural "Warning messages:\n"
 msgstr[0] ""
 "경고 메세지:\n"
 "경고 메세지(복수)\n"
-
-#~ msgid "not defined for POSIXt objects"
-#~ msgstr "POSIXt 오브젝트에 대해서는 정의 되어 있지 않습니다"
-
-#~ msgid "not defined for \"POSIXct\" objects"
-#~ msgstr "\"POSTIXct\" 오브젝트에 대해서는 정의 되어 있지 않습니다"
-
-#~ msgid "not defined for \"POSIXlt\" objects"
-#~ msgstr "\"POSIXt\" 오브젝트에 대해서는 정의 되어 있지 않습니다"
 
 #, fuzzy
 #~ msgid "'data' must exist"

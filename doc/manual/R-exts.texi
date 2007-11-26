@@ -148,8 +148,8 @@ A package consists of a subdirectory containing a file
 @file{src}, and @file{tests} (some of which can be missing).  The
 package subdirectory may also contain files @file{INDEX},
 @file{NAMESPACE}, @file{configure}, @file{cleanup}, @file{LICENSE},
-@file{LICENCE}, @file{COPYING} and @file{NEWS}.  Other files such as
-@file{README} or @file{ChangeLog} will be ignored by @R{}, but may be
+@file{LICENCE}, and @file{COPYING}.  Other files such as @file{README},
+@file{NEWS} or @file{ChangeLog} will be ignored by @R{}, but may be
 useful to end-users.
 
 The @file{DESCRIPTION} and @file{INDEX} files are described in the
@@ -177,10 +177,6 @@ please do not arrange to install yet another copy of the @acronym{GNU}
 @url{http://www.r-project.org/Licenses/} and included in the @R{}
 distribution (in directory @file{share/licenses}).
 
-For the conventions for files @file{NEWS} and @file{ChangeLog} in the
-GNU project see
-@uref{http://www.gnu.org/prep/standards/standards.html#Documentation}.
-
 The package subdirectory should be given the same name as the package.
 Because some file systems (e.g., those on Windows) are not
 case-sensitive, to maintain portability it is strongly recommended that
@@ -190,21 +186,16 @@ package named @file{Foo}.
 
 To ensure that file names are valid across file systems and supported
 operating system platforms, the @acronym{ASCII} control characters as
-well as the characters @samp{"}, @samp{*}, @samp{:}, @samp{/},
-@samp{<}, @samp{>}, @samp{?}, @samp{\}, and @samp{|} are not allowed
-in file names.  In addition, files with names @samp{con}, @samp{prn},
+well as the characters @samp{"}, @samp{*}, @samp{:}, @samp{/}, @samp{<},
+@samp{>}, @samp{?}, @samp{\}, and @samp{|} are not allowed in file
+names.  In addition, files with names @samp{con}, @samp{prn},
 @samp{aux}, @samp{clock$}, @samp{nul}, @samp{com1} to @samp{com9}, and
-@samp{lpt1} to @samp{lpt9} after conversion to lower case and
-stripping possible ``extensions'' (e.g., @samp{lpt5.foo.bar}), are
-disallowed.  Also, file names in the same directory must not differ
-only by case (see the previous paragraph).  In addition, the names of
-@samp{.Rd} files will be used in URLs and so must be @acronym{ASCII}
-and not contain @code{%}.  For maximal portability filenames should
-only contain only @acronym{ASCII} characters not excluded already
-(that is @code{A-Za-z0-9._!#$%&+,;=@@^()@{@}'[]} we exclude space as 
-many utilities do not accept spaces in file paths): non-English alphabetic
-characters cannot be guaranteed to be supported in all locales.  It would
-be good practice to avoid the shell metacharacters @code{()@{@}'[]$}.
+@samp{lpt1} to @samp{lpt9} after conversion to lower case and stripping
+possible ``extensions'' (e.g., @samp{lpt5.foo.bar}), are disallowed.
+Also, file names in the same directory must not differ only by case (see
+the previous paragraph).  In addition, the names of @samp{.Rd} files
+will be used in URLs and so must be @acronym{ASCII} and not contain
+@code{%}.
 
 The @R{} function @code{package.skeleton} can help to create the
 structure for a new package: see its help page for details.
@@ -624,18 +615,14 @@ interfere with those used by @R{} (currently, @file{R}, @file{data},
 @file{html}, @file{latex}, @file{R-ex}, @file{chtml}, and @file{Meta}).
 The copying of the @file{inst} happens after @file{src} is built so its
 @file{Makefile} can create files to be installed.  Note that with the
-exceptions of @file{INDEX}, @file{LICENSE}/@file{LICENCE},
-@file{COPYING} and @file{NEWS} (from @R{} 2.7.0), information files at
-the top level of the package will @emph{not} be installed and so not be
-known to users of Windows and MacOS X compiled packages (and not seen by
-those who use @command{R CMD INSTALL} or @command{install.packages} on
-the tarball).  So any information files you wish an end user to see
-should be included in @file{inst}.  One thing you might like to add to
-@file{inst} is a @file{CITATION} file for use by the @code{citation}
-function.  Note that if the named exceptions also occur in @file{inst},
-the version in @file{inst} will be that seen in the installed package.
-If you want @file{NEWS} to be installed by your package in earlier
-versions of @R{}, you need to include it in @file{inst}.
+exceptions of @file{INDEX}, @file{LICENSE}/@file{LICENCE} and
+@file{COPYING}, information files at the top level of the package will
+@emph{not} be installed and so not be known to users of Windows and
+MacOS X compiled packages (and not seen by those who use @command{R CMD
+INSTALL} or @command{install.packages} on the tarball).  So any
+information files you wish an end user to see should be included in
+@file{inst}.  One thing you might like to add to @file{inst} is a
+@file{CITATION} file for use by the @code{citation} function.
 
 Subdirectory @file{tests} is for additional package-specific test code,
 similar to the specific tests that come with the @R{} distribution.
@@ -767,7 +754,7 @@ AC_OUTPUT
 @end example
 
 @noindent
-in @file{configure.ac} (assuming Autoconf 2.50 or later).
+in @file{configure.ac} (assuming Autoconf 2.50 or better).
 
 The definition of the respective @R{} function in @file{foo.R.in} could be
 
@@ -1308,10 +1295,11 @@ intention were to always use a @code{PACKAGE} argument)
 
 @item
 The Rd files are checked for correct syntax and meta data, including the
-presence of the mandatory (@code{\name}, @code{\alias}, @code{\title}
-and @code{\description}) fields.  The Rd name and title are checked for
-being non-empty, and the keywords found are compared to the standard
-ones.  There is a check for missing cross-references (links).
+presence of the mandatory (@code{\name}, @code{\alias}, @code{\title},
+@code{\description} and @code{\keyword}) fields.  The Rd name and title
+are checked for being non-empty, and the keywords found are compared to
+the standard ones.  There is a check for missing cross-references
+(links).
 
 @item
 A check is made for missing documentation entries, such as undocumented
@@ -2222,10 +2210,6 @@ being imported from more than one namespace.
 * Encoding issues::             
 @end menu
 
-Portable packages should have simple file names: use only alphanumeric
-@acronym{ASCII} characters and @code{.}, and avoid those names not
-allowed under Windows which are mentioned above.
-
 @code{R CMD check} provides a basic set of checks, but often further
 problems emerge when people try to install and use packages submitted to
 @acronym{CRAN} -- many of these involve compiled code.  Here are some
@@ -2371,7 +2355,7 @@ locale via an environment variable.  The default is equivalent setting
 @end example
 
 @noindent
-(which is appropriate for a system based on @code{glibc}) except if the
+which is appropriate for a system based on @code{glibc}, except if the
 current locale is UTF-8 and @samp{iconv} is available, when the
 package code is translated to UTF-8 for syntax checking.
 
@@ -2549,14 +2533,13 @@ settings).
 @subsection R messages
 
 Mechanisms to support the automatic translation of @R{} @code{stop},
-@code{warning} and @code{message} messages are in place, most easily
-if the package has a name space.  They make use of message catalogs in
-the same way as C-level messages, but using domain @code{R-@var{pkg}}
-rather than @code{@var{pkg}}.  Translation of character strings inside
-@code{stop}, @code{warning} and @code{message} calls is automatically
-enabled, as well as other messages enclosed in calls to @code{gettext}
-or @code{gettextf}.  (To suppress this, use argument
-@code{domain=NA}.)
+@code{warning} and @code{message} messages are in place, provided the
+package has a name space.  They make use of message catalogs in the same
+way as C-level messages, but using domain @code{R-@var{pkg}} rather than
+@code{@var{pkg}}.  Translation of character strings inside @code{stop},
+@code{warning} and @code{message} calls is automatically enabled, as
+well as other messages enclosed in calls to @code{gettext} or
+@code{gettextf}.  (To suppress this, use argument @code{domain=NA}.)
 
 Tools to prepare the @file{R-@var{pkg}.pot} file are provided in package
 @pkg{tools}: @code{xgettext2pot} will prepare a file from all strings
@@ -3037,9 +3020,9 @@ Each @code{\keyword} entry should specify one of the standard keywords
 as listed in file @file{KEYWORDS} in the R documentation directory
 (default @file{@var{R_HOME}/doc}).  Use e.g.@:
 @code{file.show(file.path(R.home("doc"), "KEYWORDS"))} to inspect the
-standard keywords from within R.  There can be more than @code{\keyword}
-entry if the @R{} object being documented falls into more than one
-category.
+standard keywords from within R.  There must be at least one
+@code{\keyword} entry, but can be more than one if the @R{} object being
+documented falls into more than one category.
 
 The special keyword @samp{internal} marks a page of internal objects
 that are not part of the packages' API. If the help page for object
@@ -5434,11 +5417,11 @@ brief, high-level introduction in @emph{R News} (volume 1/3, September
 @c Omegahat Web site at @url{http://www.omegahat.org/GccTranslationUnit/}
 @c for more information.
 
-In addition to registering C routines to be called by @R{}, it can at
-times be useful for one package to make some of its C routines available
-to be called by C code in another package.  An interface to support this
-has been provided since @R{} 2.4.0.  The interface consists of two
-routines declared as
+In addition to registering C routines to be called by @R{}, it can at times
+be useful for one package to make some of its C routines available to be
+called by C code in another package.  An experimental interface to
+support this has been provided in @R{} 2.4.0.  The interface consists of
+two routines declared as
 
 @findex R_RegisterCCallable
 @findex R_GetCCallable
@@ -7486,12 +7469,12 @@ The vector accessors like @code{REAL} and @code{INTEGER} and
 from @code{SET_STRING_ELT} and @code{SET_VECTOR_ELT} which are always
 functions.)
 
-The accessor functions check that they are being used on an appropriate
-type of @code{SEXP}.  By default a certain amount of misuse is allowed
-where the internal representation is the same: for example
-@code{LOGICAL} can be used on a @code{INTSXP} and @code{SET_VECTOR_ELT}
-on a @code{STRSXP}.  Strict checking can be enabled by compiling @R{}
-(specifically @file{src/main/memory.c}) with
+As from @R{} 2.4.0 the accessor functions check that they are being used
+on an appropriate type of @code{SEXP}.  By default a certain amount of
+misuse is allowed where the internal representation is the same: for
+example @code{LOGICAL} can be used on a @code{INTSXP} and
+@code{SET_VECTOR_ELT} on a @code{STRSXP}.  Strict checking can be
+enabled by compiling @R{} (specifically @file{src/main/memory.c}) with
 @samp{USE_TYPE_CHECKING_STRICT} defined (e.g. in as the configure
 variable @samp{DEFS} on a Unix-alike).
 
@@ -8893,9 +8876,9 @@ The following headers are included by @file{R.h}:
 @end quotation
 
 The graphics systems are exposed in headers @file{Rdevices.h} (for
-writing graphics devices), @file{Rgraphics.h},
-@file{R_ext/Graphics@{Base,Device,Engine@}.h} and
-@file{R_ext/QuartzDevice.h}.  Some entry points from the @pkg{stats}
+writing graphics devices), @file{Rgraphics.h} and
+@file{R_ext/Graphics@{Base,Device,Engine@}.h}.
+Some entry points from the @pkg{stats}
 package are in @file{R_ext/stats_package.h} (currently related to the
 internals of @samp{nls} and @samp{nlminb}).
 
@@ -9096,15 +9079,12 @@ X this is a @emph{dynamic} library, and is the normal way to build @R{} on
 that platform.} if configured with @option{--enable-R-shlib}.  This
 shared library can be used to run @R{} from alternative front-end
 programs.  We will assume this has been done for the rest of this
-section.  In addition, from @R{} 2.7.0 it can be built as a static
-library if configured with @option{--enable-R-static-lib}, and this can
-be used in a very similar way.
+section.
 
 The command-line @R{} front-end, @file{@var{R_HOME}/bin/exec/R} is one
-such example, and the unbundled @acronym{GNOME} (see package
-@pkg{gnomeGUI} on CRAN) and MacOS X consoles are others.  The source for
-@file{@var{R_HOME}/bin/exec/R} is in file @file{src/main/Rmain.c} and is
-very simple
+such example, and the unbundled @acronym{GNOME} and MacOS X consoles are
+others.  The source for @file{@var{R_HOME}/bin/exec/R} is in file
+@file{src/main/Rmain.c} and is very simple
 
 @example
 int Rf_initialize_R(int ac, char **av); /* in ../unix/system.c */
@@ -9222,18 +9202,18 @@ cleaned up when @R{} is shut down.
 change this.
 
 @menu
-* Compiling against the R library::  
+* Compiling against the R shared library::  
 * Setting R callbacks::         
 * Registering symbols::         
 * Meshing event loops::         
 * Threading issues::            
 @end menu
 
-@node Compiling against the R library, Setting R callbacks, Embedding R under Unix-alikes, Embedding R under Unix-alikes
-@subsection Compiling against the R library
+@node Compiling against the R shared library, Setting R callbacks, Embedding R under Unix-alikes, Embedding R under Unix-alikes
+@subsection Compiling against the R shared library
 
-Suitable flags to compile and link against the @R{} (shared or static)
-library can be found by
+Suitable flags to compile and link against the @R{} shared library
+can be found by
 
 @example
 R CMD config --cppflags
@@ -9241,23 +9221,16 @@ R CMD config --ldflags
 @end example
 
 If @R{} is installed, @code{pkg-config} is available and
-sub-architectures have not be used, alternatives for a shared @R{}
-library are
+sub-architectures have not be used, alternatives are
 
 @example
 pkg-config --cflags libR
 pkg-config --libs libR
 @end example
 
-@noindent
-and for a static @R{} library
 
-@example
-pkg-config --cflags libR
-pkg-config --libs --static libR
-@end example
 
-@node Setting R callbacks, Registering symbols, Compiling against the R library, Embedding R under Unix-alikes
+@node Setting R callbacks, Registering symbols, Compiling against the R shared library, Embedding R under Unix-alikes
 @subsection Setting R callbacks
 
 For Unix-alkes there is a public header file @file{Rinterface.h} that

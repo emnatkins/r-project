@@ -37,6 +37,7 @@
 #include <windows.h>
 #include "graphapp/ga.h"
 #include "rui.h"
+extern __declspec(dllimport) int  GA_isNT;
 
 SEXP do_flushconsole(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -45,66 +46,96 @@ SEXP do_flushconsole(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 #include <winbase.h>
-
-typedef void (WINAPI *PGNSI)(LPSYSTEM_INFO);
+/* typedef struct _OSVERSIONINFO{
+    DWORD dwOSVersionInfoSize;
+    DWORD dwMajorVersion;
+    DWORD dwMinorVersion;
+    DWORD dwBuildNumber;
+    DWORD dwPlatformId;
+    TCHAR szCSDVersion[ 128 ];
+    } OSVERSIONINFO; */
 
 SEXP do_winver(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    char ver[256];
-    OSVERSIONINFOEX osvi;
+    char isNT[8]="??", ver[256];
+    OSVERSIONINFO verinfo;
 
     checkArity(op, args);
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-    if(!GetVersionEx((OSVERSIONINFO *)&osvi))
-	error(_("unsupported version of Windows"));
-
-    /* see http://msdn2.microsoft.com/en-us/library/ms724429.aspx
-       for ways to get more info.
-       Pre-NT versions are all 4.x, so no need to separate test.
-    */
-    if(osvi.dwMajorVersion >= 5) {
-	char *desc = "", *type="";
-	PGNSI pGNSI;
-	SYSTEM_INFO si;
-	if(osvi.dwMajorVersion > 6) { /* future proof */
-	    sprintf(ver, "Windows %d.%d (build %d)",
-		    (int) osvi.dwMajorVersion, (int) osvi.dwMinorVersion,
-		    LOWORD(osvi.dwBuildNumber));
-	} else if(osvi.dwMajorVersion == 6) {
-	    if(osvi.wProductType == VER_NT_WORKSTATION) desc = "Vista";
-	    else desc = "Server 2008";
-	} else if(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 0)
-	    desc = "2000";
-	else if(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 1)
-	    desc = "XP";
-	else if(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 2) {
-	    if(osvi.wProductType == VER_NT_WORKSTATION)
-		desc = "XP Professional";
-	    else
-		desc = "Server 2003";
+    verinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    GetVersionEx(&verinfo);
+    switch(verinfo.dwPlatformId) {
+    case VER_PLATFORM_WIN32_NT:
+	strcpy(isNT, "NT");
+	break;
+    case VER_PLATFORM_WIN32_WINDOWS:
+	switch(verinfo.dwMinorVersion ) {
+	case 0:
+	    strcpy(isNT, "95");
+	    if (verinfo.szCSDVersion[1] == 'C') strcat(isNT, " OSR2" );
+	    break;
+	case 10:
+	    strcpy(isNT, "98");
+	    if (verinfo.szCSDVersion[1] == 'A') strcat(isNT, " SE" );
+	    break;
+	case 90:
+	    strcpy(isNT, "ME");
+	    break;
+	default:
+	    strcpy(isNT, "9x");
 	}
-	pGNSI = (PGNSI)
-	    GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")),
-			   "GetNativeSystemInfo");
-	if(NULL != pGNSI) pGNSI(&si); else GetSystemInfo(&si);
-	if(si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64)
-	    type = " x64";
-	
-	if(osvi.wServicePackMajor > 0)
+	break;
+    case VER_PLATFORM_WIN32s:
+	strcpy(isNT, "win32s");
+	break;
+    default:
+	sprintf(isNT, "ID=%d", (int)verinfo.dwPlatformId);
+	break;
+    }
+
+    if((int)verinfo.dwMajorVersion >= 5) {
+	OSVERSIONINFOEX osvi;
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+	if(GetVersionEx((OSVERSIONINFO *)&osvi)) {
+	    char tmp[]="", *desc= tmp, *type = tmp;
+	    if(osvi.dwMajorVersion == 6)
+		desc = "Vista";
+	    if(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 0)
+		desc = "2000";
+	    if(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 1)
+		desc = "XP";
+	    if(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 2)
+		desc = "Sever 2003";
+            if ( osvi.wProductType == VER_NT_WORKSTATION ) {
+               if( osvi.wSuiteMask & VER_SUITE_PERSONAL ) type = " Home";
+            } else if ( osvi.wProductType == VER_NT_SERVER )
+            {
+               if ( osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 1 )
+		   desc = " .NET";
+               if( osvi.wSuiteMask & VER_SUITE_DATACENTER )
+		   type = " DataCenter Server";
+               else if( osvi.wSuiteMask & VER_SUITE_ENTERPRISE )
+		   type = " Advanced Server";
+               else if ( osvi.wSuiteMask == VER_SUITE_BLADE )
+		   type = " Web Server";
+               else
+		   type = " Server";
+            }
+
 	    sprintf(ver,
-		    "Windows %s%s (build %d) Service Pack %d",
+		    "Windows %s%s (build %d) Service Pack %d.%d",
 		    desc, type,
 		    LOWORD(osvi.dwBuildNumber),
-		    (int) osvi.wServicePackMajor);
-	else
-	    sprintf(ver,
-		    "Windows %s%s (build %d)",
-		    desc, type,
-		    LOWORD(osvi.dwBuildNumber));
-    } else { /* should not get here */
-	sprintf(ver, "Windows %d.%d (build %d) %s",
-		(int) osvi.dwMajorVersion, (int) osvi.dwMinorVersion,
-		LOWORD(osvi.dwBuildNumber), osvi.szCSDVersion);
+		    (int)osvi.wServicePackMajor,
+		    (int)osvi.wServicePackMinor);
+	} else {
+	    sprintf(ver, "Windows 2000 %d.%d (build %d) %s",
+		    (int)verinfo.dwMajorVersion, (int)verinfo.dwMinorVersion,
+		    LOWORD(verinfo.dwBuildNumber), verinfo.szCSDVersion);
+	}
+    } else {
+	sprintf(ver, "Windows %s %d.%d (build %d) %s", isNT,
+		(int)verinfo.dwMajorVersion, (int)verinfo.dwMinorVersion,
+		LOWORD(verinfo.dwBuildNumber), verinfo.szCSDVersion);
     }
 
     return mkString(ver);
@@ -125,7 +156,7 @@ void internal_shellexec(const char * file)
 	   || ret == SE_ERR_FNF || ret == SE_ERR_PNF)
 	    error(_("'%s' not found"), file);
 	if(ret == SE_ERR_ASSOCINCOMPLETE || ret == SE_ERR_NOASSOC)
-	    error(_("file association for '%s' not available or invalid"),
+	    error(_("file association for '%s' not available or invalid"), 
 		  file);
 	if(ret == SE_ERR_ACCESSDENIED || ret == SE_ERR_SHARE)
 	    error(_("access to '%s' denied"), file);
@@ -171,7 +202,7 @@ SEXP do_windialog(SEXP call, SEXP op, SEXP args, SEXP env)
     checkArity(op, args);
     type = CHAR(STRING_ELT(CAR(args), 0));
     message = CADR(args);
-    if(!isString(message) || length(message) != 1 ||
+    if(!isString(message) || length(message) != 1 || 
        strlen(CHAR(STRING_ELT(message, 0))) > 255)
 	error(_("invalid '%s' argument"), "message");
     if (strcmp(type, "ok")  == 0) {
@@ -196,7 +227,7 @@ SEXP do_windialogstring(SEXP call, SEXP op, SEXP args, SEXP env)
 
     checkArity(op, args);
     message = CAR(args);
-    if(!isString(message) || length(message) != 1 ||
+    if(!isString(message) || length(message) != 1 || 
        strlen(CHAR(STRING_ELT(message, 0))) > 255)
 	error(_("invalid '%s' argument"), "message");
     def = CADR(args);
@@ -384,13 +415,13 @@ SEXP do_addhistory(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP stamp;
     int i;
-
+    
     checkArity(op, args);
     stamp = CAR(args);
     if (!isString(stamp))
     	errorcall(call, _("invalid timestamp"));
-    if (CharacterMode == RGui || (R_Interactive && CharacterMode == RTerm))
-	for (i = 0; i < LENGTH(stamp); i++)
+    if (CharacterMode == RGui || (R_Interactive && CharacterMode == RTerm))  	
+	for (i = 0; i < LENGTH(stamp); i++) 
 	    gl_histadd(CHAR(STRING_ELT(stamp, i)));
     return R_NilValue;
 }
@@ -413,64 +444,42 @@ SEXP do_loadRconsole(SEXP call, SEXP op, SEXP args, SEXP env)
 	errorcall(call, _("'loadRconsole' can only be used in Rgui"));
     return R_NilValue;
 }
-
+    
 #include <lmcons.h>
 
 SEXP do_sysinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans, ansnames;
-    OSVERSIONINFOEX osvi;
-    char ver[256], name[MAX_COMPUTERNAME_LENGTH + 1], user[UNLEN+1];
+    OSVERSIONINFO verinfo;
+    char isNT[8]="??", ver[256],
+	name[MAX_COMPUTERNAME_LENGTH + 1], user[UNLEN+1];
     DWORD namelen = MAX_COMPUTERNAME_LENGTH + 1, userlen = UNLEN+1;
 
     checkArity(op, args);
     PROTECT(ans = allocVector(STRSXP, 7));
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-    if(!GetVersionEx((OSVERSIONINFO *)&osvi))
-	error(_("unsupported version of Windows"));
+    verinfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    GetVersionEx(&verinfo);
+    switch(verinfo.dwPlatformId) {
+    case VER_PLATFORM_WIN32_NT:
+	strcpy(isNT, "NT");
+	break;
+    case VER_PLATFORM_WIN32_WINDOWS:
+	strcpy(isNT, "9x");
+	break;
+    case VER_PLATFORM_WIN32s:
+	strcpy(isNT, "win32s");
+	break;
+    default:
+	sprintf(isNT, "ID=%d", (int)verinfo.dwPlatformId);
+	break;
+    }
 
     SET_STRING_ELT(ans, 0, mkChar("Windows"));
-
-    /* Here for unknown future versions */
-    sprintf(ver, "%d.%d", (int)osvi.dwMajorVersion, (int)osvi.dwMinorVersion);
-
-    if((int)osvi.dwMajorVersion >= 5) {
-	PGNSI pGNSI;
-	SYSTEM_INFO si;
-	if(osvi.dwMajorVersion == 6) {
-	    if(osvi.wProductType == VER_NT_WORKSTATION)
-		strcpy(ver, "Vista");
-	    else
-		strcpy(ver, "Server 2008");
-	}
-	if(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 0)
-	    strcpy(ver, "2000");
-	if(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 1)
-	    strcpy(ver, "XP");
-	if(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 2) {
-	    if(osvi.wProductType == VER_NT_WORKSTATION)
-		strcpy(ver, "XP Professional");
-	    else strcpy(ver, "Server 2003");
-	}
-	/* GetNativeSystemInfo is XP or later */
-	pGNSI = (PGNSI)
-	    GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")),
-			   "GetNativeSystemInfo");
-	if(NULL != pGNSI) pGNSI(&si); else GetSystemInfo(&si);
-	if(si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64)
-	    strcat(ver, " x64");
-    }
+    sprintf(ver, "%s %d.%d", isNT,
+	    (int)verinfo.dwMajorVersion, (int)verinfo.dwMinorVersion);
     SET_STRING_ELT(ans, 1, mkChar(ver));
-
-    if((int)osvi.dwMajorVersion >= 5) {
-	if(osvi.wServicePackMajor > 0)
-	    sprintf(ver, "build %d, Service Pack %d",
-		    LOWORD(osvi.dwBuildNumber),
-		    (int) osvi.wServicePackMajor);
-	else sprintf(ver, "build %d", LOWORD(osvi.dwBuildNumber));
-    } else
-	sprintf(ver, "build %d, %s", LOWORD(osvi.dwBuildNumber),
-		osvi.szCSDVersion);
+    sprintf(ver, "(build %d) %s", LOWORD(verinfo.dwBuildNumber),
+	    verinfo.szCSDVersion);
     SET_STRING_ELT(ans, 2, mkChar(ver));
     GetComputerName(name, &namelen);
     SET_STRING_ELT(ans, 3, mkChar(name));
@@ -683,7 +692,7 @@ SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP rho)
     clist[n] = NULL;
 
     fht = getSysFontSize().height;
-
+    
     xmax = max(170, mw+60); /* allow for scrollbar */
     if(ismdi()) {
 	RECT *pR = RgetMDIsize();
@@ -762,9 +771,9 @@ SEXP do_getClipboardFormats(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans = R_NilValue;
     int j, size, format = 0;
-
+    
     checkArity(op, args);
-
+    
     if(OpenClipboard(NULL)) {
     	size = CountClipboardFormats();
     	PROTECT(ans = allocVector(INTSXP, size));
@@ -801,8 +810,8 @@ SEXP do_readClipboard(SEXP call, SEXP op, SEXP args, SEXP rho)
 		for (j = 0; j < size; j++) RAW(ans)[j] = *pc++;
 	    }
 	    GlobalUnlock(hglb);
-	    UNPROTECT(1);
-	}
+	    UNPROTECT(1);	
+	}    
 	CloseClipboard();
     }
     return ans;
@@ -822,13 +831,13 @@ SEXP do_writeClipboard(SEXP call, SEXP op, SEXP args, SEXP rho)
     format = asInteger(CADR(args));
 
     if (TYPEOF(text) == RAWSXP) raw = TRUE;
-    else if(!isString(text))
+    else if(!isString(text)) 
     	errorcall(call, _("argument must be a character vector or a raw vector"));
-
-    n = length(text);
+    
+    n = length(text);  
     if(n > 0) {
     	int len = 1;
-    	if(!raw)
+    	if(!raw) 
     	    for(i = 0; i < n; i++) len += strlen(CHAR(STRING_ELT(text, i))) + 2;
     	else len = n;
 	if ( (hglb = GlobalAlloc(GHND, len)) &&
@@ -840,9 +849,9 @@ SEXP do_writeClipboard(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    *s++ = '\r'; *s++ = '\n';
 		}
 		*s = '\0';
-	    } else
+	    } else 
 	    	for(i = 0; i < n; i++) *s++ = RAW(text)[i];
-
+				
 	    GlobalUnlock(hglb);
 	    if (!OpenClipboard(NULL) || !EmptyClipboard()) {
 		warningcall(call, _("Unable to open the clipboard"));
@@ -874,7 +883,7 @@ static void longpathname(char *path)
     HANDLE fhand;
     char tmpbuf[MAX_PATH+1], *tmpstart = tmpbuf, *start = path, sep;
     if(!path) return;
-
+    
     /* drive prefix */
     if (isalpha(path[0]) && path[1] == ':') {
         start = path + 2;
@@ -933,7 +942,7 @@ static void longpathname(char *path)
                 FindClose(fhand);
                 return;
             }
-        } else return;
+        } else return; 
     }
     strcpy(path, tmpbuf);
 }
@@ -944,7 +953,7 @@ SEXP do_normalizepath(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP ans, paths = CAR(args);
     int i, n = LENGTH(paths);
     char tmp[MAX_PATH], *tmp2;
-
+    
     checkArity(op, args);
     if(!isString(paths))
        errorcall(call, _("'path' must be a character vector"));
@@ -964,7 +973,7 @@ SEXP do_shortpath(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP ans, paths = CAR(args);
     int i, n = LENGTH(paths);
     char tmp[MAX_PATH];
-
+    
     checkArity(op, args);
     if(!isString(paths))
        errorcall(call, _("'path' must be a character vector"));
@@ -1083,7 +1092,7 @@ SEXP do_chooseDir(SEXP call, SEXP op, SEXP args, SEXP rho)
     if(!isString(caption) || length(caption) != 1 )
 	errorcall(call, _("'caption' must be a character string"));
     p = askcdstring(CHAR(STRING_ELT(caption, 0)), path);
-
+    
     PROTECT(ans = allocVector(STRSXP, 1));
     SET_STRING_ELT(ans, 0, p ? mkChar(p) : NA_STRING);
     UNPROTECT(1);
@@ -1161,7 +1170,7 @@ SEXP do_setTitle(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP title = CAR(args);
 
     checkArity(op, args);
-    if(!isString(title)  || LENGTH(title) != 1 ||
+    if(!isString(title)  || LENGTH(title) != 1 || 
        STRING_ELT(title, 0) == NA_STRING)
 	errorcall(call, _("'title' must be a character string"));
     return setTitle(CHAR(STRING_ELT(title, 0)));
@@ -1178,7 +1187,7 @@ SEXP do_setStatusBar(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP text = CAR(args);
 
     checkArity(op, args);
-    if(!isString(text)  || LENGTH(text) != 1 ||
+    if(!isString(text)  || LENGTH(text) != 1 || 
        STRING_ELT(text, 0) == NA_STRING)
 	errorcall(call, _("'text' must be a character string"));
     showstatusbar();
@@ -1192,11 +1201,11 @@ SEXP do_setStatusBar(SEXP call, SEXP op, SEXP args, SEXP rho)
 static void * getConsoleHandle(const char *which)
 {
     if (CharacterMode != RGui) return(NULL);
-    else if (strcmp(which, "Console") == 0 && RConsole)
+    else if (strcmp(which, "Console") == 0 && RConsole) 
 	return getHandle(RConsole);
-    else if (strcmp(which, "Frame") == 0 && RFrame)
+    else if (strcmp(which, "Frame") == 0 && RFrame) 
 	return getHandle(RFrame);
-    else if (strcmp(which, "Process") == 0)
+    else if (strcmp(which, "Process") == 0) 
 	return GetCurrentProcess();
     else return NULL;
 }
@@ -1301,7 +1310,7 @@ Rboolean winNewFrameConfirm(void)
     return xd->newFrameConfirm();
 }
 
-/*
+/* 
    Replacement for MSVCRT's access.
    Coded looking at tcl's tclWinFile.c
 */
@@ -1309,7 +1318,7 @@ Rboolean winNewFrameConfirm(void)
 int winAccess(const char *path, int mode)
 {
     DWORD attr = GetFileAttributes(path);
-
+    
     if(attr == 0xffffffff) return -1;
     if(mode == F_OK) return 0;
 
@@ -1317,13 +1326,13 @@ int winAccess(const char *path, int mode)
 	if(!(attr & FILE_ATTRIBUTE_DIRECTORY)) { /* Directory, so OK */
 	    /* Look at extension for executables */
 	    char *p = strrchr(path, '.');
-	    if(p == NULL ||
+	    if(p == NULL || 
 	       !((stricmp(p, ".exe") == 0) || (stricmp(p, ".com") == 0) ||
 		 (stricmp(p, ".bat") == 0) || (stricmp(p, ".cmd") == 0)) )
 		return -1;
 	}
-    {
-	/* Now look for file security info */
+    if(GA_isNT) {
+	/* Now look for file security info, which is NT only */
 	SECURITY_DESCRIPTOR *sdPtr = NULL;
 	DWORD size = 0;
 	GENERIC_MAPPING genMap;
@@ -1336,13 +1345,13 @@ int winAccess(const char *path, int mode)
 	int error;
 
 	/* get size */
-	GetFileSecurity(path,
+	GetFileSecurity(path, 
 			OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION
 			| DACL_SECURITY_INFORMATION, 0, 0, &size);
 	error = GetLastError();
 	if (error != ERROR_INSUFFICIENT_BUFFER) return -1;
 	sdPtr = (SECURITY_DESCRIPTOR *) alloca(size);
-	if(!GetFileSecurity(path,
+	if(!GetFileSecurity(path, 
 			    OWNER_SECURITY_INFORMATION | GROUP_SECURITY_INFORMATION
 			    | DACL_SECURITY_INFORMATION, sdPtr, size, &size))
 	    return -1;
@@ -1374,22 +1383,10 @@ int winAccess(const char *path, int mode)
 	if ((mode & W_OK)
 	    && !(attr & FILE_ATTRIBUTE_DIRECTORY)
 	    && (attr & FILE_ATTRIBUTE_READONLY)) return -1;
+    } else {
+	if((mode & W_OK) && (attr & FILE_ATTRIBUTE_READONLY)) return -1;
     }
     return 0;
-}
-
-#include <Rversion.h>
-char *getDLLVersion()
-{
-    static char DLLversion[25];
-    OSVERSIONINFO osvi;
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-    GetVersionEx(&osvi);
-    /* 95, 98, ME are 4.x */
-    if(osvi.dwMajorVersion < 5)
-	R_Suicide("Windows 2000 or later is required");
-    sprintf(DLLversion, "%s.%s", R_MAJOR, R_MINOR);
-    return (DLLversion);
 }
 
 
@@ -1423,7 +1420,7 @@ size_t Rmbrtowc(wchar_t *wc, const char *s)
 
     if (byte == 0) {
         *w = (wchar_t) 0;
-        return 0;
+        return 0;	
     } else if (byte < 0xC0) {
         *w = (wchar_t) byte;
         return 1;

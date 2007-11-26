@@ -35,7 +35,7 @@ function(x, y = NULL, z = NULL,
             stop("if 'x' is not an array, 'y' must be given")
         if(is.null(z))
             stop("if 'x' is not an array, 'z' must be given")
-        if(any(diff(c(length(x), length(y), length(z))) != 0L ))
+        if(any(diff(c(length(x), length(y), length(z)))))
             stop("'x', 'y', and 'z' must have the same length")
         DNAME <- paste(DNAME, "and", deparse(substitute(y)), "and",
                        deparse(substitute(z)))

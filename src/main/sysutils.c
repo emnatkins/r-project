@@ -498,7 +498,7 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 	    }
 
 	    if(res != -1 && inb == 0) {
-		/* we can currently only put the result in the CHARSXP
+		/* we can only put the result in the CHARSXP
 		   cache if it does not contain nuls. */
 		Rboolean has_nul = FALSE;
 		char *p = cbuff.data;
@@ -506,7 +506,10 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 		nout = cbuff.bufsize - 1 - outb;
 		for(j = 0; j < nout; j++) if(!*p++) {has_nul = TRUE; break;}
 		if(has_nul) {
-		    si = mkCharLen(cbuff.data, nout);
+		    si = allocString(nout);
+		    memcpy(CHAR_RW(si), cbuff.data, nout);
+		    if(isLatin1) SET_LATIN1(si);
+		    if(isUTF8) SET_UTF8(si);
 		} else {
 		    if(isLatin1) si = mkCharEnc(cbuff.data, LATIN1_MASK);
 		    else if(isUTF8) si = mkCharEnc(cbuff.data, UTF8_MASK);

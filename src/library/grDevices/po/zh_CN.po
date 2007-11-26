@@ -138,15 +138,15 @@ msgstr "无法记录装置编码"
 msgid "Object .ps.prolog is not a character vector"
 msgstr "对象.ps.prolog不是字符向量"
 
-#: devPS.c:2646 devPS.c:5737 devWindows.c:722
+#: devPS.c:2646 devPS.c:5737 devQuartz.c:1402 devWindows.c:722
 msgid "Invalid line end"
 msgstr "行尾出错"
 
-#: devPS.c:2665 devPS.c:5756 devWindows.c:735
+#: devPS.c:2665 devPS.c:5756 devQuartz.c:1422 devWindows.c:735
 msgid "Invalid line join"
 msgstr "行接連處出错"
 
-#: devPS.c:2673
+#: devPS.c:2673 devQuartz.c:1432
 msgid "Invalid line mitre"
 msgstr "行斜接出错"
 
@@ -415,23 +415,28 @@ msgstr "无法启动pdf装置"
 msgid "unable to start device PicTeX"
 msgstr "无法启动PicTeX装置"
 
-#: devQuartz.c:919
-#, fuzzy
-msgid "invalid Quartz device size"
-msgstr "savePlot装置出错"
+#: devQuartz.c:457
+msgid "invalid string argument"
+msgstr "字符串变元不对"
 
-#: devQuartz.c:946
-#, fuzzy
-msgid "Unable to create device description."
-msgstr "无法启动PostScript装置"
+#: devQuartz.c:495
+msgid "invalid width or height in quartz"
+msgstr "石英的宽度或长度不对"
 
-#: devQuartz.c:976
-msgid "Unable to create Quartz device target, given type may not be supported."
-msgstr ""
+#: devQuartz.c:529
+msgid "unable to start device Quartz"
+msgstr "无法启动石英装置"
 
-#: devQuartz.c:1000
-#, fuzzy
-msgid "Quartz device is not available on this platform."
+#: devQuartz.c:1024 devWindows.c:555
+msgid "Invalid font specification"
+msgstr "字体设置出错"
+
+#: devQuartz.c:1069
+msgid "Font family not found in Quartz font database"
+msgstr "石英字体数据库里找不到字体系列"
+
+#: devQuartz.c:1717
+msgid "Quartz device not available on this platform"
 msgstr "这个平台上没有石英装置"
 
 #: devWindows.c:272 devWindows.c:316 devWindows.c:383
@@ -441,10 +446,6 @@ msgstr "内存不够，无法拷贝图形窗"
 #: devWindows.c:277 devWindows.c:321 devWindows.c:388
 msgid "No device available to copy graphics window"
 msgstr "没有装置来拷贝图形窗"
-
-#: devWindows.c:555
-msgid "Invalid font specification"
-msgstr "字体设置出错"
 
 #: devWindows.c:594
 msgid "Font family not found in Windows font database"
@@ -590,15 +591,3 @@ msgstr "无法启动devWindows装置"
 #: devWindows.c:3219
 msgid "recursive use of getGraphicsEvent not supported"
 msgstr "不支持getGraphicsEvent的遞迴使用"
-
-#~ msgid "invalid string argument"
-#~ msgstr "字符串变元不对"
-
-#~ msgid "invalid width or height in quartz"
-#~ msgstr "石英的宽度或长度不对"
-
-#~ msgid "unable to start device Quartz"
-#~ msgstr "无法启动石英装置"
-
-#~ msgid "Font family not found in Quartz font database"
-#~ msgstr "石英字体数据库里找不到字体系列"
