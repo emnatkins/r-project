@@ -1,0 +1,62 @@
+% File src/library/grDevices/man/ps.options.Rd
+% Part of the R package, http://www.R-project.org
+% Copyright 1995-2007 R Core Development Team
+% Distributed under GPL 2 or later
+
+\name{ps.options}
+\alias{ps.options}
+\title{Auxiliary Function to Set/View Argument of postscript}
+\description{
+  The auxiliary function \code{ps.options} can be used to set and view
+  (if called without arguments) default values for the arguments to
+  \code{\link{postscript}}.
+  
+  \code{ps.options} needs to be called before calling \code{postscript},
+  and the default values it sets can be overridden by supplying
+  arguments to \code{postscript}.
+  }
+\usage{
+ps.options(\dots, reset = FALSE, override.check = FALSE)
+}
+\arguments{
+  \item{\dots}{arguments \code{paper}, \code{horizontal}, \code{width},
+    \code{height}, \code{family}, \code{encoding}, \code{pointsize},
+    \code{bg}, \code{fg}, \code{onefile} (unused), \code{print.it},
+    \code{append} (unused), \code{pagecentre},
+    \code{command} and \code{colormodel} can be supplied.}
+  \item{reset, override.check}{logical arguments passed to
+    \code{\link{check.options}}.  See the Examples.}
+}
+\details{
+  Note that despite the name, these settings also provide the defaults
+  for some of the arguments for \code{\link{pdf}} and
+  \code{\link{xfig}}, although not in all cases even when they have
+  arguments of the same name.
+
+  Arguments \code{onefile} and \code{append} are accepted but are unused
+  in any of the graphics devices making use of this function.
+
+  For \code{pdf}, arguments \code{family}, \code{encoding}
+  \code{pointsize}, \code{bg}, \code{fg} and \code{pagecentre} are used.
+
+  For \code{xfig}, arguments \code{paper}, \code{horizontal},
+  \code{width}, \code{height}, \code{family}, \code{pointsize},
+  \code{bg}, \code{fg} and \code{pagecentre} are used.
+}
+\value{
+  A named list of default values for arguments.
+}
+\seealso{
+  \code{\link{postscript}}
+}
+\examples{
+ps.options(bg = "pink")
+utils::str(ps.options(reset = TRUE))
+
+### ---- error checking of arguments: ----
+ps.options(width=0:12, onefile=0, bg=pi)
+# override the check for 'onefile', but not the others:
+utils::str(ps.options(width=0:12, onefile=1, bg=pi,
+                      override.check = c(FALSE,TRUE,FALSE)))
+}
+\keyword{device}
