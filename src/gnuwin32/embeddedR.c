@@ -37,7 +37,7 @@ extern int UserBreak;
 /* calls into the R DLL */
 extern char *getDLLVersion(), *getRUser(), *get_R_HOME();
 extern void R_DefParams(Rstart), R_SetParams(Rstart), R_setStartTime();
-extern void ProcessEvents(void);
+extern void setup_term_ui(void), ProcessEvents(void);
 extern int R_ReplDLLdo1();
 
 
@@ -47,8 +47,7 @@ extern int R_ReplDLLdo1();
    frequently. See rterm.c and ../system.c for one approach using
    a separate thread for input.
 */
-static int myReadConsole(const char *prompt, char *buf, int len,
-			 int addtohistory)
+static int myReadConsole(char *prompt, char *buf, int len, int addtohistory)
 {
     fputs(prompt, stdout);
     fflush(stdout);
@@ -56,7 +55,7 @@ static int myReadConsole(const char *prompt, char *buf, int len,
     else return 0;
 }
 
-static void myWriteConsole(const char *buf, int len)
+static void myWriteConsole(char *buf, int len)
 {
     printf("%s", buf);
 }
@@ -75,8 +74,15 @@ static void my_onintr(int sig)
 {
     UserBreak = 1;
 }
+static void wrap_askok(char *info)
+{
+    askok(info);
+}
 
-extern Rboolean R_LoadRconsole;
+static int wrap_askyesnocancel(char *question)
+{
+    return askyesnocancel(question);    
+}
 
 int Rf_initialize_R(int argc, char **argv)
 {
@@ -103,8 +109,8 @@ int Rf_initialize_R(int argc, char **argv)
     Rp->ReadConsole = myReadConsole;
     Rp->WriteConsole = myWriteConsole;
     Rp->CallBack = myCallBack;
-    Rp->ShowMessage = askok;
-    Rp->YesNoCancel = askyesnocancel;
+    Rp->ShowMessage = wrap_askok;
+    Rp->YesNoCancel = wrap_askyesnocancel;
     Rp->Busy = myBusy;
 
     Rp->R_Quiet = TRUE;
@@ -118,7 +124,6 @@ int Rf_initialize_R(int argc, char **argv)
 
     signal(SIGBREAK, my_onintr);
     GA_initapp(0, 0);
-    R_LoadRconsole = FALSE;
     readconsolecfg();
  
     return 0;

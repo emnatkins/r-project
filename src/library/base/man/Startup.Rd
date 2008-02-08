@@ -163,7 +163,8 @@ PAGER=/usr/local/bin/less
 
 ## Example .Renviron on Windows
 R_LIBS=C:/R/library
-MY_TCLTK="c:/Program Files/Tcl/bin"
+MY_TCLTK=yes
+TCL_LIBRARY=c:/packages/Tcl/lib/tcl8.4
 
 ## Example of setting R_DEFAULT_PACKAGES (from R CMD check)
 R_DEFAULT_PACKAGES='utils,grDevices,graphics,stats'

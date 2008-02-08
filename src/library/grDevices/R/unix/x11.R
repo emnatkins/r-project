@@ -18,58 +18,21 @@
 ## pass .X11.Fonts to the X11 device.
 .X11env <- new.env()
 
-assign(".X11.Options",
-       list(display = "",
-            width = NA_real_, height = NA_real_, pointsize = 12,
-            bg = "transparent", canvas = "white",
-            gamma = 1,
-            colortype = "true", maxcubesize = 256,
-            fonts = c("-adobe-helvetica-%s-%s-*-*-%d-*-*-*-*-*-*-*",
-            "-adobe-symbol-medium-r-*-*-%d-*-*-*-*-*-*-*"),
-            xpos = NA_integer_, ypos = NA_integer_,
-            title = ""),
-       envir = .X11env)
-
-assign(".X11.Options.default",
-       get(".X11.Options", envir = .X11env),
-       envir = .X11env)
-
-X11.options <- function(..., reset = FALSE)
+X11 <- function(display = "", width = 7, height = 7, pointsize = 12,
+                gamma = getOption("gamma"),
+                colortype = getOption("X11colortype"),
+                maxcubesize = 256, bg = "transparent", canvas = "white",
+                fonts = getOption("X11fonts"), xpos = NA, ypos = NA)
 {
-    old <- get(".X11.Options", envir = .X11env)
-    if(reset) {
-        assign(".X11.Options",
-               get(".X11.Options.default", envir = .X11env),
-               envir = .X11env)
-    }
-    l... <- length(new <- list(...))
-    check.options(new, name.opt = ".X11.Options", envir = .X11env,
-                  assign.opt = l... > 0)
-    if(reset || l... > 0) invisible(old) else old
-}
 
-X11 <- function(display = "", width, height, pointsize, gamma,
-                bg, canvas, fonts, xpos, ypos, title)
-{
-    if(display == "" && .Platform$GUI == "AQUA" &&
-       is.na(Sys.getenv("DISPLAY", NA))) Sys.setenv(DISPLAY = ":0")
-
-    new <- list()
-    if(!missing(display)) new$display <- display
-    if(!missing(width)) new$width <- width
-    if(!missing(height)) new$height <- height
-    if(!missing(gamma)) new$gamma <- gamma
-    if(!missing(pointsize)) new$pointsize <- pointsize
-    if(!missing(bg)) new$bg <- bg
-    if(!missing(canvas)) new$canvas <- canvas
-    if(!missing(xpos)) new$xpos <- xpos
-    if(!missing(ypos)) new$ypos <- ypos
-    if(!missing(title)) new$title <- title
-    if(!checkIntFormat(new$title)) stop("invalid 'title'")
-    d <- check.options(new, name.opt = ".X11.Options", envir = .X11env)
-    .Internal(X11(d$display, d$width, d$height, d$pointsize, d$gamma,
-                  d$colortype, d$maxcubesize, d$bg, d$canvas, d$fonts,
-                  NA_integer_, d$xpos, d$ypos, d$title))
+  if(display == "" && .Platform$GUI == "AQUA" &&
+     is.na(Sys.getenv("DISPLAY", NA))) Sys.setenv(DISPLAY = ":0")
+  ## we need to know internally if the user has overridden X11 resources
+  if(missing(width)) width <- as.double(NA)
+  if(missing(height)) height <- as.double(NA)
+  .Internal(X11(display, width, height, pointsize,
+                if(is.null(gamma)) 1 else gamma, colortype,
+                maxcubesize, bg, canvas, fonts, NA, xpos, ypos))
 }
 
 x11 <- X11
@@ -77,22 +40,20 @@ x11 <- X11
 
 png <- function(filename = "Rplot%03d.png",
                 width = 480, height = 480, units = "px",
-                pointsize = 12, bg = "white", res = NA, ...)
+                pointsize = 12, bg = "white",  res = NA, ...)
 {
-    if(!checkIntFormat(filename)) stop("invalid 'filename'")
     units <- match.arg(units, c("in", "px", "cm", "mm"))
     if(units != "px" && is.na(res))
         stop("'res' must be specified unless 'units = \"px\"'")
-    height <-
-        switch(units, "in"=res, "cm"=res/2.54, "mm"=res/25.4, "px"=1) * height
-    width <-
-        switch(units, "in"=res, "cm"=res/2.54, "mm"=1/25.4, "px"=1) * width
-    d <- X11.options(...)
-    checkIntFormat(filename)
+    height <- switch(units, "in"=res, "cm"=res/2.54, "mm"=res/25.4, "px"=1) * height
+    width <- switch(units, "in"=res, "cm"=res/2.54, "mm"=1/25.4, "px"=1) * width
+    dots <- list(...)
+    d <- list(gamma = 1, colortype = getOption("X11colortype"),
+              maxcubesize = 256, fonts = getOption("X11fonts"))
+    d[names(dots)] <- dots[names(dots)]
     .Internal(X11(paste("png::", filename, sep=""),
                   width, height, pointsize, d$gamma,
-                  d$colortype, d$maxcubesize, bg, bg, d$fonts, res,
-                  0L, 0L, ""))
+                  d$colortype, d$maxcubesize, bg, bg, d$fonts, res, 0, 0))
 }
 
 jpeg <- function(filename = "Rplot%03d.jpeg",
@@ -100,19 +61,18 @@ jpeg <- function(filename = "Rplot%03d.jpeg",
                  pointsize = 12, quality = 75,
                  bg = "white", res = NA, ...)
 {
-    if(!checkIntFormat(filename)) stop("invalid 'filename'")
     units <- match.arg(units, c("in", "px", "cm", "mm"))
     if(units != "px" && is.na(res))
         stop("'res' must be specified unless 'units = \"px\"'")
-    height <-
-        switch(units, "in"=res, "cm"=res/2.54, "mm"=res/25.4, "px"=1) * height
-    width <-
-        switch(units, "in"=res, "cm"=res/2.54, "mm"=1/25.4, "px"=1) * width
-    d <- X11.options(...)
+    height <- switch(units, "in"=res, "cm"=res/2.54, "mm"=res/25.4, "px"=1) * height
+    width <- switch(units, "in"=res, "cm"=res/2.54, "mm"=1/25.4, "px"=1) * width
+    dots <- list(...)
+    d <- list(gamma = 1, colortype = getOption("X11colortype"),
+              maxcubesize = 256, fonts = getOption("X11fonts"))
+    d[names(dots)] <- dots[names(dots)]
     .Internal(X11(paste("jpeg::", quality, ":", filename, sep=""),
                   width, height, pointsize, d$gamma,
-                  d$colortype, d$maxcubesize, bg, bg, d$fonts, res,
-                  0L, 0L, ""))
+                  d$colortype, d$maxcubesize, bg, bg, d$fonts, res, 0, 0))
 }
 
 ####################
@@ -129,39 +89,39 @@ X11FontError <- function(errDesc)
 
 # Check that the font has the correct structure and information
 # Already checked that it had a name
-checkX11Font <- function(font)
-{
-    if (!is.character(font))
-        X11FontError("must be a string")
-    ## Check it has the right format
-    if (length(grep("(-[^-]+){14}", font)) > 0) {
-        ## Force the %s and %d substitution formats into the right spots
-        font <- sub("((-[^-]+){2})(-[^-]+){2}((-[^-]+){2})(-[^-]+)((-[^-]+){7})",
-                    "\\1-%s-%s\\4-%d\\7", font)
-    } else {
-        X11FontError("incorrect format")
-    }
-    font
+checkX11Font <- function(font) {
+  if (!is.character(font))
+    X11FontError("must be a string")
+  # Check it has the right format
+  if (length(grep("(-[^-]+){14}", font)) > 0) {
+    # Force the %s and %d substitution formats into the right spots
+    font <- sub("((-[^-]+){2})(-[^-]+){2}((-[^-]+){2})(-[^-]+)((-[^-]+){7})",
+                "\\1-%s-%s\\4-%d\\7", font)
+  } else {
+    X11FontError("incorrect format")
+  }
+  font
 }
 
-setX11Fonts <- function(fonts, fontNames)
-{
-    fonts <- lapply(fonts, checkX11Font)
-    fontDB <- get(".X11.Fonts", envir=.X11env)
-    existingFonts <- fontNames %in% names(fontDB)
-    if (sum(existingFonts) > 0)
-        fontDB[fontNames[existingFonts]] <- fonts[existingFonts]
-    if (sum(existingFonts) < length(fontNames))
-        fontDB <- c(fontDB, fonts[!existingFonts])
-    assign(".X11.Fonts", fontDB, envir=.X11env)
+setX11Fonts <- function(fonts, fontNames) {
+  fonts <- lapply(fonts, checkX11Font)
+  fontDB <- get(".X11.Fonts", envir=.X11env)
+  existingFonts <- fontNames %in% names(fontDB)
+  if (sum(existingFonts) > 0)
+    fontDB[fontNames[existingFonts]] <- fonts[existingFonts]
+  if (sum(existingFonts) < length(fontNames))
+    fontDB <- c(fontDB, fonts[!existingFonts])
+  assign(".X11.Fonts", fontDB, envir=.X11env)
 }
 
-printFont <- function(font) paste(font, "\n", sep="")
+printFont <- function(font) {
+  paste(font, "\n", sep="")
+}
 
-
-printFonts <- function(fonts)
-    cat(paste(names(fonts), ": ", unlist(lapply(fonts, printFont)),
-              sep="", collapse=""))
+printFonts <- function(fonts) {
+  cat(paste(names(fonts), ": ", unlist(lapply(fonts, printFont)),
+            sep="", collapse=""))
+}
 
 # If no arguments spec'ed, return entire font database
 # If no named arguments spec'ed, all args should be font names
@@ -169,31 +129,32 @@ printFonts <- function(fonts)
 # Else, must specify new fonts to enter into database (all
 # of which must be valid X11 font descriptions and
 # all of which must be named args)
-X11Fonts <- function(...)
-{
-    ndots <- length(fonts <- list(...))
-    if (ndots == 0)
-        get(".X11.Fonts", envir=.X11env)
-    else {
-        fontNames <- names(fonts)
-        nnames <- length(fontNames)
-        if (nnames == 0) {
-            if (!all(sapply(fonts, is.character)))
-                stop(gettextf("invalid arguments in '%s' (must be font names)",
-                              "X11Fonts"), domain = NA)
-            else
-                get(".X11.Fonts", envir=.X11env)[unlist(fonts)]
-        } else {
-            if (ndots != nnames)
-                stop(gettextf("invalid arguments in '%s' (need named args)",
-                              "X11Fonts"), domain = NA)
-            setX11Fonts(fonts, fontNames)
-        }
+X11Fonts <- function(...) {
+  ndots <- length(fonts <- list(...))
+  if (ndots == 0)
+    get(".X11.Fonts", envir=.X11env)
+  else {
+    fontNames <- names(fonts)
+    nnames <- length(fontNames)
+    if (nnames == 0) {
+      if (!all(sapply(fonts, is.character)))
+          stop(gettextf("invalid arguments in '%s' (must be font names)",
+                        "X11Fonts"), domain = NA)
+      else
+        get(".X11.Fonts", envir=.X11env)[unlist(fonts)]
+    } else {
+      if (ndots != nnames)
+          stop(gettextf("invalid arguments in '%s' (need named args)",
+                        "X11Fonts"), domain = NA)
+      setX11Fonts(fonts, fontNames)
     }
+  }
 }
 
 # Create a valid X11 font description
-X11Font <- function(font) checkX11Font(font)
+X11Font <- function(font) {
+  checkX11Font(font)
+}
 
 X11Fonts(# Default Serif font is Times
          serif=X11Font("-*-times-%s-%s-*-*-%d-*-*-*-*-*-*-*"),

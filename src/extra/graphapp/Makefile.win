@@ -12,39 +12,36 @@ gimage-CFLAGS=-O2
 image-CFLAGS=-O2
 
 SOURCES=$(wildcard *.c)
-OBJECTS=$(foreach i,$(SOURCES),$(basename $i).o)
+OBJECTS=$(foreach i, $(SOURCES), $(basename $i).o)
 
-DLL: libR.dll.a Rgraphapp.dll
-	@cp Rgraphapp.dll ../../../bin
+DLL: libR.dll.a graphapp.dll
+	@cp graphapp.dll ../../../bin
 
 
 ifeq ($(strip $(USE_IMPLIBS)),YES)
-implib: libRgraphapp.dll.a
+implib: libgraphapp.dll.a
 	@$(MKDIR) -p ../../../lib
-	@$(CP) libRgraphapp.dll.a ../../../lib
+	@$(CP) libgraphapp.dll.a ../../../lib
 else
 implib:
 endif
 
-libRgraphapp.dll.a: Rgraphapp.def
+libgraphapp.dll.a: graphapp.def
 
-Rgraphapp.def: $(OBJECTS)
+graphapp.def: $(OBJECTS)
 	@$(ECHO) EXPORTS > $@
-	@$(NM) $^ | $(SED) -n 's/^.* [BCDRT] _/ /p' | $(SORT) | uniq > g.def
-	@comm -23 g.def ga.hide >> $@
-	@$(RM) g.def
+	@$(NM) $^ | $(SED) -n 's/^.* [BCDRT] _/ /p' | $(SORT) | uniq >> $@
 
-Rgraphapp.dll: $(OBJECTS) dllversion.o Rgraphapp.def
-	$(DLL) -shared -mwindows -o $@ Rgraphapp.def $(OBJECTS) dllversion.o -L. -lR -lcomctl32 -limm32
+
+graphapp.dll: $(OBJECTS) dllversion.o
+graphapp-DLLFLAGS=-mwindows
+graphapp-DLLLIBS=-L. -lR -lcomctl32
 
 ## need to break mutual dependence with R.dll
 libR.dll.a: R.def
 
 clean:
-	$(RM) *.o Rgraphapp.def *~ \#*\# *.d Makedeps
-
-distclean: clean
-	$(RM) *.a  *.dll
+	$(RM) *.o *.a graphapp.def *.dll *~ \#*\# *.d Makedeps
 
 # Dependencies
 dllversion.o: ../../include/Rversion.h

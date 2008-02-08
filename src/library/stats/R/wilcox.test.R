@@ -391,26 +391,19 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                     dz <- (dz - CORRECTION.CI) / SIGMA.CI
                     dz - zq
                 }
-                root <- function(zq) {
-                    ## in extreme cases we need to return endpoints,
-                    ## e.g.  wilcox.test(1, 2:60, conf.int=TRUE)
-                    f.lower <- wdiff(mumin, zq)
-                    if(f.lower <= 0) return(mumin)
-                    f.upper <- wdiff(mumax, zq)
-                    if(f.upper >= 0) return(mumax)
-                    uniroot(wdiff, c(mumin, mumax),
-                            f.lower = f.lower, f.upper = f.upper,
-                            tol = 1e-4, zq = zq)$root
-                }
                 cint <- switch(alternative, "two.sided" = {
-                    l <- root(zq=qnorm(alpha/2, lower.tail=FALSE))
-                    u <- root(zq=qnorm(alpha/2))
+                    l <- uniroot(wdiff, c(mumin, mumax), tol=1e-4,
+                                  zq=qnorm(alpha/2, lower.tail=FALSE))$root
+                    u <- uniroot(wdiff, c(mumin, mumax), tol=1e-4,
+                                  zq=qnorm(alpha/2))$root
                     c(l, u)
                 }, "greater"= {
-                    l <- root(zq=qnorm(alpha, lower.tail=FALSE))
+                    l <- uniroot(wdiff, c(mumin, mumax), tol=1e-4,
+                                  zq=qnorm(alpha, lower.tail=FALSE))$root
                     c(l, +Inf)
                 }, "less"= {
-                    u <- root(zq=qnorm(alpha))
+                    u <- uniroot(wdiff, c(mumin, mumax), tol=1e-4,
+                                  zq=qnorm(alpha))$root
                     c(-Inf, u)
                 })
                 attr(cint, "conf.level") <- conf.level

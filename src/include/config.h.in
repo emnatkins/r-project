@@ -90,9 +90,6 @@
 /* Define to 1 if you have the `chdir' function. */
 #undef HAVE_CHDIR
 
-/* Define to 1 if you have the `chmod' function. */
-#undef HAVE_CHMOD
-
 /* Defined if framework CoreFoundation is present */
 #undef HAVE_COREFOUNDATION_FW
 
@@ -765,9 +762,6 @@
 
 /* Define if you have 32 bit ints. */
 #undef INT_32_BITS
-
-/* Define if mktime sets errno. */
-#undef MKTIME_SETS_ERRNO
 
 /* Define if your system needs __setfpucw() to control FPU rounding. This was
    used to control floating point precision, rounding and floating point

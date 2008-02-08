@@ -15,12 +15,11 @@
 #  http://www.r-project.org/Licenses/
 
 #### 'spline' and 'splinefun' are very similar --- keep in sync!
-####               --------- has more
 ####  also consider ``compatibility'' with  'approx' and 'approxfun'
 
 spline <-
     function(x, y=NULL, n=3*length(x), method="fmm", xmin=min(x), xmax=max(x),
-             xout, ties = mean)
+             ties = mean)
 {
     x <- xy.coords(x, y)
     y <- x$y
@@ -64,15 +63,12 @@ spline <-
 	    d=double(nx),
 	    e=double(if(method == 1) nx else 0),
 	    PACKAGE="stats")
-    if(missing(xout))
-        xout <- seq.int(xmin, xmax, length.out=n)
-    else n <- length(xout)
-    if (n <= 0)
-        stop("'spline' requires n >= 1")
+    u <- seq(xmin, xmax, length.out=n)
+
     .C("spline_eval",
        z$method,
-       nu=as.integer(n),
-       x =as.double(xout),
+       nu=as.integer(length(u)),
+       x =u,
        y =double(n),
        z$n,
        z$x,

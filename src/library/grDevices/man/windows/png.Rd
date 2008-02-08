@@ -44,8 +44,7 @@ png(filename = "Rplot\%03d.png", width = 480, height = 480,
   \item{res}{The nominal resolution in dpi which will be recorded in the
     bitmap file, if a positive integer.  Also used for units other than
     the default.}
-  \item{restoreConsole}{See the \sQuote{Details} section of
-    \code{\link{windows}}.}
+  \item{restoreConsole}{See the Details section of \code{\link{windows}}}
 }
 \details{
   Plots in PNG and JPEG format can easily be converted to many other

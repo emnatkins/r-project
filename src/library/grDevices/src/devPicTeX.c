@@ -2,7 +2,7 @@
  *  A PicTeX device, (C) 1996 Valerio Aimale, for
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 2001-8  The R Development Core Team
+ *  Copyright (C) 2001-7  The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-# include <config.h>
+#include <config.h>
 #endif
 
 #include <Defn.h>
@@ -28,15 +28,12 @@
 #ifdef SUPPORT_MBCS
 # include <R_ext/rlocale.h>
 # include <wchar.h>
-#endif
+#endif /* SUPPORT_MBCS */
 
-#define R_USE_PROTOTYPES 1
-#include <R_ext/GraphicsEngine.h>
+#include "Graphics.h"
 #include "Fileio.h"
+#include <Rdevices.h>
 #include "grDevices.h"
-
-/* Formerly in headers, but only used in some devices */
-typedef unsigned int rcolor;
 
 	/* device-specific information per picTeX device */
 
@@ -162,45 +159,46 @@ static const char * const fontname[] = {
 
 	/* Device driver actions */
 
-static void PicTeX_Activate(pDevDesc dd);
+static void PicTeX_Activate(NewDevDesc *dd);
 static void PicTeX_Circle(double x, double y, double r,
-			  pGEcontext gc,
-			  pDevDesc dd);
+			  R_GE_gcontext *gc,
+			  NewDevDesc *dd);
 static void PicTeX_Clip(double x0, double x1, double y0, double y1, 
-			pDevDesc dd);
-static void PicTeX_Close(pDevDesc dd);
-static void PicTeX_Deactivate(pDevDesc dd);
-static Rboolean PicTeX_Locator(double *x, double *y, pDevDesc dd);
+			NewDevDesc *dd);
+static void PicTeX_Close(NewDevDesc *dd);
+static void PicTeX_Deactivate(NewDevDesc *dd);
+static void PicTeX_Hold(NewDevDesc *dd);
+static Rboolean PicTeX_Locator(double *x, double *y, NewDevDesc *dd);
 static void PicTeX_Line(double x1, double y1, double x2, double y2,
-			pGEcontext gc,
-			pDevDesc dd);
+			R_GE_gcontext *gc,
+			NewDevDesc *dd);
 static void PicTeX_MetricInfo(int c,
-			      pGEcontext gc,
+			      R_GE_gcontext *gc,
 			      double* ascent, double* descent,
-			      double* width, pDevDesc dd);
-static void PicTeX_Mode(int mode, pDevDesc dd);
-static void PicTeX_NewPage(pGEcontext gc, pDevDesc dd);
+			      double* width, NewDevDesc *dd);
+static void PicTeX_Mode(int mode, NewDevDesc *dd);
+static void PicTeX_NewPage(R_GE_gcontext *gc, NewDevDesc *dd);
 static void PicTeX_Polygon(int n, double *x, double *y, 
-			   pGEcontext gc,
-			   pDevDesc dd);
+			   R_GE_gcontext *gc,
+			   NewDevDesc *dd);
 static void PicTeX_Rect(double x0, double y0, double x1, double y1,
-			pGEcontext gc,
-			pDevDesc dd);
+			R_GE_gcontext *gc,
+			NewDevDesc *dd);
 static void PicTeX_Size(double *left, double *right,
 			double *bottom, double *top,
-			pDevDesc dd);
-static double PicTeX_StrWidth(const char *str, 
-			      pGEcontext gc,
-			      pDevDesc dd);
-static void PicTeX_Text(double x, double y, const char *str, 
+			NewDevDesc *dd);
+static double PicTeX_StrWidth(char *str, 
+			      R_GE_gcontext *gc,
+			      NewDevDesc *dd);
+static void PicTeX_Text(double x, double y, char *str, 
 			double rot, double hadj, 
-			pGEcontext gc,
-			pDevDesc dd);
-static Rboolean PicTeX_Open(pDevDesc, picTeXDesc*);
+			R_GE_gcontext *gc,
+			NewDevDesc *dd);
+static Rboolean PicTeX_Open(NewDevDesc*, picTeXDesc*);
 
 	/* Support routines */
 
-static void SetLinetype(int newlty, int newlwd, pDevDesc dd)
+static void SetLinetype(int newlty, int newlwd, NewDevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
@@ -232,18 +230,18 @@ static void SetFont(int face, int size, picTeXDesc *ptd)
     }
 }
 
-static void PicTeX_Activate(pDevDesc dd)
+static void PicTeX_Activate(NewDevDesc *dd)
 {
 }
 
-static void PicTeX_Deactivate(pDevDesc dd)
+static void PicTeX_Deactivate(NewDevDesc *dd)
 {
 }
 
 static void PicTeX_MetricInfo(int c, 
-			      pGEcontext gc,
+			      R_GE_gcontext *gc,
 			      double* ascent, double* descent,
-			      double* width, pDevDesc dd)
+			      double* width, NewDevDesc *dd)
 {
     /* metric information not available => return 0,0,0 */
     *ascent = 0.0;
@@ -253,7 +251,7 @@ static void PicTeX_MetricInfo(int c,
 
 	/* Initialize the device */
 
-static Rboolean PicTeX_Open(pDevDesc dd, picTeXDesc *ptd)
+static Rboolean PicTeX_Open(NewDevDesc *dd, picTeXDesc *ptd)
 {
     ptd->fontsize = 0;
     ptd->fontface = 0;
@@ -277,7 +275,7 @@ static Rboolean PicTeX_Open(pDevDesc dd, picTeXDesc *ptd)
 
 static void PicTeX_Size(double *left, double *right,
 		     double *bottom, double *top,
-		     pDevDesc dd)
+		     NewDevDesc *dd)
 {
     *left = dd->left;		/* left */
     *right = dd->right;/* right */
@@ -286,7 +284,7 @@ static void PicTeX_Size(double *left, double *right,
 }
 
 static void PicTeX_Clip(double x0, double x1, double y0, double y1,
-			pDevDesc dd)
+			NewDevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
@@ -301,8 +299,8 @@ static void PicTeX_Clip(double x0, double x1, double y0, double y1,
 
 	/* Start a new page */
 
-static void PicTeX_NewPage(pGEcontext gc,
-			   pDevDesc dd)
+static void PicTeX_NewPage(R_GE_gcontext *gc,
+			   NewDevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
@@ -327,7 +325,7 @@ static void PicTeX_NewPage(pGEcontext gc,
 
 	/* Close down the driver */
 
-static void PicTeX_Close(pDevDesc dd)
+static void PicTeX_Close(NewDevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
@@ -425,8 +423,8 @@ static void PicTeX_ClipLine(double x0, double y0, double x1, double y1,
 }
 
 static void PicTeX_Line(double x1, double y1, double x2, double y2,
-			pGEcontext gc,
-			pDevDesc dd)
+			R_GE_gcontext *gc,
+			NewDevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
@@ -449,8 +447,8 @@ static void PicTeX_Line(double x1, double y1, double x2, double y2,
 }
 
 static void PicTeX_Polyline(int n, double *x, double *y, 
-			    pGEcontext gc,
-			    pDevDesc dd)
+			    R_GE_gcontext *gc,
+			    NewDevDesc *dd)
 {
     double x1, y1, x2, y2;
     int i;
@@ -474,13 +472,13 @@ static void PicTeX_Polyline(int n, double *x, double *y,
 	/* String Width in Rasters */
 	/* For the current font in pointsize fontsize */
 
-static double PicTeX_StrWidth(const char *str, 
-			      pGEcontext gc,
-			      pDevDesc dd)
+static double PicTeX_StrWidth(char *str, 
+			      R_GE_gcontext *gc,
+			      NewDevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
-    const char *p;
+    char *p;
     int size;
     double sum;
 
@@ -490,11 +488,11 @@ static double PicTeX_StrWidth(const char *str,
 #if defined(SUPPORT_MBCS)
     if(mbcslocale && ptd->fontface != 5) {
 	/* This version at least uses the state of the MBCS */
-	int i, status, ucslen = mbcsToUcs2(str, NULL, 0, CE_NATIVE);
+	int i, status, ucslen = mbcsToUcs2(str, NULL, 0);
 	if (ucslen != (size_t)-1) {
 	    ucs2_t *ucs;
 	    ucs = (ucs2_t *) alloca(ucslen*sizeof(ucs2_t));
-	    status = (int) mbcsToUcs2(str, ucs, ucslen, CE_NATIVE);
+	    status = (int) mbcsToUcs2(str, ucs, ucslen);
 	    if (status >= 0) 
 		for (i = 0; i < ucslen; i++)
 		    if(ucs[i] < 128) sum += charwidth[ptd->fontface-1][ucs[i]];
@@ -513,8 +511,8 @@ static double PicTeX_StrWidth(const char *str,
 
 /* Possibly Filled Rectangle */
 static void PicTeX_Rect(double x0, double y0, double x1, double y1,
-			pGEcontext gc,
-			pDevDesc dd)
+			R_GE_gcontext *gc,
+			NewDevDesc *dd)
 {
     double x[4], y[4];
 
@@ -526,8 +524,8 @@ static void PicTeX_Rect(double x0, double y0, double x1, double y1,
 }
 
 static void PicTeX_Circle(double x, double y, double r,
-			  pGEcontext gc,
-			  pDevDesc dd)
+			  R_GE_gcontext *gc,
+			  NewDevDesc *dd)
 {
     picTeXDesc *ptd = (picTeXDesc *) dd->deviceSpecific;
 
@@ -537,8 +535,8 @@ static void PicTeX_Circle(double x, double y, double r,
 }
 
 static void PicTeX_Polygon(int n, double *x, double *y, 
-			   pGEcontext gc,
-			   pDevDesc dd)
+			   R_GE_gcontext *gc,
+			   NewDevDesc *dd)
 {
     double x1, y1, x2, y2;
     int i;
@@ -566,7 +564,7 @@ static void PicTeX_Polygon(int n, double *x, double *y,
 }
 
 /* TeX Text Translations */
-static void textext(const char *str, picTeXDesc *ptd)
+static void textext(char *str, picTeXDesc *ptd)
 {
     fputc('{', ptd->texfp);
     for( ; *str ; str++)
@@ -600,10 +598,10 @@ static void textext(const char *str, picTeXDesc *ptd)
 
 /* Rotated Text */
 
-static void PicTeX_Text(double x, double y, const char *str, 
+static void PicTeX_Text(double x, double y, char *str, 
 			double rot, double hadj, 
-			pGEcontext gc,
-			pDevDesc dd)
+			R_GE_gcontext *gc,
+			NewDevDesc *dd)
 {
     int size;
     double xoff = 0.0, yoff = 0.0;
@@ -637,18 +635,22 @@ static void PicTeX_Text(double x, double y, const char *str,
 }
 
 /* Pick */
-static Rboolean PicTeX_Locator(double *x, double *y, pDevDesc dd)
+static Rboolean PicTeX_Locator(double *x, double *y, NewDevDesc *dd)
 {
     return FALSE;
 }
 
 
-static void PicTeX_Mode(int mode, pDevDesc dd)
+static void PicTeX_Mode(int mode, NewDevDesc* dd)
+{
+}
+
+static void PicTeX_Hold(NewDevDesc *dd)
 {
 }
 
 static
-Rboolean PicTeXDeviceDriver(pDevDesc dd, const char *filename, 
+Rboolean PicTeXDeviceDriver(NewDevDesc *dd, const char *filename, 
 			    const char *bg, const char *fg,
 			    double width, double height, 
 			    Rboolean debug)
@@ -660,15 +662,18 @@ Rboolean PicTeXDeviceDriver(pDevDesc dd, const char *filename,
 
     strcpy(ptd->filename, filename);
 
-    dd->startfill = R_GE_str2col(bg);
-    dd->startcol = R_GE_str2col(fg);
+    dd->startfill = str2col(bg);
+    dd->startcol = str2col(fg);
     dd->startps = 10;
     dd->startlty = 0;
     dd->startfont = 1;
     dd->startgamma = 1;
 
+    dd->newDevStruct = 1;
+    
     dd->activate = PicTeX_Activate;
     dd->deactivate = PicTeX_Deactivate;
+    dd->open = PicTeX_Open;
     dd->close = PicTeX_Close;
     dd->clip = PicTeX_Clip;
     dd->size = PicTeX_Size;
@@ -682,9 +687,8 @@ Rboolean PicTeXDeviceDriver(pDevDesc dd, const char *filename,
     dd->polyline = PicTeX_Polyline;
     dd->locator = PicTeX_Locator;
     dd->mode = PicTeX_Mode;
+    dd->hold = PicTeX_Hold;
     dd->metricInfo = PicTeX_MetricInfo;
-    dd->hasTextUTF8 = FALSE;
-    dd->useRotatedTextInContour = FALSE;
 
     /* Screen Dimensions in Pixels */
 
@@ -746,6 +750,7 @@ Rboolean PicTeXDeviceDriver(pDevDesc dd, const char *filename,
 
 SEXP PicTeX(SEXP args)
 {
+    NewDevDesc *dev;
     GEDevDesc *dd;
     char *vmax;
     const char *file, *bg, *fg;
@@ -764,15 +769,22 @@ SEXP PicTeX(SEXP args)
 
     R_CheckDeviceAvailable();
     BEGIN_SUSPEND_INTERRUPTS {
-	pDevDesc dev;
-	if (!(dev = (pDevDesc) calloc(1, sizeof(NewDevDesc))))
+	if (!(dev = (NewDevDesc *) calloc(1,sizeof(NewDevDesc))))
 	    return 0;
+	/* Do this for early redraw attempts */
+	dev->displayList = R_NilValue;
+	/* Make sure that this is initialised before a GC can occur.
+	 * This (and displayList) get protected during GC
+	 */
+	dev->savedSnapshot = R_NilValue;
 	if(!PicTeXDeviceDriver(dev, file, bg, fg, width, height, debug)) {
 	    free(dev);
 	    error(_("unable to start device PicTeX"));
 	}
+	gsetVar(install(".Device"), mkString("pictex"), R_BaseEnv);
 	dd = GEcreateDevDesc(dev);
-	GEaddDevice2(dd, "pictex");
+	addDevice((DevDesc*) dd);
+	GEinitDisplayList(dd);
     } END_SUSPEND_INTERRUPTS;
     vmaxset(vmax);
     return R_NilValue;

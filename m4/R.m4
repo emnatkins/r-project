@@ -130,10 +130,22 @@ AC_DEFUN([R_PROG_PERL],
 [AC_PATH_PROGS(PERL, [${PERL} perl])
 if test -n "${PERL}"; then
   _R_PROG_PERL_VERSION
+else
+  ## <NOTE>
+  ## Need a full path for '@PERL@' substitutions when starting Perl
+  ## scripts with a line of the form '#! FOO'.
+  AC_PATH_PROGS(FALSE, false)
+  PERL="${FALSE}"
+  ## </NOTE>
 fi
-if test "${r_cv_prog_perl_v5}" != yes; then
-  AC_MSG_ERROR([Building R requires Perl >= 5.8.0])
+if test "${r_cv_prog_perl_v5}" = yes; then
+  NO_PERL5=false
+else
+  warn_perl5="you cannot build the object documentation system"
+  AC_MSG_WARN([${warn_perl5}])
+  NO_PERL5=true
 fi
+AC_SUBST(NO_PERL5)
 ])# R_PROG_PERL
 
 ## _R_PROG_PERL_VERSION
@@ -239,7 +251,7 @@ fi])
 ## --------------
 AC_DEFUN([R_PROG_BROWSER],
 [if test -z "${R_BROWSER}"; then
-  AC_PATH_PROGS(R_BROWSER, [firefox mozilla galeon kfmclient opera gnome-moz-remote open])
+  AC_PATH_PROGS(R_BROWSER, [firefox mozilla netscape galeon kfmclient opera gnome-moz-remote open])
 fi
 if test -z "${R_BROWSER}"; then
   warn_browser="I could not determine a browser"
@@ -1188,52 +1200,6 @@ else
 fi
 ])# R_PROG_F77_FLAG
 
-## R_PROG_OBJC_M
-## -------------
-## Check whether we can figure out ObjC Make dependencies.
-AC_DEFUN([R_PROG_OBJC_M],
-[AC_MSG_CHECKING([whether we can compute ObjC Make dependencies])
-AC_CACHE_VAL([r_cv_prog_objc_m],
-[echo "#include <math.h>" > conftest.m
-for prog in "${OBJC} -MM" "${OBJC} -M" "${CPP} -M" "cpp -M"; do
-  if ${prog} conftest.m 2>/dev/null | \
-      grep 'conftest.o: conftest.m' >/dev/null; then
-    r_cv_prog_objc_m="${prog}"
-    break
-  fi
-done])
-if test -z "${r_cv_prog_objc_m}"; then
-  AC_MSG_RESULT([no])
-else
-  AC_MSG_RESULT([yes, using ${r_cv_prog_objc_m}])
-fi
-])# R_PROG_OBJC_M
-
-## R_PROG_OBJC_MAKEFRAG
-## --------------------
-## Generate a Make fragment with suffix rules for the Obj-C compiler.
-AC_DEFUN([R_PROG_OBJC_MAKEFRAG],
-[r_objc_rules_frag=Makefrag.m
-AC_REQUIRE([R_PROG_OBJC_M])
-cat << \EOF > ${r_objc_rules_frag}
-.m.o:
-	$(OBJC) $(ALL_CPPFLAGS) $(ALL_OBJCFLAGS) -c $< -o $[@]
-EOF
-if test -n "${r_cv_prog_objc_m}"; then
-  cat << EOF >> ${r_objc_rules_frag}
-.m.d:
-	@echo "making \$[@] from \$<"
-	@${r_cv_prog_objc_m} \$(ALL_CPPFLAGS) $< > \$[@]
-EOF
-else
-  cat << \EOF >> ${r_cc_rules_frag}
-.m.d:
-	@echo > $[@]
-EOF
-fi
-AC_SUBST_FILE(r_objc_rules_frag)
-])# R_PROG_OBJC_MAKEFRAG
-
 ## R_PROG_OBJC_RUNTIME
 ## -------------------
 ## Check for ObjC runtime and style.
@@ -2118,8 +2084,6 @@ if test -z "${TCLTK_CPPFLAGS}" \
   ## Note that in theory a system could have outdated versions of the
   ## *Config.sh scripts and yet up-to-date installations of Tcl/Tk in
   ## standard places ...
-  ## This doesn't make a great deal of sense: on past form 
-  ## we don't even expect future versions of 8.x to work, let alone 9.0
   if test -n "${TCL_CONFIG}"; then
     . ${TCL_CONFIG}
     if test ${TCL_MAJOR_VERSION} -lt 8; then
@@ -2158,9 +2122,7 @@ AC_DEFUN([_R_HEADER_TCL],
 [AC_CACHE_CHECK([for tcl.h], [r_cv_header_tcl_h],
 [AC_EGREP_CPP([yes],
 [#include <tcl.h>
-/* Revise if 9.x ever appears (and 8.x seems to increment only
-   every few years). */
-#if (TCL_MAJOR_VERSION >= 8) && (TCL_MINOR_VERSION >= 3)
+#if (TCL_MAJOR_VERSION >= 8)
   yes
 #endif
 ],
@@ -2176,9 +2138,7 @@ AC_DEFUN([_R_HEADER_TK],
 [AC_CACHE_CHECK([for tk.h], [r_cv_header_tk_h],
 [AC_EGREP_CPP([yes],
 [#include <tk.h>
-/* Revise if 9.x ever appears (and 8.x seems to increment only
-   every few years). */
-#if (TK_MAJOR_VERSION >= 8) && (TK_MINOR_VERSION >= 3)
+#if (TK_MAJOR_VERSION >= 8)
   yes
 #endif
 ],
@@ -3301,7 +3261,6 @@ if test "$want_mbcs_support" = yes ; then
   fi
 fi
 if test "x${want_mbcs_support}" = xyes; then
-## SUPPORT_UTF8 is needed for PCRE, only
 AC_DEFINE(SUPPORT_UTF8, 1, [Define this to enable support for UTF-8 locales.])
 AC_SUBST(SUPPORT_UTF8)
 AC_DEFINE(SUPPORT_MBCS, 1, [Define this to enable support for MBCS locales.])
@@ -3637,38 +3596,6 @@ if test "${cross_compiling}" = yes; then
   fi
 fi
 ])
-
-## R_MKTIME_ERRNO
-## --------------
-## Check whether mktime sets errno
-AC_DEFUN([R_MKTIME_ERRNO],
-[AC_CACHE_CHECK([whether mktime sets errno], [r_cv_mktime_errno],
-[AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <stdlib.h>
-#include <time.h>
-#include <errno.h>
-
-int main()
-{
-    struct tm tm;
-    /* It's hard to know what is an error, since mktime is allowed to
-       fix up times and there are 64-bit time_t about.
-       But this works for now (yes on Solaris, no on glibc). */
-    tm.tm_year = 3000; tm.tm_mon = 0; tm.tm_mday = 0; 
-    tm.tm_hour = 0; tm.tm_min = 0; tm.tm_sec = 0; tm.tm_isdst = -1;
-    errno = 0;
-    mktime(&tm);
-    exit(errno == 0);
-}
-]])],
-              [r_cv_mktime_errno=yes],
-              [r_cv_mktime_errno=no],
-              [r_cv_mktime_errno=no])])
-if test "${r_cv_mktime_errno}" = yes; then
-  AC_DEFINE(MKTIME_SETS_ERRNO,, [Define if mktime sets errno.])
-fi
-])# R_MKTIME_ERRNO
-
 
 ### Local variables: ***
 ### mode: outline-minor ***

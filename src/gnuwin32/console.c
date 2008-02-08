@@ -2,7 +2,7 @@
  *  R : A Computer Language for Statistical Data Analysis
  *  file console.c
  *  Copyright (C) 1998--2003  Guido Masarotto and Brian Ripley
- *  Copyright (C) 2004-8      The R Foundation
+ *  Copyright (C) 2004-7      The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,6 +27,8 @@
 #include <R_ext/Boolean.h>
 extern Rboolean mbcslocale;
 
+/* Use of strchr here is MBCS-safe */
+
 #define USE_MDI 1
 extern void R_ProcessEvents(void);
 
@@ -44,7 +46,7 @@ extern void R_ProcessEvents(void);
 #include "console.h"
 #include "consolestructs.h"
 #include "rui.h"
-#include "getline/wc_history.h"
+#include "getline/getline.h"
 #include "Startup.h" /* for UImode */
 #include <Fileio.h>
 
@@ -54,24 +56,59 @@ extern UImode  CharacterMode;
 
 static void performCompletion(control c);
 
+#define mbs_init(x) memset(x, 0, sizeof(mbstate_t))
 
-static inline int wcswidth(const wchar_t *s)
+static mbstate_t mb_st; /* use for char transpose as well */
+
+/* This is input from the keyboard, so we do not do validity checks.
+   OTOH, we do allow stateful encodings, assuming the state is reset
+   at the beginning of each line */
+
+int mb_char_len(char *buf, int clength)
 {
-    return mbcslocale ? Ri18n_wcswidth(s, wcslen(s)) : wcslen(s);
+    int i, mb_len = 0;
+
+    mbs_init(&mb_st);
+    for(i = 0; i <= clength; i += mb_len)
+	mb_len = mbrtowc(NULL, buf+i, MB_CUR_MAX, &mb_st);
+    return mb_len;
 }
 
-static inline int wcwidth(const wchar_t s)
+/* <FIXME> replace by Ri18n_wcswidth */
+int mbswidth(char *buf)
 {
-    return mbcslocale ? Ri18n_wcwidth(s) : 1;
+    char *p =buf;
+    int res = 0, used;
+    wchar_t wc;
+
+    mbs_init(&mb_st);
+    while(*p) {
+	used = mbrtowc(&wc, p, MB_CUR_MAX, &mb_st);
+	if(used < 0) return -1;
+	p += used;
+	res += Ri18n_wcwidth(wc);
+    }
+    return res;
 }
 
-static void setCURCOL(ConsoleData p)
+void setCURCOL(ConsoleData p)
 {
-    wchar_t *P = LINE(NUMLINES - 1);
+    char *P = LINE(NUMLINES - 1);
     int w0 = 0;
 
-    for (; P < LINE(NUMLINES - 1) + prompt_len + cur_pos; P++)
-	if(*P == L'\r') w0 = 0; else w0 += wcwidth(*P);
+    if(mbcslocale) {
+	int used;
+	wchar_t wc;
+	mbs_init(&mb_st);
+	while (P < LINE(NUMLINES - 1) + prompt_len + cur_byte) {
+	    used = mbrtowc(&wc, P, MB_CUR_MAX, &mb_st);
+	    if(used <= 0) break;
+	    if(wc == L'\r') w0 = 0; else w0 += Ri18n_wcwidth(wc);
+	    P += used;
+	}
+    } else
+	for (; P < LINE(NUMLINES - 1) + prompt_len + cur_byte; P++)
+	    if(*P == '\r') w0 = 0; else w0++;
 
     CURCOL = w0;
 }
@@ -86,7 +123,7 @@ xbuf newxbuf(xlong dim, xint ms, xint shift)
     p = (xbuf) malloc(sizeof(struct structXBUF));
     if (!p)
 	return NULL;
-    p->b = (wchar_t *) malloc((dim + 1) * sizeof(wchar_t));
+    p->b = (char *) malloc(dim + 1);
     if (!p->b) {
 	free(p);
 	return NULL;
@@ -97,7 +134,7 @@ xbuf newxbuf(xlong dim, xint ms, xint shift)
 	free(p);
 	return NULL;
     }
-    p->s = (wchar_t **) malloc(ms * sizeof(wchar_t *));
+    p->s = (char **) malloc(ms * sizeof(char *));
     if (!p->s) {
 	free(p->b);
 	free(p->user);
@@ -112,7 +149,7 @@ xbuf newxbuf(xlong dim, xint ms, xint shift)
     p->free = p->b;
     p->s[0] = p->b;
     p->user[0] = -1;
-    *p->b = L'\0';
+    *p->b = '\0';
     return p;
 }
 
@@ -123,10 +160,10 @@ void xbufgrow(xbuf p, xlong dim, xint ms)
     int i, change;
 
     if(dim > p->dim) {
-	ret = realloc(p->b, (dim + 1)*sizeof(wchar_t));
+	ret = realloc(p->b, dim + 1);
 	if(ret) {
 	    change = (uintptr_t) ret - (uintptr_t) p->b;
-	    p->b = (wchar_t *) ret;
+	    p->b = (char *) ret;
 	    p->av += change;
 	    p->free += change;
 	    for (i = 0; i < p->ns; i++)  p->s[i] += change;
@@ -138,7 +175,7 @@ void xbufgrow(xbuf p, xlong dim, xint ms)
 	if(ret) {
 	    ret2 = realloc(p->user, ms * sizeof(int));
 	    if(ret2) {
-		p->s = (wchar_t **) ret;
+		p->s = (char **) ret;
 		p->user = (int *) ret2;
 		p->ms = ms;
 	    }
@@ -159,20 +196,20 @@ static void xbufshift(xbuf p)
 {
     xint  i;
     xlong mshift;
-    wchar_t *new0;
+    char *new0;
 
     if (p->shift >= p->ns) {
 	p->ns = 1;
 	p->av = p->dim;
 	p->free = p->b;
 	p->s[0] = p->b;
-	*p->b = L'\0';
+	*p->b = '\0';
 	p->user[0] = -1;
 	return;
     }
     new0 = p->s[p->shift];
     mshift = new0 - p->s[0];
-    memmove(p->b, p->s[p->shift], (p->dim - mshift) * sizeof(wchar_t));
+    memmove(p->b, p->s[p->shift], p->dim - mshift);
     memmove(p->user, &p->user[p->shift], (p->ms - p->shift) * sizeof(int));
     for (i = p->shift; i < p->ns; i++)
 	p->s[i - p->shift] = p->s[i] - mshift;
@@ -193,90 +230,75 @@ static int xbufmakeroom(xbuf p, xlong size)
 
 #define XPUTC(c) {xbufmakeroom(p,1); *p->free++=c;}
 
-void xbufaddxc(xbuf p, wchar_t c)
+void xbufaddc(xbuf p, char c)
 {
     int   i;
 
     switch (c) {
-    case L'\a':
+    case '\a':
 	gabeep();
 	break;
-    case L'\b':
-	if ((p->s[p->ns - 1])[0]) {
-	    p->free--;
-	    p->av++;
+    case '\b':
+	if (strlen(p->s[p->ns - 1])) {
+	    /* delete the last character, not the last byte */
+	    if(mbcslocale) {
+		char *buf = p->s[p->ns - 1];
+		int l = mb_char_len(buf, strlen(buf)-1);
+		p->free -= l;
+		p->av += l;
+		
+	    } else {
+		p->free--;
+		p->av++;
+	    }
 	}
 	break;
-    case L'\t':
-	XPUTC(L' ');
-	*p->free = '\0';
-	/* Changed to  width in 2.7.0 */
-	for (i = wcswidth(p->s[p->ns - 1]); (i % TABSIZE); i++) XPUTC(L' ');
+	/* The following implemented a destructive CR
+    case '\r':
+        {
+	    int l = strlen(p->s[p->ns - 1]);
+	    p->free -= l;
+	    p->av += l;
+	}
 	break;
-    case L'\n':
-	XPUTC(L'\0');
+	*/
+    case '\t':
+	XPUTC(' ');
+	*p->free = '\0';
+	for (i = strlen(p->s[p->ns - 1]); (i % TABSIZE); i++)
+	    XPUTC(' ');
+	break;
+    case '\n':
+	XPUTC('\0');
 	p->s[p->ns] = p->free;
 	p->user[p->ns++] = -1;
 	break;
     default:
 	XPUTC(c);
     }
-    *p->free = L'\0';
-}
-
-void xbufaddxs(xbuf p, const wchar_t *s, int user)
-{
-    const wchar_t *ps;
-    int   l;
-
-    l = user ? (p->s[p->ns - 1])[0] : -1;
-    for (ps = s; *ps; ps++) xbufaddxc(p, *ps);
-    p->user[p->ns - 1] = l;
-}
-
-#define IN_CONSOLE
-#include "rgui_UTF8.h"
-extern size_t Rf_utf8towcs(wchar_t *wc, const char *s, size_t n);
-static size_t enctowcs(wchar_t *wc, char *s, int n)
-{
-    size_t nc = 0;
-    char *pb, *pe;
-    if((pb = strchr(s, UTF8in[0])) && *(pb+1) == UTF8in[1] &&
-       *(pb+2) == UTF8in[2]) {
-	*pb = '\0';
-	nc += mbstowcs(wc, s, n);
-	pb += 3; pe = pb;
-	while(*pe && 
-	      !((pe = strchr(pb, UTF8out[0])) && *(pe+1) == UTF8out[1] &&
-	      *(pe+2) == UTF8out[2])) pe++;
-	if(!*pe) return nc; /* FIXME */;
-	*pe = '\0';
-	/* convert string starting at pb from UTF-8 */
-	nc += Rf_utf8towcs(wc+nc, pb, (pe-pb));
-	pe += 3;
-	nc += enctowcs(wc+nc, pe, n-nc);
-    } else nc = mbstowcs(wc, s, n);
-    return nc;
+    *p->free = '\0';
 }
 
 static void xbufadds(xbuf p, const char *s, int user)
 {
-    int n = strlen(s) + 1; /* UCS-2 must be shorter */
-    wchar_t *tmp;
-    
-    tmp = (wchar_t *) alloca(n * sizeof(wchar_t));
-    enctowcs(tmp, (char *) s, n);
-    xbufaddxs(p, tmp, user);
+    const char *ps;
+    int   l;
+
+    l = user ? strlen(p->s[p->ns - 1]) : -1;
+    for (ps = s; *ps; ps++)
+	xbufaddc(p, *ps);
+    p->user[p->ns - 1] = l;
 }
 
 static void xbuffixl(xbuf p)
 {
-    wchar_t *ps, *old;
+    char *ps, *old;
 
-    if (!p->ns) return;
+    if (!p->ns)
+	return;
     ps = p->s[p->ns - 1];
     old = p->free;
-    p->free = ps + wcslen(ps);
+    p->free = ps + strlen(ps);
     p->av = p->dim - (p->free - p->b);
 }
 
@@ -344,23 +366,28 @@ newconsoledata(font f, int rows, int cols, int bufbytes, int buflines,
     return (p);
 }
 
-static int col_to_pos(ConsoleData p, int x)
+static int col_to_byte(ConsoleData p, int x)
 {
+    int w0 = 0 /* -Wall */;
+    wchar_t wc;
+    char *P;
     if(mbcslocale) {
-	int w0 = 0, cnt = 0;
-	wchar_t *P = LINE(CURROW);
-	for (; w0 < x && *P && P - LINE(CURROW) <= max_pos + prompt_len; ) {
-	    w0 += Ri18n_wcwidth(*P++);
-	    cnt++;
+	P = LINE(CURROW);
+	mbs_init(&mb_st);
+	for (w0 = 0; w0 < x && *P && P - LINE(CURROW) <= max_byte + prompt_len; ) {
+	    P += mbrtowc(&wc, P, MB_CUR_MAX, &mb_st);
+	    w0 += Ri18n_wcwidth(wc);
 	}
-	return(cnt - prompt_len);
-    } else
-	return(min(x - prompt_len, max_pos));
+	return(P - LINE(CURROW) - prompt_len );
+    } else {
+	return(min(x - prompt_len, max_byte));
+    }
+    
 }
 
 static int within_input(ConsoleData p, int mx, int my)
 {
-    return(my == CURROW && mx >= prompt_wid && col_to_pos(p, mx) < max_pos);
+    return(my == CURROW && mx >= prompt_wid && col_to_byte(p, mx) < max_byte);
 }  
 
 /* Intersect the mouse selection with the input region. If no overlap or !apply, do nothing*/
@@ -379,9 +406,9 @@ static int intersect_input(ConsoleData p, int apply)
     if (my1 < CURROW || my0 > CURROW) return(0);
     if (my0 < CURROW) mx0 = 0;
     if (my1 > CURROW) mx1 = COLS;
-    if (mx1 < CURCOL || col_to_pos(p, mx0) >= max_pos) return(0);
+    if (mx1 < CURCOL || col_to_byte(p, mx0) >= max_byte) return(0);
     mx0 = max(mx0, prompt_wid);
-    while (col_to_pos(p, mx1) >= max_pos) mx1--;
+    while (col_to_byte(p, mx1) >= max_byte) mx1--;
     if (apply) {
 	p->mx0 = mx0;
 	p->mx1 = mx1;
@@ -395,9 +422,15 @@ static int intersect_input(ConsoleData p, int apply)
    and double-width chars. */
 
 static void writelineHelper(ConsoleData p, int fch, int lch,
-			    rgb fgr, rgb bgr, int j, int len, wchar_t *s)
+			    rgb fgr, rgb bgr, int j, int len, char *s)
 {
     rect  r;
+    int last;
+    char ch, chf, chl;
+    int i, used, w0;
+    char *buff, *P = s, *q;
+    wchar_t wc;
+    Rboolean leftedge;
 
     /* This is right, since columns are of fixed size */
     r = rect(BORDERX + fch * FW, BORDERY + j * FH, (lch - fch + 1) * FW, FH);
@@ -406,46 +439,49 @@ static void writelineHelper(ConsoleData p, int fch, int lch,
     if (len > FC+fch) {
 	/* Some of the string is visible: */
 	if(mbcslocale) {
-	    int i, w0, nc;
-	    wchar_t *buff, *P = s, *q;
-	    Rboolean leftedge;
+	    q = buff = alloca(strlen(s) + 1); /* overkill */
 
-	    nc = (wcslen(s) + 1) * sizeof(wchar_t); /* overkill */
-	    q = buff = (wchar_t *) alloca(nc);
 	    leftedge = FC && (fch == 0);
 	    if(leftedge) fch++;
-	    for (w0 = -FC; w0 < fch && *P; P++) /* should have enough ... */
-		w0 += Ri18n_wcwidth(*P);
+	    mbs_init(&mb_st);
+	    for (w0 = -FC; w0 < fch && *P; ) { /* should have enough ... */
+		P += mbrtowc(&wc, P, MB_CUR_MAX, &mb_st);
+		w0 += Ri18n_wcwidth(wc);
+	    }
 	    /* Now we have got to on or just after the left edge.
 	       Possibly have a widechar hanging over.
 	       If so, fill with blanks.
 	    */
-	    if(w0 > fch) for(i = 0; i < w0 - fch; i++) *q++ = L' ';
+	    if(w0 > fch) for(i = 0; i < w0 - fch; i++) *q++ = ' ';
 
-	    if (leftedge) *q++ = L'$';
+	    if (leftedge) *q++ = '$';
 
 	    while (w0 < lch) {
-		if(!*P) break;
-		w0 += Ri18n_wcwidth(*P);
+		used = mbrtowc(&wc, P, MB_CUR_MAX, &mb_st);
+		if(used <= 0) break;
+		w0 += Ri18n_wcwidth(wc);
 		if(w0 > lch) break; /* char straddling the right edge
 				       is not displayed */
-		*q++ = *P++;
+		for(j = 0; j < used; j++) *q++ = *P++;
 	    }
-	    if((len > FC+COLS) && (lch == COLS - 1)) *q++ = L'$';
-	    else *q++ = *P++;
-	    *q = L'\0';
-	    gdrawwcs(p->bm, p->f, fgr, pt(r.x, r.y), buff);	    
+	    *q = 0;
+	    if((len > FC+COLS) && (lch == COLS - 1)) *q++ = '$';
+	    else {
+		used = mbrtowc(NULL, P, MB_CUR_MAX, &mb_st);
+		for(j = 0; j < used; j++) *q++ = *P++;
+	    }
+	    *q = '\0';
+	    gdrawstr(p->bm, p->f, fgr, pt(r.x, r.y), buff);
 	} else {
-	    int last;
-	    wchar_t ch, chf, chl;
 	    /* we don't know the string length, so modify it in place */
-	    if (FC && (fch == 0)) {chf = s[FC]; s[FC] = '$';} else chf = L'\0';
+	    if (FC && (fch == 0)) {chf = s[FC]; s[FC] = '$';} else chf = '\0';
 	    if ((len > FC+COLS) && (lch == COLS - 1)) {
 		chl = s[FC+lch]; s[FC+lch] = '$';
-	    } else chl = L'\0';
+	    }
+	    else chl = '\0';
 	    last = FC + lch + 1;
-	    if (len > last) {ch = s[last]; s[last] = L'\0';} else ch = L'\0';
-	    gdrawwcs(p->bm, p->f, fgr, pt(r.x, r.y), &s[FC+fch]);
+	    if (len > last) {ch = s[last]; s[last] = '\0';} else ch = '\0';
+	    gdrawstr(p->bm, p->f, fgr, pt(r.x, r.y), &s[FC+fch]);
 	    /* restore the string */
 	    if (ch) s[last] = ch;
 	    if (chl) s[FC+lch] = chl;
@@ -459,32 +495,35 @@ static void writelineHelper(ConsoleData p, int fch, int lch,
 /* write line i of the buffer at row j on bitmap */
 static int writeline(ConsoleData p, int i, int j)
 {
-    wchar_t *s, *stmp, *p0;
+    char *s, *stmp, *p0;
     int   insel, len, col1, d;
     int   c1, c2, c3, x0, y0, x1, y1;
     rect r;
 
     if ((i < 0) || (i >= NUMLINES)) return 0;
     stmp = s = LINE(i);
-    len = wcswidth(stmp);
+    if(mbcslocale)
+	len = mbswidth(stmp);
+    else
+	len = strlen(stmp);
     /* If there is a \r in the line, we need to preprocess it */
-    if((p0 = wcschr(s, L'\r'))) {
+    if((p0 = strchr(s, '\r'))) {
 	int l, l1;
 	stmp = LINE(i);
-	s = (wchar_t *) alloca((wcslen(stmp) + 1) * sizeof(wchar_t));
+	s = alloca(strlen(stmp) + 1);
 	l = p0 - stmp;
-	wcsncpy(s, stmp, l);
+	strncpy(s, stmp, l);
 	stmp = p0 + 1;
-	while((p0 = wcschr(stmp, L'\r'))) {
+	while((p0 = strchr(stmp, '\r'))) {
 	    l1 = p0 - stmp;
-	    wcsncpy(s, stmp, l1);
+	    strncpy(s, stmp, l1);
 	    if(l1 > l) l = l1;
 	    stmp = p0 + 1;	    
 	}
-	l1 = wcslen(stmp);
-	wcsncpy(s, stmp, l1);
+	l1 = strlen(stmp);
+	strncpy(s, stmp, l1);
 	if(l1 > l) l = l1;	
-	s[l] = L'\0';
+	s[l] = '\0';
 	len = l; /* for redraw that uses len */
     }
     col1 = COLS - 1;
@@ -512,20 +551,25 @@ static int writeline(ConsoleData p, int i, int j)
 	    r = rect(BORDERX + (CURCOL - FC) * FW, BORDERY + j * FH, FW/4, FH);
 	    gfillrect(p->bm, p->ufg, r);
 	} else if(mbcslocale) { /* determine the width of the current char */
-	    int w0;
-	    wchar_t *P = s, wc = 0, nn[2] = L" ";
-	    for (w0 = 0; w0 <= CURCOL; P++) {
-		wc = *P;
-		if(!*P) break;
+	    int w0, used = 0, ii;
+	    wchar_t wc;
+	    char *P = s, nn[10];
+	    mbs_init(&mb_st);
+	    for (w0 = 0; w0 <= CURCOL; ) {
+		used = mbrtowc(&wc, P, MB_CUR_MAX, &mb_st);
+		if(used == 0) break;
 		w0 += Ri18n_wcwidth(wc);
+		P += used;
 	    }
 	    /* term string '\0' box width = 1 fix */
-	    w0 = wc ? Ri18n_wcwidth(wc) : 1; 
-	    nn[0] = wc;
+	    w0 = (wc == L'\0') ? 1 : Ri18n_wcwidth(wc); 
+	    P -= used;
 	    r = rect(BORDERX + (CURCOL - FC) * FW, BORDERY + j * FH,
 		     w0 * FW, FH);
 	    gfillrect(p->bm, p->ufg, r);
-	    gdrawwcs(p->bm, p->f, p->bg, pt(r.x, r.y), nn);
+	    for(ii = 0; ii < used; ii++) nn[ii] = P[ii];
+	    nn[used] = '\0';
+	    gdrawstr(p->bm, p->f, p->bg, pt(r.x, r.y), nn);
 	} else
 	    WLHELPER(CURCOL - FC, CURCOL - FC, p->bg, p->ufg);
     }
@@ -543,12 +587,16 @@ static int writeline(ConsoleData p, int i, int j)
     if (i == y0) {
 	if (FC + COLS < x0) return len;
 	if(mbcslocale) {
-	    int w0, w1 = 1;
-	    wchar_t *P = s;
-	    for (w0 = 0; w0 < x0; P++) {
-		if(!*P) break;
-		w1 = Ri18n_wcwidth(*P);
+	    int w0, used = 0, w1=1;
+	    wchar_t wc;
+	    char *P = s;
+	    mbs_init(&mb_st);
+	    for (w0 = 0; w0 < x0; ) {
+		used = mbrtowc(&wc, P, MB_CUR_MAX, &mb_st);
+		if(used == 0) break;
+		w1 = Ri18n_wcwidth(wc);
 		w0 += w1;
+		P += used;
 	    }
 	    if(w0 > x0) x0 = w0 - w1;
 	}
@@ -558,13 +606,18 @@ static int writeline(ConsoleData p, int i, int j)
     if (i == y1) {
 	if (FC > x1) return len;
 	if(mbcslocale) {
-	    int w0;
-	    wchar_t *P = s;
-	    for (w0 = 0; w0 <= x1; P++) {
-		if(!*P) break;
-		w0 += Ri18n_wcwidth(*P);
+	    int w0, used = 0, wl = 1;
+	    wchar_t wc;
+	    char *P = s;
+	    mbs_init(&mb_st);
+	    for (w0 = 0; w0 <= x1; ) {
+		used = mbrtowc(&wc, P, MB_CUR_MAX, &mb_st);
+		if(used == 0) break;
+		wl = Ri18n_wcwidth(wc);
+		w0 += wl;
+		P += used;
 	    }
-	    x1 = w0 - 1;
+	    x1 = w0-1;
 	}
 	c2 = (x1 > FC + COLS) ? (COLS - 1) : (x1 - FC);
     } else
@@ -652,7 +705,10 @@ void setfirstcol(control c, int newcol)
     if (newcol > 0) {
 	for (i = 0, ml = 0; i < ll; i++) {
 	    /* <FIXME> this should really take \r into account */
-	    li = wcswidth(LINE(NEWFV + i));
+	    if(mbcslocale)
+		li = mbswidth(LINE(NEWFV + i));
+	    else
+		li = strlen(LINE(NEWFV + i));
 	    ml = (ml < li) ? li : ml;
 	}
 	ml = ml - COLS;
@@ -682,7 +738,7 @@ void console_mousedrag(control c, int button, point pt)
 	p->sel = 1;
 	   
 	if (within_input(p, p->mx1, p->my1)) {
-	    cur_pos = col_to_pos(p, p->mx1);
+	    cur_byte = col_to_byte(p, p->mx1);
 	    setCURCOL(p);
 	}
 	if (pt.y <= 0) setfirstvisible(c, FV - 3);
@@ -713,9 +769,8 @@ void console_mousedown(control c, int button, point pt)
     if (button & LeftButton) {
 	p->my0 = FV + pt.y/FH;
 	p->mx0 = FC + pt.x/FW;
-	if (within_input(p, p->mx0, p->my0) || 
-	    (p->my0 == CURROW && p->mx0 > prompt_wid)) {
-	    cur_pos = col_to_pos(p, p->mx0);
+	if (within_input(p, p->mx0, p->my0) || (p->my0 == CURROW && p->mx0 > prompt_wid)) {
+	    cur_byte = col_to_byte(p, p->mx0);
 	    setCURCOL(p);
 	    p->needredraw = 1;
 	}
@@ -772,7 +827,7 @@ void consoleflush(control c)
 static void checkpointpos(xbuf p, int save)
 {
     static int ns, av;
-    static wchar_t *free;
+    static char *free;
     if(save) {
 	ns = p->ns;
 	av = p->av;
@@ -784,7 +839,7 @@ static void checkpointpos(xbuf p, int save)
     }
 }
 
-static void storekey(control c, int k)
+static void storekey(control c,int k)
 {
     ConsoleData p = getdata(c);
 
@@ -819,11 +874,11 @@ static void storetab(control c)
 #include <Rinternals.h>
 #include <R_ext/Parse.h>
 
-static int completion_available = -1;
+static int rcompgen_available = -1;
 
-void set_completion_available(int x)
+void set_rcompgen_available(int x)
 {
-    completion_available = x;
+    rcompgen_available = x;
 }
     
 
@@ -831,30 +886,29 @@ static void performCompletion(control c)
 {
     ConsoleData p = getdata(c);
     int i, alen, alen2, max_show = 10, cursor_position = p->c - prompt_wid;
-    wchar_t *partial_line = LINE(NUMLINES - 1) + prompt_wid;
+    char *partial_line = LINE(NUMLINES - 1) + prompt_wid;
     const char *additional_text;
-    wchar_t *pline;
-    char *cmd;
+    char *pline, *cmd;
     SEXP cmdSexp, cmdexpr, ans = R_NilValue;
     ParseStatus status;
 
-    if(!completion_available) {
+    if(!rcompgen_available) {
 	storetab(c);
 	return;
     }
     
-    if(completion_available < 0) {
+    if(rcompgen_available < 0) {
 	char *p = getenv("R_COMPLETION");
 	if(p && strcmp(p, "FALSE") == 0) {
-	    completion_available = 0;
+	    rcompgen_available = 0;
 	    storetab(c);
 	    return;	    
 	}
 	/* First check if namespace is loaded */
-	if(findVarInFrame(R_NamespaceRegistry, install("utils"))
-	   != R_UnboundValue) completion_available = 1;
+	if(findVarInFrame(R_NamespaceRegistry, install("rcompgen"))
+	   != R_UnboundValue) rcompgen_available = 1;
 	else { /* Then try to load it */
-	    char *p = "try(loadNamespace('utils'), silent=TRUE)";
+	    char *p = "try(loadNamespace('rcompgen'), silent=TRUE)";
 	    PROTECT(cmdSexp = mkString(p));
 	    cmdexpr = PROTECT(R_ParseVector(cmdSexp, -1, &status, R_NilValue));
 	    if(status == PARSE_OK) {
@@ -862,25 +916,25 @@ static void performCompletion(control c)
 		    eval(VECTOR_ELT(cmdexpr, i), R_GlobalEnv);
 	    }
 	    UNPROTECT(2);
-	    if(findVarInFrame(R_NamespaceRegistry, install("utils"))
-	       != R_UnboundValue) completion_available = 1;
+	    if(findVarInFrame(R_NamespaceRegistry, install("rcompgen"))
+	       != R_UnboundValue) rcompgen_available = 1;
 	    else {
-		completion_available = 0;
+		rcompgen_available = 0;
 		return;
 	    }
 	}
     }
 
     /* FIXME: need to escape quotes properly */
-    pline = (wchar_t *) alloca((wcslen(partial_line) + 1) * sizeof(wchar_t));
-    wcscpy(pline, partial_line);
+    pline = alloca(strlen(partial_line) + 1);
+    strcpy(pline, partial_line);
     /* poor attempt at escaping quotes that sort of works */
-    alen = wcslen(pline);
+    alen = strlen(pline);
     for (i = 0; i < alen; i++)
-        if (pline[i] == '"') pline[i] = L'\'';
+        if (pline[i] == '"') pline[i] = '\'';
 
-    cmd = alloca((wcslen(pline) + 100));
-    sprintf(cmd, "utils:::.win32consoleCompletion(\"%ls\", %d)",
+    cmd = alloca(strlen(pline) + 100);
+    sprintf(cmd, "rcompgen:::.win32consoleCompletion(\"%s\", %d)",
 	    pline, cursor_position);
     PROTECT(cmdSexp = mkString(cmd));
     cmdexpr = PROTECT(R_ParseVector(cmdSexp, -1, &status, R_NilValue));
@@ -912,11 +966,10 @@ static void performCompletion(control c)
     alen2 = strlen(additional_text);
     if (alen) {
         /* make a copy of the current string first */
-	char *buf1;
-	wchar_t *p1 = LINE(NUMLINES - 1);
+	char *buf1, *p1 = LINE(NUMLINES - 1);
 	checkpointpos(p->lbuf, 1);
-	buf1 = alloca(MB_CUR_MAX * wcslen(p1) + 1);
-	sprintf(buf1,"%ls\n", p1);
+	buf1 = alloca(strlen(p1) + 1);
+	sprintf(buf1,"%s\n", p1); 
 	consolewrites(c, buf1);
 
 	for (i = 0; i < min(alen, max_show); i++) {
@@ -938,29 +991,29 @@ static void deleteselected(ConsoleData p)
 {
     if (p->sel) {
     	int s0, s1;
-    	wchar_t *cur_line;
+    	char *cur_line;
     	if (intersect_input(p, 1)) {
 	    /* convert to bytes after the prompt */
-	    s0 = col_to_pos(p, p->mx0);
-	    s1 = col_to_pos(p, p->mx1);
+	    s0 = col_to_byte(p, p->mx0);
+	    s1 = col_to_byte(p, p->mx1);
 	    cur_line = LINE(CURROW) + prompt_len;
-	    for(int i = s0; i <= max_pos; i++)
+	    for(int i = s0; i <= max_byte; i++)
 		cur_line[i] = cur_line[i + s1 - s0 + 1];
-	    max_pos -= s1 - s0 + 1;
-	    cur_line[max_pos] = L'\0';
-	    if (cur_pos > s0) 
-		cur_pos = cur_pos > s1 ? cur_pos - (s1 - s0 + 1) : s0;
+	    max_byte -= s1 - s0 + 1;
+	    cur_line[max_byte] = '\0';
+	    if (cur_byte > s0) 
+		cur_byte = cur_byte > s1 ? cur_byte - (s1 - s0 + 1) : s0;
 	    setCURCOL(p);
 	    p->needredraw = 1;
 	}
     }
 }
 
-void consolecmd(control c, const char *cmd)
+void consolecmd(control c, char *cmd)
 {
     ConsoleData p = getdata(c);
 
-    const char *ch;
+    char *ch;
     int i;
     if (p->sel) {
     	deleteselected(p);
@@ -974,16 +1027,14 @@ void consolecmd(control c, const char *cmd)
     storekey(c, '\n');
 /* if we are editing we save the actual line */
     if (p->r > -1) {
-	char buf[2000], *cp; /* maximum 2 bytes/char */
-	wchar_t *wc = &(p->lbuf->s[p->lbuf->ns - 1][prompt_len]);
-	memset(buf, 0, 2000);
-	wcstombs(buf, wc, 1000);
-	for (cp = buf; *cp; cp++) storekey(c, *cp);
-	for (i = max_pos; i > cur_pos; i--) storekey(c, CHARLEFT);
+      ch = &(p->lbuf->s[p->lbuf->ns - 1][prompt_len]);
+      for (; *ch; ch++) storekey(c, *ch);
+      /* <FIXME> This needs to go back in bytes, not chars */
+      for (i = max_byte; i > cur_byte; i--) storekey(c, CHARLEFT);
     }
 }
 
-static int CleanTranscript(wchar_t *tscpt, wchar_t *cmds)
+static int CleanTranscript(char *tscpt, char *cmds)
 {
     /*
      * Filter R commands out of a string that contains
@@ -996,16 +1047,18 @@ static int CleanTranscript(wchar_t *tscpt, wchar_t *cmds)
      * to cmds & terminate with null.
      */
     int incommand = 0, startofline = 1, len = 0;
-    wchar_t nonprefix[] = L">+ \t\n\r";
+    char nonprefix[] = ">+ \t\n\r";
     while (*tscpt) {
 	if (startofline) {
 	    /* skip initial whitespace */
-	    while (*tscpt == L' ' || *tscpt == L'\t') tscpt++;
-	    /* skip over the prompt prefix */
-	    while (*tscpt && !wcschr(nonprefix, *tscpt)) tscpt++;
-	    if (*tscpt == L'>' || (incommand && *tscpt == L'+')) {
+	    while (*tscpt==' ' || *tscpt=='\t')
 		tscpt++;
-		if (*tscpt == L' ' || *tscpt == L'\t') tscpt++;
+	    /* skip over the prompt prefix */
+	    while (*tscpt && !strchr(nonprefix, *tscpt))
+	    	tscpt++;
+	    if (*tscpt=='>' || (incommand && *tscpt=='+')) {
+		tscpt++;
+		if (*tscpt==' ' || *tscpt=='\t') tscpt++;
 		incommand = 1;
 	    } else {
 		incommand = 0;
@@ -1013,10 +1066,12 @@ static int CleanTranscript(wchar_t *tscpt, wchar_t *cmds)
 	    startofline = 0;
 	} else {
 	    if (incommand) {
-		if (cmds) *(cmds++) = *tscpt;
+		if (cmds)
+		    *(cmds++) = *tscpt;
 		len++;
 	    }
-	    if (*tscpt == L'\n') startofline = 1;
+	    if (*tscpt=='\n')
+		startofline = 1;
 	    tscpt++;
 	}
     }
@@ -1042,7 +1097,7 @@ void consolepaste(control c)
     ConsoleData p = getdata(c);
 
     HGLOBAL hglb;
-    wchar_t *pc, *new = NULL;
+    char *pc, *new = NULL;
     if (p->sel) {
     	deleteselected(p);
 	p->sel = 0;
@@ -1051,22 +1106,21 @@ void consolepaste(control c)
      }
     if (p->kind == PAGER) return;;
     if ( OpenClipboard(NULL) &&
-         (hglb = GetClipboardData(CF_UNICODETEXT)) &&
-         (pc = (wchar_t *) GlobalLock(hglb)))
+         (hglb = GetClipboardData(CF_TEXT)) &&
+         (pc = (char *)GlobalLock(hglb)))
     {
         if (p->clp) {
-           new = realloc((void *)p->clp, 
-			 (wcslen(p->clp) + wcslen(pc) + 1) * sizeof(wchar_t));
+           new = realloc((void *)p->clp, strlen(p->clp) + strlen(pc) + 1);
         }
         else {
-           new = malloc((wcslen(pc) + 1) * sizeof(wchar_t)) ;
-           if (new) new[0] = L'\0';
+           new = malloc(strlen(pc) + 1) ;
+           if (new) new[0] = '\0';
            p->already = p->numkeys;
            p->pclp = 0;
         }
         if (new) {
            p->clp = new;
-           wcscat(p->clp, pc);
+           strcat(p->clp, pc);
         }
         else {
            R_ShowMessage(G_("Not enough memory"));
@@ -1081,7 +1135,7 @@ void consolepastecmds(control c)
     ConsoleData p = getdata(c);
 
     HGLOBAL hglb;
-    wchar_t *pc, *new = NULL;
+    char *pc, *new = NULL;
     if (p->sel) {
     	deleteselected(p);
 	p->sel = 0;
@@ -1090,16 +1144,15 @@ void consolepastecmds(control c)
      }
     if (p->kind == PAGER) return;;
     if ( OpenClipboard(NULL) &&
-         (hglb = GetClipboardData(CF_UNICODETEXT)) &&
-         (pc = (wchar_t *) GlobalLock(hglb)))
+         (hglb = GetClipboardData(CF_TEXT)) &&
+         (pc = (char *)GlobalLock(hglb)))
     {
         if (p->clp) {
-	    new = realloc((void *)p->clp, 
-			  (wcslen(p->clp) + CleanTranscript(pc, 0)) 
-			  * sizeof(wchar_t));
+	    new = realloc((void *)p->clp, strlen(p->clp) +
+			  CleanTranscript(pc, 0));
         }
         else {
-	    new = malloc(CleanTranscript(pc, 0) * sizeof(wchar_t));
+	    new = malloc(CleanTranscript(pc, 0)) ;
 	    if (new) new[0] = '\0';
 	    p->already = p->numkeys;
 	    p->pclp = 0;
@@ -1125,19 +1178,28 @@ static void consoletoclipboardHelper(control c, int x0, int y0, int x1, int y1)
 
     HGLOBAL hglb;
     int ll, i, j;
-    wchar_t *s;
+    char *s;
 
+    int w0 = 0 /* -Wall */, used=0, x00, x11=100000;
+    wchar_t wc;
+    char *P;
     if(mbcslocale) {
-	int w0, x00 = x0, x11=100000;
-	i = y0; ll = 1; /* terminator */
+
+	i = y0; x00 = x0; ll = 1; /* terminator */
 	while (i <= y1) {
-	    wchar_t *P = LINE(i);
-	    for (w0 = 0; w0 < x00 && *P; P++) w0 += Ri18n_wcwidth(*P);
+	    P = LINE(i);
+	    mbs_init(&mb_st);
+	    for (w0 = 0; w0 < x00 && *P; ) {
+		P += mbrtowc(&wc, P, MB_CUR_MAX, &mb_st);
+		w0 += Ri18n_wcwidth(wc);
+	    }
 	    x00 = 0;
 	    if(i == y1) x11 = x1+1; /* cols are 0-based */
 	    while (w0 < x11 && *P) {
-		ll++;
-		w0 += Ri18n_wcwidth(*P++);
+		used = mbrtowc(&wc, P, MB_CUR_MAX, &mb_st);
+		ll += used;
+		P += used;
+		w0 += Ri18n_wcwidth(wc);
 	    }
 	    if(w0 < x11) ll += 2;  /* \r\n */
 	    i++;
@@ -1148,61 +1210,64 @@ static void consoletoclipboardHelper(control c, int x0, int y0, int x1, int y1)
 	    if (LINE(i)[j]) {
 		ll++;
 		j++;
-	    } else {
+	    }
+	    else {
 		ll += 2;
 		i++;
 		j = 0;
 	    }
 	}
     }
-    
 
-    if (!(hglb = GlobalAlloc(GHND, ll * sizeof(wchar_t)))){
+    if (!(hglb = GlobalAlloc(GHND, ll))){
         R_ShowMessage(G_("Insufficient memory: text not copied to the clipboard"));
         return;
     }
-    if (!(s = (wchar_t *)GlobalLock(hglb))){
+    if (!(s = (char *)GlobalLock(hglb))){
         R_ShowMessage(G_("Insufficient memory: text not copied to the clipboard"));
         return;
     }
     if(mbcslocale) {
-	int w0, x00 = x0, x11=100000;
-	wchar_t *P;
-	i = y0;
+	i = y0; x00 = x0; x11=100000;
 	while (i <= y1) {
 	    P = LINE(i);
-	    for (w0 = 0; w0 < x00 && *P; P++) w0 += Ri18n_wcwidth(*P);
+	    mbs_init(&mb_st);
+	    for (w0 = 0; w0 < x00 && *P; ) {
+		P += mbrtowc(&wc, P, MB_CUR_MAX, &mb_st);
+		w0 += Ri18n_wcwidth(wc);
+	    }
 	    x00 = 0;
 	    if(i == y1) x11 = x1+1;
 	    while (w0 < x11 && *P) {
-		w0 += Ri18n_wcwidth(*P);
-		*s++ = *P++;
+		used = mbrtowc(&wc, P, MB_CUR_MAX, &mb_st);
+		w0 += Ri18n_wcwidth(wc);
+		for(j = 0; j < used; j++) *s++ = *P++;
 	    }
-	    if(w0 < x11) *s++ = L'\r'; *s++ = L'\n';
+	    if(w0 < x11) *s++ = '\r'; *s++ = '\n';
 	    i++;
 	}
     } else {
 	i = y0; j = x0;
 	while ((i < y1) || ((i == y1) && (j <= x1))) {
-	    wchar_t ch = LINE(i)[j];
+	    char ch = LINE(i)[j];
 	    if (ch) {
 		*s++ = ch;
 		j++;
 	    } else {
-		*s++ = L'\r'; *s++ = L'\n';
+		*s++ = '\r'; *s++ = '\n';
 		i++;
 		j = 0;
 	    }
 	}
     }
-    *s = L'\0';
+    *s = '\0';
     GlobalUnlock(hglb);
     if (!OpenClipboard(NULL) || !EmptyClipboard()) {
         R_ShowMessage(G_("Unable to open the clipboard"));
         GlobalFree(hglb);
         return;;
     }
-    SetClipboardData(CF_UNICODETEXT, hglb);
+    SetClipboardData(CF_TEXT, hglb);
     CloseClipboard();
 }
 
@@ -1230,12 +1295,12 @@ void consolecopy(control c)
 	int x0, y0, x1, y1;
 	if (p->my0 >= NUMLINES) p->my0 = NUMLINES - 1;
 	if (p->my0 < 0) p->my0 = 0;
-	len = wcswidth(LINE(p->my0));
+	len = strlen(LINE(p->my0));
 	if (p->mx0 >= len) p->mx0 = len - 1;
 	if (p->mx0 < 0) p->mx0 = 0;
 	if (p->my1 >= NUMLINES) p->my1 = NUMLINES - 1;
 	if (p->my1 < 0) p->my1 = 0;
-	len = wcswidth(LINE(p->my1));
+	len = strlen(LINE(p->my1));
 	if (p->mx1 >= len) p->mx1 = len/* - 1*/;
 	if (p->mx1 < 0) p->mx1 = 0;
 	c1 = (p->my0 < p->my1);
@@ -1262,15 +1327,11 @@ void consoleselectall(control c)
        p->sel = 1;
        p->my0 = p->mx0 = 0;
        p->my1 = NUMLINES - 1;
-       p->mx1 = wcslen(LINE(p->my1));
+       p->mx1 = strlen(LINE(p->my1));
        REDRAW;
     }
 }
 
-/* 
-   This works in CJK as the IME puts CJK characters in the
-   input buffer as 2 bytes, and they are retrieved successively
-*/
 void console_normalkeyin(control c, int k)
 {
     ConsoleData p = getdata(c);
@@ -1427,14 +1488,14 @@ int consolewrites(control c, const char *s)
 {
     ConsoleData p = getdata(c);
 
-    wchar_t buf[1001];
+    char buf[1001];
     if(p->input) {
-        int i, len = wcslen(LINE(NUMLINES - 1));
+        int i, len = strlen(LINE(NUMLINES - 1));
 	/* save the input line */
-	wcsncpy(buf, LINE(NUMLINES - 1), 1000);
-	buf[1000] = L'\0';
+	strncpy(buf, LINE(NUMLINES - 1), 1000);
+	buf[1000] = '\0';
 	/* now zap it */
-	for(i = 0; i < len; i++) xbufaddxc(p->lbuf, L'\b');
+	for(i = 0; i < len; i++) xbufaddc(p->lbuf, '\b');
 	if (incomplete) {
 	    p->lbuf->ns--;
 	    p->lbuf->free--;
@@ -1446,8 +1507,8 @@ int consolewrites(control c, const char *s)
     FC = 0;
     if(p->input) {
 	incomplete = (s[strlen(s) - 1] != '\n');
-        if (incomplete) xbufaddxc(p->lbuf, L'\n');
-	xbufaddxs(p->lbuf, buf, 1);
+        if (incomplete) xbufaddc(p->lbuf, '\n');
+	xbufadds(p->lbuf, buf, 1);
     }
     if (strchr(s, '\n')) p->needredraw = 1;
     if (!p->lazyupdate || (p->r >= 0))
@@ -1477,10 +1538,10 @@ static void delconsole(control c)
 }
 
 /* console readline (coded looking to the GNUPLOT 3.5 readline)*/
-static wchar_t consolegetc(control c)
+static char consolegetc(control c)
 {
     ConsoleData p;
-    wchar_t ch;
+    char ch;
 
     p = getdata(c);
     while((p->numkeys == 0) && (!p->clp))
@@ -1495,30 +1556,18 @@ static wchar_t consolegetc(control c)
 	setCURCOL(p); /* Needed? */
 	REDRAW;
     }
-    if (!p->already && p->clp) {
+    if (!p->already && p->clp)
+    {
 	ch = p->clp[p->pclp++];
 	if (!(p->clp[p->pclp])) {
 	    free(p->clp);
 	    p->clp = NULL;
 	}
     } else {
-	if(mbcslocale) {
-	    /* Possibly multiple 'keys' for a single keystroke */
-	    char tmp[20];
-	    unsigned int used, i;
-
-	    for(i = 0; i < MB_CUR_MAX; i++) 
-		tmp[i] = p->kbuf[(p->firstkey + i) % NKEYS];
-	    used = mbrtowc(&ch, tmp, MB_CUR_MAX, NULL);
-	    p->firstkey = (p->firstkey + used) % NKEYS;
-	    p->numkeys -= used;
-	    if (p->already) p->already -= used;
-	} else {
-	    ch = p->kbuf[p->firstkey];
-	    p->firstkey = (p->firstkey + 1) % NKEYS;
-	    p->numkeys--;
-	    if (p->already) p->already--;
-	}
+          ch = p->kbuf[p->firstkey];
+          p->firstkey = (p->firstkey + 1) % NKEYS;
+          p->numkeys--;
+          if (p->already) p->already--;
     }
     return ch;
 }
@@ -1562,26 +1611,40 @@ static void draweditline(control c)
 }
 
 /* Here multibyte characters will be entered as individual bytes */
-int consolereads(control c, const char *prompt, char *buf, int len, 
-		 int addtohistory)
+int consolereads(control c, char *prompt, char *buf, int len, int addtohistory)
 {
     ConsoleData p = getdata(c);
 
-    wchar_t *cur_line, *P;
-    wchar_t *aLine;
+    char cur_char;
+    char *cur_line, *P;
+    char *aLine;
     int ns0 = NUMLINES, w0 = 0, pre_prompt_len;
+    int mb_len;
 
-    pre_prompt_len = wcslen(LINE(NUMLINES - 1));
+    pre_prompt_len = strlen(LINE(NUMLINES - 1));
     /* print the prompt */
     xbufadds(p->lbuf, prompt, 1);
     if (!xbufmakeroom(p->lbuf, len + 1)) return 1;
     P = aLine = LINE(NUMLINES - 1);
-    prompt_len = wcslen(aLine);
-    for (; P < aLine + pre_prompt_len; P++)
-	if(*P == L'\r') w0 = 0; 
-	else w0 += mbcslocale ? Ri18n_wcwidth(*P) : 1;
-    USER(NUMLINES - 1) = w0;
-    prompt_wid = wcswidth(aLine);
+    prompt_len = strlen(aLine);
+    if(mbcslocale) {
+	int used;
+	wchar_t wc;
+	mbs_init(&mb_st);
+	while (P < aLine + pre_prompt_len) {
+	    used = mbrtowc(&wc, P, MB_CUR_MAX, &mb_st);
+	    if(used <= 0) break;
+	    if(wc == L'\r') w0 = 0; else w0 += Ri18n_wcwidth(wc);
+	    P += used;
+	}
+	USER(NUMLINES - 1) = w0;
+	prompt_wid = w0 + mbswidth(prompt);
+    } else {
+	for (; P < aLine + pre_prompt_len; P++)
+	    if(*P == '\r') w0 = 0; else w0++;
+	USER(NUMLINES - 1) = w0;
+	prompt_wid = w0 + strlen(prompt);
+    }
     if (NUMLINES > ROWS) {
 	p->r = ROWS - 1;
 	p->newfv = NUMLINES - ROWS;
@@ -1591,18 +1654,17 @@ int consolereads(control c, const char *prompt, char *buf, int len,
     }
     CURCOL = prompt_wid;
     p->fc = 0;
-    cur_pos = 0;
-    max_pos = 0;
+    cur_byte = 0;
+    max_byte = 0;
     cur_line = &aLine[prompt_len];
-    cur_line[0] = L'\0';
+    cur_line[0] = '\0';
     REDRAW;
     for(;;) {
-	wchar_t cur_char;
-	char chtype; /* boolean */
+	char chtype;
 	p->input = 1;
 	cur_char = consolegetc(c);
 	p->input = 0;
-	chtype = ((unsigned int) cur_char > 0x1f);
+	chtype = ((unsigned char)cur_char > 0x1f);
 	if(NUMLINES != ns0) { /* we scrolled, e.g. cleared screen */
             cur_line = LINE(NUMLINES - 1) + prompt_len;
 	    ns0 = NUMLINES;
@@ -1616,98 +1678,143 @@ int consolereads(control c, const char *prompt, char *buf, int len,
 	    USER(NUMLINES - 1) = prompt_wid;
 	    p->needredraw = 1;
 	}
-        if(chtype && (max_pos <= len - 2)) { 
+        if(chtype && (max_byte <= len - 2 - MB_CUR_MAX)) { 
 	    /* not a control char: we need to fit in the char\n\0 */
 	    int i;
-	    if(!p->overwrite) {
-		for(i = max_pos; i > cur_pos; i--)
-		    cur_line[i] = cur_line[i - 1];
+	    if(mbcslocale) {
+		char s[9];
+		int clen;
+		int res;
+		wchar_t wc;
+
+		memset(s, 0, sizeof(s));
+		for(clen = 0; clen <= MB_CUR_MAX;) {
+		    s[clen++] = cur_char;
+		    mbs_init(&mb_st);
+		    res = mbrtowc(&wc, s, clen ,&mb_st);
+		    if(res >= 0) break;
+		    cur_char = consolegetc(c);
+		}
+		if( p->overwrite ==1 && cur_byte != max_byte ) {
+		    mb_len = mb_char_len(cur_line, cur_byte);
+		    for(i = cur_byte; i <= max_byte-mb_len ; i++)
+			cur_line[i] = cur_line[i + mb_len];
+		    max_byte -= mb_len;
+		}
+		for(i = max_byte; i >= cur_byte; i--) 
+		    cur_line[i+clen] = cur_line[i]; 
+		for(i = 0;  i< clen; i++) 
+		    cur_line[cur_byte + i] = s[i];
+		max_byte += clen;
+		cur_byte += clen; 
+	    } else {
+		if(!p->overwrite) {
+		    for(i = max_byte; i > cur_byte; i--) {
+			cur_line[i] = cur_line[i - 1];
+		    }
+		}
+		cur_line[cur_byte] = cur_char;
+		if(!p->overwrite || cur_byte == max_byte) {
+		    max_byte += 1;
+		    cur_line[max_byte] = '\0';
+		}
+		cur_byte++;
 	    }
-	    cur_line[cur_pos] = cur_char;
-	    if(!p->overwrite || cur_pos == max_pos) {
-		max_pos += 1;
-		cur_line[max_pos] = L'\0';
-	    }
-	    cur_pos++;
 	} else { /* a control char */
 	    /* do normal editing commands */
 	    int i;
 	    switch(cur_char) {
 	    case BEGINLINE:
-		cur_pos = 0;
+		cur_byte = 0;
 		break;
 	    case CHARLEFT:
-		if(cur_pos > 0) cur_pos--;
+		if(cur_byte > 0) {
+		    cur_byte -= mb_char_len(cur_line, cur_byte-1);
+		}
 		break;
 	    case ENDLINE:
-		cur_pos = max_pos;
+		cur_byte = max_byte;
 		break;
 	    case CHARRIGHT:
-		if(cur_pos < max_pos) cur_pos ++;
+		if(cur_byte < max_byte) {
+		    cur_byte += mb_char_len(cur_line, cur_byte);
+		}
 		break;
 	    case KILLRESTOFLINE:
-		max_pos = cur_pos;
-		cur_line[max_pos] = L'\0';
+		max_byte = cur_byte;
+		cur_line[max_byte]='\0';
 		break;
 	    case KILLLINE:
-		max_pos = cur_pos = 0;
-		cur_line[max_pos] = L'\0';
+		max_byte = cur_byte = 0;
+		cur_line[max_byte]='\0';
 		break;
 	    case PREVHISTORY:
-		P = wgl_hist_prev();
-		xbufmakeroom(p->lbuf, wcslen(P) + 1);
-		wcscpy(cur_line, P);
-		cur_pos = max_pos = wcslen(cur_line);
+		strcpy(cur_line, gl_hist_prev());
+		cur_byte = max_byte = strlen(cur_line);
 		break;
 	    case NEXTHISTORY:
-		P = wgl_hist_next();
-		xbufmakeroom(p->lbuf, wcslen(P) + 1);
-		wcscpy(cur_line, P);
-		cur_pos = max_pos = wcslen(cur_line);
+		strcpy(cur_line, gl_hist_next());
+		cur_byte = max_byte = strlen(cur_line);
 		break;
 	    case BACKCHAR:
-		if(cur_pos > 0) {
-		    cur_pos--;
-		    for(i = cur_pos; i <= max_pos - 1; i++)
-		        cur_line[i] = cur_line[i + 1];
-		    max_pos--;
+		if(cur_byte > 0) {
+		    mb_len = mb_char_len(cur_line, cur_byte-1);
+		    cur_byte -= mb_len;
+		    for(i = cur_byte; i <= max_byte - mb_len; i++)
+		        cur_line[i] = cur_line[i + mb_len];
+		    max_byte -= mb_len;
 		}
 		break;
 	    case DELETECHAR:
-		if(max_pos == 0) break;
-		if(cur_pos < max_pos) {
-		    for(i = cur_pos; i <= max_pos - 1; i++)
-			cur_line[i] = cur_line[i + 1];
-		    max_pos--;
+		if(max_byte == 0) break;
+		if(cur_byte < max_byte) {
+		    mb_len = mb_char_len(cur_line, cur_byte);
+		    for(i = cur_byte; i <= max_byte - mb_len; i++)
+			cur_line[i] = cur_line[i + mb_len];
+		    max_byte -= mb_len;
 		}
 		break;
 	    case CHARTRANS:
-		if(cur_pos < 1) break;
-		if(cur_pos >= max_pos) break;
- 		cur_char = cur_line[cur_pos];
-		cur_line[cur_pos] = cur_line[cur_pos-1];
-		cur_line[cur_pos-1] = cur_char;
+		if(cur_byte < 1) break;
+		if(cur_byte >= max_byte) break;
+		{
+		    int j, l_len = mb_char_len(cur_line, cur_byte-1), r_len;
+		    /* we should not reset the state here */
+		    if(mbcslocale)
+			r_len = mbrtowc(NULL, cur_line+cur_byte, MB_CUR_MAX,
+					&mb_st);
+		    else
+			r_len = 1;
+		    for (i = 0; i < r_len; i++)
+			for(j = 0; j < l_len; j++) {
+			    cur_char = cur_line[cur_byte+i-j];
+			    cur_line[cur_byte+i-j] = cur_line[cur_byte+i-j-1];
+			    cur_line[cur_byte+i-j-1] = cur_char;
+			}
+		    cur_byte += r_len - l_len;
+		}
 		break;
 	    default:   /* Another control char, or overflow */
-		if (chtype || (cur_char == L'\n') || (cur_char == EOFKEY)) {
+		if (chtype || (cur_char == '\n') || (cur_char == EOFKEY)) {
 		    if (chtype) {
-			if (cur_pos == max_pos) {
+			if (cur_byte == max_byte) {
 			    consoleunputc(c);
 			} else {
 			    gabeep();
 			    break;
 			}
 		    }
-		    if((cur_char == L'\n') || (cur_char == EOFKEY)) {
-			cur_line[max_pos] = L'\n';
-			cur_line[max_pos + 1] = L'\0';
-		    } else
-			cur_line[max_pos] = L'\0';
+		    if((cur_char == '\n') || (cur_char == EOFKEY)) {
+			cur_line[max_byte] = '\n';
+			cur_line[max_byte + 1] = '\0';
+		    } else {
+			cur_line[max_byte] = '\0';
+		    }
 		    /* just to be safe */
-		    sprintf(buf, "%ls", cur_line);
+		    strncpy(buf, cur_line, len);
 		    p->r = -1;
-		    cur_line[max_pos] = L'\0';
-		    if (max_pos && addtohistory) wgl_histadd(cur_line);
+		    cur_line[max_byte] = '\0';
+		    if (max_byte && addtohistory) gl_histadd(cur_line);
 		    xbuffixl(p->lbuf);
 		    consolewrites(c, "\n");
 		    REDRAW;
@@ -1729,14 +1836,6 @@ void console_sbf(control c, int pos)
 	if (FC != pos) setfirstcol(c, pos);
     } else
         if (FV != pos) setfirstvisible(c, pos);
-}
-
-void console_im(control c, font *f, point *pt)
-{
-  ConsoleData p = getdata(c);
-  pt->x = BORDERX + CURCOL * FW;
-  pt->y = BORDERY + CURROW * FH;
-  *f = consolefn;
 }
 
 void Rconsolesetwidth(int);
@@ -1812,7 +1911,7 @@ int pagerMultiple = 1, haveusedapager = 0;
 int consolebufb = DIMLBUF, consolebufl = MLBUF, consolebuffered = 1;
 
 void
-setconsoleoptions(const char *fnname,int fnsty, int fnpoints,
+setconsoleoptions(char *fnname,int fnsty, int fnpoints,
                   int rows, int cols, int consx, int consy,
 		  rgb nfg, rgb nufg, rgb nbg, rgb high,
 		  int pgr, int pgc, int multiplewindows, int widthonresize,
@@ -1820,7 +1919,7 @@ setconsoleoptions(const char *fnname,int fnsty, int fnpoints,
 {
     char msg[LF_FACESIZE + 128];
     strncpy(fontname, fnname, LF_FACESIZE);
-    fontname[LF_FACESIZE] = L'\0';
+    fontname[LF_FACESIZE] = '\0';
     fontsty =   fnsty;
     pointsize = fnpoints;
     if (consolefn) del(consolefn);
@@ -1870,9 +1969,8 @@ void consoleprint(console c)
     int top, left;
     int x0, y0, x1, y1;
     font f;
-    wchar_t *s = L"";
-    char msg[LF_FACESIZE + 128], title[60];
-    wchar_t buf[1024];
+    char *s = "", lc = '\0', msg[LF_FACESIZE + 128], title[60];
+    char buf[1024];
     cursor cur;
     if (!(lpr = newprinter(0.0, 0.0, ""))) return;;
     show(c);
@@ -1905,12 +2003,12 @@ void consoleprint(console c)
 	int len, c1, c2, c3;
 	if (p->my0 >= NUMLINES) p->my0 = NUMLINES - 1;
 	if (p->my0 < 0) p->my0 = 0;
-	len = wcslen(LINE(p->my0));
+	len = strlen(LINE(p->my0));
 	if (p->mx0 >= len) p->mx0 = len - 1;
 	if (p->mx0 < 0) p->mx0 = 0;
 	if (p->my1 >= NUMLINES) p->my1 = NUMLINES - 1;
 	if (p->my1 < 0) p->my1 = 0;
-	len = wcslen(LINE(p->my1));
+	len = strlen(LINE(p->my1));
 	if (p->mx1 >= len) p->mx1 = len - 1;
 	if (p->mx1 < 0) p->mx1 = 0;
 	c1 = (p->my0 < p->my1);
@@ -1927,7 +2025,7 @@ void consoleprint(console c)
     } else {
 	x0 = y0 = 0;
 	y1 = NUMLINES - 1;
-	x1 = wcslen(LINE(y1));
+	x1 = strlen(LINE(y1));
     }
 
     cl = y0; /* current line */
@@ -1949,21 +2047,20 @@ void consoleprint(console c)
             if (cl == y0) s = LINE(cl++) + x0;
 	    else if (cl < y1) s = LINE(cl++);
 	    else if (cl == y1) {
-		s = wcsncpy(buf, LINE(cl++), 1023);
-		s[min(x1, 1023) + 1] = L'\0';
+		s = strncpy(buf, LINE(cl++), 1023);
+		s[min(x1, 1023) + 1] = '\0';
 	    } else break;
 	}
 	if (!*s) {
 	    clinp += fh;
 	} else {
-	    wchar_t lc = L'\0';
-	    for (i = wcslen(s); i > 0; i--) {
+	    for (i = strlen(s); i > 0; i--) {
 		lc = s[i];
-		s[i] = L'\0';
-		if (gwcswidth(lpr, f, s) < cc) break;
+		s[i] = '\0';
+		if (gstrwidth(lpr, f, s) < cc) break;
 		s[i] = lc;
 	    }
-	    gdrawwcs(lpr, f, Black, pt(left, clinp), s);
+	    gdrawstr(lpr, f, Black, pt(left, clinp), s);
 	    clinp += fh;
 	    s[i] = lc;
 	    s = s + i;
@@ -1983,7 +2080,7 @@ void consolesavefile(console c, int pager)
     cursor cur;
     FILE *fp;
     int x0, y0, x1, y1, cl;
-    wchar_t *s, buf[1024];
+    char *s, buf[1024];
 
     setuserfilter("Text files (*.txt)\0*.txt\0All files (*.*)\0*.*\0\0");
     if(p->sel)
@@ -2002,12 +2099,12 @@ void consolesavefile(console c, int pager)
 	    int len, c1, c2, c3;
 	    if (p->my0 >= NUMLINES) p->my0 = NUMLINES - 1;
 	    if (p->my0 < 0) p->my0 = 0;
-	    len = wcslen(LINE(p->my0));
+	    len = strlen(LINE(p->my0));
 	    if (p->mx0 >= len) p->mx0 = len - 1;
 	    if (p->mx0 < 0) p->mx0 = 0;
 	    if (p->my1 >= NUMLINES) p->my1 = NUMLINES - 1;
 	    if (p->my1 < 0) p->my1 = 0;
-	    len = wcslen(LINE(p->my1));
+	    len = strlen(LINE(p->my1));
 	    if (p->mx1 >= len) p->mx1 = len - 1;
 	    if (p->mx1 < 0) p->mx1 = 0;
 	    c1 = (p->my0 < p->my1);
@@ -2024,17 +2121,17 @@ void consolesavefile(console c, int pager)
 	} else {
 	    x0 = y0 = 0;
 	    y1 = NUMLINES - 1;
-	    x1 = wcslen(LINE(y1));
+	    x1 = strlen(LINE(y1));
 	}
 
 	for (cl = y0; cl <= y1; cl++) {
 	    if (cl == y0) s = LINE(cl) + x0;
 	    else if (cl < y1) s = LINE(cl);
 	    else if (cl == y1) {
-		s = wcsncpy(buf, LINE(cl), 1023);
-		s[min(x1, 1023) + 1] = L'\0';
+		s = strncpy(buf, LINE(cl), 1023);
+		s[min(x1, 1023) + 1] = '\0';
 	    } else break;
-	    fputws(s, fp); fputc('\n', fp);
+	    fputs(s, fp); fputc('\n', fp);
 	}
 	fclose(fp);
 	setcursor(cur);
@@ -2080,7 +2177,6 @@ console newconsole(char *name, int flags)
     setmousedrag(c, console_mousedrag);
     setmouserepeat(c, console_mouserep);
     setmousedown(c, console_mousedown);
-    setim(c, console_im);
     return(c);
 }
 

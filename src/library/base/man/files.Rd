@@ -15,9 +15,7 @@ file.rename(from, to)
 file.append(file1, file2)
 file.copy(from, to, overwrite = FALSE)
 file.symlink(from, to)
-dir.create(path, showWarnings = TRUE, recursive = FALSE,
-           mode = "0777")
-Sys.chmod(paths, mode = "0777")
+dir.create(path, showWarnings = TRUE, recursive = FALSE)
 }
 \alias{file.append}
 \alias{file.copy}
@@ -27,17 +25,14 @@ Sys.chmod(paths, mode = "0777")
 \alias{file.rename}
 \alias{file.symlink}
 \alias{dir.create}
-\alias{Sys.chmod}
 \arguments{
-  \item{\dots, file1, file2, from, to, paths}{character vectors,
+  \item{\dots, file1, file2, from, to}{character vectors,
     containing file names or paths.}
   \item{path}{a character vector containing a single path name.}
   \item{overwrite}{logical; should the destination files be overwritten?}
   \item{showWarnings}{logical; should the warnings on failure be shown?}
   \item{recursive}{logical: should elements of the path other than the
     last be created?  If true, like Unix's \code{mkdir -p}.}
-  \item{mode}{the file mode to be used on Unix-alikes: it will be
-    coerced by \code{\link{as.octmode}}.}
 }
 \description{
   These functions provide a low-level interface to the computer's
@@ -49,9 +44,7 @@ Sys.chmod(paths, mode = "0777")
   All of these functions expand path names: see \code{\link{path.expand}}.
 
   \code{file.create} creates files with the given names if they
-  do not already exist and truncates them if they do.  On a Unix-alike
-  they are created with the maximal permissions allowed by the
-  \code{umask} setting.
+  do not already exist and truncates them if they do.
 
   \code{file.exists} returns a logical vector indicating whether
   the files named by its argument exist.  (Here \sQuote{exists} is in the
@@ -90,33 +83,7 @@ Sys.chmod(paths, mode = "0777")
 #ifdef windows
   On Windows drives are allowed in the path specification and unless
   the path is rooted, it will be interpreted relative to the current
-  directory on that drive.  \code{mode} is ignored on Windows.
-#endif
-#ifdef unix
-  The mode will be modified by the \code{umask} setting in the same way
-  as for the system function \code{mkdir}.  What modes can be set is
-  OS-dependent, and it is unsafe to assume that more than three octal
-  digits will be used.  For more details see your OS's documentation on the
-  system call \code{mkdir} (and not that on the command-line utility of
-  that name). 
-#endif
-
-  \code{Sys.chmod} sets the file permissions of one or more files.
-#ifdef unix
-  It may not be supported (when a warning is issued).
-  See the comments for \code{dir.create} for how modes are interpreted.
-  Changing mode on a symbolic link is unlikely to work (nor be
-  necessary).  For more details see your OS's documentation on the
-  system call \code{chmod} (and not that on the command-line utility of
-  that name). 
-#endif
-#ifdef windows
-  The interpretation of \code{mode} in the Windows system function is
-  non-POSIX and only supports setting the read-only attribute of the
-  file.  So \R interprets \code{mode} to mean set read-only if and only
-  if \code{mode & 0200 == 0} (interpreted in octal).  Windows has a much
-  more extensive system of file permissions on some file systems
-  (e.g. versions of NTFS) which are unrelated to this system call.
+  directory on that drive.
 #endif
 }
 \value{

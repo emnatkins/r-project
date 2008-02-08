@@ -102,21 +102,15 @@ assign("cleanEx",
        },
        pos = "CheckExEnv")
 assign("ptime", proc.time(), pos = "CheckExEnv")
-## at least one package changes these via ps.options(), so do this
-## before loading the package.
-## Use postscript as incomplete files may be viewable, unlike PDF.
-## Choose a size that is close to on-screen devices, fix paper
-ps.options(width = 7, height = 7, paper = "a4", reset = TRUE)
 grDevices::postscript("$PKG-Ex.ps")
-		      
 assign("par.postscript", graphics::par(no.readonly = TRUE), pos = "CheckExEnv")
 options(contrasts = c(unordered = "contr.treatment", ordered = "contr.poly"))
 options(warn = 1)    
 _EOF_
 
-if ($PKG eq "tcltk") {
+if($PKG eq "tcltk") {
     print "require('tcltk') || q()\n\n";
-} elsif ($PKG ne "base") {
+} elsif($PKG ne "base") {
     print "library('$PKG')\n\n";
 }
 print "assign(\".oldSearch\", search(), pos = 'CheckExEnv')\n";
@@ -132,7 +126,6 @@ foreach my $file (@Rfiles) {
     $nm = basename $file, (".R");
     $nm =~ s/[^- .a-zA-Z0-9]/./g;
 
-    if ($PKG eq "graphics" && $file =~ /[^m]text\.R$/) { next; }
     open(FILE, "< $file") or die "file $file cannot be opened";
     while (<FILE>) {
 	$have_examples = 1
@@ -149,13 +142,7 @@ foreach my $file (@Rfiles) {
     print "### * $nm\n\n";
     print "flush(stderr()); flush(stdout())\n\n";
     open(FILE, "< $file") or die "file $file cannot be opened";
-    my $dont_test = 0;	
-    while (<FILE>) {
-	## process \donttest
-	$dont_test = 1 if /^## No test:/;
-	print $_ unless $dont_test;
-	$dont_test = 0 if /^## End\(No test\)/;
-    }
+    while (<FILE>) { print $_; }
     close(FILE);
 
     if($have_par) {

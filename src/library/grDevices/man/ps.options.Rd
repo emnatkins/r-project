@@ -5,13 +5,11 @@
 
 \name{ps.options}
 \alias{ps.options}
-\alias{setEPS}
-\alias{setPS}
-\title{Auxiliary Function to Set/View Defaults for Arguments of postscript}
+\title{Auxiliary Function to Set/View Argument of postscript}
 \description{
-  The auxiliary function \code{ps.options} can be used to set or view
-  (if called without arguments) the default values for some of the
-  arguments to \code{\link{postscript}}.
+  The auxiliary function \code{ps.options} can be used to set and view
+  (if called without arguments) default values for the arguments to
+  \code{\link{postscript}}.
   
   \code{ps.options} needs to be called before calling \code{postscript},
   and the default values it sets can be overridden by supplying
@@ -19,53 +17,46 @@
   }
 \usage{
 ps.options(\dots, reset = FALSE, override.check = FALSE)
-
-setEPS()
-setPS()
 }
 \arguments{
-  \item{\dots}{arguments \code{onefile}, \code{family}, \code{title},
-    \code{fonts},
-    \code{encoding}, \code{bg}, \code{fg}, \code{width}, \code{height},
-    \code{horizontal}, \code{pointsize},  \code{paper},
-    \code{pagecentre}, \code{print.it}, \code{command} and
-    \code{colormodel} can be supplied.}
-  \item{reset}{logical: should the defaults be reset to their
-    \sQuote{factory-fresh} values?}
-  \item{override.check}{logical argument passed to
+  \item{\dots}{arguments \code{paper}, \code{horizontal}, \code{width},
+    \code{height}, \code{family}, \code{encoding}, \code{pointsize},
+    \code{bg}, \code{fg}, \code{onefile} (unused), \code{print.it},
+    \code{append} (unused), \code{pagecentre},
+    \code{command} and \code{colormodel} can be supplied.}
+  \item{reset, override.check}{logical arguments passed to
     \code{\link{check.options}}.  See the Examples.}
 }
 \details{
-  If both \code{reset = TRUE} and \code{...} are supplied the defaults
-  are first reset to the \sQuote{factory-fresh} values and then the new
-  values are applied.
-  
-  For backwards compatibility argument \code{append} is accepted but
-  ignored with a warning.
+  Note that despite the name, these settings also provide the defaults
+  for some of the arguments for \code{\link{pdf}} and
+  \code{\link{xfig}}, although not in all cases even when they have
+  arguments of the same name.
 
-  \code{setEPS} and \code{setPS} are wrappers to set defaults
-  appropriate for figures for inclusion in documents (the default size
-  is 7 inches square) and for spooling to a PostScript printer
-  respectively.  For historical reasons the latter is the ultimate
-  default.
+  Arguments \code{onefile} and \code{append} are accepted but are unused
+  in any of the graphics devices making use of this function.
+
+  For \code{pdf}, arguments \code{family}, \code{encoding}
+  \code{pointsize}, \code{bg}, \code{fg} and \code{pagecentre} are used.
+
+  For \code{xfig}, arguments \code{paper}, \code{horizontal},
+  \code{width}, \code{height}, \code{family}, \code{pointsize},
+  \code{bg}, \code{fg} and \code{pagecentre} are used.
 }
 \value{
-  A named list of all the previous defaults.  If \code{\dots} or
-  \code{reset = TRUE} is supplied the result has the visibility flag
-  turned off.
+  A named list of default values for arguments.
 }
 \seealso{
-  \code{\link{postscript}}, \code{\link{pdf.options}}
+  \code{\link{postscript}}
 }
 \examples{
 ps.options(bg = "pink")
-utils::str(ps.options())
+utils::str(ps.options(reset = TRUE))
 
 ### ---- error checking of arguments: ----
 ps.options(width=0:12, onefile=0, bg=pi)
-# override the check for 'width', but not 'bg':
-ps.options(width=0:12, bg=pi, override.check = c(TRUE,FALSE))
-utils::str(ps.options())
-ps.options(reset = TRUE) # back to factory-fresh
+# override the check for 'onefile', but not the others:
+utils::str(ps.options(width=0:12, onefile=1, bg=pi,
+                      override.check = c(FALSE,TRUE,FALSE)))
 }
 \keyword{device}

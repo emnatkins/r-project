@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2008  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--2007  Robert Gentleman, Ross Ihaka and the
  *                            R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -39,11 +39,6 @@
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifdef Win32
-static void R_UTF8fixslash(char *s);
-static void R_wfixslash(wchar_t *s);
 #endif
 
 #ifdef __cplusplus
@@ -318,7 +313,7 @@ static const char UCS2ENC[] = "UCS-2LE";
 /* Note: this does not terminate out, as all current uses are to look
  * at 'out' a wchar at a time, and sometimes just one char.
  */
-size_t mbcsToUcs2(const char *in, ucs2_t *out, int nout, int enc)
+size_t mbcsToUcs2(const char *in, ucs2_t *out, int nout)
 {
     void   *cd = NULL ;
     const char *i_buf;
@@ -329,7 +324,7 @@ size_t mbcsToUcs2(const char *in, ucs2_t *out, int nout, int enc)
     wc_len = mbstowcs(NULL, in, 0);
     if (out == NULL || (int)wc_len < 0) return wc_len;
 
-    if ((void*)-1 == (cd = Riconv_open(UCS2ENC, (enc == CE_UTF8) ? "UTF-8": "")))
+    if ((void*)-1 == (cd = Riconv_open(UCS2ENC, "")))
 	return (size_t) -1;
 
     i_buf = (char *)in;
@@ -643,21 +638,16 @@ SEXP attribute_hidden do_merge(SEXP call, SEXP op, SEXP args, SEXP rho)
 # include <windows.h>
 #endif
 
-SEXP static intern_getwd(void)
+SEXP static intern_getwd()
 {
     SEXP rval = R_NilValue;
     char buf[PATH_MAX+1];
 
 #ifdef Win32
-    {
-	wchar_t wbuf[PATH_MAX+1];
-	int res = GetCurrentDirectoryW(PATH_MAX, wbuf);
-	if(res > 0) {
-	    wcstoutf8(buf, wbuf, PATH_MAX+1);
-	    R_UTF8fixslash(buf);
-	    rval = allocVector(STRSXP, 1);
-	    SET_STRING_ELT(rval, 0, mkCharEnc(buf, UTF8_MASK));
-	}
+    int res = GetCurrentDirectory(PATH_MAX, buf);
+    if(res > 0) {
+	R_fixslash(buf);
+	rval = mkString(buf);
     }
 #elif defined(HAVE_GETCWD)
     char *res = getcwd(buf, PATH_MAX);
@@ -681,6 +671,7 @@ SEXP attribute_hidden do_getwd(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP attribute_hidden do_setwd(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP s = R_NilValue, wd = R_NilValue;	/* -Wall */
+    const char *path;
 
     checkArity(op, args);
     if (!isPairList(args) || !isValidString(s = CAR(args)))
@@ -689,58 +680,16 @@ SEXP attribute_hidden do_setwd(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* get current directory to return */
     wd = intern_getwd();
 
-#ifdef Win32
-    {
-	const wchar_t *path = filenameToWchar(STRING_ELT(s, 0), FALSE);
-	if(_wchdir(path) < 0)
-	    error(_("cannot change working directory"));
-    }
-#else
-    {
-	const char *path 
-	    = R_ExpandFileName(translateChar(STRING_ELT(s, 0)));
-# ifdef HAVE_CHDIR
+    path = R_ExpandFileName(translateChar(STRING_ELT(s, 0)));
+#ifdef HAVE_CHDIR
     if(chdir(path) < 0)
-# endif
-	error(_("cannot change working directory"));
-    }
 #endif
+	error(_("cannot change working directory"));
     return(wd);
 }
 
 /* remove portion of path before file separator if one exists */
 
-#ifdef Win32
-SEXP attribute_hidden do_basename(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP ans, s = R_NilValue;	/* -Wall */
-    char sp[PATH_MAX];
-    wchar_t  buf[PATH_MAX], *p;
-    const wchar_t *pp;
-    int i, n;
-
-    checkArity(op, args);
-    if (TYPEOF(s = CAR(args)) != STRSXP)
-	error(_("a character vector argument expected"));
-    PROTECT(ans = allocVector(STRSXP, n = LENGTH(s)));
-    for(i = 0; i < n; i++) {
-	pp = filenameToWchar(STRING_ELT(s, i), TRUE);
-	if (wcslen(pp) > PATH_MAX - 1) error(_("path too long"));
-	wcscpy(buf, pp);
-	R_wfixslash(buf);
-	/* remove trailing file separator(s) */
-	if (*buf) {
-	    p = buf + wcslen(buf) - 1;
-	    while (p >= buf && *p == L'/') *(p--) = L'\0';
-	}
-	if ((p = wcsrchr(buf, L'/'))) p++; else p = buf;
-	wcstoutf8(sp, p, wcslen(p) + 1);
-	SET_STRING_ELT(ans, i, mkCharEnc(sp, UTF8_MASK));
-    }
-    UNPROTECT(1);
-    return(ans);
-}
-#else
 SEXP attribute_hidden do_basename(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans, s = R_NilValue;	/* -Wall */
@@ -757,6 +706,10 @@ SEXP attribute_hidden do_basename(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if (strlen(pp) > PATH_MAX - 1)
 	    error(_("path too long"));
 	strcpy (buf, pp);
+#ifdef Win32
+	R_fixslash(buf);
+#endif
+	/* remove trailing file separator(s) */
 	if (*buf) {
 	    p = buf + strlen(buf) - 1;
 	    while (p >= buf && *p == fsp) *(p--) = '\0';
@@ -770,49 +723,11 @@ SEXP attribute_hidden do_basename(SEXP call, SEXP op, SEXP args, SEXP rho)
     UNPROTECT(1);
     return(ans);
 }
-#endif
 
 /* remove portion of path after last file separator if one exists, else
    return "."
    */
 
-#ifdef Win32
-SEXP attribute_hidden do_dirname(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP ans, s = R_NilValue;	/* -Wall */
-    wchar_t buf[PATH_MAX], *p;
-    const wchar_t *pp;
-    char sp[PATH_MAX];
-    int i, n;
-
-    checkArity(op, args);
-    if (TYPEOF(s = CAR(args)) != STRSXP)
-	error(_("a character vector argument expected"));
-    PROTECT(ans = allocVector(STRSXP, n = LENGTH(s)));
-    for(i = 0; i < n; i++) {
-	pp = filenameToWchar(STRING_ELT(s, i), TRUE);
-	if (wcslen(pp) > PATH_MAX - 1)
-	    error(_("path too long"));
-	wcscpy (buf, pp);
-	R_wfixslash(buf);
-	/* remove trailing file separator(s) */
-	while ( *(p = buf + wcslen(buf) - 1) == L'/'  && p > buf
-		&& (p > buf+2 || *(p-1) != L':')) *p = L'\0';
-	p = wcsrchr(buf, L'/');
-	if(p == NULL) wcscpy(buf, L".");
-	else {
-	    while(p > buf && *p == L'/'
-		  /* this covers both drives and network shares */
-		  && (p > buf+2 || *(p-1) != L':')) --p;
-	    p[1] = L'\0';
-	}
-	wcstoutf8(sp, buf, wcslen(buf)+1);
-	SET_STRING_ELT(ans, i, mkCharEnc(sp, UTF8_MASK));
-    }
-    UNPROTECT(1);
-    return(ans);
-}
-#else
 SEXP attribute_hidden do_dirname(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans, s = R_NilValue;	/* -Wall */
@@ -829,13 +744,25 @@ SEXP attribute_hidden do_dirname(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if (strlen(pp) > PATH_MAX - 1)
 	    error(_("path too long"));
 	strcpy (buf, pp);
+#ifdef Win32
+	R_fixslash(buf);
+#endif
 	/* remove trailing file separator(s) */
-	while ( *(p = buf + strlen(buf) - 1) == fsp  && p > buf) *p = '\0';
+	while ( *(p = buf + strlen(buf) - 1) == fsp  && p > buf
+#ifdef Win32
+		&& (p > buf+2 || *(p-1) != ':')
+#endif
+	    ) *p = '\0';
 	p = Rf_strrchr(buf, fsp);
 	if(p == NULL)
 	    strcpy(buf, ".");
 	else {
-	    while(p > buf && *p == fsp) --p;
+	    while(p > buf && *p == fsp
+#ifdef Win32
+		  /* this covers both drives and network shares */
+		  && (p > buf+2 || *(p-1) != ':')
+#endif
+		) --p;
 	    p[1] = '\0';
 	}
 	SET_STRING_ELT(ans, i, mkChar(buf));
@@ -843,7 +770,7 @@ SEXP attribute_hidden do_dirname(SEXP call, SEXP op, SEXP args, SEXP rho)
     UNPROTECT(1);
     return(ans);
 }
-#endif
+
 
 /* encodeString(x, w, quote, justify) */
 SEXP attribute_hidden do_encodeString(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -953,14 +880,16 @@ SEXP attribute_hidden do_setencoding(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP attribute_hidden markKnown(const char *s, SEXP ref)
 {
     int ienc = 0;
-    if(ENC_KNOWN(ref)) {
+    if(IS_LATIN1(ref) || IS_UTF8(ref)) {
 	if(known_to_be_latin1) ienc = LATIN1_MASK;
 	if(known_to_be_utf8) ienc = UTF8_MASK;
     }
     return mkCharEnc(s, ienc);
 }
 
-Rboolean strIsASCII(const char *str)
+/* Note: this is designed to be fast and valid only for UTF-8 strings.
+   It is also correct in EUC-* locales. */
+Rboolean utf8strIsASCII(const char *str)
 {
     const char *p;
     for(p = str; *p; p++)
@@ -983,142 +912,6 @@ int attribute_hidden utf8clen(char c)
     return 1 + utf8_table4[c & 0x3f];
 }
 
-/* This returns the result in wchar_t, but does not assume 
-   wchar_t is UCS-2/4 and so is for internal use only */
-size_t attribute_hidden 
-utf8toucs(wchar_t *wc, const char *s)
-{
-    unsigned int byte;
-    wchar_t local, *w;
-    byte = *((unsigned char *)s);
-    w = wc ? wc: &local;
-
-    if (byte == 0) {
-        *w = (wchar_t) 0;
-        return 0;
-    } else if (byte < 0xC0) {
-        *w = (wchar_t) byte;
-        return 1;
-    } else if (byte < 0xE0) {
-	if(strlen(s) < 2) return -2;
-        if ((s[1] & 0xC0) == 0x80) {
-            *w = (wchar_t) (((byte & 0x1F) << 6) | (s[1] & 0x3F));
-            return 2;
-        } else return -1;
-    } else if (byte < 0xF0) {
-	if(strlen(s) < 3) return -2;
-        if (((s[1] & 0xC0) == 0x80) && ((s[2] & 0xC0) == 0x80)) {
-            *w = (wchar_t) (((byte & 0x0F) << 12)
-                    | ((s[1] & 0x3F) << 6) | (s[2] & 0x3F));
-	    byte = *w;
-	    /* Surrogates range */
-	    if(byte >= 0xD800 && byte <= 0xDFFF) return -1;
-	    if(byte == 0xFFFE || byte == 0xFFFF) return -1;
-            return 3;
-        } else return -1;
-    }
-    if(sizeof(wchar_t) < 4) return -2;
-    /* So now handle 4,5.6 byte sequences with no testing */
-    if (byte < 0xf8) {
-	if(strlen(s) < 4) return -2;
-	*w = (wchar_t) (((byte & 0x0F) << 18)
-			| ((s[1] & 0x3F) << 12)
-			| ((s[2] & 0x3F) << 6)
-			| (s[3] & 0x3F));
-	return 4;
-    } else if (byte < 0xFC) {
-	if(strlen(s) < 5) return -2;
-	*w = (wchar_t) (((byte & 0x0F) << 24)
-			| ((s[1] & 0x3F) << 12)
-			| ((s[2] & 0x3F) << 12)
-			| ((s[3] & 0x3F) << 6)
-			| (s[4] & 0x3F));
-	return 5;
-    } else {
-	if(strlen(s) < 6) return -2;
-	*w = (wchar_t) (((byte & 0x0F) << 30)
-			| ((s[1] & 0x3F) << 24)
-			| ((s[2] & 0x3F) << 18)
-			| ((s[3] & 0x3F) << 12)
-			| ((s[4] & 0x3F) << 6)
-			| (s[5] & 0x3F));
-	return 6;
-    }
-}
-
-size_t attribute_hidden 
-utf8towcs(wchar_t *wc, const char *s, size_t n)
-{
-    int m, res = 0;
-    const char *t;
-    wchar_t *p;
-    wchar_t local;
-
-    if(wc)
-	for(p = wc, t = s; ; p++, t += m) {
-	    m  = utf8toucs(p, t);
-	    if (m < 0) error(_("invalid input '%s' in 'utf8towcs'"), s);
-	    if (m == 0) break;
-	    res ++;
-	    if (res >= n) break;
-	}
-    else
-	for(t = s; ; res++, t += m) {
-	    m  = utf8toucs(&local, t);
-	    if (m < 0) error(_("invalid input '%s' in 'utf8towcs'"), s);
-	    if (m == 0) break;
-	}
-    return res;
-}
-
-/* based on pcre.c */
-static const int utf8_table1[] =
-  { 0x7f, 0x7ff, 0xffff, 0x1fffff, 0x3ffffff, 0x7fffffff};
-static const int utf8_table2[] = { 0, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc};
-
-static size_t Rwcrtomb(char *s, const wchar_t wc)
-{
-    register int i, j;
-    unsigned int cvalue = wc;
-    char buf[10], *b;
-
-    b = s ? s : buf;
-    if(cvalue == 0) {*b = 0; return 0;}
-    for (i = 0; i < sizeof(utf8_table1)/sizeof(int); i++)
-	if (cvalue <= utf8_table1[i]) break;
-    b += i;
-    for (j = i; j > 0; j--) {
-	*b-- = 0x80 | (cvalue & 0x3f);
-	cvalue >>= 6;
-    }
-    *b = utf8_table2[i] | cvalue;
-    return i + 1;
-}
-
-/* attribute_hidden? */
-size_t wcstoutf8(char *s, const wchar_t *wc, size_t n)
-{
-    int m, res=0;
-    char *t;
-    const wchar_t *p;
-    if(s) {
-	for(p = wc, t = s; ; p++) {
-	    m  = Rwcrtomb(t, *p);
-	    if(m <= 0) break;
-	    res += m;
-	    if(res >= n) break;
-	    t += m;
-	}
-    } else {
-	for(p = wc; ; p++) {
-	    m  = Rwcrtomb(NULL, *p);
-	    if(m <= 0) break;
-	    res += m;
-	}
-    }
-    return res;
-}
-
 /* A version that reports failure as an error */
 size_t Mbrtowc(wchar_t *wc, const char *s, size_t n, mbstate_t *ps)
 {
@@ -1126,29 +919,7 @@ size_t Mbrtowc(wchar_t *wc, const char *s, size_t n, mbstate_t *ps)
 
     if(n <= 0 || !*s) return (size_t)0;
     used = mbrtowc(wc, s, n, ps);
-    if((int) used < 0) {
-	/* let's try to print out a readable version */
-	char *err = alloca(4*strlen(s) + 1), *q;
-	const char *p;
-	R_CheckStack();
-	for(p = s, q = err; *p; ) {
-	    /* don't do the first to keep ps state straight */
-	    if(p > s) used = mbrtowc(NULL, p, n, ps);
-	    if(used == 0) break;
-	    else if((int) used > 0) {
-		memcpy(q, p, used);
-		p += used;
-		q += used;
-		n -= used;
-	    } else {
-		sprintf(q, "<%02x>", (unsigned char) *p++);
-		q += 4;
-		n--;
-	    }
-	}
-	*q = '\0';
-	error(_("invalid multibyte string at '%s'"), err);
-    }
+    if((int) used < 0) error(_("invalid multibyte string at '%s'"), s);
     return used;
 }
 
@@ -1157,7 +928,6 @@ Rboolean mbcsValid(const char *str)
     return  ((int)mbstowcs(NULL, str, 0) >= 0);
 }
 
-#ifdef UNUSED
 /* We do this conversion ourselves to do our own error recovery */
 void mbcsToLatin1(const char *in, char *out)
 {
@@ -1166,34 +936,13 @@ void mbcsToLatin1(const char *in, char *out)
     size_t res = mbstowcs(NULL, in, 0), mres;
 
     if(res == (size_t)(-1)) {
-	/* let's try to print out a readable version */
-	size_t used, n = strlen(in);
-	char *err = alloca(4*n + 1), *q;
-	const char *p;
-	mbstate_t ps;
-	R_CheckStack();
-	for(p = in, q = err; *p; ) {
-	    used = mbrtowc(NULL, p, n, &ps);
-	    if(used == 0) break;
-	    else if((int) used > 0) {
-		memcpy(q, p, used);
-		p += used;
-		q += used;
-		n -= used;
-	    } else {
-		sprintf(q, "<%02x>", (unsigned char) *p++);
-		q += 4;
-		n--;
-	    }
-	}
-	*q = '\0';
-	warning(_("invalid input '%s' in mbcsToLatin1: omitted"), err);
+	warning(_("invalid input '%s' in mbcsToLatin1"), in);
 	*out = '\0';
 	return;
     }
     wbuff = (wchar_t *) alloca((res+1) * sizeof(wchar_t));
     R_CheckStack();
-    if(!wbuff) error(_("allocation failure in '%s'"), "mbcsToLatin1");
+    if(!wbuff) error(_("allocation failure in 'mbcsToLatin1'"));
     mres = mbstowcs(wbuff, in, res+1);
     if(mres == (size_t)-1) /* we checked above, so should not get here */
 	error("invalid input in 'mbcsToLatin1'");
@@ -1204,7 +953,6 @@ void mbcsToLatin1(const char *in, char *out)
     }
     out[res] = '\0';
 }
-#endif
 
 /* MBCS-aware versions of common comparisons.  Only used for ASCII c */
 char *Rf_strchr(const char *s, int c)
@@ -1242,13 +990,17 @@ int utf8clen(char c) { return 1;}
 size_t Mbrtowc(wchar_t *wc, const char *s, size_t n, void *ps)
 { return (size_t)(-1);}
 Rboolean mbcsValid(const char *str) { return TRUE; }
-#ifdef UNUSED
 void mbcsToLatin1(char *in, char *out) {}
-#endif
 #undef Rf_strchr
-char *Rf_strchr(const char *s, int c) {return strchr(s, c);}
+char *Rf_strchr(const char *s, int c)
+{
+    return strchr(s, c);
+}
 #undef Rf_strrchr
-char *Rf_strrchr(const char *s, int c) {return strrchr(s, c);}
+char *Rf_strrchr(const char *s, int c)
+{
+    return strrchr(s, c);
+}
 #endif
 
 #ifdef Win32
@@ -1270,25 +1022,6 @@ void R_fixslash(char *s)
 	/* preserve network shares */
 	if(s[0] == '/' && s[1] == '/') s[0] = s[1] = '\\';
 }
-
-static void R_UTF8fixslash(char *s)
-{
-    char *p = s;
-
-	for (; *p; p++) if (*p == '\\') *p = '/';
-	/* preserve network shares */
-	if(s[0] == '/' && s[1] == '/') s[0] = s[1] = '\\';
-}
-
-static void R_wfixslash(wchar_t *s)
-{
-    wchar_t *p = s;
-
-    for (; *p; p++) if (*p == L'\\') *p = L'/';
-    /* preserve network shares */
-    if(s[0] == L'/' && s[1] == L'/') s[0] = s[1] = L'\\';
-}
-
 
 void R_fixbackslash(char *s)
 {
@@ -1350,113 +1083,4 @@ char *acopy_string(const char *in)
     } else
         out = "";
     return out;
-}
-
-
-/* FIXME: consider inlining here */
-#ifdef Win32
-
-static int Rstrcoll(const char *s1, const char *s2)
-{
-    wchar_t *w1, *w2;
-    w1 = (wchar_t *) alloca((strlen(s1)+1)*sizeof(wchar_t));
-    w2 = (wchar_t *) alloca((strlen(s2)+1)*sizeof(wchar_t));
-    R_CheckStack();
-    utf8towcs(w1, s1, strlen(s1));
-    utf8towcs(w2, s2, strlen(s2));
-    return wcscoll(w1, w2);
-}
-
-int Scollate(SEXP a, SEXP b)
-{
-    if(getCharEnc(a) == CE_UTF8 || getCharEnc(b) == CE_UTF8)
-	return Rstrcoll(translateCharUTF8(a), translateCharUTF8(b));
-    else 
-	return strcoll(translateChar(a), translateChar(b));
-}
-
-int Seql(SEXP a, SEXP b)
-{
-    return (a == b) || !strcmp(translateCharUTF8(a), translateCharUTF8(b));
-}
-
-#else
-
-# ifdef HAVE_STRCOLL
-#  define STRCOLL strcoll
-# else
-#  define STRCOLL strcmp
-# endif
-
-int Scollate(SEXP a, SEXP b)
-{
-    return STRCOLL(translateChar(a), translateChar(b));
-}
-
-int Seql(SEXP a, SEXP b)
-{
-    return (a == b) || !strcmp(translateChar(a), translateChar(b));
-}
-
-#endif
-
-
-/* Table from 
-http://unicode.org/Public/MAPPINGS/VENDORS/ADOBE/symbol.txt
-*/
-
-static int s2u[224] = {
-    0x0020, 0x0021, 0x2200, 0x0023, 0x2203, 0x0025, 0x0026, 0x220D,
-    0x0028, 0x0029, 0x2217, 0x002B, 0x002C, 0x2212, 0x002E, 0x002F,
-    0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037,
-    0x0038, 0x0039, 0x003A, 0x003B, 0x003C, 0x003D, 0x003E, 0x003F,
-    0x2245, 0x0391, 0x0392, 0x03A7, 0x0394, 0x0395, 0x03A6, 0x0393,
-    0x0397, 0x0399, 0x03D1, 0x039A, 0x039B, 0x039C, 0x039D, 0x039F,
-    0x03A0, 0x0398, 0x03A1, 0x03A3, 0x03A4, 0x03A5, 0x03C2, 0x03A9,
-    0x039E, 0x03A8, 0x0396, 0x005B, 0x2234, 0x005D, 0x22A5, 0x005F,
-    0xF8E5, 0x03B1, 0x03B2, 0x03C7, 0x03B4, 0x03B5, 0x03C6, 0x03B3,
-    0x03B7, 0x03B9, 0x03D5, 0x03BA, 0x03BB, 0x03BC, 0x03BD, 0x03BF,
-    0x03C0, 0x03B8, 0x03C1, 0x03C3, 0x03C4, 0x03C5, 0x03D6, 0x03C9,
-    0x03BE, 0x03C8, 0x03B6, 0x007B, 0x007C, 0x007D, 0x223C, 0x0020,
-    0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020,
-    0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020,
-    0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020,
-    0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 0x0020, 
-    0x20AC, 0x03D2, 0x2032, 0x2264, 0x2044, 0x221E, 0x0192, 0x2663,
-    0x2666, 0x2665, 0x2660, 0x2194, 0x2190, 0x2191, 0x2192, 0x2193,
-    0x00B0, 0x00B1, 0x2033, 0x2265, 0x00D7, 0x221D, 0x2202, 0x2022,
-    0x00F7, 0x2260, 0x2261, 0x2248, 0x2026, 0xF8E6, 0xF8E7, 0x21B5,
-    0x2135, 0x2111, 0x211C, 0x2118, 0x2297, 0x2295, 0x2205, 0x2229,
-    0x222A, 0x2283, 0x2287, 0x2284, 0x2282, 0x2286, 0x2208, 0x2209,
-    0x2220, 0x2207, 0xF6DA, 0xF6D9, 0xF6DB, 0x220F, 0x221A, 0x22C5,
-    0x00AC, 0x2227, 0x2228, 0x21D4, 0x21D0, 0x21D1, 0x21D2, 0x21D3,
-    0x25CA, 0x2329, 0xF8E8, 0xF8E9, 0xF8EA, 0x2211, 0xF8EB, 0xF8EC,
-    0xF8ED, 0xF8EE, 0xF8EF, 0xF8F0, 0xF8F1, 0xF8F2, 0xF8F3, 0xF8F4,
-    0x0020, 0x232A, 0x222B, 0x2320, 0xF8F5, 0x2321, 0xF8F6, 0xF8F7, 
-    0xF8F8, 0xF8F9, 0xF8FA, 0xF8FB, 0xF8FC, 0xF8FD, 0xF8FE, 0x0020 
-};
-
-void *Rf_AdobeSymbol2utf8(char *work, const char *c0, int nwork) 
-{
-    const unsigned char *c = (unsigned char *) c0;
-    unsigned char *t = (unsigned char *) work;
-    while (*c) {
-	if (*c < 32) *t++ = ' ';
-	else {
-	    unsigned int u = s2u[*c - 32];
-	    if (u < 128) *t++ = u;
-	    else if (u < 0x800) {
-		*t++ = 0xc0 | (u >> 6);
-		*t++ = 0x80 | (u & 0x3f);
-	    } else {
-		*t++ = 0xe0 | (u >> 12);
-		*t++ = 0x80 | ((u >> 6) & 0x3f);
-		*t++ = 0x80 | (u & 0x3f);
-	    }
-	}
-	if (t+6 > (unsigned char *)(work + nwork)) break;
-	c++;
-    }
-    *t = '\0';
-    return (char*) work;
 }

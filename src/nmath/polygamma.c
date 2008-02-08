@@ -139,9 +139,7 @@
  */
 
 #include "nmath.h"
-#ifdef MATHLIB_STANDALONE
 #include <errno.h>
-#endif
 
 #define n_max (100)
 
@@ -476,9 +474,7 @@ double psigamma(double x, double deriv)
     }
     dpsifn(x, n, 1, 1, &ans, &nz, &ierr);
     if(ierr != 0) {
-#ifdef MATHLIB_STANDALONE
 	errno = EDOM;
-#endif
 	return ML_NAN;
     }
     /* ans ==  A := (-1)^(n+1) / gamma(n+1) * psi(n, x) */
@@ -496,9 +492,7 @@ double digamma(double x)
 
     dpsifn(x, 0, 1, 1, &ans, &nz, &ierr);
     if(ierr != 0) {
-#ifdef MATHLIB_STANDALONE
 	errno = EDOM;
-#endif
 	return ML_NAN;
     }
     return -ans;
@@ -511,9 +505,7 @@ double trigamma(double x)
     if(ISNAN(x)) return x;
     dpsifn(x, 1, 1, 1, &ans, &nz, &ierr);
     if(ierr != 0) {
-#ifdef MATHLIB_STANDALONE
 	errno = EDOM;
-#endif
 	return ML_NAN;
     }
     return ans;
@@ -526,9 +518,7 @@ double tetragamma(double x)
     if(ISNAN(x)) return x;
     dpsifn(x, 2, 1, 1, &ans, &nz, &ierr);
     if(ierr != 0) {
-#ifdef MATHLIB_STANDALONE
 	errno = EDOM;
-#endif
 	return ML_NAN;
     }
     return -2.0 * ans;
@@ -541,9 +531,7 @@ double pentagamma(double x)
     if(ISNAN(x)) return x;
     dpsifn(x, 3, 1, 1, &ans, &nz, &ierr);
     if(ierr != 0) {
-#ifdef MATHLIB_STANDALONE
 	errno = EDOM;
-#endif
 	return ML_NAN;
     }
     return 6.0 * ans;

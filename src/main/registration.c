@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2002-2008	The R Development Core Team.
+ *  Copyright (C) 2002-2007	The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -55,6 +55,7 @@
     a C++ compiler because the linkage changes as the declarations
     are (currently) within extern "C" blocks.
 */
+#include <Rdevices.h>       /* For declaration of InitGraphics() */
 #include <R_ext/Callbacks.h>
 #include <Rdynpriv.h>
 
@@ -149,11 +150,8 @@ static R_CMethodDef cMethods [] = {
     {"signrank_free", (DL_FUNC)&signrank_free, 0, NULL},
     {"wilcox_free", (DL_FUNC)&wilcox_free, 0, NULL},
 
-#if 0
-    /* Why are these here?  Not used (currently) */
     {"InitGraphics", (DL_FUNC)&Rf_InitGraphics, 0, NULL},
     {"InitColors", (DL_FUNC)&Rf_InitColors, 0, NULL},
-#endif
     {NULL, NULL, 0}
 };
 
@@ -231,9 +229,6 @@ static R_CallMethodDef callMethods [] = {
     CALLDEF(R_stopbcprof, 0),
 #endif
 
-    /* base graphics */
-    CALLDEF(Rg_contourDef, 0),
-    CALLDEF(Rg_readonlypars, 0),
 
     {NULL, NULL, 0}
 };

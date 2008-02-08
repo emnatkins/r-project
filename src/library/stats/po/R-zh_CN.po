@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-01-27 18:05\n"
+"POT-Creation-Date: 2008-02-06 06:53\n"
 "PO-Revision-Date: 2005-04-08 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -509,21 +509,14 @@ msgstr "基線组在值域外"
 msgid "supply both 'x' and 'y' or a matrix-like 'x'"
 msgstr "要么同时设定'x'和'y'，要么只设定矩阵式的'x'"
 
-msgid "'x' is empty"
-msgstr "'x'是空的"
-
-#, fuzzy
-msgid "both 'x' and 'y' must be non-empty"
-msgstr "'x'和'w'的长度必需相等"
-
 msgid "cannot handle 'pairwise.complete.obs'"
 msgstr "不知如何處理'pairwise.complete.obs'"
 
 msgid "'V' is not a square numeric matrix"
 msgstr "'V'不是正方形的数值矩阵"
 
-msgid "diag(.) had 0 or NA entries; non-finite result is doubtful"
-msgstr ""
+msgid "diagonal has non-finite entries"
+msgstr "矩阵对角含无限值"
 
 msgid "not enough finite observations"
 msgstr "有限值的观察量不够"
@@ -1299,6 +1292,9 @@ msgstr "这不应该发生"
 msgid "incorrect specification of 'table' or 'start'"
 msgstr "当'table'或'start'正确地被设定时"
 
+msgid "'x' is empty"
+msgstr "'x'是空的"
+
 msgid "%d missing values deleted"
 msgstr "删除了%d个遺漏值"
 
@@ -1916,10 +1912,6 @@ msgstr "覆蓋機率在值域[0,1) 外"
 msgid "spline: first and last y values differ - using y[1] for both"
 msgstr "spline: 第一个和最后一个y的值不相等-两个用y[1]"
 
-#, fuzzy
-msgid "'spline' requires n >= 1"
-msgstr "'approx'需要n大于等于一"
-
 msgid "'deriv' must be between 0 and 3"
 msgstr "'deriv'必需在零和三之间"
 
@@ -2174,17 +2166,17 @@ msgstr "所有'x'的值都必需是非负的才能拟合Weibull成长模型"
 msgid "there are %d Error terms: only 1 is allowed"
 msgid_plural "there are %d Error terms: only 1 is allowed"
 msgstr[0] "有%d个错误项，但最多只允许有一个"
+msgstr[1] ""
 
 msgid "%d observation deleted due to missingness"
 msgid_plural "%d observations deleted due to missingness"
 msgstr[0] "因为不存在，%d个观察量被删除了"
+msgstr[1] ""
 
 msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "参数%s没有在模型公式里出现过"
-
-#~ msgid "diagonal has non-finite entries"
-#~ msgstr "矩阵对角含无限值"
+msgstr[1] ""
 
 #~ msgid "no 'time' or 'id' specified"
 #~ msgstr "没有设定'time'或'id'"

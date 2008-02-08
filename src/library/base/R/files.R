@@ -61,17 +61,18 @@ file.remove <- function(...)
 file.rename <- function(from, to)
     .Internal(file.rename(from, to))
 
-list.files <- function(path = ".", pattern = NULL, all.files = FALSE,
-                       full.names = FALSE, recursive = FALSE,
-                       ignore.case = FALSE)
-    .Internal(list.files(path, pattern, all.files, full.names,
-                         recursive, ignore.case))
+list.files <- function(path=".", pattern=NULL, all.files=FALSE,
+                       full.names=FALSE, recursive=FALSE)
+    .Internal(list.files(path, pattern, all.files, full.names, recursive))
 
 dir <- list.files
 
 file.path <-
 function(..., fsep=.Platform$file.sep)
-    .Internal(file.path(list(...), fsep))
+{
+    if(any(sapply(list(...), length) == 0)) return(character())
+    paste(..., sep = fsep)
+}
 
 
 file.exists <- function(...) .Internal(file.exists(c(...)))
@@ -126,10 +127,8 @@ file.access <- function(names, mode = 0)
     res
 }
 
-dir.create <- function(path, showWarnings = TRUE, recursive = FALSE,
-                       mode = "0777")
-    invisible(.Internal(dir.create(path, showWarnings, recursive,
-                                   as.octmode(mode))))
+dir.create <- function(path, showWarnings = TRUE, recursive = FALSE)
+    invisible(.Internal(dir.create(path, showWarnings, recursive)))
 
 format.octmode <- function(x, ...)
 {
@@ -161,21 +160,6 @@ print.octmode <- function(x, ...)
     y <- NextMethod("[")
     oldClass(y) <- cl
     y
-}
-
-as.octmode <- function(x)
-{
-    if(inherits(x, "octmode")) return(x)
-    if(length(x) != 1) stop("'x' must be have length 1")
-    if(is.double(x) && x == as.integer(x)) x <- as.integer(x)
-    if(is.integer(x)) return(structure(x, class="octmode"))
-    if(is.character(x)) {
-        xx <- strsplit(x, "")[[1]]
-        if(!all(xx %in% 0:7)) stop("invalid digits")
-        z <- as.numeric(xx) * 8^(rev(seq_along(xx)-1))
-        return(structure(sum(z), class="octmode"))
-    }
-    stop("'x' cannot be coerced to 'octmode'")
 }
 
 format.hexmode <- function(x, ...)
@@ -253,7 +237,4 @@ Sys.glob <- function(paths, dirmark = FALSE)
 
 unlink <- function(x, recursive = FALSE)
     .Internal(unlink(as.character(x), recursive))
-
-Sys.chmod <- function(paths, mode = "0777")
-    .Internal(Sys.chmod(paths, as.octmode(mode)))
 

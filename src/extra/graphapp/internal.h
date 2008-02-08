@@ -65,7 +65,7 @@ typedef objinfo *object;
 rect getcliprect(void);
 void setcliprect(rect r);
 PROTECTED void updatestatus(const char *text);
-PROTECTED font new_font_object(HFONT hf);
+PROTECTED font new_font_object();
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,6 +79,7 @@ extern "C" {
 
 
 #include <commdlg.h>
+#include <richedit.h>
 
 #ifdef __MWERKS__
 	/* Metrowerks Codewarrior Cross-Platform C/C++ Compiler */
@@ -251,8 +252,6 @@ struct callinfo
 	mousefn	mouserepeat;	/* mouse-down timer auto repeat */
 
 	dropfn drop;		/* drag-and-drop function */
-
-        imfn    im;             /* input method function */
     
 	actionfn focus;
   };
@@ -344,7 +343,7 @@ struct callinfo
 /* Dialog event management */
 
   PROTECTED void handle_findreplace(HWND hwnd, LPFINDREPLACE pfr);
-  PROTECTED HWND get_modeless(void);
+  PROTECTED HWND get_modeless();
 
 /* Drawing context management. */
 
@@ -413,6 +412,7 @@ extern HWND hwndClient;
  *  Library internal variables.
  */
 
+  extern int    is_NT;
 #if defined(R_DLL_BUILD)
   extern
 #else

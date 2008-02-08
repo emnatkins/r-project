@@ -589,16 +589,17 @@ function(chname, package = NULL, lib.loc = NULL,
         chname <- substr(chname, 1, nc_chname - nc_file_ext)
 
     for(pkg in .find.package(package, lib.loc, verbose = verbose)) {
-        DLLpath <- if(nzchar(.Platform$r_arch))
-                file.path(pkg, "libs", .Platform$r_arch)
-	else    file.path(pkg, "libs")
-        file <- file.path(DLLpath, paste(chname, file.ext, sep = ""))
+        file <- if(nzchar(.Platform$r_arch))
+                file.path(pkg, "libs", .Platform$r_arch,
+                          paste(chname, file.ext, sep = ""))
+	else    file.path(pkg, "libs",
+                          paste(chname, file.ext, sep = ""))
         if(file.exists(file)) break else file <- ""
     }
     if(file == "")
         stop(gettextf("shared library '%s' not found", chname), domain = NA)
     ind <- sapply(dll_list, function(x) x[["path"]] == file)
-    if(length(ind) && any(ind)) {
+    if(any(ind)) {
         if(verbose)
             message(gettextf("shared library '%s' already loaded", chname),
                     domain = NA)
@@ -611,17 +612,14 @@ function(chname, package = NULL, lib.loc = NULL,
         ## (without having to bypass the default package dynload
         ## mechanism).  Note that this only works under Windows, and a
         ## more general solution will have to be found eventually.
-        ##
-        ## 2.7.0: there's a more general mechanism in DLLpath=,
-        ## so not clear if this is still needed.
         PATH <- Sys.getenv("PATH")
-        Sys.setenv(PATH = paste(gsub("/", "\\\\", DLLpath), PATH, sep=";"))
+        Sys.setenv(PATH =
+                   paste(gsub("/", "\\\\", dirname(file)), PATH, sep=";"))
         on.exit(Sys.setenv(PATH = PATH))
     }
     if(verbose)
         message(gettextf("now dyn.load(\"%s\") ...", file), domain = NA)
-    dll <- if("DLLpath" %in% names(list(...))) dyn.load(file, ...)
-    else dyn.load(file, DLLpath = DLLpath, ...)
+    dll <- dyn.load(file, ...)
     .dynLibs(c(dll_list, list(dll)))
     invisible(dll)
 }

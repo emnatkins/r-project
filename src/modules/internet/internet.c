@@ -194,7 +194,7 @@ static Rconnection in_R_newurl(const char *description, const char * const mode)
 	free(new->class); free(new);
 	error(_("allocation of url connection failed"));
     }
-    init_con(new, description, CE_NATIVE, mode);
+    init_con(new, description, mode);
     new->canwrite = FALSE;
     new->open = &url_open;
     new->close = &url_close;
@@ -983,7 +983,6 @@ void RxmlMessage(int level, const char *format, ...)
 #include "sock.h"
 #define STRICT_R_HEADERS
 #include <R_ext/RS.h> /* for R_Calloc */
-#include <R_ext/Rdynload.h>
 
 void
 #ifdef HAVE_VISIBILITY_ATTRIBUTE

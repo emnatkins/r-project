@@ -24,6 +24,15 @@ substring(text, first, last = 1000000) <- value
 \description{
   Extract or replace substrings in a character vector.
 }
+\value{
+  For \code{substr}, a character vector of the same length and with the
+  same attributes as \code{x} (after possible coercion).
+
+  For \code{substring}, a character vector of length the longest of the
+  arguments.  This will have names taken from \code{x} (if it has any
+  after coercion, repeated as needed), and other attributes copied from
+  \code{x} if it is the longest of the arguments).
+}
 \details{
   \code{substring} is compatible with S, with \code{first} and
   \code{last} instead of \code{start} and \code{stop}.
@@ -44,23 +53,6 @@ substring(text, first, last = 1000000) <- value
 
   If any argument is an \code{NA} element, the corresponding element of
   the answer is \code{NA}.
-
-  Elements of the result will be have the encoding declared as that of
-  the current locale (see \code{\link{Encoding}} if the corresponding
-  input had a declared encoding and the current locale is either Latin-1
-  or UTF-8.
-}
-\value{
-  For \code{substr}, a character vector of the same length and with the
-  same attributes as \code{x} (after possible coercion).
-
-  For \code{substring}, a character vector of length the longest of the
-  arguments.  This will have names taken from \code{x} (if it has any
-  after coercion, repeated as needed), and other attributes copied from
-  \code{x} if it is the longest of the arguments).
-
-  Elements of \code{x} with a declared encoding (see
-  \code{\link{Encoding}}) will be returned with the same encoding.
 }
 \note{
   The S4 version of \code{substring<-} ignores \code{last}; this version
@@ -70,7 +62,7 @@ substring(text, first, last = 1000000) <- value
   display.  That does not really work (you want to limit the width, not
   the number of characters, so it would be better to use
   \code{\link{strtrim}}), but at least make sure you use
-  \code{nchar(type="c")} (the default since \R 2.6.0).
+  \code{nchar(type="c")}.
 }
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)

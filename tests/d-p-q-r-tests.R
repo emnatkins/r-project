@@ -552,15 +552,11 @@ stopifnot(pbinom(x0, size = 3, prob = 0.1) == 0,
 ## very small negatives were rounded to 0 in R 2.2.1 and earlier
 
 ## dbeta(*, ncp):
-db.x <- c(0, 5, 80, 405, 1280, 3125, 6480, 12005, 20480, 32805,
-	  50000, 73205, 103680, 142805, 192080, 253125, 327680)
 a <- rlnorm(100)
 stopifnot(All.eq(a, dbeta(0, 1, a, ncp=0)),
-	  dbeta(0, 0.9, 2.2, ncp = c(0, a)) == Inf,
-	  All.eq(65536 * dbeta(0:16/16, 5,1), db.x),
-	  All.eq(exp(16 * log(2) + dbeta(0:16/16, 5,1, log=TRUE)), db.x)
+          dbeta(0, 0.9, 2.2, ncp = c(0, a)) == Inf
           )
-## the first gave 0, the 2nd NaN in R <= 2.3.0; others use 'TRUE' values
+## the first gave 0, the 2nd NaN in R <= 2.3.0
 
 ## df(*, ncp):
 x <- seq(0, 10, length=101)
@@ -613,16 +609,6 @@ for(nu in df.set) {
     pqq <- pt(-qq, df = nu, log=TRUE)
     stopifnot(is.finite(pqq))
 }
-
-All.eq(pt(2^-30, df=10),
-       0.50000000036238542)# = .5+ integrate(dt, 0,2^-30, df=10, rel.tol=1e-20)
-
-## rbinom(*, size) gave NaN for large size up to R <= 2.6.1
-M <- .Machine$integer.max
-set.seed(7)
-tt <- table(rbinom(100,    M, pr = 1e-9)) # had values in {0,2} only
-t2 <- table(rbinom(100, 10*M, pr = 1e-10))
-stopifnot(names(tt) == 0:6, sum(tt) == 100, sum(t2) == 100) ## no NaN there
 
 
 

@@ -29,7 +29,7 @@ function(dir, outDir)
     ## path to the DESCRIPTION file, and returns an object with check
     ## results and not the package metadata ...
     ok <- .check_package_description(file.path(dir, "DESCRIPTION"))
-    if(any(as.integer(sapply(ok, length)) > 0L)) {
+    if(any(as.integer(sapply(ok, length))) > 0) {
         stop(paste(gettext("Invalid DESCRIPTION file") ,
                    paste(.capture_output_from_print(ok),
                          collapse = "\n"),
@@ -103,7 +103,7 @@ function(dir, outDir)
 function(db, verbose = FALSE)
 {
     if(!is.na(Built <- db["Built"])) {
-        Built <- as.list(strsplit(Built, "; ")[[1L]])
+        Built <- as.list(strsplit(Built, "; ")[[1]])
         if(length(Built) != 4) {
             warning(gettextf("*** someone has corrupted the Built field in package '%s' ***",
                              db["Package"]),
@@ -227,8 +227,16 @@ function(dir, outDir)
     collationField <-
         c(paste("Collate", .OStype(), sep = "."), "Collate")
     if(any(i <- collationField %in% names(db))) {
-        collationField <- collationField[i][1L]
-        codeFilesInCspec <- .read_collate_field(db[collationField])
+        ## We have a Collate specification in the DESCRIPTION file:
+        ## currently, file paths relative to codeDir, separated by
+        ## white space, possibly quoted.  Note that we could have
+        ## newlines in DCF entries but do not allow them in file names,
+        ## hence we gsub() them out.
+        collationField <- collationField[i][1]
+        con <- textConnection(gsub("\n", " ", db[collationField]))
+        on.exit(close(con))
+        codeFilesInCspec <- scan(con, what = character(),
+                                 strip.white = TRUE, quiet = TRUE)
         ## Duplicated entries in the collation spec?
         badFiles <-
             unique(codeFilesInCspec[duplicated(codeFilesInCspec)])
@@ -460,25 +468,13 @@ function(dir, outDir)
     vignetteIndex <- .build_vignette_index(vignetteDir)
     ## For base package vignettes there is no PDF in @file{vignetteDir}
     ## but there might/should be one in @file{outVignetteDir}.
-    if(NROW(vignetteIndex) > 0L) {
+    if(NROW(vignetteIndex) > 0) {
         vignettePDFs <-
             sub("$", ".pdf",
                 basename(file_path_sans_ext(vignetteIndex$File)))
         ind <- file_test("-f", file.path(outVignetteDir, vignettePDFs))
         vignetteIndex$PDF[ind] <- vignettePDFs[ind]
-
-        ## install tangled versions of all vignettes
-        cwd <- getwd()
-        setwd(outVignetteDir)
-        for(srcfile in vignetteIndex$File){
-            yy <- try(utils::Stangle(srcfile))
-            if(inherits(yy, "try-error")) stop(yy)
-        }
-        vignetteIndex$R <-
-            sub("$", ".R", basename(file_path_sans_ext(vignetteIndex$File)))
-        setwd(cwd)
     }
-    
     if(!hasHtmlIndex)
         .writeVignetteHtmlIndex(packageName, htmlIndex, vignetteIndex)
 
@@ -698,11 +694,11 @@ function(dir, packages)
     ## -I"/path/to/package/include" ...
 
     if(!is.null(file)) {
-        tmp <- read.dcf(file, "LinkingTo")[1L, 1L]
+        tmp <- read.dcf(file, "LinkingTo")[1,1]
         if(is.na(tmp)) return(invisible())
         pkgs <- tmp
     }
-    pkgs <- strsplit(pkgs[1L], ",[:blank]*")[[1L]]
+    pkgs <- strsplit(pkgs[1], ",[:blank]*")[[1]]
     paths <- .find.package(pkgs, lib.loc, quiet=TRUE)
     if(length(paths))
         cat(paste(paste('-I"', paths, '/include"', sep=""), collapse=" "))

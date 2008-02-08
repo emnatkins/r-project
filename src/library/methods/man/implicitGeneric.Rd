@@ -8,7 +8,6 @@
 \alias{setGenericImplicit}
 \alias{prohibitGeneric}
 \alias{registerImplicitGenerics}
-\alias{implicit generic}
 \title{Manage Implicit Versions of Generic Functions}
 \description{
   Create or access implicit generic functions, used to enforce

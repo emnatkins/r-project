@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.7.0\n"
+"Project-Id-Version: R 2.6.2\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-01-11 23:16\n"
-"PO-Revision-Date: 2008-01-11 23:16\n"
+"POT-Creation-Date: 2008-02-06 06:53\n"
+"PO-Revision-Date: 2008-02-06 06:53\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -110,19 +110,6 @@ msgstr "elements of ‘what’ after the first will be ignored"
 msgid "%d occurrences in %s"
 msgstr "%d occurrences in %s"
 
-msgid ""
-"Use <code> %s </code> \n"
-" to list the vignettes in all <strong>available</strong> packages."
-msgstr ""
-"Use <code> %s </code> \n"
-" to list the vignettes in all <strong>available</strong> packages."
-
-msgid "No vignettes found by"
-msgstr "No vignettes found by"
-
-msgid "call"
-msgstr "call"
-
 msgid "'file' must be NULL, a character string or a connection"
 msgstr "‘file’ must be NULL, a character string or a connection"
 
@@ -152,9 +139,6 @@ msgstr "n < m"
 
 msgid "'FUN' must be a function or NULL"
 msgstr "‘FUN’ must be a function or NULL"
-
-msgid "Can't handle S4 methods yet"
-msgstr "Can't handle S4 methods yet"
 
 msgid "'package' must be a character string or NULL"
 msgstr "‘package’ must be a character string or NULL"
@@ -257,12 +241,6 @@ msgstr "edited row names contain duplicates and will be ignored"
 msgid "invalid input matrix"
 msgstr "invalid input matrix"
 
-msgid "class(es) of 'name' will be discarded"
-msgstr "class(es) of ‘name’ will be discarded"
-
-msgid "cannot edit NULL row names"
-msgstr "cannot edit NULL row names"
-
 msgid "no help file found for '%s'"
 msgstr "no help file found for ‘%s’"
 
@@ -289,9 +267,6 @@ msgstr "‘form’ must be a two-sided formula"
 
 msgid "'form' must be a two-sided formula with one term on each side"
 msgstr "‘form’ must be a two-sided formula with one term on each side"
-
-msgid "'topic' should be a name, length-one character vector or reserved word"
-msgstr "‘topic’ should be a name, length-one character vector or reserved word"
 
 msgid "No documentation for '%s' in specified packages and libraries:"
 msgstr "No documentation for ‘%s’ in specified packages and libraries:"
@@ -413,9 +388,6 @@ msgstr "matched %d objects."
 
 msgid "no package '%s' was found"
 msgstr "no package ‘%s’ was found"
-
-msgid "metadata of package '%s' is corrupt"
-msgstr "metadata of package ‘%s’ is corrupt"
 
 msgid "DESCRIPTION file of package '%s' is corrupt"
 msgstr "DESCRIPTION file of package ‘%s’ is corrupt"
@@ -824,12 +796,6 @@ msgstr "str.data.frame() called with non-data.frame -- coercing to one."
 msgid "invalid options('str') -- using defaults instead"
 msgstr "invalid options('str') -- using defaults instead"
 
-msgid "invalid components in options('str'):"
-msgstr "invalid components in options('str'):"
-
-msgid ","
-msgstr ","
-
 msgid "'object' does not have valid levels()"
 msgstr "‘object’ does not have valid levels()"
 
@@ -897,9 +863,6 @@ msgstr "no download method found"
 msgid "download had nonzero exit status"
 msgstr "download had nonzero exit status"
 
-msgid "Using non-linked HTML file: hyperlinks may be incorrect"
-msgstr "Using non-linked HTML file: hyperlinks may be incorrect"
-
 msgid "options(\"browser\") not set"
 msgstr "options(“browser”) not set"
 
@@ -912,6 +875,9 @@ msgid ""
 msgstr ""
 "Changing the default browser (as specified by the ‘browser’ option) to the "
 "given browser so that it gets used for all future help requests."
+
+msgid "Making links in per-session dir ..."
+msgstr "Making links in per-session dir ..."
 
 msgid ""
 "If '%s' is already running, it is *not* restarted, and you must switch to "
@@ -928,9 +894,6 @@ msgstr "‘url’ must be a non-empty character string"
 
 msgid "'browser' must be a non-empty character string"
 msgstr "‘browser’ must be a non-empty character string"
-
-msgid "Making links in per-session dir ..."
-msgstr "Making links in per-session dir ..."
 
 msgid "cannot create HTML package index"
 msgstr "cannot create HTML package index"
@@ -994,11 +957,6 @@ msgstr "‘tar’ returned non-zero exit code %d"
 
 msgid "cannot remove prior installation of package"
 msgstr "cannot remove prior installation of package"
-
-msgid "class discarded from column %s"
-msgid_plural "classes discarded from columns %s"
-msgstr[0] "class discarded from column %s"
-msgstr[1] "classes discarded from columns %s"
 
 msgid "object '%s' not found"
 msgid_plural "objects '%s' not found"

@@ -957,7 +957,7 @@ static void WriteItem (SEXP s, SEXP ref_table, R_outpstream_t stream)
 }
 
 #ifdef BYTECODE
-static SEXP MakeCircleHashTable(void)
+static SEXP MakeCircleHashTable()
 {
     return CONS(R_NilValue, allocVector(VECSXP, HASHSIZE));
 }
@@ -2008,8 +2008,8 @@ static SEXP CloseMemOutPStream(R_outpstream_t stream)
     return val;
 }
 
-SEXP attribute_hidden 
-R_serialize(SEXP object, SEXP icon, SEXP ascii, SEXP fun)
+/* This is undocumented and in no header, but used by package taskPR. */
+SEXP R_serialize(SEXP object, SEXP icon, SEXP ascii, SEXP fun)
 {
     struct R_outpstream_st out;
     R_pstream_format_t type;
@@ -2050,8 +2050,8 @@ R_serialize(SEXP object, SEXP icon, SEXP ascii, SEXP fun)
     }
 }
 
-
-SEXP attribute_hidden R_unserialize(SEXP icon, SEXP fun)
+/* This is undocumented and in no header, but used by package taskPR */
+SEXP R_unserialize(SEXP icon, SEXP fun)
 {
     struct R_inpstream_st in;
     SEXP (*hook)(SEXP, SEXP);
@@ -2064,13 +2064,14 @@ SEXP attribute_hidden R_unserialize(SEXP icon, SEXP fun)
 	int length = LENGTH(STRING_ELT(icon, 0));
 	InitMemInPStream(&in, &mbs, data,  length, hook, fun);
 	return R_Unserialize(&in);
-    } else if (TYPEOF(icon) == RAWSXP) {
+    } else if (TYPEOF(icon) == RAWSXP) { /* for future use */
         struct membuf_st mbs;
 	void *data = RAW(icon);
 	int length = LENGTH(icon);
 	InitMemInPStream(&in, &mbs, data,  length, hook, fun);
 	return R_Unserialize(&in);
-    } else {
+    }
+    else {
 	Rconnection con = getConnection(asInteger(icon));
 	R_InitConnInPStream(&in, con, R_pstream_any_format, hook, fun);
 	return R_Unserialize(&in);

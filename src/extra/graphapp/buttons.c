@@ -43,7 +43,6 @@
 
 #include "internal.h"
 #include "ga.h"
-#include <richedit.h>
 
 #define SHADOW_WIDTH 1
 
@@ -134,8 +133,7 @@ static object newchildwin(const char *kind, const char *text,
 	ensure_window();
 	r = rcanon(r);
 
-	if(localeCP > 0 && (localeCP != GetACP())) {
-	    /* This seems not actually to work */
+	if(is_NT && localeCP > 0 && (localeCP != GetACP())) {
 	    wchar_t wkind[100], wc[1000];
 	    mbstowcs(wkind, kind, 100);
 	    mbstowcs(wc, text, 1000);

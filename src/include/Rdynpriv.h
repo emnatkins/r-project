@@ -153,8 +153,7 @@ struct Rf_RegisteredNativeSymbol {
         processing the library path. 
    */
 typedef struct {
-    HINSTANCE (*loadLibrary)(const char *path, int asLocal, int now,
-			     char const *search); 
+    HINSTANCE (*loadLibrary)(const char *path, int asLocal, int now); 
     /* Load the dynamic library. */
     DL_FUNC  (*dlsym)(DllInfo *info, char const *name); 
     /* Low-level symbol lookup in library */

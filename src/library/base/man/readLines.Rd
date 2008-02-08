@@ -27,9 +27,6 @@ readLines(con = stdin(), n = -1, ok = TRUE, warn = TRUE,
     latter, specify the encoding as part of the connection \code{con} or
     via \code{\link{options}(encoding=)}: see the example under
     \code{\link{file}}.
-#ifdef windows
-    See also \sQuote{Details}.
-#endif
   }
 }
 \details{
@@ -49,13 +46,6 @@ readLines(con = stdin(), n = -1, ok = TRUE, warn = TRUE,
 
   Whatever mode the connection is opened in, any of LF, CRLF or CR will
   be accepted as the EOL marker for a line.
-#ifdef windows
-
-  If \code{con} is a non-already-open \link{connection} with a non-default
-  \code{encoding} argument, the text is converted to UTF-8 and declared
-  as such (and the encoding argument to \code{readLines} is ignored).
-  See the examples.
-#endif
 }
 \value{
   A character vector of length the number of lines read.
@@ -88,14 +78,6 @@ readLines(con) # gets both
 close(con)
 
 unlink("test1") # tidy up
-
-#ifdef windows
-\dontrun{
-# read a 'Windows Unicode' file 
-A <- readLines(file("Unicode.txt", encoding="UCS"))
-unique(Encoding(A)) # will be UTF-8
-}
-#endif
 }
 \keyword{file}
 \keyword{connection}

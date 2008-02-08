@@ -41,19 +41,19 @@ double	XRotVersion(char*, int);
 void	XRotSetMagnification(double);
 void	XRotSetBoundingBoxPad(int);
 int	XRotDrawString(Display*, XFontStruct*, double,
-		       Drawable, GC, int, int, const char*);
+		       Drawable, GC, int, int, char*);
 int	XRotDrawImageString(Display*, XFontStruct*, double,
-			    Drawable, GC, int, int, const char*);
+			    Drawable, GC, int, int, char*);
 int	XRotDrawAlignedString(Display*, XFontStruct*, double,
-			      Drawable, GC, int, int, const char*, int);
+			      Drawable, GC, int, int, char*, int);
 int	XRotDrawAlignedImageString(Display*, XFontStruct*, double,
-				   Drawable, GC, int, int, const char*, int);
+				   Drawable, GC, int, int, char*, int);
 XPoint *XRotTextExtents(Display*, XFontStruct*, double,
-			int, int, const char*, int);
+			int, int, char*, int);
 
 /* addition in 2.1.0 */
 int	XRfRotDrawString(Display*, R_XFont*, double,
-			 Drawable, GC, int, int, const char*);
+			 Drawable, GC, int, int, char*);
 
 /* ---------------------------------------------------------------------- */
 #endif /* _XVERTEXT_INCLUDED_ */

@@ -76,7 +76,7 @@ static void * current_id = NULL;
 
 /* ------------- admin functions (see also at end) ----------------- */
 
-static int NextConnection(void)
+static int NextConnection()
 {
     int i;
     for(i = 3; i < NCONNECTIONS; i++)
@@ -164,22 +164,14 @@ Rconnection getConnection_no_err(int n)
 void set_iconv(Rconnection con)
 {
     void *tmp;
-
     /* need to test if this is text, open for reading to writing or both,
        and set inconv and/or outconv */
     if(!con->text || !strlen(con->encname) ||
-       strcmp(con->encname, "native.enc") == 0) {
-	con->UTF8out = FALSE;
-	return;
-    }
+       strcmp(con->encname, "native.enc") == 0) return;
     if(con->canread) {
 	size_t onb = 50;
 	char *ob = con->oconvbuff;
-#ifndef Win32
-	con->UTF8out = FALSE;  /* No point in converting to UTF-8
-				  unless in a UTF-8 locale */
-#endif
-	tmp = Riconv_open(con->UTF8out ? "UTF-8" : "", con->encname);
+	tmp = Riconv_open("", con->encname);
 	if(tmp != (void *)-1) con->inconv = tmp;
 	else error(_("conversion from encoding '%s' is unsupported"), 
 		   con->encname);
@@ -262,7 +254,7 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
     va_end(aq);
 #ifdef HAVE_VASPRINTF
     if(res >= BUFSIZE || res < 0) {
-	(void) vasprintf(&b, format, ap);
+	vasprintf(&b, format, ap);
 	usedVasprintf = TRUE;
     }
 #else
@@ -417,11 +409,10 @@ static size_t null_write(const void *ptr, size_t size, size_t nitems,
     return 0;			/* -Wall */
 }
 
-void init_con(Rconnection new, const char *description, int enc,
+void init_con(Rconnection new, const char *description,
 	      const char * const mode)
 {
     strcpy(new->description, description);
-    new->enc = enc;
     strncpy(new->mode, mode, 4); new->mode[4] = '\0';
     new->isopen = new->incomplete = new->blocking = new->isGzcon = FALSE;
     new->canread = new->canwrite = TRUE; /* in principle */
@@ -441,7 +432,6 @@ void init_con(Rconnection new, const char *description, int enc,
     new->save = new->save2 = -1000;
     new->private = NULL;
     new->inconv = new->outconv = NULL;
-    new->UTF8out = FALSE;
     /* increment id, avoid NULL */
     current_id = (void *)((size_t) current_id+1);
     if(!current_id) current_id = (void *) 1;
@@ -464,10 +454,6 @@ void init_con(Rconnection new, const char *description, int enc,
 #endif
 #endif
 
-#ifdef Win32
-size_t Rf_utf8towcs(wchar_t *wc, const char *s, size_t n);
-#endif
-
 static Rboolean file_open(Rconnection con)
 {
     const char *name;
@@ -485,17 +471,7 @@ static Rboolean file_open(Rconnection con)
     } else name = R_ExpandFileName(con->description);
     errno = 0; /* some systems require this */
     if(strcmp(name, "stdin")) {
-#ifdef Win32
-	if(con->enc == CE_UTF8) {
-	    int n = strlen(name);
-	    wchar_t *wname = (wchar_t *) alloca(2 * (n+1)), wmode[10];
-	    R_CheckStack();
-	    Rf_utf8towcs(wname, name, n+1);
-	    mbstowcs(wmode, con->mode, 10);
-	    fp = _wfopen(wname, wmode);
-	} else
-#endif
-	    fp = R_fopen(name, con->mode);
+	fp = R_fopen(name, con->mode);
     } else {  /* use file("stdin") to refer to the file and not the console */
 #ifdef HAVE_FDOPEN
 	fp = fdopen(0, con-> mode);
@@ -697,7 +673,7 @@ static size_t file_write(const void *ptr, size_t size, size_t nitems,
     return fwrite(ptr, size, nitems, fp);
 }
 
-static Rconnection newfile(const char *description, int enc, const char *mode)
+static Rconnection newfile(const char *description, const char *mode)
 {
     Rconnection new;
     new = (Rconnection) malloc(sizeof(struct Rconn));
@@ -713,7 +689,7 @@ static Rconnection newfile(const char *description, int enc, const char *mode)
 	free(new->class); free(new);
 	error(_("allocation of file connection failed"));
     }
-    init_con(new, description, enc, mode);
+    init_con(new, description, mode);
     new->open = &file_open;
     new->close = &file_close;
     new->vfprintf = &file_vfprintf;
@@ -865,7 +841,7 @@ static Rconnection newfifo(const char *description, const char *mode)
 	free(new->class); free(new);
 	error(_("allocation of fifo connection failed"));
     }
-    init_con(new, description, CE_NATIVE, mode);
+    init_con(new, description, mode);
     new->open = &fifo_open;
     new->close = &fifo_close;
     new->vfprintf = &dummy_vfprintf;
@@ -966,17 +942,7 @@ static Rboolean pipe_open(Rconnection con)
     mode[1] = '\0';
 #endif
     errno = 0;
-#ifdef Win32
-    if(con->enc == CE_UTF8) {
-	int n = strlen(con->description);
-	wchar_t *wname = (wchar_t *) alloca(2 * (n+1)), wmode[10];
-	R_CheckStack();
-	Rf_utf8towcs(wname, con->description, n+1);
-	mbstowcs(wmode, con->mode, 10);
-	fp = _wpopen(wname, wmode);
-    } else
-#endif
-	fp = R_popen(con->description, mode);
+    fp = R_popen(con->description, mode);
     if(!fp) {
 #ifdef HAVE_STRERROR
         warning(_("cannot open pipe() cmd '%s', reason '%s'"), con->description,
@@ -1003,8 +969,7 @@ static void pipe_close(Rconnection con)
     con->isopen = FALSE;
 }
 
-static Rconnection
-newpipe(const char *description, int ienc, const char *mode)
+static Rconnection newpipe(const char *description, const char *mode)
 {
     Rconnection new;
     new = (Rconnection) malloc(sizeof(struct Rconn));
@@ -1020,7 +985,7 @@ newpipe(const char *description, int ienc, const char *mode)
 	free(new->class); free(new);
 	error(_("allocation of pipe connection failed"));
     }
-    init_con(new, description, ienc, mode);
+    init_con(new, description, mode);
     new->open = &pipe_open;
     new->close = &pipe_close;
     new->vfprintf = &file_vfprintf;
@@ -1039,8 +1004,7 @@ newpipe(const char *description, int ienc, const char *mode)
 #endif
 
 #ifdef Win32
-extern Rconnection 
-newWpipe(const char *description, int enc, const char *mode);
+extern Rconnection newWpipe(const char *description, const char *mode);
 #endif
 
 SEXP attribute_hidden do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
@@ -1048,7 +1012,7 @@ SEXP attribute_hidden do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
 #ifdef HAVE_POPEN
     SEXP scmd, sopen, ans, class, enc;
     const char *file, *open;
-    int ncon, ienc = CE_NATIVE;
+    int ncon;
     Rconnection con = NULL;
 
     checkArity(op, args);
@@ -1057,13 +1021,7 @@ SEXP attribute_hidden do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
 	error(_("invalid '%s' argument"), "description");
     if(length(scmd) > 1)
 	warning(_("only first element of 'description' argument used"));
-#ifdef Win32
-    ienc = getCharEnc(STRING_ELT(scmd, 0));
-    if(ienc == CE_UTF8)
-	file = CHAR(STRING_ELT(scmd, 0));
-    else
-#endif
-	file = translateChar(STRING_ELT(scmd, 0));
+    file = translateChar(STRING_ELT(scmd, 0));
     sopen = CADR(args);
     if(!isString(sopen) || length(sopen) != 1)
 	error(_("invalid '%s' argument"), "open");
@@ -1076,10 +1034,12 @@ SEXP attribute_hidden do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
     ncon = NextConnection();
 #ifdef Win32
     if(CharacterMode != RTerm)
-	con = newWpipe(file, ienc, strlen(open) ? open : "r");
+	con = newWpipe(file, strlen(open) ? open : "r");
     else
+	con = newpipe(file, strlen(open) ? open : "r");
+#else
+    con = newpipe(file, strlen(open) ? open : "r");
 #endif
-	con = newpipe(file, ienc, strlen(open) ? open : "r");
     Connections[ncon] = con;
     strncpy(con->encname, CHAR(STRING_ELT(enc, 0)), 100); /* ASCII */
 
@@ -1225,7 +1185,7 @@ static Rconnection newgzfile(const char *description, const char *mode,
 	free(new->class); free(new);
 	error(_("allocation of gzfile connection failed"));
     }
-    init_con(new, description, CE_NATIVE, "");
+    init_con(new, description, "");
     strncpy(new->mode, mode, 1);
     sprintf(new->mode+1, "b%1d", compress);
 
@@ -1416,7 +1376,7 @@ static Rconnection newbzfile(const char *description, const char *mode)
 	free(new->class); free(new);
 	error(_("allocation of bzfile connection failed"));
     }
-    init_con(new, description, CE_NATIVE, mode);
+    init_con(new, description, mode);
 
     new->canseek = FALSE;
     new->open = &bzfile_open;
@@ -1492,7 +1452,7 @@ SEXP attribute_hidden do_bzfile(SEXP call, SEXP op, SEXP args, SEXP env)
 #ifdef Win32
 # define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
-extern int GA_clipboardhastext(void); /* from ga.h */
+extern int GA_clipboardhastext(); /* from ga.h */
 #endif
 
 #ifdef Unix
@@ -1714,7 +1674,7 @@ static Rconnection newclp(const char *url, const char *inmode)
 	free(new->class); free(new);
 	error(_("allocation of clipboard connection failed"));
     }
-    init_con(new, description, CE_NATIVE, mode);
+    init_con(new, description, mode);
     new->open = &clp_open;
     new->close = &clp_close;
     new->vfprintf = &dummy_vfprintf;
@@ -1747,7 +1707,7 @@ static unsigned char  ConsoleBuf[CONSOLE_BUFFER_SIZE+1];
 static unsigned char *ConsoleBufp;
 static int  ConsoleBufCnt;
 
-static int ConsoleGetchar(void)
+static int ConsoleGetchar()
 {
     if (--ConsoleBufCnt < 0) {
 	ConsoleBuf[CONSOLE_BUFFER_SIZE] = '\0';
@@ -1810,7 +1770,7 @@ static Rconnection newterminal(const char *description, const char *mode)
 	free(new->class); free(new);
 	error(_("allocation of terminal connection failed"));
     }
-    init_con(new, description, CE_NATIVE, mode);
+    init_con(new, description, mode);
     new->isopen = TRUE;
     new->canread = (strcmp(mode, "r") == 0);
     new->canwrite = (strcmp(mode, "w") == 0);
@@ -1944,7 +1904,7 @@ static Rconnection newtext(const char *description, SEXP text)
 	free(new->class); free(new);
 	error(_("allocation of text connection failed"));
     }
-    init_con(new, description, CE_NATIVE, "r");
+    init_con(new, description, "r");
     new->isopen = TRUE;
     new->canwrite = FALSE;
     new->open = &text_open;
@@ -1961,16 +1921,6 @@ static Rconnection newtext(const char *description, SEXP text)
     return new;
 }
 
-
-static SEXP mkCharLocal(const char *s)
-{
-    int ienc = 0;
-    if(known_to_be_latin1) ienc = LATIN1_MASK;
-    if(known_to_be_utf8) ienc = UTF8_MASK;
-    if(ienc > 0 && strIsASCII(s)) ienc = 0;
-    return mkCharEnc(s, ienc);
-}
-
 static void outtext_close(Rconnection con)
 {
     Routtextconn this = (Routtextconn)con->private;
@@ -1982,7 +1932,7 @@ static void outtext_close(Rconnection con)
 	R_unLockBinding(this->namesymbol, env);
     if(strlen(this->lastline) > 0) {
 	PROTECT(tmp = lengthgets(this->data, ++this->len));
-	SET_STRING_ELT(tmp, this->len - 1, mkCharLocal(this->lastline));
+	SET_STRING_ELT(tmp, this->len - 1, mkChar(this->lastline));
 	if(this->namesymbol) defineVar(this->namesymbol, tmp, env);
 	SET_NAMED(tmp, 2);
 	this->data = tmp;
@@ -2053,7 +2003,7 @@ static int text_vfprintf(Rconnection con, const char *format, va_list ap)
 	    SEXP env = VECTOR_ELT(OutTextData, idx);
 	    *q = '\0';
 	    PROTECT(tmp = lengthgets(this->data, ++this->len));
-	    SET_STRING_ELT(tmp, this->len - 1, mkCharLocal(p));
+	    SET_STRING_ELT(tmp, this->len - 1, mkChar(p));
 	    if(this->namesymbol) {
 		if(findVarInFrame3(env, this->namesymbol, FALSE) 
 		   != R_UnboundValue) R_unLockBinding(this->namesymbol, env);
@@ -2137,7 +2087,7 @@ static Rconnection newouttext(const char *description, SEXP stext,
 	free(new->class); free(new);
 	error(_("allocation of text connection failed"));
     }
-    init_con(new, description, CE_NATIVE, mode);
+    init_con(new, description, mode);
     new->isopen = TRUE;
     new->canread = FALSE;
     new->open = &text_open;
@@ -2623,9 +2573,8 @@ int Rconn_printf(Rconnection con, const char *format, ...)
 #define BUF_SIZE 1000
 SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP ans = R_NilValue, ans2;
+    SEXP ans = R_NilValue, ans2, tmp;
     int i, n, nn, nnn, ok, warn, nread, c, nbuf, buf_size = BUF_SIZE;
-    int oenc = 0;
     Rconnection con = NULL;
     Rboolean wasopen;
     char *buf;
@@ -2651,7 +2600,6 @@ SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
     encoding = CHAR(STRING_ELT(CAD4R(args), 0)); /* ASCII */
     wasopen = con->isopen;
     if(!wasopen) {
-	con->UTF8out = TRUE;  /* a request */
 	if(!con->open(con)) error(_("cannot open the connection"));
     } else { /* for a non-blocking connection, more input may
 		have become available, so re-position */
@@ -2659,8 +2607,6 @@ SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
 	    con->seek(con, con->seek(con, -1, 1, 1), 1, 1);
     }
     con->incomplete = FALSE;
-    if(con->UTF8out || streql(encoding, "UTF-8")) oenc = UTF8_MASK;
-    else if(streql(encoding, "latin1")) oenc = LATIN1_MASK;
 
     buf = (char *) malloc(buf_size);
     if(!buf)
@@ -2688,7 +2634,10 @@ SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
 	    if(c != '\n') buf[nbuf++] = c; else break;
 	}
 	buf[nbuf] = '\0';
-	SET_STRING_ELT(ans, nread, mkCharEnc(buf, oenc));
+	if(streql(encoding, "latin1")) tmp = mkCharEnc(buf, LATIN1_MASK);
+	else if(streql(encoding, "UTF-8")) tmp = mkCharEnc(buf, UTF8_MASK);
+	else tmp = mkChar(buf);
+	SET_STRING_ELT(ans, nread, tmp);
 	if(c == R_EOF) goto no_more_lines;
     }
     UNPROTECT(1);
@@ -2722,7 +2671,7 @@ no_more_lines:
 /* writeLines(text, con = stdout(), sep = "\n") */
 SEXP attribute_hidden do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    int i, con_num;
+    int i;
     Rboolean wasopen;
     Rconnection con=NULL;
     const char *ssep;
@@ -2733,8 +2682,7 @@ SEXP attribute_hidden do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
     if(!isString(text)) error(_("invalid '%s' argument"), "text");
     if(!inherits(CADR(args), "connection"))
 	error(_("'con' is not a connection"));
-    con_num = asInteger(CADR(args));
-    con = getConnection(con_num);
+    con = getConnection(asInteger(CADR(args)));
     sep = CADDR(args);
     if(!isString(sep)) error(_("invalid '%s' argument"), "sep");
     if(!con->canwrite)
@@ -2745,27 +2693,9 @@ SEXP attribute_hidden do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
 	if(!con->open(con)) error(_("cannot open the connection"));
     }
     ssep = translateChar(STRING_ELT(sep, 0));
-
-    /* New for 2.7.0: split the output if sink was split.
-       It would be slightly simpler just to cal Rvprintf if the
-       connection was stdout(), but this way is more efficent */
-    if(con_num == R_OutputCon) {
-	int j = 0;
-	Rconnection con0;
-	do {
-	    con0 = getConnection(con_num);
-	    for(i = 0; i < length(text); i++)
-		Rconn_printf(con0, "%s%s", 
-			     translateChar(STRING_ELT(text, i)), ssep);
-	    con0->fflush(con0);
-	    con_num = getActiveSink(j++);
-	} while (con_num > 0);
-    } else {
-	for(i = 0; i < length(text); i++)
-	    Rconn_printf(con, "%s%s", 
-			 translateChar(STRING_ELT(text, i)), ssep);
-    }
-
+    for(i = 0; i < length(text); i++)
+	Rconn_printf(con, "%s%s", translateChar(STRING_ELT(text, i)),
+		     ssep);
     if(!wasopen) con->close(con);
     return R_NilValue;
 }
@@ -3281,13 +3211,24 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
     return ans;
 }
 
-/* FIXME: could do any MBCS locale, but would need pushback */
+/* 
+   Version for strings with embedded nuls:
+   these do not currently go in the cache,
+   and do not have an encoding. 
+*/
+static SEXP mkCharLen(const char *name, int len)
+{
+    SEXP c = allocString(len);
+    memcpy(CHAR_RW(c), name, len);
+    return c;
+}
+
 static SEXP readFixedString(Rconnection con, int len)
 {
     char *buf;
     int  pos, m;
 
-#ifdef SUPPORT_MBCS
+#ifdef SUPPORT_UTF8
     if(utf8locale) {
 	int i, clen;
 	char *p, *q;
@@ -3302,7 +3243,6 @@ static SEXP readFixedString(Rconnection con, int len)
 		m = con->read(p, sizeof(char), clen - 1, con);
 		if(m < clen - 1) error(_("invalid UTF-8 input in readChar()"));
 		p += clen - 1;
-		/* NB: this only checks validity of multi-byte characters */
 		if((int)mbrtowc(NULL, q, clen, NULL) < 0)
 		    error(_("invalid UTF-8 input in readChar()"));
 	    }
@@ -3419,7 +3359,7 @@ SEXP attribute_hidden do_readchar(SEXP call, SEXP op, SEXP args, SEXP env)
 /* writeChar(object, con, nchars, sep) */
 SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP object, nchars, sep, ans = R_NilValue, si;
+    SEXP object, nchars, sep, ans = R_NilValue;
     int i, len, lenb, lenc, n, nwrite=0, slen, tlen;
     char *buf;
     const char *s, *ssep = "";
@@ -3487,67 +3427,46 @@ SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
     	    
     for(i = 0; i < n; i++) {
 	len = INTEGER(nchars)[i];
-	si = STRING_ELT(object, i);
-	if(strlen(CHAR(si)) < LENGTH(si)) {
-	    if(len > LENGTH(si)) {
-		warning(_("writeChar: more bytes requested than are in the string - will zero-pad"));
-	    }
-	    memset(buf, '\0', len + slen);
-	    memcpy(buf, CHAR(si), len);
-	    if (usesep) {
-		strcat(buf, ssep);
-		len += slen;
-	    }
-	    if (!isRaw) {
-		nwrite = con->write(buf, sizeof(char), len, con);
-		if(!nwrite) {
-		    warning(_("problem writing to connection"));
-		    break;
-		}
-	    } else 
-		buf += len;
-	} else {
-	    s = translateChar(si);
-	    lenb = lenc = strlen(s);
+	s = translateChar(STRING_ELT(object, i));
+	lenb = lenc = strlen(s);
 #ifdef SUPPORT_MBCS
-	    if(mbcslocale) lenc = mbstowcs(NULL, s, 0);
+	if(mbcslocale) lenc = mbstowcs(NULL, s, 0);
 #endif
-	    /* As from 1.8.1, zero-pad if too many chars are requested. */
-	    if(len > lenc) {
-		warning(_("writeChar: more characters requested than are in the string - will zero-pad"));
-		lenb += (len - lenc);
-	    }
-	    if(len < lenc) {
-#ifdef SUPPORT_MBCS
-		if(mbcslocale) {
-		    /* find out how many bytes we need to write */
-		    int i, used;
-		    const char *p = s;
-		    mbs_init(&mb_st);
-		    for(i = 0, lenb = 0; i < len; i++) {
-			used = Mbrtowc(NULL, p, MB_CUR_MAX, &mb_st);
-			p += used;
-			lenb += used;
-		    }
-		} else
-#endif
-		    lenb = len;
-	    }
-	    memset(buf, '\0', lenb + slen);
-	    strncpy(buf, s, lenb);
-	    if (usesep) {
-		strcat(buf, ssep);
-		lenb += slen;
-	    }
-	    if (!isRaw) {
-		nwrite = con->write(buf, sizeof(char), lenb, con);
-		if(!nwrite) {
-		    warning(_("problem writing to connection"));
-	    	break;
-		}
-	    } else 
-		buf += lenb;
+	/* As from 1.8.1, zero-pad if too many chars are requested. */
+	if(len > lenc) {
+	    warning(_("writeChar: more characters requested than are in the string - will zero-pad"));
+	    lenb += (len - lenc);
 	}
+	if(len < lenc) {
+#ifdef SUPPORT_MBCS
+	    if(mbcslocale) {
+		/* find out how many bytes we need to write */
+		int i, used;
+		const char *p = s;
+		mbs_init(&mb_st);
+		for(i = 0, lenb = 0; i < len; i++) {
+		    used = Mbrtowc(NULL, p, MB_CUR_MAX, &mb_st);
+		    p += used;
+		    lenb += used;
+		}
+	    } else
+#endif
+		lenb = len;
+	}
+	memset(buf, '\0', lenb + slen);
+	strncpy(buf, s, lenb);
+	if (usesep) {
+	    strcat(buf, ssep);
+	    lenb += slen;
+	}
+	if (!isRaw) {
+	    nwrite = con->write(buf, sizeof(char), lenb, con);
+	    if(!nwrite) {
+	    	warning(_("problem writing to connection"));
+	    	break;
+	    }
+	} else 
+	    buf += lenb;
     }
     if(!wasopen) con->close(con);
     if(isRaw) {
@@ -3765,15 +3684,6 @@ SEXP attribute_hidden do_sinknumber(SEXP call, SEXP op, SEXP args, SEXP rho)
     return ScalarInteger(errcon ? R_SinkNumber : R_ErrorCon);
 }
 
-#ifdef Win32
-#include <R_ext/RStartup.h>
-extern UImode CharacterMode;
-void WinCheckUTF8(void)
-{
-    if(CharacterMode == RGui) WinUTF8out = (SinkCons[R_SinkNumber] == 1);
-    else WinUTF8out = FALSE;
-}
-#endif
 
 /* ------------------- admin functions  --------------------- */
 
@@ -3836,7 +3746,7 @@ do_getconnection(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP attribute_hidden do_sumconnection(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP ans, names, tmp;
+    SEXP ans, names;
     Rconnection Rcon;
 
     checkArity(op, args);
@@ -3844,12 +3754,7 @@ SEXP attribute_hidden do_sumconnection(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(ans = allocVector(VECSXP, 7));
     PROTECT(names = allocVector(STRSXP, 7));
     SET_STRING_ELT(names, 0, mkChar("description"));
-    PROTECT(tmp = allocVector(STRSXP, 1));
-    if(Rcon->enc == CE_UTF8) 
-	SET_STRING_ELT(tmp, 0, mkCharEnc(Rcon->description, UTF8_MASK));
-    else 
-	SET_STRING_ELT(tmp, 0, mkChar(Rcon->description));
-    SET_VECTOR_ELT(ans, 0, tmp);
+    SET_VECTOR_ELT(ans, 0, mkString(Rcon->description));
     SET_STRING_ELT(names, 1, mkChar("class"));
     SET_VECTOR_ELT(ans, 1, mkString(Rcon->class));
     SET_STRING_ELT(names, 2, mkChar("mode"));
@@ -3863,7 +3768,7 @@ SEXP attribute_hidden do_sumconnection(SEXP call, SEXP op, SEXP args, SEXP env)
     SET_STRING_ELT(names, 6, mkChar("can write"));
     SET_VECTOR_ELT(ans, 6, mkString(Rcon->canwrite? "yes":"no"));
     setAttrib(ans, R_NamesSymbol, names);
-    UNPROTECT(3);
+    UNPROTECT(2);
     return ans;
 }
 
@@ -3879,7 +3784,7 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP scmd, sopen, ans, class, enc;
     char *class2 = "url";
     const char *url, *open;
-    int ncon, block, ienc = CE_NATIVE;
+    int ncon, block;
     Rconnection con = NULL;
 #ifdef HAVE_INTERNET
     UrlScheme type = HTTPsh;	/* -Wall */
@@ -3892,13 +3797,6 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
     if(length(scmd) > 1)
 	warning(_("only first element of 'description' argument used"));
     url = CHAR(STRING_ELT(scmd, 0)); /* ASCII */
-#ifdef Win32
-    ienc = getCharEnc(STRING_ELT(scmd, 0));
-    if(ienc == CE_UTF8)
-	url = CHAR(STRING_ELT(scmd, 0));
-    else
-#endif
-	url = translateChar(STRING_ELT(scmd, 0));
 #ifdef HAVE_INTERNET
     if (strncmp(url, "http://", 7) == 0) type = HTTPsh;
     else if (strncmp(url, "ftp://", 6) == 0) type = FTPsh;
@@ -3925,7 +3823,7 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
 	   whereas on Unix it is file:///path/to */
 	if (strlen(url) > 9 && url[7] == '/' && url[9] == ':') nh = 8;
 #endif
-	con = newfile(url + nh, ienc, strlen(open) ? open : "r");
+	con = newfile(url + nh, strlen(open) ? open : "r");
 	class2 = "file";
 #ifdef HAVE_INTERNET
     } else if (strncmp(url, "http://", 7) == 0 ||
@@ -3954,7 +3852,7 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
 		)
 		con = newclp(url, strlen(open) ? open : "r");
 	    else
-		con = newfile(url, ienc, strlen(open) ? open : "r");
+		con = newfile(url, strlen(open) ? open : "r");
 	    class2 = "file";
 	} else {
 	    error(_("unsupported URL scheme"));
@@ -4314,7 +4212,7 @@ SEXP attribute_hidden do_gzcon(SEXP call, SEXP op, SEXP args, SEXP rho)
 	free(new->class); free(new);
 	error(_("allocation of 'gzcon' connection failed"));
     }
-    init_con(new, description, CE_NATIVE, mode);
+    init_con(new, description, mode);
     new->text = FALSE;
     new->isGzcon = TRUE;
     new->open = &gzcon_open;

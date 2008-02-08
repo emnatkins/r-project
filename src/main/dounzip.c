@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  file dounzip.c
- *  first part Copyright (C) 2002-8  the R Development Core Team
+ *  first part Copyright (C) 2002-5  the R Development Core Team
  *  second part Copyright (C) 1998 Gilles Vollant
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -343,7 +343,7 @@ R_newunz(const char *description, const char *const mode)
 	free(new->class); free(new);
 	error(_("allocation of unz connection failed"));
     }
-    init_con(new, description, CE_NATIVE, mode);
+    init_con(new, description, mode);
 
     new->canseek = TRUE;
     new->open = &unz_open;

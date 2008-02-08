@@ -156,6 +156,7 @@ SEXP attribute_hidden do_prmatrix(SEXP call, SEXP op, SEXP args, SEXP rho)
     return x;
 }/* do_prmatrix */
 
+
 /* .Internal(print.default(x, digits, quote, na.print, print.gap,
                            right, max, useS4)) */
 SEXP attribute_hidden do_printdefault(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -595,9 +596,6 @@ void attribute_hidden PrintValueRec(SEXP s, SEXP env)
     int i;
     SEXP t;
 
-#ifdef Win32
-    WinCheckUTF8();
-#endif
     if(!isMethodsDispatchOn() && (IS_S4_OBJECT(s) || TYPEOF(s) == S4SXP) ) {
 	SEXP cl = getAttrib(s, install("class"));
 	if(isNull(cl)) {
@@ -765,9 +763,6 @@ void attribute_hidden PrintValueRec(SEXP s, SEXP env)
 	UNIMPLEMENTED_TYPE("PrintValueRec", s);
     }
     printAttributes(s, env, FALSE);
-#ifdef Win32
-    WinUTF8out = FALSE;
-#endif
 }
 
 /* 2000-12-30 PR#715: remove list tags from tagbuf here

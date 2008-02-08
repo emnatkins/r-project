@@ -89,9 +89,6 @@
 /* Define to 1 if you have the `chdir' function. */
 #define HAVE_CHDIR 1
 
-/* Define to 1 if you have the `chmod' function. */
-#define HAVE_CHMOD 1
-
 /* Defined if framework CoreFoundation is present */
 /* #undef HAVE_COREFOUNDATION_FW */
 
@@ -329,7 +326,7 @@
 #define HAVE_INTTYPES_H_WITH_UINTMAX 1
 
 /* Define to 1 if you have the `isblank' function. */
-#define HAVE_ISBLANK 1
+#define HAVE_ISBLANK
 
 /* Define to 1 if you have the `isnan' function. */
 #define HAVE_ISNAN 1
@@ -766,9 +763,6 @@
 /* Define if you have 32 bit ints. */
 #define INT_32_BITS 1
 
-/* Define if mktime sets errno. */
-#define MKTIME_SETS_ERRNO 1
-
 /* Define if your system needs __setfpucw() to control FPU rounding. This was
    used to control floating point precision, rounding and floating point
    exceptions on older Linux systems. As of GLIBC 2.1 this function is not
@@ -886,7 +880,7 @@
 #define SUPPORT_MBCS 1
 
 /* Define this to enable support for UTF-8 locales. */
-#define SUPPORT_UTF8 1
+/* #undef SUPPORT_UTF8 */
 
 /* Define to enable provoking compile errors on write barrier violation. */
 /* #undef TESTING_WRITE_BARRIER */

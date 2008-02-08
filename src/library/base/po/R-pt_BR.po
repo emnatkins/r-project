@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-12-15 15:57\n"
+"POT-Creation-Date: 2008-02-06 06:53\n"
 "PO-Revision-Date: 2005-12-17 10:55-0200\n"
 "Last-Translator: Fernando Henrique Ferraz P. da Rosa <feferraz@ime.usp.br>\n"
 "Language-Team: Portuguese <ldp-br@bazar.conectiva.com.br>\n"
@@ -377,10 +377,6 @@ msgstr ""
 msgid "character string is not in a standard unambiguous format"
 msgstr "string de caracteres não é um formato padrão não ambíguo"
 
-#, fuzzy
-msgid "'origin' must be supplied"
-msgstr "'from' deve ser especificado"
-
 msgid "do not know how to convert '%s' to class \"Date\""
 msgstr "não sei como converter '%s' para classe \"Date\""
 
@@ -465,30 +461,32 @@ msgstr "não sei como converter '%s' para classe \"POSIXlt\""
 msgid "wrong class"
 msgstr "classe errada"
 
-#, fuzzy
-msgid "binary '+' is not defined for \"POSIXt\" objects"
+msgid "binary + is not defined for \"POSIXt\" objects"
 msgstr "+ binário não definido para objetos \"POSIXt\""
 
 msgid "Can only subtract from POSIXt objects"
 msgstr "Só é possível subtrair de objetos POSIXt"
 
-#, fuzzy
-msgid "unary '-' is not defined for \"POSIXt\" objects"
+msgid "unary - is not defined for \"POSIXt\" objects"
 msgstr "- unário não definido para objetos \"POSIXt\""
 
 msgid "can only subtract numbers from POSIXt objects"
 msgstr "só é possível subtrair números de objetos POSIXt"
 
-#, fuzzy
-msgid "unary '%s' not defined for \"POSIXt\" objects"
-msgstr "- unário não definido para objetos \"POSIXt\""
-
-#, fuzzy
-msgid "'%s' not defined for \"POSIXt\" objects"
+msgid "not defined for \"POSIXt\" objects"
 msgstr "não definido para objetos \"POSIXt\""
+
+msgid "not defined for POSIXt objects"
+msgstr "não definido para objetos POSIXt"
 
 msgid "'tzone' attributes are inconsistent"
 msgstr "atributos 'tzone' inconsistentes"
+
+msgid "not defined for \"POSIXct\" objects"
+msgstr "não definido para objetos \"POSIXct\""
+
+msgid "not defined for \"POSIXlt\" objects"
+msgstr "não definido para objetos \"POSIXlt\""
 
 #, fuzzy
 msgid "'tim' is not character or numeric"
@@ -501,12 +499,7 @@ msgstr ""
 msgid "invalid units specified"
 msgstr "especificação de 'quote' inválida"
 
-#, fuzzy
-msgid "unary '%s' not defined for \"difftime\" objects"
-msgstr "não definidos para objetos \"difftime\""
-
-#, fuzzy
-msgid "'%s' not defined for \"difftime\" objects"
+msgid "not defined for \"difftime\" objects"
 msgstr "não definidos para objetos \"difftime\""
 
 msgid "both arguments of * cannot be \"difftime\" objects"
@@ -631,18 +624,6 @@ msgstr "nenhum arquivo para onde fazer a vinculação"
 
 msgid "no files/directory to link to"
 msgstr "nenhum arquivo/diretório para onde fazer a vinculação"
-
-#, fuzzy
-msgid "'x' must be have length 1"
-msgstr "'input' deve ter comprimento 1"
-
-#, fuzzy
-msgid "invalid digits"
-msgstr "'digits' inválido"
-
-#, fuzzy
-msgid "'x' cannot be coerced to 'octmode'"
-msgstr "não é possível fazer coerção para tabela"
 
 msgid "'package' must be of length 1"
 msgstr "'package' deve ter comprimento 1"
@@ -1494,11 +1475,11 @@ msgstr "'cmd' não pôde ser executado"
 msgid "'cmd' execution failed with error code %d"
 msgstr "execução de 'cmd' falhou com erro código %d"
 
-msgid "cannot find name space environment"
-msgstr "não foi possível encontrar o ambiente de espaço de nomes"
-
 msgid "package '%s' has a non-function '.First.lib'"
 msgstr "pacote '%s' tem uma não funão '.FIrst.lib'"
+
+msgid "cannot find name space environment"
+msgstr "não foi possível encontrar o ambiente de espaço de nomes"
 
 msgid "deparse option %s is not recognized"
 msgid_plural "deparse options %s are not recognized"
@@ -1542,15 +1523,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Mensagem de aviso:\n"
 msgstr[1] "Mensagens de aviso:\n"
-
-#~ msgid "not defined for POSIXt objects"
-#~ msgstr "não definido para objetos POSIXt"
-
-#~ msgid "not defined for \"POSIXct\" objects"
-#~ msgstr "não definido para objetos \"POSIXct\""
-
-#~ msgid "not defined for \"POSIXlt\" objects"
-#~ msgstr "não definido para objetos \"POSIXlt\""
 
 #, fuzzy
 #~ msgid "'data' must exist"

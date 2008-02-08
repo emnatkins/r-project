@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-8 The R Development Core Team.
+ *  Copyright (C) 2001-5 The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -17,28 +17,24 @@
  *  http://www.r-project.org/Licenses/
  */
 
-/* Definitions for the base graphics system.
-   So should be private.
- */
+/* Definitions for the base graphics system. Only used in <Graphics.h> */
 
 #ifndef R_GRAPHICSBASE_H_
 #define R_GRAPHICSBASE_H_
 
 typedef struct {
-    GPar dp;		  /* current device default parameters: 
-			     those which will be used at the next GNewPage */
-    GPar gp;		  /* current device current parameters */
-    GPar dpSaved;	  /* saved device default parameters:
-			     graphics state at the time that the currently
-			     displayed plot was started, so we can replay
-			     the display list.
-			  */
-    Rboolean baseDevice;  /* Has the device received base output? */
+    GPar dp;		/* current device default parameters */
+    GPar gp;		/* current device current parameters */
+    GPar dpSaved;		/* saved device default parameters */
+    /*
+     * Has the device received base output?
+     */
+    Rboolean baseDevice;  
 } baseSystemState;
 
-void registerBase(void); /* used in devices.c */
-void unregisterBase(void); /* used in devices.c */
+void registerBase();
 
-void Rf_setBaseDevice(Rboolean val, pGEDevDesc dd); /* used in graphics.c */
+Rboolean Rf_baseDevice(DevDesc *dd);
+void Rf_setBaseDevice(Rboolean val, DevDesc *dd);
 
 #endif /* R_GRAPHICSBASE_ */

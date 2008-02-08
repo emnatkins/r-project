@@ -97,7 +97,7 @@ typedef struct {
 /* Local Function Definitions */
 
 static void advancerect(DEstruct, int);
-static void bell(void);
+static void bell();
 static void cleararea(DEstruct, int, int, int, int, rgb);
 static void clearrect(DEstruct);
 static void closerect(DEstruct);
@@ -110,11 +110,11 @@ static void downlightrect(DEstruct);
 static void drawwindow(DEstruct);
 static void drawcol(DEstruct, int);
 /* static void de_drawline(int, int, int, int);*/
-static void de_drawtext(DEstruct, int, int, const char *);
+static void de_drawtext(DEstruct, int, int, char *);
 static void drawrectangle(DEstruct, int, int, int, int, int, int);
 static void drawrow(DEstruct, int);
 static void find_coords(DEstruct, int, int, int*, int*);
-static void handlechar(DEstruct, const char *);
+static void handlechar(DEstruct, char*);
 static void highlightrect(DEstruct);
 static Rboolean initwin(DEstruct, const char *);
 static void jumppage(DEstruct, int);
@@ -122,7 +122,7 @@ static void jumpwin(DEstruct, int, int);
 static void de_popupmenu(DEstruct, int, int, int);
 static void printlabs(DEstruct);
 static void printrect(DEstruct, int, int);
-static void printstring(DEstruct, const char *, int, int, int, int);
+static void printstring(DEstruct, const char*, int, int, int, int);
 static void printelt(DEstruct, SEXP, int, int, int);
 static void setcellwidths(DEstruct);
 
@@ -135,21 +135,15 @@ static void de_delete(control c);
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h> /* for Sleep */
 
-int mb_char_len(const char *buf, int clength)
-{
-    int i, mb_len = 0;
-
-    for(i = 0; i <= clength; i += mb_len)
-	mb_len = mbrtowc(NULL, buf+i, MB_CUR_MAX, NULL);
-    return mb_len;
-}
+extern int mb_char_len(char *, int, wchar_t *); /* from console.c */
 
 static void moveback(DEstruct DE)
 {
     int mb_len;
+    wchar_t wc;
 
     if (DE->clength > 0) {
-	mb_len = mb_char_len(DE->buf, DE->clength-1);
+	mb_len = mb_char_len(DE->buf, DE->clength-1, &wc);
 	DE->clength -= mb_len;
 	DE->bufp -= mb_len;
 	printstring(DE, DE->buf, DE->clength, DE->crow, DE->ccol, 1);
@@ -883,7 +877,7 @@ static void clearrect(DEstruct DE)
 
 /* --- Not true! E.g. ESC ends up in here... */
 
-static void handlechar(DEstruct DE, const char *text)
+static void handlechar(DEstruct DE, char *text)
 {
     int c = text[0];
 
@@ -1003,7 +997,7 @@ static void drawrectangle(DEstruct DE,
 	      PS_JOIN_BEVEL, 10);
 }
 
-static void de_drawtext(DEstruct DE, int xpos, int ypos, const char *text)
+static void de_drawtext(DEstruct DE, int xpos, int ypos, char *text)
 {
     gdrawstr(DE->de, DE->p->f, DE->p->fg, pt(xpos, ypos), text);
 }
@@ -1668,7 +1662,7 @@ static void depopupact(control m)
 
 #define MCHECK(a) if (!(a)) {del(c);return NULL;}
 
-RECT *RgetMDIsize(void); /* in rui.c */
+RECT *RgetMDIsize(); /* in rui.c */
 
 static dataeditor newdataeditor(DEstruct DE, const char *title)
 {

@@ -204,14 +204,9 @@ static int SubassignTypeFix(SEXP *x, SEXP *y, int stretch, int level,
     Rboolean x_is_object = OBJECT(*x);
 
     switch (which) {
-    case 1000:	/* logical    <- null       */
-    case 1300:	/* integer    <- null       */
-    case 1400:	/* real	      <- null       */
-    case 1500:	/* complex    <- null       */
-    case 1606:	/* character  <- null       */
+
     case 1900:  /* vector     <- null       */
     case 2000:  /* expression <- null       */
-    case 2400:	/* raw        <- null       */
 
     case 1010:	/* logical    <- logical    */
     case 1310:	/* integer    <- logical    */
@@ -451,10 +446,6 @@ static SEXP VectorAssign(SEXP call, SEXP x, SEXP s, SEXP y)
     /* accept elements from the RHS. */
     which = SubassignTypeFix(&x, &y, stretch, 1, call);
     /* = 100 * TYPEOF(x) + TYPEOF(y);*/
-    if (n == 0) {
-	UNPROTECT(2);
-	return x;
-    }
     ny = length(y);
     nx = length(x);
 
@@ -737,7 +728,6 @@ static SEXP MatrixAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 	error(_("number of items to replace is not a multiple of replacement length"));
 
     which = SubassignTypeFix(&x, &y, 0, 1, call);
-    if (n == 0) return x;
 
     PROTECT(x);
 
@@ -1020,7 +1010,7 @@ static SEXP ArrayAssign(SEXP call, SEXP x, SEXP s, SEXP y)
 
     which = SubassignTypeFix(&x, &y, 0, 1, call);/* = 100 * TYPEOF(x) + TYPEOF(y);*/
 
-    if (n == 0) {
+    if (ny == 0) {
 	UNPROTECT(1);
 	return(x);
     }
@@ -1308,7 +1298,7 @@ SEXP attribute_hidden do_subassign_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* duplicate it so that only the local version is mutated. */
     /* This will duplicate more often than necessary, but saves */
     /* over always duplicating. */
-    /* Shouldn't x be protected?  It is (as args is)! */
+    /* FIXME: shouldn't x be protected?  It is (as args is)! */
 
     if (NAMED(CAR(args)) == 2)
 	x = SETCAR(args, duplicate(CAR(args)));

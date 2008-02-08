@@ -54,7 +54,7 @@ static object get_printer_base(void)
     return printer_base;
 }
 
-static HDC chooseprinter(void)
+static HDC chooseprinter()
 {
     PRINTDLG pd;
     HDC dc;

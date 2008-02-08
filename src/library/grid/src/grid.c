@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 2001-3 Paul Murrell
- *                2003-8 The R Development Core Team
+ *                2003-7 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@
 #include "grid.h"
 #include <math.h>
 #include <float.h>
-#include <string.h>
 
 /* NOTE:
  * The extensive use of L or L_ prefixes dates back to when this 
@@ -207,10 +206,7 @@ SEXP doSetViewport(SEXP vp,
      */
     else if (viewportClip(vp)) {
 	double rotationAngle = REAL(viewportRotation(vp))[0];
-	if (rotationAngle != 0 &&
-            rotationAngle != 90 &&
-            rotationAngle != 270 &&
-            rotationAngle != 360)
+	if (rotationAngle != 0)
 	    warning(_("Cannot clip to rotated viewport"));
 	else {
 	    /* Calculate a clipping region and set it
@@ -935,7 +931,7 @@ SEXP L_newpagerecording()
 {
     GEDevDesc *dd = getDevice();
     if (LOGICAL(gridStateElement(dd, GSS_ASK))[0]) {
-	NewFrameConfirm(dd->dev);
+	NewFrameConfirm();
 	/*
 	 * User may have killed device during pause for prompt
 	 */
@@ -2821,8 +2817,7 @@ static SEXP gridText(SEXP label, SEXP x, SEXP y, SEXP hjust, SEXP vjust,
 				   &gc, dd);
 		    else
 			GEText(xx[i], yy[i], 
-			       CHAR(STRING_ELT(txt, i % LENGTH(txt))), 
-			       getCharEnc(STRING_ELT(txt, i % LENGTH(txt))),
+			       translateChar(STRING_ELT(txt, i % LENGTH(txt))), 
 			       REAL(hjust)[i % LENGTH(hjust)], 
 			       REAL(vjust)[i % LENGTH(vjust)], 
 			       numeric(rot, i % LENGTH(rot)) + 
@@ -2982,7 +2977,7 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
 	    /* FIXME:  The symbols will not respond to viewport
 	     * rotations !!!
 	     */
-	    int ipch = NA_INTEGER /* -Wall */;
+	    int ipch;
 	    gcontextFromgpar(currentgp, i, &gc, dd);
 	    symbolSize = transformWidthtoINCHES(size, i, vpc, &gc,
 						vpWidthCM, vpHeightCM, dd);
@@ -2991,17 +2986,15 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
 	    symbolSize = toDeviceWidth(symbolSize, GE_INCHES, dd);
 	    if (R_FINITE(symbolSize)) {
 	        if (isString(pch)) {
-		    ipch = GEstring_to_pch(STRING_ELT(pch, i % npch));
-		} else if (isInteger(pch)) {
+		    ipch = CHAR(STRING_ELT(pch, i % npch))[0];
+		    /*
+		     * special case for pch = "."
+		     */
+		    if (ipch == 46) 
+		      symbolSize = gpCex(currentgp, i);
+		} else {
 		    ipch = INTEGER(pch)[i % npch];
-		} else if (isReal(pch)) {
-		    ipch = R_FINITE(REAL(pch)[i % npch]) ? 
-			REAL(pch)[i % npch] : NA_INTEGER;
-		} else error(_("invalid plotting symbol"));
-		/*
-		 * special case for pch = "."
-		 */
-		if (ipch == 46) symbolSize = gpCex(currentgp, i);
+		}
 	        GESymbol(xx[i], yy[i], ipch, symbolSize, &gc, dd);
 	    }
 	}

@@ -146,9 +146,6 @@ scan(file = "", what = double(0), nmax = -1, n = -1, sep = "",
     latter, specify the encoding as part of the connection \code{con} or
     via \code{\link{options}(encoding=)}: see the example under
     \code{\link{file}}.
-#ifdef windows
-    See also \sQuote{Details}.
-#endif
   }
 }
 \details{
@@ -198,13 +195,6 @@ scan(file = "", what = double(0), nmax = -1, n = -1, sep = "",
 
   There is a check for a user interrupt every 1000 lines if \code{what}
   is a list, otherwise every 10000 items.
-#ifdef windows
-
-  If \code{con} is a non-already-open \link{connection} with a non-default
-  \code{encoding} argument, the text is converted to UTF-8 and declared
-  as such (and the encoding argument to \code{scan} is ignored).
-  See the examples of \code{\link{readLines}}.
-#endif
 }
 \value{
   if \code{what} is a list, a list of the same length and same names (as

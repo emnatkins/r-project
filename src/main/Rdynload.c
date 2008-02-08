@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995-1996 Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997-2008 The R Development Core Team
+ *  Copyright (C) 1997-2006 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,9 +18,7 @@
  *  http://www.r-project.org/Licenses/
  */
 
-/* <UTF8> char here is handled as a whole string, but
-   use of translateChar assumes that strings are native.
- */
+/* <UTF8> char here is handled as a whole string */
 
 /*
   This is an effort to merge the 3 different dynload.c files in the
@@ -459,7 +457,7 @@ R_callDLLUnload(DllInfo *dllInfo)
 	/* Returns 1 if the DLL was found and removed from */
 	/* the list and returns 0 otherwise. */
 
-static int DeleteDLL(const char *path)
+static int DeleteDLL(char *path)
 {
     int   i, loc;
 
@@ -528,8 +526,7 @@ static char DLLerror[DLLerrBUFSIZE] = "";
 	/* or if dlopen fails for some reason. */
 
 
-static DllInfo* AddDLL(const char *path, int asLocal, int now,
-		       const char *DLLsearchpath)
+static DllInfo* AddDLL(char *path, int asLocal, int now)
 {
     HINSTANCE handle;
     DllInfo *info = NULL;
@@ -540,7 +537,7 @@ static DllInfo* AddDLL(const char *path, int asLocal, int now,
 	return NULL;
     }
 
-    handle = R_osDynSymbol->loadLibrary(path, asLocal, now, DLLsearchpath);
+    handle = R_osDynSymbol->loadLibrary(path, asLocal, now);
 
     if(handle == NULL) {
         R_osDynSymbol->getError(DLLerror, DLLerrBUFSIZE);
@@ -895,8 +892,7 @@ SEXP attribute_hidden do_dynload(SEXP call, SEXP op, SEXP args, SEXP env)
 	error(_("character argument expected"));
     GetFullDLLPath(call, buf, translateChar(STRING_ELT(CAR(args), 0)));
     /* AddDLL does this DeleteDLL(buf); */
-    info = AddDLL(buf, LOGICAL(CADR(args))[0], LOGICAL(CADDR(args))[0],
-		  translateChar(STRING_ELT(CADDDR(args), 0)));
+    info = AddDLL(buf, LOGICAL(CADR(args))[0], LOGICAL(CADDR(args))[0]);
     if(!info)
 	error(_("unable to load shared library '%s':\n  %s"), buf, DLLerror);
     return(Rf_MakeDLLInfo(info));
@@ -929,7 +925,7 @@ int R_moduleCdynload(const char *module, int local, int now)
     snprintf(dllpath, PATH_MAX, "%s%smodules%s%s%s", p, FILESEP, FILESEP,
             module, SHLIB_EXT);
 #endif
-    res = AddDLL(dllpath, local, now, "");
+    res = AddDLL(dllpath, local, now);
     if(!res)
 	warning(_("unable to load shared library '%s':\n  %s"),
 		dllpath, DLLerror);

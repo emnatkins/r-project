@@ -43,14 +43,13 @@ double gpLineHeight(SEXP gp, int i) {
     return REAL(lineheight)[i % LENGTH(lineheight)];
 }
 
-/* grid has no concept of 'colour 0' (bg in base) */
 int gpCol(SEXP gp, int i) {
     SEXP col = VECTOR_ELT(gp, GP_COL);
     int result;
     if (isNull(col))
 	result = R_TRANWHITE;
     else
-	result = RGBpar3(col, i % LENGTH(col), R_TRANWHITE);
+	result = RGBpar(col, i % LENGTH(col));
     return result;
 }
 
@@ -64,7 +63,7 @@ int gpFill(SEXP gp, int i) {
     if (isNull(fill))
 	result = R_TRANWHITE;
     else
-	result = RGBpar3(fill, i % LENGTH(fill), R_TRANWHITE);
+	result = RGBpar(fill, i % LENGTH(fill));
     return result;
 }
 
@@ -83,7 +82,7 @@ SEXP gpLineTypeSXP(SEXP gp) {
 
 int gpLineType(SEXP gp, int i) {
     SEXP linetype = gpLineTypeSXP(gp);
-    return GE_LTYpar(linetype, i % LENGTH(linetype));
+    return LTYpar(linetype, i % LENGTH(linetype));
 }
 
 SEXP gpLineWidthSXP(SEXP gp) {
@@ -137,7 +136,7 @@ SEXP gpLineEndSXP(SEXP gp) {
 
 R_GE_lineend gpLineEnd(SEXP gp, int i) {
     SEXP lineend = gpLineEndSXP(gp);
-    return GE_LENDpar(lineend, i % LENGTH(lineend));
+    return LENDpar(lineend, i % LENGTH(lineend));
 }
 
 SEXP gpLineJoinSXP(SEXP gp) {
@@ -146,7 +145,7 @@ SEXP gpLineJoinSXP(SEXP gp) {
 
 R_GE_linejoin gpLineJoin(SEXP gp, int i) {
     SEXP linejoin = gpLineJoinSXP(gp);
-    return GE_LJOINpar(linejoin, i % LENGTH(linejoin));
+    return LJOINpar(linejoin, i % LENGTH(linejoin));
 }
 
 SEXP gpLineMitreSXP(SEXP gp) {
@@ -269,7 +268,7 @@ SEXP L_setGPsaved(SEXP gpars)
 
 void initGPar(GEDevDesc *dd)
 {
-    pDevDesc dev = dd->dev;
+    NewDevDesc *dev = dd->dev;
     SEXP gpar, gparnames, class;
     SEXP gpfill, gpcol, gpgamma, gplty, gplwd, gpcex, gpfs, gplh, gpfont;
     SEXP gpfontfamily, gpalpha, gplineend, gplinejoin, gplinemitre, gplex;
@@ -301,7 +300,7 @@ void initGPar(GEDevDesc *dd)
     PROTECT(gpgamma = allocVector(REALSXP, 1));
     REAL(gpgamma)[0] = dev->startgamma;
     SET_VECTOR_ELT(gpar, GP_GAMMA, gpgamma);
-    PROTECT(gplty = GE_LTYget(dev->startlty));
+    PROTECT(gplty = LTYget(dev->startlty));
     SET_VECTOR_ELT(gpar, GP_LTY, gplty);
     PROTECT(gplwd = allocVector(REALSXP, 1));
     REAL(gplwd)[0] = 1;

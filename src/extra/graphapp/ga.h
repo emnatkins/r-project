@@ -3,7 +3,7 @@
  *  R : A Computer Language for Statistical Data Analysis
  *  file ga.h
  *  Copyright (C) 1998--1999  Guido Masarotto
- *  Copyright (C) 2004--2008   The R Foundation
+ *  Copyright (C) 2004--2007   The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ void 	gabeep(void);
 /* windows.c */
 #define Border      	0x10100000L
 void	app_cleanup(void);
-int 	ismdi(void);
+int 	ismdi();
 int	isiconic(window w);
 rect 	screen_coords(control c);
 
@@ -56,9 +56,9 @@ typedef struct {
 #define ENDSUBMENU {"#ENDSUBMENU", 0, 0}
 #define MDIMENU {"#MDIMENU", 0, 0}
 #define LASTMENUITEM {0, 0, 0}
-menu 	newmdimenu(void);
+menu 	newmdimenu();
 typedef menu popup;
-popup 	newpopup(actionfn fn);
+popup 	newpopup();
 menubar gmenubar(actionfn fn, MenuItem []);
 popup 	gpopup(actionfn fn, MenuItem []);
 void 	gchangepopup(window w, popup p);
@@ -70,13 +70,13 @@ void 	gchangemenubar(menubar mb);
 int 	addtooltip(control c, const char *tp);
 
 /* status.c */
-int 	addstatusbar(void);
-int 	delstatusbar(void);
+int 	addstatusbar();
+int 	delstatusbar();
 void 	setstatus(const char *text);
 
 /* dialogs.c */
 void 	setuserfilter(const char *);
-void    askchangedir(void);
+void    askchangedir();
 char *	askcdstring(const char *question, const char *default_string);
 char *	askfilesavewithdir(const char *title, const char *default_name, 
 			   const char *dir);
@@ -90,14 +90,14 @@ rgb     nametorgb(const char *colourname);
 const char *  rgbtoname(rgb in);
 int     rgbtonum(rgb in);
 rgb     myGetSysColor(int);
-rgb 	dialog_bg(void);
+rgb 	dialog_bg();
 
 
 /* clipboard.c */
 void    copytoclipboard(drawing src);
 int     copystringtoclipboard(const char *str);
 int     getstringfromclipboard(char * str, int n);
-int     clipboardhastext(void);
+int     clipboardhastext();
 
 /* gimage.c */
 image  bitmaptoimage(bitmap bm);
@@ -105,7 +105,7 @@ image  bitmaptoimage(bitmap bm);
 /* printer.c  */
 typedef objptr printer;
 printer newprinter(double w,  double h, const char *name);
-void    nextpage(printer p);
+void    nextpage();
 
 /* metafile.c */
 typedef objptr metafile;
@@ -158,14 +158,14 @@ font  gnewfont(drawing d, const char *face, int style, int size, double rot);
 int   ghasfixedwidth(font f);
 field newfield_no_border(const char *text, rect r);
 
-int gdrawwcs(drawing d, font f, rgb c, point p, const wchar_t *s);
-int gwcswidth(drawing d, font f, const wchar_t *s);
-
+#ifdef SUPPORT_UTF8
+void gwdrawstr(drawing d, font f, rgb c, point p, const char *s, double hadj);
+int gwstrwidth(drawing d, font f, const char *s);
+#endif
 void gwcharmetric(drawing d, font f, int c, int *ascent, int *descent,
 		  int *width);
-void gwdrawstr1(drawing d, font f, rgb c, point p, const wchar_t *s, int cnt, 
-		double hadj);
-int   gstrwidth1(drawing d ,font f, const char *s, int enc);
+void gwdrawstr1(drawing d, font f, rgb c, point p, const char *s, double hadj);
+
 
 /* pixels */
 int   devicewidth(drawing dev);
@@ -192,7 +192,7 @@ void 	gsetcursor(drawing d, cursor c);
 control newtoolbar(int height);
 button  newtoolbutton(image img, rect r, actionfn fn);
 void 	scrolltext(textbox c, int lines);
-int 	ggetkeystate(void);
+int 	ggetkeystate();
 
 void 	scrollcaret(textbox c, int lines);
 void    gsetmodified(textbox c, int modified);
@@ -203,21 +203,21 @@ void getseltext(textbox c, char *text);
 void setlimittext(textbox t, long limit);
 long getlimittext(textbox t);
 void checklimittext(textbox t, long n);
-long getpastelength(void);
+long getpastelength();
 void textselectionex(control obj, long *start, long *end);
 void selecttextex(control obj, long start, long end);
 
 void finddialog(textbox t);
 void replacedialog(textbox t);
-int modeless_active(void);
+int modeless_active();
 
 
 /* menus.c */
 void 	remove_menu_item(menuitem obj);
 
 /* events.c */
-void toolbar_show(void);
-void toolbar_hide(void);
+void toolbar_show();
+void toolbar_hide();
 
 #endif /* __GA__VERSION */
 

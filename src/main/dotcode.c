@@ -1511,14 +1511,13 @@ SEXP attribute_hidden do_dotcall(SEXP call, SEXP op, SEXP args, SEXP env)
     return retval;
 }
 
-/*  Call dynamically loaded "internal" graphics functions
-    .External.graphics (unused) and  .Call.graphics (used in grid).
-*/
+/*  Call dynamically loaded "internal" graphics functions */
+/*  .External.gr  and  .Call.gr */
 
 SEXP attribute_hidden do_Externalgr(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP retval;
-    pGEDevDesc dd = GEcurrentDevice();
+    GEDevDesc *dd = GEcurrentDevice();
     Rboolean record = dd->recordGraphics;
     dd->recordGraphics = FALSE;
     PROTECT(retval = do_External(call, op, args, env));
@@ -1540,7 +1539,7 @@ SEXP attribute_hidden do_Externalgr(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP attribute_hidden do_dotcallgr(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP retval;
-    pGEDevDesc dd = GEcurrentDevice();
+    GEDevDesc *dd = GEcurrentDevice();
     Rboolean record = dd->recordGraphics;
     dd->recordGraphics = FALSE;
     PROTECT(retval = do_dotcall(call, op, args, env));
@@ -1560,7 +1559,7 @@ SEXP attribute_hidden do_dotcallgr(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 static SEXP
-Rf_getCallingDLL(void)
+Rf_getCallingDLL()
 {
     SEXP e, ans;
     RCNTXT *cptr;

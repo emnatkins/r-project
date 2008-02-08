@@ -135,7 +135,7 @@ plot.table <-
 
 plot.formula <-
 function(formula, data = parent.frame(), ..., subset,
-         ylab = varnames[response], ask = dev.interactive())
+         ylab = varnames[response], ask = TRUE)
 {
     enquote <- function(x) as.call(list(as.name("quote"), x))
 

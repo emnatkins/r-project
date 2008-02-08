@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2004-8   The R Development Core Team.
+ *  Copyright (C) 2004-5   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 
 #include <Rinternals.h>
 #include <R_ext/Boolean.h>
-#include <R_ext/GraphicsEngine.h> /* for NewDevDesc */
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -46,13 +45,13 @@ SEXP Quartz(SEXP);
 SEXP R_GD_nullDevice();
 
 Rboolean
-PSDeviceDriver(pDevDesc, const char*, const char*, const char*,
+PSDeviceDriver(NewDevDesc*, const char*, const char*, const char*,
 	       const char**, const char*, const char*, const char*,
 	       double, double, Rboolean, double, Rboolean, Rboolean,
 	       Rboolean, const char*, const char*, SEXP, const char*);
 
 Rboolean
-PDFDeviceDriver(pDevDesc, const char *, const char *, const char *,
+PDFDeviceDriver(NewDevDesc*, const char *, const char *, const char *,
 		const char**, const char *, const char *, const char *,
 		double, double, double, int, int, const char*, SEXP, int, int);
 

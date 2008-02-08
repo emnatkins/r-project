@@ -148,8 +148,8 @@ A package consists of a subdirectory containing a file
 @file{src}, and @file{tests} (some of which can be missing).  The
 package subdirectory may also contain files @file{INDEX},
 @file{NAMESPACE}, @file{configure}, @file{cleanup}, @file{LICENSE},
-@file{LICENCE}, @file{COPYING} and @file{NEWS}.  Other files such as
-@file{README} or @file{ChangeLog} will be ignored by @R{}, but may be
+@file{LICENCE}, and @file{COPYING}.  Other files such as @file{README},
+@file{NEWS} or @file{ChangeLog} will be ignored by @R{}, but may be
 useful to end-users.
 
 The @file{DESCRIPTION} and @file{INDEX} files are described in the
@@ -272,7 +272,7 @@ One of the ``standard'' short specifications
 @example
 GPL-2 GPL-3 LGPL-2 LGPL-2.1 LGPL-3 AGPL-3 Artistic-1.0 Artistic-2.0
 @end example
-as made available via @uref{http://@/www.r-project.org/@/Licenses/} and
+as made available via @url{http://@/www.r-project.org/@/Licenses/} and
 contained in subdirectory @file{share/licenses} of the R source or home
 directory.
 @item
@@ -287,9 +287,9 @@ non-negative integers separated by @samp{.}), possibly combined via
 @samp{,} (see below for an example).  For versioned licenses, one can
 also specify the name followed by the version, or combine an existing
 abbreviation and the version with a @samp{-}.  Further free (see
-@uref{http://@/www.fsf.org/@/licenses/@/license-list.html}) or open
+@url{http://@/www.fsf.org/@/licenses/@/license-list.html}) or open
 software (see
-@uref{http://@/www.opensource.org/@/licenses/@/bsd-license.php}) licenses
+@url{http://@/www.opensource.org/@/licenses/@/bsd-license.php}) licenses
 will be added to this data base if necessary.
 @item
 One of the strings @samp{file LICENSE} or @samp{file LICENCE} referring
@@ -442,12 +442,10 @@ If the @file{DESCRIPTION} file is not entirely in @acronym{ASCII} it
 should contain an @samp{Encoding} field specifying an encoding.  This
 is currently used as the encoding of the @file{DESCRIPTION} file
 itself and of the @file{R} and @file{NAMESPACE} files, and is taken as
-the default encoding of @file{.Rd} files as from @R{} 2.6.0.  As from
-@R{} 2.7.0, the examples are assumed to be in this encoding when
-running @command{R CMD check}.  Only encoding names @code{latin1},
-@code{latin2} and @code{UTF-8} are known to be portable.  (Do not
-specify an encoding unless one is actually needed: doing so makes the
-package @emph{less} portable.)
+the default encoding of @file{.Rd} files as from @R{} 2.6.0.  Only
+encoding names @code{latin1}, @code{latin2} and @code{UTF-8} are known
+to be portable.  (Do not specify an encoding unless one is actually
+needed: doing so makes the package @emph{less} portable.)
 
 
 The optional @samp{Type} field specifies the type of the package:
@@ -633,18 +631,14 @@ interfere with those used by @R{} (currently, @file{R}, @file{data},
 @file{html}, @file{latex}, @file{R-ex}, @file{chtml}, and @file{Meta}).
 The copying of the @file{inst} happens after @file{src} is built so its
 @file{Makefile} can create files to be installed.  Note that with the
-exceptions of @file{INDEX}, @file{LICENSE}/@file{LICENCE},
-@file{COPYING} and @file{NEWS} (from @R{} 2.7.0), information files at
-the top level of the package will @emph{not} be installed and so not be
-known to users of Windows and MacOS X compiled packages (and not seen by
-those who use @command{R CMD INSTALL} or @command{install.packages} on
-the tarball).  So any information files you wish an end user to see
-should be included in @file{inst}.  One thing you might like to add to
-@file{inst} is a @file{CITATION} file for use by the @code{citation}
-function.  Note that if the named exceptions also occur in @file{inst},
-the version in @file{inst} will be that seen in the installed package.
-If you want @file{NEWS} to be installed by your package in earlier
-versions of @R{}, you need to include it in @file{inst}.
+exceptions of @file{INDEX}, @file{LICENSE}/@file{LICENCE} and
+@file{COPYING}, information files at the top level of the package will
+@emph{not} be installed and so not be known to users of Windows and
+MacOS X compiled packages (and not seen by those who use @command{R CMD
+INSTALL} or @command{install.packages} on the tarball).  So any
+information files you wish an end user to see should be included in
+@file{inst}.  One thing you might like to add to @file{inst} is a
+@file{CITATION} file for use by the @code{citation} function.
 
 Subdirectory @file{tests} is for additional package-specific test code,
 similar to the specific tests that come with the @R{} distribution.
@@ -1308,10 +1302,11 @@ intention were to always use a @code{PACKAGE} argument)
 
 @item
 The Rd files are checked for correct syntax and meta data, including the
-presence of the mandatory (@code{\name}, @code{\alias}, @code{\title}
-and @code{\description}) fields.  The Rd name and title are checked for
-being non-empty, and the keywords found are compared to the standard
-ones.  There is a check for missing cross-references (links).
+presence of the mandatory (@code{\name}, @code{\alias}, @code{\title},
+@code{\description} and @code{\keyword}) fields.  The Rd name and title
+are checked for being non-empty, and the keywords found are compared to
+the standard ones.  There is a check for missing cross-references
+(links).
 
 @item
 A check is made for missing documentation entries, such as undocumented
@@ -1619,7 +1614,7 @@ When all the testing is done, upload the @file{.tar.gz} file, using
 @samp{anonymous} as log-in name and your e-mail address as password, to
 
 @example
-@uref{ftp://cran.R-project.org/incoming/}
+@url{ftp://cran.R-project.org/incoming/}
 @end example
 
 @noindent
@@ -2025,7 +2020,7 @@ space.
 
 More information about this symbol lookup, along with some approaches
 for customizing it, is available from
-@uref{http://www.omegahat.org/examples/RDotCall}.
+@url{http://www.omegahat.org/examples/RDotCall}.
 
 @node An example, Summary -- converting an existing package, Load hooks, Package name spaces
 @subsection An example
@@ -2254,7 +2249,7 @@ example @R{} is still used on platforms where the C compiler does not
 accept C++/C99 comments (starting @code{//}).
 
 If you use FORTRAN, @code{ftnchek}
-(@uref{http://www.dsm.fordham.edu/~ftnchek/}) provides thorough testing
+(@url{http://www.dsm.fordham.edu/~ftnchek/}) provides thorough testing
 of conformance to the standard.
 
 @item
@@ -2323,10 +2318,6 @@ Chinese) and ASCII.  Other characters may not be rendered at all,
 rendered incorrectly, or cause your @R{} code to give an error.
 For documentation, marking the encoding and including ASCII
 transliterations is likely to do a reasonable job.
-
-Function @code{showNonASCII} in package @pkg{tools} can help in
-finding non-ASCII bytes in files.
-
 
 The most favourable circumstance is using UTF-8-encoded text in a
 package that will only ever be used in a UTF-8 locale (and hence not on
@@ -2493,7 +2484,7 @@ The procedures make use of @code{msgfmt} and @code{xgettext} which are
 part of @acronym{GNU} @code{gettext} and this will need to be installed:
 Windows users can find pre-compiled binaries at the @acronym{GNU}
 archive mirrors and packaged with the @code{poEdit} package
-(@uref{http://@/poedit.sourceforge.net/@/download.php#win32}).
+(@url{http://@/poedit.sourceforge.net/@/download.php#win32}).
 
 
 @menu
@@ -2658,12 +2649,12 @@ Several members of the @R{} project have set up services to assist those
 writing @R{} packages, particularly those intended for public
 distribution.
 
-@uref{http://win-builder.r-project.org, win-builder.r-project.org} offers
+@url{http://win-builder.r-project.org, win-builder.r-project.org} offers
 the automated preparation of Windows binaries from well-tested source
 packages. 
 
-R-Forge (@uref{http://R-Forge.r-project.org, R-Forge.r-project.org}) and
-RForge (@uref{http://www.rforge.net, www.rforge.net}) are similar
+R-Forge (@url{http://R-Forge.r-project.org, R-Forge.r-project.org}) and
+RForge (@url{http://www.rforge.net, www.rforge.net}) are similar
 services with similar names.  Both provide source-code management
 through SVN, daily building and checking, mailing lists and a repository
 that can be accessed @emph{via} @code{install.packages}.  Package
@@ -2755,7 +2746,7 @@ function's arguments and return value, as in the above example).
 Finally, there is a footer with keyword information.  The header and
 footer are mandatory.
 
-See the @uref{http://developer.r-project.org/Rds.html, ``Guidelines for Rd
+See the @url{http://developer.r-project.org/Rds.html, ``Guidelines for Rd
 files''} for guidelines for writing documentation in Rd format which
 should be useful for package writers.
 
@@ -3004,14 +2995,13 @@ text}, and @ref{Cross-references}).
 Examples of how to use the function.  These are set as formatted in
 typewriter font: see @ref{Insertions} for when characters need to be
 escaped.  (Markup @code{\link} and @code{\var} will be interpreted, but
-no other.)  Code in this section is run by @code{example()} unless
-marked otherswise (see below).
+no other.)
 
 Examples are not only useful for documentation purposes, but also
 provide test code used for diagnostic checking of @R{}.  By default,
 text inside @code{\examples@{@}} will be displayed in the output of the
-help page and run by @code{example()} and by @code{R CMD check}.  You
-can use @code{\dontrun@{@}}
+help page and run by @code{R CMD check}.  You can use
+@code{\dontrun@{@}}
 @findex \dontrun
 for commands that should only be shown, but not run, and
 @code{\dontshow@{@}}
@@ -3041,20 +3031,15 @@ number generation (for example, @code{x <- rnorm(100)}), or by using
 standard data sets listed by @code{data()} (see @code{?data} for more
 info).
 
-Finally, there is @code{\donttest}, used to mark code that should be run
-by @code{examples()} but not by @code{R CMD check}.  This should be
-needed only occasionally but can be used for code which might fail, for
-example in some locales.
-
 @findex \keyword
 @item \keyword@{@var{key}@}
 Each @code{\keyword} entry should specify one of the standard keywords
 as listed in file @file{KEYWORDS} in the R documentation directory
 (default @file{@var{R_HOME}/doc}).  Use e.g.@:
 @code{file.show(file.path(R.home("doc"), "KEYWORDS"))} to inspect the
-standard keywords from within R.  There can be more than @code{\keyword}
-entry if the @R{} object being documented falls into more than one
-category.
+standard keywords from within R.  There must be at least one
+@code{\keyword} entry, but can be more than one if the @R{} object being
+documented falls into more than one category.
 
 The special keyword @samp{internal} marks a page of internal objects
 that are not part of the packages' API. If the help page for object
@@ -3650,12 +3635,11 @@ in Latin-1 (ISO-8859-1)) and to add comments to the text and examples
 conversions.  It is also used to indicate to @LaTeX{} how to process
 the file (see below).
 
-Wherever possible, avoid non-@acronym{ASCII} chars in Rd files, and
-even symbols such as @samp{<}, @samp{>}, @samp{$}, @samp{^}, @samp{&},
+Wherever possible, avoid non-@acronym{ASCII} chars in Rd files, and even
+symbols such as @samp{<}, @samp{>}, @samp{$}, @samp{^}, @samp{&},
 @samp{|}, @samp{@@}, @samp{~}, and @samp{*} outside verbatim
 environments (since they may disappear in fonts designed to render
-text).  (Function @code{showNonASCII} in package @pkg{tools} can help
-in finding non-ASCII bytes in the files.)
+text).
 
 For convenience, encoding names @samp{latin1} and @samp{latin2} are
 always recognized: these and @samp{UTF-8} are likely to work fairly
@@ -4125,7 +4109,7 @@ profile DLLs on Windows.
 @subsection Linux
 
 Options include using @command{sprof} for a shared object, and
-@command{oprofile} (see @uref{http://oprofile.sourceforge.net/}) for any
+@command{oprofile} (see @url{http://oprofile.sourceforge.net/}) for any
 executable or shared object.
 
 @subsubsection sprof
@@ -4215,8 +4199,8 @@ collects information from shared libraries compiled with @option{-pg}.
 
 Developers have recommended @command{sample} (or @command{Sampler.app},
 which is a GUI version) and @command{Shark} (see
-@uref{http://developer.apple.com/tools/sharkoptimize.html} and
-@uref{http://developer.apple.com/tools/shark_optimize.html}).
+@url{http://developer.apple.com/tools/sharkoptimize.html} and
+@url{http://developer.apple.com/tools/shark_optimize.html}).
 
 
 @node Debugging, System and foreign language interfaces, Tidying and profiling R code, Top
@@ -4226,9 +4210,9 @@ This chapter covers the debugging of @R{} extensions, starting with the
 ways to get useful error information and moving on to how to deal with
 errors that crash @R{}.  For those who prefer other styles there are
 contributed packages such as @pkg{debug} on CRAN (described in an
-article in @uref{http://cran.r-project.org/doc/Rnews/Rnews_2003-3.pdf,
+article in @url{http://cran.r-project.org/doc/Rnews/Rnews_2003-3.pdf,
 R-News 3/3}).  (There are notes from 2002 provided by Roger Peng at
-@uref{http://www.biostat.jhsph.edu/~rpeng/docs/R-debug-tools.pdf} which
+@url{http://www.biostat.jhsph.edu/~rpeng/docs/R-debug-tools.pdf} which
 provide complementary examples to those given here.)
 
 @menu
@@ -4682,7 +4666,7 @@ It is possible to run all the examples, tests and vignettes covered by
 
 If you have access to Linux on an @code{ix86}, @code{x86_64} or
 @code{ppc32} platform you can use @code{valgrind}
-(@uref{http://www.valgrind.org/}, pronounced to rhyme with `tinned') to
+(@url{http://www.valgrind.org/}, pronounced to rhyme with `tinned') to
 check for possible problems.  To run some examples under @code{valgrind}
 use something like
 
@@ -5467,7 +5451,7 @@ brief, high-level introduction in @emph{R News} (volume 1/3, September
 @c Additionally, there are (experimental) tools that can be used to
 @c automate the generation of the code to register the routines for a
 @c collection of C files. See the @code{GccTranslationUnit} module on the
-@c Omegahat Web site at @uref{http://www.omegahat.org/GccTranslationUnit/}
+@c Omegahat Web site at @url{http://www.omegahat.org/GccTranslationUnit/}
 @c for more information.
 
 In addition to registering C routines to be called by @R{}, it can at
@@ -5624,7 +5608,7 @@ work, but @file{Makevars.win} will be used in preference to
 @code{R CMD INSTALL} with @file{src/Makefile} being ignored.  For
 details of building DLLs with a variety of compilers, see file
 @samp{README.packages} and
-@uref{http://@/www.stats.uwo.ca/@/faculty/@/murdoch/@/software/@/compilingDLLs/}
+@url{http://@/www.stats.uwo.ca/@/faculty/@/murdoch/@/software/@/compilingDLLs/}
 .
 
 Under Windows you can supply an exports file called
@@ -7509,7 +7493,7 @@ void R_RunWeakRefFinalizer(SEXP w);
 @end example
 
 A toy example of the use of weak references can be found at
-@uref{http://www.stat.uiowa.edu/~luke/R/references/weakfinex.html,
+@url{http://www.stat.uiowa.edu/~luke/R/references/weakfinex.html,
 @code{www.@/stat.@/uiowa.@/edu/@/~luke/@/R/references/@/weakfinex.html}},
 but that is used to add finalizers to external pointers which can now be
 done more directly.
@@ -7543,7 +7527,6 @@ provides a stricter test that the accessors have been used correctly.
 @section Character encoding issues
 
 @findex translateChar
-@findex translateCharUTF8
 As from @R{} 2.5.0 @code{CHARSXP}s can be marked as coming from a known
 encoding (Latin-1 or UTF-8).  This is mainly intended for human-readable
 output, and most packages can just treat such @code{CHARSXP}s as a
@@ -7554,17 +7537,6 @@ accessing the data in the @code{CHARSXP} by @code{translateChar} rather
 than by @code{CHAR}.  If re-encoding is needed this allocates memory
 with @code{R_alloc} which thus persists to the end of the
 @code{.Call}/@code{.External} call unless @code{vmaxset} is used.
-
-As from @R{} 2.7.0 there is a similar function @code{translateCharUTF8}
-which converts to UTF-8: this has the advatanage that a faithful
-translation is almost always possible (whereas only a few languages can
-be represented in the encoding of the current locale unless that is
-UTF-8).
-
-@R{} can be built without @code{iconv} (although this is very much
-discouraged) in which case these functions exist but do no translation:
-such a build of @R{} is in any case not suitable for handling non-ASCII
-data.
 
 @node The R API, Generic functions and methods, System and foreign language interfaces, Top
 @chapter The R @acronym{API}: entry points for C code
@@ -8823,7 +8795,7 @@ static R_INLINE int ind_2(int l, int j)
 
 Be aware that using inlining with functions in more than one compilation
 unit is almost impossible to do portably: see
-@uref{http://www.greenend.org.uk/rjk/2003/03/inline.html}.  All the @R{}
+@url{http://www.greenend.org.uk/rjk/2003/03/inline.html}.  All the @R{}
 configure code has checked is that  @code{R_INLINE} can be used in a
 single C file with the compiler used to build @R{}.  We recommend that
 packages making extensive use of inlining include their own configure code.
@@ -8943,9 +8915,9 @@ The following headers are included by @file{R.h}:
 @end quotation
 
 The graphics systems are exposed in headers @file{Rdevices.h} (for
-writing graphics devices), @file{Rgraphics.h},
-@file{R_ext/Graphics@{Base,Device,Engine@}.h} and
-@file{R_ext/QuartzDevice.h}.  Some entry points from the @pkg{stats}
+writing graphics devices), @file{Rgraphics.h} and
+@file{R_ext/Graphics@{Base,Device,Engine@}.h}.
+Some entry points from the @pkg{stats}
 package are in @file{R_ext/stats_package.h} (currently related to the
 internals of @samp{nls} and @samp{nlminb}).
 
@@ -9129,8 +9101,8 @@ mean a GUI or other application that has the ability to submit commands
 to @R{} and perhaps to receive results back (not necessarily in a text
 format).  There are other routes besides those described here, for
 example the package @pkg{Rserve} (from CRAN, see also
-@uref{http://www.rforge.net/Rserve/}) and connections to Java in
-@samp{SJava} (see @uref{http://www.omegahat.org/RSJava/} and @samp{JRI},
+@url{http://www.rforge.net/Rserve/}) and connections to Java in
+@samp{SJava} (see @url{http://www.omegahat.org/RSJava/} and @samp{JRI},
 part of the @pkg{rJava} package on CRAN).
 
 @menu
@@ -9146,9 +9118,7 @@ X this is a @emph{dynamic} library, and is the normal way to build @R{} on
 that platform.} if configured with @option{--enable-R-shlib}.  This
 shared library can be used to run @R{} from alternative front-end
 programs.  We will assume this has been done for the rest of this
-section.  In addition, from @R{} 2.7.0 it can be built as a static
-library if configured with @option{--enable-R-static-lib}, and this can
-be used in a very similar way.
+section.
 
 The command-line @R{} front-end, @file{@var{R_HOME}/bin/exec/R} is one
 such example, and the unbundled @acronym{GNOME} (see package
@@ -9273,18 +9243,18 @@ cleaned up when @R{} is shut down.
 change this.
 
 @menu
-* Compiling against the R library::  
+* Compiling against the R shared library::  
 * Setting R callbacks::         
 * Registering symbols::         
 * Meshing event loops::         
 * Threading issues::            
 @end menu
 
-@node Compiling against the R library, Setting R callbacks, Embedding R under Unix-alikes, Embedding R under Unix-alikes
-@subsection Compiling against the R library
+@node Compiling against the R shared library, Setting R callbacks, Embedding R under Unix-alikes, Embedding R under Unix-alikes
+@subsection Compiling against the R shared library
 
-Suitable flags to compile and link against the @R{} (shared or static)
-library can be found by
+Suitable flags to compile and link against the @R{} shared library
+can be found by
 
 @example
 R CMD config --cppflags
@@ -9292,23 +9262,16 @@ R CMD config --ldflags
 @end example
 
 If @R{} is installed, @code{pkg-config} is available and
-sub-architectures have not be used, alternatives for a shared @R{}
-library are
+sub-architectures have not be used, alternatives are
 
 @example
 pkg-config --cflags libR
 pkg-config --libs libR
 @end example
 
-@noindent
-and for a static @R{} library
 
-@example
-pkg-config --cflags libR
-pkg-config --libs --static libR
-@end example
 
-@node Setting R callbacks, Registering symbols, Compiling against the R library, Embedding R under Unix-alikes
+@node Setting R callbacks, Registering symbols, Compiling against the R shared library, Embedding R under Unix-alikes
 @subsection Setting R callbacks
 
 For Unix-alkes there is a public header file @file{Rinterface.h} that
@@ -9317,20 +9280,20 @@ documented way.  This defines pointers (if @code{R_INTERFACE_PTRS} is
 defined)
 
 @example
-extern void (*ptr_R_Suicide)(const char *);
-extern void (*ptr_R_ShowMessage)(const char *);
-extern int  (*ptr_R_ReadConsole)(const char *, unsigned char *, int, int);
-extern void (*ptr_R_WriteConsole)(const char *, int);
-extern void (*ptr_R_WriteConsoleEx)(const char *, int, int);
+extern void (*ptr_R_Suicide)(char *);
+extern void (*ptr_R_ShowMessage)(char *);
+extern int  (*ptr_R_ReadConsole)(char *, unsigned char *, int, int);
+extern void (*ptr_R_WriteConsole)(char *, int);
+extern void (*ptr_R_WriteConsoleEx)(char *, int, int);
 extern void (*ptr_R_ResetConsole)();
 extern void (*ptr_R_FlushConsole)();
 extern void (*ptr_R_ClearerrConsole)();
 extern void (*ptr_R_Busy)(int);
 extern void (*ptr_R_CleanUp)(SA_TYPE, int, int);
-extern int  (*ptr_R_ShowFiles)(int, const char **, const char **,
-                               const char *, Rboolean, const char *);
+extern int  (*ptr_R_ShowFiles)(int, char **, char **, char *,
+                               Rboolean, char *);
 extern int  (*ptr_R_ChooseFile)(int, char *, int);
-extern int  (*ptr_R_EditFile)(const char *);
+extern int  (*ptr_R_EditFile)(char *);
 extern void (*ptr_R_loadhistory)(SEXP, SEXP, SEXP, SEXP);
 extern void (*ptr_R_savehistory)(SEXP, SEXP, SEXP, SEXP);
 extern void (*ptr_R_addhistory)(SEXP, SEXP, SEXP, SEXP);
@@ -9351,10 +9314,10 @@ embarks on an extended computation (@code{@var{which}=1}) and when such
 a state terminates (@code{@var{which}=0}).
 @end deftypefun
 
-@deftypefun int R_ReadConsole (const char *@var{prompt}, unsigned char *@var{buf}, @
+@deftypefun int R_ReadConsole (char *@var{prompt}, unsigned char *@var{buf}, @
   int @var{buflen}, int @var{hist})
-@deftypefunx void R_WriteConsole (const char *@var{buf}, int @var{buflen})
-@deftypefunx void R_WriteConsoleEx (const char *@var{buf}, int @var{buflen}, int @var{otype})
+@deftypefunx void R_WriteConsole (char *@var{buf}, int @var{buflen})
+@deftypefunx void R_WriteConsoleEx (char *@var{buf}, int @var{buflen}, int @var{otype})
 @deftypefunx void R_ResetConsole ()
 @deftypefunx void R_FlushConsole ()
 @deftypefunx void R_ClearErrConsole ()
@@ -9388,9 +9351,9 @@ system console.  @code{R_ClearerrConsole} clears any errors associated
 with reading from the console.
 @end deftypefun
 
-@deftypefun int R_ShowFiles (int @var{nfile}, const char **@var{file}, @
-  const char **@var{headers}, const char *@var{wtitle}, Rboolean @var{del}, @
-  const char *@var{pager})
+@deftypefun int R_ShowFiles (int @var{nfile}, char **@var{file}, @
+  char **@var{headers}, char *@var{wtitle}, Rboolean @var{del}, @
+  char *@var{pager})
 
 This function is used to display the contents of files.
 @end deftypefun
@@ -9402,7 +9365,7 @@ Choose a file and return its name in @var{buf} of length @var{len}.
 Return value is 0 for success, > 0 otherwise.
 @end deftypefun
 
-@deftypefun int R_EditFile (const char *@var{buf})
+@deftypefun int R_EditFile (char *@var{buf})
 Send a file to an editor window.
 @end deftypefun
 
@@ -9439,12 +9402,12 @@ mechanism is present, as a user may be calling @code{timestamp} purely
 to write the time stamp to the console.
 @end deftypefun
 
-@deftypefun void R_Suicide (const char *@var{message})
+@deftypefun void R_Suicide (char *@var{message})
 This should abort @R{} as rapidly as possible, displaying the message.
 A possible implementation is
 
 @example
-void R_Suicide (const char *message)
+void R_Suicide (char *message)
 @{
     char  pp[1024];
     snprintf(pp, 1024, "Fatal error: %s\n", s);
@@ -9669,7 +9632,7 @@ currently available that interface directly with @R{} and provide a
 @item
 There is a (D)COM server called @code{StatConnector} written by Thomas
 Baier available on CRAN
-(@uref{http://@/cran.r-project.org/@/other-software.html}) which works
+(@url{http://@/cran.r-project.org/@/other-software.html}) which works
 with @file{Rproxy.dll} (in the @R{} distribution) and @file{R.dll} to
 support transfer of data to and from @R{} and remote execution of R
 commands, as well as embedding of an @R{} graphics window.  The @pkg{rcom}
@@ -9677,8 +9640,8 @@ package on CRAN provides a (D)COM server in a running @R{} session.
 
 @item
 Another (D)COM server, @code{RDCOMServer}, is available from
-@uref{http://www.omegahat.org/}. Its philosophy is discussed in
-@uref{http://www.omegahat.org/RDCOMServer/Docs/Paradigm.html} and is
+@url{http://www.omegahat.org/}. Its philosophy is discussed in
+@url{http://www.omegahat.org/RDCOMServer/Docs/Paradigm.html} and is
 very different from the purpose of this section.
 @end itemize
 @node Calling R.dll directly,  , Using (D)COM, Embedding R under Windows
@@ -9726,14 +9689,14 @@ whose code is
    frequently. See rterm.c and ../system.c for one approach using
    a separate thread for input.
 */
-int myReadConsole(const char *prompt, char *buf, int len, int addtohistory)
+int myReadConsole(char *prompt, char *buf, int len, int addtohistory)
 @{
     fputs(prompt, stdout);
     fflush(stdout);
     if(fgets(buf, len, stdin)) return 1; else return 0;
 @}
 
-void myWriteConsole(const char *buf, int len)
+void myWriteConsole(char *buf, int len)
 @{
     printf("%s", buf);
 @}

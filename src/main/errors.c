@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2008  The R Development Core Team.
+ *  Copyright (C) 1997--2007  The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,10 +18,7 @@
  *  http://www.r-project.org/Licenses/
  */
 
-/* <UTF8> char here is either ASCII or handled as a whole 
-   Domain names could be non-native, but the message translation
-   systen is native.
-*/
+/* <UTF8> char here is either ASCII or handled as a whole */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -38,6 +35,7 @@ extern void R_ProcessEvents(void);
 #include <Startup.h> /* rather cleanup ..*/
 #include <Rconnections.h>
 #include <Rinterface.h>
+#include <R_ext/GraphicsDevice.h>
 #include <R_ext/GraphicsEngine.h> /* for GEonExit */
 #include <Rmath.h> /* for imax2 */
 #if  !( defined(HAVE_AQUA) || defined(Win32) )
@@ -122,7 +120,9 @@ void R_CheckUserInterrupt(void)
 #if  ( defined(HAVE_AQUA) || defined(Win32) )
     R_ProcessEvents();
 #else
+
     R_PolledEvents();
+
     if (R_interrupts_pending)
 	onintr();
 #endif /* Win32 */
@@ -1279,7 +1279,7 @@ SEXP R_GetTraceback(int skip)
     UNPROTECT(1);
     return s;
 }
-
+\
 static char * R_ConciseTraceback(SEXP call, int skip)
 {
     static char buf[560];
@@ -1413,7 +1413,7 @@ SEXP attribute_hidden do_resetCondHands(SEXP call, SEXP op, SEXP args, SEXP rho)
     return R_NilValue;
 }
 
-static SEXP findSimpleErrorHandler(void)
+static SEXP findSimpleErrorHandler()
 {
     SEXP list;
     for (list = R_HandlerStack; list != R_NilValue; list = CDR(list)) {
@@ -1552,7 +1552,7 @@ SEXP attribute_hidden do_signalCondition(SEXP call, SEXP op, SEXP args, SEXP rho
     return R_NilValue;
 }
 
-static SEXP findInterruptHandler(void)
+static SEXP findInterruptHandler()
 {
     SEXP list;
     for (list = R_HandlerStack; list != R_NilValue; list = CDR(list)) {
@@ -1564,7 +1564,7 @@ static SEXP findInterruptHandler(void)
     return R_NilValue;
 }
 
-static SEXP getInterruptCondition(void)
+static SEXP getInterruptCondition()
 {
     /**** FIXME: should probably pre-allocate this */
     SEXP cond, klass;

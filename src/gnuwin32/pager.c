@@ -2,7 +2,7 @@
  *  R : A Computer Language for Statistical Data Analysis
  *  file pager.c
  *  Copyright (C) 1998--2002  Guido Masarotto and Brian Ripley
- *  Copyright (C) 2004-8      The R Foundation
+ *  Copyright (C) 2004	      The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,9 +40,6 @@
 #include "rui.h"
 #include <Startup.h> /* for UImode */
 
-#define CE_UTF8 1
-extern size_t Rf_utf8towcs(wchar_t *wc, const char *s, size_t n);
-
 extern UImode  CharacterMode;
 
 #define PAGERMAXKEPT 12
@@ -55,7 +52,7 @@ static xbuf pagerXbuf[PAGERMAXKEPT];
 static char pagerTitles[PAGERMAXKEPT][PAGERMAXTITLE+8];
 static menuitem pagerMenus[PAGERMAXKEPT];
 static int pagerRow[PAGERMAXKEPT];
-static void pagerupdateview(void);
+static void pagerupdateview();
 
 void menueditoropen(control m);
 void menueditornew(control m);
@@ -67,24 +64,16 @@ int pagerMultiple, haveusedapager;
    To be fixed: during creation, memory is allocated two times
    (faster for small files but a big waste otherwise)
 */
-static xbuf file2xbuf(const char *name, int enc, int del)
+static xbuf file2xbuf(char *name, int del)
 {
     HANDLE f;
     DWORD rr, vv;
-    char *p;
-    xlong dim, cnt;
+    char *q, *p;
+    xlong dim;
     xint  ms;
     xbuf  xb;
-    wchar_t *wp, *q;
-
-    if (enc == CE_UTF8) {
-	wchar_t wfn[MAX_PATH+1];
-	Rf_utf8towcs(wfn, name, MAX_PATH+1);
-	f = CreateFileW(wfn, GENERIC_READ, FILE_SHARE_READ,
-			NULL, OPEN_EXISTING, 0, NULL);	
-    } else
-	f = CreateFile(name, GENERIC_READ, FILE_SHARE_READ,
-		       NULL, OPEN_EXISTING, 0, NULL);
+    f = CreateFile(name, GENERIC_READ, FILE_SHARE_READ,
+		   NULL, OPEN_EXISTING, 0, NULL);
     if (f == INVALID_HANDLE_VALUE) {
 	R_ShowMessage(G_("Error opening file"));
 	return NULL;
@@ -100,10 +89,7 @@ static xbuf file2xbuf(const char *name, int enc, int del)
     CloseHandle(f);
     if (del) DeleteFile(name);
     p[rr] = '\0';
-    cnt = mbstowcs(NULL, p, 0);
-    wp = (wchar_t *) malloc((cnt+1) * sizeof(wchar_t));
-    mbstowcs(wp, p, cnt+1);
-    for (q = wp, ms = 1, dim = cnt; *q; q++) {
+    for (q = p, ms = 1, dim = rr; *q; q++) {
 	if (*q == '\t')
 	    dim += TABSIZE;
 	else if (*q == '\n') {
@@ -111,18 +97,17 @@ static xbuf file2xbuf(const char *name, int enc, int del)
 	    ms++;
         }
     }
-    free(p);
     if ((xb = newxbuf(dim + 1, ms + 1, 1)))
-	for (q = wp, ms = 0; *q; q++) {
-	    if (*q == L'\r') continue;
-	    if (*q == L'\n') {
+	for (q = p, ms = 0; *q; q++) {
+	    if (*q == '\r') continue;
+	    if (*q == '\n') {
 		ms++;
-		xbufaddxc(xb, *q);
+		xbufaddc(xb, *q);
 		/* next line interprets underlining in help files */
-		if (q[1] ==  L'_' && q[2] == L'\b') xb->user[ms] = -2;
-	    } else xbufaddxc(xb, *q);
+		if (q[1] == '_' && q[2] == '\b') xb->user[ms] = -2;
+	    } else xbufaddc(xb, *q);
 	}
-    free(wp);
+    free(p);
     return xb;
 }
 
@@ -132,7 +117,9 @@ static void delpager(control m)
 
     ConsoleData p = getdata(m);
     if (!pagerMultiple) {
-	for (i = 0; i < pagerActualKept; i++) xbufdel(pagerXbuf[i]);
+	for (i = 0; i < pagerActualKept; i++) {
+	    xbufdel(pagerXbuf[i]);
+	}
 	pagerActualKept = 0;
     }
     else
@@ -250,7 +237,7 @@ static void pagerchangeview(control m)
     pagerupdateview();
 }
 
-static void pagerupdateview(void)
+static void pagerupdateview()
 {
     control c = pagerInstance;
     ConsoleData p = getdata(c);
@@ -262,13 +249,11 @@ static void pagerupdateview(void)
     show(c);
 }
 
-static int pageraddfile(const char *wtitle, 
-			const char *filename, int enc,
-			int deleteonexit)
+static int pageraddfile(char *wtitle, char *filename, int deleteonexit)
 {
     ConsoleData p = getdata(pagerInstance);
     int i;
-    xbuf nxbuf = file2xbuf(filename, enc, deleteonexit);
+    xbuf nxbuf = file2xbuf(filename, deleteonexit);
 
     if (!nxbuf) {
 	/* R_ShowMessage("File not found or memory insufficient"); */
@@ -347,9 +332,9 @@ static void pagermenuact(control m)
 
 
 #define MCHECK(a) if (!(a)) {freeConsoleData(p);del(c);return NULL;}
-RECT *RgetMDIsize(void); /* in rui.c */
+RECT *RgetMDIsize(); /* in rui.c */
 
-static pager pagercreate(void)
+static pager pagercreate()
 {
     ConsoleData p;
     int w, h, i, x, y, w0, h0;
@@ -511,22 +496,18 @@ static pager pagercreate(void)
     return(c);
 }
 
-static pager newpager1win(const char *wtitle, 
-			  const char *filename, int enc,
-			  int deleteonexit)
+static pager newpager1win(char *wtitle, char *filename, int deleteonexit)
 {
     if (!pagerInstance && !(pagerInstance = pagercreate())) {
         R_ShowMessage(G_("Unable to create pager window"));
         return NULL;
     }
-    if (!pageraddfile(wtitle, filename, enc, deleteonexit)) return NULL;
+    if (!pageraddfile(wtitle, filename, deleteonexit)) return NULL;
     pagerupdateview();
     return pagerInstance;
 }
 
-static pager newpagerNwin(const char *wtitle, 
-			  const char *filename, int enc,
-			  int deleteonexit)
+static pager newpagerNwin(char *wtitle, char *filename, int deleteonexit)
 {
     pager c = pagercreate();
     ConsoleData p;
@@ -534,7 +515,7 @@ static pager newpagerNwin(const char *wtitle,
     if (!c) return NULL;
     settext(c, wtitle);
     p = getdata(c);
-    if (!(p->lbuf = file2xbuf(filename, enc, deleteonexit))) {
+    if (!(p->lbuf = file2xbuf(filename, deleteonexit))) {
 	del(c);
 	return NULL;
     }
@@ -545,9 +526,7 @@ static pager newpagerNwin(const char *wtitle,
     return c;
 }
 
-pager newpager(const char *title, 
-	       const char *filename, int enc,
-	       const char *header, int deleteonexit)
+pager newpager(char *title, char *filename, char *header, int deleteonexit)
 {
     char wtitle[PAGERMAXTITLE+1];
     pager c;
@@ -561,9 +540,9 @@ pager newpager(const char *title,
 	strcat(wtitle, header);
     }
     if (!pagerMultiple)
-        c = newpager1win(wtitle, filename, enc, deleteonexit);
+        c = newpager1win(wtitle, filename, deleteonexit);
     else
-        c = newpagerNwin(wtitle, filename, enc, deleteonexit);
+        c = newpagerNwin(wtitle, filename, deleteonexit);
     if (c) {
 	haveusedapager++;
 	BringToTop(c, 0);

@@ -70,19 +70,6 @@ frameDim <- function(frame) {
       layout.ncol(viewport.layout(frame$framevp)))
 }
 
-# Get the framevp slot to show up in grid.ls() output
-gridList.frame <- function(x, grobs=TRUE, viewports=FALSE,
-                           fullNames=FALSE, recursive=TRUE) {
-    # Hack:  replace the existing vp slot with a vpStack
-    # consisting of the existing vp and the framevp
-    # THEN call gridList.gTree()
-    if (is.null(x$vp))
-        x$vp <- x$framevp
-    else if (!is.null(x$framevp))
-        x$vp <- vpStack(x$vp, x$framevp)
-    gridList.gTree(x, grobs, viewports, fullNames, recursive)
-}
-
 ################
 # cellGrob class
 ################
@@ -100,17 +87,7 @@ cellViewport <- function(col, row, border) {
 
 cellGrob <- function(col, row, border, grob, dynamic, vp) {
   gTree(col=col, row=row, border=border, dynamic=dynamic,
-        children=gList(grob), cellvp=vp, cl="cellGrob")
-}
-
-preDrawDetails.cellGrob <- function(x) {
-  if (!is.null(x$cellvp))
-    pushViewport(x$cellvp, recording=FALSE)
-}
-
-postDrawDetails.cellGrob <- function(x) {
-  if (!is.null(x$cellvp))
-    upViewport(depth(x$cellvp), recording=FALSE)
+        children=gList(grob), vp=vp, cl="cellGrob")
 }
 
 # For dynamically packed grobs, need to be able to
@@ -127,15 +104,6 @@ heightDetails.cellGrob <- function(x) {
     unit(1, "grobheight", gPath(x$children[[1]]$name))
   else
     unit(1, "grobheight", x$children[[1]])
-}
-
-# Get the cellvp slot to show up in grid.ls() output
-gridList.cellGrob <- function(x, grobs=TRUE, viewports=FALSE,
-                              fullNames=FALSE, recursive=TRUE) {
-    # Hack:  replace the (unused) vp slot with the cellvp slot
-    # THEN call gridList.gTree()
-    x$vp <- x$cellvp
-    gridList.gTree(x, grobs, viewports, fullNames, recursive)
 }
 
 ################
@@ -477,12 +445,12 @@ packGrob <- function(frame, grob,
       if (new.col) {
         newcol <- updateCol(child$col, col)
         child <- editGrob(child, col=newcol,
-                          cellvp=cellViewport(newcol, child$row, child$border))
+                          vp=cellViewport(newcol, child$row, child$border))
       }
       if (new.row) {
         newrow <- updateRow(child$row, row)
         child <- editGrob(child, row=newrow,
-                          cellvp=cellViewport(child$col, newrow, child$border))
+                          vp=cellViewport(child$col, newrow, child$border))
       }
       frame <- addGrob(frame, child)
     }

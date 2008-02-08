@@ -1,5 +1,7 @@
 /*
- *  Copyright (C) 2008  The R Development Core Team
+ *  R : A Computer Language for Statistical Data Analysis
+ *  file shext.h
+ *  Copyright (C) 2004-6	      The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,13 +18,4 @@
  *  http://www.r-project.org/Licenses/
  */
 
-/* used on console.c, EncodeString and do_cat */
-
-/* \001 is STX, \002 is ETX: they should not occur in other text,
-   But we use a 3-byte escape to be even safer. */
-
-#ifdef IN_CONSOLE
-char UTF8in[4] = "\002\377\376", UTF8out[4] = "\003\377\376";
-#else
-extern char UTF8in[4], UTF8out[4];
-#endif
+int ShellGetPersonalDirectory(char *folder);

@@ -3,11 +3,12 @@
 # Copyright (C) 2005-2007 The R Foundation
 # This file is distributed under the same license as the R package.
 # Detlef Steuer <steuer@hsu-hh.de>, 2007.
+
 msgid ""
 msgstr ""
 "Project-Id-Version: R 2.6.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-01-21 17:32\n"
+"POT-Creation-Date: 2007-06-06 11:24\n"
 "PO-Revision-Date: 2007-10-15 14:54+0200\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R-Core <R-core@r-project.org>\n"
@@ -112,31 +113,11 @@ msgstr "Argument fehlt ohne Standardwert"
 msgid "dev.displaylist() called without an open graphics device"
 msgstr "dev.displaylist() ohne geöffnetes Grafik-Device aufgerufen"
 
-msgid "invalid setting for 'getOption(\"device\")'"
-msgstr ""
-
-msgid "no suitable unused file name for pdf()"
-msgstr ""
-
-msgid "dev.new(): using pdf(file=\"%s\")"
-msgstr ""
-
-msgid "no suitable unused file name for postscript()"
-msgstr ""
-
-msgid "dev.new(): using postscript(file=\"%s\")"
-msgstr ""
-
-#, fuzzy
-msgid "device '%s' not found"
-msgstr "Device '%s' steht nicht zur Verfügung"
-
 msgid "invalid arguments in '%s' (need named args)"
 msgstr "unzulässige Argumente in '%s' (benannte Argumente benötigt"
 
 msgid "'name.opt' must be character, name of an existing list"
-msgstr ""
-"'name.opt' muss ein Charkter, ein Name oder eine exisitierende Liste sein"
+msgstr "'name.opt' muss ein Charkter, ein Name oder eine exisitierende Liste sein"
 
 msgid "cannot reset non-existent '%s'"
 msgstr "kann nicht existierendes ' %s' nicht zurücksetzen"
@@ -147,17 +128,10 @@ msgstr "ungültige Optionen in '%s'"
 msgid "NOT changing"
 msgstr "NICHT ändernd"
 
-msgid "argment 'append' is for back-compatibility and will be ignored"
-msgstr ""
-
 msgid "unknown family '%s'"
 msgstr "unbekannte Familie '%s'"
 
 msgid "invalid 'family' argument"
-msgstr "ungültiges 'family' Argument"
-
-#, fuzzy
-msgid "invalid 'file'"
 msgstr "ungültiges 'family' Argument"
 
 msgid "invalid PDF version"
@@ -253,9 +227,8 @@ msgstr "Device '%s' steht nicht zur Verfügung"
 msgid "Available devices are %s"
 msgstr "Verfügbar Devices sind %s"
 
-#, fuzzy
-msgid "invalid 'title'"
-msgstr "ungültiger Zeichensatztyp"
+msgid "quartz() device interactivity reduced without an event loop manager"
+msgstr "quartz() Device mit reduzierter Interaktivität ohne Event-Loop Manager"
 
 msgid "invalid Quartz font:  must be 4 strings"
 msgstr "ungültiger Quartz Zeichensatz: müssen 4 Zeichenketten sein"
@@ -266,18 +239,11 @@ msgstr "ungültige Argumente in quartzFonts (muss ein Zeichensatzname sein)"
 msgid "invalid arguments in quartzFonts (need named args)"
 msgstr "ungültige Argumente in quartzFonts (benötigt benannte Argumente)"
 
-#, fuzzy
-msgid "invalid 'filename'"
-msgstr "ungültiges 'family' Argument"
-
 msgid "'res' must be specified unless 'units = \"px\"'"
 msgstr "'res' muss angegeben werden, außer 'units = \"px\"'"
 
 msgid "invalid X11 font specification:"
 msgstr "ungültige X11 Zeichensatzspezifikation"
-
-msgid "invalid value for 'rescale"
-msgstr ""
 
 msgid "can only bring windows devices to the front"
 msgstr "kann nur windows-Devices nach Vorne bringen"
@@ -300,31 +266,27 @@ msgstr "ungültige Argumente in 'windowsFonts' (muss ein Zeichensatzname sein)"
 msgid "invalid arguments in 'windowsFonts' (need named args)"
 msgstr "ungültige Argumente in 'windowsFonts' (benannte Argumente nötig)"
 
-msgid "invalid argument name %s in '%s'"
+msgid        "invalid argument name %s in '%s'"
 msgid_plural "invalid argument names %s in '%s'"
-msgstr[0] "ungültiger Argumentname %s in '%s'"
-msgstr[1] "ungültige Argumentnamen %s in '%s'"
+msgstr[0]    "ungültiger Argumentname %s in '%s'"
+msgstr[1]    "ungültige Argumentnamen %s in '%s'"
 
-msgid "differs between new and previous"
+msgid        "differs between new and previous"
 msgid_plural "differ between new and previous"
-msgstr[0] "unterscheidet sich zwischen neu und vorhergehend"
-msgstr[1] "unterscheiden sich zwischen neu und vorhergehend"
+msgstr[0]    "unterscheidet sich zwischen neu und vorhergehend"
+msgstr[1]    "unterscheiden sich zwischen neu und vorhergehend"
 
-msgid "%d x value <= 0 omitted from logarithmic plot"
+msgid        "%d x value <= 0 omitted from logarithmic plot"
 msgid_plural "%d x values <= 0 omitted from logarithmic plot"
-msgstr[0] "%d x Wert <= 0 ausgelassen in logarithmischem Plot"
-msgstr[1] "%d x Werte <= 0 ausgelassen in logarithmischem Plot"
+msgstr[0]    "%d x Wert <= 0 ausgelassen in logarithmischem Plot"
+msgstr[1]    "%d x Werte <= 0 ausgelassen in logarithmischem Plot"
 
-msgid "%d y value <= 0 omitted from logarithmic plot"
+msgid        "%d y value <= 0 omitted from logarithmic plot"
 msgid_plural "%d y values <= 0 omitted from logarithmic plot"
-msgstr[0] "%d y Wert <= 0 ausgelassen in logarithmischem Plot"
-msgstr[1] "%d y Werte <= 0 ausgelassen in logarithmischem Plot"
+msgstr[0]    "%d y Wert <= 0 ausgelassen in logarithmischem Plot"
+msgstr[1]    "%d y Werte <= 0 ausgelassen in logarithmischem Plot"
 
-msgid "%d z value <= 0 omitted from logarithmic plot"
+msgid        "%d z value <= 0 omitted from logarithmic plot"
 msgid_plural "%d z values <= 0 omitted from logarithmic plot"
-msgstr[0] "%d z Wert <= 0 ausgelassen in logarithmischem Plot"
-msgstr[1] "%d z Werte <= 0 ausgelassen in logarithmischem Plot"
-
-#~ msgid "quartz() device interactivity reduced without an event loop manager"
-#~ msgstr ""
-#~ "quartz() Device mit reduzierter Interaktivität ohne Event-Loop Manager"
+msgstr[0]    "%d z Wert <= 0 ausgelassen in logarithmischem Plot"
+msgstr[1]    "%d z Werte <= 0 ausgelassen in logarithmischem Plot"

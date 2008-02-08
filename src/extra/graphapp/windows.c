@@ -289,9 +289,9 @@ static rect fix_win_rect(rect r, long flags)
 		win_rect = growr(win_rect, border_width, border_height);
 	}
 
-	if (flags & HScrollbar & ~CanvasSize)
+	if (flags & HScrollbar)
 		win_rect.height += scrollbar_height;
-	if (flags & VScrollbar & ~CanvasSize)
+	if (flags & VScrollbar)
 		win_rect.width += scrollbar_width;
 
 	if (flags & Titlebar)
@@ -453,8 +453,7 @@ window newwindow(const char *name, rect r, long flags)
 		else if (! win_class_name)
 		    win_class_name = register_new_class("", app_win_proc);
 
-		if(localeCP > 0 && (localeCP != GetACP())) {
-		    /* This seems not actually to work */
+		if(is_NT && localeCP > 0 && (localeCP != GetACP())) {
 		    wchar_t wkind[100], wc[1000];
 		    mbstowcs(wkind, (flags & Workspace) ? work_class_name 
 			     : win_class_name, 100);

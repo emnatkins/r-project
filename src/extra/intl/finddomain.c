@@ -1,5 +1,5 @@
 /* Handle list of needed message catalogs
-   Copyright (C) 1995-1999, 2000-2001, 2003-2007 Free Software Foundation, Inc.
+   Copyright (C) 1995-1999, 2000-2001, 2003-2006 Free Software Foundation, Inc.
    Written by Ulrich Drepper <drepper@gnu.org>, 1995.
 
    This program is free software; you can redistribute it and/or modify it
@@ -148,9 +148,6 @@ _nl_find_domain (const char *dirname, char *locale,
      look for the language.  Termination symbols are `_', '.', and `@'.  */
   mask = _nl_explode_name (locale, &language, &modifier, &territory,
 			   &codeset, &normalized_codeset);
-  if (mask == -1)
-    /* This means we are out of core.  */
-    return NULL;
 
   /* We need to protect modifying the _NL_LOADED_DOMAINS data.  */
   gl_rwlock_wrlock (lock);
@@ -166,7 +163,7 @@ _nl_find_domain (const char *dirname, char *locale,
 
   if (retval == NULL)
     /* This means we are out of core.  */
-    goto out;
+    return NULL;
 
   if (retval->decided <= 0)
     _nl_load_domain (retval, domainbinding);
@@ -189,7 +186,6 @@ _nl_find_domain (const char *dirname, char *locale,
     free (locale);
 #endif
 
-out:
   /* The space for normalized_codeset is dynamically allocated.  Free it.  */
   if (mask & XPG_NORM_CODESET)
     free ((void *) normalized_codeset);

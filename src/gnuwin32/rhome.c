@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999--2007  Guido Masarotto and Brian Ripley
+ *  Copyright (C) 1999--2006  Guido Masarotto and Brian Ripley
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include <string.h>		/* for strrchr(...) */
 #include <stdio.h>
 #include <ctype.h>
+#include <Rversion.h>
 #include <stdlib.h>		/* for exit */
 
 static char rhomebuf[MAX_PATH];
@@ -44,7 +45,7 @@ static char rhomebuf[MAX_PATH];
   *p = '\0'
 
 /* get R_HOME from the module path: used in Rgui and Rterm */
-char *getRHOME(void)
+char *getRHOME()
 {
     DWORD nc;
     char *p;
@@ -61,9 +62,16 @@ char *getRHOME(void)
     return (rhomebuf);
 }
 
+static char DLLversion[25];
+
+char *getDLLVersion()
+{
+    sprintf(DLLversion, "%s.%s", R_MAJOR, R_MINOR);
+    return (DLLversion);
+}
 
 /* get R_HOME from environment or registry: used in embedded apps */
-char *get_R_HOME(void)
+char *get_R_HOME()
 {
     LONG rc;
     HKEY hkey;

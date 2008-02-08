@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.7.0\n"
+"Project-Id-Version: R 2.6.2\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-01-27 18:05\n"
-"PO-Revision-Date: 2008-01-27 18:05\n"
+"POT-Creation-Date: 2008-02-06 06:53\n"
+"PO-Revision-Date: 2008-02-06 06:53\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -528,20 +528,14 @@ msgstr "baseline group number out of range"
 msgid "supply both 'x' and 'y' or a matrix-like 'x'"
 msgstr "supply both ‘x’ and ‘y’ or a matrix-like ‘x’"
 
-msgid "'x' is empty"
-msgstr "‘x’ is empty"
-
-msgid "both 'x' and 'y' must be non-empty"
-msgstr "both ‘x’ and ‘y’ must be non-empty"
-
 msgid "cannot handle 'pairwise.complete.obs'"
 msgstr "cannot handle ‘pairwise.complete.obs’"
 
 msgid "'V' is not a square numeric matrix"
 msgstr "‘V’ is not a square numeric matrix"
 
-msgid "diag(.) had 0 or NA entries; non-finite result is doubtful"
-msgstr "diag(.) had 0 or NA entries; non-finite result is doubtful"
+msgid "diagonal has non-finite entries"
+msgstr "diagonal has non-finite entries"
 
 msgid "not enough finite observations"
 msgstr "not enough finite observations"
@@ -1328,6 +1322,9 @@ msgstr "this should not happen"
 msgid "incorrect specification of 'table' or 'start'"
 msgstr "incorrect specification of ‘table’ or ‘start’"
 
+msgid "'x' is empty"
+msgstr "‘x’ is empty"
+
 msgid "%d missing values deleted"
 msgstr "%d missing values deleted"
 
@@ -1950,9 +1947,6 @@ msgstr "coverage probability out of range [0,1)"
 
 msgid "spline: first and last y values differ - using y[1] for both"
 msgstr "spline: first and last y values differ - using y[1] for both"
-
-msgid "'spline' requires n >= 1"
-msgstr "‘spline’ requires n >= 1"
 
 msgid "'deriv' must be between 0 and 3"
 msgstr "‘deriv’ must be between 0 and 3"

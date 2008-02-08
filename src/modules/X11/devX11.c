@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2008  Robert Gentleman, Ross Ihaka and the
+ *  Copyright (C) 1997--2005  Robert Gentleman, Ross Ihaka and the
  *			      R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -50,13 +50,13 @@
 #endif
 
 
-#define R_USE_PROTOTYPES 1
-#include <R_ext/GraphicsEngine.h>
+#include "Graphics.h"
 #include "Fileio.h"		/* R_fopen */
 #include "rotated.h"		/* 'Public' routines from here */
 /* For the input handlers of the event loop mechanism: */
 #include <R_ext/eventloop.h>
 #include <R_ext/Memory.h>	/* vmaxget */
+#include <Rdevices.h>
 
 #ifdef SUPPORT_MBCS
 /* This uses fontsets only in mbcslocales */
@@ -68,6 +68,7 @@
 # endif */
 #endif
 
+#define R_X11_DEVICE 1
 #include "devX11.h"
 
 #include <Rmodules/RX11.h>
@@ -138,39 +139,49 @@ static int numX11Devices = 0;
 
 	/* Device Driver Actions */
 
-static void X11_Activate(pDevDesc dd);
-static void X11_Circle(double x, double y, double r,
-		       pGEcontext gc, pDevDesc dd);
-static void X11_Clip(double x0, double x1, double y0, double y1,
-		     pDevDesc dd);
-static void X11_Close(pDevDesc dd);
-static void X11_Deactivate(pDevDesc dd);
-static Rboolean X11_Locator(double *x, double *y, pDevDesc dd);
-static void X11_Line(double x1, double y1, double x2, double y2,
-		     pGEcontext gc, pDevDesc dd);
-static void X11_MetricInfo(int c, pGEcontext gc,
-			   double* ascent, double* descent,
-			   double* width, pDevDesc dd);
-static void X11_Mode(int mode, pDevDesc dd);
-static void X11_NewPage(pGEcontext gc, pDevDesc dd);
+static void newX11_Activate(NewDevDesc *dd);
+static void newX11_Circle(double x, double y, double r,
+			  R_GE_gcontext *gc,
+			  NewDevDesc *dd);
+static void newX11_Clip(double x0, double x1, double y0, double y1,
+			NewDevDesc *dd);
+static void newX11_Close(NewDevDesc *dd);
+static void newX11_Deactivate(NewDevDesc *dd);
+static void newX11_Hold(NewDevDesc *dd);
+static Rboolean newX11_Locator(double *x, double *y, NewDevDesc *dd);
+static void newX11_Line(double x1, double y1, double x2, double y2,
+			R_GE_gcontext *gc,
+			NewDevDesc *dd);
+static void newX11_MetricInfo(int c,
+			      R_GE_gcontext *gc,
+			      double* ascent, double* descent,
+			      double* width, NewDevDesc *dd);
+static void newX11_Mode(int mode, NewDevDesc *dd);
+static void newX11_NewPage(R_GE_gcontext *gc, NewDevDesc *dd);
 /* declared in devX11.h
-Rboolean X11_Open(pDevDesc dd, pX11Desc xd,
-		  char *dsp, double w, double h,
-		  double gamma_fac, X_COLORTYPE colormodel,
-		  int maxcube, int bgcolor, int canvascolor, int res); */
-static void X11_Polygon(int n, double *x, double *y,
-			pGEcontext gc, pDevDesc dd);
-static void X11_Polyline(int n, double *x, double *y,
-			 pGEcontext gc, pDevDesc dd);
-static void X11_Rect(double x0, double y0, double x1, double y1,
-		     pGEcontext gc, pDevDesc dd);
-static void X11_Size(double *left, double *right,
+Rboolean newX11_Open(NewDevDesc *dd, newX11Desc *xd,
+		     char *dsp, double w, double h,
+		     double gamma_fac, X_COLORTYPE colormodel,
+		     int maxcube, int bgcolor, int canvascolor, int res); */
+static void newX11_Polygon(int n, double *x, double *y,
+			   R_GE_gcontext *gc,
+			   NewDevDesc *dd);
+static void newX11_Polyline(int n, double *x, double *y,
+			    R_GE_gcontext *gc,
+			    NewDevDesc *dd);
+static void newX11_Rect(double x0, double y0, double x1, double y1,
+			R_GE_gcontext *gc,
+			NewDevDesc *dd);
+static void newX11_Size(double *left, double *right,
 		     double *bottom, double *top,
-		     pDevDesc dd);
-static double X11_StrWidth(const char *str, pGEcontext gc, pDevDesc dd);
-static void X11_Text(double x, double y, const char *str,
-		     double rot, double hadj,
-		     pGEcontext gc, pDevDesc dd);
+		     NewDevDesc *dd);
+static double newX11_StrWidth(char *str,
+			      R_GE_gcontext *gc,
+			      NewDevDesc *dd);
+static void newX11_Text(double x, double y, char *str,
+			double rot, double hadj,
+			R_GE_gcontext *gc,
+			NewDevDesc *dd);
 
 	/*************************************************/
 	/* End of list of required device driver actions */
@@ -178,14 +189,14 @@ static void X11_Text(double x, double y, const char *str,
 
 	/* Support Routines */
 
-static void *RLoadFont(X11Desc*, char*, int, int);
+static void *RLoadFont(newX11Desc*, char*, int, int);
 static double pixelHeight(void);
 static double pixelWidth(void);
-static int SetBaseFont(X11Desc*);
-static void SetColor(int, pDevDesc);
-static void SetFont(char*, int, int, pDevDesc);
-static void SetLinetype(R_GE_gcontext*, pDevDesc);
-static void X11_Close_bitmap(pX11Desc xd);
+static int SetBaseFont(newX11Desc*);
+static void SetColor(int, NewDevDesc*);
+static void SetFont(char*, int, int, NewDevDesc*);
+static void SetLinetype(R_GE_gcontext*, NewDevDesc*);
+static void X11_Close_bitmap(newX11Desc *xd);
 
 
 
@@ -208,7 +219,7 @@ static int PaletteSize;
 /* RGB values to luminance and then thresholding. */
 /* See: Foley & van Damm. */
 
-static void SetupMonochrome(void)
+static void SetupMonochrome()
 {
     depth = 1;
 }
@@ -276,7 +287,7 @@ static Rboolean GetGrayPalette(Display *displ, Colormap cmap, int n)
     else return TRUE;
 }
 
-static void SetupGrayScale(void)
+static void SetupGrayScale()
 {
     int res = 0, d;
     PaletteSize = 0;
@@ -356,7 +367,7 @@ static int GetColorPalette(Display *dpy, Colormap cmap, int nr, int ng, int nb)
 	return 1;
 }
 
-static void SetupPseudoColor(void)
+static void SetupPseudoColor()
 {
     int i, size;
     PaletteSize = 0;
@@ -439,7 +450,7 @@ static unsigned int RMask, RShift;
 static unsigned int GMask, GShift;
 static unsigned int BMask, BShift;
 
-static void SetupTrueColor(void)
+static void SetupTrueColor()
 {
     RMask = visual->red_mask;
     GMask = visual->green_mask;
@@ -480,7 +491,7 @@ static unsigned int GetX11Pixel(int r, int g, int b)
     return 0;
 }
 
-static void FreeX11Colors(void)
+static void FreeX11Colors()
 {
     int i;
     if (model == PSEUDOCOLOR2) {
@@ -490,7 +501,7 @@ static void FreeX11Colors(void)
     }
 }
 
-static Rboolean SetupX11Color(void)
+static Rboolean SetupX11Color()
 {
     if (depth <= 1) {
 	/* On monchome displays we must use black/white */
@@ -567,8 +578,8 @@ static double pixelHeight(void)
 static void handleEvent(XEvent event)
 {
     caddr_t temp;
-    pDevDesc dd = NULL;	/* -Wall */
-    pX11Desc xd;
+    NewDevDesc *dd = NULL;	/* -Wall */
+    newX11Desc *xd;
     int devNum = 0;
     int do_update = 0;
 
@@ -577,7 +588,7 @@ static void handleEvent(XEvent event)
 	    ;
 	XFindContext(display, event.xexpose.window,
 		     devPtrContext, &temp);
-	dd = (pDevDesc) temp;
+	dd = (NewDevDesc *) temp;
 	if (event.xexpose.count == 0)
 	    do_update = 1;
     }
@@ -586,8 +597,8 @@ static void handleEvent(XEvent event)
 	    ;
 	XFindContext(display, event.xconfigure.window,
 		     devPtrContext, &temp);
-	dd = (pDevDesc) temp;
-	xd = (pX11Desc) dd->deviceSpecific;
+	dd = (NewDevDesc *) temp;
+	xd = (newX11Desc *) dd->deviceSpecific;
 	if (xd->windowWidth != event.xconfigure.width ||
 	    xd->windowHeight != event.xconfigure.height)
 	    do_update = 1;
@@ -605,24 +616,20 @@ static void handleEvent(XEvent event)
 	if (!inclose && event.xclient.data.l[0] == protocol) {
 	    XFindContext(display, event.xclient.window,
 			 devPtrContext, &temp);
-	    dd = (pDevDesc) temp;
-	    killDevice(ndevNumber(dd));
+	    dd = (NewDevDesc *) temp;
+	    KillDevice((DevDesc*) GetDevice(devNumber((DevDesc*) dd)));
 	}
 
     if (do_update) {
 	/* It appears possible that a device may receive an expose
 	 * event in the middle of the device being "kill"ed by R
 	 * This means that R knows nothing about the device
-	 * so devNumber becomes 0 (the null device) and it was not
+	 * so devNumber becomes 0 (the null device) and it is not
 	 * a good idea to pass the null device to GEplayDisplayList
-	 * -- although GEplayDisplayList now checks this.
 	 */
-	devNum = ndevNumber(dd);
-	if (devNum > 0) {
-	    pGEDevDesc gdd = GEGetDevice(devNum);
-	    /* avoid replying a device list until something has been drawn */
-	    if(gdd->dirty) GEplayDisplayList(gdd);
-	}
+	devNum = devNumber((DevDesc*) dd);
+	if (devNum > 0)
+	    GEplayDisplayList((GEDevDesc*) GetDevice(devNum));
     }
 }
 
@@ -721,7 +728,7 @@ static R_XFont *R_XLoadQueryFontSet(Display *display,
 }
 #endif
 
-static void *RLoadFont(pX11Desc xd, char* family, int face, int size)
+static void *RLoadFont(newX11Desc *xd, char* family, int face, int size)
 {
     int pixelsize, i, dpi;
     cacheentry *f;
@@ -899,7 +906,7 @@ static void *RLoadFont(pX11Desc xd, char* family, int face, int size)
 }
 
 /* This should never be used for a Symbol face */
-static int SetBaseFont(pX11Desc xd)
+static int SetBaseFont(newX11Desc *xd)
 {
     xd->fontface = xd->basefontface;
     if (xd->fontface < 1 || xd->fontface > 5) xd->fontface = 1;
@@ -922,9 +929,9 @@ static int SetBaseFont(pX11Desc xd)
     return 1;
 }
 
-static void SetFont(char* family, int face, int size, pDevDesc dd)
+static void SetFont(char* family, int face, int size, NewDevDesc *dd)
 {
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
     R_XFont *tmp;
 
     if (face < 1 || face > 5) face = 1;
@@ -947,7 +954,7 @@ static void SetFont(char* family, int face, int size, pDevDesc dd)
     }
 }
 
-static void CheckAlpha(int color, pX11Desc xd)
+static void CheckAlpha(int color, newX11Desc *xd)
 {
     unsigned int alpha = R_ALPHA(color);
     if (alpha > 0 && alpha < 255 && !xd->warn_trans) {
@@ -956,9 +963,9 @@ static void CheckAlpha(int color, pX11Desc xd)
     }
 }
 
-static void SetColor(int color, pDevDesc dd)
+static void SetColor(int color, NewDevDesc *dd)
 {
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
     if (color != xd->col) {
 	blackpixel = GetX11Pixel(R_RED(color), R_GREEN(color), R_BLUE(color));
 	xd->col = color;
@@ -1011,11 +1018,11 @@ static int gcToX11ljoin(R_GE_linejoin ljoin) {
  *	would have "dots" which were wide, but not long, nor widely
  *	spaced.
  */
-static void SetLinetype(pGEcontext gc, pDevDesc dd)
+static void SetLinetype(R_GE_gcontext *gc, NewDevDesc *dd)
 {
     static char dashlist[8];
     int i, newlty, newlwd, newlend, newljoin;
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     newlty = gc->lty;
     newlwd = gc->lwd;/*cast*/
@@ -1125,7 +1132,7 @@ static String x_fallback_resources[] = {
 #endif
 
 Rboolean
-X11_Open(pDevDesc dd, pX11Desc xd, const char *dsp,
+newX11_Open(NewDevDesc *dd, newX11Desc *xd, const char *dsp,
 	    double w, double h, double gamma_fac, X_COLORTYPE colormodel,
 	    int maxcube, int bgcolor, int canvascolor, int res,
 	    int xpos, int ypos)
@@ -1140,6 +1147,7 @@ X11_Open(pDevDesc dd, pX11Desc xd, const char *dsp,
     XGCValues gcv;
     /* Indicates whether the display is created within this particular call: */
     Rboolean DisplayOpened = FALSE;
+    static const char *title = "R Graphics";
     XSizeHints *hint;
 
 #ifdef USE_FONTSET
@@ -1355,7 +1363,7 @@ X11_Open(pDevDesc dd, pX11Desc xd, const char *dsp,
 				    CWBorderPixel | CWBackingStore,
 				    &attributes);
 
-	    XStoreName(display, xd->window, xd->title);
+	    XStoreName(display, xd->window, title);
 
 	    xd->gcursor = XCreateFontCursor(display, CURSOR);
 	    XDefineCursor(display, xd->window, xd->gcursor);
@@ -1367,7 +1375,7 @@ X11_Open(pDevDesc dd, pX11Desc xd, const char *dsp,
 	    XSetWMProtocols(display, xd->window, &protocol, 1);
 
 	}
-	/* Save the pDevDesc with the window for event dispatching */
+	/* Save the NewDevDesc* with the window for event dispatching */
 	XSaveContext(display, xd->window, devPtrContext, (caddr_t) dd);
 
 	/* Map the window */
@@ -1401,7 +1409,7 @@ X11_Open(pDevDesc dd, pX11Desc xd, const char *dsp,
 	    warning(_("unable to create pixmap"));
 	    return FALSE;
 	}
-	/* Save the pDevDesc with the window for event dispatching */
+	/* Save the NewDevDesc* with the window for event dispatching */
 	/* Is this needed? */
 	XSaveContext(display, xd->window, devPtrContext, (caddr_t) dd);
 	xd->npages = 0;
@@ -1448,7 +1456,7 @@ static char *SaveFontSpec(SEXP sxp, int offset)
  * THEN return xd->basefontfamily (the family set up when the
  *   device was created)
  */
-static char* translateFontFamily(char* family, X11Desc* xd) {
+static char* translateFontFamily(char* family, newX11Desc* xd) {
     SEXP graphicsNS, x11env, fontdb, fontnames;
     int i, nfonts;
     char* result = xd->basefontfamily;
@@ -1477,9 +1485,11 @@ static char* translateFontFamily(char* family, X11Desc* xd) {
     return result;
 }
 
-static double X11_StrWidth(const char *str, pGEcontext gc, pDevDesc dd)
+static double newX11_StrWidth(char *str,
+			      R_GE_gcontext *gc,
+			      NewDevDesc *dd)
 {
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     int size = gc->cex * gc->ps + 0.5;
     SetFont(translateFontFamily(gc->fontfamily, xd), gc->fontface, size, dd);
@@ -1506,17 +1516,16 @@ static double X11_StrWidth(const char *str, pGEcontext gc, pDevDesc dd)
 	/* Character Metric Information */
 	/* Passing c == 0 gets font information */
 
-static void X11_MetricInfo(int c, pGEcontext gc,
-			   double* ascent, double* descent,
-			   double* width, pDevDesc dd)
+static void newX11_MetricInfo(int c,
+			      R_GE_gcontext *gc,
+			      double* ascent, double* descent,
+			      double* width, NewDevDesc *dd)
 {
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
     int first = 0, last = 0;
     int size = gc->cex * gc->ps + 0.5;
     XFontStruct *f = NULL;
 
-    if (c < 0)
-	error(_("invalid use of %d < 0 in '%s'"), c, "X11_MetricInfo");
 
     SetFont(translateFontFamily(gc->fontfamily, xd), gc->fontface, size, dd);
 
@@ -1547,12 +1556,14 @@ static void X11_MetricInfo(int c, pGEcontext gc,
 	return;
     }
 
-    if (xd->font->type != One_Font) {  /* so an MBCS */
-	XRectangle ink, log;
-	char buf[16];
+    if (xd->font->type != One_Font) {
+	char buf[10];
+	wchar_t wc[2] = L" ";XRectangle ink, log;
+	wchar_t *wcs=wc;
 
-	ucstomb(buf, (unsigned int) c);
-	/* wcsrtombs(buf, (const wchar_t **)&wcs, sizeof(wc), NULL); */
+	wc[0] = (unsigned int) c;
+
+	wcsrtombs(buf, (const wchar_t **)&wcs, sizeof(wc), NULL);
 #ifdef HAVE_XUTF8TEXTEXTENTS
 	if(utf8locale)
 	    Xutf8TextExtents(xd->font->fontset, buf, strlen(buf), &ink, &log);
@@ -1612,10 +1623,10 @@ static void X11_MetricInfo(int c, pGEcontext gc,
 #endif
 }
 
-static void X11_Clip(double x0, double x1, double y0, double y1,
-			pDevDesc dd)
+static void newX11_Clip(double x0, double x1, double y0, double y1,
+			NewDevDesc *dd)
 {
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     if (x0 < x1) {
 	xd->clip.x = (int) x0 ;
@@ -1641,11 +1652,11 @@ static void X11_Clip(double x0, double x1, double y0, double y1,
 #endif
 }
 
-static void X11_Size(double *left, double *right,
+static void newX11_Size(double *left, double *right,
 		     double *bottom, double *top,
-		     pDevDesc dd)
+		     NewDevDesc *dd)
 {
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     *left = 0.0;
     *right = xd->windowWidth;
@@ -1653,9 +1664,10 @@ static void X11_Size(double *left, double *right,
     *top = 0.0;
 }
 
-static void X11_NewPage(pGEcontext gc, pDevDesc dd)
+static void newX11_NewPage(R_GE_gcontext *gc,
+			   NewDevDesc *dd)
 {
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     xd->warn_trans = FALSE;
     if (xd->type > WINDOW) {
@@ -1753,7 +1765,7 @@ static unsigned long bitgp(XImage *xi, int x, int y)
     /* return 0;  not reached, needed for some compilers */
 }
 
-static void X11_Close_bitmap(pX11Desc xd)
+static void X11_Close_bitmap(newX11Desc *xd)
 {
     int i;
     XImage *xi;
@@ -1783,9 +1795,9 @@ static void X11_Close_bitmap(pX11Desc xd)
     XDestroyImage(xi);
 }
 
-static void X11_Close(pDevDesc dd)
+static void newX11_Close(NewDevDesc *dd)
 {
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     if (xd->type == WINDOW) {
 	/* process pending events */
@@ -1821,18 +1833,19 @@ static void X11_Close(pDevDesc dd)
     inclose = FALSE;
 }
 
-static void X11_Activate(pDevDesc dd)
+static char title[11] = "R Graphics";
+
+static void newX11_Activate(NewDevDesc *dd)
 {
-    char t[150];
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    char t[50];
+    char num[3];
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     if (xd->type > WINDOW) return;
-    if(strlen(xd->title)) {
-	snprintf(t, 140, xd->title, ndevNumber(dd) + 1);
-	t[139] = '\0';
-    } else {
-	sprintf(t, "R Graphics: Device %d", ndevNumber(dd) + 1);
-    }
+    strcpy(t, title);
+    strcat(t, ": Device ");
+    sprintf(num, "%i", devNumber((DevDesc*)(dd))+1);
+    strcat(t, num);
     strcat(t, " (ACTIVE)");
     /**
     XChangeProperty(display, xd->window, XA_WM_NAME, XA_STRING,
@@ -1842,18 +1855,17 @@ static void X11_Activate(pDevDesc dd)
     XSync(display, 0);
 }
 
-static void X11_Deactivate(pDevDesc dd)
+static void newX11_Deactivate(NewDevDesc *dd)
 {
-    char t[150];
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    char t[50];
+    char num[3];
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     if (xd->type > WINDOW) return;
-    if(strlen(xd->title)) {
-	snprintf(t, 140, xd->title, ndevNumber(dd) + 1);
-	t[139] = '\0';
-    } else {
-	sprintf(t, "R Graphics: Device %d", ndevNumber(dd) + 1);
-    }
+    strcpy(t, title);
+    strcat(t, ": Device ");
+    sprintf(num, "%i", devNumber((DevDesc*)(dd))+1);
+    strcat(t, num);
     strcat(t, " (inactive)");
     /**
     XChangeProperty(display, xd->window, XA_WM_NAME, XA_STRING,
@@ -1863,11 +1875,12 @@ static void X11_Deactivate(pDevDesc dd)
     XSync(display, 0);
 }
 
-static void X11_Rect(double x0, double y0, double x1, double y1,
-		     pGEcontext gc, pDevDesc dd)
+static void newX11_Rect(double x0, double y0, double x1, double y1,
+			R_GE_gcontext *gc,
+			NewDevDesc *dd)
 {
     int tmp;
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     if (x0 > x1) {
 	tmp = x0;
@@ -1897,11 +1910,12 @@ static void X11_Rect(double x0, double y0, double x1, double y1,
 #endif
 }
 
-static void X11_Circle(double x, double y, double r,
-		       pGEcontext gc, pDevDesc dd)
+static void newX11_Circle(double x, double y, double r,
+			  R_GE_gcontext *gc,
+			  NewDevDesc *dd)
 {
     int ir, ix, iy;
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     ir = floor(r + 0.5);
 
@@ -1922,11 +1936,12 @@ static void X11_Circle(double x, double y, double r,
     }
 }
 
-static void X11_Line(double x1, double y1, double x2, double y2,
-		     pGEcontext gc, pDevDesc dd)
+static void newX11_Line(double x1, double y1, double x2, double y2,
+			R_GE_gcontext *gc,
+			NewDevDesc *dd)
 {
     int xx1, yy1, xx2, yy2;
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     /* In-place conversion ok */
 
@@ -1946,13 +1961,14 @@ static void X11_Line(double x1, double y1, double x2, double y2,
     }
 }
 
-static void X11_Polyline(int n, double *x, double *y,
-			 pGEcontext gc, pDevDesc dd)
+static void newX11_Polyline(int n, double *x, double *y,
+			    R_GE_gcontext *gc,
+			    NewDevDesc *dd)
 {
     char *vmax = vmaxget();
     XPoint *points;
     int i, j;
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     points = (XPoint *) R_alloc(n, sizeof(XPoint));
 
@@ -1980,13 +1996,14 @@ static void X11_Polyline(int n, double *x, double *y,
     vmaxset(vmax);
 }
 
-static void X11_Polygon(int n, double *x, double *y,
-			pGEcontext gc, pDevDesc dd)
+static void newX11_Polygon(int n, double *x, double *y,
+			   R_GE_gcontext *gc,
+			   NewDevDesc *dd)
 {
     char *vmax = vmaxget();
     XPoint *points;
     int i;
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     points = (XPoint *) R_alloc(n+1, sizeof(XPoint));
 
@@ -1999,8 +2016,7 @@ static void X11_Polygon(int n, double *x, double *y,
     CheckAlpha(gc->fill, xd);
     if (R_OPAQUE(gc->fill)) {
 	SetColor(gc->fill, dd);
-	XFillPolygon(display, xd->window, xd->wgc, points, n, 
-		     Complex, CoordModeOrigin);
+	XFillPolygon(display, xd->window, xd->wgc, points, n, Complex, CoordModeOrigin);
 #ifdef XSYNC
 	if (xd->type == WINDOW) XSync(display, 0);
 #endif
@@ -2019,12 +2035,13 @@ static void X11_Polygon(int n, double *x, double *y,
 }
 
 
-static void X11_Text(double x, double y,
-		     const char *str, double rot, double hadj,
-		     pGEcontext gc, pDevDesc dd)
+static void newX11_Text(double x, double y,
+			char *str, double rot, double hadj,
+			R_GE_gcontext *gc,
+			NewDevDesc *dd)
 {
     int size;
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
 
     size = gc->cex * gc->ps + 0.5;
     SetFont(translateFontFamily(gc->fontfamily, xd), gc->fontface, size, dd);
@@ -2039,11 +2056,11 @@ static void X11_Text(double x, double y,
     }
 }
 
-static Rboolean X11_Locator(double *x, double *y, pDevDesc dd)
+static Rboolean newX11_Locator(double *x, double *y, NewDevDesc *dd)
 {
     XEvent event;
-    pDevDesc ddEvent;
-    pX11Desc xd = (pX11Desc) dd->deviceSpecific;
+    NewDevDesc *ddEvent;
+    newX11Desc *xd = (newX11Desc *) dd->deviceSpecific;
     caddr_t temp;
     int done = 0;
 
@@ -2058,7 +2075,7 @@ static Rboolean X11_Locator(double *x, double *y, pDevDesc dd)
 	if (event.type == ButtonPress) {
 	    XFindContext(display, event.xbutton.window,
 			 devPtrContext, &temp);
-	    ddEvent = (pDevDesc) temp;
+	    ddEvent = (NewDevDesc *) temp;
 	    if (ddEvent == dd) {
 		if (event.xbutton.button == Button1) {
 		    int useBeep = asLogical(GetOption(install("locatorBell"),
@@ -2082,13 +2099,20 @@ static Rboolean X11_Locator(double *x, double *y, pDevDesc dd)
     return (done == 1);
 }
 
-static void X11_Mode(int mode, pDevDesc dd)
+/* Set Graphics mode - not needed for X11 */
+static void newX11_Mode(int mode, NewDevDesc *dd)
 {
+
 #ifdef XSYNC
     if (mode == 0) XSync(display, 0);
 #else
     XSync(display, 0);
 #endif
+}
+
+/* Hold the Picture Onscreen - not needed for X11 */
+static void newX11_Hold(NewDevDesc *dd)
+{
 }
 
 
@@ -2102,25 +2126,24 @@ static void X11_Mode(int mode, pDevDesc dd)
 	/*	 see X_COLORTYPE at top of file */
 	/*	7) maxcube			*/
 
-Rboolean X11DeviceDriver(pDevDesc dd,
-			 const char *disp_name,
-			 double width,
-			 double height,
-			 double pointsize,
-			 double gamma_fac,
-			 X_COLORTYPE colormodel,
-			 int maxcube,
-			 int bgcolor,
-			 int canvascolor,
-			 SEXP sfonts,
-			 int res,
-			 int xpos, int ypos,
-			 const char *title)
+Rboolean newX11DeviceDriver(DevDesc *dd,
+			    const char *disp_name,
+			    double width,
+			    double height,
+			    double pointsize,
+			    double gamma_fac,
+			    X_COLORTYPE colormodel,
+			    int maxcube,
+			    int bgcolor,
+			    int canvascolor,
+			    SEXP sfonts,
+			    int res,
+			    int xpos, int ypos)
 {
-    pX11Desc xd;
+    newX11Desc *xd;
     const char *fn;
 
-    xd = Rf_allocX11DeviceDesc(pointsize);
+    xd = Rf_allocNewX11DeviceDesc(pointsize);
     if(!xd) return FALSE;
 
     /* Used to set dd->dp.font=1 and dd->dp.ps=pointsize,
@@ -2141,19 +2164,17 @@ Rboolean X11DeviceDriver(pDevDesc dd,
 
     /*	Start the Device Driver and Hardcopy.  */
 
-    if (!X11_Open(dd, xd, disp_name, width, height,
+    if (!newX11_Open((NewDevDesc*)(dd), xd, disp_name, width, height,
 		     gamma_fac, colormodel, maxcube, bgcolor,
 		     canvascolor, res, xpos, ypos)) {
 	free(xd);
 	return FALSE;
     }
 
-    Rf_setX11DeviceData(dd, gamma_fac, xd);
+    Rf_setNewX11DeviceData((NewDevDesc*)(dd), gamma_fac, xd);
     xd->fill = 0xffffffff; /* this is needed to ensure that the
 			      first newpage does set whitecolor
 			      if par("bg") is not transparent */
-    strncpy(xd->title, title, 100);
-    xd->title[100] = '\0';
 
 #if BUG
     R_ProcessX11Events((void*) NULL);
@@ -2168,28 +2189,30 @@ Rboolean X11DeviceDriver(pDevDesc dd,
   dimensions of the device, and establishes the fonts, line styles, etc.
  */
 int
-Rf_setX11DeviceData(pDevDesc dd, double gamma_fac, pX11Desc xd)
+Rf_setNewX11DeviceData(NewDevDesc *dd, double gamma_fac, newX11Desc *xd)
 {
+    dd->newDevStruct = 1;
+
     /*	Set up Data Structures. */
 
-    dd->close = X11_Close;
-    dd->activate = X11_Activate;
-    dd->deactivate = X11_Deactivate;
-    dd->size = X11_Size;
-    dd->newPage = X11_NewPage;
-    dd->clip = X11_Clip;
-    dd->strWidth = X11_StrWidth;
-    dd->text = X11_Text;
-    dd->rect = X11_Rect;
-    dd->circle = X11_Circle;
-    dd->line = X11_Line;
-    dd->polyline = X11_Polyline;
-    dd->polygon = X11_Polygon;
-    dd->locator = X11_Locator;
-    dd->mode = X11_Mode;
-    dd->metricInfo = X11_MetricInfo;
-    dd->hasTextUTF8 = FALSE;
-    dd->useRotatedTextInContour = FALSE;
+    dd->open = newX11_Open;
+    dd->close = newX11_Close;
+    dd->activate = newX11_Activate;
+    dd->deactivate = newX11_Deactivate;
+    dd->size = newX11_Size;
+    dd->newPage = newX11_NewPage;
+    dd->clip = newX11_Clip;
+    dd->strWidth = newX11_StrWidth;
+    dd->text = newX11_Text;
+    dd->rect = newX11_Rect;
+    dd->circle = newX11_Circle;
+    dd->line = newX11_Line;
+    dd->polyline = newX11_Polyline;
+    dd->polygon = newX11_Polygon;
+    dd->locator = newX11_Locator;
+    dd->mode = newX11_Mode;
+    dd->hold = newX11_Hold;
+    dd->metricInfo = newX11_MetricInfo;
 
     /* Set required graphics parameters. */
 
@@ -2282,13 +2305,13 @@ Rf_setX11DeviceData(pDevDesc dd, double gamma_fac, pX11Desc xd)
 
 
 /**
- This allocates an X11Desc instance  and sets its default values.
+ This allocates an newX11Desc instance  and sets its default values.
  */
-pX11Desc  Rf_allocX11DeviceDesc(double ps)
+newX11Desc * Rf_allocNewX11DeviceDesc(double ps)
 {
-    pX11Desc xd;
+    newX11Desc *xd;
     /* allocate new device description */
-    if (!(xd = (X11Desc*)calloc(1, sizeof(X11Desc))))
+    if (!(xd = (newX11Desc*)calloc(1, sizeof(newX11Desc))))
 	return NULL;
 
     /* From here on, if we need to bail out with "error", */
@@ -2319,12 +2342,13 @@ Rboolean in_R_GetX11Image(int d, void *pximage, int *pwidth, int *pheight)
 	  strncmp(CHAR(STRING_ELT(dev, 0)), "X11", 3) == 0))
 	return FALSE;
     else {
-	pX11Desc xd = GEGetDevice(d)->dev->deviceSpecific;
+	NewDevDesc *dd = ((GEDevDesc *)GetDevice(d))->dev;
+	newX11Desc *xd = dd->deviceSpecific;
 
 	*((XImage**) pximage) =
             XGetImage(display, xd->window, 0, 0,
-		      xd->windowWidth, xd->windowHeight,
-		      AllPlanes, ZPixmap);
+				     xd->windowWidth, xd->windowHeight,
+				     AllPlanes, ZPixmap);
 	*pwidth = xd->windowWidth;
 	*pheight = xd->windowHeight;
 	return TRUE;
@@ -2335,9 +2359,9 @@ Rboolean in_R_GetX11Image(int d, void *pximage, int *pwidth, int *pheight)
    Allows callers to retrieve the current Display setting for the process.
  */
 Display*
-Rf_getX11Display(void)
+Rf_getX11Display()
 {
-    return(display);
+  return(display);
 }
 
 
@@ -2386,7 +2410,7 @@ Rf_setX11Display(Display *dpy, double gamma_fac, X_COLORTYPE colormodel,
     return(TRUE);
 }
 
-typedef Rboolean (*X11DeviceDriverRoutine)(pDevDesc, char*,
+typedef Rboolean (*X11DeviceDriverRoutine)(DevDesc*, char*,
 					   double, double, double, double,
 					   X_COLORTYPE, int, int);
 
@@ -2404,33 +2428,49 @@ static char *SaveString(SEXP sxp, int offset)
     return s;
 }
 
-static void
+static DevDesc*
 Rf_addX11Device(const char *display, double width, double height, double ps,
 		double gamma, int colormodel, int maxcubesize,
 		int bgcolor, int canvascolor, const char *devname, SEXP sfonts,
-		int res, int xpos, int ypos, const char *title)
+		int res, int xpos, int ypos)
 {
-    pDevDesc dev = NULL;
+    NewDevDesc *dev = NULL;
     GEDevDesc *dd;
     R_CheckDeviceAvailable();
     BEGIN_SUSPEND_INTERRUPTS {
 	/* Allocate and initialize the device driver data */
-	if (!(dev = (pDevDesc) calloc(1, sizeof(NewDevDesc)))) return;
-	if (!X11DeviceDriver(dev, display, width, height,
+	if (!(dev = (NewDevDesc*)calloc(1, sizeof(NewDevDesc))))
+	    return 0;
+	/* Do this for early redraw attempts */
+	dev->newDevStruct = 1;
+	dev->displayList = R_NilValue;
+	/* Make sure that this is initialised before a GC can occur.
+	 * This (and displayList) get protected during GC
+	 */
+	dev->savedSnapshot = R_NilValue;
+	/* Took out the GInit because MOST of it is setting up
+	 * R base graphics parameters.
+	 * This is supposed to happen via addDevice now.
+	 */
+	if (!newX11DeviceDriver((DevDesc*)(dev), display, width, height,
 				ps, gamma, colormodel, maxcubesize,
 				bgcolor, canvascolor, sfonts, res,
-				xpos, ypos, title)) {
+				xpos, ypos)) {
 	    free(dev);
 	    errorcall(gcall, _("unable to start device %s"), devname);
        	}
+	gsetVar(install(".Device"), mkString(devname), R_BaseEnv);
 	dd = GEcreateDevDesc(dev);
-	GEaddDevice2(dd, devname);
+	addDevice((DevDesc*) dd);
+	GEinitDisplayList(dd);
     } END_SUSPEND_INTERRUPTS;
+
+    return((DevDesc*) dd);
 }
 
-static SEXP in_do_X11(SEXP call, SEXP op, SEXP args, SEXP env)
+SEXP in_do_X11(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    const char *display, *cname, *devname, *title;
+    const char *display, *cname, *devname;
     char *vmax;
     double height, width, ps, gamma;
     int colormodel, maxcubesize, bgcolor, canvascolor, res, xpos, ypos;
@@ -2493,11 +2533,6 @@ static SEXP in_do_X11(SEXP call, SEXP op, SEXP args, SEXP env)
     xpos = asInteger(CAR(args));
     args = CDR(args);
     ypos = asInteger(CAR(args));
-    args = CDR(args);
-    sc = CAR(args);
-    if (!isString(sc) || LENGTH(sc) != 1)
-	error(_("invalid value of 'title' in devWindows"));
-    title = CHAR(STRING_ELT(sc, 0));
 
     devname = "X11";
     if (!strncmp(display, "png::", 5)) devname = "PNG";
@@ -2506,10 +2541,12 @@ static SEXP in_do_X11(SEXP call, SEXP op, SEXP args, SEXP env)
 
     Rf_addX11Device(display, width, height, ps, gamma, colormodel,
 		    maxcubesize, bgcolor, canvascolor, devname, sfonts,
-		    res, xpos, ypos, title);
+		    res, xpos, ypos);
     vmaxset(vmax);
     return R_NilValue;
 }
+
+extern SEXP RX11_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho);
 
 static int in_R_X11_access(void)
 {
@@ -2597,9 +2634,7 @@ static Rboolean in_R_X11readclp(Rclpconn this, char *type)
 }
 
 extern SEXP in_R_X11_dataviewer(SEXP call, SEXP op, SEXP args, SEXP rho);
-extern SEXP in_RX11_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho);
 
-#include <R_ext/Rdynload.h>
 void R_init_R_X11(DllInfo *info)
 {
     R_X11Routines *tmp;
@@ -2609,7 +2644,7 @@ void R_init_R_X11(DllInfo *info)
 	return;
     }
     tmp->X11 = in_do_X11;
-    tmp->de = in_RX11_dataentry;
+    tmp->de = RX11_dataentry;
     tmp->image = in_R_GetX11Image;
     tmp->access = in_R_X11_access;
     tmp->readclp = in_R_X11readclp;

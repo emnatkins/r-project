@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-12-15 15:57\n"
+"POT-Creation-Date: 2008-02-06 06:53\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -353,9 +353,6 @@ msgstr ""
 msgid "character string is not in a standard unambiguous format"
 msgstr ""
 
-msgid "'origin' must be supplied"
-msgstr ""
-
 msgid "do not know how to convert '%s' to class \"Date\""
 msgstr ""
 
@@ -437,25 +434,31 @@ msgstr ""
 msgid "wrong class"
 msgstr ""
 
-msgid "binary '+' is not defined for \"POSIXt\" objects"
+msgid "binary + is not defined for \"POSIXt\" objects"
 msgstr ""
 
 msgid "Can only subtract from POSIXt objects"
 msgstr ""
 
-msgid "unary '-' is not defined for \"POSIXt\" objects"
+msgid "unary - is not defined for \"POSIXt\" objects"
 msgstr ""
 
 msgid "can only subtract numbers from POSIXt objects"
 msgstr ""
 
-msgid "unary '%s' not defined for \"POSIXt\" objects"
+msgid "not defined for \"POSIXt\" objects"
 msgstr ""
 
-msgid "'%s' not defined for \"POSIXt\" objects"
+msgid "not defined for POSIXt objects"
 msgstr ""
 
 msgid "'tzone' attributes are inconsistent"
+msgstr ""
+
+msgid "not defined for \"POSIXct\" objects"
+msgstr ""
+
+msgid "not defined for \"POSIXlt\" objects"
 msgstr ""
 
 msgid "'tim' is not character or numeric"
@@ -467,10 +470,7 @@ msgstr ""
 msgid "invalid units specified"
 msgstr ""
 
-msgid "unary '%s' not defined for \"difftime\" objects"
-msgstr ""
-
-msgid "'%s' not defined for \"difftime\" objects"
+msgid "not defined for \"difftime\" objects"
 msgstr ""
 
 msgid "both arguments of * cannot be \"difftime\" objects"
@@ -588,15 +588,6 @@ msgid "no files to link from"
 msgstr ""
 
 msgid "no files/directory to link to"
-msgstr ""
-
-msgid "'x' must be have length 1"
-msgstr ""
-
-msgid "invalid digits"
-msgstr ""
-
-msgid "'x' cannot be coerced to 'octmode'"
 msgstr ""
 
 msgid "'package' must be of length 1"
@@ -1397,10 +1388,10 @@ msgstr ""
 msgid "'cmd' execution failed with error code %d"
 msgstr ""
 
-msgid "cannot find name space environment"
+msgid "package '%s' has a non-function '.First.lib'"
 msgstr ""
 
-msgid "package '%s' has a non-function '.First.lib'"
+msgid "cannot find name space environment"
 msgstr ""
 
 msgid        "deparse option %s is not recognized"

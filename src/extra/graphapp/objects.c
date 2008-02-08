@@ -575,7 +575,7 @@ PROTECTED
 void print_object_list(void)
 {
 	static int start_again = 1;
-	char *mode = "at"; /* to ensure text mode */
+	char *mode = "a";
 	FILE *f;
 
 	if (! app_initialised)

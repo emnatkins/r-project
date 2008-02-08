@@ -217,18 +217,18 @@ static void handle_char(object obj, int ch)
 }
 
 static int showMDIToolbar = 1;
-void toolbar_show(void)
+void toolbar_show()
 {
     showMDIToolbar = 1;
     SendMessage(hwndFrame,WM_PAINT, (WPARAM) 0, (LPARAM) 0);
 }
-void toolbar_hide(void)
+void toolbar_hide()
 {
     showMDIToolbar = 0;
     SendMessage(hwndFrame,WM_PAINT, (WPARAM) 0, (LPARAM) 0);
 }
 
-static void handle_mdiframesize(void) {
+static void handle_mdiframesize() {
      HWND tool=NULL ,status=NULL;
      RECT rFrame,rToolbar;
      int  fw, fh, th=0, sh=0;
@@ -600,22 +600,6 @@ static long handle_message(HWND hwnd, UINT message,
 		return (LRESULT) obj->bgbrush;
   #endif
 #endif
-        case WM_IME_STARTCOMPOSITION:
-                if(obj->call && obj->call->im){
-                         HIMC himc ;
-                         LOGFONT lf;
-                         font f;
-                         COMPOSITIONFORM cf;
-
-                         himc = ImmGetContext(hwnd);
-                         obj->call->im(obj, &f, (point *) &cf.ptCurrentPos);
-                         GetObject(f->handle, sizeof(LOGFONT), &lf);
-                         ImmSetCompositionFont(himc, &lf);
-                         cf.dwStyle = CFS_POINT;
-                         ImmSetCompositionWindow(himc, &cf);                
-                         ImmReleaseContext(hwnd, himc);
-                }
-                break;
         case WM_DROPFILES:
 		handle_drop(obj, (HANDLE) wParam);
 	}

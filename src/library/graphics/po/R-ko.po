@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-12-15 15:59\n"
+"POT-Creation-Date: 2008-02-06 06:53\n"
 "PO-Revision-Date: 2005-05-25 15:04+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -259,6 +259,9 @@ msgstr "'x'그리고 'y'는 동일 수의 행을 가지지 않으면 안됩니�
 msgid "'x' and 'y' must have only 1 or the same number of columns"
 msgstr "'x' 그리고 'y'는 단지 1 또는 동일 수의 열을 가지지 않으면 안됩니다"
 
+msgid "default 'pch' is smaller than number of columns and hence recycled"
+msgstr ""
+
 msgid "missing values in contingency table"
 msgstr "분할표에 결측치가 있습니다"
 
@@ -375,10 +378,6 @@ msgstr "무효인 plot 메소드입니다"
 
 msgid "'at' must have length equal to the number %d of groups"
 msgstr "'at'는 그룹의 %d 수와 동일 길이를 가지지 않으면 안됩니다"
-
-#, fuzzy
-msgid "formula missing or incorrect"
-msgstr "'formula'가 없거나 부적절합니다"
 
 msgid "'number' must have same length as 'x' and 'y'"
 msgstr "'number'는 'x' 그리고 'y'와 동일 길이가 나오지 않으면 되지 않습니다"

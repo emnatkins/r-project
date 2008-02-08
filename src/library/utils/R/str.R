@@ -93,20 +93,15 @@ str.default <-
     oDefs <- c("vec.len", "digits.d", "strict.width")
     ## from
     strO <- getOption("str")
-    if (!is.list(strO)) {
+    if(!is.list(strO) || !all(names(strO) %in% oDefs)) {
 	warning("invalid options('str') -- using defaults instead")
 	strO <- strOptions()
     }
-    else {
-        if (!all(names(strO) %in% oDefs))
-            warning("invalid components in options('str'): ",
-                    paste(setdiff(names(strO), oDefs), collapse = ", "))
-        strO <- modifyList(strOptions(), strO)
-    }
+
     strict.width <- match.arg(strict.width, choices = c("no", "cut", "wrap"))
     if(strict.width != "no") {
 	## using eval() would be cleaner, but fails inside capture.output():
-	ss <- capture.output(str.default(object, max.level = max.level,
+	ss <- capture.output(str(object, max.level = max.level,
 				 vec.len = vec.len, digits.d = digits.d,
 				 nchar.max = nchar.max,
 				 give.attr= give.attr, give.head= give.head, give.length= give.length,
@@ -490,21 +485,16 @@ str.default <-
 
 ## An extended `ls()' whose print method will use str() :
 ls.str <-
-    function (pos = -1, name, envir, all.names = FALSE, pattern, mode = "any")
+    function(pos = 1, pattern, ..., envir = as.environment(pos), mode = "any")
 {
-    if(missing(envir)) ## [for "lazy" reasons, this fails as default]
-        envir <- as.environment(pos)
-    nms <- ls(name, envir = envir, all.names=all.names, pattern=pattern)
+    nms <- ls(..., envir = envir, pattern = pattern)
     r <- unlist(lapply(nms, function(n)
                        exists(n, envir= envir, mode= mode, inherits=FALSE)))
     structure(nms[r], envir = envir, mode = mode, class = "ls_str")
 }
 
-lsf.str <- function(pos = -1, envir, ...) {
-    if(missing(envir)) ## [for "lazy" reasons, this fails as default]
-        envir <- as.environment(pos)
-    ls.str(pos=pos, envir=envir, mode = "function", ...)
-}
+lsf.str <- function(pos = 1, ..., envir = as.environment(pos))
+    ls.str(pos = pos, envir = envir, mode = "function", ...)
 
 print.ls_str <- function(x, max.level = 1, give.attr = FALSE, ...)
 {

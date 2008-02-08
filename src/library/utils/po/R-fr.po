@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-01-11 23:16\n"
+"POT-Creation-Date: 2008-02-06 06:53\n"
 "PO-Revision-Date: 2007-04-13 12:56+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -95,18 +95,6 @@ msgstr "les éléments suivants de 'what' seront ignorés"
 msgid "%d occurrences in %s"
 msgstr "%d occurences dans %s"
 
-msgid ""
-"Use <code> %s </code> \n"
-" to list the vignettes in all <strong>available</strong> packages."
-msgstr ""
-
-#, fuzzy
-msgid "No vignettes found by"
-msgstr "vignette '%s' introuvable"
-
-msgid "call"
-msgstr ""
-
 #, fuzzy
 msgid "'file' must be NULL, a character string or a connection"
 msgstr "'file' doit être une chaîne de caractères ou une connexion"
@@ -138,9 +126,6 @@ msgstr "n < m"
 
 msgid "'FUN' must be a function or NULL"
 msgstr "'FUN' doit être une fonction ou NULL"
-
-msgid "Can't handle S4 methods yet"
-msgstr ""
 
 msgid "'package' must be a character string or NULL"
 msgstr "'package' doit être une chaîne de caratcères ou NULL"
@@ -249,12 +234,6 @@ msgstr ""
 msgid "invalid input matrix"
 msgstr "matrice d'entrée incorrecte"
 
-msgid "class(es) of 'name' will be discarded"
-msgstr ""
-
-msgid "cannot edit NULL row names"
-msgstr ""
-
 msgid "no help file found for '%s'"
 msgstr "fichier d'aide introuvable pour '%s'"
 
@@ -282,10 +261,6 @@ msgstr "'form' doit être une formule à deux membres"
 #, fuzzy
 msgid "'form' must be a two-sided formula with one term on each side"
 msgstr "'form' doit être une formule à deux membres"
-
-#, fuzzy
-msgid "'topic' should be a name, length-one character vector or reserved word"
-msgstr "'option' doit être une chaîne de caractères ou NULL"
 
 msgid "No documentation for '%s' in specified packages and libraries:"
 msgstr ""
@@ -412,10 +387,6 @@ msgstr "%d objets correspondent"
 
 msgid "no package '%s' was found"
 msgstr "le package '%s' est introuvable"
-
-#, fuzzy
-msgid "metadata of package '%s' is corrupt"
-msgstr "le fichier DESCRIPTION du package '%s' est incorrect"
 
 msgid "DESCRIPTION file of package '%s' is corrupt"
 msgstr "le fichier DESCRIPTION du package '%s' est incorrect"
@@ -839,12 +810,6 @@ msgstr "str.data.frame() appelé avec un non data.frame -- forçage du type"
 msgid "invalid options('str') -- using defaults instead"
 msgstr "options('str') incorrecte -- utilisation de la valeur par défaut"
 
-msgid "invalid components in options('str'):"
-msgstr ""
-
-msgid ","
-msgstr ""
-
 msgid "'object' does not have valid levels()"
 msgstr "'object' n'a pas d'attribut levels() correct"
 
@@ -912,9 +877,6 @@ msgstr "impossible de trouver une méthode de téléchargement"
 msgid "download had nonzero exit status"
 msgstr "le téléchargement a a eu un statut de sortie non nul"
 
-msgid "Using non-linked HTML file: hyperlinks may be incorrect"
-msgstr ""
-
 msgid "options(\"browser\") not set"
 msgstr "options(\"browser\") non fixée"
 
@@ -928,6 +890,9 @@ msgstr ""
 "Changement du navigateur par défaut (spécifié dans l'option 'brower') pour "
 "ce navigateur de façon qu'il soit utilisé dans toutes les requêtes d'aide "
 "futures"
+
+msgid "Making links in per-session dir ..."
+msgstr "Création des liens dans le répertoire de session..."
 
 msgid ""
 "If '%s' is already running, it is *not* restarted, and you must switch to "
@@ -944,9 +909,6 @@ msgstr "'url' doit être une chaîne de caractères non vide"
 
 msgid "'browser' must be a non-empty character string"
 msgstr "'browser' doit être une chaîne de caractères non vide"
-
-msgid "Making links in per-session dir ..."
-msgstr "Création des liens dans le répertoire de session..."
 
 msgid "cannot create HTML package index"
 msgstr "impossible de créer l'index HTML des packages"
@@ -1015,11 +977,6 @@ msgstr "'tar' a renvoyé un code de sortie non nul %d"
 
 msgid "cannot remove prior installation of package"
 msgstr "impossible de supprimer l'installation précédente du package"
-
-msgid "class discarded from column %s"
-msgid_plural "classes discarded from columns %s"
-msgstr[0] ""
-msgstr[1] ""
 
 msgid "object '%s' not found"
 msgid_plural "objects '%s' not found"

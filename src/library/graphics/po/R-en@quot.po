@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.7.0\n"
+"Project-Id-Version: R 2.6.2\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2007-12-15 15:59\n"
-"PO-Revision-Date: 2007-12-15 15:59\n"
+"POT-Creation-Date: 2008-02-06 06:53\n"
+"PO-Revision-Date: 2008-02-06 06:53\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -274,6 +274,9 @@ msgstr "‘x’ and ‘y’ must have same number of rows"
 msgid "'x' and 'y' must have only 1 or the same number of columns"
 msgstr "‘x’ and ‘y’ must have only 1 or the same number of columns"
 
+msgid "default 'pch' is smaller than number of columns and hence recycled"
+msgstr "default ‘pch’ is smaller than number of columns and hence recycled"
+
 msgid "missing values in contingency table"
 msgstr "missing values in contingency table"
 
@@ -390,9 +393,6 @@ msgstr "invalid plotting method"
 
 msgid "'at' must have length equal to the number %d of groups"
 msgstr "‘at’ must have length equal to the number %d of groups"
-
-msgid "formula missing or incorrect"
-msgstr "formula missing or incorrect"
 
 msgid "'number' must have same length as 'x' and 'y'"
 msgstr "‘number’ must have same length as ‘x’ and ‘y’"

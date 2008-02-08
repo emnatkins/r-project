@@ -17,8 +17,6 @@
  *  http://www.r-project.org/Licenses/
  */
 
-/* This should be regarded as part of the graphics engine */
-
 /* <UTF8> char here is either ASCII or handled as a whole.
    However, the interpretation is as ASCII or in some cases Latin-1
  */
@@ -29,10 +27,12 @@
 
 #include <Defn.h>
 #include <Rdynpriv.h>
-#include <R_ext/GraphicsEngine.h>
+#include <Graphics.h>
 #include <Rmodules/Rvfonts.h>
 
-static VfontRoutines routines;
+static VfontRoutines routines, *ptr = &routines;
+
+
 static int initialized = 0;
 
 void
@@ -40,9 +40,9 @@ R_GE_setVFontRoutines(R_GE_VStrWidthRoutine vwidth,
 		      R_GE_VStrHeightRoutine vheight,
 		      R_GE_VTextRoutine vtext)
 {
-    routines.GEVStrWidth = vwidth;
-    routines.GEVStrHeight = vheight;
-    routines.GEVText = vtext;
+    ptr->GEVStrWidth = vwidth;
+    ptr->GEVStrHeight = vheight;
+    ptr->GEVText = vtext;
 }
 
 static void vfonts_Init(void)
@@ -50,19 +50,45 @@ static void vfonts_Init(void)
     int res = R_moduleCdynload("vfonts", 1, 1);
     initialized = -1;
     if(!res) return;
-    if(!routines.GEVStrWidth)
+    if(!ptr->GEVStrWidth)
 	error(_("vfont routines cannot be accessed in module"));
     initialized = 1;
     return;
 }
 
 attribute_hidden
-double R_GE_VStrWidth(const char *s, int enc, pGEcontext gc, pGEDevDesc dd)
+double GVStrWidth (const char *s, int typeface, int fontindex,
+		   int unit, DevDesc *dd)
+{
+    R_GE_gcontext gc;
+ 
+    gcontextFromGP(&gc, dd);
+    gc.fontface = typeface;
+    gc.fontfamily[0] = fontindex;
+    return GConvertXUnits(R_GE_VStrWidth(s, &gc, (GEDevDesc *) dd),
+			  DEVICE, unit, dd);
+}
+
+attribute_hidden
+double R_GE_VStrWidth(const char *s, R_GE_gcontext *gc, GEDevDesc *dd)
 {
     if(!initialized) vfonts_Init();
     if(initialized > 0) {
-	const char *str = reEnc(s, enc, CE_LATIN1, 2 /* '.' */);
-	return (*routines.GEVStrWidth)(str, gc, dd);
+	const char *str = s;
+#ifdef SUPPORT_MBCS
+	char *buff;
+	Rboolean conv = mbcslocale;
+	if(gc->fontface == 0  && 
+	   (gc->fontfamily[0] == 5 || gc->fontfamily[0] == 6)) conv = FALSE;
+	if(conv && !utf8strIsASCII(str)) {
+	    buff = alloca(strlen(str)+1); /* Output string cannot be longer */
+	    R_CheckStack();
+	    if(!buff) error(_("allocation failure in '%s'"), "R_GE_VStrWidth");
+	    mbcsToLatin1((char*) s, buff);
+	    str = buff;
+	}
+#endif	
+	return (*ptr->GEVStrWidth)(str, gc, dd);
     } else {
 	error(_("Hershey fonts cannot be loaded"));
 	return 0.0;
@@ -70,28 +96,76 @@ double R_GE_VStrWidth(const char *s, int enc, pGEcontext gc, pGEDevDesc dd)
 }
 
 attribute_hidden
-double R_GE_VStrHeight(const char *s, int enc, pGEcontext gc, pGEDevDesc dd)
+double GVStrHeight (const char *s, int typeface, int fontindex,
+		    int unit, DevDesc *dd)
+{
+    R_GE_gcontext gc;
+
+    gcontextFromGP(&gc, dd);
+    gc.fontface = typeface;
+    gc.fontfamily[0] = fontindex;
+    return GConvertYUnits(R_GE_VStrHeight(s, &gc, (GEDevDesc *) dd),
+			  DEVICE, unit, dd);
+}
+
+attribute_hidden
+double R_GE_VStrHeight(const char *s, R_GE_gcontext *gc, GEDevDesc *dd)
 {
     if(!initialized) vfonts_Init();
     if(initialized > 0) {
 	/* The strheight does not depend on the encoding. */
-	return (*routines.GEVStrHeight)(s, gc, dd);
+	return (*ptr->GEVStrHeight)(s, gc, dd);
     } else {
 	error(_("Hershey fonts cannot be loaded"));
 	return 0.0;
     }
 }
 
+attribute_hidden
+void GVText (double x, double y, int unit, const char *s,
+	     int typeface, int fontindex,
+	     double x_justify, double y_justify, double rotation,
+	     DevDesc *dd)
+{
+    R_GE_gcontext gc;
+
+    gcontextFromGP(&gc, dd);
+    /*
+     * Ensure that the current par(xpd) settings are enforced.
+     */
+    GClip(dd);
+    GConvert(&x, &y, unit, DEVICE, dd);
+    gc.fontface = fontindex;
+    gc.fontfamily[0] = typeface;
+    R_GE_VText(x, y, s, x_justify, y_justify, rotation,
+	       &gc, (GEDevDesc *) dd);
+}
 
 attribute_hidden
-void R_GE_VText(double x, double y, const char * const s, int enc,
+void R_GE_VText(double x, double y, const char * const s,
 		double x_justify, double y_justify, double rotation,
-		pGEcontext gc, pGEDevDesc dd)
+		R_GE_gcontext *gc,
+		GEDevDesc *dd)
 {
     if(!initialized) vfonts_Init();
     if(initialized > 0) {
-	const char *str = reEnc(s, enc, CE_LATIN1, 2 /* '.' */);
-	(*routines.GEVText)(x, y, str, x_justify, y_justify, rotation, gc, dd);
+	const char *str = s;
+#ifdef SUPPORT_MBCS
+	char *buff;
+	Rboolean conv = mbcslocale;
+	if(gc->fontface == 0  && 
+	   (gc->fontfamily[0] == 5 || gc->fontfamily[0] == 6)) conv = FALSE;
+	if(conv && !utf8strIsASCII(str)) {
+	    buff = alloca(strlen(str)+1); /* Output string cannot be longer */
+	    R_CheckStack();
+	    if(!buff) error(_("allocation failure in R_GE_VText"));
+	    if(!buff) error(_("allocation failure in '%s'"), "R_GE_VText");
+	mbcsToLatin1(s, buff);
+	str = buff;
+	}
+#endif
+	
+	(*ptr->GEVText)(x, y, str, x_justify, y_justify, rotation, gc, dd);
     } else
 	error(_("Hershey fonts cannot be loaded"));
 }

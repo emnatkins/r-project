@@ -105,10 +105,8 @@ show <- function(object)
                           "\"\n", sep="")
                   cat("\n")
                   show(object@.Data)
-                  cat("Methods may be defined for arguments: ",
-                      paste(object@signature, collapse=", "), "\n",
-			    "Use  showMethods(\"", object@generic,
-			    "\")  for currently available ones.\n", sep="")
+                  cat("Methods may be defined for arguments:",
+                      paste(object@signature, collapse=", "), "\n\n")
               },
               where = envir)
     setMethod("show", "classRepresentation",

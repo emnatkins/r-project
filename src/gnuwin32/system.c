@@ -28,16 +28,13 @@
 #include "Defn.h"
 #include <R_ext/Riconv.h>
 #include "Fileio.h"
+#include "Rdevices.h"		/* KillAllDevices() [nothing else?] */
 #include "graphapp/ga.h"
 #include "console.h"
 #include "rui.h"
 #include "editor.h"
 #include "getline/getline.h"
-#include "getline/wc_history.h"
 #define WIN32_LEAN_AND_MEAN 1
-#ifndef _WIN32_WINNT /* currently mingw does not define, mingw64 does */
-#define _WIN32_WINNT 0x0500     /* for MEMORYSTATUSEX */
-#endif
 #include <windows.h>		/* for CreateEvent,.. */
 #include <process.h>		/* for _beginthread,... */
 #include <io.h>			/* for isatty, chdir */
@@ -45,10 +42,17 @@
 #include "Startup.h"
 #include <stdlib.h>		/* for exit */
 
-#include "win-nls.h"
+#ifdef ENABLE_NLS
+#define G_(String) libintl_dgettext("RGui", String)
+#define GN_(String) gettext_noop (String)
+#else /* not NLS */
+#define G_(String) (String)
+#define GN_(String) String
+#endif
 
-void R_CleanTempDir(void);		/* from extra.c */
-void editorcleanall(void);                  /* from editor.c */
+
+void R_CleanTempDir();		/* from extra.c */
+void editorcleanall();                  /* from editor.c */
 
 int Rwin_graphicsx = -25, Rwin_graphicsy = 0;
 
@@ -61,11 +65,11 @@ static FILE *ifp = NULL;
 
 __declspec(dllexport) UImode  CharacterMode;
 int ConsoleAcceptCmd;
-void set_workspace_name(const char *fn); /* ../main/startup.c */
+void set_workspace_name(char *fn); /* ../main/startup.c */
 
 /* used to avoid some flashing during cleaning up */
 Rboolean AllDevicesKilled = FALSE;
-static int (*R_YesNoCancel)(const char *s);
+static int (*R_YesNoCancel)(char *s);
 
 static DWORD mainThreadId;
 
@@ -74,15 +78,15 @@ static char oldtitle[512];
 __declspec(dllexport) Rboolean UserBreak = FALSE;
 
 /* callbacks */
-static void (*R_CallBackHook) (void);
-static void R_DoNothing(void) {}
+static void (*R_CallBackHook) ();
+static void R_DoNothing() {}
 static void (*my_R_Busy)(int);
 
 /*
  *   Called at I/O, during eval etc to process GUI events.
  */
 
-void (* R_tcldo)(void) = NULL; /* Initialized to be sure */
+void (* R_tcldo)() = NULL; /* Initialized to be sure */
 
 void R_ProcessEvents(void)
 {
@@ -100,7 +104,7 @@ void R_ProcessEvents(void)
  *  1) FATAL MESSAGES AT STARTUP
  */
 
-void R_Suicide(const char *s)
+void R_Suicide(char *s)
 {
     char  pp[1024];
 
@@ -142,19 +146,17 @@ void R_Suicide(const char *s)
 */
 
 /* Global variables */
-static int (*TrueReadConsole) (const char *, char *, int, int);
-static int (*InThreadReadConsole) (const char *, char *, int, int);
-static void (*TrueWriteConsole) (const char *, int);
-static void (*TrueWriteConsoleEx) (const char *, int, int);
+static int (*TrueReadConsole) (char *, char *, int, int);
+static int (*InThreadReadConsole) (char *, char *, int, int);
+static void (*TrueWriteConsole) (char *, int);
+static void (*TrueWriteConsoleEx) (char *, int, int);
 HANDLE EhiWakeUp;
-static const char *tprompt;
-static char *tbuf;
+static char *tprompt, *tbuf;
 static  int tlen, thist, lineavailable;
 
  /* Fill a text buffer with user typed console input. */
 int
-R_ReadConsole(const char *prompt, unsigned char *buf, int len,
-	      int addtohistory)
+R_ReadConsole(char *prompt, unsigned char *buf, int len, int addtohistory)
 {
     R_ProcessEvents();
     return TrueReadConsole(prompt, (char *) buf, len, addtohistory);
@@ -163,7 +165,7 @@ R_ReadConsole(const char *prompt, unsigned char *buf, int len,
 	/* Write a text buffer to the console. */
 	/* All system output is filtered through this routine. */
 
-void R_WriteConsole(const char *buf, int len)
+void R_WriteConsole(char *buf, int len)
 {
     R_ProcessEvents();
     if (TrueWriteConsole) TrueWriteConsole(buf, len);
@@ -171,7 +173,7 @@ void R_WriteConsole(const char *buf, int len)
 }
 
 
-void R_WriteConsoleEx(const char *buf, int len, int otype)
+void R_WriteConsoleEx(char *buf, int len, int otype)
 {
     R_ProcessEvents();
     if (TrueWriteConsole) TrueWriteConsole(buf, len);
@@ -190,7 +192,7 @@ void Rconsolesetwidth(int cols)
 }
 
 static int
-GuiReadConsole(const char *prompt, char *buf, int len, int addtohistory)
+GuiReadConsole(char *prompt, char *buf, int len, int addtohistory)
 {
     int res;
     const char *NormalPrompt =
@@ -222,7 +224,7 @@ static void __cdecl ReaderThread(void *unused)
 }
 
 static int
-ThreadedReadConsole(const char *prompt, char *buf, int len, int addtohistory)
+ThreadedReadConsole(char *prompt, char *buf, int len, int addtohistory)
 {
   sighandler_t oldint,oldbreak;
   /*
@@ -255,9 +257,9 @@ ThreadedReadConsole(const char *prompt, char *buf, int len, int addtohistory)
 
 /*2: from character console with getline (only used as InThreadReadConsole)*/
 static int
-CharReadConsole(const char *prompt, char *buf, int len, int addtohistory)
+CharReadConsole(char *prompt, char *buf, int len, int addtohistory)
 {
-    int res = getline(prompt, buf, len);
+    int res = getline(prompt,buf,len);
     if (addtohistory) gl_histadd(buf);
     return !res;
 }
@@ -266,7 +268,7 @@ CharReadConsole(const char *prompt, char *buf, int len, int addtohistory)
 static void *cd = NULL;
 
 static int
-FileReadConsole(const char *prompt, char *buf, int len, int addhistory)
+FileReadConsole(char *prompt, char *buf, int len, int addhistory)
 {
     int ll, err = 0;
 
@@ -288,8 +290,7 @@ FileReadConsole(const char *prompt, char *buf, int len, int addhistory)
 	*ob = '\0';
 	err = (res == (size_t)(-1));
 	/* errors lead to part of the input line being ignored */
-	if(err) printf(_("<ERROR: invalid input in encoding '%s'>\n"),
-		       R_StdinEnc);
+	if(err) fputs(_("<ERROR: invalid input in encoding>\n"), stdout);
 	strncpy(buf, obuf, len);
     }
 
@@ -309,18 +310,20 @@ FileReadConsole(const char *prompt, char *buf, int len, int addhistory)
 
 /* Rgui */
 static void
-GuiWriteConsole(const char *buf,int len)
+GuiWriteConsole(char *buf,int len)
 {
-/*    char *p;
+    char *p;
 
-    for (p = buf; *p; p++) if (*p == '\001') *p = EOF; */
+    for (p = buf; *p; p++)
+	if (*p == '\001')
+	    *p = EOF;
     if (RConsole) consolewrites(RConsole, buf);
     else MessageBox(NULL, buf, "Console not found", MB_OK | MB_ICONEXCLAMATION);
 }
 
 /* Rterm write */
 static void
-TermWriteConsole(const char *buf, int len)
+TermWriteConsole(char *buf, int len)
 {
     printf("%s", buf);
 }
@@ -331,14 +334,14 @@ TermWriteConsole(const char *buf, int len)
 
 	/* Indicate that input is coming from the console */
 
-void R_ResetConsole(void)
+void R_ResetConsole()
 {
 }
 
 
 	/* Stdio support to ensure the console file buffer is flushed */
 
-void R_FlushConsole(void)
+void R_FlushConsole()
 {
     if (CharacterMode == RTerm && R_Interactive) fflush(stdin);
     else if (CharacterMode == RGui && RConsole) consoleflush(RConsole);
@@ -347,7 +350,7 @@ void R_FlushConsole(void)
 
 	/* Reset stdin if the user types EOF on the console. */
 
-void R_ClearerrConsole(void)
+void R_ClearerrConsole()
 {
     if (CharacterMode == RTerm)  clearerr(stdin);
 }
@@ -414,10 +417,8 @@ void R_CleanUp(SA_TYPE saveact, int status, int runLast)
     case SA_SAVE:
 	if(runLast) R_dot_Last();
 	if(R_DirtyImage) R_SaveGlobalEnv();
-	if (CharacterMode == RGui) {
-	    R_setupHistory(); /* re-read the history size and filename */
-	    wgl_savehistory(R_HistoryFile, R_HistorySize);
-	} else if(R_Interactive && CharacterMode == RTerm) {
+	if (CharacterMode == RGui ||
+	    (R_Interactive && CharacterMode == RTerm)) {
 	    R_setupHistory(); /* re-read the history size and filename */
 	    gl_savehistory(R_HistoryFile, R_HistorySize);
 	}
@@ -466,17 +467,11 @@ void R_CleanUp(SA_TYPE saveact, int status, int runLast)
      *     pager   = pager to be used.
      */
 
-
-/* As from R 2.7.0 we assume file[i] and pager are in UTF-8 */
-extern FILE *R_wfopen(const wchar_t *filename, const wchar_t *mode);
-extern size_t Rf_utf8towcs(wchar_t *wc, const char *s, size_t n);
-
-int R_ShowFiles(int nfile, const char **file, const char **headers,
-		const char *wtitle, Rboolean del, const char *pager)
+int R_ShowFiles(int nfile, char **file, char **headers, char *wtitle,
+		Rboolean del, char *pager)
 {
     int   i;
     char  buf[1024];
-    wchar_t wfn[PATH_MAX+1];
 
     if (nfile > 0) {
 	if (pager == NULL || strlen(pager) == 0)
@@ -484,19 +479,17 @@ int R_ShowFiles(int nfile, const char **file, const char **headers,
 	for (i = 0; i < nfile; i++) {
 	    if(!access(file[i], R_OK)) {
 		if (!strcmp(pager, "internal")) {
-		    newpager(wtitle, file[i], CE_UTF8, headers[i], del);
+		    newpager(wtitle, file[i], headers[i], del);
 		} else if (!strcmp(pager, "console")) {
 		    size_t len;
-		    FILE *f;
-		    Rf_utf8towcs(wfn, file[i], PATH_MAX+1);
-		    f = R_wfopen(wfn, L"rt");
+		    FILE *f = R_fopen(file[i], "rt");
 		    if(f) {
 			while((len = fread(buf, 1, 1023, f))) {
 			    buf[len] = '\0';
 			    R_WriteConsole(buf, strlen(buf));
 			}
 			fclose(f);
-			if (del) DeleteFileW(wfn);
+			if (del) DeleteFile(file[i]);
 		    }
 		    else {
 			snprintf(buf, 1024, _("Unable to open file '%s'"),
@@ -509,7 +502,7 @@ int R_ShowFiles(int nfile, const char **file, const char **headers,
 			snprintf(buf, 1024, "\"%s\" \"%s\"", pager, file[i]);
 		    else
 			snprintf(buf, 1024, "%s \"%s\"", pager, file[i]);
-		    runcmd(buf, CE_NATIVE, 0, 1, "");
+		    runcmd(buf, 0, 1, "");
 		}
 	    } else {
 		snprintf(buf, 1024,
@@ -536,9 +529,7 @@ int R_ShowFiles(int nfile, const char **file, const char **headers,
      *     editor  = editor to be used.
      */
 
-/* As from R 2.7.0 we assume file, editor are in UTF-8 */
-int R_EditFiles(int nfile, const char **file, const char **title,
-		const char *editor)
+int R_EditFiles(int nfile, char **file, char **title, char *editor)
 {
     int   i;
     char  buf[1024];
@@ -548,14 +539,14 @@ int R_EditFiles(int nfile, const char **file, const char **title,
 	    editor = "internal";
 	for (i = 0; i < nfile; i++) {
 	    if (!strcmp(editor, "internal")) {
-		Rgui_Edit(file[i], CE_UTF8, title[i], 0);
+		Rgui_Edit(file[i], title[i], 0);
 	    } else {
 		/* Quote path if necessary */
 		if (editor[0] != '"' && Rf_strchr(editor, ' '))
 		    snprintf(buf, 1024, "\"%s\" \"%s\"", editor, file[i]);
 		else
 		    snprintf(buf, 1024, "%s \"%s\"", editor, file[i]);
-		runcmd(buf, CE_UTF8, 0, 1, "");
+		runcmd(buf, 0, 1, "");
 	    }
 
 	}
@@ -572,19 +563,19 @@ extern int DialogSelectFile(char *buf, int len); /* from rui.c */
 
 int R_ChooseFile(int new, char *buf, int len)
 {
-    return DialogSelectFile(buf, len);
+    return (DialogSelectFile(buf, len));
 }
 
 /* code for R_ShowMessage, R_YesNoCancel */
 
-void (*pR_ShowMessage)(const char *s);
-void R_ShowMessage(const char *s)
+void (*pR_ShowMessage)(char *s);
+void R_ShowMessage(char *s)
 {
     (*pR_ShowMessage)(s);
 }
 
 
-static void char_message(const char *s)
+static void char_message(char *s)
 {
     if (!s) return;
     if (R_Consolefile) {
@@ -595,7 +586,7 @@ static void char_message(const char *s)
     } else R_WriteConsole(s, strlen(s));
 }
 
-static int char_YesNoCancel(const char *s)
+static int char_YesNoCancel(char *s)
 {
     char  ss[128];
     unsigned char a[3];
@@ -619,8 +610,8 @@ static int char_YesNoCancel(const char *s)
 
 static char RHome[MAX_PATH + 7];
 static char UserRHome[MAX_PATH + 7];
-extern char *getRHOME(void), *getRUser(void); /* in rhome.c */
-void R_setStartTime(void);
+extern char *getRHOME(), *getRUser(); /* in rhome.c */
+void R_setStartTime();
 
 
 void R_SetWin32(Rstart Rp)
@@ -688,7 +679,7 @@ void R_SetWin32(Rstart Rp)
 
 /* Remove and process NAME=VALUE command line arguments */
 
-static void Putenv(const char *str)
+static void Putenv(char *str)
 {
     char *buf;
     buf = (char *) malloc((strlen(str) + 1) * sizeof(char));
@@ -750,7 +741,7 @@ char *PrintUsage(void)
     return msg;
 }
 
-void R_setupHistory(void)
+void R_setupHistory()
 {
     int value, ierr;
     char *p;
@@ -766,6 +757,17 @@ void R_setupHistory(void)
             R_HistorySize = value;
     }
 }
+
+static void wrap_askok(char *info)
+{
+    askok(info);
+}
+
+static int wrap_askyesnocancel(char *question)
+{
+    return askyesnocancel(question);    
+}
+
 
 int cmdlineoptions(int ac, char **av)
 {
@@ -808,20 +810,31 @@ int cmdlineoptions(int ac, char **av)
 
     /* set defaults for R_max_memory. This is set here so that
        embedded applications get no limit */
+#ifdef WIN64
     {    
 	MEMORYSTATUSEX ms;
 	ms.dwLength = sizeof(MEMORYSTATUSEX);
 	GlobalMemoryStatusEx(&ms); /* Win2k or later */
 	Virtual = ms.ullTotalVirtual; /* uint64 = DWORDLONG */
-#ifdef WIN64
 	R_max_memory = ms.ullTotalPhys;
-#else
-	R_max_memory = min(Virtual - 512*Mega, ms.ullTotalPhys);
-#endif
-
-	/* need enough to start R, with some head room */
-	R_max_memory = max(32 * Mega, R_max_memory);
     }
+#else
+    {
+	MEMORYSTATUS ms;
+	R_size_t Phys;
+	/* See http://support.microsoft.com/kb/274558
+	   Since our applications are large-address aware, should return
+	   -1 on machines with >= 4Gb of RAM
+	*/
+	ms.dwLength = sizeof(MEMORYSTATUS);
+	GlobalMemoryStatus(&ms);
+	Virtual = ms.dwTotalVirtual; /* uint32 = DWORD */
+	Phys = ms.dwTotalPhys; /* -1 maps to just under 4Gb */
+	R_max_memory = min(Virtual - 512*Mega, Phys);
+    }
+#endif
+    /* need enough to start R, with some head room */
+    R_max_memory = max(32 * Mega, R_max_memory);
 
     R_DefParams(Rp);
     Rp->CharacterMode = CharacterMode;
@@ -865,8 +878,8 @@ int cmdlineoptions(int ac, char **av)
 	Rp->R_Interactive = TRUE;
 	Rp->ReadConsole = GuiReadConsole;
 	Rp->WriteConsole = GuiWriteConsole;
-	Rp->ShowMessage = askok;
-	Rp->YesNoCancel = askyesnocancel;
+	Rp->ShowMessage = wrap_askok;
+	Rp->YesNoCancel = wrap_askyesnocancel;
 	Rp->Busy = GuiBusy;
     }
 
@@ -1034,13 +1047,13 @@ int cmdlineoptions(int ac, char **av)
 }
 
 /* only for back-compatibility: used by Rserve */
-void setup_term_ui(void)
+void setup_term_ui()
 {
     initapp(0, 0);
     readconsolecfg();
 }
 
-void saveConsoleTitle(void)
+void saveConsoleTitle()
 {
     GetConsoleTitle(oldtitle, 512);
 }

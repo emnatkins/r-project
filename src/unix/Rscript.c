@@ -75,7 +75,7 @@ static char rhome[] = R_HOME;
 static int verbose = 0;
 #endif
 
-void usage(void)
+void usage()
 {
     fprintf(stderr, "Usage: /path/to/Rscript [--options] [-e expr] file [args]\n\n");
     fprintf(stderr, "--options accepted are\n");

@@ -1,6 +1,6 @@
 /* 
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999-2008 The R Development Core Team
+ *  Copyright (C) 1999-2004 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,10 +32,9 @@
 
 #if defined(HAVE_AQUA)
 
-#include <R_ext/GraphicsEngine.h> 
-#include <R_ext/Rdynload.h>
-#include <R_ext/QuartzDevice.h>
-
+#include <Rdevices.h>
+#include <R_ext/GraphicsDevice.h> 
+ 
 extern Rboolean useaqua; /* from src/unix/system.c */
 
 
@@ -44,35 +43,12 @@ DL_FUNC ptr_do_wsbrowser, ptr_GetQuartzParameters,
     ptr_do_packagemanger, ptr_do_flushconsole, ptr_do_hsbrowser,
     ptr_do_selectlist;
 
-DL_FUNC ptr_R_ProcessEvents, ptr_CocoaSystem;
+DL_FUNC ptr_R_ProcessEvents, ptr_CocoaInnerQuartzDevice, 
+    ptr_CocoaGetQuartzParameters, ptr_CocoaSystem;
 
-/* deprecated pointers, not used anymore */
-DL_FUNC ptr_CocoaInnerQuartzDevice, ptr_CocoaGetQuartzParameters;
+int (*ptr_Raqua_CustomPrint)(char *, SEXP);
 
-int (*ptr_Raqua_CustomPrint)(const char *, SEXP);
-
-/* new quartz hook */
-Rboolean (*ptr_QuartzBackend)(void *dd, QuartzFunctions_t *fn, QuartzParameters_t *par);
-
-static QuartzFunctions_t* qfn;
-
-QuartzFunctions_t *getQuartzAPI(void) {
-    if (qfn) return qfn;
-    {
-	QuartzFunctions_t *(*fn)(void);
-	fn = (QuartzFunctions_t *(*)(void)) R_FindSymbol("getQuartzAPI", "grDevices", NULL);
-	if (!fn) {
-	    /* we need to load grDevices - not sure if this is the best way, though ... */
-	    eval(LCONS(install("library"),CONS(install("grDevices"),R_NilValue)),R_GlobalEnv);
-	    fn = (QuartzFunctions_t *(*)(void)) R_FindSymbol("getQuartzAPI", "grDevices", NULL);
-	    if (!fn) error(_("unable to load Quartz"));
-	}
-	return fn();
-    }
-}
-
-/* obsolete Quartz Cocoa call */
-Rboolean CocoaInnerQuartzDevice(pDevDesc dd,char *display,
+Rboolean CocoaInnerQuartzDevice(NewDevDesc *dd,char *display,
 				double width,double height,
 				double pointsize,char *family,
 				Rboolean antialias,
@@ -151,7 +127,7 @@ SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP do_aqua_custom_print(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     char *vm;
-    const char *ct;
+    char *ct;
     int cpr;  
     SEXP rv, objType, obj;
 
@@ -169,7 +145,6 @@ SEXP do_aqua_custom_print(SEXP call, SEXP op, SEXP args, SEXP env)
     ct=CHAR(STRING_ELT(objType,0));
     cpr=ptr_Raqua_CustomPrint(ct, obj);
 
-    /* FIXME: trying to store a pointer in an integer is wrong */
     PROTECT(rv=allocVector(INTSXP, 1));
     INTEGER(rv)[0]=cpr;
 
@@ -181,9 +156,11 @@ SEXP do_aqua_custom_print(SEXP call, SEXP op, SEXP args, SEXP env)
 
 void R_ProcessEvents(void)
 {
-  if (ptr_R_ProcessEvents)
-    ptr_R_ProcessEvents();
-  if (R_interrupts_pending)
-    onintr();
+    if(!useaqua){
+	if (R_interrupts_pending)
+	    onintr();
+	return;
+    } else
+	ptr_R_ProcessEvents();
 }
 #endif

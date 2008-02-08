@@ -50,6 +50,7 @@
 #endif
 
 #include "Fileio.h"
+#include <Rdevices.h>		/* KillAllDevices() [nothing else?] */
 
 #define __SYSTEM__
 #define R_INTERFACE_PTRS 1
@@ -65,22 +66,22 @@ Rboolean UsingReadline = TRUE;  /* used in sys-std.c & ../main/platform.c */
 
 /* call pointers to allow interface switching */
 
-void R_Suicide(const char *s) { ptr_R_Suicide(s); }
-void R_ShowMessage(const char *s) { ptr_R_ShowMessage(s); }
-int R_ReadConsole(const char *prompt, unsigned char *buf, int len, int addtohistory)
+void R_Suicide(char *s) { ptr_R_Suicide(s); }
+void R_ShowMessage(char *s) { ptr_R_ShowMessage(s); }
+int R_ReadConsole(char *prompt, unsigned char *buf, int len, int addtohistory)
 { return ptr_R_ReadConsole(prompt, buf, len, addtohistory); }
-void R_WriteConsole(const char *buf, int len) {if (ptr_R_WriteConsole) ptr_R_WriteConsole(buf, len); else ptr_R_WriteConsoleEx(buf, len, 0); }
-void R_WriteConsoleEx(const char *buf, int len, int otype) {if (ptr_R_WriteConsole) ptr_R_WriteConsole(buf, len); else ptr_R_WriteConsoleEx(buf, len, otype); }
+void R_WriteConsole(char *buf, int len) {if (ptr_R_WriteConsole) ptr_R_WriteConsole(buf, len); else ptr_R_WriteConsoleEx(buf, len, 0); }
+void R_WriteConsoleEx(char *buf, int len, int otype) {if (ptr_R_WriteConsole) ptr_R_WriteConsole(buf, len); else ptr_R_WriteConsoleEx(buf, len, otype); }
 void R_ResetConsole(void) { ptr_R_ResetConsole(); }
 void R_FlushConsole(void) { ptr_R_FlushConsole(); }
 void R_ClearerrConsole(void) { ptr_R_ClearerrConsole(); }
 void R_Busy(int which) { ptr_R_Busy(which); }
 void R_CleanUp(SA_TYPE saveact, int status, int runLast)
 { ptr_R_CleanUp(saveact, status, runLast); }
-int R_ShowFiles(int nfile, const char **file, const char **headers,
-		const char *wtitle, Rboolean del, const char *pager)
+int R_ShowFiles(int nfile, char **file, char **headers, char *wtitle,
+		Rboolean del, char *pager)
 { return ptr_R_ShowFiles(nfile, file, headers, wtitle, del, pager); }
-int R_ChooseFile(int _new,  char *buf, int len)
+int R_ChooseFile(int _new, char *buf, int len)
 { return ptr_R_ChooseFile(_new, buf, len); }
 
 
@@ -137,7 +138,6 @@ int Rf_initialize_R(int ac, char **av)
     char *p, msg[1024], cmdlines[10000], **avv;
     structRstart rstart;
     Rstart Rp = &rstart;
-    Rboolean force_interactive = FALSE;
 
 #ifdef ENABLE_NLS
     char localedir[PATH_MAX+20];
@@ -172,14 +172,14 @@ int Rf_initialize_R(int ac, char **av)
     }
 #else
     if(R_running_as_main_program) {
-	/* This is not the main program, but unless embedded it is
+	/* This is not the main program, but unless embedded it is 
 	   near the top, 5540 bytes away when checked. */
 	R_CStackStart = (uintptr_t) &i + (6000 * R_CStackDir);
     }
 #endif
     if(R_CStackStart == -1) R_CStackLimit = -1; /* never set */
-
-    /* printf("stack limit %ld, start %lx dir %d \n", R_CStackLimit,
+    
+    /* printf("stack limit %ld, start %lx dir %d \n", R_CStackLimit, 
               R_CStackStart, R_CStackDir); */
 }
 #endif
@@ -229,7 +229,7 @@ int Rf_initialize_R(int ac, char **av)
 #endif
     R_DefParams(Rp);
     /* Store the command line arguments before they are processed
-       by the R option handler.
+       by the R option handler. 
      */
     R_set_command_line_arguments(ac, av);
     cmdlines[0] = '\0';
@@ -334,16 +334,13 @@ int Rf_initialize_R(int ac, char **av)
 		} else {
 		    snprintf(msg, 1024, _("WARNING: '-e %s' omitted as input is too long\n"), *av);
 		    R_ShowMessage(msg);
-		}
+		}   
 	    } else if(!strcmp(*av, "--args")) {
-		break;
-	    } else if(!strcmp(*av, "--interactive")) {
-		force_interactive = TRUE;
 		break;
 	    } else {
 #ifdef HAVE_AQUA
-		if(!strncmp(*av, "-psn", 4))
-		    break;
+		if(!strncmp(*av, "-psn", 4)) 
+		    break; 
 		else
 #endif
 		snprintf(msg, 1024, _("WARNING: unknown option '%s'\n"), *av);
@@ -381,7 +378,7 @@ int Rf_initialize_R(int ac, char **av)
 	R_Interactive = useaqua;
     else
 #endif
-	R_Interactive = R_Interactive && (force_interactive || isatty(0));
+	R_Interactive = R_Interactive && isatty(0);
 
 #ifdef HAVE_AQUA
     /* for Aqua and non-dumb terminal use callbacks instead of connections
@@ -404,10 +401,10 @@ int Rf_initialize_R(int ac, char **av)
  *  Since users' expectations for save/no-save will differ, we decided
  *  that they should be forced to specify in the non-interactive case.
  */
-    if (!R_Interactive && Rp->SaveAction != SA_SAVE &&
+    if (!R_Interactive && Rp->SaveAction != SA_SAVE && 
 	Rp->SaveAction != SA_NOSAVE)
 	R_Suicide(_("you must specify '--save', '--no-save' or '--vanilla'"));
-
+    
     R_setupHistory();
     if (R_RestoreHistory)
 	Rstd_read_history(R_HistoryFile);
@@ -429,12 +426,17 @@ int Rf_initialize_R(int ac, char **av)
      *     file    = array of filenames
      *     editor  = editor to be used.
      */
-int R_EditFiles(int nfile, const char **file, const char **title,
-		const char *editor)
+/*#ifdef HAVE_AQUA
+extern DL_FUNC ptr_Raqua_Edit;
+#endif
+*/
+int R_EditFiles(int nfile, char **file, char **title, char *editor)
 {
     char  buf[1024];
 #if defined(HAVE_AQUA)
-    if (useaqua) return(ptr_R_EditFiles(nfile, file, title, editor));
+	if (useaqua){
+		return(ptr_R_EditFiles(nfile, file, title, editor));		
+	}
 #endif
 
     if (nfile > 0) {
@@ -443,17 +445,18 @@ int R_EditFiles(int nfile, const char **file, const char **title,
 
 #if defined(HAVE_AQUA)
 	if (ptr_R_EditFile)
-	    ptr_R_EditFile((char *) file[0]);
-	else
+	    ptr_R_EditFile(file[0]);
+	else {
 #endif
-	{
 	    /* Quote path if necessary */
 	    if (editor[0] != '"' && Rf_strchr(editor, ' '))
 		snprintf(buf, 1024, "\"%s\" \"%s\"", editor, file[0]);
 	    else
 		snprintf(buf, 1024, "%s \"%s\"", editor, file[0]);
 	    R_system(buf);
+#if defined(HAVE_AQUA)
 	}
+#endif
 	return 0;
     }
     return 1;

@@ -17,21 +17,16 @@ tclServiceMode(on = NULL)
   \item{on}{(logical) Whether event servicing is turned on. }
 }
 \details{
-  If called with \code{on == NULL} (the default), no change is made.
-
-  Note that this blocks all Tcl/Tk activity, including for widgets from
-  other packages.  It may be better to manage mapping of windows individually.
+If called with \code{on == NULL} (the default), no change is made.
 }
 \value{
 The value of the Tcl service mode before the call.
 }
 \examples{
-## see demo(tkcanvas) for an example
 \dontrun{    
     oldmode <- tclServiceMode(FALSE)
     # Do some work to create a nice picture.  Nothing will be displayed until...
     tclServiceMode(oldmode)
 }
-## another idea is to use tkwm.withdraw() ... tkwm.deiconify()
 }
 \keyword{ misc }

@@ -43,6 +43,7 @@ static SEXP cross_colon(SEXP call, SEXP s, SEXP t)
     if (length(s) != length(t))
 	errorcall(call, _("unequal factor lengths"));
     n = length(s);
+    /* <FIXME> arrange to translate these */
     ls = getAttrib(s, R_LevelsSymbol);
     lt = getAttrib(t, R_LevelsSymbol);
     nls = LENGTH(ls);
@@ -62,15 +63,13 @@ static SEXP cross_colon(SEXP call, SEXP s, SEXP t)
     if (!isNull(ls) && !isNull(lt)) {
 	PROTECT(la = allocVector(STRSXP, nls * nlt));
 	k = 0;
-	/* FIXME: possibly UTF-8 version */
 	for (i = 0; i < nls; i++) {
-	    const char *vi = translateChar(STRING_ELT(ls, i));
-	    vs = strlen(vi);
+	    vs = strlen(CHAR(STRING_ELT(ls, i)));
 	    for (j = 0; j < nlt; j++) {
-		const char *vj = translateChar(STRING_ELT(lt, j));
-		vt = strlen(vj);
+		vt = strlen(CHAR(STRING_ELT(lt, j)));
                 cbuf = R_AllocStringBuffer(vs + vt + 1, &cbuff);
-		sprintf(cbuf, "%s:%s", vi, vj);
+		sprintf(cbuf, "%s:%s",
+			CHAR(STRING_ELT(ls, i)), CHAR(STRING_ELT(lt, j)));
                 SET_STRING_ELT(la, k, mkChar(cbuf));
 		k++;
 	    }

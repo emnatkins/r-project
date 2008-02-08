@@ -145,11 +145,6 @@ void setonfocus(control obj, actionfn fn)
 		obj->call->focus = fn;
 }
 
-void setim(control obj, imfn fn)
-{
-	if (obj)
-		obj->call->im = fn;
-}
 
 /*
  *  Drawing controls and windows.
@@ -701,8 +696,7 @@ void settext(control obj, const char *text)
 	if (text) {
 		if (obj->kind & ControlObject) {
 			text = to_dos_string(text);
-			if(localeCP > 0 && (localeCP != GetACP())) {
-			    /* This seems not actually to work */
+			if(is_NT && localeCP > 0 && (localeCP != GetACP())) {
 			    wchar_t *wc;
 			    int nc = strlen(text) + 1;
 			    wc = (wchar_t*) alloca(nc*sizeof(wchar_t));
@@ -712,8 +706,7 @@ void settext(control obj, const char *text)
 			discard(text);
 		}
                 if (obj->kind == MenuitemObject) {
-		    if(localeCP > 0 && (localeCP != GetACP())) {
-			/* But this does */
+		    if(is_NT && localeCP > 0 && (localeCP != GetACP())) {
 			wchar_t wc[1000];
 			mbstowcs(wc, text, 1000);
                         ModifyMenuW(obj->parent->handle, obj->id,

@@ -182,7 +182,6 @@ $R_check_force_suggests =
 $R_check_force_suggests =
     $R_check_force_suggests ? "true" : "false";
 $ENV{"_R_CHECK_FORCE_SUGGESTS_"} = $R_check_force_suggests;
-## </FIXME>
 ## </NOTE>
 
 $opt_subdirs = $R_check_subdirs_strict if $opt_subdirs eq "";
@@ -282,7 +281,7 @@ foreach my $pkg (@ARGV) {
 	my $pkgq = &shell_quote_file_path($pkg);
 	my $dirq = &shell_quote_file_path($dir);
 	if(R_system("$gzip -dc $pkgq | $tar -xf - -C $dirq")) {
-	    die "Error: cannot untar '$pkg'\n";}
+	    die "Error: cannot untar $pkg\n";}
 	$pkg = &file_path($dir, $pkgname);
     }
 
@@ -310,8 +309,6 @@ foreach my $pkg (@ARGV) {
     my @out = R_runR("cat(R.version.string, '\\n', sep='')",
 		     "--slave --vanilla");
     $log->message("using @out");
-    @out = R_runR("tools:::.find_charset()", "--slave --vanilla");
-    $log->message("using session @out");
 
     if(!$opt_library) {
 	$library = $pkgoutdir;
@@ -326,7 +323,6 @@ foreach my $pkg (@ARGV) {
     my $is_bundle = 0;
     my $package_or_bundle = "package";
     my $package_or_bundle_name;
-    my $encoding;
     ## Package sources from the R distribution are special.  They have a
     ## 'DESCRIPTION.in' file (instead of 'DESCRIPTION'), with Version
     ## field containing '@VERSION@' for substitution by configure.  We
@@ -352,7 +348,6 @@ foreach my $pkg (@ARGV) {
 	    $description =
 	      new R::Dcf(&file_path($pkgdir, "DESCRIPTION"));
 	    $log->result("OK");
-	    $encoding = $description->{"Encoding"};
 	}
 	else {
 	    $log->result("NO");
@@ -379,8 +374,6 @@ foreach my $pkg (@ARGV) {
 	$log->message("this is $package_or_bundle " .
 		      "'$package_or_bundle_name' " .
 		      "version '$description->{\"Version\"}'");
-
-        if(defined $encoding) {$log->message("package encoding: $encoding");}
 
 	## Check package dependencies.
 
@@ -620,7 +613,7 @@ foreach my $pkg (@ARGV) {
 			    @lines = &read_lines($out);
 			    open(FILE, "> $out")
 				or die "Error: cannot open file '$out' for re-writing\n";
-			    foreach my $line (@lines) {
+			    foreach $line (@lines) {
 				$line =~ s/\r$//;
 				print FILE $line, "\n";
 			    }
@@ -865,7 +858,6 @@ sub check_pkg {
 
     $log->checking("for portable file names");
     my @bad_files = ();
-    my @non_ASCII_files = ();
     sub find_wrong_names {
 	my $file_path = $File::Find::name;
 	$file_path =~ s/^\.[^\/]*\///;
@@ -880,18 +872,11 @@ sub check_pkg {
 	    }
 	}
 	my $file_name = basename($file_path);
-	{
-	    ## collation is ASCII as 'use locale' is not in effect.
-	    ## NB: the omission of ' ' is deliberate.
-	    if (grep(/[^-A-Za-z0-9._!\#\$%&+,;=@^\(\)\{\}\'\[\]]/, $file_name))  {
-		push(@non_ASCII_files, $file_path);
-	    }
-	}
 	if(grep(/[[:cntrl:]\"\*\/\:\<\>\?\\\|]/, $file_name)) {
 	    push(@bad_files, $file_path);
 	} elsif(dirname($file_path) =~ /man$/) {
-	    ## perhaps use ranges here, /([^ -~]|%)/ ?
-	    foreach my $ch (split //, $file_name) {
+	    my $ch;
+	    foreach $ch (split //, $file_name) {
 		## collation is ASCII as 'use locale' is not in effect.
 		if ($ch eq "%" || $ch lt " " || $ch gt "~")  {
 		    push(@bad_files, $file_path);
@@ -959,19 +944,7 @@ sub check_pkg {
 	exit(1);
     }
 
-    if(scalar(@non_ASCII_files) > 0) {
-	$log->warning();
-	$log->print("Found the following file(s) with " .
-		    "non-portable file names:\n");
-	$log->print("  " . join("\n  ", @non_ASCII_files) . "\n");
-	$log->print(wrap("", "",
-			 ("These are not fully portable file names\n",
-			  "See section 'Package structure'",
-			  "in manual 'Writing R Extensions'.\n")));
-    }
-    else {
-	$log->result("OK");
-    }
+    $log->result("OK");
 
     ## Check for sufficient file permissions (Unix only).
 
@@ -1527,8 +1500,11 @@ sub check_pkg {
 	}
     }
 
-    ## Check R code for possible problems, including tests based on LT's
-    ## codetools package.
+    ## Check R code for possible problems using LT's codetools package
+    ## Activated only via setting the internal environment variable
+    ## _R_CHECK_USE_CODETOOLS_ to something "true".
+
+    ## Also do the library.dynam() tests here.
 
     if(-d "R") {
 	$log->checking("R code for possible problems");
@@ -1947,12 +1923,13 @@ sub check_pkg {
 	    if (-f &file_path("src", "Makefile"));
 	push(@makefiles, &file_path("src", "Makefile.in")) 
 	    if (-f &file_path("src", "Makefile.in"));
-	foreach my $f (@makefiles) {
+	foreach $f (@makefiles)
+	{
 	    open(FILE, "< $f")
 		or die("Error: cannot open file '$f' for reading\n");
 	    while(<FILE>) {
 		if(/PKG_LIBS/ && /\$[\{\(]{0,1}BLAS_LIBS/ && !/FLIBS/) {
-		    $log->warning() unless $any;
+		    $log->warning();
 		    $any++;
 		    chomp;
 		    s/\r$//;  # some packages have CRLF terminators
@@ -2024,21 +2001,17 @@ sub check_pkg {
 	$log->result("OK");
 	$log->checking("examples");
 
-	my $enc = "";
-	if(defined($description->{"Encoding"})) {
-	    $enc = "--encoding " . $description->{"Encoding"};
-        }
 	if($opt_use_gct) {
             $cmd = join(" ",
 			("(echo 'gctorture(TRUE)';",
 			 "cat ${pkgname}-Ex.R) |",
 			 &shell_quote_file_path(${R::Vars::R_EXE}),
-			 "${R_opts}", $enc,
+			 "${R_opts}",
 			 "> ${pkgname}-Ex.Rout 2>&1"));
 	} else {
 	    $cmd = join(" ",
 			(&shell_quote_file_path(${R::Vars::R_EXE}),
-			 "${R_opts}", $enc,
+			 "${R_opts}",
 			 "< ${pkgname}-Ex.R",
 			 "> ${pkgname}-Ex.Rout 2>&1"));
 	}

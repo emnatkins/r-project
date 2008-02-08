@@ -438,8 +438,8 @@ par(\dots, no.readonly = FALSE)
     \item{\code{pch}}{Either an integer specifying a symbol or a single
       character to be used as the default in plotting points.  See
       \code{\link{points}} for possible values and their interpretation.
-      Note that only integers and single-character strings can
-      be set as a graphics parameter (and not \code{NA} nor \code{NULL}).
+      Note that only non-negative integers and single-byte strings can
+      be set as a graphics parameter.
     }
     \item{\code{pin}}{The current plot dimensions, \code{(width,height)},
       in inches.}
@@ -557,9 +557,7 @@ par(\dots, no.readonly = FALSE)
   hexadecimal digits giving a value in the range \code{00} to \code{FF}.
   Colors can also be specified by giving an index into a small table of
   colors, the \code{\link{palette}}.  This provides compatibility with
-  S.  Index \code{0} corresponds to the background color.  (Because
-  apparently some people have been assuming it, it is also possible to
-  specify integers as character strings, e.g. \code{"3"}.)
+  S.  Index \code{0} corresponds to the background color.
 
   Additionally, \code{"transparent"} or (integer) \code{NA} is
   \emph{transparent}, useful for filled areas (such as the background!),

@@ -136,11 +136,12 @@ release.
 @node How do I install R for Windows?, How do I check an installation?, Where can I find the latest version?, Installation and Usage
 @section How do I install R for Windows?
 
-Versions of R as from 2.7.0 will only run on Windows 2000 or later.  (R
-2.6.1 was the last version for Windows 95. 98, ME and NT4.)  There is no
-specific version for x64 Windows, but the standard 32-bit version works
-well enough.  We only test on versions of Windows currently supported by
-Microsoft, mainly on XP, Vista x64 and Windows Server 2003.
+You need Windows 95 or later.  There is no specific version for Windows
+64, but the standard 32-bit version has been proven to work.  Some
+features only work on an NT-based version of Windows (and some work
+better on such an OS).  We do minimally test most releases on Windows 98
+(2.5.0 was tested, for example), but only test thoroughly on XP and
+Vista 64.
 
 Your file system must allow case-honouring long file names (as is likely
 except perhaps for some network-mounted systems).  A full installation
@@ -169,11 +170,12 @@ you will only be able to install R in your own file area.  On Windows
 Vista you may need to confirm that you want to proceed with
 installing a program from an `unidentified publisher'.
 
-After installation you should choose a working directory for R.  You
-will have a shortcut to @file{@RWVER@\bin\Rgui.exe} on your desktop
-and/or somewhere on the Start menu file tree, and perhaps also in the
-Quick Launch part of the taskbar.  Right-click each shortcut, select
-Properties... and change the `Start in' field to your working directory.
+After installation you should choose a working directory for R (one
+where you have permission to create files).  You will have a shortcut to
+@file{@RWVER@\bin\Rgui.exe} on your desktop and/or somewhere on the
+Start menu file tree, and perhaps also in the Quick Launch part of the
+taskbar.  Right-click each shortcut, select Properties... and change the
+`Start in' field to your working directory.
 
 You may also want to add command-line arguments at the end of the
 Target field (@emph{after} any final double quote, and separated by a
@@ -414,9 +416,9 @@ directories.  It first tries to use the Windows "personal" directory
 (typically @file{C:\Documents and Settings\username\My Documents} on
 Windows XP and @file{C:\Users\username\Documents} on Vista).  If that
 fails, if both environment variables @env{HOMEDRIVE} and @env{HOMEPATH}
-are set (and they normally are), the value is
-@file{$@{HOMEDRIVE@}$@{HOMEPATH@}}.  If all of these fail, the current
-working directory is used.
+are set (and they normally are under Windows NT4, 2000 and later), the
+value is @file{$@{HOMEDRIVE@}$@{HOMEPATH@}}.  If all of these fail, the
+current working directory is used.
 
 You can find this from R code by @code{Sys.getenv("R_USER")}.
 
@@ -485,7 +487,8 @@ tried to make R work on paths with spaces in, but many people writing
 packages for Unix do not bother.  So it is worth trying the alternative
 short name (something like @samp{PROGRA~1}; you can get it as the
 `MS-DOS name' from the Properties of the file on some versions of
-Windows, and from @command{dir /X} in a @samp{Command Prompt} window).
+Windows, and from @command{dir /X} in a @samp{Command Prompt} window on
+2000 and later).
 
 
 @node Does R use the Registry?, Does R support automation?, R can't find my file, Installation and Usage
@@ -848,7 +851,7 @@ for example for Lucida Console.
 You do need to ensure that R is running in a suitable locale: use
 @code{Sys.getlocale()} to find out.  (CJK users may be used to their
 language characters always being available, which is the case for
-so-called `Unicode' Windows applications.  However, R used to run on
+so-called `Unicode' Windows applications.  However, R has to run on
 Windows 9x and is not therefore `Unicode'.)  You can find suitable
 locale names from
 @uref{http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vccore98/html/_crt_language_and_country_strings.asp}:
@@ -1111,12 +1114,11 @@ installer and install them.
 
 Alternatively, if you have the environment variable @env{MY_TCLTK} set
 to a non-empty value, it is assumed that you want to use a different
-Tcl/Tk 8.5.x installation with the path to its @file{bin} directory
-given by value of @env{MY_TCLTK}, and that this is set up correctly
-(with @env{TCL_LIBRARY} set if needed).  In that case you do not need
-the Tcl/Tk support files installed (but they can be).  Note that you do
-need 8.5.x and not 8.4.x.  (If you build R from the sources yourself you
-can configure it to use 8.4.x.)
+Tcl/Tk 8.4.x installation, and that this is set up correctly (with the
+DLLs in your path and @env{TCL_LIBRARY} set if needed).  In that case
+you do not need the Tcl/Tk support files installed (but they can be).
+Note that you do need 8.4.x and not 8.5.x.  (If you build R from the
+sources yourself you can configure it to use 8.5.x.)
 
 
 @node  Hyperlinks in HTML do not work., update.packages() fails, Package TclTk does not work., Packages
@@ -1305,6 +1307,7 @@ so, and setting the environment variable @env{R_COMPLETION} to
 settings available use
 
 @example
+library(rcompgen)
 ?rc.settings
 @end example
 

@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1999-2008  The R Development Core Team
+ *  Copyright (C) 1999-2007  The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,14 +45,14 @@ extern UImode  CharacterMode;
 #define gettext GA_gettext
 
 #define MCHECK(a) if (!(a)) {del(c); return NULL;}
-RECT *RgetMDIsize(void);
+RECT *RgetMDIsize();
 
 /* Pointers to currently open editors */
 static editor REditors[MAXNEDITORS];
 static int neditors  = 0;
 static Rboolean fix_editor_up = FALSE;
 
-static EditorData neweditordata (int file, const char *filename)
+static EditorData neweditordata (int file, char *filename)
 {
     EditorData p;
     p = (EditorData) malloc(sizeof(struct structEditorData));
@@ -77,7 +77,7 @@ void deleditordata(EditorData p)
     free(p);
 }
 
-static void editor_set_title(editor c, const char *title)
+static void editor_set_title(editor c, char *title)
 {
     char wtitle[EDITORMAXTITLE+1];
     textbox t = getdata(c);
@@ -85,16 +85,16 @@ static void editor_set_title(editor c, const char *title)
     strncpy(wtitle, title, EDITORMAXTITLE);
     wtitle[EDITORMAXTITLE] = '\0';
     strcpy(p->title, wtitle);
-    if (strlen(wtitle) + strlen(G_("R Editor")) + 3 < EDITORMAXTITLE) {
+    if (strlen(wtitle) + strlen("R Editor") + 3 < EDITORMAXTITLE) {
     	strcat(wtitle, " - ");
-    	strcat(wtitle, G_("R Editor"));
+    	strcat(wtitle, "R Editor");
     }
     settext(c, wtitle);
 }
 
 /*** FILE MANAGEMENT FUNCTIONS ***/
 
-static void editor_load_file(editor c, const char *name, int enc)
+static void editor_load_file(editor c, char *name)
 {
     textbox t = getdata(c);
     EditorData p = getdata(t);
@@ -128,7 +128,7 @@ static void editor_load_file(editor c, const char *name, int enc)
     fclose(f);
 }
 
-static void editor_save_file(editor c, const char *name)
+static void editor_save_file(editor c, char *name)
 {
     textbox t = getdata(c);
     FILE *f;
@@ -178,7 +178,7 @@ static void editorsave(editor c)
     textbox t = getdata(c);
     EditorData p = getdata(t);
     if (p->file) {  /* save existing file without prompt */
-	const char *current_name = p->filename;
+	char *current_name = p->filename;
 	editor_save_file(c, current_name);
 	gsetmodified(t, 0);
     }
@@ -202,7 +202,7 @@ static void editorprint(control m)
     printer lpr;
     font f;
     textbox t = getdata(m);
-    const char *contents = gettext(t);
+    char *contents = gettext(t);
     char msg[LF_FACESIZE + 128];
     char *linebuf = NULL;
     int cc, rr, fh, page, linep, i, j, istartline;
@@ -316,18 +316,19 @@ static void menueditorclose(control m)
 
 /* Called when exiting Rgui, check if any open editors need saving */
 
-void editorcleanall(void)
+void editorcleanall()
 {
     int i;
     for (i = neditors-1;  i >= 0; --i) {
-	if (editorchecksave(REditors[i])) jump_to_toplevel();
+	if (editorchecksave(REditors[i]))
+	    jump_to_toplevel();
 	del(REditors[i]);
     }
 }
 
-static void editornew(void)
+static void editornew()
 {
-    Rgui_Edit("", CE_NATIVE, "", 0);
+    Rgui_Edit("", "", 0);
 }
 
 void menueditornew(control m)
@@ -335,7 +336,7 @@ void menueditornew(control m)
     editornew();
 }
 
-static void editoropen(const char *default_name)
+static void editoropen(char *default_name)
 {
     char *name;
     int i; textbox t; EditorData p;
@@ -351,7 +352,7 @@ static void editoropen(const char *default_name)
 		break;
 	    }
 	}
-	Rgui_Edit(name, CE_NATIVE, name, 0);
+	Rgui_Edit(name, name, 0);
     }
 }
 
@@ -559,7 +560,7 @@ static void editorfocus(editor c)
     show(t);
 }
 
-static void editorhelp(void)
+static void editorhelp()
 {
     char s[4096];
 
@@ -599,7 +600,7 @@ static MenuItem EditorPopup[] = {                /* Numbers used below */
     LASTMENUITEM
 };
 
-static editor neweditor(void)
+static editor neweditor()
 {
     int x, y, w, h, w0, h0;
     editor c;
@@ -794,9 +795,7 @@ static void eventloop(editor c)
 
 #include <unistd.h>
 
-/* FIXME UTF-8 */
-int Rgui_Edit(const char *filename, int enc, const char *title,
-	      int modal)
+int Rgui_Edit(char *filename, char *title, int stealconsole)
 {
     editor c;
     EditorData p;
@@ -812,7 +811,7 @@ int Rgui_Edit(const char *filename, int enc, const char *title,
     }
     if (strlen(filename) > 0) {
 	if (!access(filename, R_OK))
-	    editor_load_file(c, filename, enc);
+	    editor_load_file(c, filename);
 	else
 	    R_ShowMessage(G_("Unable to open file for reading"));
 	editor_set_title(c, title);
@@ -823,8 +822,8 @@ int Rgui_Edit(const char *filename, int enc, const char *title,
     show(c);
     
     p = getdata(getdata(c));
-    p->stealconsole = modal;
-    if (modal) {
+    p->stealconsole = stealconsole;
+    if (stealconsole) {
     	fix_editor_up = TRUE;
     	eventloop(c);
     }

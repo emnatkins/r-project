@@ -51,12 +51,8 @@ iconvlist()
   are invalid or because they cannot be represented in the target
   encoding) will be returned as \code{NA} unless \code{sub} is specified.
 
-  Most versions of \code{iconv} will allow transliteration by appending
+  Some versions of \code{iconv} will allow transliteration by appending
   \code{//TRANSLIT} to the \code{to} encoding: see the examples.
-
-  Any encoding bits (see \code{\link{Encoding}}) on elements of \code{x}
-  are ignored: they will always be translated as if from \code{from}
-  even if declared otherwise.
 }
 \value{
   A character vector of the same length and the same attributes as
@@ -73,7 +69,7 @@ iconvlist()
 \seealso{
   \code{\link{localeToCharset}}, \code{\link{file}}. 
 }
-\examples{\donttest{
+\examples{
 utils::head(iconvlist(), n = 50)
 
 \dontrun{
@@ -99,8 +95,8 @@ iconv(x, "latin1", "ASCII", "byte")  # "fa<e7>ile"
 x <- c("Ekstr\xf8m", "J\xf6reskog", "bi\xdfchen Z\xfcrcher")
 Encoding(x) <- "latin1"
 x
-try(iconv(x, "latin1", "ASCII//TRANSLIT"))  # platform-dependent
+try(iconv(x, "latin1", "ASCII//TRANSLIT"))
 iconv(x, "latin1", "ASCII", sub="byte")
-}}
+}
 \keyword{ character }
 \keyword{ utilities }

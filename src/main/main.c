@@ -34,6 +34,8 @@
 #define __MAIN__
 #include "Defn.h"
 #include "Rinterface.h"
+#include "Graphics.h"
+#include <Rdevices.h>		/* for InitGraphics */
 #include "IOStuff.h"
 #include "Fileio.h"
 #include "Parse.h"
@@ -48,7 +50,7 @@
 #endif
 
 #ifdef ENABLE_NLS
-void attribute_hidden nl_Rdummy(void)
+void attribute_hidden nl_Rdummy()
 {
     /* force this in as packages use it */
     dgettext("R", "dummy - do not translate");
@@ -78,7 +80,7 @@ void Rf_callToplevelHandlers(SEXP expr, SEXP value, Rboolean succeeded,
 static int ParseBrowser(SEXP, SEXP);
 
  
-extern void InitDynload(void);
+extern void InitDynload();
 
 	/* Read-Eval-Print Loop [ =: REPL = repl ] with input from a file */
 
@@ -316,7 +318,7 @@ static void R_ReplConsole(SEXP rho, int savestack, int browselevel)
 
 static unsigned char DLLbuf[CONSOLE_BUFFER_SIZE+1], *DLLbufp;
 
-void R_ReplDLLinit(void)
+void R_ReplDLLinit()
 {
     R_IoBufferInit(&R_ConsoleIob);
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
@@ -327,7 +329,7 @@ void R_ReplDLLinit(void)
 }
 
 
-int R_ReplDLLdo1(void)
+int R_ReplDLLdo1()
 {
     int c;
     ParseStatus status;
@@ -446,7 +448,7 @@ static void win32_segv(int signum)
    2005-12-17 BDR */
 
 static unsigned char ConsoleBuf[CONSOLE_BUFFER_SIZE];
-extern void R_CleanTempDir(void);
+extern void R_CleanTempDir();
 
 static void sigactionSegv(int signum, siginfo_t *ip, void *context)
 {
@@ -598,7 +600,7 @@ static struct sigaltstack sigstk;
 static void *signal_stack;
 
 #define R_USAGE 100000 /* Just a guess */
-static void init_signal_handlers(void)
+static void init_signal_handlers()
 {
     /* <FIXME> may need to reinstall this if we do recover. */
     struct sigaction sa;
@@ -627,7 +629,7 @@ static void init_signal_handlers(void)
 }
 
 #else /* not sigaltstack and sigaction and sigemptyset*/
-static void init_signal_handlers(void)
+static void init_signal_handlers()
 {
     signal(SIGINT,  handleInterrupt);
     signal(SIGUSR1, onsigusr1);
@@ -745,9 +747,7 @@ void setup_Rmainloop(void)
 
     InitTempDir(); /* must be before InitEd */
     InitMemory();
-#ifdef USE_CHAR_HASHING
     InitStringHash(); /* must be before InitNames */
-#endif
     InitNames();
     InitBaseEnv();
     InitGlobalEnv();
@@ -778,7 +778,7 @@ void setup_Rmainloop(void)
 	known_to_be_latin1 = latin1locale = (localeCP == 1252);
     }
 #endif
-#if defined(Win32) && defined(SUPPORT_UTF8_WIN32)
+#if defined(Win32) && defined(SUPPORT_UTF8)
     utf8locale = mbcslocale = TRUE;
 #endif
     /* gc_inhibit_torture = 0; */
@@ -884,12 +884,9 @@ void setup_Rmainloop(void)
      */
     if(!R_Quiet) {
 	PrintGreeting();
-#ifndef SUPPORT_MBCS
+#ifndef SUPPORT_UTF8
 	if(utf8locale)
 	    R_ShowMessage(_("WARNING: UTF-8 locales are not supported in this build of R\n"));
-	else if(mbcslocale)
-	    R_ShowMessage(_("WARNING: multibyte locales are not supported in this build of R\n"));
-
 #endif
     }
 
@@ -1353,7 +1350,7 @@ R_removeTaskCallback(SEXP which)
 }
 
 SEXP
-R_getTaskCallbackNames(void)
+R_getTaskCallbackNames()
 {
     SEXP ans;
     R_ToplevelCallbackEl *el;
@@ -1509,15 +1506,3 @@ R_addTaskCallback(SEXP f, SEXP data, SEXP useData, SEXP name)
 }
 
 #undef __MAIN__
-
-#ifndef Win32
-/* this is here solely to pull in xxxpr.o */
-#include <R_ext/RS.h>
-void F77_SYMBOL(intpr) (const char *, int *, int *, int *);
-void attribute_hidden dummy12345(void)
-{
-    int i = 0;
-    F77_CALL(intpr)("dummy", &i, &i, &i);
-}
-#endif
-

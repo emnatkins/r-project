@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-01-21 17:32\n"
+"POT-Creation-Date: 2007-05-25 12:17\n"
 "PO-Revision-Date: 2007-04-13 12:15+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -113,25 +113,6 @@ msgstr "argument manquant sans valeur par défaut"
 msgid "dev.displaylist() called without an open graphics device"
 msgstr "dev.displaylist() appelé sans périphérique graphique ouvert"
 
-msgid "invalid setting for 'getOption(\"device\")'"
-msgstr ""
-
-msgid "no suitable unused file name for pdf()"
-msgstr ""
-
-msgid "dev.new(): using pdf(file=\"%s\")"
-msgstr ""
-
-msgid "no suitable unused file name for postscript()"
-msgstr ""
-
-msgid "dev.new(): using postscript(file=\"%s\")"
-msgstr ""
-
-#, fuzzy
-msgid "device '%s' not found"
-msgstr "le périphérique '%s' n'est pas disponible"
-
 msgid "invalid arguments in '%s' (need named args)"
 msgstr "arguments incorrects dans '%s' (les arguments doivent être nommés)"
 
@@ -148,17 +129,10 @@ msgstr "options incorrectes dans '%s'"
 msgid "NOT changing"
 msgstr "NE change(nt) PAS"
 
-msgid "argment 'append' is for back-compatibility and will be ignored"
-msgstr ""
-
 msgid "unknown family '%s'"
 msgstr "famille inconnue '%s'"
 
 msgid "invalid 'family' argument"
-msgstr "argument 'family' incorrect"
-
-#, fuzzy
-msgid "invalid 'file'"
 msgstr "argument 'family' incorrect"
 
 msgid "invalid PDF version"
@@ -256,9 +230,10 @@ msgstr "le périphérique '%s' n'est pas disponible"
 msgid "Available devices are %s"
 msgstr "Les périphériques disponibles sont %s"
 
-#, fuzzy
-msgid "invalid 'title'"
-msgstr "Type de police incorrect"
+msgid "quartz() device interactivity reduced without an event loop manager"
+msgstr ""
+"interactivité réduite (sans gestion des événements) dans les périphériques "
+"quartz()"
 
 msgid "invalid Quartz font:  must be 4 strings"
 msgstr "police Quartz incorrecte : doit être 4 chaînes de caractères"
@@ -270,18 +245,11 @@ msgid "invalid arguments in quartzFonts (need named args)"
 msgstr ""
 "arguments incorrects dans quartzFonts (les arguments doivent être nommés)"
 
-#, fuzzy
-msgid "invalid 'filename'"
-msgstr "argument 'family' incorrect"
-
 msgid "'res' must be specified unless 'units = \"px\"'"
 msgstr ""
 
 msgid "invalid X11 font specification:"
 msgstr "spécification de police X11 incorrecte :"
-
-msgid "invalid value for 'rescale"
-msgstr ""
 
 msgid "can only bring windows devices to the front"
 msgstr ""
@@ -331,8 +299,3 @@ msgid "%d z value <= 0 omitted from logarithmic plot"
 msgid_plural "%d z values <= 0 omitted from logarithmic plot"
 msgstr[0] "%d valeur z <= 0 est ignorée pour le graphe logarithmique"
 msgstr[1] "%d valeurs z <= 0 sont ignorées pour le graphe logarithmique"
-
-#~ msgid "quartz() device interactivity reduced without an event loop manager"
-#~ msgstr ""
-#~ "interactivité réduite (sans gestion des événements) dans les "
-#~ "périphériques quartz()"

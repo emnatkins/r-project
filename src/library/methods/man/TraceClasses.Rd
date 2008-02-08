@@ -11,8 +11,6 @@
 \alias{MethodWithNextWithTrace-class}
 \alias{genericFunctionWithTrace-class}
 \alias{groupGenericFunctionWithTrace-class}
-\alias{derivedDefaultMethodWithTrace-class}
-\alias{nonstandardGenericWithTrace-class}
 %% private
 \alias{.untracedFunction}
 \alias{.makeTracedFunction}

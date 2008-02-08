@@ -5,7 +5,7 @@
  *  Version 2.4 (c) Lachlan Patrick 1996-1998.
  *  This header file is designed to be platform-independent.
  *
- *  Copyright 2006-8 	The R Foundation
+ *  Copyright 2006 	The R Foundation
  *
  */
 
@@ -130,7 +130,6 @@ typedef void (*keyfn)(control c, int key);
 typedef void (*menufn)(menuitem m);
 typedef void (*scrollfn)(scrollbar s, int position);
 typedef void (*dropfn)(control c, char *data);
-typedef void (*imfn)(control c, font *f, point *xy);
 
 /*
  *  Mouse buttons state (bit-fields).
@@ -338,7 +337,6 @@ typedef void (*imfn)(control c, font *f, point *xy);
 #define gdrawrect		GA_gdrawrect
 #define gdrawstr		GA_gdrawstr
 #define gdrawstr1		GA_gdrawstr1
-#define gdrawwcs		GA_gdrawwcs
 #define getHandle		GA_getHandle
 #define getSysFontSize		GA_getSysFontSize
 #define get_context		GAI_get_context
@@ -390,7 +388,6 @@ typedef void (*imfn)(control c, font *f, point *xy);
 #define gstrsize		GA_gstrsize
 #define gstrwidth		GA_gstrwidth
 #define gwcharmetric		GA_gwcharmetric
-#define gwcswidth		GA_gwcswidth
 #define gwdrawstr1		GA_gwdrawstr1
 #define handle_control		GAI_handle_control
 #define handle_findreplace	GAI_handle_findreplace
@@ -537,7 +534,6 @@ typedef void (*imfn)(control c, font *f, point *xy);
 #define setforeground		GA_setforeground
 #define sethit		GA_sethit
 #define setimage		GA_setimage
-#define setim		GA_setim
 #define setkeyaction		GA_setkeyaction
 #define setkeydown		GA_setkeydown
 #define setlimittext		GA_setlimittext
@@ -966,7 +962,6 @@ rect    GetCurrentWinPos(window obj);
 #define Minimize		0x00000200L
 #define HScrollbar      	0x00000400L
 #define VScrollbar      	0x00000800L
-#define CanvasSize		0x00200000L
 
 #define Modal			0x00001000L
 #define Floating		0x00002000L
@@ -1023,8 +1018,6 @@ void	setmouserepeat(control c, mousefn fn);
 void	setdrop(control c, dropfn fn);
 
 void	setonfocus(control c, actionfn fn);
-
-void    setim(control c, imfn fn);
 
 /*
  *  Using windows and controls.

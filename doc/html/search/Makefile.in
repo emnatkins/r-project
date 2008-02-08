@@ -34,8 +34,9 @@ DISTCLEANFILES = Makefile
 .SUFFIXES:
 .SUFFIXES: .class .java
 
+## <FIXME> test for validity of flags in configure
 .java.class:
-	@BUILD_JAVA14_TRUE@(cd $(srcdir) && @JAVAC14@ $(<F))
+	(cd $(srcdir) && $(JAVAC) -source 1.4 -target 1.4 $(<F))
 
 all: Makefile R
 
@@ -70,7 +71,7 @@ install: install-message installdirs install-sources
 installdirs:
 	@$(MKINSTALLDIRS) "$(DESTDIR)$(rdocdir)/html/search"
 install-message:
-	@$(ECHO) "installing $(subdir) ..."
+	@echo "installing $(subdir) ..."
 install-sources:
 	@for f in $(INSTFILES); do \
 	  $(INSTALL_DATA) $(srcdir)/$${f} "$(DESTDIR)$(rdocdir)/html/search"; \
@@ -78,7 +79,7 @@ install-sources:
 install-strip: install
 
 uninstall:
-	@$(ECHO) "uninstalling $(subdir) ..."
+	@echo "uninstalling $(subdir) ..."
 	@rm -rf "$(DESTDIR)$(rdocdir)/html/search"
 
 mostlyclean:

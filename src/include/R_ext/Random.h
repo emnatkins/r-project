@@ -55,12 +55,12 @@ double norm_rand(void);
 double exp_rand(void);
 
 typedef unsigned int Int32;
-double * user_unif_rand(void);
+double * user_unif_rand();
 void user_unif_init(Int32);
-int * user_unif_nseed(void);
-int * user_unif_seedloc(void);
+int * user_unif_nseed();
+int * user_unif_seedloc();
 
-double * user_norm_rand(void);
+double * user_norm_rand();
 
 #ifdef  __cplusplus
 }

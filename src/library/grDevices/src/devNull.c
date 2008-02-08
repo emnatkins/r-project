@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2004-8  The R Development Core Team
+ *  Copyright (C) 2004  The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,113 +22,115 @@
 #endif
 
 #include <Rinternals.h>
-#define R_USE_PROTOTYPES 1
+#include <Rgraphics.h>
+#include <Rdevices.h>
+#include <R_ext/GraphicsDevice.h>
 #include <R_ext/GraphicsEngine.h>
 
 #include "grDevices.h"
 #include <stdlib.h>
 
-static Rboolean nullDeviceDriver(pDevDesc dev);
+static Rboolean nullDeviceDriver(NewDevDesc *dev);
 
 void GEnullDevice()
 {
-    pDevDesc dev = NULL;
+    NewDevDesc *dev = NULL;
     GEDevDesc *dd;
 
     R_CheckDeviceAvailable();
-    BEGIN_SUSPEND_INTERRUPTS {
-	if (!(dev = (pDevDesc ) calloc(1, sizeof(NewDevDesc))))
-	    error(_("unable to start NULL device"));
-	if (!nullDeviceDriver(dev)) {
-	    free(dev);
-	    error(_("unable to start NULL device"));
-	}
-	dd = GEcreateDevDesc(dev);
-	GEaddDevice2(dd, "NULL");
-    } END_SUSPEND_INTERRUPTS;
+    if (!(dev = (NewDevDesc *) calloc(1, sizeof(NewDevDesc))))
+       error(_("unable to start NULL device"));
+    dev->displayList = R_NilValue;
+    if (!nullDeviceDriver(dev)) {
+       free(dev);
+       error(_("unable to start NULL device"));
+    }
+    gsetVar(install(".Device"), mkString("NULL"), R_BaseEnv);
+    dd = GEcreateDevDesc(dev);
+    Rf_addDevice((DevDesc*) dd);
+    GEinitDisplayList(dd);
 }
 static void NULL_Circle(double x, double y, double r,
-                        pGEcontext gc,
-                        pDevDesc dev) {
+                        R_GE_gcontext *gc,
+                        NewDevDesc *dev) {
 }
 static void NULL_Line(double x1, double y1, double x2, double y2,
-                      pGEcontext gc,
-                      pDevDesc dev) {
+                      R_GE_gcontext *gc,
+                      NewDevDesc *dev) {
 }
 static void NULL_Polygon(int n, double *x, double *y,
-                         pGEcontext gc,
-                         pDevDesc dev) {
+                         R_GE_gcontext *gc,
+                         NewDevDesc *dev) {
 }
 static void NULL_Polyline(int n, double *x, double *y,
-                          pGEcontext gc,
-                          pDevDesc dev) {
+                          R_GE_gcontext *gc,
+                          NewDevDesc *dev) {
 }
 static void NULL_Rect(double x0, double y0, double x1, double y1,
-                      pGEcontext gc,
-                      pDevDesc dev) {
+                      R_GE_gcontext *gc,
+                      NewDevDesc *dev) {
 }
-static void NULL_Text(double x, double y, const char *str,
+static void NULL_Text(double x, double y, char *str,
                       double rot, double hadj,
-                      pGEcontext gc,
-                      pDevDesc dev) {
+                      R_GE_gcontext *gc,
+                      NewDevDesc *dev) {
 }
-static void NULL_NewPage(pGEcontext gc,
-                         pDevDesc dev) {
+static void NULL_NewPage(R_GE_gcontext *gc,
+                         NewDevDesc *dev) {
 }
-static void NULL_Close(pDevDesc dev) {
+static void NULL_Close(NewDevDesc *dev) {
 }
-static Rboolean NULL_Open(pDevDesc dev) {
+static Rboolean NULL_Open(NewDevDesc *dev) {
     return TRUE;
 }
-static void NULL_Activate(pDevDesc dev) {
+static void NULL_Activate(NewDevDesc *dev) {
 }
 static void NULL_Clip(double x0, double x1, double y0, double y1,
-                      pDevDesc dev) {
+                      NewDevDesc *dev) {
 }
-static void NULL_Deactivate(pDevDesc dev) {
+static void NULL_Deactivate(NewDevDesc *dev) {
 }
-static void NULL_Mode(int mode, pDevDesc dev) {
+static void NULL_Mode(int mode, NewDevDesc *dev) {
 }
-static Rboolean NULL_Locator(double *x, double *y, pDevDesc dev) {
+static Rboolean NULL_Locator(double *x, double *y, NewDevDesc *dev) {
     return FALSE;
 }
-static void NULL_MetricInfo(int c, pGEcontext gc,
+static void NULL_MetricInfo(int c,
+                            R_GE_gcontext *gc,
                             double* ascent, double* descent,
-                            double* width, pDevDesc dev) 
-{
-    Rboolean Unicode = mbcslocale;
-
+                            double* width, NewDevDesc *dev) {
     *ascent = 0.0;
     *descent = 0.0;
     *width = 0.0;
-
-    /* dummy, as a test of the headers */
-    if (c < 0) { Unicode = TRUE; c = -c; }
-    if(Unicode && gc->fontface != 5 && c >= 128) {
-	/* Unicode case */ ;
-    } else {
-	/* single-byte case */ ;
-    }
 }
 static void NULL_Size(double *left, double *right,
                       double *bottom, double *top,
-                      pDevDesc dev) {
+                      NewDevDesc *dev) {
     *left = dev->left;
     *right = dev->right;
     *bottom = dev->bottom;
     *top = dev->top;
 }
-static double NULL_StrWidth(const char *str,
-                            pGEcontext gc,
-                            pDevDesc dev) {
+static double NULL_StrWidth(char *str,
+                            R_GE_gcontext *gc,
+                            NewDevDesc *dev) {
     return 0.0;
 }
 
-static Rboolean nullDeviceDriver(pDevDesc dev) {
+#if 0 /* unused */
+static void NULL_dot(NewDevDesc *dev) {
+}
+#endif
+
+static void NULL_Hold(NewDevDesc *dev) {
+}
+
+static Rboolean nullDeviceDriver(NewDevDesc *dev) {
     dev->deviceSpecific = NULL;
     /*
      * Device functions
      */
+    dev->open = NULL_Open;
     dev->close = NULL_Close;
     dev->activate = NULL_Activate;
     dev->deactivate = NULL_Deactivate;
@@ -144,9 +146,8 @@ static Rboolean nullDeviceDriver(pDevDesc dev) {
     dev->polygon = NULL_Polygon;
     dev->locator = NULL_Locator;
     dev->mode = NULL_Mode;
+    dev->hold = NULL_Hold;
     dev->metricInfo = NULL_MetricInfo;
-    dev->hasTextUTF8 = FALSE;
-    dev->useRotatedTextInContour = FALSE;
     /*
      * Initial graphical settings
      */
@@ -186,8 +187,9 @@ static Rboolean nullDeviceDriver(pDevDesc dev) {
     dev->canClip = TRUE;
     dev->canHAdj = 2;
     dev->canChangeGamma = FALSE;
-    dev->displayListOn = FALSE;
+    dev->displayListOn = TRUE;
 
+    dev->newDevStruct = 1;
     return TRUE;
 }
 

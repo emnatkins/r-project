@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-01-11 23:16\n"
+"POT-Creation-Date: 2008-02-06 06:53\n"
 "PO-Revision-Date: 2007-09-11 22:47+0900 \n"
 "Last-Translator: Shigeru Mase <maseshigeru@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -89,18 +89,6 @@ msgstr " 'what' の要素の最初のもの以降は無視されます "
 msgid "%d occurrences in %s"
 msgstr " %d 回 %s 中に起きました "
 
-msgid ""
-"Use <code> %s </code> \n"
-" to list the vignettes in all <strong>available</strong> packages."
-msgstr ""
-
-#, fuzzy
-msgid "No vignettes found by"
-msgstr " ビニエット '%s' が見付かりません "
-
-msgid "call"
-msgstr ""
-
 #, fuzzy
 msgid "'file' must be NULL, a character string or a connection"
 msgstr " 'file' は文字列か NULL でなければなりません "
@@ -134,9 +122,6 @@ msgstr " n < m "
 
 msgid "'FUN' must be a function or NULL"
 msgstr " 'FUN' は関数か NULL でなければなりません "
-
-msgid "Can't handle S4 methods yet"
-msgstr ""
 
 msgid "'package' must be a character string or NULL"
 msgstr " 'package' は文字列か NULL でなければなりません "
@@ -242,12 +227,6 @@ msgstr " 編集された行名は重複しており、無視されます "
 msgid "invalid input matrix"
 msgstr " 不正な入力行列 "
 
-msgid "class(es) of 'name' will be discarded"
-msgstr ""
-
-msgid "cannot edit NULL row names"
-msgstr ""
-
 msgid "no help file found for '%s'"
 msgstr " '%s' に対するヘルプファイルが見つかりません "
 
@@ -275,10 +254,6 @@ msgstr " \"form\" は両辺に項を持つ公式でなければなりません "
 msgid "'form' must be a two-sided formula with one term on each side"
 msgstr ""
 " \"form\" は両辺にそれぞれ一つの項を持つ両辺項公式でなければなりません "
-
-#, fuzzy
-msgid "'topic' should be a name, length-one character vector or reserved word"
-msgstr " オプションは長さ１の文字列か NULL でなければなりません "
 
 msgid "No documentation for '%s' in specified packages and libraries:"
 msgstr ""
@@ -403,10 +378,6 @@ msgstr " %d 個のオブジェクトがマッチしました "
 
 msgid "no package '%s' was found"
 msgstr " パッケージ '%s' は見付かりません "
-
-#, fuzzy
-msgid "metadata of package '%s' is corrupt"
-msgstr " パッケージ '%s' に対する DESCRIPTION ファイルは壊れています "
 
 msgid "DESCRIPTION file of package '%s' is corrupt"
 msgstr " パッケージ '%s' に対する DESCRIPTION ファイルは壊れています "
@@ -834,12 +805,6 @@ msgstr ""
 msgid "invalid options('str') -- using defaults instead"
 msgstr " 不正な options('str') -- 代わりに既定値を使います "
 
-msgid "invalid components in options('str'):"
-msgstr ""
-
-msgid ","
-msgstr ""
-
 msgid "'object' does not have valid levels()"
 msgstr " 'object' は有効な levels() を持ちません "
 
@@ -907,9 +872,6 @@ msgstr " ダウンロードの方法が見付かりません "
 msgid "download had nonzero exit status"
 msgstr " ダウンロードはゼロ以外の終了状態を持ちました "
 
-msgid "Using non-linked HTML file: hyperlinks may be incorrect"
-msgstr ""
-
 msgid "options(\"browser\") not set"
 msgstr " options(\"browser\") が設定されていません "
 
@@ -922,6 +884,9 @@ msgid ""
 msgstr ""
 " 既定('browser' オプションで指定されたような)のブラウザーを指定されたブラウ"
 "ザーに変更しますから、以後全てのヘルプ要求はそれを使って行われます "
+
+msgid "Making links in per-session dir ..."
+msgstr " セッションに伴うディレクトリにリンクを張ります ... "
 
 msgid ""
 "If '%s' is already running, it is *not* restarted, and you must switch to "
@@ -938,9 +903,6 @@ msgstr " 'url' は空でない文字列でなければなりません "
 
 msgid "'browser' must be a non-empty character string"
 msgstr " 'browser' は空でない文字列でなければなりません "
-
-msgid "Making links in per-session dir ..."
-msgstr " セッションに伴うディレクトリにリンクを張ります ... "
 
 msgid "cannot create HTML package index"
 msgstr " HTML パッケージ索引を生成できません "
@@ -1004,10 +966,6 @@ msgstr " 'tar' がゼロでない終了コード %d を返しました "
 
 msgid "cannot remove prior installation of package"
 msgstr " パッケージの以前のインストールを取り除けません "
-
-msgid "class discarded from column %s"
-msgid_plural "classes discarded from columns %s"
-msgstr[0] ""
 
 msgid "object '%s' not found"
 msgid_plural "objects '%s' not found"

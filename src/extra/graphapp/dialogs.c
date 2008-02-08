@@ -28,39 +28,57 @@
    Additions for R, Chris Jackson
    Find and replace dialog boxes and dialog handlers */
 
-#define _WIN32_WINNT 0x0500
 #include "win-nls.h"
 #include "internal.h"
 #include "ga.h"
 
 #include <shlobj.h>
 
-typedef struct {
-    char default_str[MAX_PATH];
-    char question[40];
-} browserInfo;
-
-#define STATUSTEXT 14146
-
 static int CALLBACK
-InitBrowseCallbackProc( HWND hwnd, UINT uMsg, LPARAM lp, LPARAM lpData )
+InitBrowseCallbackProc( HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpData )
 {
-    char szDir[MAX_PATH], status[MAX_PATH + 40];
-    
-    if (uMsg == BFFM_INITIALIZED) {
-	SendMessage(hwnd, BFFM_SETSELECTION, 1,
-		    (LPARAM)&((browserInfo*)lpData)->default_str);
-    } else if (uMsg == BFFM_SELCHANGED) {
-	if (SHGetPathFromIDList((LPITEMIDLIST) lp ,szDir)) {
-	    snprintf(status, MAX_PATH+40, "%s\n %s", 
-		     ((browserInfo*)lpData)->question, szDir);
-	    SetDlgItemText(hwnd, STATUSTEXT, status);
-	    SendMessage(hwnd, BFFM_ENABLEOK, 0, TRUE);
-	} else
-	    SendMessage(hwnd, BFFM_ENABLEOK, 0, FALSE);
-    }
+    if (uMsg == BFFM_INITIALIZED)
+	SendMessage(hwnd, BFFM_SETSELECTION, 1, lpData);
     return(0);
 }
+
+/* browse for a folder under the Desktop, return the path in the argument */
+
+static void selectfolder(char *folder, const char *title)
+{
+    char buf[MAX_PATH];
+    LPMALLOC g_pMalloc;
+    BROWSEINFO bi;
+    LPITEMIDLIST pidlBrowse;
+    OSVERSIONINFO osvi;
+
+    /* Get the shell's allocator. */
+    if (!SUCCEEDED(SHGetMalloc(&g_pMalloc))) return;
+
+    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+    GetVersionEx(&osvi);
+
+    ZeroMemory(&bi, sizeof(bi));
+    bi.hwndOwner = 0;
+    //bi.pidlRoot = NULL;
+    if(osvi.dwMajorVersion >= 6) { /* future proof */
+	SHGetSpecialFolderLocation(NULL, CSIDL_DRIVES, 
+				   (LPITEMIDLIST *) &bi.pidlRoot);
+    }  /* else it is 0, which is CSIDL_DESKTOP */
+    bi.pszDisplayName = buf;
+    bi.lpszTitle = title;
+    bi.ulFlags = BIF_RETURNONLYFSDIRS;
+    bi.lpfn = (BFFCALLBACK) InitBrowseCallbackProc;
+    bi.lParam = (LPARAM) folder;
+
+    /* Browse for a folder and return its PIDL. */
+    pidlBrowse = SHBrowseForFolder(&bi);
+    if (pidlBrowse != NULL) {
+	SHGetPathFromIDList(pidlBrowse, folder);
+        g_pMalloc->lpVtbl->Free(g_pMalloc, pidlBrowse);
+    }
+}
+
 
 #define BUFSIZE _MAX_PATH
 static char strbuf[BUFSIZE];
@@ -86,7 +104,7 @@ static HWND hModelessDlg = NULL;
 
 int myMessageBox(HWND h, const char *text, const char *caption, UINT type)
 {
-    if(localeCP != GetACP()) {
+    if(is_NT && (localeCP != GetACP())) {
 	wchar_t wc[1000], wcaption[100];
 	mbstowcs(wcaption, caption, 100);
 	mbstowcs(wc, text, 1000);
@@ -347,6 +365,7 @@ char *askfilesavewithdir(const char *title, const char *default_name, const char
 
 	static const char * QUESTION_TITLE	= "Question";
 	static const char * PASSWORD_TITLE	= "Password Entry";
+	static const char * FINDDIR_TITLE	= "Choose directory";
 
 static void add_data(window w)
 {
@@ -381,6 +400,16 @@ static void hit_button(control c)
 
 	d->hit = value;
 	hide(w);
+}
+
+static void browse_button(control c)
+{
+    window w = parentwindow(c);
+    dialog_data *d = data(w);
+    char strbuf[MAX_PATH];
+    strcpy(strbuf, GA_gettext(d->text));
+    selectfolder(strbuf, G_("Choose a folder"));
+    if(strlen(strbuf)) settext(d->text, strbuf);
 }
 
 static void hit_key(window w, int key)
@@ -470,7 +499,13 @@ static window init_askstr_dialog(const char *title, const char *question,
 	d = data(win);
 	d->question = newlabel(question, rect(10,h,tw+4,h*2+2),
 			AlignLeft);
-	if (title == PASSWORD_TITLE)
+	if (title == FINDDIR_TITLE) {
+	    bw = strwidth(SystemFont, G_("Browse")) * 3/2;
+	    d->text = newfield(default_str, rect(10,h*4,tw+4-bw,h*3/2));
+	    newbutton(G_("Browse"), rect(20+tw-bw, h*4-2, bw, h+10),
+		      browse_button);
+	}
+	else if (title == PASSWORD_TITLE)
 		d->text = newpassword(default_str, rect(10,h*4,tw+4,h*3/2));
 	else
 		d->text = newfield(default_str, rect(10,h*4,tw+4,h*3/2));
@@ -512,45 +547,21 @@ char *askstring(const char *question, const char *default_str)
 
 char *askcdstring(const char *question, const char *default_str)
 {
-    LPMALLOC g_pMalloc;
-    BROWSEINFO bi;
-    LPITEMIDLIST pidlBrowse;
-    browserInfo info;
-    OSVERSIONINFOEX osvi;
-    
-    strncpy(info.question, question, 40);
-    strncpy(info.default_str, default_str, MAX_PATH);
+	static window win = NULL;
+	window prev = current_window;
 
-    /* Get the shell's allocator. */
-    if (!SUCCEEDED(SHGetMalloc(&g_pMalloc))) return NULL;
+	if (! win)
+		win = init_askstr_dialog(FINDDIR_TITLE, question, default_str);
+	else {
+		settext(data(win)->question, question);
+		settext(data(win)->text, default_str);
+	}
+	if (TopmostDialogs & MB_TOPMOST)
+	    BringToTop(win, 1);
+	handle_message_dialog(win);
+	current_window = prev;
 
-    osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-    GetVersionEx((OSVERSIONINFO *)&osvi);
-
-    ZeroMemory(&bi, sizeof(bi));
-    bi.hwndOwner = 0;
-    if(osvi.dwMajorVersion >= 6) { /* future proof */
-    /* CSIDL_DESKTOP gets mapped to the User's desktop in Vista
-       (a bug).  SHGetFolderLocation is Win2k or later */
-    if (!SUCCEEDED(SHGetFolderLocation(NULL, CSIDL_DRIVES, NULL, 0, 
-				       (LPITEMIDLIST *) &bi.pidlRoot))) 
-	return NULL;
-    }  /* else it is 0, which is CSIDL_DESKTOP */
-    bi.pszDisplayName = strbuf;
-    bi.lpszTitle = question;
-    bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI;
-    bi.lpfn = (BFFCALLBACK) InitBrowseCallbackProc;
-    bi.lParam = (LPARAM) &info;
-
-    /* Browse for a folder and return its PIDL. */
-    pidlBrowse = SHBrowseForFolder(&bi);
-    if (pidlBrowse != NULL) {
-	SHGetPathFromIDList(pidlBrowse, strbuf);
-        g_pMalloc->lpVtbl->Free(g_pMalloc, pidlBrowse);
-        if (strbuf[0]) 
-            return strbuf;
-    }
-    return NULL;
+	return get_dialog_string(win);
 }
 
 char *askpassword(const char *question, const char *default_str)
@@ -678,7 +689,6 @@ void replacedialog(textbox t){
 }
 
 
-#include <richedit.h>
 /* Find and select a string in a rich edit control */
 
 static int richeditfind(HWND hwnd, char *what, int matchcase,

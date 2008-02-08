@@ -33,16 +33,18 @@
  BZ2_hbAssignCodes
  BZ2_hbCreateDecodeTables
  BZ2_hbMakeCodeLengths
+ BZ2_indexIntoF
  BZ2_rNums
  CPFun
+ ColorDataBase
  ConsoleAcceptCmd
  DebugMenuitem
  DefaultPalette
  DialogSelectFile
- ENC_KNOWN
  EhiWakeUp
  EncodeReal2
  GRecording
+ GetCurrentWinPos
  IS_ACTIVE_BINDING
  IS_LATIN1
  IS_UTF8
@@ -156,8 +158,8 @@
  R_SetWin32
  R_ShowErrorCalls
  R_ShowErrorMessages
- R_ShowFiles
  R_ShowWarnCalls
+ R_ShowFiles
  R_SourceSymbol
  R_SrcfileSymbol
  R_SrcrefSymbol
@@ -168,6 +170,7 @@
  R_TextBufferGetc
  R_TextBufferInit
  R_TmpvalSymbol
+ R_ToplevelExec
  R_UseNamesSymbol
  R_VSize
  R_Verbose
@@ -179,6 +182,7 @@
  R_XDRDecodeInteger
  R_XDREncodeDouble
  R_XDREncodeInteger
+ R_YesNoCancel
  R_Zero_Hack
  R_binary
  R_compress1
@@ -198,16 +202,14 @@
  R_getRegisteredRoutines
  R_getSymbolInfo
  R_getVarsFromFrame
- R_gmtime
  R_init_base
  R_initialize_bcode
  R_isMissing
  R_is_running
+ R_lazyLoadDBfetch
  R_lazyLoadDBflush
  R_lazyLoadDBinsertValue
- R_localtime
  R_max_memory
- R_mktime
  R_moduleCdynload
  R_newsock
  R_newunz
@@ -218,7 +220,6 @@
  R_restore_globals
  R_run_onexits
  R_seemsOldStyleS4Object
- R_serialize
  R_serializeb
  R_signgam
  R_subset3_dflt
@@ -227,11 +228,9 @@
  R_sysfunction
  R_sysparent
  R_unary
- R_unserialize
  R_warn_partial_match_args
  R_warn_partial_match_attr
  R_warn_partial_match_dollar
- R_wfopen
  Rconsolesetwidth
  Rf_CheckFormals
  Rf_CoercionWarning
@@ -243,11 +242,17 @@
  Rf_DispatchGroup
  Rf_DispatchOrEval
  Rf_EnsureString
+ Rf_FixupCex
  Rf_FixupCol
+ Rf_FixupFont
  Rf_FixupLty
  Rf_FixupLwd
+ Rf_FixupPch
  Rf_FixupVFont
  Rf_GInit
+ Rf_GVStrHeight
+ Rf_GVStrWidth
+ Rf_GVText
  Rf_GetOptionParAsk
  Rf_IndexWidth
  Rf_InitArithmetic
@@ -260,6 +265,7 @@
  Rf_InitGraphics
  Rf_InitMemory
  Rf_InitOptions
+ Rf_InitRand
  Rf_InitStringHash
  Rf_InitTempDir
  Rf_IntegerFromComplex
@@ -279,10 +285,13 @@
  Rf_PrintVersion
  Rf_PrintVersionString
  Rf_ProcessInlinePars
+ Rf_RGB2rgb
+ Rf_RGBA2rgb
  Rf_RealFromComplex
  Rf_RealFromInteger
  Rf_RealFromLogical
  Rf_RealFromString
+ Rf_Specify2
  Rf_StringFromComplex
  Rf_StringFromInteger
  Rf_StringFromLogical
@@ -322,11 +331,11 @@
  Rf_matchArgExact
  Rf_matchArgs
  Rf_matchPar
- Rf_mbtoucs
  Rf_mkCLOSXP
  Rf_mkPROMISE
  Rf_mkSYMSXP
  Rf_name2col
+ Rf_number2col
  Rf_onsigusr1
  Rf_onsigusr2
  Rf_osDynSymbol
@@ -336,17 +345,13 @@
  Rf_regcomp
  Rf_regerror
  Rf_regexec
- Rf_setBaseDevice
  Rf_setIVector
  Rf_setRVector
  Rf_ssort
  Rf_stirlerr
  Rf_substituteList
- Rf_ucstomb
  Rf_unbindVar
- Rf_utf8toucs
  Rf_vectorSubscript
- Rf_wcstoutf8
  Rf_yychar
  Rf_yylval
  Rf_yynerrs
@@ -360,9 +365,14 @@
  Ri18n_wcswidth
  Ri18n_wctype
  Rm_calloc
+ Rm_cfree
  Rm_free
  Rm_malloc
+ Rm_memalign
+ Rm_pvalloc
  Rm_realloc
+ Rm_strdup
+ Rm_valloc
  Rregexec
  Rrowsum_df
  Rrowsum_matrix
@@ -373,10 +383,7 @@
  Rsockread
  Rsockselect
  Rsockwrite
- Rstrlen
- Rstrwid
  Rwin_rename
- Rwin_wrename
  SET_ACTIVE_BINDING_BIT
  SET_LATIN1
  SET_PRIMOFFSET
@@ -385,22 +392,24 @@
  UNLOCK_BINDING
  UNSET_LATIN1
  UNSET_UTF8
- UTF8in
- UTF8out
  UseInternet2
- WinCheckUTF8
- WinUTF8out
  WrongArgCount
+ __printf__
  _dist_code
+ _getextradata
  _length_code
  _nl_explode_name
  _nl_find_domain
+ _nl_find_language
  _nl_find_msg
+ _nl_free_domain_conv
+ _nl_init_domain_conv
  _nl_language_preferences_default
  _nl_load_domain
  _nl_locale_name
  _nl_locale_name_default
  _nl_locale_name_posix
+ _nl_log_untranslated
  _nl_make_l10nflist
  _nl_msg_cat_cntr
  _nl_normalize_codeset
@@ -409,19 +418,18 @@
  _pcre_is_newline
  _pcre_ord2utf8
  _pcre_try_flipped
- _pcre_ucp_findprop
- _pcre_ucp_othercase
+ _pcre_ucp_findchar
  _pcre_utf8_table1
  _pcre_utf8_table1_size
  _pcre_utf8_table2
  _pcre_utf8_table3
  _pcre_utf8_table4
  _pcre_utt
- _pcre_utt_names
  _pcre_utt_size
  _pcre_valid_utf8
  _pcre_was_newline
  _pcre_xclass
+ _setextradata
  _tr_align
  _tr_flush_block
  _tr_init
@@ -430,6 +438,9 @@
  _vsnprintf
  adler32
  adler32_combine
+ app_control_proc
+ app_init_printf
+ app_timer_proc
  applyGUI
  apse_create
  apse_destroy
@@ -446,7 +457,7 @@
  breaktodebugger
  cbabk2_
  cbal_
- cdiv_
+ cdiv
  cg_
  ch2inv_
  ch_
@@ -463,7 +474,6 @@
  comqr2_
  comqr_
  console_ctrlkeyin
- console_im
  console_mousedown
  console_mousedrag
  console_mouserep
@@ -501,7 +511,6 @@
  consolex
  consoley
  corth_
- crc32
  crc32_combine
  csduplicated
  csroot_
@@ -509,10 +518,8 @@
  dblep0_
  deflateBound
  deflateCopy
- deflateInit2_
  deflateParams
  deflatePrime
- deflateReset
  deflateSetDictionary
  deflateSetHeader
  deflateTune
@@ -667,7 +674,6 @@
  do_fileedit
  do_fileexists
  do_fileinfo
- do_filepath
  do_fileremove
  do_filerename
  do_fileshow
@@ -834,8 +840,10 @@
  do_paste
  do_pathexpand
  do_persp
+ do_pgrep
  do_pgsub
  do_pipe
+ do_playDL
  do_playSnapshot
  do_plot_new
  do_plot_window
@@ -845,6 +853,7 @@
  do_polygon
  do_polyroot
  do_pos2env
+ do_pregexpr
  do_primitive
  do_printDeferredWarnings
  do_printdefault
@@ -854,6 +863,7 @@
  do_pushback
  do_pushbacklength
  do_putconst
+ do_putenv
  do_qsort
  do_quit
  do_quote
@@ -873,6 +883,7 @@
  do_readbin
  do_readchar
  do_readln
+ do_readonlypars
  do_readtablehead
  do_recall
  do_recordGraphics
@@ -886,6 +897,7 @@
  do_rep
  do_rep_int
  do_repeat
+ do_replay
  do_resetCondHands
  do_restart
  do_return
@@ -907,6 +919,7 @@
  do_seq_len
  do_serializeToConn
  do_set
+ do_setGPar
  do_setStatusBar
  do_setTitle
  do_setToCConverterActiveStatus
@@ -953,9 +966,9 @@
  do_sumconnection
  do_summary
  do_switch
+ do_symbol
  do_symbols
  do_sys
- do_syschmod
  do_sysgetpid
  do_sysinfo
  do_syssleep
@@ -1006,8 +1019,8 @@
  do_xspline
  do_zeroin
  do_zeroin2
- dos_wglob
- dos_wglobfree
+ dos_glob
+ dos_globfree
  dpois_raw
  drawconsole
  editorchecksave
@@ -1025,12 +1038,11 @@
  getAttrib0
  getConnection
  getConnection_no_err
- getDefaults
+ getConsoleHandle
  getGraphMenu
  getIdentification
  getParseContext
  getParseFilename
- getTZinfo
  getWindowTitle
  get_crc_table
  get_current_mem
@@ -1069,6 +1081,8 @@
  hqr_
  htribk_
  htridi_
+ independent_calloc
+ independent_comalloc
  inflateBack
  inflateBackEnd
  inflateBackInit_
@@ -1076,7 +1090,6 @@
  inflateGetHeader
  inflateInit2_
  inflatePrime
- inflateReset
  inflateSetDictionary
  inflateSync
  inflateSyncPoint
@@ -1085,7 +1098,6 @@
  inflate_table
  internal_shellexec
  intpr0_
- invalidate_cached_recodings
  isMethodsDispatchOn
  known_to_be_latin1
  known_to_be_utf8
@@ -1123,10 +1135,19 @@
  libintl_vwprintf
  libintl_wprintf
  loadRconsole
+ localeCP
  locale_charset
  mallinfo
+ malloc_footprint
+ malloc_max_footprint
+ malloc_stats
+ malloc_trim
+ malloc_usable_size
+ mallopt
  max_contour_segments
  mb_char_len
+ mbswidth
+ memalign
  memtrace_report
  menuclear
  menuconfig
@@ -1157,6 +1178,7 @@
  pcre_config
  pcre_copy_named_substring
  pcre_copy_substring
+ pcre_dfa_exec
  pcre_exec
  pcre_free
  pcre_free_substring
@@ -1189,18 +1211,18 @@
  qr_qy_real
  raise
  realp0_
- registerBase
  reset_duplicate_counter
+ restoredpSaved
  rg_
  rpipeClose
  rpipeGetc
  rpipeGets
  rpipeOpen
  runerror
- setDLLSearchPath
+ setCURCOL
  setTitle
  setWidthOnResize
- set_completion_available
+ set_rcompgen_available
  set_workspace_name
  setconsoleoptions
  setfirstcol
@@ -1228,40 +1250,185 @@
  tqlrat_
  tred1_
  tred2_
+ trio_append
+ trio_append_max
  trio_aprintf
  trio_asprintf
  trio_asprintfv
+ trio_contains
+ trio_copy
+ trio_copy_max
+ trio_cprintf
+ trio_cprintfv
+ trio_create
+ trio_cscanf
+ trio_cscanfv
+ trio_destroy
+ trio_dprintf
+ trio_dprintfv
+ trio_dscanf
+ trio_dscanfv
+ trio_duplicate
+ trio_duplicate_max
+ trio_equal
+ trio_equal_case
+ trio_equal_case_max
+ trio_equal_locale
+ trio_equal_max
+ trio_error
+ trio_format_date_max
+ trio_fpclassify
+ trio_fpclassify_and_signbit
  trio_fprintf
  trio_fprintfv
+ trio_fscanf
+ trio_fscanfv
+ trio_get_alignment
+ trio_get_alternative
+ trio_get_argument
+ trio_get_base
+ trio_get_format
+ trio_get_largest
+ trio_get_long
+ trio_get_longdouble
+ trio_get_longlong
+ trio_get_padding
+ trio_get_precision
+ trio_get_ptrdiff
+ trio_get_quote
+ trio_get_short
+ trio_get_shortshort
+ trio_get_sign
+ trio_get_size
+ trio_get_spacing
+ trio_get_upper
+ trio_get_width
+ trio_hash
+ trio_index
+ trio_index_last
+ trio_isfinite
+ trio_isinf
+ trio_isnan
+ trio_length
+ trio_locale_set_decimal_point
+ trio_locale_set_grouping
+ trio_locale_set_thousand_separator
+ trio_lower
+ trio_match
+ trio_match_case
+ trio_nan
+ trio_ninf
+ trio_nzero
+ trio_pinf
+ trio_print_double
+ trio_print_int
+ trio_print_pointer
+ trio_print_ref
+ trio_print_string
+ trio_print_uint
  trio_printf
  trio_printfv
+ trio_printv_ref
+ trio_register
+ trio_scanf
+ trio_scanfv
+ trio_set_alignment
+ trio_set_alternative
+ trio_set_base
+ trio_set_largest
+ trio_set_long
+ trio_set_longdouble
+ trio_set_longlong
+ trio_set_padding
+ trio_set_precision
+ trio_set_ptrdiff
+ trio_set_quote
+ trio_set_short
+ trio_set_shortshort
+ trio_set_sign
+ trio_set_size
+ trio_set_spacing
+ trio_set_upper
+ trio_set_width
+ trio_signbit
+ trio_snprintfcat
  trio_snprintfv
+ trio_span_function
  trio_sprintfv
+ trio_sscanf
+ trio_sscanfv
+ trio_strerror
+ trio_string_append
+ trio_string_contains
+ trio_string_copy
+ trio_string_create
+ trio_string_destroy
+ trio_string_duplicate
+ trio_string_equal
+ trio_string_equal_case
+ trio_string_equal_case_max
+ trio_string_equal_max
+ trio_string_extract
+ trio_string_format_date_max
+ trio_string_index
+ trio_string_index_last
+ trio_string_length
+ trio_string_lower
+ trio_string_match
+ trio_string_match_case
+ trio_string_size
+ trio_string_substring
+ trio_string_terminate
+ trio_string_upper
+ trio_substring
+ trio_substring_max
+ trio_to_double
+ trio_to_float
+ trio_to_long
+ trio_to_long_double
+ trio_to_lower
+ trio_to_unsigned_long
+ trio_to_upper
+ trio_tokenize
+ trio_unregister
+ trio_upper
  trio_vaprintf
  trio_vasprintf
+ trio_vcprintf
+ trio_vcscanf
+ trio_vdprintf
+ trio_vdscanf
  trio_vfprintf
+ trio_vfscanf
+ trio_vprint_ref
  trio_vprintf
- tzname
- tzset
+ trio_vscanf
+ trio_vsnprintfcat
+ trio_vsscanf
+ trio_xstring_append
+ trio_xstring_append_char
+ trio_xstring_contains
+ trio_xstring_copy
+ trio_xstring_duplicate
+ trio_xstring_equal
+ trio_xstring_equal_case
+ trio_xstring_equal_case_max
+ trio_xstring_equal_max
+ trio_xstring_match
+ trio_xstring_match_case
+ trio_xstring_set
+ trio_xstring_substring
  uncompress
- unregisterBase
  utf8clen
- wgl_hist_init
- wgl_hist_next
- wgl_hist_prev
- wgl_histadd
- wgl_loadhistory
- wgl_savehistory
- winAccessW
+ winAccess
+ winNewFrameConfirm
  winaddmenu
  winaddmenuitem
  windelmenu
  windelmenuitem
  windelmenus
  wingetmenuitems
- wtransChar
- xbufaddxc
- xbufaddxs
+ xbufaddc
  xbufdel
  xbufgrow
  xdr_bool

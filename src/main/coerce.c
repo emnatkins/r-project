@@ -959,7 +959,7 @@ static SEXP coercePairList(SEXP v, SEXPTYPE type)
 	}
     }
     else
-	error(_("'pairlist' object cannot be coerced to type '%s'"),
+	error(_("'pairlist' object cannot be coerced to '%s'"),
 	      type2char(type));
 
     /* If any tags are non-null then we */
@@ -1067,7 +1067,7 @@ static SEXP coerceVectorList(SEXP v, SEXPTYPE type)
 	}
     }
     else
-	error(_("(list) object cannot be coerced to type '%s'"), type2char(type));
+	error(_("(list) object cannot be coerced to '%s'"), type2char(type));
 
     if (warn) CoercionWarning(warn);
     names = getAttrib(v, R_NamesSymbol);
@@ -1158,10 +1158,9 @@ SEXP coerceVector(SEXP v, SEXPTYPE type)
     case STRSXP:
     case RAWSXP:
 
-#define COERCE_ERROR_STRING "cannot coerce type '%s' to vector of type '%s'"
-
-#define COERCE_ERROR							\
-	error(_(COERCE_ERROR_STRING), type2char(TYPEOF(v)), type2char(type))
+#define COERCE_ERROR						\
+	error(_("cannot coerce type %s to %s vector"),		\
+	      type2char(TYPEOF(v)), type2char(type))
 
 	switch (type) {
 	case SYMSXP:
@@ -1282,8 +1281,7 @@ static SEXP ascommon(SEXP call, SEXP u, SEXPTYPE type)
 	SET_VECTOR_ELT(v, 0, u);
 	return v;
     }
-    else errorcall(call, _(COERCE_ERROR_STRING),
-		   type2char(TYPEOF(u)), type2char(type));
+    else errorcall(call, _("cannot coerce to vector"));
     return u;/* -Wall */
 }
 
@@ -1294,19 +1292,19 @@ SEXP attribute_hidden do_ascharacter(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     int type = STRSXP, op0 = PRIMVAL(op);
     char *name = NULL /* -Wall */;
-
+    
     switch(op0) {
-	case 0:
+	case 0: 
 	    name = "as.character"; break;
-	case 1:
+	case 1: 
 	    name = "as.integer"; type = INTSXP; break;
-	case 2:
+	case 2: 
 	    name = "as.double"; type = REALSXP; break;
-	case 3:
+	case 3: 
 	    name = "as.complex"; type = CPLXSXP; break;
-	case 4:
+	case 4: 
 	    name = "as.logical"; type = LGLSXP; break;
-	case 5:
+	case 5: 
 	    name = "as.raw"; type = RAWSXP; break;
     }
     if (DispatchOrEval(call, op, name, args, rho, &ans, 0, 1))
@@ -1895,7 +1893,7 @@ SEXP attribute_hidden do_isna(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    LOGICAL(ans)[i] = 0;
 	break;
     default:
-	warningcall(call, _("%s() applied to non-(list or vector) of type '%s'"),
+	warningcall(call, _("%s() applied to non-(list or vector) of type '%s'"), 
 		    "is.na", type2char(TYPEOF(x)));
 	for (i = 0; i < n; i++)
 	    LOGICAL(ans)[i] = 0;
@@ -1993,7 +1991,7 @@ SEXP attribute_hidden do_isnan(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	break;
     default:
-	warningcall(call, _("%s() applied to non-(list or vector) of type '%s'"),
+	warningcall(call, _("%s() applied to non-(list or vector) of type '%s'"), 
 		    "is.nan", type2char(TYPEOF(x)));
 	for (i = 0; i < n; i++)
 	    LOGICAL(ans)[i] = 0;
@@ -2127,10 +2125,8 @@ SEXP attribute_hidden do_call(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP rest, evargs, rfun;
 
     PROTECT(rfun = eval(CAR(args), rho));
-    /* zero-length string check used to be here but install gives
-       better error message.
-     */
-    if (!isString(rfun) || length(rfun) != 1)
+    if (!isString(rfun) || length(rfun) <= 0 ||
+	streql(CHAR(STRING_ELT(rfun, 0)), "")) /* ASCII */
 	errorcall_return(call, R_MSG_A1_char);
     PROTECT(rfun = install(translateChar(STRING_ELT(rfun, 0))));
     PROTECT(evargs = duplicate(CDR(args)));
@@ -2153,12 +2149,13 @@ SEXP attribute_hidden do_docall(SEXP call, SEXP op, SEXP args, SEXP rho)
     envir = CADDR(args);
     args = CADR(args);
 
-    /* must be a string or a function:
-       zero-length string check used to be here but install gives
-       better error message.
-     */
-    if( !(isString(fun) && length(fun) == 1) && !isFunction(fun) )
-	error(_("'what' must be a character string or a function"));
+    /* must be a string or a function */
+    if( isString(fun) ) {
+	if( length(fun) != 1 || CHAR(STRING_ELT(fun,0)) == '\0') /* ASCII */
+	    error(_("first argument must be a character string or a function"));
+    } else if (!isFunction(fun) )
+	error(_("first argument must be a character string or a function"));
+    
 
     if (!isNull(args) && !isNewList(args))
 	error(R_MSG_A2_list);
@@ -2456,10 +2453,9 @@ SEXP attribute_hidden R_do_set_class(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP attribute_hidden do_storage_mode(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-/* storage.mode(obj) <- value */
     SEXP obj, value, ans;
     SEXPTYPE type;
-
+    
     checkArity(op, args);
     obj = CAR(args);
 

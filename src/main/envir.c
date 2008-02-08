@@ -3212,46 +3212,7 @@ SEXP attribute_hidden do_envprofile(SEXP call, SEXP op, SEXP args, SEXP rho)
     return ans;
 }
 
-/* 
-   Version for strings with embedded nuls:
-   these do not currently go in the cache,
-   and do not have an encoding. 
-*/
-SEXP mkCharLen(const char *name, int len)
-{
-    SEXP c = allocString(len);
-    memcpy(CHAR_RW(c), name, len);
-    return c;
-}
 
-
-#ifndef USE_CHAR_HASHING
-SEXP mkChar(const char *name)
-{
-    SEXP c = allocString(strlen(name));
-    strcpy(CHAR_RW(c), name);
-    return c;
-}
-SEXP mkCharEnc(const char *name, int enc)
-{
-    SEXP c = allocString(strlen(name));
-    strcpy(CHAR_RW(c), name);
-    if (enc && strIsASCII(name)) enc = 0;
-    switch(enc) {
-    case 0:
-	break;          /* don't set encoding */
-    case UTF8_MASK:
-	SET_UTF8(c);
-	break;
-    case LATIN1_MASK:
-	SET_LATIN1(c);
-	break;
-    default:
-	error("unknown encoding mask: %d", enc);
-    }
-    return c;
-}
-#else
 /* Global CHARSXP cache and code for char-based hash tables */
 
 /* We can reuse the hash structure, but need separate code for get/set
@@ -3285,8 +3246,6 @@ void attribute_hidden InitStringHash()
 
 #define INT_IS_LATIN1(x) (x & LATIN1_MASK)
 #define INT_IS_UTF8(x)   (x & UTF8_MASK)
-
-/* #define DEBUG_GLOBAL_STRING_HASH 1 */
 
 /* Resize the global R_StringHash CHARSXP cache */
 static void R_StringHash_resize(unsigned int newsize)
@@ -3364,8 +3323,6 @@ SEXP mkCharEnc(const char *name, int enc)
 
     if (enc != 0 && enc != UTF8_MASK && enc != LATIN1_MASK)
         error("unknown encoding mask: %d", enc);
-
-    if (enc && strIsASCII(name)) enc = 0;
 
     /* hashcode = char_hash(name) % char_hash_size; */
     hashcode = char_hash(name) & char_hash_mask;
@@ -3492,4 +3449,3 @@ void do_write_cache()
     }
 }
 #endif /* DEBUG_SHOW_CHARSXP_CACHE */
-#endif

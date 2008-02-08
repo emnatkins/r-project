@@ -1,7 +1,8 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997-2008   R Development Core Team
+ *  Copyright (C) 1997-2007   Robert Gentleman, Ross Ihaka and the
+ *			      R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -148,6 +149,16 @@ static Rboolean rmin(double *x, int n, double *value, Rboolean narm)
     return(updated);
 }
 
+#if defined(Win32) && defined(SUPPORT_UTF8)
+# define STRCOLL Rstrcoll
+#else
+# ifdef HAVE_STRCOLL
+#  define STRCOLL strcoll
+# else
+#  define STRCOLL strcmp
+# endif
+#endif
+
 static Rboolean smin(SEXP x, SEXP *value, Rboolean narm)
 {
     int i;
@@ -157,7 +168,9 @@ static Rboolean smin(SEXP x, SEXP *value, Rboolean narm)
     for (i = 0; i < length(x); i++) {
 	if (STRING_ELT(x, i) != NA_STRING) {
 	    if (!updated ||
-		(s != STRING_ELT(x, i) && Scollate(s, STRING_ELT(x, i)) > 0)) {
+		(s != STRING_ELT(x, i) &&
+		 STRCOLL(translateChar(s),
+			 translateChar(STRING_ELT(x, i))) > 0)) {
 		s = STRING_ELT(x, i);
 		if(!updated) updated = TRUE;
 	    }
@@ -215,7 +228,6 @@ static Rboolean rmax(double *x, int n, double *value, Rboolean narm)
 
     return(updated);
 }
-
 static Rboolean smax(SEXP x, SEXP *value, Rboolean narm)
 {
     int i;
@@ -225,7 +237,9 @@ static Rboolean smax(SEXP x, SEXP *value, Rboolean narm)
     for (i = 0; i < length(x); i++) {
 	if (STRING_ELT(x, i) != NA_STRING) {
 	    if (!updated ||
-		(s != STRING_ELT(x, i) && Scollate(s, STRING_ELT(x, i)) < 0)) {
+		(s != STRING_ELT(x, i) &&
+		 STRCOLL(translateChar(s),
+			 translateChar(STRING_ELT(x, i))) < 0)) {
 		s = STRING_ELT(x, i);
 		if(!updated) updated = TRUE;
 	    }
@@ -545,8 +559,10 @@ SEXP attribute_hidden do_summary(SEXP call, SEXP op, SEXP args, SEXP env)
 				stmp = StringFromInteger(itmp, &warn);
 			    if(real_a)
 				stmp = StringFromReal(tmp, &warn);
-			    if(((iop == 2 && stmp != scum && Scollate(stmp, scum) < 0)) ||
-			       (iop == 3 && stmp != scum && Scollate(stmp, scum) > 0) )
+			    if(((iop == 2 && stmp != scum &&
+				 STRCOLL(translateChar(stmp), translateChar(scum)) < 0)) ||
+			       (iop == 3 && stmp != scum &&
+				STRCOLL(translateChar(stmp), translateChar(scum)) > 0) )
 				scum = stmp;
 			}
 		    }
@@ -1096,12 +1112,14 @@ SEXP attribute_hidden do_pmin(SEXP call, SEXP op, SEXP args, SEXP rho)
 		t2 = STRING_ELT(ans, i);
 		if(PRIMVAL(op) == 1) {
 		    if( (narm && t2 == NA_STRING) ||
-			(t2 != NA_STRING && tmp != NA_STRING && tmp != t2 && Scollate(tmp, t2) > 0) ||
+			(t2 != NA_STRING && tmp != NA_STRING && tmp != t2
+			 && STRCOLL(translateChar(tmp), translateChar(t2)) > 0) ||
 			(!narm && tmp == NA_STRING) )
 			SET_STRING_ELT(ans, i, tmp);
 		} else {
 		    if( (narm && t2 == NA_STRING) ||
-			(t2 != NA_STRING && tmp != NA_STRING && tmp != t2 && Scollate(tmp, t2) < 0) ||
+			(t2 != NA_STRING && tmp != NA_STRING && tmp != t2
+			 && STRCOLL(translateChar(tmp), translateChar(t2)) < 0) ||
 			(!narm && tmp == NA_STRING) )
 			SET_STRING_ELT(ans, i, tmp);
 		}
