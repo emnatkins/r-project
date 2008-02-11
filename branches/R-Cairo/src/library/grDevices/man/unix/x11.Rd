@@ -1,0 +1,164 @@
+% File src/library/grDevices/man/unix/x11.Rd
+% Part of the R package, http://www.R-project.org
+% Copyright 1995-2007 R Core Development Team
+% Distributed under GPL 2 or later
+
+\name{x11}
+\alias{x11}
+\alias{X11}
+\alias{X11.options}
+\title{X Window System Graphics}
+\description{
+  \code{X11} starts a graphics device driver for the X Window System
+  (version 11).  This can only be done on machines/accounts that have
+  access to an X server.
+  
+  \code{x11} is recognized as a synonym for \code{X11}.
+}
+\usage{
+X11(display = "", width, height, pointsize, gamma, bg, canvas,
+    fonts, xpos, ypos, title)
+
+X11.options(\dots, reset = FALSE)
+}
+\arguments{
+  \item{display}{the display on which the graphics window will appear.
+    The default is to use the value in the user's environment variable
+    \env{DISPLAY}.}
+  \item{width, height}{the width and height of the plotting window, in
+    inches.  If \code{NA}, taken from the resources and if
+    not specified there defaults to \code{7} inches.  See also
+    \sQuote{Resources}.}
+  \item{pointsize}{the default pointsize to be used.  Defaults to \code{12}.}
+  \item{gamma}{the gamma correction factor.  This value is used
+    to help ensure that the colors perceived are linearly related to
+    RGB values (see \code{\link{hsv}}).  By default 1 (default
+    correction).}
+  \item{bg}{color.  The default background color.  Default
+    code{"transparent"}.}
+  \item{canvas}{color.  The color of the canvas, which is visible only
+    when the background color is transparent.  Default \code{"white"}.}
+  \item{fonts}{X11 font description strings into which weight, slant and
+    size will be substituted.  There are two, the first for fonts 1 to 4
+    and the second for font 5, the symbol font.  See section \sQuote{Fonts}.}
+  \item{xpos, ypos}{integer: initial position of the top left corner of the
+    window, in pixels.  Negative values are from the opposite corner,
+    e.g. \code{xpos=-100} says the top right corner should be 100 pixels
+    from the right edge of the screen.  If \code{NA} (the default),
+    successive devices are cascaded in 20 pixel steps from the top left.
+    See also \sQuote{Resources}.}
+  \item{title}{character string, up to 100 bytes.  With the default,
+    \code{""}, a suitable title is created internally.  A C-style format
+    for an integer will be substituted by the device number (see the
+    \code{file} argument to \code{\link{postscript}} for further
+    details).  How non-ASCII titles are handled is
+    implementation-dependent.}
+  \item{reset}{logical: should the defaults be reset to their defaults?}
+  \item{\dots}{Any of the arguments to \code{X11}, plus \code{colortype}
+    and \code{maxcubesize} (see section \sQuote{Color Rendering}).}
+}
+\details{
+  The defaults for all of the arguments of \code{X11} are set by
+  \code{X11.options}: the \sQuote{Arguments} section gives the
+  \sQuote{factory-fresh} defaults.
+  
+  The initial size and position are only hints, and may not be acted on
+  by the window manager.  Also, some systems (especially laptops) are
+  set up to appear to have a screen of a different size to the physical
+  screen.
+
+  Line widths as controlled by \code{par(lwd=)} are in multiples of the
+  pixel size, and multiples < 1 are silently converted to 1.
+
+  \code{pch="."} with \code{cex = 1} corresponds to a rectangle of sides
+  the larger of one pixel and 0.01 inch.
+}
+\section{Fonts}{
+  An initial/default font family for the device can be specified via
+  the \code{fonts} argument, but if a device-independent R graphics font
+  family is specified (e.g., via \code{par(family=)} in the graphics
+  package), the X11 device makes use of the X11 font database (see
+  \code{X11Fonts}) to convert the R graphics font family to an
+  X11-specific font family description.
+
+  X11 chooses fonts by matching to a pattern, and it is quite possible
+  that it will choose a font in the wrong encoding or which does not
+  contain glyphs for your language (particularly common in
+  \code{iso10646-1} fonts).
+  
+  The \code{fonts} argument is a two-element character vector, and the
+  first element will be crucial in successfully using
+  non-Western-European fonts.  Settings that have proved useful include
+
+  \code{"-*-mincho-\%s-\%s-*-*-\%d-*-*-*-*-*-*-*"} for CJK languages and
+  \code{"-cronyx-helvetica-\%s-\%s-*-*-\%d-*-*-*-*-*-*-*"} for Russian.
+
+  For UTF-8 locales, the \code{XLC_LOCALE} databases provide mappings
+  between character encodings, and you may need to add an entry for your
+  locale (e.g. Fedora Core 3 lacked one for \code{ru_RU.utf8}).
+}
+\section{Resources}{
+  The standard X11 resource \code{geometry} can be used to specify the
+  window position and/or size, but will be overridden by values
+  specified as arguments or non-\code{NA} defaults set in
+  \code{X11.options}.  The class looked for is \code{R_x11}.  Note that
+  the resource specifies the width and height in pixels and not in
+  inches.  See for example
+  \url{http://web.mit.edu/answers/xwindows/xwindows_resources.html} and
+  perhaps \samp{man X} (or \url{http://www.xfree86.org/current/X.7.html}).
+  An example line in \file{~/.Xresources} might be
+\preformatted{R_x11*geometry: 900x900-0+0
+}
+  which specifies a 900 x 900 pixel window at the top right of the screen.
+}
+
+\section{Color Rendering}{
+  X11 supports several \sQuote{visual} types, and nowadays almost all
+  systems support \sQuote{truecolor} which \code{X11} will use by
+  default.  This uses a direct specification of any RGB color up to the
+  depth supported (usually 8 bits per color).  Other visuals make use
+  of a palette to support fewer colors, only grays or even only
+  black/white.  The palette is shared between all X11 clients, so it can
+  be necessary to limit the number of colors used by \R.
+
+  The default is to use the best possible color model for the visual of
+  the X11 server.  This can be overridden by the \code{colortype}
+  argument of \code{X11.options}.  \bold{Note:} All \code{X11},
+  \code{jpeg} and \code{png} devices share a \code{colortype} which is
+  set when the first device to be opened.  To change the
+  \code{colortype} you need to close \emph{all} open \code{X11},
+  \code{jpeg} and \code{png} devices, and then use
+  \code{X11.options(colortype=)}.
+
+  The colortype types are tried in the order \code{"true"},
+  \code{"pseudo"}, \code{"gray"} and \code{"mono"} (black or white
+  only).  The values \code{"pseudo"} and \code{"pseudo.cube"} provide
+  color strategies for a pseudocolor visual.  The first strategy
+  provides on-demand color allocation which produces exact colors until
+  the color resources of the display are exhausted (when plotting will
+  fail).  The second allocates (if possible) a standard color cube, and
+  requested colors are approximated by the closest value in the cube.
+
+  With \code{colortype} equal to \code{"pseudo.cube"} or \code{"gray"}
+  successively smaller palettes are tried until one is completely
+  allocated.  If allocation of the smallest attempt fails the device will
+  revert to \code{"mono"}.  For \code{"gray"} the search starts at 256
+  grays for a display with depth greater than 8, otherwise with half
+  the available colors.  For \code{"pseudo.cube"} the maximum cube size
+  is set by \code{X11.options(maxcolorsize=)} and defaults to
+  256.  With that setting the largest cube tried is 4 levels each for
+  RGB, using 64 colors in the palette.
+}
+\section{Gamma}{
+  PC displays map RGB numbers non-linearly to luminosities (and the
+  eye/brain system also perceives non-linearly).  By default \code{X11}
+  uses a non-linear transformation that assumes the display has a
+  \sQuote{gamma} value of \code{5/3}.  This is rather low: PC displays
+  are usually set up for a ganmma of 2.2 and older Macs were set up for
+  1.8.  The argument \code{gamma} \code{divides} 5/3, so use
+  \code{gamma=0.76} for a PC display.
+}
+\seealso{
+  \code{\link{Devices}}, \code{\link{X11Fonts}}.
+}
+\keyword{device}

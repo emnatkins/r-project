@@ -1,0 +1,656 @@
+
+R version 2.7.0 Under development (unstable) (2008-01-31 r44280)
+Copyright (C) 2008 The R Foundation for Statistical Computing
+ISBN 3-900051-07-0
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> ##--- S4 Methods (and Classes)
+> options(useFancyQuotes=FALSE)
+> library(methods)
+> ##too fragile: showMethods(where = "package:methods")
+> 
+> ##-- S4 classes with S3 slots [moved from ./reg-tests-1.R]
+> setClass("test1", representation(date="POSIXct"))
+[1] "test1"
+> x <- new("test1", date=as.POSIXct("2003-10-09"))
+> stopifnot(format(x @ date) == "2003-10-09")
+> ## line 2 failed in 1.8.0 because of an extraneous space in "%in%"
+> 
+> stopifnot(all.equal(3:3, 3.), all.equal(1., 1:1))
+> 
+> ## trace (requiring methods):
+> f <- function(x, y) { c(x,y)}
+> xy <- 0
+> trace(f, quote(x <- c(1, x)), exit = quote(xy <<- x), print = FALSE)
+[1] "f"
+> fxy <- f(2,3)
+> stopifnot(identical(fxy, c(1,2,3)))
+> stopifnot(identical(xy, c(1,2)))
+> untrace(f)
+> 
+> ## a generic and its methods
+> 
+> setGeneric("f")
+[1] "f"
+> setMethod("f", c("character", "character"), function(x,	 y) paste(x,y))
+[1] "f"
+> 
+> ## trace the generic
+> trace("f", quote(x <- c("A", x)), exit = quote(xy <<- c(x, "Z")), print = FALSE)
+[1] "f"
+> 
+> ## should work for any method
+> 
+> stopifnot(identical(f(4,5), c("A",4,5)),
++           identical(xy, c("A", 4, "Z")))
+> 
+> stopifnot(identical(f("B", "C"), paste(c("A","B"), "C")),
++           identical(xy, c("A", "B", "Z")))
+> 
+> ## trace a method
+> trace("f", sig = c("character", "character"), quote(x <- c(x, "D")),
++       exit = quote(xy <<- xyy <<- c(x, "W")), print = FALSE)
+[1] "f"
+> 
+> stopifnot(identical(f("B", "C"), paste(c("A","B","D"), "C")))
+> # These two got broken by Luke's lexical scoping fix
+> #stopifnot(identical(xy, c("A", "B", "D", "W")))
+> #stopifnot(identical(xy, xyy))
+> 
+> ## but the default method is unchanged
+> stopifnot(identical(f(4,5), c("A",4,5)),
++           identical(xy, c("A", 4, "Z")))
+> 
+> removeGeneric("f")
+[1] TRUE
+> ## end of moved from trace.Rd
+> 
+> 
+> ## print/show dispatch  [moved from  ./reg-tests-2.R ]
+> ## The results  have waffled back and forth.
+> ## Currently (R 2.4.0) the intent is that automatic printing of S4
+> ## objects should correspond to a call to show(), as per the green
+> ## book, p. 332.  Therefore, the show() method is called, once defined,
+> ## for auto-printing foo, regardless of the S3 or S4 print() method.
+> setClass("bar", representation(a="numeric"))
+[1] "bar"
+> foo <- new("bar", a=pi)
+> foo
+An object of class "bar"
+Slot "a":
+[1] 3.141593
+
+> show(foo)
+An object of class "bar"
+Slot "a":
+[1] 3.141593
+
+> print(foo)
+An object of class "bar"
+Slot "a":
+[1] 3.141593
+
+> 
+> setMethod("show", "bar", function(object){cat("show method\n")})
+[1] "show"
+> show(foo)
+show method
+> foo
+show method
+> print(foo)
+show method
+> # suppressed because output depends on current choice of S4 type or
+> # not.  Can reinstate when S4 type is obligatory
+> # print(foo, digits = 4)
+> 
+> print.bar <- function(x, ...) cat("print method\n")
+> foo
+show method
+> print(foo)
+print method
+> show(foo)
+show method
+> 
+> setMethod("print", "bar", function(x, ...){cat("S4 print method\n")})
+Creating a new generic function for "print" in ".GlobalEnv"
+[1] "print"
+> foo
+show method
+> print(foo)
+S4 print method
+> show(foo)
+show method
+> ## calling print() with more than one argument suppresses the show()
+> ## method, largely to prevent an infinite loop if there is in fact no
+> ## show() method for this class.  A better solution would be desirable.
+> print(foo, digits = 4)
+S4 print method
+> 
+> setClassUnion("integer or NULL", members = c("integer","NULL"))
+[1] "integer or NULL"
+> setClass("c1", representation(x = "integer", code = "integer or NULL"))
+[1] "c1"
+> nc <- new("c1", x = 1:2)
+> str(nc)# gave ^ANULL^A in 2.0.0
+Formal class 'c1' [package ".GlobalEnv"] with 2 slots
+  ..@ x   : int [1:2] 1 2
+  ..@ code: NULL
+> ##
+> 
+> 
+> library(stats4)
+> showMethods("coerce", classes=c("matrix", "numeric"))
+Function: coerce (package methods)
+from="ANY", to="matrix"
+from="ANY", to="numeric"
+
+> ## {gave wrong result for a while in R 2.4.0}
+> 
+> ## the following showMethods() output tends to generate errors in the tests
+> ## whenever the contents of the packages change. Searching in the
+> ## diff's can easily mask real problems.  If there is a point
+> ## to the printout, e.g., to verify that certain methods exist,
+> ## hasMethod() would be a useful replacement
+> 
+> ## showMethods(where = "package:stats4")
+> ## showMethods("show")
+> ## showMethods("show")
+> ## showMethods("plot") # (ANY,ANY) and (profile.mle, missing)
+> ## showMethods(classes="mle")
+> ## showMethods(classes="matrix")
+> 
+> 
+> ##--- "[" fiasco before R 2.2.0 :
+> d2 <- data.frame(b= I(matrix(1:6,3,2)))
+> ## all is well:
+> d2[2,]
+     [,1] [,2]
+[1,]    2    5
+> stopifnot(identical(d2[-1,], d2[2:3,]))
+> ## Now make "[" into S4 generic by defining a trivial method
+> setClass("Mat", representation(Dim = "integer", "VIRTUAL"))
+[1] "Mat"
+> setMethod("[", signature(x = "Mat",
++ 			 i = "missing", j = "missing", drop = "ANY"),
++ 	  function (x, i, j, drop) x)
+[1] "["
+> ## Can even remove the method: it doesn't help
+> removeMethod("[", signature(x = "Mat",
++                             i = "missing", j = "missing", drop = "ANY"))
+[1] TRUE
+> d2[1:2,] ## used to fail badly; now okay
+     [,1] [,2]
+[1,]    1    4
+[2,]    2    5
+> stopifnot(identical(d2[-1,], d2[2:3,]))
+> ## failed in R <= 2.1.x
+> 
+> 
+> ## Fritz' S4 "odditiy"
+> setClass("X", representation(bar="numeric"))
+[1] "X"
+> setClass("Y", contains="X")
+[1] "Y"
+> ## Now we define a generic foo() and two different methods for "X" and
+> ## "Y" objects for arg missing:
+> setGeneric("foo", function(object, arg) standardGeneric("foo"))
+[1] "foo"
+> setMethod("foo", signature(object= "X", arg="missing"),
++           function(object, arg) cat("an X object with bar =", object@bar, "\n"))
+[1] "foo"
+> setMethod("foo", signature(object= "Y", arg="missing"),
++           function(object, arg) cat("a Y object with bar =", object@bar, "\n"))
+[1] "foo"
+> ## Finally we create a method where arg is "logical" only for class
+> ## "X", hence class "Y" should inherit that:
+> setMethod("foo", signature(object= "X", arg= "logical"),
++           function(object, arg) cat("Hello World!\n") )
+[1] "foo"
+> ## now create objects and call methods:
+> y <- new("Y", bar=2)
+> ## showMethods("foo")
+> foo(y)
+a Y object with bar = 2 
+> foo(y, arg=TRUE)## Hello World!
+Hello World!
+> ## OK, inheritance worked, and we have
+> ## showMethods("foo")
+> foo(y)
+a Y object with bar = 2 
+> ## still 'Y' -- was 'X object' in R < 2.3
+> 
+> 
+> ## Multiple inheritance
+> setClass("A", representation(x = "numeric"))
+[1] "A"
+> setClass("B", representation(y = "character"))
+[1] "B"
+> setClass("C", contains = c("A", "B"), representation(z = "logical"))
+[1] "C"
+> new("C")
+An object of class "C"
+Slot "z":
+logical(0)
+
+Slot "x":
+numeric(0)
+
+Slot "y":
+character(0)
+
+> setClass("C", contains = c("A", "B"), representation(z = "logical"),
++          prototype = prototype(x = 1.5, y = "test", z = TRUE))
+[1] "C"
+> (cc <- new("C"))
+An object of class "C"
+Slot "z":
+[1] TRUE
+
+Slot "x":
+[1] 1.5
+
+Slot "y":
+[1] "test"
+
+> ## failed reconcilePropertiesAndPrototype(..) after svn r37018
+> 
+> 
+> ## "Logic" group -- was missing in R <= 2.4.0
+> stopifnot(all(getGroupMembers("Logic") %in% c("&", "|")),
++ 	  any(getGroupMembers("Ops") == "Logic"))
+> setClass("brob", contains="numeric")
+[1] "brob"
+> b <- new("brob", 3.14)
+> logic.brob.error <- function(nm)
++     stop("logic operator '", nm, "' not applicable to brobs")
+> logic2 <- function(e1,e2) logic.brob.error(.Generic)
+> setMethod("Logic", signature("brob", "ANY"), logic2)
+[1] "Logic"
+> setMethod("Logic", signature("ANY", "brob"), logic2)
+[1] "Logic"
+> ## Now ensure that using group members gives error:
+> assertError <- function(expr)
++     stopifnot(inherits(try(expr, silent = TRUE), "try-error"))
+> assertError(b & b)
+Warning message:
+Ambiguous method selection for "&", target "brob#brob" (the first of the signatures shown will be used)
+    brob#ANY
+    ANY#brob
+ 
+> assertError(b | 1)
+> assertError(TRUE & b)
+> 
+> 
+> ## methods' hidden cbind() / rbind:
+> cBind <- methods:::cbind
+> setClass("myMat", representation(x = "numeric"))
+[1] "myMat"
+> setMethod("cbind2", signature(x = "myMat", y = "missing"), function(x,y) x)
+[1] "cbind2"
+> m <- new("myMat", x = c(1, pi))
+> stopifnot(identical(m, cBind(m)))
+> 
+> 
+> ## explicit print or show on a basic class with an S4 bit
+> ## caused infinite recursion
+> setClass("Foo", representation(name="character"), contains="matrix")
+[1] "Foo"
+> (f <- new("Foo", name="Sam", matrix()))
+An object of class "Foo"
+     [,1]
+[1,]   NA
+Slot "name":
+[1] "Sam"
+
+> (m <- as(f, "matrix"))
+     [,1]
+[1,]   NA
+> show(m)
+     [,1]
+[1,]   NA
+> print(m)
+     [,1]
+[1,]   NA
+> ## fixed in 2.5.0 patched
+> 
+> ## callGeneric inside a method with new arguments {hence using .local()}:
+> setGeneric("Gfun", function(x, ...) standardGeneric("Gfun"),
++ 	   useAsDefault = function(x, ...) sum(x, ...))
+[1] "Gfun"
+> setClass("myMat", contains="matrix")
+[1] "myMat"
+> setClass("mmat2", contains="matrix")
+[1] "mmat2"
+> setClass("mmat3", contains="mmat2")
+[1] "mmat3"
+> setMethod(Gfun, signature(x = "myMat"),
++ 	  function(x, extrarg = TRUE) {
++ 	      cat("in 'myMat' method for 'Gfun() : extrarg=", extrarg, "\n")
++ 	      Gfun(unclass(x))
++ 	  })
+[1] "Gfun"
+attr(,"package")
+[1] ".GlobalEnv"
+> setMethod(Gfun, signature(x = "mmat2"),
++ 	  function(x, extrarg = TRUE) {
++ 	      cat("in 'mmat2' method for 'Gfun() : extrarg=", extrarg, "\n")
++ 	      x <- unclass(x)
++ 	      callGeneric()
++ 	  })
+[1] "Gfun"
+attr(,"package")
+[1] ".GlobalEnv"
+> setMethod(Gfun, signature(x = "mmat3"),
++ 	  function(x, extrarg = TRUE) {
++ 	      cat("in 'mmat3' method for 'Gfun() : extrarg=", extrarg, "\n")
++ 	      x <- as(x, "mmat2")
++ 	      callGeneric()
++ 	  })
+[1] "Gfun"
+attr(,"package")
+[1] ".GlobalEnv"
+> wrapG <- function(x, a1, a2) {
++     myextra <- missing(a1) && missing(a2)
++     Gfun(x, extrarg = myextra)
++ }
+> 
+> (mm <- new("myMat", diag(3)))
+An object of class "myMat"
+     [,1] [,2] [,3]
+[1,]    1    0    0
+[2,]    0    1    0
+[3,]    0    0    1
+> Gfun(mm)
+in 'myMat' method for 'Gfun() : extrarg= TRUE 
+[1] 3
+> stopifnot(identical(wrapG(mm),    Gfun(mm, TRUE)),
++           identical(wrapG(mm,,2), Gfun(mm, FALSE)))
+in 'myMat' method for 'Gfun() : extrarg= TRUE 
+in 'myMat' method for 'Gfun() : extrarg= TRUE 
+in 'myMat' method for 'Gfun() : extrarg= FALSE 
+in 'myMat' method for 'Gfun() : extrarg= FALSE 
+> 
+> Gfun(mm, extrarg = FALSE)
+in 'myMat' method for 'Gfun() : extrarg= FALSE 
+[1] 3
+> m2 <- new("mmat2", diag(3))
+> Gfun(m2)
+in 'mmat2' method for 'Gfun() : extrarg= TRUE 
+[1] 3
+> Gfun(m2, extrarg = FALSE)
+in 'mmat2' method for 'Gfun() : extrarg= FALSE 
+[1] 3
+> ## The last two gave Error ...... variable ".local" was not found
+> (m3 <- new("mmat3", diag(3)))
+An object of class "mmat3"
+     [,1] [,2] [,3]
+[1,]    1    0    0
+[2,]    0    1    0
+[3,]    0    0    1
+> Gfun(m3)
+in 'mmat3' method for 'Gfun() : extrarg= TRUE 
+in 'mmat2' method for 'Gfun() : extrarg= TRUE 
+[1] 3
+> Gfun(m3, extrarg = FALSE) # used to not pass 'extrarg'
+in 'mmat3' method for 'Gfun() : extrarg= FALSE 
+in 'mmat2' method for 'Gfun() : extrarg= FALSE 
+[1] 3
+> 
+> ## -- a variant of the above which failed in version <= 2.5.1 :
+> setGeneric("Gf", function(x, ...) standardGeneric("Gf"))
+[1] "Gf"
+> setMethod(Gf, signature(x = "mmat2"),
++           function(x, ...) {
++               cat("in 'mmat2' method for 'Gf()\n")
++               x <- unclass(x)
++               callGeneric()
++           })
+[1] "Gf"
+attr(,"package")
+[1] ".GlobalEnv"
+> setMethod(Gf, signature(x = "mmat3"),
++           function(x, ...) {
++               cat("in 'mmat3' method for 'Gf()\n")
++               x <- as(x, "mmat2")
++               callGeneric()
++           })
+[1] "Gf"
+attr(,"package")
+[1] ".GlobalEnv"
+> setMethod(Gf, signature(x = "matrix"),
++ 	  function(x, a1, ...) {
++               cat(sprintf("matrix %d x %d ...\n", nrow(x), ncol(x)))
++               list(x=x, a1=a1, ...)
++           })
+[1] "Gf"
+attr(,"package")
+[1] ".GlobalEnv"
+> 
+> wrap2 <- function(x, a1, ...) {
++     A1 <- if(missing(a1)) "A1" else as.character(a1)
++     Gf(x, ..., a1 = A1)
++ }
+> ## Gave errors in R 2.5.1 :
+> wrap2(m2, foo = 3.14)
+in 'mmat2' method for 'Gf()
+matrix 3 x 3 ...
+$x
+     [,1] [,2] [,3]
+[1,]    1    0    0
+[2,]    0    1    0
+[3,]    0    0    1
+
+$a1
+[1] "A1"
+
+$foo
+[1] 3.14
+
+> wrap2(m2, 10, answer.all = 42)
+in 'mmat2' method for 'Gf()
+matrix 3 x 3 ...
+$x
+     [,1] [,2] [,3]
+[1,]    1    0    0
+[2,]    0    1    0
+[3,]    0    0    1
+
+$a1
+[1] "10"
+
+$answer.all
+[1] 42
+
+> 
+> 
+> ## regression tests of dispatch: most of these became primitive in 2.6.0
+> setClass("c1", "numeric")
+[1] "c1"
+> setClass("c2", "numeric")
+[1] "c2"
+> x_c1 <- new("c1")
+> # the next failed < 2.5.0 as the signature in .BasicFunsList was wrong
+> setMethod("as.character", "c1", function(x, ...) "fn test")
+[1] "as.character"
+> as.character(x_c1)
+[1] "fn test"
+> 
+> setMethod("as.integer", "c1", function(x, ...) 42)
+[1] "as.integer"
+> as.integer(x_c1)
+[1] 42
+> 
+> setMethod("as.logical", "c1", function(x, ...) NA)
+[1] "as.logical"
+> as.logical(x_c1)
+[1] NA
+> 
+> setMethod("as.complex", "c1", function(x, ...) pi+0i)
+[1] "as.complex"
+> as.complex(x_c1)
+[1] 3.141593+0i
+> 
+> setMethod("as.raw", "c1", function(x) as.raw(10))
+[1] "as.raw"
+> as.raw(x_c1)
+[1] 0a
+> 
+> # as.numeric sets methods on all the equivalent functions
+> setMethod("as.numeric", "c1", function(x, ...) 42+pi)
+[1] "as.numeric"
+> as.numeric(x_c1)
+[1] 45.14159
+> as.double(x_c1)
+[1] 45.14159
+> as.real(x_c1)
+[1] 45.14159
+> showMethods(as.numeric)
+Function: as.numeric (package base)
+x="c1"
+
+> showMethods(as.double)
+Function: as.numeric (package base)
+x="c1"
+
+> showMethods(as.real)
+Function: as.numeric (package base)
+x="c1"
+
+> 
+> setMethod(as.double, "c2", function(x, ...) x@.Data+pi)
+[1] "as.numeric"
+> x_c2 <- new("c2", pi)
+> as.numeric(x_c2)
+[1] 6.283185
+> showMethods(as.numeric)
+Function: as.numeric (package base)
+x="c1"
+x="c2"
+
+> 
+> promptClass("c1", stdout())# want all methods
+\name{c1-class}
+\docType{class}
+\alias{c1-class}
+\alias{as.character,c1-method}
+\alias{as.complex,c1-method}
+\alias{as.integer,c1-method}
+\alias{as.logical,c1-method}
+\alias{as.numeric,c1-method}
+\alias{as.raw,c1-method}
+
+\title{Class "c1" ~~~ }
+\description{	 ~~ A concise (1-5 lines) description of what the class is.  ~~}
+\section{Objects from the Class}{
+Objects can be created by calls of the form \code{new("c1", ...)}.
+	 ~~ describe objects here ~~ 
+}
+\section{Slots}{
+	 \describe{
+    \item{\code{.Data}:}{Object of class \code{"numeric"} ~~ }
+  }
+}
+\section{Extends}{
+Class \code{"\linkS4class{numeric}"}, from data part.
+Class \code{"\linkS4class{vector}"}, by class "numeric", distance 2.
+}
+\section{Methods}{
+  \describe{
+    \item{as.character}{\code{signature(x = "c1")}: ... }
+    \item{as.complex}{\code{signature(x = "c1")}: ... }
+    \item{as.integer}{\code{signature(x = "c1")}: ... }
+    \item{as.logical}{\code{signature(x = "c1")}: ... }
+    \item{as.numeric}{\code{signature(x = "c1")}: ... }
+    \item{as.raw}{\code{signature(x = "c1")}: ... }
+	 }
+}
+\references{ ~put references to the literature/web site here ~ }
+\author{ ~~who you are~~ }
+\note{ ~~further notes~~ }
+
+ ~Make other sections like Warning with \section{Warning }{....} ~
+
+\seealso{
+	~~objects to See Also as \code{\link{~~fun~~}}, ~~~
+	or \code{\linkS4class{CLASSNAME}} for links to other classes
+}
+\examples{
+showClass("c1")
+}
+\keyword{classes}
+A shell of class documentation has been written to the 
+connection 'stdout'.
+ 
+> 
+> ## '!' changed signature from 'e1' to 'x' in 2.6.0
+> setClass("foo", "logical")
+[1] "foo"
+> setMethod("!", "foo", function(e1) e1+NA)
+[1] "!"
+Warning message:
+argument in method definition changed from (e1) to (x) 
+> selectMethod("!", "foo")
+Method Definition:
+
+function (x) 
+x + NA
+
+Signatures:
+        x    
+target  "foo"
+defined "foo"
+> xx <- new("foo", FALSE)
+> !xx
+An object of class "foo"
+[1] NA
+> 
+> ## This failed for about one day -- as.vector(x, mode) :
+> setMethod("as.vector", signature(x = "foo", mode = "missing"),
++           function(x) unclass(x))
+Creating a new generic function for "as.vector" in ".GlobalEnv"
+[1] "as.vector"
+> ## whereas this fails in R versions earlier than 2.6.0:
+> setMethod("as.vector", "foo", function(x) unclass(x))# gives message
+In method for function "as.vector": expanding the signature 
+to include omitted arguments in definition: mode = "missing" 
+[1] "as.vector"
+> 
+> ## stats4::AIC in R < 2.7.0 used to clobber stats::AIC
+> pfit <- function(data) {
++     m <- mean(data)
++     loglik <- sum(dpois(data, m))
++     ans <- list(par = m, loglik = loglik)
++     class(ans) <- "pfit"
++     ans
++ }
+> AIC.pfit <- function(object, ..., k = 2) -2*object$loglik + k
+> AIC(pfit(1:10))
+[1] 0.05867604
+> library(stats4)
+> AIC(pfit(1:10)) # failed in R < 2.7.0
+[1] 0.05867604
+> 
+> ## For a few days (~ 2008-01-30), this failed to work without any notice:
+> setClass("Mat",  representation(Dim = "integer","VIRTUAL"))
+[1] "Mat"
+> setClass("dMat", representation(x = "numeric",  "VIRTUAL"), contains = "Mat")
+[1] "dMat"
+> setClass("CMat", representation(dnames = "list","VIRTUAL"), contains = "Mat")
+[1] "CMat"
+> setClass("dCMat", contains = c("dMat", "CMat"))
+[1] "dCMat"
+> stopifnot(!isVirtualClass("dCMat"),
++ 	  length(slotNames(new("dCMat"))) == 3)
+> 
+> 

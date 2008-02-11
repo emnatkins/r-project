@@ -1,0 +1,303 @@
+#  File src/library/methods/R/MethodsListClass.R
+#  Part of the R package, http://www.R-project.org
+#
+#  This program is free software; you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  A copy of the GNU General Public License is available at
+#  http://www.r-project.org/Licenses/
+
+.InitMethodsListClass <- function(envir)
+{
+    if(exists(classMetaName("MethodsList"), envir))
+        return(FALSE)
+    clList <- character()
+    setClass("MethodsList",
+             representation(methods = "list", argument = "name", allMethods = "list"),
+             where = envir); clList <- c(clList, "MethodsList")
+    setClass("EmptyMethodsList", representation(argument = "name", sublist = "list"),
+             where = envir); clList <- c(clList, "EmptyMethodsList")
+
+    ## the classes for method definitions
+    setClass("PossibleMethod", where = envir); clList <- c(clList, "PossibleMethod")
+    ## functions (esp. primitives) are methods
+    setIs("function", "PossibleMethod", where = envir)
+
+    ## signatures -- used mainly as named character vectors
+    setClass("signature", representation("character", names = "character"), where = envir); clList <- c(clList, "signature")
+
+    ## formal method definition for all but primitives
+    setClass("MethodDefinition",
+             representation("function", "PossibleMethod",
+                            target = "signature", defined = "signature", generic = "character"),
+             where = envir); clList <- c(clList, "MethodDefinition")
+    ## class for default methods made from ordinary functions
+    setClass("derivedDefaultMethod", "MethodDefinition")
+    ## class for methods with precomputed information for callNextMethod
+    setClass("MethodWithNext",
+             representation("MethodDefinition", nextMethod = "PossibleMethod", excluded = "list"), where = envir); clList <- c(clList, "MethodWithNext")
+    setClass("SealedMethodDefinition", contains = "MethodDefinition"); clList <- c(clList, "SealedMethodDefinition")
+    setClass("genericFunction",
+             representation("function", generic = "character", package = "character",
+                            group = "list", valueClass = "character",
+                            signature = "character", default = "MethodsList",
+                            skeleton = "call"), where = envir); clList <- c(clList, "genericFunction")
+    ## standard generic function -- allows immediate dispatch
+    setClass("standardGeneric",  contains = "genericFunction")
+    setClass("nonstandardGeneric", # virtual class to mark special generic/group generic
+             where = envir); clList <- c(clList, "nonstandardGeneric")
+    setClass("nonstandardGenericFunction",
+             representation("genericFunction", "nonstandardGeneric"),
+             where = envir); clList <- c(clList, "nonstandardGenericFunction")
+    setClass("groupGenericFunction",
+             representation("genericFunction", groupMembers = "list"),
+             where = envir); clList <- c(clList, "groupGenericFunction")
+    setClass("nonstandardGroupGenericFunction",
+             representation("groupGenericFunction", "nonstandardGeneric"),
+             where = envir); clList <- c(clList, "nonstandardGroupGenericFunction")
+    setClass("LinearMethodsList", representation(methods = "list", arguments = "list",
+                                                 classes = "list", generic = "genericFunction"),
+             where = envir); clList <- c(clList, "LinearMethodsList")
+    setClass("ObjectsWithPackage", representation("character", package = "character"),
+             where = envir); clList <- c(clList, "ObjectsWithPackage")
+    assign(".SealedClasses", c(get(".SealedClasses", envir), clList), envir)
+    TRUE
+}
+
+## some initializations that need to be done late
+.InitMethodDefinitions <- function(envir) {
+    assign("asMethodDefinition",
+           function(def, signature = list(), sealed = FALSE, functionName = character()) {
+        ## primitives can't take slots, but they are only legal as default methods
+        ## and the code will just have to accomodate them in that role, w/o the
+        ## MethodDefinition information.
+        ## NULL is a valid def, used to remove methods.
+        switch(typeof(def),
+               "builtin" = , "special" = , "NULL" = return(def),
+               "closure" = {},
+               stop(gettextf("invalid object for formal method definition: type \"%s\"",
+                             typeof(def)), domain = NA)
+               )
+        if(is(def, "MethodDefinition"))
+            value <- def
+        else
+            value <- new("MethodDefinition", def)
+
+        if(length(functionName) == 0)
+          functionName = value@generic
+
+        if(sealed)
+            value <- new("SealedMethodDefinition", value)
+        ## this is really new("signature",  def, signature)
+        ## but bootstrapping problems force us to make
+        ## the initialize method explicit here
+        classes <- .MakeSignature(new("signature"),  def, signature, functionName)
+        value@target <- classes
+        value@defined <- classes
+        value
+    }, envir = envir)
+    setGeneric("loadMethod", where = envir)
+    setMethod("loadMethod", "MethodDefinition",
+              function(method, fname, envir) {
+                  assign(".target", method@target, envir = envir)
+                  assign(".defined", method@defined, envir = envir)
+                  assign(".Method", method, envir = envir)
+                  method
+              }, where = envir)
+    setMethod("loadMethod", "MethodWithNext",
+              function(method, fname, envir) {
+                  callNextMethod()
+                  assign(".nextMethod", method@nextMethod, envir = envir)
+                  method
+              }, where = envir)
+    setGeneric("addNextMethod", function(method, f = "<unknown>",
+                                         mlist = getMethods(f), optional = FALSE, envir)
+               standardGeneric("addNextMethod"), where = envir)
+    setMethod("addNextMethod", "MethodDefinition",
+	      function(method, f, mlist, optional, envir) {
+		  .findNextFromTable(method, f, optional, envir)
+	      }, where = envir)
+    setMethod("addNextMethod", "MethodWithNext",
+	      function(method, f, mlist, optional, envir) {
+		  .findNextFromTable(method, f, optional, envir, method@excluded)
+	      }, where = envir)
+
+    .initGeneric <- function(.Object, ...) {
+            value <- standardGeneric("initialize")
+            if(!identical(class(value), class(.Object))) {
+                cv <- class(value)
+                co <- class(.Object)
+                if(.identC(cv[[1]], co)) {
+                  ## ignore S3 with multiple classes  or basic classes
+                    if(is.na(match(cv, .BasicClasses)) &&
+                       length(cv) == 1) {
+                        warning(gettextf("missing package slot (%s) in object of class \"%s\" (package info added)", packageSlot(co), class(.Object)),
+                                domain = NA)
+                        class(value) <- class(.Object)
+                    }
+                    else
+                        return(value)
+                }
+                else
+                    stop(gettextf("initialize method returned an object of class \"%s\" instead of the required class \"%s\"",
+                                  paste(class(value), collapse=", "), class(.Object)), domain = NA)
+            }
+            value
+        }
+    if(!isGeneric("initialize", envir)) {
+        setGeneric("initialize",  .initGeneric, where = envir, useAsDefault = TRUE)
+    }
+    .InitTraceFunctions(envir)
+    setMethod("initialize", "signature",
+              function(.Object, functionDef, ...) {
+                  if(nargs() < 2)
+                      .Object
+                  else if(missing(functionDef))
+                      .MakeSignature(.Object, , list(...), "initialize")
+                  else if(!is(functionDef, "function"))
+                      .MakeSignature(.Object, , list(functionDef, ...), "initialize")
+                  else
+                      .MakeSignature(.Object, functionDef, list(...), "initialize")
+              }, where = envir)
+    setMethod("initialize", "environment",
+              function(.Object, ...) {
+                  value <- new.env()
+                  args <- list(...)
+                  objs <- names(args)
+                  for(what in objs)
+                      assign(what, elNamed(args, what), envir = value)
+                  value
+              }, where = envir)
+    ## make sure body(m) <- .... leaves a method as a method
+    setGeneric("body<-", where = envir)
+    setMethod("body<-", "MethodDefinition", function (fun, envir, value) {
+        ff <- as(fun, "function")
+        body(ff, envir = envir) <- value
+        fun@.Data <- ff
+        fun
+    }, where = envir)
+    ## a show method for lists of generic functions, etc; see metaNameUndo
+    setMethod("show", "ObjectsWithPackage",
+              function(object) {
+                  pkg <- object@package
+                  data <- as(object, "character")
+                  cat("An object of class \"", class(object), "\":\n", sep="")
+                  if(length(unique(pkg))==1) {
+                      show(data)
+                      cat("(All from \"", unique(pkg), "\")\n", sep="")
+                  }
+                  else {
+                      mat <- rbind(data, pkg)
+		      dimnames(mat) <- list(c("Object:", "Package:"),
+					    rep("", length(data)))
+                      show(mat)
+                  }
+              }, where = envir)
+
+    setGeneric("cbind2", function(x, y) standardGeneric("cbind2"),
+	       where = envir)
+    ## and its default methods:
+    setMethod("cbind2", signature(x = "ANY", y = "ANY"),
+	      function(x,y) .Internal(cbind(deparse.level = 0, x,y)))
+    setMethod("cbind2", signature(x = "ANY", y = "missing"),
+	      function(x,y) .Internal(cbind(deparse.level = 0, x)))
+
+    setGeneric("rbind2", function(x, y) standardGeneric("rbind2"),
+	       where = envir)
+    ## and its default methods:
+    setMethod("rbind2", signature(x = "ANY", y = "ANY"),
+	      function(x,y) .Internal(rbind(deparse.level = 0, x,y)))
+    setMethod("rbind2", signature(x = "ANY", y = "missing"),
+	      function(x,y) .Internal(rbind(deparse.level = 0, x)))
+    .InitStructureMethods(envir)
+### Uncomment next line if we want special initialize methods for basic classes
+###    .InitBasicClassMethods(where)
+}
+
+.InitStructureMethods <- function(where) {
+    setMethod("Ops", c("structure", "vector"), where = where,
+              function(e1, e2) {
+                  value <- callGeneric(e1@.Data, e2)
+                  if(length(value) == length(e1)) {
+                      e1@.Data <- value
+                      e1
+                  }
+                  else
+                    value
+              })
+    setMethod("Ops", c("vector", "structure"), where = where,
+              function(e1, e2) {
+                  value <- callGeneric(e1, e2@.Data)
+                  if(length(value) == length(e2)) {
+                      e2@.Data <- value
+                      e2
+                  }
+                  else
+                    value
+              })
+    setMethod("Ops", c("structure", "structure"), where = where,
+              function(e1, e2)
+                 callGeneric(e1@.Data, e2@.Data)
+              )
+    ## We need some special cases for matrix and array.
+    ## Although they extend "structure", their .Data "slot" is the matrix/array
+    ## So op'ing them with a structure gives the matrix/array:  Not good?
+    ## Following makes them obey the structure rule.
+    setMethod("Ops", c("structure", "array"), where = where,
+              function(e1, e2)
+                 callGeneric(e1@.Data, as.vector(e2))
+              )
+    setMethod("Ops", c("array", "structure"), where = where,
+              function(e1, e2)
+                 callGeneric(as.vector(e1), e2@.Data)
+              )
+    ## but for two array-based strucures, we let the underlying
+    ## code for matrix/array stand.
+    setMethod("Ops", c("array", "array"), where = where,
+              function(e1, e2)
+                 callGeneric(e1@.Data, e2@.Data)
+              )
+
+    setMethod("Math", "structure", where = where,
+              function(x) {
+                  x@.Data <- callGeneric(x@.Data)
+                  x
+              })
+}
+
+
+.MakeSignature <- function(object, def, signature, functionName = "function") {
+    signature <- unlist(signature)
+    if(length(signature)>0) {
+        classes <- as.character(signature)
+        sigArgs <- names(signature)
+        if(is(def, "genericFunction"))
+            formalNames <- def@signature
+        else if(is(def, "function")) {
+            formalNames <- formalArgs(def)
+            dots <- match("...", formalNames)
+            if(!is.na(dots))
+                formalNames <- formalNames[-dots]
+        }
+        if(is.null(sigArgs))
+            names(signature) <- formalNames[seq_along(classes)]
+        else if(length(sigArgs) > 0 && any(is.na(match(sigArgs, formalNames))))
+            stop(gettextf("the names in signature for method (%s) do not match %s's arguments (%s)",
+                          paste(sigArgs, collapse = ", "),
+                          functionName,
+                          paste(formalNames, collapse = ", ")),
+                 domain = NA)
+        ## the named classes become the signature object
+        class(signature) <- class(object)
+        signature
+    }
+    else
+        object
+}
