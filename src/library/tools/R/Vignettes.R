@@ -51,60 +51,46 @@ function(package, dir, lib.loc = NULL,
         if(!keepfiles) unlink(tmpd, recursive = TRUE)
     })
 
-    result <- list(tangle = list(), weave = list(),
-                   source = list(), latex = list())
+    result <- list(tangle = list(), weave = list(), source = list())
 
     for(f in vigns$docs) {
-        if(tangle)
-            tryCatch(utils::Stangle(f, quiet = TRUE),
-                     error = function(e)
-                     result$tangle[[f]] <<- conditionMessage(e))
-        if(weave)
-            tryCatch(utils::Sweave(f, quiet = TRUE),
-                     error = function(e)
-                     result$weave[[f]] <<- conditionMessage(e))
+        if(tangle) {
+            yy <- try(utils::Stangle(f, quiet=TRUE))
+            if(inherits(yy, "try-error"))
+                result$tangle[[f]] <- yy
+        }
+
+        if(weave) {
+            yy <- try(utils::Sweave(f, quiet=TRUE))
+            if(inherits(yy, "try-error"))
+                result$weave[[f]] <- yy
+        }
     }
 
     if(tangle) {
-        for(f in list_files_with_exts(getwd(), c("r", "s", "R", "S")))
-            tryCatch(source(f),
-                     error = function(e)
-                     result$source[[f]] <<- conditionMessage(e))
+        rfiles <- list_files_with_exts(getwd(), c("r", "s", "R", "S"))
+        for(f in rfiles) {
+            yy <- try(source(f))
+            if(inherits(yy, "try-error"))
+                result$source[[f]] <- yy
+        }
     }
     if(tangle && weave && latex) {
-        if(! "makefile" %in% tolower(list.files(vigns$dir))) {
-            ## <FIXME>
-            ## This used to run texi2dvi on *all* vignettes, including
-            ## the ones already known from the above to give trouble.
-            ## In addition, texi2dvi errors were not caught, so that in
-            ## particular the results of the previous QC analysis were
-            ## *not* returned in case of such errors ...
-            ## Hence, let us
-            ## * Only run texi2dvi() on previously unproblematic vignettes
-            ## * Catch texi2dvi() errors similar to the above.
-            ## * Do *not* immediately show texi2dvi() output as part of
-            ##   running checkVignettes().
-            ## (For the future, maybe keep this output and provide it as
-            ## additional diagnostics ...)
-            ## </FIXME>
-            bad_vignettes <- as.character(names(unlist(result)))
-            bad_vignettes <- file_path_sans_ext(basename(bad_vignettes))
+        have.makefile <- "makefile" %in% tolower(list.files(vigns$dir))
+        if(!have.makefile) {
+            on.exit()
+            sink(type = "output")
+            sink(type = "message")
+            on.exit({
+                setwd(wd)
+                if(!keepfiles) unlink(tmpd, recursive = TRUE)
+            })
+            message("--- running texi2dvi on vignettes")
             for(f in vigns$docs) {
-                bf <- file_path_sans_ext(basename(f))
-                if(bf %in% bad_vignettes) break
-                bft <- paste(bf, ".tex", sep = "")
-                tryCatch(texi2dvi(file = bft, pdf = TRUE,
-                                  clean = FALSE, quiet = 2L),
-                         error = function(e)
-                         result$latex[[f]] <<- conditionMessage(e))
-                ## <NOTE>
-                ## In case the texi2dvi() *output* was of interest, we
-                ## could try to get this by
-                ##   seek(outConn)
-                ## before calling texi2dvi(), and in case of no error
-                ## retrieve the output via
-                ##   readLines(outConn, warn = FALSE)
-                ## </NOTE>
+                f <- basename(f)
+                bf <- sub("\\..[^\\.]*$", "", f)
+                bft <- paste(bf, ".tex", sep="")
+                texi2dvi(file = bft, pdf = TRUE, clean = FALSE, quiet = TRUE)
             }
         }
     }
@@ -129,7 +115,6 @@ function(x, ...)
     mycat(x$weave,  "*** Weave Errors ***")
     mycat(x$tangle, "*** Tangle Errors ***")
     mycat(x$source, "*** Source Errors ***")
-    mycat(x$latex,  "*** PDFLaTeX Errors ***")
 
     invisible(x)
 }
@@ -157,8 +142,8 @@ function(package, dir, lib.loc = NULL)
             stop(gettextf("directory '%s' does not exist", dir),
                  domain = NA)
         else
-            docdir <- file.path(file_path_as_absolute(dir), "inst",
-                                "doc")
+            ## maybe perform tilde expansion on @code{dir}
+            docdir <- file.path(dirname(dir), basename(dir), "inst", "doc")
     }
 
     if(!file_test("-d", docdir)) return(NULL)
@@ -176,26 +161,24 @@ function(package, dir, lib.loc = NULL)
 ### remove all temporary files that were created.
 
 buildVignettes <-
-function(package, dir, lib.loc = NULL, quiet = TRUE, clean = TRUE)
+function(package, dir, lib.loc = NULL, quiet = TRUE)
 {
     vigns <- pkgVignettes(package = package, dir = dir, lib.loc = lib.loc)
-    if(is.null(vigns)) return(invisible())
+    if(is.null(vigns)) return(NULL)
 
     wd <- getwd()
     on.exit(setwd(wd))
     setwd(vigns$dir)
 
-    ## should this recurse into subdirs?
-    origfiles <- list.files(all.files = TRUE)
+    origfiles <- list.files()
     have.makefile <- "makefile" %in% tolower(origfiles)
-    file.create(".build.timestamp")
 
     pdfs <- character()
     for(f in vigns$docs) {
         f <- basename(f)
-        bf <- file_path_sans_ext(f)
-        bft <- paste(bf, ".tex", sep = "")
-        pdfs <- c(pdfs, paste(bf, ".pdf", sep = ""))
+        bf <- sub("\\..[^\\.]*$", "", f)
+        bft <- paste(bf, ".tex", sep="")
+        pdfs <- c(pdfs, paste(bf, ".pdf", sep=""))
 
         tryCatch(utils::Sweave(f, quiet = quiet),
                  error = function(e) {
@@ -213,13 +196,9 @@ function(package, dir, lib.loc = NULL, quiet = TRUE, clean = TRUE)
         yy <- system(make)
         if(make == "" || yy > 0) stop("running 'make' failed")
     } else {
-        if(clean) {
-            f <- list.files(all.files = TRUE) %w/o% c(".", "..", pdfs)
-            newer <- sapply(f, function(x) file_test("-nt", x, ".build.timestamp"))
-            file.remove(f[newer])
-        }
-        f <- list.files(all.files = TRUE)
-        file.remove(f %w/o% c(".", "..", pdfs, origfiles))
+        f <- list.files()
+        f <- f %w/o% c(pdfs, origfiles)
+        file.remove(f)
     }
     invisible(NULL)
 }
@@ -292,6 +271,26 @@ function(vignetteDir)
     vignettePDFs <- sub("$", ".pdf", file_path_sans_ext(vignetteFiles))
 
     vignetteTitles <- unlist(contents[, "Title"])
+
+    ## Compatibility code for transition from old-style to new-style
+    ## indexing.  If we have @file{00Index.dcf}, use it when computing
+    ## the vignette index, but let the index entries in the vignettes
+    ## override the ones from the index file.
+    if(file_test("-f",
+                 INDEX <- file.path(vignetteDir, "00Index.dcf"))) {
+        vignetteEntries <- try(read.dcf(INDEX))
+        if(inherits(vignetteEntries, "try-error"))
+            warning(gettextf("cannot read index information in file '%s'",
+                             INDEX),
+                    domain = NA)
+        else
+            vignetteEntries <-
+                cbind(colnames(vignetteEntries), c(vignetteEntries))
+        pos <- match(basename(vignettePDFs), vignetteEntries[ , 1], 0)
+        idx <- which(vignetteTitles == "")
+        vignetteTitles[which(pos != 0) & idx] <-
+            vignetteEntries[pos, 2][idx]
+    }
 
     vignettePDFs[!file_test("-f", vignettePDFs)] <- ""
     vignettePDFs <- basename(vignettePDFs)

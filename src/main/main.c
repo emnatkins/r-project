@@ -92,7 +92,6 @@ static void R_ReplFile(FILE *fp, SEXP rho, int savestack, int browselevel)
 	case PARSE_OK:
 	    R_Visible = FALSE;
 	    R_EvalDepth = 0;
-	    resetTimeLimits();
 	    count++;
 	    PROTECT(R_CurrentExpr);
 	    R_CurrentExpr = eval(R_CurrentExpr, rho);
@@ -253,7 +252,6 @@ Rf_ReplIteration(SEXP rho, int savestack, int browselevel, R_ReplState *state)
 	}
 	R_Visible = FALSE;
 	R_EvalDepth = 0;
-	resetTimeLimits();
 	PROTECT(R_CurrentExpr);
 	R_Busy(1);
 	value = eval(R_CurrentExpr, rho);
@@ -355,7 +353,6 @@ int R_ReplDLLdo1(void)
 	R_CurrentExpr = R_Parse1Buffer(&R_ConsoleIob, 1, &status);
 	R_Visible = FALSE;
 	R_EvalDepth = 0;
-	resetTimeLimits();
 	PROTECT(R_CurrentExpr);
 	R_Busy(1);
 	R_CurrentExpr = eval(R_CurrentExpr, rho);

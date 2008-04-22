@@ -22,9 +22,9 @@ capture.output <- function(..., file=NULL, append=FALSE)
     if (is.null(file))
         file <- textConnection("rval", "w", local = TRUE)
     else if (is.character(file))
-        file <- file(file, if(append) "a" else "w")
+        file <- file(file, ifelse(append, "a", "w"))
     else if (inherits(file, "connection")) {
-	if (!isOpen(file)) open(file, if(append) "a" else "w")
+	if (!isOpen(file)) open(file, ifelse(append, "a", "w"))
 	else closeit <- FALSE
     } else
         stop("'file' must be NULL, a character string or a connection")

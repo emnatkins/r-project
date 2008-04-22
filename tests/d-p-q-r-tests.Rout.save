@@ -1,5 +1,5 @@
 
-R version 2.8.0 Under development (unstable) (2008-04-12 r45262)
+R version 2.7.0 alpha (2008-03-26 r44914)
 Copyright (C) 2008 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 
@@ -1100,13 +1100,6 @@ Warning messages:
 + 	  All.eq(exp(16 * log(2) + dbeta(0:16/16, 5,1, log=TRUE)), db.x)
 +           )
 > ## the first gave 0, the 2nd NaN in R <= 2.3.0; others use 'TRUE' values
-> stopifnot(all.equal(dbeta(0.8, 0.5, 5, ncp=1000),# was way too small in R <= 2.6.2
-+ 		    3.001852308909e-35),
-+ 	  all.equal(1, integrate(dbeta, 0,1, 0.8, 0.5, ncp=1000)$value,
-+ 		    tol=1e-4),
-+           all.equal(1, integrate(dbeta, 0,1, 0.5, 200, ncp=720)$value),
-+           all.equal(1, integrate(dbeta, 0,1, 125, 200, ncp=2000)$value)
-+           )
 > 
 > ## df(*, ncp):
 > x <- seq(0, 10, length=101)
@@ -1178,5 +1171,5 @@ Warning messages:
 > 
 > 
 > cat("Time elapsed: ", proc.time() - .ptime,"\n")
-Time elapsed:  4.62 0.024 6.494 0 0 
+Time elapsed:  2.367 0.027 2.396 0 0 
 > 

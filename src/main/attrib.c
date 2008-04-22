@@ -1409,11 +1409,11 @@ SEXP attribute_hidden do_AT(SEXP call, SEXP op, SEXP args, SEXP env)
     if(nlist != s_dot_Data && !IS_S4_OBJECT(object)) {
 	klass = getAttrib(object, R_ClassSymbol);
 	if(length(klass) == 0)
-	    error(_("trying to get slot \"%s\" from an object of a basic class (\"%s\") with no slots"),
+	    warning(_("trying to get slot \"%s\" from an object of a basic class (\"%s\") with no slots"),
 		  CHAR(PRINTNAME(nlist)),
 		  CHAR(STRING_ELT(R_data_class(object, FALSE), 0)));
 	else
-	    error(_("trying to get slot \"%s\" from an object (class \"%s\") that is not an S4 object "),
+	    warning(_("trying to get slot \"%s\" from an object (class \"%s\") that is not an S4 object "),
 		  CHAR(PRINTNAME(nlist)),
 		  translateChar(STRING_ELT(klass, 0)));
     }

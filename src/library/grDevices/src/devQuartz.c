@@ -542,7 +542,7 @@ CGFontRef RQuartz_Font(CTXDESC)
 {
     int fontface = gc->fontface;
     CFMutableStringRef fontName = CFStringCreateMutable(kCFAllocatorDefault, 0);
-    if((gc->fontface == 5))
+     if((gc->fontface == 5) || (strcmp(gc->fontfamily, "symbol") == 0))
         CFStringAppend(fontName,CFSTR("Symbol"));
     else {
         CFStringRef font = RQuartz_FindFont(gc->fontface, gc->fontfamily);
@@ -567,12 +567,7 @@ CGFontRef RQuartz_Font(CTXDESC)
         ATSFontRef tmp = ATSFontFindFromName(fontName, kATSOptionFlagsDefault);
         font = CGFontCreateWithPlatformFont(&tmp);
     }
-    if(font == NULL) {
-        char cFontName[128];
-	cFontName[0] = '\0';
-        CFStringGetCString(fontName, cFontName, 128, kCFStringEncodingUTF8); /* FIXME: potentially UTF-8 is not the current locale - does it matter? */
-        warning(_("font \"%s\" could not be found"), cFontName);
-    }
+    if(font == NULL) CFShow(fontName);  /* FIXME needs warning message */
     CFRelease(fontName);
     return font;
 }
@@ -709,7 +704,7 @@ static void RQuartz_Clip(double x0, double x1, double y0, double y1, DEVDESC)
 static CFStringRef text2unichar(CTXDESC, const char *text, UniChar **buffer, int *free)
 {
     CFStringRef str;
-    if(gc->fontface == 5)
+    if(gc->fontface == 5 || strcmp(gc->fontfamily, "symbol") == 0)
         str = CFStringCreateWithCString(NULL, text, kCFStringEncodingMacSymbol);
     else {
         str = CFStringCreateWithCString(NULL, text, kCFStringEncodingUTF8);

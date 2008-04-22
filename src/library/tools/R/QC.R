@@ -225,7 +225,7 @@ function(package, dir, lib.loc = NULL)
         ## </NOTE>
         .make_S4_method_siglist <- function(g) {
             mlist <- .get_S4_methods_list(g, code_env)
-            sigs <- .make_siglist(mlist)
+            sigs <- .make_siglist(mlist$classes)
             if(length(sigs))
                 paste(g, ",", sigs, sep = "")
             else
@@ -556,10 +556,10 @@ function(package, dir, lib.loc = NULL,
             lapply(.get_S4_generics_really_in_env(code_env),
                    function(f) {
                        mlist <- .get_S4_methods_list(f, code_env)
-                       sigs <- .make_siglist(mlist)
+                       sigs <- .make_siglist(mlist$classes)
                        if(!length(sigs)) return()
                        nm <- sprintf("\\S4method{%s}{%s}", f, sigs)
-                       args <- lapply(mlist,
+                       args <- lapply(mlist$methods,
                                       get_formals_from_method_definition)
                        names(args) <- nm
                        functions_in_code <<-
@@ -1877,7 +1877,7 @@ function(package, dir, file, lib.loc = NULL,
             ## call is from inside a function (e.g., InitMethods()).
             for(f in .get_S4_generics_really_in_env(code_env)) {
                 mlist <- .get_S4_methods_list(f, code_env)
-                exprs <- c(exprs, lapply(mlist, body))
+                exprs <- c(exprs, lapply(mlist$methods, body))
             }
         }
     }
@@ -1887,13 +1887,10 @@ function(package, dir, file, lib.loc = NULL,
 	    con <- file(file, encoding=enc)
             on.exit(close(con))
 	} else con <- file
-        exprs <-
-            tryCatch(parse(file = con, n = -1L),
-                     error = function(e)
-                     stop(gettextf("parse error in file '%s':\n%s",
-                                   file,
-                                   .massage_file_parse_error_message(conditionMessage(e))),
-                               domain = NA, call. = FALSE))
+        exprs <- try(parse(file = con, n = -1L))
+        if(inherits(exprs, "try-error"))
+            stop(gettextf("parse error in file '%s'", file),
+                 domain = NA)
     }
     for(i in seq_along(exprs)) find_bad_exprs(exprs[[i]])
     class(bad_exprs) <- "checkFF"
@@ -2279,12 +2276,12 @@ function(package, dir, lib.loc = NULL)
             sapply(S4_generics,
                    function(f) {
                        mlist <- .get_S4_methods_list(f, code_env)
-                       ind <- !as.logical(sapply(mlist,
+                       ind <- !as.logical(sapply(mlist$methods,
                                                  .check_last_formal_arg))
                        if(!any(ind))
                            character()
                        else {
-                           sigs <- .make_siglist(mlist[ind])
+                           sigs <- .make_siglist(mlist$classes[ind])
                            sprintf("\\S4method{%s}{%s}", f, sigs)
                        }
                    })
@@ -2372,19 +2369,19 @@ function(package, dir, file, lib.loc = NULL)
                 for(i in seq_along(e)) Recall(e[[i]], e)
             }
         }
-        exprs <- if(missing(txt))
-            tryCatch(parse(file = file, n = -1L),
-                     error = function(e)
-                     stop(gettextf("parse error in file '%s':\n",
-                                   file,
-                                   .massage_file_parse_error_message(conditionMessage(e))),
-                          domain = NA, call. = FALSE))
-        else
-            tryCatch(parse(text = txt),
-                     error = function(e)
-                     stop(gettextf("parse error in examples from file '%s':\n",
-                                   file, conditionMessage(e)),
-                          domain = NA, call. = FALSE))
+        if(missing(txt)) {
+            exprs <- try(parse(file = file, n = -1))
+            if(inherits(exprs, "try-error"))
+                stop(gettextf("parse error in file '%s'", file),
+                     domain = NA)
+        }
+        else {
+            exprs <- try(parse(text = txt))
+            if(inherits(exprs, "try-error"))
+                stop(gettextf("parse error in examples from file '%s'",
+                              file),
+                     domain = NA)
+        }
         for(i in seq_along(exprs))
             find_bad_exprs(exprs[[i]], NULL)
         matches
@@ -2641,7 +2638,7 @@ function(db, def_enc = FALSE)
     names(db_aliases) <- names(db)
 
     for(f in names(db)) {
-        x <- tryCatch(Rd_parse(text = db[[f]]), error = identity)
+        x <- tryCatch(Rd_parse(text = db[[f]]), error = .identity)
 
         if(inherits(x, "error")) {
             files_with_surely_bad_Rd[[f]] <- conditionMessage(x)
@@ -3307,7 +3304,7 @@ function(dir)
                                 shQuote(file.path(R.home("share"),
                                                   "make", "check.mk"))),
                         intern = TRUE, ignore.stderr = TRUE),
-                 error = identity)
+                 error = .identity)
     if(!length(lines) || inherits(lines, "error"))
         return(bad_flags)
 
@@ -3385,12 +3382,6 @@ function(package, lib.loc = NULL)
             assign("nsl", function(hostname) {}, envir = compat)
             assign("X11Font", function(font) {}, envir = compat)
             assign("X11Fonts", function(...) {}, envir = compat)
-            assign("cairo_pdf",
-                   function(filename =
-                            if (onefile) "Rplots.pdf" else "Rplot%03d.pdf",
-                            width = 7, height = 7, pointsize = 12,
-                            onefile = FALSE, bg = "white", antialias) {},
-                   envir = compat)
             assign("quartz",
                    function(display = "", width = 5, height = 5,
                             pointsize = 12, family = "Helvetica",
@@ -4104,7 +4095,7 @@ function(package, dir, lib.loc = NULL)
             ## This may find things twice.
             for(f in .get_S4_generics_really_in_env(code_env)) {
                 mlist <- .get_S4_methods_list(f, code_env)
-                exprs <- c(exprs, lapply(mlist, body))
+                exprs <- c(exprs, lapply(mlist$methods, body))
             }
         }
     }
@@ -4115,13 +4106,10 @@ function(package, dir, lib.loc = NULL)
 	    con <- file(file, encoding=enc)
             on.exit(close(con))
         } else con <- file
-        exprs <-
-            tryCatch(parse(file = con, n = -1L),
-                     error = function(e)
-                     stop(gettextf("parse error in file '%s':\n%s",
-                                   file,
-                                   .massage_file_parse_error_message(conditionMessage(e))),
-                               domain = NA, call. = FALSE))
+        exprs <- try(parse(file = con, n = -1))
+        if(inherits(exprs, "try-error"))
+            stop(gettextf("parse error in file '%s'", file),
+                 domain = NA)
     }
 
     for(i in seq_along(exprs)) find_bad_exprs(exprs[[i]])
@@ -4439,7 +4427,6 @@ function()
 function(env)
 {
     env <- as.environment(env)
-#    Filter(function(g) !is.null(methods::getGeneric(g, where = env)),
     Filter(function(g) exists(g, envir = env, inherits=FALSE) &&
 	   methods::is(get(g, envir = env), "genericFunction"),
            methods::getGenerics(env))
@@ -4455,18 +4442,36 @@ function(g, env)
     ## methods as well as methods inherited from the "appropriate"
     ## parent environment of 'env' or the associated name space env.
 
-    env <- as.environment(env)
-    mlist <- methods::findMethods(g, env)
+    ## It was suggested that in 2.5.0 or later, we can use
+    ##   methods::listFromMethods(g, env)
+    ## instead of what we use below.  Not quite, compare e.g. the
+    ## difference we get for S4 generic coerce() and package methods:
+    ##    env <- as.environment("package:methods")
+    ##    mlist1 <- linearizeMlist(getMethodsMetaData("coerce", env))
+    ##    mlist2 <- listFromMethods("coerce", env)
+    ##    sigs1 <- tools:::.make_signatures(mlist1@classes)
+    ##    sigs2 <- tools:::.make_signatures(mlist2@classes)
+    ##    setdiff(sigs2, sigs1)
+    ## ???
+
+    mlist <- methods::getMethodsMetaData(g, env)
 
     ## First, derived default methods.
-    if(any(ind <- as.logical(sapply(mlist, methods::is,
-                                    "derivedDefaultMethod"))))
-        mlist <- mlist[!ind]
+    has_derived_default <-
+        methods::is(methods::finalDefaultMethod(mlist),
+                    "derivedDefaultMethod")
+    mlist <- methods::linearizeMlist(mlist, FALSE)
+    classes <- methods::slot(mlist, "classes")
+    methods <- methods::slot(mlist, "methods")
+    ind <- as.logical(lapply(classes,
+                             function(x)
+                             identical(all(x == "ANY"), TRUE)))
+    if(any(ind) && has_derived_default) {
+        classes <- classes[!ind]
+        methods <- methods[!ind]
+    }
 
-    ## Second, "inherited" methods.
-    ## Note that for packages with a namespace, the table in the
-    ## namespace is meant to be only the methods in the package, so we
-    ## might simply use findMethods() on the namespace instead.
+    ## Second, inherited methods.
     package <- sub(".*:([^_]*).*", "\\1", attr(env, "name", exact = TRUE))
     ## (Ugly, but why not?)
     penv <- if(length(package) && nzchar(package)) {
@@ -4481,12 +4486,19 @@ function(g, env)
         parent.env(penv)
     else
         parent.env(env)
-    if((g %in% tools:::.get_S4_generics_really_in_env(penv))
-       && length(mlist_from_penv <- methods::findMethods(g, penv)))
-        mlist <- mlist[is.na(match(names(mlist),
-                                   names(mlist_from_penv)))]
-
-    mlist
+    if((g %in% .get_S4_generics_really_in_env(penv))
+       && !is.null(mlist_from_penv <-
+                   methods::getMethodsMetaData(g, penv))) {
+        mlist_from_penv <-
+            methods::linearizeMlist(mlist_from_penv, FALSE)
+        classes_from_penv <- methods::slot(mlist_from_penv, "classes")
+        ind <- is.na(match(.make_signatures(classes),
+                           .make_signatures(classes_from_penv)))
+        classes <- classes[ind]
+        methods <- methods[ind]
+    }
+    ## Could now create a 'LinearMethodsList' object ...
+    list(classes = classes, methods = methods)
 }
 
 ### ** .is_call_from_replacement_function_usage
@@ -4504,11 +4516,7 @@ function(x)
 
 .make_siglist <-
 function(x)
-{
-    ## Argument 'x' should be a named list of methods as obtained by
-    ## methods::findMethods() or .get_S4_methods_list().
-    gsub("#", ",", names(x), fixed = TRUE)
-}
+    as.character(sapply(x, paste, collapse = ","))
 
 ### ** .make_signatures
 
@@ -4520,12 +4528,6 @@ function(cls)
     ## implicit) or padded to a fixed length.
     sub("(#ANY)*$", "", unlist(lapply(cls, paste, collapse = "#")))
 }
-
-### ** .massage_file_parse_error_message
-
-.massage_file_parse_error_message <-
-function(x)
-    sub("^[^:]+:[[:space:]]*", "", x)
 
 ### ** .package_env
 
@@ -4540,20 +4542,19 @@ function(package_name)
 .parse_text_as_much_as_possible <-
 function(txt)
 {
-    exprs <- tryCatch(parse(text = txt), error = identity)
-    if(!inherits(exprs, "error")) return(exprs)
+    exprs <- try(parse(text = txt), silent = TRUE)
+    if(!inherits(exprs, "try-error")) return(exprs)
     exprs <- expression()
     lines <- unlist(strsplit(txt, "\n"))
     bad_lines <- character()
     while((n <- length(lines))) {
         i <- 1L; txt <- lines[1L]
-        while(inherits(yy <- tryCatch(parse(text = txt),
-                                      error = identity),
-                       "error")
+        while(inherits(yy <- try(parse(text = txt), silent = TRUE),
+                       "try-error")
               && (i < n)) {
             i <- i + 1L; txt <- paste(txt, lines[i], collapse = "\n")
         }
-        if(inherits(yy, "error")) {
+        if(inherits(yy, "try-error")) {
             bad_lines <- c(bad_lines, lines[1L])
             lines <- lines[-1L]
         }

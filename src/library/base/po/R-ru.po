@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.7.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-04-08 11:41\n"
+"POT-Creation-Date: 2008-04-08 11:23\n"
 "PO-Revision-Date: 2008-04-06 23:46-0500\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza at gmail>\n"
 "Language-Team: Russian\n"
@@ -634,8 +634,7 @@ msgid "'format' must be one of {\"f\",\"e\",\"E\",\"g\",\"G\", \"fg\", \"s\"}"
 msgstr ""
 "'format' должен быть одним из {\"f\",\"e\",\"E\",\"g\",\"G\", \"fg\", \"s\"}"
 
-#, fuzzy
-msgid "'digits' reduced to"
+msgid "'digits' reduced to 50"
 msgstr "'digits' сокращено до 50"
 
 msgid "'flag' can contain only '0+- #'"

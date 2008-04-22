@@ -238,7 +238,6 @@
  R_warn_partial_match_dollar
  R_wfopen
  Rconsolesetwidth
- Rf_AdobeSymbol2ucs2
  Rf_CheckFormals
  Rf_CoercionWarning
  Rf_ComplexFromInteger
@@ -390,6 +389,8 @@
  SET_UTF8
  Sys_TempDir
  UNLOCK_BINDING
+ UNSET_LATIN1
+ UNSET_UTF8
  UTF8in
  UTF8out
  UseInternet2
@@ -893,9 +894,7 @@
  do_seq_len
  do_serializeToConn
  do_set
- do_setSessionTimeLimit
  do_setStatusBar
- do_setTimeLimit
  do_setTitle
  do_setToCConverterActiveStatus
  do_setencoding
@@ -1130,7 +1129,6 @@
  raise
  realp0_
  registerBase
- resetTimeLimits
  reset_duplicate_counter
  rg_
  rpipeClose

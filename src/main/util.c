@@ -959,11 +959,10 @@ SEXP attribute_hidden do_setencoding(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if(streql(this, "latin1")) ienc = CE_LATIN1;
 	else if(streql(this, "UTF-8")) ienc = CE_UTF8;
 	tmp = STRING_ELT(x, i);
-	if(tmp == NA_STRING) continue;
 	if (! ((ienc == CE_LATIN1 && IS_LATIN1(tmp)) ||
 	       (ienc == CE_UTF8 && IS_UTF8(tmp)) ||
 	       (ienc == CE_NATIVE && ! IS_LATIN1(tmp) && ! IS_UTF8(tmp))))
-	    SET_STRING_ELT(x, i, mkCharLenCE(CHAR(tmp), LENGTH(tmp), ienc));
+	    SET_STRING_ELT(x, i, mkCharCE(CHAR(tmp), ienc));
     }
     UNPROTECT(1);
     return x;
@@ -1131,31 +1130,6 @@ size_t wcstoutf8(char *s, const wchar_t *wc, size_t n)
     } else {
 	for(p = wc; ; p++) {
 	    m  = Rwcrtomb(NULL, *p);
-	    if(m <= 0) break;
-	    res += m;
-	}
-    }
-    return res;
-}
-
-size_t wcstoutf8em(char *s, const wchar_t *wc, size_t n)
-{
-    int m, res=0;
-    char *t;
-    const wchar_t *p;
-    if(s) {
-	for(p = wc, t = s; ; p++) {
-	    m  = Rwcrtomb(t, *p);
-	    if(m == 0) m = 1;
-	    if(m <= 0) break;
-	    res += m;
-	    if(res >= n) break;
-	    t += m;
-	}
-    } else {
-	for(p = wc; ; p++) {
-	    m  = Rwcrtomb(NULL, *p);
-	    if(m == 0) m = 1;
 	    if(m <= 0) break;
 	    res += m;
 	}

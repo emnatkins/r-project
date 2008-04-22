@@ -97,10 +97,10 @@ function(dir, exts, all.files = FALSE, full.names = TRUE)
     patt <- paste("\\.(", paste(exts, collapse="|"), ")$", sep = "")
     files <- grep(patt, files, value = TRUE)
     if(full.names)
-        files <- if(length(files))
+        files <- if(length(files) > 0L)
             file.path(dir, files)
         else
-            character()
+            character(0)
     files
 }
 
@@ -171,9 +171,6 @@ showNonASCII <-
 function(x)
 {
     if(!capabilities("iconv")) stop("'iconv' is required")
-    ## All that is needed here is an 8-bit encoding that includes ASCII.
-    ## The only one we guarantee to exist is 'latin1'.
-    ## The default sub=NA is faster.
     ind <- is.na(iconv(x, "latin1", "ASCII"))
     if(any(ind))
         cat(paste(which(ind), ": ",
@@ -205,46 +202,15 @@ function(x, delim = c("{", "}"), syntax = "Rd")
 ### ** texi2dvi
 
 texi2dvi <-
-function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
-         texi2dvi = getOption("texi2dvi"), texinputs = NULL)
+function(file, pdf = FALSE, clean = FALSE,
+         quiet = TRUE, texi2dvi = getOption("texi2dvi"))
 {
     ## Run texi2dvi on a latex file, or emulate it.
 
     if(is.null(texi2dvi)) texi2dvi <- Sys.which("texi2dvi")
 
-    envSep <- .Platform$path.sep
-    Rtexmf <- file.path(R.home(), "share", "texmf")
-    ## "" forces use of default paths.
-    texinputs <- paste(c(texinputs, Rtexmf, ""), collapse = envSep)
-    ## not clear if this is needed, but works
-    if(.Platform$OS.type == "windows") texinputs <- gsub("\\\\", "/", texinputs)
-
-    otexinputs <- Sys.getenv("TEXINPUTS", unset = NA)
-    if(is.na(otexinputs)) {
-        on.exit(Sys.unsetenv("TEXINPUTS"))
-        otexinputs <- "."
-    } else on.exit(Sys.setenv(TEXINPUTS = otexinputs))
-    Sys.setenv(TEXINPUTS = paste(otexinputs, texinputs, sep = envSep))
-    bibinputs <- Sys.getenv("BIBINPUTS", unset = NA)
-    if(is.na(bibinputs)) {
-        on.exit(Sys.unsetenv("BIBINPUTS"), add = TRUE)
-        bibinputs <- "."
-    } else on.exit(Sys.setenv(BIBINPUTS = bibinputs, add = TRUE))
-    Sys.setenv(BIBINPUTS = paste(bibinputs, texinputs, sep = envSep))
-    bstinputs <- Sys.getenv("BSTINPUTS", unset = NA)
-    if(is.na(bstinputs)) {
-        on.exit(Sys.unsetenv("BSTINPUTS"), add = TRUE)
-        bstinputs <- "."
-    } else on.exit(Sys.setenv(BSTINPUTS = bstinputs), add = TRUE)
-    Sys.setenv(BSTINPUTS = paste(bstinputs, texinputs, sep = envSep))
-
     if(nzchar(texi2dvi)) {
-        ignore.stderr <- FALSE
         pdf <- if(pdf) "--pdf" else ""
-        if(is.numeric(quiet)) {
-            ignore.stderr <- quiet >= 2
-            quiet <- quiet >= 1
-        }
         clean <- if(clean) "--clean" else ""
         if(quiet) {
             quiet <- "--quiet"
@@ -252,30 +218,25 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
         } else {
             extra <- quiet <- ""
         }
-
         if(.Platform$OS.type == "windows") {
             ## look for MiKTeX (which this almost certainly is)
             ## and set the path to R's style files.
             ## -I works in MiKTeX >= 2.4, at least
             ver <- system(paste(shQuote(texi2dvi), "--version"), intern = TRUE)
             if(length(grep("MiKTeX", ver[1]))) {
-                paths <- paste ("-I", shQuote(texinputs))
-                clean <- paste(clean, paste(paths, collapse = " "))
+                ## could use shortPathName here
+                stypath <-  shQuote(gsub("\\\\", "/",
+                                         file.path(R.home("share"), "texmf")))
+                clean <- paste(clean, "-I", stypath)
             }
         }
-
-        ## print(paste(shQuote(texi2dvi), quiet, pdf, clean, shQuote(file), extra))
-        if(system(paste(shQuote(texi2dvi), quiet, pdf, clean,
-                        shQuote(file), extra),
-                  ignore.stderr = ignore.stderr))
+        if(system( paste(shQuote(texi2dvi), quiet, pdf, clean,
+                         shQuote(file), extra) ))
             stop(gettextf("running 'texi2dvi' on '%s' failed", file),
                  domain = NA)
     } else {
-        ## Do not have texi2dvi
-        ## Needed at least on Windows except for MiKTeX
-        ## Note that this does not do anything about running quietly,
-        ## nor cleaning, but it probably not used much anymore.
-
+        ## do not have texi2dvi
+        ## needed at least on Windows except for MiKTeX
         texfile <- shQuote(file)
         base <- file_path_sans_ext(file)
         idxfile <- paste(base, ".idx", sep="")
@@ -373,40 +334,6 @@ function(v, env, last = NA, default = NA) {
     default
 }
 
-### ** .get_BibTeX_errors_from_blg_file
-
-.get_BibTeX_errors_from_blg_file <-
-function(con)
-{
-    ## Get BibTeX error info, using non-header lines until the first
-    ## warning or summary, hoping for the best ...
-    lines <- readLines(con, warn = FALSE)
-    ## How can we find out for sure that there were errors?  Try
-    ## guessing ...
-    really_has_errors <-
-        (length(grep("^---", lines)) ||
-         regexpr("error message", lines[length(lines)]) > -1L)
-    pos <- grep("^(Warning|You)", lines)
-    if(!really_has_errors || !length(pos) ) return(character())
-    ind <- seq.int(from = 3L, length.out = pos[1L] - 3L)
-    lines[ind]
-}
-
-### ** .get_LaTeX_errors_from_log_file
-
-.get_LaTeX_errors_from_log_file <-
-function(con, n = 4L)
-{
-    ## Get (La)TeX lines with error plus n (default 4) lines of trailing
-    ## context.
-    lines <- readLines(con, warn = FALSE)
-    pos <- grep("^!", lines)
-    if(!length(pos)) character()
-    ## Error chunk extends to at most the next error line.
-    mapply(function(from, to) paste(lines[from : to], collapse = "\n"),
-           pos, pmin(pos + n, c(pos[-1L], length(lines)) - 1L))
-}
-
 ### ** .get_contains_from_package_db
 
 .get_contains_from_package_db <-
@@ -458,7 +385,7 @@ function(nsInfo)
     ## parseNamespaceFile(), as a 3-column character matrix with the
     ## names of the generic, class and method (as a function).
     S3_methods_list <- nsInfo$S3methods
-    if(!length(S3_methods_list)) return(matrix(character(), ncol = 3L))
+    if(!length(S3_methods_list)) return(matrix(character(), ncol = 3))
     idx <- is.na(S3_methods_list[, 3L])
     S3_methods_list[idx, 3L] <-
         paste(S3_methods_list[idx, 1L],
@@ -599,6 +526,12 @@ local({
 function()
     c("Package", "Version", "Priority", "Bundle",
       "Contains", "Depends", "Imports", "Suggests")
+
+### ** .identity
+
+.identity <-
+function(x)
+    x
 
 ### ** .is_ASCII
 
@@ -851,7 +784,7 @@ function(package)
              )
     if(is.null(package)) return(unlist(stopList))
     thisPkg <- stopList[[package, exact = TRUE]] # 'st' matched 'stats'
-    if(!length(thisPkg)) character() else thisPkg
+    if(!length(thisPkg)) character(0) else thisPkg
 }
 
 ### ** .package_apply
@@ -919,10 +852,11 @@ function(dfile)
     if(!file_test("-f", dfile))
         stop(gettextf("file '%s' does not exist", dfile),
              domain = NA)
-    tryCatch(read.dcf(dfile)[1L, ],
-             error = function(e)
-             stop(gettextf("file '%s' is not in valid DCF format", dfile),
-                  domain = NA, call. = FALSE))
+    db <- try(read.dcf(dfile)[1, ], silent = TRUE)
+    if(inherits(db, "try-error"))
+        stop(gettextf("file '%s' is not in valid DCF format", dfile),
+             domain = NA)
+    db
 }
 
 ### ** .source_assignments
@@ -943,8 +877,8 @@ function(file, envir, enc = NA)
         con <- file(file, encoding = enc)
         on.exit(close(con))
     } else con <- file
-    exprs <- parse(n = -1L, file = con)
-    if(!length(exprs))
+    exprs <- parse(n = -1, file = con)
+    if(length(exprs) == 0L)
         return(invisible())
     for(e in exprs) {
         if(e[[1L]] == assignmentSymbolLM || e[[1L]] == assignmentSymbolEq)
@@ -985,8 +919,7 @@ function(dir, env, meta = character())
 
 ### * .split_dependencies
 
-.split_dependencies <-
-function(x)
+.split_dependencies <- function(x)
 {
     ## given one or more Depends: or Suggests: fields from DESCRIPTION
     ## return a named list of list (name, [op, version])
@@ -999,8 +932,7 @@ function(x)
 
 ### * .split_op_version
 
-.split_op_version <-
-function(x)
+.split_op_version <- function(x)
 {
     ## given a single piece of dependency
     ## return a list of components (name, [op, version])
@@ -1053,7 +985,7 @@ function(expr)
                                                collapse = "\n"),
                                          call. = FALSE)
                                 }),
-                   error = identity,
+                   error = .identity,
                    finally = {
                        sink(type = "message")
                        sink(type = "output")
@@ -1070,7 +1002,7 @@ function(expr)
 function(args, msg)
 {
     len <- length(args)
-    if(!len)
+    if(len == 0L)
         character()
     else if(len == 1L)
         paste("argument", sQuote(args), msg)

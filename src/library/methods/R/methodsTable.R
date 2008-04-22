@@ -629,11 +629,8 @@ useMTable <- function(onOff = NA)
                              check = TRUE, inherited = FALSE)
 {
     name <- if(inherited) ".AllMTable" else ".MTable"
-    if(check && !exists(name, envir = env, inherits = FALSE)) {
-        .setupMethodsTables(fdef)
-        if(!exists(name, envir = env, inherits = FALSE))
-         stop("Invalid methods table request")
-    }
+    if(check && !exists(name, envir = env, inherits = FALSE))
+      .setupMethodsTables(fdef)
     get(name, envir = env)
 }
 

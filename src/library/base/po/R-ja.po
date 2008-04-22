@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-04-08 11:41\n"
+"POT-Creation-Date: 2008-04-08 11:23\n"
 "PO-Revision-Date: 2008-04-04 15:20+0900 \n"
 "Last-Translator: takahashi <takahashi.kohske@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -641,8 +641,7 @@ msgstr ""
 " 'format' は {\"f\",\"e\",\"E\",\"g\",\"G\",\"fg\",\"s\" } のいずれかでなけれ"
 "ばなりません "
 
-#, fuzzy
-msgid "'digits' reduced to"
+msgid "'digits' reduced to 50"
 msgstr " 'digits' は50に縮小されました "
 
 msgid "'flag' can contain only '0+- #'"

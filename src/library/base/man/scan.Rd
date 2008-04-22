@@ -242,9 +242,10 @@ scan(file = "", what = double(0), nmax = -1, n = -1, sep = "",
   Using \code{scan} on an open connection to read partial lines can lose
   chars: use an explicit separator to avoid this.
 
-  Having \code{nul} bytes in fields may lead to interpretation of the
-  field being terminated at the \code{nul}.  They not normally present
-  in text files -- see \code{\link{readBin}} and \code{\link{readChar}}.
+  Having \code{nul} bytes in fields (including \code{\0} if
+  \code{allowEscapes = TRUE}) may lead to scanning the field being
+  terminated at the \code{nul}.  \R 2.8.0 will handle these better, but
+  they not normally present in text files -- see \code{\link{readBin}}.
 }
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)

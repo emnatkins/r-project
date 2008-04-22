@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2008-04-09 16:21+0100\n"
+"POT-Creation-Date: 2008-04-05 10:50+0100\n"
 "PO-Revision-Date: 2006-04-14 22:50+0800\n"
 "Last-Translator: Wei-Lun Chao <chaoweilun@pcmail.com.tw>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -923,7 +923,7 @@ msgstr "找不到選單"
 msgid "menu or item does not exist"
 msgstr "選單或是項目不存在"
 
-#: system.c:435
+#: system.c:395
 msgid "Save workspace image?"
 msgstr "儲存工作空間圖案?"
 
@@ -1172,10 +1172,6 @@ msgstr "等待頁面變更的確認..."
 #: ../library/grDevices/src/devWindows.c:3307
 msgid "Click or hit ENTER for next page"
 msgstr "按 ENTER 來看下一頁"
-
-#, fuzzy
-#~ msgid "Install source package from local folder..."
-#~ msgstr "用本機的 zip 檔案來安裝程式套件..."
 
 #~ msgid "Png files (*.png)"
 #~ msgstr "Png 檔案 (*.png)"

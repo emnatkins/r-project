@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.1\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2008-04-09 16:21+0100\n"
+"POT-Creation-Date: 2008-04-05 10:50+0100\n"
 "PO-Revision-Date: 2006-04-16 19:17-0300\n"
 "Last-Translator: Cesar Torres <chtorres@linux.ime.usp.br>\n"
 "Language-Team: Portuguese <ldp-br@bazar.conectiva.com.br>\n"
@@ -944,7 +944,7 @@ msgstr "menu não encontrado"
 msgid "menu or item does not exist"
 msgstr "menu ou item não existe"
 
-#: system.c:435
+#: system.c:395
 msgid "Save workspace image?"
 msgstr "Salvar imagem da área de trabalho?"
 
@@ -1197,10 +1197,6 @@ msgstr "Esperando para confirmar mudança de página..."
 #: ../library/grDevices/src/devWindows.c:3307
 msgid "Click or hit ENTER for next page"
 msgstr "Clique com o mouse ou pressione ENTER para próxima página"
-
-#, fuzzy
-#~ msgid "Install source package from local folder..."
-#~ msgstr "Instalar pacote(s) a partir de arquivos zip locais..."
 
 #~ msgid "Png files (*.png)"
 #~ msgstr "Arquivos png (*.png)"

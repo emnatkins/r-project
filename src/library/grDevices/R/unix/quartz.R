@@ -143,4 +143,7 @@ quartzFonts(# Default Serif font is Times
             "Helvetica-Italic", "Helvetica-BoldOblique")),
                 # Default Monospace font is Courier
             mono = quartzFont(c("Courier", "Courier-Bold",
-            "Courier-Oblique", "Courier-BoldOblique")))
+            "Courier-Oblique", "Courier-BoldOblique")),
+                # Default Symbol font is Symbol
+                # Deprecated: remove in R 2.8.0
+            symbol = quartzFont(c("Symbol", "Symbol", "Symbol", "Symbol")))

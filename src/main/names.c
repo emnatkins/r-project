@@ -276,6 +276,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 
 {"digamma",	do_math1,	42,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"trigamma",	do_math1,	43,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"gammaCody",	do_math1,	46,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 /* see "psigamma" below !*/
 
 /* Mathematical Functions of Two Numeric (+ 1-2 int) Variables */
@@ -946,8 +947,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"Encoding",	do_encoding,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"setEncoding",	do_setencoding,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"lazyLoadDBfetch",do_lazyLoadDBfetch,0,1,	4,	{PP_FUNCALL, PREC_FN,	0}},
-{"setTimeLimit",do_setTimeLimit,0,	111,	3,	{PP_FUNCALL, PREC_FN,	0}},
-{"setSessionTimeLimit",do_setSessionTimeLimit,0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
+
 {NULL,		NULL,		0,	0,	0,	{PP_INVALID, PREC_FN,	0}},
 };
 
@@ -1048,7 +1048,7 @@ void InitNames()
     /* Note: we don't want NA_STRING to be in the CHARSXP cache, so that
        mkChar("NA") is distinct from NA_STRING */
     /* NA_STRING */
-    NA_STRING = allocCharsxp(strlen("NA"));
+    NA_STRING = allocString(strlen("NA"));
     strcpy(CHAR_RW(NA_STRING), "NA");
     R_print.na_string = NA_STRING;
     /* R_BlankString */

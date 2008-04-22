@@ -457,8 +457,13 @@ static SEXP string_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 	    c2 = STRING_ELT(s2, i % n2);
 	    if (c1 == NA_STRING || c2 == NA_STRING)
 		LOGICAL(ans)[i] = NA_LOGICAL;
+ 	    else if (c1 == c2)  /* This will pretest all cached strings */
+		LOGICAL(ans)[i] = 1;
 	    else
-		LOGICAL(ans)[i] = Seql(c1, c2) ? 1 : 0;
+		if (Seql(c1, c2))
+		    LOGICAL(ans)[i] = 1;
+		else
+		    LOGICAL(ans)[i] = 0;
 	}
 	break;
     case NEOP:
@@ -467,8 +472,13 @@ static SEXP string_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 	    c2 = STRING_ELT(s2, i % n2);
 	    if (c1 == NA_STRING || c2 == NA_STRING)
 		LOGICAL(ans)[i] = NA_LOGICAL;
-	    else
-		LOGICAL(ans)[i] = Seql(c1, c2) ? 0 : 1;
+ 	    else if (c1 == c2)
+		LOGICAL(ans)[i] = 0;
+ 	    else
+		if (Seql(c1, c2))
+		    LOGICAL(ans)[i] = 0;
+		else
+		    LOGICAL(ans)[i] = 1;
 	}
 	break;
     case LTOP:
@@ -477,15 +487,15 @@ static SEXP string_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 	    c2 = STRING_ELT(s2, i % n2);
 	    if (c1 == NA_STRING || c2 == NA_STRING)
 		LOGICAL(ans)[i] = NA_LOGICAL;
-	    else if (c1 == c2)
+ 	    else if (c1 == c2)
 		LOGICAL(ans)[i] = 0;
-	    else {
+ 	    else {
 		errno = 0;
 		res = Scollate(c1, c2);
-		if(errno)
+		if(errno)  
 		    LOGICAL(ans)[i] = NA_LOGICAL;
 		else
-		    LOGICAL(ans)[i] = (res < 0) ? 1 : 0;
+		    LOGICAL(ans)[i] = (res < 0)?1:0;
 	    }
 	}
 	break;
@@ -495,15 +505,15 @@ static SEXP string_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 	    c2 = STRING_ELT(s2, i % n2);
 	    if (c1 == NA_STRING || c2 == NA_STRING)
 		LOGICAL(ans)[i] = NA_LOGICAL;
-	    else if (c1 == c2)
+ 	    else if (c1 == c2)
 		LOGICAL(ans)[i] = 0;
-	    else {
+ 	    else {
 		errno = 0;
 		res = Scollate(c1, c2);
-		if(errno)
+		if(errno)  
 		    LOGICAL(ans)[i] = NA_LOGICAL;
 		else
-		    LOGICAL(ans)[i] = (res > 0) ? 1 : 0;
+		    LOGICAL(ans)[i] = (res > 0)?1:0;
 	    }
 	}
 	break;
@@ -513,15 +523,15 @@ static SEXP string_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 	    c2 = STRING_ELT(s2, i % n2);
 	    if (c1 == NA_STRING || c2 == NA_STRING)
 		LOGICAL(ans)[i] = NA_LOGICAL;
-	    else if (c1 == c2)
+ 	    else if (c1 == c2)
 		LOGICAL(ans)[i] = 1;
-	    else {
+ 	    else {
 		errno = 0;
 		res = Scollate(STRING_ELT(s1, i % n1), STRING_ELT(s2, i % n2));
-		if(errno)
+		if(errno)  
 		    LOGICAL(ans)[i] = NA_LOGICAL;
 		else
-		    LOGICAL(ans)[i] = (res <= 0) ? 1 : 0;
+		    LOGICAL(ans)[i] = (res <= 0)?1:0;
 	    }
 	}
 	break;
@@ -531,15 +541,15 @@ static SEXP string_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 	    c2 = STRING_ELT(s2, i % n2);
 	    if (c1 == NA_STRING || c2 == NA_STRING)
 		LOGICAL(ans)[i] = NA_LOGICAL;
-	    else if (c1 == c2)
+ 	    else if (c1 == c2)
 		LOGICAL(ans)[i] = 1;
-	    else {
+  	    else {
 		errno = 0;
 		res = Scollate(STRING_ELT(s1, i % n1), STRING_ELT(s2, i % n2));
-		if(errno)
+		if(errno)  
 		    LOGICAL(ans)[i] = NA_LOGICAL;
 		else
-		    LOGICAL(ans)[i] = (res >= 0) ? 1 : 0;
+		    LOGICAL(ans)[i] = (res >= 0)?1:0;
 	    }
 	}
 	break;

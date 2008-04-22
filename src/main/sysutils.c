@@ -623,12 +623,21 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 	    }
 
 	    if(res != -1 && inb == 0) {
-		cetype_t ienc = CE_NATIVE;
+		/* we can currently only put the result in the CHARSXP
+		   cache if it does not contain nuls. */
+		Rboolean has_nul = FALSE;
+		char *p = cbuff.data;
 
 		nout = cbuff.bufsize - 1 - outb;
-		if(isLatin1) ienc = CE_LATIN1;
-		else if(isUTF8) ienc = CE_UTF8;
-		SET_STRING_ELT(ans, i, mkCharLenCE(cbuff.data, nout, ienc));
+		for(j = 0; j < nout; j++) if(!*p++) {has_nul = TRUE; break;}
+		if(has_nul) {
+		    si = mkCharLen(cbuff.data, nout);
+		} else {
+		    if(isLatin1) si = mkCharCE(cbuff.data, CE_LATIN1);
+		    else if(isUTF8) si = mkCharCE(cbuff.data, CE_UTF8);
+		    else si = mkChar(cbuff.data);
+		}
+		SET_STRING_ELT(ans, i, si);
 	    }
 	    else SET_STRING_ELT(ans, i, NA_STRING);
 	}
@@ -1366,84 +1375,3 @@ SEXP attribute_hidden do_proctime(SEXP call, SEXP op, SEXP args, SEXP env)
     return R_NilValue;		/* -Wall */
 }
 #endif
-
-void attribute_hidden resetTimeLimits()
-{
-#ifdef _R_HAVE_TIMING_
-    double data[5];
-    R_getProcTime(data);
-
-    elapsedLimit = (elapsedLimitValue > 0) ? data[2] + elapsedLimitValue : -1.0;
-    if (elapsedLimit2 > 0.0 && 
-	(elapsedLimit <= 0.0 || elapsedLimit2 < elapsedLimit))
-	elapsedLimit = elapsedLimit2;
-
-#ifdef Win32
-    cpuLimit = (cpuLimitValue > 0) ? data[0] + data[1] + cpuLimitValue : -1.0;
-#else
-    cpuLimit = (cpuLimitValue > 0) ? data[0] + data[1] + data[3] + data[4] + cpuLimitValue : -1.0;
-#endif
-    if (cpuLimit2 > 0.0 && (cpuLimit <= 0.0 || cpuLimit2 < cpuLimit))
-	cpuLimit = cpuLimit2;
-
-#endif
-}
-
-SEXP attribute_hidden
-do_setTimeLimit(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-#ifdef _R_HAVE_TIMING_
-    double cpu, elapsed, old_cpu = cpuLimitValue,
-	old_elapsed = elapsedLimitValue;
-    int transient;
-
-    checkArity(op, args);
-    cpu = asReal(CAR(args));
-    elapsed = asReal(CADR(args));
-    transient = asLogical(CADDR(args));
-
-    if (R_FINITE(cpu) && cpu > 0) cpuLimitValue = cpu; else cpuLimitValue = -1;
-
-    if (R_FINITE(elapsed) && elapsed > 0) elapsedLimitValue = elapsed;
-    else elapsedLimitValue = -1;
-
-    resetTimeLimits();
-
-    if (transient == TRUE) {
-	cpuLimitValue = old_cpu;
-	elapsedLimitValue = old_elapsed;
-    }
-#else
-    error(_("setTimelimit() is not implemented on this system"));
-#endif
-
-    return R_NilValue;
-}
-
-SEXP attribute_hidden
-do_setSessionTimeLimit(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-#ifdef _R_HAVE_TIMING_
-    double cpu, elapsed, data[5];
-
-    checkArity(op, args);
-    cpu = asReal(CAR(args));
-    elapsed = asReal(CADR(args));
-    R_getProcTime(data);
-
-    if (R_FINITE(cpu) && cpu > 0) 
-#ifdef Win32
-	cpuLimit2 = cpu + data[0] + data[1];
-#else
-        cpuLimit2 = cpu + data[0] + data[1] + data[3] + data[4];
-#endif
-    else cpuLimit2 = -1;
-
-    if (R_FINITE(elapsed) && elapsed > 0) elapsedLimit2 = elapsed + data[2];
-    else elapsedLimit2 = -1;
-#else
-    error(_("setSessionTimelimit() is not implemented on this system"));
-#endif
-
-    return R_NilValue;
-}

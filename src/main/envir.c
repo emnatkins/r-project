@@ -3212,43 +3212,30 @@ SEXP attribute_hidden do_envprofile(SEXP call, SEXP op, SEXP args, SEXP rho)
     return ans;
 }
 
-SEXP mkCharCE(const char *name, cetype_t enc)
-{
-    return mkCharLenCE(name, strlen(name), enc);
-}
-
+/* 
+   Version for strings with embedded nuls:
+   these do not currently go in the cache,
+   and do not have an encoding. 
+*/
 SEXP mkCharLen(const char *name, int len)
 {
-    return mkCharLenCE(name, len, CE_NATIVE);
-}
-
-SEXP mkChar(const char *name)
-{
-    return mkCharLenCE(name, strlen(name), CE_NATIVE);
+    SEXP c = allocString(len);
+    memcpy(CHAR_RW(c), name, len);
+    return c;
 }
 
 #ifndef USE_CHAR_HASHING
-SEXP mkCharLenCE(const char *name, int len, cetype_t enc)
+SEXP mkChar(const char *name)
 {
-    int slen = strlen(name);
-    SEXP c;
-    if (slen < len) {
-	/* This is tricky: we want to make a reasonable job of
-	   representing this string, and EncodeString() is the most
-	   comprehensive */
-	c = allocCharsxp(len);
-	memcpy(CHAR_RW(c), name, len);
-	switch(enc) {
-	case CE_UTF8: SET_UTF8(c); break;
-	case CE_LATIN1: SET_LATIN1(c); break;
-	default: break;
-	}
-	warning(_("truncating string with embedded nuls: '%s'"), 
-		EncodeString(c, 0, 0, Rprt_adj_none));
-	len = slen;
-    }
-    c = allocCharsxp(len);
-    memcpy(CHAR_RW(c), name, len);
+    SEXP c = allocString(strlen(name));
+    strcpy(CHAR_RW(c), name);
+    return c;
+}
+
+SEXP mkCharCE(const char *name, cetype_t enc)
+{
+    SEXP c = allocString(strlen(name));
+    strcpy(CHAR_RW(c), name);
     if (enc && strIsASCII(name)) enc = 0;
     switch(enc) {
     case 0:
@@ -3281,13 +3268,12 @@ SEXP mkCharLenCE(const char *name, int len, cetype_t enc)
 static unsigned int char_hash_size = 65536;
 static unsigned int char_hash_mask = 65535;
 
-static unsigned int char_hash(const char *s, int len)
+static unsigned int char_hash(const char *s)
 {
     /* djb2 as from http://www.cse.yorku.ca/~oz/hash.html */
     char *p;
-    int i;
     unsigned int h = 5381;
-    for (p = (char *) s, i = 0; i < len; p++, i++)
+    for (p = (char *) s; *p; p++)
 	h = ((h << 5) + h) + (*p);
     return h;
 }
@@ -3335,7 +3321,8 @@ static void R_StringHash_resize(unsigned int newsize)
         while (!ISNULL(chain)) {
             val = CXHEAD(chain);
             next = CXTAIL(chain);
-            new_hashcode = char_hash(CHAR(val), LENGTH(val)) & newmask;
+            /* new_hashcode = char_hash(CHAR(val)) % newsize; */
+            new_hashcode = char_hash(CHAR(val)) & newmask;
             new_chain = VECTOR_ELT(new_table, new_hashcode);
             /* If using a primary slot then increase HASHPRI */
             if (ISNULL(new_chain))
@@ -3369,25 +3356,11 @@ static void R_StringHash_resize(unsigned int newsize)
    encoding bit.  If a CHARSXP with the same string already exists in
    the global CHARSXP cache, R_StringHash, it is returned.  Otherwise,
    a new CHARSXP is created, added to the cache and then returned. */
-
-
-static Rboolean IsASCII(const char *str, int len)
-{
-    const char *p = str;
-    int i;
-
-    for(i = 0; i < len; i++)
-	if((unsigned int)*p++ > 0x7F) return FALSE;
-    return TRUE;
-}
-
-/* Because allocCharsxp allocates len+1 bytes and zeros the last,
-   this will always zero-terminate */
-SEXP mkCharLenCE(const char *name, int len, cetype_t enc)
+SEXP mkCharCE(const char *name, cetype_t enc)
 {
     SEXP cval, chain;
     unsigned int hashcode;
-    int need_enc, slen = strlen(name);
+    int len = strlen(name);
 
     switch(enc){
     case CE_NATIVE:
@@ -3399,33 +3372,11 @@ SEXP mkCharLenCE(const char *name, int len, cetype_t enc)
     default:
         error("unknown encoding: %d", enc);
     }
-    if (slen < len) {
-	SEXP c;
-	if (R_WarnEscapes) {
-	    /* This is tricky: we want to make a reasonable job of
-	       representing this string, and EncodeString() is the most
-	       comprehensive */
-	    c = allocCharsxp(len);
-	    memcpy(CHAR_RW(c), name, len);
-	    switch(enc) {
-	    case CE_UTF8: SET_UTF8(c); break;
-	    case CE_LATIN1: SET_LATIN1(c); break;
-	    default: break;
-	    }
-	    warning(_("truncating string with embedded nuls: '%s'"), 
-		    EncodeString(c, 0, 0, Rprt_adj_none));
-	}
-	len = slen;
-    }
 
-    if (enc && IsASCII(name, len)) enc = CE_NATIVE;
-    switch(enc) {
-    case CE_UTF8: need_enc = UTF8_MASK; break;
-    case CE_LATIN1: need_enc = LATIN1_MASK; break;
-    default: need_enc = 0;
-    }
+    if (enc && strIsASCII(name)) enc = 0;
 
-    hashcode = char_hash(name, len) & char_hash_mask;
+    /* hashcode = char_hash(name) % char_hash_size; */
+    hashcode = char_hash(name) & char_hash_mask;
 
     /* Search for a cached value */
     cval = R_NilValue;
@@ -3435,17 +3386,19 @@ SEXP mkCharLenCE(const char *name, int len, cetype_t enc)
 #ifdef USE_ATTRIB_FIELD_FOR_CHARSXP_CACHE_CHAINS
 	if (TYPEOF(val) != CHARSXP) break; /* sanity check */
 #endif
-	if (need_enc == ENC_KNOWN(val) &&
+	/* If we had USE_RINTERNALS we could do the two in one step */
+	if ((enc == CE_UTF8) == IS_UTF8(val) &&
+	    (enc == CE_LATIN1) == IS_LATIN1(val) &&
 	    LENGTH(val) == len &&  /* quick pretest */
-	    memcmp(CHAR(val), name, len) == 0) {
+	    strcmp(CHAR(val), name) == 0) {
             cval = val;
             break;
         }
     }
     if (cval == R_NilValue) {
         /* no cached value; need to allocate one and add to the cache */
-        PROTECT(cval = allocCharsxp(len));
-        memcpy(CHAR_RW(cval), name, len);
+        PROTECT(cval = allocString(len));
+        strcpy(CHAR_RW(cval), name);
         switch(enc) {
         case 0:
             break;          /* don't set encoding */
@@ -3483,6 +3436,14 @@ SEXP mkCharLenCE(const char *name, int len, cetype_t enc)
     return cval;
 }
 
+/* mkChar - make a character (CHARSXP) variable.  If a CHARSXP with
+   the same string already exists in the global CHARSXP cache,
+   R_StringHash, it is returned.  Otherwise, a new CHARSXP is created,
+   added to the cache and then returned. */
+SEXP mkChar(const char *name)
+{
+    return mkCharCE(name, CE_NATIVE);
+}
 
 #ifdef DEBUG_SHOW_CHARSXP_CACHE
 /* Call this from gdb with

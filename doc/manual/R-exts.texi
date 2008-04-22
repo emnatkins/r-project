@@ -6378,17 +6378,18 @@ nul-terminated C-style string.  This function will return a pre-existing
 @code{CHARSXP} if one with a matching string already exists, otherwise
 it will create a new one and add it to the cache before returning it to
 you.   The variant @code{mkCharLen} can be used to create a
-@code{CHARSXP} from part of a buffer and will ensure null-termination.
+@code{CHARSXP} from a buffer possibly containing nuls -- as from @R{}
+2.8.0 these are also cached.
 
 Currently, it is still possible to create @code{CHARSXP}s using
-@code{allocVector}; @code{CHARSXP}s created in this way will not be
-captured by the global @code{CHARSXP} cache and this should be avoided.
-In the future, all @code{CHARSXP}s will be captured by the cache and
-this will allow further optimizations, for example, replacing calls to
-@code{strcmp} with pointer comparisons.  A helper macro,
-@code{CallocCharBuf}, can be used to obtain a temporary character buffer
-for in-place string manipulation: this memory must be released using
-@code{Free}.
+@code{allocVector}; @code{CHARSXP}s created in
+this way will not be captured by the global @code{CHARSXP} cache and
+this should be avoided.  In the future, all @code{CHARSXP}s will be
+captured by the cache and this will allow further optimizations, for
+example, replacing calls to @code{strcmp} with pointer comparisons.  A
+helper macro, @code{CallocCharBuf}, can be used to obtain a temporary
+character buffer for in-place string manipulation: this memory must be
+released using @code{Free}.
 
 @node Finding and setting variables, Some convenience functions, Handling character data, Handling R objects in C
 @subsection Finding and setting variables
@@ -7580,17 +7581,6 @@ returns a string allocated by @code{R_alloc}.  This can translate from
 invalid input: this is done byte-by-byte with @code{1} indicates to
 output hex of the form @code{<a0>}, and @code{2} to replace by @code{.},
 with any other value causing the byte to produce no output.
-
-@findex mkCharLenCE
-@R{} 2.8.0 added
-
-@example
-SEXP mkCharLenCE(const char *, int, cetype_t);
-@end example
-
-@noindent
-to create marked character strings of a given length.
-
 
 @node The R API, Generic functions and methods, System and foreign language interfaces, Top
 @chapter The R @acronym{API}: entry points for C code

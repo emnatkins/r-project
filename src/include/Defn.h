@@ -105,8 +105,10 @@ extern0 SEXP	R_StringHash;       /* Global hash of CHARSXPs */
 #ifdef USE_RINTERNALS
 # define IS_LATIN1(x) ((x)->sxpinfo.gp & LATIN1_MASK)
 # define SET_LATIN1(x) (((x)->sxpinfo.gp) |= LATIN1_MASK)
+# define UNSET_LATIN1(x) (((x)->sxpinfo.gp) &= ~LATIN1_MASK)
 # define IS_UTF8(x) ((x)->sxpinfo.gp & UTF8_MASK)
 # define SET_UTF8(x) (((x)->sxpinfo.gp) |= UTF8_MASK)
+# define UNSET_UTF8(x) (((x)->sxpinfo.gp) &= ~UTF8_MASK)
 # define ENC_KNOWN(x) ((x)->sxpinfo.gp & (LATIN1_MASK | UTF8_MASK))
 #else
 /* Needed only for write-barrier testing */
@@ -701,15 +703,6 @@ extern int Rf_initEmbeddedR(int argc, char **argv);
 
 extern char	*R_GUIType	INI_as("unknown");
 
-extern double cpuLimit			INI_as(-1.0);
-extern double cpuLimit2			INI_as(-1.0);
-extern double cpuLimitValue		INI_as(-1.0);
-extern double elapsedLimit		INI_as(-1.0);
-extern double elapsedLimit2		INI_as(-1.0);
-extern double elapsedLimitValue		INI_as(-1.0);
-
-void resetTimeLimits(void);
-
 #ifdef BYTECODE
 #define R_BCNODESTACKSIZE 10000
 extern0 SEXP *R_BCNodeStackBase, *R_BCNodeStackTop, *R_BCNodeStackEnd;
@@ -761,7 +754,6 @@ extern0 Rboolean known_to_be_utf8 INI_as(FALSE);
 
 /*--- FUNCTIONS ------------------------------------------------------ */
 
-# define allocCharsxp		Rf_allocCharsxp
 # define begincontext		Rf_begincontext
 # define check_stack_balance	Rf_check_stack_balance
 # define CheckFormals		Rf_CheckFormals
@@ -950,7 +942,6 @@ SEXP Rf_EnsureString(SEXP);
 
 /* Other Internally Used Functions */
 
-SEXP Rf_allocCharsxp(R_len_t);
 SEXP Rf_append(SEXP, SEXP); /* apparently unused now */
 void begincontext(RCNTXT*, int, SEXP, SEXP, SEXP, SEXP, SEXP);
 void Rf_checkArityCall(SEXP, SEXP, SEXP);

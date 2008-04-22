@@ -1337,14 +1337,18 @@ static SEXP ReadItem (SEXP ref_table, R_inpstream_t stream)
 		cbuf[length] = '\0';
 		if (levs & UTF8_MASK) enc = CE_UTF8;
 		else if (levs & LATIN1_MASK) enc = CE_LATIN1;
-                PROTECT(s = mkCharLenCE(cbuf, length, enc));
+		if (length > strlen(cbuf))
+		    PROTECT(s = mkCharLen(cbuf, length));
+                else PROTECT(s = mkCharCE(cbuf, enc));
 	    } else {
  		int enc = CE_NATIVE;
 		cbuf = CallocCharBuf(length);
 		InString(stream, cbuf, length);
  		if (levs & UTF8_MASK) enc = CE_UTF8;
 		else if (levs & LATIN1_MASK) enc = CE_LATIN1;
-                PROTECT(s = mkCharLenCE(cbuf, length, enc));
+		if (length > strlen(cbuf))
+		    PROTECT(s = mkCharLen(cbuf, length));
+                else PROTECT(s = mkCharCE(cbuf, enc));
                 Free(cbuf);
 	    }
 	    break;
@@ -2066,9 +2070,11 @@ SEXP attribute_hidden R_unserialize(SEXP icon, SEXP fun)
     hook = fun != R_NilValue ? CallHook : NULL;
 
     if (TYPEOF(icon) == STRSXP && LENGTH(icon) > 0) {
-	/* was the format in R < 2.4.0, removed in R 2.8.0 */
-	error("character vectors are no longer accepted by unserialize()");
-	return R_NilValue; /* -Wall */
+        struct membuf_st mbs;
+	void *data = (void *)CHAR(STRING_ELT(icon, 0)); /* FIXME, is this right? */
+	int length = LENGTH(STRING_ELT(icon, 0));
+	InitMemInPStream(&in, &mbs, data,  length, hook, fun);
+	return R_Unserialize(&in);
     } else if (TYPEOF(icon) == RAWSXP) {
         struct membuf_st mbs;
 	void *data = RAW(icon);

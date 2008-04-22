@@ -39,8 +39,7 @@ packBits(x, type = c("raw", "integer"))
 
   \code{rawToChar} converts raw bytes either to a single character
   string or a character vector of single bytes.  (Note that a single
-  character string could contain embedded nuls, in which case it will be
-  truncated at the first nul with a warning.)
+  character string could contain embedded nuls.)
 
   \code{rawToBits} returns a raw vector of 8 times the length of a raw
   vector with entries 0 or 1.  \code{intToBits} returns a raw vector

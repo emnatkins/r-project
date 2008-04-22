@@ -429,8 +429,7 @@ static void SaveAsPDF(pDevDesc dd, const char *fn)
 			fromDeviceHeight(toDeviceHeight(-1.0, GE_NDC, gdd),
 					 GE_INCHES, gdd),
 			((gadesc*) dd->deviceSpecific)->basefontsize,
-			1, 0, "R Graphics Output", R_NilValue, 1, 4, 
-			"rgb", TRUE))
+			1, 0, "R Graphics Output", R_NilValue, 1, 4))
 	PrivateCopyDevice(dd, ndd, "PDF");
 }
 

@@ -317,4 +317,7 @@ windowsFonts(# Default Serif font is Times
              # Default Sans Serif font is Helvetica
              sans = windowsFont("TT Arial"),
              # Default Monospace font is Courier
-             mono = windowsFont("TT Courier New"))
+             mono = windowsFont("TT Courier New"),
+             # Default Symbol font is Symbol
+             # Deprecated: remove in 2.8.0
+             symbol = windowsFont("TT Symbol"))

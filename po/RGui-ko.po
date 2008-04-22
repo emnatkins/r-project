@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2008-04-09 16:21+0100\n"
+"POT-Creation-Date: 2008-04-05 10:50+0100\n"
 "PO-Revision-Date: 2005-05-31 10:39+0900\n"
 "Last-Translator: park ui il <uiami@hanmail.com>\n"
 "Language-Team: South Korea\n"
@@ -929,7 +929,7 @@ msgstr "메뉴가 검색되지 못했습니다"
 msgid "menu or item does not exist"
 msgstr "menu 또는 item는 존재하지 않습니다"
 
-#: system.c:435
+#: system.c:395
 msgid "Save workspace image?"
 msgstr "workspace(imaga)를 보존하겠습니까?"
 
@@ -1178,10 +1178,6 @@ msgstr "페이지 변경을 확인하는까지 기다리는 중..."
 #: ../library/grDevices/src/devWindows.c:3307
 msgid "Click or hit ENTER for next page"
 msgstr "click 또는 ENTER 키를 누르는 것으로 다음 페이지로 이동됩니다"
-
-#, fuzzy
-#~ msgid "Install source package from local folder..."
-#~ msgstr "로컬(local)에 있는 zip 파일부터 package(s)를 인스톨..."
 
 #~ msgid "Png files (*.png)"
 #~ msgstr "Png 파일(*.png)"
