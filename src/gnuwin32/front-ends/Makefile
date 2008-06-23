@@ -26,8 +26,7 @@ all: makeMakedeps \
      $(R_HOME)/bin/Rgui.exe $(R_HOME)/bin/Rterm.exe \
      $(R_HOME)/bin/Rcmd.exe  $(R_HOME)/bin/RSetReg.exe  \
      $(R_HOME)/bin/Rproxy.dll $(R_HOME)/bin/R.exe \
-     $(R_HOME)/bin/md5check.exe $(R_HOME)/bin/Rscript.exe \
-     $(R_HOME)/bin/open.exe 
+     $(R_HOME)/bin/md5check.exe $(R_HOME)/bin/Rscript.exe
 
 $(R_HOME)/bin/Rgui.exe: Rgui.exe
 	$(MKDIR) -p $(R_HOME)/bin
@@ -57,10 +56,6 @@ $(R_HOME)/bin/Rscript.exe: Rscript.exe
 	$(MKDIR) -p $(R_HOME)/bin
 	$(CP) $^ $@	
 
-$(R_HOME)/bin/open.exe: open.exe
-	$(MKDIR) -p $(R_HOME)/bin
-	$(CP) $^ $@	
-
 rgui-CPPFLAGS=-DWin32
 rterm-CPPFLAGS=-DWin32
 
@@ -77,9 +72,9 @@ Rgui.exe: graphappmain.o  rgui.o rgico.o
 
 Rterm.exe: graphappmain.o rterm.o rtico.o
 
-Rcmd.exe: rcmd.o ../rhome.o ../shext.o rcico.o rcmdfn.o Renviron.o
+Rcmd.exe: rcmd.o ../rhome.o ../shext.o rcico.o rcmdfn.o
 
-R.exe: R.o ../rhome.o ../shext.o rcico.o rcmdfn.o Renviron.o
+R.exe: R.o ../rhome.o ../shext.o rcico.o rcmdfn.o
 
 RSetReg.exe: RSetReg.o ../rhome.o rcico.o
 
@@ -101,9 +96,6 @@ rcmd.o R.o rgui.o rterm.o RSetReg.o rproxy_impl.o rgico.o rtico.o rcico.o: ../..
 rgico.o: Rgui.exe.manifest
 rtico.o: Rterm.exe.manifest
 rcico.o: Rcmd.exe.manifest
-
-open.o: open.c
-open.exe: open.o
 
 clean:
 	$(RM) *.o *.obj *.exe *~ *.exp *.dll *.lib *.a *.d Makedeps

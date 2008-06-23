@@ -45,23 +45,19 @@ citFooter <- function(...)
     z
 }
 
-readCitationFile <- function(file, meta = NULL)
+readCitationFile <- function(file)
 {
-    if(is.null(encoding <- meta$Encoding))
-        ## Assume latin1 as a default for now, but maybe switch to
-        ## "unknown" eventually ...
-        encoding <- "latin1"
-    con <- file(file, encoding = encoding)
+    ## Assume latin1 until we have a mechanism for this
+    con <- file(file, encoding="latin1")
     on.exit(close(con))
     pcf <- parse(con)
     z <- list()
-    k <- 0
-    envir <- new.env()
-    ## Make the package metadata available to the citation entries.
-    assign("meta", meta, envir = envir)
+    k = 0
+    envir = new.env()
 
-    for(expr in pcf) {
-        x <- eval(expr, envir = envir)
+    for(expr in pcf){
+
+        x <- eval(expr, envir=envir)
         if(class(x) == "citation")
             z[[k <- k+1]] <- x
         else if(class(x) == "citationHeader")
@@ -75,9 +71,8 @@ readCitationFile <- function(file, meta = NULL)
 
 ###**********************************************************
 
-print.citation <-
-function(x, bibtex = TRUE, ...)
-{
+print.citation <- function(x, bibtex=TRUE, ...){
+
     if(!is.null(attr(x, "header"))){
         writeLines(strwrap(attr(x, "header")))
         cat("\n")
@@ -239,49 +234,45 @@ toBibtex.citationList <- function(object, ...)
 
 ###**********************************************************
 
-citation <-
-function(package = "base", lib.loc = NULL)
+citation <- function(package="base", lib.loc = NULL)
 {
-    dir <- system.file(package = package, lib.loc = lib.loc)
-    if(dir == "")
-        stop(gettextf("package '%s' not found", package), domain = NA)
-
-    meta <- packageDescription(pkg = package, lib.loc = dirname(dir))
-    citfile <- file.path(dir, "CITATION")
-    if(file_test("-f", citfile)) return(readCitationFile(citfile, meta))
-    else if(package == "base") {
-        ## Avoid infinite recursion for broken installation.
+    ## if we have a CITATION file, use it
+    citfile <- system.file("CITATION", package=package, lib.loc=lib.loc)[1]
+    if(nzchar(citfile)) return(readCitationFile(citfile))
+    else if(package=="base"){
+        ## avoid infinite recursion for broken installation
         stop("broken installation, no CITATION file in the base package.")
     }
 
-    ## Auto-generate citation info.
-    
-    ## Base packages without a CITATION file use the base citation.
-    if((!is.null(meta$Priority)) && (meta$Priority == "base")) {
+    ## else auto-generate citation info
+    desc <- packageDescription(pkg=package, lib.loc = lib.loc)
+
+    ## base packages without a CITATION file use the base citation
+    if((!is.null(desc$Priority)) && (desc$Priority=="base")) {
     	cit <- citation("base")
-    	attr(cit, "header")[1L] <-
-            paste("The '", package, "' package is part of R.  ",
-                  attr(cit, "header")[1L], sep = "")
+    	attr(cit, "header")[1] <- paste("The '", package, "' package is part of R.  ",
+    	                             attr(cit, "header")[1], sep="")
     	return(cit)
     }
 
-    z <- list(title = paste(package, ": ", meta$Title, sep=""),
-              author = as.personList(meta$Author),
-              year = sub(".*((19|20)[[:digit:]]{2}).*", "\\1", meta$Date),
-              note = paste("R package version", meta$Version)
+    if(length(desc)==1 && is.na(desc))
+       stop(gettextf("package '%s' not found", package), domain = NA)
+
+    z <- list(title = paste(package, ": ", desc$Title, sep=""),
+              author = as.personList(desc$Author),
+              year = sub(".*((19|20)[[:digit:]]{2}).*", "\\1", desc$Date),
+              note = paste("R package version", desc$Version)
               )
 
-    if(is.null(meta$Date)){
+    if(is.null(desc$Date)){
         warning(gettextf("no date field in DESCRIPTION file of package '%s'",
                          package), domain = NA)
     }
-    else if(!length(z$year)) {
-        warning(gettextf("could not determine year for '%s' from package DESCRIPTION file",
-                         package),
-                domain = NA)
+    else if(length(z$year)==0){
+        warning(gettextf("could not determine year for '%s' from package DESCRIPTION file", package), domain = NA)
     }
 
-    z$url <- meta$URL
+    z$url <- desc$URL
 
     class(z) <- "citation"
     attr(z, "entry") <- "Manual"
@@ -290,14 +281,14 @@ function(package = "base", lib.loc = NULL)
     attr(z, "header") <-
         paste("To cite package", sQuote(package), "in publications use:")
 
-    if(! "recommended" %in% meta$Priority) # we assume those are OK
+    if(! "recommended" %in% desc$Priority) # we assume those are OK
         attr(z, "footer") <-
             paste("ATTENTION: This citation information has been auto-generated",
                   "from the package DESCRIPTION file and may need manual editing,",
                   "see ", sQuote("help(\"citation\")"), ".")
 
     author <- as.character(z$author)
-    if(length(author) > 1L)
+    if(length(author)>1)
         author <- paste(paste(author[1:(length(author)-1)], collapse=", "),
                         author[length(author)], sep=" and ")
 

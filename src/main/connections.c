@@ -505,7 +505,11 @@ static Rboolean file_open(Rconnection con)
 #endif
     }
     if(!fp) {
+#ifdef HAVE_STRERROR
 	warning(_("cannot open file '%s': %s"), name, strerror(errno));
+#else
+	warning(_("cannot open file '%s'"), name);
+#endif
 	return FALSE;
     }
     if(temp) {
@@ -778,8 +782,12 @@ static Rboolean fifo_open(Rconnection con)
 	    errno = 0;
 	    res = mkfifo(name, 00644);
 	    if(res) {
+#ifdef HAVE_STRERROR
 		warning(_("cannot create fifo '%s', reason '%s'"), name,
 			strerror(errno));
+#else
+		warning(_("cannot create fifo '%s'"), name);
+#endif
 	    }
 	    if(res) return FALSE;
 	} else {
@@ -978,8 +986,12 @@ static Rboolean pipe_open(Rconnection con)
 #endif
 	fp = R_popen(con->description, mode);
     if(!fp) {
+#ifdef HAVE_STRERROR
 	warning(_("cannot open pipe() cmd '%s': %s"), con->description,
 			strerror(errno));
+#else
+	warning(_("cannot open pipe() cmd '%s'"), con->description);
+#endif
 	return FALSE;
     }
     ((Rfileconn)(con->private))->fp = fp;
@@ -1123,8 +1135,13 @@ static Rboolean gzfile_open(Rconnection con)
 
     fp = gzopen(R_ExpandFileName(con->description), mode);
     if(!fp) {
+#ifdef HAVE_STRERROR
 	warning(_("cannot open compressed file '%s', probable reason '%s'"),
 	      R_ExpandFileName(con->description), strerror(errno));
+#else
+	warning(_("cannot open compressed file '%s'"),
+	      R_ExpandFileName(con->description));
+#endif
 	return FALSE;
     }
     ((Rgzfileconn)(con->private))->fp = fp;
@@ -1310,8 +1327,13 @@ static Rboolean bzfile_open(Rconnection con)
     mode[0] = con->mode[0];
     fp = R_fopen(R_ExpandFileName(con->description), mode);
     if(!fp) {
+#ifdef HAVE_STRERROR
 	warning(_("cannot open bzip2-ed file '%s', probable reason '%s'"),
 		R_ExpandFileName(con->description), strerror(errno));
+#else
+	warning(_("cannot open bzip2-ed file '%s'"),
+		R_ExpandFileName(con->description));
+#endif
 	return FALSE;
     }
     if(con->canread) {
@@ -1951,9 +1973,10 @@ static Rconnection newtext(const char *description, SEXP text)
 
 static SEXP mkCharLocal(const char *s)
 {
-    int ienc = CE_NATIVE;
+    int ienc = 0;
     if(known_to_be_latin1) ienc = CE_LATIN1;
     if(known_to_be_utf8) ienc = CE_UTF8;
+    if(ienc > 0 && strIsASCII(s)) ienc = CE_NATIVE;
     return mkCharCE(s, ienc);
 }
 
@@ -3309,9 +3332,8 @@ readFixedString(Rconnection con, int len, int useBytes)
 	if(len && !m) return R_NilValue;
 	pos = m;
     }
-    /* String may contain nuls which we now (R >= 2.8.0) assume to be
-       padding and ignore silently */
-    return mkChar(buf);
+    /* String may contain nuls so don't use mkChar */
+    return mkCharLen(buf, pos);
 }
 
 static SEXP
@@ -3342,7 +3364,7 @@ rawFixedString(Rbyte *bytes, int len, int nbytes, int *np, int useBytes)
 	clen = iread - (*np);
 	*np = iread;
 	*p = '\0';
-	return mkCharLenCE(buf, clen, CE_NATIVE);
+	return mkCharLen(buf, clen);
     } else
 #endif
     {
@@ -3350,7 +3372,7 @@ rawFixedString(Rbyte *bytes, int len, int nbytes, int *np, int useBytes)
 	buf = R_chk_calloc(len + 1, 1);
 	memcpy(buf, bytes + (*np), len);
 	*np += len;
-	res = mkCharLenCE(buf, len, CE_NATIVE);
+	res = mkCharLen(buf, len);
 	Free(buf);
     }
     return res;

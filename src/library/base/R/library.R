@@ -126,15 +126,18 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
         ## ignore generics not defined for the package
         ob <- objects(lib.pos, all.names = TRUE)
         if(!nogenerics) {
-            ##  Exclude generics that are consistent with implicit generic
-            ## from another pacakge.  A better test would be to move this
-            ## down into the loop and test against specific other package name
-            ## but subtle conflicts like that are likely to be found elsewhere
+            ## this has traditionally excluded all generics with methods.
+            ## But unless they are implicit generics, they are in conflict.
             these <- objects(lib.pos, all.names = TRUE)
-            these <- these[substr(these, 1, 6) == ".__T__"]
-            gen <- gsub(".__T__(.*):([^:]+)", "\\1", these)
-            from <- gsub(".__T__(.*):([^:]+)", "\\2", these)
+            these <- these[substr(these, 1, 6) == ".__M__"]
+            gen <- gsub(".__M__(.*):([^:]+)", "\\1", these)
+            from <- gsub(".__M__(.*):([^:]+)", "\\2", these)
             gen <- gen[from != package]
+            if(exists(".__IG__table", env, inherits = FALSE)) {
+                imp_gen <- ls(get(".__IG__table", env,inherits = FALSE),
+                              all.names = TRUE)
+                gen <- c(gen, imp_gen)
+            }
             ob <- ob[!(ob %in% gen)]
         }
         fst <- TRUE
@@ -207,10 +210,6 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 
 	if(!character.only)
 	    package <- as.character(substitute(package))
-        if(length(package) != 1)
-            stop("'package' must be of length 1")
-        if(is.na(package) || (package == ""))
-            stop("invalid package name")
 
         if(package %in% c("ctest", "eda", "modreg", "mva", "nls",
                           "stepfun", "ts")) {
@@ -269,6 +268,8 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 
         ## NB from this point on `package' is either the original name or
         ## something like ash_1.0-8
+        if(length(package) != 1)
+            stop("'package' must be of length 1")
 	pkgname <- paste("package", package, sep = ":")
 	newpackage <- is.na(match(pkgname, search()))
 	if(newpackage) {
@@ -345,6 +346,10 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
                        !exists(".conflicts.OK", envir = env, inherits = FALSE))
                         checkConflicts(package, pkgname, pkgpath,
                                        nogenerics, ns)
+
+                    if(!nogenerics && !identical(pkgname, "package:methods"))
+                        methods::cacheMetaData(env, TRUE,
+                                               searchWhere = .GlobalEnv)
                     runUserHook(package, pkgpath)
                     on.exit()
                     if (logical.return)
@@ -421,7 +426,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
                !exists(".conflicts.OK", envir = env, inherits = FALSE))
                 checkConflicts(package, pkgname, pkgpath, nogenerics, env)
 
-            if(!nogenerics)
+            if(!nogenerics && !identical(pkgname, "package:methods"))
                 methods::cacheMetaData(env, TRUE, searchWhere = .GlobalEnv)
             runUserHook(package, pkgpath)
             on.exit()

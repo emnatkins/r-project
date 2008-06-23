@@ -570,13 +570,6 @@ stopifnot(All.eq(a, dbeta(0, 1, a, ncp=0)),
 	  All.eq(exp(16 * log(2) + dbeta(0:16/16, 5,1, log=TRUE)), db.x)
           )
 ## the first gave 0, the 2nd NaN in R <= 2.3.0; others use 'TRUE' values
-stopifnot(all.equal(dbeta(0.8, 0.5, 5, ncp=1000),# was way too small in R <= 2.6.2
-		    3.001852308909e-35),
-	  all.equal(1, integrate(dbeta, 0,1, 0.8, 0.5, ncp=1000)$value,
-		    tol=1e-4),
-          all.equal(1, integrate(dbeta, 0,1, 0.5, 200, ncp=720)$value),
-          all.equal(1, integrate(dbeta, 0,1, 125, 200, ncp=2000)$value)
-          )
 
 ## df(*, ncp):
 x <- seq(0, 10, length=101)
@@ -640,16 +633,6 @@ tt <- table(rbinom(100,    M, pr = 1e-9)) # had values in {0,2} only
 t2 <- table(rbinom(100, 10*M, pr = 1e-10))
 stopifnot(names(tt) == 0:6, sum(tt) == 100, sum(t2) == 100) ## no NaN there
 
-## qf() with large df1, df2  and/or  small p:
-x <- 0.01; f1 <- 1e60; f2 <- 1e90
-stopifnot(qf(1/4, Inf, Inf) == 1,
-	  all.equal(1, 1e-18/ pf(qf(1e-18, 12,50), 12,50), tol=1e-10),
-	  abs(x - qf(pf(x, f1,f2, log.p=TRUE), f1,f2, log.p=TRUE)) < 1e-4)
-
-## qbeta(*, log.p) for "border" case:
-stopifnot(is.finite(qbeta(-1e10, 50,40, log.p=TRUE)),
-          is.finite(qbeta(-1e10,  2, 3, lower=FALSE, log.p=TRUE)))
-## infinite loop or NaN in R <= 2.7.0
 
 
 cat("Time elapsed: ", proc.time() - .ptime,"\n")

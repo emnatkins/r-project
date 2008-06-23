@@ -20,16 +20,12 @@
 
 dev.interactive <- function(orNone = FALSE)
 {
-    if(!interactive()) return(FALSE)
-    if(.Device %in% .known_interactive.devices) return(TRUE)
-    if(!(orNone && .Device == "null device")) return(FALSE)
-    ## at this point we have mo active device.
-    newdev <- getOption("device")
-    if(is.character(newdev)) newdev %in% .known_interactive.devices
-    else { # a function
-        if(.Platform$OS.type == "windows") identical(newdev, windows)
-        else identical(newdev, X11) || identical(newdev, quartz)
-    }
+    iDevs <- .known_interactive.devices
+    interactive() &&
+    (.Device %in% iDevs ||
+     (orNone && .Device == "null device" &&
+      is.character(newdev <- getOption("device")) &&
+      newdev %in% iDevs))
 }
 
 deviceIsInteractive <- function(name = NULL)
@@ -267,53 +263,40 @@ graphics.off <- function ()
 	dev.off(which)
 }
 
-dev.new <- function(...)
+dev.new <- function()
 {
     dev <- getOption("device")
-    if(!is.character(dev) && !is.function(dev))
+    if(is.function(dev)) dev()
+    else if(!is.character(dev))
         stop("invalid setting for 'getOption(\"device\")'")
-    if(is.character(dev)) {
-        ## this is documented to be searched for from workspace,
-        ## then in graphics namespace.
-        ## We could restrict the search to functions, but the C
-        ## code in devices.c does not.
-        dev <- if(exists(dev, .GlobalEnv)) get(dev, .GlobalEnv)
-        else if(exists(dev, asNamespace("grDevices")))
-            get(dev, asNamespace("grDevices"))
-        else stop(gettextf("device '%s' not found", dev), domain=NA)
-    }
-    ## only include named args in the devices's arglist
-    a <- list(...)
-    a2 <- names(formals(dev))
-    a <- a[names(a) %in% a2]
-    if(identical(dev, pdf)) {
+    else if(identical(dev, "pdf")) {
         ## Take care not to open device on top of another.
-        if(is.null(a[["file"]]) && file.exists("Rplots.pdf")) {
+        if(!file.exists("Rplots.pdf")) pdf()
+        else {
             fe <- file.exists(tmp <- paste("Rplots", 1:999, ".pdf", sep=""))
             if(all(fe)) stop("no suitable unused file name for pdf()")
             message(gettextf("dev.new(): using pdf(file=\"%s\")", tmp[!fe][1]),
                     domain=NA)
-            a$file <- tmp[!fe][1]
+            pdf(tmp[!fe][1])
         }
-    } else if(identical(dev, postscript)) {
+    } else if(identical(dev, "postscript")) {
         ## Take care not to open device on top of another.
-        if(is.null(a[["file"]]) && file.exists("Rplots.ps")) {
+        if(!file.exists("Rplots.ps")) postscript()
+        else {
             fe <- file.exists(tmp <- paste("Rplots", 1:999, ".ps", sep=""))
             if(all(fe)) stop("no suitable unused file name for postscript()")
             message(gettextf("dev.new(): using postscript(file=\"%s\")",
                              tmp[!fe][1]), domain=NA)
-            a$file <- tmp[!fe][1]
+            postscript(tmp[!fe][1])
         }
-    } else if (!is.null(a[["width"]]) && !is.null(a[["height"]]) &&
-               (identical(dev, png) || identical(dev, jpeg) ||
-                identical(dev, bmp) || identical(dev, tiff))) {
-        ## some people want dev.new(width=12, height=7) to be portable
-        if(is.null(a[["units"]]) && is.null(a[["res"]])) {
-            a$units <- "in"
-            a$res <- 72
-        }
+    } else {
+        ## this is documented to be searched for from base,
+        ## then in graphics namespace.
+        if(exists(dev, .GlobalEnv)) get(dev, .GlobalEnv)()
+        else if(exists(dev, asNamespace("grDevices")))
+            get(dev, asNamespace("grDevices"))()
+        else stop(gettextf("device '%s' not found", dev), domain=NA)
     }
-    do.call(dev, a)
 }
 
 ### Check for a single valid integer format

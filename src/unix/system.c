@@ -49,7 +49,9 @@
 # include <unistd.h>		/* isatty() */
 #endif
 
+#ifdef HAVE_STRERROR
 #include <errno.h>
+#endif
 
 #include "Fileio.h"
 
@@ -307,9 +309,13 @@ int Rf_initialize_R(int ac, char **av)
 		if(strcmp(*av, "-")) {
 		    ifp = R_fopen(*av, "r");
 		    if(!ifp) {
+#ifdef HAVE_STRERROR
 			snprintf(msg, 1024,
 				 _("cannot open file '%s': %s"),
 				 *av, strerror(errno));
+#else
+			snprintf(msg, 1024, _("cannot open file '%s'"), *av);
+#endif
 			R_Suicide(msg);
 		    }
 		}
@@ -318,9 +324,15 @@ int Rf_initialize_R(int ac, char **av)
 		if(strcmp((*av)+7, "-")) {
 		    ifp = R_fopen( (*av)+7, "r");
 		    if(!ifp) {
+#ifdef HAVE_STRERROR
 			snprintf(msg, 1024,
 				 _("cannot open file '%s': %s"),
 				 (*av)+7, strerror(errno));
+#else
+			snprintf(msg, 1024,
+				 _("cannot open file '%s'"),
+				 (*av)+7);
+#endif
 			R_Suicide(msg);
 		    }
 		}

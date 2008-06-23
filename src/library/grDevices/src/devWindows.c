@@ -429,8 +429,7 @@ static void SaveAsPDF(pDevDesc dd, const char *fn)
 			fromDeviceHeight(toDeviceHeight(-1.0, GE_NDC, gdd),
 					 GE_INCHES, gdd),
 			((gadesc*) dd->deviceSpecific)->basefontsize,
-			1, 0, "R Graphics Output", R_NilValue, 1, 4, 
-			"rgb", TRUE))
+			1, 0, "R Graphics Output", R_NilValue, 1, 4))
 	PrivateCopyDevice(dd, ndd, "PDF");
 }
 
@@ -1437,7 +1436,7 @@ static void devga_sbf(control c, int pos)
 }
 
 
-static Rboolean
+static int
 setupScreenDevice(pDevDesc dd, gadesc *xd, double w, double h,
 		  Rboolean recording, int resize, int xpos, int ypos)
 {
@@ -1493,10 +1492,7 @@ setupScreenDevice(pDevDesc dd, gadesc *xd, double w, double h,
 				    rect(grx, gry, iw, ih),
 				    Document | StandardWindow | Menubar |
 				    VScrollbar | HScrollbar | CanvasSize)
-		)) {
-	    warning("Unable to open window");
-	    return FALSE;
-	}
+		)) return 0;
     }
     gchangescrollbar(xd->gawin, VWINSB, 0, ih/SF-1, ih/SF, 0);
     gchangescrollbar(xd->gawin, HWINSB, 0, iw/SF-1, iw/SF, 0);
@@ -1682,7 +1678,7 @@ setupScreenDevice(pDevDesc dd, gadesc *xd, double w, double h,
     xd->eventRho = NULL;
     xd->eventResult = NULL;
 
-    return TRUE;
+    return 1;
 }
 
 static Rboolean GA_Open(pDevDesc dd, gadesc *xd, const char *dsp,
@@ -1717,10 +1713,8 @@ static Rboolean GA_Open(pDevDesc dd, gadesc *xd, const char *dsp,
 	xd->kind = PRINTER;
 	xd->fast = 0; /* use scalable line widths */
 	xd->gawin = newprinter(MM_PER_INCH * w, MM_PER_INCH * h, &dsp[10]);
-	if (!xd->gawin) {
-	    warning("Unable to open printer");
+	if (!xd->gawin)
 	    return FALSE;
-	}
     } else if (!strncmp(dsp, "png:", 4) || !strncmp(dsp,"bmp:", 4)) {
 	xd->res_dpi = (xpos == NA_INTEGER) ? 0 : xpos;
 	xd->bg = dd->startfill = canvascolor;
@@ -1831,10 +1825,8 @@ static Rboolean GA_Open(pDevDesc dd, gadesc *xd, const char *dsp,
 
 	if (ls > ld)
 	    return FALSE;
-	if (strncmp(dsp, s, ls) || (dsp[ls] && (dsp[ls] != ':'))) {
-	    warning("Invalid specification for file name in win.metafile()");
+	if (strncmp(dsp, s, ls) || (dsp[ls] && (dsp[ls] != ':')))
 	    return FALSE;
-	}
 	if(ld > ls && strlen(&dsp[ls + 1]) >= 512)
 	    error(_("filename too long in win.metafile() call"));
 	strcpy(xd->filename, (ld > ls) ? &dsp[ls + 1] : "");
@@ -2783,10 +2775,8 @@ Rboolean GADeviceDriver(pDevDesc dd, const char *display, double width,
     rect  rr;
 
     /* allocate new device description */
-    if (!(xd = (gadesc *) malloc(sizeof(gadesc)))) {
-	warning("allocation failed in GADeviceDriver");
+    if (!(xd = (gadesc *) malloc(sizeof(gadesc))))
 	return FALSE;
-    }
 
     /* from here on, if need to bail out with "error", must also */
     /* free(xd) */
@@ -2815,7 +2805,6 @@ Rboolean GADeviceDriver(pDevDesc dd, const char *display, double width,
 
     if (!GA_Open(dd, xd, display, width, height, recording, resize, canvas,
 		 gamma, xpos, ypos, bg)) {
-	warning("opening device failed");
 	free(xd);
 	return FALSE;
     }
@@ -3210,16 +3199,16 @@ SEXP devga(SEXP args)
     height = asReal(CAR(args));
     args = CDR(args);
     if (width <= 0 || height <= 0)
-	error(_("invalid 'width' or 'height'"));
+	error(_("invalid 'width' or 'height' in devWindows"));
     ps = asReal(CAR(args));
     args = CDR(args);
     recording = asLogical(CAR(args));
     if (recording == NA_LOGICAL)
-	error(_("invalid value of '%s'"), "record");
+	error(_("invalid value of 'record' in devWindows"));
     args = CDR(args);
     resize = asInteger(CAR(args));
     if (resize == NA_INTEGER)
-	error(_("invalid value of '%s'"), "rescale");
+	error(_("invalid value of 'rescale' in devWindows"));
     args = CDR(args);
     xpinch = asReal(CAR(args));
     args = CDR(args);
@@ -3227,7 +3216,7 @@ SEXP devga(SEXP args)
     args = CDR(args);
     sc = CAR(args);
     if (!isString(sc) && !isInteger(sc) && !isLogical(sc) && !isReal(sc))
-	error(_("invalid value of '%s'"), "canvas");
+	error(_("invalid value of 'canvas' in devWindows"));
     canvas = RGBpar(sc, 0);
     args = CDR(args);
     gamma = asReal(CAR(args));
@@ -3238,20 +3227,20 @@ SEXP devga(SEXP args)
     args = CDR(args);
     buffered = asLogical(CAR(args));
     if (buffered == NA_LOGICAL)
-	error(_("invalid value of '%s'"), "buffered");
+	error(_("invalid value of 'buffered' in devWindows"));
     args = CDR(args);
     psenv = CAR(args);
     args = CDR(args);
     sc = CAR(args);
     if (!isString(sc) && !isInteger(sc) && !isLogical(sc) && !isReal(sc))
-	error(_("invalid value of '%s'"), "bg");
+	error(_("invalid value of 'bg' in devWindows"));
     bg = RGBpar(sc, 0);
     args = CDR(args);
     restoreConsole = asLogical(CAR(args));
     args = CDR(args);
     sc = CAR(args);
     if (!isString(sc) || LENGTH(sc) != 1)
-	error(_("invalid value of '%s'"), "title");
+	error(_("invalid value of 'title' in devWindows"));
     title = CHAR(STRING_ELT(sc, 0));
     
     R_GE_checkVersionOrDie(R_GE_version);
@@ -3266,7 +3255,7 @@ SEXP devga(SEXP args)
 			    xpos, ypos, (Rboolean)buffered, psenv,
 			    restoreConsole, title)) {
 	    free(dev);
-	    error(_("unable to start device"));
+	    error(_("unable to start device devWindows"));
 	}
 	gdd = GEcreateDevDesc(dev);
 	GEaddDevice2(gdd, display[0] ? display : "windows");

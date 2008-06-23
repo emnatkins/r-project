@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RGui 2.6.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2008-04-09 16:21+0100\n"
+"POT-Creation-Date: 2008-04-05 10:50+0100\n"
 "PO-Revision-Date: 2007-09-16 14:26+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -939,7 +939,7 @@ msgstr "menu introuvable"
 msgid "menu or item does not exist"
 msgstr "le menu ou l'entrée de menu n'existe pas"
 
-#: system.c:435
+#: system.c:395
 msgid "Save workspace image?"
 msgstr "Sauver une image de la session ?"
 
@@ -1187,10 +1187,6 @@ msgstr "Changement de page : attente de confirmation..."
 #: ../library/grDevices/src/devWindows.c:3307
 msgid "Click or hit ENTER for next page"
 msgstr "Cliquez ou appuyez ENTREE pour la page suivante"
-
-#, fuzzy
-#~ msgid "Install source package from local folder..."
-#~ msgstr "Installer le(s) package(s) depuis des fichiers zip..."
 
 #~ msgid "Png files (*.png)"
 #~ msgstr "Fichiers PNG (*.png)"

@@ -31,7 +31,7 @@ function(dir, outDir)
     ok <- .check_package_description(file.path(dir, "DESCRIPTION"))
     if(any(as.integer(sapply(ok, length)) > 0L)) {
         stop(paste(gettext("Invalid DESCRIPTION file") ,
-                   paste(.eval_with_capture(print(ok))$output,
+                   paste(.capture_output_from_print(ok),
                          collapse = "\n"),
                    sep = "\n\n"),
              domain = NA,
@@ -719,7 +719,7 @@ function(dir, packages)
 {
     .canonicalize_metadata <- function(m) {
         ## Drop entries which are NA or empty.
-        m[!is.na(m) & (regexpr("^[[:space:]]*$", m) < 0L)]
+        m[!is.na(m) & (regexpr("^[[:space:]]*$", m) < 0)]
     }
 
     dir <- file_path_as_absolute(dir)

@@ -1,6 +1,6 @@
 % File src/library/base/man/paste.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2008 R Core Development Team
+% Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{paste}
@@ -36,18 +36,19 @@ paste(\dots, sep = " ", collapse = NULL)
   If a value is specified for \code{collapse}, the values in the result
   are then concatenated into a single string, with the elements being
   separated by the value of \code{collapse}.
+
+  Character inputs with embedded nul bytes will be truncated at the first nul.
 }
 \value{
   A character vector of the concatenated values.  This will be of length
   zero if all the objects are, unless \code{collapse} is non-NULL in
   which case it is a single empty string.
-  
-  If any input into an element of the result is in UTF-8, that element
-  will be in UTF-8, otherwise in the current encoding in which case the
-  encoding of an element of the element is declared if the current
-  locale is either Latin-1 or UTF-8, at least one of the corresponding
-  inputs (including separators) had a declared encoding and all inputs
-  were either ASCII or declared.
+
+  The results will be in the current encoding.  The encoding of an
+  element of the result is declared if the current locale is either
+  Latin-1 or UTF-8, at least one of the corresponding inputs (including
+  separators) had a declared encoding and all inputs were either ASCII
+  or declared.
 }
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)

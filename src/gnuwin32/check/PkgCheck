@@ -13,7 +13,7 @@ else
 all:
 endif
 
-R = $(RHOME)/bin/Rterm --vanilla LANGUAGE=en
+R = $(RHOME)/bin/Rterm --vanilla LC_ALL=C
 RDIFF = $(RHOME)/bin/Rcmd Rdiff
 
 run: $(PKG)-Ex.R

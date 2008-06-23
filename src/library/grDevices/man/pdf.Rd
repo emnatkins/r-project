@@ -17,8 +17,7 @@
 \usage{
 pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
     width, height, onefile, family, title, fonts, version,
-    paper, encoding, bg, fg, pointsize, pagecentre, colormodel,
-    useDingbats)
+    paper, encoding, bg, fg, pointsize, pagecentre)
 }
 \arguments{
   \item{file}{a character string giving the name of the file.
@@ -29,10 +28,10 @@ pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
   \item{width, height}{the width and height of the graphics region in
     inches.  The default values are \code{7}.}
   \item{onefile}{logical: if true (the default) allow multiple figures
-    in one file.  If false, generate a file wiht name containing the page
-    number for each page.  Defaults to \code{TRUE}.}
+    in one file.  If false, generate a file name containing the page
+    number for each page.  Defaults to  \code{TRUE}.}
   \item{family}{the font family to be used, see
-    \code{\link{postscript}}.  Defaults to \code{"Helvetica"}.}
+    \code{\link{postscript}}.  Defaults to \code{"Helvetica"}. }
   \item{title}{title string to embed as the \code{/Title} field in the
     file.  Defaults to \code{"R Graphics Output"}.}
   \item{fonts}{a character vector specifying \R graphics font family
@@ -40,8 +39,7 @@ pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
     \code{NULL}.}
   \item{version}{a string describing the PDF version that will be
     required to view the output.  This is a minimum, and will be
-    increased (with a warning) if necessary.  Defaults to \code{"1.4"},
-    but see \sQuote{Details}.}
+    increased (with a warning) if necessary.  Defaults to \code{"1.1"}. }
   \item{paper}{the target paper size.  The choices are
     \code{"a4"}, \code{"letter"}, \code{"legal"} (or \code{"us"}) and
     \code{"executive"} (and these can be capitalized), or \code{"a4r"}
@@ -65,13 +63,6 @@ pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
   \item{pagecentre}{logical: should the device region be centred on the
     page? -- is only relevant for \code{paper != "special"}.  Defaults
     to true.}
-  \item{colormodel}{a character string describing the color model:
-    currently allowed values are \code{"rgb"}, \code{"gray"} and
-    \code{"cmyk"}.  Defaults to \code{"rgb"}.}
-  \item{useDingbats}{logical.  Should small circles be rendered
-    \emph{via} the Dingbats font?  Defaults to true, which produces
-    smaller and better output -- this is provided for those who insist
-    on using broken PDF viewers.}
 }
 \details{
   All arguments except \code{file} default to values given by
@@ -133,9 +124,9 @@ pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
   produced.  The version must be at least 1.4 for semi-transparent
   output to be understood, and at least 1.3 if CID fonts are to be used:
   if these features are used the version number will be increased (with
-  a warning).  Specifying a low version number is useful if you want to
-  produce PDF output that can be viewed on older or non-Adobe PDF
-  viewers.  (PDF 1.4 requires Acrobat 5 or later.)
+  a warning).  Specifying a low version number (as the default) is
+  useful if you want to produce PDF output that can be viewed on older
+  or non-Adobe PDF viewers.  (PDF 1.4 requires Acrobat 5 or later.)
 
   Line widths as controlled by \code{par(lwd=)} are in multiples of
   1/96 inch.  Multiples less than 1 are allowed.  \code{pch="."} with
@@ -159,14 +150,6 @@ pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
   Almost all PDF viewers will use a white canvas so the visual effect is
   if the background were white.  This will not be the case when printing
   onto coloured paper, though.
-}
-\section{Color models}{
-  The default color model is RGB, and model \code{"gray"} maps RGB
-  colors to greyscale using perceived luminosity (biased towards green).
-  \code{"cmyk"} outputs in CMYK colorspace. Nothing in \R specifies the
-  interpretation of the RGB or CMYK color spaces, and the simplest
-  possible conversion to CMYK is used
-  (\url{http://en.wikipedia.org/wiki/CMYK_color_model#Mapping_RGB_to_CMYK}).
 }
 \section{Conventions}{
   This section describes the implementation of the conventions for

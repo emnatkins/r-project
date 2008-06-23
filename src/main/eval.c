@@ -18,6 +18,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is either ASCII or handled as a whole */
+
 
 #undef HASHING
 
@@ -364,7 +366,7 @@ SEXP eval(SEXP e, SEXP rho)
 		  _("evaluation nested too deeply: infinite recursion / options(expressions=)?"));
     }
     R_CheckStack();
-    if (++evalcount > 1000) { /* was 100 before 2.8.0 */
+    if (++evalcount > 100) {
 	R_CheckUserInterrupt();
 	evalcount = 0 ;
     }

@@ -18,6 +18,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is either ASCII or handled as a whole */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -553,7 +555,8 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 		SET_VECTOR_ELT(value, i, SetOption(tag, ScalarInteger(k)));
 	    }
 	    else if (streql(CHAR(namei), "par.ask.default")) {
-		error(_("\"par.ask.default\" has been replaced by \"device.ask.default\""));
+		warning(_("\"par.ask.default\" has been replaced by \"device.ask.default\""));
+		SET_VECTOR_ELT(value, i, SetOption(install("device.ask.default"), duplicate(argi)));
 	    }
 	    else {
 		SET_VECTOR_ELT(value, i, SetOption(tag, duplicate(argi)));
@@ -566,7 +569,9 @@ SEXP attribute_hidden do_options(SEXP call, SEXP op, SEXP args, SEXP rho)
 		error(R_MSG_IA);
 	    tag = CHAR(STRING_ELT(argi, 0));
 	    if (streql(tag, "par.ask.default")) {
-		error(_("\"par.ask.default\" has been replaced by \"device.ask.default\""));
+		warning(_("\"par.ask.default\" has been replaced by \"device.ask.default\""));
+		tag = "device.ask.default";
+		argi = mkString(tag);
 	    }
 
 	    SET_VECTOR_ELT(value, i, duplicate(CAR(FindTaggedItem(options, install(tag)))));

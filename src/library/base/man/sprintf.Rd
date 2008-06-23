@@ -112,14 +112,13 @@ gettextf(fmt, \dots, domain = NULL)
 
   Field widths and precisions of \code{\%s} conversions are interpreted
   as bytes, not characters, as described in the C standard.
+
+  Character inputs with embedded nul bytes will be truncated at the first nul.
 }
 
 \value{
-  A character vector of length that of the longest input.  If any
-  element of \code{fmt} or any character argument is declared as UTF-8,
-  the element of the result will be in UTF-8 and have the encoding
-  declared as UTF-8.  Otherwise it will be in the current locale's
-  encoding.
+  A character vector of length that of the longest input, in the current
+  locale's encoding.
 }
 
 \references{

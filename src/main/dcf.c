@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-8   The R Development Core Team.
+ *  Copyright (C) 2001-7   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,6 +16,11 @@
  *  along with this program; if not, a copy is available at
  *  http://www.r-project.org/Licenses/
  */
+
+/* <UTF8> char here is either ASCII or handled as a whole.
+   Tests for ':' are OK.
+ */
+
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -70,10 +75,9 @@ SEXP attribute_hidden do_readDCF(SEXP call, SEXP op, SEXP args, SEXP env)
     lastm = -1; /* index of the field currently being recorded */
     blank_skip = TRUE;
     while(Rconn_getline(con, line, MAXELTSIZE) >= 0) {
-	if(strlen(line) == 0 ||
-	   regexec(&blankline, line, 0, 0, 0) == 0) {
-	    /* A blank line.  The first one after a record ends a new
-	     * record, subsequent ones are skipped */
+	if(strlen(line) == 0 || regexec(&blankline, line, 0, 0, 0) == 0) {
+	    /* A blank line.  The first one after a record
+	       ends a new record, subsequent ones are skipped */
 	    if(!blank_skip) {
 		k++;
 		if(k > nret - 1){
@@ -83,24 +87,19 @@ SEXP attribute_hidden do_readDCF(SEXP call, SEXP op, SEXP args, SEXP env)
 		    UNPROTECT_PTR(retval);
 		    retval = retval2;
 		}
-		blank_skip = TRUE;
-		lastm = -1;
-		field_skip = FALSE;
 	    }
+	    blank_skip = TRUE;
 	} else {
+	    /* starting a new record */
 	    blank_skip = FALSE;
-	    /* Remove trailing whitespace. */
+	    /* remove trailing whitespace */
 	    if(regexec(&trailblank, line, 1, regmatch, 0) == 0)
 		line[regmatch[0].rm_so] = '\0';
-	    if(regexec(&contline, line, 1, regmatch, 0) == 0) {
-		/* A continuation line: wrong if at the beginning of a
-		   record. */
-		if(lastm == -1 && !field_skip) {
-		    line[20] = '\0';
-		    error(_("Found continuation line starting '%s ...' at begin of record."),
-			  line);
-		    continue;
-		}
+
+	    /* A continuation line.  Are we currently recording?
+	       Or are we skipping a field?  Or is this an error? */
+	    if( (lastm >= 0 || field_skip) &&
+		regexec(&contline, line, 1, regmatch, 0) == 0) {
 		if(lastm >= 0) {
 		    need = strlen(CHAR(STRING_ELT(retval,
 						  lastm + nwhat*k))) + 2;
@@ -179,9 +178,8 @@ SEXP attribute_hidden do_readDCF(SEXP call, SEXP op, SEXP args, SEXP env)
 				       mkChar(line + regmatch[0].rm_eo));
 		    }
 		} else {
-		    /* Must be a regular line with no tag ... */
 		    line[20] = '\0';
-		    error(_("Line starting '%s ...' is malformed!"), line);
+		    warning("Line starting '%s ...' is malformed!", line);
 		}
 	    }
 	}

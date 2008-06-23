@@ -2978,11 +2978,6 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
 	     */
 	    symbolSize = toDeviceWidth(symbolSize, GE_INCHES, dd);
 	    if (R_FINITE(symbolSize)) {
-                /* 
-                 * FIXME:
-                 * Resolve any differences between this and FixupPch()
-                 * in plot.c ? 
-                 */
 	        if (isString(pch)) {
 		    ipch = GEstring_to_pch(STRING_ELT(pch, i % npch));
 		} else if (isInteger(pch)) {
@@ -2995,12 +2990,6 @@ SEXP L_points(SEXP x, SEXP y, SEXP pch, SEXP size)
 		 * special case for pch = "."
 		 */
 		if (ipch == 46) symbolSize = gpCex(currentgp, i);
-                /*
-                 * FIXME: 
-                 * For character-based symbols, we need to modify
-                 * gc->cex so that the FONT size corresponds to
-                 * the specified symbolSize.
-                 */
 	        GESymbol(xx[i], yy[i], ipch, symbolSize, &gc, dd);
 	    }
 	}
@@ -3115,7 +3104,7 @@ SEXP L_pretty(SEXP scale) {
     /* FIXME:  "log" flag hard-coded to FALSE because we do not
      * have log scales yet
      */
-    return Rf_CreateAtVector(axp, usr, n, FALSE);
+    return CreateAtVector(axp, usr, n, FALSE);
 }
 
 /* 

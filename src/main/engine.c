@@ -17,6 +17,10 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is either ASCII or handled as a whole.
+   Metric info is requested on widechar if found.
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -2084,7 +2088,6 @@ void GESymbol(double x, double y, int pch, double size,
 	case 16: /* S filled octagon (circle) */
 	    xc = RADIUS * size;
 	    gc->fill = gc->col;
-	    gc->col = R_TRANWHITE;
 	    GECircle(x, y, xc, gc, dd);
 	    break;
 

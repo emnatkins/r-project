@@ -598,6 +598,14 @@ for(p in list(c(1,2,5), 1:3, 3:1, 2:0, 0:2, c(1,2,1), c(0,0,1))) {
 ## end of moved from Multinom.Rd
 
 
+## plot.lm
+# which=4 failed in R 1.0.1
+par(mfrow=c(1,1), oma= rep(0,4))
+summary(lm.fm2 <- lm(Employed ~ . - Population - GNP.deflator, data = longley))
+for(wh in 1:6) plot(lm.fm2, which = wh)
+## end of moved from plot.lm.Rd
+
+
 ## Poisson
 dpois(c(0, 1, 0.17, 0.77), 1)
 ## end of moved from Poisson.Rd
@@ -2026,9 +2034,7 @@ Y <- matrix(rnorm(3 * n), n, 3)
 X <- matrix(rnorm(5 * n), n, 5)
 infm <- lm.influence(mod <- lm(Y ~ X))
 ## failed up to 2003-03-29 (pre 1.7.0)
-im1 <- influence.measures(mod)
-stopifnot(identical(unname(im1$infmat[,1:6]),
-		    unname(dfbetas(mod))))
+
 
 ## rbind.data.frame with character and ordered columns
 A <- data.frame(a=1)
@@ -3868,25 +3874,33 @@ stopifnot(identical(x, t(x)),
 
 
 ## infinite influence measures (PR#8367)
-data(occupationalStatus)
+occupationalStatus <-
+    structure(as.integer(c(50, 16, 12, 11, 2, 12, 0, 0, 19, 40, 35,
+                           20, 8, 28, 6, 3, 26, 34, 65, 58, 12, 102,
+                           19, 14, 8, 18, 66, 110, 23, 162, 40, 32, 7,
+                           11, 35, 40, 25, 90, 21, 15, 11, 20, 88, 183,
+                           46, 554, 158, 126, 6, 8, 23, 64, 28, 230, 143,
+                           91, 2, 3, 21, 32, 12, 177, 71, 106)
+                         ), .Dim = c(8L, 8L), .Dimnames =
+              structure(list(origin = c("1", "2", "3", "4", "5", "6", "7", "8"),
+                             destination = c("1", "2", "3", "4", "5", "6", "7",
+                             "8")), .Names = c("origin", "destination")),
+              class = "table")
 Diag <- as.factor(diag(1:8))
 Rscore <- scale(as.numeric(row(occupationalStatus)), scale = FALSE)
 Cscore <- scale(as.numeric(col(occupationalStatus)), scale = FALSE)
-Uniform <- glm(Freq ~ origin + destination + Diag + Rscore:Cscore,
-	       family = poisson, data = occupationalStatus)
+Uniform <- glm(Freq ~ origin + destination + Diag +
+               Rscore:Cscore, family = poisson, data = occupationalStatus)
 Ind <- as.logical(diag(8))
 residuals(Uniform)[Ind] #zero/near-zero
-stopifnot(is.nan(rstandard(Uniform)[Ind]),
-          is.nan(rstudent (Uniform)[Ind]),
-          is.nan(dffits   (Uniform)[Ind]),
-          is.nan(covratio (Uniform)[Ind]),
-          is.nan(cooks.distance(Uniform)[Ind]))
-## had infinities in 2.2.0 on some platforms
-## plot.lm() on <glm> objects:
-plot(Uniform) # last plot gives warning on h_ii ~= 1
+stopifnot(is.nan(rstandard(Uniform)[Ind]))
+stopifnot(is.nan(rstudent(Uniform)[Ind]))
+stopifnot(is.nan(dffits(Uniform)[Ind]))
+stopifnot(is.nan(covratio(Uniform)[Ind]))
+stopifnot(is.nan(cooks.distance(Uniform)[Ind]))
+# had infinities in 2.2.0 on some platforms
+plot(Uniform)
 plot(Uniform, 6) # added 2006-01-10
-plot(Uniform, 5:6)# failed for a few days 2008-05
-plot(Uniform, 1:2, caption = "")# ditto
 ##
 
 
@@ -4136,12 +4150,6 @@ sum(DF, DF) # failed
 DF[1, 1] <- NA
 stopifnot(is.na(sum(DF)), sum(DF, na.rm=TRUE) == 9)
 ## failures < 2.4.0
-
-## plot.lm
-# which=4 failed in R 1.0.1
-par(mfrow=c(1,1), oma= rep(0,4))
-summary(lm.fm2 <- lm(Employed ~ . - Population - GNP.deflator, data = longley))
-for(wh in 1:6) plot(lm.fm2, which = wh)
 
 op <- par(mfrow = c(2,2), mar = .1+c(3,3,2,1), mgp = c(1.5, .6, 0))
 y <- rt(200, df= 3)
@@ -5074,7 +5082,6 @@ stopifnot(identical(expect, gregexpr("", "abc", perl=TRUE)[[1]]))
 stopifnot(all.equal(round(d=2, x=pi), 3.14))
 ## used positional matching in 2.6.x
 
-
 ## kappa.tri(x, exact=TRUE) wrongly ended using exact=FALSE:
 data(longley)
 fm1 <- lm(Employed ~ ., data = longley)
@@ -5099,7 +5106,6 @@ attr(df,"foo") <- 10
 df[, "b"] <- 10:12
 stopifnot(identical(attr(df, "foo"), 10))
 ## dropped attributes < 2.7.0
-
 
 ## r<foo> NA warnings, and rnorm(*, mu = +- Inf) consistency
 op <- options(warn=2)
@@ -5145,69 +5151,3 @@ p2 <- predict(fit.log, log(nd))
 stopifnot(identical(p1,p2))
 
 
-## wishlist PR#11192
-plot(1:10)
-segments(1, 1, 10, 10, col='green')
-segments(numeric(0), numeric(0), numeric(0), numeric(0), col='green')
-## last was error in R < 2.8.0
-
-
-## merging with a zero-row data frame
-merge(NULL, women)
-merge(women, NULL)
-merge(women[FALSE, ], women)
-merge(women, women[FALSE, ])
-## first two failed in 2.7.0
-
-
-## influence.measures() for lm and glm, and its constituents
-if(require(MASS)) {
-    fit <- lm(formula = 1000/MPG.city ~ Weight + Cylinders + Type + EngineSize + DriveTrain, data = Cars93)
-    gf <- glm(formula(fit), data=Cars93) # should be "identical"
-    im1 <- influence.measures(fit)
-    im2 <- influence.measures(gf)
-    stopifnot(all.equal(im1[1:2], im2[1:2]),
-	      all.equal(unname(im1$infmat[,1:15]), unname(dfbetas(fit))),
-	      all.equal(im1$infmat[,"dffit"], dffits(fit)),
-	      all.equal(im1$infmat[,"cov.r"], covratio(fit)),
-	      all.equal(im1$infmat[,"cook.d"], cooks.distance(fit)),
-	      all.equal(im2$infmat[,"cook.d"], cooks.distance(gf)),
-	      all.equal(im1$infmat[,"hat"],  hatvalues(fit)))
-}
-## "cook.d" part of influence.measures(<glm>) differed in R <= 2.7.0
-
-
-## short list value for dimnames
-n <- matrix(c(1259, 845, 719,390,1360,1053,774,413), nrow = 2, byrow = TRUE)
-dimnames(n)[[1]] <- c("a", "b")
-## was (correctly) an error in R < 2.8.0
-
-
-## glob2rx(pattern, .) with "(", "[" or "{" in pattern :
-nm <- "my(ugly[file{name"
-stopifnot(identical(regexpr(glob2rx("*[*"), nm),
-		    structure(1L, match.length = 8L)),
-	  identical(regexpr(glob2rx("*{n*"), nm),
-		    structure(1L, match.length = 14L)),
-	  identical(regexpr(glob2rx("*y(*{*"), nm),
-		    structure(1L, match.length = 13L))
-	  )
-## gave 'Invalid regular expression' in R <= 2.7.0
-
-
-## showDefault() problem with "unregistered" S3 classes:
-show(structure(1:3, class = "myClass"))
-## failed in R <= 2.7.0
-
-
-## formatC(.., format="fg", flag="#"):
-x <- 0.599 * c(.1, .01, .001, 1e-4,1e-5,1e-6)
-(fCx <- formatC(x, digits=2, format="fg", flag="#"))
-stopifnot(sub(".*(..)$", "\\1", fCx) == "60")
-## dropped the trailing "0" in the last 3 cases, in R <= 2.7.0
-
-
-## c.nquote bug, posted to R-devel by Ray Brownrigg, 2008-06-16
-z <- c(noquote('z'), 'y', 'x', 'w')
-stopifnot(identical(unclass(z), c('z', 'y', 'x', 'w')))
-## repeated third and later args in R < 2.7.1.

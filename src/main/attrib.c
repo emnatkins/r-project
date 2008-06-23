@@ -19,6 +19,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is handled as a whole string */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -811,7 +813,7 @@ static SEXP dimnamesgets1(SEXP val1)
 
 SEXP dimnamesgets(SEXP vec, SEXP val)
 {
-    SEXP dims, top, newval;
+    SEXP dims, top;
     int i, k;
 
     PROTECT(vec);
@@ -821,25 +823,20 @@ SEXP dimnamesgets(SEXP vec, SEXP val)
 	error(_("'dimnames' applied to non-array"));
     /* This is probably overkill, but you never know; */
     /* there may be old pair-lists out there */
-    /* There are, when this gets used as names<- for 1-d arrays */
     if (!isPairList(val) && !isNewList(val))
 	error(_("'dimnames' must be a list"));
     dims = getAttrib(vec, R_DimSymbol);
-    if ((k = LENGTH(dims)) < length(val))
+    if ((k = LENGTH(dims)) != length(val))
 	error(_("length of 'dimnames' [%d] must match that of 'dims' [%d]"),
 	      length(val), k);
     /* Old list to new list */
     if (isList(val)) {
+	SEXP newval;
 	newval = allocVector(VECSXP, k);
 	for (i = 0; i < k; i++) {
 	    SET_VECTOR_ELT(newval, i, CAR(val));
 	    val = CDR(val);
 	}
-	UNPROTECT(1);
-	PROTECT(val = newval);
-    }
-    if (length(val) > 0 && length(val) < k) {
-	newval = lengthgets(val, k);
 	UNPROTECT(1);
 	PROTECT(val = newval);
     }
@@ -1412,11 +1409,11 @@ SEXP attribute_hidden do_AT(SEXP call, SEXP op, SEXP args, SEXP env)
     if(nlist != s_dot_Data && !IS_S4_OBJECT(object)) {
 	klass = getAttrib(object, R_ClassSymbol);
 	if(length(klass) == 0)
-	    error(_("trying to get slot \"%s\" from an object of a basic class (\"%s\") with no slots"),
+	    warning(_("trying to get slot \"%s\" from an object of a basic class (\"%s\") with no slots"),
 		  CHAR(PRINTNAME(nlist)),
 		  CHAR(STRING_ELT(R_data_class(object, FALSE), 0)));
 	else
-	    error(_("trying to get slot \"%s\" from an object (class \"%s\") that is not an S4 object "),
+	    warning(_("trying to get slot \"%s\" from an object (class \"%s\") that is not an S4 object "),
 		  CHAR(PRINTNAME(nlist)),
 		  translateChar(STRING_ELT(klass, 0)));
     }

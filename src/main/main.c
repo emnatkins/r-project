@@ -19,6 +19,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is either ASCII or handled as a whole */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -90,7 +92,6 @@ static void R_ReplFile(FILE *fp, SEXP rho, int savestack, int browselevel)
 	case PARSE_OK:
 	    R_Visible = FALSE;
 	    R_EvalDepth = 0;
-	    resetTimeLimits();
 	    count++;
 	    PROTECT(R_CurrentExpr);
 	    R_CurrentExpr = eval(R_CurrentExpr, rho);
@@ -251,7 +252,6 @@ Rf_ReplIteration(SEXP rho, int savestack, int browselevel, R_ReplState *state)
 	}
 	R_Visible = FALSE;
 	R_EvalDepth = 0;
-	resetTimeLimits();
 	PROTECT(R_CurrentExpr);
 	R_Busy(1);
 	value = eval(R_CurrentExpr, rho);
@@ -353,7 +353,6 @@ int R_ReplDLLdo1(void)
 	R_CurrentExpr = R_Parse1Buffer(&R_ConsoleIob, 1, &status);
 	R_Visible = FALSE;
 	R_EvalDepth = 0;
-	resetTimeLimits();
 	PROTECT(R_CurrentExpr);
 	R_Busy(1);
 	R_CurrentExpr = eval(R_CurrentExpr, rho);
@@ -751,7 +750,9 @@ void setup_Rmainloop(void)
 
     InitTempDir(); /* must be before InitEd */
     InitMemory();
+#ifdef USE_CHAR_HASHING
     InitStringHash(); /* must be before InitNames */
+#endif
     InitNames();
     InitBaseEnv();
     InitGlobalEnv();

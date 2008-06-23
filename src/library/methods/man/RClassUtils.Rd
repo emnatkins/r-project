@@ -108,7 +108,7 @@ classMetaName(name)
 
 methodsPackageMetaName(prefix, name, package = "")
 
-metaNameUndo(strings, prefix, searchForm = FALSE)
+metaNameUndo(strings, prefix = "M", searchForm = FALSE)
 
 requireMethods(functions, signature, message, where)
 

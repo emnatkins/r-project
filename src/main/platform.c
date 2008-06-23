@@ -18,6 +18,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is either ASCII or handled as a whole */
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -515,8 +517,12 @@ SEXP attribute_hidden do_filecreate(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    LOGICAL(ans)[i] = 1;
 	    fclose(fp);
 	} else if (show) {
+#ifdef HAVE_STRERROR
 	    warning(_("cannot create file '%s', reason '%s'"),
 		    CHAR(STRING_ELT(fn, i)), strerror(errno));
+#else
+	    warning(_("cannot create file '%s'"), CHAR(STRING_ELT(fn, i)));
+#endif
 	}
     }
     UNPROTECT(1);
@@ -541,9 +547,11 @@ SEXP attribute_hidden do_fileremove(SEXP call, SEXP op, SEXP args, SEXP rho)
 #else
 		(remove(R_ExpandFileName(translateChar(STRING_ELT(f, i)))) == 0);
 #endif
+#ifdef HAVE_STRERROR
 	    if(!LOGICAL(ans)[i])
 		warning(_("cannot remove file '%s', reason '%s'"),
 			CHAR(STRING_ELT(f, i)), strerror(errno));
+#endif
 	} else LOGICAL(ans)[i] = FALSE;
     }
     UNPROTECT(1);
@@ -598,8 +606,12 @@ SEXP attribute_hidden do_filesymlink(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    /* Rprintf("linking %s to %s\n", from, to); */
 	    LOGICAL(ans)[i] = symlink(from, to) == 0;
 	    if(!LOGICAL(ans)[i]) {
+#ifdef HAVE_STRERROR
 		warning(_("cannot symlink '%s' to '%s', reason '%s'"),
 			from, to, strerror(errno));
+#else
+		warning(_("cannot symlink '%s' to '%s'"), from, to);
+#endif
 	    }
 	}
     }
@@ -657,8 +669,12 @@ SEXP attribute_hidden do_filerename(SEXP call, SEXP op, SEXP args, SEXP rho)
     strncpy(to, p, PATH_MAX - 1);
     res = rename(from, to);
     if(res) {
+#ifdef HAVE_STRERROR
 	warning(_("cannot rename file '%s' to '%s', reason '%s'"),
 		from, to, strerror(errno));
+#else
+	warning(_("cannot rename file '%s' to '%s'"), from, to);
+#endif
     }
     return res == 0 ? mkTrue() : mkFalse();
 #endif
@@ -1879,7 +1895,11 @@ SEXP attribute_hidden do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
 	warning(_("'%s' already exists"), dir);
 end:
     if (show && res && errno != EEXIST)
+#ifdef HAVE_STRERROR
 	warning(_("cannot create dir '%s', reason '%s'"), dir, strerror(errno));
+#else
+	warning(_("cannot create dir '%s'"), dir);
+#endif
     return ScalarLogical(res == 0);
 }
 #else /* Win32 */

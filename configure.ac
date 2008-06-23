@@ -413,13 +413,6 @@ AC_ARG_WITH([iconv],
 [R_ARG_USE(iconv)],
 [use_iconv=yes])
 
-## ICU
-AC_ARG_WITH([ICU],
-[AS_HELP_STRING([--with-ICU],[use ICU library @<:@no@:>@])],
-[R_ARG_USE(ICU)],
-[use_ICU=no])
-
-
 ### ** Precious variables.
 
 AC_ARG_VAR([R_PRINTCMD],
@@ -1674,8 +1667,7 @@ R_CHECK_FUNCS([va_copy __va_copy], [#include <stdarg.h>])
 R_CHECK_FUNCS([fdopen popen], [#include <stdio.h>])
 ## system is C89: [un]setenv are POSIX and BSD
 R_CHECK_FUNCS([setenv system unsetenv], [#include <stdlib.h>])
-## strcoll is C89
-R_CHECK_FUNCS([strcoll], [#include <string.h>])
+R_CHECK_FUNCS([strcoll strerror], [#include <string.h>])
 R_CHECK_FUNCS([getrlimit getrusage], [#include <sys/resource.h>])
 R_CHECK_FUNCS([chmod mkfifo stat umask], [#include <sys/stat.h>])
 R_CHECK_FUNCS([gettimeofday], [#include <sys/time.h>])
@@ -1949,32 +1941,6 @@ case "${host_os}" in
     ;;
 esac
 R_MBCS
-
-## support for ICU
-if test "$use_ICU" = yes ; then
-  ## FIXME: later, warn not error
-  AC_CHECK_LIB(icui18n, ucol_open_3_8, [], [
-    AC_CHECK_LIB(icui18n, ucol_open_3_6, [], [
-      AC_CHECK_LIB(icui18n, ucol_open_3_4, [], 
-        [AC_MSG_ERROR([library 'icui18n' is required for ICU])])
-    ])
-  ])
-  AC_CHECK_LIB(icuuc, ucnv_fromUChars_3_8, [], [
-    AC_CHECK_LIB(icuuc, ucnv_fromUChars_3_6, [], [
-      AC_CHECK_LIB(icuuc, ucnv_fromUChars_3_4, [], 
-        [AC_MSG_ERROR([library 'icuuc' is required for ICU])])
-    ])
-  ])
-  if test "$use_ICU" = yes ; then
-    AC_CHECK_HEADER(unicode/utypes.h, [], 
-      [AC_MSG_ERROR([header file <unicode/utypes.h> is required for ICU])])
-  fi
-fi
-if test "$use_ICU" = yes ; then
-  AC_DEFINE_UNQUOTED([USE_ICU], 1, [Define to use ICU for collation.])
-fi
-AC_SUBST(USE_ICU)
-
 
 ## X11.
 R_X11
@@ -2501,9 +2467,6 @@ if test "${USE_NLS}" = yes; then
 fi
 if test "${r_cv_cairo_works}" = yes; then
   R_SH_VAR_ADD(r_capabilities, [cairo], [, ])
-fi
-if test "${use_ICU}" = yes; then
-  R_SH_VAR_ADD(r_capabilities, [ICU], [, ])
 fi
 r_options=
 if test "${want_R_framework}" = yes; then

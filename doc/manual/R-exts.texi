@@ -207,13 +207,6 @@ many utilities do not accept spaces in file paths): non-English alphabetic
 characters cannot be guaranteed to be supported in all locales.  It would
 be good practice to avoid the shell metacharacters @code{()@{@}'[]$}.
 
-A source package if possible should not contain binary executable files:
-they are not portable, and a security risk if they are of the
-appropriate architecture.  @command{R CMD check} will warn about
-them@footnote{false positives are possible, but only one has been seen
-so far.} unless they are listed (one filepath per line) in a file
-@file{BinaryFiles} at the top level of the package or bundle.
-
 The @R{} function @code{package.skeleton} can help to create the
 structure for a new package: see its help page for details.
 
@@ -453,17 +446,17 @@ Windows build will zip up the data directory or no: set this to
 @samp{no} if your package will not work with a zipped data directory.
 
 If the @file{DESCRIPTION} file is not entirely in @acronym{ASCII} it
-should contain an @samp{Encoding} field specifying an encoding.  This is
-currently used as the encoding of the @file{DESCRIPTION} file itself and
-of the @file{R} and @file{NAMESPACE} files, and as the default encoding
-of @file{.Rd} files.  The examples are assumed to be in this encoding
-when running @command{R CMD check}.  As from @R{} 2.8.0 it is used for
-the encoding of the @code{CITATION} file.  Only encoding names
-@code{latin1}, @code{latin2} and @code{UTF-8} are known to be portable.
-(Do not specify an encoding unless one is actually needed: doing so
-makes the package @emph{less} portable.)
+should contain an @samp{Encoding} field specifying an encoding.  This
+is currently used as the encoding of the @file{DESCRIPTION} file
+itself and of the @file{R} and @file{NAMESPACE} files, and is taken as
+the default encoding of @file{.Rd} files as from @R{} 2.6.0.  As from
+@R{} 2.7.0, the examples are assumed to be in this encoding when
+running @command{R CMD check}.  Only encoding names @code{latin1},
+@code{latin2} and @code{UTF-8} are known to be portable.  (Do not
+specify an encoding unless one is actually needed: doing so makes the
+package @emph{less} portable.)
 
-The optional @samp{OS_type} field specifies the OS(es) for which the
+The optional @samp{OS_ype} field specifies the OSes for which the
 package is intended.  If present, it should be one of @code{unix} or
 @code{windows}, and indicates that the package should only be installed
 on a platform with @samp{.Platform$OS.type} having that value.
@@ -1270,11 +1263,6 @@ The files and directories are checked for sufficient permissions (Unix
 only).
 
 @item
-The files are checked for binary executables, using a suitable version
-of @command{file} if available.  (There may be rare false positives --
-package @pkg{foreign} has one.)
-
-@item
 The @file{DESCRIPTION} file is checked for completeness, and some of its
 entries for correctness.  Unless installation tests are skipped,
 checking is aborted if the package dependencies cannot be resolved at
@@ -1305,10 +1293,6 @@ value @samp{yes-maybe}) and there is no @file{src/Makefile} or
 
 To allow a @file{configure} script to generate suitable files, files
 ending in @samp{.in} will be allowed in the @file{R} directory.
-
-A warning is given for directory names that look like @R{} package check
-directories -- many packages have been submitted to CRAN containing
-these.
 
 @item
 The @R{} files are checked for syntax errors.  Bytes which are
@@ -2639,13 +2623,6 @@ for further details of the information which can be provided.
 
 The @file{CITATION} should itself produce no output.
 
-As from @R{} 2.8.0, the @file{CITATION} file will be read in Latin-1 unless a
-package encoding is declared in the package's @file{DESCRIPTION} file.
-(@R{} 2.7.0 read the @file{CITATION} file in Latin-1, which covered all
-the examples at the time.  Earlier versions of @R{} read the file in the
-encoding of the session.)
-
-
 @node Package types, Services, CITATION files, Creating R packages
 @section Package types
 
@@ -3644,7 +3621,7 @@ contains
 @end example
 
 @noindent
-so that e.g.@: @kbd{??Spearman} will succeed in finding the
+so that e.g.@: @kbd{help.search("Spearman")} will succeed in finding the
 help page for the test for association between paired samples using
 Spearman's @eqn{\rho, rho}.  (Note that concepts are not currently
 supported by the @HTML{} search accessed @emph{via}
@@ -5665,10 +5642,10 @@ system makefile and then any personal @file{Makevars} files.
 If the @file{src} subdirectory of package contains a file
 @file{Makefile}, this is used in place of the @code{R CMD SHLIB}
 mechanism.  @command{make} is called with makefiles
-@file{@var{R_HOME}/etc@var{R_ARCH}/Makeconf}@footnote{or the version
-specific to a sub-architecture}, @file{src/Makefile} and any personal
-@file{Makevars} files (in that order).  The first target found in
-@file{src/Makefile} is used.
+@file{R_HOME/etc@var{R_ARCH}/Makeconf}@footnote{or the version specific to a
+sub-architecture}, @file{src/Makefile} and any personal @file{Makevars}
+files (in that order).  The first target found in @file{src/Makefile} is
+used.
 
 It is better to make use of a @code{Makevars}
 file rather than a @code{Makefile}: the latter should be needed only
@@ -6464,17 +6441,18 @@ nul-terminated C-style string.  This function will return a pre-existing
 @code{CHARSXP} if one with a matching string already exists, otherwise
 it will create a new one and add it to the cache before returning it to
 you.   The variant @code{mkCharLen} can be used to create a
-@code{CHARSXP} from part of a buffer and will ensure null-termination.
+@code{CHARSXP} from a buffer possibly containing nuls -- as from @R{}
+2.8.0 these are also cached.
 
 Currently, it is still possible to create @code{CHARSXP}s using
-@code{allocVector}; @code{CHARSXP}s created in this way will not be
-captured by the global @code{CHARSXP} cache and this should be avoided.
-In the future, all @code{CHARSXP}s will be captured by the cache and
-this will allow further optimizations, for example, replacing calls to
-@code{strcmp} with pointer comparisons.  A helper macro,
-@code{CallocCharBuf}, can be used to obtain a temporary character buffer
-for in-place string manipulation: this memory must be released using
-@code{Free}.
+@code{allocVector}; @code{CHARSXP}s created in
+this way will not be captured by the global @code{CHARSXP} cache and
+this should be avoided.  In the future, all @code{CHARSXP}s will be
+captured by the cache and this will allow further optimizations, for
+example, replacing calls to @code{strcmp} with pointer comparisons.  A
+helper macro, @code{CallocCharBuf}, can be used to obtain a temporary
+character buffer for in-place string manipulation: this memory must be
+released using @code{Free}.
 
 @node Finding and setting variables, Some convenience functions, Handling character data, Handling R objects in C
 @subsection Finding and setting variables
@@ -7666,17 +7644,6 @@ returns a string allocated by @code{R_alloc}.  This can translate from
 invalid input: this is done byte-by-byte with @code{1} indicates to
 output hex of the form @code{<a0>}, and @code{2} to replace by @code{.},
 with any other value causing the byte to produce no output.
-
-@findex mkCharLenCE
-@R{} 2.8.0 added
-
-@example
-SEXP mkCharLenCE(const char *, int, cetype_t);
-@end example
-
-@noindent
-to create marked character strings of a given length.
-
 
 @node The R API, Generic functions and methods, System and foreign language interfaces, Top
 @chapter The R @acronym{API}: entry points for C code
@@ -9362,7 +9329,7 @@ Setting @env{R_HOME} and checking it is valid, as well as the path
 Setting @env{LD_LIBRARY_PATH} to include the directories used in linking
 @R{}.  This is recorded as the default setting of
 @env{R_LD_LIBRARY_PATH} in the shell script
-@file{@var{R_HOME}/etc@var{R_ARCH}/ldpaths}.
+@file{R_HOME/etc@var{R_ARCH}/ldpaths}.
 
 @item
 Processing some of the arguments, for example to run @R{} under a

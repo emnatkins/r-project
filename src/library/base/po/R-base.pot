@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-06-05 19:48\n"
+"POT-Creation-Date: 2008-04-08 11:23\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -488,10 +488,7 @@ msgstr ""
 msgid "'file' must be a character string or connection"
 msgstr ""
 
-msgid "Invalid DCF format.\nRegular lines must have a tag.\nOffending lines start with:\n%s"
-msgstr ""
-
-msgid "Invalid DCF format.\nContinuation lines must not start a record.\nOffending lines start with:\n%s"
+msgid "Invalid DCF format."
 msgstr ""
 
 msgid "'x' must be a square matrix"
@@ -593,19 +590,13 @@ msgstr ""
 msgid "no files/directory to link to"
 msgstr ""
 
-msgid "'x' must have length 1"
+msgid "'x' must be have length 1"
 msgstr ""
 
 msgid "invalid digits"
 msgstr ""
 
 msgid "'x' cannot be coerced to 'octmode'"
-msgstr ""
-
-msgid "'x' must be of length 1"
-msgstr ""
-
-msgid "'x' cannot be coerced to hexmode"
 msgstr ""
 
 msgid "'package' must be of length 1"
@@ -626,7 +617,7 @@ msgstr ""
 msgid "'format' must be one of {\"f\",\"e\",\"E\",\"g\",\"G\", \"fg\", \"s\"}"
 msgstr ""
 
-msgid "'digits' reduced to"
+msgid "'digits' reduced to 50"
 msgstr ""
 
 msgid "'flag' can contain only '0+- #'"
@@ -711,9 +702,6 @@ msgid "from"
 msgstr ""
 
 msgid ":"
-msgstr ""
-
-msgid "invalid package name"
 msgstr ""
 
 msgid "package '%s' has been merged into '%s'"

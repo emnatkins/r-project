@@ -50,9 +50,10 @@ endif
 # used when compiling src/main: needed for memory.c, regex.c
 OPTFLAGS_M=$(OPTFLAGS)
 
-R-DLLFLAGS=-mwindows
-ifeq ($(strip $(USE_ICU)),YES)
-LIBEXTRAS+=-licuin38 -licuuc38
+ifneq ($(strip $(BUILD)),CROSS)
+R-DLLFLAGS = -mwindows
+else
+R-DLLFLAGS = -mwindows
 endif
 
 R-DLLLIBS =-L. $(FLIBS) -lRblas -L../../$(IMPDIR) -lRzlib -lRgraphapp -liconv -lcomctl32 -lversion $(LIBEXTRAS)
@@ -451,7 +452,7 @@ distclean: clean clean-recommended
 	../../doc/html/packages.html ../../doc/html/rwin.html \
 	../../doc/html/rw-FAQ.html ../../doc/html/search/SearchEngine.html
 	$(RM) ../../etc/Makeconf ../../etc/Rconsole ../../etc/Rdevga \
-	../../etc/Rprofile.site ../../etc/rgb.txt ../../etc/Rcmd_environ \
+	../../etc/Rprofile.site ../../etc/rgb.txt \
 	../../share/make/wintests.mk \
 	../../tests/*.Rout ../../tests/*.Rout.fail
 	$(RM) -r ../../share/zoneinfo

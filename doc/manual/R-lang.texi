@@ -4368,10 +4368,9 @@ eight hex digits.
 A single quote may also be embedded directly in a double-quote delimited
 string and vice versa.
 
-As from @R{} 2.8.0, a `nul' (@code{\0}) is not allowed in a character
-string, so using @code{\0} in a string constant terminates the constant
-(usually with a warning): further characters up to the closing quote are
-scanned but ignored.
+Currently the inclusion of @code{\0} in a string constant terminates the
+constant: further characters up to the closing quote are scanned but
+ignored.  (This will give a warning in @R{} 2.8.0.)
 
 @node Identifiers, Reserved words, Literal constants, Tokens
 @subsection Identifiers

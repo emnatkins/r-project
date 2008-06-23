@@ -447,7 +447,7 @@ assignClassDef <-
       }
       else
           assign(mname, def, where)
-      .cacheClass(clName, def, is(def, "ClassUnionRepresentation"), where)
+      .cacheClass(clName, def, is(def, "ClassUnionRepresentation"))
   }
 
 
@@ -587,8 +587,6 @@ reconcilePropertiesAndPrototype <-
           ## .Data slot, or a basic class.  Uses the first possibility, warns of conflicts
           for(cl in superClasses) {
               clDef <- getClassDef(cl, where = where)
-              if(is.null(clDef))
-                stop(gettextf("No definition was found for superclass \"%s\" in the specification of class \"%s\" ", cl, name), domain = NA)
               thisDataPart <-  .validDataPartClass(clDef, name)
               if(!is.null(thisDataPart)) {
                   if(is.null(dataPartClass)) {
@@ -771,8 +769,8 @@ showClass <-
         ClassDef <- getClass(Class)
     else
         ClassDef <- getClassDef(Class)
-    cat(if(identical(ClassDef@virtual, TRUE)) "Virtual ",
-	"Class ", dQuote(Class), "\n", sep="")
+    if(identical(ClassDef@virtual, TRUE))
+        cat("Virtual Class\n")
     x <- ClassDef@slots
     if(length(x)>0) {
         n <- length(x)
@@ -1164,7 +1162,7 @@ setDataPart <- function(object, value) {
     else
         ClassDef <- getClass(cl, TRUE)
 
-    switch(cl, matrix = , array = value <- cl,
+    switch(cl, ts =, matrix = , array = value <- cl,
            value <- elNamed(ClassDef@slots, ".Data"))
     if(is.null(value)) {
         if(.identC(cl, "structure"))
@@ -1220,10 +1218,7 @@ setDataPart <- function(object, value) {
             if(is.null(valueAttrs[[what]]))
                 attr(value, what) <- supplied[[what]]
     }
-    if(isS4(object))
-      .asS4(value)
-    else
-      value
+    value
 }
 
 .newExternalptr <- function()
@@ -1627,9 +1622,9 @@ substituteFunctionArgs <-
 ## See .cacheGeneric, etc. for analogous computations for generics
 .classTable <- new.env(TRUE, baseenv())
 
-.cacheClass <- function(name, def, doSubclasses = FALSE, env) {
+.cacheClass <- function(name, def, doSubclasses = FALSE) {
     if(!identical(doSubclasses, FALSE))
-      .recacheSubclasses(def@className, def, doSubclasses, env)
+      .recacheSubclasses(def@className, def, doSubclasses)
     if(exists(name, envir = .classTable, inherits = FALSE)) {
         newpkg <- def@package
         prev <- get(name, envir = .classTable)
@@ -1675,38 +1670,52 @@ substituteFunctionArgs <-
 
 .getClassFromCache <- function(name, where) {
     if(exists(name, envir = .classTable, inherits = FALSE)) {
-	value <- get(name, envir = .classTable)
-	if(is.list(value)) { ## multiple classes with this name
-	    pkg <- packageSlot(name)
-	    if(is.null(pkg))
-		pkg <- if(is.character(where)) where else getPackageName(where, FALSE) # may be ""
-	    pkgs <- names(value)
-	    i <- match(pkg, pkgs, 0)
-	    if(i == 0) ## try 'methods':
-		i <- match("methods", pkgs, 0)
-	    if(i > 0) value[[i]]	# else NULL
-	}
-	else
-	    value
-    } ## else NULL
+        value <- get(name, envir = .classTable)
+        if(is.list(value)) { # multiple classes with this name
+            pkg <- packageSlot(name)
+            if(is.null(pkg) && is.character(where))
+              pkg <- where
+            else
+              pkg <- getPackageName(where)
+            pkgs <- names(value)
+            i <- match(pkg, pkgs,0)
+            if(i > 0)
+              return(value[[i]])
+            i <- match("methods", pkgs,0)
+            if(i > 0)
+               return(value[[i]])
+            else
+              return(NULL)
+        }
+        value
+    }
+    else
+      NULL
 }
 
 ### insert superclass information into all the subclasses of this
 ### class.  Used to incorporate inheritance information from
 ### ClassUnions
-.recacheSubclasses <- function(class, def, doSubclasses, env) {
+.recacheSubclasses <- function(class, def, subclasses) {
+    if(identical(subclasses, TRUE))
+      subclasses <- class
     subs <- def@subclasses
     subNames <- names(subs)
     for(i in seq_along(subs)) {
         what <- subNames[[i]]
-        subDef <- getClassDef(what, env)
+        subDef <- getClassDef(what)
         if(is.null(subDef))
-            warning(gettextf(
-		"Undefined subclass, \"%s\", of class \"%s\"; definition not updated",
-                             what, def@className))
+          warning(
+           gettextf("Undefined subclass, \"%s\", of class \"%s\"; definition not updated",
+                    what, def@className))
+        else if(match(what, subclasses, 0) > 0)
+          next # would like warning, but seems to occur often
+          #warning(
+             #gettextf("Apparent loop in subclasses: \"%s\" found twice; ignored this time", what))
         else if(is.na(match(what, names(subDef@contains)))) {
+            subclasses <- c(subclasses, what)
             subDef@contains[[class]] <- subs[[i]]
-            .cacheClass(what, subDef, FALSE, env)
+            .cacheClass(what, subDef, subclasses)
         }
     }
 }
@@ -1784,7 +1793,7 @@ substituteFunctionArgs <-
             else {
                 newdef <- .deleteSubClass(cdef, subclass)
                 if(!is.null(newdef))
-                  .cacheClass(class, newdef, FALSE, where)
+                  .cacheClass(class, newdef)
             }
         }
         sig <- signature(from=subclass, to=class)

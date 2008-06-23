@@ -20,6 +20,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is handled as a whole string */
+
 /* Code to handle list / vector switch */
 
 #ifdef HAVE_CONFIG_H
