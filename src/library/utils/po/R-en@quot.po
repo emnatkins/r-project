@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.8.0\n"
+"Project-Id-Version: R 2.7.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-08-01 09:17\n"
-"PO-Revision-Date: 2008-08-01 09:17\n"
+"POT-Creation-Date: 2008-08-01 08:44\n"
+"PO-Revision-Date: 2008-08-01 08:44\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -132,11 +132,11 @@ msgstr "bad argument"
 msgid "all arguments must be of class \"person\""
 msgstr "all arguments must be of class “person”"
 
-msgid "package '%s' not found"
-msgstr "package ‘%s’ not found"
-
 msgid "broken installation, no CITATION file in the base package."
 msgstr "broken installation, no CITATION file in the base package."
+
+msgid "package '%s' not found"
+msgstr "package ‘%s’ not found"
 
 msgid "no date field in DESCRIPTION file of package '%s'"
 msgstr "no date field in DESCRIPTION file of package ‘%s’"
@@ -296,8 +296,8 @@ msgstr "‘topic’ should be a name, length-one character vector or reserved wo
 msgid "No documentation for '%s' in specified packages and libraries:"
 msgstr "No documentation for ‘%s’ in specified packages and libraries:"
 
-msgid "you could try '??%s'"
-msgstr "you could try ‘??%s’"
+msgid "you could try 'help.search(\"%s\")'"
+msgstr "you could try ‘help.search(“%s”)’"
 
 msgid ""
 "Help for topic '%s' is not in any loaded package but can be found in the "
@@ -967,12 +967,6 @@ msgstr "updating HTML package descriptions"
 
 msgid "cannot update '%s'"
 msgstr "cannot update ‘%s’"
-
-msgid "winDialog() cannot be used non-interactively"
-msgstr "winDialog() cannot be used non-interactively"
-
-msgid "winDialogString() cannot be used non-interactively"
-msgstr "winDialogString() cannot be used non-interactively"
 
 msgid "'pb' is not from class \"winProgressBar\""
 msgstr "‘pb’ is not from class “winProgressBar”"

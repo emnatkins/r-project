@@ -19,6 +19,10 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is handled as a whole string.
+   Does rely on strcoll being correct.
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -78,7 +82,7 @@ static int scmp(SEXP x, SEXP y, Rboolean nalast)
     return Scollate(x, y);
 }
 
-Rboolean isUnsorted(SEXP x, Rboolean strictly)
+Rboolean isUnsorted(SEXP x)
 {
     int n, i;
 
@@ -91,55 +95,27 @@ Rboolean isUnsorted(SEXP x, Rboolean strictly)
 	    /* NOTE: x must have no NAs {is.na(.) in R};
 	       hence be faster than `rcmp()', `icmp()' for these two cases */
 
-	    /* The only difference between strictly and not is '>' vs '>='
-	       but we want the if() outside the loop */
 	case LGLSXP:
 	case INTSXP:
-	    if(strictly) {
-		for(i = 0; i+1 < n ; i++)
-		    if(INTEGER(x)[i] >= INTEGER(x)[i+1])
-			return TRUE;
-
-	    } else {
-		for(i = 0; i+1 < n ; i++)
-		    if(INTEGER(x)[i] > INTEGER(x)[i+1])
-			return TRUE;
-	    }
+	    for(i = 0; i+1 < n ; i++)
+		if(INTEGER(x)[i] > INTEGER(x)[i+1])
+		    return TRUE;
 	    break;
 	case REALSXP:
-	    if(strictly) {
-		for(i = 0; i+1 < n ; i++)
-		    if(REAL(x)[i] >= REAL(x)[i+1])
-			return TRUE;
-	    } else {
-		for(i = 0; i+1 < n ; i++)
-		    if(REAL(x)[i] > REAL(x)[i+1])
-			return TRUE;
-	    }
+	    for(i = 0; i+1 < n ; i++)
+		if(REAL(x)[i] > REAL(x)[i+1])
+		    return TRUE;
 	    break;
 	case CPLXSXP:
-	    if(strictly) {
-		for(i = 0; i+1 < n ; i++)
-		    if(ccmp(COMPLEX(x)[i], COMPLEX(x)[i+1], TRUE) >= 0)
-			return TRUE;
-	    } else {
-		for(i = 0; i+1 < n ; i++)
-		    if(ccmp(COMPLEX(x)[i], COMPLEX(x)[i+1], TRUE) > 0)
-			return TRUE;
-	    }
+	    for(i = 0; i+1 < n ; i++)
+		if(ccmp(COMPLEX(x)[i], COMPLEX(x)[i+1], TRUE) > 0)
+		    return TRUE;
 	    break;
 	case STRSXP:
-	    if(strictly) {
-		for(i = 0; i+1 < n ; i++)
-		    if(scmp(STRING_ELT(x, i ),
-			    STRING_ELT(x,i+1), TRUE) >= 0)
-			return TRUE;
-	    } else {
-		for(i = 0; i+1 < n ; i++)
-		    if(scmp(STRING_ELT(x, i ),
-			    STRING_ELT(x,i+1), TRUE) > 0)
-			return TRUE;
-	    }
+	    for(i = 0; i+1 < n ; i++)
+		if(scmp(STRING_ELT(x, i ),
+			STRING_ELT(x,i+1), TRUE) > 0)
+		    return TRUE;
 	    break;
 	default:
 	    UNIMPLEMENTED_TYPE("isUnsorted", x);
@@ -150,7 +126,7 @@ Rboolean isUnsorted(SEXP x, Rboolean strictly)
 SEXP attribute_hidden do_isunsorted(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     checkArity(op, args);
-    return ScalarLogical(isUnsorted(CAR(args), asLogical(CADR(args))));
+    return ScalarLogical(isUnsorted(CAR(args)));
 }
 
 
@@ -392,7 +368,7 @@ static void ssort2(SEXP *x, int n, Rboolean decreasing)
 void sortVector(SEXP s, Rboolean decreasing)
 {
     int n = LENGTH(s);
-    if (n >= 2 && (decreasing || isUnsorted(s, FALSE)))
+    if (n >= 2 && (decreasing || isUnsorted(s)))
 	switch (TYPEOF(s)) {
 	case LGLSXP:
 	case INTSXP:
@@ -844,8 +820,8 @@ SEXP attribute_hidden do_order(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP attribute_hidden do_rank(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP rank, indx, x;
-    int *in, *ik = NULL /* -Wall */;
-    double *rk = NULL /* -Wall */;
+    int *in;
+    double *rk;
     int i, j, k, n;
     const char *ties_str;
     enum {AVERAGE, MAX, MIN} ties_kind = AVERAGE;
@@ -859,38 +835,41 @@ SEXP attribute_hidden do_rank(SEXP call, SEXP op, SEXP args, SEXP rho)
     if(TYPEOF(x) == RAWSXP)
 	error(_("raw vectors cannot be sorted"));
     n = LENGTH(x);
+    PROTECT(indx = allocVector(INTSXP, n));
+    PROTECT(rank = allocVector(REALSXP, n));
+    UNPROTECT(2);
     ties_str = CHAR(asChar(CADR(args)));
     if(!strcmp(ties_str, "average"))	ties_kind = AVERAGE;
     else if(!strcmp(ties_str, "max"))	ties_kind = MAX;
     else if(!strcmp(ties_str, "min"))	ties_kind = MIN;
     else error(_("invalid ties.method for rank() [should never happen]"));
-    PROTECT(indx = allocVector(INTSXP, n));
-    if (ties_kind == AVERAGE) {
-	PROTECT(rank = allocVector(REALSXP, n));
-	rk = REAL(rank);
-    } else {
-	PROTECT(rank = allocVector(INTSXP, n));
-	ik = INTEGER(rank);
-    }
     if (n > 0) {
 	in = INTEGER(indx);
-	for (i = 0; i < n; i++) in[i] = i;
+	rk = REAL(rank);
+	for (i = 0; i < n; i++)
+	    in[i] = i;
 	orderVector1(in, n, x, TRUE, FALSE);
-	for (i = 0; i < n; i = j+1) {
+	i = 0;
+	while (i < n) {
 	    j = i;
-	    while ((j < n - 1) && equal(in[j], in[j + 1], x, TRUE)) j++;
-	    switch(ties_kind) {
-	    case AVERAGE:
-		for (k = i; k <= j; k++)
-		    rk[in[k]] = (i + j + 2) / 2.; break;
-	    case MAX:
-		for (k = i; k <= j; k++) ik[in[k]] = j+1; break;
-	    case MIN:
-		for (k = i; k <= j; k++) ik[in[k]] = i+1; break;
+	    while ((j < n - 1) && equal(in[j], in[j + 1], x, TRUE))
+		j++;
+	    if (i != j) { /* ties */
+		switch(ties_kind) {
+		    case AVERAGE:
+			for (k = i; k <= j; k++)
+			    rk[in[k]] = (i + j + 2) / 2.; break;
+		    case MAX:
+			for (k = i; k <= j; k++) rk[in[k]] = j+1; break;
+		    case MIN:
+			for (k = i; k <= j; k++) rk[in[k]] = i+1; break;
+		}
 	    }
+	    else
+		rk[in[i]] = i + 1;
+	    i = j + 1;
 	}
     }
-    UNPROTECT(2);
     return rank;
 }
 

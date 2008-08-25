@@ -598,6 +598,14 @@ for(p in list(c(1,2,5), 1:3, 3:1, 2:0, 0:2, c(1,2,1), c(0,0,1))) {
 ## end of moved from Multinom.Rd
 
 
+## plot.lm
+# which=4 failed in R 1.0.1
+par(mfrow=c(1,1), oma= rep(0,4))
+summary(lm.fm2 <- lm(Employed ~ . - Population - GNP.deflator, data = longley))
+for(wh in 1:6) plot(lm.fm2, which = wh)
+## end of moved from plot.lm.Rd
+
+
 ## Poisson
 dpois(c(0, 1, 0.17, 0.77), 1)
 ## end of moved from Poisson.Rd
@@ -2026,9 +2034,7 @@ Y <- matrix(rnorm(3 * n), n, 3)
 X <- matrix(rnorm(5 * n), n, 5)
 infm <- lm.influence(mod <- lm(Y ~ X))
 ## failed up to 2003-03-29 (pre 1.7.0)
-im1 <- influence.measures(mod)
-stopifnot(identical(unname(im1$infmat[,1:6]),
-		    unname(dfbetas(mod))))
+
 
 ## rbind.data.frame with character and ordered columns
 A <- data.frame(a=1)
@@ -3868,25 +3874,33 @@ stopifnot(identical(x, t(x)),
 
 
 ## infinite influence measures (PR#8367)
-data(occupationalStatus)
+occupationalStatus <-
+    structure(as.integer(c(50, 16, 12, 11, 2, 12, 0, 0, 19, 40, 35,
+                           20, 8, 28, 6, 3, 26, 34, 65, 58, 12, 102,
+                           19, 14, 8, 18, 66, 110, 23, 162, 40, 32, 7,
+                           11, 35, 40, 25, 90, 21, 15, 11, 20, 88, 183,
+                           46, 554, 158, 126, 6, 8, 23, 64, 28, 230, 143,
+                           91, 2, 3, 21, 32, 12, 177, 71, 106)
+                         ), .Dim = c(8L, 8L), .Dimnames =
+              structure(list(origin = c("1", "2", "3", "4", "5", "6", "7", "8"),
+                             destination = c("1", "2", "3", "4", "5", "6", "7",
+                             "8")), .Names = c("origin", "destination")),
+              class = "table")
 Diag <- as.factor(diag(1:8))
 Rscore <- scale(as.numeric(row(occupationalStatus)), scale = FALSE)
 Cscore <- scale(as.numeric(col(occupationalStatus)), scale = FALSE)
-Uniform <- glm(Freq ~ origin + destination + Diag + Rscore:Cscore,
-	       family = poisson, data = occupationalStatus)
+Uniform <- glm(Freq ~ origin + destination + Diag +
+               Rscore:Cscore, family = poisson, data = occupationalStatus)
 Ind <- as.logical(diag(8))
 residuals(Uniform)[Ind] #zero/near-zero
-stopifnot(is.nan(rstandard(Uniform)[Ind]),
-          is.nan(rstudent (Uniform)[Ind]),
-          is.nan(dffits   (Uniform)[Ind]),
-          is.nan(covratio (Uniform)[Ind]),
-          is.nan(cooks.distance(Uniform)[Ind]))
-## had infinities in 2.2.0 on some platforms
-## plot.lm() on <glm> objects:
-plot(Uniform) # last plot gives warning on h_ii ~= 1
+stopifnot(is.nan(rstandard(Uniform)[Ind]))
+stopifnot(is.nan(rstudent(Uniform)[Ind]))
+stopifnot(is.nan(dffits(Uniform)[Ind]))
+stopifnot(is.nan(covratio(Uniform)[Ind]))
+stopifnot(is.nan(cooks.distance(Uniform)[Ind]))
+# had infinities in 2.2.0 on some platforms
+plot(Uniform)
 plot(Uniform, 6) # added 2006-01-10
-plot(Uniform, 5:6)# failed for a few days 2008-05
-plot(Uniform, 1:2, caption = "")# ditto
 ##
 
 
@@ -4006,9 +4020,9 @@ stopifnot(nchar(fc) == 11)
 DF <- data.frame(x=c("a", "b"), y=2:3)[FALSE,]
 stopifnot(is.numeric(data.matrix(DF)))
 # was logical in 2.2.1.
-DF <- data.frame(a=I(character(0)))
-X <- data.matrix(DF)
-stopifnot(is.numeric(X))
+DF <- data.frame(I(character(0)))
+X <- try(data.matrix(DF))
+stopifnot(inherits(X, "try-error"))
 ## gave logical matrix in 2.2.1.
 
 stopifnot(pbirthday(950, coincident=250) == 0,
@@ -4136,12 +4150,6 @@ sum(DF, DF) # failed
 DF[1, 1] <- NA
 stopifnot(is.na(sum(DF)), sum(DF, na.rm=TRUE) == 9)
 ## failures < 2.4.0
-
-## plot.lm
-# which=4 failed in R 1.0.1
-par(mfrow=c(1,1), oma= rep(0,4))
-summary(lm.fm2 <- lm(Employed ~ . - Population - GNP.deflator, data = longley))
-for(wh in 1:6) plot(lm.fm2, which = wh)
 
 op <- par(mfrow = c(2,2), mar = .1+c(3,3,2,1), mgp = c(1.5, .6, 0))
 y <- rt(200, df= 3)
@@ -5074,7 +5082,6 @@ stopifnot(identical(expect, gregexpr("", "abc", perl=TRUE)[[1]]))
 stopifnot(all.equal(round(d=2, x=pi), 3.14))
 ## used positional matching in 2.6.x
 
-
 ## kappa.tri(x, exact=TRUE) wrongly ended using exact=FALSE:
 data(longley)
 fm1 <- lm(Employed ~ ., data = longley)
@@ -5100,7 +5107,6 @@ df[, "b"] <- 10:12
 stopifnot(identical(attr(df, "foo"), 10))
 ## dropped attributes < 2.7.0
 
-
 ## r<foo> NA warnings, and rnorm(*, mu = +- Inf) consistency
 op <- options(warn=2)
 m <- c(-Inf,Inf)
@@ -5116,42 +5122,22 @@ stopifnot(sapply(R, function(ch) sub(".* : ", '', ch) ==
                  "(converted from warning) NAs produced\n"))
 ## was inconsistent in R < 2.7.0
 
-
 ## package.skeleton() with metadata-only code
-## work in current (= ./tests/ directory):
-tmp <- tempfile()
+(cwd <- getwd())
+tDir <- tempdir()
+tmp <- tempfile(tmpdir = tDir)
 writeLines(c('setClass("foo", contains="numeric")',
              'setMethod("show", "foo",',
              '          function(object) cat("I am a \\"foo\\"\\n"))'),
            tmp)
+setwd(tDir)
 if(file.exists("myTst")) unlink("myTst", recursive=TRUE)
-package.skeleton("myTst", code_files = tmp)# with a file name warning
-file.copy(tmp, (tm2 <- paste(tmp,".R", sep="")))
-unlink("myTst", recursive=TRUE)
-op <- options(warn=2) # *NO* "invalid file name" warning {failed in 2.7.[01]}:
-package.skeleton("myTst", code_files = tm2, namespace=TRUE)
-options(op)
+package.skeleton("myTst", code_files = tmp, namespace=TRUE)# with a file name warning
 stopifnot(1 == grep("setClass",
 	  readLines(list.files("myTst/R", full.names=TRUE))),
 	  c("foo-class.Rd","show-methods.Rd") %in% list.files("myTst/man"))
+setwd(cwd)
 ## failed for several reasons in R < 2.7.0
-##
-## Part 2: -- build, install, load and "inspect" the package:
-if(.Platform$OS.type == "unix") {
-    ## <FIXME> need build.package()
-    Rcmd <- paste(file.path(R.home("bin"), "R"), "CMD")
-    system(paste(Rcmd, "build", "myTst"))
-    # clean up any previous attempt (which might have left a 00LOCK)
-    system("rm -rf myLib")
-    dir.create("myLib")
-    install.packages("myTst", lib = "myLib", repos=NULL, type = "source") # with warnings
-    stopifnot(require("myTst",lib = "myLib"))
-    sm <- getMethods(show, where= as.environment("package:myTst"))
-    stopifnot(names(sm@methods) == "foo")
-    unlink("myLib", recursive=TRUE)
-    unlink("myTst_*")
-}
-unlink("myTst", recursive=TRUE)
 
 
 ## predict.loess with transformed variables
@@ -5165,185 +5151,3 @@ p2 <- predict(fit.log, log(nd))
 stopifnot(identical(p1,p2))
 
 
-## wishlist PR#11192
-plot(1:10)
-segments(1, 1, 10, 10, col='green')
-segments(numeric(0), numeric(0), numeric(0), numeric(0), col='green')
-## last was error in R < 2.8.0
-
-
-## merging with a zero-row data frame
-merge(NULL, women)
-merge(women, NULL)
-merge(women[FALSE, ], women)
-merge(women, women[FALSE, ])
-## first two failed in 2.7.0
-
-
-## influence.measures() for lm and glm, and its constituents
-if(require(MASS)) {
-    fit <- lm(formula = 1000/MPG.city ~ Weight + Cylinders + Type + EngineSize + DriveTrain, data = Cars93)
-    gf <- glm(formula(fit), data=Cars93) # should be "identical"
-    im1 <- influence.measures(fit)
-    im2 <- influence.measures(gf)
-    stopifnot(all.equal(im1[1:2], im2[1:2]),
-	      all.equal(unname(im1$infmat[,1:15]), unname(dfbetas(fit))),
-	      all.equal(im1$infmat[,"dffit"], dffits(fit)),
-	      all.equal(im1$infmat[,"cov.r"], covratio(fit)),
-	      all.equal(im1$infmat[,"cook.d"], cooks.distance(fit)),
-	      all.equal(im2$infmat[,"cook.d"], cooks.distance(gf)),
-	      all.equal(im1$infmat[,"hat"],  hatvalues(fit)))
-}
-## "cook.d" part of influence.measures(<glm>) differed in R <= 2.7.0
-
-
-## short list value for dimnames
-n <- matrix(c(1259, 845, 719,390,1360,1053,774,413), nrow = 2, byrow = TRUE)
-dimnames(n)[[1]] <- c("a", "b")
-## was (correctly) an error in R < 2.8.0
-
-
-## glob2rx(pattern, .) with "(", "[" or "{" in pattern :
-nm <- "my(ugly[file{name"
-stopifnot(identical(regexpr(glob2rx("*[*"), nm),
-		    structure(1L, match.length = 8L)),
-	  identical(regexpr(glob2rx("*{n*"), nm),
-		    structure(1L, match.length = 14L)),
-	  identical(regexpr(glob2rx("*y(*{*"), nm),
-		    structure(1L, match.length = 13L))
-	  )
-## gave 'Invalid regular expression' in R <= 2.7.0
-
-
-## showDefault() problem with "unregistered" S3 classes:
-show(structure(1:3, class = "myClass"))
-## failed in R <= 2.7.0
-
-
-## formatC(.., format="fg", flag="#"):
-x <- 0.599 * c(.1, .01, .001, 1e-4,1e-5,1e-6)
-(fCx <- formatC(x, digits=2, format="fg", flag="#"))
-stopifnot(sub(".*(..)$", "\\1", fCx) == "60")
-## dropped the trailing "0" in the last 3 cases, in R <= 2.7.0
-
-
-## c.noquote bug, posted to R-devel by Ray Brownrigg, 2008-06-16
-z <- c(noquote('z'), 'y', 'x', 'w')
-stopifnot(identical(unclass(z), c('z', 'y', 'x', 'w')))
-## repeated third and later args in R < 2.7.1.
-
-## PD found that f==f contains NA when f has NA levels (but no missing value)
-f1 <- factor(c(1, 2, NA), exclude = "")
-f2 <- factor(c(1, 2, NA), exclude = NULL)
-stopifnot(identical(f1, factor(c(1,2,NA))),
-          nlevels(f1) == 2, nlevels(f2) == 3,
-          all(f2 == f2), !any(f2 != f2),
-          identical(f1 == f1, c(TRUE,TRUE,NA)))
-
-f. <- f <- factor(c(letters[c(1:3,3:1)],"NA", "d","d", NA), exclude=NULL)
-is.na(f.)[2:3] <- TRUE
-f.
-stopifnot(all(f == f), identical(f == f., f. == f.),
-          identical(2:3, which(is.na(f. == f.))))
-## f == f was wrong in R 1.5.0 -- 2.7.1
-
-
-## data.frame[, <char>] must match exactly
-dd <- data.frame(ii = 1:10, xx = pi * -3:6)
-t1 <- try(dd[,"x"])# partial match
-t2 <- try(dd[,"C"])# no match
-stopifnot(inherits(t1, "try-error"),
-	  inherits(t2, "try-error"),
-	  ## partial matching is "ok" for '$' {hence don't use for dataframes!}
-	  identical(dd$x, dd[,"xx"]))
-## From 2.5.0 to 2.7.1, the non-match indexing gave NULL instead of error
-
-## data.frame[ (<NA>), ] when row.names had  "NA"
-x <- data.frame(x=1:3, y=2:4, row.names=c("a","b","NA"))
-y  <- x [c(2:3, NA),]
-y.ok <- data.frame(x=c(2:3,NA), y=c(3:4,NA), row.names=c("b", "NA", "NA.1"))
-stopifnot(identical(y, y.ok))
-## From 2.5.0 to 2.7.1,  y had row name "NA" twice
-
-stopifnot(shapiro.test(c(0,0,1))$p.value >= 0)
-## was wrong up to 2.7.1, because of rounding errors (in single precision).
-
-stopifnot(rcond(cbind(1, c(3,3))) == 0)
-## gave an error (because Lapack's LU detects exact singularity)
-
-
-## dispatch when primitives are called from lapply.
-x <- data.frame(d=Sys.Date())
-stopifnot(sapply(x, is.numeric) == FALSE)
-# TRUE in 2.7.1, tried to dispatch on "FUN"
-(ds <- seq(from=Sys.Date(), by=1, length=4))
-lapply(list(d=ds), round)
-# failed in 2.7.1 with 'dispatch error' since call had '...' arg
-## related to calls being passed unevaluated by lapply.
-
-
-## subsetting data frames with NA cols
-## Dieter Menne: https://stat.ethz.ch/pipermail/r-help/2008-January/151266.html
-df3 <- data.frame(a=0:10,b=10:20,c=20:30)
-names(df3) <- c("A","B", NA)
-df3[-2]
-df3[, -2]
-df3[1:4, -2]
-df3[c(TRUE,FALSE,TRUE)]
-df3[, c(TRUE,FALSE,TRUE)]
-df3[1:4, c(TRUE,FALSE,TRUE)]
-## all gave 'undefined columns selected', 2.6.1 to 2.7.x
-## note that you can only select columns by number, not by name
-
-
-## nls with weights in an unusual model
-Data <- data.frame(x=c(1,1,1,1,1,2,2,3,3,3,3,3,3,4,4,4,5,5,5,5,6,6,6,6,6,6,
-                   7,7,7,7,7,7,7,7,7,8,8,8, 8,8,8,8,8,8,8,9,9,9,9,9,11,12),
-                   y=c(73,73,70,74,75,115,105,107,124,107,116,125,102,144,178,
-                   149,177,124,157,128, 169,165,186,152,181,139,173,151,138,
-                   181,152,188,173,196,180,171,188,174,198, 172, 176,162,188,
-                   182,182,141,191,190,159,170,163,197),
-                   weight=c(1, rep(0.1, 51)))
-G.st <- c(k=0.005, g1=50,g2=550)
-# model has length-1 (and 52) variables
-Ta <- min(Data$x)
-Tb <- max(Data$x)
-
-#no weights
-nls(y~((g1)*exp((log(g2/g1))*(1-exp(-k*(x-Ta)))
-                /(1-exp(-k*(Tb-Ta))))), data=Data, start=G.st, trace=TRUE)
-
-#with weights
-nls(y~((g1)*exp((log(g2/g1))*(1-exp(-k*(x-Ta)))
-                /(1-exp(-k*(Tb-Ta))))), data=Data, start=G.st,
-    trace=TRUE, weights=weight)
-## failed for find weights in R <= 2.7.1
-
-
-## barplot(log = "y") with NAs (PR#11585)
-dat <- matrix(1:25, 5)
-dat[2,3] <- NA
-barplot(dat, beside = TRUE, log = "y")
-## failed in 2.7.1
-
-
-## related to PR#12551
-unique("a", c("a", "b"))
-unique(1, 1:2)
-# could seqfault in 2.7.1 on some platforms
-stopifnot(!duplicated(rep("a", 3), "a"))
-## wrong answer in 2.7.1
-
-
-## drop1.lm() bug
-dd <- stackloss ; dd[1,3] <- NA
-rr <- lm(stack.loss ~ ., data=dd, na.action=na.exclude)
-drop1(rr)
-## failed in 2.7.x
-
-
-## explicit row.names=NULL in data.frame()
-stopifnot(identical(row.names(data.frame(x=c(a=1,b=2), row.names=NULL)),
-                    c("1", "2")))
-stopifnot(identical(row.names(data.frame(x=c(a=1,b=2))), c("a", "b")))
-## same as default in 2.5.0 <= R < 2.7.2

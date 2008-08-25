@@ -13,7 +13,7 @@
 \usage{
 \method{summary}{manova}(object,
         test = c("Pillai", "Wilks", "Hotelling-Lawley", "Roy"),
-        intercept = FALSE, tol = 1e-7, \dots)
+        intercept = FALSE, \dots)
 }
 \arguments{
   \item{object}{An object of class \code{"manova"} or an \code{aov}
@@ -22,8 +22,6 @@
     matching is used so the name can be abbreviated.}
   \item{intercept}{logical.  If \code{TRUE}, the intercept term is
     included in the table.}
-  \item{tol}{tolerance to be used in deciding if the residuals are
-    rank-deficient: see \code{\link{qr}}.}
   \item{\dots}{further arguments passed to or from other methods.}
 }
 \details{
@@ -41,12 +39,8 @@
   the same when the term being tested has one degree of freedom, but in
   other cases that for the Roy statistic is an upper bound.
   
-  The tolerance \code{tol} is applied to the QR decomposition of the
-  residual correlation matrix (unless some response has essentially zero
-  residuals, when it is unscaled).  Thus the default value guards
-  against very highly correlated responses: it can be reduced but doing
-  so will allow rather inaccurate results and it will normally be better
-  to transform the responses to remove the high correlation.
+  The current computation is sensitive to the scaling of the responses:
+  use responses of comparable magnitude for best results.
 }
 \value{
   An object of class \code{"summary.manova"}.  If there is a positive

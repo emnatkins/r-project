@@ -17,6 +17,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is either ASCII or handled as a whole */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -226,7 +228,6 @@ SEXP attribute_hidden do_optim(SEXP call, SEXP op, SEXP args, SEXP rho)
     tn = CHAR(STRING_ELT(method, 0));
     args = CDR(args); options = CAR(args);
     PROTECT(OS->R_fcall = lang2(fn, R_NilValue));
-    /* I don't think duplication is needed here */
     PROTECT(par = coerceVector(duplicate(par), REALSXP));
     npar = LENGTH(par);
     dpar = vect(npar);
@@ -267,7 +268,6 @@ SEXP attribute_hidden do_optim(SEXP call, SEXP op, SEXP args, SEXP rho)
     else if (strcmp(tn, "SANN") == 0) {
 	tmax = asInteger(getListElement(options, "tmax"));
 	temp = asReal(getListElement(options, "temp"));
-	if (trace) trace = asInteger(getListElement(options, "REPORT"));
 	if (tmax == NA_INTEGER) error(_("'tmax' is not an integer"));
 	if (!isNull(gr)) {
 	    if (!isFunction(gr)) error(_("'gr' is not a function"));
@@ -1082,6 +1082,7 @@ void lbfgsb(int n, int m, double *x, double *l, double *u, int *nbd,
 
 
 #define E1 1.7182818  /* exp(1.0)-1.0 */
+#define STEPS 100
 
 void samin(int n, double *pb, double *yb, optimfn fminfn, int maxit,
 	   int tmax, double ti, int trace, void *ex)
@@ -1100,10 +1101,6 @@ void samin(int n, double *pb, double *yb, optimfn fminfn, int maxit,
     double t, y, dy, ytry, scale;
     double *p, *dp, *ptry;
 
-    /* Above have: if(trace != 0) trace := REPORT control argument = STEPS */
-    if (trace < 0)
-	error(_("trace, REPORT must be >= 0 (method = \"SANN\")"));
-
     if(n == 0) { /* don't even attempt to optimize */
 	*yb = fminfn(n, pb, ex);
 	return;
@@ -1114,7 +1111,8 @@ void samin(int n, double *pb, double *yb, optimfn fminfn, int maxit,
     if (!R_FINITE(*yb)) *yb = big;
     for (j = 0; j < n; j++) p[j] = pb[j];
     y = *yb;  /* init system state p, y */
-    if (trace) {
+    if (trace)
+    {
 	Rprintf ("sann objective function values\n");
 	Rprintf ("initial       value %f\n", *yb);
     }
@@ -1140,11 +1138,12 @@ void samin(int n, double *pb, double *yb, optimfn fminfn, int maxit,
 	    }
 	    its++; k++;
 	}
-	if (trace && ((itdoc % trace) == 0))
+	if ((trace) && ((itdoc % STEPS) == 0))
 	    Rprintf("iter %8d value %f\n", its - 1, *yb);
 	itdoc++;
     }
-    if (trace) {
+    if (trace)
+    {
 	Rprintf ("final         value %f\n", *yb);
 	Rprintf ("sann stopped after %d iterations\n", its - 1);
     }
@@ -1152,3 +1151,4 @@ void samin(int n, double *pb, double *yb, optimfn fminfn, int maxit,
 }
 
 #undef E1
+#undef STEPS

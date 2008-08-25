@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.7.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-08-01 09:16\n"
+"POT-Creation-Date: 2008-04-08 11:23\n"
 "PO-Revision-Date: 2008-04-06 23:46-0500\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza at gmail>\n"
 "Language-Team: Russian\n"
@@ -350,12 +350,6 @@ msgstr "количество колонок аргументов не соответствует друг другу"
 msgid "invalid list argument: all variables should have the same length"
 msgstr "неправильный аргумент списка: длины всех переменных должны быть равны"
 
-msgid "data frame with 0 columns and %d rows"
-msgstr ""
-
-msgid "<0 rows> (or 0-length row.names)"
-msgstr ""
-
 msgid "non-numeric variable in data frame:"
 msgstr "нечисловая переменная переменная в таблице данных:"
 
@@ -508,19 +502,8 @@ msgstr "'to' должен быть объектом POSIXt"
 msgid "'file' must be a character string or connection"
 msgstr "'file' должен быть текстовой строкой или соединением"
 
-msgid ""
-"Invalid DCF format.\n"
-"Regular lines must have a tag.\n"
-"Offending lines start with:\n"
-"%s"
-msgstr ""
-
-msgid ""
-"Invalid DCF format.\n"
-"Continuation lines must not start a record.\n"
-"Offending lines start with:\n"
-"%s"
-msgstr ""
+msgid "Invalid DCF format."
+msgstr "Неправильный формат DCF."
 
 msgid "'x' must be a square matrix"
 msgstr "'x' должен быть квадратной матрицей"
@@ -623,22 +606,13 @@ msgstr "нет файлов для ссылки с"
 msgid "no files/directory to link to"
 msgstr "нет файлов/папок для ссылки на"
 
-#, fuzzy
-msgid "'x' must have length 1"
+msgid "'x' must be have length 1"
 msgstr "'x' должен иметь длину 1"
 
 msgid "invalid digits"
 msgstr "неправильное количество знаков после запятой"
 
 msgid "'x' cannot be coerced to 'octmode'"
-msgstr "'x' нельзя преобразовать в 'octmode'"
-
-#, fuzzy
-msgid "'x' must be of length 1"
-msgstr "'to' должен быть длиной 1"
-
-#, fuzzy
-msgid "'x' cannot be coerced to hexmode"
 msgstr "'x' нельзя преобразовать в 'octmode'"
 
 msgid "'package' must be of length 1"
@@ -660,8 +634,7 @@ msgid "'format' must be one of {\"f\",\"e\",\"E\",\"g\",\"G\", \"fg\", \"s\"}"
 msgstr ""
 "'format' должен быть одним из {\"f\",\"e\",\"E\",\"g\",\"G\", \"fg\", \"s\"}"
 
-#, fuzzy
-msgid "'digits' reduced to"
+msgid "'digits' reduced to 50"
 msgstr "'digits' сокращено до 50"
 
 msgid "'flag' can contain only '0+- #'"
@@ -748,10 +721,6 @@ msgstr "из"
 
 msgid ":"
 msgstr ":"
-
-#, fuzzy
-msgid "invalid package name"
-msgstr "неправильное имя"
 
 msgid "package '%s' has been merged into '%s'"
 msgstr "пакет '%s' был слит с '%s'"
@@ -1448,14 +1417,6 @@ msgstr "неправильный аргумент"
 msgid "invalid value"
 msgstr "неправильное значение"
 
-#, fuzzy
-msgid "unary '%s' not defined for \"numeric_version\" objects"
-msgstr "не определено для объектов numeric_version"
-
-#, fuzzy
-msgid "'%s' not defined for \"numeric_version\" objects"
-msgstr "не определено для объектов numeric_version"
-
 msgid "not defined for numeric_version objects"
 msgstr "не определено для объектов numeric_version"
 
@@ -1534,9 +1495,6 @@ msgid_plural "Warning messages:\n"
 msgstr[0] "Предупреждение:\n"
 msgstr[1] "Предупреждения:\n"
 msgstr[2] "Предупреждения:\n"
-
-#~ msgid "Invalid DCF format."
-#~ msgstr "Неправильный формат DCF."
 
 #~ msgid "No methods table for \""
 #~ msgstr "Нет таблицы методов для \""

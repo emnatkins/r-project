@@ -18,13 +18,13 @@ which <- function(x, arr.ind = FALSE)
 {
     if(!is.logical(x))
 	stop("argument to 'which' is not logical")
-    wh <- seq_along(x)[x & !is.na(x)]
+    wh <- seq_along(x)[ll <- x & !is.na(x)]
+    m <- length(wh)
     dl <- dim(x)
     if (is.null(dl) || !arr.ind) {
-	names(wh) <- names(x)[wh]
+        names(wh) <- names(x)[ll]
     }
     else { ##-- return a matrix  length(wh) x rank
-        m <- length(wh)
         rank <- length(dl)
         wh1 <- wh - 1
         wh <- 1 + wh1 %% dl[1]

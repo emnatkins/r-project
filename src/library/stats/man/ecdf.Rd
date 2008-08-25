@@ -7,7 +7,6 @@
 \alias{ecdf}
 \alias{plot.ecdf}
 \alias{print.ecdf}
-\alias{summary.ecdf}
 \title{Empirical Cumulative Distribution Function}
 \usage{
 ecdf(x)
@@ -16,11 +15,9 @@ ecdf(x)
      col.01line = "gray70")
 
 \method{print}{ecdf}(x, digits= getOption("digits") - 2, \dots)
-
-\method{summary}{ecdf}(object, \dots)
 }
 \arguments{
-  \item{x, object}{numeric vector of the observations for \code{ecdf};  for
+  \item{x}{numeric vector of the observations for \code{ecdf};  for
     the methods, an object inheriting from class \code{"ecdf"}.}
   \item{\dots}{arguments to be passed to subsequent methods, e.g.,
     \code{\link{plot.stepfun}} for the \code{plot} method.}
@@ -55,9 +52,6 @@ ecdf(x)
 \value{
   For \code{ecdf}, a function of class \code{"ecdf"}, inheriting from the
   \code{"\link{stepfun}"} class.
-
-  For the \code{summary} method, a summary of the knots of \code{object}
-  with a \code{"header"} attribute.
 }
 \author{
   Martin Maechler, \email{maechler@stat.math.ethz.ch}.\cr

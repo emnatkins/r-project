@@ -6,13 +6,11 @@
 \name{reorder.factor}
 \alias{reorder}
 \alias{reorder.factor}
-\alias{reorder.character}
 \title{Reorder Levels of a Factor}
 \description{
   \code{reorder} is a generic function.  Its \code{"factor"} method
   reorders the levels of a factor depending on values of a second
-  variable, usually numeric.  The \code{"character"} method is a
-  convenient alias.
+  variable, usually numeric.
 }
 
 \usage{
@@ -20,14 +18,10 @@ reorder(x, \dots)
 
 \method{reorder}{factor}(x, X, FUN = mean, \dots,
         order = is.ordered(x))
-
-\method{reorder}{character}(x, X, FUN = mean, \dots,
-        order = is.ordered(x))
 }
 \arguments{
   \item{x}{
-    a character vector or factor (possibly ordered) or whose levels will
-    be reordered.
+    a factor (possibly ordered) whose levels will be reordered.
   }
   \item{X}{ a vector of the same length as \code{x}, whose subset
     of values for each unique level of \code{x} determines the
@@ -55,7 +49,7 @@ reorder(x, \dots)
   as the \code{"scores"} attribute.
 }
 
-\author{Deepayan Sarkar \email{deepayan.sarkar@r-project.org}}
+\author{Deepayan Sarkar \email{deepayan@stat.wisc.edu}}
 
 \seealso{
   \code{\link{reorder.dendrogram}}, \code{\link{levels}},

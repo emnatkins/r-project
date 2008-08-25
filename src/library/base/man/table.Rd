@@ -23,9 +23,8 @@
   table of the counts at each combination of factor levels.
 }
 \usage{
-table(\dots, exclude = if (useNA == "no") c(NA, NaN), useNA = c("no", 
-    "ifany", "always"), dnn = list.names(\dots), deparse.level = 1) 
-
+table(\dots, exclude = c(NA, NaN), dnn = list.names(...),
+      deparse.level = 1)
 as.table(x, \dots)
 is.table(x)
 
@@ -37,10 +36,9 @@ is.table(x)
     (including character strings), or a list (or data frame) whose
     components can be so interpreted.  (For \code{as.table} and
     \code{as.data.frame}, arguments passed to specific methods.)}
-  \item{exclude}{levels to remove
-    from all factors in \code{\dots}. If set to \code{NULL}, it implies
-    \code{useNA="always"}.} 
-  \item{useNA}{whether to include extra \code{NA} levels in the table.}
+  \item{exclude}{values to use in the exclude argument of \code{\link{factor}}
+    when interpreting non-factor objects; if specified, levels to remove
+    from all factors in \code{\dots}.}
   \item{dnn}{the names to be given to the dimensions in the result (the
     \emph{dimnames names}).}
   \item{deparse.level}{controls how the default \code{dnn} is
@@ -60,13 +58,12 @@ is.table(x)
   \code{deparse.level = 1} uses the supplied argument if it is a symbol,
   and \code{deparse.level = 2} will deparse the argument.
 
-  Only when \code{exclude} is specified and non-NULL (i.e., not by
-  default), will \code{table} potentially drop levels of factor
-  arguments.
+  Only when \code{exclude} is specified (i.e., not by default), will
+  \code{table} potentially drop levels of factor arguments.
 
-  Both \code{exclude} and \code{useNA} operate on an "all or none"
-  basis. If you want to control the dimensions of a multiway table
-  separately, modify each argument using \code{factor} or \code{addNA}
+  Note (again!) that \code{exclude} has no effect on factor arguments;
+  if these contain \code{\link{NA}}'s and you want to tabulate them, use
+  \code{table(factor(., exclude=NULL), ...)}; see the examples.
 
   The \code{summary} method for class \code{"table"} (used for objects
   created by \code{table} or \code{\link{xtabs}}) which gives basic
@@ -138,19 +135,10 @@ print(table(b,d), zero.print = ".")
 
 ## NA counting:
 is.na(d) <- 3:4
-d. <- addNA(d)
+d. <- factor(d, exclude=NULL)
 d.[1:7]
 table(d.) # ", exclude = NULL" is not needed
 ## i.e., if you want to count the NA's of 'd', use
-table(d, useNA="ifany")
-
-## Two-way tables with NA counts. The 3rd variant is absurd, but shows
-## something that cannot be done using exclude or useNA. 
-with(airquality,
-   table(OzHi=Ozone > 80, Month, useNA="ifany"))
-with(airquality,
-   table(OzHi=Ozone > 80, Month, useNA="always"))
-with(airquality,
-   table(OzHi=Ozone > 80, addNA(Month)))
+table(factor(d, exclude = NULL))
 }
 \keyword{category}

@@ -22,6 +22,7 @@
 \alias{makePrototypeFromClassDef}
 \alias{newEmptyObject}
 \alias{completeClassDefinition}
+\alias{getSlots}
 \alias{getAllSuperClasses}
 \alias{superClassDepth}
 \alias{isVirtualClass}
@@ -71,6 +72,8 @@ newEmptyObject()
 
 completeClassDefinition(Class, ClassDef, where, doExtends)
 
+getSlots(x)
+
 getAllSuperClasses(ClassDef, simpleOnly = TRUE)
 
 superClassDepth(ClassDef, soFar, simpleOnly = TRUE)
@@ -105,7 +108,7 @@ classMetaName(name)
 
 methodsPackageMetaName(prefix, name, package = "")
 
-metaNameUndo(strings, prefix, searchForm = FALSE)
+metaNameUndo(strings, prefix = "M", searchForm = FALSE)
 
 requireMethods(functions, signature, message, where)
 

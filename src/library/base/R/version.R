@@ -43,7 +43,7 @@ function(x, strict = TRUE, regexp, classes = NULL)
     y <- rep.int(list(integer()), length(x))
     valid_numeric_version_regexp <- sprintf("^%s$", regexp)
     if(length(x) > 0) {
-        ok <- (regexpr(valid_numeric_version_regexp, x) > -1L)
+        ok <- (regexpr(valid_numeric_version_regexp, x) > -1)
         if(!all(ok) && strict)
             stop("invalid version specification", call. = FALSE)
         y[ok] <- lapply(strsplit(x[ok], "[.-]"), as.integer)
@@ -113,10 +113,6 @@ getRversion <- function() package_version(R.version)
 
 ## Workhorses.
 
-## <NOTE>
-## Could use this for or as as.double.numeric_version() ...
-## </NOTE>
-
 .encode_numeric_version <-
 function(x, base = NULL)
 {
@@ -179,10 +175,13 @@ function(x, i, j)
     y
 }
 
-`[[.numeric_version` <-
-function(x, ..., exact = NA)
+## `[[.numeric_version` <-
+## function(x, i)
+##     structure(list(unclass(x)[[i]]), class = oldClass(x))
+
+`[[.numeric_version` <- function(x, ..., exact=NA)
 {
-   if(length(list(...)) < 2L)
+   if(length(list(...)) < 2)
       structure(list(unclass(x)[[..., exact=exact]]), class = oldClass(x))
    else
       unclass(x)[[..1, exact=exact]][..2]
@@ -191,23 +190,22 @@ function(x, ..., exact = NA)
 ## allowed forms
 ## x[[i]] <- "1.2.3"; x[[i]] <- 1:3; x[[c(i,j)]] <- <single integer>
 ## x[[i,j]] <- <single integer>
-`[[<-.numeric_version` <-
-function(x, ..., value)
+`[[<-.numeric_version` <- function(x, ..., value)
 {
    z <- unclass(x)
-   if(nargs() < 4L) {
-       if(length(..1) < 2L) {
-           if(is.character(value) && length(value) == 1L)
-               value <- unclass(as.numeric_version(value))[[1L]]
+   if(nargs() < 4) {
+       if(length(..1) < 2) {
+           if(is.character(value) && length(value) == 1)
+               value <- unclass(as.numeric_version(value))[[1]]
            else if(!is.integer(value)) stop("invalid value")
        } else {
            value <- as.integer(value)
-           if(length(value) != 1L) stop("invalid value")
+           if(length(value) != 1) stop("invalid value")
        }
        z[[..1]] <- value
    } else {
        value <- as.integer(value)
-       if(length(value) != 1L) stop("invalid value")
+       if(length(value) != 1) stop("invalid value")
        z[[..1]][..2] <- value
    }
    structure(z, class = oldClass(x))
@@ -217,14 +215,12 @@ function(x, ..., value)
 Ops.numeric_version <-
 function(e1, e2)
 {
-    if(nargs() == 1L)
-        stop(gettextf("unary '%s' not defined for \"numeric_version\" objects",
-                      .Generic), domain = NA)
+    if(nargs() == 1)
+        stop("unary ", .Generic, " not defined for numeric_version objects")
     boolean <- switch(.Generic, "<" = , ">" = , "==" = , "!=" = ,
         "<=" = , ">=" = TRUE, FALSE)
     if(!boolean)
-        stop(gettextf("'%s' not defined for \"numeric_version\" objects",
-                      .Generic), domain = NA)
+        stop(.Generic, " not defined for numeric_version objects")
     if(!is.numeric_version(e1)) e1 <- as.numeric_version(e1)
     if(!is.numeric_version(e2)) e2 <- as.numeric_version(e2)
     base <- max(unlist(e1), unlist(e2), 0) + 1
@@ -271,13 +267,6 @@ function(..., recursive = FALSE)
     structure(unlist(x, recursive = FALSE), class = classes)
 }
 
-duplicated.numeric_version <-
-function(x, incomparables = FALSE, ...)
-{
-    x <- .encode_numeric_version(x)
-    NextMethod("duplicated")
-}
-
 print.numeric_version <-
 function(x, ...)
 {
@@ -285,33 +274,19 @@ function(x, ...)
     invisible(x)
 }
 
-rep.numeric_version <-
-function(x, ...)
-    structure(NextMethod("rep"), class = oldClass(x))
-
-sort.numeric_version <-
-function(x, decreasing = FALSE, na.last = NA, ...)
-    x[order(.encode_numeric_version(x),
-            na.last = na.last, decreasing = decreasing)]
-
-unique.numeric_version <-
-function(x, incomparables = FALSE, ...)
-    x[!duplicated(x, incomparables, ...)]
-
 ## <NOTE>
 ## Versions of R prior to 2.6.0 had only a package_version class.
 ## We now have package_version extend numeric_version.
 ## We only provide named subscripting for package versions.
-## </NOTE>
 
 `$.package_version` <-
 function(x, name)
 {
     name <- pmatch(name, c("major", "minor", "patchlevel"))
     switch(name,
-           major = as.integer(sapply(x, "[", 1L)),
-           minor = as.integer(sapply(x, "[", 2L)),
-           patchlevel = as.integer(sapply(x, "[", 3L)))
+           major = as.integer(sapply(x, "[", 1)),
+           minor = as.integer(sapply(x, "[", 2)),
+           patchlevel = as.integer(sapply(x, "[", 3)))
     ## <NOTE>
     ## Older versions used
     ## patchlevel = {
@@ -322,3 +297,15 @@ function(x, name)
     ## patchlevel ...
     ## </NOTE>
 }
+
+## To ensure method dispatch for pre 2.6.0 package versions we could
+## keep the old methods as "aliases".  Not sure if this is really needed,
+## and certainly something to get rid of eventually ...
+
+## `[.package_version` <- `[.numeric_version`
+## `[[.package_version` <- `[[.numeric_version`
+## Ops.package_version <- Ops.numeric_version
+## Summary.package_version <- Summary.numeric_version
+## as.character.package_version <- as.character.numeric_version
+## c.package_version <- c.numeric_version
+## print.package_version <- print.numeric_version

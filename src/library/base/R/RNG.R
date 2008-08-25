@@ -27,61 +27,47 @@ RNGkind <- function(kind = NULL, normal.kind = NULL)
     n.kinds <- c("Buggy Kinderman-Ramage", "Ahrens-Dieter", "Box-Muller",
                  "user-supplied", "Inversion", "Kinderman-Ramage",
 		 "default")
-    do.set <- length(kind) > 0L
+    do.set <- length(kind) > 0
     if(do.set) {
-	if(!is.character(kind) || length(kind) > 1L)
+	if(!is.character(kind) || length(kind) > 1)
 	    stop("'kind' must be a character string of length 1 (RNG to be used).")
-	if(is.na(i.knd <- pmatch(kind, kinds) - 1L))
+	if(is.na(i.knd <- pmatch(kind, kinds) - 1))
 	    stop(gettextf("'%s' is not a valid abbreviation of an RNG", kind),
                  domain = NA)
-        if(i.knd == length(kinds) - 1) i.knd <- -1L
+        if(i.knd == length(kinds) - 1) i.knd <- -1
     } else i.knd <- NULL
 
     if(!is.null(normal.kind)) {
-	if(!is.character(normal.kind) || length(normal.kind) != 1L)
-	    stop("'normal.kind' must be a character string of length 1")
-        normal.kind <- pmatch(normal.kind, n.kinds) - 1L
+	if(!is.character(normal.kind) || length(normal.kind) != 1)
+	    stop("'normal.kind' must be a character string of length 1.")
+        normal.kind <- pmatch(normal.kind, n.kinds) - 1
         if(is.na(normal.kind))
 	    stop(gettextf("'%s' is not a valid choice", normal.kind),
                  domain = NA)
-	if (normal.kind == 0L)
-            warning("Buggy version of Kinderman-Ramage generator used")
-         if(normal.kind == length(n.kinds) - 1) normal.kind <- -1L
+	if (normal.kind == 0)
+            warning("Buggy version of Kinderman-Ramage generator used.")
+         if(normal.kind == length(n.kinds) - 1) normal.kind <- -1
     }
     r <- 1 + .Internal(RNGkind(i.knd, normal.kind))
     r <- c(kinds[r[1]], n.kinds[r[2]])
     if(do.set || !is.null(normal.kind)) invisible(r) else r
 }
 
-set.seed <- function(seed, kind = NULL, normal.kind = NULL)
+set.seed <- function(seed, kind = NULL)
 {
     kinds <- c("Wichmann-Hill", "Marsaglia-Multicarry", "Super-Duper",
                "Mersenne-Twister", "Knuth-TAOCP", "user-supplied",
                "Knuth-TAOCP-2002", "default")
-    n.kinds <- c("Buggy Kinderman-Ramage", "Ahrens-Dieter", "Box-Muller",
-                 "user-supplied", "Inversion", "Kinderman-Ramage",
-		 "default")
-    if(length(kind) > 0L) {
-	if(!is.character(kind) || length(kind) > 1L)
+    if(length(kind) > 0) {
+	if(!is.character(kind) || length(kind) > 1)
 	    stop("'kind' must be a character string of length 1 (RNG to be used).")
-	if(is.na(i.knd <- pmatch(kind, kinds) - 1L))
+	if(is.na(i.knd <- pmatch(kind, kinds) - 1))
 	    stop(gettextf("'%s' is not a valid abbreviation of an RNG", kind),
                  domain = NA)
-        if(i.knd == length(kinds) - 1) i.knd <- -1L
+        if(i.knd == length(kinds) - 1) i.knd <- -1
     } else i.knd <- NULL
 
-    if(!is.null(normal.kind)) {
-	if(!is.character(normal.kind) || length(normal.kind) != 1L)
-	    stop("'normal.kind' must be a character string of length 1")
-        normal.kind <- pmatch(normal.kind, n.kinds) - 1L
-        if(is.na(normal.kind))
-	    stop(gettextf("'%s' is not a valid choice", normal.kind),
-                 domain = NA)
-	if (normal.kind == 0)
-            stop("Buggy version of Kinderman-Ramage generator is not allowed")
-         if(normal.kind == length(n.kinds) - 1L) normal.kind <- -1L
-    }
-    invisible(.Internal(set.seed(seed, i.knd, normal.kind)))
+    invisible(.Internal(set.seed(seed, i.knd)))
 }
 
 # Compatibility function to set RNGkind as in a given R version

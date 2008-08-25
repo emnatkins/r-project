@@ -1,3 +1,7 @@
+/* <UTF8> 
+   needed widechar version.
+*/
+
 /* For inclusion by datetime.c if needed. A slightly modified version of
    code from the GNU C library with locale support removed. */
 

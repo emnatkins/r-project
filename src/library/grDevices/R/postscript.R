@@ -110,25 +110,13 @@ ps.options <- function(..., reset = FALSE, override.check = FALSE)
     if(reset || l... > 0) invisible(old) else old
 }
 
-setEPS <- function(...)
-{
-    dots <- list(...)
-    args <- list(width = 7, height = 7)
-    args[names(dots)] <- dots
-    force <- list(onefile = FALSE, horizontal = FALSE, paper = "special")
-    args[names(force)] <- force
-    do.call("ps.options", args)
-}
+setEPS <- function()
+    ps.options(onefile = FALSE, horizontal = FALSE, paper = "special",
+               width = 7, height = 7)
 
-setPS <- function(...)
-{
-    dots <- list(...)
-    args <- list(width = 0, height = 0)
-    args[names(dots)] <- dots
-    force <- list(onefile = TRUE, horizontal = TRUE, paper = "default")
-    args[names(force)] <- force
-    do.call("ps.options", args)
-}
+setPS <- function()
+    ps.options(onefile = TRUE, horizontal = TRUE, paper = "default",
+               width = 0, height = 0)
 
 pdf.options <- function(..., reset=FALSE)
 {
@@ -150,8 +138,9 @@ guessEncoding <- function(family)
 {
     # Three special families have special encodings, regardless of locale
     if (!missing(family) &&
-        family %in% c("ComputerModern", "ComputerModernItalic")) {
+        family %in% c("symbol", "ComputerModern", "ComputerModernItalic")) {
         switch(family,
+               "symbol" = "AdobeSym.enc",
                "ComputerModern" = "TeXtext.enc",
                "ComputerModernItalic" = "TeXtext.enc")
     }  else {
@@ -285,8 +274,7 @@ xfig <- function (file = ifelse(onefile,"Rplots.fig", "Rplot%03d.fig"),
 
 pdf <- function(file = ifelse(onefile, "Rplots.pdf", "Rplot%03d.pdf"),
                 width, height, onefile, family, title, fonts, version,
-                paper, encoding, bg, fg, pointsize, pagecentre, colormodel,
-                useDingbats)
+                paper, encoding, bg, fg, pointsize, pagecentre)
 {
     ## do initialization if needed
     initPSandPDFfonts()
@@ -305,8 +293,6 @@ pdf <- function(file = ifelse(onefile, "Rplots.pdf", "Rplot%03d.pdf"),
     if(!missing(fg)) new$fg <- fg
     if(!missing(pointsize)) new$pointsize <- pointsize
     if(!missing(pagecentre)) new$pagecentre <- pagecentre
-    if(!missing(colormodel)) new$colormodel <- colormodel
-    if(!missing(useDingbats)) new$useDingbats <- useDingbats
 
     old <- check.options(new, name.opt = ".PDF.Options", envir = .PSenv)
 
@@ -355,8 +341,7 @@ pdf <- function(file = ifelse(onefile, "Rplots.pdf", "Rplot%03d.pdf"),
     .External(PDF,
               file, old$paper, old$family, old$encoding, old$bg, old$fg,
               old$width, old$height, old$pointsize, onefile, old$pagecentre,
-              old$title, old$fonts, version[1], version[2],
-              old$colormodel, old$useDingbats)
+              old$title, old$fonts, version[1], version[2])
     invisible()
 }
 
@@ -636,15 +621,13 @@ assign(".PDF.Options",
          family = "Helvetica",
          title = "R Graphics Output",
          fonts = NULL,
-         version = "1.4",
+         version = "1.1",
          paper = "special",
          encoding = "default",
 	 bg	= "transparent",
 	 fg	= "black",
 	 pointsize  = 12,
-	 pagecentre = TRUE,
-         colormodel = "rgb",
-         useDingbats = TRUE), envir = .PSenv)
+	 pagecentre = TRUE), envir = .PSenv)
 assign(".PDF.Options.default",
        get(".PDF.Options", envir = .PSenv),
        envir = .PSenv)
@@ -665,6 +648,11 @@ postscriptFonts(# Default Serif font is Times
                   c("Courier.afm", "Courier-Bold.afm",
                     "Courier-Oblique.afm", "Courier-BoldOblique.afm",
                     "Symbol.afm")),
+                # Default Symbol font is Symbol
+                # Deprecated: remove in R 2.8.0
+                symbol=Type1Font("Symbol",
+                  c("Symbol.afm", "Symbol.afm", "Symbol.afm", "Symbol.afm",
+                    "Symbol.afm"), encoding="AdobeSym.enc"),
                 # Remainder are standard Adobe fonts that
                 # should be present on PostScript devices
                 AvantGarde=Type1Font("AvantGarde",

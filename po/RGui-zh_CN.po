@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2008-04-09 16:21+0100\n"
-"PO-Revision-Date: 2007-11-06 13:34+0800\n"
+"POT-Creation-Date: 2008-04-05 10:50+0100\n"
+"PO-Revision-Date: 2008-04-05 10:51+0100\n"
 "Last-Translator: Yihui Xie <xie@yihui.name>\n"
 "Language-Team: Chinese\n"
 "MIME-Version: 1.0\n"
@@ -911,7 +911,7 @@ msgstr "找不到菜单"
 msgid "menu or item does not exist"
 msgstr "菜单或者菜单项不存在"
 
-#: system.c:435
+#: system.c:395
 msgid "Save workspace image?"
 msgstr "是否保存工作空间映像?"
 
@@ -1159,10 +1159,6 @@ msgstr "等待页面改变的确认..."
 #: ../library/grDevices/src/devWindows.c:3307
 msgid "Click or hit ENTER for next page"
 msgstr "按ENTER看下一页"
-
-#, fuzzy
-#~ msgid "Install source package from local folder..."
-#~ msgstr "从本地zip文件安装程序包..."
 
 #~ msgid "Load image"
 #~ msgstr "加载映像"

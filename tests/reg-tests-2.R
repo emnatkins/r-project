@@ -1695,7 +1695,7 @@ pairs(iris[1:4], oma=rep(3,4))
 dend <- as.dendrogram(hclust(dist(USArrests), "ave")) # "print()" method
 dend2 <- cut(dend, h=70)
 str(dend2$upper)
-## {{for Emacs: `}}  gave much too many spaces in 2.2.[01]
+## gave much too many spaces in 2.2.[01]
 
 
 ## formatC on Windows (PR#8337)
@@ -2268,18 +2268,3 @@ x <- data.frame(a=1:3, b=2:4)
 x[,3] <- x
 x
 ## warning during printing < 2.7.0
-
-
-## format.factor used to lose dim[names] and names (PR#11512)
-x <- factor(c("aa", letters[-1]))
-dim(x) <- c(13,2)
-format(x, justify="right")
-##
-
-
-## removing columns in within (PR#1131)
-abc <- data.frame(a=1:5, b=2:6, c=3:7)
-within(abc, b<-NULL)
-within(abc,{d<-a+7;b<-NULL})
-within(abc,{a<-a+7;b<-NULL})
-## Second produced corrupt data frame in 2.7.1

@@ -3056,10 +3056,7 @@ else
 fi
 if test "x${have_bzlib}" = xyes; then
 AC_CACHE_CHECK([if bzip2 version >= 1.0.5], [r_cv_have_bzlib],
-[AC_LANG_PUSH(C)
-r_save_LIBS="${LIBS}"
-LIBS="-lbz2 ${LIBS}"
-AC_RUN_IFELSE([AC_LANG_SOURCE([[
+[AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #ifdef HAVE_BZLIB_H
 #include <bzlib.h>
 #endif
@@ -3067,9 +3064,7 @@ int main() {
     char *ver = BZ2_bzlibVersion();
     exit(strcmp(ver, "1.0.5") < 0);
 }
-]])], [r_cv_have_bzlib=yes], [r_cv_have_bzlib=no], [r_cv_have_bzlib=no])
-LIBS="${r_save_LIBS}"
-AC_LANG_POP(C)])
+]])], [r_cv_have_bzlib=yes], [r_cv_have_bzlib=no], [r_cv_have_bzlib=no])])
 fi
 if test "x${r_cv_have_bzlib}" = xno; then
   have_bzlib=no

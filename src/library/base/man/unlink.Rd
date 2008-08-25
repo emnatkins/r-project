@@ -26,28 +26,14 @@
 #endif  
   
   Wildcard expansion is done by the internal code of
-  \code{\link{Sys.glob}}. Wildcards never match a leading \file{.} in
-  the filename, and files \file{.} and \file{..} will never be
-  considered for deletion.
+  \code{\link{Sys.glob}}.
 #ifdef unix
-  Wildcards will only be expanded if the system supports it.  Most
-  systems will support not only \file{*} and \file{?}) but character
-  classes such as \file{[a-z]} (see the \code{man} pages for
-  \code{glob}).  The metacharacters \code{* ? [} can occur in Unix
-  filenames, and this makes it difficult to use \code{unlink} to delete
-  such files (see  \code{\link{file.remove}}), although escaping the
-  metacharacters by backslashes usually works.  As from \R 2.8.0, if a
-  metacharacter matches nothing it is considered as a literal character.
+  Wildcards will only be expanded if the system supports it.
 
   \code{recursive = TRUE} is not supported on all platforms, and may be
   ignored, with a warning.
 #endif
 #ifdef Windows
-  Character classes such as \file{[a-z]} are supported.  The
-  metacharacter \code{[} can occur in Windows filenames, and this makes
-  it difficult to use \code{unlink} to delete such files (see
-  \code{\link{file.remove}}).  As from \R 2.8.0, if a wildcard matches
-  nothing it is considered as a literal character.
 
   Windows cannot remove the current working directory, nor any file
   which is open nor any directory containing such a file.

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-08-01 09:16\n"
+"POT-Creation-Date: 2008-04-08 11:23\n"
 "PO-Revision-Date: 2005-02-16 08:34\n"
 "Last-Translator: Stefano M. Iacus <Stefano.Iacus@R-project.org>\n"
 "Language-Team: Italian\n"
@@ -361,12 +361,6 @@ msgstr ""
 "argomento list non valido: tutte le variabili devono avere la stessa "
 "lunghezza"
 
-msgid "data frame with 0 columns and %d rows"
-msgstr ""
-
-msgid "<0 rows> (or 0-length row.names)"
-msgstr ""
-
 msgid "non-numeric variable in data frame:"
 msgstr "variabile non numerica nel data frame:"
 
@@ -530,18 +524,7 @@ msgstr "'to' deve essere un oggetto POSIXt"
 msgid "'file' must be a character string or connection"
 msgstr "'file' deve essere una string di caratteri o una connessione"
 
-msgid ""
-"Invalid DCF format.\n"
-"Regular lines must have a tag.\n"
-"Offending lines start with:\n"
-"%s"
-msgstr ""
-
-msgid ""
-"Invalid DCF format.\n"
-"Continuation lines must not start a record.\n"
-"Offending lines start with:\n"
-"%s"
+msgid "Invalid DCF format."
 msgstr ""
 
 msgid "'x' must be a square matrix"
@@ -653,7 +636,7 @@ msgid "no files/directory to link to"
 msgstr "nessun file/directory da collegare"
 
 #, fuzzy
-msgid "'x' must have length 1"
+msgid "'x' must be have length 1"
 msgstr "'input' deve avere lunghezza 1"
 
 #, fuzzy
@@ -662,14 +645,6 @@ msgstr "'digits' non valido"
 
 #, fuzzy
 msgid "'x' cannot be coerced to 'octmode'"
-msgstr "non posso trasformarlo in una table"
-
-#, fuzzy
-msgid "'x' must be of length 1"
-msgstr "'to' deve avere  lunghezza 1"
-
-#, fuzzy
-msgid "'x' cannot be coerced to hexmode"
 msgstr "non posso trasformarlo in una table"
 
 msgid "'package' must be of length 1"
@@ -691,7 +666,7 @@ msgid "'format' must be one of {\"f\",\"e\",\"E\",\"g\",\"G\", \"fg\", \"s\"}"
 msgstr ""
 "'format' deve essere uno tra {\"f\",\"e\",\"E\",\"g\",\"G\", \"fg\", \"s\"}"
 
-msgid "'digits' reduced to"
+msgid "'digits' reduced to 50"
 msgstr ""
 
 msgid "'flag' can contain only '0+- #'"
@@ -783,10 +758,6 @@ msgstr ""
 
 msgid ":"
 msgstr ""
-
-#, fuzzy
-msgid "invalid package name"
-msgstr "nome non valido"
 
 msgid "package '%s' has been merged into '%s'"
 msgstr "il pacchetto '%s' è stato integrato in '%s'"
@@ -1501,14 +1472,6 @@ msgstr "argomento sbagliato"
 #, fuzzy
 msgid "invalid value"
 msgstr "valore 'n' non valido"
-
-#, fuzzy
-msgid "unary '%s' not defined for \"numeric_version\" objects"
-msgstr "non definito per oggetti package_version"
-
-#, fuzzy
-msgid "'%s' not defined for \"numeric_version\" objects"
-msgstr "non definito per oggetti package_version"
 
 #, fuzzy
 msgid "not defined for numeric_version objects"

@@ -22,6 +22,8 @@
 /*  This module contains support for S-style generic */
 /*  functions and "class" support.  Gag, barf ...  */
 
+/* <UTF8> char here is either ASCII or handled as a whole */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -762,25 +764,6 @@ SEXP attribute_hidden do_unclass(SEXP call, SEXP op, SEXP args, SEXP env)
     return CAR(args);
 }
 
-static SEXP s_S4inherits;
-static SEXP do_S4inherits(SEXP obj, SEXP what, SEXP which) {
-    SEXP e, val;
-    if(!s_S4inherits)
-      s_S4inherits = install(".S4inherits");
-    PROTECT(e = allocVector(LANGSXP, 4));
-    SETCAR(e, s_S4inherits);
-    val = CDR(e);
-    SETCAR(val, obj);
-    val = CDR(val);
-    SETCAR(val, what);
-    val = CDR(val);
-    SETCAR(val, which);
-    val = eval(e, R_MethodsNamespace);
-    UNPROTECT(1);
-    return val;
-}
-
-
 SEXP attribute_hidden do_inherits(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP x, klass, what, which, rval = R_NilValue /* -Wall */;
@@ -789,8 +772,6 @@ SEXP attribute_hidden do_inherits(SEXP call, SEXP op, SEXP args, SEXP env)
     checkArity(op, args);
 
     x = CAR(args);
-    if(IS_S4_OBJECT(x))
-        return do_S4inherits(x, CADR(args), CADDR(args));
     klass = R_data_class(x, FALSE);
     nclass = length(klass);
 

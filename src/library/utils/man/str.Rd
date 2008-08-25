@@ -22,12 +22,9 @@ str(object, \dots)
     indent.str = paste(rep.int(" ", max(0, nest.lev + 1)),
                        collapse = ".."),
     comp.str="$ ", no.list = FALSE, envir = baseenv(),
-    strict.width = strO$strict.width,
-    formatNum = strO$formatNum, \dots)
+    strict.width = strO$strict.width, \dots)
 
-strOptions(strict.width = "no", digits.d = 3, vec.len = 4,
-           formatNum = function(x, ...)
-                       format(x, trim=TRUE, drop0trailing=TRUE, ...))
+strOptions(strict.width = "no", digits.d = 3, vec.len = 4)
 }
 \description{
   Compactly display the internal \bold{str}ucture of an \R object, a
@@ -84,12 +81,6 @@ strOptions(strict.width = "no", digits.d = 3, vec.len = 4,
     \code{\link{strwrap}(*, width=width)} whereas \code{"cut"} cuts
     directly to \code{width}.  Note that a small \code{vec.length}
     may be better than setting \code{strict.width = "wrap"}.}
-  \item{formatNum}{a function such as \code{\link{format}} for
-    formatting numeric vectors.  It defaults to the \code{formatNum}
-    component of option \code{"str"}, see \dQuote{Usage} of
-    \code{strOptions()} above, which is almost back compatible to \R
-    version \eqn{\le}{<=} 2.7.x, however, using \code{\link{formatC}}
-    may be slightly better.}
   \item{\dots}{potential further arguments (required for Method/Generic
     reasons).}
 }

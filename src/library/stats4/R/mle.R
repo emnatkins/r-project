@@ -94,7 +94,7 @@ setMethod("summary", "mle", function(object, ...){
 
 setMethod("profile", "mle",
           function (fitted, which = 1:p, maxsteps = 100,
-                    alpha = 0.01, zmax = sqrt(qchisq(1 - alpha, 1L)),
+                    alpha = 0.01, zmax = sqrt(qchisq(1 - alpha, p)),
                     del = zmax/5, trace = FALSE, ...)
 {
     onestep <- function(step)

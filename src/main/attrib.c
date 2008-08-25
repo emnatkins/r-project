@@ -19,6 +19,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is handled as a whole string */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -586,19 +588,12 @@ SEXP R_data_class(SEXP obj, Rboolean singleString)
     return value;
 }
 
-static SEXP s_dot_S3Class;
 /* Version for S3-dispatch */
 SEXP attribute_hidden R_data_class2 (SEXP obj)
 {
     SEXP klass = getAttrib(obj, R_ClassSymbol);
-      if(length(klass) > 0) {
-	if(IS_S4_OBJECT(obj)) {  /* try for an S4 object with an S3Class slot */
-  	    SEXP S3Class = getAttrib(obj, s_dot_S3Class);
-	    if(S3Class != R_NilValue)
-       	        klass = S3Class;
-	}
+    if(length(klass) > 0)
 	return(klass);
-    }
     else {
 	SEXPTYPE t;
 	SEXP value, class0 = R_NilValue, dim = getAttrib(obj, R_DimSymbol);
@@ -818,7 +813,7 @@ static SEXP dimnamesgets1(SEXP val1)
 
 SEXP dimnamesgets(SEXP vec, SEXP val)
 {
-    SEXP dims, top, newval;
+    SEXP dims, top;
     int i, k;
 
     PROTECT(vec);
@@ -828,25 +823,20 @@ SEXP dimnamesgets(SEXP vec, SEXP val)
 	error(_("'dimnames' applied to non-array"));
     /* This is probably overkill, but you never know; */
     /* there may be old pair-lists out there */
-    /* There are, when this gets used as names<- for 1-d arrays */
     if (!isPairList(val) && !isNewList(val))
 	error(_("'dimnames' must be a list"));
     dims = getAttrib(vec, R_DimSymbol);
-    if ((k = LENGTH(dims)) < length(val))
+    if ((k = LENGTH(dims)) != length(val))
 	error(_("length of 'dimnames' [%d] must match that of 'dims' [%d]"),
 	      length(val), k);
     /* Old list to new list */
     if (isList(val)) {
+	SEXP newval;
 	newval = allocVector(VECSXP, k);
 	for (i = 0; i < k; i++) {
 	    SET_VECTOR_ELT(newval, i, CAR(val));
 	    val = CDR(val);
 	}
-	UNPROTECT(1);
-	PROTECT(val = newval);
-    }
-    if (length(val) > 0 && length(val) < k) {
-	newval = lengthgets(val, k);
 	UNPROTECT(1);
 	PROTECT(val = newval);
     }
@@ -1263,7 +1253,6 @@ static SEXP s_setDataPart;
 
 static void init_slot_handling(void) {
     s_dot_Data = install(".Data");
-    s_dot_S3Class = install(".S3Class");
     s_getDataPart = install("getDataPart");
     s_setDataPart = install("setDataPart");
     /* create and preserve an object that is NOT R_NilValue, and is used
@@ -1338,8 +1327,6 @@ SEXP R_do_slot(SEXP obj, SEXP name) {
 	SEXP value = getAttrib(obj, name);
 	if(value == R_NilValue) {
 	    SEXP input = name, classString;
-	    if(name == s_dot_S3Class) /* defaults to class(obj) */
-	        return R_data_class(obj, FALSE);
 	    if(isSymbol(name) ) {
 		input = PROTECT(ScalarString(PRINTNAME(name)));
 		classString = getAttrib(obj, R_ClassSymbol);
@@ -1422,11 +1409,11 @@ SEXP attribute_hidden do_AT(SEXP call, SEXP op, SEXP args, SEXP env)
     if(nlist != s_dot_Data && !IS_S4_OBJECT(object)) {
 	klass = getAttrib(object, R_ClassSymbol);
 	if(length(klass) == 0)
-	    error(_("trying to get slot \"%s\" from an object of a basic class (\"%s\") with no slots"),
+	    warning(_("trying to get slot \"%s\" from an object of a basic class (\"%s\") with no slots"),
 		  CHAR(PRINTNAME(nlist)),
 		  CHAR(STRING_ELT(R_data_class(object, FALSE), 0)));
 	else
-	    error(_("trying to get slot \"%s\" from an object (class \"%s\") that is not an S4 object "),
+	    warning(_("trying to get slot \"%s\" from an object (class \"%s\") that is not an S4 object "),
 		  CHAR(PRINTNAME(nlist)),
 		  translateChar(STRING_ELT(klass, 0)));
     }

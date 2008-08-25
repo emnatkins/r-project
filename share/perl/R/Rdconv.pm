@@ -661,14 +661,12 @@ sub transform_S3method {
     ## NB: \w includes _ as well as [:alnum:], which R now allows in name
     my ($text) = @_;
     my ($method, $prefix, $match, $rest);
-    my ($str, $ini, $fun, $cls, $lst, @args);
+    my ($str, $ini, $fun, $cls, @args);
     my $delimround = new Text::DelimMatch("\\(", "\\)");
     $delimround->quote('"');
     $delimround->quote("'");
     my $S3method_RE =
-      "([ \t]*)\\\\(S3)?method" .
-      "\{([\\w.]+)\}" .
-      "\{([._[:alnum:]]+|`[^`]+`)\}";
+      "([ \t]*)\\\\(S3)?method\{([\\w.]+)\}\{([\\w.]+)\}";
     
     while($text =~ /$S3method_RE(.*)/s) {
 	$ini = $1;
@@ -693,9 +691,7 @@ sub transform_S3method {
     ## Also try to handle markup for S3 methods for subscripting and
     ## subassigning.
     $S3method_RE = "([ \t]*)\\\\(S3)?method" .
-	"\{(\\\$|\\\[\\\[?)\}" .
-	"\{([._[:alnum:]]+|`[^`]+`)\}" .
-	"\\\(([^)]+)\\\)";
+	"\{(\\\$|\\\[\\\[?)\}\{([\\w.]+)\}\\\(([^)]+)\\\)";
     while($text =~ /$S3method_RE(.*)/s) {
 	## <NOTE>
 	## The hard part is to rewrite the argument list, because
@@ -733,17 +729,11 @@ sub transform_S3method {
 	     ("\\\+", "\\\-", "\\\*", "\\\/", "\\\^",
 	      "<=?", ">=?", "!=?", "==", "\\\&", "\\\|",
 	      "\\\%[[:alnum:][:punct:]]*\\\%")) .
-	")\}" .
-	"\{([._[:alnum:]]+|`[^`]+`)\}" .
-	"\\\(([^)]+)\\\)";
+	")\}\{([\\w.]+)\}\\\(([^)]+)\\\)";
     while($text =~ /$S3method_RE/) {
-	$ini = $1;
+	$str = "$1\#\# S3 method for class '$4':\n$1";
 	$fun = $3;
-	$cls = $4;
-	$lst = $5;
-	$str = "$ini\#\# S3 method for class '$cls':\n$ini";
-	$method = "$2method";
-	@args = split(/,\s*/, $lst);
+	@args = split(/,\s*/, $5);
 	my $nargs = scalar(@args);
 	if(($nargs == 1) && ($fun eq "!")) {
 	    ## Unary: !.
@@ -754,8 +744,9 @@ sub transform_S3method {
 	    $str .= "$args[0] $fun $args[1]";
 	}
 	else {
-	    warn "Warning: arity problem for \\$method{$fun}{$cls}?\n";
-	    $str .= "`$fun`($lst)";
+	    ## 
+	    warn "Warning: arity problem for \\$2method{$fun}{$4}?\n";
+	    $str .= "`$fun`($5)";
 	}
 	$text =~ s/$S3method_RE/$str/s;
     }
@@ -772,25 +763,22 @@ sub transform_S4method {
     $delimround->quote('"');
     $delimround->quote("'");
     my $S4method_RE =
-      "([ \t]*)\\\\S4method" .
-      "\{([\\w.]+)\}" .
-      "\{((([._[:alnum:]]+|`[^`]+`),)*([._[:alnum:]]+|`[^`]+`))\}";
+      "([ \t]*)\\\\(S4)method\{([\\w.]+)\}\{([\\w.,]+)\}";
+    ## Use grouping on 'S4' so that the S3 method code can easily be
+    ## reused.
     local($Text::Wrap::columns) = 60;
 
     while($text =~ /$S4method_RE(.*)/s) {
 	$ini = $1;
-	$fun = $2;
-	$sig = $3;
+	$fun = $3;
+	$sig = join(", ", split(/,/, $4));
 	$method = "method";
-	($prefix, $match, $rest) = $delimround->match($7);
+	($prefix, $match, $rest) = $delimround->match($5);
   	if(($prefix eq "") && ($rest =~ m/^[ \t]*<-/)) {
   	    ## (Note that the RHS should really be called 'value', and
   	    ## that we could check for a syntacticaly valid R name.)
   	    $method = "replacement method";
   	}
-	$sig = &format_sig($sig);
-	## Note that we reformat the siglist so that wrapping becomes
-	## possible between siglist elements.
 	$str = wrap("$ini\#\# ", "$ini\#\#   ",
 		    "S4 $method for signature '$sig':\n") .
 			"$ini$fun";
@@ -799,24 +787,20 @@ sub transform_S4method {
 
     ## Also try to handle markup for S4 methods for subscripting and
     ## subassigning.  See transform_S3method() above for details.
-    $S4method_RE =
-	"([ \t]*)\\\\S4method" .
-	"\{(\\\$|\\\[\\\[?)\}" .
-	"\{((([._[:alnum:]]+|`[^`]+`),)*([._[:alnum:]]+|`[^`]+`))\}" .	
-	"\\\(([^)]+)\\\)";
+    $S4method_RE = "([ \t]*)\\\\(S4)method" .
+	"\{(\\\$|\\\[\\\[?)\}\{([\\w.,]+)\}\\\(([^)]+)\\\)";
     while($text =~ /$S4method_RE(.*)/s) {
 	$ini = $1;
-	$fun = $2;
-	$sig = $3;
+	$fun = $3;
+	$sig = join(", ", split(/,/, $4));
 	$method = "method";
 	## The match was for something ending in a pair of balanced
 	## parentheses, which are not necessarily the matching ones.
-	($prefix, $match, $rest) = $delimround->match("($7)$8");
+	($prefix, $match, $rest) = $delimround->match("($5)$6");
 	$method = "replacement method" if($rest =~ m/^[ \t]*<-/);
 	## Extract the first argument from the argument list.
 	substr($match, 1, -1) =~ m/\s*([^,]+),\s*(.*)/s;
 	## Now put things together.
-	$sig = &format_sig($sig);
 	$str = wrap("$ini\#\# ", "$ini\#\#   ",
 		    "S4 $method for signature '$sig':\n") .
 			"$ini$1$fun$2";
@@ -825,17 +809,6 @@ sub transform_S4method {
     }
     
     $text;
-}
-
-sub format_sig {
-    ## Add a space after each comma separating sig list entries.
-    my ($str) = @_;
-    my $out;
-    while($str =~ m/^([._[:alnum:]]+|`[^`]+`),(.*)$/) {
-	$out .= $1 . ", ";
-	$str = $2;
-    }
-    $out . $str;
 }
 
 sub striptitle { # text
@@ -2740,11 +2713,7 @@ sub rdoc2latex {# (filename)
 ## The basic translator for 'normal text'
 sub text2latex {
 
-    my ($text, $recursive) = @_;
-
-    ## When processing \item, this calls itself (recursively), hence we
-    ## need to make sure that handling things like \tab and \cr happens
-    ## only once.
+    my $text = $_[0];
 
     $text =~ s/$EOB/\\\{/go;
     $text =~ s/$ECB/\\\}/go;
@@ -2786,8 +2755,7 @@ sub text2latex {
     while(checkloop($loopcount++, $text, "\\item")
 	  && $text =~ /\\itemnormal/s) {
 	my ($id, $arg, $desc) = get_arguments("item", $text, 2);
-	$descitem = "\\DITEM[" .
-	    text2latex($arg, 1) . "] " . text2latex($desc, 1);
+	$descitem = "\\DITEM[" . text2latex($arg) . "] " . text2latex($desc);
 	$text =~ s/\\itemnormal.*$id/$descitem/s;
     }
 
@@ -2803,15 +2771,13 @@ sub text2latex {
 	$text =~ s/$EPREFORMAT$id/$ec/;
     }
 
-    if(!$recursive) {
-	$text =~ s/\\\\/\\bsl{}/go;
-	## A mess:  map  & \& \\& \\\& to  \& \& \bsl{}\& \bsl{}\&
-	$text =~ s/([^\\])&/$1\\&/go;
-	$text =~ s/\\R(\s+)/\\R\{\}$1/go;
-	$text =~ s/\\cr\n\[/\\\\\{\}\n\[/go;
-	$text =~ s/\\cr/\\\\/go;
-	$text =~ s/\\tab(\s+)/&$1/go;
-    }
+    $text =~ s/\\\\/\\bsl{}/go;
+    ## A mess:  map  & \& \\& \\\& to  \& \& \bsl{}\& \bsl{}\&
+    $text =~ s/([^\\])&/$1\\&/go;
+    $text =~ s/\\R(\s+)/\\R\{\}$1/go;
+    $text =~ s/\\cr\n\[/\\\\\{\}\n\[/go;
+    $text =~ s/\\cr/\\\\/go;
+    $text =~ s/\\tab(\s+)/&$1/go;
 
     ## we need to convert \links's
     while(checkloop($loopcount++, $text, "\\link")

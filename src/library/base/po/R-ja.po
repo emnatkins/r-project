@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-08-01 09:16\n"
+"POT-Creation-Date: 2008-04-08 11:23\n"
 "PO-Revision-Date: 2008-04-04 15:20+0900 \n"
 "Last-Translator: takahashi <takahashi.kohske@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -346,12 +346,6 @@ msgstr " 引数の列の数が一致しません "
 msgid "invalid list argument: all variables should have the same length"
 msgstr " 無効なリストの引数です。全ての変数は同じ長さを持つべきです "
 
-msgid "data frame with 0 columns and %d rows"
-msgstr ""
-
-msgid "<0 rows> (or 0-length row.names)"
-msgstr ""
-
 msgid "non-numeric variable in data frame:"
 msgstr " 以下のデータフレーム中に数値でない変数があります： "
 
@@ -508,19 +502,8 @@ msgstr " 'to' は POSIXt のオブジェクトでなければなりません "
 msgid "'file' must be a character string or connection"
 msgstr " 'file' は文字列かコネクションでなければなりません "
 
-msgid ""
-"Invalid DCF format.\n"
-"Regular lines must have a tag.\n"
-"Offending lines start with:\n"
-"%s"
-msgstr ""
-
-msgid ""
-"Invalid DCF format.\n"
-"Continuation lines must not start a record.\n"
-"Offending lines start with:\n"
-"%s"
-msgstr ""
+msgid "Invalid DCF format."
+msgstr "DCFのフォーマットが不正です "
 
 msgid "'x' must be a square matrix"
 msgstr " 'x' は正方行列でなければなりません "
@@ -628,22 +611,13 @@ msgstr " リンクすべきファイルがありません "
 msgid "no files/directory to link to"
 msgstr " リンクすべきファイルもしくはディレクトリがありません "
 
-#, fuzzy
-msgid "'x' must have length 1"
+msgid "'x' must be have length 1"
 msgstr " 'x' は長さ 1 でなければなりません "
 
 msgid "invalid digits"
 msgstr " 無効な桁数です "
 
 msgid "'x' cannot be coerced to 'octmode'"
-msgstr " 'x' は 'octmode' に強制変換できません "
-
-#, fuzzy
-msgid "'x' must be of length 1"
-msgstr " 'to' は長さ 1 でなければなりません "
-
-#, fuzzy
-msgid "'x' cannot be coerced to hexmode"
 msgstr " 'x' は 'octmode' に強制変換できません "
 
 msgid "'package' must be of length 1"
@@ -667,8 +641,7 @@ msgstr ""
 " 'format' は {\"f\",\"e\",\"E\",\"g\",\"G\",\"fg\",\"s\" } のいずれかでなけれ"
 "ばなりません "
 
-#, fuzzy
-msgid "'digits' reduced to"
+msgid "'digits' reduced to 50"
 msgstr " 'digits' は50に縮小されました "
 
 msgid "'flag' can contain only '0+- #'"
@@ -756,10 +729,6 @@ msgstr " 以下からマスクされています "
 
 msgid ":"
 msgstr "  :  "
-
-#, fuzzy
-msgid "invalid package name"
-msgstr " 不当な名前です "
 
 msgid "package '%s' has been merged into '%s'"
 msgstr " パッケージ '%s' は '%s' に併合されました "
@@ -1477,14 +1446,6 @@ msgstr " 間違った引数です "
 msgid "invalid value"
 msgstr " 無効な値です "
 
-#, fuzzy
-msgid "unary '%s' not defined for \"numeric_version\" objects"
-msgstr " numeric_version オブジェクトに対しては定義されていません "
-
-#, fuzzy
-msgid "'%s' not defined for \"numeric_version\" objects"
-msgstr " numeric_version オブジェクトに対しては定義されていません "
-
 msgid "not defined for numeric_version objects"
 msgstr " numeric_version オブジェクトに対しては定義されていません "
 
@@ -1549,9 +1510,6 @@ msgstr[0] ""
 msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] " 警告メッセージ： \n"
-
-#~ msgid "Invalid DCF format."
-#~ msgstr "DCFのフォーマットが不正です "
 
 #~ msgid "No methods table for \""
 #~ msgstr " 以下に対するメソッドテーブルがありません \" "

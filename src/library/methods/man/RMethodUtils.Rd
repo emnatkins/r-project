@@ -81,8 +81,7 @@ findUnique(what, message, where)
 
 MethodAddCoerce(method, argName, thisClass, methodClass)
 
-cacheMetaData(where, attach = TRUE, searchWhere =  as.environment(where),
-              doCheck=TRUE)
+cacheMetaData(where, attach = TRUE, searchWhere)
 
 cacheGenericsMetaData(f, fdef, attach = TRUE, where, package, methods)
 
@@ -97,7 +96,7 @@ sigToEnv(signature, generic)
 rematchDefinition(definition, generic, mnames, fnames, signature)
 unRematchDefinition(definition)
 
-asMethodDefinition(def, signature, sealed = FALSE, fdef)
+asMethodDefinition(def, signature, sealed = FALSE, functionName)
 
 addNextMethod(method, f, mlist, optional, envir)
 }

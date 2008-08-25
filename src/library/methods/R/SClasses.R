@@ -18,8 +18,7 @@ setClass <-
     ## Define Class to be an S-style class.
     function(Class, representation = list(), prototype = NULL,
              contains = character(), validity = NULL, access = list(),
-             where = topenv(parent.frame()), version = .newExternalptr(),
-             sealed = FALSE, package = getPackageName(where))
+             where = topenv(parent.frame()), version = .newExternalptr(), sealed = FALSE, package = getPackageName(where))
 {
     oldDef <- getClassDef(Class, where)
     if(is(oldDef, "classRepresentation") && oldDef@sealed)
@@ -172,11 +171,6 @@ makeClassRepresentation <-
         if(virtual && !is.na(match("VIRTUAL", superClasses)))
             elNamed(contains, "VIRTUAL") <- NULL
     }
-    # new() must return an S4 object, except perhaps for basic classes
-    if(!is.null(prototype) && is.na(match(name, .BasicClasses)))
-      prototype <- .asS4(prototype)
-    if(".S3Class" %in% names(slots))
-      prototype <- .addS3Class(name, prototype, contains, where)
     newClassRepresentation(className = name, slots = slots,
                            contains = contains,
                            prototype = prototype,
@@ -205,7 +199,7 @@ getClassDef <-
 			  Class[[1]] else Class)
 	## a string with a package slot strongly implies the class definition
 	## should be in that package.
-	if(identical(nzchar(package), TRUE)) {
+	if(!is.null(package)) {
 	    whereP <- .requirePackage(package)
 	    if(exists(cname, whereP))
 		value <- get(cname, whereP)
@@ -325,8 +319,10 @@ removeClass <-  function(Class, where = topenv(parent.frame())) {
     if(length(classDef@subclasses)>0) {
       subclasses <- names(classDef@subclasses)
       found <- sapply(subclasses, isClass, where = where)
-      for(what in subclasses[found])
-          .removeSuperClass(what, Class)
+      if(any(found))
+        warning("The class to be removed  (\"", Class,
+    "\") has defined subclasses that should also be removed: (",
+                paste(as.character(subclasses[found]), collapse = ", "), ")")
     }
     .removeSuperclassBackRefs(Class, classDef, classWhere)
     .uncacheClass(Class, classDef)
@@ -563,12 +559,10 @@ initialize <- function(.Object, ...) {
             for(i in rev(seq_along(supers))) {
                 obj <- el(supers, i)
                 Classi <- class(obj)
-                if(length(Classi)>1)
-                    Classi <- Classi[[1]] #possible S3 inheritance
                 ## test some cases that let information be copied into the
                 ## object, ordered from more to less:  all the slots in the
                 ## first two cases, some in the 3rd, just the data part in 4th
-                if(.identC(Classi, Class))
+                if(.identC(Classi[[1]], Class))
                     .Object <- obj
                 else if(extends(Classi, Class))
                     .Object <- as(obj, Class, strict=FALSE)
@@ -586,9 +580,7 @@ initialize <- function(.Object, ...) {
                     which <- seq_along(which)[!is.na(which)]
                     if(length(which) >0 ) {
                         Classi <- thisExtends[which[1]]
-###                    was:    as(.Object, Classi) <- as(obj, Classi, strict = FALSE)
-                        ## but   as<- does an as(....) to its value argument                   
-                        as(.Object, Classi) <- obj
+                        as(.Object, Classi) <- as(obj, Classi, strict = FALSE)
                     }
                     else
                         stop(gettextf("cannot use object of class \"%s\" in new():  class \"%s\" does not extend that class", Classi, Class), domain = NA)
@@ -642,48 +634,27 @@ initialize <- function(.Object, ...) {
 findClass <- function(Class, where = topenv(parent.frame()), unique = "") {
     if(is(Class, "classRepresentation")) {
         pkg <- Class@package
-        classDef <- Class
         Class <- Class@className
     }
-    else {
-        pkg <- packageSlot(Class)
-        if(is.null(pkg))
-          pkg <- ""
-        classDef <- getClassDef(Class, where, pkg)
-    } 
+    else
+        pkg <- ""
     if(missing(where) && nzchar(pkg))
             where <- .requirePackage(pkg)
     else
         where <- as.environment(where)
     what <- classMetaName(Class)
     where <- .findAll(what, where)
-    if(length(where) > 1 && nzchar(pkg)) {
-        pkgs <- sapply(where, function(db)get(what, db)@package)
-        where <- where[match(pkg, pkgs, 0)]
-    }
-    else
-      pkgs <- pkg
-    if(length(where) != 1) {
-            if(length(where) == 0) {
-                if(is.null(classDef))
-                  classDef <- getClassDef(Class) # but won't likely succeed over previous
-                if(nzchar(unique)) {
-                    if(is(classDef, "classRepresentation"))
-                      stop(gettextf('Class "%s" is defined, with package "%s", but no corresponding metadata object was found (not exported?)',
-                                  Class, classDef@package), domain = NA)
-                    else
-                      stop(gettextf("no definition of \"%s\" to use for %s",
+    if(length(where) != 1 && nzchar(unique)) {
+            if(length(where) == 0)
+                stop(gettextf("no definition of \"%s\" to use for %s",
                               Class, unique), domain = NA)
-                }
-            }
-            else if(nzchar(unique)) {
+            if(length(where) > 1) {
                 where <- where[1]
                 ## problem: 'unique'x is text passed in, so do not translate
                 warning(sprintf("multiple definitions of class \"%s\" visible; using the definition on package \"%s\" for %s",
                                  Class, getPackageName(where[[1]]), unique),
                         domain = NA)
             }
-            ## else returns a list of >1 places, for the caller to sort out (e.g., .findOrCopyClass)
     }
     where
 }

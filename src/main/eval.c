@@ -18,6 +18,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is either ASCII or handled as a whole */
+
 
 #undef HASHING
 
@@ -364,7 +366,7 @@ SEXP eval(SEXP e, SEXP rho)
 		  _("evaluation nested too deeply: infinite recursion / options(expressions=)?"));
     }
     R_CheckStack();
-    if (++evalcount > 1000) { /* was 100 before 2.8.0 */
+    if (++evalcount > 100) {
 	R_CheckUserInterrupt();
 	evalcount = 0 ;
     }
@@ -1510,14 +1512,7 @@ SEXP attribute_hidden evalList(SEXP el, SEXP rho, SEXP op)
 	    }
 	    else if (h != R_MissingArg)
 		error(_("'...' used in an incorrect context"));
-/* Uncomment the following to restore old behavior */
-/* #define OLDMISSING */
-#ifdef OLDMISSING
 	} else if (CAR(el) != R_MissingArg) {
-#else
-	} else if (!(CAR(el) == R_MissingArg ||
-                 (isSymbol(CAR(el)) && R_isMissing(CAR(el), rho)))) {
-#endif
 	    SETCDR(tail, CONS(eval(CAR(el), rho), R_NilValue));
 	    tail = CDR(tail);
 	    SET_TAG(tail, CreateTag(TAG(el)));
@@ -1579,12 +1574,7 @@ SEXP attribute_hidden evalListKeepMissing(SEXP el, SEXP rho)
 	    else if(h != R_MissingArg)
 		error(_("'...' used in an incorrect context"));
 	}
-#ifdef OLDMISSING
 	else if (CAR(el) == R_MissingArg) {
-#else
-	else if (CAR(el) == R_MissingArg ||
-                 (isSymbol(CAR(el)) && R_isMissing(CAR(el), rho))) {
-#endif
 	    SETCDR(tail, CONS(R_MissingArg, R_NilValue));
 	    tail = CDR(tail);
 	    SET_TAG(tail, CreateTag(TAG(el)));
@@ -2148,7 +2138,7 @@ int DispatchGroup(const char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 
     PROTECT(s = promiseArgs(CDR(call), rho));
     if (length(s) != length(args))
-	error(_("dispatch error in group dispatch"));
+	error(_("dispatch error"));
     for (m = s ; m != R_NilValue ; m = CDR(m), args = CDR(args) ) {
 	SET_PRVALUE(CAR(m), CAR(args));
 	/* ensure positional matching for operators */

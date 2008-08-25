@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-08-01 09:16\n"
+"POT-Creation-Date: 2008-08-01 08:43\n"
 "PO-Revision-Date: 2008-03-26 17:25+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -25,44 +25,11 @@ msgstr "OOPS : il y a un problème avec la ligne"
 msgid "in .OldClassesPrototypes"
 msgstr "dans .OldClassesPrototypes"
 
-msgid "Cannot specify matrix() arguments when specifying .Data"
-msgstr ""
-
-msgid "Cannot specify array() arguments when specifying .Data"
-msgstr ""
-
 msgid ""
 "methods may not be defined for primitive function \"%s\" in this version of R"
 msgstr ""
 "les méthodes ne sont peut-être pas définies pour la fonction primitive \"%s"
 "\" dans cette version de R"
-
-msgid ""
-"S3Part() is only defined for classes set up by setOldCLass() or extend such "
-"a class:  not true of class \"%s\""
-msgstr ""
-
-msgid ""
-"The S3Class argument must be a class set up by setOldCLass() or an extension "
-"of such a class:  not true of class \"%s\""
-msgstr ""
-
-msgid "Not meaningful to have keepSlots=TRUE and strict=TRUE"
-msgstr ""
-
-msgid "Replacement value must extend class \"%s\", got  \"%s\""
-msgstr ""
-
-#, fuzzy
-msgid "Replacement value must be of class \""
-msgstr "la valeur de remplacement n'est pas une matrice"
-
-#, fuzzy
-msgid "\", got one of class \""
-msgstr "Un objet de classe \""
-
-msgid "\""
-msgstr "\""
 
 msgid ""
 "no 'replace' method was defined for as(x, \"%s\") <- value for class \"%s\""
@@ -101,9 +68,6 @@ msgid "unable to create union class:  could not set members %s"
 msgstr ""
 "impossible de créer une classe d'union : Les membres %s sont indéfinissables"
 
-msgid "invalid argument \"name\": %s"
-msgstr ""
-
 msgid ""
 "\"%s\" is a primitive function;  methods can be defined, but the generic "
 "function is implicit, and cannot be changed."
@@ -124,15 +88,12 @@ msgstr ""
 "fonction existante"
 
 msgid ""
-"Restoring the implicit generic function for \"%s\" from package \"%s\" into "
-"package \"%s\"; the generic differs from the default conversion (%s)"
+"New generic for \"%s\" does not agree with implicit generic from package \"%s"
+"\"; a new generic will be assigned with package \"%s\""
 msgstr ""
-
-msgid ""
-"Creating a generic for \"%s\" in package  \"%s\"\n"
-"    (the supplied definition differs from and overrides the implicit generic "
-"in package \"%s\": %s)"
-msgstr ""
+"La nouvelle fonction générique pour \"%s\" n'est pas conforme avec le "
+"générique implicite pour le package\"%s\" ; un nouveau générique sera "
+"assigné avec le package \"%s\""
 
 msgid ""
 "No generic version of  \"%s\" on package \"%s\" is allowed; a new generic "
@@ -191,10 +152,6 @@ msgstr ""
 msgid "no existing definition for function \"%s\""
 msgstr "aucune définition n'existe pour la fonction \"%s\""
 
-#, fuzzy
-msgid "Creating a generic function from function \"%s\""
-msgstr "Une nouvelle fonction générique est créée pour \"%s\" dans \"%s\""
-
 msgid "Creating a new generic function for \"%s\" in \"%s\""
 msgstr "Une nouvelle fonction générique est créée pour \"%s\" dans \"%s\""
 
@@ -241,13 +198,6 @@ msgstr ""
 
 msgid "no generic function \"%s\" found"
 msgstr "aucune fonction générique \"%s\" n'est trouvée"
-
-msgid "no environment or package corresponding to argument where=%s"
-msgstr ""
-
-#, fuzzy
-msgid "No generic function found for \"%s\""
-msgstr "aucune fonction générique n'est trouvée pour \"%s\""
 
 msgid "No method found for function \"%s\" and signature %s"
 msgstr ""
@@ -304,6 +254,19 @@ msgid ""
 msgstr ""
 "le premier argument doit être le ou les nom(s) des fonctions génériques (un "
 "objet de classe \"%s\" est fourni)"
+
+msgid ""
+"No generic function found for \"%s\"; no action taken in removeMethodsObject"
+msgstr ""
+"Pas de fonction générique trouvée pour \"%s\" ; aucune action entreprise "
+"dans removeMethodsObject"
+
+msgid ""
+"the environment/package \"%s\" is locked; cannot remove methods data for \"%s"
+"\""
+msgstr ""
+"l'environnement/le package \"%s\" est verrouillé ; Impossible d'effacer les "
+"données des méthodes pour \"%s\""
 
 msgid "\"%s\" is not a generic function in \"%s\"; methods not removed"
 msgstr ""
@@ -365,6 +328,18 @@ msgstr ""
 "il fallait fournir une table d'environnement, et c'est un objet de classe \"%"
 "s\""
 
+msgid "Function \"%s\" may not be used as a generic (implicitly prohibited)"
+msgstr ""
+"La fonction \"%s\" ne peut être utilisée comme générique (forme implicite "
+"interdite)"
+
+msgid ""
+"Implicit generic exists for \"%s\", but will be overriden by explicit call "
+"to setGeneric()"
+msgstr ""
+"Un générique implicite existe pour \"%s\", mais il sera remplacé par un "
+"appel explicite à setGeneric()"
+
 msgid ""
 "argument \"f\" must be a generic function or a single character string; got "
 "an object of class \"%s\""
@@ -372,16 +347,17 @@ msgstr ""
 "l'argument \"f\" doit être une fonction générique ou une chaîne de "
 "caractères ; un objet de classe \"%s\" est obtenu"
 
-#, fuzzy
-msgid "non-generic function '%s' given to findMethods()"
+msgid "non-generic function given to findMethods()"
 msgstr "fonction non générique fournie à findMethods()"
 
 #, fuzzy
 msgid "Only FALSE is meaningful for 'inherited', when 'where' is supplied (got"
 msgstr "Seul FALSE a un sens pour 'inherited', lorsque 'where' est fourni ("
 
-#, fuzzy
-msgid "'%s' is not a generic function in '%s' {and 'package' not specified}"
+msgid "\""
+msgstr "\""
+
+msgid "f does not correspond to a generic function and package not specified"
 msgstr ""
 "f ne correspond pas à une fonction générique et le package n'est pas spécifié"
 
@@ -504,6 +480,16 @@ msgstr ""
 "arguments de la fonction (%s)"
 
 msgid ""
+"'NextMethod' not defined because the current method is not a "
+"'MethodDefinition' object"
+msgstr ""
+"'NextMethod' non définie parce que la méthode courante n'est pas un objet "
+"'MethodDefinition'"
+
+msgid "expected a list of signature objects, got \"%s\""
+msgstr "une liste d'objets de signature attendue, mais \"%s\" est obtenu"
+
+msgid ""
 "a call to callNextMethod() appears in a call to \"%s\", but the call does "
 "not seem to come from either a generic function or another 'callNextMethod'"
 msgstr ""
@@ -592,14 +578,6 @@ msgstr ""
 "lors de la définition de classe \"%s\", la classe fournie pour la partie de "
 "données, \"%s\", n'est pas correcte (doit être une classe basique ou une "
 "classe virtuelle qui combine des classes basiques)"
-
-#, fuzzy
-msgid ""
-"No definition was found for superclass \"%s\" in the specification of class "
-"\"%s\""
-msgstr ""
-"aucune définition de la classe \"%s\" n'existe à la position spécifiée, %s, "
-"définition(s) dans : %s"
 
 msgid "class \"%s\" cannot be used as the data part of another class"
 msgstr ""
@@ -835,6 +813,18 @@ msgid "Empty function name in .getGeneric"
 msgstr "nom de fonction vide dans .getGeneric"
 
 msgid ""
+"the methods object name for \"%s\" must include the name of the package that "
+"contains the generic function, but no generic function of this name was found"
+msgstr ""
+"le nom de l'objet de définition des méthodes pour \"%s\" doit inclure le nom "
+"du package qui contient la fonction générique, mais aucune fonction "
+"générique de ce nom n'est trouvée"
+
+msgid "no way to associate a generic function with an object of class \"%s\""
+msgstr ""
+"impossible d'associer une fonction générique avec un objet de classe \"%s\""
+
+msgid ""
 "Package \"%s\" seems to have out-of-date methods; need to reinstall from "
 "source"
 msgstr ""
@@ -1058,11 +1048,6 @@ msgstr ""
 msgid "invalid names for slots of class \"%s\": %s"
 msgstr "noms incorrects pour des slots de la classe \"%s\" : %s"
 
-msgid ""
-"Class \"%s\" is defined, with package \"%s\", but no corresponding metadata "
-"object was found (not exported?)"
-msgstr ""
-
 msgid "no definition of \"%s\" to use for %s"
 msgstr "aucune définition de \"%s\" à utiliser pour %s"
 
@@ -1203,10 +1188,11 @@ msgstr ""
 "définies, à l'exception de 'setClassUnion'"
 
 msgid ""
-"Class \"%s\" is defined (with package slot \"%s\") but no metadata object "
-"found to revise %s information---not exported?  Making a copy in package \"%s"
-"\""
+"Unable to find package environment for class \"%s\" to revise subclass "
+"information"
 msgstr ""
+"impossible de trouver un environnement de package contenant la classe \"%s\" "
+"pour pouvoir revoir les informations de sous-classes"
 
 msgid "class \"%s\" cannot extend class \"%s\""
 msgstr "la classe \"%s\" ne peut étendre la classe \"%s\""
@@ -1321,10 +1307,6 @@ msgstr ""
 "Fonction générique de groupe incorrecte lors de la recherche de méthode "
 "héritée (classe \""
 
-#, fuzzy
-msgid "Invalid methods table request"
-msgstr "liste de méthodes incorrecte"
-
 msgid "Trying to check signature length of group generic \""
 msgstr ""
 "Essai de vérification de la longueur de la signature pour le groupe "
@@ -1369,11 +1351,6 @@ msgstr ""
 "information d'une classe d'ancien style (S3) incompatible pour \"%s\" (un "
 "mélange entre des anciennes et nouvelles classes est peut-être fait)"
 
-msgid ""
-"The class of the prototype, \"%s\", is undefined; only allowed for the S3 "
-"class being registered (\"%s\")"
-msgstr ""
-
 msgid "explicit coercion of old-style class (%s) is not defined"
 msgstr ""
 "la conversion explicite de classes d'ancien style (%s) n'est pas définie"
@@ -1391,11 +1368,6 @@ msgid ""
 msgstr ""
 "l'argument 'Classes' doit être un vecteur contenant deux classes ; un "
 "argument de longueur %d est obtenu à la place"
-
-msgid ""
-"S3Class can only be assigned to S4 objects that extend \"oldClass\"; not "
-"true of class \"%s\""
-msgstr ""
 
 msgid "Created a package name, \"%s\", when none found"
 msgstr "Le nom de package, \"%s\", est créé alors qu'aucun n'est trouvé"
@@ -1525,61 +1497,10 @@ msgstr[1] ""
 "dans la signature de méthode pour la fonction \"%s\", il n'y a aucune "
 "définition pour les classes : %s"
 
-#~ msgid ""
-#~ "'NextMethod' not defined because the current method is not a "
-#~ "'MethodDefinition' object"
-#~ msgstr ""
-#~ "'NextMethod' non définie parce que la méthode courante n'est pas un objet "
-#~ "'MethodDefinition'"
-
-#~ msgid "expected a list of signature objects, got \"%s\""
-#~ msgstr "une liste d'objets de signature attendue, mais \"%s\" est obtenu"
-
-#~ msgid ""
-#~ "New generic for \"%s\" does not agree with implicit generic from package "
-#~ "\"%s\"; a new generic will be assigned with package \"%s\""
-#~ msgstr ""
-#~ "La nouvelle fonction générique pour \"%s\" n'est pas conforme avec le "
-#~ "générique implicite pour le package\"%s\" ; un nouveau générique sera "
-#~ "assigné avec le package \"%s\""
-
-#~ msgid "Function \"%s\" may not be used as a generic (implicitly prohibited)"
-#~ msgstr ""
-#~ "La fonction \"%s\" ne peut être utilisée comme générique (forme implicite "
-#~ "interdite)"
-
-#~ msgid ""
-#~ "Implicit generic exists for \"%s\", but will be overriden by explicit "
-#~ "call to setGeneric()"
-#~ msgstr ""
-#~ "Un générique implicite existe pour \"%s\", mais il sera remplacé par un "
-#~ "appel explicite à setGeneric()"
-
-#~ msgid ""
-#~ "Unable to find package environment for class \"%s\" to revise subclass "
-#~ "information"
-#~ msgstr ""
-#~ "impossible de trouver un environnement de package contenant la classe \"%s"
-#~ "\" pour pouvoir revoir les informations de sous-classes"
-
 #~ msgid "Could not find generic function \"%s\" to initialize cached methods"
 #~ msgstr ""
 #~ "La fonction générique \"%s\" est introuvable pour initialiser les "
 #~ "méthodes en cache"
-
-#~ msgid ""
-#~ "No generic function found for \"%s\"; no action taken in "
-#~ "removeMethodsObject"
-#~ msgstr ""
-#~ "Pas de fonction générique trouvée pour \"%s\" ; aucune action entreprise "
-#~ "dans removeMethodsObject"
-
-#~ msgid ""
-#~ "the environment/package \"%s\" is locked; cannot remove methods data for "
-#~ "\"%s\""
-#~ msgstr ""
-#~ "l'environnement/le package \"%s\" est verrouillé ; Impossible d'effacer "
-#~ "les données des méthodes pour \"%s\""
 
 #~ msgid ""
 #~ "%s function arguments omitted from method arguments, (%s), were found in "
@@ -1587,18 +1508,3 @@ msgstr[1] ""
 #~ msgstr ""
 #~ "Les arguments de function %s sont omis des arguments de la méthode, (%s), "
 #~ "qui ont été trouvés dans la définition de la méthode"
-
-#~ msgid ""
-#~ "the methods object name for \"%s\" must include the name of the package "
-#~ "that contains the generic function, but no generic function of this name "
-#~ "was found"
-#~ msgstr ""
-#~ "le nom de l'objet de définition des méthodes pour \"%s\" doit inclure le "
-#~ "nom du package qui contient la fonction générique, mais aucune fonction "
-#~ "générique de ce nom n'est trouvée"
-
-#~ msgid ""
-#~ "no way to associate a generic function with an object of class \"%s\""
-#~ msgstr ""
-#~ "impossible d'associer une fonction générique avec un objet de classe \"%s"
-#~ "\""

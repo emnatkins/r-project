@@ -180,7 +180,7 @@ typedef struct {
 typedef R_GE_gcontext* pGEcontext;
     
 
-#include <R_ext/GraphicsDevice.h> /* needed for DevDesc */
+#include <R_ext/GraphicsDevice.h> /* needed for NewDevDesc */
 
 typedef struct _GEDevDesc GEDevDesc;
 
@@ -251,7 +251,7 @@ typedef GEDevDesc* pGEDevDesc;
 /* functions from devices.c for use by graphics devices */
 
 #define desc2GEDesc		Rf_desc2GEDesc
-/* map DevDesc to enclosing GEDevDesc */
+/* map NewDevDesc to enclosing GEDevDesc */
 pGEDevDesc desc2GEDesc(pDevDesc dd);
 int GEdeviceNumber(pGEDevDesc);
 pGEDevDesc GEgetDevice(int);
@@ -454,10 +454,6 @@ void GEplaySnapshot(SEXP snapshot, pGEDevDesc dd);
 void GEonExit(void);
 void GEnullDevice(void);
 
-
-/* From plot.c, used by grid/src/grid.c */
-#define CreateAtVector		Rf_CreateAtVector
-SEXP CreateAtVector(double*, double*, int, Rboolean);
 
 #ifdef __cplusplus
 }

@@ -204,7 +204,7 @@ anova.mlm <-
              T = Thin.row(proj(M) - proj(X)),
              M = diag(nrow = p),
              X = ~0,
-             idata = data.frame(index = seq_len(p)), tol = 1e-7)
+             idata = data.frame(index = seq_len(p)))
 {
     if(length(list(object, ...)) > 1){
         cl <- match.call()
@@ -290,18 +290,8 @@ anova.mlm <-
                             stats[,3]*min(1,sph$HF.eps),
                             lower.tail=FALSE)
         } else {
-
-            ## Try to distinguish bad scaling and near-perfect fit
-            ## Notice that we must transform by T before scaling
-            sc <- sqrt(diag(T %*% ssd$SSD %*% t(T)))
-            D <- sqrt(sc^2 + rowSums(sapply(ss, function(X)
-                                            diag(T %*% X %*% t(T)))))
-            sc <- ifelse(sc/D < 1e-6, 1, 1/sc)
-            scm <- tcrossprod(sc)
-
             df.res <- ssd$df
-
-            rss.qr <- qr((T %*% ssd$SSD  %*% t(T)) * scm, tol=tol)
+            rss.qr <- qr(T %*% ssd$SSD %*% t(T))
             if(rss.qr$rank < pp)
                 stop("residuals have rank ", rss.qr$rank," < ", pp)
             eigs <- array(NA, c(nmodels, pp))
@@ -311,7 +301,7 @@ anova.mlm <-
 
             for(i in 1:nmodels) {
                 eigs[i, ] <- Re(eigen(qr.coef(rss.qr,
-                                              (T %*% ss[[i]] %*% t(T)) * scm),
+                                              T %*% ss[[i]] %*% t(T)),
                                       symmetric = FALSE)$values)
                 stats[i, 1:4] <-
                     switch(test,
@@ -402,7 +392,7 @@ anova.mlmlist <- function (object, ...,
                            T = Thin.row(proj(M)-proj(X)),
                            M = diag(nrow=p),
                            X = ~0,
-                           idata=data.frame(index=seq_len(p)), tol = 1e-7)
+                           idata=data.frame(index=seq_len(p)))
 {
     objects <- list(object, ...)
     p <- ncol(SSD(object)$SSD)
@@ -510,20 +500,7 @@ anova.mlmlist <- function (object, ...,
     else if(!is.null(test)) {
 	bigmodel <- order(resdf)[1]
         df.res <- resdf[bigmodel]
-
-        ## Try to distinguish bad scaling and near-perfect fit
-        ## Notice that we must transform by T before scaling
-
-        sc <- sqrt(diag(T %*% resssd[[bigmodel]]$SSD %*% t(T)))
-        D <- sqrt(sc^2+apply(abs(sapply(deltassd,
-                                        function(X) diag((T %*% X %*% t(T))))),
-                             1,max))
-        sc <- ifelse(sc/D < 1e-6, 1, 1/sc)
-        scm <- tcrossprod(sc)
-
-
-
-        rss.qr <- qr((T %*% resssd[[bigmodel]]$SSD %*% t(T)) * scm, tol=tol)
+        rss.qr <- qr(T %*% resssd[[bigmodel]]$SSD %*% t(T))
         if(rss.qr$rank < pp)
             stop("residuals have rank ", rss.qr$rank," < ", pp)
         eigs <- array(NA, c(nmodels, pp))
@@ -535,8 +512,7 @@ anova.mlmlist <- function (object, ...,
         for(i in 2:nmodels) {
             sg <- (df[i] > 0) -  (df[i] < 0)
             eigs[i, ] <- Re(eigen(qr.coef(rss.qr,
-                                          sg * (T %*% deltassd[[i-1]] %*%
-                                          t(T)) * scm),
+                                          sg * T %*% deltassd[[i-1]] %*% t(T)),
                                   symmetric = FALSE)$values)
             stats[i, 1:4] <-
                 switch(test,

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-08-01 09:16\n"
+"POT-Creation-Date: 2008-04-08 11:23\n"
 "PO-Revision-Date: 2008-03-26 10:09+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -363,12 +363,6 @@ msgstr ""
 "liste d'arguments incorrecte : toutes les variables doivent avoir la même "
 "longueur"
 
-msgid "data frame with 0 columns and %d rows"
-msgstr ""
-
-msgid "<0 rows> (or 0-length row.names)"
-msgstr ""
-
 msgid "non-numeric variable in data frame:"
 msgstr "variable non numérique dans le tableau de données :"
 
@@ -528,19 +522,8 @@ msgstr "'to' doit être un objet \"POSIXt\""
 msgid "'file' must be a character string or connection"
 msgstr "'file' doit être une chîne de caractères ou une connection"
 
-msgid ""
-"Invalid DCF format.\n"
-"Regular lines must have a tag.\n"
-"Offending lines start with:\n"
-"%s"
-msgstr ""
-
-msgid ""
-"Invalid DCF format.\n"
-"Continuation lines must not start a record.\n"
-"Offending lines start with:\n"
-"%s"
-msgstr ""
+msgid "Invalid DCF format."
+msgstr "Format DCf incorrecT."
 
 msgid "'x' must be a square matrix"
 msgstr "'x' doit être une matrice carrée"
@@ -648,22 +631,13 @@ msgstr "aucun fichier vers où pointer un lien"
 msgid "no files/directory to link to"
 msgstr "aucun fichier / répertoire vers où pointer un lien"
 
-#, fuzzy
-msgid "'x' must have length 1"
+msgid "'x' must be have length 1"
 msgstr "'x' doit être de longueur 1"
 
 msgid "invalid digits"
 msgstr "nombre de chiffres incorrect"
 
 msgid "'x' cannot be coerced to 'octmode'"
-msgstr "impossible de convertir automatiquement 'x' en 'octmode'"
-
-#, fuzzy
-msgid "'x' must be of length 1"
-msgstr "'to' doit être de longeur 1"
-
-#, fuzzy
-msgid "'x' cannot be coerced to hexmode"
 msgstr "impossible de convertir automatiquement 'x' en 'octmode'"
 
 msgid "'package' must be of length 1"
@@ -686,8 +660,7 @@ msgid "'format' must be one of {\"f\",\"e\",\"E\",\"g\",\"G\", \"fg\", \"s\"}"
 msgstr ""
 "'format' doit être un de {\"f\",\"e\",\"E\",\"g\",\"G\", \"fg\", \"s\"}"
 
-#, fuzzy
-msgid "'digits' reduced to"
+msgid "'digits' reduced to 50"
 msgstr "'digits' réduit à 50"
 
 msgid "'flag' can contain only '0+- #'"
@@ -778,10 +751,6 @@ msgstr "de"
 
 msgid ":"
 msgstr " : "
-
-#, fuzzy
-msgid "invalid package name"
-msgstr "nom incorrect"
 
 msgid "package '%s' has been merged into '%s'"
 msgstr "le package '%s' a été fusionné avec '%s'"
@@ -1494,14 +1463,6 @@ msgstr "mauvais argument"
 msgid "invalid value"
 msgstr "valeur incorrecte"
 
-#, fuzzy
-msgid "unary '%s' not defined for \"numeric_version\" objects"
-msgstr "non défini pour des objets numeric_version"
-
-#, fuzzy
-msgid "'%s' not defined for \"numeric_version\" objects"
-msgstr "non défini pour des objets numeric_version"
-
 msgid "not defined for numeric_version objects"
 msgstr "non défini pour des objets numeric_version"
 
@@ -1574,6 +1535,3 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Message d'avis :\n"
 msgstr[1] "Messages d'avis :\n"
-
-#~ msgid "Invalid DCF format."
-#~ msgstr "Format DCf incorrecT."

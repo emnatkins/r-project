@@ -28,6 +28,7 @@
            }, envir)
     clList = character()
     setClass("VIRTUAL", where = envir); clList <- c(clList, "VIRTUAL")
+    setClass("oldClass", where = envir) ## NOT A BASIC CLASS
     setClass("ANY", where = envir); clList <- c(clList, "ANY")
     setClass("vector", where = envir); clList <- c(clList, "vector")
     setClass("missing", where = envir); clList <- c(clList, "missing")
@@ -63,9 +64,8 @@
     for(.class in stClasses) {
         .setBaseClass(.class, prototype = newBasic(.class), where = envir)
     }
-    ## "ts" will be defined below as an S3 class, but it is still
-    ## included in .BasicClasses, to allow its coerce() method to use
-    ## as.ts().  This decision may be revisited.
+    ## "ts" will be defined below, because it has a formal contains, but its initialize
+    ## method uses newBasic, so it needs to be in .BasicClasses
     clList <- c(clList, stClasses, "ts")
     assign(".BasicClasses", clList, envir)
 
@@ -96,6 +96,14 @@
           }),
           where = envir)
 
+    ## "ts" was an S3 class.  Because it has a consistent set of attributes (unlike array)
+    ## it can be promoted to an S4 class with metadata, slot checking, etc.
+    ## The initialize method uses newBasic(...), so should be consistent with the old code,
+    ## (see def'n of BasicClasses above).
+    setClass("ts", representation(.Data = "vector", tsp = "numeric"), contains = "structure",
+             prototype = newBasic("ts"), where = envir)
+
+
     ## Some class definitions extending "language", delayed to here so
     ## setIs will work.
     .setBaseClass("name", "language", prototype = as.name("<UNDEFINED>"), where = envir); clList <- c(clList, "name")
@@ -120,10 +128,6 @@
 }
 
 .InitS3Classes <- function(envir) {
-    # create a virtual class from which all S3 classes will inherit the .S3Class slot
-    setClass("oldClass", representation(.S3Class = "character"),
-             contains = "VIRTUAL", prototype = prototype(.S3Class = character()),
-             where = envir)
       ## call setOldClass on some known old-style classes.  Ideally this would be done
     ## in the code that uses the classes, but that code doesn't know about the methods
     ## package.
@@ -137,61 +141,6 @@
        else
         warning("OOPS: something wrong with line ",i, " in .OldClassesPrototypes")
     }
-  ## note re "ts".  An attempt was made, through R 2.7.0, to treat this as an S4 class.
-    ## However, this has not proved to be very practical; for example,
-    ## internal restrictions prevent assigning a slot "tsp" if it is
-    ## temporarily inconsistent with the data part, and vice-versa.
-    ## Also "mts" extends "ts" in an S3 sense but doesn't work as an
-    ## S4 extension.  Beginning with 2.8, "ts" will be treated as a
-    ## registered S3 class, but we try to keep its "structure"
-    ## behavior
-    setIs("ts", "structure", where = envir)
-    setMethod("initialize", "ts",
-              function(.Object,  ...) {
-                  if(identical(as.character(class(.Object)), "ts"))
-                    .Object <- .notS4(.Object)
-                  if(nargs() < 2) # guaranteed to be called with .Object from new
-                     return( .Object)
-                  args <- list(...)
-                  argnames <- names(args)
-                  if(is.null(argnames))
-                    slotnames <- FALSE
-                  else
-                    slotnames <- nzchar(argnames) & is.na(match(argnames, .tsArgNames))
-                  if(any(slotnames)) {
-                      value = do.call(stats::ts, args[!slotnames])
-                      .mergeAttrs(value, .Object, args[slotnames])
-                  }
-                  else
-                    .mergeAttrs(stats::ts(...), .Object, list())
-              })
-    ## the following mimics settings for other basic classes ("ts" was
-    ## not defined at the time these are done).
-    setMethod("coerce", c("ANY", "ts"), function (from, to, strict = TRUE)
-              {
-                  value <- as.ts(from)
-                  if(strict) {
-                      attrs <- attributes(value)
-                      if(length(attrs)>2)
-                        attributes(value) <- attrs[c("class", "tsp")]
-                  }
-                  value
-              },
-              where = envir)
-    setMethod("show", "ts", function(object) {
-        cl <- as.character(class(object))
-        if(!identical(cl, "ts"))
-          cat("Object of class \"", cl, "\"\n", sep = "")
-        print(as(object, "ts"))
-        otherSlots <- slotNames(cl)
-        otherSlots <- otherSlots[is.na(match(otherSlots, c(".Data", "tsp")))]
-        for(what in otherSlots) {
-            cat('Slot "', what, '":\n', sep = "")
-            show(slot(object, what))
-            cat("\n")
-        }
-    })
-
     ## Next, miscellaneous S3 classes.
     for(cl in .OldClassesList)
         setOldClass(cl, where = envir)
@@ -210,79 +159,63 @@
     setClass(cl, ..., where = where)
     def <- getClassDef(cl, where)
     def@className <- as.character(def@className)
-    def@prototype <- .notS4(def@prototype)
     assignClassDef(cl, def, where = where)
 }
 
 
-.tsArgNames <- names(formals(stats::ts))
 
-### The following methods are now activated
-### via the last line of the function .InitMethodDefinitions in ./MethodsListClass.R
+### The following methods are not currently installed.  (Tradeoff between intuition
+### of users that new("matrix", ...) should be like matrix(...) vs
+### consistency of new().  Relevant when new class has basic class as its data part.
 ###
-### Tradeoff between intuition of users that
-### new("matrix", ...) should be like matrix(...) vs consistency of new().
-### Relevant when new class has basic class as its data part.
+### To install the methods below, uncomment the last line of the function
+### .InitMethodDefinitions in ./MethodsListClass.R
 .InitBasicClassMethods <- function(where) {
     ## methods to initialize "informal" classes by using the
     ## functions of the same name.
-
+    ##
     ## These methods are designed to be inherited or extended
     setMethod("initialize", "matrix",
-	      function(.Object, data = NA, nrow = 1, ncol = 1,
-		       byrow = FALSE, dimnames = NULL, ...) {
-		  if((na <- nargs()) < 2) # guaranteed to be called with .Object from new
-		      .Object
-		  else if(length(dots <- list(...)) && ".Data" %in% names(dots)) {
-		      if(na == 2)
-			  .mergeAttrs(dots$.Data, .Object)
-		      else {
-			  dat <- dots$.Data
-			  dots <- dots[names(dots) != ".Data"]
-			  if(na == 2 + length(dots)) {
-			      .mergeAttrs(as.matrix(dat), .Object, dots)
-			  }
-			  else
-			      stop("Cannot specify matrix() arguments when specifying .Data")
-		      }
-		  }
-		  else if(is.matrix(data) && na == 2 + length(dots))
-		      .mergeAttrs(data, .Object, dots)
-		  else {
-		      if (missing(nrow))
-			  nrow <- ceiling(length(data)/ncol)
-		      else if (missing(ncol))
-			  ncol <- ceiling(length(data)/nrow)
-		      value <- matrix(data, nrow, ncol, byrow, dimnames)
-		      .mergeAttrs(value, .Object, dots)
-		  }
-	      })
-
+              function(object, data =   NA, nrow = 1, ncol = 1,
+                       byrow = FALSE, dimnames = NULL, ...) {
+                  if(nargs() < 2) # guaranteed to be called with object from new
+                      object
+                  else if(is.matrix(data) && nargs() == 2 + length(list(...)))
+                      .mergeAttrs(data, object, list(...))
+                  else {
+                      value <- matrix(data, nrow, ncol, byrow, dimnames)
+                      .mergeAttrs(value, object, list(...))
+                  }
+              })
     setMethod("initialize", "array",
-	      function(.Object, data = NA, dim = length(data),
-		       dimnames = NULL, ...) {
-		  if((na <- nargs()) < 2) # guaranteed to be called with .Object from new
-		      .Object
-		  else if(length(dots <- list(...)) && ".Data" %in% names(dots)) {
-		      if(na == 2)
-			  .mergeAttrs(dots$.Data, .Object)
-		      else {
-			  dat <- dots$.Data
-			  dots <- dots[names(dots) != ".Data"]
-			  if(na == 2 + length(dots)) {
-			      .mergeAttrs(as.array(dat), .Object, dots)
-			  }
-			  else
-			      stop("Cannot specify array() arguments when specifying .Data")
-		      }
-		  }
-		  else if(is.array(data) && na == 2 + length(dots))
-		      .mergeAttrs(data, .Object, dots)
-		  else {
-		      value <- array(data, dim, dimnames)
-		      .mergeAttrs(value, .Object, dots)
-		  }
-	      })
+              function(object, data =   NA, dim = length(data),
+                       dimnames = NULL, ...) {
+                  if(nargs() < 2) # guaranteed to be called with object from new
+                      object
+                  else if(is.array(data) && nargs() == 2 + length(list(...)))
+                      .mergeAttrs(data, object, list(...))
+                  else {
+                      value <- array(data, dim, dimnames)
+                      .mergeAttrs(value, object, list(...))
+                  }
+              })
+    ## the "ts" method supports most of the arguments to ts()
+    ## but NOT the class argument (!), and it won't work right
+    ## if people set up "mts" objects with "ts" class (!, again)
+    setMethod("initialize", "ts",
+              function(object, data =   NA, start = 1, end = numeric(0), frequency = 1,
+    deltat = 1, ts.eps = getOption("ts.eps"), names = NULL, ...) {
+                  if(nargs() < 2) # guaranteed to be called with object from new
+                      object
+                  else if(stats::is.ts(data) &&
+                          nargs() == 2 + length(list(...)))
+                      .mergeAttrs(data, object, list(...))
+                  else {
+                      value <- stats::ts(data, start, end, frequency,
+                                         deltat, ts.eps, names = names)
+                      .mergeAttrs(value, object, list(...))
+                  }
+              })
 }
 
 ## .OldClassList is a purely heuristic list of known old-style classes, with emphasis
@@ -292,10 +225,9 @@
 ## objects are known & reasonable.  The classes will reappear in
 ## .OldClassesList, but will have been initialized first in
 ## .InitBasicClasses.  NB:  the methods package will NOT set up
-## prototypes for S3 classes except those in package base and for "ts"
-## (and would rather not do those either).  The package that owns the
-## S3 class should have code to call setOldClass in its
-## initialization.
+## prototypes for S3 classes except those in package base (and would
+## rather not do those either).  The package that owns the S3 class
+## should have code to call setOldClass in its initialization.
 .OldClassesPrototypes <-
   list(
        list("data.frame",  data.frame(), "data.frame"),
@@ -303,7 +235,6 @@
        list(c("ordered", "factor"), ordered(character())),
        list("table",  table(factor())),
        list("summary.table",  summary.table(table(factor())))
-       , list("ts", stats::ts())
        )
 .OldClassesList <-
     list(
@@ -312,7 +243,6 @@
          c("aov", "lm"), # see also .OldIsList
          c("maov", "mlm", "lm"),
          "POSIXt", "POSIXct", "POSIXlt", # see .OldIsList
-         "Date",
          "dump.frames",
          c("ordered", "factor"),
          c("glm.null", "glm", "lm"),
@@ -325,7 +255,9 @@
          "mtable",
          "table",
          "summary.table",
-         c("mts", "ts"),
+### can't do this while "ts" is treated like "matrix":         c("mts", "ts"),
+### instead:
+         "mts",
          "recordedplot",
          "socket",
          "packageIQR",

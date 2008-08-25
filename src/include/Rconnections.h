@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000-2008   The R Development Core Team.
+ *  Copyright (C) 2000-2006   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,14 +21,12 @@
 #define R_CONNECTIONS_H_
 #include <R_ext/Boolean.h>
 
-/* NB: this is a private header, and not installed.  The internals of
-   connections are private and subject to change without notice. */
-
 #if defined(HAVE_OFF_T) && defined(HAVE_FSEEKO) && defined(HAVE_SYS_TYPES_H)
 #include <sys/types.h>
 #endif
 
-/* this allows the opaque pointer definition to be made available 
+/* until we make connections more public (which we never said we will)
+   this allows the opaque pointer definition to be made available 
    in Rinternals.h */
 #ifndef HAVE_RCONNECTION_TYPEDEF
 typedef struct Rconn  *Rconnection;
@@ -97,13 +95,6 @@ typedef struct gzfileconn {
     int cp;
 } *Rgzfileconn;
 
-typedef struct rawconn {
-    SEXP data; /* all the data, stored as a raw vector */
-    /* replace nbytes by TRUELENGTH in due course? */
-    size_t pos, nbytes; /* current pos and number of bytes 
-			   (same pos for read and write) */
-} *Rrawconn;
-
 typedef struct textconn {
     char *data;  /* all the data */
     int cur, nchars; /* current pos and number of chars */
@@ -164,6 +155,7 @@ typedef struct gzconn {
 #endif
 
 #define init_con	Rf_init_con
+#define con_close	Rf_con_close
 #define con_pushback	Rf_con_pushback
 
 int Rconn_fgetc(Rconnection con);
@@ -173,6 +165,7 @@ int Rconn_printf(Rconnection con, const char *format, ...);
 Rconnection getConnection(int n);
 Rconnection getConnection_no_err(int n);
 Rboolean switch_stdout(int icon, int closeOnExit);
+void con_close(int i);
 void init_con(Rconnection new, const char *description, int enc,
 	      const char * const mode);
 Rconnection R_newurl(const char *description, const char * const mode);

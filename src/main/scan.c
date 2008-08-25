@@ -82,10 +82,11 @@ typedef struct {
 
 static SEXP insertString(char *str, LocalData *l)
 {
-    cetype_t enc = CE_NATIVE;
-    if (l->con->UTF8out || l->isUTF8) enc = CE_UTF8;
-    else if (l->isLatin1) enc = CE_LATIN1;
-    return mkCharCE(str, enc);
+    if (!strIsASCII(str)) {
+	if (l->con->UTF8out || l->isUTF8) return mkCharCE(str, CE_UTF8);
+	else if (l->isLatin1) return mkCharCE(str, CE_LATIN1);
+    }
+    return mkChar(str);
 }
 
 static R_INLINE Rboolean Rspace(unsigned int c)
@@ -911,13 +912,6 @@ SEXP attribute_hidden do_scan(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    strcpy(data.con->mode, "r");
 	    if(!data.con->open(data.con))
 		error(_("cannot open the connection"));
-	    if(!data.con->canread) {
-		data.con->close(data.con);
-		error(_("cannot read from this connection"));
-	    }
-	} else {
-	    if(!data.con->canread) 
-		error(_("cannot read from this connection"));
 	}
 	for (i = 0; i < nskip; i++) /* MBCS-safe */
 	    while ((c = scanchar(FALSE, &data)) != '\n' && c != R_EOF);
@@ -1024,13 +1018,6 @@ SEXP attribute_hidden do_countfields(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    strcpy(data.con->mode, "r");
 	    if(!data.con->open(data.con))
 		error(_("cannot open the connection"));
-	    if(!data.con->canread) {
-		data.con->close(data.con);
-		error(_("cannot read from this connection"));
-	    } 
-	} else {
-	    if(!data.con->canread) 
-		error(_("cannot read from this connection"));
 	}
 	for (i = 0; i < nskip; i++) /* MBCS-safe */
 	    while ((c = scanchar(FALSE, &data)) != '\n' && c != R_EOF);

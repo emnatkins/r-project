@@ -49,9 +49,9 @@ notice identical to this one except for the removal of this paragraph
 @value{ISBN-exts}
 @end titlepage
 
-@c @ifnothtml
+@ifnothtml
 @contents
-@c @end ifnothtml
+@end ifnothtml
 
 @ifnottex
 @node Top, Acknowledgements, (dir), (dir)
@@ -180,7 +180,7 @@ distribution (in directory @file{share/licenses}).
 
 For the conventions for files @file{NEWS} and @file{ChangeLog} in the
 GNU project see
-@uref{http://@/www.gnu.org/prep/standards/standards.html#Documentation}.
+@uref{http://www.gnu.org/prep/standards/standards.html#Documentation}.
 
 The package subdirectory should be given the same name as the package.
 Because some file systems (e.g., those on Windows) are not
@@ -206,13 +206,6 @@ only contain only @acronym{ASCII} characters not excluded already
 many utilities do not accept spaces in file paths): non-English alphabetic
 characters cannot be guaranteed to be supported in all locales.  It would
 be good practice to avoid the shell metacharacters @code{()@{@}'[]$}.
-
-A source package if possible should not contain binary executable files:
-they are not portable, and a security risk if they are of the
-appropriate architecture.  @command{R CMD check} will warn about
-them@footnote{false positives are possible, but only one has been seen
-so far.} unless they are listed (one filepath per line) in a file
-@file{BinaryFiles} at the top level of the package or bundle.
 
 The @R{} function @code{package.skeleton} can help to create the
 structure for a new package: see its help page for details.
@@ -453,17 +446,17 @@ Windows build will zip up the data directory or no: set this to
 @samp{no} if your package will not work with a zipped data directory.
 
 If the @file{DESCRIPTION} file is not entirely in @acronym{ASCII} it
-should contain an @samp{Encoding} field specifying an encoding.  This is
-currently used as the encoding of the @file{DESCRIPTION} file itself and
-of the @file{R} and @file{NAMESPACE} files, and as the default encoding
-of @file{.Rd} files.  The examples are assumed to be in this encoding
-when running @command{R CMD check}.  As from @R{} 2.8.0 it is used for
-the encoding of the @code{CITATION} file.  Only encoding names
-@code{latin1}, @code{latin2} and @code{UTF-8} are known to be portable.
-(Do not specify an encoding unless one is actually needed: doing so
-makes the package @emph{less} portable.)
+should contain an @samp{Encoding} field specifying an encoding.  This
+is currently used as the encoding of the @file{DESCRIPTION} file
+itself and of the @file{R} and @file{NAMESPACE} files, and is taken as
+the default encoding of @file{.Rd} files as from @R{} 2.6.0.  As from
+@R{} 2.7.0, the examples are assumed to be in this encoding when
+running @command{R CMD check}.  Only encoding names @code{latin1},
+@code{latin2} and @code{UTF-8} are known to be portable.  (Do not
+specify an encoding unless one is actually needed: doing so makes the
+package @emph{less} portable.)
 
-The optional @samp{OS_type} field specifies the OS(es) for which the
+The optional @samp{OS_ype} field specifies the OSes for which the
 package is intended.  If present, it should be one of @code{unix} or
 @code{windows}, and indicates that the package should only be installed
 on a platform with @samp{.Platform$OS.type} having that value.
@@ -1270,11 +1263,6 @@ The files and directories are checked for sufficient permissions (Unix
 only).
 
 @item
-The files are checked for binary executables, using a suitable version
-of @command{file} if available.  (There may be rare false positives --
-package @pkg{foreign} has one.)
-
-@item
 The @file{DESCRIPTION} file is checked for completeness, and some of its
 entries for correctness.  Unless installation tests are skipped,
 checking is aborted if the package dependencies cannot be resolved at
@@ -1305,10 +1293,6 @@ value @samp{yes-maybe}) and there is no @file{src/Makefile} or
 
 To allow a @file{configure} script to generate suitable files, files
 ending in @samp{.in} will be allowed in the @file{R} directory.
-
-A warning is given for directory names that look like @R{} package check
-directories -- many packages have been submitted to CRAN containing
-these.
 
 @item
 The @R{} files are checked for syntax errors.  Bytes which are
@@ -1660,10 +1644,16 @@ admitted to the main @acronym{CRAN} package area.
 
 When all the testing is done, upload the @file{.tar.gz} file, using
 @samp{anonymous} as log-in name and your e-mail address as password, to
-@uref{ftp://CRAN.R-project.org/incoming/} (note: use @samp{ftp} and not
-@samp{sftp} to connect to this server) and send a message to
-@email{CRAN@@R-project.org} about it.  The @acronym{CRAN} maintainers
-will run these tests before putting a submission in the main archive.
+
+@example
+@uref{ftp://CRAN.R-project.org/incoming/}
+@end example
+
+@noindent
+(note: use @code{ftp} and not @code{sftp} to connect to this server) and
+send a message to @email{CRAN@@R-project.org} about it.  The
+@acronym{CRAN} maintainers will run these tests before putting a
+submission in the main archive.
 
 Note that @acronym{CRAN} generally does not accept submissions of
 precompiled binaries due to security reasons.
@@ -2634,13 +2624,6 @@ information, but it normally then gets outdated.  See @code{?citEntry}
 for further details of the information which can be provided.
 
 The @file{CITATION} should itself produce no output.
-
-As from @R{} 2.8.0, the @file{CITATION} file will be read in Latin-1 unless a
-package encoding is declared in the package's @file{DESCRIPTION} file.
-(@R{} 2.7.0 read the @file{CITATION} file in Latin-1, which covered all
-the examples at the time.  Earlier versions of @R{} read the file in the
-encoding of the session.)
-
 
 @node Package types, Services, CITATION files, Creating R packages
 @section Package types
@@ -3640,7 +3623,7 @@ contains
 @end example
 
 @noindent
-so that e.g.@: @kbd{??Spearman} will succeed in finding the
+so that e.g.@: @kbd{help.search("Spearman")} will succeed in finding the
 help page for the test for association between paired samples using
 Spearman's @eqn{\rho, rho}.  (Note that concepts are not currently
 supported by the @HTML{} search accessed @emph{via}
@@ -3998,8 +3981,8 @@ useful to compare profiling code immediately after a call to @code{gc()}
 with a profiling run without a preceding call to @code{gc}.
 
 More detailed analysis of the output can be achieved by the tools in the
-CRAN packages @pkg{proftools} and @pkg{prof}: in particular these allow
-call graphs to be studied.
+CRAN package @pkg{proftools}: in particular this allows call graphs to
+be studied.
 
 @node Profiling R code for memory use, Profiling compiled code, Profiling R code for speed, Tidying and profiling R code
 @section Profiling R code for memory use
@@ -4181,7 +4164,7 @@ profile DLLs on Windows.
 @subsection Linux
 
 Options include using @command{sprof} for a shared object, and
-@command{oprofile} (see @uref{http://@/oprofile.sourceforge.net/}) for any
+@command{oprofile} (see @uref{http://oprofile.sourceforge.net/}) for any
 executable or shared object.
 
 @subsubsection sprof
@@ -4272,7 +4255,7 @@ collects information from shared libraries compiled with @option{-pg}.
 Developers have recommended @command{sample} (or @command{Sampler.app},
 which is a GUI version) and @command{Shark} (see
 @uref{http://developer.apple.com/tools/sharkoptimize.html} and
-@uref{http://@/developer.@/apple.com/tools/shark_optimize.html}).
+@uref{http://developer.apple.com/tools/shark_optimize.html}).
 
 
 @node Debugging, System and foreign language interfaces, Tidying and profiling R code, Top
@@ -4736,8 +4719,8 @@ It is possible to run all the examples, tests and vignettes covered by
 @node Using valgrind,  , Using gctorture, Using gctorture and valgrind
 @subsection Using valgrind
 
-If you have access to Linux on an @cputype{ix86}, @cputype{x86_64} or
-@cputype{ppc32} platform you can use @code{valgrind}
+If you have access to Linux on an @code{ix86}, @code{x86_64} or
+@code{ppc32} platform you can use @code{valgrind}
 (@uref{http://www.valgrind.org/}, pronounced to rhyme with `tinned') to
 check for possible problems.  To run some examples under @code{valgrind}
 use something like
@@ -5536,8 +5519,7 @@ routines declared as
 @findex R_RegisterCCallable
 @findex R_GetCCallable
 @example
-void R_RegisterCCallable(const char *package, const char *name,
-                         DL_FUNC fptr);
+void R_RegisterCCallable(const char *package, const char *name, DL_FUNC fptr);
 DL_FUNC R_GetCCallable(const char *package, const char *name);
 @end example
 
@@ -5640,8 +5622,8 @@ R Installation and Administration}.
 
 
 Note that as @code{R CMD SHLIB} uses Make, it will not remake a shared
-object just because the flags have changed, and if @file{test.c} and
-@file{test.f} both exist in the current directory
+object just because the flags have changed, and if @code{test.c} and
+@code{test.f} both exist in the current directory
 
 @example
 R CMD SHLIB test.f
@@ -5662,10 +5644,10 @@ system makefile and then any personal @file{Makevars} files.
 If the @file{src} subdirectory of package contains a file
 @file{Makefile}, this is used in place of the @code{R CMD SHLIB}
 mechanism.  @command{make} is called with makefiles
-@file{@var{R_HOME}/etc@var{R_ARCH}/Makeconf}@footnote{or the version
-specific to a sub-architecture}, @file{src/Makefile} and any personal
-@file{Makevars} files (in that order).  The first target found in
-@file{src/Makefile} is used.
+@file{R_HOME/etc@var{R_ARCH}/Makeconf}@footnote{or the version specific to a
+sub-architecture}, @file{src/Makefile} and any personal @file{Makevars}
+files (in that order).  The first target found in @file{src/Makefile} is
+used.
 
 It is better to make use of a @code{Makevars}
 file rather than a @code{Makefile}: the latter should be needed only
@@ -6461,17 +6443,18 @@ nul-terminated C-style string.  This function will return a pre-existing
 @code{CHARSXP} if one with a matching string already exists, otherwise
 it will create a new one and add it to the cache before returning it to
 you.   The variant @code{mkCharLen} can be used to create a
-@code{CHARSXP} from part of a buffer and will ensure null-termination.
+@code{CHARSXP} from a buffer possibly containing nuls -- as from @R{}
+2.8.0 these are also cached.
 
 Currently, it is still possible to create @code{CHARSXP}s using
-@code{allocVector}; @code{CHARSXP}s created in this way will not be
-captured by the global @code{CHARSXP} cache and this should be avoided.
-In the future, all @code{CHARSXP}s will be captured by the cache and
-this will allow further optimizations, for example, replacing calls to
-@code{strcmp} with pointer comparisons.  A helper macro,
-@code{CallocCharBuf}, can be used to obtain a temporary character buffer
-for in-place string manipulation: this memory must be released using
-@code{Free}.
+@code{allocVector}; @code{CHARSXP}s created in
+this way will not be captured by the global @code{CHARSXP} cache and
+this should be avoided.  In the future, all @code{CHARSXP}s will be
+captured by the cache and this will allow further optimizations, for
+example, replacing calls to @code{strcmp} with pointer comparisons.  A
+helper macro, @code{CallocCharBuf}, can be used to obtain a temporary
+character buffer for in-place string manipulation: this memory must be
+released using @code{Free}.
 
 @node Finding and setting variables, Some convenience functions, Handling character data, Handling R objects in C
 @subsection Finding and setting variables
@@ -6569,7 +6552,7 @@ and there are versions of this for all the atomic vector types (those for
 a length-one character vector being @code{ScalarString} with argument a
 @code{CHARSXP} and @code{mkString} with argument @code{const char *}).
 
-Some of the @code{is@var{XXXX}} functions differ from their apparent
+Some of the @code{isXXXX} functions differ from their apparent
 @R{}-level counterparts: for example @code{isVector} is true for any
 atomic vector type (@code{isVectorAtomic}) and for lists and expressions
 (@code{isVectorList}) (with no check on attributes).  @code{isMatrix} is
@@ -6996,8 +6979,8 @@ SEXP lapply(SEXP list, SEXP expr, SEXP rho)
   R_len_t i, n = length(list);
   SEXP ans;
 
-  if(!isNewList(list)) error("'list' must be a list");
-  if(!isEnvironment(rho)) error("'rho' should be an environment");
+  if(!isNewList(list)) error("`list' must be a list");
+  if(!isEnvironment(rho)) error("`rho' should be an environment");
   PROTECT(ans = allocVector(VECSXP, n));
   for(i = 0; i < n; i++) @{
     defineVar(install("x"), VECTOR_ELT(list, i), rho);
@@ -7023,9 +7006,9 @@ SEXP lapply2(SEXP list, SEXP fn, SEXP rho)
   R_len_t i, n = length(list);
   SEXP R_fcall, ans;
 
-  if(!isNewList(list)) error("'list' must be a list");
-  if(!isFunction(fn)) error("'fn' must be a function");
-  if(!isEnvironment(rho)) error("'rho' should be an environment");
+  if(!isNewList(list)) error("`list' must be a list");
+  if(!isFunction(fn)) error("`fn' must be a function");
+  if(!isEnvironment(rho)) error("`rho' should be an environment");
   PROTECT(R_fcall = lang2(fn, R_NilValue));
   PROTECT(ans = allocVector(VECSXP, n));
   for(i = 0; i < n; i++) @{
@@ -7652,8 +7635,7 @@ Function
 
 @findex reEnc
 @example
-const char *reEnc(const char *x, cetype_t ce_in, cetype_t ce_out,
-                  int subst);
+const char *reEnc(const char *x, cetype_t ce_in, cetype_t ce_out, int subst);
 @end example
 
 @noindent
@@ -7664,17 +7646,6 @@ returns a string allocated by @code{R_alloc}.  This can translate from
 invalid input: this is done byte-by-byte with @code{1} indicates to
 output hex of the form @code{<a0>}, and @code{2} to replace by @code{.},
 with any other value causing the byte to produce no output.
-
-@findex mkCharLenCE
-@R{} 2.8.0 added
-
-@example
-SEXP mkCharLenCE(const char *, int, cetype_t);
-@end example
-
-@noindent
-to create marked character strings of a given length.
-
 
 @node The R API, Generic functions and methods, System and foreign language interfaces, Top
 @chapter The R @acronym{API}: entry points for C code
@@ -7739,32 +7710,32 @@ files when using these entry points.
 
 This remapping can cause problems@footnote{Known problems are redefining
 @code{error}, @code{length}, @code{vector} and @code{warning}}, and can
-be eliminated by defining @code{R_NO_REMAP} and prepending @samp{Rf_} to
+be eliminated by defining @code{R_NO_REMAP} and prepending @code{Rf_} to
 @emph{all} the function names used from @file{Rinternals.h} and
 @file{R_ext/Error.h}.
 
 We can classify the entry points as
 
-@table @emph
-@item API
+@itemize
+@item @emph{API}
 Entry points which are documented in this manual and declared in an
 installed header file.  These can be used in distributed packages and
 will only be changed after deprecation.
 
-@item public
+@item @emph{public}
 Entry points declared in an installed header file that are exported
 on all @R{} platforms but are not documented and subject to change
 without notice.
 
-@item private
+@item @emph{private}
 Entry points that are used when building @R{} and exported on all @R{}
 platforms but are not declared in the installed header files.
 Do not use these in distributed code.
 
-@item hidden
+@item @emph{hidden}
 Entry points that are where possible (Windows and some modern Unix
 compilers/loaders when using @R{} as a shared library) not exported.
-@end table
+@end itemize
 
 @node Memory allocation, Error handling, The R API, The R API
 @section Memory allocation
@@ -9120,7 +9091,7 @@ The graphics systems are exposed in headers
 @file{R_ext/GraphicsEngine.h}, @file{R_ext/GraphicsDevice.h} (which it
 includes) and @file{R_ext/QuartzDevice.h}.  Some entry points from the
 @pkg{stats} package are in @file{R_ext/stats_package.h} (currently
-related to the internals of @code{nls} and @code{nlminb}).
+related to the internals of @samp{nls} and @samp{nlminb}).
 
 
 @node Generic functions and methods, Linking GUIs and other front-ends to R, The R API, Top
@@ -9360,7 +9331,7 @@ Setting @env{R_HOME} and checking it is valid, as well as the path
 Setting @env{LD_LIBRARY_PATH} to include the directories used in linking
 @R{}.  This is recorded as the default setting of
 @env{R_LD_LIBRARY_PATH} in the shell script
-@file{@var{R_HOME}/etc@var{R_ARCH}/ldpaths}.
+@file{R_HOME/etc@var{R_ARCH}/ldpaths}.
 
 @item
 Processing some of the arguments, for example to run @R{} under a

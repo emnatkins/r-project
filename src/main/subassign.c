@@ -1362,7 +1362,8 @@ SEXP attribute_hidden do_subassign_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	break;
     default:
-	error(R_MSG_ob_nonsub, type2char(TYPEOF(x)));
+	error(_("object of type '%s' is not subsettable"),
+	      type2char(TYPEOF(x)));
 	break;
     }
 
@@ -1725,7 +1726,8 @@ do_subassign2_dflt(SEXP call, SEXP op, SEXP args, SEXP rho)
 	xtop = x;
 	UNPROTECT(1);
     }
-    else error(R_MSG_ob_nonsub, type2char(TYPEOF(x)));
+    else error(_("object of type '%s' is not subsettable"),
+	       type2char(TYPEOF(x)));
 
     UNPROTECT(1);
     SET_NAMED(xtop, 0);
@@ -1833,12 +1835,6 @@ SEXP R_subassign3_dflt(SEXP call, SEXP x, SEXP nlist, SEXP val)
     /* cannot use isEnvironment since we do not want NULL here */
     else if( TYPEOF(x) == ENVSXP ) {
       defineVar(nlist, val, x);
-    }
-    else if( TYPEOF(x) == SYMSXP || /* Used to 'work' in R < 2.8.0 */
-	     TYPEOF(x) == CLOSXP ||
-	     TYPEOF(x) == SPECIALSXP ||
-	     TYPEOF(x) == BUILTINSXP) {
-	error(R_MSG_ob_nonsub, type2char(TYPEOF(x)));
     }
     else {
 	int i, imatch, nx;

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.5.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-08-01 09:16\n"
+"POT-Creation-Date: 2008-08-01 08:43\n"
 "PO-Revision-Date: 2008-04-05 19:59+0900 \n"
 "Last-Translator: Shigeru Mase <maseshigeru@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -21,44 +21,11 @@ msgstr " おやまあ: 行が何か変です "
 msgid "in .OldClassesPrototypes"
 msgstr " .OldClassesPrototypes 内 "
 
-msgid "Cannot specify matrix() arguments when specifying .Data"
-msgstr ""
-
-msgid "Cannot specify array() arguments when specifying .Data"
-msgstr ""
-
 msgid ""
 "methods may not be defined for primitive function \"%s\" in this version of R"
 msgstr ""
 " 現在のRのバージョンでは，メソッドをプリミティブ関数 \"%s\" として定義するこ"
 "とが出来ません． "
-
-msgid ""
-"S3Part() is only defined for classes set up by setOldCLass() or extend such "
-"a class:  not true of class \"%s\""
-msgstr ""
-
-msgid ""
-"The S3Class argument must be a class set up by setOldCLass() or an extension "
-"of such a class:  not true of class \"%s\""
-msgstr ""
-
-msgid "Not meaningful to have keepSlots=TRUE and strict=TRUE"
-msgstr ""
-
-msgid "Replacement value must extend class \"%s\", got  \"%s\""
-msgstr ""
-
-#, fuzzy
-msgid "Replacement value must be of class \""
-msgstr " 置き換え値は行列ではありません "
-
-#, fuzzy
-msgid "\", got one of class \""
-msgstr " オブジェクトのクラスは \" "
-
-msgid "\""
-msgstr " \" "
 
 msgid ""
 "no 'replace' method was defined for as(x, \"%s\") <- value for class \"%s\""
@@ -96,9 +63,6 @@ msgstr ""
 msgid "unable to create union class:  could not set members %s"
 msgstr " union クラスを生成できません : メンバー %s を設定できませんでした "
 
-msgid "invalid argument \"name\": %s"
-msgstr ""
-
 msgid ""
 "\"%s\" is a primitive function;  methods can be defined, but the generic "
 "function is implicit, and cannot be changed."
@@ -118,15 +82,11 @@ msgstr ""
 " 明示的もしくは既存の関数経由で関数の骨格(skelton) を与える必要があります "
 
 msgid ""
-"Restoring the implicit generic function for \"%s\" from package \"%s\" into "
-"package \"%s\"; the generic differs from the default conversion (%s)"
+"New generic for \"%s\" does not agree with implicit generic from package \"%s"
+"\"; a new generic will be assigned with package \"%s\""
 msgstr ""
-
-msgid ""
-"Creating a generic for \"%s\" in package  \"%s\"\n"
-"    (the supplied definition differs from and overrides the implicit generic "
-"in package \"%s\": %s)"
-msgstr ""
+" \"%s\" に対する新しい総称がパッケージ  \"%s\" からの暗黙の総称と一致しませ"
+"ん; 新しい総称がパッケージ \"%s\" を用いて割り当てられます "
 
 msgid ""
 "No generic version of  \"%s\" on package \"%s\" is allowed; a new generic "
@@ -184,10 +144,6 @@ msgstr ""
 msgid "no existing definition for function \"%s\""
 msgstr " 関数 \"%s\" に対する既存の定義はありません "
 
-#, fuzzy
-msgid "Creating a generic function from function \"%s\""
-msgstr " 新しいジェネリック関数 \"%s\" を \"%s\" 中に生成します "
-
 msgid "Creating a new generic function for \"%s\" in \"%s\""
 msgstr " 新しいジェネリック関数 \"%s\" を \"%s\" 中に生成します "
 
@@ -232,13 +188,6 @@ msgstr " 関数 \"%s\" とシグネチャ(signature) %s に対するメソッド
 
 msgid "no generic function \"%s\" found"
 msgstr " 総称的関数 \"%s\" が見つかりません "
-
-msgid "no environment or package corresponding to argument where=%s"
-msgstr ""
-
-#, fuzzy
-msgid "No generic function found for \"%s\""
-msgstr " \"%s\" に対する総称的関数は見付かりません "
 
 msgid "No method found for function \"%s\" and signature %s"
 msgstr " 関数 \"%s\" とシグネチャ(signature) %s に対するメソッドがありません "
@@ -296,6 +245,19 @@ msgstr ""
 " 最初の引数は総称的関数の名前であるべきです(クラス \"%s\" のオブジェクトを得"
 "ました) "
 
+msgid ""
+"No generic function found for \"%s\"; no action taken in removeMethodsObject"
+msgstr ""
+" \"%s\" に対する総称的関数が見付かりません；　removeMethodsObject　中で如何な"
+"るアクションも行われません "
+
+msgid ""
+"the environment/package \"%s\" is locked; cannot remove methods data for \"%s"
+"\""
+msgstr ""
+" 環境/パッケージ \"%s\" はロックされています； \"%s\" に対するメソッドデータ"
+"を取り除けません "
+
 msgid "\"%s\" is not a generic function in \"%s\"; methods not removed"
 msgstr ""
 " 総称的関数でない \"%s\" が \"%s\" 中にあります；メソッドは取り除かれません "
@@ -349,6 +311,18 @@ msgstr ""
 msgid "Must provide an environment table; got class \"%s\""
 msgstr " 環境テーブルを提供する必要があります；クラス \"%s\" が得られました "
 
+msgid "Function \"%s\" may not be used as a generic (implicitly prohibited)"
+msgstr ""
+"関数 \"%s\" は総称的関数として使うことができません(暗黙のうちに禁止されていま"
+"す) "
+
+msgid ""
+"Implicit generic exists for \"%s\", but will be overriden by explicit call "
+"to setGeneric()"
+msgstr ""
+" \"%s\" に対する暗黙の総称が存在しますが、setGeneric() の明示的な呼出しにより"
+"上書きされます "
+
 msgid ""
 "argument \"f\" must be a generic function or a single character string; got "
 "an object of class \"%s\""
@@ -356,8 +330,7 @@ msgstr ""
 "クラス \"%s\" のオブジェクトを得ましたが、引数 'f' は総称的関数か単一の文字列"
 "でなければなりません; "
 
-#, fuzzy
-msgid "non-generic function '%s' given to findMethods()"
+msgid "non-generic function given to findMethods()"
 msgstr " findMethods() に総称的でない関数が与えられました "
 
 #, fuzzy
@@ -366,8 +339,10 @@ msgstr ""
 " where が与えられた時は、継承に対しては FALSE だけが意味を持ちます(以下が与え"
 "られました "
 
-#, fuzzy
-msgid "'%s' is not a generic function in '%s' {and 'package' not specified}"
+msgid "\""
+msgstr " \" "
+
+msgid "f does not correspond to a generic function and package not specified"
 msgstr " f は総称的関数に対応しませんし、パッケージも指定されていません "
 
 msgid ""
@@ -482,6 +457,16 @@ msgstr ""
 " メソッド (%s) に対するシグナチャ中の名前が %s の引数 (%s) にマッチしません "
 
 msgid ""
+"'NextMethod' not defined because the current method is not a "
+"'MethodDefinition' object"
+msgstr ""
+" 現在のメソッドは 'MethodDefinition' オブジェクトではないので 'NextMethod' は"
+"定義されません "
+
+msgid "expected a list of signature objects, got \"%s\""
+msgstr " シグナチャリストを期待しましたが、\"%s\" でした "
+
+msgid ""
 "a call to callNextMethod() appears in a call to \"%s\", but the call does "
 "not seem to come from either a generic function or another 'callNextMethod'"
 msgstr ""
@@ -567,13 +552,6 @@ msgid ""
 msgstr ""
 " クラス \"%s\"、与えられたデータパートクラス, の定義において \"%s\" が不正で"
 "す(基本クラスか、ベーシッククラスを結合した仮想的クラスである必要があります) "
-
-#, fuzzy
-msgid ""
-"No definition was found for superclass \"%s\" in the specification of class "
-"\"%s\""
-msgstr ""
-" クラス \"%s\" の定義は指定された位置 %s にありません、%s に関する定義です "
 
 msgid "class \"%s\" cannot be used as the data part of another class"
 msgstr " クラス \"%s\" は他のクラスのデータ部分として使うことは出来ません "
@@ -788,6 +766,16 @@ msgid "Empty function name in .getGeneric"
 msgstr " .getGeneric の中に空の関数名 "
 
 msgid ""
+"the methods object name for \"%s\" must include the name of the package that "
+"contains the generic function, but no generic function of this name was found"
+msgstr ""
+" \"%s\" に対するメソッドオブジェクト名は総称的関数を含むパッケージ名を含まね"
+"ばなりません、しかしこの名前の総称的関数はありません "
+
+msgid "no way to associate a generic function with an object of class \"%s\""
+msgstr " 総称的関数をクラス \"%s\" のオブジェクトに関連付ける方法はありません "
+
+msgid ""
 "Package \"%s\" seems to have out-of-date methods; need to reinstall from "
 "source"
 msgstr ""
@@ -994,11 +982,6 @@ msgstr ""
 msgid "invalid names for slots of class \"%s\": %s"
 msgstr " クラス \"%s\" のスロットに対しては不正な名前です: %s "
 
-msgid ""
-"Class \"%s\" is defined, with package \"%s\", but no corresponding metadata "
-"object was found (not exported?)"
-msgstr ""
-
 msgid "no definition of \"%s\" to use for %s"
 msgstr " \"%s\" (%s に対して使用する)の定義がありません "
 
@@ -1133,10 +1116,11 @@ msgstr ""
 "ない限り、定義できません "
 
 msgid ""
-"Class \"%s\" is defined (with package slot \"%s\") but no metadata object "
-"found to revise %s information---not exported?  Making a copy in package \"%s"
-"\""
+"Unable to find package environment for class \"%s\" to revise subclass "
+"information"
 msgstr ""
+" 下位クラス情報を改訂するためのクラス \"%s\" に対するパッケージ情報を見付ける"
+"ことが出来ません "
 
 msgid "class \"%s\" cannot extend class \"%s\""
 msgstr " クラス \"%s\" はクラス \"%s\" に拡張できません "
@@ -1247,10 +1231,6 @@ msgid "Invalid group generic function in search for inherited method (class \""
 msgstr ""
 " 継承メソッドを探索中に不正なグループ総称関数が見付かりました(クラスは \" "
 
-#, fuzzy
-msgid "Invalid methods table request"
-msgstr " 不正なメソッドサブリスト "
-
 msgid "Trying to check signature length of group generic \""
 msgstr " 以下のグループ総称関数のシグネチャの長さをチェックしようとしています "
 
@@ -1290,11 +1270,6 @@ msgstr ""
 " \"%s\" に対する不整合な旧式の情報(恐らく古いクラスと新しいクラスが混ざってい"
 "る？) "
 
-msgid ""
-"The class of the prototype, \"%s\", is undefined; only allowed for the S3 "
-"class being registered (\"%s\")"
-msgstr ""
-
 msgid "explicit coercion of old-style class (%s) is not defined"
 msgstr " 旧式のクラス (%s) の明示的な強制変換は定義されていません "
 
@@ -1311,11 +1286,6 @@ msgid ""
 msgstr ""
 " 引数 'Classes' は二つのクラスのベクトルでなければなりません；長さ %d の引数"
 "でした "
-
-msgid ""
-"S3Class can only be assigned to S4 objects that extend \"oldClass\"; not "
-"true of class \"%s\""
-msgstr ""
 
 msgid "Created a package name, \"%s\", when none found"
 msgstr " パッケージ名 %s を作成しましたが、見つかりません "
@@ -1433,60 +1403,10 @@ msgid_plural ""
 msgstr[0] ""
 " 関数 \"%s\" に対するメソッドシグネチャ中に、シグネチャ中の不正な引数名：% "
 
-#~ msgid ""
-#~ "'NextMethod' not defined because the current method is not a "
-#~ "'MethodDefinition' object"
-#~ msgstr ""
-#~ " 現在のメソッドは 'MethodDefinition' オブジェクトではないので "
-#~ "'NextMethod' は定義されません "
-
-#~ msgid "expected a list of signature objects, got \"%s\""
-#~ msgstr " シグナチャリストを期待しましたが、\"%s\" でした "
-
-#~ msgid ""
-#~ "New generic for \"%s\" does not agree with implicit generic from package "
-#~ "\"%s\"; a new generic will be assigned with package \"%s\""
-#~ msgstr ""
-#~ " \"%s\" に対する新しい総称がパッケージ  \"%s\" からの暗黙の総称と一致しま"
-#~ "せん; 新しい総称がパッケージ \"%s\" を用いて割り当てられます "
-
-#~ msgid "Function \"%s\" may not be used as a generic (implicitly prohibited)"
-#~ msgstr ""
-#~ "関数 \"%s\" は総称的関数として使うことができません(暗黙のうちに禁止されて"
-#~ "います) "
-
-#~ msgid ""
-#~ "Implicit generic exists for \"%s\", but will be overriden by explicit "
-#~ "call to setGeneric()"
-#~ msgstr ""
-#~ " \"%s\" に対する暗黙の総称が存在しますが、setGeneric() の明示的な呼出しに"
-#~ "より上書きされます "
-
-#~ msgid ""
-#~ "Unable to find package environment for class \"%s\" to revise subclass "
-#~ "information"
-#~ msgstr ""
-#~ " 下位クラス情報を改訂するためのクラス \"%s\" に対するパッケージ情報を見付"
-#~ "けることが出来ません "
-
 #~ msgid "Could not find generic function \"%s\" to initialize cached methods"
 #~ msgstr ""
 #~ " キャッシュされたメソッドを初期化するための総称的関数 \"%s\" を見付けるこ"
 #~ "とができませんでした "
-
-#~ msgid ""
-#~ "No generic function found for \"%s\"; no action taken in "
-#~ "removeMethodsObject"
-#~ msgstr ""
-#~ " \"%s\" に対する総称的関数が見付かりません；　removeMethodsObject　中で如"
-#~ "何なるアクションも行われません "
-
-#~ msgid ""
-#~ "the environment/package \"%s\" is locked; cannot remove methods data for "
-#~ "\"%s\""
-#~ msgstr ""
-#~ " 環境/パッケージ \"%s\" はロックされています； \"%s\" に対するメソッドデー"
-#~ "タを取り除けません "
 
 #~ msgid ""
 #~ "trying to change the argument list of %s with %d arguments to have "
@@ -1504,19 +1424,6 @@ msgstr[0] ""
 
 #~ msgid "arguments in definition %s changed from (%s) to (%s)"
 #~ msgstr " 定義 %s 中の引数が (%s) から (%s) へ変換されました "
-
-#~ msgid ""
-#~ "the methods object name for \"%s\" must include the name of the package "
-#~ "that contains the generic function, but no generic function of this name "
-#~ "was found"
-#~ msgstr ""
-#~ " \"%s\" に対するメソッドオブジェクト名は総称的関数を含むパッケージ名を含ま"
-#~ "ねばなりません、しかしこの名前の総称的関数はありません "
-
-#~ msgid ""
-#~ "no way to associate a generic function with an object of class \"%s\""
-#~ msgstr ""
-#~ " 総称的関数をクラス \"%s\" のオブジェクトに関連付ける方法はありません "
 
 #~ msgid "no methods found for generic \"%s\""
 #~ msgstr " 総称的な \"%s\" に対するメソッドが見付かりませんでした "

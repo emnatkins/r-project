@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-08-01 09:16\n"
+"POT-Creation-Date: 2008-08-01 08:44\n"
 "PO-Revision-Date: 2005-05-26 17:33+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -143,10 +143,7 @@ msgstr "'package' ,'dir' 또는 'file'를 지정하지 않으면 되지 않습�
 msgid "file '%s' does not exist"
 msgstr "파일 '%s'는 존재하지 않습니다"
 
-#, fuzzy
-msgid ""
-"parse error in file '%s':\n"
-"%s"
+msgid "parse error in file '%s'"
 msgstr "파일 '%s'에 있어서 에러를 해석합니다"
 
 msgid "Foreign function calls without 'PACKAGE' argument:"
@@ -158,12 +155,7 @@ msgstr "정의된 S3 메소드 '%s'가 검색되어 있지 않습니다"
 msgid "cannot check R code installed as image"
 msgstr "image 로서 인스톨 된 R code를 체크할 수가 없습니다"
 
-#, fuzzy
-msgid "parse error in file '%s':"
-msgstr "파일 '%s'에 있어서 에러를 해석합니다"
-
-#, fuzzy
-msgid "parse error in examples from file '%s':"
+msgid "parse error in examples from file '%s'"
 msgstr "파일 '%s'로부터 example에 있어서 에러를 해석합니다"
 
 msgid "File '%s':"
@@ -383,36 +375,6 @@ msgstr ""
 msgid "'library' or 'require' calls not declared from:"
 msgstr ""
 
-msgid "Generics g in env ="
-msgstr ""
-
-msgid "where hasMethods(g, env) errors:"
-msgstr ""
-
-msgid ","
-msgstr ""
-
-msgid "May need something like"
-msgstr ""
-
-msgid "importFrom("
-msgstr ""
-
-msgid ")"
-msgstr ""
-
-msgid "in NAMESPACE."
-msgstr ""
-
-msgid "Generics without methods in"
-msgstr ""
-
-msgid ":"
-msgstr ""
-
-msgid ".get_S4_methods_list(): *did* reduce list, dropping"
-msgstr ""
-
 msgid "argument 'lines' must be a character vector"
 msgstr "인수'lines'는 문자 벡터이어야만 합니다"
 
@@ -490,6 +452,10 @@ msgstr "Rd 파일에서 실패한 필드 또는 비어 있는 필드가 있습�
 msgid "unable to create temp directory"
 msgstr "temp 디렉토리를 작성할수가 없습니다"
 
+#, fuzzy
+msgid "--- running texi2dvi on vignettes"
+msgstr "'%s'에서 texi2dvi를 실행하는 것은 실패했습니다"
+
 msgid ""
 "processing vignette '%s' failed with diagnostics:\n"
 "%s"
@@ -498,6 +464,9 @@ msgstr ""
 #, fuzzy
 msgid "running 'make' failed"
 msgstr "유형의 실행은 실패했습니다"
+
+msgid "cannot read index information in file '%s'"
+msgstr "파일 '%s'에서 인덱스 정보를 읽을 수 있지 않습니다"
 
 msgid "argument 'vignette' must be of length 1"
 msgstr "인수 'vignette'가 길이 1이어야만 합니다"
@@ -516,6 +485,9 @@ msgid "cannot open directory '%s'"
 msgstr "디렉토리 '%s'를 열수가 없습니다"
 
 msgid "WARNING: 'Depends' entry has multiple dependencies on R:"
+msgstr ""
+
+msgid ","
 msgstr ""
 
 msgid "only the first will be used in R < 2.7.0"
@@ -589,9 +561,6 @@ msgstr ""
 
 msgid "ERROR: this R is version %s, required is R %s %s"
 msgstr ""
-
-msgid "cannot read index information in file '%s'"
-msgstr "파일 '%s'에서 인덱스 정보를 읽을 수 있지 않습니다"
 
 msgid "there is no package called '%s'"
 msgstr "'%s'라고 불리는 패키지는 없습니다"
@@ -678,25 +647,12 @@ msgid "only Rd syntax is currently supported"
 msgstr "Rd syntax만 현재 주어졌습니다"
 
 #, fuzzy
-msgid "Running 'texi2dvi' on '%s' failed."
-msgstr "'%s'에서 texi2dvi를 실행하는 것은 실패했습니다"
-
-#, fuzzy
 msgid "running 'texi2dvi' on '%s' failed"
 msgstr "'%s'에서 texi2dvi를 실행하는 것은 실패했습니다"
 
 #, fuzzy
 msgid "unable to run %s on '%s'"
 msgstr "'%s'에서 bibtex를 실행할 수 없습니다"
-
-msgid "File 'DESCRIPTION' is missing."
-msgstr ""
-
-msgid "Files 'DESCRIPTION' and 'DESCRIPTION.in' are missing."
-msgstr ""
-
-msgid "Bundle 'DESCRIPTION' is missing."
-msgstr ""
 
 msgid "file '%s' is not in valid DCF format"
 msgstr "파일 '%s'는 유효한 DCF format에 있지 않습니다"
@@ -729,10 +685,6 @@ msgid "Found possibly global 'T' or 'F' in the following Rd example file:"
 msgid_plural ""
 "Found possibly global 'T' or 'F' in the following Rd example files:"
 msgstr[0] ""
-
-#, fuzzy
-#~ msgid "--- running texi2dvi on vignettes"
-#~ msgstr "'%s'에서 texi2dvi를 실행하는 것은 실패했습니다"
 
 #~ msgid "unable to run pdflatex on '%s'"
 #~ msgstr "'%s'에서 pdflatex를 실행할 수 없습니다"

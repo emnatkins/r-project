@@ -30,8 +30,7 @@ split.default <- function(x, f, drop = FALSE, ...)
     lf <- levels(f)
     y <- vector("list", length(lf))
     names(y) <- lf
-    ind <- .Internal(split(seq_along(f), f))
-    for(k in lf) y[[k]] <- x[ind[[k]]]
+    for(k in lf) y[[k]] <- x[f %in% k]
     y
 }
 

@@ -20,6 +20,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is either ASCII or handled as a whole */
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -1717,41 +1719,31 @@ SEXP attribute_hidden do_plot_xy(SEXP call, SEXP op, SEXP args, SEXP env)
 
 static void xypoints(SEXP call, SEXP args, int *n)
 {
-    int k=0,/* -Wall */ kmin;
+    int k=0;/* -Wall */
 
-    if (!isNumeric(CAR(args)))
+    if (!isNumeric(CAR(args)) || (k = LENGTH(CAR(args))) <= 0)
 	error(_("invalid first argument"));
     SETCAR(args, coerceVector(CAR(args), REALSXP));
-    k = LENGTH(CAR(args));
-    *n = k; kmin = k;
+    *n = k;
     args = CDR(args);
 
-    if (!isNumeric(CAR(args)))
+    if (!isNumeric(CAR(args)) || (k = LENGTH(CAR(args))) <= 0)
 	error(_("invalid second argument"));
-    k = LENGTH(CAR(args));
     SETCAR(args, coerceVector(CAR(args), REALSXP));
     if (k > *n) *n = k;
-    if (k < kmin) kmin = k;
     args = CDR(args);
 
-    if (!isNumeric(CAR(args)))
+    if (!isNumeric(CAR(args)) || (k = LENGTH(CAR(args))) <= 0)
 	error(_("invalid third argument"));
     SETCAR(args, coerceVector(CAR(args), REALSXP));
-    k = LENGTH(CAR(args));
     if (k > *n) *n = k;
-    if (k < kmin) kmin = k;
     args = CDR(args);
 
-    if (!isNumeric(CAR(args)))
+    if (!isNumeric(CAR(args)) || (k = LENGTH(CAR(args))) <= 0)
 	error(_("invalid fourth argument"));
     SETCAR(args, coerceVector(CAR(args), REALSXP));
-    k = LENGTH(CAR(args));
     if (k > *n) *n = k;
-    if (k < kmin) kmin = k;
     args = CDR(args);
-
-    if (*n > 0 && kmin == 0)
-	error(_("cannot mix zero-length and non-zero-length coordinates"));
 }
 
 
@@ -1769,7 +1761,6 @@ SEXP attribute_hidden do_segments(SEXP call, SEXP op, SEXP args, SEXP env)
     GCheckState(dd);
 
     xypoints(call, args, &n);
-    if(n == 0) return R_NilValue;
 
     sx0 = CAR(args); nx0 = length(sx0); args = CDR(args);
     sy0 = CAR(args); ny0 = length(sy0); args = CDR(args);
@@ -1837,8 +1828,6 @@ SEXP attribute_hidden do_rect(SEXP call, SEXP op, SEXP args, SEXP env)
     GCheckState(dd);
 
     xypoints(call, args, &n);
-    if(n == 0) return R_NilValue;
-
     sxl = CAR(args); nxl = length(sxl); args = CDR(args);/* x_left */
     syb = CAR(args); nyb = length(syb); args = CDR(args);/* y_bottom */
     sxr = CAR(args); nxr = length(sxr); args = CDR(args);/* x_right */
@@ -1916,7 +1905,6 @@ SEXP attribute_hidden do_arrows(SEXP call, SEXP op, SEXP args, SEXP env)
     GCheckState(dd);
 
     xypoints(call, args, &n);
-    if(n == 0) return R_NilValue;
 
     sx0 = CAR(args); nx0 = length(sx0); args = CDR(args);
     sy0 = CAR(args); ny0 = length(sy0); args = CDR(args);

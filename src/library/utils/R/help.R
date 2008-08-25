@@ -110,7 +110,7 @@ function(x, ...)
     if(!length(paths)) {
         writeLines(c(gettextf("No documentation for '%s' in specified packages and libraries:",
                               topic),
-                     gettextf("you could try '??%s'",
+                     gettextf("you could try 'help.search(\"%s\")'",
                               topic)))
         return(invisible(x))
     }

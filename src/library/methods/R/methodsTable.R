@@ -219,19 +219,16 @@
   }
   hasGroup <- length(fdef@group) > 0
   if(hasGroup)
-      groupGenerics <- .getAllGroups(list(fdef))
+        groupGenerics <- .getAllGroups(list(fdef))
   doMtable <- is.environment(mtable)
   doExcluded <- length(excluded) > 0
   nargs <- length(classes)
   if(verbose)
-      cat(sprintf("* .findInheritedMethods():%s nargs=%d, returnAll=%s\n",
-                  if(hasGroup) paste(" has group generics ",
-                                     paste(sapply(groupGenerics, slot, "generic"),
-                                           collapse=", "),";", sep='') else "",
+      cat(sprintf("* .findInheritedMethods(): nargs=%d, returnAll=%s\n",
                   nargs, returnAll))
   methods <- list()
   if(!missing(useInherited) && length(useInherited) < nargs)
-    useInherited <- rep(useInherited, length.out = nargs)
+    useInherited <- rep(useInherited, length = nargs)
   if(hasGroup && !doExcluded) {
     ## first try for an exact match in a group generic
     ## If this matches &  is cached, it then will be treated as a non-inherited method
@@ -241,6 +238,9 @@
     ## inherited in the nextMethod sense, since they have the same signature
     label <- .sigLabel(classes)
     direct <- .getGroupMethods(label, groupGenerics, FALSE)
+##M doExcluded must be FALSE here
+##M     if(doExcluded && length(direct) > 0)
+##M       direct <- direct[is.na(match(names(direct), excluded))]
     if(length(direct) > 0 && doMtable) {
         assign(label, direct[[1]], envir = mtable)
         if(verbose) cat("* found (and cached) direct group method for", label,"\n")
@@ -309,7 +309,7 @@
                 domain = NA, call. = FALSE)
       methods <- methods[1]
   }
-  if(doMtable && length(methods) > 0) { ## Cache the newly found one
+  if(doMtable  && length(methods)>0) {
     tlabel <- .sigLabel(classes)
     m <- methods[[1]]
     if(is(m, "MethodDefinition"))  { # else, a primitive
@@ -629,11 +629,8 @@ useMTable <- function(onOff = NA)
                              check = TRUE, inherited = FALSE)
 {
     name <- if(inherited) ".AllMTable" else ".MTable"
-    if(check && !exists(name, envir = env, inherits = FALSE)) {
-        .setupMethodsTables(fdef)
-        if(!exists(name, envir = env, inherits = FALSE))
-         stop("Invalid methods table request")
-    }
+    if(check && !exists(name, envir = env, inherits = FALSE))
+      .setupMethodsTables(fdef)
     get(name, envir = env)
 }
 

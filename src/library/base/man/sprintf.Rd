@@ -112,6 +112,8 @@ gettextf(fmt, \dots, domain = NULL)
 
   Field widths and precisions of \code{\%s} conversions are interpreted
   as bytes, not characters, as described in the C standard.
+
+  Character inputs with embedded nul bytes will be truncated at the first nul.
 }
 
 \value{

@@ -18,6 +18,8 @@
  *  http://www.r-project.org/Licenses/
  */
 
+/* <UTF8> char here is either ASCII or handled as a whole */
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -515,8 +517,12 @@ SEXP attribute_hidden do_filecreate(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    LOGICAL(ans)[i] = 1;
 	    fclose(fp);
 	} else if (show) {
+#ifdef HAVE_STRERROR
 	    warning(_("cannot create file '%s', reason '%s'"),
 		    CHAR(STRING_ELT(fn, i)), strerror(errno));
+#else
+	    warning(_("cannot create file '%s'"), CHAR(STRING_ELT(fn, i)));
+#endif
 	}
     }
     UNPROTECT(1);
@@ -541,9 +547,11 @@ SEXP attribute_hidden do_fileremove(SEXP call, SEXP op, SEXP args, SEXP rho)
 #else
 		(remove(R_ExpandFileName(translateChar(STRING_ELT(f, i)))) == 0);
 #endif
+#ifdef HAVE_STRERROR
 	    if(!LOGICAL(ans)[i])
 		warning(_("cannot remove file '%s', reason '%s'"),
 			CHAR(STRING_ELT(f, i)), strerror(errno));
+#endif
 	} else LOGICAL(ans)[i] = FALSE;
     }
     UNPROTECT(1);
@@ -598,8 +606,12 @@ SEXP attribute_hidden do_filesymlink(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    /* Rprintf("linking %s to %s\n", from, to); */
 	    LOGICAL(ans)[i] = symlink(from, to) == 0;
 	    if(!LOGICAL(ans)[i]) {
+#ifdef HAVE_STRERROR
 		warning(_("cannot symlink '%s' to '%s', reason '%s'"),
 			from, to, strerror(errno));
+#else
+		warning(_("cannot symlink '%s' to '%s'"), from, to);
+#endif
 	    }
 	}
     }
@@ -657,8 +669,12 @@ SEXP attribute_hidden do_filerename(SEXP call, SEXP op, SEXP args, SEXP rho)
     strncpy(to, p, PATH_MAX - 1);
     res = rename(from, to);
     if(res) {
+#ifdef HAVE_STRERROR
 	warning(_("cannot rename file '%s' to '%s', reason '%s'"),
 		from, to, strerror(errno));
+#else
+	warning(_("cannot rename file '%s' to '%s'"), from, to);
+#endif
     }
     return res == 0 ? mkTrue() : mkFalse();
 #endif
@@ -1208,15 +1224,14 @@ static int R_rmdir(const wchar_t *dir)
 {
     wchar_t tmp[MAX_PATH];
     GetShortPathNameW(dir, tmp, MAX_PATH);
-    //printf("removing directory %ls\n", tmp);
+    /* printf("removing directory %ls\n", tmp); */
     return _wrmdir(tmp);
 }
 
 static int R_unlink(wchar_t *name, int recursive)
 {
     if (wcscmp(name, L".") == 0 || wcscmp(name, L"..") == 0) return 0;
-    //printf("R_unlink(%ls)\n", name);
-    if (!R_WFileExists(name)) return 0;
+    /* printf("R_unlink(%ls)\n", name); */
     if (recursive) {
 	_WDIR *dir;
 	struct _wdirent *de;
@@ -1273,7 +1288,6 @@ void R_CleanTempDir(void)
 static int R_unlink(const char *name, int recursive)
 {
     if (streql(name, ".") || streql(name, "..")) return 0;
-    if (!R_FileExists(name)) return 0;
     if (recursive) {
 	DIR *dir;
 	struct dirent *de;
@@ -1287,6 +1301,7 @@ static int R_unlink(const char *name, int recursive)
 		while ((de = readdir(dir))) {
 		    if (streql(de->d_name, ".") || streql(de->d_name, ".."))
 			continue;
+		    /* On Windows we need to worry about trailing seps */
 		    n = strlen(name);
 		    if (name[n] == R_FileSep[0])
 			snprintf(p, PATH_MAX, "%s%s", name, de->d_name);
@@ -1334,11 +1349,10 @@ SEXP attribute_hidden do_unlink(SEXP call, SEXP op, SEXP args, SEXP env)
 	for (i = 0; i < nfiles; i++) {
 	    if (STRING_ELT(fn, i) != NA_STRING) {
 		names = filenameToWchar(STRING_ELT(fn, i), FALSE);
-		//Rprintf("do_unlink(%ls)\n", names);
-		res = dos_wglob(names, GLOB_NOCHECK, NULL, &globbuf);
+		res = dos_wglob(names, 0, NULL, &globbuf);
 		if (res == GLOB_NOSPACE)
 		    error(_("internal out-of-memory condition"));
-		for (j = 0; j < globbuf.gl_pathc; j++)
+		for ( j = 0; j < globbuf.gl_pathc; j++)
 		    failures += R_unlink(globbuf.gl_pathv[j], recursive);
 		dos_wglobfree(&globbuf);
 	    } else failures++;
@@ -1374,7 +1388,7 @@ SEXP attribute_hidden do_unlink(SEXP call, SEXP op, SEXP args, SEXP env)
 	    if (STRING_ELT(fn, i) != NA_STRING) {
 		names = translateChar(STRING_ELT(fn, i));
 #if defined(HAVE_GLOB)
-		res = glob(names, GLOB_NOCHECK, NULL, &globbuf);
+		res = glob(names, 0, NULL, &globbuf);
 # ifdef GLOB_ABORTED
 		if (res == GLOB_ABORTED)
 		    warning(_("read error on '%s'"), names);
@@ -1383,7 +1397,7 @@ SEXP attribute_hidden do_unlink(SEXP call, SEXP op, SEXP args, SEXP env)
 		if (res == GLOB_NOSPACE)
 		    error(_("internal out-of-memory condition"));
 # endif
-		for (j = 0; j < globbuf.gl_pathc; j++)
+		for ( j = 0; j < globbuf.gl_pathc; j++)
 		    failures += R_unlink(globbuf.gl_pathv[j], recursive);
 		globfree(&globbuf);
 	    } else failures++;
@@ -1667,8 +1681,8 @@ SEXP attribute_hidden do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
 		break;
 	    }
 #endif
-    PROTECT(ans = allocVector(LGLSXP, 15));
-    PROTECT(ansnames = allocVector(STRSXP, 15));
+    PROTECT(ans = allocVector(LGLSXP, 14));
+    PROTECT(ansnames = allocVector(STRSXP, 14));
 
     SET_STRING_ELT(ansnames, i, mkChar("jpeg"));
 #ifdef HAVE_JPEG
@@ -1683,17 +1697,6 @@ SEXP attribute_hidden do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     SET_STRING_ELT(ansnames, i, mkChar("png"));
 #ifdef HAVE_PNG
-# if defined Unix && !defined HAVE_WORKING_CAIRO
-    LOGICAL(ans)[i++] = X11;
-# else /* Windows */
-    LOGICAL(ans)[i++] = TRUE;
-# endif
-#else
-    LOGICAL(ans)[i++] = FALSE;
-#endif
-
-    SET_STRING_ELT(ansnames, i, mkChar("tiff"));
-#ifdef HAVE_TIFF
 # if defined Unix && !defined HAVE_WORKING_CAIRO
     LOGICAL(ans)[i++] = X11;
 # else /* Windows */
@@ -1894,7 +1897,11 @@ SEXP attribute_hidden do_dircreate(SEXP call, SEXP op, SEXP args, SEXP env)
 	warning(_("'%s' already exists"), dir);
 end:
     if (show && res && errno != EEXIST)
+#ifdef HAVE_STRERROR
 	warning(_("cannot create dir '%s', reason '%s'"), dir, strerror(errno));
+#else
+	warning(_("cannot create dir '%s'"), dir);
+#endif
     return ScalarLogical(res == 0);
 }
 #else /* Win32 */

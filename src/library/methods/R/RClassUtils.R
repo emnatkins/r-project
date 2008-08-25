@@ -447,7 +447,7 @@ assignClassDef <-
       }
       else
           assign(mname, def, where)
-      .cacheClass(clName, def, is(def, "ClassUnionRepresentation"), where)
+      .cacheClass(clName, def, is(def, "ClassUnionRepresentation"))
   }
 
 
@@ -587,8 +587,6 @@ reconcilePropertiesAndPrototype <-
           ## .Data slot, or a basic class.  Uses the first possibility, warns of conflicts
           for(cl in superClasses) {
               clDef <- getClassDef(cl, where = where)
-              if(is.null(clDef))
-                stop(gettextf("No definition was found for superclass \"%s\" in the specification of class \"%s\" ", cl, name), domain = NA)
               thisDataPart <-  .validDataPartClass(clDef, name)
               if(!is.null(thisDataPart)) {
                   if(is.null(dataPartClass)) {
@@ -694,13 +692,9 @@ reconcilePropertiesAndPrototype <-
       }
       else {
           dataPartDef <- getClass(dataPartClass)
-          checkDataPart <- !isXS3Class(dataPartDef)
-          if(checkDataPart)
-            checkDataPart  <-
-              ((is.na(match(dataPartClass, .BasicClasses)) &&
-                !isVirtualClass(dataPartDef)) ||
-               length(dataPartDef@slots) > 0)
-          if(checkDataPart)
+          if((is.na(match(dataPartClass, .BasicClasses)) &&
+             !isVirtualClass(dataPartDef)) ||
+             length(dataPartDef@slots) > 0)
               stop(gettextf("\"%s\" is not eligible to be the data part of another class (must be a basic class or a virtual class with no slots)", dataPartClass),
                    domain = NA)
           if(extends(prototypeClass, "classPrototypeDef"))
@@ -775,8 +769,8 @@ showClass <-
         ClassDef <- getClass(Class)
     else
         ClassDef <- getClassDef(Class)
-    cat(if(identical(ClassDef@virtual, TRUE)) "Virtual ",
-	"Class ", dQuote(Class), "\n", sep="")
+    if(identical(ClassDef@virtual, TRUE))
+        cat("Virtual Class\n")
     x <- ClassDef@slots
     if(length(x)>0) {
         n <- length(x)
@@ -913,14 +907,10 @@ completeExtends <-    function(ClassDef, class2, extensionDef, where) {
         ## FIXME:  getAllSuperClassses sometimes misses.  Why?
         if(length(superClassNames) == length(exts))
             exts <- exts[superClassNames]
-        if("oldClass" %in% superClassNames &&
-           length(ClassDef@slots) > 1) # an extension of an S3 class
-          exts <- .S3Extends(ClassDef, exts, where)
     }
     if(!missing(class2) && length(ClassDef@subclasses) > 0) {
-        strictBy <- TRUE # FIXME:  would like to make this conditional but a safe condition is unknown
         subclasses <-
-            .transitiveSubclasses(ClassDef@className, class2, extensionDef, ClassDef@subclasses, strictBy)
+            .transitiveSubclasses(ClassDef@className, class2, extensionDef, ClassDef@subclasses)
         ## insert the new is relationship, but without any recursive completion
         ## (asserted not to be needed if the subclass slot is complete)
         for(i in seq_along(subclasses)) {
@@ -947,9 +937,8 @@ completeSubclasses <-
     }
     subclasses <- .walkClassGraph(classDef, "subclasses", where)
     if(!missing(class2) && length(classDef@contains) > 0) {
-        strictBy <-TRUE
         contains <-
-            .transitiveExtends(class2, classDef@className, extensionDef, classDef@contains, strictBy)
+            .transitiveExtends(class2, classDef@className, extensionDef, classDef@contains)
         ## insert the new is relationship, but without any recursive completion
         ## (asserted not to be needed if the subclass slot is complete)
         for(i in seq_along(contains)) {
@@ -984,14 +973,10 @@ completeSubclasses <-
             ## add in those classes not already known to be super/subclasses
             exti <- exti[is.na(match(names(exti), what))]
             if(length(exti)> 0) {
-                if(superClassCase) {
-                    strictBy <- TRUE  # FIXME:  need to find some safe test allowing non-strict
-                      exti <- .transitiveExtends(fromTo, by, ext[[i]], exti, strictBy)
-                }
-                else {
-                    strictBy <- TRUE 
-                    exti <- .transitiveSubclasses(by, fromTo, ext[[i]], exti, strictBy)
-                }
+                if(superClassCase)
+                    exti <- .transitiveExtends(fromTo, by, ext[[i]], exti)
+                else
+                    exti <- .transitiveSubclasses(by, fromTo, ext[[i]], exti)
                 ext <- c(ext, exti)
             }
         }
@@ -1177,7 +1162,7 @@ setDataPart <- function(object, value) {
     else
         ClassDef <- getClass(cl, TRUE)
 
-    switch(cl, matrix = , array = value <- cl,
+    switch(cl, ts =, matrix = , array = value <- cl,
            value <- elNamed(ClassDef@slots, ".Data"))
     if(is.null(value)) {
         if(.identC(cl, "structure"))
@@ -1233,10 +1218,7 @@ setDataPart <- function(object, value) {
             if(is.null(valueAttrs[[what]]))
                 attr(value, what) <- supplied[[what]]
     }
-    if(isS4(object))
-      .asS4(value)
-    else
-      value
+    value
 }
 
 .newExternalptr <- function()
@@ -1245,32 +1227,28 @@ setDataPart <- function(object, value) {
 ## modify the list moreExts, currently from class `by', to represent
 ## extensions instead from an originating class; byExt is the extension
 ## from that class to `by'
-.transitiveExtends <- function(from, by, byExt, moreExts, strictBy) {
+.transitiveExtends <- function(from, by, byExt, moreExts) {
     what <- names(moreExts)
-###    if(!strictBy) message("Extends: ",from, ": ", paste(what, collapse = ", "))
     for(i in seq_along(moreExts)) {
         toExt <- moreExts[[i]]
         to <- what[[i]]
-        toExt <- .combineExtends(byExt, toExt, by, to, strictBy)
+        toExt <- .combineExtends(byExt, toExt, by, to)
         moreExts[[i]] <- toExt
     }
     moreExts
-###    if(!strictBy) message("Done")
 }
 
-.transitiveSubclasses <- function(by, to, toExt, moreExts, strictBy) {
+.transitiveSubclasses <- function(by, to, toExt, moreExts) {
     what <- names(moreExts)
-###    if(!strictBy) message("Subclasses: ",by, ": ", paste(what, collapse = ", "))
     for(i in seq_along(moreExts)) {
         byExt <- moreExts[[i]]
-        byExt <- .combineExtends(byExt, toExt, by, to, strictBy)
+        byExt <- .combineExtends(byExt, toExt, by, to)
         moreExts[[i]] <- byExt
     }
     moreExts
-###    if(!strictBy) message("Done")
 }
 
-.combineExtends <- function(byExt, toExt, by, to, strictBy) {
+.combineExtends <- function(byExt, toExt, by, to) {
         ## construct the composite coerce method, taking into account the strict=
         ## argument.
         f <- toExt@coerce
@@ -1316,14 +1294,9 @@ setDataPart <- function(object, value) {
         toExt@test <- f
         f <- byExt@replace
         byExpr <- body(f)
-        if(!strictBy) {
-            toDef <- getClassDef(to)
-            byDef <- getClassDef(by)
-            strictBy <- is.null(toDef) || is.null(byDef) || toDef@virtual || byDef@virtual
-        }
         ## Is there a danger of infinite loop below?
-        expr <- substitute({.value <- as(from, BY, STRICT); as(.value, TO) <- value; value <- .value; BYEXPR},
-                           list(BY=by, TO = to, BYEXPR = byExpr, STRICT = strictBy))
+        expr <- substitute({.value <- as(from, BY); as(.value, TO) <- value; value <- .value; BYEXPR},
+                           list(BY=by, TO = to, BYEXPR = byExpr))
         body(f, envir = environment(f)) <- expr
         toExt@replace <- f
         toExt@by <- toExt@subClass
@@ -1649,9 +1622,9 @@ substituteFunctionArgs <-
 ## See .cacheGeneric, etc. for analogous computations for generics
 .classTable <- new.env(TRUE, baseenv())
 
-.cacheClass <- function(name, def, doSubclasses = FALSE, env) {
+.cacheClass <- function(name, def, doSubclasses = FALSE) {
     if(!identical(doSubclasses, FALSE))
-      .recacheSubclasses(def@className, def, doSubclasses, env)
+      .recacheSubclasses(def@className, def, doSubclasses)
     if(exists(name, envir = .classTable, inherits = FALSE)) {
         newpkg <- def@package
         prev <- get(name, envir = .classTable)
@@ -1697,38 +1670,52 @@ substituteFunctionArgs <-
 
 .getClassFromCache <- function(name, where) {
     if(exists(name, envir = .classTable, inherits = FALSE)) {
-	value <- get(name, envir = .classTable)
-	if(is.list(value)) { ## multiple classes with this name
-	    pkg <- packageSlot(name)
-	    if(is.null(pkg))
-		pkg <- if(is.character(where)) where else getPackageName(where, FALSE) # may be ""
-	    pkgs <- names(value)
-	    i <- match(pkg, pkgs, 0)
-	    if(i == 0) ## try 'methods':
-		i <- match("methods", pkgs, 0)
-	    if(i > 0) value[[i]]	# else NULL
-	}
-	else
-	    value
-    } ## else NULL
+        value <- get(name, envir = .classTable)
+        if(is.list(value)) { # multiple classes with this name
+            pkg <- packageSlot(name)
+            if(is.null(pkg) && is.character(where))
+              pkg <- where
+            else
+              pkg <- getPackageName(where)
+            pkgs <- names(value)
+            i <- match(pkg, pkgs,0)
+            if(i > 0)
+              return(value[[i]])
+            i <- match("methods", pkgs,0)
+            if(i > 0)
+               return(value[[i]])
+            else
+              return(NULL)
+        }
+        value
+    }
+    else
+      NULL
 }
 
 ### insert superclass information into all the subclasses of this
 ### class.  Used to incorporate inheritance information from
 ### ClassUnions
-.recacheSubclasses <- function(class, def, doSubclasses, env) {
+.recacheSubclasses <- function(class, def, subclasses) {
+    if(identical(subclasses, TRUE))
+      subclasses <- class
     subs <- def@subclasses
     subNames <- names(subs)
     for(i in seq_along(subs)) {
         what <- subNames[[i]]
-        subDef <- getClassDef(what, env)
+        subDef <- getClassDef(what)
         if(is.null(subDef))
-            warning(gettextf(
-		"Undefined subclass, \"%s\", of class \"%s\"; definition not updated",
-                             what, def@className))
+          warning(
+           gettextf("Undefined subclass, \"%s\", of class \"%s\"; definition not updated",
+                    what, def@className))
+        else if(match(what, subclasses, 0) > 0)
+          next # would like warning, but seems to occur often
+          #warning(
+             #gettextf("Apparent loop in subclasses: \"%s\" found twice; ignored this time", what))
         else if(is.na(match(what, names(subDef@contains)))) {
+            subclasses <- c(subclasses, what)
             subDef@contains[[class]] <- subs[[i]]
-            .cacheClass(what, subDef, FALSE, env)
+            .cacheClass(what, subDef, subclasses)
         }
     }
 }
@@ -1806,7 +1793,7 @@ substituteFunctionArgs <-
             else {
                 newdef <- .deleteSubClass(cdef, subclass)
                 if(!is.null(newdef))
-                  .cacheClass(class, newdef, FALSE, where)
+                  .cacheClass(class, newdef)
             }
         }
         sig <- signature(from=subclass, to=class)
@@ -1833,46 +1820,3 @@ substituteFunctionArgs <-
         else
           NULL
     }
-
-## remove superclass from  definition of class in the cache & in environments
-## on search list
-.removeSuperClass <- function(class, superclass) {
-    cdef <- .getClassFromCache(class, where)
-    if(is.null(cdef)) {}
-    else {
-        newdef <- .deleteSuperClass(cdef, superclass)
-        if(!is.null(newdef))
-          .cacheClass(class, newdef, FALSE, where)
-    }
-    sig <- signature(from=class, to=superclass)
-    if(existsMethod("coerce", sig))
-      .removeCachedMethod("coerce", sig)
-    if(existsMethod("coerce<-", sig))
-      .removeCachedMethod("coerce<-", sig)
-    evv <- findClass(class, .GlobalEnv) # what about hidden classes?  how to find them?
-    mname <- classMetaName(class)
-    for(where in evv) {
-        if(exists(mname, envir = where, inherits = FALSE)) {
-            cdef <- get(mname, envir = where)
-            newdef <- .deleteSuperClass(cdef, superclass)
-            if(!is.null(newdef)) {
-              assignClassDef(class, newdef,  where, TRUE)
-              ## message("deleted ",superclass, " from ",class, "in environment")
-          }
-        }
-    }
-}
-
-.deleteSuperClass <- function(cdef, superclass) {
-        superclasses <- cdef@contains
-        ii <- match(superclass, names(superclasses), 0)
-        if(ii > 0) {
-            cdef@contains <- superclasses[-ii]
-            for(subclass in names(cdef@subclasses))
-              .removeSuperClass(subclass, superclass)
-            cdef
-        }
-        else
-          NULL
-    }
-

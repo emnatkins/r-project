@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.7.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-08-01 09:17\n"
+"POT-Creation-Date: 2008-08-01 08:44\n"
 "PO-Revision-Date: 2008-04-07 00:39-0500\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza at gmail>\n"
 "Language-Team: Russian\n"
@@ -120,11 +120,11 @@ msgstr "неправильный аргумент"
 msgid "all arguments must be of class \"person\""
 msgstr "все аргументы должны быть класса \"person\""
 
-msgid "package '%s' not found"
-msgstr "пакет '%s' не найден"
-
 msgid "broken installation, no CITATION file in the base package."
 msgstr "нерабочая установка, в пакете base нет файла CITATION."
+
+msgid "package '%s' not found"
+msgstr "пакет '%s' не найден"
 
 msgid "no date field in DESCRIPTION file of package '%s'"
 msgstr "в файле DESCRIPTION пакета '%s' нет поля date"
@@ -288,8 +288,7 @@ msgstr ""
 msgid "No documentation for '%s' in specified packages and libraries:"
 msgstr "В указанных пакетах и библиотеках нет документации для '%s':"
 
-#, fuzzy
-msgid "you could try '??%s'"
+msgid "you could try 'help.search(\"%s\")'"
 msgstr "можете попробовать 'help.search(\"%s\")'"
 
 msgid ""
@@ -961,14 +960,6 @@ msgstr "обновляю HTML-описания пакетов"
 
 msgid "cannot update '%s'"
 msgstr "не могу обновить '%s'"
-
-#, fuzzy
-msgid "winDialog() cannot be used non-interactively"
-msgstr "menu() нельзя использовать неинтерактивно"
-
-#, fuzzy
-msgid "winDialogString() cannot be used non-interactively"
-msgstr "menu() нельзя использовать неинтерактивно"
 
 msgid "'pb' is not from class \"winProgressBar\""
 msgstr "'pb' не из класса \"winProgressBar\""

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.7.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2008-06-05 19:48\n"
+"POT-Creation-Date: 2008-08-01 08:43\n"
 "PO-Revision-Date: 2008-04-06 23:54-0500\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza at gmail>\n"
 "Language-Team: Russian\n"
@@ -122,9 +122,6 @@ msgstr "dev.displaylist() вызван без открытия графического устройства"
 msgid "invalid setting for 'getOption(\"device\")'"
 msgstr "неправильный установки для 'getOption(\"device\")'"
 
-msgid "device '%s' not found"
-msgstr "устройство '%s' не найдено"
-
 msgid "no suitable unused file name for pdf()"
 msgstr "для pdf() не нашлось подходящего неиспользованного имени файла"
 
@@ -136,6 +133,9 @@ msgstr "для postscript() не нашлось подходящего неиспользованного имени файла"
 
 msgid "dev.new(): using postscript(file=\"%s\")"
 msgstr "dev.new(): использую postscript(file=\"%s\")"
+
+msgid "device '%s' not found"
+msgstr "устройство '%s' не найдено"
 
 msgid "invalid arguments in '%s' (need named args)"
 msgstr "неправильные аргументы в '%s' (нужны именованные аргументы)"

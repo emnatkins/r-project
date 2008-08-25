@@ -146,15 +146,15 @@ gc <- function(verbose = getOption("verbose"),	reset=FALSE)
 gcinfo <- function(verbose) .Internal(gcinfo(verbose))
 gctorture <- function(on=TRUE) invisible(.Internal(gctorture(on)))
 
-is.unsorted <- function(x, na.rm = FALSE, strictly = FALSE) {
+is.unsorted <- function(x, na.rm = FALSE) {
     if(is.null(x)) return(FALSE)
     if(!is.atomic(x) ||
-       (!na.rm && any(is.na(x))))## "FIXME" is.na(<large>) is "too slow"
+       (!na.rm && any(is.na(x))))
 	return(NA)
     ## else
     if(na.rm && any(ii <- is.na(x)))
 	x <- x[!ii]
-    .Internal(is.unsorted(x, strictly))
+    .Internal(is.unsorted(x))
 }
 
 mem.limits <- function(nsize=NA, vsize=NA)
@@ -264,13 +264,6 @@ reg.finalizer <- function(e, f, onexit = FALSE)
 
 Encoding <- function(x) .Internal(Encoding(x))
 `Encoding<-` <- function(x, value) .Internal(setEncoding(x, value))
-
-setTimeLimit <- function(cpu = Inf, elapsed = Inf, transient = FALSE)
-    .Internal(setTimeLimit(cpu, elapsed, transient))
-setSessionTimeLimit <- function(cpu = Inf, elapsed = Inf)
-    .Internal(setSessionTimeLimit(cpu, elapsed))
-
-icuSetCollate <- function(...) .Internal(icuSetCollate(...))
 
 ## base has no S4 generics
 .noGenerics <- TRUE

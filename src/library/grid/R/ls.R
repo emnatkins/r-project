@@ -40,14 +40,8 @@
 
 grid.ls <- function(x=NULL, grobs=TRUE, viewports=FALSE, fullNames=FALSE,
                     recursive=TRUE, print=TRUE, flatten=TRUE, ...) {
-    # If 'x' is NULL, list the grobs on the DL
-    if (is.null(x)) {
-        listing <- gridListDL(grobs=grobs, viewports=viewports,
-                              fullNames=fullNames, recursive=recursive)
-    } else {
-        listing <- gridList(x, grobs=grobs, viewports=viewports,
-                            fullNames=fullNames, recursive=recursive)
-    }
+    listing <- gridList(x, grobs=grobs, viewports=viewports,
+                        fullNames=fullNames, recursive=recursive)
     if (flatten) {
         listing <- flattenListing(listing)
     }
@@ -58,30 +52,27 @@ grid.ls <- function(x=NULL, grobs=TRUE, viewports=FALSE, fullNames=FALSE,
     } else if (is.function(print)) {
         print(listing, ...)
     } else {
-        stop("Invalid 'print' argument")
+        stop(paste("Invalid", sQuote("print"), "argument"))
     }
     invisible(listing)
 }
 
-gridListDL <- function(x, grobs=TRUE, viewports=FALSE,
-                       fullNames=FALSE, recursive=TRUE) {
-    display.list <- grid.Call("L_getDisplayList")
-    dl.index <- grid.Call("L_getDLindex")
-    result <- lapply(display.list[1:dl.index], gridList,
-                     grobs=grobs, viewports=viewports,
-                     fullNames=fullNames, recursive=recursive)
-    names(result) <- NULL
-    class(result) <- c("gridListListing", "gridListing")
-    result
-}
-    
 gridList <- function(x, ...) {
     UseMethod("gridList")
 }
 
+# The default method lists the grobs on the DL
 gridList.default <- function(x, grobs=TRUE, viewports=FALSE,
                              fullNames=FALSE, recursive=TRUE) {
     if (is.null(x)) {
+        display.list <- grid.Call("L_getDisplayList")
+        dl.index <- grid.Call("L_getDLindex")
+        result <- lapply(display.list[1:dl.index], gridList,
+                         grobs=grobs, viewports=viewports,
+                         fullNames=fullNames, recursive=recursive)
+        names(result) <- NULL
+        class(result) <- c("gridListListing", "gridListing")
+    } else if (is.null(x)) {
         # This handles empty slots in the display list
         result <- character()
         class(result) <- "gridListing"
