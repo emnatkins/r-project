@@ -27,10 +27,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.9.0\n"
+"Project-Id-Version: R 2.8.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2008-10-07 22:41+0100\n"
-"PO-Revision-Date: 2008-10-07 22:41+0100\n"
+"POT-Creation-Date: 2008-10-07 22:38+0100\n"
+"PO-Revision-Date: 2008-10-07 22:38+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -2686,7 +2686,7 @@ msgstr "ENCODING argument must be a single character string"
 msgid "no arguments supplied"
 msgstr "no arguments supplied"
 
-#: src/main/dotcode.c:750 src/main/seq.c:579
+#: src/main/dotcode.c:750 src/main/seq.c:574
 msgid "too many arguments"
 msgstr "too many arguments"
 
@@ -4332,32 +4332,32 @@ msgstr "complex variables are not currently allowed in model matrices"
 msgid "variables of type '%s' are not allowed in model matrices"
 msgstr "variables of type ‘%s’ are not allowed in model matrices"
 
-#: src/main/names.c:973
+#: src/main/names.c:972
 msgid "string argument required"
 msgstr "string argument required"
 
-#: src/main/names.c:981
+#: src/main/names.c:980
 msgid "no such primitive function"
 msgstr "no such primitive function"
 
-#: src/main/names.c:1096
+#: src/main/names.c:1095
 msgid "attempt to use zero-length variable name"
 msgstr "attempt to use zero-length variable name"
 
-#: src/main/names.c:1098
+#: src/main/names.c:1097
 #, c-format
 msgid "variable names are limited to %d bytes"
 msgstr "variable names are limited to %d bytes"
 
-#: src/main/names.c:1127
+#: src/main/names.c:1126
 msgid "invalid .Internal() argument"
 msgstr "invalid .Internal() argument"
 
-#: src/main/names.c:1130
+#: src/main/names.c:1129
 msgid "invalid internal function"
 msgstr "invalid internal function"
 
-#: src/main/names.c:1132
+#: src/main/names.c:1131
 #, c-format
 msgid "no internal function \"%s\""
 msgstr "no internal function “%s”"
@@ -6077,11 +6077,11 @@ msgstr "attempt to replicate non-vector"
 msgid "'length.out' must be a non-negative number"
 msgstr "‘length.out’ must be a non-negative number"
 
-#: src/main/seq.c:489 src/main/seq.c:533 src/main/seq.c:547
+#: src/main/seq.c:489 src/main/seq.c:528 src/main/seq.c:542
 msgid "'from' must be finite"
 msgstr "‘from’ must be finite"
 
-#: src/main/seq.c:491 src/main/seq.c:535 src/main/seq.c:565
+#: src/main/seq.c:491 src/main/seq.c:530 src/main/seq.c:560
 msgid "'to' must be finite"
 msgstr "‘to’ must be finite"
 
@@ -6097,11 +6097,11 @@ msgstr "‘by’ argument is much too small"
 msgid "wrong sign in 'by' argument"
 msgstr "wrong sign in ‘by’ argument"
 
-#: src/main/seq.c:549 src/main/seq.c:567
+#: src/main/seq.c:544 src/main/seq.c:562
 msgid "'by' must be finite"
 msgstr "‘by’ must be finite"
 
-#: src/main/seq.c:607
+#: src/main/seq.c:602
 msgid "argument must be non-negative"
 msgstr "argument must be non-negative"
 

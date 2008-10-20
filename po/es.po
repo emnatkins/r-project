@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.1\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2008-10-07 22:41+0100\n"
+"POT-Creation-Date: 2008-10-07 22:38+0100\n"
 "PO-Revision-Date: 2008-04-09 16:16+0100\n"
 "Last-Translator: Pablo Emilio Verde <pabloemilio.verde@uni-duesseldorf.de>\n"
 "Language-Team: Spanish <RenEspanol@googlegroups.com>\n"
@@ -2710,7 +2710,7 @@ msgstr "el argumento ENCODING debe ser un string de un sólo carácter"
 msgid "no arguments supplied"
 msgstr "ningún argumento suministrado"
 
-#: src/main/dotcode.c:750 src/main/seq.c:579
+#: src/main/dotcode.c:750 src/main/seq.c:574
 msgid "too many arguments"
 msgstr "demasiados argumentos"
 
@@ -4391,32 +4391,32 @@ msgstr "no se permiten variables complejas en matrices de modelos"
 msgid "variables of type '%s' are not allowed in model matrices"
 msgstr "valores negativos no son permitidos en subscrito de matriz"
 
-#: src/main/names.c:973
+#: src/main/names.c:972
 msgid "string argument required"
 msgstr "se requiere el argumento del string"
 
-#: src/main/names.c:981
+#: src/main/names.c:980
 msgid "no such primitive function"
 msgstr "no existe esta función primitiva"
 
-#: src/main/names.c:1096
+#: src/main/names.c:1095
 msgid "attempt to use zero-length variable name"
 msgstr "se intenta usar un nombre de varible de longitud cero"
 
-#: src/main/names.c:1098
+#: src/main/names.c:1097
 #, c-format
 msgid "variable names are limited to %d bytes"
 msgstr ""
 
-#: src/main/names.c:1127
+#: src/main/names.c:1126
 msgid "invalid .Internal() argument"
 msgstr "el argumento .Internal() no es válido"
 
-#: src/main/names.c:1130
+#: src/main/names.c:1129
 msgid "invalid internal function"
 msgstr "la función interna no es válida"
 
-#: src/main/names.c:1132
+#: src/main/names.c:1131
 #, c-format
 msgid "no internal function \"%s\""
 msgstr "no hay ninguna función interna \"%s\""
@@ -6184,12 +6184,12 @@ msgstr "intento de réplica de objeto que no es vector"
 msgid "'length.out' must be a non-negative number"
 msgstr "'gap' debe ser un entero no negativo"
 
-#: src/main/seq.c:489 src/main/seq.c:533 src/main/seq.c:547
+#: src/main/seq.c:489 src/main/seq.c:528 src/main/seq.c:542
 #, fuzzy
 msgid "'from' must be finite"
 msgstr "'a' e 'b' deben ser finitos"
 
-#: src/main/seq.c:491 src/main/seq.c:535 src/main/seq.c:565
+#: src/main/seq.c:491 src/main/seq.c:530 src/main/seq.c:560
 #, fuzzy
 msgid "'to' must be finite"
 msgstr "'a' e 'b' deben ser finitos"
@@ -6208,12 +6208,12 @@ msgstr "argumento 'file' es muy largo"
 msgid "wrong sign in 'by' argument"
 msgstr "longitud incorrecta para el argumento 'mode'"
 
-#: src/main/seq.c:549 src/main/seq.c:567
+#: src/main/seq.c:544 src/main/seq.c:562
 #, fuzzy
 msgid "'by' must be finite"
 msgstr "'a' e 'b' deben ser finitos"
 
-#: src/main/seq.c:607
+#: src/main/seq.c:602
 #, fuzzy
 msgid "argument must be non-negative"
 msgstr "argumento debe ser un entorno"

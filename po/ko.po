@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2008-10-07 22:41+0100\n"
+"POT-Creation-Date: 2008-10-07 22:38+0100\n"
 "PO-Revision-Date: 2005-05-31 10:36+0900\n"
 "Last-Translator: park ui-il <uiami@hanmail.com> \n"
 "Language-Team: South Korea\n"
@@ -2747,7 +2747,7 @@ msgstr "ENCODING 인수는 단일 문자열이어야만 합니다"
 msgid "no arguments supplied"
 msgstr "인수가 제공되어 있지 않습니다"
 
-#: src/main/dotcode.c:750 src/main/seq.c:579
+#: src/main/dotcode.c:750 src/main/seq.c:574
 msgid "too many arguments"
 msgstr "인수의 수가 너무 많습니다"
 
@@ -4432,32 +4432,32 @@ msgstr ""
 msgid "variables of type '%s' are not allowed in model matrices"
 msgstr "부의 길이가 벡터에서는 허용되지 않습니다"
 
-#: src/main/names.c:973
+#: src/main/names.c:972
 msgid "string argument required"
 msgstr "문자열 인수가 요구되어져 있습니다"
 
-#: src/main/names.c:981
+#: src/main/names.c:980
 msgid "no such primitive function"
 msgstr "그러한 원시적 함수는 없습니다"
 
-#: src/main/names.c:1096
+#: src/main/names.c:1095
 msgid "attempt to use zero-length variable name"
 msgstr "길이 0의 변수명을 사용했습니다"
 
-#: src/main/names.c:1098
+#: src/main/names.c:1097
 #, c-format
 msgid "variable names are limited to %d bytes"
 msgstr ""
 
-#: src/main/names.c:1127
+#: src/main/names.c:1126
 msgid "invalid .Internal() argument"
 msgstr ".Internal() 인수가 부적절합니다"
 
-#: src/main/names.c:1130
+#: src/main/names.c:1129
 msgid "invalid internal function"
 msgstr "내부 함수가 부적절합니다"
 
-#: src/main/names.c:1132
+#: src/main/names.c:1131
 #, c-format
 msgid "no internal function \"%s\""
 msgstr "내부 함수 \"%s \" 가 없습니다"
@@ -6211,12 +6211,12 @@ msgstr "벡터가 아니것을 복사하려고 합니다"
 msgid "'length.out' must be a non-negative number"
 msgstr "'gap'는  non-negative 정수가 아니면 안됩니다"
 
-#: src/main/seq.c:489 src/main/seq.c:533 src/main/seq.c:547
+#: src/main/seq.c:489 src/main/seq.c:528 src/main/seq.c:542
 #, fuzzy
 msgid "'from' must be finite"
 msgstr "'a'와 'b'는 유한하지 않으면 되지 않습니다"
 
-#: src/main/seq.c:491 src/main/seq.c:535 src/main/seq.c:565
+#: src/main/seq.c:491 src/main/seq.c:530 src/main/seq.c:560
 #, fuzzy
 msgid "'to' must be finite"
 msgstr "'a'와 'b'는 유한하지 않으면 되지 않습니다"
@@ -6235,12 +6235,12 @@ msgstr "'file' 인수가 너무 깁니다"
 msgid "wrong sign in 'by' argument"
 msgstr "'mode' 인수의 길이가 부적절합니다"
 
-#: src/main/seq.c:549 src/main/seq.c:567
+#: src/main/seq.c:544 src/main/seq.c:562
 #, fuzzy
 msgid "'by' must be finite"
 msgstr "'a'와 'b'는 유한하지 않으면 되지 않습니다"
 
-#: src/main/seq.c:607
+#: src/main/seq.c:602
 #, fuzzy
 msgid "argument must be non-negative"
 msgstr "인수는 환경이어야만 합니다"

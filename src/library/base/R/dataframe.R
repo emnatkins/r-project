@@ -486,7 +486,6 @@ data.frame <-
 {
     mdrop <- missing(drop)
     Narg <- nargs() - !mdrop  # number of arg from x,i,j that were specified
-    has.j <- !missing(j)
 
     if(Narg < 3) {  # list-like indexing or matrix indexing
         if(!mdrop) warning("drop argument will be ignored")
@@ -615,8 +614,7 @@ data.frame <-
 		rows <- make.unique(as.character(rows))
 	}
         ## new in 1.8.0  -- might have duplicate columns
-        if(has.j && any(duplicated(nm <- names(x))))
-            names(x) <- make.unique(nm)
+        if(any(duplicated(nm <- names(x)))) names(x) <- make.unique(nm)
         if(is.null(rows)) rows <- attr(xx, "row.names")[i]
 	attr(x, "row.names") <- rows
 	oldClass(x) <- oldClass(xx)

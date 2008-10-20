@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2008-10-07 22:41+0100\n"
+"POT-Creation-Date: 2008-10-07 22:38+0100\n"
 "PO-Revision-Date: 2006-04-16 19:17-0300\n"
 "Last-Translator: Fernando Henrique Ferraz P. da Rosa <feferraz@ime.usp.br>\n"
 "Language-Team: Portuguese <ldp-br@bazar.conectiva.com.br>\n"
@@ -2746,7 +2746,7 @@ msgstr "argumento ENCODING deve ser uma única string de caracteres"
 msgid "no arguments supplied"
 msgstr "nenhum argumento fornecido"
 
-#: src/main/dotcode.c:750 src/main/seq.c:579
+#: src/main/dotcode.c:750 src/main/seq.c:574
 msgid "too many arguments"
 msgstr "argumentos demais"
 
@@ -4411,32 +4411,32 @@ msgstr ""
 msgid "variables of type '%s' are not allowed in model matrices"
 msgstr "valores negativos não são permitidos na subscrição de matriz"
 
-#: src/main/names.c:973
+#: src/main/names.c:972
 msgid "string argument required"
 msgstr "argumento string requerido"
 
-#: src/main/names.c:981
+#: src/main/names.c:980
 msgid "no such primitive function"
 msgstr "não existe tal função primitiva"
 
-#: src/main/names.c:1096
+#: src/main/names.c:1095
 msgid "attempt to use zero-length variable name"
 msgstr "tentativa de usar um nome de variável com comprimento zero"
 
-#: src/main/names.c:1098
+#: src/main/names.c:1097
 #, c-format
 msgid "variable names are limited to %d bytes"
 msgstr ""
 
-#: src/main/names.c:1127
+#: src/main/names.c:1126
 msgid "invalid .Internal() argument"
 msgstr "argumento .Internal() inválido"
 
-#: src/main/names.c:1130
+#: src/main/names.c:1129
 msgid "invalid internal function"
 msgstr "função interna inválida"
 
-#: src/main/names.c:1132
+#: src/main/names.c:1131
 #, c-format
 msgid "no internal function \"%s\""
 msgstr "nenhuma função interna \"%s\""
@@ -6195,12 +6195,12 @@ msgstr "tentativa de replicar um objeto diferente de vetor"
 msgid "'length.out' must be a non-negative number"
 msgstr "'gap' deve ser um inteiro não negativo"
 
-#: src/main/seq.c:489 src/main/seq.c:533 src/main/seq.c:547
+#: src/main/seq.c:489 src/main/seq.c:528 src/main/seq.c:542
 #, fuzzy
 msgid "'from' must be finite"
 msgstr "'a' e 'b' devem ser finitos"
 
-#: src/main/seq.c:491 src/main/seq.c:535 src/main/seq.c:565
+#: src/main/seq.c:491 src/main/seq.c:530 src/main/seq.c:560
 #, fuzzy
 msgid "'to' must be finite"
 msgstr "'a' e 'b' devem ser finitos"
@@ -6219,12 +6219,12 @@ msgstr "argumento 'file' é muito longo"
 msgid "wrong sign in 'by' argument"
 msgstr "comprimento errado para argumento 'mode'"
 
-#: src/main/seq.c:549 src/main/seq.c:567
+#: src/main/seq.c:544 src/main/seq.c:562
 #, fuzzy
 msgid "'by' must be finite"
 msgstr "'a' e 'b' devem ser finitos"
 
-#: src/main/seq.c:607
+#: src/main/seq.c:602
 #, fuzzy
 msgid "argument must be non-negative"
 msgstr "argumento deve ser um ambiente"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R-2.6.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2008-10-07 22:41+0100\n"
+"POT-Creation-Date: 2008-10-07 22:38+0100\n"
 "PO-Revision-Date: 2008-09-30 21:08+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -2753,7 +2753,7 @@ msgstr "l'argument ENCODING doit être une chaîne de caractères unique"
 msgid "no arguments supplied"
 msgstr "aucun argument fourni"
 
-#: src/main/dotcode.c:750 src/main/seq.c:579
+#: src/main/dotcode.c:750 src/main/seq.c:574
 msgid "too many arguments"
 msgstr "trop d'arguments"
 
@@ -4445,32 +4445,32 @@ msgid "variables of type '%s' are not allowed in model matrices"
 msgstr ""
 "les variables de type '%s' ne sont pas autorisées dans des matrices de modèle"
 
-#: src/main/names.c:973
+#: src/main/names.c:972
 msgid "string argument required"
 msgstr "argument chaîne de caractères requis"
 
-#: src/main/names.c:981
+#: src/main/names.c:980
 msgid "no such primitive function"
 msgstr "une telle fonction primitive n'existe pas"
 
-#: src/main/names.c:1096
+#: src/main/names.c:1095
 msgid "attempt to use zero-length variable name"
 msgstr "tentative d'utilisation de nom de variable de longueur nulle"
 
-#: src/main/names.c:1098
+#: src/main/names.c:1097
 #, c-format
 msgid "variable names are limited to %d bytes"
 msgstr "les noms de variables sont limités à %d octets"
 
-#: src/main/names.c:1127
+#: src/main/names.c:1126
 msgid "invalid .Internal() argument"
 msgstr "argument .Internal() incorrect"
 
-#: src/main/names.c:1130
+#: src/main/names.c:1129
 msgid "invalid internal function"
 msgstr "fonction interne incorrecte"
 
-#: src/main/names.c:1132
+#: src/main/names.c:1131
 #, c-format
 msgid "no internal function \"%s\""
 msgstr "pas de fonction interne \"%s\""
@@ -6235,11 +6235,11 @@ msgstr "tentative de dupliquer autre chose qu'un vecteur"
 msgid "'length.out' must be a non-negative number"
 msgstr "'length.out' doit être un entier positif ou nul"
 
-#: src/main/seq.c:489 src/main/seq.c:533 src/main/seq.c:547
+#: src/main/seq.c:489 src/main/seq.c:528 src/main/seq.c:542
 msgid "'from' must be finite"
 msgstr "'from' doit être fini"
 
-#: src/main/seq.c:491 src/main/seq.c:535 src/main/seq.c:565
+#: src/main/seq.c:491 src/main/seq.c:530 src/main/seq.c:560
 msgid "'to' must be finite"
 msgstr "'to' doit être fini"
 
@@ -6255,11 +6255,11 @@ msgstr "argument 'by' bien trop petit"
 msgid "wrong sign in 'by' argument"
 msgstr "signe incorrect pour l'argument 'by'"
 
-#: src/main/seq.c:549 src/main/seq.c:567
+#: src/main/seq.c:544 src/main/seq.c:562
 msgid "'by' must be finite"
 msgstr "'by' doit être fini"
 
-#: src/main/seq.c:607
+#: src/main/seq.c:602
 msgid "argument must be non-negative"
 msgstr "l'argument ne peut être négatif"
 

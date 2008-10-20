@@ -51,9 +51,7 @@ seq.default <-
 	    dd <- abs(del)/max(abs(to), abs(from))
 	    if (dd < 100*.Machine$double.eps) return(from)
 	    n <- as.integer(n + 1e-7)
-	    x <- from + (0:n) * by
-            ## correct for overshot because of fuzz
-            if(by > 0) pmin(x, to) else pmax(x, to)
+	    from + (0:n) * by
 	}
     else if(!is.finite(length.out) || length.out < 0)
 	stop("length must be non-negative number")

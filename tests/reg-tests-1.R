@@ -5409,21 +5409,3 @@ stopifnot(x1 == x1[1], x2 == 0, x3 == 0)
 fit <- glm(1:10 ~ I(1:10) + I((1:10)^2), y = FALSE)
 anova(fit)
 ## obscure errors < 2.8.0
-
-
-## boundary case in cut.Date (PR#13159)
-d <- as.Date("2008-07-07")
-cut(d, "weeks")
-d <- as.POSIXct("2008-07-07", tz="UTC")
-cut(d, "weeks")
-## failed < 2.8.0
-
-
-### end of tests added for 2.8.x
-
-
-## (Deliberate) overshot in seq(from, to, by) because of fuzz
-stopifnot(seq(0, 1, 0.00025+5e-16) <= 1, seq.int(0, 1, 0.00025+5e-16) <= 1)
-stopifnot(rev(seq(0, 1, 0.00025+5e-16))[1] == 1,
-          rev(seq.int(0, 1, 0.00025+5e-16))[1] == 1)
-# overshot by about 2e-12 in 2.8.x
