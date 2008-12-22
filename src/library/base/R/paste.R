@@ -28,6 +28,6 @@ paste <- function (..., sep = " ", collapse = NULL)
 ##-	    n <- length(r)
 ##-	    if(n <= 1) paste(r)
 ##-	    else
-##-	      paste(paste(r[-n],collapse=collapse[1L]),
+##-	      paste(paste(r[-n],collapse=collapse[1]),
 ##-		    r[n], sep=collapse[min(2,length(collapse))])
 ##- }

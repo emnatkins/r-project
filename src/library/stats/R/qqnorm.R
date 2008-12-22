@@ -50,10 +50,10 @@ qqline <- function(y, datax = FALSE, ...)
     x <- qnorm(c(0.25, 0.75))
     if (datax) {
         slope <- diff(x)/diff(y)
-        int <- x[1L] - slope*y[1L]
+        int <- x[1] - slope*y[1]
     } else {
         slope <- diff(y)/diff(x)
-        int <- y[1L]-slope*x[1L]
+        int <- y[1]-slope*x[1]
     }
     abline(int, slope, ...)
 }

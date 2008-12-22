@@ -1,5 +1,5 @@
 ## Usage is
-##   sh help-print.sh FILE TOPIC LATEX DVIPS Rtexmf
+##   sh help-print.sh FILE TOPIC LATEX DVIPS
 ## see src/library/utils/R/unix/help.R.
 
 FILE="${1}"
@@ -10,11 +10,11 @@ if test "${LATEX}" = "false"; then
     exit 1
 fi
 shift 3
-DVIPS="${1}"
-shift
-Rtexmf="${1}"
-TEXINPUTS=${Rtexmf}:${TEXINPUTS}:
-export TEXINPUTS
+DVIPS="${@}"
+if test "${DVIPS}" = "false"; then
+    echo "Cannot print, dvips seems to be unavailable"
+    exit 2
+fi
 ODIR=`pwd`
 status=0
 cd `(dirname "${FILE}") 2>/dev/null || \

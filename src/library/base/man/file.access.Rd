@@ -32,8 +32,9 @@ file.access(names, mode = 0)
   than the effective IDs).
 #endif
 #ifdef windows
-  This function does uses the C function \code{_access} in
-  \file{msvcrt.dll}, but was written using Win32 API functions.
+  As from \R 2.6.0 this function no longer uses the C function
+  \code{_access} in \file{msvcrt.dll}, but has been rewritten using
+  Win32 API functions.
 
   Windows does not have the concept of an \sQuote{executable file}, so
   this function regards directories and files with extension

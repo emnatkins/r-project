@@ -47,7 +47,7 @@ vpExists.viewport <- function(vp) {
 }
 
 vpExists.vpStack <- function(vp) {
-  vpExists(vp[[1L]])
+  vpExists(vp[[1]])
 }
 
 vpExists.vpList <- function(vp) {

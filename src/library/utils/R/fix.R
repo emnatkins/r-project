@@ -20,7 +20,7 @@
     subx <- substitute(x)
     if (is.name(subx))
         subx <- deparse(subx)
-    if (!is.character(subx) || length(subx) != 1L)
+    if (!is.character(subx) || length(subx) != 1)
         stop("'fix' requires a name")
     parent <- parent.frame()
     if (exists(subx, envir=parent, inherits = TRUE))
@@ -31,3 +31,4 @@
     }
     assign(subx, x, envir = .GlobalEnv)
 }
+

@@ -139,9 +139,9 @@ set.seed(seed, kind = NULL, normal.kind = NULL)
 
   The use of \code{kind=NULL} or \code{normal.kind=NULL} in
   \code{RNGkind} or \code{set.seed} selects the currently-used
-  generator (including that used in the previous session if the
-  workspace has been restored): if no generator has been used it selects
-  \code{"default"}.
+  generator (including as from \R 2.8.0 that used in the previous
+  session if the workspace has been restored): if no generator has been
+  used it selects \code{"default"}.
 }
 \note{
   Initially, there is no seed;	a new one is created from the current
@@ -197,7 +197,7 @@ set.seed(seed, kind = NULL, normal.kind = NULL)
 
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
   \emph{The New S Language}.
-  Wadsworth & Brooks/Cole. (\code{set.seed}, storing in \code{.Random.seed}.)
+  Wadsworth \& Brooks/Cole. (\code{set.seed}, storing in \code{.Random.seed}.)
 
   Box, G. E. P. and Muller, M. E. (1958) A note on the generation of normal
   random deviates. \emph{Annals of Mathmatical Statistics} \bold{29},

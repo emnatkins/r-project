@@ -2288,16 +2288,3 @@ try(aggregate(z, by=z[1], FUN=sum))
 ## failed in unlist in 2.8.0, now gives explicit message.
 aggregate(data.frame(a=1:10)[F], list(rep(1:2, each=5)), sum)
 ## used to fail obscurely.
-
-
-## subsetting data frames with duplicate rows
-z <- data.frame(a=1, a=2, b=3, check.names=FALSE)
-z[] # OK
-z[1, ]
-## had row names a, a.1, b in 2.8.0.
-
-
-## incorrect warning due to lack of fuzz.
-TS <-  ts(co2[1:192], freq=24)
-tmp2 <- window(TS, start(TS), end(TS))
-## warned in 2.8.0

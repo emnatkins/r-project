@@ -18,7 +18,7 @@ parse <- function(file = "", n = NULL, text = NULL, prompt = "?",
                   srcfile = NULL, encoding = "unknown")
 {
     if(!is.null(text)) {
-    	if (length(as.character(text)) == 0L)
+    	if (length(as.character(text)) == 0)
 	    return(expression())
 	if (missing(srcfile) && isTRUE(getOption("keep.source")))
 	    srcfile <- srcfilecopy("<text>", text)

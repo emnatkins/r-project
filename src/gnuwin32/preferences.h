@@ -19,8 +19,6 @@
  *  http://www.r-project.org/Licenses/
  */
  
-#include "guicolors.h"
-
 /*                configuration editor                        */
 
 /* current state */
@@ -37,7 +35,7 @@ struct structGUI
     char style[20];
     int crows, ccols, cx, cy, setWidthOnResize, prows, pcols,
 	cbb, cbl, grx, gry;
-    rgb guiColors[numGuiColors];
+    rgb bg, fg, user, hlt;
     rect MDIsize;
     char language[20];
     int buffered;

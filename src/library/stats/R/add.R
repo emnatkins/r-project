@@ -43,9 +43,9 @@ add1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
 #     data <- model.frame(update(object, newform)) # remove NAs
 #     object <- update(object, data = data)
     ns <- length(scope)
-    ans <- matrix(nrow = ns + 1L, ncol = 2L,
+    ans <- matrix(nrow = ns + 1, ncol = 2,
                   dimnames = list(c("<none>", scope), c("df", "AIC")))
-    ans[1L,  ] <- extractAIC(object, scale, k = k, ...)
+    ans[1, ] <- extractAIC(object, scale, k = k, ...)
     n0 <- length(object$residuals)
     env <- environment(formula(object))
     for(i in seq(ns)) {
@@ -57,17 +57,17 @@ add1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
 	nfit <- update(object, as.formula(paste("~ . +", tt)),
                        evaluate = FALSE)
 	nfit <- eval(nfit, envir=env) # was  eval.parent(nfit)
-	ans[i+1L, ] <- extractAIC(nfit, scale, k = k, ...)
+	ans[i+1, ] <- extractAIC(nfit, scale, k = k, ...)
         if(length(nfit$residuals) != n0)
             stop("number of rows in use has changed: remove missing values?")
     }
-    dfs <- ans[, 1L] - ans[1L, 1L]
-    dfs[1L] <- NA
-    aod <- data.frame(Df = dfs, AIC = ans[, 2L])
+    dfs <- ans[,1] - ans[1,1]
+    dfs[1] <- NA
+    aod <- data.frame(Df = dfs, AIC = ans[,2])
     test <- match.arg(test)
     if(test == "Chisq") {
-	dev <- ans[, 2L] - k*ans[, 1L]
-	dev <- dev[1L] - dev; dev[1L] <- NA
+	dev <- ans[,2] - k*ans[, 1]
+	dev <- dev[1] - dev; dev[1] <- NA
 	nas <- !is.na(dev)
 	P <- dev
 	P[nas] <- safe_pchisq(dev[nas], dfs[nas], lower.tail=FALSE)
@@ -152,21 +152,21 @@ add1.lm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
     n <- nrow(x)
     Terms <- attr(Terms, "term.labels")
     asgn <- attr(x, "assign")
-    ousex <- match(asgn, match(oTerms, Terms), 0L) > 0L
-    if(int) ousex[1L] <- TRUE
+    ousex <- match(asgn, match(oTerms, Terms), 0) > 0
+    if(int) ousex[1] <- TRUE
     iswt <- !is.null(wt)
     X <- x[, ousex, drop = FALSE]
     z <- if(iswt) lm.wfit(X, y, wt, offset=offset)
     else lm.fit(X, y, offset=offset)
-    dfs[1L] <- z$rank
+    dfs[1] <- z$rank
     class(z) <- "lm" # needed as deviance.lm calls generic residuals()
-    RSS[1L] <- deviance(z)
+    RSS[1] <- deviance(z)
     ## workaround for PR#7842. terms.formula may have flipped interactions
     sTerms <- sapply(strsplit(Terms, ":", fixed=TRUE),
                      function(x) paste(sort(x), collapse=":"))
     for(tt in scope) {
-        stt <- paste(sort(strsplit(tt, ":")[[1L]]), collapse=":")
-	usex <- match(asgn, match(stt, sTerms), 0L) > 0L
+        stt <- paste(sort(strsplit(tt, ":")[[1]]), collapse=":")
+	usex <- match(asgn, match(stt, sTerms), 0) > 0
 	X <- x[, usex|ousex, drop = FALSE]
 	z <- if(iswt) lm.wfit(X, y, wt, offset=offset)
         else lm.fit(X, y, offset=offset)
@@ -176,9 +176,9 @@ add1.lm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
     }
     if(scale > 0) aic <- RSS/scale - n + k*dfs
     else aic <- n * log(RSS/n) + k*dfs
-    dfs <- dfs - dfs[1L]
-    dfs[1L] <- NA
-    aod <- data.frame(Df = dfs, "Sum of Sq" = c(NA, RSS[1L] - RSS[-1L]),
+    dfs <- dfs - dfs[1]
+    dfs[1] <- NA
+    aod <- data.frame(Df = dfs, "Sum of Sq" = c(NA, RSS[1] - RSS[-1]),
 		      RSS = RSS, AIC = aic,
                       row.names = names(dfs), check.names = FALSE)
     if(scale > 0) names(aod) <- c("Df", "Sum of Sq", "RSS", "Cp")
@@ -187,8 +187,8 @@ add1.lm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
         dev <- aod$"Sum of Sq"
         if(scale == 0) {
             dev <- n * log(RSS/n)
-            dev <- dev[1L] - dev
-            dev[1L] <- NA
+            dev <- dev[1] - dev
+            dev[1] <- NA
         } else dev <- dev/scale
         df <- aod$Df
         nas <- !is.na(df)
@@ -196,7 +196,7 @@ add1.lm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
         aod[, "Pr(Chi)"] <- dev
     } else if(test == "F") {
 	rdf <- object$df.residual
-	aod[, c("F value", "Pr(F)")] <- Fstat(aod, aod$RSS[1L], rdf)
+	aod[, c("F value", "Pr(F)")] <- Fstat(aod, aod$RSS[1], rdf)
     }
     head <- c("Single term additions", "\nModel:",
 	      deparse(as.vector(formula(object))),
@@ -212,7 +212,7 @@ add1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
     Fstat <- function(table, rdf) {
 	dev <- table$Deviance
 	df <- table$Df
-	diff <- pmax(0, (dev[1L] - dev)/df)
+	diff <- pmax(0, (dev[1] - dev)/df)
 	Fs <- (diff/df)/(dev/(rdf-df))
 	Fs[df < .Machine$double.eps] <- NA
 	P <- Fs
@@ -245,8 +245,7 @@ add1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
         wt <- model.weights(m)
 	x <- model.matrix(Terms, m, contrasts.arg = object$contrasts)
         oldn <- length(y)
-        y <- model.response(m)
-        if(!is.factor(y)) storage.mode(y) <- "double"
+        y <- model.response(m, "numeric")
         ## binomial case has adjusted y and weights
         if(NCOL(y) == 2) {
             n <- y[, 1] + y[, 2]
@@ -267,19 +266,19 @@ add1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
     if(is.null(wt)) wt <- rep.int(1, n)
     Terms <- attr(Terms, "term.labels")
     asgn <- attr(x, "assign")
-    ousex <- match(asgn, match(oTerms, Terms), 0L) > 0L
-    if(int) ousex[1L] <- TRUE
+    ousex <- match(asgn, match(oTerms, Terms), 0) > 0
+    if(int) ousex[1] <- TRUE
     X <- x[, ousex, drop = FALSE]
     z <-  glm.fit(X, y, wt, offset=offset,
                   family=object$family, control=object$control)
-    dfs[1L] <- z$rank
-    dev[1L] <- z$deviance
+    dfs[1] <- z$rank
+    dev[1] <- z$deviance
     ## workaround for PR#7842. terms.formula may have flipped interactions
     sTerms <- sapply(strsplit(Terms, ":", fixed=TRUE),
                      function(x) paste(sort(x), collapse=":"))
     for(tt in scope) {
-        stt <- paste(sort(strsplit(tt, ":")[[1L]]), collapse=":")
-	usex <- match(asgn, match(stt, sTerms), 0L) > 0L
+        stt <- paste(sort(strsplit(tt, ":")[[1]]), collapse=":")
+	usex <- match(asgn, match(stt, sTerms), 0) > 0
 	X <- x[, usex|ousex, drop = FALSE]
 	z <-  glm.fit(X, y, wt, offset=offset,
 		      family=object$family, control=object$control)
@@ -295,16 +294,16 @@ add1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
 	else loglik <- n * log(dev/n)
     } else loglik <- dev/dispersion
     aic <- loglik + k * dfs
-    aic <- aic + (extractAIC(object, k = k)[2L] - aic[1L])
-    dfs <- dfs - dfs[1L]
-    dfs[1L] <- NA
+    aic <- aic + (extractAIC(object, k = k)[2] - aic[1])
+    dfs <- dfs - dfs[1]
+    dfs[1] <- NA
     aod <- data.frame(Df = dfs, Deviance = dev, AIC = aic,
 		      row.names = names(dfs), check.names = FALSE)
     if(all(is.na(aic))) aod <- aod[, -3]
     test <- match.arg(test)
     if(test == "Chisq") {
-        dev <- pmax(0, loglik[1L] - loglik)
-        dev[1L] <- NA
+        dev <- pmax(0, loglik[1] - loglik)
+        dev[1] <- NA
         LRT <- if(dispersion == 1) "LRT" else "scaled dev."
         aod[, LRT] <- dev
         nas <- !is.na(dev)
@@ -344,7 +343,7 @@ drop1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
 #    data <- model.frame(object) # remove NAs
 #    object <- update(object, data = data)
     ns <- length(scope)
-    ans <- matrix(nrow = ns + 1L, ncol = 2L,
+    ans <- matrix(nrow = ns + 1, ncol = 2,
                   dimnames =  list(c("<none>", scope), c("df", "AIC")))
     ans[1, ] <- extractAIC(object, scale, k = k, ...)
     n0 <- length(object$residuals)
@@ -362,13 +361,13 @@ drop1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
         if(length(nfit$residuals) != n0)
             stop("number of rows in use has changed: remove missing values?")
     }
-    dfs <- ans[1L , 1L] - ans[, 1L]
-    dfs[1L] <- NA
+    dfs <- ans[1,1] - ans[,1]
+    dfs[1] <- NA
     aod <- data.frame(Df = dfs, AIC = ans[,2])
     test <- match.arg(test)
     if(test == "Chisq") {
-        dev <- ans[, 2L] - k*ans[, 1L]
-        dev <- dev - dev[1L] ; dev[1L] <- NA
+        dev <- ans[, 2] - k*ans[, 1]
+        dev <- dev - dev[1] ; dev[1] <- NA
         nas <- !is.na(dev)
         P <- dev
         P[nas] <- safe_pchisq(dev[nas], dfs[nas], lower.tail = FALSE)
@@ -407,8 +406,8 @@ drop1.lm <- function(object, scope, scale = 0, all.cols = TRUE,
     RSS <- numeric(ns)
     y <- object$residuals + object$fitted.values
     ## predict(object) applies na.action where na.exclude results in too long
-    na.coef <- (1L:length(object$coefficients))[!is.na(object$coefficients)]
-    for(i in 1L:ns) {
+    na.coef <- (1:length(object$coefficients))[!is.na(object$coefficients)]
+    for(i in 1:ns) {
 	ii <- seq_along(asgn)[asgn == ndrop[i]]
 	jj <- setdiff(if(all.cols) seq(ncol(x)) else na.coef, ii)
 	z <- if(iswt) lm.wfit(x[, jj, drop = FALSE], y, wt, offset=offset)
@@ -422,9 +421,9 @@ drop1.lm <- function(object, scope, scale = 0, all.cols = TRUE,
     RSS <- c(chisq, RSS)
     if(scale > 0) aic <- RSS/scale - n + k*dfs
     else aic <- n * log(RSS/n) + k*dfs
-    dfs <- dfs[1L] - dfs
-    dfs[1L] <- NA
-    aod <- data.frame(Df = dfs, "Sum of Sq" = c(NA, RSS[-1L] - RSS[1L]),
+    dfs <- dfs[1] - dfs
+    dfs[1] <- NA
+    aod <- data.frame(Df = dfs, "Sum of Sq" = c(NA, RSS[-1] - RSS[1]),
 		      RSS = RSS, AIC = aic,
                       row.names = scope, check.names = FALSE)
     if(scale > 0) names(aod) <- c("Df", "Sum of Sq", "RSS", "Cp")
@@ -433,8 +432,8 @@ drop1.lm <- function(object, scope, scale = 0, all.cols = TRUE,
         dev <- aod$"Sum of Sq"
         if(scale == 0) {
             dev <- n * log(RSS/n)
-            dev <- dev - dev[1L]
-            dev[1L] <- NA
+            dev <- dev - dev[1]
+            dev[1] <- NA
         } else dev <- dev/scale
         df <- aod$Df
         nas <- !is.na(df)
@@ -444,7 +443,7 @@ drop1.lm <- function(object, scope, scale = 0, all.cols = TRUE,
 	dev <- aod$"Sum of Sq"
 	dfs <- aod$Df
 	rdf <- object$df.residual
-	rms <- aod$RSS[1L]/rdf
+	rms <- aod$RSS[1]/rdf
 	Fs <- (dev/dfs)/rms
 	Fs[dfs < 1e-4] <- NA
 	P <- Fs
@@ -485,14 +484,11 @@ drop1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
     dfs <- numeric(ns)
     dev <- numeric(ns)
     y <- object$y
-    if(is.null(y)) {
-        y <- model.response(model.frame(object))
-        if(!is.factor(y)) storage.mode(y) <- "double"
-    }
-#    na.coef <- (1L:length(object$coefficients))[!is.na(object$coefficients)]
+    if(is.null(y)) y <- model.response(model.frame(object), "numeric")
+#    na.coef <- (1:length(object$coefficients))[!is.na(object$coefficients)]
     wt <- object$prior.weights
     if(is.null(wt)) wt <- rep.int(1, n)
-    for(i in 1L:ns) {
+    for(i in 1:ns) {
 	ii <- seq_along(asgn)[asgn == ndrop[i]]
 	jj <- setdiff(seq(ncol(x)), ii)
 	z <-  glm.fit(x[, jj, drop = FALSE], y, wt, offset=object$offset,
@@ -512,16 +508,16 @@ drop1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
             if(scale > 0) dev/scale - n else n * log(dev/n)
         } else dev/dispersion
     aic <- loglik + k * dfs
-    dfs <- dfs[1L] - dfs
-    dfs[1L] <- NA
-    aic <- aic + (extractAIC(object, k = k)[2L] - aic[1L])
+    dfs <- dfs[1] - dfs
+    dfs[1] <- NA
+    aic <- aic + (extractAIC(object, k = k)[2] - aic[1])
     aod <- data.frame(Df = dfs, Deviance = dev, AIC = aic,
 		      row.names = scope, check.names = FALSE)
     if(all(is.na(aic))) aod <- aod[, -3]
     test <- match.arg(test)
     if(test == "Chisq") {
-        dev <- pmax(0, loglik - loglik[1L])
-        dev[1L] <- NA
+        dev <- pmax(0, loglik - loglik[1])
+        dev[1] <- NA
         nas <- !is.na(dev)
         LRT <- if(dispersion == 1) "LRT" else "scaled dev."
         aod[, LRT] <- dev
@@ -532,8 +528,8 @@ drop1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
             warning(gettextf("F test assumes 'quasi%s' family", fam),
                     domain = NA)
 	dev <- aod$Deviance
-	rms <- dev[1L]/rdf
-        dev <- pmax(0, dev - dev[1L])
+	rms <- dev[1]/rdf
+        dev <- pmax(0, dev - dev[1])
 	dfs <- aod$Df
 	rdf <- object$df.residual
 	Fs <- (dev/dfs)/rms
@@ -563,7 +559,7 @@ add.scope <- function(terms1, terms2)
 drop.scope <- function(terms1, terms2)
 {
     terms1 <- terms(terms1)
-    f2 <- if(missing(terms2)) numeric(0L)
+    f2 <- if(missing(terms2)) numeric(0)
     else attr(terms(terms2), "factors")
     factor.scope(attr(terms1, "factors"), list(drop = f2))$drop
 }
@@ -584,7 +580,7 @@ factor.scope <- function(factor, scope)
                              function(x) paste(sort(x), collapse=":"))
             nmdrop0 <- sapply(strsplit(nmdrop, ":", fixed=TRUE),
                              function(x) paste(sort(x), collapse=":"))
-	    where <- match(nmdrop0, nmfac0, 0L)
+	    where <- match(nmdrop0, nmfac0, 0)
 	    if(any(!where))
                 stop(gettextf("lower scope has term(s) %s not included in model",
                               paste(sQuote(nmdrop[where==0]), collapse=", ")),
@@ -599,9 +595,9 @@ factor.scope <- function(factor, scope)
 	    for(i in seq(keep)) keep[i] <- max(f[i, - i]) != f[i, i]
 	    nmdrop <- nmdrop[keep]
 	}
-    } else nmdrop <- character(0L)
+    } else nmdrop <- character(0)
 
-    if(!length(add)) nmadd <- character(0L)
+    if(!length(add)) nmadd <- character(0)
     else {
 	nmfac <- colnames(factor)
 	nmadd <- colnames(add)
@@ -612,10 +608,10 @@ factor.scope <- function(factor, scope)
                              function(x) paste(sort(x), collapse=":"))
             nmadd0 <- sapply(strsplit(nmadd, ":", fixed=TRUE),
                              function(x) paste(sort(x), collapse=":"))
-	    where <- match(nmfac0, nmadd0, 0L)
+	    where <- match(nmfac0, nmadd0, 0)
 	    if(any(!where))
                 stop(gettextf("upper scope does not include model term(s) %s",
-                              paste(sQuote(nmfac[where==0L]), collapse=", ")),
+                              paste(sQuote(nmfac[where==0]), collapse=", ")),
                      domain = NA)
 	    nmadd <- nmadd[-where]
 	    add <- add[, -where, drop = FALSE]
@@ -643,7 +639,7 @@ step <- function(object, scope, scale = 0,
 # 	    tmp <- "1"
 #         tmp <- paste("~", paste(tmp, collapse = " + "))
 #         form <- formula(object) # some formulae have no lhs
-#         tmp <- if(length(form) > 2) paste(deparse(form[[2L]]), tmp)
+#         tmp <- if(length(form) > 2) paste(deparse(form[[2]]), tmp)
 #         ## must be as.character as deparse gives spurious ()
 # 	if (length(offset <- attr(tt, "offset")))
 # 	    tmp <- paste(tmp, as.character(attr(tt, "variables")[offset + 1]),
@@ -655,18 +651,18 @@ step <- function(object, scope, scale = 0,
     mydeviance <- function(x, ...)
     {
         dev <- deviance(x)
-        if(!is.null(dev)) dev else extractAIC(x, k=0)[2L]
+        if(!is.null(dev)) dev else extractAIC(x, k=0)[2]
     }
 
     cut.string <- function(string)
     {
 	if(length(string) > 1)
-	    string[-1L] <- paste("\n", string[-1L], sep = "")
+	    string[-1] <- paste("\n", string[-1], sep = "")
 	string
     }
     re.arrange <- function(keep)
     {
-	namr <- names(k1 <- keep[[1L]])
+	namr <- names(k1 <- keep[[1]])
 	namc <- names(keep)
 	nc <- length(keep)
 	nr <- length(k1)
@@ -706,7 +702,7 @@ step <- function(object, scope, scale = 0,
     backward <- direction == "both" | direction == "backward"
     forward  <- direction == "both" | direction == "forward"
     if(missing(scope)) {
-	fdrop <- numeric(0L)
+	fdrop <- numeric(0)
         fadd <- attr(Terms, "factors")
         if(md) forward <- FALSE
     }
@@ -714,14 +710,14 @@ step <- function(object, scope, scale = 0,
 	if(is.list(scope)) {
 	    fdrop <- if(!is.null(fdrop <- scope$lower))
 		attr(terms(update.formula(object, fdrop)), "factors")
-	    else numeric(0L)
+	    else numeric(0)
 	    fadd <- if(!is.null(fadd <- scope$upper))
 		attr(terms(update.formula(object, fadd)), "factors")
 	}
         else {
 	    fadd <- if(!is.null(fadd <- scope))
 		attr(terms(update.formula(object, scope)), "factors")
-	    fdrop <- numeric(0L)
+	    fdrop <- numeric(0)
 	}
     }
     models <- vector("list", steps)
@@ -729,8 +725,8 @@ step <- function(object, scope, scale = 0,
     n <- length(object$residuals)
     fit <- object
     bAIC <- extractAIC(fit, scale, k = k, ...)
-    edf <- bAIC[1L]
-    bAIC <- bAIC[2L]
+    edf <- bAIC[1]
+    bAIC <- bAIC[2]
     if(is.na(bAIC))
         stop("AIC is not defined for this model, so 'step' cannot proceed")
     nm <- 1
@@ -754,12 +750,12 @@ step <- function(object, scope, scale = 0,
 	    aod <- drop1(fit, scope$drop, scale = scale,
                          trace = trace, k = k, ...)
 	    rn <- row.names(aod)
-	    row.names(aod) <- c(rn[1L], paste("-", rn[-1L], sep=" "))
+	    row.names(aod) <- c(rn[1], paste("-", rn[-1], sep=" "))
             ## drop zero df terms first: one at time since they
             ## may mask each other
 	    if(any(aod$Df == 0, na.rm=TRUE)) {
 		zdf <- aod$Df == 0 & !is.na(aod$Df)
-		change <- rev(rownames(aod)[zdf])[1L]
+		change <- rev(rownames(aod)[zdf])[1]
 	    }
 	}
 	if(is.null(change)) {
@@ -767,7 +763,7 @@ step <- function(object, scope, scale = 0,
 		aodf <- add1(fit, scope$add, scale = scale,
                              trace = trace, k = k, ...)
 		rn <- row.names(aodf)
-		row.names(aodf) <- c(rn[1L], paste("+", rn[-1L], sep=" "))
+		row.names(aodf) <- c(rn[1], paste("+", rn[-1], sep=" "))
 		aod <-
                     if(is.null(aod)) aodf
                     else rbind(aod, aodf[-1, , drop = FALSE])
@@ -779,13 +775,13 @@ step <- function(object, scope, scale = 0,
 	    aod <- aod[nzdf, ]
 	    if(is.null(aod) || ncol(aod) == 0) break
 	    nc <- match(c("Cp", "AIC"), names(aod))
-	    nc <- nc[!is.na(nc)][1L]
+	    nc <- nc[!is.na(nc)][1]
 	    o <- order(aod[, nc])
 	    if(trace) print(aod[o, ])
-	    if(o[1L] == 1) break
-	    change <- rownames(aod)[o[1L]]
+	    if(o[1] == 1) break
+	    change <- rownames(aod)[o[1]]
 	}
-	usingCp <- match("Cp", names(aod), 0L) > 0L
+	usingCp <- match("Cp", names(aod), 0) > 0
         ## may need to look for a `data' argument in parent
 	fit <- update(fit, paste("~ .", change), evaluate = FALSE)
         fit <- eval.parent(fit)
@@ -793,8 +789,8 @@ step <- function(object, scope, scale = 0,
             stop("number of rows in use has changed: remove missing values?")
         Terms <- terms(fit)
 	bAIC <- extractAIC(fit, scale, k = k, ...)
-	edf <- bAIC[1L]
-	bAIC <- bAIC[2L]
+	edf <- bAIC[1]
+	bAIC <- bAIC[2]
 	if(trace)
 	    cat("\nStep:  AIC=", format(round(bAIC, 2)), "\n",
 		cut.string(deparse(as.vector(formula(fit)))), "\n\n", sep='')
@@ -824,7 +820,7 @@ extractAIC.coxph <- function(fit, scale, k = 2, ...)
 extractAIC.survreg <- function(fit, scale, k = 2, ...)
 {
     edf <- sum(fit$df)
-    c(edf, -2 * fit$loglik[2L] + k * edf)
+    c(edf, -2 * fit$loglik[2] + k * edf)
 }
 
 extractAIC.glm <- function(fit, scale = 0, k = 2, ...)

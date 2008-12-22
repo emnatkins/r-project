@@ -1,7 +1,7 @@
-#!@R_SHELL@
+#! /bin/sh
 # mkinstalldirs --- make directory hierarchy
 
-scriptversion=2008-11-05.08
+scriptversion=2006-05-11.19
 
 # Original author: Noah Friedman <friedman@prep.ai.mit.edu>
 # Created: 1993-05-16

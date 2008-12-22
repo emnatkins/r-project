@@ -82,8 +82,7 @@ default.stringsAsFactors()
 
   Objects passed to \code{data.frame} should have the same number of
   rows, but atomic vectors, factors and character vectors protected by
-  \code{\link{I}} will be recycled a whole number of times if necessary
-  (includng as from \R 2.9.0, elements of list arguments).
+  \code{\link{I}} will be recycled a whole number of times if necessary.
 
   If row names are not supplied in the call to \code{data.frame}, the
   row names are taken from the first component that has suitable names,
@@ -114,7 +113,7 @@ default.stringsAsFactors()
   Chambers, J. M. (1992)
   \emph{Data for models.}
   Chapter 3 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth & Brooks/Cole.
+  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{I}},

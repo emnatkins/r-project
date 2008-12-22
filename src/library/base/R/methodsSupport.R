@@ -14,9 +14,8 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-trace <- function(what, tracer, exit, at, print, signature, where = topenv(parent.frame()), edit = FALSE)
-{
-    needsAttach <- nargs() > 1L && !.isMethodsDispatchOn()
+trace <- function(what, tracer, exit, at, print, signature, where = topenv(parent.frame()), edit = FALSE) {
+    needsAttach <- nargs() > 1 && !.isMethodsDispatchOn()
     if(needsAttach) {
         ns <- try(loadNamespace("methods"))
         if(isNamespace(ns))
@@ -24,14 +23,14 @@ trace <- function(what, tracer, exit, at, print, signature, where = topenv(paren
         else
             stop("Tracing functions requires the methods package, but unable to load methods namespace")
     }
-    else if(nargs() == 1L)
+    else if(nargs() == 1)
         return(.primTrace(what))
     tState <- tracingState(FALSE)
     on.exit(tracingState(tState))
     ## now call the version in the methods package, to ensure we get
     ## the correct name space (e.g., correct version of class())
     call <- sys.call()
-    call[[1L]] <- quote(methods::.TraceWithMethods)
+    call[[1]] <- quote(methods::.TraceWithMethods)
     call$where <- where
     value <- eval.parent(call)
     on.exit() ## no error
@@ -52,7 +51,7 @@ untrace <- function(what, signature = NULL, where = topenv(parent.frame())) {
     ## now call the version in the methods package, to ensure we get
     ## the correct name space (e.g., correct version of class())
     call <- sys.call()
-    call[[1L]] <- quote(methods::.TraceWithMethods)
+    call[[1]] <- quote(methods::.TraceWithMethods)
     call$where <- where
     call$untrace <- TRUE
     value <- eval.parent(call)
@@ -72,7 +71,7 @@ isS4 <- function(object)
 
 asS4 <- function(object, value = TRUE) {
     value <- methods::as(value, "logical")
-    if(length(value) != 1L || is.na(value))
+    if(length(value) != 1 || is.na(value))
       stop("Expected a single logical value for the S4 object state")
     .Call("R_setS4Object", object, value, PACKAGE = "base")
   }
@@ -82,9 +81,9 @@ asS4 <- function(object, value = TRUE) {
     if(on) {
         on.exit(tracingState(TRUE)) # restore on exit, keep off during trace
         if(!missing(msg)) {
-            call <- deparse(sys.call(sys.parent(1L)))
-            if(length(call) > 1L)
-              call <- paste(call[[1L]], "....")
+            call <- deparse(sys.call(sys.parent(1)))
+            if(length(call)>1)
+              call <- paste(call[[1]], "....")
             cat("Tracing", call, msg, "\n")
         }
         exprObj <- substitute(expr)

@@ -26,10 +26,10 @@ function(file, widths, header = FALSE, sep = "\t",
 
     if (is.list(widths)) {
         recordlength <- length(widths)
-        widths <- do.call("c", widths)
-    } else recordlength <- 1L
+        widths <- do.call("c",widths)
+    } else recordlength <- 1
 
-    drop <- (widths < 0L)
+    drop<- (widths < 0)
     widths <- abs(widths)
 
 
@@ -50,37 +50,37 @@ function(file, widths, header = FALSE, sep = "\t",
 
     if (skip) readLines(file, n=skip)
     if (header) {
-        headerline <- readLines(file, n=1L)
+        headerline <- readLines(file, n=1)
         cat(file=FILE, headerline, "\n")
     }
 
     repeat({
-        if (n == 0L) break
-        if (n == -1L)
+        if (n == 0) break
+        if (n == -1)
             thisblock <- buffersize
         else
             thisblock <- min(buffersize,n)
 
         raw <- readLines(file, n = thisblock)
         nread <- length(raw)
-        if (recordlength > 1L &&  nread %% recordlength) {
-            raw<-raw[1L:(nread-nread %% recordlength)]
+        if (recordlength > 1 &&  nread %% recordlength) {
+            raw<-raw[1:(nread-nread %% recordlength)]
             warning(gettextf("last record incomplete, %d lines discarded",
                              nread %% recordlength), domain = NA)
         }
-        if (recordlength > 1L) {
+        if (recordlength > 1) {
             raw <- matrix(raw, nrow=recordlength)
-            raw <- apply(raw, 2L, paste, collapse="")
+            raw <- apply(raw, 2, paste, collapse="")
         }
 
-        st <- c(1L, 1L+cumsum(widths))
+        st <- c(1, 1+cumsum(widths))
         first <- st[-length(st)][!drop]
         last <- cumsum(widths)[!drop]
         cat(file = FILE, sapply(raw, doone),
-            sep = c(rep(sep, length.out = length(first)-1L), "\n"))
+            sep = c(rep(sep, length.out = length(first)-1), "\n"))
 
         if (nread < thisblock) break
-        if (n > 0L) n <- n - length(raw)
+        if (n > 0) n <- n - length(raw)
     })
 
     close(FILE)

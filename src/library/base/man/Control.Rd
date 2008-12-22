@@ -1,6 +1,6 @@
 % File src/library/base/man/Control.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2008 R Core Development Team
+% Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{Control}
@@ -37,8 +37,7 @@ next
   }
   \item{var}{A syntactical name for a variable.}
   \item{seq}{An expression evaluating to a vector (including a list and
-    an \link{expression}) or to a \link{pairlist} or \code{NULL}.  A
-    factor value will be coerced to a character vector.}
+    an \link{expression}) or to a \link{pairlist} or \code{NULL}.}
   \item{expr, cons.expr, alt.expr}{
     An \emph{expression} in a formal sense.  This is either a
     simple expression or a so called \emph{compound expression}, usually
@@ -62,8 +61,11 @@ next
 
   The index \code{seq} in a \code{for} loop is evaluated at the start of
   the loop; changing it subsequently does not affect the loop.  The
-  variable \code{var} has the same type as \code{seq}: assigning to it
-  inside the loop does not alter \code{seq}.
+  variable \code{var} has the same type as \code{seq}, and is read-only:
+  assigning to it does not alter \code{seq}.  If \code{seq} is a factor
+  (which is not strictly allowed) then its internal codes are used: the
+  effect is that of \code{\link{as.integer}} not
+  \code{\link{as.vector}}.
 }
 \value{
   \code{if} returns the value of the expression evaluated, or
@@ -81,7 +83,7 @@ next
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
   \emph{The New S Language}.
-  Wadsworth & Brooks/Cole.
+  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{Syntax}} for the basic \R syntax and operators,
@@ -94,8 +96,6 @@ for(n in c(2,5,10,20,50)) {
    x <- stats::rnorm(n)
    cat(n,":", sum(x^2),"\n")
 }
-f = factor(sample(letters[1:5], 10, replace=TRUE))
-for( i in unique(f) ) print(i)
 }
 \keyword{programming}
 \keyword{iteration}

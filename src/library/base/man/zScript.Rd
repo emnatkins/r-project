@@ -4,7 +4,6 @@
 % Distributed under GPL 2 or later
 
 \name{.Script}
-\Rdversion{1.1}
 \title{Scripting Language Interface}
 \alias{.Script}
 \description{
@@ -20,12 +19,11 @@
     script, which must be located in the \file{\code{interpreter}}
     subdirectory of
 #ifdef unix
-    \file{\var{R_SHARE_DIR}} (normally \file{\var{\link[base:Rhome]{R_HOME}}/share}).
+    \file{\var{R\_SHARE\_DIR}} (normally \file{\var{\link[base:Rhome]{R\_HOME}}/share}).}
 #endif
 #ifdef windows
-    \file{\var{\link[base:Rhome]{R_HOME}}/share}.
+    \file{\var{\link[base:Rhome]{R\_HOME}}/share}.}
 #endif
-  }
   \item{args}{a character string giving the arguments to pass to the
     script.}
   \item{\dots}{further arguments to be passed to \code{\link{system}}

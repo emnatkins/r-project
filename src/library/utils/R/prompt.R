@@ -46,7 +46,7 @@ function(object, filename = NULL, name = NULL,
             if(is.name(name))
                 as.character(name)
             else if(is.call(name)
-                    && (as.character(name[[1L]]) %in%
+                    && (as.character(name[[1]]) %in%
                         c("::", ":::", "getAnywhere"))) {
                 name <- as.character(name)
                 name[length(name)]
@@ -74,7 +74,7 @@ function(object, filename = NULL, name = NULL,
     ## </FIXME>
 
     n <- length(argls <- formals(x))
-    if(n) {
+    if(n > 0) {
         arg.names <- arg.n <- names(argls)
         arg.n[arg.n == "..."] <- "\\dots"
     }
@@ -84,7 +84,7 @@ function(object, filename = NULL, name = NULL,
         Call <- paste0(Call, arg.names[i],
                        if(!is.missing.arg(argls[[i]]))
                        paste0(" = ",
-                              paste(deparse(argls[[i]], width.cutoff= 500L),
+                              paste(deparse(argls[[i]], width.cutoff= 500),
                                     collapse="\n")))
         if(i != n) Call <- paste0(Call, ", ")
     }
@@ -93,7 +93,7 @@ function(object, filename = NULL, name = NULL,
     x.def <- attr(x, "source")
     if(is.null(x.def))
         x.def <- deparse(x)
-    if(any(br <- substr(x.def, 1L, 1L) == "}"))
+    if(any(br <- substr(x.def, 1, 1) == "}"))
         x.def[br] <- paste(" ", x.def[br])
 
     ## escape "%" :
@@ -101,7 +101,6 @@ function(object, filename = NULL, name = NULL,
 
     Rdtxt <-
         list(name = paste0("\\name{", name, "}"),
-             version = "\\Rdversion{1.1}",
              aliases = c(paste0("\\alias{", name, "}"),
              paste("%- Also NEED an '\\alias' for EACH other topic",
                    "documented here.")),
@@ -149,7 +148,7 @@ function(object, filename = NULL, name = NULL,
              "\\keyword{ ~kwd1 }",
              "\\keyword{ ~kwd2 }% __ONLY ONE__ keyword per line"))
 
-    Rdtxt$arguments <- if(n)
+    Rdtxt$arguments <- if(n > 0)
         c("\\arguments{",
           paste0("  \\item{", arg.n, "}{",
                  " ~~Describe \\code{", arg.n, "} here~~ }"),
@@ -273,7 +272,6 @@ function(object, filename = NULL, name = NULL)
 
     Rdtxt <-
         list(name = paste0("\\name{", name, "}"),
-             version = "\\Rdversion{1.1}",
              aliases = paste0("\\alias{", name, "}"),
              docType = "\\docType{data}",
              title = "\\title{ ~~ data name/kind ... ~~}",
@@ -336,14 +334,13 @@ function(package, lib.loc = NULL, filename = NULL, name = NULL, final = FALSE)
 
     Rdtxt <-
     	    list(name = paste0("\\name{", name, "}"),
-                 version = "\\Rdversion{1.1}",
     	         aliases = paste0("\\alias{", name, "}"),
     	         docType = "\\docType{package}",
     	         title = c("\\title{", "}"),
     	         description = c("\\description{","}"),
     	         details = c("\\details{","}"),
     	         author = c("\\author{","}"),
-    	         references = character(0L),
+    	         references = character(0),
 
     	         keywords = c("\\keyword{ package }")
     	     )
@@ -354,7 +351,7 @@ function(package, lib.loc = NULL, filename = NULL, name = NULL, final = FALSE)
     	info <- library(help = package, lib.loc = lib.loc,
                         character.only = TRUE)
 
-    	if (!length(grep(paste0("^", package, " "), info$info[[2L]])))
+    	if (!length(grep(paste0("^", package, " "), info$info[[2]])))
     	    Rdtxt$aliases <- c(Rdtxt$aliases, paste0("\\alias{", package, "}"))
 
         insert1("title", desc$Title)
@@ -367,15 +364,15 @@ function(package, lib.loc = NULL, filename = NULL, name = NULL, final = FALSE)
 
 	insert1("details", tabular(paste0(names(desc), ":"), unlist(desc)))
 
-	if (!is.null(info$info[[2L]]))
+	if (!is.null(info$info[[2]]))
 	    insert1("details",  c("", identity("Index:"), "\\preformatted{",
-	                          info$info[[2L]], "}"))
-	if (!is.null(info$info[[3L]]))
+	                          info$info[[2]], "}"))
+	if (!is.null(info$info[[3]]))
 	    insert1("details",
                     c("",
         identity("Further information is available in the following vignettes:"),
-                      tabular(paste0("\\code{", info$info[[3L]][,1], "}"),
-                              info$info[[3L]][,2])))
+                      tabular(paste0("\\code{", info$info[[3]][,1], "}"),
+                              info$info[[3]][,2])))
     }
 
     if (!final) {

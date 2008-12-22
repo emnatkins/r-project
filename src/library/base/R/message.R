@@ -29,10 +29,10 @@ message <-
 function(..., domain = NULL, appendLF = TRUE)
 {
     args <- list(...)
-    cond <- if (length(args) == 1L && inherits(args[[1L]], "condition")) {
-        if(nargs() > 1L)
+    cond <- if (length(args) == 1 && inherits(args[[1]], "condition")) {
+        if(nargs() > 1)
             warning("additional arguments ignored in message()")
-        args[[1L]]
+        args[[1]]
     } else {
         msg <- .makeMessage(..., domain=domain, appendLF = appendLF)
         call <- sys.call()
@@ -56,7 +56,7 @@ function(..., domain = NULL, appendLF = TRUE)
 .makeMessage <- function(..., domain = NULL, appendLF = FALSE)
  {
     args <- list(...)
-    if(length(args)) {
+    if(length(args) > 0) {
         args <- lapply(list(...), as.character)
         if(is.null(domain) || !is.na(domain))
             args <- .Internal(gettext(domain, unlist(args)))

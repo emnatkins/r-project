@@ -22,7 +22,7 @@ function(topic, package = NULL, lib.loc = NULL, local = FALSE,
 {
     topic <- substitute(topic)
     if(!is.character(topic))
-	topic <- deparse(topic)[1L]
+	topic <- deparse(topic)[1]
     INDICES <- .find.package(package, lib.loc, verbose = verbose)
     file <- index.search(topic, INDICES, "AnIndex", "R-ex")
     if(file == "") {
@@ -30,11 +30,11 @@ function(topic, package = NULL, lib.loc = NULL, local = FALSE,
 	return(invisible())
     }
     packagePath <- dirname(dirname(file))
-    if(length(file) > 1L) {
-	packagePath <- packagePath[1L]
+    if(length(file) > 1) {
+	packagePath <- packagePath[1]
 	warning(gettextf("more than one help file found: using package '%s'",
 		basename(packagePath)), domain = NA)
-	file <- file[1L]
+	file <- file[1]
     }
     pkg <- basename(packagePath)
     lib <- dirname(packagePath)
@@ -54,7 +54,7 @@ function(topic, package = NULL, lib.loc = NULL, local = FALSE,
 	    on.exit(assign(".Random.seed", oldSeed, envir = .GlobalEnv))
 	} else {
 	    oldRNG <- RNGkind()
-	    on.exit(RNGkind(oldRNG[1L], oldRNG[2L]))
+	    on.exit(RNGkind(oldRNG[1], oldRNG[2]))
 	}
 	## set RNG
 	if(is.logical(setRNG)) { # i.e. == TRUE: use the same as R CMD check
@@ -64,21 +64,21 @@ function(topic, package = NULL, lib.loc = NULL, local = FALSE,
 	} else eval(setRNG)
     }
     encoding <-
-	if(length(enc <- localeToCharset()) > 1L)
+	if(length(enc <- localeToCharset()) > 1)
 	    c(enc[-length(enc)], "latin1")
 	else ""
     ## peek at the file, but note we can't usefully translate to C.
-    zz <- readLines(zfile, n=1L)
-    if(length(grep("^### Encoding: ", zz))  &&
+    zz <- readLines(zfile, n=1)
+    if(length(grep("^### Encoding: ", zz)) > 0 &&
        !identical(Sys.getlocale("LC_CTYPE"), "C"))
-	encoding <- substring(zz, 15L)
-    skips <- 0L
+	encoding <- substring(zz, 15)
+    skips <- 0
     if (echo) {
 	## skip over header
 	zcon <- file(zfile, open="rt")
 	while(length(zz) && !length(grep("^### \\*\\*", zz))) {
-	    skips <- skips + 1L
-	    zz <- readLines(zcon, n=1L)
+	    skips <- skips + 1
+	    zz <- readLines(zcon, n=1)
 	}
 	close(zcon)
     }

@@ -1,33 +1,35 @@
 # default target builds indices
-PERL = R_OSTYPE=windows perl
-CAT = cat
-CP = cp
-RM = rm
-MKDIR = mkdir
+DOS=# -dosnames   # for file-name mapping
+PERL=R_OSTYPE=windows perl
+CAT=cat
+CP=cp
+RM=rm
+MKDIR=mkdir
 
 R_HOME = ../../..
-RHOME = $(shell perl ../pwd.pl ../../..)
-PKGDIR = ../../library
-RLIB = $(RHOME)/library
+RHOME=$(shell perl ../pwd.pl ../../..)
+PKGDIR=../../library
+RLIB=$(RHOME)/library
+CHM=
 
 index-%:
 	@if test -d $(PKGDIR)/$*/man ; then \
 	  PERL5LIB=$(RHOME)/share/perl $(PERL) \
-	    $(R_HOME)/share/perl/build-help-windows.pl \
+	    $(R_HOME)/share/perl/build-help-windows.pl ${DOS} \
 	    -index $(PKGDIR)/$* $(RLIB) '$(DPKG)' $* ; \
 	fi
 
 pkg-% help-%:
 	@if test -d $(PKGDIR)/$*/man ; then \
 	  PERL5LIB=$(RHOME)/share/perl $(PERL) \
-	    $(R_HOME)/share/perl/build-help-windows.pl \
+	    $(R_HOME)/share/perl/build-help-windows.pl ${DOS} \
 	    $(HELPTYPES) $(PKGDIR)/$* $(RLIB) '$(DPKG)' $* ; \
 	fi
 
 pkgfake-%:
 	@if test -d $(PKGDIR)/$*/man ; then \
 	  PERL5LIB=$(RHOME)/share/perl $(PERL) \
-	    $(R_HOME)/share/perl/build-help-windows.pl \
+	    $(R_HOME)/share/perl/build-help-windows.pl ${DOS} \
 	    -txt -latex $(PKGDIR)/$* $(RLIB) '$(DPKG)' $* ; \
 	fi
 
@@ -35,7 +37,7 @@ chm-%:
 	@if test -d $(PKGDIR)/$*/man ; then \
 	  if ! test -d $(PKGDIR)/$*/chm ; then \
 	    PERL5LIB=$(RHOME)/share/perl $(PERL) \
-	    $(R_HOME)/share/perl/build-help-windows.pl \
+	    $(R_HOME)/share/perl/build-help-windows.pl ${DOS} \
 	    -chm $(PKGDIR)/$* $(RLIB) '$(DPKG)' $* ; \
 	  fi; \
 	  $(MAKE)  --no-print-directory -C $(PKGDIR)/$*/chm \
@@ -61,7 +63,7 @@ latex-%:
 	@$(MAKE) --no-print-directory -C $(RLIB)/$* \
 	-f $(RHOME)/src/gnuwin32/help/Makefile PKG=$* unzipit
 	PERL5LIB=$(RHOME)/share/perl $(PERL) \
-	  $(R_HOME)/share/perl/build-help-windows.pl \
+	  $(R_HOME)/share/perl/build-help-windows.pl ${DOS} \
 	  -latex $(PKGDIR)/$* $(RLIB)
 
 clean:

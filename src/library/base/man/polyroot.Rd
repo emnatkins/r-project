@@ -27,7 +27,7 @@ polyroot(z)
   If the coefficient vector \code{z} has zeroes for the highest powers,
   these are discarded.
 
-  There is no maximum degree, but numerical stability
+  As from \R 2.8.0 there is no maximum degree, but numerical stability
   may be an issue for all but low-degree polynomials.
 }
 \value{

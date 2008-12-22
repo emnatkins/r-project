@@ -15,7 +15,7 @@
 #  http://www.r-project.org/Licenses/
 
 write_PACKAGES <-
-function(dir = ".", fields = NULL,
+function(dir, fields = NULL,
          type = c("source", "mac.binary", "win.binary"),
          verbose = FALSE, unpacked = FALSE, subdirs = FALSE)
 {
@@ -40,7 +40,7 @@ function(dir = ".", fields = NULL,
                                              unpacked)
 
         if(length(desc)) {
-            fields <- names(desc[[1L]])
+            fields <- names(desc[[1]])
             desc <- matrix(unlist(desc), ncol = length(fields), byrow = TRUE)
             colnames(desc) <- fields
             ## bundles do not have a Package entry in the DESCRIPTION,

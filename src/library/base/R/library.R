@@ -21,7 +21,8 @@ testPlatformEquivalence <- function(built, run)
     built <- gsub("([^-]*)-([^-]*)-(.*)", "\\1-\\3", built)
     run <- gsub("([^-]*)-([^-]*)-(.*)", "\\1-\\3", run)
     ## Mac OS X supports multiple CPUs by using 'universal' binaries
-    if (length(grep("^universal-darwin", built)) && nzchar(.Platform$r_arch))
+    if (length(grep("^universal-darwin", built)) > 0 &&
+        nzchar(.Platform$r_arch))
         built <- sub("^universal", R.version$arch, built)
     ## allow for small mismatches, e.g. OS version number and i686 vs i586.
     length(agrep(built, run)) > 0
@@ -31,7 +32,7 @@ library <-
 function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
          logical.return = FALSE, warn.conflicts = TRUE,
          keep.source = getOption("keep.source.pkgs"),
-         verbose = getOption("verbose"))
+         verbose = getOption("verbose"), version)
 {
     paste0 <- function(...) paste(..., sep="")
     testRversion <- function(pkgInfo, pkgname, pkgpath)
@@ -44,7 +45,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
         ## length 3 with valid components was checked at INSTALL time.
        if(length(Rdeps <- pkgInfo$Rdepends2)) {
             for(dep in Rdeps)
-                if(length(dep) > 1L) {
+                if(length(dep) > 1) {
                     target <- as.numeric_version(dep$version)
                     res <- eval(parse(text=paste("current", dep$op, "target")))
                     if(!res)
@@ -52,7 +53,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
                                       current, pkgname, dep$op, target),
                              call. = FALSE, domain = NA)
                 }
-        } else if(length(Rdeps <- pkgInfo$Rdepends) > 1L) {
+        } else if(length(Rdeps <- pkgInfo$Rdepends) > 1) {
             target <- as.numeric_version(Rdeps$version)
             res <- eval(parse(text=paste("current", Rdeps$op, "target")))
             if(!res)
@@ -110,7 +111,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
         else {
             ## A package will have created a generic
             ## only if it has created a formal method.
-            length(objects(env, pattern="^\\.__[MT]", all.names=TRUE)) == 0L
+            length(objects(env, pattern="^\\.__[MT]", all.names=TRUE)) == 0
         }
     }
 
@@ -130,7 +131,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
             ## down into the loop and test against specific other package name
             ## but subtle conflicts like that are likely to be found elsewhere
             these <- objects(lib.pos, all.names = TRUE)
-            these <- these[substr(these, 1L, 6L) == ".__T__"]
+            these <- these[substr(these, 1, 6) == ".__T__"]
             gen <- gsub(".__T__(.*):([^:]+)", "\\1", these)
             from <- gsub(".__T__(.*):([^:]+)", "\\2", these)
             gen <- gen[from != package]
@@ -138,9 +139,9 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
         }
         fst <- TRUE
 	ipos <- seq_along(sp)[-c(lib.pos,
-				 match(c("Autoloads", "CheckExEnv"), sp, 0L))]
+				 match(c("Autoloads", "CheckExEnv"), sp, 0))]
         for (i in ipos) {
-            obj.same <- match(objects(i, all.names = TRUE), ob, nomatch = 0L)
+            obj.same <- match(objects(i, all.names = TRUE), ob, nomatch = 0)
             if (any(obj.same > 0)) {
                 same <- ob[obj.same]
                 same <- same[!(same %in% dont.mind)]
@@ -174,19 +175,19 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
     }
 
     libraryPkgName <- function(pkgName, sep = "_")
-	unlist(strsplit(pkgName, sep, fixed=TRUE))[1L]
+	unlist(strsplit(pkgName, sep, fixed=TRUE))[1]
 
     libraryPkgVersion <- function(pkgName, sep = "_")
     {
         splitName <- unlist(strsplit(pkgName, sep, fixed=TRUE))
-	if (length(splitName) > 1L) splitName[2L] else NULL
+	if (length(splitName) > 1) splitName[2] else NULL
     }
 
     libraryMaxVersPos <- function(vers)
     {
 	## Takes in a character vector of version numbers
         ## returns the position of the maximum version.
-        if(length(vers) == 0L) return(integer(0L))
+        if(length(vers) == 0) return(integer(0))
         vers <- package_version(vers)
         min(which(vers == max(vers)))
     }
@@ -211,7 +212,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 
 	if(!character.only)
 	    package <- as.character(substitute(package))
-        if(length(package) != 1L)
+        if(length(package) != 1)
             stop("'package' must be of length 1")
         if(is.na(package) || (package == ""))
             stop("invalid package name")
@@ -252,6 +253,27 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
             return(if (logical.return) TRUE else invisible(.packages()))
         }
 
+	if (!missing(version)) {
+	     package <- manglePackageName(package, version)
+        } else { # Need to find the package version to install
+            ## this throws a warning if lib.loc has not been cleaned.
+            pkgDirs <- list.files(lib.loc, pattern = paste0("^", package))
+            ## See if any directories in lib.loc match the pattern of
+            ## 'package', if none do, just continue as it will get caught
+            ## below.  Otherwise, if there is actually a 'package', use
+            ## that, and if not, then use the highest versioned dir.
+            if (length(pkgDirs) > 0) {
+                if (!(package %in% pkgDirs)) {
+                    ## Need to find the highest version available
+                    vers <- unlist(lapply(pkgDirs, libraryPkgVersion))
+                    vpos <- libraryMaxVersPos(vers)
+                    if (length(vpos) > 0) package <- pkgDirs[vpos]
+                }
+            }
+        }
+
+        ## NB from this point on `package' is either the original name or
+        ## something like ash_1.0-8
 	pkgname <- paste("package", package, sep = ":")
 	newpackage <- is.na(match(pkgname, search()))
 	if(newpackage) {
@@ -263,7 +285,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 
             pkgpath <- .find.package(package, lib.loc, quiet = TRUE,
                                      verbose = verbose)
-            if(length(pkgpath) == 0L) {
+            if(length(pkgpath) == 0) {
                 if(length(lib.loc)) {
                     vers <- libraryPkgVersion(package)
                     txt <- if (!is.null(vers))
@@ -284,7 +306,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
             pfile <- system.file("Meta", "package.rds", package = package,
                                  lib.loc = which.lib.loc)
             if(!nzchar(pfile))
-            	stop(gettextf("'%s' is not a valid installed package",
+            	stop(gettextf("'%s' is not a valid package -- installed < 2.0.0?",
                      libraryPkgName(package)), domain = NA)
             pkgInfo <- .readRDS(pfile)
             testRversion(pkgInfo, package, pkgpath)
@@ -417,14 +439,14 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
     else if(!missing(help)) {
 	if(!character.only)
 	    help <- as.character(substitute(help))
-        pkgName <- help[1L]              # only give help on one package
+        pkgName <- help[1]              # only give help on one package
         pkgPath <- .find.package(pkgName, lib.loc, verbose = verbose)
         docFiles <- c(file.path(pkgPath, "Meta", "package.rds"),
                       file.path(pkgPath, "INDEX"))
         if(file.exists(vignetteIndexRDS <-
                        file.path(pkgPath, "Meta", "vignette.rds")))
             docFiles <- c(docFiles, vignetteIndexRDS)
-        pkgInfo <- vector(length = 3L, mode = "list")
+        pkgInfo <- vector(length = 3, mode = "list")
         readDocFile <- function(f) {
             if(basename(f) %in% "package.rds") {
                 txt <- .readRDS(f)$DESCRIPTION
@@ -469,8 +491,8 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 	## library():
         if(is.null(lib.loc))
             lib.loc <- .libPaths()
-        db <- matrix(character(0L), nrow = 0L, ncol = 3L)
-        nopkgs <- character(0L)
+        db <- matrix(character(0), nrow = 0, ncol = 3)
+        nopkgs <- character(0)
 
         for(lib in lib.loc) {
             a <- .packages(all.available = TRUE, lib.loc = lib)
@@ -494,14 +516,14 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
                     txt["Title"]
                 } else NA
                 if(is.na(title))
-                    title <- " ** No title available ** "
+                    title <- " ** No title available (pre-2.0.0 install?)  ** "
                 db <- rbind(db, cbind(i, lib, title))
             }
-            if(length(a) == 0L)
+            if(length(a) == 0)
                 nopkgs <- c(nopkgs, lib)
         }
         dimnames(db) <- list(NULL, c("Package", "LibPath", "Title"))
-        if(length(nopkgs) && !missing(lib.loc)) {
+        if((length(nopkgs) > 0) && !missing(lib.loc)) {
             pkglist <- paste(sQuote(nopkgs), collapse = ", ")
             msg <- sprintf(ngettext(length(nopkgs),
                                     "library %s contains no packages",
@@ -574,9 +596,9 @@ function(chname, package = NULL, lib.loc = NULL,
     ## libraries, although the docs clearly say they should not be
     ## added.
     nc_file_ext <- nchar(file.ext, "c")
-    if(substr(chname, nc_chname - nc_file_ext + 1L, nc_chname)
+    if(substr(chname, nc_chname - nc_file_ext + 1, nc_chname)
        == file.ext)
-        chname <- substr(chname, 1L, nc_chname - nc_file_ext)
+        chname <- substr(chname, 1, nc_chname - nc_file_ext)
 
     for(pkg in .find.package(package, lib.loc, verbose = verbose)) {
         DLLpath <- if(nzchar(.Platform$r_arch))
@@ -629,9 +651,9 @@ function(chname, libpath, verbose = getOption("verbose"),
     ## libraries, although the docs clearly say they should not be
     ## added.
     nc_file_ext <- nchar(file.ext, "c")
-    if(substr(chname, nc_chname - nc_file_ext + 1L, nc_chname)
+    if(substr(chname, nc_chname - nc_file_ext + 1, nc_chname)
        == file.ext)
-        chname <- substr(chname, 1L, nc_chname - nc_file_ext)
+        chname <- substr(chname, 1, nc_chname - nc_file_ext)
 
      file <- if(nzchar(.Platform$r_arch))
              file.path(libpath, "libs", .Platform$r_arch,
@@ -656,11 +678,19 @@ function(chname, libpath, verbose = getOption("verbose"),
 require <-
 function(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
          keep.source = getOption("keep.source.pkgs"),
-         character.only = FALSE, save = TRUE)
+         character.only = FALSE, version, save = TRUE)
 {
     if( !character.only )
         package <- as.character(substitute(package)) # allowing "require(eda)"
-    loaded <- paste("package", package, sep = ":") %in% search()
+    if (missing(version)) {
+        pkgName <- package
+        ## dont' care about versions, so accept any
+        s <- sub("_[0-9.-]*", "", search())
+        loaded <- paste("package", pkgName, sep = ":") %in% s
+    } else {
+        pkgName <- manglePackageName(package, version)
+        loaded <- paste("package", pkgName, sep = ":") %in% search()
+    }
 
     if (!loaded) {
 	if (!quietly)
@@ -669,7 +699,7 @@ function(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
 	value <- library(package, lib.loc = lib.loc, character.only = TRUE,
                          logical.return = TRUE,
                          warn.conflicts = warn.conflicts,
-                         keep.source = keep.source)
+                         keep.source = keep.source, version = version)
     } else value <- TRUE
 
     if(identical(save, FALSE)) {}
@@ -725,36 +755,59 @@ function(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
     if(is.null(lib.loc))
         lib.loc <- .libPaths()
     if(all.available) {
-	ans <- character(0L)
+	ans <- character(0)
         lib.loc <- lib.loc[file.exists(lib.loc)]
         valid_package_version_regexp <-
             .standard_regexps()$valid_package_version
         for(lib in lib.loc) {
             a <- list.files(lib, all.files = FALSE, full.names = FALSE)
             for(nam in a) {
+                ## match .find.packages as to what is a package
+                if(!file.exists(file.path(lib, nam, "DESCRIPTION")))
+                    next
+                ## ("If there is no 'DESCRIPTION' file, it ain't a
+                ## package.  And that's the only check we have ...")
+                ## <FIXME PRE-R-NG>
+                ## All packages usable in R-ng must have 'package.rds'.
+                ## (And we do not need to validate these metadata.)
+                ## Should be simply ignore the others?
+                ## (See also above ...)
                 pfile <- file.path(lib, nam, "Meta", "package.rds")
-                if(file.exists(pfile))
-                    info <- .readRDS(pfile)$DESCRIPTION[c("Package", "Version")]
-                else next
-                if( (length(info) != 2L) || any(is.na(info)) ) next
+                info <- if(file.exists(pfile))
+                    .readRDS(pfile)$DESCRIPTION[c("Package", "Version")]
+                else
+                    try(read.dcf(file.path(lib, nam, "DESCRIPTION"),
+                                 c("Package", "Version"))[1, ],
+                        silent = TRUE)
+                ## In principle, info from 'package.rds' should be
+                ## validated, but we already had counterexamples ...
+                ## <FIXME>
+                ## Shouldn't we warn about packages with bad metadata?
+                if(inherits(info, "try-error")
+                   || (length(info) != 2)
+                   || any(is.na(info)))
+                    next
                 if(regexpr(valid_package_version_regexp,
-                           info["Version"]) == -1) next
+                           info["Version"]) == -1)
+                    next
+                ## </FIXME>
                 ans <- c(ans, nam)
+                ## </FIXME>
             }
         }
         return(unique(ans))
     } ## else
     s <- search()
-    return(invisible(substring(s[substr(s, 1L, 8L) == "package:"], 9)))
+    return(invisible(substring(s[substr(s, 1, 8) == "package:"], 9)))
 }
 
 .path.package <- function(package = NULL, quiet = FALSE)
 {
     if(is.null(package)) package <- .packages()
-    if(length(package) == 0L) return(character(0L))
+    if(length(package) == 0) return(character(0))
     s <- search()
     searchpaths <-
-        lapply(1L:length(s), function(i) attr(as.environment(i), "path"))
+        lapply(1:length(s), function(i) attr(as.environment(i), "path"))
     searchpaths[[length(s)]] <- system.file()
     pkgs <- paste("package", package, sep = ":")
     pos <- match(pkgs, s)
@@ -786,7 +839,7 @@ function(package = NULL, lib.loc = NULL, quiet = FALSE,
     ## don't waste time looking for the standard packages:
     ## we know where they are and this can take a significant
     ## time with 1000+ packages installed.
-    if(length(package) == 1L && !nzchar(Sys.getenv("R_CROSS_BUILD")) &&
+    if(length(package) == 1 && !nzchar(Sys.getenv("R_CROSS_BUILD")) &&
        package %in% c("base", "tools", "utils", "grDevices", "graphics",
                       "stats", "datasets", "methods", "grid", "splines",
                       "stats4", "tcltk"))
@@ -803,8 +856,8 @@ function(package = NULL, lib.loc = NULL, quiet = FALSE,
 
     if(!length(package)) return(character())
 
-    bad <- character(0L)
-    out <- character(0L)
+    bad <- character(0)
+    out <- character(0)
 
     for(pkg in package) {
         if(length(grep("_", pkg))) {
@@ -847,13 +900,23 @@ function(package = NULL, lib.loc = NULL, quiet = FALSE,
             dirs <- dirs[!sapply(dirs, is.null)]
             paths <- c(as.character(dirs), paths)
         }
+        ## As an extra safety measure, only use the paths we found if
+        ## their DESCRIPTION file registers the given package and has a
+        ## valid version.  Actually, we should really exclude all
+        ## candidates with "bad" DESCRIPTION metadata, but we cannot use
+        ## tools:::.check_package_description() for a full check here.
+        ## (But then packages installed with R 2.0.0 or later must have
+        ## valid DESCRIPTION metadata anyways.)
         if(length(paths)) {
             paths <- unique(paths)
             valid_package_version_regexp <-
                 .standard_regexps()$valid_package_version
             db <- lapply(paths, function(p) {
-                ## Note that this is sometimes used for source
-                ## packages, e.g. by promptPackage from package.skeleton
+                ## <FIXME PRE-R-NG>
+                ## All packages usable in R-ng must have 'package.rds'.
+                ## (And we do not need to validate these metadata.)
+                ## Should be simply ignore the others?
+                ## (See also above ...)
                 pfile <- file.path(p, "Meta", "package.rds")
                 info <- if(file.exists(pfile))
                     .readRDS(pfile)$DESCRIPTION[c("Package", "Version")]
@@ -861,25 +924,28 @@ function(package = NULL, lib.loc = NULL, quiet = FALSE,
                     try(read.dcf(file.path(p, "DESCRIPTION"),
                                  c("Package", "Version"))[1, ],
                         silent = TRUE)
+                ## In principle, info from 'package.rds' should be
+                ## validated, but we already had counterexamples ...
                 if(inherits(info, "try-error")
-                   || (length(info) != 2L)
+                   || (length(info) != 2)
                    || any(is.na(info)))
-                    c(Package = NA, Version = NA) # need dimnames below
+                    c(Package=NA, Version=NA) # need dimnames below
                 else
                     info
+                ## </FIXME>
             })
             db <- do.call("rbind", db)
-            ok <- (apply(!is.na(db), 1L, all)
+            ok <- (apply(!is.na(db), 1, all)
                    & (db[, "Package"] == sub("_.*", "", pkg))
                    & (regexpr(valid_package_version_regexp,
                               db[, "Version"])) > -1)
             paths <- paths[ok]
         }
-        if(length(paths) == 0L) {
+        if(length(paths) == 0) {
             bad <- c(bad, pkg)
             next
         }
-        if(length(paths) > 1L) {
+        if(length(paths) > 1) {
             ## If a package was found more than once ...
             ## * For the case of an exact version match (if the "name"
             ##   already contained the version), use the first path;
@@ -891,14 +957,14 @@ function(package = NULL, lib.loc = NULL, quiet = FALSE,
             ##   resolvable dependencies against the current version of
             ##   R ...)
             paths <- if(pkg_has_version) {
-                paths[1L]
+                paths[1]
             }
             else if(length(pos <- which(basename(paths) == pkg)))
-                paths[pos][1L]
+                paths[pos][1]
             else {
                 versions <- package_version(db[ok, "Version"])
                 pos <- min(which(versions == max(versions)))
-                paths <- paths[pos][1L]
+                paths <- paths[pos][1]
             }
             if(verbose)
                 warning(gettextf("package '%s' found more than once,\nusing the one found in '%s'",
@@ -907,9 +973,9 @@ function(package = NULL, lib.loc = NULL, quiet = FALSE,
         out <- c(out, paths)
     }
 
-    if(!quiet && length(bad)) {
-        if(length(out) == 0L) {
-            if(length(bad) == 1L) {
+    if(!quiet && (length(bad) > 0)) {
+        if(length(out) == 0) {
+            if(length(bad) == 1) {
                 stop(gettextf("there is no package called '%s'", pkg),
                      domain = NA)
             } else {
@@ -960,6 +1026,9 @@ print.packageInfo <- function(x, ...)
     invisible(x)
 }
 
+manglePackageName <- function(pkgName, pkgVersion)
+    paste(pkgName, "_", pkgVersion, sep = "")
+
 .getRequiredPackages <-
     function(file="DESCRIPTION", quietly = FALSE, useImports = FALSE)
 {
@@ -989,7 +1058,7 @@ function(pkgInfo, quietly = FALSE, lib.loc = NULL, useImports = FALSE)
                              call. = FALSE, domain = NA)
                     current <- .readRDS(pfile)$DESCRIPTION["Version"]
                     for(z in zs)
-                        if(length(z) > 1L) {
+                        if(length(z) > 1) {
                             target <- as.numeric_version(z$version)
                             if (!eval(parse(text=paste("current", z$op, "target"))))
                                 stop(gettextf("package '%s' %s was found, but %s %s is required by '%s'",
@@ -1012,7 +1081,7 @@ function(pkgInfo, quietly = FALSE, lib.loc = NULL, useImports = FALSE)
                                          package = pkg, lib.loc = lib.loc)
                     current <- .readRDS(pfile)$DESCRIPTION["Version"]
                     for(z in zs)
-                        if (length(z) > 1L) {
+                        if (length(z) > 1) {
                             target <- as.numeric_version(z$version)
                             if (!eval(parse(text=paste("current", z$op, "target"))))
                                 stop(gettextf("package '%s' %s is loaded, but %s %s is required by '%s'",

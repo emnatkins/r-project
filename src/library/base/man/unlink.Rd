@@ -36,7 +36,7 @@
   \code{glob}).  The metacharacters \code{* ? [} can occur in Unix
   filenames, and this makes it difficult to use \code{unlink} to delete
   such files (see  \code{\link{file.remove}}), although escaping the
-  metacharacters by backslashes usually works.  If a
+  metacharacters by backslashes usually works.  As from \R 2.8.0, if a
   metacharacter matches nothing it is considered as a literal character.
 
   \code{recursive = TRUE} is not supported on all platforms, and may be
@@ -46,7 +46,7 @@
   Character classes such as \file{[a-z]} are supported.  The
   metacharacter \code{[} can occur in Windows filenames, and this makes
   it difficult to use \code{unlink} to delete such files (see
-  \code{\link{file.remove}}).  If a wildcard matches
+  \code{\link{file.remove}}).  As from \R 2.8.0, if a wildcard matches
   nothing it is considered as a literal character.
 
   Windows cannot remove the current working directory, nor any file
@@ -62,7 +62,7 @@
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
   \emph{The New S Language}.
-  Wadsworth & Brooks/Cole.
+  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{file.remove}}.

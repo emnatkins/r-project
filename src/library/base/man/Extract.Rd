@@ -223,7 +223,7 @@ x$name
   \code{\link{pmatch}}) to the names or dimnames of the object being
   subsetted (but never for subassignment).  Unlike S (Becker \emph{et
     al} p. 358)), \R has never used partial matching when extracting by
-  \code{[}, and as from \R 2.7.0 partial matching is not by default used
+  \code{[}.  As from \R 2.7.0, partial matching is not by default used
   by \code{[[} (see argument \code{exact}).
 
   Thus the default behaviour is to use partial matching only when
@@ -245,7 +245,7 @@ x$name
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
   \emph{The New S Language}.
-  Wadsworth & Brooks/Cole.
+  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{names}} for details of matching to names, and

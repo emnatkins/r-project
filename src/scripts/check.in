@@ -2457,7 +2457,6 @@ sub check_pkg {
 	    ## packages, or just base?
 	    $Rcmd .= "checkVignettes(dir = '$pkgoutdir', workdir='src'";
 	    $Rcmd .= ", weave = FALSE" unless $R_check_weave_vignettes;
-	    $Rcmd .= ", tangle = FALSE" if $R_check_weave_vignettes;
 	    $Rcmd .= ", latex = TRUE" if $R_check_latex_vignettes;
 	    $Rcmd .= ")\n";
 	    my @out = R_runR($Rcmd, "${R_opts} --quiet");
@@ -2530,17 +2529,12 @@ sub check_pkg {
 	    open(MANUAL, "> ${pkgname}-manual.tex")
 	      or die("Error: cannot open file '${pkgname}-manual.tex'" .
 		     "for writing\n");
-	    print MANUAL "\\documentclass\{book\}\n";
+	    print MANUAL "\\documentclass\{book\}\n" . $encs;
 	    ## Use the same Rd.sty defaults as Rd2dvi.
 	    if($HAVE_PDFLATEX) {
 		print MANUAL "\\usepackage[times,hyper]\{Rd\}\n";
 	    } else {
 		print MANUAL "\\usepackage[ae]\{Rd\}\n";
-	    }
-	    if ($encs =~ /utf8/) {
-		print MANUAL $encs . "\\IfFileExists{t2aenc.def}{\\usepackage[T2A]{fontenc}}{}\n";
-	    } else {
-		print MANUAL $encs;
 	    }
 	    print MANUAL "\\begin\{document\}\n";
 	    foreach my $file (@tex_files) {
@@ -2621,8 +2615,7 @@ sub check_pkg {
 	}
 	else { # no latex dir
 	    if($HAVE_LATEX) {
-		## index will be skipped on base package: see Rd2dvi
-		my $Rd2dvi_opts = "--batch --no-preview";
+		my $Rd2dvi_opts = "--batch --no-preview --no-index";
 		my $fmt;
 		if($HAVE_PDFLATEX) {
 		    $Rd2dvi_opts = $Rd2dvi_opts . " --pdf";
@@ -2698,7 +2691,7 @@ sub check_pkg {
 			"$pkgdir"));
 	if(R_system($cmd)) {
 	    $log->warning();
-	    $log->print("Problems when creating \U$ext\E version of DESCRIPTION.\n");
+	    $log->print("Problems when creating \U$ext\E version of DESCRIPTION.");
 	    ## If possible, indicate the problems found.
 	    my $latex_log = &file_path($build_dir, "Rd2.log");
 	    ## Note that Rd2dvi works on 'Rd2.tex'.

@@ -58,7 +58,7 @@ function(dir, outDir)
         "i386-pc-mingw32"
     else
         R.version$platform
-    if (length(grep("-apple-darwin",R.version$platform)) &&
+    if (length(grep("-apple-darwin",R.version$platform)) > 0L &&
         nzchar(Sys.getenv("R_ARCH")))
         OStype <- sub(".*-apple-darwin", "universal-apple-darwin", OStype)
     Built <-
@@ -389,11 +389,10 @@ function(dir, outDir)
     newestRd <- max(file.info(allRd)$mtime)
     ## these files need not exist, which gives NA.
     upToDate <- file.info(file.path(outDir, indices))$mtime >= newestRd
-    if(file_test("-d", dataDir)
-       && length(dataFiles <- list.files(dataDir))) {
+    if(file_test("-d", dataDir)) {
         ## Note that the data index is computed from both the package's
         ## Rd files and the data sets actually available.
-        newestData <- max(file.info(dataFiles)$mtime)
+        newestData <- max(file.info(list.files(dataDir))$mtime)
         upToDate <- c(upToDate,
               file.info(file.path(outDir, "Meta", "data.rds"))$mtime >=
                         max(newestRd, newestData))

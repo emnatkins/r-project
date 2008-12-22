@@ -210,8 +210,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 {
     ## Run texi2dvi on a latex file, or emulate it.
 
-    if(is.null(texi2dvi) || !nzchar(texi2dvi))
-        texi2dvi <- Sys.which("texi2dvi")
+    if(is.null(texi2dvi)) texi2dvi <- Sys.which("texi2dvi")
 
     envSep <- .Platform$path.sep
     Rtexmf <- file.path(R.home(), "share", "texmf")
@@ -245,7 +244,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
         opt_quiet <- if(quiet) "--quiet" else ""
         opt_extra <- ""
         out <- .shell_with_capture(paste(shQuote(texi2dvi), "--help"))
-        if(length(grep("--no-line-error", out$stdout)))
+        if(length(grep("--no-line-error", out$stdout) > 0L))
             opt_extra <- "--no-line-error"
         ## (Maybe change eventually: the current heuristics for finding
         ## error messages in log files should work for both regular and
@@ -329,7 +328,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
         ## and set the path to R's style files.
         ## -I works in MiKTeX >= 2.4, at least
         ver <- system(paste(shQuote(texi2dvi), "--version"), intern = TRUE)
-        if(length(grep("MiKTeX", ver[1L]))) {
+        if(length(grep("MiKTeX", ver[1]))) {
             paths <- paste ("-I", shQuote(texinputs))
             extra <- paste(extra, paste(paths, collapse = " "))
         }
@@ -393,7 +392,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
             stop(gettextf("unable to run %s on '%s'", latex, file), domain = NA)
         nmiss <- length(grep("^LaTeX Warning:.*Citation.*undefined",
                              readLines(paste(base, ".log", sep = ""))))
-        for(iter in 1L:10) { ## safety check
+        for(iter in 1:10) { ## safety check
             ## This might fail as the citations have been included in the Rnw
             if(nmiss) system(paste(shQuote(bibtex), shQuote(base)))
             nmiss_prev <- nmiss
@@ -432,7 +431,7 @@ function()
 
 ## <NOTE>
 ## Should no longer be needed now that we have .eval_with_capture().
-##
+## 
 ## .capture_output_from_print <-
 ## function(x, ...)
 ## {
@@ -483,10 +482,10 @@ function(expr, type = NULL)
         on.exit(sink(type = "message"), add = capture_output)
     }
     on.exit({ close(outcon) ; close(msgcon) }, add = TRUE)
-
+    
     value <- eval(expr)
     list(value = value,
-         output = readLines(outcon, warn = FALSE),
+         output = readLines(outcon, warn = FALSE), 
          message = readLines(msgcon, warn = FALSE))
 }
 

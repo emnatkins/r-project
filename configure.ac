@@ -491,8 +491,6 @@ AC_ARG_VAR([r_arch],
 AC_ARG_VAR([DEFS], [C defines for use when compiling R])
 AC_ARG_VAR([JAVA_HOME],
            [Path to the root of the Java environment])
-AC_ARG_VAR([R_SHELL],
-           [shell to be used for shell scripts, including 'R'])
 
 if test -z "${r_arch}"; then
   R_ARCH=
@@ -2321,11 +2319,6 @@ case "${host_os}" in
 esac
 AC_SUBST(OSF_SH_BUG)
 
-### shell for use in scripts: we allow R_SHELL to set the script,
-### since some AIX systems have zsh as sh.
-: ${R_SHELL=${SHELL}}
-AC_SUBST(R_SHELL)
-
 
 ### * Win32 overrides
 case "${host_os}" in
@@ -2419,30 +2412,16 @@ AC_CONFIG_FILES(
   src/nmath/Makefile
   src/nmath/standalone/Makefile
   src/scripts/Makefile
-  src/scripts/BATCH
   src/scripts/COMPILE
   src/scripts/INSTALL
-  src/scripts/LINK
   src/scripts/REMOVE
   src/scripts/R.sh
-  src/scripts/Rcmd
-  src/scripts/Rd2dvi
-  src/scripts/Rd2txt
   src/scripts/Rdconv
-  src/scripts/Rdiff
   src/scripts/Rprof
   src/scripts/SHLIB
   src/scripts/Sd2Rd
-  src/scripts/Stangle
-  src/scripts/Sweave
   src/scripts/build
   src/scripts/check
-  src/scripts/config
-  src/scripts/f77_f2c
-  src/scripts/javareconf
-  src/scripts/mkinstalldirs
-  src/scripts/pager
-  src/scripts/rtags
   src/unix/Makefile
   tests/Makefile
   tests/Embedding/Makefile
@@ -2615,20 +2594,14 @@ fi
 if test -n "${warn_perl5}"; then
   AC_MSG_WARN([${warn_perl5}])
 fi
-if test -n "${warn_dvi1}"; then
-  AC_MSG_WARN([${warn_dvi1}])
-fi
-if test -n "${warn_dvi2}"; then
-  AC_MSG_WARN([${warn_dvi2}])
+if test -n "${warn_dvi}"; then
+  AC_MSG_WARN([${warn_dvi}])
 fi
 if test -n "${warn_info}"; then
   AC_MSG_WARN([${warn_info}])
 fi
-if test -n "${warn_pdf1}"; then
-  AC_MSG_WARN([${warn_pdf1}])
-fi
-if test -n "${warn_pdf2}"; then
-  AC_MSG_WARN([${warn_pdf2}])
+if test -n "${warn_pdf}"; then
+  AC_MSG_WARN([${warn_pdf}])
 fi
 if test -n "${warn_pager}"; then
   AC_MSG_WARN([${warn_pager}])

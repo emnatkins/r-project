@@ -40,7 +40,7 @@ parse(file = "", n = NULL, text = NULL, prompt = "?", srcfile,
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
   \emph{The New S Language}.
-  Wadsworth & Brooks/Cole.
+  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{scan}}, \code{\link{source}}, \code{\link{eval}},
@@ -83,9 +83,7 @@ parse(file = "", n = NULL, text = NULL, prompt = "?", srcfile,
   A syntax error (including an incomplete expression) will throw an error.
 
   Character strings in the result will have a declared encoding if
-  \code{encoding} is \code{"latin1"} or \code{"UTF-8"}, or if
-  \code{text} is supplied with every element of known encoding in a
-  Latin-1 or UTF-8 locale.
+  \code{encoding} is \code{"latin1"} or \code{"UTF-8"}.
 }
 \examples{
 cat("x <- c(1,4)\n  x ^ 3 -10 ; outer(1:7,5:9)\n", file="xyz.Rdmped")

@@ -10,10 +10,10 @@
   Turn unevaluated expressions into character strings.
 }
 \usage{
-deparse(expr, width.cutoff = 60L,
+deparse(expr, width.cutoff = 60,
         backtick = mode(expr) \%in\% c("call", "expression", "(", "function"),
         control = c("keepInteger", "showAttributes", "keepNA"),
-        nlines = -1L)
+        nlines = -1)
 }
 \arguments{
   \item{expr}{any \R expression.}
@@ -23,8 +23,8 @@ deparse(expr, width.cutoff = 60L,
     enclosed in backticks if they do not follow the standard syntax.}
   \item{control}{character vector of deparsing options.  See
     \code{\link{.deparseOpts}}.}
-  \item{nlines}{integer: the maximum number of lines to produce.
-    Negative values indicate no limit.}
+  \item{nlines}{the maximum number of lines to produce.  Negative values
+    indicate no limit.}
 }
 \details{
   This function turns unevaluated expressions (where \sQuote{expression}
@@ -63,7 +63,7 @@ deparse(expr, width.cutoff = 60L,
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
   \emph{The New S Language}.
-  Wadsworth & Brooks/Cole.
+  Wadsworth \& Brooks/Cole.
 }
 \seealso{
   \code{\link{substitute}},

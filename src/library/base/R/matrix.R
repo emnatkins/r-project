@@ -24,22 +24,22 @@ matrix <- function(data=NA, nrow=1, ncol=1, byrow=FALSE, dimnames=NULL)
     .Internal(matrix(data, nrow, ncol, byrow, dimnames))
 }
 
-nrow <- function(x) dim(x)[1L]
-ncol <- function(x) dim(x)[2L]
+nrow <- function(x) dim(x)[1]
+ncol <- function(x) dim(x)[2]
 
 NROW <- function(x) if(is.array(x)||is.data.frame(x)) nrow(x) else length(x)
-NCOL <- function(x) if(is.array(x) && length(dim(x)) > 1L || is.data.frame(x)) ncol(x) else 1L
+NCOL <- function(x) if(is.array(x) && length(dim(x)) > 1||is.data.frame(x)) ncol(x) else as.integer(1)
 
 rownames <- function(x, do.NULL = TRUE, prefix = "row")
 {
     dn <- dimnames(x)
-    if(!is.null(dn[[1L]]))
-	dn[[1L]]
+    if(!is.null(dn[[1]]))
+	dn[[1]]
     else {
         nr <- NROW(x)
 	if(do.NULL) NULL
-        else if(nr > 0L) paste(prefix, seq_len(nr), sep="")
-        else character(0L)
+        else if(nr > 0) paste(prefix, seq_len(nr), sep="")
+        else character(0)
     }
 }
 
@@ -51,13 +51,13 @@ rownames <- function(x, do.NULL = TRUE, prefix = "row")
         dn <- dimnames(x)
         if(is.null(dn)) {
             if(is.null(value)) return(x)
-            if((nd <- length(dim(x))) < 1L)
+            if((nd <- length(dim(x))) < 1)
                 stop("attempt to set rownames on object with no dimensions")
             dn <- vector("list", nd)
         }
-        if(length(dn) < 1L)
+        if(length(dn) < 1)
             stop("attempt to set rownames on object with no dimensions")
-        if(is.null(value)) dn[1L] <- list(NULL) else dn[[1L]] <- value
+        if(is.null(value)) dn[1] <- list(NULL) else dn[[1]] <- value
         dimnames(x) <- dn
     }
     x
@@ -68,13 +68,13 @@ colnames <- function(x, do.NULL = TRUE, prefix = "col")
     if(is.data.frame(x) && do.NULL)
 	return(names(x))
     dn <- dimnames(x)
-    if(!is.null(dn[[2L]]))
-	dn[[2L]]
+    if(!is.null(dn[[2]]))
+	dn[[2]]
     else {
         nc <- NCOL(x)
 	if(do.NULL) NULL
-        else if(nc > 0L) paste(prefix, seq_len(nc), sep="")
-        else character(0L)
+        else if(nc > 0) paste(prefix, seq_len(nc), sep="")
+        else character(0)
     }
 }
 
@@ -86,20 +86,19 @@ colnames <- function(x, do.NULL = TRUE, prefix = "col")
         dn <- dimnames(x)
         if(is.null(dn)) {
             if(is.null(value)) return(x)
-            if((nd <- length(dim(x))) < 2L)
+            if((nd <- length(dim(x))) < 2)
                 stop("attempt to set colnames on object with less than two dimensions")
             dn <- vector("list", nd)
         }
-        if(length(dn) < 2L)
+        if(length(dn) < 2)
             stop("attempt to set colnames on object with less than two dimensions")
-        if(is.null(value)) dn[2L] <- list(NULL) else dn[[2L]] <- value
+        if(is.null(value)) dn[2] <- list(NULL) else dn[[2]] <- value
         dimnames(x) <- dn
     }
     x
 }
 
-row <- function(x, as.factor=FALSE)
-{
+row <- function(x, as.factor=FALSE) {
     if(as.factor) {
         labs <- rownames(x, do.NULL=FALSE, prefix="")
         res <- factor(.Internal(row(dim(x))), labels=labs)
@@ -108,8 +107,7 @@ row <- function(x, as.factor=FALSE)
     } else .Internal(row(dim(x)))
 }
 
-col <- function(x, as.factor=FALSE)
-{
+col <- function(x, as.factor=FALSE) {
     if(as.factor) {
         labs <- colnames(x, do.NULL=FALSE, prefix="")
         res <- factor(.Internal(col(dim(x))), labels=labs)

@@ -21,7 +21,7 @@
     function(pkgs, lib, repos = getOption("repos"),
              contriburl = contrib.url(repos, type="mac.binary"),
              method, available = NULL, destdir = NULL,
-             dependencies = FALSE, ...)
+             installWithVers = FALSE, dependencies = FALSE, ...)
 {
     link.html.help<-function(verbose = FALSE, ...)
     {
@@ -42,7 +42,7 @@
                     domain = NA, call. = FALSE)
     }
 
-    unpackPkg <- function(pkg, pkgname, lib)
+    unpackPkg <- function(pkg, pkgname, lib, installWithVers = FALSE)
     {
         ## Create a temporary directory and unpack the zip to it
         ## then get the real package & version name, copying the
@@ -70,7 +70,7 @@
             if (is.na(conts))
                 stop("malformed bundle DESCRIPTION file, no Contains field")
             else
-                pkgs <- strsplit(conts," ")[[1L]]
+                pkgs <- strsplit(conts," ")[[1]]
             ## now check the MD5 sums
             res <- TRUE
             for (curPkg in pkgs) res <- res &
@@ -85,13 +85,16 @@
         for (curPkg in pkgs) {
             desc <- read.dcf(file.path(curPkg, "DESCRIPTION"),
                              c("Package", "Version"))
-            instPath <- file.path(lib, desc[1L,1L])
+            if (installWithVers) {
+                instPath <- file.path(lib, paste(desc[1,1], desc[1,2], sep="_"))
+            }
+            else instPath <- file.path(lib, desc[1,1])
 
             ## If the package is already installed w/ this
             ## instName, remove it.  If it isn't there, the unlink call will
             ## still return success.
             ret <- unlink(instPath, recursive=TRUE)
-            if (ret == 0L) {
+            if (ret == 0) {
                 ## Move the new package to the install lib and
                 ## remove our temp dir
                 ret <- file.rename(file.path(tmpDir, curPkg), instPath)
@@ -108,18 +111,17 @@
     }
 
     if(!length(pkgs)) return(invisible())
-    oneLib <- length(lib) == 1L
+    oneLib <- length(lib) == 1
 
     pkgnames <- basename(pkgs)
     pkgnames <- sub("\\.tgz$", "", pkgnames)
-    pkgnames <- sub("\\.tar\\.gz$", "", pkgnames)
-    pkgnames <- sub("_.*$", "", pkgnames)
+    pkgnames <- sub("_[0-9.-]+$", "", pkgnames)
     ## there is no guarantee we have got the package name right:
     ## foo.zip might contain package bar or Foo or FOO or ....
     ## but we can't tell without trying to unpack it.
     if(is.null(contriburl)) {
-        for(i in seq_along(pkgs))
-            unpackPkg(pkgs[i], pkgnames[i], lib)
+        for(i in seq(along=pkgs))
+            unpackPkg(pkgs[i], pkgnames[i], lib, installWithVers)
         link.html.help(verbose=TRUE)
         return(invisible())
     }
@@ -160,28 +162,27 @@
 
     if(depends) { # check for dependencies, recursively
         p1 <- p0 # this is ok, as 1 lib only
-        ## where should we be looking?
-        ## should this add the library we are installing to?
-        installed <- installed.packages(fields = c("Package", "Version"))
-        not_avail <- character(0L)
+        have <- .packages(all.available = TRUE)
+        not_avail <- character(0)
 	repeat {
-	    deps <- apply(available[p1, dependencies, drop = FALSE],
-                          1L, function(x) paste(x[!is.na(x)], collapse=", "))
-	    res <- .clean_up_dependencies2(deps, installed, available)
-            not_avail <- c(not_avail, res[[2L]])
-            deps <- unique(res[[1L]])
-            ## R should not get to here, but be safe
-            deps <- deps[!deps %in% c("R", pkgs)]
+	    if(any(miss <- ! p1 %in% row.names(available))) {
+                not_avail <- c(not_avail, p1[miss])
+                p1 <- p1[!miss]
+	    }
+	    deps <- as.vector(available[p1, dependencies])
+	    deps <- .clean_up_dependencies(deps, available)
 	    if(!length(deps)) break
-	    pkgs <- c(deps, pkgs)
-	    p1 <- deps
+	    toadd <- deps[! deps %in% c("R", have, pkgs)]
+	    if(length(toadd) == 0) break
+	    pkgs <- c(toadd, pkgs)
+	    p1 <- toadd
 	}
         if(length(not_avail)) {
             warning(sprintf(ngettext(length(not_avail),
                                      "dependency %s is not available",
                                      "dependencies %s are not available"),
                             paste(sQuote(not_avail), collapse=", ")),
-                    domain = NA, call. = FALSE, immediate. = TRUE)
+                    domain = NA, call. = FALSE)
             flush.console()
         }
 
@@ -213,9 +214,10 @@
             oklib <- lib==update[,"LibPath"]
             for(p in update[oklib, "Package"])
             {
-                okp <- p == foundpkgs[, 1L]
+                okp <- p == foundpkgs[, 1]
                 if(any(okp))
-                    unpackPkg(foundpkgs[okp, 2L], foundpkgs[okp, 1L], lib)
+                    unpackPkg(foundpkgs[okp, 2], foundpkgs[okp, 1], lib,
+                              installWithVers)
             }
         }
         if(!is.null(tmpd) && is.null(destdir))

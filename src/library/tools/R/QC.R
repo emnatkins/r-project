@@ -86,7 +86,7 @@ function(package, dir, lib.loc = NULL)
         }
     }
 
-    data_objs <- character(0L)
+    data_objs <- character(0)
     data_dir <- file.path(dir, "data")
     if(file_test("-d", data_dir)) {
         data_env <- new.env()
@@ -397,7 +397,7 @@ function(package, dir, lib.loc = NULL,
         if(file.exists(file.path(dir, "NAMESPACE"))) {
             has_namespace <- TRUE
             objects_in_ns <- objects_in_code
-            functions_in_S3Table <- character(0L)
+            functions_in_S3Table <- character(0)
             ns_env <- code_env
             nsInfo <- parseNamespaceFile(basename(dir), dirname(dir))
             ## Look only at exported objects.
@@ -1624,7 +1624,7 @@ function(package, dir, lib.loc = NULL)
         ## the generic function ... hence substr().
         name <- paste(g, ".", sep = "")
         methods <-
-            functions_in_code[substr(functions_in_code, 1L,
+            functions_in_code[substr(functions_in_code, 1,
                                      nchar(name, type="c")) == name]
         ## </FIXME>
         methods <- methods %w/o% methods_stop_list
@@ -1929,7 +1929,7 @@ function(package, dir, lib.loc = NULL)
     ## If an installed package has a namespace, we need to record the S3
     ## methods which are registered but not exported (so that we can
     ## get() them from the right place).
-    S3_reg <- character(0L)
+    S3_reg <- character(0)
 
     ## Argument handling.
     if(!missing(package)) {
@@ -2124,7 +2124,7 @@ function(package, dir, lib.loc = NULL)
         ## of the generic function ... hence substr().
         name <- paste(g, ".", sep = "")
         methods <-
-            functions_in_code[substr(functions_in_code, 1L,
+            functions_in_code[substr(functions_in_code, 1,
                                      nchar(name, type="c")) == name]
         ## </FIXME>
         methods <- methods %w/o% methods_stop_list
@@ -2269,7 +2269,7 @@ function(package, dir, lib.loc = NULL)
                    ! .check_last_formal_arg(f)
                },
                replace_funs)
-    } else character(0L)
+    } else character(0)
 
     if(.isMethodsDispatchOn()) {
         S4_generics <- get_S4_generics_with_methods(code_env)
@@ -2310,7 +2310,7 @@ function(x, ...)
 checkTnF <-
 function(package, dir, file, lib.loc = NULL)
 {
-    code_files <- docs_files <- character(0L)
+    code_files <- docs_files <- character(0)
 
     ## Argument handling.
     if(!missing(package)) {
@@ -2470,7 +2470,7 @@ function(x, ...)
                                    FALSE))
                      suggests))
     ## installed <-  utils::installed.packages()[ , "Package"]
-    installed <- character(0L)
+    installed <- character(0)
     for(lib in .libPaths()) {
         pkgs <- list.files(lib)
         pkgs <- pkgs[file.access(file.path(lib, pkgs, "DESCRIPTION"), 4) == 0]
@@ -2808,8 +2808,8 @@ function(x, ...)
                                           tags[ind])
                 tags[!ind] <- "Preceding all sections"
                 vals <- as.character(bad[[i]])
-                long <- nchar(vals, type="c") >= 128L  # Why 128?  Why not?
-                vals <- paste(sapply(substr(vals, 1L, 127L), deparse, 128L),
+                long <- nchar(vals, type="c") >= 128  # Why 128?  Why not?
+                vals <- paste(sapply(substr(vals, 1, 127), deparse, 128),
                               ifelse(long, " [truncated]", ""), sep = "")
                 writeLines(c(paste(tags, vals, sep = c(":\n", "\n")), ""))
             }
@@ -3055,7 +3055,7 @@ function(dfile)
     ## These must be correct if present.
 
     val <- db[match(c("Depends", "Suggests", "Imports", "Enhances"),
-                    names(db), nomatch = 0L)]
+                    names(db), nomatch = 0)]
     if(length(val)) {
         depends <- .strip_whitespace(unlist(strsplit(val, ",")))
         bad_dep_entry <- bad_dep_op <- bad_dep_version <- character()
@@ -3643,10 +3643,10 @@ function(pkgDir)
     names(ans) <- files
     old <- setwd(pkgDir)
     for(f in files)
-        .try_quietly(utils::data(list = f, package = character(0L), envir = dataEnv))
+        .try_quietly(utils::data(list = f, package = character(0), envir = dataEnv))
     setwd(old)
 
-    non_ASCII <- latin1 <- utf8 <- character(0L)
+    non_ASCII <- latin1 <- utf8 <- character(0)
     for(ds in ls(envir = dataEnv, all.names = TRUE))
         check_one(get(ds, envir = dataEnv))
     structure(list(latin1 = unique(latin1), utf8 = unique(utf8),
@@ -3704,8 +3704,8 @@ function(dir, doDelete = FALSE)
     else
         dir <- file_path_as_absolute(dir)
 
-    wrong_things <- list(R = character(0L), man = character(0L),
-                         demo = character(0L), `inst/doc` = character(0L))
+    wrong_things <- list(R = character(0), man = character(0),
+                         demo = character(0), `inst/doc` = character(0))
 
     code_dir <- file.path(dir, "R")
     if(file_test("-d", code_dir)) {
@@ -3793,7 +3793,7 @@ function(dir, respect_quotes = FALSE)
         dir <- file_path_as_absolute(dir)
 
     code_dir <- file.path(dir, "R")
-    wrong_things <- character(0L)
+    wrong_things <- character(0)
     if(file_test("-d", code_dir)) {
         R_files <- list_files_with_type(code_dir, "code",
                                         full.names = FALSE,
@@ -4785,9 +4785,9 @@ function(x)
 ## non-syntactic class names should best be avoided, but R has always
 ## had them at least for
 ## R> class(bquote({.}))
-## [1L] "{"
+## [1] "{"
 ## R> class(bquote((.)))
-## [1L] "("
+## [1] "("
 
 ## <NOTE>
 ## Handling S3/S4 method markup is somewhat tricky.

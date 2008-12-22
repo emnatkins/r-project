@@ -164,7 +164,7 @@ read.delim2(file, header = TRUE, sep = "\t", quote="\"", dec=",",
     turn off the interpretation of comments altogether.}
 
   \item{allowEscapes}{logical.  Should C-style escapes such as
-    \samp{\\n} be processed or read verbatim (the default)?   Note that if
+    \code{\n} be processed or read verbatim (the default)?   Note that if
     not within quotes these could be interpreted as a delimiter (but not
     as a comment character).  For more details see \code{\link{scan}}.}
 
@@ -287,7 +287,7 @@ read.delim2(file, header = TRUE, sep = "\t", quote="\"", dec=",",
   Chambers, J. M. (1992)
   \emph{Data for models.}
   Chapter 3 of \emph{Statistical Models in S}
-  eds J. M. Chambers and T. J. Hastie, Wadsworth & Brooks/Cole.
+  eds J. M. Chambers and T. J. Hastie, Wadsworth \& Brooks/Cole.
 }
 \keyword{file}
 \keyword{connection}

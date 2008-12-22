@@ -17,12 +17,11 @@
 
 isSymmetric <- function(object, ...) UseMethod("isSymmetric")
 
-isSymmetric.matrix <- function(object, tol = 100*.Machine$double.eps, ...)
-{
+isSymmetric.matrix <- function(object, tol = 100*.Machine$double.eps, ...) {
     if(!is.matrix(object)) return(FALSE) ## we test for  symmetric *matrix*
     ## cheap pretest: is it square?
     d <- dim(object)
-    if(d[1L] != d[2L]) return(FALSE)
+    if(d[1] != d[2]) return(FALSE)
     test <-
         if(is.complex(object))
             all.equal.numeric(object, Conj(t(object)), tolerance = tol, ...)
@@ -83,7 +82,7 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 			  dbl.n,
 			  dbl.n,
 			  double(2*n),
-			  ierr = integer(1L),
+			  ierr = integer(1),
                           PACKAGE="base")
 	    if (z$ierr)
 		stop(gettextf("'ch' returned code %d in 'eigen'", z$ierr),
@@ -102,7 +101,7 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 			  vectors = x,
 			  dbl.n,
 			  dbl.n,
-			  ierr = integer(1L),
+			  ierr = integer(1),
                           PACKAGE="base")
 	    if (z$ierr)
 		stop(gettextf("'rs' returned code %d in 'eigen'", z$ierr),
@@ -127,7 +126,7 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 			  dbl.n,
 			  dbl.n,
 			  dbl.n,
-			  ierr = integer(1L),
+			  ierr = integer(1),
                           PACKAGE="base")
 	    if (z$ierr)
 		stop(gettextf("'cg' returned code %d in 'eigen'", z$ierr),
@@ -148,12 +147,12 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 			  vectors = x,
 			  integer(n),
 			  dbl.n,
-			  ierr = integer(1L),
+			  ierr = integer(1),
                           PACKAGE="base")
 	    if (z$ierr)
 		stop(gettextf("'rg' returned code %d in 'eigen'", z$ierr),
                      domain = NA)
-	    ind <- z$ivalues > 0L
+	    ind <- z$ivalues > 0
 	    if(any(ind)) {#- have complex (conjugated) values
 		ind <- seq.int(n)[ind]
 		z$values <- complex(real=z$values,imaginary=z$ivalues)

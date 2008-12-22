@@ -14,26 +14,34 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-getNumCConverters <- function()
-    .Internal(getNumRtoCConverters())
+getNumCConverters <-
+function() {
+ .Internal(getNumRtoCConverters())
+}
 
-
-getCConverterDescriptions <- function()
+getCConverterDescriptions <-
+function() {
  .Internal(getRtoCConverterDescriptions())
+}
 
+getCConverterStatus <-
+function() {
+ v <- .Internal(getRtoCConverterStatus())
+ names(v) <- getCConverterDescriptions()
 
-getCConverterStatus <- function()
-{
-    v <- .Internal(getRtoCConverterStatus())
-    names(v) <- getCConverterDescriptions()
-    v
+ v
 }
 
 
-setCConverterStatus <- function(id, status)
+setCConverterStatus <-
+function(id, status)
+{
   .Internal(setToCConverterActiveStatus(id, as.logical(status)))
+}
 
-
-removeCConverter <- function(id)
+removeCConverter <-
+function(id)
+{
   .Internal(removeToCConverterActiveStatus(id))
+}
 

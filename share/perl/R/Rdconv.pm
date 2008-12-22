@@ -40,7 +40,7 @@ if($main::opt_dosnames) { $HTML = ".htm"; } else { $HTML = ".html"; }
 @blocknames = ("name", "title", "usage", "arguments", "format",
 	       "description", "details", "value", "references",
 	       "source", "seealso", "examples", "author", "note",
-	       "synopsis", "docType", "encoding", "Rdversion");
+	       "synopsis", "docType", "encoding");
 
 ## These may appear multiply but are of simple structure:
 @multiblocknames = ("alias", "keyword");
@@ -50,15 +50,16 @@ $NB = "normal-bracket";
 $BN = "bracket-normal";
 $EOB = "escaped-opening-bracket";
 $ECB = "escaped-closing-bracket";
-$ID = "$NB\\d+$BN"; ## regex for escaped {...}
+$ID = "$NB\\d+$BN";
 
 $EPREFORMAT = "this-is-preformat-code";
 $ECODE = "this-is-escaped-code";
 
 $LATEX_SPEC = '\$\^&~_#';#-- these **should** be escaped in  text2latex(.)
 $LATEX_SPECIAL = $LATEX_SPEC . '%\{\}\\\\';
-## $MD = ',,,Math,del;;;'; #-- should NOT contain any characters from $LATEX_..
-## $Math_del = "\$"; #UNquoted '$'
+$LATEX_DO_MATH = '-+\*/\|<>=!' . $LATEX_SPECIAL;
+$MD = ',,,Math,del;;;'; #-- should NOT contain any characters from $LATEX_..
+$Math_del = "\$"; #UNquoted '$'
 $MAXLOOPS = 10000;
 
 my $EDASH = "escaped-dash";	# maybe something better?
@@ -90,7 +91,6 @@ sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename, pkgname, version, def_en
     $def_encoding = $_[6];
     $def_encoding = "unknown" unless $def_encoding;
     $Rdfile = basename($Rdname);
-    $Rdversion = "1.0";  # the default
 
     if($type !~ /,/) {
 	## Trivial (R 0.62 case): Only 1 $type at a time ==> one
@@ -110,6 +110,10 @@ sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename, pkgname, version, def_en
 	  if $type =~ /html/i;
 	$txtfile= file_path($dirname, "help", $Rdname)
 	  if $type =~ /txt/i;
+	die "Rdconv(): type 'Sd' must not be used with other types (',')\n"
+	  if $type =~ /Sd/i;
+	die "Rdconv(): type 'Ssgm' must not be used with other types (',')\n"
+	  if $type =~ /Ssgm/i;
 	$latexfile = file_path($dirname, "latex", $Rdname . ".tex")
 	  if $type =~ /tex/i;
 	$Exfile = file_path($dirname, "R-ex" , $Rdname . ".R")
@@ -156,7 +160,7 @@ sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename, pkgname, version, def_en
 	next if /^\s*%/o;	# completely drop full comment lines
 	my $loopcount = 0;
 	while(checkloop($loopcount++, $_, "\\%")
-	      && s/^\\%|([^\\])((\\\\)*)\\%/$1$2escaped_percent_sign/go) {};
+	      && s/^\\%|([^\\])\\%/$1escaped_percent_sign/go) {};
 	s/^([^%]*)%.*$/$1/o;
 	s/escaped_percent_sign/\\%/go;
 	$complete_text .= $_;
@@ -185,13 +189,9 @@ sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename, pkgname, version, def_en
 	@keywords= get_multi($complete_text,"keyword");
 
 	get_blocks($complete_text);
-	## these are intentionally global
-	$Rdversion = $blocks{"Rdversion"} if defined $blocks{"Rdversion"};
-	$verbatimdollar = $Rdversion >= 1.1;
-	$unescape_amp =  $Rdversion < 1.1;
-	print STDERR "-- Rd version is $Rdversion\n" if $debug;
 
-	if($type =~ /html/i || $type =~ /txt/i || $type =~ /tex/i || $type =~ /chm/i ) {
+	if($type =~ /html/i || $type =~ /txt/i || $type =~ /Sd/    ||
+	   $type =~ /Ssgm/  || $type =~ /tex/i || $type =~ /chm/i ) {
 
 	    get_sections($complete_text);
 
@@ -223,9 +223,10 @@ sub Rdconv { # Rdconv(foobar.Rd, type, debug, filename, pkgname, version, def_en
 	$max_section = scalar(@section_title);
 	
 	$issue_warnings = 1;
-	$issue_warnings = 0 if $Rdversion  >= 1.1;
 	rdoc2html($htmlfile, $def_encoding)	if $type =~ /html/i;
 	rdoc2txt($txtfile, $def_encoding)	if $type =~ /txt/i;
+	rdoc2Sd($Sdfile)	if $type =~ /Sd/;
+	rdoc2Ssgm($Sdfile)	if $type =~ /Ssgm/;
 	rdoc2latex($latexfile, $def_encoding)	if $type =~ /tex/i;
 	rdoc2chm($chmfile, $def_encoding)	if $type =~ /chm/i;
 
@@ -273,8 +274,8 @@ sub macro_subs { # does macro substitution on $complete_text
 ## Idea and original code from latex2html
 sub mark_brackets {
 
-    $complete_text =~ s/^\\{|([^\\])((\\\\)*)\\{/$1$2$EOB/gso;
-    $complete_text =~ s/^\\}|([^\\])((\\\\)*)\\}/$1$2$ECB/gso;
+    $complete_text =~ s/^\\{|([^\\])\\{/$1$EOB/gso;
+    $complete_text =~ s/^\\}|([^\\])\\}/$1$ECB/gso;
 
     print STDERR "\n-- mark_brackets:" if $debug;
     my $loopcount = 0;
@@ -413,7 +414,7 @@ sub get_multi {
     my $loopcount = 0;
     my $any = 0;
     while(checkloop($loopcount++, $text, "\\name")
-	  && $text =~ /\\$name$ID/) {
+	  && $text =~ /\\$name($ID)/) {
 	my $id = $1;
 	my ($endid, $arg) =
 	    get_arguments($name, $text, 1);
@@ -445,10 +446,10 @@ sub get_sections {
     print STDERR "--- Sections\n" if $debug;
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\section") &&
-	  $text =~ /\\section$ID/){
+	  $text =~ /\\section($ID)/){
 	my $id = $1;
 	my ($endid, $section, $body)
-	    = get_arguments_check("section", $text, 2);
+	    = get_arguments("section", $text, 2);
 	print STDERR "found: $section\n" if $debug;
 
 	## remove leading and trailing whitespace
@@ -493,33 +494,6 @@ sub get_arguments {
 	}
     }
     $retval[0] = $id;
-    @retval;
-}
-
-sub get_arguments_check {
-
-    my ($command, $text, $nargs) = @_;
-    $keep = $text;
-    if($text =~ /\\($command)(\[[^\]]+\])?($ID)/){
-	$warn = 0;
-	$id = $3;
-	$text =~ s/$id(.*)$id/$id/s;
-	$retval[1] = $1;
-	my $k = 2;
-	while(($k <= $nargs) && ($text =~ /$id(\s*)($ID)/)){
-	    $warn = 1 if (length($1) > 0);
-	    $id = $2;
-	    $text =~ s/$id\s*(.*)$id/$id/s;
-	    $retval[$k++] = $1;
-	}
-    }
-    $retval[0] = $id;
-    if ($warn && $issue_warnings) {
-	$keep =~ s/\n/ /g;
-	$keep =~ /(.*\s$id.*$id)/;
-	$keep = unmark_brackets($1);
-	warn "WARNING: invalid whitespace before brace in file '$Rdfile' at '$keep'\n";
-    }
     @retval;
 }
 
@@ -971,23 +945,21 @@ sub text2html {
 	$text =~ s/\\dots/.../go;
 	$text =~ s/\\ldots/.../go;
 
-	if($Rdversion < 1.1) {
-	    $text =~ s/\\Gamma/&Gamma;/go;
-	    $text =~ s/\\alpha/&alpha;/go;
-	    $text =~ s/\\Alpha/&Alpha;/go;
-	    $text =~ s/\\pi/&pi;/go;
-	    $text =~ s/\\mu/&mu;/go;
-	    $text =~ s/\\sigma/&sigma;/go;
-	    $text =~ s/\\Sigma/&Sigma;/go;
-	    $text =~ s/\\lambda/&lambda;/go;
-	    $text =~ s/\\beta/&beta;/go;
-	    $text =~ s/\\epsilon/&epsilon;/go;
-	    $text =~ s/\\left\(/\(/go;
-	    $text =~ s/\\right\)/\)/go;
-	    $text =~ s/\\le/&lt;=/go;# \le *after* \left !
-	    $text =~ s/\\ge/&gt;=/go;
-	}
-	$text =~ s/^\\R|([^\\])((\\\\)*)\\R/$1$2<font face=\"Courier New,Courier\" color=\"\#666666\"><b>R<\/b><\/font>/go;
+	$text =~ s/\\Gamma/&Gamma;/go;
+	$text =~ s/\\alpha/&alpha;/go;
+	$text =~ s/\\Alpha/&Alpha;/go;
+	$text =~ s/\\pi/&pi;/go;
+	$text =~ s/\\mu/&mu;/go;
+	$text =~ s/\\sigma/&sigma;/go;
+	$text =~ s/\\Sigma/&Sigma;/go;
+	$text =~ s/\\lambda/&lambda;/go;
+	$text =~ s/\\beta/&beta;/go;
+	$text =~ s/\\epsilon/&epsilon;/go;
+	$text =~ s/\\left\(/\(/go;
+	$text =~ s/\\right\)/\)/go;
+	$text =~ s/\\le/&lt;=/go;# \le *after* \left !
+	$text =~ s/\\ge/&gt;=/go;
+	$text =~ s/\\R/<font face=\"Courier New,Courier\" color=\"\#666666\"><b>R<\/b><\/font>/go;
 	foreach my $cmd (@special_commands) {
 	    $text = transform_command($text, $cmd, $ECMD . $cmd,
 				      "-", "$EDASH");
@@ -1036,7 +1008,7 @@ sub text2html {
 
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\link")
-	  &&  $text =~ /\\link(\[.*\])?$ID/){
+	  &&  $text =~ /\\link/){
 	my ($id, $arg, $dest, $opt) = get_link($text);
 	## fix conversions in key of htmlindex:
 	my $argkey = $dest;
@@ -1116,14 +1088,14 @@ sub text2html {
 
     $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\email")
-	  &&  $text =~ /\\email$ID/){
+	  &&  $text =~ /\\email/){
 	my ($id, $arg)	= get_arguments("email", $text, 1);
 	$text =~ s/\\email$id.*$id/<a href=\"mailto:$arg\">$arg<\/a>/s;
     }
 
     $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\url")
-	  &&  $text =~ /\\url$ID/){
+	  &&  $text =~ /\\url/){
 	my ($id, $arg)	= get_arguments("url", $text, 1);
 	$text =~ s/\\url.*$id/<a href=\"$arg\">$arg<\/a>/s;
     }
@@ -1131,7 +1103,7 @@ sub text2html {
     ## Handle equations:
     $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\eqn")
-	  &&  $text =~ /\\eqn$ID/){
+	  &&  $text =~ /\\eqn/){
 	my ($id, $eqn, $ascii) = get_arguments("eqn", $text, 2);
 	$eqn = $ascii if $ascii;
 	$text =~ s/\\eqn(.*)$id/<i>$eqn<\/i>/s;
@@ -1139,7 +1111,7 @@ sub text2html {
 
     $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\deqn")
-	  &&  $text =~ /\\deqn$ID/){
+	  &&  $text =~ /\\deqn/){
 	my ($id, $eqn, $ascii) = get_arguments("deqn", $text, 2);
 	$eqn = $ascii if $ascii;
 	$text =~ s/\\deqn(.*)$id/<\/p><p align="center"><i>$eqn<\/i><\/p><p>/s;
@@ -1147,7 +1119,7 @@ sub text2html {
 
     ## Handle encoded text:
     $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\enc") &&  $text =~ /\\enc$ID/){
+    while(checkloop($loopcount++, $text, "\\enc") &&  $text =~ /\\enc/){
 	my ($id, $enc, $ascii) = get_arguments("enc", $text, 2);
 	$text =~ s/\\enc(.*)$id/$enc/s;
     }
@@ -1161,21 +1133,18 @@ sub text2html {
     $text = replace_command($text, "describe", "<dl>", "</dl>");
     while(checkloop($loopcount++, $text, "\\item")
 	  && $text =~ /\\itemnormal/s) {
-	my ($id, $arg, $desc)  = get_arguments_check("item", $text, 2);
+	my ($id, $arg, $desc)  = get_arguments("item", $text, 2);
 	my $descitem;
 	$descitem = "<dt>" . text2html($arg, 0, $inarglist) . "</dt>";
 	$descitem .= "<dd>" . text2html($desc, 0, $inarglist) . "</dd>";
 	$text =~ s/\\itemnormal.*$id/$descitem/s;
     }
     if($outerpass) {
-	if($Rdversion < 1.1) {
-	    $text =~ s/\\([^\\])/$1/go; #-drop single "\" (as in '\R')
-	}
+	$text =~ s/\\([^\\])/$1/go; #-drop single "\" (as in '\R')
 	$text =~ s/\\\\/\\/go;
 	$text = html_unescape_codes($text);
 	$text = unmark_brackets($text);
- 	$text =~ s/(^[\\])\\R(\{\})?/$1<font face=\"Courier New,Courier\" color=\"\#666666\"><b>R<\/b><\/font>/go unless $unesape_amp;
-   }
+    }
     $text;
 }
 
@@ -1195,7 +1164,7 @@ sub code2html {
 
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\link")
-	  &&  $text =~ /\\link(\[.*\])?$ID/){
+	  &&  $text =~ /\\link/){
 	my ($id, $arg, $dest, $opt) = get_link($text);
 
 	## fix conversions in key of htmlindex:
@@ -1309,9 +1278,8 @@ sub html_print_codeblock {
 	if ($ntext =~ /$ECODE/) {
 	    warn "WARNING: \\code inside code block in file '$Rdfile'\n" if $issue_warnings; 
 	}
-	my $ntext = code2html($ntext);
-	$ntext = html_unescape_codes($ntext);
-	print $htmlout (html_title3($title), "<pre>" , $ntext, "</pre>\n\n");
+	print $htmlout (html_title3($title), "<pre>" ,
+			code2html($ntext), "</pre>\n\n");
     }
 }
 
@@ -1358,7 +1326,7 @@ sub html_print_argblock {
 	    while(checkloop($loopcount++, $text, "\\item")
 		  && $text =~ /\\item/s) {
 		my ($id, $arg, $desc)  =
-		    get_arguments_check("item", $text, 2);
+		    get_arguments("item", $text, 2);
 		print $htmlout ("<tr valign=\"top\"><td><code>",
 				text2html($arg, 1, 1),
 				"</code></td>\n<td>\n",
@@ -1530,7 +1498,7 @@ sub html_functionfoot
 	$retval .= "\n\n<hr><div align=\"center\">[Package";
  	$retval .= " <em>$pkgname</em>" if $pkgname ne "unknown";
 	$retval .= " version $version" if $version ne "";
-	$retval .= " <a href=\"00Index$HTML\">Index</a>]</div>\n\n";
+	$retval .= " <a href=\"00Index$HTML\">Index]</a></div>\n\n";
     }
 
     $retval .= "</body></html>\n";
@@ -1685,23 +1653,21 @@ sub text2txt {
     $text =~ s/\\%/%/sgo;
     $text =~ s/\\\$/\$/sgo;
 
-    if ($Rdversion < 1.1) {
-	$text =~ s/\\Gamma/Gamma/go;
-	$text =~ s/\\alpha/alpha/go;
-	$text =~ s/\\Alpha/Alpha/go;
-	$text =~ s/\\pi/pi/go;
-	$text =~ s/\\mu/mu/go;
-	$text =~ s/\\sigma/sigma/go;
-	$text =~ s/\\Sigma/Sigma/go;
-	$text =~ s/\\lambda/lambda/go;
-	$text =~ s/\\beta/beta/go;
-	$text =~ s/\\epsilon/epsilon/go;
-	$text =~ s/\\left\(/\(/go;
-	$text =~ s/\\right\)/\)/go;
-	$text =~ s/\\le/<=/go;
-	$text =~ s/\\ge/>=/go;
-    }
-    $text =~ s/\\R/R/go if $unescape_amp;
+    $text =~ s/\\Gamma/Gamma/go;
+    $text =~ s/\\alpha/alpha/go;
+    $text =~ s/\\Alpha/Alpha/go;
+    $text =~ s/\\pi/pi/go;
+    $text =~ s/\\mu/mu/go;
+    $text =~ s/\\sigma/sigma/go;
+    $text =~ s/\\Sigma/Sigma/go;
+    $text =~ s/\\lambda/lambda/go;
+    $text =~ s/\\beta/beta/go;
+    $text =~ s/\\epsilon/epsilon/go;
+    $text =~ s/\\left\(/\(/go;
+    $text =~ s/\\right\)/\)/go;
+    $text =~ s/\\le/<=/go;
+    $text =~ s/\\ge/>=/go;
+    $text =~ s/\\R/R/go;
 
     foreach my $cmd (@special_commands) {
 	$text = transform_command($text, $cmd, $ECMD . $cmd,
@@ -1760,7 +1726,7 @@ sub text2txt {
 
     ## Handle equations:
     my $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\eqn") &&  $text =~ /\\eqn$ID/){
+    while(checkloop($loopcount++, $text, "\\eqn") &&  $text =~ /\\eqn/){
 	my ($id, $eqn, $ascii) = get_arguments("eqn", $text, 2);
 	$eqn = $ascii if $ascii;
 	$eqn =~ s/\\([^&])/$1/go;
@@ -1768,7 +1734,7 @@ sub text2txt {
     }
 
     $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\deqn") && $text =~ /\\deqn$ID/) {
+    while(checkloop($loopcount++, $text, "\\deqn") && $text =~ /\\deqn/) {
 	my ($id, $eqn, $ascii) = get_arguments("deqn", $text, 2);
 	$eqn = $ascii if $ascii;
 	$eqn =~ s/\\([^&])/$1/go;
@@ -1779,7 +1745,7 @@ sub text2txt {
 
     ## Handle encoded text:
     my $loopcount = 0;
-    while(checkloop($loopcount++, $text, "\\enc") &&  $text =~ /\\enc$ID/){
+    while(checkloop($loopcount++, $text, "\\enc") &&  $text =~ /\\enc/){
 	my ($id, $enc, $ascii) = get_arguments("enc", $text, 2);
 	$enc = $ascii if $ascii;
 	$enc =~ s/\\([^&])/$1/go;
@@ -1807,7 +1773,7 @@ sub text2txt {
 			    "\n\n.in -$INDENTDD\n");
     while(checkloop($loopcount++, $text, "\\item")
 	  && $text =~ /\\itemnormal/s) {
-	my ($id, $arg, $desc)  = get_arguments_check("item", $text, 2);
+	my ($id, $arg, $desc)  = get_arguments("item", $text, 2);
 	my $descitem = text2txt($arg);
 	my $ll = length($desc);
 	$descitem =~ s/\n/ /go;  # no NLs in items
@@ -1822,9 +1788,7 @@ sub text2txt {
     }
 
     $text = txt_unescape_codes($text);
-    $text = unmark_brackets($text);
-    $text =~ s/\\R(\{\})?/R/go unless $unescape_amp;
-    $text;
+    unmark_brackets($text);
 }
 
 
@@ -1946,14 +1910,13 @@ sub txt_fill { # pre1, base, "text to be formatted"
     $text =~ s/\\\\/\\bsl{}/go;
     $text =~ s/\\&\./\./go; # unescape code pieces
     ## A mess:  map  & \& \\& \\\& to  & & \& \&
-    $text =~ s/\\&/&/go if $unescape_amp;
+    $text =~ s/\\&/&/go;
     $text =~ s/\\ / /go;
-    $text =~ s/\\_/_/go if $unescape_amp;
-    $text =~ s/\\$/\$/go if $unescape_amp;
-    $text =~ s/\\#/#/go if $unescape_amp;
+    $text =~ s/\\_/_/go;
+    $text =~ s/\\$/\$/go;
+    $text =~ s/\\#/#/go;
     $text =~ s/\\%/%/go;
     $text =~ s/\\bsl{}/\\/go;
-    $text =~ s/escaped-code-backslash/\\/go;
 
     my @paras = split /\n\n/, $text;
     $indent1 = $pre1; $indent2 = $indent;
@@ -2118,7 +2081,6 @@ sub txt_print_codeblock {
 	$ntext =~ s/^[\n]*//go;
 	$ntext = "\n". $ntext;
 	$ntext =~ s/\\&\././go;
-	$ntext = txt_unescape_codes($ntext);
 	foreach $line (split /\n/, $ntext) {
 	    $line =~ s/\\\\/\\/go;
 	    $line =~ s/^\t/        /o;
@@ -2167,7 +2129,7 @@ sub txt_print_argblock {
 	    my $loopcount = 0;
 	    while(checkloop($loopcount++, $text, "\\item") &&
 		  $text =~ /\\item/s){
-		my ($id, $arg, $desc)  = get_arguments_check("item", $text, 2);
+		my ($id, $arg, $desc)  = get_arguments("item", $text, 2);
 		$arg = text2txt($arg);
 		$arg =~ s/\\&//go;
 		$desc = text2txt($desc);
@@ -2211,8 +2173,6 @@ sub txt_unescape_codes {
 	  && $text =~ /$ECODE($ID)/) {
 	my $id = $1;
 	my $ec = code2txt($ecodes{$id});
-	## in code, \ means itself, \\ means \
-	$ec =~ s/\\\\/escaped-code-backslash/go;
 	$text =~ s/$ECODE$id/\'$ec\'/;
     }
 
@@ -2275,6 +2235,400 @@ sub txt_tables {
 }
 
 
+#==**************************** Sd ******************************
+
+sub rdoc2Sd { # (filename)
+
+    local $Sdout;
+    if($_[0]) {
+	$Sdout = new FileHandle;
+	open $Sdout, "> $_[0]";  # will be closed when goes out of scope
+    } else {
+	$Sdout = "STDOUT";
+    }
+
+    print $Sdout "\.\\\" -*- nroff -*- generated from \.Rd format\n";
+    print $Sdout ".de PF\n,br\n.ne 2\n.ft 3\n.nf\n..\n.de FP\n.br\n\.ne 2\n\.ft 1\n.fi\n..\n";
+    print $Sdout ".BG\n";
+    print $Sdout ".FN ", $blocks{"name"}, "\n";
+    print $Sdout ".TL\n";
+    print $Sdout $blocks{"title"}, "\n";
+    if (defined $blocks{"description"}){
+	print $Sdout ".DN\n", text2nroff($blocks{"description"}), "\n";
+    }
+    if (defined $blocks{"usage"}){
+	print $Sdout ".CS\n", code2nroff($blocks{"usage"}), "\n";
+    }
+    Sd_print_argblock("arguments", ".RA");
+    Sd_print_argblock("value", ".RT");
+    Sd_print_block("details", ".DT");
+    Sd_print_sections();
+    Sd_print_block("note", "Note");
+    Sd_print_block("references", ".SH REFERENCES");
+    print $Sdout "\n";
+    Sd_print_block("seealso", ".SA");
+    print $Sdout "\n";
+    Sd_print_codeblock("examples", ".EX");
+    while ($#keywords >= 0) {
+	print $Sdout ".KW ", shift( @keywords ), "\n";
+    }
+    print $Sdout ".WR\n";
+}
+
+## Print a standard block
+sub Sd_print_block {
+
+    my ($block,$macro) = @_;
+
+    if(defined $blocks{$block}){
+	print $Sdout $macro, "\n", text2nroff($blocks{$block});
+    }
+}
+
+## Print a code block (preformatted)
+sub Sd_print_codeblock {
+
+    my ($block, $macro) = @_;
+    my $ntext;
+
+    if(defined $blocks{$block}){
+	$ntext = code2txt($blocks{$block});
+	if ($ntext =~ /$ECODE/) {
+	    warn "WARNING: \\code inside code block in file '$Rdfile'\n"; 
+	}
+	# make sure there is precisely one leading "\n"
+	$ntext =~ s/^[\n]*//go;
+	$ntext = "\n". $ntext;
+	$ntext =~ s/\\&\././go;
+	$ntext =~ s/\\\\/\\/go;
+	print $Sdout $macro, $ntext;
+    }
+}
+
+## Print the value or arguments block
+sub Sd_print_argblock {
+
+    my ($block, $macro) = @_;
+
+    if(defined $blocks{$block}){
+	print $Sdout $macro, "\n" if $macro;
+	my $text = $blocks{$block};
+
+	## some people have put \itemize inside \value.
+	## as from R 2.8.1, strip with a warning, providing not after \item{
+	if($text =~ /\\item(ize|$ID)/) {
+	    if($1 eq "ize") {
+		warn "WARNING: found \\itemize inside \\$block in file '$Rdfile'\n";
+		$text =~ /\\itemize($ID)/;
+		$id = $1;
+		$text =~  s/\\itemize$id//;
+		$text =~ s/$id//;
+	    }
+	}
+
+	if($text =~ /\\item/s){
+	    $text =~ /^(.*)(\\item.*)*/s;
+	    my ($begin, $rest) = split(/\\item/, $text, 2);
+	    if($begin){
+		print $Sdout &text2nroff($begin);
+		$text =~ s/^$begin//s;
+	    }
+	    my $loopcount = 0;
+	    while(checkloop($loopcount++, $text, "\\item") &&
+		  $text =~ /\\item/s){
+		my ($id, $arg, $desc)  = get_arguments("item", $text, 2);
+		$arg = text2nroff($arg);
+		$desc = text2nroff($desc);
+		print $Sdout ".AG ", $arg, "\n";
+		print $Sdout $desc, "\n";
+		$text =~ s/.*$id//s;
+	    }
+	}
+	else{
+	    print $Sdout &text2nroff($text), "\n";
+	}
+    }
+}
+
+## Print sections
+sub Sd_print_sections {
+
+    my $section;
+
+    for($section=0; $section<$max_section; $section++){
+	print $Sdout "\n";
+	print $Sdout ".SH ";
+	print $Sdout $section_title[$section], "\n";
+	print $Sdout &text2nroff($section_body[$section]), "\n";
+    }
+}
+
+#==**nroff support****
+
+## Convert a Rdoc text string to nroff
+##   $_[0]: text to be converted
+##   $_[1]: (optional) indentation of paragraphs. default = $INDENT
+
+sub text2nroff {
+
+    my $text = $_[0];
+
+    if($_[1]){
+	my $indent = $_[1];
+    }
+    else{
+	my $indent = $INDENT;
+    }
+
+    $text =~ s/^\.|([\n\(])\./$1\\\&./g;
+
+    ## TABs are just whitespace
+    $text =~ s/\t/ /g;
+
+    ## tables are pre-processed by the tbl(1) command, so this has to
+    ## be done first
+    $text = nroff_tables($text);
+    $text =~ s/\\cr\n?/\n.br\n/sgo;
+
+    $text =~ s/\n\s*\n/\n.IP \"\" $indent\n/sgo;
+    $text =~ s/\\dots/\\&.../go;
+    $text =~ s/\\ldots/\\&.../go;
+    $text =~ s/\\%/%/sgo;
+    $text =~ s/\\\$/\$/sgo;
+
+    $text =~ s/\\Gamma/Gamma/go;
+    $text =~ s/\\alpha/alpha/go;
+    $text =~ s/\\Alpha/Alpha/go;
+    $text =~ s/\\pi/pi/go;
+    $text =~ s/\\mu/mu/go;
+    $text =~ s/\\sigma/sigma/go;
+    $text =~ s/\\Sigma/Sigma/go;
+    $text =~ s/\\lambda/lambda/go;
+    $text =~ s/\\beta/beta/go;
+    $text =~ s/\\epsilon/epsilon/go;
+    $text =~ s/\\left\(/\(/go;
+    $text =~ s/\\right\)/\)/go;
+    $text =~ s/\\le/<=/go;
+    $text =~ s/\\ge/>=/go;
+    $text =~ s/\\R/R/go;
+    foreach my $cmd (@special_commands) {
+	$text = transform_command($text, $cmd, $ECMD . $cmd,
+				  "-", "$EDASH");
+    }
+    $text =~ s/---/--/go;
+    $text =~ s/--/-/go;
+    foreach my $cmd (@special_commands) {
+	$text = transform_command($text, $ECMD . $cmd, $cmd,
+				  "$EDASH", "-");
+    }
+    $text =~ s/$EOB/\{/go;
+    $text =~ s/$ECB/\}/go;
+
+    $text = undefine_command($text, "special");
+
+    $text = undefine_command($text, "link");
+    $text = undefine_command($text, "textbf");
+    $text = undefine_command($text, "mathbf");
+    $text = undefine_command($text, "email");
+
+    $text = replace_command($text, "file", "'", "'");
+    $text = replace_command($text, "url", "<URL: ", ">");
+
+    $text = replace_command($text, "emph", "_", "_");
+    $text = replace_command($text, "bold", "*", "*");
+    $text = replace_command($text, "strong", "*", "*");
+
+    $text = undefine_command($text, "acronym");
+    $text = undefine_command($text, "cite");
+    $text = undefine_command($text, "dfn");
+
+    $text = replace_command($text, "command", "'", "'");
+    $text = replace_command($text, "env", "'", "'");
+    $text = replace_command($text, "kbd", "'", "'");
+    $text = replace_command($text, "option", "'", "'");
+    $text = replace_command($text, "pkg", "'", "'");
+    $text = replace_command($text, "samp", "'", "'");
+
+    $text = undefine_command($text, "var");
+
+    $text = replace_command($text, "sQuote", "'", "'");
+    $text = replace_command($text, "dQuote", "\"", "\"");
+
+    ## Handle equations:
+    my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\eqn")
+	  &&  $text =~ /\\eqn/){
+	my ($id, $eqn, $ascii) = get_arguments("eqn", $text, 2);
+	$eqn = $ascii if $ascii;
+	$eqn =~ s/\\([^&])/$1/go;
+	$text =~ s/\\eqn(.*)$id/$eqn/s;
+    }
+
+    $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\deqn") &&  $text =~ /\\deqn/){
+	my ($id, $eqn, $ascii) = get_arguments("deqn", $text, 2);
+	$eqn = $ascii if $ascii;
+	$eqn =~ s/\\([^&])/$1/go;
+	$text =~ s/\\deqn(.*)$id/\n.DS B\n$eqn\n.DE\n/s;
+    }
+
+    ## Handle encoded text:
+    my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\enc") &&  $text =~ /\\enc/){
+	my ($id, $enc, $ascii) = get_arguments("enc", $text, 2);
+	$enc = $ascii if $ascii;
+	$enc =~ s/\\([^&])/$1/go;
+	$text =~ s/\\enc(.*)$id/$enc/s;
+    }
+
+    $list_depth=0;
+
+    $text = replace_command($text,
+			    "itemize",
+			    "\n.in +$INDENT\n",
+			    "\n.in -$INDENT\n");
+
+    $text = replace_command($text,
+			    "enumerate",
+			    "\n.in +$INDENT\n",
+			    "\n.in -$INDENT\n");
+
+    $text =~ s/\\item\s+/\n.ti -\\w\@*\\ \@u\n* /go;
+
+    ## Handle '\describe':
+    $text = replace_command($text,
+			    "describe",
+			    "\n.in +$INDENT\n",
+			    "\n.in -$INDENT\n");
+    while(checkloop($loopcount++, $text, "\\item")
+	  && $text =~ /\\itemnormal/s) {
+	my ($id, $arg, $desc)  = get_arguments("item", $text, 2);
+	$arg = text2nroff($arg);
+	$descitem = ".IP \"\" $TAGOFF\n".
+	    ".ti -\\w\@" . $arg .
+	    "\\ \@u\n" . $arg . "\\ " . text2nroff($desc);
+	$descitem =~ s/\\&\././go;
+	$text =~ s/\\itemnormal.*$id/$descitem/s;
+    }
+    $text = nroff_unescape_codes($text);
+    unmark_brackets($text);
+}
+
+sub nroff_unescape_codes {
+
+    my $text = $_[0];
+
+    my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "escaped code")
+	  && $text =~ /$ECODE($ID)/) {
+	my $id = $1;
+	my $ec = code2nroff($ecodes{$id});
+	$text =~ s/$ECODE$id/\'$ec\'/;
+    }
+
+    my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "escaped preformat")
+	  && $text =~ /$EPREFORMAT($ID)/){
+	my $id = $1;
+	my $ec = code2nroff($epreformats{$id});
+	$text =~ s/$EPREFORMAT$id/.PF\n$ec.FP/;
+    }
+
+    $text;
+}
+
+sub code2nroff {
+
+    my $text = $_[0];
+
+    $text =~ s/^\.|([\n\(])\./$1\\&./g;
+    $text =~ s/\\%/%/go;
+    $text =~ s/\\ldots/.../go;
+    $text =~ s/\\dots/.../go;
+    $text =~ s/\\n/\\\\n/g;
+
+    $text = undefine_command($text, "special");
+    $text = undefine_command($text, "var");
+
+    $text = undefine_command($text, "link");
+    $text = replace_addnl_command($text, "dontrun",
+				  "## Not run: ", "## End(Not run)");
+    $text = drop_full_command($text, "testonly");
+    $text = drop_full_command($text, "dontshow");
+    $text = undefine_command($text, "donttest");
+
+    $text = unmark_brackets($text);
+
+    $text = transform_S3method($text);
+    $text = transform_S4method($text);
+
+    $text;
+}
+
+sub nroff_tables {
+
+    my $text = $_[0];
+
+    my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\tabular")
+	  &&  $text =~ /\\tabular/){
+
+	my ($id, $format, $arg)	 =
+	    get_arguments("tabular", $text, 2);
+
+	$arg =~ s/\n/ /sgo;
+
+	## remove trailing \cr (otherwise we get an empty last line)
+	$arg =~ s/\\cr\s*$//go;
+
+	## parse the format of the tabular environment
+	my $ncols = length($format);
+	my @colformat = ();
+	for($k=0; $k<$ncols; $k++){
+	    my $cf = substr($format, $k, 1);
+
+	    if($cf =~ /l/o){
+		$colformat[$k] = "l";
+	    }
+	    elsif($cf =~ /r/o){
+		$colformat[$k] = "r";
+	    }
+	    elsif($cf =~ /c/o){
+		$colformat[$k] = "c";
+	    }
+	    else{
+		die("Error in file '$Rdfile': unknown identifier \{$cf\} in" .
+		    " tabular format \{$format\}\n");
+	    }
+	}
+
+	my $table = ".TS\n";
+	for($l=0; $l<$#colformat; $l++){
+	    $table .= "$colformat[$l] ";
+	}
+	$table .= "$colformat[$#colformat].\n";
+
+	## now do the real work: split into lines and columns
+	my @rows = split(/\\cr/, $arg);
+	for($k=0; $k<=$#rows;$k++){
+	    my @cols = split(/\\tab/, $rows[$k]);
+	    die("Error in file '$Rdfile':\n  $rows[$k]\\cr\n" .
+		"does not fit tabular format \{$format\}\n")
+		if ($#cols != $#colformat);
+	    for($l=0; $l<$#cols; $l++){
+		$cols[$l] =~ s/^\s*(.*)\s*$/$1/;
+		$table .= "$cols[$l]\t";
+	    }
+	    $cols[$#cols] =~ s/^\s*(.*)\s*$/$1/;
+	    $table .= "$cols[$#cols]\n";
+	}
+	$table .= ".TE\n";
+
+	$text =~ s/\\tabular.*$id/$table/s;
+    }
+
+    $text;
+}
 
 #==********************* Example ***********************************
 
@@ -2356,7 +2710,6 @@ sub code2examp {
     $text =~ s/\\\\/\\/g;
 
     $text = unmark_brackets($text);
-    $text = txt_unescape_codes($text);
 
     $text = transform_S3method($text);
     $text = transform_S4method($text);
@@ -2370,14 +2723,6 @@ sub code2examp {
 sub ltxstriptitle { # text
     my $text = $_[0];
     $text =~ s/\\R/\\R\{\}/go;
-    ## escape unescaped latex specials
-    if ($Rdversion >= 1.1) {
-	$text =~ s/([^\\])([\$\#_&])/$1\\$2/go;
-    } else {
-	$text =~ s/([^\\])([\#_&])/$1\\$2/go;
-    }
-    $text =~ s/\^/\\textasciicircum{}/go;
-    $text =~ s/~/\\textasciitilde{}/go;
     return $text;
 }
 sub foldorder {uc($a) cmp uc($b) or $a cmp $b;}
@@ -2471,82 +2816,22 @@ sub text2latex {
     $text =~ s/\\enumerate/\\Enumerate/go;
     $text =~ s/\\tabular/\\Tabular/go;
     my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\eqn")
+	  &&  $text =~ /\\eqn/){
+	my ($id, $eqn, $ascii) = get_arguments("eqn", $text, 2);
+	## $ascii may be empty
+	$text =~ s/\\eqn.*$id/\\eeeeqn\{$eqn\}\{$ascii\}/s;
+    }
 
-    if(!$recursive) {
-	## convert specials while [d]eqn is still escaped.
-	$text =~ s/\^/escaped-textcircum/go;
-	$text =~ s/~/escaped-texttilde/go;
-	$text =~ s/</escaped-textless/go;
-	$text =~ s/>/escaped-textgreater/go;
-	$text =~ s/\|/escaped-textbar/go;
-	$text =~ s/\$/escaped-textdollar/go if $verbatimdollar;
-	$text =~ s/\#/escaped-texthash/go;
-	$text =~ s/_/escaped-textunderscore/go;
-	while(checkloop($loopcount++, $text, "\\eqn")
-	      &&  $text =~ /\\eqn/){
-	    my ($id, $eqn, $ascii) = get_arguments("eqn", $text, 2);
-	    $eqn = latex_unescape_codes($eqn);
-	    $eqn = unmark_brackets($eqn);
-	    $eqn =~ s/escaped-textcircum/^/go;
-	    $eqn =~ s/escaped-texttilde/~/go;
-	    $eqn =~ s/escaped-textless/</go;
-	    $eqn =~ s/escaped-textgreater/>/go;
-	    $eqn =~ s/escaped-textbar/|/go;
-	    $eqn =~ s/escaped-textdollar/\$/go if $verbatimdollar;
-	    $eqn =~ s/escaped-texthash/\#/go;
-	    $eqn =~ s/escaped-textunderscore/_/go;
-	    ## $ascii may be empty
-	    $text =~ s/\\eqn.*$id/\\eeeeqn\{$eqn\}\{\}/s;
-	}
-	
-	$loopcount = 0;
-	while(checkloop($loopcount++, $text, "\\deqn")
-	      && $text =~ /\\deqn/) {
-	    my ($id, $eqn, $ascii) = get_arguments("deqn", $text, 2);
-	    $eqn = latex_unescape_codes($eqn);
-	    $eqn = unmark_brackets($eqn);
-	    $eqn =~ s/escaped-textcircum/^/go;
-	    $eqn =~ s/escaped-texttilde/~/go;
-	    $eqn =~ s/escaped-textless/</go;
-	    $eqn =~ s/escaped-textgreater/>/go;
-	    $eqn =~ s/escaped-textbar/|/go;
-	    $eqn =~ s/escaped-textdollar/\$/go if $verbatimdollar;
-	    $eqn =~ s/escaped-texthash/\#/go;
-	    $eqn =~ s/escaped-textunderscore/_/go;
-	    $text =~ s/\\deqn.*$id/\\dddeqn\{$eqn\}\{\}/s;
-	}
-	## URLs need to be verbatim
-	$loopcount = 0;
-	while(checkloop($loopcount++, $text, "\\url")
-	      && $text =~ /\\url/) {
-	    my ($id, $url) = get_arguments("url", $text, 1);
-	    $url =~ s/escaped-textcircum/^/go;
-	    $url =~ s/escaped-texttilde/~/go;
-	    $url =~ s/escaped-textless/</go;
-	    $url =~ s/escaped-textgreater/>/go;
-	    $url =~ s/escaped-textbar/|/go;
-	    $url =~ s/escaped-textdollar/\$/go if $verbatimdollar;
-	    $url =~ s/escaped-texthash/\#/go;
-	    $url =~ s/escaped-textunderscore/_/go;
-	    $text =~ s/\\url.*$id/\\uuuurl\{$url\}/s;
-	}
-	$text =~ s/escaped-textcircum/\\textasciicircum{}/go;
-	$text =~ s/escaped-texttilde/\\textasciitilde{}/go;
-	$text =~ s/escaped-textless/\\textless{}/go;
-	$text =~ s/escaped-textgreater/\\textgreater{}/go;
-	$text =~ s/escaped-textbar/\\textbar{}/go;
-	## interpret \$ and $ as dollar, possibly preceded by multiple \
-	## This works for $ \$ and \\$ but not \\\$ -- implausible in text.
-	$text =~ s/^\\escaped-textdollar|((\\\\)*)\\escaped-textdollar/$1$2\\\$/go if $verbatimdollar;
-	$text =~ s/^\\escaped-texthash|((\\\\)*)\\escaped-texthash/$1$2\\\#/go;
-	$text =~ s/^\\escaped-textunderscore|((\\\\)*)\\escaped-textunderscore/$1$2\\_/go;
-	$text =~ s/escaped-textdollar/\\\$/go if $verbatimdollar;
-	$text =~ s/escaped-texthash/\\\#/go;
-	$text =~ s/escaped-textunderscore/\\_/go;
+    $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\deqn")
+	  && $text =~ /\\deqn/) {
+	my ($id, $eqn, $ascii) = get_arguments("deqn", $text, 2);
+	$text =~ s/\\deqn.*$id/\\dddeqn\{$eqn\}\{$ascii\}/s;
     }
 
     ## Handle encoded text:
-    $loopcount = 0;
+    my $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\enc") &&  $text =~ /\\enc/){
 	my ($id, $enc, $ascii) = get_arguments("enc", $text, 2);
 	if($encoding eq "unknown") { # \enc without \encoding
@@ -2559,7 +2844,7 @@ sub text2latex {
     $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\item")
 	  && $text =~ /\\itemnormal/s) {
-	my ($id, $arg, $desc) = get_arguments_check("item", $text, 2);
+	my ($id, $arg, $desc) = get_arguments("item", $text, 2);
 	$descitem = "\\DITEM[" .
 	    text2latex($arg, 1) . "] " . text2latex($desc, 1);
 	$text =~ s/\\itemnormal.*$id/$descitem/s;
@@ -2568,7 +2853,6 @@ sub text2latex {
     $text =~ s/\\eeeeqn/\\eqn/go;
     $text =~ s/\\dddeqn/\\deqn/og;
     $text =~ s/\\DITEM/\\item/og;
-    $text =~ s/\\uuuurl/\\url/go;
 
     my $loopcount = 0;
     while(checkloop($loopcount++, $text, "escaped preformat")
@@ -2589,14 +2873,17 @@ sub text2latex {
     }
 
     ## we need to convert \links's
-    $loopcount = 0;
     while(checkloop($loopcount++, $text, "\\link")
-	  &&  $text =~ /\\link(\[.*\])?$ID/){
+	  &&  $text =~ /\\link/){
 	my ($id, $arg, $dest, $opt) = get_link($text);
 	my $mapped_name = &latex_link_trans0($dest);
 	$text =~ s/\\link(\[.*\])?$id.*$id/\\LinkA{$arg}{$mapped_name}/s;
     }
 
+
+    ##-- We should escape $LATEX_SPEC  unless within 'eqn' above ...
+    ##-- this would escape them EVERYWHERE:
+    ## $text =~ s/[$LATEX_SPEC]/\\$&/go;  #- escape them (not the "bsl" \)
     $text = latex_unescape_codes($text);
     unmark_brackets($text);
 }
@@ -2616,7 +2903,7 @@ sub code2latex {
     if($hyper) {
 	my $loopcount = 0;
 	while(checkloop($loopcount++, $text, "\\link")
-	      && $text =~ /\\link(\[.*\])?$ID/) {
+	      && $text =~ /\\link/) {
 	    my ($id, $arg, $dest, $opt) = get_link($text);
 	    $text =~ s/\\link(\[.*\])?$id.*$id/HYPERLINK($arg)($dest)/s;
 	}
@@ -2669,10 +2956,9 @@ sub latex_print_codeblock {
 	print $latexout "\\begin\{verbatim\}";
 	my $ntext = $blocks{$blocK};
 	if ($ntext =~ /$ECODE/) {
-	    warn "\nWARNING: \\code inside code block in file '$Rdfile'\n" if $issue_warnings; 
+	    warn "WARNING: \\code inside code block in file '$Rdfile'\n" if $issue_warnings; 
 	}
 	my $out = &code2latex($ntext, 0, 1);
-	$out = latex_unescape_codes($out);
 	$out =~ s/\\\\/\\/go;
 	print $latexout $out;
 	print $latexout "\\end\{verbatim\}\n";
@@ -2703,11 +2989,10 @@ sub latex_print_exampleblock {
 	print $latexout "\\begin\{ExampleCode\}";
 	my $ntext = $blocks{$block};
 	if ($ntext =~ /$ECODE/) {
-	    warn "\nWARNING: \\code inside \\examples in file '$Rdfile'\n" 
+	    warn "WARNING: \\code inside \\examples in file '$Rdfile'\n" 
 		if $issue_warnings; 
 	}
 	my $out = &code2latex($ntext,0,0);
-	$out = latex_unescape_codes($out);
 	$out =~ s/\\\\/\\/go;
 	print $latexout $out;
 	print $latexout "\\end\{ExampleCode\}\n";
@@ -2748,7 +3033,7 @@ sub latex_print_argblock {
 	    my $loopcount = 0;
 	    while(checkloop($loopcount++, $text, "\\item")
 		  &&  $text =~ /\\item/s){
-		my ($id, $arg, $desc)  = get_arguments_check("item", $text, 2);
+		my ($id, $arg, $desc)  = get_arguments("item", $text, 2);
 		print $latexout "\\item\[";
 		print $latexout &latex_code_cmd(code2latex($arg,1,1));
 		print $latexout "\] ";
@@ -2838,6 +3123,8 @@ sub latex_code_trans {
 	$c =~ s/\\\\/$BSL/go;
 	$c =~ s/\\([$LATEX_SPECIAL])/$1/go; #- unescape them (should not be escaped)
 	$c =~ s/[$LATEX_SPECIAL]/\\$&/go; #- escape them
+#	$c =~ s/\\\^/\$\\,\\hat{\\,}\$/go;# ^ is SPECIAL
+#	$c =~ s/\\~/\$\\,\\tilde{\\,}\$/go;
 	$c =~ s/\\\^/\\textasciicircum{}/go;# ^ is SPECIAL
 	$c =~ s/\\~/\\textasciitilde{}/go;
 	$c =~ s/$BSL/\\bsl{}/go;
@@ -2977,6 +3264,556 @@ location.href = link;
 END
 }
 
+#==************************ S Sgml ********************************
+
+sub rdoc2Ssgm { # (filename) ; 0 for STDOUT
+
+    local $sgmlout;
+    if($_[0]) {
+	$sgmlout = new FileHandle;
+	open $sgmlout, "> $_[0]";  # will be closed when goes out of scope
+    } else {
+	$sgmlout = "STDOUT";
+    }
+    print $sgmlout (Ssgm_functionhead($blocks{"name"}, $blocks{"title"}));
+
+    Ssgm_print_block("description", "s-description");
+    Ssgm_print_usage();
+    Ssgm_print_argblock();
+    Ssgm_print_block_named("format", "Format");
+    Ssgm_print_block("details", "s-details");
+    Ssgm_print_valueblock();
+
+    Ssgm_print_sections();
+
+    ## s-note, s-author, s-references are in the DTD, but not translated
+    ## to HTML.
+
+    ##    Ssgm_print_block("note", "s-note");
+    Ssgm_print_block_named("note", "Note");
+    ##    Ssgm_print_block("author", "s-author");
+    Ssgm_print_block_named("author", "Author(s)");
+    Ssgm_print_block_named("source", "Source");
+    ##    Ssgm_print_block("references", "s-references");
+    Ssgm_print_block_named("references", "References");
+    Ssgm_print_seealso();
+    Ssgm_print_examples();
+    if ($#keywords >= 0) {
+	print $sgmlout "<s-keywords>\n";
+	while ($#keywords >= 0) {
+	    print $sgmlout "<s-keyword>", shift( @keywords ),
+	    "</s-keyword>\n";
+	}
+	print $sgmlout "</s-keywords>\n";
+    }
+
+    print $sgmlout (Ssgm_functionfoot());
+}
+
+## Convert a Rdoc text string to HTML, i.e., convert \code to <tt> etc.
+sub text2Ssgm {
+
+    my $text = $_[0];
+    my $outerpass = $_[1];
+    my $inarglist = $_[2];
+
+    if($outerpass) {
+        $text =~ s/&([^#])/&amp;\1/go; # might have explicit &# in source
+	$text =~ s/>/&gt;/go;
+	$text =~ s/</&lt;/go;
+# have to do these after \link[]{}
+#	$text =~ s/\]/&rsqb;/go;
+#	$text =~ s/\[/&lsqb;/go;
+	$text =~ s/\\%/%/go;
+
+	$text =~ s/\n\s*\n/\n<p>\n/sgo;
+	$text =~ s/\\dots/.../go;
+	$text =~ s/\\ldots/.../go;
+
+	$text =~ s/\\mu/&mu;/go;
+	$text =~ s/\\Gamma/&Gamma;/go;
+	$text =~ s/\\alpha/&alpha;/go;
+	$text =~ s/\\Alpha/&Alpha;/go;
+	$text =~ s/\\pi/&pi;/go;
+	$text =~ s/\\sigma/&sigma;/go;
+	$text =~ s/\\Sigma/&Sigma;/go;
+	$text =~ s/\\lambda/&lambda;/go;
+	$text =~ s/\\beta/&beta;/go;
+	$text =~ s/\\epsilon/&epsilon;/go;
+	$text =~ s/\\left\(/\(/go;
+	$text =~ s/\\right\)/\)/go;
+	$text =~ s/\\le/&lt;=/go;# \le *after* \left !
+	$text =~ s/\\ge/&gt;=/go;
+	$text =~ s/\\R/<bf>R<\/bf>/go;
+	foreach my $cmd (@special_commands) {
+	    $text = transform_command($text, $cmd, $ECMD . $cmd,
+				      "-", "$EDASH");
+	}
+	$text =~ s/---/&mdash;/go;
+	$text =~ s/--/&ndash;/go;
+	foreach my $cmd (@special_commands) {
+	    $text = transform_command($text, $ECMD . $cmd, $cmd,
+				      "$EDASH", "-");
+	}
+	$text =~ s/$EOB/\{/go;
+	$text =~ s/$ECB/\}/go;
+    }
+
+    $text = undefine_command($text, "special");
+
+    $text = replace_command($text, "emph", "<em>", "</em>");
+    $text = replace_command($text, "bold", "<bf>", "</bf>");
+    $text = replace_command($text, "strong", "<bf>", "</bf>");
+
+    $text = replace_command($text, "file", "'<tt>", "</tt>'");
+
+    $text = undefine_command($text, "acronym");
+    $text = undefine_command($text, "cite");
+    $text = undefine_command($text, "dfn");
+
+    $text = replace_command($text, "command", "'<tt>", "</tt>'");
+    $text = replace_command($text, "env", "'<tt>", "</tt>'");
+    $text = replace_command($text, "kbd", "'<tt>", "</tt>'");
+    $text = replace_command($text, "option", "'<tt>", "</tt>'");
+    $text = replace_command($text, "pkg", "'<tt>", "</tt>'");
+    $text = replace_command($text, "samp", "'<tt>", "</tt>'");
+
+    $text = undefine_command($text, "var");
+
+    $text = replace_command($text, "sQuote", "'", "'");
+    $text = replace_command($text, "dQuote", "\"", "\"");
+
+
+    $text = Ssgm_tables($text);
+    $text =~ s/\\cr/<br>/sgo;
+
+    my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\link")
+	  &&  $text =~ /\\link/){
+	my ($id, $arg, $dest, $opt) = get_link($text);
+	$text =~
+	    s/\\link(\[.*\])?$id.*$id/<s-function name="$dest">$arg<\/s-function>/s;
+    }
+
+    $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\email")
+	  &&  $text =~ /\\email/){
+	my ($id, $arg)	= get_arguments("email", $text, 1);
+	$text =~ s/\\email$id.*$id/<url url=\"mailto:$arg\">/s;
+    }
+
+    $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\url")
+	  &&  $text =~ /\\url/){
+	my ($id, $arg)	= get_arguments("url", $text, 1);
+	$text =~ s/\\url.*$id/<url url =\"$arg\">/s;
+    }
+
+    ## Handle equations:
+    $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\eqn")
+	  &&  $text =~ /\\eqn/){
+	my ($id, $eqn, $ascii) = get_arguments("eqn", $text, 2);
+	$eqn = $ascii if $ascii;
+	$text =~ s/\\eqn(.*)$id/<it>$eqn<\/it>/s;
+    }
+
+    $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\deqn")
+	  &&  $text =~ /\\deqn/){
+	my ($id, $eqn, $ascii) = get_arguments("deqn", $text, 2);
+	$eqn = $ascii if $ascii;
+	$text =~ s/\\deqn(.*)$id/<p><it>$eqn<\/it><\/p>/s;
+    }
+
+    ## Handle encoded text:
+    my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\enc") &&  $text =~ /\\enc/){
+	my ($id, $enc, $ascii) = get_arguments("enc", $text, 2);
+	$enc = $ascii if $ascii;
+	$enc =~ s/\\([^&])/$1/go;
+	$text =~ s/\\enc(.*)$id/$enc/s;
+    }
+
+    $text = replace_command($text, "itemize", "<itemize>", "</itemize>");
+    $text = replace_command($text, "enumerate", "<enum>", "</enum>");
+    $text =~ s/<\/p>\n<p>\s+\\item\s+/<item>/go;
+    $text =~ s/\\item\s+/<item>/go;
+
+    ## Handle '\describe':
+    $text = replace_command($text, "describe", "<descrip>", "</descrip>\n");
+    while(checkloop($loopcount++, $text, "\\item")
+	  && $text =~ /\\itemnormal/s) {
+	my ($id, $arg, $desc)  = get_arguments("item", $text, 2);
+	$descitem = "<tag/" . text2Ssgm($arg, 0, $inarglist) . "/";
+	$descitem .= text2Ssgm($desc, 0, $inarglist);
+	$text =~ s/\\itemnormal.*$id/$descitem/s;
+    }
+    if($outerpass) {
+	$text =~ s/\]/&rsqb;/go;
+	$text =~ s/\[/&lsqb;/go;
+	$text =~ s/\\([^\\])/$1/go;#-drop single "\" (as in '\R')
+	$text =~ s/\\\\/\\/go;
+	$text = Ssgm_unescape_codes($text);
+	$text = unmark_brackets($text);
+	$text =~ s/<tag\/<s-expression>(.*?)<\/s-expression>/<tag\/$1/g;
+    }
+    $text;
+}
+
+sub code2Ssgm {
+
+    my $text = $_[0];
+
+    $text =~ s/&/&amp;/go;
+    $text =~ s/>/&gt;/go;
+    $text =~ s/</&lt;/go;
+    $text =~ s/\\%/%/go;
+    $text =~ s/\\ldots/.../go;
+    $text =~ s/\\dots/.../go;
+
+    $text = undefine_command($text, "special");
+    $text = undefine_command($text, "var");
+
+    my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\link")
+	  &&  $text =~ /\\link/){
+	my ($id, $arg, $dest, $opt) = get_link($text);
+	$text =~
+	    s/\\link(\[.*\])?$id.*$id/<s-function name="$dest">$arg<\/s-function>/s;
+    }
+
+    $text = replace_addnl_command($text, "dontrun",
+				  "## Not run: ", "## End(Not run)");
+    $text = drop_full_command($text, "testonly");
+    $text = drop_full_command($text, "dontshow");
+    $text = undefine_command($text, "donttest");
+    $text =~ s/\\\\/\\/go;
+
+    $text = unmark_brackets($text);
+
+    $text = transform_S3method($text);
+    $text = transform_S4method($text);
+
+    $text;
+}
+
+sub see2Ssgm {
+
+    my $text = $_[0];
+    my $loopcount = 0;
+    $text = Ssgm_unescape_codes($text);
+    while(checkloop($loopcount++, $text, "\\link")
+	  &&  $text =~ /\\link/){
+	my ($id, $arg, $dest, $opt) = get_link($text);
+	$text =~
+	    s/\\link(\[.*\])?$id.*$id/<s-function name="$dest">$arg<\/s-function>/s;
+    }
+
+    $text = unmark_brackets($text);
+
+    my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "escaped preformat")
+	  && $text =~ /$EPREFORMAT($ID)/){
+	my $id = $1;
+	my $ec = code2Ssgm($epreformats{$id});
+	if($ec =~ /<s-function/) {
+	    # <s-expression cannot contain <s-function>
+	    $text =~ s/$EPREFORMAT$id/$ec/;
+	} else {
+	    $text =~ s/$EPREFORMAT$id/<s-expression>$ec<\/s-expression>/;
+	}
+    }
+
+    $text;
+}
+
+## Print a standard block
+sub Ssgm_print_block {
+
+    my ($block,$sname) = @_;
+
+    Ssgm_print_a_section("<$sname>", $blocks{$block}, "</$sname>")
+	if defined $blocks{$block};
+}
+
+sub Ssgm_print_block_named {
+
+    my ($block,$name) = @_;
+
+    Ssgm_print_a_section("<s-section name=\"".uc($name)."\">",
+			 $blocks{$block}, "</s-section>")
+	if defined $blocks{$block};
+}
+
+sub Ssgm_print_usage {
+
+    if(defined $blocks{"usage"}){
+	print $sgmlout ("<s-usage>\n<s-old-style-usage>",
+			code2Ssgm($blocks{"usage"}),
+			"</s-old-style-usage>\n</s-usage>\n\n");
+    }
+}
+
+sub Ssgm_print_examples {
+
+    if(defined $blocks{"examples"}){
+	print $sgmlout ("<s-examples>\n<s-example type = text>",
+			code2Ssgm($blocks{"examples"}),
+			"</s-example>\n</s-examples>\n");
+    }
+}
+
+sub Ssgm_print_seealso {
+
+    if(defined $blocks{"seealso"}){
+	print $sgmlout ("<s-see>\n", see2Ssgm($blocks{"seealso"}),
+			"\n</s-see>\n\n");
+    }
+}
+
+
+## Print the value or arguments block
+sub Ssgm_print_argblock {
+
+    my $block = "arguments";
+
+    if(defined $blocks{$block}){
+	print $sgmlout "<s-args>\n";
+
+	my $text = $blocks{$block};
+
+	if($text =~ /\\item/s){
+	    $text =~ /^(.*)(\\item.*)*/s;
+	    my ($begin, $rest) = split(/\\item/, $text, 2);
+	    if($begin){
+		$text =~ s/^$begin//s;
+		$begin =~ s/(\n)+$//;
+		print $sgmlout (text2Ssgm($begin, 1, 1), "\n");
+	    }
+	    my $loopcount = 0;
+	    while(checkloop($loopcount++, $text, "\\item")
+		  && $text =~ /\\item/s) {
+		my ($id, $arg, $desc)  =
+		    get_arguments("item", $text, 2);
+		print $sgmlout ("<s-arg name=\"",
+				text2Ssgm($arg, 1, 1),
+				"\">\n",
+				text2Ssgm($desc, 1, 1), "</s-arg>\n");
+		$text =~ s/.*$id//s;
+	    }
+	    my $rest = text2Ssgm($text, 1, 1);
+	    print $sgmlout ($rest, "\n") if $rest;
+	}
+	else{
+	    my $rest = text2Ssgm($text, 1, 1);
+	    print $sgmlout ($rest, "\n") if $rest;
+	}
+	print $sgmlout "</s-args>\n\n";
+    }
+}
+
+sub Ssgm_print_valueblock {
+
+    my $block = "value";
+
+    if(defined $blocks{$block}){
+	print $sgmlout "<s-value>\n";
+
+	my $text = $blocks{$block};
+
+	## some people have put \itemize inside \value.
+	## as from R 2.8.1, strip with a warning, providing not after \item{
+	if($text =~ /\\item(ize|$ID)/) {
+	    if($1 eq "ize") {
+		warn "WARNING: found \\itemize inside \\$block in file '$Rdfile'\n";
+		$text =~ /\\itemize($ID)/;
+		$id = $1;
+		$text =~  s/\\itemize$id//;
+		$text =~ s/$id//;
+	    }
+	}
+
+	if($text =~ /\\item/s){
+	    $text =~ /^(.*)(\\item.*)*/s;
+	    my ($begin, $rest) = split(/\\item/, $text, 2);
+	    if($begin){
+		$text =~ s/^$begin//s;
+		$begin =~ s/(\n)+$//;
+		print $sgmlout (text2Ssgm($begin, 1, 1), "\n");
+	    }
+	    my $loopcount = 0;
+	    while(checkloop($loopcount++, $text, "\\item")
+		  && $text =~ /\\item/s) {
+		my ($id, $arg, $desc)  =
+		    get_arguments("item", $text, 2);
+		print $sgmlout ("<s-return-component name=\"",
+				text2Ssgm($arg, 1, 1),
+				"\">\n",
+				text2Ssgm($desc, 1, 1),
+				"</s-return-component>\n");
+		$text =~ s/.*$id//s;
+	    }
+	    my $rest = text2Ssgm($text, 1, 1);
+	    print $sgmlout ($rest, "\n") if $rest;
+	}
+	else{
+	    my $rest = text2Ssgm($text, 1, 1);
+	    print $sgmlout ($rest, "\n") if $rest;
+	}
+	print $sgmlout "</s-value>\n\n";
+    }
+}
+
+## Print sections
+sub Ssgm_print_sections {
+
+    my $section;
+
+    for($section=0; $section<$max_section; $section++){
+	Ssgm_print_block_named($section, $section_title[$section]);
+    }
+}
+
+sub Ssgm_print_a_section {
+    my ($sbegin, $body, $send) = @_;
+    my $htmlbody = text2Ssgm($body, 1, 0);
+
+    $htmlbody =~ s/<p>\s*<p/<p/g;  # before deqn
+    $htmlbody =~ s/<\/p>\s*<\/p>/<\/p>/g;
+    ## Attempt to close paragraphs tags, and remove spurious closings.
+    $htmlbody =~ s/<\/(table|dl|ul|ol|dd)>\n+<\/p>\n/<\/\1>\n\n/g;
+    $htmlbody =~ s/<\/(table|dl|ul|ol)>\n+(\w|<em|<s-expression|<b)/<\/\1>\n<p>\n\2/g;
+    $htmlbody =~ s/<p>\s*<(table|dl|ul|ol|dt)/\n<\1/g;
+
+    print $sgmlout ("$sbegin\n", $htmlbody, "\n$send\n\n");
+}
+
+sub Ssgm_unescape_codes {
+
+    my $text = $_[0];
+
+    my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "escaped code")
+	  && $text =~ /$ECODE($ID)/) {
+	my $id = $1;
+	my $ec = code2Ssgm($ecodes{$id});
+	if($ec =~ /<s-function/) {
+	    # <s-expression cannot contain <s-function>
+	    $text =~ s/$ECODE$id/$ec/;
+	} else {
+	    $text =~ s/$ECODE$id/<code>$ec<\/code>/;
+	}
+    }
+
+    my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "escaped preformat")
+	  && $text =~ /$EPREFORMAT($ID)/){
+	my $id = $1;
+	my $ec = code2Ssgm($epreformats{$id});
+	if($ec =~ /<s-function/) {
+	    # <s-expression cannot contain <s-function>
+	    $text =~ s/$EPREFORMAT$id/$ec/;
+	} else {
+	    $text =~ s/$EPREFORMAT$id/<s-expression>$ec<\/s-expression>/;
+	}
+    }
+
+    $text;
+}
+
+## No support for tables in DTD, even though <tabular> is in
+## linuxdoc.dtd.
+sub Ssgm_tables {
+
+    my $text = $_[0];
+
+    my $loopcount = 0;
+    while(checkloop($loopcount++, $text, "\\tabular")
+	  &&  $text =~ /\\tabular/){
+
+	my ($id, $format, $arg)	 =
+	    get_arguments("tabular", $text, 2);
+
+	$arg =~ s/\n/ /sgo;
+
+	## remove trailing \cr (otherwise we get an empty last line)
+	$arg =~ s/\\cr\s*$//go;
+
+	## parse the format of the tabular environment
+	my $ncols = length($format);
+	my @colformat = ();
+	for($k=0; $k<$ncols; $k++){
+	    my $cf = substr($format, $k, 1);
+
+	    if($cf =~ /l/o){
+		$colformat[$k] = "left";
+	    }
+	    elsif($cf =~ /r/o){
+		$colformat[$k] = "right";
+	    }
+	    elsif($cf =~ /c/o){
+		$colformat[$k] = "center";
+	    }
+	    else{
+		die("Error in file '$Rdfile': unknown identifier \{$cf\} in" .
+		    " tabular format \{$format\}\n");
+	    }
+	}
+
+	## now do the real work: split into lines and columns
+	my $table = "<p>\n<!-- no support for tables -->\n";
+	my @rows = split(/\\cr/, $arg);
+	for($k=0; $k<=$#rows;$k++){
+	    $table .= "    ";
+	    my @cols = split(/\\tab/, $rows[$k]);
+	    die("Error in file '$Rdfile':\n  $rows[$k]\\cr\n" .
+		"does not fit tabular format \{$format\}\n")
+		if ($#cols != $#colformat);
+	    $table .= $cols[0];
+	    for($l=1; $l<=$#cols; $l++){
+		$table .= "|$cols[$l]";
+	    }
+	    $table .= "<br>\n";
+	}
+	$table .= "<!-- end of table -->\n";
+	$text =~ s/\\tabular.*$id/$table/s;
+    }
+
+    $text;
+}
+
+sub Ssgm_title3
+{
+    my $title = $_[0];
+
+    "\n<h3>$title</h3>\n\n";
+}
+
+## The header & footer of a function page
+sub Ssgm_functionhead
+{
+    my ($name,$title) = @_;
+
+    my $retval =
+	"<!doctype s-function-doc system \"s-function-doc.dtd\" [\n".
+	"<!entity % S-OLD \"INCLUDE\">\n]\n>\n".
+	"<s-function-doc>\n";
+    $retval .= "<s-topics>\n  <s-topic>".$name."</s-topic>\n";
+    my $alias;
+    for $alias (@aliases) {
+        next if ($alias eq $name);
+        $retval .= "  <s-topic>" . $alias . "</s-topic>\n";
+    }
+    $retval .= "</s-topics>\n\n";
+    $retval .= "<s-title>\n".$title."\n</s-title>\n\n";
+}
+
+sub Ssgm_functionfoot
+{
+
+    "<s-docclass>\nfunction\n</s-docclass>\n</s-function-doc>\n";
+}
 
 # Local variables: **
 # perl-indent-level: 4 **

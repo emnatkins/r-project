@@ -131,10 +131,10 @@
             if(!identical(class(value), class(.Object))) {
                 cv <- class(value)
                 co <- class(.Object)
-                if(.identC(cv[[1L]], co)) {
+                if(.identC(cv[[1]], co)) {
                   ## ignore S3 with multiple classes  or basic classes
                     if(is.na(match(cv, .BasicClasses)) &&
-                       length(cv) == 1L) {
+                       length(cv) == 1) {
                         warning(gettextf("missing package slot (%s) in object of class \"%s\" (package info added)", packageSlot(co), class(.Object)),
                                 domain = NA)
                         class(value) <- class(.Object)
@@ -288,7 +288,7 @@
         if(length(formalNames) > 0) {
             if(is.null(sigArgs))
               names(signature) <- formalNames[seq_along(classes)]
-            else if(length(sigArgs) && any(is.na(match(sigArgs, formalNames))))
+            else if(length(sigArgs) > 0 && any(is.na(match(sigArgs, formalNames))))
               stop(gettextf("the names in signature for method (%s) do not match %s's arguments (%s)",
                             paste(sigArgs, collapse = ", "),
                             if(is(fdef, "genericFunction")) fdef@generic else "function",

@@ -18,7 +18,7 @@ url.show <-
     function (url,  title = url, file = tempfile(),
               delete.file = TRUE, method, ...)
 {
-    if (download.file(url, destfile = file, method = method))
+    if (download.file(url, destfile = file, method = method) != 0)
         stop("transfer failure")
     file.show(file, delete.file = delete.file, title = title, ...)
 }
@@ -39,11 +39,11 @@ makeUserAgent <- function(format = TRUE) {
     if (is.null(agent)) {
         return(NULL)
     }
-    if (length(agent) != 1L)
+    if (length(agent) != 1)
       stop(sQuote("HTTPUserAgent"),
            " option must be a length one character vector or NULL")
     if (format)
-      paste("User-Agent: ", agent[1L], "\r\n", sep = "")
+      paste("User-Agent: ", agent[1], "\r\n", sep = "")
     else
-      agent[1L]
+      agent[1]
 }

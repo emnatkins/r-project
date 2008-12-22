@@ -21,8 +21,8 @@ winDialog <- function(type = c("ok", "okcancel", "yesno", "yesnocancel"),
         stop("winDialog() cannot be used non-interactively")
     type <- match.arg(type)
     res <- .Internal(winDialog(type, message))
-    if(res == 10L) return(invisible(NULL))
-    c("NO", "CANCEL", "YES", "OK")[res+2L]
+    if(res == 10) return(invisible(NULL))
+    c("NO", "CANCEL", "YES", "OK")[res+2]
 }
 
 winDialogString <- function(message, default)

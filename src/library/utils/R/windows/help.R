@@ -26,7 +26,7 @@ function(file, topic)
 .show_help_on_topic_offline <-
 function(file, topic)
 {
-    FILE <- topic # must be in the current dir
+    FILE <- "Rdoc" # must be in the current dir
     con <- paste(FILE, ".tex", sep = "")
     cat("\\documentclass[",
         getOption("papersize"),

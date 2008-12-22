@@ -3,7 +3,7 @@
 ## Convert R documentation into HTML, LaTeX and text format
 
 # Copyright (C) 1997 Friedrich Leisch
-# Copyright (C) 2000-8 The R Core Development Team
+# Copyright (C) 2000-4 The R Core Development Team
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ $version = $1;
 $OSdir = $R::Vars::OSTYPE;
 ## </NOTE>
 
-my @knownoptions = ("debug|d", "type|t:s", "h|help", "v|version",
+my @knownoptions = ("debug|d", "type|t:s", "h|help", "v|version", 
 		    "o|output:s", "os|OS=s" => \$OSdir, "encoding=s");
 GetOptions (@knownoptions) || &usage();
 &R_version($name, $version) if $opt_v;
@@ -65,7 +65,9 @@ $enc = $opt_encoding if $opt_encoding;
 
 my %types_and_exts = ("txt", "",
 		      "html", ".html",
-		      "latex", ".tex",
+		      "latex", ".tex",		      
+		      "Sd", ".d",
+		      "Ssgm", ".sgml",
 		      "example", ".R");
 
 my $opt_type_ok = 0;
@@ -104,12 +106,13 @@ Options:
       --OS=NAME		the same as '--os'
 
 Possible format specifications are 'txt' (plain text), 'html', 'latex',
+'Sd' (old S documentation format), 'Ssgm' (new S documentation format),
 and 'example' (extract R code in the examples).
 
 The default is to send output to stdout, which is also given by '-o -'.
 Using '-o ""' will choose an output filename by removing a '.Rd'
 extension from FILE and adding a suitable extension.
-
+  
 Email bug reports to <r-bugs\@r-project.org>.
 END
   exit 0;

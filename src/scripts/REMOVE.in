@@ -1,4 +1,4 @@
-#!@R_SHELL@
+#! /bin/sh
 #
 # ${R_HOME}/bin/REMOVE for removing add-on packages
 
@@ -61,10 +61,10 @@ fi
 
 if test -d "${lib}" -a -w "${lib}"; then
   lib=`cd "${lib}" && ${GETWD}`
-else
+else    
   echo "ERROR: cannot cd to or remove from directory '${lib}'"
   exit 2
-fi
+fi    
 
 cd "${lib}"
 for pkg in ${pkgs}; do
@@ -77,9 +77,6 @@ for pkg in ${pkgs}; do
   fi
 done
 
-## Not sure why we do this: R_HOME should be absolute path.
-## But unset CDPATH in case it is not.
-unset CDPATH
 if test "${lib}" = `cd "${R_HOME}/library" && ${GETWD}`; then
   echo "tools:::unix.packages.html(.Library, docdir=\"${R_DOC_DIR}\")" | \
     R_DEFAULT_PACKAGES=NULL LC_ALL=C "${R_HOME}/bin/R" --vanilla >/dev/null

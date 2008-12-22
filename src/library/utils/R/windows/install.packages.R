@@ -18,15 +18,16 @@
 # .install.winbinary(pkgs = pkgs, lib = lib, contriburl = contriburl,
 #                    method = method, available = available,
 #                    destdir = destdir,
+#                    installWithVers = installWithVers,
 #                    dependencies = dependencies)
 
 .install.winbinary <-
     function(pkgs, lib, repos = getOption("repos"),
              contriburl = contrib.url(repos),
              method, available = NULL, destdir = NULL,
-             dependencies = FALSE, ...)
+             installWithVers = FALSE, dependencies = FALSE, ...)
 {
-    unpackPkg <- function(pkg, pkgname, lib)
+    unpackPkg <- function(pkg, pkgname, lib, installWithVers = FALSE)
     {
         ## Create a temporary directory and unpack the zip to it
         ## then get the real package & version name, copying the
@@ -55,7 +56,7 @@
             if (is.na(conts))
                 stop("malformed bundle DESCRIPTION file, no Contains field")
             else
-                pkgs <- strsplit(conts," ")[[1L]]
+                pkgs <- strsplit(conts," ")[[1]]
             ## now check the MD5 sums
             res <- TRUE
             for (curPkg in pkgs) res <- res &
@@ -114,7 +115,11 @@
                     }
                 }
              } else {
-                instPath <- file.path(lib, desc[1,1])
+                if (installWithVers) {
+                    instPath <- file.path(lib,
+                                          paste(desc[1,1], desc[1,2], sep="_"))
+                }
+                else instPath <- file.path(lib, desc[1,1])
 
                 ## If the package is already installed w/ this
                 ## instName, remove it.  If it isn't there, the unlink call will
@@ -174,7 +179,7 @@
 
     if(is.null(contriburl)) {
         for(i in seq_along(pkgs))
-            unpackPkg(pkgs[i], pkgnames[i], lib)
+            unpackPkg(pkgs[i], pkgnames[i], lib, installWithVers)
         link.html.help(verbose=TRUE)
         return(invisible())
     }
@@ -216,28 +221,27 @@
 
     if(depends) { # check for dependencies, recursively
         p1 <- p0 # this is ok, as 1 lib only
-        ## where should we be looking?
-        ## should this add the library we are installing to?
-        installed <- installed.packages(fields = c("Package", "Version"))
-        not_avail <- character(0L)
+        have <- .packages(all.available = TRUE)
+        not_avail <- character(0)
 	repeat {
-	    deps <- apply(available[p1, dependencies, drop = FALSE],
-                          1L, function(x) paste(x[!is.na(x)], collapse=", "))
-	    res <- .clean_up_dependencies2(deps, installed, available)
-            not_avail <- c(not_avail, res[[2L]])
-            deps <- unique(res[[1L]])
-            ## R should not get to here, but be safe
-            deps <- deps[!deps %in% c("R", pkgs)]
+	    if(any(miss <- ! p1 %in% row.names(available))) {
+                not_avail <- c(not_avail, p1[miss])
+                p1 <- p1[!miss]
+	    }
+	    deps <- as.vector(available[p1, dependencies])
+	    deps <- .clean_up_dependencies(deps, available)
 	    if(!length(deps)) break
-	    pkgs <- c(deps, pkgs)
-	    p1 <- deps
+	    toadd <- deps[! deps %in% c("R", have, pkgs)]
+	    if(length(toadd) == 0) break
+	    pkgs <- c(toadd, pkgs)
+	    p1 <- toadd
 	}
         if(length(not_avail)) {
             warning(sprintf(ngettext(length(not_avail),
                                      "dependency %s is not available",
                                      "dependencies %s are not available"),
                             paste(sQuote(not_avail), collapse=", ")),
-                    domain = NA, call. = FALSE, immediate. = TRUE)
+                    domain = NA, call. = FALSE)
             flush.console()
         }
 
@@ -271,7 +275,8 @@
             {
                 okp <- p == foundpkgs[, 1]
                 if(any(okp))
-                    unpackPkg(foundpkgs[okp, 2], foundpkgs[okp, 1], lib)
+                    unpackPkg(foundpkgs[okp, 2], foundpkgs[okp, 1], lib,
+                              installWithVers)
             }
         }
         if(!is.null(tmpd) && is.null(destdir))
@@ -286,13 +291,13 @@
 
 menuInstallPkgs <- function(type = getOption("pkgType"))
 {
-    install.packages(NULL, .libPaths()[1L], dependencies=NA, type = type)
+    install.packages(NULL, .libPaths()[1], dependencies=NA, type = type)
 }
 
 menuInstallLocal <- function()
 {
     install.packages(choose.files('',filters=Filters[c('zip','All'),]),
-                     .libPaths()[1L], repos = NULL)
+                     .libPaths()[1], repos = NULL)
 }
 
 ### the following function supports .install.winbinaries()

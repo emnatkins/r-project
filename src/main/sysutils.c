@@ -1036,14 +1036,6 @@ next_char:
 	    *outbuf++ = '.'; inbuf++; outb--; inb--;
 	    goto next_char;
 	    break;
-	case 3: /* substitute ? */
-	    if(outb < 1) {
-		R_AllocStringBuffer(2*cbuff.bufsize, &cbuff);
-		goto top_of_loop;
-	    }
-	    *outbuf++ = '?'; inbuf++; outb--; inb--;
-	    goto next_char;
-	    break;
 	default: /* skip byte */
 	    inbuf++; inb--;
 	    goto next_char;

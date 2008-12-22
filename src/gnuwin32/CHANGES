@@ -8,53 +8,6 @@
 
 	**************************************************
 	*						 *
-	*	       2.9 SERIES NEWS			 *
-	*						 *
-	**************************************************
-
-
-    		CHANGES IN R VERSION 2.9.0
-
-
-NEW FEATURES
-
-    o	memory.size() and memory.limits() now return rounded values.
-    
-    o	The Rgui preferences dialog now allows more flexible colour
-    	settings, and shows a sample of what will be displayed.
-
-    o	The file selection items on Rgui's File menu now work in
-	Unicode and so allow filenames not in the current encoding to
-	be selected.
-
-    o	file.choose() and choose.files() now work with Unicode file
-	names, so are able to select filenames not in the current
-	encoding.  (Note that we do not expect to handle directory
-	paths not in the current encoding and they will not be
-	retained as the current search directory.)
-
-    o	The script editor is now able to open files with names which are
-	not in the current encoding: however the title displayed will
-	replace invalid bytes by '?'.
-
-    o	file() and pipe() now open non-ASCII pathnames as Unicode:
-	this helps if R is running in a character set different from that
-	used by Windows.
-
-    o	help(topic, offline=TRUE) now creates a file called <topic>.tex,
-	rather than Rdoc.tex.
-
-
-DEFUNCT
-
-    o	'R CMD INSTALL --with-package-versions' is defunct and a
-	non-versioned install is done.
-
-
-
-
-	**************************************************
-	*						 *
 	*	       2.8 SERIES NEWS			 *
 	*						 *
 	**************************************************
@@ -1578,7 +1531,7 @@ UNCATEGORIZED
     o	Overwrite mode in the console now works for MBCS charsets.
 	(Patch contributed by Haruki Koyanagi.)
 
-    o	Input from the Rgui console was changing the letter 255 (ÿ in Latin-2)
+    o	Input from the Rgui console was changing the letter 255 ( in Latin-2)
 	in the character set to letter 1.
 
     o	R CMD REMOVE in 2.2.0 removed the package(s) but failed to remake the

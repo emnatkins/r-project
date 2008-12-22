@@ -25,12 +25,12 @@
 })
 
 help.search <-
-    function(pattern, fields = c("alias", "concept", "title"),
-             apropos, keyword, whatis, ignore.case = TRUE,
-             package = NULL, lib.loc = NULL,
-             help.db = getOption("help.db"),
-             verbose = getOption("verbose"),
-             rebuild = FALSE, agrep = NULL)
+function(pattern, fields = c("alias", "concept", "title"),
+	 apropos, keyword, whatis, ignore.case = TRUE,
+	 package = NULL, lib.loc = NULL,
+	 help.db = getOption("help.db"),
+	 verbose = getOption("verbose"),
+	 rebuild = FALSE, agrep = NULL)
 {
     ### Argument handling.
     TABLE <- c("alias", "concept", "keyword", "name", "title")
@@ -39,7 +39,7 @@ help.search <-
 	gettextf("argument '%s' must be a single character string", args)
 
     if(!missing(pattern)) {
-	if(!is.character(pattern) || (length(pattern) > 1L))
+	if(!is.character(pattern) || (length(pattern) > 1))
 	    stop(.wrong_args("pattern"), domain = NA)
 	i <- pmatch(fields, TABLE)
 	if(any(is.na(i)))
@@ -47,14 +47,14 @@ help.search <-
 	else
 	    fields <- TABLE[i]
     } else if(!missing(apropos)) {
-	if(!is.character(apropos) || (length(apropos) > 1L))
+	if(!is.character(apropos) || (length(apropos) > 1))
 	    stop(.wrong_args("apropos"), domain = NA)
 	else {
 	    pattern <- apropos
 	    fields <- c("alias", "title")
 	}
     } else if(!missing(keyword)) {
-	if(!is.character(keyword) || (length(keyword) > 1L))
+	if(!is.character(keyword) || (length(keyword) > 1))
 	    stop(.wrong_args("keyword"), domain = NA)
 	else {
 	    pattern <- keyword
@@ -117,8 +117,8 @@ help.search <-
 	    dir <- file.path(tempdir(), ".R")
 	    db_file <- file.path(dir, "hsearch.rds")
 	    if((file_test("-d", dir)
-		|| ((unlink(dir) == 0L) && dir.create(dir)))
-	       && (unlink(db_file) == 0L))
+		|| ((unlink(dir) == 0) && dir.create(dir)))
+	       && (unlink(db_file) == 0))
 		save_db <- TRUE
 	}
 
@@ -128,18 +128,23 @@ help.search <-
 	} else {
             ## local version of .packages(all.available = TRUE),
             ## recording paths
-            ans <- character(0L); paths <- character(0L)
+            ans <- character(0); paths <- character(0)
             lib.loc <- lib.loc[file.exists(lib.loc)]
             valid_package_version_regexp <-
                 .standard_regexps()$valid_package_version
             for (lib in lib.loc) {
                 a <- list.files(lib, all.files = FALSE, full.names = FALSE)
                 for (nam in a) {
-                    pfile <- file.path(lib, nam, "Meta", "package.rds")
-                    if (file.exists(pfile))
-                        info <- .readRDS(pfile)$DESCRIPTION[c("Package", "Version")]
-                    else next
-                    if ( (length(info) != 2L) || any(is.na(info)) ) next
+                    if (!file.exists(file.path(lib, nam, "DESCRIPTION")))
+                        next
+                pfile <- file.path(lib, nam, "Meta", "package.rds")
+                    info <- if (file.exists(pfile))
+                        .readRDS(pfile)$DESCRIPTION[c("Package", "Version")]
+                    else try(read.dcf(file.path(lib, nam, "DESCRIPTION"),
+                                      c("Package", "Version"))[1, ],
+                             silent = TRUE)
+                    if (inherits(info, "try-error") || (length(info) != 2) ||
+                        any(is.na(info))) next
                     if (regexpr(valid_package_version_regexp, info["Version"]) == -1) next
                     ans <- c(ans, nam)
                     paths <- c(paths, file.path(lib, nam))
@@ -152,7 +157,7 @@ help.search <-
         }
 
 	## Create the hsearch db.
-	np <- 0L
+	np <- 0
 	if(verbose)
 	    message("Packages {.readRDS() sequentially}:")
 
@@ -168,18 +173,18 @@ help.search <-
 	## keyword, and concept information in rbind() calls on the
 	## columns.  This is *much* more efficient than building
 	## incrementally.
-	dbMat <- vector("list", length(packages_in_hsearch_db) * 4L)
-	dim(dbMat) <- c(length(packages_in_hsearch_db), 4L)
+	dbMat <- vector("list", length(packages_in_hsearch_db) * 4)
+	dim(dbMat) <- c(length(packages_in_hsearch_db), 4)
 	defunct_standard_package_names <-
 	    tools:::.get_standard_package_names()$stubs
 
 	for(p in packages_in_hsearch_db) {
-	    np <- np + 1L
+	    np <- np + 1
 	    if(verbose)
-		message(" ", p, appendLF = ((np %% 5L) == 0L), domain=NA)
+		message(" ", p, appendLF = ((np %% 5) == 0), domain=NA)
             path <- if(!is.null(package_paths)) package_paths[p]
 	    else .find.package(p, lib.loc, quiet = TRUE)
-	    if(length(path) == 0L) {
+	    if(length(path) == 0) {
                 if(is.null(package)) next
 		else stop(gettextf("could not find package '%s'", p), domain = NA)
             }
@@ -190,9 +195,9 @@ help.search <-
 		hDB <- .readRDS(hs_file)
 		if(!is.null(hDB)) {
 		    ## Fill up possibly missing information.
-		    if(is.na(match("Encoding", colnames(hDB[[1L]]))))
-			hDB[[1L]] <- cbind(hDB[[1L]], Encoding = "")
-		    hDB[[1L]][, "LibPath"] <- path
+		    if(is.na(match("Encoding", colnames(hDB[[1]]))))
+			hDB[[1]] <- cbind(hDB[[1]], Encoding = "")
+		    hDB[[1]][, "LibPath"] <- path
 		    ## Put the hsearch index for the np-th package into the
 		    ## np-th row of the matrix used for aggregating.
 		    dbMat[np, seq_along(hDB)] <- hDB
@@ -204,7 +209,7 @@ help.search <-
 	}
 
 	if(verbose)  {
-	    message(ifelse(npL %% 5L == 0L, "\n", "\n\n"),
+	    message(ifelse(np %% 5 == 0, "\n", "\n\n"),
                     sprintf("Built dbMat[%d,%d]", nrow(dbMat), ncol(dbMat)),
                     domain = NA)
             ## DEBUG save(dbMat, file="~/R/hsearch_dbMat.rda", compress=TRUE)
@@ -225,12 +230,12 @@ help.search <-
 		   Concepts = do.call("rbind", dbMat[, 4]))
 	if(is.null(db$Concepts))
 	    db$Concepts <-
-		matrix(character(), ncol = 3L,
+		matrix(character(), ncol = 3,
 		       dimnames = list(NULL,
 		       c("Concepts", "ID", "Package")))
 	## Make the IDs globally unique by prefixing them with the
 	## number of the package in the global index.
-	for(i in which(sapply(db, NROW) > 0L)) {
+	for(i in which(sapply(db, NROW) > 0)) {
 	    db[[i]][, "ID"] <-
 		paste(rep.int(seq_along(packages_in_hsearch_db),
 			      sapply(dbMat[, i], NROW)),
@@ -238,8 +243,7 @@ help.search <-
 		      sep = "/")
 	}
 	## And maybe re-encode ...
-	if(!identical(Sys.getlocale("LC_CTYPE"), "C")
-           && capabilities("iconv")) {
+	if(!identical(Sys.getlocale("LC_CTYPE"), "C") && capabilities("iconv")) {
 	    if(verbose) message("reencoding ...", appendLF=FALSE)
 	    encoding <- db$Base[, "Encoding"]
 	    IDs_to_iconv <- db$Base[encoding != "", "ID"]
@@ -310,11 +314,11 @@ help.search <-
 	## Argument 'package' was given.  Need to check that all given
 	## packages exist in the db, and only search the given ones.
 	pos_in_hsearch_db <-
-	    match(package, unique(db$Base[, "Package"]), nomatch = 0L)
+	    match(package, unique(db$Base[, "Package"]), nomatch = 0)
         ## This should not happen for R >= 2.4.0
-	if(any(pos_in_hsearch_db) == 0L)
+	if(any(pos_in_hsearch_db) == 0)
 	    stop(gettextf("no information in the data base for package '%s': need 'rebuild = TRUE'?",
-			  package[pos_in_hsearch_db == 0][1L]), domain = NA)
+			  package[pos_in_hsearch_db == 0][1]), domain = NA)
 	db <-
 	    lapply(db,
 		   function(x) {
@@ -336,8 +340,8 @@ help.search <-
     ## or pattern has very few (currently, less than 5) characters.
     if(is.null(agrep) || is.na(agrep))
 	agrep <-
-	    ((regexpr("^([[:alnum:]]|[[:space:]]|-)+$", pattern) > 0L)
-	     && (nchar(pattern, type="c") > 4L))
+	    ((regexpr("^([[:alnum:]]|[[:space:]]|-)+$", pattern) > 0)
+	     && (nchar(pattern, type="c") > 4))
     if(is.logical(agrep)) {
 	if(agrep)
 	    max.distance <- 0.1

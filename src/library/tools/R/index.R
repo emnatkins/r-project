@@ -141,11 +141,11 @@ function(demoDir)
 print.check_demo_index <-
 function(x, ...)
 {
-    if(length(x$missing_from_index)) {
+    if(length(x$missing_from_index) > 0L) {
         writeLines("Demos with missing or empty index information:")
         print(x$missing_from_index)
     }
-    if(length(x$missing_from_demos)) {
+    if(length(x$missing_from_demos) > 0L) {
         writeLines("Demo index entries without corresponding demo:")
         print(x$missing_from_demos)
     }
@@ -204,26 +204,27 @@ function(contents, packageName, defaultEncoding = NULL)
         ## If there are no aliases at all, cbind() below would give
         ## matrix(packageName, ncol = 1L).  (Of course, Rd objects
         ## without aliases are useless ...)
-        if(length(tmp <- unlist(aliases)))
+        if(length(tmp <- unlist(aliases)) > 0L)
             dbAliases <-
                 cbind(tmp, rep.int(IDs, sapply(aliases, length)),
                       packageName)
         ## And similarly if there are no keywords at all.
-        if(length(tmp <- unlist(keywords)))
+        if(length(tmp <- unlist(keywords)) > 0L)
             dbKeywords <-
                 cbind(tmp, rep.int(IDs, sapply(keywords, length)),
                       packageName)
         ## Finally, concepts are a feature added in R 1.8 ...
         if("Concepts" %in% colnames(contents)) {
             concepts <- contents[, "Concepts"]
-            if(length(tmp <- unlist(concepts)))
+            if(length(tmp <- unlist(concepts)) > 0L)
                 dbConcepts <-
                     cbind(tmp, rep.int(IDs, sapply(concepts, length)),
                           packageName)
         }
     }
-    else
+    else {
         dbBase <- matrix(character(), ncol = 7L)
+    }
 
     colnames(dbBase) <-
         c("Package", "LibPath", "ID", "name", "title", "topic",

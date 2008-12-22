@@ -27,7 +27,7 @@ export("?", CRAN.packages, Rprof,Rprofmem, RShowDoc, RSiteSearch,
        type.convert, unstack, update.packageStatus, update.packages,
        upgrade, url.show, vi, vignette, withVisible, write.csv,
        write.csv2, write.socket, write.table, wsbrowser, xedit,
-       xemacs, zip.file.extract, rtags)
+       xemacs, zip.file.extract)
 
 export(txtProgressBar, getTxtProgressBar, setTxtProgressBar)
 
@@ -60,7 +60,6 @@ S3method(print, "help_files_with_topic")
 S3method(print, Latex)
 S3method(print, "ls_str")
 S3method(print, MethodsFunction)
-S3method(print, "object_size")
 S3method(print, packageDescription)
 S3method(print, packageIQR)
 S3method(print, packageStatus)

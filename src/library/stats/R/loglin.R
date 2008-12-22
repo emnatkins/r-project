@@ -33,7 +33,7 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
             tmp <- match(tmp, varnames)
             margin[[k]] <- tmp
         }
-        conf[1L:length(tmp), k] <- tmp
+        conf[1:length(tmp), k] <- tmp
         nmar <- nmar + prod(dtab[tmp])
     }
 
@@ -60,8 +60,8 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
             as.double(eps),
             as.integer(iter),
             dev = double(iter),
-            nlast = integer(1L),
-            ifault = integer(1L),
+            nlast = integer(1),
+            ifault = integer(1),
             PACKAGE = "stats")
     switch(z$ifault,
            stop("this should not happen"),
@@ -96,7 +96,7 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
         for (i in seq_along(x)) {
             y <- c(y, lapply(y, "c", x[i]))
         }
-        y[-1L]
+        y[-1]
     }
     df <- rep.int(0, 2^nvar)
     for (k in seq_along(margin)) {
@@ -129,9 +129,9 @@ loglin <- function(table, margin, start = rep(1, length(table)), fit =
         parval <- list(parlen)
         parnam <- character(parlen)
 
-        parval[[1L]] <- mean(fit)
-        parnam[1L] <- "(Intercept)"
-        fit <- fit - parval[[1L]]
+        parval[[1]] <- mean(fit)
+        parnam[1] <- "(Intercept)"
+        fit <- fit - parval[[1]]
 
         ## Get the u_i(B) in the rows of 'dyadic', see above.
         dyadic <- NULL

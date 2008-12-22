@@ -135,7 +135,7 @@
     for(i in seq_along(.OldClassesPrototypes)) {
       el <- .OldClassesPrototypes[[i]]
       if(is.list(el) && length(el) > 1)
-        setOldClass(el[[1L]], prototype = el[[2L]],  where = envir)
+        setOldClass(el[[1]], prototype = el[[2]],  where = envir)
        else
         warning("OOPS: something wrong with line ",i, " in .OldClassesPrototypes")
     }
@@ -188,7 +188,7 @@
         }
         cl <- as.character(class(object))
         S3Class <- object@.S3Class
-        if(length(S3Class)) S3Class <- S3Class[[1L]]
+        if(length(S3Class)) S3Class <- S3Class[[1]]
         else S3Class <- "oldClass" # or error?
         cat("Object of class \"", cl, "\"\n", sep = "")
         print(S3Part(object, strict = TRUE))
@@ -209,7 +209,7 @@
          S3Class <- attr(ClassDef@prototype, ".S3Class")
          if(is.null(S3Class)) # not a class set up by setOldClass()
              return(callNextMethod())
-        S3ClassP <- S3Class[[1L]]
+        S3ClassP <- S3Class[[1]]
          args <- list(...)
         ## separate the slots, superclass objects
         snames <- allNames(args)
@@ -240,7 +240,7 @@
                     .Object <- .mergeAttrs(obj, .Object)
                 }
                 else stop(gettextf("unnamed argument must extend either the S3 class or the class of the data part; not true of class \"%s\"", Classi), domain = NA)
-
+                    
             }
         }
         ## named slots are done as in the default method, which will also call validObject()
@@ -252,7 +252,7 @@
            validObject(.Object)
          .Object
     }
-    setMethod("initialize", "oldClass", .initS3, where = envir)
+    setMethod("initialize", "oldClass", .initS3, where = envir)        
     ## Next, miscellaneous S3 classes.
     for(cl in .OldClassesList)
         setOldClass(cl, where = envir)
@@ -298,7 +298,7 @@
                       pr <- classDef@prototype
                       value <- new(cl)
                       slots <- classDef@slots
-                      if(match(".Data", names(slots), 0L) > 0L) {
+                      if(match(".Data", names(slots), 0) > 0) {
                           data <- unclass(from)
                           if(!is(data, slots[[".Data"]]))
                             stop(gettextf("Object must be a valid data part for class \"%s\"; not true of type \"%s\"", cl, class(data)),

@@ -7,7 +7,7 @@
 # unlimited permission to copy and/or distribute it, with or without
 # modifications, as long as this notice is preserved.
 
-dnl # serial 4 lt~obsolete.m4
+dnl # serial 3
 
 # These exist entirely to fool aclocal when bootstrapping libtool.
 #

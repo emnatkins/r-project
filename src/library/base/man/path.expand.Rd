@@ -1,10 +1,9 @@
 % File src/library/base/man/path.expand.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2008 R Core Development Team
+% Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{path.expand}
-\Rdversion{1.1}
 \alias{path.expand}
 \title{Expand File Paths}
 \description{
@@ -28,7 +27,7 @@ path.expand(path)
 #ifdef windows
 \details{
   The definition of \sQuote{home} is in the \file{rw-FAQ} Q2.14: it is
-  taken from the \env{R_USER} environment variable when
+  taken from the \env{R\_USER} environment variable when
   \code{path.expand} is first called.
 }
 #endif

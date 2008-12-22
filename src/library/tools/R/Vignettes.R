@@ -45,7 +45,6 @@ function(package, dir, lib.loc = NULL,
         if(!keepfiles) unlink(tmpd, recursive = TRUE)
     })
 
-    file.create(".check.timestamp")
     result <- list(tangle = list(), weave = list(),
                    source = list(), latex = list())
 
@@ -63,18 +62,15 @@ function(package, dir, lib.loc = NULL,
     }
 
     if(tangle) {
-        ## Tangling can create several source files if splitting is on.
-        sources <- list_files_with_exts(getwd(), c("r", "s", "R", "S"))
-        sources <- sources[file_test("-nt", sources, ".check.timestamp")]
-        for(f in sources)
+        for(f in list_files_with_exts(getwd(), c("r", "s", "R", "S")))
             .eval_with_capture(tryCatch(source(f),
                                         error = function(e)
                                         result$source[[f]] <<-
                                         conditionMessage(e)))
     }
-    if(weave && latex) {
-        if(!("makefile" %in% tolower(list.files(vigns$dir)))) {
-            ## <NOTE>
+    if(tangle && weave && latex) {
+        if(! "makefile" %in% tolower(list.files(vigns$dir))) {
+            ## <FIXME>
             ## This used to run texi2dvi on *all* vignettes, including
             ## the ones already known from the above to give trouble.
             ## In addition, texi2dvi errors were not caught, so that in
@@ -87,7 +83,7 @@ function(package, dir, lib.loc = NULL,
             ##   running checkVignettes().
             ## (For the future, maybe keep this output and provide it as
             ## additional diagnostics ...)
-            ## </NOTE>
+            ## </FIXME>
             bad_vignettes <- as.character(names(unlist(result)))
             bad_vignettes <- file_path_sans_ext(basename(bad_vignettes))
             for(f in vigns$docs) {
@@ -104,7 +100,6 @@ function(package, dir, lib.loc = NULL,
         }
     }
 
-    file.remove(".check.timestamp")
     class(result) <- "checkVignettes"
     result
 }
@@ -113,7 +108,7 @@ print.checkVignettes <-
 function(x, ...)
 {
     mycat <- function(y, title) {
-        if(length(y)){
+        if(length(y) > 0L){
             cat("\n", title, "\n\n", sep = "")
             for(k in seq_along(y)) {
                 cat("File", names(y)[k], ":\n")
@@ -249,7 +244,7 @@ function(file)
     ## \VignetteDepends
     depends <- .get_vignette_metadata(lines, "Depends")
     if(length(depends))
-        depends <- unlist(strsplit(depends[1L], ", *"))
+        depends <- unlist(strsplit(depends[1], ", *"))
     ## \VignetteKeyword and old-style \VignetteKeywords
     keywords <- .get_vignette_metadata(lines, "Keywords")
     keywords <- if(!length(keywords)) {
@@ -288,7 +283,7 @@ function(vignetteDir)
         contents[i, ] <- vignetteInfo(vignetteFiles[i])
     colnames(contents) <- c("File", "Title", "Depends", "Keywords")
 
-    ## (Note that paste(character(0L), ".pdf") does not do what we want.)
+    ## (Note that paste(character(0), ".pdf") does not do what we want.)
     vignettePDFs <- sub("$", ".pdf", file_path_sans_ext(vignetteFiles))
 
     vignetteTitles <- unlist(contents[, "Title"])
@@ -368,7 +363,7 @@ vignetteDepends <-
 function(vignette, recursive = TRUE, reduce = TRUE,
          local = TRUE, lib.loc = NULL)
 {
-    if (length(vignette) != 1L)
+    if (length(vignette) != 1)
         stop("argument 'vignette' must be of length 1")
     if (!file.exists(vignette))
         stop(gettextf("file '%s' not found", vignette),
@@ -386,7 +381,7 @@ getVigDepMtrx <-
 function(vigDeps)
 {
     ## Taken almost directly out of 'package.dependencies'
-    if (length(vigDeps)) {
+    if (length(vigDeps) > 0) {
         z <- unlist(strsplit(vigDeps, ",", fixed=TRUE))
         z <- sub("^[[:space:]]*(.*)", "\\1", z)
         z <- sub("(.*)[[:space:]]*$", "\\1", z)

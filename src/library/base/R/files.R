@@ -166,11 +166,11 @@ print.octmode <- function(x, ...)
 as.octmode <- function(x)
 {
     if(inherits(x, "octmode")) return(x)
-    if(length(x) != 1L) stop("'x' must have length 1")
+    if(length(x) != 1) stop("'x' must have length 1")
     if(is.double(x) && x == as.integer(x)) x <- as.integer(x)
     if(is.integer(x)) return(structure(x, class="octmode"))
     if(is.character(x)) {
-        xx <- strsplit(x, "")[[1L]]
+        xx <- strsplit(x, "")[[1]]
         if(!all(xx %in% 0:7)) stop("invalid digits")
         z <- as.numeric(xx) * 8^(rev(seq_along(xx)-1))
         return(structure(sum(z), class="octmode"))
@@ -223,23 +223,23 @@ function(x)
     if(is.integer(x)) return(structure(x, class = "hexmode"))
     if(is.character(x)) {
         xx <- strsplit(tolower(x), "")[[1L]]
-        pos <- match(xx, c(0L:9L, letters[1L:6L]))
+        pos <- match(xx, c(0 : 9, letters[1 : 6]))
         if(any(is.na(pos))) stop("invalid digits")
         z <- (pos - 1L) * 16 ^ (rev(seq_along(xx) - 1))
         return(structure(as.integer(sum(z)), class = "hexmode"))
     }
     stop("'x' cannot be coerced to hexmode")
 }
-
+        
 system.file <-
 function(..., package = "base", lib.loc = NULL)
 {
     if(nargs() == 0)
         return(file.path(.Library, "base"))
-    if(length(package) != 1L)
+    if(length(package) != 1)
         stop("'package' must be of length 1")
     packagePath <- .find.package(package, lib.loc, quiet = TRUE)
-    if(length(packagePath) == 0L)
+    if(length(packagePath) == 0)
         return("")
     FILES <- file.path(packagePath, ...)
     present <- file.exists(FILES)

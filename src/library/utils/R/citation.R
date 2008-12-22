@@ -55,7 +55,7 @@ readCitationFile <- function(file, meta = NULL)
     on.exit(close(con))
     pcf <- parse(con)
     z <- list()
-    k <- 0L
+    k <- 0
     envir <- new.env()
     ## Make the package metadata available to the citation entries.
     assign("meta", meta, envir = envir)
@@ -63,7 +63,7 @@ readCitationFile <- function(file, meta = NULL)
     for(expr in pcf) {
         x <- eval(expr, envir = envir)
         if(class(x) == "citation")
-            z[[k <- k+1L]] <- x
+            z[[k <- k+1]] <- x
         else if(class(x) == "citationHeader")
             attr(z, "header") <- c(attr(z, "header"), x)
         else if(class(x) == "citationFooter")
@@ -137,7 +137,7 @@ as.person.default <- function(x)
 
     x <- as.character(x)
 
-    if(length(grep("<.*>", x)))
+    if(length(grep("<.*>", x))>0)
         email <- sub(".*<([^>]*)>.*", "\\1", x)
     else
         email <- NULL
@@ -146,15 +146,15 @@ as.person.default <- function(x)
     name = unlist(strsplit(name, "[[:space:]]"))
 
     ## fix for email address only
-    if(length(name) == 0L) name = ""
+    if(length(name)==0) name = ""
 
     ## and now create appropriate person objects
     if(length(name)==1)
         z <- person(last=name, email=email)
     else if(length(name)==2)
-        z <- person(first=name[1L], last=name[2L], email=email)
+        z <- person(first=name[1], last=name[2], email=email)
     else
-        z <- person(first=name[1L],
+        z <- person(first=name[1],
                     last=name[length(name)],
                     middle=paste(name[-c(1, length(name))], collapse=" "),
                     email=email)
@@ -255,7 +255,7 @@ function(package = "base", lib.loc = NULL)
     }
 
     ## Auto-generate citation info.
-
+    
     ## Base packages without a CITATION file use the base citation.
     if((!is.null(meta$Priority)) && (meta$Priority == "base")) {
     	cit <- citation("base")
@@ -298,7 +298,7 @@ function(package = "base", lib.loc = NULL)
 
     author <- as.character(z$author)
     if(length(author) > 1L)
-        author <- paste(paste(author[1L:(length(author)-1L)], collapse=", "),
+        author <- paste(paste(author[1:(length(author)-1)], collapse=", "),
                         author[length(author)], sep=" and ")
 
     attr(z, "textVersion") <-

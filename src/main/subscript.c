@@ -17,17 +17,6 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
  *  http://www.r-project.org/Licenses/
- *
- * EXPORTS:
- *
- *  OneIndex()        -- used for "[[<-" in ./subassign.c
- *  get1index()       -- used for "[["   in ./subassign.c & subset.c
-
- *  mat2indsub()      -- for "mat[i]"     "    "            "
-
- *  makeSubscript()   -- for "[" and "[<-" in ./subset.c and ./subassign.c
- *  vectorSubscript() -- for makeSubscript()   {currently unused externally}
- *  arraySubscript()  -- for "[i,j,..." and "[<-..." in ./subset.c, ./subassign.c
  */
 
 #ifdef HAVE_CONFIG_H
@@ -55,7 +44,6 @@ static int integerOneIndex(int i, int len, SEXP call)
     return(indx);
 }
 
-/* Utility used (only in) do_subassign2_dflt(), i.e. "[[<-" in ./subassign.c : */
 int attribute_hidden
 OneIndex(SEXP x, SEXP s, int len, int partial, SEXP *newname, int pos, SEXP call)
 {
@@ -433,7 +421,7 @@ stringSubscript(SEXP s, int ns, int nx, SEXP names,
     int canstretch = *stretch;
 #ifdef USE_HASHING
     /* product may overflow, so check factors as well. */
-    Rboolean usehashing = in && ( ((ns > 1000 && nx) || (nx > 1000 && ns)) && (ns * nx > 15*nx + ns) );
+    Rboolean usehashing = in && ( (ns > 1000 && nx) || (nx > 1000 && ns) || (ns * nx > 1000) );
 #else
     Rboolean usehashing = FALSE;
 #endif

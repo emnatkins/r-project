@@ -47,7 +47,8 @@ download.packages(pkgs, destdir, available = NULL,
 install.packages(pkgs, lib, repos = getOption("repos"),
                  contriburl = contrib.url(repos, type),
                  method, available = NULL, destdir = NULL,
-		 dependencies = NA, type = getOption("pkgType"),
+		 installWithVers = FALSE, dependencies = NA,
+                 type = getOption("pkgType"),
                  configure.args = character(0),
                  clean = FALSE, \dots)
 
@@ -101,6 +102,8 @@ contrib.url(repos, type = getOption("pkgType"))
     \code{\link{select.list}}, and is otherwise equivalent to \code{ask
       = TRUE}.
   }
+  \item{installWithVers}{If \code{TRUE}, will invoke the install of the
+    package such that it can be referenced by package version.}
   \item{checkBuilt}{If \code{TRUE}, a package built under an earlier
     minor version of \R is considered to be \sQuote{old}.}
   \item{instlib}{character string giving the library directory where to
@@ -210,7 +213,8 @@ contrib.url(repos, type = getOption("pkgType"))
   give warnings about incompletely installed bundles (provided the
   information is available) and bundles whose contents has changed.
   If \code{ask != FALSE} it asks which packages should be installed
-  in the first element of \code{lib.loc}.
+  in the first element of \code{lib.loc}.  NB: versioned installs are
+  not installs of a named package.
 
   \code{download.packages} takes a list of package/bundle names and a
   destination directory, downloads the newest versions and saves them in

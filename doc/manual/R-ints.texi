@@ -2378,7 +2378,7 @@ The @code{GEDevDesc} type is a structure defined in
 @example
 typedef struct _GEDevDesc GEDevDesc;
 struct _GEDevDesc @{
-    pDevDesc dev;
+    DevDesc dev;
     Rboolean displayListOn;
     SEXP displayList;
     SEXP DLlastElt;

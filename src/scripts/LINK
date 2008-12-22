@@ -1,4 +1,4 @@
-#!@R_SHELL@
+#! /bin/sh
 ##
 ## ${R_HOME}/bin/LINK
 

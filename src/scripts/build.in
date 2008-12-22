@@ -201,7 +201,6 @@ foreach my $pkg (@ARGV) {
 	open(RBUILDIGNORE, &file_path($pkgdir, ".Rbuildignore"));
 	while(<RBUILDIGNORE>) {
 	    chomp;
-	    s/\r$//;  # careless people get Windows files on other OSes
 	    push(@exclude_patterns, $_) if $_;
 	}
 	close(RBUILDIGNORE);
@@ -554,47 +553,21 @@ sub cleanup_pkg {
 	    ## $(RHOME)/src/gnuwin32/MkRules.
 	    $ENV{RHOME} = $ENV{R_HOME};
 	    if(-r "Makefile.win") {
-		## FIXME: why not use 'Makefile' if Makefile.win does not exist?
 		R_system("${R::Vars::MAKE} -f Makefile.win clean");
 	    } else {
-		if(-r "Makevars.win") {
-		    my $makefiles = " -f " .
-			&shell_quote_file_path(&file_path(${R::Vars::R_HOME},
-							  "share", "make",
-							  "clean.mk"));
-		    $makefiles .= " -f Makevars.win";
-		    R_system("${R::Vars::MAKE} $makefiles clean");
-		} elsif (-r "Makevars") {
-		    my $makefiles = " -f " .
-			&shell_quote_file_path(&file_path(${R::Vars::R_HOME},
-							  "share", "make",
-							  "clean.mk"));
-		    $makefiles .= " -f Makevars";
-		    R_system("${R::Vars::MAKE} $makefiles clean");
-		}
 		foreach my $file (<*.o $pkgname.a $pkgname.dll $pkgname.def>) {
 		    unlink($file);
 		}
 		rmtree("_libs") if (-d "_libs");
 	    }
 	} else {
-	    my $makefiles = "-f " .
-		&shell_quote_file_path(&file_path(${R::Vars::R_HOME},
-						  "etc".$ENV{"R_ARCH"},
-						  "Makeconf"));
 	    if(-r "Makefile") {
+		my $makefiles = "-f " .
+		    &shell_quote_file_path(&file_path(${R::Vars::R_HOME},
+						      "etc", "Makeconf"));
 		$makefiles .= " -f Makefile";
 		R_system("${R::Vars::MAKE} $makefiles clean");
 	    } else {
-		if(-r "Makevars") {
-		    ## ensure we do have a 'clean' target.
-		    $makefiles .= " -f " .
-			&shell_quote_file_path(&file_path(${R::Vars::R_HOME},
-							  "share", "make",
-							  "clean.mk"));
-		    $makefiles .= " -f Makevars";
-		    R_system("${R::Vars::MAKE} $makefiles clean");
-		}
 		## Also cleanup possible Windows leftovers ...
 		unlink((<*.o *.s[lo] *.dylib>,
 			"$pkgname.a", "$pkgname.dll", "$pkgname.def"));

@@ -1,4 +1,4 @@
-#!@R_SHELL@
+#! /bin/sh
 ##
 ## Rdiff -- diff 'without R version'
 

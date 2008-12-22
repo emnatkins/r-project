@@ -156,8 +156,6 @@ SEXP attribute_hidden getAttrib0(SEXP vec, SEXP name)
 
 SEXP getAttrib(SEXP vec, SEXP name)
 {
-    if(TYPEOF(vec) == CHARSXP)
-	error("cannot have attributes on a CHARSXP");
     /* pre-test to avoid expensive operations if clearly not needed -- LT */
     if (ATTRIB(vec) == R_NilValue &&
 	! (TYPEOF(vec) == LISTSXP || TYPEOF(vec) == LANGSXP))
@@ -320,8 +318,6 @@ static SEXP installAttrib(SEXP vec, SEXP name, SEXP val)
 {
     SEXP s, t;
 
-    if(TYPEOF(vec) == CHARSXP)
-	error("cannot set attribute on a CHARSXP");
     PROTECT(vec);
     PROTECT(name);
     PROTECT(val);
@@ -348,8 +344,6 @@ static SEXP installAttrib(SEXP vec, SEXP name, SEXP val)
 static SEXP removeAttrib(SEXP vec, SEXP name)
 {
     SEXP t;
-    if(TYPEOF(vec) == CHARSXP)
-	error("cannot set attribute on a CHARSXP");
     if (name == R_NamesSymbol && isList(vec)) {
 	for (t = vec; t != R_NilValue; t = CDR(t))
 	    SET_TAG(t, R_NilValue);
@@ -808,10 +802,19 @@ static SEXP dimnamesgets1(SEXP val1)
     if (LENGTH(val1) == 0) return R_NilValue;
     /* if (isObject(val1)) dispatch on as.character.foo, but we don't
        have the context at this point to do so */
-
-    if (inherits(val1, "factor"))  /* mimic as.character.factor */
-        return asCharacterFactor(val1);
-
+    if (inherits(val1, "factor")) { /* mimic as.character.factor */
+	int i, n = LENGTH(val1);
+	SEXP labels = getAttrib(val1, install("levels"));
+	PROTECT(this2 = allocVector(STRSXP, n));
+	for(i = 0; i < n; i++) {
+	    int ii = INTEGER(val1)[i];
+	    SET_STRING_ELT(this2, i,
+			   (ii == NA_INTEGER) ? NA_STRING
+			   : STRING_ELT(labels, ii - 1));
+	}
+	UNPROTECT(1);
+	return this2;
+    }
     if (!isString(val1)) { /* mimic as.character.default */
 	PROTECT(this2 = coerceVector(val1, STRSXP));
 	SET_ATTRIB(this2, R_NilValue);

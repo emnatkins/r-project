@@ -20,15 +20,15 @@ interaction <- function(..., drop = FALSE, sep = ".", lex.order = FALSE)
 {
     args <- list(...)
     narg <- length(args)
-    if (narg == 1L && is.list(args[[1L]])) {
-	args <- args[[1L]]
+    if (narg == 1 && is.list(args[[1]])) {
+	args <- args[[1]]
 	narg <- length(args)
     }
-    for(i in narg:1L) {
+    for(i in narg:1) {
         f <- args[[i]]
 	if (!is.factor(f)) f <- factor(f)
 	l <- levels(f)
-        if1 <- as.integer(f) - 1L
+        if1 <- as.integer(f) - 1
         if(i != narg) {
             if(lex.order) {
                 ll <- length(lvs)
@@ -45,6 +45,6 @@ interaction <- function(..., drop = FALSE, sep = ".", lex.order = FALSE)
             lvs <- l
         }
     }
-    ans <- structure(as.integer(ans+1L), levels=lvs, class = "factor")
+    ans <- structure(as.integer(ans+1), levels=lvs, class = "factor")
     ans[ , drop=drop]
 }

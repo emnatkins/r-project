@@ -347,17 +347,16 @@ format conforming to the ISO standard.
 The optional @samp{Depends} field gives a comma-separated list of
 package names which this package depends on.  The package name may be
 optionally followed by a comment in parentheses.  The comment should
-contain a comparison operator@footnote{only @samp{>=} and @samp{<=} were
-supported prior to @R{} 2.7.0, and only @samp{>=} is supported for
-package versions by @code{install.packages}.}, whitespace and a valid
-version number).  (List @emph{package} names even if they are part of a
-bundle.)  You can also use the special package name @samp{R} if your
-package depends on a certain version of @R{}.  E.g., if the package
-works only with @R{} version 2.4.0 or newer, include @samp{R (>= 2.4.0)}
-in the @samp{Depends} field.  Both @code{library} and the @R{} package
-checking facilities use this field, hence it is an error to use improper
-syntax or misuse the @samp{Depends} field for comments on other software
-that might be needed.  Other dependencies (external to the @R{} system)
+contain a comparison operator (only @samp{>=} and @samp{<=} were
+supported prior to @R{} 2.7.0), whitespace and a valid version number).
+(List @emph{package} names even if they are part of a bundle.)  You can
+also use the special package name @samp{R} if your package depends on a
+certain version of @R{}.  E.g., if the package works only with @R{}
+version 2.4.0 or newer, include @samp{R (>= 2.4.0)} in the
+@samp{Depends} field.  Both @code{library} and the @R{} package checking
+facilities use this field, hence it is an error to use improper syntax
+or misuse the @samp{Depends} field for comments on other software that
+might be needed.  Other dependencies (external to the @R{} system)
 should be listed in the @samp{SystemRequirements} field or a separate
 @file{README} file.  The @R{} @command{INSTALL} facilities check if the
 version of @R{} used is recent enough for the package being installed,
@@ -417,11 +416,10 @@ In particular, large packages providing ``only'' data for examples or
 vignettes should be listed in @samp{Suggests} rather than @samp{Depends}
 in order to make lean installations possible.
 
-Prior to @R{} 2.9.0, adding version dependencies for packages only made
-sense for the @samp{Depends} field, as only @code{library} checks
-version requirements, and only for the packages it loads via the
-@samp{Depends} field.  As from @R{} 2.9.0 other dependencies are used by
-@code{install.packages}.
+Currently adding version dependencies for packages only makes sense for
+the @samp{Depends} field, as only @code{library} checks version
+requirements, and only for the packages it loads via the @samp{Depends}
+field.
 
 The optional @samp{URL} field may give a list of @acronym{URL}s
 separated by commas or whitespace, for example the homepage of the
@@ -1076,8 +1074,7 @@ There are two another targets, @samp{before} and @samp{after}, which by
 default have neither dependencies nor commands so can be overridden in a
 @file{Makevars.win}.  See the example in @ref{Linking to other packages}.
 
-It is sometimes useful to have a target @samp{clean} in @file{Makevars}
-or @file{Makevars.win}: this will be used by @command{R CMD build}.
+
 
 @node Configure example, Using F95 code, Using Makevars, Configure and cleanup
 @subsection Configure example
@@ -2184,12 +2181,11 @@ export(AIC)
 
 @noindent
 All formal classes need to be listed in an @code{exportClasses}
-directive. Alternatively, a pattern can be specified using
-@code{exportClassPattern}. Generics for which formal methods are defined
-need to be declared in an @code{exportMethods} directive, and where the
-generics are formed by taking over existing functions, those functions
-need to be imported (explicitly unless they are defined in the
-@code{base} name space).
+directive.  Generics for which formal methods are defined need to be
+declared in an @code{exportMethods} directive, and where the generics
+are formed by taking over existing functions, those functions need to be
+imported (explicitly unless they are defined in the @code{base} name
+space).
 
 Note that exporting methods on a generic in the namespace will also
 export the generic, and exporting a generic in the namespace will also
@@ -2808,7 +2804,6 @@ As an example, let us look at the file
 @cartouche
 @smallexample
 \name@{load@}
-\Rdversion@{1.1@}
 \alias@{load@}
 \title@{Reload Saved Datasets@}
 \description@{
@@ -2853,15 +2848,6 @@ footer are mandatory.
 See the @uref{http://developer.r-project.org/Rds.html, ``Guidelines for Rd
 files''} for guidelines for writing documentation in Rd format which
 should be useful for package writers.
-
-Note that there have been a number of changes to the Rd format over the
-years, which can be important if a package is intended to be used with
-earlier versions of @R{}.  The @code{\Rdversion@{@}} block was
-introduced in @R{} 2.9.0 to allow help files to identify the version
-they follow: files without such a block are implicitly version 1.0.
-New files created by e.g.@: @code{prompt} in @R{} 2.9.0 and later are
-marked as version 1.1.  See @ref{Back-compatibility issues} for notes on
-earlier versions of the Rd format.
 
 @menu
 * Documenting functions::       
@@ -3347,7 +3333,7 @@ For example
 For consistency with the pre-assigned sections, the section name (the
 first argument to @code{\section}) should be capitalized (but not all
 upper case).  Note that there is no whitespace between the first and
-second braced expressions (it is allowed in Rd version 1.1 and later).
+second braced expressions.
 
 Note that additional named sections are always inserted at a fixed
 position in the output (before @code{\note}, @code{\seealso} and the
@@ -3572,7 +3558,7 @@ is used for ``inline'' formulae (corresponding to @TeX{}'s
 Both commands can also be used as @code{\eqn@{@var{latexascii}@}} (only
 @emph{one} argument) which then is used for both @var{latex} and
 @var{ascii}.  No whitespace is allowed between command and the first
-argument, nor (prior to Rd version 1.1) between the first and second arguments.
+argument, nor between the first and second arguments.
 
 The following example is from @file{Poisson.Rd}:
 
@@ -3633,9 +3619,8 @@ with one argument immediately followed by a right brace.
 @section Insertions
 
 @findex \R
-Use @code{\R} for the @R{} system
-itself@footnote{Rd version 1.1 also allows @code{\R\@{@}}}.  Use
-@code{\dots}
+Use @code{\R} for the @R{} system itself (you don't need extra
+@samp{@{@}} or @samp{\}).  Use @code{\dots}
 @findex \dots
 for the dots in function argument lists @samp{@dots{}}, and
 @code{\ldots}
@@ -3655,8 +3640,19 @@ examples section in the file @file{Paren.Rd} for an example.}
 for backslash and needs to be when there two or more adjacent
 backslashes).  Inside the verbatim-like commands (@code{usage},
 @code{\code}, @code{\preformatted} and @code{\examples}), no other
-characters are special.  As from @R{} 2.9.0, all of @samp{% @{ @} \}
-should be escaped in non-verbatim-like text.
+characters are special.  Note that @code{\file} is @strong{not} a
+verbatim-like command.
+
+In ``regular'' text (not verbatim-like, no @code{\eqn}, @dots{}), you
+currently must escape most @LaTeX{} special characters, i.e., besides
+@samp{%}, @samp{@{}, and @samp{@}}, the specials @samp{$}, @samp{#}, and
+@samp{_} are produced by preceding each with a @samp{\}.  (@samp{&} can
+also be escaped, but need not be.)  Further, enter @samp{^} as
+@code{\eqn@{\mbox@{\textasciicircum@}@}@{^@}}, and @samp{~} by
+@code{\eqn@{\mbox@{\textasciitilde@}@}@{~@}} or @code{\eqn@{\sim@}@{~@}}
+(for a short and long tilde respectively).  Also, @samp{<}, @samp{>},
+and @samp{|} must only be used in math mode, i.e., within @code{\eqn} or
+@code{\deqn}.
 
 @findex \enc
 Text which might need to be represented differently in different
@@ -3764,11 +3760,9 @@ in finding non-@acronym{ASCII} bytes in the files.)
 
 For convenience, encoding names @samp{latin1} and @samp{latin2} are
 always recognized: these and @samp{UTF-8} are likely to work fairly
-widely.  However, this does not mean that all characters in UTF-8 will
-be recognized, and the coverage of non-Latin characters@footnote{@R{}
-2.9.0 added support for UTF-8 Cyrillic characters in @LaTeX{}, but on
-some OSes this will need Cyrillic support added to @LaTeX{}.} is often
-low, especially when converting to @LaTeX{}.
+widely.  However, this does not mean that all characters in
+@samp{UTF-8} will be recognized, and the coverage of non-Latin
+characters is often low, especially when converting to @LaTeX{}.
 
 The @code{\enc} command (@pxref{Insertions}) can be used to provide
 transliterations which will be used in conversions that do not support
@@ -3792,9 +3786,8 @@ it might for example use
 
 @noindent
 (Use of @code{utf8} as an encoding requires @LaTeX{} dated 2003/12/01 or
-later.  Also, the use of Cyrillic characters in @samp{UTF-8} appears to
-also need @samp{\usepackage[T2A]@{fontenc@}}, and @command{R CMD Rd2dvi}
-includes this conditionally on the @file{t2aenc.def} being present.)
+later.  Also, the use of Cyrillic characters in @samp{UTF-8} appears to also
+need @samp{\usepackage[T2A]@{fontenc@}}.)
 
 Note that this mechanism works best with Latin letters and for example
 the copyright symbol may be rendered as a subscript and the plus--minus
@@ -3860,72 +3853,6 @@ Rd2dvi} also the tools to build packages from source as described in the
 Packages that are intended to work with earlier versions of @R{} need to
 be written in a rather stricter dialect, and some notes follow.
 
-Some package authors have included arbitrary pieces of @LaTeX{}
-mathematical notation into text descriptions, e.g.@: @samp{$\mu$g} and
-@samp{$^\circ$C}.  Whether this works even in latex conversion depends
-on the version of @R{}, and it has always given ugly results in other
-conversions.  If mathematical notation is necessary (and it seems it is
-not in the examples given), use @code{\eqn}.
-
-@menu
-* Changes in version 1.1::      
-* Unnumbered versions::         
-@end menu
-
-@node Changes in version 1.1, Unnumbered versions, Back-compatibility issues, Back-compatibility issues
-@subsection Changes in version 1.1
-
-Rd version 1.1 was introduced in @R{} 2.9.0.  The main changes were
-
-@itemize
-@item
-@samp{$} is treated literally in text, even for latex conversion.
-
-@item
-@samp{\} is only an escape before @samp{% @{ @} \}, and these should
-always be escaped (although paired braces inside @code{\code} will be
-still be handled if unescaped).  @samp{#}, @samp{_} and @samp{&} must
-not be escaped.
-
-@item
-@samp{\R@{@}} is accepted as an alternative to @samp{\R}.
-
-@item
-Whitespace is allowed between the first and second arguments of
-@code{\item} and @code{\section}.
-
-@item
-Interpretation of @samp{\Alpha} etc is no longer done.
-@end itemize
-
-@node Unnumbered versions,  , Changes in version 1.1, Back-compatibility issues
-@subsection Unnumbered versions
-
-In version 1.0 @samp{$} needs to be escaped by backslash in ``regular''
-text (not verbatim-like, not in the first argument of @code{\eqn},
-@dots{}), and @samp{#}, @samp{_} and @samp{&} can be.
-
-For historic reasons mostly, the @TeX{}/@LaTeX{} commands @code{\alpha},
-@code{\Alpha}, @code{\beta}, @code{\Gamma}, @code{\epsilon},
-@code{\lambda}, @code{\mu}, @code{\pi}, @code{\sigma}, @code{\Sigma},
-@code{\le}, @code{\ge}, @code{\left(} and @code{\right)} were accepted,
-and interpreted in text and HTML conversions.  The preferred way to
-handle these is as part of @code{\eqn} or @code{\deqn}.
-
-
-For @R{} prior to 2.9.0, in ``regular'' text you needed to escape the
-specials @samp{$}, @samp{#} and @samp{_}: @samp{&} could also be
-escaped, but need not be.
-
-Further, @samp{^}, @samp{~}, @samp{<}, @samp{>} and @samp{|} are not in
-general safe to use in non-verbatim text.  Enter @samp{^} as
-@code{\eqn@{\mbox@{\textasciicircum@}@}@{^@}}, and @samp{~} by
-@code{\eqn@{\mbox@{\textasciitilde@}@}@{~@}} or @code{\eqn@{\sim@}@{~@}}
-(for a short and long tilde respectively).  Also, @samp{<}, @samp{>},
-and @samp{|} could only be used safely in math mode, i.e., within the
-first argument of @code{\eqn} or @code{\deqn}.
-
-
 Versions of @R{} prior to 2.8.1 failed to process correctly
 constructions such as
 
@@ -3947,11 +3874,10 @@ two-argument commands, e.g.
 @end example
 
 @noindent
-had always been an error.  However, prior to @R{} 2.9.0 this error was
-not looked for and resulted in incorrect output (often by omitting
-entirely the text for the item, sometimes with a warning).  
-@R{} 2.9.0 and later detect and fixup most cases of this error, with a
-warning unless the file is declared as version 1.1 or later.
+has always been an error.  However, this error is not looked for and
+results in incorrect output (often by omitting entirely the text for the
+item, sometimes with a warning).  Future versions of @R{} will detect
+and fixup most cases of this error, with a warning.
 
 A @code{\value} block is implicitly a @code{\itemize} environment, but
 quite a few package writers have ignored this.  As from @R{} 2.8.1 this
@@ -7845,12 +7771,14 @@ Clearing a pointer sets its value to the C @code{NULL} pointer.
 @cindex finalizer
 An external pointer object can have a @emph{finalizer}, a piece of code
 to be run when the object is garbage collected.  This can be @R{} code
-or C code, and the various interfaces are, respectively.
+or C code, and the various interfaces are
 
 @example
+void R_RegisterFinalizer(SEXP s, SEXP fun);
 void R_RegisterFinalizerEx(SEXP s, SEXP fun, Rboolean onexit);
 
 typedef void (*R_CFinalizer_t)(SEXP);
+void R_RegisterCFinalizer(SEXP s, R_CFinalizer_t fun);
 void R_RegisterCFinalizerEx(SEXP s, R_CFinalizer_t fun, Rboolean onexit);
 @end example
 
@@ -7906,64 +7834,8 @@ A toy example of the use of weak references can be found at
 @uref{http://www.stat.uiowa.edu/~luke/R/references/weakfinex.html,
 @code{www.@/stat.@/uiowa.@/edu/@/~luke/@/R/references/@/weakfinex.html}},
 but that is used to add finalizers to external pointers which can now be
-done more directly.  At the time of writing no CRAN or Bioconductor
-package uses weak references.
+done more directly.
 
-
-@menu
-* An external pointer example::  
-@end menu
-
-@node An external pointer example,  , External pointers and weak references, External pointers and weak references
-@subsection An example
-
-Package @pkg{RODBC} uses external pointers to maintain its
-@emph{channels}, connections to databases.  There can be several
-connections open at once, and the status information for each is stored
-in a C structure (pointed to by @code{this_handle}) in the code extract
-below) that is returned via an external pointer as part of the RODBC
-`channel' (as the @code{"handle_ptr"} attribute).  The external pointer
-is created by
-
-@example
-    SEXP ans, ptr;
-    PROTECT(ans = allocVector(INTSXP, 1));
-    ptr = R_MakeExternalPtr(thisHandle, install("RODBC_channel"), R_NilValue);
-    PROTECT(ptr);
-    R_RegisterCFinalizerEx(ptr, chanFinalizer, TRUE);
-            ...
-    /* return the channel no */
-    INTEGER(ans)[0] = nChannels;
-    /* and the connection string as an attribute */
-    setAttrib(ans, install("connection.string"), constr);
-    setAttrib(ans, install("handle_ptr"), ptr);
-    UNPROTECT(3);
-    return ans;
-@end example
-
-@noindent
-Note the symbol given to identify the usage of the external pointer, and
-the use of the finalizer.  Since the final argument when registering the
-finalizer is @code{TRUE}, the finalizer will be run at the the of the
-@R{} session (unless it crashes).  This is used to close and clean up
-the connection to the database.  The finalizer code is simply
-
-@example
-static void chanFinalizer(SEXP ptr)
-@{
-    if(!R_ExternalPtrAddr(ptr)) return;
-    inRODBCClose(R_ExternalPtrAddr(ptr));
-    R_ClearExternalPtr(ptr); /* not really needed */
-@}
-@end example
-
-@noindent
-Clearing the pointer and checking for a @code{NULL} pointer avoids any
-possibility of attempting to close an already-closed channel.
-
-@R{}'s connections provide another example of using external pointers,
-in that case purely to be able to us a finalizer to close and destroy the
-connection if it is no longer is use.
 
 @node Vector accessor functions, Character encoding issues, External pointers and weak references, System and foreign language interfaces
 @section Vector accessor functions 

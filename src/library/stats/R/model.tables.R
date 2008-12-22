@@ -116,7 +116,7 @@ model.tables.aovlist <- function(x, type = "effects", se = FALSE, ...)
 	    efficiency <- eff.aovlist(x)
 	    ## Elect to use the effects from the lowest stratum:
 	    ##	usually expect this to be highest efficiency
-	    eff.used <- apply(efficiency, 2L,
+	    eff.used <- apply(efficiency, 2,
 			      function(x, ind = seq_len(x)) {
 				  temp <- (x > 0)
 				  if(sum(temp) == 1) temp
@@ -125,8 +125,6 @@ model.tables.aovlist <- function(x, type = "effects", se = FALSE, ...)
 	}
     }
     if(any(efficiency)) {
-        if(is.list(eff.used))
-            stop("design is unbalanced so cannot proceed")
 	which <- match(outer(rownames(efficiency),
 			     colnames(efficiency), paste)[eff.used],
 		       paste(dn.strata, dn.proj))
@@ -207,7 +205,7 @@ make.tables.aovproj <-
 	terms <- proj.cols[[i]]
         terms <- terms[terms %in% colnames(prjs)]
 	data <-
-	    if(length(terms) == 1L) prjs[, terms]
+	    if(length(terms) == 1) prjs[, terms]
 	    else prjs[, terms] %*% as.matrix(rep.int(1, length(terms)))
 	tables[[i]] <- tapply(data, mf[mf.cols[[i]]],
                               get(fun, mode="function"))
@@ -229,7 +227,7 @@ make.tables.aovprojlist <-
 	    terms <- proj.cols[[i]]
 	    if(all(is.na(eff.i <- match(terms, names(eff)))))
 		eff.i <- rep.int(1, length(terms))
-	    if(length(terms) == 1L)
+	    if(length(terms) == 1)
 		data <- projections[[strata.cols[i]]][, terms]/ eff[eff.i]
 	    else {
 		if(length(strata <- unique(strata.cols[terms])) == 1)
@@ -252,9 +250,9 @@ make.tables.aovprojlist <-
 	}
     } else for(i in seq_along(tables)) {
 	terms <- proj.cols[[i]]
-	if(length(terms) == 1L) data <- projections[[strata.cols[i]]][, terms]
+	if(length(terms) == 1) data <- projections[[strata.cols[i]]][, terms]
 	else {
-	    if(length(strata <- unique(strata.cols[terms])) == 1L)
+	    if(length(strata <- unique(strata.cols[terms])) == 1)
 		data <- projections[[strata]][, terms] %*%
 		    as.matrix(rep.int(1, length(terms)))
 	    else {
@@ -282,9 +280,9 @@ replications <- function(formula, data = NULL, na.action)
     }
     if(!inherits(formula, "terms")) {
 	formula <- as.formula(formula)
-	if(length(formula) < 3L) {
+	if(length(formula) < 3) {
 	    f <- y ~ x
-	    f[[3L]] <- formula[[2L]]
+	    f[[3]] <- formula[[2]]
 	    formula <- f
 	}
 	formula <- terms(formula, data = data)
@@ -300,7 +298,7 @@ replications <- function(formula, data = NULL, na.action)
     f <- attr(formula, "factors")
     o <- attr(formula, "order")
     labels <- attr(formula, "term.labels")
-    vars <- as.character(attr(formula, "variables"))[-1L]
+    vars <- as.character(attr(formula, "variables"))[-1]
     if(is.null(data)) {
 	v <- c(as.name("data.frame"), attr(formula, "variables"))
 	data <- eval(as.call(v), parent.frame())
@@ -316,17 +314,17 @@ replications <- function(formula, data = NULL, na.action)
     balance <- TRUE
     for(i in seq_len(n)) {
 	l <- labels[i]
-	if(o[i] < 1 || substring(l, 1L, 5L) == "Error") { z[[l]] <- NULL; next }
+	if(o[i] < 1 || substring(l, 1, 5) == "Error") { z[[l]] <- NULL; next }
 	select <- vars[f[, i] > 0]
 	if(any(nn <- notfactor[select])) {
 	    warning("non-factors ignored: ",
                     paste(names(nn), collapse = ", "))
 	    next
 	}
-	if(length(select))
+	if(length(select) > 0)
 	    tble <- tapply(dummy, unclass(data[select]), length)
 	nrep <- unique(as.vector(tble))
-	if(length(nrep) > 1L) {
+	if(length(nrep) > 1) {
 	    balance <- FALSE
 	    tble[is.na(tble)] <- 0
 	    z[[l]] <- tble
@@ -344,7 +342,7 @@ print.tables_aov <- function(x, digits = 4, ...)
     switch(type,
 	   effects = cat("Tables of effects\n"),
 	   means = cat("Tables of means\n"),
-	   residuals = if(length(tables.aov) > 1L) cat(
+	   residuals = if(length(tables.aov) > 1) cat(
 	   "Table of residuals from each stratum\n"))
     if(!is.na(ii <- match("Grand mean", names(tables.aov)))) {
 	cat("Grand mean\n")
@@ -359,7 +357,7 @@ print.tables_aov <- function(x, digits = 4, ...)
 	    print.mtable(table, digits = digits, ...)
 	else {
 	    n <- n.aov[[i]]
-	    if(length(dim(table)) < 2L) {
+	    if(length(dim(table)) < 2) {
 		table <- rbind(table, n)
 		rownames(table) <- c("", "rep")
 		print(table, digits = digits, ...)
@@ -368,10 +366,10 @@ print.tables_aov <- function(x, digits = 4, ...)
 		dim.t <- dim(ctable)
 		d <- length(dim.t)
 		ctable <- aperm(ctable, c(1, d, 2:(d - 1)))
-		dim(ctable) <- c(dim.t[1L] * dim.t[d], dim.t[-c(1, d)])
+		dim(ctable) <- c(dim.t[1] * dim.t[d], dim.t[-c(1, d)])
 		dimnames(ctable) <-
-		    c(list(format(c(rownames(table), rep.int("rep", dim.t[1L])))),
-                      dimnames(table)[-1L])
+		    c(list(format(c(rownames(table), rep.int("rep", dim.t[1])))),
+                      dimnames(table)[-1])
 		ctable <- eval(parse(text = paste(
 				     "ctable[as.numeric(t(matrix(seq(nrow(ctable)),ncol=2)))", paste(rep.int(", ", d - 2), collapse = " "), "]")))
 		names(dimnames(ctable)) <- names(dimnames(table))
@@ -397,12 +395,12 @@ print.tables_aov <- function(x, digits = 4, ...)
 	    print(se.aov, quote=FALSE, right=TRUE, ...)
 	} else for(i in names(se.aov)) {
 	    se <- se.aov[[i]]
-	    if(length(se) == 1L) { ## single se
+	    if(length(se) == 1) { ## single se
 		se <- rbind(se, n.aov[i])
 		dimnames(se) <- list(c(i, rn), "")
 		print(se, digits = digits, ...)
 	    } else {		## different se
-		dimnames(se)[[1L]] <- ""
+		dimnames(se)[[1]] <- ""
 		cat("\n", i, "\n")
 		cat("When comparing means with same levels of:\n")
 		print(se, digits, ...)
@@ -416,14 +414,14 @@ print.tables_aov <- function(x, digits = 4, ...)
 eff.aovlist <- function(aovlist)
 {
     Terms <- terms(aovlist)
-    if(names(aovlist)[[1L]] == "(Intercept)") aovlist <- aovlist[-1L]
+    if(names(aovlist)[[1]] == "(Intercept)") aovlist <- aovlist[-1]
     pure.error.strata <- sapply(aovlist, function(x) is.null(x$qr))
     aovlist <- aovlist[!pure.error.strata]
     s.labs <- names(aovlist)
     ## find which terms are in which strata
     s.terms <-
         lapply(aovlist, function(x) {
-            asgn <- x$assign[x$qr$pivot[1L:x$rank]]
+            asgn <- x$assign[x$qr$pivot[1:x$rank]]
             attr(terms(x), "term.labels")[asgn]
         })
     t.labs <- attr(Terms, "term.labels")
@@ -439,7 +437,7 @@ eff.aovlist <- function(aovlist)
     pl <-
 	lapply(aovlist, function(x)
 	   {
-	       asgn <- x$assign[x$qr$pivot[1L:x$rank]]
+	       asgn <- x$assign[x$qr$pivot[1:x$rank]]
 	       sp <- split(seq_along(asgn), attr(terms(x), "term.labels")[asgn])
                sp <- sp[names(sp) %in% nm]
 	       sapply(sp, function(x, y) {
@@ -467,9 +465,9 @@ model.frame.aovlist <- function(formula, data = NULL, ...)
     indError <- attr(Terms, "specials")$Error
     errorterm <-  attr(Terms, "variables")[[1 + indError]]
     form <- update.formula(Terms,
-                           paste(". ~ .-", deparse(errorterm, width.cutoff=500L,
+                           paste(". ~ .-", deparse(errorterm, width.cutoff=500,
                                                    backtick = TRUE),
-                                 "+", deparse(errorterm[[2L]], width.cutoff=500L,
+                                 "+", deparse(errorterm[[2]], width.cutoff=500,
                                               backtick = TRUE)))
     nargs <- as.list(call)
     oargs <- as.list(oc)
@@ -494,7 +492,7 @@ print.mtable <-
     a <- a[!is.na(a.ind)]
     class(x) <- attributes(x) <- NULL
     attributes(x) <- a
-#    if(length(nn) > 1L)
+#    if(length(nn) > 1)
 #	cat(paste("Dim ",paste(seq(length(nn)), "=", nn, collapse= ", "),"\n"))
     if(length(x) == 1 && is.null(names(x)) && is.null(dimnames(x)))
 	names(x) <- rep("", length(x))

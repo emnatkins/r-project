@@ -41,13 +41,13 @@ function(file, fields = NULL, all = FALSE)
         cnts <- table(nums, tf)
         out <- array(NA_character_, dim = dim(cnts),
                      dimnames = list(NULL, levels(tf)))
-        if(all(cnts <= 1L)) {
+        if(all(cnts <= 1)) {
             ## No repeated tags ...
             out[cbind(nums, tf)] <- vals
             out <- as.data.frame(out, stringsAsFactors = FALSE)
         }
         else {
-            levs <- colSums(cnts > 1L) == 0
+            levs <- colSums(cnts > 1) == 0
             if(any(levs)) {
                 inds <- tf %in% levels(tf)[levs]
                 out[cbind(nums[inds], tf[inds])] <- vals[inds]
@@ -163,7 +163,7 @@ function(x, file = "", append = FALSE,
         else {
             ## Should be a list ...
             nmxj <- nmx[j]
-            i <- !sapply(xj, function(s) (length(s) == 1L) && is.na(s))
+            i <- !sapply(xj, function(s) (length(s) == 1) && is.na(s))
             out[i, j] <-
                 sapply(xj[i],
                        function(s) {
@@ -174,6 +174,7 @@ function(x, file = "", append = FALSE,
                        })
         }
     }
+
     out <- t(out)
     is_not_empty <- c(out != "")
     eor <- character(sum(is_not_empty))

@@ -4,7 +4,6 @@
 % Distributed under GPL 2 or later
 
 \name{RweaveLatex}
-\Rdversion{1.1}
 \alias{RweaveLatex}
 \alias{RweaveLatexSetup}
 \title{R/LaTeX Driver for Sweave}
@@ -16,7 +15,9 @@
 RweaveLatex()
 
 RweaveLatexSetup(file, syntax, output = NULL, quiet = FALSE,
-                 debug = FALSE, stylepath, \dots)
+                 debug = FALSE, echo = TRUE, eval = TRUE,
+                 keep.source = FALSE, split = FALSE,
+                 stylepath, pdf = TRUE, eps = TRUE)
 }
 \arguments{
   \item{file}{Name of Sweave source file.}
@@ -30,8 +31,13 @@ RweaveLatexSetup(file, syntax, output = NULL, quiet = FALSE,
   \item{debug}{If \code{TRUE}, input and output of all code
     chunks is copied to the console.}
   \item{stylepath}{See \sQuote{Details}.}
-  \item{\dots}{named values for the options listed in \sQuote{Supported
-      Options}.}
+  \item{echo}{set default for option \code{echo}, see details below.}
+  \item{eval}{set default for option \code{eval}, see details below.}
+  \item{keep.source}{set default for option \code{keep.source}, see
+    details below.}
+  \item{split}{set default for option \code{split}, see details below.}
+  \item{pdf}{set default for option \code{pdf}, see details below.}
+  \item{eps}{set default for option \code{eps}, see details below.}
 }
 \details{
   The LaTeX file generated needs to contain
@@ -47,7 +53,7 @@ RweaveLatexSetup(file, syntax, output = NULL, quiet = FALSE,
 
   The default in \R prior to 2.7.0 was \code{stylepath = TRUE}.  It is
   now taken from the environment variable
-  \env{SWEAVE_STYLEPATH_DEFAULT}, or is \code{FALSE} it that is unset or
+  \env{SWEAVE\_STYLEPATH\_DEFAULT}, or is \code{FALSE} it that is unset or
   empty.  If set, it should be exactly \code{TRUE} or \code{FALSE}: any
   other values are taken as \code{FALSE}.
 }

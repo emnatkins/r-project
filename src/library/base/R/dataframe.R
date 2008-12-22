@@ -19,7 +19,7 @@
 ## attr(, "row.names") will return either character or integer.
 ##
 ## Do not assume that the internal representation is either, since
-## 1L:n is stored as the integer vector c(NA, n) to save space (and
+## 1:n is stored as the integer vector c(NA, n) to save space (and
 ## the C-level code to get/set the attribute makes the appropriate
 ## translations.
 ##
@@ -34,12 +34,10 @@ row.names.data.frame <- function(x) as.character(attr(x, "row.names"))
 row.names.default <- function(x) if(!is.null(dim(x))) rownames(x)# else NULL
 
 .set_row_names <- function(n)
-    if(n > 0) c(NA_integer_, -n) else integer(0L)
+    if(n > 0) c(NA_integer_, -n) else integer(0)
 
 "row.names<-" <- function(x, value) UseMethod("row.names<-")
-
-"row.names<-.data.frame" <- function(x, value)
-{
+"row.names<-.data.frame" <- function(x, value) {
     if (!is.data.frame(x)) x <- as.data.frame(x)
     n <- .row_names_info(x, 2L)
     if(is.null(value)) { # set automatic row.names
@@ -61,7 +59,7 @@ row.names.default <- function(x) if(!is.null(dim(x))) rownames(x)# else NULL
         nonuniq <- sort(unique(value[duplicated(value)]))
         warning(ngettext(length(nonuniq),
                          sprintf("non-unique value when setting 'row.names': %s",
-                                 sQuote(nonuniq[1L])),
+                                 sQuote(nonuniq[1])),
                          sprintf("non-unique values when setting 'row.names': %s",
                                  paste(sQuote(nonuniq), collapse = ", "))),
                 domain = NA, call. = FALSE)
@@ -95,8 +93,7 @@ print.AsIs <- function (x, ...)
 }
 
 
-t.data.frame <- function(x)
-{
+t.data.frame <- function(x) {
     x <- as.matrix(x)
     NextMethod("t")
 }
@@ -120,8 +117,7 @@ dimnames.data.frame <- function(x) list(row.names(x), names(x))
     x
 }
 
-as.data.frame <- function(x, row.names = NULL, optional = FALSE, ...)
-{
+as.data.frame <- function(x, row.names = NULL, optional = FALSE, ...) {
     if(is.null(x))			# can't assign class to NULL
 	return(as.data.frame(list()))
     UseMethod("as.data.frame")
@@ -160,13 +156,13 @@ as.data.frame.list <-
     cn <- names(x)
     m <- match(c("row.names", "check.rows", "check.names", "stringsAsFactors"),
                cn, 0L)
-    if(any(m)) {
+    if(any(m > 0L)) {
         cn[m] <- paste("..adfl.", cn[m], sep="")
         names(x) <- cn
     }
     x <- eval(as.call(c(expression(data.frame), x, check.names = !optional,
                         stringsAsFactors = stringsAsFactors)))
-    if(any(m)) names(x) <- sub("^\\.\\.adfl\\.", "", names(x))
+    if(any(m > 0L)) names(x) <- sub("^\\.\\.adfl\\.", "", names(x))
     if(!is.null(row.names)) {
 	# row.names <- as.character(row.names)
 	if(length(row.names) != dim(x)[[1L]])
@@ -180,7 +176,7 @@ as.data.frame.list <-
 as.data.frame.vector <- function(x, row.names = NULL, optional = FALSE, ...)
 {
     nrows <- length(x)
-    nm <- paste(deparse(substitute(x), width.cutoff = 500L), collapse=" ")
+    nm <- paste(deparse(substitute(x), width.cutoff = 500), collapse=" ")
     if(is.null(row.names)) {
 	if (nrows == 0L)
 	    row.names <- character(0L)
@@ -291,12 +287,12 @@ as.data.frame.array <- function(x, row.names = NULL, optional = FALSE, ...)
         as.data.frame.matrix(x, row.names, optional, ...)
     } else {
         dn <- dimnames(x)
-        dim(x) <- c(d[1L], prod(d[-1L]))
+        dim(x) <- c(d[1L], prod(d[-1]))
         if(!is.null(dn)) {
             if(length(dn[[1L]])) rownames(x) <- dn[[1L]]
             for(i in 2L:length(d))
                 if(is.null(dn[[i]])) dn[[i]] <- seq_len(d[i])
-            colnames(x) <- interaction(expand.grid(dn[-1L]))
+            colnames(x) <- interaction(expand.grid(dn[-1]))
         }
         as.data.frame.matrix(x, row.names, optional, ...)
     }
@@ -312,7 +308,7 @@ as.data.frame.AsIs <- function(x, row.names = NULL, optional = FALSE, ...)
 	as.data.frame.model.matrix(x, row.names, optional)
     else { # as.data.frame.vector without removing names
         nrows <- length(x)
-        nm <- paste(deparse(substitute(x), width.cutoff=500L), collapse=" ")
+        nm <- paste(deparse(substitute(x), width.cutoff=500), collapse=" ")
         if(is.null(row.names)) {
             if (nrows == 0L)
                 row.names <- character(0L)
@@ -359,7 +355,7 @@ data.frame <-
 		} else new
 	    } else current
 	}
-    object <- as.list(substitute(list(...)))[-1L]
+    object <- as.list(substitute(list(...)))[-1]
     mrn <- is.null(row.names) # missing or NULL
     x <- list(...)
     n <- length(x)
@@ -373,7 +369,7 @@ data.frame <-
                 stop("duplicate row.names: ",
                      paste(unique(row.names[duplicated(row.names)]),
                            collapse = ", "))
-        } else row.names <- integer(0L)
+        } else row.names <- integer(0)
 	return(structure(list(), names = character(0L),
                          row.names = row.names,
 			 class = "data.frame"))
@@ -400,7 +396,7 @@ data.frame <-
 	    else vnames[[i]] <- paste(vnames[[i]], namesi, sep=".")
 	}
 	else {
-            if(length(namesi)) vnames[[i]] <- namesi
+            if(length(namesi) > 0L) vnames[[i]] <- namesi
             else if (no.vn[[i]]) {
                 tmpname <- deparse(object[[i]])[1L]
                 if( substr(tmpname, 1L, 2L) == "I(" ) {
@@ -413,10 +409,8 @@ data.frame <-
         } # end of ncols[i] <= 1
 	if(missing(row.names) && nrows[i] > 0L) {
             rowsi <- attr(xi, "row.names")
-            ## Avoid all-blank names
-            nc <- nchar(rowsi, allowNA = FALSE)
-            nc <- nc[!is.na(nc)]
-            if(length(nc) && any(nc))
+            ## old way to mark optional names
+            if(!(rowsi[[1L]] %in% ""))
                 row.names <- data.row.names(row.names, rowsi, i)
         }
         nrows[i] <- abs(nrows[i])
@@ -425,18 +419,18 @@ data.frame <-
     nr <- max(nrows)
     for(i in seq_len(n)[nrows < nr]) {
 	xi <- vlist[[i]]
-	if(nrows[i] > 0L && (nr %% nrows[i] == 0L)) {
-            xi <- unclass(xi) # avoid data-frame methods
-            for(j in seq_along(xi)) {
-                xi1 <- xi[[j]]
-                if(is.vector(xi1) || is.factor(xi1))
-                    xi[[j]] <- rep(xi1, length.out = nr)
-                else if(is.character(xi1) && class(xi1) == "AsIs")
-                    xi[[j]] <- structure(rep(xi1, length.out = nr),
-                                         class = class(xi1))
+	if(length(xi) == 1L && nrows[i] > 0L && nr %% nrows[i] == 0L) {
+            xi1 <- xi[[1L]]
+            if(is.vector(xi1) || is.factor(xi1)) {
+                vlist[[i]] <- list(rep(xi1, length.out = nr))
+                next
             }
-            vlist[[i]] <- xi
-            next
+            if(is.character(xi1) && class(xi1) == "AsIs") {
+                ## simple char vectors only
+                cl <- class(xi1) # `methods' adds a class -- Eh?
+                vlist[[i]] <- list(structure(rep(xi1, length.out = nr), class=cl))
+                next
+            }
         }
 	stop("arguments imply differing number of rows: ",
              paste(unique(nrows), collapse = ", "))
@@ -492,15 +486,14 @@ data.frame <-
 {
     mdrop <- missing(drop)
     Narg <- nargs() - !mdrop  # number of arg from x,i,j that were specified
-    has.j <- !missing(j)
 
-    if(Narg < 3L) {  # list-like indexing or matrix indexing
+    if(Narg < 3) {  # list-like indexing or matrix indexing
         if(!mdrop) warning("drop argument will be ignored")
 	if(missing(i)) return(x)
 	if(is.matrix(i))
 	    return(as.matrix(x)[i])  # desperate measures
         ## zero-column data frames prior to 2.4.0 had no names.
-        nm <- names(x); if(is.null(nm)) nm <- character(0L)
+        nm <- names(x); if(is.null(nm)) nm <- character(0)
         ## if we have NA names, character indexing should always fail
         ## (for positive index length)
         if(!is.character(i) && any(is.na(nm))) { # less efficient version
@@ -525,7 +518,7 @@ data.frame <-
     if(missing(i)) { # df[, j] or df[ , ]
         ## not quite the same as the 1/2-arg case, as 'drop' is used.
         if(missing(j) && drop && length(x) == 1L) return(.subset2(x, 1L))
-        nm <- names(x); if(is.null(nm)) nm <- character(0L)
+        nm <- names(x); if(is.null(nm)) nm <- character(0)
         if(!missing(j) && !is.character(j) && any(is.na(nm))) {
             ## less efficient version
             names(nm) <- names(x) <- seq_along(x)
@@ -559,7 +552,7 @@ data.frame <-
     oldClass(x) <- attr(x, "row.names") <- NULL
 
     if(!missing(j)) { # df[i, j]
-        nm <- names(x); if(is.null(nm)) nm <- character(0L)
+        nm <- names(x); if(is.null(nm)) nm <- character(0)
         if(!is.character(j) && any(is.na(nm)))
             names(nm) <- names(x) <- seq_along(x)
         x <- x[j]
@@ -621,8 +614,7 @@ data.frame <-
 		rows <- make.unique(as.character(rows))
 	}
         ## new in 1.8.0  -- might have duplicate columns
-        if(has.j && any(duplicated(nm <- names(x))))
-            names(x) <- make.unique(nm)
+        if(any(duplicated(nm <- names(x)))) names(x) <- make.unique(nm)
         if(is.null(rows)) rows <- attr(xx, "row.names")[i]
 	attr(x, "row.names") <- rows
 	oldClass(x) <- oldClass(xx)
@@ -635,7 +627,7 @@ data.frame <-
     ## use in-line functions to refer to the 1st and 2nd ... arguments
     ## explicitly. Also will check for wrong number or empty args
     na <- nargs() - !missing(exact)
-    if(na < 3L)
+    if(na < 3)
 	(function(x, i, exact)
 	  if(is.matrix(i)) as.matrix(x)[[i]]
  	  else .subset2(x, i, exact=exact))(x, ..., exact=exact)
@@ -651,11 +643,11 @@ data.frame <-
 "[<-.data.frame" <- function(x, i, j, value)
 {
     nA <- nargs() # value is never missing, so 3 or 4.
-    if(nA == 4L) { ## df[,] or df[i,] or df[, j] or df[i,j]
+    if(nA == 4) { ## df[,] or df[i,] or df[, j] or df[i,j]
 	has.i <- !missing(i)
 	has.j <- !missing(j)
     }
-    else if(nA == 3L) {
+    else if(nA == 3) {
         ## this collects both df[] and df[ind]
         if(is.atomic(value)) names(value) <- NULL
         if(missing(i) && missing(j)) { # case df[]
@@ -904,7 +896,7 @@ data.frame <-
     class(x) <- NULL
     nrows <- .row_names_info(x, 2L)
     if(is.atomic(value)) names(value) <- NULL
-    if(nargs() < 4L) {
+    if(nargs() < 4) {
 	## really ambiguous, but follow common use as if list
         nc <- length(x)
 	if(!is.null(value)) {
@@ -1084,10 +1076,10 @@ rbind.data.frame <- function(..., deparse.level = 1)
     ## types (e.g. NULL).
         nr <- sapply(allargs, function(x)
                      if(is.data.frame(x)) .row_names_info(x, 2L)
-                     else if(is.list(x)) length(x[[1L]]) # mismatched lists are checked later
+                     else if(is.list(x)) length(x[[1]]) # mismatched lists are checked later
                      else length(x))
         if(any(nr > 0L)) allargs <- allargs[nr > 0L]
-        else return(allargs[[1L]]) # pretty arbitrary
+        else return(allargs[[1]]) # pretty arbitrary
     }
     n <- length(allargs)
     if(n == 0L)
@@ -1145,7 +1137,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
                 xij <- xi[[j]]
                 if(is.null(pi) || is.na(jj <- pi[[j]])) jj <- j
                 if(facCol[jj]) {
-                    if(length(lij <- levels(xij))) {
+                    if(length(lij <- levels(xij)) > 0L) {
                         all.levs[[jj]] <- unique(c(all.levs[[jj]], lij))
                         ordCol[jj] <- ordCol[jj] & is.ordered(xij)
                     } else if(is.character(xij))
@@ -1173,7 +1165,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
 		}
 	    }
 	}
-	else if(length(xi)) {
+	else if(length(xi) > 0L) {
 	    rows[[i]] <- nrow <- nrow + 1L
 	    rlabs[[i]] <- if(nzchar(nmi)) nmi else as.integer(nrow)
 	}
@@ -1195,7 +1187,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
     }
     names(value) <- clabs
     for(j in pseq)
-	if(length(lij <- all.levs[[j]]))
+	if(length(lij <- all.levs[[j]]) > 0L)
             value[[j]] <-
                 factor(as.vector(value[[j]]), lij, ordered = ordCol[j])
     if(any(has.dim)) {
@@ -1264,7 +1256,7 @@ print.data.frame <-
 	## format.<*>() : avoiding picking up e.g. format.AsIs
 	m <- as.matrix(format.data.frame(x, digits=digits, na.encode=FALSE))
 	if(!isTRUE(row.names))
-	    dimnames(m)[[1L]] <- if(identical(row.names,FALSE))
+	    dimnames(m)[[1]] <- if(identical(row.names,FALSE))
 		rep.int("", n) else row.names
 	print(m, ..., quote = quote, right = right)
     }
@@ -1276,22 +1268,29 @@ as.matrix.data.frame <- function (x, rownames.force = NA, ...)
     dm <- dim(x)
     rn <- if(rownames.force %in% FALSE) NULL
     else if(rownames.force %in% TRUE) row.names(x)
-    else {if(.row_names_info(x) <= 0L) NULL else row.names(x)}
+    else {if(.row_names_info(x) <= 0) NULL else row.names(x)}
     dn <- list(rn, names(x))
     if(any(dm == 0L))
 	return(array(NA, dim = dm, dimnames = dn))
     p <- dm[2L]
     pseq <- seq_len(p)
     n <- dm[1L]
+    collabs <- as.list(dn[[2L]])
     X <- x # will contain the result;
     ## the "big question" is if we return a numeric or a character matrix
     class(X) <- NULL
     non.numeric <- non.atomic <- FALSE
     all.logical <- TRUE
     for (j in pseq) {
-        if(inherits(X[[j]], "data.frame") && ncol(xj) > 1L)
-            X[[j]] <- as.matrix(X[[j]])
-        xj <- X[[j]]
+	xj <- X[[j]]
+	if(length(dj <- dim(xj)) == 2L && dj[2L] > 1L) {# matrix with >=2 col
+	    if(inherits(xj, "data.frame"))
+		xj <- X[[j]] <- as.matrix(X[[j]])
+	    dnj <- dimnames(xj)[[2L]]
+	    collabs[[j]] <- paste(collabs[[j]],
+				  if(length(dnj) > 0L) dnj else seq_len(dj[2L]),
+				  sep = ".")
+	}
         j.logic <- is.logical(xj)
         if(all.logical && !j.logic) all.logical <- FALSE
 	if(length(levels(xj)) > 0L || !(j.logic || is.numeric(xj) || is.complex(xj))
@@ -1320,20 +1319,6 @@ as.matrix.data.frame <- function (x, rownames.force = NA, ...)
             X[[j]] <- xj
 	}
     }
-    ## These coercions could have changed the number of columns
-    ## (e.g. class "Surv" coerced to character),
-    ## so only now can we compute collabs.
-    collabs <- as.list(dn[[2L]])
-    for (j in pseq) {
-        xj <- X[[j]]
-        dj <- dim(xj)
-	if(length(dj) == 2L && dj[2L] > 1L) { # matrix with >=2 col
-	    dnj <- colnames(xj)
-	    collabs[[j]] <- paste(collabs[[j]],
-				  if(length(dnj)) dnj else seq_len(dj[2L]),
-				  sep = ".")
-	}
-     }
     X <- unlist(X, recursive = FALSE, use.names = FALSE)
     dim(X) <- c(n, length(X)/n)
     dimnames(X) <- list(dn[[1L]], unlist(collabs, use.names = FALSE))

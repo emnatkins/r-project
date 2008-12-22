@@ -1,10 +1,9 @@
 % File src/library/base/man/windows/shell.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2008 R Core Development Team
+% Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{shell}
-\Rdversion{1.1}
 \alias{shell}
 \title{Invoke a System Command, using a Shell}
 
@@ -26,8 +25,8 @@ shell(cmd, shell, flag = "/c", intern = FALSE, wait = TRUE,
   \item{wait}{should the \R interpreter wait for the command to finish?
     The default is to wait, and the interpreter will always wait if
     \code{intern = TRUE}.}
-  \item{translate}{If \code{TRUE}, \samp{"/"} in \code{cmd} is
-    translated to \samp{"\\"}.}
+  \item{translate}{If \code{TRUE}, \code{"/"} in \code{cmd} is
+    translated to \code{"\\"}.}
   \item{mustWork}{a logical; if \code{TRUE} failure to run the command
     will give an \R error, if \code{FALSE} a warning and if \code{NA},
     no \R message.}
@@ -58,7 +57,7 @@ shell(cmd, shell, flag = "/c", intern = FALSE, wait = TRUE,
 
 \details{
   If no \code{shell} is specified, the environment variables
-  \env{R_SHELL}, \env{SHELL} and \env{COMSPEC} are tried in turn:
+  \env{R\_SHELL}, \env{SHELL} and \env{COMSPEC} are tried in turn:
   \env{COMSPEC} should always succeed.  Using \code{shell = NULL}
   invokes the command \code{cmd} directly, in which case an extension
   of \file{.exe} is assumed.  It is possible to use batch files

@@ -29,14 +29,14 @@ function(topic, package = NULL, lib.loc = NULL,
 	## List all possible demos.
 
 	## Build the demo db.
-	db <- matrix(character(0L), nrow = 0L, ncol = 4L)
+	db <- matrix(character(0), nrow = 0, ncol = 4)
 	for(path in paths) {
 	    entries <- NULL
 	    ## Check for new-style 'Meta/demo.rds', then for '00Index'.
 	    if(file_test("-f", INDEX <- file.path(path, "Meta", "demo.rds"))) {
 		entries <- .readRDS(INDEX)
 	    }
-	    if(NROW(entries)) {
+	    if(NROW(entries) > 0) {
 		db <- rbind(db,
 			    cbind(basename(path), dirname(path),
 				  entries))
@@ -61,21 +61,21 @@ function(topic, package = NULL, lib.loc = NULL,
 
     if(!character.only)
 	topic <- as.character(substitute(topic))
-    available <- character(0L)
+    available <- character(0)
     paths <- file.path(paths, "demo")
     for(p in paths) {
 	files <- basename(tools::list_files_with_type(p, "demo"))
 	## Files with base names sans extension matching topic
 	files <- files[topic == tools::file_path_sans_ext(files)]
-	if(length(files))
+	if(length(files) > 0)
 	    available <- c(available, file.path(p, files))
     }
-    if(length(available) == 0L)
+    if(length(available) == 0)
 	stop(gettextf("No demo found for topic '%s'", topic), domain = NA)
-    if(length(available) > 1L) {
-	available <- available[1L]
+    if(length(available) > 1) {
+	available <- available[1]
 	warning(gettextf("Demo for topic '%s' found more than once,\nusing the one found in '%s'",
-                topic, dirname(available[1L])), domain = NA)
+                topic, dirname(available[1])), domain = NA)
     }
     cat("\n\n",
 	"\tdemo(", topic, ")\n",
@@ -85,5 +85,5 @@ function(topic, package = NULL, lib.loc = NULL,
 	cat("\nType  <Return>	 to start : ")
 	readline()
     }
-    source(available, echo = TRUE, max.deparse.length = Inf, keep.source=TRUE)
+    source(available, echo = TRUE, max.deparse.length = 250, keep.source=TRUE)
 }
