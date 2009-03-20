@@ -80,7 +80,7 @@ void GEdestroyDevDesc(pGEDevDesc dd)
 {
     int i;
     if (dd != NULL) {
-	for (i = 0; i < MAX_GRAPHICS_SYSTEMS; i++) unregisterOne(dd, i);
+	for (i = 0; i < numGraphicsSystems; i++) unregisterOne(dd, i);
 	free(dd->dev);
 	dd->dev = NULL;
 	free(dd);
@@ -122,7 +122,7 @@ static void registerOne(pGEDevDesc dd, int systemNumber, GEcallback cb) {
  */
 void GEregisterWithDevice(pGEDevDesc dd) {
     int i;
-    for (i = 0; i < MAX_GRAPHICS_SYSTEMS; i++)
+    for (i = 0; i < numGraphicsSystems; i++)
 	/* If a graphics system has unregistered, there might be
 	 * "holes" in the array of registeredSystems.
 	 */
@@ -149,14 +149,8 @@ void GEregisterSystem(GEcallback cb, int *systemRegisterIndex) {
     /* Set the system register index so that, if there are existing
      * devices, it will know where to put the system-specific
      * information in those devices
-     * If a graphics system has been unregistered, there might
-     * be "holes" in the list of graphics systems, so start
-     * from zero and look for the first NULL 
      */
-    *systemRegisterIndex = 0;
-    while (registeredSystems[*systemRegisterIndex] != NULL) {
-        (*systemRegisterIndex)++;
-    }
+    *systemRegisterIndex = numGraphicsSystems;
     /* Run through the existing devices and add the new information
      * to any GEDevDesc's
      */
@@ -165,17 +159,17 @@ void GEregisterSystem(GEcallback cb, int *systemRegisterIndex) {
 	devNum = curDevice();
 	while (i++ < NumDevices()) {
 	    gdd = GEgetDevice(devNum);
-	    registerOne(gdd, *systemRegisterIndex, cb);
+	    registerOne(gdd, numGraphicsSystems, cb);
 	    devNum = nextDevice(devNum);
 	}
     }
     /* Store the information for adding to any new devices
      */
-    registeredSystems[*systemRegisterIndex] =
+    registeredSystems[numGraphicsSystems] =
 	(GESystemDesc*) calloc(1, sizeof(GESystemDesc));
-    if (registeredSystems[*systemRegisterIndex] == NULL)
+    if (registeredSystems[numGraphicsSystems] == NULL)
 	error(_("unable to allocate memory (in GEregister)"));
-    registeredSystems[*systemRegisterIndex]->callback = cb;
+    registeredSystems[numGraphicsSystems]->callback = cb;
     numGraphicsSystems += 1;
 }
 
@@ -213,7 +207,20 @@ void GEunregisterSystem(int registerIndex)
 	free(registeredSystems[registerIndex]);
 	registeredSystems[registerIndex] = NULL;
     }
-    numGraphicsSystems -= 1;
+    /* NOTE that I deliberately do not decrease the number of
+     * registered graphics systems.  This means that unloading
+     * a graphics system will create a "hole" in the global
+     * record, but otherwise I have to assume that graphics
+     * systems are unloaded in the reverse order from that which
+     * they were loaded, which may be unreasonable.
+     * The downside to this approach is that if you unload and
+     * reload graphics systems you will run out of room in the
+     * global record -- I'm assuming that unloading and reloading
+     * of graphics systems is something that won't happen that
+     * many times in a session.
+     * Hopefully, all of these problems will go away when I get
+     * around to storing the device structures in SEXP's
+     */
 }
 
 /****************************************************************
@@ -231,7 +238,7 @@ SEXP GEhandleEvent(GEevent event, pDevDesc dev, SEXP data)
 {
     int i;
     pGEDevDesc gdd = desc2GEDesc(dev);
-    for (i = 0; i < MAX_GRAPHICS_SYSTEMS; i++)
+    for (i = 0; i < numGraphicsSystems; i++)
 	if (registeredSystems[i] != NULL)
 	    (registeredSystems[i]->callback)(event, gdd, data);
     return R_NilValue;
@@ -2471,7 +2478,7 @@ Rboolean GEcheckState(pGEDevDesc dd)
 {
     int i;
     Rboolean result = TRUE;
-    for (i=0; i < MAX_GRAPHICS_SYSTEMS; i++)
+    for (i=0; i<numGraphicsSystems; i++)
 	if (dd->gesd[i] != NULL)
 	    if (!LOGICAL((dd->gesd[i]->callback)(GE_CheckPlot, dd,
 						 R_NilValue))[0])
@@ -2524,7 +2531,7 @@ void GEinitDisplayList(pGEDevDesc dd)
     /* Get each graphics system to save state required for
      * replaying the display list
      */
-    for (i = 0; i < MAX_GRAPHICS_SYSTEMS; i++)
+    for (i = 0; i < numGraphicsSystems; i++)
 	if (dd->gesd[i] != NULL)
 	    (dd->gesd[i]->callback)(GE_SaveState, dd, R_NilValue);
     dd->displayList = dd->DLlastElt = R_NilValue;
@@ -2556,7 +2563,7 @@ void GEplayDisplayList(pGEDevDesc dd)
     /* Get each graphics system to restore state required for
      * replaying the display list
      */
-    for (i = 0; i < MAX_GRAPHICS_SYSTEMS; i++)
+    for (i = 0; i < numGraphicsSystems; i++)
 	if (dd->gesd[i] != NULL)
 	    (dd->gesd[i]->callback)(GE_RestoreState, dd, R_NilValue);
     /* Play the display list
@@ -2605,7 +2612,7 @@ void GEcopyDisplayList(int fromDevice)
     /* Get each registered graphics system to copy system state
      * information from the "from" device to the current device
      */
-    for (i=0; i < MAX_GRAPHICS_SYSTEMS; i++)
+    for (i=0; i<numGraphicsSystems; i++)
 	if (dd->gesd[i] != NULL)
 	    (dd->gesd[i]->callback)(GE_CopyState, gd, R_NilValue);
     GEplayDisplayList(dd);
@@ -2646,7 +2653,7 @@ SEXP GEcreateSnapshot(pGEDevDesc dd)
     /* For each registered system, obtain state information,
      * and store that in the snapshot.
      */
-    for (i = 0; i < MAX_GRAPHICS_SYSTEMS; i++)
+    for (i = 0; i < numGraphicsSystems; i++)
 	if (dd->gesd[i] != NULL) {
 	    PROTECT(state = (dd->gesd[i]->callback)(GE_SaveSnapshotState, dd,
 						    R_NilValue));
