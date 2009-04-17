@@ -27,8 +27,7 @@ assign(".Windows.Options",
             buffered = TRUE,
             restoreConsole = FALSE,
             clickToConfirm = TRUE,
-            title = "",
-            fillOddEven = TRUE),
+            title = ""),
        envir = .WindowsEnv)
 
 assign(".Windows.Options.default",
@@ -53,8 +52,7 @@ windows.options <- function(..., reset=FALSE)
 windows <- function(width, height, pointsize,
                     record, rescale, xpinch, ypinch,
                     bg, canvas, gamma, xpos, ypos,
-                    buffered, title, restoreConsole, clickToConfirm,
-                    fillOddEven)
+                    buffered, title, restoreConsole, clickToConfirm)
 {
     new <- list()
     if(!missing(width)) new$width <- as.double(width)
@@ -73,7 +71,6 @@ windows <- function(width, height, pointsize,
     if(!missing(title)) new$title <- title
     if(!missing(restoreConsole)) new$restoreConsole <- restoreConsole
     if(!missing(clickToConfirm)) new$clickToConfirm <- clickToConfirm
-    if(!missing(fillOddEven)) new$fillOddEven <- fillOddEven
     old <- check.options(new = new, envir = .WindowsEnv,
                          name.opt = ".Windows.Options",
 			 reset = FALSE, assign.opt = FALSE)
@@ -83,8 +80,7 @@ windows <- function(width, height, pointsize,
                         old$record, rescale, old$xpinch, old$ypinch,
                         old$canvas, old$gamma, old$xpos, old$ypos,
                         old$buffered, .PSenv, old$bg,
-                        old$restoreConsole, old$title, old$clickToConfirm,
-                        old$fillOddEven))
+                        old$restoreConsole, old$title, old$clickToConfirm))
 }
 
 win.graph <- function(width, height, pointsize)

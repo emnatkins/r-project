@@ -9,8 +9,6 @@
 \alias{duplicated.data.frame}
 \alias{duplicated.matrix}
 \alias{duplicated.array}
-\alias{anyDuplicated}
-\alias{anyDuplicated.default}
 \title{Determine Duplicate Elements}
 \description{
   Determines which elements of a vector or data frame are duplicates
@@ -24,10 +22,6 @@ duplicated(x, incomparables = FALSE, \dots)
            fromLast = FALSE, \dots)
 
 \method{duplicated}{array}(x, incomparables = FALSE, MARGIN = 1L,
-           fromLast = FALSE, \dots)
-
-anyDuplicated(x, incomparables = FALSE, \dots)
-\method{anyDuplicated}{default}(x, incomparables = FALSE,
            fromLast = FALSE, \dots)
 }
 \arguments{
@@ -45,14 +39,8 @@ anyDuplicated(x, incomparables = FALSE, \dots)
     \code{\link{apply}}.}
 }
 \details{
-  These are generic functions with methods for vectors (including
-  lists), and---for \code{duplicated()}---data frames and arrays
-  (including matrices).
-
-  \code{anyDuplicated(x,...)} is a \dQuote{generalized} shortcut for
-  \code{any(duplicated(x,...))}, in the sense that it returns the
-  \emph{index} \code{i} of the first duplicated entry \code{x[i]} if
-  there is one, and \code{0} otherwise.
+  This is a generic function with methods for vectors (including lists),
+  data frames and arrays (including matrices).
 
   \code{duplicated(x, fromLast=TRUE)} is equivalent to but faster than
   \code{rev(duplicated(rev(x)))}.
@@ -70,19 +58,16 @@ anyDuplicated(x, incomparables = FALSE, \dots)
 
   Missing values are regarded as equal, but \code{NaN} is not equal to
   \code{NA_real_}.
-
+  
   Values in \code{incomparables} will never be marked as duplicated.
   This is intended to be used for a fairly small set of values and will
   not be efficient for a very large set.
 }
 \value{
-    \code{duplicated()}:
-    For a vector input, a logical vector of the same length as
-    \code{x}.  For a data frame, a logical vector with one element for
-    each row.  For a matrix or array, a logical array with the same
-    dimensions and dimnames.
-
-    \code{anyDuplicated()}: a non-negative integer (of length one).
+  For a vector input, a logical vector of the same length as
+  \code{x}.  For a data frame, a logical vector with one element for
+  each row.  For a matrix or array, a logical array with the same
+  dimensions and dimnames.
 }
 \section{Warning}{
   Using this for lists is potentially slow, especially if the elements
@@ -109,11 +94,6 @@ stopifnot(identical(xu,  unique(x)),
 duplicated(iris)[140:143]
 
 duplicated(iris3, MARGIN = c(1, 3))
-
-## FIXME:  example for
-anyDuplicated(x)
-anyDuplicated(x, fromLast = TRUE)
-
 }
 \keyword{logic}
 \keyword{manip}

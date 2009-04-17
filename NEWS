@@ -1,50 +1,6 @@
 			Dear Emacs, please make this -*-Text-*- mode!
 	**************************************************
 	*						 *
-	*	       2.10 SERIES NEWS			 *
-	*						 *
-	**************************************************
-
-
-		CHANGES IN R VERSION 2.10.0
-
-
-NEW FEATURES
-
-    o	polygon(), pdf() and postscript() now have a parameter
-	fillOddEven (default FALSE), which controls the mode used for
-	polygon fills of self-intersecting shapes.
-
-    o	new debugonce() function; further, getOption("deparse.max.lines")
-	is now observed as well when debugging, from a code suggestion by
-	John Brzustowski.
-
-    o	plot() methods for "stepfun" and hence "ecdf" no longer plot
-	points by default for n >= 10000.
-
-    o	[g]sub(*, perl=TRUE) now also supports '\E' in order to *end*
-	\U and \L case changes, thanks to a patch from Bill Dunlap.
-
-    o	new anyDuplicated(x) returns 0 (= FALSE) or the index of the first
-	duplicated entry of x.
-
-
-BUG FIXES
-
-    o	The ... argument was not handled properly when ... was found
-	in the enclosure of the current function, rather than in the
-	function header itself.  (This caused integrate() to fail in
-	certain cases.)
-
-    o	col2rgb("#00000080", TRUE) would return the background colour.
-	(Reported by Hadley Wickham.)
-
-    o   interaction() now ensures that its result's levels are unique.
-
-
-
-	**************************************************
-	*						 *
 	*	       2.9 SERIES NEWS			 *
 	*						 *
 	**************************************************
@@ -554,7 +510,7 @@ BUG FIXES
 	Also,  c(as.raw(12), TRUE) or c(raw(3), pi) do.
 
     o	duplicated(<data frame>, incomparables = NA) now gives the
-	intended error message. (PR#13632)
+	intended error message.
 
     o   name handling of as.data.frame() has been sanitized somewhat
 

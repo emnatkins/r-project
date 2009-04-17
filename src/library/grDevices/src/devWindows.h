@@ -99,5 +99,4 @@ typedef struct {
     Rboolean warn_trans; /* Warn on use of translucency if not supported */
     char title[101];
     Rboolean clickToConfirm; /* for NewFrameConfirm */
-    Rboolean doSetPolyFill, fillOddEven; /* polygon fill mode */
 } gadesc;

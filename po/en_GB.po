@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2009-04-03 13:05+0100\n"
+"POT-Creation-Date: 2009-04-03 12:49+0100\n"
 "PO-Revision-Date: 2008-02-18 11:38+0000\n"
 "Last-Translator: Prof Brian Ripley <ripley@stats.ox.ac.uk>\n"
 "Language-Team: English\n"
@@ -142,8 +142,8 @@ msgstr ""
 #: src/main/envir.c:1823 src/main/envir.c:1837 src/main/envir.c:1843
 #: src/main/envir.c:1847 src/main/envir.c:2063 src/main/envir.c:2184
 #: src/main/envir.c:2442 src/main/envir.c:2716 src/main/envir.c:3257
-#: src/main/eval.c:282 src/main/eval.c:1703 src/main/eval.c:1727
-#: src/main/eval.c:1731 src/main/memory.c:2940 src/main/model.c:1612
+#: src/main/eval.c:282 src/main/eval.c:1696 src/main/eval.c:1720
+#: src/main/eval.c:1724 src/main/memory.c:2940 src/main/model.c:1612
 #: src/main/model.c:1620 src/main/optim.c:225 src/main/paste.c:85
 #: src/main/paste.c:344 src/main/paste.c:351 src/main/paste.c:358
 #: src/main/paste.c:363 src/main/paste.c:368 src/main/paste.c:373
@@ -176,8 +176,8 @@ msgstr ""
 #: src/main/scan.c:1519 src/main/scan.c:1733 src/main/scan.c:1734
 #: src/main/scan.c:1736 src/main/scan.c:1737 src/main/scan.c:1738
 #: src/main/scan.c:1739 src/main/scan.c:1740 src/main/scan.c:1741
-#: src/main/seq.c:367 src/main/seq.c:371 src/main/seq.c:389 src/main/seq.c:393
-#: src/main/seq.c:399 src/main/seq.c:407 src/main/sort.c:160
+#: src/main/seq.c:360 src/main/seq.c:364 src/main/seq.c:382 src/main/seq.c:386
+#: src/main/seq.c:392 src/main/seq.c:400 src/main/sort.c:160
 #: src/main/sysutils.c:560 src/main/sysutils.c:562 src/main/sysutils.c:564
 #: src/main/unique.c:703 src/main/unique.c:950 src/main/unique.c:1010
 #: src/main/unique.c:1017 src/main/util.c:558 src/main/util.c:561
@@ -255,8 +255,8 @@ msgstr ""
 #: src/main/plot.c:475 src/main/plot.c:2131 src/main/plot.c:2138
 #: src/main/plot.c:3166 src/main/plot.c:3168 src/main/plot.c:3170
 #: src/main/plot.c:3328 src/main/plot3d.c:1397 src/main/plot3d.c:2525
-#: src/main/plot3d.c:2529 src/main/plot3d.c:2531 src/main/seq.c:155
-#: src/main/seq.c:253 src/main/seq.c:256 src/main/sort.c:859
+#: src/main/plot3d.c:2529 src/main/plot3d.c:2531 src/main/seq.c:152
+#: src/main/seq.c:248 src/main/seq.c:251 src/main/sort.c:859
 #: src/main/sort.c:957 src/main/source.c:205 src/main/summary.c:977
 #: src/main/sysutils.c:229 src/main/util.c:876 src/main/util.c:881
 #: src/main/util.c:888 src/main/util.c:891 src/modules/X11/devX11.c:2593
@@ -562,7 +562,7 @@ msgstr ""
 msgid "second argument must be a list"
 msgstr ""
 
-#: src/include/Errormsg.h:42 src/main/eval.c:2836 src/main/subscript.c:286
+#: src/include/Errormsg.h:42 src/main/eval.c:2829 src/main/subscript.c:286
 #: src/main/subscript.c:395 src/main/subscript.c:495
 msgid "subscript out of bounds"
 msgstr ""
@@ -1157,7 +1157,7 @@ msgstr ""
 msgid "argument not a list"
 msgstr ""
 
-#: src/main/bind.c:1024 src/main/eval.c:2014 src/main/eval.c:2023
+#: src/main/bind.c:1024 src/main/eval.c:2007 src/main/eval.c:2016
 #: src/main/objects.c:291 src/main/objects.c:345 src/main/objects.c:705
 #: src/main/objects.c:722 src/main/objects.c:729
 #, c-format
@@ -1206,7 +1206,7 @@ msgstr ""
 #: src/main/envir.c:1801 src/main/envir.c:2472 src/main/envir.c:2525
 #: src/main/envir.c:2818 src/main/envir.c:2846 src/main/envir.c:2866
 #: src/main/envir.c:2888 src/main/envir.c:2922 src/main/envir.c:2942
-#: src/main/envir.c:3249 src/main/envir.c:3253 src/main/eval.c:3641
+#: src/main/envir.c:3249 src/main/envir.c:3253 src/main/eval.c:3634
 #: src/main/objects.c:190 src/main/objects.c:196 src/main/saveload.c:2055
 #: src/main/saveload.c:2326 src/main/saveload.c:2376 src/main/serialize.c:2232
 msgid "use of NULL environment is defunct"
@@ -1587,7 +1587,7 @@ msgstr ""
 msgid "list argument expected"
 msgstr ""
 
-#: src/main/coerce.c:1400 src/main/eval.c:3638 src/main/eval.c:3645
+#: src/main/coerce.c:1400 src/main/eval.c:3631 src/main/eval.c:3638
 msgid "invalid environment"
 msgstr ""
 
@@ -2486,7 +2486,7 @@ msgid "'opts' should be small non-negative integer"
 msgstr ""
 
 #: src/main/deparse.c:358 src/main/envir.c:1643 src/main/envir.c:1725
-#: src/main/eval.c:420 src/main/eval.c:876 src/main/eval.c:2703
+#: src/main/eval.c:420 src/main/eval.c:876 src/main/eval.c:2696
 #: src/main/saveload.c:1964 src/main/saveload.c:2274 src/main/serialize.c:2250
 #, c-format
 msgid "object '%s' not found"
@@ -2667,7 +2667,7 @@ msgstr ""
 msgid "no arguments supplied"
 msgstr ""
 
-#: src/main/dotcode.c:746 src/main/seq.c:602
+#: src/main/dotcode.c:746 src/main/seq.c:593
 msgid "too many arguments"
 msgstr ""
 
@@ -2953,7 +2953,7 @@ msgid "..%d used in an incorrect context, no ... to look in"
 msgstr ""
 
 #: src/main/envir.c:1309 src/main/envir.c:1721 src/main/eval.c:424
-#: src/main/eval.c:2706
+#: src/main/eval.c:2699
 #, c-format
 msgid "argument \"%s\" is missing, with no default"
 msgstr ""
@@ -3326,17 +3326,17 @@ msgid ""
 "evaluation nested too deeply: infinite recursion / options(expressions=)?"
 msgstr ""
 
-#: src/main/eval.c:414 src/main/eval.c:513 src/main/eval.c:1530
-#: src/main/eval.c:1592 src/main/eval.c:1647 src/main/eval.c:1898
-#: src/main/eval.c:3273 src/main/eval.c:3380
+#: src/main/eval.c:414 src/main/eval.c:513 src/main/eval.c:1523
+#: src/main/eval.c:1585 src/main/eval.c:1640 src/main/eval.c:1891
+#: src/main/eval.c:3266 src/main/eval.c:3373
 msgid "'...' used in an incorrect context"
 msgstr ""
 
-#: src/main/eval.c:426 src/main/eval.c:2707
+#: src/main/eval.c:426 src/main/eval.c:2700
 msgid "argument is missing, with no default"
 msgstr ""
 
-#: src/main/eval.c:509 src/main/eval.c:3221
+#: src/main/eval.c:509 src/main/eval.c:3214
 msgid "attempt to apply non-function"
 msgstr ""
 
@@ -3411,15 +3411,15 @@ msgstr ""
 msgid "overlong name in '%s'"
 msgstr ""
 
-#: src/main/eval.c:1469
+#: src/main/eval.c:1462
 msgid "invalid (do_set) left-hand side to assignment"
 msgstr ""
 
-#: src/main/eval.c:1484
+#: src/main/eval.c:1477
 msgid "invalid assignment left-hand side"
 msgstr ""
 
-#: src/main/eval.c:1540
+#: src/main/eval.c:1533
 #, c-format
 msgid ""
 "element %d is empty;\n"
@@ -3427,7 +3427,7 @@ msgid ""
 "   %s"
 msgstr ""
 
-#: src/main/eval.c:1544
+#: src/main/eval.c:1537
 #, c-format
 msgid ""
 "element %d is empty;\n"
@@ -3435,169 +3435,169 @@ msgid ""
 "   %s"
 msgstr ""
 
-#: src/main/eval.c:1678
+#: src/main/eval.c:1671
 msgid "invalid formal argument list for \"function\""
 msgstr ""
 
-#: src/main/eval.c:1724
+#: src/main/eval.c:1717
 msgid "numeric 'envir' arg not of length one"
 msgstr ""
 
-#: src/main/eval.c:1746 src/main/eval.c:1765
+#: src/main/eval.c:1739 src/main/eval.c:1758
 msgid "restarts not supported in 'eval'"
 msgstr ""
 
-#: src/main/eval.c:1830
+#: src/main/eval.c:1823
 msgid "'Recall' called from outside a closure"
 msgstr ""
 
-#: src/main/eval.c:1892
+#: src/main/eval.c:1885
 msgid "value in '...' is not a promise"
 msgstr ""
 
-#: src/main/eval.c:2102 src/main/objects.c:696
+#: src/main/eval.c:2095 src/main/objects.c:696
 #, c-format
 msgid "call name too long in '%s'"
 msgstr ""
 
-#: src/main/eval.c:2123
+#: src/main/eval.c:2116
 #, c-format
 msgid "generic name too long in '%s'"
 msgstr ""
 
-#: src/main/eval.c:2187
+#: src/main/eval.c:2180
 #, c-format
 msgid "Incompatible methods (\"%s\", \"%s\") for \"%s\""
 msgstr ""
 
-#: src/main/eval.c:2249
+#: src/main/eval.c:2242
 msgid "dispatch error in group dispatch"
 msgstr ""
 
-#: src/main/eval.c:2630
+#: src/main/eval.c:2623
 msgid "node stack overflow"
 msgstr ""
 
-#: src/main/eval.c:2636
+#: src/main/eval.c:2629
 msgid "integer stack overflow"
 msgstr ""
 
-#: src/main/eval.c:2689
+#: src/main/eval.c:2682
 msgid "Bad opcode"
 msgstr ""
 
-#: src/main/eval.c:2838
+#: src/main/eval.c:2831
 msgid "not a vector object"
 msgstr ""
 
-#: src/main/eval.c:2846 src/main/eval.c:2868 src/main/eval.c:2892
-#: src/main/eval.c:2916
+#: src/main/eval.c:2839 src/main/eval.c:2861 src/main/eval.c:2885
+#: src/main/eval.c:2909
 msgid "can only handle simple real vectors"
 msgstr ""
 
-#: src/main/eval.c:2855 src/main/eval.c:2902
+#: src/main/eval.c:2848 src/main/eval.c:2895
 msgid "not a simple vector"
 msgstr ""
 
-#: src/main/eval.c:2872 src/main/eval.c:2920 src/main/subassign.c:972
+#: src/main/eval.c:2865 src/main/eval.c:2913 src/main/subassign.c:972
 #: src/main/subset.c:808
 msgid "incorrect number of subscripts"
 msgstr ""
 
-#: src/main/eval.c:2883 src/main/eval.c:2934
+#: src/main/eval.c:2876 src/main/eval.c:2927
 msgid "not a simple matrix"
 msgstr ""
 
-#: src/main/eval.c:2971
+#: src/main/eval.c:2964
 msgid "bytecode version mismatch; using eval"
 msgstr ""
 
-#: src/main/eval.c:2976
+#: src/main/eval.c:2969
 msgid "bytecode version is too old"
 msgstr ""
 
-#: src/main/eval.c:2977
+#: src/main/eval.c:2970
 msgid "bytecode version is too new"
 msgstr ""
 
-#: src/main/eval.c:2982
+#: src/main/eval.c:2975
 msgid "byte code version mismatch"
 msgstr ""
 
-#: src/main/eval.c:2998
+#: src/main/eval.c:2991
 msgid "missing value where logical needed"
 msgstr ""
 
-#: src/main/eval.c:2999
+#: src/main/eval.c:2992
 msgid "argument of if(*) is not interpretable as logical"
 msgstr ""
 
-#: src/main/eval.c:3033
+#: src/main/eval.c:3026
 msgid "invalid sequence argument in for loop"
 msgstr ""
 
-#: src/main/eval.c:3183 src/main/eval.c:3204 src/main/eval.c:3318
+#: src/main/eval.c:3176 src/main/eval.c:3197 src/main/eval.c:3311
 msgid "not a BUILTIN function"
 msgstr ""
 
-#: src/main/eval.c:3304
+#: src/main/eval.c:3297
 msgid "bad function"
 msgstr ""
 
-#: src/main/eval.c:3344
+#: src/main/eval.c:3337
 msgid "not a SPECIAL function"
 msgstr ""
 
-#: src/main/eval.c:3578
+#: src/main/eval.c:3571
 msgid "cannot find index for threaded code address"
 msgstr ""
 
-#: src/main/eval.c:3658
+#: src/main/eval.c:3651
 msgid "invalid symbol"
 msgstr ""
 
-#: src/main/eval.c:3702
+#: src/main/eval.c:3695
 msgid "argument is not a byte code object"
 msgstr ""
 
-#: src/main/eval.c:3723
+#: src/main/eval.c:3716
 msgid "bad file name"
 msgstr ""
 
-#: src/main/eval.c:3727 src/main/eval.c:3748
+#: src/main/eval.c:3720 src/main/eval.c:3741
 msgid "unable to open 'file'"
 msgstr ""
 
-#: src/main/eval.c:3742 src/main/saveload.c:1928
+#: src/main/eval.c:3735 src/main/saveload.c:1928
 msgid "'file' must be non-empty string"
 msgstr ""
 
-#: src/main/eval.c:3744 src/main/saveload.c:1930 src/main/saveload.c:2219
+#: src/main/eval.c:3737 src/main/saveload.c:1930 src/main/saveload.c:2219
 #: src/main/serialize.c:1786
 msgid "'ascii' must be logical"
 msgstr ""
 
-#: src/main/eval.c:3773 src/main/eval.c:3780
+#: src/main/eval.c:3766 src/main/eval.c:3773
 msgid "R_CompiledFileName: buffer too small"
 msgstr ""
 
-#: src/main/eval.c:3813
+#: src/main/eval.c:3806
 msgid "code must be a generic vector"
 msgstr ""
 
-#: src/main/eval.c:3852
+#: src/main/eval.c:3845
 msgid "profile timer in use"
 msgstr ""
 
-#: src/main/eval.c:3854
+#: src/main/eval.c:3847
 msgid "already byte code profiling"
 msgstr ""
 
-#: src/main/eval.c:3872
+#: src/main/eval.c:3865
 msgid "setting profile timer failed"
 msgstr ""
 
-#: src/main/eval.c:3889
+#: src/main/eval.c:3882
 msgid "not byte code profiling"
 msgstr ""
 
@@ -5996,60 +5996,60 @@ msgstr ""
 msgid "corrupt matrix -- dims not not match length"
 msgstr ""
 
-#: src/main/seq.c:45
+#: src/main/seq.c:42
 msgid "unequal factor lengths"
 msgstr ""
 
-#: src/main/seq.c:101
+#: src/main/seq.c:98
 msgid "result would be too long a vector"
 msgstr ""
 
-#: src/main/seq.c:133 src/main/seq.c:136
+#: src/main/seq.c:130 src/main/seq.c:133
 #, c-format
 msgid "numerical expression has %d elements: only the first used"
 msgstr ""
 
-#: src/main/seq.c:140
+#: src/main/seq.c:137
 msgid "NA/NaN argument"
 msgstr ""
 
-#: src/main/seq.c:244
+#: src/main/seq.c:239
 msgid "incorrect type for second argument"
 msgstr ""
 
-#: src/main/seq.c:247
+#: src/main/seq.c:242
 msgid "attempt to replicate non-vector"
 msgstr ""
 
-#: src/main/seq.c:498
+#: src/main/seq.c:489
 msgid "'length.out' must be a non-negative number"
 msgstr ""
 
-#: src/main/seq.c:512 src/main/seq.c:556 src/main/seq.c:570
+#: src/main/seq.c:503 src/main/seq.c:547 src/main/seq.c:561
 msgid "'from' must be finite"
 msgstr ""
 
-#: src/main/seq.c:514 src/main/seq.c:558 src/main/seq.c:588
+#: src/main/seq.c:505 src/main/seq.c:549 src/main/seq.c:579
 msgid "'to' must be finite"
 msgstr ""
 
-#: src/main/seq.c:526
+#: src/main/seq.c:517
 msgid "invalid '(to - from)/by' in 'seq'"
 msgstr ""
 
-#: src/main/seq.c:534
+#: src/main/seq.c:525
 msgid "'by' argument is much too small"
 msgstr ""
 
-#: src/main/seq.c:536
+#: src/main/seq.c:527
 msgid "wrong sign in 'by' argument"
 msgstr ""
 
-#: src/main/seq.c:572 src/main/seq.c:590
+#: src/main/seq.c:563 src/main/seq.c:581
 msgid "'by' must be finite"
 msgstr ""
 
-#: src/main/seq.c:630
+#: src/main/seq.c:621
 msgid "argument must be non-negative"
 msgstr ""
 

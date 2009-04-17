@@ -1216,9 +1216,13 @@ SEXP ddfindVar(SEXP symbol, SEXP rho)
     int i;
     SEXP vl;
 
-    /* first look for ... symbol  */
-    vl = findVar(R_DotsSymbol, rho);
+    /* first look for the .. symbol itself */
+    vl = findVarInFrame3(rho, symbol, TRUE);
+    if (vl != R_UnboundValue)
+	return(vl);
+
     i = ddVal(symbol);
+    vl = findVarInFrame3(rho, R_DotsSymbol, TRUE);
     if (vl != R_UnboundValue) {
 	if (length(vl) >= i) {
 	    vl = nthcdr(vl, i - 1);
@@ -1227,8 +1231,12 @@ SEXP ddfindVar(SEXP symbol, SEXP rho)
 	else
 	    error(_("The ... list does not contain %d elements"), i);
     }
-    else error(_("..%d used in an incorrect context, no ... to look in"), i);
-    
+    else {
+	vl = findVar(symbol, rho);
+	if( vl != R_UnboundValue )
+	    return(vl);
+	error(_("..%d used in an incorrect context, no ... to look in"), i);
+    }
     return R_NilValue;
 }
 

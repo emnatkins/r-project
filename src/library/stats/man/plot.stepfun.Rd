@@ -14,7 +14,7 @@
 \usage{
 \method{plot}{stepfun}(x, xval, xlim, ylim,
      xlab = "x", ylab = "f(x)", main = NULL,
-     add = FALSE, verticals = TRUE, do.points = (n <= 10000),
+     add = FALSE, verticals = TRUE, do.points = TRUE,
      pch = par("pch"), col = par("col"),
      col.points = col, cex.points = par("cex"),
      col.hor = col, col.vert = col,
@@ -34,8 +34,7 @@
   \item{add}{logical; if \code{TRUE} only \emph{add} to an existing plot.}
   \item{verticals}{logical;  if \code{TRUE}, draw vertical lines at steps.}
   \item{do.points}{logical;  if \code{TRUE}, also draw points at the
-    (\code{xlim} restricted) knot locations.  Default is true, for
-    sample size \eqn{< 10000}.}% n = 1 + 'sample size'
+    (\code{xlim} restricted) knot locations.}
   \item{pch}{character; point character if \code{do.points}.}
   \item{col}{default color of all points and lines.}
   \item{col.points}{character or integer code; color of points if
