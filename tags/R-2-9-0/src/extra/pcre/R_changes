@@ -1,0 +1,32 @@
+pcre_internal.h includes the relevant definitions that configure would
+make.
+
+diff -u /home/ripley/src/pcre-7.4/pcre_internal.h ./pcre_internal.h
+--- pcre_internal.h   2007-09-13 10:22:27.000000000 +0100
++++ ./pcre_internal.h   2007-10-03 14:48:02.000000000 +0100
+@@ -67,6 +67,24 @@
+ #endif
+
+
++/* Get the definitions provided by running "configure" */
++
++#include <config.h>
++#define HAVE_MEMMOVE 1
++#ifndef NEWLINE
++#define NEWLINE '\n'
++#define LINK_SIZE 2
++#define MATCH_LIMIT 10000000
++#define MATCH_LIMIT_RECURSION MATCH_LIMIT
++#define MAX_DUPLENGTH 30000
++#define MAX_NAME_COUNT 10000
++#define MAX_NAME_SIZE 32
++#define POSIX_MALLOC_THRESHOLD 10
++#ifdef SUPPORT_UTF8
++#define SUPPORT_UCP
++#endif
++#endif
++
+ /* Standard C headers plus the external interface definition. The only time
+ setjmp and stdarg are used is when NO_RECURSE is set. */
+
+
