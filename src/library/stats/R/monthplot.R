@@ -91,5 +91,4 @@ monthplot.default <-
         else segments((y[sub] - min(y)) * scale - 0.45 + i, means[i],
                       (y[sub] - min(y)) * scale - 0.45 + i, x[sub], ...)
     }
-    invisible()
 }

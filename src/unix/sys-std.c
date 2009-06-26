@@ -1055,12 +1055,9 @@ void attribute_hidden Rstd_CleanUp(SA_TYPE saveact, int status, int runLast)
 #ifdef HAVE_LIBREADLINE
 # ifdef HAVE_READLINE_HISTORY_H
 	if(R_Interactive && UsingReadline) {
-	    int err;
 	    R_setupHistory(); /* re-read the history size and filename */
 	    stifle_history(R_HistorySize);
-	    err = write_history(R_HistoryFile);
-	    if(err) warning(_("problem in saving the history file '%s'"), 
-			    R_HistoryFile);
+	    write_history(R_HistoryFile);
 	}
 # endif /* HAVE_READLINE_HISTORY_H */
 #endif /* HAVE_LIBREADLINE */
@@ -1225,15 +1222,10 @@ void attribute_hidden Rstd_savehistory(SEXP call, SEXP op, SEXP args, SEXP env)
     strcpy(file, p);
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_READLINE_HISTORY_H)
     if(R_Interactive && UsingReadline) {
-	int err;
-	err = write_history(file);
-	if(err) error(_("problem in saving the history file '%s'"), file);
-	/* Note that q() uses stifle_history, but here we do not want
-	 * to truncate the active history when saving during a session */
+	write_history(file);
 #ifdef HAVE_HISTORY_TRUNCATE_FILE
 	R_setupHistory(); /* re-read the history size */
-	err = history_truncate_file(file, R_HistorySize);
-	if(err) warning(_("problem in truncating the history file"));
+	history_truncate_file(file, R_HistorySize);
 #endif
     } else errorcall(call, _("no history available to save"));
 #else

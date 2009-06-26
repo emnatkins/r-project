@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.8.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-06-14 08:14\n"
+"POT-Creation-Date: 2009-06-14 08:29\n"
 "PO-Revision-Date: 2009-03-28 23:43-0500\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -98,17 +98,17 @@ msgstr "Слоты для класса '%s'"
 msgid "name"
 msgstr "имя"
 
-msgid "Data codoc mismatches from documentation object '%s':"
-msgstr "Несоответствия структуры данных в объекте документации '%s':"
-
-msgid "Variables in data frame '%s'"
-msgstr "переменные в таблице данных '%s'"
-
 msgid "code"
 msgstr "код"
 
 msgid "docs"
 msgstr "документы"
+
+msgid "Data codoc mismatches from documentation object '%s':"
+msgstr "Несоответствия структуры данных в объекте документации '%s':"
+
+msgid "Variables in data frame '%s'"
+msgstr "переменные в таблице данных '%s'"
 
 msgid "Undocumented arguments in documentation object '%s'"
 msgstr "В объекте документации '%s' есть недокументированные аргументы "
@@ -708,6 +708,9 @@ msgstr "использование файла 'R_PROFILE.R' больше не поддерживается"
 msgid "field 'SaveImage' is defunct: please remove it"
 msgstr "поле 'SaveImage\" больше не существует: удалите его"
 
+msgid "cannot create temporary directory"
+msgstr "Не могу создать врЕменную"
+
 msgid "Use of --with-package-versions is defunct"
 msgstr "Использование --with-package-versions больше не требуется"
 
@@ -719,9 +722,6 @@ msgstr "-l опция без значения"
 
 msgid "Warning: unknown option"
 msgstr "Предупреждение: неизвестная опция"
-
-msgid "cannot create temporary directory"
-msgstr "Не могу создать врЕменную"
 
 msgid "processing"
 msgstr "обрабытываю"

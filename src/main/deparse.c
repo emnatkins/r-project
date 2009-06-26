@@ -1,4 +1,3 @@
-
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
@@ -447,7 +446,7 @@ static Rboolean
 curlyahead(SEXP s)
 {
     if (isList(s) || isLanguage(s))
-	if (TYPEOF(CAR(s)) == SYMSXP && CAR(s) == R_BraceSymbol)
+	if (TYPEOF(CAR(s)) == SYMSXP && CAR(s) == install("{"))
 	    return TRUE;
     return FALSE;
 }

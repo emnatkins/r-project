@@ -53,5 +53,4 @@ curve <- function(expr, from=NULL, to=NULL, n=101, add=FALSE, type="l",
 	lines(x, y, type=type, ...)
     else
 	plot(x, y, type=type, ylab = ylab, xlim = xlim, log=lg, ...)
-    invisible(list(x=x, y=y))
 }

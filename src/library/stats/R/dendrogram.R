@@ -196,7 +196,6 @@ function (object, max.level = NA, digits.d = 3, give.attr = FALSE,
 	if(any.at || nzchar(at)) cat(if(!any.at)"(", at, ")")
 	cat("\n")
     }
-    invisible()
 }
 
 
@@ -413,7 +412,6 @@ plotNode <-
 		     type, center, leaflab, dLeaf, nodePar, edgePar, horiz)
 	}
     }
-    invisible()
 }
 
 plotNodeLimit <- function(x1, x2, subtree, center)

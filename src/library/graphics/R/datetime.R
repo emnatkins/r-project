@@ -290,7 +290,8 @@ hist.Date <- function(x, breaks, ..., xlab = deparse(substitute(x)),
                         start.on.monday = TRUE, format)
 {
     if(!inherits(x, "Date")) stop("wrong method")
-    force(xlab)
+    xlab
+    x <- as.Date(x)
     incr <- 1
     ## handle breaks ourselves
     if (inherits(breaks, "Date")) {
@@ -312,19 +313,19 @@ hist.Date <- function(x, breaks, ..., xlab = deparse(substitute(x)),
             start <- as.POSIXlt(min(x, na.rm = TRUE))
             incr <- 1
             if(valid > 1) { start$isdst <- -1}
-            if(valid == 2) { ## "weeks"
+            if(valid == 2) {
                 start$mday <- start$mday - start$wday
                 if(start.on.monday)
                     start$mday <- start$mday + ifelse(start$wday > 0, 1, -6)
                 incr <- 7
             }
-            if(valid == 3) { ## "months"
+            if(valid == 3) {
                 start$mday <- 1
                 end <- as.POSIXlt(max(x, na.rm = TRUE))
                 end <- as.POSIXlt(end + (31 * 86400))
                 end$mday <- 1
                 breaks <- as.Date(seq(start, end, "months")) - 1
-            } else if(valid == 4) { ## "years"
+            } else if(valid == 4) {
                 start$mon <- 0
                 start$mday <- 1
                 end <- as.POSIXlt(max(x, na.rm = TRUE))
@@ -332,7 +333,7 @@ hist.Date <- function(x, breaks, ..., xlab = deparse(substitute(x)),
                 end$mon <- 0
                 end$mday <- 1
                 breaks <- as.Date(seq(start, end, "years")) - 1
-            } else if(valid == 5) { ## "quarters"
+            } else if(valid == 5) {
                 qtr <- rep(c(0, 3, 6, 9), each = 3)
                 start$mon <- qtr[start$mon + 1]
                 start$mday <- 1
@@ -341,11 +342,11 @@ hist.Date <- function(x, breaks, ..., xlab = deparse(substitute(x)),
                 end$mon <- qtr[end$mon + 1]
                 end$mday <- 1
                 breaks <- as.Date(seq(start, end, "3 months")) - 1
-            } else { ## "days"
+            } else {
                 start <- as.Date(start)
                 maxx <- max(x, na.rm = TRUE)
                 breaks <- seq.int(start, maxx + incr, breaks)
-                breaks <- breaks[1:(1 + max(which(breaks < maxx)))]
+                breaks <- breaks[1L:(1+max(which(breaks < maxx)))]
             }
         } else stop("invalid specification of 'breaks'")
     }

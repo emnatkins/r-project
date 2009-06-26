@@ -98,5 +98,4 @@ matplot <- function(x, y, type = "p",
 	lines(x[,i], y[,i], type=type[i], lty=lty[i],
 	      lwd=lwd[i], lend=lend[i], pch=pch[i], col=col[i], cex=cex[i], bg=bg[i])
     }
-    invisible()
 }

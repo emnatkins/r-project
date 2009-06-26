@@ -105,13 +105,13 @@ representation <-
             stop(gettextf("element %d of the representation was not a single character string", i), domain = NA)
     }
     includes <- as.character(value[!nzchar(anames)])
-    if(anyDuplicated(includes))
+    if(any(duplicated(includes)))
         stop(gettextf("duplicate class names among superclasses: %s",
                       paste(dQuote(includes[duplicated(includes)]),
                             collapse = ", ")),
              domain = NA)
     slots <- anames[nzchar(anames)]
-    if(anyDuplicated(slots))
+    if(any(duplicated(slots)))
        stop(gettextf("duplicated slot names: %s",
                      paste(sQuote(slots[duplicated(slots)]), collapse="")),
             domain = NA)
@@ -275,8 +275,7 @@ checkSlotAssignment <- function(obj, name, value)
        return(value)
     ## check the value, but be careful to use the definition of the slot's class from
     ## the class environment of obj (change validObject too if a better way is found)
-    ok <- possibleExtends(valueClass, slotClass,
-                          ClassDef2 = getClassDef(slotClass, where = .classEnv(ClassDef)))
+    ok <- possibleExtends(valueClass, slotClass, ClassDef2 = getClassDef(slotClass, where = .classEnv(ClassDef)))
     if(identical(ok, FALSE))
        stop(gettextf("assignment of an object of class \"%s\" is not valid for slot \"%s\" in an object of class \"%s\"; is(value, \"%s\") is not TRUE",
                      class(value),  name, class(obj), slotClass),
@@ -420,31 +419,15 @@ validObject <- function(object, test = FALSE, complete = FALSE)
     errors <- character()
     slotTypes <- classDef@slots
     slotNames <- names(slotTypes)
-    attrNames <- c(".Data", ".S3Class", names(attributes(object)))
-    if(any(is.na(match(slotNames, attrNames)))) {
-        badSlots <- is.na(match(slotNames, attrNames))
-        errors <- c(errors, paste("slots in class definition but not in object:", paste('"', slotNames[badSlots], '"', sep="", collapse = ", ")))
-        slotTypes <- slotTypes[!badSlots]
-        slotNames <- slotNames[!badSlots]
-    }
     for(i in seq_along(slotTypes)) {
 	classi <- slotTypes[[i]]
+	sloti <- slot(object, slotNames[[i]])
 	classDefi <- getClassDef(classi, where = where)
 	if(is.null(classDefi)) {
-	    errors <- c(errors, paste("undefined class for slot \"", slotNames[[i]],
+	    errors <- c(errors, paste("class for slot \"", slotNames[[i]],
 				      "\" (\"", classi, "\")", sep=""))
 	    next
 	}
-        namei <- slotNames[[i]]
-        switch(namei,
-               ## .S3Class for S3 objects (e.g., "factor") uses S3Class()
-               .S3Class = { sloti <- try(S3Class(object), silent = TRUE)},
-               sloti <- try(slot(object, namei), silent = TRUE)
-               )
-        if(inherits(sloti, "try-error")) {
-           errors <- c(errors, sloti)
-           next
-        }
 	## note that the use of possibleExtends is shared with checkSlotAssignment(), in case a
 	## future revision improves on it!
 	ok <- possibleExtends(class(sloti), classi, ClassDef2 = classDefi)
@@ -626,7 +609,7 @@ initialize <- function(.Object, ...) {
         }
         if(length(elements)) {
             snames <- names(elements)
-	    if(anyDuplicated(snames))
+            if(any(duplicated(snames)))
                 stop(gettextf("duplicated slot names: %s",
                               paste(sQuote(snames[duplicated(snames)]),
                                     collapse = ", ")), domain = NA)

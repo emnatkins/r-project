@@ -20,20 +20,16 @@
 }
 \usage{
 Rd2HTML(Rd, out = "", package = "", defines = .Platform$OS.type,
-        encoding = "unknown", Links = NULL, CHM = FALSE,
-        stages = "render")
+        encoding = "unknown", Links = NULL, CHM = FALSE)
 
-Rd2txt(Rd, out = "", package = "", defines = .Platform$OS.type, 
-         stages = "render")
+Rd2txt(Rd, out = "", package = "", defines = .Platform$OS.type)
 
-Rd2latex(Rd, out = "", defines = .Platform$OS.type, encoding = "unknown",
-         stages = "render")
+Rd2latex(Rd, out = "", defines = .Platform$OS.type, encoding = "unknown")
 
-Rd2ex(Rd, out = "", defines = .Platform$OS.type, encoding = "unknown",
-	 stages = "render")
+Rd2ex(Rd, out = "", defines = .Platform$OS.type, encoding = "unknown")
 
 checkRd(Rd, defines = .Platform$OS.type, encoding = "unknown",
-        unknownOK = FALSE, listOK = TRUE, stages = "install")
+        unknownOK = FALSE, listOK = TRUE)
 
 findHTMLlinks(pkgDir = "", lib.loc = NULL)
 }
@@ -43,8 +39,6 @@ findHTMLlinks(pkgDir = "", lib.loc = NULL)
   \item{package}{ the package to list in the output. }
   \item{defines}{ string(s) to use in \code{"#ifdef"} tests. }
   \item{encoding}{ encoding to use if the file does not specify one. }
-  \item{stages}{ at which stage (\code{"build"}, \code{"install"}, or
-    \code{"render"} should \\Sexpr macros be executed?} 
   \item{Links}{\code{NULL} or a named (by topics) character vector of
     links, as returned by \code{findHTMLlinks}.}
   \item{CHM}{logical: prepare HTML suitable for Compiled HTML?} 

@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.10.0\n"
+"Project-Id-Version: R 2.9.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-06-14 08:14\n"
-"PO-Revision-Date: 2009-06-14 08:14\n"
+"POT-Creation-Date: 2009-06-16 12:30\n"
+"PO-Revision-Date: 2009-06-16 12:30\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -113,17 +113,17 @@ msgstr "Slots for class ‘%s’"
 msgid "name"
 msgstr "name"
 
-msgid "Data codoc mismatches from documentation object '%s':"
-msgstr "Data codoc mismatches from documentation object '%s':"
-
-msgid "Variables in data frame '%s'"
-msgstr "Variables in data frame ‘%s’"
-
 msgid "code"
 msgstr "code"
 
 msgid "docs"
 msgstr "docs"
+
+msgid "Data codoc mismatches from documentation object '%s':"
+msgstr "Data codoc mismatches from documentation object '%s':"
+
+msgid "Variables in data frame '%s'"
+msgstr "Variables in data frame ‘%s’"
 
 msgid "Undocumented arguments in documentation object '%s'"
 msgstr "Undocumented arguments in documentation object ‘%s’"
@@ -716,6 +716,9 @@ msgstr "use of file ‘R_PROFILE.R’ is no longer supported"
 msgid "field 'SaveImage' is defunct: please remove it"
 msgstr "field ‘SaveImage’ is defunct: please remove it"
 
+msgid "cannot create temporary directory"
+msgstr "cannot create temporary directory"
+
 msgid "Use of --with-package-versions is defunct"
 msgstr "Use of --with-package-versions is defunct"
 
@@ -727,9 +730,6 @@ msgstr "-l option without value"
 
 msgid "Warning: unknown option"
 msgstr "Warning: unknown option"
-
-msgid "cannot create temporary directory"
-msgstr "cannot create temporary directory"
 
 msgid "processing"
 msgstr "processing"

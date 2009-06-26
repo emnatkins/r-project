@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.10.0\n"
+"Project-Id-Version: R 2.9.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-06-16 12:48\n"
-"PO-Revision-Date: 2009-06-16 12:48\n"
+"POT-Creation-Date: 2009-06-16 12:28\n"
+"PO-Revision-Date: 2009-06-16 12:28\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -246,8 +246,8 @@ msgstr "missing values in ‘row.names’ are not allowed"
 msgid "invalid 'dimnames' given for data frame"
 msgstr "invalid ‘dimnames’ given for data frame"
 
-msgid "cannot coerce class %s into a data.frame"
-msgstr "cannot coerce class %s into a data.frame"
+msgid "cannot coerce class \"%s\" into a data.frame"
+msgstr "cannot coerce class “%s” into a data.frame"
 
 msgid "invalid 'row.names', length %d for a data frame with %d rows"
 msgstr "invalid 'row.names', length %d for a data frame with %d rows"
@@ -288,20 +288,11 @@ msgstr "row names supplied are of the wrong length"
 msgid "row names were found from a short variable and have been discarded"
 msgstr "row names were found from a short variable and have been discarded"
 
-msgid "named arguments other than 'drop' are discouraged"
-msgstr "named arguments other than ‘drop’ are discouraged"
-
 msgid "drop argument will be ignored"
 msgstr "drop argument will be ignored"
 
 msgid "undefined columns selected"
 msgstr "undefined columns selected"
-
-msgid "named arguments other than 'exact' are discouraged"
-msgstr "named arguments other than ‘exact’ are discouraged"
-
-msgid "named arguments are discouraged"
-msgstr "named arguments are discouraged"
 
 msgid "rhs is the wrong length for indexing by a logical matrix"
 msgstr "rhs is the wrong length for indexing by a logical matrix"
@@ -1015,6 +1006,9 @@ msgstr "Expected a single logical value for the S4 state flag"
 
 msgid "invalid to change the storage mode of a factor"
 msgstr "invalid to change the storage mode of a factor"
+
+msgid "package '%s' has been merged into '%s'"
+msgstr "package ‘%s’ has been merged into ‘%s’"
 
 msgid "'%s' is not an exported object from 'namespace:%s'"
 msgstr "‘%s’ is not an exported object from ‘namespace:%s’"

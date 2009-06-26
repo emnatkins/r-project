@@ -5,10 +5,10 @@
 # Detlef Steuer <steuer@hsu-hh.de>, 2007-2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.9.0\n"
+"Project-Id-Version: R 2.9.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-06-14 08:14\n"
-"PO-Revision-Date: 2009-03-26 11:10+0100\n"
+"POT-Creation-Date: 2009-06-14 08:28\n"
+"PO-Revision-Date: 2009-06-16 10:57+0200\n"
 "Last-Translator: Detlef Steuer <detlef.steuer@hsu-hh.de>\n"
 "Language-Team: R-core <R-core@r-project.org>\n"
 "MIME-Version: 1.0\n"
@@ -1658,9 +1658,6 @@ msgstr[0] ""
 msgstr[1] ""
 "in der Methodensignatur für Funktion \"%s\" keine Definition für Klassen: %s"
 
-#~ msgid "Some of the superclasses in the definition of class \""
-#~ msgstr "Einige der Superklassen in der Definition von Klasse \""
-
 #~ msgid ""
 #~ "S3 methods written for S4 classes will fail inheritance!\n"
 #~ "Package"
@@ -1692,6 +1689,9 @@ msgstr[1] ""
 #~ msgstr ""
 #~ "\"\n"
 #~ "Achtung: keine Unterklasse dieser Klasse wird Methoden erben"
+
+#~ msgid "Some of the superclasses in the definition of class \""
+#~ msgstr "Einige der Superklassen in der Definition von Klasse \""
 
 #~ msgid ""
 #~ "\" have apparent S3 methods.\n"

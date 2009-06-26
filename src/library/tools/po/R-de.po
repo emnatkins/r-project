@@ -4,10 +4,10 @@
 # Detlef Steuer <steuer@hsu-hh.de>, 2008-2009.
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.9.0\n"
+"Project-Id-Version: R 2.9.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-06-14 08:14\n"
-"PO-Revision-Date: 2009-03-26 14:59+0100\n"
+"POT-Creation-Date: 2009-06-14 08:29\n"
+"PO-Revision-Date: 2009-06-16 11:08+0200\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R Core <r-core@r-project.org>\n"
 "MIME-Version: 1.0\n"
@@ -96,17 +96,17 @@ msgstr "Slots für Klasse '%s'"
 msgid "name"
 msgstr "Name"
 
-msgid "Data codoc mismatches from documentation object '%s':"
-msgstr "Datendoku passt nicht zum Dokuobjekt '%s':"
-
-msgid "Variables in data frame '%s'"
-msgstr "Variablen im Dataframe '%s'"
-
 msgid "code"
 msgstr "Code"
 
 msgid "docs"
 msgstr "Doku"
+
+msgid "Data codoc mismatches from documentation object '%s':"
+msgstr "Datendoku passt nicht zum Dokuobjekt '%s':"
+
+msgid "Variables in data frame '%s'"
+msgstr "Variablen im Dataframe '%s'"
 
 msgid "Undocumented arguments in documentation object '%s'"
 msgstr "Undokumentierte Argumente im Dokuobjekt '%s'"
@@ -705,6 +705,9 @@ msgstr "Benutzung der Datei 'R_PROFILE.R' wird nicht mehr unterstütz"
 msgid "field 'SaveImage' is defunct: please remove it"
 msgstr "Das Feld 'SaveImage' ist veraltet: bitte entfernen"
 
+msgid "cannot create temporary directory"
+msgstr "kann  temporäres Verzeichnis nicht erzeugen"
+
 msgid "Use of --with-package-versions is defunct"
 msgstr "Benutzung von --with-package-versions ist veraltet"
 
@@ -716,9 +719,6 @@ msgstr "-l Option ohne Wert"
 
 msgid "Warning: unknown option"
 msgstr "Warnung: unbekannte Option"
-
-msgid "cannot create temporary directory"
-msgstr "kann  temporäres Verzeichnis nicht erzeugen"
 
 msgid "processing"
 msgstr "Bearbeiten von'"

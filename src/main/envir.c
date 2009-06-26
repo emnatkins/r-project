@@ -130,7 +130,8 @@
 
 static void setActiveValue(SEXP fun, SEXP val)
 {
-    SEXP arg = LCONS(R_QuoteSymbol, LCONS(val, R_NilValue));
+    SEXP s_quote = install("quote");
+    SEXP arg = LCONS(s_quote, LCONS(val, R_NilValue));
     SEXP expr = LCONS(fun, LCONS(arg, R_NilValue));
     PROTECT(expr);
     eval(expr, R_GlobalEnv);
@@ -1227,7 +1228,7 @@ SEXP ddfindVar(SEXP symbol, SEXP rho)
 	    error(_("The ... list does not contain %d elements"), i);
     }
     else error(_("..%d used in an incorrect context, no ... to look in"), i);
-
+    
     return R_NilValue;
 }
 
@@ -2113,7 +2114,7 @@ SEXP attribute_hidden do_attach(SEXP call, SEXP op, SEXP args, SEXP env)
 	setAttrib(s, R_ClassSymbol, getAttrib(HASHTAB(s), R_ClassSymbol));
     }
 
-    setAttrib(s, R_NameSymbol, name);
+    setAttrib(s, install("name"), name);
     for (t = R_GlobalEnv; ENCLOS(t) != R_BaseEnv && pos > 2; t = ENCLOS(t))
 	pos--;
 
@@ -2225,7 +2226,7 @@ SEXP attribute_hidden do_search(SEXP call, SEXP op, SEXP args, SEXP env)
     SET_STRING_ELT(ans, n-1, mkChar("package:base"));
     i = 1;
     for (t = ENCLOS(R_GlobalEnv); t != R_BaseEnv ; t = ENCLOS(t)) {
-	name = getAttrib(t, R_NameSymbol);
+	name = getAttrib(t, install("name"));
 	if (!isString(name) || length(name) < 1)
 	    SET_STRING_ELT(ans, i, mkChar("(unknown)"));
 	else
@@ -2722,13 +2723,14 @@ SEXP attribute_hidden do_pos2env(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 static SEXP matchEnvir(SEXP call, const char *what)
 {
-    SEXP t, name;
+    SEXP t, name, nameSymbol;
     if(!strcmp(".GlobalEnv", what))
 	return R_GlobalEnv;
     if(!strcmp("package:base", what))
 	return R_BaseEnv;
+    nameSymbol = install("name");
     for (t = ENCLOS(R_GlobalEnv); t != R_EmptyEnv ; t = ENCLOS(t)) {
-	name = getAttrib(t, R_NameSymbol);
+	name = getAttrib(t, nameSymbol);
 	if(isString(name) && length(name) > 0 &&
 	   !strcmp(translateChar(STRING_ELT(name, 0)), what))
 	    return t;
@@ -3062,8 +3064,9 @@ void R_RestoreHashCount(SEXP rho)
 
 Rboolean R_IsPackageEnv(SEXP rho)
 {
+    SEXP nameSymbol = install("name");
     if (TYPEOF(rho) == ENVSXP) {
-	SEXP name = getAttrib(rho, R_NameSymbol);
+	SEXP name = getAttrib(rho, nameSymbol);
 	char *packprefix = "package:";
 	int pplen = strlen(packprefix);
 	if(isString(name) && length(name) > 0 &&
@@ -3078,8 +3081,9 @@ Rboolean R_IsPackageEnv(SEXP rho)
 
 SEXP R_PackageEnvName(SEXP rho)
 {
+    SEXP nameSymbol = install("name");
     if (TYPEOF(rho) == ENVSXP) {
-	SEXP name = getAttrib(rho, R_NameSymbol);
+	SEXP name = getAttrib(rho, nameSymbol);
 	char *packprefix = "package:";
 	int pplen = strlen(packprefix);
 	if(isString(name) && length(name) > 0 &&

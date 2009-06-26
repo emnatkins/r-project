@@ -48,13 +48,9 @@ kappa.default <- function(z, exact = FALSE,
         max(s)/min(s[s > 0])
     }
     else { ## exact = FALSE or norm in "1", "O", "I"
-	if(exact)
-	    warning(gettextf("norm '%s' currently always uses exact = FALSE",
-			     norm))
         d <- dim(z)
         if(method == "qr" || d[1L] != d[2L])
-	    kappa.qr(qr(if(d[1L] < d[2L]) t(z) else z),
-		     exact=FALSE, norm=norm, ...)
+            kappa.qr(qr(if(d[1L] < d[2L]) t(z) else z), norm=norm, ...)
         else kappa.tri(z, exact=FALSE, norm=norm, ...)
     }
 }
@@ -75,7 +71,7 @@ kappa.tri <- function(z, exact = FALSE, LINPACK = TRUE, norm=NULL, ...)
         stopifnot(is.null(norm) || identical("2", norm))
         kappa.default(z, exact = TRUE) ## using "2 - norm" !
     }
-    else { ## norm is "1" ("O") or "I(nf)" :
+    else {
 	p <- nrow(z)
 	if(p != ncol(z)) stop("triangular matrix should be square")
 	if(is.null(norm)) norm <- "1"

@@ -87,5 +87,4 @@ layout.show <- function(n=1)
 	box()
 	text(0.5, 0.5, i)
     }
-    invisible()
 }

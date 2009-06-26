@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996	Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2009	The R Development Core Team.
+ *  Copyright (C) 1998--2006	The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -139,6 +139,7 @@ static void doprof(void)
     if(strlen(buf))
 	fprintf(R_ProfileOutfile, "%s\n", buf);
 }
+
 
 /* Profiling thread main function */
 static void __cdecl ProfileThread(void *pwait)
@@ -348,10 +349,6 @@ SEXP eval(SEXP e, SEXP rho)
 {
     SEXP op, tmp;
     static int evalcount = 0;
-    
-    /* Save the current srcref context. */
-    
-    SEXP srcrefsave = R_Srcref;
 
     /* The use of depthsave below is necessary because of the
        possibility of non-local returns from evaluation.  Without this
@@ -518,27 +515,7 @@ SEXP eval(SEXP e, SEXP rho)
 	UNIMPLEMENTED_TYPE("eval", e);
     }
     R_EvalDepth = depthsave;
-    R_Srcref = srcrefsave;
     return (tmp);
-}
-
-void SrcrefPrompt(const char * prefix, SEXP srcref)
-{
-    /* If we have a valid srcref, use it */
-    if (srcref && srcref != R_NilValue) {
-        if (TYPEOF(srcref) == VECSXP) srcref = VECTOR_ELT(srcref, 0);
-	SEXP srcfile = getAttrib(srcref, R_SrcfileSymbol);
-	if (TYPEOF(srcfile) == ENVSXP) {
-	    SEXP filename = findVar(install("filename"), srcfile);
-	    if (TYPEOF(filename) == STRSXP && length(filename) == 1) {
-	    	Rprintf(_("%s at %s#%d: "), prefix, CHAR(STRING_ELT(filename, 0)), 
-	                                    asInteger(srcref));
-	        return;
-	    }
-	}
-    }
-    /* default: */
-    Rprintf("%s: ", prefix);
 }
 
 /* Apply SEXP op of type CLOSXP to actuals */
@@ -629,18 +606,10 @@ SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedenv)
 
     /* Debugging */
 
-    SET_DEBUG(newrho, DEBUG(op) || STEP(op));
-    if( STEP(op) ) SET_STEP(op, 0);
-    if (DEBUG(newrho)) {
-	int old_bl = R_BrowseLines,
-	    blines = asInteger(GetOption(install("deparse.max.lines"),
-					 R_BaseEnv));
+    SET_DEBUG(newrho, DEBUG(op));
+    if (DEBUG(op)) {
 	Rprintf("debugging in: ");
-	if(blines != NA_INTEGER && blines > 0)
-	    R_BrowseLines = blines;
-	PrintValueRec(call, rho);
-	R_BrowseLines = old_bl;
-
+	PrintValueRec(call,rho);
 	/* Is the body a bare symbol (PR#6804) */
 	if (!isSymbol(body) & !isVectorAtomic(body)){
 		/* Find out if the body is function with only one statement. */
@@ -656,9 +625,9 @@ SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedenv)
 			)
 			goto regdb;
 	}
-	SrcrefPrompt("debug", getAttrib(body, R_SrcrefSymbol));
+	Rprintf("debug: ");
 	PrintValue(body);
-	do_browser(call, op, R_NilValue, newrho);
+	do_browser(call, op, arglist, newrho);
     }
 
  regdb:
@@ -728,8 +697,7 @@ static SEXP R_execClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho,
 
     /* Debugging */
 
-    SET_DEBUG(newrho, DEBUG(op) || STEP(op));
-    if( STEP(op) ) SET_STEP(op, 0);
+    SET_DEBUG(newrho, DEBUG(op));
     if (DEBUG(op)) {
 	Rprintf("debugging in: ");
 	PrintValueRec(call,rho);
@@ -745,9 +713,9 @@ static SEXP R_execClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho,
 	   && !strcmp( PRIMNAME(tmp), "while")
 	   )
 	    goto regdb;
-	SrcrefPrompt("debug", getAttrib(body, R_SrcrefSymbol));
+	Rprintf("debug: ");
 	PrintValue(body);
-	do_browser(call, op, R_NilValue, newrho);
+	do_browser(call,op,arglist,newrho);
     }
 
  regdb:
@@ -988,29 +956,18 @@ static R_INLINE Rboolean asLogicalNoNA(SEXP s, SEXP call)
 
 SEXP attribute_hidden do_if(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP Cond, Stmt=R_NilValue;
-    int vis=0;
-
+    SEXP Cond;
     PROTECT(Cond = eval(CAR(args), rho));
-    if (asLogicalNoNA(Cond, call)) 
-        Stmt = CAR(CDR(args));
-    else {
-        if (length(args) > 2) 
-           Stmt = CAR(CDR(CDR(args)));
-        else
-           vis = 1;
-    } 
-    if( DEBUG(rho) ) {
-	SrcrefPrompt("debug", R_Srcref);
-        PrintValue(Stmt);
-        do_browser(call, op, R_NilValue, rho);
-    } 
-    UNPROTECT(1);
-    if( vis ) {
-        R_Visible = FALSE; /* case of no 'else' so return invisible NULL */
-        return Stmt;
+    if (asLogicalNoNA(Cond, call)) {
+	UNPROTECT(1);
+	return (eval(CAR(CDR(args)), rho));
+    } else if (length(args) > 2) {
+	UNPROTECT(1);
+	return (eval(CAR(CDR(CDR(args))), rho));
     }
-    return (eval(Stmt, rho));
+    R_Visible = FALSE; /* case of no 'else' so return invisible NULL */
+	UNPROTECT(1);
+    return R_NilValue;
 }
 
 
@@ -1019,9 +976,9 @@ SEXP attribute_hidden do_if(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 #define DO_LOOP_DEBUG(call, op, args, rho, bgn) do { \
     if (bgn && DEBUG(rho)) { \
-	SrcrefPrompt("debug", R_Srcref); \
+	Rprintf("debug: "); \
 	PrintValue(CAR(args)); \
-	do_browser(call, op, R_NilValue, rho); \
+	do_browser(call,op,args,rho); \
     } } while (0)
 
 
@@ -1075,7 +1032,7 @@ SEXP attribute_hidden do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
 	   least 1.  LT */
     nm = NAMED(val);
 
-    PROTECT_WITH_INDEX(ans, &api);  /**** ans should no longer be needed. LT */
+    PROTECT_WITH_INDEX(ans, &api);
     begincontext(&cntxt, CTXT_LOOP, R_NilValue, rho, R_BaseEnv, R_NilValue,
 		 R_NilValue);
     switch (SETJMP(cntxt.cjmpbuf)) {
@@ -1138,7 +1095,7 @@ SEXP attribute_hidden do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
     endcontext(&cntxt);
     UNPROTECT(5);
     SET_DEBUG(rho, dbg);
-    return R_NilValue;
+    return ans;
 }
 
 
@@ -1146,8 +1103,9 @@ SEXP attribute_hidden do_while(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     int dbg;
     volatile int bgn;
-    volatile SEXP body;
+    volatile SEXP t, body;
     RCNTXT cntxt;
+    PROTECT_INDEX tpi;
 
     checkArity(op, args);
 
@@ -1155,17 +1113,20 @@ SEXP attribute_hidden do_while(SEXP call, SEXP op, SEXP args, SEXP rho)
     body = CADR(args);
     bgn = BodyHasBraces(body);
 
+    t = R_NilValue;
+    PROTECT_WITH_INDEX(t, &tpi);
     begincontext(&cntxt, CTXT_LOOP, R_NilValue, rho, R_BaseEnv, R_NilValue,
 		 R_NilValue);
     if (SETJMP(cntxt.cjmpbuf) != CTXT_BREAK) {
 	while (asLogicalNoNA(eval(CAR(args), rho), call)) {
 	    DO_LOOP_DEBUG(call, op, args, rho, bgn);
-	    eval(body, rho);
+	    REPROTECT(t = eval(body, rho), tpi);
 	}
     }
     endcontext(&cntxt);
+    UNPROTECT(1);
     SET_DEBUG(rho, dbg);
-    return R_NilValue;
+    return t;
 }
 
 
@@ -1173,8 +1134,9 @@ SEXP attribute_hidden do_repeat(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     int dbg;
     volatile int bgn;
-    volatile SEXP body;
+    volatile SEXP t, body;
     RCNTXT cntxt;
+    PROTECT_INDEX tpi;
 
     checkArity(op, args);
 
@@ -1182,17 +1144,20 @@ SEXP attribute_hidden do_repeat(SEXP call, SEXP op, SEXP args, SEXP rho)
     body = CAR(args);
     bgn = BodyHasBraces(body);
 
+    t = R_NilValue;
+    PROTECT_WITH_INDEX(t, &tpi);
     begincontext(&cntxt, CTXT_LOOP, R_NilValue, rho, R_BaseEnv, R_NilValue,
 		 R_NilValue);
     if (SETJMP(cntxt.cjmpbuf) != CTXT_BREAK) {
 	for (;;) {
 	    DO_LOOP_DEBUG(call, op, args, rho, bgn);
-	    eval(body, rho);
+	    REPROTECT(t = eval(body, rho), tpi);
 	}
     }
     endcontext(&cntxt);
+    UNPROTECT(1);
     SET_DEBUG(rho, dbg);
-    return R_NilValue;
+    return t;
 }
 
 
@@ -1209,43 +1174,23 @@ SEXP attribute_hidden do_paren(SEXP call, SEXP op, SEXP args, SEXP rho)
     return CAR(args);
 }
 
-/* this function gets the srcref attribute from a statement block, 
-   and confirms it's in the expected format */
-   
-static SEXP getSrcrefs(SEXP call, SEXP args)
-{
-    SEXP srcrefs = getAttrib(call, R_SrcrefSymbol);
-    if (   TYPEOF(srcrefs) == VECSXP
-        && length(srcrefs) == length(args)+1 ) return srcrefs;
-    return R_NilValue;
-}
 
 SEXP attribute_hidden do_begin(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP s = R_NilValue;
-    if (args != R_NilValue) {
-    	SEXP srcrefs = getSrcrefs(call, args);
-    	int i = 1;
-    	R_Srcref = R_NilValue;
-	while (args != R_NilValue) {	    
-	    if (srcrefs != R_NilValue) {
-	    	PROTECT(R_Srcref = VECTOR_ELT(srcrefs, i++));
-	    	if (  TYPEOF(R_Srcref) != INTSXP
-	    	    || length(R_Srcref) != 6) {
-	    	    srcrefs = R_Srcref = R_NilValue;
-	    	    UNPROTECT(1);
-	    	}
-	    }
+    SEXP s;
+    if (args == R_NilValue) {
+	s = R_NilValue;
+    }
+    else {
+	while (args != R_NilValue) {
 	    if (DEBUG(rho)) {
-	    	SrcrefPrompt("debug", R_Srcref);
-	        PrintValue(CAR(args));
-		do_browser(call, op, R_NilValue, rho);
+		Rprintf("debug: ");
+		PrintValue(CAR(args));
+		do_browser(call,op,args,rho);
 	    }
 	    s = eval(CAR(args), rho);
-	    if (srcrefs != R_NilValue) UNPROTECT(1);
 	    args = CDR(args);
 	}
-	R_Srcref = R_NilValue;
     }
     return s;
 }
@@ -2123,7 +2068,7 @@ int DispatchGroup(const char* group, SEXP call, SEXP op, SEXP args, SEXP rho,
 	/* Remove argument names to ensure positional matching */
 	if(isOps)
 	    for(s = args; s != R_NilValue; s = CDR(s)) SET_TAG(s, R_NilValue);
-	if(R_has_methods(op) &&
+	if(R_has_methods(op) && 
 	   (value = R_possible_dispatch(call, op, args, rho, FALSE))) {
 	       *ans = value;
 	       return 1;
@@ -2337,12 +2282,11 @@ void R_initialize_bcode(void)
   R_AndSym = install("&");
   R_OrSym = install("|");
   R_NotSym = install("!");
-  R_SubsetSym = R_BracketSymbol; /* "[" */
+  R_SubsetSym = install("[");
   R_SubassignSym = install("[<-");
   R_CSym = install("c");
-  R_Subset2Sym = R_Bracket2Symbol; /* "[[" */
+  R_Subset2Sym = install("[[");
   R_Subassign2Sym = install("[[<-");
-
   FakeCall0 = CONS(R_NilValue, R_NilValue);
   FakeCall1 = CONS(R_NilValue, FakeCall0);
   FakeCall2 = CONS(R_NilValue, FakeCall1);
@@ -3116,7 +3060,7 @@ static SEXP bcEval(SEXP body, SEXP rho)
 	R_BCNodeStackTop[-1] = value;
 	NEXT();
       }
-    OP(SETLOOPVAL, 0): BCNPOP(); R_BCNodeStackTop[-1] = R_NilValue; NEXT();
+    OP(SETLOOPVAL, 0): value = BCNPOP(); R_BCNodeStackTop[-1] = value; NEXT();
     OP(INVISIBLE,0): R_Visible = FALSE; NEXT();
     OP(LDCONST, 1): DO_LDCONST(value); BCNPUSH(value); NEXT();
     OP(LDNULL, 0):  BCNPUSH(R_NilValue); NEXT();

@@ -6,8 +6,9 @@
 #define _UCP_H
 
 /* This file contains definitions of the property values that are returned by
-the UCD access macros. New values that are added for new releases of Unicode
-should always be at the end of each enum, for backwards compatibility. */
+the function _pcre_ucp_findprop(). New values that are added for new releases
+of Unicode should always be at the end of each enum, for backwards
+compatibility. */
 
 /* These are the general character categories. */
 

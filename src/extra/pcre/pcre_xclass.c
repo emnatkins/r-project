@@ -6,7 +6,7 @@
 and semantics are as close as possible to those of the Perl 5 language.
 
                        Written by Philip Hazel
-           Copyright (c) 1997-2009 University of Cambridge
+           Copyright (c) 1997-2008 University of Cambridge
 
 -----------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,8 @@ POSSIBILITY OF SUCH DAMAGE.
 
 
 /* This module contains an internal function that is used to match an extended
-class. It is used by both pcre_exec() and pcre_def_exec(). */
+class (one that contains characters whose values are > 255). It is used by both
+pcre_exec() and pcre_def_exec(). */
 
 
 #ifdef HAVE_CONFIG_H
@@ -54,7 +55,7 @@ class. It is used by both pcre_exec() and pcre_def_exec(). */
 *************************************************/
 
 /* This function is called to match a character against an extended class that
-might contain values > 255 and/or Unicode properties.
+might contain values > 255.
 
 Arguments:
   c           the character
@@ -103,7 +104,7 @@ while ((t = *data++) != XCL_END)
 #ifdef SUPPORT_UCP
   else  /* XCL_PROP & XCL_NOTPROP */
     {
-    const ucd_record *prop = GET_UCD(c);
+    const ucd_record * prop = GET_UCD(c);
 
     switch(*data)
       {

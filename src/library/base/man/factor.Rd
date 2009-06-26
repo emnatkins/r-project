@@ -31,9 +31,9 @@
   are the membership and coercion functions for these classes.
 }
 \usage{
-factor(x = character(), levels, labels = levels,
-       exclude = NA, ordered = is.ordered(x))
-%       keepUnique = FALSE, digitsLabels = if(keepUnique) 17 else 15)
+factor(x = character(),
+       levels = sort(unique.default(x), na.last = TRUE),
+       labels = levels, exclude = NA, ordered = is.ordered(x))
 
 ordered(x, \dots)
 
@@ -49,28 +49,16 @@ addNA(x, ifany=FALSE)
   \item{x}{a vector of data, usually taking a small number of distinct
     values.}
   \item{levels}{an optional vector of the values that \code{x} might
-    have taken.  The default is the unique set of values taken by
-    \code{\link{as.character}(x)}, sorted into increasing order \emph{of
-      \code{x}}.  Note that this set can be smaller than
-    \code{sort(unique(x))}.}
+    have taken. The default is the set of values taken by \code{x},
+    sorted into increasing order.}
   \item{labels}{\emph{either} an optional vector of labels for the
     levels (in the same order as \code{levels} after removing those in
     \code{exclude}), \emph{or} a character string of length 1.}
   \item{exclude}{a vector of values to be excluded when forming the
-    set of levels.  This should be of the same type as \code{x}, and
+    set of levels. This should be of the same type as \code{x}, and
     will be coerced if necessary.}
   \item{ordered}{logical flag to determine if the levels should be regarded
     as ordered (in the order given).}
-%   \item{keepUnique}{logical, for the case of default levels, indicating
-%     if the \emph{resulting} factor levels correspond exactly to
-%     \code{sort(unique(x))}.}
-%   \item{digitsLabels}{numeric (integer valued), for the case of numeric
-%     (or complex) \code{x}, there are two cases:\cr
-%     1) if \code{levels} are missing and \code{keepUnique} is false,
-%     \code{x} is replaced with \code{signif(x, digitsLabels)}.\cr
-%     2) otherwise, if \code{labels} are numeric (or complex) as well, as by
-%     default, the result levels are built via
-%     \code{\link{sprintf}("\%.*g", digitsLabels, .)}.}
   \item{\dots}{(in \code{ordered(.)}): any of the above, apart from
     \code{ordered} itself.}
   \item{ifany}{(in \code{addNA}): Only add an \code{NA} level if it is
@@ -79,8 +67,7 @@ addNA(x, ifany=FALSE)
 \value{
   \code{factor} returns an object of class \code{"factor"} which has a
   set of integer codes the length of \code{x} with a \code{"levels"}
-  attribute of mode \code{\link{character}} and unique
-  (\code{!\link{anyDuplicated}(.)}) entries.  If \code{ordered} is true
+  attribute of mode \code{\link{character}}.  If \code{ordered} is true
   (or \code{ordered} is used) the result has class
   \code{c("ordered", "factor")}.
 
@@ -103,9 +90,7 @@ addNA(x, ifany=FALSE)
   level (so that \code{NA} values are counted in tables, for instance).
 }
 \details{
-  The type of the vector \code{x} is not restricted; it only must have
-  an \code{\link{as.character}} method and be sortable (by
-  \code{\link{sort.list}}).
+  The type of the vector \code{x} is not restricted.
 
   Ordered factors differ from factors only in their class, but methods
   and the model-fitting functions treat the two classes quite differently.
@@ -118,24 +103,10 @@ addNA(x, ifany=FALSE)
 
   Normally the \sQuote{levels} used as an attribute of the result are
   the reduced set of levels after removing those in \code{exclude}, but
-  this can be altered by supplying \code{labels}.  This should either
+  this can be altered by supplying \code{labels}. This should either
   be a set of new labels for the levels, or a character string, in
   which case the levels are that character string with a sequence
   number appended.
-
-%   If \code{factor(x)} or \code{as.factor(x)} is applied to a numeric
-%   or complex vector \code{x}, the levels and/or labels are not specified (aka
-%   \code{\link{missing}}), \code{keepUnique} will determine what happens:
-
-%   If it is false (as by default), similar \code{x} values are lumped
-%   together via \code{\link{signif}(x, digitsLabels)} \emph{before}
-%   levels construction and matching.  This avoids both duplicate
-%   (character) result levels and accidental differentiation of numbers
-%   differing only because of rounding error, e.g., \code{0.1 + 0.2 != 0.3}.
-%   \cr
-%   When \code{keepUnique} is true (and \code{digitsLabels} at least 17),
-%   it is ensured that \dQuote{uniqueness  is preserved}, i.e.,
-%   differing \code{x} values will correspond to differing result levels.
 
   \code{factor(x, exclude=NULL)} applied to a factor is a no-operation
   unless there are unused levels: in that case, a factor with the
@@ -163,9 +134,9 @@ addNA(x, ifany=FALSE)
   the same set of levels (in the same order).  In particular,
   \code{as.numeric} applied to a factor is meaningless, and may
   happen by implicit coercion.  To transform a factor \code{f} to
-  approximately its original numeric values,
-  \code{as.numeric(levels(f))[f]} is recommended and slightly more
-  efficient than \code{as.numeric(as.character(f))}.
+  its original numeric values, \code{as.numeric(levels(f))[f]} is
+  recommended and slightly more efficient than
+  \code{as.numeric(as.character(f))}.
 
   The levels of a factor are by default sorted, but the sort order
   may well depend on the locale at the time of creation, and should

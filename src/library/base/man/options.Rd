@@ -1,6 +1,6 @@
 % File src/library/base/man/options.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2009 R Core Development Team
+% Copyright 1995-2008 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{options}
@@ -16,7 +16,7 @@
 \usage{
 options(\dots)
 
-getOption(x, default = NULL)
+getOption(x)
 
 .Options
 }
@@ -29,11 +29,7 @@ getOption(x, default = NULL)
     Further, \code{options('name') == options()['name']}, see the example.
   }
   \item{x}{a character string holding an option name.}
-
-  \item{default}{if the specified option is not set in the options list,
-     this value is returned.  This facilitates retrieving an option and
-     checking whether it is set and setting it separately if not.}
- }
+}
 \details{
   Invoking \code{options()} with no arguments returns a list with the
   current values of the options.  Note that not all options listed below
@@ -82,9 +78,9 @@ getOption(x, default = NULL)
       initialized (see \code{\link{Startup}}).}
 
     \item{\code{deparse.max.lines}:}{controls the number of lines used
-      when deparsing in \code{\link{traceback}}, \code{\link{browser}},
-      and upon entry to a function whose debugging flag is set.
-      Initially unset, and only used if set to a positive integer.}
+      when deparsing in \code{\link{traceback}} and
+      \code{\link{browser}}.  Initially unset, and only used if set to
+      a positive integer.}
 
     \item{\code{digits}:}{controls the number of digits to print when
       printing numeric values.  It is a suggestion only.  Valid values
@@ -170,9 +166,9 @@ getOption(x, default = NULL)
     \item{\code{pager}:}{the command used for displaying text files by
       \code{\link{file.show}}.
 #ifdef unix
-      Defaults to \file{\var{\link[base:Rhome]{R_HOME}}/bin/pager},
-      which selects a pager via the \env{PAGER} environment variable
-      (and that usually defaults to \code{less}).
+      Defaults to \file{\var{\link[base:Rhome]{R_HOME}}/bin/pager}, which selects a pager
+      via the \env{PAGER} environment variable (and that usually
+      defaults to \code{less}).
 #endif
 #ifdef windows
       Defaults to \code{"internal"}, which uses a pager similar to the
@@ -204,7 +200,7 @@ getOption(x, default = NULL)
       Defaults to the full path to \samp{open.exe}, a utility supplied with \R
 #endif
     }
-
+    
     \item{\code{printcmd}:}{the command used by \code{\link{postscript}}
       for printing; set by environment variable \env{R_PRINTCMD} when
       \R is started.  This should be a command that expects either input
@@ -426,7 +422,7 @@ getOption(x, default = NULL)
     \item{\code{browser}:}{default HTML browser used by
       \code{\link{help.start}()} and \code{\link{browseURL}} on UNIX, or
       a non-default browser on Windows.  Alternatively, an \R function that
-      is called with a URL as its argument.}
+      is called with a URL as its argument.} 
 
     \item{\code{de.cellwidth}:}{integer: the cell widths (number of
       characters) to be used in the data editor \code{\link{dataentry}}.
@@ -434,7 +430,7 @@ getOption(x, default = NULL)
       cell widths are used.}
 
     \item{\code{demo.ask}:}{default for the \code{ask} argument of
-      \code{\link{demo}}.}
+      \code{\link{demo}}.}      
 
     \item{\code{editor}:}{a non-empty string, or a function that is
       called with a file path as argument.
@@ -476,7 +472,7 @@ getOption(x, default = NULL)
       of repositories instead of the default \code{"universal"}.
 #endif
     }
-
+    
     \item{\code{repos}:}{URLs of the repositories for use by
       \code{\link{update.packages}}.  Defaults to
       \code{c(CRAN="@CRAN@")}, a value that causes some utilities to
@@ -566,23 +562,7 @@ options(error = recover)
 options(error = dump.frames)
 ## A possible setting for non-interactive sessions
 options(error = quote({dump.frames(to.file=TRUE); q()}))
-}
-
-  # Compare the two ways to get an option and use it
-  # acconting for the possibility it might not be set.
-if(as.logical(getOption("performCleanp", TRUE)))
-   cat("do cleanup\n")
-
-\dontrun{
-  # a clumsier way of expressing the above w/o the default.
-tmp <- getOption("performCleanup")
-if(is.null(tmp))
-  tmp <- TRUE
-if(tmp)
-   cat("do cleanup\n")
-}
-
-}
+}}
 \keyword{environment}
 \keyword{error}
 \keyword{print}

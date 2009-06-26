@@ -13,8 +13,7 @@
   It is \bold{experimental}.
 }
 \usage{
-parse_Rd(file, srcfile = NULL, encoding = "unknown", verbose = FALSE,
-         fragment = FALSE)
+parse_Rd(file, srcfile = NULL, encoding = "unknown", verbose = FALSE)
 }
 \arguments{
   \item{file}{A filename or text-mode connection.  At present filenames
@@ -24,20 +23,13 @@ parse_Rd(file, srcfile = NULL, encoding = "unknown", verbose = FALSE,
   \item{encoding}{Encoding to be assumed for input strings.}
   \item{verbose}{Logical indicating whether detailed parsing
     information should be printed.} 
-  \item{fragment}{Logical indicating whether file represents a complete
-  Rd file, or a fragment.}
 }
 \details{
   This experimental function parses Rd files according to the
   specification given in
   \url{http://developer.r-project.org/parseRd.pdf}.  At the current
-  writing, this is not identical to the rules used by older tools:  it
-  is somewhat stricter.  
-  
-  As from \R 2.10.0, \code{parse_Rd} generates a warning for each parse error,
-  and attempts to continue parsing.  In order to continue, it is generally necessary
-  to drop some parts of the file, so such warnings should not be ignored.
-  
+  writing, this is not identical to the rules used by other tools:  it
+  is somewhat stricter. 
 }
 \value{
   An object of class \code{"Rd"}.  The internal format of this object is 
@@ -49,7 +41,7 @@ parse_Rd(file, srcfile = NULL, encoding = "unknown", verbose = FALSE,
   UTF-8.  In all other cases files are assumed to be in the native encoding.
 }
 \section{Warning}{
-  This function is still experimental.  Names, interfaces and values
+  These functions are still experimental.  Names, interfaces and values
   might change in future versions.
 }
 \references{ \url{http://developer.r-project.org/parseRd.pdf} }

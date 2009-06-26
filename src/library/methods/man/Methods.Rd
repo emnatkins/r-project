@@ -106,6 +106,7 @@ If no non-default S4 method
 matches the call,  the default S4 method can then operate as an S3
 generic to select S3 methods for \code{f()}.
 
+
 Primitive functions and operators dispatch both S4 and S3 methods from
 the internal C code.
 The method selection mechanism works essentially the same way, with

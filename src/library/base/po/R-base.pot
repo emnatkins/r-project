@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.10.0\n"
+"Project-Id-Version: R 2.9.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-06-16 12:48\n"
+"POT-Creation-Date: 2009-06-16 12:28\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -224,7 +224,7 @@ msgstr ""
 msgid "invalid 'dimnames' given for data frame"
 msgstr ""
 
-msgid "cannot coerce class %s into a data.frame"
+msgid "cannot coerce class \"%s\" into a data.frame"
 msgstr ""
 
 msgid "invalid 'row.names', length %d for a data frame with %d rows"
@@ -266,19 +266,10 @@ msgstr ""
 msgid "row names were found from a short variable and have been discarded"
 msgstr ""
 
-msgid "named arguments other than 'drop' are discouraged"
-msgstr ""
-
 msgid "drop argument will be ignored"
 msgstr ""
 
 msgid "undefined columns selected"
-msgstr ""
-
-msgid "named arguments other than 'exact' are discouraged"
-msgstr ""
-
-msgid "named arguments are discouraged"
 msgstr ""
 
 msgid "rhs is the wrong length for indexing by a logical matrix"
@@ -954,6 +945,9 @@ msgid "Expected a single logical value for the S4 state flag"
 msgstr ""
 
 msgid "invalid to change the storage mode of a factor"
+msgstr ""
+
+msgid "package '%s' has been merged into '%s'"
 msgstr ""
 
 msgid "'%s' is not an exported object from 'namespace:%s'"

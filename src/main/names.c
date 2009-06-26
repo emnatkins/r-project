@@ -128,11 +128,10 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"[[<-",	do_subassign2,	1,	0,	3,	{PP_SUBASS,  PREC_LEFT,	  1}},
 {"$<-",		do_subassign3,	1,	0,	3,	{PP_SUBASS,  PREC_LEFT,	  1}},
 {"switch",	do_switch,	0,	210,	-1,	{PP_FUNCALL, PREC_FN,	  0}},
-{"browser",	do_browser,	0,	101,	3,	{PP_FUNCALL, PREC_FN,	  0}},
-{"debug",	do_debug,	0,	111,	3,	{PP_FUNCALL, PREC_FN,	  0}},
+{"browser",	do_browser,	0,	100,	0,	{PP_FUNCALL, PREC_FN,	  0}},
+{"debug",	do_debug,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	  0}},
 {"undebug",	do_debug,	1,	111,	1,	{PP_FUNCALL, PREC_FN,	  0}},
 {"isdebugged",	do_debug,	2,	11,	1,	{PP_FUNCALL, PREC_FN,	  0}},
-{"debugonce",	do_debug,	3,	111,	3,	{PP_FUNCALL, PREC_FN,	  0}},
 {".primTrace",	do_trace,	0,	101,	1,	{PP_FUNCALL, PREC_FN,	  0}},
 {".primUntrace",do_trace,	1,	101,	1,	{PP_FUNCALL, PREC_FN,	  0}},
 {".Internal",	do_internal,	0,	200,	1,	{PP_FUNCALL, PREC_FN,	  0}},
@@ -613,7 +612,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"aqua.custom.print", do_aqua_custom_print, 0, 11, 2,   {PP_FUNCALL, PREC_FN,   0}},
 #endif
 {"parse",	do_parse,	0,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
-{"parse_Rd", 	do_parseRd,	0,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
+{"parse_Rd", 	do_parseRd,	0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"save",	do_save,	0,	111,	6,	{PP_FUNCALL, PREC_FN,	0}},
 {"saveToConn",	do_saveToConn,	0,	111,	6,	{PP_FUNCALL, PREC_FN,	0}},
 {"load",	do_load,	0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
@@ -631,7 +630,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"readline",	do_readln,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"menu",	do_menu,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"print.default",do_printdefault,0,	111,	9,	{PP_FUNCALL, PREC_FN,	0}},
-{"print.function",do_printfunction,0,	111,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"prmatrix",	do_prmatrix,	0,	111,	6,	{PP_FUNCALL, PREC_FN,	0}},
 {"invisible",	do_invisible,	0,	101,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"gc",		do_gc,		0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
@@ -670,9 +668,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"sys.on.exit",	do_sys,		7,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"sys.parents",	do_sys,		8,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"sys.function",do_sys,		9,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
-{"browserText", do_sysbrowser,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
-{"browserCondition", do_sysbrowser,	2,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
-{"browserSetDebug", do_sysbrowser,	3,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"parent.frame",do_parentframe,	0,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"sort",	do_sort,	1,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"is.unsorted",	do_isunsorted,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
@@ -1015,38 +1010,34 @@ static void installFunTab(int i)
 }
 
 static void SymbolShortcuts(void)
-{  /* ../include/Rinternals.h : */
+{
     R_Bracket2Symbol = install("[[");
     R_BracketSymbol = install("[");
     R_BraceSymbol = install("{");
+    R_TmpvalSymbol = install("*tmp*");
     R_ClassSymbol = install("class");
-    R_DeviceSymbol = install(".Device");
     R_DimNamesSymbol = install("dimnames");
     R_DimSymbol = install("dim");
     R_DollarSymbol = install("$");
     R_DotsSymbol = install("...");
     R_DropSymbol = install("drop");
-    R_LastvalueSymbol = install(".Last.value");
+    R_ExactSymbol = install("exact");
     R_LevelsSymbol = install("levels");
     R_ModeSymbol = install("mode");
-    R_NameSymbol  = install("name");
     R_NamesSymbol = install("names");
     R_NaRmSymbol = install("na.rm");
-    R_PackageSymbol = install("package");
-    R_QuoteSymbol = install("quote");
     R_RowNamesSymbol = install("row.names");
     R_SeedsSymbol = install(".Random.seed");
-    R_SourceSymbol = install("source");
+    R_LastvalueSymbol = install(".Last.value");
     R_TspSymbol = install("tsp");
-    /* ../include/Defn.h , i.e. non-public : */
     R_CommentSymbol = install("comment");
+    R_SourceSymbol = install("source");
     R_DotEnvSymbol = install(".Environment");
-    R_ExactSymbol = install("exact");
     R_RecursiveSymbol = install("recursive");
+    R_UseNamesSymbol = install("use.names");
+    R_RowNamesSymbol = install("row.names");
     R_SrcfileSymbol = install("srcfile");
     R_SrcrefSymbol = install("srcref");
-    R_TmpvalSymbol = install("*tmp*");
-    R_UseNamesSymbol = install("use.names");
 }
 
 extern SEXP framenames; /* from model.c */

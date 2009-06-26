@@ -133,8 +133,7 @@ function(..., list = character(0L), package = NULL, lib.loc = NULL,
                 ## more than one candidate
                 o <- match(fileExt(files), dataExts, nomatch = 100L)
                 paths0 <- dirname(files)
-		## Next line seems unnecessary to MM (FIXME?)
-		paths0 <- factor(paths0, levels= unique(paths0))
+                paths0 <- factor(paths0, levels=paths0)
                 files <- files[order(paths0, o)]
             }
             if(length(files)) {

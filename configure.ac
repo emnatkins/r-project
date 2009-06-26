@@ -695,6 +695,8 @@ if test "${use_readline}" = yes; then
   fi
   ## the NetBSD version as used in MacOS X does not have this
   AC_CHECK_FUNCS(history_truncate_file)
+  READLINE_LIBS="${LIBS}"
+  LIBS="${r_save_LIBS}"
   if test "${use_readline}" = no; then
     AC_MSG_ERROR([--with-readline=yes (default) and headers/libs are not available])
   else
@@ -703,8 +705,6 @@ if test "${use_readline}" = yes; then
 #include <readline/readline.h>]
                  )
   fi
-  READLINE_LIBS="${LIBS}"
-  LIBS="${r_save_LIBS}"
 fi
 AC_SUBST(READLINE_LIBS)
 
@@ -1953,6 +1953,8 @@ AM_CONDITIONAL(USE_EXTERNAL_LAPACK, [test "${acx_lapack_ok}" = "yes"])
 
 ### * Checks for system services.
 
+AC_SUBST(R_MODULES)
+
 ## iconv headers and function.
 if test "${use_iconv}" = yes; then
   R_ICONV
@@ -1993,7 +1995,11 @@ AC_SUBST(USE_ICU_APPLE)
 
 ## X11.
 R_X11
-AM_CONDITIONAL(BUILD_X11, [test "x${use_X11}" = "xyes"])
+if test "${use_X11}" = yes; then
+  R_MODULES=X11
+else
+  R_MODULES=
+fi
 ## check if X11 typedefs KeySym
 R_TYPE_KEYSYM
 ## check if Xmu is supported

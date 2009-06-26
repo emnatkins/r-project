@@ -20,7 +20,23 @@
 getNamespace <- function(name) {
     ns <- .Internal(getRegisteredNamespace(as.name(name)))
     if (! is.null(ns)) ns
-    else tryCatch(loadNamespace(name), error = function(e) stop(e))
+    else tryCatch(loadNamespace(name),
+		  error = function(e)
+	      {
+		  ## This assignment is needed because 'name' contains
+		  ## version as second component when called from internal
+		  ## serialization code
+		  name <- name[1L]
+		  if (name %in% c("ctest","eda","modreg","mva","nls",
+				  "stepfun","ts")) {
+		      old <- "stats"
+		      warning(gettextf("package '%s' has been merged into '%s'",
+				       name, old),
+			      call. = FALSE, domain = NA)
+		      return(getNamespace("stats"))
+		  }
+		  else stop(e)
+	      })
 }
 
 loadedNamespaces <- function()
@@ -738,7 +754,7 @@ namespaceImportFrom <- function(self, ns, vars, generics, packages) {
     else impvars <- vars
     impvars <- makeImportExportNames(impvars)
     impnames <- names(impvars)
-    if (anyDuplicated(impnames)) {
+    if (any(duplicated(impnames))) {
         stop("duplicate import names ",
              paste(impnames[duplicated(impnames)], collapse = ", "))
     }
@@ -801,8 +817,8 @@ namespaceImportFrom <- function(self, ns, vars, generics, packages) {
             warning(msg, " ", n)
     importIntoEnv(impenv, impnames, ns, impvars)
     if (register) {
-        addImports(self, ns,
-                   if (missing(vars)) TRUE else impvars)
+        if (missing(vars)) addImports(self, ns, TRUE)
+        else addImports(self, ns, impvars)
     }
 }
 

@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.9.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-06-16 12:48\n"
+"POT-Creation-Date: 2009-06-14 08:17\n"
 "PO-Revision-Date: 2009-03-28 18:25+0300\n"
 "Last-Translator: Anton Korobeynikov <asl at math dot spbu dot ru>\n"
 "Language-Team: Russian\n"
@@ -234,8 +234,7 @@ msgstr "пропущенные значения в 'row.names' не разрешены"
 msgid "invalid 'dimnames' given for data frame"
 msgstr "для таблицы данных предложены неправильные 'dimnames'"
 
-#, fuzzy
-msgid "cannot coerce class %s into a data.frame"
+msgid "cannot coerce class \"%s\" into a data.frame"
 msgstr "не могу поместить класс \"%s\" в data.frame"
 
 msgid "invalid 'row.names', length %d for a data frame with %d rows"
@@ -277,23 +276,11 @@ msgstr "предложенные имена строк неправильной длины"
 msgid "row names were found from a short variable and have been discarded"
 msgstr "имена строк взяты из короткой переменной и поэтому сброшены"
 
-#, fuzzy
-msgid "named arguments other than 'drop' are discouraged"
-msgstr "пропущенные значения в 'row.names' не разрешены"
-
 msgid "drop argument will be ignored"
 msgstr "аргумент 'drop' не будет учтен"
 
 msgid "undefined columns selected"
 msgstr "выбраны не определенные колонки"
-
-#, fuzzy
-msgid "named arguments other than 'exact' are discouraged"
-msgstr "пропущенные значения в 'row.names' не разрешены"
-
-#, fuzzy
-msgid "named arguments are discouraged"
-msgstr "одинаковые 'row.names' не разрешены"
 
 msgid "rhs is the wrong length for indexing by a logical matrix"
 msgstr ""
@@ -1014,6 +1001,9 @@ msgstr "Ожидается простое логическое значение для флага состояния S4"
 msgid "invalid to change the storage mode of a factor"
 msgstr "неправильно менять тип хранения фактора"
 
+msgid "package '%s' has been merged into '%s'"
+msgstr "пакет '%s' был слит с '%s'"
+
 msgid "'%s' is not an exported object from 'namespace:%s'"
 msgstr "'%s' не является объектом, экспортированным из 'namespace:%s'"
 
@@ -1583,9 +1573,6 @@ msgid_plural "Warning messages:\n"
 msgstr[0] "Предупреждение:\n"
 msgstr[1] "Предупреждения:\n"
 msgstr[2] "Предупреждения:\n"
-
-#~ msgid "package '%s' has been merged into '%s'"
-#~ msgstr "пакет '%s' был слит с '%s'"
 
 #~ msgid "package 'lqs' has been moved back to package 'MASS'"
 #~ msgstr "пакет 'lqs' перемещен обратно в пакет 'MASS'"

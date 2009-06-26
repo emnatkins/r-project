@@ -14,7 +14,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-### * undoc/F/out
+### * undoc
 
 undoc <-
 function(package, dir, lib.loc = NULL)
@@ -490,23 +490,69 @@ function(package, dir, lib.loc = NULL,
         ## In principle, we can get codoc checking for S4 methods
         ## documented explicitly using the \S4method{GENERIC}{SIGLIST}
         ## markup by adding the corresponding "pseudo functions" using
-        ## the Rd markup as their name.  However note that the formals
-        ## recorded in the methods db only pertain to the signature, not
-        ## to the ones of the function actually registered ... hence we
-        ## use methods::unRematchDefinition() which knows how to extract
-        ## the formals in the method definition from the
-        ##   function(ARGLIST) {
-        ##     .local <- function(FORMALS) BODY
-        ##     .local(ARGLIST)
-        ##   }
-        ## redefinitions obtained by methods::rematchDefinition().
+        ## the Rd markup as their name.  However: the formals recorded
+        ## in the methods db only pertain to the signature, not to the
+        ## ones of the function actually registered.  It seems that we
+        ## can only get these by working on the internal representation:
+        ## hence, let's make this optional for the time being.
         ## </NOTE>
         check_S4_methods <-
-            !identical(as.logical(Sys.getenv("_R_CHECK_CODOC_S4_METHODS_")),
-                       FALSE)
+            isTRUE(as.logical(Sys.getenv("_R_CHECK_CODOC_S4_METHODS_")))
         if(check_S4_methods) {
-            get_formals_from_method_definition <- function(m)
-                formals(methods::unRematchDefinition(m))
+            get_formals_from_method_definition <- function(m) {
+                ## Argh, see methods:::rematchDefinition().
+                ## We get the original definition in case it has the
+                ## "same" formals as the generic.  Otherwise, we get a
+                ## redefition of the form
+                ## function(ARGLIST) {
+                ##   .local <- function(FORMALS) BODY
+                ##   .local(ARGLIST)
+                ## }
+                ## <NOTE>
+                ## Actually, it seems that one gets the formals of the
+                ## generic if this "extends" the formals of the method
+                ## in the sense that the latter have the formals with
+                ## "missing" signature, and possibly a '...' formal,
+                ## removed.  E.g.,
+                ##   setGeneric("foo",
+                ##     function(x, y, ...) standardGeneric("foo"))
+                ##   setMethod("foo",
+                ##     signature((x = "integer", y = "missing"),
+                ##     function(x) x)
+                ## is accepted and comes out with the formals of the
+                ## generic: (x, y, ...).
+                ## There seems to be no way of dealing with possibly
+                ## non-missing '...' formals based on the information in
+                ## the S4 registry.
+                ## One could consider to remove "missing" formals from
+                ## the the formals of the registered method, but note
+                ## that one can do
+                ##   setMethod("foo",
+                ##     signature(x = "integer", y = "missing"),
+                ##     function(x, y) x)
+                ## as well ...
+                ## So, to avoid false positives, one would need to run
+                ## the check_codoc() comparisons ignoring mismatches
+                ## possibly from the above.  Not easily possible in the
+                ## current layout, and it is also not clear whether we
+                ## should do this: formally, what we get is different
+                ## from what the authors thought and documented.
+                ## Also note that setAs() typically seems to give formals
+                ## (from, to, strict = TRUE).
+                ## </NOTE>
+                fun <- methods::slot(m, ".Data")
+                bdy <- body(fun)
+                if((length(bdy) == 3L)
+                   && (bdy[[1L]] == as.name("{"))
+                   && (length(bdy[[2L]]) == 3L)
+                   && (bdy[[2L]][[2L]] == as.name(".local"))
+                   && (class(bdy[[3L]]) == "call")
+                   && (bdy[[3L]][[1L]] == as.name(".local"))) {
+                    ## Could add more tests :-)
+                    formals(bdy[[2L]][[3L]])
+                } else
+                formals(fun)
+            }
             lapply(get_S4_generics_with_methods(code_env),
                    function(f) {
                        mlist <- .get_S4_methods_list(f, code_env)
@@ -937,7 +983,8 @@ function(x, ...)
 
 ### * codocClasses
 
-codocClasses <- function(package, lib.loc = NULL)
+codocClasses <-
+function(package, lib.loc = NULL)
 {
     ## Compare the 'structure' of S4 classes in an installed package
     ## between code and documentation.
@@ -951,7 +998,8 @@ codocClasses <- function(package, lib.loc = NULL)
     ## Currently, we only return the names of all classes checked.
     ## </NOTE>
 
-    bad_Rd_objects <- structure(NULL, class = "codocClasses")
+    bad_Rd_objects <- list()
+    class(bad_Rd_objects) <- "codocClasses"
 
     ## Argument handling.
     if(length(package) != 1L)
@@ -961,7 +1009,8 @@ codocClasses <- function(package, lib.loc = NULL)
         stop(gettextf("directory '%s' does not contain R code", dir),
              domain = NA)
     if(!file_test("-d", file.path(dir, "man")))
-        stop(gettextf("directory '%s' does not contain Rd sources", dir),
+        stop(gettextf("directory '%s' does not contain Rd sources",
+                      dir),
              domain = NA)
     is_base <- basename(dir) == "base"
 
@@ -976,8 +1025,6 @@ codocClasses <- function(package, lib.loc = NULL)
     S4_classes <- methods::getClasses(code_env)
     if(!length(S4_classes)) return(bad_Rd_objects)
 
-    sApply <- function(X, FUN, ...) ## fast and special case - only
-        unlist(lapply(X, FUN, ...), recursive=FALSE, use.names=FALSE)
     ## Build Rd data base.
     db <- Rd_db(package, lib.loc = dirname(dir))
     db <- lapply(db, Rd_pp)
@@ -985,55 +1032,41 @@ codocClasses <- function(package, lib.loc = NULL)
     ## Need some heuristics now.  When does an Rd object document just
     ## one S4 class so that we can compare (at least) the slot names?
     ## Try the following:
-    ## 1) \docType{} identical to "class";
-    ## 2) either exactly one \alias{} or only one ending in "-class"
-    ## 3) a non-empty user-defined section 'Slots'.
+    ## * \docType{} identical to "class";
+    ## * just one \alias{} (could also check whether it ends in
+    ##   "-class");
+    ## * a non-empty user-defined section 'Slots'.
 
     ## As going through the db to extract sections can take some time,
     ## we do the vectorized metadata computations first, and try to
     ## subscript whenever possible.
 
-    idx <- sApply(lapply(db, .get_Rd_metadata_from_Rd_lines, "docType"),
+    aliases <- lapply(db, .get_Rd_metadata_from_Rd_lines, "alias")
+    idx <- (sapply(aliases, length) == 1L)
+    if(!any(idx)) return(bad_Rd_objects)
+    db <- db[idx]; aliases <- aliases[idx]
+    idx <- sapply(lapply(db, .get_Rd_metadata_from_Rd_lines, "docType"),
                   identical, "class")
     if(!any(idx)) return(bad_Rd_objects)
-    db <- db[idx]
-    stats <- c(n.S4classes = length(S4_classes), n.db = length(db))
-
-    aliases <- lapply(db, .get_Rd_metadata_from_Rd_lines, "alias")
-    named_class <- lapply(aliases, grepl, pattern="-class$")
-    nClass <- sApply(named_class, sum)
-    oneAlias <- sApply(aliases, length) == 1L
-    idx <- oneAlias | nClass == 1L
-    if(!any(idx)) return(bad_Rd_objects)
-    db <- db[idx]
-    stats["n.cl"] <- length(db)
-
-    ## keep only the foo-class alias in case there was more than one:
-    multi <- idx & !oneAlias
-    aliases[multi] <-
-        mapply(`[`, aliases[multi], named_class[multi],
-               SIMPLIFY = FALSE, USE.NAMES = FALSE)
-    aliases <- unlist(aliases[idx], use.names = FALSE)
-
+    db <- db[idx]; aliases <- aliases[idx]
     ## Now collapse.
     db <- lapply(db, paste, collapse = "\n")
     Rd_slots <-
         .apply_Rd_filter_to_Rd_db(db, get_Rd_section, "Slots", FALSE)
-    idx <- !sApply(Rd_slots, identical, character())
+    idx <- !sapply(Rd_slots, identical, character())
     if(!any(idx)) return(bad_Rd_objects)
-    db <- db[idx]; aliases <- aliases[idx]; Rd_slots <- Rd_slots[idx]
-    stats["n.final"] <- length(db)
+    db <- db[idx]
+    aliases <- unlist(aliases[idx])
+    Rd_slots <- Rd_slots[idx]
 
-    dbNames <- .get_Rd_names_from_Rd_db(db)
+    names(db) <- .get_Rd_names_from_Rd_db(db)
 
-    slotNames_from_section_text <- function(txt) {
-        s.apply <- function(X, FUN, ...) # keeping 'names':
-            unlist(sapply(X, FUN, ..., simplify = FALSE))
+    .get_slot_names_from_slot_section_text <- function(txt) {
         ## Get \describe (inside user-defined section 'Slots')
-        txt <- s.apply(txt, get_Rd_section, "describe")
+        txt <- unlist(sapply(txt, get_Rd_section, "describe"))
         ## Suppose this worked ...
         ## Get the \items inside \describe
-        txt <- s.apply(txt, get_Rd_items)
+        txt <- unlist(sapply(txt, get_Rd_items))
         if(!length(txt)) return(character())
         ## And now strip enclosing '\code{...}:'
         txt <- gsub("\\\\code\\{([^}]*)\\}:?", "\\1", as.character(txt))
@@ -1043,61 +1076,49 @@ codocClasses <- function(package, lib.loc = NULL)
         txt
     }
 
-    .inheritedSlotNames <- function(ext) {
-	supcl <- methods::.selectSuperClasses(ext)
-	unique(unlist(lapply(lapply(supcl, methods::getClassDef),
-			     methods::slotNames),
-		      use.names=FALSE))
-    }
-
-    S4topics <- sApply(S4_classes, utils:::topicName, type="class")
-    S4_checked <- S4_classes[has.a <- S4topics %in% aliases]
-    idx <- match(S4topics[has.a], aliases)
-    for(icl in seq_along(S4_checked)) {
-        cl <- S4_checked[icl]
-        cld <- methods::getClass(cl, where = code_env)
-        ii <- idx[icl]
-        ## Add sanity checking later ...
-        codeSlots <- sort(methods::slotNames(cld))
-        docSlots  <- sort(slotNames_from_section_text(Rd_slots[[ii]]))
-        superSlots <- .inheritedSlotNames(cld@contains)
-        if(length(superSlots)) ## allow '\dots' in docSlots
-            docSlots <- docSlots[docSlots != "\\dots"]
-## was if(!identical(slots_in_code, slots_in_docs)) {
-        if(!all(d.in.c <- docSlots %in% codeSlots) ||
-           !all(c.in.d <- (codeSlots %w/o% superSlots) %in% docSlots) ) {
-            bad_Rd_objects[[dbNames[ii]]] <-
-                list(name = cl,
-                     code = codeSlots,
-                     inherited = superSlots,
-                     docs = docSlots)
+    S4_classes_checked <- character()
+    for(cl in S4_classes) {
+        idx <- which(utils:::topicName("class", cl) == aliases)
+        if(length(idx) == 1L) {
+            ## Add sanity checking later ...
+            S4_classes_checked <- c(S4_classes_checked, cl)
+            slots_in_code <-
+                sort(names(methods::slot(methods::getClass(cl, where =
+                                                           code_env),
+                                         "slots")))
+            slots_in_docs <-
+                sort(.get_slot_names_from_slot_section_text(Rd_slots[[idx]]))
+            if(!identical(slots_in_code, slots_in_docs)) {
+                bad_Rd_objects[[names(db)[idx]]] <-
+                    list(name = cl,
+                         code = slots_in_code,
+                         docs = slots_in_docs)
+            }
         }
     }
 
-    attr(bad_Rd_objects, "S4_classes_checked") <- S4_checked
-    attr(bad_Rd_objects, "stats") <- stats
+    attr(bad_Rd_objects, "S4_classes_checked") <-
+        as.character(S4_classes_checked)
     bad_Rd_objects
-} ## end{ codocClasses }
+}
 
-print.codocClasses <- function(x, ...)
+print.codocClasses <-
+function(x, ...)
 {
     if(!length(x))
         return(invisible(x))
-    capWord <- function(w) sub("\\b(\\w)", "\\U\\1", w, perl=TRUE)
-    wrapPart <- function(nam) {
-	if(length(O <- docObj[[nam]]))
-	    strwrap(sprintf("%s: %s", gettextf(capWord(nam)),
-			    paste(O, collapse = " ")),
-		    indent = 2L, exdent = 8L)
-    }
+    format_args <- function(s) paste(s, collapse = " ")
     for (docObj in names(x)) {
         writeLines(gettextf("S4 class codoc mismatches from documentation object '%s':",
                             docObj))
         docObj <- x[[docObj]]
         writeLines(c(gettextf("Slots for class '%s'", docObj[["name"]]),
-		     wrapPart("code"),
-		     wrapPart("inherited"),
-		     wrapPart("docs")))
+                     strwrap(gettextf("Code: %s",
+                                      format_args(docObj[["code"]])),
+                             indent = 2L, exdent = 8L),
+                     strwrap(gettextf("Docs: %s",
+                                      format_args(docObj[["docs"]])),
+                             indent = 2L, exdent = 8L)))
         writeLines("")
     }
     invisible(x)
@@ -1120,7 +1141,8 @@ function(package, lib.loc = NULL)
     ## Currently, we only return the names of all data frames checked.
     ## </NOTE>
 
-    bad_Rd_objects <- structure(NULL, class = "codocData")
+    bad_Rd_objects <- list()
+    class(bad_Rd_objects) <- "codocData"
 
     ## Argument handling.
     if(length(package) != 1L)
@@ -1456,7 +1478,7 @@ function(package, dir, lib.loc = NULL)
             functions_not_in_aliases <- character()
 
         if((length(arg_names_in_usage_missing_in_arg_list))
-           || anyDuplicated(arg_names_in_arg_list)
+           || any(duplicated(arg_names_in_arg_list))
            || (length(arg_names_in_arg_list_missing_in_usage))
            || (length(functions_not_in_aliases)))
             bad_doc_objects[[docObj]] <-

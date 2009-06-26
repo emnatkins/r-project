@@ -789,7 +789,6 @@ void setup_Rmainloop(void)
     R_Toplevel.intsusp = FALSE;
     R_Toplevel.handlerstack = R_HandlerStack;
     R_Toplevel.restartstack = R_RestartStack;
-    R_Toplevel.srcref = R_NilValue;
     R_GlobalContext = R_ToplevelContext = &R_Toplevel;
 
     R_Warnings = R_NilValue;
@@ -834,7 +833,7 @@ void setup_Rmainloop(void)
     R_LockEnvironment(R_BaseEnv, TRUE);
 #endif
     /* At least temporarily unlock some bindings used in graphics */
-    R_unLockBinding(R_DeviceSymbol, R_BaseEnv);
+    R_unLockBinding(install(".Device"), R_BaseEnv);
     R_unLockBinding(install(".Devices"), R_BaseEnv);
     R_unLockBinding(install(".Library.site"), R_BaseEnv);
 
@@ -985,13 +984,13 @@ static void printwhere(void)
   for (cptr = R_GlobalContext; cptr; cptr = cptr->nextcontext) {
     if ((cptr->callflag & (CTXT_FUNCTION | CTXT_BUILTIN)) &&
 	(TYPEOF(cptr->call) == LANGSXP)) {
-	Rprintf("where %d", lct++);
-	SrcrefPrompt("", cptr->srcref);
+	Rprintf("where %d: ", lct++);
 	PrintValue(cptr->call);
     }
   }
   Rprintf("\n");
 }
+
 
 static int ParseBrowser(SEXP CExpr, SEXP rho)
 {
@@ -1021,6 +1020,7 @@ static int ParseBrowser(SEXP CExpr, SEXP rho)
 	    R_run_onexits(R_ToplevelContext);
 
 	    /* this is really dynamic state that should be managed as such */
+	    R_BrowseLevel = 0;
 	    SET_DEBUG(rho, 0); /*PR#1721*/
 
 	    jump_to_toplevel();
@@ -1034,85 +1034,12 @@ static int ParseBrowser(SEXP CExpr, SEXP rho)
     return rval;
 }
 
-/* 
-   since users are unlikely to get this right we need to try
-   to do name/position matching - this is a bit rough
-*/
-static SEXP matchargs(SEXP args)
+/* registering this as a cend exit procedure makes sure R_BrowseLevel
+   is maintained across LONGJMP's */
+static void browser_cend(void *data)
 {
-    int i, nargs = length(args), mt = 0, mc = 0, me = 0, nmatch = 0, pos[3];
-    SEXP tmp, tsym, csym, esym, argList;
-
-    /* set up argList and defaults */
-    PROTECT(argList = allocList(3));
-    PROTECT(tmp = allocVector(STRSXP, 3));
-    SET_STRING_ELT(tmp, 0, mkChar("text"));
-    SET_STRING_ELT(tmp, 0, mkChar("condition"));
-    SET_STRING_ELT(tmp, 0, mkChar("expr"));
-    setAttrib(argList, R_NamesSymbol, tmp);
-    UNPROTECT(1);
-
-    /* set default values */
-
-    SETCAR(argList, mkString(""));
-    SETCADR(argList, R_NilValue);
-    PROTECT(tmp = allocVector(LGLSXP, 1));
-    LOGICAL(tmp)[0] = 1; /*true*/
-    SETCADDR(argList, tmp);
-    UNPROTECT(1);
-
-    /* now match  */
-    if( nargs == 0 ) {
-	UNPROTECT(1);
-	return(argList);
-    }
-
-    /* we have at least one arg */
-    tsym = install("text"); csym = install("condition"); esym = install("expr");
-    tmp = args;
-
-    for(i = 0; i < nargs; i++) { 
-	pos[i] = 0;
-	if(TAG(tmp) == tsym) {
-	    if( mt == 0 ) {
-		nmatch++; pos[i] = 1; mt = 1; 
-		SETCAR(argList, CAR(tmp));
-	    } else error(_("duplicate text argument"));
-	}
-	if(TAG(tmp) == csym) {
-	    if( mc == 0 ) {
-		nmatch++; pos[i] = 1; mc = 1;
-		SETCADR(argList, CAR(tmp));
-	    } else error(_("duplicate condition argument"));
-	}
-	if(TAG(tmp) == esym) {
-	    if( me == 0 ) {
-		nmatch++; pos[i] = 1; me = 1;
-		SETCADDR(argList, CAR(tmp));
-	    } else error(_("duplicate expr argument"));
-	    tmp = CDR(tmp);
-	}
-    }
-    if (nmatch == nargs) {
-	UNPROTECT(1);
-	return(argList);
-    }
-    /* otherwise match by position */
-    /* reset tmp */
-    tmp = args;
-    for(i = 0; i < 3; i++) {
-	if( pos[i] == 0 ) {
-	    if( mt == 0 ) /* first non-named is text */
-		SETCAR(argList, tmp);
-	    else if(mc == 0)  /* second is condition */
-		SETCADR(argList, tmp);
-	    else /* third is expr */
-		SETCADDR(argList, tmp);
-	    nmatch++;
-	}
-    }
-    UNPROTECT(1);
-    return(argList);
+    int *psaved = (int *) data;
+    R_BrowseLevel = *psaved - 1;
 }
 
 SEXP attribute_hidden do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -1120,22 +1047,13 @@ SEXP attribute_hidden do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
     RCNTXT *saveToplevelContext;
     RCNTXT *saveGlobalContext;
     RCNTXT thiscontext, returncontext, *cptr;
-    int savestack, browselevel, tmp;
-    SEXP topExp, argList;
-
-    /* argument matching */
-    PROTECT(argList = matchargs(args)); 
-
-    /* return if the expr is not TRUE */
-    if( !asLogical(CADDR(argList)) ) {
-        UNPROTECT(1);
-        return R_NilValue;
-    }
+    int savestack, savebrowselevel, tmp;
+    SEXP topExp;
 
     /* Save the evaluator state information */
     /* so that it can be restored on exit. */
 
-    browselevel = countContexts(CTXT_BROWSER, 1);
+    savebrowselevel = R_BrowseLevel + 1;
     savestack = R_PPStackTop;
     PROTECT(topExp = R_CurrentExpr);
     saveToplevelContext = R_ToplevelContext;
@@ -1148,11 +1066,7 @@ SEXP attribute_hidden do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
 	Rprintf("Called from: ");
 	tmp = asInteger(GetOption(install("deparse.max.lines"), R_BaseEnv));
 	if(tmp != NA_INTEGER && tmp > 0) R_BrowseLines = tmp;
-        if( cptr != R_ToplevelContext )
-	    PrintValueRec(cptr->call,rho);
-        else
-            Rprintf("top level \n");
-
+	PrintValueRec(cptr->call,rho);
 	R_BrowseLines = 0;
     }
 
@@ -1165,7 +1079,9 @@ SEXP attribute_hidden do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* acts as a target for error returns. */
 
     begincontext(&returncontext, CTXT_BROWSER, call, rho,
-		 R_BaseEnv, argList, R_NilValue);
+		 R_BaseEnv, R_NilValue, R_NilValue);
+    returncontext.cend = browser_cend;
+    returncontext.cenddata = &savebrowselevel;
     if (!SETJMP(returncontext.cjmpbuf)) {
 	begincontext(&thiscontext, CTXT_RESTART, R_NilValue, rho,
 		     R_BaseEnv, R_NilValue, R_NilValue);
@@ -1176,7 +1092,8 @@ SEXP attribute_hidden do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	R_GlobalContext = &thiscontext;
 	R_InsertRestartHandlers(&thiscontext, TRUE);
-	R_ReplConsole(rho, savestack, browselevel+1);
+	R_BrowseLevel = savebrowselevel;
+	R_ReplConsole(rho, savestack, R_BrowseLevel);
 	endcontext(&thiscontext);
     }
     endcontext(&returncontext);
@@ -1186,10 +1103,10 @@ SEXP attribute_hidden do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
     R_CurrentExpr = topExp;
     UNPROTECT(1);
     R_PPStackTop = savestack;
-    UNPROTECT(1);
     R_CurrentExpr = topExp;
     R_ToplevelContext = saveToplevelContext;
     R_GlobalContext = saveGlobalContext;
+    R_BrowseLevel--;
     return R_ReturnedValue;
 }
 
@@ -1225,8 +1142,7 @@ SEXP attribute_hidden do_quit(SEXP call, SEXP op, SEXP args, SEXP rho)
     SA_TYPE ask=SA_DEFAULT;
     int status, runLast;
 
-    /* if there are any browser contexts active don't quit */
-    if(countContexts(CTXT_BROWSER, 1)) {
+    if(R_BrowseLevel) {
 	warning(_("cannot quit from browser"));
 	return R_NilValue;
     }
@@ -1501,13 +1417,15 @@ R_taskCallbackRoutine(SEXP expr, SEXP value, Rboolean succeeded,
     SEXP f = (SEXP) userData;
     SEXP e, tmp, val, cur;
     int errorOccurred;
-    Rboolean again, useData = LOGICAL(VECTOR_ELT(f, 2))[0];
+    Rboolean again;
+    Rboolean useData;
+    useData = LOGICAL(VECTOR_ELT(f, 2))[0];
 
     PROTECT(e = allocVector(LANGSXP, 5 + useData));
     SETCAR(e, VECTOR_ELT(f, 0));
     cur = CDR(e);
     SETCAR(cur, tmp = allocVector(LANGSXP, 2));
-	SETCAR(tmp, R_QuoteSymbol);
+	SETCAR(tmp, install("quote"));
 	SETCAR(CDR(tmp), expr);
     cur = CDR(cur);
     SETCAR(cur, value);

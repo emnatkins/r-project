@@ -742,24 +742,66 @@ Subdirectory @file{po} is used for files related to @emph{localization}:
 @subsection Package bundles
 @cindex Package bundles
 
-Package bundles were deprecated in @R{} 2.10.0 and support for
-installing them will be removed in @R{} 2.11.0.
+Sometimes it is convenient to distribute several packages as a
+@emph{bundle}.  (An example is @pkg{VR} which contains four packages.)
+The installation procedures on both Unix-alikes and Windows can handle
+package bundles.  However, it has been announced that this will be
+removed in @R{} 2.11.0, so it is recommended that no new bundles be
+created.
 
-Unbundling a package bundle is straightforward: just replace the
-@file{DESCRIPTION.in} file of each package by a suitbale
-@file{DESCRIPTION} file and distribute the individual packages (e.g.@:
-@emph{via} tarballs created by @command{R CMD build})).  The installed
-@file{DESCRIPTION} files provide a good starting point, but the
-@samp{Bundle}, @samp{Contains} and @samp{BundleDescription} fields
-should not appear.  It may be needed to add references in the
-@samp{Suggests} ot @samp{Iimports} fields to other members of the former
-bundle.
+The @file{DESCRIPTION} file of a bundle has a @samp{Bundle}
+field and no @samp{Package} field, as in
 
-Prior to @R{} 2.9.1, @code{update.packages()} will only update members
-of a bundle by an updated bundle, whereas later versions of @R{} will
-update one or more members if an updated package of that name is
-available.  Thus when a bundle is unbundled, updating is transparent in
-@R{} 2.9.1 and later but needs to be done manually in earlier versions.
+@quotation
+@cartouche
+@smallexample
+Bundle: VR
+Priority: recommended
+Contains: MASS class nnet spatial
+Version: 7.2-36
+Date: 2007-08-29
+Depends: R (>= 2.4.0), grDevices, graphics, stats, utils
+Suggests: lattice, nlme, survival
+Author: S original by Venables & Ripley.
+  R port by Brian Ripley <ripley@@stats.ox.ac.uk>, following earlier
+  work by Kurt Hornik and Albrecht Gebhardt.
+Maintainer: Brian Ripley <ripley@@stats.ox.ac.uk>
+BundleDescription: Functions and datasets to support Venables and
+  Ripley, 'Modern Applied Statistics with S' (4th edition).
+License: GPL-2 | GPL-3
+URL: http://www.stats.ox.ac.uk/pub/MASS4/
+@end smallexample
+@end cartouche
+@end quotation
+
+The @samp{Contains} field lists the packages (space separated), which
+should be contained in separate subdirectories with the names given.
+During building and installation, packages will be installed in the
+order specified.  Be sure to order this list so that dependencies are
+met appropriately.
+
+The packages contained in a bundle are standard packages in all
+respects except that the @file{DESCRIPTION} file is replaced by a
+@file{DESCRIPTION.in} file which just contains fields additional to
+the @file{DESCRIPTION} file of the bundle, for example
+
+@quotation
+@cartouche
+@smallexample
+Package: spatial
+Description: Functions for kriging and point pattern analysis.
+Title: Functions for Kriging and Point Pattern Analysis
+@end smallexample
+@end cartouche
+@end quotation
+
+Any files in the package bundle except the @file{DESCRIPTION} file and
+the named packages will be ignored.
+
+The @samp{Depends} field in the bundle's @file{DESCRIPTION} file should
+list the dependencies of all the constituent packages (and similarly for
+@samp{Imports} and @samp{Suggests}), and then @file{DESCRIPTION.in}
+files should not contain these fields.
 
 @node Configure and cleanup, Checking and building packages, Package structure, Creating R packages
 @section Configure and cleanup
@@ -2603,11 +2645,10 @@ Windows users can find pre-compiled binaries at the @acronym{GNU}
 archive mirrors and packaged with the @code{poEdit} package
 (@uref{http://@/poedit.sourceforge.net/@/download.php#win32}).
 
+
 @menu
 * C-level messages::            
 * R messages::                  
-* Installing translations::     
-* Makefile support::            
 @end menu
 
 @node C-level messages, R messages, Internationalization, Internationalization
@@ -2640,26 +2681,6 @@ for example
 error(_("'ord' must be a positive integer"));
 @end example
 
-If you want to use different messages for singular and plural forms, you
-need to add
-
-@example
-#ifndef ENABLE_NLS
-#define dngettext(pkg, String, StringP, N) (N > 1 ? StringP: String)
-#endif
-@end example
-
-@noindent
-and mark strings by
-
-@example
-dngettext(("@var{pkg}", @var{<singular string>}, @var{<plural string>}, n)
-@end example
-
-@noindent
-(This is only supported as from @R{} 2.10.0, and will not work on
-Windows for earlier versions of @R{}.)
-
 @item
 In the package's @file{src} directory run
 
@@ -2683,7 +2704,7 @@ for any language @var{lang} that matches the user's preferences (via the
 setting of the @code{LANGUAGE} environment variable or from the locale
 settings).
 
-@node R messages, Installing translations, C-level messages, Internationalization
+@node R messages,  , C-level messages, Internationalization
 @subsection R messages
 
 Mechanisms to support the automatic translation of @R{} @code{stop},
@@ -2714,91 +2735,6 @@ the selected language depending on the value of its first argument
 Packages without name spaces will need to use @code{domain="R-@var{pkg}"}
 explicitly in calls to @code{stop}, @code{warning}, @code{message},
 @code{gettext}/@code{gettextf} and @code{ngettext}.
-
-
-@node Installing translations, Makefile support, R messages, Internationalization
-@subsection Installing translations
-
-Once the template files have been created, translations can be made.
-Conventional translations have file extension @file{.po} and are placed
-in the @file{po} subdirectory of the package with a name that is either
-@samp{@var{ll}.po} or @samp{R-@var{ll}.po} for translations of the C and R
-messages respectively to language with code @samp{@var{ll}}.
-
-@ifset UseExternalXrefs
-@xref{Localization of messages, Localization of messages,
-Customizing package compilation, R-admin,
-R Installation and Administration}, for details of language codes.
-@end ifset
-@ifclear UseExternalXrefs
-See `Localization of messages' in `R Installation and Administration',
-for details of language codes.
-@end ifclear
-
-Translations need to be prepared and installed in @file{inst/po/} to be
-usable once the package is installed.  To do this use the appropriate
-lines of
-
-@example
-mkdir -p inst/po/@var{ll}/LC_MESSAGES
-msgfmt -c --statistics -o inst/po/@var{ll}/LC_MESSAGES/R-@var{pkg}.mo po/R-@var{ll}.po
-msgfmt -c --statistics -o inst/po/@var{ll}/LC_MESSAGES/@var{pkg}.mo po/@var{ll}.po
-@end example
-
-@noindent
-from the package's top-level directory.  Using @option{-c} does some
-useful validity checks, and @option{--statistics} notes the coverage.
-
-@node Makefile support,  , Installing translations, Internationalization
-@subsection Makefile support
-
-As from @R{} 2.10.0 there is some makefile support in the @file{po}
-directory of the @R{} sources.  To use this to create the template
-files, use
-
-@example
-mkdir -p @var{pkgdir}/po
-@end example
-
-@noindent
-where @file{@var{pkgdir}} is the top-level directory of the package
-sources.  If the package as C source files in its @file{src} directory
-that are marked for translation, use
-
-@example
-touch @var{pkgdir}/po/@var{pkg}.pot
-@end example
-
-@noindent
-to create a dummy template file.  Then
-
-@example
-cd @var{R_BUILD_DIR}/po
-make pkg-update PKG=@var{pkg} PKGDIR=@var{pkgdir}
-@end example
-
-@noindent
-will create a template file of R messages and update any template of C
-messages.  It will also prepare an install a translation for the
-@samp{en@@quot} pseudo-language, which if selected interprets (single
-and double) quotes in their directional forms in suitable (e.g.@:)
-locales.
-
-If translations are added in the @file{@var{pkgdir}/po} directory,
-running the same @command{make} command will check and then install the
-translations.
-
-If the package sources are updated, the same @command{make} command will
-update the template files, merge the changes into the translation
-@file{.po} files and then installed the updated translations.  You will
-often see that merging marks translations as `fuzzy' and this is
-reported in the coverage statistics.  As fuzzy translations are
-@emph{not} used, this is an indication that the translation files need
-human attention.
-
-
-This support is only for Unix-alikes, and the tools did not work
-correctly on at least one Mac OS X system.
 
 @findex CITATION
 @cindex citation
@@ -4582,7 +4518,7 @@ profile DLLs on Windows.
 @menu
 * Linux::                       
 * Solaris::                     
-* Mac OS X::                    
+* Mac OS X::                     
 @end menu
 
 @node Linux, Solaris, Profiling compiled code, Profiling compiled code

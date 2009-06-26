@@ -59,7 +59,9 @@ The files are as follows.
 
   ltmain.sh
 	provide generalized library-building support services.  Taken
-	from Libtool 2.2.6a.
+	from Libtool 1.5; older versions taken from the Libtool CVS
+	(:pserver:anoncvs@subversions.gnu.org:/cvsroot/libtool, module
+	'libtool').
 
   move-if-change
 	move a file if changed; otherwise, remove.

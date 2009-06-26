@@ -466,27 +466,9 @@ SEXP attribute_hidden do_usemethod(SEXP call, SEXP op, SEXP args, SEXP env)
 	findcontext(CTXT_RETURN, env, ans); /* does not return */
 	UNPROTECT(1);
     }
-    else {
-	SEXP klass;
-	int nclass;
-	char cl[1000];
-	PROTECT(klass = R_data_class2(obj));
-	nclass = length(klass);
-	if (nclass == 1) 
-	    strcpy(cl, translateChar(STRING_ELT(klass, 0)));
-	else {
-	    int i;
-	    strcpy(cl, "c('");
-	    for (i = 0; i < nclass; i++) {
-		if (i > 0) strcat(cl, "', '");
-		strcat(cl, translateChar(STRING_ELT(klass, i)));
-	    }
-	    strcat(cl, "')");
-	}
-	errorcall(call, _("no applicable method for '%s' applied to an object of class \"%s\""),
-		  translateChar(STRING_ELT(generic, 0)), cl);
-	UNPROTECT(1); /* NOT Used */
-    }
+    else
+	errorcall(call, _("no applicable method for \"%s\""),
+		  translateChar(STRING_ELT(generic, 0)));
     return R_NilValue; /* NOT Used */
 }
 
@@ -1366,7 +1348,8 @@ SEXP R_do_MAKE_CLASS(const char *what)
     SEXP e, call;
     if(!what)
 	error(_("C level MAKE_CLASS macro called with NULL string pointer"));
-    if(!s_getClass) s_getClass = install("getClass");
+    if(!s_getClass)
+	s_getClass = Rf_install("getClass");
     PROTECT(call = allocVector(LANGSXP, 2));
     SETCAR(call, s_getClass);
     SETCAR(CDR(call), mkString(what));
@@ -1382,7 +1365,8 @@ SEXP R_getClassDef(const char *what)
     SEXP e, call;
     if(!what)
 	error(_("R_getClassDef(.) called with NULL string pointer"));
-    if(!s_getClassDef) s_getClassDef = install("getClassDef");
+    if(!s_getClassDef)
+	s_getClassDef = Rf_install("getClassDef");
     PROTECT(call = allocVector(LANGSXP, 2));
     SETCAR(call, s_getClassDef);
     SETCAR(CDR(call), mkString(what));
@@ -1395,10 +1379,12 @@ SEXP R_do_new_object(SEXP class_def)
 {
     static SEXP s_virtual = NULL, s_prototype, s_className;
     SEXP e, value;
+    static SEXP R_packageSymbol = NULL;
     if(!s_virtual) {
-	s_virtual = install("virtual");
-	s_prototype = install("prototype");
-	s_className = install("className");
+	s_virtual = Rf_install("virtual");
+	s_prototype = Rf_install("prototype");
+	s_className = Rf_install("className");
+	R_packageSymbol = install("package");
     }
     if(!class_def)
 	error(_("C level NEW macro called with null class definition pointer"));
@@ -1410,7 +1396,7 @@ SEXP R_do_new_object(SEXP class_def)
     }
     e = R_do_slot(class_def, s_className);
     value = duplicate(R_do_slot(class_def, s_prototype));
-    if(TYPEOF(value) == S4SXP || getAttrib(e, R_PackageSymbol) != R_NilValue)
+    if(TYPEOF(value) == S4SXP || getAttrib(e, R_packageSymbol) != R_NilValue)
     { /* Anything but an object from a base "class" (numeric, matrix,..) */
 	setAttrib(value, R_ClassSymbol, e);
 	SET_S4_OBJECT(value);
@@ -1420,13 +1406,15 @@ SEXP R_do_new_object(SEXP class_def)
 
 Rboolean attribute_hidden R_seemsOldStyleS4Object(SEXP object)
 {
+    static SEXP R_packageSymbol = NULL;
     SEXP klass;
     if(!isObject(object) || IS_S4_OBJECT(object)) return FALSE;
     /* We want to know about S4SXPs with no S4 bit */
     /* if(TYPEOF(object) == S4SXP) return FALSE; */
+    if(!R_packageSymbol) R_packageSymbol = install("package");
     klass = getAttrib(object, R_ClassSymbol);
     return (klass != R_NilValue && LENGTH(klass) == 1 &&
-	    getAttrib(klass, R_PackageSymbol) != R_NilValue) ? TRUE: FALSE;
+	    getAttrib(klass, R_packageSymbol) != R_NilValue) ? TRUE: FALSE;
 }
 
 

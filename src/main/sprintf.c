@@ -106,11 +106,7 @@ SEXP attribute_hidden do_sprintf(SEXP call, SEXP op, SEXP args, SEXP env)
 
     /* record the args for possible coercion and later re-ordering */
     for(i = 0; i < nargs; i++, args = CDR(args)) {
-	SEXPTYPE t_ai;
 	a[i] = CAR(args);
-	if((t_ai = TYPEOF(a[i])) == LANGSXP || t_ai == SYMSXP) /* << maybe add more .. */
-	    error(_("invalid type of argument[%d]: '%s'"),
-		  i+1, CHAR(type2str(t_ai)));
 	lens[i] = length(a[i]);
 	if(lens[i] == 0) return allocVector(STRSXP, 0);
     }

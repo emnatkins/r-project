@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.10.0\n"
+"Project-Id-Version: R 2.9.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-06-14 08:14\n"
+"POT-Creation-Date: 2009-06-16 12:30\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -89,16 +89,16 @@ msgstr ""
 msgid "name"
 msgstr ""
 
-msgid "Data codoc mismatches from documentation object '%s':"
-msgstr ""
-
-msgid "Variables in data frame '%s'"
-msgstr ""
-
 msgid "code"
 msgstr ""
 
 msgid "docs"
+msgstr ""
+
+msgid "Data codoc mismatches from documentation object '%s':"
+msgstr ""
+
+msgid "Variables in data frame '%s'"
 msgstr ""
 
 msgid "Undocumented arguments in documentation object '%s'"
@@ -641,6 +641,9 @@ msgstr ""
 msgid "field 'SaveImage' is defunct: please remove it"
 msgstr ""
 
+msgid "cannot create temporary directory"
+msgstr ""
+
 msgid "Use of --with-package-versions is defunct"
 msgstr ""
 
@@ -651,9 +654,6 @@ msgid "-l option without value"
 msgstr ""
 
 msgid "Warning: unknown option"
-msgstr ""
-
-msgid "cannot create temporary directory"
 msgstr ""
 
 msgid "processing"

@@ -109,9 +109,7 @@ function(x, strict = TRUE)
                           .standard_regexps()$valid_R_system_version,
                           c("R_system_version", "package_version"))
 
-getRversion <-
-function()
-    package_version(R.version)
+getRversion <- function() package_version(R.version)
 
 ## Workhorses.
 
@@ -135,9 +133,10 @@ function(x, base = NULL)
                            function(t)
                            sum(t / base^seq.int(0, length.out =
                                                 length(t)))))
-    structure(ifelse(lens > 0L, x, NA_real_),
-              base = base, lens = lens, .classes = classes)
+    structure(x, base = base, lens = lens, .classes = classes)
 }
+
+xtfrm.numeric_version <- function(x) .encode_numeric_version(x)
 
 ## <NOTE>
 ## Currently unused.
@@ -281,10 +280,6 @@ function(x, incomparables = FALSE, ...)
     NextMethod("duplicated")
 }
 
-is.na.numeric_version <-
-function(x)
-    is.na(.encode_numeric_version(x))
-
 print.numeric_version <-
 function(x, ...)
 {
@@ -305,10 +300,6 @@ function(x, ...)
 unique.numeric_version <-
 function(x, incomparables = FALSE, ...)
     x[!duplicated(x, incomparables, ...)]
-
-xtfrm.numeric_version <-
-function(x)
-    .encode_numeric_version(x)
 
 ## <NOTE>
 ## Versions of R prior to 2.6.0 had only a package_version class.

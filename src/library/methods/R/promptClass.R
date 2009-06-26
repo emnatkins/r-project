@@ -132,19 +132,18 @@ function (clName, filename = NULL, type = "class",
                            .makeCallString(initMethod, "new", argNames), "}."),
 		    "	 ~~ describe objects here ~~ ", "}")
     }
-    .slots <- if (nslots > 0) {
+    if (nslots > 0) {
 	slotclasses <- slotClassWithSource(clName)
 	slotnames <- names(slotclasses)
-	.slots.head <- c("\\section{Slots}{", "  \\describe{")
+	.slots.head <- c("\\section{Slots}{", "	 \\describe{")
 	.slots.body <-	paste0("    \\item{\\code{", slotnames,
-                               "}:}", "{Object of class \\code{",
-                               slotclasses, "} ~~ }")
+		"}:}", "{Object of class \\code{", slotclasses, "} ~~ }")
 	.slots.tail <- c("  }","}")
-	c(.slots.head,  .slots.body,	.slots.tail)
-    } else character()
+	.slots <- c(.slots.head,  .slots.body,	.slots.tail)
+    }
+    else
+	.slots <- character()
     .extends <- clDef@contains
-## FIXME: the superclass slots should be marked as such
-##       and left *optional* to be documented
     if(length(.extends)) {
 	.extends <- showExtends(.extends, printTo = FALSE)
 	.extends <-

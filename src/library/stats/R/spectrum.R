@@ -321,7 +321,6 @@ plot.spec.coherency <-
                   cex = par("cex.main"), font = par("font.main"))
         }
     }
-    invisible()
 }
 
 plot.spec.phase <-
@@ -371,5 +370,4 @@ plot.spec.phase <-
                   cex = par("cex.main"), font = par("font.main"))
         }
     }
-    invisible()
 }

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-06-16 12:48\n"
+"POT-Creation-Date: 2009-06-14 08:17\n"
 "PO-Revision-Date: 2005-05-31 09:39+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -233,8 +233,7 @@ msgstr "'row.names'가 빠져 있어 되지 않습니다"
 msgid "invalid 'dimnames' given for data frame"
 msgstr "데이터 프레임에 무효인 'dmnames'가 주어졌습니다"
 
-#, fuzzy
-msgid "cannot coerce class %s into a data.frame"
+msgid "cannot coerce class \"%s\" into a data.frame"
 msgstr "class \\\"%s\\\"는 데이터 프레임에 강제 변환할수가 없습니다"
 
 msgid "invalid 'row.names', length %d for a data frame with %d rows"
@@ -277,23 +276,11 @@ msgstr "주어진 열명은 잘못한 길이입니다"
 msgid "row names were found from a short variable and have been discarded"
 msgstr "열명은 짧은 변수로부터 검색할수 있어 버리고 갔습니다"
 
-#, fuzzy
-msgid "named arguments other than 'drop' are discouraged"
-msgstr "'row.names'가 빠져 있어 되지 않습니다"
-
 msgid "drop argument will be ignored"
 msgstr "drop인수는 무시됩니다"
 
 msgid "undefined columns selected"
 msgstr "정의하지 않는 열이 선택되었습니다"
-
-#, fuzzy
-msgid "named arguments other than 'exact' are discouraged"
-msgstr "'row.names'가 빠져 있어 되지 않습니다"
-
-#, fuzzy
-msgid "named arguments are discouraged"
-msgstr "중복한 'row.names'는 허용되지 않습니다"
 
 msgid "rhs is the wrong length for indexing by a logical matrix"
 msgstr "우변은 논리값 행렬에 의해 첨자 조작하기에는 잘못된 길이입니다"
@@ -1045,6 +1032,9 @@ msgstr ""
 msgid "invalid to change the storage mode of a factor"
 msgstr ""
 
+msgid "package '%s' has been merged into '%s'"
+msgstr "패케지'%s'는 '%s'에 병합되었습니다"
+
 msgid "'%s' is not an exported object from 'namespace:%s'"
 msgstr "'%s'는 'namespace:%s' 로부터  export된 오브젝트가 아닙니다"
 
@@ -1635,9 +1625,6 @@ msgid_plural "Warning messages:\n"
 msgstr[0] ""
 "경고 메세지:\n"
 "경고 메세지(복수)\n"
-
-#~ msgid "package '%s' has been merged into '%s'"
-#~ msgstr "패케지'%s'는 '%s'에 병합되었습니다"
 
 #~ msgid "package 'lqs' has been moved back to package 'MASS'"
 #~ msgstr "패키지 'lqs'는  패키지 'MASS'으로 재귀했습니다"

@@ -260,7 +260,7 @@ completeClassDefinition <-
             }
             properties <- unlist(superProps, recursive = FALSE)
             ## check for conflicting slot names
-            if(anyDuplicated(allNames(properties))) {
+            if(any(duplicated(allNames(properties)))) {
                 duped <- duplicated(names(properties))
 #TEMPORARY -- until classes are completed in place & we have way to match non-inherited slots
                 properties <- properties[!duped]
@@ -437,7 +437,6 @@ selectSuperClasses <-
     addCond <- function(xpr, prev)
         if(length(prev)) substitute(P && N, list(P = prev, N = xpr)) else xpr
     C <- if(dropVirtual) {
-        ## NB the default 'where' in getClass() may depend on specific superClass:
         isVirtualExt <- function(x) getClass(x@superClass)@virtual
         quote(!isVirtualExt(exti))
     } else expression()
@@ -923,8 +922,7 @@ possibleExtends <- function(class1, class2, ClassDef1, ClassDef2)
             if(!.identC(class(ClassDef2), "classRepresentation") &&
                isClassUnion(ClassDef2))
                 ## a simple TRUE iff class1 or one of its superclasses belongs to the union
-		i <- as.logical(anyDuplicated(c(class1, unique(nm1),
-						names(ext))))
+                i <- any(duplicated(c(class1, unique(nm1), names(ext))))
             else {
                 i <- match(class1, names(ext))
             }
@@ -1083,7 +1081,7 @@ completeSubclasses <-
     ## require superclasses to be sorted by distance
     distOrder <- sort.list(sapply(ext, function(x)x@distance))
     ext <- ext[distOrder]
-    if(superClassCase && anyDuplicated(what)) {
+    if(superClassCase && any(duplicated(what))) {
         ext <- .resolveSuperclasses(ClassDef, ext, where)
     }
     ext
@@ -1163,7 +1161,6 @@ requireMethods <-
         environment(method) <- .GlobalEnv
         setMethod(f, signature, method, where = where)
     }
-    NULL
 }
 
 ## Construct an error message for an unsatisfied required method.
@@ -1708,7 +1705,6 @@ substituteFunctionArgs <-
      }
 
 
-## to be .classEnv()  --- currently used in 'Matrix'  (via wrapper)
 ..classEnv <- function(Class, default = .requirePackage("methods"), mustFind = TRUE) {
     package <- { if(is.character(Class)) packageSlot(Class) else
 		 ## must then be a class definition
@@ -1860,7 +1856,6 @@ substituteFunctionArgs <-
             .cacheClass(what, subDef, FALSE, env)
         }
     }
-    NULL
 }
 
 ## alternative to .recacheSubclasses, only needed for non-unions
@@ -1901,7 +1896,6 @@ substituteFunctionArgs <-
             assignClassDef(what, subDef, cwhere, TRUE)
         }
     }
-    NULL
 }
 
 .removeSuperclassBackRefs <- function(Class, classDef, classWhere) {
@@ -1918,7 +1912,6 @@ substituteFunctionArgs <-
                                what, Class))
         }
     }
-    NULL
 }
 
 
@@ -1993,7 +1986,6 @@ substituteFunctionArgs <-
           }
         }
     }
-    NULL
 }
 
 .deleteSuperClass <- function(cdef, superclass) {

@@ -2178,7 +2178,7 @@ internally generic except by reading the source code.
 The process of marking messages (errors, warnings etc) for translation
 in an @R{} package is described in 
 @ifset UseExternalXrefs
-@ref{Internationalization, , Internationalization, R-exts, Writing R Extensions},
+@ref{Localization, , Localization, R-exts, Writing R Extensions},
 @end ifset
 @ifclear UseExternalXrefs
 `Writing R Extensions',
@@ -3149,9 +3149,9 @@ configuration variable.
 @vtable @code
 @item _R_CHECK_CODOC_S4_METHODS_
 Control whether @code{codoc()} testing is also performed on S4 methods.
-This was off by default in R versions prior to 2.10.0 as it gave false
-positives.
-Default: true.
+This is off by default because this can result in false positives, as
+@code{rematchDefinition()} currently does not preserve the given
+formals.
 @item _R_CHECK_DOT_INTERNAL_
 Control whether the package code is scanned for @code{.Internal} calls.
 Default: false.

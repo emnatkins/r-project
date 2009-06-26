@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1999-2009   The R Development Core Team.
+ *  Copyright (C) 1999-2008   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -129,11 +129,11 @@ typedef enum {
     ANYSXP	= 18,	/* make "any" args work */
     VECSXP	= 19,	/* generic vectors */
     EXPRSXP	= 20,	/* expressions vectors */
-    BCODESXP	= 21,	/* byte code */
-    EXTPTRSXP	= 22,	/* external pointer */
-    WEAKREFSXP	= 23,	/* weak reference */
-    RAWSXP	= 24,	/* raw bytes */
-    S4SXP	= 25,	/* S4 non-vector */
+    BCODESXP    = 21,   /* byte code */
+    EXTPTRSXP   = 22,   /* external pointer */
+    WEAKREFSXP  = 23,   /* weak reference */
+    RAWSXP      = 24,   /* raw bytes */
+    S4SXP         = 25,   /* S4 non-vector */
 
     FUNSXP	= 99	/* Closure or Builtin */
 } SEXPTYPE;
@@ -308,8 +308,6 @@ typedef union { VECTOR_SEXPREC s; double align; } SEXPREC_ALIGN;
 #define CLOENV(x)	((x)->u.closxp.env)
 #define DEBUG(x)	((x)->sxpinfo.debug)
 #define SET_DEBUG(x,v)	(((x)->sxpinfo.debug)=(v))
-#define STEP(x)		((x)->sxpinfo.spare)
-#define SET_STEP(x,v)	(((x)->sxpinfo.spare)=(v))
 
 /* Symbol Access Macros */
 #define PRINTNAME(x)	((x)->u.symsxp.pname)
@@ -420,10 +418,8 @@ SEXP (FORMALS)(SEXP x);
 SEXP (BODY)(SEXP x);
 SEXP (CLOENV)(SEXP x);
 int  (DEBUG)(SEXP x);
-int  (STEP)(SEXP x);
 int  (TRACE)(SEXP x);
 void (SET_DEBUG)(SEXP x, int v);
-void (SET_STEP)(SEXP x, int v);
 void (SET_TRACE)(SEXP x, int v);
 void SET_FORMALS(SEXP x, SEXP v);
 void SET_BODY(SEXP x, SEXP v);
@@ -522,23 +518,16 @@ LibExtern SEXP	R_Bracket2Symbol;   /* "[[" */
 LibExtern SEXP	R_BracketSymbol;    /* "[" */
 LibExtern SEXP	R_BraceSymbol;      /* "{" */
 LibExtern SEXP	R_ClassSymbol;	    /* "class" */
-LibExtern SEXP	R_DeviceSymbol;     /* ".Device" */
 LibExtern SEXP	R_DimNamesSymbol;   /* "dimnames" */
 LibExtern SEXP	R_DimSymbol;	    /* "dim" */
 LibExtern SEXP	R_DollarSymbol;	    /* "$" */
 LibExtern SEXP	R_DotsSymbol;	    /* "..." */
 LibExtern SEXP	R_DropSymbol;	    /* "drop" */
-LibExtern SEXP	R_LastvalueSymbol;  /* ".Last.value" */
 LibExtern SEXP	R_LevelsSymbol;	    /* "levels" */
 LibExtern SEXP	R_ModeSymbol;	    /* "mode" */
-LibExtern SEXP	R_NameSymbol;	    /* "name" */
 LibExtern SEXP	R_NamesSymbol;	    /* "names" */
-LibExtern SEXP	R_NaRmSymbol;	    /* "na.rm" */
-LibExtern SEXP  R_PackageSymbol;    /* "package" */
-LibExtern SEXP  R_QuoteSymbol;	    /* "quote" */
 LibExtern SEXP	R_RowNamesSymbol;   /* "row.names" */
 LibExtern SEXP	R_SeedsSymbol;	    /* ".Random.seed" */
-LibExtern SEXP	R_SourceSymbol;     /* "source" */
 LibExtern SEXP	R_TspSymbol;	    /* "tsp" */
 
 /* Missing Values - others from Arith.h */
@@ -581,11 +570,9 @@ int Rf_asLogical(SEXP);
 double Rf_asReal(SEXP);
 SEXP Rf_classgets(SEXP, SEXP);
 SEXP Rf_cons(SEXP, SEXP);
-Rboolean R_compute_identical(SEXP, SEXP);/* ../main/identical.c */
 void Rf_copyMatrix(SEXP, SEXP, Rboolean);
 void Rf_copyMostAttrib(SEXP, SEXP);
 void Rf_copyVector(SEXP, SEXP);
-int Rf_countContexts(int, int);
 SEXP Rf_CreateTag(SEXP);
 void Rf_defineVar(SEXP, SEXP, SEXP);
 SEXP Rf_dimgets(SEXP, SEXP);
@@ -859,7 +846,6 @@ int R_system(const char *);
 #define copyMatrix		Rf_copyMatrix
 #define copyMostAttrib		Rf_copyMostAttrib
 #define copyVector		Rf_copyVector
-#define countContexts		Rf_countContexts
 #define CreateTag		Rf_CreateTag
 #define defineVar		Rf_defineVar
 #define dimgets			Rf_dimgets

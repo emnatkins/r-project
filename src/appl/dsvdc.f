@@ -1,4 +1,3 @@
-c -- called from R's  svd(x, ..., LINPACK = TRUE)  , i.e, *NOT* by default -- 
 c
 c     dsvdc is a subroutine to reduce a double precision nxp matrix x
 c     by orthogonal transformations u and v to diagonal form.  the

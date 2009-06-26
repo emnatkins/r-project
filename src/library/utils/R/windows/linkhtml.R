@@ -115,7 +115,6 @@ make.search.html <- function(lib.loc=.libPaths())
             writeLines(c(contents, ""), out) # space between packages
         }
     }
-    invisible()
 }
 
 fixup.package.URLs <- function(pkg, force = FALSE)
@@ -190,5 +189,4 @@ fixup.libraries.URLs <- function(lib.loc = .libPaths())
         for(pkg in pg)
             try(fixup.package.URLs(file.path(lib,pkg)), silent = TRUE)
     }
-    invisible()
 }

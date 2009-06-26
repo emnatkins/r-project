@@ -17,7 +17,7 @@
 simpleMessage <-
 function(message, call = NULL)
     structure(list(message = message, call = call),
-              class = c("simpleMessage", "message", "condition"))
+              class=c("condition", "message", "simpleMessage"))
 
 suppressMessages <-
 function(expr)

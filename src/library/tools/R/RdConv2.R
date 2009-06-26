@@ -87,11 +87,8 @@ mime_canonical_encoding <- function(encoding)
     encoding
 }
 
-RdTags <- function(Rd) {
-    res <- sapply(Rd, function(element) attr(element, "Rd_tag"))
-    if (!length(res)) res <- character(0)
-    res
-}
+RdTags <- function(Rd)
+    sapply(Rd, function(element) attr(element, "Rd_tag"))
 
 isBlankRd <- function(x)
     length(grep("^[[:blank:]]*\n?$", x, perl = TRUE)) == length(x) # newline optional
@@ -127,239 +124,31 @@ warnRd <- function(block, Rdfile, ...)
     }
 }
 
-RweaveRdDefaults <- list(
-    width=6,
-    height=6,
-    eval=TRUE,
-    fig=FALSE,
-    echo=FALSE,
-    keep.source=TRUE,
-    results="text",
-    strip.white="true",
-    stage="install")
-    
-RweaveRdOptions <- function(options)
+preprocessRd <- function(blocks, defines)
 {
+    if (is.null(blocks)) return(blocks)
+    ## Process ifdef's.
+    tags <- RdTags(blocks)
+    while (length(ifdef <- which(tags %in% c("#ifdef", "#ifndef")))) {
+	ifdef <- ifdef[1L]
+	target <- blocks[[ifdef]][[1L]][[1L]]
+	# The target will have picked up some whitespace and a newline
+	target <- gsub("[[:blank:][:cntrl:]]*", "", target)
+	all <- seq_along(tags)
+	before <- all[all < ifdef]
+	after <- all[all > ifdef]
 
-    ## convert a character string to logical
-    c2l <- function(x){
-        if(is.null(x)) return(FALSE)
-        else return(as.logical(toupper(as.character(x))))
-    }
-
-    NUMOPTS <- c("width", "height")
-    NOLOGOPTS <- c(NUMOPTS, "results", "stage", "strip.white")
-
-    for(opt in names(options)){
-        if(! (opt %in% NOLOGOPTS)){
-            oldval <- options[[opt]]
-            if(!is.logical(options[[opt]])){
-                options[[opt]] <- c2l(options[[opt]])
-            }
-            if(is.na(options[[opt]]))
-                stop(gettextf("invalid value for '%s' : %s", opt, oldval),
-                     domain = NA)
-        }
-        else if(opt %in% NUMOPTS){
-            options[[opt]] <- as.numeric(options[[opt]])
-        }
-    }
-
-    if(!is.null(options$results))
-        options$results <- tolower(as.character(options$results))
-    options$results <- match.arg(options$results,
-                                 c("text", "verbatim", "rd", "hide"))
-    if(!is.null(options$stage))
-    	options$stage <- tolower(as.character(options$stage))
-    options$stage <- match.arg(options$stage,
-    				 c("build", "install", "render"))
-    options
-}
-
-tagged <- function(x, tag) structure(x, Rd_tag=tag)
-
-evalWithOpt <- function(expr, options, env)
-{
-    res <- structure("", Rd_tag="COMMENT")
-    if(options$eval){
-        result <- try(withVisible(eval(expr, env)),
-                   silent=TRUE)
-        if(inherits(result, "try-error")) return(result)
-        switch(options$results,
-        "text" = if (result$visible)
-		    res <- paste(as.character(result$value), collapse=" "),
-        "verbatim" = if (result$visible) print(result$value),
-        "rd" = res <- result$value)
-    }
-    return(res)
-}
-
-processRdChunk <- function(code, stage, options, env) {
-    if (is.null(opts <- attr(code, "Rd_option"))) opts <- ""
-    srcref <- attr(code, "srcref")
-    options <- utils:::SweaveParseOptions(opts, options, RweaveRdOptions)
-    if (stage == options$stage) {
-        #  The code below is very similar to RWeaveLatexRuncode, but simplified
-        
-        # Results as a character vector for now; convert to list later
-        res <- character(0)  
-        code <- code[RdTags(code) != "COMMENT"]
-	chunkexps <- try(parse(text=code), silent=TRUE)
-	if (inherits(chunkexps, "try-error")) stopRd(code, chunkexps)
-
-	if(length(chunkexps) == 0L)
-	    return(tagged(code, "LIST"))
-
-	srclines <- attr(code, "srclines")
-	srcline <- srclines[1L]
-
-	srcrefs <- attr(chunkexps, "srcref")
-	lastshown <- 0L
-	thisline <- 0
-	err <- NULL
-	for(nce in 1L:length(chunkexps))
-	{
-	    ce <- chunkexps[[nce]]
-	    if (nce <= length(srcrefs) && !is.null(srcref <- srcrefs[[nce]])) {
-		srcfile <- attr(srcref, "srcfile")
-		showfrom <- srcref[1L]
-		showto <- srcref[3L]
-		dce <- getSrcLines(srcfile, lastshown+1, showto)
-		leading <- showfrom-lastshown
-		lastshown <- showto
-		srcline <- srclines[srcref[3L]]
-		while (length(dce) && length(grep("^[[:blank:]]*$", dce[1L]))) {
-		    dce <- dce[-1L]
-		    leading <- leading - 1L
-		}
-	    } else {
-		dce <- deparse(ce, width.cutoff=0.75*getOption("width"))
-		leading <- 1L
-	    }
-	    if(options$echo && length(dce)) {
-		res <- c(res,"\n", paste(getOption("prompt"), dce[1L:leading], sep="", collapse="\n"))
-		if (length(dce) > leading)
-		    res <- c(res, "\n", paste(getOption("continue"), dce[-(1L:leading)], sep="", collapse="\n"))
-		thisline <- thisline + length(dce)
-	    }
-
-	    tmpcon <- file()
-	    sink(file=tmpcon)
-	    if(options$eval) err <- evalWithOpt(ce, options, env)
-	    res <- c(res, "\n") # make sure final line is complete
-	    sink()
-	    output <- readLines(tmpcon)
-	    close(tmpcon)
-	    ## delete empty output
-	    if(length(output) == 1L & output[1L] == "") output <- NULL
-
-	    if (inherits(err, "try-error")) stopRd(code, err)
-
-	    if(length(output) & (options$results != "hide")){
-
-		output <- paste(output,collapse="\n")
-		if(options$strip.white %in% c("all", "true")){
-		    output <- sub("^[[:space:]]*\n", "", output)
-		    output <- sub("\n[[:space:]]*$", "", output)
-		    if(options$strip.white=="all")
-		      output <- sub("\n[[:space:]]*\n", "\n", output)
-		}
-		res <- c(res, output)
-		remove(output)
-	    }
+	if ((target %in% defines) == (tags[ifdef] == "#ifdef")) {
+	    tags <- c(tags[before], RdTags(blocks[[ifdef]][[2L]]), tags[after])
+	    blocks <- c(blocks[before], blocks[[ifdef]][[2L]], blocks[after])
+	} else {
+	    tags <- c(tags[before], tags[after])
+	    blocks <- c(blocks[before], blocks[after])
 	}
-	if (options$results == "rd") {
-	    res <- err   # The last value of the chunk
-	    tmpcon <- file()
-	    writeLines(res, tmpcon)
-	    res <- tagged(parse_Rd(tmpcon, fragment=TRUE), "LIST")
-	    close(tmpcon)
-	    res <- prepare_Rd(res, defines = .Platform$OS.type, options=options)
-	} else if (options$results == "text") 
-	    res <- tagged(err, "TEXT")
-	else if (length(res)) {
-	    res <- lapply(as.list(res), function(x) tagged(x, "VERB"))
-	    res <- tagged(res, "\\verb")
-	} else res <- tagged("", "COMMENT")
-    } else res <- tagged("", "COMMENT")
-    attr(res, "srcref") <- srcref
-    res
-}
-
-processRdIfdefs <- function(blocks, defines)
-{
-    recurse <- function(block) {
-        if (!is.null(tag <- attr(block, "Rd_tag"))) {
-	    if (tag %in% c("#ifdef", "#ifndef")) {
-		target <- block[[1L]][[1L]]
-		# The target will have picked up some whitespace and a newline
-		target <- gsub("[[:blank:][:cntrl:]]*", "", target)
-		if ((target %in% defines) == (tag == "#ifdef")) 
-		    block <- tagged(block[[2L]], "#expanded")
-		else 
-		    block <- structure(tagged(paste(tag, target, "not active"), "COMMENT"),
-		    		       srcref=attr(block, "srcref"))   		       
-	    }
-	}
-	if (is.list(block)) {
-	    i <- 1
-	    while (i <= length(block)) {
-	    	newval <- recurse(block[[i]])
-	    	newtag <- attr(newval, "Rd_tag")
-	    	if (!is.null(newtag) && newtag == "#expanded") { # ifdef has expanded.
-	    	    all <- seq_along(block)
-	    	    before <- all[all<i]
-	    	    after <- all[all>i]
-	    	    block <- tagged(c(block[before], newval, block[after]), tag)
-	    	} else {
-		    block[[i]] <- newval
-		    i <- i+1
-		}
-	    }
-	}
-	block
-    }  	
-    
-    recurse(blocks)
-}
-
-processRdSexprs <- function(block, stage, options=RweaveRdDefaults, env=new.env(parent=globalenv()))
-{
-    recurse <- function(block) {
-        if (is.list(block)) {
-            if (!is.null(tag <- attr(block, "Rd_tag"))) {
-        	if (tag == "\\Sexpr")   
-            	    block <- processRdChunk(block, stage, options, env)
-            	else if (tag == "\\RdOpts") 
-    	    	    options <<- utils:::SweaveParseOptions(block, options, RweaveRdOptions)
-    	    }
-	    for (i in seq_along(block))
-		block[[i]] <- recurse(block[[i]])
-	}    
-	block
     }
-    recurse(block)
-}
-
-prepare_Rd <- function(Rd, encoding="unknown", defines=NULL, stages=NULL, options=RweaveRdDefaults) {
-    Rdfile <- "not known"
-    if (is.character(Rd)) {
-        Rdfile <- Rd
-        ## do it this way to get info in internal warnings
-        Rd <- eval(substitute(parse_Rd(f, encoding = enc),
-                              list(f = Rd, enc = encoding)))
-    } else if(inherits(Rd, "connection")) {
-        Rdfile <- summary(Rd)
-        Rd <- parse_Rd(Rd, encoding = encoding)
-    }
-    if ("build" %in% stages)
-    	Rd <- processRdSexprs(Rd, "build", options)
-    if (!is.null(defines))
-    	Rd <- processRdIfdefs(Rd, defines)
-    for (stage in c("install", "render"))
-    	if (stage %in% stages)
-    	    Rd <- processRdSexprs(Rd, stage, options)
-    structure(Rd, Rdfile=Rdfile)
+    # Save the tags
+    attr(blocks, "RdTags") <- tags
+    blocks
 }
 
 sectionOrder <- c("\\title"=1, "\\name"=2, "\\alias"=2.1, "\\keyword"=2.2,
@@ -378,8 +167,7 @@ sectionTitles <-
 ## FIXME: better to really use XHTML
 Rd2HTML <-
     function(Rd, out = "", package = "", defines = .Platform$OS.type,
-             encoding = "unknown", Links = NULL, CHM = FALSE, 
-             stages = "render")
+             encoding = "unknown", Links = NULL, CHM = FALSE)
 {
     of <- function(...) writeLines(paste(...), con, sep = '')
     of0 <- function(...) writeLines(paste(..., sep=""), con, sep ="")
@@ -627,11 +415,11 @@ Rd2HTML <-
     	    stopRd(table, "Unrecognized \\tabular format: ", table[[1L]][[1L]])
         format <- c(l="left", c="center", r="right")[format]
 
-        tags <- RdTags(content)
+        content <- preprocessRd(content, defines)
+        tags <- attr(content, "RdTags")
 
         of1('\n</p>\n<table summary="Rd table">\n')
         newrow <- TRUE
-        newcol <- TRUE
         for (i in seq_along(tags)) {
             if (newrow) {
             	of1("<tr>\n ")
@@ -667,7 +455,8 @@ Rd2HTML <-
         inlist <- FALSE
         itemskip <- FALSE
 
-	tags <- RdTags(blocks)
+	blocks <- preprocessRd(blocks, defines)
+	tags <- attr(blocks, "RdTags")
 
 	for (i in seq_along(tags)) {
             tag <- tags[i]
@@ -737,7 +526,7 @@ Rd2HTML <-
     }
 
     writeSection <- function(section, tag) {
-        if (tag == "\\alias") return() ## \alias only used on CHM header
+        if (tag == "\\alias") return() ## only used on CHM header
     	of1("\n\n<h3>")
     	if (tag == "\\section") {
     	    title <- section[[1L]]
@@ -752,13 +541,23 @@ Rd2HTML <-
         ## \arguments is a single table, not a para
         if (tag == "\\arguments") para <- ""
     	if(nzchar(para)) of0("\n<", para, ">")
-    	if (length(section)) {
-	    ## There may be an initial \n, so remove that
-	    s1 <- section[[1L]][1L]
-	    if (RdTags(s1) == "TEXT" && s1 == "\n") section <- section[-1]
-	    writeContent(section, tag)
-	}
+        ## There may be an initial \n, so remove that
+        s1 <- section[[1L]][1L]
+        if (RdTags(s1) == "TEXT" && s1 == "\n") section <- section[-1]
+    	writeContent(section, tag)
     	if(nzchar(para)) of0("</", para, ">\n")
+    }
+
+    Rdfile <- "not known"
+
+    if (is.character(Rd)) {
+        Rdfile <- Rd
+        ## do it this way to get info in internal warnings
+        Rd <- eval(substitute(parse_Rd(f, encoding = enc),
+                              list(f = Rd, enc = encoding)))
+    } else if(inherits(Rd, "connection")) {
+        Rdfile <- summary(Rd)
+        Rd <- parse_Rd(Rd, encoding = encoding)
     }
 
     if (is.character(out)) {
@@ -771,10 +570,16 @@ Rd2HTML <-
     	con <- out
     	out <- summary(con)$description
     }
-    
-    Rd <- prepare_Rd(Rd, encoding, defines, stages) 
-    Rdfile <- attr(Rd, "Rdfile")
-    sections <- RdTags(Rd)
+
+    ## Process top level ifdef's.
+    Rd <- preprocessRd(Rd, defines)
+    sections <- attr(Rd, "RdTags")
+
+    ## Print initial comments
+    ## for (i in seq_along(sections)) {
+    ## 	if (sections[i] != "COMMENT") break
+    ##	writeComment(Rd[[i]])
+    ##}
 
     version <- which(sections == "\\Rdversion")
     if (length(version) == 1L && as.numeric(version[[1L]]) < 2)
@@ -798,7 +603,7 @@ Rd2HTML <-
 
     ## Drop all the parts that are not rendered
     drop <- sections %in% c("COMMENT", "TEXT", "\\concept", "\\docType", "\\encoding",
-                            "\\keyword", "\\Rdversion", "\\RdOpts")
+                            "\\keyword", "\\Rdversion")
     Rd <- Rd[!drop]
     sections <- sections[!drop]
 
@@ -868,20 +673,20 @@ Rd2HTML <-
                              'location.href = link;', '}', '</script>',
                              sep = '\n'), con)
     }
-    if (package != "") {
-    	version <- paste('Package <em>', package, 
-    	                 '</em> version ', packageDescription(package, fields="Version"), ' ', sep='')
-    } else version <- ''
+    version <- packageDescription(package, fields="Version")
     of0('\n',
-        '<hr><div align="center">[', version, '<a href="00Index.html">Index</a>]</div>\n',
+        '<hr><div align="center">[Package <em>', package,
+        '</em> version ', version, ' <a href="00Index.html">Index</a>]</div>\n',
         '</body></html>\n')
     return(out)
 }
 
 checkRd <-
     function(Rd, defines=.Platform$OS.type, encoding = "unknown",
-             unknownOK = FALSE, listOK = TRUE, stages = "install")
+             unknownOK = FALSE, listOK = TRUE)
 {
+    Rdfile <- "not known"
+
     checkWrapped <- function(tag, block) {
     	checkContent(block, tag)
     }
@@ -917,7 +722,6 @@ checkRd <-
 	"\\emph"=,
 	"\\kbd"=,
 	"\\preformatted"=,
-	"\\Sexpr"=,
 	"\\special"=,
 	"\\strong"=,
 	"\\var" =,
@@ -966,7 +770,8 @@ checkRd <-
     	format <- strsplit(format[[1L]], "")[[1L]]
     	if (!all(format %in% c("l", "c", "r")))
     	    stopRd(table, "Unrecognized \\tabular format: ", table[[1L]][[1L]])
-        tags <- RdTags(content)
+        content <- preprocessRd(content, defines)
+        tags <- attr(content, "RdTags")
 
         newrow <- TRUE
         for (i in seq_along(tags)) {
@@ -995,7 +800,8 @@ checkRd <-
     checkContent <- function(blocks, blocktag) {
         inlist <- FALSE
 
-	tags <- RdTags(blocks)
+	blocks <- preprocessRd(blocks, defines)
+	tags <- attr(blocks, "RdTags")
 
 	for (i in seq_along(tags)) {
             tag <- tags[i]
@@ -1043,9 +849,19 @@ checkRd <-
     	    stopRd(Rd[[which[2L]]], "Only one ", tag, " is allowed")
     }
 
-    Rd <- prepare_Rd(Rd, encoding, defines, stages)
-    Rdfile <- attr(Rd, "Rdfile")
-    sections <- RdTags(Rd)
+    if (is.character(Rd)) {
+        Rdfile <- Rd
+        ## do it this way to get info in internal warnings
+        Rd <- eval(substitute(parse_Rd(f, encoding = enc),
+                              list(f = Rd, enc = encoding)))
+    } else if(inherits(Rd, "connection")) {
+        Rdfile <- summary(Rd)
+        Rd <- parse_Rd(Rd, encoding = encoding)
+    }
+
+    # Process top level ifdef's.
+    Rd <- preprocessRd(Rd, defines)
+    sections <- attr(Rd, "RdTags")
 
     version <- which(sections == "\\Rdversion")
     if (length(version) == 1L && as.numeric(version[[1L]]) < 2)
@@ -1089,7 +905,7 @@ checkRd <-
 }
 
 Rd2ex <-
-    function(Rd, out="", defines=.Platform$OS.type, encoding = "unknown", stages="render")
+    function(Rd, out="", defines=.Platform$OS.type, encoding = "unknown")
 {
     of0 <- function(...) writeLines(paste(..., sep=""), con, sep ="")
     of1 <- function(text) writeLines(text, con, sep = "")
@@ -1112,6 +928,7 @@ Rd2ex <-
     render <- function(x, prefix = "")
     {
         tag <- attr(x, "Rd_tag")
+        x <- preprocessRd(x, defines)
         if(tag %in% c("\\dontshow", "\\testonly")) {
             ## There are fancy rules here if not followed by \n
             of1("## Don't show: ")
@@ -1158,9 +975,22 @@ Rd2ex <-
         }
     }
 
-    Rd <- prepare_Rd(Rd, encoding, defines, stages)
-    Rdfile <- attr(Rd, "Rdfile")
-    sections <- RdTags(Rd)
+    Rdfile <- "not known"
+
+    if (is.character(Rd)) {
+        Rdfile <- Rd
+        ## do it this way to get info in internal warnings
+        Rd <- eval(substitute(tools::parse_Rd(f, encoding = enc),
+                              list(f = Rd, enc = encoding)))
+    } else if(inherits(Rd, "connection")) {
+        Rdfile <- summary(Rd)
+        Rd <- tools::parse_Rd(Rd, encoding = encoding)
+    }
+
+
+    ## Process top level ifdef's.
+    Rd <- preprocessRd(Rd, defines)
+    sections <- attr(Rd, "RdTags")
 
     where <- which(sections == "\\examples")
     if(length(where)) {
@@ -1211,7 +1041,7 @@ Rd2ex <-
             of0(wr(paste("Keywords: ", paste(keys, collapse=" "), sep="")), "\n")
         }
         writeLines(c("", "### ** Examples"), con)
-        ex <- Rd[[ where[1L] ]]
+        ex <- preprocessRd(Rd[[ where[1L] ]], defines)
         for (i in seq_along(ex)) render(ex[[i]])
         of1("\n\n\n")
     }

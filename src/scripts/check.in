@@ -90,7 +90,6 @@ if($opt_install eq "fake") {
 }
 $opt_install = 0 if($opt_install eq "no");
 
-
 my $opt_ff_calls = 1;
 ## The neverending story ...
 ## For the time being, allow to turn this off by setting the environment
@@ -603,7 +602,7 @@ foreach my $pkg (@ARGV) {
 	if ($R_check_executables) {
 	    ## this is tailored to the FreeBSD/Linux file,
 	    ## see http://www.darwinsys.com/file/
-	    my $have_free_file = 0;
+	    my $have_free_File = 0;
 	    my $tmpfile = R_tempfile("file");
 	    if (!$WINDOWS) {
 		## version 4.21 writes to stdout, 4.23 to stderr
@@ -613,22 +612,15 @@ foreach my $pkg (@ARGV) {
 		my @lines = <FILE>;
 		close(FILE);
 		## a reasonable check -- it does not identify itself well
-		$have_free_file = 1 if grep(/^file-[45]/, @lines);
+		$have_free_file = 1 if grep(/^file-4/, @lines);
 	    }
 	    if ($have_free_file) {
 		$log->checking("for executable files");
 		my @exec_files = ();
 		sub find_execs {
 		    my $file_path = $File::Find::name;
-		    ## False positives:
-		    ## * foreign/tests/datefactor.dta gives
-		    ##     setgid mc68020 pure executable not stripped
-		    return if $file_path =~
-			m+foreign/tests/datefactor.dta$+;
-		    ## * msProcess/inst/data[12]/*.txt give
-		    ##     setgid MS-DOS executable, MZ for MS-DOS
-		    return if $file_path =~
-			m+msProcess/inst/data[12]/.*.txt$+;
+		    ## false positive
+		    return if $file_path =~ m+foreign/tests/datefactor.dta$+;
 		    my $file_name = basename($file_path);
 		    my $bare_path = $file_path;
 		    $bare_path =~ s+^$pkgdir/++;
@@ -657,17 +649,6 @@ foreach my $pkg (@ARGV) {
 		    @exec_files = ();
 		    foreach my $file (@exec_files0) {
 			push @exec_files, $file unless $bin{$file};
-		    }
-		}
-		if(($opt_install =~ /^check/) &&
-		   (-f &file_path($pkgdir, ".install_timestamp"))) {
-		    my $its = (-M &file_path($pkgdir,
-					     ".install_timestamp"));
-		    my @exec_files_in = @exec_files;
-		    @exec_files = ();
-		    foreach my $path (@exec_files_in) {
-			push @exec_files, $path unless
-			    ((-M &file_path($pkgdir, $path)) < $its);
 		    }
 		}
 		if(scalar(@exec_files) > 0) {
@@ -2394,6 +2375,27 @@ sub check_pkg {
 				  "soon as of the next release of R.\n",
 				  "See ?Deprecated.\n")));
 	    }
+	    @bad_lines = grep(/^Warning: package '.*' has been merged into/,
+			      @lines);
+	    ## Could make this more precise by looking for an exact match
+	    ## for one of the defunct stubs, but we currently do not get
+	    ## R_PKGS_STUBS from 'share/make/vars.mk'.
+	    if(scalar(@bad_lines) > 0) {
+		if($any) {
+		    $log->print("\nAdditional significant warnings:\n");
+		}
+		else {
+		    $log->warning();
+		    $any++;
+		    $log->print("Found the following significant " .
+				"warnings:\n");
+		}
+		$log->print("  " . join("\n  ", @bad_lines) . "\n");
+		$log->print(wrap("", "",
+				 ("Support for loading defunct former base",
+				  "packages may be removed as soon as of",
+				  "the next release of R.\n")));
+	    }
 	    $log->result("OK") unless($any);
 
 	    ## Try to compare results from running the examples to a saved
@@ -2613,25 +2615,7 @@ sub check_pkg_manual {
 			     "$topdir"));
 		if(R_system($cmd)) {
 		    $log->error();
-		    if(-f $latex_log) {
-			copy($latex_log, "${pkgname}-manual.log");
-		    } else {
-			## No log file and thus no chance to find out
-			## what went wrong.  Hence, re-run without
-			## redirecting stdout/stderr and hope that this
-			## gives the same problem ...
-			## Ideally, we would have a version of
-			## R_system() similar to R_run_R() which returns 
-			## both the exit status and stdout/stderr.
-			$log->print("LaTeX error when running command:\n");
-			$log->print(wrap("  ", "    ", ($cmd)) . "\n");
-			$log->print("Re-running with no redirection of stdout/stderr.\n");
-			$cmd = join(" ",
-				    ($cmd0, "Rd2dvi $Rd2dvi_opts",
-				     "--build-dir=${build_dir} --no-clean --no-index",
-				     "-o ${pkgname}-manual.${fmt} $topdir"));
-			R_system($cmd);
-		    }
+		    if(-f $latex_log) {copy($latex_log, "${pkgname}-manual.log");}
 		    rmtree($build_dir);
 		    exit(1);
 		}

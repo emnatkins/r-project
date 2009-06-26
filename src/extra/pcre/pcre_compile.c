@@ -6,7 +6,7 @@
 and semantics are as close as possible to those of the Perl 5 language.
 
                        Written by Philip Hazel
-           Copyright (c) 1997-2009 University of Cambridge
+           Copyright (c) 1997-2008 University of Cambridge
 
 -----------------------------------------------------------------------------
 Redistribution and use in source and binary forms, with or without
@@ -41,10 +41,6 @@ POSSIBILITY OF SUCH DAMAGE.
 /* This module contains the external function pcre_compile(), along with
 supporting internal functions that are not used by other modules. */
 
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #define NLBLOCK cd             /* Block containing newline information */
 #define PSSTART start_pattern  /* Field containing processed string start */
@@ -97,56 +93,21 @@ are simple data values; negative values are for special things like \d and so
 on. Zero means further processing is needed (for things like \x), or the escape
 is invalid. */
 
-#ifndef EBCDIC
-
-/* This is the "normal" table for ASCII systems or for EBCDIC systems running
-in UTF-8 mode. */
-
+#ifndef EBCDIC  /* This is the "normal" table for ASCII systems */
 static const short int escapes[] = {
-     0,                       0,
-     0,                       0,
-     0,                       0,
-     0,                       0,
-     0,                       0,
-     CHAR_COLON,              CHAR_SEMICOLON,
-     CHAR_LESS_THAN_SIGN,     CHAR_EQUALS_SIGN,
-     CHAR_GREATER_THAN_SIGN,  CHAR_QUESTION_MARK,
-     CHAR_COMMERCIAL_AT,      -ESC_A,
-     -ESC_B,                  -ESC_C,
-     -ESC_D,                  -ESC_E,
-     0,                       -ESC_G,
-     -ESC_H,                  0,
-     0,                       -ESC_K,
-     0,                       0,
-     0,                       0,
-     -ESC_P,                  -ESC_Q,
-     -ESC_R,                  -ESC_S,
-     0,                       0,
-     -ESC_V,                  -ESC_W,
-     -ESC_X,                  0,
-     -ESC_Z,                  CHAR_LEFT_SQUARE_BRACKET,
-     CHAR_BACKSLASH,          CHAR_RIGHT_SQUARE_BRACKET,
-     CHAR_CIRCUMFLEX_ACCENT,  CHAR_UNDERSCORE,
-     CHAR_GRAVE_ACCENT,       7,
-     -ESC_b,                  0,
-     -ESC_d,                  ESC_e,
-     ESC_f,                   0,
-     -ESC_h,                  0,
-     0,                       -ESC_k,
-     0,                       0,
-     ESC_n,                   0,
-     -ESC_p,                  0,
-     ESC_r,                   -ESC_s,
-     ESC_tee,                 0,
-     -ESC_v,                  -ESC_w,
-     0,                       0,
-     -ESC_z
+     0,      0,      0,      0,      0,      0,      0,      0,   /* 0 - 7 */
+     0,      0,    ':',    ';',    '<',    '=',    '>',    '?',   /* 8 - ? */
+   '@', -ESC_A, -ESC_B, -ESC_C, -ESC_D, -ESC_E,      0, -ESC_G,   /* @ - G */
+-ESC_H,      0,      0, -ESC_K,      0,      0,      0,      0,   /* H - O */
+-ESC_P, -ESC_Q, -ESC_R, -ESC_S,      0,      0, -ESC_V, -ESC_W,   /* P - W */
+-ESC_X,      0, -ESC_Z,    '[',   '\\',    ']',    '^',    '_',   /* X - _ */
+   '`',      7, -ESC_b,      0, -ESC_d,  ESC_e,  ESC_f,      0,   /* ` - g */
+-ESC_h,      0,      0, -ESC_k,      0,      0,  ESC_n,      0,   /* h - o */
+-ESC_p,      0,  ESC_r, -ESC_s,  ESC_tee,    0, -ESC_v, -ESC_w,   /* p - w */
+     0,      0, -ESC_z                                            /* x - z */
 };
 
-#else
-
-/* This is the "abnormal" table for EBCDIC systems without UTF-8 support. */
-
+#else           /* This is the "abnormal" table for EBCDIC systems */
 static const short int escapes[] = {
 /*  48 */     0,     0,      0,     '.',    '<',   '(',    '+',    '|',
 /*  50 */   '&',     0,      0,       0,      0,     0,      0,      0,
@@ -177,9 +138,7 @@ static const short int escapes[] = {
 
 /* Table of special "verbs" like (*PRUNE). This is a short table, so it is
 searched linearly. Put all the names into a single string, in order to reduce
-the number of relocations when a shared library is dynamically linked. The
-string is built from string macros so that it works in UTF-8 mode on EBCDIC
-platforms. */
+the number of relocations when a shared library is dynamically linked. */
 
 typedef struct verbitem {
   int   len;
@@ -187,13 +146,13 @@ typedef struct verbitem {
 } verbitem;
 
 static const char verbnames[] =
-  STRING_ACCEPT0
-  STRING_COMMIT0
-  STRING_F0
-  STRING_FAIL0
-  STRING_PRUNE0
-  STRING_SKIP0
-  STRING_THEN;
+  "ACCEPT\0"
+  "COMMIT\0"
+  "F\0"
+  "FAIL\0"
+  "PRUNE\0"
+  "SKIP\0"
+  "THEN";
 
 static const verbitem verbs[] = {
   { 6, OP_ACCEPT },
@@ -215,10 +174,9 @@ length entry. The first three must be alpha, lower, upper, as this is assumed
 for handling case independence. */
 
 static const char posix_names[] =
-  STRING_alpha0 STRING_lower0 STRING_upper0 STRING_alnum0
-  STRING_ascii0 STRING_blank0 STRING_cntrl0 STRING_digit0
-  STRING_graph0 STRING_print0 STRING_punct0 STRING_space0
-  STRING_word0  STRING_xdigit;
+  "alpha\0"  "lower\0"  "upper\0"  "alnum\0"  "ascii\0"  "blank\0"
+  "cntrl\0"  "digit\0"  "graph\0"  "print\0"  "punct\0"  "space\0"
+  "word\0"   "xdigit";
 
 static const uschar posix_name_lengths[] = {
   5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 6, 0 };
@@ -360,11 +318,7 @@ For convenience, we use the same bit definitions as in chartables:
 
 Then we can use ctype_digit and ctype_xdigit in the code. */
 
-#ifndef EBCDIC
-
-/* This is the "normal" case, for ASCII systems, and EBCDIC systems running in
-UTF-8 mode. */
-
+#ifndef EBCDIC  /* This is the "normal" case, for ASCII systems */
 static const unsigned char digitab[] =
   {
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, /*   0-  7 */
@@ -400,10 +354,7 @@ static const unsigned char digitab[] =
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, /* 240-247 */
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};/* 248-255 */
 
-#else
-
-/* This is the "abnormal" case, for EBCDIC systems not running in UTF-8 mode. */
-
+#else           /* This is the "abnormal" case, for EBCDIC systems */
 static const unsigned char digitab[] =
   {
   0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, /*   0-  7  0 */
@@ -548,9 +499,9 @@ if (c == 0) *errorcodeptr = ERR1;
 in a table. A non-zero result is something that can be returned immediately.
 Otherwise further processing may be required. */
 
-#ifndef EBCDIC  /* ASCII/UTF-8 coding */
-else if (c < CHAR_0 || c > CHAR_z) {}                     /* Not alphanumeric */
-else if ((i = escapes[c - CHAR_0]) != 0) c = i;
+#ifndef EBCDIC  /* ASCII coding */
+else if (c < '0' || c > 'z') {}                           /* Not alphanumeric */
+else if ((i = escapes[c - '0']) != 0) c = i;
 
 #else           /* EBCDIC coding */
 else if (c < 'a' || (ebcdic_chartab[c] & 0x0E) == 0) {}   /* Not alphanumeric */
@@ -569,11 +520,11 @@ else
     /* A number of Perl escapes are not handled by PCRE. We give an explicit
     error. */
 
-    case CHAR_l:
-    case CHAR_L:
-    case CHAR_N:
-    case CHAR_u:
-    case CHAR_U:
+    case 'l':
+    case 'L':
+    case 'N':
+    case 'u':
+    case 'U':
     *errorcodeptr = ERR37;
     break;
 
@@ -593,8 +544,8 @@ else
     (possibly recursive) subroutine calls, _not_ backreferences. Just return
     the -ESC_g code (cf \k). */
 
-    case CHAR_g:
-    if (ptr[1] == CHAR_LESS_THAN_SIGN || ptr[1] == CHAR_APOSTROPHE)
+    case 'g':
+    if (ptr[1] == '<' || ptr[1] == '\'')
       {
       c = -ESC_g;
       break;
@@ -602,12 +553,12 @@ else
 
     /* Handle the Perl-compatible cases */
 
-    if (ptr[1] == CHAR_LEFT_CURLY_BRACKET)
+    if (ptr[1] == '{')
       {
       const uschar *p;
-      for (p = ptr+2; *p != 0 && *p != CHAR_RIGHT_CURLY_BRACKET; p++)
-        if (*p != CHAR_MINUS && (digitab[*p] & ctype_digit) == 0) break;
-      if (*p != 0 && *p != CHAR_RIGHT_CURLY_BRACKET)
+      for (p = ptr+2; *p != 0 && *p != '}'; p++)
+        if (*p != '-' && (digitab[*p] & ctype_digit) == 0) break;
+      if (*p != 0 && *p != '}')
         {
         c = -ESC_k;
         break;
@@ -617,7 +568,7 @@ else
       }
     else braced = FALSE;
 
-    if (ptr[1] == CHAR_MINUS)
+    if (ptr[1] == '-')
       {
       negated = TRUE;
       ptr++;
@@ -626,7 +577,7 @@ else
 
     c = 0;
     while ((digitab[ptr[1]] & ctype_digit) != 0)
-      c = c * 10 + *(++ptr) - CHAR_0;
+      c = c * 10 + *(++ptr) - '0';
 
     if (c < 0)   /* Integer overflow */
       {
@@ -634,7 +585,7 @@ else
       break;
       }
 
-    if (braced && *(++ptr) != CHAR_RIGHT_CURLY_BRACKET)
+    if (braced && *(++ptr) != '}')
       {
       *errorcodeptr = ERR57;
       break;
@@ -671,15 +622,15 @@ else
     value is greater than 377, the least significant 8 bits are taken. Inside a
     character class, \ followed by a digit is always an octal number. */
 
-    case CHAR_1: case CHAR_2: case CHAR_3: case CHAR_4: case CHAR_5:
-    case CHAR_6: case CHAR_7: case CHAR_8: case CHAR_9:
+    case '1': case '2': case '3': case '4': case '5':
+    case '6': case '7': case '8': case '9':
 
     if (!isclass)
       {
       oldptr = ptr;
-      c -= CHAR_0;
+      c -= '0';
       while ((digitab[ptr[1]] & ctype_digit) != 0)
-        c = c * 10 + *(++ptr) - CHAR_0;
+        c = c * 10 + *(++ptr) - '0';
       if (c < 0)    /* Integer overflow */
         {
         *errorcodeptr = ERR61;
@@ -697,7 +648,7 @@ else
     generates a binary zero byte and treats the digit as a following literal.
     Thus we have to pull back the pointer by one. */
 
-    if ((c = *ptr) >= CHAR_8)
+    if ((c = *ptr) >= '8')
       {
       ptr--;
       c = 0;
@@ -710,10 +661,10 @@ else
     to do). Nowadays we allow for larger numbers in UTF-8 mode, but no more
     than 3 octal digits. */
 
-    case CHAR_0:
-    c -= CHAR_0;
-    while(i++ < 2 && ptr[1] >= CHAR_0 && ptr[1] <= CHAR_7)
-        c = c * 8 + *(++ptr) - CHAR_0;
+    case '0':
+    c -= '0';
+    while(i++ < 2 && ptr[1] >= '0' && ptr[1] <= '7')
+        c = c * 8 + *(++ptr) - '0';
     if (!utf8 && c > 255) *errorcodeptr = ERR51;
     break;
 
@@ -721,8 +672,8 @@ else
     than 0xff in utf8 mode, but only if the ddd are hex digits. If not, { is
     treated as a data character. */
 
-    case CHAR_x:
-    if (ptr[1] == CHAR_LEFT_CURLY_BRACKET)
+    case 'x':
+    if (ptr[1] == '{')
       {
       const uschar *pt = ptr + 2;
       int count = 0;
@@ -731,19 +682,19 @@ else
       while ((digitab[*pt] & ctype_xdigit) != 0)
         {
         register int cc = *pt++;
-        if (c == 0 && cc == CHAR_0) continue;     /* Leading zeroes */
+        if (c == 0 && cc == '0') continue;     /* Leading zeroes */
         count++;
 
-#ifndef EBCDIC  /* ASCII/UTF-8 coding */
-        if (cc >= CHAR_a) cc -= 32;               /* Convert to upper case */
-        c = (c << 4) + cc - ((cc < CHAR_A)? CHAR_0 : (CHAR_A - 10));
+#ifndef EBCDIC  /* ASCII coding */
+        if (cc >= 'a') cc -= 32;               /* Convert to upper case */
+        c = (c << 4) + cc - ((cc < 'A')? '0' : ('A' - 10));
 #else           /* EBCDIC coding */
-        if (cc >= CHAR_a && cc <= CHAR_z) cc += 64;  /* Convert to upper case */
-        c = (c << 4) + cc - ((cc >= CHAR_0)? CHAR_0 : (CHAR_A - 10));
+        if (cc >= 'a' && cc <= 'z') cc += 64;  /* Convert to upper case */
+        c = (c << 4) + cc - ((cc >= '0')? '0' : ('A' - 10));
 #endif
         }
 
-      if (*pt == CHAR_RIGHT_CURLY_BRACKET)
+      if (*pt == '}')
         {
         if (c < 0 || count > (utf8? 8 : 2)) *errorcodeptr = ERR34;
         ptr = pt;
@@ -759,14 +710,14 @@ else
     c = 0;
     while (i++ < 2 && (digitab[ptr[1]] & ctype_xdigit) != 0)
       {
-      int cc;                                  /* Some compilers don't like */
-      cc = *(++ptr);                           /* ++ in initializers */
-#ifndef EBCDIC  /* ASCII/UTF-8 coding */
-      if (cc >= CHAR_a) cc -= 32;              /* Convert to upper case */
-      c = c * 16 + cc - ((cc < CHAR_A)? CHAR_0 : (CHAR_A - 10));
+      int cc;                               /* Some compilers don't like ++ */
+      cc = *(++ptr);                        /* in initializers */
+#ifndef EBCDIC  /* ASCII coding */
+      if (cc >= 'a') cc -= 32;              /* Convert to upper case */
+      c = c * 16 + cc - ((cc < 'A')? '0' : ('A' - 10));
 #else           /* EBCDIC coding */
-      if (cc <= CHAR_z) cc += 64;              /* Convert to upper case */
-      c = c * 16 + cc - ((cc >= CHAR_0)? CHAR_0 : (CHAR_A - 10));
+      if (cc <= 'z') cc += 64;              /* Convert to upper case */
+      c = c * 16 + cc - ((cc >= '0')? '0' : ('A' - 10));
 #endif
       }
     break;
@@ -775,7 +726,7 @@ else
     This coding is ASCII-specific, but then the whole concept of \cx is
     ASCII-specific. (However, an EBCDIC equivalent has now been added.) */
 
-    case CHAR_c:
+    case 'c':
     c = *(++ptr);
     if (c == 0)
       {
@@ -783,11 +734,11 @@ else
       break;
       }
 
-#ifndef EBCDIC  /* ASCII/UTF-8 coding */
-    if (c >= CHAR_a && c <= CHAR_z) c -= 32;
+#ifndef EBCDIC  /* ASCII coding */
+    if (c >= 'a' && c <= 'z') c -= 32;
     c ^= 0x40;
 #else           /* EBCDIC coding */
-    if (c >= CHAR_a && c <= CHAR_z) c += 64;
+    if (c >= 'a' && c <= 'z') c += 64;
     c ^= 0xC0;
 #endif
     break;
@@ -849,9 +800,9 @@ if (c == 0) goto ERROR_RETURN;
 /* \P or \p can be followed by a name in {}, optionally preceded by ^ for
 negation. */
 
-if (c == CHAR_LEFT_CURLY_BRACKET)
+if (c == '{')
   {
-  if (ptr[1] == CHAR_CIRCUMFLEX_ACCENT)
+  if (ptr[1] == '^')
     {
     *negptr = TRUE;
     ptr++;
@@ -860,10 +811,10 @@ if (c == CHAR_LEFT_CURLY_BRACKET)
     {
     c = *(++ptr);
     if (c == 0) goto ERROR_RETURN;
-    if (c == CHAR_RIGHT_CURLY_BRACKET) break;
+    if (c == '}') break;
     name[i] = c;
     }
-  if (c != CHAR_RIGHT_CURLY_BRACKET) goto ERROR_RETURN;
+  if (c !='}') goto ERROR_RETURN;
   name[i] = 0;
   }
 
@@ -928,15 +879,15 @@ is_counted_repeat(const uschar *p)
 {
 if ((digitab[*p++] & ctype_digit) == 0) return FALSE;
 while ((digitab[*p] & ctype_digit) != 0) p++;
-if (*p == CHAR_RIGHT_CURLY_BRACKET) return TRUE;
+if (*p == '}') return TRUE;
 
-if (*p++ != CHAR_COMMA) return FALSE;
-if (*p == CHAR_RIGHT_CURLY_BRACKET) return TRUE;
+if (*p++ != ',') return FALSE;
+if (*p == '}') return TRUE;
 
 if ((digitab[*p++] & ctype_digit) == 0) return FALSE;
 while ((digitab[*p] & ctype_digit) != 0) p++;
 
-return (*p == CHAR_RIGHT_CURLY_BRACKET);
+return (*p == '}');
 }
 
 
@@ -969,7 +920,7 @@ int max = -1;
 /* Read the minimum value and do a paranoid check: a negative value indicates
 an integer overflow. */
 
-while ((digitab[*p] & ctype_digit) != 0) min = min * 10 + *p++ - CHAR_0;
+while ((digitab[*p] & ctype_digit) != 0) min = min * 10 + *p++ - '0';
 if (min < 0 || min > 65535)
   {
   *errorcodeptr = ERR5;
@@ -979,12 +930,12 @@ if (min < 0 || min > 65535)
 /* Read the maximum value if there is one, and again do a paranoid on its size.
 Also, max must not be less than min. */
 
-if (*p == CHAR_RIGHT_CURLY_BRACKET) max = min; else
+if (*p == '}') max = min; else
   {
-  if (*(++p) != CHAR_RIGHT_CURLY_BRACKET)
+  if (*(++p) != '}')
     {
     max = 0;
-    while((digitab[*p] & ctype_digit) != 0) max = max * 10 + *p++ - CHAR_0;
+    while((digitab[*p] & ctype_digit) != 0) max = max * 10 + *p++ - '0';
     if (max < 0 || max > 65535)
       {
       *errorcodeptr = ERR5;
@@ -1009,116 +960,47 @@ return p;
 
 
 /*************************************************
-*  Subroutine for finding forward reference      *
+*       Find forward referenced subpattern       *
 *************************************************/
 
-/* This recursive function is called only from find_parens() below. The
-top-level call starts at the beginning of the pattern. All other calls must
-start at a parenthesis. It scans along a pattern's text looking for capturing
+/* This function scans along a pattern's text looking for capturing
 subpatterns, and counting them. If it finds a named pattern that matches the
 name it is given, it returns its number. Alternatively, if the name is NULL, it
-returns when it reaches a given numbered subpattern. We know that if (?P< is
-encountered, the name will be terminated by '>' because that is checked in the
-first pass. Recursion is used to keep track of subpatterns that reset the
-capturing group numbers - the (?| feature.
+returns when it reaches a given numbered subpattern. This is used for forward
+references to subpatterns. We know that if (?P< is encountered, the name will
+be terminated by '>' because that is checked in the first pass.
 
 Arguments:
-  ptrptr       address of the current character pointer (updated)
+  ptr          current position in the pattern
   cd           compile background data
   name         name to seek, or NULL if seeking a numbered subpattern
   lorn         name length, or subpattern number if name is NULL
   xmode        TRUE if we are in /x mode
-  count        pointer to the current capturing subpattern number (updated)
 
 Returns:       the number of the named subpattern, or -1 if not found
 */
 
 static int
-find_parens_sub(uschar **ptrptr, compile_data *cd, const uschar *name, int lorn,
-  BOOL xmode, int *count)
+find_parens(const uschar *ptr, compile_data *cd, const uschar *name, int lorn,
+  BOOL xmode)
 {
-uschar *ptr = *ptrptr;
-int start_count = *count;
-int hwm_count = start_count;
-BOOL dup_parens = FALSE;
-
-/* If the first character is a parenthesis, check on the type of group we are
-dealing with. The very first call may not start with a parenthesis. */
-
-if (ptr[0] == CHAR_LEFT_PARENTHESIS)
-  {
-  if (ptr[1] == CHAR_QUESTION_MARK &&
-      ptr[2] == CHAR_VERTICAL_LINE)
-    {
-    ptr += 3;
-    dup_parens = TRUE;
-    }
-
-  /* Handle a normal, unnamed capturing parenthesis */
-
-  else if (ptr[1] != CHAR_QUESTION_MARK && ptr[1] != CHAR_ASTERISK)
-    {
-    *count += 1;
-    if (name == NULL && *count == lorn) return *count;
-    ptr++;
-    }
-
-  /* Handle a condition. If it is an assertion, just carry on so that it
-  is processed as normal. If not, skip to the closing parenthesis of the
-  condition (there can't be any nested parens. */
-
-  else if (ptr[2] == CHAR_LEFT_PARENTHESIS)
-    {
-    ptr += 2;
-    if (ptr[1] != CHAR_QUESTION_MARK)
-      {
-      while (*ptr != 0 && *ptr != CHAR_RIGHT_PARENTHESIS) ptr++;
-      if (*ptr != 0) ptr++;
-      }
-    }
-
-  /* We have either (? or (* and not a condition */
-
-  else
-    {
-    ptr += 2;
-    if (*ptr == CHAR_P) ptr++;                      /* Allow optional P */
-
-    /* We have to disambiguate (?<! and (?<= from (?<name> for named groups */
-
-    if ((*ptr == CHAR_LESS_THAN_SIGN && ptr[1] != CHAR_EXCLAMATION_MARK &&
-        ptr[1] != CHAR_EQUALS_SIGN) || *ptr == CHAR_APOSTROPHE)
-      {
-      int term;
-      const uschar *thisname;
-      *count += 1;
-      if (name == NULL && *count == lorn) return *count;
-      term = *ptr++;
-      if (term == CHAR_LESS_THAN_SIGN) term = CHAR_GREATER_THAN_SIGN;
-      thisname = ptr;
-      while (*ptr != term) ptr++;
-      if (name != NULL && lorn == ptr - thisname &&
-          strncmp((const char *)name, (const char *)thisname, lorn) == 0)
-        return *count;
-      }
-    }
-  }
-
-/* Past any initial parenthesis handling, scan for parentheses or vertical
-bars. */
+const uschar *thisname;
+int count = cd->bracount;
 
 for (; *ptr != 0; ptr++)
   {
+  int term;
+
   /* Skip over backslashed characters and also entire \Q...\E */
 
-  if (*ptr == CHAR_BACKSLASH)
+  if (*ptr == '\\')
     {
-    if (*(++ptr) == 0) goto FAIL_EXIT;
-    if (*ptr == CHAR_Q) for (;;)
+    if (*(++ptr) == 0) return -1;
+    if (*ptr == 'Q') for (;;)
       {
-      while (*(++ptr) != 0 && *ptr != CHAR_BACKSLASH) {};
-      if (*ptr == 0) goto FAIL_EXIT;
-      if (*(++ptr) == CHAR_E) break;
+      while (*(++ptr) != 0 && *ptr != '\\') {};
+      if (*ptr == 0) return -1;
+      if (*(++ptr) == 'E') break;
       }
     continue;
     }
@@ -1126,26 +1008,21 @@ for (; *ptr != 0; ptr++)
   /* Skip over character classes; this logic must be similar to the way they
   are handled for real. If the first character is '^', skip it. Also, if the
   first few characters (either before or after ^) are \Q\E or \E we skip them
-  too. This makes for compatibility with Perl. Note the use of STR macros to
-  encode "Q\\E" so that it works in UTF-8 on EBCDIC platforms. */
+  too. This makes for compatibility with Perl. */
 
-  if (*ptr == CHAR_LEFT_SQUARE_BRACKET)
+  if (*ptr == '[')
     {
     BOOL negate_class = FALSE;
     for (;;)
       {
       int c = *(++ptr);
-      if (c == CHAR_BACKSLASH)
+      if (c == '\\')
         {
-        if (ptr[1] == CHAR_E)
-          ptr++;
-        else if (strncmp((const char *)ptr+1,
-                 STR_Q STR_BACKSLASH STR_E, 3) == 0)
-          ptr += 3;
-        else
-          break;
+        if (ptr[1] == 'E') ptr++;
+          else if (strncmp((const char *)ptr+1, "Q\\E", 3) == 0) ptr += 3;
+            else break;
         }
-      else if (!negate_class && c == CHAR_CIRCUMFLEX_ACCENT)
+      else if (!negate_class && c == '^')
         negate_class = TRUE;
       else break;
       }
@@ -1153,21 +1030,20 @@ for (; *ptr != 0; ptr++)
     /* If the next character is ']', it is a data character that must be
     skipped, except in JavaScript compatibility mode. */
 
-    if (ptr[1] == CHAR_RIGHT_SQUARE_BRACKET &&
-        (cd->external_options & PCRE_JAVASCRIPT_COMPAT) == 0)
+    if (ptr[1] == ']' && (cd->external_options & PCRE_JAVASCRIPT_COMPAT) == 0)
       ptr++;
 
-    while (*(++ptr) != CHAR_RIGHT_SQUARE_BRACKET)
+    while (*(++ptr) != ']')
       {
       if (*ptr == 0) return -1;
-      if (*ptr == CHAR_BACKSLASH)
+      if (*ptr == '\\')
         {
-        if (*(++ptr) == 0) goto FAIL_EXIT;
-        if (*ptr == CHAR_Q) for (;;)
+        if (*(++ptr) == 0) return -1;
+        if (*ptr == 'Q') for (;;)
           {
-          while (*(++ptr) != 0 && *ptr != CHAR_BACKSLASH) {};
-          if (*ptr == 0) goto FAIL_EXIT;
-          if (*(++ptr) == CHAR_E) break;
+          while (*(++ptr) != 0 && *ptr != '\\') {};
+          if (*ptr == 0) return -1;
+          if (*(++ptr) == 'E') break;
           }
         continue;
         }
@@ -1177,89 +1053,46 @@ for (; *ptr != 0; ptr++)
 
   /* Skip comments in /x mode */
 
-  if (xmode && *ptr == CHAR_NUMBER_SIGN)
+  if (xmode && *ptr == '#')
     {
-    while (*(++ptr) != 0 && *ptr != CHAR_NL) {};
-    if (*ptr == 0) goto FAIL_EXIT;
+    while (*(++ptr) != 0 && *ptr != '\n') {};
+    if (*ptr == 0) return -1;
     continue;
     }
 
-  /* Check for the special metacharacters */
+  /* An opening parens must now be a real metacharacter */
 
-  if (*ptr == CHAR_LEFT_PARENTHESIS)
+  if (*ptr != '(') continue;
+  if (ptr[1] != '?' && ptr[1] != '*')
     {
-    int rc = find_parens_sub(&ptr, cd, name, lorn, xmode, count);
-    if (rc > 0) return rc;
-    if (*ptr == 0) goto FAIL_EXIT;
+    count++;
+    if (name == NULL && count == lorn) return count;
+    continue;
     }
 
-  else if (*ptr == CHAR_RIGHT_PARENTHESIS)
-    {
-    if (dup_parens && *count < hwm_count) *count = hwm_count;
-    *ptrptr = ptr;
-    return -1;
-    }
+  ptr += 2;
+  if (*ptr == 'P') ptr++;                      /* Allow optional P */
 
-  else if (*ptr == CHAR_VERTICAL_LINE && dup_parens)
-    {
-    if (*count > hwm_count) hwm_count = *count;
-    *count = start_count;
-    }
+  /* We have to disambiguate (?<! and (?<= from (?<name> */
+
+  if ((*ptr != '<' || ptr[1] == '!' || ptr[1] == '=') &&
+       *ptr != '\'')
+    continue;
+
+  count++;
+
+  if (name == NULL && count == lorn) return count;
+  term = *ptr++;
+  if (term == '<') term = '>';
+  thisname = ptr;
+  while (*ptr != term) ptr++;
+  if (name != NULL && lorn == ptr - thisname &&
+      strncmp((const char *)name, (const char *)thisname, lorn) == 0)
+    return count;
   }
 
-FAIL_EXIT:
-*ptrptr = ptr;
 return -1;
 }
-
-
-
-
-/*************************************************
-*       Find forward referenced subpattern       *
-*************************************************/
-
-/* This function scans along a pattern's text looking for capturing
-subpatterns, and counting them. If it finds a named pattern that matches the
-name it is given, it returns its number. Alternatively, if the name is NULL, it
-returns when it reaches a given numbered subpattern. This is used for forward
-references to subpatterns. We used to be able to start this scan from the
-current compiling point, using the current count value from cd->bracount, and
-do it all in a single loop, but the addition of the possibility of duplicate
-subpattern numbers means that we have to scan from the very start, in order to
-take account of such duplicates, and to use a recursive function to keep track
-of the different types of group.
-
-Arguments:
-  cd           compile background data
-  name         name to seek, or NULL if seeking a numbered subpattern
-  lorn         name length, or subpattern number if name is NULL
-  xmode        TRUE if we are in /x mode
-
-Returns:       the number of the found subpattern, or -1 if not found
-*/
-
-static int
-find_parens(compile_data *cd, const uschar *name, int lorn, BOOL xmode)
-{
-uschar *ptr = (uschar *)cd->start_pattern;
-int count = 0;
-int rc;
-
-/* If the pattern does not start with an opening parenthesis, the first call
-to find_parens_sub() will scan right to the end (if necessary). However, if it
-does start with a parenthesis, find_parens_sub() will return when it hits the
-matching closing parens. That is why we have to have a loop. */
-
-for (;;)
-  {
-  rc = find_parens_sub(&ptr, cd, name, lorn, xmode, &count);
-  if (rc > 0 || *ptr++ == 0) break;
-  }
-
-return rc;
-}
-
 
 
 
@@ -1776,25 +1609,17 @@ for (code = first_significant_code(code + _pcre_OP_lengths[*code], NULL, 0, TRUE
     BOOL empty_branch;
     if (GET(code, 1) == 0) return TRUE;    /* Hit unclosed bracket */
 
-    /* If a conditional group has only one branch, there is a second, implied,
-    empty branch, so just skip over the conditional, because it could be empty.
-    Otherwise, scan the individual branches of the group. */
+    /* Scan a closed bracket */
 
-    if (c == OP_COND && code[GET(code, 1)] != OP_ALT)
-      code += GET(code, 1);
-    else
+    empty_branch = FALSE;
+    do
       {
-      empty_branch = FALSE;
-      do
-        {
-        if (!empty_branch && could_be_empty_branch(code, endcode, utf8))
-          empty_branch = TRUE;
-        code += GET(code, 1);
-        }
-      while (*code == OP_ALT);
-      if (!empty_branch) return FALSE;   /* All branches are non-empty */
+      if (!empty_branch && could_be_empty_branch(code, endcode, utf8))
+        empty_branch = TRUE;
+      code += GET(code, 1);
       }
-
+    while (*code == OP_ALT);
+    if (!empty_branch) return FALSE;   /* All branches are non-empty */
     c = *code;
     continue;
     }
@@ -1996,10 +1821,10 @@ int terminator;          /* Don't combine these lines; the Solaris cc */
 terminator = *(++ptr);   /* compiler warns about "non-constant" initializer. */
 for (++ptr; *ptr != 0; ptr++)
   {
-  if (*ptr == CHAR_BACKSLASH && ptr[1] == CHAR_RIGHT_SQUARE_BRACKET) ptr++; else
+  if (*ptr == '\\' && ptr[1] == ']') ptr++; else
     {
-    if (*ptr == CHAR_RIGHT_SQUARE_BRACKET) return FALSE;
-    if (*ptr == terminator && ptr[1] == CHAR_RIGHT_SQUARE_BRACKET)
+    if (*ptr == ']') return FALSE;
+    if (*ptr == terminator && ptr[1] == ']')
       {
       *endptr = ptr;
       return TRUE;
@@ -2245,7 +2070,7 @@ if ((options & PCRE_EXTENDED) != 0)
   for (;;)
     {
     while ((cd->ctypes[*ptr] & ctype_space) != 0) ptr++;
-    if (*ptr == CHAR_NUMBER_SIGN)
+    if (*ptr == '#')
       {
       while (*(++ptr) != 0)
         if (IS_NEWLINE(ptr)) { ptr += cd->nllen; break; }
@@ -2257,7 +2082,7 @@ if ((options & PCRE_EXTENDED) != 0)
 /* If the next item is one that we can handle, get its value. A non-negative
 value is a character, a negative value is an escape value. */
 
-if (*ptr == CHAR_BACKSLASH)
+if (*ptr == '\\')
   {
   int temperrorcode = 0;
   next = check_escape(&ptr, &temperrorcode, cd->bracount, options, FALSE);
@@ -2282,7 +2107,7 @@ if ((options & PCRE_EXTENDED) != 0)
   for (;;)
     {
     while ((cd->ctypes[*ptr] & ctype_space) != 0) ptr++;
-    if (*ptr == CHAR_NUMBER_SIGN)
+    if (*ptr == '#')
       {
       while (*(++ptr) != 0)
         if (IS_NEWLINE(ptr)) { ptr += cd->nllen; break; }
@@ -2293,9 +2118,8 @@ if ((options & PCRE_EXTENDED) != 0)
 
 /* If the next thing is itself optional, we have to give up. */
 
-if (*ptr == CHAR_ASTERISK || *ptr == CHAR_QUESTION_MARK ||
-  strncmp((char *)ptr, STR_LEFT_CURLY_BRACKET STR_0 STR_COMMA, 3) == 0)
-    return FALSE;
+if (*ptr == '*' || *ptr == '?' || strncmp((char *)ptr, "{0,", 3) == 0)
+  return FALSE;
 
 /* Now compare the next item with the previous opcode. If the previous is a
 positive single character match, "item" either contains the character or, if
@@ -2733,7 +2557,7 @@ for (;; ptr++)
 
   if (inescq && c != 0)
     {
-    if (c == CHAR_BACKSLASH && ptr[1] == CHAR_E)
+    if (c == '\\' && ptr[1] == 'E')
       {
       inescq = FALSE;
       ptr++;
@@ -2759,9 +2583,8 @@ for (;; ptr++)
   /* Fill in length of a previous callout, except when the next thing is
   a quantifier. */
 
-  is_quantifier =
-    c == CHAR_ASTERISK || c == CHAR_PLUS || c == CHAR_QUESTION_MARK ||
-    (c == CHAR_LEFT_CURLY_BRACKET && is_counted_repeat(ptr+1));
+  is_quantifier = c == '*' || c == '+' || c == '?' ||
+    (c == '{' && is_counted_repeat(ptr+1));
 
   if (!is_quantifier && previous_callout != NULL &&
        after_manual_callout-- <= 0)
@@ -2776,7 +2599,7 @@ for (;; ptr++)
   if ((options & PCRE_EXTENDED) != 0)
     {
     if ((cd->ctypes[c] & ctype_space) != 0) continue;
-    if (c == CHAR_NUMBER_SIGN)
+    if (c == '#')
       {
       while (*(++ptr) != 0)
         {
@@ -2801,8 +2624,8 @@ for (;; ptr++)
     {
     /* ===================================================================*/
     case 0:                        /* The branch terminates at string end */
-    case CHAR_VERTICAL_LINE:       /* or | or ) */
-    case CHAR_RIGHT_PARENTHESIS:
+    case '|':                      /* or | or ) */
+    case ')':
     *firstbyteptr = firstbyte;
     *reqbyteptr = reqbyte;
     *codeptr = code;
@@ -2824,7 +2647,7 @@ for (;; ptr++)
     /* Handle single-character metacharacters. In multiline mode, ^ disables
     the setting of any following char as a first character. */
 
-    case CHAR_CIRCUMFLEX_ACCENT:
+    case '^':
     if ((options & PCRE_MULTILINE) != 0)
       {
       if (firstbyte == REQ_UNSET) firstbyte = REQ_NONE;
@@ -2833,7 +2656,7 @@ for (;; ptr++)
     *code++ = OP_CIRC;
     break;
 
-    case CHAR_DOLLAR_SIGN:
+    case '$':
     previous = NULL;
     *code++ = OP_DOLL;
     break;
@@ -2841,7 +2664,7 @@ for (;; ptr++)
     /* There can never be a first char if '.' is first, whatever happens about
     repeats. The value of reqbyte doesn't change either. */
 
-    case CHAR_DOT:
+    case '.':
     if (firstbyte == REQ_UNSET) firstbyte = REQ_NONE;
     zerofirstbyte = firstbyte;
     zeroreqbyte = reqbyte;
@@ -2865,7 +2688,7 @@ for (;; ptr++)
     In JavaScript compatibility mode, an isolated ']' causes an error. In
     default (Perl) mode, it is treated as a data character. */
 
-    case CHAR_RIGHT_SQUARE_BRACKET:
+    case ']':
     if ((cd->external_options & PCRE_JAVASCRIPT_COMPAT) != 0)
       {
       *errorcodeptr = ERR64;
@@ -2873,17 +2696,16 @@ for (;; ptr++)
       }
     goto NORMAL_CHAR;
 
-    case CHAR_LEFT_SQUARE_BRACKET:
+    case '[':
     previous = code;
 
     /* PCRE supports POSIX class stuff inside a class. Perl gives an error if
     they are encountered at the top level, so we'll do that too. */
 
-    if ((ptr[1] == CHAR_COLON || ptr[1] == CHAR_DOT ||
-         ptr[1] == CHAR_EQUALS_SIGN) &&
+    if ((ptr[1] == ':' || ptr[1] == '.' || ptr[1] == '=') &&
         check_posix_syntax(ptr, &tempptr))
       {
-      *errorcodeptr = (ptr[1] == CHAR_COLON)? ERR13 : ERR31;
+      *errorcodeptr = (ptr[1] == ':')? ERR13 : ERR31;
       goto FAILED;
       }
 
@@ -2895,17 +2717,13 @@ for (;; ptr++)
     for (;;)
       {
       c = *(++ptr);
-      if (c == CHAR_BACKSLASH)
+      if (c == '\\')
         {
-        if (ptr[1] == CHAR_E)
-          ptr++;
-        else if (strncmp((const char *)ptr+1,
-                          STR_Q STR_BACKSLASH STR_E, 3) == 0)
-          ptr += 3;
-        else
-          break;
+        if (ptr[1] == 'E') ptr++;
+          else if (strncmp((const char *)ptr+1, "Q\\E", 3) == 0) ptr += 3;
+            else break;
         }
-      else if (!negate_class && c == CHAR_CIRCUMFLEX_ACCENT)
+      else if (!negate_class && c == '^')
         negate_class = TRUE;
       else break;
       }
@@ -2915,8 +2733,7 @@ for (;; ptr++)
     that. In JS mode, [] must always fail, so generate OP_FAIL, whereas
     [^] must match any character, so generate OP_ALLANY. */
 
-    if (c == CHAR_RIGHT_SQUARE_BRACKET &&
-        (cd->external_options & PCRE_JAVASCRIPT_COMPAT) != 0)
+    if (c ==']' && (cd->external_options & PCRE_JAVASCRIPT_COMPAT) != 0)
       {
       *code++ = negate_class? OP_ALLANY : OP_FAIL;
       if (firstbyte == REQ_UNSET) firstbyte = REQ_NONE;
@@ -2981,7 +2798,7 @@ for (;; ptr++)
 
       if (inescq)
         {
-        if (c == CHAR_BACKSLASH && ptr[1] == CHAR_E)  /* If we are at \E */
+        if (c == '\\' && ptr[1] == 'E')     /* If we are at \E */
           {
           inescq = FALSE;                   /* Reset literal state */
           ptr++;                            /* Skip the 'E' */
@@ -2996,23 +2813,23 @@ for (;; ptr++)
       [.ch.] and [=ch=] ("collating elements") and fault them, as Perl
       5.6 and 5.8 do. */
 
-      if (c == CHAR_LEFT_SQUARE_BRACKET &&
-          (ptr[1] == CHAR_COLON || ptr[1] == CHAR_DOT ||
-           ptr[1] == CHAR_EQUALS_SIGN) && check_posix_syntax(ptr, &tempptr))
+      if (c == '[' &&
+          (ptr[1] == ':' || ptr[1] == '.' || ptr[1] == '=') &&
+          check_posix_syntax(ptr, &tempptr))
         {
         BOOL local_negate = FALSE;
         int posix_class, taboffset, tabopt;
         register const uschar *cbits = cd->cbits;
         uschar pbits[32];
 
-        if (ptr[1] != CHAR_COLON)
+        if (ptr[1] != ':')
           {
           *errorcodeptr = ERR31;
           goto FAILED;
           }
 
         ptr += 2;
-        if (*ptr == CHAR_CIRCUMFLEX_ACCENT)
+        if (*ptr == '^')
           {
           local_negate = TRUE;
           should_flip_negation = TRUE;  /* Note negative special */
@@ -3085,17 +2902,17 @@ for (;; ptr++)
       to 'or' into the one we are building. We assume they have more than one
       character in them, so set class_charcount bigger than one. */
 
-      if (c == CHAR_BACKSLASH)
+      if (c == '\\')
         {
         c = check_escape(&ptr, errorcodeptr, cd->bracount, options, TRUE);
         if (*errorcodeptr != 0) goto FAILED;
 
-        if (-c == ESC_b) c = CHAR_BS;       /* \b is backspace in a class */
-        else if (-c == ESC_X) c = CHAR_X;   /* \X is literal X in a class */
-        else if (-c == ESC_R) c = CHAR_R;   /* \R is literal R in a class */
+        if (-c == ESC_b) c = '\b';       /* \b is backspace in a class */
+        else if (-c == ESC_X) c = 'X';   /* \X is literal X in a class */
+        else if (-c == ESC_R) c = 'R';   /* \R is literal R in a class */
         else if (-c == ESC_Q)            /* Handle start of quoted string */
           {
-          if (ptr[1] == CHAR_BACKSLASH && ptr[2] == CHAR_E)
+          if (ptr[1] == '\\' && ptr[2] == 'E')
             {
             ptr += 2; /* avoid empty string */
             }
@@ -3321,7 +3138,7 @@ for (;; ptr++)
       entirely. The code for handling \Q and \E is messy. */
 
       CHECK_RANGE:
-      while (ptr[1] == CHAR_BACKSLASH && ptr[2] == CHAR_E)
+      while (ptr[1] == '\\' && ptr[2] == 'E')
         {
         inescq = FALSE;
         ptr += 2;
@@ -3331,29 +3148,28 @@ for (;; ptr++)
 
       /* Remember \r or \n */
 
-      if (c == CHAR_CR || c == CHAR_NL) cd->external_flags |= PCRE_HASCRORLF;
+      if (c == '\r' || c == '\n') cd->external_flags |= PCRE_HASCRORLF;
 
       /* Check for range */
 
-      if (!inescq && ptr[1] == CHAR_MINUS)
+      if (!inescq && ptr[1] == '-')
         {
         int d;
         ptr += 2;
-        while (*ptr == CHAR_BACKSLASH && ptr[1] == CHAR_E) ptr += 2;
+        while (*ptr == '\\' && ptr[1] == 'E') ptr += 2;
 
         /* If we hit \Q (not followed by \E) at this point, go into escaped
         mode. */
 
-        while (*ptr == CHAR_BACKSLASH && ptr[1] == CHAR_Q)
+        while (*ptr == '\\' && ptr[1] == 'Q')
           {
           ptr += 2;
-          if (*ptr == CHAR_BACKSLASH && ptr[1] == CHAR_E)
-            { ptr += 2; continue; }
+          if (*ptr == '\\' && ptr[1] == 'E') { ptr += 2; continue; }
           inescq = TRUE;
           break;
           }
 
-        if (*ptr == 0 || (!inescq && *ptr == CHAR_RIGHT_SQUARE_BRACKET))
+        if (*ptr == 0 || (!inescq && *ptr == ']'))
           {
           ptr = oldptr;
           goto LONE_SINGLE_CHARACTER;
@@ -3372,7 +3188,7 @@ for (;; ptr++)
         not any of the other escapes. Perl 5.6 treats a hyphen as a literal
         in such circumstances. */
 
-        if (!inescq && d == CHAR_BACKSLASH)
+        if (!inescq && d == '\\')
           {
           d = check_escape(&ptr, errorcodeptr, cd->bracount, options, TRUE);
           if (*errorcodeptr != 0) goto FAILED;
@@ -3382,9 +3198,9 @@ for (;; ptr++)
 
           if (d < 0)
             {
-            if (d == -ESC_b) d = CHAR_BS;
-            else if (d == -ESC_X) d = CHAR_X;
-            else if (d == -ESC_R) d = CHAR_R; else
+            if (d == -ESC_b) d = '\b';
+            else if (d == -ESC_X) d = 'X';
+            else if (d == -ESC_R) d = 'R'; else
               {
               ptr = oldptr;
               goto LONE_SINGLE_CHARACTER;  /* A few lines below */
@@ -3405,7 +3221,7 @@ for (;; ptr++)
 
         /* Remember \r or \n */
 
-        if (d == CHAR_CR || d == CHAR_NL) cd->external_flags |= PCRE_HASCRORLF;
+        if (d == '\r' || d == '\n') cd->external_flags |= PCRE_HASCRORLF;
 
         /* In UTF-8 mode, if the upper limit is > 255, or > 127 for caseless
         matching, we have to use an XCLASS with extra data items. Caseless
@@ -3552,7 +3368,7 @@ for (;; ptr++)
 
     /* Loop until ']' reached. This "while" is the end of the "do" above. */
 
-    while ((c = *(++ptr)) != 0 && (c != CHAR_RIGHT_SQUARE_BRACKET || inescq));
+    while ((c = *(++ptr)) != 0 && (c != ']' || inescq));
 
     if (c == 0)                          /* Missing terminating ']' */
       {
@@ -3697,23 +3513,23 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
     /* Various kinds of repeat; '{' is not necessarily a quantifier, but this
     has been tested above. */
 
-    case CHAR_LEFT_CURLY_BRACKET:
+    case '{':
     if (!is_quantifier) goto NORMAL_CHAR;
     ptr = read_repeat_counts(ptr+1, &repeat_min, &repeat_max, errorcodeptr);
     if (*errorcodeptr != 0) goto FAILED;
     goto REPEAT;
 
-    case CHAR_ASTERISK:
+    case '*':
     repeat_min = 0;
     repeat_max = -1;
     goto REPEAT;
 
-    case CHAR_PLUS:
+    case '+':
     repeat_min = 1;
     repeat_max = -1;
     goto REPEAT;
 
-    case CHAR_QUESTION_MARK:
+    case '?':
     repeat_min = 0;
     repeat_max = 1;
 
@@ -3748,13 +3564,13 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
     but if PCRE_UNGREEDY is set, it works the other way round. We change the
     repeat type to the non-default. */
 
-    if (ptr[1] == CHAR_PLUS)
+    if (ptr[1] == '+')
       {
       repeat_type = 0;                  /* Force greedy */
       possessive_quantifier = TRUE;
       ptr++;
       }
-    else if (ptr[1] == CHAR_QUESTION_MARK)
+    else if (ptr[1] == '?')
       {
       repeat_type = greedy_non_default;
       ptr++;
@@ -4387,7 +4203,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
     lookbehind or option setting or condition or all the other extended
     parenthesis forms.  */
 
-    case CHAR_LEFT_PARENTHESIS:
+    case '(':
     newoptions = options;
     skipbytes = 0;
     bravalue = OP_CBRA;
@@ -4396,19 +4212,19 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
     /* First deal with various "verbs" that can be introduced by '*'. */
 
-    if (*(++ptr) == CHAR_ASTERISK && (cd->ctypes[ptr[1]] & ctype_letter) != 0)
+    if (*(++ptr) == '*' && (cd->ctypes[ptr[1]] & ctype_letter) != 0)
       {
       int i, namelen;
       const char *vn = verbnames;
       const uschar *name = ++ptr;
       previous = NULL;
       while ((cd->ctypes[*++ptr] & ctype_letter) != 0) {};
-      if (*ptr == CHAR_COLON)
+      if (*ptr == ':')
         {
         *errorcodeptr = ERR59;   /* Not supported */
         goto FAILED;
         }
-      if (*ptr != CHAR_RIGHT_PARENTHESIS)
+      if (*ptr != ')')
         {
         *errorcodeptr = ERR60;
         goto FAILED;
@@ -4433,7 +4249,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
     /* Deal with the extended parentheses; all are introduced by '?', and the
     appearance of any of them means that this is not a capturing group. */
 
-    else if (*ptr == CHAR_QUESTION_MARK)
+    else if (*ptr == '?')
       {
       int i, set, unset, namelen;
       int *optset;
@@ -4442,9 +4258,9 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
       switch (*(++ptr))
         {
-        case CHAR_NUMBER_SIGN:                 /* Comment; skip to ket */
+        case '#':                 /* Comment; skip to ket */
         ptr++;
-        while (*ptr != 0 && *ptr != CHAR_RIGHT_PARENTHESIS) ptr++;
+        while (*ptr != 0 && *ptr != ')') ptr++;
         if (*ptr == 0)
           {
           *errorcodeptr = ERR18;
@@ -4454,19 +4270,19 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
 
         /* ------------------------------------------------------------ */
-        case CHAR_VERTICAL_LINE:  /* Reset capture count for each branch */
+        case '|':                 /* Reset capture count for each branch */
         reset_bracount = TRUE;
         /* Fall through */
 
         /* ------------------------------------------------------------ */
-        case CHAR_COLON:          /* Non-capturing bracket */
+        case ':':                 /* Non-capturing bracket */
         bravalue = OP_BRA;
         ptr++;
         break;
 
 
         /* ------------------------------------------------------------ */
-        case CHAR_LEFT_PARENTHESIS:
+        case '(':
         bravalue = OP_COND;       /* Conditional group */
 
         /* A condition can be an assertion, a number (referring to a numbered
@@ -4486,8 +4302,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         the switch. This will take control down to where bracketed groups,
         including assertions, are processed. */
 
-        if (ptr[1] == CHAR_QUESTION_MARK && (ptr[2] == CHAR_EQUALS_SIGN ||
-            ptr[2] == CHAR_EXCLAMATION_MARK || ptr[2] == CHAR_LESS_THAN_SIGN))
+        if (ptr[1] == '?' && (ptr[2] == '=' || ptr[2] == '!' || ptr[2] == '<'))
           break;
 
         /* Most other conditions use OP_CREF (a couple change to OP_RREF
@@ -4499,7 +4314,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
         /* Check for a test for recursion in a named group. */
 
-        if (ptr[1] == CHAR_R && ptr[2] == CHAR_AMPERSAND)
+        if (ptr[1] == 'R' && ptr[2] == '&')
           {
           terminator = -1;
           ptr += 2;
@@ -4509,20 +4324,20 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         /* Check for a test for a named group's having been set, using the Perl
         syntax (?(<name>) or (?('name') */
 
-        else if (ptr[1] == CHAR_LESS_THAN_SIGN)
+        else if (ptr[1] == '<')
           {
-          terminator = CHAR_GREATER_THAN_SIGN;
+          terminator = '>';
           ptr++;
           }
-        else if (ptr[1] == CHAR_APOSTROPHE)
+        else if (ptr[1] == '\'')
           {
-          terminator = CHAR_APOSTROPHE;
+          terminator = '\'';
           ptr++;
           }
         else
           {
           terminator = 0;
-          if (ptr[1] == CHAR_MINUS || ptr[1] == CHAR_PLUS) refsign = *(++ptr);
+          if (ptr[1] == '-' || ptr[1] == '+') refsign = *(++ptr);
           }
 
         /* We now expect to read a name; any thing else is an error */
@@ -4542,13 +4357,12 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
           {
           if (recno >= 0)
             recno = ((digitab[*ptr] & ctype_digit) != 0)?
-              recno * 10 + *ptr - CHAR_0 : -1;
+              recno * 10 + *ptr - '0' : -1;
           ptr++;
           }
         namelen = ptr - name;
 
-        if ((terminator > 0 && *ptr++ != terminator) ||
-            *ptr++ != CHAR_RIGHT_PARENTHESIS)
+        if ((terminator > 0 && *ptr++ != terminator) || *ptr++ != ')')
           {
           ptr--;      /* Error offset */
           *errorcodeptr = ERR26;
@@ -4570,7 +4384,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
             *errorcodeptr = ERR58;
             goto FAILED;
             }
-          recno = (refsign == CHAR_MINUS)?
+          recno = (refsign == '-')?
             cd->bracount - recno + 1 : recno +cd->bracount;
           if (recno <= 0 || recno > cd->final_bracount)
             {
@@ -4601,7 +4415,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
         /* Search the pattern for a forward reference */
 
-        else if ((i = find_parens(cd, name, namelen,
+        else if ((i = find_parens(ptr, cd, name, namelen,
                         (options & PCRE_EXTENDED) != 0)) > 0)
           {
           PUT2(code, 2+LINK_SIZE, i);
@@ -4622,7 +4436,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         /* Check for (?(R) for recursion. Allow digits after R to specify a
         specific group number. */
 
-        else if (*name == CHAR_R)
+        else if (*name == 'R')
           {
           recno = 0;
           for (i = 1; i < namelen; i++)
@@ -4632,7 +4446,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
               *errorcodeptr = ERR15;
               goto FAILED;
               }
-            recno = recno * 10 + name[i] - CHAR_0;
+            recno = recno * 10 + name[i] - '0';
             }
           if (recno == 0) recno = RREF_ANY;
           code[1+LINK_SIZE] = OP_RREF;      /* Change test type */
@@ -4642,7 +4456,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         /* Similarly, check for the (?(DEFINE) "condition", which is always
         false. */
 
-        else if (namelen == 6 && strncmp((char *)name, STRING_DEFINE, 6) == 0)
+        else if (namelen == 6 && strncmp((char *)name, "DEFINE", 6) == 0)
           {
           code[1+LINK_SIZE] = OP_DEF;
           skipbytes = 1;
@@ -4667,16 +4481,16 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
 
         /* ------------------------------------------------------------ */
-        case CHAR_EQUALS_SIGN:                 /* Positive lookahead */
+        case '=':                 /* Positive lookahead */
         bravalue = OP_ASSERT;
         ptr++;
         break;
 
 
         /* ------------------------------------------------------------ */
-        case CHAR_EXCLAMATION_MARK:            /* Negative lookahead */
+        case '!':                 /* Negative lookahead */
         ptr++;
-        if (*ptr == CHAR_RIGHT_PARENTHESIS)    /* Optimize (?!) */
+        if (*ptr == ')')          /* Optimize (?!) */
           {
           *code++ = OP_FAIL;
           previous = NULL;
@@ -4687,15 +4501,15 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
 
         /* ------------------------------------------------------------ */
-        case CHAR_LESS_THAN_SIGN:              /* Lookbehind or named define */
+        case '<':                 /* Lookbehind or named define */
         switch (ptr[1])
           {
-          case CHAR_EQUALS_SIGN:               /* Positive lookbehind */
+          case '=':               /* Positive lookbehind */
           bravalue = OP_ASSERTBACK;
           ptr += 2;
           break;
 
-          case CHAR_EXCLAMATION_MARK:          /* Negative lookbehind */
+          case '!':               /* Negative lookbehind */
           bravalue = OP_ASSERTBACK_NOT;
           ptr += 2;
           break;
@@ -4710,22 +4524,22 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
 
         /* ------------------------------------------------------------ */
-        case CHAR_GREATER_THAN_SIGN:           /* One-time brackets */
+        case '>':                 /* One-time brackets */
         bravalue = OP_ONCE;
         ptr++;
         break;
 
 
         /* ------------------------------------------------------------ */
-        case CHAR_C:                 /* Callout - may be followed by digits; */
+        case 'C':                 /* Callout - may be followed by digits; */
         previous_callout = code;  /* Save for later completion */
         after_manual_callout = 1; /* Skip one item before completing */
         *code++ = OP_CALLOUT;
           {
           int n = 0;
           while ((digitab[*(++ptr)] & ctype_digit) != 0)
-            n = n * 10 + *ptr - CHAR_0;
-          if (*ptr != CHAR_RIGHT_PARENTHESIS)
+            n = n * 10 + *ptr - '0';
+          if (*ptr != ')')
             {
             *errorcodeptr = ERR39;
             goto FAILED;
@@ -4745,15 +4559,14 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
 
         /* ------------------------------------------------------------ */
-        case CHAR_P:              /* Python-style named subpattern handling */
-        if (*(++ptr) == CHAR_EQUALS_SIGN ||
-            *ptr == CHAR_GREATER_THAN_SIGN)  /* Reference or recursion */
+        case 'P':                 /* Python-style named subpattern handling */
+        if (*(++ptr) == '=' || *ptr == '>')  /* Reference or recursion */
           {
-          is_recurse = *ptr == CHAR_GREATER_THAN_SIGN;
-          terminator = CHAR_RIGHT_PARENTHESIS;
+          is_recurse = *ptr == '>';
+          terminator = ')';
           goto NAMED_REF_OR_RECURSE;
           }
-        else if (*ptr != CHAR_LESS_THAN_SIGN)  /* Test for Python-style defn */
+        else if (*ptr != '<')    /* Test for Python-style definition */
           {
           *errorcodeptr = ERR41;
           goto FAILED;
@@ -4763,10 +4576,9 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
         /* ------------------------------------------------------------ */
         DEFINE_NAME:    /* Come here from (?< handling */
-        case CHAR_APOSTROPHE:
+        case '\'':
           {
-          terminator = (*ptr == CHAR_LESS_THAN_SIGN)?
-            CHAR_GREATER_THAN_SIGN : CHAR_APOSTROPHE;
+          terminator = (*ptr == '<')? '>' : '\'';
           name = ++ptr;
 
           while ((cd->ctypes[*ptr] & ctype_word) != 0) ptr++;
@@ -4840,8 +4652,8 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
 
         /* ------------------------------------------------------------ */
-        case CHAR_AMPERSAND:            /* Perl recursion/subroutine syntax */
-        terminator = CHAR_RIGHT_PARENTHESIS;
+        case '&':                 /* Perl recursion/subroutine syntax */
+        terminator = ')';
         is_recurse = TRUE;
         /* Fall through */
 
@@ -4900,7 +4712,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
             recno = GET2(slot, 0);
             }
           else if ((recno =                /* Forward back reference */
-                    find_parens(cd, name, namelen,
+                    find_parens(ptr, cd, name, namelen,
                       (options & PCRE_EXTENDED) != 0)) <= 0)
             {
             *errorcodeptr = ERR15;
@@ -4916,18 +4728,18 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
 
         /* ------------------------------------------------------------ */
-        case CHAR_R:              /* Recursion */
+        case 'R':                 /* Recursion */
         ptr++;                    /* Same as (?0)      */
         /* Fall through */
 
 
         /* ------------------------------------------------------------ */
-        case CHAR_MINUS: case CHAR_PLUS:  /* Recursion or subroutine */
-        case CHAR_0: case CHAR_1: case CHAR_2: case CHAR_3: case CHAR_4:
-        case CHAR_5: case CHAR_6: case CHAR_7: case CHAR_8: case CHAR_9:
+        case '-': case '+':
+        case '0': case '1': case '2': case '3': case '4':   /* Recursion or */
+        case '5': case '6': case '7': case '8': case '9':   /* subroutine */
           {
           const uschar *called;
-          terminator = CHAR_RIGHT_PARENTHESIS;
+          terminator = ')';
 
           /* Come here from the \g<...> and \g'...' code (Oniguruma
           compatibility). However, the syntax has been checked to ensure that
@@ -4937,7 +4749,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
           HANDLE_NUMERICAL_RECURSION:
 
-          if ((refsign = *ptr) == CHAR_PLUS)
+          if ((refsign = *ptr) == '+')
             {
             ptr++;
             if ((digitab[*ptr] & ctype_digit) == 0)
@@ -4946,7 +4758,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
               goto FAILED;
               }
             }
-          else if (refsign == CHAR_MINUS)
+          else if (refsign == '-')
             {
             if ((digitab[ptr[1]] & ctype_digit) == 0)
               goto OTHER_CHAR_AFTER_QUERY;
@@ -4955,7 +4767,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
           recno = 0;
           while((digitab[*ptr] & ctype_digit) != 0)
-            recno = recno * 10 + *ptr++ - CHAR_0;
+            recno = recno * 10 + *ptr++ - '0';
 
           if (*ptr != terminator)
             {
@@ -4963,7 +4775,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
             goto FAILED;
             }
 
-          if (refsign == CHAR_MINUS)
+          if (refsign == '-')
             {
             if (recno == 0)
               {
@@ -4977,7 +4789,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
               goto FAILED;
               }
             }
-          else if (refsign == CHAR_PLUS)
+          else if (refsign == '+')
             {
             if (recno == 0)
               {
@@ -5010,7 +4822,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
             if (called == NULL)
               {
-              if (find_parens(cd, NULL, recno,
+              if (find_parens(ptr, cd, NULL, recno,
                     (options & PCRE_EXTENDED) != 0) < 0)
                 {
                 *errorcodeptr = ERR15;
@@ -5063,23 +4875,23 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         set = unset = 0;
         optset = &set;
 
-        while (*ptr != CHAR_RIGHT_PARENTHESIS && *ptr != CHAR_COLON)
+        while (*ptr != ')' && *ptr != ':')
           {
           switch (*ptr++)
             {
-            case CHAR_MINUS: optset = &unset; break;
+            case '-': optset = &unset; break;
 
-            case CHAR_J:    /* Record that it changed in the external options */
+            case 'J':    /* Record that it changed in the external options */
             *optset |= PCRE_DUPNAMES;
             cd->external_flags |= PCRE_JCHANGED;
             break;
 
-            case CHAR_i: *optset |= PCRE_CASELESS; break;
-            case CHAR_m: *optset |= PCRE_MULTILINE; break;
-            case CHAR_s: *optset |= PCRE_DOTALL; break;
-            case CHAR_x: *optset |= PCRE_EXTENDED; break;
-            case CHAR_U: *optset |= PCRE_UNGREEDY; break;
-            case CHAR_X: *optset |= PCRE_EXTRA; break;
+            case 'i': *optset |= PCRE_CASELESS; break;
+            case 'm': *optset |= PCRE_MULTILINE; break;
+            case 's': *optset |= PCRE_DOTALL; break;
+            case 'x': *optset |= PCRE_EXTENDED; break;
+            case 'U': *optset |= PCRE_UNGREEDY; break;
+            case 'X': *optset |= PCRE_EXTRA; break;
 
             default:  *errorcodeptr = ERR12;
                       ptr--;    /* Correct the offset */
@@ -5113,7 +4925,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         options if this setting actually changes any of them, and reset the
         greedy defaults and the case value for firstbyte and reqbyte. */
 
-        if (*ptr == CHAR_RIGHT_PARENTHESIS)
+        if (*ptr == ')')
           {
           if (code == cd->start_code + 1 + LINK_SIZE &&
                (lengthptr == NULL || *lengthptr == 2 + 2*LINK_SIZE))
@@ -5253,7 +5065,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
     /* Error if hit end of pattern */
 
-    if (*ptr != CHAR_RIGHT_PARENTHESIS)
+    if (*ptr != ')')
       {
       *errorcodeptr = ERR14;
       goto FAILED;
@@ -5351,7 +5163,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
     We can test for values between ESC_b and ESC_Z for the latter; this may
     have to change if any new ones are ever created. */
 
-    case CHAR_BACKSLASH:
+    case '\\':
     tempptr = ptr;
     c = check_escape(&ptr, errorcodeptr, cd->bracount, options, FALSE);
     if (*errorcodeptr != 0) goto FAILED;
@@ -5360,9 +5172,8 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
       {
       if (-c == ESC_Q)            /* Handle start of quoted string */
         {
-        if (ptr[1] == CHAR_BACKSLASH && ptr[2] == CHAR_E)
-          ptr += 2;               /* avoid empty string */
-            else inescq = TRUE;
+        if (ptr[1] == '\\' && ptr[2] == 'E') ptr += 2; /* avoid empty string */
+          else inescq = TRUE;
         continue;
         }
 
@@ -5390,8 +5201,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
         {
         const uschar *p;
         save_hwm = cd->hwm;   /* Normally this is set when '(' is read */
-        terminator = (*(++ptr) == CHAR_LESS_THAN_SIGN)?
-          CHAR_GREATER_THAN_SIGN : CHAR_APOSTROPHE;
+        terminator = (*(++ptr) == '<')? '>' : '\'';
 
         /* These two statements stop the compiler for warning about possibly
         unset variables caused by the jump to HANDLE_NUMERICAL_RECURSION. In
@@ -5403,7 +5213,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
         /* Test for a name */
 
-        if (ptr[1] != CHAR_PLUS && ptr[1] != CHAR_MINUS)
+        if (ptr[1] != '+' && ptr[1] != '-')
           {
           BOOL isnumber = TRUE;
           for (p = ptr + 1; *p != 0 && *p != terminator; p++)
@@ -5441,13 +5251,10 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
       /* \k<name> or \k'name' is a back reference by name (Perl syntax).
       We also support \k{name} (.NET syntax) */
 
-      if (-c == ESC_k && (ptr[1] == CHAR_LESS_THAN_SIGN ||
-          ptr[1] == CHAR_APOSTROPHE || ptr[1] == CHAR_LEFT_CURLY_BRACKET))
+      if (-c == ESC_k && (ptr[1] == '<' || ptr[1] == '\'' || ptr[1] == '{'))
         {
         is_recurse = FALSE;
-        terminator = (*(++ptr) == CHAR_LESS_THAN_SIGN)?
-          CHAR_GREATER_THAN_SIGN : (*ptr == CHAR_APOSTROPHE)?
-          CHAR_APOSTROPHE : CHAR_RIGHT_CURLY_BRACKET;
+        terminator = (*(++ptr) == '<')? '>' : (*ptr == '\'')? '\'' : '}';
         goto NAMED_REF_OR_RECURSE;
         }
 
@@ -5550,7 +5357,7 @@ we set the flag only if there is a literal "\r" or "\n" in the class. */
 
     /* Remember if \r or \n were seen */
 
-    if (mcbuffer[0] == CHAR_CR || mcbuffer[0] == CHAR_NL)
+    if (mcbuffer[0] == '\r' || mcbuffer[0] == '\n')
       cd->external_flags |= PCRE_HASCRORLF;
 
     /* Set the first and required bytes appropriately. If no previous first
@@ -5795,7 +5602,7 @@ for (;;)
   compile a resetting op-code following, except at the very end of the pattern.
   Return leaving the pointer at the terminating char. */
 
-  if (*ptr != CHAR_VERTICAL_LINE)
+  if (*ptr != '|')
     {
     if (lengthptr == NULL)
       {
@@ -5818,7 +5625,7 @@ for (;;)
 
     /* Resetting option if needed */
 
-    if ((options & PCRE_IMS) != oldims && *ptr == CHAR_RIGHT_PARENTHESIS)
+    if ((options & PCRE_IMS) != oldims && *ptr == ')')
       {
       *code++ = OP_OPT;
       *code++ = oldims;
@@ -6000,32 +5807,6 @@ do {
      NULL, 0, FALSE);
    register int op = *scode;
 
-   /* If we are at the start of a conditional assertion group, *both* the
-   conditional assertion *and* what follows the condition must satisfy the test
-   for start of line. Other kinds of condition fail. Note that there may be an
-   auto-callout at the start of a condition. */
-
-   if (op == OP_COND)
-     {
-     scode += 1 + LINK_SIZE;
-     if (*scode == OP_CALLOUT) scode += _pcre_OP_lengths[OP_CALLOUT];
-     switch (*scode)
-       {
-       case OP_CREF:
-       case OP_RREF:
-       case OP_DEF:
-       return FALSE;
-
-       default:     /* Assertion */
-       if (!is_startline(scode, bracket_map, backref_map)) return FALSE;
-       do scode += GET(scode, 1); while (*scode == OP_ALT);
-       scode += 1 + LINK_SIZE;
-       break;
-       }
-     scode = first_significant_code(scode, NULL, 0, FALSE);
-     op = *scode;
-     }
-
    /* Non-capturing brackets */
 
    if (op == OP_BRA)
@@ -6044,10 +5825,8 @@ do {
 
    /* Other brackets */
 
-   else if (op == OP_ASSERT || op == OP_ONCE)
-     {
-     if (!is_startline(scode, bracket_map, backref_map)) return FALSE;
-     }
+   else if (op == OP_ASSERT || op == OP_ONCE || op == OP_COND)
+     { if (!is_startline(scode, bracket_map, backref_map)) return FALSE; }
 
    /* .* means "start at start or after \n" if it isn't in brackets that
    may be referenced. */
@@ -6226,57 +6005,6 @@ if (erroroffset == NULL)
 
 *erroroffset = 0;
 
-/* Set up pointers to the individual character tables */
-
-if (tables == NULL) tables = _pcre_default_tables;
-cd->lcc = tables + lcc_offset;
-cd->fcc = tables + fcc_offset;
-cd->cbits = tables + cbits_offset;
-cd->ctypes = tables + ctypes_offset;
-
-/* Check that all undefined public option bits are zero */
-
-if ((options & ~PUBLIC_COMPILE_OPTIONS) != 0)
-  {
-  errorcode = ERR17;
-  goto PCRE_EARLY_ERROR_RETURN;
-  }
-
-/* Check for global one-time settings at the start of the pattern, and remember
-the offset for later. */
-
-while (ptr[skipatstart] == CHAR_LEFT_PARENTHESIS &&
-       ptr[skipatstart+1] == CHAR_ASTERISK)
-  {
-  int newnl = 0;
-  int newbsr = 0;
-
-  if (strncmp((char *)(ptr+skipatstart+2), STRING_UTF8_RIGHTPAR, 5) == 0)
-    { skipatstart += 7; options |= PCRE_UTF8; continue; }
-
-  if (strncmp((char *)(ptr+skipatstart+2), STRING_CR_RIGHTPAR, 3) == 0)
-    { skipatstart += 5; newnl = PCRE_NEWLINE_CR; }
-  else if (strncmp((char *)(ptr+skipatstart+2), STRING_LF_RIGHTPAR, 3)  == 0)
-    { skipatstart += 5; newnl = PCRE_NEWLINE_LF; }
-  else if (strncmp((char *)(ptr+skipatstart+2), STRING_CRLF_RIGHTPAR, 5)  == 0)
-    { skipatstart += 7; newnl = PCRE_NEWLINE_CR + PCRE_NEWLINE_LF; }
-  else if (strncmp((char *)(ptr+skipatstart+2), STRING_ANY_RIGHTPAR, 4) == 0)
-    { skipatstart += 6; newnl = PCRE_NEWLINE_ANY; }
-  else if (strncmp((char *)(ptr+skipatstart+2), STRING_ANYCRLF_RIGHTPAR, 8) == 0)
-    { skipatstart += 10; newnl = PCRE_NEWLINE_ANYCRLF; }
-
-  else if (strncmp((char *)(ptr+skipatstart+2), STRING_BSR_ANYCRLF_RIGHTPAR, 12) == 0)
-    { skipatstart += 14; newbsr = PCRE_BSR_ANYCRLF; }
-  else if (strncmp((char *)(ptr+skipatstart+2), STRING_BSR_UNICODE_RIGHTPAR, 12) == 0)
-    { skipatstart += 14; newbsr = PCRE_BSR_UNICODE; }
-
-  if (newnl != 0)
-    options = (options & ~PCRE_NEWLINE_BITS) | newnl;
-  else if (newbsr != 0)
-    options = (options & ~(PCRE_BSR_ANYCRLF|PCRE_BSR_UNICODE)) | newbsr;
-  else break;
-  }
-
 /* Can't support UTF8 unless PCRE has been compiled to include the code. */
 
 #ifdef SUPPORT_UTF8
@@ -6294,6 +6022,51 @@ if ((options & PCRE_UTF8) != 0)
   goto PCRE_EARLY_ERROR_RETURN;
   }
 #endif
+
+if ((options & ~PUBLIC_OPTIONS) != 0)
+  {
+  errorcode = ERR17;
+  goto PCRE_EARLY_ERROR_RETURN;
+  }
+
+/* Set up pointers to the individual character tables */
+
+if (tables == NULL) tables = _pcre_default_tables;
+cd->lcc = tables + lcc_offset;
+cd->fcc = tables + fcc_offset;
+cd->cbits = tables + cbits_offset;
+cd->ctypes = tables + ctypes_offset;
+
+/* Check for global one-time settings at the start of the pattern, and remember
+the offset for later. */
+
+while (ptr[skipatstart] == '(' && ptr[skipatstart+1] == '*')
+  {
+  int newnl = 0;
+  int newbsr = 0;
+
+  if (strncmp((char *)(ptr+skipatstart+2), "CR)", 3) == 0)
+    { skipatstart += 5; newnl = PCRE_NEWLINE_CR; }
+  else if (strncmp((char *)(ptr+skipatstart+2), "LF)", 3)  == 0)
+    { skipatstart += 5; newnl = PCRE_NEWLINE_LF; }
+  else if (strncmp((char *)(ptr+skipatstart+2), "CRLF)", 5)  == 0)
+    { skipatstart += 7; newnl = PCRE_NEWLINE_CR + PCRE_NEWLINE_LF; }
+  else if (strncmp((char *)(ptr+skipatstart+2), "ANY)", 4) == 0)
+    { skipatstart += 6; newnl = PCRE_NEWLINE_ANY; }
+  else if (strncmp((char *)(ptr+skipatstart+2), "ANYCRLF)", 8)  == 0)
+    { skipatstart += 10; newnl = PCRE_NEWLINE_ANYCRLF; }
+
+  else if (strncmp((char *)(ptr+skipatstart+2), "BSR_ANYCRLF)", 12) == 0)
+    { skipatstart += 14; newbsr = PCRE_BSR_ANYCRLF; }
+  else if (strncmp((char *)(ptr+skipatstart+2), "BSR_UNICODE)", 12) == 0)
+    { skipatstart += 14; newbsr = PCRE_BSR_UNICODE; }
+
+  if (newnl != 0)
+    options = (options & ~PCRE_NEWLINE_BITS) | newnl;
+  else if (newbsr != 0)
+    options = (options & ~(PCRE_BSR_ANYCRLF|PCRE_BSR_UNICODE)) | newbsr;
+  else break;
+  }
 
 /* Check validity of \R options. */
 
@@ -6313,10 +6086,10 @@ current code allows for fixed one- or two-byte sequences, plus "any" and
 switch (options & PCRE_NEWLINE_BITS)
   {
   case 0: newline = NEWLINE; break;   /* Build-time default */
-  case PCRE_NEWLINE_CR: newline = CHAR_CR; break;
-  case PCRE_NEWLINE_LF: newline = CHAR_NL; break;
+  case PCRE_NEWLINE_CR: newline = '\r'; break;
+  case PCRE_NEWLINE_LF: newline = '\n'; break;
   case PCRE_NEWLINE_CR+
-       PCRE_NEWLINE_LF: newline = (CHAR_CR << 8) | CHAR_NL; break;
+       PCRE_NEWLINE_LF: newline = ('\r' << 8) | '\n'; break;
   case PCRE_NEWLINE_ANY: newline = -1; break;
   case PCRE_NEWLINE_ANYCRLF: newline = -2; break;
   default: errorcode = ERR56; goto PCRE_EARLY_ERROR_RETURN;

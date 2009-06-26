@@ -51,7 +51,7 @@ makeMethodsList <- function(object, level=1)
         el(mnames, i) <- "ANY"
         names(object) <- mnames
     }
-    if(anyDuplicated(mnames))
+    if(any(duplicated(mnames)))
         stop(gettextf("duplicate element names in 'MethodsList' at level %d: %s",
              level, paste("\"", unique(mnames[duplicated(mnames)]), "\"",
                           collapse=", ")), domain = NA)

@@ -190,13 +190,10 @@ function(x, digits = max(1, getOption("digits") - 3), ...)
 }
 
 as.data.frame.table <-
-    function(x, row.names = NULL, ..., responseName = "Freq",
-             stringsAsFactors = TRUE)
+    function(x, row.names = NULL, ..., responseName = "Freq")
 {
     x <- as.table(x)
-    ex <- quote(data.frame(do.call("expand.grid",
-                                   c(dimnames(x),
-                                     stringsAsFactors = stringsAsFactors)),
+    ex <- quote(data.frame(do.call("expand.grid", dimnames(x)),
                            Freq = c(x),
                            row.names = row.names))
     names(ex)[3L] <- responseName

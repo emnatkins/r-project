@@ -33,7 +33,7 @@
 
 #define YYERROR_VERBOSE 1
 
-static void yyerror(const char *);
+static void yyerror(char *);
 static int yylex();
 static int yyparse(void);
 
@@ -98,9 +98,6 @@ static int	xxmode, xxitemType, xxbraceDepth;  /* context for lexer */
 static int	xxDebugTokens;  /* non-zero causes debug output to R console */
 static const char* xxBasename;     /* basename of file for error messages */
 static SEXP	Value;
-static int	xxinitvalue;
-static char const yyunknown[] = "unknown macro"; /* our message, not bison's */
-
 
 #define RLIKE 1		/* Includes R strings; xxinRString holds the opening quote char, or 0 outside a string */
 #define LATEXLIKE 2
@@ -138,32 +135,16 @@ static int 	mkComment(int);
 %token		END_OF_INPUT ERROR
 %token		SECTIONHEADER RSECTIONHEADER VSECTIONHEADER
 %token		SECTIONHEADER2
-%token		RCODEMACRO SEXPR LATEXMACRO VERBMACRO OPTMACRO ESCAPE
+%token		RCODEMACRO LATEXMACRO VERBMACRO OPTMACRO ESCAPE
 %token		LISTSECTION ITEMIZE DESCRIPTION NOITEM
 %token		LATEXMACRO2 VERBMACRO2
 %token		IFDEF ENDIF
 %token		TEXT RCODE VERB COMMENT UNKNOWN
-%token		STARTFILE STARTFRAGMENT	/* fake tokens to have two entry points */
-
-/* Recent bison has <> to represent all of the destructors below, but we don't assume it */
-
-%destructor { UNPROTECT_PTR($$); } SECTIONHEADER RSECTIONHEADER
-VSECTIONHEADER SECTIONHEADER2 RCODEMACRO SEXPR LATEXMACRO VERBMACRO
-OPTMACRO ESCAPE LISTSECTION ITEMIZE DESCRIPTION NOITEM LATEXMACRO2
-VERBMACRO2 IFDEF ENDIF TEXT RCODE VERB COMMENT UNKNOWN STARTFILE
-STARTFRAGMENT
 
 %%
 
-Init:		STARTFILE RdFile END_OF_INPUT		{ xxsavevalue($2, &@$); UNPROTECT_PTR($1); return 0; }
-	|	STARTFRAGMENT RdFragment END_OF_INPUT	{ xxsavevalue($2, &@$); UNPROTECT_PTR($1); return 0; }
-	|	error					{ PROTECT(Value = R_NilValue);  YYABORT; }
-	;
-
-RdFragment :    goLatexLike ArgItems  		{ $$ = $2; UNPROTECT_PTR($1); }
-	;
-	
-RdFile	:	SectionList			{ $$ = $1; }
+RdFile	:	SectionList END_OF_INPUT	{ xxsavevalue($1, &@$); return 0; }
+	|	error	 			{ PROTECT(Value = R_NilValue);  YYABORT; }
 	;
 
 SectionList:	Section				{ $$ = xxnewlist($1); }
@@ -175,11 +156,8 @@ Section:	VSECTIONHEADER VerbatimArg	{ $$ = xxmarkup($1, $2, &@$); }
 	|	LISTSECTION    Item2Arg		{ $$ = xxmarkup($1, $2, &@$); }
 	|	SECTIONHEADER2 LatexArg LatexArg2 { $$ = xxmarkup2($1, $2, $3, 2, &@$); }
 	|	IFDEF IfDefTarget SectionList ENDIF { $$ = xxmarkup2($1, $2, $3, 2, &@$); UNPROTECT_PTR($4); } 
-	|	SEXPR       goOption RLikeArg2   { $$ = xxmarkup($1, $3, &@$); xxpopMode($2); }
-	|	SEXPR       goOption Option RLikeArg2 { $$ = xxOptionmarkup($1, $3, $4, &@$); xxpopMode($2); }
 	|	COMMENT				{ $$ = xxtag($1, COMMENT, &@$); }
 	|	TEXT				{ $$ = xxtag($1, TEXT, &@$); } /* must be whitespace */
-	|	error Section			{ $$ = $2; }
 
 ArgItems:	Item				{ $$ = xxnewlist($1); }
 	|	ArgItems Item			{ $$ = xxlist($1, $2); }
@@ -188,10 +166,9 @@ Item:		TEXT				{ $$ = xxtag($1, TEXT, &@$); }
 	|	RCODE				{ $$ = xxtag($1, RCODE, &@$); }
 	|	VERB				{ $$ = xxtag($1, VERB, &@$); }
 	|	COMMENT				{ $$ = xxtag($1, COMMENT, &@$); }
-	|	UNKNOWN				{ $$ = xxtag($1, UNKNOWN, &@$); yyerror(yyunknown); }
+	|	UNKNOWN				{ $$ = xxtag($1, UNKNOWN, &@$); }
 	|	Arg				{ $$ = xxmarkup(R_NilValue, $1, &@$); }
 	|	Markup				{ $$ = $1; }	
-	|	error Item			{ $$ = $2; }
 
 Markup:		LATEXMACRO  LatexArg 		{ $$ = xxmarkup($1, $2, &@$); }
 	|	LATEXMACRO2 LatexArg LatexArg2  { $$ = xxmarkup2($1, $2, $3, 2, &@$); }
@@ -200,8 +177,6 @@ Markup:		LATEXMACRO  LatexArg 		{ $$ = xxmarkup($1, $2, &@$); }
 	|	OPTMACRO    goOption LatexArg  	{ $$ = xxmarkup($1, $3, &@$); xxpopMode($2); }
 	|	OPTMACRO    goOption Option LatexArg { $$ = xxOptionmarkup($1, $3, $4, &@$); xxpopMode($2); }
 	|	RCODEMACRO  RLikeArg     	{ $$ = xxmarkup($1, $2, &@$); }
-	|	SEXPR       goOption RLikeArg2   { $$ = xxmarkup($1, $3, &@$); xxpopMode($2); }
-	|	SEXPR       goOption Option RLikeArg2 { $$ = xxOptionmarkup($1, $3, $4, &@$); xxpopMode($2); }
 	|	VERBMACRO   VerbatimArg		{ $$ = xxmarkup($1, $2, &@$); }
 	|	VERBMACRO2  VerbatimArg1	{ $$ = xxmarkup2($1, $2, R_NilValue, 1, &@$); }
 	|       VERBMACRO2  VerbatimArg1 VerbatimArg2 { $$ = xxmarkup2($1, $2, $3, 2, &@$); }
@@ -221,11 +196,6 @@ Item2Arg:	goItem2 Arg			{ xxpopMode($1); $$ = $2; }
 
 RLikeArg:	goRLike Arg			{ xxpopMode($1); $$ = $2; }
 
-/* This one is like VerbatimArg2 below:  it does the push after seeing the brace */
-
-RLikeArg2:	'{' goRLike2 ArgItems '}'	{ xxpopMode($2); $$ = $3; }
-	|	'{' goRLike2 '}'		{ xxpopMode($2); $$ = xxnewlist(NULL); }
-
 VerbatimArg:	goVerbatim Arg		 	{ xxpopMode($1); $$ = $2; }
 
 VerbatimArg1:	goVerbatim1 Arg			{ xxpopMode($1); $$ = $2; }
@@ -242,8 +212,6 @@ goLatexLike:	/* empty */			{ $$ = xxpushMode(LATEXLIKE, UNKNOWN, FALSE); }
 
 goRLike:	/* empty */			{ $$ = xxpushMode(RLIKE, UNKNOWN, FALSE); }
 
-goRLike2:	/* empty */			{ xxbraceDepth--; $$ = xxpushMode(RLIKE, UNKNOWN, FALSE); xxbraceDepth++; }
-
 goOption:	/* empty */			{ $$ = xxpushMode(INOPTION, UNKNOWN, FALSE); }
 
 goVerbatim:	/* empty */			{ $$ = xxpushMode(VERBATIM, UNKNOWN, FALSE); }
@@ -258,9 +226,6 @@ goItem2:	/* empty */			{ $$ = xxpushMode(LATEXLIKE, LATEXMACRO2, FALSE); }
 
 Arg:		'{' ArgItems  '}'		{ $$ = $2; }
 	|	'{' '}'				{ $$ = xxnewlist(NULL); }
-	|	'{' ArgItems error '}'		{ $$ = $2; }
-	|	'{' error '}'			{ $$ = xxnewlist(NULL); }
-	|	'{' ArgItems error END_OF_INPUT { $$ = $2; }
 
 Option:		'[' Item ']'			{ $$ = $2; }	
 		
@@ -580,7 +545,7 @@ static SEXP GrowList(SEXP l, SEXP s)
  *
  */
  
-static SEXP ParseRd(ParseStatus *status, SEXP srcfile, Rboolean fragment)
+static SEXP ParseRd(ParseStatus *status, SEXP srcfile)
 {
     R_ParseContextLast = 0;
     R_ParseContext[0] = '\0';
@@ -598,8 +563,6 @@ static SEXP ParseRd(ParseStatus *status, SEXP srcfile, Rboolean fragment)
     xxinRString = 0;
     xxNewlineInString = 0;
     xxinEqn = 0;
-    if (fragment) xxinitvalue = STARTFRAGMENT;
-    else	  xxinitvalue = STARTFILE;
     
     Value = R_NilValue;
     
@@ -628,11 +591,11 @@ static int con_getc(void)
 }
 
 attribute_hidden
-SEXP R_ParseRd(Rconnection con, ParseStatus *status, SEXP srcfile, Rboolean fragment)
+SEXP R_ParseRd(Rconnection con, ParseStatus *status, SEXP srcfile)
 {
     con_parse = con;
     ptr_getc = con_getc;
-    return ParseRd(status, srcfile, fragment);
+    return ParseRd(status, srcfile);
 }
 
 /*----------------------------------------------------------------------------
@@ -680,13 +643,12 @@ static keywords[] = {
     { "\\examples",RSECTIONHEADER },
     { "\\usage",   RSECTIONHEADER },
     
-    /* These sections contain verbatim text */
+    /* This section contains verbatim text */
     
     { "\\alias",   VSECTIONHEADER }, 
     { "\\name",    VSECTIONHEADER },
     { "\\synopsis",VSECTIONHEADER }, 
-    { "\\Rdversion",VSECTIONHEADER },
-    { "\\RdOpts",   VSECTIONHEADER },
+    { "\\Rdversion",VSECTIONHEADER }, 
     
     /* These macros take no arguments.  One character non-alpha escapes get the
        same token value */
@@ -738,7 +700,7 @@ static keywords[] = {
     /* These macros take one optional bracketed option and always take 
        one LaTeX-like argument */
        
-    { "\\link",    OPTMACRO },
+    { "\\link",    OPTMACRO },       
        
     /* These markup macros require an R-like text argument */
     
@@ -746,10 +708,6 @@ static keywords[] = {
     { "\\dontshow",RCODEMACRO },
     { "\\donttest",RCODEMACRO },
     { "\\testonly",RCODEMACRO },
-    
-    /* These macros take one optional bracketed option and one R-like argument */
-    
-    { "\\Sexpr",   SEXPR },
     
     /* These macros take one verbatim arg and ignore everything except braces */
     
@@ -794,7 +752,7 @@ static int KeywordLookup(const char *s)
     return UNKNOWN;
 }
 
-static void yyerror(const char *s)
+static void yyerror(char *s)
 {
     static const char *const yytname_translations[] =
     {
@@ -829,12 +787,7 @@ static void yyerror(const char *s)
     };
     static char const yyunexpected[] = "syntax error, unexpected ";
     static char const yyexpecting[] = ", expecting ";
-    static char const yyshortunexpected[] = "unexpected %s";
-    static char const yylongunexpected[] = "unexpected %s '%s'";
     char *expecting;
-    char ParseErrorMsg[PARSE_ERROR_SIZE];
-    SEXP filename;
-    char ParseErrorFilename[PARSE_ERROR_SIZE];
  #if 0
  /* these are just here to trigger the internationalization */
     _("input"); 	
@@ -845,11 +798,9 @@ static void yyerror(const char *s)
    
     xxWarnNewline();	/* post newline warning if necessary */
     
-    /*
     R_ParseError     = yylloc.first_line;
     R_ParseErrorCol  = yylloc.first_column;
     R_ParseErrorFile = SrcFile;
-    */
     
     if (!strncmp(s, yyunexpected, sizeof yyunexpected -1)) {
 	int i, translated = FALSE;
@@ -858,47 +809,35 @@ static void yyerror(const char *s)
     	if (expecting) *expecting = '\0';
     	for (i = 0; yytname_translations[i]; i += 2) {
     	    if (!strcmp(s + sizeof yyunexpected - 1, yytname_translations[i])) {
-    	        sprintf(ParseErrorMsg, yychar < 256 ? _(yyshortunexpected): _(yylongunexpected), 
+    	    	sprintf(R_ParseErrorMsg, _("unexpected %s"), 
     	    	        i/2 < YYENGLISH ? _(yytname_translations[i+1])
-    	    	                    : yytname_translations[i+1], CHAR(STRING_ELT(yylval, 0)));
+    	    	                    : yytname_translations[i+1]);
     	    	translated = TRUE;
     	    	break;
     	    }
     	}
     	if (!translated)
-    	    sprintf(ParseErrorMsg, yychar < 256 ? _(yyshortunexpected) : _(yylongunexpected),
-    	                             s + sizeof yyunexpected - 1, CHAR(STRING_ELT(yylval, 0)));
+    	    sprintf(R_ParseErrorMsg, _("unexpected %s"),
+    	                             s + sizeof yyunexpected - 1);
     	if (expecting) {
  	    translated = FALSE;
     	    for (i = 0; yytname_translations[i]; i += 2) {
     	    	if (!strcmp(expecting + sizeof yyexpecting - 1, yytname_translations[i])) {
-    	    	    strcat(ParseErrorMsg, _(yyexpecting));
-    	    	    strcat(ParseErrorMsg, i/2 < YYENGLISH ? _(yytname_translations[i+1])
+    	    	    strcat(R_ParseErrorMsg, _(yyexpecting));
+    	    	    strcat(R_ParseErrorMsg, i/2 < YYENGLISH ? _(yytname_translations[i+1])
     	    	                    : yytname_translations[i+1]);
     	    	    translated = TRUE;
 		    break;
 		}
 	    }
 	    if (!translated) {
-	    	strcat(ParseErrorMsg, _(yyexpecting));
-	    	strcat(ParseErrorMsg, expecting + sizeof yyexpecting - 1);
+	    	strcat(R_ParseErrorMsg, _(yyexpecting));
+	    	strcat(R_ParseErrorMsg, expecting + sizeof yyexpecting - 1);
 	    }
 	}
-    } else if (!strncmp(s, yyunknown, sizeof yyunknown-1)) {
-    	sprintf(ParseErrorMsg, "%s '%s'", s, CHAR(STRING_ELT(yylval, 0)));
     } else {
-    	sprintf(ParseErrorMsg, "%s", s);
-    }
-    filename = findVar(install("filename"), SrcFile);
-    if (!isNull(filename))
-    	strncpy(ParseErrorFilename, CHAR(STRING_ELT(filename, 0)), PARSE_ERROR_SIZE - 1);
-    else
-        ParseErrorFilename[0] = '\0';
-    if (yylloc.first_line != yylloc.last_line)
-    	warning("%s:%d-%d: %s", ParseErrorFilename, yylloc.first_line, yylloc.last_line, ParseErrorMsg);
-    else
-    	warning("%s:%d: %s", ParseErrorFilename, yylloc.first_line, ParseErrorMsg);
-
+    	sprintf(R_ParseErrorMsg, _("%s"),s);
+    }	
 }
 
 #define TEXT_PUSH(c) do {                  \
@@ -936,19 +875,6 @@ static int token(void)
     int c, lookahead;
     int outsideLiteral = xxmode == LATEXLIKE || xxmode == INOPTION || xxbraceDepth == 0;
 
-    if (xxinitvalue) {
-        yylloc.first_line = 0;
-        yylloc.first_column = 0;
-        yylloc.first_byte = 0;
-        yylloc.last_line = 0;
-        yylloc.last_column = 0;
-        yylloc.last_byte = 0;
-    	PROTECT(yylval = mkString(""));
-        c = xxinitvalue;
-    	xxinitvalue = 0;
-    	return(c);
-    }
-    
     setfirstloc();    
     c = xxgetc();
 
@@ -1160,7 +1086,7 @@ static int mkMarkup(int c)
     char st0[INITBUFSIZE];
     unsigned int nstext = INITBUFSIZE;
     char *stext = st0, *bp = st0;
-    int retval = 0, attempt = 0;
+    int retval, attempt = 0;
     
     TEXT_PUSH(c);
     while (isalnum((c = xxgetc()))) TEXT_PUSH(c);
@@ -1302,7 +1228,7 @@ SEXP attribute_hidden do_parseRd(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP s = R_NilValue, source;
     Rconnection con;
     Rboolean wasopen, old_latin1=known_to_be_latin1,
-	old_utf8=known_to_be_utf8, fragment;
+	old_utf8=known_to_be_utf8;
     int ifile;
     const char *encoding;
     ParseStatus status;
@@ -1329,8 +1255,7 @@ SEXP attribute_hidden do_parseRd(SEXP call, SEXP op, SEXP args, SEXP env)
     if(!isLogical(CAR(args)) || LENGTH(CAR(args)) != 1)
     	error(_("invalid '%s' value"), "verbose");
     xxDebugTokens = asInteger(CAR(args));		args = CDR(args);
-    xxBasename = CHAR(STRING_ELT(CAR(args), 0));	args = CDR(args);
-    fragment = asLogical(CAR(args));
+    xxBasename = CHAR(STRING_ELT(CAR(args), 0));
 
     if (ifile >= 3) {/* file != "" */
 	if(!wasopen) {
@@ -1341,7 +1266,7 @@ SEXP attribute_hidden do_parseRd(SEXP call, SEXP op, SEXP args, SEXP env)
 	    }
 	} else if(!con->canread)
 	    error(_("cannot read from this connection"));
-	s = R_ParseRd(con, &status, source, fragment);
+	s = R_ParseRd(con, &status, source);
 	if(!wasopen) con->close(con);
 	if (status != PARSE_OK) parseError(call, R_ParseError);
     }
