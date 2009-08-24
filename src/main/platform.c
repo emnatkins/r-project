@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998, 2001-8 The R Development Core Team
+ *  Copyright (C) 1998, 2001-9 The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -1521,8 +1521,6 @@ SEXP attribute_hidden do_getlocale(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 extern void invalidate_cached_recodings(void);  /* from sysutils.c */
 
-extern void resetICUcollator(void); /* from util.c */
-
 /* Locale specs are always ASCII */
 SEXP attribute_hidden do_setlocale(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -1545,7 +1543,6 @@ SEXP attribute_hidden do_setlocale(SEXP call, SEXP op, SEXP args, SEXP rho)
 	/* assume we can set LC_CTYPE iff we can set the rest */
 	if ((p = setlocale(LC_CTYPE, l))) {
 	    setlocale(LC_COLLATE, l);
-	    resetICUcollator();
 	    setlocale(LC_MONETARY, l);
 	    setlocale(LC_TIME, l);
 	    /* Need to return value of LC_ALL */
@@ -1556,7 +1553,6 @@ SEXP attribute_hidden do_setlocale(SEXP call, SEXP op, SEXP args, SEXP rho)
     case 2:
 	cat = LC_COLLATE;
 	p = setlocale(cat, CHAR(STRING_ELT(locale, 0)));
-	resetICUcollator();
 	break;
     case 3:
 	cat = LC_CTYPE;
@@ -1856,9 +1852,12 @@ SEXP attribute_hidden do_capabilities(SEXP call, SEXP op, SEXP args, SEXP rho)
 #endif
     i++;
 
-/* always true as from R 2.10.0 */
     SET_STRING_ELT(ansnames, i, mkChar("iconv"));
+#if defined(HAVE_ICONV) && defined(ICONV_LATIN1)
     LOGICAL(ans)[i++] = TRUE;
+#else
+    LOGICAL(ans)[i++] = FALSE;
+#endif
 
     SET_STRING_ELT(ansnames, i, mkChar("NLS"));
 #ifdef ENABLE_NLS

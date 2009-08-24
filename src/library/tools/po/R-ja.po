@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-08-12 10:17\n"
+"POT-Creation-Date: 2009-06-14 08:29\n"
 "PO-Revision-Date: 2009-04-01 08:36+0900 \n"
 "Last-Translator: Shigeru Mase <maseshigeru@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -95,17 +95,17 @@ msgstr " クラス '%s' のためのスロット "
 msgid "name"
 msgstr " 名前 "
 
-msgid "Data codoc mismatches from documentation object '%s':"
-msgstr " データ codoc はドキュメントオブジェクト '%s' とマッチしません: "
-
-msgid "Variables in data frame '%s'"
-msgstr " データ・フレーム '%s' 中の変数 "
-
 msgid "code"
 msgstr " コード "
 
 msgid "docs"
 msgstr " ドキュメント "
+
+msgid "Data codoc mismatches from documentation object '%s':"
+msgstr " データ codoc はドキュメントオブジェクト '%s' とマッチしません: "
+
+msgid "Variables in data frame '%s'"
+msgstr " データ・フレーム '%s' 中の変数 "
 
 msgid "Undocumented arguments in documentation object '%s'"
 msgstr " ドキュメントオブジェクト '%s' 中にドキュメントの無い引数 "
@@ -268,6 +268,15 @@ msgstr " 重複するエイリアス '%s' を持ったRdファイル： "
 msgid "Rd files with empty sections:"
 msgstr " 空のセクションを含む Rd ファイル： "
 
+msgid "Found invalid multi-byte character data."
+msgstr " 不正なマルチバイト文字データが見つかりました "
+
+msgid "Cannot re-encode because iconv is not available."
+msgstr " iconvは利用出来ませんので再びエンコードすることは出来ません． "
+
+msgid "Try running R in a single-byte locale."
+msgstr " 単バイトロケール中でRを動作させてみてください "
+
 msgid "Malformed package name"
 msgstr " 奇矯なパッケージ名です "
 
@@ -425,6 +434,12 @@ msgstr "メソッドを伴わない Generics があります "
 msgid ":"
 msgstr " ： "
 
+msgid "argument 'lines' must be a character vector"
+msgstr " 引数 'lines' は文字列ベクトルでなければなりません "
+
+msgid "encoding '%s' is not portable"
+msgstr " エンコーディング '%s' は移植出来ません "
+
 msgid "argument 'file' must be a character string or connection"
 msgstr " 引数 'file' は文字列ベクトルかコネクションでなければなりません "
 
@@ -454,24 +469,6 @@ msgstr " 引数 'outFile' は文字列ベクトルかコネクションでなけ
 
 msgid "directory '%s' does not contain Rd objects"
 msgstr " ディレクトリ '%s' は Rd オブジェクトを含んでいません "
-
-#, fuzzy
-msgid "you must specify 'dir' or 'files'"
-msgstr " 'package', 'dir' もしくは 'file' を指定しなければなりません "
-
-msgid "cannot deal with Rd objects with missing/empty names"
-msgstr " 欠損もしくは空の名前を持つ Rd オブジェクトは扱えません "
-
-msgid "missing/empty \\name field in Rd file(s)"
-msgstr ""
-" Rd ファイル中に欠損もしくは空の  \n"
-" ame 欄 "
-
-msgid "argument 'lines' must be a character vector"
-msgstr " 引数 'lines' は文字列ベクトルでなければなりません "
-
-msgid "encoding '%s' is not portable"
-msgstr " エンコーディング '%s' は移植出来ません "
 
 msgid "unterminated section '%s'"
 msgstr " セクション '%s' は未完です "
@@ -506,16 +503,19 @@ msgstr " Rd 構文エラーが見つかりました "
 msgid "Syntax error in documentation object '%s':"
 msgstr " ドキュメンテーション・オブジェクト '%s' 中の構文エラー： "
 
+msgid "cannot deal with Rd objects with missing/empty names"
+msgstr " 欠損もしくは空の名前を持つ Rd オブジェクトは扱えません "
+
+msgid "missing/empty \\name field in Rd file(s)"
+msgstr ""
+" Rd ファイル中に欠損もしくは空の  \n"
+" ame 欄 "
+
 msgid "should not get here"
 msgstr "ここに到達すべきではありません "
 
-#, fuzzy
-msgid "checkRd is designed for Rd version 2 or higher."
+msgid "Rd2HTML is designed for Rd version 2 or higher."
 msgstr "Rd2HTML は Rdのバージョン2以降で使われるように設計されています "
-
-#, fuzzy
-msgid "invalid value for '%s' : %s"
-msgstr " 不正なライセンスファイルのポインタ: %s "
 
 msgid "more than one \\examples section, using the first"
 msgstr " 2つ以上の\\examples節があります、1番目を用います "
@@ -633,11 +633,32 @@ msgstr " ファイル '%s' 中のインデックス情報を読み取ること�
 msgid "ERROR:"
 msgstr "エラー: "
 
+msgid "for package"
+msgstr " 以下のパッケージに対して  "
+
+msgid "incorrect Contains metadata for bundle"
+msgstr "バンドルに対する不正確な Contains metadata "
+
+msgid ": there is no package '"
+msgstr " : 以下のパッケージが見当たりません ’ "
+
+msgid "skipping installation of bundle"
+msgstr "バンドルのインストールをスキップ中"
+
+msgid "problem installing per-package DESCRIPTION files"
+msgstr "パッケージ毎の DESCRIPTION ファイルのインストールに問題があります "
+
+msgid "ERROR unable to create"
+msgstr " エラー、生成出来ません "
+
 msgid "packaged installation of"
 msgstr " 以下のパッケージ化されたインストール "
 
 msgid "as"
 msgstr "として"
+
+msgid ".gz"
+msgstr " .gz "
 
 msgid ""
 "'cleanup' exists but is not executable -- see the 'R Installation and "
@@ -645,6 +666,34 @@ msgid ""
 msgstr ""
 " 'cleanup' は存在しますが実行できません -- 参照 'R Installation and "
 "Adminstration Manual' "
+
+msgid "about to run"
+msgstr " 実行しようととしています "
+
+msgid "R CMD SHLIB"
+msgstr "R CMD SHLIB "
+
+msgid "Using auto-selected zip options '"
+msgstr "自動的に選択された zip オプションを使います ' "
+
+msgid "--use-zip-data"
+msgstr " --use-zip-data "
+
+msgid "--use-zip-help"
+msgstr " --use-zip-help "
+
+msgid "**********************************************"
+msgstr " ********************************************** "
+
+msgid "WARNING: this package has a configure script"
+msgstr ""
+" 警告：このパッケージはコンフィギュレーション用スクリプトを持っています "
+
+msgid "It probably needs manual configuration"
+msgstr "恐らく手動によるコンフィギュレーションが必要です "
+
+msgid "configure command:"
+msgstr "コンフィギュレーション用命令： "
 
 msgid ""
 "R include directory is empty -- perhaps need to install R-devel.rpm or "
@@ -668,6 +717,21 @@ msgstr "ソースファイルが見つかりません "
 msgid "empty 'data' directory"
 msgstr " 'data' ディレクトリが空です "
 
+msgid "use of file 'install.R' is no longer supported"
+msgstr "ファイル 'install.R'の使用は今後サポートされません "
+
+msgid "use of file 'R_PROFILE.R' is no longer supported"
+msgstr "ファイル 'R_PROFILE.R' の使用は今後サポートされません "
+
+msgid "field 'SaveImage' is defunct: please remove it"
+msgstr " 'SaveImage' 欄は廃止されました：取り除いてください "
+
+msgid "cannot create temporary directory"
+msgstr " 一時ディレクトリを生成することが出来ません "
+
+msgid "Use of --with-package-versions is defunct"
+msgstr " --with-package-versions の使用は廃止されました "
+
 msgid "--auto-zip' is for Windows only"
 msgstr " --auto-zip'  は Windows 専用です "
 
@@ -677,8 +741,17 @@ msgstr " 値のない -l オプション"
 msgid "Warning: unknown option"
 msgstr " 警告: 未知のオプションです "
 
-msgid "cannot create temporary directory"
-msgstr " 一時ディレクトリを生成することが出来ません "
+msgid "processing"
+msgstr " 処理中  "
+
+msgid "a file"
+msgstr "ファイル"
+
+msgid "unknown package layout"
+msgstr " 未知のパッケージレイアウト "
+
+msgid "a directory"
+msgstr "ディレクトリ"
 
 msgid "invalid package"
 msgstr " 不正なパッケージです "
@@ -720,6 +793,30 @@ msgstr " 値のない -o オプションです "
 msgid "Converting Rd files to LaTeX ..."
 msgstr "RdファイルをLaTeXに変換しています "
 
+msgid "this package does not have either a"
+msgstr "このパッケージは以下(及び)を持っていません "
+
+msgid "latex"
+msgstr "ラテフ "
+
+msgid "or a"
+msgstr "もしくは"
+
+msgid "man"
+msgstr " man "
+
+msgid "directory"
+msgstr "ディレクトリ"
+
+msgid "no validly-named files in the"
+msgstr " 以下に validly-named ファイルがありません "
+
+msgid "file"
+msgstr "ファイル"
+
+msgid "lacks a header: skipping"
+msgstr " ヘッダが欠損しています：スキップ中"
+
 msgid "there are no help pages in this package"
 msgstr "このパッケージにはヘルプ頁がありません "
 
@@ -733,16 +830,8 @@ msgstr " 以下のファイル中 "
 msgid "there is a 'man' dir but no help pages in this package"
 msgstr "このパッケージにはヘルプ頁がありません "
 
-#, fuzzy
-msgid "-t option without value"
-msgstr " 値のない -l オプション"
-
-msgid "exactly one Rd file must be specified"
-msgstr ""
-
-#, fuzzy
-msgid "no 'type' specified"
-msgstr "パッケージが特定できません "
+msgid "problem in converting"
+msgstr " 変換に問題 "
 
 msgid "Bundle package:"
 msgstr " バンドルパッケージ： "
@@ -778,11 +867,6 @@ msgstr " パッケージにRコードが含まれていません "
 msgid "package seems to be using lazy loading already"
 msgstr " パッケージは既に遅延読み込みを使用しているように見えます "
 
-msgid ""
-"Cannot process chunk/lines:\n"
-"%s"
-msgstr ""
-
 msgid "cannot update HTML package index"
 msgstr " HTMLパッケージのインデックスをアップデートすることが出来ません "
 
@@ -797,6 +881,11 @@ msgstr " 以下のファイル中に重複した \\encoding 行 "
 
 msgid "found encoding"
 msgstr " 見つけられたエンコーディング"
+
+msgid "non-UTF-8 multibyte locales are not supported -- reencoding to UTF-8"
+msgstr ""
+"UTF-8 でない多バイトロケールはサポートされていません -- UTF-8 に再エンコー"
+"ディングします "
 
 msgid "argument 'pkg' must be of length 1"
 msgstr " 引数 'pkg' は長さ1でなければなりません "
@@ -818,9 +907,6 @@ msgstr " 'file' は文字列ベクトルかコネクションでなければな�
 
 msgid "unimplemented encoding"
 msgstr " 実装されていないエンコード "
-
-msgid "file"
-msgstr "ファイル"
 
 msgid "cannot be opened"
 msgstr "オープンできません "
@@ -846,10 +932,6 @@ msgstr " ... "
 msgid "OK"
 msgstr "OK "
 
-#, fuzzy
-msgid "no examples found"
-msgstr "ソースファイルが見つかりません "
-
 msgid "Running specific tests for package"
 msgstr "指定されたテストをパッケージに対して実行中"
 
@@ -859,15 +941,14 @@ msgstr " 実行中"
 msgid "Running vignettes for package"
 msgstr "パッケージのビニエットを実行中"
 
+msgid "Creating"
+msgstr "生成中"
+
 msgid "creation of"
 msgstr " 以下の作成 "
 
 msgid "failed"
 msgstr " 失敗 "
-
-#, fuzzy
-msgid "no parsed files found"
-msgstr "ソースファイルが見つかりません "
 
 msgid "creating"
 msgstr " 作成中"
@@ -924,6 +1005,9 @@ msgstr " テスト '%s' は利用出来ません "
 
 msgid "no or more than one match"
 msgstr " 0か複数のマッチ "
+
+msgid "'iconv' is required"
+msgstr " 'iconv'が必要です "
 
 msgid "argument 'x' must be a character vector"
 msgstr " 引数 'x' は文字型ベクトルでなければいけません "
@@ -987,3 +1071,12 @@ msgstr[0] ""
 msgid "Found .Internal call in the following function:"
 msgid_plural "Found .Internal calls in the following functions:"
 msgstr[0] " 以下の関数中に .internal 呼び出しが見つかりました "
+
+#~ msgid "Verifiable as open source: %s"
+#~ msgstr "オープンソースとして確認されています: %s "
+
+#~ msgid "--- running texi2dvi on vignettes"
+#~ msgstr " --- texi2dvi をビニエットに対して実行中 "
+
+#~ msgid "unable to run pdflatex on '%s'"
+#~ msgstr " pdflatex を '%s' に対して実行出来ません "

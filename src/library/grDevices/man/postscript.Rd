@@ -4,6 +4,7 @@
 % Distributed under GPL 2 or later
 
 \name{postscript}
+\Rdversion{1.1}
 \alias{postscript}
 \alias{.ps.prolog}
 \concept{encoding}
@@ -19,7 +20,7 @@ postscript(file = ifelse(onefile, "Rplots.ps", "Rplot\%03d.ps"),
            onefile, family, title, fonts, encoding, bg, fg,
            width, height, horizontal, pointsize,
            paper, pagecentre, print.it, command,
-           colormodel, useKerning, fillOddEven)
+           colormodel, useKerning)
 }
 \arguments{
   \item{file}{a character string giving the name of the file.  If it is
@@ -112,8 +113,6 @@ postscript(file = ifelse(onefile, "Rplots.ps", "Rplot\%03d.ps"),
     \code{"gray"} and \code{"cmyk"}.  Defaults to \code{"rgb"}.}
   \item{useKerning}{logical.  Should kerning corrections be included in
     setting text and calculating string widths?  Defaults to \code{TRUE}.}
-  \item{fillOddEven}{logical controlling the polygon fill mode:  see
-      \code{\link{polygon}} for details.  Default \code{FALSE}.}    
 }
 \details{
   All arguments except \code{file} default to values given by

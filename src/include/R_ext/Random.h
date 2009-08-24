@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2009    Robert Gentleman, Ross Ihaka
+ *  Copyright (C) 1998-2002    Robert Gentleman, Ross Ihaka 
  *                             and the R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -24,8 +24,6 @@
 #ifdef  __cplusplus
 extern "C" {
 #endif
-
-#include <R_ext/Boolean.h>
 
 typedef enum {
     WICHMANN_HILL,
@@ -63,8 +61,6 @@ int * user_unif_nseed(void);
 int * user_unif_seedloc(void);
 
 double * user_norm_rand(void);
-
-void FixupProb(double *, int, int, Rboolean);
 
 #ifdef  __cplusplus
 }

@@ -18,7 +18,7 @@
 
 massageExamples <- function(pkg, files, outFile = stdout())
 {
-    if(file_test("-d", files[1]))
+    if(utils::file_test("-d", files[1]))
         files <- sort(Sys.glob(file.path(files, "*.R")))
 
     if(is.character(outFile)) {
@@ -166,33 +166,31 @@ testInstalledPackage <-
     owd <- setwd(outDir)
     on.exit(setwd(owd))
 
-    if (1 %in% types) { # && file_test("-d", exdir)) {
+    if (1 %in% types && file_test("-d", exdir)) {
         message("\nCollecting examples for package ", sQuote(pkg))
-        Rfile <- .createExdotR(pkg, pkgdir)
-        if (length(Rfile)) {
-            outfile <- paste(pkg, "-Ex.Rout", sep = "")
-            failfile <- paste(outfile, "fail", sep = "." )
-            savefile <- paste(outfile, "prev", sep = "." )
-            if (file.exists(outfile)) file.rename(outfile, savefile)
-            unlink(failfile)
-            message("Running examples in package ", sQuote(pkg))
-            ## Create as .fail in case this R session gets killed
-            cmd <- paste(shQuote(file.path(R.home(), "bin", "R")),
-                         "CMD BATCH --vanilla --no-timing",
-                         shQuote(Rfile), shQuote(failfile))
-            if (.Platform$OS.type == "windows") Sys.setenv(R_LIBS="")
-            else cmd <- paste("R_LIBS=", cmd)
-            res <- system(cmd)
-            if (res) return(invisible(1L)) else file.rename(failfile, outfile)
+        Rfile <- .createExdotR(pkg, exdir)
+        outfile <- paste(pkg, "-Ex.Rout", sep = "")
+        failfile <- paste(outfile, "fail", sep = "." )
+        savefile <- paste(outfile, "prev", sep = "." )
+        if (file.exists(outfile)) file.rename(outfile, savefile)
+        unlink(failfile)
+        message("Running examples in package ", sQuote(pkg))
+        ## Create as .fail in case this R session gets killed
+        cmd <- paste(shQuote(file.path(R.home(), "bin", "R")),
+                     "CMD BATCH --vanilla --no-timing",
+                     shQuote(Rfile), shQuote(failfile))
+        if (.Platform$OS.type == "windows") Sys.setenv(R_LIBS="")
+        else cmd =paste("R_LIBS=", cmd)
+        res <- system(cmd)
+        if (res) return(invisible(1L)) else file.rename(failfile, outfile)
 
-            savefile <- paste(outfile, "prev", sep = "." )
-            if (file.exists(savefile)) {
-                message("  Comparing ", sQuote(outfile), " to ",
-                        sQuote(basename(savefile)), " ...", appendLF = FALSE)
-                res <- Rdiff(outfile, savefile)
-                if (!res) message(" OK")
-            }
-        } else warning("no examples found")
+        savefile <- paste(outfile, "prev", sep = "." )
+        if (file.exists(savefile)) {
+            message("  Comparing ", sQuote(outfile), " to ",
+                    sQuote(basename(savefile)), " ...", appendLF = FALSE)
+            res <- Rdiff(outfile, savefile)
+            if (!res) message(" OK")
+        }
     }
 
     ## FIXME merge with code in .runPackageTests
@@ -301,45 +299,16 @@ testInstalledPackage <-
     return(nfail)
 }
 
-.createExdotR <- function(pkg, pkgdir, silent = FALSE)
+.createExdotR <- function(pkg, exdir)
 {
     Rfile <- paste(pkg, "-Ex.R", sep = "")
     ## might be zipped:
-    exdir <- file.path(pkgdir, "R-ex")
-    if (file_test("-d", exdir)) {
-        if (file.exists(fzip <- file.path(exdir, "Rex.zip"))) {
-            filedir <- tempfile()
-            unzip(fzip, exdir = filedir)
-            on.exit(unlink(filedir, recursive = TRUE))
-        } else filedir <- exdir
-    } else {
-        db <- Rd_db(basename(pkgdir), lib.loc = dirname(pkgdir))
-        if (!length(db)) {
-            message("no parsed files found")
-            return(invisible(NULL))
-        }
-        if (!silent) message("  Extracting from parsed Rd's ",
-                             appendLF = FALSE, domain = NA)
-        files <- names(db)
-        filedir <- tempfile()
-        dir.create(filedir)
-        on.exit(unlink(filedir, recursive = TRUE))
-        cnt <- 0L
-        for(f in files) {
-            ## names are 'fullpath.Rd' if from 'man' dir, 'topic' if from RdDB
-            nm <- sub("\\.[Rr]d$", "", basename(f))
-            Rd2ex(db[[f]],
-                  file.path(filedir, paste(nm, "R", sep = ".")),
-                  defines = NULL)
-            cnt <- cnt + 1L
-            if(!silent && cnt %% 10L == 0L)
-                message(".", appendLF = FALSE, domain = NA)
-        }
-        if (!silent) message()
-        nof <- length(Sys.glob(file.path(filedir, "*.R")))
-        if(!nof) return(invisible(NULL))
-    }
-    massageExamples(pkg, filedir, Rfile)
+    if (file.exists(fzip <- file.path(exdir, "Rex.zip"))) {
+        files <- tempfile()
+        unzip(fzip, exdir = files)
+        # system(paste("unzip -q", fzip, "-d", files))
+    } else files <- exdir
+    massageExamples(pkg, files, Rfile)
     invisible(Rfile)
 }
 

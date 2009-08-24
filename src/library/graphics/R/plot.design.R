@@ -118,5 +118,4 @@ plot.design <-
     }
     for(j in 1L:nResp)
 	.plot.des(xf, ydata[,j], fun = fun, ylab = ylab[j], ylim = ylim, ...)
-    invisible()
 }

@@ -407,6 +407,12 @@ AC_ARG_WITH([recommended-packages],
 [R_ARG_USE(recommended_packages)],
 [use_recommended_packages=yes])
 
+## Iconv.
+AC_ARG_WITH([iconv],
+[AS_HELP_STRING([--with-iconv],[use iconv library @<:@yes@:>@])],
+[R_ARG_USE(iconv)],
+[use_iconv=yes])
+
 ## ICU
 AC_ARG_WITH([ICU],
 [AS_HELP_STRING([--with-ICU],[use ICU library @<:@yes@:>@])],
@@ -689,6 +695,8 @@ if test "${use_readline}" = yes; then
   fi
   ## the NetBSD version as used in MacOS X does not have this
   AC_CHECK_FUNCS(history_truncate_file)
+  READLINE_LIBS="${LIBS}"
+  LIBS="${r_save_LIBS}"
   if test "${use_readline}" = no; then
     AC_MSG_ERROR([--with-readline=yes (default) and headers/libs are not available])
   else
@@ -697,8 +705,6 @@ if test "${use_readline}" = yes; then
 #include <readline/readline.h>]
                  )
   fi
-  READLINE_LIBS="${LIBS}"
-  LIBS="${r_save_LIBS}"
 fi
 AC_SUBST(READLINE_LIBS)
 
@@ -1733,16 +1739,6 @@ fi
 if test "${ac_cv_search_opendir}" = "no"; then
    AC_MSG_ERROR([Building R requires the 'opendir' system call])
 fi
-## Lots of uses of Sys.glob, e.g. install.packages
-case "${host_os}" in
-  mingw*)
-  ;;
-  *)
-    if test "${ac_cv_search_glob}" = "no"; then
-       AC_MSG_ERROR([Building R requires the 'glob' system call])
-    fi
-  ;;
-esac
 
 
 ## <NOTE>
@@ -1957,10 +1953,24 @@ AM_CONDITIONAL(USE_EXTERNAL_LAPACK, [test "${acx_lapack_ok}" = "yes"])
 
 ### * Checks for system services.
 
+AC_SUBST(R_MODULES)
+
 ## iconv headers and function.
-R_ICONV
+if test "${use_iconv}" = yes; then
+  R_ICONV
+  if test "$r_cv_iconv_latin1" != yes; then
+    AC_MSG_ERROR([--with-iconv=yes (default) and a suitable iconv is not available])
+  fi
+else
+    AC_MSG_WARN([--with-iconv=no is deprecated and will be withdrawn shortly])
+fi
 
 ## support for MBCS
+case "${host_os}" in
+  mingw*)
+    r_cv_iconv_latin1=yes
+    ;;
+esac
 R_MBCS
 
 ## support for ICU
@@ -1985,7 +1995,11 @@ AC_SUBST(USE_ICU_APPLE)
 
 ## X11.
 R_X11
-AM_CONDITIONAL(BUILD_X11, [test "x${use_X11}" = "xyes"])
+if test "${use_X11}" = yes; then
+  R_MODULES=X11
+else
+  R_MODULES=
+fi
 ## check if X11 typedefs KeySym
 R_TYPE_KEYSYM
 ## check if Xmu is supported
@@ -2377,6 +2391,8 @@ case "${host_os}" in
     AC_DEFINE(HAVE_TCLTK, 1, [Define if you have the Tcl/Tk headers and 
                               libraries and want Tcl/Tk support to be built.] )
     AC_DEFINE(HAVE_TIMES, 1, [Define to 1 if you have the `times' function.])
+    AC_DEFINE(ICONV_LATIN1, 1, [Define if `iconv' accepts "UTF-8", "latin1" 
+                                and "UCS-*".])
     want_R_profiling=yes
     AC_DEFINE(R_PROFILING, 1, [Define this to enable R-level profiling.])
     AC_DEFINE(SUPPORT_LIBXML, 1, [Define if you provide support for the libxml
@@ -2458,6 +2474,7 @@ AC_CONFIG_FILES(
   src/scripts/Makefile
   src/scripts/R.sh
   src/scripts/Rcmd
+  src/scripts/Rdconv
   src/scripts/Rdiff
   src/scripts/Rprof
   src/scripts/Sd2Rd
@@ -2529,9 +2546,6 @@ if test "${acx_lapack_ok}" = "yes"; then
   esac
   R_SH_VAR_ADD(r_external_libs, [LAPACK(${r_lapack})], [, ])
 fi
-if test "${use_ICU}" = yes; then
-  R_SH_VAR_ADD(r_external_libs, [ICU], [, ])
-fi
 r_capabilities=
 if test "${have_png}" = yes; then
   R_SH_VAR_ADD(r_capabilities, [PNG], [, ])
@@ -2542,6 +2556,9 @@ fi
 if test "${have_tiff}" = yes; then
   R_SH_VAR_ADD(r_capabilities, [TIFF], [, ])
 fi
+if test "${r_cv_iconv_latin1}" = yes; then
+  R_SH_VAR_ADD(r_capabilities, [iconv], [, ])
+fi
 if test "${want_mbcs_support}" = yes; then
   R_SH_VAR_ADD(r_capabilities, [MBCS], [, ])
 fi
@@ -2550,6 +2567,9 @@ if test "${USE_NLS}" = yes; then
 fi
 if test "${r_cv_cairo_works}" = yes; then
   R_SH_VAR_ADD(r_capabilities, [cairo], [, ])
+fi
+if test "${use_ICU}" = yes; then
+  R_SH_VAR_ADD(r_capabilities, [ICU], [, ])
 fi
 r_options=
 if test "${want_R_framework}" = yes; then

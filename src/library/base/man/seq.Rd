@@ -67,7 +67,7 @@ seq(length.out= )
 
   The fourth form generates the sequence \code{1, 2, \dots,
     length(along.with)}.  (\code{along.with} is usually abbreviated to
-  \code{along}, and \code{seq_along} is much faster.)
+  \code{along}, and \code{seq_along} is much faster.) 
 
   The fifth form generates the sequence \code{1, 2, \dots, length(from)}
   (as if argument \code{along.with} had been specified),
@@ -84,7 +84,7 @@ seq(length.out= )
   For \code{seq}(only), up to two of \code{from}, \code{to} and \code{by} can
   be supplied as complex values provided \code{length.out} or
   \code{along.with} is specified.
-
+  
   \code{seq.int}, \code{seq_along} and \code{seq_len} are
   \link{primitive}: the latter two ignore any argument name.
 }

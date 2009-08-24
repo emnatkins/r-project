@@ -1,5 +1,5 @@
 % Test file for Rd version 1.1
-\name{ver20}
+\name{ver11}
 \Rdversion{1.1}
 
 \title{Johnson & Johnson,  $ _  ### ^ ~}
@@ -15,13 +15,13 @@
 }
 
 \details{
-  \R \R{} \\R \eqn{\alpha\beta\Gamma}
+  \R \R{} \\R \eqn{\Alpha\beta\Gamma}
   
   In code, all that needs to be escaped is percent, backslash and unpaired
   braces: \code{\% \\ \{}. Unescaped: \code{$ # _ ^ ~ < > |}, and as a
-  pair, \code{{...}}.  If we escape: \code{ \_ \# \$ \& \{ \} \\ }
+  pair, \code{{...}}.  If we escape: \code{ \a \b \_ \# \$ \& \{ \} \\ }
   And some backslashes: \code{\ \\ \\\ \\\\} should
-  give one, one, two, two backslashes.
+  give zero, one, one, two backslashes.
 
   How about \ (that is backslash space) in text?
   
@@ -54,5 +54,7 @@
 }
 
 \examples{
+Code such as \code{foo} inside \\examples iused to be garbled.
+
 "\\\\r\\\\n"
 }

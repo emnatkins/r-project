@@ -17,6 +17,7 @@ DISTFILES = COPYRIGHTS.modreg COPYRIGHTS.portsrc DESCRIPTION.in Makefile.in \
 pkg = stats
 
 FRONTFILES = COPYRIGHTS.modreg SOURCES.ts
+RdSRC = $(srcdir)/man/*.Rd
 
 R_EXE = $(top_builddir)/bin/R --vanilla --slave
 
@@ -24,7 +25,7 @@ R_EXE = $(top_builddir)/bin/R --vanilla --slave
 all: Makefile DESCRIPTION
 	@$(ECHO) "building package '$(pkg)'"
 	@$(MKINSTALLDIRS) $(top_builddir)/library/$(pkg)
-	@$(MAKE) mkR2 front mkdesc mkdemos mkpo
+	@$(MAKE) mkR2 front mkdesc mkdemos mkpo mkman
 	@$(MAKE) mksrc
 	@$(MAKE) mklazy
 

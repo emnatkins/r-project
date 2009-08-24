@@ -207,7 +207,6 @@ plot.acf <-
                   col = "dark gray", cex = 1, outer = TRUE)
         }
     }
-    invisible()
 }
 
 ccf <- function(x, y, lag.max = NULL,

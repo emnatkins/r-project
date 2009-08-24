@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-08-06 09:10\n"
+"POT-Creation-Date: 2009-05-08 17:39\n"
 "PO-Revision-Date: 2005-05-26 15:05+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -522,9 +522,6 @@ msgstr "특이한 대비 행렬입니다"
 msgid "numeric contrasts or contrast name expected"
 msgstr "수치 대비이거나 대비명이 예측되어 있습니다"
 
-msgid "contr*(.., sparse=TRUE) needs package \"Matrix\" correctly installed"
-msgstr ""
-
 msgid "not enough degrees of freedom to define contrasts"
 msgstr "대비를 정의 하기 위해서 충분한 자유도가 아닙니다"
 
@@ -1008,12 +1005,7 @@ msgstr "'col.vars'가 없거나 부정확합니다"
 msgid "'family' not recognized"
 msgstr "'family'를 확인 할수 없습니다"
 
-#, fuzzy
-msgid "invalid 'method': %s"
-msgstr "무효인 'method' 입니다:"
-
-#, fuzzy
-msgid "invalid 'method'"
+msgid "invalid 'method':"
 msgstr "무효인 'method' 입니다:"
 
 #, fuzzy
@@ -1565,10 +1557,6 @@ msgstr "'data'는 행렬이나 배열은 아니고, data.frame이 아니면 되�
 msgid "'newdata' had %d rows but variable(s) found have %d rows"
 msgstr ""
 "'newdata'는 행렬이나 배열은 아니고, 데이터 프레임이 아니면 되지 않습니다"
-
-#, fuzzy
-msgid "character variable '%s' changed to a factor"
-msgstr "변수 '%s'는 인자가 아닙니다"
 
 msgid "variable '%s' is not a factor"
 msgstr "변수 '%s'는 인자가 아닙니다"
@@ -2355,12 +2343,6 @@ msgstr "zeroes 값 때문에, 정확한 신뢰 구간을 계산할 수 없습니
 #, fuzzy
 msgid "must supply either 'formula' or 'data'"
 msgstr "하나 이상의 벡터를 주지 않으면 되지 않습니다"
-
-msgid "xtabs(*, sparse=TRUE) applies only to two-way tables"
-msgstr ""
-
-msgid "xtabs(*, sparse=TRUE) needs package \"Matrix\" correctly installed"
-msgstr ""
 
 msgid "too few distinct input values to fit an asymptotic regression model"
 msgstr "점근회귀 모델이 적용시키고자, 다른 입력값이 너무 적습니다"

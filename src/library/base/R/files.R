@@ -36,10 +36,7 @@ file.show <-
     nfiles <- length(files)
     if(nfiles == 0)
         return(invisible(NULL))
-    ## avoid re-encoding files to the current encoding.
-    if(l10n_info()[["UTF-8"]] && encoding == "UTF-8") encoding <- ""
-    if(l10n_info()[["Latin-1"]] && encoding == "latin1") encoding <- ""
-    if(!is.na(encoding) && encoding != "") {
+    if(!is.na(encoding) && encoding != "" && capabilities("iconv")) {
         for(i in seq_along(files)) {
             f <- files[i]
             tf <- tempfile()

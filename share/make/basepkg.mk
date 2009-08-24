@@ -82,6 +82,22 @@ mklazy:
 	@$(ECHO) "tools:::makeLazyLoading(\"$(pkg)\")" | \
 	  R_DEFAULT_PACKAGES=NULL LC_ALL=C $(R_EXE) > /dev/null
 
+## needs RdSRC defined
+mkman:
+	@if test -d $(srcdir)/man; then \
+	  $(MKINSTALLDIRS) $(top_builddir)/library/$(pkg)/man; \
+	  (f=$${TMPDIR:-/tmp}/R$$$$; \
+	    for rdfile in $(RdSRC); do \
+	      $(ECHO) "% --- Source file: $${rdfile} ---"; \
+            cat $${rdfile} $(top_srcdir)/src/library/eof_file; \
+	    done >> $${f}; \
+            $(SHELL) $(top_srcdir)/tools/move-if-change $${f} \
+              $(top_builddir)/library/$(pkg)/man/$(pkg).Rd); \
+            rm -f $(top_builddir)/library/$(pkg)/man/$(pkg).Rd.gz; \
+            $(R_GZIPCMD) $(top_builddir)/library/$(pkg)/man/$(pkg).Rd; \
+	fi
+
+
 mkpo:
 	@if test -d $(srcdir)/inst/po; then \
 	  if test "$(USE_NLS)" = "yes"; then \

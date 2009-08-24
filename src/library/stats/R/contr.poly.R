@@ -14,11 +14,8 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-contr.poly <- function (n, scores = 1:n, contrasts = TRUE, sparse = FALSE)
+contr.poly <- function (n, scores = 1L:n, contrasts = TRUE)
 {
-## sparse.model.matrix() may call this one with sparse=TRUE anyway ..
-##     if(sparse)
-## 	stop("orthogonal polynomial contrasts cannot be sparse")
     make.poly <- function(n, scores)
     {
 	y <- scores - mean(scores)
@@ -29,11 +26,11 @@ contr.poly <- function (n, scores = 1:n, contrasts = TRUE, sparse = FALSE)
 	raw <- qr.qy(QR, z)
 	Z <- sweep(raw, 2L, apply(raw, 2L, function(x) sqrt(sum(x^2))), "/",
 		   check.margin=FALSE)
-	colnames(Z) <- paste("^", 1L:n - 1L, sep="")
+	colnames(Z) <- paste("^", 1L:n - 1, sep="")
 	Z
     }
 
-    if (is.numeric(n) && length(n) == 1) levs <- seq_len(n)
+    if (is.numeric(n) && length(n) == 1) levs <- 1L:n
     else {
 	levs <- n
 	n <- length(levs)
@@ -45,13 +42,12 @@ contr.poly <- function (n, scores = 1:n, contrasts = TRUE, sparse = FALSE)
         stop(gettextf("orthogonal polynomials cannot be represented accurately enough for %d degrees of freedom", n-1), domain = NA)
     if (length(scores) != n)
         stop("'scores' argument is of the wrong length")
-    if (!is.numeric(scores) || anyDuplicated(scores))
+    if (!is.numeric(scores) || any(duplicated(scores)))
         stop("'scores' must all be different numbers")
     contr <- make.poly(n, scores)
-    if(sparse) contr <- .asSparse(contr)
     if (contrasts) {
 	dn <- colnames(contr)
-	dn[2:min(4,n)] <- c(".L", ".Q", ".C")[1:min(3, n-1)]
+	dn[2:min(4,n)] <- c(".L", ".Q", ".C")[1L:min(3, n-1)]
 	colnames(contr) <- dn
 	contr[, -1, drop = FALSE]
     }
@@ -101,7 +97,7 @@ poly <- function(x, ..., degree = 1, coefs = NULL, raw = FALSE)
         norm2 <- colSums(raw^2)
         alpha <- (colSums(x*raw^2)/norm2 + xbar)[1L:degree]
         Z <- raw / rep(sqrt(norm2), each = length(x))
-        colnames(Z) <- 1L:n - 1L
+        colnames(Z) <- 1L:n - 1
         Z <- Z[, -1, drop = FALSE]
         attr(Z, "degree") <- 1L:degree
         attr(Z, "coefs") <- list(alpha = alpha, norm2 = c(1, norm2))

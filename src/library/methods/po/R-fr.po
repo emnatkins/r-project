@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-08-06 09:10\n"
-"PO-Revision-Date: 2008-09-30 21:02+0100\n"
+"POT-Creation-Date: 2009-08-14 10:48\n"
+"PO-Revision-Date: 2009-03-29 22:13+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
 "MIME-Version: 1.0\n"
@@ -335,10 +335,10 @@ msgid "\"%s\" has no methods defined"
 msgstr "\"%s\" n'a aucune méthode définie"
 
 msgid "selectMethod(): mlist is not an environment or NULL :"
-msgstr ""
+msgstr "selectMethod() : mlist n'est pas un environnement ou NULL :"
 
 msgid "** should no longer happen!"
-msgstr ""
+msgstr "** ne devrait plus se produire !"
 
 msgid ""
 "bad class specified for element %d (should be a single character string)"
@@ -428,9 +428,8 @@ msgstr ""
 "Seul FALSE a un sens pour 'inherited', lorsque 'where' est fourni (il s'agit "
 "de"
 
-#, fuzzy
 msgid "argument \"f\" must be a generic function or %s"
-msgstr "Une fonction pour l'argument \"f\" doit être générique"
+msgstr "l'argument \"f\" doit être une fonction générique ou %s"
 
 msgid "'%s' is not a generic function in '%s' {and 'package' not specified}"
 msgstr ""
@@ -551,16 +550,16 @@ msgstr ""
 "la classe requise \"%s\""
 
 msgid "Reported %d ambiguous selections out of %d for function %s"
-msgstr ""
+msgstr "Sélections ambigües %d renvoyées à partir de %d pour la fonction %s"
 
 msgid "%d: target \"%s\": chose \"%s\" (others: %s)"
-msgstr ""
+msgstr "%d : cible \"%s\" : choisir \"%s\" (autres : %s)"
 
 msgid ","
 msgstr ","
 
 msgid "Notes: %s."
-msgstr ""
+msgstr "Notes : %s."
 
 msgid "the names in signature for method (%s) do not match %s's arguments (%s)"
 msgstr ""
@@ -625,9 +624,8 @@ msgstr ""
 msgid "class \"%s\" extends an undefined class, \"%s\""
 msgstr "la classe \"%s\" étend une classe non définie, \"%s\""
 
-#, fuzzy
 msgid "'Class' must be a valid class definition or class"
-msgstr "'class1' doit être le nom d'une classe ou d'une définition de classe"
+msgstr "'Class' doit être le nom d'une classe ou d'une définition de classe"
 
 msgid ""
 "trying to assign an object of class \"%s\" as the definition of class \"%s"
@@ -742,7 +740,7 @@ msgid "\"class\" is a reserved slot name and cannot be redefined"
 msgstr "\"class\" est un nom de slot réservé et ne peut être redéfini"
 
 msgid "Data part is undefined for general S4 object"
-msgstr ""
+msgstr "La partie data n'est pas définie pour un objet S4 général"
 
 msgid "no '.Data' slot defined for class \"%s\""
 msgstr "pas de slot '.Data' defini pour la classe \"%s\""
@@ -752,6 +750,8 @@ msgstr "la classe \"%s\" n'a pas de partie de données définie (un slot .Data)"
 
 msgid "Class cannot have both an ordinary and hidden data type"
 msgstr ""
+"Une classe ne peut avoir à la fois un type de donnée ordinaire et un type "
+"caché"
 
 msgid ""
 "a validity method must be a function of one argument, got an object of class "
@@ -802,12 +802,16 @@ msgid ""
 "argument includeSubclasses must be a logical, either one value or a vector "
 "of the same length as argument classes"
 msgstr ""
+"l'argument includeSubclasses doit être un booléen, soit une valeur unique, "
+"soit un vecteur de même longueur que son argument de classes"
 
 msgid "Argument abbreviate must be 0, 1, 2, or 3"
-msgstr ""
+msgstr "L'abbreviation de l'argument doit être 0, 1, 2 ou 3"
 
 msgid "Needed the supplied labels vector of length %n, got %n"
 msgstr ""
+"Un vecteur de libellés de longueur %n était nécessaire, celui fourni a une "
+"longueur %n"
 
 msgid ""
 "the function being used as %s in making a generic function for \"%s\" is "
@@ -1039,9 +1043,8 @@ msgstr " ; utilisation de la première d'entre elles"
 msgid "multiple equivalent inherited matches:"
 msgstr "correspondances multiples en héritage :"
 
-#, fuzzy
 msgid "single string; got an object of class \"%s\""
-msgstr "\"), une méthode est attendue et un objet est fourni de classe \""
+msgstr "chîne de caractères unique ; un objet de classe \"%s\" est renvoyé"
 
 msgid "\"%s\" has a sealed class definition and cannot be redefined"
 msgstr ""
@@ -1054,9 +1057,10 @@ msgstr ""
 "seuls les arguments 'Class' et 'where' peuvent être fournis lorsque "
 "l'argument 'representation' est un objet de type 'classRepresentation'"
 
-#, fuzzy
 msgid "Internal error: definiition of class \"%s\" not properly assigned"
-msgstr "aucune définition de la classe \"%s\" n'est trouvée"
+msgstr ""
+"Erreur interne : la définition de la classe \"%s\" n'est pas correctement "
+"affectée"
 
 msgid ""
 "error in contained classes (%s) for class \"%s\" and unable to remove "
@@ -1167,14 +1171,20 @@ msgstr "aucune définition de \"%s\" à utiliser pour %s"
 
 msgid "Class definition cannot extend more than one of these data types: %s"
 msgstr ""
+"La définition de classe ne peut s'étendre sur plus d'un de ces types de "
+"données : %s"
 
 msgid ""
 "Sorry, abnormal type \"%s\" is not supported as a superclass of a class "
 "definition"
 msgstr ""
+"Désolé, type erroné \"%s\" non supporté comme superclasse d'une définition "
+"de classe"
 
 msgid "Defining type \"%s\" as a superclass via class \"%s\""
 msgstr ""
+"Définition du type \"%s\" comme superclasse par l'intermédiaire de la classe "
+"\"%s\""
 
 msgid ""
 "'traceOn' is deprecated: use the function 'trace' in the 'methods' package "
@@ -1392,13 +1402,12 @@ msgstr ""
 "Tentative de recherche d'une table de méthodes dans une fonction non "
 "générique"
 
-#, fuzzy
 msgid ""
 "The \"ambiguousMethodSelection\" option should be a function to be called as "
 "the condition action; got an object of class \"%s\""
 msgstr ""
-"l'argument 'coerce' de 'setIs' doit être une fonction à un seul argument et "
-"un objet de la classe \"%s\" est défini"
+"L'option \"ambiguousMethodSelection\" doit être une fonction qui sera "
+"appelée comme action de la condition ; un objet de classe \"%s\" est fourni"
 
 msgid ""
 "No simply inherited methods found for function \"%s\"; using non-simple "
@@ -1412,6 +1421,9 @@ msgid ""
 " target signature \"%s\".\n"
 " %s would also be valid"
 msgstr ""
+"Note : méthode avec la signature \"%s\" choisie pour la fonction \"%s\",\n"
+"signature cible \"%s\".\n"
+"%s pourrait aussi être compatible"
 
 msgid "found"
 msgstr "trouvé"
@@ -1432,16 +1444,16 @@ msgstr ""
 "n'a pas été renvoyée"
 
 msgid "Selecting %d methods of min. distance"
-msgstr ""
+msgstr "Choix de %d méthodes de distance minimale"
 
 msgid "Selecting %d non-group methods"
-msgstr ""
+msgstr "Choix de %d méthodes qui ne sont pas des groupes"
 
 msgid "Selecting %d partially exact-matching method(s)"
-msgstr ""
+msgstr "Choix de %d méthode(s) à correspondance exacte partielle"
 
 msgid "Choosing method %s from %d ambiguous possibilities"
-msgstr ""
+msgstr "Choix de la méthode %s depuis %d possibilités ambigües"
 
 msgid "Failed to find expected group generic function:"
 msgstr "Impossible de trouver la fonction générique du groupe attendu :"
@@ -1490,17 +1502,18 @@ msgstr ""
 "Impossible de trouver la table des méthodes pour le générique \"%s\" du "
 "package \"%s\" dans le package \"%s\""
 
-#, fuzzy
 msgid "Undefined classes ("
-msgstr "\"%s\" n'est pas une classe définie"
+msgstr "Classes non définies ("
 
 msgid ") will be ignored, for argument"
-msgstr ""
+msgstr ") sera ignoré, pour l'argument"
 
 msgid ""
 "Argument \"signatures\" must be a character matrix whose rows are method "
 "signatures"
 msgstr ""
+"L'argument \"signatures\" doit être une matrice de chaînes de caractères "
+"dont les lignes sont les signatures de la méthode"
 
 msgid "not allowed to have test==TRUE and an S4Class definition"
 msgstr ""
@@ -1512,13 +1525,12 @@ msgstr ""
 "l'argument S4Class doit être une définition de classe : un objet de classe "
 "\"%s\" est obtenu à la place"
 
-#, fuzzy
 msgid ""
 "inconsistent old-style class information for \"%s\"; the class is defined "
 "but does not extend \"%s\""
 msgstr ""
-"information d'une classe d'ancien style (S3) incompatible pour \"%s\" (un "
-"mélange entre des anciennes et nouvelles classes est peut-être fait)"
+"information d'une classe d'ancien style (S3) incompatible pour \"%s\" ; la "
+"classe est définie mais n'étend pas \"%s\""
 
 msgid ""
 "The S3 class of the prototype, \"%s\", is undefined; only allowed when this "
@@ -1527,21 +1539,19 @@ msgstr ""
 "La classe S3 du prototype, \"%s\", est définie ; ceci est autorisé "
 "uniquement lorsque la classe S3 est enregistrée (\"%s\")"
 
-#, fuzzy
 msgid "Restoring definition of class \"%s\""
-msgstr "aucune définition de la classe \"%s\" n'est trouvée"
+msgstr "Récupération de la définition de classe \"%s\""
 
-#, fuzzy
 msgid "Slot \"%s\": class \"%s\" should extend class \"%s\""
-msgstr "la classe \"%s\" ne peut étendre la classe \"%s\""
+msgstr "Slot \"%s\" : la classe \"%s\" devrait étendre la classe \"%s\""
 
-#, fuzzy
 msgid ""
 "invalid S4 class corresponding to S3 class: slots in  S4 version must extend "
 "corresponding slots in S3 version: fails for %s"
 msgstr ""
-"les slots de la classe \"%s\" doivent étendre les slots correspondants de la "
-"classe \"%s\" : échec pour %s"
+"classe S4 incorrecte correspondant à une classe S3 : les slots dans la "
+"version S4 doivent étendre les slots correspondants de la version S3 : échec "
+"pour %s"
 
 msgid "explicit coercion of old-style class (%s) is not defined"
 msgstr ""
@@ -1710,15 +1720,60 @@ msgstr[1] ""
 "dans la signature de méthode pour la fonction \"%s\", il n'y a aucune "
 "définition pour les classes : %s"
 
-#, fuzzy
-#~ msgid "Some of the superclasses in the definition of class \""
+#~ msgid ""
+#~ "None of the orderings of the superclasses of class \"%s\" is consistent "
+#~ "with the superclass ordering of  its direct superclasses; using an "
+#~ "ordering which conflicts with %s"
 #~ msgstr ""
-#~ "Aucune définition de la super-classe \"%s\" n'existe dans la "
-#~ "spécification de la classe \"%s\""
+#~ "Auncune des hiérarchies des superclasses de la classe \"%s\" n'est "
+#~ "compatible avec l'hiérarchie de la superclasse de ses superclasses "
+#~ "directes ; utilisation d'une hiérarchie qui entre en conflit avec %s"
 
-#, fuzzy
+#~ msgid ""
+#~ "S3 methods written for S4 classes will fail inheritance!\n"
+#~ "Package"
+#~ msgstr ""
+#~ "les méthodes S3 écrites pour des classes S4 ne seront pas héritées !\n"
+#~ "Package"
+
+#~ msgid "apparently has"
+#~ msgstr "a apparemment"
+
+#~ msgid "such methods  for the functions"
+#~ msgstr "de telles méthodes pour les fonctions"
+
 #~ msgid "functions"
-#~ msgstr "connexion"
+#~ msgstr "fonctions"
+
+#~ msgid "Possible dangerous methods:"
+#~ msgstr "Methodes potentiellement dangereuses :"
+
+#~ msgid "(Warnings generated once per package per session)"
+#~ msgstr "(Avis générés une seule fois par package et par session)"
+
+#~ msgid "There are apparent S3 methods for class \""
+#~ msgstr "Il y a apparemment des méthodes S3 pour la classe \""
+
+#~ msgid ""
+#~ "\"\n"
+#~ "DANGER: any subclasses of this class will not inherit the methods"
+#~ msgstr ""
+#~ "\"\n"
+#~ "DANGER : les sous-classes de cette classe n'hériteront pas les méthodes"
+
+#~ msgid "Some of the superclasses in the definition of class \""
+#~ msgstr "Une partie de superclasses est dans la définition de la classe \""
+
+#~ msgid ""
+#~ "\" have apparent S3 methods.\n"
+#~ "\n"
+#~ "DANGER: the new class will not inherit these methods.\n"
+#~ "Complain to the author of the superclass definitions."
+#~ msgstr ""
+#~ "\" ont apparemment des méthodes S3.\n"
+#~ "\n"
+#~ "DANGER : la nouvelle classe n'héritera pas de ces méthodes.\n"
+#~ "Reportez ce problème à l'auteur de la définition de superclasse."
 
 #~ msgid "signature must be a vector of classes or an environment"
 #~ msgstr "la signature doit être un vecteur de classes ou un environnement"

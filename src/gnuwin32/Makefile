@@ -8,7 +8,7 @@ all:
 	fi
 	@$(MAKE) --no-print-directory rbuild
 	@$(MAKE) --no-print-directory -C ../library -f Makefile.win all
-	@$(MAKE) --no-print-directory -C ../library -f Makefile.win docs
+	@$(MAKE) --no-print-directory -C ../library -f Makefile.win rpackagehelp
 	@$(MAKE) --no-print-directory htmldocs
 	@$(MAKE) --no-print-directory  -C ../../po -f Makefile.win
 
@@ -211,7 +211,7 @@ libRblas.dll.a:  ../extra/blas/Rblas.def
 
 CHTML:
 ifeq ($(strip $(USE_CHM)),TRUE)
-	$(MAKE) --no-print-directory -C ./help
+	$(MAKE) --no-print-directory -C ./help -f MkChmDll
 endif
 
 #                          ===== cleaning ======
@@ -260,7 +260,7 @@ distclean: clean
 	$(RM) R.exp COPYRIGHTS
 	$(RM) ../../doc/html/search/index.txt ../../doc/html/index.html \
 	../../doc/html/packages.html ../../doc/html/rwin.html \
-	../../doc/html/rw-FAQ.html
+	../../doc/html/rw-FAQ.html ../../doc/html/search/SearchEngine.html
 	$(RM) ../../etc/Makeconf ../../etc/Rconsole ../../etc/Rdevga \
 	../../etc/Rprofile.site ../../etc/rgb.txt ../../etc/Rcmd_environ \
 	../../tests/*.Rout ../../tests/*.Rout.fail
@@ -347,11 +347,11 @@ rsync-recommended:
 	    --exclude=Makefile.in --exclude=Makefile.win --exclude=.cvsignore \
 	    --include=*.tar.gz --exclude=*.tgz --exclude=".svn" $(CRANREC) . )
 	@$(RM) ../library/Recommended/*.tgz
-	@(cd ../library/Recommended; for i in ${R_PKGS_RECOMMENDED}; do cp -p $${i}*.tar.gz $${i}.tgz ; done)
+	@(cd ../library/Recommended; for i in ${R_PKGS_RECOMMENDED_SOURCES}; do cp -p $${i}*.tar.gz $${i}.tgz ; done)
 
 link-recommended:
 	@$(RM) ../library/Recommended/*.tgz
-	@(cd ../library/Recommended; for i in ${R_PKGS_RECOMMENDED} ; do cp -p $${i}*.tar.gz $${i}.tgz ; done)
+	@(cd ../library/Recommended; for i in ${R_PKGS_RECOMMENDED_SOURCES} ; do cp -p $${i}*.tar.gz $${i}.tgz ; done)
 
 
 recommended:

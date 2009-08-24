@@ -158,7 +158,6 @@ function(x, main = deparse(substitute(x)), sub = NULL, xlab = NULL,
                 }
             }
         }
-        invisible()
     }
 
     ##-- Begin main function

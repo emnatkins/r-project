@@ -190,37 +190,22 @@ function(x, ...)
             }
         }
         else if(type == "help") {
-            path <- dirname(file)
-            dirpath <- dirname(path)
-            pkgname <- basename(dirpath)
-            RdDB <- file.path(path, pkgname)
-            if(file.exists(paste(RdDB, "rdx", sep="."))) {
-                temp <- tools::Rd2txt(tools:::fetchRdDB(RdDB, basename(file)),
-                                      out=tempfile("Rtxt"), package=pkgname)
-                file.show(temp,
+            zfile <- zip.file.extract(file, "Rhelp.zip")
+            if(file.exists(zfile)) {
+                first <- readLines(zfile, n = 1L)
+                enc <- if(length(grep("\\(.*\\)$", first)))
+                    sub("[^(]*\\((.*)\\)$", "\\1", first) else ""
+                if(enc == "utf8") enc <- "UTF-8"
+                ## allow for 'smart' quotes on Windows, which work
+                ## in all but CJK encodings
+                if(.Platform$OS.type == "windows" && enc == ""
+                   && l10n_info()$codepage < 1000) enc <- "CP1252"
+                file.show(zfile,
                           title = gettextf("R Help on '%s'", topic),
-                          delete.file = TRUE,
-                          pager = attr(x, "pager"))
-            } else {
-                ## Fallback to the old system with help pages
-                ## stored as plain text
-                zfile <- zip.file.extract(file, "Rhelp.zip")
-                if (file.exists(zfile)) {
-                    first <- readLines(zfile, n = 1L)
-                    enc <- if(length(grep("\\(.*\\)$", first)))
-                        sub("[^(]*\\((.*)\\)$", "\\1", first) else ""
-                    if(enc == "utf8") enc <- "UTF-8"
-                    ## allow for 'smart' quotes on Windows, which work
-                    ## in all but CJK encodings
-                    if(.Platform$OS.type == "windows" && enc == ""
-                       && l10n_info()$codepage < 1000) enc <- "CP1252"
-                    file.show(zfile,
-                              title = gettextf("R Help on '%s'", topic),
-                              delete.file = (zfile != file),
-                              pager = attr(x, "pager"), encoding = enc)
-                } else
-		    stop(gettextf("No text help for '%s' is available:\ncorresponding file is missing", topic), domain = NA)
-            }
+                          delete.file = (zfile != file),
+                          pager = attr(x, "pager"), encoding = enc)
+            } else
+                stop(gettextf("No text help for '%s' is available:\ncorresponding file is missing", topic), domain = NA)
         }
         else if(type == "latex") {
             ok <- FALSE
@@ -229,19 +214,26 @@ function(x, ...)
             if(file.exists(zfile)) {
                 .show_help_on_topic_offline(zfile, topic)
                 ok <- TRUE
-            } else {
+            } else if(interactive()) {
                 ## look for stored Rd files
                 path <- dirname(file) # .../pkg/latex
                 dirpath <- dirname(path)
-                pkgname <- basename(dirpath)
-                RdDB <- file.path(dirpath, "help", pkgname)
-                if(file.exists(paste(RdDB, "rdx", sep="."))) {
-                    message("on-demand Rd conversion for ", sQuote(topic))
-                    key <- sub("\\.tex$", "", basename(file))
-                    tf2 <- tempfile("Rlatex")
-                    tools::Rd2latex(tools:::fetchRdDB(RdDB, key), tf2)
-                    .show_help_on_topic_offline(tf2, topic)
-                    ok <- TRUE
+                pkgname <- basename(dirpath) # versioning? ...
+                Rdpath <- file.path(dirpath, "man",
+                                    paste(pkgname, "Rd.gz", sep="."))
+                if(file.exists(Rdpath)) {
+                    ans <- readline("No latex file is available: shall I try to create it? (y/n) ")
+                    if (substr(ans, 1L, 1L) == "y") {
+                        lines <- tools:::extract_Rd_file(Rdpath, topic)
+                        tf <- tempfile("Rd")
+                        tf2 <- tempfile("Rlatex")
+                        writeLines(lines, tf)
+                        cmd <- paste("R CMD Rdconv -t latex", tf, ">", tf2)
+                        res <- system(cmd)
+                        if(res) stop("problems running R CMD Rdconv")
+                        .show_help_on_topic_offline(tf2, topic)
+                        ok <- TRUE
+                    }
                 }
             }
             if(!ok)

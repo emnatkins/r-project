@@ -260,7 +260,7 @@ completeClassDefinition <-
             }
             properties <- unlist(superProps, recursive = FALSE)
             ## check for conflicting slot names
-            if(anyDuplicated(allNames(properties))) {
+            if(any(duplicated(allNames(properties)))) {
                 duped <- duplicated(names(properties))
 #TEMPORARY -- until classes are completed in place & we have way to match non-inherited slots
                 properties <- properties[!duped]
@@ -344,16 +344,14 @@ completeClassDefinition <-
 getAllSuperClasses <-
   ## Get the names of all the classes that this class definition extends.
   ##
-  ## A utility function used to complete a class definition.  It
-  ## returns all the superclasses reachable from this class, in
-  ## depth-first order (which is the order used for matching methods);
-  ## that is, the first direct superclass followed by all its
-  ## superclasses, then the next, etc.  (The order is relevant only in
-  ## the case that some of the superclasses have multiple inheritance.)
+  ## A utility function used to complete a class definition.  It returns all the
+  ## superclasses reachable from this class, in depth-first order (which is the order
+  ## used for matching methods); that is, the first direct superclass followed by all its
+  ## superclasses, then the next, etc.  (The order is relevant only in the case that
+  ## some of the superclasses have multiple inheritance.)
   ##
-  ## The list of superclasses is stored in the extends property of the
-  ## session metadata.  User code should not need to call
-  ## getAllSuperClasses directly; instead, use getClass()@contains
+  ## The list of superclasses is stored in the extends property of the session metadata.
+  ## User code should not need to call getAllSuperClasses directly; instead, use getClass()@contains
   ## (which will complete the definition if necessary).
   function(ClassDef, simpleOnly = TRUE) {
     temp <- superClassDepth(ClassDef, simpleOnly = simpleOnly)
@@ -379,8 +377,7 @@ superClassDepth <-
     immediate <- names(ext)
     notSoFar <- is.na(match(immediate, soFar))
     immediate <- immediate[notSoFar]
-    super <- list(label = immediate, depth = rep.int(1, length(immediate)),
-                  ext = ext)
+    super <- list(label = immediate, depth = rep.int(1, length(immediate)), ext = ext)
     for(i in seq_along(immediate)) {
         what <- immediate[[i]]
         if(!is.na(match(what, soFar)))
@@ -440,7 +437,6 @@ selectSuperClasses <-
     addCond <- function(xpr, prev)
         if(length(prev)) substitute(P && N, list(P = prev, N = xpr)) else xpr
     C <- if(dropVirtual) {
-        ## NB the default 'where' in getClass() may depend on specific superClass:
         isVirtualExt <- function(x) getClass(x@superClass)@virtual
         quote(!isVirtualExt(exti))
     } else expression()
@@ -453,17 +449,6 @@ selectSuperClasses <-
     if(namesOnly) names(ext) else ext
 }
 
-inheritedSlotNames <- function(Class, where = topenv(parent.frame()))
-{
-    ext <- if(isClassDef(Class))
-        Class@contains
-    else if(isClass(Class, where = where))
-        getClass(Class, where = where)@contains
-    supcl <- .selectSuperClasses(ext) ## maybe  simpleOnly = FALSE or use as argument?
-    unique(unlist(lapply(lapply(supcl, getClassDef), slotNames), use.names=FALSE))
-    ## or just the non-simplified part (*with* names):
-    ##     lapply(sapply(supcl, getClassDef, simplify=FALSE), slotNames)
-}
 
 
 isVirtualClass <-
@@ -937,8 +922,7 @@ possibleExtends <- function(class1, class2, ClassDef1, ClassDef2)
             if(!.identC(class(ClassDef2), "classRepresentation") &&
                isClassUnion(ClassDef2))
                 ## a simple TRUE iff class1 or one of its superclasses belongs to the union
-		i <- as.logical(anyDuplicated(c(class1, unique(nm1),
-						names(ext))))
+                i <- any(duplicated(c(class1, unique(nm1), names(ext))))
             else {
                 i <- match(class1, names(ext))
             }
@@ -1216,7 +1200,6 @@ requireMethods <-
         environment(method) <- .GlobalEnv
         setMethod(f, signature, method, where = where)
     }
-    NULL
 }
 
 ## Construct an error message for an unsatisfied required method.
@@ -1237,7 +1220,10 @@ requireMethods <-
 }
 
 getSlots <- function(x) {
-    classDef <- if(isClassDef(x)) x else getClass(x)
+    if(isClassDef(x))
+        classDef <- x
+    else
+        classDef <- getClass(x)
     props <- classDef@slots
     value <- as.character(props)
     names(value) <- names(props)
@@ -1758,7 +1744,6 @@ substituteFunctionArgs <-
      }
 
 
-## to be .classEnv()  --- currently used in 'Matrix'  (via wrapper)
 ..classEnv <- function(Class, default = .requirePackage("methods"), mustFind = TRUE) {
     package <- { if(is.character(Class)) packageSlot(Class) else
 		 ## must then be a class definition
@@ -1910,7 +1895,6 @@ substituteFunctionArgs <-
             .cacheClass(what, subDef, FALSE, env)
         }
     }
-    NULL
 }
 
 ## alternative to .recacheSubclasses, only needed for non-unions
@@ -1951,7 +1935,6 @@ substituteFunctionArgs <-
             assignClassDef(what, subDef, cwhere, TRUE)
         }
     }
-    NULL
 }
 
 .removeSuperclassBackRefs <- function(Class, classDef, classWhere) {
@@ -1968,7 +1951,6 @@ substituteFunctionArgs <-
                                what, Class))
         }
     }
-    NULL
 }
 
 
@@ -2043,7 +2025,6 @@ substituteFunctionArgs <-
           }
         }
     }
-    NULL
 }
 
 .deleteSuperClass <- function(cdef, superclass) {

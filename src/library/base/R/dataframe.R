@@ -57,7 +57,7 @@ row.names.default <- function(x) if(!is.null(dim(x))) rownames(x)# else NULL
     }
     else if (length(value) != n)
 	stop("invalid 'row.names' length")
-    if (anyDuplicated(value)) {
+    if (any(duplicated(value))) {
         nonuniq <- sort(unique(value[duplicated(value)]))
         warning(ngettext(length(nonuniq),
                          sprintf("non-unique value when setting 'row.names': %s",
@@ -128,9 +128,9 @@ as.data.frame <- function(x, row.names = NULL, optional = FALSE, ...)
 }
 
 as.data.frame.default <- function(x, ...)
-    stop(gettextf("cannot coerce class %s into a data.frame",
-                  deparse(class(x))),
+    stop(gettextf("cannot coerce class \"%s\" into a data.frame", class(x)),
          domain = NA)
+
 
 ###  Here are methods ensuring that the arguments to "data.frame"
 ###  are in a form suitable for combining into a data frame.
@@ -187,10 +187,10 @@ as.data.frame.vector <- function(x, row.names = NULL, optional = FALSE, ...,
 	if (nrows == 0L)
 	    row.names <- character(0L)
 	else if(length(row.names <- names(x)) == nrows &&
-		!anyDuplicated(row.names)) {}
+		!any(duplicated(row.names))) {}
 	else row.names <- .set_row_names(nrows)
     }
-    if(!is.null(names(x))) names(x) <- NULL # remove names as from 2.0.0
+    names(x) <- NULL # remove names as from 2.0.0
     value <- list(x)
     if(!optional) names(value) <- nm
     attr(value, "row.names") <- row.names
@@ -322,7 +322,7 @@ as.data.frame.AsIs <- function(x, row.names = NULL, optional = FALSE, ...)
             if (nrows == 0L)
                 row.names <- character(0L)
             else if(length(row.names <- names(x)) == nrows &&
-                    !anyDuplicated(row.names)) {}
+                    !any(duplicated(row.names))) {}
             else row.names <- .set_row_names(nrows)
         }
         value <- list(x)
@@ -346,7 +346,7 @@ data.frame <-
 	    function(current, new, i) {
 		if(is.character(current)) new <- as.character(new)
 		if(is.character(new)) current <- as.character(current)
-		if(anyDuplicated(new))
+		if(any(duplicated(new)))
 		    return(current)
 		if(is.null(current))
 		    return(new)
@@ -356,9 +356,9 @@ data.frame <-
 	    }
 	else function(current, new, i) {
 	    if(is.null(current)) {
-		if(anyDuplicated(new)) {
+		if(any(dup <- duplicated(new))) {
 		    warning("some row.names duplicated: ",
-                            paste(which(duplicated(new)), collapse=","),
+                            paste(which(dup), collapse=","),
                             " --> row.names NOT used")
 		    current
 		} else new
@@ -374,7 +374,7 @@ data.frame <-
                 row.names <- as.character(row.names)
             if(any(is.na(row.names)))
                 stop("row names contain missing values")
-            if(anyDuplicated(row.names))
+            if(any(duplicated(row.names)))
                 stop("duplicate row.names: ",
                      paste(unique(row.names[duplicated(row.names)]),
                            collapse = ", "))
@@ -488,7 +488,7 @@ data.frame <-
             row.names <- as.character(row.names)
         if(any(is.na(row.names)))
             stop("row names contain missing values")
-        if(anyDuplicated(row.names))
+        if(any(duplicated(row.names)))
             stop("duplicate row.names: ",
                  paste(unique(row.names[duplicated(row.names)]),
                        collapse = ", "))
@@ -508,8 +508,6 @@ data.frame <-
     mdrop <- missing(drop)
     Narg <- nargs() - !mdrop  # number of arg from x,i,j that were specified
     has.j <- !missing(j)
-    if(!all(names(sys.call()) %in% c("", "drop")))
-        warning("named arguments other than 'drop' are discouraged")
 
     if(Narg < 3L) {  # list-like indexing or matrix indexing
         if(!mdrop) warning("drop argument will be ignored")
@@ -533,7 +531,7 @@ data.frame <-
                 stop("undefined columns selected")
         }
         ## added in 1.8.0
-        if(anyDuplicated(cols)) names(y) <- make.unique(cols)
+        if(any(duplicated(cols))) names(y) <- make.unique(cols)
         ## since we have not touched the rows, copy over the raw row.names
 	return(structure(y, class = oldClass(x),
                          row.names = .row_names_info(x, 0L)))
@@ -556,7 +554,7 @@ data.frame <-
             if(any(is.na(cols))) stop("undefined columns selected")
         }
         if(drop && length(y) == 1L) return(.subset2(y, 1L))
-        if(anyDuplicated(cols)) names(y) <- make.unique(cols)
+        if(any(duplicated(cols))) names(y) <- make.unique(cols)
         nrow <- .row_names_info(x, 2L)
         if(drop && !mdrop && nrow == 1L)
             return(structure(y, class = NULL, row.names = NULL))
@@ -629,7 +627,7 @@ data.frame <-
         ## row names might have NAs.
         if(is.null(rows)) rows <- attr(xx, "row.names")
         rows <- rows[i]
-	if((ina <- any(is.na(rows))) | (dup <- anyDuplicated(rows))) {
+	if((ina <- any(is.na(rows))) | (dup <- any(duplicated(rows)))) {
 	    ## both will coerce integer 'rows' to character:
 	    if (!dup && is.character(rows)) dup <- "NA" %in% rows
 	    if(ina)
@@ -638,7 +636,7 @@ data.frame <-
 		rows <- make.unique(as.character(rows))
 	}
         ## new in 1.8.0  -- might have duplicate columns
-	if(has.j && anyDuplicated(nm <- names(x)))
+        if(has.j && any(duplicated(nm <- names(x))))
             names(x) <- make.unique(nm)
         if(is.null(rows)) rows <- attr(xx, "row.names")[i]
 	attr(x, "row.names") <- rows
@@ -652,9 +650,6 @@ data.frame <-
     ## use in-line functions to refer to the 1st and 2nd ... arguments
     ## explicitly. Also will check for wrong number or empty args
     na <- nargs() - !missing(exact)
-    if(!all(names(sys.call()) %in% c("", "exact")))
-        warning("named arguments other than 'exact' are discouraged")
-
     if(na < 3L)
 	(function(x, i, exact)
 	  if(is.matrix(i)) as.matrix(x)[[i]]
@@ -670,10 +665,7 @@ data.frame <-
 
 "[<-.data.frame" <- function(x, i, j, value)
 {
-    if(!all(names(sys.call()) %in% c("", "value")))
-        warning("named arguments are discouraged")
-
-    nA <- nargs() # 'value' is never missing, so 3 or 4.
+    nA <- nargs() # value is never missing, so 3 or 4.
     if(nA == 4L) { ## df[,] or df[i,] or df[, j] or df[i,j]
 	has.i <- !missing(i)
 	has.j <- !missing(j)
@@ -804,7 +796,7 @@ data.frame <-
     else jseq <- seq_along(x)
 
     ## addition in 1.8.0
-    if(anyDuplicated(jseq))
+    if(any(duplicated(jseq)))
         stop("duplicate subscripts for columns")
     n <- length(iseq)
     if(n == 0L) n <- nrows
@@ -907,16 +899,13 @@ data.frame <-
     else if(p > 0L) for(jjj in p:1L) { # we might delete columns with NULL
 	jj <- jseq[jjj]
         v <- value[[ jvseq[[jjj]] ]]
-        ## This is consistent with the have.i case rather than with
-        ## [[<- and $<- (which throw an error).  But both are plausible.
-        if (nrows > 0L && !length(v)) length(v) <- nrows
 	x[[jj]] <- v
         if(!is.null(v) && is.atomic(x[[jj]])) names(x[[jj]]) <- NULL
     }
     if(length(new.cols) > 0L) {
         new.cols <- names(x) # we might delete columns with NULL
         ## added in 1.8.0
-        if(anyDuplicated(new.cols)) names(x) <- make.unique(new.cols)
+        if(any(duplicated(new.cols))) names(x) <- make.unique(new.cols)
     }
     class(x) <- cl
     x
@@ -924,9 +913,6 @@ data.frame <-
 
 "[[<-.data.frame"<- function(x, i, j, value)
 {
-    if(!all(names(sys.call()) %in% c("", "value")))
-        warning("named arguments are discouraged")
-
     cl <- oldClass(x)
     ## delete class: Version 3 idiom
     ## to avoid any special methods for [[<-
@@ -1264,7 +1250,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
 	}
     }
     rlabs <- unlist(rlabs)
-    if(anyDuplicated(rlabs))
+    if(any(duplicated(rlabs)))
         rlabs <- make.unique(as.character(unlist(rlabs)), sep = "")
     if(is.null(cl)) {
 	as.data.frame(value, row.names = rlabs)

@@ -161,7 +161,7 @@ edit.data.frame <-
     attr(out, "row.names") <- rn
     attr(out, "class") <- "data.frame"
     if (edit.row.names) {
-        if(anyDuplicated(rn)) {
+        if(any(duplicated(rn))) {
             warning("edited row names contain duplicates and will be ignored")
             attr(out, "row.names") <- seq_len(maxlength)
         }

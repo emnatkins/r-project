@@ -4,7 +4,9 @@
 % Distributed under GPL 2 or later
 
 \name{RdUtils}
+\Rdversion{1.1}
 \alias{Rdconv}
+\alias{Rd2txt}
 \alias{Rd2dvi}
 \alias{Sd2Rd}
 \title{Utilities for Processing Rd Files}
@@ -17,6 +19,7 @@
 
 \special{R CMD Rdconv [options] file}
 \special{R CMD Rd2dvi [options] files}
+\special{R CMD Rd2txt [options] file}
 \special{R CMD Sd2Rd [options] file}
 }
 \arguments{
@@ -32,24 +35,23 @@
   plain text, HTML and LaTeX formats are supported.  It can also extract
   the examples for run-time testing.
 
-  \code{Rd2dvi} is the user-level program for producing DVI/PDF output
-  from Rd sources.  It will make use of the environment variables
+  \code{Rd2dvi} and \code{Rd2txt} are user-level programs
+  for producing DVI/PDF output or pretty text output from Rd sources.
+  \code{Rd2dvi} will make use of environment variables
 #ifdef unix
   \env{R_PAPERSIZE} (set by \code{R CMD}, with a default set when \R was
   installed) and \env{xdvi} (the DVI previewer, default \code{xdvi}),
 #endif
 #ifdef windows
-  \env{R_PAPERSIZE} (default \code{a4}, valid values are \code{a4},
-  \code{letter}, \code{legal} and \code{executive}) and \env{xdvi} (the
-  DVI previewer, default \code{open} (use file associations)),
+  \env{R_PAPERSIZE} (default \code{a4}, ) and \env{xdvi} (the DVI
+  previewer, default \code{open} (use file associations)),
 #endif
   and \env{R_PDFVIEWER} (the PDF previewer).  (Valid values for
   \env{R_PAPERSIZE} are \code{a4}, \code{letter}, \code{legal} and
   \code{executive}.)
 
   \code{Sd2Rd} converts S (version 3 or 4) documentation formats to Rd
-  format: it is no longer much used and the results may need
-  hand-tuning.  (It requires Perl.)
+  format: it is no longer much used and the results may need hand-tuning.
 
   Use \code{R CMD foo --help} to obtain usage information on utility \code{foo}.
 }

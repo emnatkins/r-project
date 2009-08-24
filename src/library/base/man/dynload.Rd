@@ -4,6 +4,7 @@
 % Distributed under GPL 2 or later
 
 \name{dyn.load}
+\Rdversion{1.1}
 \alias{dyn.load}
 \alias{dyn.unload}
 \alias{is.loaded}

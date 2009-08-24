@@ -20,7 +20,7 @@ code2LazyLoadDB <-
              compress = TRUE)
 {
     pkgpath <- .find.package(package, lib.loc, quiet = TRUE)
-    if(!length(pkgpath))
+    if(length(pkgpath) == 0)
         stop(gettextf("there is no package called '%s'", package),
              domain = NA)
     barepackage <- sub("([^-]+)_.*", "\\1", package)
@@ -51,7 +51,7 @@ code2LazyLoadDB <-
 rda2LazyLoadDB <- function(package, lib.loc = NULL, compress = TRUE)
 {
     pkgpath <- .find.package(package, lib.loc, quiet = TRUE)
-    if(!length(pkgpath))
+    if(length(pkgpath) == 0)
         stop(gettextf("there is no package called '%s'", package),
              domain = NA)
     rdafile <- file.path(pkgpath, "R", "all.rda")
@@ -75,7 +75,7 @@ list_data_in_pkg <- function(package, lib.loc = NULL, dataDir = NULL)
 {
     if(is.null(dataDir)) {
         pkgpath <- .find.package(package, lib.loc, quiet = TRUE)
-        if(!length(pkgpath))
+        if(length(pkgpath) == 0)
             stop(gettextf("there is no package called '%s'", package),
                  domain = NA)
         dataDir <- file.path(pkgpath, "data")
@@ -116,7 +116,7 @@ data2LazyLoadDB <- function(package, lib.loc = NULL, compress = TRUE)
 {
     options(warn=1)
     pkgpath <- .find.package(package, lib.loc, quiet = TRUE)
-    if(!length(pkgpath))
+    if(length(pkgpath) == 0)
         stop(gettextf("there is no package called '%s'", package),
              domain = NA)
     dataDir <- file.path(pkgpath, "data")
@@ -182,12 +182,10 @@ makeLazyLoadDB <- function(from, filebase, compress = TRUE, ascii = FALSE,
         idx <- 0
         envs <- NULL
         enames <- character(0L)
-        find <- function(v, keys, vals) {
+        find <- function(v, keys, vals)
             for (i in seq_along(keys))
                 if (identical(v, keys[[i]]))
                     return(vals[i])
-	    NULL
-	}
         getname <- function(e) find(e, envs, enames)
         getenv <- function(n) find(n, enames, envs)
         insert <- function(e) {
@@ -276,7 +274,7 @@ makeLazyLoading <-
     options(warn=1)
     findpack <- function(package, lib.loc) {
         pkgpath <- .find.package(package, lib.loc, quiet = TRUE)
-        if(!length(pkgpath))
+        if(length(pkgpath) == 0)
             stop(gettextf("there is no package called '%s'", package),
                  domain = NA)
         pkgpath

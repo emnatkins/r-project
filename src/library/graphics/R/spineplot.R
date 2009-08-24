@@ -26,7 +26,7 @@ function(formula, data = list(),
          breaks = NULL, tol.ylab = 0.05, off = NULL, ylevels = NULL,
          col = NULL, main = "", xlab = NULL, ylab = NULL,
          xaxlabels = NULL, yaxlabels = NULL,
-         xlim = NULL, ylim = c(0, 1), axes = TRUE, ...,
+         xlim = NULL, ylim = c(0, 1), ...,
          subset = NULL)
 {
     ## extract x, y from formula
@@ -52,7 +52,7 @@ function(formula, data = list(),
     spineplot(x, y, breaks = breaks, tol.ylab = tol.ylab, off = off, ylevels = NULL,
               col = col, main = main, xlab = xlab, ylab = ylab,
               xaxlabels = xaxlabels, yaxlabels = yaxlabels,
-              xlim = xlim, ylim = ylim, axes = axes, ...)
+              xlim = xlim, ylim = ylim, ...)
 }
 
 spineplot.default <-
@@ -60,7 +60,7 @@ function(x, y = NULL,
          breaks = NULL, tol.ylab = 0.05, off = NULL, ylevels = NULL,
          col = NULL, main = "", xlab = NULL, ylab = NULL,
          xaxlabels = NULL, yaxlabels = NULL,
-         xlim = NULL, ylim = c(0, 1), axes = TRUE, ...)
+         xlim = NULL, ylim = c(0, 1), ...)
 {
     ## either supply a 2-way table (i.e., both y and x are categorical)
     ## or two variables (y has to be categorical - x can be categorical
@@ -150,26 +150,22 @@ function(x, y = NULL,
     rect(xleft, ybottom, xright, ytop, col = col, ...)
 
     ## axes
-    if(axes) {
-        ## side --
-        ## 1: either numeric or level names
-        if(x.categorical)
-            axis(1, at = (xat[1L:nx] + xat[2:(nx+1)] - off)/2,
-                 labels = xaxlabels, tick = FALSE)
-        else
-            axis(1, at = xat, labels = xaxlabels)
+    ## 1L: either numeric or level names
+    if(x.categorical)
+        axis(1, at = (xat[1L:nx] + xat[2:(nx+1)] - off)/2, labels = xaxlabels, tick = FALSE)
+    else
+        axis(1, at = xat, labels = xaxlabels)
 
-        ## 2: axis with level names of y
-        yat <- yat[,1]
-        equidist <- any(diff(yat) < tol.ylab)
-        yat <- if(equidist) seq.int(1/(2*ny), 1-1/(2*ny), by = 1/ny)
-        else (yat[-1L] + yat[-length(yat)])/2
-        axis(2, at = yat, labels = yaxlabels, tick = FALSE)
+    ## 2: axis with level names of y
+    yat <- yat[,1]
+    equidist <- any(diff(yat) < tol.ylab)
+    yat <- if(equidist) seq.int(1/(2*ny), 1-1/(2*ny), by = 1/ny)
+    else (yat[-1L] + yat[-length(yat)])/2
+    axis(2, at = yat, labels = yaxlabels, tick = FALSE)
 
-        ## 3: none
-        ## 4: simple numeric
-        axis(4)
-    }
+    ## 3: none
+    ## 4: simple numeric
+    axis(4)
     if(!x.categorical) box()
 
     ## return table visualized

@@ -1,6 +1,6 @@
 % File src/library/base/man/grep.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2009 R Core Development Team
+% Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{grep}
@@ -47,9 +47,7 @@ gregexpr(pattern, text, ignore.case = FALSE, extended = TRUE,
   \item{pattern}{character string containing a \link{regular expression}
     (or character string for \code{fixed = TRUE}) to be matched
     in the given character vector.  Coerced by
-    \code{\link{as.character}} to a character string if possible.  If a
-    character vector of length 2 or more is supplied, the first element
-    is used with a warning.}
+    \code{\link{as.character}} to a character string if possible.}
   \item{x, text}{a character vector where matches are sought, or an
     object which can be coerced by \code{as.character} to a character vector.}
   \item{ignore.case}{if \code{FALSE}, the pattern matching is \emph{case
@@ -75,9 +73,7 @@ gregexpr(pattern, text, ignore.case = FALSE, extended = TRUE,
     \code{"\\9"} to parenthesized subexpressions of \code{pattern}.  For
     \code{perl = TRUE} only, it can also contain \code{"\\U"} or
     \code{"\\L"} to convert the rest of the replacement to upper or
-    lower case, or \code{"\\E"} to end such case conversion.  If a
-    character vector of length 2 or more is supplied, the first element
-    is used with a warning.
+    lower case.
   }
 }
 \details{
@@ -102,8 +98,7 @@ gregexpr(pattern, text, ignore.case = FALSE, extended = TRUE,
   \code{useBytes} is only used if \code{fixed = TRUE} or \code{perl = TRUE}.
   Its main effect is to avoid errors/warnings about invalid inputs and
   spurious matches, but for \code{regexpr} it changes the interpretation
-  of the output.  As from \R 2.10.0 it inhibits the conversion of inputs
-  with marked encodings.
+  of the output.
 
   PCRE only supports caseless matching for a non-ASCII pattern in a
   UTF-8 locale (and not for \code{useBytes = TRUE} in any locale).
@@ -113,10 +108,10 @@ gregexpr(pattern, text, ignore.case = FALSE, extended = TRUE,
   \code{x} that yielded a match or, if \code{value} is \code{TRUE}, the
   matched elements of \code{x} (after coercion, preserving names but no
   other attributes).
-
+  
   \code{grepl} differs only in that it returns a logical vector (match
   or no for each element of \code{x}).
-
+  
   For \code{sub} and \code{gsub} a character vector of the same length
   and with the same attributes as \code{x} (after possible coercion).
   Elements of character vectors \code{x} which are not substituted will
@@ -223,13 +218,8 @@ sub('[[:space:]]+$', '', str) ## white space, POSIX-style
 sub('\\\\s+$', '', str, perl = TRUE) ## Perl-style white space
 
 ## capitalizing
-txt <- "a test of capitalizing"
-gsub("(\\\\w)(\\\\w*)", "\\\\U\\\\1\\\\L\\\\2", txt, perl=TRUE)
-gsub("\\\\b(\\\\w)",    "\\\\U\\\\1",       txt, perl=TRUE)
-
-txt2 <- "useRs may fly into JFK or laGuardia"
-gsub("(\\\\w)(\\\\w*)(\\\\w)", "\\\\U\\\\1\\\\E\\\\2\\\\U\\\\3", txt2, perl=TRUE)
- sub("(\\\\w)(\\\\w*)(\\\\w)", "\\\\U\\\\1\\\\E\\\\2\\\\U\\\\3", txt2, perl=TRUE)
+gsub("(\\\\w)(\\\\w*)", "\\\\U\\\\1\\\\L\\\\2", "a test of capitalizing", perl=TRUE)
+gsub("\\\\b(\\\\w)", "\\\\U\\\\1", "a test of capitalizing", perl=TRUE)
 }
 \keyword{character}
 \keyword{utilities}

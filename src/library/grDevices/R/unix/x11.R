@@ -96,7 +96,7 @@ x11 <- X11
 png <- function(filename = "Rplot%03d.png",
                 width = 480, height = 480, units = "px",
                 pointsize = 12, bg = "white", res = NA, ...,
-                type = c("cairo", "Xlib", "quartz"), antialias)
+                type = c("cairo", "Xlib", "cairo1", "quartz"), antialias)
 {
     if(!checkIntFormat(filename)) stop("invalid 'filename'")
     units <- match.arg(units, c("in", "px", "cm", "mm"))
@@ -107,8 +107,7 @@ png <- function(filename = "Rplot%03d.png",
     width <-
         switch(units, "in"=res, "cm"=res/2.54, "mm"=res/25.4, "px"=1) * width
     new <- list(...)
-    if(missing(type)) type <- getOption("bitmapType")
-    type <- match.arg(type)
+    type <- if(!missing(type)) match.arg(type) else getOption("bitmapType")
     antialiases <- get("antialiases", envir = .X11env)
     if(!missing(antialias))
         new$antialias <- match.arg(antialias, antialiases)
@@ -124,7 +123,11 @@ png <- function(filename = "Rplot%03d.png",
     } else if (type == "cairo" && capabilities("cairo"))
         .Internal(cairo(filename, 2L, width, height, pointsize, bg,
 			res, antialias, 100L))
-    else
+    else if (type == "cairo1" && capabilities("cairo")) {
+        warning("type = \"cairo1\" is deprecated")
+        .Internal(cairo(filename, 5L, width, height, pointsize, bg,
+			res, antialias, 100L))
+    } else
         .Internal(X11(paste("png::", filename, sep=""),
                       width, height, pointsize, d$gamma,
                       d$colortype, d$maxcubesize, bg, bg, d$fonts, res,

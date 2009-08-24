@@ -11,8 +11,7 @@
   Input and output text connections.
 }
 \usage{
-textConnection(object, open = "r", local = FALSE,
-               encoding = c("", "bytes", "UTF-8"))
+textConnection(object, open = "r", local = FALSE)
 
 textConnectionValue(con)
 }
@@ -28,9 +27,6 @@ textConnectionValue(con)
   \item{local}{logical.  Used only for output connections.  If \code{TRUE},
     output is assigned to a variable in the calling environment.  Otherwise
     the global environment is used.}
-  \item{encoding}{character.  Used only for input connections.  How
-    marked strings in \code{object} should be handled: converted to the
-    current locale, used byte-by-byte or translated to UTF-8.}
   \item{con}{An output text connection.}
 }
 \details{

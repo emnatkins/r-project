@@ -23,7 +23,7 @@ as.dendrogram.hclust <- function (object, hang = -1, ...)
 {
     stopifnot(length(object$order) > 0L)
     if (is.null(object$labels))
-	object$labels <- seq_along(object$order)
+	object$labels <- 1L:length(object$order)
     z <- list()
     nMerge <- length(oHgt <- object$height)
     if (nMerge != nrow(object$merge))
@@ -196,7 +196,6 @@ function (object, max.level = NA, digits.d = 3, give.attr = FALSE,
 	if(any.at || nzchar(at)) cat(if(!any.at)"(", at, ")")
 	cat("\n")
     }
-    invisible()
 }
 
 
@@ -328,7 +327,7 @@ plotNode <-
 		segments(y0, x0, y1, x1, col = col, lty = lty, lwd = lwd)
 	    else segments(x0, y0, x1, y1, col = col, lty = lty, lwd = lwd)
 	}
-	for (k in seq_along(subtree)) {
+	for (k in 1L:length(subtree)) {
 	    child <- subtree[[k]]
 	    ## draw lines to the children and draw them recursively
 	    yBot <- attr(child, "height")
@@ -413,7 +412,6 @@ plotNode <-
 		     type, center, leaflab, dLeaf, nodePar, edgePar, horiz)
 	}
     }
-    invisible()
 }
 
 plotNodeLimit <- function(x1, x2, subtree, center)

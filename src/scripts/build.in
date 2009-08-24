@@ -28,7 +28,10 @@ use Getopt::Long;
 use IO::File;
 use R::Dcf;
 use R::Logfile;
+use R::Rd;
 use R::Utils;
+use R::Vars;
+use Text::DelimMatch;
 use Text::Wrap;
 
 ## Don't buffer output.
@@ -48,13 +51,16 @@ my $WINDOWS = ($R::Vars::OSTYPE eq "windows");
 my @exclude_patterns = R::Utils::get_exclude_patterns();
 
 my @known_options = ("help|h", "version|v", "binary", "no-docs",
-		     "use-zip-data", "force", "no-vignettes");
+		     "use-zip", "use-zip-help", "use-zip-data",
+		     "force", "no-vignettes");
 
 if($WINDOWS) {
     die "Please set TMPDIR to a valid temporary directory\n"
 	unless (-d ${R::Vars::TMPDIR});
-    @known_options = ("help|h", "version|v", "binary", "no-docs",
-		      "auto-zip", "use-zip-data", "force", "no-vignettes");
+    @known_options = ("help|h", "version|v", "binary", "docs:s",
+		      "auto-zip",
+		      "use-zip", "use-zip-help", "use-zip-data",
+		      "force", "no-vignettes");
 }
 
 GetOptions(@known_options) or usage();
@@ -76,12 +82,15 @@ my $tar = R_getenv("TAR", $tar_default);
 my $libdir = R_tempfile("Rinst");
 
 my $INSTALL_opts = "";
+$INSTALL_opts .= " --use-zip" if $opt_use_zip;
 $INSTALL_opts .= " --use-zip-data" if $opt_use_zip_data;
-$INSTALL_opts .= " --no-docs" if $opt_no_docs;
+$INSTALL_opts .= " --use-zip-help" if $opt_use_zip_help;
 if($WINDOWS) {
+    $INSTALL_opts .= " --docs=$opt_docs" if $opt_docs;
     $INSTALL_opts .= " --auto-zip" if $opt_auto_zip;
+} else {
+    $INSTALL_opts .= " --no-docs" if $opt_no_docs;
 }
-
 ## <FIXME>
 ## Once we have a 'global' log file, use $log->warning() instead of just
 ## print().
@@ -757,12 +766,20 @@ Options:
   --binary              build pre-compiled binary packages, with options:
 END
     if($WINDOWS) {
+	print "  --docs=TYPE           " .
+	    "type(s) of documentation to build and INSTALL\n";
+	print "                        " .
+	    "See Rcmd INSTALL --help for possible values of TYPE\n";
 	print "  --auto-zip            " .
-	    "select zipping of data based on size\n";
+	    "select zipping of data and help based on size\n";
+    } else {
+	print "  --no-docs             " .
+	    "do not build and install documentation\n";
     }
     print <<END;
   --use-zip-data        collect data files in zip archive
-  --no-docs             do not build and install documentation
+  --use-zip-help        collect help and examples into zip archives
+  --use-zip             combine '--use-zip-data' and '--use-zip-help'
 
 Report bugs to <r-bugs\@r-project.org>.
 END

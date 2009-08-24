@@ -35,16 +35,11 @@
 ## for more information.
 ## </NOTE>
 
-re_anchor <-
-function(s)
+re_anchor <- function(s)
     if(length(s)) paste("^", s, "$", sep = "") else character()
-
-re_group <-
-function(s)
+re_group <- function(s)
     if(length(s)) paste("(", s, ")", sep = "") else character()
-
-re_or <-
-function(s, group = TRUE) {
+re_or <- function(s, group = TRUE) {
     if(!length(s))
         character()
     else if(group)
@@ -80,10 +75,10 @@ function()
                              c("Name", "Abbrev")),
                       use.names = FALSE))
     license_names_or_abbrevs_with_version <-
-        unique(Filter(nzchar,
-                      unlist(subset(license_db, Version != "",
-                                    c("Name", "Abbrev")),
-                             use.names = FALSE)))
+        Filter(nzchar,
+               unlist(subset(license_db, Version != "",
+                             c("Name", "Abbrev")),
+                      use.names = FALSE))
 
     operators <- c("<", "<=", ">", ">=", "==", "!=")
     re_for_numeric_version <- .standard_regexps()$valid_numeric_version
@@ -124,23 +119,9 @@ function()
 
     re_for_license_short_spec <- re_or(license_short_specs)
     re_for_license_file <- "file LICEN[CS]E"
-    re_for_license_extension <-
-        sprintf("[[:space:]]*\\+[[:space:]]*%s", re_for_license_file)
-    ## <NOTE>
-    ## Many standard licenses actually do not allow extensions.
-    ## Ideally, we would only allow the extension markup for extensible
-    ## standard licenses, as identified via an Extensible: TRUE field in
-    ## the license db.  But version ranges make this tricky: e.g.,
-    ##   GPL (>= 2) + file LICENSE
-    ## is not right as GPL-2 does not allow extensions ...
-    ## Hence, for now allow the extension markup with all standard
-    ## licenses.
-    ## </NOTE>
     re_for_component <-
-        re_anchor(re_or(c(sprintf("%s(%s)?",
-                                  re_or(c(re_for_license_short_spec,
-                                          re_for_free_or_open_software_spec)),
-                                  re_for_license_extension),
+        re_anchor(re_or(c(re_for_license_short_spec,
+                          re_for_free_or_open_software_spec,
                           re_for_license_file,
                           "Unlimited")))
     list(re_for_component = re_for_component,
@@ -180,12 +161,13 @@ list("Artistic-2.0" =
        ),
 
      "CeCILL-2" =
-     c("CeCILL-2.0"
+     c("CeCILL 2 (GNU GPL 2 compatible)",
+       "CeCILL-2.0"
        ),
      
      "GPL" =
      c(## <FIXME>
-       "GPL.",
+       "'GPL'",
        ## </FIXME>
        "GNU Public License",
        "Gnu GPL",
@@ -194,7 +176,10 @@ list("Artistic-2.0" =
        ),
      
      "GPL-2" =
-     c(## <NOTE>
+     c(## <FIXME>
+       "GPL vesion 2 or newer",       
+       ## </FIXME>
+       ## <NOTE>
        ## There is no GPL 2.0, see above.
        "GNU General Public License 2.0.",
        "GPL 2.0",
@@ -208,10 +193,12 @@ list("Artistic-2.0" =
        "GPL (version 2)",
        "GPL 2",
        "GPL 2.",
+       "GPL v2",
        "GPL version 2",
        "GPL version 2 (June, 1991)",
        "GPL version 2.",
        "GPL2",
+       "GPL-2 http://www.r-project.org/Licenses/GPL-2",
        ## BioC:
        "GPL V2",
        "GPL, version 2"
@@ -221,7 +208,6 @@ list("Artistic-2.0" =
      c("GPL Version 3",
        "GPL version 3",
        "GNU General Public Licence (GPLv3)",
-       "GPL 3",
        "GPL v3"
        ),
 
@@ -229,13 +215,18 @@ list("Artistic-2.0" =
      c(## <NOTE>
        ## There is no GPL 2.0, see above.
        "GNU GPL v2.0 or greater",
+       "GNU Public Licence 2.0 or above at your convenience",
+       "GPL (Version 2.0 or later)",
        "GPL 2.0 or higher",
+       "GPL 2.0 or later",
        "GPL 2.0 or newer",
        "GPL version 2.0 or later",
        "GPL version 2.0 or newer",
        ## </NOTE>
        "GNU GPL (version 2 or later)",
        "GNU GPL (version 2 or later); see the file COPYING for details",
+       "GNU GPL Version 2 (or later)",
+       "GNU GPL Version 2 or newer.",
        "GNU GPL version 2 or newer",
        "GNU General Public License version 2 or newer",
        "GPL version 2 or later",
@@ -246,8 +237,8 @@ list("Artistic-2.0" =
        "GPL (version 2 or later)",
        "GPL (version 2 or later, see the included file GPL)",
        "GPL (version 2 or newer)",
+       "GPL 2 or above",
        "GPL 2 or later",
-       "GPL 2 or newer",
        "GPL version 2 or any later version",
        "GPL Version 2 or later",
        "GPL Version 2 or later.",
@@ -262,6 +253,7 @@ list("Artistic-2.0" =
        "GPL version 2 or newer.",
        "GPL version 2 or newer. http://www.gnu.org/copyleft/gpl.html",
        "GPL version 2, or, at your option, any newer version.",
+       "GPL (version 2 or later) See file LICENCE.",
        "GPL Version 2 (or later)",
        "GPL version 2 (or later)",
        "GPL version 2 or higher",
@@ -272,6 +264,7 @@ list("Artistic-2.0" =
 
      "GPL (>= 3)" =
      c("GPL (version 3 or later)",
+       "GPL version 3 or newer",
        "GPL >=3"
        ),
 
@@ -306,7 +299,12 @@ list("Artistic-2.0" =
        ),
        
      "LGPL (>= 2.0)" =
-     c(## <NOTE>
+     c(## <FIXME>
+       ## LGPL-2 is the "Library General Public License" (not "Lesser"
+       ## as in the subsequent LGPLs).
+       "Lesser GPL Version 2 or later.",
+       ## </FIXME>
+       ## <NOTE>
        ## There is no LGPL-2.0, see above.
        "LGPL >= 2.0",
        ## </NOTE>
@@ -317,11 +315,8 @@ list("Artistic-2.0" =
        ),
      
      "LGPL (>= 2.1)" =
-     c("LGPL version 2.1 or later"
-       ),
-
-     "LGPL (>= 3.0)" =
-     c("LGPL >=3"
+     c("LGPL version 2.1 or newer (the releases)",
+       "LGPL version 2.1 or later"
        ),
 
      "X11" =
@@ -362,6 +357,111 @@ c("Artistic",
     c(.standardizable_license_specs_db$ispecs,
       .other_free_or_open_license_specs)
 
+## .safe_license_specs_in_standard_repositories <-
+##     c(## <NOTE>
+##       ## These really need fixing for a variety of reasons:
+##       "'GPL'",
+##       "Artistic",
+##       "CeCILL 2 (GNU GPL 2 compatible)",
+##       "LGPL version 2.1 or newer (the releases)",
+##       "Unlimited distribution.",
+##       ## It is really GNU Library General Public License 2
+##       ## and GNU Lesser General Public License 2.1.
+##       "Lesser GPL Version 2 or later.",
+##       ## These are variants of GPL 2.0 which does not exist:
+##       "GNU GPL v2.0 or greater",
+##       "GNU General Public License 2.0.",
+##       "GNU Public Licence 2.0 or above at your convenience",
+##       "GPL (Version 2.0 or later)",
+##       "GPL 2.0",
+##       "GPL 2.0 or higher",
+##       "GPL 2.0 or later",
+##       "GPL 2.0 or newer",
+##       "GPL version 2.0",
+##       "GPL version 2.0 or later",
+##       "GPL version 2.0 or newer",
+##       "GPL2.0",
+##       ## CeCILL is a bit of a mess: the current version is referred to
+##       ## as "version 2" (http://www.cecill.info/licences.en.html) but
+##       ## internally uses "Version 2.0 dated 2006-09-05"
+##       ## (http://www.cecill.info/licences/Licence_CeCILL_V2-en.txt).
+##       "CeCILL-2.0",
+##       ## </NOTE>
+##       "GNU GPL (version 2 or later)",
+##       "GNU GPL (version 2 or later); see the file COPYING for details",
+##       "GNU GPL Version 2",
+##       "GNU GPL Version 2 (or later)",
+##       "GNU GPL Version 2 or newer.",
+##       "GNU GPL version 2",
+##       "GNU GPL version 2 or newer",
+##       "GNU GPL version 2.",
+##       "GNU General Public License version 2 or newer",
+##       "GNU Public License",
+##       "GPL version 2 or later",
+##       "GPL ( version 2 or later)",
+##       "GPL (Version 2 or above)",
+##       "GPL (Version 2 or later)",
+##       "GPL (version 2 or higher)",
+##       "GPL (version 2 or later)",
+##       "GPL (version 2 or later, see the included file GPL)",
+##       "GPL (version 2 or newer)",
+##       "GPL (version 2)",
+##       "GPL (version 3 or later)",
+##       "GPL 2",
+##       "GPL 2 or above",
+##       "GPL 2 or later",
+##       "GPL AFFERO 3.0 (with citation)",
+##       "GPL Version 2",
+##       "GPL version 2 or any later version",
+##       "GPL Version 2 or later",
+##       "GPL Version 2 or later.",
+##       "GPL Version 2 or newer",
+##       "GPL Version 2 or newer.",
+##       "GPL Version 3",
+##       "GPL or LGPL by your choice",
+##       "GPL v2",
+##       "GPL version 2",
+##       "GPL version 2 (June, 1991)",
+##       "GPL version 2 (June, 1991) or later",
+##       "GPL version 2 (or newer)",
+##       "GPL version 2 or later.",
+##       "GPL version 2 or newer",
+##       "GPL version 2 or newer (http://www.gnu.org/copyleft/gpl.html)",
+##       "GPL version 2 or newer (see README).",
+##       "GPL version 2 or newer.",
+##       "GPL version 2 or newer. http://www.gnu.org/copyleft/gpl.html",
+##       "GPL version 2, or, at your option, any newer version.",
+##       "GPL version 2.",
+##       "GPL version 3",
+##       "GPL version 3 or newer",
+##       "GPL vesion 2 or newer",
+##       "GPL2",
+##       "Gnu GPL",
+##       "LGPL (see <http://www.opensource.org/licenses/lgpl-license.php>).",
+##       "LGPL >= 2.0",
+##       "LGPL Version 2 or later.",
+##       "LGPL version 2 or newer",
+##       "LGPL version 2.1 or later",
+##       "LGPL2",
+##       "The Artistic License, Version 2.0",
+##       "X11 (http://www.x.org/Downloads_terms.html)",
+##       "use under GPL2, or see file LICENCE",
+##       "GNU GPL",
+##       "GPL (version 2 or later) See file LICENCE.",
+##       "GPL 2.",
+##       "GPL Version 2 (or later)",
+##       "LGPL (version 2 or later)",
+##       ## BioC
+##       "GPL (http://www.gnu.org/copyleft/gpl.html)",
+##       "GPL V2",
+##       "GPL version 2 (or later)",
+##       "GPL version 2 or higher",
+##       "GPL, version 2",
+##       "GPL2 or later",
+##       "LGPL version 2.1",
+##       "caBIG"
+## )
+
 analyze_license <-
 function(x)
 {
@@ -371,7 +471,6 @@ function(x)
                               is_standardizable = FALSE,
                               is_verified = FALSE,
                               standardization = NA_character_,
-                              is_extended = NA,
                               pointers = NULL)
         list(is_empty = is_empty,
              is_canonical = is_canonical,
@@ -379,7 +478,6 @@ function(x)
              is_standardizable = is_standardizable,
              is_verified = is_verified,
              standardization = standardization,
-             is_extended = is_extended,
              pointers = pointers)
 
 
@@ -396,6 +494,12 @@ function(x)
     ## Now analyze the individual components.
     ok <- grepl(license_regexps$re_for_component, components)
     bad_components <- components[!ok]
+
+    pointers <- if(all(ok)) NULL else {
+        ind <- grepl(re_anchor(license_regexps$re_for_license_file),
+                     components)
+        sub("file ", "", components[ind])
+    }
 
     ## Is the license specification "safe" in the sense of automatically
     ## verifiable as a free or open source software license?
@@ -434,34 +538,14 @@ function(x)
                              .standard_regexps()$valid_numeric_version),
                      " \\1", s)
         }
-        paste(components, collapse = " | ")
+        standardization <- paste(components, collapse = " | ")
     } else NA_character_
-
-    pointers <- NULL
-    is_extended <- NA
-    ## Analyze components provided that we know we can standardize.
-    if(is_standardizable) {
-        components <- 
-            .strip_whitespace(unlist(strsplit(standardization, "|",
-                                              fixed = TRUE)))
-        ind <- grep(sprintf("%s$",
-                            license_regexps$re_for_license_file),
-                     components)
-        if(length(ind)) {
-            pointers <- sub(".*file ", "", components[ind])
-            is_extended <-
-                any(grepl("+", components[ind], fixed = TRUE))
-        } else {
-            is_extended <- FALSE
-        }
-    }
     
     .make_results(is_canonical = all(ok),
                   bad_components = bad_components,
                   is_standardizable = is_standardizable,
                   is_verified = is_verified,
                   standardization = standardization,
-                  is_extended = is_extended,
                   pointers = pointers)
 }
 
@@ -534,11 +618,12 @@ function(dir, unpacked = FALSE, full = TRUE)
 }
 
 summarize_license_db <-
-function(db)
+function(db, full = FALSE)
 {
-    packages <- db$Package
-    if(any(duplicated(packages)))
-        packages <- sprintf("%s_%s", packages, db$Version)
+    packages <- if(full)
+        sprintf("%s_%s", db$Package, db$Version)
+    else
+        db$Package
     packages <- split(packages, db$License)
     licenses <- names(packages)
     out <- data.frame(Licenses = licenses, stringsAsFactors = FALSE)
@@ -556,7 +641,8 @@ find_unused_safe_license_specs <-
 function(...)
 {
     ldb <- do.call("rbind", list(...))
-    .safe_license_specs %w/o% unique(ldb$License)
+    safe <- .safe_license_specs
+    safe[!safe %in% unique(ldb$License)]
 }
 
 find_canonical_safe_license_specs <-

@@ -4,6 +4,7 @@
 % Distributed under GPL 2 or later
 
 \name{regex}
+\Rdversion{1.1}
 \alias{regex}
 \alias{regexp}
 \alias{regular expression}

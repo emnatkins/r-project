@@ -1,6 +1,6 @@
 % File src/library/base/man/readBin.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2009 R Core Development Team
+% Copyright 1995-2008 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{readBin}
@@ -15,7 +15,7 @@ readBin(con, what, n = 1L, size = NA_integer_, signed = TRUE,
         endian = .Platform$endian)
 
 writeBin(object, con, size = NA_integer_,
-         endian = .Platform$endian, useBytes = FALSE)
+         endian = .Platform$endian)
 }
 \arguments{
   \item{con}{A connection object or a character string naming a file or
@@ -37,7 +37,6 @@ writeBin(object, con, size = NA_integer_,
     target system for the file.  Using \code{"swap"} will force swapping
     endian-ness.}
   \item{object}{An \R object to be written to the connection.}
-  \item{useBytes}{See \code{\link{writeLines}}.} 
 }
 \details{
   If \code{con} is a character string, the functions call

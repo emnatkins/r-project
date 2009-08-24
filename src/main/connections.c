@@ -304,7 +304,8 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 	    warning(_("printing of extremely long output is truncated"));
 	    res = BUFSIZE;
     }
-#endif /* HAVE_VA_COPY */
+#endif
+#ifdef HAVE_ICONV
     if(con->outconv) { /* translate the buffer */
 	char outbuf[BUFSIZE+1], *ob;
 	const char *ib = b;
@@ -328,6 +329,7 @@ int dummy_vfprintf(Rconnection con, const char *format, va_list ap)
 	} while(again && inb > 0);  /* it seems some iconv signal -1 on
 				       zero-length input */
     } else
+#endif /* HAVE_VA_COPY */
 	con->write(b, 1, res, con);
 #ifdef HAVE_VA_COPY
     if(usedRalloc) vmaxset(vmax);
@@ -2113,7 +2115,7 @@ SEXP attribute_hidden do_rawconvalue(SEXP call, SEXP op, SEXP args, SEXP env)
 /* ------------------- text connections --------------------- */
 
 /* read a R character vector into a buffer */
-static void text_init(Rconnection con, SEXP text, int type)
+static void text_init(Rconnection con, SEXP text)
 {
     int i, nlines = length(text), nchars = 0;
     Rtextconn this = (Rtextconn)con->private;
@@ -2127,10 +2129,7 @@ static void text_init(Rconnection con, SEXP text, int type)
     }
     *(this->data) = '\0';
     for(i = 0; i < nlines; i++) {
-	strcat(this->data,
-	       type == 1 ? translateChar(STRING_ELT(text, i))
-	       : ((type == 3) ?translateCharUTF8(STRING_ELT(text, i))
-		  : CHAR(STRING_ELT(text, i))) );
+	strcat(this->data, translateChar(STRING_ELT(text, i)));
 	strcat(this->data, "\n");
     }
     this->nchars = nchars;
@@ -2175,7 +2174,7 @@ static double text_seek(Rconnection con, double where, int origin, int rw)
     return 0; /* if just asking, always at the beginning */
 }
 
-static Rconnection newtext(const char *description, SEXP text, int type)
+static Rconnection newtext(const char *description, SEXP text)
 {
     Rconnection new;
     new = (Rconnection) malloc(sizeof(struct Rconn));
@@ -2204,7 +2203,7 @@ static Rconnection newtext(const char *description, SEXP text, int type)
 	free(new->description); free(new->class); free(new);
 	error(_("allocation of text connection failed"));
     }
-    text_init(new, text, type);
+    text_init(new, text);
     return new;
 }
 
@@ -2432,7 +2431,7 @@ SEXP attribute_hidden do_textconnection(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP sfile, stext, sopen, ans, class, venv;
     const char *desc, *open;
-    int ncon, type;
+    int ncon;
     Rconnection con = NULL;
 
     checkArity(op, args);
@@ -2450,14 +2449,11 @@ SEXP attribute_hidden do_textconnection(SEXP call, SEXP op, SEXP args, SEXP env)
 	error(_("use of NULL environment is defunct"));
     if (!isEnvironment(venv))
 	error(_("invalid '%s' argument"), "environment");
-    type = asInteger(CAD4R(args));
-    if (type == NA_INTEGER)
-	error(_("invalid '%s' argument"), "encoding");
     ncon = NextConnection();
     if(!strlen(open) || strncmp(open, "r", 1) == 0) {
 	if(!isString(stext))
 	    error(_("invalid '%s' argument"), "text");
-	con = Connections[ncon] = newtext(desc, stext, type);
+	con = Connections[ncon] = newtext(desc, stext);
     } else if (strncmp(open, "w", 1) == 0 || strncmp(open, "a", 1) == 0) {
 	if (OutTextData == NULL) {
 	    OutTextData = allocVector(VECSXP, NCONNECTIONS);
@@ -3005,10 +3001,10 @@ no_more_lines:
     return ans2;
 }
 
-/* writeLines(text, con = stdout(), sep = "\n", useBytes) */
+/* writeLines(text, con = stdout(), sep = "\n") */
 SEXP attribute_hidden do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    int i, con_num, useBytes;
+    int i, con_num;
     Rboolean wasopen;
     Rconnection con=NULL;
     const char *ssep;
@@ -3023,10 +3019,6 @@ SEXP attribute_hidden do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
     con = getConnection(con_num);
     sep = CADDR(args);
     if(!isString(sep)) error(_("invalid '%s' argument"), "sep");
-    useBytes = asLogical(CADDDR(args));
-    if(useBytes == NA_LOGICAL)
-	error(_("invalid '%s' argument"), "useBytes");
-
     if(!con->canwrite)
 	error(_("cannot write to this connection"));
     wasopen = con->isopen;
@@ -3042,10 +3034,7 @@ SEXP attribute_hidden do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
 	    error(_("cannot write to this connection"));
 	}
     }
-    if(useBytes)
-	ssep = CHAR(STRING_ELT(sep, 0));
-    else
-	ssep = translateChar(STRING_ELT(sep, 0));
+    ssep = translateChar(STRING_ELT(sep, 0));
 
     /* New for 2.7.0: split the output if sink was split.
        It would be slightly simpler just to cal Rvprintf if the
@@ -3056,8 +3045,7 @@ SEXP attribute_hidden do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
 	do {
 	    con0 = getConnection(con_num);
 	    for(i = 0; i < length(text); i++)
-		Rconn_printf(con0, "%s%s", 
-			     useBytes ? CHAR(STRING_ELT(text, i)) :
+		Rconn_printf(con0, "%s%s",
 			     translateChar(STRING_ELT(text, i)), ssep);
 	    con0->fflush(con0);
 	    con_num = getActiveSink(j++);
@@ -3065,7 +3053,6 @@ SEXP attribute_hidden do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
     } else {
 	for(i = 0; i < length(text); i++)
 	    Rconn_printf(con, "%s%s",
-			 useBytes ? CHAR(STRING_ELT(text, i)) :
 			 translateChar(STRING_ELT(text, i)), ssep);
     }
 
@@ -3372,11 +3359,11 @@ SEXP attribute_hidden do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
     return ans;
 }
 
-/* writeBin(object, con, size, swap, useBytes) */
+/* writeBin(object, con, swap) */
 SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP object, ans = R_NilValue;
-    int i, j, size, swap, len, n = 0, useBytes;
+    int i, j, size, swap, len, n = 0;
     const char *s;
     char *buf;
     Rboolean wasopen = TRUE, isRaw = FALSE;
@@ -3401,9 +3388,6 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
     swap = asLogical(CADDDR(args));
     if(swap == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "swap");
-    useBytes = asLogical(CAD4R(args));
-    if(useBytes == NA_LOGICAL)
-	error(_("invalid '%s' argument"), "useBytes");
     len = LENGTH(object);
     if(len == 0) {
 	if(isRaw) return allocVector(RAWSXP, 0); else return R_NilValue;
@@ -3427,28 +3411,18 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 	if(isRaw) {
 	    Rbyte *bytes;
 	    int np, outlen;
-	    if(useBytes) 
-		for(i = 0, outlen = 0; i < len; i++)
-		    outlen += strlen(CHAR(STRING_ELT(object, i))) + 1;
-	    else
-		for(i = 0, outlen = 0; i < len; i++)
-		    outlen += strlen(translateChar(STRING_ELT(object, i))) + 1;
+	    for(i = 0, outlen = 0; i < len; i++)
+		outlen += strlen(translateChar(STRING_ELT(object, i))) + 1;
 	    PROTECT(ans = allocVector(RAWSXP, outlen));
 	    bytes = RAW(ans);
 	    for(i = 0, np = 0; i < len; i++) {
-		if(useBytes)
-		    s = CHAR(STRING_ELT(object, i));
-		else
-		    s = translateChar(STRING_ELT(object, i));
+		s = translateChar(STRING_ELT(object, i));
 		memcpy(bytes+np, s, strlen(s) + 1);
 		np +=  strlen(s) + 1;
 	    }
 	} else {
 	    for(i = 0; i < len; i++) {
-		if(useBytes)
-		    s = CHAR(STRING_ELT(object, i));
-		else
-		    s = translateChar(STRING_ELT(object, i));
+		s = translateChar(STRING_ELT(object, i));
 		n = con->write(s, sizeof(char), strlen(s) + 1, con);
 		if(!n) {
 		    warning(_("problem writing to connection"));
@@ -3767,11 +3741,11 @@ SEXP attribute_hidden do_readchar(SEXP call, SEXP op, SEXP args, SEXP env)
     return ans;
 }
 
-/* writeChar(object, con, nchars, sep, useBytes) */
+/* writeChar(object, con, nchars, sep) */
 SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP object, nchars, sep, ans = R_NilValue, si;
-    int i, len, lenb, lenc, n, nwrite=0, slen, tlen, useBytes;
+    int i, len, lenb, lenc, n, nwrite=0, slen, tlen;
     char *buf;
     const char *s, *ssep = "";
     Rboolean wasopen = TRUE, usesep, isRaw = FALSE;
@@ -3795,10 +3769,6 @@ SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
 
     nchars = CADDR(args);
     sep = CADDDR(args);
-    useBytes = asLogical(CAD4R(args));
-    if(useBytes == NA_LOGICAL)
-	error(_("invalid '%s' argument"), "useBytes");
-
     if(isNull(sep)) {
 	usesep = FALSE;
 	slen = 0;
@@ -3806,10 +3776,7 @@ SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
 	usesep = TRUE;
 	if (!isString(sep) || length(sep) != 1)
 	    error(_("invalid '%s' argument"), "sep");
-	if(useBytes)
-	    ssep = CHAR(STRING_ELT(sep, 0));
-	else
-	    ssep = translateChar(STRING_ELT(sep, 0));
+	ssep = translateChar(STRING_ELT(sep, 0));
 	slen = strlen(ssep) + 1;
     }
     n = LENGTH(nchars);
@@ -3824,10 +3791,7 @@ SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
 	for(i = 0; i < n; i++) {
 	    /* This is not currently needed, just future-proofing in case
 	       the logic gets changed */
-	    if(useBytes)
-		tlen = strlen(CHAR(STRING_ELT(object, i)));
-	    else
-		tlen = strlen(translateChar(STRING_ELT(object, i)));
+	    tlen = strlen(translateChar(STRING_ELT(object, i)));
 	    if (tlen > len) len = tlen;
 	    tlen = INTEGER(nchars)[i];
 	    if(tlen == NA_INTEGER || tlen < 0)
@@ -3878,10 +3842,7 @@ SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
 	    } else
 		buf += len;
 	} else {
-	    if(useBytes)
-		s = CHAR(si);
-	    else
-		s = translateChar(si);
+	    s = translateChar(si);
 	    lenb = lenc = strlen(s);
 #ifdef SUPPORT_MBCS
 	    if(mbcslocale) lenc = mbstowcs(NULL, s, 0);

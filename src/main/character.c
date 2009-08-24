@@ -19,56 +19,13 @@
  *  http://www.r-project.org/Licenses/
  */
 
-/* The character functions in this file are
-
-nzchar
-nchar
-substr substr<-
-strplit
-abbreviate
-grep
-[g]sub
-[g]regexpr
-tolower
-toupper
-chartr
-agrep
-strtrim
-
-and the utility 
-
-make.names
-
-String matching funs are in match.c
-make.unique, duplicated, unique are in unique.c
-iconv is in sysutils.c
-
-
-Support for UTF-8-encoded strings in non-UTF-8 locales
-======================================================
-
-Comparison is done directly unless you happen to have the same string
-in UTF-8 and Latin-1.
-
-nzchar and nchar(, "bytes") are indpendent of the encoding
-nchar(, "char") handle UTF-8 directly, translates Latin-1
-nchar(, "width") ditto (with SUPPORT_MBCS, otherwise no width tables)
-substr substr<- handle UTF-8 and Latin-1 directly
-strsplit grep [g]sub [g]regexpr
-  handle UTF-8 directly is fixed/perl = TRUE, otherwise translate
-  BUT this needs SUPPORT_MBCS
-tolower toupper chartr translate UTF-8 to wchar, rest to current charset
-  which needs SUPPORT_MBCS
-abbreviate agrep strtrim translate
-
-*/
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
 #include <Defn.h>
 
+/* #include <sys/types.h> probably not needed */
 #include <R_ext/RS.h>  /* for Calloc/Free */
 #define imax2(x, y) ((x < y) ? y : x)
 
@@ -160,21 +117,24 @@ SEXP attribute_hidden do_nchar(SEXP call, SEXP op, SEXP args, SEXP env)
 	    continue;
 	}
 	if (strncmp(type, "bytes", ntype) == 0) {
+	    /* This case counts embedded nuls */
 	    INTEGER(s)[i] = LENGTH(sxi);
 	} else if (strncmp(type, "chars", ntype) == 0) {
+#ifdef SUPPORT_MBCS
+	    /* only on Windows will non-representable UTF-8 chars be
+	       usefully output as chars and not <U+xxxx> */
 	    if (IS_UTF8(sxi)) { /* assume this is valid */
 		const char *p = CHAR(sxi);
 		nc = 0;
-		for( ; *p; p += utf8clen(*p)) nc++;
+		for( ; *p; p +=utf8clen(*p)) nc++;
 		INTEGER(s)[i] = nc;
-#ifdef SUPPORT_MBCS
 	    } else if (mbcslocale) {
 		nc = mbstowcs(NULL, translateChar(sxi), 0);
 		if (!allowNA && nc < 0)
 		    error(_("invalid multibyte string %d"), i+1);
 		INTEGER(s)[i] = nc >= 0 ? nc : NA_INTEGER;
-#endif
 	    } else
+#endif
 		INTEGER(s)[i] = strlen(translateChar(sxi));
 	} else if (strncmp(type, "width", ntype) == 0) {
 #ifdef SUPPORT_MBCS
@@ -182,9 +142,9 @@ SEXP attribute_hidden do_nchar(SEXP call, SEXP op, SEXP args, SEXP env)
 		const char *p = CHAR(sxi);
 		wchar_t wc1;
 		nc = 0;
-		for( ; *p; p += utf8clen(*p)) {
+		for( ; *p; p +=utf8clen(*p)) {
 		    utf8toucs(&wc1, p);
-		    nc += Ri18n_wcwidth(wc1);
+		    nc +=Ri18n_wcwidth(wc1);
 		}
 		INTEGER(s)[i] = nc;
 	    } else if (mbcslocale) {
@@ -1090,10 +1050,7 @@ SEXP attribute_hidden do_grep(SEXP call, SEXP op, SEXP args, SEXP env)
 	useBytes = 0;
     }
 
-    if (!isString(pat) || length(pat) < 1)
-	error(_("invalid '%s' argument"), "pattern");
-    if (length(pat) > 1)
-	warning(_("argument '%s' has length > 1 and only the first element will be used"), "pattern");
+    if (length(pat) < 1) error(R_MSG_IA);
 
     n = length(vec);
     if (STRING_ELT(pat, 0) == NA_STRING) {
@@ -1116,10 +1073,7 @@ SEXP attribute_hidden do_grep(SEXP call, SEXP op, SEXP args, SEXP env)
 	for (i = 0; i < n; i++)
 	    if (getCharCE(STRING_ELT(vec, i)) == CE_UTF8) use_UTF8 = TRUE;
     }
-    if (useBytes) {
-	cpat = CHAR(STRING_ELT(pat, 0));
-	ienc = CE_NATIVE;	
-    } else if (use_UTF8) {
+    if (use_UTF8) {
 	cpat = translateCharUTF8(STRING_ELT(pat, 0));
 	ienc = CE_UTF8;
     } else {
@@ -1175,11 +1129,9 @@ SEXP attribute_hidden do_grep(SEXP call, SEXP op, SEXP args, SEXP env)
 	LOGICAL(ind)[i] = 0;
 	if (STRING_ELT(vec, i) != NA_STRING) {
 	    const char *s;
-	    if (useBytes)
-		s = CHAR(STRING_ELT(vec, i));
-	    else if (use_UTF8)
+	    if (use_UTF8) {
 		s = translateCharUTF8(STRING_ELT(vec, i));
-	    else {
+	    } else {
 		s = translateChar(STRING_ELT(vec, i));
 #ifdef SUPPORT_MBCS
 		if (!useBytes && mbcslocale && !mbcsValid(s)) {
@@ -1371,14 +1323,7 @@ SEXP attribute_hidden do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
 	useBytes = 0;
     }
 
-    if (!isString(pat) || length(pat) < 1)
-	error(_("invalid '%s' argument"), "pattern");
-    if (length(pat) > 1)
-	warning(_("argument '%s' has length > 1 and only the first element will be used"), "pattern");
-    if (!isString(rep) || length(rep) < 1)
-	error(_("invalid '%s' argument"), "replacement");
-    if (length(rep) > 1)
-	warning(_("argument '%s' has length > 1 and only the first element will be used"), "replacement");
+    if (length(pat) < 1 || length(rep) < 1) error(R_MSG_IA);
 
     n = LENGTH(vec);
     if (STRING_ELT(pat, 0) == NA_STRING) {
@@ -1398,10 +1343,7 @@ SEXP attribute_hidden do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
 	    if (getCharCE(STRING_ELT(vec, i)) == CE_UTF8) use_UTF8 = TRUE;
     }
 
-    if (useBytes) {
-	spat = CHAR(STRING_ELT(pat, 0));
-	srep = CHAR(STRING_ELT(rep, 0));	
-    } else if (use_UTF8) {
+    if (use_UTF8) {
 	spat = translateCharUTF8(STRING_ELT(pat, 0));
 	srep = translateCharUTF8(STRING_ELT(rep, 0));
     } else {
@@ -1451,9 +1393,7 @@ SEXP attribute_hidden do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
 	/* end NA handling */
 	offset = 0;
 	nmatch = 0;
-	if (useBytes)
-	    s = CHAR(STRING_ELT(vec, i));
-	else if (use_UTF8)
+	if (use_UTF8)
 	    s = translateCharUTF8(STRING_ELT(vec, i));
 	else
 	    s = translateChar(STRING_ELT(vec, i));
@@ -1523,9 +1463,7 @@ SEXP attribute_hidden do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
 	    else {
 		offset = 0;
 		nmatch = 0;
-		if (useBytes)
-		    s = CHAR(STRING_ELT(vec, i));
-		else if (use_UTF8)
+		if(use_UTF8)
 		    s = translateCharUTF8(STRING_ELT(vec, i));
 		else
 		    s = translateChar(STRING_ELT(vec, i));
@@ -1610,10 +1548,9 @@ SEXP attribute_hidden do_regexpr(SEXP call, SEXP op, SEXP args, SEXP env)
     }
 
     /* allow 'text' to be zero-length from 2.3.1 */
-    if (!isString(pat) || length(pat) < 1 || STRING_ELT(pat,0) == NA_STRING)
-	error(_("invalid '%s' argument"), "pattern");
-    if (length(pat) > 1)
-	warning(_("argument '%s' has length > 1 and only the first element will be used"), "pattern");
+    if (length(pat) < 1) error(R_MSG_IA);
+    if ( STRING_ELT(pat,0) == NA_STRING)
+	error(R_MSG_IA);
 
     n = LENGTH(text);
     if ((fixed_opt || perl_opt) && !useBytes) {
@@ -1621,10 +1558,7 @@ SEXP attribute_hidden do_regexpr(SEXP call, SEXP op, SEXP args, SEXP env)
 	for (i = 0; i < n; i++)
 	    if (getCharCE(STRING_ELT(text, i)) == CE_UTF8) use_UTF8 = TRUE;
     }
-    if (useBytes) {
-	spat = CHAR(STRING_ELT(pat, 0));
-	ienc = CE_NATIVE;
-    } else if (use_UTF8) {
+    if (use_UTF8) {
 	spat = translateCharUTF8(STRING_ELT(pat, 0));
 	ienc = CE_UTF8;
     } else {
@@ -1682,9 +1616,7 @@ SEXP attribute_hidden do_regexpr(SEXP call, SEXP op, SEXP args, SEXP env)
 	if (STRING_ELT(text, i) == NA_STRING) {
 	    INTEGER(matchlen)[i] = INTEGER(ans)[i] = NA_INTEGER;
 	} else {
-	    if (useBytes)
-		s = CHAR(STRING_ELT(text, i));
-	    else if (ienc == CE_UTF8)
+	    if (ienc == CE_UTF8)
 		s = translateCharUTF8(STRING_ELT(text, i));
 	    else
 		s = translateChar(STRING_ELT(text, i));
@@ -2041,12 +1973,10 @@ SEXP attribute_hidden do_gregexpr(SEXP call, SEXP op, SEXP args, SEXP env)
 	useBytes = 0;
     }
 
-    if (!isString(text) || length(text) < 1)
-	error(_("invalid '%s' argument"), "text");
-    if (!isString(pat) || length(pat) < 1 || STRING_ELT(pat,0) == NA_STRING)
-	error(_("invalid '%s' argument"), "pattern");
-    if (length(pat) > 1)
-	warning(_("argument '%s' has length > 1 and only the first element will be used"), "pattern");
+    if (length(pat) < 1 || length(text) < 1)
+	error(R_MSG_IA);
+    if ( STRING_ELT(pat,0) == NA_STRING)
+	error(R_MSG_IA);
 
     if (perl_opt && !fixed_opt)
 	return do_gpregexpr(pat, text, igcase_opt, useBytes);
@@ -2058,10 +1988,7 @@ SEXP attribute_hidden do_gregexpr(SEXP call, SEXP op, SEXP args, SEXP env)
 	for (i = 0; i < n; i++)
 	    if (getCharCE(STRING_ELT(text, i)) == CE_UTF8) use_UTF8 = TRUE;
     }
-    if (useBytes) {
-	spat = CHAR(STRING_ELT(pat, 0));
-	ienc = CE_NATIVE;	
-    } else if (use_UTF8) {
+    if (use_UTF8) {
 	spat = translateCharUTF8(STRING_ELT(pat, 0));
 	ienc = CE_UTF8;
     } else {
@@ -2088,9 +2015,7 @@ SEXP attribute_hidden do_gregexpr(SEXP call, SEXP op, SEXP args, SEXP env)
 	if (STRING_ELT(text, i) == NA_STRING) {
 	    PROTECT(ans = gregexpr_NAInputAns());
 	} else {
-	    if (useBytes)
-		s = CHAR(STRING_ELT(text, i));
-	    else if (use_UTF8)
+	    if (use_UTF8)
 		s = translateCharUTF8(STRING_ELT(text, i));
 	    else
 		s = translateChar(STRING_ELT(text, i));
@@ -2470,15 +2395,15 @@ SEXP attribute_hidden do_chartr(SEXP call, SEXP op, SEXP args, SEXP env)
     _new = CAR(args); args = CDR(args);
     x = CAR(args);
     n = LENGTH(x);
-    if (!isString(old) || length(old) < 1 || STRING_ELT(old, 0) == NA_STRING)
-	error(_("invalid '%s' argument"), "old");
-    if (length(old) > 1)
-	warning(_("argument '%s' has length > 1 and only the first element will be used"), "old");
-    if (!isString(_new) || length(_new) < 1 || STRING_ELT(_new, 0) == NA_STRING)
-	error(_("invalid '%s' argument"), "new");
-    if (length(_new) > 1)
-	warning(_("argument '%s' has length > 1 and only the first element will be used"), "new");
-    if (!isString(x)) error("invalid '%s' argument", "x");
+    if (!isString(old) || (length(old) < 1) ||
+	!isString(_new) || (length(_new) < 1) ||
+	!isString(x) )
+	error(R_MSG_IA);
+
+    if (STRING_ELT(old,0) == NA_STRING ||
+	STRING_ELT(_new,0) == NA_STRING) {
+	error(_("invalid (NA) arguments."));
+    }
 
 #ifdef SUPPORT_MBCS
 #if defined(Win32) || defined(__STDC_ISO_10646__)
@@ -2716,11 +2641,7 @@ SEXP attribute_hidden do_agrep(SEXP call, SEXP op, SEXP args, SEXP env)
     if (value_opt == NA_INTEGER) value_opt = 0;
     if (useBytes == NA_INTEGER) useBytes = 0;
 
-    if (!isString(pat) || length(pat) < 1)
-	error(_("invalid '%s' argument"), "pattern");
-    if (length(pat) > 1)
-	warning(_("argument '%s' has length > 1 and only the first element will be used"), "pat");
-    if (!isString(vec)) error(_("invalid '%s' argument"), "x");
+    if (!isString(pat) || length(pat) < 1 || !isString(vec)) error(R_MSG_IA);
 
     /* Create search pattern object. */
     str = translateChar(STRING_ELT(pat, 0));
@@ -2831,6 +2752,329 @@ SEXP attribute_hidden do_agrep(SEXP call, SEXP op, SEXP args, SEXP env)
     return ans;
 }
 
+#define isRaw(x) (TYPEOF(x) == RAWSXP)
+
+/* <UTF8>  charToRaw should work at byte level, ignore encoding */
+SEXP attribute_hidden do_charToRaw(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP ans, x = CAR(args);
+    int nc;
+
+    checkArity(op, args);
+    if (!isString(x) || LENGTH(x) == 0)
+	error(_("argument must be a character vector of length 1"));
+    if (LENGTH(x) > 1)
+	warning(_("argument should be a character vector of length 1\nall but the first element will be ignored"));
+    nc = LENGTH(STRING_ELT(x, 0));
+    ans = allocVector(RAWSXP, nc);
+    memcpy(RAW(ans), CHAR(STRING_ELT(x, 0)), nc);
+    return ans;
+}
+
+/* <UTF8>  rawToChar should work at byte level */
+SEXP attribute_hidden do_rawToChar(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP ans, x = CAR(args);
+    int i, nc = LENGTH(x), multiple, len;
+    char buf[2];
+
+    checkArity(op, args);
+    if (!isRaw(x))
+	error(_("argument 'x' must be a raw vector"));
+    multiple = asLogical(CADR(args));
+    if (multiple == NA_LOGICAL)
+	error(_("argument 'multiple' must be TRUE or FALSE"));
+    if (multiple) {
+	buf[1] = '\0';
+	PROTECT(ans = allocVector(STRSXP, nc));
+	for (i = 0; i < nc; i++) {
+	    buf[0] = (char) RAW(x)[i];
+	    SET_STRING_ELT(ans, i, mkChar(buf));
+	}
+	/* do we want to copy e.g. names here? */
+    } else {
+	len = LENGTH(x);
+	PROTECT(ans = allocVector(STRSXP, 1));
+	/* String is not necessarily 0-terminated and may contain nuls
+	   so don't use mkString */
+	SET_STRING_ELT(ans, 0,
+		       mkCharLenCE((const char *)RAW(x), len, CE_NATIVE));
+    }
+    UNPROTECT(1);
+    return ans;
+}
+
+
+SEXP attribute_hidden do_rawShift(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP ans, x = CAR(args);
+    int i, shift = asInteger(CADR(args));
+
+    if (!isRaw(x))
+	error(_("argument 'x' must be a raw vector"));
+    if (shift == NA_INTEGER || shift < -8 || shift > 8)
+	error(_("argument 'shift' must be a small integer"));
+    PROTECT(ans = duplicate(x));
+    if (shift > 0)
+	for (i = 0; i < LENGTH(x); i++)
+	    RAW(ans)[i] <<= shift;
+    else
+	for (i = 0; i < LENGTH(x); i++)
+	    RAW(ans)[i] >>= (-shift);
+    UNPROTECT(1);
+    return ans;
+}
+
+SEXP attribute_hidden do_rawToBits(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP ans, x = CAR(args);
+    int i, j = 0, k;
+    unsigned int tmp;
+
+    if (!isRaw(x))
+	error(_("argument 'x' must be a raw vector"));
+    PROTECT(ans = allocVector(RAWSXP, 8*LENGTH(x)));
+    for (i = 0; i < LENGTH(x); i++) {
+	tmp = (unsigned int) RAW(x)[i];
+	for (k = 0; k < 8; k++, tmp >>= 1)
+	    RAW(ans)[j++] = tmp & 0x1;
+    }
+    UNPROTECT(1);
+    return ans;
+}
+
+SEXP attribute_hidden do_intToBits(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP ans, x;
+    int i, j = 0, k;
+    unsigned int tmp;
+    
+    PROTECT(x = coerceVector(CAR(args), INTSXP));
+    if (!isInteger(x))
+	error(_("argument 'x' must be an integer vector"));
+    PROTECT(ans = allocVector(RAWSXP, 32*LENGTH(x)));
+    for (i = 0; i < LENGTH(x); i++) {
+	tmp = (unsigned int) INTEGER(x)[i];
+	for (k = 0; k < 32; k++, tmp >>= 1)
+	    RAW(ans)[j++] = tmp & 0x1;
+    }
+    UNPROTECT(2);
+    return ans;
+}
+
+SEXP attribute_hidden do_packBits(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP ans, x = CAR(args), stype = CADR(args);
+    Rboolean useRaw;
+    int i, j, k, fac, len = LENGTH(x), slen;
+    unsigned int itmp;
+    Rbyte btmp;
+
+    if (TYPEOF(x) != RAWSXP && TYPEOF(x) != LGLSXP && TYPEOF(x) != INTSXP)
+	error(_("argument 'x' must be raw, integer or logical"));
+    if (!isString(stype)  || LENGTH(stype) != 1)
+	error(_("argument 'type' must be a character string"));
+    useRaw = strcmp(CHAR(STRING_ELT(stype, 0)), "integer");
+    fac = useRaw ? 8 : 32;
+    if (len% fac)
+	error(_("argument 'x' must be a multiple of %d long"), fac);
+    slen = len/fac;
+    PROTECT(ans = allocVector(useRaw ? RAWSXP : INTSXP, slen));
+    for (i = 0; i < slen; i++)
+	if (useRaw) {
+	    btmp = 0;
+	    for (k = 7; k >= 0; k--) {
+		btmp <<= 1;
+		if (isRaw(x))
+		    btmp |= RAW(x)[8*i + k] & 0x1;
+		else if (isLogical(x) || isInteger(x)) {
+		    j = INTEGER(x)[8*i+k];
+		    if (j == NA_INTEGER)
+			error(_("argument 'x' must not contain NAs"));
+		    btmp |= j & 0x1;
+		}
+	    }
+	    RAW(ans)[i] = btmp;
+	} else {
+	    itmp = 0;
+	    for (k = 31; k >= 0; k--) {
+		itmp <<= 1;
+		if (isRaw(x))
+		    itmp |= RAW(x)[32*i + k] & 0x1;
+		else if (isLogical(x) || isInteger(x)) {
+		    j = INTEGER(x)[32*i+k];
+		    if (j == NA_INTEGER)
+			error(_("argument 'x' must not contain NAs"));
+		    itmp |= j & 0x1;
+		}
+	    }
+	    INTEGER(ans)[i] = (int) itmp;
+	}
+    UNPROTECT(1);
+    return ans;
+}
+
+static int mbrtoint(int *w, const char *s)
+{
+    unsigned int byte;
+    byte = *((unsigned char *)s);
+
+    if (byte == 0) {
+	*w = 0;
+	return 0;
+    } else if (byte < 0xC0) {
+	*w = (int) byte;
+	return 1;
+    } else if (byte < 0xE0) {
+	if (strlen(s) < 2) return -2;
+	if ((s[1] & 0xC0) == 0x80) {
+	    *w = (int) (((byte & 0x1F) << 6) | (s[1] & 0x3F));
+	    return 2;
+	} else return -1;
+    } else if (byte < 0xF0) {
+	if (strlen(s) < 3) return -2;
+	if (((s[1] & 0xC0) == 0x80) && ((s[2] & 0xC0) == 0x80)) {
+	    *w = (int) (((byte & 0x0F) << 12)
+			| ((s[1] & 0x3F) << 6) | (s[2] & 0x3F));
+	    byte = *w;
+	    if (byte >= 0xD800 && byte <= 0xDFFF) return -1; /* surrogate */
+	    if (byte == 0xFFFE || byte == 0xFFFF) return -1;
+	    return 3;
+	} else return -1;
+    } else if (byte < 0xF8) {
+	if (strlen(s) < 4) return -2;
+	if (((s[1] & 0xC0) == 0x80)
+	    && ((s[2] & 0xC0) == 0x80)
+	    && ((s[3] & 0xC0) == 0x80)) {
+	    *w = (int) (((byte & 0x07) << 18)
+			| ((s[1] & 0x3F) << 12)
+			| ((s[2] & 0x3F) << 6)
+			| (s[3] & 0x3F));
+	    byte = *w;
+	    return 4;
+	} else return -1;
+    } else if (byte < 0xFC) {
+	if (strlen(s) < 5) return -2;
+	if (((s[1] & 0xC0) == 0x80)
+	    && ((s[2] & 0xC0) == 0x80)
+	    && ((s[3] & 0xC0) == 0x80)
+	    && ((s[4] & 0xC0) == 0x80)) {
+	    *w = (int) (((byte & 0x03) << 24)
+			| ((s[1] & 0x3F) << 18)
+			| ((s[2] & 0x3F) << 12)
+			| ((s[3] & 0x3F) << 6)
+			| (s[4] & 0x3F));
+	    byte = *w;
+	    return 5;
+	} else return -1;
+    } else {
+	if (strlen(s) < 6) return -2;
+	if (((s[1] & 0xC0) == 0x80)
+	    && ((s[2] & 0xC0) == 0x80)
+	    && ((s[3] & 0xC0) == 0x80)
+	    && ((s[4] & 0xC0) == 0x80)
+	    && ((s[5] & 0xC0) == 0x80)) {
+	    *w = (int) (((byte & 0x01) << 30)
+			| ((s[1] & 0x3F) << 24)
+			| ((s[2] & 0x3F) << 18)
+			| ((s[3] & 0x3F) << 12)
+			| ((s[5] & 0x3F) << 6)
+			| (s[5] & 0x3F));
+	    byte = *w;
+	    return 5;
+	} else return -1;
+    }
+    /* return -2; not reached */
+}
+
+SEXP attribute_hidden do_utf8ToInt(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP ans, x = CAR(args);
+    int i, j, nc, *ians, tmp, used = 0; /* -Wall */
+    const char *s = CHAR(STRING_ELT(x, 0));
+
+    checkArity(op, args);
+    if (!isString(x) || LENGTH(x) == 0)
+	error(_("argument must be a character vector of length 1"));
+    if (LENGTH(x) > 1)
+	warning(_("argument should be a character vector of length 1\nall but the first element will be ignored"));
+    nc = LENGTH(STRING_ELT(x, 0)); /* ints will be shorter */
+    ians = (int *) R_alloc(nc,  sizeof(int *));
+    for (i = 0, j = 0; i < nc; i++) {
+	used = mbrtoint(&tmp, s);
+	if (used <= 0) break;
+	ians[j++] = tmp;
+	s += used;
+    }
+    if (used < 0) error("invalid UTF-8 string");
+    ans = allocVector(INTSXP, j);
+    for (i = 0; i < j; i++) INTEGER(ans)[i] = ians[i];
+    return ans;
+}
+
+/* based on pcre.c */
+static const int utf8_table1[] =
+    { 0x7f, 0x7ff, 0xffff, 0x1fffff, 0x3ffffff, 0x7fffffff};
+static const int utf8_table2[] = { 0, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc};
+
+static size_t inttomb(char *s, const int wc)
+{
+    register int i, j;
+    unsigned int cvalue = wc;
+    char buf[10], *b;
+
+    b = s ? s : buf;
+    if (cvalue == 0) {*b = 0; return 0;}
+    for (i = 0; i < sizeof(utf8_table1)/sizeof(int); i++)
+	if (cvalue <= utf8_table1[i]) break;
+    b += i;
+    for (j = i; j > 0; j--) {
+	*b-- = 0x80 | (cvalue & 0x3f);
+	cvalue >>= 6;
+    }
+    *b = utf8_table2[i] | cvalue;
+    return i + 1;
+}
+
+SEXP attribute_hidden do_intToUtf8(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP ans, x;
+    int i, nc, multiple, len, used;
+    char buf[10], *tmp;
+
+    checkArity(op, args);
+    PROTECT(x = coerceVector(CAR(args), INTSXP));
+    if (!isInteger(x))
+	error(_("argument 'x' must be an integer vector"));
+    nc = LENGTH(x);
+    multiple = asLogical(CADR(args));
+    if (multiple == NA_LOGICAL)
+	error(_("argument 'multiple' must be TRUE or FALSE"));
+    if (multiple) {
+	PROTECT(ans = allocVector(STRSXP, nc));
+	for (i = 0; i < nc; i++) {
+	    used = inttomb(buf, INTEGER(x)[i]);
+	    buf[used] = '\0';
+	    SET_STRING_ELT(ans, i, mkCharCE(buf, CE_UTF8));
+	}
+	/* do we want to copy e.g. names here? */
+    } else {
+	/* Note that this gives zero length for input '0', so it is omitted */
+	for (i = 0, len = 0; i < nc; i++)
+	    len += inttomb(NULL, INTEGER(x)[i]);
+	tmp = alloca(len+1); tmp[len] = '\0';
+	R_CheckStack();
+	for (i = 0, len = 0; i < nc; i++) {
+	    used = inttomb(buf, INTEGER(x)[i]);
+	    strncpy(tmp + len, buf, used);
+	    len += used;
+	}
+	PROTECT(ans = allocVector(STRSXP, 1));
+	SET_STRING_ELT(ans, 0, mkCharLenCE(tmp, len, CE_UTF8));
+    }
+    UNPROTECT(2);
+    return ans;
+}
 
 SEXP attribute_hidden do_strtrim(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -2847,7 +3091,7 @@ SEXP attribute_hidden do_strtrim(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 
     checkArity(op, args);
-    /* as.character happens at R level now */
+    /* conversion happens at R level now */
     if (!isString(x = CAR(args)))
 	error(_("strtrim() requires a character vector"));
     len = LENGTH(x);
@@ -2899,3 +3143,95 @@ SEXP attribute_hidden do_strtrim(SEXP call, SEXP op, SEXP args, SEXP env)
     UNPROTECT(2);
     return s;
 }
+
+#if defined(HAVE_GLOB) || defined(Win32)
+#ifdef HAVE_GLOB_H
+# include <glob.h>
+#endif
+#ifdef Win32
+# include <dos_wglob.h>
+# define globfree dos_wglobfree
+# define glob_t wglob_t
+#else
+# ifndef GLOB_QUOTE
+#  define GLOB_QUOTE 0
+# endif
+#endif
+SEXP attribute_hidden do_glob(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP x, ans;
+    int i, n, res, dirmark;
+    glob_t globbuf;
+
+    checkArity(op, args);
+    if (!isString(x = CAR(args)))
+	error(_("invalid '%s' argument"), "paths");
+    if (!LENGTH(x)) return allocVector(STRSXP, 0);
+    dirmark = asLogical(CADR(args));
+    if (dirmark == NA_LOGICAL)
+	error(_("invalid '%s' argument"), "dirmark");
+#ifndef GLOB_MARK
+    if (dirmark)
+	error(_("'dirmark = TRUE' is not supported on this platform"));
+#endif
+
+    for (i = 0; i < LENGTH(x); i++) {
+	SEXP el = STRING_ELT(x, i);
+	if (el == NA_STRING) continue;
+#ifdef Win32
+	res = dos_wglob(filenameToWchar(el, FALSE),
+			(dirmark ? GLOB_MARK : 0) |
+			GLOB_QUOTE | (i ? GLOB_APPEND : 0),
+			NULL, &globbuf);
+	if (res == GLOB_NOSPACE)
+	    error(_("internal out-of-memory condition"));
+#else
+	res = glob(translateChar(el),
+# ifdef GLOB_MARK
+		   (dirmark ? GLOB_MARK : 0) |
+# endif
+		   GLOB_QUOTE | (i ? GLOB_APPEND : 0),
+		   NULL, &globbuf);
+# ifdef GLOB_ABORTED
+	if (res == GLOB_ABORTED)
+	    warning(_("read error on '%s'"), translateChar(el));
+# endif
+# ifdef GLOB_NOSPACE
+	if (res == GLOB_NOSPACE)
+	    error(_("internal out-of-memory condition"));
+# endif
+#endif
+    }
+    n = globbuf.gl_pathc;
+    PROTECT(ans = allocVector(STRSXP, n));
+    for (i = 0; i < n; i++)
+#ifdef Win32
+    {
+	wchar_t *w = globbuf.gl_pathv[i];
+	char *buf;
+	int nb = wcstoutf8(NULL, w, 0);
+	buf = R_AllocStringBuffer(nb+1, &cbuff);
+	wcstoutf8(buf, w, nb+1); buf[nb] = '\0'; /* safety check */
+	SET_STRING_ELT(ans, i, mkCharCE(buf, CE_UTF8));
+    }
+#else
+	SET_STRING_ELT(ans, i, mkChar(globbuf.gl_pathv[i]));
+#endif
+    UNPROTECT(1);
+#ifdef Win32
+    R_FreeStringBufferL(&cbuff);
+#endif
+    globfree(&globbuf);
+    return ans;
+}
+#else
+SEXP attribute_hidden do_glob(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    SEXP x;
+
+    checkArity(op, args);
+    if (!isString(x = CAR(args)))
+	error(_("invalid '%s' argument"), "paths");
+    return x;
+}
+#endif

@@ -4,6 +4,7 @@
 % Distributed under GPL 2 or later
 
 \name{is.R}
+\Rdversion{1.1}
 \title{Are we using R, rather than S?}
 \usage{
 is.R()

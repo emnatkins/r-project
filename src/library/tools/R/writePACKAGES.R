@@ -17,8 +17,7 @@
 write_PACKAGES <-
 function(dir = ".", fields = NULL,
          type = c("source", "mac.binary", "win.binary"),
-         verbose = FALSE, unpacked = FALSE, subdirs = FALSE,
-         latestOnly = TRUE)
+         verbose = FALSE, unpacked = FALSE, subdirs = FALSE)
 {
     if(missing(type) && .Platform$OS.type == "windows")
         type <- "win.binary"
@@ -46,14 +45,6 @@ function(dir = ".", fields = NULL,
             colnames(desc) <- fields
             bundle <- !is.na(desc[,"Bundle"])
             desc[bundle, "Package"] <- desc[bundle, "Bundle"]
-            if(latestOnly) desc <- utils:::.remove_stale_dups(desc)
-
-            ## Standardize licenses or replace by NA.
-            license_info <- analyze_licenses(desc[, "License"])
-            desc[, "License"] <-
-                ifelse(license_info$is_standardizable,
-                       license_info$standardization,
-                       NA)
 
             ## Writing PACKAGES file from matrix desc linewise in order to
             ## omit NA entries appropriately:
@@ -192,7 +183,7 @@ function(dir, fields = NULL, verbose = getOption("verbose"))
 
 dependsOnPkgs <-
 function(pkgs,
-         dependencies = c("Depends", "Imports", "LinkingTo"),
+         dependencies = c("Depends", "Imports"),
          recursive = TRUE,
          lib.loc = NULL,
          installed = installed.packages(lib.loc, fields = "Enhances"))

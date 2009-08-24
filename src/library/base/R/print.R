@@ -85,6 +85,3 @@ print.simple.list <- function(x, ...)
     print(noquote(cbind("_"=unlist(x))), ...)
 
 `[.simple.list` <- `[.listof`
-
-print.function <- function(x, useSource = TRUE, ...)
-    .Internal(print.function(x, useSource, ...))

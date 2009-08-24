@@ -1,4 +1,5 @@
 \name{testInheritedMethods}
+\Rdversion{1.1}
 \alias{testInheritedMethods}
 \alias{MethodSelectionReport-class}
 \alias{.Other-class}

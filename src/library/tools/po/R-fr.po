@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-08-12 10:17\n"
+"POT-Creation-Date: 2009-06-14 08:29\n"
 "PO-Revision-Date: 2009-03-29 22:45+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -100,18 +100,18 @@ msgstr "Slots de la classe '%s'"
 msgid "name"
 msgstr "nom"
 
+msgid "code"
+msgstr "code"
+
+msgid "docs"
+msgstr "docs"
+
 msgid "Data codoc mismatches from documentation object '%s':"
 msgstr ""
 "Erreurs 'codoc' de jeux de données dans la documentation de l'objet '%s' :"
 
 msgid "Variables in data frame '%s'"
 msgstr "Variables dans le tableau de données '%s'"
-
-msgid "code"
-msgstr "code"
-
-msgid "docs"
-msgstr "docs"
 
 msgid "Undocumented arguments in documentation object '%s'"
 msgstr "Arguments non documentés dans la documentation de l'objet '%s'"
@@ -270,6 +270,16 @@ msgstr "Fichiers Rd avec alias '%s' dupliqué :"
 msgid "Rd files with empty sections:"
 msgstr "Fichiers Rd avec des sections vides :"
 
+msgid "Found invalid multi-byte character data."
+msgstr "Des chaînes de caractères multi-octets incorrectes sont détectées"
+
+msgid "Cannot re-encode because iconv is not available."
+msgstr "Impossible de réencoder parce qu'iconv n'est pas disponible"
+
+msgid "Try running R in a single-byte locale."
+msgstr ""
+"Tentative d'exécution de R dans un environnement linguistique à simple octet."
+
 msgid "Malformed package name"
 msgstr "Nom de package mal orthographié"
 
@@ -426,6 +436,12 @@ msgstr "Des fonctions génériques sans méthodes associées dans"
 msgid ":"
 msgstr " :"
 
+msgid "argument 'lines' must be a character vector"
+msgstr "l'argument 'lines' doit être un vecteur de chaînes de caractères"
+
+msgid "encoding '%s' is not portable"
+msgstr "l'encodage '%s' n'est pas portable"
+
 msgid "argument 'file' must be a character string or connection"
 msgstr "l'argument 'file' doit être une chaîne de caractères ou une connexion"
 
@@ -452,24 +468,6 @@ msgstr ""
 
 msgid "directory '%s' does not contain Rd objects"
 msgstr "le répertoire '%s' ne contient aucun objet Rd"
-
-#, fuzzy
-msgid "you must specify 'dir' or 'files'"
-msgstr "vous devez spécifier 'package', 'dir' ou 'file'"
-
-msgid "cannot deal with Rd objects with missing/empty names"
-msgstr ""
-"impossible de travailler avec des objets Rd dont les noms sont manquants ou "
-"vides"
-
-msgid "missing/empty \\name field in Rd file(s)"
-msgstr "champ \\name manquant ou vide dans le(s) fichier(s) Rd"
-
-msgid "argument 'lines' must be a character vector"
-msgstr "l'argument 'lines' doit être un vecteur de chaînes de caractères"
-
-msgid "encoding '%s' is not portable"
-msgstr "l'encodage '%s' n'est pas portable"
 
 msgid "unterminated section '%s'"
 msgstr "section non terminée '%s'"
@@ -505,16 +503,19 @@ msgstr "Erreurs de syntaxe Rd détectées"
 msgid "Syntax error in documentation object '%s':"
 msgstr "Erreur de syntaxe dans la documentation de l'objet '%s' :"
 
+msgid "cannot deal with Rd objects with missing/empty names"
+msgstr ""
+"impossible de travailler avec des objets Rd dont les noms sont manquants ou "
+"vides"
+
+msgid "missing/empty \\name field in Rd file(s)"
+msgstr "champ \\name manquant ou vide dans le(s) fichier(s) Rd"
+
 msgid "should not get here"
 msgstr "ne devrait pas être là"
 
-#, fuzzy
-msgid "checkRd is designed for Rd version 2 or higher."
+msgid "Rd2HTML is designed for Rd version 2 or higher."
 msgstr "Rd2HTML est conçu pour des Rd version 2 ou plus."
-
-#, fuzzy
-msgid "invalid value for '%s' : %s"
-msgstr "Pointeur de fichier licence incorrect : %s"
 
 msgid "more than one \\examples section, using the first"
 msgstr "plus d'une section \\example, utilisation de la première"
@@ -632,11 +633,32 @@ msgstr "impossible de lire l'indice de l'information dans le fichier '%s'"
 msgid "ERROR:"
 msgstr "ERREUR :"
 
+msgid "for package"
+msgstr "pour le package"
+
+msgid "incorrect Contains metadata for bundle"
+msgstr "métadonnées Contains incorrectes pour le bundle"
+
+msgid ": there is no package '"
+msgstr " : pas de package '"
+
+msgid "skipping installation of bundle"
+msgstr "installation du bundle interrompue"
+
+msgid "problem installing per-package DESCRIPTION files"
+msgstr "problème lors de l'installation des fichiers DESCRIPTION par package"
+
+msgid "ERROR unable to create"
+msgstr "ERREUR : impossible de créer"
+
 msgid "packaged installation of"
 msgstr "installation packagée de"
 
 msgid "as"
 msgstr "comme"
+
+msgid ".gz"
+msgstr ".gz"
 
 msgid ""
 "'cleanup' exists but is not executable -- see the 'R Installation and "
@@ -644,6 +666,33 @@ msgid ""
 msgstr ""
 "'cleanup' existe mais n'est pas exécutable -- voyez le manuel d'installation "
 "et d'administration de R"
+
+msgid "about to run"
+msgstr "prêt à s'exécuter"
+
+msgid "R CMD SHLIB"
+msgstr "R CMD SHLIB"
+
+msgid "Using auto-selected zip options '"
+msgstr "Utilisation des options zip auto-sélectionnées '"
+
+msgid "--use-zip-data"
+msgstr "--use-zip-data"
+
+msgid "--use-zip-help"
+msgstr "--use-zip-help"
+
+msgid "**********************************************"
+msgstr "**********************************************"
+
+msgid "WARNING: this package has a configure script"
+msgstr "AVIS : ce package a un script de configuration"
+
+msgid "It probably needs manual configuration"
+msgstr "Il requiert probablement une configuration manuelle"
+
+msgid "configure command:"
+msgstr "commande de configuration :"
 
 msgid ""
 "R include directory is empty -- perhaps need to install R-devel.rpm or "
@@ -667,6 +716,21 @@ msgstr "aucun fichier source n'est trouvé"
 msgid "empty 'data' directory"
 msgstr "répertoire 'data' vide"
 
+msgid "use of file 'install.R' is no longer supported"
+msgstr "l'utilisation du fichier 'install.R' n'est plus supportée"
+
+msgid "use of file 'R_PROFILE.R' is no longer supported"
+msgstr "l'utilisation du fichier 'R_PROFILE.R' n'est plus supportée"
+
+msgid "field 'SaveImage' is defunct: please remove it"
+msgstr "le champ 'SaveImage' est obsolète : veuillez l'enlever"
+
+msgid "cannot create temporary directory"
+msgstr "impossible de créer un répertoire temporaire"
+
+msgid "Use of --with-package-versions is defunct"
+msgstr "L'utilisation de --with-package-versions est obsolète"
+
 msgid "--auto-zip' is for Windows only"
 msgstr "--auto-zip'  est pour Windows seulement"
 
@@ -676,8 +740,17 @@ msgstr "option -l sans valeur"
 msgid "Warning: unknown option"
 msgstr "Avis : option inconnue"
 
-msgid "cannot create temporary directory"
-msgstr "impossible de créer un répertoire temporaire"
+msgid "processing"
+msgstr "traitement en cours"
+
+msgid "a file"
+msgstr "un fichier"
+
+msgid "unknown package layout"
+msgstr "schéma de package inconnu"
+
+msgid "a directory"
+msgstr "un répertoire"
 
 msgid "invalid package"
 msgstr "package incorrect"
@@ -719,6 +792,30 @@ msgstr "option -o sans valeur"
 msgid "Converting Rd files to LaTeX ..."
 msgstr "Conversion des fichiers Rd en LaTeX ..."
 
+msgid "this package does not have either a"
+msgstr "ce package n'a pas soit un"
+
+msgid "latex"
+msgstr "latex"
+
+msgid "or a"
+msgstr "ou un"
+
+msgid "man"
+msgstr "man"
+
+msgid "directory"
+msgstr "répertoire"
+
+msgid "no validly-named files in the"
+msgstr "Fichiers nommés de manière erronée dans le"
+
+msgid "file"
+msgstr "fichier"
+
+msgid "lacks a header: skipping"
+msgstr "sans entête : ignoré"
+
 msgid "there are no help pages in this package"
 msgstr "il n'y a pas de pages d'aide dans ce package"
 
@@ -732,16 +829,8 @@ msgstr "dans le fichier"
 msgid "there is a 'man' dir but no help pages in this package"
 msgstr "il n'y a pas de pages d'aide dans ce package"
 
-#, fuzzy
-msgid "-t option without value"
-msgstr "option -l sans valeur"
-
-msgid "exactly one Rd file must be specified"
-msgstr ""
-
-#, fuzzy
-msgid "no 'type' specified"
-msgstr "ERREUR : aucun package spécifié"
+msgid "problem in converting"
+msgstr "problème lors de la conversion"
 
 msgid "Bundle package:"
 msgstr "Package du bundle :"
@@ -776,11 +865,6 @@ msgstr "le package ne contient pas de code R"
 msgid "package seems to be using lazy loading already"
 msgstr "le package semble déjà utiliser le chargement partiel"
 
-msgid ""
-"Cannot process chunk/lines:\n"
-"%s"
-msgstr ""
-
 msgid "cannot update HTML package index"
 msgstr "impossible de mettre à jour l'index HTML du package"
 
@@ -796,6 +880,10 @@ msgstr "lignes \\encoding multiples dans le fichier "
 
 msgid "found encoding"
 msgstr "encodage trouvé"
+
+msgid "non-UTF-8 multibyte locales are not supported -- reencoding to UTF-8"
+msgstr ""
+"localisations multi-octets non UTF-8 non supportées -- réencodage en UTF-8"
 
 msgid "argument 'pkg' must be of length 1"
 msgstr "l'argument 'pkg' doit être de longueur 1"
@@ -817,9 +905,6 @@ msgstr "'file' doit être une chaîne de caractères ou une connexion"
 
 msgid "unimplemented encoding"
 msgstr "encodage non implémenté"
-
-msgid "file"
-msgstr "fichier"
 
 msgid "cannot be opened"
 msgstr "ne peut être ouvert"
@@ -845,10 +930,6 @@ msgstr "..."
 msgid "OK"
 msgstr "OK"
 
-#, fuzzy
-msgid "no examples found"
-msgstr "aucun fichier source n'est trouvé"
-
 msgid "Running specific tests for package"
 msgstr "Exécution des tests spécifiques au package"
 
@@ -858,15 +939,14 @@ msgstr "Exécution"
 msgid "Running vignettes for package"
 msgstr "Exécution des vignettes du package"
 
+msgid "Creating"
+msgstr "Création"
+
 msgid "creation of"
 msgstr "la création de"
 
 msgid "failed"
 msgstr "a échoué"
-
-#, fuzzy
-msgid "no parsed files found"
-msgstr "aucun fichier source n'est trouvé"
 
 msgid "creating"
 msgstr "création"
@@ -925,6 +1005,9 @@ msgstr "le test '%s' n'est pas disponible"
 
 msgid "no or more than one match"
 msgstr "soit aucune, soit plus d'une correspondance"
+
+msgid "'iconv' is required"
+msgstr "'iconv' est requis"
 
 msgid "argument 'x' must be a character vector"
 msgstr "l'argument 'x' doit être un vecteur de chaînes de caractères"
@@ -999,3 +1082,9 @@ msgid "Found .Internal call in the following function:"
 msgid_plural "Found .Internal calls in the following functions:"
 msgstr[0] "Appel .Internal trouvé dans la fonction suivante :"
 msgstr[1] "Appels .Internal trouvés dans les fonctions suivantes :"
+
+#~ msgid "Verifiable as open source: %s"
+#~ msgstr "Vérifiable comme Open Source : %s"
+
+#~ msgid "--- running texi2dvi on vignettes"
+#~ msgstr "--- exécution de texi2dvi sur les vignettes"

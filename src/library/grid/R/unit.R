@@ -381,14 +381,7 @@ print.unit <- function(x, ...) {
   this.length <- length(x)
   if (is.logical(index))
     index <- (1L:this.length)[index]
-  # Allow for negative integer index
-  if (any(index < 0)) {
-      if (any(index > 0))
-          stop("Cannot mix signs of indices")
-      else
-          index <- (1L:this.length)[index]
-  }
-  if (top && any(index > this.length))
+  if (top && index > this.length)
     stop("Index out of bounds (unit subsetting)")
   cl <- class(x)
   units <- attr(x, "unit")
@@ -413,14 +406,7 @@ print.unit <- function(x, ...) {
   this.length <- length(x)
   if (is.logical(index))
     index <- (1L:this.length)[index]
-  # Allow for negative integer index
-  if (any(index < 0)) {
-      if (any(index > 0))
-          stop("Cannot mix signs of indices")
-      else
-          index <- (1L:this.length)[index]
-  }
-  if (top && any(index > this.length))
+  if (top && index > this.length)
     stop("Index out of bounds (unit arithmetic subsetting)")
   switch(x$fname,
          "+"="["(x$arg1, (index - 1) %% this.length + 1, top=FALSE) +
@@ -439,14 +425,7 @@ print.unit <- function(x, ...) {
   this.length <- length(x)
   if (is.logical(index))
     index <- (1L:this.length)[index]
-  # Allow for negative integer index
-  if (any(index < 0)) {
-      if (any(index > 0))
-          stop("Cannot mix signs of indices")
-      else
-          index <- (1L:this.length)[index]
-  }
-  if (top && any(index > this.length))
+  if (top && index > this.length)
     stop("Index out of bounds (unit list subsetting)")
   cl <- class(x)
   result <- unclass(x)[(index - 1) %% this.length + 1]

@@ -269,8 +269,8 @@ recordGraphics <- function(expr, list, env) {
 
 graphics.off <- function ()
 {
-    while ((which <- dev.cur()) != 1) dev.off(which)
-    invisible()
+    while ((which <- dev.cur()) != 1)
+	dev.off(which)
 }
 
 dev.new <- function(...)

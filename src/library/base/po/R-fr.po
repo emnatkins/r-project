@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-08-06 09:09\n"
+"POT-Creation-Date: 2009-06-14 08:17\n"
 "PO-Revision-Date: 2009-03-29 21:29+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -233,8 +233,7 @@ msgstr "les valeurs manquantes dans 'row.names' ne sont pas autorisées"
 msgid "invalid 'dimnames' given for data frame"
 msgstr "'dimnames' incorrect pour ce tableau de données"
 
-#, fuzzy
-msgid "cannot coerce class %s into a data.frame"
+msgid "cannot coerce class \"%s\" into a data.frame"
 msgstr ""
 "impossible de convertir automatiquement \"%s\" en un tableau de données "
 "(data.frame)"
@@ -281,23 +280,11 @@ msgid "row names were found from a short variable and have been discarded"
 msgstr ""
 "les noms de lignes sont trouvés dans une variable courte et ont été éliminés"
 
-#, fuzzy
-msgid "named arguments other than 'drop' are discouraged"
-msgstr "les valeurs manquantes dans 'row.names' ne sont pas autorisées"
-
 msgid "drop argument will be ignored"
 msgstr "l'argument 'drop' sera ignoré"
 
 msgid "undefined columns selected"
 msgstr "colonnes non définies sélectionnées"
-
-#, fuzzy
-msgid "named arguments other than 'exact' are discouraged"
-msgstr "les valeurs manquantes dans 'row.names' ne sont pas autorisées"
-
-#, fuzzy
-msgid "named arguments are discouraged"
-msgstr "les duplications dans 'row.names' ne sont pas autorisées"
 
 msgid "rhs is the wrong length for indexing by a logical matrix"
 msgstr ""
@@ -623,6 +610,9 @@ msgstr "matrice 0 x 0"
 msgid "non-square matrix in 'eigen'"
 msgstr "la matrice n'est pas carrée dans 'eigen'"
 
+msgid "numeric or complex values required in 'eigen'"
+msgstr "valeurs numériques ou complexes nécessaires dans 'eigen'"
+
 msgid "'ch' returned code %d in 'eigen'"
 msgstr "'ch' a renvoyé le code %d dans 'eigen'"
 
@@ -760,9 +750,6 @@ msgstr "composantes de distance sans correspondance ignorées"
 
 msgid "'max.distance' components must be non-negative"
 msgstr "les composantes 'max.distance' ne peuvent être négatives"
-
-msgid "norm '%s' currently always uses exact = FALSE"
-msgstr ""
 
 msgid "triangular matrix should be square"
 msgstr "la matrice triangulaire doit être carrée"
@@ -1048,6 +1035,9 @@ msgstr "Une valeur logique unique est attendue pour l'état de l'objet S4"
 
 msgid "invalid to change the storage mode of a factor"
 msgstr "le mode de stockage d'un objet \"factor\" ne peut être modifié"
+
+msgid "package '%s' has been merged into '%s'"
+msgstr "le package '%s' a été fusionné avec '%s'"
 
 msgid "'%s' is not an exported object from 'namespace:%s'"
 msgstr "'%s' n'est pas un objet exporté depuis 'namespace:%s'"
@@ -1431,6 +1421,9 @@ msgstr "'x' et 'y' doivent avoir la même longueur"
 msgid "incorrect values of 'indent' and 'width'"
 msgstr "valeurs incorrectes de 'indent' et 'width'"
 
+msgid "argument to 'svd' must be numeric"
+msgstr "l'argument pour 'svd' doit être numérique"
+
 msgid "'nv' must be 0 or ncol(x)"
 msgstr "'nv' doit être 0 ou ncol(x)"
 
@@ -1616,15 +1609,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Message d'avis :\n"
 msgstr[1] "Messages d'avis :\n"
-
-#~ msgid "numeric or complex values required in 'eigen'"
-#~ msgstr "valeurs numériques ou complexes nécessaires dans 'eigen'"
-
-#~ msgid "argument to 'svd' must be numeric"
-#~ msgstr "l'argument pour 'svd' doit être numérique"
-
-#~ msgid "package '%s' has been merged into '%s'"
-#~ msgstr "le package '%s' a été fusionné avec '%s'"
 
 #~ msgid "package 'lqs' has been moved back to package 'MASS'"
 #~ msgstr "le package 'lqs' est maintenant à nouveau dans le package 'MASS'"

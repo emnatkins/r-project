@@ -70,7 +70,7 @@ capabilities(what = NULL)
 #endif
       }
     \item{iconv}{is internationalization conversion via
-      \code{\link{iconv}} supported?  Always true as from \R 2.10.0.}
+      \code{\link{iconv}} supported?}
     \item{NLS}{is there Natural Language Support (for message translations)?}
     \item{profmem}{is there support for memory profiling?}
 #ifdef windows

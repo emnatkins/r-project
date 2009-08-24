@@ -292,11 +292,12 @@ make check
 @noindent
 Failures are not necessarily problems as they might be caused by missing
 functionality,@footnote{for example, if you configured @R{} with
-@option{--without-recommended}.} but you should look carefully at any
-reported discrepancies.  (Some non-fatal errors are expected in locales
-that do not support Latin-1, in particular in true @code{C} locales and
-non-UTF-8 non-European locales.)  A failure in @file{tests/ok-errors.R}
-may indicate inadequate resource limits (@pxref{Running R}).
+@option{--without-iconv} or @option{--without-recommended}.} but you
+should look carefully at any reported discrepancies.  (Some non-fatal
+errors are expected in locales that do not support Latin-1, in
+particular in true @code{C} locales and non-UTF-8 non-European locales.)
+A failure in @file{tests/ok-errors.R} may indicate inadequate resource
+limits (@pxref{Running R}).
 
 More comprehensive testing can be done by
 
@@ -604,8 +605,7 @@ make install-pdf
 @noindent
 Once again, it is optional to specify @code{prefix}, @code{libdir} or
 @code{rhome} (the DVI and PDF manuals are installed under the @R{} home
-directory).  (@command{make install-info} needs Perl installed if there
-is no command @command{install-info} on the system.)
+directory).
 
 More precise control is possible.  For info, the setting used is that of
 @code{infodir} (default @samp{@var{prefix}/info}, set by configure
@@ -1225,8 +1225,8 @@ make msi
 @end example
 
 @noindent
-which will results in a file of about 52Mb with a name like
-@file{R-2.6.0-win32.msi}.  This can be double-clicked to be installed,
+which will results in a file of about 50Mb with a name like
+@file{R-2.9.2-win32.msi}.  This can be double-clicked to be installed,
 but those who need it will know what to do with it.
 
 Thanks to David del Campo (Dept of Statistics, University of Oxford)
@@ -1474,10 +1474,10 @@ library paths, separated by colons (semicolons on Windows).
 
 
 Packages may be distributed in source form or compiled binary form.
-Installing source packages requires that compilers and tools be
-installed.  Binary packages are platform-specific and generally need no
-special tools to install, but see the documentation for your platform
-for details.
+Installing source packages requires that compilers and tools (including
+Perl 5.8.0 or later) be installed.  Binary packages are
+platform-specific and generally need no special tools to install, but
+see the documentation for your platform for details.
 
 Note that you need to specify implicitly or explicitly the library to
 which the package is to be installed.  This is only an issue if you have
@@ -1570,11 +1570,13 @@ interface to @code{install.packages}, @code{update.packages} and
 @code{library}.
 
 @command{R CMD INSTALL} works in Windows to install source packages if
-you have set up the tools needed (see @ref{The Windows toolset}).
-Installation of binary packages must be done by @code{install.packages}.
-@command{R CMD INSTALL --help} will tell you the current options under
-Windows (which differ from those on a Unix-alike): in particular there
-is a choice of the types of documentation to be installed.
+you have the source-code package files (option ``Source Package
+Installation Files'' in the installer) and toolset (see @ref{The Windows
+toolset}) installed.  Installation of binary packages must be done by
+@code{install.packages}.   @command{R CMD INSTALL --help} will tell you
+the current options under Windows (which differ from those on a
+Unix-alike): in particular there is a choice of the types of
+documentation to be installed.
 
 If you have only a source package that is known to work with current
 @R{} and just want a binary Windows build of it, you could make use of
@@ -2274,14 +2276,24 @@ available from any @acronym{GNU} mirror: version 4.2 or later is
 needed for all the features to be enabled.  Otherwise you will need to
 configure with @option{--with-readline=no} (or equivalent).
 
-A suitably comprehensive @code{iconv} function is essential.  The @R{}
+The use of multi-byte characters, conversion between encodings
+(including for translated messages) and the @R{} @code{iconv} function
+depend on having the system @code{iconv} function: this is part of
+recent versions of @code{glibc} and many Unixes.  You can also install
+@acronym{GNU} @code{libiconv} (which is not the same as that in
+@code{glibc}), possibly as a plug-in replacement: see
+@uref{http://www.gnu.org/@/software/@/libiconv/}.  Note that the @R{}
 usage requires @code{iconv} to be able to translate between
 @code{"latin1"} and @code{"UTF-8"}, to recognize @code{""} as the
 current encoding and to translate to and from the Unicode wide-character
-formats @code{"UCS-[24][BL]E"} --- this is true for @code{glibc} but not
-of most commercial Unixes.  However, you can make use of @acronym{GNU}
-@code{libiconv} (possibly as a plug-in replacement: see
-@uref{http://www.gnu.org/@/software/@/libiconv/}.
+formats @code{"UCS-[24][BL]E"} --- this is not true of most commercial
+Unixes.  This is regarded as essential from @R{} 2.5.0: if you do not
+have it will need to configure with @option{--without-iconv} (or
+equivalent), and @command{make check} (and other checks) are likely to
+fail.
+
+Perl version 5.8.0 or later, available via
+@uref{http://www.perl.com/CPAN/}, is essential.
 
 You will not be able to build most of the manuals unless you have
 @command{makeinfo} version 4.7 or later installed, and if not some of
@@ -2300,6 +2312,7 @@ If you want to build from the R Subversion repository you need both
 @command{makeinfo} and @command{pdflatex}.
 @cindex Subversion
 
+
 @node Useful libraries and programs, Linear algebra, Essential programs, Essential and useful other programs under Unix
 @section Useful libraries and programs
 
@@ -2310,20 +2323,23 @@ sources will be used if no suitable external @code{gettext} is found.
 
 The `modern' version of @code{X11}, @code{jpeg()}, @code{png()} and
 @code{tiff()} uses the @code{cairo} and (optionally) @code{Pango}
-libraries.  Cairo version 1.2.0 or later is required.  Pango needs to be
-at least version 1.10, and 1.12 is the earliest version we have tested.
-(For Fedora users we believe the @code{pango-devel} RPM and its
-dependencies suffice.)  @R{} checks for @command{pkg-config}, and uses
-that to check first that the @samp{pangocairo} package is installed (and
-if not, @samp{cairo}) and if additional flags are needed for the
-@samp{cairo-xlib} package, then if suitable code can be compiled.  These
-tests will fail if @command{pkg-config} is not installed, and are likely
-to fail if @code{cairo} was built statically (unusual).  Most systems
-with @code{Gtk+} 2.8 or later installed will have suitable libraries,
-but some (e.g.@: Solaris 10) may need @code{cairo} added separately.
-Mac OS X comes with none of these libraries, but @code{cairo} support
-has been added to the binary distribution: @code{pkg-config} is still
-needed and can be compiled from the sources.
+libraries.  Cairo version 1.0 or later is required@footnote{We recommend
+that people with cairo 1.0.x, install 1.4.x or later from the sources,
+which works well}, and some features require 1.2 or later (and may not
+work before 1.4).  Pango needs to be at least version 1.10, and 1.12 is
+the earliest version we have tested.  (For Fedora users we believe the
+@code{pango-devel} RPM and its dependencies suffice.)  @R{} checks for
+@command{pkg-config}, and uses that to check first that the
+@samp{pangocairo} package is installed (and if not, @samp{cairo}) and if
+additional flags are needed for the @samp{cairo-xlib} package, then if
+suitable code can be compiled.  These tests will fail if
+@command{pkg-config} is not installed, and are likely to fail if
+@code{cairo} was built statically (unusual).  Most systems with
+@code{Gtk+} 2.8 or later installed will have suitable libraries, but
+some (e.g.@: Solaris 10) may need @code{cairo} added separately.  Mac OS
+X comes with none of these libraries, but @code{cairo} support has been
+added to the binary distribution: @code{pkg-config} is still needed and
+can be compiled from the sources.
 
 For the best font experience with these devices you need suitable fonts
 installed: Linux users will want the @code{urw-fonts} package.  Another
@@ -2368,19 +2384,6 @@ is available as sources and as binary distributions for (at least) most
 Linux distributions, Solaris 9/10, AIX and Windows, usually as
 @code{libicu} or @code{icu4c}.  It will be used by default where
 available (including on Mac OS X >= 10.4).
-
-Code developers will need Perl version 5.8.0 or later, available via
-@uref{http://www.perl.com/CPAN/}.  This is use to package and check
-packages, for @command{R CMD Rprof}@footnote{for which the @R{} function
-@code{summmaryProf} is an alternative.} and the rarely used @command{R
-CMD Sd2Rd}.
-
-@c The Perl scripts left are
-@c src/scripts: Rprof Sd2Rd build check
-@c tools: help2man.pl install-info.pl keywords2html.pl
-@c src/gnuwin32/fixed/rwver.pl
-@c src/gnuwin32/installer: JRins.pl WIXins.pl
-
 
 @menu
 * Tcl/Tk::                      
@@ -3277,10 +3280,6 @@ Success in building @R{} depends on the proper installation and functioning
 of support software; your results may differ if you have other versions
 of compilers and support libraries.
 
-Older versions of this manual (for @R{} < 2.10.0) contain notes on
-platforms such as IRIX and Alpha/OSF1 for which we have had no recent
-reports.
-
 @menu
 * X11 issues::                  
 * Linux::                       
@@ -3288,6 +3287,9 @@ reports.
 * Mac OS X::                    
 * Solaris::                     
 * HP-UX::                       
+* IRIX::                        
+* Alpha/OSF1::                  
+* Alpha/FreeBSD::               
 * AIX::                         
 * Cygwin::                      
 * New platforms::               
@@ -3671,6 +3673,15 @@ in @file{config.site} or on the @command{configure} command line.
 @section Solaris
 @cindex Solaris
 
+
+@menu
+* Solaris 10 and Open Solaris::  
+* Sparc Solaris 9 and earlier::  
+@end menu
+
+@node Solaris 10 and Open Solaris, Sparc Solaris 9 and earlier, Solaris, Solaris
+@subsection Solaris 10 and Open Solaris
+
 @R{} has been built successfully on Solaris 10 (both Sparc and
 @cputype{x86}) using the (zero cost) Sun Studio (aka Ceres) 12
 compilers: there has been some success with
@@ -3815,11 +3826,135 @@ and @cputype{x86} builds failed in @code{example(bw.SJ)}.
 
 
 
-@node HP-UX, AIX, Solaris, Platform notes
+@node Sparc Solaris 9 and earlier,  , Solaris 10 and Open Solaris, Solaris
+@subsection Sparc Solaris 9 and earlier
+
+These are now obsolete operating systems, so this subsection refers to
+equally old compiler versions.
+
+Sun packages for @R{} are available from
+@uref{http://www.sunfreeware.com/} for both Sparc and @cputype{x86}.
+
+@R{} 2.6.2 was built successfully on Sparc Solaris 8 (aka Solaris 2.8
+aka SunOS 5.8) using @command{gcc}@tie{}3/@command{g77},
+@command{gcc}@tie{}4/@command{gfortran} and the `Sun ONE Studio 7
+Compiler Suite' (aka Forte@tie{}7).
+
+The Solaris versions of several of the tools needed to build @R{}
+(e.g.@: @command{make}, @command{ar} and @command{ld}) are in
+@file{/usr/ccs/bin}, so if using those tools ensure this is in your
+path.
+
+@command{gcc} 3.2.1 and 3.2.2 generate incorrect code on 32-bit Solaris
+builds with optimization, but versions 3.2.3 and later work correctly.
+(The symptom was that @code{make check} failed at the first attempt to
+plot.)
+
+If using @command{gcc}, do ensure that the compiler was compiled for the
+version of Solaris in use.  (This can be ascertained from @command{gcc
+-v}.)  @command{gcc} makes modified versions of some header files, and
+so (for example) @command{gcc} compiled under Solaris 2.6 will not
+compile @R{} under Solaris 2.7.  Also, do ensure that it was compiled
+for the assembler/loader in use: if you download @command{gcc} from
+@uref{http://www.sunfreeware.com/} then you need to download
+@code{binutils} too.  To avoid all these pitfalls we recommended you
+compile @command{gcc} from the sources yourself.
+
+It was reported by Mike Pacey that Sun Forte 9 requires
+@samp{-xopenmp=stubs} added to @code{LDFLAGS}.
+
+When using the Sun compilers do @emph{not} specify @option{-fast}, as
+this disables @acronym{IEEE} arithmetic and @command{make check} will
+fail.  The maximal set of optimization options known to work on Sparc
+Solaris 8 is
+
+@example
+-xlibmil -xO5 -dalign
+@end example
+
+@noindent
+(@cputype{x86} versions do not need @samp{-dalign}, and some do not
+support it.)  To get correct results for @code{log} requires
+@option{-xlibmieee}, but @R{} works around that.
+
+We have found little performance difference between @command{gcc} and
+@command{cc} but considerable benefit from using a SunPro Fortran
+compiler: the @command{gcc}/@command{f77} combination worked well.  For
+many C++ applications Forte 7 requires @samp{-lCstd}, which the
+configure script will add to @code{SHLIB_CXXLDFLAGS} if it identifies
+the compiler correctly.
+
+To compile for a 64-bit target on Sparc Solaris (which needs an
+UltraSparc chip and for support to be enabled in the OS) with the Forte
+7 compilers we used
+
+@example
+CC="cc -xarch=v9 -xc99"
+CFLAGS="-xO5 -xlibmil -dalign"
+F77="f95 -xarch=v9"
+FFLAGS="-xO5 -xlibmil -dalign"
+CXX="CC -xarch=v9"
+CXXFLAGS="-xO5 -xlibmil -dalign"
+FC="f95 -xarch=v9"
+FCFLAGS="-xO5 -xlibmil -dalign"
+@end example
+
+@noindent
+in @file{config.site}.
+
+
+For 64-bit compilation with @command{gcc} 3.4.x we used
+
+@example
+CC="gcc -m64"
+F77="g77 -m64"
+CXX="g++ -m64"
+FC="gfortran -m64"
+LDFLAGS="-L/usr/local/lib/sparcv9 -L/usr/local/lib"
+@end example
+
+@noindent
+replacing @samp{g77} with @samp{gfortran} for @command{gcc} 4.x.y.  Note
+that @file{/usr/local/lib/sparcv9} may need to be in the
+@enindex LD_LIBRARY_PATH
+@env{LD_LIBRARY_PATH} during configuration.  (@command{configure} will
+append @option{-std=gnu99} to @code{CC}.)
+
+Solaris on Sparc CPUs need @samp{PIC} and not @samp{pic} versions of
+@env{CPICFLAGS} and @env{FPICFLAGS} since the @samp{pic} version only
+allows 1024 symbols on a 64-bit build (and 2048 on a 32-bit build).
+
+
+@cindex BLAS library
+@cindex LAPACK library
+
+Note that using @command{f95} allows the Sun performance library
+@code{libsunperf} to be selected: it may not work@footnote{recent
+versions have @command{f77} as a wrapper for @command{f95}, and these do
+work.} with @command{f77}, and will not with @command{g77}.
+@code{libsunperf} contains both BLAS and LAPACK code, and
+@option{--with-lapack} may be required if you use it.  On our test
+system using @code{libsunperf} failed for 64-bit builds with both Forte
+7 and Sun Studio 11, albeit in different ways.  Our experience has been
+that ATLAS's BLAS is faster than @code{libsunperf}, especially for
+complex numbers.
+
+For a 64-bit build, 64-bit libraries must be used.  As the configuration
+process by default sets @code{LDFLAGS} to @samp{-L/usr/local/lib}, you
+may need to set it to avoid finding 32-bit addons (as in the
+@command{gcc -m64} example above).  It is possible to build Tcl/Tk as
+64-bit libraries with the configure option @command{--enable-64bit}, but
+only with the Sun compilers (and not with @command{gcc}) as of
+Tcl/Tk@tie{}8.4.5.
+
+There have been alignment issues, with Sun libraries requiring 8-byte
+alignment of doubles (which @command{gcc} generated by default, but
+@command{cc} did not).
+
+
+@node HP-UX, IRIX, Solaris, Platform notes
 @section HP-UX
 @cindex HP-UX
-
-There are no recent reports from HP-UX users.
 
 @c R-help 2007 Nov 1/2, and follow up to BDR Nov 6.
 In late 2007 Fan Long built @R{} 2.6.0 on HP-UX 11.23 on @cputype{ia64}
@@ -3851,8 +3986,180 @@ He found that @file{stdbool.h} was detected but was non-standard, so
 @noindent
 (line 362 of @file{src/extra/intl/lock.c}) and needed the braces removed.
 
+The remaining reports on HP-UX here predate @R{} 2.0.0.
 
-@node AIX, Cygwin, HP-UX, Platform notes
+@R{} has been built successfully on HP-UX 11.0 using both native
+compilers and @command{gcc}. By default, @R{} is configured to use
+@command{gcc} and @command{g77} on HP-UX (if available).  Some
+installations of @command{g77} only install a static version of the
+@command{g2c} library that cannot be linked into a shared library since
+its files have not been compiled with the appropriate flag for producing
+position independent code (@acronym{PIC}).  This will result in
+@command{make} failing with a linker error similar to
+
+@example
+ld: CODE_ONE_SYM fixup to non-code subspace in file foo.o -
+shared library must be position independent. Use +z or +Z to recompile.
+@end example
+
+@noindent
+(@option{+z} and @option{+Z} are the @acronym{PIC} flags for the native
+compiler @command{cc}.)  If this is the case you either need to modify
+your @command{g77} installation or configure with
+
+@example
+F77=fort77
+@end example
+
+@noindent
+to specify use of the native @acronym{POSIX}-compliant FORTRAN 77
+compiler.
+
+You may find that @command{configure} detects other libraries that R
+needs to use as shared libraries but are only available as static
+libraries.  If you cannot install shared versions you will need to tell
+@command{configure} not to use these libraries, or make sure they are
+not in the library path.  The symptom will be the linker error shown in
+the last paragraph.  Static libraries that might be found and would
+cause problems are
+
+@example
+BLAS                   @r{use @option{--without-blas}}
+Tcl/Tk                 @r{use @option{--without-tcltk}}
+libpng                 @r{use @option{--without-libpng}}
+jpeg                   @r{use @option{--without-jpeglib}}
+zlib                   @r{use @option{--without-system-zlib}}
+@end example
+
+@noindent
+and @code{bzip2} and @code{pcre} are problematic when building
+@file{libR.so}, only.  These can be avoided by
+@option{--without-system-bzlib} and @option{--without-system-pcre}
+respectively, but these are the defaults.
+
+Some versions of @command{gcc} may contain what appears to be a bug at
+the @option{-O2} optimization level that causes
+
+@example
+> 2 %/% 2
+[1] 1
+> 1:2 %/% 2
+[1] 0 0     # @r{wrong!!}
+@end example
+
+@noindent
+which will cause @command{make check} to fail.  If this is the case, you
+should use @code{CFLAGS} to specify @option{-O} as the optimization
+level to use.
+
+You can configure @R{} to use both the native @command{cc} and
+@command{fort77} with
+
+@example
+./configure CC=cc F77=fort77
+@end example
+
+@command{f90} insists on linking against a static @file{libF90.a} which
+typically resides in a non-standard directory (e.g.,
+@file{/opt/fortran90/lib}).  Hence, to use @command{f90} one needs to
+add this directory to the linker path via the configure variable
+@code{LDFLAGS} (e.g., 
+@command{./configure F77=f90 LDFLAGS=/opt/fortran90/lib}).
+
+
+@node IRIX, Alpha/OSF1, HP-UX, Platform notes
+@section IRIX
+@cindex IRIX
+
+@R{} 2.1.0 has been successfully built on IRIX64 6.5 using both
+@command{gcc} and the native (MipsPro 7.4) compiler. However, neither
+version has passed @command{make check} due to a problem with time
+zones (see below).  A 64-bit executable has not been successfully
+built.
+
+It appears that some (but not all) versions of IRIX have broken
+wide-character header files and so may need @option{--disable-mbcs}.
+
+To build @R{} with @command{gcc} use something like the following
+configuration flags
+
+@example
+CPPFLAGS="-I/usr/freeware/include" 
+LDFLAGS="-L/usr/freeware/lib32"
+@end example
+
+To build the Tcl/Tk package you will most likely need to add
+
+@example
+--with-tclconfig=/usr/freeware/lib/tclConfig.sh
+--with-tkconfig=/usr/freeware/lib/tkConfig.sh
+@end example
+
+@noindent
+since these configuration scripts are not on your path.
+
+To build @R{} with the native compilers, use something like the
+following configuration flags
+
+@example
+CC=cc F77=f77 CXX=CC 
+CPPFLAGS="-I/usr/freeware/include" LDFLAGS="-L/usr/freeware/lib32" 
+CFLAGS="-O2" FFLAGS="-O2" CXXFLAGS="-O2" 
+--with-system-bzlib=yes
+@end example
+
+The MipsPro compiler will not build the @code{bzlib} library, so you must use
+the external one provided by SGI as a freeware package.
+
+After configuration, it is necessary to use @command{gmake} instead of
+the native @command{make} to build @R{}.
+
+There is a problem with the time zones on IRIX (originally reported by
+George N. White III for 1.9.0) which will cause the @code{strptime}
+tests to fail unless Arthur Olson's timezone data
+@uref{ftp://elsie.nci.nih.gov/@/pub/} has been installed (see also
+@uref{http://cspry.co.uk/@/computing/@/Indy_admin/@/TIMEZONE.html}) and
+@samp{-ltz} is added to the list of libraries (for example, in
+@enindex LIBS
+environment variable @env{LIBS}).
+
+The flag @option{-OPT:IEEE_NaN_inf=ON} is added for the native
+compilers.
+
+
+@node Alpha/OSF1, Alpha/FreeBSD, IRIX, Platform notes
+@section Alpha/OSF1
+
+@R{} has been built successfully on an Alpha running OSF1 V4.0 / V5.1
+using @command{gcc}/@command{g77} and @command{cc}/@command{f77}.
+Mixing @command{cc} and @command{g77} fails to configure.  The
+@command{configure} option @option{--without-blas} was used since the
+native blas seems not to have been built with the flags needed to
+suppress @code{SIGFPE}'s.  Currently @R{} does not set a signal handler
+for @code{SIGFPE} on platforms that support @acronym{IEEE} arithmetic,
+so these are fatal.
+
+At some point in the past using @command{cc} required @option{-std1} to
+be set so @samp{__STDC__} was defined.  As far as we know this is no
+longer needed, and @command{configure} no longer sets it, but it does
+set @option{-ieee_with_inexact} for the C compiler and @option{-fpe3}
+for the FORTRAN compiler (and @option{-mieee-with-inexact} and
+@option{-mieee} for @command{gcc}/@command{g77}) (in the appropriate
+@code{R_XTRA_*} flags).
+
+
+@node Alpha/FreeBSD, AIX, Alpha/OSF1, Platform notes
+@section Alpha/FreeBSD
+
+Attempts to build @R{} on an Alpha with FreeBSD 4.3 have been only
+partly successful.  Configuring with @option{-mieee} added to both
+@code{CFLAGS} and @code{FFLAGS} builds successfully, but tests fail with
+@code{SIGFPE}'s.  It would appear that @option{-mieee} only defers these
+rather than suppressing them entirely.  Advice on how to complete this
+port would be greatly appreciated.
+
+
+@node AIX, Cygwin, Alpha/FreeBSD, Platform notes
 @section AIX
 @cindex AIX
 
@@ -4005,16 +4312,16 @@ workarounds added for @R{} 2.6.0.
 
 Only building as a shared library works,@footnote{Windows DLLs need to
 have all links resolved at build time and so cannot resolve against
-@file{R.bin}.} so use e.g@:
+@file{R.bin}.} so use
 
 @example
-./configure --disable-nls --enable-R-shlib
+./configure --disable-nls --disable-mbcs --enable-R-shlib
 make
 @end example
 
 @noindent
-MBCS does work apart from some aspects of date strings, but will be of
-little use outside a CJK locale.  NLS does work, although
+MBCS does not work---@code{wcstod} is missing---but would only be of any
+use in a CJK locale.  NLS does work, although
 @option{--with-included-gettext} is preferable.  You will see many
 warnings about the use of auto-import.
 
@@ -4241,18 +4548,13 @@ See the subsections below for detailed descriptions.
 @itemize
 @item
 Perl (in @file{Rtools.exe})
-@c Current Perl scripts used on Windows are
-@c src/scripts: Rprof Sd2Rd build check
-@c src/gnuwin32/fixed/rwver.pl, used to make version.texi
-@c src/gnuwin32/installer: JRins.pl WIXins.pl
 @item
 The command line tools (in @file{Rtools.exe})
 @item
 The MinGW compilers (in @file{Rtools.exe})
 @end itemize
-For installing simple packages containing data or @R{} source
-but no compiled code, only the second of these are needed.
-Perl is essential to build @R{}, and needed to develop packages.
+For building simple packages containing data or @R{} source
+but no compiled code, only the first two of these are needed.
 
 A complete build of @R{} including compiled @HTML{} help files and
 PDF manuals, and producing the standalone installer 
@@ -4313,9 +4615,6 @@ path.
 
 @node Perl, The Microsoft HTML Help Workshop, The Windows toolset, The Windows toolset
 @section Perl
-
-Perl is needed to build @R{} and to use @command{R CMD
-build|check|Rprof}: it is no longer needed to install packages.
 
 You will need a Windows port of @code{perl5} (but only the basic
 functionality, not any of the third-party Win32 extensions).  The

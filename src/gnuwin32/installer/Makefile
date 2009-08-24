@@ -90,8 +90,6 @@ imagedir:
 #
 	$(FIND) $(RPREFIX) -name .svn -prune -exec rm -rf \{\} \;
 	$(FIND) $(RPREFIX) -name \*~ -delete
-#
-	$(RM) -r $(RPREFIX)/library/*/man
 
 md5sums:
 	@echo "adding MD5 checksums"

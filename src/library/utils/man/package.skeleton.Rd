@@ -4,6 +4,7 @@
 % Distributed under GPL 2 or later
 
 \name{package.skeleton}
+\Rdversion{1.1}
 \alias{package.skeleton}
 \title{Create a Skeleton for a New Source Package}
 \description{

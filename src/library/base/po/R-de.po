@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.9.0\n"
+"Project-Id-Version: R 2.9.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-08-06 09:09\n"
-"PO-Revision-Date: 2009-03-20 11:23+0100\n"
+"POT-Creation-Date: 2009-06-14 08:17\n"
+"PO-Revision-Date: 2009-06-16 10:47+0200\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R-core <r-core@r-project.org>\n"
 "MIME-Version: 1.0\n"
@@ -230,8 +230,7 @@ msgstr "fehlende Werte in 'row.names' nicht zulässig"
 msgid "invalid 'dimnames' given for data frame"
 msgstr "ungültige 'dimnames' für data frame gegeben"
 
-#, fuzzy
-msgid "cannot coerce class %s into a data.frame"
+msgid "cannot coerce class \"%s\" into a data.frame"
 msgstr "kann Klasse \"%s\" nicht in data.frame umwandeln"
 
 msgid "invalid 'row.names', length %d for a data frame with %d rows"
@@ -275,23 +274,11 @@ msgid "row names were found from a short variable and have been discarded"
 msgstr ""
 "Zeilennamen wurden in einer short Variablen gefunden und wurden verworfen"
 
-#, fuzzy
-msgid "named arguments other than 'drop' are discouraged"
-msgstr "fehlende Werte in 'row.names' nicht zulässig"
-
 msgid "drop argument will be ignored"
 msgstr "drop Argument wird ignoriert"
 
 msgid "undefined columns selected"
 msgstr "nicht definierte Spalten gewählt"
-
-#, fuzzy
-msgid "named arguments other than 'exact' are discouraged"
-msgstr "fehlende Werte in 'row.names' nicht zulässig"
-
-#, fuzzy
-msgid "named arguments are discouraged"
-msgstr "doppelte 'row.names' nicht zulässig"
 
 msgid "rhs is the wrong length for indexing by a logical matrix"
 msgstr ""
@@ -552,8 +539,7 @@ msgid "determinant not currently defined for complex matrices"
 msgstr "Determinante für komplexe Matrizen nicht definiert"
 
 msgid "'nrow' or 'ncol' cannot be specified when 'x' is a matrix"
-msgstr ""
-"'nrow' oder 'ncol' können nicht angegeben werden, wenn 'x' eine Matrix ist"
+msgstr "'nrow' oder 'ncol' können nicht angegeben werden, wenn 'x' eine Matrix ist"
 
 msgid "'x' is an array, but not 1D."
 msgstr "'x' ist ein Array, aber nicht eindimensional"
@@ -600,6 +586,9 @@ msgstr "0 x 0 Matrix"
 
 msgid "non-square matrix in 'eigen'"
 msgstr "nicht-quadratische Matrix in 'eigen'"
+
+msgid "numeric or complex values required in 'eigen'"
+msgstr "numerische oder komplexe Werte nötig für 'eigen'"
 
 msgid "'ch' returned code %d in 'eigen'"
 msgstr "'ch' gab Kode %d zurück in 'eigen'"
@@ -734,9 +723,6 @@ msgstr "unbekannte Komponenten in der match-distance Matrix ignoriert"
 
 msgid "'max.distance' components must be non-negative"
 msgstr "'max.distance' Komponenten dürfen nicht negativ sein"
-
-msgid "norm '%s' currently always uses exact = FALSE"
-msgstr ""
 
 msgid "triangular matrix should be square"
 msgstr "Dreiecks-Matrix sollte quadratisch sein"
@@ -1017,6 +1003,9 @@ msgstr "Erwarte einzelnen, logischen Wert für das S4 Status-Flag"
 
 msgid "invalid to change the storage mode of a factor"
 msgstr "unzulässig den Speichermodus eines Faktors zu ändern"
+
+msgid "package '%s' has been merged into '%s'"
+msgstr "Paket '%s' wurde in '%s' eingebaut"
 
 msgid "'%s' is not an exported object from 'namespace:%s'"
 msgstr "'%s' ist kein von 'namespace:%s' exportiertes Objekt"
@@ -1392,6 +1381,9 @@ msgstr "'x' und 'y' müssen die selbe Länge haben"
 msgid "incorrect values of 'indent' and 'width'"
 msgstr "falsche Werte für 'indent' und 'width'"
 
+msgid "argument to 'svd' must be numeric"
+msgstr "Argument zu 'svd' muss numerisch sein"
+
 msgid "'nv' must be 0 or ncol(x)"
 msgstr "'nv' muss 0 oder ncol(x) sein"
 
@@ -1575,15 +1567,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Warnmeldung:\n"
 msgstr[1] "Warnmeldungen:\n"
-
-#~ msgid "numeric or complex values required in 'eigen'"
-#~ msgstr "numerische oder komplexe Werte nötig für 'eigen'"
-
-#~ msgid "argument to 'svd' must be numeric"
-#~ msgstr "Argument zu 'svd' muss numerisch sein"
-
-#~ msgid "package '%s' has been merged into '%s'"
-#~ msgstr "Paket '%s' wurde in '%s' eingebaut"
 
 #~ msgid "package 'lqs' has been moved back to package 'MASS'"
 #~ msgstr "Paket 'lqs' ist wieder in Paket 'MASS'"

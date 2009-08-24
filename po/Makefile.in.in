@@ -332,24 +332,19 @@ update-po: Makefile
 
 ## NB datasets does not have any po, tcltk has src but no tcltk.pot
 R_PKGS_PO = base grDevices graphics grid methods splines stats stats4 tcltk tools utils
+DUMMYPKGFILES= $(R_PKGS_PO:=.nop)
+UPDATEPKGFILES=$(R_PKGS_PO:=.pkg-update)
+$(DUMMYPKGFILES): remove-potcdate.sed en@quot.insert-header
 
-update-pkg-po: Makefile remove-potcdate.sed en@quot.insert-header
-	@for pkg in $(R_PKGS_PO); do \
-	  $(MAKE) pkg-update PKG=$${pkg}; \
-	done
+update-pkg-po: Makefile remove-potcdate.sed en@quot.insert-header $(UPDATEPKGFILES)
 
 R_EXE = $(top_builddir)/bin/R --vanilla
 
-## default for 'make update-pkg-po', overridden by end users.
-PKGDIR = $(top_srcdir)/src/library/$(PKG)
-
-## use as 'make pkg-update PKG=foo PKGDIR=/path/to/foo'
-pkg-update: remove-potcdate.sed en@quot.insert-header
-	@pkg=$(PKG); \
+.nop.pkg-update: remove-potcdate.sed en@quot.insert-header
+	@pkg=`echo $@ | sed -e 's/\.pkg-update$$//'`; \
 	tmpdir=`pwd`; \
-	src=`(cd $(PKGDIR) && pwd)`; \
-	psrc=$${src}/po; \
-	cdcmd="cd $${src}/po"; \
+	src=$(top_srcdir)/src/library/$${pkg}; \
+	test "$(srcdir)" = . && cdcmd="cd ../src/library/$${pkg}/po" || cdcmd="cd $(top_srcdir)/src/library/$${pkg}/po && "; \
 	if test -f $${src}/po/$${pkg}.pot; then \
 	  echo $(ECHO_N) "updating $${pkg}.pot $(ECHO_C)"; \
 	  (cd $${src}/src; $(XGETTEXT) \
@@ -374,7 +369,7 @@ pkg-update: remove-potcdate.sed en@quot.insert-header
 	      lang=`echo $${tr} | sed -e 's/^R-//' -e 's/.po$$//'`; \
 	      echo $(ECHO_N) "  $$lang:$(ECHO_C)"; \
 	      ($${cdcmd} && $(MSGMERGE_UPDATE) $${tr} $${pkg}.pot); \
-	      mkdir -p $${src}/inst/po/$$lang/LC_MESSAGES; \
+	      mkdir -p $(srcdir)/../src/library/$${pkg}/inst/po/$$lang/LC_MESSAGES; \
 	      ($${cdcmd} && $(MSGFMT) -c --statistics -o ../inst/po/$$lang/LC_MESSAGES/$${pkg}.mo $${tr}) ; \
 	    done; \
 	  fi ; \
@@ -382,6 +377,7 @@ pkg-update: remove-potcdate.sed en@quot.insert-header
 	  echo $(ECHO_N) "  $$lang:$(ECHO_C)"; \
 	  LC_ALL=C; export LC_ALL; \
 	  cd $(srcdir); \
+	  psrc=$${src}/po; \
 	  if $(MSGINIT) -i $${psrc}/$${pkg}.pot --no-translator -l en -o - 2>/dev/null | sed -f $$tmpdir/$$lang.insert-header | sed -e s/PACKAGE/R/ -e s/VERSION/$(VERSION)/ | $(MSGCONV) -t UTF-8 | $(MSGFILTER) sed -f $(srcdir)/quot.sed 2>/dev/null > $$tmpdir/$$lang.new.po; then \
 	    if cmp $${psrc}/$$lang.po $$tmpdir/$$lang.new.po >/dev/null 2>&1; then \
 	      rm -f $$tmpdir/$$lang.new.po; \
@@ -393,7 +389,7 @@ pkg-update: remove-potcdate.sed en@quot.insert-header
 		exit 1; \
 	      fi; \
 	    fi; \
-	    mkdir -p $${src}/inst/po/$$lang/LC_MESSAGES; \
+	    mkdir -p $(srcdir)/../src/library/$${pkg}/inst/po/$$lang/LC_MESSAGES; \
 	    ($${cdcmd} && $(MSGFMT) -c -o ../inst/po/$$lang/LC_MESSAGES/$${pkg}.mo $$lang.po) ; \
 	    echo " done."; \
 	  else \
@@ -402,12 +398,8 @@ pkg-update: remove-potcdate.sed en@quot.insert-header
 	  fi ; \
 	fi ; \
 	cd $$tmpdir; \
-	if test -f "$${src}/po/R-$${pkg}.pot"; then \
-	  echo $(ECHO_N) "updating R-$${pkg}.pot $(ECHO_C)"; \
-        else \
-	  echo $(ECHO_N) "creating R-$${pkg}.pot $(ECHO_C)"; \
-	  touch "$${src}/po/R-$${pkg}.pot"; \
-	fi ; \
+	echo $(ECHO_N) "updating R-$${pkg}.pot $(ECHO_C)"; \
+	src=$(top_srcdir)/src/library/$${pkg}; \
 	echo "tools::xgettext2pot('$${src}', 'R-$${pkg}.po')" \
 	  | R_DEFAULT_PACKAGES= LC_COLLATE=C $(R_EXE) --slave > /dev/null; \
 	sed -f remove-potcdate.sed < $${src}/po/R-$${pkg}.pot > R-$${pkg}.1po && \
@@ -426,12 +418,13 @@ pkg-update: remove-potcdate.sed en@quot.insert-header
 	    lang=`echo $${tr} | sed -e 's/^R-//' -e 's/.po$$//'`; \
 	    echo $(ECHO_N) "  $$lang:$(ECHO_C)"; \
 	    ($${cdcmd} && $(MSGMERGE_UPDATE) $${tr} R-$${pkg}.pot); \
-	    mkdir -p $${src}/inst/po/$$lang/LC_MESSAGES; \
+	    mkdir -p $(srcdir)/../src/library/$${pkg}/inst/po/$$lang/LC_MESSAGES; \
 	    ($${cdcmd} && $(MSGFMT) -c --statistics -o ../inst/po/$$lang/LC_MESSAGES/R-$${pkg}.mo $${tr}) ; \
 	  done; \
 	fi ; \
 	lang=en@quot; \
 	echo $(ECHO_N) "  $$lang:$(ECHO_C)"; \
+	psrc=$(top_srcdir)/src/library/$${pkg}/po; \
 	LC_ALL=C; export LC_ALL; \
 	cd $(srcdir); \
 	if $(MSGINIT) -i $${psrc}/R-$${pkg}.pot --no-translator -l en -o - 2>/dev/null | sed -f $$tmpdir/$$lang.insert-header | sed -e s/PACKAGE/R/ -e s/VERSION/$(VERSION)/ | $(MSGCONV) -t UTF-8 | $(MSGFILTER) sed -f $(srcdir)/quot.sed 2>/dev/null > $$tmpdir/R-$$lang.new.po; then \
@@ -445,7 +438,7 @@ pkg-update: remove-potcdate.sed en@quot.insert-header
 	      exit 1; \
 	    fi; \
 	  fi; \
-	  mkdir -p $${src}/inst/po/$$lang/LC_MESSAGES; \
+	  mkdir -p $(srcdir)/../src/library/$${pkg}/inst/po/$$lang/LC_MESSAGES; \
 	  ($${cdcmd} && $(MSGFMT) -c -o ../inst/po/$$lang/LC_MESSAGES/R-$${pkg}.mo R-$$lang.po) ; \
 	  echo " done."; \
 	else \

@@ -118,6 +118,7 @@
  R_IoBufferWriteReset
  R_JumpToContext
  R_KeepSource
+ R_LastvalueSymbol
  R_LibraryFileName
  R_LoadFromFile
  R_LoadRconsole
@@ -125,6 +126,7 @@
  R_NHeap
  R_NShowCalls
  R_NSize
+ R_NaRmSymbol
  R_Newhashpjw
  R_OpenInitFile
  R_OpenLibraryFile
@@ -164,6 +166,7 @@
  R_ShowErrorMessages
  R_ShowFiles
  R_ShowWarnCalls
+ R_SourceSymbol
  R_SrcfileSymbol
  R_SrcrefSymbol
  R_StdinEnc
@@ -462,6 +465,7 @@
  complex_math1
  complex_math2
  complex_unary
+ compute_identical
  comqr2_
  comqr_
  console_ctrlkeyin
@@ -724,7 +728,6 @@
  do_importIntoEnv
  do_indexsearch
  do_inherits
- do_inspect
  do_intToBits
  do_intToUtf8
  do_int_unzip
@@ -850,7 +853,6 @@
  do_primitive
  do_printDeferredWarnings
  do_printdefault
- do_printfunction
  do_prmatrix
  do_proctime
  do_psort
@@ -964,7 +966,6 @@
  do_switch
  do_symbols
  do_sys
- do_sysbrowser
  do_syschmod
  do_sysgetpid
  do_sysinfo
@@ -1078,6 +1079,7 @@
  libintl_bindtextdomain
  libintl_dcigettext
  libintl_dcngettext
+ libintl_dngettext
  libintl_gettext_extract_plural
  libintl_gettext_free_exp
  libintl_gettext_germanic_plural

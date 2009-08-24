@@ -15,7 +15,7 @@
 #  http://www.r-project.org/Licenses/
 
 plot.lm <-
-function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
+function (x, which = c(1L:3,5), ## was which = 1L:4,
 	  caption = list("Residuals vs Fitted", "Normal Q-Q",
 	  "Scale-Location", "Cook's distance",
 	  "Residuals vs Leverage",
@@ -41,7 +41,7 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
     if (!inherits(x, "lm"))
 	stop("use only with \"lm\" objects")
     if(!is.numeric(which) || any(which < 1) || any(which > 6))
-	stop("'which' must be in 1:6")
+	stop("'which' must be in 1L:6")
     isGlm <- inherits(x, "glm")
     show <- rep(FALSE, 6)
     show[which] <- TRUE
@@ -294,7 +294,7 @@ function (x, which = c(1L:3L,5L), ## was which = 1L:4L,
 	usr <- par("usr")
 	xmax <- usr[2L]
 	ymax <- usr[4L]
-	for(i in seq_along(bval)) {
+	for(i in 1L:length(bval)) {
 	    bi2 <- bval[i]^2
 	    if(ymax > bi2*xmax) {
 		xi <- xmax + strwidth(" ")/3

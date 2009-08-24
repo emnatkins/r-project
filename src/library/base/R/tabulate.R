@@ -14,7 +14,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-tabulate <- function(bin, nbins = max(1L, bin, na.rm=TRUE))
+tabulate <- function(bin, nbins = max(1L, bin))
 {
     if(!is.numeric(bin) && !is.factor(bin))
 	stop("'bin' must be numeric or a factor")
@@ -23,6 +23,5 @@ tabulate <- function(bin, nbins = max(1L, bin, na.rm=TRUE))
        as.integer(length(bin)),
        as.integer(nbins),
        ans = integer(nbins),
-       NAOK = TRUE,
        PACKAGE="base")$ans
 }

@@ -29,13 +29,13 @@ readLines <- function(con = stdin(), n = -1L, ok = TRUE, warn = TRUE,
 }
 
 
-writeLines <- function(text, con = stdout(), sep = "\n", useBytes = FALSE)
+writeLines <- function(text, con = stdout(), sep = "\n")
 {
     if(is.character(con)) {
         con <- file(con, "w")
         on.exit(close(con))
     }
-    invisible(.Internal(writeLines(text, con, sep, useBytes)))
+    invisible(.Internal(writeLines(text, con, sep)))
 }
 
 open <- function(con, ...)
@@ -106,13 +106,9 @@ rawConnection <- function(object, open = "r") {
 
 rawConnectionValue <- function(con) .Internal(rawConnectionValue(con))
 
-textConnection <- function(object, open = "r", local = FALSE,
-                           encoding = c("", "bytes", "UTF-8"))
-{
+textConnection <- function(object, open = "r", local = FALSE) {
     env <- if (local) parent.frame() else .GlobalEnv
-    type <- match(match.arg(encoding), c("", "bytes", "UTF-8"))
-    .Internal(textConnection(deparse(substitute(object)), object, open,
-                             env, type))
+    .Internal(textConnection(deparse(substitute(object)), object, open, env))
 }
 
 textConnectionValue <- function(con) .Internal(textConnectionValue(con))
@@ -178,7 +174,7 @@ closeAllConnections <- function()
     if(i > 0L) sink(stderr(), type = "message")
     # now unwind the sink diversion stack.
     n <- sink.number()
-    if(n > 0L) for(i in seq_len(n)) sink()
+    if(n > 0L) for(i in 1L:n) sink()
     # get all the open connections.
     set <- getAllConnections()
     set <- set[set > 2L]
@@ -204,8 +200,7 @@ readBin <- function(con, what, n = 1L, size = NA_integer_, signed = TRUE,
 }
 
 writeBin <-
-    function(object, con, size = NA_integer_, endian = .Platform$endian,
-             useBytes = FALSE)
+    function(object, con, size = NA_integer_, endian = .Platform$endian)
 {
     swap <- endian != .Platform$endian
     if(!is.vector(object) || mode(object) == "list")
@@ -214,7 +209,7 @@ writeBin <-
         con <- file(con, "wb")
         on.exit(close(con))
     }
-    .Internal(writeBin(object, con, size, swap, useBytes))
+    .Internal(writeBin(object, con, size, swap))
 }
 
 readChar <- function(con, nchars, useBytes = FALSE)
@@ -227,7 +222,7 @@ readChar <- function(con, nchars, useBytes = FALSE)
 }
 
 writeChar <- function(object, con, nchars = nchar(object, type="chars"),
-                      eos = "", useBytes = FALSE)
+                      eos = "")
 {
     if(!is.character(object))
         stop("can only write character objects")
@@ -235,7 +230,7 @@ writeChar <- function(object, con, nchars = nchar(object, type="chars"),
         con <- file(con, "wb")
         on.exit(close(con))
     }
-    .Internal(writeChar(object, con, as.integer(nchars), eos, useBytes))
+    .Internal(writeChar(object, con, as.integer(nchars), eos))
 }
 
 gzcon <- function(con, level = 6, allowNonCompressed = TRUE)

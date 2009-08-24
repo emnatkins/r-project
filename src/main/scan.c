@@ -1443,7 +1443,7 @@ SEXP attribute_hidden do_menu(SEXP call, SEXP op, SEXP args, SEXP rho)
     checkArity(op,args);
 
     if (!isString(CAR(args)))
-	error(_("invalid '%s' argument"), "choices");
+	error(_("invalid argument"));
 
     sprintf(ConsolePrompt, _("Selection: "));
 

@@ -26,6 +26,7 @@ DISTFILES = README \
 	keywords2html.pl \
 	ldAIX4 \
 	link-recommended \
+	linkcheck.pl \
 	ltmain.sh \
 	mdate-sh \
 	missing \

@@ -40,13 +40,8 @@ function(file, refhook = NULL)
         con <- gzfile(file, "rb")
         on.exit(close(con))
     }
-    else if(inherits(file, "connection")) {
+    else if(inherits(file, "connection"))
         con <- gzcon(file)
-        if(!isOpen(con, "rb")) {
-            open(con, "rb")
-            on.exit(close(con))
-        }
-    }
     else
         stop("bad 'file' argument")
     .Internal(unserializeFromConn(con, refhook))

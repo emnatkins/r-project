@@ -350,8 +350,7 @@ nlsModel <- function(form, data, start, wts, upper=NULL)
 		     assign("setPars", setPars.varying, envir = thisEnv)
 		     assign("getPars", getPars.varying, envir = thisEnv)
 		     assign("getRHS", getRHS.varying, envir = thisEnv)
-                     ## FIXME this is which(useParams)
-		     assign("npar", length(seq_along(useParams)[useParams]),
+		     assign("npar", length((1L:length(useParams))[useParams]),
 			    envir = thisEnv)
 		 }
 	     },

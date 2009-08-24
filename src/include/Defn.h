@@ -76,13 +76,16 @@ Rcomplex Rf_ComplexFromInteger(int, int*);
 Rcomplex Rf_ComplexFromReal(double, int*);
 
 #define CALLED_FROM_DEFN_H 1
-#include <Rinternals.h>		/*-> Arith.h, Boolean.h, Complex.h, Error.h,
-				  Memory.h, PrtUtil.h, Utils.h */
+#include <Rinternals.h>		/*-> Arith.h, Complex.h, Error.h, Memory.h
+				  PrtUtil.h, Utils.h */
 #undef CALLED_FROM_DEFN_H
 extern0 SEXP	R_CommentSymbol;    /* "comment" */
 extern0 SEXP	R_DotEnvSymbol;     /* ".Environment" */
 extern0 SEXP	R_ExactSymbol;	    /* "exact" */
+extern0 SEXP	R_LastvalueSymbol;  /* ".Last.value" */
+extern0 SEXP	R_NaRmSymbol;	    /* "na.rm" */
 extern0 SEXP	R_RecursiveSymbol;  /* "recursive" */
+extern0 SEXP	R_SourceSymbol;     /* "source" */
 extern0 SEXP	R_SrcfileSymbol;    /* "srcfile" */
 extern0 SEXP	R_SrcrefSymbol;     /* "srcref" */
 extern0 SEXP	R_TmpvalSymbol;     /* "*tmp*" */
@@ -493,7 +496,6 @@ typedef struct RCNTXT {
     IStackval *intstack;
 # endif
 #endif
-    SEXP srcref;	        /* The source line in effect */
 } RCNTXT, *context;
 
 /* The Various Context Types.
@@ -618,6 +620,7 @@ LibExtern RCNTXT* R_ToplevelContext;  /* The toplevel environment */
 LibExtern RCNTXT* R_GlobalContext;    /* The global environment */
 extern0 Rboolean R_Visible;	    /* Value visibility flag */
 LibExtern int	R_EvalDepth	INI_as(0);	/* Evaluation recursion depth */
+extern0 int	R_BrowseLevel	INI_as(0);	/* how deep the browser is */
 extern0 int	R_BrowseLines	INI_as(0);	/* lines/per call in browser */
 
 extern0 int	R_Expressions	INI_as(5000);	/* options(expressions) */
@@ -679,7 +682,6 @@ extern0 Rboolean R_warn_partial_match_attr INI_as(FALSE);
 extern0 Rboolean R_ShowWarnCalls INI_as(FALSE);
 extern0 Rboolean R_ShowErrorCalls INI_as(FALSE);
 extern0 int R_NShowCalls INI_as(50);
-extern0 SEXP	R_Srcref;
 
 LibExtern Rboolean utf8locale  INI_as(FALSE);  /* is this a UTF-8 locale? */
 LibExtern Rboolean mbcslocale  INI_as(FALSE);  /* is this a MBCS locale? */
@@ -862,7 +864,6 @@ extern0 Rboolean known_to_be_utf8 INI_as(FALSE);
 # define Seql			Rf_Seql
 # define Scollate		Rf_Scollate
 # define sortVector		Rf_sortVector
-# define SrcrefPrompt		Rf_SrcrefPrompt
 # define ssort			Rf_ssort
 # define StringFromComplex	Rf_StringFromComplex
 # define StringFromInteger	Rf_StringFromInteger
@@ -1067,7 +1068,6 @@ void R_Suicide(const char *);
 void R_getProcTime(double *data);
 int R_isMissing(SEXP symbol, SEXP rho);
 void sortVector(SEXP, Rboolean);
-void SrcrefPrompt(const char *, SEXP);
 void ssort(SEXP*,int);
 int StrToInternal(const char *);
 SEXP substituteList(SEXP, SEXP);
@@ -1107,6 +1107,9 @@ void R_restore_globals(RCNTXT *);
 
 /* ../main/devices.c, used in memory.c, gnuwin32/extra.c */
 #define R_MaxDevices 64
+
+/* ../main/identical.c : */
+Rboolean compute_identical(SEXP x, SEXP y);
 
 /* ../../main/printutils.c : */
 typedef enum {

@@ -59,7 +59,7 @@ static int isDir(char *path)
 
 void rcmdusage (char *RCMD)
 {
-    fprintf(stderr, "%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+    fprintf(stderr, "%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
 	    "where 'command' is one of:\n",
 	    "  INSTALL  Install add-on packages.\n",
 	    "  REMOVE   Remove add-on packages.\n",
@@ -71,6 +71,7 @@ void rcmdusage (char *RCMD)
 	    "  Rdconv   Convert Rd format to various other formats.\n",
 	    "  Rdiff    difference R output files.\n",
 	    "  Rd2dvi   Convert Rd format to DVI/PDF.\n",
+	    "  Rd2txt   Convert Rd format to text.\n",
 	    "  Sd2Rd    Convert S documentation to Rd format.\n",
 	    "  Stangle  Extract S/R code from Sweave documentation.\n",
 	    "  Sweave   Process Sweave documentation.\n",
@@ -355,9 +356,9 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 	    } else if (strcmp(p, "SHLIB") == 0) {
 		strcpy(cmd, "sh ");
 		strcat(cmd, RHome); strcat(cmd, "/bin/SHLIB.sh");
-	    } else if (strcmp(p, "Rdconv") == 0) {
+	    } else if (strcmp(p, "Rd2txt") == 0) {
 		strcpy(cmd, "sh ");
-		strcat(cmd, RHome); strcat(cmd, "/bin/Rdconv.sh");
+		strcat(cmd, RHome); strcat(cmd, "/bin/Rd2txt.sh");
 	    } else {
 		if (!strcmp(".sh", p + strlen(p) - 3)) {
 		    strcpy(cmd, "sh ");

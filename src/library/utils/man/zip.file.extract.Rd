@@ -4,6 +4,7 @@
 % Distributed under GPL 2 or later
 
 \name{zip.file.extract}
+\Rdversion{1.1}
 \alias{zip.file.extract}
 \title{Extract File from a Zip Archive}
 \usage{

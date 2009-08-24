@@ -10,7 +10,7 @@
   the number of times each integer occurs in it. 
 }
 \usage{
-tabulate(bin, nbins = max(1, bin, na.rm = TRUE))
+tabulate(bin, nbins = max(1, bin))
 }
 \alias{tabulate}
 \arguments{
@@ -28,8 +28,8 @@ tabulate(bin, nbins = max(1, bin, na.rm = TRUE))
 }
 \value{
   An integer vector (without names).  There is a bin for each of the
-  values \code{1, \dots, nbins}; values outside that range and \code{NA}s
-  are (silently) ignored.
+  values \code{1, \dots, nbins}; values outside that range are (silently)
+  ignored.
 }
 \seealso{
   \code{\link{table}}, \code{\link{factor}}.

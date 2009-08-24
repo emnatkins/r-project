@@ -4,6 +4,7 @@
 % Distributed under GPL 2 or later
 
 \name{Startup}
+\Rdversion{1.1}
 \alias{Startup}
 \alias{Rprofile}
 \alias{.Rprofile}

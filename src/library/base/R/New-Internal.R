@@ -235,15 +235,15 @@ encodeString <- function(x, width = 0, quote = "", na.encode = TRUE,
 
 l10n_info <- function() .Internal(l10n_info())
 
-iconv <- function(x, from = "", to = "", sub = NA, mark = TRUE)
+iconv <- function(x, from = "", to = "", sub = NA)
 {
     if(!is.character(x)) x <- as.character(x)
-    .Internal(iconv(x, from, to, as.character(sub), mark))
+    .Internal(iconv(x, from, to, as.character(sub)))
 }
 
 iconvlist <- function()
 {
-    int <- .Internal(iconv(NULL, "", "", "", TRUE))
+    int <- .Internal(iconv(NULL, "", "", ""))
     if(length(int)) return(sort.int(int))
     icfile <- system.file("iconvlist", package="utils")
     if(!nchar(icfile, type="bytes"))

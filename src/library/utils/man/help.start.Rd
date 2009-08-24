@@ -4,6 +4,7 @@
 % Distributed under GPL 2 or later
 
 \name{help.start}
+\Rdversion{1.1}
 \title{Hypertext Documentation}
 \alias{help.start}
 \description{

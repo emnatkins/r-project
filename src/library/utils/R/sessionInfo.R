@@ -47,7 +47,7 @@ sessionInfo <- function(package=NULL)
     z
 }
 
-print.sessionInfo <- function(x, locale=TRUE, ...)
+print.sessionInfo <- function(x, ...)
 {
     mkLabel <- function(L, n) {
         vers <- sapply(L[[n]], function(x) x[["Version"]])
@@ -57,11 +57,8 @@ print.sessionInfo <- function(x, locale=TRUE, ...)
 
     cat(x$R.version$version.string, "\n")
     cat(x$R.version$platform, "\n\n")
-    if(locale){
-        cat("locale:\n")
-        print(strsplit(x$locale, ";", fixed=TRUE)[[1]], quote=FALSE)
-        cat("\n")
-    }
+    cat("locale:\n")
+    cat(x$locale, "\n\n", sep="")
     cat("attached base packages:\n")
     print(x$basePkgs, quote=FALSE)
     if(!is.null(x$otherPkgs)){
@@ -75,22 +72,15 @@ print.sessionInfo <- function(x, locale=TRUE, ...)
     invisible(x)
 }
 
-toLatex.sessionInfo <- function(object, locale=TRUE, ...)
+toLatex.sessionInfo <- function(object, ...)
 {
     opkgver <- sapply(object$otherPkgs, function(x) x$Version)
     nspkgver <- sapply(object$loadedOnly, function(x) x$Version)
-    z <- c("\\begin{itemize}\\raggedright",
+    z <- c("\\begin{itemize}",
            paste("  \\item ", object$R.version$version.string,
-                 ", \\verb|", object$R.version$platform, "|", sep=""))
-    
-    if(locale){
-        z <- c(z, 
-               paste("  \\item Locale: \\verb|",
-                     gsub(";","|, \\\\verb|", object$locale)
-                     , "|", sep=""))
-    }
-    
-    z <- c(z, strwrap(paste("\\item Base packages: ",
+                 ", \\verb|", object$R.version$platform, "|", sep=""),
+           paste("  \\item Locale: \\verb|", object$locale, "|", sep=""),
+           strwrap(paste("\\item Base packages:",
                          paste(sort(object$basePkgs), collapse=", ")),
                    indent=2, exdent=4))
 

@@ -4,6 +4,7 @@
 % Distributed under GPL 2 or later
 
 \name{Devices}
+\Rdversion{1.1}
 \title{List of Graphical Devices}
 \alias{Devices}
 \alias{device}

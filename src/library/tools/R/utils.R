@@ -57,7 +57,7 @@ function(x)
 file_test <-
 function(op, x, y)
 {
-    ## Provide shell-style '-f', '-d', '-x', '-nt' and '-ot' tests.
+    ## Provide shell-style '-f', '-d', '-nt' and '-ot' tests.
     ## Note that file.exists() only tests existence ('test -e' on some
     ## systems), and that our '-f' tests for existence and not being a
     ## directory (the GNU variant tests for being a regular file).
@@ -71,7 +71,6 @@ function(op, x, y)
            "-ot" = (!is.na(mt.x <- file.info(x)$mtime)
                     & !is.na(mt.y <- file.info(y)$mtime)
                     & (mt.x < mt.y)),
-           "-x" = (file.access(x, 1L) == 0L),
            stop(gettextf("test '%s' is not available", op),
                 domain = NA))
 }
@@ -172,6 +171,7 @@ function(file, topic)
 showNonASCII <-
 function(x)
 {
+    if(!capabilities("iconv")) stop("'iconv' is required")
     ## All that is needed here is an 8-bit encoding that includes ASCII.
     ## The only one we guarantee to exist is 'latin1'.
     ## The default sub=NA is faster.
@@ -374,7 +374,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
         ## Do not have texi2dvi
         ## Needed at least on Windows except for MiKTeX
         ## Note that this does not do anything about running quietly,
-        ## nor cleaning, but is probably not used much anymore.
+        ## nor cleaning, but it probably not used much anymore.
 
         texfile <- shQuote(file)
         base <- file_path_sans_ext(file)
@@ -394,7 +394,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
             stop(gettextf("unable to run %s on '%s'", latex, file), domain = NA)
         nmiss <- length(grep("^LaTeX Warning:.*Citation.*undefined",
                              readLines(paste(base, ".log", sep = ""))))
-        for(iter in 1L:10L) { ## safety check
+        for(iter in 1L:10) { ## safety check
             ## This might fail as the citations have been included in the Rnw
             if(nmiss) system(paste(shQuote(bibtex), shQuote(base)))
             nmiss_prev <- nmiss
@@ -418,9 +418,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 ### ** %w/o%
 
 ## x without y, as in the examples of ?match.
-`%w/o%` <-
-function(x, y)
-    x[!x %in% y]
+`%w/o%` <- function(x, y) { x[!x %in% y] }
 
 ### ** .OStype
 
@@ -430,6 +428,28 @@ function()
     OS <- Sys.getenv("R_OSTYPE")
     if(nzchar(OS)) OS else .Platform$OS.type
 }
+
+### ** .capture_output_from_print
+
+## <NOTE>
+## Should no longer be needed now that we have .eval_with_capture().
+##
+## .capture_output_from_print <-
+## function(x, ...)
+## {
+##     ## Better to provide a simple variant of utils::capture.output()
+##     ## ourselves (so that bootstrapping R only needs base and tools).
+##     out <- NULL # Prevent codetools warning about "no visible binding
+##                 # for global variable out".  Maybe there will eventually
+##                 # be a better design for output text connections ...
+##     file <- textConnection("out", "w", local = TRUE)
+##     sink(file)
+##     on.exit({ sink(); close(file) })
+##     print(x, ...)
+##     out
+## }
+##
+## </NOTE>
 
 ### ** .eval_with_capture
 
@@ -502,8 +522,10 @@ function(con)
     ## Get BibTeX error info, using non-header lines until the first
     ## warning or summary, hoping for the best ...
     lines <- readLines(con, warn = FALSE)
-    if(any(ind <- is.na(nchar(lines, allowNA = TRUE))))
+    if(any(ind <- is.na(nchar(lines, allowNA = TRUE)))) {
+        if(!capabilities("iconv")) return(character())
         lines[ind] <- iconv(lines[ind], "", "", sub = "byte")
+    }
 
     ## How can we find out for sure that there were errors?  Try
     ## guessing ... and peeking at tex-buf.el from AUCTeX.
@@ -528,8 +550,10 @@ function(con, n = 4L)
     ## Get (La)TeX lines with error plus n (default 4) lines of trailing
     ## context.
     lines <- readLines(con, warn = FALSE)
-    if(any(ind <- is.na(nchar(lines, allowNA = TRUE))))
+    if(any(ind <- is.na(nchar(lines, allowNA = TRUE)))) {
+        if(!capabilities("iconv")) return(character())
         lines[ind] <- iconv(lines[ind], "", "", sub = "byte")
+    }
 
     ## Try matching both the regular error indicator ('!') as well as
     ## the file line error indicator ('file:line:').
@@ -643,8 +667,7 @@ function(dir, installed = FALSE)
 ### ** .get_requires_from_package_db
 
 .get_requires_from_package_db <-
-function(db,
-         category = c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances"))
+function(db, category = c("Depends", "Imports", "Suggests", "Enhances"))
 {
     category <- match.arg(category)
     if(category %in% names(db)) {
@@ -662,8 +685,7 @@ function(db,
 ### ** .get_requires_with_version_from_package_db
 
 .get_requires_with_version_from_package_db <-
-function(db,
-         category = c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances"))
+function(db, category = c("Depends", "Imports", "Suggests", "Enhances"))
 {
     category <- match.arg(category)
     if(category %in% names(db)) {
@@ -784,10 +806,8 @@ local({
 
 .get_standard_repository_db_fields <-
 function()
-    c("Package", "Version", "Priority",
-      "Bundle", "Contains",
-      "Depends", "Imports", "LinkingTo", "Suggests", "Enhances",
-      "OS_type", "License")
+    c("Package", "Version", "Priority", "Bundle", "Contains",
+      "Depends", "Imports", "Suggests", "Enhances", "OS_type")
 
 ### ** .is_ASCII
 
@@ -903,6 +923,7 @@ function(package, lib.loc)
         .try_quietly({
             pos <- match(paste("package", package, sep = ":"), search())
             if(!is.na(pos)) {
+                ## if(package == "methods") return()
                 detach(pos = pos,
                        unload = ! package %in% c("tcltk", "tools"))
             }
@@ -923,8 +944,7 @@ function(type = c("code", "data", "demo", "docs", "vignette"))
            ## Keep in sync with the order given in base's data.Rd.
            data = c("R", "r",
                     "RData", "rdata", "rda",
-                    "tab", "txt", "TXT",
-                    "csv", "CSV"),
+                    "tab", "txt", "TXT", "csv", "CSV"),
            demo = c("R", "r"),
            docs = c("Rd", "rd", "Rd.gz", "rd.gz"),
            vignette = c(outer(c("R", "r", "S", "s"), c("nw", "tex"),
@@ -1110,7 +1130,8 @@ function(dfile)
     ## vector.
     ## </NOTE>
     if(!file_test("-f", dfile))
-        stop(gettextf("file '%s' does not exist", dfile), domain = NA)
+        stop(gettextf("file '%s' does not exist", dfile),
+             domain = NA)
     out <- tryCatch(read.dcf(dfile)[1L, ],
                     error = function(e)
                     stop(gettextf("file '%s' is not in valid DCF format",
@@ -1135,7 +1156,7 @@ function(command, input = NULL)
     errfile <- tempfile("xshell")
     on.exit(unlink(c(outfile, errfile)))
     status <-if(.Platform$OS.type == "windows")
-        shell(sprintf("%s > %s 2> %s", command, outfile, errfile),
+        shell(sprintf("'%s' > %s 2> %s", command, outfile, errfile),
               input = input, shell = "cmd.exe")
     else system(sprintf("%s > %s 2> %s", command, outfile, errfile),
                 input = input)

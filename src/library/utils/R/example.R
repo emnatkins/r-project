@@ -38,24 +38,13 @@ function(topic, package = NULL, lib.loc = NULL, local = FALSE,
     }
     pkg <- basename(packagePath)
     lib <- dirname(packagePath)
-    encoding <- NULL
-    ## first step, on-demand conversion, then look for (possibly zipped) file
-    RdDB <- file.path(packagePath, "help", pkg)
-    if(file.exists(paste(RdDB, "rdx", sep="."))) {
-        zfile <- tempfile("Rex")
-        encoding <- "UTF-8"
-        ## FIXME: use outputEncoding="" ?
-        ## FUTURE: we already have the parsed file ....
-        tools::Rd2ex(tools:::fetchRdDB(RdDB, sub("\\.R$", "", basename(file))),
-                     zfile)
-    } else
-        zfile <- zip.file.extract(file, "Rex.zip")
-    if(!file.exists(zfile)) {
-        warning(gettextf("'%s' has a help file but no examples", topic),
-                domain = NA)
-        return(invisible())
-    }
+    zfile <- zip.file.extract(file, "Rex.zip")
     if(zfile != file) on.exit(unlink(zfile))
+    if(!file.exists(zfile)) {
+	warning(gettextf("'%s' has a help file but no examples file", topic),
+		domain = NA)
+	return(invisible())
+    }
     if(pkg != "base")
 	library(pkg, lib.loc = lib, character.only = TRUE)
     if(!is.logical(setRNG) || setRNG) {
@@ -74,17 +63,15 @@ function(topic, package = NULL, lib.loc = NULL, local = FALSE,
 	    set.seed(1)
 	} else eval(setRNG)
     }
+    encoding <-
+	if(length(enc <- localeToCharset()) > 1L)
+	    c(enc[-length(enc)], "latin1")
+	else ""
+    ## peek at the file, but note we can't usefully translate to C.
     zz <- readLines(zfile, n=1L)
-    if(is.null(encoding)) {
-        encoding <-
-            if(length(enc <- localeToCharset()) > 1L)
-                c(enc[-length(enc)], "latin1")
-            else ""
-        ## peek at the file, but note we can't usefully translate to C.
-        if(length(grep("^### Encoding: ", zz))  &&
-           !identical(Sys.getlocale("LC_CTYPE"), "C"))
-            encoding <- substring(zz, 15L)
-    }
+    if(length(grep("^### Encoding: ", zz))  &&
+       !identical(Sys.getlocale("LC_CTYPE"), "C"))
+	encoding <- substring(zz, 15L)
     skips <- 0L
     if (echo) {
 	## skip over header

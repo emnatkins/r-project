@@ -4,6 +4,7 @@
 % Distributed under GPL 2 or later
 
 \name{help}
+\Rdversion{1.1}
 \alias{help}
 \alias{?}
 \title{Documentation}
@@ -134,8 +135,8 @@ type?topic
   (\emph{via} \code{getOption("papersize")}) and \env{R_RD4DVI}
 
   If LaTeX versions of help pages were not built at the installation of
-  the package, the \code{print} method will convert the \file{Rd}
-  sources if these are available.
+  the package, the \code{print} method will ask if conversion with
+  \code{R CMD Rdconv} (which requires Perl) should be attempted.
 }
 \note{
   Unless \code{lib.loc} is specified explicitly, the loaded packages are

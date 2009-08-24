@@ -1,6 +1,6 @@
 % File src/library/tools/man/writePACKAGES.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2009 R Core Development Team
+% Copyright 1995-2008 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{write_PACKAGES}
@@ -13,8 +13,7 @@
 \usage{
 write_PACKAGES(dir = ".", fields = NULL,
                type = c("source", "mac.binary", "win.binary"),
-               verbose = FALSE, unpacked = FALSE, subdirs = FALSE,
-               latestOnly = TRUE)
+               verbose = FALSE, unpacked = FALSE, subdirs = FALSE)
 }
 \arguments{
   \item{dir}{Character vector describing the location of the repository
@@ -26,12 +25,9 @@ write_PACKAGES(dir = ".", fields = NULL,
     \file{PACKAGES} and \file{PACKAGES.gz} files in addition to the
     default ones, or \code{NULL} (default).  The default corresponds to
     the fields needed by \code{\link{available.packages}}:
-    \code{"Package"}, \code{"Version"}, \code{"Priority"},
-    \code{"Bundle"}, \code{"Contains"},
-    \code{"Depends"}, \code{"Imports"}, \code{"LinkingTo"},
-    \code{"Suggests"}, \code{"Enhances"},
-    \code{"OS_type"}, and
-    \code{"License"}.
+    \code{"Package"}, \code{"Bundle"}, \code{"Priority"},
+    \code{"Version"}, \code{"Depends"}, \code{"Suggests"},
+    \code{"Imports"} and \code{"Contains"}.
   }
   \item{type}{
     Type of packages: currently source \file{.tar.gz} archives, and Mac
@@ -45,16 +41,8 @@ write_PACKAGES(dir = ".", fields = NULL,
     available in unpacked form or not (default).}
   \item{subdirs}{either logical (to indicate if subdirectories should be
     included) or a character vector of subdirectories to include.}
-  \item{latestOnly}{logical: if multiple versions of a package are
-    available should only the latest version be included?}
 }
 \details{
-  Including non-latest versions of packages is only useful if they have
-  less constraining version requirements, so for example
-  \code{latestOnly = FALSE} could be used for a source repository when
-  \samp{foo\_1.0} depends on \samp{R >= 2.10.0} but \samp{foo\_0.9} is
-  available which depends on \samp{R >= 2.7.0}.
-  
   \code{type = "win.binary"} uses \code{\link{unz}} connections to read
   all \file{DESCRIPTION} files contained in the (zipped) binary packages
   for Windows in the given directory \code{dir}, and builds
@@ -84,7 +72,7 @@ write_PACKAGES(dir = ".", fields = NULL,
 \examples{
 \dontrun{
 write_PACKAGES("c:/myFolder/myRepository")  # on Windows
-write_PACKAGES("/pub/RWin/bin/windows/contrib/2.9",
+write_PACKAGES("/pub/RWin/bin/windows/contrib/2.1",
                type="win.binary")  # on Linux
 }}
 \keyword{file}

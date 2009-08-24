@@ -19,11 +19,11 @@ getDependencies <-
 {
     oneLib <- length(lib) == 1L
     if(is.logical(dependencies) && is.na(dependencies))
-        dependencies <- c("Depends", "Imports", "LinkingTo")
-    depends <-
-        is.character(dependencies) || (is.logical(dependencies) && dependencies)
+        dependencies <- c("Depends", "Imports")
+    depends <- is.character(dependencies) ||
+    (is.logical(dependencies) && dependencies)
     if(depends && is.logical(dependencies))
-        dependencies <-  c("Depends", "Imports", "LinkingTo", "Suggests")
+        dependencies <-  c("Depends", "Imports", "Suggests")
     if(depends && !oneLib) {
         warning("Do not know which element of 'lib' to install dependencies into\nskipping dependencies")
         depends <- FALSE
@@ -112,14 +112,33 @@ install.packages <-
         clean <- "--clean"
     if(is.logical(dependencies) && is.na(dependencies))
         dependencies <- if(!missing(lib) && length(lib) > 1L) FALSE
-        else c("Depends", "Imports", "LinkingTo")
+        else c("Depends", "Imports")
 
-    ## Compute the configuration arguments for a given package.
-    ## If configure.args is an unnamed character vector, use that.
-    ## If it is named, match the pkg name to the names of the character vector
-    ## and if we get a match, use that element.
-    ## Similarly, configure.args is a list(), match pkg to the names pkg and
-    ## use that element, collapsing it into a single string.
+    explode_bundles <- function(a)
+    {
+        contains <- .find_bundles(a, FALSE)
+        extras <- unlist(lapply(names(contains), function(x)
+                                paste(contains[[x]], " (", x, ")", sep="")))
+        sort(as.vector(c(a[, 1L], extras)))
+    }
+
+    implode_bundles <- function(pkgs)
+    {
+    	bundled <- grep(".* \\(.*\\)$", pkgs)
+    	if (length(bundled)) {
+    	    bundles <- unique(gsub(".* \\((.*)\\)$", "\\1", pkgs[bundled]))
+    	    pkgs <- c(pkgs[-bundled], bundles)
+    	}
+    	pkgs
+    }
+
+
+      # Compute the configuration arguments for a given package.
+      # If configure.args is an unnamed character vector, use that.
+      # If it is named, match the pkg name to the names of the character vector
+      # and if we get a match, use that element.
+      # Similarly, configure.args is a list(), match pkg to the names pkg and
+      # use that element, collapsing it into a single string.
 
     getConfigureArgs <-  function(pkg)
     {
@@ -172,7 +191,6 @@ install.packages <-
     }
 
     if(missing(pkgs) || !length(pkgs)) {
-        ## if no packages were specified, use a menu
 	if(.Platform$OS.type == "windows" || .Platform$GUI == "AQUA") {
 	    SelectList <- select.list
 	} else if(.Platform$OS.type == "unix" &&
@@ -185,25 +203,6 @@ install.packages <-
 	    available <- available.packages(contriburl = contriburl,
 					    method = method)
 	if(NROW(available)) {
-            explode_bundles <- function(a)
-            {
-                contains <- .find_bundles(a, FALSE)
-                extras <- unlist(lapply(names(contains), function(x)
-                                        paste(contains[[x]], " (", x, ")", sep="")))
-                sort(as.vector(c(a[, 1L], extras)))
-            }
-
-            implode_bundles <- function(pkgs)
-            {
-                bundled <- grep(".* \\(.*\\)$", pkgs)
-                if (length(bundled)) {
-                    bundles <- unique(gsub(".* \\((.*)\\)$", "\\1",
-                                           pkgs[bundled]))
-                    pkgs <- c(pkgs[-bundled], bundles)
-                }
-                pkgs
-            }
-
 	    a <- explode_bundles(available)
 	    pkgs <- implode_bundles(SelectList(a, multiple = TRUE,
 					       title = "Packages"))
@@ -316,8 +315,6 @@ install.packages <-
 
     ## we need to ensure that R CMD INSTALL runs with the same
     ## library trees as this session.
-    ## FIXME: At least on Windows, either run sub-R directly (to avoid sh)
-    ## or run the install in the current process.
     libpath <- .libPaths()
     libpath <- libpath[! libpath %in% .Library]
     if(length(libpath)) libpath <- paste(libpath, collapse=.Platform$path.sep)
@@ -369,7 +366,7 @@ install.packages <-
                                    contriburl = contriburl, method = method,
                                    type = "source", ...)
 
-    ## at this point 'pkgs' may contain duplicates,
+    ## at this point pkgs may contain duplicates,
     ## the same pkg in different libs
     if(length(foundpkgs)) {
         update <- unique(cbind(pkgs, lib))

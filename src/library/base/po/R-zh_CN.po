@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-08-06 09:09\n"
+"POT-Creation-Date: 2009-06-14 08:17\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -230,8 +230,7 @@ msgstr "'row.names'里不允许有遗漏值"
 msgid "invalid 'dimnames' given for data frame"
 msgstr "数据框的'dimnames'给得不对"
 
-#, fuzzy
-msgid "cannot coerce class %s into a data.frame"
+msgid "cannot coerce class \"%s\" into a data.frame"
 msgstr "不能把\"%s\"类别强迫变成数据框"
 
 msgid "invalid 'row.names', length %d for a data frame with %d rows"
@@ -273,23 +272,11 @@ msgstr "行名长度不对"
 msgid "row names were found from a short variable and have been discarded"
 msgstr "短变数里找到了行名，因此不用"
 
-#, fuzzy
-msgid "named arguments other than 'drop' are discouraged"
-msgstr "'row.names'里不允许有遗漏值"
-
 msgid "drop argument will be ignored"
 msgstr "忽略drop变元"
 
 msgid "undefined columns selected"
 msgstr "选择了未定义的列"
-
-#, fuzzy
-msgid "named arguments other than 'exact' are discouraged"
-msgstr "'row.names'里不允许有遗漏值"
-
-#, fuzzy
-msgid "named arguments are discouraged"
-msgstr "不允许有重复的'row.names'"
 
 msgid "rhs is the wrong length for indexing by a logical matrix"
 msgstr "用逻辑矩阵做指标的话等式右手的长度不对"
@@ -590,6 +577,9 @@ msgstr "零乘零的矩阵"
 msgid "non-square matrix in 'eigen'"
 msgstr "eigen里的矩阵不是正方形的"
 
+msgid "numeric or complex values required in 'eigen'"
+msgstr "'eigen'必需用数值或复数值"
+
 msgid "'ch' returned code %d in 'eigen'"
 msgstr "'eigen'里'ch'回覆了代码%d"
 
@@ -724,9 +714,6 @@ msgstr "匹配位距的組成部分不存在，因此忽略不计"
 
 msgid "'max.distance' components must be non-negative"
 msgstr "'max.distance'的组成部分不能有负值"
-
-msgid "norm '%s' currently always uses exact = FALSE"
-msgstr ""
 
 msgid "triangular matrix should be square"
 msgstr "三角矩阵必需的正方形的"
@@ -1002,6 +989,9 @@ msgstr "需要的是一个单独的S4对象逻辑值"
 
 msgid "invalid to change the storage mode of a factor"
 msgstr "不能改变因子的存储状态"
+
+msgid "package '%s' has been merged into '%s'"
+msgstr "程辑包'%s'已经被合并到'%s'"
 
 msgid "'%s' is not an exported object from 'namespace:%s'"
 msgstr "'%s'不是'namespace:%s'内的出口对象："
@@ -1372,6 +1362,9 @@ msgstr "'x'和'y'的长度必需一致"
 msgid "incorrect values of 'indent' and 'width'"
 msgstr "'indent'和'width'的值有错"
 
+msgid "argument to 'svd' must be numeric"
+msgstr "'svd'的变元必需是数值"
+
 msgid "'nv' must be 0 or ncol(x)"
 msgstr "'nv'的值必需为零或为ncol(x)"
 
@@ -1547,15 +1540,6 @@ msgstr[0] "S3方法%s在NAMESPACE里有声明但不存在"
 msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "警告信息：\n"
-
-#~ msgid "numeric or complex values required in 'eigen'"
-#~ msgstr "'eigen'必需用数值或复数值"
-
-#~ msgid "argument to 'svd' must be numeric"
-#~ msgstr "'svd'的变元必需是数值"
-
-#~ msgid "package '%s' has been merged into '%s'"
-#~ msgstr "程辑包'%s'已经被合并到'%s'"
 
 #~ msgid "package 'lqs' has been moved back to package 'MASS'"
 #~ msgstr "程辑包'lqs'已经被合并到程辑包'MASS'里去了"

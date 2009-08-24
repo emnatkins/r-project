@@ -4,6 +4,7 @@
 % Distributed under GPL 2 or later
 
 \name{xgettext}
+\Rdversion{1.1}
 \alias{xgettext}
 \alias{xngettext}
 \alias{xgettext2pot}

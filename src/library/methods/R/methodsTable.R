@@ -95,7 +95,6 @@
       remove(list = what, envir = table)
     ## else warning?
   }
-  NULL
 }
 
 
@@ -195,7 +194,6 @@
       remove(list=what, envir = table)
     }
   }
-  NULL
 }
 
 ### the tag associated with a method signature.
@@ -623,7 +621,6 @@
                 .getMethodsTable(gpDef) # force initialization w. group methods
         }
     }
-    NULL
 }
 
 .updateMethodsInTable <- function(generic, where, attach) {
@@ -674,7 +671,6 @@
         for(what in direct)
           assign(what, get(what, envir = mtable), envir = allTable)
     }
-    NULL
 }
 
 ## In the following, consider separate "compute" and "print" functions/methods:
@@ -1177,7 +1173,7 @@ testInheritedMethods <- function(f, signatures, test = TRUE,  virtual = FALSE,
       ok <- match(colnames(sigs), "from", 0) > 0
     else
       ok <- rep(TRUE, ncol(sigs))
-    for(j in seq_len(ncol(sigs))) {
+    for(j in seq(length = ncol(sigs))) {
       classesj <-unique(sigs[,j])
       .undefClasses <- character()
       subclasses <- .relevantClasses(classesj, !virtual, where, ok[[j]])
@@ -1211,7 +1207,7 @@ testInheritedMethods <- function(f, signatures, test = TRUE,  virtual = FALSE,
        && ncol(signatures) <= length(f@signature)) {
       ## turn signatures back into a list
       siglist <- vector("list", nrow(signatures))
-      for(i in seq_len(nrow(signatures)))
+      for(i in seq(length = nrow(signatures)))
         siglist[[i]] <- signatures[i,]
       signatures <- siglist
   }

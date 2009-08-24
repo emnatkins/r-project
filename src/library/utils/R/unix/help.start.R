@@ -94,8 +94,12 @@ make.packages.html <- function(lib.loc=.libPaths(), packages = TRUE)
             warning("cannot create HTML search index")
             return(FALSE)
         }
-        file.append(f.tg,
-                    file.path(R.home("doc"), "html", "packages-head-utf8.html"))
+        ## First we need to fathom out what encoding to use.
+        ## For now we assume that if we have iconv then UTF-8 is OK.
+        useUTF8 <- capabilities("iconv")
+        file.append(f.tg, file.path(R.home("doc"), "html",
+                                    if(useUTF8) "packages-head-utf8.html"
+                                    else "packages-head.html"))
         out <- file(f.tg, open="a")
         search <- file(searchindex, open="w")
     }
@@ -119,7 +123,7 @@ make.packages.html <- function(lib.loc=.libPaths(), packages = TRUE)
             file.symlink(from, to)
             if(!packages) next
             title <- packageDescription(i, lib.loc = lib, fields = "Title",
-                                        encoding = "UTF-8")
+                                        encoding = ifelse(useUTF8,"UTF-8",""))
             if (is.na(title)) title <- "-- Title is missing --"
             cat('<tr align="left" valign="top">\n',
                 '<td width="25%"><a href="../../library/', link,

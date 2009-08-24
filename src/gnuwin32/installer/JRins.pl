@@ -175,8 +175,11 @@ Name: "manuals"; Description: "On-line PDF Manuals"; Types: user full custom
 Name: "manuals/basic"; Description: "Basic Manuals"; Types: user full custom; Flags: dontinheritcheck
 Name: "manuals/technical"; Description: "Technical Manuals"; Types: full custom; Flags: dontinheritcheck
 Name: "manuals/refman"; Description: "PDF help pages (reference manual)"; Types: full custom; Flags: dontinheritcheck
+Name: "devel"; Description: "Source Package Installation Files"; Types: user full custom
 Name: "libdocs"; Description: "Docs for Package grid"; Types: user full custom
 Name: "trans"; Description: "Message Translations"; Types: user full custom
+Name: "latex"; Description: "Latex Help Files"; Types: full custom
+Name: "Rd"; Description: "Source Files for Help Pages"; Types: full custom
 Name: "tests"; Description: "Test files"; Types: full custom
 
 
@@ -379,6 +382,23 @@ end;
 [Files]  
 END
 
+my %develfiles=("doc\\html\\logo.jpg" => 1,
+		"doc\\COPYING.LIB" => 1,
+		"bin\\INSTALL.sh" => 1,
+		"bin\\SHLIB.sh" => 1,
+		"bin\\build" => 1,
+		"bin\\check" => 1,
+		"bin\\config.sh" => 1,
+		"bin\\Rd2dvi.sh" => 1,
+		"bin\\Rd2txt" => 1,
+		"bin\\Rdconv" => 1,
+		"bin\\Rdiff.sh" => 1,
+		"bin\\Rprof" => 1,
+		"bin\\Sd2Rd" => 1,
+		"bin\\Stangle.sh" => 1,
+		"bin\\Sweave.sh" => 1,
+		"etc\\Makeconf" => 1);
+		
 $path="${SRCDIR}";chdir($path);
 find(\&listFiles, ".");
 
@@ -398,8 +418,8 @@ sub listFiles {
 	if ($_ eq "bin\\Rchtml.dll" 
 	    || m/^library\\[^\\]*\\chtml/) {
 	    $component = "chtml";
-# 	} elsif ($_ eq "doc\\html\\logo.jpg") {
-# 	    $component = "html devel";
+	} elsif ($_ eq "doc\\html\\logo.jpg") {
+	    $component = "html devel";
 	} elsif ($_ eq "doc\\manual\\R-FAQ.html"
 		 || $_ eq "doc\\html\\rw-FAQ.html"
 		 || $_ eq "share\\texmf\\Sweave.sty") {
@@ -425,6 +445,8 @@ sub listFiles {
 	    $component = "manuals";
 	} elsif (m/^library\\[^\\]*\\latex/) {
 	    	$component = "latex";
+	} elsif (m/^library\\[^\\]*\\man/) {
+	    	$component = "Rd";
 	} elsif (m/^library\\[^\\]*\\tests/) {
 	    	$component = "tests";
 	} elsif (m/^tests/) {
@@ -433,18 +455,27 @@ sub listFiles {
 	    $component = "tcl/chm";
 	} elsif (m/^Tcl/) {
 	    $component = "tcl";
-# 	} elsif (exists($develfiles{$_})
-# 		 || m/^doc\\KEYWORDS/
-# 		 || m/^src\\gnuwin32/
-# 		 || m/^include/
-# 		 || m/^src\\library\\windlgs/
-# 		 || m/^share\\make/
-# 		 || m/^share\\perl/
-# 		 || m/^share\\R/
-# 		 || m/^share\\texmf/
-# 		 || m/^lib\\/) {
-# 	    $component = "devel";
-	} elsif (m/^library\\grid\\doc/) {
+	} elsif (exists($develfiles{$_})
+		 || m/^doc\\KEYWORDS/
+		 || m/^src\\gnuwin32/
+		 || m/^include/
+		 || m/^src\\library\\windlgs/
+		 || m/^share\\make/
+		 || m/^share\\perl/
+		 || m/^share\\R/
+		 || m/^share\\sh/
+		 || m/^share\\texmf/
+# 		 || m/^bin\\build/
+# 		 || m/^bin\\check/
+# 		 || m/^bin\\Rd2dvi.sh/
+# 		 || m/^bin\\Rdconv/
+# 		 || m/^bin\\Rdiff.sh/
+# 		 || m/^bin\\Rprof/
+# 		 || m/^bin\\Sd2Rd/
+		 || m/^lib\\/) {
+	    $component = "devel";
+	} elsif (m/^library\\grid\\doc/
+		 || $_ eq "library\\survival\\survival.ps.gz") {
 	    $component = "libdocs";
 	} elsif ($_ eq "modules\\iconv.dll") {
 	    $component = "main";

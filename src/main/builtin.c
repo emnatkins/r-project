@@ -74,7 +74,7 @@ SEXP attribute_hidden do_delayed(SEXP call, SEXP op, SEXP args, SEXP rho)
 	eenv = R_BaseEnv;
     } else
     if (!isEnvironment(eenv))
-	errorcall(call, _("invalid '%s' argument"), "eval.env");
+	errorcall(call, R_MSG_IA);
 
     args = CDR(args);
     aenv = CAR(args);
@@ -83,7 +83,7 @@ SEXP attribute_hidden do_delayed(SEXP call, SEXP op, SEXP args, SEXP rho)
 	aenv = R_BaseEnv;
     } else
     if (!isEnvironment(aenv))
-	errorcall(call, _("invalid '%s' argument"), "assign.env");
+	errorcall(call, R_MSG_IA);
 
     defineVar(name, mkPROMISE(expr, eenv), aenv);
     return R_NilValue;
@@ -102,9 +102,9 @@ SEXP attribute_hidden do_makelazy(SEXP call, SEXP op, SEXP args, SEXP rho)
     values = CAR(args); args = CDR(args);
     expr = CAR(args); args = CDR(args);
     eenv = CAR(args); args = CDR(args);
-    if (!isEnvironment(eenv)) error(_("invalid '%s' argument"), "eval.env");
+    if (!isEnvironment(eenv)) error(R_MSG_IA);
     aenv = CAR(args);
-    if (!isEnvironment(aenv)) error(_("invalid '%s' argument"), "assign.env");
+    if (!isEnvironment(aenv)) error(R_MSG_IA);
 
     for(i = 0; i < LENGTH(names); i++) {
 	SEXP name = install(CHAR(STRING_ELT(names, i)));
@@ -372,7 +372,7 @@ SEXP attribute_hidden do_envirName(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    ans = ScalarString(STRING_ELT(R_PackageEnvName(env), 0));
 	else if (R_IsNamespaceEnv(env))
 	    ans = ScalarString(STRING_ELT(R_NamespaceEnvSpec(env), 0));
-	else if (!isNull(res = getAttrib(env, R_NameSymbol))) ans = res;
+	else if (!isNull(res = getAttrib(env, install("name")))) ans = res;
     }
     return ans;
 }

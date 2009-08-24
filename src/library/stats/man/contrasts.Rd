@@ -11,15 +11,12 @@
   Set and view the contrasts associated with a factor.
 }
 \usage{
-contrasts(x, contrasts = TRUE, sparse = FALSE)
+contrasts(x, contrasts = TRUE)
 contrasts(x, how.many) <- value
 }
 \arguments{
   \item{x}{a factor or a logical variable.}
   \item{contrasts}{logical.  See \sQuote{Details}.}
-  \item{sparse}{logical indicating if the result should be sparse
-    (of class \code{\link[Matrix:dgCMatrix-class]{dgCMatrix}}), using
-    package \pkg{Matrix}.}
   \item{how.many}{How many contrasts should be made. Defaults to one
     less than the number of levels of \code{x}.  This need not be the
     same as the number of columns of \code{value}.}
@@ -40,9 +37,8 @@ contrasts(x, how.many) <- value
   it is passed to a contrasts function such as
   \code{\link{contr.treatment}} and if \code{contrasts = FALSE}
   an identity matrix is returned.  Suitable functions have a first
-  argument which is the character vector of levels, a named argument
-  \code{contrasts} (always called with \code{contrasts = TRUE}) and
-  optionally from \R 2.10.0 a logical argument \code{sparse}.
+  argument which is the character vector of levels and a named argument
+  \code{contrasts} (always called with \code{contrasts = TRUE}).
 
   If \code{value} supplies more than \code{how.many} contrasts, the
   first \code{how.many} are used.  If too few are supplied, a suitable

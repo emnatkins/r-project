@@ -191,9 +191,6 @@ InputHandler * initStdinHandler(void)
   This sets the global variable InputHandlers if it is not already set.
   In the standard interactive case, this will have been set to be the
   BasicInputHandler object.
-  Returns the newly created handler which can be used in a call to
-  removeInputHandler (prior to R 2.10.0 it returned the handler root [never
-  used] which made it impossible to identify the new handler).
  */
 InputHandler *
 addInputHandler(InputHandler *handlers, int fd, InputHandlerProc handler,
@@ -205,6 +202,7 @@ addInputHandler(InputHandler *handlers, int fd, InputHandlerProc handler,
     input->activity = activity;
     input->fileDescriptor = fd;
     input->handler = handler;
+    input->userData = (void*) NULL;
 
     tmp = handlers;
 
@@ -219,7 +217,7 @@ addInputHandler(InputHandler *handlers, int fd, InputHandlerProc handler,
     }
     tmp->next = input;
 
-    return(input);
+    return(handlers);
 }
 
 /*
@@ -378,7 +376,7 @@ void R_runHandlers(InputHandler *handlers, fd_set *readMask)
 	    next = tmp->next;
 	    if(FD_ISSET(tmp->fileDescriptor, readMask)
 	       && tmp->handler != NULL)
-		tmp->handler((void*) tmp->userData);
+		tmp->handler(tmp->userData);
 	    tmp = next;
 	}
 }
@@ -839,6 +837,7 @@ Rstd_ReadConsole(const char *prompt, unsigned char *buf, int len,
 	}
 	/* translate if necessary */
 	if(strlen(R_StdinEnc) && strcmp(R_StdinEnc, "native.enc")) {
+#if defined(HAVE_ICONV) && defined(ICONV_LATIN1)
 	    size_t res, inb = strlen((char *)buf), onb = len;
 	    /* NB: this is somewhat dangerous.  R's main loop and
 	       scan will not call it with a larger value, but
@@ -857,6 +856,12 @@ Rstd_ReadConsole(const char *prompt, unsigned char *buf, int len,
 	    if(err) printf(_("<ERROR: re-encoding failure from encoding '%s'>\n"),
 			   R_StdinEnc);
 	    strncpy((char *)buf, obuf, len);
+#else
+	    if(!cd) {
+		warning(_("re-encoding is not available on this system"));
+		cd = (void *)1;
+	    }
+#endif
 	}
 /* according to system.txt, should be terminated in \n, so check this
    at eof and error */
@@ -1051,12 +1056,9 @@ void attribute_hidden Rstd_CleanUp(SA_TYPE saveact, int status, int runLast)
 #ifdef HAVE_LIBREADLINE
 # ifdef HAVE_READLINE_HISTORY_H
 	if(R_Interactive && UsingReadline) {
-	    int err;
 	    R_setupHistory(); /* re-read the history size and filename */
 	    stifle_history(R_HistorySize);
-	    err = write_history(R_HistoryFile);
-	    if(err) warning(_("problem in saving the history file '%s'"), 
-			    R_HistoryFile);
+	    write_history(R_HistoryFile);
 	}
 # endif /* HAVE_READLINE_HISTORY_H */
 #endif /* HAVE_LIBREADLINE */
@@ -1221,15 +1223,10 @@ void attribute_hidden Rstd_savehistory(SEXP call, SEXP op, SEXP args, SEXP env)
     strcpy(file, p);
 #if defined(HAVE_LIBREADLINE) && defined(HAVE_READLINE_HISTORY_H)
     if(R_Interactive && UsingReadline) {
-	int err;
-	err = write_history(file);
-	if(err) error(_("problem in saving the history file '%s'"), file);
-	/* Note that q() uses stifle_history, but here we do not want
-	 * to truncate the active history when saving during a session */
+	write_history(file);
 #ifdef HAVE_HISTORY_TRUNCATE_FILE
 	R_setupHistory(); /* re-read the history size */
-	err = history_truncate_file(file, R_HistorySize);
-	if(err) warning(_("problem in truncating the history file"));
+	history_truncate_file(file, R_HistorySize);
 #endif
     } else errorcall(call, _("no history available to save"));
 #else

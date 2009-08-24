@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.8.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-08-12 10:17\n"
+"POT-Creation-Date: 2009-06-14 08:29\n"
 "PO-Revision-Date: 2009-03-28 23:43-0500\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -98,17 +98,17 @@ msgstr "Слоты для класса '%s'"
 msgid "name"
 msgstr "имя"
 
-msgid "Data codoc mismatches from documentation object '%s':"
-msgstr "Несоответствия структуры данных в объекте документации '%s':"
-
-msgid "Variables in data frame '%s'"
-msgstr "переменные в таблице данных '%s'"
-
 msgid "code"
 msgstr "код"
 
 msgid "docs"
 msgstr "документы"
+
+msgid "Data codoc mismatches from documentation object '%s':"
+msgstr "Несоответствия структуры данных в объекте документации '%s':"
+
+msgid "Variables in data frame '%s'"
+msgstr "переменные в таблице данных '%s'"
 
 msgid "Undocumented arguments in documentation object '%s'"
 msgstr "В объекте документации '%s' есть недокументированные аргументы "
@@ -261,6 +261,15 @@ msgstr "Rd-файлы с двойным псевдонимом '%s':"
 
 msgid "Rd files with empty sections:"
 msgstr "Rd-файлы с пустыми разделами:"
+
+msgid "Found invalid multi-byte character data."
+msgstr "Найдены неправильные многобайтные данные."
+
+msgid "Cannot re-encode because iconv is not available."
+msgstr "Не могу перекодировать, потому что недоступен 'iconv'."
+
+msgid "Try running R in a single-byte locale."
+msgstr "Попытка запустить R на однобайтной локали."
 
 msgid "Malformed package name"
 msgstr "Плохое имя пакета"
@@ -418,6 +427,12 @@ msgstr "Общие функции без методов в"
 msgid ":"
 msgstr ":"
 
+msgid "argument 'lines' must be a character vector"
+msgstr "аргумент 'lines' должен быть текстовым вектором"
+
+msgid "encoding '%s' is not portable"
+msgstr "кодировка '%s' не переносима"
+
 msgid "argument 'file' must be a character string or connection"
 msgstr "аргумент 'file' должен быть текстовой строкой  или соединением"
 
@@ -442,22 +457,6 @@ msgstr "аргумент 'outFile' должен быть текстовой строкой или соединением"
 
 msgid "directory '%s' does not contain Rd objects"
 msgstr "папка '%s' не содержит Rd-объектов"
-
-#, fuzzy
-msgid "you must specify 'dir' or 'files'"
-msgstr "Вы должны задать 'package', 'dir' или 'file'"
-
-msgid "cannot deal with Rd objects with missing/empty names"
-msgstr "не могу работать с Rd-объектами в пропущенными/пустыми именами"
-
-msgid "missing/empty \\name field in Rd file(s)"
-msgstr "пропущенное/пустое поле \\имя Rd-файлы"
-
-msgid "argument 'lines' must be a character vector"
-msgstr "аргумент 'lines' должен быть текстовым вектором"
-
-msgid "encoding '%s' is not portable"
-msgstr "кодировка '%s' не переносима"
 
 msgid "unterminated section '%s'"
 msgstr "незаконченный раздел '%s'"
@@ -492,16 +491,17 @@ msgstr "В Rd найдена ошибка синтаксиса"
 msgid "Syntax error in documentation object '%s':"
 msgstr "Синтаксическая ошибка в объекте документации '%s':"
 
+msgid "cannot deal with Rd objects with missing/empty names"
+msgstr "не могу работать с Rd-объектами в пропущенными/пустыми именами"
+
+msgid "missing/empty \\name field in Rd file(s)"
+msgstr "пропущенное/пустое поле \\имя Rd-файлы"
+
 msgid "should not get here"
 msgstr "сюда не должно дойти"
 
-#, fuzzy
-msgid "checkRd is designed for Rd version 2 or higher."
+msgid "Rd2HTML is designed for Rd version 2 or higher."
 msgstr "Rd2HTML разработан для Rd версии 2 или выше."
-
-#, fuzzy
-msgid "invalid value for '%s' : %s"
-msgstr "Неправильные указатели файла лицензии: %s"
 
 msgid "more than one \\examples section, using the first"
 msgstr "более чем одна \\секция примеров, использую первую"
@@ -617,11 +617,32 @@ msgstr "не могу прочитать индексную информацию из файла '%s'"
 msgid "ERROR:"
 msgstr "ОШИБКА:"
 
+msgid "for package"
+msgstr "для пакета"
+
+msgid "incorrect Contains metadata for bundle"
+msgstr "неправильное Содержание метаданных для связки пакетов"
+
+msgid ": there is no package '"
+msgstr ": нет пакета '"
+
+msgid "skipping installation of bundle"
+msgstr "пропускаю установку связки пакетов"
+
+msgid "problem installing per-package DESCRIPTION files"
+msgstr "проблема при установке пакетных DESCRIPTION файлов"
+
+msgid "ERROR unable to create"
+msgstr "ОШИБКА: не могу создать"
+
 msgid "packaged installation of"
 msgstr "пакетная установка"
 
 msgid "as"
 msgstr "как"
+
+msgid ".gz"
+msgstr ".gz"
 
 msgid ""
 "'cleanup' exists but is not executable -- see the 'R Installation and "
@@ -629,6 +650,33 @@ msgid ""
 msgstr ""
 "'cleanup' есть, но невыполним  -- смотрите 'R Installation and Adminstration "
 "Manual'"
+
+msgid "about to run"
+msgstr "почти готов к запуску"
+
+msgid "R CMD SHLIB"
+msgstr "R CMD SHLIB"
+
+msgid "Using auto-selected zip options '"
+msgstr "Использую автоматически выбранные опции zip '"
+
+msgid "--use-zip-data"
+msgstr "--use-zip-data"
+
+msgid "--use-zip-help"
+msgstr "--use-zip-help"
+
+msgid "**********************************************"
+msgstr "**********************************************"
+
+msgid "WARNING: this package has a configure script"
+msgstr "ПРЕДУПРЕЖДЕНИЕ: у этого пакета есть конфигурационный скрипт"
+
+msgid "It probably needs manual configuration"
+msgstr "Возможно, нужна ручная настройка"
+
+msgid "configure command:"
+msgstr "комманда configure:"
 
 msgid ""
 "R include directory is empty -- perhaps need to install R-devel.rpm or "
@@ -651,6 +699,21 @@ msgstr "не найдено файлов исходников"
 msgid "empty 'data' directory"
 msgstr "пустая папка 'data'"
 
+msgid "use of file 'install.R' is no longer supported"
+msgstr "использование файла 'install.R' больше не поддерживается"
+
+msgid "use of file 'R_PROFILE.R' is no longer supported"
+msgstr "использование файла 'R_PROFILE.R' больше не поддерживается"
+
+msgid "field 'SaveImage' is defunct: please remove it"
+msgstr "поле 'SaveImage\" больше не существует: удалите его"
+
+msgid "cannot create temporary directory"
+msgstr "Не могу создать врЕменную"
+
+msgid "Use of --with-package-versions is defunct"
+msgstr "Использование --with-package-versions больше не требуется"
+
 msgid "--auto-zip' is for Windows only"
 msgstr "--auto-zip' только для Windows"
 
@@ -660,8 +723,17 @@ msgstr "-l опция без значения"
 msgid "Warning: unknown option"
 msgstr "Предупреждение: неизвестная опция"
 
-msgid "cannot create temporary directory"
-msgstr "Не могу создать врЕменную"
+msgid "processing"
+msgstr "обрабытываю"
+
+msgid "a file"
+msgstr "файл"
+
+msgid "unknown package layout"
+msgstr "неизвестная структура пакета"
+
+msgid "a directory"
+msgstr "папка"
 
 msgid "invalid package"
 msgstr "неправильный пакет"
@@ -703,6 +775,30 @@ msgstr "-o опция без значения"
 msgid "Converting Rd files to LaTeX ..."
 msgstr "Конвертирую  Rd файлы в LaTeX ..."
 
+msgid "this package does not have either a"
+msgstr "этот пакет не имеет либо"
+
+msgid "latex"
+msgstr "LaTeX"
+
+msgid "or a"
+msgstr "или"
+
+msgid "man"
+msgstr "ман-страницу"
+
+msgid "directory"
+msgstr "папка"
+
+msgid "no validly-named files in the"
+msgstr "нет правильно именованных файлов в"
+
+msgid "file"
+msgstr "файл"
+
+msgid "lacks a header: skipping"
+msgstr "отсуствует заголовок: пропускаю"
+
 msgid "there are no help pages in this package"
 msgstr "в пакете нет файлов помощи"
 
@@ -716,16 +812,8 @@ msgstr "в файле"
 msgid "there is a 'man' dir but no help pages in this package"
 msgstr "в пакете нет файлов помощи"
 
-#, fuzzy
-msgid "-t option without value"
-msgstr "-l опция без значения"
-
-msgid "exactly one Rd file must be specified"
-msgstr ""
-
-#, fuzzy
-msgid "no 'type' specified"
-msgstr "ОШИБКА: пакет не определен"
+msgid "problem in converting"
+msgstr "проблема конвертирования"
 
 msgid "Bundle package:"
 msgstr "Связка пакетов:"
@@ -760,11 +848,6 @@ msgstr "пакет не содержит кода R"
 msgid "package seems to be using lazy loading already"
 msgstr "кажется, пакет уже использует ленивую загрузку данных"
 
-msgid ""
-"Cannot process chunk/lines:\n"
-"%s"
-msgstr ""
-
 msgid "cannot update HTML package index"
 msgstr "не могу обновить HTML-индекс пакетов"
 
@@ -779,6 +862,9 @@ msgstr "несколько \\строк кодировок в файле"
 
 msgid "found encoding"
 msgstr "найдена кодировка"
+
+msgid "non-UTF-8 multibyte locales are not supported -- reencoding to UTF-8"
+msgstr "не-UTF-8 многобайтные локали не поддерживаются -- перекодирую в UTF-8"
 
 msgid "argument 'pkg' must be of length 1"
 msgstr "аргумент 'pkg' должен быть единичной длины"
@@ -800,9 +886,6 @@ msgstr "'file' должен быть текстовой строкой или соединением"
 
 msgid "unimplemented encoding"
 msgstr "не разработанная кодировка"
-
-msgid "file"
-msgstr "файл"
 
 msgid "cannot be opened"
 msgstr "нельзя открыть"
@@ -828,10 +911,6 @@ msgstr "..."
 msgid "OK"
 msgstr "OK"
 
-#, fuzzy
-msgid "no examples found"
-msgstr "не найдено файлов исходников"
-
 msgid "Running specific tests for package"
 msgstr "Запускаю специфические тесты для пакета"
 
@@ -841,15 +920,14 @@ msgstr "Запускаю"
 msgid "Running vignettes for package"
 msgstr "Запускаю миниатюры для пакета"
 
+msgid "Creating"
+msgstr "Создаю"
+
 msgid "creation of"
 msgstr "создание"
 
 msgid "failed"
 msgstr "не удалось"
-
-#, fuzzy
-msgid "no parsed files found"
-msgstr "не найдено файлов исходников"
 
 msgid "creating"
 msgstr "создаю"
@@ -904,6 +982,9 @@ msgstr "тест '%s' недоступен"
 
 msgid "no or more than one match"
 msgstr "нет или более одного соответствия"
+
+msgid "'iconv' is required"
+msgstr "требуется 'iconv'"
 
 msgid "argument 'x' must be a character vector"
 msgstr "аргумент 'x' должен быть текстовым вектором"
@@ -976,3 +1057,12 @@ msgid_plural "Found .Internal calls in the following functions:"
 msgstr[0] "Найден вызов .Internal call в следующей функции:"
 msgstr[1] "Найдены вызовы .Internal в следующих функциях:"
 msgstr[2] "Найдены вызовы .Internal в следующих функциях:"
+
+#~ msgid "Verifiable as open source: %s"
+#~ msgstr "Поддается проверке как open source: %s"
+
+#~ msgid "--- running texi2dvi on vignettes"
+#~ msgstr "--- запуск 'texi2dvi' на очерки"
+
+#~ msgid "unable to run pdflatex on '%s'"
+#~ msgstr "Не могу запустить 'pdflatex' на '%s'"

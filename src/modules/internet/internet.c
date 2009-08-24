@@ -1072,8 +1072,5 @@ R_init_internet(DllInfo *info)
     tmp->sockwrite = in_Rsockwrite;
 
     tmp->sockselect = in_Rsockselect;
-
-    tmp->HTTPDCreate = in_R_HTTPDCreate;
-
     R_setInternetRoutines(tmp);
 }

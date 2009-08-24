@@ -1294,8 +1294,6 @@ SEXP R_GetTraceback(int skip)
 		skip--;
 	    else {
 		SETCAR(t, deparse1(c->call, 0, DEFAULTDEPARSE));
-		if (c->srcref && !isNull(c->srcref)) 
-		    setAttrib(CAR(t), R_SrcrefSymbol, duplicate(c->srcref));
 		t = CDR(t);
 	    }
 	}
@@ -1452,15 +1450,16 @@ static SEXP findSimpleErrorHandler(void)
 static void vsignalWarning(SEXP call, const char *format, va_list ap)
 {
     char buf[BUFSIZE];
-    SEXP hooksym, hcall, qcall;
+    SEXP hooksym, quotesym, hcall, qcall;
 
     hooksym = install(".signalSimpleWarning");
+    quotesym = install("quote");
     if (SYMVALUE(hooksym) != R_UnboundValue &&
-	SYMVALUE(R_QuoteSymbol) != R_UnboundValue) {
-	PROTECT(qcall = LCONS(R_QuoteSymbol, LCONS(call, R_NilValue)));
+	SYMVALUE(quotesym) != R_UnboundValue) {
+	PROTECT(qcall = LCONS(quotesym, LCONS(call, R_NilValue)));
 	PROTECT(hcall = LCONS(qcall, R_NilValue));
 	Rvsnprintf(buf, BUFSIZE - 1, format, ap);
-	hcall = LCONS(mkString(buf), hcall);
+	hcall = LCONS(ScalarString(mkChar(buf)), hcall);
 	PROTECT(hcall = LCONS(hooksym, hcall));
 	eval(hcall, R_GlobalEnv);
 	UNPROTECT(3);
@@ -1496,16 +1495,16 @@ static void vsignalError(SEXP call, const char *format, va_list ap)
 	    if (ENTRY_HANDLER(entry) == R_RestartToken)
 		return; /* go to default error handling; do not reset stack */
 	    else {
-		SEXP hooksym, hcall, qcall;
+		SEXP hooksym, quotesym, hcall, qcall;
 		/* protect oldstack here, not outside loop, so handler
 		   stack gets unwound in case error is protect stack
 		   overflow */
 		PROTECT(oldstack);
 		hooksym = install(".handleSimpleError");
-		PROTECT(qcall = LCONS(R_QuoteSymbol,
-				      LCONS(call, R_NilValue)));
+		quotesym = install("quote");
+		PROTECT(qcall = LCONS(quotesym, LCONS(call, R_NilValue)));
 		PROTECT(hcall = LCONS(qcall, R_NilValue));
-		hcall = LCONS(mkString(buf), hcall);
+		hcall = LCONS(ScalarString(mkChar(buf)), hcall);
 		hcall = LCONS(ENTRY_HANDLER(entry), hcall);
 		PROTECT(hcall = LCONS(hooksym, hcall));
 		eval(hcall, R_GlobalEnv);
@@ -1641,11 +1640,11 @@ R_InsertRestartHandlers(RCNTXT *cptr, Rboolean browser)
     entry = mkHandlerEntry(klass, rho, R_RestartToken, rho, R_NilValue, TRUE);
     R_HandlerStack = CONS(entry, R_HandlerStack);
     UNPROTECT(1);
-    PROTECT(name = mkString(browser ? "browser" : "tryRestart"));
+    PROTECT(name = ScalarString(mkChar(browser ? "browser" : "tryRestart")));
     PROTECT(entry = allocVector(VECSXP, 2));
     PROTECT(SET_VECTOR_ELT(entry, 0, name));
     SET_VECTOR_ELT(entry, 1, R_MakeExternalPtr(cptr, R_NilValue, R_NilValue));
-    setAttrib(entry, R_ClassSymbol, mkString("restart"));
+    setAttrib(entry, R_ClassSymbol, ScalarString(mkChar("restart")));
     R_RestartStack = CONS(entry, R_RestartStack);
     UNPROTECT(3);
 }
@@ -1701,11 +1700,11 @@ SEXP attribute_hidden do_getRestart(SEXP call, SEXP op, SEXP args, SEXP rho)
     else if (i == 1) {
 	/**** need to pre-allocate */
 	SEXP name, entry;
-	PROTECT(name = mkString("abort"));
+	PROTECT(name = ScalarString(mkChar("abort")));
 	entry = allocVector(VECSXP, 2);
 	SET_VECTOR_ELT(entry, 0, name);
 	SET_VECTOR_ELT(entry, 1, R_NilValue);
-	setAttrib(entry, R_ClassSymbol, mkString("restart"));
+	setAttrib(entry, R_ClassSymbol, ScalarString(mkChar("restart")));
 	UNPROTECT(1);
 	return entry;
     }
@@ -1795,9 +1794,9 @@ SEXP attribute_hidden
 do_interruptsSuspended(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     int orig_value = R_interrupts_suspended;
-    if (args != R_NilValue)
+    if (args != R_NilValue) 
 	R_interrupts_suspended = asLogical(CAR(args));
     return ScalarLogical(orig_value);
 }
-
-
+	
+	

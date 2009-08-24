@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-08-06 09:10\n"
+"POT-Creation-Date: 2009-08-14 10:48\n"
 "PO-Revision-Date: 2005-03-15 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -1403,12 +1403,12 @@ msgid_plural ""
 msgstr[0] "函数'%s'的方法标记中没有类别定义：%s"
 
 #, fuzzy
-#~ msgid "Some of the superclasses in the definition of class \""
-#~ msgstr "在定义\"%2$s\"里不存在母类别\"%1$s\"的定义"
-
-#, fuzzy
 #~ msgid "functions"
 #~ msgstr "链结"
+
+#, fuzzy
+#~ msgid "Some of the superclasses in the definition of class \""
+#~ msgstr "在定义\"%2$s\"里不存在母类别\"%1$s\"的定义"
 
 #~ msgid "signature must be a vector of classes or an environment"
 #~ msgstr "标记要么是个含类别的矢量，要么是个环境"

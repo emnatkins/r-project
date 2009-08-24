@@ -498,7 +498,9 @@ SEXP attribute_hidden do_unsetenv(SEXP call, SEXP op, SEXP args, SEXP env)
     return ans;
 }
 
-#include <iconv.h>
+#if defined(HAVE_ICONV_H) && defined(ICONV_LATIN1)
+# include <iconv.h>
+#endif
 
 #ifdef HAVE_ICONVLIST
 static unsigned int cnt;
@@ -524,9 +526,10 @@ write_one (unsigned int namescount, const char * const *names, void *data)
 
 #include "RBufferUtils.h"
 
-/* iconv(x, from, to, sub, mark) */
+/* iconv(x, from, to, sub) */
 SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 {
+#if defined(HAVE_ICONV) && defined(ICONV_LATIN1)
     SEXP ans, x = CAR(args), si;
     void * obj;
     int i, j, nout;
@@ -548,7 +551,6 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 	PROTECT(ans = R_NilValue);
 #endif
     } else {
-	int mark;
 	const char *from, *to;
 	Rboolean isLatin1 = FALSE, isUTF8 = FALSE;
 
@@ -562,9 +564,6 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 	    error(_("invalid '%s' argument"), "sub");
 	if(STRING_ELT(CADDDR(args), 0) == NA_STRING) sub = NULL;
 	else sub = translateChar(STRING_ELT(CADDDR(args), 0));
-	mark = asLogical(CAD4R(args));
-	if(mark == NA_LOGICAL)
-	    error(_("invalid '%s' argument"), "mark");	
 	from = CHAR(STRING_ELT(CADR(args), 0)); /* ASCII */
 	to = CHAR(STRING_ELT(CADDR(args), 0));
 	/* some iconv's allow "UTF8", but libiconv does not */
@@ -628,10 +627,8 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 		cetype_t ienc = CE_NATIVE;
 
 		nout = cbuff.bufsize - 1 - outb;
-		if(mark) {
-		    if(isLatin1) ienc = CE_LATIN1;
-		    else if(isUTF8) ienc = CE_UTF8;
-		}
+		if(isLatin1) ienc = CE_LATIN1;
+		else if(isUTF8) ienc = CE_UTF8;
 		SET_STRING_ELT(ans, i, mkCharLenCE(cbuff.data, nout, ienc));
 	    }
 	    else SET_STRING_ELT(ans, i, NA_STRING);
@@ -641,6 +638,10 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
     }
     UNPROTECT(1);
     return ans;
+#else
+    error(_("'iconv' is not available on this system"));
+    return R_NilValue; /* -Wall */
+#endif
 }
 
 cetype_t getCharCE(SEXP x)
@@ -653,6 +654,7 @@ cetype_t getCharCE(SEXP x)
 }
 
 
+#if defined(HAVE_ICONV) && defined(ICONV_LATIN1)
 void * Riconv_open (const char* tocode, const char* fromcode)
 {
 #if defined Win32 || __APPLE__
@@ -1207,6 +1209,51 @@ size_t ucstoutf8(char *s, const unsigned int wc)
     return strlen(buf);
 }
 
+#else
+void * Riconv_open (const char* tocode, const char* fromcode)
+{
+    error(_("'iconv' is not available on this system"));
+    return (void *)-1;
+}
+
+size_t Riconv (void *cd, const char **inbuf, size_t *inbytesleft,
+	       char **outbuf, size_t *outbytesleft)
+{
+    error(_("'iconv' is not available on this system"));
+    return 0;
+}
+
+int Riconv_close (void * cd)
+{
+    error(_("'iconv' is not available on this system"));
+    return -1;
+}
+
+const char *translateChar(SEXP x)
+{
+    return CHAR(x);
+}
+
+const char *translateCharUTF8(SEXP x)
+{
+    return CHAR(x);
+}
+
+const char *reEnc(const char *x, cetype_t ce_in, cetype_t ce_out, int subst)
+{
+    return x;
+}
+
+void attribute_hidden
+invalidate_cached_recodings(void)
+{
+}
+size_t
+ucstoutf8(char *s, const unsigned int wc)
+{
+}
+#endif
+
 /* moved from src/unix/sys-unix.c and src/gnuwin32/extra.c */
 
 #ifdef HAVE_STAT
@@ -1455,87 +1502,4 @@ do_setSessionTimeLimit(SEXP call, SEXP op, SEXP args, SEXP rho)
 #endif
 
     return R_NilValue;
-}
-
-/* moved from character.c in 2.10.0: configure requires this */
-
-#ifdef HAVE_GLOB_H
-# include <glob.h>
-#endif
-#ifdef Win32
-# include <dos_wglob.h>
-# define globfree dos_wglobfree
-# define glob_t wglob_t
-#else
-# ifndef GLOB_QUOTE
-#  define GLOB_QUOTE 0
-# endif
-#endif
-SEXP attribute_hidden do_glob(SEXP call, SEXP op, SEXP args, SEXP env)
-{
-    SEXP x, ans;
-    int i, n, res, dirmark;
-    glob_t globbuf;
-    R_StringBuffer cbuff = {NULL, 0, MAXELTSIZE};
-
-    checkArity(op, args);
-    if (!isString(x = CAR(args)))
-	error(_("invalid '%s' argument"), "paths");
-    if (!LENGTH(x)) return allocVector(STRSXP, 0);
-    dirmark = asLogical(CADR(args));
-    if (dirmark == NA_LOGICAL)
-	error(_("invalid '%s' argument"), "dirmark");
-#ifndef GLOB_MARK
-    if (dirmark)
-	error(_("'dirmark = TRUE' is not supported on this platform"));
-#endif
-
-    for (i = 0; i < LENGTH(x); i++) {
-	SEXP el = STRING_ELT(x, i);
-	if (el == NA_STRING) continue;
-#ifdef Win32
-	res = dos_wglob(filenameToWchar(el, FALSE),
-			(dirmark ? GLOB_MARK : 0) |
-			GLOB_QUOTE | (i ? GLOB_APPEND : 0),
-			NULL, &globbuf);
-	if (res == GLOB_NOSPACE)
-	    error(_("internal out-of-memory condition"));
-#else
-	res = glob(translateChar(el),
-# ifdef GLOB_MARK
-		   (dirmark ? GLOB_MARK : 0) |
-# endif
-		   GLOB_QUOTE | (i ? GLOB_APPEND : 0),
-		   NULL, &globbuf);
-# ifdef GLOB_ABORTED
-	if (res == GLOB_ABORTED)
-	    warning(_("read error on '%s'"), translateChar(el));
-# endif
-# ifdef GLOB_NOSPACE
-	if (res == GLOB_NOSPACE)
-	    error(_("internal out-of-memory condition"));
-# endif
-#endif
-    }
-    n = globbuf.gl_pathc;
-    PROTECT(ans = allocVector(STRSXP, n));
-    for (i = 0; i < n; i++)
-#ifdef Win32
-    {
-	wchar_t *w = globbuf.gl_pathv[i];
-	char *buf;
-	int nb = wcstoutf8(NULL, w, 0);
-	buf = R_AllocStringBuffer(nb+1, &cbuff);
-	wcstoutf8(buf, w, nb+1); buf[nb] = '\0'; /* safety check */
-	SET_STRING_ELT(ans, i, mkCharCE(buf, CE_UTF8));
-    }
-#else
-	SET_STRING_ELT(ans, i, mkChar(globbuf.gl_pathv[i]));
-#endif
-    UNPROTECT(1);
-#ifdef Win32
-    R_FreeStringBufferL(&cbuff);
-#endif
-    globfree(&globbuf);
-    return ans;
 }

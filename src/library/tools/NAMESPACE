@@ -14,7 +14,7 @@ export("Rd2HTML", "Rd2ex", "Rd2latex", "Rd2txt", "Rdindex",
        "encoded_text_to_latex", "charset_to_Unicode", "Adobe_glyphs",
        "checkNEWS", "readNEWS", "dependsOnPkgs", "Rdiff",
        "testInstalledBasic", "testInstalledPackage",
-       "testInstalledPackages", "RdTextFilter", "SweaveTeXFilter")
+       "testInstalledPackages")
 
 export("Rd_db", "Rd_parse", "package.dependencies", "read.00Index")
 
@@ -34,7 +34,7 @@ S3method("print", "undoc")
 S3method("print", "xgettext")
 S3method("print", "xngettext")
 
-S3method("print", "checkRd")
+S3method("print", "check_Rd_files_in_Rd_db")
 S3method("print", "check_Rd_xrefs")
 S3method("print", "check_T_and_F")
 S3method("print", "check_code_usage_in_package")

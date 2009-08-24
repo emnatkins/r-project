@@ -26,7 +26,7 @@
 \usage{
 windows(width, height, pointsize, record, rescale, xpinch, ypinch,
         bg, canvas, gamma, xpos, ypos, buffered, title,
-        restoreConsole, clickToConfirm, fillOddEven)
+        restoreConsole, clickToConfirm)
 
 win.graph(width, height, pointsize)
 x11(width, height, pointsize)
@@ -88,8 +88,6 @@ win.print(width = 7, height = 7, pointsize = 12, printer = "",
   \item{clickToConfirm}{logical: if true confirmation of a new frame
     will be by clicking on the device rather than answering a problem in
     the console.  Default \code{TRUE}.}
-  \item{fillOddEven}{logical controlling the polygon fill mode:  see
-    \code{\link{polygon}} for details.  Default \code{TRUE}.}
 }
 
 \details{
