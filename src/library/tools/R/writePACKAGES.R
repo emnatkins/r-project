@@ -45,6 +45,9 @@ function(dir = ".", fields = NULL,
             fields <- names(desc[[1L]])
             desc <- matrix(unlist(desc), ncol = length(fields), byrow = TRUE)
             colnames(desc) <- fields
+            bundle <- !is.na(desc[,"Bundle"])
+            desc[bundle, "Package"] <- desc[bundle, "Bundle"]
+            desc <- cbind(desc, File = Files)
             if(addFiles) desc <- cbind(desc, File = Files)
             if(latestOnly) desc <- .remove_stale_dups(desc)
 
@@ -117,12 +120,32 @@ function(dir, fields = NULL,
         files <- file.path(dir, files)
         for(i in seq_along(files)) {
             if(verbose) message(paste(" ", files[i]))
+            ## package zips have <name>/DESCRIPTION, rarer bundle zips do not.
+            ## So try package case first.
             con <- unz(files[i], file.path(packages[i], "DESCRIPTION"))
             temp <- tryCatch(read.dcf(con, fields = fields)[1L, ],
                              error = identity)
             if(inherits(temp, "error")) {
                 close(con)
-                next
+                ## bundle zips may have a top-level DESCRIPTION file
+                con <- unz(files[i], "DESCRIPTION")
+                temp <- tryCatch(read.dcf(con, fields = fields)[1L, ],
+                                 error = identity)
+                if(inherits(temp, "error")) {
+                    close(con)
+                    ## otherwise look for the DESCRIPTION file of first package.
+                    inzip <- as.character(unzip(files[i], list = TRUE)$Name)
+                    d <- grepl("DESCRIPTION$", inzip)
+                    if(any(d)) {
+                        con <- unz(files[i], (inzip[d])[1])
+                        temp <- tryCatch(read.dcf(con, fields = fields)[1L, ],
+                                         error = identity)
+                    }
+                    if(inherits(temp, "error")) {
+                        close(con)
+                        next
+                    }
+                }
             }
             db[[i]] <- temp
             close(con)

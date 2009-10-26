@@ -243,8 +243,8 @@ isIncomplete(con)
 \section{Modes}{
   Possible values for the argument \code{open} are
   \describe{
-    \item{\code{"r"} or \code{"rt"}}{Open for reading in text mode.}
-    \item{\code{"w"} or \code{"wt"}}{Open for writing in text mode.}
+    \item{\code{"r"} or \code{"rt"}}{Open for reading in (usually) text mode.}
+    \item{\code{"w"} or \code{"wt"}}{Open for writing in (usually) text mode.}
     \item{\code{"a"} or \code{"at"}}{Open for appending in text mode.}
     \item{\code{"rb"}}{Open for reading in binary mode.}
     \item{\code{"wb"}}{Open for writing in binary mode.}
@@ -256,7 +256,7 @@ isIncomplete(con)
   }
   Not all modes are applicable to all connections: for example URLs can
   only be opened for reading.  Only file and socket connections can be
-  opened for both reading and writing.
+  opened for both reading and writing/appending.
   
 #ifdef unix
   If a file or fifo is created on a Unix-alike, its permissions will be
@@ -279,13 +279,12 @@ isIncomplete(con)
   The mode of a connection is determined when actually opened, which is
   deferred if \code{open = ""} is given (the default for all but socket
   connections).  An explicit call to \code{open} can specify the mode,
-  but otherwise the mode will be \code{"r"}.  (\code{gzfile},
+  but otherwise the mode will be \code{"r"}.  \code{gzfile},
   \code{bzfile} and \code{xzfile} connections are exceptions, as the
   compressed file always has to be opened in binary mode and no
-  conversion of line-endings is done even on Windows, so the default
-  mode is interpreted as \code{"rb"}.)  Most operations that need write
-  access or text-only or binary-only mode will override the default mode
-  of a non-yet-open connection.
+  conversion of line-endings is done even on Windows.  Most operations
+  that need write access or text-only or binary-only mode will override
+  the default mode of a non-yet-open connection.
 }
 
 \section{Compression}{

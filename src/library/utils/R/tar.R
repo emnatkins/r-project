@@ -15,13 +15,12 @@
 #  http://www.r-project.org/Licenses/
 
 untar <- function(tarfile, files = NULL, list = FALSE, exdir = ".",
-                  compressed = NA, extras = NULL, verbose = FALSE,
-                  tar = Sys.getenv("TAR"))
+                  compressed = NA, extras = NULL, verbose = FALSE)
 {
-    if (inherits(tarfile, "connection") || identical(tar, "internal"))
+    TAR <- Sys.getenv("TAR")
+    if (inherits(tarfile, "connection") || identical(TAR, "internal"))
         return(untar2(tarfile, files, list, exdir))
 
-    TAR <- tar
     if (!nzchar(TAR) && .Platform$OS.type == "windows") {
         res <- tryCatch(system("tar.exe --version", intern = TRUE),
                         error = identity)
@@ -33,15 +32,14 @@ untar <- function(tarfile, files = NULL, list = FALSE, exdir = ".",
     cflag <- ""
     if (is.character(compressed)) {
         ## Any tar which supports -J does not need it for extraction
-        switch(match.arg(compressed, c("gzip", "bzip2", "xz")),
-               "gzip" = "z", "bzip2" = "j", "xz" = "J")
+        switch(match.arg(compressed, c("gzip", "bzip2")),
+               "gzip" = "z", "bzip2" = "j")
     } else if (is.logical(compressed)) {
         if (is.na(compressed)) {
             magic <- readBin(tarfile, "raw", n = 3)
             if(all(magic[1:2] == c(0x1f, 0x8b))) cflag <- "z"
             else if(all(magic[1:2] == c(0x1f, 0x9d))) cflag <- "z" # compress
             else if(rawToChar(magic[1:3]) == "BZh") cflag <- "j"
-            else if(rawToChar(magic[1:5]) == "\xFD7zXZ") cflag <- "J"
         } else if (compressed) cflag <- "z"
     } else stop("'compressed' must be logical or character")
 
@@ -64,11 +62,6 @@ untar <- function(tarfile, files = NULL, list = FALSE, exdir = ".",
     }
     if (!gzOK && cflag == "j" && nzchar(ZIP <- Sys.getenv("R_BZIPCMD"))) {
         TAR <- paste(ZIP,  "-dc", tarfile, "|", TAR)
-        tarfile < "-"
-        cflag <- ""
-    }
-    if (cflag == "J") {
-        TAR <- paste("xz -dc", tarfile, "|", TAR)
         tarfile < "-"
         cflag <- ""
     }
@@ -96,12 +89,12 @@ untar <- function(tarfile, files = NULL, list = FALSE, exdir = ".",
 
 untar2 <- function(tarfile, files = NULL, list = FALSE, exdir = ".")
 {
-    getOct <- function(x, offset, len)
+    getOct <- function(x, start, len)
     {
         x <- 0L
-        for(i in offset + seq_len(len)) {
+        for(i in start+seq_len(len)) {
             z <- block[i]
-            if(!as.integer(z)) break; # terminate on nul
+            if(!as.integer(z)) break;
             switch(rawToChar(z),
                    " " = {},
                    "0"=,"1"=,"2"=,"3"=,"4"=,"5"=,"6"=,"7"=
@@ -140,9 +133,8 @@ untar2 <- function(tarfile, files = NULL, list = FALSE, exdir = ".")
             prefix <- rawToChar(block[345+seq_len(ns)])
             name <- file.path(prefix, name)
         }
-        ## mode zero-padded 8 bytes (including nul) at 101
-        ## Aargh: bsdtar has this one incorrectly with 6 bytes+space
-        mode <- as.octmode(getOct(block, 100, 8))
+        ## mode 8 bytes (including nul) at 101
+        mode <- rawToChar(block[101:107])
         size <- getOct(block, 124, 12)
         ts <- getOct(block, 136, 12)
         ft <- as.POSIXct(as.numeric(ts), origin="1970-01-01", tz="UTC")
@@ -166,8 +158,7 @@ untar2 <- function(tarfile, files = NULL, list = FALSE, exdir = ".")
             dothis <- !list
             if(dothis && length(files)) dothis <- name %in% files
             if(dothis) {
-                dir.create(dirname(name), showWarnings = FALSE,
-                           recursive = TRUE)
+                dir.create(dirname(name), showWarning = FALSE, recursive = TRUE)
                 out <- file(name, "wb")
             }
             for(i in seq_len(ceiling(size/512L))) {
@@ -198,7 +189,7 @@ untar2 <- function(tarfile, files = NULL, list = FALSE, exdir = ".")
         } else if(ctype == "5") {
             contents <- c(contents, name)
             if(!list) {
-                dir.create(name, showWarnings = FALSE, recursive = TRUE)
+                dir.create(name, showWarning = FALSE, recursive = TRUE)
                 Sys.chmod(name, mode)
                 ## not much point, since dir will be populated afterwards
                 ## .Call("R_setFileTime", name, ft)
@@ -222,10 +213,10 @@ untar2 <- function(tarfile, files = NULL, list = FALSE, exdir = ".")
 
 tar <- function(tarfile, files = NULL,
                 compression = c("none", "gzip", "bzip2", "xz"),
-                compression_level = 6, tar = Sys.getenv("tar"))
+                compression_level = 6)
 {
     if(is.character(tarfile)) {
-        TAR <- tar
+        TAR <- Sys.getenv("TAR")
         if(nzchar(TAR) && TAR != "internal") {
             ## FIXME: could pipe through gzip etc: might be safer for xz
             ## as -J was lzma in GNU tar 1.20:21
@@ -249,7 +240,7 @@ tar <- function(tarfile, files = NULL,
 
     files <- list.files(files, recursive = TRUE, all.files = TRUE,
                         full.names = TRUE)
-    ## this omits directories: get back the non-empty ones
+    ## this omits directories.
     bf <- unique(dirname(files))
     files <- c(bf[!bf %in% c(".", files)], files)
 
@@ -263,17 +254,8 @@ tar <- function(tarfile, files = NULL,
         ## add trailing / to dirs.
         if(info$isdir && !grepl("/$", f)) f <- paste(f, "/", sep = "")
         name <- charToRaw(f)
-        if(length(name) > 100L) {
-            if(length(name) > 255L) stop("file path is too long")
-            s <- max(which(name[1:155] == charToRaw("/")))
-            if(is.infinite(s) || s+100 < length(name))
-                stop("file path is too long")
-            warning("storing paths of more than 100 bytes is not portable:\n  ",
-                    sQuote(f))
-            prefix <- name[1:(s-1)]
-            name <- name[-(1:s)]
-            header[345+seq_along(prefix)] <- prefix
-        }
+        ## FIXME: perhaps use prefix field
+        if(length(name) > 100L) stop("file path is too long")
         header[seq_along(name)] <- name
         header[101:107] <- charToRaw(sprintf("%07o", info$mode))
         if(!is.na(info$uid))
@@ -289,7 +271,6 @@ tar <- function(tarfile, files = NULL,
             if(is.na(lnk)) lnk <- ""
             header[157L] <- charToRaw(ifelse(nzchar(lnk), "2", "0"))
             if(nzchar(lnk)) {
-                ## we could use the GNU extension ...
                 if(length(lnk) > 100L) stop("linked path is too long")
                 header[157L + seq_len(nchar(lnk))] <- charToRaw(lnk)
                 size <- 0

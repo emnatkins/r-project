@@ -1082,7 +1082,7 @@ SEXP attribute_hidden do_fileexists(SEXP call, SEXP op, SEXP args, SEXP rho)
     return ans;
 }
 
-/* <FIXME> can \n or \r occur as part of a MBCS extra byte?
+/* <FIXME> can \n or \r occur as part of a MBCS extra bytes?
    Not that I know of */
 static int filbuf(char *buf, FILE *fp)
 {
@@ -1097,12 +1097,11 @@ static int filbuf(char *buf, FILE *fp)
     return 0;
 }
 
-/* index.search(topic, path, .Platform$file.sep) */
 SEXP attribute_hidden do_indexsearch(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP topic, path, sep;
-    char linebuf[256], topicbuf[256], *p;
-    const char *csep;
+/* index.search(topic, path, file, .Platform$file.sep, type) */
+    SEXP topic, path, indexname, sep, type;
+    char linebuf[256], topicbuf[256], *p, ctype[256];
     int i, npath, ltopicbuf;
     FILE *fp;
 
@@ -1113,26 +1112,54 @@ SEXP attribute_hidden do_indexsearch(SEXP call, SEXP op, SEXP args, SEXP rho)
     path = CAR(args); args = CDR(args);
     if (!isString(path) || length(path) < 1 || isNull(path))
 	error(_("invalid '%s' argument"), "path");
-    sep = CAR(args);
+    indexname = CAR(args); args = CDR(args);
+    if (!isString(indexname) || length(indexname) < 1 || isNull(indexname))
+	error(_("invalid '%s' argument"), "indexname");
+    sep = CAR(args); args = CDR(args);
     if (!isString(sep) || length(sep) < 1 || isNull(sep))
 	error(_("invalid '%s' argument"), "sep");
-    csep = CHAR(STRING_ELT(sep, 0));
+    type = CAR(args);
+    if (!isString(type) || length(type) < 1 || isNull(type))
+	error(_("invalid '%s' argument"), "type");
+    strcpy(ctype, CHAR(STRING_ELT(type, 0)));
     snprintf(topicbuf, 256, "%s\t", translateChar(STRING_ELT(topic, 0)));
     ltopicbuf = strlen(topicbuf);
     npath = length(path);
     for (i = 0; i < npath; i++) {
 	snprintf(linebuf, 256, "%s%s%s%s%s",
-		translateChar(STRING_ELT(path, i)), 
-		 csep, "help", csep, "AnIndex");
-	if ((fp = R_fopen(R_ExpandFileName(linebuf), "rt"))) {
+		translateChar(STRING_ELT(path, i)),
+		CHAR(STRING_ELT(sep, 0)),
+		"help", CHAR(STRING_ELT(sep, 0)),
+		CHAR(STRING_ELT(indexname, 0)));
+	if ((fp = R_fopen(R_ExpandFileName(linebuf), "rt")) != NULL){
 	    while (filbuf(linebuf, fp)) {
 		if (strncmp(linebuf, topicbuf, ltopicbuf) == 0) {
 		    p = &linebuf[ltopicbuf - 1];
 		    while (isspace((int)*p)) p++;
 		    fclose(fp);
-		    snprintf(topicbuf, 256, "%s%s%s%s%s",
-			     translateChar(STRING_ELT(path, i)),
-			     csep, "help", csep, p);
+		    if (!strcmp(ctype, "html"))
+			snprintf(topicbuf, 256, "%s%s%s%s%s%s",
+				translateChar(STRING_ELT(path, i)),
+				CHAR(STRING_ELT(sep, 0)),
+				"html", CHAR(STRING_ELT(sep, 0)),
+				p, ".html");
+		    else if (!strcmp(ctype, "R-ex"))
+			snprintf(topicbuf, 256, "%s%s%s%s%s%s",
+				translateChar(STRING_ELT(path, i)),
+				CHAR(STRING_ELT(sep, 0)),
+				"R-ex", CHAR(STRING_ELT(sep, 0)),
+				p, ".R");
+		    else if (!strcmp(ctype, "latex"))
+			snprintf(topicbuf, 256, "%s%s%s%s%s%s",
+				translateChar(STRING_ELT(path, i)),
+				CHAR(STRING_ELT(sep, 0)),
+				"latex", CHAR(STRING_ELT(sep, 0)),
+				p, ".tex");
+		    else /* type = "help" */
+			snprintf(topicbuf, 256, "%s%s%s%s%s",
+				translateChar(STRING_ELT(path, i)),
+				CHAR(STRING_ELT(sep, 0)),
+				ctype, CHAR(STRING_ELT(sep, 0)), p);
 		    return mkString(topicbuf);
 		}
 	    }

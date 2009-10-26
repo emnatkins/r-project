@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-10-10 14:12\n"
+"POT-Creation-Date: 2009-10-09 08:04\n"
 "PO-Revision-Date: 2009-10-10 00:17+0900 \n"
 "Last-Translator: Shigeru Mase <maseshigeru@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -310,11 +310,6 @@ msgstr " 変数 '%s' 中に non-portable フラグ: "
 msgid "package must be loaded"
 msgstr " パッケージがロードされなければなりません "
 
-msgid ""
-"package %s exists but was not installed under R >= 2.10.0 so xrefs cannot be "
-"checked"
-msgstr ""
-
 msgid "Obsolete package(s) %s in Rd xrefs"
 msgstr " もう使われていない %s が Rd xrefs　中にあります "
 
@@ -515,6 +510,9 @@ msgstr " ファイル '%s' は生成されませんでした "
 msgid "cannot copy '%s' to '%s'"
 msgstr " '%s' を '%s' にコピーすることが出来ません "
 
+msgid "missing 'DESCRIPTION.in' for package '%s'"
+msgstr "パッケージ '%s' には 'DESCRIPTION.in' がありません "
+
 msgid "WARNING: malformed 'Depends' field in 'DESCRIPTION'"
 msgstr " 警告：'DESCRIPTION' 中に混乱した 'Depends' 欄 "
 
@@ -522,6 +520,11 @@ msgid "ERROR: this R is version %s, package '%s' requires R %s %s"
 msgstr ""
 "エラー：この R はバージョン %s です。パッケージ '%s' は R %s %s を必要としま"
 "す "
+
+msgid "ERROR: this R is version %s, bundle '%s' requires R %s %s"
+msgstr ""
+"エラー：この R はバージョン %s です。パッケージバンドル '%s' は R %s %s を必"
+"要とします "
 
 msgid "ERROR: this R is version %s, required is R %s %s"
 msgstr "エラー：この R はバージョン %s です。 R %s %s を必要とします "
@@ -587,9 +590,6 @@ msgstr " ファイル '%s' 中のインデックス情報を読み取ること�
 msgid "ERROR:"
 msgstr "エラー: "
 
-msgid "this seems to be a bundle -- and they are defunct"
-msgstr ""
-
 msgid "packaged installation of"
 msgstr " 以下のパッケージ化されたインストール "
 
@@ -641,8 +641,7 @@ msgstr " 一時ディレクトリを生成することが出来ません "
 msgid "invalid package"
 msgstr " 不正なパッケージです "
 
-#, fuzzy
-msgid "--pkglock applies only to a single package"
+msgid "--pkglock applies only to a single bundle/package"
 msgstr " --pkglock は単一のバンドル/パッケージだけに適用されます "
 
 msgid "ERROR: no packages specified"
@@ -694,6 +693,9 @@ msgstr "指定された 'type' ではありません "
 msgid "'type' must be one of 'txt', 'html', 'latex' or 'example'"
 msgstr ""
 
+msgid "Bundle package:"
+msgstr " バンドルパッケージ： "
+
 msgid "there is no package called '%s'"
 msgstr " '%s' という名前のパッケージが見当たりません "
 
@@ -728,9 +730,6 @@ msgid ""
 msgstr ""
 "チャンク/行を処理できません: \n"
 " %s "
-
-msgid "Processing packages:"
-msgstr " パッケージを処理中： "
 
 msgid "cannot update HTML package index"
 msgstr " HTMLパッケージのインデックスをアップデートすることが出来ません "
@@ -890,9 +889,8 @@ msgstr "ファイル'DESCRIPTION'が見当たりません。 "
 msgid "Files 'DESCRIPTION' and 'DESCRIPTION.in' are missing."
 msgstr "ファイル'DESCRIPTION'と'DESCRIPTION.in'が見当たりません。 "
 
-#, fuzzy
-msgid "invalid package layout"
-msgstr " 不正なパッケージです "
+msgid "Bundle 'DESCRIPTION' is missing."
+msgstr " 'DESCRIPTION' バンドルが見当たりません。 "
 
 msgid "file '%s' is not in valid DCF format"
 msgstr " ファイル '%s' は有効な DCF フォーマットではありません "
@@ -902,6 +900,9 @@ msgstr " パッケージコードを読み込めません "
 
 msgid "Call sequence:"
 msgstr " 呼び出しシーケンス： "
+
+msgid "Processing packages:"
+msgstr " パッケージを処理中： "
 
 msgid "parsing '%s'"
 msgstr " '%s' を構文解析中 "
@@ -935,20 +936,6 @@ msgstr[0] " 以下の関数中に .internal 呼び出しが見つかりました
 #~ " 想定されるリンクは \\link[pkg]{a} の形で、ここで 'a' はファイル名ではなく"
 #~ "エイリアスとして存在します。こうしたリンクは R < 2.10.0　では使えず、現在"
 #~ "のバージョンでは,  HTML (PDF ではなく) ヘルプ中でのみ有効です。 "
-
-#~ msgid "missing 'DESCRIPTION.in' for package '%s'"
-#~ msgstr "パッケージ '%s' には 'DESCRIPTION.in' がありません "
-
-#~ msgid "ERROR: this R is version %s, bundle '%s' requires R %s %s"
-#~ msgstr ""
-#~ "エラー：この R はバージョン %s です。パッケージバンドル '%s' は R %s %s を"
-#~ "必要とします "
-
-#~ msgid "Bundle package:"
-#~ msgstr " バンドルパッケージ： "
-
-#~ msgid "Bundle 'DESCRIPTION' is missing."
-#~ msgstr " 'DESCRIPTION' バンドルが見当たりません。 "
 
 #, fuzzy
 #~ msgid "No package of named %s could be found"

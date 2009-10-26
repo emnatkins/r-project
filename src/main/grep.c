@@ -25,7 +25,7 @@ Support for UTF-8-encoded strings in non-UTF-8 locales
 ======================================================
 
 strsplit grep [g]sub [g]regexpr
-  handle UTF-8 directly if fixed/perl = TRUE, via wchar_t for extended
+  handle UTF-8 directly if fixed/perl = TRUE, via wchar_t for basic/extended
 
 */
 
@@ -129,7 +129,9 @@ SEXP attribute_hidden do_strsplit(SEXP call, SEXP op, SEXP args, SEXP env)
 	perl_opt = 0;
     }
     if (!extended_opt)
-	error("'%s' is defunct", "extended = FALSE");
+	warning("'%s' is deprecated", "extended = FALSE");
+    if ((fixed_opt || perl_opt) && !extended_opt)
+	warning(_("argument '%s' will be ignored"), "extended = FALSE");
 
     if (!isString(x) || !isString(tok)) error(_("non-character argument"));
 
@@ -141,7 +143,7 @@ SEXP attribute_hidden do_strsplit(SEXP call, SEXP op, SEXP args, SEXP env)
 	}
     }
 
-    cflags = REG_EXTENDED;
+    if (extended_opt) cflags = REG_EXTENDED;
 #ifdef USE_TRE_FOR_FIXED
     if (fixed_opt) cflags = REG_LITERAL;
 #endif
@@ -640,7 +642,9 @@ SEXP attribute_hidden do_grep(SEXP call, SEXP op, SEXP args, SEXP env)
     if (fixed_opt && perl_opt)
 	warning(_("argument '%s' will be ignored"), "perl = TRUE");
     if (!extended_opt)
-	warning("'%s' is defunct", "extended = FALSE");
+	warning("'%s' is deprecated", "extended = FALSE");
+    if ((fixed_opt || perl_opt) && !extended_opt)
+	warning(_("argument '%s' will be ignored"), "extended = FALSE");
 
     if (!isString(pat) || length(pat) < 1)
 	error(_("invalid '%s' argument"), "pattern");
@@ -702,7 +706,7 @@ SEXP attribute_hidden do_grep(SEXP call, SEXP op, SEXP args, SEXP env)
 	}
     } else {
 	cflags = REG_NOSUB;
-	cflags |= REG_EXTENDED;
+	if (extended_opt) cflags |= REG_EXTENDED;
 	if (igcase_opt) cflags |= REG_ICASE;
 #ifdef USE_TRE_FOR_FIXED
 	if (fixed_opt) cflags = REG_LITERAL;
@@ -946,7 +950,9 @@ SEXP attribute_hidden do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
     if (fixed_opt && perl_opt)
 	warning(_("argument '%s' will be ignored"), "perl = TRUE");
     if (!extended_opt)
-	error("'%s' is defunct", "extended = FALSE");
+	warning("'%s' is deprecated", "extended = FALSE");
+    if ((fixed_opt || perl_opt) && !extended_opt)
+	warning(_("argument '%s' will be ignored"), "extended = FALSE");
 
     if (!isString(pat) || length(pat) < 1)
 	error(_("invalid '%s' argument"), "pattern");
@@ -1016,7 +1022,7 @@ SEXP attribute_hidden do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
     {
 	spat = CHAR(STRING_ELT(pat, 0));
-	cflags |= REG_EXTENDED;
+	if (extended_opt) cflags |= REG_EXTENDED;
 	if (igcase_opt) cflags |= REG_ICASE;
 #ifdef USE_TRE_FOR_FIXED
 	if (fixed_opt) cflags = REG_LITERAL;
@@ -1090,7 +1096,7 @@ SEXP attribute_hidden do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 	if (useBytes) {
 	    int maxrep;
-	    /* extended regexp  in bytes*/
+	    /* basic or extended regexp  in bytes*/
 
 	    /* worst possible scenario is to put a copy of the
 	       replacement after every character, unless there are
@@ -1147,7 +1153,7 @@ SEXP attribute_hidden do_gsub(SEXP call, SEXP op, SEXP args, SEXP env)
 	    }
 	    Free(cbuf);
 	} else  {
-	    /* extended regexp in wchar_t */
+	    /* basic or extended regexp in wchar_t */
 	    const wchar_t *s = wtransChar(STRING_ELT(text, i));
 	    wchar_t *u, *cbuf;
 	    int maxrep;
@@ -1253,7 +1259,9 @@ SEXP attribute_hidden do_regexpr(SEXP call, SEXP op, SEXP args, SEXP env)
     if (fixed_opt && perl_opt)
 	warning(_("argument '%s' will be ignored"), "perl = TRUE");
     if (!extended_opt)
-	error("'%s' is defunct", "extended = FALSE");
+	warning("'%s' is deprecated", "extended = FALSE");
+    if ((fixed_opt || perl_opt) && !extended_opt)
+	warning(_("argument '%s' will be ignored"), "extended = FALSE");
 
     /* allow 'text' to be zero-length from 2.3.1 */
     /* Note that excluding NAs differs from grep/sub */
@@ -1301,7 +1309,7 @@ SEXP attribute_hidden do_regexpr(SEXP call, SEXP op, SEXP args, SEXP env)
 	    if (use_UTF8) cflags |= PCRE_UTF8;
 	}
     } else {
-	cflags |= REG_EXTENDED;
+	if (extended_opt) cflags |= REG_EXTENDED;
 	if (igcase_opt) cflags |= REG_ICASE;
 #ifdef USE_TRE_FOR_FIXED
 	if (fixed_opt) cflags = REG_LITERAL;
@@ -1650,7 +1658,9 @@ SEXP attribute_hidden do_gregexpr(SEXP call, SEXP op, SEXP args, SEXP env)
     if (fixed_opt && perl_opt)
 	warning(_("argument '%s' will be ignored"), "perl = TRUE");
     if (!extended_opt)
-	error("'%s' is defunct", "extended = FALSE");
+	warning("'%s' is deprecated", "extended = FALSE");
+    if ((fixed_opt || perl_opt) && !extended_opt)
+	warning(_("argument '%s' will be ignored"), "extended = FALSE");
 
     if (!isString(text) || length(text) < 1)
 	error(_("invalid '%s' argument"), "text");
@@ -1703,7 +1713,7 @@ SEXP attribute_hidden do_gregexpr(SEXP call, SEXP op, SEXP args, SEXP env)
 	    if (use_UTF8) cflags |= PCRE_UTF8;
 	}
     } else {
-	cflags |= REG_EXTENDED;
+	if (extended_opt) cflags |= REG_EXTENDED;
 	if (igcase_opt) cflags |= REG_ICASE;
 #ifdef USE_TRE_FOR_FIXED
 	if (fixed_opt) cflags = REG_LITERAL;

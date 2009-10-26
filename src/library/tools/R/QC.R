@@ -2404,6 +2404,8 @@ function(dir)
     depends <- sapply(ldepends, `[[`, 1L)
     imports <- sapply(limports, `[[`, 1L)
     suggests <- sapply(lsuggests, `[[`, 1L)
+    ## Need this to handle bundles ...
+    contains <- .get_contains_from_package_db(db)
 
     standard_package_names <- .get_standard_package_names()
 
@@ -2481,7 +2483,11 @@ function(dir)
         ## since we need to reinstall if those change.
         allowed_imports <-
             standard_package_names$base %w/o% c("methods", "stats4")
-        reqs <- reqs %w/o% c(imports, depends, allowed_imports)
+        reqs <- reqs %w/o% c(contains, imports, depends, allowed_imports)
+        ## Note that for bundles we currently cannot have package
+        ## dependencies different from bundle ones, and clearly a bundle
+        ## cannot depend on something it contains ...
+        ## </FIXME>
         if(length(reqs))
             bad_depends$missing_namespace_depends <- reqs
     }
@@ -3218,21 +3224,24 @@ function(package, dir, lib.loc = NULL)
         top <- system.file(package = pkg, lib.loc = lib.loc)
         if(nzchar(top)) {
             RdDB <- file.path(top, "help", "paths.rds")
-            if(!file.exists(RdDB)) {
-                message(gettextf("package %s exists but was not installed under R >= 2.10.0 so xrefs cannot be checked", sQuote(pkg)),
-                        domain = NA)
-                next
-            }
-            nm <- sub("\\.[Rr]d", "", basename(.readRDS(RdDB)))
+            nm <- if(file.exists(RdDB))
+                sub("\\.[Rr]d", "", basename(.readRDS(RdDB)))
+            ## might be pre-2.10.0 and on Windows, hence zipped
+            else if(file.exists(f <- file.path(top, "help", "Rhelp.zip")))
+                utils::read.table(file.path(top, "help", "AnIndex"), sep="\t")[2]
+            else
+                list.files(file.path(top, "help"))
             good <- thisfile[this] %in% nm
             suspect <- if(any(!good)) {
                 aliases1 <- if (pkg %in% names(aliases)) aliases[[pkg]]
                 else Rd_aliases(pkg, lib.loc = lib.loc)
                 !good & (thisfile[this] %in% aliases1)
             } else FALSE
-            db[this, "bad"] <- !good & !suspect
-        } else
+        } else {
             unknown <- c(unknown, pkg)
+            next
+        }
+        db[this, "bad"] <- !good & !suspect
     }
 
     unknown <- unique(unknown)
@@ -3701,16 +3710,36 @@ function(package, dir, lib.loc = NULL)
             dir <- file_path_as_absolute(dir)
         dfile <- file.path(dir, "DESCRIPTION")
         db <- .read_description(dfile)
-        code_dir <- file.path(dir, "R")
-        if(file_test("-d", code_dir)) {
+        ## we need to check for a bundle here
+        ## Need this to handle bundles ...
+        contains <- .get_contains_from_package_db(db)
+        if(length(contains)) {
             file <- tempfile()
             on.exit(unlink(file))
             if(!file.create(file)) stop("unable to create ", file)
-            if(!all(.file_append_ensuring_LFs(file,
-                                              list_files_with_type(code_dir,
-                                                                   "code"))))
-                stop("unable to write code files")
-        } else return(invisible())
+            for(pkg in contains) {
+                code_dir <- file.path(dir, pkg, "R")
+                if(file_test("-d", code_dir)) {
+                    if(!all(.file_append_ensuring_LFs(file,
+                                                      list_files_with_type(code_dir,
+                                                                           "code"))))
+                        stop("unable to write code files")
+                }
+            }
+        } else {
+            code_dir <- file.path(dir, "R")
+            if(file_test("-d", code_dir)) {
+                file <- tempfile()
+                on.exit(unlink(file))
+                if(!file.create(file)) stop("unable to create ", file)
+                if(!all(.file_append_ensuring_LFs(file,
+                                                  list_files_with_type(code_dir,
+                                                                       "code"))))
+                    stop("unable to write code files")
+            } else {
+                return(invisible())
+            }
+        }
     }
     pkg_name <- db["Package"]
     depends <- .get_requires_from_package_db(db, "Depends")
@@ -3718,14 +3747,18 @@ function(package, dir, lib.loc = NULL)
     suggests <- .get_requires_from_package_db(db, "Suggests")
     enhances <- .get_requires_from_package_db(db, "Enhances")
 
+    ## Need this to handle bundles ...
+    contains <- .get_contains_from_package_db(db)
+
     ## it is OK to refer to yourself and non-S4 standard packages
     standard_package_names <-
         .get_standard_package_names()$base %w/o% c("methods", "stats4")
     ## It helps to know if non-default standard packages are require()d
     default_package_names<-
          standard_package_names %w/o% c("grid", "splines", "tcltk", "tools")
-    depends_suggests <- c(depends, suggests, pkg_name, default_package_names)
-    imports <- c(imports, depends, suggests, enhances, pkg_name,
+    depends_suggests <- c(depends, suggests, pkg_name, contains,
+                          default_package_names)
+    imports <- c(imports, depends, suggests, enhances, pkg_name, contains,
                  standard_package_names)
     ## the first argument could be named, or could be a variable name.
     ## we just have a stop list here.
@@ -4094,9 +4127,9 @@ function(dir)
 .check_citation <-
 function(cfile)
 {
-    cfile <- file_path_as_absolute(cfile)
+    cfile <- tools::file_path_as_absolute(cfile)
     meta <- if(basename(dir <- dirname(cfile)) == "inst")
-        as.list(.get_package_metadata(dirname(dir)))
+        as.list(tools:::.get_package_metadata(dirname(dir)))
     else
         NULL
 
@@ -4356,7 +4389,7 @@ function(x, ...)
 function()
 {
     l10n <- l10n_info()
-    enc <- if(l10n[["UTF-8"]]) "UTF-8" else utils::localeToCharset()
+    enc <- if(l10n[["UTF-8"]]) "UTF-8" else utils:::localeToCharset()
     cat("charset: ", enc, "\n", sep="")
     invisible()
 }

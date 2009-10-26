@@ -519,8 +519,10 @@
     for(i in seqn) {
       for(j in seqn[-i]) {
         diffs <- pos[,j] - pos[,i]
-	if(any(diffs < 0))  { best[i] <- FALSE; if(dominated[i]) break }
-	if(all(diffs <= 0)) { dominated[i] <- TRUE; if(!best[i]) break }
+        if(any(diffs < 0))
+          best[i] <- FALSE
+        if(all(diffs <= 0))
+          dominated[i] <- TRUE
       }
     }
     if(verbose)

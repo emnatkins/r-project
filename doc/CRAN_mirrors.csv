@@ -3,7 +3,6 @@ Name,Country,City,URL,Host,Maintainer,OK,CountryCode
 "Argentina (Mendoza)",Argentina,Mendoza,http://mirror.cricyt.edu.ar/r/,"CONICET, Mendoza",informatica@lab.cricyt.edu.ar,1,ar
 Australia,Australia,Melbourne,http://cran.ms.unimelb.edu.au/,"University of Melbourne",cran@ms.unimelb.edu.au,1,au
 Austria,Austria,Wien,http://cran.at.r-project.org/,"Wirtschaftsuniversitaet Wien",CRAN@R-project.org,1,at
-Belarus,Belarus,Minsk,http://cran.promotionalpro.com/,www.ehost.by,admin@promotionalpro.com,1,by
 Belgium,Belgium,Antwerp,http://www.freestatistics.org/cran/,"K.U.Leuven Association",patrick@wessa.net,1,be
 "Brazil (PR)",Brazil,Curitiba,http://cran.br.r-project.org/,"Universidade Federal do Parana","Paulo J. Ribeiro Jr <paulojus@est.ufpr.br>",1,br
 "Brazil (RJ)",Brazil,"Rio de Janeiro",http://cran.fiocruz.br/,"Oswaldo Cruz Foundation, Rio de Janeiro",oswaldo@fiocruz.br,1,br
@@ -13,8 +12,7 @@ Belgium,Belgium,Antwerp,http://www.freestatistics.org/cran/,"K.U.Leuven Associat
 "Canada (ON)",Canada,Toronto,http://probability.ca/cran/,"University of Toronto","Jeffrey S. Rosenthal <jeff at math.toronto.edu>",1,ca
 "Canada (QC)",Canada,Montreal,http://cran.parentinginformed.com/,"iWeb, Montreal","James Miller <jmiller@parentinginformed.com>",1,ca
 Chile,Chile,Santiago,http://dirichlet.mat.puc.cl/,"Pontificia Universidad Catolica de Chile, Santiago","Fernando Quintana <quintana@mat.puc.cl>",1,cl
-"China (Beijing 1)",China,Bejing,http://ftp.ctex.org/mirrors/CRAN/,CTEX.ORG,"Aloft Wu <aloft@ctex.org>",1,cn
-"China (Beijing 2)",China,Bejing,http://cran.csdb.cn/,"Computer Network Information Center, CAS, Beijing",Hull@cnic.cn,1,cn
+"China (Beijing)",China,Bejing,http://ftp.ctex.org/mirrors/CRAN/,CTEX.ORG,"Aloft Wu <aloft@ctex.org>",1,cn
 "China (Hong Kong)",China,"Hong Kong",http://mirrors.geoexpat.com/cran/,GeoExpat.Com,shri@geoexpat.com,1,cn
 Colombia,Colombia,Bogota,http://www.laqee.unal.edu.co/CRAN/,"National University of Colombia","Ernesto Parra Rincon <eparrar@unal.edu.co>",1,co
 Croatia,Croatia,Zagreb,http://imago.irb.hr/r/,"Rudjer Boskovic Institute",matko.bosnjak@irb.hr,1,hr

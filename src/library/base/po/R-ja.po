@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-10-10 14:12\n"
+"POT-Creation-Date: 2009-10-09 08:02\n"
 "PO-Revision-Date: 2009-10-07 19:17+0900 \n"
 "Last-Translator: takahashi <takahashi.kohske@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -717,9 +717,6 @@ msgstr " ' が見つけられません "
 msgid "all arguments must be named"
 msgstr " 全ての引数は名前を持たなければなりません "
 
-msgid "argument 'extended' is defunct and will be removed soon"
-msgstr ""
-
 msgid "'pattern' must be a non-empty character string"
 msgstr " 'pattern' は空でない文字列でなければなりません "
 
@@ -747,10 +744,25 @@ msgstr " 'object' はリストでなければなりません "
 msgid "This is R %s, package '%s' needs %s %s"
 msgstr " これは R %s です。パッケージ '%s' は %s %s を必要とします "
 
-#, fuzzy
-msgid "package '%s' was built before R 2.10.0: please re-install it"
+msgid "package '%s' was built before R 2.0.0: please re-install it"
 msgstr ""
 " パッケージ '%s' は R 2.0.0 以前に造らました。新しくインストールして下さい "
+
+msgid "package '%s' was built under R version %s"
+msgstr " パッケージ '%s' はバージョン %s の R の下で造られました "
+
+msgid ""
+"package '%s' was built under R version %s and help will not work correctly\n"
+"Please re-install it"
+msgstr ""
+"パッケージ '%s' はバージョン %s の R の下で造られました。ヘルプは正しく機能し"
+"ません。新しくインストールしてください "
+
+msgid ""
+"package '%s' was built under R version %s and help may not work correctly"
+msgstr ""
+" パッケージ '%s' はバージョン %s の R の下で造られました。ヘルプは正しく機能"
+"しないかもしれません "
 
 #, fuzzy
 msgid ""
@@ -759,9 +771,6 @@ msgid ""
 msgstr ""
 "パッケージ '%s' はバージョン %s の R の下で造られました。ヘルプは正しく機能し"
 "ません。新しくインストールしてください "
-
-msgid "package '%s' was built under R version %s"
-msgstr " パッケージ '%s' はバージョン %s の R の下で造られました "
 
 msgid "package '%s' was built for %s"
 msgstr " パッケージ '%s' は %s に対して造られました "
@@ -1593,12 +1602,6 @@ msgstr[0] ""
 msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] " 警告メッセージ： \n"
-
-#~ msgid ""
-#~ "package '%s' was built under R version %s and help may not work correctly"
-#~ msgstr ""
-#~ " パッケージ '%s' はバージョン %s の R の下で造られました。ヘルプは正しく機"
-#~ "能しないかもしれません "
 
 #~ msgid "extra arguments ignored:"
 #~ msgstr " 余計な引数は無視されました: "

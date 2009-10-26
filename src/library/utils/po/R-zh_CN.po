@@ -2,12 +2,12 @@
 # Copyright (C) 2005 The R Foundation
 # This file is distributed under the same license as the PACKAGE package.
 # 陈斐 <feic@avaya.com>, 2006.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-10-15 08:58\n"
+"POT-Creation-Date: 2009-09-25 12:13\n"
 "PO-Revision-Date: 2008-10-08 18:27+0100\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -247,17 +247,14 @@ msgstr "'name'的类别将被略过不用"
 msgid "cannot edit NULL row names"
 msgstr "无法修改NULL行名"
 
-#, fuzzy
-msgid "no help found for '%s'"
+msgid "no help file found for '%s'"
 msgstr "找不到与'%s'有关的帮助文件"
 
 msgid "more than one help file found: using package '%s'"
 msgstr "找到了多个帮助文件：用程序包'%s'"
 
-msgid ""
-"package %s exists but was not installed under R >= 2.10.0 so help cannot be "
-"accessed"
-msgstr ""
+msgid "'%s' has a help file but no examples"
+msgstr "'%s'含帮助文件但没有示范文件"
 
 msgid "test '%s' is not available"
 msgstr "没有'%s'这种测试"
@@ -282,6 +279,15 @@ msgstr "'form'必需是双边公式，每一边至少带一项"
 
 msgid "'topic' should be a name, length-one character vector or reserved word"
 msgstr "'topic'的值必需是名字，长度为一的字符串或保留文字"
+
+msgid "offline = TRUE is deprecated: use help_type =\"postscript\""
+msgstr "不推荐用offline = TRUE：请用help_type =\"postscript\""
+
+msgid "chmhelp = TRUE is no longer supported: use help_type =\"text\""
+msgstr "不推荐用chmhelp = TRUE：请用help_type =\"text\""
+
+msgid "htmhelp = TRUE is deprecated: use help_type =\"html\""
+msgstr "不推荐用htmhelp = TRUE：请用help_type =\"html\""
 
 msgid "No documentation for '%s' in specified packages and libraries:"
 msgstr "在指定的程序包和图书馆里没有与'%s'有关的说明书:"
@@ -315,6 +321,20 @@ msgstr "没有HTML帮助"
 
 msgid "R Help on '%s'"
 msgstr "与'%s'有关的R Help"
+
+msgid ""
+"No text help for '%s' is available:\n"
+"corresponding file is missing"
+msgstr ""
+"没有与'%s'有关的帮助文件:\n"
+"帮助文件不存在"
+
+msgid ""
+"No offline help for '%s' is available:\n"
+"corresponding file is missing"
+msgstr ""
+"没有与'%s'有关的脱机帮助文件:\n"
+"帮助文件不存在"
 
 msgid "argument '%s' must be a single character string"
 msgstr "变元'%s'必需是单字符串"
@@ -895,6 +915,12 @@ msgstr "没有下载方法"
 msgid "download had nonzero exit status"
 msgstr "下载退出状态不是零"
 
+msgid "Using non-linked HTML file: hyperlinks may be incorrect"
+msgstr "用非联接文件：超联结有可能出错"
+
+msgid "options(\"browser\") not set"
+msgstr "options(\"browser\")没有设好"
+
 msgid "running '%s' failed"
 msgstr "执行'%s'失败"
 
@@ -939,6 +965,12 @@ msgstr "'tar'退出码为%d"
 
 msgid "package '%s' successfully unpacked and MD5 sums checked"
 msgstr "程序包'%s'打开成功，MD5和检查也通过"
+
+msgid "malformed bundle DESCRIPTION file, no Contains field"
+msgstr "包袱DESCRIPTION文件格式不对，没有Contains这一域"
+
+msgid "bundle '%s' successfully unpacked and MD5 sums checked"
+msgstr "成功地打开了包袱'%s'，MD5和检查也通过"
 
 msgid "unable to move temporary installation '%s' to '%s'"
 msgstr "无法将临时安装'%s'搬到'%s'"
@@ -1008,44 +1040,6 @@ msgstr[0] "'lib'元素'%s'不是可写的目录"
 msgid "package '%s' is in use and will not be installed"
 msgid_plural "packages '%s' are in use and will not be installed"
 msgstr[0] "正在使用'%s'这个程序包，因此不会被安装"
-
-#~ msgid "offline = TRUE is deprecated: use help_type =\"postscript\""
-#~ msgstr "不推荐用offline = TRUE：请用help_type =\"postscript\""
-
-#~ msgid "chmhelp = TRUE is no longer supported: use help_type =\"text\""
-#~ msgstr "不推荐用chmhelp = TRUE：请用help_type =\"text\""
-
-#~ msgid "htmhelp = TRUE is deprecated: use help_type =\"html\""
-#~ msgstr "不推荐用htmhelp = TRUE：请用help_type =\"html\""
-
-#~ msgid "Using non-linked HTML file: hyperlinks may be incorrect"
-#~ msgstr "用非联接文件：超联结有可能出错"
-
-#~ msgid "options(\"browser\") not set"
-#~ msgstr "options(\"browser\")没有设好"
-
-#~ msgid "'%s' has a help file but no examples"
-#~ msgstr "'%s'含帮助文件但没有示范文件"
-
-#~ msgid ""
-#~ "No text help for '%s' is available:\n"
-#~ "corresponding file is missing"
-#~ msgstr ""
-#~ "没有与'%s'有关的帮助文件:\n"
-#~ "帮助文件不存在"
-
-#~ msgid ""
-#~ "No offline help for '%s' is available:\n"
-#~ "corresponding file is missing"
-#~ msgstr ""
-#~ "没有与'%s'有关的脱机帮助文件:\n"
-#~ "帮助文件不存在"
-
-#~ msgid "malformed bundle DESCRIPTION file, no Contains field"
-#~ msgstr "包袱DESCRIPTION文件格式不对，没有Contains这一域"
-
-#~ msgid "bundle '%s' successfully unpacked and MD5 sums checked"
-#~ msgstr "成功地打开了包袱'%s'，MD5和检查也通过"
 
 #~ msgid ""
 #~ "No HTML help for '%s' is available:\n"
@@ -1179,3 +1173,4 @@ msgstr[0] "正在使用'%s'这个程序包，因此不会被安装"
 
 #~ msgid "Optionally other keywords from doc/KEYWORDS, one per line"
 #~ msgstr "可以从其他文件/KEYWORDS中任选其他关键字，每行一个"
+

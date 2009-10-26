@@ -14,23 +14,10 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-strsplit <-
-    function(x, split, extended = TRUE, fixed = FALSE, perl = FALSE,
-             useBytes = FALSE)
-{
-    if (!missing(extended))
-        warning("argument 'extended' is defunct and will be removed soon")
-    .Internal(strsplit(x, as.character(split), as.logical(extended),
-                       as.logical(fixed), as.logical(perl),
-                       as.logical(useBytes)))
-}
-
 grep <-
 function(pattern, x, ignore.case = FALSE, extended = TRUE, perl = FALSE,
          value = FALSE, fixed = FALSE, useBytes = FALSE, invert = FALSE)
 {
-    if (!missing(extended))
-        warning("argument 'extended' is defunct and will be removed soon")
     ## when value = TRUE we return names
     if(!is.character(x)) x <- structure(as.character(x), names=names(x))
     .Internal(grep(as.character(pattern), x, ignore.case, extended, value,
@@ -41,8 +28,6 @@ grepl <-
 function(pattern, x, ignore.case = FALSE, extended = TRUE, perl = FALSE,
          fixed = FALSE, useBytes = FALSE)
 {
-    if (!missing(extended))
-        warning("argument 'extended' is defunct and will be removed soon")
     if(!is.character(x)) x <- as.character(x)
     .Internal(grepl(as.character(pattern), x, ignore.case, extended, FALSE,
                    perl, fixed, useBytes, FALSE))
@@ -52,8 +37,6 @@ sub <-
 function(pattern, replacement, x, ignore.case = FALSE, extended = TRUE,
          perl = FALSE, fixed = FALSE, useBytes = FALSE)
 {
-    if (!missing(extended))
-        warning("argument 'extended' is defunct and will be removed soon")
     if (!is.character(x)) x <- as.character(x)
      .Internal(sub(as.character(pattern), as.character(replacement), x,
                   ignore.case, extended, perl, fixed, useBytes))
@@ -63,8 +46,6 @@ gsub <-
 function(pattern, replacement, x, ignore.case = FALSE, extended = TRUE,
          perl = FALSE, fixed = FALSE, useBytes = FALSE)
 {
-    if (!missing(extended))
-        warning("argument 'extended' is defunct and will be removed soon")
     if (!is.character(x)) x <- as.character(x)
     .Internal(gsub(as.character(pattern), as.character(replacement), x,
                    ignore.case, extended, perl, fixed, useBytes))
@@ -73,22 +54,14 @@ function(pattern, replacement, x, ignore.case = FALSE, extended = TRUE,
 regexpr <-
 function(pattern, text, ignore.case = FALSE, extended = TRUE, perl = FALSE,
          fixed = FALSE, useBytes = FALSE)
-{
-    if (!missing(extended))
-        warning("argument 'extended' is defunct and will be removed soon")
     .Internal(regexpr(as.character(pattern), as.character(text),
                       ignore.case, extended, perl, fixed, useBytes))
-}
 
 gregexpr <-
 function(pattern, text, ignore.case = FALSE, extended = TRUE, perl = FALSE,
          fixed = FALSE, useBytes = FALSE)
-{
-    if (!missing(extended))
-        warning("argument 'extended' is defunct and will be removed soon")
     .Internal(gregexpr(as.character(pattern), as.character(text),
                        ignore.case, extended, perl, fixed, useBytes))
-}
 
 agrep <-
 function(pattern, x, ignore.case = FALSE, value = FALSE, max.distance = 0.1,

@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.11.0\n"
+"Project-Id-Version: R 2.10.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-10-10 14:12\n"
+"POT-Creation-Date: 2009-10-09 08:04\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -269,9 +269,6 @@ msgstr ""
 msgid "package must be loaded"
 msgstr ""
 
-msgid "package %s exists but was not installed under R >= 2.10.0 so xrefs cannot be checked"
-msgstr ""
-
 msgid "Obsolete package(s) %s in Rd xrefs"
 msgstr ""
 
@@ -446,10 +443,16 @@ msgstr ""
 msgid "cannot copy '%s' to '%s'"
 msgstr ""
 
+msgid "missing 'DESCRIPTION.in' for package '%s'"
+msgstr ""
+
 msgid "WARNING: malformed 'Depends' field in 'DESCRIPTION'"
 msgstr ""
 
 msgid "ERROR: this R is version %s, package '%s' requires R %s %s"
+msgstr ""
+
+msgid "ERROR: this R is version %s, bundle '%s' requires R %s %s"
 msgstr ""
 
 msgid "ERROR: this R is version %s, required is R %s %s"
@@ -515,9 +518,6 @@ msgstr ""
 msgid "ERROR:"
 msgstr ""
 
-msgid "this seems to be a bundle -- and they are defunct"
-msgstr ""
-
 msgid "packaged installation of"
 msgstr ""
 
@@ -560,7 +560,7 @@ msgstr ""
 msgid "invalid package"
 msgstr ""
 
-msgid "--pkglock applies only to a single package"
+msgid "--pkglock applies only to a single bundle/package"
 msgstr ""
 
 msgid "ERROR: no packages specified"
@@ -608,6 +608,9 @@ msgstr ""
 msgid "'type' must be one of 'txt', 'html', 'latex' or 'example'"
 msgstr ""
 
+msgid "Bundle package:"
+msgstr ""
+
 msgid "there is no package called '%s'"
 msgstr ""
 
@@ -636,9 +639,6 @@ msgid "package seems to be using lazy loading already"
 msgstr ""
 
 msgid "Cannot process chunk/lines:\n%s"
-msgstr ""
-
-msgid "Processing packages:"
 msgstr ""
 
 msgid "cannot update HTML package index"
@@ -797,7 +797,7 @@ msgstr ""
 msgid "Files 'DESCRIPTION' and 'DESCRIPTION.in' are missing."
 msgstr ""
 
-msgid "invalid package layout"
+msgid "Bundle 'DESCRIPTION' is missing."
 msgstr ""
 
 msgid "file '%s' is not in valid DCF format"
@@ -807,6 +807,9 @@ msgid "cannot source package code"
 msgstr ""
 
 msgid "Call sequence:"
+msgstr ""
+
+msgid "Processing packages:"
 msgstr ""
 
 msgid "parsing '%s'"

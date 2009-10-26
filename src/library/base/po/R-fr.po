@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-10-10 14:12\n"
+"POT-Creation-Date: 2009-10-09 08:02\n"
 "PO-Revision-Date: 2009-10-10 13:35+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -742,9 +742,6 @@ msgstr "' non trouvée"
 msgid "all arguments must be named"
 msgstr "tous les arguments doivent être nommés"
 
-msgid "argument 'extended' is defunct and will be removed soon"
-msgstr ""
-
 msgid "'pattern' must be a non-empty character string"
 msgstr "'pattern' doit être une chaîne de caractères non vide"
 
@@ -772,11 +769,27 @@ msgstr "'object' doit être une liste"
 msgid "This is R %s, package '%s' needs %s %s"
 msgstr "Ceci est R %s, le package '%s' nécessite %s %s"
 
-#, fuzzy
-msgid "package '%s' was built before R 2.10.0: please re-install it"
+msgid "package '%s' was built before R 2.0.0: please re-install it"
 msgstr ""
 "le package '%s' a été compilé avant R 2.0.0 : veuillez réinstaller une "
 "version plus récente, s'il-vous-plait"
+
+msgid "package '%s' was built under R version %s"
+msgstr "le package '%s' a été compilé avec la version R %s"
+
+msgid ""
+"package '%s' was built under R version %s and help will not work correctly\n"
+"Please re-install it"
+msgstr ""
+"le package '%s' a été compilé sous R version %s et l'aide ne fonctionnera "
+"pas correctement\n"
+"Veuillez le réinstaller, s'il-vous-plait"
+
+msgid ""
+"package '%s' was built under R version %s and help may not work correctly"
+msgstr ""
+"le package '%s' a été compilé avec la version R %s et l'aide ne fonctionnera "
+"pas correctement"
 
 #, fuzzy
 msgid ""
@@ -786,9 +799,6 @@ msgstr ""
 "le package '%s' a été compilé sous R version %s et l'aide ne fonctionnera "
 "pas correctement\n"
 "Veuillez le réinstaller, s'il-vous-plait"
-
-msgid "package '%s' was built under R version %s"
-msgstr "le package '%s' a été compilé avec la version R %s"
 
 msgid "package '%s' was built for %s"
 msgstr "le package '%s' a été compilé pour %s"
@@ -1625,12 +1635,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Message d'avis :\n"
 msgstr[1] "Messages d'avis :\n"
-
-#~ msgid ""
-#~ "package '%s' was built under R version %s and help may not work correctly"
-#~ msgstr ""
-#~ "le package '%s' a été compilé avec la version R %s et l'aide ne "
-#~ "fonctionnera pas correctement"
 
 #~ msgid "extra arguments ignored:"
 #~ msgstr "l'argument supplémentaire sera ignoré :"

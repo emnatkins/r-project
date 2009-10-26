@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.11.0\n"
+"Project-Id-Version: R 2.10.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-10-15 08:58\n"
-"PO-Revision-Date: 2009-10-15 08:58\n"
+"POT-Creation-Date: 2009-09-25 12:13\n"
+"PO-Revision-Date: 2009-09-25 12:13\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -267,18 +267,14 @@ msgstr "class(es) of ‘name’ will be discarded"
 msgid "cannot edit NULL row names"
 msgstr "cannot edit NULL row names"
 
-msgid "no help found for '%s'"
-msgstr "no help found for ‘%s’"
+msgid "no help file found for '%s'"
+msgstr "no help file found for ‘%s’"
 
 msgid "more than one help file found: using package '%s'"
 msgstr "more than one help file found: using package ‘%s’"
 
-msgid ""
-"package %s exists but was not installed under R >= 2.10.0 so help cannot be "
-"accessed"
-msgstr ""
-"package %s exists but was not installed under R >= 2.10.0 so help cannot be "
-"accessed"
+msgid "'%s' has a help file but no examples"
+msgstr "‘%s’ has a help file but no examples"
 
 msgid "test '%s' is not available"
 msgstr "test ‘%s’ is not available"
@@ -303,6 +299,15 @@ msgstr "‘form’ must be a two-sided formula with one term on each side"
 
 msgid "'topic' should be a name, length-one character vector or reserved word"
 msgstr "‘topic’ should be a name, length-one character vector or reserved word"
+
+msgid "offline = TRUE is deprecated: use help_type =\"postscript\""
+msgstr "offline = TRUE is deprecated: use help_type =“postscript”"
+
+msgid "chmhelp = TRUE is no longer supported: use help_type =\"text\""
+msgstr "chmhelp = TRUE is no longer supported: use help_type =“text”"
+
+msgid "htmhelp = TRUE is deprecated: use help_type =\"html\""
+msgstr "htmhelp = TRUE is deprecated: use help_type =“html”"
 
 msgid "No documentation for '%s' in specified packages and libraries:"
 msgstr "No documentation for ‘%s’ in specified packages and libraries:"
@@ -337,6 +342,20 @@ msgstr "HTML help is unavailable"
 
 msgid "R Help on '%s'"
 msgstr "R Help on ‘%s’"
+
+msgid ""
+"No text help for '%s' is available:\n"
+"corresponding file is missing"
+msgstr ""
+"No text help for ‘%s’ is available:\n"
+"corresponding file is missing"
+
+msgid ""
+"No offline help for '%s' is available:\n"
+"corresponding file is missing"
+msgstr ""
+"No offline help for ‘%s’ is available:\n"
+"corresponding file is missing"
 
 msgid "argument '%s' must be a single character string"
 msgstr "argument ‘%s’ must be a single character string"
@@ -924,6 +943,12 @@ msgstr "no download method found"
 msgid "download had nonzero exit status"
 msgstr "download had nonzero exit status"
 
+msgid "Using non-linked HTML file: hyperlinks may be incorrect"
+msgstr "Using non-linked HTML file: hyperlinks may be incorrect"
+
+msgid "options(\"browser\") not set"
+msgstr "options(“browser”) not set"
+
 msgid "running '%s' failed"
 msgstr "running ‘%s’ failed"
 
@@ -969,6 +994,12 @@ msgstr "‘tar’ returned non-zero exit code %d"
 
 msgid "package '%s' successfully unpacked and MD5 sums checked"
 msgstr "package ‘%s’ successfully unpacked and MD5 sums checked"
+
+msgid "malformed bundle DESCRIPTION file, no Contains field"
+msgstr "malformed bundle DESCRIPTION file, no Contains field"
+
+msgid "bundle '%s' successfully unpacked and MD5 sums checked"
+msgstr "bundle ‘%s’ successfully unpacked and MD5 sums checked"
 
 msgid "unable to move temporary installation '%s' to '%s'"
 msgstr "unable to move temporary installation ‘%s’ to ‘%s’"
