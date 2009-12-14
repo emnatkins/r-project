@@ -532,6 +532,7 @@ SEXP do_loadhistory(SEXP call, SEXP op, SEXP args, SEXP env)
     return R_NilValue;
 }
 
+extern wchar_t *wtransChar(SEXP x);
 
 SEXP do_addhistory(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -814,15 +815,15 @@ RECT *RgetMDIsize(void); /* in rui.c */
 
 SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP choices, preselect, ans = R_NilValue;
+    SEXP list, preselect, ans = R_NilValue;
     const char **clist;
     int i, j = -1, n, mw = 0, multiple, nsel = 0;
     int xmax, ymax, ylist, fht, h0;
     Rboolean haveTitle;
 
     checkArity(op, args);
-    choices = CAR(args);
-    if(!isString(choices)) error(_("invalid '%s' argument"), "choices");
+    list = CAR(args);
+    if(!isString(list)) error(_("invalid '%s' argument"), "list");
     preselect = CADR(args);
     if(!isNull(preselect) && !isString(preselect))
 	error(_("invalid '%s' argument"), "preselect");
@@ -832,10 +833,10 @@ SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP rho)
     if(!multiple && isString(preselect) && LENGTH(preselect) != 1)
 	error(_("invalid '%s' argument"), "preselect");
 
-    n = LENGTH(choices);
+    n = LENGTH(list);
     clist = (const char **) R_alloc(n + 1, sizeof(char *));
     for(i = 0; i < n; i++) {
-	clist[i] = translateChar(STRING_ELT(choices, i));
+	clist[i] = translateChar(STRING_ELT(list, i));
 	mw = max(mw, gstrwidth(NULL, SystemFont, clist[i]));
     }
     clist[n] = NULL;
@@ -899,12 +900,12 @@ SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 int Rwin_rename(const char *from, const char *to)
 {
-    return (MoveFileEx(from, to, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED) == 0);
+    return (MoveFileEx(from, to, MOVEFILE_REPLACE_EXISTING) == 0);
 }
 
 int Rwin_wrename(const wchar_t *from, const wchar_t *to)
 {
-    return (MoveFileExW(from, to, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED) == 0);
+    return (MoveFileExW(from, to, MOVEFILE_REPLACE_EXISTING) == 0);
 }
 
 SEXP do_getClipboardFormats(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -1055,8 +1056,7 @@ SEXP do_writeClipboard(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    if(raw)
 		for(i = 0; i < n; i++) *s++ = RAW(text)[i];
 	    else if (format == CF_UNICODETEXT) {
-		const wchar_t *wp;
-		wchar_t *ws = (wchar_t *) s;
+		wchar_t *wp, *ws = (wchar_t *) s;
 		for(i = 0; i < n; i++) {
 		    wp = wtransChar(STRING_ELT(text, i));
 		    while(*wp) *ws++ = *wp++;

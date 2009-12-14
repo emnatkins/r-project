@@ -105,7 +105,7 @@ Rd2txt <-
         txt <- paste(..., collapse="", sep="")
         trail <- grepl("\n$", txt)
         # Convert newlines
-        txt <- strsplit(txt, "\n", fixed = TRUE)[[1L]]
+        txt <- strsplit(txt, "\n", fixed = TRUE)[[1]]
         if (dropBlank) {
             while(length(txt) && grepl("^[[:space:]]*$", txt[1L]))
             	txt <- txt[-1L]
@@ -132,7 +132,7 @@ Rd2txt <-
 
     	if (wrapping) {
 	    if (keepFirstIndent) {
-		first <- nchar(psub1("[^ ].*", "", buffer[1L]))
+		first <- nchar(psub1("[^ ].*", "", buffer[1]))
 		keepFirstIndent <<- FALSE
 	    } else
 		first <- indent
@@ -584,7 +584,7 @@ Rd2txt <-
                        } else {
                            if (class == "default")
                                putf('## Default S3 method:\n')
-                           else if (grepl("<-\\s*value", blocks[[i+1L]][[1L]])) {
+                           else if (grepl("<-\\s*value", blocks[[i+1]][[1L]])) {
                                putf("## S3 replacement method for class '")
                                writeCodeBlock(block[[2L]], tag)
                                putf("':\n")

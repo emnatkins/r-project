@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-06 12:05\n"
+"POT-Creation-Date: 2009-12-10 19:18\n"
 "PO-Revision-Date: 2005-05-26 17:33+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -298,11 +298,6 @@ msgstr ""
 msgid "package must be loaded"
 msgstr "name space를 적재해서는 안됩니다"
 
-msgid ""
-"package %s exists but was not installed under R >= 2.10.0 so xrefs cannot be "
-"checked"
-msgstr ""
-
 msgid "Obsolete package(s) %s in Rd xrefs"
 msgstr ""
 
@@ -498,10 +493,16 @@ msgstr "파일 '%s'는 작성하지 않았습니다"
 msgid "cannot copy '%s' to '%s'"
 msgstr "'%s'에서 '%s'를 복사할수가 없습니다"
 
+msgid "missing 'DESCRIPTION.in' for package '%s'"
+msgstr ""
+
 msgid "WARNING: malformed 'Depends' field in 'DESCRIPTION'"
 msgstr ""
 
 msgid "ERROR: this R is version %s, package '%s' requires R %s %s"
+msgstr ""
+
+msgid "ERROR: this R is version %s, bundle '%s' requires R %s %s"
 msgstr ""
 
 msgid "ERROR: this R is version %s, required is R %s %s"
@@ -536,13 +537,13 @@ msgstr "이것은 패키지 'base'를 위해서 사용할수가 없습니다"
 msgid "Link %s in package %s could not be located"
 msgstr "name space를 적재해서는 안됩니다"
 
+msgid "Unable to locate help document %s in package %s"
+msgstr ""
+
 msgid "No docs found for package %s"
 msgstr ""
 
-msgid "Only help files, %s, %s and files under %s in a package can be viewed"
-msgstr ""
-
-msgid "NEWS"
+msgid "Only help files, %s and files under %s in a package can be viewed"
 msgstr ""
 
 #, fuzzy
@@ -584,9 +585,6 @@ msgid "cannot read index information in file '%s'"
 msgstr "파일 '%s'에서 인덱스 정보를 읽을 수 있지 않습니다"
 
 msgid "ERROR:"
-msgstr ""
-
-msgid "this seems to be a bundle -- and they are defunct"
 msgstr ""
 
 #, fuzzy
@@ -639,7 +637,7 @@ msgstr "디렉토리 '%s'를 작성할 수가 없습니다"
 msgid "invalid package"
 msgstr ""
 
-msgid "--pkglock applies only to a single package"
+msgid "--pkglock applies only to a single bundle/package"
 msgstr ""
 
 msgid "ERROR: no packages specified"
@@ -697,6 +695,9 @@ msgstr ""
 msgid "'type' must be one of 'txt', 'html', 'latex' or 'example'"
 msgstr ""
 
+msgid "Bundle package:"
+msgstr ""
+
 msgid "there is no package called '%s'"
 msgstr "'%s'라고 불리는 패키지는 없습니다"
 
@@ -730,9 +731,6 @@ msgid ""
 "Cannot process chunk/lines:\n"
 "%s"
 msgstr ""
-
-msgid "Processing packages:"
-msgstr "패키지 처리"
 
 #, fuzzy
 msgid "cannot update HTML package index"
@@ -899,7 +897,7 @@ msgstr ""
 msgid "Files 'DESCRIPTION' and 'DESCRIPTION.in' are missing."
 msgstr ""
 
-msgid "invalid package layout"
+msgid "Bundle 'DESCRIPTION' is missing."
 msgstr ""
 
 msgid "file '%s' is not in valid DCF format"
@@ -910,6 +908,9 @@ msgstr "source은 code로 패키지 할수가 없습니다"
 
 msgid "Call sequence:"
 msgstr "호출 sequence:"
+
+msgid "Processing packages:"
+msgstr "패키지 처리"
 
 msgid "parsing '%s'"
 msgstr "분석 '%s'"

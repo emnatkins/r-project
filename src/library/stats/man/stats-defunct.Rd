@@ -1,6 +1,6 @@
 % File src/library/stats/man/stats-defunct.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2009 R Core Development Team
+% Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{stats-defunct}
@@ -21,7 +21,6 @@
 \alias{lm.wfit.null}
 \alias{glm.fit.null}
 \alias{mauchley.test}
-\alias{clearNames}
 %
 \description{
   The functions or variables listed here are no longer part of \R as
@@ -71,9 +70,6 @@ mauchley.test(object, Sigma = diag(nrow = p),
    T = Thin.row(proj(M) - proj(X)), M = diag(nrow = p), X = ~0,
    idata = data.frame(index = seq(length = p)), ...)
 % </Removed 2.4.0>
-% <Removed 2.10.0>
-clearNames(object)
-% </Removed 2.10.0>
 }
 \details{
   The \code{*chisq()} functions now take an optional non-centrality
@@ -98,9 +94,6 @@ clearNames(object)
 
   \code{mauchley.test} was a misspelling of Mauchly's name, corrected
   by the introduction of \code{\link{mauchly.test}}.
-  
-  \code{clearNames} had been introduced at about the same time as
-  \code{\link{unname}}, but is less general and has been used rarely.
 }
 \seealso{
   \code{\link{Defunct}}

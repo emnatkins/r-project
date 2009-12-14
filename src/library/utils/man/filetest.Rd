@@ -30,8 +30,10 @@ file_test(op, x, y)
   Unix-alike this requires execute permission on all of the directories in
   the path that leads to the file, but no permissions on the file
   itself.
+#ifdef windows
   
-  For the meaning of \code{"-x"} on Windows see \code{\link{file.access}}.
+  For the meaning of \code{"-x"} see \code{\link{file.access}}.
+#endif
 }
 \seealso{
   \code{\link{file.exists}} which only tests for existence

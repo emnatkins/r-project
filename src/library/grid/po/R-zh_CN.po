@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-06 12:04\n"
+"POT-Creation-Date: 2009-12-10 19:18\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <feic@avaya.com>\n"
 "Language-Team: Chinese\n"
@@ -337,10 +337,6 @@ msgid "'x', 'y', and 'r' must be units"
 msgstr "'x', 'y'和'r'必需为单元值"
 
 msgid "'x', 'y', 'width', and 'height' must be units"
-msgstr "'x', 'y', 'width'和'height'必需为单元值"
-
-#, fuzzy
-msgid "at least one of 'width' and 'height' must be specified"
 msgstr "'x', 'y', 'width'和'height'必需为单元值"
 
 msgid "Invalid 'rot' value"

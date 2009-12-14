@@ -782,7 +782,6 @@ extern0 Rboolean known_to_be_utf8 INI_as(FALSE);
 # define deparse1s		Rf_deparse1s
 # define DispatchGroup		Rf_DispatchGroup
 # define DispatchOrEval		Rf_DispatchOrEval
-# define DispatchAnyOrEval      Rf_DispatchAnyOrEval
 # define dynamicfindVar		Rf_dynamicfindVar
 # define EncodeRaw              Rf_EncodeRaw
 # define EncodeString           Rf_EncodeString
@@ -889,7 +888,6 @@ extern0 Rboolean known_to_be_utf8 INI_as(FALSE);
 # define warningcall		Rf_warningcall
 # define WarningMessage		Rf_WarningMessage
 # define wcstoutf8		Rf_wcstoutf8
-# define wtransChar		Rf_wtransChar
 # define yychar			Rf_yychar
 # define yylval			Rf_yylval
 # define yynerrs		Rf_yynerrs
@@ -972,7 +970,6 @@ SEXP ddfindVar(SEXP, SEXP);
 SEXP deparse1(SEXP,Rboolean,int);
 SEXP deparse1line(SEXP,Rboolean);
 SEXP deparse1s(SEXP call);
-int DispatchAnyOrEval(SEXP, SEXP, const char *, SEXP, SEXP, SEXP*, int, int);
 int DispatchOrEval(SEXP, SEXP, const char *, SEXP, SEXP, SEXP*, int, int);
 int DispatchGroup(const char *, SEXP,SEXP,SEXP,SEXP,SEXP*);
 SEXP duplicated(SEXP, Rboolean);
@@ -982,7 +979,7 @@ int any_duplicated3(SEXP, SEXP, Rboolean);
 SEXP dynamicfindVar(SEXP, RCNTXT*);
 void endcontext(RCNTXT*);
 int envlength(SEXP);
-SEXP evalList(SEXP, SEXP, SEXP, int);
+SEXP evalList(SEXP, SEXP, SEXP);
 SEXP evalListKeepMissing(SEXP, SEXP);
 int factorsConform(SEXP, SEXP);
 void findcontext(int, SEXP, SEXP);
@@ -1160,12 +1157,9 @@ size_t ucstoutf8(char *s, const unsigned int wc);
 size_t mbtoucs(unsigned int *wc, const char *s, size_t n);
 size_t wcstoutf8(char *s, const wchar_t *wc, size_t n);
 
-const wchar_t *wtransChar(SEXP x); /* from sysutils.c */
-
 #define mbs_init(x) memset(x, 0, sizeof(mbstate_t))
 size_t Mbrtowc(wchar_t *wc, const char *s, size_t n, mbstate_t *ps);
 Rboolean mbcsValid(const char *str);
-Rboolean utf8Valid(const char *str);
 char *Rf_strchr(const char *s, int c);
 char *Rf_strrchr(const char *s, int c);
 

@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.11.0\n"
+"Project-Id-Version: R 2.10.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-06 12:05\n"
-"PO-Revision-Date: 2009-12-06 12:05\n"
+"POT-Creation-Date: 2009-12-10 19:18\n"
+"PO-Revision-Date: 2009-12-10 19:18\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -317,13 +317,6 @@ msgstr "Non-portable flags in variable '%s':"
 msgid "package must be loaded"
 msgstr "package must be loaded"
 
-msgid ""
-"package %s exists but was not installed under R >= 2.10.0 so xrefs cannot be "
-"checked"
-msgstr ""
-"package %s exists but was not installed under R >= 2.10.0 so xrefs cannot be "
-"checked"
-
 msgid "Obsolete package(s) %s in Rd xrefs"
 msgstr "Obsolete package(s) %s in Rd xrefs"
 
@@ -517,11 +510,17 @@ msgstr "file ‘%s’ was not created"
 msgid "cannot copy '%s' to '%s'"
 msgstr "cannot copy ‘%s’ to ‘%s’"
 
+msgid "missing 'DESCRIPTION.in' for package '%s'"
+msgstr "missing ‘DESCRIPTION.in’ for package ‘%s’"
+
 msgid "WARNING: malformed 'Depends' field in 'DESCRIPTION'"
 msgstr "WARNING: malformed ‘Depends’ field in ‘DESCRIPTION’"
 
 msgid "ERROR: this R is version %s, package '%s' requires R %s %s"
 msgstr "ERROR: this R is version %s, package ‘%s’ requires R %s %s"
+
+msgid "ERROR: this R is version %s, bundle '%s' requires R %s %s"
+msgstr "ERROR: this R is version %s, bundle ‘%s’ requires R %s %s"
 
 msgid "ERROR: this R is version %s, required is R %s %s"
 msgstr "ERROR: this R is version %s, required is R %s %s"
@@ -550,14 +549,14 @@ msgstr "No help found for package %s"
 msgid "Link %s in package %s could not be located"
 msgstr "Link %s in package %s could not be located"
 
+msgid "Unable to locate help document %s in package %s"
+msgstr "Unable to locate help document %s in package %s"
+
 msgid "No docs found for package %s"
 msgstr "No docs found for package %s"
 
-msgid "Only help files, %s, %s and files under %s in a package can be viewed"
-msgstr "Only help files, %s, %s and files under %s in a package can be viewed"
-
-msgid "NEWS"
-msgstr "NEWS"
+msgid "Only help files, %s and files under %s in a package can be viewed"
+msgstr "Only help files, %s and files under %s in a package can be viewed"
 
 msgid "DESCRIPTION"
 msgstr "DESCRIPTION"
@@ -597,9 +596,6 @@ msgstr "cannot read index information in file ‘%s’"
 
 msgid "ERROR:"
 msgstr "ERROR:"
-
-msgid "this seems to be a bundle -- and they are defunct"
-msgstr "this seems to be a bundle -- and they are defunct"
 
 msgid "packaged installation of"
 msgstr "packaged installation of"
@@ -651,8 +647,8 @@ msgstr "cannot create temporary directory"
 msgid "invalid package"
 msgstr "invalid package"
 
-msgid "--pkglock applies only to a single package"
-msgstr "--pkglock applies only to a single package"
+msgid "--pkglock applies only to a single bundle/package"
+msgstr "--pkglock applies only to a single bundle/package"
 
 msgid "ERROR: no packages specified"
 msgstr "ERROR: no packages specified"
@@ -709,6 +705,9 @@ msgstr "no ‘type’ specified"
 msgid "'type' must be one of 'txt', 'html', 'latex' or 'example'"
 msgstr "‘type’ must be one of 'txt', 'html', ‘latex’ or ‘example’"
 
+msgid "Bundle package:"
+msgstr "Bundle package:"
+
 msgid "there is no package called '%s'"
 msgstr "there is no package called ‘%s’"
 
@@ -742,9 +741,6 @@ msgid ""
 msgstr ""
 "Cannot process chunk/lines:\n"
 "%s"
-
-msgid "Processing packages:"
-msgstr "Processing packages:"
 
 msgid "cannot update HTML package index"
 msgstr "cannot update HTML package index"
@@ -902,8 +898,8 @@ msgstr "File ‘DESCRIPTION’ is missing."
 msgid "Files 'DESCRIPTION' and 'DESCRIPTION.in' are missing."
 msgstr "Files ‘DESCRIPTION’ and ‘DESCRIPTION.in’ are missing."
 
-msgid "invalid package layout"
-msgstr "invalid package layout"
+msgid "Bundle 'DESCRIPTION' is missing."
+msgstr "Bundle ‘DESCRIPTION’ is missing."
 
 msgid "file '%s' is not in valid DCF format"
 msgstr "file ‘%s’ is not in valid DCF format"
@@ -913,6 +909,9 @@ msgstr "cannot source package code"
 
 msgid "Call sequence:"
 msgstr "Call sequence:"
+
+msgid "Processing packages:"
+msgstr "Processing packages:"
 
 msgid "parsing '%s'"
 msgstr "parsing ‘%s’"

@@ -7,7 +7,6 @@
 \alias{difftime}
 \alias{as.difftime}
 \alias{as.double.difftime}
-\alias{is.numeric.difftime}
 \alias{print.difftime}
 \alias{format.difftime}
 \alias{units.difftime}

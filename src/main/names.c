@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2009  The R Development Core Team
+ *  Copyright (C) 1997--2008  The R Development Core Team
  *  Copyright (C) 2003, 2004  The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -128,7 +128,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"[[<-",	do_subassign2,	1,	0,	3,	{PP_SUBASS,  PREC_LEFT,	  1}},
 {"$<-",		do_subassign3,	1,	0,	3,	{PP_SUBASS,  PREC_LEFT,	  1}},
 {"switch",	do_switch,	0,	210,	-1,	{PP_FUNCALL, PREC_FN,	  0}},
-{"browser",	do_browser,	0,	101,	4,	{PP_FUNCALL, PREC_FN,	  0}},
+{"browser",	do_browser,	0,	101,	3,	{PP_FUNCALL, PREC_FN,	  0}},
 {"debug",	do_debug,	0,	111,	3,	{PP_FUNCALL, PREC_FN,	  0}},
 {"undebug",	do_debug,	1,	111,	1,	{PP_FUNCALL, PREC_FN,	  0}},
 {"isdebugged",	do_debug,	2,	11,	1,	{PP_FUNCALL, PREC_FN,	  0}},
@@ -491,15 +491,15 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"nzchar",	do_nzchar,	1,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"substr",	do_substr,	1,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"substr<-",	do_substrgets,	1,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
-{"strsplit",	do_strsplit,	1,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
+{"strsplit",	do_strsplit,	1,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
 {"abbreviate",	do_abbrev,	1,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"make.names",	do_makenames,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
-{"grep",	do_grep,	0,	11,	8,	{PP_FUNCALL, PREC_FN,	0}},
-{"grepl",	do_grep,	1,	11,	8,	{PP_FUNCALL, PREC_FN,	0}},
-{"sub",		do_gsub,	0,	11,	7,	{PP_FUNCALL, PREC_FN,	0}},
-{"gsub",	do_gsub,	1,	11,	7,	{PP_FUNCALL, PREC_FN,	0}},
-{"regexpr",	do_regexpr,	0,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
-{"gregexpr",	do_regexpr,	1,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
+{"grep",	do_grep,	0,	11,	9,	{PP_FUNCALL, PREC_FN,	0}},
+{"grepl",	do_grep,	1,	11,	9,	{PP_FUNCALL, PREC_FN,	0}},
+{"sub",		do_gsub,	0,	11,	8,	{PP_FUNCALL, PREC_FN,	0}},
+{"gsub",	do_gsub,	1,	11,	8,	{PP_FUNCALL, PREC_FN,	0}},
+{"regexpr",	do_regexpr,	1,	11,	7,	{PP_FUNCALL, PREC_FN,	0}},
+{"gregexpr",	do_gregexpr,	1,	11,	7,	{PP_FUNCALL, PREC_FN,	0}},
 {"agrep",	do_agrep,	1,	11,	9,	{PP_FUNCALL, PREC_FN,	0}},
 {"tolower",	do_tolower,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"toupper",	do_tolower,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -684,7 +684,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"radixsort",	do_radixsort,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"order",	do_order,	0,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"rank",	do_rank,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
-{"xtfrm",	do_xtfrm,	0,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"missing",	do_missing,	1,	0,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"nargs",	do_nargs,	1,	0,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"scan",	do_scan,	0,	11,	18,	{PP_FUNCALL, PREC_FN,	0}},
@@ -716,7 +715,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"eapply",	do_eapply,	0,	10,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"lapply",	do_lapply,	0,	10,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"rapply",	do_rapply,	0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
-{"vapply",	do_vapply,	0,	10,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"islistfactor",do_islistfactor,0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"colSums",	do_colsum,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"colMeans",	do_colsum,	1,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
@@ -765,6 +763,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"tempdir",	do_tempdir,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"R.home",	do_Rhome,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"date",	do_date,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
+{"index.search",do_indexsearch, 0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"Sys.getenv",	do_getenv,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"Sys.setenv",	do_setenv,	0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"Sys.unsetenv",do_unsetenv,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -1159,7 +1158,7 @@ SEXP attribute_hidden do_internal(SEXP call, SEXP op, SEXP args, SEXP env)
 		  CHAR(PRINTNAME(fun)));
     args = CDR(s);
     if (TYPEOF(INTERNAL(fun)) == BUILTINSXP)
-	args = evalList(args, env, call, 0);
+	args = evalList(args, env, op);
     PROTECT(args);
     flag = PRIMPRINT(INTERNAL(fun));
     R_Visible = flag != 1;

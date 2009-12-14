@@ -78,8 +78,7 @@ print.listof <- function(x, ...)
     invisible(x)
 }
 
-## formerly same as [.AsIs
-`[.listof` <- function(x, i, ...) structure(NextMethod("["), class = class(x))
+`[.listof` <- `[.AsIs`
 
 ## used for version:
 print.simple.list <- function(x, ...)

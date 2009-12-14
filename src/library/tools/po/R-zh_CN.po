@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-06 12:05\n"
+"POT-Creation-Date: 2009-12-10 19:18\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <feic@avaya.com>\n"
 "Language-Team: Chinese\n"
@@ -294,11 +294,6 @@ msgstr "变量'%s'里有不可便携的标志:"
 msgid "package must be loaded"
 msgstr "必需载入程序包。"
 
-msgid ""
-"package %s exists but was not installed under R >= 2.10.0 so xrefs cannot be "
-"checked"
-msgstr ""
-
 msgid "Obsolete package(s) %s in Rd xrefs"
 msgstr "Rd xrefs里程序包%s过时了"
 
@@ -488,11 +483,17 @@ msgstr "无法产生文件'%s'"
 msgid "cannot copy '%s' to '%s'"
 msgstr "无法将'%s'拷贝到'%s'"
 
+msgid "missing 'DESCRIPTION.in' for package '%s'"
+msgstr "程序包'%s'缺少'DESCRIPTION.in'"
+
 msgid "WARNING: malformed 'Depends' field in 'DESCRIPTION'"
 msgstr "警告：'DESCRIPTION'里'Depends'项格式不对"
 
 msgid "ERROR: this R is version %s, package '%s' requires R %s %s"
 msgstr "错误：R的版本是%s，程序包'%s'要求版本为%s %s的R"
+
+msgid "ERROR: this R is version %s, bundle '%s' requires R %s %s"
+msgstr "错误：R的版本是%s，捆程序捆包'%s'要求版本为%s %s的R"
 
 msgid "ERROR: this R is version %s, required is R %s %s"
 msgstr "错误：R的版本是%s，需要的是版本为%s %s的R"
@@ -521,13 +522,13 @@ msgstr "%s的程序包没有帮助文件"
 msgid "Link %s in package %s could not be located"
 msgstr "程序包%s里的链结%s不存在"
 
+msgid "Unable to locate help document %s in package %s"
+msgstr "在程序包%s找不到%s这个帮助文件"
+
 msgid "No docs found for package %s"
 msgstr "程序包%s里没有任何文件"
 
-msgid "Only help files, %s, %s and files under %s in a package can be viewed"
-msgstr ""
-
-msgid "NEWS"
+msgid "Only help files, %s and files under %s in a package can be viewed"
 msgstr ""
 
 #, fuzzy
@@ -570,9 +571,6 @@ msgstr "无法从文件'%s'中读取索引信息"
 
 msgid "ERROR:"
 msgstr "错误："
-
-msgid "this seems to be a bundle -- and they are defunct"
-msgstr ""
 
 msgid "packaged installation of"
 msgstr "程辑包安装"
@@ -621,8 +619,7 @@ msgstr "无法建立临时性目录"
 msgid "invalid package"
 msgstr "程辑包无效."
 
-#, fuzzy
-msgid "--pkglock applies only to a single package"
+msgid "--pkglock applies only to a single bundle/package"
 msgstr "--pkglock只适用于单独程序包"
 
 msgid "ERROR: no packages specified"
@@ -680,6 +677,9 @@ msgstr "没有设定'type'"
 msgid "'type' must be one of 'txt', 'html', 'latex' or 'example'"
 msgstr ""
 
+msgid "Bundle package:"
+msgstr "程序包捆："
+
 msgid "there is no package called '%s'"
 msgstr "没有叫'%s'的程辑包"
 
@@ -713,9 +713,6 @@ msgid ""
 msgstr ""
 "无法处理段/列：\n"
 "%s"
-
-msgid "Processing packages:"
-msgstr "正在处理程辑包:"
 
 msgid "cannot update HTML package index"
 msgstr "无法更新HTML程辑包索引"
@@ -873,9 +870,8 @@ msgstr "缺少'DESCRIPTION'这个文件"
 msgid "Files 'DESCRIPTION' and 'DESCRIPTION.in' are missing."
 msgstr "缺少'DESCRIPTION'和'DESCRIPTION.in'这两个文件"
 
-#, fuzzy
-msgid "invalid package layout"
-msgstr "程辑包无效."
+msgid "Bundle 'DESCRIPTION' is missing."
+msgstr "缺少'DESCRIPTION'一捆文件"
 
 msgid "file '%s' is not in valid DCF format"
 msgstr "文件'%s'不含正确的DCF格式"
@@ -885,6 +881,9 @@ msgstr "无法读取程辑包源编码"
 
 msgid "Call sequence:"
 msgstr "调用序列:"
+
+msgid "Processing packages:"
+msgstr "正在处理程辑包:"
 
 msgid "parsing '%s'"
 msgstr "文名分析'%s'"
@@ -906,9 +905,6 @@ msgid "Found .Internal call in the following function:"
 msgid_plural "Found .Internal calls in the following functions:"
 msgstr[0] "下面的函数调用了.Internal:"
 
-#~ msgid "Unable to locate help document %s in package %s"
-#~ msgstr "在程序包%s找不到%s这个帮助文件"
-
 #~ msgid "Suspect link(s) in documentation object '%s':"
 #~ msgstr "使用手冊对象'%s'联结可能不对:"
 
@@ -921,20 +917,8 @@ msgstr[0] "下面的函数调用了.Internal:"
 #~ "真的文件名字--这种链结不能在小于2.10.0版本的R里用, 而且也只能在这个版本R的"
 #~ "HTML帮助里用(PDF不行)。"
 
-#~ msgid "missing 'DESCRIPTION.in' for package '%s'"
-#~ msgstr "程序包'%s'缺少'DESCRIPTION.in'"
-
-#~ msgid "ERROR: this R is version %s, bundle '%s' requires R %s %s"
-#~ msgstr "错误：R的版本是%s，捆程序捆包'%s'要求版本为%s %s的R"
-
 #~ msgid "No package of named %s could be found"
 #~ msgstr "找不到叫%s这样一个程序包。"
-
-#~ msgid "Bundle package:"
-#~ msgstr "程序包捆："
-
-#~ msgid "Bundle 'DESCRIPTION' is missing."
-#~ msgstr "缺少'DESCRIPTION'一捆文件"
 
 #~ msgid "package '%s' has no .rda file"
 #~ msgstr "程辑包'%s'里没有.rda文件"

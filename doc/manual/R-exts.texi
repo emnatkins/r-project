@@ -67,17 +67,17 @@ The current version of this document is @value{VERSION}.
 @end ifnottex
 
 @menu
-* Acknowledgements::
-* Creating R packages::
-* Writing R documentation files::
-* Tidying and profiling R code::
-* Debugging::
-* System and foreign language interfaces::
-* The R API::
-* Generic functions and methods::
-* Linking GUIs and other front-ends to R::
-* Function and variable index::
-* Concept index::
+* Acknowledgements::            
+* Creating R packages::         
+* Writing R documentation files::  
+* Tidying and profiling R code::  
+* Debugging::                   
+* System and foreign language interfaces::  
+* The R API::                   
+* Generic functions and methods::  
+* Linking GUIs and other front-ends to R::  
+* Function and variable index::  
+* Concept index::               
 @end menu
 
 @node Acknowledgements, Creating R packages, Top, Top
@@ -108,7 +108,7 @@ help pages
 @end example
 
 @noindent
-before reading on.
+before reading on.  
 
 A computing environment including a number of tools is assumed; the
 ``R Installation and Administration'' manual describes what is needed.
@@ -125,18 +125,18 @@ R-admin, R Installation and Administration}, for further details.
 Other types of extensions are supported: @xref{Package types}.
 
 @menu
-* Package structure::
-* Configure and cleanup::
-* Checking and building packages::
-* Writing package vignettes::
-* Submitting a package to CRAN::
-* Package name spaces::
-* Writing portable packages::
-* Diagnostic messages::
-* Internationalization::
-* CITATION files::
-* Package types::
-* Services::
+* Package structure::           
+* Configure and cleanup::       
+* Checking and building packages::  
+* Writing package vignettes::   
+* Submitting a package to CRAN::  
+* Package name spaces::         
+* Writing portable packages::   
+* Diagnostic messages::         
+* Internationalization::        
+* CITATION files::              
+* Package types::               
+* Services::                    
 @end menu
 
 @node Package structure, Configure and cleanup, Creating R packages, Creating R packages
@@ -204,7 +204,7 @@ only by case (see the previous paragraph).  In addition, the names of
 @samp{.Rd} files will be used in URLs and so must be @acronym{ASCII}
 and not contain @code{%}.  For maximal portability filenames should
 only contain only @acronym{ASCII} characters not excluded already
-(that is @code{A-Za-z0-9._!#$%&+,;=@@^()@{@}'[]} we exclude space as
+(that is @code{A-Za-z0-9._!#$%&+,;=@@^()@{@}'[]} we exclude space as 
 many utilities do not accept spaces in file paths): non-English alphabetic
 characters cannot be guaranteed to be supported in all locales.  It would
 be good practice to avoid the shell metacharacters @code{()@{@}'[]$}.
@@ -222,11 +222,11 @@ The @R{} function @code{package.skeleton} can help to create the
 structure for a new package: see its help page for details.
 
 @menu
-* The DESCRIPTION file::
-* The INDEX file::
-* Package subdirectories::
-* Package bundles::
-* Data in packages::
+* The DESCRIPTION file::        
+* The INDEX file::              
+* Package subdirectories::      
+* Package bundles::             
+* Data in packages::            
 @end menu
 
 @node The DESCRIPTION file, The INDEX file, Package structure, Package structure
@@ -252,7 +252,6 @@ Description: A short (one paragraph) description of what
   the package does and why it may be useful.
 License: GPL (>= 2)
 URL: http://www.r-project.org, http://www.another.url
-BugReports: http://pkgname.bugtracker.url
 @end smallexample
 @end cartouche
 @end quotation
@@ -262,9 +261,8 @@ The format is that of a `Debian Control File' (see the help for
 @samp{read.dcf}).  Continuation lines (for example, for descriptions
 longer than one line) start with a space or tab.  The @samp{Package},
 @samp{Version}, @samp{License}, @samp{Description}, @samp{Title},
-@samp{Author}, and @samp{Maintainer} fields are mandatory, the
-remaining fields (@samp{Date}, @samp{Depends}, @samp{URL},
-@samp{BugReports}, @dots{}) are optional.
+@samp{Author}, and @samp{Maintainer} fields are mandatory, the remaining
+fields (@samp{Date}, @samp{Depends}, @samp{URL}, @dots{}) are optional.
 
 The @file{DESCRIPTION} file should be written entirely in
 @acronym{ASCII} for maximal portability.
@@ -450,11 +448,6 @@ separated by commas or whitespace, for example the homepage of the
 author or a page where additional material describing the software can
 be found.  These @acronym{URL}s are converted to active hyperlinks in
 @acronym{CRAN} package listings.
-
-The optional @samp{BugReports} field may contain a single
-@acronym{URL} to which bug reports about the package should be
-submitted.  This @acronym{URL} will be used by @code{bug.reports}
-instead of sending an email to the maintainer.
 
 Base and recommended packages (i.e., packages contained in the @R{}
 source distribution or available from @acronym{CRAN} and recommended to
@@ -746,8 +739,24 @@ Subdirectory @file{po} is used for files related to @emph{localization}:
 @subsection Package bundles
 @cindex Package bundles
 
-Package bundles were deprecated in @R{} 2.10.0 and all support for them
-was removed in @R{} 2.11.0.
+Package bundles were deprecated in @R{} 2.10.0 and support for
+installing them will be removed in @R{} 2.11.0.
+
+Unbundling a package bundle is straightforward: just replace the
+@file{DESCRIPTION.in} file of each package by a suitable
+@file{DESCRIPTION} file and distribute the individual packages (e.g.@:
+@emph{via} tarballs created by @command{R CMD build})).  The installed
+@file{DESCRIPTION} files provide a good starting point, but the
+@samp{Bundle}, @samp{Contains} and @samp{BundleDescription} fields
+should not appear.  It may be needed to add references in the
+@samp{Suggests} or @samp{Imports} fields to other members of the former
+bundle.
+
+Prior to @R{} 2.9.1, @code{update.packages()} will only update members
+of a bundle by an updated bundle, whereas later versions of @R{} will
+update one or more members if an updated package of that name is
+available.  Thus when a bundle is unbundled, updating is transparent in
+@R{} 2.9.1 and later but needs to be done manually in earlier versions.
 
 @node Data in packages,  , Package bundles, Package structure
 @subsection Data in packages
@@ -962,9 +971,9 @@ the name of the package (e.g., @samp{survival} or @samp{MASS}) being
 installed is available from the shell variable @env{R_PACKAGE_NAME}.
 
 @menu
-* Using Makevars::
-* Configure example::
-* Using F95 code::
+* Using Makevars::              
+* Configure example::           
+* Using F95 code::              
 @end menu
 
 @node Using Makevars, Configure example, Configure and cleanup, Configure and cleanup
@@ -1112,7 +1121,7 @@ It is sometimes useful to have a target @samp{clean} in @file{Makevars}
 or @file{Makevars.win}: this will be used by @command{R CMD build}.
 
 @menu
-* Back-compatibility for Makevars::
+* Back-compatibility for Makevars::  
 @end menu
 
 @node Back-compatibility for Makevars,  , Using Makevars, Using Makevars
@@ -1208,7 +1217,7 @@ AC_ARG_WITH([odbc-lib],
             [odbc_lib_path=$withval])
 if test [ -n "$odbc_lib_path" ] ; then
    LIBS="-L$odbc_lib_path $@{LIBS@}"
-else
+else 
   if test [ -n "$@{ODBC_LIBS@}" ] ; then
      LIBS="-L$@{ODBC_LIBS@} $@{LIBS@}"
   else
@@ -1330,9 +1339,9 @@ this, but you may get more detailed error messages doing the checks
 directly.
 
 @menu
-* Checking packages::
-* Building packages::
-* Customizing checking and building::
+* Checking packages::           
+* Building packages::           
+* Customizing checking and building::  
 @end menu
 
 @node Checking packages, Building packages, Checking and building packages, Checking and building packages
@@ -1821,7 +1830,7 @@ binaries due to security concerns, and does not allow binary executables
 in packages.  Maintainers who need additional software for the Windows
 binaries of their packages on @acronym{CRAN} have three options
 @enumerate
-@item
+@item 
 To arrange for installation of the package to download the
 additional software from a URL, as e.g.@: package @pkg{Cairo} does.
 
@@ -1878,12 +1887,12 @@ The package name space comes first in the search, then the imports, then
 the base name space and then the normal search path.
 
 @menu
-* Specifying imports and exports::
-* Registering S3 methods::
-* Load hooks::
-* An example::
-* Summary -- converting an existing package::
-* Name spaces with S4 classes and methods::
+* Specifying imports and exports::  
+* Registering S3 methods::      
+* Load hooks::                  
+* An example::                  
+* Summary -- converting an existing package::  
+* Name spaces with S4 classes and methods::  
 @end menu
 
 
@@ -2282,7 +2291,7 @@ Identify S3-style method definitions and write corresponding
 @item
 Identify dependencies and replace any @code{require} calls by
 @code{import} directives (and make appropriate changes in the
-@code{Depends} and @code{Imports} fields of the @file{DESCRIPTION}
+@code{Depends} and @code{Imports} fields of the @file{DESCRIPTION} 
 file).
 @item
 Replace @code{.First.lib} functions with @code{.onLoad} functions or
@@ -2310,10 +2319,10 @@ the @pkg{stats4} package has
 @example
 export(mle)
 importFrom(graphics, plot)
-importFrom(stats, AIC, coef, confint, logLik, optim, profile,
+importFrom(stats, AIC, coef, confint, logLik, optim, profile, 
 	   qchisq, update, vcov)
 exportClasses(mle, profile.mle, summary.mle)
-exportMethods(BIC, coef, confint, logLik, plot, profile,
+exportMethods(BIC, coef, confint, logLik, plot, profile, 
               summary, show, update, vcov)
 export(AIC)
 @end example
@@ -2395,7 +2404,7 @@ being imported from more than one namespace.
 @section Writing portable packages
 
 @menu
-* Encoding issues::
+* Encoding issues::             
 @end menu
 
 Portable packages should have simple file names: use only alphanumeric
@@ -2674,10 +2683,10 @@ archive mirrors and packaged with the @code{poEdit} package
 (@uref{http://@/poedit.sourceforge.net/@/download.php#win32}).
 
 @menu
-* C-level messages::
-* R messages::
-* Installing translations::
-* Makefile support::
+* C-level messages::            
+* R messages::                  
+* Installing translations::     
+* Makefile support::            
 @end menu
 
 @node C-level messages, R messages, Internationalization, Internationalization
@@ -2935,8 +2944,8 @@ so far in this chapter.  Currently two other types are recognized, both
 of which need write permission in the @R{} installation tree.
 
 @menu
-* Frontend::
-* Translation::
+* Frontend::                    
+* Translation::                 
 @end menu
 
 @node Frontend, Translation, Package types, Package types
@@ -3001,7 +3010,7 @@ distribution.
 
 @uref{http://win-builder.r-project.org, win-builder.r-project.org} offers
 the automated preparation of Windows binaries from well-tested source
-packages.
+packages. 
 
 R-Forge (@uref{http://R-Forge.r-project.org, R-Forge.r-project.org}) and
 RForge (@uref{http://www.rforge.net, www.rforge.net}) are similar
@@ -3021,20 +3030,20 @@ between developers and/or interested useRs.
 @cindex Documentation, writing
 
 @menu
-* Rd format::
-* Sectioning::
-* Marking text::
-* Lists and tables::
-* Cross-references::
-* Mathematics::
-* Insertions::
-* Indices::
-* Platform-specific sections::
-* Conditional text::
-* Dynamic pages::
-* Encoding::
-* Processing Rd format::
-* Back-compatibility issues::
+* Rd format::                   
+* Sectioning::                  
+* Marking text::                
+* Lists and tables::            
+* Cross-references::            
+* Mathematics::                 
+* Insertions::                  
+* Indices::                     
+* Platform-specific sections::  
+* Conditional text::            
+* Dynamic pages::               
+* Encoding::                    
+* Processing Rd format::        
+* Back-compatibility issues::   
 @end menu
 
 @node Rd format, Sectioning, Writing R documentation files, Writing R documentation files
@@ -3054,7 +3063,7 @@ found in the @file{src/library/@var{pkg}/man} directories of the @R{}
 source tree, where @var{pkg} stands for one of the standard packages
 which are included in the @R{} distribution.
 
-As an example, let us look at a simplified version of
+As an example, let us look at a simplified version of 
 @file{src/library/base/man/load.Rd} which documents the @R{} function
 @code{load}.
 
@@ -3106,8 +3115,8 @@ header is mandatory.
 
 See @uref{http://developer.r-project.org/Rds.html, ``Guidelines
 for Rd files''} for guidelines for writing documentation in Rd format
-which should be useful for package writers.
-@findex prompt
+which should be useful for package writers. 
+@findex prompt 
 The @R{}
 generic function @code{prompt} is used to construct a bare-bones Rd
 file ready for manual editing.  Methods are defined for documenting
@@ -3127,10 +3136,10 @@ on earlier versions of the Rd format.
 As of @R{} 2.10.0, the syntax of Rd files consists of three types of
 text input.  The most common is @LaTeX{}-like, with the backslash used
 as a prefix on markup (e.g. @code{\alias}), and
-braces used to indicate arguments (e.g. @code{@{load@}}).
+braces used to indicate arguments (e.g. @code{@{load@}}).  
 The least common type of text is verbatim text, where
 no markup is processed. The third type is @R{}-like, intended for @R{}
-code, but allowing some embedded macros.  Quoted strings within
+code, but allowing some embedded macros.  Quoted strings within 
 @R{}-like text are handled specially: regular character escapes such as
 @code{\n} may be entered as-is.  Only markup starting with @code{\l} (e.g.
 @code{\link}) or @code{\v} (e.g. @code{\var}) will be recognized
@@ -3151,10 +3160,10 @@ always do.  For the complete list of macros and rules for escapes, see
 @uref{http://developer.r-project.org/parseRd.pdf, ``Parsing Rd files''}.
 
 @menu
-* Documenting functions::
-* Documenting data sets::
-* Documenting S4 classes and methods::
-* Documenting packages::
+* Documenting functions::       
+* Documenting data sets::       
+* Documenting S4 classes and methods::  
+* Documenting packages::        
 @end menu
 
 @node Documenting functions, Documenting data sets, Rd format, Rd format
@@ -3339,7 +3348,7 @@ Description of the function's arguments, using an entry of the form
 @noindent for each element of the argument list.  (Note that there is
 no whitespace between the three parts of the entry.) There may be
 optional text outside the @code{\item} entries, for example to give
-general information about groups of parameters.
+general information about groups of parameters.  
 
 
 @item \details@{@dots{}@}
@@ -3404,7 +3413,7 @@ this.  @xref{Marking text}, and @ref{Cross-references}).
 
 @findex \examples
 @item \examples@{@dots{}@}
-Examples of how to use the function.  Code in this section is set
+Examples of how to use the function.  Code in this section is set 
 in typewriter font without reformatting and is run by
 @code{example()} unless marked otherwise (see below).
 
@@ -3419,7 +3428,7 @@ for text that should only be shown, but not run, and
 @findex \dontshow
 for extra commands for testing that should not be shown to users, but
 will be run by @code{example()}.  (Previously this was called
-@code{\testonly}, and that is still accepted.)
+@code{\testonly}, and that is still accepted.)  
 
 Text inside @code{\dontrun@{@}} is verbatim, but the other parts
 of the @code{\examples} section are @R{}-like text.
@@ -3706,7 +3715,7 @@ will need to be escaped (@pxref{Insertions}).
 @item \code@{@var{text}@}
 @findex \code
 Indicate text that is a literal example of a piece of an @R{} program,
-e.g., a fragment of @R{} code or the name of an @R{} object.  Text is
+e.g., a fragment of @R{} code or the name of an @R{} object.  Text is 
 entered in @R{}-like syntax, and displayed using @code{typewriter} font
 if possible.  Macros @code{\var} and @code{\link} are interpreted within
 @var{text}.
@@ -3718,7 +3727,7 @@ is displayed using @code{typewriter} font if possible.  Formatting,
 e.g.@: line breaks, is preserved.
 
 Due to limitations in @LaTeX{} as of this writing, this macro may not be
-nested within other markup macros other than @code{\dQuote} and
+nested within other markup macros other than @code{\dQuote} and 
 @code{\sQuote}, as errors or bad formatting may result.
 
 @item \kbd@{@var{keyboard-characters}@}
@@ -3989,7 +3998,7 @@ examples section in the file @file{Paren.Rd} for an example.}
 @emph{almost always} need to be escaped by @samp{\}, and @samp{\\} can be used
 for backslash and needs to be when there two or more adjacent
 backslashes).  In @R{}-like code literal strings are slightly
-more forgiving; see
+more forgiving; see 
 @uref{http://developer.r-project.org/parseRd.pdf, ``Parsing Rd files''}
 for details.
 
@@ -4138,17 +4147,17 @@ Whether the R code should be evaluated.
 @item @code{echo=FALSE}
 Whether the R code should be echoed.  If @code{TRUE}, a display will be given
 in a preformatted block.  For example, @code{\Sexpr[echo=TRUE]@{ x <- 1 @}} will be displayed
-as
+as 
 @example
 > x <- 1
 @end example
 
-@item @code{keep.source=TRUE}
+@item @code{keep.source=TRUE} 
 Whether to keep the author's formatting when displaying the
 code, or throw it away and use a deparsed version.
 
-@item @code{results=text}
-How should the results be displayed?  The possibilities
+@item @code{results=text}  
+How should the results be displayed?  The possibilities 
 are:
 
 @itemize @minus
@@ -4156,39 +4165,39 @@ are:
 Apply @code{as.character()} to the result of the code, and insert it
 as a text element.
 
-@item @code{results=verbatim}
-Print the results of the code just as if it was executed at the console,
+@item @code{results=verbatim} 
+Print the results of the code just as if it was executed at the console, 
 and include the printed results verbatim.  (Invisible results will not print.)
 
 @item @code{results=rd}
 The result is assumed to be a character vector containing markup to
 be passed to @code{parse_Rd(fragment=TRUE)}, with the result inserted in place.
-This could be used to insert computed aliases, for instance.
+This could be used to insert computed aliases, for instance.  
 
 @item @code{results=hide}
 Insert no output.
 @end itemize
 
-@item @code{strip.white=TRUE}
+@item @code{strip.white=TRUE} 
 Remove leading and trailing white space from each line of
-output if @code{strip.white=TRUE}.  With
+output if @code{strip.white=TRUE}.  With 
 @code{strip.white=all}, also remove blank lines.
 
-@item @code{stage=install}
+@item @code{stage=install}  
 Control when this macro is run.  Possible values are
 @itemize @minus
-@item @code{stage=build}
+@item @code{stage=build} 
 The macro is run when building a source tarball.  Currently
 this stage is not processed.
 
-@item @code{stage=install}
+@item @code{stage=install} 
 The macro is run when installing from source.
 
-@item @code{stage=render}
+@item @code{stage=render} 
 The macro is run when displaying the help page.
 @end itemize
 
-Conditionals such as @code{#ifdef}
+Conditionals such as @code{#ifdef} 
 (@pxref{Platform-specific sections}) are applied after the
 @code{build} macros but before the @code{install} macros.  In some
 situations (e.g. installing directly from a source directory without a
@@ -4203,13 +4212,13 @@ macro can output an @code{\Sexpr} macro designed for a later stage,
 but not for the current one or any earlier stage.
 
 @item @code{width, height, fig}
-These options are currently allowed but ignored.
+These options are currently allowed but ignored.  
 @end itemize
 
 The @code{\RdOpts} macro is used to set new defaults for options to apply
 to following uses of @code{\Sexpr}.
 
-For more details, see the online document
+For more details, see the online document 
 @uref{http://developer.r-project.org/parseRd.pdf, ``Parsing Rd
 files''}.
 
@@ -4345,9 +4354,9 @@ conversions.  If mathematical notation is necessary (and it seems it is
 not in the examples given), use @code{\eqn}.
 
 @menu
-* Changes in R 2.10.0::
-* Changes in R 2.9.0::
-* Unnumbered versions::
+* Changes in R 2.10.0::         
+* Changes in R 2.9.0::          
+* Unnumbered versions::         
 @end menu
 
 @node Changes in R 2.10.0, Changes in R 2.9.0, Back-compatibility issues, Back-compatibility issues
@@ -4484,7 +4493,7 @@ two-argument commands, e.g.
 @noindent
 had always been an error.  However, prior to @R{} 2.9.0 this error was
 not looked for and resulted in incorrect output (often by omitting
-entirely the text for the item, sometimes with a warning).
+entirely the text for the item, sometimes with a warning).  
 @R{} 2.9.0 detected and fixed most cases of this error, with a
 warning unless the file was declared as version 1.1 or later.  As of @R{} 2.10.0,
 it is an error.
@@ -4499,10 +4508,10 @@ removed, with a warning.
 @chapter Tidying and profiling R code
 
 @menu
-* Tidying R code::
-* Profiling R code for speed::
-* Profiling R code for memory use::
-* Profiling compiled code::
+* Tidying R code::              
+* Profiling R code for speed::  
+* Profiling R code for memory use::  
+* Profiling compiled code::     
 @end menu
 
 @R{} code which is worth preserving in a package and perhaps making
@@ -4754,9 +4763,9 @@ collection. Memory is allocated at well-defined times in an @R{}
 program, but is freed whenever the garbage collector happens to run.
 
 @menu
-* Memory statistics from Rprof::
-* Tracking memory allocations::
-* Tracing copies of an object::
+* Memory statistics from Rprof::  
+* Tracking memory allocations::  
+* Tracing copies of an object::  
 @end menu
 
 @node Memory statistics from Rprof, Tracking memory allocations, Profiling R code for memory use, Profiling R code for memory use
@@ -4789,7 +4798,7 @@ profiler, @code{Rprofmem()}, which writes out a stack trace to an
 output file every time a large vector is allocated (with a
 user-specified threshold for `large') or a new page of memory is
 allocated for the @R{} heap. Summary functions for this output are still
-being designed.
+being designed. 
 
 Running the example from the previous section with
 
@@ -4865,9 +4874,9 @@ libraries/objects as used by @R{} packages.  We know of no good way to
 profile DLLs on Windows.
 
 @menu
-* Linux::
-* Solaris::
-* Mac OS X::
+* Linux::                       
+* Solaris::                     
+* Mac OS X::                    
 @end menu
 
 @node Linux, Solaris, Profiling compiled code, Profiling compiled code
@@ -4884,7 +4893,7 @@ setting the environment variable @env{LD_PROFILE}.  For example
 
 @example
 % setenv LD_PROFILE /path/to/R_HOME/library/stats/libs/stats.so
-R
+R 
 ... run the boot example
 % sprof /path/to/R_HOME/library/stats/libs/stats.so \
   /var/tmp/path/to/R_HOME/library/stats/libs/stats.so.profile
@@ -4984,10 +4993,10 @@ an article in
 provide complementary examples to those given here.)
 
 @menu
-* Browsing::
-* Debugging R code::
-* Using gctorture and valgrind::
-* Debugging compiled code::
+* Browsing::                    
+* Debugging R code::            
+* Using gctorture and valgrind::  
+* Debugging compiled code::     
 @end menu
 
 
@@ -5091,7 +5100,7 @@ suite.
 > glm(resp ~ 0+predictor, family = binomial(link="log"))
 Error: no valid set of coefficients has been found: please supply starting values
 > traceback()
-3: stop("no valid set of coefficients has been found: please supply
+3: stop("no valid set of coefficients has been found: please supply 
          starting values", call. = FALSE)
 2: glm.fit(x = X, y = Y, weights = weights, start = start, etastart = etastart,
        mustart = mustart, offset = offset, family = family, control = control,
@@ -5150,9 +5159,9 @@ if S4 method dispatch is involved.  Consider the following example
 
 @example
 > xyd <- new("xyloc", x=runif(20), y=runif(20))
-Error in as.environment(pkg) : no item called "package:S4nswv"
+Error in as.environment(pkg) : no item called "package:S4nswv" 
 on the search list
-Error in initialize(value, ...) : S language method selection got
+Error in initialize(value, ...) : S language method selection got 
 an error when called from internal dispatch for function 'initialize'
 > traceback()
 2: initialize(value, ...)
@@ -5372,7 +5381,7 @@ the point of the error.  To return to our running example
 Tracing function "glm.fit" in package "stats"
 [1] "glm.fit"
 > glm(resp ~ 0 + predictor, family = binomial(link ="log"))
-Tracing glm.fit(x = X, y = Y, weights = weights, start = start,
+Tracing glm.fit(x = X, y = Y, weights = weights, start = start, 
    etastart = etastart,  .... step 22
 Called from: eval(expr, envir, enclos)
 Browse[1]> n
@@ -5397,8 +5406,8 @@ apparent at the next garbage collection (or even at later garbage
 collections after objects have been deleted).
 
 @menu
-* Using gctorture::
-* Using valgrind::
+* Using gctorture::             
+* Using valgrind::              
 @end menu
 
 @node Using gctorture, Using valgrind, Using gctorture and valgrind, Using gctorture and valgrind
@@ -5427,7 +5436,7 @@ the next section for how to decipher such crashes.
 
 It is possible to run all the examples, tests and vignettes covered by
 @code{R CMD check} under @code{gctorture(TRUE)} by using the option
-@option{--use-gct}.
+@option{--use-gct}. 
 
 @node Using valgrind,  , Using gctorture, Using gctorture and valgrind
 @subsection Using valgrind
@@ -5623,8 +5632,8 @@ Program received signal SIGINT, Interrupt.
 Some ``tricks'' are worth knowing.
 
 @menu
-* Finding entry points::
-* Inspecting R objects::
+* Finding entry points::        
+* Inspecting R objects::        
 @end menu
 
 @node Finding entry points, Inspecting R objects, Debugging compiled code, Debugging compiled code
@@ -5764,21 +5773,21 @@ $7 = 5
 @chapter System and foreign language interfaces
 
 @menu
-* Operating system access::
-* Interface functions .C and .Fortran::
-* dyn.load and dyn.unload::
-* Registering native routines::
-* Creating shared objects::
-* Interfacing C++ code::
-* Fortran I/O::
-* Linking to other packages::
-* Handling R objects in C::
-* Interface functions .Call and .External::
-* Evaluating R expressions from C::
-* Parsing R code from C::
-* External pointers and weak references::
-* Vector accessor functions::
-* Character encoding issues::
+* Operating system access::     
+* Interface functions .C and .Fortran::  
+* dyn.load and dyn.unload::     
+* Registering native routines::  
+* Creating shared objects::     
+* Interfacing C++ code::        
+* Fortran I/O::                 
+* Linking to other packages::   
+* Handling R objects in C::     
+* Interface functions .Call and .External::  
+* Evaluating R expressions from C::  
+* Parsing R code from C::       
+* External pointers and weak references::  
+* Vector accessor functions::   
+* Character encoding issues::   
 @end menu
 
 @node  Operating system access, Interface functions .C and .Fortran, System and foreign language interfaces, System and foreign language interfaces
@@ -6340,7 +6349,7 @@ MAKEFLAGS="CFLAGS=-O3" R CMD SHLIB *.c
 
 It is also possible to set such variables in personal @file{Makevars}
 files, which are read after the local @file{Makevars} and the system
-makefiles.
+makefiles. 
 @ifset UseExternalXrefs
 @xref{Customizing package compilation,
 Customizing package compilation, R-admin,
@@ -6378,7 +6387,7 @@ found in @file{src/Makefile} is used.
 It is better to make use of a @code{Makevars} file rather than a
 @code{Makefile}: the latter should be needed only exceptionally.
 
-@c Not so clearcut on case-insensitive file systems.
+@c Not so clearcut on case-insensitive file systems. 
 @c Note that whereas @code{R CMD INSTALL} makes use of a @file{Makefile},
 @c @code{R CMD SHLIB} does not.  The file must be named @file{Makefile},
 @c not for example @file{makefile} nor @file{GNUmakefile}.
@@ -6564,8 +6573,8 @@ desirable that the API provided by package @pkg{packB} remains
 backwards-compatible.
 
 @menu
-* Unix-alikes::
-* Windows::
+* Unix-alikes::                 
+* Windows::                     
 @end menu
 
 @node Unix-alikes, Windows, Linking to other packages, Linking to other packages
@@ -6600,7 +6609,7 @@ For a dynamic library @file{packB/libs/libpackB.so}
 @example
 PKGB_PATH=`echo 'library(packB); cat(system.file("libs", package="packB"))' \
  | R --vanilla --slave`
-PKG_LIBS=-L"$(PKGB_PATH)" -lpackB
+PKG_LIBS=-L"$(PKGB_PATH)" -lpackB 
 @end example
 
 @noindent
@@ -6619,7 +6628,7 @@ changed).  On systems with the GNU linker (e.g.@: Linux) and some others
 @example
 PKGB_PATH=`echo 'library(packB); cat(system.file("libs", package="packB"))' \
  | R --vanilla --slave`
-PKG_LIBS=-L"$(PKGB_PATH)" -rpath "$(PKGB_PATH)" -lpackB
+PKG_LIBS=-L"$(PKGB_PATH)" -rpath "$(PKGB_PATH)" -lpackB 
 @end example
 
 @noindent
@@ -6701,7 +6710,7 @@ More generally, we can use the @code{DLLpath} argument to
 by setting
 
 @example
-library.dynam("packA", pkg, lib,
+library.dynam("packA", pkg, lib, 
               DLLpath = system.file("libs", package="packB"))
 @end example
 
@@ -6843,16 +6852,16 @@ code, much use is made of coercion to force the variant object to the
 right type.
 
 @menu
-* Garbage Collection::
-* Allocating storage::
-* Details of R types::
-* Attributes::
-* Classes::
-* Handling lists::
-* Handling character data::
-* Finding and setting variables::
-* Some convenience functions::
-* Named objects and copying::
+* Garbage Collection::          
+* Allocating storage::          
+* Details of R types::          
+* Attributes::                  
+* Classes::                     
+* Handling lists::              
+* Handling character data::     
+* Finding and setting variables::  
+* Some convenience functions::  
+* Named objects and copying::   
 @end menu
 
 @node Garbage Collection, Allocating storage, Handling R objects in C, Handling R objects in C
@@ -7228,7 +7237,7 @@ Suppose we want to give the return value in our example the class
 @group
 #include <R.h>
 #include <Rdefines.h>
-    ....
+    .... 
   SEXP ans, dim, dimnames, class;
     ....
   PROTECT(class = allocVector(STRSXP, 1));
@@ -7561,9 +7570,9 @@ based on the interface of the same name in @Sl{} version 4, and
 complex but allows a variable number of arguments.
 
 @menu
-* Calling .Call::
-* Calling .External::
-* Missing and special values::
+* Calling .Call::               
+* Calling .External::           
+* Missing and special values::  
 @end menu
 
 @node Calling .Call, Calling .External, Interface functions .Call and .External, Interface functions .Call and .External
@@ -7960,8 +7969,8 @@ called) and two argument values, the first unnamed and the second named.
 Setting the type to @code{LANGSXP} makes this a call which can be evaluated.
 
 @menu
-* Zero-finding::
-* Calculating numerical derivatives::
+* Zero-finding::                
+* Calculating numerical derivatives::  
 @end menu
 
 @node Zero-finding, Calculating numerical derivatives, Evaluating R expressions from C, Evaluating R expressions from C
@@ -8448,7 +8457,7 @@ Bioconductor package uses weak references.
 
 
 @menu
-* An external pointer example::
+* An external pointer example::  
 @end menu
 
 @node An external pointer example,  , External pointers and weak references, External pointers and weak references
@@ -8503,7 +8512,7 @@ in that case purely to be able to use a finalizer to close and destroy the
 connection if it is no longer is use.
 
 @node Vector accessor functions, Character encoding issues, External pointers and weak references, System and foreign language interfaces
-@section Vector accessor functions
+@section Vector accessor functions 
 
 The vector accessors like @code{REAL} and @code{INTEGER} and
 @code{VECTOR_ELT} are @emph{functions} when used in @R{} extensions.
@@ -8514,7 +8523,7 @@ functions.)
 The accessor functions check that they are being used on an appropriate
 type of @code{SEXP}.
 
-If efficiency is essential, the macro versions of the accessors can be
+If efficiency is essential, the macro versions of the accessors can be 
 obtained by defining @samp{USE_RINTERNALS} before including
 @file{Rinternals.h}.  If you find it necessary to do so, please do test
 that your code compiled without @samp{USE_RINTERNALS} defined, as this
@@ -8596,23 +8605,23 @@ to create marked character strings of a given length.
 @chapter The R @acronym{API}: entry points for C code
 
 @menu
-* Memory allocation::
-* Error handling::
-* Random numbers::
-* Missing and IEEE values::
-* Printing::
-* Calling C from FORTRAN and vice versa::
-* Numerical analysis subroutines::
-* Optimization::
-* Integration::
-* Utility functions::
-* Re-encoding::
-* Allowing interrupts::
-* Platform and version information::
-* Inlining C functions::
-* Controlling visibility::
-* Standalone Mathlib::
-* Organization of header files::
+* Memory allocation::           
+* Error handling::              
+* Random numbers::              
+* Missing and IEEE values::     
+* Printing::                    
+* Calling C from FORTRAN and vice versa::  
+* Numerical analysis subroutines::  
+* Optimization::                
+* Integration::                 
+* Utility functions::           
+* Re-encoding::                 
+* Allowing interrupts::         
+* Platform and version information::  
+* Inlining C functions::        
+* Controlling visibility::      
+* Standalone Mathlib::          
+* Organization of header files::  
 @end menu
 
 There are a large number of entry points in the @R{} executable/DLL that
@@ -8687,8 +8696,8 @@ compilers/loaders when using @R{} as a shared library) not exported.
 @cindex Memory allocation from C
 
 @menu
-* Transient::
-* User-controlled::
+* Transient::                   
+* User-controlled::             
 @end menu
 
 There are two types of memory allocation available to the C programmer,
@@ -8840,7 +8849,7 @@ the last two being the forms available in all @Sl{} versions.  Here
 or a format string followed by arguments separated by commas.
 
 @menu
-* Error handling from FORTRAN::
+* Error handling from FORTRAN::  
 @end menu
 
 @node Error handling from FORTRAN,  , Error handling, Error handling
@@ -8996,7 +9005,7 @@ output stream.  Functions @code{Rvprintf} and @code{REvprintf} are
 analogues using the @code{vprintf} interface.
 
 @menu
-* Printing from FORTRAN::
+* Printing from FORTRAN::       
 @end menu
 
 @node Printing from FORTRAN,  , Printing, Printing
@@ -9117,10 +9126,10 @@ C interfaces to the code behind @R{} functions, so the @R{} function
 documentation may give further details.
 
 @menu
-* Distribution functions::
-* Mathematical functions::
-* Numerical Utilities::
-* Mathematical constants::
+* Distribution functions::      
+* Mathematical functions::      
+* Numerical Utilities::         
+* Mathematical constants::      
 @end menu
 
 @node Distribution functions, Mathematical functions, Numerical analysis subroutines, Numerical analysis subroutines
@@ -9245,9 +9254,7 @@ similarly for the signed rank functions.
 @deftypefunx double psigamma (double @var{x}, double @var{deriv})
 The Gamma function, the natural logarithm of its absolute value and
 first four derivatives and the n-th derivative of Psi, the digamma
-function, which is the derivative of @code{lgammafn}. In other words,
-@code{digamma(x)} is the same as @code{(psigamma(x,0)},
-@code{trigamma(x) == psigamma(x,1)}, etc.
+function.
 @end deftypefun
 
 @findex beta
@@ -10156,11 +10163,11 @@ simple, e.g.
 scale <- function(x, ...) UseMethod("scale")
 @end example
 
-Only add parameters and defaults to the generic if they make sense in
+Only add parameters and defaults to the generic if they make sense in 
 all possible methods implementing it.
 
 @menu
-* Adding new generics::
+* Adding new generics::         
 @end menu
 
 @node Adding new generics,  , Generic functions and methods, Generic functions and methods
@@ -10214,8 +10221,8 @@ example the package @pkg{Rserve} (from @acronym{CRAN}, see also
 part of the @pkg{rJava} package on @acronym{CRAN}).
 
 @menu
-* Embedding R under Unix-alikes::
-* Embedding R under Windows::
+* Embedding R under Unix-alikes::  
+* Embedding R under Windows::   
 @end menu
 
 @node Embedding R under Unix-alikes, Embedding R under Windows, Linking GUIs and other front-ends to R, Linking GUIs and other front-ends to R
@@ -10317,7 +10324,7 @@ int main(int ac, char **av)
         while(R_ReplDLLdo1() > 0) @{
         /* add user actions here if desired */
        @}
-
+        
      */
     Rf_endEmbeddedR(0);
     /* final tidying up after R is shutdown */
@@ -10357,11 +10364,11 @@ Note that @R{} expects to be run with the locale category
 not be embedded into an application which changes that.
 
 @menu
-* Compiling against the R library::
-* Setting R callbacks::
-* Registering symbols::
-* Meshing event loops::
-* Threading issues::
+* Compiling against the R library::  
+* Setting R callbacks::         
+* Registering symbols::         
+* Meshing event loops::         
+* Threading issues::            
 @end menu
 
 @node Compiling against the R library, Setting R callbacks, Embedding R under Unix-alikes, Embedding R under Unix-alikes
@@ -10731,8 +10738,8 @@ All Windows interfaces to @R{} call entry points in the DLL
 easier to use the indirect route @emph{via} @acronym{(D)COM}.
 
 @menu
-* Using (D)COM::
-* Calling R.dll directly::
+* Using (D)COM::                
+* Calling R.dll directly::      
 @end menu
 
 @node Using (D)COM, Calling R.dll directly, Embedding R under Windows, Embedding R under Windows
@@ -10774,7 +10781,7 @@ The @code{R} DLL is mainly written in C and has @code{_cdecl} entry
 points.  Calling it directly will be tricky except from C code (or C++
 with a little care).
 
-There is a version of the Unix interface calling
+There is a version of the Unix interface calling 
 
 @example
 int Rf_initEmbeddedR(int ac, char **av);

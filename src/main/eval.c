@@ -480,7 +480,7 @@ SEXP eval(SEXP e, SEXP rho)
 	    int save = R_PPStackTop, flag = PRIMPRINT(op);
 	    void *vmax = vmaxget();
 	    RCNTXT cntxt;
-	    PROTECT(tmp = evalList(CDR(e), rho, e, 0));
+	    PROTECT(tmp = evalList(CDR(e), rho, op));
 	    if (flag < 2) R_Visible = flag != 1;
 	    /* We used to insert a context only if profiling,
 	       but helps for tracebacks on .C etc. */
@@ -1254,16 +1254,44 @@ SEXP attribute_hidden do_begin(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 SEXP attribute_hidden do_return(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP v;
+    SEXP a, v, vals;
+    int nv = 0;
 
-    if (args == R_NilValue) /* zero arguments provided */
-	v = R_NilValue;
-    else if (CDR(args) == R_NilValue) /* one argument */
-	v = eval(CAR(args), rho);
-    else {
-	v = R_NilValue; /* to avoid compiler warnings */
-	errorcall(call, _("multi-argument returns are not permitted"));
+    /* We do the evaluation here so that we can tag any untagged
+       return values if they are specified by symbols. */
+
+    /* this used to crash with missing args, so keep them and check later */
+    PROTECT(vals = evalListKeepMissing(args, rho));
+    a = args;
+    v = vals;
+    while (!isNull(a)) {
+	nv += 1;
+	if (CAR(a) == R_DotsSymbol)
+	    error(_("'...' not allowed in return"));
+	if (isNull(TAG(a)) && isSymbol(CAR(a)))
+	    SET_TAG(v, CAR(a));
+	a = CDR(a);
+	v = CDR(v);
     }
+    switch(nv) {
+    case 0:
+	v = R_NilValue;
+	break;
+    case 1:
+	v = CAR(vals);
+	break;
+    default:
+	warningcall(call, _("multi-argument returns are deprecated"));
+	for (v = vals; v != R_NilValue; v = CDR(v)) {
+	    if (CAR(v) == R_MissingArg)
+		errorcall(call, _("empty expression in return value"));
+	    if (NAMED(CAR(v)))
+		SETCAR(v, duplicate(CAR(v)));
+	}
+	v = PairToVectorList(vals);
+	break;
+    }
+    UNPROTECT(1);
 
     findcontext(CTXT_BROWSER | CTXT_FUNCTION, rho, v);
 
@@ -1525,37 +1553,32 @@ SEXP attribute_hidden do_set(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 
 
-/* Evaluate each expression in "el" in the environment "rho".  This is
-   a naturally recursive algorithm, but we use the iterative form below
-   because it is does not cause growth of the pointer protection stack,
-   and because it is a little more efficient.
-*/
+/* Evaluate each expression in "el" in the environment "rho".  This is */
+/* a naturally recursive algorithm, but we use the iterative form below */
+/* because it is does not cause growth of the pointer protection stack, */
+/* and because it is a little more efficient. */
 
-/* Used in eval and applyMethod (object.c) for builtin primitives,
-   do_internal (names.c) for builtin .Internals
-   and in evalArgs.
+/* called in names.c and objects.c */
 
-   'n' is the number of arguments already evaluated and hence not
-   passed to evalArgs and hence here.
- */
-SEXP attribute_hidden evalList(SEXP el, SEXP rho, SEXP call, int n)
+/* Prior to 2.4.0 this dropped missing elements */
+SEXP attribute_hidden evalList(SEXP el, SEXP rho, SEXP op)
 {
-    SEXP ans, h, tail;
+    SEXP ans, h, tail, orig = el;
+    int n = 1;
 
     PROTECT(ans = tail = CONS(R_NilValue, R_NilValue));
 
     while (el != R_NilValue) {
-	n++;
 
+	/* If we have a ... symbol, we look to see what it is bound to.
+	 * If its binding is Null (i.e. zero length)
+	 *	we just ignore it and return the cdr with all its expressions evaluated;
+	 * if it is bound to a ... list of promises,
+	 *	we force all the promises and then splice
+	 *	the list of resulting values into the return value.
+	 * Anything else bound to a ... symbol is an error
+	*/
 	if (CAR(el) == R_DotsSymbol) {
-	    /* If we have a ... symbol, we look to see what it is bound to.
-	     * If its binding is Null (i.e. zero length)
-	     *	we just ignore it and return the cdr with all its expressions evaluated;
-	     * if it is bound to a ... list of promises,
-	     *	we force all the promises and then splice
-	     *	the list of resulting values into the return value.
-	     * Anything else bound to a ... symbol is an error
-	     */
 	    h = findVar(CAR(el), rho);
 	    if (TYPEOF(h) == DOTSXP || h == R_NilValue) {
 		while (h != R_NilValue) {
@@ -1567,28 +1590,37 @@ SEXP attribute_hidden evalList(SEXP el, SEXP rho, SEXP call, int n)
 	    }
 	    else if (h != R_MissingArg)
 		error(_("'...' used in an incorrect context"));
-	} else if (CAR(el) == R_MissingArg) {
-	    /* It was an empty element: most likely get here from evalArgs
-	       which may have been called on part of the args. */
-	    errorcall(call, _("argument %d is empty"), n);
-	} else if (isSymbol(CAR(el)) && R_isMissing(CAR(el), rho)) {
-	    /* It was missing */
-	    errorcall(call, _("'%s' is missing"), CHAR(PRINTNAME(CAR(el)))); 
-	} else {
+	} else if (!(CAR(el) == R_MissingArg ||
+                 (isSymbol(CAR(el)) && R_isMissing(CAR(el), rho)))) {
 	    SETCDR(tail, CONS(eval(CAR(el), rho), R_NilValue));
 	    tail = CDR(tail);
 	    SET_TAG(tail, CreateTag(TAG(el)));
+	} else { /* It was a missing element */
+	    SEXP line = STRING_ELT(deparse1line(orig, 0), 0);
+	    PROTECT(line);
+	    if(op == R_NilValue)
+		error(_("element %d is empty;\n   the part of the args "
+			"list of a builtin being evaluated was:\n   %s"),
+		      n, CHAR(line)+4);
+	    else
+		error(_("element %d is empty;\n   the part of the args "
+			"list of '%s' being evaluated was:\n   %s"),
+		      n, PRIMNAME(op), CHAR(line)+4);
+	    UNPROTECT(1);
 	}
 	el = CDR(el);
+	n++;
     }
     UNPROTECT(1);
     return CDR(ans);
-} /* evalList() */
+}/* evalList() */
 
 
 /* A slight variation of evaluating each expression in "el" in "rho". */
+/* This is a naturally recursive algorithm, but we use the iterative */
+/* form below because it is does not cause growth of the pointer */
+/* protection stack, and because it is a little more efficient. */
 
-/* used in evalArgs, arithmetic.c, seq.c */
 SEXP attribute_hidden evalListKeepMissing(SEXP el, SEXP rho)
 {
     SEXP ans, h, tail;
@@ -1709,35 +1741,6 @@ void attribute_hidden CheckFormals(SEXP ls)
 }
 
 
-static SEXP VectorToPairListNamed(SEXP x)
-{
-    SEXP xptr, xnew, xnames;
-    int i, len = 0, named;
-
-    PROTECT(x);
-    PROTECT(xnames = getAttrib(x, R_NamesSymbol)); /* isn't this protected via x? */
-    named = (xnames != R_NilValue);
-    if(named)
-	for (i = 0; i < length(x); i++)
-	    if (CHAR(STRING_ELT(xnames, i))[0] != '\0') len++;
-
-    if(len) {
-	PROTECT(xnew = allocList(len));
-	xptr = xnew;
-	for (i = 0; i < length(x); i++) {
-	    if (CHAR(STRING_ELT(xnames, i))[0] != '\0') {
-		SETCAR(xptr, VECTOR_ELT(x, i));
-		SET_TAG(xptr, install(translateChar(STRING_ELT(xnames, i))));
-		xptr = CDR(xptr);
-	    }
-	}
-	UNPROTECT(1);
-    } else xnew = allocList(0);
-    UNPROTECT(2);
-    return xnew;
-}
-
-
 
 /* "eval" and "eval.with.vis" : Evaluate the first argument */
 /* in the environment specified by the second argument. */
@@ -1756,25 +1759,22 @@ SEXP attribute_hidden do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
     encl = CADDR(args);
     if (isNull(encl)) {
 	/* This is supposed to be defunct, but has been kept here
-	   (and documented as such) */
+	   (and documented as such */
 	encl = R_BaseEnv;
     } else if ( !isEnvironment(encl) )
 	error(_("invalid '%s' argument"), "enclos");
     switch(TYPEOF(env)) {
     case NILSXP:
 	env = encl;     /* so eval(expr, NULL, encl) works */
-	/* falls through */
     case ENVSXP:
 	PROTECT(env);	/* so we can unprotect 2 at the end */
 	break;
     case LISTSXP:
-	/* This usage requires all the pairlist to be named */
 	env = NewEnvironment(R_NilValue, duplicate(CADR(args)), encl);
 	PROTECT(env);
 	break;
     case VECSXP:
-	/* PR#14035 */
-	x = VectorToPairListNamed(CADR(args));
+	x = VectorToPairList(CADR(args));
 	for (xptr = x ; xptr != R_NilValue ; xptr = CDR(xptr))
 	    SET_NAMED(CAR(xptr) , 2);
 	env = NewEnvironment(R_NilValue, x, encl);
@@ -1907,49 +1907,10 @@ SEXP attribute_hidden do_recall(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 
 
-static SEXP evalArgs(SEXP el, SEXP rho, int dropmissing, SEXP call, int n)
+static SEXP evalArgs(SEXP el, SEXP rho, SEXP op, int dropmissing)
 {
-    if(dropmissing) return evalList(el, rho, call, n);
+    if(dropmissing) return evalList(el, rho, op);
     else return evalListKeepMissing(el, rho);
-}
-
-
-/* A version of DispatchOrEval that checks for possible S4 methods for
- * any argument, not just the first.  Used in the code for `[` in
- * do_subset.  Differs in that all arguments are evaluated
- * immediately, rather than after the call to R_possible_dispatch.
- */
-attribute_hidden
-int DispatchAnyOrEval(SEXP call, SEXP op, const char *generic, SEXP args,
-		      SEXP rho, SEXP *ans, int dropmissing, int argsevald)
-{
-    if(R_has_methods(op)) {
-        SEXP argValue, el,  value; 
-	/* Rboolean hasS4 = FALSE; */ 
-	int nprotect = 0, dispatch;
-	if(!argsevald) {
-            PROTECT(argValue = evalArgs(args, rho, dropmissing, call, 0));
-	    nprotect++;
-	    argsevald = TRUE;
-	}
-	else argValue = args;
-	for(el = argValue; el != R_NilValue; el = CDR(el)) {
-	    if(IS_S4_OBJECT(CAR(el))) {
-	        value = R_possible_dispatch(call, op, argValue, rho, TRUE);
-	        if(value) {
-		    *ans = value;
-		    UNPROTECT(nprotect);
-		    return 1;
-	        }
-		else break;
-	    }
-	}
-	 /* else, use the regular DispatchOrEval, but now with evaluated args */
-	dispatch = DispatchOrEval(call, op, generic, argValue, rho, ans, dropmissing, argsevald);
-	UNPROTECT(nprotect);
-	return dispatch;
-    }
-    return DispatchOrEval(call, op, generic, args, rho, ans, dropmissing, argsevald);
 }
 
 
@@ -2034,9 +1995,9 @@ int DispatchOrEval(SEXP call, SEXP op, const char *generic, SEXP args,
 		   multiple evaluation after the call to possible_dispatch.
 		*/
 		if (dots)
-		    argValue = evalArgs(argValue, rho, dropmissing, call, 0);
+		    argValue = evalArgs(argValue, rho, op, dropmissing);
 		else {
-		    argValue = CONS(x, evalArgs(CDR(argValue), rho, dropmissing, call, 1));
+		    argValue = CONS(x, evalArgs(CDR(argValue), rho, op, dropmissing));
 		    SET_TAG(argValue, CreateTag(TAG(args)));
 		}
 		PROTECT(args = argValue); nprotect++;
@@ -2084,9 +2045,9 @@ int DispatchOrEval(SEXP call, SEXP op, const char *generic, SEXP args,
 	    /* The first call argument was ... and may contain more than the
 	       object, so it needs to be evaluated here.  The object should be
 	       in a promise, so evaluating it again should be no problem. */
-	    *ans = evalArgs(args, rho, dropmissing, call, 0);
+	    *ans = evalArgs(args, rho, op, dropmissing);
 	else {
-	    PROTECT(*ans = CONS(x, evalArgs(CDR(args), rho, dropmissing, call, 1)));
+	    PROTECT(*ans = CONS(x, evalArgs(CDR(args), rho, op, dropmissing)));
 	    SET_TAG(*ans, CreateTag(TAG(args)));
 	    UNPROTECT(1);
 	}

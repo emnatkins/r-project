@@ -573,6 +573,7 @@ static int ExtractExactArg(SEXP args)
     return exact;
 }
 
+
 /* The "[" subset operator.
  * This provides the most general form of subsetting. */
 
@@ -587,7 +588,6 @@ SEXP attribute_hidden do_subset(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* retains any missing argument indicators. */
 
     if(DispatchOrEval(call, op, "[", args, rho, &ans, 0, 0))
-/*     if(DispatchAnyOrEval(call, op, "[", args, rho, &ans, 0, 0)) */
 	return(ans);
 
     /* Method dispatch has failed, we now */
@@ -760,7 +760,6 @@ SEXP attribute_hidden do_subset2(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* evaluation retains any missing argument indicators. */
 
     if(DispatchOrEval(call, op, "[[", args, rho, &ans, 0, 0))
-/*     if(DispatchAnyOrEval(call, op, "[[", args, rho, &ans, 0, 0)) */
 	return(ans);
 
     /* Method dispatch has failed. */

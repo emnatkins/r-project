@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.11.0\n"
+"Project-Id-Version: R 2.10.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-10 18:16\n"
-"PO-Revision-Date: 2009-12-10 18:16\n"
+"POT-Creation-Date: 2009-12-10 19:18\n"
+"PO-Revision-Date: 2009-12-10 19:18\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -283,9 +283,6 @@ msgstr "‘order.max’ must be >= 1"
 
 msgid "'order.max' must be < 'n.used'"
 msgstr "‘order.max’ must be < ‘n.used’"
-
-msgid "'n.ahead' must be at least 1"
-msgstr "‘n.ahead’ must be at least 1"
 
 msgid "number of series in 'object' and 'newdata' do not match"
 msgstr "number of series in ‘object’ and ‘newdata’ do not match"
@@ -982,8 +979,11 @@ msgstr "‘col.vars’ missing or incorrect"
 msgid "'family' not recognized"
 msgstr "‘family’ not recognized"
 
-msgid "invalid 'method' argument"
-msgstr "invalid ‘method’ argument"
+msgid "invalid 'method': %s"
+msgstr "invalid 'method': %s"
+
+msgid "invalid 'method'"
+msgstr "invalid ‘method’"
 
 msgid "'weights' must be a numeric vector"
 msgstr "‘weights’ must be a numeric vector"
@@ -1026,8 +1026,8 @@ msgstr "NAs in d(mu)/d(eta)"
 msgid "no observations informative at iteration"
 msgstr "no observations informative at iteration"
 
-msgid "non-finite coefficients at iteration %d"
-msgstr "non-finite coefficients at iteration %d"
+msgid "non-finite coefficients at iteration"
+msgstr "non-finite coefficients at iteration"
 
 msgid "X matrix has rank %d, but only %d observations"
 msgstr "X matrix has rank %d, but only %d observations"
@@ -1049,17 +1049,17 @@ msgstr "step size truncated: out of bounds"
 msgid "inner loop 2; cannot correct step size"
 msgstr "inner loop 2; cannot correct step size"
 
-msgid "glm.fit: algorithm did not converge"
-msgstr "glm.fit: algorithm did not converge"
+msgid "algorithm did not converge"
+msgstr "algorithm did not converge"
 
-msgid "glm.fit: algorithm stopped at boundary value"
-msgstr "glm.fit: algorithm stopped at boundary value"
+msgid "algorithm stopped at boundary value"
+msgstr "algorithm stopped at boundary value"
 
-msgid "glm.fit: fitted probabilities numerically 0 or 1 occurred"
-msgstr "glm.fit: fitted probabilities numerically 0 or 1 occurred"
+msgid "fitted probabilities numerically 0 or 1 occurred"
+msgstr "fitted probabilities numerically 0 or 1 occurred"
 
-msgid "glm.fit: fitted rates numerically 0 occurred"
-msgstr "glm.fit: fitted rates numerically 0 occurred"
+msgid "fitted rates numerically 0 occurred"
+msgstr "fitted rates numerically 0 occurred"
 
 msgid "the following arguments to 'anova.glm' are invalid and dropped:"
 msgstr "the following arguments to ‘anova.glm’ are invalid and dropped:"
@@ -1360,9 +1360,6 @@ msgstr "‘start’ and ‘table’ must be same length"
 
 msgid "this should not happen"
 msgstr "this should not happen"
-
-msgid "algorithm did not converge"
-msgstr "algorithm did not converge"
 
 msgid "incorrect specification of 'table' or 'start'"
 msgstr "incorrect specification of ‘table’ or ‘start’"
@@ -1830,9 +1827,6 @@ msgstr "‘proj’ is not implemented for “mlm” fits"
 msgid "'proj' is not implemented for multiple responses"
 msgstr "‘proj’ is not implemented for multiple responses"
 
-msgid "table 'x' should have 2 entries"
-msgstr "table ‘x’ should have 2 entries"
-
 msgid "elements of 'n' must be positive"
 msgstr "elements of ‘n’ must be positive"
 
@@ -1859,9 +1853,6 @@ msgstr "'y', ‘groups’ and ‘blocks’ must have the same length"
 
 msgid "'formula' missing"
 msgstr "‘formula’ missing"
-
-msgid "factors are not allowed"
-msgstr "factors are not allowed"
 
 msgid "missing values and NaN's not allowed if 'na.rm' is FALSE"
 msgstr "missing values and NaN's not allowed if ‘na.rm’ is FALSE"

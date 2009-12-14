@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-10 18:16\n"
+"POT-Creation-Date: 2009-10-08 08:29\n"
 "PO-Revision-Date: 2005-04-14 18:07+0200\n"
 "Last-Translator: stefano iacus <>\n"
 "Language-Team: Italian <it@li.org>\n"
@@ -280,10 +280,6 @@ msgstr "'order.max' deve essere >= 1"
 #, fuzzy
 msgid "'order.max' must be < 'n.used'"
 msgstr "'order.max' deve essere >= 1"
-
-#, fuzzy
-msgid "'n.ahead' must be at least 1"
-msgstr "'lag.max' deve essere almeno 1"
 
 msgid "number of series in 'object' and 'newdata' do not match"
 msgstr "numero di serie in 'object' e 'newdata' non conformi"
@@ -1017,8 +1013,12 @@ msgid "'family' not recognized"
 msgstr "'family' non riconosciuta"
 
 #, fuzzy
-msgid "invalid 'method' argument"
-msgstr "argomento 'data' non valido"
+msgid "invalid 'method': %s"
+msgstr "'method' non valido:"
+
+#, fuzzy
+msgid "invalid 'method'"
+msgstr "'method' non valido:"
 
 #, fuzzy
 msgid "'weights' must be a numeric vector"
@@ -1064,8 +1064,7 @@ msgstr "NA in d(mu)/d(eta)"
 msgid "no observations informative at iteration"
 msgstr "nessuna osservazione informativa nell'iterazione"
 
-#, fuzzy
-msgid "non-finite coefficients at iteration %d"
+msgid "non-finite coefficients at iteration"
 msgstr "coefficienti non finiti nell'iterazione"
 
 msgid "X matrix has rank %d, but only %d observations"
@@ -1089,20 +1088,16 @@ msgstr "lunghezza del passo ridotta: fuori limite"
 msgid "inner loop 2; cannot correct step size"
 msgstr "ciclo interno 2; impossibile correggere ampiezza del passo"
 
-#, fuzzy
-msgid "glm.fit: algorithm did not converge"
+msgid "algorithm did not converge"
 msgstr "l'algoritmo non converge"
 
-#, fuzzy
-msgid "glm.fit: algorithm stopped at boundary value"
+msgid "algorithm stopped at boundary value"
 msgstr "algoritmo arrestato sui valori della frontiera"
 
-#, fuzzy
-msgid "glm.fit: fitted probabilities numerically 0 or 1 occurred"
+msgid "fitted probabilities numerically 0 or 1 occurred"
 msgstr "probabilitàstimate numericamente pari a 0 o 1"
 
-#, fuzzy
-msgid "glm.fit: fitted rates numerically 0 occurred"
+msgid "fitted rates numerically 0 occurred"
 msgstr "si è verificato che i tassi stimati sono numericamente pari a 0"
 
 msgid "the following arguments to 'anova.glm' are invalid and dropped:"
@@ -1408,9 +1403,6 @@ msgstr "'start' e 'table' devono avere la stessa lunghezza"
 
 msgid "this should not happen"
 msgstr "questo non dovrebbe accadere"
-
-msgid "algorithm did not converge"
-msgstr "l'algoritmo non converge"
 
 msgid "incorrect specification of 'table' or 'start'"
 msgstr "specificazione di 'table' o 'start' non correttaaaaaaaaaaaaaaaa"
@@ -1914,9 +1906,6 @@ msgstr "'proj' non implementata per stime \"mlm\""
 msgid "'proj' is not implemented for multiple responses"
 msgstr "'proj' non implementata per risposte multiple"
 
-msgid "table 'x' should have 2 entries"
-msgstr ""
-
 msgid "elements of 'n' must be positive"
 msgstr "gli elementi di 'n' devono essere positivi"
 
@@ -1943,10 +1932,6 @@ msgstr "'y', 'groups' e 'blocks' devono avere la stessa lunghezza"
 
 msgid "'formula' missing"
 msgstr "'formula' mancante"
-
-#, fuzzy
-msgid "factors are not allowed"
-msgstr "le interazioni non sono ammesse"
 
 msgid "missing values and NaN's not allowed if 'na.rm' is FALSE"
 msgstr "valori mancanti e NaN non ammessi se 'na.rm' è FALSE"
@@ -2445,14 +2430,6 @@ msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] ""
 msgstr[1] ""
-
-#, fuzzy
-#~ msgid "invalid 'method': %s"
-#~ msgstr "'method' non valido:"
-
-#, fuzzy
-#~ msgid "invalid 'method'"
-#~ msgstr "'method' non valido:"
 
 #~ msgid "'newdata' does not contain the variables needed"
 #~ msgstr "'newdata' non contiene le variabili necessarie"

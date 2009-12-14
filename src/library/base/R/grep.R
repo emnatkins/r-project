@@ -14,64 +14,54 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-strsplit <-
-    function(x, split, fixed = FALSE, perl = FALSE, useBytes = FALSE)
-    .Internal(strsplit(x, as.character(split), fixed, perl, useBytes))
-
 grep <-
-function(pattern, x, ignore.case = FALSE, perl = FALSE,
+function(pattern, x, ignore.case = FALSE, extended = TRUE, perl = FALSE,
          value = FALSE, fixed = FALSE, useBytes = FALSE, invert = FALSE)
 {
     ## when value = TRUE we return names
     if(!is.character(x)) x <- structure(as.character(x), names=names(x))
-    .Internal(grep(as.character(pattern), x, ignore.case, value,
+    .Internal(grep(as.character(pattern), x, ignore.case, extended, value,
                    perl, fixed, useBytes, invert))
 }
 
 grepl <-
-function(pattern, x, ignore.case = FALSE, perl = FALSE,
+function(pattern, x, ignore.case = FALSE, extended = TRUE, perl = FALSE,
          fixed = FALSE, useBytes = FALSE)
 {
     if(!is.character(x)) x <- as.character(x)
-    .Internal(grepl(as.character(pattern), x, ignore.case, FALSE,
-                    perl, fixed, useBytes, FALSE))
+    .Internal(grepl(as.character(pattern), x, ignore.case, extended, FALSE,
+                   perl, fixed, useBytes, FALSE))
 }
 
 sub <-
-function(pattern, replacement, x, ignore.case = FALSE,
+function(pattern, replacement, x, ignore.case = FALSE, extended = TRUE,
          perl = FALSE, fixed = FALSE, useBytes = FALSE)
 {
     if (!is.character(x)) x <- as.character(x)
      .Internal(sub(as.character(pattern), as.character(replacement), x,
-                  ignore.case, perl, fixed, useBytes))
+                  ignore.case, extended, perl, fixed, useBytes))
 }
 
 gsub <-
-function(pattern, replacement, x, ignore.case = FALSE,
+function(pattern, replacement, x, ignore.case = FALSE, extended = TRUE,
          perl = FALSE, fixed = FALSE, useBytes = FALSE)
 {
     if (!is.character(x)) x <- as.character(x)
     .Internal(gsub(as.character(pattern), as.character(replacement), x,
-                   ignore.case, perl, fixed, useBytes))
+                   ignore.case, extended, perl, fixed, useBytes))
 }
 
 regexpr <-
-function(pattern, text, ignore.case = FALSE, perl = FALSE,
+function(pattern, text, ignore.case = FALSE, extended = TRUE, perl = FALSE,
          fixed = FALSE, useBytes = FALSE)
-{
-    if (!is.character(text)) text <- as.character(text)
-    .Internal(regexpr(as.character(pattern), text,
-                      ignore.case, perl, fixed, useBytes))
-}
+    .Internal(regexpr(as.character(pattern), as.character(text),
+                      ignore.case, extended, perl, fixed, useBytes))
 
 gregexpr <-
-function(pattern, text, ignore.case = FALSE, perl = FALSE,
+function(pattern, text, ignore.case = FALSE, extended = TRUE, perl = FALSE,
          fixed = FALSE, useBytes = FALSE)
-{
-    if (!is.character(text)) text <- as.character(text)
-    .Internal(gregexpr(as.character(pattern), text,
-                       ignore.case, perl, fixed, useBytes))
-}
+    .Internal(gregexpr(as.character(pattern), as.character(text),
+                       ignore.case, extended, perl, fixed, useBytes))
 
 agrep <-
 function(pattern, x, ignore.case = FALSE, value = FALSE, max.distance = 0.1,

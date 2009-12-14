@@ -39,6 +39,8 @@
 
 double beta(double a, double b)
 {
+    double val;
+
 #ifdef NOMORE_FOR_THREADS
     static double xmin, xmax = 0;/*-> typically = 171.61447887 for IEEE */
     static double lnsml = 0;/*-> typically = -708.3964185 */
@@ -74,13 +76,12 @@ double beta(double a, double b)
 
     if (a + b < xmax) /* ~= 171.61 for IEEE */
 	return gammafn(a) * gammafn(b) / gammafn(a+b);
-    else {
-	double val = lbeta(a, b);
-	if (val < lnsml) {
-	    /* a and/or b so big that beta underflows */
-	    ML_ERROR(ME_UNDERFLOW, "beta");
-	    /* return ML_UNDERFLOW; pointless giving incorrect value */
-	}
-	return exp(val);
+
+    val = lbeta(a, b);
+    if (val < lnsml) {
+	/* a and/or b so big that beta underflows */
+	ML_ERROR(ME_UNDERFLOW, "beta");
+	/* return ML_UNDERFLOW; pointless giving incorrect value */
     }
+    return exp(val);
 }

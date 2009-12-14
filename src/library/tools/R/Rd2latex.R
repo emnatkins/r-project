@@ -18,7 +18,7 @@
 
 latex_canonical_encoding  <- function(encoding)
 {
-    if (encoding == "") encoding <- utils::localeToCharset()[1L]
+    if (encoding == "") encoding <- localeToCharset()[1]
     encoding <- tolower(encoding)
     encoding <- sub("iso_8859-([0-9]+)", "iso-8859-\\1", encoding)
     encoding <- sub("iso8859-([0-9]+)", "iso-8859-\\1", encoding)
@@ -177,9 +177,9 @@ Rd2latex <- function(Rd, out="", defines=.Platform$OS.type, stages="render",
     	wrapper <- wrappers[[tag]]
     	if (is.null(wrapper))
     	    wrapper <- c(paste(tag, "{", sep=""), "}")
-    	of1(wrapper[1L])
+    	of1(wrapper[1])
     	writeContent(block, tag)
-    	of1(wrapper[2L])
+    	of1(wrapper[2])
     }
 
     writeURL <- function(block, tag) {
@@ -318,7 +318,7 @@ Rd2latex <- function(Rd, out="", defines=.Platform$OS.type, stages="render",
     writeAlias <- function(block, tag) {
         alias <- as.character(block)
         aa <- "\\aliasA{"
-        ## some versions of hyperref (from 6.79d) have trouble indexing these
+        ## some versions of hyperref have trouble indexing these
         ## |, || in base, |.bit, %||% in ggplot2 ...
         if(grepl("|", alias, fixed = TRUE)) aa <- "\\aliasB{"
         if(is.na(currentAlias)) currentAlias <<- name
@@ -340,9 +340,8 @@ Rd2latex <- function(Rd, out="", defines=.Platform$OS.type, stages="render",
                TEXT = of1(addParaBreaks(texify(block), blocktag)),
                COMMENT = {},
                LIST = writeContent(block, tag),
-               ## Avoid Rd.sty's \describe, \Enumerate and \Itemize:
-               ## They don't support verbatim arguments, which we might need.
-               "\\describe"= {
+               "\\describe"= { # Avoid the Rd.sty \describe, \Enumerate and \Itemize:
+               		       # They don't support verbatim arguments, which we might need.
                    of1("\\begin{description}\n")
                    writeContent(block, tag)
                    of1("\n\\end{description}\n")
@@ -454,7 +453,7 @@ Rd2latex <- function(Rd, out="", defines=.Platform$OS.type, stages="render",
         ## FIXME does no check of correct format
     	format <- table[[1L]]
     	content <- table[[2L]]
-    	if (length(format) != 1L || RdTags(format) != "TEXT")
+    	if (length(format) != 1 || RdTags(format) != "TEXT")
     	    stopRd(table, Rdfile, "\\tabular format must be simple text")
         tags <- RdTags(content)
         of0('\n\\Tabular{', format, '}{')
@@ -524,7 +523,7 @@ Rd2latex <- function(Rd, out="", defines=.Platform$OS.type, stages="render",
                        } else {
                            if (class == "default")
                                of1('## Default S3 method:\n')
-                           else if (grepl("<-\\s*value", blocks[[i+1L]][[1L]])) {
+                           else if (grepl("<-\\s*value", blocks[[i+1]][[1L]])) {
                                of1("## S3 replacement method for class '")
                                writeContent(block[[2L]], tag)
                                of1("':\n")

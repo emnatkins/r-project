@@ -1420,15 +1420,26 @@ static double esum(int mu, double x)
 /* ----------------------------------------------------------------------- */
     double w;
 
-    if (x > 0.0) { /* L10: */
-	if (mu > 0) goto L20;
-	w = mu + x;
-	if (w < 0.0) goto L20;
+    if (x > 0.0) {
+	goto L10;
     }
-    else { /* x <= 0 */
-	if (mu < 0) goto L20;
-	w = mu + x;
-	if (w > 0.0) goto L20;
+
+    if (mu < 0) {
+	goto L20;
+    }
+    w = mu + x;
+    if (w > 0.0) {
+	goto L20;
+    }
+    return exp(w);
+
+L10:
+    if (mu > 0) {
+	goto L20;
+    }
+    w = mu + x;
+    if (w < 0.0) {
+	goto L20;
     }
     return exp(w);
 
@@ -1805,7 +1816,7 @@ static double gamln1(double a)
 	    ((((((q6 * a + q5)* a + q4)* a + q3)* a + q2)* a + q1)* a + 1.);
 	return -(a) * w;
     }
-    else { /* 0.6 <= a <= 1.25 */
+    else {
 	static double r0 = .422784335098467;
 	static double r1 = .848044614534529;
 	static double r2 = .565221050691933;
@@ -1889,7 +1900,7 @@ static double psi(double x)
 		   PSI MAY BE REPRESENTED AS LOG(X).
  * Originally:  xmax1 = amin1(ipmpar(3), 1./spmpar(1))  */
     xmax1 = (double) INT_MAX;
-    d2 = 0.5 / Rf_d1mach(3); /*= 0.5 / (0.5 * DBL_EPS) = 1/DBL_EPSILON = 2^52 */
+    d2 = 0.5 / Rf_d1mach(3);
     if(xmax1 > d2) xmax1 = d2;
 
 /* --------------------------------------------------------------------- */
@@ -2127,7 +2138,7 @@ static double gsumln(double a, double b)
 /*          FOR 1 <= A <= 2  AND  1 <= B <= 2 */
 /* ----------------------------------------------------------------------- */
 
-    double x = a + b - 2.;/* in [0, 2] */
+    double x = a + b - 2.;
 
     if (x <= 0.25)
 	return gamln1(x + 1.0);
@@ -2283,7 +2294,7 @@ static double gamln(double a)
     static double c5 = -.00165322962780713;
 
     if (a <= 0.8)
-	return gamln1(a) - log(a); /* ln(G(a+1)) - ln(a) == ln(G(a+1)/a) = ln(G(a)) */
+	return gamln1(a) - log(a);
     else if (a <= 2.25)
 	return gamln1(a - 0.5 - 0.5);
 

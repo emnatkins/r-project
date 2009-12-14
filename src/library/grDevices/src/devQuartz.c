@@ -115,7 +115,6 @@ typedef struct QuartzSpecific_s {
     void         (*state)(QuartzDesc_t dev,  void *userInfo,  int state);
     void*        (*par)(QuartzDesc_t dev, void *userInfo, int set, const char *key, void *value);
     void         (*sync)(QuartzDesc_t dev, void *userInfo);
-    void*        (*cap)(QuartzDesc_t dev, void*userInfo);
 } QuartzDesc;
 
 /* coordinates:
@@ -348,11 +347,6 @@ static void     RQuartz_Clip(double, double, double, double, pDevDesc);
 static double   RQuartz_StrWidth(const char*, const pGEcontext, pDevDesc);
 static void     RQuartz_Text(double, double, const char*, double, double, const pGEcontext, pDevDesc);
 static void     RQuartz_Rect(double, double, double, double, const pGEcontext, pDevDesc);
-static void     RQuartz_Raster(unsigned int *raster, int w, int h,
-                       double x, double y, double width, double height,
-                       double rot, Rboolean interpolate,
-                       const pGEcontext gc, pDevDesc dd);
-static SEXP     RQuartz_Cap(pDevDesc dd);
 static void     RQuartz_Circle(double, double, double, const pGEcontext, pDevDesc);
 static void     RQuartz_Line(double, double, double, double, const pGEcontext, pDevDesc);
 static void     RQuartz_Polyline(int, double*, double*, const pGEcontext, pDevDesc);
@@ -384,8 +378,6 @@ void* QuartzDevice_Create(void *_dev, QuartzBackend_t *def)
     dev->strWidth     = RQuartz_StrWidth;
     dev->text         = RQuartz_Text;
     dev->rect         = RQuartz_Rect;
-    dev->raster       = RQuartz_Raster;
-    dev->cap          = RQuartz_Cap;
     dev->circle       = RQuartz_Circle;
     dev->line         = RQuartz_Line;
     dev->polyline     = RQuartz_Polyline;
@@ -421,7 +413,6 @@ void* QuartzDevice_Create(void *_dev, QuartzBackend_t *def)
     qd->newPage    = def->newPage;
     qd->state      = def->state;
     qd->sync       = def->sync;
-    qd->cap        = def->cap;
     qd->scalex     = def->scalex;
     qd->scaley     = def->scaley;
     qd->tscale     = 1.0;
@@ -956,83 +947,6 @@ static void RQuartz_Rect(double x0, double y0, double x1, double y1, CTXDESC)
     CGContextBeginPath(ctx);
     CGContextAddRect(ctx, CGRectMake(x0, y0, x1 - x0, y1 - y0));
     CGContextDrawPath(ctx, kCGPathFillStroke);
-}
-
-/* pre-10.5 doesn't have kCGColorSpaceGenericRGB so fall back to kCGColorSpaceGenericRGB */
-#if MAC_OS_X_VERSION_10_4 >= MAC_OS_X_VERSION_MAX_ALLOWED
-#define kCGColorSpaceSRGB kCGColorSpaceGenericRGB
-#endif
-
-static void RQuartz_Raster(unsigned int *raster, int w, int h,
-                           double x, double y, 
-                           double width, double height,
-                           double rot, 
-                           Rboolean interpolate,
-                           const pGEcontext gc, pDevDesc dd)
-{
-    DRAWSPEC;
-    if (!ctx) NOCTX;
-    CGDataProviderRef dp;
-    CGColorSpaceRef cs;
-    CGImageRef img;
-    
-    /* Create a "data provider" containing the raster data */
-    dp = CGDataProviderCreateWithData(NULL, (void *) raster, 4*w*h, NULL);
-
-    cs = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-
- /* Create a quartz image from the data provider */
-    img = CGImageCreate(w, h, 
-                        8,   /* bits per channel */
-                        32,  /* bits per pixel */
-                        4*w, /* bytes per row */
-                        cs,  /* color space */
-                        kCGImageAlphaLast | kCGBitmapByteOrder32Big,
-                        dp,  /* data provider */
-                        NULL,/* decode array */
-                        1,   /* interpolate (interpolation type below) */
-                        kCGRenderingIntentDefault);
-
-    if (height < 0) {
-        y = y + height;
-        height = -height;
-    }
-
-    CGContextSaveGState(ctx);
-    /* Translate by height of image */
-    CGContextTranslateCTM(ctx, 0.0, height);
-    /* Flip vertical */
-    CGContextScaleCTM(ctx, 1.0, -1.0);
-    /* Translate to position */
-    CGContextTranslateCTM(ctx, x, -y);
-    /* Rotate */
-    CGContextRotateCTM(ctx, rot*M_PI/180.0);
-    /* Determine interpolation method */
-    if (interpolate) {
-        CGContextSetInterpolationQuality(ctx, kCGInterpolationDefault);
-    } else {
-        CGContextSetInterpolationQuality(ctx, kCGInterpolationNone);
-    }
-    /* Draw the quartz image */
-    CGContextDrawImage(ctx, CGRectMake(0, 0, width, height), img);
-    CGContextRestoreGState(ctx);
-
-    /* Tidy up */
-    CGColorSpaceRelease(cs);
-    CGDataProviderRelease(dp);
-    CGImageRelease(img);
-}
-
-static SEXP RQuartz_Cap(pDevDesc dd)
-{
-    SEXP raster = R_NilValue;
-    DRAWSPEC;
-    if (!ctx) NOCTXR(raster);
-
-    if (xd->cap) 
-        raster = (SEXP) xd->cap(xd, xd->userInfo);
-
-    return raster;
 }
 
 static void RQuartz_Circle(double x, double y, double r, CTXDESC)

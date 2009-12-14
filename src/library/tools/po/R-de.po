@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.10.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-06 12:05\n"
+"POT-Creation-Date: 2009-12-10 19:18\n"
 "PO-Revision-Date: 2009-10-07 14:56+0200\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R Core <r-core@r-project.org>\n"
@@ -304,11 +304,6 @@ msgstr "Nicht portierbare Flags in der Variablen '%s'"
 msgid "package must be loaded"
 msgstr "Paket muss geladen werden"
 
-msgid ""
-"package %s exists but was not installed under R >= 2.10.0 so xrefs cannot be "
-"checked"
-msgstr ""
-
 msgid "Obsolete package(s) %s in Rd xrefs"
 msgstr "Veraltete(s) Paket(e) %s in Rd Kreusreferenzen"
 
@@ -503,11 +498,17 @@ msgstr "Datei '%s' wurde nicht erzeugt"
 msgid "cannot copy '%s' to '%s'"
 msgstr "kann '%s' nicht nach '%s' kopieren"
 
+msgid "missing 'DESCRIPTION.in' for package '%s'"
+msgstr "'DESCRIPTION.in' fehlt für Paket '%s'"
+
 msgid "WARNING: malformed 'Depends' field in 'DESCRIPTION'"
 msgstr "Warnung: 'Depends' Feld in 'DESCRIPTION' falsch gebildet"
 
 msgid "ERROR: this R is version %s, package '%s' requires R %s %s"
 msgstr "Fehler: dies ist R Version %s, Paket '%s' benötigt R %s %s"
+
+msgid "ERROR: this R is version %s, bundle '%s' requires R %s %s"
+msgstr "Fehler: dies ist R Version %s, Bündel '%s' benötigt R %s %s"
 
 msgid "ERROR: this R is version %s, required is R %s %s"
 msgstr "Fehler: Dies ist R Version %s, benötigt wird R %s %s"
@@ -536,13 +537,13 @@ msgstr "Keine Hilfe zum Paket %s gefunden"
 msgid "Link %s in package %s could not be located"
 msgstr "Link %s konnte im Paket %s nicht gefunden werden"
 
+msgid "Unable to locate help document %s in package %s"
+msgstr "Kann das Hilfedokument %s in Paket %s nicht finden"
+
 msgid "No docs found for package %s"
 msgstr "Keine Dokumente zu Paket %s gefunden"
 
-msgid "Only help files, %s, %s and files under %s in a package can be viewed"
-msgstr ""
-
-msgid "NEWS"
+msgid "Only help files, %s and files under %s in a package can be viewed"
 msgstr ""
 
 #, fuzzy
@@ -585,9 +586,6 @@ msgstr "kann die Indexinformation in Datei '%s' nicht lesen"
 
 msgid "ERROR:"
 msgstr "Fehler:"
-
-msgid "this seems to be a bundle -- and they are defunct"
-msgstr ""
 
 msgid "packaged installation of"
 msgstr "gepackte Installation von"
@@ -640,8 +638,7 @@ msgstr "kann  temporäres Verzeichnis nicht erzeugen"
 msgid "invalid package"
 msgstr "ungültiges Paket"
 
-#, fuzzy
-msgid "--pkglock applies only to a single package"
+msgid "--pkglock applies only to a single bundle/package"
 msgstr "--pkglock bezieht sich nur auf eine einzelnes Bündel bzw. Paket"
 
 msgid "ERROR: no packages specified"
@@ -699,6 +696,9 @@ msgstr "kein 'type' angegeben"
 msgid "'type' must be one of 'txt', 'html', 'latex' or 'example'"
 msgstr ""
 
+msgid "Bundle package:"
+msgstr "Paketbündel"
+
 msgid "there is no package called '%s'"
 msgstr "es gibt kein Paket names '%s'"
 
@@ -732,9 +732,6 @@ msgid ""
 msgstr ""
 "Kann die Zeilen/den Happen:\n"
 "\"%s\" nicht verarbeiten"
-
-msgid "Processing packages:"
-msgstr "Bearbeitete Pakete:"
 
 msgid "cannot update HTML package index"
 msgstr "kann HTML Paketindex nicht aktualisieren"
@@ -895,9 +892,8 @@ msgstr "Datei 'DESCRIPTION' fehlt."
 msgid "Files 'DESCRIPTION' and 'DESCRIPTION.in' are missing."
 msgstr "Dateien 'DESCRIPTION' und 'DESCRIPTION.in' fehlen."
 
-#, fuzzy
-msgid "invalid package layout"
-msgstr "ungültiges Paket"
+msgid "Bundle 'DESCRIPTION' is missing."
+msgstr "Bundle 'DESCRIPTION' fehlt."
 
 msgid "file '%s' is not in valid DCF format"
 msgstr "Datei '%s' liegt nicht in gültigem DCF Format vor"
@@ -907,6 +903,9 @@ msgstr "kann Paketquelltext nicht einlesen"
 
 msgid "Call sequence:"
 msgstr "Aufrufsequenz:"
+
+msgid "Processing packages:"
+msgstr "Bearbeitete Pakete:"
 
 msgid "parsing '%s'"
 msgstr "parse '%s'"
@@ -933,9 +932,6 @@ msgid_plural "Found .Internal calls in the following functions:"
 msgstr[0] ".Internal Aufruf in folgender Funktion gefunden:"
 msgstr[1] ".Internal Aufrufe in folgenden Funktionen gefunden:"
 
-#~ msgid "Unable to locate help document %s in package %s"
-#~ msgstr "Kann das Hilfedokument %s in Paket %s nicht finden"
-
 #~ msgid "Suspect link(s) in documentation object '%s':"
 #~ msgstr "Verdächtige(r) Link(s) im Dokuobjekt '%s':"
 
@@ -948,20 +944,8 @@ msgstr[1] ".Internal Aufrufe in folgenden Funktionen gefunden:"
 #~ "Link, nicht aber als Datei exisitert. Solche Links funktionieren nicht in "
 #~ "R < 2.10.0 und nur in HTML (nicht PDF) Hilfe in der aktuellen Version)"
 
-#~ msgid "missing 'DESCRIPTION.in' for package '%s'"
-#~ msgstr "'DESCRIPTION.in' fehlt für Paket '%s'"
-
-#~ msgid "ERROR: this R is version %s, bundle '%s' requires R %s %s"
-#~ msgstr "Fehler: dies ist R Version %s, Bündel '%s' benötigt R %s %s"
-
 #~ msgid "No package of named %s could be found"
 #~ msgstr "Kein Paket mit Namen %s gefunden"
-
-#~ msgid "Bundle package:"
-#~ msgstr "Paketbündel"
-
-#~ msgid "Bundle 'DESCRIPTION' is missing."
-#~ msgstr "Bundle 'DESCRIPTION' fehlt."
 
 #~ msgid "*** 'hhc.exe' not found: not building CHM help"
 #~ msgstr "*** 'hhc.exe' nicht gefunden: CHM Hilfe wird nicht erzeugt"

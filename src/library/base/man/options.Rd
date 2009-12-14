@@ -320,9 +320,6 @@ getOption(x, default = NULL)
       80.  (The limits on valid values are in file \file{Print.h} and can be
       changed by re-compiling \R.)  Some \R consoles automatically change
       the value when they are resized.
-
-      See the examples on \link{Startup} for one way to set this
-      automatically from the terminal width when \R is started.
     }
  }
 
@@ -469,11 +466,10 @@ getOption(x, default = NULL)
       printed on URL downloads etc.  Default is 2, for failure causes.
       Set to 1 or 0 to get more information.}
 
-    \item{\code{menu.graphics}:}{Logical: should graphical menus be used
-      if available?.  Defaults to \code{TRUE}.  Currently applies to
-      \code{\link{select.list}}, \code{\link{chooseCRANmirror}},
-      \code{\link{setRepositories}} and to select from multiple (text)
-      help files in \code{\link{help}}.}
+    \item{\code{menu.graphics}:}{Logical: should graphical menus be
+      used if available?.  Defaults to \code{TRUE}.  Currently applies
+      to \code{\link{chooseCRANmirror}}, \code{\link{setRepositories}}
+      and to select from multiple help files in \code{\link{help}}.}
 
     \item{\code{pkgType}:}{The default type of packages to be downloaded
       and installed -- see \code{\link{install.packages}}.

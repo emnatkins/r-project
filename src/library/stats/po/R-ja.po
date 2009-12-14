@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-10 18:16\n"
+"POT-Creation-Date: 2009-10-08 08:29\n"
 "PO-Revision-Date: 2009-10-07 19:29+0900 \n"
 "Last-Translator: takahashi <takahashi.kohske@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -267,10 +267,6 @@ msgstr " 'order.max' は 1 以上でなければなりません "
 
 msgid "'order.max' must be < 'n.used'"
 msgstr " 'order.max' は 'n.used' より小さくなければなりません "
-
-#, fuzzy
-msgid "'n.ahead' must be at least 1"
-msgstr " 'lag.max' は少なくとも 1 です "
 
 msgid "number of series in 'object' and 'newdata' do not match"
 msgstr " 'object' 中の系列の数と 'newdata' が一致しません "
@@ -987,9 +983,11 @@ msgstr " 'col.vars' が無いか不正確です "
 msgid "'family' not recognized"
 msgstr " 'family' が確認できません "
 
-#, fuzzy
-msgid "invalid 'method' argument"
-msgstr " 無効な 'data' 引数です "
+msgid "invalid 'method': %s"
+msgstr " 無効な 'method' です: %s "
+
+msgid "invalid 'method'"
+msgstr " 無効な 'method' です "
 
 msgid "'weights' must be a numeric vector"
 msgstr " 'weights' は数値ベクトルでなければなりません "
@@ -1034,8 +1032,7 @@ msgstr " D(mu)/d(eta) 中に NA があります "
 msgid "no observations informative at iteration"
 msgstr " 繰り返しにおいて意味のある観測値がありません "
 
-#, fuzzy
-msgid "non-finite coefficients at iteration %d"
+msgid "non-finite coefficients at iteration"
 msgstr " 繰り返しにおいて有限でない係数が得られました "
 
 msgid "X matrix has rank %d, but only %d observations"
@@ -1057,20 +1054,16 @@ msgstr " ステップサイズの切り詰め: 限界を越えました "
 msgid "inner loop 2; cannot correct step size"
 msgstr " 内部ループ 2; ステップサイズを訂正することができません "
 
-#, fuzzy
-msgid "glm.fit: algorithm did not converge"
+msgid "algorithm did not converge"
 msgstr " アルゴリズムは収束しませんでした "
 
-#, fuzzy
-msgid "glm.fit: algorithm stopped at boundary value"
+msgid "algorithm stopped at boundary value"
 msgstr " アルゴリズムは境界値で停止しました "
 
-#, fuzzy
-msgid "glm.fit: fitted probabilities numerically 0 or 1 occurred"
+msgid "fitted probabilities numerically 0 or 1 occurred"
 msgstr " 数値的に 0 か 1 である確率が生じました "
 
-#, fuzzy
-msgid "glm.fit: fitted rates numerically 0 occurred"
+msgid "fitted rates numerically 0 occurred"
 msgstr " 数値的に 0 である当てはめ比率が生じました "
 
 msgid "the following arguments to 'anova.glm' are invalid and dropped:"
@@ -1370,9 +1363,6 @@ msgstr " 'strat' と 'table' は同じ長さでなければなりません "
 
 msgid "this should not happen"
 msgstr " これはあり得ないことです "
-
-msgid "algorithm did not converge"
-msgstr " アルゴリズムは収束しませんでした "
 
 msgid "incorrect specification of 'table' or 'start'"
 msgstr " 'table' または 'start' の不正確な指定です "
@@ -1848,9 +1838,6 @@ msgstr " 'proj' は \"mlm\" による当てはめに対しては実装されて�
 msgid "'proj' is not implemented for multiple responses"
 msgstr " 'proj' は多重応答に対しては実装されていません "
 
-msgid "table 'x' should have 2 entries"
-msgstr ""
-
 msgid "elements of 'n' must be positive"
 msgstr " 'n' の要素は正でなければなりません "
 
@@ -1877,10 +1864,6 @@ msgstr " 'y', 'groups' 及び 'blocks' は同じ長さでなければなりま�
 
 msgid "'formula' missing"
 msgstr " モデル式('formula')がありません "
-
-#, fuzzy
-msgid "factors are not allowed"
-msgstr " 交互作用は許されません "
 
 msgid "missing values and NaN's not allowed if 'na.rm' is FALSE"
 msgstr " 'na.rm ' が FALSE なら、欠測値及び NaN は許されません "
@@ -2347,12 +2330,6 @@ msgstr[0] " 欠損値のせいで %d 個の観測値が取り除かれました 
 msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "モデル式中にパラメータ %s がありません "
-
-#~ msgid "invalid 'method': %s"
-#~ msgstr " 無効な 'method' です: %s "
-
-#~ msgid "invalid 'method'"
-#~ msgstr " 無効な 'method' です "
 
 #~ msgid "'newdata' does not contain the variables needed"
 #~ msgstr " 'newdata' は必要とされる変数を含んでいません "

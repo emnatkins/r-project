@@ -1,13 +1,13 @@
 /*
-  tre.h - TRE public API definitions
+  regex.h - POSIX.2 compatible regexp interface and TRE extensions
 
   This software is released under a BSD-style license.
   See the file LICENSE for details and copyright.
 
 */
 
-#ifndef TRE_H
-#define TRE_H 1
+#ifndef TRE_REGEX_H
+#define TRE_REGEX_H 1
 
 #include "tre-config.h"
 
@@ -36,7 +36,7 @@ typedef struct {
 
 typedef enum {
   REG_OK = 0,		/* No error. */
-  /* POSIX tre_regcomp() return error codes.  (In the order listed in the
+  /* POSIX regcomp() return error codes.  (In the order listed in the
      standard.)	 */
   REG_NOMATCH,		/* No match. */
   REG_BADPAT,		/* Invalid regexp. */
@@ -53,32 +53,28 @@ typedef enum {
   REG_BADRPT            /* Invalid use of repetition operators. */
 } reg_errcode_t;
 
-/* POSIX tre_regcomp() flags. */
+/* POSIX regcomp() flags. */
 #define REG_EXTENDED	1
 #define REG_ICASE	(REG_EXTENDED << 1)
 #define REG_NEWLINE	(REG_ICASE << 1)
 #define REG_NOSUB	(REG_NEWLINE << 1)
 
-/* Extra tre_regcomp() flags. */
+/* Extra regcomp() flags. */
 #define REG_BASIC	0
 #define REG_LITERAL	(REG_NOSUB << 1)
 #define REG_RIGHT_ASSOC (REG_LITERAL << 1)
 #define REG_UNGREEDY    (REG_RIGHT_ASSOC << 1)
 
-/* POSIX tre_regexec() flags. */
+/* POSIX regexec() flags. */
 #define REG_NOTBOL 1
 #define REG_NOTEOL (REG_NOTBOL << 1)
 
-/* Extra tre_regexec() flags. */
+/* Extra regexec() flags. */
 #define REG_APPROX_MATCHER	 (REG_NOTEOL << 1)
 #define REG_BACKTRACKING_MATCHER (REG_APPROX_MATCHER << 1)
 
 /* REG_NOSPEC and REG_LITERAL mean the same thing. */
-#if defined(REG_LITERAL) && !defined(REG_NOSPEC)
 #define REG_NOSPEC	REG_LITERAL
-#elif defined(REG_NOSPEC) && !defined(REG_LITERAL)
-#define REG_LITERAL	REG_NOSPEC
-#endif /* defined(REG_NOSPEC) */
 
 /* The maximum number of iterations in a bound expression. */
 #undef RE_DUP_MAX
@@ -112,29 +108,29 @@ tre_regexecb(const regex_t *preg, const char *string, size_t nmatch,
 
 /* Wide character versions (not in POSIX.2). */
 extern int
-tre_regwcomp(regex_t *preg, const wchar_t *regex, int cflags);
+regwcomp(regex_t *preg, const wchar_t *regex, int cflags);
 
 extern int
-tre_regwexec(const regex_t *preg, const wchar_t *string,
+regwexec(const regex_t *preg, const wchar_t *string,
 	 size_t nmatch, regmatch_t pmatch[], int eflags);
 #endif /* TRE_WCHAR */
 
 /* Versions with a maximum length argument and therefore the capability to
    handle null characters in the middle of the strings (not in POSIX.2). */
 extern int
-tre_regncomp(regex_t *preg, const char *regex, size_t len, int cflags);
+regncomp(regex_t *preg, const char *regex, size_t len, int cflags);
 
 extern int
-tre_regnexec(const regex_t *preg, const char *string, size_t len,
-	     size_t nmatch, regmatch_t pmatch[], int eflags);
+regnexec(const regex_t *preg, const char *string, size_t len,
+	 size_t nmatch, regmatch_t pmatch[], int eflags);
 
 #ifdef TRE_WCHAR
 extern int
-tre_regwncomp(regex_t *preg, const wchar_t *regex, size_t len, int cflags);
+regwncomp(regex_t *preg, const wchar_t *regex, size_t len, int cflags);
 
 extern int
-tre_regwnexec(const regex_t *preg, const wchar_t *string, size_t len,
-	      size_t nmatch, regmatch_t pmatch[], int eflags);
+regwnexec(const regex_t *preg, const wchar_t *string, size_t len,
+	  size_t nmatch, regmatch_t pmatch[], int eflags);
 #endif /* TRE_WCHAR */
 
 #ifdef TRE_APPROX
@@ -165,31 +161,31 @@ typedef struct {
 
 /* Approximate matching functions. */
 extern int
-tre_regaexec(const regex_t *preg, const char *string,
-	     regamatch_t *match, regaparams_t params, int eflags);
+regaexec(const regex_t *preg, const char *string,
+	 regamatch_t *match, regaparams_t params, int eflags);
 
 /* R addition */
 extern int
-tre_regaexecb(const regex_t *preg, const char *string,
-	      regamatch_t *match, regaparams_t params, int eflags);
+regaexecb(const regex_t *preg, const char *string,
+	  regamatch_t *match, regaparams_t params, int eflags);
 
 extern int
-tre_reganexec(const regex_t *preg, const char *string, size_t len,
-	      regamatch_t *match, regaparams_t params, int eflags);
+reganexec(const regex_t *preg, const char *string, size_t len,
+	  regamatch_t *match, regaparams_t params, int eflags);
 #ifdef TRE_WCHAR
 /* Wide character approximate matching. */
 extern int
-tre_regawexec(const regex_t *preg, const wchar_t *string,
-	      regamatch_t *match, regaparams_t params, int eflags);
+regawexec(const regex_t *preg, const wchar_t *string,
+	  regamatch_t *match, regaparams_t params, int eflags);
 
 extern int
-tre_regawnexec(const regex_t *preg, const wchar_t *string, size_t len,
-	       regamatch_t *match, regaparams_t params, int eflags);
+regawnexec(const regex_t *preg, const wchar_t *string, size_t len,
+	   regamatch_t *match, regaparams_t params, int eflags);
 #endif /* TRE_WCHAR */
 
 /* Sets the parameters to default values. */
 extern void
-tre_regaparams_default(regaparams_t *params);
+regaparams_default(regaparams_t *params);
 #endif /* TRE_APPROX */
 
 #ifdef TRE_WCHAR
@@ -206,8 +202,8 @@ typedef struct {
 } tre_str_source;
 
 extern int
-tre_reguexec(const regex_t *preg, const tre_str_source *string,
-	     size_t nmatch, regmatch_t pmatch[], int eflags);
+reguexec(const regex_t *preg, const tre_str_source *string,
+	 size_t nmatch, regmatch_t pmatch[], int eflags);
 
 /* Returns the version string.	The returned string is static. */
 extern char *
@@ -239,6 +235,6 @@ tre_have_approx(const regex_t *preg);
 #ifdef __cplusplus
 }
 #endif
-#endif				/* TRE_H */
+#endif				/* TRE_REGEX_H */
 
 /* EOF */

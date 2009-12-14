@@ -2197,7 +2197,7 @@ SEXP attribute_hidden do_detach(SEXP call, SEXP op, SEXP args, SEXP env)
     }
 #endif
     UNPROTECT(1);
-    return s;
+    return FRAME(s);
 }
 
 

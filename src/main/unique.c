@@ -133,7 +133,6 @@ static int shash(SEXP x, int indx, HashData *d)
 {
     unsigned int k;
     const char *p;
-    char *vmax = vmaxget();
     if(d->useUTF8)
 	p = translateCharUTF8(STRING_ELT(x, indx));
     else
@@ -141,7 +140,6 @@ static int shash(SEXP x, int indx, HashData *d)
     k = 0;
     while (*p++)
 	    k = 11 * k + *p; /* was 8 but 11 isn't a power of 2 */
-    vmaxset(vmax);
     return scatter(k, d);
 }
 
@@ -401,8 +399,8 @@ SEXP duplicated(SEXP x, Rboolean from_last)
     DUPLICATED_INIT;
 
     PROTECT(data.HashTable);
-    PROTECT(ans = allocVector(LGLSXP, n));
-
+    ans = allocVector(LGLSXP, n);
+    UNPROTECT(1);
     v = LOGICAL(ans);
 
     for (i = 0; i < data.M; i++) h[i] = NIL;
@@ -411,25 +409,21 @@ SEXP duplicated(SEXP x, Rboolean from_last)
     else
 	for (i = 0; i < n; i++) v[i] = isDuplicated(x, i, &data);
 
-    UNPROTECT(2);
     return ans;
 }
 
 /* simpler version of the above : return 1-based index of first, or 0 : */
 int any_duplicated(SEXP x, Rboolean from_last)
 {
-    int result = 0;
     DUPLICATED_INIT;
-    PROTECT(data.HashTable);
 
     for (i = 0; i < data.M; i++) h[i] = NIL;
     if(from_last) {
-	for (i = n-1; i >= 0; i--) if(isDuplicated(x, i, &data)) { result = ++i; break; }
+	for (i = n-1; i >= 0; i--) if(isDuplicated(x, i, &data)) return ++i;
     } else {
-	for (i = 0; i < n; i++)    if(isDuplicated(x, i, &data)) { result = ++i; break; }
+	for (i = 0; i < n; i++)    if(isDuplicated(x, i, &data)) return ++i;
     }
-    UNPROTECT(1);
-    return result;
+    return 0;
 }
 
 SEXP duplicated3(SEXP x, SEXP incomp, Rboolean from_last)
@@ -440,8 +434,8 @@ SEXP duplicated3(SEXP x, SEXP incomp, Rboolean from_last)
     DUPLICATED_INIT;
 
     PROTECT(data.HashTable);
-    PROTECT(ans = allocVector(LGLSXP, n));
-
+    ans = allocVector(LGLSXP, n);
+    UNPROTECT(1);
     v = LOGICAL(ans);
 
     for (i = 0; i < data.M; i++) h[i] = NIL;
@@ -460,7 +454,7 @@ SEXP duplicated3(SEXP x, SEXP incomp, Rboolean from_last)
 	    }
 	UNPROTECT(1);
     }
-    UNPROTECT(2);
+
     return ans;
 }
 
@@ -470,7 +464,6 @@ int any_duplicated3(SEXP x, SEXP incomp, Rboolean from_last)
     int j, m = length(incomp);
 
     DUPLICATED_INIT;
-    PROTECT(data.HashTable);
 
     if(!m)
 	error(_("any_duplicated3(., <0-length incomp>)"));
@@ -501,7 +494,7 @@ int any_duplicated3(SEXP x, SEXP incomp, Rboolean from_last)
             IS_DUPLICATED_CHECK;
     }
 
-    UNPROTECT(2);
+    UNPROTECT(1);
     return 0;
 }
 
@@ -559,7 +552,8 @@ SEXP attribute_hidden do_duplicated(SEXP call, SEXP op, SEXP args, SEXP env)
 	    k++;
 
     PROTECT(dup);
-    PROTECT(ans = allocVector(TYPEOF(x), k));
+    ans = allocVector(TYPEOF(x), k);
+    UNPROTECT(1);
 
     k = 0;
     switch (TYPEOF(x)) {
@@ -600,7 +594,6 @@ SEXP attribute_hidden do_duplicated(SEXP call, SEXP op, SEXP args, SEXP env)
     default:
 	UNIMPLEMENTED_TYPE("duplicated", x);
     }
-    UNPROTECT(2);
     return ans;
 }
 
@@ -650,11 +643,10 @@ static SEXP HashLookup(SEXP table, SEXP x, HashData *d)
     int i, n;
 
     n = LENGTH(x);
-    PROTECT(ans = allocVector(INTSXP, n));
+    ans = allocVector(INTSXP, n);
     for (i = 0; i < n; i++) {
 	INTEGER(ans)[i] = Lookup(table, x, i, d);
     }
-    UNPROTECT(1);
     return ans;
 }
 
@@ -1385,13 +1377,12 @@ static SEXP duplicated2(SEXP x, HashData *d)
     n = LENGTH(x);
     HashTableSetup(x, d);
     PROTECT(d->HashTable);
-    PROTECT(ans = allocVector(INTSXP, n));
-
+    ans = allocVector(INTSXP, n);
+    UNPROTECT(1);
     h = INTEGER(d->HashTable);
     v = INTEGER(ans);
     for (i = 0; i < d->M; i++) h[i] = NIL;
     for (i = 0; i < n; i++) v[i] = isDuplicated2(x, i, d);
-    UNPROTECT(2);    
     return ans;
 }
 
@@ -1492,8 +1483,8 @@ SEXP attribute_hidden csduplicated(SEXP x)
     n = LENGTH(x);
     HashTableSetup1(x, &data);
     PROTECT(data.HashTable);
-    PROTECT(ans = allocVector(LGLSXP, n));
-
+    ans = allocVector(LGLSXP, n);
+    UNPROTECT(1);
     h = INTEGER(data.HashTable);
     v = LOGICAL(ans);
 
@@ -1503,6 +1494,5 @@ SEXP attribute_hidden csduplicated(SEXP x)
     for (i = 0; i < n; i++)
 	v[i] = isDuplicated(x, i, &data);
 
-    UNPROTECT(2);
     return ans;
 }

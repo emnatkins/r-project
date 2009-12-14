@@ -57,12 +57,20 @@ packageStatus <- function(lib.loc = NULL, repositories = NULL, method,
 
     z <- cbind(z, Status = "not installed")
     z[z[,"Package"] %in% y$Package, "Status"] <- "installed"
+    ## Careful: bundles can be partially installed!
+    bundles <- which(!is.na(z[,"Bundle"]))
+    for(bundle in bundles) {
+        contains <- z[bundle, "Contains"]
+        contains <- strsplit(contains, "[[:space:]]+")[[1L]]
+        if(all(contains %in% y$Package)) z[bundle, "Status"] <- "installed"
+    }
 
     z <- char2df(z)
+    z$Package <- ifelse(is.na(z$Bundle), z$Package, z$Bundle)
     attr(z, "row.names") <- z$Package
 
     for(k in 1L:nrow(y)){
-        pkg <- y[k, "Package"]
+        pkg <- ifelse(is.na(y$Bundle[k]), y[k, "Package"], y[k, "Bundle"])
         if(pkg %in% z$Package) {
             if(package_version(y[k, "Version"]) <
                package_version(z[pkg, "Version"])) {
@@ -92,7 +100,9 @@ summary.packageStatus <- function(object, ...)
         cat("\n*** Library ", k, "\n", sep="")
         if(any(ok)){
             i <- object$inst
-            print(tapply(i$Package[ok], i$Status[ok],
+            Package <- ifelse(is.na(i$Bundle), i$Package,
+                              paste(i$Bundle, i$Package, sep=":"))
+            print(tapply(Package[ok], i$Status[ok],
                          function(x) sort(as.character(x))))
         }
     }
@@ -115,7 +125,7 @@ print.packageStatus <- function(x, ...)
     cat("Number of installed packages:\n")
     print(table(x$inst$LibPath, x$inst$Status))
 
-    cat("\nNumber of available packages (each package counted only once):\n")
+    cat("\nNumber of available packages (each package/bundle counted only once):\n")
     print(table(x$avail$Repository, x$avail$Status))
     invisible(x)
 }
@@ -148,7 +158,9 @@ upgrade.packageStatus <- function(object, ask=TRUE, ...)
     haveasked <- character(0L)
     if(ask) {
         for(k in old) {
-            pkg <-  object$inst[k, "Package"]
+            pkg <- ifelse(is.na(object$inst[k, "Bundle"]),
+                          object$inst[k, "Package"],
+                          object$inst[k, "Bundle"])
             tmpstring <- paste(pkg, as.character(object$inst[k, "LibPath"]))
             if(tmpstring %in% haveasked) next
             haveasked <- c(haveasked, tmpstring)
@@ -168,7 +180,8 @@ upgrade.packageStatus <- function(object, ask=TRUE, ...)
                             as.character(object$avail[pkg, "Repository"])))
         }
     } else {
-        pkgs <- object$inst[ ,"Package"]
+        pkgs <- ifelse(is.na(object$inst[ ,"Bundle"]),
+                       object$inst[ ,"Package"], object$inst[ ,"Bundle"])
         update <- cbind(pkgs, as.character(object$inst[ , "LibPath"]),
                         as.character(object$avail[pkgs, "Repository"]))
         update <- update[old, , drop=FALSE]

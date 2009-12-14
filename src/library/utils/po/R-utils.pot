@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.11.0\n"
+"Project-Id-Version: R 2.10.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-06 12:05\n"
+"POT-Creation-Date: 2009-12-10 19:18\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -87,12 +87,6 @@ msgid "No vignettes found by"
 msgstr ""
 
 msgid "call"
-msgstr ""
-
-msgid "Package '"
-msgstr ""
-
-msgid "' DESCRIPTION not found."
 msgstr ""
 
 msgid "'file' must be NULL, a character string or a connection"
@@ -230,7 +224,13 @@ msgstr ""
 msgid "cannot edit NULL row names"
 msgstr ""
 
-msgid "no help found for '%s'"
+msgid "no help file found for '%s'"
+msgstr ""
+
+msgid "more than one help file found: using package '%s'"
+msgstr ""
+
+msgid "'%s' has a help file but no examples"
 msgstr ""
 
 msgid "test '%s' is not available"
@@ -255,6 +255,15 @@ msgid "'form' must be a two-sided formula with one term on each side"
 msgstr ""
 
 msgid "'topic' should be a name, length-one character vector or reserved word"
+msgstr ""
+
+msgid "offline = TRUE is deprecated: use help_type =\"postscript\""
+msgstr ""
+
+msgid "chmhelp = TRUE is no longer supported: using help_type =\"text\""
+msgstr ""
+
+msgid "htmhelp = TRUE is deprecated: use help_type =\"html\""
 msgstr ""
 
 msgid "No documentation for '%s' in specified packages and libraries:"
@@ -287,10 +296,10 @@ msgstr ""
 msgid "R Help on '%s'"
 msgstr ""
 
-msgid "invalid '%s' argument"
+msgid "No text help for '%s' is available:\ncorresponding file is missing"
 msgstr ""
 
-msgid "package %s exists but was not installed under R >= 2.10.0 so help cannot be accessed"
+msgid "No offline help for '%s' is available:\ncorresponding file is missing"
 msgstr ""
 
 msgid "argument '%s' must be a single character string"
@@ -509,13 +518,13 @@ msgstr ""
 msgid "cannot choose a CRAN mirror non-interactively"
 msgstr ""
 
-msgid "cannot choose a BioC mirror non-interactively"
-msgstr ""
-
 msgid "cannot set repositories non-interactively"
 msgstr ""
 
 msgid "--- Please select repositories for use in this session ---"
+msgstr ""
+
+msgid "Enter one or more numbers separated by spaces, or an empty line to cancel"
 msgstr ""
 
 msgid "'%s' must be supplied"
@@ -809,7 +818,7 @@ msgstr ""
 msgid "'title' must be NULL or a length-1 character vector"
 msgstr ""
 
-msgid "Enter one or more numbers separated by spaces, or an empty line to cancel"
+msgid "Enter zero or more numbers separated by space"
 msgstr ""
 
 msgid "Invalid input, please try again"
@@ -888,6 +897,12 @@ msgid "'tar' returned non-zero exit code %d"
 msgstr ""
 
 msgid "package '%s' successfully unpacked and MD5 sums checked"
+msgstr ""
+
+msgid "malformed bundle DESCRIPTION file, no Contains field"
+msgstr ""
+
+msgid "bundle '%s' successfully unpacked and MD5 sums checked"
 msgstr ""
 
 msgid "unable to move temporary installation '%s' to '%s'"

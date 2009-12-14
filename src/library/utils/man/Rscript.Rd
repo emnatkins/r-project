@@ -30,8 +30,11 @@
   front-end is convenient for writing \samp{#!} scripts since it is an
   executable and takes \code{file} directly as an argument.  Options
   \option{--slave --no-restore} are always supplied: these imply
-  \option{--no-save}.  (The standard Windows command line has no concept
-  of \samp{#!} scripts, but Cygwin shells do.)
+  \option{--no-save}.
+#ifdef windows
+  The standard Windows command line has no concept of \samp{#!} scripts,
+  but Cygwin shells do.
+#endif
 
   \emph{Either} one or more \option{-e} options or \code{file} should
   be supplied.  When using \option{-e} options be aware of the quoting

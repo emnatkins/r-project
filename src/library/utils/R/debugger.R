@@ -128,8 +128,7 @@ recover <-
             which <- menu(calls,
                           title="\nEnter a frame number, or 0 to exit  ")
             if(which)
-                eval(substitute(browser(skipCalls=skip),
-                                list(skip=7-which)), envir = sys.frame(which))
+                eval(quote(browser()), envir = sys.frame(which))
             else
                 break
         }

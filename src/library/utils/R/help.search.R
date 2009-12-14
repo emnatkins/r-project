@@ -449,8 +449,6 @@ help.search <-
     y
 }
 
-## this extra indirection allows the Mac GUI to replace this
-## yet call the printhsearchInternal function.
 print.hsearch <- function(x, ...)
     printhsearchInternal(x, ...)
 

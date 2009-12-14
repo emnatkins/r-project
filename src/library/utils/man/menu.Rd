@@ -12,7 +12,7 @@
   select \samp{0}.
 }
 \usage{
-menu(choices, graphics = FALSE, title = NULL)
+menu(choices, graphics = FALSE, title = "")
 }
 \arguments{
   \item{choices}{a character vector of choices}

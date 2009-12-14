@@ -1037,17 +1037,15 @@ static int ParseBrowser(SEXP CExpr, SEXP rho)
 */
 static SEXP matchargs(SEXP args)
 {
-    int i, nargs = length(args), mt = 0, mc = 0, me = 0, ms = 0, 
-        nmatch = 0, pos[4];
-    SEXP tmp, tsym, csym, esym, ssym, argList;
+    int i, nargs = length(args), mt = 0, mc = 0, me = 0, nmatch = 0, pos[3];
+    SEXP tmp, tsym, csym, esym, argList;
 
     /* set up argList and defaults */
-    PROTECT(argList = allocList(4));
-    PROTECT(tmp = allocVector(STRSXP, 4));
+    PROTECT(argList = allocList(3));
+    PROTECT(tmp = allocVector(STRSXP, 3));
     SET_STRING_ELT(tmp, 0, mkChar("text"));
-    SET_STRING_ELT(tmp, 1, mkChar("condition"));
-    SET_STRING_ELT(tmp, 2, mkChar("expr"));
-    SET_STRING_ELT(tmp, 3, mkChar("skipCalls"));
+    SET_STRING_ELT(tmp, 0, mkChar("condition"));
+    SET_STRING_ELT(tmp, 0, mkChar("expr"));
     setAttrib(argList, R_NamesSymbol, tmp);
     UNPROTECT(1);
 
@@ -1055,8 +1053,10 @@ static SEXP matchargs(SEXP args)
 
     SETCAR(argList, mkString(""));
     SETCADR(argList, R_NilValue);
-    SETCADDR(argList, ScalarLogical(1));
-    SETCADDDR(argList, ScalarInteger(0));
+    PROTECT(tmp = allocVector(LGLSXP, 1));
+    LOGICAL(tmp)[0] = 1; /*true*/
+    SETCADDR(argList, tmp);
+    UNPROTECT(1);
 
     /* now match  */
     if( nargs == 0 ) {
@@ -1065,8 +1065,7 @@ static SEXP matchargs(SEXP args)
     }
 
     /* we have at least one arg */
-    tsym = install("text"); csym = install("condition"); 
-    esym = install("expr"); ssym = install("skipCalls");
+    tsym = install("text"); csym = install("condition"); esym = install("expr");
     tmp = args;
 
     for(i = 0; i < nargs; i++) { 
@@ -1090,13 +1089,6 @@ static SEXP matchargs(SEXP args)
 	    } else error(_("duplicate '%s' argument"), "expr");
 	    tmp = CDR(tmp);
 	}
-	if(TAG(tmp) == ssym) {
-	    if( ms == 0 ) {
-		nmatch++; pos[i] = 1; ms = 1;
-		SETCADDDR(argList, CAR(tmp));
-	    } else error(_("duplicate '%s' argument"), "skipCalls");
-	    tmp = CDR(tmp);
-	}	
     }
     if (nmatch == nargs) {
 	UNPROTECT(1);
@@ -1105,16 +1097,14 @@ static SEXP matchargs(SEXP args)
     /* otherwise match by position */
     /* reset tmp */
     tmp = args;
-    for(i = 0; i < 4; i++) {
+    for(i = 0; i < 3; i++) {
 	if( pos[i] == 0 ) {
 	    if( mt == 0 ) /* first non-named is text */
 		SETCAR(argList, tmp);
 	    else if(mc == 0)  /* second is condition */
 		SETCADR(argList, tmp);
-	    else if(me == 0)  /* third is expr */
+	    else /* third is expr */
 		SETCADDR(argList, tmp);
-	    else /* fourth is skipCalls */
-		SETCADDDR(argList, tmp);		
 	    nmatch++;
 	}
     }
@@ -1149,9 +1139,8 @@ SEXP attribute_hidden do_browser(SEXP call, SEXP op, SEXP args, SEXP rho)
     saveGlobalContext = R_GlobalContext;
 
     if (!RDEBUG(rho)) {
-        int skipCalls = asInteger(CADDDR(argList));
 	cptr = R_GlobalContext;
-	while ( ( !(cptr->callflag & CTXT_FUNCTION) || skipCalls--) && cptr->callflag )
+	while ( !(cptr->callflag & CTXT_FUNCTION) && cptr->callflag )
 	    cptr = cptr->nextcontext;
 	Rprintf("Called from: ");
 	tmp = asInteger(GetOption(install("deparse.max.lines"), R_BaseEnv));

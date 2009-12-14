@@ -864,7 +864,11 @@ static SEXP filename(const char *dir, const char *file)
     return ans;
 }
 
-#include <tre/tre.h>
+# include <tre/regex.h>
+# define regcomp tre_regcomp
+# define regexec tre_regexec
+# define regfree tre_regfree
+# define regerror tre_regerror
 
 static void count_files(const char *dnp, int *count,
 			Rboolean allfiles, Rboolean recursive,
@@ -909,7 +913,7 @@ static void count_files(const char *dnp, int *count,
 		    }
 		}
 		if (pattern) {
-		    if (tre_regexec(&reg, de->d_name, 0, NULL, 0) == 0) (*count)++;
+		    if (regexec(&reg, de->d_name, 0, NULL, 0) == 0) (*count)++;
 		} else (*count)++;
 	    }
 	}
@@ -972,7 +976,7 @@ static void list_files(const char *dnp, const char *stem, int *count, SEXP ans,
 		    }
 		}
 		if (pattern) {
-		    if (tre_regexec(&reg, de->d_name, 0, NULL, 0) == 0)
+		    if (regexec(&reg, de->d_name, 0, NULL, 0) == 0)
 			SET_STRING_ELT(ans, (*count)++,
 				       filename(stem, de->d_name));
 		} else
@@ -1010,7 +1014,7 @@ SEXP attribute_hidden do_listfiles(SEXP call, SEXP op, SEXP args, SEXP rho)
     flags = REG_EXTENDED;
     if (igcase) flags |= REG_ICASE;
 
-    if (pattern && tre_regcomp(&reg, translateChar(STRING_ELT(p, 0)), flags))
+    if (pattern && regcomp(&reg, translateChar(STRING_ELT(p, 0)), flags))
 	error(_("invalid 'pattern' regular expression"));
     count = 0;
     for (i = 0; i < ndir ; i++) {
@@ -1027,7 +1031,7 @@ SEXP attribute_hidden do_listfiles(SEXP call, SEXP op, SEXP args, SEXP rho)
 		   recursive, pattern, reg);
     }
     if (pattern)
-	tre_regfree(&reg);
+	regfree(&reg);
     ssort(STRING_PTR(ans), count);
     UNPROTECT(1);
     return ans;
@@ -1076,6 +1080,93 @@ SEXP attribute_hidden do_fileexists(SEXP call, SEXP op, SEXP args, SEXP rho)
 	} else LOGICAL(ans)[i] = FALSE;
     }
     return ans;
+}
+
+/* <FIXME> can \n or \r occur as part of a MBCS extra bytes?
+   Not that I know of */
+static int filbuf(char *buf, FILE *fp)
+{
+    int c;
+    while ((c = fgetc(fp)) != EOF) {
+	if (c == '\n' || c == '\r') {
+	    *buf = '\0';
+	    return 1;
+	}
+	*buf++ = c;
+    }
+    return 0;
+}
+
+SEXP attribute_hidden do_indexsearch(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+/* index.search(topic, path, file, .Platform$file.sep, type) */
+    SEXP topic, path, indexname, sep, type;
+    char linebuf[256], topicbuf[256], *p, ctype[256];
+    int i, npath, ltopicbuf;
+    FILE *fp;
+
+    checkArity(op, args);
+    topic = CAR(args); args = CDR(args);
+    if (!isString(topic) || length(topic) < 1 || isNull(topic))
+	error(_("invalid '%s' argument"), "topic");
+    path = CAR(args); args = CDR(args);
+    if (!isString(path) || length(path) < 1 || isNull(path))
+	error(_("invalid '%s' argument"), "path");
+    indexname = CAR(args); args = CDR(args);
+    if (!isString(indexname) || length(indexname) < 1 || isNull(indexname))
+	error(_("invalid '%s' argument"), "indexname");
+    sep = CAR(args); args = CDR(args);
+    if (!isString(sep) || length(sep) < 1 || isNull(sep))
+	error(_("invalid '%s' argument"), "sep");
+    type = CAR(args);
+    if (!isString(type) || length(type) < 1 || isNull(type))
+	error(_("invalid '%s' argument"), "type");
+    strcpy(ctype, CHAR(STRING_ELT(type, 0)));
+    snprintf(topicbuf, 256, "%s\t", translateChar(STRING_ELT(topic, 0)));
+    ltopicbuf = strlen(topicbuf);
+    npath = length(path);
+    for (i = 0; i < npath; i++) {
+	snprintf(linebuf, 256, "%s%s%s%s%s",
+		translateChar(STRING_ELT(path, i)),
+		CHAR(STRING_ELT(sep, 0)),
+		"help", CHAR(STRING_ELT(sep, 0)),
+		CHAR(STRING_ELT(indexname, 0)));
+	if ((fp = R_fopen(R_ExpandFileName(linebuf), "rt")) != NULL){
+	    while (filbuf(linebuf, fp)) {
+		if (strncmp(linebuf, topicbuf, ltopicbuf) == 0) {
+		    p = &linebuf[ltopicbuf - 1];
+		    while (isspace((int)*p)) p++;
+		    fclose(fp);
+		    if (!strcmp(ctype, "html"))
+			snprintf(topicbuf, 256, "%s%s%s%s%s%s",
+				translateChar(STRING_ELT(path, i)),
+				CHAR(STRING_ELT(sep, 0)),
+				"html", CHAR(STRING_ELT(sep, 0)),
+				p, ".html");
+		    else if (!strcmp(ctype, "R-ex"))
+			snprintf(topicbuf, 256, "%s%s%s%s%s%s",
+				translateChar(STRING_ELT(path, i)),
+				CHAR(STRING_ELT(sep, 0)),
+				"R-ex", CHAR(STRING_ELT(sep, 0)),
+				p, ".R");
+		    else if (!strcmp(ctype, "latex"))
+			snprintf(topicbuf, 256, "%s%s%s%s%s%s",
+				translateChar(STRING_ELT(path, i)),
+				CHAR(STRING_ELT(sep, 0)),
+				"latex", CHAR(STRING_ELT(sep, 0)),
+				p, ".tex");
+		    else /* type = "help" */
+			snprintf(topicbuf, 256, "%s%s%s%s%s",
+				translateChar(STRING_ELT(path, i)),
+				CHAR(STRING_ELT(sep, 0)),
+				ctype, CHAR(STRING_ELT(sep, 0)), p);
+		    return mkString(topicbuf);
+		}
+	    }
+	    fclose(fp);
+	}
+    }
+    return mkString("");
 }
 
 #define CHOOSEBUFSIZE 1024

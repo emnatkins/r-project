@@ -1836,7 +1836,7 @@ SEXP L_lines(SEXP x, SEXP y, SEXP index, SEXP arrow)
  * are unit objects 
  */
 SEXP gridXspline(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep, SEXP index,
-		 double theta, Rboolean draw, Rboolean trace) 
+		 double theta, Rboolean draw) 
 {
     int i, j, nx, np, nloc;
     double *xx, *yy, *ss;
@@ -1846,7 +1846,6 @@ SEXP gridXspline(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep, SEXP index,
     R_GE_gcontext gc;
     LTransform transform;
     SEXP currentvp, currentgp;
-    SEXP tracePts = R_NilValue;
     SEXP result = R_NilValue;
     double edgex, edgey;
     double xmin = DOUBLE_XMAX;
@@ -1867,7 +1866,6 @@ SEXP gridXspline(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep, SEXP index,
      * Number of xsplines
      */
     np = LENGTH(index);
-    PROTECT(tracePts = allocVector(VECSXP, np));
     nloc = 0;
     for (i=0; i<np; i++) {
 	char *vmax;
@@ -1920,24 +1918,24 @@ SEXP gridXspline(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep, SEXP index,
 	PROTECT(points = GEXspline(nx, xx, yy, ss,
 				   LOGICAL(o)[0], LOGICAL(rep)[0],
 				   draw, &gc, dd));
-        {
-            /*
-             * In some cases, GEXspline seems to produce identical points 
-             * (at least observed at end of spline)
-             * so trim identical points from the ends 
-             * (so arrow heads are drawn at correct angle)
-             */
-            int np = LENGTH(VECTOR_ELT(points, 0));
-            double *px = REAL(VECTOR_ELT(points, 0));
-            double *py = REAL(VECTOR_ELT(points, 1));
-            int start = 0;
-            int end = np - 1;
-            /*
-             * DEBUGGING ...
-             int k;
-             for (k=0; k<np; k++) {
-             GESymbol(px[k], py[k], 16, 3, &gc, dd); 
-             }
+	if (draw && !isNull(a) && !isNull(points)) {
+	    /*
+	     * In some cases, GEXspline seems to produce identical points 
+	     * (at least observed at end of spline)
+	     * so trim identical points from the ends 
+	     * (so arrow heads are drawn at correct angle)
+	     */
+	    int np = LENGTH(VECTOR_ELT(points, 0));
+	    double *px = REAL(VECTOR_ELT(points, 0));
+	    double *py = REAL(VECTOR_ELT(points, 1));
+	    int start = 0;
+	    int end = np - 1;
+	    /*
+	     * DEBUGGING ...
+	    int k;
+	    for (k=0; k<np; k++) {
+		GESymbol(px[k], py[k], 16, 3, &gc, dd); 
+	    }
 	     * ... DEBUGGING
 	     */
 	    while (np > 1 && 
@@ -1952,69 +1950,50 @@ SEXP gridXspline(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep, SEXP index,
 		end--;
 		np--;
 	    }
-            if (trace) {
-                int i;
-                int count = end - start + 1;
-                double *keepXptr, *keepYptr;
-                SEXP keepPoints, keepX, keepY;
-                PROTECT(keepPoints = allocVector(VECSXP, 2));
-                PROTECT(keepX = allocVector(REALSXP, count));
-                PROTECT(keepY = allocVector(REALSXP, count));
-                keepXptr = REAL(keepX);
-                keepYptr = REAL(keepY);
-                for (i=start; i<(end + 1); i++) {
-                    keepXptr[i - start] = fromDeviceX(px[i], GE_INCHES, dd);
-                    keepYptr[i - start] = fromDeviceY(py[i], GE_INCHES, dd);
-                }
-                SET_VECTOR_ELT(keepPoints, 0, keepX);
-                SET_VECTOR_ELT(keepPoints, 1, keepY);
-                SET_VECTOR_ELT(tracePts, 0, keepPoints);
-                UNPROTECT(3); /* keepPoints & keepX & keepY */
-            }
-            if (draw && !isNull(a) && !isNull(points)) {
-                /*
-                 * Can draw an arrow at the either end.
-                 */
-                arrows(&(px[start]), &(py[start]), np,
-                       a, i, TRUE, TRUE,
-                       vpc, vpWidthCM, vpHeightCM, &gc, dd);
-            }
-            if (!draw && !trace && !isNull(points)) {
-                /*
-                 * Update bounds
-                 */
-                int j, n = LENGTH(VECTOR_ELT(points, 0));
-                double *pxx = (double *) R_alloc(n, sizeof(double));
-                double *pyy = (double *) R_alloc(n, sizeof(double));
-                for (j=0; j<n; j++) {
-                    pxx[j] = fromDeviceX(px[j], GE_INCHES, dd);
-                    pyy[j] = fromDeviceY(py[j], GE_INCHES, dd);
-                    if (R_FINITE(pxx[j]) && R_FINITE(pyy[j])) {
-                        if (pxx[j] < xmin)
-                            xmin = pxx[j];
-                        if (pxx[j] > xmax)
-                            xmax = pxx[j];
-                        if (pyy[j] < ymin)
-                            ymin = pyy[j];
-                        if (pyy[j] > ymax)
-                            ymax = pyy[j];
-                        nloc++;
-                    }
-                }
-                /*
-                 * Calculate edgex and edgey for case where this is 
-                 * the only xspline
-                 */
-                hullEdge(pxx, pyy, n, theta, &edgex, &edgey);
-            }
-        } /* End of trimming-redundant-points code */
-	UNPROTECT(1); /* points */
+	    /*
+	     * Can draw an arrow at the either end.
+	     */
+	    arrows(&(px[start]), &(py[start]), np,
+		   a, i, TRUE, TRUE,
+		   vpc, vpWidthCM, vpHeightCM, &gc, dd);
+	}
+	if (!draw && !isNull(points)) {
+	    /*
+	     * Update bounds
+	     */
+	    int j, n = LENGTH(VECTOR_ELT(points, 0));
+	    double *px = REAL(VECTOR_ELT(points, 0));
+	    double *py = REAL(VECTOR_ELT(points, 1));
+	    double *pxx = (double *) R_alloc(n, sizeof(double));
+	    double *pyy = (double *) R_alloc(n, sizeof(double));
+	    for (j=0; j<n; j++) {
+		pxx[j] = fromDeviceX(px[j], GE_INCHES, dd);
+		pyy[j] = fromDeviceY(py[j], GE_INCHES, dd);
+		if (R_FINITE(pxx[j]) && R_FINITE(pyy[j])) {
+		    if (pxx[j] < xmin)
+			xmin = pxx[j];
+		    if (pxx[j] > xmax)
+			xmax = pxx[j];
+		    if (pyy[j] < ymin)
+			ymin = pyy[j];
+		    if (pyy[j] > ymax)
+			ymax = pyy[j];
+		    nloc++;
+		}
+	    }
+	    /*
+	     * Calculate edgex and edgey for case where this is 
+	     * the only xspline
+	     */
+	    hullEdge(pxx, pyy, n, theta, &edgex, &edgey);
+	}
+	UNPROTECT(1);
 	if (draw)
 	    GEMode(0, dd);
 	vmaxset(vmax);
     }
-    if (!draw && !trace && nloc > 0) {
-	PROTECT(result = allocVector(REALSXP, 4));
+    if (nloc > 0) {
+	result = allocVector(REALSXP, 4);
 	/*
 	 * If there is more than one xspline, just produce edge
 	 * based on bounding rect of all xsplines
@@ -2035,32 +2014,20 @@ SEXP gridXspline(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep, SEXP index,
 	    REAL(gridStateElement(dd, GSS_SCALE))[0];
 	REAL(result)[3] = (ymax - ymin) / 
 	    REAL(gridStateElement(dd, GSS_SCALE))[0];
-        UNPROTECT(1); /* result */
-    } else if (trace) {
-        result = tracePts;
-    }
-    UNPROTECT(1); /* tracePts */
+    } 
     return result;
 }
 
 SEXP L_xspline(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep, SEXP index) 
 {
-    gridXspline(x, y, s, o, a, rep, index, 0, TRUE, FALSE);
+    gridXspline(x, y, s, o, a, rep, index, 0, TRUE);
     return R_NilValue;
 }
 
 SEXP L_xsplineBounds(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep, 
 		     SEXP index, SEXP theta) 
 {
-    return gridXspline(x, y, s, o, a, rep, index, REAL(theta)[0], 
-                       FALSE, FALSE);
-}
-
-SEXP L_xsplinePoints(SEXP x, SEXP y, SEXP s, SEXP o, SEXP a, SEXP rep, 
-		     SEXP index, SEXP theta) 
-{
-    return gridXspline(x, y, s, o, a, rep, index, REAL(theta)[0], 
-                       FALSE, TRUE);
+    return gridXspline(x, y, s, o, a, rep, index, REAL(theta)[0], FALSE);
 }
 
 SEXP L_segments(SEXP x0, SEXP y0, SEXP x1, SEXP y1, SEXP arrow) 
@@ -2728,153 +2695,6 @@ SEXP L_rectBounds(SEXP x, SEXP y, SEXP w, SEXP h, SEXP hjust, SEXP vjust,
 		  SEXP theta) 
 {
     return gridRect(x, y, w, h, hjust, vjust, REAL(theta)[0], FALSE);
-}
-
-/* FIXME: need to add L_rasterBounds */
-
-/* FIXME:  Add more checks on correct inputs,
-   e.g., Raster should be a matrix of R colors */
-SEXP L_raster(SEXP raster, SEXP x, SEXP y, SEXP w, SEXP h, 
-              SEXP hjust, SEXP vjust, SEXP interpolate)
-{
-    char *vmax;
-    int i, n;
-    double xx, yy, ww, hh;
-    double vpWidthCM, vpHeightCM;
-    double rotationAngle;
-    LViewportContext vpc;
-    R_GE_gcontext gc;
-    LTransform transform;
-    SEXP currentvp, currentgp;
-    SEXP dim;
-    /* Get the current device 
-     */
-    pGEDevDesc dd = getDevice();
-    unsigned int *image;
-    currentvp = gridStateElement(dd, GSS_VP);
-    currentgp = gridStateElement(dd, GSS_GPAR);
-    getViewportTransform(currentvp, dd, 
-			 &vpWidthCM, &vpHeightCM, 
-			 transform, &rotationAngle);
-    getViewportContext(currentvp, &vpc);
-    /* Convert the raster matrix to R internal colours */
-    n = LENGTH(raster);
-    vmax = vmaxget();
-    image = (unsigned int*) R_alloc(n, sizeof(unsigned int));
-    for (i=0; i<n; i++) {
-        image[i] = RGBpar3(raster, i, R_TRANWHITE);
-    }
-    dim = getAttrib(raster, R_DimSymbol);
-    GEMode(1, dd);
-    gcontextFromgpar(currentgp, 0, &gc, dd);
-    transformLocn(x, y, 0, vpc, &gc,
-                  vpWidthCM, vpHeightCM,
-                  dd,
-                  transform,
-                  &xx, &yy);
-    ww = transformWidthtoINCHES(w, 0, vpc, &gc,
-                                vpWidthCM, vpHeightCM,
-                                dd);
-    hh = transformHeighttoINCHES(h, 0, vpc, &gc,
-                                 vpWidthCM, vpHeightCM,
-                                 dd);
-    /* If the total rotation angle is zero then we can draw a 
-     * rectangle as the devices understand rectangles
-     * Otherwise we have to draw a polygon equivalent.
-     */
-    if (rotationAngle == 0) {
-        xx = justifyX(xx, ww, REAL(hjust)[0]);
-        yy = justifyY(yy, hh, REAL(vjust)[0]);
-        /* The graphics engine only takes device coordinates
-         */
-        xx = toDeviceX(xx, GE_INCHES, dd);
-        yy = toDeviceY(yy, GE_INCHES, dd);
-        ww = toDeviceWidth(ww, GE_INCHES, dd);
-        hh = toDeviceHeight(hh, GE_INCHES, dd);
-        if (R_FINITE(xx) && R_FINITE(yy) && 
-            R_FINITE(ww) && R_FINITE(hh))
-            GERaster(image, INTEGER(dim)[1], INTEGER(dim)[0],
-                     xx, yy, ww, hh, rotationAngle, 
-                     LOGICAL(interpolate)[0], &gc, dd);
-    } else {
-        /* We have to do a little bit of work to figure out where the 
-         * bottom-left corner of the image is.
-         */
-        double xbl, ybl, xadj, yadj;
-        double dw, dh;
-        SEXP www, hhh;
-        /* Find bottom-left location */
-        justification(ww, hh, 
-                      REAL(hjust)[0], 
-                      REAL(vjust)[0], 
-                      &xadj, &yadj);
-        www = unit(xadj, L_INCHES);
-        hhh = unit(yadj, L_INCHES);
-        transformDimn(www, hhh, 0, vpc, &gc,
-                      vpWidthCM, vpHeightCM,
-                      dd, rotationAngle,
-                      &dw, &dh);
-        xbl = xx + dw;
-        ybl = yy + dh;
-        xbl = toDeviceX(xbl, GE_INCHES, dd);
-        ybl = toDeviceY(ybl, GE_INCHES, dd);
-        ww = toDeviceWidth(ww, GE_INCHES, dd);
-        hh = toDeviceHeight(hh, GE_INCHES, dd);
-        if (R_FINITE(xbl) && R_FINITE(ybl) &&
-            R_FINITE(ww) && R_FINITE(hh)) {
-            /* The graphics engine only takes device coordinates
-             */
-            GERaster(image, INTEGER(dim)[1], INTEGER(dim)[0],
-                     xbl, ybl, ww, hh, rotationAngle, 
-                     LOGICAL(interpolate)[0], &gc, dd);
-        }
-    }
-    GEMode(0, dd);
-    vmaxset(vmax);
-    return R_NilValue;
-}
-
-SEXP L_cap()
-{
-    int i, col, row, nrow, ncol, size;
-    /* Get the current device 
-     */
-    pGEDevDesc dd = getDevice();
-    int *rint;
-    SEXP raster; 
-    /* The raster is R internal colours, so convert to 
-     * R external colours (strings) 
-     * AND the raster is BY ROW so need to rearrange it
-     * to be BY COLUMN (though the dimensions are correct) */
-    SEXP image, idim;
-    
-    PROTECT(raster = GECap(dd));    
-    /* Non-complying devices will return NULL */
-    if (isNull(raster)) {
-        image = raster;
-    } else {
-        size = LENGTH(raster);
-        nrow = INTEGER(getAttrib(raster, R_DimSymbol))[0];
-        ncol = INTEGER(getAttrib(raster, R_DimSymbol))[1];
-        
-        PROTECT(image = allocVector(STRSXP, size));
-        rint = INTEGER(raster);
-        for (i=0; i<size; i++) {
-            col = i % ncol + 1;
-            row = i / ncol + 1;
-            SET_STRING_ELT(image, (col - 1)*nrow + row - 1, 
-                           mkChar(col2name(rint[i])));
-        }
-        
-        PROTECT(idim = allocVector(INTSXP, 2));
-        INTEGER(idim)[0] = nrow;
-        INTEGER(idim)[1] = ncol;
-        setAttrib(image, R_DimSymbol, idim);
-        
-        UNPROTECT(2);
-    }
-    UNPROTECT(1);
-    return image;
 }
 
 /*

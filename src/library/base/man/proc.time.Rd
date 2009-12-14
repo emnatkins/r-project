@@ -38,10 +38,15 @@ proc.time()
   is the CPU time charged for execution by the system on behalf of the
   calling process.}
  
-  The resolution of the times will be system-specific and on Unix-alikes
-  times are rounded to the nearest 1ms.  On modern systems they will be
-  that accurate, but on older systems they might be accurate to 1/100 or
-  1/60 sec, and are typically available to 10ms on Windows.
+  The resolution of the times will be system-specific
+#ifdef unix
+  and on Unix-alikes times are rounded to the nearest 1ms.  On modern
+  systems they will be that accurate, but on older systems they might be
+  accurate to 1/100 or 1/60 sec.
+#endif
+#ifdef windows
+  and are typically available to 10ms on Windows.
+#endif
 
   This is a \link{primitive} function.
 }

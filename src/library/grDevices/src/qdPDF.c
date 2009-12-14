@@ -150,8 +150,7 @@ QuartzPDF_DeviceCreate(void *dd, QuartzFunctions_t *fn, QuartzParameters_t *par)
 	QuartzPDF_NewPage,
 	NULL,	/* state */
 	NULL,	/* par */
-	NULL,   /* sync */
-        NULL,   /* cap */
+	NULL
     };
 
     if (!(ret = qf->Create(dd, &qdef)))

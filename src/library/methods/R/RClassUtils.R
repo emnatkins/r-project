@@ -185,7 +185,7 @@ makePrototypeFromClassDef <-
     if(any(check))
         stop(gettextf("in making the prototype for class \"%s\" elements of the prototype failed to match the corresponding slot class: %s",
                       className,
-                      paste(pnames[check], "(class", .dQ(slotDefs[match(pnames[check], slotNames)]), ")", collapse = ", ")), domain = NA)
+                      paste(pnames[check], "(class", dQuote(slotDefs[match(pnames[check], slotNames)]), ")", collapse = ", ")), domain = NA)
     prototype
 }
 
@@ -306,12 +306,12 @@ completeClassDefinition <-
             }
         }
         if(any(undefClasses))
-            warning(gettextf("undefined slot classes in definition of %s: %s",
-                             .dQ(ClassDef@className),
-                             paste(names(properties)[undefClasses], "(class ",
-                                   .dQ(unlist(properties, recursive = FALSE)[undefClasses]),
-                                   ")", collapse = ", ", sep = "")),
-                    call. = FALSE, domain = NA)
+            warning(gettextf("undefined slot classes in definition of \"%s\": %s",
+                             ClassDef@className,
+                             paste(names(properties)[undefClasses], "(class \"",
+                                   unlist(properties, recursive = FALSE)[undefClasses],
+                                   "\")", collapse = ", ", sep = "")),
+                    domain = NA)
         ClassDef@slots <- properties
         ClassDef
 }
@@ -773,7 +773,7 @@ reconcilePropertiesAndPrototype <-
           prototype <- prototype@object
           if(length(superClasses) == 0L && any(is.na(match(pnames, slots))))
             stop(gettextf("named elements of prototype do not correspond to slot names: %s",
-                      paste(.dQ(pnames[is.na(match(pnames, slots))]),
+                      paste(dQuote(pnames[is.na(match(pnames, slots))]),
                             collapse =", ")))
       }
       else
@@ -831,7 +831,7 @@ showClass <-
     else
         ClassDef <- getClassDef(Class)
     cat(if(identical(ClassDef@virtual, TRUE)) "Virtual ",
-	"Class ", .dQ(Class),
+	"Class ", dQuote(Class),
 	## Show the package if that is non-trivial:
 	if(nzchar(pkg <- ClassDef@package))
 	c(" [", if(pkg != ".GlobalEnv") "package" else "in", " \"", pkg,"\"]"),
@@ -1116,9 +1116,7 @@ completeSubclasses <-
             exti <-  byDef@contains
             coni <- attr(exti, "conflicts") # .resolveSuperclasses makes this
             if( length(coni) > 0) {
-                warning(gettextf("class %s is inheriting an inconsistent superclass structure from class %s, inconsistent with %s",
-                                 .dQ(className), .dQ(by),
-                                 paste(.dQ(coni), collapse = ", ")),
+                warning(gettextf("Class \"%s\" is inheriting an inconsistent superclass structure from class \"%s\", inconsistent with %s", className, by, paste('"', coni, '"', sep = "", collapse = ", ")),
                         domain = NA)
                 conflicts <- unique(c(conflicts, coni))
               }
@@ -1126,10 +1124,10 @@ completeSubclasses <-
       }
           newconflicts <- attr(ext, "conflicts")
         if(length(newconflicts) > length(conflicts))
-          warning(gettextf("unable to find a consistent ordering of superclasses for class %s: order chosen is inconsistent with the superclasses of %s",
-                           .dQ(className),
-                           paste(.dQ(setdiff(newconflicts, conflicts)),
-                                 collapse = ", ")),
+          warning(gettextf("unable to find a consistent ordering of superclasses for class \"%s\": order chosen is inconsistent with the superclasses of %s",
+                           className,
+                           paste('"', setdiff(newconflicts, conflicts), '"',
+                                 sep = "", collapse = ", ")),
                   domain = NA)
         }
 
@@ -1238,8 +1236,8 @@ requireMethods <-
         message <- paste("(", message, ")", sep="")
     message <- paste("for function", f, message)
     if(is(method, "MethodDefinition")) {
-        target <-  paste(.dQ(method@target), collapse=", ")
-        defined <- paste(.dQ(method@defined), collapse=", ")
+        target <-  paste(dQuote(method@target), collapse=", ")
+        defined <- paste(dQuote(method@defined), collapse=", ")
         message <- paste("Required method", message, "not defined for signature",
                          target)
         if(!identical(target, defined))
@@ -1384,8 +1382,9 @@ setDataPart <- function(object, value, check = TRUE) {
     }
     if(!(is.null(value) || is.null(prevDataPartClass) || extends(prevDataPartClass, value) ||
          isVirtualClass(value, where = where))) {
-      warning(gettextf("more than one possible class for the data part: using %s rather than %s",
-                  .dQ(prevDataPartClass), .dQ(value)), domain = NA)
+      warning(
+         gettextf("more than one possible class for the data part: using \"%s\" rather than \"%s\"",
+                  prevDataPartClass, value), domain = NA)
       value <- NULL
     }
     value
@@ -1395,7 +1394,7 @@ setDataPart <- function(object, value, check = TRUE) {
     dataSlot <- c(".Data", ".xData")
     dataSlot <- dataSlot[match(dataSlot, slotNames, 0)>0]
     if(length(dataSlot) > 1)
-      stop("class cannot have both an ordinary and hidden data type")
+      stop("Class cannot have both an ordinary and hidden data type")
     dataSlot
   }
 
@@ -1911,8 +1910,9 @@ substituteFunctionArgs <-
         what <- subNames[[i]]
         subDef <- getClassDef(what, env)
         if(is.null(subDef))
-            warning(gettextf("undefined subclass %s of class %s; definition not updated",
-                             .dQ(what), .dQ(def@className)))
+            warning(gettextf(
+		"Undefined subclass, \"%s\", of class \"%s\"; definition not updated",
+                             what, def@className))
         else if(is.na(match(what, names(subDef@contains)))) {
             ## insert the new superclass to maintain order by distance
             cntns <- subDef@contains
@@ -1948,16 +1948,16 @@ substituteFunctionArgs <-
             cwhere <- where2
         }
         else {
-          warning(gettextf("subclass %s of class %s is not local and cannot be updated for new inheritance information; consider setClassUnion()",
-                           .dQ(what), .dQ(class)),
-                  call. = FALSE, domain = NA)
+          warning(
+             gettextf("Subclass \"%s\" of class \"%s\" is not local and cannot be updated for new inheritance information; consider setClassUnion()",
+                      what, class))
           next
         }
         extension <- extDefs[[what]]
         if(is.null(extension)) # not possible if the setIs behaved?
-          warning(gettextf("no definition of inheritance from %s to %s, though the relation was implied by the setIs() from %s",
-                           .dQ(what), .dQ(def2@className), .dQ(class)),
-                  call. = FALSE, domain = NA)
+          warning(
+              gettextf("No definition of inheritance from \"%s\" to \"%s\", though the relation was implied by the setIs() from \"%s\"",
+                       what, def2@className, class))
         else if(is.na(match(class2, names(subDef@contains)))) {
             subDef@contains[[class2]] <- extension
             assignClassDef(what, subDef, cwhere, TRUE)
@@ -1975,9 +1975,9 @@ substituteFunctionArgs <-
             if(length(superWhere)) {
                 superWhere <- superWhere[[1L]]
                 .removeSubClass(what, Class, superWhere)
-            } else if(! what %in% c(.BasicClasses, "oldClass"))
-                warning(gettextf("could not find superclass %s to clean up when removing subclass references to class %s",
-                                 .dQ(what), .dQ(Class)))
+            } else if(! what %in% .BasicClasses)
+                warning(gettextf("Couldn't find superclass \"%s\" to clean up when removing subclass references to class \"%s\"",
+                                 what, Class))
         }
     }
     NULL
@@ -2011,8 +2011,8 @@ substituteFunctionArgs <-
         .uncacheClass(class, cdef)
     }
     else
-      warning(gettextf("no class %s found as expected in removing subclass %s",
-                       .dQ(class), .dQ(subclass)))
+      warning(gettextf("No class \"%s\" found as expected in removing subclass \"%s\"",
+                       class, subclass))
 }
 
 .deleteSubClass <- function(cdef, subclass) {

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.10.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-06 12:04\n"
+"POT-Creation-Date: 2009-12-10 19:18\n"
 "PO-Revision-Date: 2009-10-15 02:19-0500\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza at gmail>\n"
 "Language-Team: Russian\n"
@@ -345,10 +345,6 @@ msgid "'x', 'y', and 'r' must be units"
 msgstr "'x', 'y', и 'r' должны быть единицами"
 
 msgid "'x', 'y', 'width', and 'height' must be units"
-msgstr "'x', 'y', 'width', и 'height' должны быть единицами"
-
-#, fuzzy
-msgid "at least one of 'width' and 'height' must be specified"
 msgstr "'x', 'y', 'width', и 'height' должны быть единицами"
 
 msgid "Invalid 'rot' value"

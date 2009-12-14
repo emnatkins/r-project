@@ -16,9 +16,9 @@
 
 ## functions principally for testing R and packages
 
-massageExamples <- function(pkg, files, outFile = stdout(), addTiming = FALSE)
+massageExamples <- function(pkg, files, outFile = stdout())
 {
-    if(file_test("-d", files[1L]))
+    if(file_test("-d", files[1]))
         files <- sort(Sys.glob(file.path(files, "*.R")))
 
     if(is.character(outFile)) {
@@ -42,20 +42,8 @@ massageExamples <- function(pkg, files, outFile = stdout(), addTiming = FALSE)
         cat("library('", pkg, "')\n\n", sep = "", file = out)
 
     cat("assign(\".oldSearch\", search(), pos = 'CheckExEnv')\n", file = out)
-    ## cat("assign(\".oldNS\", loadedNamespaces(), pos = 'CheckExEnv')\n", file = out)
-    if(addTiming) {
-        ## adding timings
-        cat("assign(\".ExTimings\", \"", pkg,
-            "-Ex.timings\", pos = 'CheckExEnv')\n", sep="", file = out)
-        cat("cat(\"name\\tuser\\tsystem\\telapsed\\n\", file=get(\".ExTimings\", pos = 'CheckExEnv'))\n", file = out)
-        cat("assign(\".format_ptime\",",
-            "function(x) {",
-            "  if(!is.na(x[4L])) x[1L] <- x[1L] + x[4L]",
-            "  if(!is.na(x[5L])) x[2L] <- x[2L] + x[5L]",
-            "  format(x[1L:3L])",
-            "},",
-            "pos = 'CheckExEnv')\n", sep = "\n", file = out)
-    }
+    ##cat("assign(\".oldNS\", loadedNamespaces(), pos = 'CheckExEnv')\n", file = out)
+
     for(file in files) {
         nm <- sub("\\.R$", "", basename(file))
         ## make a syntactic name out of the filename
@@ -79,9 +67,6 @@ massageExamples <- function(pkg, files, outFile = stdout(), addTiming = FALSE)
         cat("### * ", nm, "\n\n", sep = "", file = out)
         cat("flush(stderr()); flush(stdout())\n\n", file = out)
         dont_test <- FALSE
-        if(addTiming)
-            cat("assign(\".ptime\", proc.time(), pos = \"CheckExEnv\")\n",
-                file = out)
         for (line in lines) {
             if(any(grepl("^[[:space:]]*## No test:", line, perl = TRUE, useBytes = TRUE)))
                 dont_test <- TRUE
@@ -91,10 +76,6 @@ massageExamples <- function(pkg, files, outFile = stdout(), addTiming = FALSE)
                 dont_test <- FALSE
         }
 
-        if(addTiming) {
-            cat("\nassign(\".dptime\", (proc.time() - get(\".ptime\", pos = \"CheckExEnv\")), pos = \"CheckExEnv\")\n", file = out)
-            cat("cat(\"", nm, "\", get(\".format_ptime\", pos = 'CheckExEnv')(get(\".dptime\", pos = \"CheckExEnv\")), \"\\n\", file=get(\".ExTimings\", pos = 'CheckExEnv'), append=TRUE, sep=\"\\t\")\n", sep = "", file = out)
-        }
         if(have_par)
             cat("graphics::par(get(\"par.postscript\", pos = 'CheckExEnv'))\n", file = out)
         if(have_contrasts)
@@ -115,10 +96,10 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE)
         if(length(top <- grep("^(R version|R : Copyright)", txt,
                               perl = TRUE, useBytes = TRUE)) &&
            length(bot <- grep("quit R.$", txt, perl = TRUE, useBytes = TRUE)))
-            txt <- txt[-(top[1L]:bot[1L])]
+            txt <- txt[-(top[1]:bot[1])]
         ## remove BATCH footer
         nl <- length(txt)
-        if(grepl("^> proc.time()", txt[nl-2L])) txt <- txt[1:(nl-3L)]
+        if(grepl("^> proc.time()", txt[nl-2])) txt <- txt[1:(nl-3)]
         ## regularize fancy quotes.
         txt <- gsub("(\xe2\x80\x98|\xe2\x80\x99)", "'", txt,
                       perl = TRUE, useBytes = TRUE)
@@ -336,7 +317,7 @@ testInstalledPackage <-
     return(nfail)
 }
 
-.createExdotR <- function(pkg, pkgdir, silent = FALSE, addTiming = FALSE)
+.createExdotR <- function(pkg, pkgdir, silent = FALSE)
 {
     Rfile <- paste(pkg, "-Ex.R", sep = "")
     ## might be zipped:
@@ -374,7 +355,7 @@ testInstalledPackage <-
         nof <- length(Sys.glob(file.path(filedir, "*.R")))
         if(!nof) return(invisible(NULL))
     }
-    massageExamples(pkg, filedir, Rfile, addTiming)
+    massageExamples(pkg, filedir, Rfile)
     invisible(Rfile)
 }
 
@@ -474,50 +455,4 @@ testInstalledBasic <- function(scope = c("basic", "devel", "both"))
     }
 
     invisible(0L)
-}
-
-detachPackages <- function(pkgs, verbose = TRUE)
-{
-    pkgs <- pkgs[pkgs %in% search()]
-    if(!length(pkgs)) return()
-    if(verbose){
-        msg <- paste("detaching", paste(sQuote(pkgs), collapse = ", "))
-        cat("", strwrap(msg, exdent = 2L), "", sep = "\n")
-    }
-
-    ## Normally 'pkgs' will be in reverse order of attachment (latest first)
-    ## but not always (e.g. BioC package CMA attaches at the end).
-
-    ## The items need not all be packages
-    ## and non-packages can be on the list multiple times.
-    isPkg <- grepl("^package:", pkgs)
-    for(item in pkgs[!isPkg]) {
-        pos <- match(item, search())
-        if(!is.na(pos)) .Internal(detach(pos))
-    }
-
-    pkgs <- pkgs[isPkg]
-    if(!length(pkgs)) return()
-
-    deps <- lapply(pkgs, function(x) if(exists(".Depends", x, inherits = FALSE)) get(".Depends", x) else character())
-    names(deps) <- pkgs
-
-    unload <- nzchar(Sys.getenv("_R_CHECK_UNLOAD_NAMESPACES_"))
-    ## unloading 'grid' kills all devices
-    ## tcltk is unhappy to have its DLL unloaded repeatedly
-    exclusions <- c("grid", "tcltk")
-    exclusions <- paste("package", exclusions, sep=":")
-    while(length(deps)) {
-        unl <- unlist(deps)
-        for(i in seq_along(deps)) {
-            this <- names(deps)[i]
-            if(sub("^package:", "", this) %in% unl) next else break
-        }
-        ## hopefully force = TRUE is never needed, but it does ensure
-        ## that progress gets made
-        try(detach(this, character.only = TRUE,
-                   unload = unload && !(this %in% exclusions),
-                   force = TRUE))
-        deps <- deps[-i]
-    }
 }

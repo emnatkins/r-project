@@ -102,9 +102,7 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
         if(!header) rlabp <- FALSE
 
         if (header) {
-            ## skip over header
-           .Internal(readTableHead(file, 1L, comment.char,
-                                   blank.lines.skip, quote, sep))
+            readLines(file, 1L)          # skip over header
             if(missing(col.names)) col.names <- first
             else if(length(first) != length(col.names))
                 warning("header and 'col.names' are of different lengths")

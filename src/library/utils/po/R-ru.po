@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.10.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-06 12:05\n"
+"POT-Creation-Date: 2009-12-10 19:18\n"
 "PO-Revision-Date: 2009-10-15 02:50-0500\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza at gmail>\n"
 "Language-Team: Russian\n"
@@ -115,13 +115,6 @@ msgstr "Не найдено миниатюр в"
 
 msgid "call"
 msgstr "вызов"
-
-#, fuzzy
-msgid "Package '"
-msgstr "Пакет"
-
-msgid "' DESCRIPTION not found."
-msgstr ""
 
 msgid "'file' must be NULL, a character string or a connection"
 msgstr "'file' должен быть NULL, текстовой строкой или соединением"
@@ -264,9 +257,14 @@ msgstr "класс(ы) у \"name' будут пропущены"
 msgid "cannot edit NULL row names"
 msgstr "не могу редактировать NULL-имена строк"
 
-#, fuzzy
-msgid "no help found for '%s'"
+msgid "no help file found for '%s'"
 msgstr "в '%s' не найдено файла помощи"
+
+msgid "more than one help file found: using package '%s'"
+msgstr "найдено более одного файла помощи: использую пакет '%s'"
+
+msgid "'%s' has a help file but no examples"
+msgstr "у '%s' есть файл помощи, но нет примеров"
 
 msgid "test '%s' is not available"
 msgstr "тест '%s' недоступен"
@@ -294,6 +292,18 @@ msgid "'topic' should be a name, length-one character vector or reserved word"
 msgstr ""
 "'topic' должен быть именем, текстовой строкой единичной длины или "
 "зарезервированным словом"
+
+msgid "offline = TRUE is deprecated: use help_type =\"postscript\""
+msgstr ""
+"offline = TRUE не приветствуется: используйте help_type =\"postscript\""
+
+#, fuzzy
+msgid "chmhelp = TRUE is no longer supported: using help_type =\"text\""
+msgstr ""
+"chmhelp = TRUE больше не поддерживается: используйте help_type =\"text\""
+
+msgid "htmhelp = TRUE is deprecated: use help_type =\"html\""
+msgstr "htmhelp = TRUE не приветствуется: используйте help_type =\"html\""
 
 msgid "No documentation for '%s' in specified packages and libraries:"
 msgstr "В указанных пакетах и библиотеках нет документации для '%s':"
@@ -329,14 +339,19 @@ msgstr "Помощь HTML недоступна"
 msgid "R Help on '%s'"
 msgstr "Помощь R по '%s'"
 
-#, fuzzy
-msgid "invalid '%s' argument"
-msgstr "неправильный аргумент 'x'"
+msgid ""
+"No text help for '%s' is available:\n"
+"corresponding file is missing"
+msgstr ""
+"Недоступна текстовая помощь по '%s':\n"
+"нет соответствующего файла"
 
 msgid ""
-"package %s exists but was not installed under R >= 2.10.0 so help cannot be "
-"accessed"
+"No offline help for '%s' is available:\n"
+"corresponding file is missing"
 msgstr ""
+"Нет оффлайн-помощи по '%s':\n"
+"соответствующий файл недоступен"
 
 msgid "argument '%s' must be a single character string"
 msgstr "аргумент '%s' должен быть одной текстовой строкой"
@@ -556,15 +571,17 @@ msgstr "пробую использовать CRAN без установки зеркала"
 msgid "cannot choose a CRAN mirror non-interactively"
 msgstr "не могу выбрать зеркало CRAN неинтерактивно"
 
-#, fuzzy
-msgid "cannot choose a BioC mirror non-interactively"
-msgstr "не могу выбрать зеркало CRAN неинтерактивно"
-
 msgid "cannot set repositories non-interactively"
 msgstr "не могу установить хранилища неинтерактивно"
 
 msgid "--- Please select repositories for use in this session ---"
 msgstr "--- Пожалуйста, выберите хранилища для использования в этой сессии ---"
+
+msgid ""
+"Enter one or more numbers separated by spaces, or an empty line to cancel"
+msgstr ""
+"Введите одну или более цифр, разделенных пробелами, или пустую строку для "
+"отмены"
 
 msgid "'%s' must be supplied"
 msgstr "надо указать '%s'"
@@ -899,11 +916,8 @@ msgstr "select.list() нельзя использовать неинтерактивно"
 msgid "'title' must be NULL or a length-1 character vector"
 msgstr "'code_files' должны быть текстовым вектором"
 
-msgid ""
-"Enter one or more numbers separated by spaces, or an empty line to cancel"
-msgstr ""
-"Введите одну или более цифр, разделенных пробелами, или пустую строку для "
-"отмены"
+msgid "Enter zero or more numbers separated by space"
+msgstr "Введите ни одного или больше чисел, разделенных пробелом"
 
 msgid "Invalid input, please try again"
 msgstr "Неправильный ввод, пожалуйста, попробуйте опять"
@@ -986,6 +1000,12 @@ msgstr "'tar' вернул ненулевой код выхода %d"
 
 msgid "package '%s' successfully unpacked and MD5 sums checked"
 msgstr "пакет '%s' успешно распакован, MD5-суммы проверены"
+
+msgid "malformed bundle DESCRIPTION file, no Contains field"
+msgstr "у связки пакетов -- неправильный файл DESCRIPTION, без поля 'Contains'"
+
+msgid "bundle '%s' successfully unpacked and MD5 sums checked"
+msgstr "связка пакетов '%s' успешно распакована, MD5-суммы проверены"
 
 msgid "unable to move temporary installation '%s' to '%s'"
 msgstr "не могу перенести временную установку из '%s' в '%s'"
@@ -1072,53 +1092,12 @@ msgstr[0] "пакет '%s' сейчас используется и не будет установлен"
 msgstr[1] "пакеты '%s' сейчас используются и не будут установлены"
 msgstr[2] "пакеты '%s' сейчас используются и не будут установлены"
 
-#~ msgid "Enter zero or more numbers separated by space"
-#~ msgstr "Введите ни одного или больше чисел, разделенных пробелом"
-
-#~ msgid "more than one help file found: using package '%s'"
-#~ msgstr "найдено более одного файла помощи: использую пакет '%s'"
-
-#~ msgid "'%s' has a help file but no examples"
-#~ msgstr "у '%s' есть файл помощи, но нет примеров"
-
-#~ msgid "offline = TRUE is deprecated: use help_type =\"postscript\""
-#~ msgstr ""
-#~ "offline = TRUE не приветствуется: используйте help_type =\"postscript\""
-
-#~ msgid "chmhelp = TRUE is no longer supported: use help_type =\"text\""
-#~ msgstr ""
-#~ "chmhelp = TRUE больше не поддерживается: используйте help_type =\"text\""
-
-#~ msgid "htmhelp = TRUE is deprecated: use help_type =\"html\""
-#~ msgstr "htmhelp = TRUE не приветствуется: используйте help_type =\"html\""
-
-#~ msgid ""
-#~ "No text help for '%s' is available:\n"
-#~ "corresponding file is missing"
-#~ msgstr ""
-#~ "Недоступна текстовая помощь по '%s':\n"
-#~ "нет соответствующего файла"
-
-#~ msgid ""
-#~ "No offline help for '%s' is available:\n"
-#~ "corresponding file is missing"
-#~ msgstr ""
-#~ "Нет оффлайн-помощи по '%s':\n"
-#~ "соответствующий файл недоступен"
-
 #~ msgid "Using non-linked HTML file: hyperlinks may be incorrect"
 #~ msgstr ""
 #~ "Использую нелинкованный HTML-файл: гиперссылки могут быть неправильными"
 
 #~ msgid "options(\"browser\") not set"
 #~ msgstr "options(\"browser\") не установлены"
-
-#~ msgid "malformed bundle DESCRIPTION file, no Contains field"
-#~ msgstr ""
-#~ "у связки пакетов -- неправильный файл DESCRIPTION, без поля 'Contains'"
-
-#~ msgid "bundle '%s' successfully unpacked and MD5 sums checked"
-#~ msgstr "связка пакетов '%s' успешно распакована, MD5-суммы проверены"
 
 #~ msgid ""
 #~ "No HTML help for '%s' is available:\n"

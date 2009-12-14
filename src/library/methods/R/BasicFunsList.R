@@ -26,34 +26,74 @@
 .BasicFunsList <-
 list(
 ### subset/subassignment ops are regarded as language elements
-"$" = structure(function(x, name)
+"$" = function(x, name)
 {
     name <- as.character(substitute(name))
     standardGeneric("$")
-}, signature = c("x"))
-, "$<-" = structure(function(x, name, value)
+}
+, "$<-" = function(x, name, value)
 {
     name <- as.character(substitute(name))
     standardGeneric("$<-")
-}, signature = c("x", "value"))
-, "[" = function(x, i, j, ..., drop = TRUE) standardGeneric("[")
-, "[<-" = function(x, i, j, ..., value) standardGeneric("[<-")
-, "[[" = function(x, i, j, ...) standardGeneric("[[")
-, "[[<-" = function(x, i, j, ..., value) standardGeneric("[[<-")
+}
+, "[" = function(x, i, j, ..., drop = TRUE)
+{
+    standardGeneric("[")
+}
+, "[<-" = function(x, i, j, ..., value)
+{
+    standardGeneric("[<-")
+}
+, "[[" = function(x, i, j, ...)
+{
+    standardGeneric("[[")
+}
+, "[[<-" = function(x, i, j, ..., value)
+{
+    standardGeneric("[[<-")
+}
 ### S4 generic via R_possible_dispatch in do_matprod
-, "%*%" = function(x, y) standardGeneric("%*%")
-, "xtfrm" = function(x) standardGeneric("xtfrm")
+, "%*%" = function(x, y)
+{
+    standardGeneric("%*%")
+}
 ### these have a different arglist from the primitives
-, "c" = function(x, ..., recursive = FALSE) standardGeneric("c")
-, "all" = function(x, ..., na.rm = FALSE) standardGeneric("all")
-, "any" = function(x, ..., na.rm = FALSE) standardGeneric("any")
-, "sum" = function(x, ..., na.rm = FALSE) standardGeneric("sum")
-, "prod" = function(x, ..., na.rm = FALSE) standardGeneric("prod")
-, "max" = function(x, ..., na.rm = FALSE) standardGeneric("max")
-, "min" = function(x, ..., na.rm = FALSE) standardGeneric("min")
-
-, "range" = function(x, ..., na.rm = FALSE) standardGeneric("range")
-## , "!" = function(e1) standardGeneric("!")
+, "c" = function(x, ..., recursive = FALSE)
+{
+    standardGeneric("c")
+}
+, "all" = function(x, ..., na.rm = FALSE)
+{
+    standardGeneric("all")
+}
+, "any" = function(x, ..., na.rm = FALSE)
+{
+    standardGeneric("any")
+}
+, "sum" = function(x, ..., na.rm = FALSE)
+{
+    standardGeneric("sum")
+}
+, "prod" = function(x, ..., na.rm = FALSE)
+{
+    standardGeneric("prod")
+}
+, "max" = function(x, ..., na.rm = FALSE)
+{
+    standardGeneric("max")
+}
+, "min" = function(x, ..., na.rm = FALSE)
+{
+    standardGeneric("min")
+}
+, "range" = function(x, ..., na.rm = FALSE)
+{
+    standardGeneric("range")
+}
+## , "!" = function(e1)
+## {
+##     standardGeneric("!")
+## }
 )
 
 ## the names of the basic funs with the style of "["
@@ -70,7 +110,6 @@ list(
 .addBasicGeneric <-
     function(funslist, f, fdef, group = list())
 {
-    signature <- attr(fdef, "signature") #typically NULL, but see the case for "$"
     deflt <- get(f, "package:base")
     ## use the arguments of the base package function
     ##FIXME:  should also deal with the functions having ... as the first
@@ -86,8 +125,7 @@ list(
             substitute(standardGeneric(FNAME), list(FNAME=f))
     }
     deflt <- .derivedDefaultMethod(deflt)
-    elNamed(funslist, f) <- makeGeneric(f, fdef, deflt, group = group, package = "base",
-                                        signature = signature)
+    elNamed(funslist, f) <- makeGeneric(f, fdef, deflt, group = group, package = "base")
     funslist
 }
 

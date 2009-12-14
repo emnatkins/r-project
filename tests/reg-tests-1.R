@@ -667,8 +667,6 @@ stopifnot(abs(quantile(x,p) - ((1-f)*ox[i] + f*ox[i+1])) < 20*Meps)
 ## rep
 stopifnot(identical(rep(letters, 0), character(0)),
 	  identical(rep.int(1:2, 0), integer(0)))
-
-stopifnot(sum(1:8) == length(rep(1:4, 1:8, each=2)))
 ## end of moved from rep.Rd
 
 
@@ -2174,12 +2172,10 @@ stopifnot(is.matrix(eigen(A, EISPACK = TRUE)$vectors))
 
 
 ## [[<-.data.frame
-testdata <- data.frame(a=1:2, b = c(TRUE, NA))
-td <- strptime(c("31121991", "31121992"), "%d%m%Y")
-testdata[["a"]] <- td
-if(FALSE)
+testdata <- data.frame(a=1:2, b = rep(NA, 2))
+try(testdata[["a"]] <- strptime(c("31121991", "31121991"), "%d%m%Y"))
 stopifnot(inherits(.Last.value, "try-error"))
-## succeeded in 1.7.0 and again in 2.11.x {should it not?}
+## succeeded in 1.7.0
 
 
 ## pacf on n x 1 matrix: Paul Gilbert, R-devel, 2003-06-18
@@ -5173,23 +5169,11 @@ if(.Platform$OS.type == "unix") {
     unlink("myTst_*")
 
     ## More building & installing packages
-    ## NB: tests were added here for 2.11.0.
-    ## NB^2: do not do this in the R sources!
-    pkgSrcPath <- file.path(Sys.getenv("SRCDIR"), "Pkgs")
-    ## could use file.copy(recursive = TRUE), but this is Unix-only
-    system(paste('cp -r',
-                 shQuote(file.path(Sys.getenv("SRCDIR"), "Pkgs")),
-                 shQuote(tempdir())
-                 ))
-    pkgPath <- file.path(tempdir(), "Pkgs")
     op <- options(warn=2) # There should be *NO* warnings here!
-    ## pkgB tests an empty R directory
-    dir.create(file.path(pkgPath, "pkgB", "R"), recursive = TRUE,
-               showWarnings = FALSE)
     p.lis <- c("pkgA", "pkgB", "exS4noNS", "exNSS4")
     for(p. in p.lis) {
 	cat("building package", p., "...\n")
-	r <- build.pkg(file.path(pkgPath, p.))
+	r <- build.pkg(file.path(Sys.getenv("SRCDIR"), "Pkgs", p.))
 	cat("installing package", p., "using file", r, "...\n")
 	## we could install the tar file ... (see build.pkg()'s definition)
 	install.packages(r, lib = "myLib", repos=NULL, type = "source")
@@ -5199,8 +5183,7 @@ if(.Platform$OS.type == "unix") {
     ## TODO: not just print, but check the "list":
     print(installed.packages(lib.loc = "myLib", priority = "NA"))
     options(op)
-    unlink("myLib", recursive = TRUE)
-    unlink(file.path(pkgPath), recursive = TRUE)
+    unlink("myLib", recursive=TRUE)
 }
 unlink("myTst", recursive=TRUE)
 
@@ -5902,118 +5885,3 @@ unlink(tf)
 x <- c(101, 102, NA)
 stopifnot(all.equal(mean(x, na.rm = TRUE), weighted.mean(x, na.rm = TRUE)))
 ## divided by 3 in 2.10.0 (only)
-
-
-## regexpr(fixed = TRUE) with a single-byte pattern matching to a MBCS string
-x <- iconv("fa\xE7ile a ", "latin1", "UTF-8")
-stopifnot(identical(regexpr(" ", x), regexpr(" ", x, fixed=TRUE)))
-# fixed=TRUE reported match position in bytes in R <= 2.10.0
-stopifnot(identical(regexpr(" a", x), regexpr(" a", x, fixed=TRUE)))
-## always worked.
-
-## unname() on 0-length vector
-stopifnot(identical(1[FALSE], unname(c(a=1)[FALSE])))
-## failed to drop names in 2.10.0
-
-
-## complete.cases on 0-column data frame
-complete.cases(data.frame(1:10)[-1])
-## failed in 2.10.0
-
-
-## PR#14035, converting (partially) unnamed lists to environments.
-(qq <- with(list(2), ls()))
-nchar(qq)
-with(list(a=1, 2), ls())
-## failed in R < 2.11.0
-
-
-## chisq.test with over-long 'x' or 'y' arg
-# https://stat.ethz.ch/pipermail/r-devel/2009-November/055700.html
-x <- y <- rep(c(1000, 1001, 1002), each=5)
-z <- eval(substitute(chisq.test(x,y), list(x=x)))
-z
-z$observed
-## failed in 2.10.0
-
-
-## unsplit(drop = TRUE) on a data frame failed (PR#14084)
-dff <- data.frame(gr1 = factor(c(1,1,1,1,1,2,2,2,2,2,2), levels=1:4),
-                  gr2 = factor(c(1,2,1,2,1,2,1,2,1,2,3), levels=1:4),
-                  yy = rnorm(11), row.names = as.character(1:11))
-dff2 <- split(dff, list(dff$gr1, dff$gr2), drop=TRUE)
-dff3 <- unsplit(dff2, list(dff$gr1, dff$gr2), drop=TRUE)
-stopifnot(identical(dff, dff3))
-## failed in 2.10.0
-
-
-## mean.difftime ignored its na.rm argument
-z <- as.POSIXct(c("1980-01-01", "1980-02-01", NA, "1980-03-01", "1980-04-01"))
-zz <- diff(z)
-stopifnot(is.finite(mean(zz, na.rm=TRUE)))
-## was NA in 2.10.0
-
-
-## weighted means with zero weights and infinite values
-x <- c(0, 1, 2, Inf)
-w <- c(1, 1, 1, 0)
-z <- weighted.mean(x, w)
-stopifnot(is.finite(z))
-## was NaN in 2.10.x
-
-
-## Arithmetic operations involving "difftime"
-z <- as.POSIXct(c("2009-12-01", "2009-12-02"), tz="UTC")
-(zz <- z[2] - z[1])
-(zzz <- z[1] + zz)
-stopifnot(identical(zzz, z[2]),
-          identical(zz + z[1], z[2]),
-          identical(z[2] - zz, z[1]))
-z <- as.Date(c("2009-12-01", "2009-12-02"))
-(zz <- z[2] - z[1])
-(zzz <- z[1] + zz)
-stopifnot(identical(zzz, z[2]),
-          identical(zz + z[1], z[2]),
-          identical(z[2] - zz, z[1]))
-## failed/gave wrong answers when Ops.difftime was introduced.
-
-
-## quantiles, new possibilities in 2.11.0
-x <- ordered(1:11, labels=letters[1:11])
-quantile(x, type = 1)
-quantile(x, type = 3)
-st <- as.Date("1998-12-17")
-en <- as.Date("2000-1-7")
-ll <- seq(as.Date("2000-1-7"), as.Date("1997-12-17"), by="-1 month")
-quantile(ll, type = 1)
-quantile(ll, type = 3)
-## failed prior to 2.11.0
-
-
-## (asymptotic) point estimate in wilcox.test(*, conf.int=TRUE)
-alt <- eval(formals(stats:::wilcox.test.default)$alternative)
-Z <- c(-2, 0, 1, 1, 2, 2, 3, 5, 5, 5, 7)
-E1 <- sapply(alt, function(a.)
-	     wilcox.test(Z, conf.int = TRUE,
-			 alternative = a., exact = FALSE)$estimate)
-X <- c(6.5, 6.8, 7.1, 7.3, 10.2)
-Y <- c(5.8, 5.8, 5.9, 6, 6, 6, 6.3, 6.3, 6.4, 6.5, 6.5)
-E2 <- sapply(alt, function(a.)
-	     wilcox.test(X,Y, conf.int = TRUE,
-			 alternative = a., exact = FALSE)$estimate)
-stopifnot(E1[-1] == E1[1],
-	  E2[-1] == E2[1])
-## was continiuity corrected, dependent on 'alternative', prior to 2.10.1
-
-
-## read.table with embedded newlines in header (PR#14103)
-writeLines(c('"B1', 'B2"', 'B3'), "test.dat")
-z <- read.table("test.dat", header = TRUE)
-unlink("test.dat")
-stopifnot(identical(z, data.frame("B1.B2"="B3")))
-## Left part of header to be read as data in R < 2.11.0
-
-## switch() with  empty  '...'
-stopifnot(is.null(switch("A")),
-	  is.null(switch(1)), is.null(switch(3L)))
-## the first one hung, 2nd gave error, in R <= 2.10.1

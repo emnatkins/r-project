@@ -112,7 +112,7 @@ static SEXP applyMethod(SEXP call, SEXP op, SEXP args, SEXP rho, SEXP newrho)
     else if (TYPEOF(op) == BUILTINSXP) {
 	int save = R_PPStackTop, flag = PRIMPRINT(op);
 	void *vmax = vmaxget();
-	PROTECT(args = evalList(args, rho, call, 0));
+	PROTECT(args = evalList(args, rho, op));
 	R_Visible = flag != 1;
 	ans = PRIMFUN(op) (call, op, args, rho);
 	if (flag < 2) R_Visible = flag != 1;
@@ -879,7 +879,7 @@ SEXP attribute_hidden do_inherits(SEXP call, SEXP op, SEXP args, SEXP env)
     if(IS_S4_OBJECT(x))
       return do_S4inherits(x, CADR(args), CADDR(args));
     else
-      PROTECT(klass = R_data_class(x, FALSE));
+      klass = R_data_class(x, FALSE);
     nclass = length(klass);
 
     what = CADR(args);
@@ -899,7 +899,7 @@ SEXP attribute_hidden do_inherits(SEXP call, SEXP op, SEXP args, SEXP env)
 #endif
 
     if(isvec)
-	PROTECT(rval = allocVector(INTSXP, nwhat));
+	rval = allocVector(INTSXP, nwhat);
 
     for(j = 0; j < nwhat; j++) {
 	const char *ss = translateChar(STRING_ELT(what, j));
@@ -909,19 +909,14 @@ SEXP attribute_hidden do_inherits(SEXP call, SEXP op, SEXP args, SEXP env)
 	    if(!strcmp(translateChar(STRING_ELT(klass, i)), ss)) {
 		if(isvec)
 		   INTEGER(rval)[j] = i+1;
-		else {
-		    UNPROTECT(1);
+		else
 		    return mkTrue();
-		}
 		break;
 	    }
 	}
     }
-    if(!isvec) {
-    	UNPROTECT(1);
+    if(!isvec)
 	return mkFalse();
-    }
-    UNPROTECT(2);
     return rval;
 }
 
@@ -1068,7 +1063,6 @@ SEXP attribute_hidden do_standardGeneric(SEXP call, SEXP op, SEXP args, SEXP env
 }
 
 static int maxMethodsOffset = 0, curMaxOffset;
-static Rboolean allowPrimitiveMethods = TRUE;
 typedef enum {NO_METHODS, NEEDS_RESET, HAS_METHODS, SUPPRESSED} prim_methods_t;
 
 static prim_methods_t *prim_methods;
@@ -1084,21 +1078,6 @@ SEXP R_set_prim_method(SEXP fname, SEXP op, SEXP code_vec, SEXP fundef,
     if(!isValidString(code_vec))
 	error(_("argument 'code' must be a character string"));
     code_string = translateChar(asChar(code_vec));
-    /* with a NULL op, turns all primitive matching off or on (used to avoid possible infinite
-     recursion in methods computations*/
-    if(op == R_NilValue) {
-	SEXP value;
-	value = allowPrimitiveMethods ? mkTrue() : mkFalse();
-	switch(code_string[0]) {
-	case 'c': case 'C':/* clear */
-	    allowPrimitiveMethods = FALSE; break;
-	case 's': case 'S': /* set */
-	    allowPrimitiveMethods = TRUE; break;
-	default: /* just report the current state */
-	    break;
-	}
-	return value;
-    }
     do_set_prim_method(op, code_string, fundef, mlist);
     return(fname);
 }
@@ -1224,21 +1203,17 @@ SEXP do_set_prim_method(SEXP op, const char *code_string, SEXP fundef,
 
 static SEXP get_primitive_methods(SEXP op, SEXP rho)
 {
-    SEXP f, e, val;
+    SEXP f, e;
     int nprotect = 0;
     f = PROTECT(allocVector(STRSXP, 1));  nprotect++;
     SET_STRING_ELT(f, 0, mkChar(PRIMNAME(op)));
     PROTECT(e = allocVector(LANGSXP, 2)); nprotect++;
-    SETCAR(e, install("getGeneric"));
-    val = CDR(e); SETCAR(val, f);
-    val = eval(e, rho);
-    /* a rough sanity check that this looks like a generic function */
-    if(TYPEOF(val) != CLOSXP || !IS_S4_OBJECT(val))
-	error(_("object returned as generic function \"%s\" doesn't appear to be one"), PRIMNAME(op));
+    SETCAR(e, install("getMethods"));
+    SETCAR(CDR(e), f);
+    e = eval(e, rho);
     UNPROTECT(nprotect);
-    return CLOENV(val);
+    return e;
 }
-
 
 /* get the generic function, defined to be the function definition for
 the call to standardGeneric(), or for primitives, passed as the second
@@ -1288,8 +1263,6 @@ Rboolean R_has_methods(SEXP op)
 	return(FALSE);
     if(!op || TYPEOF(op) == CLOSXP) /* except for primitives, just test for the package */
 	return(TRUE);
-    if(!allowPrimitiveMethods) /* all primitives turned off by a call to R_set_prim */
-	return FALSE;
     offset = PRIMOFFSET(op);
     if(offset > curMaxOffset || prim_methods[offset] == NO_METHODS
        || prim_methods[offset] == SUPPRESSED)

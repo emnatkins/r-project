@@ -140,8 +140,3 @@
 
 .saveImage <- FALSE
 ## cat("Saving namespace image ...\n")
-
-## want ASCII quotes, not fancy nor translated ones
-.dQ <- function (x) paste('"', x, '"', sep = '')
-
-

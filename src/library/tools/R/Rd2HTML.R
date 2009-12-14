@@ -54,8 +54,7 @@ get_link <- function(arg, tag, Rdfile) {
 # translation of Utils.pm function of the same name, plus "unknown"
 mime_canonical_encoding <- function(encoding)
 {
-    encoding[encoding %in% c("", "unknown")] <-
-        utils::localeToCharset()[1L]
+    encoding[encoding %in% c("", "unknown")] <- localeToCharset()[1]
     encoding <- tolower(encoding)
     encoding <- sub("iso_8859-([0-9]+)", "iso-8859-\\1", encoding)
     encoding <- sub("iso8859-([0-9]+)", "iso-8859-\\1", encoding)
@@ -75,26 +74,6 @@ mime_canonical_encoding <- function(encoding)
     encoding[encoding == "utf8"] <-    "utf-8"
     encoding[encoding == "ascii"] <-   "us-ascii" # from W3C validator
     encoding
-}
-
-htmlify <- function(x) {
-    x <- fsub("&", "&amp;", x)
-    x <- fsub("---", "&mdash;", x)
-    x <- fsub("--", "&ndash;", x)
-    x <- fsub("``", "&ldquo;", x)
-    x <- fsub("''", "&rdquo;", x)
-    x <- psub("`([^']+)'", "&lsquo;\\1&rsquo;", x)
-    x <- fsub("`", "'", x)
-    x <- fsub("<", "&lt;", x)
-    x <- fsub(">", "&gt;", x)
-    x
-}
-
-vhtmlify <- function(x) { # code version
-    x <- fsub("&", "&amp;", x)
-    x <- fsub("<", "&lt;", x)
-    x <- fsub(">", "&gt;", x)
-    x
 }
 
 ## This gets used two ways:
@@ -220,6 +199,26 @@ Rd2HTML <-
         else x
     }
 
+    htmlify <- function(x) {
+	x <- fsub("&", "&amp;", x)
+	x <- fsub("---", "&mdash;", x)
+	x <- fsub("--", "&ndash;", x)
+	x <- fsub("``", "&ldquo;", x)
+	x <- fsub("''", "&rdquo;", x)
+        x <- psub("`([^']+)'", "&lsquo;\\1&rsquo;", x)
+	x <- fsub("`", "'", x)
+	x <- fsub("<", "&lt;", x)
+	x <- fsub(">", "&gt;", x)
+	x
+    }
+
+    vhtmlify <- function(x) { # code version
+	x <- fsub("&", "&amp;", x)
+	x <- fsub("<", "&lt;", x)
+	x <- fsub(">", "&gt;", x)
+	x
+    }
+
     HTMLeqn <- function(x)
     {
         x <- htmlify(x)
@@ -241,8 +240,8 @@ Rd2HTML <-
     checkInfixMethod <- function(blocks)
     	# Is this a method which needs special formatting?
     	if ( length(blocks) == 1 && RdTags(blocks) == "TEXT" &&
-    	     blocks[[1L]] %in% c("[", "[[", "$") ) {
-    	    pendingOpen <<- blocks[[1L]]
+    	     blocks[[1]] %in% c("[", "[[", "$") ) {
+    	    pendingOpen <<- blocks[[1]]
     	    TRUE
     	} else FALSE
 
@@ -304,8 +303,9 @@ Rd2HTML <-
                 } else OK <- TRUE
                 if (!OK) {
                     ## so how about as a topic?
-                    file <- utils:::index.search(parts$targetfile, pkgpath)
-                    if (!length(file)) {
+                    file <- index.search(parts$targetfile, pkgpath,
+                                         type = "html")
+                    if (nzchar(file)) {
                         warnRd(block, Rdfile,
                                "file link ", sQuote(parts$targetfile),
                                " in package ", sQuote(parts$pkg),
@@ -617,7 +617,7 @@ Rd2HTML <-
     	if (length(section)) {
 	    ## There may be an initial \n, so remove that
 	    s1 <- section[[1L]][1L]
-	    if (RdTags(s1) == "TEXT" && s1 == "\n") section <- section[-1L]
+	    if (RdTags(s1) == "TEXT" && s1 == "\n") section <- section[-1]
 	    writeContent(section, tag)
 	}
     	if (nzchar(para)) of0("</", para, ">\n")

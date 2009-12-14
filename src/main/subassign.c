@@ -1306,7 +1306,6 @@ SEXP attribute_hidden do_subassign(SEXP call, SEXP op, SEXP args, SEXP rho)
     /* If the dispatch fails, we "drop through" to the default code below. */
 
     if(DispatchOrEval(call, op, "[<-", args, rho, &ans, 0, 0))
-/*     if(DispatchAnyOrEval(call, op, "[<-", args, rho, &ans, 0, 0)) */
       return(ans);
 
     return do_subassign_dflt(call, op, ans, rho);
@@ -1440,7 +1439,6 @@ SEXP attribute_hidden do_subassign2(SEXP call, SEXP op, SEXP args, SEXP rho)
     SEXP ans;
 
     if(DispatchOrEval(call, op, "[[<-", args, rho, &ans, 0, 0))
-/*     if(DispatchAnyOrEval(call, op, "[[<-", args, rho, &ans, 0, 0)) */
       return(ans);
 
     return do_subassign2_dflt(call, op, ans, rho);

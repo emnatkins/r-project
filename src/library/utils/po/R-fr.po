@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-06 12:05\n"
+"POT-Creation-Date: 2009-12-10 19:18\n"
 "PO-Revision-Date: 2009-10-10 15:40+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -112,13 +112,6 @@ msgstr "Aucune vignette n'est trouvée par"
 
 msgid "call"
 msgstr "appel"
-
-#, fuzzy
-msgid "Package '"
-msgstr "Package"
-
-msgid "' DESCRIPTION not found."
-msgstr ""
 
 msgid "'file' must be NULL, a character string or a connection"
 msgstr "'file' doit être NULL, une chaîne de caractères ou une connexion"
@@ -267,9 +260,14 @@ msgstr "la(les) classe(s) de 'name' sera écartées"
 msgid "cannot edit NULL row names"
 msgstr "impossible d'éditer des noms de lignes NULL"
 
-#, fuzzy
-msgid "no help found for '%s'"
+msgid "no help file found for '%s'"
 msgstr "fichier d'aide introuvable pour '%s'"
+
+msgid "more than one help file found: using package '%s'"
+msgstr "plusieurs fichiers d'aide trouvés : le package '%s' est utilisé"
+
+msgid "'%s' has a help file but no examples"
+msgstr "'%s' a un fichier d'aide mais pas de fichier d'exemples"
 
 msgid "test '%s' is not available"
 msgstr "le test '%s' n'est pas disponible"
@@ -297,6 +295,16 @@ msgid "'topic' should be a name, length-one character vector or reserved word"
 msgstr ""
 "'topic' doit être un nom, une chaîne de caractères de longueur unitaire, ou "
 "un mot réservé"
+
+msgid "offline = TRUE is deprecated: use help_type =\"postscript\""
+msgstr "offline = TRUE est obsolète : utilisez help_type = \"postscript\""
+
+#, fuzzy
+msgid "chmhelp = TRUE is no longer supported: using help_type =\"text\""
+msgstr "chmhelp = TRUE n'est plus supporté : utilisez help_type = \"text\""
+
+msgid "htmhelp = TRUE is deprecated: use help_type =\"html\""
+msgstr "htmlhelp = TRUE est obsolète : utilisez help_type = \"html\""
 
 msgid "No documentation for '%s' in specified packages and libraries:"
 msgstr ""
@@ -334,14 +342,19 @@ msgstr "aide HTML non disponible"
 msgid "R Help on '%s'"
 msgstr "R Help sur '%s'"
 
-#, fuzzy
-msgid "invalid '%s' argument"
-msgstr "argument 'x' incorrect"
+msgid ""
+"No text help for '%s' is available:\n"
+"corresponding file is missing"
+msgstr ""
+"Aucune aide texte disponible pour '%s':\n"
+"le fichier correspondant est manquant"
 
 msgid ""
-"package %s exists but was not installed under R >= 2.10.0 so help cannot be "
-"accessed"
+"No offline help for '%s' is available:\n"
+"corresponding file is missing"
 msgstr ""
+"Aucune aide hors-ligne disponible pour '%s' :\n"
+"le fichier correspondant est manquant"
 
 msgid "argument '%s' must be a single character string"
 msgstr "l'argument '%s' doit être une seule chaîne de caractères"
@@ -568,15 +581,17 @@ msgstr "essai d'utilisation de CRAN sans fixer un miroir"
 msgid "cannot choose a CRAN mirror non-interactively"
 msgstr "impossible de choisir un miroir CRAN en mode non interactif"
 
-#, fuzzy
-msgid "cannot choose a BioC mirror non-interactively"
-msgstr "impossible de choisir un miroir CRAN en mode non interactif"
-
 msgid "cannot set repositories non-interactively"
 msgstr "impossible de fixer les entrepôts en mode non interactif"
 
 msgid "--- Please select repositories for use in this session ---"
 msgstr "--- SVP sélectionner les entrepôts à utiliser pour cette session ---"
+
+msgid ""
+"Enter one or more numbers separated by spaces, or an empty line to cancel"
+msgstr ""
+"Entrer un ou plusieurs nombres séparés par des espaces, ou une ligne vide "
+"pour anuler"
 
 msgid "'%s' must be supplied"
 msgstr "'%s' doit être fourni"
@@ -920,11 +935,8 @@ msgstr "select.list() ne peut pas être utilisé en mode non-interactif"
 msgid "'title' must be NULL or a length-1 character vector"
 msgstr "'code_files' devrait être un vecteur de type caractère"
 
-msgid ""
-"Enter one or more numbers separated by spaces, or an empty line to cancel"
-msgstr ""
-"Entrer un ou plusieurs nombres séparés par des espaces, ou une ligne vide "
-"pour anuler"
+msgid "Enter zero or more numbers separated by space"
+msgstr "Entrez des nombres séparés par des espaces"
 
 msgid "Invalid input, please try again"
 msgstr "entrée incorrecte, essayez a nouveau SVP"
@@ -1010,6 +1022,14 @@ msgstr ""
 "le package '%s' a été décompressé et les sommes MD5 ont été vérifiées avec "
 "succés"
 
+msgid "malformed bundle DESCRIPTION file, no Contains field"
+msgstr "fichier DESCRIPTION du bundle erroné, pas de champ Contains"
+
+msgid "bundle '%s' successfully unpacked and MD5 sums checked"
+msgstr ""
+"le bundle '%s' a été décompressé et les sommes MD5 ont été vérifiées avec "
+"succès"
+
 msgid "unable to move temporary installation '%s' to '%s'"
 msgstr "impossible de déplacer l'installation temporaire '%s' vers '%s'"
 
@@ -1091,21 +1111,6 @@ msgstr[0] "le package '%s' est en cours d'utilisation et ne sera pas installé"
 msgstr[1] ""
 "les packages '%s' sont en cours d'utilisation et ne seront pas installés"
 
-#~ msgid "Enter zero or more numbers separated by space"
-#~ msgstr "Entrez des nombres séparés par des espaces"
-
-#~ msgid "more than one help file found: using package '%s'"
-#~ msgstr "plusieurs fichiers d'aide trouvés : le package '%s' est utilisé"
-
-#~ msgid "offline = TRUE is deprecated: use help_type =\"postscript\""
-#~ msgstr "offline = TRUE est obsolète : utilisez help_type = \"postscript\""
-
-#~ msgid "chmhelp = TRUE is no longer supported: use help_type =\"text\""
-#~ msgstr "chmhelp = TRUE n'est plus supporté : utilisez help_type = \"text\""
-
-#~ msgid "htmhelp = TRUE is deprecated: use help_type =\"html\""
-#~ msgstr "htmlhelp = TRUE est obsolète : utilisez help_type = \"html\""
-
 #~ msgid "Using non-linked HTML file: hyperlinks may be incorrect"
 #~ msgstr ""
 #~ "Utilisation de fichiers HTML non liés : les hyperliens sont peut-être "
@@ -1113,31 +1118,6 @@ msgstr[1] ""
 
 #~ msgid "options(\"browser\") not set"
 #~ msgstr "options(\"browser\") non fixée"
-
-#~ msgid "'%s' has a help file but no examples"
-#~ msgstr "'%s' a un fichier d'aide mais pas de fichier d'exemples"
-
-#~ msgid ""
-#~ "No text help for '%s' is available:\n"
-#~ "corresponding file is missing"
-#~ msgstr ""
-#~ "Aucune aide texte disponible pour '%s':\n"
-#~ "le fichier correspondant est manquant"
-
-#~ msgid ""
-#~ "No offline help for '%s' is available:\n"
-#~ "corresponding file is missing"
-#~ msgstr ""
-#~ "Aucune aide hors-ligne disponible pour '%s' :\n"
-#~ "le fichier correspondant est manquant"
-
-#~ msgid "malformed bundle DESCRIPTION file, no Contains field"
-#~ msgstr "fichier DESCRIPTION du bundle erroné, pas de champ Contains"
-
-#~ msgid "bundle '%s' successfully unpacked and MD5 sums checked"
-#~ msgstr ""
-#~ "le bundle '%s' a été décompressé et les sommes MD5 ont été vérifiées avec "
-#~ "succès"
 
 #~ msgid ""
 #~ "No HTML help for '%s' is available:\n"

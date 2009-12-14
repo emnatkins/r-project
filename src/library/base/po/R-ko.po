@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2009-12-07 07:59\n"
+"POT-Creation-Date: 2009-12-10 19:18\n"
 "PO-Revision-Date: 2005-05-31 09:39+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -104,26 +104,17 @@ msgstr "*** 'pos=1'는 결국 에러를 제공하는것을 주의해주십시오
 msgid "file '%s' not found"
 msgstr "파일 '%s'가 검색되지 않습니다"
 
-#, fuzzy
-msgid "invalid 'name' argument"
-msgstr "무효인 'category' 인수입니다"
+msgid "invalid name"
+msgstr "부적절한 이름입니다"
+
+msgid "is required by"
+msgstr "이하에 의해 요구되었습니다 :"
+
+msgid "(still attached)"
+msgstr "(아직 attached되어 있습니다)"
 
 #, fuzzy
-msgid "package %s is required by %s, which may no longer work correctly"
-msgstr "패키지 '%s'는 버전 %s의 R미만에서 작성되어졌습니다"
-
-#, fuzzy
-msgid "package %s is required by %s so will not be detached"
-msgstr "'%s'가 요구한 패키지 '%s'는 검색해낼수 없었습니다"
-
-msgid ""
-"%s failed in %s() for '%s', details:\n"
-"  call: %s\n"
-"  error: %s"
-msgstr ""
-
-#, fuzzy
-msgid "name space cannot be unloaded:"
+msgid "namespace cannot be unloaded"
 msgstr "name space '%s'가 적재 되었습니다"
 
 #, fuzzy
@@ -243,7 +234,7 @@ msgid "invalid 'dimnames' given for data frame"
 msgstr "데이터 프레임에 무효인 'dmnames'가 주어졌습니다"
 
 #, fuzzy
-msgid "cannot coerce class '%s' into a data.frame"
+msgid "cannot coerce class %s into a data.frame"
 msgstr "class \\\"%s\\\"는 데이터 프레임에 강제 변환할수가 없습니다"
 
 msgid "invalid 'row.names', length %d for a data frame with %d rows"
@@ -773,12 +764,25 @@ msgstr "정방 행렬이어야 합니다"
 msgid "'object' must be a list"
 msgstr "'subset'는 논리값이 아니면 되지 않습니다"
 
-msgid "package '%s' has not been installed properly"
-msgstr "패키지 '%s'는 올바르고 인스톨 되지 않았습니다"
+msgid "This is R %s, package '%s' needs %s %s"
+msgstr "이것은 R %s입니다.패키지 '%s'는 %s %s를 필요로 합니다"
+
+msgid "package '%s' was built before R 2.0.0: please re-install it"
+msgstr "패키지 '%s' R 2.0.0 이전 것입니다. 그것을 다시 인스톨을 해주십시오"
+
+msgid "package '%s' was built under R version %s"
+msgstr "패키지 '%s'는 버전 %s의 R미만에서 작성되어졌습니다"
 
 #, fuzzy
-msgid "package '%s' was built before R 2.10.0: please re-install it"
+msgid ""
+"package '%s' was built under R version %s and help will not work correctly\n"
+"Please re-install it"
 msgstr "패키지 '%s' R 2.0.0 이전 것입니다. 그것을 다시 인스톨을 해주십시오"
+
+#, fuzzy
+msgid ""
+"package '%s' was built under R version %s and help may not work correctly"
+msgstr "패키지 '%s'는 버전 %s의 R미만에서 작성되어졌습니다"
 
 #, fuzzy
 msgid ""
@@ -786,18 +790,18 @@ msgid ""
 "files and needs to be re-installed"
 msgstr "패키지 '%s' R 2.0.0 이전 것입니다. 그것을 다시 인스톨을 해주십시오"
 
-msgid "This is R %s, package '%s' needs %s %s"
-msgstr "이것은 R %s입니다.패키지 '%s'는 %s %s를 필요로 합니다"
-
-msgid "package '%s' was built under R version %s"
-msgstr "패키지 '%s'는 버전 %s의 R미만에서 작성되어졌습니다"
-
 msgid "package '%s' was built for %s"
 msgstr "패키지 '%s'는 %s에 대해서 작성되었습니다"
 
 #, fuzzy
 msgid "package '%s' is not installed for 'arch=%s'"
 msgstr "패키지 '%s'는 올바르고 인스톨 되지 않았습니다"
+
+msgid "package '%s' has not been installed properly"
+msgstr "패키지 '%s'는 올바르고 인스톨 되지 않았습니다"
+
+msgid "See the Note in ?library"
+msgstr "라이브러리?의 노트를 보아주십시오"
 
 msgid "Attaching package: '%s'"
 msgstr "다음의 패키지를 첨가합니다: '%s'"
@@ -833,6 +837,10 @@ msgstr "'%s'는 탐색 패스에서는 검색되지 않았습니다. pos = 2를 
 
 msgid "package/namespace load failed for '%s'"
 msgstr "'%s'에 대한 패키지 또는 이름 공간의 적재가 실패했습니다"
+
+#, fuzzy
+msgid "package was installed prior to 2.4.0 and must be re-installed"
+msgstr "패키지 '%s' R 2.0.0 이전 것입니다. 그것을 다시 인스톨을 해주십시오"
 
 msgid "unable to load R code in package '%s'"
 msgstr "패키지 '%s'에서의 R 코드를 적재할수가 없습니다"
@@ -1065,6 +1073,9 @@ msgstr "패키지 '%s'는 이름 공간을 가지고 있지 않습니다"
 msgid "is not on the search path"
 msgstr "'%s'는 탐색 패스에서는 검색되지 않았습니다. pos = 2를 사용합니다"
 
+msgid "%s failed in 'attachNamespace'"
+msgstr "%s는 'attachNamespace'에 실패했습니다"
+
 msgid "name space is already attached"
 msgstr "name space는 이미 부가되어 있습니다"
 
@@ -1073,6 +1084,9 @@ msgstr "%s를 검색해낼수가 없습니다"
 
 msgid "cyclic name space dependencies are not supported"
 msgstr "cyclic name space의 종속성은 서포트되어 있지 않습니다"
+
+msgid "%s failed in 'loadNamespace' for '%s'"
+msgstr "%s는 '%s'때문에 'loadNamespace'에 실패했습니다"
 
 msgid "namespace '%s' is already sealed in loadNamespace"
 msgstr "%s는 '%s'때문에 'loadNamespace'에 이미 밀폐되었습니다"
@@ -1132,8 +1146,15 @@ msgid "not loading a name space"
 msgstr "이름 공간을 적재하지 않습니다"
 
 #, fuzzy
-msgid "name space %s is imported by %s so cannot be unloaded"
-msgstr "name space '%s'가 적재 되었습니다"
+msgid ""
+"%s failed in unloadNamespace(\"%s\"), details:\n"
+"  call: %s\n"
+"  message: %s"
+msgstr "%s는 unloadNamespace(%s)에 실패했습니다"
+
+#, fuzzy
+msgid "name space '%s' is still used by: %s"
+msgstr "이름 '%s' 여전히 이하에 의해 사용되어 있습니다"
 
 msgid "imperative name space directives are disabled"
 msgstr "명령적인 이름공간의 지령은 사용 불가능합니다"
@@ -1153,14 +1174,8 @@ msgstr "base 이름 공간에서 허용되지 않는 operation입니다"
 msgid "duplicate import names"
 msgstr "중복한 import명입니다"
 
-msgid "replacing local value with import %s when loading %s"
-msgstr ""
-
 msgid "cannot import into a sealed name space"
 msgstr "밀폐된 name 공간에는 import할수가 없지 않습니다"
-
-msgid "replacing previous import %s when loading %s"
-msgstr ""
 
 msgid "invalid import target"
 msgstr "무효인 import target입니다"
@@ -1393,9 +1408,6 @@ msgstr ""
 
 msgid "unable to find a plausible encoding"
 msgstr "그럴듯한 인코딩을 검색할수가 없습니다"
-
-msgid "encoding = \"%s\" chosen"
-msgstr ""
 
 msgid "'chdir = TRUE' makes no sense for a URL"
 msgstr ""
@@ -1642,44 +1654,8 @@ msgstr[0] ""
 "경고 메세지:\n"
 "경고 메세지(복수)\n"
 
-#~ msgid "invalid name"
-#~ msgstr "부적절한 이름입니다"
-
-#~ msgid "is required by"
-#~ msgstr "이하에 의해 요구되었습니다 :"
-
-#~ msgid "(still attached)"
-#~ msgstr "(아직 attached되어 있습니다)"
-
-#, fuzzy
-#~ msgid "name space '%s' is still used by: %s"
-#~ msgstr "이름 '%s' 여전히 이하에 의해 사용되어 있습니다"
-
-#~ msgid "See the Note in ?library"
-#~ msgstr "라이브러리?의 노트를 보아주십시오"
-
-#, fuzzy
-#~ msgid "package was installed prior to 2.4.0 and must be re-installed"
-#~ msgstr "패키지 '%s' R 2.0.0 이전 것입니다. 그것을 다시 인스톨을 해주십시오"
-
-#~ msgid "%s failed in 'attachNamespace'"
-#~ msgstr "%s는 'attachNamespace'에 실패했습니다"
-
-#~ msgid "%s failed in 'loadNamespace' for '%s'"
-#~ msgstr "%s는 '%s'때문에 'loadNamespace'에 실패했습니다"
-
 #~ msgid "name space '%s' is loaded"
 #~ msgstr "name space '%s'가 적재 되었습니다"
-
-#~ msgid "%s failed in unloadNamespace(%s)"
-#~ msgstr "%s는 unloadNamespace(%s)에 실패했습니다"
-
-#, fuzzy
-#~ msgid ""
-#~ "package '%s' was built under R version %s and help will not work "
-#~ "correctly\n"
-#~ "Please re-install it"
-#~ msgstr "패키지 '%s' R 2.0.0 이전 것입니다. 그것을 다시 인스톨을 해주십시오"
 
 #, fuzzy
 #~ msgid "extra arguments ignored:"

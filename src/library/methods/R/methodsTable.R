@@ -215,9 +215,6 @@
              returnAll = !(doMtable || doExcluded),
              simpleOnly = .simpleInheritanceGeneric(fdef), verbose = FALSE)
 {
-    ## to avoid infinite recursion, and somewhat for speed, turn off S4 methods for primitives
-    primMethods <- .allowPrimitiveMethods(FALSE)
-    on.exit(.allowPrimitiveMethods(primMethods))
   ## classes is a list of the class(x) for each arg in generic
   ## signature, with "missing" for missing args
   if(!is.environment(table)) {
@@ -522,8 +519,10 @@
     for(i in seqn) {
       for(j in seqn[-i]) {
         diffs <- pos[,j] - pos[,i]
-	if(any(diffs < 0))  { best[i] <- FALSE; if(dominated[i]) break }
-	if(all(diffs <= 0)) { dominated[i] <- TRUE; if(!best[i]) break }
+        if(any(diffs < 0))
+          best[i] <- FALSE
+        if(all(diffs <= 0))
+          dominated[i] <- TRUE
       }
     }
     if(verbose)

@@ -138,10 +138,6 @@ as.POSIXct.default <- function(x, tz = "", ...)
 
 as.double.POSIXlt <- function(x, ...) as.POSIXct(x)
 
-## POSIXlt is not primarily a list, but primarily an abstract vector of
-## time stamps:
-length.POSIXlt <- function(x) length(x[[1L]])
-
 format.POSIXlt <- function(x, format = "", usetz = FALSE, ...)
 {
     if(!inherits(x, "POSIXlt")) stop("wrong class")
@@ -193,7 +189,7 @@ print.POSIXlt <- function(x, ...)
     invisible(x)
 }
 
-summary.POSIXct <- function(object, digits = 15, ...)
+summary.POSIXct <- function(object, digits=15, ...)
 {
     x <- summary.default(unclass(object), digits=digits, ...)[1L:6L]# no NA's
     class(x) <- oldClass(object)
@@ -915,5 +911,3 @@ function(x, f, drop = FALSE, ...)
 
 xtfrm.POSIXct <- function(x) as.numeric(x)
 xtfrm.POSIXlt <- function(x) as.double(x)  # has POSIXlt method
-xtfrm.difftime <- function(x) as.numeric(x)
-is.numeric.difftime <- function(x) FALSE

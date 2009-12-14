@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-2009   The R Development Core Team.
+ *  Copyright (C) 2001-2007   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -254,45 +254,21 @@ SEXP R_quick_method_check(SEXP args, SEXP mlist, SEXP fdef)
     return(retValue);
 }
 
-SEXP R_quick_dispatch(SEXP args, SEXP genericEnv, SEXP fdef)
+SEXP R_quick_dispatch(SEXP args, SEXP mtable, SEXP fdef)
 {
     /* Match the list of (evaluated) args to the methods table. */
-    static SEXP  R_allmtable = NULL, R_siglength;
-    SEXP object, value, mtable;
-    const char *class; int nprotect = 0, nsig, nargs;
+    SEXP object, value, retValue = R_NilValue;
+    const char *class; int nprotect = 0;
 #define NBUF 200
     char buf[NBUF]; char *ptr;
-    if(!R_allmtable) {
-	R_allmtable = install(".AllMTable");
-	R_siglength = install(".SigLength");
-    }
-    if(!genericEnv || TYPEOF(genericEnv) != ENVSXP)
-	return R_NilValue; /* a bug or not initialized yet */
-    mtable = findVarInFrame(genericEnv, R_allmtable);
-    if(mtable == R_UnboundValue || TYPEOF(mtable) != ENVSXP)
+    if(!mtable || TYPEOF(mtable) != ENVSXP)
 	return R_NilValue;
-    object = findVarInFrame(genericEnv, R_siglength);
-    if(object == R_UnboundValue)
-	return R_NilValue;
-    switch(TYPEOF(object)) {
-    case REALSXP:
-	if(LENGTH(object) > 0)
-	    nsig = (int) REAL(object)[0];
-	else
-	    return R_NilValue;
-	break;
-    case INTSXP:
-	if(LENGTH(object) > 0)
-	    nsig = (int) INTEGER(object)[0];
-	else
-	    return R_NilValue;
-	break;
-    default:
-	return R_NilValue;
-    }
     buf[0] = '\0'; ptr = buf;
-    nargs = 0;
-    while(!isNull(args) && nargs < nsig) {
+    /*  doesn't check for nargs() > .SigLength.
+	Could do so but the search will fail
+	in this case anyway, and the test is not clearly faster
+	on average */
+    while(!isNull(args)) {
 	object = CAR(args); args = CDR(args);
 	if(TYPEOF(object) == PROMSXP) {
 	    if(PRVALUE(object) == R_UnboundValue) {
@@ -304,10 +280,7 @@ SEXP R_quick_dispatch(SEXP args, SEXP genericEnv, SEXP fdef)
 	    else
 		object = PRVALUE(object);
 	}
-	if(object == R_MissingArg)
-	    class = "missing";
-	else
-	    class = CHAR(STRING_ELT(R_data_class(object, TRUE), 0));
+	class = CHAR(STRING_ELT(R_data_class(object, TRUE), 0));
 	if(ptr - buf + strlen(class) + 2 > NBUF) {
 	    UNPROTECT(nprotect);
 	    return R_NilValue;
@@ -318,21 +291,14 @@ SEXP R_quick_dispatch(SEXP args, SEXP genericEnv, SEXP fdef)
 	   Or, better, the two should use the same C code. */
 	if(ptr > buf) { ptr = strcpy(ptr, "#");  ptr += 1;}
 	ptr = strcpy(ptr, class); ptr += strlen(class);
-	nargs++;
-    }
-    for(; nargs < nsig; nargs++) {
-	if(ptr - buf + strlen("missing") + 2 > NBUF) {
-	    UNPROTECT(nprotect);
-	    return R_NilValue;
+	value = findVarInFrame(mtable, install(buf));
+	if(value != R_UnboundValue) {
+	    retValue = value;
+	    break;
 	}
-	ptr = strcpy(ptr, "#"); ptr +=1;
-	ptr = strcpy(ptr, "missing"); ptr += strlen("missing");
-    }	    
-    value = findVarInFrame(mtable, install(buf));
-    if(value == R_UnboundValue)
-	value = R_NilValue;
+    }
     UNPROTECT(nprotect);
-    return(value);
+    return(retValue);
 }
 
 /* call some S language functions */
@@ -526,14 +492,10 @@ SEXP R_standardGeneric(SEXP fname, SEXP ev, SEXP fdef)
 */
 static Rboolean is_missing_arg(SEXP symbol, SEXP ev)
 {
-    R_varloc_t loc;
-
-    /* Sanity check, so don't translate */
-    if (!isSymbol(symbol)) error("'symbol' must be a SYMSXP");
-    loc = R_findVarLocInFrame(ev, symbol);
+    R_varloc_t loc = R_findVarLocInFrame(ev, symbol);
     if (loc == NULL)
 	error(_("could not find symbol '%s' in frame of call"),
-	      CHAR(PRINTNAME(symbol)));
+	      CHAR(asChar(symbol)));
     return R_GetVarLocMISSING(loc);
 }
 
@@ -856,7 +818,7 @@ SEXP R_dispatchGeneric(SEXP fname, SEXP ev, SEXP fdef)
     static SEXP R_mtable = NULL, R_allmtable, R_sigargs, R_siglength;
     int nprotect = 0;
     SEXP mtable, classes, thisClass, sigargs, siglength, f_env = R_NilValue,
-	method, f, val = R_NilValue;
+	method, f, val=R_NilValue;
     char *buf, *bufptr;
     int nargs, i, lwidth = 0;
     Rboolean prim_case = FALSE;
@@ -896,8 +858,6 @@ SEXP R_dispatchGeneric(SEXP fname, SEXP ev, SEXP fdef)
 	error(_("Generic \"%s\" seems not to have been initialized for table dispatch---need to have .SigArgs and .AllMtable assigned in its environment"));
     nargs = NUMERIC_VALUE(siglength);
     PROTECT(classes = NEW_LIST(nargs)); nprotect++;
-    if (nargs > LENGTH(sigargs))
-	error("'.SigArgs' is shorter than '.SigLength' says it should be");
     for(i = 0; i < nargs; i++) {
 	SEXP arg_sym = VECTOR_ELT(sigargs, i);
 	if(is_missing_arg(arg_sym, ev))

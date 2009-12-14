@@ -301,6 +301,7 @@ extern char ** environ;
 /* _wenviron is declared in stdlib.h */
 # define WIN32_LEAN_AND_MEAN 1
 # include <windows.h> /* _wgetenv etc */
+const wchar_t *wtransChar(SEXP x);
 #endif
 
 SEXP attribute_hidden do_getenv(SEXP call, SEXP op, SEXP args, SEXP env)
@@ -867,10 +868,11 @@ static const char TO_WCHAR[] = "UCS-4LE";
 static void *latin1_wobj = NULL, *utf8_wobj=NULL;
 
 /* Translate from current encoding to wchar_t = UCS-2/4
-   NB: that wchar_t is UCS-4 is an assumption, but not easy to avoid.
-*/
+   NB: this is not general.
 
-attribute_hidden /* but not hidden on Windows, where it was used in tcltk.c */
+   Not in a general header, as wchar_t is not needed except where used.
+*/
+attribute_hidden /* but not hidden on Windows */
 const wchar_t *wtransChar(SEXP x)
 {
     void * obj;
