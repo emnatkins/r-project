@@ -941,13 +941,11 @@ used on that platform.  (Optionally, there can be a @file{cleanup.win}
 script.  Both should be shell scripts to be executed by @command{ash},
 which is a minimal version of Bourne-style @command{sh}.)  When
 @file{configure.win} is run the environment variables
-@env{R_HOME}@footnote{formerly also @env{RHOME}, but this was removed
-in @R{} 2.12.0.} (which uses @code{/} as the file separator) and
-@env{R_ARCH} will be set.  Use @env{R_ARCH} to decide if this is a
-64-bit build (its value there is @samp{/x64} and to install DLLs to the
-correct place (@code{$@{R_HOME@}/libs$@{R_ARCH@}}).  Use
-@env{R_ARCH_BIN} to find the correct place under the @file{bin}
-directory, e.g.@: @code{$@{R_HOME@}/bin$@{R_ARCH_BIN@}/Rscript.exe}.
+@env{R_HOME}@footnote{and also @env{RHOME} for backwards compatiblity,
+but this will be removed in future.} and @env{R_ARCH} will be set.
+Use @env{R_ARCH} to decide if this is a 64-bit build (its value there is
+@samp{/x64} and to install DLLs to the correct place
+(@code{$@{R_HOME@}/libs$@{R_ARCH@}}).
 
 In some rare circumstances, the configuration and cleanup scripts need
 to know the location into which the package is being installed.  An
@@ -1129,6 +1127,54 @@ directory for some purpose other than building a DLL, use a
 
 It is sometimes useful to have a target @samp{clean} in @file{Makevars}
 or @file{Makevars.win}: this will be used by @command{R CMD build}.
+
+@menu
+* Back-compatibility for Makevars::  
+@end menu
+
+@node Back-compatibility for Makevars,  , Using Makevars, Using Makevars
+@subsubsection Back-compatibility
+
+The description above is for @R{} 2.10.0 and later.  In versions of @R{}
+before 2.9.0 the mechanisms used on Unix-alikes and Windows were
+completely separate and their operation differed in a number of details.
+The current version was designed to be as compatible as possible with
+both.
+
+On a Unix-alike the rules are unchanged.
+
+On Windows prior to @R{} 2.9.0 any file @file{Makevars.win} or
+@file{Makevars} was included in another makefile after its targets, so
+the target made was always
+
+@example
+all:  before $(DLLNAME).dll after
+
+## these targets are just here to allow packages to add to them.
+before:
+after:
+@end example
+
+@noindent
+This allows packages to set dependencies for targets @code{all},
+@code{before} or @code{after}.  Pretty complete backwards compatibility
+can be obtained by having no targets, or by having the first target in
+@code{Makevars.win} as
+
+@example
+all: before $(SHLIB) after
+@end example
+
+@noindent
+omitting @code{before} or @code{after} if they are unused.  Note however
+that this is not compatible with the use of a parallel make.
+
+Note that as from @R{} 2.10.0 the first target in @file{Makevars[.win]}
+will be called if there is one, so for backwards compatibility this should
+be named @samp{all}.
+
+Some packages used undocumented macros under Windows, notably
+@samp{DPKG} (use @env{R_PACKAGE_DIR} instead).
 
 @node Configure example, Using F95 code, Using Makevars, Configure and cleanup
 @subsection Configure example
@@ -2407,13 +2453,12 @@ SystemRequirements: GNU make
 Make use of the abilities of your compilers to check the
 standards-conformance of your code.  For example, @command{gcc} can be used
 with options @option{-Wall -pedantic} to alert you to potential
-problems.  This is particularly important for C++, where @code{g++ -Wall
--pedantic} will alert you to the use of GNU extensions which fail to
-compile on most other C++ compilers.  @R{} assumes a C99 compiler as
-from version 2.12.0, but if you want your package to be portable to
-earlier versions you should write in C90.  (In practice C99 has been
-available on most platforms since @emph{ca} 2007 but old versions of
-@command{gcc} were still in use for @R{} 2.11.x.)
+problems.  Do not be tempted to assume that these are pure pedantry: for
+example @R{} is still used on platforms where the C compiler does not
+accept C++/C99 comments (starting @code{//}).  This is particularly
+important for C++, where @code{g++ -Wall -pedantic} will alert you to
+the use of GNU extensions which fail to compile on most other C++
+compilers.
 
 If you use FORTRAN, @code{ftnchek}
 (@uref{http://www.dsm.fordham.edu/~ftnchek/}) provides thorough testing
@@ -2854,8 +2899,9 @@ An installed file named @file{CITATION} will be used by the
 @file{inst} subdirectory of the package sources.)
 
 The @file{CITATION} file is parsed as @R{} code (in the package's
-declared encoding@footnote{as from @R{} 2.8.0: this used to default to
-Latin-1 but no longer does so}).  If no such file is present,
+declared encoding@footnote{as from @R{} 2.8.0: @R{} 2.7.x read it in
+Latin-1, and earlier versions in the current encoding of the @R{}
+session}, defaulting to Latin-1).  If no such file is present,
 @code{citation} generates a standard contents, and an example of what
 that would look like as a @file{CITATION} file can be seen in
 recommended package @pkg{nlme} (see below): recommended packages
@@ -3006,6 +3052,7 @@ for exchanging information between developers and/or interested useRs.
 * Dynamic pages::               
 * Encoding::                    
 * Processing Rd format::        
+* Back-compatibility issues::   
 @end menu
 
 @node Rd format, Sectioning, Writing R documentation files, Writing R documentation files
@@ -3092,8 +3139,8 @@ technical discussion of current @file{Rd} syntax, see
 @uref{http://developer.r-project.org/parseRd.pdf, ``Parsing Rd files''}.
 Note that there have been a number of changes to the @file{Rd} format over the
 years, which can be important if a package is intended to be used with
-earlier versions of @R{}: see earlier versions of this manual if a
-package is intended to be used with @R{} before 2.10.0.
+earlier versions of @R{}.  See @ref{Back-compatibility issues} for notes
+on earlier versions of the @file{Rd} format.
 
 @file{Rd} files consists of three types of text input.  The most common
 is @LaTeX{}-like, with the backslash used as a prefix on markup
@@ -3943,6 +3990,9 @@ preceded by a backslash, @code{\dots} and @code{\ldots} will be rendered
 as ellipses and @code{\sqrt}, @code{\ge} and @code{\le} as mathematical
 symbols.
 
+See @ref{Back-compatibility issues} for earlier problems with @code{\eqn}
+with one argument immediately followed by a right brace.
+
 Note that only basic @LaTeX{} can be used, there being no provision to
 specify @LaTeX{} style files such as the AMS extensions.
 
@@ -4268,7 +4318,7 @@ symbol cannot be used in text.
 
 
 
-@node Processing Rd format,  , Encoding, Writing R documentation files
+@node Processing Rd format, Back-compatibility issues, Encoding, Writing R documentation files
 @section Processing Rd format
 @cindex Processing Rd format
 
@@ -4314,6 +4364,172 @@ files in the @R{} binary Windows distribution for installing source
 packages (this is true for a default installation), and for @code{R CMD
 Rd2dvi} also the tools to build packages from source as described in the
 ``R Installation and Administration'' manual.
+
+@node Back-compatibility issues,  , Processing Rd format, Writing R documentation files
+@section Back-compatibility issues
+
+Packages that are intended to work with earlier versions of @R{} need to
+be written in a different dialect, and some notes follow.  @R{} 2.10.0
+processes @file{Rd} files as version 2 (as described here); @R{} 2.9.@var{x}
+assumed files were version 1 (unnumbered) unless they were declared to
+be version 1.1; @R{} 2.8.1 and earlier used version 1 (unnumbered)
+
+Some package authors have included arbitrary pieces of @LaTeX{}
+mathematical notation into text descriptions, e.g.@: @samp{$\mu$g} and
+@samp{$^\circ$C}.  Whether this works even in latex conversion depends
+on the version of @R{}, and it has always given ugly results in other
+conversions.  If mathematical notation is necessary (and it seems it is
+not in the examples given), use @code{\eqn}.
+
+@menu
+* Changes in R 2.10.0::         
+* Changes in R 2.9.0::          
+* Unnumbered versions::         
+@end menu
+
+@node Changes in R 2.10.0, Changes in R 2.9.0, Back-compatibility issues, Back-compatibility issues
+@subsection Changes in R 2.10.0
+
+We now convert @file{.Rd} files in @R{} (rather than in Perl).
+Differences from version 1.1 include
+
+@itemize
+
+@item
+@code{%} never escapes the newline: it used to in text-like modes but
+not in e.g.@: @code{\usage} and @code{\examples} sections.  This means
+that constructions like
+@example
+\deqn@{
+  latex version
+@}@{%
+  text version
+@}
+@end example
+
+@noindent
+are rendered in text conversion with an extra line, and
+inter-line comments like
+
+@example
+  \item@{x, y@}@{logical (or \dQuote@{number-like@}, i.e., of type
+    \code@{\link@{double@}@} (class \code@{\link@{numeric@}@}), \code@{\link@{integer@}@},
+    %% incl. factor
+    \code@{\link@{complex@}@} or \code@{\link@{raw@}@}) vectors, or objects for
+    which methods have been written.@}
+@end example
+
+@noindent
+start a new paragraph.
+
+@item
+Unmatched right braces are an error, not just a warning.
+
+@item
+No whitespace is allowed between the first and second arguments of a macro
+such as @code{\item} --- files parse with a warning but may not be
+converted correctly.
+
+@item
+@code{\code} is intended @emph{only} for @R{} code, and as such its
+argument must be syntactically valid once macros such as @code{\link}
+and @code{\var} have been substituted.  This means that quotes must
+balance.  Use @code{\verb} (only in @R{} 2.10.0 or later) or @code{\samp} or
+@code{\kbd} for code snippets and code in other languages.
+
+@item
+@code{\preformatted} is verbatim, so @code{\var} is not interpreted.
+
+@item
+Both arguments of @code{\deqn} and @code{\eqn} are verbatim, so for
+example @code{\code} is not rendered there.
+
+@end itemize
+
+@node Changes in R 2.9.0, Unnumbered versions, Changes in R 2.10.0, Back-compatibility issues
+@subsection Changes in R 2.9.0
+
+Rd version 1.1 was introduced in @R{} 2.9.0.  The main changes were
+
+@itemize
+@item
+@samp{$} is treated literally in text, even for latex conversion.
+
+@item
+@samp{\} is only an escape before @samp{% @{ @} \}, and these should
+always be escaped (although paired braces inside @code{\code} will be
+still be handled if unescaped).  @samp{#}, @samp{_} and @samp{&} must
+not be escaped.
+
+@item
+@samp{\R@{@}} is accepted as an alternative to @samp{\R}.  Similarly for
+@samp{\dots} and @samp{\ldots}.
+
+@item
+Whitespace is allowed between the first and second arguments of
+@code{\item} and @code{\section}.
+
+@item
+Interpretation of @samp{\Alpha} etc is no longer done.
+@end itemize
+
+@node Unnumbered versions,  , Changes in R 2.9.0, Back-compatibility issues
+@subsection Unnumbered versions
+
+Prior to version 1.1, @samp{$} needs to be escaped by backslash in
+``regular'' text (not verbatim-like, not in the first argument of
+@code{\eqn}, @dots{}), and @samp{#}, @samp{_} and @samp{&} can be.
+
+For historical reasons, the @TeX{}/@LaTeX{} commands @code{\alpha},
+@code{\Alpha}, @code{\beta}, @code{\Gamma}, @code{\epsilon},
+@code{\lambda}, @code{\mu}, @code{\pi}, @code{\sigma}, @code{\Sigma},
+@code{\le}, @code{\ge}, @code{\left(} and @code{\right)} were accepted,
+and interpreted in text and HTML conversions.  The preferred way to
+handle these is as part of @code{\eqn} or @code{\deqn}.
+
+Further, @samp{^}, @samp{~}, @samp{<}, @samp{>} and @samp{|} were not in
+general safe to use in non-code text.  The advice was to enter @samp{^}
+as @code{\eqn@{\mbox@{\textasciicircum@}@}@{^@}}, and @samp{~} by
+@code{\eqn@{\mbox@{\textasciitilde@}@}@{~@}} or @code{\eqn@{\sim@}@{~@}}
+(for a short and long tilde respectively).  Also, @samp{<}, @samp{>},
+and @samp{|} could only be used safely in math mode, i.e., within the
+first argument of @code{\eqn} or @code{\deqn}.
+
+@samp{\R}, @samp{\dots} and @samp{\ldots} were not followed by
+@samp{@{~@}}
+
+Versions of @R{} prior to 2.8.1 failed to process correctly
+constructions such as
+
+@example
+\item@{name@}@{some text \eqn@{x@}@}
+@end example
+
+@noindent
+the problem being the one- or two-argument command @code{\eqn}
+immediately followed by a right brace.  In many cases this can be
+resolved by adding punctuation, and even space before the final brace
+sufficed.
+
+It was never intended to allow whitespace between arguments to
+two-argument commands, e.g.
+
+@example
+\item@{name@} @{some text@}
+@end example
+
+@noindent
+had always been an error.  However, prior to @R{} 2.9.0 this error was
+not looked for and resulted in incorrect output (often by omitting
+entirely the text for the item, sometimes with a warning).
+@R{} 2.9.0 detected and fixed most cases of this error, with a
+warning unless the file was declared as version 1.1 or later.  As of @R{} 2.10.0,
+it is an error.
+
+A @code{\value} block is implicitly a @code{\itemize} environment, but
+quite a few package writers have ignored this.  As from @R{} 2.8.1 this
+is detected, and the @code{\itemize} command (but not its contents)
+removed, with a warning.
 
 
 @node Tidying and profiling R code, Debugging, Writing R documentation files, Top
@@ -5700,8 +5916,8 @@ to be used to aid interfacing to existing C or FORTRAN code.
 Logical values are sent as @code{0} (@code{FALSE}), @code{1}
 (@code{TRUE}) or @code{INT_MIN = -2147483648} (@code{NA}, but only if
 @code{NAOK} is true), and the compiled code should return one of these
-three values.  (As from @R{} 2.12.0 non-zero values other than
-@code{INT_MIN} are mapped to @code{TRUE}.)
+three values.  (At present this is not checked, but non-zero values will
+be almost everywhere regarded as true.)
 
 Unless formal argument @code{NAOK} is true, all the other arguments are
 checked for missing values @code{NA} and for the @acronym{IEEE} special
@@ -9647,10 +9863,10 @@ version includes the patchlevel (as in @samp{9.0}).
 @findex R_INLINE
 
 The C99 keyword @code{inline} is recognized by most compilers used to
-build @R{} (all since @R{} 2.12.0) whereas others need @code{__inline__}
-or do not support inlining.  Portable code can be written using the
-macro @code{R_INLINE} (defined in file @file{Rconfig.h} included by
-@file{R.h}), as for example from package @pkg{cluster}
+build @R{} whereas others need @code{__inline__} or do not support
+inlining.  Portable code can be written using the macro @code{R_INLINE}
+(defined in file @file{Rconfig.h} included by @file{R.h}), as for
+example from package @pkg{cluster}
 
 @example
 #include <R.h>
@@ -10798,7 +11014,7 @@ Both applications which embed @R{} and those which use a @code{system}
 call to invoke @R{} (as @command{Rscript.exe}, @command{Rterm.exe} or
 @command{R.exe}) need to be able to find the @R{} @file{bin} directory.
 The simplest way to do so is the ask the user to set an environment
-variable @env{R_HOME} and use that, but naive users may be flummoxed as
+variable @env{R_HOME} and use that, but naive users may be fluxommed as
 to how to do so or what value to use.
 
 The @R{} for Windows installers have for a long time allowed the value

@@ -1530,60 +1530,6 @@ SEXP attribute_hidden do_assign(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 
 
-/**
- * do_list2env : .Internal(list2env(x, envir, parent, hash, size))
- *
- * 2 cases: 1) envir = NULL -->  create new environment from list
- *             elements, using parent, assuming part of new.env() functionality.
- *
- *          2) envir = environment --> assign x entries to names(x) in
- *             *existing* envir
- * @return a newly created environment() or envir {with new content}
- */
-SEXP attribute_hidden do_list2env(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    SEXP x, xnms, envir;
-    int n;
-    checkArity(op, args);
-
-    if (TYPEOF(CAR(args)) != VECSXP)
-	error(_("first argument must be a named list"));
-    x = CAR(args); args = CDR(args);
-    n = LENGTH(x);
-    xnms = getAttrib(x, R_NamesSymbol);
-    if (TYPEOF(xnms) != STRSXP || LENGTH(xnms) != n)
-	error(_("names(x) must be valid character(length(x))."));
-    envir = CAR(args);  args = CDR(args);
-    if (TYPEOF(envir) == NILSXP) {
-	/* "copied" from do_newenv()  [ ./builtin.c ] */
-	SEXP enclos = CAR(args);
-	int hash = asInteger(CADR(args));
-	if( !isEnvironment(enclos) )
-	    error(_("'%s' must be an environment"), "parent");
-	if (hash) {
-	    SEXP size;
-	    PROTECT(size = coerceVector(CADDR(args), INTSXP));
-	    if (INTEGER(size)[0] == NA_INTEGER)
-		INTEGER(size)[0] = 0; /* so it will use the internal default */
-	    envir = R_NewHashedEnv(enclos, size);
-	    UNPROTECT(1);
-	} else
-	    envir = NewEnvironment(R_NilValue, R_NilValue, enclos);
-
-    } else { /* assign into existing environment */
-	if (TYPEOF(envir) != ENVSXP)
-	    error(_("invalid '%s' argument: must be NULL or environment"), "envir");
-    }
-
-    for(int i = 0; i < n ; i++) {
-	SEXP name = install(translateChar(STRING_ELT(xnms, i)));
-	defineVar(name, VECTOR_ELT(x, i), envir);
-    }
-
-    return envir;
-}
-
-
 /*----------------------------------------------------------------------
 
   do_remove
@@ -1818,13 +1764,7 @@ static SEXP gfind(const char *name, SEXP env, SEXPTYPE mode,
     return rval;
 }
 
-
-/** mget(): get multiple values from an environment
- *
- * .Internal(mget(x, envir, mode, ifnotfound, inherits))
- *
- * @return  a list of the same length as x, a character vector (of names).
- */
+/* get multiple values from an environment */
 SEXP attribute_hidden do_mget(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans, env, x, mode, ifnotfound, ifnfnd;
@@ -2531,7 +2471,7 @@ SEXP attribute_hidden do_env2list(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    error(_("argument must be an environment"));
     }
 
-    all = asLogical(CADR(args)); /* all.names = TRUE/FALSE */
+    all = asLogical(CADR(args));
     if (all == NA_LOGICAL) all = 0;
 
     if (env == R_BaseEnv || env == R_BaseNamespace)
@@ -2817,14 +2757,11 @@ static SEXP matchEnvir(SEXP call, const char *what)
 SEXP attribute_hidden
 do_as_environment(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    SEXP arg = CAR(args), ans;
+    SEXP arg = CAR(args);
     checkArity(op, args);
     check1arg(args, call, "object");
     if(isEnvironment(arg))
 	return arg;
-    if(isObject(arg) &&
-       DispatchOrEval(call, op, "as.environment", args, rho, &ans, 0, 1))
-	return ans;
     switch(TYPEOF(arg)) {
     case STRSXP:
 	return matchEnvir(call, translateChar(asChar(arg)));
@@ -2835,18 +2772,11 @@ do_as_environment(SEXP call, SEXP op, SEXP args, SEXP rho)
 	errorcall(call,_("using 'as.environment(NULL)' is defunct"));
 	return R_BaseEnv;	/* -Wall */
     case S4SXP: {
-	/* dispatch was tried above already */
-	SEXP dot_xData = R_getS4DataSlot(arg, ENVSXP);
-	if(!isEnvironment(dot_xData))
+        SEXP dot_xData = R_getS4DataSlot(arg, ENVSXP);
+        if(arg == R_NilValue)
 	    errorcall(call, _("S4 object does not extend class \"environment\""));
 	else
 	    return(dot_xData);
-    }
-    case VECSXP: {
-	/* implement as.environment.list() {isObject(.) is false for a list} */
-	return(eval(lang4(install("list2env"), arg,
-			  /*envir = */R_NilValue, /* parent = */R_EmptyEnv),
-		    rho));
     }
     default:
 	errorcall(call, _("invalid object for 'as.environment'"));
@@ -3534,8 +3464,7 @@ SEXP mkCharLenCE(const char *name, int len, cetype_t enc)
 {
     SEXP cval, chain;
     unsigned int hashcode;
-    int need_enc;
-    Rboolean embedNul = FALSE;
+    int need_enc, slen = strlen(name);
 
     switch(enc){
     case CE_NATIVE:
@@ -3547,9 +3476,7 @@ SEXP mkCharLenCE(const char *name, int len, cetype_t enc)
     default:
 	error(_("unknown encoding: %d"), enc);
     }
-    for (int slen = 0; slen < len; slen++)
-	if (!name[slen]) { embedNul = TRUE; break; }
-    if (embedNul) {
+    if (slen < len) {
 	SEXP c;
 	/* This is tricky: we want to make a reasonable job of
 	   representing this string, and EncodeString() is the most

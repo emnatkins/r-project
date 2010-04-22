@@ -2,28 +2,30 @@
 
 ifeq ($(strip $(WIN)),64)
 BINPREF = $(BINPREF64)
+# for sub-architecture
 R_ARCH = /x64
-DEFINES = -DR_ARCH='"x64"' -DW64
-else
-R_ARCH = /i386
-DEFINES = -DR_ARCH='"i386"' $(DEFS_W64)
+DEFINES = -DR_ARCH='"x64"'
 endif
 
-## -std=c99 would force __STRICT_ANSI__ disabling strdup etc, and also alloca
+## c99 would force __STRICT_ANSI__ disabling strdup etc, and also alloca
 C99FLAG=-std=gnu99
-
-# No other alternative is currently supported, but this could be used for ICC
-BUILD=GCC4
-
+## for mingw-runtime <= 3.11
+# C99FLAG=-std=gnu99 -fgnu89-inline
 
 ifeq ($(strip $(BUILD)),GCC4)
 F77=$(BINPREF)gfortran$(GCC4_SUFF)
 FLIBS=-lgfortran
-## earlier Rtools needed -sjlj; the alternative is -dw2, which failed building R.
+## earlier Rtools needs -sjlj; the alternative is -dw2, which fails building R.
 GCC4_SUFF=
 endif
 
-BINDIR=bin$(R_ARCH)
+ifeq ($(strip $(BUILD)),F2C)
+F77=sh $(RHOME)/src/scripts/f77_f2c
+FLIBS=-lf2c
+endif
+
+## usually bin: other values are not yet completely accepted
+BINDIR=bin
 
 ifdef USE_IMPLIBS
 IMPDIR=lib
@@ -63,6 +65,11 @@ RESCOMP=$(BINPREF)windres
 RM=rm -f
 SED=sed
 SORT=sort
+
+## from etc/Renviron.site on Unix
+# EGREP=grep -e
+# LN_S=cp -p
+# TAR=tar
 
 .SUFFIXES:
 .SUFFIXES: .c .cc .cpp .C .f .o .a .def .exp .dll .exe .d .f90 .f95 .m .S

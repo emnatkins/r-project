@@ -44,7 +44,10 @@
   Pinheiro, J. C. and Bates, D. M. (2000) \emph{Mixed-effects Models in
     S and S-PLUS}, Springer.
 }
-\seealso{
-  \code{\link{Indometh}} for models fitted to this dataset.
+\examples{
+require(stats)
+fm1 <- nls(conc ~ SSbiexp(time, A1, lrc1, A2, lrc2),
+           data = Indometh, subset = Subject == 1)
+summary(fm1)
 }
 \keyword{datasets}

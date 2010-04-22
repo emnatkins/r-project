@@ -62,9 +62,9 @@ tempdir()
   Wadsworth & Brooks/Cole.
 }
 \seealso{\code{\link{unlink}} for deleting files.}
-\examples{\donttest{
+\examples{
 tempfile(c("ab", "a b c"))   # give file name with spaces in!
 
-tempdir() # works on all platforms with a platform-dependent result
-}}
+tempdir() # working on all platforms with quite platform dependent result
+}
 \keyword{file}

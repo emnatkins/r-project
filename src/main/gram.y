@@ -2,7 +2,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996, 1997  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2010  The R Development Core Team
+ *  Copyright (C) 1997--2009  The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -479,16 +479,6 @@ static SEXP attachSrcrefs(SEXP val, SEXP srcfile)
 	SET_VECTOR_ELT(srval, n, CAR(t));
     setAttrib(val, R_SrcrefSymbol, srval);
     setAttrib(val, R_SrcfileSymbol, srcfile);
-    {
-	YYLTYPE wholeFile;
-	wholeFile.first_line = 1;
-	wholeFile.first_byte = 0;
-	wholeFile.first_column = 0;
-	wholeFile.last_line = ParseState.xxlineno;
-	wholeFile.last_byte = ParseState.xxbyteno;
-	wholeFile.last_column = ParseState.xxcolno;
-	setAttrib(val, R_WholeSrcrefSymbol, makeSrcref(&wholeFile, srcfile));
-    }
     UNPROTECT(1);
     SrcRefs = NULL;
     return val;
@@ -2032,6 +2022,7 @@ static int mbcs_get_next2(int c, ucs_t *wc)
 static SEXP mkStringUTF8(const ucs_t *wcs, int cnt)
 {
     SEXP t;
+    char *s;
     int nb;
 
 /* NB: cnt includes the terminator */
@@ -2040,7 +2031,7 @@ static SEXP mkStringUTF8(const ucs_t *wcs, int cnt)
 #else
     nb = cnt*6;
 #endif
-    char s[nb];
+    s = alloca(nb);
     R_CheckStack();
     memset(s, 0, nb); /* safety */
 #ifdef WC_NOT_UNICODE
@@ -2279,7 +2270,7 @@ static int StringValue(int c, Rboolean forSymbol)
     } else {
 	if(use_wcs) {
 	    if(oct_or_hex)
-		error(_("mixing Unicode and octal/hex escapes in a string is not allowed"));
+		warning("mixing Unicode and octal/hex escapes in a string is discouraged");
 	    if(wcnt < 10000)
 		PROTECT(yylval = mkStringUTF8(wcs, wcnt)); /* include terminator */
 	    else

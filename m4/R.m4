@@ -1,6 +1,6 @@
 ### R.m4 -- extra macros for configuring R		-*- Autoconf -*-
 ###
-### Copyright (C) 1998-2010 R Core Team
+### Copyright (C) 1998-2009 R Core Team
 ###
 ### This file is part of R.
 ###
@@ -2202,7 +2202,7 @@ AC_DEFUN([_R_HEADER_TCL],
 [#include <tcl.h>
 /* Revise if 9.x ever appears (and 8.x seems to increment only
    every few years). */
-#if (TCL_MAJOR_VERSION >= 8) && (TCL_MINOR_VERSION >= 4)
+#if (TCL_MAJOR_VERSION >= 8) && (TCL_MINOR_VERSION >= 3)
   yes
 #endif
 ],
@@ -2220,7 +2220,7 @@ AC_DEFUN([_R_HEADER_TK],
 [#include <tk.h>
 /* Revise if 9.x ever appears (and 8.x seems to increment only
    every few years). */
-#if (TK_MAJOR_VERSION >= 8) && (TK_MINOR_VERSION >= 4)
+#if (TK_MAJOR_VERSION >= 8) && (TK_MINOR_VERSION >= 3)
   yes
 #endif
 ],
@@ -2954,7 +2954,7 @@ AM_CONDITIONAL(BUILD_XDR, [test "x${r_cv_xdr}" = xno])
 ## R_ZLIB
 ## ------
 ## Try finding zlib library and headers.
-## We check that both are installed, and that the header >= 1.2.4
+## We check that both are installed, and that the header >= 1.2.3
 ## and that gzeof is in the library (which suggests the library
 ## is also recent enough).
 AC_DEFUN([R_ZLIB],
@@ -2988,7 +2988,7 @@ AM_CONDITIONAL(USE_MMAP_ZLIB,
 ## Set shell variable r_cv_header_zlib_h to 'yes' if a recent enough
 ## zlib.h is found, and to 'no' otherwise.
 AC_DEFUN([_R_HEADER_ZLIB],
-[AC_CACHE_CHECK([if zlib version >= 1.2.4],
+[AC_CACHE_CHECK([if zlib version >= 1.2.3],
                 [r_cv_header_zlib_h],
 [AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdlib.h>
@@ -2996,7 +2996,7 @@ AC_DEFUN([_R_HEADER_ZLIB],
 #include <zlib.h>
 int main() {
 #ifdef ZLIB_VERSION
-  exit(strcmp(ZLIB_VERSION, "1.2.4") < 0);
+  exit(strcmp(ZLIB_VERSION, "1.2.3") < 0);
 #else
   exit(1);
 #endif

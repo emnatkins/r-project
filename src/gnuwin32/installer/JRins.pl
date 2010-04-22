@@ -49,25 +49,19 @@ close ver;
 $SVN =~s/Revision: //;
 $RVER0 .= "." . $SVN;
 
-my $have32bit = 0;
 if($mode64bit) {
     $suffix = "win64";
-    $PF = "pf"; # 32- or 64-bit Program Files
+    $PF = "pf64"; # "pf" should do
     $QUAL = " x64"; # used for AppName
     $SUFF = "-x64"; # used for default install dir
-    $bindir = "bin/x64"; # used for shortcuts
-    $have32bit = 1 if -d "$SRCDIR\\bin\\i386";
     $RK = "R64"; # arch-specific key
-    $suffix = "win" if $have32bit;
 } else {
     $suffix = "win32";
-    $PF = "pf32";
+    $PF = "pf32"; # "pf" should do
     $QUAL = "";
     $SUFF = "";
-    $bindir = "bin/i386";
     $RK = "R32";
 }
-
 open insfile, "> R.iss" || die "Cannot open R.iss\n";
 print insfile <<END;
 [Setup]
@@ -75,16 +69,9 @@ OutputBaseFilename=${RW}-${suffix}
 PrivilegesRequired=none
 MinVersion=0,5.0
 END
+print insfile "ArchitecturesInstallIn64BitMode=x64\nArchitecturesAllowed=x64\n" if $mode64bit;
 
-if ($have32bit) {
-    $QUAL = "";
-    $SUFF = "";
-    print insfile "ArchitecturesInstallIn64BitMode=x64\n";
-} elsif ($mode64bit) {
-    print insfile "ArchitecturesInstallIn64BitMode=x64\nArchitecturesAllowed=x64\n";
-}
-
-print insfile <<END;
+my $lines=<<END;
 AppName=R for Windows$QUAL $RVER
 AppVerName=R for Windows$QUAL $RVER
 AppPublisherURL=http://www.r-project.org
@@ -106,15 +93,7 @@ Compression=lzma/ultra
 SolidCompression=yes
 END
 
-
-print insfile $lines;
-if($Producer eq "R-core") {
-    print insfile "AppPublisher=R Development Core Team\n";
-} else {
-    print insfile "AppPublisher=$Producer\n";
-}
-
-print insfile <<END;
+my $lines2=<<END;
 
 [Languages]
 Name: en; MessagesFile: "compiler:Default.isl"
@@ -148,86 +127,14 @@ Name: "desktopicon"; Description: {cm:CreateDesktopIcon}; GroupDescription: {cm:
 Name: "quicklaunchicon"; Description: {cm:CreateQuickLaunchIcon}; GroupDescription: {cm:AdditionalIcons}; MinVersion: 0,5.0; Flags: unchecked 
 Name: "recordversion"; Description: {cm:recordversion}; GroupDescription: {cm:regentries}; MinVersion: 0,5.0
 Name: "associate"; Description: {cm:associate}; GroupDescription: {cm:regentries}; MinVersion: 0,5.0; Check: IsAdmin
-END
 
-if ($have32bit) { #================ 32/64 bit installer ===========
-print insfile <<END;
+
 [Icons]
-Name: "{group}\\Uninstall R $RVER"; Filename: "{uninstallexe}"
-
-Name: "{group}\\R $RVER"; Filename: "{app}\\bin\\\i386\\Rgui.exe"; WorkingDir: "{userdocs}"; Parameters: {code:CmdParms}; Check: isComponentSelected('i386')
-Name: "{group}\\R x64 $RVER"; Filename: "{app}\\bin\\x64\\Rgui.exe"; WorkingDir: "{userdocs}"; Parameters: {code:CmdParms}; Check: isComponentSelected('x64')
-
-Name: "{commondesktop}\\R $RVER"; Filename: "{app}\\bin\\i386\\Rgui.exe"; MinVersion: 0,5.0; Tasks: desktopicon; WorkingDir: "{userdocs}"; Parameters: {code:CmdParms}; Check: isComponentSelected('i386')
-Name: "{commondesktop}\\R x64 $RVER"; Filename: "{app}\\bin\\x64\\Rgui.exe"; MinVersion: 0,5.0; Tasks: desktopicon; WorkingDir: "{userdocs}"; Parameters: {code:CmdParms}; Check: isComponentSelected('x64')
-
-Name: "{userappdata}\\Microsoft\\Internet Explorer\\Quick Launch\\R $RVER"; Filename: "{app}\\bin\\i386\\Rgui.exe"; Tasks: quicklaunchicon; WorkingDir: "{userdocs}"; Parameters: {code:CmdParms}; Check: isComponentSelected('i386')
-Name: "{userappdata}\\Microsoft\\Internet Explorer\\Quick Launch\\R x64 $RVER"; Filename: "{app}\\bin\\x64\\Rgui.exe"; Tasks: quicklaunchicon; WorkingDir: "{userdocs}"; Parameters: {code:CmdParms}; Check: isComponentSelected('x64')
-
-Name: "{group}\\R $RVER Help"; Filename: "{app}\\doc\\html\\index.html"; Components: html
-
-[Registry] 
-Root: HKLM; Subkey: "Software\\$Producer"; Flags: uninsdeletekeyifempty; Tasks: recordversion; Check: IsAdmin and isComponentSelected('x64')
-Root: HKLM; Subkey: "Software\\$Producer\\R"; Flags: uninsdeletekeyifempty; Tasks: recordversion; Check: IsAdmin and isComponentSelected('x64')
-Root: HKLM; Subkey: "Software\\$Producer\\R"; Flags: uninsdeletevalue; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: IsAdmin and isComponentSelected('x64')
-Root: HKLM; Subkey: "Software\\$Producer\\R"; Flags: uninsdeletevalue; ValueType: string; ValueName: "Current Version"; ValueData: "${RVER}"; Tasks: recordversion; Check: IsAdmin and isComponentSelected('x64')
-Root: HKLM; Subkey: "Software\\$Producer\\R\\${RVER}"; Flags: uninsdeletekey; Tasks: recordversion; Check: IsAdmin and isComponentSelected('x64')
-Root: HKLM; Subkey: "Software\\$Producer\\R\\${RVER}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: IsAdmin and isComponentSelected('x64')
-
-Root: HKLM; Subkey: "Software\\$Producer\\R64"; Flags: uninsdeletekeyifempty; Tasks: recordversion; Check: IsAdmin and isComponentSelected('x64')
-Root: HKLM; Subkey: "Software\\$Producer\\R64"; Flags: uninsdeletevalue; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: IsAdmin and isComponentSelected('x64')
-Root: HKLM; Subkey: "Software\\$Producer\\R64"; Flags: uninsdeletevalue; ValueType: string; ValueName: "Current Version"; ValueData: "${RVER}"; Tasks: recordversion; Check: IsAdmin and isComponentSelected('x64')
-Root: HKLM; Subkey: "Software\\$Producer\\R64\\${RVER}"; Flags: uninsdeletekey; Tasks: recordversion; Check: IsAdmin and isComponentSelected('x64')
-Root: HKLM; Subkey: "Software\\$Producer\\R64\\${RVER}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: IsAdmin and isComponentSelected('x64')
-
-Root: HKLM32; Subkey: "Software\\$Producer"; Flags: uninsdeletekeyifempty; Tasks: recordversion; Check: IsAdmin and isComponentSelected('i386')
-Root: HKLM32; Subkey: "Software\\$Producer\\R"; Flags: uninsdeletekeyifempty; Tasks: recordversion; Check: IsAdmin and isComponentSelected('i386')
-Root: HKLM32; Subkey: "Software\\$Producer\\R"; Flags: uninsdeletevalue; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: IsAdmin and isComponentSelected('i386')
-Root: HKLM32; Subkey: "Software\\$Producer\\R"; Flags: uninsdeletevalue; ValueType: string; ValueName: "Current Version"; ValueData: "${RVER}"; Tasks: recordversion; Check: IsAdmin and isComponentSelected('i386')
-Root: HKLM32; Subkey: "Software\\$Producer\\R\\${RVER}"; Flags: uninsdeletekey; Tasks: recordversion; Check: IsAdmin and isComponentSelected('i386')
-Root: HKLM32; Subkey: "Software\\$Producer\\R\\${RVER}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: IsAdmin and isComponentSelected('i386')
-
-Root: HKLM32; Subkey: "Software\\$Producer\\R32"; Flags: uninsdeletekeyifempty; Tasks: recordversion; Check: IsAdmin and isComponentSelected('i386')
-Root: HKLM32; Subkey: "Software\\$Producer\\R32"; Flags: uninsdeletevalue; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: IsAdmin and isComponentSelected('i386')
-Root: HKLM32; Subkey: "Software\\$Producer\\R32"; Flags: uninsdeletevalue; ValueType: string; ValueName: "Current Version"; ValueData: "${RVER}"; Tasks: recordversion; Check: IsAdmin and isComponentSelected('i386')
-Root: HKLM32; Subkey: "Software\\$Producer\\R32\\${RVER}"; Flags: uninsdeletekey; Tasks: recordversion; Check: IsAdmin and isComponentSelected('i386')
-Root: HKLM32; Subkey: "Software\\$Producer\\R32\\${RVER}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: IsAdmin and isComponentSelected('i386')
-
-Root: HKCU; Subkey: "Software\\$Producer"; Flags: uninsdeletekeyifempty; Tasks: recordversion; Check: NonAdmin
-Root: HKCU; Subkey: "Software\\$Producer\\R"; Flags: uninsdeletekeyifempty; Tasks: recordversion; Check: NonAdmin
-Root: HKCU; Subkey: "Software\\$Producer\\R"; Flags: uninsdeletevalue; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: NonAdmin
-Root: HKCU; Subkey: "Software\\$Producer\\R"; Flags: uninsdeletevalue; ValueType: string; ValueName: "Current Version"; ValueData: "${RVER}"; Tasks: recordversion; Check: NonAdmin
-Root: HKCU; Subkey: "Software\\$Producer\\R\\${RVER}"; Flags: uninsdeletekey; Tasks: recordversion; Check: NonAdmin
-Root: HKCU; Subkey: "Software\\$Producer\\R\\${RVER}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: NonAdmin
-
-
-Root: HKCU; Subkey: "Software\\$Producer\\R32"; Flags: uninsdeletekeyifempty; Tasks: recordversion; Check: NonAdmin and isComponentSelected('i386')
-Root: HKCU; Subkey: "Software\\$Producer\\R32"; Flags: uninsdeletevalue; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: NonAdmin and isComponentSelected('i386')
-Root: HKCU; Subkey: "Software\\$Producer\\R32"; Flags: uninsdeletevalue; ValueType: string; ValueName: "Current Version"; ValueData: "${RVER}"; Tasks: recordversion; Check: NonAdmin and isComponentSelected('i386')
-Root: HKCU; Subkey: "Software\\$Producer\\R32\\${RVER}"; Flags: uninsdeletekey; Tasks: recordversion; Check: NonAdmin and isComponentSelected('i386')
-Root: HKCU; Subkey: "Software\\$Producer\\R32\\${RVER}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: NonAdmin and isComponentSelected('i386')
-
-Root: HKCU; Subkey: "Software\\$Producer\\R64"; Flags: uninsdeletekeyifempty; Tasks: recordversion; Check: NonAdmin and isComponentSelected('x64')
-Root: HKCU; Subkey: "Software\\$Producer\\R64"; Flags: uninsdeletevalue; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: NonAdmin and isComponentSelected('x64')
-Root: HKCU; Subkey: "Software\\$Producer\\R64"; Flags: uninsdeletevalue; ValueType: string; ValueName: "Current Version"; ValueData: "${RVER}"; Tasks: recordversion; Check: NonAdmin and isComponentSelected('x64')
-Root: HKCU; Subkey: "Software\\$Producer\\R64\\${RVER}"; Flags: uninsdeletekey; Tasks: recordversion; Check: NonAdmin and isComponentSelected('x64')
-Root: HKCU; Subkey: "Software\\$Producer\\R64\\${RVER}"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Tasks: recordversion; Check: NonAdmin and isComponentSelected('x64')
-
-Root: HKCR; Subkey: ".RData"; ValueType: string; ValueName: ""; ValueData: "RWorkspace"; Flags: uninsdeletevalue; Tasks: associate; Check: IsAdmin
-Root: HKCR; Subkey: "RWorkspace"; ValueType: string; ValueName: ""; ValueData: "R Workspace"; Flags: uninsdeletekey; Tasks: associate; Check: IsAdmin
-Root: HKCR; Subkey: "RWorkspace\\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\\bin\\x64\\RGui.exe,0"; Tasks: associate; Check: IsAdmin and isComponentSelected('x64')
-Root: HKCR; Subkey: "RWorkspace\\shell\\open\\command"; ValueType: string; ValueName: ""; ValueData: """{app}\\bin\\x64\\RGui.exe"" ""%1"""; Tasks: associate; Check: IsAdmin and isComponentSelected('x64')
-Root: HKCR; Subkey: "RWorkspace\\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\\bin\\i386\\RGui.exe,0"; Tasks: associate; Check: IsAdmin and isComponentSelected('x64')
-Root: HKCR; Subkey: "RWorkspace\\shell\\open\\command"; ValueType: string; ValueName: ""; ValueData: """{app}\\bin\\i386\\RGui.exe"" ""%1"""; Tasks: associate; Check: IsAdmin and isComponentSelected('i386')
-END
-} else { # ================== just one arch =============
-print insfile <<END;
-[Icons]
-Name: "{group}\\R$QUAL $RVER"; Filename: "{app}\\${bindir}\\Rgui.exe"; WorkingDir: "{userdocs}"; Parameters: {code:CmdParms}
+Name: "{group}\\R$QUAL $RVER"; Filename: "{app}\\bin\\Rgui.exe"; WorkingDir: "{userdocs}"; Parameters: {code:CmdParms}
 Name: "{group}\\Uninstall R$QUAL $RVER"; Filename: "{uninstallexe}"
-Name: "{commondesktop}\\R$QUAL $RVER"; Filename: "{app}\\${bindir}\\Rgui.exe"; MinVersion: 0,5.0; Tasks: desktopicon; WorkingDir: "{userdocs}"; Parameters: {code:CmdParms}
-Name: "{userappdata}\\Microsoft\\Internet Explorer\\Quick Launch\\R$QUAL $RVER"; Filename: "{app}\\${bindir}\\Rgui.exe"; Tasks: quicklaunchicon; WorkingDir: "{userdocs}"; Parameters: {code:CmdParms}
-Name: "{group}\\R$QUAL $RVER Help"; Filename: "{app}\\doc\\html\\index.html"; Components: html
+Name: "{commondesktop}\\R$QUAL $RVER"; Filename: "{app}\\bin\\Rgui.exe"; MinVersion: 0,5.0; Tasks: desktopicon; WorkingDir: "{userdocs}"; Parameters: {code:CmdParms}
+Name: "{userappdata}\\Microsoft\\Internet Explorer\\Quick Launch\\R$QUAL $RVER"; Filename: "{app}\\bin\\Rgui.exe"; Tasks: quicklaunchicon; WorkingDir: "{userdocs}"; Parameters: {code:CmdParms}
+
 
 [Registry] 
 Root: HKLM; Subkey: "Software\\$Producer"; Flags: uninsdeletekeyifempty; Tasks: recordversion; Check: IsAdmin
@@ -258,71 +165,25 @@ Root: HKCU; Subkey: "Software\\$Producer\\${RK}\\${RVER}"; ValueType: string; Va
 
 Root: HKCR; Subkey: ".RData"; ValueType: string; ValueName: ""; ValueData: "RWorkspace"; Flags: uninsdeletevalue; Tasks: associate; Check: IsAdmin
 Root: HKCR; Subkey: "RWorkspace"; ValueType: string; ValueName: ""; ValueData: "R Workspace"; Flags: uninsdeletekey; Tasks: associate; Check: IsAdmin
-Root: HKCR; Subkey: "RWorkspace\\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\\${bindir}\\RGui.exe,0"; Tasks: associate; Check: IsAdmin 
-Root: HKCR; Subkey: "RWorkspace\\shell\\open\\command"; ValueType: string; ValueName: ""; ValueData: """{app}\\${bindir}\\RGui.exe"" ""%1"""; Tasks: associate; Check: IsAdmin
+Root: HKCR; Subkey: "RWorkspace\\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\\bin\\RGui.exe,0"; Tasks: associate; Check: IsAdmin 
+Root: HKCR; Subkey: "RWorkspace\\shell\\open\\command"; ValueType: string; ValueName: ""; ValueData: """{app}\\bin\\RGui.exe"" ""%1"""; Tasks: associate; Check: IsAdmin
 END
-}
 
-if ($have32bit) { # necessarily 64-bit
-print insfile <<END;
+## It is OK to use the same keys in HKLM for 32- and 64-bit versions as the 
+## view of the Registry depends on the arch.
+## But not for HLCU (and file associations are necessarily for both).
 
-[Types]
-Name: "user"; Description: {cm:user}; Check: Is64BitInstallMode
-Name: "user32"; Description: 32-bit user installation
-Name: "user64"; Description: 64-bit user installation; Check: Is64BitInstallMode
-Name: "compact"; Description: {cm:compact}
-Name: "full"; Description: {cm:full}
-Name: "add64"; Description: Add 64-bit components; Check: Is64BitInstallMode
-Name: "custom"; Description: {cm:custom}; Flags: iscustom
-
-[Components]
-Name: "main"; Description: "Main Files"; Types: user user32 user64 compact full custom;
-Name: "i386"; Description: "i386 Files"; Types: user user32 compact full custom;
-Name: "x64"; Description: "x64 Files"; Types: user user64 add64 compact full custom; Check: Is64BitInstallMode
-Name: "html"; Description: "HTML Manuals"; Types: user user32 user64 full custom; Flags:
-Name: "manuals"; Description: "On-line PDF Manuals"; Types: user user32 user64 full custom
-Name: "manuals/basic"; Description: "Basic Manuals"; Types: user user32 user64 full custom
-Name: "manuals/technical"; Description: "Technical Manuals"; Types: full custom
-Name: "manuals/refman"; Description: "PDF help pages (reference manual)"; Types: full custom
-Name: "manuals/libdocs"; Description: "Docs for Packages grid and Matrix"; Types: full custom
-Name: "tcl"; Description: "SupportFiles for Package tcltk"; Types: user full custom; Flags: checkablealone
-Name: "tcl/noarch"; Description: "Main Files"; Types: user user32 user64 full custom
-Name: "tcl/32"; Description: "i386 Files for Package tcltk"; Types: user user32 full custom
-Name: "tcl/64"; Description: "x64 Files for Package tcltk"; Types: user user64 add64 full custom; Check: Is64BitInstallMode
-Name: "tcl/tzdata"; Description: "Timezone files for Tcl"; Types: full custom
-Name: "tcl/chm"; Description: "Tcl/Tk Help (Compiled HTML)"; Types: full custom
-Name: "trans"; Description: "Message Translations"; Types: user user32 user64 full custom
-Name: "tests"; Description: "Test files"; Types: full custom
-END
-} elsif ($mode64bit) {
-print insfile <<END;
-
-[Types]
-Name: "user"; Description: {cm:user}
-Name: "compact"; Description: {cm:compact}
-Name: "full"; Description: {cm:full}
-Name: "add64"; Description: Add 64-bit components
-Name: "custom"; Description: {cm:custom}; Flags: iscustom
-
-[Components]
-Name: "main"; Description: "Main Files"; Types: user compact full custom; Flags: fixed
-Name: "x64"; Description: "x64 Files"; Types: user add64 compact full custom; Flags: fixed
-Name: "html"; Description: "HTML Manuals"; Types: user full custom;
-Name: "manuals"; Description: "On-line PDF Manuals"; Types: user full custom
-Name: "manuals/basic"; Description: "Basic Manuals"; Types: user full custom
-Name: "manuals/technical"; Description: "Technical Manuals"; Types: full custom
-Name: "manuals/refman"; Description: "PDF help pages (reference manual)"; Types: full custom
-Name: "manuals/libdocs"; Description: "Docs for Packages grid and Matrix"; Types: full custom
-Name: "tcl"; Description: "Support Files for Package tcltk"; Types: user full custom
-Name: "tcl/noarch"; Description: "Main Files"; Types: user full custom
-Name: "tcl/64"; Description: "x64 Files"; Types: user add64 full custom
-Name: "tcl/tzdata"; Description: "Timezone files for Tcl"; Types: full custom
-Name: "tcl/chm"; Description: "Tcl/Tk Help (Compiled HTML)"; Types: full custom
-Name: "trans"; Description: "Message Translations"; Types: user full custom
-Name: "tests"; Description: "Test files"; Types: full custom
-END
+print insfile $lines;
+if($Producer eq "R-core") {
+    print insfile "AppPublisher=R Development Core Team\n";
 } else {
+    print insfile "AppPublisher=$Producer\n";
+}
+print insfile $lines2;
 print insfile <<END;
+
+[Icons]
+Name: "{group}\\R$QUAL $RVER Help"; Filename: "{app}\\doc\\html\\index.html"; Components: html
 
 [Types]
 Name: "user"; Description: {cm:user}
@@ -332,22 +193,17 @@ Name: "custom"; Description: {cm:custom}; Flags: iscustom
 
 [Components]
 Name: "main"; Description: "Main Files"; Types: user compact full custom; Flags: fixed
-Name: "i386"; Description: "i386 Files"; Types: user compact full custom; Flags: fixed
 Name: "html"; Description: "HTML Manuals"; Types: user full custom
 Name: "manuals"; Description: "On-line PDF Manuals"; Types: user full custom
 Name: "manuals/basic"; Description: "Basic Manuals"; Types: user full custom
 Name: "manuals/technical"; Description: "Technical Manuals"; Types: full custom
 Name: "manuals/refman"; Description: "PDF help pages (reference manual)"; Types: full custom
 Name: "manuals/libdocs"; Description: "Docs for Packages grid and Matrix"; Types: full custom
-Name: "tcl"; Description: "Support Files for Package tcltk"; Types: user full custom
-Name: "tcl/noarch"; Description: "Main Files"; Types: user full custom
+Name: "tcl"; Description: "Support Files for Package tcltk"; Types: user full custom; Flags: checkablealone
 Name: "tcl/tzdata"; Description: "Timezone files for Tcl"; Types: full custom
 Name: "tcl/chm"; Description: "Tcl/Tk Help (Compiled HTML)"; Types: full custom
 Name: "trans"; Description: "Message Translations"; Types: user full custom
 Name: "tests"; Description: "Test files"; Types: full custom
-END
-}
-print insfile <<END;
 
 
 [Code]
@@ -590,27 +446,17 @@ sub listFiles {
 	    	$component = "tests";
 	} elsif (m/^tests/) {
 	    	$component = "tests";
-	} elsif (m/^Tcl\\(bin|lib)64/) {
-	    $component = "tcl/64";
-	} elsif ($have32bit && m/^Tcl\\bin/) {
-	    $component = "tcl/32";
-	} elsif ($have32bit && m/^Tcl\\lib\\(dde1.3|reg1.2|Tktable)/) {
-	    $component = "tcl/32";
 	} elsif (m/^Tcl\\doc\\.*chm$/) {
 	    $component = "tcl/chm";
 	} elsif (m/^Tcl\\lib\\tcl8.5\\tzdata/) {
 	    $component = "tcl/tzdata";
 	} elsif (m/^Tcl/) {
-	    $component = "tcl/noarch";
+	    $component = "tcl";
 	} elsif (m/^library\\grid\\doc/ || m/^library\\Matrix\\doc/) {
 	    $component = "manuals/libdocs";
 	} elsif (m/^share\\locale/ 
 		 || m/^library\\[^\\]*\\po/) {
 	    $component = "trans";
-	} elsif (m/\\i386\\/) {
-	    $component = "i386";
-	} elsif (m/\\x64\\/) {
-	    $component = "x64";
 	} else {
 	    $component = "main";
 	}

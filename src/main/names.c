@@ -231,7 +231,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"mget",	do_mget,	1,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"exists",	do_get,		0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"assign",	do_assign,	0,	111,	4,	{PP_FUNCALL, PREC_FN,	0}},
-{"list2env",	do_list2env,	0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"remove",	do_remove,	0,	111,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"duplicated",	do_duplicated,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"unique",	do_duplicated,	1,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
@@ -1075,7 +1074,6 @@ static void SymbolShortcuts(void)
     R_RecursiveSymbol = install("recursive");
     R_SrcfileSymbol = install("srcfile");
     R_SrcrefSymbol = install("srcref");
-    R_WholeSrcrefSymbol = install("wholeSrcref");
     R_TmpvalSymbol = install("*tmp*");
     R_UseNamesSymbol = install("use.names");
 }

@@ -41,11 +41,21 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
                  call. = FALSE, domain = NA)
 
         ## which version was this package built under?
-        ## must be >= 2.10.0 (new help system)
+        ## must be >= 2.10.0 (new help system), but R-devel
+        ## reported 2.10.0 for a long time before the help system
+        ## was finished.
         R_version_built_under <- as.numeric_version(built$R)
         if(R_version_built_under < "2.10.0")
             stop(gettextf("package '%s' was built before R 2.10.0: please re-install it",
                           pkgname), call. = FALSE, domain = NA)
+        ## check that this was not under pre-release 2.10.0,
+        ## but beware of bootstrapping base packages
+        if(R_version_built_under == "2.10.0" &&
+           file.exists(file.path(pkgpath, "help")) &&
+           !file.exists(file.path(pkgpath, "help", "paths.rds")))
+            warning(gettextf("package '%s' claims to be built under R version %s but is missing some help files and needs to be re-installed",
+                             pkgname, as.character(built$R)),
+                    call. = FALSE, domain = NA)
 
         current <- getRversion()
         ## depends on R version?
@@ -88,8 +98,6 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
         }
         ## if using r_arch subdirs, check for presence
         if(nzchar(r_arch)
-           ## back-compatibility fix: remove before 2.12.0
-           && (.Platform$OS.type != "windows" || r_arch != "i386")
            && file.exists(file.path(pkgpath, "libs"))
            && !file.exists(file.path(pkgpath, "libs", r_arch)))
             stop(gettextf("package '%s' is not installed for 'arch=%s'",
@@ -562,10 +570,6 @@ function(chname, package = NULL, lib.loc = NULL,
 	else    file.path(pkg, "libs")
         file <- file.path(DLLpath, paste(chname, file.ext, sep = ""))
         if(file.exists(file)) break else file <- ""
-        if(r_arch == "i386") { # 32-bit Windows, back-compatibility
-        file <- file.path(pkg, "libs", paste(chname, file.ext, sep = ""))
-        if(file.exists(file)) break else file <- ""
-       }
     }
     if(file == "")
         stop(gettextf("shared library '%s' not found", chname), domain = NA)

@@ -737,10 +737,6 @@ R --arch=@var{name} CMD make check[-devel|all]
 @noindent
 to select a sub-architecture to check.
 
-Sub-architectures are also used on Windows, but by selecting the
-appropriate @file{bin} directory, @file{@var{R_HOME}/bin/i386} or
-@file{@var{R_HOME}/bin/x64}.
-
 @menu
 * Multilib::                    
 @end menu
@@ -1360,13 +1356,12 @@ imposes on re-distribution).
 @c @url{http://www.cadforte.com/downloads.html}.  Use at your own risk!
 
 To build package @pkg{tcltk} you need to unpack
-@url{http://www.stats.ox.ac.uk/pub/Rtools/R64a_Tcl_8-5-8.zip}
-(@strong{NB} this is not the same file as for @R{} 2.11.x) at the top of
-the source tree: otherwise edit @file{src/library/tcltk/Makefile.win} to
-make a stub package.
+@url{http://www.stats.ox.ac.uk/pub/Rtools/R64_Tcl_8-5-8.zip} at the top
+of the source tree: otherwise edit @file{src/library/tcltk/Makefile.win}
+to make a stub package.
 
 The default is @code{options(pkgType="win64.binary")}, supported for
-@R{} 2.@{11,12@}.x on both @acronym{CRAN} and @acronym{CRANextras}.  Packages
+@R{} 2.11.x on both @acronym{CRAN} and @acronym{CRANextras}.  Packages
 using Gtk+ (@pkg{Cairo}, @pkg{RGtk2}, @pkg{cairoDevice} and those that
 depend on them) need the @file{bin} directory of the distribution at
 @url{http://www.gtk.org/download-windows-64bit.html} in the path: note
@@ -2389,12 +2384,12 @@ installed.
 You need a means of compiling C and FORTRAN 77 (see @ref{Using
 FORTRAN}).  Some add-on packages also need a C++ compiler.  Your C
 compiler should be @acronym{IEC}@tie{}60059@footnote{also known as
-@acronym{IEEE}@tie{}754}, POSIX 1003.1 and C99-compliant.  @R{} tries to
-choose suitable flags for the C compilers it knows about, but you may
-have to set @code{CC} or @code{CFLAGS} suitably.  For recent versions of
-@command{gcc} with @code{glibc} this means including
-@option{-std=gnu99}@footnote{@option{-std=c99} excludes POSIX
-functionality, but @file{config.h} will turn on all @acronym{GNU}
+@acronym{IEEE}@tie{}754}, POSIX 1003.1 and C99-compliant if at all
+possible.  @R{} tries to choose suitable flags for the C compilers it
+knows about, but you may have to set @code{CC} or @code{CFLAGS}
+suitably.  For recent versions of @command{gcc} with @code{glibc} this
+means including @option{-std=gnu99}@footnote{@option{-std=c99} excludes
+POSIX functionality, but @file{config.h} will turn on all @acronym{GNU}
 extensions to include the POSIX functionality.}.  If the compiler is
 detected as @command{gcc}, @option{-std=gnu99} will be appended to
 @code{CC} unless it conflicts with a setting of @code{CFLAGS}.  (Note
@@ -2524,10 +2519,13 @@ tested) respectively.
 
 If you have them installed (including the appropriate headers and of
 suitable versions), @code{zlib}, @code{libbz2} and PCRE will be used if
-specified by @option{--with-system-zlib} (version 1.2.4 or later),
-@option{--with-system-bzlib} or @option{--with-system-pcre}: otherwise
-versions in the @R{} sources will be compiled in.  As the latter suffice
-and are tested with @R{} you should not need to change this.
+specified by @option{--with-system-zlib}, @option{--with-system-bzlib}
+or @option{--with-system-pcre}: otherwise versions in the @R{} sources
+will be compiled in.  As the latter suffice and are tested with @R{} you
+should not need to change this.  In particular, the version of
+@code{zlib} 1.2.3 in the @R{} sources has enhancements to work with
+large file systems on 32-bit platforms, and @code{zlib} 1.2.4 is not
+currently compatible with @R{}.
 
 @code{liblzma} from @code{xz-utils} version 4.999 or later will be used
 if installed: the version in the @R{} sources can be selected instead by
@@ -2578,7 +2576,7 @@ environment variable @env{R_GSCMD} at that time.
 @node Tcl/Tk, Java support, Useful libraries and programs, Useful libraries and programs
 @subsection Tcl/Tk
 
-The @pkg{tcltk} package needs Tcl/Tk >= 8.4 installed: the sources are
+The @pkg{tcltk} package needs Tcl/Tk >= 8.3 installed: the sources are
 available at @uref{http://@/www.tcl.tk/}.  To specify the locations of the
 Tcl/Tk files you may need the configuration options
 
@@ -4310,7 +4308,8 @@ Only building with MinGW @command{gcc 4.2.1} is supported.  It is
 possible to build with the recently released MinGW @command{gcc 4.5.0},
 but this came too late to be supported for this release of @R{}---beware
 that this by default uses DLLs for runtimes which need to be distributed
-with @R{} or packages built with that compiler.
+with @R{} or packages built with that compiler.  There are also
+differences in the behaviour of @code{formatC} with later MinGW runtimes.
 
 We have found that the build process for @R{} is quite sensitive to
 the choice of tools: please follow our instructions @strong{exactly},
@@ -4495,12 +4494,34 @@ from the URL above, as the download links from
 @uref{http://www.mingw.org/} have led to obsolete versions. See the
 notes on @uref{http://www.murdoch-sutherland.com/@/Rtools/} for updates.
 
-See above for comments about the MinGW build of @code{gcc-4.5.0} from
-April 2010.  We have tested using the 32-bit compilers from the
-@code{mingw-w64} project, which are currently pre-releases of
-@command{gcc 4.4.4}, and flags to use those are provided in file
-@file{MkRules.dist}.
+@c There may be an installer in the `Current' section, which can be used
+@c if it gives the @samp{Candidate} compilers (@code{gcc-3.4.5}).  (If
+@c using this, select the @samp{Candidate} package and add the @code{g++}
+@c and @code{g77} compilers to the @samp{MinGW base tools}: components will
+@c be downloaded from Sourceforge and unpacked.)
 
+To download the components individually, currently you need
+
+@example
+mingw-runtime-3.13.tar.gz
+w32api-3.10.tar.gz
+binutils-2.17.50-20060824-1.tar.gz  
+gcc-core-4.2.1-sjlj-2.tar.gz
+gcc-g++-4.2.1-sjlj-2.tar.gz
+gcc-gfortran-4.2.1-sjlj-2.tar.gz
+@end example
+
+@noindent
+(and @code{gcc-objc-4.2.1-sjlj-2.tar.gz} if you want Objective C
+support).  Unpack these into the same directory (using @command{tar zxf
+tarball_name}).  (You may need to copy @file{bin/gcc-sjlj.exe} to
+@file{bin/gcc.exe} and a few badly-written packages need
+@file{bin/g++-sjlj.exe} copied to @file{bin/g++.exe}.)  This compiler
+should work on Windows Vista without any workarounds.
+
+Note that @code{mingw-runtime-3.13.tar.gz} or later (but not as late as
+@code{3.18}) and @code{gcc-4.2.1} or later are needed to get a correct
+build of @R{} itself.
 
 @node Useful additional programs,  , The MinGW compilers, The Windows toolset
 @section Useful additional programs

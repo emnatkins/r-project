@@ -84,7 +84,6 @@ extern0 SEXP	R_DotEnvSymbol;     /* ".Environment" */
 extern0 SEXP	R_ExactSymbol;	    /* "exact" */
 extern0 SEXP	R_RecursiveSymbol;  /* "recursive" */
 extern0 SEXP	R_SrcfileSymbol;    /* "srcfile" */
-extern0 SEXP	R_WholeSrcrefSymbol;   /* "wholeSrcref" */
 extern0 SEXP	R_SrcrefSymbol;     /* "srcref" */
 extern0 SEXP	R_TmpvalSymbol;     /* "*tmp*" */
 extern0 SEXP	R_UseNamesSymbol;   /* "use.names" */
@@ -118,7 +117,6 @@ int IS_UTF8(SEXP x);
 void SET_UTF8(SEXP x);
 int ENC_KNOWN(SEXP x);
 int SET_CACHED(SEXP x);
-int IS_CACHED(SEXP x);
 #endif
 /* macros and declarations for managing CHARSXP cache */
 #define USE_ATTRIB_FIELD_FOR_CHARSXP_CACHE_CHAINS

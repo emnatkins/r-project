@@ -1,179 +1,9 @@
 
 	**************************************************
 	*						 *
-	*	       2.12 SERIES NEWS			 *
-	*						 *
-	**************************************************
-
-
-		CHANGES IN R VERSION 2.12.0
-
-
-NEW FEATURES
-
-    o	Reading a packages's CITATION file now defaults to ASCII
-	rather than Latin-1: a package with a non-ASCII CITATION file
-	should declare an encoding in their DESCRIPTION file and use
-	that encoding for the CITATION file.
-
-    o	difftime() now defaults to the "tzone" attribute of
-	"POSIXlt" objects rather than to the current timezone as set
-	by the default for the 'tz' argument.  (Wish of PR#14182.)
-
-    o	pretty() is now generic, with new methods for "Date" and
-	"POSIXt" classes (based on code contributed by Felix Andrews).
-
-    o	unique() and match() are now faster on character vectors where
-	all elements are in the global CHARSXP cache and have unmarked
-	encoding (ASCII).  Thanks to Matthew Dowle for suggesting
-	improvements to the way the hash code is generated in
-	unique.c.
-
-    o	The enquote() utility, in use internally, is exported now.
-
-    o	.C and .Fortran now map non-zero return values (other than
-	NA_LOGICAL) for logical vectors to TRUE: it has been an
-	implicit assumption that they are treated as true.
-
-    o	The print() methods for "glm" and "lm" objects now insert
-	linebreaks in long calls in the same way that the print()
-	methods for "summary.[g]lm" objects have long done.  This does
-	change the layout of the examples for a number of packages,
-	e.g. MASS.  (PR#14250)
-
-    o	constrOptim() can now be used with method "SANN".  (PR#14245)
-
-	It gains an argument 'hessian' to be passed to optim(), which
-	allows all the ... arguments to be intended to f() and grad().
-	(PR14071)
-
-    o	curve() now allows 'expr' to be an object of mode "expression"
-	as well as "call" and "function".
-
-    o	The "POSIX[cl]t" methods for Axis() have been replaced by a
-	single method for "POSIXt".
-
-	There are no longer separate plot() methods for "POSIX[cl]t"
-	and "Date": the default method has been able to handle those
-	classes for a long time.  This iter alia allows a single
-	date-time object to be supplied, the wish of PR#14016.
-
-	The methods had a different default ("") for xlab.
-
-    o	Classes "POSIXct", "POSIXlt" and "difftime" have generators
-	.POSIXct(), .POSIXlt() and .difftime().	 Package authors are
-	advised to make use of them (they are available from R 2.11.0)
-	to proof against planned future changes to the classes.
-
-	The ordering of the classes has been changed, so "POSIXt" is
-	now the second class.  See the document 'Updating packages for
-	changes in R 2.12.x' on developer.r-project.org for the
-	consequences for a handful of CRAN packages.
-
-    o	The "POSIXct" method of as.Date() allows a timezone to be
-	specified (but still defaults to UTC).
-
-    o	Experimental  list2env()  utility as inverse of as.list(<environment>)
-	and for fast multi-assign() to existing environment.
-	as.environment() is now generic and uses list2env() as list method.
-
-    o	There are several small changes to output which 'zap' small
-	numbers, e.g. in printing quantiles of residuals in summaries
-	from lm annd glm fits, and in test statisics in print.anova.
-
-
-DEPRECATED & DEFUNCT
-
-    o	Supplying the parser with a string containing both octal/hex and
-	Unicode escapes is now an error.
-
-
-PACKAGE INSTALLATION
-
-    o	install.packages() has a new argument 'libs_only' to optionally
-	pass --libs-only to INSTALL and works analogously for Windows
-	binary installs (to add support for 64- or 32-bit Windows).
-
-    o	When sub-architectures are in use, the installed architectures
-	are recorded in the 'Archs' field of the DESCRIPTION file.
-	There is a new default filter, "subarch", in
-	available.packages() to make use of this.
-
-
-C-LEVEL FACILITIES
-
-    o	lang5() and lang6() {in addition to pre-existing lang[1-4]()}
-	convenience functions for easier construction of eval() calls.
-	If you have your own definition, do wrap it inside
-	'#ifndef lang5 .... #endif' to keep it working with old and new R.
-
-
-INSTALLATION
-
-    o	A C99 compiler is now required, and more C99 language features
-	will be used in the R sources.
-
-    o	Tcl/Tk >= 8.4 is now required (increased from 8.3).
-
-    o	The output of the examples from several of the base packages
-	is now compared to reference output rather than the previous
-	output (if any).
-
-    o	zlib has been updated to 1.2.4: this is also the minimum
-	version required for --with-system-zlib.
-
-
-BUG FIXES
-
-    o	Calls to selectMethod() by default no longer cache inherited
-	methods.  This could previously corrupt methods used by as().
-
-    o	The densities of non-central chi-squared are now more accurate
-	in some cases in the extreme tails, e.g. dchisq(2000, 2,
-	1000), as a series expansion was truncated too early.
-	(PR#14105)
-
-    o	pt() is more accurate in the left tail for ncp large, e.g.
-	pt(-1000, 3, 200).  (PR#14069)
-
-    o	The default C code (R_binary) for binary ops now sets the S4
-	bit in the result if either argument is an S4 object. (PR#13209)
-	
-    o	source(echo=TRUE) failed to echo comments that followed the
-    	last statement in a file.
-
-
-
-
-	**************************************************
-	*						 *
 	*	       2.11 SERIES NEWS			 *
 	*						 *
 	**************************************************
-
-
-		CHANGES IN R VERSION 2.11.1
-
-
-BUG FIXES
-
-    o	The C function mkCharLenCE now no longer reads past 'len' bytes
-	(unlikely to be a problem except in user code). (PR# 14246)
-
-    o	On systems without any default LD_LIBRARY_PATH (not even
-	/usr/local/lib), [DY]LIB_LIBRARY_PATH is now set without a
-	trailing colon.	 (PR#13637)
-
-    o	More efficient utf8ToInt() on long multi-byte strings with
-	many multi-byte characters.  (PR#14262)
-
-    o	aggregate.ts() gave platform-depedent results due to rounding
-	error for ndeltat != 1.
-
-    o 	package.skeleton() sometimes failed to fix filenames for .R or
-    	.Rd files to start with an alphanumeric.  (PR#14253)
-
-
 
 
 		CHANGES IN R VERSION 2.11.0
@@ -211,7 +41,7 @@ NEW FEATURES
 
     o	R CMD INSTALL now uses the internal untar() in package utils:
 	this ensures that all platforms can install bzip2- and
-	xz-compressed tarballs.	 In case this causes problems (as it
+	xz-compressed tarballs.  In case this causes problems (as it
 	has on some Windows file systems when run from Cygwin tools)
 	it can be overridden by the environment variable
 	R_INSTALL_TAR: setting this to a modern external tar program
@@ -436,12 +266,12 @@ NEW FEATURES
 	versions on systems with sub-architectures.
 
     o	R CMD check now (by default) also checks Rd files for
-	auto-generated content in need of editing, and missing argument
-	descriptions.
+    	auto-generated content in need of editing, and missing argument
+    	descriptions.
 
     o	aggregate() gains a formula method thanks to a contribution by
-	Arni Magnusson.	 The data frame method now allows summary
-	functions to return arbitrarily many values.
+    	Arni Magnusson.  The data frame method now allows summary
+    	functions to return arbitrarily many values.
 
     o	path.expand() now propagates NA values rather than converting them
 	to "NA".
@@ -451,7 +281,7 @@ NEW FEATURES
 
     o	The 'fuzz' used by seq() and seq.int() has been reduced from
 	1e-7 to 1e-10, which should be ample for the double-precision
-	calculations used in R.	 It ensures that the fuzz never comes
+	calculations used in R.  It ensures that the fuzz never comes
 	into play with sequences of integers (wish of PR#14169).
 
     o	The default value of RSiteSearch(restrict=) has been changed
@@ -460,7 +290,7 @@ NEW FEATURES
 	"Rhelp10" for those from 2010.
 
     o	New function rasterImage() in the 'graphics' package for drawing
-	raster images.
+        raster images.
 
     o	stats:::extractAIC.coxph() now omits aliased terms when computing
 	the degrees of freedom (suggestion of Terry Therneau).
@@ -470,7 +300,7 @@ NEW FEATURES
 
     o	pchisq(ncp =, log.p = TRUE) is more accurate for probabilities
 	near one.  E.g. pchisq(80, 4, ncp=1, log.p=TRUE).  (Maybe what
-	was meant in PR#14216.)
+	was meant in PR#14126.)
 
     o	maintainer() has been added, to give convenient access to the
 	name of the maintainer of a package (contributed by David
@@ -510,8 +340,8 @@ NEW FEATURES
 	outputEncoding = "ASCII" uses the second part.
 
     o	A new class "listOfMethods" has been introduced to represent
-	the methods in a methods table, to replace the deprecated
-	class "MethodsList".
+        the methods in a methods table, to replace the deprecated
+        class "MethodsList".
 
     o	any() and all() return early if possible.  This may speed up
 	operations on long vectors.
@@ -564,10 +394,10 @@ DEPRECATED & DEFUNCT
 	longer assigned or used as metadata by the package.
 
 	getMethods() is now deprecated, with its internal use replaced
-	by findMethods() and other changes.  Creating objects from the
-	MethodsList class is also deprecated.
+        by findMethods() and other changes.  Creating objects from the
+        MethodsList class is also deprecated.
 
-    o	Parsing strings containing both octal/hex and Unicode escapes
+    o 	Parsing strings containing both octal/hex and Unicode escapes
 	now gives a warning and will become an error in R 2.12.0.
 
 
@@ -586,8 +416,8 @@ INSTALLATION
 PACKAGE INSTALLATION
 
     o	Characters in R source which are not translatable to the
-	current locale are now handled more tolerantly:	 these will be
-	converted to hex codes with a warning.	Such characters are
+	current locale are now handled more tolerantly:  these will be
+	converted to hex codes with a warning.  Such characters are
 	only really portable if they appear in comments.
 
     o	R CMD INSTALL now tests that the installed package can be loaded
@@ -657,10 +487,10 @@ BUG FIXES
 	on a DST-change day could give the wrong time for 'breaks' in units
 	of days or longer.  (PR#14208)
 
-    o	do_par() UNPROTECTed too early (PR#14214)
+    o   do_par() UNPROTECTed too early (PR#14214)
 
-    o	subassignment x[[....]] <- y didn't check for a zero-length
-	right hand side, and inserted rubbish value. (PR#14217)
+    o   subassignment x[[....]] <- y didn't check for a zero-length
+        right hand side, and inserted rubbish value. (PR#14217)
 
     o	fisher.test() no longer gives a P-value *very* slightly > 1,
 	in some borderline cases.
@@ -673,7 +503,7 @@ BUG FIXES
 
     o	gsub() in 2.10.x could fail from stack overflow for extremely
 	long strings due to temporary data being allocated on the
-	stack.	Also, gsub() with fixed=TRUE is in some circumstances
+	stack.  Also, gsub() with fixed=TRUE is in some circumstances
 	considerably faster.
 
     o	Several primitives, including attributes(), attr<-()
@@ -713,9 +543,9 @@ BUG FIXES
     o	The X11() device with cairo but not Pango (notably Mac OS X)
 	now checks validity of text strings in UTF-8 locales (since
 	Pango does but cairo it seems does not).
-
+	
     o	read.fwf() misread multi-line records when n was specified.
-	(PR#14241)
+        (PR#14241)
 
     o	all.equal(*, tolerance = e) passes the numeric tolerance also to
 	the comparison of the attributes.
@@ -776,9 +606,9 @@ NEW FEATURES
 
     o	The PCRE library has been updated to version 8.01, a bug-fix
 	release.
-
+	
     o	tools::readNEWS() now accepts a digit as the first character
-	of a news section.
+    	of a news section.
 
 
 BUG FIXES
@@ -820,7 +650,7 @@ BUG FIXES
 	if an as.character() method called it.
 
     o	The quartz() device did not restore the clipping region when
-	filling the background for a new page.	This could be observed
+	filling the background for a new page.  This could be observed
 	in multi-page bitmap output as stale outer regions of the
 	plot.
 
@@ -829,8 +659,8 @@ BUG FIXES
 	"none", thanks to a patch from Gordon Smyth.
 
     o	tools::showNonASCII() failed to detect non-ASCII characters
-	if iconv() (incorrectly) converted them to different ASCII
-	characters.  (Seen on Windows only.)
+    	if iconv() (incorrectly) converted them to different ASCII
+    	characters.  (Seen on Windows only.)
 
     o	tcrossprod() wrongly failed in some cases when one of the
 	arguments was a vector and the other a matrix.
@@ -840,10 +670,10 @@ BUG FIXES
 	PR#14189.)
 
     o	match(incomparables=<non-NULL>) could in rare cases infinite-
-	loop.
+    	loop.
 
-    o	poisson.test() needed to pass 'conf.level' to binom.test()
-	(PR#14195)
+    o   poisson.test() needed to pass 'conf.level' to binom.test()
+        (PR#14195)
 
     o	The "nls" method for df.residual() gave incorrect results for
 	models fitted with na.action = na.exclude.  (PR#14194)
@@ -856,8 +686,8 @@ BUG FIXES
 	parts of complex numbers correctly (and this was used by str():
 	PR#14201).
 
-    o	system.time() had sys.child component wrong (copied user.child
-	instead) on systems with HAVE_GETRUSAGE (PR#14210)
+    o   system.time() had sys.child component wrong (copied user.child
+        instead) on systems with HAVE_GETRUSAGE (PR#14210)
 
     o	Changing both line texture and line cap (end) resulted in the
 	latter to be ommitted form the PDF code.  In addition, line cap

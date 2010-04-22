@@ -13,8 +13,7 @@ adaptive barrier algorithm.
 \usage{
 constrOptim(theta, f, grad, ui, ci, mu = 1e-04, control = list(),
             method = if(is.null(grad)) "Nelder-Mead" else "BFGS",
-            outer.iterations = 100, outer.eps = 1e-05, \dots,
-            hessian = FALSE)
+            outer.iterations = 100, outer.eps = 1e-05, \dots)
 }
 \arguments{
   \item{theta}{Starting value: must be in the feasible region.}
@@ -23,7 +22,8 @@ constrOptim(theta, f, grad, ui, ci, mu = 1e-04, control = list(),
   \item{ui}{Constraints (see below).}
   \item{ci}{Constraints (see below).}
   \item{mu}{(Small) tuning parameter.}
-  \item{control, method, hessian}{Passed to \code{\link{optim}}.}
+  \item{control}{Passed to \code{\link{optim}}.}
+  \item{method}{Passed to \code{\link{optim}}.}
   \item{outer.iterations}{Iterations of the barrier algorithm.}
   \item{outer.eps}{Criterion for relative convergence of the barrier
     algorithm.}
@@ -83,7 +83,6 @@ constrOptim(theta, f, grad, ui, ci, mu = 1e-04, control = list(),
 }
 
 \examples{
-\testonly{od <- options(digits=5)}
 ## from optim
 fr <- function(x) {   ## Rosenbrock Banana function
     x1 <- x[1]
@@ -121,7 +120,6 @@ constrOptim(c(2,-1,-1), fQP, gQP, ui=t(Amat), ci=bvec)
 hQP <- function(b) {sum(c(0,5,0)*b)-0.5*sum(b*b)}
 constrOptim(c(2,-1,-1), hQP, NULL, ui=t(Amat), ci=bvec,
             control=list(fnscale=-1))
-\testonly{options(od)}
 }
 \keyword{optimize}
 

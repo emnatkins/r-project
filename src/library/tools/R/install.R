@@ -67,10 +67,9 @@
         ## These might be needed for configure.win and Make{file,vars}.win
         ## Some people have *assumed* that R_HOME uses /
         Sys.setenv(R_HOME = rhome)
-        if (nzchar(rarch)) {
-            Sys.setenv(R_ARCH = rarch)
-            Sys.setenv(R_ARCH_BIN = rarch)
-        }
+        ## and others have assumed that RHOME is set:
+        Sys.setenv(RHOME = rhome)
+        if (nzchar(rarch)) Sys.setenv(R_ARCH = rarch)
     }
 
     Usage <- function() {
@@ -216,14 +215,6 @@
     ## 'pkg' is the absolute path to package sources.
     do_install <- function(pkg)
     {
-        if (WINDOWS && grepl("\\.zip$", pkg)) {
-            pkg_name <- basename(pkg)
-            pkg_name <- sub("\\.zip$", "", pkg_name)
-            pkg_name <- sub("_[0-9.-]+$", "", pkg_name)
-            utils:::unpackPkgZip(pkg, pkg_name, lib, libs_only)
-            return()
-        }
-
         setwd(pkg)
         desc <- read.dcf(file.path(pkg, "DESCRIPTION"))[1, ]
         ## Let's see if we have a bundle
@@ -571,9 +562,6 @@
                     if (res == 0) shlib_install(instdir, rarch)
                     else has_error <- TRUE
                 } else {
-                    ## Future: NB, not R.home("bin")
-                    ## f <- dir(file.path(R.home(), "bin"))
-                    ## archs <- archs[f %in% c("i386", "x64")]
                     message("  making DLL ...")
                     srcs <- dir(pattern = "\\.([cfmCM]|cc|cpp|f90|f95|mm)$")
                     has_error <- run_shlib(pkg_name, srcs, instdir, rarch)
@@ -603,7 +591,8 @@
                     srcs <- dir(pattern = "\\.([cfmCM]|cc|cpp|f90|f95|mm)$")
                     ## This allows Makevars to set OBJECTS or its own targets.
                     allfiles <- if (file.exists("Makevars")) c("Makevars", srcs) else srcs
-                    wd2 <- setwd(file.path(R.home("bin"), "exec"))
+                    ## FIXME better R.home("bin") ?  Same for now.
+                    wd2 <- setwd(file.path(R.home(), "bin", "exec"))
                     archs <- Sys.glob("*")
                     setwd(wd2)
                     if (length(allfiles)) {
@@ -639,21 +628,6 @@
             }
             if (has_error)
                 pkgerrmsg("compilation failed", pkg_name)
-
-            ## if we have subarchs, update DESCRIPTION
-            fi <- file.info(Sys.glob(file.path(instdir, "libs", "*")))
-            dirs <- row.names(fi[fi$isdir %in% TRUE])
-            if (length(dirs)) {
-                descfile <- file.path(instdir, "DESCRIPTION")
-                olddesc <- readLines(descfile)
-                olddesc <- grep("^Archs:", olddesc,
-                                invert = TRUE, value = TRUE, useBytes = TRUE)
-                newdesc <- c(olddesc,
-                             paste("Archs:",
-                                   paste(basename(dirs), collapse=", "))
-                             )
-                writeLines(newdesc, descfile, useBytes = TRUE)
-            }
         }                               # end of src dir
 
 	if (install_R && dir.exists("R")) {
@@ -1041,14 +1015,6 @@
     for(pkg in pkgs) {
         if (debug) message("processing ", sQuote(pkg), domain = NA)
         if (.file_test("-f", pkg)) {
-            if (WINDOWS && grepl("\\.zip$", pkg)) {
-                if (debug) message("a zip file", domain = NA)
-                pkgname <- basename(pkg)
-                pkgname <- sub("\\.zip$", "", pkgname)
-                pkgname <- sub("_[0-9.-]+$", "", pkgname)
-                allpkgs <- c(allpkgs, pkg)
-                next
-            }
             if (debug) message("a file", domain = NA)
             of <- dir(tmpdir, full.names = TRUE)
             ## force the use of internal untar unless over-ridden

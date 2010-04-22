@@ -698,11 +698,10 @@ summary.nls <-
 	    x$message, "\n")
     else
 	with(x$convInfo, {
-            if(!isConv || getOption("show.nls.convergence", TRUE))
-                cat("\nNumber of iterations",
-                    if(isConv) "to convergence:" else "till stop:", finIter,
-                    "\nAchieved convergence tolerance:",
-                    format(finTol, digits=digits),"\n")
+	    cat("\nNumber of iterations",
+		if(isConv) "to convergence:" else "till stop:", finIter,
+		"\nAchieved convergence tolerance:",
+                format(finTol, digits=digits),"\n")
 	    if(!isConv)
 		cat("Reason stopped:", stopMessage, "\n")
 	})

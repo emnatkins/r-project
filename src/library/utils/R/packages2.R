@@ -101,8 +101,7 @@ install.packages <-
              type = getOption("pkgType"),
              configure.args = getOption("configure.args"),
              configure.vars = getOption("configure.vars"),
-             clean = FALSE, Ncpus = getOption("Ncpus"),
-             libs_only = FALSE, ...)
+             clean = FALSE, Ncpus = getOption("Ncpus"), ...)
 {
     if (is.logical(clean) && clean)
         clean <- "--clean"
@@ -258,8 +257,7 @@ install.packages <-
             .install.winbinary(pkgs = pkgs, lib = lib, contriburl = contriburl,
                                method = method, available = available,
                                destdir = destdir,
-                               dependencies = dependencies,
-                               libs_only = libs_only, ...)
+                               dependencies = dependencies, ...)
             return(invisible())
         }
         ## Avoid problems with spaces in pathnames.
@@ -320,7 +318,6 @@ install.packages <-
             cmd <- paste(cmd0, "-l", shQuote(update[i, 2L]),
                          getConfigureArgs(update[i, 1L]),
                          getConfigureVars(update[i, 1L]),
-                         if(libs_only) "--libs-only",
                          shQuote(update[i, 1L]))
             if(system(cmd) > 0L)
                 warning(gettextf(
@@ -383,7 +380,6 @@ install.packages <-
                 cmd <- paste(cmd0, "-l", shQuote(update[i, 2L]),
                              getConfigureArgs(update[i, 3L]),
                              getConfigureVars(update[i, 3L]),
-                             if(libs_only) "--libs-only",
                              update[i, 3L],
                              ">", paste(pkg, ".out", sep=""), "2>&1")
                 deps <- DL[[pkg]]
@@ -421,7 +417,6 @@ install.packages <-
                 cmd <- paste(cmd0, "-l", shQuote(update[i, 2L]),
                              getConfigureArgs(update[i, 3L]),
                              getConfigureVars(update[i, 3L]),
-                             if(libs_only) "--libs-only",
                              update[i, 3L])
                 status <- system(cmd)
                 if(status > 0L)

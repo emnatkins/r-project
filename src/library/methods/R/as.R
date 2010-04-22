@@ -175,7 +175,7 @@ as <-
                 }
             }
             else { # search for inherited method
-              asMethod <- selectMethod("coerce<-", sig, TRUE, c(from = TRUE, to = FALSE), doCache = TRUE)
+              asMethod <- selectMethod("coerce<-", sig, TRUE, c(from = TRUE, to = FALSE))
               inherited <- TRUE
             }
         }
@@ -254,21 +254,22 @@ setAs <-
         }
 }
 
+.SuppressCoerce <- TRUE # used to exit coerce() w/o dispatching a method
 .setCoerceGeneric <- function(where) {
   ## create the initial version of the coerce function, with methods that convert
   ## arbitrary objects to the basic classes by calling the corresponding as.<Class>
   ## functions.
   setGeneric("coerce", function(from, to, strict = TRUE) {
-      if(TRUE) {
-          warning("Dirct use of coerce() is deprecated:  use as(from, class(to)) instead", domain = NA)
+      if(.SuppressCoerce) {
+          warning("coerce() should not be called directly; see ?coerce", domain = NA)
           return(as(from, class(to), strict = strict))
       }
       standardGeneric("coerce")
       },
              where = where)
   setGeneric("coerce<-", function(from, to, value) {
-      if(TRUE) {
-          warning("Dirct use of coerce() is deprecated:  use as(from, class(to)) <- value instead", domain = NA)
+      if(.SuppressCoerce) {
+          warning("coerce() should not be called directly; see ?coerce", domain = NA)
           return(`as<-`(from, class(to), value))
       }
       standardGeneric("coerce<-")

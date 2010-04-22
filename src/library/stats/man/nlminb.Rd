@@ -94,8 +94,7 @@ nlminb(start, objective, gradient = NULL, hessian = NULL, \dots,
   \code{\link{optimize}} for one-dimensional minimization and
   \code{\link{constrOptim}} for constrained optimization.
 }
-% Lots of near-zeros, platform-specific results.
-\examples{\donttest{
+\examples{
 x <- rnbinom(100, mu = 10, size = 10)
 hdev <- function(par) {
     -sum(dnbinom(x, mu = par[1], size = par[2], log = TRUE))
@@ -149,6 +148,6 @@ nlminb(rep(3, 25), flb,
 ## trying to use a too small tolerance:
 r <- nlminb(rep(3, 25), flb, control = list(rel.tol=1e-16))
 stopifnot(grepl("rel.tol", r$message))
-}}
+}
 \keyword{optimize}
 

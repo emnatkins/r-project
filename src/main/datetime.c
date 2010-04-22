@@ -487,11 +487,14 @@ SEXP attribute_hidden do_systime(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 
-#ifdef Win32
+#ifdef WIN64
 extern void tzset(void);
-/* tzname is in the headers as an import on MinGW-w64 */
+/* tzname is in the headers as an import */
 #define tzname Rtzname
 extern char *Rtzname[2];
+#elif defined Win32
+extern void tzset(void);
+extern char *tzname[2];
 #elif defined(__CYGWIN__)
 extern __declspec(dllimport) char *tzname[2];
 #else
@@ -619,8 +622,8 @@ SEXP attribute_hidden do_asPOSIXlt(SEXP call, SEXP op, SEXP args, SEXP env)
     }
     setAttrib(ans, R_NamesSymbol, ansnames);
     PROTECT(klass = allocVector(STRSXP, 2));
-    SET_STRING_ELT(klass, 0, mkChar("POSIXlt"));
-    SET_STRING_ELT(klass, 1, mkChar("POSIXt"));
+    SET_STRING_ELT(klass, 0, mkChar("POSIXt"));
+    SET_STRING_ELT(klass, 1, mkChar("POSIXlt"));
     classgets(ans, klass);
     if (isgmt) {
 	PROTECT(tzone = mkString(tz));
@@ -768,7 +771,7 @@ SEXP attribute_hidden do_formatPOSIXlt(SEXP call, SEXP op, SEXP args, SEXP env)
 	    else {
 		const char *q = CHAR(STRING_ELT(sformat, i%m));
 		int n = strlen(q) + 50;
-		char buf2[n];
+		char *buf2 = alloca(n);
 #ifdef Win32
 		/* We want to override Windows' TZ names */
 		p = strstr(q, "%Z");
@@ -948,8 +951,8 @@ SEXP attribute_hidden do_strptime(SEXP call, SEXP op, SEXP args, SEXP env)
 
     setAttrib(ans, R_NamesSymbol, ansnames);
     PROTECT(klass = allocVector(STRSXP, 2));
-    SET_STRING_ELT(klass, 0, mkChar("POSIXlt"));
-    SET_STRING_ELT(klass, 1, mkChar("POSIXt"));
+    SET_STRING_ELT(klass, 0, mkChar("POSIXt"));
+    SET_STRING_ELT(klass, 1, mkChar("POSIXlt"));
     classgets(ans, klass);
     if (isgmt) {
 	PROTECT(tzone = mkString(tz));
@@ -1020,8 +1023,8 @@ SEXP attribute_hidden do_D2POSIXlt(SEXP call, SEXP op, SEXP args, SEXP env)
     }
     setAttrib(ans, R_NamesSymbol, ansnames);
     PROTECT(klass = allocVector(STRSXP, 2));
-    SET_STRING_ELT(klass, 0, mkChar("POSIXlt"));
-    SET_STRING_ELT(klass, 1, mkChar("POSIXt"));
+    SET_STRING_ELT(klass, 0, mkChar("POSIXt"));
+    SET_STRING_ELT(klass, 1, mkChar("POSIXlt"));
     classgets(ans, klass);
     setAttrib(ans, install("tzone"), mkString("UTC"));
     UNPROTECT(4);

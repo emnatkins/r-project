@@ -30,7 +30,7 @@
 # define RK "R32"
 #endif
 
-extern char *getRHOMElong(int m); /* in ../rhome.c */
+extern char *getRHOMElong(void); /* in ../rhome.c */
 
 int main (int argc, char **argv)
 {
@@ -114,7 +114,7 @@ int main (int argc, char **argv)
 	}
     } else {
 	printf("registering R %s ... ", version);
-    	RHome = getRHOMElong(3);
+    	RHome = getRHOMElong();
 
 	snprintf(keyname, 60, "Software\\%s\\R", PRODUCER);
 	if ((rc = RegOpenKeyEx(hk, keyname, 0, KEY_ALL_ACCESS, &hkey))

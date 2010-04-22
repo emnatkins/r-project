@@ -1,9 +1,9 @@
-% File src/library/base/man/as.Date.Rd
+% File src/library/base/man/format.Date.Rd
 % Part of the R package, http://www.R-project.org
 % Copyright 1995-2010 R Core Development Team
 % Distributed under GPL 2 or later
 
-\name{as.Date}
+\name{format.Date}
 \alias{format.Date}
 \alias{as.character.Date}
 \alias{as.Date}
@@ -25,7 +25,6 @@
 as.Date(x, \dots)
 \method{as.Date}{character}(x, format = "", \dots)
 \method{as.Date}{numeric}(x, origin, \dots)
-\method{as.Date}{POSIXct}(x, tz = "UTC", \dots)
 
 \method{format}{Date}(x, \dots)
 
@@ -38,7 +37,6 @@ as.Date(x, \dots)
     non-\code{NA} element, and give an error if neither works.}
   \item{origin}{a Date object, or something which can be coerced by
     \code{as.Date(origin, \dots)} to such an object.}
-  \item{tz}{a timezone name.}
   \item{\dots}{Further arguments to be passed from or to other methods,
     including \code{format} for \code{as.character} and \code{as.Date}
     methods.}
@@ -54,13 +52,13 @@ as.Date(x, \dots)
 
   The \code{as.Date} methods accept character strings, factors, logical
   \code{NA} and objects of classes \code{"\link{POSIXlt}"} and
-  \code{"\link{POSIXct}"}.  (The last is converted to days by ignoring
-  the time after midnight in the representation of the time in specified
-  timezone, default UTC.)  Also objects of class \code{"date"} (from
-  package \pkg{\link[date:as.date]{date}}) and \code{"dates"} (from
-  package \pkg{\link[chron]{chron}}).  Character strings are processed
-  as far as necessary for the format specified: any trailing characters
-  are ignored.
+  \code{"\link{POSIXct}"}.  (The last is converted to days by
+  ignoring the time after midnight in the
+  representation of the time in UTC.)  Also objects of class
+  \code{"date"} (from package \pkg{\link[date:as.date]{date}}) and
+  \code{"dates"} (from package \pkg{\link[chron]{chron}}).  Character
+  strings are processed as far as necessary for the format specified: any
+  trailing characters are ignored.
 
   \code{as.Date} will accept numeric data (the number of days since an
   epoch), but \emph{only} if \code{origin} is supplied.
@@ -109,9 +107,9 @@ as.Date(x, \dots)
   supported, but with no alternative number representation nor era
   available in any locale.
 }
-\examples{\donttest{
+\examples{
 ## locale-specific version of the date
-format(Sys.Date(), "\%a \%b \%d")}
+format(Sys.Date(), "\%a \%b \%d")
 
 ## read in date info in format 'ddmmmyyyy'
 ## This will give NA(s) in some locales; setting the C locale
@@ -136,13 +134,6 @@ as.Date(32768, origin="1900-01-01")
 as.Date(35981, origin="1899-12-30") # 1998-07-05
 ## and Mac Excel
 as.Date(34519, origin="1904-01-01") # 1998-07-05
-
-## Timezone effect
-z <- ISOdate(2010, 04, 13, c(0,12)) # midnight and midday UTC
-as.Date(z) # in UTC
-\donttest{## these timzone names are common
-as.Date(z, tz ="NZ")
-as.Date(z, tz ="HST") # in Hawaii}
 }
 \keyword{utilities}
 \keyword{chron}

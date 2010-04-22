@@ -219,9 +219,8 @@
     function(classes, fdef, mtable = NULL,
              table = get(".MTable", envir = environment(fdef)),
              excluded = NULL, useInherited,
-             returnAll = !(doCache || doExcluded),
-             simpleOnly = .simpleInheritanceGeneric(fdef), verbose = FALSE,
-             doCache = is.environment(mtable))
+             returnAll = !(doMtable || doExcluded),
+             simpleOnly = .simpleInheritanceGeneric(fdef), verbose = FALSE)
 {
     ## to avoid infinite recursion, and somewhat for speed, turn off S4 methods for primitives
     primMethods <- .allowPrimitiveMethods(FALSE)
@@ -238,10 +237,11 @@
   hasGroup <- length(fdef@group) > 0L
   if(hasGroup)
       groupGenerics <- .getAllGroups(list(fdef))
+  doMtable <- is.environment(mtable)
   doExcluded <- length(excluded) > 0L
   if(verbose)
-      cat(" .findInheritedMethods(): (hasGroup, doCache, doExcluded)= (",
-	  paste(c("f","T")[1+c(hasGroup, doCache, doExcluded)],collapse=", "),
+      cat(" .findInheritedMethods(): (hasGroup, doMtable, doExcluded)= (",
+	  paste(c("f","T")[1+c(hasGroup, doMtable, doExcluded)],collapse=", "),
 	  ")\n", sep='')
   nargs <- length(classes)
   if(!missing(useInherited) && length(useInherited) < nargs)
@@ -255,7 +255,7 @@
     ## inherited in the nextMethod sense, since they have the same signature
     label <- .sigLabel(classes)
     direct <- .getGroupMethods(label, groupGenerics, FALSE)
-    if(length(direct) && doCache) {
+    if(length(direct) && doMtable) {
         assign(label, direct[[1L]], envir = mtable)
         return(direct)
     }
@@ -348,7 +348,7 @@
         message(gettextf("No simply inherited methods found for function \"%s\"; using non-simple method",
                       fdef@generic), domain = NA)
   }
-  if(doCache && length(methods)) { ## Cache the newly found one
+  if(doMtable && length(methods)) { ## Cache the newly found one
       if(verbose) cat(" .fI> caching newly found methods ..\n")
     tlabel <- .sigLabel(classes)
     m <- methods[[1L]]

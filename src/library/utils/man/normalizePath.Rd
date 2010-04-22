@@ -37,7 +37,7 @@ normalizePath(path)
   \code{\link{shortPathName}}
 }
 #endif
-\examples{\donttest{ # random tempdir
+\examples{
 cat(normalizePath(c(R.home(), tempdir())), sep = "\n")
-}}
+}
 \keyword{ utilities }

@@ -27,7 +27,7 @@ rcmdfn-CFLAGS=-DBINDIR='"$(BINDIR)"'
 all: makeMakedeps \
      $(R_HOME)/$(BINDIR)/Rgui.exe $(R_HOME)/$(BINDIR)/Rterm.exe \
      $(R_HOME)/$(BINDIR)/Rcmd.exe  $(R_HOME)/$(BINDIR)/RSetReg.exe  \
-     $(R_HOME)/$(BINDIR)/R.exe $(R_HOME)/bin/R.exe \
+     $(R_HOME)/$(BINDIR)/R.exe \
      $(R_HOME)/$(BINDIR)/Rscript.exe $(R_HOME)/$(BINDIR)/open.exe 
 
 $(R_HOME)/$(BINDIR)/Rgui.exe: Rgui.exe
@@ -48,10 +48,6 @@ $(R_HOME)/$(BINDIR)/RSetReg.exe: RSetReg.exe
 
 $(R_HOME)/$(BINDIR)/R.exe: R.exe
 	$(MKDIR) -p $(R_HOME)/$(BINDIR)
-	$(CP) $^ $@	
-
-$(R_HOME)/bin/R.exe: Rfe.exe
-	$(MKDIR) -p $(R_HOME)/bin
 	$(CP) $^ $@	
 
 $(R_HOME)/$(BINDIR)/Rscript.exe: Rscript.exe
@@ -81,17 +77,15 @@ rcico.o: Rcmd.exe.manifest
 rgico.o: Rgui.exe.manifest
 rtico.o: Rterm.exe.manifest
 else
-Rgui.exe: rgui.o rgico.o
+Rgui.exe: rgui.o rgico64.o
 Rterm.exe: rterm.o rtico.o
 rtico.o: Rterm64.manifest
-rgico.o: Rgui64.manifest
+rgico64.o: Rgui64.manifest
 endif
 
 Rcmd.exe: rcmd.o ../rhome.o ../shext.o rcico.o rcmdfn.o Renviron.o
 
 R.exe: R.o ../rhome.o ../shext.o rcico.o rcmdfn.o Renviron.o
-
-Rfe.exe: Rfe.o ../rhome.o rcico.o
 
 RSetReg.exe: RSetReg.o ../rhome.o rcico.o
 

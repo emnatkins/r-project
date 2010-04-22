@@ -25,10 +25,7 @@ shortPathName(path)
 \seealso{
   \code{\link{normalizePath}}.
 }
-\examples{\donttest{
+\examples{
 cat(shortPathName(c(R.home(), tempdir())), sep = "\n")
 }
-\testonly{
-cat(shortPathName(R.home()), sep = "\n")
-}}
 \keyword{ utilities }

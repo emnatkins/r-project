@@ -8,67 +8,6 @@
 
 	**************************************************
 	*						 *
-	*	       2.12 SERIES NEWS			 *
-	*						 *
-	**************************************************
-
-
-    		CHANGES IN R VERSION 2.12.0
-
-
-NEW FEATURES
-
-    o	A sub-architecture is used for 32-bit (i386) as well as
-	64-bit (x64) builds.
-
-	Architecture-specific files (such as Rgui.exe and Rscript.exe)
-	are now in R_HOME/bin/i386 or R_HOME/bin/x64. 
-	Package installation, including 'configure.win' scripts, can
-	use ${R_HOME}/bin${R_ARCH_BIN} as a portable way to find
-	these.
-
-	Because people expect it, there is an executable
-	R_HOME/bin/R.exe, which accepts --arch and launches either
-	R_HOME/bin/i386/R.exe or R_HOME/bin/x64/R.exe.
-
-	For now, almost all 32-bit packages with compiled code built
-	under 2.{10,11}.x can be used, but this will be disabled
-	before release.
-
-    o	R CMD INSTALL can install zipfiles as binary packages.
-
-
-64-bit NEWS
-
-    o   The plan is to merge the 32- and 64-bit distributions and have
-	a common repository of packages.  This process has been
-	started, and some of the steps are recorded here.
-
-    o	The 64-bit Tcl binary is now in file R64a_Tcl_8-5-8.zip: when
-	you unpack it ensure you have directory Tcl/bin64 and not
-	Tcl/bin.
-
-    o	The 64-bit installer (which runs only on a 64-bit system) can
-	be used to add 64-bit components to a 32-bit install by
-	selecting the existing 32-bit installation directory and
-	installation type 'Add 64-bit components'.
-
-    o	The 32-bit CRANextras repository is a prototype of a merged
-	repository. All the packages are available from a 32-bit
-	build, and those appropriate to a 64-bit build (e.g. not
-	BRugs) with type="win.binary".
-
-
-PACKAGE INSTALLATION
-
-    o	Environment variable RHOME is no longer set when a package is
-	installed: use R_HOME instead (and depend on R (>= 2.9) ).
-
-
-
-
-	**************************************************
-	*						 *
 	*	       2.11 SERIES NEWS			 *
 	*						 *
 	**************************************************

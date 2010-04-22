@@ -815,7 +815,7 @@ function() {
 function()
     c("Package", "Version", "Priority",
       "Depends", "Imports", "LinkingTo", "Suggests", "Enhances",
-      "OS_type", "License", "Archs")
+      "OS_type", "License")
 
 ### ** .is_ASCII
 

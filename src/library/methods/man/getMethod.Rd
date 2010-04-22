@@ -30,7 +30,7 @@ existsMethod(f, signature = character(), where)
 findMethod(f, signature, where)
 
 selectMethod(f, signature, optional = FALSE, useInherited =,
-             mlist = , fdef = , verbose = , doCache = )
+             mlist = , fdef = , verbose = )
 
 hasMethod(f, signature=character(), where)
 
@@ -48,10 +48,7 @@ hasMethod(f, signature=character(), where)
     an error is generated, unless this argument is \code{TRUE}.  In that
     case, the value returned is  \code{NULL} if no
     method matches.}
-  \item{mlist, fdef, useInherited, verbose, doCache}{Optional
-      arguments  to  \code{getMethod} and \code{selectMethod} for
-      internal use.  Avoid
-      these: some will work as expected and others will not, and none of them is required for normal use of the functions.
+  \item{mlist, fdef, useInherited, verbose}{Optional arguments  to  \code{getMethod} and \code{selectMethod}.  Avoid these: some will work and others will not, and none of them is required for normal use of the functions.
     }
 
 }

@@ -773,6 +773,14 @@ static Rboolean getccol(DEstruct DE)
     return newcol;
 }
 
+static SEXP lang5(SEXP s, SEXP t, SEXP u, SEXP v, SEXP w)
+{
+    PROTECT(s);
+    s = LCONS(s, list4(t, u, v, w));
+    UNPROTECT(1);
+    return s;
+}
+
 static SEXP processEscapes(SEXP x)
 {
     SEXP newval, pattern, replacement, expr;

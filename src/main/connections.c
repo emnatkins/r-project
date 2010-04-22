@@ -531,7 +531,7 @@ static Rboolean file_open(Rconnection con)
 #ifdef Win32
 	if(con->enc == CE_UTF8) {
 	    int n = strlen(name);
-	    wchar_t wname[2 * (n+1)], wmode[10];
+	    wchar_t *wname = (wchar_t *) alloca(2 * (n+1)), wmode[10];
 	    R_CheckStack();
 	    Rf_utf8towcs(wname, name, n+1);
 	    mbstowcs(wmode, con->mode, 10);
@@ -1025,7 +1025,7 @@ static Rboolean pipe_open(Rconnection con)
 #ifdef Win32
     if(con->enc == CE_UTF8) {
 	int n = strlen(con->description);
-	wchar_t wname[2 * (n+1)], wmode[10];
+	wchar_t *wname = (wchar_t *) alloca(2 * (n+1)), wmode[10];
 	R_CheckStack();
 	Rf_utf8towcs(wname, con->description, n+1);
 	mbstowcs(wmode, con->mode, 10);
@@ -1215,12 +1215,9 @@ static int gzfile_fgetc_internal(Rconnection con)
     gzFile fp = ((Rgzfileconn)(con->private))->fp;
     int c;
 
-    /* Looks like eof is signalled one char early
-     -- sometimes! gzgetc may still return EOF 
+    /* Looks like eof is signalled one char early */
+    /* -- sometimes! gzgetc may still return EOF */
     if(gzeof(fp)) return R_EOF;
-    
-    Removed for zlib 1.2.4
-    */
     c = gzgetc(fp);
     return (c == EOF) ? R_EOF : c;
 }

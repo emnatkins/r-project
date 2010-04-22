@@ -1,3 +1,4 @@
+
 # Translation of R-utils.pot to French
 # Copyright (C) 2005 The R Foundation
 # This file is distributed under the same license as the utils R package.
@@ -7,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2010-04-04 14:39\n"
+"POT-Creation-Date: 2010-03-16 09:20\n"
 "PO-Revision-Date: 2010-03-26 13:32-0400\n"
 "Last-Translator: Vincent Goulet <vincent.goulet@act.ulaval.ca>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -338,9 +339,7 @@ msgstr "argument '%s' incorrect"
 msgid ""
 "package %s exists but was not installed under R >= 2.10.0 so help cannot be "
 "accessed"
-msgstr ""
-"le package %s existe, mais il n'a pas été installé sous R >= 2.10.0 et donc "
-"l'aide n'est pas accessible"
+msgstr "le package %s existe, mais il n'a pas été installé sous R >= 2.10.0 et donc l'aide n'est pas accessible"
 
 msgid "argument '%s' must be a single character string"
 msgstr "l'argument '%s' doit être une seule chaîne de caractères"
@@ -1024,9 +1023,6 @@ msgstr ""
 
 msgid "failed to create '%s'"
 msgstr "la création de '%s' a échoué"
-
-msgid "there is no 'libs' directory in package '%s'"
-msgstr ""
 
 msgid "cannot remove prior installation of package '%s'"
 msgstr "impossible de supprimer l'installation précédente du package '%s'"

@@ -33,7 +33,9 @@ weighted.mean.Date <- function (x, w, ...)
     structure(weighted.mean(unclass(x), w, ...), class = "Date")
 
 weighted.mean.POSIXct <- function (x, w, ...)
-    .POSIXct(weighted.mean(unclass(x), w, ...), attr(x, "tzone"))
+    structure(weighted.mean(unclass(x), w, ...),
+              class = c("POSIXt", "POSIXct"),
+              tzone = attr(x, "tzone"))
 
 weighted.mean.POSIXlt <- function (x, w, ...)
     as.POSIXlt(weighted.mean(as.POSIXct(x), w, ...))

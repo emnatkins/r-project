@@ -2,11 +2,9 @@
 
 include ../MkRules
 R_HOME = ../../..
-## for TCL_HOME
-RHOME = ../../..
 include $(R_HOME)/share/make/vars.mk
 
-## use this to install other packages from main library
+## use next to install other packages from main library
 EXTRA_PKGS =
 
 ## Default display mode, 0=MDI, 1=SDI
@@ -23,10 +21,10 @@ Producer = R-core
 
 ## Limit installation to 64-bit systems
 ifeq ($(strip $(WIN)),64)
-bit64 = 1
+bit64 = 1;
 SUFF = win64
 else
-bit64 = 0
+bit64 = 0;
 SUFF = win32
 endif
 
@@ -39,6 +37,9 @@ DOC_INFO_FILES = AUTHORS COPYING COPYING.LIB FAQ RESOURCES THANKS CHANGES
 GW_INFO_FILES = COPYRIGHTS README.Rterm rw-FAQ
 
 ETC_FILES = Rprofile.site Rconsole Rdevga rgb.txt repositories Rcmd_environ
+ifneq ($(strip $(WIN)),64)
+ETC_FILES += Makeconf
+endif
 
 
 # we don't want share/{Makefile.in,sh} installed
@@ -50,7 +51,7 @@ msi: $(RPREFIX)-win32.msi
 imagedir:
 	$(RM) -r $(RPREFIX)
 	$(MKDIR) $(RPREFIX)
-	$(CP) -pr $(R_HOME)/bin $(R_HOME)/modules $(RPREFIX)
+	$(CP) -pr $(R_HOME)/$(BINDIR) $(R_HOME)/modules $(RPREFIX)
 # copy base and recommended packages
 	$(MKDIR) -p $(RPREFIX)/library
 	$(CP) -pr $(LIBFILES) $(RPREFIX)/library
@@ -58,7 +59,9 @@ imagedir:
 	$(RM) $(RPREFIX)/*/Makefile.in
 	$(MKDIR) -p $(RPREFIX)/etc$(R_ARCH)
 	$(CP) -p $(foreach i,$(ETC_FILES),$(R_HOME)/etc/$i) $(RPREFIX)/etc
+ifeq ($(strip $(WIN)),64)
 	$(CP) -p $(R_HOME)/etc$(R_ARCH)/Makeconf $(RPREFIX)/etc$(R_ARCH)
+endif
 # copy info and documentation files
 	$(MKDIR) -p $(RPREFIX)/doc
 	$(CP) -p $(R_HOME)/doc/CRAN_mirrors.csv $(RPREFIX)/doc
@@ -80,7 +83,7 @@ imagedir:
 	  -e "s/@FULLVERSION@/$(FULLVERSION)/g" ../README > $(RPREFIX)/README.$(RPREFIX)
 	$(SED) -e 3,5d ../README.packages > $(RPREFIX)/doc/README.packages
 # convert docs and batch files to CRLF: might already be on Windows, though.
-	zip -q dosfiles.zip $(RPREFIX)/* $(RPREFIX)/doc/*
+	zip -q dosfiles.zip $(RPREFIX)/* $(RPREFIX)/doc/* $(RPREFIX)/$(BINDIR)/*.bat
 	unzip -qao dosfiles.zip
 	$(RM) dosfiles.zip
 #
@@ -102,6 +105,8 @@ imagedir:
 #
 	$(FIND) $(RPREFIX) -name .svn -prune -exec rm -rf \{\} \;
 	$(FIND) $(RPREFIX) -name \*~ -delete
+#
+	$(RM) -r $(RPREFIX)/library/*/man
 
 md5sums:
 	@echo "adding MD5 checksums"
@@ -110,27 +115,13 @@ md5sums:
 	  ../../../../$(BINDIR)/Rterm.exe --vanilla --slave)
 
 fixups:
-	echo "make.packages.html(.Library, verbose=FALSE)" | $(RPREFIX)/$(BINDIR)/Rterm.exe --vanilla --slave LC_COLLATE=C
-	$(CP) -prf "$(TCL_HOME)" $(RPREFIX)
-	$(RM) $(RPREFIX)/Tcl*/lib/*.lib
+	echo "make.packages.html(.Library, verbose=FALSE)" | $(RPREFIX)/$(BINDIR)/rterm --vanilla --slave LC_COLLATE=C
+	$(CP) -pr $(R_HOME)/Tcl $(RPREFIX)
 
-32bit:
-ifeq ($(strip $(WIN)),64)
-ifneq ($(strip $(HOME32)),)
-	@echo "including 32-bit files"
-	(cd $(HOME32); zip -qr9X 32bit */i386 library/*/libs/i386 bin/R.exe)
-	unzip -qo $(HOME32)/32bit -d $(RPREFIX)
-	rm $(HOME32)/32bit.zip
-	mkdir -p $(RPREFIX)/Tcl
-	$(CP) -prf $(HOME32)/Tcl/bin $(HOME32)/Tcl/lib $(RPREFIX)/Tcl
-else
-	@echo "not including 32-bit files"
-endif
-endif
 
 ## for Inno Setup installer
 
-R.iss: JRins.pl CustomMsg.txt imagedir fixups 32bit md5sums \
+R.iss: JRins.pl CustomMsg.txt imagedir fixups md5sums \
   ../../../VERSION ../../../SVN-REVISION
 	$(PERL) JRins.pl $(RPREFIX) $(RPREFIX) $(MDISDI) $(HelpStyle) $(Internet) $(Producer) $(bit64)
 
@@ -153,8 +144,7 @@ files.wxs: imagedir fixups md5sums
 R.wxs: WIXins.pl uuids files.wxs
 	$(PERL) WIXins.pl $(RPREFIX) $(RPREFIX) $(WIX_PERSONAL)
 
-## for WiX 3.0 light uses -ext WixUIExtension
-## To change compression with WiX 3.0 use
+## To change compression with Wix 3.0 use
 ## light -dcl:high
 ## http://www.joyofsetup.com/2008/01/28/new-wix-feature-defaultcompressionlevel/
 ifeq ($(strip $(WIN)),64)
@@ -178,10 +168,10 @@ distclean: clean
 	rm -f $(RPREFIX)-win32.* $(RPREFIX)-win64.*
 
 myR:
-	echo "make.packages.html(.Library)" | $(IMAGEDIR)/$(BINDIR)/Rterm.exe --vanilla --slave LC_COLLATE=C
+	echo "make.packages.html(.Library)" | $(IMAGEDIR)/$(BINDIR)/rterm --vanilla --slave LC_COLLATE=C
 	@echo "adding MD5 checksums"
 	@(cd $(IMAGEDIR); echo "tools:::.installMD5sums(\".\")" | \
 	  R_DEFAULT_PACKAGES=NULL LC_COLLATE=C R_OSTYPE=windows \
-	  $(BINDIR)/Rterm.exe --vanilla --slave)
+	  bin/Rterm.exe --vanilla --slave)
 	$(PERL) JRins.pl $(RPREFIX) $(IMAGEDIR) $(MDISDI) $(HelpStyle) $(Internet) $(Producer)
 	"$(ISDIR)/iscc" R.iss > myR.log
