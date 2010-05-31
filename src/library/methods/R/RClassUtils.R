@@ -5,7 +5,7 @@
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-#
+#int
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -167,7 +167,7 @@ makePrototypeFromClassDef <-
     slotDefs <- getSlots(ClassDef); slotNames <- names(slotDefs)
     pnames <- names(attributes(prototype))
     pnames <- pnames[!is.na(match(pnames, slotNames))]
-    check <- rep.int(FALSE, length(pnames))
+    check <- rep(FALSE, length(pnames))
     for(what in pnames) {
         pwhat <- slot(prototype, what)
         slotClass <- getClassDef(slotDefs[[what]], where)
@@ -289,7 +289,7 @@ completeClassDefinition <-
             }
         }
         ## ensure that each element of the slots is a valid class reference
-        undefClasses <- rep.int(FALSE, length(properties))
+        undefClasses <- rep(FALSE, length(properties))
         for(i in seq_along(properties)) {
             cli <- properties[[i]]
             if(is.null(packageSlot(cli))) {
@@ -842,7 +842,7 @@ showClass <-
         cat("\n",propertiesAreCalled, ":\n", sep="")
         text <- format(c(names(x), as.character(x)), justify="right")
         text <- matrix(text, nrow = 2L, ncol = n, byrow = TRUE)
-        dimnames(text) <- list(c("Name:", "Class:"), rep.int("", n))
+        dimnames(text) <- list(c("Name:", "Class:"), rep("", n))
         print(text, quote = FALSE)
     }
     else
@@ -938,11 +938,7 @@ possibleExtends <- function(class1, class2, ClassDef1, ClassDef2)
 		i <- as.logical(anyDuplicated(c(class1, unique(nm1),
 						names(ext))))
             else {
-                ## class1 could be multiple classes here.
-                ## I think we want to know if any extend
                 i <- match(class1, names(ext))
-                ii <- i[!is.na(i)]
-                i <- if(length(ii))  ii[1L] else i[1L]
             }
         }
     }
@@ -1264,7 +1260,8 @@ getSlots <- function(x) {
 
 ## check for reserved slot names.  Currently only "class" is reserved
 validSlotNames <- function(names) {
-    if(is.na(match("class", names)))
+    i <- match("class", names)
+    if(is.na(i))
         names
     else
         stop("\"class\" is a reserved slot name and cannot be redefined")
@@ -2089,7 +2086,7 @@ classesToAM <- function(classes, includeSubclasses = FALSE,
     value
   }
   if(length(includeSubclasses) == 1)
-    includeSubclasses <- rep.int(includeSubclasses, length(classes))
+    includeSubclasses <- rep(includeSubclasses, length(classes))
   if(!is(includeSubclasses, "logical") || length(includeSubclasses) != length(classes))
     stop("argument includeSubclasses must be a logical, either one value or a vector of the same length as argument classes")
   value <- matrix(0,0,0)
@@ -2272,17 +2269,3 @@ S3forS4Methods <- function(where, checkClasses = character()) {
 ##             className, "\" have apparent S3 methods.\n\nThese will be hidden by the S3 class that this class contains. (See ?Methods)\n\n", msg)
 ##   }
 ## }
-
-## a utility to detect mixin classes:  meant to be fast for use in
-## initialize methods (cf the "matrix" method in BasicClasses.R)
-isMixin <- function(classDef) {
-    val <- 0
-    cc <- classDef@contains
-    ## relies on the superclasses in contains slot being ordered by distance
-    for(cl in cc) {
-        if(cl@distance > 1 || val > 1)
-          break
-        val <- val + 1
-    }
-    val > 1
-}

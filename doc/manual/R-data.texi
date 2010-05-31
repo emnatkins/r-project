@@ -404,11 +404,11 @@ in the correct encoding.  This is mainly an issue for reading Latin-1
 files in a UTF-8 locale, which can be done by something like
 
 @example
-read.table("file.dat", fileEncoding="latin1")
+read.table(file("file.dat", encoding="latin1"))
 @end example
 
 @noindent
-Note that this will work in any locale which can represent Latin-1 strings.
+Note that this will work in any locale which can represent Latin-1 names.
 
 
 @item @strong{Header line}

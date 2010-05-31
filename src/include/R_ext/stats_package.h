@@ -19,6 +19,7 @@
 
 #ifndef R_STATS_PACKAGE_H
 #define R_STATS_PACKAGE_H
+/* #include <Rdefines.h>  Why was this here?: nothing here depends on it */
 #include <Rconfig.h>
 
 #ifdef HAVE_VISIBILITY_ATTRIBUTE

@@ -26,8 +26,8 @@ sessionInfo(package=NULL)
 }
 \seealso{\code{\link{R.version}}
 }
-\examples{\donttest{
+\examples{
 sessionInfo()
 toLatex(sessionInfo(), locale=FALSE)
-}}
+}
 \keyword{misc}

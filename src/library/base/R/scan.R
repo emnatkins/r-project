@@ -21,7 +21,7 @@ function(file = "", what = double(0), nmax = -1, n = -1, sep = "",
          na.strings = "NA", flush = FALSE, fill = FALSE,
          strip.white = FALSE, quiet = FALSE, blank.lines.skip = TRUE,
          multi.line = TRUE, comment.char = "", allowEscapes = FALSE,
-         fileEncoding = "", encoding = "unknown")
+         encoding = "unknown")
 {
     na.strings <- as.character(na.strings)# allow it to be NULL
     if(!missing(n)) {
@@ -33,8 +33,7 @@ function(file = "", what = double(0), nmax = -1, n = -1, sep = "",
     if(is.character(file))
         if(file == "") file <- stdin()
         else {
-            file <- if(nzchar(fileEncoding))
-                file(file, "r", encoding = fileEncoding) else file(file, "r")
+            file <- file(file, "r")
             on.exit(close(file))
         }
     if(!inherits(file, "connection"))

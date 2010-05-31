@@ -517,8 +517,8 @@ stopifnot(identical(m1, df1[1:2,]))
 ## Extending an S3 class with inconsistent (instance-based) inheritance
 setClass("myDateTime", contains = "POSIXt")
 
-now <- Sys.time() # class(now) is c("POSIXct", "POSIXt")
-nowLt <- as.POSIXlt(now)# class(nowLt) is c("POSIXlt", "POSIXt")
+now <- Sys.time() # class(now) is c("POSIXt", "POSIXct")
+nowLt <- as.POSIXlt(now)# class(nowLt) is c("POSIXt", "POSIXlt")
 
 mCt <- new("myDateTime", now)
 mLt <- new("myDateTime", nowLt)

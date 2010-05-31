@@ -203,8 +203,7 @@ function(x, delim = c("{", "}"), syntax = "Rd")
 
 texi2dvi <-
 function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
-         texi2dvi = getOption("texi2dvi"),
-         texinputs = NULL, index = TRUE)
+         texi2dvi = getOption("texi2dvi"), texinputs = NULL)
 {
     ## Run texi2dvi on a latex file, or emulate it.
 
@@ -238,10 +237,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
     } else on.exit(Sys.setenv(BSTINPUTS = bstinputs), add = TRUE)
     Sys.setenv(BSTINPUTS = paste(bstinputs, texinputs, sep = envSep))
 
-    if(index && nzchar(texi2dvi) && .Platform$OS.type != "windows") {
-        ## switch off the use of texindy in texi2dvi >= 1.157
-        Sys.setenv(TEXINDY = "false")
-        on.exit(Sys.unsetenv("TEXINDY"), add = TRUE)
+    if(nzchar(texi2dvi) && .Platform$OS.type != "windows") {
         opt_pdf <- if(pdf) "--pdf" else ""
         opt_quiet <- if(quiet) "--quiet" else ""
         opt_extra <- ""
@@ -319,7 +315,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
             message(paste(paste(out$stderr, collapse = "\n"),
                           paste(out$stdout, collapse = "\n"),
                           sep = "\n"))
-    } else if(index && nzchar(texi2dvi)) {       # Windows
+    } else if(nzchar(texi2dvi)) {       # Windows
         extra <- ""
         ext <- if(pdf) "pdf" else "dvi"
         pdf <- if(pdf) "--pdf" else ""
@@ -371,7 +367,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 
         if(nzchar(msg)) stop(msg, domain = NA)
     } else {
-        ## Do not have texi2dvi or don't want to index
+        ## Do not have texi2dvi
         ## Needed at least on Windows except for MiKTeX
         ## Note that this does not do anything about running quietly,
         ## nor cleaning, but is probably not used much anymore.
@@ -379,23 +375,28 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
         texfile <- shQuote(file)
         base <- file_path_sans_ext(file)
         idxfile <- paste(base, ".idx", sep="")
-        latex <- if(pdf) Sys.getenv("PDFLATEX", "pdflatex")
-        else  Sys.getenv("LATEX", "latex")
-        bibtex <- Sys.getenv("BIBTEX", "bibtex")
-        makeindex <- Sys.getenv("MAKEINDEX", "makeindex")
+        if(pdf) {
+            latex <- Sys.getenv("PDFLATEX")
+            if(!nzchar(latex)) latex <- "pdflatex"
+        } else {
+            latex <- Sys.getenv("LATEX")
+            if(!nzchar(latex)) latex <- "latex"
+        }
+        bibtex <- Sys.getenv("BIBTEX")
+        if(!nzchar(bibtex)) bibtex <- "bibtex"
+        makeindex <- Sys.getenv("MAKEINDEX")
+        if(!nzchar(makeindex)) makeindex <- "makeindex"
         if(system(paste(shQuote(latex), "-interaction=nonstopmode", texfile)))
-            stop(gettextf("unable to run '%s' on '%s'", latex, file),
-                 domain = NA)
+            stop(gettextf("unable to run %s on '%s'", latex, file), domain = NA)
         nmiss <- length(grep("^LaTeX Warning:.*Citation.*undefined",
                              readLines(paste(base, ".log", sep = ""))))
         for(iter in 1L:10L) { ## safety check
             ## This might fail as the citations have been included in the Rnw
             if(nmiss) system(paste(shQuote(bibtex), shQuote(base)))
             nmiss_prev <- nmiss
-            if(index && file.exists(idxfile)) {
+            if(file.exists(idxfile)) {
                 if(system(paste(shQuote(makeindex), shQuote(idxfile))))
-                    stop(gettextf("unable to run '%s' on '%s'",
-                                  makeindex, idxfile),
+                    stop(gettextf("unable to run %s on '%s'", makeindex, idxfile),
                          domain = NA)
             }
             if(system(paste(shQuote(latex), "-interaction=nonstopmode", texfile)))
@@ -413,10 +414,10 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 ### ** .BioC_version_associated_with_R_version
 
 .BioC_version_associated_with_R_version <-
-    numeric_version("2.7")
+    numeric_version("2.6")
 ## (Could also use something programmatically mapping (R) 2.10.x to
 ## (BioC) 2.5, 2.9.x to 2.4, ..., 2.1.x to 1.6, but what if R 3.0.0
-## comes out? Also, pre-2.12.0 is out weeks before all of BioC 2.7)
+## comes out?)
 
 ### * Internal utility functions.
 
@@ -816,7 +817,7 @@ function() {
 function()
     c("Package", "Version", "Priority",
       "Depends", "Imports", "LinkingTo", "Suggests", "Enhances",
-      "OS_type", "License", "Archs")
+      "OS_type", "License")
 
 ### ** .is_ASCII
 

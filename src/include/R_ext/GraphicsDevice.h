@@ -141,7 +141,7 @@ struct _DevDesc {
      * Event handling entries
      ********************************************************/
 
-    /* The next 4 are not currently used, but are kept for back compatibility */
+    /* These determine whether getGraphicsEvent will try to set an event handler */
 
     Rboolean canGenMouseDown; /* can the device generate mousedown events */
     Rboolean canGenMouseMove; /* can the device generate mousemove events */
@@ -150,7 +150,7 @@ struct _DevDesc {
 
     Rboolean gettingEvent;    /* This is set while getGraphicsEvent
 				 is actively looking for events */
-    
+
     /********************************************************
      * Device procedures.
      ********************************************************/
@@ -537,8 +537,13 @@ struct _DevDesc {
     void (*onExit)();
 #endif
     /*
-     * device_getEvent is no longer used, but the slot is kept for back
-     * compatibility of the structure.
+     * device_getEvent is called by do_getGraphicsEvent to get a modal
+     * graphics event.  It should call R_ProcessEvents() until one
+     * of the event handlers sets eventResult to a non-null value,
+     * and then return it
+     * An example is ...
+     *
+     * static SEXP GA_getEvent(SEXP eventRho, const char *prompt);
      */
     SEXP (*getEvent)(SEXP, const char *);
 
@@ -585,25 +590,6 @@ struct _DevDesc {
     Rboolean useRotatedTextInContour;
 
     /* --------- Post-2.7.0 features --------- */
-
-    /* Added in 2.12.0:  Changed graphics event handling. */
-    
-    SEXP eventEnv;		/* This is an environment holding the event handlers. */
-    /*
-     * initEvent(dd, true) is called by do_getGraphicsEvent before looking for a 
-     * graphics event.  It will then call R_ProcessEvents() 
-     * until this or another device returns sets a non-null result value in eventEnv,
-     * at which time initEvent(dd, false) will be called.
-     * 
-     * An example is ...
-     *
-     * static SEXP GA_initEvent(pDevDesc dd, Rboolean start);
-     */
-#if R_USE_PROTOTYPES
-    void (*initEvent)(pDevDesc dd, Rboolean start);
-#else
-    void (*initEvent)();
-#endif
 
     /* Area for future expansion.
        By zeroing this, devices are more likely to work if loaded
@@ -757,9 +743,9 @@ typedef enum {meMouseDown = 0,
 #define doKeybd			Rf_doKeybd
 #define doMouseEvent		Rf_doMouseEvent
 
-void doMouseEvent(pDevDesc dd, R_MouseEvent event,
+SEXP doMouseEvent(SEXP eventRho, pDevDesc dd, R_MouseEvent event,
                   int buttons, double x, double y);
-void doKeybd(pDevDesc dd, R_KeyName rkey,
+SEXP doKeybd(SEXP eventRho, pDevDesc dd, R_KeyName rkey,
 	     const char *keyname);
 
 

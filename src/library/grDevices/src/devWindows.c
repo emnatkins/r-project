@@ -3,7 +3,7 @@
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *  Copyright (C) 1998--2003  Guido Masarotto and Brian Ripley
  *  Copyright (C) 2004        The R Foundation
- *  Copyright (C) 2004-10     The R Development Core Team
+ *  Copyright (C) 2004-8      The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -196,7 +196,7 @@ static void GA_Clip(double x0, double x1, double y0, double y1,
 		     pDevDesc dd);
 static void GA_Close(pDevDesc dd);
 static void GA_Deactivate(pDevDesc dd);
-static void GA_initEvent(pDevDesc dd, Rboolean start);
+static SEXP GA_getEvent(SEXP eventRho, const char* prompt);
 static Rboolean GA_Locator(double *x, double *y, pDevDesc dd);
 static void GA_Line(double x1, double y1, double x2, double y2,
 		    const pGEcontext gc,
@@ -813,7 +813,8 @@ static void HelpMouseClick(window w, int button, point pt)
 	} else
 	    xd->clicked = 2;
 	if (dd->gettingEvent) {
-	    doMouseEvent(dd, meMouseDown, button, pt.x, pt.y);
+	    xd->eventResult = doMouseEvent(xd->eventRho, dd, meMouseDown,
+				button, pt.x, pt.y);
 	    if (xd->buffered) SHOW;
 	}
     }
@@ -827,7 +828,8 @@ static void HelpMouseMove(window w, int button, point pt)
 	gadesc *xd = (gadesc *) dd->deviceSpecific;
 
 	if (dd->gettingEvent) {
-	    doMouseEvent(dd, meMouseMove, button, pt.x, pt.y);
+	    xd->eventResult = doMouseEvent(xd->eventRho, dd, meMouseMove,
+				button, pt.x, pt.y);
 	    if (xd->buffered) SHOW;
 	}
     }
@@ -841,7 +843,8 @@ static void HelpMouseUp(window w, int button, point pt)
 	gadesc *xd = (gadesc *) dd->deviceSpecific;
 
 	if (dd->gettingEvent) {
-	    doMouseEvent(dd, meMouseUp,button, pt.x, pt.y);
+	    xd->eventResult = doMouseEvent(xd->eventRho, dd, meMouseUp,
+				button, pt.x, pt.y);
 	    if (xd->buffered) SHOW;
 	}
     }
@@ -1289,7 +1292,7 @@ static void CHelpKeyIn(control w, int key)
     if (dd->gettingEvent) {
 	keyname = getKeyName(key);
 	if (keyname > knUNKNOWN) {
-	    doKeybd(dd, keyname, NULL);
+	    xd->eventResult = doKeybd(xd->eventRho, dd, keyname, NULL);
 	    if (xd->buffered) SHOW;
 	}
     } else {
@@ -1328,7 +1331,7 @@ static void NHelpKeyIn(control w, int key)
 	    keyname[0] = (char) key;
 	    keyname[1] = '\0';
 	}
-	doKeybd(dd, knUNKNOWN, keyname);
+	xd->eventResult = doKeybd(xd->eventRho, dd, knUNKNOWN, keyname);
 	if (xd->buffered) SHOW;
     } else {
 	if (xd->replaying) return;
@@ -1679,13 +1682,16 @@ setupScreenDevice(pDevDesc dd, gadesc *xd, double w, double h,
     xd->replaying = FALSE;
     xd->resizing = resize;
 
-    dd->initEvent = GA_initEvent;
+    dd->getEvent = GA_getEvent;
 
     dd->canGenMouseDown = TRUE;
     dd->canGenMouseMove = TRUE;
     dd->canGenMouseUp = TRUE;
     dd->canGenKeybd = TRUE;
     dd->gettingEvent = FALSE;
+
+    xd->eventRho = NULL;
+    xd->eventResult = NULL;
 
     return TRUE;
 }
@@ -2930,8 +2936,10 @@ static void GA_Text0(double x, double y, const char *str, int enc,
     if (R_OPAQUE(gc->col)) {
 	if(gc->fontface != 5) {
 	    /* As from 2.7.0 can use Unicode always */
+	    wchar_t *wc;
 	    int n = strlen(str), cnt;
-	    wchar_t wc[n+1];/* only need terminator to debug */
+	    wc = alloca((n+1) * sizeof(wchar_t)); /* only need terminator to
+						     debug */
 	    R_CheckStack();
 	    cnt = (enc == CE_UTF8) ?
 		Rf_utf8towcs(wc, str, n+1): mbstowcs(wc, str, n);
@@ -2949,8 +2957,9 @@ static void GA_Text0(double x, double y, const char *str, int enc,
 	    gsetcliprect(xd->bm, xd->clip);
 	    gcopy(xd->bm2, xd->bm, r);
 	    if(gc->fontface != 5) {
+		wchar_t *wc;
 		int n = strlen(str), cnt;
-		wchar_t wc[n+1];
+		wc = alloca((n+1) * sizeof(wchar_t));
 		R_CheckStack();
 		cnt = (enc == CE_UTF8) ?
 		    Rf_utf8towcs(wc, str, n+1): mbstowcs(wc, str, n);
@@ -3319,6 +3328,7 @@ SEXP savePlot(SEXP args)
 
 
 /* Rbitmap  */
+#define BITMAP_DLL_NAME "\\library\\grDevices\\libs\\Rbitmap.dll"
 typedef int (*R_SaveAsBitmap)(/* variable set of args */);
 static R_SaveAsBitmap R_SaveAsPng, R_SaveAsJpeg, R_SaveAsBmp, R_SaveAsTIFF;
 
@@ -3330,9 +3340,7 @@ static int Load_Rbitmap_Dll()
     if (!RbitmapAlreadyLoaded) {
 	char szFullPath[PATH_MAX];
 	strcpy(szFullPath, R_HomeDir());
-	strcat(szFullPath, "\\library\\grDevices\\libs\\");
-	strcat(szFullPath, R_ARCH);
-	strcat(szFullPath, "\\Rbitmap.dll");
+	strcat(szFullPath, BITMAP_DLL_NAME);
 	if (((hRbitmapDll = LoadLibrary(szFullPath)) != NULL) &&
 	    ((R_SaveAsPng=
 	      (R_SaveAsBitmap)GetProcAddress(hRbitmapDll, "R_SaveAsPng"))
@@ -3627,6 +3635,7 @@ static void GA_onExit(pDevDesc dd)
     dd->onExit = NULL;
     xd->confirmation = FALSE;
     dd->gettingEvent = FALSE;
+    xd->eventRho = NULL;
 
     if (xd->cntxt) endcontext(xd->cntxt);
     if (xd->locator) donelocator((void *)xd);
@@ -3672,25 +3681,35 @@ static Rboolean GA_NewFrameConfirm(pDevDesc dev)
     return TRUE;
 }
 
-static void GA_initEvent(pDevDesc dd, Rboolean start)
+static SEXP GA_getEvent(SEXP eventRho, const char* prompt)
 {
-    gadesc *xd = dd->deviceSpecific;
+    gadesc *xd;
+    pGEDevDesc dd = GEcurrentDevice();
 
-    if (start) {
-    	show(xd->gawin);
-    	addto(xd->gawin);
-    	gchangemenubar(xd->mbar);
-    	gchangepopup(xd->gawin, NULL);
-    	if (isEnvironment(dd->eventEnv)) {
-    	    SEXP prompt = findVar(install("prompt"), dd->eventEnv);
-    	    if (length(prompt) == 1) {
-    		setstatus(CHAR(asChar(prompt)));
-    		settext(xd->gawin, CHAR(asChar(prompt)));
-    	    }
-    	}
-    	dd->onExit = GA_onExit;  /* install callback for cleanup */
-    } else
-    	dd->onExit(dd);
+    xd = dd->dev->deviceSpecific;
 
-    return;
+    if (xd->eventRho)
+	error(_("recursive use of getGraphicsEvent not supported"));
+    xd->eventRho = eventRho;
+
+    dd->dev->gettingEvent = TRUE;
+    show(xd->gawin);
+    addto(xd->gawin);
+    gchangemenubar(xd->mbar);
+    gchangepopup(xd->gawin, NULL);
+    setstatus(prompt);
+    Rprintf("%s", prompt);
+    Rprintf("\n", 1);
+    R_FlushConsole();
+    settext(xd->gawin, prompt);
+    xd->eventResult = NULL;
+    dd->dev->onExit = GA_onExit;  /* install callback for cleanup */
+    while (!xd->eventResult || xd->eventResult == R_NilValue) {
+	SH;
+	if (!peekevent()) WaitMessage();
+	R_ProcessEvents(); /* May not return if user interrupts */
+    }
+    dd->dev->onExit(dd->dev);
+
+    return xd->eventResult;
 }

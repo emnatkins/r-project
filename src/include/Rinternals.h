@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1999-2010   The R Development Core Team.
+ *  Copyright (C) 1999-2009   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -22,12 +22,7 @@
 #define R_INTERNALS_H_
 
 #ifdef __cplusplus
-#include <cstdio>
-#include <climits>
 extern "C" {
-#else
-#include <stdio.h>
-#include <limits.h> /* for INT_MAX */
 #endif
 
 #include <R_ext/Arith.h>
@@ -37,6 +32,17 @@ extern "C" {
 #include <R_ext/Memory.h>
 #include <R_ext/PrtUtil.h>
 #include <R_ext/Utils.h>
+
+#include <stdio.h> /* for FILE */
+/*
+#include <errno.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <limits.h>
+#include <float.h>
+#include <ctype.h>
+*/
 
 #include <R_ext/libextern.h>
 
@@ -926,8 +932,6 @@ int R_system(const char *);
 #define lang2			Rf_lang2
 #define lang3			Rf_lang3
 #define lang4			Rf_lang4
-#define lang5			Rf_lang5
-#define lang6			Rf_lang6
 #define lastElt			Rf_lastElt
 #define lcons			Rf_lcons
 #define length(x)		Rf_length(x)
@@ -936,7 +940,6 @@ int R_system(const char *);
 #define list2			Rf_list2
 #define list3			Rf_list3
 #define list4			Rf_list4
-#define list5			Rf_list5
 #define listAppend		Rf_listAppend
 #define match			Rf_match
 #define mkChar			Rf_mkChar
@@ -1021,8 +1024,6 @@ SEXP	 Rf_lang1(SEXP);
 SEXP	 Rf_lang2(SEXP, SEXP);
 SEXP	 Rf_lang3(SEXP, SEXP, SEXP);
 SEXP	 Rf_lang4(SEXP, SEXP, SEXP, SEXP);
-SEXP	 Rf_lang5(SEXP, SEXP, SEXP, SEXP, SEXP);
-SEXP	 Rf_lang6(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP	 Rf_lastElt(SEXP);
 SEXP	 Rf_lcons(SEXP, SEXP);
 R_len_t  Rf_length(SEXP);
@@ -1030,9 +1031,8 @@ SEXP	 Rf_list1(SEXP);
 SEXP	 Rf_list2(SEXP, SEXP);
 SEXP	 Rf_list3(SEXP, SEXP, SEXP);
 SEXP	 Rf_list4(SEXP, SEXP, SEXP, SEXP);
-SEXP	 Rf_list5(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP	 Rf_listAppend(SEXP, SEXP);
-SEXP	 Rf_mkNamed(SEXPTYPE, const char **);
+SEXP	 Rf_mkNamed(int, const char **);
 SEXP	 Rf_mkString(const char *);
 int	 Rf_nlevels(SEXP);
 SEXP	 Rf_ScalarComplex(Rcomplex);

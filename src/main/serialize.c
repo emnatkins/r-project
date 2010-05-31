@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2010  The R Development Core Team
+ *  Copyright (C) 1997--2009  The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@
 #include <Rversion.h>
 #include <R_ext/RS.h>           /* for CallocCharBuf, Free */
 #include <errno.h>
-#include <ctype.h>		/* for isspace */
 
 /* From time to time changes in R, such as the addition of a new SXP,
  * may require changes in the save file format.  Here are some
@@ -1199,6 +1198,7 @@ static SEXP ReadItem (SEXP ref_table, R_inpstream_t stream)
     SEXPTYPE type;
     SEXP s;
     int flags, levs, objf, hasattr, hastag, length, count;
+    char *cbuf;
 
     R_assert(TYPEOF(ref_table) == LISTSXP && TYPEOF(CAR(ref_table)) == VECSXP);
 
@@ -1310,14 +1310,12 @@ static SEXP ReadItem (SEXP ref_table, R_inpstream_t stream)
 	    break;
 	case SPECIALSXP:
 	case BUILTINSXP:
-	    {
-		/* These are all short strings */
-		length = InInteger(stream);
-		char cbuf[length+1];
-		InString(stream, cbuf, length);
-		cbuf[length] = '\0';
-		PROTECT(s = mkPRIMSXP(StrToInternal(cbuf), type == BUILTINSXP));
-	    }
+	    /* These are all short strings */
+	    length = InInteger(stream);
+	    cbuf = alloca(length+1);
+	    InString(stream, cbuf, length);
+	    cbuf[length] = '\0';
+	    PROTECT(s = mkPRIMSXP(StrToInternal(cbuf), type == BUILTINSXP));
 	    break;
 	case CHARSXP:
 	    length = InInteger(stream);
@@ -1325,7 +1323,7 @@ static SEXP ReadItem (SEXP ref_table, R_inpstream_t stream)
 		PROTECT(s = NA_STRING);
 	    else if (length < 1000) {
 		int enc = CE_NATIVE;
-		char cbuf[length+1];
+		cbuf = alloca(length+1);
 		InString(stream, cbuf, length);
 		cbuf[length] = '\0';
 		if (levs & UTF8_MASK) enc = CE_UTF8;
@@ -1333,7 +1331,7 @@ static SEXP ReadItem (SEXP ref_table, R_inpstream_t stream)
 		PROTECT(s = mkCharLenCE(cbuf, length, enc));
 	    } else {
 		int enc = CE_NATIVE;
-		char *cbuf = CallocCharBuf(length);
+		cbuf = CallocCharBuf(length);
 		InString(stream, cbuf, length);
 		if (levs & UTF8_MASK) enc = CE_UTF8;
 		else if (levs & LATIN1_MASK) enc = CE_LATIN1;

@@ -1,5 +1,7 @@
 ## ${R_HOME}/share/make/winshlib.mk
 
+include $(R_HOME)/etc${R_ARCH}/Makeconf
+
 all: $(SHLIB)
 
 BASE = $(shell basename $(SHLIB) .dll)

@@ -98,11 +98,12 @@
   integer vectors, except \code{sec}.
 
   \code{"POSIXct"} is more convenient for including in data frames, and
-  \code{"POSIXlt"} is closer to human-readable forms.  A virtual class
-  \code{"POSIXt"} exists from which both of the classes inherit: it is
-  used to allow operations such as subtraction to mix the two classes.
-  Note that \code{\link{length}(x)} is the length of the corresponding
-  (abstract) date/time vector, also in the \code{"POSIXlt"} case.
+  \code{"POSIXlt"} is closer to human-readable forms.
+  A virtual class \code{"POSIXt"} inherits from both of the classes: it
+  is used to allow operations such as subtraction to mix the two
+  classes.  Note that \code{\link{length}(x)} is the length of the
+  corresponding (abstract) date/time vector, also in the
+  \code{"POSIXlt"} case.
 
   Components \code{wday} and \code{yday} of \code{"POSIXlt"} are for
   information, and are not used in the conversion to calendar time.
@@ -210,7 +211,7 @@
   tried to work around this, but if you get unexpected results try
   setting \code{"TZ"}.  See \code{\link{Sys.timezone}} for valid settings.
 }
-\examples{\donttest{
+\examples{
 (z <- Sys.time())             # the current date, as class "POSIXct"
 
 Sys.time() - 3600             # an hour ago
@@ -218,6 +219,6 @@ Sys.time() - 3600             # an hour ago
 as.POSIXlt(Sys.time(), "GMT") # the current time in GMT
 format(.leap.seconds)         # all 24 leapseconds in your timezone
 print(.leap.seconds, tz="PST8PDT")  # and in Seattle's
-}}
+}
 \keyword{utilities}
 \keyword{chron}

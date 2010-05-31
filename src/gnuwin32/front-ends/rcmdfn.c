@@ -27,7 +27,7 @@
 # define BINDIR "bin"
 #endif
 
-extern char *getRHOME(int), *getRUser(void); /* in ../rhome.c */
+extern char *getRHOME(void), *getRUser(void); /* in ../rhome.c */
 
 void R_Suicide(char *s) /* for use in ../rhome.o */
 {
@@ -95,7 +95,6 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 {
     /* tasks:
        find R_HOME, set as env variable (with / as separator)
-       set R_ARCH if not already set
        set PATH to include R_HOME\bin
        set TMPDIR if unset
        set HOME if unset
@@ -104,7 +103,8 @@ int rcmdfn (int cmdarg, int argc, char **argv)
        launch %R_HOME%\bin\$*
      */
     int i, iused, status = 0;
-    char *p, cmd[CMD_LEN];
+    char *RHome, BUFFER[10000],
+	RHOME[MAX_PATH], *p, cmd[CMD_LEN], Rversion[25], HOME[MAX_PATH + 10];
     char RCMD[] = "R CMD";
     int len = strlen(argv[0]);
     char env_path[MAX_PATH];
@@ -134,7 +134,7 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 	    return(0);
 	}
 	/* R --help */
-	snprintf(cmd, CMD_LEN, "%s/%s/Rterm.exe --help", getRHOME(3), BINDIR);
+	snprintf(cmd, CMD_LEN, "%s/%s/Rterm.exe --help", getRHOME(), BINDIR);
 	system(cmd);
 	fprintf(stderr, "%s", "\n\nOr: R CMD command args\n\n");
 	rcmdusage(RCMD);
@@ -224,7 +224,7 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 	}
 
 	snprintf(cmd, CMD_LEN, "%s/%s/Rterm.exe -f \"%s\" --restore --save",
-		 getRHOME(3), BINDIR, infile);
+		 getRHOME(), BINDIR, infile);
 	if(strlen(cmd) + strlen(cmd_extra) >= CMD_LEN) {
 	    fprintf(stderr, "command line too long\n");
 	    return(27);
@@ -270,7 +270,7 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 	/* handle Rcmd INSTALL internally */
 	snprintf(cmd, CMD_LEN, 
 		 "%s/%s/Rterm.exe -e tools:::.install_packages() R_DEFAULT_PACKAGES= LC_COLLATE=C --no-restore --slave --args ",
-		 getRHOME(3), BINDIR);
+		 getRHOME(), BINDIR);
 	for (i = cmdarg + 1; i < argc; i++) {
 	    strcat(cmd, "nextArg");
 	    if (strlen(cmd) + strlen(argv[i]) > 9900) {
@@ -286,7 +286,7 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 	/* handle Rcmd REMOVE internally */
 	snprintf(cmd, CMD_LEN, 
 		 "%s/%s/Rterm.exe -f \"%s/share/R/REMOVE.R\" R_DEFAULT_PACKAGES=NULL --slave --args",
-		 getRHOME(3), BINDIR, getRHOME(3));
+		 getRHOME(), BINDIR, getRHOME());
 	for (i = cmdarg + 1; i < argc; i++){
 	    strcat(cmd, " ");
 	    if (strlen(cmd) + strlen(argv[i]) > 9900) {
@@ -302,26 +302,8 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 	}
 	status = system(cmd);
 	return(status);
-    } else if (cmdarg > 0 && argc > cmdarg && 
-	      strcmp(argv[cmdarg], "build") == 0) {
-	/* handle Rcmd build internally */
-	snprintf(cmd, CMD_LEN, 
-		 "%s/%s/Rterm.exe -e tools:::.build_packages() R_DEFAULT_PACKAGES= LC_COLLATE=C --no-restore --slave --args ",
-		 getRHOME(3), BINDIR);
-	for (i = cmdarg + 1; i < argc; i++) {
-	    strcat(cmd, "nextArg");
-	    if (strlen(cmd) + strlen(argv[i]) > 9900) {
-		fprintf(stderr, "command line too long\n");
-		return(27);
-	    }
-	    strcat(cmd, argv[i]);
-	}
-	status = system(cmd);
-	return(status);
     } else {
-	char RHOME[MAX_PATH], Path[MAX_PATH+10], Rarch[30], Bindir[30], 
-	    Tmpdir[MAX_PATH+10], HOME[MAX_PATH+10], Rversion[25];
-	char *RHome = getRHOME(3);
+	RHome = getRHOME();
 	if (argc > cmdarg+1 && 
 	    strcmp(argv[cmdarg+1], "RHOME") == 0) {
 	    fprintf(stdout, "%s", RHome);
@@ -337,39 +319,33 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 
 	putenv("R_CMD=R CMD");
 
-	strcpy(Path, "PATH=");
-	strcat(Path, RHome);
-	strcat(Path, "\\"); 
-	strcat(Path, BINDIR);
-	strcat(Path, ";"); 
-	strcat(Path, getenv("PATH"));
-	putenv(Path);
+	strcpy(BUFFER, "PATH=");
+	strcat(BUFFER, RHome);
+	strcat(BUFFER, "\\"); 
+	strcat(BUFFER, BINDIR);
+	strcat(BUFFER, ";"); 
+	strcat(BUFFER, getenv("PATH"));
+	putenv(BUFFER);
 
-	if (!getenv("R_ARCH")) {
-	    strcpy(Rarch, "R_ARCH=/");
-	    strcat(Rarch, R_ARCH);
-	    putenv(Rarch);
-	}
-
-	strcpy(Bindir, "BINDIR=");
-	strcat(Bindir, BINDIR);
-	putenv(Bindir);
+	strcpy(BUFFER, "BINDIR=");
+	strcat(BUFFER, BINDIR);
+	putenv(BUFFER);
 
 	if ( (p = getenv("TMPDIR")) && isDir(p)) {
 	    /* TMPDIR is already set */
 	} else {
 	    if ( (p = getenv("TEMP")) && isDir(p)) {
-		strcpy(Tmpdir, "TMPDIR=");
-		strcat(Tmpdir, p);
-		putenv(Tmpdir);
+		strcpy(BUFFER, "TMPDIR=");
+		strcat(BUFFER, p);
+		putenv(BUFFER);
 	    } else if ( (p = getenv("TMP")) && isDir(p)) {
-		strcpy(Tmpdir, "TMPDIR=");
-		strcat(Tmpdir, p);
-		putenv(Tmpdir);
+		strcpy(BUFFER, "TMPDIR=");
+		strcat(BUFFER, p);
+		putenv(BUFFER);
 	    } else {
-		strcpy(Tmpdir, "TMPDIR=");
-		strcat(Tmpdir, getRUser());
-		putenv(Tmpdir);
+		strcpy(BUFFER, "TMPDIR=");
+		strcat(BUFFER, getRUser());
+		putenv(BUFFER);
 	    }
 	}
 
@@ -406,8 +382,8 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 		snprintf(cmd, CMD_LEN, "sh %s/bin/Rd2dvi.sh --pdf", RHome);
 		strcpy(cmd, "sh ");
 		strcat(cmd, RHome); strcat(cmd, "/bin/Rd2dvi.sh --pdf");
-	    } else if (strcmp(p, "obuild") == 0) {
-		snprintf(cmd, CMD_LEN, "perl %s/bin/obuild.pl", RHome);
+	    } else if (strcmp(p, "build") == 0) {
+		snprintf(cmd, CMD_LEN, "perl %s/bin/build.pl", RHome);
 	    } else if (strcmp(p, "check") == 0) {
 		snprintf(cmd, CMD_LEN, "perl %s/bin/check.pl", RHome);
 	    } else if (strcmp(p, "Rprof") == 0) {
@@ -424,7 +400,7 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 		strcat(cmd, p);
 	    }
 	} else
-	    snprintf(cmd, CMD_LEN, "%s/%s/Rterm.exe", getRHOME(3), BINDIR);
+	    snprintf(cmd, CMD_LEN, "%s/%s/Rterm.exe", getRHOME(), BINDIR);
 
 	for (i = cmdarg + 1; i < argc; i++){
 	    strcat(cmd, " ");

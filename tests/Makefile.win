@@ -32,8 +32,8 @@ ECHO_T =
 MK = $(MAKE) -f Makefile.win
 TAR = tar
 
-test-src-reg-1 = reg-examples.R reg-tests-1.R reg-tests-2.R \
-  reg-IO.R reg-IO2.R reg-plot.R reg-S4.R reg-win.R
+test-src-reg-1 = reg-tests-1.R reg-tests-2.R reg-IO.R reg-IO2.R \
+  reg-plot.R reg-S4.R reg-win.R
 
 all-basic-tests = Examples Specific Reg Internet
 all-devel-tests = Docs IsAs Random Demo Primitive Regexp Segfault \
@@ -63,7 +63,7 @@ test-Standalone:
 
 clean:
 	@rm -f *.Rout *.Rout.fail internet.Rout2 Rplots.ps reg-plot.ps \
-	  reg-plot-latin1.ps reg-tests-*.ps \
+	  reg-plot-latin1.ps reg-tests-?.ps \
 	  $(test-src-auto) R-exts.* R-exts_res.rc R-intro.R Makedeps
 	@rm -rf *.Rcheck myTst* myLib Rprofmem.out
 	@rm -f FALSE* PACKAGES* .R .tex mirrors.html Rplots*.pdf
@@ -81,4 +81,3 @@ install-tests:
 	@for f in $(INSTFILES); do \
 	  cp $(srcdir)/$${f} "$(INST_TO)"; \
 	done
-	@$(MAKE) -C Examples -f Makefile.win install-tests INST_TO="$(INST_TO)"

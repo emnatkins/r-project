@@ -256,8 +256,7 @@ lm.wfit <- function (x, y, w, offset = NULL, method = "qr", tol = 1e-7,
 
 print.lm <- function(x, digits = max(3, getOption("digits") - 3), ...)
 {
-    cat("\nCall:\n",
-	paste(deparse(x$call), sep="\n", collapse = "\n"), "\n\n", sep="")
+    cat("\nCall:\n",deparse(x$call),"\n\n",sep="")
     if(length(coef(x))) {
         cat("Coefficients:\n")
         print.default(format(coef(x), digits=digits),
@@ -357,8 +356,8 @@ print.summary.lm <-
               symbolic.cor = x$symbolic.cor,
 	      signif.stars= getOption("show.signif.stars"),	...)
 {
-    cat("\nCall:\n", # S has ' ' instead of '\n'
-	paste(deparse(x$call), sep="\n", collapse = "\n"), "\n\n", sep="")
+    cat("\nCall:\n")#S: ' ' instead of '\n'
+    cat(paste(deparse(x$call), sep="\n", collapse = "\n"), "\n\n", sep="")
     resid <- x$residuals
     df <- x$df
     rdf <- df[2L]
@@ -369,10 +368,7 @@ print.summary.lm <-
 	rq <- if (length(dim(resid)) == 2L)
 	    structure(apply(t(resid), 1L, quantile),
 		      dimnames = list(nam, dimnames(resid)[[2L]]))
-	else  {
-            zz <- zapsmall(quantile(resid), digits + 1)
-            structure(zz, names = nam)
-        }
+	else  structure(quantile(resid), names = nam)
 	print(rq, digits = digits, ...)
     }
     else if (rdf > 0L) {

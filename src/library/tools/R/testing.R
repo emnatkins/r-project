@@ -18,17 +18,16 @@
 
 massageExamples <- function(pkg, files, outFile = stdout(), addTiming = FALSE)
 {
-    if(file_test("-d", files[1L])) {
-        old <- Sys.setlocale("LC_COLLATE", "C")
+    if(file_test("-d", files[1L]))
         files <- sort(Sys.glob(file.path(files, "*.R")))
-        Sys.setlocale("LC_COLLATE", old)
-    }
 
     if(is.character(outFile)) {
         out <- file(outFile, "wt")
         on.exit(close(out))
     } else out <- outFile
 
+#    lines <- readLines(file.path(R.home("share"), "R", "examples-header.R"))
+#    cat(sub("@PKG@", pkg, lines), sep = "\n", file = out)
     lines <- c(paste('pkgname <- "', pkg, '"', sep =""),
                'source(file.path(R.home("share"), "R", "examples-header.R"))',
                "options(warn = 1)")
@@ -61,8 +60,6 @@ massageExamples <- function(pkg, files, outFile = stdout(), addTiming = FALSE)
         nm <- sub("\\.R$", "", basename(file))
         ## make a syntactic name out of the filename
         nm <- gsub("[^- .a-zA-Z0-9_]", ".", nm, perl = TRUE, useBytes = TRUE)
-        if (pkg == "grDevices" && nm == "postscript") next
-        ## we set the encoding in postscript(): this should now work everywhere
         if (pkg == "graphics" && nm == "text") next
         if(!file.exists(file)) stop("file ", file, " cannot be opened")
         lines <- readLines(file)
@@ -125,19 +122,15 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE)
         ## regularize fancy quotes.
         txt <- gsub("(\xe2\x80\x98|\xe2\x80\x99)", "'", txt,
                       perl = TRUE, useBytes = TRUE)
-        if(.Platform$OS.type == "windows") {
-            ## not entirely safe ...
+        if(.Platform$OS.type == "windows") # not entirely safe ...
             txt <- gsub("(\x93|\x94)", "'", txt, perl = TRUE, useBytes = TRUE)
-            txt <- txt[!grepl('options(pager = "console")', txt,
-                              fixed = TRUE, useBytes = TRUE)]
-        }
         pat <- '(^Time |^Loading required package|^Package [A-Za-z][A-Za-z0-9]+ loaded|^<(environment|promise|pointer): )'
         txt[!grepl(pat, txt, perl = TRUE, useBytes = TRUE)]
     }
     clean2 <- function(txt)
     {
         eoh <- grep("^> options\\(warn = 1\\)$", txt)
-        if(length(eoh)) txt[-(1L:eoh[1L])] else txt
+        if(length(eoh)) txt[-(1:eoh[1])] else txt
     }
 
     left <- clean(readLines(from))
@@ -173,7 +166,7 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE)
 testInstalledPackages <-
     function(outDir = ".", errorsAreFatal = TRUE,
              scope = c("both", "base", "recommended"),
-             types = c("examples", "tests", "vignettes"), srcdir = NULL)
+             types = c("examples", "tests", "vignettes"))
 {
     ow <- options(warn = 1)
     on.exit(ow)
@@ -187,9 +180,7 @@ testInstalledPackages <-
         pkgs <- c(pkgs, known_packages$recommended)
     ## It *should* be an error if any of these are missing
     for (pkg in pkgs) {
-        if(is.null(srcdir) && pkg %in% known_packages$base)
-            srcdir <- R.home("tests/Examples")
-        res <- testInstalledPackage(pkg, .Library, outDir, types, srcdir)
+        res <- testInstalledPackage(pkg, .Library, outDir, types)
         if (res) {
             status <- 1L
             msg <- gettextf("testing '%s' failed", pkg)
@@ -202,8 +193,7 @@ testInstalledPackages <-
 
 testInstalledPackage <-
     function(pkg, lib.loc = NULL, outDir = ".",
-             types = c("examples", "tests", "vignettes"),
-             srcdir = NULL)
+             types = c("examples", "tests", "vignettes"))
 {
     types <- pmatch(types, c("examples", "tests", "vignettes"))
     pkgdir <- .find.package(pkg, lib.loc)
@@ -211,7 +201,7 @@ testInstalledPackage <-
     owd <- setwd(outDir)
     on.exit(setwd(owd))
 
-    if (1 %in% types) {
+    if (1 %in% types) { # && file_test("-d", exdir)) {
         message("\nCollecting examples for package ", sQuote(pkg))
         Rfile <- .createExdotR(pkg, pkgdir)
         if (length(Rfile)) {
@@ -230,15 +220,7 @@ testInstalledPackage <-
             res <- system(cmd)
             if (res) return(invisible(1L)) else file.rename(failfile, outfile)
 
-            savefile <- paste(outfile, "save", sep = "." )
-            if (!is.null(srcdir)) savefile <- file.path(srcdir, savefile)
-            else {
-                tfile <- file.path(pkgdir, "tests", "Examples" , savefile)
-                if(!file.exists(savefile) && file.exists(tfile))
-                    savefile <- tfile
-            }
-            if (!file.exists(savefile))
-                savefile <- paste(outfile, "prev", sep = "." )
+            savefile <- paste(outfile, "prev", sep = "." )
             if (file.exists(savefile)) {
                 message("  Comparing ", sQuote(outfile), " to ",
                         sQuote(basename(savefile)), " ...", appendLF = FALSE)
@@ -359,34 +341,39 @@ testInstalledPackage <-
     Rfile <- paste(pkg, "-Ex.R", sep = "")
     ## might be zipped:
     exdir <- file.path(pkgdir, "R-ex")
-
-    db <- Rd_db(basename(pkgdir), lib.loc = dirname(pkgdir))
-    if (!length(db)) {
-        message("no parsed files found")
-        return(invisible(NULL))
+    if (file_test("-d", exdir)) {
+        if (file.exists(fzip <- file.path(exdir, "Rex.zip"))) {
+            filedir <- tempfile()
+            unzip(fzip, exdir = filedir)
+            on.exit(unlink(filedir, recursive = TRUE))
+        } else filedir <- exdir
+    } else {
+        db <- Rd_db(basename(pkgdir), lib.loc = dirname(pkgdir))
+        if (!length(db)) {
+            message("no parsed files found")
+            return(invisible(NULL))
+        }
+        if (!silent) message("  Extracting from parsed Rd's ",
+                             appendLF = FALSE, domain = NA)
+        files <- names(db)
+        filedir <- tempfile()
+        dir.create(filedir)
+        on.exit(unlink(filedir, recursive = TRUE))
+        cnt <- 0L
+        for(f in files) {
+            ## names are 'fullpath.Rd' if from 'man' dir, 'topic' if from RdDB
+            nm <- sub("\\.[Rr]d$", "", basename(f))
+            Rd2ex(db[[f]],
+                  file.path(filedir, paste(nm, "R", sep = ".")),
+                  defines = NULL)
+            cnt <- cnt + 1L
+            if(!silent && cnt %% 10L == 0L)
+                message(".", appendLF = FALSE, domain = NA)
+        }
+        if (!silent) message()
+        nof <- length(Sys.glob(file.path(filedir, "*.R")))
+        if(!nof) return(invisible(NULL))
     }
-    if (!silent) message("  Extracting from parsed Rd's ",
-                         appendLF = FALSE, domain = NA)
-    files <- names(db)
-    if (pkg == "grDevices")
-        files <- files[!grepl("/unix|windows/", files)]
-    filedir <- tempfile()
-    dir.create(filedir)
-    on.exit(unlink(filedir, recursive = TRUE))
-    cnt <- 0L
-    for(f in files) {
-        nm <- sub("\\.[Rr]d$", "", basename(f))
-        Rd2ex(db[[f]],
-              file.path(filedir, paste(nm, "R", sep = ".")),
-              defines = NULL)
-        cnt <- cnt + 1L
-        if(!silent && cnt %% 10L == 0L)
-            message(".", appendLF = FALSE, domain = NA)
-    }
-    if (!silent) message()
-    nof <- length(Sys.glob(file.path(filedir, "*.R")))
-    if(!nof) return(invisible(NULL))
-
     massageExamples(pkg, filedir, Rfile, addTiming)
     invisible(Rfile)
 }

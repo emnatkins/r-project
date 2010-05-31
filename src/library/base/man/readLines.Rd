@@ -50,11 +50,13 @@ readLines(con = stdin(), n = -1L, ok = TRUE, warn = TRUE,
 
   Whatever mode the connection is opened in, any of LF, CRLF or CR will
   be accepted as the EOL marker for a line.
+#ifdef windows
 
   If \code{con} is a not-already-open \link{connection} with a non-default
   \code{encoding} argument, the text is converted to UTF-8 and declared
   as such (and the \code{encoding} argument to \code{readLines} is ignored).
   See the examples.
+#endif
 }
 \value{
   A character vector of length the number of lines read.
@@ -88,10 +90,13 @@ close(con)
 
 unlink("test1") # tidy up
 
+#ifdef windows
 \dontrun{
 # read a 'Windows Unicode' file 
-A <- readLines(file("Unicode.txt", encoding="UCS-2LE"))
-unique(Encoding(A)) # will most likely be UTF-8
-}}
+A <- readLines(file("Unicode.txt", encoding="UCS"))
+unique(Encoding(A)) # will be UTF-8
+}
+#endif
+}
 \keyword{file}
 \keyword{connection}

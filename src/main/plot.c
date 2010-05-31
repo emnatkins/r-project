@@ -24,7 +24,6 @@
 #endif
 
 #include <Defn.h>
-#include <float.h>  /* for DBL_MAX */
 #include <Graphics.h>
 #include <Colors.h> /* for isNAcol */
 #include <Print.h>

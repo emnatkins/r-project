@@ -28,18 +28,16 @@ normalizePath(path)
 \value{
   A character vector.
 
-  If a path is not a real path the result is undefined. On 
-  Unix-alikes, this will likely be the corresponding input element.
-  On Windows, a warning will be issued, and the result will be either
-  the corresponding input element, or a transformation of it
-  into an absolute path.
+  If a path is not a real path the result is undefined.
+  On Unix-alikes, this will likely be the corresponding input element.
+  On Windows, it will likely result in an error being signalled.
 }
 #ifdef windows
 \seealso{
   \code{\link{shortPathName}}
 }
 #endif
-\examples{\donttest{ # random tempdir
+\examples{
 cat(normalizePath(c(R.home(), tempdir())), sep = "\n")
-}}
+}
 \keyword{ utilities }

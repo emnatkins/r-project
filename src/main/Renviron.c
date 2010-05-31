@@ -31,7 +31,6 @@
 #include <Defn.h> /* for PATH_MAX */
 #include <Rinterface.h>
 #include <Fileio.h>
-#include <ctype.h>		/* for isspace */
 
 /* remove leading and trailing space */
 static char *rmspace(char *s)
@@ -90,7 +89,7 @@ static char *findRbrace(char *s)
 #define BUF_SIZE 10000
 static char *findterm(char *s)
 {
-    char *p, *q, *r2, *ss=s;
+    char *p, *q, *r, *r2, *ss=s;
     static char ans[BUF_SIZE];
     int nans;
 
@@ -105,7 +104,7 @@ static char *findterm(char *s)
 	/* copy over leading part */
 	nans = strlen(ans);
 	strncat(ans, s, p-s); ans[nans + p - s] = '\0';
-	char r[q - p + 2];
+	r = (char *) alloca(q - p + 2);
 	strncpy(r, p, q - p + 1);
 	r[q - p + 1] = '\0';
 	r2 = subterm(r);
@@ -276,11 +275,6 @@ void process_user_Renviron()
 	return;
     }
 
-#ifdef R_ARCH
-    char buff[100];
-    snprintf(buff, 100, ".Renviron.%s", R_ARCH);
-    if( process_Renviron(buff)) return;
-#endif
     if(process_Renviron(".Renviron")) return;
 #ifdef Unix
     s = R_ExpandFileName("~/.Renviron");
@@ -295,10 +289,6 @@ void process_user_Renviron()
 	snprintf(buf, 1024, "%s/.Renviron", s);
 	s = buf;
     }
-#endif
-#ifdef R_ARCH
-    snprintf(buff, 100, "%s.%s", s, R_ARCH);
-    if( process_Renviron(buff)) return;
 #endif
     process_Renviron(s);
 }

@@ -198,13 +198,13 @@ void set_iconv(Rconnection con)
     if(con->canread) {
 	size_t onb = 50;
 	char *ob = con->oconvbuff;
-	/* UTF8out is set in readLines() and scan()
-	   Was Windows-only until 2.12.0, but we now require iconv.
-	 */
-	Rboolean useUTF8 = !utf8locale && con->UTF8out;
-	tmp = Riconv_open(useUTF8 ? "UTF-8" : "", con->encname);
+#ifndef Win32
+	con->UTF8out = FALSE;  /* No point in converting to UTF-8
+				  unless in a UTF-8 locale */
+#endif
+	tmp = Riconv_open(con->UTF8out ? "UTF-8" : "", con->encname);
 	if(tmp != (void *)-1) con->inconv = tmp;
-	else set_iconv_error(con, con->encname, useUTF8 ? "UTF-8" : "");
+	else set_iconv_error(con, con->encname, con->UTF8out ? "UTF-8" : "");
 	con->EOF_signalled = FALSE;
 	/* initialize state, and prepare any initial bytes */
 	Riconv(tmp, NULL, NULL, &ob, &onb);
@@ -531,7 +531,7 @@ static Rboolean file_open(Rconnection con)
 #ifdef Win32
 	if(con->enc == CE_UTF8) {
 	    int n = strlen(name);
-	    wchar_t wname[2 * (n+1)], wmode[10];
+	    wchar_t *wname = (wchar_t *) alloca(2 * (n+1)), wmode[10];
 	    R_CheckStack();
 	    Rf_utf8towcs(wname, name, n+1);
 	    mbstowcs(wmode, con->mode, 10);
@@ -795,7 +795,9 @@ static Rconnection newfile(const char *description, int enc, const char *mode,
 # include <sys/stat.h>
 #endif
 
+#ifdef HAVE_ERRNO_H
 # include <errno.h>
+#endif
 
 typedef struct fifoconn {
     int fd;
@@ -1023,7 +1025,7 @@ static Rboolean pipe_open(Rconnection con)
 #ifdef Win32
     if(con->enc == CE_UTF8) {
 	int n = strlen(con->description);
-	wchar_t wname[2 * (n+1)], wmode[10];
+	wchar_t *wname = (wchar_t *) alloca(2 * (n+1)), wmode[10];
 	R_CheckStack();
 	Rf_utf8towcs(wname, con->description, n+1);
 	mbstowcs(wmode, con->mode, 10);

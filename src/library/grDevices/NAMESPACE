@@ -21,14 +21,12 @@ export(Hershey, as.graphicsAnnot, as.raster,
        dev.copy, dev.copy2eps, dev.copy2pdf, dev.cur, dev.interactive,
        dev.list, dev.new, dev.next, dev.off, dev.prev, dev.print,
        dev.set, dev.size, dev2bitmap, deviceIsInteractive, embedFonts,
-       extendrange, getGraphicsEvent, getGraphicsEventEnv, 
-       graphics.off, gray, grey,
+       extendrange, getGraphicsEvent, graphics.off, gray, grey,
        gray.colors, grey.colors, heat.colors, hsv, hcl, is.raster, make.rgb,
        n2mfrow, nclass.Sturges, nclass.FD, nclass.scott, palette, pdf,
        pdf.options, pdfFonts, pictex, postscript, postscriptFont,
        postscriptFonts, ps.options, rainbow, recordGraphics,
-       recordPlot, replayPlot, rgb, rgb2hsv, savePlot, setEPS, 
-       setGraphicsEventEnv, setGraphicsEventHandlers, setPS,
+       recordPlot, replayPlot, rgb, rgb2hsv, savePlot, setEPS, setPS,
        terrain.colors, topo.colors, trans3d, Type1Font, xfig, xyTable,
        xy.coords, xyz.coords)
 
@@ -53,10 +51,6 @@ S3method("as.raster", "matrix")
 S3method("as.raster", "array")
 
 S3method("print", "raster")
-
-S3method(pretty, Date)
-S3method(pretty, POSIXt)
-
 
 if(tools:::.OStype() == "windows") {
     export(bringToTop, msgWindow, win.graph, win.metafile, win.print,

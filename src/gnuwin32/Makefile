@@ -18,7 +18,7 @@ all:
 	@$(MK) rbuild
 	@$(MK) -C ../library -f Makefile.win all WIN=$(WIN)
 	@$(MK) -C ../library -f Makefile.win docs
-	@$(MK) htmldocs docfiles
+	@$(MK) htmldocs
 	@$(MK)  -C ../../po -f Makefile.win
 
 rpackages:
@@ -36,6 +36,18 @@ endif
 ## must be absolute and space-free.  
 ## NB: will not be set correctly first time through.
 RHOME = $(shell ./Rpwd.exe ../..)
+
+REXE = $(RHOME)/$(BINDIR)/rterm.exe --vanilla --slave
+
+RPREFIX = $(shell $(PERL) fixed/rwver.pl ../../VERSION)
+
+FULLVERSION=`cat ../../VERSION`
+
+DATE = $(shell date +%F)
+
+SVNREVISION=`sed -e 1s/Revision:.// -e q <$(RHOME)/SVN-REVISION`
+
+RLIB = $(RHOME)/library
 
 OPTFLAGS=-O3 -Wall -pedantic
 FOPTFLAGS=-O3
@@ -128,7 +140,7 @@ COPYRIGHTS: ../../doc/COPYRIGHTS COPYRIGHTS.win
 	cat $^ > $@
 
 
-fixfiles: 
+fixfiles: docfiles 
 	@$(MKDIR) -p ../../$(BINDIR) ../../bin
 	@$(MK) -C ./fixed
 
@@ -265,7 +277,7 @@ distclean: clean
 	$(RM) ../../etc/Makeconf ../../etc/Rconsole ../../etc/Rdevga \
 	../../etc/Rprofile.site ../../etc/rgb.txt ../../etc/Rcmd_environ \
 	../../tests/*.Rout ../../tests/*.Rout.fail
-	$(RM) -r ../../etc/i386 ../../etc/x64 # do both sub-archs
+	$(RM) -r ../../etc/x64
 	$(RM) -r ../../share/zoneinfo
 	$(MAKE) -C fixed distclean
 	$(MAKE) -C ../include -f Makefile.win distclean
@@ -275,7 +287,8 @@ distclean: clean
 	done
 	$(RM) ../../SVN-REVISION.bak
 	$(RM) rw-FAQ fixed/html/rw-FAQ.html
-	$(MAKE) -C cran clean
+	$(RM) -r cran/*.html cran/*.htm cran/ReadMe cran/README* cran/*.exe \
+		cran/md5sum.txt cran/*.$(RPREFIX) 
 	$(RM) -r .vignettes # it gets left behind if there is an error
 	$(RM) -r ../../share/locale
 	$(RM) ../../doc/CHANGES*
@@ -306,8 +319,6 @@ pdfdocs manuals:
 	@$(MK) -C $(RHOME)/doc/manual -f Makefile.win clean
 	@$(MK) -C $(RHOME)/doc/manual -f Makefile.win
 
-REXE = $(RHOME)/$(BINDIR)/rterm.exe --vanilla --slave
-
 vignettes:
 	@for pkg in $(R_PKGS_BASE); do \
 	  if test -d "../library/$${pkg}/inst/doc"; then \
@@ -320,7 +331,31 @@ vignettes:
 
 ## ===================== Maintainer targets ========================
 
+RVER = $(shell cut -d' ' -f1 ../../VERSION | sed -n 1p)
 RVER-PAT = $(shell version=`cut -d' ' -f1 ../../VERSION | sed -n 1p`; if test "`cut -f2 -d' ' ../../VERSION`" = "Patched"; then version=`echo $${version} | sed 's/\.[0-9]*$$//'`; echo "$${version}-patched"; else echo "$${version}"; fi)
+SEDVER = -e s/@RVER@/$(RVER)/g -e s/@RWVER@/$(RPREFIX)/g
+
+docfiles: rw-FAQ ../../doc/html/rw-FAQ.html
+
+../../doc/html/rw-FAQ.html: rw-FAQ.texi ../../VERSION ../../doc/manual/Rman.css
+	@echo "making rw-FAQ.html"
+	@$(SED) $(SEDVER) $< | \
+	  makeinfo --no-split --html --no-headers --number-sections --css-include=../../doc/manual/Rman.css -o $@ 
+
+rw-FAQ: rw-FAQ.texi ../../VERSION
+	@echo "making rw-FAQ"
+	@$(SED) $(SEDVER) $< | \
+	  makeinfo --no-headers --number-sections -o $@
+
+rw-FAQ.pdf: rw-FAQ.texi ../../VERSION
+	@$(SED) $(SEDVER) $< > tmp.texi
+	@$(TEXI2DVI) --pdf tmp.texi
+	@$(TEXI2DVI) --pdf tmp.texi
+	@mv tmp.pdf $@
+	@rm tmp.*
+
+bitmapdll:
+	$(MAKE) -C bitmap
 
 CRANREC = cran.r-project.org::CRAN/src/contrib/$(RVER-PAT)/Recommended
 
@@ -344,21 +379,53 @@ recommended:
 	@$(ECHO) "--- Making recommended packages"
 	@$(MK) -C ../library/Recommended -f Makefile.win RHOME=$(RHOME)
 
-docfiles:
-	@$(MK) -f Makefile.docs
-
-bitmapdll:
-	@$(MAKE) -C bitmap
-
 EXTRA_PKGS=
 rinstaller:
 	@$(MAKE) -C installer EXTRA_PKGS='$(EXTRA_PKGS)'
 	@$(MAKE) -C installer clean
 
-crandir:
 ifeq ($(strip $(WIN)),64)
-	$(MAKE) -C cran all
+BITSIZE=64
+BITSUFFIX=64
+OTHERBITSIZE=32
+OTHERBITSUFFIX=
+else
+BITSIZE=32
+BITSUFFIX=
+OTHERBITSIZE=64
+OTHERBITSUFFIX=64
 endif
+
+crandir:
+	$(CP) CHANGES cran/CHANGES.$(RPREFIX)
+	$(CP) ../../NEWS cran/NEWS.$(RPREFIX)
+	$(CP) installer/$(RPREFIX)-win$(BITSIZE).exe cran
+	(cd cran;\
+	 $(ECHO) 'cat(md5sum("$(RPREFIX)-win$(BITSIZE).exe"),"*$(RPREFIX)-win$(BITSIZE).exe")' \
+         | $(REXE) R_DEFAULT_PACKAGES=tools >md5sum.txt)
+	$(CP) ../../doc/html/rw-FAQ.html cran	
+	@for page in index rdevel rpatched rtest release; do \
+	  $(SED) -e s/@RWVER@/$(RPREFIX)/g \
+	    -e s/@RVER@/$(RVER)/g \
+	    -e "s/@DATE@/$(DATE)/g" \
+	    -e "s/@SVNREVISION@/$(SVNREVISION)/g" \
+	    -e "s/@FULLVERSION@/$(FULLVERSION)/g" \
+	    -e "s/@BITSIZE@/$(BITSIZE)/g" \
+	    -e "s/@BITSUFFIX@/$(BITSUFFIX)/g" \
+	    -e "s/@OTHERBITSIZE@/$(OTHERBITSIZE)/g" \
+	    -e "s/@OTHERBITSUFFIX@/$(OTHERBITSUFFIX)/g" \cran/$${page}.in > cran/$${page}.html; \
+	done
+	$(CP) cran/release.html cran/release.htm
+	$(SED) -e s/@RWVER@/$(RPREFIX)/g \
+	  -e s/@RVER@/$(RVER)/g \
+	  -e "s/@FULLVERSION@/$(FULLVERSION)/g" README > cran/README.$(RPREFIX)
+	$(SED) -e s/@RWVER@/$(RPREFIX)/g \
+	  -e s/@RVER@/$(RVER)/g \
+	  -e "s/@FULLVERSION@/$(FULLVERSION)/g" cran/ReadMe.in > cran/ReadMe	  
+	(cd cran;\
+	 zip dosfiles.zip CHANGES.$(RPREFIX) NEWS.$(RPREFIX) README.$(RPREFIX) ReadMe;\
+	 unzip -ao dosfiles.zip;\
+	 $(RM) dosfiles.zip)
 
 distribution:
 	@$(MK) all

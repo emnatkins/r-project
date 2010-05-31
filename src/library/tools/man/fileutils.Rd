@@ -1,6 +1,6 @@
 % File src/library/tools/man/fileutils.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2010 R Core Development Team
+% Copyright 1995-2008 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{fileutils}
@@ -25,7 +25,7 @@ list_files_with_type(dir, type, all.files = FALSE,
 }
 \arguments{
   \item{x}{character vector giving file paths.}
-  \item{compression}{logical: should compression extension \file{.gz},
+  \item{compression}{logical: should compresssion extension \file{.gz},
     \file{.bz2} or \file{.xz} be removed first?}
   \item{dir}{a character string with the path name to a directory.}
   \item{exts}{a character vector of possible file extensions.}
@@ -72,10 +72,10 @@ list_files_with_type(dir, type, all.files = FALSE,
   \code{\link{file.info}},
   \code{\link{list.files}}
 }
-\examples{\donttest{
+\examples{
 dir <- file.path(R.home(), "library", "stats")
 list_files_with_exts(file.path(dir, "demo"), "R")
 list_files_with_type(file.path(dir, "demo"), "demo") # the same
-file_path_sans_ext(list.files(file.path(R.home("modules"))))
-}}
+file_path_sans_ext(list.files(file.path(R.home(), "modules")))
+}
 \keyword{file}

@@ -302,10 +302,6 @@ foreach my $pkg (@ARGV) {
     }
 
     &fix_unneeded_dirs($pkgname);
-    ## remove subarch build directories
-    foreach my $d ("src-i386", "src-x64", "src-x86_64", "src-ppc") {
-	rmtree(&file_path($pkgname, $d)); 
-    }
 
     ## Finalize.
     if($opt_binary) {
@@ -318,7 +314,6 @@ foreach my $pkg (@ARGV) {
 	my $srcdir = &file_path($tmpdir, $pkgname);
 	my $cmd;
 	if($WINDOWS) {
-	    $log->print("WARNING: some HTML links may not be found\n");
 	    $cmd = join(" ",
 			("Rcmd.exe INSTALL -l",
 			 &shell_quote_file_path($libdir),
@@ -454,6 +449,9 @@ sub cleanup_pkg {
 	chdir("src");
 	$log->message("cleaning src");
 	if($WINDOWS) {
+	    ## A Windows Makefile.win might use
+	    ## $(RHOME)/src/gnuwin32/MkRules.
+	    $ENV{RHOME} = $ENV{R_HOME};
 	    if(-r "Makefile.win") {
 		## FIXME: why not use 'Makefile' if Makefile.win does not exist?
 		R_system("${R::Vars::MAKE} -f Makefile.win clean");

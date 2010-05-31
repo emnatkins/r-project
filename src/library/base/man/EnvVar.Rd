@@ -16,8 +16,10 @@
 \alias{R_HISTFILE}
 \alias{R_HISTSIZE}
 \alias{R_INCLUDE_DIR}
-\alias{MAKEINDEX}
+\alias{R_LATEXCMD}
+\alias{R_MAKEINDEXCMD}
 \alias{R_PAPERSIZE}
+\alias{R_PDFLATEXCMD}
 \alias{R_PDFVIEWER}
 \alias{R_PLATFORM}
 \alias{R_RD4DVI}
@@ -56,20 +58,11 @@
   some of the more important ones.  Those that set the defaults for
   options are consulted only at startup (as are some of the others).
   \describe{
-#ifdef unix
-    \item{\env{DVIPS}:}{The path to \command{dvips}.  Used at startup to
-      set the default for \code{\link{options}("dvipscmd")} which used
-      by \code{\link{help}(help_type="ps")}.
-    }
-#endif
     \item{\env{HOME}:}{The user's \sQuote{home} directory.}
     \item{\env{LANGUAGE}:}{Optional.  The language(s) to be used for
       message translations.  This is consulted when needed.}
     \item{\env{LC_ALL}:}{(etc) Optional.  Use to set various aspects of
       the locale -- see \code{\link{Sys.getlocale}}.  Consulted at startup.}
-    \item{\env{MAKEINDEX}:}{The path to \command{makeindex}.
-      If unset to a value determined when \R was built.
-      Used by the emulation mode of \code{\link{texi2dvi}}.}
     \item{\env{R_BATCH}:}{Optional -- set in a batch session.}
     \item{\env{R_BROWSER}:}{The path to the default browser.  Used to
       set the default value of \code{\link{options}("browser")}.}
@@ -79,6 +72,15 @@
       which are to be loaded in every session.  See \code{\link{options}}.}
     \item{\env{R_DOC_DIR}:}{The location of the \R \file{doc}
       directory.  Set by \R.}
+#ifdef unix
+    \item{\env{R_DVIPSCMD}:}{The path to \command{dvips}.  Defaults to
+      the value of \env{DVIPS}, and if that is unset to a value
+      determined when \R was built.
+      Used at startup to set the default for
+      \code{\link{options}("dvipscmd")}, used by
+      \code{\link{help}(help_type="ps")}.
+    }
+#endif
     \item{\env{R_ENVIRON}:}{Optional.  The path to the site environment
       file: see \link{Startup}.  Consulted at startup.}
     \item{\env{R_GSCMD}:}{Optional.  The path to GhostScript, used by
@@ -105,15 +107,28 @@
       installation: see \code{\link{R.home}}.  Set by \R.}
     \item{\env{R_INCLUDE_DIR}:}{The location of the \R \file{include}
       directory.  Set by \R.}
+    \item{\env{R_LATEXCMD}:}{The path to \code{latex}. Defaults to
+      the value of \env{LATEX}, and if that is unset to a value
+      determined when \R was built.
+      Used by \command{R CMD Rd2dvi}.
+      }
     \item{\env{R_LIBS}:}{Optional.  Used for initial setting of
       \code{\link{.libPaths}}.}
     \item{\env{R_LIBS_SITE}:}{Optional.  Used for initial setting of
       \code{\link{.libPaths}}.}
     \item{\env{R_LIBS_USER}:}{Optional.  Used for initial setting of
       \code{\link{.libPaths}}.}
+    \item{\env{R_MAKEINDEXCMD}:}{The path to \command{makeindex}.
+      Defaults at startup to the value of \env{MAKEINDEX}, and if that
+      is unset to a value determined when \R was built.
+      Used by \command{R CMD Rd2dvi}.}
     \item{\env{R_PAPERSIZE}:}{Optional.  Used to set the default for
       \code{\link{options}("papersize")}, e.g. used by
       \code{\link{pdf}} and \code{\link{postscript}}.}
+    \item{\env{R_PDFLATEXCMD}:}{The path to \command{pdflatex}.
+      Defaults at startup to the value of \code{PDFLATEX}, and if that
+      is unset to a value determined when \R was built.
+      Used by \command{R CMD Rd2dvi}.}
     \item{\env{R_PDFVIEWER}:}{The path to the default PDF viewer.  Used
       by \command{R CMD Rd2dvi --pdf}.}
     \item{\env{R_PLATFORM}:}{The platform -- a string of the form

@@ -1,6 +1,6 @@
 % File src/library/tools/man/testInstalledPackage.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 2009-10 R Core Development Team
+% Copyright 2009 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{testInstalledPackage}
@@ -14,13 +14,11 @@
 }
 \usage{
 testInstalledPackage(pkg, lib.loc = NULL, outDir = ".",
-                     types = c("examples", "tests", "vignettes"),
-                     srcdir = NULL)
+                     types = c("examples", "tests", "vignettes"))
 
 testInstalledPackages(outDir = ".", errorsAreFatal = TRUE,
                       scope = c("both", "base", "recommended"),
-                      types = c("examples", "tests", "vignettes"),
-                      srcdir = NULL)
+                      types = c("examples", "tests", "vignettes"))
 
 testInstalledBasic(scope = c("basic", "devel", "both"))
 }
@@ -33,7 +31,6 @@ testInstalledBasic(scope = c("basic", "devel", "both"))
   \item{types}{type(s) of tests to be done.}
   \item{errorsAreFatal}{logical: should testing terminate at the first
     error?}
-  \item{srcdir}{Optional directory to look for \code{.save} files.}
   \item{scope}{Which set(s) should be tested?}
 }
 \details{
@@ -58,7 +55,8 @@ testInstalledBasic(scope = c("basic", "devel", "both"))
 #endif
 #ifdef windows
   The package-specific tests for the base and recommended packages are
-  an optional part of the install.
+  an optional part of the install: for testing package \pkg{tools} you
+  will also need the help page sources installed (also optional).
   Currently testing requires a Unix-like \code{diff} for a full report
   if more than simple differences are found.
 #endif

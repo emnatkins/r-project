@@ -958,6 +958,7 @@ SEXP attribute_hidden do_radixsort(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP x, ans;
     Rboolean nalast, decreasing;
+    unsigned int *cnts;
     int i, n, tmp, xmax = NA_INTEGER, xmin = NA_INTEGER, off, napos;
 
     checkArity(op, args);
@@ -989,8 +990,9 @@ SEXP attribute_hidden do_radixsort(SEXP call, SEXP op, SEXP args, SEXP rho)
     if(xmax > 100000) error(_("too large a range of values in 'x'"));
     napos = off ? 0 : xmax + 1;
     off -= xmin;
-    /* automatic allocation is fine here: we know this is small */
-    unsigned int cnts[xmax+1];
+    /* alloca is fine here: we know this is small */
+    cnts = (unsigned int *) alloca((xmax+1)*sizeof(unsigned int));
+    R_CheckStack();
 
     for(i = 0; i <= xmax+1; i++) cnts[i] = 0;
     for(i = 0; i < n; i++) {

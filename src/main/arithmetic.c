@@ -165,9 +165,6 @@ void attribute_hidden InitArithmetic()
 }
 
 /* Keep these two in step */
-/* FIXME: consider using
-    tmp = (LDOUBLE)x1 - floor(q) * (LDOUBLE)x2;
- */
 static double myfmod(double x1, double x2)
 {
     double q = x1 / x2, tmp;
@@ -326,7 +323,7 @@ SEXP attribute_hidden do_arith(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 {
     SEXP klass, dims, tsp, xnames, ynames, val;
-    int mismatch = 0, nx, ny, xarray, yarray, xts, yts, xS4 = 0, yS4 = 0;
+    int mismatch = 0, nx, ny, xarray, yarray, xts, yts;
     int xattr, yattr;
     SEXP lcall = call;
     PROTECT_INDEX xpi, ypi;
@@ -345,7 +342,6 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 	xattr = TRUE;
 	xarray = isArray(x);
 	xts = isTs(x);
-	xS4 = isS4(x);
     }
     else xarray = xts = xattr = FALSE;
     ny = LENGTH(y);
@@ -353,7 +349,6 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 	yattr = TRUE;
 	yarray = isArray(y);
 	yts = isTs(y);
-	yS4 = isS4(y);
     }
     else yarray = yts = yattr = FALSE;
 
@@ -498,9 +493,6 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 	setAttrib(val, R_ClassSymbol, klass);
     }
 
-    if(xS4 || yS4) {   /* Only set the bit:  no method defined! */
-        val = asS4(val, TRUE, TRUE);
-    }
     UNPROTECT(nprotect);
     return val;
 }
@@ -637,14 +629,14 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 	return ans;
 	} */
 #ifdef R_MEMORY_PROFILING
-    if (RTRACE(s1) || RTRACE(s2)) {
-       if (RTRACE(s1) && RTRACE(s2)) {
-	  if (n1 > n2)
-	      memtrace_report(s1, ans);
+    if (RTRACE(s1) || RTRACE(s2)){
+       if (RTRACE(s1) && RTRACE(s2)){
+	  if (n1>n2)
+	      memtrace_report(s1,ans);
 	  else
 	      memtrace_report(s2, ans);
        } else if (RTRACE(s1))
-	   memtrace_report(s1, ans);
+	   memtrace_report(s1,ans);
        else /* only s2 */
 	   memtrace_report(s2, ans);
        SET_RTRACE(ans, 1);
@@ -793,10 +785,10 @@ static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
     n = (n1 > n2) ? n1 : n2;
     PROTECT(ans = allocVector(REALSXP, n));
 #ifdef R_MEMORY_PROFILING
-    if (RTRACE(s1) || RTRACE(s2)) {
-       if (RTRACE(s1) && RTRACE(s2)) {
-	  if (n1 > n2)
-	      memtrace_report(s1, ans);
+    if (RTRACE(s1) || RTRACE(s2)){
+       if (RTRACE(s1) && RTRACE(s2)){
+	  if (n1>n2)
+	      memtrace_report(s1,ans);
 	  else
 	      memtrace_report(s2, ans);
        } else if (RTRACE(s1))
@@ -1117,7 +1109,9 @@ static SEXP math2(SEXP sa, SEXP sb, double (*f)(double, double),
     nb = LENGTH(sb);				\
     if ((na == 0) || (nb == 0))	{		\
 	PROTECT(sy = allocVector(REALSXP, 0));	\
-	if (na == 0) DUPLICATE_ATTRIB(sy, sa);	\
+	if (na == 0) {				\
+	    DUPLICATE_ATTRIB(sy, sa);\
+	}					\
 	UNPROTECT(1);				\
 	return(sy);				\
     }						\
@@ -1133,9 +1127,9 @@ static SEXP math2(SEXP sa, SEXP sb, double (*f)(double, double),
     SETUP_Math2;
 
 #ifdef R_MEMORY_PROFILING
-    if (RTRACE(sa) || RTRACE(sb)) {
+    if (RTRACE(sa) || RTRACE(sb)){
        if (RTRACE(sa) && RTRACE(sb)){
-	  if (na > nb)
+	  if (na>nb)
 	      memtrace_report(sa, sy);
 	  else
 	      memtrace_report(sb, sy);
@@ -1160,8 +1154,13 @@ static SEXP math2(SEXP sa, SEXP sb, double (*f)(double, double),
 #define FINISH_Math2				\
     if(naflag)					\
 	warningcall(lcall, R_MSG_NA);		\
-    if (n == na)  DUPLICATE_ATTRIB(sy, sa);	\
-    else if (n == nb) DUPLICATE_ATTRIB(sy, sb);	\
+						\
+    if (n == na) {				\
+	DUPLICATE_ATTRIB(sy, sa);	\
+    }						\
+    else if (n == nb) {				\
+	DUPLICATE_ATTRIB(sy, sb);	\
+    }						\
     UNPROTECT(3)
 
     FINISH_Math2;
@@ -1185,9 +1184,9 @@ static SEXP math2_1(SEXP sa, SEXP sb, SEXP sI,
     m_opt = asInteger(sI);
 
 #ifdef R_MEMORY_PROFILING
-    if (RTRACE(sa) || RTRACE(sb)) {
-       if (RTRACE(sa) && RTRACE(sb)) {
-	  if (na > nb)
+    if (RTRACE(sa) || RTRACE(sb)){
+       if (RTRACE(sa) && RTRACE(sb)){
+	  if (na>nb)
 	      memtrace_report(sa, sy);
 	  else
 	      memtrace_report(sb, sy);
@@ -1228,9 +1227,9 @@ static SEXP math2_2(SEXP sa, SEXP sb, SEXP sI1, SEXP sI2,
     i_2 = asInteger(sI2);
 
 #ifdef R_MEMORY_PROFILING
-    if (RTRACE(sa) || RTRACE(sb)) {
-       if (RTRACE(sa) && RTRACE(sb)) {
-	  if (na > nb)
+    if (RTRACE(sa) || RTRACE(sb)){
+       if (RTRACE(sa) && RTRACE(sb)){
+	  if (na>nb)
 	      memtrace_report(sa, sy);
 	  else
 	      memtrace_report(sb, sy);
@@ -1255,68 +1254,9 @@ static SEXP math2_2(SEXP sa, SEXP sb, SEXP sI1, SEXP sI2,
     return sy;
 } /* math2_2() */
 
-static SEXP math2B(SEXP sa, SEXP sb, double (*f)(double, double, double *),
-		   SEXP lcall)
-{
-    SEXP sy;
-    int i, ia, ib, n, na, nb;
-    double ai, bi, *a, *b, *y;
-    int naflag;
-    double amax, *work;
-    long nw;
-
-    if (!isNumeric(sa) || !isNumeric(sb))
-	errorcall(lcall, R_MSG_NONNUM_MATH);
-
-    /* for 0-length a we want the attributes of a, not those of b
-       as no recycling will occur */
-    SETUP_Math2;
-
-#ifdef R_MEMORY_PROFILING
-    if (RTRACE(sa) || RTRACE(sb)) {
-       if (RTRACE(sa) && RTRACE(sb)) {
-	  if (na > nb)
-	      memtrace_report(sa, sy);
-	  else
-	      memtrace_report(sb, sy);
-       } else if (RTRACE(sa))
-	   memtrace_report(sa, sy);
-       else /* only s2 */
-	   memtrace_report(sb, sy);
-       SET_RTRACE(sy, 1);
-    }
-#endif
-
-    /* allocate work array for BesselJ, BesselY large enough for all
-       arguments */
-    amax = 0.0;
-    for (i = 0; i < nb; i++) {
-	double av = b[i] < 0 ? -b[i] : b[i];
-	if (av > amax) amax = av;
-    }
-    nw = 1 + (long)floor(amax);
-    work = (double *) R_alloc(nw, sizeof(double));
-
-    mod_iterate(na, nb, ia, ib) {
-	ai = a[ia];
-	bi = b[ib];
-	if_NA_Math2_set(y[i], ai, bi)
-	else {
-	    y[i] = f(ai, bi, work);
-	    if (ISNAN(y[i])) naflag = 1;
-	}
-    }
-
-
-    FINISH_Math2;
-
-    return sy;
-} /* math2B() */
-
 #define Math2(A, FUN)	  math2(CAR(A), CADR(A), FUN, call);
 #define Math2_1(A, FUN)	math2_1(CAR(A), CADR(A), CADDR(A), FUN, call);
 #define Math2_2(A, FUN) math2_2(CAR(A), CADR(A), CADDR(A), CADDDR(A), FUN, call)
-#define Math2B(A, FUN)	  math2B(CAR(A), CADR(A), FUN, call);
 
 SEXP attribute_hidden do_math2(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -1362,8 +1302,8 @@ SEXP attribute_hidden do_math2(SEXP call, SEXP op, SEXP args, SEXP env)
     case 22: return Math2_2(args, psignrank);
     case 23: return Math2_2(args, qsignrank);
 
-    case 24: return Math2B(args, bessel_j_ex);
-    case 25: return Math2B(args, bessel_y_ex);
+    case 24: return Math2(args, bessel_j);
+    case 25: return Math2(args, bessel_y);
     case 26: return Math2(args, psigamma);
 
     default:
@@ -1515,6 +1455,14 @@ SEXP attribute_hidden do_log(SEXP call, SEXP op, SEXP args, SEXP env)
 	i3 = (++i3==n3) ? 0 : i3,				\
 	++i)
 
+static SEXP math3(SEXP sa, SEXP sb, SEXP sc,
+		  double (*f)(double, double, double), SEXP lcall)
+{
+    SEXP sy;
+    int i, ia, ib, ic, n, na, nb, nc;
+    double ai, bi, ci, *a, *b, *c, *y;
+    int naflag;
+
 #define SETUP_Math3						\
     if (!isNumeric(sa) || !isNumeric(sb) || !isNumeric(sc))	\
 	errorcall(lcall, R_MSG_NONNUM_MATH);			\
@@ -1537,14 +1485,50 @@ SEXP attribute_hidden do_log(SEXP call, SEXP op, SEXP args, SEXP env)
     y = REAL(sy);						\
     naflag = 0
 
+    SETUP_Math3;
+
+#ifdef R_MEMORY_PROFILING
+    if (RTRACE(sa) || RTRACE(sb) || RTRACE(sc)){
+       if (RTRACE(sa))
+	  memtrace_report(sa,sy);
+       else if (RTRACE(sb))
+	  memtrace_report(sb, sy);
+       else if (RTRACE(sc))
+	  memtrace_report(sc,sy);
+       SET_RTRACE(sy, 1);
+    }
+#endif
+
+    mod_iterate3 (na, nb, nc, ia, ib, ic) {
+	ai = a[ia];
+	bi = b[ib];
+	ci = c[ic];
+	if_NA_Math3_set(y[i], ai,bi,ci)
+	else {
+	    y[i] = f(ai, bi, ci);
+	    if (ISNAN(y[i])) naflag = 1;
+	}
+    }
+
 #define FINISH_Math3				\
     if(naflag)					\
 	warningcall(lcall, R_MSG_NA);		\
 						\
-    if (n == na) DUPLICATE_ATTRIB(sy, sa);	\
-    else if (n == nb) DUPLICATE_ATTRIB(sy, sb);	\
-    else if (n == nc) DUPLICATE_ATTRIB(sy, sc);	\
+    if (n == na) {				\
+	DUPLICATE_ATTRIB(sy, sa);	\
+    }						\
+    else if (n == nb) {				\
+	DUPLICATE_ATTRIB(sy, sb);	\
+    }						\
+    else if (n == nc) {				\
+	DUPLICATE_ATTRIB(sy, sc);	\
+    }						\
     UNPROTECT(4)
+
+    FINISH_Math3;
+
+    return sy;
+} /* math3 */
 
 static SEXP math3_1(SEXP sa, SEXP sb, SEXP sc, SEXP sI,
 		    double (*f)(double, double, double, int), SEXP lcall)
@@ -1559,13 +1543,13 @@ static SEXP math3_1(SEXP sa, SEXP sb, SEXP sc, SEXP sI,
     i_1 = asInteger(sI);
 
 #ifdef R_MEMORY_PROFILING
-    if (RTRACE(sa) || RTRACE(sb) || RTRACE(sc)) {
+    if (RTRACE(sa) || RTRACE(sb) || RTRACE(sc)){
        if (RTRACE(sa))
-	  memtrace_report(sa, sy);
+	  memtrace_report(sa,sy);
        else if (RTRACE(sb))
 	  memtrace_report(sb, sy);
        else if (RTRACE(sc))
-	  memtrace_report(sc, sy);
+	  memtrace_report(sc,sy);
        SET_RTRACE(sy, 1);
     }
 #endif
@@ -1599,13 +1583,13 @@ static SEXP math3_2(SEXP sa, SEXP sb, SEXP sc, SEXP sI, SEXP sJ,
     i_2 = asInteger(sJ);
 
 #ifdef R_MEMORY_PROFILING
-    if (RTRACE(sa) || RTRACE(sb) || RTRACE(sc)) {
+    if (RTRACE(sa) || RTRACE(sb) || RTRACE(sc)){
        if (RTRACE(sa))
-	  memtrace_report(sa, sy);
+	  memtrace_report(sa,sy);
        else if (RTRACE(sb))
 	  memtrace_report(sb, sy);
        else if (RTRACE(sc))
-	  memtrace_report(sc, sy);
+	  memtrace_report(sc,sy);
        SET_RTRACE(sy, 1);
     }
 #endif
@@ -1626,59 +1610,9 @@ static SEXP math3_2(SEXP sa, SEXP sb, SEXP sc, SEXP sI, SEXP sJ,
     return sy;
 } /* math3_2 */
 
-static SEXP math3B(SEXP sa, SEXP sb, SEXP sc,
-		   double (*f)(double, double, double, double *), SEXP lcall)
-{
-    SEXP sy;
-    int i, ia, ib, ic, n, na, nb, nc;
-    double ai, bi, ci, *a, *b, *c, *y;
-    int naflag;
-    double amax, *work;
-    long nw;
-
-    SETUP_Math3;
-
-#ifdef R_MEMORY_PROFILING
-    if (RTRACE(sa) || RTRACE(sb) || RTRACE(sc)) {
-       if (RTRACE(sa))
-	  memtrace_report(sa, sy);
-       else if (RTRACE(sb))
-	  memtrace_report(sb, sy);
-       else if (RTRACE(sc))
-	  memtrace_report(sc, sy);
-       SET_RTRACE(sy, 1);
-    }
-#endif
-
-    /* allocate work array for BesselI, BesselK large enough for all
-       arguments */
-    amax = 0.0;
-    for (i = 0; i < nb; i++) {
-	double av = b[i] < 0 ? -b[i] : b[i];
-	if (av > amax) amax = av;
-    }
-    nw = 1 + (long)floor(amax);
-    work = (double *) R_alloc(nw, sizeof(double));
-
-    mod_iterate3 (na, nb, nc, ia, ib, ic) {
-	ai = a[ia];
-	bi = b[ib];
-	ci = c[ic];
-	if_NA_Math3_set(y[i], ai,bi,ci)
-	else {
-	    y[i] = f(ai, bi, ci, work);
-	    if (ISNAN(y[i])) naflag = 1;
-	}
-    }
-
-    FINISH_Math3;
-
-    return sy;
-} /* math3B */
-
+#define Math3(A, FUN)   math3  (CAR(A), CADR(A), CADDR(A), FUN, call);
 #define Math3_1(A, FUN)	math3_1(CAR(A), CADR(A), CADDR(A), CADDDR(A), FUN, call);
 #define Math3_2(A, FUN) math3_2(CAR(A), CADR(A), CADDR(A), CADDDR(A), CAD4R(A), FUN, call)
-#define Math3B(A, FUN)  math3B (CAR(A), CADR(A), CADDR(A), FUN, call);
 
 SEXP attribute_hidden do_math3(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -1742,8 +1676,8 @@ SEXP attribute_hidden do_math3(SEXP call, SEXP op, SEXP args, SEXP env)
     case 41:  return Math3_2(args, pwilcox);
     case 42:  return Math3_2(args, qwilcox);
 
-    case 43:  return Math3B(args, bessel_i_ex);
-    case 44:  return Math3B(args, bessel_k_ex);
+    case 43:  return Math3(args, bessel_i);
+    case 44:  return Math3(args, bessel_k);
 
     case 45:  return Math3_1(args, dnbinom_mu);
     case 46:  return Math3_2(args, pnbinom_mu);
@@ -1821,10 +1755,18 @@ static SEXP math4(SEXP sa, SEXP sb, SEXP sc, SEXP sd,
     if(naflag)					\
 	warningcall(lcall, R_MSG_NA);		\
 						\
-    if (n == na) DUPLICATE_ATTRIB(sy, sa);	\
-    else if (n == nb) DUPLICATE_ATTRIB(sy, sb);	\
-    else if (n == nc) DUPLICATE_ATTRIB(sy, sc);	\
-    else if (n == nd) DUPLICATE_ATTRIB(sy, sd);	\
+    if (n == na) {				\
+	DUPLICATE_ATTRIB(sy, sa);	\
+    }						\
+    else if (n == nb) {				\
+	DUPLICATE_ATTRIB(sy, sb);	\
+    }						\
+    else if (n == nc) {				\
+	DUPLICATE_ATTRIB(sy, sc);	\
+    }						\
+    else if (n == nd) {				\
+	DUPLICATE_ATTRIB(sy, sd);	\
+    }						\
     UNPROTECT(5)
 
     FINISH_Math4;
@@ -2007,11 +1949,21 @@ static SEXP math5(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP se, double (*f)())
     if(naflag)					\
 	warningcall(lcall, R_MSG_NA);		\
 						\
-    if (n == na) DUPLICATE_ATTRIB(sy, sa);	\
-    else if (n == nb) DUPLICATE_ATTRIB(sy, sb);	\
-    else if (n == nc) DUPLICATE_ATTRIB(sy, sc);	\
-    else if (n == nd) DUPLICATE_ATTRIB(sy, sd);	\
-    else if (n == ne) DUPLICATE_ATTRIB(sy, se);	\
+    if (n == na) {				\
+	DUPLICATE_ATTRIB(sy, sa);	\
+    }						\
+    else if (n == nb) {				\
+	DUPLICATE_ATTRIB(sy, sb);	\
+    }						\
+    else if (n == nc) {				\
+	DUPLICATE_ATTRIB(sy, sc);	\
+    }						\
+    else if (n == nd) {				\
+	DUPLICATE_ATTRIB(sy, sd);	\
+    }						\
+    else if (n == ne) {				\
+	DUPLICATE_ATTRIB(sy, se);	\
+    }						\
     UNPROTECT(6)
 
     FINISH_Math5;

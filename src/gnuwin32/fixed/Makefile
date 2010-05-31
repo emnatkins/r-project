@@ -30,8 +30,6 @@ fixhtml:  html/rwin.html
 
 fixetc: $(wildcard ./etc/*)
 	$(CP) -p $^ $(R_HOME)/etc
-	$(RM) $(R_HOME)/etc/Makeconf
-	$(MKDIR) -p $(R_HOME)/etc/$(R_ARCH)
 ifeq ($(strip $(WIN)),64)
 	$(SED) -e 's/WIN = 32/WIN = 64/' \
 	  -e "s/-O3/-O2/" \
@@ -39,13 +37,14 @@ ifeq ($(strip $(WIN)),64)
 	  -e "s|IMPDIR = bin|IMPDIR = $(IMPDIR)|" \
 	  -e "s|LOCAL_SOFT =|LOCAL_SOFT = $(LOCAL_SOFT)|" \
 	  -e "s|R_ARCH =|R_ARCH = $(R_ARCH)|" \
-	  etc/Makeconf > $(R_HOME)/etc$(R_ARCH)/Makeconf
+	  etc/Makeconf > $(R_HOME)/etc/Makeconf
+	$(MKDIR) -p $(R_HOME)/etc/x64
+	$(CP) -p $(R_HOME)/etc/Makeconf $(R_HOME)/etc/x64/Makeconf
+	$(RM) $(R_HOME)/etc/Makeconf
 else
 	$(SED) -e "s|IMPDIR = bin|IMPDIR = $(IMPDIR)|" \
-	  -e "s/BINPREF =/BINPREF = $(BINPREF)/" \
 	  -e "s|LOCAL_SOFT =|LOCAL_SOFT = $(LOCAL_SOFT)|" \
-	  -e "s|R_ARCH =|R_ARCH = $(R_ARCH)|" \
-	  etc/Makeconf > $(R_HOME)/etc$(R_ARCH)/Makeconf
+	  etc/Makeconf > $(R_HOME)/etc/Makeconf
 endif
 	@$(ECHO) done > fixetc
 

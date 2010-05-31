@@ -74,7 +74,6 @@ The current version of this document is @value{VERSION}.
 * Tools::                       
 * R coding standards::          
 * Testing R code::              
-* Use of TeX dialects::         
 * Function and variable index::  
 * Concept index::               
 @end menu
@@ -2705,7 +2704,6 @@ of a would-be writer of a graphics device.
 * Handling text::               
 * Conventions::                 
 * 'Mode'::                      
-* Graphics events::             
 * Specific devices::            
 @end menu
 
@@ -2829,9 +2827,8 @@ function to change gamma.  So @samp{FALSE} is the only useful value.
 adjustment, 1 = @{0, 0.5, 1@} (left, centre, right justification) or 2 =
 continuously variable (in [0,1]) between left and right justification.
 @item canGenMouseDown -- 
-@code{Rboolean}: can the device handle mouse down events?  This
-flag and the next three are not currently used by R, but are maintained
-for back compatibility.
+@code{Rboolean}: should mouse down events be sent to the @code{getEvent}
+callback?
 @item canGenMouseMove -- 
 @code{Rboolean}: ditto for mouse move events.
 @item canGenMouseUp -- 
@@ -3066,7 +3063,7 @@ in the header @file{GraphicsEngine.h} and in the help for @code{par}: note that 
 least for widths above the default).
 
 
-@node 'Mode', Graphics events, Conventions, Graphics devices
+@node 'Mode', Specific devices, Conventions, Graphics devices
 @subsection `Mode'
 
 One of the device callbacks is a function @code{mode}, documented in
@@ -3095,32 +3092,7 @@ ensure that drawing is flushed to the screen when called with @code{mode
 that `drawing' is interpreted at quite a low level and a typical single
 figure will stop and start drawing many times.
 
-@node Graphics events, Specific devices, 'Mode', Graphics devices
-@subsection Graphics events
-
-Graphics devices may be designed to handle user interaction.  
-The current model is similar to the one introduced in R 2.1.0 for
-the Windows screen device, but the design was changed in R 2.12.0 to 
-be more open ended.
-
-Users may use @code{grDevices::setGraphicsEventEnv} to set the
-@code{eventEnv} environment in the device driver to hold event
-handlers. When the user calls @code{grDevices::getGraphicsEvent}, R
-will take three steps.  First, it sets the device driver member
-@code{gettingEvent} to @code{true} for each device with a
-non-@code{NULL} @code{eventEnv} entry, and calls @code{initEvent(dd,
-true)} if the callback is defined. It then enters an event loop.  Each
-time through the loop R will process events once, then check whether
-any device has set the @code{result} member of @code{eventEnv} to a
-non-@code{NULL} value, and will save the first such value found to be
-returned.  C functions @code{doMouseEvent} and @code{doKeybd} are
-provided to call the R event handlers @code{onMouseDown},
-@code{onMouseMove}, @code{onMouseUp}, and @code{onKeybd} and set
-@code{eventEnv$result} during this step.  Finally, @code{initEvent} is
-called again with @code{init=false} to inform the the devices that the
-loop is done, and the result is returned to the user.
-
-@node Specific devices,  , Graphics events, Graphics devices
+@node Specific devices,  , 'Mode', Graphics devices
 @subsection Specific devices
 
 Specific devices are mostly documented by comments in their sources,
@@ -3654,7 +3626,7 @@ their startup files, and using customization to set the
 which has been determined not to display the structure clearly enough
 when using narrow fonts.)
 
-@node Testing R code, Use of TeX dialects, R coding standards, Top
+@node Testing R code, Function and variable index, R coding standards, Top
 @chapter Testing R code
 
 When you (as @R{} developer) add new functions to the R base (all the
@@ -3668,51 +3640,7 @@ list'' in @file{tests/no-segfault.Rin}.
 [To be revised: use @command{make check-devel}, check the write barrier
 if you change internal structures.]
 
-@node Use of TeX dialects, Function and variable index, Testing R code, Top
-@chapter Use of TeX dialects
-
-Various dialects of TeX and used for different purposes in @R{}.  The
-policy is that manuals be written in @samp{texinfo}, and for convenience
-the main and Windows FAQs are also.  This has the advantage that is is
-easy to produce HTML and plain text versions as well as typeset manuals.
-
-LaTeX is not used directly, but rather as an intermediate format for
-typeset help documents and for vignettes.
-
-Care needs to be taken about the assumptions made about the @R{} user's
-system: it may not have either @samp{texinfo} or a TeX system
-installed.  We have attempted to abstract out the cross-platform
-differences, and almost all the setting of typeset documents is done by
-@code{tools::texi2dvi}.  This is used for offline printing of help
-documents, preparing vignettes and for package manuals via @command{R
-CMD Rd2dvi}.  It is not currently used for the @R{} manuals created in
-directory @file{doc/manual}, and @command{R CMD check} currently does a
-check of the availability of @command{pdflatex} or @command{latex} which
-is unrelated to the commands actually used.
-
-@code{tools::texi2dvi} makes use of a system command @command{texi2dvi}
-where available.  On a Unix-alike this is usually part of
-@samp{texinfo}, whereas on Windows if it exists at all it would be an
-executable, part of MiKTeX.  If none is available, the @R{} code runs
-a sequence of @command{(pdf)latex}, @command{bibtex} and
-@command{makeindex} commands.
-
-This process has been rather vulnerable to the versions of the external
-software used: particular issues have been @command{texi2dvi} and
-@file{texinfo.tex} updates, mismatches between the two@footnote{Linux
-distributions tend to unbundle @file{texinfo.tex} from @samp{texinfo}.},
-versions of the LaTeX package @samp{hyperref} and quirks in index
-production.  The licenses used for LaTeX and latterly @samp{texinfo}
-prohibit us from including `known good' versions in the @R{} distribution.
-
-On a Unix-alike @command{configure} looks for the exeutables for TeX and
-friends and if found records the absolute paths in the system
-@file{Renviron} file.  This used to record @samp{false} if no command
-was found, but it nowadays records the name for looking up on the path
-at run time.  The latter can be important for binary distributions: one
-does not want to be tied to, for example, TeXLive 2007.
-
-@node Function and variable index, Concept index, Use of TeX dialects, Top
+@node Function and variable index, Concept index, Testing R code, Top
 @unnumbered Function and variable index
 
 @printindex vr

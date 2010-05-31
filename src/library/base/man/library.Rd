@@ -92,7 +92,7 @@ require(package, lib.loc = NULL, quietly = FALSE,
   loaded.  (Furthermore, if the package has a name space and a name
   space of that name is already loaded, they work from the existing
   name space rather than reloading from the file system.  If you want to
-  reload such a package, call \code{\link{detach}(unload = TRUE)} or
+  reload a package, call \code{\link{detach}} or
   \code{\link{unloadNamespace}} first.)
 
   To suppress messages during the loading of packages use
@@ -234,7 +234,7 @@ require(package, lib.loc = NULL, quietly = FALSE,
 \examples{
 library()                   # list all available packages
 library(lib.loc = .Library) # list all packages in the default library
-\donttest{library(help = splines)     # documentation on package 'splines'}
+library(help = splines)     # documentation on package 'splines'
 library(splines)            # load package 'splines'
 require(splines)            # the same
 search()                    # "splines", too

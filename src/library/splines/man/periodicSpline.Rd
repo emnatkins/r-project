@@ -41,8 +41,7 @@ require(graphics); require(stats)
 xx <- seq( -pi, pi, length.out = 16 )[-1]
 yy <- sin( xx )
 frm <- data.frame( xx, yy )
-pispl <- periodicSpline( xx, yy, period = 2 * pi)
-\donttest{pispl}
+( pispl <- periodicSpline( xx, yy, period = 2 * pi ) )
 pispl2 <- periodicSpline( yy ~ xx, frm, period = 2 * pi )
 stopifnot(all.equal(pispl, pispl2))# pispl and pispl2 are the same
 

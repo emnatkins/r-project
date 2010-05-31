@@ -63,7 +63,6 @@ predict (object, \dots)
   Wadsworth & Brooks/Cole.
 }
 \examples{
-\testonly{old <- Sys.setlocale("LC_COLLATE", "C")}
 require(utils)
 
 ## All the "predict" methods found
@@ -73,6 +72,5 @@ for(fn in methods("predict"))
        f <- eval(substitute(getAnywhere(fn)$objs[[1]], list(fn = fn)))
        cat(fn, ":\n\t", deparse(args(f)), "\n")
        }, silent = TRUE)
-\testonly{old <- Sys.setlocale("LC_COLLATE", old)}
 }
 \keyword{methods}

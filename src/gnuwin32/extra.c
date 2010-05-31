@@ -641,11 +641,7 @@ SEXP do_sysinfo(SEXP call, SEXP op, SEXP args, SEXP rho)
     GetComputerNameW(name, &namelen);
     wcstoutf8(buf, name, 1000);
     SET_STRING_ELT(ans, 3, mkCharCE(buf, CE_UTF8));
-#ifdef WIN64
-    SET_STRING_ELT(ans, 4, mkChar("x86-64"));
-#else
     SET_STRING_ELT(ans, 4, mkChar("x86"));
-#endif
     GetUserNameW(user, &userlen);
     wcstoutf8(buf, user, 1000);
     SET_STRING_ELT(ans, 5, mkCharCE(buf, CE_UTF8));
@@ -916,12 +912,12 @@ SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP rho)
 
 int Rwin_rename(const char *from, const char *to)
 {
-    return (MoveFileEx(from, to, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH) == 0);
+    return (MoveFileEx(from, to, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED) == 0);
 }
 
 int Rwin_wrename(const wchar_t *from, const wchar_t *to)
 {
-    return (MoveFileExW(from, to, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED | MOVEFILE_WRITE_THROUGH) == 0);
+    return (MoveFileExW(from, to, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED) == 0);
 }
 
 SEXP do_getClipboardFormats(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -1121,44 +1117,22 @@ SEXP do_normalizepath(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     PROTECT(ans = allocVector(STRSXP, n));
     for (i = 0; i < n; i++) {
-    	int warn=0;
-    	SEXP result;
 	el = STRING_ELT(paths, i);
 	if(getCharCE(el) == CE_UTF8) {
-	    if (GetFullPathNameW(filenameToWchar(el, FALSE), MAX_PATH, 
-	    		         wtmp, &wtmp2)) {
-		if (GetLongPathNameW(wtmp, wlongpath, MAX_PATH)) {
-	    	    wcstoutf8(longpath, wlongpath, wcslen(wlongpath)+1);
-	    	    result = mkCharCE(longpath, CE_UTF8);
-	    	} else {
-	    	    wcstoutf8(tmp, wtmp, wcslen(wtmp)+1);
-	    	    result = mkCharCE(tmp, CE_UTF8);
-	    	    warn = 1;
-	    	}
-	    } else {
-	    	result = el;
-	    	warn = 1;
-	    }
-	    if (warn)
-	    	warningcall(call, "path[%d]=\"%ls\": %s", i+1, filenameToWchar(el,FALSE), 
+	    if (!GetFullPathNameW(filenameToWchar(el, FALSE), MAX_PATH,
+			     wtmp, &wtmp2)
+	    	|| !GetLongPathNameW(wtmp, wlongpath, MAX_PATH))
+	    	errorcall(call, "path[%d]=\"%ls\": %s", i+1, filenameToWchar(el,FALSE), 
 	    	          formatError(GetLastError()));
+	    wcstoutf8(longpath, wlongpath, wcslen(wlongpath)+1);
+	    SET_STRING_ELT(ans, i, mkCharCE(longpath, CE_UTF8));
 	} else {
-	    if (GetFullPathName(translateChar(el), MAX_PATH, tmp, &tmp2)) {
-	    	if (GetLongPathName(tmp, longpath, MAX_PATH)) 
-	    	    result = mkChar(longpath);
-	    	else {
-	    	    result = mkChar(tmp);
-	    	    warn = 1;
-	    	}
-	    } else {
-	    	result = el;
-	    	warn = 1;
-	    }
-	    if (warn)
-		warningcall(call, "path[%d]=\"%s\": %s", i+1, translateChar(el), 
-			    formatError(GetLastError()));	
+	    if (!GetFullPathName(translateChar(el), MAX_PATH, tmp, &tmp2)
+	        || !GetLongPathName(tmp, longpath, MAX_PATH))
+	        errorcall(call, "path[%d]=\"%s\": %s", i+1, translateChar(el), 
+	                  formatError(GetLastError()));
+	    SET_STRING_ELT(ans, i, mkChar(longpath));
 	}
-	SET_STRING_ELT(ans, i, result);
     }
     UNPROTECT(1);
     return ans;

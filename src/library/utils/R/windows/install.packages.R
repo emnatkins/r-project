@@ -14,61 +14,51 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-## Unexported helper
-unpackPkgZip <- function(pkg, pkgname, lib, libs_only = FALSE)
-{
-    ## Create a temporary directory and unpack the zip to it
-    ## then get the real package name, copying the
-    ## dir over to the appropriate install dir.
-    lib <- normalizePath(lib)
-    tmpDir <- tempfile(, lib)
-    if (!dir.create(tmpDir))
-        stop(gettextf("unable to create temporary directory '%s'",
-                      normalizePath(tmpDir)),
-             domain = NA, call. = FALSE)
-    cDir <- getwd()
-    on.exit(setwd(cDir), add = TRUE)
-    res <- zip.unpack(pkg, tmpDir)
-    setwd(tmpDir)
-    res <- tools::checkMD5sums(pkgname, file.path(tmpDir, pkgname))
-    if(!is.na(res) && res) {
-        cat(gettextf("package '%s' successfully unpacked and MD5 sums checked\n",
-                     pkgname))
-        flush.console()
-    }
+## called as
+# .install.winbinary(pkgs = pkgs, lib = lib, contriburl = contriburl,
+#                    method = method, available = available,
+#                    destdir = destdir,
+#                    dependencies = dependencies)
 
-    desc <- read.dcf(file.path(pkgname, "DESCRIPTION"),
-                     c("Package", "Type"))
-    if(desc[1L, "Type"] %in% "Translation") {
-        fp <- file.path(pkgname, "share", "locale")
-        if(file.exists(fp)) {
-            langs <- dir(fp)
-            for(lang in langs) {
-                path0 <- file.path(fp, lang, "LC_MESSAGES")
-                mos <- dir(path0, full.names = TRUE)
-                path <- file.path(R.home("share"), "locale", lang,
-                                  "LC_MESSAGES")
-                if(!file.exists(path))
-                    if(!dir.create(path, FALSE, TRUE))
-                        warning(gettextf("failed to create '%s'", path),
-                                domain = NA)
-                res <- file.copy(mos, path, overwrite = TRUE)
-                if(any(!res))
-                    warning(gettextf("failed to create '%s'",
-                                     paste(mos[!res], collapse=",")),
-                            domain = NA)
-            }
+.install.winbinary <-
+    function(pkgs, lib, repos = getOption("repos"),
+             contriburl = contrib.url(repos),
+             method, available = NULL, destdir = NULL,
+             dependencies = FALSE, ...)
+{
+    unpackPkg <- function(pkg, pkgname, lib)
+    {
+        ## Create a temporary directory and unpack the zip to it
+        ## then get the real package name, copying the
+        ## dir over to the appropriate install dir.
+        lib <- normalizePath(lib)
+        tmpDir <- tempfile(, lib)
+        if (!dir.create(tmpDir))
+            stop(gettextf("unable to create temporary directory '%s'",
+                          normalizePath(tmpDir)),
+                 domain = NA, call. = FALSE)
+        cDir <- getwd()
+        on.exit(setwd(cDir), add = TRUE)
+        res <- zip.unpack(pkg, tmpDir)
+        setwd(tmpDir)
+        res <- tools::checkMD5sums(pkgname, file.path(tmpDir, pkgname))
+        if(!is.na(res) && res) {
+            cat(gettextf("package '%s' successfully unpacked and MD5 sums checked\n",
+                         pkgname))
+            flush.console()
         }
-        fp <- file.path(pkgname, "library")
-        if(file.exists(fp)) {
-            spkgs <- dir(fp)
-            for(spkg in spkgs) {
-                langs <- dir(file.path(fp, spkg, "po"))
+
+        desc <- read.dcf(file.path(pkgname, "DESCRIPTION"),
+                         c("Package", "Type"))
+        if(desc[1L, "Type"] %in% "Translation") {
+            fp <- file.path(pkgname, "share", "locale")
+            if(file.exists(fp)) {
+                langs <- dir(fp)
                 for(lang in langs) {
-                    path0 <- file.path(fp, spkg, "po", lang, "LC_MESSAGES")
+                    path0 <- file.path(fp, lang, "LC_MESSAGES")
                     mos <- dir(path0, full.names = TRUE)
-                    path <- file.path(R.home(), "library", spkg, "po",
-                                      lang, "LC_MESSAGES")
+                    path <- file.path(R.home("share"), "locale", lang,
+                                      "LC_MESSAGES")
                     if(!file.exists(path))
                         if(!dir.create(path, FALSE, TRUE))
                             warning(gettextf("failed to create '%s'", path),
@@ -80,50 +70,39 @@ unpackPkgZip <- function(pkg, pkgname, lib, libs_only = FALSE)
                                 domain = NA)
                 }
             }
-        }
-    } else {
-        ## We can't use CHM help -- this works even if not there.
-        ## CHM help was last shipped in Aug 2009, prior to 2.10.0
-        unlink(file.path(tmpDir, pkgname, "chtml"), recursive = TRUE)
-        instPath <- file.path(lib, pkgname)
-        if(libs_only) {
-            if (!file_test("-d", file.path(instPath, "libs")))
-                warning(gettextf("there is no 'libs' directory in package '%s'",
-                                 pkgname),
-                        domain = NA, call. = FALSE, immediate. = TRUE)
-            ## copy over the subdirs of 'libs', removing if already there
-            for(sub in c("i386", "x64"))
-                if (file_test("-d", file.path(tmpDir, pkgname, "libs", sub))) {
-                    unlink(file.path(instPath, "libs", sub), recursive = TRUE)
-                    ret <- file.copy(file.path(tmpDir, pkgname, "libs", sub),
-                                     file.path(instPath, "libs"),
-                                     recursive = TRUE)
-                    if(any(!ret))
-                        warning(gettextf("unable to move temporary installation '%s' to '%s'",
-                                         normalizePath(file.path(tmpDir, pkgname, "libs", sub)),
-                                         normalizePath(file.path(instPath, "libs"))),
-                                domain = NA, call. = FALSE, immediate. = TRUE)
+            fp <- file.path(pkgname, "library")
+            if(file.exists(fp)) {
+                spkgs <- dir(fp)
+                for(spkg in spkgs) {
+                    langs <- dir(file.path(fp, spkg, "po"))
+                    for(lang in langs) {
+                        path0 <- file.path(fp, spkg, "po", lang, "LC_MESSAGES")
+                        mos <- dir(path0, full.names = TRUE)
+                        path <- file.path(R.home(), "library", spkg, "po",
+                                          lang, "LC_MESSAGES")
+                        if(!file.exists(path))
+                            if(!dir.create(path, FALSE, TRUE))
+                                warning(gettextf("failed to create '%s'", path),
+                                        domain = NA)
+                        res <- file.copy(mos, path, overwrite = TRUE)
+                        if(any(!res))
+                            warning(gettextf("failed to create '%s'",
+                                             paste(mos[!res], collapse=",")),
+                                    domain = NA)
+                    }
                 }
-            ## update 'Archs': copied from tools:::.install.packages
-            fi <- file.info(Sys.glob(file.path(instPath, "libs", "*")))
-            dirs <- row.names(fi[fi$isdir %in% TRUE])
-            if (length(dirs)) {
-                descfile <- file.path(instPath, "DESCRIPTION")
-                olddesc <- readLines(descfile)
-                olddesc <- grep("^Archs:", olddesc,
-                                invert = TRUE, value = TRUE, useBytes = TRUE)
-                newdesc <- c(olddesc,
-                             paste("Archs:",
-                                   paste(basename(dirs), collapse=", "))
-                             )
-                writeLines(newdesc, descfile, useBytes = TRUE)
             }
         } else {
+            ## We can't use CHM help -- this works even if not there.
+            unlink(file.path(tmpDir, pkgname, "chtml"), recursive = TRUE)
+            instPath <- file.path(lib, pkgname)
+
             ## If the package is already installed, remove it.  If it
             ## isn't there, the unlink call will still return success.
             ret <- unlink(instPath, recursive=TRUE)
             if (ret == 0) {
-                ## Move the new package to the install lib
+                ## Move the new package to the install lib and
+                ## remove our temp dir
                 ret <- file.rename(file.path(tmpDir, pkgname), instPath)
                 if(!ret)
                     warning(gettextf("unable to move temporary installation '%s' to '%s'",
@@ -136,25 +115,9 @@ unpackPkgZip <- function(pkg, pkgname, lib, libs_only = FALSE)
                         domain = NA, call. = FALSE, immediate. = TRUE)
             }
         }
+        setwd(cDir)
+        unlink(tmpDir, recursive=TRUE)
     }
-    setwd(cDir)
-    ## remove our temp dir
-    unlink(tmpDir, recursive=TRUE)
-}
-
-## called as
-# .install.winbinary(pkgs = pkgs, lib = lib, contriburl = contriburl,
-#                    method = method, available = available,
-#                    destdir = destdir,
-#                    dependencies = dependencies,
-#                    libs_only = libs_only, ...)
-
-.install.winbinary <-
-    function(pkgs, lib, repos = getOption("repos"),
-             contriburl = contrib.url(repos),
-             method, available = NULL, destdir = NULL,
-             dependencies = FALSE, libs_only = FALSE, ...)
-{
 
     if(!length(pkgs)) return(invisible())
 
@@ -180,7 +143,7 @@ unpackPkgZip <- function(pkg, pkgname, lib, libs_only = FALSE)
 
     if(is.null(contriburl)) {
         for(i in seq_along(pkgs))
-            unpackPkgZip(pkgs[i], pkgnames[i], lib, libs_only)
+            unpackPkg(pkgs[i], pkgnames[i], lib)
         link.html.help(verbose=TRUE)
         return(invisible())
     }
@@ -212,8 +175,7 @@ unpackPkgZip <- function(pkg, pkgname, lib, libs_only = FALSE)
             {
                 okp <- p == foundpkgs[, 1L]
                 if(any(okp))
-                    unpackPkgZip(foundpkgs[okp, 2L], foundpkgs[okp, 1L],
-                                 lib, libs_only)
+                    unpackPkg(foundpkgs[okp, 2L], foundpkgs[okp, 1L], lib)
             }
         }
         if(!is.null(tmpd) && is.null(destdir))

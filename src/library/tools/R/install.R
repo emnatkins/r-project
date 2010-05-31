@@ -67,10 +67,9 @@
         ## These might be needed for configure.win and Make{file,vars}.win
         ## Some people have *assumed* that R_HOME uses /
         Sys.setenv(R_HOME = rhome)
-        if (nzchar(rarch)) {
-            Sys.setenv(R_ARCH = rarch)
-            Sys.setenv(R_ARCH_BIN = rarch)
-        }
+        ## and others have assumed that RHOME is set:
+        Sys.setenv(RHOME = rhome)
+        if (nzchar(rarch)) Sys.setenv(R_ARCH = rarch)
     }
 
     Usage <- function() {
@@ -108,8 +107,6 @@
             "      --no-inst",
             "			suppress installation of the specified part of the",
             "			package for testing or other special purposes",
-            "      --no-multiarch	build only the main architecture",
-            "      --libs-only	only install the libs directory",
             "      --data-compress=	none, gzip (default), bzip2 or xz compression",
             "			to be used for lazy-loading of data",
             "      --resave-data	re-save data files as compactly as possible",
@@ -119,11 +116,10 @@
             "			set arguments for the configure scripts (if any)",
             "      --configure-vars=VARS",
             "			set variables for the configure scripts (if any)",
+            "      --libs-only	only install the libs directory",
+            "      --no-multiarch	build only the main architecture",
             "\nand on Windows only",
             "      --auto-zip	select whether to zip data automatically",
-            "      --force-biarch	attempt to build both architectures",
-            "			even if there is a non-empty configure.win",
-            "      --merge-multiarch	bi-arch by merging",
             "",
             "Which of --html or --no-html is the default depends on the build of R:",
             paste("for this one it is ",
@@ -275,7 +271,8 @@
                                Sys.getenv("R_PLATFORM"), ".tar")
             filepath <- shQuote(file.path(startdir, filename))
             owd <- setwd(lib)
-            system(paste(TAR, "-chf", filepath,
+            TAR2 <- shQuote(Sys.getenv("TAR"))
+            system(paste(TAR2, "-chf", filepath,
                          paste(curPkg, collapse = " ")))
             system(paste(GZIP, "-9f", filepath))
             if (grepl("darwin", R.version$os)) {
@@ -505,11 +502,9 @@
                 if (debug) starsmsg(stars, "backing up earlier installation")
                 if(WINDOWS) {
                     file.copy(instdir, lockdir, recursive = TRUE)
-                    if (more_than_libs) unlink(instdir, recursive = TRUE)
-                } else if (more_than_libs)
+                    unlink(instdir, recursive = TRUE)
+                } else
                     system(paste("mv", instdir, file.path(lockdir, pkg_name)))
-                else
-                    file.copy(instdir, lockdir, recursive = TRUE)
             } else if (more_than_libs) unlink(instdir, recursive = TRUE)
             dir.create(instdir, recursive = TRUE, showWarnings = FALSE)
         }
@@ -608,52 +603,11 @@
                                         paste("-f", shQuote(makefiles), collapse = " ")))
                     if (res == 0) shlib_install(instdir, rarch)
                     else has_error <- TRUE
-                } else { ## no src/Makefile.win
-                    srcs <- dir(pattern = "\\.([cfmM]|cc|cpp|f90|f95|mm)$")
-                    ## NB, not R.home("bin")
-                    f  <- dir(file.path(R.home(), "bin"))
-                    archs <- f[f %in% c("i386", "x64")]
-                    one_only <- !multiarch
-                    if(!one_only && file.exists("../configure.win")) {
-                        ## for now, hardcode some exceptions
-                        ## These are packages which have arch-independent
-                        ## code in configure.win
-                        if(!pkg_name %in% c("AnalyzeFMRI", "CORElearn",
-                                            "PearsonDS", "RBGL",
-                                            "RNetCDF","RODBC",
-                                            "RSiena", "Rcpp", "Runuran",
-                                            "fastICA", "glmnet", "gstat",
-                                            "mvabund", "png", "proj4",
-                                            "randtoolbox", "rngWELL",
-                                            "tcltk2"))
-                            one_only <- sum(nchar(readLines("../configure.win"), "bytes")) > 0
-                        if(one_only && !force_biarch)
-                            warning("this package has a non-empty 'configure.win' file,\nso building only the main architecture\n", call. = FALSE, domain=NA)
-                    }
-                    if(force_biarch) one_only <- FALSE
-                    if(one_only)
-                        has_error <- run_shlib(pkg_name, srcs, instdir, rarch)
-                    else {
-                        setwd(owd)
-                        for(arch in archs) {
-                            message("", domain = NA) # a blank line
-                            starsmsg("***", "arch - ", arch)
-                            ss <- paste("src", arch, sep = "-")
-                            dir.create(ss, showWarnings = FALSE)
-                            file.copy(Sys.glob("src/*"), ss, recursive = TRUE)
-                            setwd(ss)
-                            ra <- paste0("/", arch)
-                            Sys.setenv(R_ARCH = ra)
-                            Sys.setenv(R_ARCH_BIN = ra)
-                            has_error0 <- run_shlib(pkg_name, srcs, instdir, ra)
-                            setwd(owd)
-                            ## allow archs other than the current one to fail.
-                            if (has_error0 && ra == rarch) {
-                                has_error <- TRUE
-                                break
-                            }
-                        }
-                    }
+                } else {
+                    message("  making DLL ...")
+                    srcs <- dir(pattern = "\\.([cfmCM]|cc|cpp|f90|f95|mm)$")
+                    has_error <- run_shlib(pkg_name, srcs, instdir, rarch)
+                    message("  ... done")
                 }
                 setwd(owd)
             } else { # not WINDOWS
@@ -663,11 +617,7 @@
                     owd <- setwd("src")
                     system_makefile <- file.path(R.home(), paste0("etc", rarch),
                                                  "Makeconf")
-                    site <- file.path(paste(R.home("etc"), rarch, sep=""),
-                                      "Makevars.site")
-                    makefiles <- c(system_makefile,
-                                   if(file.exists(site)) site,
-                                   "Makefile")
+                    makefiles <- c(system_makefile, "Makefile")
                     if (file.exists(f <- path.expand(paste("~/.R/Makevars",
                                                            Sys.getenv("R_PLATFORM"), sep="-"))))
                         makefiles <- c(makefiles, f)
@@ -680,7 +630,7 @@
                     setwd(owd)
                 } else { ## no src/Makefile
                     owd <- setwd("src")
-                    srcs <- dir(pattern = "\\.([cfmM]|cc|cpp|f90|f95|mm)$")
+                    srcs <- dir(pattern = "\\.([cfmCM]|cc|cpp|f90|f95|mm)$")
                     ## This allows Makevars to set OBJECTS or its own targets.
                     allfiles <- if (file.exists("Makevars")) c("Makevars", srcs) else srcs
                     wd2 <- setwd(file.path(R.home("bin"), "exec"))
@@ -696,24 +646,19 @@
                                          substr(rarch, 2, 1000))
                             has_error <- run_shlib(pkg_name, srcs, instdir, rarch)
                         } else {
-                            setwd(owd)
                             for(arch in archs) {
+                                system("rm -f *.o *.so *.sl *.dylib")
                                 if (arch == "R") {
                                     ## top-level, so one arch without subdirs
                                     has_error <- run_shlib(pkg_name, srcs, instdir, "")
                                 } else {
                                     starsmsg("***", "arch - ", arch)
-                                    ss <- paste("src", arch, sep = "-")
-                                    dir.create(ss, showWarnings = FALSE)
-                                    file.copy(Sys.glob("src/*"), ss, recursive = TRUE)
-                                    setwd(ss)
                                     ra <- paste0("/", arch)
                                     ## FIXME: do this lower down
                                     Sys.setenv(R_ARCH = ra)
                                     has_error <- run_shlib(pkg_name, srcs, instdir, ra)
-                                    Sys.setenv(R_ARCH = rarch)
-                                    setwd(owd)
                                     if (has_error) break
+                                    Sys.setenv(R_ARCH = rarch)
                                 }
                             }
                         }
@@ -723,22 +668,6 @@
             }
             if (has_error)
                 pkgerrmsg("compilation failed", pkg_name)
-
-            ## if we have subarchs, update DESCRIPTION
-            fi <- file.info(Sys.glob(file.path(instdir, "libs", "*")))
-            dirs <- basename(row.names(fi[fi$isdir %in% TRUE]))
-            ## avoid DLLs installed by rogue packages
-            if(WINDOWS) dirs <- dirs[dirs %in% c("i386", "x64")]
-            if (length(dirs)) {
-                descfile <- file.path(instdir, "DESCRIPTION")
-                olddesc <- readLines(descfile)
-                olddesc <- grep("^Archs:", olddesc,
-                                invert = TRUE, value = TRUE, useBytes = TRUE)
-                newdesc <- c(olddesc,
-                             paste("Archs:", paste(dirs, collapse=", "))
-                             )
-                writeLines(newdesc, descfile, useBytes = TRUE)
-            }
         }                               # end of src dir
 
 	if (install_R && dir.exists("R")) {
@@ -973,7 +902,6 @@
         args <- paste(args, collapse=" ")
         args <- strsplit(args,'nextArg', fixed = TRUE)[[1L]][-1L]
     }
-    args0 <- args
 
     startdir <- getwd()
 
@@ -1000,9 +928,7 @@
     tar_up <- zip_up <- FALSE
     shargs <- character(0)
     multiarch <- TRUE
-    force_biarch <- FALSE
     test_load <- TRUE
-    merge <- FALSE
 
     get_user_libPaths <- FALSE
     data_compress <- TRUE # FALSE (none), TRUE (gzip), 2 (bzip2), 3 (xz)
@@ -1028,7 +954,7 @@
                 R.version[["major"]], ".",  R.version[["minor"]],
                 " (r", R.version[["svn rev"]], ")\n", sep = "")
             cat("",
-                "Copyright (C) 2000-2010 The R Core Development Team.",
+                "Copyright (C) 2000-2009 The R Core Development Team.",
                 "This is free software; see the GNU General Public License version 2",
                 "or later for copying conditions.  There is NO warranty.",
                 sep="\n")
@@ -1077,8 +1003,6 @@
             libs_only <- TRUE
         } else if (a == "--no-multiarch") {
             multiarch <- FALSE
-        } else if (a == "--force-biarch") {
-            force_biarch <- TRUE
         } else if (a == "--maybe-get-user-libPaths") {
             get_user_libPaths <- TRUE
         } else if (a == "--build") {
@@ -1111,9 +1035,6 @@
             install_help <- FALSE
         } else if (a == "--no-test-load") {
             test_load <- FALSE
-        } else if (a == "--merge-multiarch") {
-            if (WINDOWS) merge <- TRUE
-            else warning("--merge-multiarch is Windows-only", call.=FALSE)
         } else if (substr(a, 1, 1) == "-") {
             message("Warning: unknown option ", sQuote(a))
         } else pkgs <- c(pkgs, a)
@@ -1123,38 +1044,6 @@
     tmpdir <- tempfile("R.INSTALL")
     if (!dir.create(tmpdir))
         stop("cannot create temporary directory")
-
-    if (merge && length(pkgs) != 1)
-        stop("ERROR: --merge-multiarch applies only to a single tarball",
-             call.=FALSE)
-
-    if (merge) {
-        if (length(pkgs) != 1 || !.file_test("-f", pkgs))
-            stop("ERROR: --merge-multiarch applies only to a single tarball",
-                 call.=FALSE)
-        f  <- dir(file.path(R.home(), "bin"))
-        archs <- f[f %in% c("i386", "x64")]
-        if (length(archs) < 2)
-            stop("ERROR: --merge-multiarch can only be used on i386/x64 installations",
-                 call.=FALSE)
-        args <- args0[! args0 %in% c("--merge-multiarch", "--build")]
-        cmd <- paste(file.path(R.home(), "bin", "i386", "Rcmd.exe"),
-                     "INSTALL", "--no-multiarch")
-        allargs <-  paste(args, collapse=" ")
-        cmd1 <- paste(cmd, allargs)
-        if (debug) message("about to run ", cmd1, domain = NA)
-        message("\n", "install for i386", "\n", domain=NA)
-        res <- system(cmd1)
-        if(res == 0) {
-            cmd <- paste(file.path(R.home(), "bin", "x64", "Rcmd.exe"),
-                         "INSTALL", "--no-multiarch")
-            cmd1 <- paste(cmd, "--libs-only", if (zip_up) "--build", allargs)
-            if (debug) message("about to run ", cmd1, domain = NA)
-            message("\n", "add DLL for x64", "\n", domain=NA)
-            system(cmd1)
-        }
-        return(invisible())
-    }
 
     ## now unpack tarballs and do some basic checks
     allpkgs <- character()
@@ -1173,8 +1062,8 @@
             of <- dir(tmpdir, full.names = TRUE)
             ## force the use of internal untar unless over-ridden
             ## so e.g. .tar.xz works everywhere
-            if (untar(pkg, exdir = tmpdir,
-                      tar =  Sys.getenv("R_INSTALL_TAR", "internal")))
+            TAR <- Sys.getenv("R_INSTALL_TAR", "internal")
+            if (untar(pkg, exdir = tmpdir, tar = TAR))
                 errmsg("error unpacking tarball")
             ## Now see what we got
             nf <- dir(tmpdir, full.names = TRUE)
@@ -1219,7 +1108,6 @@
     if (!length(allpkgs))
         stop("ERROR: no packages specified", call.=FALSE)
 
-
     if (!nzchar(lib)) {
         lib <- if (get_user_libPaths) { ## need .libPaths()[1L] *after* the site- and user-initialization
 	    system(paste(file.path(R.home("bin"), "Rscript"),
@@ -1254,6 +1142,7 @@
              sQuote(lib), call. = FALSE)
 
     if (libs_only) {
+        lock <- FALSE
         tar_up <- FALSE
 	install_R <- FALSE
 	install_data <- FALSE
@@ -1366,7 +1255,6 @@
         SHLIB_EXT <- sub(".*= ", "", grep("^SHLIB_EXT", mconf, value = TRUE))
         SHLIB_LIBADD <- sub(".*= ", "", grep("^SHLIB_LIBADD", mconf, value = TRUE))
         MAKE <- Sys.getenv("MAKE")
-        rarch <- Sys.getenv("R_ARCH")
     } else {
         rhome <- chartr("\\", "/", R.home())
         Sys.setenv(R_HOME = rhome)
@@ -1374,25 +1262,17 @@
         SHLIB_LIBADD <- ""
         MAKE <- "make"
         ## For winshlib.mk to pick up Makeconf
-        rarch <- Sys.getenv("R_ARCH", NA)
-        if(is.na(rarch)) {
-            if (nzchar(.Platform$r_arch)) {
-                rarch <- p0("/", .Platform$r_arch)
-                Sys.setenv(R_ARCH = rarch)
-            } else rarch <- ""
-        }
+        rarch <- .Platform$r_arch
+        if (nzchar(rarch)) Sys.setenv(R_ARCH = p0("/", rarch))
     }
 
     OBJ_EXT <- ".o" # all currrent compilers, but not some on Windows
 
     objs <- character()
     shlib <- ""
-    site <- file.path(p0(R.home("etc"), rarch), "Makevars.site")
     makefiles <-
-        c(file.path(p0(R.home("etc"), rarch), "Makeconf"),
-          if(file.exists(site)) site,
-          file.path(R.home("share"), "make",
-                    if (WINDOWS) "winshlib.mk" else "shlib.mk"))
+        file.path(R.home("share"), "make",
+                  if (WINDOWS) "winshlib.mk" else "shlib.mk")
     shlib_libadd <- if (nzchar(SHLIB_LIBADD)) SHLIB_LIBADD else character()
     with_cxx <- FALSE
     with_f77 <- FALSE
@@ -1439,7 +1319,7 @@
             ext <- sub(p0(base, "."),  "", a, fixed = TRUE)
             nobj <- ""
             if (nzchar(ext)) {
-                if (ext %in% c("cc", "cpp")) {
+                if (ext %in% c("cc", "cpp", "C")) {
                     with_cxx <- TRUE
                     nobj <- base
                 } else if (ext == "m") {
@@ -1473,7 +1353,7 @@
     if (length(objs)) objs <- p0(objs, OBJ_EXT, collapse=" ")
 
     if (WINDOWS) {
-        if (rarch == "/x64" &&
+        if (rarch == "x64" &&
             file.exists(f <- path.expand("~/.R/Makevars.win64")))
             makefiles <- c(makefiles, f)
         else if (file.exists(f <- path.expand("~/.R/Makevars.win")))
@@ -1482,8 +1362,7 @@
             makefiles <- c(makefiles, f)
     } else {
         if (file.exists(f <- path.expand(paste("~/.R/Makevars",
-                                               Sys.getenv("R_PLATFORM"),
-                                               sep="-"))))
+                                               Sys.getenv("R_PLATFORM"), sep="-"))))
             makefiles <- c(makefiles, f)
         else if (file.exists(f <- path.expand("~/.R/Makevars")))
             makefiles <- c(makefiles, f)
@@ -1520,9 +1399,10 @@
         makeargs <- c(makeargs,
                       p0("SHLIB_LIBADD='", p1(shlib_libadd), "'"))
 
+    ## removed in 2.10.0
+    ## if (WINDOWS) makeargs <- c(makeargs, "all")
     if (WINDOWS && debug) makeargs <- c(makeargs, "DEBUG=T")
-    ## TCLBIN is needed for tkrplot and tcltk2
-    if (WINDOWS && rarch == "/x64") makeargs <- c(makeargs, "WIN=64 TCLBIN=64")
+    if (WINDOWS && rarch == "x64") makeargs <- c(makeargs, "WIN=64")
 
     cmd <- paste(MAKE, p1(paste("-f", makefiles)), p1(makeargs), p1(makeobjs))
     if (dry_run) {
@@ -1696,14 +1576,9 @@
             }
             latexdir <- tempfile("ltx")
             dir.create(latexdir)
-            if (!silent) message("Converting Rd files to LaTeX ",
-                                 appendLF = FALSE, domain = NA)
-            cnt <- 0L
+            message("Converting Rd files to LaTeX ...")
             for(f in files) {
-#                cat("  ", basename(f), "\n", sep="")
-                cnt <- cnt + 1L
-                if (!silent && cnt %% 10L == 0L)
-                    message(".", appendLF=FALSE, domain=NA)
+                cat("  ", basename(f), "\n", sep="")
                 out <-  sub("\\.[Rr]d$", ".tex", basename(f))
                 latexEncodings <-
                     c(latexEncodings,
@@ -1712,7 +1587,6 @@
                                     outputEncoding = outputEncoding),
                            "latexEncoding"))
             }
-            if (!silent) message(domain = NA)
         }
     }
     ## they might be zipped up
@@ -2297,6 +2171,9 @@ function(pkgdir, outfile, title, batch = FALSE,
          enc = "unknown", outputEncoding = "UTF-8", files_or_dir, OSdir,
          internals = "no", index = "true")
 {
+
+    ## %in% and others cause problems for some page layouts.
+    if (basename(pkgdir) == "base") index <- "false"
     ## Write directly to the final location.  Encodings may mean we need
     ## to make edits, but for most files one pass should be enough.
     out <- file(outfile, "wt")
@@ -2327,7 +2204,7 @@ function(pkgdir, outfile, title, batch = FALSE,
     ## this needs to be canonical, e.g. 'utf8'
     setEncoding <- paste("\\usepackage[", latex_canonical_encoding(outputEncoding), "]{inputenc} % @SET ENCODING@", sep="")
     writeLines(c(setEncoding,
-                 if (index) "\\makeindex{}",
+                 "\\makeindex{}",
                  "\\begin{document}"), out)
     if (!nzchar(title)) {
         if (is.character(desc))

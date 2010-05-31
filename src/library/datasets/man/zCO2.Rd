@@ -58,7 +58,6 @@
 }
 \examples{
 require(stats); require(graphics)
-\testonly{options(show.nls.convergence=FALSE)}
 coplot(uptake ~ conc | Plant, data = CO2, show.given = FALSE, type = "b")
 ## fit the data for the first plant
 fm1 <- nls(uptake ~ SSasymp(conc, Asym, lrc, c0),
@@ -71,6 +70,6 @@ for (pp in levels(CO2$Plant)) {
       data = CO2, subset = Plant == pp)
 }
 ## check the coefficients by plant
-print(sapply(fmlist, coef), digits=3)
+sapply(fmlist, coef)
 }
 \keyword{datasets}
