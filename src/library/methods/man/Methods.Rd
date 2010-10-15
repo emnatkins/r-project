@@ -484,6 +484,8 @@ The  \code{"target"} slot starts off equal to the \code{"defined"}
 }
 
 \examples{
+
+
 ## A class that extends a registered S3 class inherits that class' S3
 ## methods.
 
@@ -511,7 +513,7 @@ setMethod("[",
     }
 )
 
-\donttest{mydf1[1:2, ]}
+mydf1[1:2, ]
 
 
 setClass("myDateTime", contains = "POSIXt")

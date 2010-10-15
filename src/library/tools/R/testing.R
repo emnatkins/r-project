@@ -124,7 +124,7 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE)
         ## remove BATCH footer
         nl <- length(txt)
         if(grepl("^> proc.time()", txt[nl-2L])) txt <- txt[1:(nl-3L)]
-        ## regularize fancy quotes.  First UTF-8 ones:
+        ## regularize fancy quotes.
         txt <- gsub("(\xe2\x80\x98|\xe2\x80\x99)", "'", txt,
                       perl = TRUE, useBytes = TRUE)
         if(.Platform$OS.type == "windows") {
@@ -214,17 +214,17 @@ testInstalledPackage <-
     exdir <- file.path(pkgdir, "R-ex")
     owd <- setwd(outDir)
     on.exit(setwd(owd))
-    strict <- as.logical(Sys.getenv("R_STRICT_PACKAGE_CHECK", "FALSE"))
 
     if (1 %in% types) {
-        message("Testing examples for package ", sQuote(pkg))
-        Rfile <- .createExdotR(pkg, pkgdir, silent = TRUE)
+        message("\nCollecting examples for package ", sQuote(pkg))
+        Rfile <- .createExdotR(pkg, pkgdir)
         if (length(Rfile)) {
             outfile <- paste(pkg, "-Ex.Rout", sep = "")
             failfile <- paste(outfile, "fail", sep = "." )
             savefile <- paste(outfile, "prev", sep = "." )
             if (file.exists(outfile)) file.rename(outfile, savefile)
             unlink(failfile)
+            message("Running examples in package ", sQuote(pkg))
             ## Create as .fail in case this R session gets killed
             cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                          "CMD BATCH --vanilla --no-timing",
@@ -241,23 +241,13 @@ testInstalledPackage <-
                 if(!file.exists(savefile) && file.exists(tfile))
                     savefile <- tfile
             }
+            if (!file.exists(savefile))
+                savefile <- paste(outfile, "prev", sep = "." )
             if (file.exists(savefile)) {
-               if (file.exists(savefile)) {
-                    message("  comparing ", sQuote(outfile), " to ",
-                            sQuote(basename(savefile)), " ...", appendLF = FALSE)
-                    res <- Rdiff(outfile, savefile)
-                    if (!res) message(" OK")
-                    else if(strict)
-                        stop("  ", "results differ from reference results")
-                }
-            } else {
-                prevfile <- paste(outfile, "prev", sep = "." )
-                if (file.exists(prevfile)) {
-                    message("  comparing ", sQuote(outfile), " to ",
-                            sQuote(basename(prevfile)), " ...", appendLF = FALSE)
-                    res <- Rdiff(outfile, prevfile)
-                    if (!res) message(" OK")
-                }
+                message("  Comparing ", sQuote(outfile), " to ",
+                        sQuote(basename(savefile)), " ...", appendLF = FALSE)
+                res <- Rdiff(outfile, savefile)
+                if (!res) message(" OK")
             }
         } else warning("no examples found")
     }
@@ -287,7 +277,7 @@ testInstalledPackage <-
             }
             savefile <- paste(outfile, "save", sep = "." )
             if (file.exists(savefile)) {
-                message("  comparing ", sQuote(outfile), " to ",
+                message("  Comparing ", sQuote(outfile), " to ",
                         sQuote(savefile), " ...", appendLF = FALSE)
                 res <- Rdiff(outfile, savefile)
                 if (!res) message(" OK")
@@ -573,6 +563,7 @@ detachPackages <- function(pkgs, verbose = TRUE)
         q("no", status = status, runLast = FALSE)
 
     args <- commandArgs(TRUE)
+
     if (!length(args)) {
         Usage()
         do_exit(1L)
@@ -596,11 +587,6 @@ detachPackages <- function(pkgs, verbose = TRUE)
         do_exit(1L)
     }
 
-
-    if (length(args) < 2L) {
-        Usage()
-        do_exit(1L)
-    }
     exitstatus <- as.integer(args[3L])
     if(is.na(exitstatus)) exitstatus <- 0L
 

@@ -769,7 +769,7 @@ DL_FUNC attribute_hidden
 R_dlsym(DllInfo *info, char const *name,
 	R_RegisteredNativeSymbol *symbol)
 {
-    char buf[strlen(name) + 4]; /* up to 3 additional underscores */
+    char buf[MAXIDSIZE+1];
     DL_FUNC f;
 
     f = R_getDLLRegisteredSymbol(info, name, symbol);
@@ -779,9 +779,9 @@ R_dlsym(DllInfo *info, char const *name,
     if(info->useDynamicLookup == FALSE) return(NULL);
 
 #ifdef HAVE_NO_SYMBOL_UNDERSCORE
-    sprintf(buf, "%s", name);
+    snprintf(buf, MAXIDSIZE+1, "%s", name);
 #else
-    sprintf(buf, "_%s", name);
+    snprintf(buf, MAXIDSIZE+1,"_%s", name);
 #endif
 
 #ifdef HAVE_F77_UNDERSCORE

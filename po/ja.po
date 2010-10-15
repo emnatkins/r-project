@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.5.0 \n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2010-10-01 21:30+0100\n"
+"POT-Creation-Date: 2010-09-30 13:37+0100\n"
 "PO-Revision-Date: 2010-09-30 07:32+0900 \n"
 "Last-Translator: Shigeru Mase <maseshigeru@gmail.com> \n"
 "Language-Team: R-core <R-core@R-project.org> \n"
@@ -164,15 +164,15 @@ msgstr " '%ls'の表示に問題があります "
 #: src/main/devices.c:581 src/main/dotcode.c:736 src/main/dotcode.c:740
 #: src/main/dotcode.c:745 src/main/dounzip.c:250 src/main/dounzip.c:257
 #: src/main/dounzip.c:267 src/main/dounzip.c:272 src/main/dounzip.c:276
-#: src/main/envir.c:1524 src/main/envir.c:1527 src/main/envir.c:1671
-#: src/main/envir.c:1676 src/main/envir.c:1742 src/main/envir.c:1758
-#: src/main/envir.c:1764 src/main/envir.c:1864 src/main/envir.c:1872
-#: src/main/envir.c:1879 src/main/envir.c:1893 src/main/envir.c:1899
-#: src/main/envir.c:1903 src/main/envir.c:2120 src/main/envir.c:2241
-#: src/main/envir.c:2500 src/main/envir.c:2758 src/main/envir.c:2772
-#: src/main/envir.c:2779 src/main/envir.c:2795 src/main/envir.c:3349
-#: src/main/eval.c:281 src/main/eval.c:1810 src/main/eval.c:1839
-#: src/main/eval.c:1843 src/main/grep.c:735 src/main/grep.c:740
+#: src/main/envir.c:1524 src/main/envir.c:1527 src/main/envir.c:1670
+#: src/main/envir.c:1675 src/main/envir.c:1741 src/main/envir.c:1757
+#: src/main/envir.c:1763 src/main/envir.c:1863 src/main/envir.c:1871
+#: src/main/envir.c:1878 src/main/envir.c:1892 src/main/envir.c:1898
+#: src/main/envir.c:1902 src/main/envir.c:2119 src/main/envir.c:2240
+#: src/main/envir.c:2499 src/main/envir.c:2757 src/main/envir.c:2771
+#: src/main/envir.c:2778 src/main/envir.c:2794 src/main/envir.c:3348
+#: src/main/eval.c:281 src/main/eval.c:1828 src/main/eval.c:1857
+#: src/main/eval.c:1861 src/main/grep.c:735 src/main/grep.c:740
 #: src/main/grep.c:1085 src/main/grep.c:1089 src/main/grep.c:1094
 #: src/main/grep.c:1769 src/main/grep.c:1774 src/main/memory.c:2984
 #: src/main/model.c:1610 src/main/model.c:1618 src/main/optim.c:225
@@ -560,7 +560,7 @@ msgid ""
 msgstr ""
 " 'reader thread' を作れません。システムのリソースを幾らか解放すべきです "
 
-#: src/include/Errormsg.h:25 src/main/eval.c:2978 src/main/subscript.c:312
+#: src/include/Errormsg.h:25 src/main/eval.c:2988 src/main/subscript.c:312
 #: src/main/subscript.c:353 src/main/subscript.c:457 src/main/subscript.c:554
 msgid "subscript out of bounds"
 msgstr " 添え字が許される範囲外です "
@@ -643,50 +643,50 @@ msgstr " 乱数シード長は0から625の範囲でなくてはなりません�
 msgid "RNG_Init: unimplemented RNG kind %d"
 msgstr " RNG_Init: RNG kind %d は未実装です "
 
-#: src/main/RNG.c:309
+#: src/main/RNG.c:300
 msgid ".Random.seed is a missing argument with no default"
 msgstr ""
 " .Random.seed で，デフォルトが設定されていない引数が省略されてしまいました "
 
-#: src/main/RNG.c:310
+#: src/main/RNG.c:301
 #, c-format
 msgid ".Random.seed is not an integer vector but of type '%s'"
 msgstr " .Random.seed は整数ベクトルではなくタイプ '%s' です "
 
-#: src/main/RNG.c:316
+#: src/main/RNG.c:307
 msgid ".Random.seed[1] is not a valid integer"
 msgstr " .Random.seed[1] が有効な整数値ではありません "
 
-#: src/main/RNG.c:320
+#: src/main/RNG.c:311
 msgid ".Random.seed[0] is not a valid Normal type"
 msgstr " .Random.seed[0] は有効な標準形ではありません "
 
-#: src/main/RNG.c:331
+#: src/main/RNG.c:322
 msgid ".Random.seed[1] = 5 but no user-supplied generator"
 msgstr " .Random.seed[1] = 5 ですが，ユーザ定義の乱数発生器がありません "
 
-#: src/main/RNG.c:334
+#: src/main/RNG.c:325
 msgid ".Random.seed[1] is not a valid RNG kind (code)"
 msgstr " .Random.seed[1] が有効な種類の RNG (コード)ではありません "
 
-#: src/main/RNG.c:356
+#: src/main/RNG.c:347
 msgid ".Random.seed has wrong length"
 msgstr " .Random.seed の長さが不正です "
 
-#: src/main/RNG.c:409
+#: src/main/RNG.c:400
 #, c-format
 msgid "RNGkind: unimplemented RNG kind %d"
 msgstr " RNGkind: RNG kind %d は未実装です "
 
-#: src/main/RNG.c:421
+#: src/main/RNG.c:412
 msgid "invalid Normal type in RNGkind"
 msgstr " RNGkind 中の正規乱数発生法が不正です "
 
-#: src/main/RNG.c:424
+#: src/main/RNG.c:415
 msgid "'user_norm_rand' not in load table"
 msgstr " 'user_norm_rand' がロードテーブルにありません "
 
-#: src/main/RNG.c:467
+#: src/main/RNG.c:458
 msgid "supplied seed is not a valid integer"
 msgstr " 与えられた seed は適切な整数ではありません "
 
@@ -1125,8 +1125,8 @@ msgid "length of 'dimnames' [%d] not equal to array extent"
 msgstr " 'dimnames' の長さ [%d] が配列の大きさと違っています "
 
 #: src/main/attrib.c:1010 src/main/builtin.c:64 src/main/builtin.c:101
-#: src/main/envir.c:1512 src/main/envir.c:1664 src/main/envir.c:1725
-#: src/main/envir.c:1848 src/main/paste.c:68 src/main/paste.c:263
+#: src/main/envir.c:1512 src/main/envir.c:1663 src/main/envir.c:1724
+#: src/main/envir.c:1847 src/main/paste.c:68 src/main/paste.c:263
 #: src/main/plot.c:1729 src/main/random.c:474
 msgid "invalid first argument"
 msgstr " 一番目の引数が不正です "
@@ -1252,7 +1252,7 @@ msgstr " 'use.names' 仮引数が繰り返されました "
 msgid "argument not a list"
 msgstr " 引数はリストではありません "
 
-#: src/main/bind.c:1025 src/main/eval.c:2172 src/main/eval.c:2181
+#: src/main/bind.c:1025 src/main/eval.c:2190 src/main/eval.c:2199
 #: src/main/objects.c:311 src/main/objects.c:346 src/main/objects.c:722
 #: src/main/objects.c:739 src/main/objects.c:746
 #, c-format
@@ -1297,11 +1297,11 @@ msgstr " 指定されたベクトルのサイズが長すぎます "
 #: src/main/builtin.c:308 src/main/builtin.c:350 src/main/builtin.c:360
 #: src/main/coerce.c:1436 src/main/connections.c:2746 src/main/engine.c:2851
 #: src/main/envir.c:921 src/main/envir.c:974 src/main/envir.c:1064
-#: src/main/envir.c:1521 src/main/envir.c:1669 src/main/envir.c:1736
-#: src/main/envir.c:1857 src/main/envir.c:2530 src/main/envir.c:2590
-#: src/main/envir.c:2909 src/main/envir.c:2938 src/main/envir.c:2959
-#: src/main/envir.c:2982 src/main/envir.c:3016 src/main/envir.c:3036
-#: src/main/envir.c:3341 src/main/envir.c:3345 src/main/eval.c:3845
+#: src/main/envir.c:1521 src/main/envir.c:1668 src/main/envir.c:1735
+#: src/main/envir.c:1856 src/main/envir.c:2529 src/main/envir.c:2589
+#: src/main/envir.c:2908 src/main/envir.c:2937 src/main/envir.c:2958
+#: src/main/envir.c:2981 src/main/envir.c:3015 src/main/envir.c:3035
+#: src/main/envir.c:3340 src/main/envir.c:3344 src/main/eval.c:3804
 #: src/main/objects.c:190 src/main/objects.c:196 src/main/saveload.c:2057
 #: src/main/saveload.c:2338 src/main/serialize.c:2264
 msgid "use of NULL environment is defunct"
@@ -1383,8 +1383,8 @@ msgid "missing value for 'length'"
 msgstr " 'length' の値がありません "
 
 #: src/main/builtin.c:877 src/main/eval.c:417 src/main/eval.c:521
-#: src/main/eval.c:1598 src/main/eval.c:1664 src/main/eval.c:1724
-#: src/main/eval.c:2055 src/main/eval.c:3434 src/main/eval.c:3542
+#: src/main/eval.c:1616 src/main/eval.c:1682 src/main/eval.c:1742
+#: src/main/eval.c:2073 src/main/eval.c:3435 src/main/eval.c:3543
 msgid "'...' used in an incorrect context"
 msgstr " '...' が不適切な文脈で使われました "
 
@@ -1534,7 +1534,7 @@ msgstr " 非因子へ強制変換しようとしています "
 msgid "list argument expected"
 msgstr " リスト引数が期待されています "
 
-#: src/main/coerce.c:1440 src/main/eval.c:3842 src/main/eval.c:3849
+#: src/main/coerce.c:1440 src/main/eval.c:3801 src/main/eval.c:3808
 msgid "invalid environment"
 msgstr " 不正な環境です "
 
@@ -2524,8 +2524,8 @@ msgstr " 長さゼロの引数です "
 msgid "'opts' should be small non-negative integer"
 msgstr " 'opts' は，小さな非負の整数でなくてはなりません "
 
-#: src/main/deparse.c:365 src/main/envir.c:1693 src/main/envir.c:1775
-#: src/main/eval.c:423 src/main/eval.c:897 src/main/eval.c:2843
+#: src/main/deparse.c:365 src/main/envir.c:1692 src/main/envir.c:1774
+#: src/main/eval.c:423 src/main/eval.c:915 src/main/eval.c:2855
 #: src/main/saveload.c:1965 src/main/saveload.c:2282 src/main/serialize.c:2282
 #, c-format
 msgid "object '%s' not found"
@@ -2979,7 +2979,7 @@ msgstr " 基本名前空間の中では切り離しはできません "
 msgid "unbind in the base environment is unimplemented"
 msgstr " 基本環境中の unbind は未実装です "
 
-#: src/main/envir.c:775 src/main/envir.c:1616
+#: src/main/envir.c:775 src/main/envir.c:1615
 msgid "cannot remove bindings from a locked environment"
 msgstr " ロックされた環境からはバインディングを取り除くことはできません "
 
@@ -2998,8 +2998,8 @@ msgstr " ... リストは %d 個の要素を含んでいません "
 msgid "..%d used in an incorrect context, no ... to look in"
 msgstr " ..%d は正しくない文脈で使われています，参照すべき ... がありません "
 
-#: src/main/envir.c:1300 src/main/envir.c:1771 src/main/eval.c:427
-#: src/main/eval.c:2847
+#: src/main/envir.c:1300 src/main/envir.c:1770 src/main/eval.c:427
+#: src/main/eval.c:2858
 #, c-format
 msgid "argument \"%s\" is missing, with no default"
 msgstr " 引数 \"%s\" がありませんし、省略時既定値もありません "
@@ -3027,9 +3027,8 @@ msgid "first argument must be a named list"
 msgstr " 最初の引数は名前付きリストでなくてはなりません "
 
 #: src/main/envir.c:1559
-#, fuzzy
-msgid "names(x) must be a character vector of the same length as x"
-msgstr " 'hostname' は長さ1の文字列ベクトルでなくてはなりません "
+msgid "names(x) must be valid character(length(x))."
+msgstr " names(x) は長さ length(x) の文字ベクトルでなければなりません "
 
 #: src/main/envir.c:1566
 #, c-format
@@ -3041,176 +3040,176 @@ msgstr " '%s' は環境でなくてはなりません "
 msgid "invalid '%s' argument: must be NULL or environment"
 msgstr " 不正な '%s' 引数です：NULL か環境でなくてはなりません "
 
-#: src/main/envir.c:1610
+#: src/main/envir.c:1609
 msgid "cannot remove variables from base namespace"
 msgstr " base 名前空間からは変数を取り除くことはできません "
 
-#: src/main/envir.c:1612
+#: src/main/envir.c:1611
 msgid "cannot remove variables from the base environment"
 msgstr " 空の環境中から変数を除去することができません "
 
-#: src/main/envir.c:1614
+#: src/main/envir.c:1613
 msgid "cannot remove variables from the empty environment"
 msgstr " 空の環境中から変数を除去することができません "
 
-#: src/main/envir.c:1622
+#: src/main/envir.c:1621
 msgid "cannot remove variables from this database"
 msgstr " このデータベースから変数を除去することができません "
 
-#: src/main/envir.c:1778
+#: src/main/envir.c:1777
 #, c-format
 msgid "object '%s' of mode '%s' was not found"
 msgstr " 変数 ’%s'（モード '%s'）は見つかりません "
 
-#: src/main/envir.c:1851
+#: src/main/envir.c:1850
 #, c-format
 msgid "invalid name in position %d"
 msgstr " 位置 %d に不正な名前があります "
 
-#: src/main/envir.c:1859
+#: src/main/envir.c:1858
 msgid "second argument must be an environment"
 msgstr " 二番目の引数は環境でなければなりません "
 
-#: src/main/envir.c:1867 src/main/envir.c:1875
+#: src/main/envir.c:1866 src/main/envir.c:1874
 #, c-format
 msgid "wrong length for '%s' argument"
 msgstr " '%s' 引数の長さが不正です "
 
-#: src/main/envir.c:2010
+#: src/main/envir.c:2009
 msgid "invalid use of 'missing'"
 msgstr " 'missing' の不正な使用です "
 
-#: src/main/envir.c:2035
+#: src/main/envir.c:2034
 msgid "'missing' can only be used for arguments"
 msgstr " 'missing' は引数に対してだけ使えます "
 
-#: src/main/envir.c:2116
+#: src/main/envir.c:2115
 msgid "'pos' must be an integer"
 msgstr " 'pos' は整数でなければなりません "
 
-#: src/main/envir.c:2130
+#: src/main/envir.c:2129
 msgid "all elements of a list must be named"
 msgstr " リスト中の全ての要素には名前が必要です "
 
-#: src/main/envir.c:2153
+#: src/main/envir.c:2152
 msgid "'attach' only works for lists, data frames and environments"
 msgstr " 'attach' はリスト、データフレーム、もしくは環境にのみ有効です "
 
-#: src/main/envir.c:2236
+#: src/main/envir.c:2235
 msgid "detaching \"package:base\" is not allowed"
 msgstr " \"package:base\" は切り離すことができません "
 
-#: src/main/envir.c:2537 src/main/envir.c:2592
+#: src/main/envir.c:2536 src/main/envir.c:2591
 msgid "argument must be an environment"
 msgstr " 引数は環境でなければなりません "
 
-#: src/main/envir.c:2596
+#: src/main/envir.c:2595
 msgid "arguments must be symbolic"
 msgstr " 引数はシンボルでなくてはいけません "
 
-#: src/main/envir.c:2710 src/main/random.c:34 src/main/random.c:568
+#: src/main/envir.c:2709 src/main/random.c:34 src/main/random.c:568
 msgid "invalid arguments"
 msgstr " 引数(複数)が不正です "
 
-#: src/main/envir.c:2768
+#: src/main/envir.c:2767
 msgid "no enclosing environment"
 msgstr " 上位 (enclosing) 環境がありません "
 
-#: src/main/envir.c:2818
+#: src/main/envir.c:2817
 #, c-format
 msgid "no item called \"%s\" on the search list"
 msgstr " 検索リストに \"%s\" という項目はありません "
 
-#: src/main/envir.c:2841
+#: src/main/envir.c:2840
 msgid "using 'as.environment(NULL)' is defunct"
 msgstr " 'as.environment(NULL)'の利用は廃止されました "
 
-#: src/main/envir.c:2847
+#: src/main/envir.c:2846
 msgid "S4 object does not extend class \"environment\""
 msgstr " S4 オブジェクトはクラス \"environment\" に拡張されません "
 
-#: src/main/envir.c:2858
+#: src/main/envir.c:2857
 msgid "invalid object for 'as.environment'"
 msgstr " 'as.environment' に対する不正なオブジェクトです "
 
-#: src/main/envir.c:2884 src/main/envir.c:2912 src/main/envir.c:2941
-#: src/main/envir.c:2962 src/main/envir.c:2984 src/main/envir.c:3018
-#: src/main/envir.c:3038
+#: src/main/envir.c:2883 src/main/envir.c:2911 src/main/envir.c:2940
+#: src/main/envir.c:2961 src/main/envir.c:2983 src/main/envir.c:3017
+#: src/main/envir.c:3037
 msgid "not an environment"
 msgstr " 環境ではありません "
 
-#: src/main/envir.c:2936 src/main/envir.c:2957 src/main/envir.c:2978
-#: src/main/envir.c:3014 src/main/envir.c:3034 src/main/envir.c:3132
+#: src/main/envir.c:2935 src/main/envir.c:2956 src/main/envir.c:2977
+#: src/main/envir.c:3013 src/main/envir.c:3033 src/main/envir.c:3131
 msgid "not a symbol"
 msgstr " シンボルではありません "
 
-#: src/main/envir.c:2949 src/main/envir.c:2970 src/main/envir.c:3026
-#: src/main/envir.c:3046
+#: src/main/envir.c:2948 src/main/envir.c:2969 src/main/envir.c:3025
+#: src/main/envir.c:3045
 #, c-format
 msgid "no binding for \"%s\""
 msgstr " \"%s\" にバインドされているものがありません。 "
 
-#: src/main/envir.c:2980
+#: src/main/envir.c:2979
 msgid "not a function"
 msgstr " 関数でありません "
 
-#: src/main/envir.c:2987 src/main/envir.c:3003
+#: src/main/envir.c:2986 src/main/envir.c:3002
 msgid "symbol already has a regular binding"
 msgstr " シンボルは既に regular binding を持っています "
 
-#: src/main/envir.c:2989 src/main/envir.c:3005
+#: src/main/envir.c:2988 src/main/envir.c:3004
 msgid "cannot change active binding if binding is locked"
 msgstr ""
 "バインディングがロックされているならば、アクティブなバインディングを変更する"
 "ことはできません "
 
-#: src/main/envir.c:3091
+#: src/main/envir.c:3090
 msgid "unknown op"
 msgstr " 未知の演算子です "
 
-#: src/main/envir.c:3136
+#: src/main/envir.c:3135
 msgid "cannot unbind a locked binding"
 msgstr " ロックされたバインディングを切り離せません "
 
-#: src/main/envir.c:3138
+#: src/main/envir.c:3137
 msgid "cannot unbind an active binding"
 msgstr " 現在使用中のバインディングを切り離すことはできません "
 
-#: src/main/envir.c:3273
+#: src/main/envir.c:3272
 msgid "bad name space name"
 msgstr " 不正な名前空間名です "
 
-#: src/main/envir.c:3285
+#: src/main/envir.c:3284
 msgid "name space already registered"
 msgstr " ネームスペースはすでに登録されています "
 
-#: src/main/envir.c:3297
+#: src/main/envir.c:3296
 msgid "name space not registered"
 msgstr " ネームスペースは登録されていません "
 
-#: src/main/envir.c:3343
+#: src/main/envir.c:3342
 msgid "bad import environment argument"
 msgstr " インポートしようとしている環境引数が不正です "
 
-#: src/main/envir.c:3347
+#: src/main/envir.c:3346
 msgid "bad export environment argument"
 msgstr " エクスポートしようとしている環境引数が不正です "
 
-#: src/main/envir.c:3351
+#: src/main/envir.c:3350
 msgid "length of import and export names must match"
 msgstr " インポートとエクスポート名の長さは一致しなければなりません "
 
-#: src/main/envir.c:3374
+#: src/main/envir.c:3373
 #, c-format
 msgid "exported symbol '%s' has no value"
 msgstr " エクスポートされたシンボル \"%s\" が値を持っていません "
 
-#: src/main/envir.c:3559
+#: src/main/envir.c:3558
 #, c-format
 msgid "unknown encoding: %d"
 msgstr "未知のエンコーディングです: '%d' "
 
-#: src/main/envir.c:3575
+#: src/main/envir.c:3574
 #, c-format
 msgid "embedded nul in string: '%s'"
 msgstr "文字列の中にnulが埋め込まれています: '%s' "
@@ -3414,11 +3413,11 @@ msgstr ""
 " 評価があまりに深く入れ子になっています。無限の再帰か options"
 "(expressions=)？ "
 
-#: src/main/eval.c:429 src/main/eval.c:2848
+#: src/main/eval.c:429 src/main/eval.c:2859
 msgid "argument is missing, with no default"
 msgstr " 引数がありませんし、省略時既定値もありません "
 
-#: src/main/eval.c:517 src/main/eval.c:3382
+#: src/main/eval.c:517 src/main/eval.c:3383
 msgid "attempt to apply non-function"
 msgstr " 関数でないものを適用しようとしました "
 
@@ -3427,258 +3426,253 @@ msgstr " 関数でないものを適用しようとしました "
 msgid "%s at %s#%d: "
 msgstr " %2$s#%3$d の %1$s: "
 
-#: src/main/eval.c:824
+#: src/main/eval.c:842
 #, c-format
 msgid "could not find symbol \"%s\" in environment of the generic function"
 msgstr ""
 " ジエネリック関数の環境中に \"%s\" というシンボルが見つかりませんでした "
 
-#: src/main/eval.c:842
+#: src/main/eval.c:860
 #, c-format
 msgid "symbol \"%s\" not in environment of method"
 msgstr " シンボル \"%s\" がメソッドの環境の中にありません "
 
-#: src/main/eval.c:952
+#: src/main/eval.c:970
 msgid "the condition has length > 1 and only the first element will be used"
 msgstr " 条件が長さが2以上なので，最初の一つだけが使われます "
 
-#: src/main/eval.c:969
+#: src/main/eval.c:987
 msgid "missing value where TRUE/FALSE needed"
 msgstr " TRUE/FALSE が必要なところが欠損値です "
 
-#: src/main/eval.c:970
+#: src/main/eval.c:988
 msgid "argument is not interpretable as logical"
 msgstr " 引数が論理変数として解釈することができません "
 
-#: src/main/eval.c:971
+#: src/main/eval.c:989
 msgid "argument is of length zero"
 msgstr " 引数の長さが0です "
 
-#: src/main/eval.c:1045
+#: src/main/eval.c:1063
 msgid "non-symbol loop variable"
 msgstr " ループ変数がシンボルではありません "
 
-#: src/main/eval.c:1131
+#: src/main/eval.c:1149
 msgid "invalid for() loop sequence"
 msgstr " for() ループが不正です "
 
-#: src/main/eval.c:1268
+#: src/main/eval.c:1286
 msgid "multi-argument returns are not permitted"
 msgstr " 複数の結果を返す return は許されません "
 
-#: src/main/eval.c:1316
+#: src/main/eval.c:1334
 msgid "invalid (NULL) left side of assignment"
 msgstr " 代入の左辺が不正(NULL)です "
 
-#: src/main/eval.c:1338
+#: src/main/eval.c:1356
 msgid "target of assignment expands to non-language object"
 msgstr " 付値対象は非言語オブジェクトに展開されます "
 
-#: src/main/eval.c:1399
+#: src/main/eval.c:1417
 msgid "cannot do complex assignments in base namespace"
 msgstr " base 名前空間においては複素数の代入はできません "
 
-#: src/main/eval.c:1401
+#: src/main/eval.c:1419
 msgid "cannot do complex assignments in base environment"
 msgstr " 基本環境においては複素数の代入はできません "
 
-#: src/main/eval.c:1421 src/main/eval.c:1439
+#: src/main/eval.c:1439 src/main/eval.c:1457
 msgid "invalid function in complex assignment"
 msgstr " 複素数の代入で，関数が不正です "
 
-#: src/main/eval.c:1423 src/main/eval.c:1441
+#: src/main/eval.c:1441 src/main/eval.c:1459
 #, c-format
 msgid "overlong name in '%s'"
 msgstr " '%s' の名前が長すぎます "
 
-#: src/main/eval.c:1522
+#: src/main/eval.c:1540
 msgid "invalid (do_set) left-hand side to assignment"
 msgstr " 代入の左辺が不正(do_set)です "
 
-#: src/main/eval.c:1537
+#: src/main/eval.c:1555
 msgid "invalid assignment left-hand side"
 msgstr " 左辺への代入が不正です "
 
-#: src/main/eval.c:1602
+#: src/main/eval.c:1620
 #, c-format
 msgid "argument %d is empty"
 msgstr " 引数 %d が空です "
 
-#: src/main/eval.c:1605
+#: src/main/eval.c:1623
 #, c-format
 msgid "'%s' is missing"
 msgstr " '%s'が見つかりません "
 
-#: src/main/eval.c:1755
+#: src/main/eval.c:1773
 msgid "invalid formal argument list for \"function\""
 msgstr " \"function\" の仮引数リストが不正です "
 
-#: src/main/eval.c:1836
+#: src/main/eval.c:1854
 msgid "numeric 'envir' arg not of length one"
 msgstr " 数値の 'envir'  引数の長さが1ではありません "
 
-#: src/main/eval.c:1858 src/main/eval.c:1877
+#: src/main/eval.c:1876 src/main/eval.c:1895
 msgid "restarts not supported in 'eval'"
 msgstr " 再実行機能は 'eval' 関数に対してはサポートされていません "
 
-#: src/main/eval.c:1946 src/main/eval.c:1959
+#: src/main/eval.c:1964 src/main/eval.c:1977
 msgid "'Recall' called from outside a closure"
 msgstr " クロージャの外部から 'Recall' が呼び出されました。 "
 
-#: src/main/eval.c:2049
+#: src/main/eval.c:2067
 msgid "value in '...' is not a promise"
 msgstr " '...' の中の値は promise ではありません "
 
-#: src/main/eval.c:2234 src/main/objects.c:713
+#: src/main/eval.c:2252 src/main/objects.c:713
 #, c-format
 msgid "call name too long in '%s'"
 msgstr " '%s' 中の呼び出し名が長すぎます "
 
-#: src/main/eval.c:2255
+#: src/main/eval.c:2273
 #, c-format
 msgid "generic name too long in '%s'"
 msgstr " '%s' の総称名が長すぎます "
 
-#: src/main/eval.c:2318
+#: src/main/eval.c:2336
 #, c-format
 msgid "Incompatible methods (\"%s\", \"%s\") for \"%s\""
 msgstr " メソッド (\"%s\", \"%s\") は \"%s\" に対しては矛盾しています "
 
-#: src/main/eval.c:2382
+#: src/main/eval.c:2400
 msgid "dispatch error in group dispatch"
 msgstr "グループディスパッチにディスパッチエラーがあります "
 
-#: src/main/eval.c:2770
+#: src/main/eval.c:2782
 msgid "node stack overflow"
 msgstr " ノードスタックが溢れました "
 
-#: src/main/eval.c:2776
+#: src/main/eval.c:2788
 msgid "integer stack overflow"
 msgstr " 整数スタックが溢れました "
 
-#: src/main/eval.c:2829
+#: src/main/eval.c:2841
 msgid "Bad opcode"
 msgstr " opcode が不適当です "
 
-#: src/main/eval.c:2980
+#: src/main/eval.c:2990
 msgid "not a vector object"
 msgstr " ベクトルオブジェクトではありません "
 
-#: src/main/eval.c:2988 src/main/eval.c:3010 src/main/eval.c:3034
-#: src/main/eval.c:3058
+#: src/main/eval.c:2998 src/main/eval.c:3020 src/main/eval.c:3044
+#: src/main/eval.c:3068
 msgid "can only handle simple real vectors"
 msgstr " 単純な実数ベクトルだけを扱えます "
 
-#: src/main/eval.c:2997 src/main/eval.c:3044
+#: src/main/eval.c:3007 src/main/eval.c:3054
 msgid "not a simple vector"
 msgstr " 単一のベクトルではありません "
 
-#: src/main/eval.c:3014 src/main/eval.c:3062 src/main/subassign.c:982
+#: src/main/eval.c:3024 src/main/eval.c:3072 src/main/subassign.c:982
 #: src/main/subset.c:815
 msgid "incorrect number of subscripts"
 msgstr " 添え字の数が正しくありません "
 
-#: src/main/eval.c:3025 src/main/eval.c:3076
+#: src/main/eval.c:3035 src/main/eval.c:3086
 msgid "not a simple matrix"
 msgstr " 単一の行列ではありません "
 
-#: src/main/eval.c:3086
-#, fuzzy, c-format
-msgid "invalid %s type in 'x %s y'"
-msgstr " 'x %s y' の 'x' の型が不正です "
-
-#: src/main/eval.c:3122
+#: src/main/eval.c:3123
 msgid "bytecode version mismatch; using eval"
 msgstr " バイトコードのバージョンが不一致です; eval を使います "
 
-#: src/main/eval.c:3127
+#: src/main/eval.c:3128
 msgid "bytecode version is too old"
 msgstr " バイトコードのバージョンが古すぎます "
 
-#: src/main/eval.c:3128
+#: src/main/eval.c:3129
 msgid "bytecode version is too new"
 msgstr " バイトコードのバージョンが新しすぎます "
 
-#: src/main/eval.c:3133
+#: src/main/eval.c:3134
 msgid "byte code version mismatch"
 msgstr " バイトコードのバージョンが不一致です "
 
-#: src/main/eval.c:3149
+#: src/main/eval.c:3150
 msgid "missing value where logical needed"
 msgstr " 論理値が必要なところが欠損値です "
 
-#: src/main/eval.c:3150
+#: src/main/eval.c:3151
 msgid "argument of if(*) is not interpretable as logical"
 msgstr " if 文の条件部分が論理値として解釈できません "
 
-#: src/main/eval.c:3184 src/main/eval.c:3235
+#: src/main/eval.c:3185 src/main/eval.c:3236
 msgid "invalid sequence argument in for loop"
 msgstr " for ループの範囲引数が不正です "
 
-#: src/main/eval.c:3344 src/main/eval.c:3365 src/main/eval.c:3480
+#: src/main/eval.c:3345 src/main/eval.c:3366 src/main/eval.c:3481
 msgid "not a BUILTIN function"
 msgstr " BUILTIN 関数ではありません "
 
-#: src/main/eval.c:3465
+#: src/main/eval.c:3466
 msgid "bad function"
 msgstr " 不正な関数です "
 
-#: src/main/eval.c:3506
+#: src/main/eval.c:3507
 msgid "not a SPECIAL function"
 msgstr " SPECIAL 関数ではありません "
 
-#: src/main/eval.c:3782
+#: src/main/eval.c:3741
 msgid "cannot find index for threaded code address"
 msgstr ""
 " スレッデッド・コード・アドレス（threaded code address）のインデックスを見つ"
 "けることができません "
 
-#: src/main/eval.c:3862
+#: src/main/eval.c:3821
 msgid "invalid symbol"
 msgstr " シンボル記号が不正です "
 
-#: src/main/eval.c:3906
+#: src/main/eval.c:3865
 msgid "argument is not a byte code object"
 msgstr " 引数がバイトコードオブジェクトではありません "
 
-#: src/main/eval.c:3927
+#: src/main/eval.c:3886
 msgid "bad file name"
 msgstr " 不正なファイル名です "
 
-#: src/main/eval.c:3931 src/main/eval.c:3952
+#: src/main/eval.c:3890 src/main/eval.c:3911
 msgid "unable to open 'file'"
 msgstr " 'file' を開くことができません "
 
-#: src/main/eval.c:3946 src/main/saveload.c:1929
+#: src/main/eval.c:3905 src/main/saveload.c:1929
 msgid "'file' must be non-empty string"
 msgstr " 'file' は空でない文字列でなければいけません "
 
-#: src/main/eval.c:3948 src/main/saveload.c:1931 src/main/saveload.c:2221
+#: src/main/eval.c:3907 src/main/saveload.c:1931 src/main/saveload.c:2221
 #: src/main/serialize.c:1790
 msgid "'ascii' must be logical"
 msgstr " 'ascii' は論理値でなければなりません "
 
-#: src/main/eval.c:3977 src/main/eval.c:3984
+#: src/main/eval.c:3936 src/main/eval.c:3943
 msgid "R_CompiledFileName: buffer too small"
 msgstr " R_CompiledFileName: バッファが小さすぎます "
 
-#: src/main/eval.c:4017
+#: src/main/eval.c:3976
 msgid "code must be a generic vector"
 msgstr " コードはジェネリックなベクトルでなければなりません "
 
-#: src/main/eval.c:4056
+#: src/main/eval.c:4015
 msgid "profile timer in use"
 msgstr " プロファイルタイマーは使用中です "
 
-#: src/main/eval.c:4058
+#: src/main/eval.c:4017
 msgid "already byte code profiling"
 msgstr " 既にバイトコードは分析されています "
 
-#: src/main/eval.c:4076
+#: src/main/eval.c:4035
 msgid "setting profile timer failed"
 msgstr " プロファイルタイマーの設定に失敗しました "
 
-#: src/main/eval.c:4093
+#: src/main/eval.c:4052
 msgid "not byte code profiling"
 msgstr " バイトコードのプロファイリングではありません "
 
@@ -4139,58 +4133,58 @@ msgstr ""
 msgid "Error: segfault from C stack overflow\n"
 msgstr " エラー：Cスタック・オーバーフローによるセグメンテーション違反 \n"
 
-#: src/main/main.c:858
+#: src/main/main.c:849
 msgid "unable to open the base package\n"
 msgstr " baseパッケージを開くことができません \n"
 
-#: src/main/main.c:934
+#: src/main/main.c:925
 msgid "unable to restore saved data in .RData\n"
 msgstr " .RData に保存されたデータを復帰できません \n"
 
-#: src/main/main.c:980
+#: src/main/main.c:971
 msgid "During startup - "
 msgstr " 起動準備中です ー "
 
-#: src/main/main.c:1206
+#: src/main/main.c:1197
 msgid "cannot quit from browser"
 msgstr " ブラウザを終了できません "
 
-#: src/main/main.c:1210
+#: src/main/main.c:1201
 msgid "one of \"yes\", \"no\", \"ask\" or \"default\" expected."
 msgstr ""
 " \"yes\", \"no\", \"ask\" または \"default\" のどれかが期待されています "
 
-#: src/main/main.c:1215
+#: src/main/main.c:1206
 msgid "save=\"ask\" in non-interactive use: command-line default will be used"
 msgstr ""
 " 非対話的な使用での save=\"ask\"：コマンドラインでの既定動作が使用されます "
 
-#: src/main/main.c:1223
+#: src/main/main.c:1214
 msgid "unrecognized value of 'save'"
 msgstr " 'save' の値が認識できません "
 
-#: src/main/main.c:1226
+#: src/main/main.c:1217
 msgid "invalid 'status', 0 assumed"
 msgstr " 'status' が不正です。0が仮定されました "
 
-#: src/main/main.c:1231
+#: src/main/main.c:1222
 msgid "invalid 'runLast', FALSE assumed"
 msgstr " 'runLast' が不正です。FALSE が仮定されました "
 
-#: src/main/main.c:1262
+#: src/main/main.c:1253
 msgid "cannot allocate space for toplevel callback element"
 msgstr " トップレベルの callback 要素に作業空間を割り当てることができません "
 
-#: src/main/main.c:1340
+#: src/main/main.c:1331
 msgid "negative index passed to R_removeTaskCallbackByIndex"
 msgstr " R_removeTaskCallbackByIndex に負の添字が渡されました "
 
-#: src/main/main.c:1448
+#: src/main/main.c:1439
 #, c-format
 msgid "warning messages from top-level task callback '%s'\n"
 msgstr " トップレベルの task callback '%s' からの警告メッセージ \n"
 
-#: src/main/main.c:1504
+#: src/main/main.c:1495
 msgid "top-level task callback did not return a logical value"
 msgstr " トップレベルの task callback が論理値を返していません "
 
@@ -8107,9 +8101,6 @@ msgstr " X11 モジュールをロードできません "
 #: src/unix/X11.c:188 src/unix/X11.c:194 src/unix/X11.c:200
 msgid "X11 is not available"
 msgstr " X11 が利用できません "
-
-#~ msgid "names(x) must be valid character(length(x))."
-#~ msgstr " names(x) は長さ length(x) の文字ベクトルでなければなりません "
 
 #~ msgid "Insufficient memory (expandcmd)"
 #~ msgstr " メモリが不足しています(expandcmd) "

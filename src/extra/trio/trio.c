@@ -186,12 +186,7 @@
 # define NDEBUG
 #endif
 
-// #include <assert.h>
-/* fake definition */
-extern void Rf_error(const char *str);
-#define assert(a) if(!(a)) Rf_error("internal error in trio library")
-
-
+#include <assert.h>
 #include <ctype.h>
 #if defined(PREDEF_STANDARD_C99) && !defined(isascii)
 # define isascii(x) ((x) & 0x7F)

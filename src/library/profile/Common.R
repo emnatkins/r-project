@@ -57,10 +57,10 @@ Sys.setenv(R_LIBS_USER =
 {
     for(pkg in getOption("defaultPackages")) {
         res <- require(pkg, quietly = TRUE, warn.conflicts = FALSE,
-                       character.only = TRUE)
+                       character.only = TRUE, save = FALSE)
         if(!res)
-            warning(gettextf('package %s in options("defaultPackages") was not found', sQuote(pkg)),
-                    call.=FALSE, domain = NA)
+            warning("package ", pkg,
+                    ' in options("defaultPackages") was not found', call.=FALSE)
     }
 }
 
@@ -68,9 +68,10 @@ Sys.setenv(R_LIBS_USER =
 {
       if("methods" %in% getOption("defaultPackages")) {
         res <- require("methods", quietly = TRUE, warn.conflicts = FALSE,
-                       character.only = TRUE)
+                       character.only = TRUE, save = FALSE)
         if(!res)
-            warning('package "methods" in options("defaultPackages") was not found', call.=FALSE)
+            warning("package \"methods\"",
+                    ' in options("defaultPackages") was not found', call.=FALSE)
     }
 }
 

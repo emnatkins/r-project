@@ -1,10 +1,6 @@
 # Makefile for R for Windows Installers
 
 include ../MkRules
-
-## Formerly in MkRules
-FIND = find
-
 R_HOME = ../../..
 ## for TCL_HOME
 RHOME = ../../..
@@ -166,7 +162,7 @@ files.wxs: imagedir fixups md5sums
 	"$(WIXDIR)/tallow" -1 -d $(RPREFIX) > $@
 
 R.wxs: WIXins.pl uuids files.wxs
-	perl WIXins.pl $(RPREFIX) $(RPREFIX) $(WIX_PERSONAL)
+	$(PERL) WIXins.pl $(RPREFIX) $(RPREFIX) $(WIX_PERSONAL)
 
 ## for WiX 3.0 light uses -ext WixUIExtension
 ## To change compression with WiX 3.0 use

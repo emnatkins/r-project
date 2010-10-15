@@ -49,6 +49,7 @@
 #if defined(TRIO_COMPILER_DECC)
 # include <fp_class.h>
 #endif
+#include <assert.h>
 
 #if defined(TRIO_DOCUMENTATION)
 # include "doc/doc_nan.h"

@@ -34,12 +34,28 @@ function(x)
 {
     ## Turn a possibly relative file path absolute, performing tilde
     ## expansion if necessary.
+    ## Seems the only way we can do this is 'temporarily' change the
+    ## working dir and see where this takes us.
     if(length(x) != 1L)
         stop("'x' must be a single character string")
     if(!file.exists(epath <- path.expand(x)))
         stop(gettextf("file '%s' does not exist", x),
              domain = NA)
-    normalizePath(epath, "/", TRUE)
+    cwd <- getwd()
+    if (is.null(cwd))
+        stop("current working directory cannot be ascertained")
+    on.exit(setwd(cwd))
+    if(file_test("-d", epath)) {
+        ## Combining dirname and basename does not work for e.g. '.' or
+        ## '..' on Unix ...
+        setwd(epath)
+        getwd() # might be NULL, but very unlikely if setwd succeeded
+    }
+    else {
+        setwd(dirname(epath))
+        ## getwd() can be "/" or "d:/"
+        file.path(sub("/$", "", getwd()), basename(epath))
+    }
 }
 
 ### ** file_path_sans_ext
@@ -1184,7 +1200,9 @@ function(file)
     db <- utils::read.delim(file, header = TRUE, comment.char = "#",
                             colClasses =
                             c(rep.int("character", 3L),
-                              rep.int("logical", 4L))) # allow for win64.binary
+                              rep.int("logical", 4L)))
+    if("win64.binary" %in% names(db))
+        db[["win64.binary"]] <- as.logical(db[["win64.binary"]])
     db[, "URL"] <- .expand_BioC_repository_URLs(db[, "URL"])
     db
 }

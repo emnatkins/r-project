@@ -141,14 +141,13 @@ step(object, scope, scale = 0,
   The idea of a \code{step} function follows that described in Hastie &
   Pregibon (1992); but the implementation in \R is more general.
 }
-\examples{\donttest{
-## following on from example(lm)
-\dontshow{utils::example("lm", echo = FALSE)}
+\examples{
+utils::example(lm)
 step(lm.D9)  
 
 summary(lm1 <- lm(Fertility ~ ., data = swiss))
 slm1 <- step(lm1)
 summary(slm1)
 slm1$anova
-}}
+}
 \keyword{models}

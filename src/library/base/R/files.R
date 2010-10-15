@@ -201,6 +201,3 @@ Sys.readlink <- function(paths)
 
 readRenviron <- function(path)
     .Internal(readRenviron(path))
-
-normalizePath <- function(path, winslash = "\\", mustWork = NA)
-    .Internal(normalizePath(path.expand(path), winslash, mustWork))

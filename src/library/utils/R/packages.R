@@ -581,7 +581,8 @@ download.packages <- function(pkgs, destdir, available = NULL,
                         switch(type,
                                "source" = ".tar.gz",
                                "mac.binary" = ".tgz",
-                               "win.binary" = ".zip"),
+                               "win.binary" = ".zip",
+                               "win64.binary" = ".zip"),
                         sep = "")
             have_fn <- !is.na(File)
             fn[have_fn] <- File[have_fn]
@@ -650,7 +651,8 @@ contrib.url <- function(repos, type = getOption("pkgType"))
     res <- switch(type,
 		"source" = paste(gsub("/$", "", repos), "src", "contrib", sep="/"),
                 "mac.binary" = paste(gsub("/$", "", repos), "bin", "macosx", mac.subtype, "contrib", ver, sep = "/"),
-                "win.binary" = paste(gsub("/$", "", repos), "bin", "windows", "contrib", ver, sep="/")
+                "win.binary" = paste(gsub("/$", "", repos), "bin", "windows", "contrib", ver, sep="/"),
+                "win64.binary" = paste(gsub("/$", "", repos), "bin", "windows64", "contrib", ver, sep="/")
                )
     res
 }
@@ -742,6 +744,7 @@ setRepositories <-
     }
 }
 
+normalizePath <- function(path) .Internal(normalizePath(path))
 
 
 ## used in some BioC packages and their support in tools.

@@ -1,10 +1,8 @@
 ## For examples skipped in testing because they are 'random'
 
-set.seed(1)
 if(.Platform$OS.type == "windows") options(pager = "console")
 
 ## base
-example(Cstack_info)
 example(DateTimeClasses)
 example(Dates)
 example(Ops.Date)
@@ -15,7 +13,6 @@ example(Sys.time)
 example(as.POSIXlt)
 example(difftime)
 example(format.Date)
-example(Reduce) # funprog.Rd
 example(gc)
 example(memory.profile)
 paste("Today is", date()) # from paste.Rd
@@ -28,13 +25,21 @@ example(tempfile)
 example(weekdays)
 library(help="splines")
 
+
 ## utils
-example(news)
 example(packageDescription)
 example(sessionInfo)
 
-## datasets
-example(JohnsonJohnson)
+## stats
+example(nlminb)
+example(optim)
+example(uniroot)
+
+library(tools)
+example(Rdutils)
+example(fileutils)
+## results are location- and OS-specific
+example(parseLatex) # charset-specific
 
 ## grDevices
 if(.Platform$OS.type == "windows") {
@@ -43,11 +48,3 @@ if(.Platform$OS.type == "windows") {
     example(X11Fonts)
     example(quartzFonts)
 }
-
-library(tools)
-example(Rdutils)
-example(fileutils)
-## results are location- and OS-specific
-example(parseLatex) # charset-specific
-
-proc.time()

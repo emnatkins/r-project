@@ -526,13 +526,17 @@ R_MISSING_PROG(AUTOCONF, autoconf)
 R_MISSING_PROG(AUTOMAKE, automake)
 R_MISSING_PROG(AUTOHEADER, autoheader)
 AC_PROG_AWK
+AC_PROG_EGREP
 AC_PROG_LN_S
+## AC_PROG_RANLIB
 AC_PROG_YACC
 R_PROG_AR
 R_PROG_INSTALL
 
 ## we would like a POSIX sed, and need one on Solaris
 AC_PATH_PROGS(SED, sed, /bin/sed, [/usr/xpg4/bin:$PATH])
+## we need an tr that interprets \r for Rdiff
+AC_PATH_PROGS(TR, tr, /bin/tr, [/usr/xpg4/bin:$PATH])
 ## 'which' is not POSIX, and might be a shell builtin or alias
 ##  (but should not be in 'sh')
 AC_PATH_PROGS(WHICH, which, which)
@@ -541,6 +545,8 @@ AC_PATH_PROGS(WHICH, which, which)
 AC_SUBST(MAKE)
 ## Pager
 R_PROG_PAGER
+## Perl
+R_PROG_PERL
 ## Tar -- we prefer a GNU version
 AC_PATH_PROGS(TAR, [${TAR} gtar gnutar tar], "")
 ## TeXMF stuff
@@ -1708,9 +1714,11 @@ AC_CHECK_DECLS([putenv], , , [#include <stdlib.h>])
 ## this is a GNU extension so usually hidden
 AC_CHECK_FUNCS(vasprintf)
 AC_CHECK_DECLS([vasprintf], , , [#include <stdio.h>])
-## mempcpy is a GNU extension used by the included gettext
+## mempcpy is a GNU extension used by regex.c.  That defines
+## _GNU_SOURCE, so should be declared on glibc systems.
+## gettext will also check for this.
 AC_CHECK_FUNCS(mempcpy)
-## realpath is a POSIX 2001 (and BSD)
+## realpath is a BSD extension. 
 ## Some early GNU libc systems had it in unistd.h.
 AC_CHECK_FUNCS(realpath)
 AC_CHECK_DECLS([realpath], , , [#include <stdlib.h>
@@ -2453,6 +2461,8 @@ AC_CONFIG_FILES(
   src/scripts/Makefile
   src/scripts/R.sh
   src/scripts/Rcmd
+  src/scripts/Rdiff
+  src/scripts/Sd2Rd
   src/scripts/f77_f2c
   src/scripts/mkinstalldirs
   src/scripts/pager

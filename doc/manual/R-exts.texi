@@ -1215,7 +1215,7 @@ On Windows there is normally a choice between linking to an import
 library or directly to a DLL.  Where possible, the latter is much more
 reliable: import libraries are tied to a specific toolchain, and in
 particular on 64-bit Windows two different conventions are common, and
-@R{} 2.11.x and 2.12.x use different ones.  So for example instead of
+@R{} 2.11.x and 2.12.x use different ones. So for example instead of
 
 @example
 PKG_LIBS = -L$(XML_DIR)/lib -lxml2
@@ -1716,9 +1716,8 @@ built tarball as a final check on the contents.
 binary distributions, but @code{R CMD INSTALL --build} is preferred (and
 is considerably more flexible).
 
-Note that prior to @R{} 2.13.0, @code{R CMD build} did some cleaning in
-the supplied source directory, but this was undocumented and is no
-longer done.
+@code{R CMD build} currently does some cleaning in the supplied source
+directory, but this was will no longer happen in @R 2.13.0.
 
 @node Writing package vignettes, Submitting a package to CRAN, Checking and building packages, Creating R packages
 @section Writing package vignettes
@@ -4495,6 +4494,15 @@ explicitly or by the path to a directory with the sources of a package.
 In the latter case, a reference manual for all documented objects in the
 package is created, including the information in the @file{DESCRIPTION}
 files.
+
+@findex R CMD Sd2Rd
+@code{R CMD Sd2Rd} converts @Sl{} version 3 documentation files (which
+use an extended Nroff format) and @Sl{} version 4 documentation (which
+uses SGML markup) to @file{Rd} format.  This is useful when porting a
+package originally written for the @Sl{} system to @R{}.  @Sl{} version
+3 files usually have extension @file{.d}, whereas version 4 ones have
+extension @file{.sgml} or @file{.sgm}.  (This command is no longer
+supported, and requires Perl to be installed.)
 
 @findex R CMD Sweave
 @findex R CMD Stangle
@@ -9027,10 +9035,6 @@ The function @code{REprintf} is similar but writes on the error stream
 (@code{stderr}) which may or may not be different from the standard
 output stream.  Functions @code{Rvprintf} and @code{REvprintf} are
 analogues using the @code{vprintf} interface.
-
-Because @code{Rvprintf} and @code{REvprintf} use a C99 interface, they
-are only defined by @file{R_ext/Print.h} in C++ code if the macro
-@code{R_USE_C99_IN_CXX} is defined when it is included.
 
 @menu
 * Printing from FORTRAN::

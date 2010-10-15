@@ -259,7 +259,8 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 		    return(FALSE)
 		} else stop(txt, domain = NA)
             }
-            which.lib.loc <- normalizePath(dirname(pkgpath), "/", TRUE)
+            abs_path <- function(x) {cwd <- setwd(x);on.exit(setwd(cwd));getwd()}
+            which.lib.loc <- abs_path(dirname(pkgpath))
             pfile <- system.file("Meta", "package.rds", package = package,
                                  lib.loc = which.lib.loc)
             if(!nzchar(pfile))
@@ -546,6 +547,7 @@ function(chname, package = NULL, lib.loc = NULL,
          verbose = getOption("verbose"),
          file.ext = .Platform$dynlib.ext, ...)
 {
+    abs_path <- function(x) {cwd <- setwd(x);on.exit(setwd(cwd));getwd()}
     dll_list <- .dynLibs()
 
     if(missing(chname) || (nc_chname <- nchar(chname, "c")) == 0)
@@ -571,8 +573,7 @@ function(chname, package = NULL, lib.loc = NULL,
         else
             stop(gettextf("shared object '%s' not found", chname), domain = NA)
     ## for consistency with library.dyn.unload:
-    file <- file.path(normalizePath(DLLpath, "/", TRUE),
-                      paste(chname, file.ext, sep = ""))
+    file <- file.path(abs_path(DLLpath), paste(chname, file.ext, sep = ""))
     ind <- sapply(dll_list, function(x) x[["path"]] == file)
     if(length(ind) && any(ind)) {
         if(verbose)
@@ -610,6 +611,7 @@ library.dynam.unload <-
 function(chname, libpath, verbose = getOption("verbose"),
          file.ext = .Platform$dynlib.ext)
 {
+    abs_path <- function(x) {cwd <- setwd(x);on.exit(setwd(cwd));getwd()}
     dll_list <- .dynLibs()
 
     if(missing(chname) || (nc_chname <- nchar(chname, "c")) == 0)
@@ -626,8 +628,8 @@ function(chname, libpath, verbose = getOption("verbose"),
        == file.ext)
         chname <- substr(chname, 1L, nc_chname - nc_file_ext)
 
-    ## We need an absolute path here, and separators consistent with library.dynam.unload
-    libpath <- normalizePath(libpath, "/", TRUE)
+    ## We need an absolute path here.
+    libpath <- abs_path(libpath)
     file <- if(nzchar(.Platform$r_arch))
              file.path(libpath, "libs", .Platform$r_arch,
                        paste(chname, file.ext, sep = ""))
@@ -659,8 +661,6 @@ function(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
          keep.source = getOption("keep.source.pkgs"),
          character.only = FALSE, save = FALSE)
 {
-    if(!missing(save)) warning("use of 'save' is deprecated")
-    if(!identical(save, FALSE)) stop("save != FALSE is defunct")
     if( !character.only )
         package <- as.character(substitute(package)) # allowing "require(eda)"
     loaded <- paste("package", package, sep = ":") %in% search()
@@ -687,6 +687,51 @@ function(package, lib.loc = NULL, quietly = FALSE, warn.conflicts = TRUE,
         }
         if (!value) return(invisible(FALSE))
     } else value <- TRUE
+
+    if(identical(save, FALSE)) {}
+    else {
+        warning("use of 'save' is deprecated")
+        ## update the ".Depends" variable
+        ## We no longer use '.required' since some packages set that.
+        if(identical(save, TRUE)) {
+            save <- topenv(parent.frame())
+            ## (a package namespace, topLevelEnvironment option or
+            ## .GlobalEnv)
+            if(identical(save, .GlobalEnv)) {
+                ## try to detect call from .First.lib in a package
+                ## <FIXME>
+                ## Although the docs have long and perhaps always had
+                ##   .First.lib(libname, pkgname)
+                ## the majority of CRAN packages seems to use arguments
+                ## 'lib' and 'pkg'.
+                objectsInParentFrame <- sort(objects(parent.frame()))
+                if(identical(sort(c("libname", "pkgname")),
+                             objectsInParentFrame))
+                    save <-
+                        as.environment(paste("package:",
+                                             get("pkgname",
+                                                 parent.frame()),
+                                             sep = ""))
+                else if(identical(sort(c("lib", "pkg")),
+                                  objectsInParentFrame))
+                    save <-
+                        as.environment(paste("package:",
+                                             get("pkg",
+                                                 parent.frame()),
+                                             sep = ""))
+                ## </FIXME>
+            }
+        }
+        else
+            save <- as.environment(save)
+        ## detach() only uses .Depends from a package environment.
+        ## so only save it there
+        if(!is.null(nm <- attr(save, "name")) && grepl("^package:", nm)) {
+            hasDotDepends <- exists(".Depends", save, inherits=FALSE)
+            packages <- if(hasDotDepends) unique(c(package, get(".Depends", save))) else package
+            assign(".Depends", packages, save)
+        }
+    }
     invisible(value)
 }
 

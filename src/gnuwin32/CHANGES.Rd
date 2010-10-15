@@ -3,27 +3,6 @@
 \name{CHANGES}
 \title{Windows-specific changes to R}
 \encoding{UTF-8}
-\section{CHANGES IN R VERSION 2.13.0}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \code{win_iconv} has been updated: this version has a change
-      in the behaviour with BOMs on UTF-16 and UTF-32 files -- it
-      removes BOMs when reading and adds them when writing.  (This is
-      consistent with MicroSoft applications, but Unix versions of
-      \code{iconv} usually ignore them.)
-
-      \item Support for repository type \samp{win64.binary} (used for
-      64-bit Windows binaries for \R 2.11.x) has been removed.
-
-      \item The installers no longer put an \sQuote{Uninstall} item on
-      the start menu (to conform to current Microsoft UI guidelines).
-
-      \item Running \R always set the environment variable \env{R_ARCH}
-      (as it does on a Unix-alike from the shell-script front-end).
-    }
-  }
-}
-
 \section{CHANGES IN R VERSION 2.12.0}{
   \subsection{NEW FEATURES}{
     \itemize{

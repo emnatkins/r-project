@@ -240,24 +240,3 @@ stopifnot(all.equal(ff$data, xMat))
 rm(ff)
 gc()
 stopifnot(identical(markViewer, "OFF")) #check finalize
-
-## deal correctly with inherited methods and overriding existing
-## methods from $methods(...)
-refClassA <- setRefClass("refClassA", methods=list(foo=function() "A"))
-refClassB <- setRefClass("refClassB", contains="refClassA")
-mnames <- objects(getClass("refClassB")@refMethods)
-refClassB$methods(foo=function() callSuper())
-stopifnot(identical(refClassB$new()$foo(), "A"))
-mnames2 <- objects(getClass("refClassB")@refMethods)
-stopifnot(identical(mnames2[is.na(match(mnames2,mnames))], "foo#refClassA"))
-refClassB$methods(foo=function() paste(callSuper(), "Version 2"))
-stopifnot(identical(refClassB$new()$foo(), "A Version 2"))
-stopifnot(identical(mnames2, objects(getClass("refClassB")@refMethods)))
-
-if(methods:::.hasCodeTools()) {
-    ## code warnings assigning locally to, or hiding, field names
-    stopifnot(is(tryCatch(mv$methods(test = function(x) {data <- x[!is.na(x)]; mean(data)}), warning = function(e)e), "warning"))
-
-    stopifnot(is(tryCatch(mv$methods(test2 = function(data) {data[!is.na(x)]}), warning = function(e)e), "warning"))
-} else
-    warning("Can't run some tests:  recommended package codetools is not available")

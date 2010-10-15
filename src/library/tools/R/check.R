@@ -14,7 +14,9 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-###- R based engine for R CMD check
+#### R based engine for R CMD check
+
+## we assume that getwd() after setwd() is safe
 
 ## Used for INSTALL and Rd2pdf
 run_Rcmd <- function(args, out = "")
@@ -25,26 +27,47 @@ run_Rcmd <- function(args, out = "")
         system2(file.path(R.home("bin"), "R"), c("CMD", args), out, out)
 }
 
-R_runR <- function(cmd = NULL, Ropts = "", env = "",
-                   stdout = TRUE, stderr = TRUE, stdin = NULL,
-                   arch = "")
+##' @title R executable (full PATH) for windows (as the name suggests)
+##' @param arch
+##' @return
+.R_EXE <- function(arch) {
+    if (nzchar(arch)) file.path(R.home(), "bin", arch, "Rterm.exe")
+    else file.path(R.home("bin"), "Rterm.exe")
+}
+
+R_runR <- function(cmd, Ropts = "", env = "", arch = "")
 {
     if (.Platform$OS.type == "windows") {
         ## workaround Windows problem with input = cmd
-        if (!is.null(cmd)) {
-            Rin <- tempfile("Rin"); on.exit(unlink(Rin)); writeLines(cmd, Rin)
-        } else Rin <- stdin
-        system2(if(nzchar(arch)) file.path(R.home(), "bin", arch, "Rterm.exe")
-                else file.path(R.home("bin"), "Rterm.exe"),
-                c(Ropts, paste("-f", Rin)), stdout, stderr, env = env)
+        Rin <- tempfile("Rin"); on.exit(unlink(Rin)); writeLines(cmd, Rin)
+        ## This was called from Rcmd which set R_ARCH, so we may need to reset it.
+        if(nzchar(arch))
+            system2(.R_EXE(arch), c(Ropts, paste("-f", Rin)), TRUE, TRUE,
+                    env = c(env, paste("R_ARCH=/", arch, sep="")))
+        else
+            system2(.R_EXE(arch), c(Ropts, paste("-f", Rin)), TRUE, TRUE,
+                    env = env)
     } else {
         suppressWarnings(system2(file.path(R.home("bin"), "R"),
                                  c(if(nzchar(arch)) paste("--arch=", arch, sep = ""), Ropts),
-                                 stdout, stderr, stdin, input = cmd, env = env))
+                                 TRUE, TRUE, input = cmd, env = env))
     }
 }
 
-###- The main function for "R CMD check"  {currently extends all the way to the end-of-file}
+## used for .createDotR
+R_run_R <- function(cmd, Ropts, env = "", arch = "")
+{
+    Rout <- tempfile("Rout")
+    if (.Platform$OS.type == "windows") {
+        status <- system2(.R_EXE(arch), Ropts, Rout, Rout, input = cmd, env = env)
+    } else {
+        status <- system2(file.path(R.home("bin"), "R"),
+                          c(if(nzchar(arch)) paste("--arch=", arch, sep = ""), Ropts),
+                          Rout, Rout, input = cmd, env = env)
+    }
+    list(status = status, out = readLines(Rout, warn = FALSE))
+}
+
 .check_packages <- function(args = NULL)
 {
     WINDOWS <- .Platform$OS.type == "windows"
@@ -1205,8 +1228,17 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             if (use_valgrind) Ropts <- paste(Ropts, "-d valgrind")
             ## might be diff-ing results against tests/Examples later
             ## so force LANGUAGE=en
-            status <- R_runR(NULL, c(Ropts, enc), env = "LANGUAGE=en",
-                              exout, exout, exfile, arch = arch)
+            status <- if (WINDOWS) {
+                if (nzchar(arch))
+                    system2(.R_EXE(arch), c(Ropts, enc), exout, exout, exfile,
+                            env = c("LANGUAGE=en", paste("R_ARCH=/", arch, sep="")))
+                else
+                    system2(.R_EXE(arch), c(Ropts, enc), exout, exout, exfile,
+                            env = "LANGUAGE=en")
+            } else
+                system2(file.path(R.home("bin"), "R"),
+                        c(if(nzchar(arch)) paste("--arch=", arch, sep = ""), Ropts, enc),
+                        exout, exout, exfile, env = "LANGUAGE=en")
             if (status) {
                 errorLog(Log, "Running examples in ", sQuote(exfile),
                          " failed")
@@ -1276,19 +1308,16 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         else {
             pkgtopdir <- file.path(libdir, pkgname)
             cmd <- sprintf('tools:::.createExdotR("%s", "%s", silent = TRUE, use_gct = %s, addTiming = %s)', pkgname, pkgtopdir, use_gct, do_timings)
-            Rout <- tempfile("Rout")
-            ## any arch will do here
-            status <- R_runR(cmd, R_opts2, "LC_ALL=C", Rout, Rout)
-            if (status) {
+            exfile <- paste(pkgname, "-Ex.R", sep = "")
+            out <- R_run_R(cmd, R_opts2, "LC_ALL=C")
+            if (out$status) {
                 errorLog(Log,
                          paste("Running massageExamples to create",
                                sQuote(exfile), "failed"))
-                printLog(Log, paste(readLines(Rout, warn = FALSE),
-                                    collapse = "\n"), "\n")
+                printLog(Log, paste(out$out, collapse = "\n"), "\n")
                 do_exit(1L)
             }
             ## It ran, but did it create any examples?
-            exfile <- paste(pkgname, "-Ex.R", sep = "")
             if (file.exists(exfile)) {
                 enc <- if (!is.na(e <- desc["Encoding"])) {
                     if (is_ascii)
@@ -1356,9 +1385,20 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             cmd <- paste("tools:::.runPackageTestsR(",
                          paste(extra, collapse=", "),
                          ")", sep = "")
-            status <- R_runR(cmd,
-                             if(nzchar(arch)) R_opts4 else R_opts2,
-                             env = "LANGUAGE=en", "", "", arch)
+            status <- if (.Platform$OS.type == "windows") {
+                Rin <- tempfile("Rin"); on.exit(unlink(Rin))
+                writeLines(cmd, Rin)
+                if (nzchar(arch))
+                    system2(.R_EXE(arch), c(R_opts4, paste("-f", Rin)),
+                            env = c("LANGUAGE=en", paste("R_ARCH=/", arch, sep="")))
+                else
+                    system2(.R_EXE(arch), c(R_opts2, paste("-f", Rin)),
+                            env = "LANGUAGE=en")
+            } else
+                system2(file.path(R.home("bin"), "R"),
+                        c(if(nzchar(arch)) paste("--arch=", arch, sep = ""),
+                          if(nzchar(arch)) R_opts4 else R_opts2),
+                        input = cmd, env = "LANGUAGE=en")
             if (status) {
                 errorLog(Log)
                 ## Don't just fail: try to log where the problem occurred.
@@ -2066,6 +2106,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             "      --no-install      skip installation and associated tests",
             "      --no-tests        do not run code in 'tests' subdirectory",
             "      --no-manual       do not produce the PDF manual",
+            "      --no-latex        (deprecated) ditto",
             "      --no-vignettes    do not check vignettes in Sweave format",
             "      --use-gct         use 'gctorture(TRUE)' when running examples/tests",
             "      --use-valgrind    use 'valgrind' when running examples/tests/vignettes",
@@ -2086,8 +2127,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             "",
             "Report bugs to <r-bugs@r-project.org>.", sep="\n")
     }
-
-###--- begin{.check_packages()} "main" ---
 
     options(showErrorCalls=FALSE, warn = 1)
 
@@ -2168,8 +2207,9 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         } else if (a == "--no-manual") {
             do_manual  <- FALSE
         } else if (a == "--no-latex") {
-            stop("'--no-latex' is defunct: use '--no-manual' instead",
-                 call. = FALSE, domain = NA)
+            warning("'--no-latex' is deprecated: use '--no-manual' instead",
+                    call. = FALSE, domain = NA)
+            do_manual  <- FALSE
         } else if (a == "--use-gct") {
             use_gct  <- TRUE
         } else if (a == "--use-valgrind") {
@@ -2497,11 +2537,9 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                         inst_archs <- inst_archs[inst_archs %in% archs]
                         if (!identical(inst_archs, archs)) {
                             if (length(inst_archs) > 1)
-				printLog(Log, "NB: this package is only installed for sub-architectures ",
-					 paste(sQuote(inst_archs), collapse=", "), "\n")
-			    else {
-				printLog(Log, "NB: this package is only installed for sub-architecture ",
-					 sQuote(inst_archs), "\n")
+                                printLog(Log, "NB: this package is only installed for sub-architectures ", paste(sQuote(inst_archs), collapse=", "), "\n")
+                            else {
+                                printLog(Log, "NB: this package is only installed for sub-architecture ", sQuote(inst_archs), "\n")
                                 if(inst_archs == .Platform$r_arch)
                                     this_multiarch <- FALSE
                             }
@@ -2532,8 +2570,3 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
     } ## end for (pkg in pkgs)
 
 } ## end{ .check_packages }
-
-### Local variables:
-### mode: R
-### page-delimiter: "^###[#-]"
-### End:

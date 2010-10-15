@@ -89,9 +89,7 @@ news(query, package = "R", lib.loc = NULL, format = NULL,
   respectively, so that the comparison operators for these classes can
   be employed.
 }
-
-% This is not sensibly diff-ed against previous versions
-\examples{\donttest{
+\examples{
 ## Build a db of all R news entries.
 db <- news()
 ## Bug fixes with PR number in 2.11.0.
@@ -99,4 +97,4 @@ news(Version == "2.11.0" & grepl("^BUG", Category) & grepl("PR#", Text),
      db = db)
 ## Entries with version >= 2.10.1 (including "2.10.1 patched"):
 table(news(Version >= "2.10.1", db = db)$Version)
-}}
+}

@@ -34,8 +34,7 @@ weighted.residuals(obj, drop0 = TRUE)
 }
 \seealso{\code{\link{residuals}}, \code{\link{lm.influence}}, etc.}
 \examples{
-## following on from example(lm)
-\dontshow{utils::example("lm", echo = FALSE)}
+utils::example("lm")
 all.equal(weighted.residuals(lm.D9),
           residuals(lm.D9))
 x <- 1:10

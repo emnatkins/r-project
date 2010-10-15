@@ -217,7 +217,6 @@ get_exclude_patterns <- function()
 
     prepare_pkg <- function(pkgdir, desc, Log)
     {
-        owd <- setwd(pkgdir); on.exit(setwd(owd))
         pkgname <- basename(pkgdir)
         checkingLog(Log, "DESCRIPTION meta-information")
         res <- try(.check_package_description("DESCRIPTION"))
@@ -279,7 +278,6 @@ get_exclude_patterns <- function()
 
     cleanup_pkg <- function(pkgdir, Log)
     {
-        owd <- setwd(pkgdir)
         pkgname <- basename(pkgdir)
         if (dir.exists("src")) {
             setwd("src")
@@ -297,11 +295,8 @@ get_exclude_patterns <- function()
                         Ssystem(Sys.getenv("MAKE", "make"),
                                 c(makefiles, "clean"))
                     }
-                    if (dir.exists("_libs")) unlink("_libs", recursive = TRUE)
-                    ## Also cleanup possible Unix leftovers ...
-                    unlink(c(Sys.glob(c("*.o", "*.sl", "*.so", "*.dylib")),
+                    unlink(c(Sys.glob(c("*.o")),
                              paste(pkgname, c(".a", ".dll", ".def"), sep="")))
-                    if (dir.exists(".libs")) unlink(".libs", recursive = TRUE)
                     if (dir.exists("_libs")) unlink("_libs", recursive = TRUE)
                 }
             } else {
@@ -329,7 +324,7 @@ get_exclude_patterns <- function()
                 }
             }
         }
-        setwd(owd)
+        setwd(pkgdir)
         ## It is not clear that we want to do this: INSTALL should do so.
         ## Also, certain environment variables should be set according
         ## to 'Writing R Extensions', but were not in Perl version (nor
@@ -365,7 +360,7 @@ get_exclude_patterns <- function()
             nl <- readLines(newindex)
             if (!identical(ol, nl)) {
                 resultLog(Log, "NO")
-               if (force) {
+                if (force) {
                     messageLog(Log, "removing ", sQuote(oldindex),
 			      " as '--force' was given")
                     unlink(oldindex)
@@ -566,7 +561,9 @@ get_exclude_patterns <- function()
             do_exit(1L)
         }
         intname <- desc["Package"]
-        ## make a copy, cd to parent of copy
+        ## FIXME: why not copy and then prepare the copy?
+        messageLog(Log, "preparing ", sQuote(intname), ":")
+        prepare_pkg(pkgdir, desc, Log);
         setwd(dirname(pkgdir))
         filename <- paste(intname, "_", desc["Version"], ".tar", sep="")
         filepath <- file.path(startdir, filename)
@@ -583,18 +580,7 @@ get_exclude_patterns <- function()
             do_exit(1L)
         }
 
-        ## Now correct the package name (PR#9266)
-        if (pkgname != intname) {
-            if (!file.rename(pkgname, intname)) {
-                message("Error: cannot rename directory to ", sQuote(intname))
-                do_exit(1L)
-            }
-            pkgname <- intname
-        }
-
-        ## prepare the copy
-        messageLog(Log, "preparing ", sQuote(pkgname), ":")
-        prepare_pkg(normalizePath(pkgname, "/"), desc, Log);
+        ## FIXME: fix the dirname here.
         owd <- setwd(pkgname)
         ## remove exclude files
         allfiles <- dir(".", all.files = TRUE, recursive = TRUE,
@@ -629,7 +615,14 @@ get_exclude_patterns <- function()
         exclude <- exclude | (bases == paste("src/", pkgname, "_res.rc", sep=""))
         unlink(allfiles[exclude], recursive = TRUE)
         setwd(owd)
-
+        ## Now correct the package name (PR#9266)
+        if (pkgname != intname) {
+            if (!file.rename(pkgname, intname)) {
+                message("Error: cannot rename directory to ", sQuote(intname))
+                do_exit(1L)
+            }
+            pkgname <- intname
+        }
         ## Fix up man, R, demo inst/doc directories
         res <- .check_package_subdirs(pkgname, TRUE)
         if (any(sapply(res, length))) {

@@ -1876,6 +1876,12 @@ can be used, e.g.@: @file{.tar.bz2} or @file{.tar.xz} files.
 @R{} versions @var{x.y.z} and containing @file{.zip} files for Windows.
 
 @item 
+@code{"win64.binary"}: located at @file{bin/windows64/contrib/@var{x.y}}
+for @R{} versions @var{x.y.z} and containing @file{.zip} files for
+64-bit Windows.  (This was used for @R{} 2.11.x, but is no longer the
+default for 64-bit Windows.)
+
+@item 
 @code{"mac.binary"}: located at
 @file{bin/macosx/universal/contrib/@var{x.y}} for @R{} versions @var{x.y.z}
 and containing @file{.tgz} files.  If the repository contains only
@@ -2553,13 +2559,14 @@ some commercial Unixes).
 
 You will not be able to build most of the manuals unless you have
 @command{makeinfo} version 4.7 or later installed, and if not some of
-the @HTML{} manuals will be linked to @acronym{CRAN}. To make DVI or PDF
-versions of the manuals you will also need file @file{texinfo.tex}
-installed (which is part of the @acronym{GNU} @pkg{texinfo} distribution
-but is often made part of the @TeX{} package in re-distributions) as
-well as @command{texi2dvi}.@footnote{@command{texi2dvi} is normally a
-shell script.  Some versions, e.g.@: that from @pkg{texinfo} 4.13a, need
-to be run under @command{bash} rather than a Bourne shell as on, say,
+the @HTML{} manuals will be linked to @acronym{CRAN}.  (Version 4.6 is
+known to create incorrect @HTML{} files.)  To make DVI or PDF versions
+of the manuals you will also need file @file{texinfo.tex} installed
+(which is part of the @acronym{GNU} @pkg{texinfo} distribution but is
+often made part of the @TeX{} package in re-distributions) as well as
+@command{texi2dvi}.@footnote{@command{texi2dvi} is normally a shell
+script.  Some versions, e.g.@: that from @pkg{texinfo} 4.13a, need to be
+run under @command{bash} rather than a Bourne shell as on, say,
 Solaris.}  Further, the versions of @command{texi2dvi} and
 @file{texinfo.tex} need to be compatible: we have seen problems with
 older @TeX{} distributions (TeXLive 2007 and MiKTeX 2.8) used with
@@ -2572,9 +2579,7 @@ from @R{} 2.11.0 we require @LaTeX{} version @code{2005/12/01} or later
 (for UTF-8 support).  Building PDF package manuals (including the @R{}
 reference manual) and vignettes is sensitive to the version of the
 @LaTeX{} package @pkg{hyperref} and we recommend that the @TeX{}
-distribution used is keep up-to-date.  A number of @LaTeX{} packages are
-required (including @pkg{url}) and others such as @pkg{hyperref} are
-desirable.
+distribution used is keep up-to-date.
 
 
 If you want to build from the R Subversion repository you need both
@@ -2654,7 +2659,13 @@ Linux distributions, Solaris 9/10, AIX and Windows, usually as
 available (including on Mac OS X >= 10.4): should a broken version of
 ICU be found this can be suppressed by @option{--without-ICU}.
 
+Some code developers may want Perl version 5.8.0 or later, available via
+@uref{http://www.perl.com/CPAN/}.  This is needed for the rarely used
+@command{R CMD Sd2Rd}: if required it should be in your @env{PATH} when
+@command{configure} is run.
+
 @c The Perl scripts left are
+@c src/scripts: Sd2Rd
 @c tools: help2man.pl install-info.pl
 @c src/gnuwin32/installer: WIXins.pl
 
@@ -4298,7 +4309,9 @@ environment can be found in the ``R on AIX'' project on R-Forge
 
 The Cygwin emulation layer on Windows can be treated as a Unix-alike OS.
 This is unsupported, but experiments have been conducted and a few
-workarounds added for @R{} 2.6.0.
+workarounds added for @R{} 2.6.0.  Currently (mid 2010) the build
+produced with Cygwin's @command{gcc 4.3.4} fails to handles regular
+expressions correctly.
 
 Only building as a shared library works,@footnote{Windows DLLs need to
 have all links resolved at build time and so cannot resolve against
@@ -4464,10 +4477,9 @@ tools@footnote{such as @command{sort}, @command{find} and
 work. The ordering of the other directories is less important, but if
 in doubt, use the order above.  If you install both the 32 bit and 64
 bit toolchains from @file{Rtools*.exe}, it should work to list both in
-the path (as the automatic installer does), and this is needed if you
-want to install or build binary packages containing both architectures
-using the @command{--merge-multiarch} option as described in
-@ref{Windows packages}.  Other toolchains are more likely to conflict.
+the path (as the automatic installer does), but we recommend only
+including the one that you plan to use.  Other toolchains are more
+likely to conflict.
 
 Our toolset contains copies of Cygwin DLLs that may conflict with other
 ones on your system if both are in the path at once.  The normal

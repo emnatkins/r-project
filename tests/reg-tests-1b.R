@@ -1340,21 +1340,6 @@ z2 <- quantile(x, type = 6, probs = c(.5, 0))
 stopifnot(z1 == rev(z2))
 ## differed in 2.11.x
 
-## backspline() with decreasing knot locations
-require(splines)
-d1 <- c(616.1, 570.1, 523.7, 477.3, 431.3, 386.2, 342.4, 300.4, 260.4,
-        222.7, 187.8, 155.7, 126.7, 100.8,  78.1,  58.6,  42.2,  28.7,
-         18.1,  10.2)
-r1 <- c(104.4, 110  , 115.5, 121,   126.6, 132.1, 137.7, 143.2, 148.8,
-        154.3, 159.9, 165.4, 170.9, 176.5, 182,   187.6, 193.1, 198.7,
-        204.2, 209.8)
-sp1 <- interpSpline(r1,d1)# 'x' as function of 'y' (!)
-psp1 <- predict(sp1)
-bsp1 <- backSpline(sp1)
-dy <- diff(predict(bsp1, .5 + 18:30)$y)
-stopifnot(-.9 < dy, dy < -.35)
-## failed in R <= 2.11.x: "bizarre jumps"
-detach("package:splines")
 
 
 ## found from fallback test in slam 0.1-15
@@ -1375,17 +1360,6 @@ stopifnot(identical(mf$f, f[,drop=TRUE]))
 ## failed to drop < 2.12.0
 
 
-## problem with deparsing variable names of > 500 bytes in model.frame
-## reported by Terry Therneau to R-devel, 2010-10-07
-tname <- paste('var', 1:50, sep='')
-tmat <- matrix(rnorm(500), ncol=50, dimnames=list(NULL, tname))
-tdata <- data.frame(tmat)
-temp1 <- paste( paste(tname, tname, sep='='), collapse=', ')
-temp2 <- paste("~1 + cbind(", temp1, ")")
-foo <- model.frame(as.formula(temp2), tdata)
-## gave invalid variable name.
-
-
 ## subassignment to expressions sometimes coerced them to lists.
 x1 <- x2 <- x3 <- expression(a = pi, b = pi^2)
 x1["b"] <- expression(pi^3)
@@ -1399,34 +1373,6 @@ stopifnot(is.expression(x2))
 x3$a <- NULL
 stopifnot(is.expression(x3))
 ## coerced to lists
-
-
-## predict on an lm object with type = "terms" and 'terms' specified
-dat <- data.frame(y=log(1:10), x=1:10, fac=rep(LETTERS[11:13],c(3,3,4)))
-fit <- lm(y~fac*x, data=dat)
-pfit <- predict(fit, type="terms", interval="confidence", newdata=dat[7:5,])
-pfit2 <- predict(fit, type="terms", terms=c("x","fac"),
-                 interval="confidence", newdata=dat[7:5,])
-pfit2Expected <- lapply(pfit,
-                        function(x)if(is.matrix(x))
-                        structure(x[, c("x","fac")], constant=attr(x, "constant"))
-                        else x)
-stopifnot(identical(pfit2, pfit2Expected))
-## pfit2 failed, and without 'interval' gave se's for all terms.
-
-
-## TRE called assert() on an invalid regexp (PR#14398)
-try(regexpr("a{2-}", ""))
-## terminated R <= 2.12.0
-
-
-## Preserve intercepts in drop.terms
-tt <- terms(~a+b-1)
-tt2 <- terms(~b-1)
-stopifnot(identical(drop.terms(tt, 1), tt2))
-stopifnot(identical(tt[2], tt2))
-stopifnot(identical(tt[1:2], tt))
-## reset intercept term < R 2.13.0
 
 
 proc.time()

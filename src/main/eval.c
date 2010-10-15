@@ -549,111 +549,10 @@ void SrcrefPrompt(const char * prefix, SEXP srcref)
 
 /* Apply SEXP op of type CLOSXP to actuals */
 
-#ifdef BYTECODE
-static void loadCompilerNamespace(void)
-{
-    SEXP fun, arg, expr;
-
-    PROTECT(fun = install("getNamespace"));
-    PROTECT(arg = mkString("compiler"));
-    PROTECT(expr = lang2(fun, arg));
-    eval(expr, R_GlobalEnv);
-    UNPROTECT(3);
-}
-
-void attribute_hidden R_init_jit_enabled(void)
-{
-    if (R_jit_enabled <= 0) {
-	char *enable = getenv("R_ENABLE_JIT");
-	if (enable != NULL) {
-	    int val = atoi(enable);
-	    if (val > 0)
-		loadCompilerNamespace();
-	    R_jit_enabled = val;
-	}
-    }
-}
-    
-SEXP attribute_hidden R_cmpfun(SEXP fun)
-{
-    SEXP dcolonsym, packsym, funsym, call, fcall, val;
-
-    dcolonsym = install("::");
-    packsym = install("compiler");
-    funsym = install("cmpfun");
-
-    PROTECT(fcall = lang3(dcolonsym, packsym, funsym));
-    PROTECT(call = lang2(fcall, fun));
-    val = eval(call, R_GlobalEnv);
-    UNPROTECT(2);
-    return val;
-}
-
-static SEXP R_compileExpr(SEXP expr, SEXP vars, SEXP rho)
-{
-    SEXP dcolonsym, packsym, funsym, quotesym;
-    SEXP qexpr, call, fcall, envarg, val;
-
-    dcolonsym = install("::");
-    packsym = install("compiler");
-    funsym = install("compile");
-    quotesym = install("quote");
-
-    if (vars == R_NilValue)
-	/*** just using R_NilValue is probably OK too */
-	PROTECT(vars = allocVector(STRSXP, 0));
-    else
-	PROTECT(vars);
-
-    PROTECT(fcall = lang3(dcolonsym, packsym, funsym));
-    PROTECT(qexpr = lang2(quotesym, expr));
-    PROTECT(envarg = list2(vars, rho));
-    PROTECT(call = lang3(fcall, qexpr, envarg));
-    val = eval(call, R_GlobalEnv);
-    UNPROTECT(5);
-    return val;
-}
-
-static SEXP R_compileAndExecute(SEXP call, SEXP rho)
-{
-    int old_enabled = R_jit_enabled;
-    SEXP code, val;
-
-    R_jit_enabled = 0;
-    PROTECT(call);
-    PROTECT(rho);
-    PROTECT(code = R_compileExpr(call, R_NilValue, rho));
-    R_jit_enabled = old_enabled;
-
-    val = bcEval(code, rho);
-    UNPROTECT(3);
-    return val;
-}
-
-SEXP attribute_hidden do_enablejit(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    Rboolean old = R_jit_enabled, new;
-    checkArity(op, args);
-    new = asInteger(CAR(args));
-    if (new > 0)
-	loadCompilerNamespace();
-    R_jit_enabled = new;
-    return ScalarInteger(old);
-}
-
-/* forward declaration */
-static SEXP bytecodeExpr(SEXP);
-#endif
-
 SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedenv)
 {
-#ifdef BYTECODE
-    SEXP formals, actuals, savedrho;
-    volatile SEXP body, newrho;
-#else
     SEXP body, formals, actuals, savedrho;
     volatile  SEXP newrho;
-#endif
     SEXP f, a, tmp;
     RCNTXT cntxt;
 
@@ -664,18 +563,6 @@ SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedenv)
     formals = FORMALS(op);
     body = BODY(op);
     savedrho = CLOENV(op);
-
-#ifdef BYTECODE
-    if (R_jit_enabled > 0 && TYPEOF(body) != BCODESXP) {
-	int old_enabled = R_jit_enabled;
-	SEXP newop;
-	R_jit_enabled = 0;
-	newop = R_cmpfun(op);
-	body = BODY(newop);
-	SET_BODY(op, body);
-	R_jit_enabled = old_enabled;
-    }
-#endif
 
     /*  Set up a context with the call in it so error has access to it */
 
@@ -754,11 +641,6 @@ SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedenv)
 	int old_bl = R_BrowseLines,
 	    blines = asInteger(GetOption(install("deparse.max.lines"),
 					 R_BaseEnv));
-#ifdef BYTECODE
-	/* switch to interpreted version when debugging compiled code */
-	if (TYPEOF(body) == BCODESXP)
-	    body = bytecodeExpr(body);
-#endif
 	Rprintf("debugging in: ");
 	if(blines != NA_INTEGER && blines > 0)
 	    R_BrowseLines = blines;
@@ -772,11 +654,20 @@ SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedenv)
 			tmp = findFun(CAR(body), rho);
 		else
 			tmp = eval(CAR(body), rho);
+		if((TYPEOF(tmp) == BUILTINSXP || TYPEOF(tmp) == SPECIALSXP)
+		   && !strcmp( PRIMNAME(tmp), "for")
+		   && !strcmp( PRIMNAME(tmp), "{")
+		   && !strcmp( PRIMNAME(tmp), "repeat")
+		   && !strcmp( PRIMNAME(tmp), "while")
+			)
+			goto regdb;
 	}
 	SrcrefPrompt("debug", getAttrib(body, R_SrcrefSymbol));
 	PrintValue(body);
 	do_browser(call, op, R_NilValue, newrho);
     }
+
+ regdb:
 
     /*  It isn't completely clear that this is the right place to do
 	this, but maybe (if the matchArgs above reverses the
@@ -829,27 +720,10 @@ SEXP applyClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho, SEXP suppliedenv)
 static SEXP R_execClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho,
 			  SEXP newrho)
 {
-#ifdef BYTECODE
-    volatile SEXP body;
-    SEXP tmp;
-#else
     SEXP body, tmp;
-#endif
     RCNTXT cntxt;
 
     body = BODY(op);
-
-#ifdef BYTECODE
-    if (R_jit_enabled > 0 && TYPEOF(body) != BCODESXP) {
-	int old_enabled = R_jit_enabled;
-	SEXP newop;
-	R_jit_enabled = 0;
-	newop = R_cmpfun(op);
-	body = BODY(newop);
-	SET_BODY(op, body);
-	R_jit_enabled = old_enabled;
-    }
-#endif
 
     begincontext(&cntxt, CTXT_RETURN, call, newrho, rho, arglist, op);
 
@@ -863,11 +737,6 @@ static SEXP R_execClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho,
     SET_RDEBUG(newrho, RDEBUG(op) || RSTEP(op));
     if( RSTEP(op) ) SET_RSTEP(op, 0);
     if (RDEBUG(op)) {
-#ifdef BYTECODE
-	/* switch to interpreted version when debugging compiled code */
-	if (TYPEOF(body) == BCODESXP)
-	    body = bytecodeExpr(body);
-#endif
 	Rprintf("debugging in: ");
 	PrintValueRec(call,rho);
 	/* Find out if the body is function with only one statement. */
@@ -875,10 +744,19 @@ static SEXP R_execClosure(SEXP call, SEXP op, SEXP arglist, SEXP rho,
 	    tmp = findFun(CAR(body), rho);
 	else
 	    tmp = eval(CAR(body), rho);
+	if((TYPEOF(tmp) == BUILTINSXP || TYPEOF(tmp) == SPECIALSXP)
+	   && !strcmp( PRIMNAME(tmp), "for")
+	   && !strcmp( PRIMNAME(tmp), "{")
+	   && !strcmp( PRIMNAME(tmp), "repeat")
+	   && !strcmp( PRIMNAME(tmp), "while")
+	   )
+	    goto regdb;
 	SrcrefPrompt("debug", getAttrib(body, R_SrcrefSymbol));
 	PrintValue(body);
 	do_browser(call, op, R_NilValue, newrho);
     }
+
+ regdb:
 
     /*  It isn't completely clear that this is the right place to do
 	this, but maybe (if the matchArgs above reverses the
@@ -1184,24 +1062,6 @@ SEXP attribute_hidden do_for(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     if ( !isSymbol(sym) ) errorcall(call, _("non-symbol loop variable"));
 
-#ifdef BYTECODE
-    if (R_jit_enabled > 2) {
-	int old_enabled = R_jit_enabled;
-	SEXP code, vars;
-
-	R_jit_enabled = 0;
-	PROTECT(call);
-	PROTECT(rho);
-	PROTECT(vars = ScalarString(PRINTNAME(sym)));
-	PROTECT(code = R_compileExpr(call, vars, rho));
-	R_jit_enabled = old_enabled;
-
-	bcEval(code, rho);
-	UNPROTECT(4);
-	return R_NilValue;
-    }
-#endif
-
     PROTECT(args);
     PROTECT(rho);
     PROTECT(val = eval(val, rho));
@@ -1313,13 +1173,6 @@ SEXP attribute_hidden do_while(SEXP call, SEXP op, SEXP args, SEXP rho)
 
     checkArity(op, args);
 
-#ifdef BYTECODE
-    if (R_jit_enabled > 2) {
-	R_compileAndExecute(call, rho);
-	return R_NilValue;
-    }
-#endif
-
     dbg = RDEBUG(rho);
     body = CADR(args);
     bgn = BodyHasBraces(body);
@@ -1346,13 +1199,6 @@ SEXP attribute_hidden do_repeat(SEXP call, SEXP op, SEXP args, SEXP rho)
     RCNTXT cntxt;
 
     checkArity(op, args);
-
-#ifdef BYTECODE
-    if (R_jit_enabled > 2) {
-	R_compileAndExecute(call, rho);
-	return R_NilValue;
-    }
-#endif
 
     dbg = RDEBUG(rho);
     body = CAR(args);
@@ -2216,13 +2062,9 @@ int DispatchOrEval(SEXP call, SEXP op, const char *generic, SEXP args,
 	    if (CAR(args) == R_DotsSymbol) {
 		SEXP h = findVar(R_DotsSymbol, rho);
 		if (TYPEOF(h) == DOTSXP) {
-#ifdef DODO
-		    /**** any self-evaluating value should be OK; this
-			  is used in byte compiled code. LT */
 		    /* just a consistency check */
 		    if (TYPEOF(CAR(h)) != PROMSXP)
 			error(_("value in '...' is not a promise"));
-#endif
 		    dots = TRUE;
 		    x = eval(CAR(h), rho);
 		break;

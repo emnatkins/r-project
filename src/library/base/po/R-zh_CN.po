@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2010-09-23 07:22\n"
+"POT-Creation-Date: 2010-10-04 10:49\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -855,15 +855,11 @@ msgstr "没有'%s'这个DLL"
 msgid "now dyn.unload(\"%s\") ..."
 msgstr "现在dyn.unload(\"%s\") ..."
 
-msgid "use of 'save' is deprecated"
-msgstr "'save'不再有用。"
-
-#, fuzzy
-msgid "save != FALSE is defunct"
-msgstr "'%s'不再有用。"
-
 msgid "Loading required package: %s"
 msgstr "载入需要的程辑包：%s"
+
+msgid "use of 'save' is deprecated"
+msgstr "'save'不再有用。"
 
 msgid "none of the packages are loaded"
 msgstr "没有载入任何程辑包"
@@ -1356,9 +1352,6 @@ msgstr "已经选择了encoding = \"%s\""
 msgid "'chdir = TRUE' makes no sense for a URL"
 msgstr "'chdir = TRUE'对URL来说没有意义"
 
-msgid "cannot 'chdir' as current directory is unknown"
-msgstr "'chdir'没有作用，因为不知道目前的工作目录在哪里"
-
 msgid "'chdir = TRUE' makes no sense for a connection"
 msgstr "'chdir = TRUE'对联结来说没有任何意义"
 
@@ -1608,6 +1601,9 @@ msgstr[0] "S3方法%s在NAMESPACE里有声明但不存在"
 msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "警告信息：\n"
+
+#~ msgid "cannot 'chdir' as current directory is unknown"
+#~ msgstr "'chdir'没有作用，因为不知道目前的工作目录在哪里"
 
 #~ msgid "shared library '%s' not found"
 #~ msgstr "找不到共享图书馆'%s'"

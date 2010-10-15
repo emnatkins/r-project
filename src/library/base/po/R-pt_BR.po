@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2010-09-23 07:22\n"
+"POT-Creation-Date: 2010-10-04 10:49\n"
 "PO-Revision-Date: 2005-12-17 10:55-0200\n"
 "Last-Translator: Fernando Henrique Ferraz P. da Rosa <feferraz@ime.usp.br>\n"
 "Language-Team: Portuguese <ldp-br@bazar.conectiva.com.br>\n"
@@ -910,16 +910,12 @@ msgstr "arquivo '%s' não encontrado"
 msgid "now dyn.unload(\"%s\") ..."
 msgstr "agora dyn.unload(\"%s\") ..."
 
+msgid "Loading required package: %s"
+msgstr "Carregando pacotes exigidos: %s"
+
 #, fuzzy
 msgid "use of 'save' is deprecated"
 msgstr "'%s' é obsoleto."
-
-#, fuzzy
-msgid "save != FALSE is defunct"
-msgstr "'%s' foi extinto."
-
-msgid "Loading required package: %s"
-msgstr "Carregando pacotes exigidos: %s"
 
 msgid "none of the packages are loaded"
 msgstr "nenhum dos pacotes foi carregado"
@@ -1438,9 +1434,6 @@ msgstr ""
 
 msgid "'chdir = TRUE' makes no sense for a URL"
 msgstr "'chdir = TRUE' não faz sentido para uma URL"
-
-msgid "cannot 'chdir' as current directory is unknown"
-msgstr ""
 
 msgid "'chdir = TRUE' makes no sense for a connection"
 msgstr "'chdir = TRUE' não faz sentido para uma conexão"
