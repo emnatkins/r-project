@@ -27,10 +27,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.13.0\n"
+"Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2010-12-06 16:53+0000\n"
-"PO-Revision-Date: 2010-12-06 16:53+0000\n"
+"POT-Creation-Date: 2010-07-12 18:52+0100\n"
+"PO-Revision-Date: 2010-07-12 18:52+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -74,11 +74,11 @@ msgstr "Non-finite control point in Xspline"
 msgid "non-finite x or y in graphics path"
 msgstr "non-finite x or y in graphics path"
 
-#: grid.c:3276
+#: grid.c:3270
 msgid "invalid plotting symbol"
 msgstr "invalid plotting symbol"
 
-#: grid.c:3362
+#: grid.c:3356
 msgid "Unable to clip to rotated rectangle"
 msgstr "Unable to clip to rotated rectangle"
 

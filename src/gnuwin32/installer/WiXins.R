@@ -86,8 +86,6 @@
         if(personal)'   <Property Id="ALLUSERS"></Property>'
         else '    <Property Id="ALLUSERS">1</Property>',
         sprintf('    <Property Id="RVersion">%s</Property>', Rver),
-        '    <Icon Id="icon.ico" SourceFile="..\\front-ends\\R.ico"/>',
-        '    <Property Id="ARPPRODUCTICON" Value="icon.ico" />',
         '')
 
     if (have64bit) {

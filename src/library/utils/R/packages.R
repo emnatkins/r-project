@@ -135,7 +135,7 @@ function(contriburl = contrib.url(getOption("repos"), type), method,
 available_packages_filters_default <-
     c("R_version", "OS_type", "subarch", "duplicates")
 
-available_packages_filters_db <- new.env(hash = FALSE) # small
+available_packages_filters_db <- new.env()
 
 available_packages_filters_db$R_version <-
 function(db)
@@ -393,7 +393,7 @@ new.packages <- function(lib.loc = NULL, repos = getOption("repos"),
     poss <- sort(unique(available[ ,"Package"])) # sort in local locale
     res <- setdiff(poss, installed)
 
-    update <- character()
+    update <- character(0L)
     graphics <- FALSE
     if(is.character(ask) && ask == "graphics") {
         ask <- TRUE
@@ -441,22 +441,23 @@ new.packages <- function(lib.loc = NULL, repos = getOption("repos"),
 {
     ## to be used in installed.packages() and similar
     ## FIXME: this is vulnerable to installs going on in parallel
-    ## As from 2.13.0 only look at metadata.
     ret <- matrix(NA_character_, length(pkgs), 2L+length(fields))
     for(i in seq_along(pkgs)) {
         pkgpath <- file.path(lib, pkgs[i])
         if(file.access(pkgpath, 5L)) next
-        if (file.exists(file <- file.path(pkgpath, "Meta", "package.rds"))) {
-            md <- .readRDS(file)
-            desc <- md$DESCRIPTION[fields]
-            if (!length(desc)) {
-                warning(gettextf("metadata of '%s' is corrupt", pkgpath),
-                        domain = NA)
-                next
-            }
-            if("Built" %in% fields) desc["Built"] <- as.character(md$Built$R)
-            ret[i, ] <- c(pkgs[i], lib, desc)
+        pkgpath <- file.path(pkgpath, "DESCRIPTION")
+        if(file.access(pkgpath, 4L)) next
+        desc <- tryCatch(read.dcf(pkgpath, fields = fields), error = identity)
+        if(inherits(desc, "error") || NROW(desc) < 1L) {
+            warning(gettextf("read.dcf() error on file '%s'", pkgpath),
+                    domain = NA, call. = FALSE)
+            next
         }
+        desc <- desc[1L,]
+        Rver <- strsplit(strsplit(desc["Built"], ";")[[1L]][1L],
+                         "[ \t]+")[[1L]][2L]
+        desc["Built"] <- Rver
+        ret[i, ] <- c(sub("_.*", "", pkgs[i]), lib, desc)
     }
     ret[!is.na(ret[, 1L]), ]
 }
@@ -559,7 +560,7 @@ download.packages <- function(pkgs, destdir, available = NULL,
     if(is.null(available))
         available <- available.packages(contriburl=contriburl, method=method)
 
-    retval <- matrix(character(), 0L, 2L)
+    retval <- matrix(character(0L), 0L, 2L)
     for(p in unique(pkgs))
     {
         ok <- (available[,"Package"] == p)
@@ -581,7 +582,8 @@ download.packages <- function(pkgs, destdir, available = NULL,
                         switch(type,
                                "source" = ".tar.gz",
                                "mac.binary" = ".tgz",
-                               "win.binary" = ".zip"),
+                               "win.binary" = ".zip",
+                               "win64.binary" = ".zip"),
                         sep = "")
             have_fn <- !is.na(File)
             fn[have_fn] <- File[have_fn]
@@ -650,7 +652,8 @@ contrib.url <- function(repos, type = getOption("pkgType"))
     res <- switch(type,
 		"source" = paste(gsub("/$", "", repos), "src", "contrib", sep="/"),
                 "mac.binary" = paste(gsub("/$", "", repos), "bin", "macosx", mac.subtype, "contrib", ver, sep = "/"),
-                "win.binary" = paste(gsub("/$", "", repos), "bin", "windows", "contrib", ver, sep="/")
+                "win.binary" = paste(gsub("/$", "", repos), "bin", "windows", "contrib", ver, sep="/"),
+                "win64.binary" = paste(gsub("/$", "", repos), "bin", "windows64", "contrib", ver, sep="/")
                )
     res
 }
@@ -692,17 +695,14 @@ chooseBioCmirror <- function(graphics = getOption("menu.graphics"))
     if(!interactive()) stop("cannot choose a BioC mirror non-interactively")
     m <- c("Seattle (USA)"="http://www.bioconductor.org",
            "Bethesda (USA)"="http://watson.nci.nih.gov/bioc_mirror",
-           "Dortmund (Germany)"="http://bioconductor.statistik.tu-dortmund.de",
-           "Bergen (Norway)"="http://bioconductor.uib.no/",
-           "Cambridge (UK)"="http://mirrors.ebi.ac.uk/bioconductor/")
+           "Dortmund (Germany)"="http://bioconductor.statistik.tu-dortmund.de")
     res <- menu(names(m), graphics, "BioC mirror")
     if(res > 0L) options("BioC_mirror" = m[res])
     invisible()
 }
 
 setRepositories <-
-    function(graphics = getOption("menu.graphics"), ind = NULL,
-             addURLs = character())
+    function(graphics = getOption("menu.graphics"), ind = NULL)
 {
     if(is.null(ind) && !interactive())
         stop("cannot set repositories non-interactively")
@@ -738,14 +738,14 @@ setRepositories <-
         match(select.list(a[, 1L], a[default, 1L], multiple = TRUE, title,
                            graphics = graphics), a[, 1L])
     }
-    if(length(res) || length(addURLs)) {
+    if(length(res)) {
         repos <- a[["URL"]]
         names(repos) <- row.names(a)
-        repos <- c(repos[res], addURLs)
-        options(repos = repos)
+        options(repos = repos[res])
     }
 }
 
+normalizePath <- function(path) .Internal(normalizePath(path))
 
 
 ## used in some BioC packages and their support in tools.
@@ -801,9 +801,9 @@ compareVersion <- function(a, b)
         unlist(lapply(strsplit(x, ","), .split2), FALSE, FALSE)
     }
     x <- x[!is.na(x)]
-    if(!length(x)) return(list(character(), character()))
+    if(!length(x)) return(list(character(0L), character(0L)))
     xx <- .split_dependencies(x)
-    if(!length(xx)) return(list(character(), character()))
+    if(!length(xx)) return(list(character(0L), character(0L)))
     ## Then check for those we already have installed
     pkgs <- installed[, "Package"]
     have <- sapply(xx, function(x) {
@@ -819,10 +819,10 @@ compareVersion <- function(a, b)
         } else x[[1L]] %in% pkgs
     })
     xx <- xx[!have]
-    if(!length(xx)) return(list(character(), character()))
+    if(!length(xx)) return(list(character(0L), character(0L)))
     ## now check if we can satisfy the missing dependencies
     pkgs <- row.names(available)
-    canget <- miss <- character()
+    canget <- miss <- character(0L)
     for (i in seq_along(xx)) {
         x <- xx[[i]]
         if(length(x) == 3L) {

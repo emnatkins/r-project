@@ -14,7 +14,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-###- R based engine for R CMD check
+#### R based engine for R CMD check
 
 ## Used for INSTALL and Rd2pdf
 run_Rcmd <- function(args, out = "")
@@ -34,9 +34,17 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         if (!is.null(cmd)) {
             Rin <- tempfile("Rin"); on.exit(unlink(Rin)); writeLines(cmd, Rin)
         } else Rin <- stdin
-        system2(if(nzchar(arch)) file.path(R.home(), "bin", arch, "Rterm.exe")
-                else file.path(R.home("bin"), "Rterm.exe"),
-                c(Ropts, paste("-f", Rin)), stdout, stderr, env = env)
+        ## This was called from Rcmd which set R_ARCH,
+        ## so we may need to reset it.  (This used to be necessary for
+        ## nested calls of Rcmd in 2.12.x, but no longer.)
+        if(nzchar(arch))
+            system2(file.path(R.home(), "bin", arch, "Rterm.exe"),
+                    c(Ropts, paste("-f", Rin)), stdout, stderr,
+                    env = c(env, paste("R_ARCH=/", arch, sep="")))
+        else
+            system2(file.path(R.home("bin"), "Rterm.exe"),
+                    c(Ropts, paste("-f", Rin)), stdout, stderr,
+                    env = env)
     } else {
         suppressWarnings(system2(file.path(R.home("bin"), "R"),
                                  c(if(nzchar(arch)) paste("--arch=", arch, sep = ""), Ropts),
@@ -44,7 +52,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
     }
 }
 
-###- The main function for "R CMD check"  {currently extends all the way to the end-of-file}
 .check_packages <- function(args = NULL)
 {
     WINDOWS <- .Platform$OS.type == "windows"
@@ -1205,9 +1212,8 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             if (use_valgrind) Ropts <- paste(Ropts, "-d valgrind")
             ## might be diff-ing results against tests/Examples later
             ## so force LANGUAGE=en
-            status <- R_runR(NULL, c(Ropts, enc), "LANGUAGE=en",
-                             stdout = exout, stderr = exout,
-                             stdin = exfile, arch = arch)
+            status <- R_runR(NULL, c(Ropts, enc), env = "LANGUAGE=en",
+                              exout, exout, exfile, arch = arch)
             if (status) {
                 errorLog(Log, "Running examples in ", sQuote(exfile),
                          " failed")
@@ -1279,8 +1285,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             cmd <- sprintf('tools:::.createExdotR("%s", "%s", silent = TRUE, use_gct = %s, addTiming = %s)', pkgname, pkgtopdir, use_gct, do_timings)
             Rout <- tempfile("Rout")
             ## any arch will do here
-            status <- R_runR(cmd, R_opts2, "LC_ALL=C",
-                             stdout = Rout, stderr = Rout)
+            status <- R_runR(cmd, R_opts2, "LC_ALL=C", Rout, Rout)
             if (status) {
                 errorLog(Log,
                          paste("Running massageExamples to create",
@@ -1950,7 +1955,9 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         ## package vignette must require its own package, which OTOH is
         ## not required in the package DESCRIPTION file.
         ## Namespace imports must really be in Depends.
-        res <- .check_package_depends(pkgdir, R_check_force_suggests)
+
+        ## Suppress warnings from incorrect NAMESPACE files (errors in 2.13.0)
+        res <- suppressWarnings(.check_package_depends(pkgdir, R_check_force_suggests))
         if (any(sapply(res, length) > 0)) {
             if (!all(names(res) %in% c("suggests_but_not_installed",
                                        "enhances_but_not_installed"))) {
@@ -2035,6 +2042,16 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         paste(paths[nzchar(paths)], collapse = .Platform$path.sep)
     }
 
+    config_val_to_logical <- function(val) {
+        v <- tolower(val)
+        if (v %in% c("1", "yes", "true")) TRUE
+        else if (v %in% c("0", "no", "false")) FALSE
+        else {
+            warning("cannot coerce ", sQuote(val), " to logical")
+            NA
+        }
+    }
+
     Usage <- function() {
         cat("Usage: R CMD check [options] pkgs",
             "",
@@ -2062,6 +2079,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             "      --no-install      skip installation and associated tests",
             "      --no-tests        do not run code in 'tests' subdirectory",
             "      --no-manual       do not produce the PDF manual",
+            "      --no-latex        (deprecated) ditto",
             "      --no-vignettes    do not check vignettes in Sweave format",
             "      --use-gct         use 'gctorture(TRUE)' when running examples/tests",
             "      --use-valgrind    use 'valgrind' when running examples/tests/vignettes",
@@ -2082,8 +2100,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             "",
             "Report bugs to <r-bugs@r-project.org>.", sep="\n")
     }
-
-###--- begin{.check_packages()} "main" ---
 
     options(showErrorCalls=FALSE, warn = 1)
 
@@ -2164,8 +2180,9 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         } else if (a == "--no-manual") {
             do_manual  <- FALSE
         } else if (a == "--no-latex") {
-            stop("'--no-latex' is defunct: use '--no-manual' instead",
-                 call. = FALSE, domain = NA)
+            warning("'--no-latex' is deprecated: use '--no-manual' instead",
+                    call. = FALSE, domain = NA)
+            do_manual  <- FALSE
         } else if (a == "--use-gct") {
             use_gct  <- TRUE
         } else if (a == "--use-valgrind") {
@@ -2493,11 +2510,9 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                         inst_archs <- inst_archs[inst_archs %in% archs]
                         if (!identical(inst_archs, archs)) {
                             if (length(inst_archs) > 1)
-				printLog(Log, "NB: this package is only installed for sub-architectures ",
-					 paste(sQuote(inst_archs), collapse=", "), "\n")
-			    else {
-				printLog(Log, "NB: this package is only installed for sub-architecture ",
-					 sQuote(inst_archs), "\n")
+                                printLog(Log, "NB: this package is only installed for sub-architectures ", paste(sQuote(inst_archs), collapse=", "), "\n")
+                            else {
+                                printLog(Log, "NB: this package is only installed for sub-architecture ", sQuote(inst_archs), "\n")
                                 if(inst_archs == .Platform$r_arch)
                                     this_multiarch <- FALSE
                             }
@@ -2528,8 +2543,3 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
     } ## end for (pkg in pkgs)
 
 } ## end{ .check_packages }
-
-### Local variables:
-### mode: R
-### page-delimiter: "^###[#-]"
-### End:

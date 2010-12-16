@@ -434,8 +434,6 @@ SEXP do_set(SEXP, SEXP, SEXP, SEXP);
 SEXP do_setencoding(SEXP, SEXP, SEXP, SEXP);
 SEXP do_setenv(SEXP, SEXP, SEXP, SEXP);
 SEXP do_seterrmessage(SEXP, SEXP, SEXP, SEXP);
-SEXP do_setmaxnumthreads(SEXP, SEXP, SEXP, SEXP);
-SEXP do_setnumthreads(SEXP, SEXP, SEXP, SEXP);
 SEXP do_setGraphicsEventEnv(SEXP, SEXP, SEXP, SEXP);
 SEXP do_setlocale(SEXP, SEXP, SEXP, SEXP);
 SEXP do_setseed(SEXP, SEXP, SEXP, SEXP);
@@ -539,7 +537,6 @@ SEXP do_bcversion(SEXP, SEXP, SEXP, SEXP);
 SEXP do_loadfile(SEXP, SEXP, SEXP, SEXP);
 SEXP do_savefile(SEXP, SEXP, SEXP, SEXP);
 SEXP do_putconst(SEXP, SEXP, SEXP, SEXP);
-SEXP do_enablejit(SEXP, SEXP, SEXP, SEXP);
 #endif
 
 /* Connections */

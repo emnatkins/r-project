@@ -1584,7 +1584,7 @@ getGroupMembers <- function(group, recursive = FALSE, character = TRUE)
     .pasteC <- function(names) paste('"', names, '"', sep="", collapse = ", ")
     found <- character()
     distances <- numeric()
-    methods <- objects(mtable, all.names = TRUE)
+    methods <- objects(mtable, all=TRUE)
     direct <- match(classes, methods, 0L) > 0L
     if(all(direct)) {
         if(length(classes) > 1L) {

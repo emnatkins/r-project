@@ -34,11 +34,11 @@ row.names.data.frame <- function(x) as.character(attr(x, "row.names"))
 row.names.default <- function(x) if(!is.null(dim(x))) rownames(x)# else NULL
 
 .set_row_names <- function(n)
-    if(n > 0) c(NA_integer_, -n) else integer()
+    if(n > 0) c(NA_integer_, -n) else integer(0L)
 
-`row.names<-` <- function(x, value) UseMethod("row.names<-")
+"row.names<-" <- function(x, value) UseMethod("row.names<-")
 
-`row.names<-.data.frame` <- function(x, value)
+"row.names<-.data.frame" <- function(x, value)
 {
     if (!is.data.frame(x)) x <- as.data.frame(x)
     n <- .row_names_info(x, 2L)
@@ -73,7 +73,7 @@ row.names.default <- function(x) if(!is.null(dim(x))) rownames(x)# else NULL
     x
 }
 
-`row.names<-.default` <- function(x, value) `rownames<-`(x, value)
+"row.names<-.default" <- function(x, value) "rownames<-"(x, value)
 
 is.na.data.frame <- function (x)
 {
@@ -105,7 +105,7 @@ dim.data.frame <- function(x) c(.row_names_info(x, 2L), length(x))
 
 dimnames.data.frame <- function(x) list(row.names(x), names(x))
 
-`dimnames<-.data.frame` <- function(x, value)
+"dimnames<-.data.frame" <- function(x, value)
 {
     d <- dim(x)
     if(!is.list(value) || length(value) != 2L)
@@ -185,7 +185,7 @@ as.data.frame.vector <- function(x, row.names = NULL, optional = FALSE, ...,
     nrows <- length(x)
     if(is.null(row.names)) {
 	if (nrows == 0L)
-	    row.names <- character()
+	    row.names <- character(0L)
 	else if(length(row.names <- names(x)) == nrows &&
 		!anyDuplicated(row.names)) {}
 	else row.names <- .set_row_names(nrows)
@@ -309,7 +309,7 @@ as.data.frame.array <- function(x, row.names = NULL, optional = FALSE, ...)
 
 ## Allow extraction method to have changed the underlying class,
 ## so re-assign the class based on the result.
-`[.AsIs` <- function(x, i, ...) I(NextMethod("["))
+"[.AsIs" <- function(x, i, ...) I(NextMethod("["))
 
 
 as.data.frame.AsIs <- function(x, row.names = NULL, optional = FALSE, ...)
@@ -322,7 +322,7 @@ as.data.frame.AsIs <- function(x, row.names = NULL, optional = FALSE, ...)
         nm <- paste(deparse(substitute(x), width.cutoff=500L), collapse=" ")
         if(is.null(row.names)) {
             if (nrows == 0L)
-                row.names <- character()
+                row.names <- character(0L)
             else if(length(row.names <- names(x)) == nrows &&
                     !anyDuplicated(row.names)) {}
             else row.names <- .set_row_names(nrows)
@@ -380,8 +380,8 @@ data.frame <-
                 stop("duplicate row.names: ",
                      paste(unique(row.names[duplicated(row.names)]),
                            collapse = ", "))
-        } else row.names <- integer()
-	return(structure(list(), names = character(),
+        } else row.names <- integer(0L)
+	return(structure(list(), names = character(0L),
                          row.names = row.names,
 			 class = "data.frame"))
     }
@@ -504,7 +504,7 @@ data.frame <-
 ###  Subsetting and mutation methods
 ###  These are a little less general than S
 
-`[.data.frame` <-
+"[.data.frame" <-
     function(x, i, j, drop = if(missing(i)) TRUE else length(cols) == 1)
 {
     mdrop <- missing(drop)
@@ -520,7 +520,7 @@ data.frame <-
 	if(is.matrix(i))
 	    return(as.matrix(x)[i])  # desperate measures
         ## zero-column data frames prior to 2.4.0 had no names.
-        nm <- names(x); if(is.null(nm)) nm <- character()
+        nm <- names(x); if(is.null(nm)) nm <- character(0L)
         ## if we have NA names, character indexing should always fail
         ## (for positive index length)
         if(!is.character(i) && any(is.na(nm))) { # less efficient version
@@ -545,7 +545,7 @@ data.frame <-
     if(missing(i)) { # df[, j] or df[ , ]
         ## not quite the same as the 1/2-arg case, as 'drop' is used.
         if(drop && !has.j && length(x) == 1L) return(.subset2(x, 1L))
-        nm <- names(x); if(is.null(nm)) nm <- character()
+        nm <- names(x); if(is.null(nm)) nm <- character(0L)
         if(has.j && !is.character(j) && any(is.na(nm))) {
             ## less efficient version
             names(nm) <- names(x) <- seq_along(x)
@@ -579,7 +579,7 @@ data.frame <-
     oldClass(x) <- attr(x, "row.names") <- NULL
 
     if(has.j) { # df[i, j]
-        nm <- names(x); if(is.null(nm)) nm <- character()
+        nm <- names(x); if(is.null(nm)) nm <- character(0L)
         if(!is.character(j) && any(is.na(nm)))
             names(nm) <- names(x) <- seq_along(x)
         x <- x[j]
@@ -650,7 +650,7 @@ data.frame <-
     x
 }
 
-`[[.data.frame` <- function(x, ..., exact=TRUE)
+"[[.data.frame" <- function(x, ..., exact=TRUE)
 {
     ## use in-line functions to refer to the 1st and 2nd ... arguments
     ## explicitly. Also will check for wrong number or empty args
@@ -671,7 +671,7 @@ data.frame <-
     }
 }
 
-`[<-.data.frame` <- function(x, i, j, value)
+"[<-.data.frame" <- function(x, i, j, value)
 {
     if(!all(names(sys.call()) %in% c("", "value")))
         warning("named arguments are discouraged")
@@ -688,7 +688,7 @@ data.frame <-
             i <- j <- NULL
             has.i <- has.j <- FALSE
             ## added in 1.8.0
-            if(is.null(value)) return(x[logical()])
+            if(is.null(value)) return(x[logical(0L)])
         } else { # case df[ind]
             ## really ambiguous, but follow common use as if list
             ## except for a full-sized logical matrix
@@ -931,7 +931,7 @@ data.frame <-
     x
 }
 
-`[[<-.data.frame` <- function(x, i, j, value)
+"[[<-.data.frame"<- function(x, i, j, value)
 {
     if(!all(names(sys.call()) %in% c("", "value")))
         warning("named arguments are discouraged")
@@ -1024,7 +1024,7 @@ data.frame <-
 }
 
 ## added in 1.8.0
-`$<-.data.frame` <- function(x, name, value)
+"$<-.data.frame"<- function(x, name, value)
 {
     cl <- oldClass(x)
     ## delete class: Version 3 idiom
@@ -1107,7 +1107,7 @@ rbind.data.frame <- function(..., deparse.level = 1)
     Make.row.names <- function(nmi, ri, ni, nrow)
     {
 	if(nzchar(nmi)) {
-            if(ni == 0L) character()  # PR8506
+            if(ni == 0L) character(0L)  # PR8506
 	    else if(ni > 1L) paste(nmi, ri, sep = ".")
 	    else nmi
 	}

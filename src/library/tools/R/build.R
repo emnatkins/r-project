@@ -169,8 +169,9 @@ get_exclude_patterns <- function()
             "  --no-manual           do not build the manual even if \\Sexprs are present",
             "",
             "  --binary              build pre-compiled binary packages, with options:",
-            "  --install-args=       command-line args to be passed to INSTALL,",
-            "                        separated by spaces",
+            if (WINDOWS) "  --auto-zip            select zipping of data based on size",
+            "  --use-zip-data        collect data files in zip archive",
+            "  --no-docs             do not build and install documentation",
             "",
             "Report bugs to <r-bugs@r-project.org>.", sep="\n")
     }
@@ -178,7 +179,7 @@ get_exclude_patterns <- function()
 
     add_build_stamp_to_description_file <- function(ldpath)
     {
-        lines <- readLines(ldpath, warn = FALSE)
+        lines <- readLines(ldpath)
         lines <- lines[nzchar(lines)] # Remove blank lines.
         ## Do not keep previous build stamps.
         lines <- lines[!grepl("^Packaged:", lines)]
@@ -219,7 +220,6 @@ get_exclude_patterns <- function()
 
     prepare_pkg <- function(pkgdir, desc, Log)
     {
-        owd <- setwd(pkgdir); on.exit(setwd(owd))
         pkgname <- basename(pkgdir)
         checkingLog(Log, "DESCRIPTION meta-information")
         res <- try(.check_package_description("DESCRIPTION"))
@@ -252,10 +252,10 @@ get_exclude_patterns <- function()
             creatingLog(Log, "vignettes")
             R_LIBS <- Sys.getenv("R_LIBS", NA_character_)
             if (!is.na(R_LIBS)) {
-                on.exit(Sys.setenv(R_LIBS = R_LIBS), add=TRUE)
+                on.exit(Sys.setenv(R_LIBS = R_LIBS))
                 Sys.setenv(R_LIBS = env_path(libdir, R_LIBS))
             } else {
-                on.exit(Sys.unsetenv("R_LIBS"), add=TRUE)
+                on.exit(Sys.unsetenv("R_LIBS"))
                 Sys.setenv(R_LIBS = libdir)
             }
             ## unset SWEAVE_STYLEPATH_DEFAULT here to avoid problems
@@ -281,7 +281,6 @@ get_exclude_patterns <- function()
 
     cleanup_pkg <- function(pkgdir, Log)
     {
-        owd <- setwd(pkgdir); on.exit(setwd(owd))
         pkgname <- basename(pkgdir)
         if (dir.exists("src")) {
             setwd("src")
@@ -299,11 +298,8 @@ get_exclude_patterns <- function()
                         Ssystem(Sys.getenv("MAKE", "make"),
                                 c(makefiles, "clean"))
                     }
-                    if (dir.exists("_libs")) unlink("_libs", recursive = TRUE)
-                    ## Also cleanup possible Unix leftovers ...
-                    unlink(c(Sys.glob(c("*.o", "*.sl", "*.so", "*.dylib")),
+                    unlink(c(Sys.glob(c("*.o")),
                              paste(pkgname, c(".a", ".dll", ".def"), sep="")))
-                    if (dir.exists(".libs")) unlink(".libs", recursive = TRUE)
                     if (dir.exists("_libs")) unlink("_libs", recursive = TRUE)
                 }
             } else {
@@ -331,7 +327,7 @@ get_exclude_patterns <- function()
                 }
             }
         }
-        setwd(owd)
+        setwd(pkgdir)
         ## It is not clear that we want to do this: INSTALL should do so.
         ## Also, certain environment variables should be set according
         ## to 'Writing R Extensions', but were not in Perl version (nor
@@ -367,7 +363,7 @@ get_exclude_patterns <- function()
             nl <- readLines(newindex)
             if (!identical(ol, nl)) {
                 resultLog(Log, "NO")
-               if (force) {
+                if (force) {
                     messageLog(Log, "removing ", sQuote(oldindex),
 			      " as '--force' was given")
                     unlink(oldindex)
@@ -508,16 +504,11 @@ get_exclude_patterns <- function()
             vignettes <- FALSE
         } else if (a == "--binary") {
             binary <- TRUE
-        } else if (substr(a, 1, 15) == "--install-args=") {
-            INSTALL_opts <- c(INSTALL_opts, substr(a, 16, 1000))
         } else if (WINDOWS && a == "--auto-zip") {
-            warning("use of '--auto-zip' is deprecated: use '--install-args' instead")
             INSTALL_opts <- c(INSTALL_opts, "--auto-zip")
         } else if (a == "--use-zip-data") {
-            warning("use of '--use-zip-data' is deprecated: use '--install-args' instead")
             INSTALL_opts <- c(INSTALL_opts, "--use-zip-data")
         } else if (a == "--no-docs") {
-            warning("use of '--no-docs' is deprecated: use '--install-args' instead")
             INSTALL_opts <- c(INSTALL_opts, "--no-docs")
         } else if (a == "--no-manual") {
             manual <- FALSE
@@ -573,7 +564,9 @@ get_exclude_patterns <- function()
             do_exit(1L)
         }
         intname <- desc["Package"]
-        ## make a copy, cd to parent of copy
+        ## FIXME: why not copy and then prepare the copy?
+        messageLog(Log, "preparing ", sQuote(intname), ":")
+        prepare_pkg(pkgdir, desc, Log);
         setwd(dirname(pkgdir))
         filename <- paste(intname, "_", desc["Version"], ".tar", sep="")
         filepath <- file.path(startdir, filename)
@@ -590,18 +583,7 @@ get_exclude_patterns <- function()
             do_exit(1L)
         }
 
-        ## Now correct the package name (PR#9266)
-        if (pkgname != intname) {
-            if (!file.rename(pkgname, intname)) {
-                message("Error: cannot rename directory to ", sQuote(intname))
-                do_exit(1L)
-            }
-            pkgname <- intname
-        }
-
-        ## prepare the copy
-        messageLog(Log, "preparing ", sQuote(pkgname), ":")
-        prepare_pkg(normalizePath(pkgname, "/"), desc, Log);
+        ## FIXME: fix the dirname here.
         owd <- setwd(pkgname)
         ## remove exclude files
         allfiles <- dir(".", all.files = TRUE, recursive = TRUE,
@@ -636,7 +618,14 @@ get_exclude_patterns <- function()
         exclude <- exclude | (bases == paste("src/", pkgname, "_res.rc", sep=""))
         unlink(allfiles[exclude], recursive = TRUE)
         setwd(owd)
-
+        ## Now correct the package name (PR#9266)
+        if (pkgname != intname) {
+            if (!file.rename(pkgname, intname)) {
+                message("Error: cannot rename directory to ", sQuote(intname))
+                do_exit(1L)
+            }
+            pkgname <- intname
+        }
         ## Fix up man, R, demo inst/doc directories
         res <- .check_package_subdirs(pkgname, TRUE)
         if (any(sapply(res, length))) {
@@ -726,10 +715,9 @@ get_exclude_patterns <- function()
             }
             setwd(startdir)
             unlink(Tdir, recursive = TRUE)
+            closeLog(Log)
             message("") # blank line
         }
-        on.exit() # cancel closeLog
-        closeLog(Log)
     }
     do_exit(0L)
 }

@@ -11,6 +11,7 @@ header-install: libintl.h
 
 DEFS=-DIN_LIBINTL -DHAVE_CONFIG_H
 CPPFLAGS=$(DEFS) -I. -I../../include
+CFLAGS= $(OPTFLAGS)
 dcigettext-CPPFLAGS=-DLOCALEDIR=\"\"
 
 SOURCES = \

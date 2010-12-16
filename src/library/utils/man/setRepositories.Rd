@@ -10,8 +10,7 @@
   Interact with the user to choose the package repositories to be used.
 }
 \usage{
-setRepositories(graphics = getOption("menu.graphics"), ind = NULL,
-                addURLs = character())
+setRepositories(graphics = getOption("menu.graphics"), ind = NULL)
 }
 \arguments{
   \item{graphics}{Logical. If true, use a graphical list: on Windows or
@@ -20,9 +19,7 @@ setRepositories(graphics = getOption("menu.graphics"), ind = NULL,
     \code{\link{menu}}.}
   \item{ind}{\code{NULL} or a vector of integer indices, which have the
     same effect as if they were entered at the prompt for
-    \code{graphics = FALSE}.}
-  \item{addURLs}{A character vector of additional URLs: it is often
-    helpful to use a named vector.}
+    \code{graphics=FALSE}.}
 }
 \details{
   The default list of known repositories is stored in the file
@@ -65,7 +62,4 @@ setRepositories(graphics = getOption("menu.graphics"), ind = NULL,
 \seealso{
   \code{\link{chooseCRANmirror}}, \code{\link{install.packages}}.
 }
-\examples{\dontrun{
-setRepositories(addURLs = c(CRANxtras = "http://www.stats.ox.ac.uk/pub/RWin"))
-}}
 \keyword{ utilities }

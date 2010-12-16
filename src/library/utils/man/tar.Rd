@@ -82,8 +82,7 @@ tar(tarfile, files = NULL,
 }
 
 \value{
-  The return code from \code{\link{system}} or \code{0} for the internal
-  version, invisibly.
+  The return code from \code{\link{system}}, invisibly.
 }
 
 \seealso{

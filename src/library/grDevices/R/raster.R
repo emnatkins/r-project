@@ -20,7 +20,7 @@ as.raster.logical <- function(x, max=1, ...) {
     as.raster(matrix(x, ...), max)
 }
 
-as.raster.numeric <- as.raster.logical
+as.raster.numeric <- as.raster.logical 
 
 as.raster.character <- as.raster.logical
 
@@ -32,7 +32,7 @@ as.raster.matrix <- function(x, max=1, ...) {
         # Assume greyscale or b&w values
         # Use rgb() to allow for different 'max' value
         tx <- t(x)
-        r <- rgb(tx, tx, tx, maxColorValue = max)
+        r <- rgb(tx, tx, tx, max=max)
     } else {
         stop("A raster matrix must be character, or numeric, or logical")
     }
@@ -49,11 +49,9 @@ as.raster.array <- function(x, max=1, ...) {
         stop("A raster array must have exactly 3 dimensions")
     }
     if (dim(x)[3] == 3) {
-        r <- rgb(t(x[,,1]), t(x[,,2]), t(x[,,3]),
-                 maxColorValue = max)
+        r <- rgb(t(x[,,1]), t(x[,,2]), t(x[,,3]), max=max)
     } else if (dim(x)[3] == 4) {
-        r <- rgb(t(x[,,1]), t(x[,,2]), t(x[,,3]), t(x[,,4]),
-                 maxColorValue = max)
+        r <- rgb(t(x[,,1]), t(x[,,2]), t(x[,,3]), t(x[,,4]), max=max)
     } else {
         stop("A raster array must have exactly 3 or 4 planes")
     }
@@ -82,7 +80,7 @@ print.raster <- function(x, ...) {
 # Non-standard because raster is ROW-wise
 # Try to piggy-back on existing methods as much as possible
 # IGNORE 'drop'
-`[.raster` <- function(x, i, j, ...) {
+"[.raster" <- function(x, i, j, ...) {
     m <- as.matrix(x)
     if (missing(i) && missing(j))
         stop('No valid indices')
@@ -100,7 +98,7 @@ print.raster <- function(x, ...) {
     as.raster(subset)
 }
 
-`[<-.raster` <- function(x, i, j, value) {
+"[<-.raster" <- function(x, i, j, value) {
     m <- as.matrix(x)
     if (missing(i) && missing(j))
         stop('No valid indices')
@@ -125,7 +123,7 @@ Ops.raster <- function(e1, e2) {
         if (is.raster(e1))
             e1 <- as.matrix(e1)
         if (is.raster(e2))
-            e2 <- as.matrix(e2)
+            e2 <- as.matrix(e2)        
         # The result is a logical MATRIX
         get(.Generic)(e1, e2)
     } else {

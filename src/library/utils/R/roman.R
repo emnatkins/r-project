@@ -37,19 +37,16 @@ function(x)
 as.character.roman <-
 function(x, ...)
     .numeric2roman(x)
-
 format.roman <-
 function(x, ...)
     format(as.character(x))
-
 print.roman <-
 function(x, ...)
 {
     print(noquote(as.character(x)))
     invisible(x)
 }
-
-`[.roman` <-
+"[.roman" <-
 function(x, i)
 {
     cl <- oldClass(x)

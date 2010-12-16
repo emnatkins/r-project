@@ -1150,11 +1150,7 @@ binom.test(c(800,10))# p-value < epsilon
 
 ## Misleading error messages on integer overflow
 ## Uwe Ligges, R-devel, 2004-02-19
-## (modified to make printed result the same whether numeric() is
-##  compiled or interpreted)
-## try(numeric(2^31))
-tryCatch(numeric(2^31),
-         error = function(e) paste("Error:", conditionMessage(e)))
+try(numeric(2^31))
 try(matrix( , 2^31, 1))
 try(matrix( , 2^31/10, 100))
 try(array(dim=c(2^31/10, 100)))
@@ -1628,7 +1624,7 @@ x # list
 
 
 ## printing of a kernel:
-kernel(1)
+kernel(1, 0)
 ## printed wrongly in R <= 2.1.1
 
 
@@ -1861,11 +1857,11 @@ x[2]
 x[[2]]
 stopifnot(identical(x[2], x[[2]]))
 as.list(x)
-(xx <- unlist(as.list(x)))
-stopifnot(identical(x, xx))
+unlist(as.list(x))
+stopifnot(identical(x, unlist(as.list(x))))
 as.vector(x, "list")
-(sx <- sapply(x, function(.).))
-stopifnot(identical(x, sx))
+sapply(x, na.pass)
+stopifnot(identical(x, sapply(x, na.pass)))
 ## changed in 2.4.0
 
 
@@ -2467,9 +2463,3 @@ a <- c(0.1, 0.3, 0.4, 0.5, 0.3, 0.0001)
 format.pval(a, eps=0.01)
 format.pval(a, eps=0.01, nsmall =2)
 ## granted in 2.12.0
-
-
-## printing fractional dates
-as.Date(0.5, origin="1969-12-31")
-## changed to round down in 2.12.1
-

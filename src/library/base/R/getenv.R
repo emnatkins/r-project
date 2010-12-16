@@ -14,7 +14,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-Sys.getenv <- function(x = NULL, unset = "", names = NA)
+Sys.getenv <- function(x = NULL, unset = "")
 {
     if (is.null(x)) {
         ## This presumes that '=' does not appear as part of the name
@@ -25,13 +25,10 @@ Sys.getenv <- function(x = NULL, unset = "", names = NA)
 	    n[i] <- x[[i]][1L]
 	    v[i] <- paste(x[[i]][-1L], collapse = "=")
 	}
-        if (!identical(names, FALSE)) v <- structure(v, names = n)
-	v[sort.list(n)]
+	structure(v, names = n)[sort.list(n)]
     } else {
-        v <- .Internal(Sys.getenv(as.character(x), as.character(unset)))
-	if (isTRUE(names) || (length(x) > 1L && !identical(names, FALSE)))
-            structure(v, names = x)
-        else v
+	structure(.Internal(Sys.getenv(as.character(x), as.character(unset))),
+                  names = x)
     }
 }
 

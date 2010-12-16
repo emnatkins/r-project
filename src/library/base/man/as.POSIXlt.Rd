@@ -67,8 +67,7 @@ as.POSIXlt(x, tz = "", \dots)
   \code{\link{strptime}}.)  Fractional seconds are allowed.
   Alternatively, \code{format} can be specified for character vectors or
   factors: if it is not specified and no standard format works for the
-  first non-\code{NA} input an error is thrown: otherwise the rest of
-  the input is assumed to be in the same format as the first non-\code{NA}.
+  first non-\code{NA} input an error is thrown.
   
   If \code{format} is specified, remember that some of the format
   specifications are locale-specific, and you may need to set the

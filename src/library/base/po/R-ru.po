@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2010-12-06 16:53\n"
+"POT-Creation-Date: 2010-10-04 10:49\n"
 "PO-Revision-Date: 2010-09-30 01:49-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -88,9 +88,6 @@ msgstr "Ошибочная версия генератора Kinderman-Ramage не разрешена"
 
 msgid "malformed version string"
 msgstr "неправильно сформирована строка версии"
-
-msgid "target is %s, current is %s"
-msgstr ""
 
 msgid "dim(X) must have a positive length"
 msgstr "dim(X) должен иметь положительную длину"
@@ -583,6 +580,9 @@ msgstr "только диагонали матрицы могут быть заменены"
 msgid "replacement diagonal has wrong length"
 msgstr "у замены диагонали -- неправильная длина"
 
+msgid "'fromLast' must be TRUE or FALSE"
+msgstr "'fromLast' должен быть TRUE или FALSE"
+
 msgid "MARGIN ="
 msgstr "MARGIN ="
 
@@ -671,10 +671,6 @@ msgstr "нет файлов/папок для ссылки на"
 
 msgid "'package' must be of length 1"
 msgstr "'пакет' должен быть длиной 1"
-
-#, fuzzy
-msgid "no file found"
-msgstr "не найден"
 
 msgid "'vec' contains NAs"
 msgstr "'vec' содержит NA"
@@ -871,15 +867,11 @@ msgstr "DLL '%s' не найден"
 msgid "now dyn.unload(\"%s\") ..."
 msgstr "сейчас dyn.unload(\"%s\") ..."
 
-msgid "use of 'save' is deprecated"
-msgstr "использование 'save' не рекомендуется"
-
-#, fuzzy
-msgid "save != FALSE is defunct"
-msgstr "'%s' больше не существует."
-
 msgid "Loading required package: %s"
 msgstr "Загрузка требуемого пакета: %s"
+
+msgid "use of 'save' is deprecated"
+msgstr "использование 'save' не рекомендуется"
 
 msgid "none of the packages are loaded"
 msgstr "ни один из пакетов не загружен"
@@ -1383,9 +1375,6 @@ msgstr "выбрана кодировка = \"%s\""
 msgid "'chdir = TRUE' makes no sense for a URL"
 msgstr "'chdir = TRUE' не имеет смысла для URL"
 
-msgid "cannot 'chdir' as current directory is unknown"
-msgstr "не могу 'chdir', поскольку текущая папка неизвестна"
-
 msgid "'chdir = TRUE' makes no sense for a connection"
 msgstr "'chdir = TRUE' не имеет смысла для соединения"
 
@@ -1657,8 +1646,8 @@ msgstr[0] "Предупреждение:\n"
 msgstr[1] "Предупреждения:\n"
 msgstr[2] "Предупреждения:\n"
 
-#~ msgid "'fromLast' must be TRUE or FALSE"
-#~ msgstr "'fromLast' должен быть TRUE или FALSE"
+#~ msgid "cannot 'chdir' as current directory is unknown"
+#~ msgstr "не могу 'chdir', поскольку текущая папка неизвестна"
 
 #~ msgid "shared library '%s' not found"
 #~ msgstr "разделяемая библиотека '%s' не найдена"

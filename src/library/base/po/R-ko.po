@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2010-12-06 16:53\n"
+"POT-Creation-Date: 2010-10-04 10:49\n"
 "PO-Revision-Date: 2005-05-31 09:39+0900\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -82,9 +82,6 @@ msgstr "Kinderman-Ramage의 유사 Buggy 버전의 생성원(generator)을 사�
 
 msgid "malformed version string"
 msgstr "'%s'는 유효한 선택이 아닙니다"
-
-msgid "target is %s, current is %s"
-msgstr ""
 
 msgid "dim(X) must have a positive length"
 msgstr "dim(x)은 positive 길이를 가지지 않으면 되지 않습니다"
@@ -594,6 +591,9 @@ msgstr "행렬의 대각성분만을 옮겨놓을수가 있습니다"
 msgid "replacement diagonal has wrong length"
 msgstr "치환대각 성분의 길이가 잘못되어 있습니다"
 
+msgid "'fromLast' must be TRUE or FALSE"
+msgstr ""
+
 msgid "MARGIN ="
 msgstr "MARGIN ="
 
@@ -688,10 +688,6 @@ msgstr "link 해야할 파일 또는 디렉토리가 없습니다"
 
 msgid "'package' must be of length 1"
 msgstr "'package'는 길이 1이 나오지 않으면 되지 않습니다"
-
-#, fuzzy
-msgid "no file found"
-msgstr "검색되지 않습니다"
 
 msgid "'vec' contains NAs"
 msgstr "'vec'는 NA값을 포함하고 있습니다"
@@ -907,16 +903,12 @@ msgstr "파일 '%s'가 검색되지 않습니다"
 msgid "now dyn.unload(\"%s\") ..."
 msgstr "dyn.unload(\"%s\")중입니다..."
 
+msgid "Loading required package: %s"
+msgstr "요구된 패키지 %s를 로드중입니다"
+
 #, fuzzy
 msgid "use of 'save' is deprecated"
 msgstr "'%s'는 없어져 버릴 예정입니다"
-
-#, fuzzy
-msgid "save != FALSE is defunct"
-msgstr "'%s'는 없어져 버렸습니다"
-
-msgid "Loading required package: %s"
-msgstr "요구된 패키지 %s를 로드중입니다"
 
 msgid "none of the packages are loaded"
 msgstr "어느 패키지도 로드 되지 않습니다"
@@ -1439,9 +1431,6 @@ msgid "encoding = \"%s\" chosen"
 msgstr ""
 
 msgid "'chdir = TRUE' makes no sense for a URL"
-msgstr ""
-
-msgid "cannot 'chdir' as current directory is unknown"
 msgstr ""
 
 msgid "'chdir = TRUE' makes no sense for a connection"

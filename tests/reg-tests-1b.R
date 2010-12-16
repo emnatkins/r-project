@@ -1340,21 +1340,17 @@ z2 <- quantile(x, type = 6, probs = c(.5, 0))
 stopifnot(z1 == rev(z2))
 ## differed in 2.11.x
 
-## backspline() with decreasing knot locations
-require(splines)
-d1 <- c(616.1, 570.1, 523.7, 477.3, 431.3, 386.2, 342.4, 300.4, 260.4,
-        222.7, 187.8, 155.7, 126.7, 100.8,  78.1,  58.6,  42.2,  28.7,
-         18.1,  10.2)
-r1 <- c(104.4, 110  , 115.5, 121,   126.6, 132.1, 137.7, 143.2, 148.8,
-        154.3, 159.9, 165.4, 170.9, 176.5, 182,   187.6, 193.1, 198.7,
-        204.2, 209.8)
-sp1 <- interpSpline(r1,d1)# 'x' as function of 'y' (!)
-psp1 <- predict(sp1)
-bsp1 <- backSpline(sp1)
-dy <- diff(predict(bsp1, .5 + 18:30)$y)
-stopifnot(-.9 < dy, dy < -.35)
-## failed in R <= 2.11.x: "bizarre jumps"
-detach("package:splines")
+
+
+## found from fallback test in slam 0.1-15
+## most likely indicates an inaedquate BLAS.
+x <- matrix(c(1, 0, NA, 1), 2, 2)
+y <- matrix(c(1, 0, 0, 2, 1, 0), 3, 2)
+(z <- tcrossprod(x, y))
+stopifnot(identical(z, x %*% t(y)))
+stopifnot(is.nan(log(0) %*% 0))
+## depended on the BLAS in use: some (including the reference BLAS)
+## had z[1,3] == 0 and log(0) %*% 0 as as.matrix(0).
 
 
 ## PR#14393
@@ -1362,17 +1358,6 @@ f <- factor(c(NA, 1, 2), levels = 1:3, labels = 1:3)
 mf <- model.frame(~ f, na.action = na.pass, drop.unused.levels = TRUE)
 stopifnot(identical(mf$f, f[,drop=TRUE]))
 ## failed to drop < 2.12.0
-
-
-## problem with deparsing variable names of > 500 bytes in model.frame
-## reported by Terry Therneau to R-devel, 2010-10-07
-tname <- paste('var', 1:50, sep='')
-tmat <- matrix(rnorm(500), ncol=50, dimnames=list(NULL, tname))
-tdata <- data.frame(tmat)
-temp1 <- paste( paste(tname, tname, sep='='), collapse=', ')
-temp2 <- paste("~1 + cbind(", temp1, ")")
-foo <- model.frame(as.formula(temp2), tdata)
-## gave invalid variable name.
 
 
 ## subassignment to expressions sometimes coerced them to lists.
@@ -1409,39 +1394,6 @@ try(regexpr("a{2-}", ""))
 ## terminated R <= 2.12.0
 
 
-## ! on zero-length objects (PR#14244)
-M <- matrix(FALSE, 0, 2)
-stopifnot(identical(attributes(!M), attributes(M)))
-# and for back compatibiility
-!list() # logical(0)
-## dropped all attributes in 2.12.0
-
-
-## Preserve intercepts in drop.terms
-tt <- terms(~a+b-1)
-tt2 <- terms(~b-1)
-stopifnot(identical(drop.terms(tt, 1), tt2))
-stopifnot(identical(tt[2], tt2))
-stopifnot(identical(tt[1:2], tt))
-## reset intercept term < R 2.13.0
-
-
-## Test new defn of cmdscale()
-mds <- cmdscale(eurodist, eig = TRUE, k = 14)
-stopifnot(ncol(mds$points) == 11L)
-## Used negative eigenvalues in 2.12.0
-
-
-## Sweave() comments with  keep.source=TRUE
-utils::Sweave(file.path(Sys.getenv("SRCDIR"), "keepsource.Rnw"))
-texl <- readLines("keepsource.tex")
-comml <- grep("##", texl, value=TRUE)
-stopifnot(length(comml) == 2,
-	  grepl("initial comment line", comml[1]),
-	  grepl("last comment", comml[2]))
-## the first was lost in 2.12.0;  the last in most/all previous versions of R
-
-
 ## mapply() & sapply() should not wrongly simplify e.g. for "call":
 f2 <- function(i,j) call(':',i,j)
 stopifnot(identical(2:3,
@@ -1451,32 +1403,4 @@ stopifnot(identical(2:3,
 ## length wrongly were 6 and 9, in R <= 2.12.0
 
 
-## 'sep' in reshape() (PR#14335)
-test <- data.frame(x=rnorm(100), y=rnorm(100), famid=rep(1:50, each=2),
-                   time=rep(1:2, 50))
-
-wide <- reshape(data=test, v.names=c("x", "y"), idvar="famid",
-                timevar="time", sep="", direction="wide")
-stopifnot(identical(names(wide), c("famid", "x1", "y1", "x2", "y2")))
-## was c("famid", "x.1", "y.1", "x.2", "y.2") in R <= 2.12.0
-
-
-## PR#14438
-X <- matrix(0+1:10, ncol=2)[, c(1,1,2,2)]
-colnames(X) <- c("X1","Dup1", "X2", "Dup2")
-X2 <- qr.X(qr(X))
-X2
-identical(colnames(X), colnames(X2))
-## failed to pivot colnames in R <= 2.12.0
-
-
-## improvements to aggregate.data.frame in 2.13.0
-a <- data.frame(nm = c("a", "b", "a", "b"), time = rep(Sys.time(), 4))
-b <- with(a, aggregate(time, list(nm=nm), max))
-stopifnot(inherits(b$x, "POSIXt"))
-##
-
 proc.time()
-
-
-

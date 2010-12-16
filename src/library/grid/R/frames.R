@@ -523,7 +523,7 @@ packGrob <- function(frame, grob,
                           force.height)
   }
   frame.vp$layout <- grid.layout(ncol=ncol, nrow=nrow,
-                                 widths=widths, heights=heights)
+                                 widths=widths, height=heights)
 
   # Modify the locations (row, col) of existing children in the frame
   if (new.col || new.row) {

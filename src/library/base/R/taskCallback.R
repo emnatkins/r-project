@@ -14,7 +14,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-addTaskCallback <- function(f, data = NULL, name = character())
+addTaskCallback <- function(f, data = NULL, name = character(0L))
 {
     if(!is.function(f))
         stop("handler must be a function")
@@ -124,7 +124,7 @@ function(handlers = list(), registered = FALSE, verbose = FALSE)
         {
             if(suspended)
                 return(TRUE)
-            discard <- character()
+            discard <- character(0L)
             for(i in names(handlers)) {
                 h <- handlers[[i]]
                 if(length(h) > 1L) {

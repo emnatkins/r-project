@@ -27,7 +27,7 @@ ar.mle <- function (x, aic = TRUE, order.max = NULL, na.action = na.fail,
         stop("'x' must be numeric")
     if(ists)  xtsp <- tsp(x)
     xfreq <- frequency(x)
-    x <- as.vector(x) # drop attributes, including class
+    x <- as.vector(x)
     n.used <- length(x)
     order.max <- if (is.null(order.max))
         min(n.used-1L, 12L, floor(10 * log10(n.used)))
@@ -71,7 +71,7 @@ ar.mle <- function (x, aic = TRUE, order.max = NULL, na.action = na.fail,
         xaic <- structure(0, names=order)
     }
     resid <- if(order) c(rep(NA, order), embed(x - x.mean, order+1L) %*% c(1, -ar))
-    else x - x.mean
+    else as.vector(x) - x.mean
     if(ists) {
         attr(resid, "tsp") <- xtsp
         attr(resid, "class") <- "ts"

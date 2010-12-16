@@ -25,7 +25,8 @@ pmatch <- function(x, table, nomatch = NA_integer_, duplicates.ok = FALSE)
     .Internal(pmatch(as.character(x), as.character(table), nomatch,
                      duplicates.ok))
 
-`%in%`  <- function(x, table) match(x, table, nomatch = 0L) > 0L
+"%in%"  <- function(x, table) match(x, table, nomatch = 0L) > 0L
+## "%nin%" <- function(x, table) is.na(match(x, table))
 
 match.arg <- function (arg, choices, several.ok = FALSE)
 {

@@ -21,13 +21,9 @@
 #define R_EXT_PRINT_H_
 
 #ifdef  __cplusplus
-/* If the vprintf interface is defined at all in C++ it may only be
-   defined in namespace std. */
-# ifdef R_USE_C99_IN_CXX
-#  include <cstdarg>
-#  ifdef __SUNPRO_CC
+# include <cstdarg>
+# ifdef __SUNPRO_CC
 using _STLP_VENDOR_CSTD::va_list;
-#  endif
 # endif
 extern "C" {
 #else
@@ -36,10 +32,8 @@ extern "C" {
 
 void Rprintf(const char *, ...);
 void REprintf(const char *, ...);
-#if !defined(__cplusplus) || defined R_USE_C99_IN_CXX
 void Rvprintf(const char *, va_list);
 void REvprintf(const char *, va_list);
-#endif
 
 #ifdef  __cplusplus
 }

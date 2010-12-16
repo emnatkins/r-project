@@ -100,7 +100,7 @@ function(package, dir, lib.loc = NULL)
 
         all_doc_topics <- Rd_aliases(dir = dir)
 
-        code_env <- new.env(hash = TRUE)
+        code_env <- new.env()
         code_dir <- file.path(dir, "R")
         if(file_test("-d", code_dir)) {
             dfile <- file.path(dir, "DESCRIPTION")
@@ -358,7 +358,7 @@ function(package, dir, lib.loc = NULL,
         package_name <- basename(dir)
         is_base <- package_name == "base"
 
-        code_env <- new.env(hash = TRUE)
+        code_env <- new.env()
         dfile <- file.path(dir, "DESCRIPTION")
         meta <- if(file_test("-f", dfile))
             .read_description(dfile)
@@ -378,7 +378,7 @@ function(package, dir, lib.loc = NULL,
         if(file.exists(file.path(dir, "NAMESPACE"))) {
             has_namespace <- TRUE
             objects_in_ns <- objects_in_code
-            functions_in_S3Table <- character()
+            functions_in_S3Table <- character(0L)
             ns_env <- code_env
             nsInfo <- parseNamespaceFile(basename(dir), dirname(dir))
             ## Look only at exported objects.
@@ -1137,7 +1137,7 @@ function(package, lib.loc = NULL)
 
     db_names <- names(db)[idx]
 
-    data_env <- new.env(hash = TRUE)
+    data_env <- new.env()
     data_dir <- file.path(dir, "data")
     ## with lazy data we have data() but don't need to use it.
     has_data <- file_test("-d", data_dir) &&
@@ -1508,7 +1508,7 @@ function(package, dir, lib.loc = NULL)
         package_name <- basename(dir)
         is_base <- package_name == "base"
 
-        code_env <- new.env(hash = TRUE)
+        code_env <- new.env()
         dfile <- file.path(dir, "DESCRIPTION")
         meta <- if(file_test("-f", dfile))
             .read_description(dfile)
@@ -1877,7 +1877,7 @@ function(package, dir, lib.loc = NULL)
     ## If an installed package has a namespace, we need to record the S3
     ## methods which are registered but not exported (so that we can
     ## get() them from the right place).
-    S3_reg <- character()
+    S3_reg <- character(0L)
 
     ## Argument handling.
     if(!missing(package)) {
@@ -1927,7 +1927,7 @@ function(package, dir, lib.loc = NULL)
                  domain = NA)
         is_base <- basename(dir) == "base"
 
-        code_env <- new.env(hash = TRUE)
+        code_env <- new.env()
         dfile <- file.path(dir, "DESCRIPTION")
         meta <- if(file_test("-f", dfile))
             .read_description(dfile)
@@ -2161,7 +2161,7 @@ function(package, dir, lib.loc = NULL)
                  domain = NA)
         is_base <- basename(dir) == "base"
 
-        code_env <- new.env(hash = TRUE)
+        code_env <- new.env()
         dfile <- file.path(dir, "DESCRIPTION")
         meta <- if(file_test("-f", dfile))
             .read_description(dfile)
@@ -2216,7 +2216,7 @@ function(package, dir, lib.loc = NULL)
                    ! .check_last_formal_arg(f)
                },
                replace_funs)
-    } else character()
+    } else character(0L)
 
     if(.isMethodsDispatchOn()) {
         S4_generics <- get_S4_generics_with_methods(code_env)
@@ -2257,7 +2257,7 @@ function(x, ...)
 checkTnF <-
 function(package, dir, file, lib.loc = NULL)
 {
-    code_files <- docs_files <- character()
+    code_files <- docs_files <- character(0L)
 
     ## Argument handling.
     if(!missing(package)) {
@@ -3027,8 +3027,7 @@ function(package, lib.loc = NULL)
                              multi = TRUE, filters = Filters,
                              index = nrow(Filters)) {Filters=NULL}, envir = compat)
             assign("DLL.version", function(path) {}, envir = compat)
-            assign("getClipboardFormats", function(numeric = FALSE) {},
-                   envir = compat)
+            assign("getClipboardFormats", function() {}, envir = compat)
             assign("getIdentification", function() {}, envir = compat)
             assign("getWindowsHandle", function(which = "Console") {},
                    envir = compat)
@@ -3141,24 +3140,19 @@ function(package, lib.loc = NULL)
 			    getNamespace(pack) else as.environment(pname), ...)
     }
 
-    ## Allow specifying a codetools "profile" for checking via the
-    ## environment variable _R_CHECK_CODETOOLS_PROFILE_, used as e.g.
-    ##   _R_CHECK_CODETOOLS_PROFILE_="suppressLocalUnused=FALSE"
-    ## (where the values get converted to logicals "the usual way").
-    args <- list(skipWith = TRUE,
-                 suppressLocalUnused = TRUE)
-    opts <- unlist(strsplit(Sys.getenv("_R_CHECK_CODETOOLS_PROFILE_"),
-                            "[[:space:]]*,[[:space:]]*"))
-    if(length(opts)) {
-        args[sub("[[:space:]]*=.*", "", opts)] <-
-            lapply(sub(".*=[[:space:]]*", "", opts),
-                   config_val_to_logical)
-    }
+    ## <NOTE>
+    ## Eventually, we should be able to specify a codetools "profile"
+    ## for checking.
+    ## </NOTE>
 
-    args <- c(list(package, report = foo), args)
-    suppressMessages(do.call(codetools::checkUsagePackage, args))
-    suppressMessages(do.call(checkMethodUsagePackage, args))
-
+    suppressMessages(codetools::checkUsagePackage(package,
+                                                  report = foo,
+                                                  suppressLocalUnused = TRUE,
+                                                  skipWith = TRUE))
+    suppressMessages(checkMethodUsagePackage     (package,
+                                                  report = foo,
+                                                  suppressLocalUnused = TRUE,
+                                                  skipWith = TRUE))
     out <- unique(out)
     class(out) <- "check_code_usage_in_package"
     out
@@ -3378,10 +3372,10 @@ function(pkgDir)
     names(ans) <- files
     old <- setwd(pkgDir)
     for(f in files)
-        .try_quietly(utils::data(list = f, package = character(), envir = dataEnv))
+        .try_quietly(utils::data(list = f, package = character(0L), envir = dataEnv))
     setwd(old)
 
-    non_ASCII <- latin1 <- utf8 <- where <- character()
+    non_ASCII <- latin1 <- utf8 <- where <- character(0L)
     ## avoid messages about loading packages that started with r48409
     suppressPackageStartupMessages({
         for(ds in ls(envir = dataEnv, all.names = TRUE))
@@ -3442,8 +3436,8 @@ function(dir, doDelete = FALSE)
     else
         dir <- file_path_as_absolute(dir)
 
-    wrong_things <- list(R = character(), man = character(),
-                         demo = character(), `inst/doc` = character())
+    wrong_things <- list(R = character(0L), man = character(0L),
+                         demo = character(0L), `inst/doc` = character(0L))
 
     code_dir <- file.path(dir, "R")
     if(file_test("-d", code_dir)) {
@@ -3531,7 +3525,7 @@ function(dir, respect_quotes = FALSE)
         dir <- file_path_as_absolute(dir)
 
     code_dir <- file.path(dir, "R")
-    wrong_things <- character()
+    wrong_things <- character(0L)
     if(file_test("-d", code_dir)) {
         R_files <- list_files_with_type(code_dir, "code",
                                         full.names = FALSE,
@@ -4174,7 +4168,7 @@ function(package, dir, lib.loc = NULL)
     }
 
     find_bad_examples <- function(txts) {
-        env <- new.env(hash = TRUE) # might be many
+        env <- new.env()
         x <- lapply(txts,
                     function(txt) {
                         tryCatch({
@@ -4213,7 +4207,7 @@ function(package, dir, lib.loc = NULL)
         code_dir <- file.path(dir, "R")
         if(!packageHasNamespace(basename(dir), dirname(dir))
            && file_test("-d", code_dir)) {
-            code_env <- new.env(hash = TRUE)
+            code_env <- new.env()
             dfile <- file.path(dir, "DESCRIPTION")
             meta <- if(file_test("-f", dfile))
                 .read_description(dfile)
@@ -4314,7 +4308,7 @@ function(package, dir, lib.loc = NULL)
         dir <- file_path_as_absolute(dir)
         code_dir <- file.path(dir, "R")
         if(file_test("-d", code_dir)) {
-            code_env <- new.env(hash = TRUE)
+            code_env <- new.env()
             dfile <- file.path(dir, "DESCRIPTION")
             meta <- if(file_test("-f", dfile))
                 .read_description(dfile)

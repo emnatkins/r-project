@@ -55,8 +55,7 @@ packageDescription <- function(pkg, lib.loc=NULL, fields=NULL, drop=TRUE,
     }
 
     ## New in 2.7.0: look for installed metadata first.
-    ## We always need to be able to drop back to the file as this
-    ## is used during package installation.
+    ## FIXME: how much longer should be drop back to the file?
 
     if(file.exists(file <- file.path(pkgpath, "Meta", "package.rds"))) {
         desc <- .readRDS(file)$DESCRIPTION

@@ -41,7 +41,7 @@ numericDeriv <- function(expr, theta, rho = parent.frame(), dir=1.0)
 nlsModel.plinear <- function(form, data, start, wts)
 {
     thisEnv <- environment()
-    env <- new.env(hash = TRUE, parent=environment(form))
+    env <- new.env(parent=environment(form))
     for(i in names(data)) assign(i, data[[i]], envir = env)
     ind <- as.list(start)
     p2 <- 0
@@ -224,7 +224,7 @@ nlsModel.plinear <- function(form, data, start, wts)
 nlsModel <- function(form, data, start, wts, upper=NULL)
 {
     thisEnv <- environment()
-    env <- new.env(hash = TRUE, parent = environment(form))
+    env <- new.env(parent = environment(form))
     for(i in names(data)) assign(i, data[[i]], envir = env)
     ind <- as.list(start)
     parLength <- 0
@@ -519,7 +519,7 @@ nls <-
 	    message("fitting parameters ",
 		    paste(sQuote(pnames[np == -1]), collapse=", "),
 		    " without any variables")
-            n <- integer()
+            n <- integer(0L)
         }
 	else
 	    stop("no parameters to fit")
@@ -541,7 +541,7 @@ nls <-
                 warning("argument 'na.action' will be ignored")
 	    if(missing(start))
 		start <- getInitial(formula, mf)
-	    startEnv <- new.env(hash = FALSE, parent = environment(formula)) # small
+	    startEnv <- new.env(parent = environment(formula))
 	    for (i in names(start))
 		assign(i, start[[i]], envir = startEnv)
 	    rhs <- eval(formula[[3L]], data, startEnv)
@@ -568,9 +568,9 @@ nls <-
     else {
         ## length(n) == 0 : Some problems might have no official varNames
         ##                  but still parameters to fit
-        varIndex <- logical()
+        varIndex <- logical(0L)
         mf <- list(0)
-        wts <- numeric()
+        wts <- numeric(0L)
     }
 
     ## set up iteration

@@ -51,8 +51,8 @@ dir.create("myLib")
 install.packages("myTst", lib = "myLib", repos=NULL, type = "source") # with warnings
 print(installed.packages(lib.loc= "myLib", priority= "NA"))## (PR#13332)
 stopifnot(require("myTst",lib = "myLib"))
-sm <- findMethods(show, where= as.environment("package:myTst"))
-stopifnot(names(sm@names) == "foo")
+sm <- getMethods(show, where= as.environment("package:myTst"))
+stopifnot(names(sm@methods) == "foo")
 unlink("myTst_*")
 
 ## More building & installing packages
@@ -62,7 +62,10 @@ unlink("myTst_*")
 pkgSrcPath <- file.path(Sys.getenv("SRCDIR"), "Pkgs")
 if(file_test("-d", pkgSrcPath)) {
     ## could use file.copy(recursive = TRUE)
-    system(paste('cp -r', shQuote(pkgSrcPath), shQuote(tempdir())))
+    system(paste('cp -r',
+                 shQuote(file.path(Sys.getenv("SRCDIR"), "Pkgs")),
+                 shQuote(tempdir())
+                 ))
     pkgPath <- file.path(tempdir(), "Pkgs")
     op <- options(warn=2)    # There should be *NO* warnings here!
     ## pkgB tests an empty R directory

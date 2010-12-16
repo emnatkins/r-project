@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2010-12-06 16:53\n"
+"POT-Creation-Date: 2010-10-04 10:49\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -84,9 +84,6 @@ msgstr "不能用有虫的Kinderman-Ramage任意数产生器。"
 
 msgid "malformed version string"
 msgstr "版本字串格式有错"
-
-msgid "target is %s, current is %s"
-msgstr ""
 
 msgid "dim(X) must have a positive length"
 msgstr "dim(X)的值必需是正数"
@@ -574,6 +571,9 @@ msgstr "只能替换矩阵的对角"
 msgid "replacement diagonal has wrong length"
 msgstr "对角替换值的长度不对"
 
+msgid "'fromLast' must be TRUE or FALSE"
+msgstr "'fromLast'的值必需是'TRUE'或'FALSE'值"
+
 msgid "MARGIN ="
 msgstr "MARGIN ="
 
@@ -661,10 +661,6 @@ msgstr "鏈結时没有可以写的文件/目錄"
 
 msgid "'package' must be of length 1"
 msgstr "'package'的长度必需为一"
-
-#, fuzzy
-msgid "no file found"
-msgstr "不存在"
 
 msgid "'vec' contains NAs"
 msgstr "'vec'内有NA值"
@@ -859,15 +855,11 @@ msgstr "没有'%s'这个DLL"
 msgid "now dyn.unload(\"%s\") ..."
 msgstr "现在dyn.unload(\"%s\") ..."
 
-msgid "use of 'save' is deprecated"
-msgstr "'save'不再有用。"
-
-#, fuzzy
-msgid "save != FALSE is defunct"
-msgstr "'%s'不再有用。"
-
 msgid "Loading required package: %s"
 msgstr "载入需要的程辑包：%s"
+
+msgid "use of 'save' is deprecated"
+msgstr "'save'不再有用。"
 
 msgid "none of the packages are loaded"
 msgstr "没有载入任何程辑包"
@@ -1360,9 +1352,6 @@ msgstr "已经选择了encoding = \"%s\""
 msgid "'chdir = TRUE' makes no sense for a URL"
 msgstr "'chdir = TRUE'对URL来说没有意义"
 
-msgid "cannot 'chdir' as current directory is unknown"
-msgstr "'chdir'没有作用，因为不知道目前的工作目录在哪里"
-
 msgid "'chdir = TRUE' makes no sense for a connection"
 msgstr "'chdir = TRUE'对联结来说没有任何意义"
 
@@ -1613,8 +1602,8 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "警告信息：\n"
 
-#~ msgid "'fromLast' must be TRUE or FALSE"
-#~ msgstr "'fromLast'的值必需是'TRUE'或'FALSE'值"
+#~ msgid "cannot 'chdir' as current directory is unknown"
+#~ msgstr "'chdir'没有作用，因为不知道目前的工作目录在哪里"
 
 #~ msgid "shared library '%s' not found"
 #~ msgstr "找不到共享图书馆'%s'"

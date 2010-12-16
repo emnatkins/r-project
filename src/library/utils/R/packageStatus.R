@@ -154,7 +154,7 @@ upgrade.packageStatus <- function(object, ask=TRUE, ...)
         write.table(x, row.names=FALSE, col.names=FALSE, quote=FALSE,
                     sep=" at ")
 
-    haveasked <- character()
+    haveasked <- character(0L)
     if(ask) {
         for(k in old) {
             pkg <-  object$inst[k, "Package"]

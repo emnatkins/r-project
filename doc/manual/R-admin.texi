@@ -1023,19 +1023,16 @@ You need @code{libpng}, @code{jpeg} and @code{libtiff} sources
 (available, e.g., from @uref{http://www.libpng.org/},
 @uref{http://www.ijg.org} and
 @uref{ftp://ftp.remotesensing.org/@/pub/@/libtiff/}).  You will need
-files @file{libpng-1.2.18.tar.gz}, @file{jpegsrc.v7.tar.gz},
-@file{tiff-3.8.0.tar.gz} or later.  It is also possible to use
-@samp{libjpeg-turbo} from
-@url{http://sourceforge.net/@/projects/@/libjpeg-turbo/@/files/}.
+files @file{libpng-1.2.18.tar.gz}, @file{jpegsrc.v6b.tar.gz},
+@file{tiff-3.8.0.tar.gz} or later.
 
 Working in the directory @file{@var{R_HOME}/src/gnuwin32/bitmap},
 install the @code{libpng} and @code{jpeg} sources in sub-directories.
-The @code{jpeg} sub-directory for version 8a is named @file{jpeg-8a}; if
-you use a different version (e.g.@: @file{jpeg-7} or
-@file{libjpeg-turbo}), copy file @file{src/gnuwin32/MkRules.dist} to
-@file{src/gnuwin32/MkRules.local} and edit the definition of
-@code{JPEGDIR}: the names of the @file{libpng} and @file{libtiff}
-directories can also be set there.
+The @code{jpeg} sub-directory for version 8a is named @file{jpeg-8b}; if
+you use a different version (e.g.@: @file{jpeg-6b}), copy file
+@file{src/gnuwin32/MkRules.dist} to @file{src/gnuwin32/MkRules.local}
+and edit the definition of @code{JPEGDIR}: the names of the
+@file{libpng} and @file{libtiff} directories can also be set there.
 
 Example:
 
@@ -1931,6 +1928,12 @@ can be used, e.g.@: @file{.tar.bz2} or @file{.tar.xz} files.
 @R{} versions @var{x.y.z} and containing @file{.zip} files for Windows.
 
 @item 
+@code{"win64.binary"}: located at @file{bin/windows64/contrib/@var{x.y}}
+for @R{} versions @var{x.y.z} and containing @file{.zip} files for
+64-bit Windows.  (This was used for @R{} 2.11.x, but is no longer the
+default for 64-bit Windows.)
+
+@item 
 @code{"mac.binary"}: located at
 @file{bin/macosx/universal/contrib/@var{x.y}} for @R{} versions @var{x.y.z}
 and containing @file{.tgz} files.  If the repository contains only
@@ -2711,7 +2714,13 @@ Linux distributions, Solaris 9/10, AIX and Windows, usually as
 available (including on Mac OS X >= 10.4): should a broken version of
 ICU be found this can be suppressed by @option{--without-ICU}.
 
+A few code developers may want Perl version 5.8.0 or later, available via
+@uref{http://www.perl.com/CPAN/}.  This is needed for the rarely used
+@command{R CMD Sd2Rd}: if required it should be in your @env{PATH} when
+@command{configure} is run.
+
 @c The Perl scripts left are
+@c src/scripts: Sd2Rd
 @c tools: help2man.pl install-info.pl
 
 The @code{bitmap} and @code{dev2bitmap} devices and also
@@ -4015,23 +4024,26 @@ LIBS=-L/usr/X11/lib
 @cputype{x86}) using the (zero cost) Oracle Solaris Studio 12 compilers:
 there has been some success with
 @command{gcc}@tie{}4/@command{gfortran}, mainly on Sparc.  Sun packages
-for @R{} are available from @uref{http://www.sunfreeware.com/} for both
-32-bit architectures, but recently have often been several versions old.
-(Recent Sun machines are AMD Opterons or Intel Xeons (@cputype{amd64})
-rather than @cputype{x86}, but 32-bit @cputype{x86} executables are the
-default.)
+for @R{} used to be available from @uref{http://www.sunfreeware.com/}
+for both architectures, but recently have often been several versions
+old.  (Recent Sun machines are AMD Opterons or Intel Xeons
+(@cputype{amd64}) rather than @cputype{x86}, but 32-bit @cputype{x86}
+executables are the default.)
 
 There are also reports of success on OpenSolaris (also known as Solaris
-Express Community Edition, and dropped in August 2010) on @cputype{x86}.
+Express Community Edition, and sometimes as Solaris 11) on
+@cputype{x86}.
 
 The Solaris versions of several of the tools needed to build @R{}
 (e.g.@: @command{make}, @command{ar} and @command{ld}) are in
 @file{/usr/ccs/bin}, so if using those tools ensure this is in your
 path.  Also, a version of the preferred @acronym{GNU} @command{tar} is
 (if installed) in @file{/usr/sfw/bin}, as sometimes are tools like
-@command{makeinfo}.  It may be necessary to avoid the tools in
-@file{/usr/ucb}: in particular @file{/usr/ucb/tr} has caused problems in
-the past.  POSIX-compliant versions of some tools can be found in
+@command{makeinfo}.
+
+It is necessary to avoid the tools in @file{/usr/ucb}: in particular
+@file{/usr/ucb/tr} has caused @command{R CMD Rdiff} to malfunction.
+@command{configure} looks for a POSIX-compliant @command{tr}, e.g. in
 @file{/usr/xpg4/bin} and @file{/usr/xpg6/bin}.
 
 A large selection of Open Source software can be installed from
@@ -4089,7 +4101,7 @@ packages currently on CRAN).
 
 @noindent
 
-By default the Solaris Studio compilers do not conform to the C99
+By default the Solaris Studio compilers do not by default conform to the C99
 standard (appendix F 8.9) on the return values of functions such as
 @code{log}: use @option{-xlibmieee} to ensure this.  Also, errors have
 been reported on @cputype{amd64} if @option{-xc99} is omitted.
@@ -4128,8 +4140,7 @@ it is needed for linking) is @samp{Cstd} which dates from 1998: see
 @uref{http://developers.sun.com/@/solaris/@/articles/@/cmp_stlport_libCstd.html}.
 Note though that most external Solaris C++ libraries will have been
 built with @samp{Cstd} and so an @R{} package using such a package also
-needs to be.  Occasionally the flag @option{-library=stlport4,Crun} is
-needed.
+needs to be.  Occasionally the library flag @option{-lCrun} is needed.
 
 Several CRAN packages using C++ need the more liberal interpretation
 given by adding
@@ -4152,9 +4163,9 @@ be selected as LAPACK @emph{via} (for Solaris Studio 12.2)
 
 @noindent
 This has often given test failures in the past, in several different
-places.  For @R{} 2.13.0 it fails in @file{tests/reg-BLAS.R}, and on
-some builds, including for @cputype{amd64}, it fails in
-@code{example(eigen)}.
+places.  For @R{} 2.12.0, it fails in @file{tests/reg-tests-1b.R} in the
+BLAS test, and on some builds, including for @cputype{amd64}, it fails
+in @code{example(eigen)}.
 
 
 @menu

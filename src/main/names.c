@@ -218,8 +218,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 
 {"vector",	do_makevector,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"complex",	do_complex,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
-/* used by Matrix with 5 args, should have 7 */
-{"matrix",	do_matrix,	0,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
+{"matrix",	do_matrix,	0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"row",		do_rowscols,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"col",		do_rowscols,	2,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"unlist",	do_unlist,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
@@ -233,7 +232,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"mget",	do_mget,	1,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"exists",	do_get,		0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"assign",	do_assign,	0,	111,	4,	{PP_FUNCALL, PREC_FN,	0}},
-{"list2env",	do_list2env,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"list2env",	do_list2env,	0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"remove",	do_remove,	0,	111,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"duplicated",	do_duplicated,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"unique",	do_duplicated,	1,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
@@ -805,7 +804,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"Sys.localeconv",do_localeconv,0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"path.expand",	do_pathexpand,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"Sys.getpid",	do_sysgetpid,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
-{"normalizePath",do_normalizepath,0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
+{"normalizePath",do_normalizepath,0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"Sys.glob",	do_glob,	0,      11,	2,      {PP_FUNCALL, PREC_FN,   0}},
 {"unlink",	do_unlink,	0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
 
@@ -929,11 +928,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"load.from.file", do_loadfile, 0,      11,     1,      {PP_FUNCALL, PREC_FN, 0}},
 {"save.to.file", do_savefile,   0,      11,     3,      {PP_FUNCALL, PREC_FN, 0}},
 {"putconst", do_putconst,       0,      11,     2,      {PP_FUNCALL, PREC_FN, 0}},
-{"enableJIT",    do_enablejit,      0,      11,     1,      {PP_FUNCALL, PREC_FN, 0}},
 #endif
-
-{"setNumMathThreads", do_setnumthreads,      0,      11,     1,      {PP_FUNCALL, PREC_FN, 0}},
-{"setMaxNumMathThreads", do_setmaxnumthreads,      0,      11,     1,      {PP_FUNCALL, PREC_FN, 0}},
 
 /* Connections */
 {"stdin",	do_stdin,	0,      11,     0,      {PP_FUNCALL, PREC_FN,	0}},
@@ -1090,8 +1085,6 @@ static void SymbolShortcuts(void)
     R_WholeSrcrefSymbol = install("wholeSrcref");
     R_TmpvalSymbol = install("*tmp*");
     R_UseNamesSymbol = install("use.names");
-    R_DoubleColonSymbol = install("::");
-    R_TripleColonSymbol = install(":::");
 }
 
 extern SEXP framenames; /* from model.c */

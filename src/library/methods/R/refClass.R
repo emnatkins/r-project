@@ -58,7 +58,7 @@ installClassMethod <- function(def, self, me, selfEnv, thisClass) {
         ## provide an environment with the correct callSuper() definition,
         ## with selfEnv as its parent (can't override the definition of "callSuper"
         ## in selfEnv--there may  be other methods with a callSuper() in them
-        newEnv <- new.env(FALSE, parent = selfEnv)
+        newEnv <- new.env(parent = selfEnv)
         assign("callSuper", get(def@superClassMethod, envir = selfEnv),
                envir = newEnv)
         environment(def) <- newEnv
@@ -665,7 +665,7 @@ refClassInformation <- function(Class, contains, fields, refMethods, where) {
     fieldClasses <- character(nf)
     names(fieldClasses) <- fieldNames
     fieldPrototypes <- list()
-    for(i in seq_len(nf)) {
+    for(i in seq(length = nf)) {
         thisName <- fieldNames[[i]]
         thisField <- fields[[i]]
         ## a field definition can be:
@@ -800,7 +800,7 @@ setRefClass <- function(Class, fields = character(),
              where = where, ...)
     ## kludge: as.environment fails on an empty list
     asEnv <- function(x) {
-        if(length(x)) as.environment(x) else new.env(FALSE)
+        if(length(x)) as.environment(x) else new.env()
     }
     ## now, override that with the complete definition
     classDef <- new("refClassRepresentation",

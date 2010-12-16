@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.13.0\n"
+"Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2010-12-05 22:16\n"
-"PO-Revision-Date: 2010-12-05 22:16\n"
+"POT-Creation-Date: 2010-10-04 10:51\n"
+"PO-Revision-Date: 2010-10-04 10:51\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -598,15 +598,6 @@ msgstr "Changes require specified ‘style’"
 msgid "The default JSS style may not be modified."
 msgstr "The default JSS style may not be modified."
 
-msgid "use of '--auto-zip' is deprecated: use '--install-args' instead"
-msgstr "use of ‘--auto-zip’ is deprecated: use ‘--install-args’ instead"
-
-msgid "use of '--use-zip-data' is deprecated: use '--install-args' instead"
-msgstr "use of ‘--use-zip-data’ is deprecated: use ‘--install-args’ instead"
-
-msgid "use of '--no-docs' is deprecated: use '--install-args' instead"
-msgstr "use of ‘--no-docs’ is deprecated: use ‘--install-args’ instead"
-
 msgid "** Options"
 msgstr "** Options"
 
@@ -711,9 +702,6 @@ msgstr "cannot read index information in file ‘%s’"
 
 msgid "ERROR:"
 msgstr "ERROR:"
-
-msgid "error reading file '%s'"
-msgstr "error reading file ‘%s’"
 
 msgid "this seems to be a bundle -- and they are defunct"
 msgstr "this seems to be a bundle -- and they are defunct"
@@ -939,11 +927,14 @@ msgstr "cannot be opened"
 msgid "testing '%s' failed"
 msgstr "testing ‘%s’ failed"
 
-msgid "Testing examples for package"
-msgstr "Testing examples for package"
+msgid "Collecting examples for package"
+msgstr "Collecting examples for package"
 
-msgid "comparing"
-msgstr "comparing"
+msgid "Running examples in package"
+msgstr "Running examples in package"
+
+msgid "Comparing"
+msgstr "Comparing"
 
 msgid "to"
 msgstr "to"
@@ -953,9 +944,6 @@ msgstr "..."
 
 msgid "OK"
 msgstr "OK"
-
-msgid "results differ from reference results"
-msgstr "results differ from reference results"
 
 msgid "no examples found"
 msgstr "no examples found"
@@ -968,9 +956,6 @@ msgstr "Running"
 
 msgid "Running vignettes for package"
 msgstr "Running vignettes for package"
-
-msgid "Comparing"
-msgstr "Comparing"
 
 msgid "creation of"
 msgstr "creation of"
@@ -989,6 +974,9 @@ msgstr "running code in"
 
 msgid "FAILED"
 msgstr "FAILED"
+
+msgid "comparing"
+msgstr "comparing"
 
 msgid "running strict specific tests"
 msgstr "running strict specific tests"

@@ -16,7 +16,7 @@
 
 Sys.time <- function() .POSIXct(.Internal(Sys.time()))
 
-Sys.timezone <- function() Sys.getenv("TZ", names = FALSE)
+Sys.timezone <- function() as.vector(Sys.getenv("TZ"))
 
 as.POSIXlt <- function(x, tz = "", ...) UseMethod("as.POSIXlt")
 
@@ -202,7 +202,7 @@ summary.POSIXlt <- function(object, digits = 15, ...)
     summary(as.POSIXct(object), digits = digits, ...)
 
 
-`+.POSIXt` <- function(e1, e2)
+"+.POSIXt" <- function(e1, e2)
 {
     ## need to drop "units" attribute here
     coerceTimeUnit <- function(x)
@@ -221,9 +221,8 @@ summary.POSIXlt <- function(object, digits = 15, ...)
     .POSIXct(unclass(e1) + unclass(e2), check_tzones(e1, e2))
 }
 
-`-.POSIXt` <- function(e1, e2)
+"-.POSIXt" <- function(e1, e2)
 {
-    ## need to drop "units" attribute here
     coerceTimeUnit <- function(x)
         as.vector(switch(attr(x,"units"),
                          secs = x, mins = 60*x, hours = 60*60*x,
@@ -300,7 +299,7 @@ Summary.POSIXlt <- function (..., na.rm)
     as.POSIXlt(.POSIXct(val, tz))
 }
 
-`[.POSIXct` <-
+"[.POSIXct" <-
 function(x, ..., drop = TRUE)
 {
     cl <- oldClass(x)
@@ -311,7 +310,7 @@ function(x, ..., drop = TRUE)
     val
 }
 
-`[[.POSIXct` <-
+"[[.POSIXct" <-
 function(x, ..., drop = TRUE)
 {
     cl <- oldClass(x)
@@ -322,13 +321,13 @@ function(x, ..., drop = TRUE)
     val
 }
 
-`[<-.POSIXct` <-
+"[<-.POSIXct" <-
 function(x, ..., value) {
-    if(!length(value)) return(x)
-    value <- unclass(as.POSIXct(value))
+    if(!as.logical(length(value))) return(x)
+    value <- as.POSIXct(value)
     cl <- oldClass(x)
     tz <- attr(x, "tzone")
-    class(x) <- NULL
+    class(x) <- class(value) <- NULL
     x <- NextMethod(.Generic)
     class(x) <- cl
     attr(x, "tzone") <- tz
@@ -440,11 +439,11 @@ as.difftime <- function(tim, format="%X", units="auto")
 ### For now, these have only difftime methods, but you never know...
 units <- function(x) UseMethod("units")
 
-`units<-` <- function(x, value) UseMethod("units<-")
+"units<-" <- function(x, value) UseMethod("units<-")
 
 units.difftime <- function(x) attr(x, "units")
 
-`units<-.difftime` <- function(x, value)
+"units<-.difftime" <- function(x, value)
 {
     from <- units(x)
     if (from == value) return(x)
@@ -455,10 +454,10 @@ units.difftime <- function(x) attr(x, "units")
     .difftime(newx, value)
 }
 
-as.double.difftime <- function(x, units="auto", ...)
-{
-    if (units != "auto") units(x) <- units
-    as.vector(x, "double")
+as.double.difftime <- function(x, units="auto", ...) {
+    if (units != "auto")
+        units(x) <- units
+    as.double(as.vector(x))
 }
 
 as.data.frame.difftime <- as.data.frame.vector
@@ -481,7 +480,7 @@ print.difftime <- function(x, digits = getOption("digits"), ...)
     invisible(x)
 }
 
-`[.difftime` <- function(x, ..., drop = TRUE)
+"[.difftime" <- function(x, ..., drop = TRUE)
 {
     cl <- oldClass(x)
     class(x) <- NULL
@@ -537,7 +536,7 @@ Ops.difftime <- function(e1, e2)
     }
 }
 
-`*.difftime` <- function (e1, e2)
+"*.difftime" <- function (e1, e2)
 {
     ## need one scalar, one difftime.
     if(inherits(e1, "difftime") && inherits(e2, "difftime"))
@@ -546,7 +545,7 @@ Ops.difftime <- function(e1, e2)
     .difftime(e2 * unclass(e1), attr(e1, "units"))
 }
 
-`/.difftime` <- function (e1, e2)
+"/.difftime" <- function (e1, e2)
 {
     ## need one scalar, one difftime.
     if(inherits(e2, "difftime"))
@@ -554,7 +553,7 @@ Ops.difftime <- function(e1, e2)
     .difftime(unclass(e1) / e2, attr(e1, "units"))
 }
 
-## "Math": some methods should work; the other ones are meaningless :
+## "Math": some methods *should* work; the other ones are meaningless :
 Math.difftime <- function (x, ...)
 {
     switch(.Generic,
@@ -575,7 +574,7 @@ mean.difftime <- function (x, ...)
 
 Summary.difftime <- function (..., na.rm)
 {
-    ## FIXME: this could return in the smallest of the units of the inputs.
+    ## FIXME: this should return in the smallest of the units of the inputs.
     coerceTimeUnit <- function(x)
     {
         as.vector(switch(attr(x,"units"),
@@ -843,19 +842,19 @@ round.POSIXt <- function(x, units=c("secs", "mins", "hours", "days"))
 
 ## ---- additions in 1.5.0 -----
 
-`[.POSIXlt` <- function(x, ..., drop = TRUE)
+"[.POSIXlt" <- function(x, ..., drop = TRUE)
 {
     val <- lapply(x, "[", ..., drop = drop)
     attributes(val) <- attributes(x) # need to preserve timezones
     val
 }
 
-`[<-.POSIXlt` <- function(x, i, value)
+"[<-.POSIXlt" <- function(x, i, value)
 {
-    if(!length(value)) return(x)
-    value <- unclass(as.POSIXlt(value))
+    if(!as.logical(length(value))) return(x)
+    value <- as.POSIXlt(value)
     cl <- oldClass(x)
-    class(x) <- NULL
+    class(x) <- class(value) <- NULL
     for(n in names(x)) x[[n]][i] <- value[[n]]
     class(x) <- cl
     x
@@ -891,7 +890,7 @@ diff.POSIXt <- function (x, lag = 1L, differences = 1L, ...)
     xlen <- if (ismat) dim(x)[1L] else length(r)
     if (length(lag) > 1L || length(differences) > 1L || lag < 1L || differences < 1L)
         stop("'lag' and 'differences' must be integers >= 1")
-    if (lag * differences >= xlen) return(.difftime(numeric(), "secs"))
+    if (lag * differences >= xlen) return(.difftime(numeric(0L), "secs"))
     i1 <- -seq_len(lag)
     if (ismat) for (i in seq_len(differences)) r <- r[i1, , drop = FALSE] -
             r[-nrow(r):-(nrow(r) - lag + 1), , drop = FALSE]

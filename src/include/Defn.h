@@ -88,8 +88,6 @@ extern0 SEXP	R_WholeSrcrefSymbol;   /* "wholeSrcref" */
 extern0 SEXP	R_SrcrefSymbol;     /* "srcref" */
 extern0 SEXP	R_TmpvalSymbol;     /* "*tmp*" */
 extern0 SEXP	R_UseNamesSymbol;   /* "use.names" */
-extern0 SEXP	R_DoubleColonSymbol;   /* "::" */
-extern0 SEXP	R_TripleColonSymbol;   /* ":::" */
 
 extern0 SEXP	R_StringHash;       /* Global hash of CHARSXPs */
 
@@ -292,10 +290,7 @@ extern int putenv(char *string);
 #endif
 
 #define HSIZE	   4119	/* The size of the hash table for symbols */
-#define MAXIDSIZE 10000	/* Largest symbol size, 
-			   in bytes excluding terminator.
-			   Was 256 prior to 2.13.0, now just a sanity check.
-			*/
+#define MAXIDSIZE   256	/* Largest symbol size, in bytes excluding terminator */
 
 /* The type of the do_xxxx functions. */
 /* These are the built-in R functions. */
@@ -702,13 +697,7 @@ extern0 SEXP *R_BCNodeStackBase, *R_BCNodeStackTop, *R_BCNodeStackEnd;
 #define R_BCINTSTACKSIZE 10000
 extern0 IStackval *R_BCIntStackBase, *R_BCIntStackTop, *R_BCIntStackEnd;
 # endif
-extern0 int R_jit_enabled INI_as(0);
-extern SEXP R_cmpfun(SEXP);
-extern void R_init_jit_enabled(void);
 #endif
-
-LibExtern int R_num_math_threads INI_as(1);
-LibExtern int R_max_num_math_threads INI_as(1);
 
 /* Pointer  type and utilities for dispatch in the methods package */
 typedef SEXP (*R_stdGen_ptr_t)(SEXP, SEXP, SEXP); /* typedef */

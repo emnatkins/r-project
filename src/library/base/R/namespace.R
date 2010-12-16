@@ -15,7 +15,7 @@
 #  http://www.r-project.org/Licenses/
 
 ## give the base namespace a table for registered methods
-`.__S3MethodsTable__.` <- new.env(hash = TRUE, parent = baseenv())
+".__S3MethodsTable__." <- new.env(hash = TRUE, parent = baseenv())
 
 ## NOTA BENE:
 ##  1) This code should work also when methods is not yet loaded
@@ -57,7 +57,7 @@ getNamespaceImports <- function(ns) {
 
 getNamespaceUsers <- function(ns) {
     nsname <- getNamespaceName(asNamespace(ns))
-    users <- character()
+    users <- character(0L)
     for (n in loadedNamespaces()) {
         inames <- names(getNamespaceImports(n))
         if (match(nsname, inames, 0L))
@@ -80,7 +80,7 @@ getExportedValue <- function(ns, name) {
     else get(getInternalExportName(name, ns), envir = ns)
 }
 
-`::` <- function(pkg, name) {
+"::" <- function(pkg, name) {
     pkg <- as.character(substitute(pkg))
     name <- as.character(substitute(name))
     ns <- tryCatch(asNamespace(pkg), hasNoNamespaceError = function(e) NULL)
@@ -93,7 +93,7 @@ getExportedValue <- function(ns, name) {
     else getExportedValue(pkg, name)
 }
 
-`:::` <- function(pkg, name) {
+":::" <- function(pkg, name) {
     pkg <- as.character(substitute(pkg))
     name <- as.character(substitute(name))
     get(name, envir = asNamespace(pkg), inherits = FALSE)
@@ -196,8 +196,8 @@ loadNamespace <- function (package, lib.loc = NULL,
             setNamespaceInfo(env, "exports", new.env(hash = TRUE, parent = baseenv()))
             setNamespaceInfo(env, "imports", list("base" = TRUE))
             ## this should be an absolute path
-            setNamespaceInfo(env, "path",
-                             normalizePath(file.path(lib, name), "/", TRUE))
+            abs_path <- function(x) {cwd <- setwd(x);on.exit(setwd(cwd));getwd()}
+            setNamespaceInfo(env, "path", abs_path(file.path(lib, name)))
             setNamespaceInfo(env, "dynlibs", NULL)
             setNamespaceInfo(env, "S3methods", matrix(NA_character_, 0L, 3L))
             assign(".__S3MethodsTable__.",
@@ -433,7 +433,7 @@ loadNamespace <- function (package, lib.loc = NULL,
             ## process class definition objects
             expClasses <- nsInfo$exportClasses
             ##we take any pattern, but check to see if the matches are classes
-            pClasses <- character()
+            pClasses <- character(0L)
             aClasses <- methods:::getClasses(ns)
             for (p in nsInfo$exportClassPatterns) {
                 pClasses <- c(aClasses[grep(p, aClasses)], pClasses)
@@ -900,8 +900,8 @@ importIntoEnv <- function(impenv, impnames, expenv, expnames) {
         }
     }
     expnames <- unlist(lapply(expnames, get, envir = exports, inherits = FALSE))
-    if (is.null(impnames)) impnames <- character()
-    if (is.null(expnames)) expnames <- character()
+    if (is.null(impnames)) impnames <- character(0L)
+    if (is.null(expnames)) expnames <- character(0L)
     .Internal(importIntoEnv(impenv, impnames, expenv, expnames))
 }
 
@@ -987,7 +987,7 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE)
         ## Creates a new NativeRoutineMap.
         function(useRegistration, symbolNames, fixes) {
             proto <- list(useRegistration = FALSE,
-                          symbolNames = character())
+                          symbolNames = character(0L))
             class(proto) <- "NativeRoutineMap"
 
             mergeNativeRoutineMaps(proto, useRegistration, symbolNames, fixes)
@@ -1008,9 +1008,12 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE)
 
     nsFile <- namespaceFilePath(package, package.lib)
     descfile <- file.path(package.lib, package, "DESCRIPTION")
-    enc <- if (file.exists(descfile)) {
-        read.dcf(file = descfile, "Encoding")[1L]
-    } else NA_character_
+    enc <- NA
+    if (file.exists(descfile)) {
+        dcf <- read.dcf(file = descfile)
+        if(NROW(dcf) >= 1) enc <- as.list(dcf[1, ])[["Encoding"]]
+        if(is.null(enc)) enc <- NA
+    }
     if (file.exists(nsFile))
         directives <- if (!is.na(enc) &&
                           ! Sys.getlocale("LC_CTYPE") %in% c("C", "POSIX")) {
@@ -1022,15 +1025,15 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE)
         stop(gettextf("package '%s' has no NAMESPACE file", package),
              domain = NA)
     else directives <- NULL
-    exports <- character()
-    exportPatterns <- character()
-    exportClasses <- character()
-    exportClassPatterns <- character()
-    exportMethods <- character()
+    exports <- character(0L)
+    exportPatterns <- character(0L)
+    exportClasses <- character(0L)
+    exportClassPatterns <- character(0L)
+    exportMethods <- character(0L)
     imports <- list()
     importMethods <- list()
     importClasses <- list()
-    dynlibs <- character()
+    dynlibs <- character(0L)
     S3methods <- matrix(NA_character_, 500L, 3L)
     nativeRoutines <- list()
     nS3 <- 0
@@ -1050,7 +1053,7 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE)
                else if (length(e) == 4L)
                parseDirective(e[[4L]]),
                "{" =  for (ee in as.list(e[-1L])) parseDirective(ee),
-               "=" =,
+               "=" =, 
                "<-" = {
                    parseDirective(e[[3L]])
                    if(as.character(e[[3L]][[1L]]) == "useDynLib")
@@ -1197,7 +1200,7 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE)
                        stop("too many 'S3method' directives", call. = FALSE)
                    S3methods[nS3, seq_along(spec)] <<- asChar(spec)
                },
-               stop(gettextf("unknown namespace directive: %s", deparse(e, nlines=1L)),
+               warning(gettextf("unknown namespace directive: %s", deparse(e, nlines=1L)),
                     call. = FALSE, domain = NA)
                )
     }

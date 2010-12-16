@@ -60,7 +60,7 @@ getOption(x, default = NULL)
       \code{TRUE}.  Could also be set to an integer for specifying how
       many (simulated) smooths should be added.  This is currently only
       used by \code{\link{plot.lm}}.}
-
+    
     \item{\code{checkPackageLicense}:}{logical, not set by default.  If
       true, \code{\link{library}} asks a user to accept any non-standard
       license at first use.
@@ -200,13 +200,13 @@ getOption(x, default = NULL)
     }
 
     \item{\code{pdfviewer}:}{default PDF viewer.
-      The default is set from the environment variable \env{R_PDFVIEWER},
 #ifdef unix
-      the default value of which is set when \R is configured.
+      The default is set from the environment variable
+      \env{R_PDFVIEWER}, the default value of which is set when \R is
+      configured.
 #endif
 #ifdef windows
-      which defaults to the full path to \command{open.exe}, a utility
-      supplied with \R.
+      Defaults to the full path to \samp{open.exe}, a utility supplied with \R.
 #endif
     }
 
@@ -219,7 +219,7 @@ getOption(x, default = NULL)
     \item{\code{prompt}:}{a non-empty string to be used for \R's prompt;
       should usually end in a blank (\code{" "}).}
 
-      % verbatim, for checking " \t\n\"\\'`><=%;,|&{()}"
+      % verbatim, for checking " \t\n\"\\'`><=%;,|&{()}"    
 #ifdef unix
     \item{\code{rl_word_breaks}:}{Used for the readline-based terminal
       interface.  Default value \code{" \\t\\n\\"\\\\'`><=\%;,|&\{()\}"}.%"
@@ -273,7 +273,7 @@ getOption(x, default = NULL)
 
     \item{\code{useFancyQuotes}:}{logical: controls the use of
       directional quotes in \code{\link{sQuote}}, \code{dQuote} and in
-      rendering text help (see \code{\link{Rd2txt}} in package \pkg{tools}).}
+      rendering text help (see \code{\link{Rd2txt}}).}
 
     \item{\code{verbose}:}{logical.  Should \R report extra information
       on progress?  Set to \code{TRUE} by the command-line option
@@ -461,12 +461,9 @@ getOption(x, default = NULL)
     \item{\code{example.ask}:}{default for the \code{ask} argument of
       \code{\link{example}}.}
 
-    \item{\code{help.ports}:}{optional integer vector for setting ports
-      of the internal HTTP server, see \code{\link{startDynamicHelp}}.}
-
     \item{\code{help.try.all.packages}:}{default for an argument of
       \code{\link{help}}.}
-
+    
     \item{\code{help_type}:}{default for an argument of
     \code{\link{help}}, used also as the help type by \code{\link{?}}.}
 

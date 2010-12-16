@@ -6,7 +6,7 @@
 \name{system.file}
 \title{Find Names of R System Files}
 \usage{
-system.file(\dots, package = "base", lib.loc = NULL, mustWork = FALSE)
+system.file(\dots, package = "base", lib.loc = NULL)
 }
 \alias{system.file}
 \arguments{
@@ -19,8 +19,6 @@ system.file(\dots, package = "base", lib.loc = NULL, mustWork = FALSE)
     \code{NULL}.  The default value of \code{NULL} corresponds to all
     libraries currently known.  If the default is used, the loaded
     packages are searched before the libraries.}
-  \item{mustWork}{logical.  If \code{TRUE}, an error is given if there
-    are no matching files.}
 }
 \description{
   Finds the full file names of files in packages etc.
@@ -36,7 +34,7 @@ system.file(\dots, package = "base", lib.loc = NULL, mustWork = FALSE)
 \value{
   A character vector of positive length, containing the file paths
   that matched \code{\dots}, or the empty string, \code{""}, if none
-  matched (unless \code{mustWork = TRUE}.
+  matched.
   
   If matching the root of a package, there is no trailing separator.
   

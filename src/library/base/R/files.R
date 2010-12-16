@@ -22,11 +22,11 @@ R.home <- function(component="home")
            "bin" = if(.Platform$OS.type == "windows" &&
                       nzchar(p <- .Platform$r_arch)) file.path(rh, component, p)
            else file.path(rh, component),
-           "share" = if(nzchar(p <- Sys.getenv("R_SHARE_DIR"))) p
+           "share" = if(nzchar(p <- as.vector(Sys.getenv("R_SHARE_DIR")))) p
            else file.path(rh, component),
-	   "doc" = if(nzchar(p <- Sys.getenv("R_DOC_DIR"))) p
+	   "doc" = if(nzchar(p <- as.vector(Sys.getenv("R_DOC_DIR")))) p
            else file.path(rh, component),
-           "include" = if(nzchar(p <- Sys.getenv("R_INCLUDE_DIR"))) p
+           "include" = if(nzchar(p <- as.vector(Sys.getenv("R_INCLUDE_DIR")))) p
            else file.path(rh, component),
            "modules" = if(nzchar(p <- .Platform$r_arch)) file.path(rh, component, p)
            else file.path(rh, component),
@@ -150,20 +150,20 @@ dir.create <- function(path, showWarnings = TRUE, recursive = FALSE,
     invisible(.Internal(dir.create(path, showWarnings, recursive,
                                    as.octmode(mode))))
 
-system.file <- function(..., package = "base", lib.loc = NULL, mustWork = FALSE)
+system.file <- function(..., package = "base", lib.loc = NULL)
 {
     if(nargs() == 0L)
         return(file.path(.Library, "base"))
     if(length(package) != 1L)
         stop("'package' must be of length 1")
     packagePath <- .find.package(package, lib.loc, quiet = TRUE)
-    ans <- if(length(packagePath)) {
-        FILES <- file.path(packagePath, ...)
-        present <- file.exists(FILES)
-        if(any(present)) FILES[present] else ""
-    } else ""
-    if (mustWork && identical(ans, "")) stop("no file found")
-    ans
+    if(length(packagePath) == 0L)
+        return("")
+    FILES <- file.path(packagePath, ...)
+    present <- file.exists(FILES)
+    if(any(present))
+        FILES[present]
+    else ""
 }
 
 getwd <- function()
@@ -201,6 +201,3 @@ Sys.readlink <- function(paths)
 
 readRenviron <- function(path)
     .Internal(readRenviron(path))
-
-normalizePath <- function(path, winslash = "\\", mustWork = NA)
-    .Internal(normalizePath(path.expand(path), winslash, mustWork))

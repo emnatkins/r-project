@@ -214,10 +214,7 @@ makeLazyLoadDB <- function(from, filebase, compress = TRUE, ascii = FALSE,
             if (is.null(name)) {
                 name <- table$insert(e)
                 data <- list(bindings = envlist(e),
-                             enclos = parent.env(e),
-                             attributes = attributes(e),
-                             isS4 = isS4(e),
-                             locked = environmentIsLocked(e))
+                             enclos = parent.env(e))
                 key <- lazyLoadDBinsertValue(data, datafile, ascii,
                                              compress, envhook)
                 assign(name, key, envir = envenv)
