@@ -6,7 +6,7 @@
 \name{summary.mle-class}
 \docType{class}
 \alias{summary.mle-class}
-\title{Class \code{"summary.mle"}, Summary of \code{"mle"} Objects}
+\title{Class "summary.mle", summary of "mle" objects}
 \description{Extract of "mle" object}
 \section{Objects from the Class}{
 Objects can be created by calls of the form \code{new("summary.mle",

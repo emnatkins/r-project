@@ -14,6 +14,6 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-replicate <- function(n, expr, simplify = "array")
+replicate <- function(n, expr, simplify = TRUE) 
         sapply(integer(n), 
            eval.parent(substitute(function(...)expr)), simplify = simplify)

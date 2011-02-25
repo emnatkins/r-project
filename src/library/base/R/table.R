@@ -22,13 +22,12 @@ table <- function (..., exclude = if (useNA=="no") c(NA, NaN),
 	l <- as.list(substitute(list(...)))[-1L]
 	nm <- names(l)
 	fixup <- if (is.null(nm)) seq_along(l) else nm == ""
-	dep <- vapply(l[fixup], function(x)
-		      switch(deparse.level + 1,
-			     "", ## 0
-			     if (is.symbol(x)) as.character(x) else "", ## 1
-			     deparse(x, nlines=1)[1L] ## 2
-			     ),
-		      "")
+	dep <- sapply(l[fixup], function(x)
+	    switch (deparse.level + 1,
+		    "", ## 0
+		    if (is.symbol(x)) as.character(x) else "", ## 1
+		    deparse(x, nlines=1)[1L]) ## 2
+		      )
 	if (is.null(nm))
 	    dep
 	else {
@@ -41,7 +40,7 @@ table <- function (..., exclude = if (useNA=="no") c(NA, NaN),
 
     useNA <- match.arg(useNA)
     args <- list(...)
-    if (!length(args))
+    if (length(args) == 0L)
 	stop("nothing to tabulate")
     if (length(args) == 1L && is.list(args[[1L]])) {
 	args <- args[[1L]]
@@ -54,7 +53,7 @@ table <- function (..., exclude = if (useNA=="no") c(NA, NaN),
     # 0L, 1L, etc: keep 'bin' and 'pd' integer - as long as tabulate() requires it
     bin <- 0L
     lens <- NULL
-    dims <- integer()
+    dims <- integer(0L)
     pd <- 1L
     dn <- NULL
     for (a in args) {
@@ -94,8 +93,6 @@ table <- function (..., exclude = if (useNA=="no") c(NA, NaN),
 
 	nl <- length(ll <- levels(cat))
 	dims <- c(dims, nl)
-        if (prod(dims) > .Machine$integer.max)
-            stop("attempt to make a table with >= 2^31 elements")
 	dn <- c(dn, list(ll))
 	## requiring   all(unique(as.integer(cat)) == 1L:nlevels(cat))  :
 	bin <- bin + pd * (as.integer(cat) - 1L)
@@ -157,8 +154,8 @@ summary.table <- function(object, ...)
 	    m[[k]] <- apply(relFreqs, k, sum)
 	expected <- apply(do.call("expand.grid", m), 1L, prod) * n.cases
 	statistic <- sum((c(object) - expected)^2 / expected)
-	lm <- vapply(m, length, 1L)
-	parameter <- prod(lm) - 1L - sum(lm - 1L)
+	parameter <-
+	    prod(sapply(m, length)) - 1L - sum(sapply(m, length) - 1L)
 	y <- c(y, list(statistic = statistic,
 		       parameter = parameter,
 		       approx.ok = all(expected >= 5),
@@ -220,7 +217,7 @@ as.table.default <- function(x, ...)
 	dnx <- dimnames(x)
 	if(is.null(dnx))
 	    dnx <- vector("list", length(dim(x)))
-	for(i in which(vapply(dnx, is.null, NA)))
+	for(i in which(sapply(dnx, is.null)))
 	    dnx[[i]] <-
                 make.unique(LETTERS[seq.int(from=0, length.out = dim(x)[i]) %% 26 + 1],
                             sep = "")

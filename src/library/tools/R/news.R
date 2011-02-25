@@ -28,7 +28,7 @@
 function(package, lib.loc = NULL, format = NULL, reader = NULL)
 {
     dir <- system.file(package = package, lib.loc = lib.loc)
-    ## Or maybe use find.package()?
+    ## Or maybe use .find.package()?
 
     ## <FIXME>
     ## We had planned to eventually add support for DESCRIPTION
@@ -39,18 +39,23 @@ function(package, lib.loc = NULL, format = NULL, reader = NULL)
     ## entries.  But now that we're moving to NEWS.Rd, there seems
     ## little point in providing format/reader support ...
     ## </FIXME>
-
-    ## Look for new-style inst/NEWS.Rd installed as NEWS.Rd.
+    
+    ## Look for new-style inst/NEWS.Rd.
     ## If not found, look for old-style
     ##   NEWS inst/NEWS
-    ## installed as NEWS (and ignore ChangeLog files).
-    nfile <- file.path(dir, "NEWS.Rd")
+    ## and ignore
+    ##   ChangeLog inst/ChangeLog
+    ## in the package directory.
+    nfile <- file.path(dir, "inst", "NEWS.Rd")
     if(file_test("-f", nfile))
         return(.build_news_db_from_package_NEWS_Rd(nfile))
+    
+    files <- file.path(dir,
+                       c("NEWS",
+                         file.path("inst", "NEWS")))
+    nfile <- files[file_test("-f", files)][1L]
 
-    nfile <- file.path(dir, "NEWS")
-    if(!file_test("-f", nfile))
-        return(invisible())
+    if(is.na(nfile)) return(invisible())
     ## Return NULL for now, no message that there is no NEWS or
     ## ChangeLog file.
 
@@ -304,7 +309,7 @@ Rd2txt_NEWS_in_Rd_options <-
 
 Rd2txt_NEWS_in_Rd <-
 function(f, out = "") {
-    if (grepl("[.]rds$", f)) f <- readRDS(f)
+    if (grepl("[.]rds$", f)) f <- .readRDS(f)
     Rd2txt(f, out,
            stages = c("install", "render"),
            outputEncoding = if(l10n_info()[["UTF-8"]]) "" else "ASCII//TRANSLIT",
@@ -313,14 +318,14 @@ function(f, out = "") {
 
 Rd2HTML_NEWS_in_Rd <-
 function(f, out) {
-    if (grepl("[.]rds$", f)) f <- readRDS(f)
+    if (grepl("[.]rds$", f)) f <- .readRDS(f)
     Rd2HTML(f, out,
             stages = c("install", "render"))
 }
 
 Rd2pdf_NEWS_in_Rd <-
 function(f, pdf_file) {
-    if (grepl("[.]rds$", f)) f <- readRDS(f)
+    if (grepl("[.]rds$", f)) f <- .readRDS(f)
     f2 <- tempfile()
     f3 <- file.path(tempdir(), "NEWS.tex")
     out <- file(f3, "w")
@@ -428,7 +433,7 @@ function(file, out = stdout(), codify = FALSE)
 
         encoding <- meta["Encoding"]
         package <- meta["Package"]
-
+        
         texts <- toRd(news$Text)
         if(codify)
             texts <- gsub(cre, "\\1\\\\code{\\2}\\3", texts)
@@ -468,7 +473,7 @@ function(file, out = stdout(), codify = FALSE)
                     wto(c(cheaders[j],
                           "    \\itemize{",
                           paste("      \\item",
-                                gsub("\n", "\n        ",
+                                gsub("\n", "\n        ", 
                                      cchunks[[j]]$Text)),
                           "    }",
                           "  }"))
@@ -495,7 +500,7 @@ function(x)
 function(file = NULL)
 {
     x <- if(is.null(file))
-        readRDS(file.path(R.home("doc"), "NEWS.rds"))
+        .readRDS(file.path(R.home("doc"), "NEWS.rds"))
     else {
         ## Expand \Sexpr et al now because this does not happen when using
         ## fragments.
@@ -530,7 +535,7 @@ function(file)
     ind <- grepl(re_v, nms, ignore.case = TRUE)
     if(!all(ind))
         warning("Cannot extract version info from the following section titles:\n",
-                sprintf("  %s", unique(nms[!ind])))
+                sprintf("  %s", unique(nms[ind])))
     .make_news_db(cbind(ifelse(ind,
                                sub(re_v, "\\1", nms),
                                NA_character_),
@@ -570,7 +575,7 @@ function(x)
         s <- sub("[[:space:]]*$", "", s)
         unlist(strsplit(s, "\n\036", fixed = TRUE))
     }
-
+    
     y <- x[RdTags(x) == "\\section"]
     do.call(rbind,
             Map(cbind,
@@ -595,5 +600,5 @@ function(x)
                                      do_chunk(z[pos]))
                            }
                        })))
-
+    
 }

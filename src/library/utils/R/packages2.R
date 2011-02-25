@@ -31,11 +31,10 @@ getDependencies <-
     p0 <- unique(pkgs)
     miss <-  !p0 %in% row.names(available)
     if(sum(miss)) {
-	warning(sprintf(ngettext(sum(miss),
-				 "package %s is not available (for %s)",
-				 "packages %s are not available (for %s)"),
-			paste(sQuote(p0[miss]), collapse=", "),
-			sub(" *\\(.*","", R.version.string)),
+        warning(sprintf(ngettext(sum(miss),
+                                 "package %s is not available",
+                                 "packages %s are not available"),
+                        paste(sQuote(p0[miss]), collapse=", ")),
                 domain = NA)
         if (sum(miss) == 1L &&
             !is.na(w <- match(tolower(p0[miss]),
@@ -242,7 +241,8 @@ install.packages <-
     ## check if we should infer repos=NULL
     if(length(pkgs) == 1L && missing(repos) && missing(contriburl)) {
         if((type == "source" && length(grep("\\.tar.gz$", pkgs))) ||
-           (type %in% "win.binary" && length(grep("\\.zip$", pkgs))) ||
+           (type %in% c("win.binary", "win64.binary")
+            && length(grep("\\.zip$", pkgs))) ||
            (substr(type, 1L, 10L) == "mac.binary"
             && length(grep("\\.tgz$", pkgs)))) {
             repos <- NULL
@@ -255,7 +255,7 @@ install.packages <-
         if(type == "mac.binary")
             stop("cannot install MacOS X binary packages on Windows")
 
-        if(type %in% "win.binary") {
+        if(type %in% c("win.binary", "win64.binary")) {
             ## include local .zip files
             .install.winbinary(pkgs = pkgs, lib = lib, contriburl = contriburl,
                                method = method, available = available,
@@ -287,7 +287,7 @@ install.packages <-
             return(invisible())
         }
 
-        if(type %in% "win.binary")
+        if(type %in% c("win.binary", "win64.binary"))
             stop("cannot install Windows binary packages on this plaform")
 
         if(!file.exists(file.path(R.home("bin"), "INSTALL")))
@@ -435,14 +435,11 @@ install.packages <-
         }
         if(!is.null(tmpd) && is.null(destdir))
             cat("\n", gettextf("The downloaded packages are in\n\t%s",
-                               sQuote(normalizePath(tmpd, mustWork = FALSE))),
-                "\n", sep = "")
+                               sQuote(normalizePath(tmpd))), "\n", sep = "")
         ## update packages.html on Unix only if .Library was installed into
         libs_used <- unique(update[, 2L])
-        if(.Platform$OS.type == "unix" && .Library %in% libs_used) {
-            message("Updating HTML index of packages in '.Library'")
-            make.packages.html(.Library)
-        }
+        if(.Platform$OS.type == "unix" && .Library %in% libs_used)
+            link.html.help(verbose = TRUE)
     } else if(!is.null(tmpd) && is.null(destdir)) unlink(tmpd, TRUE)
 
     invisible()

@@ -34,7 +34,7 @@ shQuote <- function(string, type = c("sh", "csh", "cmd"))
         else {
             if(!length(grep("([$`])", string))) {
                 paste('"', gsub('(["!\\])', "\\\\\\1", string), '"', sep="")
-            } else vapply(string, cshquote, "")
+            } else sapply(string, cshquote)
         }
     }
 }

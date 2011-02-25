@@ -64,3 +64,4 @@ grDevices::postscript(paste(pkgname, "-Ex.ps", sep=""), encoding = "ISOLatin1")
 
 assign("par.postscript", graphics::par(no.readonly = TRUE), pos = "CheckExEnv")
 options(contrasts = c(unordered = "contr.treatment", ordered = "contr.poly"))
+

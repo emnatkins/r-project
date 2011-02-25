@@ -7,11 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-02-18 12:36\n"
+"POT-Creation-Date: 2011-01-03 16:13\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -85,9 +84,6 @@ msgstr "不能用有虫的Kinderman-Ramage任意数产生器。"
 
 msgid "malformed version string"
 msgstr "版本字串格式有错"
-
-msgid "target is %s, current is %s"
-msgstr ""
 
 msgid "dim(X) must have a positive length"
 msgstr "dim(X)的值必需是正数"
@@ -575,6 +571,9 @@ msgstr "只能替换矩阵的对角"
 msgid "replacement diagonal has wrong length"
 msgstr "对角替换值的长度不对"
 
+msgid "'fromLast' must be TRUE or FALSE"
+msgstr "'fromLast'的值必需是'TRUE'或'FALSE'值"
+
 msgid "MARGIN ="
 msgstr "MARGIN ="
 
@@ -639,16 +638,6 @@ msgstr "因子层次有错，产生了NA"
 msgid "'%s' is not meaningful for ordered factors"
 msgstr "'%s'对順序化的因子没有意义"
 
-#, fuzzy
-msgid "'%s' not defined for ordered factors"
-msgstr "'%s'对順序化的因子没有意义"
-
-#, fuzzy
-msgid ""
-"'%s' is only meaningful for ordered factors if all arguments have the same "
-"level sets"
-msgstr "'%s'对順序化的因子没有意义"
-
 msgid "no files to copy from"
 msgstr "拷贝时没有可以读的文件"
 
@@ -658,8 +647,8 @@ msgstr "拷贝时没有可以写的文件"
 msgid "more 'from' files than 'to' files"
 msgstr "'from'的文件比'to'的文件要多"
 
-msgid "'recursive' will be ignored as 'to' is not a single existing directory"
-msgstr ""
+msgid "'recursive' will be ignored"
+msgstr "忽略'recursive'"
 
 msgid "file can not be copied both 'from' and 'to'"
 msgstr "不能同时又读又写同一个文件"
@@ -670,16 +659,8 @@ msgstr "鏈結时没有可以读的文件"
 msgid "no files/directory to link to"
 msgstr "鏈結时没有可以写的文件/目錄"
 
-#, fuzzy
-msgid "no files to link to"
-msgstr "鏈結时没有可以读的文件"
-
 msgid "'package' must be of length 1"
 msgstr "'package'的长度必需为一"
-
-#, fuzzy
-msgid "no file found"
-msgstr "不存在"
 
 msgid "'vec' contains NAs"
 msgstr "'vec'内有NA值"
@@ -874,15 +855,11 @@ msgstr "没有'%s'这个DLL"
 msgid "now dyn.unload(\"%s\") ..."
 msgstr "现在dyn.unload(\"%s\") ..."
 
-msgid "use of 'save' is deprecated"
-msgstr "'save'不再有用。"
-
-#, fuzzy
-msgid "save != FALSE is defunct"
-msgstr "'%s'不再有用。"
-
 msgid "Loading required package: %s"
 msgstr "载入需要的程辑包：%s"
+
+msgid "use of 'save' is deprecated"
+msgstr "'save'不再有用。"
 
 msgid "none of the packages are loaded"
 msgstr "没有载入任何程辑包"
@@ -895,8 +872,8 @@ msgstr ""
 "载入'%s'里找到的那一个"
 
 msgid ""
-"Further information is available in the following vignettes in directory "
-"'%s':"
+"Further information is available in the following vignettes in directory '%"
+"s':"
 msgstr "可以在目录'%s'中的小文品内找到更多的信息"
 
 msgid "doc"
@@ -1120,6 +1097,15 @@ msgstr "不载入名字空间"
 msgid "name space %s is imported by %s so cannot be unloaded"
 msgstr "名字空间%s是由%s引进的，因此无法将之卸下"
 
+msgid "imperative name space directives are disabled"
+msgstr "強制名字指令功能被关闭"
+
+msgid "all objects in base name space are currently exported."
+msgstr "基本名字空间里的所有对象现在都已被出口"
+
+msgid "can only export from a name space"
+msgstr "只能从名字空间里出口"
+
 msgid "not a name space"
 msgstr "不是名字空间"
 
@@ -1270,13 +1256,6 @@ msgstr "'scale'的长度必需和'x'列的数目相同"
 msgid "either specify 'nmax' or 'n', but not both."
 msgstr "'nmax'和'n'两者只能有一个设定"
 
-#, fuzzy
-msgid "argument 'length.out' must be of length 1"
-msgstr "'length.out'的长度必需为一"
-
-msgid "first element used of 'length.out' argument"
-msgstr ""
-
 msgid "invalid (to - from)/by in seq(.)"
 msgstr "seq(.)里的(to - from)/by 有错"
 
@@ -1291,9 +1270,6 @@ msgstr "长度必需为非负数"
 
 msgid "too many arguments"
 msgstr "太多参数"
-
-msgid "'compress' is ignored unless 'file' is a file name"
-msgstr ""
 
 msgid "'connection' must be a connection"
 msgstr "'connection'必需是个链结"
@@ -1438,9 +1414,6 @@ msgstr "没有可列表的东西"
 
 msgid "all arguments must have the same length"
 msgstr "所有参数的长度都应一致"
-
-msgid "attempt to make a table with >= 2^31 elements"
-msgstr ""
 
 msgid "'object' must inherit from class \"table\""
 msgstr "'object'必需从\"table\"繼承类别"
@@ -1631,21 +1604,6 @@ msgstr[0] "S3方法%s在NAMESPACE里有声明但不存在"
 msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "警告信息：\n"
-
-#~ msgid "'recursive' will be ignored"
-#~ msgstr "忽略'recursive'"
-
-#~ msgid "imperative name space directives are disabled"
-#~ msgstr "強制名字指令功能被关闭"
-
-#~ msgid "all objects in base name space are currently exported."
-#~ msgstr "基本名字空间里的所有对象现在都已被出口"
-
-#~ msgid "can only export from a name space"
-#~ msgstr "只能从名字空间里出口"
-
-#~ msgid "'fromLast' must be TRUE or FALSE"
-#~ msgstr "'fromLast'的值必需是'TRUE'或'FALSE'值"
 
 #~ msgid "shared library '%s' not found"
 #~ msgstr "找不到共享图书馆'%s'"

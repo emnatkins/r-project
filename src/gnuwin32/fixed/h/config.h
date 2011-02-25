@@ -77,11 +77,8 @@
 /* Define to 1 if you have the <bzlib.h> header file. */
 /* #undef HAVE_BZLIB_H */
 
-/* Define to 1 if you have the `cabs' function. */
-#define HAVE_CABS 1
-
-/* Define to 1 if you have the `cacos' function. */
-#define HAVE_CACOS 1
+/* Define this if you have support for C99 complex types. */
+#define HAVE_C99_COMPLEX 1
 
 /* Define to 1 if you have cairo-ps. */
 /* #undef HAVE_CAIRO_PDF */
@@ -91,24 +88,6 @@
 
 /* Define to 1 if you have cairo-svg. */
 /* #undef HAVE_CAIRO_SVG */
-
-/* Define to 1 if you have the `carg' function. */
-#define HAVE_CARG 1
-
-/* Define to 1 if you have the `casin' function. */
-#define HAVE_CASIN 1
-
-/* Define to 1 if you have the `catan' function. */
-#define HAVE_CATAN 1
-
-/* Define to 1 if you have the `ccos' function. */
-#define HAVE_CCOS 1
-
-/* Define to 1 if you have the `ccosh' function. */
-#define HAVE_CCOSH 1
-
-/* Define to 1 if you have the `cexp' function. */
-#define HAVE_CEXP 1
 
 /* Define to 1 if you have the MacOS X function CFLocaleCopyCurrent in the
    CoreFoundation framework. */
@@ -124,29 +103,8 @@
 /* Define to 1 if you have the `chmod' function. */
 #define HAVE_CHMOD 1
 
-/* Define to 1 if you have the `clog' function. */
-#define HAVE_CLOG 1
-
 /* Defined if framework CoreFoundation is present */
 /* #undef HAVE_COREFOUNDATION_FW */
-
-/* Define to 1 if you have the `cpow' function. */
-#define HAVE_CPOW 1
-
-/* Define to 1 if you have the `csin' function. */
-#define HAVE_CSIN 1
-
-/* Define to 1 if you have the `csinh' function. */
-#define HAVE_CSINH 1
-
-/* Define to 1 if you have the `csqrt' function. */
-#define HAVE_CSQRT 1
-
-/* Define to 1 if you have the `ctan' function. */
-#define HAVE_CTAN 1
-
-/* Define to 1 if you have the `ctanh' function. */
-#define HAVE_CTANH 1
 
 /* Define if the GNU dcgettext() function is already present or preinstalled.
    */
@@ -442,9 +400,6 @@
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1
 
-/* Define to 1 if you have the `link' function. */
-/* #undef HAVE_LINK */
-
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1
 
@@ -464,10 +419,7 @@
 #define HAVE_LONG_LONG_INT 1
 
 /* Define if your system has lzma >= 4.999. */
-#undef HAVE_LZMA
-
-/* Define to 1 if you have the <lzma.h> header file. */
-/* #undef HAVE_LZMA_H */
+#define HAVE_LZMA
 
 /* Define to 1 if you have the `matherr' function. */
 /* #undef HAVE_MATHERR */
@@ -519,9 +471,6 @@
 /* Define if you have off_t, fseeko and ftello. */
 #define HAVE_OFF_T 1
 
-/* Define if you have C OpenMP support. */
-/* #undef HAVE_OPENMP */
-
 /* Define to 1 if you have pangocairo. */
 /* #undef HAVE_PANGOCAIRO */
 
@@ -570,9 +519,6 @@
 
 /* Define to 1 if you have the <readline/readline.h> header file. */
 /* #undef HAVE_READLINE_READLINE_H */
-
-/* Define to 1 if you have the `readlink' function. */
-/* #undef HAVE_READLINK */
 
 /* Define to 1 if you have the `realpath' function. */
 /* #undef HAVE_REALPATH */
@@ -886,9 +832,6 @@
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "R"
 
-/* Define to the home page for this package. */
-#undef PACKAGE_URL
-
 /* Define to the version of this package. */
 #define PACKAGE_VERSION "@VERSION@"
 
@@ -944,7 +887,8 @@
 /* Define this to be the name of the vendor of your system. */
 #define R_VENDOR "pc"
 
-/* Define this to be the extension used for shared objects on your system. */
+/* Define this to be the extension used for shared libraries on your system.
+   */
 #define SHLIB_EXT ".dll"
 
 /* The size of `double', as computed by sizeof. */
@@ -986,9 +930,6 @@
 
 /* Define if you provide support for the libxml ftp/http functions. */
 #define SUPPORT_LIBXML 1
-
-/* Define if you C/C++/Fortran OpenMP support for package code. */
-#undef SUPPORT_OPENMP
 
 /* Define to enable provoking compile errors on write barrier violation. */
 /* #undef TESTING_WRITE_BARRIER */
@@ -1052,21 +993,16 @@
 /* Number of bits in a file offset, on hosts where this is settable. */
 /* #undef _FILE_OFFSET_BITS */
 
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE 1
+#endif
+
 /* Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2). */
 /* #undef _LARGEFILE_SOURCE */
 
 /* Define for large files, on AIX-style hosts. */
 /* #undef _LARGE_FILES */
-
-/* Define to 1 if on MINIX. */
-/* #undef _MINIX */
-
-/* Define to 2 if the system does not provide POSIX.1 features except with
-   this defined. */
-/* #undef _POSIX_1_SOURCE */
-
-/* Define to 1 if you need to in order for `stat' and other things to work. */
-/* #undef _POSIX_SOURCE */
 
 /* Define to 'long' if <sys/types.h> does not define. Apparently necessary to
    fix a GCC bug on AIX? */

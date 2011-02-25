@@ -19,7 +19,7 @@ vignette <-
 {
     if(is.null(package))
         package <- .packages(all.available = all, lib.loc)
-    paths <- find.package(package, lib.loc)
+    paths <- .find.package(package, lib.loc)
 
     ## Find the directories with a 'doc' subdirectory *possibly*
     ## containing vignettes.
@@ -79,7 +79,7 @@ vignette <-
             ## Check for new-style 'Meta/vignette.rds' ...
             if(file.exists(INDEX <-
                            file.path(dir, "Meta", "vignette.rds")))
-                entries <- readRDS(INDEX)
+                entries <- .readRDS(INDEX)
             if(NROW(entries) > 0)
                 vDB <- rbind(vDB,
                              cbind(dir,
@@ -123,12 +123,11 @@ print.vignette <- function(x, ...){
         ## <FIXME>
         ## Should really abstract this into a BioC style
         ## openPDF() along the lines of browseURL() ...
-        pdfviewer <- getOption("pdfviewer")
-        if(identical(pdfviewer, "false")) {
-        } else if(.Platform$OS.type == "windows" &&
-                  identical(pdfviewer, file.path(R.home("bin"), "open.exe")))
+        if(.Platform$OS.type == "windows")
             shell.exec(x$pdf)
-        else system2(pdfviewer, shQuote(x$pdf), wait = FALSE)
+        else
+            system(paste(shQuote(getOption("pdfviewer")), shQuote(x$pdf)),
+                   wait = FALSE)
         ## </FIXME>
     } else {
         warning(gettextf("vignette '%s' has no PDF", x$topic),

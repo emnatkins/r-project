@@ -234,7 +234,7 @@ isGeneric <-
         ## the definition of isGeneric() for a primitive is that methods are defined
         ## (other than the default primitive)
         gen <- genericForPrimitive(f)
-        return(is.function(gen) && length(objects(.getMethodsTable(gen), all.names=TRUE)) > 1L)
+        return(is.function(gen) && length(objects(.getMethodsTable(gen), all=TRUE)) > 1L)
     }
     if(!is(fdef, "genericFunction"))
         return(FALSE)
@@ -1306,7 +1306,7 @@ registerImplicitGenerics <- function(what = .ImplicitGenericsTable(where),
     if(!is.environment(what))
         stop(gettextf("Must provide an environment table; got class \"%s\"",
                       class(what)), domain = NA)
-    objs <- objects(what, all.names = TRUE)
+    objs <- objects(what, all=TRUE)
     for(f in objs)
         .cacheImplicitGeneric(f, get(f, envir = what))
     NULL
@@ -1418,20 +1418,16 @@ registerImplicitGenerics <- function(what = .ImplicitGenericsTable(where),
     list()
 }
 
-findMethods <- function(f, where, classes = character(), inherited = FALSE, package = "") {
+findMethods <- function(f, where, classes = character(), inherited = FALSE) {
     if(is(f, "genericFunction")) {
         fdef <- f
         f <- fdef@generic
     }
     else if(.isSingleString(f)) {
-        if(missing(where))
-            fdef <- getGeneric(f, package = package)
-        else { # the generic may not be in the where= environment
-            ##  but we prefer that version if it is
-            fdef <- getGeneric(f, where = where, package = package)
-            if(is.null(fdef))
-                fdef <- getGeneric(f, package = package)
-        }
+        fdef <- if(missing(where))
+            getGeneric(f)
+        else
+            getGeneric(f, where = where)
     }
     else if(!is(f, "function"))
         stop(gettextf("argument \"f\" must be a generic function or a single character string; got an object of class \"%s\"", class(f)), domain = NA)
@@ -1504,34 +1500,35 @@ findMethodSignatures <- function(..., target = TRUE, methods = findMethods(...))
     t(matrix(unlist(sigs), nrow = lens, dimnames = list(what, NULL)))
 }
 
-hasMethods <- function(f, where, package = "")
+hasMethods <- function(f, where, package)
 {
     fdef <- NULL
     nowhere <- missing(where) # because R resets this if where is assigned
     if(is(f, "genericFunction")) {
         fdef <- f
         f <- fdef@generic
-        if(missing(package))
-            package <- fdef@package
     }
     else if(!.isSingleString(f))
         stop(gettextf("argument \"f\" must be a generic function or %s",
                       .notSingleString(f)), domain = NA)
-    else if(missing(package)) {
-        package <- packageSlot(f) # maybe a string with package slot
+    if(missing(package)) {
+        package <- packageSlot(f)
 	if(is.null(package)) {
-            if(missing(where))
-                fdef <- getGeneric(f)
-            else { # the generic may not be in this package, but prefer it if so
-                fdef <- getGeneric(f, where = where)
-                if(is.null(fdef))
-                    fdef <- getGeneric(f)
+	    if(missing(where))
+		where <- .GlobalEnv
+	    fdef <- getFunction(f, where = where, mustFind = FALSE)
+	    if(is(fdef, "genericFunction"))
+		package <- fdef@package
+	    else if(is.primitive(fdef))
+		package <- "base"
+	    else if(length(ff <- findFunction(f, where = where)) == 1L) {
+		package <- getPackageName(ff[[1L]],  FALSE)
+                if(!nzchar(package))
+                  return(FALSE) # not in a package
             }
-            if(is(fdef, "genericFunction"))
-                package <- fdef@package
 	    else
-		stop(gettextf("'%s' is not a known generic function {and 'package' not specified}",
-			      f),
+		stop(gettextf("'%s' is not a generic function in '%s' {and 'package' not specified}",
+			      f, format(where)),
 		     domain = NA)
 	}
     }

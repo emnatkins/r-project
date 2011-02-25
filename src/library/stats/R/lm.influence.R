@@ -69,7 +69,7 @@ lm.influence <- function (model, do.coef = TRUE)
                         mqr$qraux,
                         wt.res = e,
                         hat = double(n),
-                        coefficients= if(do.coef) matrix(0, n, k) else double(),
+                        coefficients= if(do.coef) matrix(0, n, k) else double(0L),
                         sigma = double(n),
                         tol = 10 * .Machine$double.eps,
                         DUP = FALSE, PACKAGE="stats"
@@ -306,6 +306,6 @@ summary.infl <- function(object, digits = max(2, getOption("digits") - 5), ...)
 	invisible(imat)
     } else {
 	cat("NONE\n")
-	numeric()
+	numeric(0L)
     }
 }

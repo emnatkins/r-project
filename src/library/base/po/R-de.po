@@ -7,11 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-02-18 12:36\n"
+"POT-Creation-Date: 2011-01-03 16:13\n"
 "PO-Revision-Date: 2010-09-21 14:27+0200\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R-core <r-core@r-project.org>\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -86,9 +85,6 @@ msgstr ""
 
 msgid "malformed version string"
 msgstr "falsch aufgebaute Versionszeichenkette"
-
-msgid "target is %s, current is %s"
-msgstr ""
 
 msgid "dim(X) must have a positive length"
 msgstr "dim(X) muss positive Länge haben"
@@ -586,6 +582,9 @@ msgstr "nur Matrixdiagonalen können ersetzt werden"
 msgid "replacement diagonal has wrong length"
 msgstr "Ersatzdiagonale hat falsche Länge"
 
+msgid "'fromLast' must be TRUE or FALSE"
+msgstr "'fromLast' muss TRUE oder FALSE sein"
+
 msgid "MARGIN ="
 msgstr "MARGIN ="
 
@@ -653,16 +652,6 @@ msgstr "ungültiges Faktorniveau, NA erzeugt"
 msgid "'%s' is not meaningful for ordered factors"
 msgstr "'%s' ist nicht sinnvoll für geordnete Faktoren"
 
-#, fuzzy
-msgid "'%s' not defined for ordered factors"
-msgstr "'%s' ist nicht sinnvoll für geordnete Faktoren"
-
-#, fuzzy
-msgid ""
-"'%s' is only meaningful for ordered factors if all arguments have the same "
-"level sets"
-msgstr "'%s' ist nicht sinnvoll für geordnete Faktoren"
-
 msgid "no files to copy from"
 msgstr "keine Dateien, um daraus zu kopieren"
 
@@ -672,8 +661,8 @@ msgstr "keine Dateien, um dorthin zu kopieren"
 msgid "more 'from' files than 'to' files"
 msgstr "mehr 'from' Dateien als 'to' Dateien"
 
-msgid "'recursive' will be ignored as 'to' is not a single existing directory"
-msgstr ""
+msgid "'recursive' will be ignored"
+msgstr "'recursive' wird ignoriert"
 
 msgid "file can not be copied both 'from' and 'to'"
 msgstr "Datei kann nicht sowohl 'from' als auch 'to' der Kopie sein"
@@ -684,16 +673,8 @@ msgstr "keine Dateien, um davon zu linken"
 msgid "no files/directory to link to"
 msgstr "keine Dateien/Verzeichnis, um dorthin zu linken"
 
-#, fuzzy
-msgid "no files to link to"
-msgstr "keine Dateien, um davon zu linken"
-
 msgid "'package' must be of length 1"
 msgstr "'package' muss Länge 1 haben"
-
-#, fuzzy
-msgid "no file found"
-msgstr "nicht gefunden"
 
 msgid "'vec' contains NAs"
 msgstr "'vec' enthält NAs"
@@ -894,15 +875,11 @@ msgstr "DLL '%s' nicht gefunden"
 msgid "now dyn.unload(\"%s\") ..."
 msgstr "nun dyn.unload(\"%s\") ..."
 
-msgid "use of 'save' is deprecated"
-msgstr "Benutzung von 'save' ist veraltet."
-
-#, fuzzy
-msgid "save != FALSE is defunct"
-msgstr "'%s' ist nicht mehr gültig."
-
 msgid "Loading required package: %s"
 msgstr "Lade nötiges Paket: %s"
+
+msgid "use of 'save' is deprecated"
+msgstr "Benutzung von 'save' ist veraltet."
 
 msgid "none of the packages are loaded"
 msgstr "keines der Pakete ist geladen"
@@ -915,8 +892,8 @@ msgstr ""
 "nutze das aus '%s'"
 
 msgid ""
-"Further information is available in the following vignettes in directory "
-"'%s':"
+"Further information is available in the following vignettes in directory '%"
+"s':"
 msgstr ""
 "Weitere Information ist erhältlich in den folgenden Vignetten im Verzeichnis "
 "'%s':"
@@ -1153,6 +1130,15 @@ msgid "name space %s is imported by %s so cannot be unloaded"
 msgstr ""
 "Namensraum %s ist importiert von %s und kann deshalb nicht entladen werden"
 
+msgid "imperative name space directives are disabled"
+msgstr "imperative Namensraumdirektiven sind ausgeschaltet"
+
+msgid "all objects in base name space are currently exported."
+msgstr "Alle Objekte im Basisnamensraum sind im Moment exportiert."
+
+msgid "can only export from a name space"
+msgstr "kann nur aus einem Namensraum exportieren"
+
 msgid "not a name space"
 msgstr "kein Namensraum"
 
@@ -1305,13 +1291,6 @@ msgstr "Länge von 'scale' muss mit der Spaltenanzahl von 'x' übereinstimmen"
 msgid "either specify 'nmax' or 'n', but not both."
 msgstr "entweder 'nmax' oder 'n' angeben, aber nicht beide"
 
-#, fuzzy
-msgid "argument 'length.out' must be of length 1"
-msgstr "'length.out' muss Länge 1 haben"
-
-msgid "first element used of 'length.out' argument"
-msgstr ""
-
 msgid "invalid (to - from)/by in seq(.)"
 msgstr "ungültiges (to - from)/by in seq(.)"
 
@@ -1326,9 +1305,6 @@ msgstr "Länge muss eine nicht negative Zahl sein"
 
 msgid "too many arguments"
 msgstr "zu viele Argumente"
-
-msgid "'compress' is ignored unless 'file' is a file name"
-msgstr ""
 
 msgid "'connection' must be a connection"
 msgstr "'connection' muss eine Verbindung sein"
@@ -1475,9 +1451,6 @@ msgstr "nichts zu tabellarisieren"
 
 msgid "all arguments must have the same length"
 msgstr "alle Argumente müssen die selbe Länge haben"
-
-msgid "attempt to make a table with >= 2^31 elements"
-msgstr ""
 
 msgid "'object' must inherit from class \"table\""
 msgstr "'object' muss von der Klasse \"table\" erben"
@@ -1679,21 +1652,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Warnmeldung:\n"
 msgstr[1] "Warnmeldungen:\n"
-
-#~ msgid "'recursive' will be ignored"
-#~ msgstr "'recursive' wird ignoriert"
-
-#~ msgid "imperative name space directives are disabled"
-#~ msgstr "imperative Namensraumdirektiven sind ausgeschaltet"
-
-#~ msgid "all objects in base name space are currently exported."
-#~ msgstr "Alle Objekte im Basisnamensraum sind im Moment exportiert."
-
-#~ msgid "can only export from a name space"
-#~ msgstr "kann nur aus einem Namensraum exportieren"
-
-#~ msgid "'fromLast' must be TRUE or FALSE"
-#~ msgstr "'fromLast' muss TRUE oder FALSE sein"
 
 #~ msgid "shared library '%s' not found"
 #~ msgstr "shared library '%s' nicht gefunden"

@@ -135,10 +135,10 @@ R_common_command_line(int *pac, char **argv, Rstart Rp)
 	    else if (!strcmp(*av, "--vanilla")) {
 		Rp->SaveAction = SA_NOSAVE; /* --no-save */
 		Rp->RestoreAction = SA_NORESTORE; /* --no-restore */
-		R_RestoreHistory = 0;     // --no-restore-history (= part of --no-restore)
 		Rp->LoadSiteFile = FALSE; /* --no-site-file */
 		Rp->LoadInitFile = FALSE; /* --no-init-file */
-		Rp->NoRenviron = TRUE;    // --no-environ
+		R_RestoreHistory = 0;     /* --no-restore-history */
+		Rp->NoRenviron = TRUE;
 #ifdef Win32
 		R_LoadRconsole = FALSE;
 #endif

@@ -34,12 +34,28 @@ function(x)
 {
     ## Turn a possibly relative file path absolute, performing tilde
     ## expansion if necessary.
+    ## Seems the only way we can do this is 'temporarily' change the
+    ## working dir and see where this takes us.
     if(length(x) != 1L)
         stop("'x' must be a single character string")
     if(!file.exists(epath <- path.expand(x)))
         stop(gettextf("file '%s' does not exist", x),
              domain = NA)
-    normalizePath(epath, "/", TRUE)
+    cwd <- getwd()
+    if (is.null(cwd))
+        stop("current working directory cannot be ascertained")
+    on.exit(setwd(cwd))
+    if(file_test("-d", epath)) {
+        ## Combining dirname and basename does not work for e.g. '.' or
+        ## '..' on Unix ...
+        setwd(epath)
+        getwd() # might be NULL, but very unlikely if setwd succeeded
+    }
+    else {
+        setwd(dirname(epath))
+        ## getwd() can be "/" or "d:/"
+        file.path(sub("/$", "", getwd()), basename(epath))
+    }
 }
 
 ### ** file_path_sans_ext
@@ -207,7 +223,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 
     ## Run texi2dvi on a latex file, or emulate it.
 
-    if(is.null(texi2dvi) || !nzchar(texi2dvi) || texi2dvi == "texi2dvi")
+    if(is.null(texi2dvi) || !nzchar(texi2dvi))
         texi2dvi <- Sys.which("texi2dvi")
 
     envSep <- .Platform$path.sep
@@ -385,9 +401,6 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
         idxfile <- paste(base, ".idx", sep="")
         latex <- if(pdf) Sys.getenv("PDFLATEX", "pdflatex")
         else  Sys.getenv("LATEX", "latex")
-        if(!nzchar(Sys.which(latex)))
-            stop(if(pdf) "pdflatex" else "latex", " is not available",
-                 domain = NA)
         bibtex <- Sys.getenv("BIBTEX", "bibtex")
         makeindex <- Sys.getenv("MAKEINDEX", "makeindex")
         if(system(paste(shQuote(latex), "-interaction=nonstopmode", texfile)))
@@ -422,24 +435,10 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 ### ** .BioC_version_associated_with_R_version
 
 .BioC_version_associated_with_R_version <-
-    numeric_version("2.8")
+    numeric_version("2.7")
 ## (Could also use something programmatically mapping (R) 2.10.x to
 ## (BioC) 2.5, 2.9.x to 2.4, ..., 2.1.x to 1.6, but what if R 3.0.0
 ## comes out? Also, pre-2.12.0 is out weeks before all of BioC 2.7)
-## E.g. pre-2.13.0 was out ca Sept 20, BioC 2.8 was ready Nov 17.
-
-### ** .vc_dir_names
-
-## Version control directory names: CVS, .svn (Subversion), .arch-ids
-## (arch), .bzr, .git and .hg (mercurial).
-
-.vc_dir_names <-
-    c("CVS", ".svn", ".arch-ids", ".bzr", ".git", ".hg")
-
-## and RE version (beware of the need for escapes if amending)
-
-.vc_dir_names_re <-
-    "/(CVS|\\.svn|\\.arch-ids|\\.bzr|\\.git|\\.hg)(/|$)"
 
 ### * Internal utility functions.
 
@@ -479,21 +478,6 @@ function() {
 ##   .R_top_srcdir <- .R_top_srcdir_from_Rd()
 ## does not work because when tools is installed there are no Rd pages
 ## yet ...
-
-### ** config_val_to_logical
-
-config_val_to_logical <-
-function(val) {
-    v <- tolower(val)
-    if (v %in% c("1", "yes", "true")) TRUE
-    else if (v %in% c("0", "no", "false")) FALSE
-    else {
-        warning("cannot coerce ", sQuote(val), " to logical")
-        NA
-    }
-}
-
-
 
 ### ** .eval_with_capture
 
@@ -637,7 +621,7 @@ function(primitive = TRUE) # primitive means 'include primitives'
           ## groupGeneric.Rd.
           )
     if(!primitive)
-        out <- out[!vapply(out, .is_primitive_in_base, NA)]
+        out <- out[!sapply(out, .is_primitive_in_base)]
     out
 }
 
@@ -870,8 +854,9 @@ function(x)
 {
     ## Determine whether the strings in a character vector are ASCII or
     ## not.
-    vapply(as.character(x), function(txt)
-           all(charToRaw(txt) <= as.raw(127)), NA)
+    as.logical(sapply(as.character(x),
+                      function(txt)
+                      all(charToRaw(txt) <= as.raw(127))))
 }
 
 ### ** .is_ISO_8859
@@ -883,10 +868,11 @@ function(x)
     ## some ISO 8859 character set or not.
     raw_ub <- charToRaw("\x7f")
     raw_lb <- charToRaw("\xa0")
-    vapply(as.character(x), function(txt) {
-	    raw <- charToRaw(txt)
-	    all(raw <= raw_ub | raw >= raw_lb)
-	}, NA)
+    as.logical(sapply(as.character(x),
+                      function(txt) {
+                          raw <- charToRaw(txt)
+                          all(raw <= raw_ub | raw >= raw_lb)
+                      }))
 }
 
 ### ** .is_primitive_in_base
@@ -956,31 +942,6 @@ function(fname, envir, mustMatch = TRUE)
     if(mustMatch) res == fname else nzchar(res)
 }
 
-### ** .list_dirs
-
-## Should have base::list.dirs eventually ...
-
-.list_dirs <-
-function(path = ".", full.names = FALSE, recursive = FALSE)
-{
-    ## Always find all directories for now.
-
-    ## Note that list.files(recursive = TRUE) excludes directories.
-    files <- list.files(path, all.files = TRUE)
-    dirs <- files[file_test("-d", file.path(path, files))]
-    if(recursive) # this misses empty dirs
-        dirs <- unique(c(dirs,
-                         dirname(list.files(path, all.files = TRUE,
-                                            recursive = TRUE))))
-    ## <FIXME>
-    ## What should we do about "." and ".."?
-    dirs <- dirs %w/o% c(".", "..")
-    ## </FIXME>
-    if(full.names)
-        dirs <- file.path(path, dirs)
-    dirs
-}
-
 ### ** .load_package_quietly
 
 .load_package_quietly <-
@@ -1039,7 +1000,7 @@ function(parent = parent.frame())
 {
     ## Create an environment with pseudo-definitions for the S3 group
     ## methods.
-    env <- new.env(parent = parent) # small
+    env <- new.env(parent = parent)
     assign("Math", function(x, ...) UseMethod("Math"),
            envir = env)
     assign("Ops", function(e1, e2) UseMethod("Ops"),
@@ -1058,7 +1019,7 @@ function(parent = parent.frame(), fixup = FALSE)
 {
     ## Create an environment with pseudo-definitions for the S3 primitive
     ## generics
-    env <- new.env(hash = TRUE, parent = parent)
+    env <- new.env(parent = parent)
     for(f in ls(base::.GenericArgsEnv))
         assign(f, get(f, envir=base::.GenericArgsEnv), envir = env)
     if(fixup) {
@@ -1080,7 +1041,7 @@ function(parent = parent.frame())
 {
     ## Create an environment with pseudo-definitions
     ## for the S3 primitive non-generics
-    env <- new.env(hash = TRUE, parent = parent)
+    env <- new.env(parent = parent)
     for(f in ls(base::.ArgsEnv))
         assign(f, get(f, envir=base::.ArgsEnv), envir = env)
     env
@@ -1242,7 +1203,9 @@ function(file)
     db <- utils::read.delim(file, header = TRUE, comment.char = "#",
                             colClasses =
                             c(rep.int("character", 3L),
-                              rep.int("logical", 4L))) # allow for win64.binary
+                              rep.int("logical", 4L)))
+    if("win64.binary" %in% names(db))
+        db[["win64.binary"]] <- as.logical(db[["win64.binary"]])
     db[, "URL"] <- .expand_BioC_repository_URLs(db[, "URL"])
     db
 }

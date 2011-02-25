@@ -164,15 +164,15 @@ function(x, file = "", append = FALSE,
         else {
             ## Should be a list ...
             nmxj <- nmx[j]
-            i <- !vapply(xj, function(s) (length(s) == 1L) && is.na(s), NA)
+            i <- !sapply(xj, function(s) (length(s) == 1L) && is.na(s))
             out[i, j] <-
-		vapply(xj[i],
+                sapply(xj[i],
                        function(s) {
                            s <- formatDL(rep.int(nmxj, length(s)), s,
                                          style = "list", width = width,
                                          indent = indent)
                            paste(escape_paragraphs(s), collapse = "\n")
-		       }, "")
+                       })
         }
     }
     out <- t(out)

@@ -42,8 +42,6 @@
 \alias{duplicated.POSIXlt}
 \alias{unique.POSIXlt}
 \alias{split.POSIXct}
-\alias{names.POSIXlt}
-\alias{names<-.POSIXlt}
 
 \alias{date-time} % linked to in difftime.Rd
 

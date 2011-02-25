@@ -22,7 +22,7 @@ attach <- function(what, pos = 2, name = deparse(substitute(what)),
         dont.mind <- c("last.dump", "last.warning", ".Last.value",
                        ".Random.seed", ".First.lib", ".Last.lib",
                        ".packageName", ".noGenerics", ".required",
-                       ".no_S3_generics", ".requireCachedGenerics")
+                       ".no_S3_generics")
         sp <- search()
         for (i in seq_along(sp)) {
             if (identical(env, as.environment(i))) {

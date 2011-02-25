@@ -2270,7 +2270,8 @@ static Rboolean X11_Locator(double *x, double *y, pDevDesc dd)
 	    ddEvent = (pDevDesc) temp;
 	    if (ddEvent == dd) {
 		if (event.xbutton.button == Button1) {
-		    int useBeep = asLogical(GetOption1(install("locatorBell")));
+		    int useBeep = asLogical(GetOption(install("locatorBell"),
+						      R_BaseEnv));
 		    *x = event.xbutton.x;
 		    *y = event.xbutton.y;
 		       /* Make a beep! Was print "\07", but that

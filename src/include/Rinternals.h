@@ -101,10 +101,6 @@ typedef unsigned int SEXPTYPE;
 #define RAWSXP      24    /* raw bytes */
 #define S4SXP       25    /* S4, non-vector */
 
-/* used for detecting PROTECT issues in memory.c */
-#define NEWSXP      30    /* fresh node creaed in new page */
-#define FREESXP     31    /* node released by GC */
-
 #define FUNSXP      99    /* Closure or Builtin or Special */
 
 
@@ -135,9 +131,6 @@ typedef enum {
     WEAKREFSXP	= 23,	/* weak reference */
     RAWSXP	= 24,	/* raw bytes */
     S4SXP	= 25,	/* S4 non-vector */
-
-    NEWSXP      = 30,   /* fresh node creaed in new page */
-    FREESXP     = 31,   /* node released by GC */
 
     FUNSXP	= 99	/* Closure or Builtin */
 } SEXPTYPE;
@@ -545,10 +538,6 @@ LibExtern SEXP	R_SeedsSymbol;	    /* ".Random.seed" */
 LibExtern SEXP	R_SourceSymbol;     /* "source" */
 LibExtern SEXP	R_TspSymbol;	    /* "tsp" */
 
-LibExtern SEXP  R_dot_defined;      /* ".defined" */
-LibExtern SEXP  R_dot_Method;       /* ".Method" */
-LibExtern SEXP  R_dot_target;       /* ".target" */
-
 /* Missing Values - others from Arith.h */
 #define NA_STRING	R_NaString
 LibExtern SEXP	R_NaString;	    /* NA_STRING as a CHARSXP */
@@ -585,6 +574,10 @@ int  Rf_any_duplicated3(SEXP x, SEXP incomp, Rboolean from_last);
 SEXP Rf_applyClosure(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP Rf_arraySubscript(int, SEXP, SEXP, SEXP (*)(SEXP,SEXP),
                        SEXP (*)(SEXP, int), SEXP);
+Rcomplex Rf_asComplex(SEXP);
+int Rf_asInteger(SEXP);
+int Rf_asLogical(SEXP);
+double Rf_asReal(SEXP);
 SEXP Rf_classgets(SEXP, SEXP);
 SEXP Rf_cons(SEXP, SEXP);
 Rboolean R_compute_identical(SEXP, SEXP, Rboolean num_eq,
@@ -609,10 +602,9 @@ SEXP Rf_getAttrib(SEXP, SEXP);
 SEXP Rf_GetArrayDimnames(SEXP);
 SEXP Rf_GetColNames(SEXP);
 void Rf_GetMatrixDimnames(SEXP, SEXP*, SEXP*, const char**, const char**);
-SEXP Rf_GetOption(SEXP, SEXP); /* pre-2.13.0 compatibility */
-SEXP Rf_GetOption1(SEXP);
-int Rf_GetOptionDigits(void);
-int Rf_GetOptionWidth(void);
+SEXP Rf_GetOption(SEXP, SEXP);
+int Rf_GetOptionDigits(SEXP);
+int Rf_GetOptionWidth(SEXP);
 SEXP Rf_GetRowNames(SEXP);
 void Rf_gsetVar(SEXP, SEXP, SEXP);
 SEXP Rf_install(const char *);
@@ -653,7 +645,6 @@ void R_ProtectWithIndex(SEXP, PROTECT_INDEX *);
 void R_Reprotect(SEXP, PROTECT_INDEX);
 SEXP R_tryEval(SEXP, SEXP, int *);
 SEXP R_tryEvalSilent(SEXP, SEXP, int *);
-const char *R_curErrorBuf();
 
 Rboolean Rf_isS4(SEXP);
 SEXP Rf_asS4(SEXP, Rboolean, int);
@@ -827,11 +818,10 @@ SEXP R_do_slot(SEXP obj, SEXP name);
 SEXP R_do_slot_assign(SEXP obj, SEXP name, SEXP value);
 int R_has_slot(SEXP obj, SEXP name);
 
-// class definition, new objects -- in ../main/objects.c :
+/* class definition, new objects */
 SEXP R_do_MAKE_CLASS(const char *what);
 SEXP R_getClassDef  (const char *what);
 SEXP R_do_new_object(SEXP class_def);
-int R_check_class_and_super(SEXP x, const char **valid, SEXP rho);
 
 /* preserve objects across GCs */
 void R_PreserveObject(SEXP);
@@ -894,10 +884,9 @@ int R_system(const char *);
 #define getCharCE		Rf_getCharCE
 #define GetColNames		Rf_GetColNames
 #define GetMatrixDimnames	Rf_GetMatrixDimnames
-#define GetOption1		Rf_GetOption1
+#define GetOption		Rf_GetOption
 #define GetOptionDigits		Rf_GetOptionDigits
 #define GetOptionWidth		Rf_GetOptionWidth
-#define GetOption		Rf_GetOption
 #define GetRowNames		Rf_GetRowNames
 #define gsetVar			Rf_gsetVar
 #define inherits		Rf_inherits

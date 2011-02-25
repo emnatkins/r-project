@@ -103,7 +103,7 @@ function (clName, filename = NULL, type = "class",
     .name <- paste0("\\name{", fullName, "}")
     .type <- paste0("\\docType{", type, "}")
     .alias <- paste0("\\alias{", fullName, "}")
-    .title <- sprintf("\\title{Class \\code{\"%s\"}}", clName)
+    .title <- paste0("\\title{Class \"", clName, "\"}")
     .desc <- paste0("\\description{",
                     "\n%%  ~~ A concise (1-5 lines) description of what the class is. ~~",
                     "\n}")

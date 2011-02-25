@@ -7,15 +7,14 @@ SOURCES = adler32.c compress.c crc32.c deflate.c gzio.c infback.c \
   inffast.c inflate.c inftrees.c trees.c uncompr.c zutil.c
 OBJECTS = $(SOURCES:.c=.o)
 
-CPPFLAGS=-I../../include -DHAVE_CONFIG_H
+CFLAGS=-I../../include -DHAVE_CONFIG_H $(OPTFLAGS)
 
 # libz.a: $(OBJECTS)
 
 DLL: Rzlib.dll
 	@cp Rzlib.dll ../../../$(BINDIR)
 
-Rzlib.dll: $(OBJECTS) Rzlib.def
-	$(DLL) -shared $(DLLFLAGS) -o $@ Rzlib.def $(OBJECTS)
+Rzlib.dll: $(OBJECTS)
 
 ifdef USE_IMPLIBS
 implib: libRzlib.dll.a
@@ -27,11 +26,15 @@ endif
 
 libRzlib.dll.a: Rzlib.def
 
+Rzlib.def: $(OBJECTS)
+	@$(ECHO) EXPORTS > $@
+	@$(NM) $^ | $(SED) -n $(SYMPAT) | $(SORT) | uniq >> $@
+
 headers:
 	@$(CP) -p zlib.h zconf.h ../../../include
 
 clean:
-	@$(RM) *.o *~ *.d Makedeps
+	@$(RM) *.o *~ *.d Makedeps Rzlib.def
 distclean: clean
 	@$(RM) libz.a Rzlib.dll libRzlib.dll.a
 

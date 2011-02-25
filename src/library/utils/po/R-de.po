@@ -7,11 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-01-28 18:12\n"
-"PO-Revision-Date: 2011-01-18 13:55+0000\n"
+"POT-Creation-Date: 2010-08-17 16:04\n"
+"PO-Revision-Date: 2010-09-22 15:29+0200\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R Core <r-core@r-project.org>\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -418,8 +417,8 @@ msgstr "Neu-Erzeugung der help.search() Datenbank"
 msgid "..."
 msgstr "..."
 
-msgid "Packages {readRDS() sequentially}:"
-msgstr "Pakete {readRDS() sequentiell}:"
+msgid "Packages {.readRDS() sequentially}:"
+msgstr "Pakete {.readRDS() sequentiell}:"
 
 msgid "."
 msgstr "."
@@ -458,33 +457,6 @@ msgstr "falsche 'agrep' Spezifikation"
 msgid "matched %d objects."
 msgstr "%d übereinstimmenden Objekte."
 
-msgid "invalid browser name, check options(\"browser\")."
-msgstr "ungültiger Browsername, überprüfen Sie options(\"browser\")."
-
-msgid "help.start() requires the HTTP server to be running"
-msgstr "help.start() benötigt den laufenden HTTP Server"
-
-msgid ""
-"If nothing happens, you should open\n"
-"'%s' yourself"
-msgstr "Wenn nichts passiert, sollten Sie '%s' selbst öffnen"
-
-msgid ""
-"If the browser launched by '%s' is already running, it is *not* restarted, "
-"and you must switch to its window."
-msgstr ""
-"Wenn der Browser '%s' bereits ausgeführt wird, wird er nicht neu gestartet, "
-"sondern Sie müssen in sein Fenster wechseln"
-
-msgid "Otherwise, be patient ..."
-msgstr "Ansonsten: Geduld ..."
-
-msgid "'url' must be a non-empty character string"
-msgstr "'url' muss eine nicht-leere Zeichenkette sein"
-
-msgid "'browser' must be a non-empty character string"
-msgstr "'browser' muss eine nicht-leere Zeichenkette sein"
-
 msgid "no package '%s' was found"
 msgstr "kein Paket '%s' gefunden"
 
@@ -505,13 +477,6 @@ msgstr "Paket"
 
 msgid "not found"
 msgstr " nicht gefunden"
-
-msgid "cannot update HTML package index"
-msgstr "kann HTML Paketindex nicht aktualisieren"
-
-#, fuzzy
-msgid "Making packages.html  ..."
-msgstr "Erzeuge packages.html"
 
 msgid "menu() cannot be used non-interactively"
 msgstr "menu() kann nicht nicht-interaktiv genutzt werden"
@@ -628,15 +593,11 @@ msgstr "missgestaltete 'instPkgs' Matrix"
 msgid "no installed packages for (invalid?) 'lib.loc=%s'"
 msgstr "keine installierten Pakete für (falsche?) 'lib.loc=%s'"
 
-#, fuzzy
-msgid "metadata of '%s' is corrupt"
-msgstr "Metadaten für Paket '%s' sind korrumpiert"
+msgid "read.dcf() error on file '%s'"
+msgstr "Fehler in read.dcf() bei Datei '%s'"
 
 msgid "'priority' must be character or NULL"
 msgstr "'priority' muss ein Zeichen oder NULL sein"
-
-msgid "Updating HTML index of packages in '.Library'"
-msgstr "Aktualisiere HTML Index der Pakete in '.Library'"
 
 msgid ""
 "Removing package(s) from %s\n"
@@ -962,10 +923,6 @@ msgstr "keine Ereignisse aufgezeichnet"
 msgid "'compressed' must be logical or character"
 msgstr "'commpressed' muss Boole'sch oder ein Charakter sein"
 
-#, fuzzy
-msgid "failed to create directory %s"
-msgstr "kann temporäres Verzeichnis '%s' nicht erzeugen"
-
 msgid "invalid octal digit"
 msgstr "unzulässige Oktalziffer"
 
@@ -977,10 +934,6 @@ msgstr "unvollständiger Block in Datei"
 
 msgid "checksum error for entry '%s'"
 msgstr "Checksummenfehler für Eintrag '%s'"
-
-#, fuzzy
-msgid "failed to copy %s to %s"
-msgstr "Erzeugen von '%s' fehlgeschlagen"
 
 msgid "unsupported entry type"
 msgstr "nicht unterstützter Eintragstyp"
@@ -1046,10 +999,6 @@ msgstr "Versuch ignoriert '%s' zu setzen"
 msgid "'unzip' must be a single character string"
 msgstr "'unzip' muss ein einzelne Zeichenkette sein"
 
-#, fuzzy
-msgid "'files' must a character vector specifying one or more filepaths"
-msgstr "'list' muss ein Charaktervektor sein, mit Namen von R Objekten"
-
 msgid "'subject' missing"
 msgstr "'subject' fehlt"
 
@@ -1071,6 +1020,34 @@ msgstr "Erzeugung von '%s' fehlgeschlagen"
 msgid "Saving help page to"
 msgstr "Sichere Hilfeseiten nach"
 
+msgid "invalid browser name, check options(\"browser\")."
+msgstr "ungültiger Browsername, überprüfen Sie options(\"browser\")."
+
+msgid "help.start() requires the HTTP server to be running"
+msgstr "help.start() benötigt den laufenden HTTP Server"
+
+msgid ""
+"If the browser launched by '%s' is already running, it is *not* restarted, "
+"and you must switch to its window."
+msgstr ""
+"Wenn der Browser '%s' bereits ausgeführt wird, wird er nicht neu gestartet, "
+"sondern Sie müssen in sein Fenster wechseln"
+
+msgid "Otherwise, be patient ..."
+msgstr "Ansonsten: Geduld ..."
+
+msgid "'url' must be a non-empty character string"
+msgstr "'url' muss eine nicht-leere Zeichenkette sein"
+
+msgid "'browser' must be a non-empty character string"
+msgstr "'browser' muss eine nicht-leere Zeichenkette sein"
+
+msgid "Making packages.html"
+msgstr "Erzeuge packages.html"
+
+msgid "Updating HTML index of packages in '.Library'"
+msgstr "Aktualisiere HTML Index der Pakete in '.Library'"
+
 msgid "'tar' returned non-zero exit code %d"
 msgstr "'tar' hatte Exit-Status ungleich 0"
 
@@ -1089,32 +1066,28 @@ msgstr "'memory.size()' ist spezifisch für Windows"
 msgid "'memory.limit()' is Windows-specific"
 msgstr "'memory.limit()' ist spezifisch für Windows"
 
-msgid "zipfile '%s' not found"
-msgstr "Zipfile '%s' nicht gefunden"
+msgid ""
+"If nothing happens, you should open\n"
+"'%s' yourself"
+msgstr "Wenn nichts passiert, sollten Sie '%s' selbst öffnen"
 
 msgid "failed to create '%s'"
 msgstr "Erzeugen von '%s' fehlgeschlagen"
-
-msgid "ERROR: failed to lock directory"
-msgstr ""
-
-msgid ""
-"for modifying\n"
-"Try removing"
-msgstr ""
-
-#, fuzzy
-msgid "ERROR: failed to create lock directory"
-msgstr "kann temporäres Verzeichnis '%s' nicht erzeugen"
-
-msgid "restored '%s'"
-msgstr ""
 
 msgid "there is no 'libs' directory in package '%s'"
 msgstr "kein 'libs' Verzeichnis in paket '%s'"
 
 msgid "cannot remove prior installation of package '%s'"
 msgstr "kann alte Installation von Paket '%s' nicht entfernen"
+
+msgid "zipfile '%s' not found"
+msgstr "Zipfile '%s' nicht gefunden"
+
+msgid "updating HTML package descriptions"
+msgstr "aktualisiere HTML Paketbeschreibungen"
+
+msgid "cannot update HTML package index"
+msgstr "kann HTML Paketindex nicht aktualisieren"
 
 msgid "winDialog() cannot be used non-interactively"
 msgstr "winDialog() kann nicht nicht-interaktiv genutzt werden"
@@ -1135,9 +1108,8 @@ msgid_plural "objects '%s' not found"
 msgstr[0] "Objekt '%s' nicht gefunden"
 msgstr[1] "Objekte '%s' nicht gefunden"
 
-#, fuzzy
-msgid "package %s is not available (for %s)"
-msgid_plural "packages %s are not available (for %s)"
+msgid "package %s is not available"
+msgid_plural "packages %s are not available"
 msgstr[0] "Paket %s ist nicht verfügbar"
 msgstr[1] "Pakete %s sind nicht verfügbar"
 
@@ -1160,12 +1132,6 @@ msgid "package '%s' is in use and will not be installed"
 msgid_plural "packages '%s' are in use and will not be installed"
 msgstr[0] "Paket '%s' wird gerade benutzt und deshab nicht installiert"
 msgstr[1] "Pakete '%s' werden gerade bennutzt und deshalb nicht installiert"
-
-#~ msgid "updating HTML package descriptions"
-#~ msgstr "aktualisiere HTML Paketbeschreibungen"
-
-#~ msgid "read.dcf() error on file '%s'"
-#~ msgstr "Fehler in read.dcf() bei Datei '%s'"
 
 #~ msgid "Could not find aspell or ispell executable."
 #~ msgstr "Konnte weder aspell noch ispell finden"

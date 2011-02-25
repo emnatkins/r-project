@@ -185,7 +185,7 @@ glm.fit <-
         residuals <- (y - mu)/mu.eta(eta)
         good <- rep(TRUE, length(residuals))
         boundary <- conv <- TRUE
-        coef <- numeric()
+        coef <- numeric(0L)
         iter <- 0L
     } else {
         coefold <- NULL

@@ -22,16 +22,15 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.13.0\n"
+"Project-Id-Version: R 2.12.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-01-28 18:12\n"
-"PO-Revision-Date: 2011-01-28 18:12\n"
+"POT-Creation-Date: 2011-01-03 16:13\n"
+"PO-Revision-Date: 2011-01-03 16:13\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "empty model supplied"
@@ -474,8 +473,8 @@ msgstr "distances must be result of ‘dist’ or a square matrix"
 msgid "'k' must be in {1, 2, ..  n - 1}"
 msgstr "‘k’ must be in {1, 2, ..  n - 1}"
 
-msgid "only %d of the first %d eigenvalues are > 0"
-msgstr "only %d of the first %d eigenvalues are > 0"
+msgid "some of the first %d eigenvalues are < 0"
+msgstr "some of the first %d eigenvalues are < 0"
 
 msgid "initial value is not in the interior of the feasible region"
 msgstr "initial value is not in the interior of the feasible region"
@@ -620,6 +619,9 @@ msgstr "elements of ‘k’ must be between 1 and %d"
 msgid "'merge' and 'height' do not fit!"
 msgstr "‘merge’ and ‘height’ do not fit!"
 
+msgid "we require a dendrogram"
+msgstr "we require a dendrogram"
+
 msgid "dendrogram node with non-positive #{branches}"
 msgstr "dendrogram node with non-positive #{branches}"
 
@@ -632,17 +634,11 @@ msgstr "non-leaf subtree of length 0"
 msgid "'order.dendrogram' requires a dendrogram"
 msgstr "‘order.dendrogram’ requires a dendrogram"
 
-msgid "we require a dendrogram"
-msgstr "we require a dendrogram"
-
 msgid "invalid (length 0) node in dendrogram"
 msgstr "invalid (length 0) node in dendrogram"
 
 msgid "dendrogram non-leaf node with non-positive #{branches}"
 msgstr "dendrogram non-leaf node with non-positive #{branches}"
-
-msgid "'height' must be at least %g, the maximal height of its components"
-msgstr "‘height’ must be at least %g, the maximal height of its components"
 
 msgid "'X' is not a dendrogram"
 msgstr "‘X’ is not a dendrogram"
@@ -1520,8 +1516,8 @@ msgstr "eff.aovlist: non-orthogonal contrasts would give an incorrect answer"
 msgid "cannot create a formula from a zero-column data frame"
 msgstr "cannot create a formula from a zero-column data frame"
 
-msgid "no terms component nor attribute"
-msgstr "no terms component nor attribute"
+msgid "no terms component"
+msgstr "no terms component"
 
 msgid "'termlabels' must be a character vector of length at least one"
 msgstr "‘termlabels’ must be a character vector of length at least one"
@@ -2348,11 +2344,6 @@ msgid "there are %d Error terms: only 1 is allowed"
 msgid_plural "there are %d Error terms: only 1 is allowed"
 msgstr[0] "there are %d Error terms: only 1 is allowed"
 msgstr[1] "there are %d Error terms: only 1 is allowed"
-
-msgid "extra argument %s is not a \"%s\""
-msgid_plural "extra arguments %s are not \"%s\"s"
-msgstr[0] "extra argument %s is not a “%s”"
-msgstr[1] "extra arguments %s are not “%s”s"
 
 msgid "%d observation deleted due to missingness"
 msgid_plural "%d observations deleted due to missingness"

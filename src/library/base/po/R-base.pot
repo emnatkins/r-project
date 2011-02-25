@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.13.0\n"
+"Project-Id-Version: R 2.12.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-02-18 12:36\n"
+"POT-Creation-Date: 2011-01-03 16:13\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -78,9 +78,6 @@ msgid "Buggy version of Kinderman-Ramage generator is not allowed"
 msgstr ""
 
 msgid "malformed version string"
-msgstr ""
-
-msgid "target is %s, current is %s"
 msgstr ""
 
 msgid "dim(X) must have a positive length"
@@ -545,6 +542,9 @@ msgstr ""
 msgid "replacement diagonal has wrong length"
 msgstr ""
 
+msgid "'fromLast' must be TRUE or FALSE"
+msgstr ""
+
 msgid "MARGIN ="
 msgstr ""
 
@@ -608,12 +608,6 @@ msgstr ""
 msgid "'%s' is not meaningful for ordered factors"
 msgstr ""
 
-msgid "'%s' not defined for ordered factors"
-msgstr ""
-
-msgid "'%s' is only meaningful for ordered factors if all arguments have the same level sets"
-msgstr ""
-
 msgid "no files to copy from"
 msgstr ""
 
@@ -623,7 +617,7 @@ msgstr ""
 msgid "more 'from' files than 'to' files"
 msgstr ""
 
-msgid "'recursive' will be ignored as 'to' is not a single existing directory"
+msgid "'recursive' will be ignored"
 msgstr ""
 
 msgid "file can not be copied both 'from' and 'to'"
@@ -635,13 +629,7 @@ msgstr ""
 msgid "no files/directory to link to"
 msgstr ""
 
-msgid "no files to link to"
-msgstr ""
-
 msgid "'package' must be of length 1"
-msgstr ""
-
-msgid "no file found"
 msgstr ""
 
 msgid "'vec' contains NAs"
@@ -830,13 +818,10 @@ msgstr ""
 msgid "now dyn.unload(\"%s\") ..."
 msgstr ""
 
-msgid "use of 'save' is deprecated"
-msgstr ""
-
-msgid "save != FALSE is defunct"
-msgstr ""
-
 msgid "Loading required package: %s"
+msgstr ""
+
+msgid "use of 'save' is deprecated"
 msgstr ""
 
 msgid "none of the packages are loaded"
@@ -1061,6 +1046,15 @@ msgstr ""
 msgid "name space %s is imported by %s so cannot be unloaded"
 msgstr ""
 
+msgid "imperative name space directives are disabled"
+msgstr ""
+
+msgid "all objects in base name space are currently exported."
+msgstr ""
+
+msgid "can only export from a name space"
+msgstr ""
+
 msgid "not a name space"
 msgstr ""
 
@@ -1211,12 +1205,6 @@ msgstr ""
 msgid "either specify 'nmax' or 'n', but not both."
 msgstr ""
 
-msgid "argument 'length.out' must be of length 1"
-msgstr ""
-
-msgid "first element used of 'length.out' argument"
-msgstr ""
-
 msgid "invalid (to - from)/by in seq(.)"
 msgstr ""
 
@@ -1230,9 +1218,6 @@ msgid "length must be non-negative number"
 msgstr ""
 
 msgid "too many arguments"
-msgstr ""
-
-msgid "'compress' is ignored unless 'file' is a file name"
 msgstr ""
 
 msgid "'connection' must be a connection"
@@ -1371,9 +1356,6 @@ msgid "nothing to tabulate"
 msgstr ""
 
 msgid "all arguments must have the same length"
-msgstr ""
-
-msgid "attempt to make a table with >= 2^31 elements"
 msgstr ""
 
 msgid "'object' must inherit from class \"table\""

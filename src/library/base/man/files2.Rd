@@ -9,27 +9,25 @@
 \alias{Sys.umask}
 \concept{directory}
 \concept{mkdir}
-\title{Manipulaton of Directories and File Permissions}
-\description{
-  These functions provide a low-level interface to the computer's
-  file system.
-}
+\title{Manipulation of Directories and File Permissions}
 \usage{
 dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
 Sys.chmod(paths, mode = "0777")
 Sys.umask(mode = "0000")
 }
 \arguments{
-  \item{path}{a character vector containing a single path name.  Tilde
-    expansion (see \code{\link{path.expand}}) is done.}
-  \item{paths}{character vectors containing file or directory paths.  Tilde
-    expansion (see \code{\link{path.expand}}) is done.}
+  \item{path}{a character vector containing a single path name.}
+  \item{paths}{character vectors containing file or directory paths.}
   \item{showWarnings}{logical; should the warnings on failure be shown?}
   \item{recursive}{logical. Should elements of the path other than the
-    last be created?  If true, like the Unix command \command{mkdir -p}.}
-  \item{mode}{the mode to be used on Unix-alikes: it will be
+    last be created?  If true, like Unix's \command{mkdir -p}.}
+  \item{mode}{the file mode to be used on Unix-alikes: it will be
     coerced by \code{\link{as.octmode}}.  For \code{Sys.chmod} it is
     recycled along \code{paths}.}
+}
+\description{
+  These functions provide a low-level interface to the computer's
+  file system.
 }
 \details{
   \code{dir.create} creates the last element of the path, unless
@@ -67,10 +65,9 @@ Sys.umask(mode = "0000")
   (e.g. versions of NTFS) which are unrelated to this system call.
 #endif
 
-  \code{Sys.umask} sets the \code{umask} and returns the previous value:
-  as a special case \code{mode = NA} just returns the current value.
+  \code{Sys.umask} sets the \code{umask}.
 #ifdef unix
-  It may not be supported (when a warning is issued and \code{"0"}
+  It may not be supported (when a warning is issued and \code{"0000"}
   is returned).  For more details see your OS's documentation on the
   system call \code{umask}, e.g. \command{man 2 umask}.
 #endif
@@ -79,12 +76,7 @@ Sys.umask(mode = "0000")
   executable is not a Windows concept.  So \code{umask} only controls
   whether a file is writable: a setting of \code{"200"} makes files (but
   not directories) created subsequently read-only.
-#endif
-
-  How modes are handled depends on the file system, even on Unix-alikes
-  (although their documentation is often written assuming a POSIX file
-  system).  So treat documentation cautiously if you are using, say, a
-  FAT/FAT32 or network-mounted file system. 
+#endif  
 }
 \value{
   \code{dir.create} and \code{Sys.chmod} return invisibly a logical vector
@@ -103,8 +95,6 @@ Sys.umask(mode = "0000")
   There is no guarantee that these functions will handle Windows
   relative paths of the form \file{d:path}: try \file{d:./path}
   instead.  In particular, \file{d:} is not recognized as a directory.
-  
-  UTF-8-encoded dirnames not valid in the current locale can be used.  
 }
 #endif
 
@@ -115,13 +105,6 @@ Sys.umask(mode = "0000")
   \code{\link{file.info}}, \code{\link{file.exists}}, \code{\link{file.path}},
   \code{\link{list.files}}, \code{\link{unlink}},
   \code{\link{basename}}, \code{\link{path.expand}}.
-}
 
-\examples{\dontrun{
-## Fix up maximal permissions in a file tree, respecting umask
-umask <- Sys.umask(NA)
-Sys.chmod(list.dirs('.'), "777" & !umask)
-f <- list.files('.', all.files = TRUE, full.names = TRUE, recursive =TRUE)
-Sys.chmod(f, (file.info(f)$mode | "664") & !umask)
-}}
+}
 \keyword{file}

@@ -27,8 +27,6 @@ safe_pf <- function(q, df1, ...)
     pf(q=q, df1=df1, ...)
 }
 
-## NB: functions in this file will use the 'stats' S3 generics for
-## nobs(), terms() ....
 
 add1 <- function(object, scope, ...) UseMethod("add1")
 
@@ -48,7 +46,7 @@ add1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
     ans <- matrix(nrow = ns + 1L, ncol = 2L,
                   dimnames = list(c("<none>", scope), c("df", "AIC")))
     ans[1L,  ] <- extractAIC(object, scale, k = k, ...)
-    n0 <- nobs(object, use.fallback = TRUE)
+    n0 <- length(object$residuals)
     env <- environment(formula(object))
     for(i in seq(ns)) {
 	tt <- scope[i]
@@ -60,7 +58,7 @@ add1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
                        evaluate = FALSE)
 	nfit <- eval(nfit, envir=env) # was  eval.parent(nfit)
 	ans[i+1L, ] <- extractAIC(nfit, scale, k = k, ...)
-        if(nobs(nfit, use.fallback = TRUE) != n0)
+        if(length(nfit$residuals) != n0)
             stop("number of rows in use has changed: remove missing values?")
     }
     dfs <- ans[, 1L] - ans[1L, 1L]
@@ -75,16 +73,14 @@ add1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
 	P[nas] <- safe_pchisq(dev[nas], dfs[nas], lower.tail=FALSE)
 	aod[, c("LRT", "Pr(Chi)")] <- list(dev, P)
     }
-    head <- c("Single term additions", "\nModel:", deparse(formula(object)),
+    head <- c("Single term additions", "\nModel:",
+	      deparse(as.vector(formula(object))),
 	      if(scale > 0) paste("\nscale: ", format(scale), "\n"))
     class(aod) <- c("anova", "data.frame")
     attr(aod, "heading") <- head
     aod
 }
 
-##' @title Check for exact fit
-##' @param object an lm object (hence using "$" instead of methods)
-##' @return (unused / nothing explicitly)
 check_exact <- function(object)
 {
     w <- object$weights
@@ -96,8 +92,7 @@ check_exact <- function(object)
         rss <- sum(w * object$residuals^2)
     }
     if(rss < 1e-10*mss)
-	warning("attempting model selection on an essentially perfect fit is nonsense",
-		call. = FALSE)
+        warning("attempting model selection on an essentially perfect fit is nonsense", call. = FALSE)
 }
 
 add1.lm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
@@ -203,7 +198,8 @@ add1.lm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
 	rdf <- object$df.residual
 	aod[, c("F value", "Pr(F)")] <- Fstat(aod, aod$RSS[1L], rdf)
     }
-    head <- c("Single term additions", "\nModel:", deparse(formula(object)),
+    head <- c("Single term additions", "\nModel:",
+	      deparse(as.vector(formula(object))),
 	      if(scale > 0) paste("\nscale: ", format(scale), "\n"))
     class(aod) <- c("anova", "data.frame")
     attr(aod, "heading") <- head
@@ -321,7 +317,8 @@ add1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
 	rdf <- object$df.residual
 	aod[, c("F value", "Pr(F)")] <- Fstat(aod, rdf)
     }
-    head <- c("Single term additions", "\nModel:", deparse(formula(object)),
+    head <- c("Single term additions", "\nModel:",
+	      deparse(as.vector(formula(object))),
 	      if(scale > 0) paste("\nscale: ", format(scale), "\n"))
     class(aod) <- c("anova", "data.frame")
     attr(aod, "heading") <- head
@@ -336,7 +333,7 @@ drop1 <- function(object, scope, ...) UseMethod("drop1")
 drop1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
 			  k = 2, trace = FALSE, ...)
 {
-    tl <- attr(terms(object), "term.labels")
+    tl <- attr(object$terms, "term.labels")
     if(missing(scope)) scope <- drop.scope(object)
     else {
 	if(!is.character(scope))
@@ -344,11 +341,13 @@ drop1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
 	if(!all(match(scope, tl, 0L) > 0L))
 	    stop("scope is not a subset of term labels")
     }
+#    data <- model.frame(object) # remove NAs
+#    object <- update(object, data = data)
     ns <- length(scope)
     ans <- matrix(nrow = ns + 1L, ncol = 2L,
                   dimnames =  list(c("<none>", scope), c("df", "AIC")))
     ans[1, ] <- extractAIC(object, scale, k = k, ...)
-    n0 <- nobs(object, use.fallback = TRUE)
+    n0 <- length(object$residuals)
     env <- environment(formula(object))
     for(i in seq(ns)) {
 	tt <- scope[i]
@@ -360,7 +359,7 @@ drop1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
                        evaluate = FALSE)
 	nfit <- eval(nfit, envir=env) # was  eval.parent(nfit)
 	ans[i+1, ] <- extractAIC(nfit, scale, k = k, ...)
-        if(nobs(nfit, use.fallback = TRUE) != n0)
+        if(length(nfit$residuals) != n0)
             stop("number of rows in use has changed: remove missing values?")
     }
     dfs <- ans[1L , 1L] - ans[, 1L]
@@ -375,7 +374,8 @@ drop1.default <- function(object, scope, scale = 0, test=c("none", "Chisq"),
         P[nas] <- safe_pchisq(dev[nas], dfs[nas], lower.tail = FALSE)
         aod[, c("LRT", "Pr(Chi)")] <- list(dev, P)
     }
-    head <- c("Single term deletions", "\nModel:", deparse(formula(object)),
+    head <- c("Single term deletions", "\nModel:",
+	      deparse(as.vector(formula(object))),
 	      if(scale > 0) paste("\nscale: ", format(scale), "\n"))
     class(aod) <- c("anova", "data.frame")
     attr(aod, "heading") <- head
@@ -452,7 +452,8 @@ drop1.lm <- function(object, scope, scale = 0, all.cols = TRUE,
 	P[nas] <- safe_pf(Fs[nas], dfs[nas], rdf, lower.tail=FALSE)
 	aod[, c("F value", "Pr(F)")] <- list(Fs, P)
     }
-    head <- c("Single term deletions", "\nModel:", deparse(formula(object)),
+    head <- c("Single term deletions", "\nModel:",
+	      deparse(as.vector(formula(object))),
 	      if(scale > 0) paste("\nscale: ", format(scale), "\n"))
     class(aod) <- c("anova", "data.frame")
     attr(aod, "heading") <- head
@@ -542,7 +543,8 @@ drop1.glm <- function(object, scope, scale = 0, test=c("none", "Chisq", "F"),
 	P[nas] <- safe_pf(Fs[nas], dfs[nas], rdf, lower.tail=FALSE)
 	aod[, c("F value", "Pr(F)")] <- list(Fs, P)
     }
-    head <- c("Single term deletions", "\nModel:", deparse(formula(object)),
+    head <- c("Single term deletions", "\nModel:",
+	      deparse(as.vector(formula(object))),
 	      if(!is.null(scale) && scale > 0)
 	      paste("\nscale: ", format(scale), "\n"))
     class(aod) <- c("anova", "data.frame")
@@ -561,7 +563,7 @@ add.scope <- function(terms1, terms2)
 drop.scope <- function(terms1, terms2)
 {
     terms1 <- terms(terms1)
-    f2 <- if(missing(terms2)) numeric()
+    f2 <- if(missing(terms2)) numeric(0L)
     else attr(terms(terms2), "factors")
     factor.scope(attr(terms1, "factors"), list(drop = f2))$drop
 }
@@ -597,9 +599,9 @@ factor.scope <- function(factor, scope)
 	    for(i in seq(keep)) keep[i] <- max(f[i, - i]) != f[i, i]
 	    nmdrop <- nmdrop[keep]
 	}
-    } else nmdrop <- character()
+    } else nmdrop <- character(0L)
 
-    if(!length(add)) nmadd <- character()
+    if(!length(add)) nmadd <- character(0L)
     else {
 	nmfac <- colnames(factor)
 	nmadd <- colnames(add)
@@ -680,8 +682,8 @@ step <- function(object, scope, scale = 0,
 	ddf <- c(NA, diff(rdf))
 	AIC <- sapply(models, "[[", "AIC")
 	heading <- c("Stepwise Model Path \nAnalysis of Deviance Table",
-		     "\nInitial Model:", deparse(formula(object)),
-		     "\nFinal Model:", deparse(formula(fit)),
+		     "\nInitial Model:", deparse(as.vector(formula(object))),
+		     "\nFinal Model:", deparse(as.vector(formula(fit))),
 		     "\n")
 	aod <- data.frame(Step = I(change), Df = ddf, Deviance = dd,
                           "Resid. Df" = rdf, "Resid. Dev" = rd, AIC = AIC,
@@ -704,7 +706,7 @@ step <- function(object, scope, scale = 0,
     backward <- direction == "both" | direction == "backward"
     forward  <- direction == "both" | direction == "forward"
     if(missing(scope)) {
-	fdrop <- numeric()
+	fdrop <- numeric(0L)
         fadd <- attr(Terms, "factors")
         if(md) forward <- FALSE
     }
@@ -712,19 +714,19 @@ step <- function(object, scope, scale = 0,
 	if(is.list(scope)) {
 	    fdrop <- if(!is.null(fdrop <- scope$lower))
 		attr(terms(update.formula(object, fdrop)), "factors")
-	    else numeric()
+	    else numeric(0L)
 	    fadd <- if(!is.null(fadd <- scope$upper))
 		attr(terms(update.formula(object, fadd)), "factors")
 	}
         else {
 	    fadd <- if(!is.null(fadd <- scope))
 		attr(terms(update.formula(object, scope)), "factors")
-	    fdrop <- numeric()
+	    fdrop <- numeric(0L)
 	}
     }
     models <- vector("list", steps)
     if(!is.null(keep)) keep.list <- vector("list", steps)
-    n <- nobs(object, use.fallback = TRUE)
+    n <- length(object$residuals)
     fit <- object
     bAIC <- extractAIC(fit, scale, k = k, ...)
     edf <- bAIC[1L]
@@ -732,14 +734,11 @@ step <- function(object, scope, scale = 0,
     if(is.na(bAIC))
         stop("AIC is not defined for this model, so 'step' cannot proceed")
     nm <- 1
-    ## Terms <- fit$terms
-    if(trace) {
+    Terms <- fit$terms
+    if(trace)
 	cat("Start:  AIC=", format(round(bAIC, 2)), "\n",
-	    cut.string(deparse(formula(fit))), "\n\n", sep='')
-        utils::flush.console()
-    }
+	    cut.string(deparse(as.vector(formula(fit)))), "\n\n", sep='')
 
-    ## FIXME think about df.residual() here
     models[[nm]] <- list(deviance = mydeviance(fit), df.resid = n - edf,
 			 change = "", AIC = bAIC)
     if(!is.null(keep)) keep.list[[nm]] <- keep(fit, bAIC)
@@ -790,21 +789,18 @@ step <- function(object, scope, scale = 0,
         ## may need to look for a `data' argument in parent
 	fit <- update(fit, paste("~ .", change), evaluate = FALSE)
         fit <- eval.parent(fit)
-        if(nobs(fit, use.fallback = TRUE) != n)
+        if(length(fit$residuals) != n)
             stop("number of rows in use has changed: remove missing values?")
         Terms <- terms(fit)
 	bAIC <- extractAIC(fit, scale, k = k, ...)
 	edf <- bAIC[1L]
 	bAIC <- bAIC[2L]
-	if(trace) {
+	if(trace)
 	    cat("\nStep:  AIC=", format(round(bAIC, 2)), "\n",
-		cut.string(deparse(formula(fit))), "\n\n", sep='')
-            utils::flush.console()
-        }
+		cut.string(deparse(as.vector(formula(fit)))), "\n\n", sep='')
         ## add a tolerance as dropping 0-df terms might increase AIC slightly
 	if(bAIC >= AIC + 1e-7) break
 	nm <- nm + 1
-        ## FIXME: think about using df.residual() here.
 	models[[nm]] <-
 	    list(deviance = mydeviance(fit), df.resid = n - edf,
 		 change = change, AIC = bAIC)
@@ -835,7 +831,7 @@ extractAIC.survreg <- function(fit, scale, k = 2, ...)
 extractAIC.glm <- function(fit, scale = 0, k = 2, ...)
 {
     n <- length(fit$residuals)
-    edf <- n  - fit$df.residual # assumes dispersion is known
+    edf <- n  - fit$df.residual
     aic <- fit$aic
     c(edf, aic + (k-2) * edf)
 }
@@ -843,7 +839,7 @@ extractAIC.glm <- function(fit, scale = 0, k = 2, ...)
 extractAIC.lm <- function(fit, scale = 0, k = 2, ...)
 {
     n <- length(fit$residuals)
-    edf <- n  - fit$df.residual # maybe -1 if sigma^2 is estimated
+    edf <- n  - fit$df.residual
     RSS <- deviance.lm(fit)
     dev <- if(scale > 0) RSS/scale - n else n * log(RSS/n)
     c(edf, dev + k * edf)
@@ -853,6 +849,6 @@ extractAIC.aov <- extractAIC.lm
 extractAIC.negbin <- function(fit, scale, k = 2, ...)
 {
     n <- length(fit$residuals)
-    edf <- n - fit$df.residual # may -1 if theta is estimated
+    edf <- n - fit$df.residual
     c(edf, -fit$twologlik + k * edf)
 }

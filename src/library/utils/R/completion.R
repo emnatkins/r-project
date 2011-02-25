@@ -268,7 +268,7 @@ matchAvailableTopics <- function(text)
 {
     .readAliases <- function(path) {
         if(file.exists(f <- file.path(path, "help", "aliases.rds")))
-            names(readRDS(f))
+            names(.readRDS(f))
         else if(file.exists(f <- file.path(path, "help", "AnIndex")))
             ## aliases.rds was introduced before 2.10.0, as can phase this out
             scan(f, what = list("", ""), sep = "\t", quote = "",
@@ -298,7 +298,7 @@ helpCompletions <- function(prefix, suffix)
         else
             normalCompletions(suffix, check.mode = FALSE)
     if (length(nc)) sprintf("%s?%s", prefix, nc)
-    else character()
+    else character(0L)
 }
 
 
@@ -324,13 +324,13 @@ specialCompletions <- function(text, spl)
     opStart <- spl[wm]
     opEnd <- opStart + nchar(op)
 
-    if (opStart < 1) return(character()) # shouldn't happen
+    if (opStart < 1) return(character(0L)) # shouldn't happen
     prefix <- substr(text, 1L, opStart - 1L)
     suffix <- substr(text, opEnd, 1000000L)
 
     if (op == "?") return(helpCompletions(prefix, suffix))
 
-    if (opStart <= 1) return(character()) # not meaningful
+    if (opStart <= 1) return(character(0L)) # not meaningful
 
     ## ( breaks words, so prefix should not involve function calls,
     ## and thus, hopefully no side-effects.
@@ -457,7 +457,7 @@ attachedPackageCompletions <- function(text, add = rc.getOption("package.suffix"
         else
             comps
     }
-    else character()
+    else character(0L)
 }
 
 
@@ -554,7 +554,7 @@ inFunction <-
     temp <-
         data.frame(i = c(parens[["("]], parens[[")"]]),
                    c = rep(c(1, -1), sapply(parens, length)))
-    if (nrow(temp) == 0) return(character())
+    if (nrow(temp) == 0) return(character(0L))
     temp <- temp[order(-temp$i), , drop = FALSE] ## order backwards
     wp <- which(cumsum(temp$c) > 0)
     if (length(wp)) # inside a function
@@ -581,19 +581,19 @@ inFunction <-
         {
             ## we are on the wrong side of a = to be an argument, so
             ## we don't care even if we are inside a function
-            return(character())
+            return(character(0L))
         }
         else ## guess function name
         {
             possible <- suppressWarnings(strsplit(prefix, breakRE, perl = TRUE))[[1L]]
             possible <- possible[possible != ""]
             if (length(possible)) return(tail(possible, 1))
-            else return(character())
+            else return(character(0L))
         }
     }
     else # not inside function
     {
-        return(character())
+        return(character(0L))
     }
 }
 
@@ -606,7 +606,7 @@ argNames <-
     ## else
     args <- do.call(argsAnywhere, list(fname))
     if (is.null(args))
-        character()
+        character(0L)
     else if (is.list(args))
         unlist(lapply(args, function(f) names(formals(f))))
     else
@@ -633,7 +633,7 @@ specialFunctionArgs <- function(fun, text)
                    grep(sprintf("^%s", makeRegexpSafe(text)),
                         rownames(installed.packages()), value = TRUE)
                }
-               else character()
+               else character(0L)
            },
 
            data = {
@@ -642,11 +642,11 @@ specialFunctionArgs <- function(fun, text)
                    grep(sprintf("^%s", makeRegexpSafe(text)),
                         data()$results[, "Item"], value = TRUE)
                }
-               else character()
+               else character(0L)
            },
 
            ## otherwise,
-           character())
+           character(0L))
 }
 
 
@@ -657,7 +657,7 @@ functionArgs <-
              S4methods = FALSE,
              add.args = rc.getOption("funarg.suffix"))
 {
-    if (length(fun) < 1L || any(fun == "")) return(character())
+    if (length(fun) < 1L || any(fun == "")) return(character(0L))
     specialFunArgs <- specialFunctionArgs(fun, text)
     if (S3methods && exists(fun, mode = "function"))
         fun <-
@@ -792,13 +792,13 @@ fileCompletions <- function(token)
             ## 'foo[[' part.
 
             .CompletionEnv[["comps"]] <-
-                if (probablyNotFilename) character()
+                if (probablyNotFilename) character(0L)
                 else fileCompletions(text)
             .setFileComp(FALSE)
         }
         else
         {
-            .CompletionEnv[["comps"]] <- character()
+            .CompletionEnv[["comps"]] <- character(0L)
             .setFileComp(TRUE)
         }
 
@@ -816,7 +816,7 @@ fileCompletions <- function(token)
         .CompletionEnv[["fguess"]] <- guessedFunction
 
         ## if this is not "", then we want to add possible arguments
-        ## of that function(s) (methods etc).  Should be character()
+        ## of that function(s) (methods etc).  Should be character(0L)
         ## if nothing matches
 
         fargComps <- functionArgs(guessedFunction, text)
@@ -900,7 +900,7 @@ fileCompletions <- function(token)
     .guessTokenFromLine()
     token <- .CompletionEnv[["token"]]
     comps <-
-        if (nchar(token, type = "chars") < minlength) character()
+        if (nchar(token, type = "chars") < minlength) character(0L)
         else
         {
             .completeToken()
@@ -913,7 +913,7 @@ fileCompletions <- function(token)
     {
         ## no completions
         addition <- ""
-        possible <- character()
+        possible <- character(0L)
     }
     else if (length(comps) == 1L)
     {
@@ -929,7 +929,7 @@ fileCompletions <- function(token)
         ## completion was found.
 
         addition <- substr(comps, nchar(token, type = "chars") + 1L, 100000L)
-        possible <- character()
+        possible <- character(0L)
     }
     else if (length(comps) > 1L)
     {
@@ -944,7 +944,7 @@ fileCompletions <- function(token)
             addition <- ""
             possible <-
                 if (isRepeat) capture.output(cat(format(comps, justify = "left"), fill = TRUE))
-                else character()
+                else character(0L)
         }
         else
         {
@@ -953,7 +953,7 @@ fileCompletions <- function(token)
             while (length(table(substr(additions, 1L, keepUpto))) == 1L)
                 keepUpto <- keepUpto + 1L
             addition <- substr(additions[1L], 1L, keepUpto - 1L)
-            possible <- character()
+            possible <- character(0L)
         }
     }
     list(addition = addition,
@@ -1061,7 +1061,7 @@ fileCompletions <- function(token)
 
 
 
-.CompletionEnv <- new.env(hash = FALSE)
+.CompletionEnv <- new.env()
 
 ## needed to save some overhead in .win32consoleCompletion
 assign("linebuffer", "", env = .CompletionEnv)

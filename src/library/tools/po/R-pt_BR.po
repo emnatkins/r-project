@@ -2,14 +2,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-02-18 12:36\n"
+"POT-Creation-Date: 2011-01-03 16:14\n"
 "PO-Revision-Date: 2010-11-15 19:09+0200\n"
 "Last-Translator: Fernando Henrique <pessoal@fernandohrosa.com.br>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: pt_BR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Pootle 2.0.5\n"
 
@@ -560,15 +560,6 @@ msgstr ""
 msgid "The default JSS style may not be modified."
 msgstr ""
 
-msgid "use of '--auto-zip' is defunct"
-msgstr ""
-
-msgid "use of '--use-zip-data' is defunct"
-msgstr ""
-
-msgid "use of '--no-docs' is deprecated: use '--install-args' instead"
-msgstr ""
-
 msgid "** Options"
 msgstr ""
 
@@ -576,6 +567,12 @@ msgid "are only for '--binary'  and will be ignored"
 msgstr ""
 
 msgid "Error: cannot rename directory to"
+msgstr ""
+
+msgid "cannot coerce"
+msgstr ""
+
+msgid "to logical"
 msgstr ""
 
 msgid "-l option without value"
@@ -668,9 +665,6 @@ msgstr ""
 msgid "ERROR:"
 msgstr ""
 
-msgid "error reading file '%s'"
-msgstr ""
-
 msgid "this seems to be a bundle -- and they are defunct"
 msgstr ""
 
@@ -703,6 +697,9 @@ msgid "no source files found"
 msgstr ""
 
 msgid "empty 'data' directory"
+msgstr ""
+
+msgid "'--auto-zip' is for Windows only"
 msgstr ""
 
 msgid "--merge-multiarch is Windows-only"
@@ -773,9 +770,6 @@ msgstr ""
 msgid "source must be an environment or a list"
 msgstr ""
 
-msgid "invalid value for 'compress': should be FALSE, TRUE, 2 or 3"
-msgstr ""
-
 msgid "this cannot be used for package 'base'"
 msgstr ""
 
@@ -814,6 +808,15 @@ msgid "Malformed NEWS.Rd file."
 msgstr ""
 
 msgid "Processing packages:"
+msgstr ""
+
+msgid "cannot update HTML package index"
+msgstr ""
+
+msgid "'DESCRIPTION' has 'Encoding' field and re-encoding is not possible"
+msgstr ""
+
+msgid "cannot create HTML package index"
 msgstr ""
 
 msgid "Internal error, no tag"
@@ -877,10 +880,13 @@ msgstr ""
 msgid "testing '%s' failed"
 msgstr ""
 
-msgid "Testing examples for package"
+msgid "Collecting examples for package"
 msgstr ""
 
-msgid "comparing"
+msgid "Running examples in package"
+msgstr ""
+
+msgid "Comparing"
 msgstr ""
 
 msgid "to"
@@ -890,9 +896,6 @@ msgid "..."
 msgstr ""
 
 msgid "OK"
-msgstr ""
-
-msgid "results differ from reference results"
 msgstr ""
 
 msgid "no examples found"
@@ -905,9 +908,6 @@ msgid "Running"
 msgstr ""
 
 msgid "Running vignettes for package"
-msgstr ""
-
-msgid "Comparing"
 msgstr ""
 
 msgid "creation of"
@@ -926,6 +926,9 @@ msgid "running code in"
 msgstr ""
 
 msgid "FAILED"
+msgstr ""
+
+msgid "comparing"
 msgstr ""
 
 msgid "running strict specific tests"
@@ -989,12 +992,6 @@ msgid "unable to run '%s' on '%s'"
 msgstr ""
 
 msgid "unable to run %s on '%s'"
-msgstr ""
-
-msgid "cannot coerce"
-msgstr ""
-
-msgid "to logical"
 msgstr ""
 
 msgid "File 'DESCRIPTION' is missing."

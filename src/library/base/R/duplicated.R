@@ -17,7 +17,11 @@
 duplicated <- function(x, incomparables = FALSE, ...) UseMethod("duplicated")
 
 duplicated.default <- function(x, incomparables = FALSE, fromLast = FALSE, ...)
+{
+    if(is.na(fromLast <- as.logical(fromLast[1L])))
+        stop("'fromLast' must be TRUE or FALSE")
     .Internal(duplicated(x, incomparables, fromLast))
+}
 
 duplicated.data.frame <- function(x, incomparables = FALSE, fromLast = FALSE, ...)
 {
@@ -35,23 +39,22 @@ duplicated.matrix <- duplicated.array <-
     if (length(MARGIN) > ndim || any(MARGIN > ndim))
         stop("MARGIN = ", MARGIN, " is invalid for dim = ", dim(x))
     temp <- apply(x, MARGIN, function(x) paste(x, collapse = "\r"))
-    ## previously as.vector(temp), but can avoid a copy
-    res <- duplicated.default(temp, fromLast = fromLast)
+    res <- duplicated(as.vector(temp), fromLast = fromLast)
     dim(res) <- dim(temp)
     dimnames(res) <- dimnames(temp)
     res
 }
 
-anyDuplicated <- function(x, incomparables = FALSE, ...)
-    UseMethod("anyDuplicated")
+anyDuplicated <- function(x, incomparables = FALSE, ...) UseMethod("anyDuplicated")
 
-anyDuplicated.default <-
-    function(x, incomparables = FALSE, fromLast = FALSE, ...)
+anyDuplicated.default <- function(x, incomparables = FALSE, fromLast = FALSE, ...)
+{
+    if(is.na(fromLast <- as.logical(fromLast[1L])))
+        stop("'fromLast' must be TRUE or FALSE")
     .Internal(anyDuplicated(x, incomparables, fromLast))
+}
 
-
-anyDuplicated.data.frame <-
-    function(x, incomparables = FALSE, fromLast = FALSE, ...)
+anyDuplicated.data.frame <- function(x, incomparables = FALSE, fromLast = FALSE, ...)
 {
     if(!identical(incomparables, FALSE))
 	.NotYetUsed("incomparables != FALSE")
@@ -67,7 +70,7 @@ anyDuplicated.matrix <- anyDuplicated.array <-
     if (length(MARGIN) > ndim || any(MARGIN > ndim))
         stop("MARGIN = ", MARGIN, " is invalid for dim = ", dim(x))
     temp <- apply(x, MARGIN, function(x) paste(x, collapse = "\r"))
-    anyDuplicated.default(temp, fromLast = fromLast)
+    anyDuplicated(as.vector(temp), fromLast = fromLast)
 }
 
 unique <- function(x, incomparables = FALSE, ...) UseMethod("unique")
@@ -77,6 +80,8 @@ unique <- function(x, incomparables = FALSE, ...) UseMethod("unique")
 ## so it needs to handle some other cases.
 unique.default <- function(x, incomparables = FALSE, fromLast = FALSE, ...)
 {
+    if(is.na(fromLast <- as.logical(fromLast[1L])))
+        stop("'fromLast' must be TRUE or FALSE")
     z <- .Internal(unique(x, incomparables, fromLast))
     if(is.factor(x))
 	factor(z, levels = seq_len(nlevels(x)), labels = levels(x),
@@ -106,6 +111,6 @@ unique.matrix <- unique.array <-
     temp <- apply(x, MARGIN, function(x) paste(x, collapse = "\r"))
     args <- rep(alist(a=), ndim)
     names(args) <- NULL
-    args[[MARGIN]] <- !duplicated.default(temp, fromLast = fromLast)
+    args[[MARGIN]] <- !duplicated(as.vector(temp), fromLast = fromLast)
     do.call("[", c(list(x), args, list(drop=FALSE)))
 }

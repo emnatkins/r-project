@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2011  The R Development Core Team.
+ *  Copyright (C) 1998--2010  The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -88,17 +88,6 @@ extern0 SEXP	R_WholeSrcrefSymbol;   /* "wholeSrcref" */
 extern0 SEXP	R_SrcrefSymbol;     /* "srcref" */
 extern0 SEXP	R_TmpvalSymbol;     /* "*tmp*" */
 extern0 SEXP	R_UseNamesSymbol;   /* "use.names" */
-extern0 SEXP	R_DoubleColonSymbol;   /* "::" */
-extern0 SEXP	R_TripleColonSymbol;   /* ":::" */
-extern0 SEXP    R_ConnIdSymbol;  /* "conn_id" */
-extern0 SEXP    R_DevicesSymbol;  /* ".Devices" */
-
-extern0 SEXP    R_dot_Generic;  /* ".Generic" */
-extern0 SEXP    R_dot_Methods;  /* ".Methods" */
-extern0 SEXP    R_dot_Group;  /* ".Group" */
-extern0 SEXP    R_dot_Class;  /* ".Class" */
-extern0 SEXP    R_dot_GenericCallEnv;  /* ".GenericCallEnv" */
-extern0 SEXP    R_dot_GenericDefEnv;  /* ".GenericDefEnv" */
 
 extern0 SEXP	R_StringHash;       /* Global hash of CHARSXPs */
 
@@ -301,10 +290,7 @@ extern int putenv(char *string);
 #endif
 
 #define HSIZE	   4119	/* The size of the hash table for symbols */
-#define MAXIDSIZE 10000	/* Largest symbol size, 
-			   in bytes excluding terminator.
-			   Was 256 prior to 2.13.0, now just a sanity check.
-			*/
+#define MAXIDSIZE   256	/* Largest symbol size, in bytes excluding terminator */
 
 /* The type of the do_xxxx functions. */
 /* These are the built-in R functions. */
@@ -674,7 +660,7 @@ extern0 Rboolean R_warn_partial_match_dollar INI_as(FALSE);
 extern0 Rboolean R_warn_partial_match_attr INI_as(FALSE);
 extern0 Rboolean R_ShowWarnCalls INI_as(FALSE);
 extern0 Rboolean R_ShowErrorCalls INI_as(FALSE);
-extern0 int	R_NShowCalls INI_as(50);
+extern0 int R_NShowCalls INI_as(50);
 extern0 SEXP	R_Srcref;
 
 LibExtern Rboolean utf8locale  INI_as(FALSE);  /* is this a UTF-8 locale? */
@@ -687,7 +673,6 @@ extern0   void WinCheckUTF8(void);
 #endif
 
 extern0 char OutDec	INI_as('.');  /* decimal point used for output */
-extern0 Rboolean R_DisableNLinBrowser	INI_as(FALSE);
 
 /* Initialization of the R environment when it is embedded */
 extern int Rf_initEmbeddedR(int argc, char **argv);
@@ -712,13 +697,7 @@ extern0 SEXP *R_BCNodeStackBase, *R_BCNodeStackTop, *R_BCNodeStackEnd;
 #define R_BCINTSTACKSIZE 10000
 extern0 IStackval *R_BCIntStackBase, *R_BCIntStackTop, *R_BCIntStackEnd;
 # endif
-extern0 int R_jit_enabled INI_as(0);
-extern SEXP R_cmpfun(SEXP);
-extern void R_init_jit_enabled(void);
 #endif
-
-LibExtern int R_num_math_threads INI_as(1);
-LibExtern int R_max_num_math_threads INI_as(1);
 
 /* Pointer  type and utilities for dispatch in the methods package */
 typedef SEXP (*R_stdGen_ptr_t)(SEXP, SEXP, SEXP); /* typedef */
@@ -749,6 +728,7 @@ extern0 unsigned int max_contour_segments INI_as(25000);
 
 extern0 Rboolean known_to_be_latin1 INI_as(FALSE);
 extern0 Rboolean known_to_be_utf8 INI_as(FALSE);
+
 
 #ifdef __MAIN__
 # undef extern
@@ -1044,7 +1024,7 @@ RETSIGTYPE onsigusr1(int);
 RETSIGTYPE onsigusr2(int);
 int OneIndex(SEXP, SEXP, int, int, SEXP*, int, SEXP);
 SEXP parse(FILE*, int);
-void PrintDefaults(void);
+void PrintDefaults(SEXP);
 void PrintGreeting(void);
 void PrintValueEnv(SEXP, SEXP);
 void PrintValueRec(SEXP, SEXP);
@@ -1063,7 +1043,6 @@ SEXP R_LoadFromFile(FILE*, int);
 SEXP R_NewHashedEnv(SEXP, SEXP);
 extern int R_Newhashpjw(const char *);
 FILE* R_OpenLibraryFile(const char *);
-SEXP R_Primitive(const char *);
 void R_RestoreGlobalEnv(void);
 void R_RestoreGlobalEnvFromFile(const char *, Rboolean);
 void R_SaveGlobalEnv(void);

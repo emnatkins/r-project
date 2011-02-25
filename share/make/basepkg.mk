@@ -60,26 +60,6 @@ mkR2:
 	fi
 	@rm -f $(top_builddir)/library/$(pkg)/Meta/nsInfo.rds
 
-## version for base on Unix, substitutes for @which@
-mkRbase:
-	@$(MKINSTALLDIRS) $(top_builddir)/library/$(pkg)/R
-	@(f=$${TMPDIR:-/tmp}/R$$$$; \
-	  if test "$(R_KEEP_PKG_SOURCE)" = "yes"; then \
-	    $(ECHO) > "$${f}"; \
-	    for rsrc in $(RSRC); do \
-	      $(ECHO) "#line 1 \"$${rsrc}\"" >> "$${f}"; \
-	      cat $${rsrc} >> "$${f}"; \
-	    done; \
-	  else \
-	    cat $(RSRC) > "$${f}"; \
-	  fi; \
-	  f2=$${TMPDIR:-/tmp}/R2$$$$; \
-	  sed -e "s:@WHICH@:${WHICH}:" "$${f}" > "$${f2}"; \
-	  rm -f "$${f}"; \
-	  $(SHELL) $(top_srcdir)/tools/move-if-change "$${f2}" all.R)
-	@$(SHELL) $(top_srcdir)/tools/copy-if-change all.R \
-	  $(top_builddir)/library/$(pkg)/R/$(pkg)
-
 
 mkdesc:
 	@if test -f DESCRIPTION; then \
@@ -132,9 +112,11 @@ mksrc:
 	  (cd src && $(MAKE)) || exit 1; \
 	fi
 
-mksrc-win2:
+mksrc-win:
 	@if test -d src; then \
-	  (cd src && $(MAKE) -f Makefile.win) || exit 1; \
+	  $(MAKE) -C src -f $(RHOME)/src/gnuwin32/MakeDLL RHOME=$(RHOME) DLLNAME=$(pkg) || exit 1; \
+	  mkdir -p $(top_builddir)/library/$(pkg)/libs$(R_ARCH); \
+	  cp src/$(pkg).dll $(top_builddir)/library/$(pkg)/libs$(R_ARCH); \
 	fi
 
 install-tests:
@@ -161,7 +143,7 @@ maintainer-clean: distclean
 
 clean-win:
 	@if test -d src; then \
-	  $(MAKE) -C src -f Makefile.win clean; \
+	  $(MAKE) -C src -f $(RHOME)/src/gnuwin32/MakeDll RHOME=$(RHOME) DLLNAME=$(pkg) shlib-clean; \
 	fi
 	-@rm -f all.R .RData
 distclean-win: clean-win

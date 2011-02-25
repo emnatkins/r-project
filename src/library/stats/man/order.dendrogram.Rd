@@ -1,7 +1,6 @@
 % File src/library/stats/man/order.dendrogram.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2010 R Core Development Team
-% Copyright 2002-2010 The R Foundation
+% Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{order.dendrogram}
@@ -47,7 +46,6 @@ stopifnot(hc$order == order.dendrogram(dd))
 
 d2 <- as.dendrogram(hclust(dist(USArrests)))
 labels(d2) ## in this case the same as
-stopifnot(identical(labels(d2),
-   rownames(USArrests)[order.dendrogram(d2)]))
+stopifnot(labels(d2) == rownames(USArrests)[order.dendrogram(d2)])
 }
 \keyword{manip}

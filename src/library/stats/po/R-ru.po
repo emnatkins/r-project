@@ -10,17 +10,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-01-28 18:12\n"
+"POT-Creation-Date: 2011-01-03 16:13\n"
 "PO-Revision-Date: 2010-09-30 01:58-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
-"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=KOI8-R\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Poedit-Language: Russian\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
+"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 msgid "empty model supplied"
 msgstr "предложена пустая модель"
@@ -477,8 +476,7 @@ msgstr "расстояния должны быть результатом 'dist' или квадратной матрицей"
 msgid "'k' must be in {1, 2, ..  n - 1}"
 msgstr "'k' должен быть из {1, 2, ..  n - 1}"
 
-#, fuzzy
-msgid "only %d of the first %d eigenvalues are > 0"
+msgid "some of the first %d eigenvalues are < 0"
 msgstr "некоторые из первых %d собственных значений < 0"
 
 msgid "initial value is not in the interior of the feasible region"
@@ -625,6 +623,9 @@ msgstr "элементы 'k' должны быть между 1 и %d"
 msgid "'merge' and 'height' do not fit!"
 msgstr "'merge' и 'height' не соответствуют!"
 
+msgid "we require a dendrogram"
+msgstr "нам нужна дендрограмма"
+
 msgid "dendrogram node with non-positive #{branches}"
 msgstr "узел дендрограммы с неположительными #{branches}"
 
@@ -637,17 +638,11 @@ msgstr "безлистное дерево нулевой длины"
 msgid "'order.dendrogram' requires a dendrogram"
 msgstr "'order.дендрограмма' требует дендрограмму"
 
-msgid "we require a dendrogram"
-msgstr "нам нужна дендрограмма"
-
 msgid "invalid (length 0) node in dendrogram"
 msgstr "неправильный (длина = 0) узел дендрограммы"
 
 msgid "dendrogram non-leaf node with non-positive #{branches}"
 msgstr "безлистный узел дендрограммы с неположительными #{branches}"
-
-msgid "'height' must be at least %g, the maximal height of its components"
-msgstr ""
 
 msgid "'X' is not a dendrogram"
 msgstr "'X' не является дендрограммой"
@@ -1543,8 +1538,7 @@ msgstr "eff.aovlist: не-ортогональные контрасты могут дать неправильный ответ"
 msgid "cannot create a formula from a zero-column data frame"
 msgstr "не могу создать формулу из таблицы данных без колонок"
 
-#, fuzzy
-msgid "no terms component nor attribute"
+msgid "no terms component"
 msgstr "нет компонента выражений"
 
 msgid "'termlabels' must be a character vector of length at least one"
@@ -2403,13 +2397,6 @@ msgid_plural "there are %d Error terms: only 1 is allowed"
 msgstr[0] "здесь %d ошибочных выражения: разрешено лишь одно"
 msgstr[1] "здесь %d ошибочных выражения: разрешено лишь одно"
 msgstr[2] "здесь %d ошибочных выражений: разрешено лишь одно"
-
-#, fuzzy
-msgid "extra argument %s is not a \"%s\""
-msgid_plural "extra arguments %s are not \"%s\"s"
-msgstr[0] "дополнительные аргументы отброшены"
-msgstr[1] "дополнительные аргументы отброшены"
-msgstr[2] "дополнительные аргументы отброшены"
 
 msgid "%d observation deleted due to missingness"
 msgid_plural "%d observations deleted due to missingness"

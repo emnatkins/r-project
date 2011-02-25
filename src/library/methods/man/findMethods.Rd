@@ -46,8 +46,7 @@ the objects in the table.
   and will disappear in a future version of R.
 }
 \usage{
-findMethods(f, where, classes = character(), inherited = FALSE,
-      package = "")
+findMethods(f, where, classes = character(), inherited = FALSE)
 
 findMethodSignatures(..., target = TRUE, methods = )
 

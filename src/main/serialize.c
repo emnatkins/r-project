@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2011  The R Development Core Team
+ *  Copyright (C) 1997--2010  The R Development Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -796,27 +796,6 @@ static void WriteItem (SEXP s, SEXP ref_table, R_outpstream_t stream)
 {
     int i;
     SEXP t;
-
-#ifdef BYTECODE
-    static int compile_pkgs = -1;
-
-    if (compile_pkgs == -1) {
-	if (getenv("R_COMPILE_PKGS") != NULL)
-	    compile_pkgs = 1;
-	else
-	    compile_pkgs = 0;
-    }
-
-    if (compile_pkgs && TYPEOF(s) == CLOSXP && TYPEOF(BODY(s)) != BCODESXP) {
-	SEXP new_s;
-	compile_pkgs = FALSE;
-	PROTECT(new_s = R_cmpfun(s));
-	WriteItem (new_s, ref_table, stream);
-	UNPROTECT(1);
-	compile_pkgs = TRUE;
-	return;
-    }
-#endif
 
  tailcall:
     R_CheckStack();
@@ -1789,28 +1768,18 @@ static SEXP CallHook(SEXP x, SEXP fun)
     return val;
 }
 
-static void con_cleanup(void *data)
-{
-    Rconnection con = data;
-    if(con->isopen) con->close(con);
-}
-
-/* Used from saveRDS().
-   This became public in R 2.13.0, and that version added support for
-   connections internally */
 SEXP attribute_hidden
 do_serializeToConn(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     /* serializeToConn(object, conn, ascii, version, hook) */
 
     SEXP object, fun;
-    Rboolean ascii, wasopen;
+    Rboolean ascii;
     int version;
     Rconnection con;
     struct R_outpstream_st out;
     R_pstream_format_t type;
     SEXP (*hook)(SEXP, SEXP);
-    RCNTXT cntxt;
 
     checkArity(op, args);
 
@@ -1835,49 +1804,19 @@ do_serializeToConn(SEXP call, SEXP op, SEXP args, SEXP env)
     fun = CAR(nthcdr(args,4));
     hook = fun != R_NilValue ? CallHook : NULL;
 
-    /* Now we need to do some sanity checking of the arguments.
-       A filename will already have been opened, so anything 
-       not open was specified as a connection directly.
-     */
-    wasopen = con->isopen;
-    if(!wasopen) {
-	char mode[5];
-	strcpy(mode, con->mode);
-	strcpy(con->mode, ascii ? "w" : "wb");
-	if(!con->open(con)) error(_("cannot open the connection"));
-	strcpy(con->mode, mode);
-	/* Set up a context which will close the connection on error */
-	begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
-		     R_NilValue, R_NilValue);
-	cntxt.cend = &con_cleanup;
-	cntxt.cenddata = con;
-    }
-    if (!ascii && con->text)
-	error(_("binary-mode connection required for ascii=FALSE"));
-    if(!con->canwrite)
-	error(_("connection not open for writing"));
-
     R_InitConnOutPStream(&out, con, type, version, hook, fun);
     R_Serialize(object, &out);
-    if(!wasopen) {endcontext(&cntxt); con->close(con);}
-
     return R_NilValue;
 }
 
-/* Used from readRDS().
-   This became public in R 2.13.0, and that version added support for
-   connections internally */
-SEXP attribute_hidden 
-do_unserializeFromConn(SEXP call, SEXP op, SEXP args, SEXP env)
+SEXP attribute_hidden do_unserializeFromConn(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     /* unserializeFromConn(conn, hook) */
 
     struct R_inpstream_st in;
     Rconnection con;
-    SEXP fun, ans;
+    SEXP fun;
     SEXP (*hook)(SEXP, SEXP);
-    Rboolean wasopen;
-    RCNTXT cntxt;
 
     checkArity(op, args);
 
@@ -1886,30 +1825,8 @@ do_unserializeFromConn(SEXP call, SEXP op, SEXP args, SEXP env)
     fun = CADR(args);
     hook = fun != R_NilValue ? CallHook : NULL;
 
-    /* Now we need to do some sanity checking of the arguments.
-       A filename will already have been opened, so anything 
-       not open was specified as a connection directly.
-     */
-    wasopen = con->isopen;
-    if(!wasopen) {
-	char mode[5];
-	strcpy(mode, con->mode);
-	strcpy(con->mode, "rb");
-	if(!con->open(con)) error(_("cannot open the connection"));
-	strcpy(con->mode, mode);
-	/* Set up a context which will close the connection on error */
-	begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
-		     R_NilValue, R_NilValue);
-	cntxt.cend = &con_cleanup;
-	cntxt.cenddata = con;
-    }
-    if(!con->canread) error(_("connection not open for reading"));
-
     R_InitConnInPStream(&in, con, R_pstream_any_format, hook, fun);
-    PROTECT(ans = R_Unserialize(&in)); /* paranoia about next line */
-    if(!wasopen) {endcontext(&cntxt); con->close(con);}
-    UNPROTECT(1);
-    return ans;
+    return R_Unserialize(&in);
 }
 
 
@@ -1968,25 +1885,16 @@ static void InitBConOutPStream(R_outpstream_t stream, bconbuf_t bb,
 }
 
 /* only for use by serialize(), with binary write to a socket connection */
-SEXP attribute_hidden 
-R_serializeb(SEXP object, SEXP icon, SEXP Sversion, SEXP fun)
+SEXP attribute_hidden R_serializeb(SEXP object, SEXP icon, SEXP fun)
 {
     struct R_outpstream_st out;
     SEXP (*hook)(SEXP, SEXP);
     struct bconbuf_st bbs;
     Rconnection con = getConnection(asInteger(icon));
-    int version;
-    
-    if (Sversion == R_NilValue)
-	version = R_DefaultSerializeVersion;
-    else version = asInteger(Sversion);
-    if (version == NA_INTEGER || version <= 0)
-	error(_("bad version value"));
 
     hook = fun != R_NilValue ? CallHook : NULL;
 
-    InitBConOutPStream(&out, &bbs, con, R_pstream_xdr_format, version, 
-		       hook, fun);
+    InitBConOutPStream(&out, &bbs, con, R_pstream_xdr_format, 0, hook, fun);
     R_Serialize(object, &out);
     flush_bcon_buffer(&bbs);
     return R_NilValue;
@@ -2108,18 +2016,11 @@ static SEXP CloseMemOutPStream(R_outpstream_t stream)
 }
 
 SEXP attribute_hidden
-R_serialize(SEXP object, SEXP icon, SEXP ascii, SEXP Sversion, SEXP fun)
+R_serialize(SEXP object, SEXP icon, SEXP ascii, SEXP fun)
 {
     struct R_outpstream_st out;
     R_pstream_format_t type;
     SEXP (*hook)(SEXP, SEXP);
-    int version;
-    
-    if (Sversion == R_NilValue)
-	version = R_DefaultSerializeVersion;
-    else version = asInteger(Sversion);
-    if (version == NA_INTEGER || version <= 0)
-	error(_("bad version value"));
 
     hook = fun != R_NilValue ? CallHook : NULL;
 
@@ -2137,7 +2038,7 @@ R_serialize(SEXP object, SEXP icon, SEXP ascii, SEXP Sversion, SEXP fun)
 	cntxt.cend = &free_mem_buffer;
 	cntxt.cenddata = &mbs;
 
-	InitMemOutPStream(&out, &mbs, type, version, hook, fun);
+	InitMemOutPStream(&out, &mbs, type, 0, hook, fun);
 	R_Serialize(object, &out);
 
 	val =  CloseMemOutPStream(&out);
@@ -2415,7 +2316,7 @@ R_lazyLoadDBinsertValue(SEXP value, SEXP file, SEXP ascii,
     Rboolean compress = asInteger(compsxp);
     SEXP key;
 
-    value = R_serialize(value, R_NilValue, ascii, R_NilValue, hook);
+    value = R_serialize(value, R_NilValue, ascii, hook);
     PROTECT_WITH_INDEX(value, &vpi);
     if (compress == 3)
 	REPROTECT(value = R_compress3(value), vpi);

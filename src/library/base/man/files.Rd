@@ -12,7 +12,6 @@
 \alias{file.remove}
 \alias{file.rename}
 \alias{file.symlink}
-\alias{file.link}
 \title{File Manipulation}
 \usage{
 file.create(\dots, showWarnings = TRUE)
@@ -22,14 +21,14 @@ file.rename(from, to)
 file.append(file1, file2)
 file.copy(from, to, overwrite = recursive, recursive = FALSE)
 file.symlink(from, to)
-file.link(from, to)
 }
 \arguments{
   \item{\dots, file1, file2}{character vectors, containing file names or paths.}
-  \item{from, to}{character vectors, containing file names or paths.
-    For \code{file.copy} and \code{file.symlink} \code{to} can
-    alternatively be the path to a single existing directory.}
-  \item{overwrite}{logical; should existing destination files be overwritten?}
+  \item{from, to}{character string (\code{file.rename}) or vector,
+    containing file names or paths.  For \code{file.copy} and
+    \code{file.symlink} \code{to} can alternatively be the path to a
+    single existing directory.}
+  \item{overwrite}{logical; should the destination files be overwritten?}
   \item{showWarnings}{logical; should the warnings on failure be shown?}
   \item{recursive}{logical. If \code{to} is a directory, should
     directories in \code{from} be copied (and their contents).}
@@ -65,15 +64,14 @@ file.link(from, to)
   On most Unix platforms \sQuote{file} includes \emph{empty}
   directories, symbolic links, fifos and sockets.  On Windows,
   \sQuote{file} means a regular file and not, say, an empty directory.
-
-  \code{file.rename} attempts to rename files (and \code{from} and
-  \code{to} must be of the same length).  Where file permissions allow
-  this will first remove an existing element of \code{to}.  This is
-  subject to the limitations of the OS's corresponding system call: in
-  particular in the interpretation of \sQuote{file}: most platforms will
-  not rename files across file systems.  (On Windows, \code{file.rename}
-  works for files (but not directories) across volumes as from \R
-  2.11.0.)
+  
+  \code{file.rename} attempts to rename a single file.  Where file
+  permissions allow this will first remove an existing file \code{to}.
+  This is subject to the limitations of the OS's corresponding system
+  call: in particular in the interpretation of \sQuote{file}: also most
+  platforms will not rename files across file systems.  (On Windows,
+  \code{file.rename} works for files (but not directories) across
+  volumes as from \R 2.11.0.)
 
   \code{file.append} attempts to append the files named by its
   second argument to those named by its first.  The \R subscript
@@ -83,20 +81,20 @@ file.link(from, to)
   \code{file.copy} works in a similar way to \code{file.append} but with
   the arguments in the natural order for copying.  Copying to existing
   destination files is skipped unless \code{overwrite = TRUE}.
-  The \code{to} argument can specify a single existing directory.  As
-  from \R 2.13.0 file read/write/execute permissions are copied where
-  possible. 
-  
-  \code{file.symlink} and \code{file.link} make symbolic and hard links
-  on those file systems which support them.  For \code{file.symlink} the
-  \code{to} argument can specify a single existing directory.  (Unix and
-  Mac OS X native filesystems support both.  Windows has hard links on
-  NTFS file systems.  What happens on a FAT or SMB-mounted file system is
-  OS-specific.)
-}
+  The \code{to} argument can specify a single existing directory.
 
+  \code{file.symlink} makes symbolic links on those Unix-alike platforms
+  which support them.  The \code{to} argument can specify a single
+  existing directory.
+#ifdef windows
+  (Windows Vista/7/Server 2008 have a version of symbolic links on NTFS
+  filesystems, but this seems too limited to be worth implementing.)
+#endif
+}
 \value{
-  These functions return a logical vector indicating which
+  \code{file.rename} returns a logical value, true for success.
+
+  The remaining functions return a logical vector indicating which
   operation succeeded for each of the files attempted.  Using a missing
   value for a file or path name will always be regarded as a failure.
 
@@ -108,14 +106,6 @@ file.link(from, to)
   There is no guarantee that these functions will handle Windows
   relative paths of the form \file{d:path}: try \file{d:./path}
   instead.  In particular, \file{d:} is not recognized as a directory.
-  
-  Recent versions of Windows have a limited version of symbolic links on
-  NTFS filesystems, but this has not be implemented in
-  \code{file.symlink}, not least because \R is still widely used on
-  Windows XP.
-
-  Most of these functions accept UTF-8 filepaths not valid in the
-  current locale.
 }
 #endif
 
@@ -131,12 +121,8 @@ file.link(from, to)
   \code{\link{dir.create}}.
 
   \code{\link{Sys.glob}} to expand wildcards in file specifications.
-
+  
   \code{\link{file_test}}, \code{\link{Sys.readlink}}.
-
-  \url{http://en.wikipedia.org/wiki/Hard_link} and
-  \url{http://en.wikipedia.org/wiki/Symbolic_link} for the concepts of
-  links and their limitations. 
 }
 
 \examples{

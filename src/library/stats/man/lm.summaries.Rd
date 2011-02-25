@@ -1,6 +1,6 @@
 % File src/library/stats/man/lm.summaries.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2011 R Core Development Team
+% Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{lm.summaries}
@@ -8,6 +8,8 @@
 \alias{formula.lm}
 \alias{residuals.lm}
 \alias{labels.lm}
+\alias{weights}
+\alias{weights.default}
 \title{Accessing Linear Model Fits}
 \usage{
 \method{family}{lm}(object, \dots)
@@ -20,6 +22,8 @@
           \dots)
 
 \method{labels}{lm}(object, \dots)
+
+weights(object, \dots)
 }
 \arguments{
   \item{object, x}{an object inheriting from class \code{lm}, usually
@@ -63,7 +67,7 @@
   \code{\link{influence}} (etc on that page) for regression diagnostics,
   \code{\link{weighted.residuals}},
   \code{\link{residuals}}, \code{\link{residuals.glm}},
-  \code{\link{summary.lm}}, \code{\link{weights}}.
+  \code{\link{summary.lm}}.
 
   \link{influence.measures} for deletion diagnostics, including
   standardized (\code{\link{rstandard}})

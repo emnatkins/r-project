@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000-11   The R Development Core Team.
+ *  Copyright (C) 2000-10   The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -996,7 +996,7 @@ SEXP attribute_hidden do_fifo(SEXP call, SEXP op, SEXP args, SEXP env)
     classgets(ans, class);
     con->ex_ptr = R_MakeExternalPtr(con->id, install("connection"),
 				    R_NilValue);
-    setAttrib(ans, R_ConnIdSymbol, con->ex_ptr);
+    setAttrib(ans, install("conn_id"), con->ex_ptr);
     R_RegisterCFinalizerEx(con->ex_ptr, conFinalizer, FALSE);
     UNPROTECT(2);
 
@@ -1158,7 +1158,7 @@ SEXP attribute_hidden do_pipe(SEXP call, SEXP op, SEXP args, SEXP env)
     classgets(ans, class);
     con->ex_ptr = R_MakeExternalPtr(con->id, install("connection"),
 				    R_NilValue);
-    setAttrib(ans, R_ConnIdSymbol, con->ex_ptr);
+    setAttrib(ans, install("conn_id"), con->ex_ptr);
     R_RegisterCFinalizerEx(con->ex_ptr, conFinalizer, FALSE);
     UNPROTECT(2);
 
@@ -1323,6 +1323,8 @@ static Rboolean bzfile_open(Rconnection con)
     int bzerror;
     char mode[] = "rb";
 
+    if (con->mode[0] == 'a')
+	warning(_("append mode may not do what you expect"));
     con->canwrite = (con->mode[0] == 'w' || con->mode[0] == 'a');
     con->canread = !con->canwrite;
     /* regardless of the R view of the file, the file must be opened in
@@ -1375,66 +1377,26 @@ static void bzfile_close(Rconnection con)
     con->isopen = FALSE;
 }
 
+static int bzfile_fgetc_internal(Rconnection con)
+{
+    Rbzfileconn bz = con->private;
+    char buf[1];
+    int bzerror, size;
+
+    size = BZ2_bzRead(&bzerror, bz->bfp, buf, 1);
+    return (size < 1) ? R_EOF : (buf[0] % 256);
+}
+
 static size_t bzfile_read(void *ptr, size_t size, size_t nitems,
 			  Rconnection con)
 {
     Rbzfileconn bz = con->private;
-    size_t nread = 0, nleft;
     int bzerror;
 
-    /* BZ2 uses 'int' for len */
+    /* uses 'int' for len */
     if ((double) size * (double) nitems > INT_MAX)
 	error(_("too large a block specified"));
-
-    nleft = size * nitems;
-    /* we try to fill the buffer, because fgetc can interact with the stream boundaries
-       resulting in truncated text streams while binary streams work fine */
-    while (nleft > 0) {
-	/* Need a cast as 'nread' needs to be interpreted in bytes */
-	size_t n = BZ2_bzRead(&bzerror, bz->bfp, 
-			      (char *)ptr + nread, nleft);
-	if (bzerror == BZ_STREAM_END) { /* this could mean multiple streams so we need to check */
-	    char *unused, *next_unused = NULL;
-	    int nUnused;
-	    BZ2_bzReadGetUnused(&bzerror, bz->bfp, (void**) &unused, &nUnused);
-	    if (bzerror == BZ_OK) {
-		if (nUnused > 0) { /* unused bytes present - need to retain them */
-		    /* given that this should be rare I don't want to add that overhead
-		       to the entire bz structure so we allocate memory temporarily */
-		    next_unused = (char*) malloc(nUnused);
-		    if (!next_unused)
-			error(_("allocation of overflow buffer for bzfile failed"));
-		    memcpy(next_unused, unused, nUnused);
-		}
-		if (nUnused > 0 || !feof(bz->fp)) {
-		    BZ2_bzReadClose(&bzerror, bz->bfp);	
-		    bz->bfp = BZ2_bzReadOpen(&bzerror, bz->fp, 0, 0, next_unused, nUnused);
-		    if(bzerror != BZ_OK)
-			warning(_("file '%s' has trailing content that appears not to be compressed by bzip2"),
-				R_ExpandFileName(con->description));
-		}
-		if (next_unused) free(next_unused);
-	    }
-	} else if (bzerror != BZ_OK) {
-	    /* bzlib docs say in this case n is invalid - but historically
-	       we still used n in that case, so I keep it for now */
-	    nread += n;
-	    break;
-	}
-	nread += n;
-	nleft -= n;
-    }
-    
-    return nread / size;
-}
-
-static int bzfile_fgetc_internal(Rconnection con)
-{
-    char buf[1];
-    size_t size;
-
-    size = bzfile_read(buf, 1, 1, con);
-    return (size < 1) ? R_EOF : (buf[0] % 256);
+    return BZ2_bzRead(&bzerror, bz->bfp, ptr, size*nitems)/size;
 }
 
 static size_t bzfile_write(const void *ptr, size_t size, size_t nitems,
@@ -1778,10 +1740,6 @@ SEXP attribute_hidden do_gzfile(SEXP call, SEXP op, SEXP args, SEXP env)
     Connections[ncon] = con;
     strncpy(con->encname, CHAR(STRING_ELT(enc, 0)), 100); /* ASCII */
 
-    /* see the comment in do_url */
-    if (con->encname[0] && !streql(con->encname, "native.enc"))
-	con->canseek = 0;
-
     /* open it if desired */
     if(strlen(open)) {
 	Rboolean success = con->open(con);
@@ -1807,7 +1765,7 @@ SEXP attribute_hidden do_gzfile(SEXP call, SEXP op, SEXP args, SEXP env)
     SET_STRING_ELT(class, 1, mkChar("connection"));
     classgets(ans, class);
     con->ex_ptr = R_MakeExternalPtr(con->id, install("connection"), R_NilValue);
-    setAttrib(ans, R_ConnIdSymbol, con->ex_ptr);
+    setAttrib(ans, install("conn_id"), con->ex_ptr);
     R_RegisterCFinalizerEx(con->ex_ptr, conFinalizer, FALSE);
     UNPROTECT(2);
 
@@ -2410,7 +2368,7 @@ SEXP attribute_hidden do_rawconnection(SEXP call, SEXP op, SEXP args, SEXP env)
     classgets(ans, class);
     con->ex_ptr = R_MakeExternalPtr(con->id, install("connection"),
 				    R_NilValue);
-    setAttrib(ans, R_ConnIdSymbol, con->ex_ptr);
+    setAttrib(ans, install("conn_id"), con->ex_ptr);
     R_RegisterCFinalizerEx(con->ex_ptr, conFinalizer, FALSE);
     UNPROTECT(2);
     return ans;
@@ -2824,7 +2782,7 @@ SEXP attribute_hidden do_textconnection(SEXP call, SEXP op, SEXP args, SEXP env)
     classgets(ans, class);
     con->ex_ptr = R_MakeExternalPtr(con->id, install("connection"),
 				    R_NilValue);
-    setAttrib(ans, R_ConnIdSymbol, con->ex_ptr);
+    setAttrib(ans, install("conn_id"), con->ex_ptr);
     R_RegisterCFinalizerEx(con->ex_ptr, conFinalizer, FALSE);
     UNPROTECT(2);
     return ans;
@@ -2909,7 +2867,7 @@ SEXP attribute_hidden do_sockconn(SEXP call, SEXP op, SEXP args, SEXP env)
     classgets(ans, class);
     con->ex_ptr = R_MakeExternalPtr(con->id, install("connection"),
 				    R_NilValue);
-    setAttrib(ans, R_ConnIdSymbol, con->ex_ptr);
+    setAttrib(ans, install("conn_id"), con->ex_ptr);
     R_RegisterCFinalizerEx(con->ex_ptr, conFinalizer, FALSE);
     UNPROTECT(2);
 #else
@@ -2963,7 +2921,7 @@ SEXP attribute_hidden do_unz(SEXP call, SEXP op, SEXP args, SEXP env)
     classgets(ans, class);
     con->ex_ptr = R_MakeExternalPtr(con->id, install("connection"),
 				    R_NilValue);
-    setAttrib(ans, R_ConnIdSymbol, con->ex_ptr);
+    setAttrib(ans, install("conn_id"), con->ex_ptr);
     R_RegisterCFinalizerEx(con->ex_ptr, conFinalizer, FALSE);
     UNPROTECT(2);
 
@@ -3236,11 +3194,6 @@ int Rconn_printf(Rconnection con, const char *format, ...)
     return res;
 }
 
-static void con_cleanup(void *data)
-{
-    Rconnection con = data;
-    if(con->isopen) con->close(con);
-}
 
 /* readLines(con = stdin(), n = 1, ok = TRUE, warn = TRUE) */
 #define BUF_SIZE 1000
@@ -3253,7 +3206,6 @@ SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
     Rboolean wasopen;
     char *buf;
     const char *encoding;
-    RCNTXT cntxt;
 
     checkArity(op, args);
     if(!inherits(CAR(args), "connection"))
@@ -3268,6 +3220,8 @@ SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
     warn = asLogical(CADDDR(args));
     if(warn == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "warn");
+    if(!con->canread)
+	error(_("cannot read from this connection"));
     if(!isString(CAD4R(args)) || LENGTH(CAD4R(args)) != 1)
 	error(_("invalid '%s' value"), "encoding");
     encoding = CHAR(STRING_ELT(CAD4R(args), 0)); /* ASCII */
@@ -3279,16 +3233,12 @@ SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
 	strcpy(con->mode, "rt");
 	if(!con->open(con)) error(_("cannot open the connection"));
 	strcpy(con->mode, mode);
-	/* Set up a context which will close the connection on error */
-	begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
-		     R_NilValue, R_NilValue);
-	cntxt.cend = &con_cleanup;
-	cntxt.cenddata = con;
-	if(!con->canread) error(_("cannot read from this connection"));
-    } else { 
-	if(!con->canread) error(_("cannot read from this connection"));
-	/* for a non-blocking connection, more input may
-	   have become available, so re-position */
+	if(!con->canread) { /* recheck */
+	    con->close(con);
+	    error(_("cannot read from this connection"));
+	}
+    } else { /* for a non-blocking connection, more input may
+		have become available, so re-position */
 	if(con->canseek && !con->blocking)
 	    con->seek(con, con->seek(con, -1, 1, 1), 1, 1);
     }
@@ -3325,12 +3275,12 @@ SEXP attribute_hidden do_readLines(SEXP call, SEXP op, SEXP args, SEXP env)
 	SET_STRING_ELT(ans, nread, mkCharCE(buf, oenc));
 	if(c == R_EOF) goto no_more_lines;
     }
-    if(!wasopen) {endcontext(&cntxt); con->close(con);}
     UNPROTECT(1);
     free(buf);
+    if(!wasopen) con->close(con);
     return ans;
 no_more_lines:
-    if(!wasopen) {endcontext(&cntxt); con->close(con);}
+    if(!wasopen) con->close(con);
     if(nbuf > 0) { /* incomplete last line */
 	if(con->text && !con->blocking) {
 	    /* push back the rest */
@@ -3361,7 +3311,6 @@ SEXP attribute_hidden do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
     Rconnection con=NULL;
     const char *ssep;
     SEXP text, sep;
-    RCNTXT cntxt;
 
     checkArity(op, args);
     text = CAR(args);
@@ -3376,6 +3325,8 @@ SEXP attribute_hidden do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
     if(useBytes == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "useBytes");
 
+    if(!con->canwrite)
+	error(_("cannot write to this connection"));
     wasopen = con->isopen;
     if(!wasopen) {
 	char mode[5];
@@ -3384,13 +3335,11 @@ SEXP attribute_hidden do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
 	strcpy(con->mode, "wt");
 	if(!con->open(con)) error(_("cannot open the connection"));
 	strcpy(con->mode, mode);
-	/* Set up a context which will close the connection on error */
-	begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
-		     R_NilValue, R_NilValue);
-	cntxt.cend = &con_cleanup;
-	cntxt.cenddata = con;
+	if(!con->canwrite) { /* unlikely, but be safe */
+	    con->close(con);
+	    error(_("cannot write to this connection"));
+	}
     }
-    if(!con->canwrite) error(_("cannot write to this connection"));
     if(useBytes)
 	ssep = CHAR(STRING_ELT(sep, 0));
     else
@@ -3418,7 +3367,7 @@ SEXP attribute_hidden do_writelines(SEXP call, SEXP op, SEXP args, SEXP env)
 			 translateChar(STRING_ELT(text, i)), ssep);
     }
 
-    if(!wasopen) {endcontext(&cntxt); con->close(con);}
+    if(!wasopen) con->close(con);
     return R_NilValue;
 }
 
@@ -3507,7 +3456,6 @@ SEXP attribute_hidden do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
     Rboolean wasopen = TRUE, isRaw = FALSE;
     Rconnection con = NULL;
     Rbyte *bytes = NULL;
-    RCNTXT cntxt;
 
     checkArity(op, args);
 
@@ -3535,6 +3483,8 @@ SEXP attribute_hidden do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
     if(swap == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "swap");
     if(!isRaw) {
+	if(!con->canread)
+	    error(_("cannot read from this connection"));
 	wasopen = con->isopen;
 	if(!wasopen) {
 	    /* Documented behaviour */
@@ -3543,13 +3493,11 @@ SEXP attribute_hidden do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
 	    strcpy(con->mode, "rb");
 	    if(!con->open(con)) error(_("cannot open the connection"));
 	    strcpy(con->mode, mode);
-	    /* Set up a context which will close the connection on error */
-	    begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
-			 R_NilValue, R_NilValue);
-	    cntxt.cend = &con_cleanup;
-	    cntxt.cenddata = con;
+	    if(!con->canread) {
+		con->close(con);
+		error(_("cannot read from this connection"));
+	    }
 	}
-	if(!con->canread) error(_("cannot read from this connection"));
     }
 
     if(!strcmp(what, "character")) {
@@ -3706,7 +3654,7 @@ SEXP attribute_hidden do_readbin(SEXP call, SEXP op, SEXP args, SEXP env)
 	    }
 	}
     }
-    if(!wasopen) {endcontext(&cntxt); con->close(con);}
+    if(!wasopen) con->close(con);
     if(m < n) {
 	PROTECT(ans = lengthgets(ans, m));
 	UNPROTECT(1);
@@ -3724,7 +3672,6 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
     char *buf;
     Rboolean wasopen = TRUE, isRaw = FALSE;
     Rconnection con = NULL;
-    RCNTXT cntxt;
 
     checkArity(op, args);
     object = CAR(args);
@@ -3737,7 +3684,8 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 	con = getConnection(asInteger(CADR(args)));
 	if(con->text) error(_("can only write to a binary connection"));
 	wasopen = con->isopen;
-	if(!con->canwrite) error(_("cannot write to this connection"));
+	if(!con->canwrite)
+	    error(_("cannot write to this connection"));
     }
 
     size = asInteger(CADDR(args));
@@ -3766,12 +3714,10 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 	strcpy(con->mode, "wb");
 	if(!con->open(con)) error(_("cannot open the connection"));
 	strcpy(con->mode, mode);
-	/* Set up a context which will close the connection on error */
-	begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
-		     R_NilValue, R_NilValue);
-	cntxt.cend = &con_cleanup;
-	cntxt.cenddata = con;
-	if(!con->canwrite) error(_("cannot write to this connection"));
+	if(!con->canwrite) {
+	    con->close(con);
+	    error(_("cannot write to this connection"));
+	}
     }
 
 
@@ -3961,7 +3907,7 @@ SEXP attribute_hidden do_writebin(SEXP call, SEXP op, SEXP args, SEXP env)
 	Free(buf);
     }
 
-    if(!wasopen) {endcontext(&cntxt);con->close(con);}
+    if(!wasopen) con->close(con);
     if(isRaw) {
 	R_Visible = TRUE;
 	UNPROTECT(1);
@@ -4064,7 +4010,6 @@ SEXP attribute_hidden do_readchar(SEXP call, SEXP op, SEXP args, SEXP env)
     Rboolean wasopen = TRUE, isRaw = FALSE;
     Rconnection con = NULL;
     Rbyte *bytes = NULL;
-    RCNTXT cntxt;
 
     checkArity(op, args);
 
@@ -4093,13 +4038,11 @@ SEXP attribute_hidden do_readchar(SEXP call, SEXP op, SEXP args, SEXP env)
 	    strcpy(con->mode, "rb");
 	    if(!con->open(con)) error(_("cannot open the connection"));
 	    strcpy(con->mode, mode);
-	    /* Set up a context which will close the connection on error */
-	    begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
-			 R_NilValue, R_NilValue);
-	    cntxt.cend = &con_cleanup;
-	    cntxt.cenddata = con;
+	    if(!con->canread) {
+		con->close(con);
+		error(_("cannot read from this connection"));
+	    }
 	}
-	if(!con->canread) error(_("cannot read from this connection"));
     }
     if (mbcslocale && !utf8locale && !useBytes)
 	warning(_("can only read in bytes in a non-UTF-8 MBCS locale" ));
@@ -4115,8 +4058,7 @@ SEXP attribute_hidden do_readchar(SEXP call, SEXP op, SEXP args, SEXP env)
 	    m++;
 	} else break;
     }
-
-    if(!wasopen) {endcontext(&cntxt); con->close(con);}
+    if(!wasopen) con->close(con);
     if(m < n) {
 	PROTECT(ans = lengthgets(ans, m));
 	UNPROTECT(1);
@@ -4135,7 +4077,6 @@ SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
     Rboolean wasopen = TRUE, usesep, isRaw = FALSE;
     Rconnection con = NULL;
     mbstate_t mb_st;
-    RCNTXT cntxt;
 
     checkArity(op, args);
     object = CAR(args);
@@ -4206,12 +4147,10 @@ SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
 	strcpy(con->mode, "wb");
 	if(!con->open(con)) error(_("cannot open the connection"));
 	strcpy(con->mode, mode);
-	/* Set up a context which will close the connection on error */
-	begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
-		     R_NilValue, R_NilValue);
-	cntxt.cend = &con_cleanup;
-	cntxt.cenddata = con;
-	if(!con->canwrite) error(_("cannot write to this connection"));
+	if(!con->canwrite) {
+	    con->close(con);
+	    error(_("cannot write to this connection"));
+	}
     }
 
 
@@ -4272,13 +4211,13 @@ SEXP attribute_hidden do_writechar(SEXP call, SEXP op, SEXP args, SEXP env)
 		nwrite = con->write(buf, sizeof(char), lenb, con);
 		if(!nwrite) {
 		    warning(_("problem writing to connection"));
-		    break;
+		break;
 		}
 	    } else
 		buf += lenb;
 	}
     }
-    if(!wasopen) {endcontext(&cntxt); con->close(con);}
+    if(!wasopen) con->close(con);
     if(isRaw) {
 	R_Visible = TRUE;
 	UNPROTECT(1);
@@ -4563,7 +4502,7 @@ do_getconnection(SEXP call, SEXP op, SEXP args, SEXP env)
     SET_STRING_ELT(class, 1, mkChar("connection"));
     classgets(ans, class);
     if (what > 2)
-	setAttrib(ans, R_ConnIdSymbol, con->ex_ptr);
+	setAttrib(ans, install("conn_id"), con->ex_ptr);
     UNPROTECT(2);
     return ans;
 }
@@ -4751,11 +4690,6 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
     con->blocking = block;
     strncpy(con->encname, CHAR(STRING_ELT(enc, 0)), 100); /* ASCII */
 
-    /* only text-mode connections are affected, but we can't tell that
-       until the connection is opened, and why set an encoding on a
-       connection intended to be used in binary mode? */
-    if (con->encname[0] && !streql(con->encname, "native.enc"))
-	con->canseek = 0;
     /* open it if desired */
     if(strlen(open)) {
 	Rboolean success = con->open(con);
@@ -4772,7 +4706,7 @@ SEXP attribute_hidden do_url(SEXP call, SEXP op, SEXP args, SEXP env)
     classgets(ans, class);
     con->ex_ptr = R_MakeExternalPtr(con->id, install("connection"),
 				    R_NilValue);
-    setAttrib(ans, R_ConnIdSymbol, con->ex_ptr);
+    setAttrib(ans, install("conn_id"), con->ex_ptr);
     R_RegisterCFinalizerEx(con->ex_ptr, conFinalizer, FALSE);
     UNPROTECT(2);
 
@@ -5149,7 +5083,7 @@ SEXP attribute_hidden do_gzcon(SEXP call, SEXP op, SEXP args, SEXP rho)
     classgets(ans, class);
     new->ex_ptr = R_MakeExternalPtr((void *)new->id, install("connection"),
 				    R_NilValue);
-    setAttrib(ans, R_ConnIdSymbol, new->ex_ptr);
+    setAttrib(ans, install("conn_id"), new->ex_ptr);
     R_RegisterCFinalizerEx(new->ex_ptr, conFinalizer, FALSE);
     UNPROTECT(2);
 

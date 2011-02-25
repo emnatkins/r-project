@@ -16,19 +16,12 @@
 
 Sys.time <- function() .POSIXct(.Internal(Sys.time()))
 
-Sys.timezone <- function() Sys.getenv("TZ", names = FALSE)
+Sys.timezone <- function() as.vector(Sys.getenv("TZ"))
 
 as.POSIXlt <- function(x, tz = "", ...) UseMethod("as.POSIXlt")
 
 as.POSIXlt.Date <- function(x, ...)
-{
-    ## <FIXME>
-    ## Move names handling to C code eventually ...
-    y <- .Internal(Date2POSIXlt(x))
-    names(y$year) <- names(x)
-    y
-    ## </FIXME>
-}
+    return(.Internal(Date2POSIXlt(x)))
 
 as.POSIXlt.date <- as.POSIXlt.dates <- function(x, ...)
     as.POSIXlt(as.POSIXct(x), ...)
@@ -37,20 +30,10 @@ as.POSIXlt.POSIXct <- function(x, tz = "", ...)
 {
     tzone <- attr(x, "tzone")
     if((missing(tz) || is.null(tz)) && !is.null(tzone)) tz <- tzone[1L]
-    ## <FIXME>
-    ## Move names handling to C code eventually ...
-    y <- .Internal(as.POSIXlt(x, tz))
-    names(y$year) <- names(x)
-    y
-    ## </FIXME>
+    .Internal(as.POSIXlt(x, tz))
 }
 
-as.POSIXlt.factor <- function(x, ...)
-{
-    y <- as.POSIXlt(as.character(x))
-    names(y$year) <- names(x)
-    y
-}
+as.POSIXlt.factor <- function(x, ...) as.POSIXlt(as.character(x))
 
 as.POSIXlt.character <- function(x, tz = "", format, ...)
 {
@@ -60,18 +43,21 @@ as.POSIXlt.character <- function(x, tz = "", format, ...)
         if(nzchar(tz)) attr(res, "tzone") <- tz
         return(res)
     }
-    xx <- x[!is.na(x)]
-    if (!length(xx)) {
-        res <- strptime(x, "%Y/%m/%d")
-        if(nzchar(tz)) attr(res, "tzone") <- tz
-        return(res)
-    } else if(all(!is.na(strptime(xx, f <- "%Y-%m-%d %H:%M:%OS", tz=tz))) ||
-            all(!is.na(strptime(xx, f <- "%Y/%m/%d %H:%M:%OS", tz=tz))) ||
-            all(!is.na(strptime(xx, f <- "%Y-%m-%d %H:%M", tz=tz))) ||
-            all(!is.na(strptime(xx, f <- "%Y/%m/%d %H:%M", tz=tz))) ||
-            all(!is.na(strptime(xx, f <- "%Y-%m-%d", tz=tz))) ||
-            all(!is.na(strptime(xx, f <- "%Y/%m/%d", tz=tz)))
-            ) {
+    xx <- x[1L]
+    if(is.na(xx)) {
+        j <- 1L
+        while(is.na(xx) && (j <- j+1L) <= length(x))
+            xx <- x[j]
+        if(is.na(xx)) f <- "%Y-%m-%d" # all NAs
+    }
+    if(is.na(xx) ||
+       !is.na(strptime(xx, f <- "%Y-%m-%d %H:%M:%OS", tz=tz)) ||
+       !is.na(strptime(xx, f <- "%Y/%m/%d %H:%M:%OS", tz=tz)) ||
+       !is.na(strptime(xx, f <- "%Y-%m-%d %H:%M", tz=tz)) ||
+       !is.na(strptime(xx, f <- "%Y/%m/%d %H:%M", tz=tz)) ||
+       !is.na(strptime(xx, f <- "%Y-%m-%d", tz=tz)) ||
+       !is.na(strptime(xx, f <- "%Y/%m/%d", tz=tz)))
+    {
         res <- strptime(x, f, tz=tz)
         if(nzchar(tz)) attr(res, "tzone") <- tz
         return(res)
@@ -127,12 +113,7 @@ as.POSIXct.POSIXlt <- function(x, tz = "", ...)
 {
     tzone <- attr(x, "tzone")
     if(missing(tz) && !is.null(tzone)) tz <- tzone[1L]
-    ## <FIXME>
-    ## Move names handling to C code eventually ...
-    y <- .Internal(as.POSIXct(x, tz))
-    names(y) <- names(x$year)
-    .POSIXct(y, tz)
-    ## </FIXME>
+    .POSIXct(.Internal(as.POSIXct(x, tz)), tz)
 }
 
 as.POSIXct.numeric <- function(x, tz = "", origin, ...)
@@ -177,12 +158,7 @@ format.POSIXlt <- function(x, format = "", usetz = FALSE, ...)
         else if(np == 0L) "%Y-%m-%d %H:%M:%S"
         else paste("%Y-%m-%d %H:%M:%OS", np, sep="")
     }
-    ## <FIXME>
-    ## Move names handling to C code eventually ...
-    y <- .Internal(format.POSIXlt(x, format, usetz))
-    names(y) <- names(x$year)
-    y
-    ## </FIXME>
+    .Internal(format.POSIXlt(x, format, usetz))
 }
 
 ## prior to 2.9.0 the same as format.POSIXlt.
@@ -191,15 +167,8 @@ strftime <- function(x, format = "", tz = "", usetz = FALSE, ...)
     format(as.POSIXlt(x, tz = tz), format = format, usetz = usetz, ...)
 
 strptime <- function(x, format, tz = "")
-{
-    ## <FIXME>
-    ## Move names handling to C code eventually ...
-    y <- .Internal(strptime(as.character(x), format, tz))
-    ## Assuming we can rely on the names of x ...
-    names(y$year) <- names(x)
-    y
-    ## </FIXME>
-}
+    .Internal(strptime(as.character(x), format, tz))
+
 
 format.POSIXct <- function(x, format = "", tz = "", usetz = FALSE, ...)
 {
@@ -233,7 +202,7 @@ summary.POSIXlt <- function(object, digits = 15, ...)
     summary(as.POSIXct(object), digits = digits, ...)
 
 
-`+.POSIXt` <- function(e1, e2)
+"+.POSIXt" <- function(e1, e2)
 {
     ## need to drop "units" attribute here
     coerceTimeUnit <- function(x)
@@ -252,9 +221,8 @@ summary.POSIXlt <- function(object, digits = 15, ...)
     .POSIXct(unclass(e1) + unclass(e2), check_tzones(e1, e2))
 }
 
-`-.POSIXt` <- function(e1, e2)
+"-.POSIXt" <- function(e1, e2)
 {
-    ## need to drop "units" attribute here
     coerceTimeUnit <- function(x)
         as.vector(switch(attr(x,"units"),
                          secs = x, mins = 60*x, hours = 60*60*x,
@@ -331,7 +299,7 @@ Summary.POSIXlt <- function (..., na.rm)
     as.POSIXlt(.POSIXct(val, tz))
 }
 
-`[.POSIXct` <-
+"[.POSIXct" <-
 function(x, ..., drop = TRUE)
 {
     cl <- oldClass(x)
@@ -342,7 +310,7 @@ function(x, ..., drop = TRUE)
     val
 }
 
-`[[.POSIXct` <-
+"[[.POSIXct" <-
 function(x, ..., drop = TRUE)
 {
     cl <- oldClass(x)
@@ -353,13 +321,13 @@ function(x, ..., drop = TRUE)
     val
 }
 
-`[<-.POSIXct` <-
+"[<-.POSIXct" <-
 function(x, ..., value) {
-    if(!length(value)) return(x)
-    value <- unclass(as.POSIXct(value))
+    if(!as.logical(length(value))) return(x)
+    value <- as.POSIXct(value)
     cl <- oldClass(x)
     tz <- attr(x, "tzone")
-    class(x) <- NULL
+    class(x) <- class(value) <- NULL
     x <- NextMethod(.Generic)
     class(x) <- cl
     attr(x, "tzone") <- tz
@@ -372,12 +340,9 @@ as.data.frame.POSIXct <- as.data.frame.vector
 
 as.list.POSIXct <- function(x, ...)
 {
-    nms <- names(x)
-    names(x) <- NULL
-    y <- lapply(seq_along(x), function(i) x[i])
-    names(y) <- nms
-    y
-}    
+    lapply(seq_along(x), function(i) x[i])
+}
+
 
 is.na.POSIXlt <- function(x) is.na(as.POSIXct(x))
 
@@ -474,11 +439,11 @@ as.difftime <- function(tim, format="%X", units="auto")
 ### For now, these have only difftime methods, but you never know...
 units <- function(x) UseMethod("units")
 
-`units<-` <- function(x, value) UseMethod("units<-")
+"units<-" <- function(x, value) UseMethod("units<-")
 
 units.difftime <- function(x) attr(x, "units")
 
-`units<-.difftime` <- function(x, value)
+"units<-.difftime" <- function(x, value)
 {
     from <- units(x)
     if (from == value) return(x)
@@ -489,10 +454,10 @@ units.difftime <- function(x) attr(x, "units")
     .difftime(newx, value)
 }
 
-as.double.difftime <- function(x, units="auto", ...)
-{
-    if (units != "auto") units(x) <- units
-    as.vector(x, "double")
+as.double.difftime <- function(x, units="auto", ...) {
+    if (units != "auto")
+        units(x) <- units
+    as.double(as.vector(x))
 }
 
 as.data.frame.difftime <- as.data.frame.vector
@@ -515,7 +480,7 @@ print.difftime <- function(x, digits = getOption("digits"), ...)
     invisible(x)
 }
 
-`[.difftime` <- function(x, ..., drop = TRUE)
+"[.difftime" <- function(x, ..., drop = TRUE)
 {
     cl <- oldClass(x)
     class(x) <- NULL
@@ -571,7 +536,7 @@ Ops.difftime <- function(e1, e2)
     }
 }
 
-`*.difftime` <- function (e1, e2)
+"*.difftime" <- function (e1, e2)
 {
     ## need one scalar, one difftime.
     if(inherits(e1, "difftime") && inherits(e2, "difftime"))
@@ -580,7 +545,7 @@ Ops.difftime <- function(e1, e2)
     .difftime(e2 * unclass(e1), attr(e1, "units"))
 }
 
-`/.difftime` <- function (e1, e2)
+"/.difftime" <- function (e1, e2)
 {
     ## need one scalar, one difftime.
     if(inherits(e2, "difftime"))
@@ -588,7 +553,7 @@ Ops.difftime <- function(e1, e2)
     .difftime(unclass(e1) / e2, attr(e1, "units"))
 }
 
-## "Math": some methods should work; the other ones are meaningless :
+## "Math": some methods *should* work; the other ones are meaningless :
 Math.difftime <- function (x, ...)
 {
     switch(.Generic,
@@ -609,7 +574,7 @@ mean.difftime <- function (x, ...)
 
 Summary.difftime <- function (..., na.rm)
 {
-    ## FIXME: this could return in the smallest of the units of the inputs.
+    ## FIXME: this should return in the smallest of the units of the inputs.
     coerceTimeUnit <- function(x)
     {
         as.vector(switch(attr(x,"units"),
@@ -711,6 +676,12 @@ seq.POSIXt <-
                 yr <- seq.int(r1$year, to$year, by)
             }
             r1$year <- yr
+            r1$isdst <- -1L
+            res <- as.POSIXct(r1)
+            if(!missing(to)) {
+                to <- as.POSIXct(to)
+                res <- if(by > 0) res[res <= to] else res[res >= to]
+            }
         } else if(valid == 6L) { # months
             if(missing(to)) {
                 mon <- seq.int(r1$mon, by = by, length.out = length.out)
@@ -719,6 +690,12 @@ seq.POSIXt <-
                 mon <- seq.int(r1$mon, 12*(to0$year - r1$year) + to0$mon, by)
             }
             r1$mon <- mon
+            r1$isdst <- -1
+            res <- as.POSIXct(r1)
+            if(!missing(to)) {
+                to <- as.POSIXct(to)
+                res <- if(by > 0) res[res <= to] else res[res >= to]
+            }
         } else if(valid == 8L) { # DSTdays
             if(!missing(to)) {
                 ## We might have a short day, so need to over-estimate.
@@ -726,15 +703,15 @@ seq.POSIXt <-
                                           unclass(as.POSIXct(from)))/86400)
             }
             r1$mday <- seq.int(r1$mday, by = by, length.out = length.out)
+            r1$isdst <- -1L
+            res <- as.POSIXct(r1)
+            ## now shorten if necessary.
+            if(!missing(to)) {
+                to <- as.POSIXct(to)
+                res <- if(by > 0) res[res <= to] else res[res >= to]
+            }
         }
-	r1$isdst <- -1L
-	res <- as.POSIXct(r1)
-	## now shorten if necessary.
-	if(!missing(to)) {
-	    to <- as.POSIXct(to)
-	    res <- if(by > 0) res[res <= to] else res[res >= to]
-	}
-	res
+        return(res)
     }
 }
 
@@ -876,19 +853,19 @@ round.POSIXt <- function(x, units=c("secs", "mins", "hours", "days"))
 
 ## ---- additions in 1.5.0 -----
 
-`[.POSIXlt` <- function(x, ..., drop = TRUE)
+"[.POSIXlt" <- function(x, ..., drop = TRUE)
 {
     val <- lapply(x, "[", ..., drop = drop)
     attributes(val) <- attributes(x) # need to preserve timezones
     val
 }
 
-`[<-.POSIXlt` <- function(x, i, value)
+"[<-.POSIXlt" <- function(x, i, value)
 {
-    if(!length(value)) return(x)
-    value <- unclass(as.POSIXlt(value))
+    if(!as.logical(length(value))) return(x)
+    value <- as.POSIXlt(value)
     cl <- oldClass(x)
-    class(x) <- NULL
+    class(x) <- class(value) <- NULL
     for(n in names(x)) x[[n]][i] <- value[[n]]
     class(x) <- cl
     x
@@ -924,7 +901,7 @@ diff.POSIXt <- function (x, lag = 1L, differences = 1L, ...)
     xlen <- if (ismat) dim(x)[1L] else length(r)
     if (length(lag) > 1L || length(differences) > 1L || lag < 1L || differences < 1L)
         stop("'lag' and 'differences' must be integers >= 1")
-    if (lag * differences >= xlen) return(.difftime(numeric(), "secs"))
+    if (lag * differences >= xlen) return(.difftime(numeric(0L), "secs"))
     i1 <- -seq_len(lag)
     if (ismat) for (i in seq_len(differences)) r <- r[i1, , drop = FALSE] -
             r[-nrow(r):-(nrow(r) - lag + 1), , drop = FALSE]
@@ -976,16 +953,3 @@ is.numeric.difftime <- function(x) FALSE
 
 .difftime <- function(xx, units)
     structure(xx, units = units, class = "difftime")
-
-## ---- additions in 2.13.0 -----
-
-names.POSIXlt <-
-function(x)
-    names(x$year)
-
-`names<-.POSIXlt` <-
-function(x, value)
-{
-    names(x$year) <- value
-    x
-}

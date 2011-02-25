@@ -1,30 +1,26 @@
 
-# A raster object is a character vector
-# of colour strings
+# A raster object is a vector of colours
 # plus a number of rows and columns
 # The vector gives colours in ROW ORDER,
 # starting from the TOP row
-#
-# due to the inherent inefficiency of
-# raster implementation the graphics
-# routines also support "nativeRaster"
-# which is the native R representation
-# (integer matrix) of colors in the same
-# order as raster, suitable for practical
-# use with images
 
-is.raster <- function(x)
+is.raster <- function(x) {
     inherits(x, "raster")
+}
 
-as.raster <- function(x, ...)
+as.raster <- function(x, ...) {
     UseMethod("as.raster")
+}
 
-as.raster.raster<- function(x, ...)  x
+as.raster.raster<- function(x, ...) {
+    x
+}
 
-as.raster.logical <- function(x, max=1, ...)
+as.raster.logical <- function(x, max=1, ...) {
     as.raster(matrix(x, ...), max)
+}
 
-as.raster.numeric <- as.raster.logical
+as.raster.numeric <- as.raster.logical 
 
 as.raster.character <- as.raster.logical
 
@@ -34,13 +30,9 @@ as.raster.matrix <- function(x, max=1, ...) {
         r <- t(x)
     } else if (is.numeric(x) || is.logical(x)) {
         # Assume greyscale or b&w values
-        # We have to use rgb() indirectly as it
-        # doesn't hande NAs correctly
+        # Use rgb() to allow for different 'max' value
         tx <- t(x)
-        tx.na <- which(is.na(tx))
-        if (length(tx.na)) tx[tx.na] <- 0
-        r <- rgb(tx, tx, tx, maxColorValue = max)
-        if (length(tx.na)) r[tx.na] <- NA
+        r <- rgb(tx, tx, tx, max=max)
     } else {
         stop("A raster matrix must be character, or numeric, or logical")
     }
@@ -57,11 +49,9 @@ as.raster.array <- function(x, max=1, ...) {
         stop("A raster array must have exactly 3 dimensions")
     }
     if (dim(x)[3] == 3) {
-        r <- rgb(t(x[,,1]), t(x[,,2]), t(x[,,3]),
-                 maxColorValue = max)
+        r <- rgb(t(x[,,1]), t(x[,,2]), t(x[,,3]), max=max)
     } else if (dim(x)[3] == 4) {
-        r <- rgb(t(x[,,1]), t(x[,,2]), t(x[,,3]), t(x[,,4]),
-                 maxColorValue = max)
+        r <- rgb(t(x[,,1]), t(x[,,2]), t(x[,,3]), t(x[,,4]), max=max)
     } else {
         stop("A raster array must have exactly 3 or 4 planes")
     }
@@ -108,7 +98,7 @@ print.raster <- function(x, ...) {
     as.raster(m)
 }
 
-`[<-.raster` <- function(x, i, j, value) {
+"[<-.raster" <- function(x, i, j, value) {
     nA <- nargs()
     m <- as.matrix(x)
     if (missing(i)) {
@@ -129,7 +119,7 @@ Ops.raster <- function(e1, e2) {
         if (is.raster(e1))
             e1 <- as.matrix(e1)
         if (is.raster(e2))
-            e2 <- as.matrix(e2)
+            e2 <- as.matrix(e2)        
         # The result is a logical MATRIX
         get(.Generic)(e1, e2)
     } else {

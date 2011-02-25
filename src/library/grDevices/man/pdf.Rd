@@ -175,10 +175,11 @@ pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
   output, you may need to specify a larger value for \code{maxRasters}.
 }
 \section{Color models}{
-  The default color model is sRGB, and model \code{"gray"} maps sRGB
+  The default color model is RGB, and model \code{"gray"} maps RGB
   colors to greyscale using perceived luminosity (biased towards green).
-  \code{"cmyk"} outputs in CMYK colorspace.  The simplest
-  possible conversion from sRGB to CMYK is used
+  \code{"cmyk"} outputs in CMYK colorspace.  Nothing in \R specifies the
+  interpretation of the RGB or CMYK color spaces, and the simplest
+  possible conversion to CMYK is used
   (\url{http://en.wikipedia.org/wiki/CMYK_color_model#Mapping_RGB_to_CMYK}).
 }
 \section{Conventions}{
@@ -189,17 +190,14 @@ pdf(file = ifelse(onefile, "Rplots.pdf", "Rplot\%03d.pdf"),
     \item The default device size is 7 inches square.
     \item Font sizes are in big points.
     \item The default font family is Helvetica.
-    \item Line widths are as a multiple of 1/96 inch, with a minimum
-    of 0.01 enforced.   
+    \item Line widths are as a multiple of 1/96 inch, with no minimum. 
     \item Circles of any radius are allowed.  Unless \code{useDingbats =
     FALSE}, opaque circles of less than 10 big
     points radius are rendered using char 108 in the Dingbats font:
     all semi-transparent and larger circles using a \enc{Bézier}{Bezier}
     curve for each quadrant.
-    \item Colours are specified as sRGB.
+    \item Colours are interpreted by the viewing/printing application.
   }
-
-  At very small line widths, the line type may be forced to solid.
 }
 \note{
   If you see problems with PDF output, do remember that the

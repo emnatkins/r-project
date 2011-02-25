@@ -23,7 +23,7 @@
   This is easier and more direct.
 }
 \usage{
-addTaskCallback(f, data = NULL, name = character())
+addTaskCallback(f, data = NULL, name = character(0))
 removeTaskCallback(id)
 }
 \arguments{

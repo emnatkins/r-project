@@ -11,7 +11,7 @@
   A simple low-level interface for serializing to connections.
 }
 \usage{
-serialize(object, connection, ascii, version = NULL, refhook = NULL)
+serialize(object, connection, ascii = FALSE, refhook = NULL)
 
 unserialize(connection, refhook = NULL)
 }
@@ -21,16 +21,12 @@ unserialize(connection, refhook = NULL)
     \code{NULL} or (for \code{unserialize}) a raw vector
     (see \sQuote{Details}).}
   \item{ascii}{a logical.  If \code{TRUE}, an ASCII representation is
-    written; otherwise binary one.  The default is \code{TRUE} for a
-    text-mode connection and \code{FALSE} otherwise.
-    See also the comments in the help for \code{\link{save}}.}
-  \item{version}{the workspace format version to use.  \code{NULL}
-    specifies the current default version (2).  Versions prior to 2 are not
-    supported, so this will only be relevant when there are later versions.}
+    written; otherwise (default except for text-mode connections), a
+    binary one is used.}
   \item{refhook}{a hook function for handling reference objects.}
 }
 \details{
-  The function \code{serialize} serializes \code{object} to the specified
+  The function \code{serialize} writes \code{object} to the specified
   connection.  If \code{connection} is \code{NULL} then \code{object} is
   serialized to a raw vector, which is returned as the result of
   \code{serialize}.
@@ -57,15 +53,12 @@ unserialize(connection, refhook = NULL)
   
   The format consists of a single line followed by the data: the first
   line contains a single character: \code{X} for binary serialization
-  and \code{A} for ASCII serialization, followed by a new line.  (The
-  format used is identical to that used by \code{\link{readRDS}}.)
+  and \code{A} for ASCII serialization, followed by a new line.
 }
 \section{Warning}{
-  These functions have provided a stable interface since \R 2.4.0 (when
-  the storage of serialized objects was changed from character to raw
-  vectors).  However, the serialization format may change in future
-  versions of \R, so this interface should not be used for long-term
-  storage of \R objects.
+  These functions are still experimental.  Names, interfaces and
+  values might change in future versions (and the value of
+  \code{serialize} was changed for \R 2.4.0).
 
   A raw vector is limited to \eqn{2^{31} - 1}{2^31 - 1} bytes, but \R
   objects can exceed this and their serializations will normally be
@@ -78,7 +71,7 @@ unserialize(connection, refhook = NULL)
   For \code{unserialize} an \R object.
 }
 \seealso{
-  \code{\link{saveRDS}} for a more convenient interface to serialize an
+  \code{\link{.saveRDS}} for a more convenient interface to serialize an
   object to a file or connection.
 
   \code{\link{save}} and \code{\link{load}} to serialize and restore one
@@ -89,8 +82,6 @@ unserialize(connection, refhook = NULL)
 \examples{
 x <- serialize(list(1,2,3), NULL)
 unserialize(x)
-
-## see also the examples for saveRDS
 }
 \keyword{file}
 \keyword{connection}

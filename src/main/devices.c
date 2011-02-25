@@ -35,11 +35,9 @@
 #include <Graphics.h>
 #include <GraphicsBase.h> /* registerBase */
 
-static SEXP R_INLINE getSymbolValue(SEXP symbol)
+static SEXP R_INLINE getSymbolValue(const char *symbolName)
 {
-    if (TYPEOF(symbol) != SYMSXP)
-	error("argument to 'getSymbolValue' is not a symbol");
-    return findVar(symbol, R_BaseEnv);
+    return findVar(install(symbolName), R_BaseEnv);
 }
 
 /*
@@ -125,7 +123,7 @@ pGEDevDesc GEcurrentDevice(void)
      * check the options for a "default device".
      * If there is one, start it up. */
     if (NoDevices()) {
-	SEXP defdev = GetOption1(install("device"));
+	SEXP defdev = GetOption(install("device"), R_BaseEnv);
 	if (isString(defdev) && length(defdev) > 0) {
 	    SEXP devName = install(CHAR(STRING_ELT(defdev, 0)));
 	    /*  Not clear where this should be evaluated, since
@@ -255,7 +253,7 @@ int selectDevice(int devNum)
 
 	/* maintain .Device */
 	gsetVar(R_DeviceSymbol,
-		elt(getSymbolValue(R_DevicesSymbol), devNum),
+		elt(getSymbolValue(".Devices"), devNum),
 		R_BaseEnv);
 
 	gdd = GEcurrentDevice(); /* will start a device if current is null */
@@ -287,7 +285,7 @@ void removeDevice(int devNum, Rboolean findNext)
 
 	if(findNext) {
 	    /* maintain .Devices */
-	    PROTECT(s = getSymbolValue(R_DevicesSymbol));
+	    PROTECT(s = getSymbolValue(".Devices"));
 	    for (i = 0; i < devNum; i++) s = CDR(s);
 	    SETCAR(s, mkString(""));
 	    UNPROTECT(1);
@@ -297,7 +295,7 @@ void removeDevice(int devNum, Rboolean findNext)
 		R_CurrentDevice = nextDevice(R_CurrentDevice);
 		/* maintain .Device */
 		gsetVar(R_DeviceSymbol,
-			elt(getSymbolValue(R_DevicesSymbol), R_CurrentDevice),
+			elt(getSymbolValue(".Devices"), R_CurrentDevice),
 			R_BaseEnv);
 
 		/* activate new current device */
@@ -445,7 +443,7 @@ void GEaddDevice(pGEDevDesc gdd)
     SEXP s, t;
     pGEDevDesc oldd;
 
-    PROTECT(s = getSymbolValue(R_DevicesSymbol));
+    PROTECT(s = getSymbolValue(".Devices"));
 
     if (!NoDevices())  {
 	oldd = GEcurrentDevice();
@@ -476,7 +474,7 @@ void GEaddDevice(pGEDevDesc gdd)
     gdd->dev->activate(gdd->dev);
 
     /* maintain .Devices (.Device has already been set) */
-    PROTECT(t = ScalarString(STRING_ELT(getSymbolValue(R_DeviceSymbol), 0)));
+    PROTECT(t = ScalarString(STRING_ELT(getSymbolValue(".Device"), 0)));
     if (appnd)
 	SETCDR(s, CONS(t, R_NilValue));
     else
@@ -548,7 +546,7 @@ void attribute_hidden InitGraphics(void)
     PROTECT(s = mkString("null device"));
     gsetVar(R_DeviceSymbol, s, R_BaseEnv);
     PROTECT(t = mkString("null device"));
-    gsetVar(R_DevicesSymbol, CONS(t, R_NilValue), R_BaseEnv);
+    gsetVar(install(".Devices"), CONS(t, R_NilValue), R_BaseEnv);
     UNPROTECT(2);
 
     /* Register the base graphics system with the graphics engine

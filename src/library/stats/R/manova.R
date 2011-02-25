@@ -59,7 +59,7 @@ summary.manova <-
     if (is.null(effects)) {
         df <- nterms <- 0
         ss <- list(0)
-        nmrows <- character()
+        nmrows <- character(0L)
     } else {
         df <- numeric(nterms)
         ss <- list(nterms)

@@ -2,11 +2,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-01-28 18:12\n"
+"POT-Creation-Date: 2011-01-03 16:13\n"
 "PO-Revision-Date: 2005-04-14 18:07+0200\n"
 "Last-Translator: stefano iacus <>\n"
 "Language-Team: Italian <it@li.org>\n"
-"Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -477,8 +476,7 @@ msgstr ""
 msgid "'k' must be in {1, 2, ..  n - 1}"
 msgstr "'k' deve essere in {1, 2, ..  n - 1}"
 
-#, fuzzy
-msgid "only %d of the first %d eigenvalues are > 0"
+msgid "some of the first %d eigenvalues are < 0"
 msgstr "alcuni dei primi %d autovalori sono < 0"
 
 #, fuzzy
@@ -631,6 +629,9 @@ msgstr "gli elementi di 'k' devono essere tra 1 e %d"
 msgid "'merge' and 'height' do not fit!"
 msgstr "'merge' e 'height' in disaccordo!"
 
+msgid "we require a dendrogram"
+msgstr "necessario un dendrogramma"
+
 msgid "dendrogram node with non-positive #{branches}"
 msgstr "nodo del dendrogramma con #{branches} non positivi"
 
@@ -643,17 +644,11 @@ msgstr "sotto-albero non-terminale di lunghezza 0"
 msgid "'order.dendrogram' requires a dendrogram"
 msgstr "'order.dendrogram' richiede un dendrogramma"
 
-msgid "we require a dendrogram"
-msgstr "necessario un dendrogramma"
-
 msgid "invalid (length 0) node in dendrogram"
 msgstr "nodo non valido (lunghezza 0) nel dendrogramma"
 
 msgid "dendrogram non-leaf node with non-positive #{branches}"
 msgstr "nodo non terminale del dendrogramma con #{branches} non positivi"
-
-msgid "'height' must be at least %g, the maximal height of its components"
-msgstr ""
 
 msgid "'X' is not a dendrogram"
 msgstr "'X' non è un dendrogramma"
@@ -1580,8 +1575,7 @@ msgstr "eff.aovlist: contrasti non ortogonali forniranno una risposta errata"
 msgid "cannot create a formula from a zero-column data frame"
 msgstr ""
 
-#, fuzzy
-msgid "no terms component nor attribute"
+msgid "no terms component"
 msgstr "manca compoenente terms"
 
 #, fuzzy
@@ -1595,8 +1589,8 @@ msgstr "'centers' deve essere un numero o una matrice"
 #, fuzzy
 msgid "variable '%s' was fitted with type \"%s\" but type \"%s\" was supplied"
 msgstr ""
-"variabile '%s' stimata con classe \"%s\" ma è stata specificata la classe "
-"\"%s\""
+"variabile '%s' stimata con classe \"%s\" ma è stata specificata la classe \"%"
+"s\""
 
 #, fuzzy
 msgid "variables %s were specified with different types from the fit"
@@ -2482,12 +2476,6 @@ msgid "there are %d Error terms: only 1 is allowed"
 msgid_plural "there are %d Error terms: only 1 is allowed"
 msgstr[0] ""
 msgstr[1] ""
-
-#, fuzzy
-msgid "extra argument %s is not a \"%s\""
-msgid_plural "extra arguments %s are not \"%s\"s"
-msgstr[0] "argometni extra ignorati"
-msgstr[1] "argometni extra ignorati"
 
 msgid "%d observation deleted due to missingness"
 msgid_plural "%d observations deleted due to missingness"

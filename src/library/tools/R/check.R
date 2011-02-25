@@ -14,7 +14,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-###- R based engine for R CMD check
+#### R based engine for R CMD check
 
 ## Used for INSTALL and Rd2pdf
 run_Rcmd <- function(args, out = "")
@@ -34,9 +34,17 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         if (!is.null(cmd)) {
             Rin <- tempfile("Rin"); on.exit(unlink(Rin)); writeLines(cmd, Rin)
         } else Rin <- stdin
-        system2(if(nzchar(arch)) file.path(R.home(), "bin", arch, "Rterm.exe")
-                else file.path(R.home("bin"), "Rterm.exe"),
-                c(Ropts, paste("-f", Rin)), stdout, stderr, env = env)
+        ## This was called from Rcmd which set R_ARCH,
+        ## so we may need to reset it.  (This used to be necessary for
+        ## nested calls of Rcmd in 2.12.x, but no longer.)
+        if(nzchar(arch))
+            system2(file.path(R.home(), "bin", arch, "Rterm.exe"),
+                    c(Ropts, paste("-f", Rin)), stdout, stderr,
+                    env = c(env, paste("R_ARCH=/", arch, sep="")))
+        else
+            system2(file.path(R.home("bin"), "Rterm.exe"),
+                    c(Ropts, paste("-f", Rin)), stdout, stderr,
+                    env = env)
     } else {
         suppressWarnings(system2(file.path(R.home("bin"), "R"),
                                  c(if(nzchar(arch)) paste("--arch=", arch, sep = ""), Ropts),
@@ -44,7 +52,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
     }
 }
 
-###- The main function for "R CMD check"  {currently extends all the way to the end-of-file}
 .check_packages <- function(args = NULL)
 {
     WINDOWS <- .Platform$OS.type == "windows"
@@ -133,22 +140,8 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             check_R_code() # unstated dependencies, S3 methods, replacement, foreign
             check_R_files() # codetools etc
         }
-
         check_Rd_files(haveR)
-
-        check_data() # 'data' dir and sysdata.rda
-
         if (!is_base_pkg && dir.exists("src") && !extra_arch) check_src_dir()
-
-        miss <- file.path("inst", "doc", c("Rplots.ps", "Rplots.pdf"))
-        if (any(f <- file.exists(miss))) {
-            checkingLog(Log, "for left-overs from vignette generation")
-            noteLog(Log)
-            printLog(Log,
-                     paste("  file", paste(sQuote(miss[f]), collapse = ", "),
-                           "will not be installed: please remove it\n"))
-        }
-        if (R_check_doc_sizes && dir.exists("inst/doc")) check_doc_size()
 
         setwd(pkgoutdir)
 
@@ -232,8 +225,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         if (length(bad))
             bad_files <- c(bad_files, (allfiles[is_man])[bad])
         bad <- tolower(basename(allfiles))
-        ## remove any extension(s) (see 'Writing R Extensions')
-        bad <- sub("[.].*", "", bad)
         bad <- grepl("^(con|prn|aux|clock[$]|nul|lpt[1-9]|com[1-9])$", bad)
         bad_files <- c(bad_files, allfiles[bad])
         if (length(bad_files)) {
@@ -505,8 +496,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             }
         }
 
-        all_dirs <- list.dirs(".")
-
         ## several packages have had check dirs in the sources, e.g.
         ## ./languageR/languageR.Rcheck
         ## ./locfdr/man/locfdr.Rcheck
@@ -514,56 +503,14 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         ## ./bicreduc/OldFiles/bicreduc.Rcheck
         ## ./waved/man/waved.Rcheck
         ## ./waved/..Rcheck
-        ind <- grepl("\\.Rcheck$", all_dirs)
-        if(any(ind)) {
-            if(!any) warnLog()
-            any <- TRUE
-            printLog(Log,
-                     "Found the following directory(s) with ",
-                     "names of check directories:\n",
-                     paste("  ", all_dirs[ind], sep = "",
-                           collapse = "\n"),
-                     "\n",
-                     "Most likely, these were included erroneously.\n")
-        }
-
-        ## Several packages had leftover Rd2dvi build directories in
-        ## their sources, e.g.
-        ## ./catmap/man/.Rd2dvi
-        ## ./Rdsm/man/.Rd2dvi7366
-        ## ./depmix/man/.Rd2dvi1150
-        ## ./beadarrayMSV/man/.Rd2dvi2933
-        ## ./qgraph/man/.Rd2dvi4352
-        ## ./qgraph/man/.Rd2dvi1532
-        ## ./qgraph/man/.Rd2dvi2032
-        ## ./qgraph/man/.Rd2dvi6032
-        ind <- grepl("^\\.Rd2dvi", basename(all_dirs))
-        if(any(ind)) {
-            if(!any) warnLog()
-            any <- TRUE
-            printLog(Log,
-                     "Found the following directory(s) with ",
-                     "names of Rd2dvi build directories:\n",
-                     paste("  ", all_dirs[ind], sep = "",
-                           collapse = "\n"),
-                     "\n",
-                     "Most likely, these were included erroneously.\n")
-        }
-
-        if(istar || R_check_vc_dirs) {
-            ## Packages also should not contain version control subdirs
-            ## provided that we check a .tar.gz or know we unpacked one.
-            ind <- basename(all_dirs) %in% .vc_dir_names
-            if(any(ind)) {
-                if(!any) warnLog()
-                any <- TRUE
-                printLog(Log,
-                         "Found the following directory(s) with ",
-                         "names of version control directories:\n",
-                         paste("  ", all_dirs[ind], sep = "", collapse = "\n"),
-                         "\n",
-                         "These should not be in a package tarball.\n")
-            }
+        alldirs <- dirname(dir(".", all.files = TRUE, full.names = TRUE))
+        check_files <- grep("\\.Rcheck$", alldirs, value = TRUE)
+        if (length(check_files)) {
+            if (!any) warnLog()
+            printLog(Log, "Found the following directory(s) with ",
+                     "names of check directories:\n")
+            printLog(Log, paste(c("", check_files, ""), collapse = "\n"))
+            printLog(Log, "Most likely, these were included erroneously.\n")
         }
 
         if (subdirs != "no") {
@@ -652,38 +599,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             }
         }
 
-        ## Valid NEWS.Rd?
-        nfile <- file.path("inst", "NEWS.Rd")
-        if(file.exists(nfile)) {
-            ## Catch all warning and error messages.
-            ## We use the same construction in at least another place,
-            ## so maybe factor out a common utility function
-            ##   .try_catch_all_warnings_and_errors
-            ## eventually.
-            ## For testing package NEWS.Rd files, we really need a real
-            ## QC check function eventually ...
-            .warnings <- NULL
-            .error <- NULL
-            withCallingHandlers(tryCatch(tools:::.build_news_db_from_package_NEWS_Rd(nfile),
-                                         error = function(e)
-                                         .error <<- conditionMessage(e)),
-                                warning = function(e) {
-                                    .warnings <<- c(.warnings,
-                                                    conditionMessage(e))
-                                    invokeRestart("muffleWarning")
-                                })
-            msg <- c(.warnings, .error)
-            if(length(msg)) {
-                if(!any) warnLog("Problems with news in inst/NEWS.Rd:")
-                any <- TRUE
-                printLog(Log,
-                         paste("  ",
-                               unlist(strsplit(msg, "\n", fixed = TRUE)),
-                               sep = "", collapse = "\n"),
-                         "\n")
-            }
-        }
-
         ## Valid CITATION metadata?
         if (file.exists(file.path("inst", "CITATION"))) {
             Rcmd <- "tools:::.check_citation(\"inst/CITATION\")\n"
@@ -692,7 +607,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 if(!any) warnLog("Invalid citation information in 'inst/CITATION':")
                 any <- TRUE
                 printLog(Log,
-                         paste("  ", out, sep = "", collapse = "\n"),
+                         paste("  ", out, sep = "", collapse="\n"),
                          "\n")
             }
         }
@@ -1117,28 +1032,8 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 # wrapLog(msg_DESCRIPTION)
             } else resultLog(Log, "OK")
         } ## FIXME, what if no install?
-    }
 
-    check_data <- function()
-    {
-        ## Check contents of 'data'
-        if (!is_base_pkg && dir.exists("data")) {
-            checkingLog(Log, "contents of 'data' directory")
-            fi <- list.files("data")
-            if (!any(grepl("\\.[Rr]$", fi))) { # code files can do anything
-                dataFiles <- basename(list_files_with_type("data", "data"))
-                odd <- fi[! fi %in% c(dataFiles, "datalist")]
-                if (length(odd)) {
-                    warnLog()
-                    msg <- c("Files not of a type allowed in a 'data' directory:\n",
-                             paste(.pretty_format(odd), "\n", sep = ""),
-                             "Please use e.g. 'inst/extdata' for non-R data files\n")
-                    printLog(Log, msg)
-                } else resultLog(Log, "OK")
-            } else resultLog(Log, "OK")
-        }
-
-        ## Check for non-ASCII characters in 'data'
+        ## Check for non-ASCII characters in data
         if (!is_base_pkg && R_check_ascii_data && dir.exists("data")) {
             checkingLog(Log, "data for non-ASCII characters")
             out <- R_runR("tools:::.check_package_datasets('.')", R_opts2)
@@ -1148,57 +1043,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 bad <- grep("^Warning:", out)
                 if (length(bad)) warnLog() else noteLog(Log)
                 printLog(Log, paste("  ", out, sep = "", collapse = "\n"), "\n")
-            } else resultLog(Log, "OK")
-        }
-
-        ## Check for ASCII and uncompressed/unoptimized saves in 'data'
-        if (!is_base_pkg && R_check_compact_data && dir.exists("data")) {
-            checkingLog(Log, "data for ASCII and uncompressed saves")
-            out <- R_runR(paste("tools:::.check_package_compact_datasets('.',",
-                                R_check_compact_data2, ")"),
-                          R_opts2)
-            if (length(out)) {
-                bad <- grep("^Warning:", out)
-                if (length(bad)) warnLog() else noteLog(Log)
-                printLog(Log, paste("  ", out, sep = "", collapse = "\n"), "\n")
-            } else resultLog(Log, "OK")
-        }
-
-        ## Check for ASCII and uncompressed/unoptimized saves in 'sysdata':
-        ## no base package has this
-        if (R_check_compact_data && file.exists(file.path("R", "sysdata.rda"))) {
-            checkingLog(Log, "R/sysdata.rda")
-            out <- R_runR(paste("tools:::.check_package_compact_sysdata('.',",
-                                R_check_compact_data2, ")"),
-                          R_opts2)
-            if (length(out)) {
-                bad <- grep("^Warning:", out)
-                if (length(bad)) warnLog() else noteLog(Log)
-                printLog(Log, paste("  ", out, sep = "", collapse = "\n"), "\n")
-            } else resultLog(Log, "OK")
-        }
-   }
-
-    check_doc_size <- function()
-    {
-        ## Have already checked that inst/doc exists and qpdf can be found
-        pdfs <- dir('inst/doc', pattern="\\.pdf",
-                    recursive = TRUE, full.names = TRUE)
-        pdfs <- pdfs %w/o% "inst/doc/Rplots.pdf"
-        if (length(pdfs)) {
-            checkingLog(Log, "sizes of PDF files under inst/doc")
-            td <- tempfile('pdf')
-            dir.create(td)
-            file.copy(pdfs, td)
-            res <- compactPDF(td)
-            res <- format(res, diff = 1e5)
-            if(length(res)) {
-                resultLog(Log, "NOTE")
-                printLog(Log,
-                         "  'qpdf' made some significant size reductions:\n",
-                         paste("  ", res, collapse="\n"),
-                         "\n",
-                         "  consider running tools::compactPDF() on these files\n")
             } else resultLog(Log, "OK")
         }
     }
@@ -1270,17 +1114,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         any <- FALSE
         for (f in makefiles) {
             lines <- readLines(f, warn = FALSE)
-            ## Combine lines ending in escaped newlines.
-            if(any(ind <- grepl("[\\]$", lines, useBytes = TRUE))) {
-                ## Eliminate escape.
-                lines[ind] <-
-                    sub("[\\]$", "", lines[ind], useBytes = TRUE)
-                ## Determine ids of blocks that need to be joined.
-                ind <- seq_along(ind) - c(0, cumsum(ind)[-length(ind)])
-                ## And join.
-                lines <- unlist(lapply(split(lines, ind), paste,
-                                       collapse = " "))
-            }
             c1 <- grepl("^[[:space:]]*PKG_LIBS", lines, useBytes = TRUE)
             c2l <- grepl("\\$[{(]{0,1}LAPACK_LIBS", lines, useBytes = TRUE)
             c2b <- grepl("\\$[{(]{0,1}BLAS_LIBS", lines, useBytes = TRUE)
@@ -1388,9 +1221,8 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             if (use_valgrind) Ropts <- paste(Ropts, "-d valgrind")
             ## might be diff-ing results against tests/Examples later
             ## so force LANGUAGE=en
-            status <- R_runR(NULL, c(Ropts, enc), "LANGUAGE=en",
-                             stdout = exout, stderr = exout,
-                             stdin = exfile, arch = arch)
+            status <- R_runR(NULL, c(Ropts, enc), env = "LANGUAGE=en",
+                              exout, exout, exfile, arch = arch)
             if (status) {
                 errorLog(Log, "Running examples in ", sQuote(exfile),
                          " failed")
@@ -1462,8 +1294,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             cmd <- sprintf('tools:::.createExdotR("%s", "%s", silent = TRUE, use_gct = %s, addTiming = %s)', pkgname, pkgtopdir, use_gct, do_timings)
             Rout <- tempfile("Rout")
             ## any arch will do here
-            status <- R_runR(cmd, R_opts2, "LC_ALL=C",
-                             stdout = Rout, stderr = Rout)
+            status <- R_runR(cmd, R_opts2, "LC_ALL=C", Rout, Rout)
             if (status) {
                 errorLog(Log,
                          paste("Running massageExamples to create",
@@ -2021,39 +1852,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
 
     }
 
-    ## This requires a GNU-like 'du' with 1k block sizes,
-    ## so use -k (which POSIX requires).
-    ## It also depends on the total being last.
-    check_install_sizes <- function()
-    {
-        checkingLog(Log, "installed package size")
-        owd <- setwd(file.path(libdir, pkgname))
-        res <- system2("du", "-k", TRUE, TRUE)
-        sizes <- as.integer(sub("\\D.*", "", res))
-        dirs <- sub("^\\d*\\s*", "", res)
-        res2 <- data.frame(size = sizes, dir = I(dirs))
-        total <- res2[nrow(res2), 1L]
-        if(total > 1024*5) { # report at 5Mb
-            resultLog(Log, "NOTE")
-            printLog(Log, sprintf("  installed size is %4.1fMb\n", total/1024))
-            rest <- res2[-nrow(res2), ]
-            rest[, 2L] <- sub("./", "", rest[, 2L])
-            # keep only top-level directories
-            rest <- rest[!grepl("/", rest[, 2L]), ]
-            rest <- rest[rest[, 1L] > 1024, ] # > 1Mb
-            if(nrow(rest)) {
-                printLog(Log, "  sub-directories of 1Mb or more:\n")
-                size <- sprintf('%4.1fMb', rest[, 1L]/1024)
-                printLog(Log, paste("    ",
-                                    format(rest[, 2L], justify = "left"),
-                                    "  ",
-                                    format(size, justify = "right"),
-                                    "\n", sep=""))
-            }
-        } else resultLog(Log, "OK")
-        setwd(owd)
-    }
-
     check_description <- function()
     {
         checkingLog(Log, "for file ",
@@ -2101,17 +1899,18 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
     check_CRAN_incoming <- function()
     {
         checkingLog(Log, "CRAN incoming feasibility")
-        res <- .check_package_CRAN_incoming(pkgdir)
-        if(length(res)) {
-            out <- format(res)
-            if(length(res$bad_package)) {
+        out <- .check_package_CRAN_incoming(pkgdir)
+        if(length(out)) {
+            ## TODO: work with object directly
+            res <- utils::capture.output(print(out))
+            if (any(grepl("Conflicting", res))) {
                 errorLog(Log)
-                printLog(Log, paste(c(out, ""), collapse = "\n"))
+                printLog(Log, paste(c(res, ""), collapse = "\n"))
                 do_exit(1L)
-            } else if(length(res$bad_version))
+            } else if (any(grepl("Insufficient", res)))
                 warnLog()
             else noteLog(Log)
-            printLog(Log, paste(c(out, ""), collapse = "\n"))
+            printLog(Log, paste(c(res, ""), collapse = "\n"))
         } else resultLog(Log, "OK")
     }
 
@@ -2165,18 +1964,21 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         ## package vignette must require its own package, which OTOH is
         ## not required in the package DESCRIPTION file.
         ## Namespace imports must really be in Depends.
-        res <- .check_package_depends(pkgdir, R_check_force_suggests)
-        if(any(sapply(res, length) > 0L)) {
-            out <- format(res)
-            if(!all(names(res) %in% c("suggests_but_not_installed",
-                                      "enhances_but_not_installed"))) {
+
+        ## Suppress warnings from incorrect NAMESPACE files (errors in 2.13.0)
+        res <- suppressWarnings(.check_package_depends(pkgdir, R_check_force_suggests))
+        if (any(sapply(res, length) > 0)) {
+            if (!all(names(res) %in% c("suggests_but_not_installed",
+                                       "enhances_but_not_installed"))) {
                 errorLog(Log)
-                printLog(Log, paste(out, collapse = "\n"), "\n")
+                printLog(Log, paste(utils::capture.output(print(res)),
+                                    collapse="\n"), "\n")
                 wrapLog(msg_DESCRIPTION)
                 do_exit(1L)
             } else {
                 noteLog(Log)
-                printLog(Log, paste(out, collapse = "\n"))
+                printLog(Log, paste(utils::capture.output(print(res)),
+                                    collapse="\n"))
             }
         } else resultLog(Log, "OK")
     }
@@ -2249,6 +2051,16 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         paste(paths[nzchar(paths)], collapse = .Platform$path.sep)
     }
 
+    config_val_to_logical <- function(val) {
+        v <- tolower(val)
+        if (v %in% c("1", "yes", "true")) TRUE
+        else if (v %in% c("0", "no", "false")) FALSE
+        else {
+            warning("cannot coerce ", sQuote(val), " to logical")
+            NA
+        }
+    }
+
     Usage <- function() {
         cat("Usage: R CMD check [options] pkgs",
             "",
@@ -2276,6 +2088,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             "      --no-install      skip installation and associated tests",
             "      --no-tests        do not run code in 'tests' subdirectory",
             "      --no-manual       do not produce the PDF manual",
+            "      --no-latex        (deprecated) ditto",
             "      --no-vignettes    do not check vignettes in Sweave format",
             "      --use-gct         use 'gctorture(TRUE)' when running examples/tests",
             "      --use-valgrind    use 'valgrind' when running examples/tests/vignettes",
@@ -2296,8 +2109,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             "",
             "Report bugs to <r-bugs@r-project.org>.", sep="\n")
     }
-
-###--- begin{.check_packages()} "main" ---
 
     options(showErrorCalls=FALSE, warn = 1)
 
@@ -2378,8 +2189,9 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         } else if (a == "--no-manual") {
             do_manual  <- FALSE
         } else if (a == "--no-latex") {
-            stop("'--no-latex' is defunct: use '--no-manual' instead",
-                 call. = FALSE, domain = NA)
+            warning("'--no-latex' is deprecated: use '--no-manual' instead",
+                    call. = FALSE, domain = NA)
+            do_manual  <- FALSE
         } else if (a == "--use-gct") {
             use_gct  <- TRUE
         } else if (a == "--use-valgrind") {
@@ -2490,19 +2302,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
     	config_val_to_logical(Sys.getenv("_R_CHECK_ASCII_CODE_", "TRUE"))
     R_check_ascii_data <-
     	config_val_to_logical(Sys.getenv("_R_CHECK_ASCII_DATA_", "TRUE"))
-    R_check_compact_data2 <-
-    	config_val_to_logical(Sys.getenv("_R_CHECK_COMPACT_DATA2_", "FALSE"))
-    R_check_compact_data <- R_check_compact_data2 ||
-    	config_val_to_logical(Sys.getenv("_R_CHECK_COMPACT_DATA_", "TRUE"))
-    R_check_vc_dirs <-
-    	config_val_to_logical(Sys.getenv("_R_CHECK_VC_DIRS_", "FALSE"))
-    R_check_pkg_sizes <-
-    	config_val_to_logical(Sys.getenv("_R_CHECK_PKG_SIZES_", "TRUE")) &&
-        nzchar(Sys.which("du"))
-    R_check_doc_sizes <-
-    	config_val_to_logical(Sys.getenv("_R_CHECK_DOC_SIZES_", "TRUE")) &&
-        nzchar(Sys.which(Sys.getenv("R_QPDF", "qpdf")))
-
     ## Only relevant when the package is loaded, thus installed.
     R_check_suppress_RandR_message <-
         do_install && config_val_to_logical(Sys.getenv("_R_CHECK_SUPPRESS_RANDR_MESSAGE_", "TRUE"))
@@ -2522,9 +2321,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             R_check_Rd_xrefs <- R_check_use_codetools <- R_check_Rd_style <-
                 R_check_executables <- R_check_permissions <-
                     R_check_dot_internal <- R_check_ascii_code <-
-                    	R_check_ascii_data <- R_check_compact_data <-
-                            R_check_compact_data2 <-
-                                R_check_pkg_sizes <- R_check_doc_sizes <- FALSE
+                    	R_check_ascii_data <- FALSE
 
     startdir <- getwd()
     if (is.null(startdir))
@@ -2711,10 +2508,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             ## we need to do this before installation
             if (R_check_executables) check_executables()
 
-            if (do_install) {
-                check_install()
-                if(R_check_pkg_sizes) check_install_sizes()
-            }
+            if (do_install) check_install()
             if (multiarch) {
                 if (force_multiarch) inst_archs <- archs
                 else {
@@ -2725,11 +2519,9 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                         inst_archs <- inst_archs[inst_archs %in% archs]
                         if (!identical(inst_archs, archs)) {
                             if (length(inst_archs) > 1)
-				printLog(Log, "NB: this package is only installed for sub-architectures ",
-					 paste(sQuote(inst_archs), collapse=", "), "\n")
-			    else {
-				printLog(Log, "NB: this package is only installed for sub-architecture ",
-					 sQuote(inst_archs), "\n")
+                                printLog(Log, "NB: this package is only installed for sub-architectures ", paste(sQuote(inst_archs), collapse=", "), "\n")
+                            else {
+                                printLog(Log, "NB: this package is only installed for sub-architecture ", sQuote(inst_archs), "\n")
                                 if(inst_archs == .Platform$r_arch)
                                     this_multiarch <- FALSE
                             }
@@ -2760,8 +2552,3 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
     } ## end for (pkg in pkgs)
 
 } ## end{ .check_packages }
-
-### Local variables:
-### mode: R
-### page-delimiter: "^###[#-]"
-### End:

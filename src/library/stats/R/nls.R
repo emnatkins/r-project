@@ -41,7 +41,7 @@ numericDeriv <- function(expr, theta, rho = parent.frame(), dir=1.0)
 nlsModel.plinear <- function(form, data, start, wts)
 {
     thisEnv <- environment()
-    env <- new.env(hash = TRUE, parent=environment(form))
+    env <- new.env(parent=environment(form))
     for(i in names(data)) assign(i, data[[i]], envir = env)
     ind <- as.list(start)
     p2 <- 0
@@ -224,7 +224,7 @@ nlsModel.plinear <- function(form, data, start, wts)
 nlsModel <- function(form, data, start, wts, upper=NULL)
 {
     thisEnv <- environment()
-    env <- new.env(hash = TRUE, parent = environment(form))
+    env <- new.env(parent = environment(form))
     for(i in names(data)) assign(i, data[[i]], envir = env)
     ind <- as.list(start)
     parLength <- 0
@@ -383,7 +383,7 @@ nls.control <- function(maxiter = 50, tol = 0.00001, minFactor = 1/1024,
     list(maxiter = maxiter, tol = tol, minFactor = minFactor,
 	 printEval = printEval, warnOnly = warnOnly)
 
-nls_port_fit <- function(m, start, lower, upper, control, trace, give.v=FALSE)
+nls_port_fit <- function(m, start, lower, upper, control, trace)
 {
     ## Establish the working vectors and check and set options
     p <- length(par <- as.double(unlist(start)))
@@ -397,22 +397,25 @@ nls_port_fit <- function(m, start, lower, upper, control, trace, give.v=FALSE)
 	for(noN in intersect(nms, c("tol", "minFactor", "warnOnly", "printEval")))
 	    control[[noN]] <- NULL
 	nms <- names(control)
-	pos <- pmatch(nms, names(port_cpos))
-	if (any(nap <- is.na(pos))) {
-	    warning(paste("unrecognized control element(s) named `",
-			  paste(nms[nap], collapse = ", "),
-			  "' ignored", sep = ""))
-	    pos <- pos[!nap]
-	    control <- control[!nap]
-	}
-	ivpars <- pos <= 4 ; vpars <- !ivpars
-	if (any(ivpars))
-	    iv[port_cpos[pos[ivpars]]] <- as.integer(unlist(control[ivpars]))
-	if (any(vpars))
-	    v [port_cpos[pos[ vpars]]] <- as.double(unlist(control[vpars]))
+	cpos <- c(eval.max = 17, maxiter = 18, trace = 19, abs.tol = 31,
+		  rel.tol = 32, x.tol = 33, step.min = 34, step.max = 35,
+		  scale.init = 38, sing.tol = 37, diff.g = 42)
+	pos <- pmatch(nms, names(cpos))
+        if (any(nap <- is.na(pos))) {
+            warning(paste("unrecognized control element(s) named `",
+                          paste(nms[nap], collapse = ", "),
+                          "' ignored", sep = ""))
+            pos <- pos[!nap]
+            control <- control[!nap]
+        }
+        ivpars <- pos < 4
+        if (any(ivpars))
+            iv[cpos[pos[ivpars]]] <- as.integer(unlist(control[ivpars]))
+        if (any(!ivpars))
+            v[cpos[pos[!ivpars]]] <- as.double(unlist(control[!ivpars]))
     }
     if (trace)
-        iv[port_cpos[["trace"]]] <- 1L
+        iv[19] <- 1L
     scale <- 1
     low <- upp <- NULL
     if (any(lower != -Inf) || any(upper != Inf)) {
@@ -420,7 +423,7 @@ nls_port_fit <- function(m, start, lower, upper, control, trace, give.v=FALSE)
         upp <- rep(as.double(upper), length.out = length(par))
         if(any(unlist(start) < low) ||any( unlist(start) > upp)) {
             iv[1L] <- 300
-	    return(if(give.v) list(iv = iv, v = v[seq_len(18L)]) else iv)
+            return(iv)
         }
     }
     if(p > 0) {
@@ -429,10 +432,7 @@ nls_port_fit <- function(m, start, lower, upper, control, trace, give.v=FALSE)
               d = rep(as.double(scale), length.out = length(par)),
               df = m$gradient(), iv, v, low, upp)
     } else iv[1L] <- 6
-
-    if(give.v)## also want v[] e.g., for attained precision
-        ## v[1:18] --> ../src/portsrc.f
-        list(iv = iv, v = v[seq_len(18L)]) else iv
+    iv
 }
 
 nls <-
@@ -519,7 +519,7 @@ nls <-
 	    message("fitting parameters ",
 		    paste(sQuote(pnames[np == -1]), collapse=", "),
 		    " without any variables")
-            n <- integer()
+            n <- integer(0L)
         }
 	else
 	    stop("no parameters to fit")
@@ -541,7 +541,7 @@ nls <-
                 warning("argument 'na.action' will be ignored")
 	    if(missing(start))
 		start <- getInitial(formula, mf)
-	    startEnv <- new.env(hash = FALSE, parent = environment(formula)) # small
+	    startEnv <- new.env(parent = environment(formula))
 	    for (i in names(start))
 		assign(i, start[[i]], envir = startEnv)
 	    rhs <- eval(formula[[3L]], data, startEnv)
@@ -568,9 +568,9 @@ nls <-
     else {
         ## length(n) == 0 : Some problems might have no official varNames
         ##                  but still parameters to fit
-        varIndex <- logical()
+        varIndex <- logical(0L)
         mf <- list(0)
-        wts <- numeric()
+        wts <- numeric(0L)
     }
 
     ## set up iteration
@@ -590,7 +590,7 @@ nls <-
 	control <- as.list(control)
 	ctrl[names(control)] <- control
     }
-    ## Iterate
+                                        # Iterate
     if (algorithm != "port") {
 	if (!missing(lower) || !missing(upper))
 	    warning('Upper or lower bounds ignored unless algorithm = "port"')
@@ -599,33 +599,41 @@ nls <-
 			data = substitute(data), call = match.call())
     }
     else { ## "port" i.e., PORT algorithm
-	pfit <- nls_port_fit(m, start, lower, upper, control, trace,
-			     give.v=TRUE)
-        iv <- pfit[["iv"]]
-	msg.nls <- port_msg(iv[1L])
-	conv <- (iv[1L] %in% 3:6)
-	if (!conv) {
-	    msg <- paste("Convergence failure:", msg.nls)
-	    if(ctrl$warnOnly) warning(msg) else stop(msg)
-	}
-	v. <- port_get_named_v(pfit[["v"]])
-	## return a 'convInfo' list compatible to the non-PORT case:
-	cInfo <- list(isConv = conv,
-		      finIter = iv[31L], # 31: NITER
-		      finTol  =	 v.[["NREDUC"]],
-		      nEval = c("function" = iv[6L], "gradient" = iv[30L]),
-		      stopCode = iv[1L],
-		      stopMessage = msg.nls)
-        cl <- match.call()
-        ## we need these (evaluated) for profiling
-	cl$lower <- lower
-	cl$upper <- upper
-	nls.out <- list(m = m, data = substitute(data),
-                        call = cl, convInfo = cInfo,
-	## UGLY: this is really a logical for  *NON*convergence:
-	## deprecate these two, as they are now part of convInfo
-			convergence = as.integer(!conv),
-			message = msg.nls)
+	iv <- nls_port_fit(m, start, lower, upper, control, trace)
+	nls.out <- list(m = m, data = substitute(data), call = match.call())
+        ## FIXME: this is really a logical for  *NON*convergence:
+	nls.out$convergence <- as.integer(if (iv[1L] %in% 3:6) 0 else 1)
+	nls.out$message <-
+	    switch(as.character(iv[1L]),
+		   "3" = "X-convergence (3)",
+		   "4" = "relative convergence (4)",
+		   "5" = "both X-convergence and relative convergence (5)",
+		   "6" = "absolute function convergence (6)",
+
+		   "7" = "singular convergence (7)",
+		   "8" = "false convergence (8)",
+		   "9" = "function evaluation limit reached without convergence (9)",
+		   "10" = "iteration limit reached without convergence (9)",
+		   "14" = "storage has been allocated (?) (14)",
+
+		   "15" = "LIV too small (15)",
+		   "16" = "LV too small (16)",
+		   "63" = "fn cannot be computed at initial par (63)",
+		   "65" = "gr cannot be computed at initial par (65)",
+		   "300" = "initial par violates constraints")
+	if (is.null(nls.out$message))
+	    nls.out$message <-
+		paste("See PORT documentation.	Code (", iv[1L], ")", sep = "")
+	if (nls.out$convergence) {
+            msg <- paste("Convergence failure:", nls.out$message)
+            if(ctrl$warnOnly) {
+                warning(msg)
+            } else stop(msg)
+        }
+
+	## we need these (evaluated) for profiling
+	nls.out$call$lower <- lower
+	nls.out$call$upper <- upper
     }
 
     ## we need these (evaluated) for profiling
@@ -677,31 +685,27 @@ summary.nls <-
         ans$correlation <- (XtXinv * resvar)/outer(se, se)
         ans$symbolic.cor <- symbolic.cor
     }
-    ## if(identical(object$call$algorithm, "port"))
-    ##     ans$message <- object$message
+    if(identical(object$call$algorithm, "port"))
+	ans$message <- object$message
     class(ans) <- "summary.nls"
     ans
 }
 
 .p.nls.convInfo <- function(x, digits)
 {
-    if(!is.null(x$convInfo)) # older fits will not have this
-        with(x$convInfo,
-         {
-             if(identical(x$call$algorithm, "port"))
-                 cat("\nAlgorithm \"port\", convergence message:",
-                     stopMessage, "\n")
-             else {
-                 if(!isConv || getOption("show.nls.convergence", TRUE))
-                     cat("\nNumber of iterations",
-                         if(isConv) "to convergence:" else "till stop:", finIter,
-                         "\nAchieved convergence tolerance:",
-                         format(finTol, digits=digits),"\n")
-                 if(!isConv)
-                     cat("Reason stopped:", stopMessage, "\n")
-             }
-         })
-
+    if(identical(x$call$algorithm, "port"))
+	cat("\nAlgorithm \"port\", convergence message:",
+	    x$message, "\n")
+    else
+	with(x$convInfo, {
+            if(!isConv || getOption("show.nls.convergence", TRUE))
+                cat("\nNumber of iterations",
+                    if(isConv) "to convergence:" else "till stop:", finIter,
+                    "\nAchieved convergence tolerance:",
+                    format(finTol, digits=digits),"\n")
+	    if(!isConv)
+		cat("Reason stopped:", stopMessage, "\n")
+	})
     invisible()
 }
 
@@ -805,12 +809,10 @@ logLik.nls <- function(object, REML = FALSE, ...)
     res <- object$m$resid()
     N <- length(res)
     if(is.null(w <- object$weights)) w <- rep(1, N)
-    ## Note the trick for zero weights
-    zw <- w == 0
-    val <-  -N * (log(2 * pi) + 1 - log(N) - sum(log(w + zw)) + log(sum(w*res^2)))/2
+    val <-  -N * (log(2 * pi) + 1 - log(N) - sum(log(w)) + log(sum(w*res^2)))/2
     ## the formula here corresponds to estimating sigma^2.
     attr(val, "df") <- 1L + length(coef(object))
-    attr(val, "nobs") <- attr(val, "nall") <- sum(!zw)
+    attr(val, "nobs") <- attr(val, "nall") <- N
     class(val) <- "logLik"
     val
 }

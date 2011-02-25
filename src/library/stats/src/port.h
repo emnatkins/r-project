@@ -29,6 +29,7 @@
 
 #include <Rinternals.h>
 #include <R_ext/RS.h>
+int Rf_i1mach(int); /* from private part of nmath! */
 
 #ifdef ENABLE_NLS
 #include <libintl.h>

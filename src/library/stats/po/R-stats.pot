@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.13.0\n"
+"Project-Id-Version: R 2.12.1\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-01-28 18:12\n"
+"POT-Creation-Date: 2011-01-03 16:13\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -446,7 +446,7 @@ msgstr ""
 msgid "'k' must be in {1, 2, ..  n - 1}"
 msgstr ""
 
-msgid "only %d of the first %d eigenvalues are > 0"
+msgid "some of the first %d eigenvalues are < 0"
 msgstr ""
 
 msgid "initial value is not in the interior of the feasible region"
@@ -584,6 +584,9 @@ msgstr ""
 msgid "'merge' and 'height' do not fit!"
 msgstr ""
 
+msgid "we require a dendrogram"
+msgstr ""
+
 msgid "dendrogram node with non-positive #{branches}"
 msgstr ""
 
@@ -596,16 +599,10 @@ msgstr ""
 msgid "'order.dendrogram' requires a dendrogram"
 msgstr ""
 
-msgid "we require a dendrogram"
-msgstr ""
-
 msgid "invalid (length 0) node in dendrogram"
 msgstr ""
 
 msgid "dendrogram non-leaf node with non-positive #{branches}"
-msgstr ""
-
-msgid "'height' must be at least %g, the maximal height of its components"
 msgstr ""
 
 msgid "'X' is not a dendrogram"
@@ -1445,7 +1442,7 @@ msgstr ""
 msgid "cannot create a formula from a zero-column data frame"
 msgstr ""
 
-msgid "no terms component nor attribute"
+msgid "no terms component"
 msgstr ""
 
 msgid "'termlabels' must be a character vector of length at least one"
@@ -2251,11 +2248,6 @@ msgstr ""
 
 msgid        "there are %d Error terms: only 1 is allowed"
 msgid_plural "there are %d Error terms: only 1 is allowed"
-msgstr[0]    ""
-msgstr[1]    ""
-
-msgid        "extra argument %s is not a \"%s\""
-msgid_plural "extra arguments %s are not \"%s\"s"
 msgstr[0]    ""
 msgstr[1]    ""
 

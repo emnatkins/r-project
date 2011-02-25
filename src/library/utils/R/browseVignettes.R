@@ -21,7 +21,7 @@ browseVignettes <- function(package = NULL, lib.loc = NULL, all = TRUE)
     ## adapted from vignette()
     if (is.null(package))
         package <- .packages(all.available = all, lib.loc)
-    paths <- find.package(package, lib.loc)
+    paths <- .find.package(package, lib.loc)
     paths <- paths[tools:::file_test("-d", file.path(paths, "doc"))]
     vignettes <- lapply(paths, function(dir) {
         tools::list_files_with_type(file.path(dir, "doc"), "vignette")
@@ -31,7 +31,7 @@ browseVignettes <- function(package = NULL, lib.loc = NULL, all = TRUE)
         dir <- dirname(dirname(db[1L]))
         entries <- NULL
         if (file.exists(INDEX <- file.path(dir, "Meta", "vignette.rds")))
-            entries <- readRDS(INDEX)
+            entries <- .readRDS(INDEX)
         if (NROW(entries) > 0) {
             cbind(Dir = dir,
                   File = basename(entries$File),

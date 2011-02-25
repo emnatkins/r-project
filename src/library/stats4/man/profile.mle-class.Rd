@@ -6,9 +6,7 @@
 \name{profile.mle-class}
 \docType{class}
 \alias{profile.mle-class}
-\title{
-  Class \code{"profile.mle"}; Profiling information for \code{"mle"} object
-}
+\title{Class "profile.mle"; Profiling information for "mle" object}
 \description{Likelihood profiles along each parameter of likelihood function}
 \section{Objects from the Class}{
 Objects can be created by calls of the form \code{new("profile.mle",

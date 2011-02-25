@@ -195,7 +195,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 
 {"length",	do_length,	0,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"length<-",	do_lengthgets,	0,	1,	2,	{PP_FUNCALL, PREC_LEFT,	1}},
-{"c",/* bind.c:*/do_c,		0,	1,	-1,	{PP_FUNCALL, PREC_FN,	0}},
+{"c",/* bind.c:*/do_c,		0,	0,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"oldClass",	do_class,	0,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"oldClass<-",	do_classgets,	0,	1,	2,	{PP_FUNCALL, PREC_LEFT, 1}},
 {"class",	R_do_data_class,0,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -218,7 +218,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 
 {"vector",	do_makevector,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"complex",	do_complex,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
-{"matrix",	do_matrix,	0,	11,	7,	{PP_FUNCALL, PREC_FN,	0}},
+{"matrix",	do_matrix,	0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"row",		do_rowscols,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"col",		do_rowscols,	2,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"unlist",	do_unlist,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
@@ -232,7 +232,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"mget",	do_mget,	1,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"exists",	do_get,		0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"assign",	do_assign,	0,	111,	4,	{PP_FUNCALL, PREC_FN,	0}},
-{"list2env",	do_list2env,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"list2env",	do_list2env,	0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"remove",	do_remove,	0,	111,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"duplicated",	do_duplicated,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"unique",	do_duplicated,	1,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
@@ -689,7 +689,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"gc",		do_gc,		0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"gcinfo",	do_gcinfo,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"gctorture",	do_gctorture,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
-{"gctorture2",	do_gctorture2,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"memory.profile",do_memoryprofile, 0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"split",	do_split,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"is.loaded",	do_isloaded,	0,	11,	-1,	{PP_FOREIGN, PREC_FN,	0}},
@@ -776,10 +775,8 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"file.append",	do_fileappend,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"codeFiles.append",do_fileappend,1,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.symlink",do_filesymlink,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
-{"file.link",	do_filelink,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.copy",	do_filecopy,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
-{"list.files",	do_listfiles,	0,	11,	7,	{PP_FUNCALL, PREC_FN,	0}},
-{"list.dirs",	do_listdirs,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"list.files",	do_listfiles,	0,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.exists", do_fileexists,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.choose", do_filechoose,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.info",	do_fileinfo,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -807,7 +804,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"Sys.localeconv",do_localeconv,0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"path.expand",	do_pathexpand,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"Sys.getpid",	do_sysgetpid,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
-{"normalizePath",do_normalizepath,0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
+{"normalizePath",do_normalizepath,0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"Sys.glob",	do_glob,	0,      11,	2,      {PP_FUNCALL, PREC_FN,   0}},
 {"unlink",	do_unlink,	0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
 
@@ -931,12 +928,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"load.from.file", do_loadfile, 0,      11,     1,      {PP_FUNCALL, PREC_FN, 0}},
 {"save.to.file", do_savefile,   0,      11,     3,      {PP_FUNCALL, PREC_FN, 0}},
 {"putconst", do_putconst,       0,      11,     2,      {PP_FUNCALL, PREC_FN, 0}},
-{"enableJIT",    do_enablejit,      0,      11,     1,      {PP_FUNCALL, PREC_FN, 0}},
-{"constidx",    do_constidx,      0,      11,     2,      {PP_FUNCALL, PREC_FN, 0}},
 #endif
-
-{"setNumMathThreads", do_setnumthreads,      0,      11,     1,      {PP_FUNCALL, PREC_FN, 0}},
-{"setMaxNumMathThreads", do_setmaxnumthreads,      0,      11,     1,      {PP_FUNCALL, PREC_FN, 0}},
 
 /* Connections */
 {"stdin",	do_stdin,	0,      11,     0,      {PP_FUNCALL, PREC_FN,	0}},
@@ -1020,31 +1012,25 @@ attribute_hidden FUNTAB R_FunTab[] =
 {NULL,		NULL,		0,	0,	0,	{PP_INVALID, PREC_FN,	0}},
 };
 
-SEXP attribute_hidden R_Primitive(const char *primname)
-{
-    int i;
-    for (i = 0; R_FunTab[i].name; i++)  /* all names are ASCII */
-	if (strcmp(primname, R_FunTab[i].name) == 0) {
-	    if ((R_FunTab[i].eval % 100 )/10)
-		return mkPRIMSXP(i, R_FunTab[i].eval % 10);
-	    else
-		return mkPRIMSXP(i, R_FunTab[i].eval % 10);
-	}
-    return(R_NilValue);		/* -Wall */
-}
 
 SEXP attribute_hidden do_primitive(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP name, prim;
+    SEXP name;
+    int i;
     checkArity(op, args);
     name = CAR(args);
     if (!isString(name) || length(name) < 1 ||
 	STRING_ELT(name, 0) == R_NilValue)
 	errorcall(call, _("string argument required"));
-    prim = R_Primitive(CHAR(STRING_ELT(name, 0)));
-    if (prim == R_NilValue)
-	errorcall(call, _("no such primitive function"));
-    return prim;
+    for (i = 0; R_FunTab[i].name; i++)  /* all names are ASCII */
+	if (strcmp(CHAR(STRING_ELT(name, 0)), R_FunTab[i].name) == 0) {
+	    if ((R_FunTab[i].eval % 100 )/10)
+		return mkPRIMSXP(i, R_FunTab[i].eval % 10);
+	    else
+		return mkPRIMSXP(i, R_FunTab[i].eval % 10);
+	}
+    errorcall(call, _("no such primitive function"));
+    return(R_NilValue);		/* -Wall */
 }
 
 int StrToInternal(const char *s)
@@ -1101,20 +1087,6 @@ static void SymbolShortcuts(void)
     R_WholeSrcrefSymbol = install("wholeSrcref");
     R_TmpvalSymbol = install("*tmp*");
     R_UseNamesSymbol = install("use.names");
-    R_DoubleColonSymbol = install("::");
-    R_TripleColonSymbol = install(":::");
-    R_ConnIdSymbol = install("conn_id");
-    R_DevicesSymbol = install(".Devices");
-
-    R_dot_Generic = install(".Generic");
-    R_dot_Method = install(".Method");
-    R_dot_Methods = install(".Methods");
-    R_dot_defined = install(".defined");
-    R_dot_target = install(".target");
-    R_dot_Group = install(".Group");
-    R_dot_Class = install(".Class");
-    R_dot_GenericCallEnv = install(".GenericCallEnv");
-    R_dot_GenericDefEnv = install(".GenericDefEnv");
 }
 
 extern SEXP framenames; /* from model.c */

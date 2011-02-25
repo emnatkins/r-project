@@ -48,6 +48,7 @@
     TAR <- Sys.getenv("TAR", 'tar') # used by default on Unix only
     GZIP <- Sys.getenv("R_GZIPCMD") # used on Unix only
     if (!nzchar(GZIP)) GZIP <- "gzip"
+    if (WINDOWS) zip <- "zip"
     rarch <- Sys.getenv("R_ARCH") # unix only
     if (WINDOWS && nzchar(.Platform$r_arch))
         rarch <- paste0("/", .Platform$r_arch)
@@ -95,6 +96,7 @@
             "      --no-html		do not build HTML help",
             "      --latex      	install LaTeX help",
             "      --example		install R code for help examples",
+            "      --use-zip-data	collect data files in zip archive (deprecated)",
             "      --fake		do minimal install for testing purposes",
             "      --no-lock, --unsafe",
             "			install on top of any existing installation",
@@ -111,7 +113,6 @@
             "      --data-compress=	none, gzip (default), bzip2 or xz compression",
             "			to be used for lazy-loading of data",
             "      --resave-data	re-save data files as compactly as possible",
-            "      --compact-docs	re-compress PDF files under inst/doc",
             "      --no-test-load	skip test of loading installed package",
            "\nfor Unix",
             "      --configure-args=ARGS",
@@ -119,13 +120,14 @@
             "      --configure-vars=VARS",
             "			set variables for the configure scripts (if any)",
             "\nand on Windows only",
+            "      --auto-zip	select whether to zip data automatically (deprecated)",
             "      --force-biarch	attempt to build both architectures",
             "			even if there is a non-empty configure.win",
             "      --merge-multiarch	bi-arch by merging",
             "",
             "Which of --html or --no-html is the default depends on the build of R:",
-            paste0("for this one it is ",
-                   ifelse(static_html, "--html", "--no-html"), "."),
+            paste("for this one it is ",
+                  ifelse(static_html, "--html", "--no-html"), ".", sep = ""),
             "",
             "Report bugs to <r-bugs@r-project.org>.", sep="\n")
     }
@@ -136,8 +138,11 @@
         if (!is_first_package) {
             ## Only need to do this in case we successfully installed
             ## at least one package
-            if (lib == .Library && "html" %in% build_help_types)
-                utils::make.packages.html(.Library, docdir = R.home("doc"))
+            file.copy(file.path(R.home("doc"), "html", "R.css"), lib)
+            if (lib == .Library) {
+                if (build_help)
+                    unix.packages.html(.Library, docdir = R.home("doc"))
+            }
         }
         if (lock && nzchar(lockdir)) unlink(lockdir, recursive = TRUE)
     }
@@ -223,13 +228,7 @@
         }
 
         setwd(pkg)
-        ## We checked this exists, but not that it is readable
-        desc <- tryCatch(read.dcf(fd <- file.path(pkg, "DESCRIPTION")),
-                         error = identity)
-        if(inherits(desc, "error") || !length(desc))
-            stop(gettextf("error reading file '%s'", fd),
-                 domain = NA, call. = FALSE)
-        desc <- desc[1L,]
+        desc <- read.dcf(file.path(pkg, "DESCRIPTION"))[1, ]
         ## Let's see if we have a bundle
         if (!is.na(desc["Bundle"])) {
             stop("this seems to be a bundle -- and they are defunct")
@@ -299,7 +298,6 @@
         if (zip_up) { # Windows only
             starsmsg(stars, "MD5 sums")
             .installMD5sums(instdir)
-            ## we could use utils::zip() here.
             ZIP <- "zip"                # Windows only
             version <- desc["Version"]
             filename <- paste0(pkg_name, "_", version, ".zip")
@@ -307,14 +305,11 @@
             ## system(paste("rm -f", filepath))
             unlink(filepath)
             owd <- setwd(lib)
-            res <- system(paste(ZIP, "-r9Xq", filepath,
-                                paste(curPkg, collapse = " ")))
+            system(paste(ZIP, "-r9Xq", filepath,
+                         paste(curPkg, collapse = " ")))
             setwd(owd)
-            if (res)
-                message("running 'zip' failed")
-            else
-                message("packaged installation of ",
-                        sQuote(pkg_name), " as ", filename)
+            message("packaged installation of ",
+                    sQuote(pkg_name), " as ", filename)
         }
         if (Sys.getenv("_R_INSTALL_NO_DONE_") != "yes") {
             message("")  # ensure next starts on a new line, for R CMD check
@@ -350,16 +345,6 @@
     run_clean <- function()
     {
         if (dir.exists("src")) {
-            if (WINDOWS) archs <- c("i386", "x64")
-            else {
-                wd2 <- setwd(file.path(R.home("bin"), "exec"))
-                archs <- Sys.glob("*")
-                setwd(wd2)
-            }
-            if(length(archs))
-                for(arch in archs)
-                    unlink(paste("src", arch, sep = "-"), recursive=TRUE)
-
             owd <- setwd("src")
             if (WINDOWS) {
                 if (file.exists("Makefile.win"))
@@ -386,19 +371,20 @@
 
     do_install_source <- function(pkg_name, instdir, pkg_dir, desc)
     {
-##         cp_r <- function(from, to)
-##         {
-##             ## formerly used for inst/
-##             if (WINDOWS) {
-##                 file.copy(Sys.glob(file.path(from, "*")), to, recursive = TRUE)
-##             } else {
-##                 from <- shQuote(from)
-##                 to <- shQuote(to)
-##                 system(paste0("cp -r ", from, "/* ", to,
-##                               " || (cd ", from, " && ", TAR, " -cf - . | (cd '",
-##                               to, "' && ", TAR, " -xf - ))"))
-##             }
-##         }
+        cp_r <- function(from, to)
+        {
+            ## used for inst/
+            if (WINDOWS) {
+                file.copy(Sys.glob(file.path(from, "*")), to, recursive = TRUE)
+                # system(paste0("cp -r ", shQuote(from), "/* ", shQuote(to)))
+            } else {
+                from <- shQuote(from)
+                to <- shQuote(to)
+                system(paste0("cp -r ", from, "/* ", to,
+                              " || (cd ", from, " && ", TAR, " -cf - . | (cd '",
+                              to, "' && ", TAR, " -xf - ))"))
+            }
+        }
 
         shlib_install <- function(instdir, arch)
         {
@@ -508,7 +494,7 @@
         if (length(pkgs)) {
             miss <- character()
             for (pkg in pkgs) {
-                if(!length(find.package(pkg, quiet = TRUE)))
+                if(!length(.find.package(pkg, quiet = TRUE)))
                     miss <- c(miss, pkg)
             }
             if (length(miss) > 1)
@@ -541,6 +527,24 @@
         }
 
         if (preclean) run_clean()
+
+        if (auto_zip || zip_up) { ## --build implies --auto-zip
+            thislazy <- parse_description_field(desc, "LazyData",
+                                                default = lazy_data)
+            ## This allows ZipData: no to override --auto-zip
+            thiszip <- parse_description_field(desc, "ZipData",
+                                               default = TRUE)
+            if (!thislazy && thiszip && dir.exists("data")) {
+                fi <- file.info(dir("data", full.names=TRUE))
+                if (sum(fi$size) > 100000) {
+                    this <- sub("\\.[a-zA-Z]+$", "", row.names(fi))
+                    if (!anyDuplicated(this)) use_zip_data <- TRUE
+                }
+                if (use_zip_data)
+                     message("\n  Using auto-selected zip option ",
+                             sQuote("--use-zip-data"), "\n", domain = NA)
+            }
+        }
 
         if (use_configure) {
             if (WINDOWS) {
@@ -594,7 +598,7 @@
             linkTo <- desc["LinkingTo"]
             if (!is.na(linkTo)) {
                 lpkgs <- strsplit(linkTo, ",[[:blank:]]*")[[1L]]
-                paths <- find.package(lpkgs, quiet=TRUE)
+                paths <- .find.package(lpkgs, quiet=TRUE)
                 if (length(paths)) {
                     clink_cppflags <- paste(paste0('-I"', paths, '/include"'),
                                             collapse=" ")
@@ -673,7 +677,7 @@
                     owd <- setwd("src")
                     system_makefile <- file.path(R.home(), paste0("etc", rarch),
                                                  "Makeconf")
-                    site <- file.path(paste0(R.home("etc"), rarch),
+                    site <- file.path(paste(R.home("etc"), rarch, sep=""),
                                       "Makevars.site")
                     makefiles <- c(system_makefile,
                                    if(file.exists(site)) site,
@@ -816,6 +820,12 @@
 		file.copy(files, is, TRUE)
 		thislazy <- parse_description_field(desc, "LazyData",
 						    default = lazy_data)
+                if(!thislazy && !use_zip_data) {
+                    use_zip_data <- parse_description_field(desc, "ZipData",
+                                                            default = FALSE)
+                    if(use_zip_data)
+                        warning("use of a true value for 'ZipData' is deprecated", call. = FALSE, domain=NA)
+                }
 		if (!thislazy && resave_data) {
 		    paths <- Sys.glob(c(file.path(is, "*.rda"),
 					file.path(is, "*.RData")))
@@ -848,6 +858,14 @@
 					       compress = data_compress))
 		    if (inherits(res, "try-error"))
 			pkgerrmsg("lazydata failed", pkg_name)
+		} else if (use_zip_data &&
+			   (WINDOWS ||
+			   (nzchar(Sys.getenv("R_UNZIPCMD")) &&
+			   nzchar(zip <- Sys.getenv("R_ZIPCMD"))) )) {
+		    owd <- setwd(file.path(instdir, "data"))
+		    writeLines(dir(), "filelist")
+		    system(paste(zip, "-q -m Rdata * -x filelist 00Index"))
+		    setwd(owd)
 		}
 	    } else warning("empty 'data' directory", call. = FALSE)
         }
@@ -879,48 +897,9 @@
 	if (install_inst && dir.exists("inst") &&
             length(dir("inst", all.files = TRUE))) {
 	    starsmsg(stars, "inst")
-            i_dirs <- list.dirs("inst")[-1L] # not inst itself
-            i_dirs <- grep(.vc_dir_names_re, i_dirs,
-                           invert = TRUE, value = TRUE)
-            ## This ignores any restrictive permissions in the source
-            ## tree, since the later .Internal(dirchmod()) call will
-            ## fix the permissions.
-
-            ## handle .Rinstignore:
-            ignore_file <- ".Rinstignore"
-            ignore <- if (file.exists(ignore_file)) {
-                ignore <- readLines(ignore_file)
-                ignore[nzchar(ignore)]
-            } else character()
-            for(e in ignore)
-                i_dirs <- grep(e, i_dirs, perl = TRUE, invert = TRUE,
-                               value = TRUE, ignore.case = WINDOWS)
-            lapply(gsub("^inst", instdir, i_dirs),
-                   function(p) dir.create(p, FALSE, TRUE)) # be paranoid
-            i_files <- list.files("inst", all.files = TRUE,
-                                  full.names = TRUE, recursive = TRUE)
-            i_files <- grep(.vc_dir_names_re, i_files,
-                            invert = TRUE, value = TRUE)
-            for(e in ignore)
-                i_files <- grep(e, i_files, perl = TRUE, invert = TRUE,
-                                value = TRUE, ignore.case = WINDOWS)
-            i_files <- i_files[!i_files %in%
-                               c("inst/doc/Rplots.pdf", "inst/doc/Rplots.ps")]
-            i2_files <- gsub("^inst", instdir, i_files)
-            file.copy(i_files, i2_files)
-            if (!WINDOWS) {
-                ## make executable if the source file was (for owner)
-                modes <- file.info(i_files)$mode
-                execs <- as.logical(modes & as.octmode("100"))
-                Sys.chmod(i2_files[execs], "755") # respect umask?
-            }
-            if (compact_docs) {
-                pdfs <- dir(file.path(instdir, "doc"), pattern="\\.pdf",
-                            recursive = TRUE, full.names = TRUE)
-                ## print selectively
-                res <- compactPDF(pdfs)
-                print(res[res$old > 1e5, ])
-            }
+	    cp_r("inst", instdir)
+            ## remove some Sweave detritus
+            unlink(Sys.glob(file.path(instdir, "doc/Rplots.*")))
 	}
 
 	if (install_tests && dir.exists("tests")) {
@@ -986,6 +965,19 @@
 		errmsg("installing namespace metadata failed")
 	}
 
+        ## <NOTE>
+        ## Remove stuff we should not have installed in the first place.
+        ## When installing from a source directory under version
+        ## control, we should really exclude the subdirs CVS, .svn
+        ## (Subversion), .arch-ids (arch), .git and .hg (mercurial).
+        for(d in c("CVS", ".svn", ".arch-ids", ".git", ".hg")) {
+            ## FIXME This could be run on Windows, if we check find.exe exists.
+            if (!WINDOWS)
+                system(paste("find",  shQuote(instdir), "-name", d,
+                             "-type d -prune -exec rm -r \\{\\} \\;"),
+                       ignore.stderr = TRUE)
+        }
+
         if (clean) run_clean()
 
         if (test_load) {
@@ -1019,13 +1011,14 @@
     build_latex <- FALSE
     build_example <- FALSE
     use_configure <- TRUE
+    use_zip_data <- FALSE
     auto_zip <- FALSE
     configure_args <- character(0)
     configure_vars <- character(0)
     fake <- FALSE
     lazy <- TRUE
     lazy_data <- FALSE
-    lock <- getOption("install.lock", TRUE)
+    lock <- TRUE
     pkglock <- FALSE
     pkglockname <- ""
     libs_only <- FALSE
@@ -1039,7 +1032,6 @@
     get_user_libPaths <- FALSE
     data_compress <- TRUE # FALSE (none), TRUE (gzip), 2 (bzip2), 3 (xz)
     resave_data <- FALSE
-    compact_docs <- FALSE
 
     install_libs <- TRUE
     install_R <- TRUE
@@ -1087,12 +1079,15 @@
         } else if (a == "--example") {
             build_example <- TRUE
         } else if (a == "--use-zip-data") {
-            warning("use of '--use-zip-data' is defunct",
-                    call. = FALSE, domain = NA)
+            use_zip_data <- TRUE
             warning("use of '--use-zip-data' is deprecated",
                     call. = FALSE, domain = NA)
         } else if (a == "--auto-zip") {
-            warning("'--auto-zip' is defunct",
+            if (WINDOWS) {
+                auto_zip <- TRUE
+                warning("use of '--auto-zip' is deprecated",
+                        call. = FALSE, domain = NA)
+            } else warning("'--auto-zip' is for Windows only",
                            call. = FALSE, domain = NA)
         } else if (a == "-l") {
             if (length(args) >= 2L) {lib <- args[2L]; args <- args[-1L]}
@@ -1150,8 +1145,6 @@
         } else if (a == "--merge-multiarch") {
             if (WINDOWS) merge <- TRUE
             else warning("--merge-multiarch is Windows-only", call.=FALSE)
-        } else if (a == "--compact-docs") {
-            compact_docs <- TRUE
         } else if (substr(a, 1, 1) == "-") {
             message("Warning: unknown option ", sQuote(a))
         } else pkgs <- c(pkgs, a)
@@ -1587,7 +1580,7 @@
 
 
 ## called for base packages from src/Makefile[.win] and from
-## .install.packages in this file.  Really *help* indices.
+## .install.packages in this file.
 .writePkgIndices <-
     function(dir, outDir, OS = .Platform$OS.type, html = TRUE)
 {
@@ -1604,7 +1597,7 @@
     {
         cat(paste(HTMLheader(title, Rhome="../../..",
                              up="../../../doc/html/packages.html",
-                             css = "R.css"),
+                             css = "../../R.css"),
                   collapse="\n"),
            '<h2>Documentation for package &lsquo;', pkg, '&rsquo; version ',
             version, '</h2>\n\n', sep ='', file = conn)
@@ -1635,7 +1628,7 @@
 
     ## This may well already have been done:
     Rd <- if (file.exists(f <- file.path(outDir, "Meta", "Rd.rds")))
-        readRDS(f)
+        .readRDS(f)
     else {
         ## Keep this in sync with .install_package_Rd_indices().
         ## Rd objects should already have been installed.
@@ -1644,7 +1637,7 @@
         ## If not, we build the Rd db from the sources:
         if (is.null(db)) db <- Rd_db(dir = dir)
         Rd <- Rd_contents(db)
-        saveRDS(Rd, file.path(outDir, "Meta", "Rd.rds"))
+        .saveRDS(Rd, file.path(outDir, "Meta", "Rd.rds"))
         Rd
     }
 
@@ -1672,15 +1665,14 @@
     write.table(MM, file.path(outman, "AnIndex"),
                 quote = FALSE, row.names = FALSE, col.names = FALSE, sep = "\t")
     a <- structure(MM[, 2L], names=MM[, 1L])
-    saveRDS(a, file.path(outman, "aliases.rds"))
+    .saveRDS(a, file.path(outman, "aliases.rds"))
 
-    ## have HTML index even if no help pages
+    ## no HTML indices if no help pages?
     outman <- file.path(outDir, "html")
     dir.create(outman, showWarnings = FALSE)
     outcon <- file(file.path(outman, "00Index.html"), "wt")
     on.exit(close(outcon))
-    ## we know we have a valid file by now.
-    desc <- read.dcf(file.path(outDir, "DESCRIPTION"))[1L, ]
+    desc <- read.dcf(file.path(outDir, "DESCRIPTION"))[1,]
     ## re-encode if necessary
     if(!is.na(enc <- desc["Encoding"])) {
         ## should be valid in UTF-8, might be invalid in declared encoding
@@ -1770,8 +1762,6 @@
          writeLines("There are no help pages in this package", outcon)
     }
     writeLines('</body></html>', outcon)
-    file.copy(file.path(R.home("doc"), "html", "R.css"), outman)
-    invisible(NULL)
 }
 
 ### * .convertRdfiles
@@ -1799,7 +1789,7 @@
     names(dirname) <- names(ext) <- c("html", "latex", "example")
     mandir <- file.path(dir, "man")
     if (!file_test("-d", mandir)) return()
-    desc <- readRDS(file.path(outDir, "Meta", "package.rds"))$DESCRIPTION
+    desc <- .readRDS(file.path(outDir, "Meta", "package.rds"))$DESCRIPTION
     pkg <- desc["Package"]
     ver <- desc["Version"]
 
@@ -1899,7 +1889,7 @@
         type <- "html"
         have <- list.files(file.path(outDir, dirname[type]))
         have2 <- sub("\\.html", "", basename(have))
-        drop <- have[! have2 %in% c(bfs, "00Index", "R.css")]
+        drop <- have[! have2 %in% c(bfs, "00Index")]
         unlink(file.path(outDir, dirname[type], drop))
     }
     if ("latex" %in% types) {

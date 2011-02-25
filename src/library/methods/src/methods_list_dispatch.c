@@ -61,8 +61,9 @@ static SEXP f_x_i_skeleton, fgets_x_i_skeleton, f_x_skeleton, fgets_x_skeleton;
 
 SEXP R_quick_method_check(SEXP object, SEXP fsym, SEXP fdef);
 
-static SEXP R_target, R_defined, R_nextMethod, R_dot_nextMethod,
-    R_loadMethod_name;
+static SEXP R_target, R_defined, R_nextMethod,
+    R_dot_target, R_dot_defined, R_dot_nextMethod,
+    R_loadMethod_name, R_dot_Method;
 
 static SEXP Methods_Namespace = NULL;
 
@@ -77,7 +78,10 @@ static void init_loadMethod()
     R_defined = install("defined");
     R_nextMethod = install("nextMethod");
     R_loadMethod_name = install("loadMethod");
+    R_dot_target = install(".target");
+    R_dot_defined = install(".defined");
     R_dot_nextMethod = install(".nextMethod");
+    R_dot_Method = install(".Method");
 }
 
 
@@ -597,9 +601,8 @@ static SEXP do_dispatch(SEXP fname, SEXP ev, SEXP mlist, int firstTry,
 	    SEXP arg, class_obj; int check_err;
 	    PROTECT(arg = R_tryEvalSilent(arg_sym, ev, &check_err)); nprotect++;
 	    if(check_err)
-		error(_("error in evaluating the argument '%s' in selecting a method for function '%s': %s"),
-		      CHAR(PRINTNAME(arg_sym)),CHAR(asChar(fname)),
-		      R_curErrorBuf());
+		error(_("error in evaluating the argument '%s' in selecting a method for function '%s'"),
+		      CHAR(PRINTNAME(arg_sym)),CHAR(asChar(fname)));
 	    PROTECT(class_obj = R_data_class(arg, TRUE)); nprotect++;
 	    class = CHAR(STRING_ELT(class_obj, 0));
 	}
@@ -609,9 +612,8 @@ static SEXP do_dispatch(SEXP fname, SEXP ev, SEXP mlist, int firstTry,
 	SEXP arg; int check_err;
 	PROTECT(arg = R_tryEvalSilent(arg_sym, ev, &check_err)); nprotect++;
 	if(check_err)
-	    error(_("error in evaluating the argument '%s' in selecting a method for function '%s': %s"),
-		  CHAR(PRINTNAME(arg_sym)),CHAR(asChar(fname)),
-		  R_curErrorBuf());
+	    error(_("error in evaluating the argument '%s' in selecting a method for function '%s'"),
+		  CHAR(PRINTNAME(arg_sym)),CHAR(asChar(fname)));
 	class = CHAR(asChar(arg));
     }
     method = R_find_method(mlist, class, fname);
@@ -700,8 +702,7 @@ SEXP R_nextMethodCall(SEXP matched_call, SEXP ev)
 	   leaves the previous function, methods list unchanged */
 	do_set_prim_method(op, "set", R_NilValue, R_NilValue);
 	if(error_flag)
-	    Rf_error(_("error in evaluating a 'primitive' next method: %s"),
-		     R_curErrorBuf());
+	    Rf_error(_("error in evaluating a 'primitive' next method"));
     }
     else
 	val = eval(e, ev);
@@ -955,9 +956,8 @@ SEXP R_dispatchGeneric(SEXP fname, SEXP ev, SEXP fdef)
 		UNPROTECT(1); /* for arg */
 	    }
 	    if(check_err)
-		error(_("error in evaluating the argument '%s' in selecting a method for function '%s': %s"),
-		      CHAR(PRINTNAME(arg_sym)),CHAR(asChar(fname)),
-		      R_curErrorBuf());
+		error(_("error in evaluating the argument '%s' in selecting a method for function '%s'"),
+		      CHAR(PRINTNAME(arg_sym)),CHAR(asChar(fname)));
 	}
 	SET_VECTOR_ELT(classes, i, thisClass);
 	lwidth += strlen(STRING_VALUE(thisClass)) + 1;

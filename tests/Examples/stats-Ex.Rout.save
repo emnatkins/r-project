@@ -1,6 +1,6 @@
 
-R version 2.13.0 Under development (unstable) (2011-01-30 r54155)
-Copyright (C) 2011 The R Foundation for Statistical Computing
+R version 2.12.0 Patched (2010-11-17 r53625)
+Copyright (C) 2010 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-unknown-linux-gnu (64-bit)
 
@@ -3687,7 +3687,7 @@ detaching ‘package:cluster’
 > 
 > asOneSidedFormula("age")
 ~age
-<environment: 0x15c5220>
+<environment: 0x1024f0718>
 > asOneSidedFormula(~ age)
 ~age
 > 
@@ -4102,38 +4102,27 @@ I(x^3) -0.73        0.93 -0.99
 > 
 > ### ** Examples
 > 
-> 
-> ## From Agresti(2007) p.39
-> M <- as.table(rbind(c(762, 327, 468), c(484,239,477)))
-> dimnames(M) <- list(gender=c("M","F"), party=c("Democrat","Independent", "Republican"))
-> (Xsq <- chisq.test(M))  # Prints test summary
+> ## Not really a good example
+> chisq.test(InsectSprays$count > 7, InsectSprays$spray)
 
 	Pearson's Chi-squared test
 
-data:  M 
-X-squared = 30.0701, df = 2, p-value = 2.954e-07
+data:  InsectSprays$count > 7 and InsectSprays$spray 
+X-squared = 60.9915, df = 5, p-value = 7.582e-12
 
-> Xsq$observed   # observed counts (same as M) 
-      party
-gender Democrat Independent Republican
-     M      762         327        468
-     F      484         239        477
-> Xsq$expected   # expected counts under the null
-      party
-gender Democrat Independent Republican
-     M 703.6714    319.6453   533.6834
-     F 542.3286    246.3547   411.3166
-> Xsq$residuals  # Pearson residuals
-      party
-gender   Democrat Independent Republican
-     M  2.1988558   0.4113702 -2.8432397
-     F -2.5046695  -0.4685829  3.2386734
-> Xsq$stdres     # standardized residuals
-      party
-gender   Democrat Independent Republican
-     M  4.5020535   0.6994517 -5.3159455
-     F -4.5020535  -0.6994517  5.3159455
-> 
+>                                 # Prints test summary
+> chisq.test(InsectSprays$count > 7, InsectSprays$spray)$observed
+                      InsectSprays$spray
+InsectSprays$count > 7  A  B  C  D  E  F
+                 FALSE  1  1 12 11 12  0
+                 TRUE  11 11  0  1  0 12
+>                                 # Counts observed
+> chisq.test(InsectSprays$count > 7, InsectSprays$spray)$expected
+                      InsectSprays$spray
+InsectSprays$count > 7        A        B        C        D        E        F
+                 FALSE 6.166667 6.166667 6.166667 6.166667 6.166667 6.166667
+                 TRUE  5.833333 5.833333 5.833333 5.833333 5.833333 5.833333
+>                                 # Counts expected under the null
 > 
 > ## Effect of simulating p-values
 > x <- matrix(c(12, 5, 7, 7), ncol = 2)
@@ -4424,7 +4413,7 @@ Levels: a b c d e f g h i j k l m n o p q r s t u v w x y z
 factor> as.integer(ff)  # the internal codes
  [1] 19 20  1 20  9 19 20  9  3 19
 
-factor> (f. <- factor(ff))# drops the levels that do not occur
+factor> factor(ff)      # drops the levels that do not occur
  [1] s t a t i s t i c s
 Levels: a c i s t
 
@@ -4441,19 +4430,6 @@ factor> factor(letters[1:20], labels="letter")
 factor> class(ordered(4:1)) # "ordered", inheriting from "factor"
 [1] "ordered" "factor" 
 
-factor> z <- factor(LETTERS[3:1], ordered = TRUE)
-
-factor> ## and "relational" methods work:
-factor> stopifnot(sort(z)[c(1,3)] == range(z), min(z) < max(z))
-
-factor> ## Don't show: 
-factor> of <- ordered(ff)
-
-factor> stopifnot(identical(range(of, rev(of)), of[3:2]),
-factor+ 	  identical(max(of), of[2]))
-
-factor> ## End Don't show
-factor> 
 factor> ## suppose you want "NA" as a level, and to allow missing values.
 factor> (x <- factor(c(1, 2, NA), exclude = NULL))
 [1] 1    2    <NA>
@@ -5434,12 +5410,7 @@ NULL
 NULL
 
 [[1]][[1]][[2]][[2]][[2]]
-[[1]][[1]][[2]][[2]][[2]][[1]]
-NULL
-
-[[1]][[1]][[2]][[2]][[2]][[2]]
-NULL
-
+list()
 
 
 
@@ -5449,12 +5420,7 @@ NULL
 NULL
 
 [[1]][[2]][[2]]
-[[1]][[2]][[2]][[1]]
-NULL
-
-[[1]][[2]][[2]][[2]]
-NULL
-
+list()
 
 
 
@@ -5464,12 +5430,7 @@ NULL
 NULL
 
 [[2]][[1]][[2]]
-[[2]][[1]][[2]][[1]]
-NULL
-
-[[2]][[1]][[2]][[2]]
-NULL
-
+list()
 
 
 [[2]][[2]]
@@ -5477,12 +5438,7 @@ NULL
 NULL
 
 [[2]][[2]][[2]]
-[[2]][[2]][[2]][[1]]
-NULL
-
-[[2]][[2]][[2]][[2]]
-NULL
-
+list()
 
 
 
@@ -5519,9 +5475,8 @@ NULL
 > ### Name: dendrogram
 > ### Title: General Tree Structures
 > ### Aliases: dendrogram as.dendrogram as.dendrogram.dendrogram
-> ###   as.dendrogram.hclust as.hclust.dendrogram cut.dendrogram
-> ###   [[.dendrogram merge.dendrogram plot.dendrogram print.dendrogram
-> ###   rev.dendrogram str.dendrogram is.leaf
+> ###   as.dendrogram.hclust cut.dendrogram [[.dendrogram print.dendrogram
+> ###   rev.dendrogram str.dendrogram plot.dendrogram is.leaf
 > ### Keywords: multivariate tree hplot
 > 
 > ### ** Examples
@@ -5631,14 +5586,14 @@ NULL
                        `--[dendrogram w/ 2 branches and 2 members at h = 2.29]
                           |--leaf "Iowa" 
                           `--leaf "New Hampshire" 
-> str(dend1, max = 2, last.str= "'") # only the first two sub-levels
+> str(dend1, max = 2) # only the first two sub-levels
 --[dendrogram w/ 2 branches and 50 members at h = 152]
   |--[dendrogram w/ 2 branches and 16 members at h = 77.6]
   |  |--[dendrogram w/ 2 branches and 2 members at h = 38.5] ..
-  |  '--[dendrogram w/ 2 branches and 14 members at h = 44.3] ..
-  '--[dendrogram w/ 2 branches and 34 members at h = 89.2]
+  |  `--[dendrogram w/ 2 branches and 14 members at h = 44.3] ..
+  `--[dendrogram w/ 2 branches and 34 members at h = 89.2]
      |--[dendrogram w/ 2 branches and 14 members at h = 44.8] ..
-     '--[dendrogram w/ 2 branches and 20 members at h = 54.7] ..
+     `--[dendrogram w/ 2 branches and 20 members at h = 54.7] ..
 > 
 > op <- par(mfrow= c(2,2), mar = c(5,2,1,4))
 > plot(dend1)
@@ -5650,9 +5605,6 @@ NULL
 > plot(dend1, nodePar=list(pch = 2:1,cex=.4*2:1, col = 2:3),
 +      horiz=TRUE)
 > 
-> ## simple test for as.hclust() as the inverse of as.dendrogram():
-> stopifnot(identical(as.hclust(dend1)[1:4], hc[1:4]))
-> 
 > dend2 <- cut(dend1, h=70)
 > plot(dend2$upper)
 > ## leaves are wrong horizontally:
@@ -5663,33 +5615,20 @@ NULL
 > plot(dend2$lower[[2]], nodePar=list(col=1),# non empty list
 +      edgePar = list(lty=1:2, col=2:1), edge.root=TRUE)
 > par(op)
-> d3 <- dend2$lower[[2]][[2]][[1]]
-> stopifnot(identical(d3, dend2$lower[[2]][[c(2,1)]]))
-> str(d3, last.str="'")
+> str(d3 <- dend2$lower[[2]][[2]][[1]])
 --[dendrogram w/ 2 branches and 7 members at h = 26.4]
   |--[dendrogram w/ 2 branches and 3 members at h = 16.9]
   |  |--leaf "Delaware" 
-  |  '--[dendrogram w/ 2 branches and 2 members at h = 15.5]
+  |  `--[dendrogram w/ 2 branches and 2 members at h = 15.5]
   |     |--leaf "Alabama" 
-  |     '--leaf "Louisiana" 
-  '--[dendrogram w/ 2 branches and 4 members at h = 18.4]
+  |     `--leaf "Louisiana" 
+  `--[dendrogram w/ 2 branches and 4 members at h = 18.4]
      |--[dendrogram w/ 2 branches and 2 members at h = 6.24]
      |  |--leaf "Illinois" 
-     |  '--leaf "New York" 
-     '--[dendrogram w/ 2 branches and 2 members at h = 13.3]
+     |  `--leaf "New York" 
+     `--[dendrogram w/ 2 branches and 2 members at h = 13.3]
         |--leaf "Michigan" 
-        '--leaf "Nevada" 
-> 
-> ## merge() to join dendrograms:
-> (d13 <- merge(dend2$lower[[1]], dend2$lower[[3]]))
-'dendrogram' with 2 branches and 16 members total, at height 49.32173 
-> ## merge() all parts back (using default 'height' instead of original one):
-> den.1 <- Reduce(merge, dend2$lower)
-> ## or merge() all four parts at same height --> 4 branches (!)
-> d. <- merge(dend2$lower[[1]], dend2$lower[[2]], dend2$lower[[3]], dend2$lower[[4]])
-> ## (with a warning) or the same using  do.call :
-> stopifnot(identical(d., do.call(merge, dend2$lower)))
-> plot(d., main="merge(d1, d2, d3, d4)  |->  dendrogram with a 4-split")
+        `--leaf "Nevada" 
 > 
 > ## "Zoom" in to the first dendrogram :
 > plot(dend1, xlim = c(1,20), ylim = c(1,50))
@@ -6842,7 +6781,7 @@ List of 12
 > gf$linkinv
 function (eta) 
 1/eta
-<environment: 0x58ef428>
+<environment: 0x106e8eb80>
 > gf$variance(-3:4) #- == (.)^2
 [1]  9  4  1  0  1  4  9 16
 > 
@@ -7244,7 +7183,7 @@ attr(,".Environment")
 > environment(as.formula("y ~ x"))
 <environment: R_GlobalEnv>
 > environment(as.formula("y ~ x", env=new.env()))
-<environment: 0x4a54328>
+<environment: 0x1050a7260>
 > 
 > 
 > ## Create a formula for a model with a large number of variables:
@@ -8645,7 +8584,8 @@ List of 4
 > 
 > ### Name: lm.summaries
 > ### Title: Accessing Linear Model Fits
-> ### Aliases: family.lm formula.lm residuals.lm labels.lm
+> ### Aliases: family.lm formula.lm residuals.lm labels.lm weights
+> ###   weights.default
 > ### Keywords: regression models
 > 
 > ### ** Examples
@@ -9651,7 +9591,7 @@ NA        0    3    0
 > flush(stderr()); flush(stdout())
 > 
 > ### Name: model.frame
-> ### Title: Extracting the Model Frame from a Formula or Fit
+> ### Title: Extracting the "Environment" of a Model Formula
 > ### Aliases: model.frame model.frame.default model.frame.lm model.frame.glm
 > ###   model.frame.aovlist get_all_vars
 > ### Keywords: models
@@ -10768,8 +10708,7 @@ $objective
 [41] "Hawaii"         "Minnesota"      "Wisconsin"      "Iowa"          
 [45] "New Hampshire"  "West Virginia"  "Maine"          "South Dakota"  
 [49] "North Dakota"   "Vermont"       
-> stopifnot(identical(labels(d2),
-+    rownames(USArrests)[order.dendrogram(d2)]))
+> stopifnot(labels(d2) == rownames(USArrests)[order.dendrogram(d2)])
 > 
 > 
 > 
@@ -11620,22 +11559,22 @@ attr(,"degree")
 $linkfun
 function (mu) 
 mu
-<environment: 0x50f94a8>
+<environment: 0x105d4d3f8>
 
 $linkinv
 function (eta) 
 eta
-<environment: 0x50f94a8>
+<environment: 0x105d4d3f8>
 
 $mu.eta
 function (eta) 
 rep.int(1, length(eta))
-<environment: 0x50f94a8>
+<environment: 0x105d4d3f8>
 
 $valideta
 function (eta) 
 TRUE
-<environment: 0x50f94a8>
+<environment: 0x105d4d3f8>
 
 $name
 [1] "identity"
@@ -11646,12 +11585,12 @@ attr(,"class")
 $linkfun
 function (mu) 
 mu^lambda
-<environment: 0x50f0070>
+<environment: 0x10589bf08>
 
 $linkinv
 function (eta) 
 pmax(eta^(1/lambda), .Machine$double.eps)
-<environment: 0x50f0070>
+<environment: 0x10589bf08>
 
 > 
 > 
@@ -14591,7 +14530,7 @@ eff.vl> options(contrasts = old)
 +     xy[["z"]] <- log(z/(1 - z))         # logit transformation
 +     aux <- coef(lm(x ~ z, xy))
 +     parameters(xy) <- list(xmid = aux[1], scal = aux[2])
-+     pars <- as.vector(coef(nls(y ~ 1/(1 + exp((xmid - x)/scal)),
++     pars <- as.vector(coef(nls(y ~ 1/(1 + exp((xmid - x)/scal)), 
 +                              data = xy, algorithm = "plinear")))
 +     value <- c(pars[3], pars[1], pars[2])
 +     names(value) <- mCall[c("Asym", "xmid", "scal")]
@@ -14599,7 +14538,7 @@ eff.vl> options(contrasts = old)
 +   }, c("Asym", "xmid", "scal"))
 > 
 > # 'first.order.log.model' is a function object defining a first order
-> # compartment model
+> # compartment model 
 > # 'first.order.log.initial' is a function object which calculates initial
 > # values for the parameters in 'first.order.log.model'
 > 
@@ -14607,30 +14546,6 @@ eff.vl> options(contrasts = old)
 > ## Not run: 
 > ##D SSfol <- selfStart(first.order.log.model, first.order.log.initial)
 > ## End(Not run)
-> 
-> ## Explore the self-starting models already available in R's  "stats":
-> pos.st <- which("package:stats" == search())
-> mSS <- apropos("^SS..", where=TRUE, ignore.case=FALSE)
-> (mSS <- unname(mSS[names(mSS) == pos.st]))
- [1] "SSasymp"     "SSasympOff"  "SSasympOrig" "SSbiexp"     "SSfol"      
- [6] "SSfpl"       "SSgompertz"  "SSlogis"     "SSmicmen"    "SSweibull"  
-> fSS <- sapply(mSS, get, pos = pos.st, mode = "function")
-> all(sapply(fSS, inherits, "selfStart"))# -> TRUE
-[1] TRUE
-> 
-> ## Show the argument list of each self-starting function:
-> str(fSS, give.attr=FALSE)
-List of 10
- $ SSasymp    :function (input, Asym, R0, lrc)  
- $ SSasympOff :function (input, Asym, lrc, c0)  
- $ SSasympOrig:function (input, Asym, lrc)  
- $ SSbiexp    :function (input, A1, lrc1, A2, lrc2)  
- $ SSfol      :function (Dose, input, lKe, lKa, lCl)  
- $ SSfpl      :function (input, A, B, xmid, scal)  
- $ SSgompertz :function (x, Asym, b2, b3)  
- $ SSlogis    :function (input, Asym, xmid, scal)  
- $ SSmicmen   :function (input, Vm, K)  
- $ SSweibull  :function (x, Asym, Drop, lrc, pwr)  
 > 
 > 
 > 
@@ -15297,7 +15212,7 @@ function (v)
     xout = as.double(v), as.integer(length(v)), as.integer(method), 
     as.double(yleft), as.double(yright), as.double(f), NAOK = TRUE, 
     PACKAGE = "stats")$xout
-<environment: 0x3bdde68>
+<environment: 0x1073ed7b8>
 attr(,"call")
 stepfun(1:3, y0, f = 0)
 > ls(envir = environment(sfun0))
@@ -17517,7 +17432,7 @@ Number of Fisher Scoring iterations: 6
 > ### * <FOOTER>
 > ###
 > cat("Time elapsed: ", proc.time() - get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  11.68 0.24 11.944 0 0 
+Time elapsed:  18.393 0.77 19.362 0 0 
 > grDevices::dev.off()
 null device 
           1 

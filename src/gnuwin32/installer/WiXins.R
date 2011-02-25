@@ -86,8 +86,6 @@
         if(personal)'   <Property Id="ALLUSERS"></Property>'
         else '    <Property Id="ALLUSERS">1</Property>',
         sprintf('    <Property Id="RVersion">%s</Property>', Rver),
-        '    <Icon Id="icon.ico" SourceFile="..\\front-ends\\R.ico"/>',
-        '    <Property Id="ARPPRODUCTICON" Value="icon.ico" />',
         '')
 
     if (have64bit) {
@@ -125,7 +123,8 @@
                           "doc/html/rw-FAQ.html",
                           "share/texmf/Sweave.sty"))
                 component <- "main"
-            else if (grepl("^doc/html", g) || grepl("^library/[^/]*/html", g))
+            else if (grepl("^doc/html", g) || grepl("^library/[^/]*/html", g) ||
+                     g == "library/R.css")
                 component <- "main"
             else if (grepl("^doc/manual/[^/]*\\.html", g))
                 component <- "html"
@@ -155,7 +154,6 @@
             else if (grepl("^Tcl", g))
                 component <- "tcl/noarch"
             else if (grepl("^library/grid/doc", g) ||
-                     grepl("^library/survival/doc", g) ||
                      grepl("^library/Matrix/doc", g))
                 component <- "manuals/libdocs"
             else if (grepl("^share/locale", g) ||
@@ -416,7 +414,7 @@ sprintf("           <Verb Id='open' Command='Open' TargetFile='%s' Argument='\"%
 
     cat(file = con, sep="\n",
         '',
-        '      <Feature Id="libdocs" Title="Docs for Packages grid, Matrix and survival" Description="Docs for packages grid, Matrix and survival: mainly PDF vignettes and their sources and code" Level="1000"',
+        '      <Feature Id="libdocs" Title="Docs for Packages grid and Matrix" Description="Docs for packages grid and Matrix: mainly PDF vignettes and their sources and code" Level="1000"',
         '       InstallDefault="local" AllowAdvertise="no">')
     for(id in ids[comps == 'manuals/libdocs'])
         cat(file = con,

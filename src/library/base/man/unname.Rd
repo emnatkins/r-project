@@ -5,7 +5,7 @@
 
 \name{unname}
 \alias{unname}
-\title{Remove \code{names} or \code{dimnames}}
+\title{Remove `names' or `dimnames'}
 \description{
   Remove the \code{\link{names}} or \code{\link{dimnames}} attribute of
   an \R object.

@@ -18,20 +18,15 @@ RShowDoc <- function(what, type=c("pdf", "html", "txt"), package)
 {
     paste. <- function(x, ext) paste(x, ext, sep=".")
     pdf_viewer <- function(path) {
-        pdfviewer <- getOption("pdfviewer")
-        if(identical(pdfviewer, "false")) {
-        } else if(.Platform$OS.type == "windows" &&
-                  identical(pdfviewer, file.path(R.home("bin"), "open.exe")))
-            shell.exec(path)
-        else system2(pdfviewer, shQuote(path), wait = FALSE)
+        if(.Platform$OS.type == "windows") shell.exec(path)
+        else system(paste(shQuote(getOption("pdfviewer")), shQuote(path)),
+                    wait = FALSE)
     }
 
     html_viewer <- function(path) {
         ## we don't use browseURL under Windows as shell.exec does
         ## not want an encoded URL.
-        browser <- getOption("browser")
-        if(is.null(browser) && .Platform$OS.type == "windows")
-            shell.exec(chartr("/", "\\", path))
+        if(.Platform$OS.type == "windows") shell.exec(chartr("/", "\\", path))
         else browseURL(paste("file://", URLencode(path), sep=""))
     }
 
@@ -41,7 +36,7 @@ RShowDoc <- function(what, type=c("pdf", "html", "txt"), package)
         return(invisible())
     }
     if(!missing(package)) {
-        pkgpath <- find.package(package)
+        pkgpath <- .find.package(package)
         if(type == "pdf") {
             path <- file.path(pkgpath, "doc", paste.(what, "pdf"))
             if(file.exists(path)) {
@@ -129,7 +124,7 @@ RShowDoc <- function(what, type=c("pdf", "html", "txt"), package)
         if(type == "html") {
             path <- file.path(R.home("doc"), "html", paste.(what, "html"))
             if(file.exists(path)) {
-                html_viewer(path)
+                shell.exec(chartr("/", "\\", path))
                 return(invisible(path))
             }
         }

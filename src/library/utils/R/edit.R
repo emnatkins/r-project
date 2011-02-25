@@ -88,12 +88,12 @@ edit.data.frame <-
     factors <- if (length(name))
         which(sapply(name, is.factor))
     else
-        numeric()
+        numeric(0L)
 
     logicals <- if (length(name))
     	which(sapply(name, is.logical))
     else
-    	numeric()
+    	numeric(0L)
 
     if(length(name)) {
         has_class <-
@@ -221,22 +221,10 @@ edit.matrix <-
 }
 
 file.edit <-
-  function (..., title = file, editor=getOption("editor"), fileEncoding="")
+  function (..., title = file, editor=getOption("editor"))
 {
     file <- path.expand(c(...))
     title <- rep(as.character(title), len=length(file))
-    if(nzchar(fileEncoding) && fileEncoding != "native.enc") {
-        tfile <- file
-        for(i in seq_along(file)) {
-            ## We won't know when that is done with
-            ## so leave around for the R session.
-            tfile <- tempfile()
-            con <- file(file[i], encoding = fileEncoding)
-            writeLines(readLines(con), tfile)
-            close(con)
-            file[i] <- tfile
-        }
-    }
     if (is.function(editor)) invisible(editor(file = file, title = title))
     else .Internal(file.edit(file, title, editor))
 }

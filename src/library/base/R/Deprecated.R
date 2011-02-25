@@ -41,10 +41,3 @@ Sys.putenv <- function(...) {
     Sys.setenv(...)
 }
 ## </entry>
-
-
-## Allow for future deprecation/defunct
-.readRDS <- function(...) readRDS(...)
-.saveRDS <- function(...) saveRDS(...)
-.find.package <- function(...) find.package(...)
-.path.package <- function(...) path.package(...)

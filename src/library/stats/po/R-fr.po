@@ -7,11 +7,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-01-28 18:12\n"
+"POT-Creation-Date: 2011-01-03 16:13\n"
 "PO-Revision-Date: 2010-10-04 11:15+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
-"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ISO-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -478,8 +477,7 @@ msgstr "les distances doivent provenir de 'dist' ou d'une matrice carrée"
 msgid "'k' must be in {1, 2, ..  n - 1}"
 msgstr "'k' doit être dans {1, 2, ..  n - 1}"
 
-#, fuzzy
-msgid "only %d of the first %d eigenvalues are > 0"
+msgid "some of the first %d eigenvalues are < 0"
 msgstr "certaines des %d premières valeurs propres sont négatives"
 
 msgid "initial value is not in the interior of the feasible region"
@@ -632,6 +630,9 @@ msgstr "les éléments de 'k' doivent être compris entre 1 et %d"
 msgid "'merge' and 'height' do not fit!"
 msgstr "'merge' et 'height' ne se correspondent pas"
 
+msgid "we require a dendrogram"
+msgstr "nous avons besoin d'un dendrogramme"
+
 msgid "dendrogram node with non-positive #{branches}"
 msgstr "un noeud du dendrogramme a un nombre de branches < 1"
 
@@ -646,9 +647,6 @@ msgstr "sous-arbre de longueur 0 qui n'est pas une feuille"
 msgid "'order.dendrogram' requires a dendrogram"
 msgstr "'order.dendrogram' nécessite un dendrogramme"
 
-msgid "we require a dendrogram"
-msgstr "nous avons besoin d'un dendrogramme"
-
 msgid "invalid (length 0) node in dendrogram"
 msgstr "noeud incorrect (longueur 0) dans le dendrogramme"
 
@@ -656,9 +654,6 @@ msgid "dendrogram non-leaf node with non-positive #{branches}"
 msgstr ""
 "un noeud du dendrogramme qui n'est pas une feuille a un nombre de branches < "
 "1"
-
-msgid "'height' must be at least %g, the maximal height of its components"
-msgstr ""
 
 msgid "'X' is not a dendrogram"
 msgstr "'X' n'est pas un dendrogramme"
@@ -1590,8 +1585,7 @@ msgstr ""
 "impossible de créer une formule à partir d'une tableau de données à zéro "
 "colonnes"
 
-#, fuzzy
-msgid "no terms component nor attribute"
+msgid "no terms component"
 msgstr "pas de composante terms"
 
 msgid "'termlabels' must be a character vector of length at least one"
@@ -2484,12 +2478,6 @@ msgid "there are %d Error terms: only 1 is allowed"
 msgid_plural "there are %d Error terms: only 1 is allowed"
 msgstr[0] "il y a %d terme d'erreur : un seul est autorisé"
 msgstr[1] "il y a %d termes d'erreur : un seul est autorisé"
-
-#, fuzzy
-msgid "extra argument %s is not a \"%s\""
-msgid_plural "extra arguments %s are not \"%s\"s"
-msgstr[0] "arguments supplémentaires ignorés"
-msgstr[1] "arguments supplémentaires ignorés"
 
 msgid "%d observation deleted due to missingness"
 msgid_plural "%d observations deleted due to missingness"

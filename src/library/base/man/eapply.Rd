@@ -38,14 +38,15 @@ eapply(env, FUN, \dots, all.names = FALSE, USE.NAMES = TRUE)
   \code{\link{environment}}, \code{\link{lapply}}.
 }
 \examples{
-require(stats)
+require(utils); require(stats)
 
-env <- new.env(hash = FALSE) # so the order is fixed
+env <- new.env()
 env$a <- 1:10
 env$beta <- exp(-3:3)
-env$logic <- c(TRUE, FALSE, FALSE, TRUE)
+env$logic <- c(TRUE,FALSE,FALSE,TRUE)
 # what have we there?
-utils::ls.str(env)
+eapply(env, str)
+## note however, that  'ls.str(env)' is slightly nicer ..
 
 # compute the mean for each list element
        eapply(env, mean)

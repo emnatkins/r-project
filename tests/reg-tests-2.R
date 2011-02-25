@@ -1150,11 +1150,7 @@ binom.test(c(800,10))# p-value < epsilon
 
 ## Misleading error messages on integer overflow
 ## Uwe Ligges, R-devel, 2004-02-19
-## (modified to make printed result the same whether numeric() is
-##  compiled or interpreted)
-## try(numeric(2^31))
-tryCatch(numeric(2^31),
-         error = function(e) paste("Error:", conditionMessage(e)))
+try(numeric(2^31))
 try(matrix( , 2^31, 1))
 try(matrix( , 2^31/10, 100))
 try(array(dim=c(2^31/10, 100)))
@@ -1586,14 +1582,8 @@ df1[df1 == 2] # this is first coerced to a matrix, and drops to a vector
 df3 <- data.frame(a=1:2, b=2:3)
 df3[df3 == 2]            # had spurious names
 # but not allowed
-## (modified to make printed result the same whether numeric() is
-##  compiled or interpreted)
-## try(df2[df2 == 2] <- 1:2)
-## try(m2[m2 == 2] <- 1:2)
-tryCatch(df2[df2 == 2] <- 1:2,
-         error = function(e) paste("Error:", conditionMessage(e)))
-tryCatch(m2[m2 == 2] <- 1:2,
-         error = function(e) paste("Error:", conditionMessage(e)))
+try(df2[df2 == 2] <- 1:2)
+try(m2[m2 == 2] <- 1:2)
 ##
 
 
@@ -1634,7 +1624,7 @@ x # list
 
 
 ## printing of a kernel:
-kernel(1)
+kernel(1, 0)
 ## printed wrongly in R <= 2.1.1
 
 
@@ -1867,11 +1857,11 @@ x[2]
 x[[2]]
 stopifnot(identical(x[2], x[[2]]))
 as.list(x)
-(xx <- unlist(as.list(x)))
-stopifnot(identical(x, xx))
+unlist(as.list(x))
+stopifnot(identical(x, unlist(as.list(x))))
 as.vector(x, "list")
-(sx <- sapply(x, function(.).))
-stopifnot(identical(x, sx))
+sapply(x, na.pass)
+stopifnot(identical(x, sapply(x, na.pass)))
 ## changed in 2.4.0
 
 
@@ -1972,7 +1962,6 @@ fit <- lm(y ~ 1, na.action="na.exclude")
 summary(fit)
 ## failed < 2.4.0
 
-RNGkind("default","default")## reset to default - ease  R core
 
 ## prettyNum lost attributes (PR#8695)
 format(matrix(1:16, 4), big.mark = ",")
@@ -2474,21 +2463,3 @@ a <- c(0.1, 0.3, 0.4, 0.5, 0.3, 0.0001)
 format.pval(a, eps=0.01)
 format.pval(a, eps=0.01, nsmall =2)
 ## granted in 2.12.0
-
-
-## printing fractional dates
-as.Date(0.5, origin="1969-12-31")
-## changed to round down in 2.12.1
-
-
-## printing data frames with  ""  colnames
-dfr <- data.frame(x=1:6, CC=11:16, f = gl(3,2)); colnames(dfr)[2] <- ""
-dfr
-## now prints the same as data.matrix(dfr) does here
-
-
-## format(., zero.print) --> prettyNum()
-set.seed(9); m <- matrix(local({x <- rnorm(40)
-                                sign(x)*round(exp(2*x))/10}), 8,5)
-noquote(format(m, zero.print= "."))
-## used to print  ". 0" instead of ".  "
