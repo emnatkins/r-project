@@ -39,15 +39,6 @@ BINPREF =
 # prefix for 64-bit: usually this, but not for native x64 builds.
 BINPREF64 = x86_64-w64-mingw32-
 
-# Others use a -m64 or -m32 option to select architectures
-M_ARCH =
-# and for as (--32 or --64)
-AS_ARCH =
-# and for windres (-F pe-i386 or pe-x86-64)
-RC_ARCH =
-# and for dlltool ("-m i386 --as-flags --32" vs "-m i386:x86-64 --as-flags --64")
-DT_ARCH =
-
 # 32- or 64-bit Windows?
 WIN = 32
 
@@ -91,7 +82,7 @@ HOME32=
 
 # location where WiX 3.x executables were installed. Spaces allowed.
 # The MSI uses '/bin': other packagings may not
-WIX3DIR=C:/packages/WiX3.5/bin
+WIX3DIR=C:/packages/WiX3.0/bin
 
 # set to 1 for a non-elevated per-user installer
 WIX_PERSONAL=0

@@ -118,7 +118,7 @@ RweaveLatexSetup(file, syntax, output = NULL, quiet = FALSE,
     \item{echo:}{logical (\code{TRUE}). Include \R code in the output
       file?}
 
-    \item{keep.source:}{logical (\code{TRUE}).  When echoing, if
+    \item{keep.source:}{logical (\code{FALSE}).  When echoing, if
       \code{keep.source == TRUE} the original source is copied to the
       file.  Otherwise, deparsed source is echoed.}
     
@@ -220,8 +220,8 @@ RweaveLatexSetup(file, syntax, output = NULL, quiet = FALSE,
 
   In addition, users can specify further options, either in the header
   of an individual code section or in a \samp{\\SweaveOpts\{\}} line in
-  the document. Prior to \R 2.14.0 unknown options were taken as
-  logical: now their type is set at first use.
+  the document.  Note that (for historical reasons) unrecognized options
+  are taken to be logical.
 }
 
 \section{Custom Graphics Devices}{

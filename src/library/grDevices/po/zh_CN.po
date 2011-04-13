@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.4.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2011-03-29 21:49+0100\n"
+"POT-Creation-Date: 2011-03-29 21:45+0100\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <feic@avaya.com>\n"
 "Language-Team: Chinese\n"
@@ -408,7 +408,7 @@ msgstr "没有这种'colormodel'，用'rgb'"
 #: devPS.c:6531
 #, fuzzy
 msgid "Failed to load sRGB colorspace file"
-msgstr "无法载入编码"
+msgstr "无法载入sGRG颜色空间"
 
 #: devPS.c:6798
 msgid "Corrupt encodings in PDF device"

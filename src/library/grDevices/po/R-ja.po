@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-03-25 10:14\n"
+"POT-Creation-Date: 2011-03-22 15:33\n"
 "PO-Revision-Date: 2011-03-25 15:11+0900 \n"
 "Last-Translator: Triad sou <triadsou@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -30,6 +30,9 @@ msgstr " 'bias' は正の値でなければなりません "
 
 msgid "at least 3 columns needed"
 msgstr " 少なくとも三つ列が必要です "
+
+msgid "The 'gamma' argument is deprecated and has no effect"
+msgstr " 引数 'gamma' は廃止予定です、適用されません "
 
 msgid "rgb matrix must be numeric"
 msgstr " rgb 行列は数値でなければなりません "
@@ -374,9 +377,6 @@ msgstr[0] " %d 個の正でない y の値が対数プロットから除かれ�
 msgid "%d z value <= 0 omitted from logarithmic plot"
 msgid_plural "%d z values <= 0 omitted from logarithmic plot"
 msgstr[0] " %d 個の正でない x の値が対数プロットから除かれました "
-
-#~ msgid "The 'gamma' argument is deprecated and has no effect"
-#~ msgstr " 引数 'gamma' は廃止予定です、適用されません "
 
 #~ msgid "invalid value for 'antialias'"
 #~ msgstr " 'antialias'の値が不正です "

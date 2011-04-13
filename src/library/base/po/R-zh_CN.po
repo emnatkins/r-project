@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-04-06 17:15\n"
+"POT-Creation-Date: 2011-03-29 21:44\n"
 "PO-Revision-Date: 2005-02-04 08:37+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -87,7 +87,7 @@ msgid "malformed version string"
 msgstr "版本字串格式有错"
 
 msgid "target is %s, current is %s"
-msgstr ""
+msgstr "目标是%s，但现在有的是%s"
 
 msgid "dim(X) must have a positive length"
 msgstr "dim(X)的值必需是正数"
@@ -209,9 +209,8 @@ msgstr "重新开始的规格不对"
 msgid "argument 'where' of length 0"
 msgstr "参数长度为零"
 
-#, fuzzy
 msgid "argument 'object' must deparse to a single character string"
-msgstr "'pattern'必需为非空字符串"
+msgstr "'object'必需反向分析为一个字符串"
 
 msgid "'origin' must be one of 'start', 'current' or 'end'"
 msgstr "'origin'参数的值必需是'start'，'current'或'end'中的一个"
@@ -643,15 +642,13 @@ msgstr "因子层次有错，产生了NA"
 msgid "'%s' is not meaningful for ordered factors"
 msgstr "'%s'对順序化的因子没有意义"
 
-#, fuzzy
 msgid "'%s' not defined for ordered factors"
-msgstr "'%s'对順序化的因子没有意义"
+msgstr "'%s'对順序化的因子没有定义"
 
-#, fuzzy
 msgid ""
 "'%s' is only meaningful for ordered factors if all arguments have the same "
 "level sets"
-msgstr "'%s'对順序化的因子没有意义"
+msgstr "'如果所有参数都有相同的水平集的话'%s'只对有序因子有意义"
 
 msgid "no files to copy to"
 msgstr "拷贝时没有可以写的文件"
@@ -660,7 +657,7 @@ msgid "more 'from' files than 'to' files"
 msgstr "'from'的文件比'to'的文件要多"
 
 msgid "'recursive' will be ignored as 'to' is not a single existing directory"
-msgstr ""
+msgstr "因为'to'不是一个单独存在的文件目录，'recursive'略过不用"
 
 msgid "file can not be copied both 'from' and 'to'"
 msgstr "不能同时又读又写同一个文件"
@@ -671,16 +668,14 @@ msgstr "鏈結时没有可以读的文件"
 msgid "no files/directory to link to"
 msgstr "鏈結时没有可以写的文件/目錄"
 
-#, fuzzy
 msgid "no files to link to"
-msgstr "鏈結时没有可以读的文件"
+msgstr "没有可以鏈結的文件"
 
 msgid "'package' must be of length 1"
 msgstr "'package'的长度必需为一"
 
-#, fuzzy
 msgid "no file found"
-msgstr "不存在"
+msgstr "文件不存在"
 
 msgid "'vec' contains NAs"
 msgstr "'vec'内有NA值"
@@ -756,42 +751,33 @@ msgstr "三角矩阵必需的正方形的"
 msgid "'object' must be a list"
 msgstr "'object'必需是串列"
 
-#, fuzzy
-msgid "package %s has not been installed properly"
+msgid "package '%s' has not been installed properly"
 msgstr "程辑包'%s'没有正确安装"
 
-#, fuzzy
-msgid "package %s was built before R 2.10.0: please re-install it"
+msgid "package '%s' was built before R 2.10.0: please re-install it"
 msgstr "程辑包'%s'是在R版本2.10.0之前建的：你得重新组装"
 
-#, fuzzy
-msgid "This is R %s, package %s needs %s %s"
+msgid "This is R %s, package '%s' needs %s %s"
 msgstr "这是R%s，程辑包'%s'需要%s %s "
 
-#, fuzzy
-msgid "package %s was built under R version %s"
+msgid "package '%s' was built under R version %s"
 msgstr "程辑包'%s'是用R版本%s 来建造的"
 
-#, fuzzy
-msgid "package %s was built for %s"
+msgid "package '%s' was built for %s"
 msgstr "程辑包'%s'是为%s建造的"
 
-#, fuzzy
-msgid "package %s is not installed for 'arch=%s'"
+msgid "package '%s' is not installed for 'arch=%s'"
 msgstr "程辑包'%s'没有安装在'arch=%s'中"
 
-#, fuzzy
 msgid ""
-"package %s has a license that you need to accept in an interactive session"
+"package '%s' has a license that you need to accept in an interactive session"
 msgstr "程辑包'％s'的许可证要求你在交互式会议时先接受它"
 
-#, fuzzy
-msgid "Package %s has a license that you need to accept after viewing"
+msgid "Package '%s' has a license that you need to accept after viewing"
 msgstr "程辑包'％s'的许可证要求你在看完后接受它"
 
-#, fuzzy
 msgid ""
-"Package %s has a license that you need to accept:\n"
+"Package '%s' has a license that you need to accept:\n"
 "according to the DESCRIPTION file it is"
 msgstr ""
 "程辑包'％s'的许可证要求你接受它:\n"
@@ -800,12 +786,10 @@ msgstr ""
 msgid "License"
 msgstr "许可证"
 
-#, fuzzy
-msgid "License for package %s not accepted"
+msgid "License for package '%s' not accepted"
 msgstr "程辑包'％s'的许可证没有被接受"
 
-#, fuzzy
-msgid "Attaching package: %s"
+msgid "Attaching package: '%s'"
 msgstr "载入程辑包：'%s'"
 
 msgid "'verbose' and 'quietly' are both true; being verbose then .."
@@ -814,46 +798,37 @@ msgstr "'verbose'和'quietly'两个值都是TRUE；因此先详细再…"
 msgid "invalid package name"
 msgstr "程辑包名字不对"
 
-#, fuzzy
-msgid "there is no package called %s"
+msgid "there is no package called '%s'"
 msgstr "不存在叫'%s'这个名字的程辑包"
 
 msgid "no library trees found in 'lib.loc'"
 msgstr "在'lib.loc'里找不到常式庫树"
 
-#, fuzzy
-msgid "%s is not a valid installed package"
+msgid "'%s' is not a valid installed package"
 msgstr "%s'不是有效的已经安装了的程序包"
 
-#, fuzzy
-msgid "%s not found on search path, using pos = 2"
+msgid "'%s' not found on search path, using pos = 2"
 msgstr "在搜索路径上找不到'%s'，用pos=2"
 
-#, fuzzy
-msgid "package/namespace load failed for %s"
+msgid "package/namespace load failed for '%s'"
 msgstr "'%s'程辑包/名字空间载入失败，"
 
-#, fuzzy
-msgid "unable to load R code in package %s"
+msgid "unable to load R code in package '%s'"
 msgstr "程辑包'%s'里的R写碼载入失败"
 
-#, fuzzy
-msgid "package %s contains no R code"
+msgid "package '%s' contains no R code"
 msgstr "程辑包'%s'里没有R写码"
 
-#, fuzzy
-msgid ".First.lib failed for %s"
+msgid ".First.lib failed for '%s'"
 msgstr ".First.lib载入失败，原因为'%s'"
 
-#, fuzzy
-msgid "package %s already present in search()"
+msgid "package '%s' already present in search()"
 msgstr "search()里已经存在程辑包'%s'"
 
 msgid "'DESCRIPTION' has 'Encoding' field and re-encoding is not possible"
 msgstr "'DESCRIPTION'有'Encoding'一域，但重新編碼是不可能的"
 
-#, fuzzy
-msgid "%sPackages in library %s:"
+msgid "%sPackages in library '%s':"
 msgstr "图书馆'%2$s'有%1$s程辑包："
 
 msgid "no packages found"
@@ -862,16 +837,13 @@ msgstr "找不到程辑包"
 msgid "R packages available"
 msgstr "有R程辑包"
 
-#, fuzzy
-msgid "DLL %s not found: maybe not installed for this architecture?"
+msgid "DLL '%s' not found: maybe not installed for this architecture?"
 msgstr "没有这个DLL'%s'：是不是没有安装？"
 
-#, fuzzy
-msgid "shared object %s not found"
+msgid "shared object '%s' not found"
 msgstr "共享目标对象'%s'不存在"
 
-#, fuzzy
-msgid "DLL %s already loaded"
+msgid "DLL '%s' already loaded"
 msgstr "DLL'%s'已经载入了"
 
 msgid "shared object '%s' already loaded"
@@ -886,23 +858,23 @@ msgstr "没有指定DLL"
 msgid "no shared object was specified"
 msgstr "没有指定共享对象"
 
-#, fuzzy
-msgid "DLL %s was not loaded"
+msgid "DLL '%s' was not loaded"
 msgstr "DLL'%s'没有载入"
 
-#, fuzzy
-msgid "shared object %s was not loaded"
+msgid "shared object '%s' was not loaded"
 msgstr "共享对象'%s'没有载入"
 
-#, fuzzy
-msgid "DLL %s not found"
+msgid "DLL '%s' not found"
 msgstr "没有'%s'这个DLL"
-
-msgid "shared object '%s' not found"
-msgstr "共享目标对象'%s'不存在"
 
 msgid "now dyn.unload(\"%s\") ..."
 msgstr "现在dyn.unload(\"%s\") ..."
+
+msgid "use of 'save' is deprecated"
+msgstr "'save'不再有用。"
+
+msgid "save != FALSE is defunct"
+msgstr "save != FALSE不再有用。"
 
 msgid "Loading required package: %s"
 msgstr "载入需要的程辑包：%s"
@@ -910,17 +882,16 @@ msgstr "载入需要的程辑包：%s"
 msgid "none of the packages are loaded"
 msgstr "没有载入任何程辑包"
 
-#, fuzzy
 msgid ""
-"package %s found more than once,\n"
-"using the one found in %s"
+"package '%s' found more than once,\n"
+"using the one found in '%s'"
 msgstr ""
 "找到多个叫'%s'的程辑包，\n"
 "载入'%s'里找到的那一个"
 
-#, fuzzy
 msgid ""
-"Further information is available in the following vignettes in directory %s:"
+"Further information is available in the following vignettes in directory "
+"'%s':"
 msgstr "可以在目录'%s'中的小文品内找到更多的信息"
 
 msgid "doc"
@@ -932,36 +903,29 @@ msgstr "描述："
 msgid "Index:"
 msgstr "索引："
 
-#, fuzzy
-msgid "Information on package %s"
+msgid "Information on package '%s'"
 msgstr "关于程辑包'%s'的信息"
 
-#, fuzzy
-msgid "Documentation for package %s"
+msgid "Documentation for package '%s'"
 msgstr "关于这个程辑包的说明书"
 
-#, fuzzy
-msgid "package %s required by %s could not be found"
+msgid "package '%s' required by '%s' could not be found"
 msgstr "找不到'%2$s'所需要的程辑包'%1$s'"
 
-#, fuzzy
-msgid "package %s %s was found, but %s %s is required by %s"
+msgid "package '%s' %s was found, but %s %s is required by '%s'"
 msgstr "找到了程辑包'%1$s' %2$s，但'%5$s'需要%3$s %4$s"
 
-#, fuzzy
-msgid "package %s could not be loaded"
+msgid "package '%s' could not be loaded"
 msgstr "无法载入程辑包'%s'"
 
-#, fuzzy
-msgid "package %s %s is loaded, but %s %s is required by %s"
+msgid "package '%s' %s is loaded, but %s %s is required by '%s'"
 msgstr "载入了程辑包'%1$s' %2$s，但'%5$s'需要%3$s %4$s "
 
 msgid "input has been corrupted, with LF replaced by CR"
 msgstr "输入有破损，LF被CR取代"
 
-#, fuzzy
 msgid ""
-"file %s has magic number '%s'\n"
+"file '%s' has magic number '%s'\n"
 "   Use of save versions prior to 2 is deprecated"
 msgstr ""
 "'%s'文件的魔号是'%s'\n"
@@ -991,8 +955,7 @@ msgstr "映像无法被重新命名，因此被留在"
 msgid "[Previously saved workspace restored]"
 msgstr "[原来保存的工作空间已还原]"
 
-#, fuzzy
-msgid "Attempting to load the environment %s"
+msgid "Attempting to load the environment '%s'"
 msgstr "试图载入'%s'环境"
 
 msgid "not found: using .GlobalEnv instead"
@@ -1096,8 +1059,7 @@ msgstr "已经连接上名字空间了"
 msgid "%s not found"
 msgstr "%s不存在"
 
-#, fuzzy
-msgid "namespace %s is already sealed in loadNamespace"
+msgid "namespace '%s' is already sealed in loadNamespace"
 msgstr "名字空间'%s'已经在loadNamespace封條了"
 
 msgid "failed to assign RegisteredNativeSymbol for"
@@ -1118,8 +1080,7 @@ msgstr "名字空间"
 msgid "failed to assign NativeSymbolInfo for"
 msgstr "不能分配NativeSymbolInfo给"
 
-#, fuzzy
-msgid "package %s does not have a name space"
+msgid "package '%s' does not have a name space"
 msgstr "程辑包'%s'没有名字空间"
 
 msgid ""
@@ -1130,8 +1091,7 @@ msgstr "虽然exportClassPattern在NAMESPACE有设定但它在%s程辑包中没�
 msgid "in package %s classes %s were specified for export but not defined"
 msgstr "在%s程辑包中%s类别指定被用于出口，但它的定义并不存在"
 
-#, fuzzy
-msgid "in %s methods for export not found: %s"
+msgid "in '%s' methods for export not found: %s"
 msgstr "用于出口的'%s'方法不存在：%s "
 
 msgid "multiple methods tables found for %s"
@@ -1185,8 +1145,7 @@ msgstr "不能在封闭名字空间里的出口加入"
 msgid "undefined exports:"
 msgstr "出口不存在："
 
-#, fuzzy
-msgid "package %s has no NAMESPACE file"
+msgid "package '%s' has no NAMESPACE file"
 msgstr "程辑包'%s' 没有NAMESPACE这一文件"
 
 msgid "empty name in directive '%s' in NAMESPACE file"
@@ -1300,12 +1259,11 @@ msgstr "'scale'的长度必需和'x'列的数目相同"
 msgid "either specify 'nmax' or 'n', but not both."
 msgstr "'nmax'和'n'两者只能有一个设定"
 
-#, fuzzy
 msgid "argument 'length.out' must be of length 1"
 msgstr "'length.out'的长度必需为一"
 
 msgid "first element used of 'length.out' argument"
-msgstr ""
+msgstr "用了'length.out'参数中的第一个单元"
 
 msgid "invalid (to - from)/by in seq(.)"
 msgstr "seq(.)里的(to - from)/by 有错"
@@ -1323,7 +1281,7 @@ msgid "too many arguments"
 msgstr "太多参数"
 
 msgid "'compress' is ignored unless 'file' is a file name"
-msgstr ""
+msgstr "除非'file'是文件名字，否则'compress'没有用"
 
 msgid "'connection' must be a connection"
 msgstr "'connection'必需是个链结"
@@ -1470,7 +1428,7 @@ msgid "all arguments must have the same length"
 msgstr "所有参数的长度都应一致"
 
 msgid "attempt to make a table with >= 2^31 elements"
-msgstr ""
+msgstr "试图创造一个元素数目大于2 ^31的表"
 
 msgid "'object' must inherit from class \"table\""
 msgstr "'object'必需从\"table\"繼承类别"
@@ -1664,13 +1622,6 @@ msgstr[0] "警告信息：\n"
 
 #~ msgid "no files to copy from"
 #~ msgstr "拷贝时没有可以读的文件"
-
-#~ msgid "use of 'save' is deprecated"
-#~ msgstr "'save'不再有用。"
-
-#, fuzzy
-#~ msgid "save != FALSE is defunct"
-#~ msgstr "'%s'不再有用。"
 
 #~ msgid "got invalid index for importing"
 #~ msgstr "进口输入时得到的索引无效"

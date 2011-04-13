@@ -17,3 +17,4 @@
 ## created for use in other packages, e.g. flexmix
 setGeneric("AIC")
 setGeneric("BIC")
+setGeneric("nobs")

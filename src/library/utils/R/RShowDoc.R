@@ -77,8 +77,8 @@ RShowDoc <- function(what, type=c("pdf", "html", "txt"), package)
             file.show(path)
             return(invisible(path))
         }
-        stop(gettextf("no documentation for %s found in package %s",
-                      sQuote(what), sQuote(package)), domain = NA)
+        stop(gettextf("no documentation for '%s' found in package '%s'",
+                      what, package), domain = NA)
     }
     if(what == "FAQ") what <- "R-FAQ"
     if(what == "NEWS") {
@@ -100,10 +100,6 @@ RShowDoc <- function(what, type=c("pdf", "html", "txt"), package)
         return(invisible(path))
     } else if(what == "COPYING") {
         path <- file.path(R.home(), what)
-        file.show(path)
-        return(invisible(path))
-    } else if(what %in% dir(file.path(R.home("share"), "licenses"))) {
-        path <- file.path(R.home("share"), "licenses", what)
         file.show(path)
         return(invisible(path))
     } else if(what %in% c("R-admin", "R-data", "R-exts", "R-FAQ", "R-intro",

@@ -84,7 +84,7 @@ function(package, dir, lib.loc = NULL,
             setwd(startdir)
         }
     }
-    if(weave && latex) {
+    if(tangle && weave && latex) {
         if(!("Makefile" %in% list.files(vigns$dir))) {
             ## <NOTE>
             ## This used to run texi2dvi on *all* vignettes, including
@@ -134,9 +134,9 @@ function(x, ...)
         }
     }
 
+    mycat(x$weave,  "*** Weave Errors ***")
     mycat(x$tangle, "*** Tangle Errors ***")
     mycat(x$source, "*** Source Errors ***")
-    mycat(x$weave,  "*** Weave Errors ***")
     mycat(x$latex,  "*** PDFLaTeX Errors ***")
 
     invisible(x)
@@ -156,17 +156,17 @@ function(package, dir, lib.loc = NULL)
             stop("argument 'package' must be of length 1")
         docdir <- file.path(find.package(package, lib.loc), "doc")
         ## Using package installed in @code{dir} ...
-    } else {
+    }
+    else {
         if(missing(dir))
             stop("you must specify 'package' or 'dir'")
         ## Using sources from directory @code{dir} ...
         if(!file_test("-d", dir))
-            stop(gettextf("directory '%s' does not exist", dir), domain = NA)
-        else {
-            docdir <- file.path(file_path_as_absolute(dir), "vignettes")
-            if(!file_test("-d", docdir))
-                docdir <- file.path(file_path_as_absolute(dir), "inst", "doc")
-        }
+            stop(gettextf("directory '%s' does not exist", dir),
+                 domain = NA)
+        else
+            docdir <- file.path(file_path_as_absolute(dir), "inst",
+                                "doc")
     }
 
     if(!file_test("-d", docdir)) return(NULL)
@@ -303,7 +303,7 @@ getVignetteEncoding <-  function(file, ...)
                "utf8" =, "utf8x" = "UTF-8",
                "latin1" = "latin1",
                "latin2" = "latin2",
-               "latin9" = "latin-9", # only form known to GNU libiconv
+               "latin9" = "LATIN-9", # only form known to GNU libiconv
                "arabic" = "ISO-8859-6",
                "cyrillic" = "ISO-8859-5",
                "greek" = "ISO-8859-7",
@@ -512,17 +512,14 @@ function(vigDeps)
 ### helper for R CMD check
 
 .run_one_vignette <-
-    function(vig_name, docDir, encoding = "")
+    function(vig_name, docDir)
 {
-    ## The idea about encodings here is that Stangle reads the
-    ## file, converts on read and outputs in the current encoding.
-    ## Then source() can assume the current encoding.
     td <- tempfile()
     dir.create(td)
     file.copy(docDir, td, recursive = TRUE)
     setwd(file.path(td, "doc"))
     result <- NULL
-    tryCatch(utils::Stangle(vig_name, quiet = TRUE, encoding = encoding),
+    tryCatch(utils::Stangle(vig_name, quiet = TRUE),
              error = function(e) result <<- conditionMessage(e))
     if(length(result)) {
         cat("\n  When tangling ", sQuote(vig_name), ":\n", sep="")

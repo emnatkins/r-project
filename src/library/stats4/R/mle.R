@@ -62,7 +62,7 @@ mle <- function(minuslogl, start = formals(minuslogl), method = "BFGS",
     else list(par = numeric(), value = f(start))
     coef <- oout$par
     vcov <- if(length(coef)) solve(oout$hessian) else matrix(numeric(), 0L, 0L)
-    min <- oout$value
+    min <-  oout$value
     fullcoef[nm] <- coef
     new("mle", call = call, coef = coef, fullcoef = unlist(fullcoef),
         vcov = vcov, min = min, details = oout, minuslogl = minuslogl,
@@ -307,10 +307,6 @@ function (object, parm, level = 0.95, ...)
     cat("Profiling...\n")
     confint(profile(object), alpha = (1 - level)/4, parm, level, ...)
 })
-
-setGeneric("nobs")
-setMethod("nobs", "mle", function (object, ...)
-    if("nobs" %in% slotNames(object)) object@nobs else NA_integer_)
 
 setGeneric("logLik")
 setMethod("logLik", "mle",

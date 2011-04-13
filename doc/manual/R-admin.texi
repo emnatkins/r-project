@@ -349,24 +349,24 @@ make
 @end example
 
 @noindent
-and so on, as described further below.  This has the advantage of always
-keeping your source tree clean and is particularly recommended when you
-work with a version of @R{} from Subversion.  (You may need
-@acronym{GNU} @command{make} to allow this, and you will need no spaces
-in the path to the build directory.)
+and so on, as described further below.  This has the advantage of
+always keeping your source tree clean and is particularly
+recommended when you work with a version of @R{} from Subversion.
+(You may need @acronym{GNU} @command{make} to allow this, and the
+pathname of the build directory should not contain spaces.)
 
-@c For those obtaining @R{} @emph{via} Subversion, one additional step is
-@c necessary:
-@c @cindex Vignettes
-@c @cindex Subversion
+For those obtaining @R{} @emph{via} Subversion, one additional step is
+necessary:
+@cindex Vignettes
+@cindex Subversion
 
-@c @example
-@c make vignettes
-@c @end example
+@example
+make vignettes
+@end example
 
-@c @noindent
-@c which makes the @pkg{grid} vignettes (which are contained in the
-@c tarballs): it make take several minutes.
+@noindent
+which makes the @pkg{grid} vignettes (which are contained in the
+tarballs): it make take several minutes.
 
 Now @code{rehash} if necessary, type @kbd{R}, and read the @R{} manuals
 and the @R{} @acronym{FAQ} (files @file{FAQ} or
@@ -625,11 +625,6 @@ make install-strip
 will install stripped executables, and on platforms where this is
 supported, stripped libraries in directories @file{lib} and
 @file{modules} and in the standard packages.
-
-Note that installing @R{} into a directory which contains spaces is not
-supported, and at least some aspects (such as installing source
-packages) will not work.
-@c The main problem is the Makefile include in etc/Makeconf
 
 @cindex Manuals, installing
 
@@ -2712,7 +2707,7 @@ most likely needs @acronym{GNU} @code{gettext}: you do need this to work
 with new translations, but otherwise the version contained in the R
 sources will be used if no suitable external @code{gettext} is found.
 
-The `modern' version of the @code{X11()}, @code{jpeg()}, @code{png()} and
+The `modern' version of the @code{X11}, @code{jpeg()}, @code{png()} and
 @code{tiff()} graphics devices uses the @code{cairo} and (optionally)
 @code{Pango} libraries.  Cairo version 1.2.0 or later is required.
 Pango needs to be at least version 1.10, and 1.12 is the earliest
@@ -2773,8 +2768,11 @@ provides much more precise control over collation on all systems.  ICU
 is available as sources and as binary distributions for (at least) most
 Linux distributions, Solaris, FreeBSD and AIX, usually as @code{libicu}
 or @code{icu4c}.  It will be used by default where available (including
-on Mac OS X >= 10.4): should a very old or broken version of ICU be
-found this can be suppressed by @option{--without-ICU}.
+on Mac OS X >= 10.4): should a broken version of ICU be found this can
+be suppressed by @option{--without-ICU}.
+
+@c The Perl scripts left are
+@c tools: help2man.pl install-info.pl
 
 The @code{bitmap} and @code{dev2bitmap} devices and also
 @code{embedFonts()} use ghostscript
@@ -4807,9 +4805,8 @@ Several versions of the MinGW-w64 toolchain are available: use one of
 them to replace (or supplement) the 32-bit toolchain's @file{bin}
 directory in your path.  Then copy file @file{src/gnuwin32/MkRules.dist}
 to @file{src/gnuwin32/MkRules.local} and edit it to set @code{WIN=64}
-and @code{BINPREF64}, @code{M_ARCH}, @code{DT_ARCH}, @code{RC_ARCH} and
-@code{SYMPAT64} appropriate to your toolchain, then make @R{} in the
-usual way.
+and @code{BINPREF64} and @code{SYMPAT64} appropriate to your toolchain,
+then make @R{} in the usual way.
 
 The toolchain we use is technically a cross-compiler: the tools run
 under 32-bit Windows but produce code to run under 64-bit

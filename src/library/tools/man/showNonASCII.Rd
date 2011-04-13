@@ -1,24 +1,20 @@
 % File src/library/tools/man/showNonASCII.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 2008-11 R Core Development Team
+% Copyright 2008-10 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{showNonASCII}
 \alias{showNonASCII}
-\alias{showNonASCIIfile}
-\title{Pick Out Non-ASCII Characters}
+\title{Highlight non-ASCII characters}
 \description{
   This function prints elements of a character vector which contain
   non-ASCII bytes, printing such bytes as a escape like \samp{<fc>}.
 }
 \usage{
 showNonASCII(x)
-
-showNonASCIIfile(file)
 }
 \arguments{
   \item{x}{a character vector.}
-  \item{file}{path to a file.}
 }
 \details{
   This was originally written to help detect non-portable text in
@@ -43,7 +39,7 @@ out <- c(
 f <- tempfile()
 cat(out, file = f, sep = "\n")
 
-showNonASCIIfile(f)
+showNonASCII(readLines(f))
 unlink(f)
 }
 \keyword{utilities}

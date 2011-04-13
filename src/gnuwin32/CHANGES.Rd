@@ -4,24 +4,6 @@
 \title{Windows-specific changes to R}
 \encoding{UTF-8}
 
-\section{CHANGES IN R VERSION 2.14.0}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item The \code{yLineBias} of the \code{windows()} family of
-      devices has been changed from 0.1 to 0.2: this changes slightly
-      the vertical positioning of text (including axis annotations).
-    }
-  }
-
-  \subsection{INSTALLATION}{
-    \itemize{
-      \item There is  support for \sQuote{multilib} toolchains which use
-      options \option{--m32} or \option{--m64} to select the
-      architecture; set the appropriate macros in \file{MkRules.local}.
-    }
-  }
-}
-  
 \section{CHANGES IN R VERSION 2.13.0}{
   \subsection{WINDOWS VERSION}{
     \itemize{

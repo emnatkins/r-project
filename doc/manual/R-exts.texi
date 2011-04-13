@@ -278,9 +278,13 @@ entirely in @acronym{ASCII} --- if this is not possible it must contain
 an @samp{Encoding} field (see below).
 
 The mandatory @samp{Package} field gives the name of the package.  This
-should contain only letters, numbers and dot, have at least two
-characters and start with a letter and not end in a dot.  (Translation
-packages are allowed names of the form @samp{Translation-@var{ll}}.)
+should contain only letters, numbers and dot, and start with a letter.
+To be portable to Windows, it must not end in a dot.  (Translation
+packages are allowed names of the form @samp{Translation-@var{ll}}.)  Do
+not use @samp{R} as a package name: that has a special meaning in
+package dependency analysis.  Other single-character names are
+deprecated and will be disallowed as from @R{} 2.14.0, as will names
+ending in a dot.
 
 The mandatory @samp{Version} field gives the version of the package.
 This is a sequence of at least @emph{two} (and usually three)
@@ -504,13 +508,8 @@ the field's value to @samp{yes} or @samp{true} for lazy-loading and
 also accepted.)  If the package you are writing uses the @pkg{methods}
 package, specify @samp{LazyLoad: yes}.
 
-The @samp{KeepSource} field controls if the package code is sourced
-using @code{keep.source = TRUE} or @code{FALSE}: it might be needed
-exceptionally for a package designed to always be used with
-@code{keep.source = TRUE}.
-
 The @samp{ZipData} field controls whether the automatic Windows build
-will zip up the data directory or not: set this to @samp{no} if your
+will zip up the data directory or no: set this to @samp{no} if your
 package will not work with a zipped data directory.  (Setting to any
 other value is deprecated, and it is unused as from @R{} 2.13.0: but it
 might still be needed if the package can be installed under earlier
@@ -912,7 +911,7 @@ of it:
 @node Configure and cleanup, Checking and building packages, Package structure, Creating R packages
 @section Configure and cleanup
 
-Note that most of this section is specific to Unix-alikes: see the
+Note that most of this section is specfic to Unix-alikes: see the
 comments later on about the Windows port of @R{}.
 
 If your package needs some system-dependent configuration before
@@ -1932,57 +1931,58 @@ and be comprised entirely of @acronym{ASCII} letters or digits or hyphen
 or underscore.
 
 A special case are PDF documents with sources in Sweave format, which we
-call @emph{package vignettes}.  As from @R{} 2.14.0 the preferred
-location for the Sweave sources is the subdirectory @file{vignettes} of
-the source packages, but for compatibility with earlier versions of
-@R{}, vignette sources will be looked for in @file{inst/doc} if
-@file{vignettes} does not exist.
-
-Vignette sources are normally given the file extension @file{.Rnw} or
-@file{.Rtex}, but for historical reasons extensions@footnote{and to
-avoid problems with case-insensitive file systems, lower-case versions
-of all these extensions.} @file{.Snw} and @file{.Stex} are also
-recognized as vignettes.  Sweave allows the integration of @LaTeX{}
-documents: see the @code{Sweave} help page in @R{} and the @code{Sweave}
-vignette in package @pkg{utils} for details on the document format.
-Package vignettes found in directory @file{inst/doc} are tested by
-@code{R CMD check} by executing all @R{} code chunks they contain
-(except those with option @code{eval=FALSE}).  The @R{} working
-directory for all vignette tests in @code{R CMD check} is a @emph{copy}
-of the @file{doc} subdirectory.  Make sure all files needed to run the
-vignette (data sets, @dots{}) are accessible by either placing them in
-the @file{inst/doc} hierarchy of the source package or by using calls to
-@code{system.file()}.  All other files needed to re-make the vignette
-PDFs (such as LaTeX style files, BiBTeX input files and files for any
-figures not created by running the code in the vignette) must in the
-sources under @file{vignettes}.
+call @emph{package vignettes}.  These are normally given the file
+extension @file{.Rnw} or @file{.Rtex}, but for historical reasons
+extensions@footnote{and to avoid problems with case-insensitive file
+systems, lower-case versions of all these extensions.} @file{.Snw} and
+@file{.Stex} are also recognized as vignettes.  Sweave allows the
+integration of @LaTeX{} documents: see the @code{Sweave} help page in
+@R{} for details on the document format.  Package vignettes found in
+directory @file{inst/doc} are tested by @code{R CMD check} by executing
+all @R{} code chunks they contain (except those with option
+@code{eval=FALSE}).  The @R{} working directory for all vignette tests
+in @code{R CMD check} is a @emph{copy} of the @file{doc} subdirectory.
+Make sure all files needed by the vignette (data sets, @dots{}) are
+accessible by either placing them in the @file{inst/doc} hierarchy of
+the source package or by using calls to @code{system.file()}.  All other
+files needed to re-make the vignette PDFs (such as LaTeX style files,
+BiBTeX input files and files for any figures not created by running the
+code in the vignette) must in the sources (usually under
+@file{inst/doc}, but a file @file{.Rinstignore} can be used to exclude
+them from the installed package).  References to parallel source
+directories such as
+@example
+\graphicspath@{@{../../manual/@}@}
+@end example
+@noindent
+(from @pkg{RODBC}) will work as from @R{} 2.13.0.
 
 @code{R CMD build} will automatically@footnote{unless inhibited by using
 @samp{BuildVignettes: no} in the @file{DESCRIPTION} file.} create PDF
-versions of the vignettes in @file{inst/doc} for distribution with the
-package sources.  By including the PDF version in the package sources it
-is not necessary that the vignettes can be run and compiled at install
-time, i.e., the package author can use private @R{} packages, screen
-snapshots and @LaTeX{} extensions which are only available on his
+versions of the vignettes for distribution with the package sources.  By
+including the PDF version in the package sources it is not necessary
+that the vignettes can be run and compiled at install time, i.e., the
+package author can use private @R{} packages, screen snapshots and
+@LaTeX{} extensions which are only available on his
 machine.@footnote{provided the conditions of the package's licence are
 met: many would see these as incompatible with an Open Source licence.}
 
 By default @code{R CMD build} will run @code{Sweave} on all files in
-Sweave format in @file{vignettes}, or if that does not exist,
-@file{inst/doc} (but not in sub-directories).  If no @file{Makefile} is
-found in directory @file{inst/doc}, then @code{tools::texi2dvi(pdf =
-TRUE)} is run on all processed vignettes.  Whenever a @file{Makefile} is
-found, then @code{R CMD build} will try to run @command{make} after the
-@code{Sweave} runs.  The first target in the @file{Makefile} should take
-care of both creation of PDF files and cleaning up afterwards (including
-after @code{Sweave}), i.e., delete all files that shall not appear in
-the final package archive.  Note that if the @code{make} step runs @R{}
-it needs to be careful to respect the environment values of @env{R_LIBS}
-and @env{R_HOME}@footnote{As from @R{} 2.13.0, @code{R_HOME/bin} is
-prepended to the @env{PATH} so that references to @command{R} or
-@command{Rscript} in the @file{Makefile} do make use of the currently
-running version of @R{}.}.  Finally, if there is a @file{Makefile} and
-it has a @samp{clean:} target, @command{make clean} is run.
+Sweave format in @file{inst/doc} (but not in sub-directories).  If no
+@file{Makefile} is found in directory @file{inst/doc}, then
+@code{tools::texi2dvi(pdf = TRUE)} is run on all processed vignettes.
+Whenever a @file{Makefile} is found, then @code{R CMD build} will try to
+run @command{make} after the @code{Sweave} runs.  The first target in
+the @file{Makefile} should take care of both creation of PDF files and
+cleaning up afterwards (including after @code{Sweave}), i.e., delete all
+files that shall not appear in the final package archive.  Note that if
+the @code{make} step runs @R{} it needs to be careful to respect the
+environment values of @env{R_LIBS} and @env{R_HOME}@footnote{As from
+@R{} 2.13.0, @code{R_HOME/bin} is prepended to the @env{PATH} so that
+references to @command{R} or @command{Rscript} in the @file{Makefile} do
+make use of the currently running version of @R{}.}.  Finally, if there
+is a @file{Makefile} and it has a @samp{clean:} target, @command{make
+clean} is run.
 
 All the usual @emph{caveats} about including a @file{Makefile} apply.
 It must be portable (no @acronym{GNU} extensions) and must work
@@ -2056,15 +2056,12 @@ can become very complicated.
 The vignette source file should be written in ASCII or contain a
 declaration of the encoding (see below).  This applies even to comments
 within the source file, since @code{Sweave()} processes comments to look
-for options and metadata lines.  When @code{Sweave()} or
-@code{Stangle()} is called on the vignette source, it will be
-converted@footnote{provided the encoding is known: currently if it is
-not that of a current MBCS locale, it is guessed to be Latin-1.} to the
-encoding of the current @R{} session.
+for options and metadata lines.  It is @strong{not} assumed that the
+vignette sources are in the packages' encoding (and there are packages
+for which the vignettes have different encodings).
 
-@code{Stangle()} will produce an @R{} code file in the current locale's
-encoding: for a non-ASCII vignette what that is recorded in a comment at
-the top of the file.
+@code{Stangle()} will produce an @R{} code file: this is almost always
+ASCII.
 
 @code{Sweave()} will produce a @file{.tex} file in the current locale's
 encoding.  That needs to be declared to @LaTeX{} via a line like
@@ -2079,6 +2076,29 @@ may only be re-createable on the author's own machine. @command{R CMD
 check} will report on any non-ASCII vignettes it finds which do not have
 such a declaration.  (It is also possible to use the more recent
 @samp{inputenx} @LaTeX{} package.)
+
+For @R{} 2.13.0 (at least), how non-ASCII vignettes are handled depends
+on the locale of the @R{} session.
+
+@itemize @bullet
+@item
+In an 8-bit locale the documents and @R{} output are handled
+byte-by-byte.  This may lead to invalid results if the vignette was
+intended to be in UTF-8 and the @R{} output is in the 8-bit locale.
+
+@item
+In a UTF-8 locale the vignette is translated as if in Latin-1, and the
+output file translated back to Latin-1.  It does not actually need to be
+in Latin-1 provided all the bytes used@footnote{and on some platforms
+this will work even with bytes outside Latin-1} in the vignette exist in
+Latin-1: think of this as a way of temporarily escaping 8-bit
+characters.
+
+@item
+In any other multi-byte locale @code{Sweave()} and @code{Stangle()}
+throw an error.
+
+@end itemize
 
 @code{Sweave()} will also parse and evaluate the @R{} code in each
 chunk.  The @R{} output will also be in the current locale, and should
@@ -3010,7 +3030,7 @@ rendered incorrectly, or cause your @R{} code to give an error.
 For documentation, marking the encoding and including @acronym{ASCII}
 transliterations is likely to do a reasonable job.
 
-Function @code{showNonASCIIfile} in package @pkg{tools} can help in
+Function @code{showNonASCII} in package @pkg{tools} can help in
 finding non-@acronym{ASCII} bytes in files.
 
 
@@ -4843,7 +4863,7 @@ Wherever possible, avoid non-@acronym{ASCII} chars in @file{Rd} files, and
 even symbols such as @samp{<}, @samp{>}, @samp{$}, @samp{^}, @samp{&},
 @samp{|}, @samp{@@}, @samp{~}, and @samp{*} outside verbatim
 environments (since they may disappear in fonts designed to render
-text).  (Function @code{showNonASCIIfile} in package @pkg{tools} can help
+text).  (Function @code{showNonASCII} in package @pkg{tools} can help
 in finding non-@acronym{ASCII} bytes in the files.)
 
 For convenience, encoding names @samp{latin1} and @samp{latin2} are
@@ -4852,10 +4872,8 @@ widely.  However, this does not mean that all characters in UTF-8 will
 be recognized, and the coverage of non-Latin characters@footnote{@R{}
 2.9.0 added support for UTF-8 Cyrillic characters in @LaTeX{}, but on
 some OSes this will need Cyrillic support added to @LaTeX{}, so
-environment variable @env{_R_CYRILLIC_TEX_} may need to be set to a
-non-empty value to enable this.} is fairly low.  Using @LaTeX{}
-@code{inputenx} (see @code{?Rd2dvi} in @R{}) will give greater coverage
-of UTF-8.
+environment variable @env{_R_CYRILLIC_TEX_} needs to be set to a
+non-empty value to enable this.} is low.
 
 The @code{\enc} command (@pxref{Insertions}) can be used to provide
 transliterations which will be used in conversions that do not support
@@ -10235,11 +10253,9 @@ HSV to RGB and back.  Note that all colours must be in [0,1].
 A system-independent interface to produce the name of a temporary
 file is provided as
 
-@deftypefun {char *} R_tmpnam (const char *@var{prefix}, const char *@var{tmpdir})
-@deftypefunx {char *} R_tmpnam2 (const char *@var{prefix}, const char *@var{tmpdir}, const char *@var{fileext})
+@deftypefun {char *} R_tmpnam (const char *@var{prefix})
 Return a pathname for a temporary file with name beginning with
-@var{prefix} and ending with @var{fileext} in directory @var{tmpdir}.
-A @code{NULL} prefix or extension is replaced by @code{""}.
+@var{prefix}.  A @code{NULL} prefix is replaced by @code{""}.
 @end deftypefun
 
 @c ----

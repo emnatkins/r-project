@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-04-10 07:45\n"
+"POT-Creation-Date: 2011-03-22 15:33\n"
 "PO-Revision-Date: 2005-04-14 18:07+0200\n"
 "Last-Translator: stefano iacus <>\n"
 "Language-Team: Italian <it@li.org>\n"
@@ -626,8 +626,9 @@ msgstr "'tree' non valido (componente merge)"
 msgid "either 'k' or 'h' must be specified"
 msgstr "o 'k' o 'h' devono essere specificati"
 
-#, fuzzy
-msgid "the 'height' component of 'tree' is not sorted (increasingly)"
+msgid ""
+"the 'height' component of 'tree' is not sorted\n"
+"(increasingly); consider applying as.hclust() first"
 msgstr ""
 "la componente 'height' di 'tree' non è ordinata\n"
 "(in modo crescente); prova ad usare prima as.hclust()"
@@ -1799,8 +1800,7 @@ msgstr ""
 msgid "not enough groups"
 msgstr "gruppi insufficienti"
 
-#, fuzzy
-msgid "bounds can only be used with method L-BFGS-B (or Brent)"
+msgid "bounds can only be used with method L-BFGS-B"
 msgstr "bounds si può usare solo con il metodo L-BFGS-B"
 
 #, fuzzy
@@ -1819,21 +1819,10 @@ msgid ""
 msgstr ""
 "il metodo L-BFGS-B usea 'fact' (e 'pgtol') al posto di 'reltol' e 'abstol'"
 
-#, fuzzy
-msgid "one-diml optimization by Nelder-Mead is unreliable:"
+msgid "one-diml optimization by Nelder-Mead is unreliable: use optimize"
 msgstr ""
 "ottimizzazione uni-dimensionale di Nelder-Mead non attendibile: usare "
 "optimize"
-
-msgid "use \"Brent\" or optimize() directly"
-msgstr ""
-
-msgid "method = \"Brent\" is only available for one-dimensional optimization"
-msgstr ""
-
-#, fuzzy
-msgid "'lower' and 'upper' must be finite values"
-msgstr "'k' e 'h' deve essere scalari"
 
 msgid "Pooling of SD is incompatible with paired tests"
 msgstr ""
@@ -2123,10 +2112,6 @@ msgstr "'endrule' sbagliata"
 
 msgid "invalid 'control.spar'"
 msgstr "'control.spar' non valido"
-
-#, fuzzy
-msgid "missing or infinite values in inputs are not allowed"
-msgstr "non sono ammessi pesi negativi o mancanti"
 
 msgid "lengths of 'x' and 'w' must match"
 msgstr "le lunghezze di 'x' e 'w' devono coincidere"

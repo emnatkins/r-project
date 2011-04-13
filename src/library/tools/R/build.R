@@ -27,19 +27,12 @@ newLog <- function(filename = "")
 closeLog <- function(Log) if (Log$con > 2) close(Log$con)
 
 printLog <- function(Log, ...) {
-    quotes <- function(x) gsub("'([^']*)'", sQuote("\\1"), x)
-    args <- lapply(list(...), quotes)
-    do.call(cat, c(args, sep = ""))
-    if (Log$con > 0L) do.call(cat, c(args, sep = "", file=Log$con))
-}
-
-printLog0 <- function(Log, ...) {
     cat(..., sep = "")
     if (Log$con > 0L) cat(..., file = Log$con, sep = "")
 }
 
 ## unused
-## setStars <- function(Log, stars) {Log$stars <- stars; Log}
+setStars <- function(Log, stars) {Log$stars <- stars; Log}
 
 checkingLog <- function(Log, ...)
     printLog(Log, Log$stars, " checking ", ..., " ...")
@@ -48,8 +41,13 @@ creatingLog <- function(Log, text)
     printLog(Log, Log$stars," creating ", text, " ...")
 
 messageLog <- function(Log, ...)
+{
+    text <- paste(..., sep="")
+##     cat(Log$stars, " ",
+##         gsub("\n", paste("\n", Log$stars, " ", sep = ""), text, fixed = TRUE),
+##         sep = "\n", file = Log$con)
     printLog(Log, Log$stars, " ", ..., "\n")
-
+}
 resultLog <- function(Log, text) printLog(Log, " ", text, "\n")
 
 errorLog <- function(Log, ...)
@@ -186,6 +184,10 @@ get_exclude_patterns <- function()
             "  --no-resave-data      same as --resave-data=no",
             "  --compact-vignettes   try to compact PDF files under inst/doc (using qpdf)",
             "",
+            "  --binary              build pre-compiled binary packages, with option:",
+            "  --install-args=       command-line args to be passed to INSTALL,",
+            "                        separated by spaces",
+            "",
             "Report bugs to <r-bugs@r-project.org>.", sep="\n")
     }
 
@@ -238,7 +240,7 @@ get_exclude_patterns <- function()
         res <- try(.check_package_description("DESCRIPTION"))
         if (inherits(res, "try-error")) {
             resultLog(Log, "ERROR")
-            messageLog(Log, "running '.check_package_description' failed")
+            messageLog(Log, "running .check_package_description failed")
         } else {
             if (any(sapply(res, length))) {
                 resultLog(Log, "ERROR")
@@ -259,68 +261,65 @@ get_exclude_patterns <- function()
             file.rename(file.path(doc_dir, "makefile"),
                         file.path(doc_dir, "Makefile"))
         }
-        if (vignettes &&
+        if (vignettes && dir.exists(doc_dir) &&
+           length(list_files_with_type(doc_dir, "vignette")) &&
             parse_description_field(desc, "BuildVignettes", TRUE)) {
-            ## Look for vignettes
-            vigns <- pkgVignettes(dir = '.')
-            if (!is.null(vigns) && length(vigns$docs)) {
-                if (!pkgInstalled) {
-                    messageLog(Log,
-                               "installing the package to re-build vignettes")
-                    pkgInstalled <- temp_install_pkg(pkgdir, libdir)
-                }
+            if (!pkgInstalled) {
+		messageLog(Log, "installing the package to re-build vignettes")
+		pkgInstalled <- temp_install_pkg(pkgdir, libdir)
+	    }
 
-                ## Good to do this in a separate process: it might die
-                creatingLog(Log, "vignettes")
-                R_LIBS <- Sys.getenv("R_LIBS", NA_character_)
-                if (!is.na(R_LIBS)) {
-                    on.exit(Sys.setenv(R_LIBS = R_LIBS), add=TRUE)
-                    Sys.setenv(R_LIBS = env_path(libdir, R_LIBS))
-                } else {
-                    on.exit(Sys.unsetenv("R_LIBS"), add=TRUE)
-                    Sys.setenv(R_LIBS = libdir)
-                }
-                cmd <- file.path(R.home("bin"), "Rscript")
-                args <- c("--vanilla",
-                          "--default-packages=", # some vignettes assume methods
-                          "-e", shQuote("tools::buildVignettes(dir = '.')"))
-                ## since so many people use 'R CMD' in Makefiles,
-                oPATH <- Sys.getenv("PATH")
-                Sys.setenv(PATH = paste(R.home("bin"), oPATH,
-                           sep = .Platform$path.sep))
-                res <- shell_with_capture(cmd, args)
-                Sys.setenv(PATH = oPATH)
-                if (res$status) {
-                    resultLog(Log, "ERROR")
-                    printLog(Log, paste(c(res$stdout, ""),  collapse="\n"))
-                    do_exit(1L)
-                } else {
-                    ## Do any of the .R files which will be generated
-                    ## exist in inst/doc?  If so the latter should be removed.
-                    sources <- basename(list_files_with_exts(doc_dir, "R"))
-                    if (length(sources)) {
-                        vf <- basename(list_files_with_type(doc_dir, "vignette"))
-                        new_sources <- sub("\\.[RrSs](nw|tex)$", ".R", vf)
-                        dups <- sources[sources %in% new_sources]
-                        if(length(dups)) {
-                            warningLog(Log)
-                            printLog(Log,
-                                     paste(c("  Unused files in inst/doc which are pointless or misleading",
-                                             "  as they will be re-created from the vignettes on installation:",
-                                             paste("  ", dups),
-                                             "  have been removed", ""),
-                                           collapse = "\n"))
-                            unlink(file.path(doc_dir, dups))
-                        } else resultLog(Log, "OK")
+            ## Good to do this in a separate process: it might die
+            creatingLog(Log, "vignettes")
+            R_LIBS <- Sys.getenv("R_LIBS", NA_character_)
+            if (!is.na(R_LIBS)) {
+                on.exit(Sys.setenv(R_LIBS = R_LIBS), add=TRUE)
+                Sys.setenv(R_LIBS = env_path(libdir, R_LIBS))
+            } else {
+                on.exit(Sys.unsetenv("R_LIBS"), add=TRUE)
+                Sys.setenv(R_LIBS = libdir)
+            }
+            cmd <- file.path(R.home("bin"), "Rscript")
+            args <- c("--vanilla",
+                      "--default-packages=", # some vignettes assume methods
+                      "-e", shQuote("tools::buildVignettes(dir = '.')"))
+            ## since so many people use 'R CMD' in Makefiles,
+            oPATH <- Sys.getenv("PATH")
+            Sys.setenv(PATH = paste(R.home("bin"), oPATH,
+                                    sep = .Platform$path.sep))
+            res <- shell_with_capture(cmd, args)
+            Sys.setenv(PATH = oPATH)
+            if (res$status) {
+                resultLog(Log, "ERROR")
+                printLog(Log, paste(c(res$stdout, ""),  collapse="\n"))
+                do_exit(1L)
+            } else {
+                ## Do any of the .R files which will be generated
+                ## exist in inst/doc?  If so the latter should be removed.
+                sources <- basename(list_files_with_exts(doc_dir, c("r", "s", "R", "S")))
+                if (length(sources)) {
+                    vf <- list_files_with_type(doc_dir, "vignette")
+                    td <- tempfile()
+                    dir.create(td)
+                    file.copy(doc_dir, td, recursive = TRUE)
+                    od <- setwd(file.path(td, "doc"))
+                    unlink(list_files_with_exts(".", c("r", "s", "R", "S")))
+                    for(v in vf) tryCatch(utils::Stangle(v, quiet = TRUE),
+                                          error = function(e) {})
+                    new_sources <- basename(list_files_with_exts(".", c("r", "s", "R", "S")))
+                    setwd(od)
+                    dups <- sources[sources %in% new_sources]
+                    if(length(dups)) {
+                        warningLog(Log)
+                        printLog(Log,
+                                 paste(c("  Unused files in inst/doc which are pointless or misleading",
+                                         "  as they will be re-created from the vignettes on installation:",
+                                         paste("  ", dups),
+                                         "  have been removed", ""),
+                                       collapse = "\n"))
+                        unlink(file.path(doc_dir, dups))
                     } else resultLog(Log, "OK")
-                }
-                ## We may need to install them.
-                if (basename(vigns$dir) == "vignettes") {
-                    dir.create(doc_dir, showWarnings = FALSE)
-                    pdfs <- sub("\\.[RrSs](nw|tex)$", ".pdf", vigns$docs)
-                    file.copy(c(vigns$docs, pdfs), doc_dir)
-                    unlink(pdfs)
-                }
+                } else resultLog(Log, "OK")
             }
         }
         if (compact_vignettes &&
@@ -399,14 +398,14 @@ get_exclude_patterns <- function()
                 Sys.setenv(R_PACKAGE_NAME = pkgname)
                 Sys.setenv(R_PACKAGE_DIR = pkgdir)
                 Sys.setenv(R_LIBRARY_DIR = dirname(pkgdir))
-                messageLog(Log, "running 'cleanup.win'")
+                messageLog(Log, "running cleanup.win")
                 Ssystem("sh", "./cleanup.win")
             }
         } else if (.file_test("-x", "cleanup")) {
             Sys.setenv(R_PACKAGE_NAME = pkgname)
             Sys.setenv(R_PACKAGE_DIR = pkgdir)
             Sys.setenv(R_LIBRARY_DIR = dirname(pkgdir))
-            messageLog(Log, "running 'cleanup'")
+            messageLog(Log, "running cleanup")
             Ssystem("./cleanup")
         }
     }
@@ -649,6 +648,7 @@ get_exclude_patterns <- function()
     force <- FALSE
     keep_empty <- FALSE
     vignettes <- TRUE
+    binary <- FALSE
     manual <- TRUE  # Install the manual if Rds contain \Sexprs
     INSTALL_opts <- character()
     pkgs <- character()
@@ -697,12 +697,24 @@ get_exclude_patterns <- function()
             keep_empty <- TRUE
         } else if (a == "--no-vignettes") {
             vignettes <- FALSE
+        } else if (a == "--binary") {
+            binary <- TRUE
+            message("--binary is deprecated")
+        } else if (substr(a, 1, 15) == "--install-args=") {
+            INSTALL_opts <- c(INSTALL_opts, substr(a, 16, 1000))
         } else if (a == "--resave-data") {
             resave_data <- "best"
         } else if (a == "--no-resave-data") {
             resave_data <- "no"
         } else if (substr(a, 1, 14) == "--resave-data=") {
             resave_data <- substr(a, 15, 1000)
+        } else if (WINDOWS && a == "--auto-zip") {
+            warning("use of '--auto-zip' is defunct")
+        } else if (a == "--use-zip-data") {
+            warning("use of '--use-zip-data' is defunct")
+        } else if (a == "--no-docs") {
+            warning("use of '--no-docs' is deprecated: use '--install-args' instead")
+            INSTALL_opts <- c(INSTALL_opts, "--no-docs")
         } else if (a == "--no-manual") {
             manual <- FALSE
         } else if (a == "--compact-vignettes") {
@@ -712,6 +724,10 @@ get_exclude_patterns <- function()
         } else pkgs <- c(pkgs, a)
         args <- args[-1L]
     }
+    if (!binary && length(INSTALL_opts))
+        message("** Options ",
+                sQuote(paste(INSTALL_opts, collapse=" ")),
+                " are only for '--binary'  and will be ignored")
 
     Sys.unsetenv("R_DEFAULT_PACKAGES")
 
@@ -863,25 +879,46 @@ get_exclude_patterns <- function()
         }
 
         ## Finalize
-        filename <- paste(pkgname, "_", desc["Version"], ".tar.gz", sep="")
-        filepath <- file.path(startdir, filename)
-        ## NB: naughty reg-packages.R relies on this exact format!
-        messageLog(Log, "building ", sQuote(filename))
-        ## This should be set on a Unix-alike, but might get set to ""
-        TAR <- Sys.getenv("TAR")
-        if(!nzchar(TAR)) {
-            ## The tar.exe in Rtools has --force-local by default,
-            ## but this enables people to use Cygwin or MSYS tar.
-            TAR <- if (WINDOWS) "tar --force-local" else "internal"
+        if (binary) {
+            messageLog(Log, "building binary distribution")
+            setwd(startdir)
+            libdir <- tempfile("Rinst")
+            dir.create(libdir, mode = "0755")
+            srcdir <- file.path(Tdir, pkgname)
+            cmd <- if (WINDOWS)
+                paste(shQuote(file.path(R.home("bin"), "Rcmd.exe")),
+                      "INSTALL -l", shQuote(libdir),
+                      "--build", paste(INSTALL_opts, collapse = " "),
+                      shQuote(pkgdir))
+            else
+                 paste(shQuote(file.path(R.home("bin"), "R")),
+                       "CMD INSTALL -l", shQuote(libdir),
+                      "--build", paste(INSTALL_opts, collapse = " "),
+                       shQuote(pkgdir))
+            if (system(cmd)) {
+                errorLog(Log, "Installation failed")
+                do_exit(1)
+            }
+        } else {
+            filename <- paste(pkgname, "_", desc["Version"], ".tar.gz", sep="")
+            filepath <- file.path(startdir, filename)
+            ## NB: naughty reg-packages.R relies on this exact format!
+            messageLog(Log, "building ", sQuote(filename))
+            ## This should be set on a Unix-alike, but might get set to ""
+            TAR <- Sys.getenv("TAR")
+            if(!nzchar(TAR)) {
+                ## The tar.exe in Rtools has --force-local by default,
+                ## but this enables people to use Cygwin or MSYS tar.
+                TAR <- if (WINDOWS) "tar --force-local" else "internal"
+            }
+            res <- utils::tar(filepath, pkgname, compression = "gzip",
+                              compression_level = 9, tar = TAR)
+            if (res) {
+                errorLog(Log, "packaging into .tar.gz failed")
+                do_exit(1L)
+            }
+            message("") # blank line
         }
-        res <- utils::tar(filepath, pkgname, compression = "gzip",
-                          compression_level = 9, tar = TAR)
-        if (res) {
-            errorLog(Log, "packaging into .tar.gz failed")
-            do_exit(1L)
-        }
-        message("") # blank line
-
         setwd(startdir)
         unlink(Tdir, recursive = TRUE)
         on.exit() # cancel closeLog

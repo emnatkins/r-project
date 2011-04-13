@@ -67,8 +67,7 @@
 }
 
 \seealso{
-  \code{\link{assign}}, for \dQuote{subassignment} such
-  as \code{x[i] <- v}, \code{\link{[<-}}; % ./Extract.Rd
+  \code{\link{assign}},
   \code{\link{environment}}.
 }
 \keyword{data}

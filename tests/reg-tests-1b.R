@@ -1425,6 +1425,16 @@ stopifnot(ncol(mds$points) == 11L)
 ## Used negative eigenvalues in 2.12.0
 
 
+## Sweave() comments with  keep.source=TRUE
+utils::Sweave(file.path(Sys.getenv("SRCDIR"), "keepsource.Rnw"))
+texl <- readLines("keepsource.tex")
+comml <- grep("##", texl, value=TRUE)
+stopifnot(length(comml) == 2,
+	  grepl("initial comment line", comml[1]),
+	  grepl("last comment", comml[2]))
+## the first was lost in 2.12.0;  the last in most/all previous versions of R
+
+
 ## mapply() & sapply() should not wrongly simplify e.g. for "call":
 f2 <- function(i,j) call(':',i,j)
 stopifnot(identical(2:3,
@@ -1596,11 +1606,4 @@ d <- dist(x)
 as.matrix(d)
 ## Threw an error < 2.13.0
 
-## smooth.spline with data with a very small range.  (PR#14552)
-dt <- seq(as.POSIXct("2011-01-01"), as.POSIXct("2011-01-01 10:00:00"), by="min")
-x <- as.double(dt)
-y <- sin(seq_along(x) * 3 * pi/180)
-s <- smooth.spline(x, y)
-stopifnot(length(s$x) == length(x))
-## Chose 5 distinct values of x in 2.13.0
-
+proc.time()

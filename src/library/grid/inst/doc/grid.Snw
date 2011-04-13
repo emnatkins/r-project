@@ -630,6 +630,7 @@ popViewport(3)
 \end{figure}
 
 
+\clearpage
 \section{\grid{} and \lattice{}}
 
 The \lattice{} package is built on top of \grid{} and provides a
@@ -645,7 +646,23 @@ The following example adds a horizontal line at 0 to a standard
 \code{xyplot} (see Figure \ref{figure:trellispanel}):
 
 <<echo=FALSE, results=hide>>=
-library(lattice)
+if ("lattice" %in% .packages(all.available=TRUE))
+  library(lattice)
+grid.placeholder <- function() {
+  grid.rect()
+  grid.text(paste("The lattice package was not installed when",
+    "this document was built.",
+    "To see the output for this example either:",
+    "  (i)  (if you installed R yourself and have lattice installed)",
+    "       type the commands ...",
+    "           library(utils)",
+    "           buildVignettes(\"grid\")",
+    "       ... to rebuild this document.",
+    "  (ii) look at the version of this document available at",
+    "         http://www.stat.auckland.ac.nz/~paul/grid/grid.html",
+    sep="\n"), x=unit(1, "inches"), just="left")
+}
+
 <<trellisdata, echo=FALSE, eval=FALSE>>=
 x <- rnorm(100)
 y <- rnorm(100)
@@ -655,16 +672,22 @@ g <- sample(1:8, 100, replace = TRUE)
 % This WILL get run by checking code, but by then lattice will be
 % installed so it will be ok
 <<trellispanelplot, eval=FALSE>>=
-xyplot(y ~ x | g, panel = function(x, y) {
-    panel.xyplot(x, y);
-    grid.lines(unit(c(0, 1), "npc"), unit(0, "native"),
-               gp = gpar(col = "grey"))
-})
+if ("lattice" %in% .packages()) {
+  xyplot(y ~ x | g, panel=function(x, y) { panel.xyplot(x, y);
+    grid.lines(unit(c(0, 1), "npc"), unit(0, "native"), gp=gpar(col="grey")) })
+}
+
 @
 % This generates the actual plot
 <<trellispanel, echo=FALSE, results=hide, fig=TRUE, width=6, height=6, include=FALSE>>=
 <<trellisdata>>
+if ("lattice" %in% .packages()) {
+  print(
 <<trellispanelplot>>
+)
+} else {
+  grid.placeholder()
+}
 @
 \begin{figure}[p]
 \begin{center}
@@ -680,14 +703,20 @@ The following  example writes a left-justified label in each strip
 (see Figure \ref{figure:trellisstrip}):
 
 <<trellisstripplot, eval=FALSE>>=
-xyplot(y ~ x | g, strip = function(which.given, which.panel, ...) {
-    grid.text(paste("Variable ", which.given, ": Level ",
-                    which.panel[which.given], sep = ""),
-              unit(1, "mm"), .5, just = "left")
-})
+if ("lattice" %in% .packages()) {
+xyplot(y ~ x | g, strip=function(which.given, which.panel, ...) {
+  grid.text(paste("Variable ", which.given, ": Level ",
+  which.panel[which.given], sep=""), unit(1, "mm"), .5, just="left") })
+}
 <<trellisstrip, echo=FALSE, results=hide, fig=TRUE, width=6, height=6, include=FALSE>>=
 <<trellisdata>>
+if ("lattice" %in% .packages()) {
+print(
 <<trellisstripplot>>
+)
+} else {
+  grid.placeholder()
+}
 @
 \begin{figure}[p]
 \begin{center}
@@ -710,17 +739,17 @@ not drawn.  \grid{} is used to create some regions and the lattice
 plot is drawn into one of those regions.
 
 <<trellisgridplot, eval=FALSE>>=
-someText <- paste("A panel of text", "produced using", "raw grid code",
-                  "that could be used", "to describe",
-                  "the plot", "to the right.", sep = "\n")
-latticePlot <- xyplot(y ~ x | g, layout = c(2, 4))
-grid.rect(gp = gpar(lty = "dashed"))
-pushViewport(viewport(layout = grid.layout(1, 2,
-                      widths = unit.c(unit(1, "strwidth", someText) +
-                      unit(2, "cm"),
-                      unit(1, "null")))))
-pushViewport(viewport(layout.pos.col = 1))
-grid.rect(gp = gpar(fill = "light grey"))
+if ("lattice" %in% .packages()) {
+someText <- paste("A panel of text",
+  "produced using", "raw grid code", "that could be used", "to describe",
+  "the plot", "to the right.", sep="\n")
+latticePlot <- xyplot(y ~ x | g, layout=c(2, 4))
+grid.rect(gp=gpar(lty="dashed"))
+pushViewport(viewport(layout=grid.layout(1, 2,
+  widths=unit.c(unit(1, "strwidth", someText) + unit(2, "cm"),
+  unit(1, "null")))))
+pushViewport(viewport(layout.pos.col=1))
+grid.rect(gp=gpar(fill="light grey"))
 grid.text(someText,
           x = unit(1, "cm"), y = unit(1, "npc") - unit(1, "inches"),
           just = c("left", "top"))
@@ -728,9 +757,14 @@ popViewport()
 pushViewport(viewport(layout.pos.col = 2))
 print(latticePlot, newpage = FALSE)
 popViewport(2)
+}
 <<trellisgrid, echo=FALSE, results=hide, fig=TRUE, width=6, height=6, include=FALSE>>=
 <<trellisdata>>
+if ("lattice" %in% .packages()) {
 <<trellisgridplot>>
+} else {
+  grid.placeholder()
+}
 @
 \begin{figure}[tbp]
 \begin{center}

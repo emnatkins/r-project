@@ -21,7 +21,7 @@ function(file = "", what = double(), nmax = -1, n = -1, sep = "",
          na.strings = "NA", flush = FALSE, fill = FALSE,
          strip.white = FALSE, quiet = FALSE, blank.lines.skip = TRUE,
          multi.line = TRUE, comment.char = "", allowEscapes = FALSE,
-         fileEncoding = "", encoding = "unknown", text)
+         fileEncoding = "", encoding = "unknown")
 {
     na.strings <- as.character(na.strings)# allow it to be NULL
     if(!missing(n)) {
@@ -30,11 +30,6 @@ function(file = "", what = double(), nmax = -1, n = -1, sep = "",
         else
             stop("either specify 'nmax' or 'n', but not both.")
     }
-    if (missing(file) && !missing(text)) {
-	file <- textConnection(text)
-	on.exit(close(file))
-    }
-
     if(is.character(file))
         if(file == "") file <- stdin()
         else {

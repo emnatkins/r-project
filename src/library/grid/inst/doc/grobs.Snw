@@ -204,7 +204,7 @@ done via \code{packGrob()} and \code{placeGrob()}.  The following example
 shows the construction of a simple frame consisting of two
 equal-size columns.
 
-<<results = hide>>=
+<<results=hide>>=
 grid.newpage()
 fg <- frameGrob(layout = grid.layout(1, 2))
 fg <- placeGrob(fg, textGrob("Hi there"), col = 1)

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-03-25 10:14\n"
+"POT-Creation-Date: 2011-03-25 10:08\n"
 "PO-Revision-Date: 2011-03-24 10:38+0100\n"
 "Last-Translator: Detlef Steuer <detlef.steuer@hsu-hh.de>\n"
 "Language-Team: R-core <R-core@r-project.org>\n"
@@ -1694,7 +1694,6 @@ msgstr ""
 "Punkt \"%s\" ist kein Methodenname in der Klasse \"%s\".\n"
 "Die Klassendefinition folgt."
 
-#, fuzzy
 msgid "Arguments must all be character string names of fields"
 msgstr "Die Argumente müssen alle Zeichenketten für Feldnamen sein"
 

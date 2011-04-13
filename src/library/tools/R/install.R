@@ -45,6 +45,9 @@
     paste0 <- function(...) paste(..., sep="")
 
     MAKE <- Sys.getenv("MAKE")
+    TAR <- Sys.getenv("TAR", 'tar') # used by default on Unix only
+    GZIP <- Sys.getenv("R_GZIPCMD") # used on Unix only
+    if (!nzchar(GZIP)) GZIP <- "gzip"
     rarch <- Sys.getenv("R_ARCH") # unix only
     if (WINDOWS && nzchar(.Platform$r_arch))
         rarch <- paste0("/", .Platform$r_arch)
@@ -98,7 +101,6 @@
             "			without using a lock directory",
             "      --lock		use a per-library lock directory (default)",
             "      --pkglock		use a per-package lock directory",
-            "      			(default for a single package)",
             "      --build    	build binaries of the installed package(s)",
             "      --install-tests	install package-specific tests (if any)",
             "      --no-R, --no-libs, --no-data, --no-help, --no-demo, --no-exec,",
@@ -111,10 +113,6 @@
             "			to be used for lazy-loading of data",
             "      --resave-data	re-save data files as compactly as possible",
             "      --compact-docs	re-compress PDF files under inst/doc",
-            "      --with-keep.source",
-            "      --without-keep.source",
-            "			use (or not) 'keep.source' for R code in a",
-            "			package using lazy-loading",
             "      --no-test-load	skip test of loading installed package",
             "      --no-clean-on-error	do not remove installed package on error",
            "\nfor Unix",
@@ -280,10 +278,8 @@
                                Sys.getenv("R_PLATFORM"), ".tar")
             filepath <- shQuote(file.path(startdir, filename))
             owd <- setwd(lib)
-            TAR <- Sys.getenv("TAR", 'tar')
             system(paste(TAR, "-chf", filepath,
                          paste(curPkg, collapse = " ")))
-            GZIP <- Sys.getenv("R_GZIPCMD", "gzip")
             system(paste(GZIP, "-9f", filepath))
             if (grepl("darwin", R.version$os)) {
                 filename <- paste0(filename, ".gz")
@@ -342,7 +338,6 @@
                              shQuote(file.path(lockdir, pkg))))
             dir.create(instdir, recursive = TRUE, showWarnings = FALSE)
         }
-        TAR <- Sys.getenv("TAR", 'tar')
         res <- system(paste("cp -r .", shQuote(instdir),
                             "|| (", TAR, "cd - .| (cd", shQuote(instdir), "&&", TAR, "-xf -))"
                             ))
@@ -358,7 +353,7 @@
     ## to be run from package source directory
     run_clean <- function()
     {
-        if (dir.exists("src") && length(dir("src"))) {
+        if (dir.exists("src")) {
             if (WINDOWS) archs <- c("i386", "x64")
             else {
                 wd2 <- setwd(file.path(R.home("bin"), "exec"))
@@ -581,7 +576,7 @@
                 pkgerrmsg("installing package DESCRIPTION failed", pkg_name)
         }
 
-        if (install_libs && dir.exists("src") && length(dir("src"))) {
+        if (install_libs && dir.exists("src")) {
             starsmsg(stars, "libs")
             if (!file.exists(file.path(R.home("include"), "R.h")))
                 ## maybe even an error?  But installing Fortran-based packages should work
@@ -646,7 +641,9 @@
                             starsmsg("***", "arch - ", arch)
                             ss <- paste("src", arch, sep = "-")
                             dir.create(ss, showWarnings = FALSE)
-                            file.copy(Sys.glob("src/*"), ss, recursive = TRUE)
+                            files <- Sys.glob("src/*")
+                            if (!length(files)) next
+                            file.copy(files, ss, recursive = TRUE)
                             setwd(ss)
                             ra <- paste0("/", arch)
                             Sys.setenv(R_ARCH = ra)
@@ -747,7 +744,7 @@
             }
         }                               # end of src dir
 
-	if (install_R && dir.exists("R") && length(dir("R"))) {
+	if (install_R && dir.exists("R")) {
 	    starsmsg(stars, "R")
 	    dir.create(file.path(instdir, "R"), recursive = TRUE,
 		       showWarnings = FALSE)
@@ -802,7 +799,7 @@
 	    }
 	}                           # end of R
 
-	if (install_data && dir.exists("data") && length(dir("data"))) {
+	if (install_data && dir.exists("data")) {
 	    starsmsg(stars, "data")
 	    files <- Sys.glob(file.path("data", "*"))
 	    if (length(files)) {
@@ -848,7 +845,7 @@
 	    } else warning("empty 'data' directory", call. = FALSE)
         }
 
-	if (install_demo && dir.exists("demo") && length(dir("demo"))) {
+	if (install_demo && dir.exists("demo")) {
 	    starsmsg(stars, "demo")
 	    dir.create(file.path(instdir, "demo"), recursive = TRUE,
 		       showWarnings = FALSE)
@@ -859,7 +856,7 @@
 	    Sys.chmod(Sys.glob(file.path(instdir, "demo", "*")), "644")
 	}
 
-	if (install_exec && dir.exists("exec") && length(dir("exec"))) {
+	if (install_exec && dir.exists("exec")) {
 	    starsmsg(stars, "exec")
 	    dir.create(file.path(instdir, "exec"), recursive = TRUE,
 		       showWarnings = FALSE)
@@ -919,7 +916,7 @@
             }
 	}
 
-	if (install_tests && dir.exists("tests") && length(dir("tests"))) {
+	if (install_tests && dir.exists("tests")) {
 	    starsmsg(stars, "tests")
 	    file.copy("tests", instdir, recursive = TRUE)
 	}
@@ -931,17 +928,13 @@
 
 	## LazyLoading
 	value <- parse_description_field(desc, "LazyLoad", default = lazy)
-	if (install_R && dir.exists("R") && length(dir("R")) && value) {
+	if (install_R && dir.exists("R") && value) {
 	    starsmsg(stars, "preparing package for lazy loading")
-            keep.source <-
-                parse_description_field(desc, "KeepSource",
-                                        default = keep.source)
 	    ## Something above, e.g. lazydata,  might have loaded the namespace
 	    if (pkg_name %in% loadedNamespaces())
 		unloadNamespace(pkg_name)
 	    res <- try({.getRequiredPackages(quietly = TRUE)
-			makeLazyLoading(pkg_name, lib,
-                                        keep.source = keep.source)})
+			makeLazyLoading(pkg_name, lib)})
 	    if (inherits(res, "try-error"))
 		pkgerrmsg("lazy loading failed", pkg_name)
 	}
@@ -974,9 +967,7 @@
 	## pkg indices: this also tangles the vignettes (if installed)
 	if (install_inst || install_demo || install_help) {
 	    starsmsg(stars, "building package indices ...")
-            enc <- desc["Encoding"]
-            if (is.na(enc)) enc <- ""
-	    res <- try(.install_package_indices(".", instdir, enc))
+	    res <- try(.install_package_indices(".", instdir))
 	    if (inherits(res, "try-error"))
 		errmsg("installing package indices failed")
 	}
@@ -1050,7 +1041,6 @@
     data_compress <- TRUE # FALSE (none), TRUE (gzip), 2 (bzip2), 3 (xz)
     resave_data <- FALSE
     compact_docs <- FALSE
-    keep.source <- getOption("keep.source.pkgs")
 
     install_libs <- TRUE
     install_R <- TRUE
@@ -1118,6 +1108,10 @@
             fake <- TRUE
         } else if (a == "--no-lock") {
             lock <- pkglock <- FALSE
+        } else if (a == "--unsafe") {
+            warning("--unsafe is deprecated: use --no-lock instead",
+                    call. = FALSE, immediate. = TRUE, domain = NA)
+            lock <- pkglock <- FALSE
         } else if (a == "--lock") {
             lock <- TRUE; pkglock <- FALSE
         } else if (a == "--pkglock") {
@@ -1167,10 +1161,6 @@
             else warning("--merge-multiarch is Windows-only", call.=FALSE)
         } else if (a == "--compact-docs") {
             compact_docs <- TRUE
-        } else if (a == "--with-keep.source") {
-            keep.source <- TRUE
-        } else if (a == "--without-keep.source") {
-            keep.source <- FALSE
         } else if (substr(a, 1, 1) == "-") {
             message("Warning: unknown option ", sQuote(a))
         } else pkgs <- c(pkgs, a)

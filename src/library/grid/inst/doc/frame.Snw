@@ -133,7 +133,7 @@ grid.rect(width = unit(1, "grobwidth", "st"),
 @
 Now watch what happens if I modify the text grob named \code{"st"}:
 
-<<results=hide, eval=FALSE>>=
+<<results=hide>>=
 grid.edit("st", gp = gpar(fontsize = 20))
 
 <<frame2, echo=FALSE, include=FALSE, width=4, height=2, fig=TRUE, results=hide>>=
@@ -150,7 +150,7 @@ grid.draw(my.rect)
 @
 Similarly, I can change the text itself:
 
-<<results=hide, eval=FALSE>>=
+<<results=hide>>=
 grid.edit("st", label="some different text")
 
 <<frame3, echo=FALSE, include=FALSE, width=4, height=2, fig=TRUE, results=hide>>=
@@ -220,26 +220,24 @@ to always give a sensible answer.
 The original motivating example for this GUI-builder approach was
 to be able to produce a quite general-purpose legend grob.
 
-A legend consists of data symbols and associated textual descriptions.
-In order to be quite general, it would be nice to allow, for example,
-multiple lines of text per data symbol.  Rather than having to look at
-the text supplied for the legend in order to determine the arrangement
-of the legend, it would be nice to be able to simply specify the
-composition of the legend and let it figure out the arrangement for
-us.  The code below defines just such a legend grob, using the new
-\code{"frame"} grob and \code{packGrob()} function.  Some points to
-note are:
+A legend consists of data symbols and associated textual
+descriptions.  In order to be quite general, it would be nice
+to allow, for example, multiple lines of text per data symbol.  Rather than
+having to look at the text supplied for the legend in order to
+determine the arrangement of the legend, it would be nice to be able
+to simply specify the composition of the legend and let it figure
+out the arrangement for us.  The code below defines just such
+a legend grob, using the new \code{"frame"} grob and \code{packGrob()}
+function.  Some points to note are:
 
 \begin{itemize}
 \item The use of \code{border}s to create space around the legend
 components.
 \item The size of the data symbol component is specified, but the
 size of the text components are taken from the \code{"text"} grobs.
-
 \item The heights of the rows in the legend will be the maximum of
 $\code{vgap} + \code{unit(1, "lines")}$ and $\code{vgap} +
 \code{unit(1, "grobheight", <text grob>)}$.
-
 \item We have two functions, one for generating a grob and one
 for producing output.
 \end{itemize}

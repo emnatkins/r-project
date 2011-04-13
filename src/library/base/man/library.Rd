@@ -1,6 +1,6 @@
 % File src/library/base/man/library.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2011 R Core Development Team
+% Copyright 1995-2010 R Core Development Team
 % Distributed under GPL 2 or later
 
 \name{library}
@@ -28,7 +28,7 @@ library(package, help, pos = 2, lib.loc = NULL,
 require(package, lib.loc = NULL, quietly = FALSE,
         warn.conflicts = TRUE,
         keep.source = getOption("keep.source.pkgs"),
-        character.only = FALSE)
+        character.only = FALSE, save = FALSE)
 
 .First.lib(libname, pkgname)
 .Last.lib(libpath)
@@ -61,8 +61,7 @@ require(package, lib.loc = NULL, quietly = FALSE,
     \sQuote{keep their source} including comments, see argument
     \code{keep.source} to \code{\link{options}}.  This applies only to
     the named package, and not to any packages or name spaces which might be
-    loaded to satisfy dependencies or imports.  It will be over-ridden
-    by a \samp{KeepSource} field in the packages' description.
+    loaded to satisfy dependencies or imports.
 
     This argument does not apply to packages using lazy-loading.
     Whether they have kept source is determined when they are installed
@@ -73,6 +72,7 @@ require(package, lib.loc = NULL, quietly = FALSE,
   \item{quietly}{a logical.  If \code{TRUE}, no message confirming
     package loading is printed, and most often, no errors/warnings are
     printed if package loading fails.}
+  \item{save}{For back-compatibility: only \code{FALSE} is allowed.}
   \item{libname}{a character string giving the library directory where
     the package was found.}
   \item{pkgname}{a character string giving the name of the package.}

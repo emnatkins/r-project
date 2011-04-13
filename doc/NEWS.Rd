@@ -4,267 +4,6 @@
 \title{R News}
 \encoding{UTF-8}
 
-\section{CHANGES IN R VERSION 2.14.0}{
-  \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
-    \itemize{
-      \item The \code{yLineBias} of the \code{X11()} and
-      \code{windows()} families of devices has been changed from 0.1 to
-      0.2: this changes slightly the vertical positioning of text in the
-      margins (including axis annotations).  This is mainly for
-      consistency with other devices such as \code{quartz()} and
-      \code{pdf()}.  (Wish of \PR{14538}.)
-
-      There is a new graphics parameter \code{"ylbias"} which
-      allows the y-line bias of the graphics device to be tweaked,
-      including to reproduce output from earlier versions of \R.
-    }
-  }
-
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \code{txtProgressBar()} can write to an open connection
-      instead of the console.
-
-      \item Non-portable package names ending in \file{.} are no longer
-      allowed.  Nor are single-character package names (\pkg{R} was
-      already disallowed).
-
-      \item \code{regexpr()} and \code{gregexpr()} with \code{perl =
-	TRUE} allows Python-style named captures.  (Wish and
-      contribution of \PR{14518}.)
-
-      \item The placement of plotmath text in the margins now makes the
-      same vertical adjustment as ordinary text, so using ordinary and
-      plotmath on the same margin line will seem better aligned (but not
-      exactly aligned, since ordinary text has descenders below the
-      baseline and plotmath places them on the baseline).  (Related to
-      \PR{14537}.)
-
-      \item \code{sunflowerplot()} now has a formula interface.
-      (Wish of \PR{14541}.)
-
-      \item New wrapper function \code{showNonASCIIfile()} in package
-      \pkg{tools}.
-
-      \item \code{iconv} has a new argument \code{toRaw} to handle (as
-      was possible before the \code{CHARSXP} cache was introduced)
-      encodings such as \code{UTF-16} with embedded nuls.
-
-      It will also accept as input the type of list generated with
-      \code{toRaw = TRUE}.
-
-      \item Garbage-collecting an input text connection no longer gives
-      a warning (since it \sQuote{connects} to nothing outside \R).
-
-      \item \code{read.table()} and \code{scan()} have gained a
-      \code{text} argument, to allow reading data from a (possibly
-      literal) character string.
-
-      \item \code{optim(*, method= .)} now allows \code{method="Brent"}
-      as an interface to \code{optimize()}, for use in cases such as
-      \code{mle()} where \code{optim()} is used internally.
-
-      \item \code{mosaicplot()} gains a \code{border} argument.
-      (Wish of \PR{14550}.)
-
-      \item \code{smooth.spline()} gains a \code{tol} argument which
-      controls how different \code{x} value need to be to regarded as
-      distinct.  The default has been changed to be more reliable for
-      inputs whose range is small compared to their maximum absolute
-      value.  (Wish of \PR{14452}.)
-    }
-  }
-
-  \subsection{SWEAVE & VIGNETTES}{
-    \itemize{
-      \item Option \code{keep.source = TRUE} is now the default.
-
-      \item The way the type of user-defined options is determined has
-      changed.  Previously they were all regarded as logical: now the
-      type is determined by the value given at first use.
-
-      \item The allowed values of logical options are now precisely
-      those allowed for character inputs to \code{as.logical()}: this
-      means that \samp{t} and \samp{f} are no longer allowed (although
-      \code{T} and \code{F} still are).
-
-      \item \code{Sweave()} and \code{Stangle()} gain an \code{encoding}
-      argument to specify the encoding of the vignette sources if the
-      latter do not contain a \samp{\\usepackage[]{inputenc}} statement
-      specifying a single input encoding.
-
-      \item Package installation tangles the vignette sources: this step
-      now converts the vignette sources from the vignette/package
-      encoding to the current encoding, and records the encoding (if not
-      ASCII) in a comment line at the top of the installed \file{.R}
-      file.
-
-      \item The preferred location for vignette sources is now the
-      directory \file{vignettes} and not \file{inst/doc}: \command{R CMD
-	build} will now re-build vignettes in \file{vignettes} and copy
-      the \file{.Rnw} (etc) files and the corresponding PDFs to
-      \file{inst/doc}.
-
-      \item \command{R CMD Sweave} now supports a \option{--driver}
-      option to select the Sweave driver: the default is equivalent to
-      \option{--driver=RweaveLatex}.
-
-      \item \command{R CMD Sweave} and \command{R CMD Stangle} support
-      \option{--encoding} and \option{--options} options.
-
-      \item The \code{RweaveLatex()} driver now runs each figure chunk
-      once for each device (and hence by default once for a PDF figure).
-      Vignettes which need a persistent graphics device will need to
-      open one for themselves.
-
-      \item Warnings are issued when non-portable filenames are found
-      for graphics files (and chunks if \code{split=TRUE}).  Portable
-      names are regarded as alphanumeric plus hyphen, underscore, plus
-      and hash (periods cause problems with recognizing file
-      extensions).
-
-      \item The \code{Rtangle()} driver has a new option
-      \code{show.line.nos} which is by default false; if true it
-      annotates code chunks with a comment giving the line number of the
-      first line in the sources (the behaviour of \R >= 2.12.0).
-
-      \item \code{Rtangle()} allows \code{output = "stdout"} or
-      \code{output = "stderr"} to select the output or message
-      connection.  This is convenient for scripting using something like
-\preformatted{    R CMD Stangle --options='output="stdout"' foo.Rnw}
-    }
-  }
-
-  \subsection{C-LEVEL FACILITIES}{
-    \itemize{
-      \item Function \code{R_tmpnam2} has been added to the API to allow
-      a temporary filename to include a specified extension.
-    }
-  }
-
-  \subsection{PACKAGE INSTALLATION}{
-    \itemize{
-      \item Package \file{DESCRIPTION} file field \samp{KeepSource}
-      forces the package to be installed/loaded with \code{keep.source =
-	TRUE} (or \code{FALSE}).   This applies at package installation
-      time for packages using lazy-loading.  (Suggestion of Greg Snow.)
-
-      There are corresponding options \option{--with-keep.source} and
-      \option{--without-keep.source} for \command{R CMD INSTALL} for
-      packages using lazy-loading.
-    }
-  }
-
-  \subsection{UTILITIES}{
-    \itemize{
-      \item \command{R CMD check} now gives an error if the \R code in a
-      vignette fails to run, unless this is caused by a missing package.
-
-      It now unpacks tarballs in the same way as \command{R CMD
-      INSTALL}, including making use of the environment variable
-      \env{R_INSTALL_TAR} to override the default behaviour.
-
-      \item \command{R CMD Rd2dvi} allows the use of LaTeX package
-      \samp{inputenx} rather than \samp{inputenc}: the value of the
-      environment variable \env{RD2DVI_INPUTENC} is used.  (LaTeX package
-      \samp{inputenx} is an optional install which provides greater
-      coverage of the UTF-8 encoding.)
-    }
-  }
-
-  \subsection{DEPRECATED AND DEFUNCT}{
-   \itemize{
-      \item \code{require()} no longer has a \code{save} argument.
-
-      \item The \code{gamma} argument to \code{hsv()},
-      \code{rainbow()}, and \code{rgb2hsv()} has been removed.
-
-      \item The \option{--no-docs} option for
-      \command{R CMD build --binary} is defunct: use
-      \option{--install-args} instead.
-
-      \item The option \option{--unsafe} to \command{R CMD INSTALL} is
-      defunct: use the identical option \option{--no-lock} instead.
-
-      \item The entry point \code{pythag} formerly in \file{Rmath.h} is
-      defunct: use instead the C99 function \code{hypot}.
-
-      \item \command{R CMD build --binary} is formally defunct:
-      \command{R CMD INSTALL --build} has long been the preferred
-      alternative.
-    }
-  }
-
-  \subsection{INSTALLATION}{
-    \itemize{
-      \item Dummy.
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{nobs(mle(*, nobs = .))} now works.
-
-      \item \code{gl()} runs faster by avoiding to call \code{factor()}.
-
-      \item \code{dataframe[[row,col]]} now dispatches on \code{[[}
-      methods for the selected column (spotted by Bill Dunlap).
-    }
-  }
-}
-
-\section{CHANGES IN R VERSION 2.13.0 patched}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \code{iconv()} no longer translates \code{NA} strings as
-      \code{"NA"}.
-      
-      \item \code{persp(box = TRUE)} now warns if the surface extends
-      outside the box (since occlusion for the box and axes is computed
-      assuming the box is a bounding box). (\PR{202}.)
-      
-      \item \code{RShowDoc()} can now display the licences shipped with
-      \R, e.g. \code{RShowDoc("GPL-3")}.
-    }
-  }
-
-  \subsection{INSTALLATION}{
-    \itemize{
-      \item Building the vignettes is now part of running \command{make}
-      from an SVN checkout: a separate \command{make vignettes} is no
-      longer required.
-
-      These vignette PDFs are now made with \code{keep.source = TRUE} and
-      hence will be laid out differently.
-    }
-  }
-
-  \subsection{LICENCE}{
-    \itemize{
-      \item No parts of \R are now licensed solely under GPL-2.  The
-      licences for packages \pkg{rpart} and \pkg{survival} have been
-      changed, which means that the licence terms for \R as distributed
-      are GPL-2 | GPL-3.
-    }
-  }
-  
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{plot.lm(which = 5)} was intended to order factor
-      levels in increasing order of mean standardized residual.   It
-      ordered the factor labels correctly, but could plot the wrong
-      group of residuals against the label.  (\PR{14545})
-
-      \item \code{mosaicplot()} could clip the factor labels, and could
-      overlap them with the cells if a non-default value of
-      \code{cex.axis} was used.  (Related to \PR{14550}.)
-      
-      \item \code{sort.int()} would strip the class of an object, but
-      leave its object bit set.  (Reported by Bill Dunlap.)      
-    }
-  }
-}
-
 \section{CHANGES IN R VERSION 2.13.0}{
   \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
     \itemize{
@@ -682,7 +421,7 @@
 
       \item \code{file.copy(from, to)} no longer regards it as an error
       to supply a zero-length \code{from}: it now simply does nothing.
-
+      
       \item \code{rstandard.glm} gains a \code{type} argument which can
       be used to request standardized Pearson residuals.
 
@@ -694,7 +433,7 @@
       different symbolic links.
     }
   }
-
+  
   \subsection{SWEAVE CHANGES}{
     \itemize{
       \item \code{Sweave()} has options to produce PNG and JPEG figures,
@@ -717,7 +456,7 @@
       Maindonald and others.)
     }
   }
-
+  
   \subsection{C-LEVEL FACILITIES}{
     \itemize{
       \item Because they use a C99 interface which a C++ compiler is not

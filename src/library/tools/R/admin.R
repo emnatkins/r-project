@@ -336,10 +336,9 @@ function(dir, outDir)
 
 
 ### * .install_package_indices
-## called from R CMD INSTALL
 
 .install_package_indices <-
-function(dir, outDir, encoding = "")
+function(dir, outDir)
 {
     options(warn = 1)                   # to ensure warnings get seen
     if(!file_test("-d", dir))
@@ -364,7 +363,7 @@ function(dir, outDir, encoding = "")
          stop(gettextf("cannot open directory '%s'", outMetaDir),
               domain = NA)
     .install_package_Rd_indices(dir, outDir)
-    .install_package_vignette_index(dir, outDir, encoding)
+    .install_package_vignette_index(dir, outDir)
     .install_package_demo_index(dir, outDir)
     invisible()
 }
@@ -464,26 +463,26 @@ function(dir, outDir)
 }
 
 ### * .install_package_vignette_index
-## only called from .install_package_indices
 
 .install_package_vignette_index <-
-function(dir, outDir, encoding = "")
+function(dir, outDir)
 {
     dir <- file_path_as_absolute(dir)
     vignetteDir <- file.path(dir, "inst", "doc")
     ## Create a vignette index only if the vignette dir exists.
-    if(!file_test("-d", vignetteDir)) return(invisible())
+    if(!file_test("-d", vignetteDir))
+        return(invisible())
 
     outDir <- file_path_as_absolute(outDir)
     packageName <- basename(outDir)
     outVignetteDir <- file.path(outDir, "doc")
-    ## --fake  and --no-inst installs do not have a outVignetteDir.
+    ## Fake installs do not have a outVignetteDir.
     if(!file_test("-d", outVignetteDir)) return(invisible())
 
     ## If there is an HTML index in the @file{inst/doc} subdirectory of
     ## the package source directory (@code{dir}), we do not overwrite it
     ## (similar to top-level @file{INDEX} files).  Installation already
-    ## copied this over.
+    ## copies/d this over.
     hasHtmlIndex <- file_test("-f", file.path(vignetteDir, "index.html"))
     htmlIndex <- file.path(outDir, "doc", "index.html")
 
@@ -496,37 +495,32 @@ function(dir, outDir, encoding = "")
         return(invisible())
     }
 
-    vignetteIndex <- .build_vignette_index(outVignetteDir)
+    vignetteIndex <- .build_vignette_index(vignetteDir)
+    ## For base package vignettes there is no PDF in @file{vignetteDir}
+    ## but there might/should be one in @file{outVignetteDir}.
     if(NROW(vignetteIndex) > 0L) {
+        vignettePDFs <-
+            sub("$", ".pdf",
+                basename(file_path_sans_ext(vignetteIndex$File)))
+        ind <- file_test("-f", file.path(outVignetteDir, vignettePDFs))
+        vignetteIndex$PDF[ind] <- vignettePDFs[ind]
+
+        ## install tangled versions of all vignettes
         cwd <- getwd()
         if (is.null(cwd))
             stop("current working directory cannot be ascertained")
         setwd(outVignetteDir)
-        vignettePDFs <-
-            sub("$", ".pdf",
-                basename(file_path_sans_ext(vignetteIndex$File)))
-        ind <- file_test("-f", vignettePDFs)
-        vignetteIndex$PDF[ind] <- vignettePDFs[ind]
-
-        ## install tangled versions of all vignettes
-        cat("*** tangling vignette sources ...\n")
-        for(srcfile in vignetteIndex$File) {
-            enc <- getVignetteEncoding(srcfile, TRUE)
-            if(enc %in% c("non-ASCII", "unknown")) enc <- encoding
-            cat("  ", sQuote(basename(srcfile)),
-                if(nzchar(enc)) paste("using", sQuote(enc)), "\n")
-           tryCatch(utils::Stangle(srcfile, quiet = TRUE, encoding = enc),
+        for(srcfile in vignetteIndex$File)
+            tryCatch(utils::Stangle(srcfile, quiet = TRUE),
                      error = function(e)
                      stop(gettextf("running Stangle on vignette '%s' failed with message:\n%s",
                                    srcfile, conditionMessage(e)),
                           domain = NA, call. = FALSE))
-        }
         ## remove any zero-length files
-        Rfiles <- Sys.glob("*.R")
+        Rfiles <- Sys.glob(c("*.R", "*.S", "*.r", "*.s"))
         sizes <- file.info(Rfiles)$size
         unlink(Rfiles[sizes == 0])
-        ## or simply sub("\\.[RrSs](nw|tex)$", ".R",
-        ##               basename(vignetteIndex$File))
+        ## This is an assumption: Sweave can do much more that this!
         Rfiles <-
             sub("$", ".R", basename(file_path_sans_ext(vignetteIndex$File)))
         vignetteIndex$R <- ifelse(file.exists(Rfiles), Rfiles, "")
@@ -577,33 +571,37 @@ function(src_dir, out_dir, packages)
 
 ### * .install_package_vignettes
 
-## called from src/library/Makefile[.win]
+## called from src/library/Makefile
 ## this is only used when building R, to build the 'grid' and 'utils' vignettes.
 .install_package_vignettes <-
-function(dir, outDir, keep.source = TRUE)
+function(dir, outDir, keep.source = FALSE)
 {
     dir <- file_path_as_absolute(dir)
-    vigns <- pkgVignettes(dir = dir)
-    if(is.null(vigns) || !length(vigns$docs)) return(invisible())
+    vignetteDir <- file.path(dir, "inst", "doc")
+    if(!file_test("-d", vignetteDir)) return(invisible())
+    vignetteFiles <- list_files_with_type(vignetteDir, "vignette")
+    if(!length(vignetteFiles)) return(invisible())
 
     outDir <- file_path_as_absolute(outDir)
     outVignetteDir <- file.path(outDir, "doc")
     if(!file_test("-d", outVignetteDir) && !dir.create(outVignetteDir))
         stop(gettextf("cannot open directory '%s'", outVignetteDir),
              domain = NA)
-
+    ## For the time being, assume that no PDFs are available in
+    ## vignetteDir.
     vignettePDFs <-
         file.path(outVignetteDir,
                   sub("$", ".pdf",
-                      basename(file_path_sans_ext(vigns$docs))))
-    upToDate <- file_test("-nt", vignettePDFs, vigns$docs)
-    if(all(upToDate)) return(invisible())
+                      basename(file_path_sans_ext(vignetteFiles))))
+    upToDate <- file_test("-nt", vignettePDFs, vignetteFiles)
+    if(all(upToDate))
+        return(invisible())
 
-    ## The primary use of this function is to build and install
-    ## vignettes in base packages.
-    ## Hence, we build in a subdir of the current directory rather
-    ## than a temp dir: this allows inspection of problems and
-    ## automatic cleanup via Make.
+    ## For the time being, the primary use of this function is to
+    ## build and install vignettes in base packages.
+    ## Hence, we build in a subdir of the current directory rather than
+    ## a temp dir:
+    ## this allows inspection of problems and automatic cleanup via Make.
     cwd <- getwd()
     if (is.null(cwd))
         stop("current working directory cannot be ascertained")
@@ -613,9 +611,9 @@ function(dir, outDir, keep.source = TRUE)
     on.exit(setwd(cwd))
     setwd(buildDir)
 
-    for(srcfile in vigns$docs[!upToDate]) {
+    for(srcfile in vignetteFiles[!upToDate]) {
         base <- basename(file_path_sans_ext(srcfile))
-        message("processing ", sQuote(basename(srcfile)))
+        message("processing '", basename(srcfile), "'")
         texfile <- paste(base, ".tex", sep = "")
         tryCatch(utils::Sweave(srcfile, pdf = TRUE, eps = FALSE,
                                quiet = TRUE, keep.source = keep.source,
@@ -629,7 +627,7 @@ function(dir, outDir, keep.source = TRUE)
         ## We need to ensure that vignetteDir is in TEXINPUTS and BIBINPUTS.
         ## <FIXME>
         ## What if this fails?
-        texi2dvi(texfile, pdf = TRUE, quiet = TRUE, texinputs = vigns$dir)
+        texi2dvi(texfile, pdf = TRUE, quiet = TRUE, texinputs = vignetteDir)
         ## </FIXME>
         pdffile <-
             paste(basename(file_path_sans_ext(srcfile)), ".pdf", sep = "")
@@ -647,7 +645,6 @@ function(dir, outDir, keep.source = TRUE)
     setwd(cwd)
     unlink(buildDir, recursive = TRUE)
     ## Now you need to update the HTML index!
-    ## This also creates the .R files
     .install_package_vignette_index(dir, outDir)
     invisible()
 }
@@ -895,7 +892,7 @@ compactPDF <-
              gs_quality = c("printer", "ebook", "screen"),
              gs_extras = character())
 {
-    if(!nzchar(Sys.which(qpdf)) && !nzchar(Sys.which(gs_cmd)))
+    if(!nzchar(Sys.which(qpdf)) && !nzchar(Sys.which(gs_cmd))) 
     	return()
     if(length(paths) == 1L && isTRUE(file.info(paths)$isdir))
         paths <- Sys.glob(file.path(paths, "*.pdf"))

@@ -258,7 +258,7 @@ a non-strict \code{downViewport()} will still work (though note
 that \code{upViewport({\bf 0})} is required to get right back to the
 top level).
 
-<<ann2, echo = FALSE, eval=FALSE>>=
+<<ann2, echo=FALSE, eval=FALSE>>=
 downViewport("dataregion")
 grid.text(date(), x = unit(1, "npc"), y  =  0,
           just = c("right", "bottom"), gp = gpar(col = "grey"))

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-04-06 17:15\n"
+"POT-Creation-Date: 2011-03-22 15:33\n"
 "PO-Revision-Date: 2011-03-24 11:04+0100\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R Core <r-core@r-project.org>\n"
@@ -560,9 +560,11 @@ msgstr ""
 msgid "cannot create directory '%s'"
 msgstr "kann  Verzeichnis '%s' nicht erzeugen"
 
-#, fuzzy
-msgid "processing"
+msgid "processing '"
 msgstr "Bearbeiten von'"
+
+msgid "'"
+msgstr "'"
 
 msgid ""
 "running Sweave on vignette '%s' failed with message:\n"
@@ -595,6 +597,24 @@ msgstr "Änderungen benötigen den angegebenen 'style'"
 
 msgid "The default JSS style may not be modified."
 msgstr "Der Standard JSS style darf nicht geändert werden"
+
+msgid "--binary is deprecated"
+msgstr ""
+
+msgid "use of '--auto-zip' is defunct"
+msgstr "Nutzung von '--auto-zip' nicht mehr möglich"
+
+msgid "use of '--use-zip-data' is defunct"
+msgstr "Nutzung von '--use-zip-data' nicht mehr möglich"
+
+msgid "use of '--no-docs' is deprecated: use '--install-args' instead"
+msgstr "Nutzung von '--no-docs' ist veraltet; bitte '--install-args' nutzen"
+
+msgid "** Options"
+msgstr "** Optionen"
+
+msgid "are only for '--binary'  and will be ignored"
+msgstr "sind nur für '--binary' und werden ignoriert"
 
 msgid "Error: cannot rename directory to"
 msgstr "Fehler: kann  Verzeichnis nicht umbennen in"
@@ -706,12 +726,11 @@ msgstr "gepackte Installation von"
 msgid "as"
 msgstr "als"
 
-#, fuzzy
 msgid ""
 "'cleanup' exists but is not executable -- see the 'R Installation and "
 "Administration Manual'"
 msgstr ""
-"'cleanup'existiert, ist aber nicht ausführbar -- bitte im 'R Installation "
+"'cleanup' existiert, ist aber nicht ausführbar -- bitte im 'R Installation "
 "and Administration Manual' nachlesen"
 
 msgid "installing to"
@@ -1095,24 +1114,6 @@ msgid "object %s is created by more than one data call"
 msgid_plural "objects %s are created by more than one data call"
 msgstr[0] "Objekt %s wird durch mehr als einen Datenaufruf erzeugt"
 msgstr[1] "Objekt(e) %s werden durch mehr als einen Datenaufruf erzeugt"
-
-#~ msgid "'"
-#~ msgstr "'"
-
-#~ msgid "use of '--auto-zip' is defunct"
-#~ msgstr "Nutzung von '--auto-zip' nicht mehr möglich"
-
-#~ msgid "use of '--use-zip-data' is defunct"
-#~ msgstr "Nutzung von '--use-zip-data' nicht mehr möglich"
-
-#~ msgid "use of '--no-docs' is deprecated: use '--install-args' instead"
-#~ msgstr "Nutzung von '--no-docs' ist veraltet; bitte '--install-args' nutzen"
-
-#~ msgid "** Options"
-#~ msgstr "** Optionen"
-
-#~ msgid "are only for '--binary'  and will be ignored"
-#~ msgstr "sind nur für '--binary' und werden ignoriert"
 
 #~ msgid "--pkglock applies only to a single package"
 #~ msgstr "--pkglock bezieht sich nur auf eine einzelnes Paket"

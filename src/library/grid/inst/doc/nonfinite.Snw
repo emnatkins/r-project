@@ -79,8 +79,8 @@ new location are both not non-finite.
 \textbf{polygon} {~} \\
 A non-finite value breaks the polygon into two separate polygons.
 NOTE that this break happens within the current polygon as specified
-by the \texttt{id} argument.  All polygons with the same \texttt{id}
-receive the same \texttt{gp} settings.
+by the {\tt id} argument.  All polygons with the same {\tt id}
+receive the same {\tt gp} settings.
 
 \textbf{arrows} {~} \\
 An arrow head is only drawn if the first or last line segment is

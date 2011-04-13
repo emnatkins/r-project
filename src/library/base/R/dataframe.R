@@ -668,9 +668,7 @@ data.frame <-
         i <- if(is.character(..1))
             pmatch(..1, row.names(x), duplicates.ok = TRUE)
         else ..1
-        ## we do want to dispatch on methods for a column.
-        ## .subset2(col, i, exact=exact)
-        col[[i, exact = exact]]
+        .subset2(col, i, exact=exact)
     }
 }
 

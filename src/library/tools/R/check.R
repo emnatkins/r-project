@@ -257,7 +257,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                     "on all R platforms.\n",
                     "Please rename the files and try again.\n",
                     "See section 'Package structure'",
-                    "in the 'Writing R Extensions' manual.\n")
+                    "in manual 'Writing R Extensions'.\n")
             do_exit(1L)
         }
 
@@ -274,7 +274,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                     "to be usable on all R platforms.\n",
                     "Please rename the files and try again.\n",
                     "See section 'Package structure'",
-                    "in the 'Writing R Extensions' manual.\n")
+                    "in manual 'Writing R Extensions'.\n")
             do_exit(1L)
         }
 
@@ -288,7 +288,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             printLog(Log, .format_lines_with_indent(non_ASCII_files), "\n")
             wrapLog("These are not fully portable file names.\n",
                     "See section 'Package structure'",
-                    "in the 'Writing R Extensions' manual.\n")
+                    "in manual 'Writing R Extensions'.\n")
         } else resultLog(Log, "OK")
 
         allfiles
@@ -579,7 +579,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 printLog(Log, paste(c(out, ""), collapse="\n"))
                 wrapLog("Please remove or rename the files.\n",
                         "See section 'Package subdirectories'",
-                        "in the 'Writing R Extensions' manual.\n")
+                        "in manual 'Writing R Extensions'.\n")
             }
         }
 
@@ -681,7 +681,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             if(length(msg)) {
                 if(!any) warnLog()
                 any <- TRUE
-                printLog(Log, "Problems with news in 'inst/NEWS.Rd':\n")
+                printLog(Log, "Problems with news in inst/NEWS.Rd:\n")
                 printLog(Log,
                          paste("  ",
                                unlist(strsplit(msg, "\n", fixed = TRUE)),
@@ -718,7 +718,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             any <- TRUE
             wrapLog("Found the following CITATION file(s) in a non-standard place:\n")
             printLog(Log, .format_lines_with_indent(files), "\n")
-            wrapLog("Most likely 'inst/CITATION' should be used instead.\n")
+            wrapLog("Most likely inst/CITATION should be used instead.\n")
         }
 
         if(!any) resultLog(Log, "OK")
@@ -853,7 +853,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 errorLog(Log)
                 wrapLog("Incorrect (un)loading of package",
                         "shared object.\n")
-                printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                printLog(Log, paste(c(out, ""), collapse = "\n"))
                 wrapLog("The system-specific extension for",
                         "shared objects must not be added.\n",
                         "See ?library.dynam.\n")
@@ -869,7 +869,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             if (length(out)) {
                 if (!any) noteLog(Log)
                 any <- TRUE
-                printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                printLog(Log, paste(c(out, ""), collapse = "\n"))
             }
         }
 
@@ -883,7 +883,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             if (length(out)) {
                 if (!any) noteLog(Log)
                 any <- TRUE
-                printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                printLog(Log, paste(c(out, ""), collapse = "\n"))
             }
         }
 
@@ -897,7 +897,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             if (length(out)) {
                 if (!any) noteLog(Log)
                 any <- TRUE
-                printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                printLog(Log, paste(c(out, ""), collapse = "\n"))
             }
         }
 
@@ -908,7 +908,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
     {
         msg_writing_Rd <-
             c("See the chapter 'Writing R documentation files'",
-              "in the 'Writing R Extensions' manual.\n")
+              "in manual 'Writing R Extensions'.\n")
 
         if (dir.exists("man") && !extra_arch) {
             checkingLog(Log, "Rd files")
@@ -921,7 +921,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                                invert = TRUE)))
                     warnLog()
                 else noteLog(Log)
-                printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                printLog(Log, paste(c(out, ""), collapse = "\n"))
             } else resultLog(Log, "OK")
 
             checkingLog(Log, "Rd metadata")
@@ -933,7 +933,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if (length(out)) {
                 warnLog()
-                printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                printLog(Log, paste(c(out, ""), collapse = "\n"))
             } else resultLog(Log, "OK")
         }
 
@@ -980,11 +980,11 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             err <- grep("^Error", out)
             if (length(err)) {
                 errorLog(Log)
-                printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                printLog(Log, paste(c(out, ""), collapse = "\n"))
                 do_exit(1L)
             } else if (length(out)) {
                 warnLog()
-                printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                printLog(Log, paste(c(out, ""), collapse = "\n"))
                 wrapLog("All user-level objects",
                         "in a package",
                         if (any(grepl("^Undocumented S4", out)))
@@ -1011,7 +1011,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                     if (length(out)) {
                         any <- TRUE
                         warnLog()
-                        printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                        printLog(Log, paste(c(out, ""), collapse = "\n"))
                     }
                 }
 
@@ -1023,7 +1023,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                     if (length(out)) {
                         if (!any) warnLog()
                         any <- TRUE
-                        printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                        printLog(Log, paste(c(out, ""), collapse = "\n"))
                     }
                 }
 
@@ -1035,7 +1035,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                     if (length(out)) {
                         if (!any) warnLog()
                         any <- TRUE
-                        printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                        printLog(Log, paste(c(out, ""), collapse = "\n"))
                     }
                 }
 
@@ -1065,7 +1065,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             if (length(out)) {
                 any <- TRUE
                 warnLog()
-                printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                printLog(Log, paste(c(out, ""), collapse = "\n"))
                 wrapLog(msg_doc_files)
                 wrapLog(msg_writing_Rd)
             }
@@ -1084,7 +1084,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 if (length(out)) {
                     if (!any) noteLog(Log)
                     any <- TRUE
-                    printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                    printLog(Log, paste(c(out, ""), collapse = "\n"))
                     wrapLog(msg_doc_style)
                     wrapLog(msg_writing_Rd)
                 }
@@ -1104,7 +1104,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
             if (length(out)) {
                 warnLog()
-                printLog0(Log, paste(c(out, ""), collapse = "\n"))
+                printLog(Log, paste(c(out, ""), collapse = "\n"))
             } else resultLog(Log, "OK")
         }
 
@@ -1151,7 +1151,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             if (length(out)) {
                 bad <- grep("^Warning:", out)
                 if (length(bad)) warnLog() else noteLog(Log)
-                printLog0(Log, .format_lines_with_indent(out), "\n")
+                printLog(Log, .format_lines_with_indent(out), "\n")
             } else resultLog(Log, "OK")
         }
 
@@ -1164,7 +1164,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             if (length(out)) {
                 bad <- grep("^Warning:", out)
                 if (length(bad)) warnLog() else noteLog(Log)
-                printLog0(Log, .format_lines_with_indent(out), "\n")
+                printLog(Log, .format_lines_with_indent(out), "\n")
             } else resultLog(Log, "OK")
         }
 
@@ -1178,7 +1178,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             if (length(out)) {
                 bad <- grep("^Warning:", out)
                 if (length(bad)) warnLog() else noteLog(Log)
-                printLog0(Log, .format_lines_with_indent(out), "\n")
+                printLog(Log, .format_lines_with_indent(out), "\n")
             } else resultLog(Log, "OK")
         }
    }
@@ -1190,7 +1190,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                     recursive = TRUE, full.names = TRUE)
         pdfs <- pdfs %w/o% "inst/doc/Rplots.pdf"
         if (length(pdfs)) {
-            checkingLog(Log, "sizes of PDF files under 'inst/doc'")
+            checkingLog(Log, "sizes of PDF files under inst/doc")
             td <- tempfile('pdf')
             dir.create(td)
             file.copy(pdfs, td)
@@ -1198,8 +1198,8 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             res <- format(res, diff = 1e5)
             if(length(res)) {
                 resultLog(Log, "NOTE")
-                printLog(Log,
-                         "  'qpdf' made some significant size reductions:\n",
+                printLog(Log, "  ", sQuote("qpdf"),
+                         " made some significant size reductions:\n",
                          paste("  ", res, collapse = "\n"),
                          "\n",
                          "  consider running tools::compactPDF() on these files\n")
@@ -1407,12 +1407,12 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                                        if((ll <- length(chunks)) >= 2) {
                                            printLog(Log,
                                                     "The error most likely occurred in:\n\n")
-                                           printLog0(Log, chunks[ll], "\n")
+                                           printLog(Log, chunks[ll], "\n")
                                        } else {
                                            ## most likely error before the first example
                                            ## so show all the output.
                                            printLog(Log, "The error occurred in:\n\n")
-                                           printLog0(Log, txt, "\n")
+                                           printLog(Log, txt, "\n")
                                        }
                 do_exit(1L)
             }
@@ -1448,7 +1448,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                              sep = "")
                 out <- R_runR(cmd, R_opts2)
                 if(length(out))
-                    printLog0(Log, paste(c("", out, ""), collapse = "\n"))
+                    printLog(Log, paste(c("", out, ""), collapse = "\n"))
                 resultLog(Log, "OK")
             }
         }
@@ -1565,7 +1565,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                                       lines, invert = TRUE, value = TRUE)
                     printLog(Log, sprintf("Running the tests in %s failed.\n", sQuote(file)))
                     printLog(Log, "Last 13 lines of output:\n")
-                    printLog0(Log, .format_lines_with_indent(lines), "\n")
+                    printLog(Log, .format_lines_with_indent(lines), "\n")
                 }
                 do_exit(1L)
             } else {
@@ -1595,9 +1595,10 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
 
     run_vignettes <- function(desc)
     {
-        vigns <- pkgVignettes(dir = pkgdir)
-        if (is.null(vigns) || !length(vigns$docs)) return()
-        vf <- vigns$docs
+        vignette_dir <- file.path(pkgdir, "inst", "doc")
+        if (!dir.exists(vignette_dir) ||
+            !length(vf <- list_files_with_type(vignette_dir, "vignette")))
+            return()
         if(do_install && !spec_install && !is_base_pkg && !extra_arch) {
             ## fake installs don't install inst/doc
             checkingLog(Log, "for unstated dependencies in vignettes")
@@ -1613,21 +1614,17 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         checkingLog(Log, "package vignettes in ", sQuote("inst/doc"))
         any <- FALSE
         ## Do PDFs exist for all package vignettes?
-        ## A base source package need not have PDFs to avoid
+        ## A base source package (grid) may not have PDFs to avoid
         ## frequently-changing binary files in the SVN archive.
         if (!is_base_pkg) {
-            pdfs <- file.path(pkgdir, "inst", "doc",
-                              sub("\\.[[:alpha:]]+$", ".pdf", basename(vf)))
+            pdfs <- sub("\\.[[:alpha:]]+$", ".pdf", vf)
             bad_vignettes <- vf[!file.exists(pdfs)]
             if(length(bad_vignettes)) {
                 any <- TRUE
-                warnLog()
+                warnLog("Package vignette(s) without corresponding PDF:")
                 printLog(Log,
-                         "Package vignette(s) without corresponding PDF:\n")
-                printLog(Log,
-                         paste(c(paste("  ",
-                                       sQuote(basename(bad_vignettes))),
-                                 "", ""), collapse = "\n"))
+                         paste(c(paste("  ", basename(bad_vignettes)), "", ""),
+                               collapse = "\n"))
             }
             encs <- vapply(vf, getVignetteEncoding, "")
             bad_vignettes <- vf[encs == "non-ASCII"]
@@ -1637,24 +1634,31 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 printLog(Log,
                          "  Non-ASCII package vignette(s) without specified encoding:\n")
                 printLog(Log,
-                         paste(c(paste("  ",
-                                       sQuote(basename(bad_vignettes))),
-                                 "", ""), collapse = "\n"))
+                         paste(c(paste("  ", basename(bad_vignettes)), "", ""),
+                               collapse = "\n"))
             }
         }
 
         ## Do any of the .R files which will be generated
         ## exist in inst/doc?  If so the latter will be ignored,
-        sources <-
-            basename(list_files_with_exts(file.path(pkgdir, "inst/doc"), "R"))
+        sources <- basename(list_files_with_exts(file.path(pkgdir, "inst/doc"), c("r", "s", "R", "S")))
         if (length(sources)) {
-            new_sources <- sub("\\.[RrSs](nw|tex)$", ".R", basename(vf))
+            td <- tempfile()
+            dir.create(td)
+            file.copy(vignette_dir, td, recursive = TRUE)
+            od <- setwd(file.path(td, "doc"))
+            unlink(list_files_with_exts(".", c("r", "s", "R", "S")))
+            for(v in vf)
+                tryCatch(suppressMessages(utils::Stangle(v, quiet = TRUE)),
+                         error = function(e) {})
+            new_sources <- basename(list_files_with_exts(".", c("r", "s", "R", "S")))
+            setwd(od)
             dups <- sources[sources %in% new_sources]
             if(length(dups)) {
                 if(!any) warnLog()
                 any <- TRUE
                 printLog(Log,
-                         paste("  Unused files in 'inst/doc' which are pointless or misleading",
+                         paste("  Unused files in inst/doc which are pointless or misleading",
                                "  as they will be re-created from the vignettes:", "",
                                sep = "\n"))
                 printLog(Log,
@@ -1663,14 +1667,14 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             }
         }
         ## avoid case-insensitive matching
-        if ("makefile" %in% dir(vigns$dir)) {
+        if ("makefile" %in% dir(vignette_dir)) {
             if(!any) warnLog()
             any <- TRUE
             printLog(Log,
                      "  Found 'inst/doc/makefile': should be 'Makefile' and will be ignored\n")
         }
-        if ("Makefile" %in% dir(vigns$dir)) {
-            lines <- readLines(file.path(vigns$dir, "Makefile"), warn = FALSE)
+        if ("Makefile" %in% dir(vignette_dir)) {
+            lines <- readLines(file.path(vignette_dir, "Makefile"), warn = FALSE)
             ## remove comment lines
             lines <- grep("^[[:space:]]*#", lines, invert = TRUE, value = TRUE)
             if(any(grepl("[^/]R +CMD", lines))) {
@@ -1686,29 +1690,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                          "  Found 'Rscript' in 'inst/doc/Makefile': should be '\"$(R_HOME)/bin/Rscript\"'\n")
             }
         }
-
-        ## If the vignettes declare an encoding, are they actually in it?
-        ## (We don't check the .tex, though)
-        bad_vignettes <- character()
-        for (v in vigns$docs) {
-            enc <- getVignetteEncoding(v, TRUE)
-            if (enc %in% c("", "non-ASCII", "unknown")) next
-            lines <- readLines(v, warn = FALSE) # some miss final NA
-            lines2 <- iconv(lines, enc, "UTF-16LE", toRaw = TRUE)
-            if(any(vapply(lines2, is.null, TRUE)))
-                bad_vignettes <- c(bad_vignettes, v)
-            if(length(bad_vignettes)) {
-                if(!any) warnLog()
-                any <- TRUE
-                printLog(Log,
-                         "  Package vignette(s) which are not in their specified encoding:\n")
-                printLog(Log,
-                         paste(c(paste("  ",
-                                       sQuote(basename(bad_vignettes))),
-                                 "", ""), collapse = "\n"))
-            }
-        }
-
         if (!any) resultLog(Log, "OK")
 
         if (do_install && do_vignettes) {
@@ -1721,23 +1702,13 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             vigns <- pkgVignettes(dir = pkgdir)
             problems <- list()
             res <- character()
-            cat("\n")
-            def_enc <- desc["Encoding"]
-            if( (is.na(def_enc))) def_enc <- ""
             for(v in vigns$docs) {
-                enc <- getVignetteEncoding(v, TRUE)
-                if(enc %in% c("non-ASCII", "unknown")) enc <- def_enc
-                cat("  ", sQuote(basename(v)),
-                    if(nzchar(enc)) paste("using", sQuote(enc)),
-                    "...")
                 Rcmd <- paste("options(warn=1)\ntools:::.run_one_vignette('",
-                              basename(v), "', '", vigns$dir, "'",
-                              if (nzchar(enc))
-                              paste(", encoding = '", enc, "'", sep = ""),
-                              ")", sep = "")
+                              basename(v), "', '", vignette_dir, "'", ")",
+                              sep = "")
                 out <- R_runR(Rcmd,
                               if (use_valgrind) paste(R_opts2, "-d valgrind") else R_opts2)
-
+                # cat("\n===============", basename(v), "==============\n"); writeLines(out)
                 if(length(grep("^  When (tangling|sourcing)", out,
                                useBytes = TRUE))) {
                     res <- c(res,
@@ -1745,22 +1716,15 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                              "  ...",
                              utils::tail(out, as.numeric(Sys.getenv("_R_CHECK_VIGNETTES_NLINES_", 10))))
                     writeLines(out, paste(basename(v), ".log", sep=""))
-                    cat(" failed\n")
-                } else cat(" OK\n")
+                }
             }
             if (R_check_suppress_RandR_message)
                 res <- grep('^Xlib: *extension "RANDR" missing on display', res,
                             invert = TRUE, value = TRUE, useBytes = TRUE)
             if(length(res)) {
-                if(length(grep("there is no package called", res,
-                               useBytes = TRUE))) {
-                    warnLog("Errors in running code in vignettes:")
-                    printLog0(Log, paste(c(res, "", ""), collapse = "\n"))
-                } else {
-                    errorLog(Log, "Errors in running code in vignettes:")
-                    printLog0(Log, paste(c(res, "", ""), collapse = "\n"))
-                    do_exit(1L)
-                }
+                any <- TRUE
+                warnLog("Errors in running code in vignettes:")
+                printLog(Log, paste(c(res, "", ""), collapse = "\n"))
             } else resultLog(Log, "OK")
 
             if (do_rebuild_vignettes &&
@@ -1799,9 +1763,9 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                         out <- grep('^Xlib: *extension "RANDR" missing on display', out,
                                     invert = TRUE, value = TRUE, useBytes = TRUE)
                     out <- utils::tail(out, 25)
-                    printLog0(Log,
-                              paste(c("Error in re-building vignettes:",
-                                      "  ...", out, "", ""), collapse = "\n"))
+                    printLog(Log,
+                             paste(c("Error in re-building vignettes:",
+                                     "  ...", out, "", ""), collapse = "\n"))
                 } else {
                     ## clean up
                     unlink(vd2, recursive = TRUE)
@@ -1845,7 +1809,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 lines <- readLines("Rdlatex.log", warn = FALSE)
                 lines <- grep("^(Hmm|Execution)", lines,
                               invert = TRUE, value = TRUE)
-                printLog0(Log, paste(c(lines, ""), collapse = "\n"))
+                printLog(Log, paste(c(lines, ""), collapse = "\n"))
                 unlink(build_dir, recursive = TRUE)
                 do_exit(1L)
             } else if (res > 0) {
@@ -1861,7 +1825,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 if (file.exists(latex_log)) {
                     lines <- .get_LaTeX_errors_from_log_file(latex_log)
                     printLog(Log, "LaTeX errors found:\n")
-                    printLog0(Log, paste(c(lines, ""), collapse="\n"))
+                    printLog(Log, paste(c(lines, ""), collapse="\n"))
                 }
                 unlink(build_dir, recursive = TRUE)
                 ## for Windows' sake: errors can make it unwritable
@@ -1969,7 +1933,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             printLog(Log, .format_lines_with_indent(execs), "\n")
             wrapLog("Source packages should not contain undeclared executable files.\n",
                     "See section 'Package structure'",
-                    "in the 'Writing R Extensions' manual.\n")
+                    "in manual 'Writing R Extensions'.\n")
         } else resultLog(Log, "OK")
         setwd(owd)
     }
@@ -2076,8 +2040,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                              ": warning: .*ISO C",
                              ": warning: .* discards qualifiers from pointer target type",
                              ": warning: .* is used uninitialized",
-                             ": warning: .* set but not used",
-                             ": warning: unused",
                              "missing link\\(s\\):")
                 ## Warnings spotted by gcc with
                 ## '-Wimplicit-function-declaration', which is
@@ -2105,11 +2067,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 lines <- grep("Warning: incomplete final line found by readLines",
                               lines, invert = TRUE, value = TRUE)
 
-                ## Ignore Stangle warnings by default for now
-                check_Stangle <- Sys.getenv("_R_CHECK_STANGLE_WARNINGS_", "FALSE")
-                if (!config_val_to_logical(check_Stangle))
-                lines <- grep("Warning: value of .* option should be lowercase",
-                              lines, invert = TRUE, value = TRUE)
 
                 ## Package writers cannot really do anything about
                 ## non ISO C code in *system* headers.  Also,
@@ -2126,15 +2083,14 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                                   lines, invert = TRUE, value = TRUE)
                 }
 
+                ## FIXME: these lines never got into 'lines'
                 ## Warnings spotted by gcc with '-Wunused', which is
                 ## implied by '-Wall'.  Currently only accessible
                 ## via an internal environment variable.
                 check_src_flag <-
                     Sys.getenv("_R_CHECK_SRC_MINUS_W_UNUSED_", "FALSE")
                 if (!config_val_to_logical(check_src_flag)) {
-                    lines <- grep("warning: unused", lines, ignore.case = TRUE,
-                                  invert = TRUE, value = TRUE)
-                    lines <- grep("warning: .* set but not used", lines,
+                    lines <- grep("warning: unused", lines,
                                   ignore.case = TRUE,
                                   invert = TRUE, value = TRUE)
                 }
@@ -2175,9 +2131,9 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 }
                 if (length(lines)) {
                     warnLog("Found the following significant warnings:")
-                    printLog0(Log, .format_lines_with_indent(lines), "\n")
-                    printLog0(Log, sprintf("See %s for details.\n",
-                                           sQuote(outfile)))
+                    printLog(Log, .format_lines_with_indent(lines), "\n")
+                    printLog(Log, sprintf("See %s for details.\n",
+                                          sQuote(outfile)))
                 } else resultLog(Log, "OK")
             }   ## end of case B
         }
@@ -2231,12 +2187,21 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 do_exit(1L)
             }
             desc <- desc[1L, ]
-            if(!grepl("^[[:alpha:]][[:alnum:].]*[[:alnum:]]$", desc["Package"])
+            if(desc["Package"] == "R") {
+                errorLog(Log)
+                printLog(Log,"  Package name 'R' is not allowed.\n")
+                do_exit(1L)
+            }
+            if(!grepl("^[[:alpha:]][[:alnum:].]*$", desc["Package"])
                || grepl("[.]$", desc["Package"])) {
                 warningLog(Log)
                 printLog(Log,"  Package name is not portable:\n",
                          "  It must start with a letter, contain letters, digits or dot\n",
-                         "  have at least 2 characters and not end with a dot.\n")
+                         "  and not end with a dot.\n")
+            } else if (nchar(desc["Package"]) == 1L) {
+                warningLog(Log)
+                printLog(Log,
+                         "  Single-character package names are deprecated\n")
             } else resultLog(Log, "OK")
             encoding <- desc["Encoding"]
         } else {
@@ -2248,7 +2213,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             resultLog(Log, desc["Type"])
             if (desc["Type"] != "Package") {
                 printLog(Log,
-                         "Only 'Type = Package' extensions can be checked.\n")
+                         "Only Type = Package extensions can be checked.\n")
                 do_exit(0L)
             }
         }
@@ -2320,9 +2285,9 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             tryCatch(parseNamespaceFile(basename(pkgdir), dirname(pkgdir)),
                      error = function(e) {
                          errorLog(Log)
-                         printLog0(Log,
-                                   "Invalid NAMESPACE file, parsing gives:", "\n",
-                                   as.character(e), "\n")
+                         printLog(Log,
+                                  "Invalid NAMESPACE file, parsing gives:", "\n",
+                                  as.character(e), "\n")
                          wrapLog(msg_NAMESPACE)
                          do_exit(1L)
                      })
@@ -2778,13 +2743,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 errorLog(Log, sprintf("cannot create %s", sQuote(dir)))
                 do_exit(1L)
             }
-            ## force the use of internal untar unless over-ridden
-            ## so e.g. .tar.xz works everywhere
-            if (untar(pkg, exdir = dir,
-                      tar =  Sys.getenv("R_INSTALL_TAR", "internal"))) {
-                errorLog(Log, sprintf("cannot unpack %s", sQuote(pkg)))
-                do_exit(1L)
-            }
+            untar(pkg, exdir = dir)
             ## this assumes foo_x.y.tar.gz unpacks to foo, but we are about
             ## to test that.
             pkg <- file.path(dir, pkgname0)

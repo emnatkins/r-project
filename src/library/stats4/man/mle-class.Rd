@@ -5,9 +5,8 @@
 
 \name{mle-class}
 \docType{class}
-\title{Class \code{"mle"} for Results of Maximum Likelihood Estimation}
 \alias{mle-class}
-\alias{nobs,mle-method}
+\title{Class \code{"mle"} for Results of Maximum Likelihood Estimation}
 \description{This class encapsulates results of a generic maximum
   likelihood procedure.}
 \section{Objects from the Class}{
@@ -26,13 +25,12 @@
       variance-covariance matrix.}
     \item{\code{min}:}{Object of class \code{"numeric"}.  Minimum value
       of objective function.}
-    \item{\code{details}:}{a \code{"\link{list}"}, as returned from
-      \code{\link{optim}}.}
+    \item{\code{details}:}{Object of class \code{"list"}.  List returned
+      from \code{\link{optim}}.}
     \item{\code{minuslogl}:}{Object of class \code{"function"}.  The
       negative loglikelihood function.}
-    \item{\code{nobs}:}{\code{"\link{integer}"} of length one.  The
-      number of observations (often \code{NA}, when not set in call
-      explicitly).}
+    \item{\code{nobs}:}{Object of class \code{"integer"}.  The
+      number of observations (often \code{NA}).}
     \item{\code{method}:}{Object of class \code{"character"}.  The
       optimization method used.}
   }
@@ -45,8 +43,6 @@
       log-likelihood.}
     \item{profile}{\code{signature(fitted = "mle")}: Likelihood profile
       generation.}
-    \item{nobs}{\code{signature(object = "mle")}: Number of
-      observations, here simply accessing the \code{nobs} slot mentioned above.}
     \item{show}{\code{signature(object = "mle")}: Display object briefly.}
     \item{summary}{\code{signature(object = "mle")}: Generate object summary.}
     \item{update}{\code{signature(object = "mle")}:  Update fit.}

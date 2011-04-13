@@ -35,10 +35,6 @@ cutree(tree, k = NULL, h = NULL)
   where each column corresponds to the elements of \code{k} or \code{h},
   respectively (which are also used as column names).
 }
-\details{
-  Cutting trees at a given height is only possible for ultrametric trees
-  (with monotone clustering heights).
-}
 \seealso{
   \code{\link{hclust}}, \code{\link{dendrogram}} for cutting trees themselves.
 }
@@ -54,3 +50,4 @@ table(grp2=g24[,"2"], grp4=g24[,"4"])
 }
 \keyword{multivariate}
 \keyword{cluster}
+
