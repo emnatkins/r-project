@@ -25,6 +25,9 @@
   functions in hierarchical clustering and classification/regression
   trees, such that all of these can use the same engine for plotting or
   cutting trees.
+
+  The code is still in testing stage and the API may
+  change in the future.
 }
 \usage{
 as.dendrogram(object, \dots)
@@ -116,6 +119,8 @@ is.leaf(object)
     to use for each dendrogram branch.}
 }
 \details{
+  This documentation is somewhat preliminary.
+
   The dendrogram is directly represented as a nested list where each
   component corresponds to a branch of the tree.  Hence, the first
   branch of tree \code{z} is \code{z[[1]]}, the second branch of the

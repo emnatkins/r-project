@@ -62,7 +62,7 @@ mle <- function(minuslogl, start = formals(minuslogl), method = "BFGS",
     else list(par = numeric(), value = f(start))
     coef <- oout$par
     vcov <- if(length(coef)) solve(oout$hessian) else matrix(numeric(), 0L, 0L)
-    min <- oout$value
+    min <-  oout$value
     fullcoef[nm] <- coef
     new("mle", call = call, coef = coef, fullcoef = unlist(fullcoef),
         vcov = vcov, min = min, details = oout, minuslogl = minuslogl,
@@ -222,7 +222,6 @@ function (x, levels, conf = c(99, 95, 90, 80, 50)/100, nseg = 50,
                 xlim[1L] <- min(obj[[i]]$par.vals[, i])
             if (is.na(xlim[2L]))
                 xlim[2L] <- max(obj[[i]]$par.vals[, i])
-            dev.hold()
             plot(abs(z) ~ par.vals[, i], data = obj[[i]], xlab = i,
                 ylim = c(0, mlev), xlim = xlim, ylab = expression(abs(z)),
                 type = "n")
@@ -242,7 +241,6 @@ function (x, levels, conf = c(99, 95, 90, 80, 50)/100, nseg = 50,
                 pred <- ifelse(is.na(pred), xlim, pred)
                 lines(pred, rep(lev, 2), type = "l", col = 6, lty = 2)
             }
-            dev.flush()
         }
     }
     else {
@@ -258,7 +256,6 @@ function (x, levels, conf = c(99, 95, 90, 80, 50)/100, nseg = 50,
                 xlim[1L] <- min(obj[[i]]$par.vals[, i])
             if (is.na(xlim[2L]))
                 xlim[2L] <- max(obj[[i]]$par.vals[, i])
-            dev.hold()
             plot(z ~ par.vals[, i], data = obj[[i]], xlab = i,
                 ylim = c(-mlev, mlev), xlim = xlim, ylab = expression(z),
                 type = "n")
@@ -271,7 +268,6 @@ function (x, levels, conf = c(99, 95, 90, 80, 50)/100, nseg = 50,
                 lines(c(x0,pred[2L]), rep(lev, 2), type = "l", col = 6, lty = 2)
                 lines(c(pred[1L],x0), rep(-lev, 2), type = "l", col = 6, lty = 2)
             }
-            dev.flush()
         }
     }
     par(opar)

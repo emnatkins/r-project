@@ -166,7 +166,7 @@ void attribute_hidden InitArithmetic()
 
 /* Keep these two in step */
 /* FIXME: consider using
-    tmp = (long double)x1 - floor(q) * (long double)x2;
+    tmp = (LDOUBLE)x1 - floor(q) * (LDOUBLE)x2;
  */
 static double myfmod(double x1, double x2)
 {
@@ -1372,7 +1372,7 @@ static SEXP math2B(SEXP sa, SEXP sb, double (*f)(double, double, double *),
 	if (av > amax) amax = av;
     }
     nw = 1 + (long)floor(amax);
-    work = (double *) R_alloc((size_t) nw, sizeof(double));
+    work = (double *) R_alloc(nw, sizeof(double));
 
     mod_iterate(na, nb, ia, ib) {
 	ai = a[ia];
@@ -1735,7 +1735,7 @@ static SEXP math3B(SEXP sa, SEXP sb, SEXP sc,
 	if (av > amax) amax = av;
     }
     nw = 1 + (long)floor(amax);
-    work = (double *) R_alloc((size_t) nw, sizeof(double));
+    work = (double *) R_alloc(nw, sizeof(double));
 
     mod_iterate3 (na, nb, nc, ia, ib, ic) {
 	ai = a[ia];

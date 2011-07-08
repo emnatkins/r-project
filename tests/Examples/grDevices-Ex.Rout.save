@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2011-07-05 r56287)
+R version 2.13.1 RC (2011-07-05 r56282)
 Copyright (C) 2011 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-unknown-linux-gnu (64-bit)
@@ -2193,7 +2193,7 @@ Warning in plot.xy(xy.coords(x, y), type = type, ...) :
 > 
 > pdf.options(bg = "pink")
 > utils::str(pdf.options())
-List of 19
+List of 18
  $ width      : num 7
  $ height     : num 7
  $ onefile    : logi TRUE
@@ -2211,8 +2211,7 @@ List of 19
  $ useDingbats: logi TRUE
  $ useKerning : logi TRUE
  $ fillOddEven: logi FALSE
- $ maxRasters : int 64
- $ compress   : logi TRUE
+ $ maxRasters : num 64
 > pdf.options(reset = TRUE) # back to factory-fresh
 > 
 > 
@@ -3398,7 +3397,7 @@ $zlab
 > ### * <FOOTER>
 > ###
 > cat("Time elapsed: ", proc.time() - get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  2.07 0.062 2.976 0 0 
+Time elapsed:  2.989 0.092 3.204 0 0 
 > grDevices::dev.off()
 null device 
           1 

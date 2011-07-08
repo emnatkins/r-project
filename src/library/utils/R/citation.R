@@ -137,7 +137,7 @@ function(x, i)
 print.person <-
 function(x, ...)
 {
-    x_char <- sapply(X = x, FUN = format, ...)
+    x_char <- sapply(x, format, ...)
     print(x_char)
     invisible(x)
 }
@@ -709,7 +709,7 @@ function(package = "base", lib.loc = NULL, auto = NULL)
 {
     dir <- system.file(package = package, lib.loc = lib.loc)
     if(dir == "")
-        stop(gettextf("package %s not found", sQuote(package)), domain = NA)
+        stop(gettextf("package '%s' not found", package), domain = NA)
 
     meta <- packageDescription(pkg = package, lib.loc = dirname(dir))
 
@@ -741,13 +741,13 @@ function(package = "base", lib.loc = NULL, auto = NULL)
     if(!length(year)) {
         year <- sub(".*((19|20)[[:digit:]]{2}).*", "\\1", meta$Date)
         if(is.null(meta$Date)){
-            warning(gettextf("no date field in DESCRIPTION file of package %s",
-                             sQuote(package)),
+            warning(gettextf("no date field in DESCRIPTION file of package '%s'",
+                             package),
                     domain = NA)
         }
         else if(!length(year)) {
-            warning(gettextf("could not determine year for %s from package DESCRIPTION file",
-                             sQuote(package)),
+            warning(gettextf("could not determine year for '%s' from package DESCRIPTION file",
+                             package),
                     domain = NA)
         }
     }

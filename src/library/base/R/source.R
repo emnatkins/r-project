@@ -33,13 +33,7 @@ function(file, local = FALSE, echo = verbose, print.eval = echo,
 		  parent.frame() else baseenv())
 	.Internal(eval.with.vis(expr, envir, enclos))
 
-    envir <- if (isTRUE(local)) {
-        parent.frame()
-    } else if(identical(local, FALSE)) {
-        .GlobalEnv
-    } else if (is.environment(local)) {
-        local
-    } else stop("'local' must be TRUE, FALSE or an environment")
+    envir <- if (local) parent.frame() else .GlobalEnv
     have_encoding <- !missing(encoding) && encoding != "unknown"
     if (!missing(echo)) {
 	if (!is.logical(echo))
@@ -96,18 +90,12 @@ function(file, local = FALSE, echo = verbose, print.eval = echo,
             else "unknown"
 	}
     }
-
-    ## parse() uses this option in the C code.
-    if (!isTRUE(keep.source)) {
-        op <- options(keep.source = FALSE)
-        on.exit(options(op), add = TRUE)
-    } else op <- NULL
     exprs <- .Internal(parse(file, n = -1, NULL, "?", srcfile, encoding))
-    on.exit()
-    if (from_file) close(file)
-    if (!is.null(op)) options(op)
-
     Ne <- length(exprs)
+    if (from_file) { # we are done with the file now
+        close(file)
+        on.exit()
+    }
     if (verbose)
 	cat("--> parsed", Ne, "expressions; now eval(.)ing them:\n")
 
@@ -139,10 +127,10 @@ function(file, local = FALSE, echo = verbose, print.eval = echo,
         ## same-named one in Sweave
 	trySrcLines <- function(srcfile, showfrom, showto) {
 	    lines <- try(suppressWarnings(getSrcLines(srcfile, showfrom, showto)), silent=TRUE)
-	    if (inherits(lines, "try-error"))
+	    if (inherits(lines, "try-error")) 
     	    	lines <- character(0)
     	    lines
-	}
+	}	       
     }
     yy <- NULL
     lastshown <- 0
@@ -194,7 +182,7 @@ function(file, local = FALSE, echo = verbose, print.eval = echo,
 				 sep="")
 		    nd <- nchar(dep, "c") - 1L
 		}
-	    }
+	    }	    
 	    if (nd) {
 		do.trunc <- nd > max.deparse.length
 		dep <- substr(dep, 1L, if (do.trunc) max.deparse.length else nd)

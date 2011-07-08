@@ -117,8 +117,8 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE, Log=FALSE)
     clean <- function(txt)
     {
         ## remove R header
-        if(length(top <- grep("^(R version|R : Copyright|R Under development)",
-                              txt, perl = TRUE, useBytes = TRUE)) &&
+        if(length(top <- grep("^(R version|R : Copyright)", txt,
+                              perl = TRUE, useBytes = TRUE)) &&
            length(bot <- grep("quit R.$", txt, perl = TRUE, useBytes = TRUE)))
             txt <- txt[-(top[1L]:bot[1L])]
         ## remove BATCH footer
@@ -189,8 +189,7 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE, Log=FALSE)
 testInstalledPackages <-
     function(outDir = ".", errorsAreFatal = TRUE,
              scope = c("both", "base", "recommended"),
-             types = c("examples", "tests", "vignettes"),
-             srcdir = NULL, Ropts = "")
+             types = c("examples", "tests", "vignettes"), srcdir = NULL)
 {
     ow <- options(warn = 1)
     on.exit(ow)
@@ -206,7 +205,7 @@ testInstalledPackages <-
     for (pkg in pkgs) {
         if(is.null(srcdir) && pkg %in% known_packages$base)
             srcdir <- R.home("tests/Examples")
-        res <- testInstalledPackage(pkg, .Library, outDir, types, srcdir, Ropts)
+        res <- testInstalledPackage(pkg, .Library, outDir, types, srcdir)
         if (res) {
             status <- 1L
             msg <- gettextf("testing '%s' failed", pkg)
@@ -220,7 +219,7 @@ testInstalledPackages <-
 testInstalledPackage <-
     function(pkg, lib.loc = NULL, outDir = ".",
              types = c("examples", "tests", "vignettes"),
-             srcdir = NULL, Ropts = "")
+             srcdir = NULL)
 {
     types <- pmatch(types, c("examples", "tests", "vignettes"))
     pkgdir <- find.package(pkg, lib.loc)
@@ -240,7 +239,7 @@ testInstalledPackage <-
             unlink(failfile)
             ## Create as .fail in case this R session gets killed
             cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
-                         "CMD BATCH --vanilla --no-timing", Ropts,
+                         "CMD BATCH --vanilla --no-timing",
                          shQuote(Rfile), shQuote(failfile))
             if (.Platform$OS.type == "windows") Sys.setenv(R_LIBS="")
             else cmd <- paste("R_LIBS=", cmd)
@@ -289,7 +288,7 @@ testInstalledPackage <-
             message("  Running ", sQuote(f))
             outfile <- paste(f, "out", sep = "")
             cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
-                         "CMD BATCH --vanilla --no-timing", Ropts,
+                         "CMD BATCH --vanilla --no-timing",
                          shQuote(f), shQuote(outfile))
             cmd <- if (.Platform$OS.type == "windows") paste(cmd, "LANGUAGE=C")
             else paste("LANGUAGE=C", cmd)

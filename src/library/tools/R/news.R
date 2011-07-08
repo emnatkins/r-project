@@ -347,10 +347,6 @@ function(f, pdf_file) {
     cat("\\documentclass[", Sys.getenv("R_PAPERSIZE"), "paper]{book}\n",
         "\\usepackage[ae,hyper]{Rd}\n",
         "\\usepackage[utf8]{inputenc}\n",
-        "\\usepackage{graphicx}\n",
-        "\\setkeys{Gin}{width=0.7\\textwidth}\n",
-        "\\graphicspath{{", normalizePath(file.path(R.home("doc"), "html"), "/"),
-                            "/}}\n",
         "\\hypersetup{pdfpagemode=None,pdfstartview=FitH}\n",
         "\\begin{document}\n",
         "\\chapter*{}\\sloppy\n",
@@ -363,7 +359,7 @@ function(f, pdf_file) {
     close(out)
     od <- setwd(tempdir())
     on.exit(setwd(od))
-    texi2pdf("NEWS.tex", quiet = TRUE)
+    texi2dvi("NEWS.tex", pdf=TRUE, quiet = TRUE)
     setwd(od); on.exit()
     invisible(file.copy(file.path(tempdir(), "NEWS.pdf"),
                         pdf_file, overwrite = TRUE))
@@ -568,7 +564,7 @@ function(file)
 function(x)
 {
     .get_Rd_section_names <- function(x)
-        sapply(x, function(e) .Rd_get_text(e[[1L]]))
+        sapply(x, function(e) .Rd_deparse(e[[1L]]))
 
     do_chunk <- function(x) {
         ## <FIXME>

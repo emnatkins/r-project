@@ -167,7 +167,7 @@ validGP <- function(gpars) {
         return(gpar())
     maxn <- do.call("max", lapply(x, length))
     newgp <- lapply(x, rep, length.out=maxn)
-    newgp <- lapply(X = newgp, FUN = "[", index, ...)
+    newgp <- lapply(newgp, "[", index, ...)
     class(newgp) <- "gpar"
     newgp
 }

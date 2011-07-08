@@ -204,7 +204,7 @@ is.na(paste(c(1,NA)))
 is.na(list())# logical(0)
 ll <- list(pi,"C",NaN,Inf, 1:3, c(0,NA), NA)
 is.na (ll)
-lapply(ll, is.nan)  # is.nan no longer works on lists
+is.nan(ll)
 ## end of moved from NA.Rd
 
 ## is.na was returning unset values on nested lists
@@ -2544,44 +2544,9 @@ y <- runif(10)
 x[3] <- NA; y[5] <- NA
 xy <- cbind(x, y)
 
-cor(x, y, method = "spearman", use = "complete.obs")
-cor(x, y, method = "spearman", use = "pairwise.complete.obs")
-cor(na.omit(xy),  method = "spearman", use = "complete.obs")
-cor(xy,  method = "spearman", use = "complete.obs")
-cor(xy,  method = "spearman", use = "pairwise.complete.obs")
+cor(x, y, method="spearman", use="complete.obs")
+cor(x, y, method="spearman", use="pairwise.complete.obs")
+cor(na.omit(xy),  method="spearman", use="complete.obs")
+cor(xy,  method="spearman", use="complete.obs")
+cor(xy,  method="spearman", use="pairwise.complete.obs")
 ## inconsistent in R < 2.13.0
-
-
-## integer overflow in rowsum() went undetected
-# https://stat.ethz.ch/pipermail/r-devel/2011-March/060304.html
-x <- 2e9L
-rowsum(c(x, x), c("a", "a"))
-rowsum(data.frame(z = c(x, x)), c("a", "a"))
-## overflow in R < 2.13.0.
-
-
-## method dispatch in [[.data.frame:
-## https://stat.ethz.ch/pipermail/r-devel/2011-April/060409.html
-d <- data.frame(num = 1:4,
-          fac = factor(letters[11:14], levels = letters[1:15]),
-          date = as.Date("2011-04-01") + (0:3),
-          pv = package_version(c("1.2-3", "4.5", "6.7", "8.9-10")))
-for (i in seq_along(d)) print(d[[1, i]])
-## did not dispatch in R < 2.14.0
-
-
-## some tests of 24:00 as midnight
-as.POSIXlt("2011-05-16 24:00:00", tz = "GMT")
-as.POSIXlt("2010-01-31 24:00:00", tz = "GMT")
-as.POSIXlt("2011-02-28 24:00:00", tz = "GMT")
-as.POSIXlt("2008-02-28 24:00:00", tz = "GMT")
-as.POSIXlt("2008-02-29 24:00:00", tz = "GMT")
-as.POSIXlt("2010-12-31 24:00:00", tz = "GMT")
-## new in 2.14.0
-
-
-## Unwarranted conversion of logical values
-try(double(FALSE))
-x <- 1:3
-try(length(x) <- TRUE)
-## coerced to integer in 2.13.x

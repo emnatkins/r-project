@@ -280,7 +280,6 @@ plot.HoltWinters <-
 
     preds <- length(predicted.values) > 1 || !is.na(predicted.values)
 
-    dev.hold(); on.exit(dev.flush())
     ## plot fitted/predicted values
     plot(ts(c(fitted(x)[,1], if(preds) predicted.values[,1]),
             start = start(fitted(x)[,1]),
@@ -373,8 +372,7 @@ function (x, type = c("additive", "multiplicative"), filter = NULL)
                    start = start(x), frequency = f)
 
     ## return values
-    structure(list(x = x,
-                   seasonal = seasonal,
+    structure(list(seasonal = seasonal,
                    trend = trend,
                    random = if (type == "additive")
                        x - seasonal - trend
@@ -387,11 +385,11 @@ function (x, type = c("additive", "multiplicative"), filter = NULL)
 
 plot.decomposed.ts <- function(x, ...)
 {
-    xx <- x$x # added in 2.14.0
-    if(is.null(xx))
-        xx <- with(x,  if (type == "additive") random + trend + seasonal
-                       else random * trend * seasonal)
-    plot(cbind(observed = xx,
+    plot(cbind(
+               observed = if (x$type == "additive")
+                 x$random + x$trend + x$seasonal
+               else
+                 x$random * x$trend * x$seasonal,
                trend    = x$trend,
                seasonal = x$seasonal,
                random   = x$random

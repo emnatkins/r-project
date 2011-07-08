@@ -43,12 +43,8 @@ function(file, header = FALSE, sep = "", quote = "\"'", dec = ".",
          strip.white = FALSE, blank.lines.skip = TRUE,
          comment.char = "#", allowEscapes = FALSE, flush = FALSE,
          stringsAsFactors = default.stringsAsFactors(),
-         fileEncoding = "", encoding = "unknown", text)
+         fileEncoding = "", encoding = "unknown")
 {
-    if (missing(file) && !missing(text)) {
-	file <- textConnection(text)
-	on.exit(close(file))
-    }
     if(is.character(file)) {
         file <- if(nzchar(fileEncoding))
             file(file, "rt", encoding = fileEncoding) else file(file, "rt")

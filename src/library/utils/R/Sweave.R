@@ -17,6 +17,8 @@
 ### The drivers are now in SweaveDrivers.R
 
 ### FIXMEs
+### a) User-defined options are unclear: all options not already specified
+### are required to be logical
 ### b) It would be nice to allow multiple 'grdevice' options
 
 ### Encodings (currently, different from 2.13.0)
@@ -37,7 +39,6 @@
 ### that R output is in the current locale: a package with a different
 ### encoding from the current one might have data in that package's
 ### encoding.
-
 
 ### Correspondence between input and output is maintained in two
 ### places: Each chunk has a srclines attribute, recording the input
@@ -167,11 +168,11 @@ SweaveReadFile <- function(file, syntax, encoding = "")
                         pattern = paste(bf, syntax$extension, sep = ""))
 
         if (length(f) == 0L)
-            stop(gettextf("no Sweave file with name %s found",
-                          sQuote(file[1L])), domain = NA)
+            stop(gettextf("no Sweave file with name '%s' found", file[1L]),
+                 domain = NA)
         else if (length(f) > 1L)
-            stop(paste(gettextf("%d Sweave files for basename %s found:",
-                                length(f), sQuote(file[1L])),
+            stop(paste(gettextf("%d Sweave files for basename '%s' found:",
+                                length(f), file),
                        paste("\n         ", f, collapse="")),
                  domain = NA)
     }
@@ -208,8 +209,8 @@ SweaveReadFile <- function(file, syntax, encoding = "")
         sname <- sub(syntax$syntaxname, "\\1", text[pos[1L]])
         syntax <- get(sname, mode = "list")
         if (class(syntax) != "SweaveSyntax")
-            stop(gettextf("object %s does not have class \"SweaveSyntax\"",
-                          sQuote(sname)), domain = NA)
+            stop(gettextf("object '%s' does not have class \"SweaveSyntax\"",
+                          sname), domain = NA)
         text <- text[-pos]
     }
 
@@ -218,8 +219,7 @@ SweaveReadFile <- function(file, syntax, encoding = "")
             pos <- pos[1L]
             ifile <- file.path(df, sub(syntax$input, "\\1", text[pos]))
             if (any(ifile == file)) {
-                stop(paste(gettextf("recursive Sweave input %s in stack",
-                                    sQuote(ifile)),
+                stop(paste(gettextf("recursive Sweave input '%s' in stack", ifile),
                            paste("\n         ", seq_len(file), ": ",
                                  rev(file), collapse="")),
                  domain = NA)
@@ -367,111 +367,20 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
     z # a character vector.
 }
 
-### For R CMD xxxx ------------------------------------------
-.Sweave <- function(args = NULL)
+
+## For R CMD xxxx
+.Sweave <- function(arg)
 {
     options(warn = 1)
-    if (is.null(args)) {
-        args <- commandArgs(TRUE)
-        args <- paste(args, collapse=" ")
-        args <- strsplit(args,'nextArg', fixed = TRUE)[[1L]][-1L]
-    }
 
     Usage <- function() {
-        cat("Usage: R CMD Sweave [options] file",
+        cat("Usage: R CMD Sweave file",
             "",
-            "A front-end for Sweave",
-            "",
-            "Options:",
-            "  -h, --help      print this help message and exit",
-            "  -v, --version   print version info and exit",
-            "  --driver=name   use named Sweave driver",
-            "  --encoding=enc  default encoding 'enc' for file",
-            "  --options=      comma-separated list of Sweave options",
-            "  --pdf           convert to PDF document",
-            "",
-            "Report bugs to <r-bugs@r-project.org>.",
-            sep = "\n")
-    }
-    do_exit <- function(status = 0L)
-        q("no", status = status, runLast = FALSE)
-
-    if (!length(args)) {
-        Usage()
-        do_exit(1L)
-    }
-    file <- character()
-    driver <- encoding <- options <- ""
-    toPDF <- FALSE
-    while(length(args)) {
-        a <- args[1L]
-        if (a %in% c("-h", "--help")) {
-            Usage()
-            do_exit()
-        }
-        else if (a %in% c("-v", "--version")) {
-            cat("Sweave front-end: ",
-                R.version[["major"]], ".",  R.version[["minor"]],
-                " (r", R.version[["svn rev"]], ")\n", sep = "")
-            cat("",
-                "Copyright (C) 2006-2011 The R Core Development Team.",
-                "This is free software; see the GNU General Public License version 2",
-                "or later for copying conditions.  There is NO warranty.",
-                sep = "\n")
-            do_exit()
-        } else if (substr(a, 1, 9) == "--driver=") {
-            driver <- substr(a, 10, 1000)
-        } else if (substr(a, 1, 11) == "--encoding=") {
-            encoding <- substr(a, 12, 1000)
-        } else if (substr(a, 1, 10) == "--options=") {
-            options <- substr(a, 11, 1000)
-        } else if (a == "--pdf") {
-            toPDF <- TRUE
-        } else if (substr(a, 1, 1) == "-") {
-            message("Warning: unknown option ", sQuote(a))
-        } else file <- c(file, a)
-       args <- args[-1L]
-    }
-    if(length(file) != 1L) {
-        Usage()
-        do_exit(1L)
-    }
-    args <- list(file)
-    if(nzchar(driver)) args <- c(args, driver)
-    args <- c(args, encoding = encoding)
-    if(nzchar(options)) {
-        opts <- eval(parse(text = paste("list(", options, ")")))
-        args <- c(args, opts)
-    }
-    do.call(Sweave, args)
-    if (toPDF) {
-        texfile <- sub("\\.[rsRS][[:alpha:]]+$", ".tex", file)
-        tools::texi2pdf(texfile, clean = TRUE)
-        ofile <- sub("\\.tex$", ".pdf", texfile)
-        message("Created PDF document ", sQuote(basename(ofile)))
-    }
-    do_exit()
-}
-
-.Stangle <- function(args = NULL)
-{
-    options(warn = 1)
-    if (is.null(args)) {
-        args <- commandArgs(TRUE)
-        args <- paste(args, collapse=" ")
-        args <- strsplit(args,'nextArg', fixed = TRUE)[[1L]][-1L]
-    }
-
-    Usage <- function() {
-        cat("Usage: R CMD Stangle file",
-            "",
-            "A front-end for Stangle",
+            "A simple front-end for Sweave",
             "",
             "Options:",
             "  -h, --help     print this help message and exit",
             "  -v, --version  print version info and exit",
-            "  --encoding=enc  assume encoding 'enc' for file",
-            "  --options=      comma-separated list of Stangle options",
             "",
             "Report bugs to <r-bugs@r-project.org>.",
             sep = "\n")
@@ -479,48 +388,55 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
     do_exit <- function(status = 0L)
         q("no", status = status, runLast = FALSE)
 
-    if (!length(args)) {
-        Usage()
-        do_exit(1L)
+    if (length(arg) != 1L) { Usage(); do_exit(1L) }
+    if (arg %in% c("-h", "--help")) { Usage(); do_exit() }
+    if (arg %in% c("-v", "--version")) {
+        cat("Sweave front-end: ",
+            R.version[["major"]], ".",  R.version[["minor"]],
+            " (r", R.version[["svn rev"]], ")\n", sep = "")
+        cat("",
+            "Copyright (C) 2006-2010 The R Core Development Team.",
+            "This is free software; see the GNU General Public License version 2",
+            "or later for copying conditions.  There is NO warranty.",
+            sep = "\n")
+        do_exit()
     }
+    Sweave(arg)
+    do_exit()
+}
 
-    file <- character()
-    encoding <- options <- ""
-    while(length(args)) {
-        a <- args[1L]
-        if (a %in% c("-h", "--help")) {
-            Usage()
-            do_exit()
-        }
-        else if (a %in% c("-v", "--version")) {
-            cat("Stangle front-end: ",
-                R.version[["major"]], ".",  R.version[["minor"]],
-                " (r", R.version[["svn rev"]], ")\n", sep = "")
-            cat("",
-                "Copyright (C) 2006-2011 The R Core Development Team.",
-                "This is free software; see the GNU General Public License version 2",
-                "or later for copying conditions.  There is NO warranty.",
-                sep = "\n")
-            do_exit()
-        } else if (substr(a, 1, 11) == "--encoding=") {
-            encoding <- substr(a, 12, 1000)
-        } else if (substr(a, 1, 10) == "--options=") {
-            options <- substr(a, 11, 1000)
-        } else if (substr(a, 1, 1) == "-") {
-            message("Warning: unknown option ", sQuote(a))
-        } else file <- c(file, a)
-        args <- args[-1L]
+.Stangle <- function(arg)
+{
+    options(warn = 1)
+
+    Usage <- function() {
+        cat("Usage: R CMD Stangle file",
+            "",
+            "A simple front-end for Stangle",
+            "",
+            "Options:",
+            "  -h, --help     print this help message and exit",
+            "  -v, --version  print version info and exit",
+            "",
+            "Report bugs to <r-bugs@r-project.org>.",
+            sep = "\n")
     }
-    if(length(file) != 1L) {
-        Usage()
-        do_exit(1L)
+    do_exit <- function(status = 0L)
+        q("no", status = status, runLast = FALSE)
+
+    if (length(arg) != 1L) { Usage(); do_exit(1L) }
+    if (arg %in% c("-h", "--help")) { Usage(); do_exit() }
+    if (arg %in% c("-v", "--version")) {
+        cat("Stangle front-end: ",
+            R.version[["major"]], ".",  R.version[["minor"]],
+            " (r", R.version[["svn rev"]], ")\n", sep = "")
+        cat("",
+            "Copyright (C) 2006-2010 The R Core Development Team.",
+            "This is free software; see the GNU General Public License version 2",
+            "or later for copying conditions.  There is NO warranty.",
+            sep = "\n")
+        do_exit()
     }
-    args <- list(file)
-    args <- c(args, encoding = encoding)
-    if(nzchar(options)) {
-        opts <- eval(parse(text = paste("list(", options, ")")))
-        args <- c(args, opts)
-    }
-    do.call(Stangle, args)
+    Stangle(arg)
     do_exit()
 }

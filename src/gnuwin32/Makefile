@@ -39,13 +39,6 @@ rpackages:
 	@$(MK) -C ../library -f Makefile.win all WIN=$(WIN)
 	@$(MK) -C ../library -f Makefile.win docs
 
-
-## must come after bitmapdll
-cairodevices:
-ifneq "$(CAIRO_HOME)" ""
-	@$(MK) -C ../library/grDevices/src/cairo -f Makefile.win all WIN=$(WIN) CAIRO_HOME=$(CAIRO_HOME) CAIRO_TYPE=$(CAIRO_TYPE)
-endif
-
 ifeq ($(wildcard MkRules?local),MkRules.local)
 MkRules: MkRules.local MkRules.rules
 	cat MkRules.local MkRules.rules > MkRules
@@ -54,8 +47,8 @@ MkRules: MkRules.dist MkRules.rules
 	cat MkRules.dist MkRules.rules > MkRules
 endif
 
-CFLAGS=-O3 -Wall -pedantic $(EOPTS)
-FFLAGS=-O3 $(EOPTS)
+CFLAGS=-O3 -Wall -pedantic
+FFLAGS=-O3
 ifdef DEBUG
  CFLAGS+=$(G_FLAG)
  FFLAGS+=$(G_FLAG)
@@ -286,7 +279,7 @@ distclean: clean
 	$(RM) ../../SVN-REVISION.bak
 	$(RM) rw-FAQ fixed/html/rw-FAQ.html
 	$(MAKE) -C cran clean
-	$(RM) -r ../library/.vignettes # it gets left behind if there is an error
+	$(RM) -r .vignettes # it gets left behind if there is an error
 	$(RM) -r ../../share/locale
 	$(RM) MkRules Rpwd.exe # do this last of all
 
@@ -302,7 +295,6 @@ cleanwin: MkRules fixfiles
 	$(MAKE) -C getline clean
 	$(MAKE) -C front-ends clean
 	$(MAKE) -C bitmap clean
-	$(MAKE) -C ../library/grDevices/src/cairo -f Makefile.win clean WIN=$(WIN)
 	-$(MAKE) -C installer clean
 
 
@@ -319,9 +311,14 @@ pdfdocs manuals:
 
 R_EXE = ../../$(BINDIR)/Rterm.exe --vanilla --slave
 
-## must come after recommended
 vignettes:
-	@$(MK) -C ../library -f Makefile.win vignettes
+	@for pkg in $(R_PKGS_BASE); do \
+	  if test -d "../library/$${pkg}/inst/doc"; then \
+	    echo "building/updating vignettes for package '$${pkg}' ..."; \
+	    (echo "tools:::.install_package_vignettes(\"../library/$${pkg}\", \"../../library/$${pkg}\")") | R_DEFAULT_PACKAGES="utils,tools" $(R_EXE) > /dev/null; \
+	  fi; \
+	done
+	@rm -rf .vignettes
 
 
 ## ===================== Maintainer targets ========================
@@ -375,7 +372,6 @@ endif
 distribution:
 	@$(MK) all
 	@$(MK) bitmapdll
-	@$(MK) cairodevices
 	@$(MK) recommended
 	@$(MK) vignettes
 	@$(MK) manuals
@@ -387,7 +383,6 @@ distribution:
 32-bit:
 	@$(MK) all
 	@$(MK) bitmapdll
-	@$(MK) cairodevices
 	@$(MK) recommended
 
 

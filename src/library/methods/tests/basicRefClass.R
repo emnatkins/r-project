@@ -127,8 +127,8 @@ fg4 <- setRefClass("foo4",
             contains = "foo2",
             methods = list(
               initialize = function(...) {
-                  .self$initFields(...)
-                  .self@made <<- R.version
+                  .self <- initFields(...)
+                  .self@made = R.version
                   .self
               }),
             representation = list(made = "simple.list")
@@ -407,33 +407,6 @@ tt <- TestClass2$new(version=3) # default text
 stopifnot(identical(tt$text, ":"), identical(tt$version, as.integer(4)))
 
 
-## test some capabilities but read-only for .self
-.changeAllFields <- function(replacement) {
-    fields <- names(.refClassDef@fieldClasses)
-    for(field in fields)
-        eval(substitute(.self$FIELD <- replacement$FIELD,
-                        list(FIELD = field)))
-}
-
-mEditor$methods(change = .changeAllFields)
-xx <- mEditor$new(data = xMat)
-xx$edit(2, 2, 0)
-
-yy <- mEditor$new(data = xMat+1)
-yy$change(xx)
-stopifnot(identical(yy$data, xx$data), identical(yy$edits, xx$edits))
-
-## but don't allow assigment
-if(methods:::.hasCodeTools())
-        stopifnot(is(tryCatch(yy$.self$data <- xMat, error = function(e)e), "error"))
-
-## the locked binding of refObjectGenerator class should prevent modifying
-## methods, locking fields or setting accessor methods
-evr <- getRefClass("refObjectGenerator") # in methods
-stopifnot(is(tryCatch(evr$methods(foo = function()"..."), error = function(e)e), "error"),
-         is(tryCatch(evr$lock("def"), error = function(e)e), "error"),
-         is(tryCatch(evr$accessors("def"), error = function(e)e), "error"))
-
 ##getRefClass() method and function should work with either
 ## a class name or a class representation (bug report 14600)
 tg <- setRefClass("tg", fields = "a")
@@ -442,7 +415,3 @@ tgg <- t1$getRefClass()
 tggg <- getRefClass("tg")
 stopifnot(identical(tgg$def, tggg$def),
           identical(tg$def, tgg$def))
-## TODO:  the className returned by setRefClass should have
-## a package attribute, which would allow:
-##          identical(tg$className, tgg$className))
-

@@ -14,15 +14,11 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-getCall <- function(x, ...) UseMethod("getCall")
-getCall.default <- function(x, ...) x$call
-## Using getCall() instead of  x$call  renders update.default() more
-## generally applicable.
-
 update.default <-
     function (object, formula., ..., evaluate = TRUE)
 {
-    if (is.null(call <- getCall(object)))
+    call <- object$call
+    if (is.null(call))
 	stop("need an object with call component")
     extras <- match.call(expand.dots = FALSE)$...
     if (!missing(formula.))

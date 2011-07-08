@@ -1,5 +1,5 @@
 
-R version 2.14.0 Under development (unstable) (2011-06-17 r56144)
+R version 2.13.0 Patched (2011-06-17 r56144)
 Copyright (C) 2011 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-unknown-linux-gnu (64-bit)
@@ -162,12 +162,6 @@ Number of functions in base:	1234
 + 	    if(!is.list(obj) && !is.vector(obj) && !is.array(obj)) {
 + 		if(!true.only) r[[f]] <- NA
 + 		next
-+ 	    }
-+ 	}
-+ 	if(any(f == c("is.nan", "is.finite", "is.infinite"))) {
-+ 	    if(!is.atomic(obj)) {
-+ 	    	if(!true.only) r[[f]] <- NA
-+ 	    	next
 + 	    }
 + 	}
 + 	if(debug) cat(f,"")
@@ -381,9 +375,9 @@ is.double          : .
 is.environment     : . 
 is.expression      : | 
 is.factor          : . 
-is.finite          : NA 
+is.finite          : . 
 is.function        : . 
-is.infinite        : NA 
+is.infinite        : . 
 is.integer         : . 
 is.language        : | 
 is.list            : . 
@@ -391,7 +385,7 @@ is.logical         : .
 is.matrix          : . 
 is.na              : . 
 is.name            : . 
-is.nan             : NA 
+is.nan             : . 
 is.null            : . 
 is.numeric         : . 
 is.numeric_version : . 
@@ -424,7 +418,7 @@ is.expression      : .
 is.factor          : . 
 is.finite          : NA 
 is.function        : . 
-is.infinite        : NA 
+is.infinite        : . . . 
 is.integer         : . 
 is.language        : | 
 is.list            : . 
@@ -432,7 +426,7 @@ is.logical         : .
 is.matrix          : . 
 is.na              : NA 
 is.name            : . 
-is.nan             : NA 
+is.nan             : . . . 
 is.null            : . 
 is.numeric         : . 
 is.numeric_version : . 
@@ -557,9 +551,9 @@ is.double          : .
 is.environment     : . 
 is.expression      : . 
 is.factor          : . 
-is.finite          : NA 
+is.finite          : . . . . . . . . . . . . 
 is.function        : . 
-is.infinite        : NA 
+is.infinite        : . . . . . . . . . . . . 
 is.integer         : . 
 is.language        : . 
 is.list            : | 
@@ -567,7 +561,7 @@ is.logical         : .
 is.matrix          : . 
 is.na              : . . . . . . . . . . . . 
 is.name            : . 
-is.nan             : NA 
+is.nan             : . . . . . . . . . . . . 
 is.null            : . 
 is.numeric         : . 
 is.numeric_version : . 
@@ -778,8 +772,17 @@ Your balance is 120
 > try(ross$withdraw(500)) # no way..
 Error in ross$withdraw(500) : You don't have that much money!
 
-In addition: Warning message:
-In fn(obj) : is.na() applied to non-(list or vector) of type 'expression'
+In addition: Warning messages:
+1: In fn(obj) : is.nan() applied to non-(list or vector) of type 'NULL'
+2: In fn(obj) : is.nan() applied to non-(list or vector) of type 'NULL'
+3: In fn(obj) :
+  is.na() applied to non-(list or vector) of type 'expression'
+4: In fn(obj) :
+  is.nan() applied to non-(list or vector) of type 'expression'
+5: In fn(obj) :
+  is.nan() applied to non-(list or vector) of type 'language'
+6: In fn(obj) :
+  is.nan() applied to non-(list or vector) of type 'language'
 
 
 	demo(graphics)
@@ -1506,5 +1509,5 @@ sm     3    3    3    3    4    4    4    4    2     2     2
 > par(op)
 > 
 > cat("Time elapsed: ", proc.time() - .ptime, "\n")
-Time elapsed:  1.994 0.079 2.092 0 0 
+Time elapsed:  1.482 0.087 1.581 0 0 
 > 

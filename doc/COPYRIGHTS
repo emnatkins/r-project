@@ -296,13 +296,14 @@ src/extra/xdr/*
 
 src/extra/zlib/README, *.c, *.h
 
-  Taken from zlib-1.2.5 (C) 1995-2010 Jean-loup Gailly and Mark Adler
+  Taken from zlib-1.2.3 (C) 1995-2005 Jean-loup Gailly and Mark Adler
   See src/extra/zlib/README for the licence.
 
-src/main/connections.c, src/main/gzio.h
+src/main/connections.c
 
-  Contain code derived from the zlib 1.2.3 distribution
+  Contains code derived from the zlib 1.2.3 distribution
   (C) 1995-2005 Jean-loup Gailly and Mark Adler
+
 
 src/main/dounzip.c, unzip.h
 
@@ -475,13 +476,3 @@ tools/install-sh:
 
    Copyright (C) 1994 X Consortium
 
-
-m4/stat-time.m4
-
-From GNU coreutils 8.12
-# Copyright (C) 1998-1999, 2001, 2003, 2005-2007, 2009-2011 Free Software
-# Foundation, Inc.
-
-# This file is free software; the Free Software Foundation
-# gives unlimited permission to copy and/or distribute it,
-# with or without modifications, as long as this notice is preserved.

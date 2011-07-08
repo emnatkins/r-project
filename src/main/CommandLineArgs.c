@@ -56,7 +56,7 @@ R_set_command_line_arguments(int argc, char **argv)
     int i;
 
     NumCommandLineArgs = argc;
-    CommandLineArgs = (char**) calloc((size_t) argc, sizeof(char*));
+    CommandLineArgs = (char**) calloc(argc, sizeof(char*));
 
     for(i = 0; i < argc; i++)
 	CommandLineArgs[i] = strdup(argv[i]);
@@ -245,7 +245,7 @@ R_common_command_line(int *pac, char **argv, Rstart Rp)
 
 		else if (lval > 500000)
 		    R_ShowMessage(_("WARNING: '--max-ppsize' value is too large: ignored\n"));
-		else Rp->ppsize = (size_t) lval;
+		else Rp->ppsize = lval;
 	    }
 	    else { /* unknown -option */
 		argv[newac++] = *av;

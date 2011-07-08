@@ -35,7 +35,7 @@ else
   ])
   if test "x${r_cv_has_pangocairo}" = "xyes"; then
     modlist="pangocairo"
-    for module in cairo-png; do
+    for module in cairo-xlib cairo-png; do
       if "${PKGCONF}" --exists ${module}; then
 	modlist="${modlist} ${module}"
       fi
@@ -52,22 +52,14 @@ else
        modlist="${modlist} cairo-svg"
        r_cairo_svg=yes
     fi
-      if "${PKGCONF}" --exists cairo-xlib; then
-         xmodlist="${modlist} cairo-xlib"
-      else
-         xmodlist="${modlist}"
-      fi
     CAIRO_CPPFLAGS=`"${PKGCONF}" --cflags ${modlist}`
-    CAIROX11_CPPFLAGS=`"${PKGCONF}" --cflags ${xmodlist}`
     CAIRO_LIBS=`"${PKGCONF}" --libs ${modlist}`
-    CAIROX11_LIBS=`"${PKGCONF}" --libs ${xmodlist}`
 
     CPPFLAGS="${CPPFLAGS} ${CAIRO_CPPFLAGS}"
     LIBS="${LIBS} ${CAIRO_LIBS}"
 
      AC_CACHE_CHECK([whether cairo including pango is >= 1.2 and works], 
-		    [r_cv_cairo_works],
-                    [AC_LINK_IFELSE([AC_LANG_SOURCE([[
+		    [r_cv_cairo_works], [AC_LINK_IFELSE([
 #include <pango/pango.h>
 #include <pango/pangocairo.h>
 #include <cairo-xlib.h>
@@ -81,7 +73,7 @@ int main(void) {
     pango_font_description_new();
     return 0;
  }
-	]])],[r_cv_cairo_works=yes],[r_cv_cairo_works=no
+	],[r_cv_cairo_works=yes],[r_cv_cairo_works=no
           CAIRO_LIBS=
           CAIRO_CFLAGS=
         ])])
@@ -99,7 +91,7 @@ int main(void) {
       modlist="cairo"
       ## on Linux, cairo-ft brings in header paths <cairo-ft.h>:
       ## the code which needs this is currently conditionalized
-      for module in cairo-png cairo-ft; do
+      for module in cairo-xlib cairo-png cairo-ft; do
 	if "${PKGCONF}" --exists ${module}; then
 	  modlist="${modlist} ${module}"
 	fi
@@ -116,22 +108,14 @@ int main(void) {
          modlist="${modlist} cairo-svg"
          r_cairo_svg=yes
       fi
-      if "${PKGCONF}" --exists cairo-xlib; then
-         xmodlist="${modlist} cairo-xlib"
-      else
-         xmodlist="${modlist}"
-      fi
       CAIRO_CPPFLAGS=`"${PKGCONF}" --cflags ${modlist}`
-      CAIROX11_CPPFLAGS=`"${PKGCONF}" --cflags ${xmodlist}`
       case "${host_os}" in
         darwin*)
           ## This is for static MacOS build
           CAIRO_LIBS=`"${PKGCONF}" --static --libs ${modlist}`
-          CAIROX11_LIBS=`"${PKGCONF}" --static --libs ${xmodlist}`
           ;;
         *)
           CAIRO_LIBS=`"${PKGCONF}" --libs ${modlist}`
-          CAIROX11_LIBS=`"${PKGCONF}" --libs ${xmodlist}`
           ;;
       esac
 
@@ -139,8 +123,7 @@ int main(void) {
       LIBS="${LIBS} ${CAIRO_LIBS}"
 
       AC_CACHE_CHECK([whether cairo is >= 1.2 and works], 
-		     [r_cv_cairo_works], 
-                     [AC_LINK_IFELSE([AC_LANG_SOURCE([[
+		     [r_cv_cairo_works], [AC_LINK_IFELSE([
 #include <cairo.h>
 #include <cairo-xlib.h>
 #if CAIRO_VERSION  < 10200
@@ -153,7 +136,7 @@ int main(void) {
                             CAIRO_FONT_WEIGHT_BOLD);
     return 0;
  }
-	]])],[r_cv_cairo_works=yes],[r_cv_cairo_works=no
+	],[r_cv_cairo_works=yes],[r_cv_cairo_works=no
           CAIRO_LIBS=
           CAIRO_CFLAGS=
         ])])
@@ -167,7 +150,7 @@ if test "x${r_cv_has_pangocairo}" = xyes; then
    AC_DEFINE(HAVE_PANGOCAIRO, 1, [Define to 1 if you have pangocairo.]) 
 fi
 if test "x${r_cv_cairo_works}" = xyes; then
-   AC_DEFINE(HAVE_WORKING_CAIRO, 1, [Define to 1 if you have cairo.])
+   AC_DEFINE(HAVE_WORKING_CAIRO, 1, [Define to 1 if you have cairo.]) 
 fi
 if test "x${r_cairo_pdf}" = xyes; then
    AC_DEFINE(HAVE_CAIRO_PDF, 1, [Define to 1 if you have cairo-ps.]) 
@@ -179,7 +162,5 @@ if test "x${r_cairo_svg}" = xyes; then
    AC_DEFINE(HAVE_CAIRO_SVG, 1, [Define to 1 if you have cairo-svg.]) 
 fi
 AC_SUBST(CAIRO_CPPFLAGS)
-AC_SUBST(CAIROX11_CPPFLAGS)
 AC_SUBST(CAIRO_LIBS)
-AC_SUBST(CAIROX11_LIBS)
 ])

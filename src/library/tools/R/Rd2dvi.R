@@ -91,7 +91,6 @@
             on.exit(close(outfile))
         }
         latexEncodings <- character()
-        hasFigures <- FALSE
         for(f in files) {
             if (!silent) cat("  ", basename(f), "\n", sep="")
             if (!internals) {
@@ -101,22 +100,13 @@
             }
             out <-  file.path(latexdir, sub("\\.[Rr]d$", ".tex", basename(f)))
             ## people have file names with quotes in them.
-            res <- Rd2latex(f, out, encoding = encoding,
-                            outputEncoding = outputEncoding)
             latexEncodings <- c(latexEncodings,
-                                attr(res,"latexEncoding"))
-            lines <- readLines(out)
-            if (attr(res, "hasFigures")) {
-                graphicspath <- paste("\\graphicspath{{",
-                                      normalizePath(file.path(dirname(f), "figures"), "/"),
-                                      "/}}", sep="")
-            	lines <- c(graphicspath, lines)
-            	hasFigures <- TRUE
-            }
-            writeLines(lines, outfile)
+                                attr(Rd2latex(f, out, encoding=encoding,
+                                              outputEncoding=outputEncoding),
+                                     "latexEncoding"))
+            writeLines(readLines(out), outfile)
         }
-        list(latexEncodings = unique(latexEncodings[!is.na(latexEncodings)]),
-             hasFigures = hasFigures)
+        unique(latexEncodings[!is.na(latexEncodings)])
     }
 }
 
@@ -138,7 +128,6 @@
         outfile <- paste(basename(pkgdir), "-pkg.tex", sep="")
 
     latexEncodings <- character() # Record any encodings used in the output
-    hasFigures <- FALSE           # and whether graphics is used
 
     ## First check for a latex dir.
     ## Second guess is this is a >= 2.10.0 package with stored .rds files.
@@ -164,23 +153,14 @@
                 if (!silent && cnt %% 10L == 0L)
                     message(".", appendLF=FALSE, domain=NA)
                 out <-  sub("[Rr]d$", "tex", basename(f))
-                outfilename <- file.path(latexdir, out)
-                res <- Rd2latex(Rd[[f]],
-				  outfilename,
-				  encoding = encoding,
-				  outputEncoding = outputEncoding,
-				  defines = NULL,
-				  writeEncoding = !asChapter)
                 latexEncodings <- c(latexEncodings,
-                                    attr(res, "latexEncoding"))
-                if (attr(res, "hasFigures")) {
-                    lines <- readLines(outfilename)
-                    graphicspath <- paste("\\graphicspath{{",
-                    		    normalizePath(file.path(pkgdir, "help", "figures"), "/"),
-                    		    "/}}", sep="")
-                    writeLines(c(graphicspath, lines), outfilename)
-                    hasFigures <- TRUE
-                }
+                                    attr(Rd2latex(Rd[[f]],
+                                                  file.path(latexdir, out),
+                                                  encoding = encoding,
+                                                  outputEncoding = outputEncoding,
+                                                  defines = NULL,
+                                                  writeEncoding = !asChapter),
+                                         "latexEncoding"))
             }
             if (!silent) message(domain = NA)
         } else {
@@ -211,21 +191,13 @@
                 if (!silent && cnt %% 10L == 0L)
                     message(".", appendLF=FALSE, domain=NA)
                 out <-  sub("\\.[Rr]d$", ".tex", basename(f))
-                outfilename <- file.path(latexdir, out)
-                res <- Rd2latex(f, outfilename,
+                latexEncodings <-
+                    c(latexEncodings,
+                      attr(Rd2latex(f, file.path(latexdir, out),
                                     stages = c("build", "install", "render"),
                                     encoding = encoding,
-                                    outputEncoding = outputEncoding)
-                latexEncodings <- c(latexEncodings,
-                      attr(res,"latexEncoding"))
-                if (attr(res, "hasFigures")) {
-                    lines <- readLines(outfilename)
-                    graphicspath <- paste("\\graphicspath{{",
-                    		    normalizePath(file.path(dirname(f), "figures"), "/"),
-                    		    "/}}", sep="")
-                    writeLines(c(graphicspath, lines), outfilename)
-                    hasFigures <- TRUE
-                }
+                                    outputEncoding = outputEncoding),
+                           "latexEncoding"))
             }
             if (!silent) message(domain = NA)
         }
@@ -284,7 +256,7 @@
     if (asChapter)
         cat("\\clearpage\n", file = outcon)
 
-    invisible(list(latexEncodings = latexEncodings, hasFigures = hasFigures))
+    invisible(latexEncodings)
 }
 
 
@@ -415,9 +387,8 @@ function(pkgdir, outfile, title, batch = FALSE,
          enc = "unknown", outputEncoding = "UTF-8", files_or_dir, OSdir,
          internals = FALSE, index = TRUE)
 {
-    ## Write directly to the final location.  Encodings and figures
-    ## may mean we need to make edits, but for most files one pass
-    ## should be enough.
+    ## Write directly to the final location.  Encodings may mean we need
+    ## to make edits, but for most files one pass should be enough.
     out <- file(outfile, "wt")
     if (!nzchar(enc)) enc <- "unknown"
 
@@ -439,16 +410,9 @@ function(pkgdir, outfile, title, batch = FALSE,
         "\\usepackage[", Sys.getenv("R_RD4DVI", "ae"), "]{Rd}\n",
         sep = "", file = out)
     if (index) writeLines("\\usepackage{makeidx}", out)
-    inputenc <- Sys.getenv("RD2DVI_INPUTENC", "inputenc")
     ## this needs to be canonical, e.g. 'utf8'
-    ## trailer is for detection if we want to edit it later.
-    setEncoding <-
-        paste("\\usepackage[",
-              latex_canonical_encoding(outputEncoding), "]{",
-              inputenc, "} % @SET ENCODING@", sep="")
-    useGraphicx <- "% \\usepackage{graphicx} % @USE GRAPHICX@"
+    setEncoding <- paste("\\usepackage[", latex_canonical_encoding(outputEncoding), "]{inputenc} % @SET ENCODING@", sep="")
     writeLines(c(setEncoding,
-    		 useGraphicx,
                  if (index) "\\makeindex{}",
                  "\\begin{document}"), out)
     if (!nzchar(title)) {
@@ -491,7 +455,6 @@ function(pkgdir, outfile, title, batch = FALSE,
     } else ""
 
     latexEncodings <- character(0)
-    hasFigures <- FALSE
     ## if this looks like a package with no man pages, skip body
     if (file.exists(file.path(pkgdir, "DESCRIPTION")) &&
         !(file_test("-d", file.path(pkgdir, "man")) ||
@@ -499,16 +462,10 @@ function(pkgdir, outfile, title, batch = FALSE,
           file_test("-d", file.path(pkgdir, "latex")))) only_meta <- TRUE
     if (!only_meta) {
         if (nzchar(toc)) writeLines(toc, out)
-        res <- .Rdfiles2tex(files_or_dir, out, encoding = enc, append = TRUE,
+        latexEncodings <-
+            .Rdfiles2tex(files_or_dir, out, encoding = enc, append = TRUE,
                          extraDirs = OSdir, internals = internals,
                          silent = batch)
-        if(length(res)) {
-            latexEncodings <- res$latexEncodings
-            hasFigures <- res$hasFigures
-        } else {
-            latexEncodings <- character()
-            hasFigures <- FALSE
-        }
     }
 
     ## Rd2.tex part 3: footer
@@ -523,21 +480,19 @@ function(pkgdir, outfile, title, batch = FALSE,
     cyrillic <- if (nzchar(Sys.getenv("_R_CYRILLIC_TEX_"))) "utf8" %in% latexEncodings else FALSE
     latex_outputEncoding <- latex_canonical_encoding(outputEncoding)
     encs <- latexEncodings[latexEncodings != latex_outputEncoding]
-    if (length(encs) || hasFigures || cyrillic) {
+    if (length(encs) || cyrillic) {
         lines <- readLines(outfile)
 	encs <- paste(encs, latex_outputEncoding, collapse=",", sep=",")
 
 	if (!cyrillic) {
 	    lines[lines == setEncoding] <-
-		paste("\\usepackage[", encs, "]{", inputenc, "}", sep = "")
+		paste("\\usepackage[", encs, "]{inputenc}", sep = "")
 	} else {
 	    lines[lines == setEncoding] <-
 		paste(
-"\\usepackage[", encs, "]{", inputenc, "}
+"\\usepackage[", encs, "]{inputenc}
 \\IfFileExists{t2aenc.def}{\\usepackage[T2A]{fontenc}}{}", sep = "")
 	}
-	if (hasFigures)
-	    lines[lines == useGraphicx] <- "\\usepackage{graphicx}\\setkeys{Gin}{width=0.7\\textwidth}"
 	writeLines(lines, outfile)
     }
 
@@ -584,9 +539,6 @@ function(pkgdir, outfile, title, batch = FALSE,
 
 ### * ..Rd2dvi
 
-## Driver called from R CMD Rd2dvi
-## See the comments in install.R as to how this can be called directly.
-
 ..Rd2dvi <- function(args = NULL, quit = TRUE)
 {
     dir.exists <- function(x) !is.na(isdir <- file.info(x)$isdir) & isdir
@@ -603,7 +555,7 @@ function(pkgdir, outfile, title, batch = FALSE,
     Usage <- function() {
         cat("Usage: R CMD Rd2dvi [options] files",
             "",
-            "Generate PDF (or DVI) output from the Rd sources specified by files, by",
+            "Generate DVI (or PDF) output from the Rd sources specified by files, by",
             "either giving the paths to the files, or the path to a directory with",
             "the sources of a package, or an installed package.",
             "",
@@ -626,8 +578,7 @@ function(pkgdir, outfile, title, batch = FALSE,
             "      --no-clean	do not remove created temporary files",
             "      --no-preview	do not preview generated DVI/PDF file",
             "      --encoding=enc    use 'enc' as the default input encoding",
-            "      --outputEncoding=outenc",
-            "                        use 'outenc' as the default output encoding",
+            "      --outputEncoding=outenc use 'outenc' as the default output encoding",
             "      --os=NAME		use OS subdir 'NAME' (unix or windows)",
             "      --OS=NAME		the same as '--os'",
             "  -o, --output=FILE	write output to FILE",
@@ -639,8 +590,8 @@ function(pkgdir, outfile, title, batch = FALSE,
             "      --internals	typeset 'internal' documentation (usually skipped)",
             "",
             "The output papersize is set by the environment variable R_PAPERSIZE.",
-            "The PDF previewer is set by the environment variable R_PDFVIEWER.",
             "The DVI previewer is set by the environment variable xdvi.",
+            "The PDF previewer is set by the environment variable R_PDFVIEWER.",
             "",
             "Report bugs to <r-bugs@r-project.org>.",
             sep = "\n")
@@ -693,7 +644,7 @@ function(pkgdir, outfile, title, batch = FALSE,
                 R.version[["major"]], ".",  R.version[["minor"]],
                 " (r", R.version[["svn rev"]], ")\n", sep = "")
             cat("",
-                "Copyright (C) 2000-2011 The R Core Development Team.",
+                "Copyright (C) 2000-2010 The R Core Development Team.",
                 "This is free software; see the GNU General Public License version 2",
                 "or later for copying conditions.  There is NO warranty.",
                 sep="\n")
@@ -709,7 +660,7 @@ function(pkgdir, outfile, title, batch = FALSE,
             ## allow for --no-preview --pdf
             if (preview != "false")
                 preview <- Sys.getenv("R_PDFVIEWER", if(WINDOWS) "open" else "false")
-            Sys.setenv(R_RD4DVI = Sys.getenv("R_RD4PDF", "times,inconsolata,hyper"))
+            Sys.setenv(R_RD4DVI = Sys.getenv("R_RD4PDF", "times,hyper"))
         } else if (substr(a, 1, 8) == "--title=") {
             title <- substr(a, 9, 1000)
         } else if (a == "-o") {
@@ -745,9 +696,6 @@ function(pkgdir, outfile, title, batch = FALSE,
         message("no inputs")
         q("no", status = 1L, runLast = FALSE)
     }
-
-    if (out_ext != "pdf")
-        warning("DVI output from Rd2dvi is depreccated", call. = FALSE)
 
     ## Windows does not allow .../man/, say, for a directory
     if(WINDOWS) files[1L] <- sub("[\\/]$", "", files[1L])

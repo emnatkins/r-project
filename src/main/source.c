@@ -83,7 +83,7 @@ SEXP attribute_hidden getParseContext(void)
     return ans2;
 }
 
-static void getParseFilename(char* buffer, size_t buflen)
+void attribute_hidden getParseFilename(char* buffer, int buflen)
 {
     buffer[0] = '\0';
     if (R_ParseErrorFile && !isNull(R_ParseErrorFile)) {

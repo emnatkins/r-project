@@ -262,12 +262,38 @@ static void RNG_Init(RNGtype kind, Int32 seed)
     }
 }
 
-unsigned int TimeToSeed(void); /* datetime.c */
+#include <time.h>
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
+
+#ifdef Win32
+# include <windows.h> /* for GetTickCount */
+# include <process.h> /* for getpid */
+#endif
 
 static void Randomize(RNGtype kind)
 {
 /* Only called by  GetRNGstate() when there is no .Random.seed */
-    RNG_Init(kind, TimeToSeed());
+    Int32 seed;
+#if HAVE_GETTIMEOFDAY
+    {
+	struct timeval tv;
+	gettimeofday (&tv, NULL);
+	seed = ((uint64_t) tv.tv_usec << 16) ^ tv.tv_sec;
+    }
+#elif defined(Win32)
+    /* Try to avoid coincidence for processes launched almost
+       simultaneously */
+    seed = (int) GetTickCount() + getpid();
+#elif HAVE_TIME
+    /* C89, so should work */
+    seed = (Int32) time(NULL);
+#else
+    /* unlikely, but use random contents */
+#endif
+
+    RNG_Init(kind, seed);
 }
 
 static void GetRNGkind(SEXP seeds)

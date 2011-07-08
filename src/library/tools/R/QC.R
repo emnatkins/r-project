@@ -929,7 +929,7 @@ function(package, lib.loc = NULL)
     if(!length(S4_classes)) return(bad_Rd_objects)
 
     sApply <- function(X, FUN, ...) ## fast and special case - only
-        unlist(lapply(X = X, FUN = FUN, ...), recursive=FALSE, use.names=FALSE)
+        unlist(lapply(X, FUN, ...), recursive=FALSE, use.names=FALSE)
     ## Build Rd data base.
     db <- Rd_db(package, lib.loc = dirname(dir))
 
@@ -2746,8 +2746,7 @@ function(dfile)
     val <- package_name <- db["Package"]
     if(!is.na(val)) {
         tmp <- character()
-        ## We allow 'R', which is not a valid package name.
-        if(!grepl(sprintf("^(R|%s)$", valid_package_name_regexp), val)
+        if(!grepl(sprintf("^%s$", valid_package_name_regexp), val)
            && !grepl("^Translation-[[:alnum:].]+$", val))
             tmp <- c(tmp, gettext("Malformed package name"))
         if(!is_base_package) {
@@ -2782,7 +2781,7 @@ function(dfile)
         bad_dep_entry <- bad_dep_op <- bad_dep_version <- character()
         dep_regexp <-
             paste("^[[:space:]]*",
-                  paste("(R|", valid_package_name_regexp, ")", sep = ""),
+                  paste("(", valid_package_name_regexp, ")", sep = ""),
                   "([[:space:]]*\\(([^) ]+)[[:space:]]+([^) ]+)\\))?",
                   "[[:space:]]*$",
                   sep = "")
@@ -3474,7 +3473,7 @@ function(x, ...)
             c(gettextf("Missing link(s) in documentation object '%s':",
                        names(xx)[i]),
               ## NB, link might be empty, and was in mvbutils
-              .pretty_format(unique(xx[[i]])),
+              .pretty_format(sQuote(unique(xx[[i]]))),
               "")
         }
         c(unlist(lapply(seq_along(xx), .fmt)),
@@ -4203,7 +4202,7 @@ function(x, ...)
               c(gettext("'::' or ':::' imports not declared from:"),
                 .pretty_format(sort(xx)))
           } else {
-              gettextf("'::' or ':::' import not declared from: %s", sQuote(xx))
+              gettextf("'::' or ':::' import not declared from: %s", xx)
           }
       },
       if(length(xx <- x$others)) {
@@ -4212,7 +4211,7 @@ function(x, ...)
                 .pretty_format(sort(x$others)))
           } else {
               gettextf("'library' or 'require' call not declared from: %s",
-                       sQuote(xx))
+                       xx)
           }
       },
       if(nzchar(x$methods_message)) {
@@ -5439,7 +5438,7 @@ function(x)
 .pretty_format <-
 function(x)
 {
-    strwrap(paste(sQuote(x), collapse = " "),
+    strwrap(paste(x, collapse = " "),
             indent = 2L, exdent = 2L)
 }
 

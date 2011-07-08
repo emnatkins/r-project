@@ -186,12 +186,12 @@ loaded without the package being attached (for example by calls like
 @code{splines::ns}).
 
 The option of @emph{lazy loading} of code or data is mentioned at
-several points.  This is part of the installation, always selected for
-@R{} code (since @R{} 2.14.0) but optional for data.  When used the @R{}
-objects of the package are created at installation time, and stored in a
-database in the @file{R} directory of the installed package, being
-loaded into the session at first use.  This makes the @R{} session run
-faster and use less (virtual) memory.
+several points.  This is an optional part of the installation, selected
+by default for @R{} code (and not using it is deprecated).  When used
+the @R{} objects of the package are created at installation time, and
+stored in a database in the @file{R} directory of the installed package,
+being loaded into the session at first use.  This makes the @R{} session
+run faster and used less (virtual) memory.
 @ifset UseExternalXrefs
 (For technical details,
 @pxref{Lazy loading, , Lazy loading, R-ints,  R Internals}.)
@@ -352,9 +352,13 @@ entirely in @acronym{ASCII} --- if this is not possible it must contain
 an @samp{Encoding} field (see below).
 
 The mandatory @samp{Package} field gives the name of the package.  This
-should contain only letters, numbers and dot, have at least two
-characters and start with a letter and not end in a dot.  (Translation
-packages are allowed names of the form @samp{Translation-@var{ll}}.)
+should contain only letters, numbers and dot, and start with a letter.
+To be portable to Windows, it must not end in a dot.  (Translation
+packages are allowed names of the form @samp{Translation-@var{ll}}.)  Do
+not use @samp{R} as a package name: that has a special meaning in
+package dependency analysis.  Other single-character names are
+deprecated and will be disallowed as from @R{} 2.14.0, as will names
+ending in a dot.
 
 The mandatory @samp{Version} field gives the version of the package.
 This is a sequence of at least @emph{two} (and usually three)
@@ -571,23 +575,15 @@ Paths containing white space or quotes need to be quoted.  An
 OS-specific collation field (@samp{Collate.unix} or
 @samp{Collate.windows}) will be used instead of @samp{Collate}.
 
-The @samp{LazyData} field controls whether the @R{} datasets use
-lazy-loading: set the field's value to @samp{yes} or @samp{true} for
-lazy-loading and @samp{no} or @samp{false} for no lazy-loading.
-(Capitalized values are also accepted.)  The @samp{LazyLoad} field was
-used in versions prior to 2.14.0, but now is ignored (with a warning if
-a false value is supplied).
-
-The @samp{KeepSource} field controls if the package code is sourced
-using @code{keep.source = TRUE} or @code{FALSE}: it might be needed
-exceptionally for a package designed to always be used with
-@code{keep.source = TRUE}.
-
-The @samp{ByteCompile} field controls if the package code is
-byte-compiled on installation: the default is currently not to, so this
-may be useful for a package known to benefit particularly from
-byte-compilation (which can take quite a long time and increases the
-installed size of the package).
+The @samp{LazyLoad} and @samp{LazyData} fields control whether the @R{}
+objects and the datasets (respectively) use lazy-loading: set the
+field's value to @samp{yes} or @samp{true} for lazy-loading and
+@samp{no} or @samp{false} for no lazy-loading.  (Capitalized values are
+also accepted.)  If the package you are writing uses the @pkg{methods}
+package, specify@footnote{That is the default, but this stops someone
+overriding it when using @command{R CMD INSTALL}.}  @samp{LazyLoad:
+yes}.  The use of @samp{LazyLoad: no} is now deprecated and will be
+removed in @R{} 2.14.0.
 
 The @samp{ZipData} field controls whether the automatic Windows build
 will zip up the data directory or not: set this to @samp{no} if your
@@ -676,15 +672,16 @@ case) letter or digit and have one of the extensions @file{.R},
 @file{.R}, as this extension seems to be not used by any other software.
 It should be possible to read in the files using @code{source()}, so
 @R{} objects must be created by assignments.  Note that there need be no
-connection between the name of the file and the @R{} objects created by
-it.  Ideally, the @R{} code files should only directly assign @R{}
-objects and definitely should not call functions with side effects such
-as @code{require} and @code{options}.  If computations are required to
+connection between the name of the file and the @R{} objects created by it.
+Ideally, the @R{} code files should only directly assign @R{} objects
+and definitely should not call functions with side effects such as
+@code{require} and @code{options}.  If computations are required to
 create objects these can use code `earlier' in the package (see the
-@samp{Collate} field) plus functions in the @samp{Depends} packages
-provided that the objects created do not depend on those packages except
-@emph{via} name space imports.  (Packages without name spaces will work
-under somewhat less restrictive assumptions.)
+@samp{Collate} field) plus, @emph{only if lazyloading is used},
+functions in the @samp{Depends} packages provided that the objects
+created do not depend on those packages except @emph{via} name space
+imports.  (Packages without name spaces will work under somewhat less
+restrictive assumptions.)
 
 Two exceptions are allowed: if the @file{R} subdirectory contains a file
 @file{sysdata.rda} (a saved image of @R{} objects: please use suitable
@@ -846,7 +843,6 @@ line for each demo, giving its name and a description separated by white
 space. (Note that it is not possible to generate this index file
 automatically.)
 
-@cindex .Rinstignore file
 The contents of the @file{inst} subdirectory will be copied recursively
 to the installation directory.  Subdirectories of @file{inst} should not
 interfere with those used by @R{} (currently, @file{R}, @file{data},
@@ -1878,16 +1874,13 @@ executed, and the vignette PDFs re-made from their sources as a check of
 completeness of the sources (unless there is a @samp{Vignettes} field in
 the package's @file{DESCRIPTION} file with a false value).
 
-If there is an error@footnote{or if option @option{--use-valgrind} is
-used or environment variable @env{_R_CHECK_ALWAYS_LOG_VIGNETTE_OUTPUT_}
-is set to a true value} in executing the @R{} code in vignette
-@file{@var{foo.ext}}, a log file @file{@var{foo.ext}.log} is created in
-the check directory.  The vignette PDFs are re-made in a copy of the
-package sources in the @file{vign_test} subdirectory of the check
-directory, so for further information on errors look in directory
+If there is an error in executing the @R{} code in vignette
+@file{@var{foo}}, a log file @file{@var{foo}.log} is created in the
+check directory.  The vignette PDFs are re-made in a copy of the package
+sources in the @file{vign_test} subdirectory of the check directory, so
+for further information on errors look in directory
 @file{@var{pkgname}/vign_test/inst/doc}.  (It is only retained if there
-are errors or if environment variable @env{_R_CHECK_CLEAN_VIGN_TEST_} is
-set to a false value.)
+are errors.)
 
 @item
 The PDF version of the package's manual is created (to check that the
@@ -1992,8 +1985,7 @@ those pages containing build-time macros will be saved in
 macros, a @file{.pdf} version of the package manual will be built and
 installed in the @file{build/} subdirectory.  (This allows CRAN or other
 repositories to display the manual even if they are unable to install
-the package.)  This can be suppressed by the option @option{--no-manual}
-or if package's description contains @samp{BuildManual: no} or similar.
+the package.)
 
 One of the checks that @command{R CMD build} runs is for empty source
 directories.  These are in most (but not all) cases unintentional, if
@@ -2066,11 +2058,7 @@ and be comprised entirely of @acronym{ASCII} letters or digits or hyphen
 or underscore.
 
 A special case are PDF documents with sources in Sweave format, which we
-call @emph{package vignettes}.  As from @R{} 2.14.0 the preferred
-location for the Sweave sources is the subdirectory @file{vignettes} of
-the source packages, but for compatibility with earlier versions of
-@R{}, vignette sources will be looked for in @file{inst/doc} if
-@file{vignettes} does not exist.
+call @emph{package vignettes}.  
 
 Vignette sources are normally given the file extension @file{.Rnw} or
 @file{.Rtex}, but for historical reasons extensions@footnote{and to
@@ -2089,34 +2077,41 @@ the @file{inst/doc} hierarchy of the source package or by using calls to
 @code{system.file()}.  All other files needed to re-make the vignette
 PDFs (such as LaTeX style files, BiBTeX input files and files for any
 figures not created by running the code in the vignette) must in the
-sources under @file{vignettes}.
+sources (usually under @file{inst/doc}, but a file @file{.Rinstignore}
+can be used to exclude them from the installed package).  References to
+parallel source directories such as
+@example
+\graphicspath@{@{../../manual/@}@}
+@end example
+@noindent
+(from @pkg{RODBC}) will work as from @R{} 2.13.0.
 
 @code{R CMD build} will automatically@footnote{unless inhibited by using
 @samp{BuildVignettes: no} in the @file{DESCRIPTION} file.} create PDF
-versions of the vignettes in @file{inst/doc} for distribution with the
-package sources.  By including the PDF version in the package sources it
-is not necessary that the vignettes can be run and compiled at install
-time, i.e., the package author can use private @R{} packages, screen
-snapshots and @LaTeX{} extensions which are only available on his
+versions of the vignettes for distribution with the package sources.  By
+including the PDF version in the package sources it is not necessary
+that the vignettes can be run and compiled at install time, i.e., the
+package author can use private @R{} packages, screen snapshots and
+@LaTeX{} extensions which are only available on his
 machine.@footnote{provided the conditions of the package's licence are
 met: many would see these as incompatible with an Open Source licence.}
 
 By default @code{R CMD build} will run @code{Sweave} on all files in
-Sweave format in @file{vignettes}, or if that does not exist,
-@file{inst/doc} (but not in sub-directories).  If no @file{Makefile} is
-found in directory @file{inst/doc}, then @code{tools::texi2dvi(pdf =
-TRUE)} is run on all processed vignettes.  Whenever a @file{Makefile} is
-found, then @code{R CMD build} will try to run @command{make} after the
-@code{Sweave} runs.  The first target in the @file{Makefile} should take
-care of both creation of PDF files and cleaning up afterwards (including
-after @code{Sweave}), i.e., delete all files that shall not appear in
-the final package archive.  Note that if the @code{make} step runs @R{}
-it needs to be careful to respect the environment values of @env{R_LIBS}
-and @env{R_HOME}@footnote{As from @R{} 2.13.0, @code{R_HOME/bin} is
-prepended to the @env{PATH} so that references to @command{R} or
-@command{Rscript} in the @file{Makefile} do make use of the currently
-running version of @R{}.}.  Finally, if there is a @file{Makefile} and
-it has a @samp{clean:} target, @command{make clean} is run.
+Sweave format in @file{inst/doc} (but not in sub-directories).  If no
+@file{Makefile} is found in directory @file{inst/doc}, then
+@code{tools::texi2dvi(pdf = TRUE)} is run on all processed vignettes.
+Whenever a @file{Makefile} is found, then @code{R CMD build} will try to
+run @command{make} after the @code{Sweave} runs.  The first target in
+the @file{Makefile} should take care of both creation of PDF files and
+cleaning up afterwards (including after @code{Sweave}), i.e., delete all
+files that shall not appear in the final package archive.  Note that if
+the @code{make} step runs @R{} it needs to be careful to respect the
+environment values of @env{R_LIBS} and @env{R_HOME}@footnote{As from
+@R{} 2.13.0, @code{R_HOME/bin} is prepended to the @env{PATH} so that
+references to @command{R} or @command{Rscript} in the @file{Makefile} do
+make use of the currently running version of @R{}.}.  Finally, if there
+is a @file{Makefile} and it has a @samp{clean:} target, @command{make
+clean} is run.
 
 All the usual @emph{caveats} about including a @file{Makefile} apply.
 It must be portable (no @acronym{GNU} extensions) and must work
@@ -2178,15 +2173,6 @@ was 72Mb!  This is usually caused by the inclusion of overly detailed
 figures, which will not render well in PDF viewers.  Sometimes it is
 much better to generate fairly high resolution bitmap (PNG, JPEG)
 figures and include those in the PDF document.
-
-@cindex .install_extras file
-When @command{R CMD build} build the vignette PDFs, it copies these and
-the vignette sources from directory @file{vignettes} to
-@file{inst/doc}.  To install any other files from the @file{vignettes}
-directory, include a file @file{vignettes/.install_extras} which
-specifies these as Perl-like regular expressions on one or more lines.
-(See the description of the @file{.Rinstignore} file for full details.)
-
 
 @node Encodings and vignettes,  , Writing package vignettes, Writing package vignettes
 @subsection Encodings and vignettes
@@ -2373,15 +2359,13 @@ running Ghostscript.
 
 Most of the large PDFs we have encountered have been large because of
 the inclusion of figures, for example complex figures from @R{} (where
-@file{.png} versions may be more appropriate, and compression was not
-used prior to @R{} 2.14.0, so it may help to re-generate them) and
-screendumps.  However, some have been unnecessarily large due to
-@command{pdftex} settings.  The modern default is to use both PDF
-compression and PDF object compression (which needs the PDF 1.5
-specification from 2003): this is the default in most @TeX{}
-distributions by not MiKTeX.  It can be overridden by code in the
-preamble of an Sweave or @LaTeX{} file: see how this is done for the
-@R{} reference manual at
+@file{.png} versions may be more appropriate) and screendumps.  However,
+some have been unnecessarily large due to @command{pdftex} settings.  The
+modern default is to use both PDF compression and PDF object compression
+(which needs the PDF 1.5 specification from 2003): this is the default
+in most @TeX{} distributions by not MiKTeX.  It can be overridden by
+code in the preamble of an Sweave or @LaTeX{} file: see how this is done
+for the @R{} reference manual at
 @uref{https://svn.r-project.org/R/trunk/doc/manual/refman.top}.
 @end enumerate
 
@@ -3712,8 +3696,7 @@ for exchanging information between developers and/or interested useRs.
 * Marking text::                
 * Lists and tables::            
 * Cross-references::            
-* Mathematics::
-* Figures::
+* Mathematics::                 
 * Insertions::                  
 * Indices::                     
 * Platform-specific sections::  
@@ -4621,7 +4604,7 @@ the search path.  Because they have been frequently misused, the HTML
 help system looks for topic @code{@var{foo}} in package @pkg{@var{pkg}}
 if it does not find file @file{@var{foo}.html}.
 
-@node Mathematics, Figures, Cross-references, Writing R documentation files
+@node Mathematics, Insertions, Cross-references, Writing R documentation files
 @section Mathematics
 @cindex Mathematics in documentation
 @findex \eqn
@@ -4685,51 +4668,7 @@ and @code{\sqrt}, @code{\ge} and @code{\le} as mathematical symbols.
 Note that only basic @LaTeX{} can be used, there being no provision to
 specify @LaTeX{} style files such as the AMS extensions.
 
-@node Figures, Insertions, Mathematics, Writing R documentation files
-@section Figures
-@cindex Figures in documentation
-@findex \figure
-
-To include figures in help pages, use the 
-@code{\figure} markup.  There are three forms.
-
-The two commonly used simple forms are @code{\figure@{@var{filename}@}} and
-@code{\figure@{@var{filename}@}@{@var{alternate text}@}}.  This
-will include a copy of the figure in either HTML or @LaTeX{} output.  In
-text output, the alternate text will be displayed instead.  (When the
-second argument is omitted, the filename will be used.)
-Both the filename and the alternate text will be parsed verbatim,
-and should not include special characters that are significant
-in HTML or @LaTeX{}.
-
-The expert form is 
-@code{\figure@{@var{filename}@}@{options: @var{string}@}}.  (The
-word @samp{options:} must be typed exactly as shown and followed
-by at least one space.)  In this form, the @var{string} is
-copied into the HTML @code{img} tag as attributes following
-the @code{src} attribute, or into the second argument of
-the @code{\Figure} macro in LaTeX, which by default is used
-as options to an @code{\includegraphics} call.  As it is unlikely
-that any single string would suffice for both display modes,
-the expert form would normally be wrapped in conditionals.  
-It is up to the author to make sure that legal HTML/LaTeX is
-used.  For example, to include a logo in both HTML (using the simple
-form) and LaTeX (using the expert form), the following could be used:
-
-@example
-\if@{html@}@{\figure@{logo.jpg@}@{Our logo@}@}
-\if@{latex@}@{\figure@{logo.jpg@}@{options: width=0.5in@}@}
-@end example
-
-The files containing the figures should be stored in the directory
-@file{man/figures}.  Files with extensions @file{.jpg}, @file{.pdf},
-@file{.png} and @file{.svg} from that directory will be copied to the
-@file{html/figures} directory at install time. (Figures 
-in PDF format will not display in most HTML browsers, but
-might be the best choice in reference manuals.)  Specify the filename
-relative to @file{man/figures} in the @code{\figure} directive.
-
-@node Insertions, Indices, Figures, Writing R documentation files
+@node Insertions, Indices, Mathematics, Writing R documentation files
 @section Insertions
 
 @findex \R
@@ -5056,7 +4995,7 @@ be recognized, and the coverage of non-Latin characters@footnote{@R{}
 some OSes this will need Cyrillic support added to @LaTeX{}, so
 environment variable @env{_R_CYRILLIC_TEX_} may need to be set to a
 non-empty value to enable this.} is fairly low.  Using @LaTeX{}
-@code{inputenx} (see @code{?Rd2pdf} in @R{}) will give greater coverage
+@code{inputenx} (see @code{?Rd2dvi} in @R{}) will give greater coverage
 of UTF-8.
 
 The @code{\enc} command (@pxref{Insertions}) can be used to provide
@@ -5073,7 +5012,7 @@ encoding, and includes a
 @noindent
 command, and this needs to be matched by a suitable invocation of the
 @command{\usepackage@{inputenc@}} command.  The @R{} utility @command{R
-CMD Rd2pdf} looks at the converted code and includes the encodings used:
+CMD Rd2dvi} looks at the converted code and includes the encodings used:
 it might for example use
 
 @example
@@ -5083,7 +5022,7 @@ it might for example use
 @noindent
 (Use of @code{utf8} as an encoding requires @LaTeX{} dated 2003/12/01 or
 later.  Also, the use of Cyrillic characters in @samp{UTF-8} appears to
-also need @samp{\usepackage[T2A]@{fontenc@}}, and @command{R CMD Rd2pdf}
+also need @samp{\usepackage[T2A]@{fontenc@}}, and @command{R CMD Rd2dvi}
 includes this conditionally on the file @file{t2aenc.def} being present
 and environment variable @env{_R_CYRILLIC_TEX_} being set.)
 
@@ -5113,7 +5052,7 @@ documentation in @file{Rd} files, which can be specified either
 explicitly or by the path to a directory with the sources of a package.
 In the latter case, a reference manual for all documented objects in the
 package is created, including the information in the @file{DESCRIPTION}
-files.  Use for DVI output was deprecated in @R{} 2.14.0.
+files.
 
 @findex R CMD Sweave
 @findex R CMD Stangle
@@ -5190,7 +5129,8 @@ tidy up.  Create a file @file{tidy.R} containing
 
 @example
 @group
-source("myfuns.R", keep.source = FALSE)
+options(keep.source = FALSE)
+source("myfuns.R")
 dump(ls(all = TRUE), file = "new.myfuns.R")
 @end group
 @end example
@@ -10429,13 +10369,9 @@ HSV to RGB and back.  Note that all colours must be in [0,1].
 A system-independent interface to produce the name of a temporary
 file is provided as
 
-@deftypefun {char *} R_tmpnam (const char *@var{prefix}, const char *@var{tmpdir})
-@deftypefunx {char *} R_tmpnam2 (const char *@var{prefix}, const char *@var{tmpdir}, const char *@var{fileext})
+@deftypefun {char *} R_tmpnam (const char *@var{prefix})
 Return a pathname for a temporary file with name beginning with
-@var{prefix} and ending with @var{fileext} in directory @var{tmpdir}.
-A @code{NULL} prefix or extension is replaced by @code{""}.  Note that
-the return value is @code{malloc}ed and should be @code{free}d when no
-longer needed (unlike the system call @code{tmpnam}).
+@var{prefix}.  A @code{NULL} prefix is replaced by @code{""}.
 @end deftypefun
 
 @c ----

@@ -881,7 +881,7 @@ round.POSIXt <- function(x, units=c("secs", "mins", "hours", "days"))
 
 `[.POSIXlt` <- function(x, ..., drop = TRUE)
 {
-    val <- lapply(X = x, FUN = "[", ..., drop = drop)
+    val <- lapply(x, "[", ..., drop = drop)
     attributes(val) <- attributes(x) # need to preserve timezones
     val
 }
@@ -915,7 +915,7 @@ rep.POSIXct <- function(x, ...)
 
 rep.POSIXlt <- function(x, ...)
 {
-    y <- lapply(X = x, FUN = rep, ...)
+    y <- lapply(x, rep, ...)
     attributes(y) <- attributes(x)
     y
 }

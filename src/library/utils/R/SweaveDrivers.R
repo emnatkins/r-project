@@ -53,7 +53,7 @@ RweaveLatexSetup <-
         if (.Platform$OS.type == "windows")
             styfile <- chartr("\\", "/", styfile)
         if (length(grep(" ", styfile)))
-            warning(gettextf("path to %s contains spaces,\n", sQuote(styfile)),
+            warning(gettextf("path to '%s' contains spaces,\n", styfile),
                     gettext("this may cause problems when running LaTeX"),
                     domain = NA)
     } else styfile <- "Sweave"
@@ -61,16 +61,12 @@ RweaveLatexSetup <-
     options <- list(prefix = TRUE, prefix.string = prefix.string,
                     engine = "R", print = FALSE, eval = TRUE, fig = FALSE,
                     pdf = TRUE, eps = FALSE, png = FALSE, jpeg = FALSE,
-                    grdevice = "", width = 6, height = 6, resolution = 300,
-                    term = TRUE, echo = TRUE, keep.source = TRUE,
-                    results = "verbatim",
+                    width = 6, height = 6, resolution = 300, term = TRUE,
+                    echo = TRUE, keep.source = FALSE, results = "verbatim",
                     split = FALSE, strip.white = "true", include = TRUE,
                     pdf.version = grDevices::pdf.options()$version,
                     pdf.encoding = grDevices::pdf.options()$encoding,
-                    pdf.compress = grDevices::pdf.options()$compress,
-                    expand = TRUE, # unused by us, for 'highlight'
-                    concordance = FALSE, figs.only = TRUE)
-    options$.defaults <- options
+                    concordance = FALSE, expand = TRUE, figs.only = FALSE)
     options[names(dots)] <- dots
 
     ## to be on the safe side: see if defaults pass the check
@@ -96,8 +92,7 @@ makeRweaveLatexCodeRunner <- function(evalFunc = RweaveEvalWithOpt)
             grDevices::pdf(file = paste(chunkprefix, "pdf", sep = "."),
                            width = width, height = height,
                            version = options$pdf.version,
-                           encoding = options$pdf.encoding,
-                           compress = options$pdf.compress)
+                           encoding = options$pdf.encoding)
         eps.Swd <- function(name, width, height, ...)
             grDevices::postscript(file = paste(name, "eps", sep = "."),
                                   width = width, height = height,
@@ -131,7 +126,7 @@ makeRweaveLatexCodeRunner <- function(evalFunc = RweaveEvalWithOpt)
                 devs <- c(devs, list(jpeg.Swd))
                 devoffs <- c(devoffs, list(grDevices::dev.off))
             }
-            if (nzchar(grd <- options$grdevice)) {
+            if (!is.null(grd <- options$grdevice)) {
                 devs <- c(devs, list(get(grd, envir = .GlobalEnv)))
                 grdo <- paste(grd, "off", sep = ".")
                 devoffs <- c(devoffs,
@@ -481,7 +476,7 @@ RweaveLatexFinish <- function(object, error = FALSE)
     inputname <- object$filename
     if (!object$quiet && !error)
         cat("\n",
-            sprintf("You can now run (pdf)latex on %s", sQuote(outputname)),
+            sprintf("You can now run (pdf)latex on '%s'", outputname),
             "\n", sep = "")
     close(object$output)
     if (length(object$chunkout))
@@ -509,37 +504,31 @@ RweaveLatexFinish <- function(object, error = FALSE)
 ## This is the check function for both RweaveLatex and Rtangle drivers
 RweaveLatexOptions <- function(options)
 {
-    defaults <- options[[".defaults"]]
+    ## ATTENTION: Changes in this function have to be reflected in the
+    ## defaults in the initialization in RweaveLatexSetup
 
     ## convert a character string to logical
     c2l <- function(x)
-        if (is.null(x)) FALSE else suppressWarnings(as.logical(x))
+        if (is.null(x)) FALSE else as.logical(toupper(as.character(x)))
 
     ## numeric
     NUMOPTS <- c("width", "height", "resolution")
 
-    ## character: largely for safety, but 'label' matters as there
-    ## is no default (and someone uses "F")
-    CHAROPTS <- c("results", "prefix.string", "engine", "label",
-                  "strip.white", "pdf.version", "pdf.encoding", "grdevice")
-
+    ## not logical
+    NOLOGOPTS <- c(NUMOPTS, "results", "prefix.string", "engine",
+                   "label", "strip.white", "pdf.version", "pdf.encoding",
+                   "grdevice")
 
     for (opt in names(options)) {
-        if(opt == ".defaults") next
-        oldval <- options[[opt]]
-        defval <- defaults[[opt]]
-        if(opt %in% CHAROPTS || is.character(defval)) {
-        } else if(is.logical(defval))
-            options[[opt]] <- c2l(oldval)
-        else if(opt %in% NUMOPTS || is.numeric(defval))
-            options[[opt]] <- as.numeric(oldval)
-        else if(!is.na(newval <- c2l(oldval)))
-            options[[opt]] <- newval
-        else if(!is.na(newval <- suppressWarnings(as.numeric(oldval))))
-            options[[opt]] <- newval
-        if (is.na(options[[opt]]))
-            stop(gettextf("invalid value for %s : %s", sQuote(opt), oldval),
-                 domain = NA)
+        if (! (opt %in% NOLOGOPTS)) {
+            oldval <- options[[opt]]
+            if (!is.logical(options[[opt]]))
+                options[[opt]] <- c2l(options[[opt]])
+            if (is.na(options[[opt]]))
+                stop(gettextf("invalid value for '%s' : %s", opt, oldval),
+                     domain = NA)
+        } else if (opt %in% NUMOPTS)
+            options[[opt]] <- as.numeric(options[[opt]])
     }
 
     if (!is.null(options$results)) {
@@ -649,11 +638,7 @@ RtangleSetup <-
                     prefix.string = prefix.string,
                     engine = "R", eval = TRUE,
                     show.line.nos = FALSE)
-    options$.defaults <- options
     options[names(dots)] <- dots
-
-    ## to be on the safe side: see if defaults pass the check
-    options <- RweaveLatexOptions(options)
 
     list(output = output, annotate = annotate, options = options,
          chunkout = list(), quiet = quiet, syntax = syntax)

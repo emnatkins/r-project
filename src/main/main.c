@@ -37,7 +37,9 @@
 #include "Parse.h"
 #include "Startup.h"
 
-#include <locale.h>
+#ifdef HAVE_LOCALE_H
+# include <locale.h>
+#endif
 
 #ifdef ENABLE_NLS
 void attribute_hidden nl_Rdummy(void)
@@ -661,9 +663,19 @@ static void R_LoadProfile(FILE *fparg, SEXP env)
 
 int R_SignalHandlers = 1;  /* Exposed in R_interface.h */
 
-unsigned int TimeToSeed(void); /* datetime.c */
+/* Use this to allow e.g. Win32 malloc to call warning.
+   Don't use R-specific type, e.g. Rboolean */
+/* int R_Is_Running = 0; now in Defn.h */
 
-const char* get_workspace_name();  /* from startup.c */
+#include <time.h>
+#ifdef HAVE_SYS_TIME_H
+# include <sys/time.h>
+#endif
+
+#ifdef Win32
+# include <windows.h> /* for GetTickCount */
+# include <process.h> /* for getpid */
+#endif
 
 void setup_Rmainloop(void)
 {
@@ -732,13 +744,8 @@ void setup_Rmainloop(void)
 		 "Setting LC_MESSAGES failed, using \"C\"\n");
 #endif
     /* NB: we do not set LC_NUMERIC */
-#ifdef LC_MONETARY
-    if(!setlocale(LC_MONETARY, ""))
-	snprintf(deferred_warnings[ndeferred_warnings++], 250,
-		 "Setting LC_PAPER failed, using \"C\"\n");
-#endif
 #ifdef LC_PAPER
-    if(!setlocale(LC_MONETARY, ""))
+    if(!setlocale(LC_PAPER, ""))
 	snprintf(deferred_warnings[ndeferred_warnings++], 250,
 		 "Setting LC_PAPER failed, using \"C\"\n");
 #endif
@@ -767,8 +774,28 @@ void setup_Rmainloop(void)
 #endif
 #endif
 
-    /* make sure srand is called before R_tmpnam, PR#14381 */
-    srand(TimeToSeed());
+    /* make sure srand is called before R_tmpnam, PR#14381
+       Copied from RNG.c: Randomize */
+    {
+	int seed;
+#if HAVE_GETTIMEOFDAY
+	{
+	    struct timeval tv;
+	    gettimeofday (&tv, NULL);
+	    seed = ((uint64_t) tv.tv_usec << 16) ^ tv.tv_sec;
+	}
+#elif defined(Win32)
+	/* Try to avoid coincidence for processes launched almost
+	   simultaneously */
+	seed = (int) GetTickCount() + getpid();
+#elif HAVE_TIME
+	/* C89, so should work */
+	seed = time(NULL);
+#else
+	/* unlikely, but use random contents */
+#endif
+	srand(seed);    
+    }
 
     InitTempDir(); /* must be before InitEd */
     InitMemory();
@@ -904,12 +931,9 @@ void setup_Rmainloop(void)
 	doneit = 1;
 	R_InitialData();
     }
-    else {
-    	if (! SETJMP(R_Toplevel.cjmpbuf)) {
-	    warning(_("unable to restore saved data in %s\n"), get_workspace_name());
-	}
-    }
-    
+    else
+	R_Suicide(_("unable to restore saved data in .RData\n"));
+
     /* Initial Loading is done.
        At this point we try to invoke the .First Function.
        If there is an error we continue. */

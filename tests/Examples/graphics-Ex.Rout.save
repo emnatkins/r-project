@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2011-07-05 r56287)
+R version 2.13.1 RC (2011-07-05 r56282)
 Copyright (C) 2011 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-unknown-linux-gnu (64-bit)
@@ -747,9 +747,8 @@ temperature no yes
 > plot(qlogis, main = "The Inverse Logit : qlogis()")
 > abline(h = 0, v = 0:2/2, lty = 3, col = "gray")
 > 
-> curve(sin, -2*pi, 2*pi, xname = "t")
-> curve(tan, xname = "t", add = NA,
-+       main = "curve(tan)  --> same x-scale as previous plot")
+> curve(sin, -2*pi, 2*pi)
+> curve(tan, main = "curve(tan)  --> same x-scale as previous plot")
 > 
 > op <- par(mfrow = c(2, 2))
 > curve(x^3 - 3*x, -2, 2)
@@ -1989,7 +1988,6 @@ N
 > points.default # to see how it calls "plot.xy(xy.coords(x, y), ...)"
 function (x, y = NULL, type = "p", ...) 
 plot.xy(xy.coords(x, y), type = type, ...)
-<bytecode: 0x2200bb0>
 <environment: namespace:graphics>
 > 
 > 
@@ -2744,7 +2742,7 @@ $`11.33`
 > 
 > ### Name: sunflowerplot
 > ### Title: Produce a Sunflower Scatter Plot
-> ### Aliases: sunflowerplot sunflowerplot.default sunflowerplot.formula
+> ### Aliases: sunflowerplot
 > ### Keywords: hplot smooth nonparametric
 > 
 > ### ** Examples
@@ -2756,10 +2754,6 @@ $`11.33`
 > sunflowerplot(iris[, 3:4])
 > ## Imitating  Chambers et al., p.109, closely:
 > sunflowerplot(iris[, 3:4], cex=.2, cex.fact=1, size=.035, seg.lwd=.8)
-> ## or
-> sunflowerplot(Petal.Width ~ Petal.Length, data=iris,
-+               cex=.2, cex.fact=1, size=.035, seg.lwd=.8)
-> 
 > 
 > sunflowerplot(x=sort(2*round(rnorm(100))), y= round(rnorm(100),0),
 +               main = "Sunflower Plot of Rounded N(0,1)")
@@ -2884,7 +2878,6 @@ function (xy = 1, warn.log = TRUE)
     u <- par("usr")
     xy * c(u[2L] - u[1L], u[4L] - u[3L])/par("pin")
 }
-<bytecode: 0x3c0b5d8>
 <environment: namespace:graphics>
 > 
 > ## plot labels offset 0.12 inches to the right
@@ -2964,7 +2957,7 @@ function (xy = 1, warn.log = TRUE)
 > ### * <FOOTER>
 > ###
 > cat("Time elapsed: ", proc.time() - get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  5.348 0.122 6.829 0 0 
+Time elapsed:  6.703 0.178 7.022 0 0 
 > grDevices::dev.off()
 null device 
           1 

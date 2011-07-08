@@ -99,7 +99,6 @@ typedef struct QuartzSpecific_s {
     int           canvas;          /* background color */
     int           antialias,smooth;/* smoothing flags (only aa makes any sense) */
     int           flags;           /* additional QDFLAGs */
-    int           holdlevel;       /* hold level */
     int           redraw;          /* redraw flag is set when replaying
 		                              and inhibits syncs on Mode */
     CGRect        clipRect;        /* clipping rectangle */
@@ -345,7 +344,6 @@ static void     RQuartz_Activate(pDevDesc);
 static void     RQuartz_Deactivate(pDevDesc);
 static void     RQuartz_Size(double*, double*, double*, double*, pDevDesc);
 static void     RQuartz_NewPage(const pGEcontext, pDevDesc);
-static int      RQuartz_HoldFlush(pDevDesc, int);
 static void     RQuartz_Clip(double, double, double, double, pDevDesc);
 static double   RQuartz_StrWidth(const char*, const pGEcontext, pDevDesc);
 static void     RQuartz_Text(double, double, const char*, double, double, const pGEcontext, pDevDesc);
@@ -397,7 +395,6 @@ void* QuartzDevice_Create(void *_dev, QuartzBackend_t *def)
     dev->locator      = RQuartz_Locator;
     dev->mode         = RQuartz_Mode;
     dev->metricInfo   = RQuartz_MetricInfo;
-    dev->holdflush    = RQuartz_HoldFlush;
     dev->hasTextUTF8  = TRUE;
     dev->textUTF8     = RQuartz_Text;
     dev->strWidthUTF8 = RQuartz_StrWidth;
@@ -452,7 +449,6 @@ void* QuartzDevice_Create(void *_dev, QuartzBackend_t *def)
     qd->dirty = 0;
     qd->redraw= 0;
     qd->async = 0;
-    qd->holdlevel = 0;
     return (QuartzDesc_t)qd;
 }
 
@@ -844,29 +840,6 @@ static void RQuartz_NewPage(CTXDESC)
     }
 }
 
-static int RQuartz_HoldFlush(DEVDESC, int level)
-{
-    int ol;
-    XD;
-    /* FIXME: should we check for interactive? */
-    ol = xd->holdlevel;
-    xd->holdlevel += level;
-    if (xd->holdlevel < 0) xd->holdlevel = 0;
-    if (xd->holdlevel == 0) { /* flush */
-	/* trigger flush */
-        if (xd->sync)
-            xd->sync(xd, xd->userInfo);
-        else {
-	    CGContextRef ctx = xd->getCGContext(xd, xd->userInfo);
-	    if (ctx)
-		CGContextSynchronize(ctx);
-	}
-    } else if (ol == 0) { /* first hold */
-	/* could display a wait cursor or something ... */
-    }
-    return xd->holdlevel;
-}
-
 static void RQuartz_Clip(double x0, double x1, double y0, double y1, DEVDESC)
 {
     DRAWSPEC;
@@ -1187,7 +1160,7 @@ static void RQuartz_Mode(int mode, DEVDESC)
     /* don't do anything in redraw as we can signal the end */
     if (xd->redraw) return;
     /* mode=0 -> drawing complete, signal sync */
-    if (mode == 0 && xd->holdlevel == 0) {
+    if (mode == 0) {
         if (xd->sync)
             xd->sync(xd, xd->userInfo);
         else

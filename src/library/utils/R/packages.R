@@ -287,13 +287,6 @@ update.packages <- function(lib.loc = NULL, repos = getOption("repos"),
     if(is.null(available))
         available <- available.packages(contriburl = contriburl,
                                         method = method)
-
-    if(!is.matrix(oldPkgs) && is.character(oldPkgs)) {
-    	subset <- oldPkgs
-    	oldPkgs <- NULL
-    } else
-    	subset <- NULL
-
     if(is.null(oldPkgs)) {
         ## since 'available' is supplied, 'contriburl' and 'method' are unused
 	oldPkgs <- old.packages(lib.loc = lib.loc,
@@ -301,14 +294,9 @@ update.packages <- function(lib.loc = NULL, repos = getOption("repos"),
 				available = available, checkBuilt = checkBuilt)
 	if(is.null(oldPkgs))
 	    return(invisible())
-    } else if (!(is.matrix(oldPkgs) && is.character(oldPkgs)))
-	stop("invalid 'oldPkgs'; must be a character vector or a result from old.packages()")
-
-    if(!is.null(subset)) {
-    	oldPkgs <- oldPkgs[ rownames(oldPkgs) %in% subset, ,drop=FALSE]
-    	if (nrow(oldPkgs) == 0)
-    	    return(invisible())
     }
+    else if(!(is.matrix(oldPkgs) && is.character(oldPkgs)))
+	stop("invalid 'oldPkgs'; must be a result from old.packages()")
 
     update <- if(is.character(ask) && ask == "graphics") {
         if(.Platform$OS.type == "windows" || .Platform$GUI == "AQUA"
@@ -462,7 +450,7 @@ new.packages <- function(lib.loc = NULL, repos = getOption("repos"),
             md <- readRDS(file)
             desc <- md$DESCRIPTION[fields]
             if (!length(desc)) {
-                warning(gettextf("metadata of %s is corrupt", sQuote(pkgpath)),
+                warning(gettextf("metadata of '%s' is corrupt", pkgpath),
                         domain = NA)
                 next
             }
@@ -584,7 +572,7 @@ download.packages <- function(pkgs, destdir, available = NULL,
         ok <- (available[,"Package"] == p)
         ok <- ok & !is.na(ok)
         if(!any(ok))
-            warning(gettextf("no package %s at the repositories", sQuote(p)),
+            warning(gettextf("no package '%s' at the repositories", p),
                     domain = NA, immediate. = TRUE)
         else {
             if(sum(ok) > 1L) { # have multiple copies
@@ -623,7 +611,7 @@ download.packages <- function(pkgs, destdir, available = NULL,
                 if(file.exists(fn))
                     retval <- rbind(retval, c(p, fn))
                 else
-                    warning(gettextf("package %s does not exist on the local repository", sQuote(p)),
+                    warning(gettextf("package '%s' does not exist on the local repository", p),
                             domain = NA, immediate. = TRUE)
             } else {
                 url <- paste(repos, fn, sep="/")
@@ -633,7 +621,7 @@ download.packages <- function(pkgs, destdir, available = NULL,
                 if(!inherits(res, "try-error") && res == 0L)
                     retval <- rbind(retval, c(p, destfile))
                 else
-                    warning(gettextf("download of package %s failed", sQuote(p)),
+                    warning(gettextf("download of package '%s' failed", p),
                             domain = NA, immediate. = TRUE)
             }
         }
@@ -867,8 +855,11 @@ function(pkgs, available, dependencies = c("Depends", "Imports", "LinkingTo"))
     ## return a named list of character vectors of their dependencies
     if(!length(pkgs)) return(NULL)
     if(is.null(available))
-        stop(gettextf("%s must be supplied", sQuote(available)), domain = NA)
+        stop(gettextf("'%s' must be supplied", available), domain = NA)
     info <- available[pkgs, dependencies, drop = FALSE]
+    ## we always want a list here, but apply can simplify to a matrix.
+    ## x <- apply(info, 1L, .clean_up_dependencies)
+    ## if(length(pkgs) == 1) {x <- list(as.vector(x)); names(x) <- pkgs}
     x <- vector("list", length(pkgs)); names(x) <- pkgs
     for (i in seq_along(pkgs))
         x[[i]] <- .clean_up_dependencies(info[i, ])

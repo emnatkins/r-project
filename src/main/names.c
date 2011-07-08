@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2011  The R Development Core Team
+ *  Copyright (C) 1997--2010  The R Development Core Team
  *  Copyright (C) 2003, 2004  The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -531,7 +531,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"utf8ToInt",	do_utf8ToInt,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"intToUtf8",	do_intToUtf8,	1,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"encodeString",do_encodeString,1,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
-{"iconv",	do_iconv,	0,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
+{"iconv",	do_iconv,	0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"strtrim",	do_strtrim,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"strtoi",	do_strtoi,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 
@@ -616,7 +616,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"Version",	do_version,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"machine",	do_machine,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"commandArgs", do_commandArgs, 0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
-{"unzip",	do_unzip,	0,	111,    7,	{PP_FUNCALL, PREC_FN,	0}},
+{"unzip",	do_unzip,	0,	111,    6,	{PP_FUNCALL, PREC_FN,	0}},
 #ifdef Win32
 {"system",	do_system,	0,	211,	5,	{PP_FUNCALL, PREC_FN,	0}},
 #else
@@ -810,7 +810,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"Sys.getpid",	do_sysgetpid,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"normalizePath",do_normalizepath,0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"Sys.glob",	do_glob,	0,      11,	2,      {PP_FUNCALL, PREC_FN,   0}},
-{"unlink",	do_unlink,	0,	111,	3,	{PP_FUNCALL, PREC_FN,	0}},
+{"unlink",	do_unlink,	0,	111,	2,	{PP_FUNCALL, PREC_FN,	0}},
 
 /* Complex Valued Functions */
 {"fft",		do_fft,		0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
@@ -821,8 +821,9 @@ attribute_hidden FUNTAB R_FunTab[] =
 /* Device Drivers */
 
 #ifdef Unix
-{"X11",		do_X11,		0,	111,	17,	{PP_FUNCALL, PREC_FN,	0}},
+{"X11",		do_X11,		0,	111,	16,	{PP_FUNCALL, PREC_FN,	0}},
 {"savePlot",	do_saveplot,	0,	111,	3,	{PP_FUNCALL, PREC_FN,	0}},
+{"cairo",	do_cairo,	0,	111,	9,	{PP_FUNCALL, PREC_FN,	0}},
 #endif
 
 /* Graphics */
@@ -885,7 +886,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"clip",	do_clip,	0,	111,	4,      {PP_FUNCALL, PREC_FN,   0}},
 {"grconvertX",	do_convertXY,	0,	11,	3,      {PP_FUNCALL, PREC_FN,   0}},
 {"grconvertY",	do_convertXY,	1,	11,	3,      {PP_FUNCALL, PREC_FN,   0}},
-{"devHoldFlush",do_devholdflush,0,	111,	1,      {PP_FUNCALL, PREC_FN,   0}},
 
 /* Objects */
 {"inherits",	do_inherits,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
@@ -1041,7 +1041,7 @@ SEXP attribute_hidden do_primitive(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP name, prim;
     checkArity(op, args);
     name = CAR(args);
-    if (!isString(name) || length(name) != 1 ||
+    if (!isString(name) || length(name) < 1 ||
 	STRING_ELT(name, 0) == R_NilValue)
 	errorcall(call, _("string argument required"));
     prim = R_Primitive(CHAR(STRING_ELT(name, 0)));

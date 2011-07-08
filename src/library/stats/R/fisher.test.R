@@ -46,10 +46,8 @@ function(x, y = NULL, workspace = 200000, hybrid = FALSE,
             stop("'x' and 'y' must have the same length")
         DNAME <- paste(DNAME, "and", deparse(substitute(y)))
         OK <- complete.cases(x, y)
-        ## use as.factor rather than factor here to be consistent with
-        ## pre-tabulated data
-        x <- as.factor(x[OK])
-        y <- as.factor(y[OK])
+        x <- factor(x[OK])
+        y <- factor(y[OK])
         if((nlevels(x) < 2L) || (nlevels(y) < 2L))
             stop("'x' and 'y' must have at least 2 levels")
         x <- table(x, y)

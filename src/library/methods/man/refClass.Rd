@@ -212,15 +212,6 @@ name \code{.self}, as shown in the \code{save=} method of the
 example.
 The special object \code{.refClassDef} contains the definition of the
 class of the object.
-These fields are read-only (it makes no sense to modify these
-references), with one exception.
-The \code{.self} field can be modified in the \code{$initialize} %$
-method, because the object is still being created at this stage.
-(Assignments to this field, as to all fields, need to use the
-non-local assignment operator.)
-This is the preferred way to assign S4-style attributes to the object,
-if you need to do so; but remember that these attributes will not
-behave according to reference semantics, unlike fields.
 
 The methods available include methods inherited from superclasses, as
 discussed in the next section.
@@ -392,7 +383,7 @@ this method will be called once the reference object has been
 created.  You should write such a method for a class that needs to do
 some special initialization.
 In particular, a reference method is recommended rather than a method
-for the S4 generic function \code{initialize()}, because some special initialization is
+for the S4 generic function, because some special initialization is
 required for reference objects \emph{before} the initialization of
 fields.
 As with S4 classes, methods are written for \code{$initialize()} %$
@@ -438,15 +429,6 @@ Named arguments
 are method definitions, which will be
 installed in the class, as if they had been supplied in the
 \code{methods} argument to \code{setRefClass()}.
-Supplying methods in this way, rather than in the call to
-\code{setRefClass()}, is largely for the sake of clearer source code
-when many or large methods are being defined.
-All methods for a class should be defined in the source code that
-defines the class, typically as part of a package.
-In particular, methods can not be redefined in a class in an attached
-package with a namespace: The class method checks for a locked
-binding of the class definition.
-
 
 The new methods can refer to any currently defined method by name
 (including other methods supplied in this call to
@@ -472,15 +454,6 @@ to set it will generate an error.
 Fields that are defined by an explicit accessor function can not be
 locked (on the other hand, the accessor function can be defined to
 generate an error if called with an argument).
-
-All code to lock fields should normally be part of the definition of a
-class; that is, the read-only nature of the fields is meant to be part
-of the class definition, not a dynamic property added later.
-In particular, fields can not be locked in a class in an attached
-package with a namespace:  The class method checks for a locked
-binding of the class definition.
-
-
 }
 
 \item{\code{$trace(what, ..., classMethod = FALSE)}}{ %$}{

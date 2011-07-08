@@ -161,7 +161,7 @@ fi
 AC_SUBST(TEXI2DVICMD)
 : ${R_RD4DVI="ae"}
 AC_SUBST(R_RD4DVI)
-: ${R_RD4PDF="times,inconsolata,hyper"}
+: ${R_RD4PDF="times,hyper"}
 AC_SUBST(R_RD4PDF)
 ])# R_PROG_TEXMF
 
@@ -1207,39 +1207,6 @@ EOF
 fi
 AC_SUBST_FILE(r_objc_rules_frag)
 ])# R_PROG_OBJC_MAKEFRAG
-
-## R_PROG_OBJC_FLAG(FLAG, [ACTION-IF-TRUE])
-## ---------------------------------------
-## Check whether the Obj-C compiler handles command line option FLAG,
-## and set shell variable r_cv_prog_objc_flag_SFLAG accordingly (where
-## SFLAG is a shell-safe transliteration of FLAG).
-## In addition, execute ACTION-IF-TRUE in case of success.
-AC_DEFUN([R_PROG_OBJC_FLAG],
-[ac_safe=AS_TR_SH($1)
-
-  if test -z "${OBJC}"; then
-    r_cv_prog_objc_flag_${ac_safe}=no
-  else
-    AC_MSG_CHECKING([whether ${OBJC} accepts $1])
-    AC_CACHE_VAL([r_cv_prog_objc_flag_${ac_safe}],
-    [AC_LANG_PUSH([Objective C])
-    r_save_OBJCFLAGS="${OBJCFLAGS}"
-    OBJCFLAGS="${OBJCFLAGS} $1"
-    AC_LINK_IFELSE([AC_LANG_PROGRAM()],
-               [eval "r_cv_prog_objc_flag_${ac_safe}=yes"],
-               [eval "r_cv_prog_objc_flag_${ac_safe}=no"])
-	       OBJCFLAGS="${r_save_OBJCFLAGS}"
-	       AC_LANG_POP([Objective C])
-	       ])
-    if eval "test \"`echo '$r_cv_prog_objc_flag_'$ac_safe`\" = yes"; then
-      AC_MSG_RESULT([yes])
-      [$2]
-    else
-      AC_MSG_RESULT([no])
-    fi
-  fi
-])# R_PROG_OBJC_FLAG
-
 
 ## R_PROG_OBJC_RUNTIME
 ## -------------------
@@ -2930,9 +2897,11 @@ AM_CONDITIONAL(BUILD_XDR, [test "x${r_cv_xdr}" = xno])
 ## ------
 ## Try finding zlib library and headers.
 ## We check that both are installed, and that the header >= 1.2.3
+## and that gzeof is in the library (which suggests the library
+## is also recent enough).
 AC_DEFUN([R_ZLIB],
 [if test "x${use_system_zlib}" = xyes; then
-  AC_CHECK_LIB(z, inflateInit2_, [have_zlib=yes], [have_zlib=no])
+  AC_CHECK_LIB(z, gzeof, [have_zlib=yes], [have_zlib=no])
   if test "${have_zlib}" = yes; then
     AC_CHECK_HEADER(zlib.h, [have_zlib=yes], [have_zlib=no])
   fi

@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.14.0\n"
+"Project-Id-Version: R 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-06-09 13:48\n"
-"PO-Revision-Date: 2011-06-09 13:48\n"
+"POT-Creation-Date: 2011-03-22 15:33\n"
+"PO-Revision-Date: 2011-03-22 15:33\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -33,9 +33,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-
-msgid "invalid 'filename'"
-msgstr "invalid ‘filename’"
 
 msgid "'coef' must not be negative"
 msgstr "‘coef’ must not be negative"
@@ -54,6 +51,9 @@ msgstr "‘bias’ must be positive"
 
 msgid "at least 3 columns needed"
 msgstr "at least 3 columns needed"
+
+msgid "The 'gamma' argument is deprecated and has no effect"
+msgstr "The ‘gamma’ argument is deprecated and has no effect"
 
 msgid "rgb matrix must be numeric"
 msgstr "rgb matrix must be numeric"
@@ -319,9 +319,6 @@ msgstr "device ‘%s’ is not available"
 msgid "Available devices are %s"
 msgstr "Available devices are %s"
 
-msgid "'res' must be specified unless 'units = \"px\"'"
-msgstr "‘res’ must be specified unless ‘units = “px”’"
-
 msgid "invalid 'title'"
 msgstr "invalid ‘title’"
 
@@ -334,11 +331,11 @@ msgstr "invalid arguments in quartzFonts (must be font names)"
 msgid "invalid arguments in quartzFonts (need named args)"
 msgstr "invalid arguments in quartzFonts (need named args)"
 
-msgid "cairo-based types are not supported on this build - using \"Xlib\""
-msgstr "cairo-based types are not supported on this build - using “Xlib”"
+msgid "invalid 'filename'"
+msgstr "invalid ‘filename’"
 
-msgid "unknown family for X11(type = \"XLib\")"
-msgstr "unknown family for X11(type = “XLib”)"
+msgid "'res' must be specified unless 'units = \"px\"'"
+msgstr "‘res’ must be specified unless ‘units = “px”’"
 
 msgid "invalid X11 font specification:"
 msgstr "invalid X11 font specification:"

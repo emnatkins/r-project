@@ -3233,9 +3233,7 @@ Many devices do indeed do nothing on this call, but some screen devices
 ensure that drawing is flushed to the screen when called with @code{mode
 = 0}.  It is tempting to use it for some sort of buffering, but note
 that `drawing' is interpreted at quite a low level and a typical single
-figure will stop and start drawing many times.  The buffering introduced
-in the @code{X11()} makes use of @code{mode = 0} to indicate activity:
-it updates the screen after @emph{ca} 100ms of inactivity.
+figure will stop and start drawing many times.
 
 @node Graphics events, Specific devices, 'Mode', Graphics devices
 @subsection Graphics events
@@ -3650,7 +3648,7 @@ Default: true.
 If true, check data for ascii and uncompressed saves, and also check if
 using @command{bzip2} or @code{xz} compression would be significantly
 better.  Implies @env{_R_CHECK_COMPACT_DATA_} is true.
-Default: true.
+Default: false.
 @item _R_CHECK_SKIP_ARCH_
 Comma-separated list of architectures that will be omitted from
 checking in a multi-arch setup.
@@ -3678,13 +3676,6 @@ Default: true if @command{du} is found.
 @item _R_CHECK_DOC_SIZES_
 Should @command{qpdf} be used to find the installed sizes of PDFs?
 Default: true if @command{qpdf} is found.
-@item _R_CHECK_ALWAYS_LOG_VIGNETTE_OUTPUT_
-By default the output from running the @R{} code in the vignettes is
-kept only if there is an error.
-Default: false
-@item _R_CHECK_CLEAN_VIGN_TEST_
-Should the @file{vign_test} directory be removed if the test is successful?
-Default: true.
 @end vtable
 
 @node R coding standards, Testing R code, Tools, Top
@@ -3857,7 +3848,7 @@ installed.  We have attempted to abstract out the cross-platform
 differences, and almost all the setting of typeset documents is done by
 @code{tools::texi2dvi}.  This is used for offline printing of help
 documents, preparing vignettes and for package manuals via @command{R
-CMD Rd2pdf}.  It is not currently used for the @R{} manuals created in
+CMD Rd2dvi}.  It is not currently used for the @R{} manuals created in
 directory @file{doc/manual}.
 
 @code{tools::texi2dvi} makes use of a system command @command{texi2dvi}

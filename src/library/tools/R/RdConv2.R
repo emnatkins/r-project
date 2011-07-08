@@ -674,8 +674,7 @@ checkRd <- function(Rd, defines=.Platform$OS.type, stages="render",
                    inEnc2 <<- FALSE
                },
                "\\eqn" =,
-               "\\deqn" =,
-               "\\figure" = {
+               "\\deqn" = {
                    checkContent(block[[1L]])
                    if (length(block) > 1L) checkContent(block[[2L]])
                },

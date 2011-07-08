@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-06-09 13:48\n"
+"POT-Creation-Date: 2011-03-22 15:33\n"
 "PO-Revision-Date: 2011-03-28 15:10+0900 \n"
 "Last-Translator: Shigeru Mase <maseshigeru@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -602,8 +602,9 @@ msgstr " 無効な'tree'(merge 成分)です "
 msgid "either 'k' or 'h' must be specified"
 msgstr " 'k' か 'h' が指定されなければなりません "
 
-#, fuzzy
-msgid "the 'height' component of 'tree' is not sorted (increasingly)"
+msgid ""
+"the 'height' component of 'tree' is not sorted\n"
+"(increasingly); consider applying as.hclust() first"
 msgstr ""
 " 'tree' の 'height' 成分は昇順にソートされていません。 \n"
 " 最初に as.hclust() を適用することを考慮してください "
@@ -1242,19 +1243,11 @@ msgstr " 'x' データの数が十分ではありません "
 msgid "not enough 'y' data"
 msgstr " 'y' データの数が十分ではありません "
 
-#, fuzzy
-msgid "cannot compute exact p-values with ties"
-msgstr " タイがあるため、正確な p 値を計算することができません "
+msgid "cannot compute correct p-values with ties"
+msgstr " タイがあるため、正しい p 値を計算することができません "
 
-msgid "p-values will be approximate in the presence of ties"
-msgstr ""
-
-#, fuzzy
-msgid "'y' must be numeric or a function of a string naming a valid function"
+msgid "'y' must be numeric or a string naming a valid function"
 msgstr " 'y' は数値または有効な関数の名前である文字列でなければなりません "
-
-msgid "ties should not be present for the Kolomogorov-Smirnov test"
-msgstr ""
 
 msgid ""
 "numeric y must be supplied.\n"
@@ -1732,8 +1725,7 @@ msgstr " 両側モデル式が必要です "
 msgid "not enough groups"
 msgstr " 十分なグループがありません "
 
-#, fuzzy
-msgid "bounds can only be used with method L-BFGS-B (or Brent)"
+msgid "bounds can only be used with method L-BFGS-B"
 msgstr " bounds は L-BFGS-B 法でしか使用することができません "
 
 msgid "unknown names in control:"
@@ -1751,21 +1743,10 @@ msgstr ""
 " L-BFGS-B 法は、'reltol' そして 'abstol' の代わりに 'factr'(と 'pgtol')を使用"
 "します "
 
-#, fuzzy
-msgid "one-diml optimization by Nelder-Mead is unreliable:"
+msgid "one-diml optimization by Nelder-Mead is unreliable: use optimize"
 msgstr ""
 " Nelder-Mead 法による一次元最適化は信頼できません: optimize を使用してくださ"
 "い "
-
-msgid "use \"Brent\" or optimize() directly"
-msgstr ""
-
-msgid "method = \"Brent\" is only available for one-dimensional optimization"
-msgstr ""
-
-#, fuzzy
-msgid "'lower' and 'upper' must be finite values"
-msgstr " 'k' と 'h' はスカラーでなければなりません "
 
 msgid "Pooling of SD is incompatible with paired tests"
 msgstr "SDのプールは対応ありの検定では使えません "
@@ -2038,10 +2019,6 @@ msgstr "  誤った端点規則です "
 
 msgid "invalid 'control.spar'"
 msgstr " 無効な 'control.spar' です "
-
-#, fuzzy
-msgid "missing or infinite values in inputs are not allowed"
-msgstr " 欠損もしくは負の重みは許されません "
 
 msgid "lengths of 'x' and 'w' must match"
 msgstr " 'x' と 'w' の長さは一致しなければなりません "
@@ -2428,9 +2405,6 @@ msgstr[0] " 欠損値のせいで %d 個の観測値が取り除かれました 
 msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] " モデル式中にパラメータ %s がありません "
-
-#~ msgid "cannot compute correct p-values with ties"
-#~ msgstr " タイがあるため、正しい p 値を計算することができません "
 
 #~ msgid "'FUN' must always return a scalar"
 #~ msgstr " 'FUN' は常にスカラを返さねばなりません "

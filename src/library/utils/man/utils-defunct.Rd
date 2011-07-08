@@ -7,18 +7,13 @@
 %------ NOTE:  ../R/utils-defunct.R   must be synchronized with this!
 \alias{utils-defunct}
 \alias{package.contents}
-\alias{zip.file.extract}
-
-\title{Defunct Functions in Package \pkg{utils}}
+\title{Defunct Functions in Package utils}
 \description{
   The functions or variables listed here are no longer part of \R as
   they are not needed (any more).
 }
 \usage{
 package.contents(pkg, lib.loc = NULL)
-
-zip.file.extract(file, zipname = "R.zip",
-                 unzip = getOption("unzip"), dir = tempdir())
 }
 \seealso{
   \code{\link{utils-deprecated}},

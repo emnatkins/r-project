@@ -84,7 +84,7 @@ function(package, dir, lib.loc = NULL,
             setwd(startdir)
         }
     }
-    if(weave && latex) {
+    if(tangle && weave && latex) {
         if(!("Makefile" %in% list.files(vigns$dir))) {
             ## <NOTE>
             ## This used to run texi2dvi on *all* vignettes, including
@@ -106,7 +106,8 @@ function(package, dir, lib.loc = NULL,
                 bf <- file_path_sans_ext(basename(f))
                 if(bf %in% bad_vignettes) break
                 bft <- paste(bf, ".tex", sep = "")
-                .eval_with_capture(tryCatch(texi2pdf(file = bft, clean = FALSE,
+                .eval_with_capture(tryCatch(texi2dvi(file = bft, pdf = TRUE,
+                                                     clean = FALSE,
                                                      quiet = TRUE),
                                             error = function(e)
                                             result$latex[[f]] <<-
@@ -133,9 +134,9 @@ function(x, ...)
         }
     }
 
+    mycat(x$weave,  "*** Weave Errors ***")
     mycat(x$tangle, "*** Tangle Errors ***")
     mycat(x$source, "*** Source Errors ***")
-    mycat(x$weave,  "*** Weave Errors ***")
     mycat(x$latex,  "*** PDFLaTeX Errors ***")
 
     invisible(x)
@@ -155,17 +156,17 @@ function(package, dir, lib.loc = NULL)
             stop("argument 'package' must be of length 1")
         docdir <- file.path(find.package(package, lib.loc), "doc")
         ## Using package installed in @code{dir} ...
-    } else {
+    }
+    else {
         if(missing(dir))
             stop("you must specify 'package' or 'dir'")
         ## Using sources from directory @code{dir} ...
         if(!file_test("-d", dir))
-            stop(gettextf("directory '%s' does not exist", dir), domain = NA)
-        else {
-            docdir <- file.path(file_path_as_absolute(dir), "vignettes")
-            if(!file_test("-d", docdir))
-                docdir <- file.path(file_path_as_absolute(dir), "inst", "doc")
-        }
+            stop(gettextf("directory '%s' does not exist", dir),
+                 domain = NA)
+        else
+            docdir <- file.path(file_path_as_absolute(dir), "inst",
+                                "doc")
     }
 
     if(!file_test("-d", docdir)) return(NULL)
@@ -228,7 +229,7 @@ function(package, dir, lib.loc = NULL, quiet = TRUE, clean = TRUE)
         setwd(startdir)
         ## This can fail if run in a directory whose path contains spaces.
         if(!have.makefile)
-            texi2pdf(file = bft, clean = FALSE, quiet = quiet)
+            texi2dvi(file = bft, pdf = TRUE, clean = FALSE, quiet = quiet)
     }
 
     if(have.makefile) {
@@ -520,7 +521,7 @@ function(vigDeps)
     td <- tempfile()
     dir.create(td)
     file.copy(docDir, td, recursive = TRUE)
-    setwd(file.path(td, basename(docDir)))
+    setwd(file.path(td, "doc"))
     result <- NULL
     tryCatch(utils::Stangle(vig_name, quiet = TRUE, encoding = encoding),
              error = function(e) result <<- conditionMessage(e))

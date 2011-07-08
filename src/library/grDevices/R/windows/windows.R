@@ -28,17 +28,12 @@ assign(".Windows.Options",
             restoreConsole = FALSE,
             clickToConfirm = TRUE,
             title = "",
-            fillOddEven = TRUE,
-            antialias = "default",
-            bitmap.aa.win = "default"),
+            fillOddEven = TRUE),
        envir = .WindowsEnv)
 
 assign(".Windows.Options.default",
        get(".Windows.Options", envir = .WindowsEnv),
        envir = .WindowsEnv)
-
-aa.win <- c("default", "none", "cleartype", "gray")
-aa.cairo <- c("default", "none", "gray", "subpixel")
 
 windows.options <- function(..., reset=FALSE)
 {
@@ -55,12 +50,11 @@ windows.options <- function(..., reset=FALSE)
     if(reset || l... > 0) invisible(old) else old
 }
 
-windows <-
-    function(width, height, pointsize,
-             record, rescale, xpinch, ypinch,
-             bg, canvas, gamma, xpos, ypos,
-             buffered, title, restoreConsole, clickToConfirm,
-             fillOddEven, family = "", antialias)
+windows <- function(width, height, pointsize,
+                    record, rescale, xpinch, ypinch,
+                    bg, canvas, gamma, xpos, ypos,
+                    buffered, title, restoreConsole, clickToConfirm,
+                    fillOddEven)
 {
     new <- list()
     if(!missing(width)) new$width <- as.double(width)
@@ -80,19 +74,17 @@ windows <-
     if(!missing(restoreConsole)) new$restoreConsole <- restoreConsole
     if(!missing(clickToConfirm)) new$clickToConfirm <- clickToConfirm
     if(!missing(fillOddEven)) new$fillOddEven <- fillOddEven
-    if(!missing(antialias)) new$antialias <- match.arg(antialias, aa.win)
-    d <- check.options(new = new, envir = .WindowsEnv,
-                       name.opt = ".Windows.Options",
-                       reset = FALSE, assign.opt = FALSE)
-    rescale <- match(d$rescale, c("R", "fit", "fixed"))
+    old <- check.options(new = new, envir = .WindowsEnv,
+                         name.opt = ".Windows.Options",
+			 reset = FALSE, assign.opt = FALSE)
+    rescale <- pmatch(old$rescale, c("R", "fit", "fixed"))
     if(is.na(rescale)) stop("invalid value for 'rescale'")
-    antialias <- pmatch(d$antialias, aa.win)
-    invisible(.External(Cdevga, "", d$width, d$height, d$pointsize,
-                        d$record, rescale, d$xpinch, d$ypinch,
-                        d$canvas, d$gamma, d$xpos, d$ypos,
-                        d$buffered, .PSenv, d$bg,
-                        d$restoreConsole, d$title, d$clickToConfirm,
-                        d$fillOddEven, family, antialias))
+    invisible(.External(Cdevga, "", old$width, old$height, old$pointsize,
+                        old$record, rescale, old$xpinch, old$ypinch,
+                        old$canvas, old$gamma, old$xpos, old$ypos,
+                        old$buffered, .PSenv, old$bg,
+                        old$restoreConsole, old$title, old$clickToConfirm,
+                        old$fillOddEven))
 }
 
 win.graph <- function(width, height, pointsize)
@@ -101,33 +93,27 @@ win.graph <- function(width, height, pointsize)
     if(!missing(width)) new$width <- as.double(width)
     if(!missing(height)) new$height <- as.double(height)
     if(!missing(pointsize)) new$pointsize <- as.double(pointsize)
-    d <- check.options(new = new, envir = .WindowsEnv,
-                       name.opt = ".Windows.Options",
-                       reset = FALSE, assign.opt = FALSE)
-    invisible(.External(Cdevga, "", d$width, d$height, d$pointsize,
-                        FALSE, 1L, d$xpinch, d$ypinch, "white",
-                        d$gamma, NA_integer_, NA_integer_, d$buffered,
-                        .PSenv, NA, d$restoreConsole, "", TRUE,
-                        d$fillOddEven, "",
-                        pmatch(d$antialias, aa.win)))
+    old <- check.options(new = new, envir = .WindowsEnv,
+                         name.opt = ".Windows.Options",
+			 reset = FALSE, assign.opt = FALSE)
+    invisible(.External(Cdevga, "", old$width, old$height, old$pointsize,
+                        FALSE, 1L, old$xpinch, old$ypinch, "white",
+                        old$gamma, NA_integer_, NA_integer_, old$buffered,
+                        .PSenv, NA, old$restoreConsole, "", TRUE,
+                        old$fillOddEven))
 }
 
-win.print <-
-    function(width = 7, height = 7, pointsize = 12, printer = "",
-             family = "", antialias = "default", restoreConsole = TRUE)
-{
-    antialias <- match(match.arg(antialias, aa.win), aa.win)
+win.print <- function(width = 7, height = 7, pointsize = 12, printer = "",
+                      restoreConsole = TRUE)
     invisible(.External(Cdevga, paste("win.print:", printer, sep=""),
                         width, height, pointsize, FALSE, 1L,
                         NA_real_, NA_real_, "white", 1,
                         NA_integer_, NA_integer_,
                         FALSE, .PSenv, NA, restoreConsole, "", FALSE,
-                        TRUE, family, antialias))
-}
+                        TRUE))
 
-win.metafile <-
-    function(filename = "", width = 7, height = 7, pointsize = 12,
-             family = "", restoreConsole = TRUE)
+win.metafile <- function(filename = "", width = 7, height = 7, pointsize = 12,
+                         restoreConsole = TRUE)
 {
     if(!checkIntFormat(filename)) stop("invalid 'filename'")
     filename <- path.expand(filename)
@@ -135,7 +121,93 @@ win.metafile <-
                         width, height, pointsize, FALSE, 1L,
                         NA_real_, NA_real_, "white", 1,
                         NA_integer_, NA_integer_, FALSE, .PSenv, NA,
-                        restoreConsole, "", FALSE, TRUE, family, 1L))
+                        restoreConsole, "", FALSE,
+                        TRUE))
+}
+
+png <- function(filename = "Rplot%03d.png", width = 480, height = 480,
+                units = "px",
+                pointsize = 12, bg = "white", res = NA, restoreConsole = TRUE)
+{
+    if(!checkIntFormat(filename)) stop("invalid 'filename'")
+    filename <- path.expand(filename)
+    units <- match.arg(units, c("in", "px", "cm", "mm"))
+    if(units != "px" && is.na(res))
+        stop("'res' must be specified unless 'units = \"px\"'")
+    height <-
+        switch(units, "in"=res, "cm"=res/2.54, "mm"=res/25.4, "px"=1) * height
+    width <-
+        switch(units, "in"=res, "cm"=res/2.54, "mm"=res/25.4, "px"=1) * width
+    invisible(.External(Cdevga, paste("png:", filename, sep=""),
+                        width, height, pointsize, FALSE, 1L,
+                        NA_real_, NA_real_, bg, 1,
+                        as.integer(res), NA_integer_, FALSE, .PSenv, NA,
+                        restoreConsole, "", FALSE, TRUE))
+}
+
+bmp <- function(filename = "Rplot%03d.bmp", width = 480, height = 480,
+                units = "px",
+                pointsize = 12, bg = "white", res = NA, restoreConsole = TRUE)
+{
+    if(!checkIntFormat(filename)) stop("invalid 'filename'")
+    filename <- path.expand(filename)
+    units <- match.arg(units, c("in", "px", "cm", "mm"))
+    if(units != "px" && is.na(res))
+        stop("'res' must be specified unless 'units = \"px\"'")
+    height <-
+        switch(units, "in"=res, "cm"=res/2.54, "mm"=res/25.4, "px"=1) * height
+    width <-
+        switch(units, "in"=res, "cm"=res/2.54, "mm"=res/25.4, "px"=1) * width
+    invisible(.External(Cdevga, paste("bmp:", filename, sep=""),
+                        width, height, pointsize, FALSE, 1L,
+                        NA_real_, NA_real_, bg, 1,
+                        as.integer(res), NA_integer_, FALSE, .PSenv, NA,
+                        restoreConsole, "", FALSE, TRUE))
+}
+
+jpeg <- function(filename = "Rplot%03d.jpg", width = 480, height = 480,
+                 units = "px",
+                 pointsize = 12, quality=75, bg = "white", res = NA,
+                 restoreConsole = TRUE)
+{
+    if(!checkIntFormat(filename)) stop("invalid 'filename'")
+    filename <- path.expand(filename)
+    units <- match.arg(units, c("in", "px", "cm", "mm"))
+    if(units != "px" && is.na(res))
+        stop("'res' must be specified unless 'units = \"px\"'")
+    height <-
+        switch(units, "in"=res, "cm"=res/2.54, "mm"=res/25.4, "px"=1) * height
+    width <-
+        switch(units, "in"=res, "cm"=res/2.54, "mm"=1/25.4, "px"=1) * width
+    invisible(.External(Cdevga, paste("jpeg:", quality, ":",filename, sep=""),
+                        width, height, pointsize, FALSE, 1L,
+                        NA_real_, NA_real_, bg, 1,
+                        as.integer(res), NA_integer_, FALSE, .PSenv, NA,
+                        restoreConsole, "", FALSE, TRUE))
+}
+
+tiff <- function(filename = "Rplot%03d.tif", width = 480, height = 480,
+                 units = "px", pointsize = 12,
+                 compression = c("none", "rle", "lzw", "jpeg", "zip"),
+                 bg = "white", res = NA,
+                 restoreConsole = TRUE)
+{
+    if(!checkIntFormat(filename)) stop("invalid 'filename'")
+    filename <- path.expand(filename)
+    units <- match.arg(units, c("in", "px", "cm", "mm"))
+    if(units != "px" && is.na(res))
+        stop("'res' must be specified unless 'units = \"px\"'")
+    height <-
+        switch(units, "in"=res, "cm"=res/2.54, "mm"=res/25.4, "px"=1) * height
+    width <-
+        switch(units, "in"=res, "cm"=res/2.54, "mm"=res/25.4, "px"=1) * width
+    comp <- switch( match.arg(compression),
+                   "none" = 1, "rle" = 2, "lzw" = 5, "jpeg" = 7, "zip" = 8)
+    invisible(.External(Cdevga, paste("tiff:", comp, ":", filename, sep=""),
+                        width, height, pointsize, FALSE, 1L,
+                        NA_real_, NA_real_, bg, 1,
+                        as.integer(res), NA_integer_, FALSE, .PSenv, NA,
+                        restoreConsole, "", FALSE, TRUE))
 }
 
 bringToTop <- function(which = dev.cur(), stay = FALSE)
@@ -149,12 +221,12 @@ bringToTop <- function(which = dev.cur(), stay = FALSE)
 }
 
 msgWindow <-
-    function(type = c("minimize", "restore", "maximize", "hide",
-                      "recordOn", "recordOff"),
+    function(type = c("minimize", "restore", "maximize", "hide", "recordOn", "recordOff"),
              which = dev.cur())
 {
-    itype <- match(match.arg(type), eval(formals()$type))
-    if(which == -1 && itype > 3L)
+    type <- match.arg(type)
+    itype <- match(type, c("minimize", "restore", "maximize", "hide", "recordOn", "recordOff"), 0L)
+    if(which == -1 && itype > 3)
         stop("'type' not applicable to the R console")
     if(!exists(".Devices")) .Devices <- list("null device")
     if(which > 0 && .Devices[[which]] != "windows")
@@ -164,7 +236,7 @@ msgWindow <-
 
 savePlot <- function(filename = "Rplot",
                      type = c("wmf", "emf", "png", "jpg", "jpeg", "bmp",
-                              "tif", "tiff", "ps", "eps", "pdf"),
+                     "tif", "tiff", "ps", "eps", "pdf"),
                      device = dev.cur(),
                      restoreConsole = TRUE)
 {
@@ -175,8 +247,7 @@ savePlot <- function(filename = "Rplot",
     devname <- names(devlist)[devcur]
     if(devname != "windows") stop("can only copy from 'windows' devices")
     if(filename == "clipboard" && type == "wmf") filename <- ""
-    else if(regexpr("\\.",filename) < 0)
-        filename <- paste(filename, type, sep = ".")
+    else if(regexpr("\\.",filename) < 0) filename <- paste(filename,type,sep=".")
     filename <- path.expand(filename)
     invisible(.External(CsavePlot, device, filename, type, restoreConsole))
 }
@@ -271,9 +342,9 @@ windowsFont <- function(family)
     checkWindowsFont(family)
 
 
-windowsFonts(# Default Serif font is Times-like
+windowsFonts(# Default Serif font is Times
              serif = windowsFont("TT Times New Roman"),
-             # Default Sans Serif font is Helvetica-like
+             # Default Sans Serif font is Helvetica
              sans = windowsFont("TT Arial"),
-             # Default Monospace font is Courier-like
+             # Default Monospace font is Courier
              mono = windowsFont("TT Courier New"))

@@ -342,6 +342,3 @@ dev.size <- function(units = c("in", "cm", "px"))
     if(units == "px") size else size * graphics::par("cin")/graphics::par("cra") *
         if(units == "cm") 2.54 else 1
 }
-
-dev.hold <- function(level = 1L) .Internal(devHoldFlush(max(0L, level)))
-dev.flush <- function(level = 1L) .Internal(devHoldFlush(-max(0L, level)))

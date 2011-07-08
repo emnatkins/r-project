@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2011-07-05 r56287)
+R version 2.13.1 RC (2011-07-05 r56282)
 Copyright (C) 2011 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-unknown-linux-gnu (64-bit)
@@ -1307,10 +1307,10 @@ Residual standard error: 2.351 on 8 degrees of freedom
 > ### ** Examples
 > 
 > DNase.1 <- subset(DNase, Run == 1)
-> SSgompertz(log(DNase.1$conc), 4.5, 2.3, 0.7)   # response only
- [1] 0.00525729 0.00525729 0.07323255 0.07323255 0.18049064 0.18049064
- [7] 0.36508763 0.36508763 0.63288772 0.63288772 0.97257180 0.97257180
-[13] 1.36033340 1.36033340 1.76786902 1.76786902
+> SSlogis(log(DNase.1$conc), 4.5, 2.3, 0.7)   # response only
+ [1] 0.002252677 0.002252677 0.016271550 0.016271550 0.043533453 0.043533453
+ [7] 0.115296351 0.115296351 0.297460928 0.297460928 0.720167577 0.720167577
+[13] 1.525513075 1.525513075 2.609666856 2.609666856
 > Asym <- 4.5; b2 <- 2.3; b3 <- 0.7
 > SSgompertz(log(DNase.1$conc), Asym, b2, b3) # response and gradient
  [1] 0.00525729 0.00525729 0.07323255 0.07323255 0.18049064 0.18049064
@@ -1970,7 +1970,7 @@ Single term deletions
 Model:
 Fertility ~ Agriculture + Examination + Education + Catholic + 
     Infant.Mortality
-                 Df Sum of Sq  RSS AIC F value  Pr(>F)    
+                 Df Sum of Sq  RSS AIC F value   Pr(F)    
 <none>                        2105 191                    
 Agriculture       1       308 2413 195    5.99  0.0187 *  
 Examination       1        53 2158 190    1.03  0.3155    
@@ -1999,10 +1999,10 @@ Single term deletions
 
 Model:
 counts ~ outcome + treatment
-          Df Deviance  AIC  LRT Pr(>Chi)  
-<none>           5.13 56.8                
-outcome    2    10.58 58.2 5.45    0.065 .
-treatment  2     5.13 52.8 0.00    1.000  
+          Df Deviance  AIC  LRT Pr(Chi)  
+<none>           5.13 56.8               
+outcome    2    10.58 58.2 5.45   0.065 .
+treatment  2     5.13 52.8 0.00   1.000  
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
 > drop1(glm.D93, test="F")
@@ -2012,18 +2012,10 @@ Single term deletions
 
 Model:
 counts ~ outcome + treatment
-          Df Deviance  AIC F value Pr(>F)
-<none>           5.13 56.8               
-outcome    2    10.58 58.2    2.13   0.23
-treatment  2     5.13 52.8    0.00   1.00
-> add1(glm.D93, scope=~outcome*treatment, test="Rao") ## Pearson Chi-square 
-Single term additions
-
-Model:
-counts ~ outcome + treatment
-                  Df Deviance  AIC Rao score Pr(>Chi)
-<none>                   5.13 56.8                   
-outcome:treatment  4     0.00 59.6      5.17     0.27
+          Df Deviance  AIC F value Pr(F)
+<none>           5.13 56.8              
+outcome    2    10.58 58.2    2.13  0.23
+treatment  2     5.13 52.8    0.00  1.00
 > ## Don't show: 
 > options(od)
 > ## End Don't show
@@ -2517,21 +2509,12 @@ Response: counts
 Terms added sequentially (first to last)
 
 
-          Df Deviance Resid. Df Resid. Dev Pr(>Chi)  
-NULL                          8    10.5814           
-outcome    2   5.4523         6     5.1291  0.06547 .
-treatment  2   0.0000         4     5.1291  1.00000  
+          Df Deviance Resid. Df Resid. Dev P(>|Chi|)  
+NULL                          8    10.5814            
+outcome    2   5.4523         6     5.1291   0.06547 .
+treatment  2   0.0000         4     5.1291   1.00000  
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1 
-> glm.D93a <- update(glm.D93, ~treatment*outcome) ## equivalent to Pearson Chi-square
-> anova(glm.D93, glm.D93a, test = "Rao")
-Analysis of Deviance Table
-
-Model 1: counts ~ outcome + treatment
-Model 2: counts ~ treatment + outcome + treatment:outcome
-  Resid. Df Resid. Dev Df Deviance    Rao Pr(>Chi)
-1         4     5.1291                            
-2         0     0.0000  4   5.1291 5.1732     0.27
 > 
 > 
 > 
@@ -3671,7 +3654,7 @@ sigma^2 estimated as 0.4566:  log likelihood = -101.2,  aic = 212.4
 > x <- matrix(rnorm(30), ncol=3)
 > hc <- hclust(dist(x), method="complete")
 > 
-> if(require("cluster", quietly=TRUE)) {# is a recommended package
+> if(require(cluster, quietly=TRUE)) {# is a recommended package
 +   ag <- agnes(x, method="complete")
 +   hcag <- as.hclust(ag)
 +   ## The dendrograms order slightly differently:
@@ -3701,7 +3684,7 @@ detaching ‘package:cluster’
 > 
 > asOneSidedFormula("age")
 ~age
-<environment: 0x4334948>
+<environment: 0x3c52ac0>
 > asOneSidedFormula(~ age)
 ~age
 > 
@@ -3905,20 +3888,8 @@ probability of success
 > require(graphics)
 > 
 > ## the standard version
-> qbirthday() # 23
+> qbirthday()
 [1] 23
-> ## probability of > 2 people with the same birthday
-> pbirthday(23, coincident = 3)
-[1] 0.01441541
-> 
-> ## examples from Diaconis & Mosteller p. 858.
-> ## 'coincidence' is that husband, wife, daughter all born on the 16th
-> qbirthday(classes = 30, coincident = 3) # approximately 18
-[1] 18
-> qbirthday(coincident = 4)  # exact value 187
-[1] 187
-> qbirthday(coincident = 10) # exact value 1181
-[1] 1179
 > 
 > ## same 4-digit PIN number
 > qbirthday(classes = 10^4)
@@ -3936,8 +3907,22 @@ probability of success
 > pbirthday(1000, coincident = 100)
 [1] 1.531434e-113
 > 
+> ## Accuracy compared to exact calculation
+> x1 <-  sapply(10:100, pbirthday)
+> x2 <- 1-sapply(10:100, function(n) prod((365:(365-n+1))/rep(365,n)))
+> par(mfrow = c(2, 2))
+> plot(x1, x2, xlab = "approximate", ylab = "exact")
+> abline(0, 1)
+> plot(x1, x1-x2, xlab = "approximate", ylab = "error")
+> abline(h = 0)
+> plot(x1, x2, log = "xy", xlab = "approximate", ylab = "exact")
+> abline(0, 1)
+> plot(1-x1, 1-x2, log = "xy", xlab = "approximate", ylab = "exact")
+> abline(0, 1)
 > 
 > 
+> 
+> graphics::par(get("par.postscript", pos = 'CheckExEnv'))
 > cleanEx()
 > nameEx("box.test")
 > ### * box.test
@@ -4762,7 +4747,6 @@ function (V)
     r[cbind(1L:p, 1L:p)] <- 1
     r
 }
-<bytecode: 0x70936c0>
 <environment: namespace:stats>
 > stopifnot(all.equal(Cl, cov2cor(cov(longley))),
 +           all.equal(cor(longley, method="kendall"),
@@ -6752,8 +6736,7 @@ List of 12
 > gf$linkinv
 function (eta) 
 1/eta
-<bytecode: 0x3851f30>
-<environment: 0x9d29360>
+<environment: 0x64d6f80>
 > gf$variance(-3:4) #- == (.)^2
 [1]  9  4  1  0  1  4  9 16
 > 
@@ -7155,7 +7138,7 @@ attr(,".Environment")
 > environment(as.formula("y ~ x"))
 <environment: R_GlobalEnv>
 > environment(as.formula("y ~ x", env=new.env()))
-<environment: 0x8025940>
+<environment: 0x83ef650>
 > 
 > 
 > ## Create a formula for a model with a large number of variables:
@@ -11532,26 +11515,22 @@ attr(,"degree")
 $linkfun
 function (mu) 
 mu
-<bytecode: 0x38554c8>
-<environment: 0x71db860>
+<environment: 0x80dfce0>
 
 $linkinv
 function (eta) 
 eta
-<bytecode: 0x3855538>
-<environment: 0x71db860>
+<environment: 0x80dfce0>
 
 $mu.eta
 function (eta) 
 rep.int(1, length(eta))
-<bytecode: 0x3855688>
-<environment: 0x71db860>
+<environment: 0x80dfce0>
 
 $valideta
 function (eta) 
 TRUE
-<bytecode: 0x38548e0>
-<environment: 0x71db860>
+<environment: 0x80dfce0>
 
 $name
 [1] "identity"
@@ -11562,14 +11541,12 @@ attr(,"class")
 $linkfun
 function (mu) 
 mu^lambda
-<bytecode: 0x71dcfd8>
-<environment: 0x71d2ec8>
+<environment: 0x80e8390>
 
 $linkinv
 function (eta) 
 pmax(eta^(1/lambda), .Machine$double.eps)
-<bytecode: 0x71dd0f0>
-<environment: 0x71d2ec8>
+<environment: 0x80e8390>
 
 > 
 > 
@@ -15227,8 +15204,7 @@ function (v)
     xout = as.double(v), as.integer(length(v)), as.integer(method), 
     as.double(yleft), as.double(yright), as.double(f), NAOK = TRUE, 
     PACKAGE = "stats")$xout
-<bytecode: 0x44ad608>
-<environment: 0x9bfcfd8>
+<environment: 0x6aa3ce8>
 attr(,"call")
 stepfun(1:3, y0, f = 0)
 > ls(envir = environment(sfun0))
@@ -16572,7 +16548,7 @@ Frequency = 1
 > 
 > ### Name: update
 > ### Title: Update and Re-fit a Model Call
-> ### Aliases: update update.default getCall getCall.default
+> ### Aliases: update update.default
 > ### Keywords: models
 > 
 > ### ** Examples
@@ -16624,9 +16600,6 @@ Coefficients:
 (Intercept)       group1  
      4.8465      -0.1855  
 
-> getCall(lm.D90)# "through the origin"
-lm(formula = weight ~ group - 1)
-> 
 > options(oldcon)
 > 
 > 
@@ -17304,9 +17277,9 @@ B    L                 27 14 29 19 29 31 41 20 44
 Loading required package: Matrix
 Loading required package: lattice
 
-Attaching package: ‘Matrix’
+Attaching package: 'Matrix'
 
-The following object(s) are masked from ‘package:base’:
+The following object(s) are masked from 'package:base':
 
     det
 
@@ -17451,7 +17424,7 @@ Number of Fisher Scoring iterations: 6
 > ### * <FOOTER>
 > ###
 > cat("Time elapsed: ", proc.time() - get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  16.492 0.49 25.057 0 0 
+Time elapsed:  14.886 0.447 15.637 0 0 
 > grDevices::dev.off()
 null device 
           1 

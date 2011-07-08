@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.2.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-06-09 13:48\n"
+"POT-Creation-Date: 2011-03-25 10:08\n"
 "PO-Revision-Date: 2011-03-26 08:56-0300\n"
 "Last-Translator: Fernando Henrique <pessoal@fernandohrosa.com.br>\n"
 "Language-Team: http://www.feferraz.net/br/P/Projeto_Traducao_R_Portugues\n"
@@ -170,18 +170,25 @@ msgstr ""
 "de uma função existente"
 
 msgid ""
-"Creating a generic function for %s from %s in %s\n"
-"    (from the saved implicit definition)"
+"Restoring the implicit generic function for %s from package %s\n"
+"    into package %s; the generic differs from the default conversion (%s)"
 msgstr ""
+"Restaurando a função genérica implícita para %s do pacote %s\n"
+" no pacote %s; o genérico difere da conversão padrão (%s)"
 
-#, fuzzy
-msgid "Creating a new generic function for %s in %s"
-msgstr "Criando uma nova função genérica para \"%s\" em \"%s\""
+msgid ""
+"Creating a generic for %s in package %s\n"
+"    (the supplied definition differs from and overrides the implicit "
+"generic\n"
+"    in package %s: %s)"
+msgstr ""
+"Criando um genérico para %s no pacote %s\n"
+" (a definição fornecida difere e substitui a da implícita e genérica\n"
+" no pacote %s: %s)"
 
-#, fuzzy
 msgid ""
 "No generic version of %s on package %s is allowed;\n"
-"   a new generic will be assigned for %s"
+"   a new generic will be assigned with package %s"
 msgstr ""
 "Nenhuma versão genérica de %s no pacote %s é pertimida;\n"
 "   uma nova genérica será atribuída com o pacote %s"
@@ -228,12 +235,10 @@ msgstr ""
 msgid "no existing definition for function \"%s\""
 msgstr "nenhuma definição existente para função \"%s\""
 
-#, fuzzy
-msgid "Creating a generic function from function \"%s\" in %s"
+msgid "Creating a generic function from function \"%s\""
 msgstr "Criando uma nova função genérica a partir da função \"%s\""
 
-#, fuzzy
-msgid "Creating a generic function for \"%s\" from package \"%s\" in %s"
+msgid "Creating a new generic function for \"%s\" in \"%s\""
 msgstr "Criando uma nova função genérica para \"%s\" em \"%s\""
 
 msgid ""
@@ -1469,9 +1474,9 @@ msgid ""
 "on : %s"
 msgstr ""
 
-#, fuzzy
-msgid "\"%s\" is not a valid field or method name for reference class \"%s\""
-msgstr "classe \"%s\" extende uma classe não definida, \"%s\""
+msgid ""
+"Field \"%s\" is not a valid field or method name for reference class \"%s\""
+msgstr ""
 
 msgid ""
 "Method %s from class %s was not processed into a class method until being "
@@ -1490,10 +1495,6 @@ msgstr "'%s' não é uma das funções básicas"
 #, fuzzy
 msgid "\"%s\" is not a field in class \"%s\""
 msgstr "classe \"%s\" extende uma classe não definida, \"%s\""
-
-#, fuzzy
-msgid "\"%s\" is not a valid field or method name for this class"
-msgstr "\"%s\" não é um campo definido nessa classe"
 
 msgid ""
 "The class of field \"%s\" in the object is not compatible with the desired "
@@ -1518,14 +1519,6 @@ msgstr ""
 msgid "\"%s\" is not a field in this class"
 msgstr "\"%s\" não é um campo definido nessa classe"
 
-#, fuzzy
-msgid ""
-"The definition of class \"%s\" in package \"%s\" is locked, methods may not "
-"be redefined"
-msgstr ""
-"o método para a função \"%s\" e assinatura %s está selado e não pode ser "
-"redefinido"
-
 msgid "Arguments to methods() must be named, or one named list"
 msgstr ""
 
@@ -1537,11 +1530,6 @@ msgstr ""
 #, fuzzy
 msgid "Arguments must all be character string names of fields"
 msgstr "'file' deve ser uma cadeia de caracteres ou uma conexão"
-
-msgid ""
-"The definition of class \"%s\" in package \"%s\" is locked, fields may not "
-"be modified"
-msgstr ""
 
 msgid ""
 "Field \"%s\"  of class \"%s\" has a non-default binding and cannot be locked"
@@ -1648,13 +1636,6 @@ msgid ""
 msgstr ""
 "argumento 'f' inválido, esperada uma função ou seu nome, mas foi obtido um "
 "objeto de classe  \"%s\""
-
-msgid "Argument signature= is not meaningful for tracing reference methods"
-msgstr ""
-
-#, fuzzy
-msgid "\"%s\" is not a method for reference class \"%s\""
-msgstr "'%s' não é uma das funções básicas"
 
 msgid "argument 'what' should be the name of a function"
 msgstr ""
@@ -1813,23 +1794,6 @@ msgid "no definition for class %s"
 msgid_plural "no definition for classes %s"
 msgstr[0] "nenhuma definição existente para função '%s'"
 msgstr[1] "nenhuma definição existente para função '%s'"
-
-#~ msgid ""
-#~ "Restoring the implicit generic function for %s from package %s\n"
-#~ "    into package %s; the generic differs from the default conversion (%s)"
-#~ msgstr ""
-#~ "Restaurando a função genérica implícita para %s do pacote %s\n"
-#~ " no pacote %s; o genérico difere da conversão padrão (%s)"
-
-#~ msgid ""
-#~ "Creating a generic for %s in package %s\n"
-#~ "    (the supplied definition differs from and overrides the implicit "
-#~ "generic\n"
-#~ "    in package %s: %s)"
-#~ msgstr ""
-#~ "Criando um genérico para %s no pacote %s\n"
-#~ " (a definição fornecida difere e substitui a da implícita e genérica\n"
-#~ " no pacote %s: %s)"
 
 #, fuzzy
 #~ msgid ""

@@ -19,7 +19,7 @@
 \alias{seemsS4Object}
 \alias{allGenerics}
 \alias{trySilent}
-\title{Defunct Functions in Package \pkg{methods}}
+\title{Defunct Functions in the Methods Package}
 \description{
   Defunct functions in package \pkg{methods}.
 }

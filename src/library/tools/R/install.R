@@ -19,13 +19,6 @@
 
 ##' @param args
 
-## R developers can use this to debug the function by running it
-## directly as tools:::.install_packages(args), where the args should
-## be what commandArgs(TRUE) would return, that is a character vector
-## of (space-delimited) terms that would be passed to R CMD INSTALL.  E.g.
-##
-## tools:::.install_packages(c("--preclean", "--no-multiarch", "tree"))
-
 ##' @return ...
 .install_packages <- function(args = NULL)
 {
@@ -117,10 +110,6 @@
             "			to be used for lazy-loading of data",
             "      --resave-data	re-save data files as compactly as possible",
             "      --compact-docs	re-compress PDF files under inst/doc",
-            "      --with-keep.source",
-            "      --without-keep.source",
-            "			use (or not) 'keep.source' for R code",
-            "      --byte-compile	byte-compile R code",
             "      --no-test-load	skip test of loading installed package",
             "      --no-clean-on-error	do not remove installed package on error",
            "\nfor Unix",
@@ -174,9 +163,8 @@
                 dir.exists(lp <- file.path(lockdir, curPkg))) {
                 starsmsg(stars, "restoring previous ", sQuote(pkgdir))
                 if (WINDOWS) {
+                    ## FIXME: this does not preserve dates
                     file.copy(lp, dirname(pkgdir), recursive = TRUE)
-                    .Call("R_setFileTime", pkgdir, file.info(lp)$mtime,
-                          PACKAGE = "base")
                     unlink(lp, recursive = TRUE)
                 } else {
                     ## some shells require that they be run in a known dir
@@ -254,8 +242,9 @@
             curPkg <<- pkg_name
         }
 
+        Sys.setenv(R_PACKAGE_NAME = pkg_name)
         instdir <- file.path(lib, pkg_name)
-        Sys.setenv(R_PACKAGE_NAME = pkg_name, R_PACKAGE_DIR = instdir)
+        Sys.setenv(R_PACKAGE_DIR = instdir) ## installation dir
         status <- .Rtest_package_depends_R_version()
         if (status) do_exit_on_error()
 
@@ -368,7 +357,7 @@
     ## to be run from package source directory
     run_clean <- function()
     {
-        if (dir.exists("src") && length(dir("src", all.files = TRUE) > 2L)) {
+        if (dir.exists("src")) {
             if (WINDOWS) archs <- c("i386", "x64")
             else {
                 wd2 <- setwd(file.path(R.home("bin"), "exec"))
@@ -376,12 +365,8 @@
                 setwd(wd2)
             }
             if(length(archs))
-                for(arch in archs) {
-                    ss <- paste("src", arch, sep = "-")
-                    ## it seems fixing permissions is sometimes needed
-                    .Internal(dirchmod(ss))
-                    unlink(ss, recursive = TRUE)
-                }
+                for(arch in archs)
+                    unlink(paste("src", arch, sep = "-"), recursive=TRUE)
 
             owd <- setwd("src")
             if (WINDOWS) {
@@ -424,7 +409,7 @@
                                      WINDOWS <- WINDOWS
                                      environment()})
                 parent.env(local.env) <- .GlobalEnv
-                source("install.libs.R", local = local.env)
+                evalq(source("install.libs.R", local=TRUE), local.env)
                 return(TRUE)
             }
             ## otherwise proceed with the default which is to just copy *${SHLIB_EXT}
@@ -557,8 +542,6 @@
                 if (debug) starsmsg(stars, "backing up earlier installation")
                 if(WINDOWS) {
                     file.copy(instdir, lockdir, recursive = TRUE)
-                    .Call("R_setFileTime", file.path(lockdir, pkg_name),
-                          file.info(instdir)$mtime, PACKAGE = "base")
                     if (more_than_libs) unlink(instdir, recursive = TRUE)
                 } else if (more_than_libs)
                     system(paste("mv", shQuote(instdir),
@@ -614,8 +597,7 @@
                 pkgerrmsg("installing package DESCRIPTION failed", pkg_name)
         }
 
-        if (install_libs && dir.exists("src") &&
-            length(dir("src", all.files = TRUE) > 2L)) {
+        if (install_libs && dir.exists("src")) {
             starsmsg(stars, "libs")
             if (!file.exists(file.path(R.home("include"), "R.h")))
                 ## maybe even an error?  But installing Fortran-based packages should work
@@ -680,9 +662,9 @@
                             starsmsg("***", "arch - ", arch)
                             ss <- paste("src", arch, sep = "-")
                             dir.create(ss, showWarnings = FALSE)
-                            file.copy(Sys.glob("src/*"), ss, recursive = TRUE)
-                            ## avoid read-only files/dir such as nested .svn
-                            .Internal(dirchmod(ss))
+                            files <- Sys.glob("src/*")
+                            if (!length(files)) next
+                            file.copy(files, ss, recursive = TRUE)
                             setwd(ss)
                             ra <- paste0("/", arch)
                             Sys.setenv(R_ARCH = ra, R_ARCH_BIN = ra)
@@ -783,8 +765,7 @@
             }
         }                               # end of src dir
 
-        ## R files must start with a letter
-	if (install_R && dir.exists("R") && length(dir("R"))) {
+	if (install_R && dir.exists("R")) {
 	    starsmsg(stars, "R")
 	    dir.create(file.path(instdir, "R"), recursive = TRUE,
 		       showWarnings = FALSE)
@@ -839,10 +820,9 @@
 	    }
 	}                           # end of R
 
-        ## data files must not be hidden: data() may ignore them
-	if (install_data && dir.exists("data") && length(dir("data"))) {
+	if (install_data && dir.exists("data")) {
 	    starsmsg(stars, "data")
-	    files <- Sys.glob(file.path("data", "*")) # ignores dotfiles
+	    files <- Sys.glob(file.path("data", "*"))
 	    if (length(files)) {
 		is <- file.path(instdir, "data")
 		dir.create(is, recursive = TRUE, showWarnings = FALSE)
@@ -886,8 +866,7 @@
 	    } else warning("empty 'data' directory", call. = FALSE)
         }
 
-        ## demos must start with a letter
-	if (install_demo && dir.exists("demo") && length(dir("demo"))) {
+	if (install_demo && dir.exists("demo")) {
 	    starsmsg(stars, "demo")
 	    dir.create(file.path(instdir, "demo"), recursive = TRUE,
 		       showWarnings = FALSE)
@@ -898,8 +877,7 @@
 	    Sys.chmod(Sys.glob(file.path(instdir, "demo", "*")), "644")
 	}
 
-        ## dotnames are ignored.
-	if (install_exec && dir.exists("exec") && length(dir("exec"))) {
+	if (install_exec && dir.exists("exec")) {
 	    starsmsg(stars, "exec")
 	    dir.create(file.path(instdir, "exec"), recursive = TRUE,
 		       showWarnings = FALSE)
@@ -952,51 +930,33 @@
             }
             if (compact_docs) {
                 pdfs <- dir(file.path(instdir, "doc"), pattern="\\.pdf",
-                            recursive = TRUE, full.names = TRUE,
-                            all.files = TRUE)
+                            recursive = TRUE, full.names = TRUE)
                 ## print selectively
                 res <- compactPDF(pdfs)
                 print(res[res$old > 1e5, ])
             }
 	}
 
-	if (install_tests && dir.exists("tests") &&
-            length(dir("tests", all.files = TRUE) > 2L)) {
+	if (install_tests && dir.exists("tests")) {
 	    starsmsg(stars, "tests")
 	    file.copy("tests", instdir, recursive = TRUE)
 	}
 
+	value <- parse_description_field(desc, "SaveImage", default = NA)
+	if (!is.na(value))
+	    warning("field 'SaveImage' is defunct: please remove it",
+		    call. = FALSE, domain = NA)
+
 	## LazyLoading
-	value <- parse_description_field(desc, "LazyLoad", default = TRUE)
-        if(!value) {
-            value <- TRUE
-            warning("only LazyLoad = TRUE is supported", call. = FALSE)
-        }
-	if (install_R && dir.exists("R") && length(dir("R")) && value) {
-            BC <- parse_description_field(desc, "ByteCompile",
-                                          default = byte_compile)
-            rcp <- as.numeric(Sys.getenv("R_COMPILE_PKGS"))
-            BC <- BC || (!is.na(rcp) && rcp > 0)
-            if (BC) {
-                starsmsg(stars,
-                         "byte-compile and prepare package for lazy loading")
-                ## need to disable JIT
-                Sys.setenv(R_ENABLE_JIT = 0L)
-                compiler::compilePKGS(1L)
-                compiler::setCompilerOptions(suppressUndefined = TRUE)
-            }
-            else
-                starsmsg(stars, "preparing package for lazy loading")
-            keep.source <-
-                parse_description_field(desc, "KeepSource",
-                                        default = keep.source)
+	value <- parse_description_field(desc, "LazyLoad", default = lazy)
+        if(!value) warning("LazyLoad = FALSE is deprecated", call. = FALSE)
+	if (install_R && dir.exists("R") && value) {
+	    starsmsg(stars, "preparing package for lazy loading")
 	    ## Something above, e.g. lazydata,  might have loaded the namespace
 	    if (pkg_name %in% loadedNamespaces())
 		unloadNamespace(pkg_name)
 	    res <- try({.getRequiredPackages(quietly = TRUE)
-			makeLazyLoading(pkg_name, lib,
-                                        keep.source = keep.source)})
-            if (BC) compiler::compilePKGS(0L)
+			makeLazyLoading(pkg_name, lib)})
 	    if (inherits(res, "try-error"))
 		pkgerrmsg("lazy loading failed", pkg_name)
 	}
@@ -1024,15 +984,7 @@
 				types = build_help_types,
 				outenc = outenc)
 	    }
-	    if (file_test("-d", figdir <- file.path(pkg_dir, "man", "figures"))) {
-		starsmsg(paste0(stars, "*"), "copying figures")
-		dir.create(destdir <- file.path(instdir, "help", "figures"))
-		file.copy(Sys.glob(c(file.path(figdir, "*.png"),
-		                     file.path(figdir, "*.jpg"),
-				     file.path(figdir, "*.svg"),
-				     file.path(figdir, "*.pdf"))), destdir)
-	    }
-        }
+	}
 
 	## pkg indices: this also tangles the vignettes (if installed)
 	if (install_inst || install_demo || install_help) {
@@ -1097,7 +1049,6 @@
     fake <- FALSE
     lazy <- TRUE
     lazy_data <- FALSE
-    byte_compile <- FALSE
     ## This is not very useful unless R CMD INSTALL reads a startup file
     lock <- getOption("install.lock", NA) # set for overall or per-package
     pkglock <- FALSE  # set for per-package locking
@@ -1114,7 +1065,6 @@
     data_compress <- TRUE # FALSE (none), TRUE (gzip), 2 (bzip2), 3 (xz)
     resave_data <- FALSE
     compact_docs <- FALSE
-    keep.source <- getOption("keep.source.pkgs")
 
     install_libs <- TRUE
     install_R <- TRUE
@@ -1182,6 +1132,10 @@
             fake <- TRUE
         } else if (a == "--no-lock") {
             lock <- pkglock <- FALSE
+        } else if (a == "--unsafe") {
+            warning("--unsafe is deprecated: use --no-lock instead",
+                    call. = FALSE, immediate. = TRUE, domain = NA)
+            lock <- pkglock <- FALSE
         } else if (a == "--lock") {
             lock <- TRUE; pkglock <- FALSE
         } else if (a == "--pkglock") {
@@ -1231,12 +1185,6 @@
             else warning("--merge-multiarch is Windows-only", call.=FALSE)
         } else if (a == "--compact-docs") {
             compact_docs <- TRUE
-        } else if (a == "--with-keep.source") {
-            keep.source <- TRUE
-        } else if (a == "--without-keep.source") {
-            keep.source <- FALSE
-        } else if (a == "--byte-compile") {
-            byte_compile <- TRUE
         } else if (substr(a, 1, 1) == "-") {
             message("Warning: unknown option ", sQuote(a))
         } else pkgs <- c(pkgs, a)
@@ -1266,7 +1214,7 @@
         ## this will report '* DONE (foo)' if it works, which
         ## R CMD check treats as an indication of success.
         ## so use a backdoor to suppress it.
-        Sys.setenv("_R_INSTALL_NO_DONE_" = "yes")
+        Sys.setenv("_R_INSTALL_NO_DONE_"="yes")
         res <- system(cmd1)
         if(res == 0) {
             cmd <- paste(file.path(R.home(), "bin", "x64", "Rcmd.exe"),
@@ -1545,7 +1493,7 @@
                 R.version[["major"]], ".",  R.version[["minor"]],
                 " (r", R.version[["svn rev"]], ")\n", sep = "")
             cat("",
-                "Copyright (C) 2000-2011 The R Core Development Team.",
+                "Copyright (C) 2000-2009 The R Core Development Team.",
                 "This is free software; see the GNU General Public License version 2",
                 "or later for copying conditions.  There is NO warranty.",
                 sep="\n")
