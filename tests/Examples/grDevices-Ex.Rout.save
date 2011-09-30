@@ -1,8 +1,8 @@
 
-R Under development (unstable) (2011-09-04 r56935)
+R version 2.13.1 Patched (2011-09-01 r56878)
 Copyright (C) 2011 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
-Platform: x86_64-apple-darwin9.8.0/x86_64 (64-bit)
+Platform: x86_64-unknown-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -191,6 +191,8 @@ $allowed
 > sines <- outer(1:20, 1:4, function(x, y) sin(x / 20 * pi * y))
 > matplot(sines, type = "b", pch = 21:23, col = 2:5, bg = 2:5,
 +         main = "Using an 'opaque ('translucent') color palette")
+Warning in plot.xy(xy, type, ...) :
+  semi-transparency is not supported on this device: reported only once per page
 > 
 > x. <- adjustcolor(x, offset=c(0.5,0.5,0.5, 0), # <- "more white"
 +                   transform=diag(c(.7, .7, .7, 0.6)))
@@ -208,6 +210,8 @@ $allowed
 > plot(0:9,0:9, type="n",axes=FALSE, xlab="",ylab="",
 +      main="adjustcolor() -> translucent")
 > text(1:8, labels=paste(x,"++",sep=""), col=x., cex=8)
+Warning in text.default(1:8, labels = paste(x, "++", sep = ""), col = x.,  :
+  semi-transparency is not supported on this device: reported only once per page
 > par(op)
 > 
 > ## and
@@ -1683,41 +1687,6 @@ Copyright M. P. Wand 1997-2009
 > 
 > 
 > cleanEx()
-> nameEx("dev.capabilities")
-> ### * dev.capabilities
-> 
-> flush(stderr()); flush(stdout())
-> 
-> ### Name: dev.capabilities
-> ### Title: Query Capabilities of the Current Graphics Device
-> ### Aliases: dev.capabilities
-> ### Keywords: dplot
-> 
-> ### ** Examples
-> 
-> dev.capabilities()
-$semiTransparency
-[1] TRUE
-
-$transparentBackground
-[1] "semi"
-
-$rasterImage
-[1] "yes"
-
-$capture
-[1] FALSE
-
-$locator
-[1] FALSE
-
-$events
-character(0)
-
-> 
-> 
-> 
-> cleanEx()
 > nameEx("dev.interactive")
 > ### * dev.interactive
 > 
@@ -2125,6 +2094,8 @@ Sturges   Scott      FD
 +        main = "Alpha-Transparency Palette\n alpha = 0.3")
 > xy[,1] <- -xy[,1]
 > points(xy, col=8, pch=16, cex = 1.5)
+Warning in plot.xy(xy.coords(x, y), type = type, ...) :
+  semi-transparency is not supported on this device: reported only once per page
 > palette("default")
 > 
 > 
@@ -2236,11 +2207,11 @@ List of 18
  $ fg         : chr "black"
  $ pointsize  : num 12
  $ pagecentre : logi TRUE
- $ colormodel : chr "srgb"
+ $ colormodel : chr "rgb"
  $ useDingbats: logi TRUE
  $ useKerning : logi TRUE
  $ fillOddEven: logi FALSE
- $ compress   : logi TRUE
+ $ maxRasters : int 1000
 > pdf.options(reset = TRUE) # back to factory-fresh
 > 
 > 
@@ -2263,8 +2234,8 @@ List of 18
 > pictex()
 > plot(1:11,(-5:5)^2, type='b', main="Simple Example Plot")
 > dev.off()
-pdf 
-  2 
+postscript 
+         2 
 > ##--------------------
 > ## Not run: 
 > ##D %% LaTeX Example
@@ -2973,15 +2944,15 @@ List of 18
  $ encoding   : chr "default"
  $ bg         : chr "pink"
  $ fg         : chr "black"
- $ width      : num 0
- $ height     : num 0
+ $ width      : num 7
+ $ height     : num 7
  $ horizontal : logi TRUE
  $ pointsize  : num 12
- $ paper      : chr "default"
+ $ paper      : chr "a4"
  $ pagecentre : logi TRUE
  $ print.it   : logi FALSE
  $ command    : chr "default"
- $ colormodel : chr "srgb"
+ $ colormodel : chr "rgb"
  $ useKerning : logi TRUE
  $ fillOddEven: logi FALSE
 > 
@@ -3006,14 +2977,14 @@ List of 18
  $ bg         : chr "pink"
  $ fg         : chr "black"
  $ width      : int [1:13] 0 1 2 3 4 5 6 7 8 9 ...
- $ height     : num 0
+ $ height     : num 7
  $ horizontal : logi TRUE
  $ pointsize  : num 12
- $ paper      : chr "default"
+ $ paper      : chr "a4"
  $ pagecentre : logi TRUE
  $ print.it   : logi FALSE
  $ command    : chr "default"
- $ colormodel : chr "srgb"
+ $ colormodel : chr "rgb"
  $ useKerning : logi TRUE
  $ fillOddEven: logi FALSE
 > ps.options(reset = TRUE) # back to factory-fresh
@@ -3426,7 +3397,7 @@ $zlab
 > ### * <FOOTER>
 > ###
 > cat("Time elapsed: ", proc.time() - get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  4.692 0.21 5.002 0 0 
+Time elapsed:  2.989 0.092 3.204 0 0 
 > grDevices::dev.off()
 null device 
           1 

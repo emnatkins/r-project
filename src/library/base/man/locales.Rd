@@ -51,6 +51,9 @@ Sys.setlocale(category = "LC_ALL", locale = "")
   the behaviour of \code{\link{as.POSIXlt}} and \code{\link{strptime}}
   and functions which use them (but not \code{\link{date}}).
 
+  \R can be built with no support for locales, but it is normally
+  available on Unix and is available on Windows.
+
   The first seven categories described here are those specified by
   POSIX.  \code{"LC_MESSAGES"} will be \code{"C"} on systems that do not
   support message translation, and is not supported on Windows.  Trying
@@ -122,9 +125,8 @@ Sys.getlocale()
 Sys.getlocale("LC_TIME")
 \dontrun{
 Sys.setlocale("LC_TIME", "de")     # Solaris: details are OS-dependent
-Sys.setlocale("LC_TIME", "de_DE.utf8")   # Modern Linux etc.
-Sys.setlocale("LC_TIME", "de_DE.UTF-8")  # ditto
-Sys.setlocale("LC_TIME", "de_DE")  # Mac OS X, in UTF-8
+Sys.setlocale("LC_TIME", "de_DE.utf8")  # Modern Linux etc.
+Sys.setlocale("LC_TIME", "de_DE")  # Mac OS X
 Sys.setlocale("LC_TIME", "German") # Windows
 }
 Sys.getlocale("LC_PAPER")          # may or may not be set

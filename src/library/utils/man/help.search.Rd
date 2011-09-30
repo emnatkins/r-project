@@ -14,9 +14,6 @@
   keyword entries (or any combination thereof), using either
   \link{fuzzy matching} or \link{regular expression} matching.  Names
   and titles of the matched help entries are displayed nicely formatted.
-  
-  Vignette names, titles and keywords and demo names and titles
-  may also be searched.
 }
 \usage{
 help.search(pattern, fields = c("alias", "concept", "title"),
@@ -24,8 +21,7 @@ help.search(pattern, fields = c("alias", "concept", "title"),
             package = NULL, lib.loc = NULL,
             help.db = getOption("help.db"),
             verbose = getOption("verbose"),
-            rebuild = FALSE, agrep = NULL, use_UTF8 = FALSE,
-            types = getOption("help.search.types"))
+            rebuild = FALSE, agrep = NULL, use_UTF8 = FALSE)
 \special{??pattern}
 \special{field??pattern}
 }
@@ -38,8 +34,7 @@ help.search(pattern, fields = c("alias", "concept", "title"),
     \code{"name"}, \code{"title"}, \code{"alias"}, \code{"concept"}, and
     \code{"keyword"}, corresponding to the help page's (file) name, its
     title, the topics and concepts it provides documentation for, and
-    the keywords it can be classified to.  See below for how vignettes
-    and demos are searched.}
+    the keywords it can be classified to.}
   \item{apropos}{a character string to be matched in the help page
     topics and title.}
   \item{keyword}{a character string to be matched in the help page
@@ -82,18 +77,13 @@ help.search(pattern, fields = c("alias", "concept", "title"),
     \code{max.distance} in the documentation for \code{\link{agrep}}.}
   \item{use_UTF8}{logical: should be results be given in UTF-8 encoding?
     Also changes the meaning of regexps in \code{agrep} to be Perl regexps.}
-  \item{types}{a character vector listing the types of documentation
-    to search.  The entries must be abbreviations of \code{"vignette"}
-    \code{"help"} or \code{"demo"}. Results will be presented in the 
-    order specified.}
   \item{field}{a single value of \code{fields} to search.}
 }
 \details{
   Upon installation of a package, a pre-built help.search index is
   serialized as \file{hsearch.rds} in the \file{Meta} directory
-  (provided the package has any help pages).  Vignettes are also 
-  indexed in the \file{Meta/vignette.rds} file.  These files are used to
-  create the help search database.
+  (provided the package has any help pages).  These files are used to
+  create the database.
 
   The arguments \code{apropos} and \code{whatis} play a role similar to
   the Unix commands with the same names.
@@ -114,13 +104,6 @@ help.search(pattern, fields = c("alias", "concept", "title"),
   As with \code{\link{?}}, in \code{??} the pattern may be prefixed with a 
   package name followed by \code{::} or \code{:::} to limit the search
   to that package.
-  
-  Vignettes are searched as follows.  The \code{"name"} and 
-  \code{"alias"} are both the base of the vignette filename, and the 
-  \code{"concept"} entries are taken from the \code{\\VignetteKeywords}
-  entries.  Vignettes are not classified using the help system 
-  \code{"keyword"} classifications.  Demos are handled
-  similarly to vignettes, without the  \code{"concept"} search.
 }
 
 \value{

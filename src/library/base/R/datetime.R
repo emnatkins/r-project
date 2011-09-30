@@ -209,7 +209,6 @@ format.POSIXct <- function(x, format = "", tz = "", usetz = FALSE, ...)
               names=names(x))
 }
 
-## could handle arrays for max.print
 print.POSIXct <- function(x, ...)
 {
     max.print <- getOption("max.print", 9999L)
@@ -892,7 +891,7 @@ round.POSIXt <- function(x, units=c("secs", "mins", "hours", "days"))
 
 `[.POSIXlt` <- function(x, ..., drop = TRUE)
 {
-    val <- lapply(X = x, FUN = "[", ..., drop = drop)
+    val <- lapply(x, "[", ..., drop = drop)
     attributes(val) <- attributes(x) # need to preserve timezones
     val
 }
@@ -926,7 +925,7 @@ rep.POSIXct <- function(x, ...)
 
 rep.POSIXlt <- function(x, ...)
 {
-    y <- lapply(X = x, FUN = rep, ...)
+    y <- lapply(x, rep, ...)
     attributes(y) <- attributes(x)
     y
 }

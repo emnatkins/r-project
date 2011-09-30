@@ -64,7 +64,7 @@ massageExamples <-
         ## make a syntactic name out of the filename
         nm <- gsub("[^- .a-zA-Z0-9_]", ".", nm, perl = TRUE, useBytes = TRUE)
         if (pkg == "grDevices" && nm == "postscript") next
-        ## Latin-1 examples are treated separat
+        ## we set the encoding in postscript(): this should now work everywhere
         if (pkg == "graphics" && nm == "text") next
         if(!file.exists(file)) stop("file ", file, " cannot be opened")
         lines <- readLines(file)
@@ -112,21 +112,18 @@ massageExamples <-
 }
 
 ## compares 2 files
-Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE, nullPointers=TRUE, Log=FALSE)
+Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE, Log=FALSE)
 {
     clean <- function(txt)
     {
         ## remove R header
-        if(length(top <- grep("^(R version|R : Copyright|R Under development)",
-                              txt, perl = TRUE, useBytes = TRUE)) &&
+        if(length(top <- grep("^(R version|R : Copyright)", txt,
+                              perl = TRUE, useBytes = TRUE)) &&
            length(bot <- grep("quit R.$", txt, perl = TRUE, useBytes = TRUE)))
             txt <- txt[-(top[1L]:bot[1L])]
         ## remove BATCH footer
         nl <- length(txt)
         if(grepl("^> proc.time()", txt[nl-2L])) txt <- txt[1:(nl-3L)]
-        if (nullPointers)
-        ## remove pointer addresses from listings
-            txt <- gsub("<(environment|bytecode|pointer|promise): [x[:xdigit:]]+>", "<\\1: 0>", txt)
         ## regularize fancy quotes.  First UTF-8 ones:
         txt <- gsub("(\xe2\x80\x98|\xe2\x80\x99)", "'", txt,
                       perl = TRUE, useBytes = TRUE)
@@ -136,7 +133,7 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE, nullPointers=TRUE, L
             txt <- txt[!grepl('options(pager = "console")', txt,
                               fixed = TRUE, useBytes = TRUE)]
         }
-        pat <- '(^Time |^Loading required package|^Package [A-Za-z][A-Za-z0-9]+ loaded|^<(environment|promise|pointer|bytecode):|^/CreationDate|^/ModDate )'
+        pat <- '(^Time |^Loading required package|^Package [A-Za-z][A-Za-z0-9]+ loaded|^<(environment|promise|pointer|bytecode): )'
         txt[!grepl(pat, txt, perl = TRUE, useBytes = TRUE)]
     }
     clean2 <- function(txt)
@@ -192,8 +189,7 @@ Rdiff <- function(from, to, useDiff = FALSE, forEx = FALSE, nullPointers=TRUE, L
 testInstalledPackages <-
     function(outDir = ".", errorsAreFatal = TRUE,
              scope = c("both", "base", "recommended"),
-             types = c("examples", "tests", "vignettes"),
-             srcdir = NULL, Ropts = "")
+             types = c("examples", "tests", "vignettes"), srcdir = NULL)
 {
     ow <- options(warn = 1)
     on.exit(ow)
@@ -209,7 +205,7 @@ testInstalledPackages <-
     for (pkg in pkgs) {
         if(is.null(srcdir) && pkg %in% known_packages$base)
             srcdir <- R.home("tests/Examples")
-        res <- testInstalledPackage(pkg, .Library, outDir, types, srcdir, Ropts)
+        res <- testInstalledPackage(pkg, .Library, outDir, types, srcdir)
         if (res) {
             status <- 1L
             msg <- gettextf("testing '%s' failed", pkg)
@@ -223,7 +219,7 @@ testInstalledPackages <-
 testInstalledPackage <-
     function(pkg, lib.loc = NULL, outDir = ".",
              types = c("examples", "tests", "vignettes"),
-             srcdir = NULL, Ropts = "")
+             srcdir = NULL)
 {
     types <- pmatch(types, c("examples", "tests", "vignettes"))
     pkgdir <- find.package(pkg, lib.loc)
@@ -243,7 +239,7 @@ testInstalledPackage <-
             unlink(failfile)
             ## Create as .fail in case this R session gets killed
             cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
-                         "CMD BATCH --vanilla --no-timing", Ropts,
+                         "CMD BATCH --vanilla --no-timing",
                          shQuote(Rfile), shQuote(failfile))
             if (.Platform$OS.type == "windows") Sys.setenv(R_LIBS="")
             else cmd <- paste("R_LIBS=", cmd)
@@ -275,9 +271,7 @@ testInstalledPackage <-
                     if (!res) message(" OK")
                 }
             }
-        } else
-            warning(gettextf("no examples found for package %s", sQuote(pkg)),
-                    call. = FALSE, domain = NA)
+        } else warning("no examples found")
     }
 
     ## FIXME merge with code in .runPackageTests
@@ -294,7 +288,7 @@ testInstalledPackage <-
             message("  Running ", sQuote(f))
             outfile <- paste(f, "out", sep = "")
             cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
-                         "CMD BATCH --vanilla --no-timing", Ropts,
+                         "CMD BATCH --vanilla --no-timing",
                          shQuote(f), shQuote(outfile))
             cmd <- if (.Platform$OS.type == "windows") paste(cmd, "LANGUAGE=C")
             else paste("LANGUAGE=C", cmd)
@@ -645,7 +639,7 @@ detachPackages <- function(pkgs, verbose = TRUE)
 
     left <- args[1L]
     if(left == "-") left <- "stdin"
-    status <- tools::Rdiff(left, args[2L], useDiff = TRUE)
+    status <- tools::Rdiff(left, args[2L], TRUE)
     if(status) status <- exitstatus
     do_exit(status)
 }

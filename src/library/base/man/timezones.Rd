@@ -79,7 +79,7 @@ Sys.timezone()
   for the C function \code{tzset} can be helpful, but it
   can also be inaccurate.  There is a cumbersome POSIX specification
   (listed under environment variable \env{TZ} at
-  \url{http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html#tag_08}),
+  \url{http://www.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap08.html}),
   which is often at least partially supported, but there usually are
   other more user-friendly ways to specify timezones.
 

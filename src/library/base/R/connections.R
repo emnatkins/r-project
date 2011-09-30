@@ -107,10 +107,8 @@ xzfile <- function(description, open = "", encoding = getOption("encoding"),
 
 socketConnection <- function(host = "localhost", port, server = FALSE,
                              blocking = FALSE, open = "a+",
-                             encoding = getOption("encoding"),
-                             timeout = getOption("timeout"))
-    .Internal(socketConnection(host, port, server, blocking, open, encoding,
-                               timeout))
+                             encoding = getOption("encoding"))
+    .Internal(socketConnection(host, port, server, blocking, open, encoding))
 
 rawConnection <- function(object, open = "r") {
     .Internal(rawConnection(deparse(substitute(object)), object, open))

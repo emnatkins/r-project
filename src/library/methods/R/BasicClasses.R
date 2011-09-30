@@ -14,12 +14,6 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-## a few class name definitions needed elsewhere
-.anyClassName <- structure("ANY", package = "methods")
-.signatureClassName <- structure("signature", package = "methods")
-
-
-
 .InitBasicClasses <- function(envir)
 {
     ## setClass won't allow redefining basic classes,
@@ -55,10 +49,6 @@
     .setBaseClass("environment", prototype = new.env(), where = envir); clList <- c(clList, "environment")
 
     .setBaseClass("externalptr", prototype = .newExternalptr(), where = envir); clList <- c(clList, "externalptr")
-
-    .setBaseClass("builtin", prototype = `<-`, where = envir); clList <- c(clList, "builtin")
-
-    .setBaseClass("special", prototype = `if`, where = envir); clList <- c(clList, "special")
 
     ## S4, S3 are basic classes that are used to define methods related to being S4, S3 object
     for(cl in c("S4", "S3")) {
@@ -258,9 +248,7 @@
                 Classi <- class(obj)
                 defi <- getClassDef(Classi)
                 if(is.null(defi))
-                  stop(gettextf("unnamed argument to initialize() for S3 class must have a class definition; %s does not",
-                                dQuote(Classi)),
-                       domain = NA)
+                  stop(gettextf("unnamed argument to initialize() for S3 class must have a class definition; \"%s\" does not", Classi), domain = NA)
                 if(is(obj, S3ClassP)) {
                     ## eligible to be the S3 part; merge other slots from prototype;
                     ## obj then becomes the object, with its original class as the S3Class
@@ -272,7 +260,7 @@
                     ## the S3Class stays from the prototype
                     .Object <- .mergeAttrs(obj, .Object)
                 }
-                else stop(gettextf("unnamed argument must extend either the S3 class or the class of the data part; not true of class %s", dQuote(Classi)), domain = NA)
+                else stop(gettextf("unnamed argument must extend either the S3 class or the class of the data part; not true of class \"%s\"", Classi), domain = NA)
 
             }
         }
@@ -324,10 +312,7 @@
     setMethod("coerce", c("ANY", "S3"), function (from, to, strict = TRUE)
               {
                   switch(typeof(from),
-                         S4 =
-                         stop(gettextf("Class %s does not have an S3 data part, and so is of type \"S4\"; no S3 equivalent",
-                                       dQuote(class(from))),
-                              domain = NA),
+                         S4 = stop(gettextf("Class \"%s\" does not have an S3 data part, and so is of type \"S4\"; no S3 equivalent",class(from)), domain = NA),
                          .notS4(from) )
               },
               where = envir)
@@ -340,16 +325,14 @@
                       cl <- .class1(from)
                       classDef <- getClass(cl)
                       if(identical(classDef@virtual, TRUE))
-                        stop(gettextf("Class %s is VIRTUAL; not meaningful to create an S4 object from this class",
-                                      dQuote(cl)),
-                             domain = NA)
+                        stop(gettextf("Class \"%s\" is VIRTUAL; not meaningful to create an S4 object from this class", cl), domain = NA)
                       pr <- classDef@prototype
                       value <- new(cl)
                       slots <- classDef@slots
                       if(match(".Data", names(slots), 0L) > 0L) {
                           data <- unclass(from)
                           if(!is(data, slots[[".Data"]]))
-                            stop(gettextf("Object must be a valid data part for class %s; not true of type %s", dQuote(cl), dQuote(class(data))),
+                            stop(gettextf("Object must be a valid data part for class \"%s\"; not true of type \"%s\"", cl, class(data)),
                                  domain = NA)
                           value@.Data <- unclass(from)
                       }
@@ -554,9 +537,9 @@
       assign(".S3MethodsClasses", S3table, envir = where)
     }
     else S3table <- get(".S3MethodsClasses", envir = where)
-    specialClasses <- .indirectAbnormalClasses
-    specialTypes <- .AbnormalTypes # only part matching classes used
-    for(i in seq_along(specialClasses)) {
+    specialTypes <- c("environment", "externalptr", "name", "NULL")
+    specialClasses <- paste(".", specialTypes, sep="")
+    for(i in seq_along(specialTypes)) {
         cl <- specialTypes[[i]]
       ncl <- specialClasses[[i]]
       setClass(ncl, representation(.xData = cl), where = where)
@@ -587,43 +570,21 @@
                   objs <- names(args)
                   hasEnvArg <- length(args) && !all(nzchar(objs))
                   if(hasEnvArg) {
-                      ii <- seq_along(args)[!nzchar(objs)]
-                      i <- integer()
-                      for(iii in ii) {
-                          if(is(args[[iii]], "environment"))
-                              i <- c(i, iii)
-                      }
+                      i <- seq_along(args)[!nzchar(objs)]
                       if(length(i)>1)
                           stop("Can't have more than one unnamed argument as environment")
-                      if(length(i) == 1) {
-                          selfEnv <- args[[i]]
-                          args <- args[-i]
-                          objs <- objs[-i]
-                          if(!is(selfEnv, "environment"))
-                              stop("Unnamed argument to new() must be an environment for the new object")
-                          selfEnv <- as.environment(selfEnv)
-                      }
-                      ## else, no environment superclasses
-                      else
-                          selfEnv <- new.env()
+                      selfEnv <- args[[i]]
+                      args <- args[-i]
+                      objs <- objs[-i]
+                      if(!is(selfEnv, "environment"))
+                          stop("Unnamed argument to new() must be an environment for the new object")
+                      selfEnv <- as.environment(selfEnv)
                   }
                   else
                       selfEnv <- new.env()
-                  if(length(objs)) {
-                      ## don't assign locally named slots of subclasses
-                      ClassDef <- getClass(class(.Object))
-                      slots <- slotNames(ClassDef)
-                      localObjs <- is.na(match(objs, slots))
-                      if(any(localObjs)) {
-                          for(what in objs[localObjs])
-                              assign(what, elNamed(args, what), envir = selfEnv)
-                          objs <- objs[!localObjs]
-                          args <- args[!localObjs]
-                      }
-                  }
+                  for(what in objs)
+                      assign(what, elNamed(args, what), envir = selfEnv)
                   .Object@.xData <- selfEnv
-                  if(length(objs)) # call next method with remaining args
-                      .Object <- do.call(callNextMethod, c(.Object, args))
                   .Object
               }, where = where)
 }

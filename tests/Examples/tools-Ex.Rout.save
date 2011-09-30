@@ -1,8 +1,8 @@
 
-R Under development (unstable) (2011-08-05 r56632)
+R version 2.13.1 RC (2011-07-05 r56282)
 Copyright (C) 2011 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
-Platform: i386-pc-mingw32/i386 (32-bit)
+Platform: x86_64-unknown-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -44,7 +44,7 @@ Type 'q()' to quit R.
 <link rel="stylesheet" type="text/css" href="/doc/html/R.css">
 </head><body>
 <h1> This is a sample header
-<img class="toplogo" src="/doc/html/logo.jpg" alt="[R logo]">
+<img class="toplogo" src="/doc/html/logo.jpg" alt="[R logo]"></h1>
 </h1>
 <hr>
 <div align="center">
@@ -101,7 +101,7 @@ $itemBullet
 $enumFormat
 function (n) 
 sprintf("%d. ", n)
-<environment: 0x020f19a8>
+<environment: 0x1c96d68>
 
 $showURLs
 [1] FALSE
@@ -135,7 +135,7 @@ $itemBullet
 $enumFormat
 function (n) 
 sprintf("%d. ", n)
-<environment: 0x020f19a8>
+<environment: 0x1c96d68>
 
 $showURLs
 [1] FALSE
@@ -169,7 +169,7 @@ $itemBullet
 $enumFormat
 function (n) 
 sprintf("%d. ", n)
-<environment: 0x020f19a8>
+<environment: 0x1c96d68>
 
 $showURLs
 [1] FALSE
@@ -232,7 +232,7 @@ $underline_titles
 +     pages = "211-252"))
 > bibstyle("unsorted", sortKeys = function(refs) seq_along(refs),
 +        .init = TRUE)
-<environment: 0x01788254>
+<environment: 0x18f4268>
 > print(refs, .bibstyle = "unsorted")    
 R Development Core Team (2010). _R: A Language and Environment for
 Statistical Computing_. R Foundation for Statistical Computing, Vienna,
@@ -606,6 +606,26 @@ NULL
 > 
 > 
 > cleanEx()
+> nameEx("makeLazyLoading")
+> ### * makeLazyLoading
+> 
+> flush(stderr()); flush(stdout())
+> 
+> ### Name: makeLazyLoading
+> ### Title: Lazy Loading of Packages
+> ### Aliases: makeLazyLoading
+> ### Keywords: utilities
+> 
+> ### ** Examples
+> 
+> ## set up package "splines" for lazy loading -- already done
+> ## Not run: 
+> ##D tools:::makeLazyLoading("splines")
+> ## End(Not run)
+> 
+> 
+> 
+> cleanEx()
 > nameEx("md5sum")
 > ### * md5sum
 > 
@@ -635,24 +655,6 @@ NULL
 > ### Keywords: utilities documentation
 > 
 > ### ** Examples
-> 
-> 
-> cleanEx()
-> nameEx("pskill")
-> ### * pskill
-> 
-> flush(stderr()); flush(stdout())
-> 
-> ### Name: pskill
-> ### Title: Kill a Process
-> ### Aliases: pskill SIGHUP SIGINT SIGQUIT SIGKILL SIGTERM SIGSTOP SIGTSTP
-> ###   SIGCONT SIGCHLD SIGUSR1 SIGUSR2
-> ### Keywords: utilities
-> 
-> ### ** Examples
-> ## Not run: 
-> ##D pskill(c(237, 245), SIGKILL)
-> ## End(Not run)
 > 
 > 
 > cleanEx()
@@ -724,7 +726,7 @@ NULL
 <link rel="stylesheet" type="text/css" href="/doc/html/R.css">
 </head><body>
 <h1> R
-<img class="toplogo" src="/doc/html/logo.jpg" alt="[R logo]">
+<img class="toplogo" src="/doc/html/logo.jpg" alt="[R logo]"></h1>
 </h1>
 <hr>
 <div align="center">
@@ -806,7 +808,7 @@ An illustration of lexical scoping.
 > ### ** Examples
 > 
 > ## This may not be installed
-> gridEx <- system.file("doc", "grid.Rnw", package = "grid")
+> gridEx <- system.file("doc", "grid.Snw", package = "grid")
 > vignetteDepends(gridEx)
 $Depends
 [1] "lattice"
@@ -869,7 +871,7 @@ attr(,"class")
 > ### * <FOOTER>
 > ###
 > cat("Time elapsed: ", proc.time() - get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  0.37 0.14 0.58 NA NA 
+Time elapsed:  0.332 0.011 0.363 0 0 
 > grDevices::dev.off()
 null device 
           1 

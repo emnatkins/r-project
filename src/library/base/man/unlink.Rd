@@ -5,15 +5,14 @@
 
 \name{unlink}
 \title{Delete Files and Directories}
-\usage{unlink(x, recursive = FALSE, force = FALSE)}
+\usage{unlink(x, recursive = FALSE)}
 \alias{unlink}
 \arguments{
   \item{x}{a character vector with the names of the file(s) or
     directories to be deleted.
     Wildcards (normally \file{*} and \file{?}) are allowed.}
-  \item{recursive}{logical.  Should directories be deleted recursively?}
-  \item{force}{logical.  Should permissions be changed (if possible) to
-    allow the file or directory to be removed?}
+  \item{recursive}{logical. Should directories be deleted
+    recursively?}
 }
 \description{
   \code{unlink} deletes the file(s) or directories specified by \code{x}.

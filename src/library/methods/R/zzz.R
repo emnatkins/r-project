@@ -23,8 +23,7 @@
     if(missing(where)) {
         where <- match(paste("package:", pkgname, sep=""), search())
         if(is.na(where)) {
-            warning(gettextf("not a package name: %s", sQuote(pkgname)),
-                    domain = NA)
+            warning(gettextf("not a package name: \"%s\"", pkgname), domain = NA)
             return()
         }
         where <- as.environment(where)
@@ -86,7 +85,6 @@
         assign("implicitGeneric", .implicitGeneric, envir = where)
         cacheMetaData(where, TRUE, searchWhere = .GlobalEnv, FALSE)
         assign(".checkRequiredGenerics", ..checkRequiredGenerics,envir = where)
-        assign(".methodPackageSlots", ..methodPackageSlots, envir = where)
         ## unlock some bindings that must be modifiable
         unlockBinding(".BasicFunsList", where)
          assign(".saveImage", TRUE, envir = where)

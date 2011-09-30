@@ -48,7 +48,10 @@ the discussion in \code{\link{setIs}} for the general concept.
 }
 \seealso{
   \code{\link{showMethods}} prints all the methods for one or more
-  functions.
+  functions;
+  \code{\link{showMlist}} prints individual methods lists; 
+  \code{\link{showClass}} prints class definitions.
+  Neither of the latter two normally needs to be called directly.
 }
 \examples{
 ## following the example shown in the setMethod documentation ...

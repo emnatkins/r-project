@@ -16,7 +16,7 @@
 
 package.skeleton <-
     function(name = "anRpackage", list = character(), environment = .GlobalEnv,
-	     path = ".", force = FALSE, namespace = TRUE,
+	     path = ".", force = FALSE, namespace = FALSE,
              code_files = character())
 {
     safe.dir.create <- function(path)
@@ -26,6 +26,8 @@ package.skeleton <-
 	    stop(gettextf("cannot create directory '%s'", path), domain = NA)
     }
 
+    if(!is.logical(namespace) || length(namespace) != 1L)
+        stop("'namespace' must be a single logical")
     if(!is.character(code_files))
         stop("'code_files' must be a character vector")
     use_code_files <- length(code_files) > 0L
@@ -97,6 +99,7 @@ package.skeleton <-
 	"Maintainer: Who to complain to <yourfault@somewhere.net>\n",
 	"Description: More about what it does (maybe more than one line)\n",
 	"License: What license is it under?\n",
+	"LazyLoad: yes\n",
 	if(usingS4) "Depends: methods\n",
 	file = description, sep = "")
     close(description)
@@ -107,27 +110,33 @@ package.skeleton <-
     ## of names beginning with alpha.  All S4 methods and classes are exported.
     ## S3 methods will be exported if the function's name would be exported.
     ## </NOTE>
-    message("Creating NAMESPACE ...")
-    out <- file(file.path(dir, "NAMESPACE"), "wt")
-    writeLines("exportPattern(\"^[[:alpha:]]+\")", out)
-    if(length(methodsList)) {
-	cat("exportMethods(\n    ", file = out)
-	cat(paste('"', methodsList, '"', sep="", collapse = ",\n    "), "\n)\n", file = out)
+    if(namespace) {
+        message("Creating NAMESPACE ...")
+        out <- file(file.path(dir, "NAMESPACE"), "wt")
+        writeLines("exportPattern(\"^[[:alpha:]]+\")", out)
+        if(length(methodsList)) {
+            cat("exportMethods(\n    ", file = out)
+            cat(paste('"', methodsList, '"', sep="", collapse = ",\n    "), "\n)\n", file = out)
+        }
+        if(length(classesList)) {
+            cat("exportClasses(\n    ", file = out)
+            cat(paste('"', classesList, '"', sep="", collapse = ",\n     "), "\n)\n", file = out)
+        }
+        close(out)
     }
-    if(length(classesList)) {
-	cat("exportClasses(\n    ", file = out)
-	cat(paste('"', classesList, '"', sep="", collapse = ",\n     "), "\n)\n", file = out)
-    }
-    close(out)
 
     ## Read-and-delete-me
     message("Creating Read-and-delete-me ...")
     out <- file(file.path(dir, "Read-and-delete-me"), "wt")
     msg <-
         c("* Edit the help file skeletons in 'man', possibly combining help files for multiple functions.",
+          if(namespace)
           "* Edit the exports in 'NAMESPACE', and add necessary imports.",
           "* Put any C/C++/Fortran code in 'src'.",
-          "* If you have compiled code, add a useDynLib() directive to 'NAMESPACE'.",
+          if(namespace)
+          "* If you have compiled code, add a useDynLib() directive to 'NAMESPACE'."
+          else
+          "* If you have compiled code, add a .First.lib() function in 'R' to load the shared object.",
           "* Run R CMD build to build the package tarball.",
           "* Run R CMD check to check the package tarball.",
           "",
@@ -183,6 +192,27 @@ package.skeleton <-
 
     ## Make help file skeletons in 'man'
     message("Making help files ...")
+    if(!namespace && length(internalObjInds)) {
+        notNeeded <- grep(methods:::.methodsPackageMetaNamePattern, internalObjs)
+        notNeeded <- c(notNeeded, match(".packageName", internalObjs, 0L))
+        if(length(notNeeded) < length(internalObjs)) {
+            internalObjs <- internalObjs[-notNeeded]
+            Rdfile <- file(file.path(docs_dir,
+                                     sprintf("%s-internal.Rd", name)),
+                           "wt")
+            cat("\\name{", name, "-internal}\n",
+                "\\title{Internal ", name, " objects}\n",
+                file = Rdfile, sep = "")
+            for(item in internalObjs) {
+                cat("\\alias{", item, "}\n", file = Rdfile, sep = "")
+            }
+            cat("\\description{Internal ", name, " objects.}\n",
+                "\\details{These are not to be called by the user.}\n",
+                "\\keyword{internal}",
+                file = Rdfile, sep = "")
+            close(Rdfile)
+        }
+    }
     ## Suppress partially inappropriate messages from prompt().
     yy <- try(suppressMessages({
 	promptPackage(name,

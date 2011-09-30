@@ -53,8 +53,8 @@ if(substr(R.version$os, 1L, 6L) != "darwin") {
         ## dir over to the appropriate install dir.
         tmpDir <- tempfile(, lib)
         if (!dir.create(tmpDir))
-            stop(gettextf("unable to create temporary directory %s",
-                          sQuote(tmpDir)),
+            stop(gettextf("unable to create temporary directory '%s'",
+                          tmpDir),
                  domain = NA, call. = FALSE)
         cDir <- getwd()
         on.exit(setwd(cDir), add = TRUE)
@@ -62,8 +62,8 @@ if(substr(R.version$os, 1L, 6L) != "darwin") {
         setwd(tmpDir)
         res <- tools::checkMD5sums(pkgname, file.path(tmpDir, pkgname))
         if(!is.na(res) && res) {
-            cat(gettextf("package %s successfully unpacked and MD5 sums checked\n",
-                         sQuote(pkgname)))
+            cat(gettextf("package '%s' successfully unpacked and MD5 sums checked\n",
+                         pkgname))
             flush.console()
         }
 
@@ -88,7 +88,7 @@ if(substr(R.version$os, 1L, 6L) != "darwin") {
                         try(unlink(instPath, recursive = TRUE))
         	    	savedcopy <- file.path(lockdir, pkgname)
         	    	file.copy(savedcopy, lib, recursive = TRUE)
-        	    	warning(gettextf("restored %s", sQuote(pkgname)),
+        	    	warning(gettextf("restored '%s'", pkgname),
                                 domain = NA, call. = FALSE, immediate. = TRUE)
         	    }
         	}, add=TRUE)
@@ -104,9 +104,8 @@ if(substr(R.version$os, 1L, 6L) != "darwin") {
             ## remove our temp dir
             ret <- file.rename(file.path(tmpDir, pkgname), instPath)
             if(!ret) {
-                warning(gettextf("unable to move temporary installation %s to %s",
-                                 sQuote(file.path(tmpDir, pkgname)),
-                                 sQuote(instPath)),
+                warning(gettextf("unable to move temporary installation '%s' to '%s'",
+                                 file.path(tmpDir, pkgname), instPath),
                         domain = NA, call. = FALSE)
                 restorePrevious <- TRUE # Might not be used
             }
@@ -136,8 +135,7 @@ if(substr(R.version$os, 1L, 6L) != "darwin") {
     if(is.null(destdir) && nonlocalcran) {
         tmpd <- file.path(tempdir(), "downloaded_packages")
         if (!file.exists(tmpd) && !dir.create(tmpd))
-            stop(gettextf("unable to create temporary directory %s",
-                          sQuote(tmpd)),
+            stop(gettextf("unable to create temporary directory '%s'", tmpd),
                  domain = NA)
     }
 

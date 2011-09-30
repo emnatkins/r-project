@@ -20,6 +20,7 @@
 \alias{R_PAPERSIZE}
 \alias{R_PDFVIEWER}
 \alias{R_PLATFORM}
+\alias{R_RD4DVI}
 \alias{R_RD4PDF}
 \alias{R_SHARE_DIR}
 \alias{R_TEXI2DVICMD}
@@ -69,8 +70,7 @@
       the locale -- see \code{\link{Sys.getlocale}}.  Consulted at startup.}
     \item{\env{MAKEINDEX}:}{The path to \command{makeindex}.
       If unset to a value determined when \R was built.
-      Used by the emulation mode of \code{\link{texi2dvi}} and
-      \code{\link{texi2pdf}}.}
+      Used by the emulation mode of \code{\link{texi2dvi}}.}
     \item{\env{R_BATCH}:}{Optional -- set in a batch session.}
     \item{\env{R_BROWSER}:}{The path to the default browser.  Used to
       set the default value of \code{\link{options}("browser")}.}
@@ -121,6 +121,8 @@
       \code{\var{cpu}-\var{vendor}-\var{os}}, see \code{\link{R.Version}}.}
     \item{\env{R_PROFILE}:}{Optional.  The path to the site profile
       file: see \link{Startup}.  Consulted at startup.}
+    \item{\env{R_RD4DVI}:}{Options for \command{latex} processing of
+      \code{Rd} files. Used by \command{R CMD Rd2dvi}.}
     \item{\env{R_RD4PDF}:}{Options for \command{pdflatex} processing of
       \code{Rd} files.  Used by \command{R CMD Rd2pdf}.}
     \item{\env{R_SHARE_DIR}:}{The location of the \R \file{share}
@@ -131,12 +133,12 @@
 #ifdef unix
       Consulted at startup to set the default for
       \code{\link{options}("texi2dvi")}, used by
-      \code{\link{texi2dvi}} and \code{\link{texi2pdf}} in package \pkg{tools}.
+      \code{\link{texi2dvi}} in package \pkg{tools}.
 #endif
     }
     \item{\env{R_UNZIPCMD}:}{The path to \command{unzip}.  Sets the
       initial value for \code{\link{options}("unzip")} on a Unix-alike
-      when namespace \pkg{utils} is loaded.}
+      when name space \pkg{utils} is loaded.}
     \item{\env{R_ZIPCMD}:}{The path to \command{zip}. Used by
       \code{\link{zip}} and by \command{R CMD INSTALL --build} on Windows.}
     \item{\env{TMPDIR}, \env{TMP}, \env{TEMP}:}{Consulted (in that
@@ -159,7 +161,7 @@
     \item{\env{DISPLAY}:}{Optional: used by \code{\link{X11}}, Tk (in
       package \pkg{tcltk}), the data editor and various packages.}
     \item{\env{EDITOR}:}{The path to the default editor: sets the
-      default for \code{\link{options}("editor")} when namespace
+      default for \code{\link{options}("editor")} when name space
       \pkg{utils} is loaded.}
     \item{\env{PAGER}:}{The path to the pager with the default setting of
       \code{\link{options}("pager")}. The default value is chosen at

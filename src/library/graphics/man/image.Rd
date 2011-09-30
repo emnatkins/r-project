@@ -12,7 +12,7 @@ image(x, \dots)
 
 \method{image}{default}(x, y, z, zlim, xlim, ylim, col = heat.colors(12),
       add = FALSE, xaxs = "i", yaxs = "i", xlab, ylab,
-      breaks, oldstyle = FALSE, useRaster, \dots)
+      breaks, oldstyle = FALSE, useRaster = FALSE, \dots)
 }
 \arguments{
   \item{x,y}{locations of grid lines at which the values in \code{z} are
@@ -53,8 +53,7 @@ image(x, \dots)
     lengths between the limits.}
   \item{useRaster}{logical; if \code{TRUE} a bitmap raster is used to
     plot the image instead of polygons. The grid must be regular in that
-    case, otherwise an error is raised.   For the behaviour when this is
-    not specified, see \sQuote{Details}.}
+    case, otherwise an error is raised.}
   \item{\dots}{\link{graphical parameters} for \code{\link{plot}} may also be
     passed as arguments to this function, as can the plot aspect ratio
     \code{asp} and \code{axes} (see \code{\link{plot.window}}).}
@@ -106,11 +105,6 @@ image(x, \dots)
   
   The graphics files in PDF and PostScript can be much smaller under
   this option.
-
-  If \code{useRaster} is not specified, raster images are used when the
-  \code{\link{getOption}("preferRaster")} is true, the grid is regular
-  and either \code{\link{dev.capabilities}("raster")} is \code{"yes"} or
-  it is \code{"non-missing"} and there are no missing values.
 }
 \note{
   Originally based on a function by Thomas Lumley.
@@ -125,9 +119,6 @@ image(x, \dots)
   \code{\link{heat.colors}}, \code{\link{topo.colors}},
   \code{\link{terrain.colors}}, \code{\link{rainbow}},
   \code{\link{hsv}}, \code{\link{par}}.
-  
-  \code{\link{dev.capabilities}} to see if \code{useRaster = TRUE} is
-  supported on the current device.
 }
 \examples{
 require(grDevices) # for colours

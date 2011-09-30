@@ -19,7 +19,8 @@ parseLatex <- function(text, filename = deparse(substitute(text)),
                      "Sinput", "Soutput") )
 {
     ## the internal function must get some sort of srcfile
-    srcfile <- srcfilecopy(filename, text)
+    srcfile <- srcfile(filename)
+    srcfile$Enc <- "UTF-8"
     text <- paste(text, collapse="\n")
 
     .Internal(parseLatex(text, srcfile, verbose, as.character(verbatim)))

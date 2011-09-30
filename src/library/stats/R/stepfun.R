@@ -142,7 +142,6 @@ plot.stepfun <-
 
     ##------------------------ Plotting ----------------------------
 
-    dev.hold(); on.exit(dev.flush())
     ## horizontal segments
     if (add)
 	segments(ti.l, y, ti.r, y, col=col.hor, lty=lty, lwd=lwd, ...)

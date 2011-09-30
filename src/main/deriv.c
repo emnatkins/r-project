@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2011   The R Development Core Team.
+ *  Copyright (C) 1998-2007   The R Development Core Team.
  *  Copyright (C) 2004-5        The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -933,33 +933,30 @@ SEXP attribute_hidden do_deriv(SEXP call, SEXP op, SEXP args, SEXP env)
     args = CDR(args);
     /* hessian: */
     hessian = asLogical(CAR(args));
-    /* NOTE: FindSubexprs is destructive, hence the duplication.
-       It can allocate, so protect the duplicate.
-     */
+    /* NOTE: FindSubexprs is destructive, hence the duplication */
     PROTECT(ans = duplicate(expr));
     f_index = FindSubexprs(ans, exprlist, tag);
-    d_index = (int*)R_alloc((size_t) nderiv, sizeof(int));
+    d_index = (int*)R_alloc(nderiv, sizeof(int));
     if (hessian)
-	d2_index = (int*)R_alloc((size_t) ((nderiv * (1 + nderiv))/2),
-				 sizeof(int));
+	d2_index = (int*)R_alloc((nderiv * (1 + nderiv))/2, sizeof(int));
     else d2_index = d_index;/*-Wall*/
     UNPROTECT(1);
     for(i=0, k=0; i<nderiv ; i++) {
 	PROTECT(ans = duplicate(expr));
 	PROTECT(ans = D(ans, install(translateChar(STRING_ELT(names, i)))));
-	PROTECT(ans2 = duplicate(ans));	/* keep a temporary copy */
+	ans2 = duplicate(ans);	/* keep a temporary copy */
 	d_index[i] = FindSubexprs(ans, exprlist, tag); /* examine the derivative first */
-	PROTECT(ans = duplicate(ans2));	/* restore the copy */
+	ans = duplicate(ans2);	/* restore the copy */
 	if (hessian) {
 	    for(j = i; j < nderiv; j++) {
-		PROTECT(ans2 = duplicate(ans)); /* install could allocate */
+		PROTECT(ans2 = duplicate(ans));
 		PROTECT(ans2 = D(ans2, install(translateChar(STRING_ELT(names, j)))));
 		d2_index[k] = FindSubexprs(ans2, exprlist, tag);
 		k++;
 		UNPROTECT(2);
 	    }
 	}
-	UNPROTECT(4);
+	UNPROTECT(2);
     }
     nexpr = length(exprlist) - 1;
     if (f_index) {
@@ -1023,12 +1020,7 @@ SEXP attribute_hidden do_deriv(SEXP call, SEXP op, SEXP args, SEXP env)
 	    SETCDR(ans, Replace(MakeVariable(i+1, tag), CAR(ans), CDR(ans)));
 	    SETCAR(ans, R_MissingArg);
 	}
-	else {
-            SEXP var;
-            PROTECT(var = MakeVariable(i+1, tag));
-            SETCAR(ans, lang3(install("<-"), var, AddParens(CAR(ans))));
-            UNPROTECT(1);
-        }
+	else SETCAR(ans, lang3(install("<-"), MakeVariable(i+1, tag), AddParens(CAR(ans))));
 	i = i + 1;
 	ans = CDR(ans);
     }

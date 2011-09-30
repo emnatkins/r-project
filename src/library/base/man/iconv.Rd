@@ -13,15 +13,14 @@
   encodings: the \sQuote{i} stands for \sQuote{internationalization}.
 }
 \usage{
-iconv(x, from = "", to = "", sub = NA, mark = TRUE, toRaw = FALSE)
+iconv(x, from = "", to = "", sub = NA, mark = TRUE)
 
 iconvlist()
 }
 
 \arguments{
   \item{x}{A character vector, or an object to be converted to a character
-    vector by \code{\link{as.character}}, or a list with \code{NULL} and
-    \code{raw} elements as returned by \code{iconv(toRaw = TRUE)}.}
+    vector by \code{\link{as.character}}.}
   \item{from}{A character string describing the current encoding.}
   \item{to}{A character string describing the target encoding.}
   \item{sub}{character string.  If not \code{NA} it is used to replace
@@ -29,8 +28,6 @@ iconvlist()
     single character, but can be more.)  If \code{"byte"}, the indication is
     \code{"<xx>"} with the hex code of the byte.}
   \item{mark}{logical, for expert use.  Should encodings be marked?}
-  \item{toRaw}{logical.  Should a list of raw vectors be returned rather
-    than a character vector?}
 }
 
 \details{
@@ -64,6 +61,9 @@ iconvlist()
 }
 
 \section{Implementation Details}{
+  \code{iconv} was optional before \R 2.10.0, but its absence was
+  deprecated in \R 2.5.0.
+
   There are three main implementations of \code{iconv} in use.
   \samp{glibc} (as used on Linux) contains one.  Several platforms
   supply GNU \samp{libiconv}, including Mac OS X, FreeBSD and Cygwin.
@@ -86,18 +86,13 @@ iconvlist()
 }
 
 \value{
-  If \code{toRaw = FALSE} (the default), the value is a character vector
-  of the same length and the same attributes as \code{x} (after
-  conversion to a character vector).
+  A character vector of the same length and the same attributes as
+  \code{x} (after conversion).
 
   If \code{mark = TRUE} (the default) the elements of the result have a
   declared encoding if \code{from} is \code{"latin1"} or \code{"UTF-8"},
   or if \code{from = ""} and the current locale's encoding is detected
   as Latin-1 or UTF-8.
-
-  If \code{toRaw = TRUE}, the value is a vector of the same length and
-  the same attributes as \code{x} whose elements are either \code{NULL}
-  (if conversion fails) or a raw vector.
 
   For \code{iconvlist()}, a character vector (typically of a few hundred
   elements).
@@ -106,7 +101,7 @@ iconvlist()
   \code{\link{localeToCharset}}, \code{\link{file}}. 
 }
 \examples{
-## In principle, not all systems have iconvlist
+## not all systems have iconvlist
 try(utils::head(iconvlist(), n = 50))
 
 \dontrun{
@@ -128,15 +123,12 @@ iconv(x, "latin1", "ASCII", "?")     # "fa?ile"
 iconv(x, "latin1", "ASCII", "")      # "faile"
 iconv(x, "latin1", "ASCII", "byte")  # "fa<e7>ile"
 
-## Extracts from old R help files (they are nowadays in UTF-8)
+# Extracts from old R help files (they are nowadays in UTF-8)
 x <- c("Ekstr\xf8m", "J\xf6reskog", "bi\xdfchen Z\xfcrcher")
 Encoding(x) <- "latin1"
 x
 try(iconv(x, "latin1", "ASCII//TRANSLIT"))  # platform-dependent
 iconv(x, "latin1", "ASCII", sub="byte")
-## and for Windows' 'Unicode'
-str(xx <- iconv(x, "latin1", "UTF-16LE", toRaw = TRUE))
-iconv(xx, "UTF-16LE", "UTF-8")
 }
 \keyword{ character }
 \keyword{ utilities }

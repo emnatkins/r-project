@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-09-05 08:24\n"
+"POT-Creation-Date: 2011-03-22 15:33\n"
 "PO-Revision-Date: 2011-03-23 15:45+0100\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R-Core <R-core@r-project.org>\n"
@@ -15,9 +15,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
-
-msgid "invalid 'filename'"
-msgstr "unzulässiges 'filename' Argument"
 
 msgid "'coef' must not be negative"
 msgstr "'coef' darf nicht negativ sein"
@@ -36,6 +33,9 @@ msgstr "'bias' muss positiv sein"
 
 msgid "at least 3 columns needed"
 msgstr "zumindest 3 Spalten benötigt"
+
+msgid "The 'gamma' argument is deprecated and has no effect"
+msgstr "Das 'gamma' Argument ist veraltet und hat keinen Effekt"
 
 msgid "rgb matrix must be numeric"
 msgstr "RGB Matrix muss nummerisch sein"
@@ -152,7 +152,6 @@ msgstr "ungültige Optionen in '%s'"
 msgid "NOT changing"
 msgstr "NICHT ändernd"
 
-#, fuzzy
 msgid "argument 'append' is for back-compatibility and will be ignored"
 msgstr "Argument 'append' dient der Rückwärtskompatibilität und wird ignoriert"
 
@@ -164,9 +163,6 @@ msgstr "ungültiges 'family' Argument"
 
 msgid "invalid 'file'"
 msgstr "ungültiges 'file' Argument"
-
-msgid "'maxRasters' is no longer needed, and will be ignored"
-msgstr ""
 
 msgid "invalid PDF version"
 msgstr "ungültige PDF Version"
@@ -307,9 +303,6 @@ msgstr "Device '%s' steht nicht zur Verfügung"
 msgid "Available devices are %s"
 msgstr "Verfügbar Devices sind %s"
 
-msgid "'res' must be specified unless 'units = \"px\"'"
-msgstr "'res' muss angegeben werden, außer 'units = \"px\"'"
-
 msgid "invalid 'title'"
 msgstr "unzulässiger 'title'"
 
@@ -322,11 +315,11 @@ msgstr "ungültige Argumente in quartzFonts (muss ein Zeichensatzname sein)"
 msgid "invalid arguments in quartzFonts (need named args)"
 msgstr "ungültige Argumente in quartzFonts (benötigt benannte Argumente)"
 
-msgid "cairo-based types are not supported on this build - using \"Xlib\""
-msgstr ""
+msgid "invalid 'filename'"
+msgstr "unzulässiges 'filename' Argument"
 
-msgid "unknown family for X11(type = \"XLib\")"
-msgstr ""
+msgid "'res' must be specified unless 'units = \"px\"'"
+msgstr "'res' muss angegeben werden, außer 'units = \"px\"'"
 
 msgid "invalid X11 font specification:"
 msgstr "ungültige X11 Zeichensatzspezifikation"
@@ -388,9 +381,6 @@ msgid "%d z value <= 0 omitted from logarithmic plot"
 msgid_plural "%d z values <= 0 omitted from logarithmic plot"
 msgstr[0] "%d z Wert <= 0 ausgelassen in logarithmischem Plot"
 msgstr[1] "%d z Werte <= 0 ausgelassen in logarithmischem Plot"
-
-#~ msgid "The 'gamma' argument is deprecated and has no effect"
-#~ msgstr "Das 'gamma' Argument ist veraltet und hat keinen Effekt"
 
 #~ msgid "invalid value for 'antialias'"
 #~ msgstr "unzulässiger Wert für 'antialias'"

@@ -34,7 +34,7 @@ typedef enum {
     single_NA__num_eq  = 3,/* R's default: one kind of NA or NaN; for num, use '==' */
 } ne_strictness_type;
 
-/* NOTE:  ne_strict = NUM_EQ + (SINGLE_NA * 2)  = NUM_EQ | (SINGLE_NA << 1)   */
+/* NOTE:  ne_strict = num_eq + (single_NA * 2)  = num_eq | (single_NA << 1)   */
 
 static Rboolean neWithNaN(double x, double y, ne_strictness_type str);
 
@@ -42,39 +42,38 @@ static Rboolean neWithNaN(double x, double y, ne_strictness_type str);
 /* .Internal(identical(..)) */
 SEXP attribute_hidden do_identical(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    int num_eq = 1, single_NA = 1, attr_as_set = 1, ignore_bytecode = 1, nargs = length(args), flags;
+    int num_eq, single_NA, attr_as_set, nargs = length(args);
     /* avoid problems with earlier version captured in S4 methods */
     /* checkArity(op, args); */
-    if (nargs != 2 && nargs != 5 && nargs != 6)
+    if (nargs != 2 && nargs != 5)
 	error("%d arguments passed to .Internal(%s) which requires %d",
 	      length(args), PRIMNAME(op), PRIMARITY(op));
 
-    if (nargs >= 5) {
+    if (nargs == 5) {
 	num_eq      = asLogical(CADDR(args));
 	single_NA   = asLogical(CADDDR(args));
 	attr_as_set = asLogical(CAD4R(args));
+
+	if(num_eq      == NA_LOGICAL) error(_("invalid '%s' value"), "num.eq");
+	if(single_NA   == NA_LOGICAL) error(_("invalid '%s' value"), "single.NA");
+	if(attr_as_set == NA_LOGICAL) error(_("invalid '%s' value"), "attrib.as.set");
+    } else {
+	num_eq      = 1;
+	single_NA   = 1;
+	attr_as_set = 1;
     }
-    if (nargs == 6) 
-	ignore_bytecode = asLogical(CAD4R(CDR(args)));
 
-    if(num_eq      == NA_LOGICAL) error(_("invalid '%s' value"), "num.eq");
-    if(single_NA   == NA_LOGICAL) error(_("invalid '%s' value"), "single.NA");
-    if(attr_as_set == NA_LOGICAL) error(_("invalid '%s' value"), "attrib.as.set");
-    if(ignore_bytecode == NA_LOGICAL) error(_("invalid '%s' value"), "ignore.bytecode");
-    
-    flags = (num_eq ? 0 : 1) + (single_NA ? 0 : 2) + (attr_as_set ? 0 : 4) + (ignore_bytecode ? 0 : 8); 
-    return ScalarLogical(R_compute_identical(CAR(args), CADR(args), flags));
+    return ScalarLogical(R_compute_identical(CAR(args), CADR(args),
+					     (Rboolean) num_eq,
+					     (Rboolean) single_NA,
+					     (Rboolean) attr_as_set));
 }
-
-#define NUM_EQ 		(!(flags & 1))
-#define SINGLE_NA       (!(flags & 2))
-#define ATTR_AS_SET     (!(flags & 4))
-#define IGNORE_BYTECODE (!(flags & 8))
 
 /* do the two objects compute as identical?
    used in unique.c */
 Rboolean
-R_compute_identical(SEXP x, SEXP y, int flags)
+R_compute_identical(SEXP x, SEXP y, Rboolean num_eq,
+		    Rboolean single_NA, Rboolean attr_as_set)
 {
     SEXP ax, ay, atrx, atry;
     if(x == y) /* same pointer */
@@ -92,8 +91,8 @@ R_compute_identical(SEXP x, SEXP y, int flags)
     }
 
     ax = ATTRIB(x); ay = ATTRIB(y);
-    if (!ATTR_AS_SET) {
-	if(!R_compute_identical(ax, ay, flags)) return FALSE;
+    if (!attr_as_set) {
+	if(!R_compute_identical(ax, ay, num_eq, single_NA, FALSE)) return FALSE;
     }
     /* Attributes are special: they should be tagged pairlists.  We
        don't test them if they are not, and we do not test the order
@@ -122,13 +121,15 @@ R_compute_identical(SEXP x, SEXP y, int flags)
 			if(streql(tx, "row.names")) {
 			    PROTECT(atrx = getAttrib(x, R_RowNamesSymbol));
 			    PROTECT(atry = getAttrib(y, R_RowNamesSymbol));
-			    if(!R_compute_identical(atrx, atry, flags)) {
+			    if(!R_compute_identical(atrx, atry,
+						    num_eq, single_NA, TRUE)) {
 				UNPROTECT(2);
 				return FALSE;
 			    } else
 				UNPROTECT(2);
 			} else
-			    if(!R_compute_identical(CAR(elx), CAR(ely), flags))
+			    if(!R_compute_identical(CAR(elx), CAR(ely),
+						    num_eq, single_NA, TRUE))
 				return FALSE;
 			break;
 		    }
@@ -155,7 +156,7 @@ R_compute_identical(SEXP x, SEXP y, int flags)
 	if(n != length(y)) return FALSE;
 	else {
 	    double *xp = REAL(x), *yp = REAL(y);
-	    int i, ne_strict = NUM_EQ | (SINGLE_NA << 1);
+	    int i, ne_strict = num_eq | (single_NA << 1);
 	    for(i = 0; i < n; i++)
 		if(neWithNaN(xp[i], yp[i], ne_strict)) return FALSE;
 	}
@@ -167,7 +168,7 @@ R_compute_identical(SEXP x, SEXP y, int flags)
 	if(n != length(y)) return FALSE;
 	else {
 	    Rcomplex *xp = COMPLEX(x), *yp = COMPLEX(y);
-	    int i, ne_strict = NUM_EQ | (SINGLE_NA << 1);
+	    int i, ne_strict = num_eq | (single_NA << 1);
 	    for(i = 0; i < n; i++)
 		if(neWithNaN(xp[i].r, yp[i].r, ne_strict) ||
 		   neWithNaN(xp[i].i, yp[i].i, ne_strict))
@@ -200,7 +201,8 @@ R_compute_identical(SEXP x, SEXP y, int flags)
 	int i, n = length(x);
 	if(n != length(y)) return FALSE;
 	for(i = 0; i < n; i++)
-	    if(!R_compute_identical(VECTOR_ELT(x, i),VECTOR_ELT(y, i), flags))
+	    if(!R_compute_identical(VECTOR_ELT(x, i),VECTOR_ELT(y, i),
+				    num_eq, single_NA, attr_as_set))
 		return FALSE;
 	return TRUE;
     }
@@ -210,9 +212,11 @@ R_compute_identical(SEXP x, SEXP y, int flags)
 	while (x != R_NilValue) {
 	    if(y == R_NilValue)
 		return FALSE;
-	    if(!R_compute_identical(CAR(x), CAR(y), flags))
+	    if(!R_compute_identical(CAR(x), CAR(y),
+				    num_eq, single_NA, attr_as_set))
 		return FALSE;
-	    if(!R_compute_identical(PRINTNAME(TAG(x)), PRINTNAME(TAG(y)), flags))
+	    if(!R_compute_identical(PRINTNAME(TAG(x)), PRINTNAME(TAG(y)),
+				    num_eq, single_NA, attr_as_set))
 		return FALSE;
 	    x = CDR(x);
 	    y = CDR(y);
@@ -220,11 +224,11 @@ R_compute_identical(SEXP x, SEXP y, int flags)
 	return(y == R_NilValue);
     }
     case CLOSXP:
-	return(R_compute_identical(FORMALS(x), FORMALS(y), flags) &&
-	       R_compute_identical(BODY_EXPR(x), BODY_EXPR(y), flags) &&
-	       (CLOENV(x) == CLOENV(y) ? TRUE : FALSE) &&
-	       (IGNORE_BYTECODE || R_compute_identical(BODY(x), BODY(y), flags))
-	       );
+	return(R_compute_identical(FORMALS(x), FORMALS(y),
+				   num_eq, single_NA, attr_as_set) &&
+	       R_compute_identical(BODY_EXPR(x), BODY_EXPR(y),
+				   num_eq, single_NA, attr_as_set) &&
+	       CLOENV(x) == CLOENV(y) ? TRUE : FALSE);
     case SPECIALSXP:
     case BUILTINSXP:
 	return(PRIMOFFSET(x) == PRIMOFFSET(y) ? TRUE : FALSE);
@@ -249,7 +253,7 @@ R_compute_identical(SEXP x, SEXP y, int flags)
 	/*#define PREXPR(x)	((x)->u.promsxp.expr)
 	  #define PRENV(x)	((x)->u.promsxp.env)
 	  return(R_compute_identical(subsititute(PREXPR(x), PRENV(x),
-	                             flags),
+	                             num_eq, single_NA, attr_as_set),
 	  subsititute(PREXPR(y), PRENV(y))));*/
     case S4SXP:
 	/* attributes already tested, so all slots identical */
@@ -270,11 +274,11 @@ R_compute_identical(SEXP x, SEXP y, int flags)
  * @param x
  * @param y  the two "number"s to be compared
  * @param str a "strictness" indicator, one of 2*2 (one|bit)_NA__num_(eq|bit)
- *  "SINGLE_NA" means: x and y differ in the case
+ *  "single_NA" means: x and y differ in the case
  *    that one, but not both are NaN.  Two NaN values are judged
  *    identical for this purpose, but NA != NaN
  *
- *  "NUM_EQ" means: (x != y) is used when both are not NA or NaN
+ *  "num_eq" means: (x != y) is used when both are not NA or NaN
  *  whereas "bit_NA" and "num_bit" use the bitwise memory comparison  memcmp();
  *  notably "*_num_bit" will differentiate '+0.' and '-0.'.
  *

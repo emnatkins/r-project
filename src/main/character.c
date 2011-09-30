@@ -113,10 +113,9 @@ SEXP attribute_hidden do_nzchar(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP attribute_hidden do_nchar(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP d, s, x, stype;
-    int i, len, allowNA;
-    size_t ntype;
-    int nc;
+    int i, len, ntype, allowNA;
     const char *type;
+    int nc;
     const char *xi;
     wchar_t *wc;
     const void *vmax;
@@ -237,8 +236,7 @@ static void substr(char *buf, const char *str, int ienc, int sa, int so)
 SEXP attribute_hidden do_substr(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP s, x, sa, so, el;
-    int i, len, start, stop, k, l;
-    size_t slen;
+    int i, len, start, stop, slen, k, l;
     cetype_t ienc;
     const char *ss;
     char *buf;
@@ -329,8 +327,7 @@ substrset(char *buf, const char *const str, cetype_t ienc, int sa, int so)
 SEXP attribute_hidden do_substrgets(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP s, x, sa, so, value, el, v_el;
-    int i, len, start, stop, k, l, v;
-    size_t slen;
+    int i, len, start, stop, slen, k, l, v;
     cetype_t ienc, venc;
     const char *ss, *v_ss;
     char *buf;

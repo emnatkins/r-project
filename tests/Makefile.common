@@ -95,9 +95,7 @@ FORCE:
 	  $(ECHO) "$(ECHO_T) OK"; \
 	fi
 
-## We could use Rdiff now this is in R.
-## An attempt to use pdf(compress=FALSE) in Sept 2011 failed, as 
-## Win32 gave sligtly different answers (rounding error).
+## diff -b may be needed on Windows because of CRLF line endings.
 reg-plot.Rout: reg-plot.R
 	@rm -f $@ $@.fail
 	@$(ECHO) $(ECHO_N) "running code in '$<' ...$(ECHO_C)"
@@ -105,10 +103,11 @@ reg-plot.Rout: reg-plot.R
 	@$(ECHO) "$(ECHO_T) OK"
 	@$(ECHO) $(ECHO_N) \
 	  "  comparing 'reg-plot.ps' to '$(srcdir)/reg-plot.ps.save' ...$(ECHO_C)"
-	@$(RDIFF) reg-plot.ps $(srcdir)/reg-plot.ps.save
+	-@diff -b reg-plot.ps $(srcdir)/reg-plot.ps.save
 	@$(ECHO) "$(ECHO_T) OK"
 
 ## allow this to fail, as it may if the locale does not support Latin-1 chars
+## we can't use Rdiff as MacOS tr crashes on latin-1 chars in a UTF-8 locale
 reg-plot-latin1.Rout: reg-plot-latin1.R
 	@rm -f $@ $@.fail
 	@$(ECHO) "running tests of plotting Latin-1"
@@ -121,7 +120,7 @@ reg-plot-latin1.Rout: reg-plot-latin1.R
 	  $(ECHO) "$(ECHO_T) OK"; \
 	  $(ECHO) $(ECHO_N) \
 	  "  comparing 'reg-plot-latin1.ps' to '$(srcdir)/reg-plot-latin1.ps.save' ...$(ECHO_C)"; \
-	  $(RDIFF) reg-plot-latin1.ps $(srcdir)/reg-plot-latin1.ps.save; \
+	  diff -b reg-plot-latin1.ps $(srcdir)/reg-plot-latin1.ps.save && exitstatus=0; \
 	  $(ECHO) "$(ECHO_T) OK"; \
 	fi
 
@@ -172,7 +171,6 @@ test-Packages:
 	@for p in $(R_PKGS_BASE); do \
 	  $(ECHO) "checking package '$${p}'"; \
 	  $(top_builddir)/bin/R CMD check --install=skip \
-	    --no-rebuild-vignettes \
 	    $(top_srcdir)/src/library/$${p} || $(ECHO); \
 	done
 
@@ -363,4 +361,4 @@ INSTFILES = README \
 	  reg-plot.ps.save reg-tests-2.Rout.save reg-tests-3.Rout.save \
 	  reg-plot-latin1.ps.save \
 	  encodings.R utf8-regex.R \
-	  nanbug.rda WinUnicode.dat
+	  nanbug.rda WinUnicode.dat keepsource.Rnw

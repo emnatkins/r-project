@@ -81,7 +81,7 @@ that version.  The main R FAQ can be found at
 @end display
 
 The information here applies only to recent versions of R for Windows,
-(@samp{2.14.0} or later).
+(@samp{2.12.0} or later).
 
 
 @newchap{}
@@ -127,7 +127,7 @@ The information here applies only to recent versions of R for Windows,
 Go to any CRAN site (see @uref{http://cran.r-project.org/@/mirrors.html}
 for a list), navigate to the @file{bin/windows/base} directory and
 collect the file(s) you need.  The current release is distributed as an
-installer @samp{@RWVER@-win.exe} of about 45Mb.  This contains all the
+installer @samp{@RWVER@-win.exe} of about 38Mb.  This contains all the
 components and allows as complete as installation as you choose.
 
 There are also links on that page to the @samp{r-patched} and
@@ -153,8 +153,8 @@ mainly 64-bit Windows 7 and Server 2008, but to a limited extent on
 
 Your file system must allow case-honouring long file names (as is likely
 except perhaps for some network-mounted systems).  A typical 32- or
-64-bit installation takes 55Mb of disk space, of both about 70Mb, a
-full installation about 90Mb and a minimal 32-bit one about 33Mb.
+64-bit installation takes 45--50Mb of disk space, of both about 60Mb, a
+full installation about 80Mb and a minimal 32-bit one about 30Mb.
 
 If you want to be able to build packages from sources, we recommend that
 you choose an installation path not containing spaces.  (Using a path
@@ -839,9 +839,7 @@ to be moved around, and that less external software is available for
 64-bit versions of the OS. The 64-bit compilers are able to take
 advantage of extra features of all x86-64 chips (more registers, SSE2/3
 instructions, @dots{}) and so the code may run faster despite using
-larger pointers.  Changes in the compilation options in R 2.14.0 mean
-that the 64-bit build is now usually slightly faster than the 32-bit
-build on a recent CPU (Core 2 Duo or later).
+larger pointers.
 
 For advanced users the choice may be dictated by whether the contributed
 packages needed are available in 64-bit builds (and if CRAN binary
@@ -867,7 +865,7 @@ For many Registry items, 32- and 64-bit programs have different views of
 the Registry, but clashes can occur.  The most obvious problem is the
 file association for @file{.RData} files, which will use the last
 installation for which this option is selected, and if that was for an
-installation of both, will use 64-bit R.  To change the association the
+installation of both, will use 32-bit R.  To change the association the
 safest way is to edit the Registry entry
 @samp{HKEY_CLASSES_ROOT\RWorkspace\shell\open\command}
 and replace @samp{i386} by @samp{x64} or @emph{vice versa}.
@@ -1175,6 +1173,11 @@ for R 2.12.0 or later.
 
 You can tell the version the package was compiled for by looking at the
 @samp{Built:} line in its @file{DESCRIPTION} file 
+@c Next does not work in Vista/7, and in any case there may be multiple DLLs
+@c or at the @samp{Version} tab of its DLL in the @file{libs} directory.
+@c (Right-click on the DLL in Windows Explorer and select @samp{Version}
+@c tab of the @samp{Properties}, or use the @code{DLL.version} function
+@c inside R.)
 
 For a small number of binary packages you need to install additional
 software and have its DLLs in your @code{PATH}.  Windows will normally

@@ -18,8 +18,6 @@
 \alias{single-class}
 \alias{vector-class}
 \alias{NULL-class}
-\alias{builtin-class}
-\alias{special-class}
 \alias{function-class}
 \alias{ANY-class}
 \alias{VIRTUAL-class}

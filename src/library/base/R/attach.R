@@ -19,7 +19,6 @@ attach <- function(what, pos = 2, name = deparse(substitute(what)),
 {
     checkConflicts <- function(env)
     {
-        ## remove .First.lib eventually (no longer used nor exported)
         dont.mind <- c("last.dump", "last.warning", ".Last.value",
                        ".Random.seed", ".First.lib", ".Last.lib",
                        ".packageName", ".noGenerics", ".required",
@@ -157,12 +156,12 @@ detach <- function(name, pos = 2, unload = FALSE, character.only = FALSE,
     .Internal(detach(pos))
 
     if(pkgname %in% loadedNamespaces()) {
-        ## the lazyload DB is flushed when the namespace is unloaded
+        ## the lazyload DB is flushed when the name space is unloaded
         if(unload) {
             tryCatch(unloadNamespace(pkgname),
                      error = function(e)
                      warning(sQuote(pkgname),
-                             " namespace cannot be unloaded:\n  ",
+                             " name space cannot be unloaded:\n  ",
                              conditionMessage(e), call. = FALSE))
         }
     } else {

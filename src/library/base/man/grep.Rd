@@ -11,7 +11,6 @@
 \alias{gsub}
 \alias{regexpr}
 \alias{gregexpr}
-\alias{regexec}
 \description{
   \code{grep}, \code{grepl}, \code{regexpr} and \code{gregexpr} search
   for matches to argument \code{pattern} within each element of a
@@ -39,9 +38,6 @@ regexpr(pattern, text, ignore.case = FALSE, perl = FALSE,
 
 gregexpr(pattern, text, ignore.case = FALSE, perl = FALSE,
          fixed = FALSE, useBytes = FALSE)
-
-regexec(pattern, text, ignore.case = FALSE,
-        fixed = FALSE, useBytes = FALSE)
 }
 \arguments{
   \item{pattern}{character string containing a \link{regular expression}
@@ -67,7 +63,7 @@ regexec(pattern, text, ignore.case = FALSE,
     byte-by-byte rather than character-by-character.  See
     \sQuote{Details}.}
   \item{invert}{logical.  If \code{TRUE} return indices or values for
-    elements that do \emph{not} match.}
+         elements that do \emph{not} match.}
   \item{replacement}{a replacement for matched pattern in \code{sub} and
     \code{gsub}.  Coerced to character if possible.  For \code{fixed =
       FALSE} this can include backreferences \code{"\\1"} to
@@ -84,9 +80,7 @@ regexec(pattern, text, ignore.case = FALSE,
   Arguments which should be character strings or character vectors are
   coerced to character if possible.
 
-  Each of these functions (apart from \code{regexec}, which currently
-  does not support Perl-style regular expressions) operates in one of
-  three modes:
+  Each of these functions operates in one of three modes:
   \enumerate{
     \item \code{fixed = TRUE}: use exact matching.
     \item \code{perl = TRUE}: use Perl-style regular expressions.
@@ -102,22 +96,20 @@ regexec(pattern, text, ignore.case = FALSE,
   backreferences which are not defined in \code{pattern} the result is
   undefined (but most often the backreference is taken to be \code{""}).
 
-  For \code{regexpr}, \code{gregexpr} and \code{regexec} it is an error
-  for \code{pattern} to be \code{NA}, otherwise \code{NA} is permitted
-  and gives an \code{NA} match.
+  For \code{regexpr} and \code{gregexpr} it is an error for
+  \code{pattern} to be \code{NA}, otherwise \code{NA} is permitted and
+  gives an \code{NA} match.
 
   The main effect of \code{useBytes} is to avoid errors/warnings about
   invalid inputs and spurious matches in multibyte locales, but for
   \code{regexpr} it changes the interpretation of the output.
   It inhibits the conversion of inputs with marked encodings, and is
-  forced if any input is found which is marked as \code{"bytes"}.
-
+  forced (with a warning) if any input is found which is marked as
+  \code{"bytes"}.
+  
   Caseless matching does not make much sense for bytes in a multibyte
   locale, and you should expect it only to work for ASCII characters if
   \code{useBytes = TRUE}.
-
-  As from \R 2.14.0, \code{regexpr} and \code{gregexpr} with \code{perl
-    = TRUE} allow Python-style named captures.
 }
 
 \note{
@@ -133,7 +125,7 @@ regexec(pattern, text, ignore.case = FALSE,
   \code{grep(value = FALSE)} returns an integer vector of the indices
   of the elements of \code{x} that yielded a match (or not, for
   \code{invert = TRUE}.
-
+  
   \code{grep(value = TRUE)} returns a character vector containing the
   selected elements of \code{x} (after coercion, preserving names but no
   other attributes).
@@ -155,21 +147,12 @@ regexec(pattern, text, ignore.case = FALSE,
   \eqn{-1} if there is none, with attribute \code{"match.length"}, an
   integer vector giving the length of the matched text (or \eqn{-1} for
   no match).  The match positions and lengths are in characters unless
-  \code{useBytes = TRUE} is used, when they are in bytes.  If named
-  capture is used there are further attributes \code{"capture.start"},
-  \code{"capture.length"} and \code{"capture.names"}.
+  \code{useBytes = TRUE} is used, when they are in bytes.
 
   \code{gregexpr} returns a list of the same length as \code{text} each
-  element of which is of the same form as the return value for
-  \code{regexpr}, except that the starting positions of every (disjoint)
-  match are given.
-
-  \code{regexec} returns a list of the same length as \code{text} each
-  element of which is either \eqn{-1} if there is no match, or a
-  sequence of integers with the starting positions of the match and all
-  substrings corresponding to parenthesized subexpressions of
-  \code{pattern}, with attribute \code{"match.length"} an integer vector
-  giving the lengths of the matches (or \eqn{-1} for no match).
+  element of which is of the same form as the return value for \code{regexpr},
+  except that the starting positions of every (disjoint) match are
+  given.
 }
 
 \section{Warning}{
@@ -192,7 +175,7 @@ regexec(pattern, text, ignore.case = FALSE,
   just one UTF-8 string will force all the matching to be done in
   Unicode, which attracts a penalty of around \eqn{3\times{}}{3x} for
   the default POSIX 1003.2 mode.
-
+  
   If you can make use of \code{useBytes = TRUE}, the strings will not be
   checked before matching, and the actual matching will be faster.
   Often byte-based matching suffices in a UTF-8 locale since byte
@@ -223,19 +206,16 @@ regexec(pattern, text, ignore.case = FALSE,
   \link{regular expression} (aka \code{\link{regexp}}) for the details
   of the pattern specification.
 
-  \code{\link{regmatches}} for extracting matched substrings based on
-  the results of \code{regexpr}, \code{gregexpr} and \code{regexec}.
-
   \code{\link{glob2rx}} to turn wildcard matches into regular expressions.
 
   \code{\link{agrep}} for approximate matching.
-
+  
   \code{\link{charmatch}}, \code{\link{pmatch}} for partial matching,
   \code{\link{match}} for matching to whole strings.
 
   \code{\link{tolower}}, \code{\link{toupper}} and \code{\link{chartr}}
   for character translations.
-
+  
   \code{\link{apropos}} uses regexps and has more examples.
 
   \code{\link{grepRaw}} for matching raw vectors.
@@ -275,18 +255,6 @@ regexpr("en", txt)
 
 gregexpr("e", txt)
 
-## Using grepl() for filtering
-## Find functions with argument names matching "warn":
-findArgs <- function(env, pattern) {
-  nms <- ls(envir = as.environment(env))
-  nms <- nms[is.na(match(nms, c("F","T")))] # <-- work around "checking hack"
-  aa <- sapply(nms, function(.) { o <- get(.)
-               if(is.function(o)) names(formals(o)) })
-  iw <- sapply(aa, function(a) any(grepl(pattern, a, ignore.case=TRUE)))
-  aa[iw]
-}
-findArgs("package:base", "warn")
-
 ## trim trailing white space
 str <- 'Now is the time      '
 sub(' +$', '', str)  ## spaces only
@@ -301,42 +269,6 @@ gsub("\\\\b(\\\\w)",    "\\\\U\\\\1",       txt, perl=TRUE)
 txt2 <- "useRs may fly into JFK or laGuardia"
 gsub("(\\\\w)(\\\\w*)(\\\\w)", "\\\\U\\\\1\\\\E\\\\2\\\\U\\\\3", txt2, perl=TRUE)
  sub("(\\\\w)(\\\\w*)(\\\\w)", "\\\\U\\\\1\\\\E\\\\2\\\\U\\\\3", txt2, perl=TRUE)
-
-## named capture
-notables <- c("  Ben Franklin and Jefferson Davis",
-              "\tMillard Fillmore")
-# name groups 'first' and 'last'
-name.rex <- "(?<first>[[:upper:]][[:lower:]]+) (?<last>[[:upper:]][[:lower:]]+)"
-(parsed <- regexpr(name.rex, notables, perl = TRUE))
-gregexpr(name.rex, notables, perl = TRUE)[[2]]
-parse.one <- function(res, result) {
-  m <- do.call(rbind, lapply(seq_along(res), function(i) {
-    if(result[i] == -1) return("")
-    st <- attr(result, "capture.start")[i, ]
-    substring(res[i], st, st + attr(result, "capture.length")[i, ] - 1)
-  }))
-  colnames(m) <- attr(result, "capture.names")
-  m
-}
-parse.one(notables, parsed)
-
-## Decompose a URL into its components.
-## Example by LT (http://www.cs.uiowa.edu/~luke/R/regexp.html).
-x <- "http://stat.umn.edu:80/xyz"
-m <- regexec("^(([^:]+)://)?([^:/]+)(:([0-9]+))?(/.*)", x)
-m
-regmatches(x, m)
-## Element 3 is the protocol, 4 is the host, 6 is the port, and 7
-## is the path.  We can use this to make a function for extracting the
-## parts of a URL:
-URL_parts <- function(x) {
-    m <- regexec("^(([^:]+)://)?([^:/]+)(:([0-9]+))?(/.*)", x)
-    parts <- do.call(rbind,
-                     lapply(regmatches(x, m), `[`, c(3L, 4L, 6L, 7L)))
-    colnames(parts) <- c("protocol","host","port","path")
-    parts
-}
-URL_parts(x)
 }
 \keyword{character}
 \keyword{utilities}

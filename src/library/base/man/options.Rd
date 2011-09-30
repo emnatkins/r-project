@@ -103,9 +103,6 @@ getOption(x, default = NULL)
       print when formatting time values in seconds.  Valid values
       are 0\dots6 with default 0.  See \code{\link{strftime}}.}
 
-    \item{\code{download.file.extra}:}{Extra command-line argument(s) for
-      non-default methods: see \code{\link{download.file}}.}
-    
     \item{\code{download.file.method}:}{Method to be used for
       \code{download.file}.  Currently download methods
       \code{"internal"}, \code{"wget"} and \code{"lynx"} are available.
@@ -149,11 +146,20 @@ getOption(x, default = NULL)
       The default is \code{\link{interactive}()}, i.e., \code{TRUE} for
       interactive use.}
 
-    \item{\code{keep.source.pkgs}:}{As for \code{keep.source}, when
-      packages are installed, and for packages not using lazy-loading
-      (and necessarily installed prior to \R 2.14.0).  Defaults to
-      \code{FALSE} unless the environment variable
-      \env{R_KEEP_PKG_SOURCE} is set to \code{yes}.}
+    \item{\code{keep.source.pkgs}:}{As for \code{keep.source}, for
+      functions in packages loaded by \code{\link{library}} or
+      \code{\link{require}}.  Defaults to \code{FALSE} unless the
+      environment variable \env{R_KEEP_PKG_SOURCE} is set to
+      \code{yes}.
+
+      Note this does not apply to packages using lazy-loading.  Whether
+      they have kept source is determined when they are
+      installed (and is almost certainly false).}
+
+    \item{\code{max.contour.segments}:}{positive integer, defaulting to
+      \code{250000} and usually not set.  A limit on the number of
+      segments in a single contour line in \code{\link{contour}} or
+      \code{\link{contourLines}}.}
 
     \item{\code{max.print}:}{integer, defaulting to \code{99999}.
       \code{\link{print}} or \code{\link{show}} methods can make use of
@@ -253,8 +259,8 @@ getOption(x, default = NULL)
     \item{\code{stringsAsFactors}:}{The default setting for arguments of
       \code{\link{data.frame}} and \code{\link{read.table}}.}
 
-    \item{\code{texi2dvi}:}{used by functions
-      \code{\link{texi2dvi}} and \code{\link{texi2pdf}} in package \pkg{tools}.
+    \item{\code{texi2dvi}:}{used by function
+      \code{\link{texi2dvi}} in package \pkg{tools}.
 #ifdef unix
       Set at startup from the environment variable \env{R_TEXI2DVICMD}.
 #endif
@@ -350,16 +356,9 @@ getOption(x, default = NULL)
   Others are set from environment variables or are platform-dependent.
 }
 \section{Options set in package grDevices}{
-  These will be set when package \pkg{grDevices} (or its namespace)
+  These will be set when package \pkg{grDevices} (or its name space)
   is loaded if not already set.
   \describe{
-#ifdef unix
-    \item{\code{bitmapType}:}{(Unix-only) character.  The default type for the
-      bitmap devices such as \code{\link{png}}.  Defaults to
-      \code{"cairo"} on systems where that is available, or to
-      \code{"quartz"} on Mac OS X where that is available.}
-#endif
-
     \item{\code{device}:}{a character string giving
       the name of a function, or the function object itself,
       which when called creates a new graphics device of the default
@@ -384,6 +383,12 @@ getOption(x, default = NULL)
       and \code{identify} be confirmed by a bell?  Default \code{TRUE}.
       Honoured at least on \code{X11} and \code{windows} devices.}
 
+#ifdef unix
+    \item{\code{bitmapType}:}{(Unix-only) character.  The default type for the
+      bitmap devices such as \code{\link{png}}.  Defaults to
+      \code{"cairo"} on systems where that is available, or to
+      \code{"quartz"} on Mac OS X where that is available.}
+#endif
 #ifdef windows
     \item{\code{windowsTimeout}:}{(Windows-only) integer vector of length 2
       representing two times in milliseconds.  These control the
@@ -395,16 +400,8 @@ getOption(x, default = NULL)
 #endif
   }
 }
-\section{Other options used by package graphics}{
-  \describe{
-    \item{\code{max.contour.segments}:}{positive integer, defaulting to
-      \code{25000} if not set.  A limit on the number of
-      segments in a single contour line in \code{\link{contour}} or
-      \code{\link{contourLines}}.}
-  }
-}
 \section{Options set in package stats}{
-  These will be set when package \pkg{stats} (or its namespace)
+  These will be set when package \pkg{stats} (or its name space)
   is loaded if not already set.
   \describe{
     \item{\code{contrasts}:}{the default \code{\link{contrasts}} used in
@@ -436,7 +433,7 @@ getOption(x, default = NULL)
   }
 }
 \section{Options set in package utils}{
-  These will be set when package \pkg{utils} (or its namespace)
+  These will be set when package \pkg{utils} (or its name space)
   is loaded if not already set.
   \describe{
     \item{\code{BioC_mirror}:}{The URL of a Bioconductor mirror
@@ -474,9 +471,6 @@ getOption(x, default = NULL)
 
     \item{\code{help.ports}:}{optional integer vector for setting ports
       of the internal HTTP server, see \code{\link{startDynamicHelp}}.}
-      
-    \item{\code{help.search.types}:}{default types of documentation
-      to be searched by \code{\link{help.search}} and \code{\link{??}}.}
 
     \item{\code{help.try.all.packages}:}{default for an argument of
       \code{\link{help}}.}
@@ -552,23 +546,12 @@ getOption(x, default = NULL)
     }
   }
 }
-\section{Options set in package parallel}{
-  These will be set when package \pkg{parallel} (or its namespace)
-  is loaded if not already set.
-  \describe{
-    \item{\code{mc.cores}:}{a integer giving the maximum allowed number
-      of \emph{additional} \R processes allowed to be run in parallel to
-      the current \R process.  Defaults to the setting of the
-      environment variable \env{MC_CORES} if set.  Most applications
-      which use this assume a limit of \code{2} if it is unset.
-    }
-  }
-}
+
 \section{Options used on Unix only}{
   \describe{
     \item{\code{dvipscmd}:}{character string giving a command to be used in
-    the (deprecated) off-line printing of help pages \emph{via}
-    PostScript.  Defaults to \command{"dvips"}.}
+    off-line printing of help pages \emph{via} PostScript.  Defaults to
+    \command{"dvips"}.}
   }
 }
 \section{Options used on Windows only}{

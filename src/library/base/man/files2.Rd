@@ -16,7 +16,8 @@
   file system.
 }
 \usage{
-dir.create(path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
+dir.create(path, showWarnings = TRUE, recursive = FALSE,
+          mode = "0777")
 Sys.chmod(paths, mode = "0777", use_umask=TRUE)
 Sys.umask(mode = NA)
 }

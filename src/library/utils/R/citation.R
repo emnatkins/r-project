@@ -137,7 +137,7 @@ function(x, i)
 print.person <-
 function(x, ...)
 {
-    x_char <- sapply(X = x, FUN = format, ...)
+    x_char <- sapply(x, format, ...)
     print(x_char)
     invisible(x)
 }
@@ -220,47 +220,10 @@ function(x)
     if(inherits(x, "person")) return(x)
 
     x <- as.character(x)
-
-    ## Need to split the strings into individual person components.
-    ## We used to split at ',' and 'and', but of course these could be
-    ## contained in roles or comments as well.
-    ## Hence, try the following.
-    ## A. Replace all comment, role and email substrings by all-z
-    ##    substrings of the same length.
-    ## B. Tokenize the strings according to the split regexp matches in
-    ##    the corresponding z-ified strings.
-    ## C. Extract the persons from the thus obtained tokens.
-
-    ## Create strings consisting of a given character c with given
-    ## numbers n of characters.
-    strings <- function(n, c = "z") {
-        vapply(Map(rep.int, rep.int(c, length(n)), n,
-                   USE.NAMES = FALSE),
-               paste, "", collapse = "")
-    }
-
-    ## Replace matches of pattern in x by all-z substrings of the same
-    ## length.
-    zify <- function(pattern, x) {
-        if(!length(x)) return(character())
-        m <- gregexpr(pattern, x)
-        regmatches(x, m) <-
-            Map(strings, lapply(regmatches(x, m), nchar))
-        x
-    }
-
-    ## Step A.
-    y <- zify("\\([^)]*\\)", x)
-    y <- zify("\\[[^]]*\\]", y)
-    y <- zify("<[^>]*>", y)
-
-    ## Step B.
-    pattern <- "[[:space:]]?(,|,?[[:space:]]and)[[:space:]]+"
     x <- do.call("c",
-                 regmatches(x, gregexpr(pattern, y), invert = TRUE))
+                 strsplit(x, "[[:space:]]?(,|[[:space:]]and)[[:space:]]+"))
     x <- x[!sapply(x, .is_not_nonempty_text)]
 
-    ## Step C.
     as_person1 <- function(x) {
         comment <- if(grepl("\\(.*\\)", x))
             sub(".*\\(([^)]*)\\).*", "\\1", x)
@@ -719,11 +682,11 @@ function(file, meta = NULL)
 
     for(expr in exprs) {
         x <- eval(expr, envir = envir)
-        if(inherits(x, "bibentry"))
+        if(class(x) == "bibentry")
             rval <- c(rval, list(x))
-        else if(identical(class(x), "citationHeader"))
+        else if(class(x) == "citationHeader")
             mheader <- c(mheader, x)
-        else if(identical(class(x), "citationFooter"))
+        else if(class(x) == "citationFooter")
             mfooter <- c(mfooter, x)
     }
 
@@ -744,31 +707,23 @@ function(file, meta = NULL)
 citation <-
 function(package = "base", lib.loc = NULL, auto = NULL)
 {
-    ## Allow citation(auto = meta) in CITATION files to include
-    ## auto-generated package citation.
-    if(inherits(auto, "packageDescription")) {
-        auto_was_meta <- TRUE
-        meta <- auto
-        package <- meta$Package
-    } else {
-        auto_was_meta <- FALSE        
-        dir <- system.file(package = package, lib.loc = lib.loc)
-        if(dir == "")
-            stop(gettextf("package %s not found", sQuote(package)),
-                 domain = NA)
-        meta <- packageDescription(pkg = package,
-                                   lib.loc = dirname(dir))
-        ## if(is.null(auto)): Use default auto-citation if no CITATION 
-        ## available.
-        citfile <- file.path(dir, "CITATION")
-        if(is.null(auto)) auto <- !file_test("-f", citfile)
-        ## if CITATION is available
-        if(!auto) {
-            return(readCitationFile(citfile, meta))
-        } else if(package == "base") {
-            ## Avoid infinite recursion for broken installation.
-            stop("broken installation, no CITATION file in the base package.")
-        }
+    dir <- system.file(package = package, lib.loc = lib.loc)
+    if(dir == "")
+        stop(gettextf("package '%s' not found", package), domain = NA)
+
+    meta <- packageDescription(pkg = package, lib.loc = dirname(dir))
+
+    ## if(is.null(auto)): Use default auto-citation if no CITATION
+    ## available.
+    citfile <- file.path(dir, "CITATION")
+    if(is.null(auto)) auto <- !file_test("-f", citfile)
+
+    ## if CITATION is available
+    if(!auto) {
+        return(readCitationFile(citfile, meta))
+    } else if(package == "base") {
+        ## Avoid infinite recursion for broken installation.
+        stop("broken installation, no CITATION file in the base package.")
     }
 
     ## Auto-generate citation info.
@@ -786,39 +741,25 @@ function(package = "base", lib.loc = NULL, auto = NULL)
     if(!length(year)) {
         year <- sub(".*((19|20)[[:digit:]]{2}).*", "\\1", meta$Date)
         if(is.null(meta$Date)){
-            warning(gettextf("no date field in DESCRIPTION file of package %s",
-                             sQuote(package)),
+            warning(gettextf("no date field in DESCRIPTION file of package '%s'",
+                             package),
                     domain = NA)
         }
         else if(!length(year)) {
-            warning(gettextf("could not determine year for %s from package DESCRIPTION file",
-                             sQuote(package)),
+            warning(gettextf("could not determine year for '%s' from package DESCRIPTION file",
+                             package),
                     domain = NA)
         }
     }
 
-    author <- meta$`Authors@R`
-    ## <FIXME>
-    ## Temporarily support Author@R fields ...
-    if(is.null(author))
-        author <- meta$`Author@R`
-    ## </FIXME>
-    ## <FIXME>
-    ## Older versions took persons with no roles as "implied" authors.
-    ## So for now check whether Authors@R gives any authors; if not fall
-    ## back to the plain text Author field.
-    if(length(author)) {
-        author <- .read_authors_at_R_field(author)
+    author <- meta$`Author@R`
+    if(has_enhanced_author_spec <- !is.null(author)) {
+        author <- .read_enhanced_author_spec(author)
         ## We only want those with author roles.
         author <- Filter(.person_has_author_role, author)
-    }
-    if(length(author)) {
-        has_authors_at_R_field <- TRUE
     } else {
-        has_authors_at_R_field <- FALSE
         author <- as.personList(meta$Author)
     }
-    ## </FIXME>
 
     z <- list(title = paste(package, ": ", meta$Title, sep=""),
               author = author,
@@ -840,31 +781,22 @@ function(package = "base", lib.loc = NULL, auto = NULL)
             z$note <- paste(z$note, rfr, sep = "/r")
     }
 
-    header <- if(!auto_was_meta) {
-        paste("To cite package",
-              sQuote(package),
-              "in publications use:")
-    } else NULL
-    
+    footer <- if(!("recommended" %in% meta$Priority) && !has_enhanced_author_spec)
+            paste("ATTENTION: This citation information has been auto-generated",
+                  "from the package DESCRIPTION file and may need manual editing,",
+                  "see ", sQuote("help(\"citation\")"), ".")
+        else NULL
 
-    footer <- if(!("recommended" %in% meta$Priority) &&
-                 !has_authors_at_R_field &&
-                 !auto_was_meta) {
-        paste("ATTENTION: This citation information has been auto-generated",
-              "from the package DESCRIPTION file and may need manual editing,",
-              "see ", sQuote("help(\"citation\")"), ".")
-    } else NULL
-
-    author <- format(z$author, include = c("given", "family"))
+    author <- as.character(z$author)
     if(length(author) > 1L)
-        author <- paste(paste(head(author, -1L), collapse = ", "),
-                        tail(author, 1L), sep = " and ")
-    
+        author <- paste(paste(author[1L:(length(author)-1L)], collapse=", "),
+                        author[length(author)], sep=" and ")
+
     rval <- bibentry(
         bibtype = "Manual",
 	textVersion = paste(author, " (", z$year, "). ", z$title, ". ",
 	    z$note, ". ", z$url, sep = ""),
-        header = header,
+        header = paste("To cite package", sQuote(package), "in publications use:"),
 	footer = footer,
 	other = z
     )
@@ -877,7 +809,7 @@ function(package = "base", lib.loc = NULL, auto = NULL)
     x
 }
 
-.read_authors_at_R_field <-  
+.read_enhanced_author_spec <-
 function(x)
 {
     out <- eval(parse(text = x))
@@ -886,6 +818,9 @@ function(x)
     ## Alternatively, we could throw an error.
     if(!inherits(out, "person"))
         out <- do.call("c", lapply(x, as.person))
+    ## Barf if we got no authors at all.
+    if(!any(sapply(out, .person_has_author_role)))
+        stop("Enhanced author specification provides no authors.")
 
     out
 }
@@ -893,12 +828,7 @@ function(x)
 .person_has_author_role <-
 function(x)
 {
-    ## <NOTE>
-    ## Earlier versions used
-    ##    is.null(r <- x$role) || "aut" %in% r
-    ## using author roles by default.
-    ## </NOTE>
-    "aut" %in% x$role
+    is.null(r <- x$role) || "aut" %in% r
 }
 
 print.citation <-
@@ -924,47 +854,3 @@ function(x)
 .listify <-
 function(x)
     if(inherits(x, "list")) x else list(x)
-
-.format_person_for_plain_author_spec <-
-function(x) {
-    ## Names first.
-    out <- format(x, include = c("given", "family"))
-    ## Only show roles recommended for usage with R.
-    role <- x$role
-    if(!length(role)) return("")
-    role <- role[role %in% MARC_relator_db_codes_used_with_R]
-    if(!length(role)) return("")
-    out <- sprintf("%s [%s]", out, paste(role, collapse = ", "))
-    if(!is.null(comment <- x$comment))
-        out <- sprintf("%s (%s)", out, 
-                       paste(comment, collapse = "\n"))
-    out
-}
-
-.format_authors_at_R_field_for_author <-
-function(x)
-{
-    if(is.character(x))
-        x <- .read_authors_at_R_field(x)
-    x <- sapply(x, .format_person_for_plain_author_spec)
-    ## Drop persons with irrelevant roles.
-    x <- x[x != ""]
-    ## And format.
-    if(!length(x)) return("")
-    paste(strwrap(x, indent = 0L, exdent = 4L), collapse = ",\n  ")
-}
-
-.format_authors_at_R_field_for_maintainer <-
-function(x)
-{
-    if(is.character(x))
-        x <- .read_authors_at_R_field(x)
-    ## Maintainers need cre roles and email addresses.
-    x <- Filter(function(e)
-                !is.null(e$email) && ("cre" %in% e$role),
-                x)
-    ## If this leaves nothing ...
-    if(!length(x)) return("")
-    paste(format(x, include = c("given", "family", "email")),
-          collapse = ",\n  ")
-}

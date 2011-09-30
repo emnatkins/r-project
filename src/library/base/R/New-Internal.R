@@ -47,7 +47,7 @@ try <- function(expr, silent = FALSE) {
             cat(msg, file = stderr())
             .Internal(printDeferredWarnings())
         }
-        invisible(structure(msg, class = "try-error", condition = e))
+        invisible(structure(msg, class = "try-error"))
     })
 }
 
@@ -162,10 +162,7 @@ is.unsorted <- function(x, na.rm = FALSE, strictly = FALSE)
 }
 
 mem.limits <- function(nsize=NA, vsize=NA)
-{
-    .Deprecated("gc")
     structure(.Internal(mem.limits(nsize, vsize)), names = c("nsize", "vsize"))
-}
 
 nchar <- function(x, type = "chars", allowNA = FALSE)
     .Internal(nchar(x, type, allowNA))
@@ -241,16 +238,15 @@ encodeString <- function(x, width = 0L, quote = "", na.encode = TRUE,
 
 l10n_info <- function() .Internal(l10n_info())
 
-iconv <- function(x, from = "", to = "", sub = NA, mark = TRUE, toRaw = FALSE)
+iconv <- function(x, from = "", to = "", sub = NA, mark = TRUE)
 {
-    if(! (is.character(x) || (is.list(x) && is.null(oldClass(x)))))
-        x <- as.character(x)
-    .Internal(iconv(x, from, to, as.character(sub), mark, toRaw))
+    if(!is.character(x)) x <- as.character(x)
+    .Internal(iconv(x, from, to, as.character(sub), mark))
 }
 
 iconvlist <- function()
 {
-    int <- .Internal(iconv(NULL, "", "", "", TRUE, FALSE))
+    int <- .Internal(iconv(NULL, "", "", "", TRUE))
     if(length(int)) return(sort.int(int))
     icfile <- system.file("iconvlist", package="utils")
     if(!nchar(icfile, type="bytes"))

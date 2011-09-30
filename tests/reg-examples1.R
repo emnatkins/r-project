@@ -3,9 +3,6 @@
 set.seed(1)
 if(.Platform$OS.type == "windows") options(pager = "console")
 
-pdf("reg-examples-1.pdf", encoding = "ISOLatin1.enc")
-
-
 ## base
 example(Cstack_info)
 example(DateTimeClasses)

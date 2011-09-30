@@ -132,35 +132,30 @@ static R_INLINE double complex R_cpow_n(double complex X, int k)
     }
 }
 
-#if defined(Win32)
-# undef HAVE_CPOW
-#endif
 /* reason for this:
-  1) X^n  (e.g. for n = +/- 2, 3) is unnecessarily inaccurate in glibc;
-     cut-off 65536 : guided from empirical speed measurements
+  1) glibc gets (0+0i)^y = Inf+NaNi for y < 0
+     [FIXME: But is that not actually correct?: 1/(0+0i) == Inf+NaNi]
 
-  2) On Mingw (but not Mingw-w64) the system cpow is explicitly linked
-     against the (slow) MSVCRT pow, and gets (0+0i)^Y as 0+0i for all Y.
+  2)   X^n  (e.g. for n = +/- 2, 3) is unnecessarily inaccurate in glibc;
+       cut-off 65536 : guided from empirical speed measurements
 
-  3) PPC Mac OS X crashes on powers of 0+0i (at least under Rosetta).
-  Really 0i^-1 should by Inf+NaNi, but getting that portably seems too hard.
-*/
+  3) On Windows the system cpow is explicitly linked against the 
+     (slow) MinGW pow, and gets (0+0i)^Y as 0+0i for all Y.
+ */
 
 static double complex mycpow (double complex X, double complex Y)
 {
-    double complex Z;
-    double yr = creal(Y), yi = cimag(Y); 
-    int k;
+    double complex Z, yr = creal(Y), yi = cimag(Y); int k;
     if (X == 0.0) {
-	if (yi == 0.0) Z = R_pow(0.0, yr); else Z = R_NaN + R_NaN*I;
-    } else if (yi == 0.0 && yr == (k = (int) yr) && abs(k) <= 65536)
+	if(yi == 0.0) Z = R_pow(0.0, creal(Y));
+	else Z = R_NaN + R_NaN*I;
+    } else if (yi == 0.0 && yr == (k = (int) yr) && abs(k) <= 65536) {
 	Z = R_cpow_n(X, k);
-    else
-#ifdef HAVE_CPOW
+    } else
+#if defined(HAVE_CPOW) && !defined(Win32)
 	Z = cpow(X, Y);
 #else
     {
-	/* Used for FreeBSD and MingGW, hence mainly with gcc */
 	double rho, r, i, theta;
 	r = hypot(creal(X), cimag(X));
 	i = atan2(cimag(X), creal(X));
@@ -173,12 +168,7 @@ static double complex mycpow (double complex X, double complex Y)
 	    theta += r * yi;
 	    rho = exp(r * yr - i * yi);
 	}
-#ifdef __GNUC__
-	__real__ Z = rho * cos(theta);
-	__imag__ Z = rho * sin(theta);
-#else
-	Z = rho * cos(theta) + (rho * sin(theta)) * I;
-#endif
+	Z = rho * cos (theta) + (rho * sin (theta)) * I;
     }
 #endif
     return Z;

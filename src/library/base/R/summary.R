@@ -100,8 +100,7 @@ summary.data.frame <-
         z
     }
     # compute results to full precision.
-    z <- lapply(X = as.list(object), FUN = summary,
-                maxsum = maxsum, digits = 12, ...)
+    z <- lapply(as.list(object), summary, maxsum = maxsum, digits = 12, ...)
     nv <- length(object)
     nm <- names(object)
     lw <- numeric(nv)

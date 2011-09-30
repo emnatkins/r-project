@@ -63,8 +63,7 @@ fifo(description, open = "", blocking = FALSE,
 
 socketConnection(host = "localhost", port, server = FALSE,
                  blocking = FALSE, open = "a+",
-                 encoding = getOption("encoding"),
-                 timeout = getOption("timeout"))
+                 encoding = getOption("encoding"))
 
 open(con, \dots)
 \method{open}{connection}(con, open = "r", blocking = TRUE, \dots)
@@ -95,13 +94,12 @@ isIncomplete(con)
     applied when writing, from none to maximal available.  For
     \code{xzfile} can also be negative: see the \sQuote{Compression}
     section.}
-  \item{timeout}{numeric: the timeout to be used for this connection.} 
   \item{filename}{a filename within a zip file.}
   \item{host}{character.  Host name for port.}
   \item{port}{integer.  The TCP port number.}
   \item{server}{logical.  Should the socket be a client or a server?}
   \item{con}{a connection.}
-  \item{type}{character.  Currently ignored.}
+  \item{type}{character. Currently ignored.}
   \item{rw}{character.  Empty or \code{"read"} or \code{"write"},
     partial matches allowed.}
   \item{\dots}{arguments passed to or from other methods.}
@@ -565,7 +563,7 @@ if(capabilities("fifo")) {
 # read listing of current directory
 readLines(pipe("ls -1"))
 
-# remove trailing commas.  Suppose
+# remove trailing commas. Suppose
 \dontshow{
 writeLines(c("450, 390, 467, 654,  30, 542, 334, 432, 421,",
 "357, 497, 493, 550, 549, 467, 575, 578, 342,",

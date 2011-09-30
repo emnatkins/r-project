@@ -107,8 +107,7 @@ getSlots(x)
   \code{\link{@}},
   \code{\link{Classes}},
   \code{\link{Methods}},
-  \code{\link{getClass}},
-  \code{\link{names}}.
+  \code{\link{getClass}}
 }
 \examples{
 \dontshow{if(isClass("track")) removeClass("track")}

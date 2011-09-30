@@ -38,7 +38,7 @@ pi
     diameter.
   }
 
-  These are implemented as variables in the base namespace taking
+  These are implemented as variables in the base name space taking
   appropriate values. 
 }
 \references{

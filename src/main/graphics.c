@@ -2524,10 +2524,14 @@ void GLine(double x1, double y1, double x2, double y2, int coords, pGEDevDesc dd
 /* Read the current "pen" position. */
 Rboolean GLocator(double *x, double *y, int coords, pGEDevDesc dd)
 {
-    if(dd->dev->locator && dd->dev->locator(x, y, dd->dev)) {
+    if(!dd->dev->locator)
+	error(_("no locator capability in device driver"));
+    if(dd->dev->locator(x, y, dd->dev)) {
 	GConvert(x, y, DEVICE, coords, dd);
 	return TRUE;
-    } else return FALSE;
+    }
+    else
+	return FALSE;
 }
 
 /* Access character font metric information.  */
@@ -3388,7 +3392,8 @@ void GMMathText(SEXP str, int side, double line, int outer,
 	    /*	    line = line + 1 - gpptr(dd)->yLineBias;
 		    angle = 0;
 		    yadj = NA_REAL; */
-	    line += (1/gpptr(dd)->mex)*(1 - dd->dev->yLineBias);
+	    // line += (1/gpptr(dd)->mex)*(1 - dd->dev->yLineBias);
+	    line += 1/gpptr(dd)->mex;
 	    angle = 0;
 	}
 	break;
@@ -3402,7 +3407,7 @@ void GMMathText(SEXP str, int side, double line, int outer,
 		    yadj = NA_REAL; */
 	    /* The following line is needed for symmetry with plain text
 	       but changes existing output */
-	    line += (1/gpptr(dd)->mex)*dd->dev->yLineBias;
+	    // line += (1/gpptr(dd)->mex)*dd->dev->yLineBias;
 	    angle = 90;
 	}
 	break;
@@ -3416,7 +3421,7 @@ void GMMathText(SEXP str, int side, double line, int outer,
 		 yadj = NA_REAL; */
 	    /* The following line is needed for symmetry with plain text
 	       but changes existing output */
-	    line += (1/gpptr(dd)->mex)*dd->dev->yLineBias;
+	    // line += (1/gpptr(dd)->mex)*dd->dev->yLineBias;
 	    angle = 0;
 	}
 	break;
@@ -3428,7 +3433,8 @@ void GMMathText(SEXP str, int side, double line, int outer,
 	    /*   line = line + 1 - gpptr(dd)->yLineBias;
 		 angle = 90;
 		 yadj = NA_REAL; */
-	    line += (1/gpptr(dd)->mex)*(1 - dd->dev->yLineBias);
+	    // line += (1/gpptr(dd)->mex)*(1 - dd->dev->yLineBias);
+	    line += 1/gpptr(dd)->mex;
 	    angle = 90;
 	}
 	break;

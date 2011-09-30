@@ -35,8 +35,7 @@ try(expr, silent = FALSE)
 \value{
   The value of the expression if \code{expr} is evaluated without error,
   but an invisible object of class \code{"try-error"} containing the
-  error message, and the error condition as the \code{"condition"}
-  attribute, if it fails.
+  error message if it fails.
 }
 \seealso{
   \code{\link{options}} for setting error handlers and suppressing the

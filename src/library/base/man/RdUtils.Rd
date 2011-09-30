@@ -43,13 +43,9 @@
   \code{executive}), \env{xdvi} (the DVI previewer, default
   \command{open} (use file associations))
 #endif
-  and \env{R_PDFVIEWER} (the PDF previewer).  Also,
-  \env{RD2DVI_INPUTENC} can be set to \code{inputenx} to make use of the
-  LaTeX package of that name rather than \code{inputenc}: this might be
-  needed for better support of the UTF-8 encoding.
+  and \env{R_PDFVIEWER} (the PDF previewer).
 
-  \command{Rd2pdf} is shorthand for \command{Rd2dvi --pdf}.  Use of
-  \command{Rd2dvi} for DVI output was deprecated in \R 2.14.0.
+  \command{Rd2pdf} is shorthand for \command{Rd2dvi --pdf}.
 
   Use \command{R CMD \var{foo} --help} to obtain usage information on utility
   \code{\var{foo}}.

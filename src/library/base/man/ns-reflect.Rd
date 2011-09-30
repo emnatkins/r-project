@@ -4,7 +4,7 @@
 % Distributed under GPL 2 or later
 
 \name{ns-reflect.Rd}
-\title{Namespace Reflection Support}
+\title{Name Space Reflection Support}
 
 \alias{getExportedValue}
 \alias{getNamespace}
@@ -24,31 +24,31 @@ getNamespaceUsers(ns)
 getNamespaceVersion(ns)
 }
 \arguments{
-  \item{ns}{string or namespace object.}
+  \item{ns}{string or name space object.}
   \item{name}{string or name.}
 }
 \description{
-  Functions to support reflection on namespace objects.
+  Functions to support reflection on name space objects.
 }
 \details{
   \code{getExportedValue} returns the value of the exported variable
-  \code{name} in namespace \code{ns}.
+  \code{name} in name space \code{ns}.
 
   \code{getNamespace} returns the environment representing the name
-  space \code{name}.  The namespace is loaded if necessary.
+  space \code{name}.  The name space is loaded if necessary.
 
   \code{getNamespaceExports} returns a character vector of the names
   exported by \code{ns}.
 
   \code{getNamespaceImports} returns a representation of the imports
-  used by namespace \code{ns}.  This representation is experimental
+  used by name space \code{ns}.  This representation is experimental
   and subject to change.
 
   \code{getNamespaceName} and \code{getNamespaceVersion} return the name
-  and version of the namespace \code{ns}.
+  and version of the name space \code{ns}.
 
   \code{getNamespaceUsers} returns a character vector of the names of
-  the namespaces that import namespace \code{ns}.
+  the name spaces that import name space \code{ns}.
 }
 \keyword{internal}
 \author{Luke Tierney}

@@ -75,7 +75,7 @@ chisq.test <- function(x, y = NULL, correct = TRUE,
 	dimnames(E) <- dimnames(x)
 	if (simulate.p.value && all(sr > 0) && all(sc > 0)) {
 	    setMETH()
-	    tmp <- .C(C_chisqsim,
+	    tmp <- .C(R_chisqsim,
 		      as.integer(nr),
 		      as.integer(nc),
 		      as.integer(sr),

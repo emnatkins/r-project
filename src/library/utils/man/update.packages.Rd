@@ -74,8 +74,7 @@ new.packages(lib.loc = NULL, repos = getOption("repos"),
     minor version of \R is considered to be \sQuote{old}.}
   \item{oldPkgs}{
     if specified as non-NULL, \code{update.packages()} only considers
-    these packages for updating. This may be a character vector
-    of package names or a matrix as returned by \code{old.packages()}.
+    these packages for updating. 
   }
   \item{instPkgs}{
     by default all installed packages,

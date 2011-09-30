@@ -86,22 +86,19 @@ SEXP attribute_hidden mkCLOSXP(SEXP formals, SEXP body, SEXP rho)
     if(isList(formals))
 	SET_FORMALS(c, formals);
     else
-	error(_("invalid formal arguments for 'function'"));
+	error(_("invalid formal arguments for \"function\""));
 #else
     SET_FORMALS(c, formals);
 #endif
-    switch (TYPEOF(body)) {
-    case CLOSXP:
-    case BUILTINSXP:
-    case SPECIALSXP:
-    case DOTSXP:
-    case ANYSXP:
-	error(_("invalid body argument for 'function'"));
-	break;
-    default:
+    if(isList(body) || isLanguage(body) || isSymbol(body)
+       || isExpression(body) || isVector(body)
+#ifdef BYTECODE
+       || isByteCode(body)
+#endif
+       )
 	SET_BODY(c, body);
-	break;
-    }
+    else
+	error(_("invalid body argument for 'function'"));
 
     if(rho == R_NilValue)
 	SET_CLOENV(c, R_GlobalEnv);

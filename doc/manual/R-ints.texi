@@ -572,7 +572,7 @@ the global environment (possibly as part of a recursive search).
 
 @menu
 * Search paths::                
-* Namespaces::                 
+* Namespaces::                  
 * Hash table::                  
 @end menu
 
@@ -2493,8 +2493,8 @@ passes control to @code{loadNamespace}.  Then @code{library} or
 is not found and otherwise sources the code (using @code{sys.source})
 into the package's environment, then lazy-loads a database
 @file{R/sysdata} if present.  So how @R{} code gets loaded depends on
-the contents of  @file{R/@var{pkgname}}: a standard template to load
-lazy-load databases are provided in @file{share/R/nspackloader.R}.
+the contents of  @file{R/@var{pkgname}}: standard templates to load
+lazy-load databases are provided in @file{share/R/[ns]packloader.R}.
 
 How (and if) compiled code is loaded is down to the package's startup
 code such as @code{.First.lib} or @code{.onLoad}, although a
@@ -2863,15 +2863,6 @@ engine to obtain information about the device and initiate actions
 (e.g.@: a new page, plotting a line or some text).  Type @code{pDevDesc}
 is a pointer to this type.
 
-Prior to @R{} 2.14.0 all of the callback functions need to be set, to
-dummy functions if the capability (such as a locator) is not available.
-In devices which will only be used in @R{} 2.14.0 or later the following
-callbacks can be omitted (or set to the null pointer, their default
-value) when appropriate default behaviour will be taken by the graphics
-engine: @code{activate}, @code{cap}, @code{deactivate}, @code{locator},
-@code{holdflush} (API version 9), @code{mode}, @code{newFrameConfirm},
-@code{path}, @code{raster} and @code{size}.
-
 The relationship of device units to physical dimensions is set by the
 element @code{ipr} of the @code{DevDesc} structure: a @samp{double}
 array of length 2.
@@ -2993,24 +2984,6 @@ points (negative values) to the @code{metricInfo} callback?
 @code{Rboolean}: should symbol text be handled in UTF-8 in the same way
 as other text?  Requires @code{textUTF8 = TRUE}.
 @end itemize
-
-Several more were added at @R{} 2.14.0 to support the
-@code{dev.capabilities} function: these are all small integers.
-@itemize
-@item @code{haveTransparency}:
-does the device support semi-transparent colours?
-@item @code{haveTransparentBg}:
-can the background be fully or semi-transparent?
-@item @code{haveRaster}:
-is there support for rendering raster images?
-@item @code{haveCapture}:
-is there support for @code{grid::grid.cap}?
-@item @code{haveLocator}:
-is there an interactive locator?
-@end itemize
-
-The last three can often be deduced to be false from the presence of
-@code{NULL} entries instead of the corresponding functions.
 
 @node Handling text, Conventions, Device capabilities, Graphics devices
 @subsection Handling text
@@ -3258,11 +3231,7 @@ Many devices do indeed do nothing on this call, but some screen devices
 ensure that drawing is flushed to the screen when called with @code{mode
 = 0}.  It is tempting to use it for some sort of buffering, but note
 that `drawing' is interpreted at quite a low level and a typical single
-figure will stop and start drawing many times.  The buffering introduced
-in the @code{X11()} makes use of @code{mode = 0} to indicate activity:
-it updates the screen after @emph{ca} 100ms of inactivity.
-
-As from @R{} 2.14.0 this callback need not be supplied if it does nothing.
+figure will stop and start drawing many times.
 
 @node Graphics events, Specific devices, 'Mode', Graphics devices
 @subsection Graphics events
@@ -3454,7 +3423,7 @@ file @file{colors.c}.  Note that semi-transparent colours are not
 `premultiplied', so 50% transparent white is @samp{#ffffff80}.
 
 What is not clear is how the RGB values are to be mapped to display
-colours in the graphics device.  There was a proposal
+colours in the graphics device.  There is a proposal
 (@uref{http://developer.r-project.org/sRGB-RFC.html}) to regard the
 mapping as the colorspace `sRGB', which was adopted in @R{} 2.13.0.  The
 sRGB colorspace is an industry standard: it is used by Web browsers and
@@ -3677,7 +3646,7 @@ Default: true.
 If true, check data for ascii and uncompressed saves, and also check if
 using @command{bzip2} or @code{xz} compression would be significantly
 better.  Implies @env{_R_CHECK_COMPACT_DATA_} is true.
-Default: true.
+Default: false.
 @item _R_CHECK_SKIP_ARCH_
 Comma-separated list of architectures that will be omitted from
 checking in a multi-arch setup.
@@ -3705,17 +3674,6 @@ Default: true if @command{du} is found.
 @item _R_CHECK_DOC_SIZES_
 Should @command{qpdf} be used to find the installed sizes of PDFs?
 Default: true if @command{qpdf} is found.
-@item _R_CHECK_ALWAYS_LOG_VIGNETTE_OUTPUT_
-By default the output from running the @R{} code in the vignettes is
-kept only if there is an error.
-Default: false
-@item _R_CHECK_CLEAN_VIGN_TEST_
-Should the @file{vign_test} directory be removed if the test is successful?
-Default: true.
-@item _R_CHECK_REPLACING_IMPORTS_
-Should warnings about replacing imports be reported?  These mainly come
-from auto-generated @file{NAMESPACE} files in other packages.
-Default: false
 @end vtable
 
 @node R coding standards, Testing R code, Tools, Top
@@ -3888,7 +3846,7 @@ installed.  We have attempted to abstract out the cross-platform
 differences, and almost all the setting of typeset documents is done by
 @code{tools::texi2dvi}.  This is used for offline printing of help
 documents, preparing vignettes and for package manuals via @command{R
-CMD Rd2pdf}.  It is not currently used for the @R{} manuals created in
+CMD Rd2dvi}.  It is not currently used for the @R{} manuals created in
 directory @file{doc/manual}.
 
 @code{tools::texi2dvi} makes use of a system command @command{texi2dvi}

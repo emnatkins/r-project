@@ -31,13 +31,14 @@ is.nan(x)
 }
 \arguments{
   \item{x}{\R object to be tested: the default methods handle atomic
-    vectors.}
+    vectors, lists and pairlists.}
 }
 \details{
   \code{is.finite} returns a vector of the same length as \code{x} the
   jth element of which is \code{TRUE} if \code{x[j]} is finite (i.e., it
   is not one of the values \code{NA}, \code{NaN}, \code{Inf} or
-  \code{-Inf}) and \code{FALSE} otherwise.  Complex
+  \code{-Inf}) and \code{FALSE} otherwise.  All elements of types other
+  than logical, integer, numeric and complex vectors are false.  Complex
   numbers are finite if both the real and imaginary parts are.
 
   \code{is.infinite} returns a vector of the same length as \code{x} the
@@ -53,17 +54,13 @@ is.nan(x)
   false for that value.  A complex number is regarded as \code{NaN} if
   either the real or imaginary part is \code{NaN} but not \code{NA}.
   All elements of logical, integer and raw vectors are considered not to
-  be NaN.
-  
-  All three functions accept \code{NULL} as input and return a length
-  zero result. The default methods accept character and raw vectors, and
-  return \code{FALSE} for all entries. Prior to \R version 2.14.0 they
-  accepted all input, returning \code{FALSE} for most non-numeric
-  values; cases which are not atomic vectors are now signalled as
-  errors.
+  be NaN, and elements of lists and pairlists are also unless the
+  element is a length-one numeric or complex vector whose single element
+  is NaN.
   
   All three functions are generic: you can write methods to handle
-  specific classes of objects, see \link{InternalMethods}.
+  specific classes of objects, see \link{InternalMethods}.  The default
+  methods handle atomic vectors.
 }
 \note{
   In \R, basically all mathematical functions (including basic

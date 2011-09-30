@@ -20,7 +20,7 @@ findLineNum(srcfile, line, nameonly = TRUE,
 
 setBreakpoint(srcfile, line, nameonly = TRUE,
               envir = parent.frame(), lastenv, verbose = TRUE,
-              tracer, print = FALSE, clear = FALSE, ...)
+              tracer, print = FALSE, ...)
 }
 \arguments{
   \item{srcfile}{The name of the file containing the source code.}
@@ -35,8 +35,6 @@ setBreakpoint(srcfile, line, nameonly = TRUE,
     \code{\link{trace}}.  By default, a call to \code{\link{browser}}
     is inserted.} 
   \item{print}{The \code{print} argument to pass to \code{\link{trace}}.}
-  \item{clear}{If \code{TRUE}, call \code{\link{untrace}} rather than 
-    \code{\link{trace}}.}
   \item{\dots}{Additional arguments to pass to \code{\link{trace}}.}
 }
 
@@ -52,14 +50,10 @@ setBreakpoint(srcfile, line, nameonly = TRUE,
   usually find all user code other than S4 methods; the second one is
   quite slow, as it will typically search all attached system
   libraries.)
-  
-  For convenience, \code{envir} may be specified indirectly:  if it is
-  not an environment, it will be replaced with
-  \code{environment(envir)}.
 
   \code{setBreakpoint} is a simple wrapper function for
-  \code{\link{trace}} and \code{\link{untrace}}.  It will set or clear
-  breakpoints at the locations found by \code{findLineNum}.
+  \code{\link{trace}}.  It will set breakpoints at the locations found
+  by \code{findLineNum}.
 
   The \code{srcfile} is normally a filename entered as a character
   string, but it may be a \code{"\link{srcfile}"} object, or it may
@@ -77,7 +71,7 @@ setBreakpoint(srcfile, line, nameonly = TRUE,
   (This can be controlled using \code{lastenv}; e.g. 
   \code{envir=environment(foo)}, \code{lastenv=globalenv()} will find only the
   private copy, as the search is stopped before seeing the public
-  copy.)
+  copy.
 
   S version 4 methods are also somewhat tricky to find.  They are stored
   with the generic function, which may be in the \pkg{base} or other
@@ -92,7 +86,7 @@ setBreakpoint(srcfile, line, nameonly = TRUE,
   information.  A \code{print} method is defined for them.
 
   \code{setBreakpoint} has no useful return value; it is called for the
-  side effect of calling \code{\link{trace}} or \code{\link{untrace}}.
+  side effect of calling \code{\link{trace}}. 
 }
 \author{
   Duncan Murdoch
@@ -107,7 +101,7 @@ findLineNum("mysource.R#100")
 
 # Set a breakpoint in both copies of that function, assuming one is in the
 # same namespace as myfunction and the other is on the search path
-setBreakpoint("mysource.R#100", envir=myfunction)
+setBreakpoint("mysource.R#100", envir=environment(myfunction))
 }
 }
 \keyword{ debugging }

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-08-03 15:44\n"
+"POT-Creation-Date: 2011-03-22 15:33\n"
 "PO-Revision-Date: 2011-03-24 10:51+0100\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R Core <r-core@r-project.org>\n"
@@ -540,7 +540,6 @@ msgstr "zu wenig Freiheitsgrade, um Kontraste zu definieren"
 msgid "baseline group number out of range"
 msgstr "Basisgruppenanzahl liegt außerhalb des Bereichs"
 
-#, fuzzy
 msgid "invalid 'use' argument"
 msgstr "unzulässiges 'method' Argument"
 
@@ -607,8 +606,9 @@ msgstr "unzulässiger 'tree' (merge component)"
 msgid "either 'k' or 'h' must be specified"
 msgstr "entweder 'k' oder 'h' muss angegeben werden"
 
-#, fuzzy
-msgid "the 'height' component of 'tree' is not sorted (increasingly)"
+msgid ""
+"the 'height' component of 'tree' is not sorted\n"
+"(increasingly); consider applying as.hclust() first"
 msgstr ""
 "die Koponenten 'height' von 'tree' ist nicht (aufsteigend)\\n sortiert; "
 "evtl. zuerst as.hclust() anwenden?"
@@ -1247,20 +1247,12 @@ msgstr "zu wenig 'x' Daten"
 msgid "not enough 'y' data"
 msgstr "zu wenig 'y' Daten"
 
-#, fuzzy
-msgid "cannot compute exact p-values with ties"
-msgstr "kann bei Bindungen keinen exakten p-Wert Berechnen"
+msgid "cannot compute correct p-values with ties"
+msgstr "kann bei Bindungen nicht die korrekten p-Werte berechnen"
 
-msgid "p-values will be approximate in the presence of ties"
-msgstr ""
-
-#, fuzzy
-msgid "'y' must be numeric or a function of a string naming a valid function"
+msgid "'y' must be numeric or a string naming a valid function"
 msgstr ""
 "'y' muss entweder numerisch oder der Name einer zulässigen Funktion sein"
-
-msgid "ties should not be present for the Kolmogorov-Smirnov test"
-msgstr ""
 
 msgid ""
 "numeric y must be supplied.\n"
@@ -1693,8 +1685,7 @@ msgstr "Keine Startwerte angegeben"
 msgid "No starting values specified for some parameters."
 msgstr "Für einige Parameter keine Startwerte angegeben"
 
-#, fuzzy
-msgid "Initializing"
+msgid "Intializing"
 msgstr "Initialisiere"
 
 msgid "to '1.'."
@@ -1745,8 +1736,7 @@ msgstr "eine zweiseitige Formel ist nötig"
 msgid "not enough groups"
 msgstr "nicht genügend Gruppen"
 
-#, fuzzy
-msgid "bounds can only be used with method L-BFGS-B (or Brent)"
+msgid "bounds can only be used with method L-BFGS-B"
 msgstr "Grenzen können nur mit der Methode L-BFGS-B benutzt werden"
 
 msgid "unknown names in control:"
@@ -1764,21 +1754,10 @@ msgstr ""
 "Methode L-BFGS-B benutzt 'factr' (and 'pgtol') anstelle von 'reltol' und "
 "'abstol'"
 
-#, fuzzy
-msgid "one-diml optimization by Nelder-Mead is unreliable:"
+msgid "one-diml optimization by Nelder-Mead is unreliable: use optimize"
 msgstr ""
 "eindimensionale Optimierung mit Nelder-Mead ist unzuverlässig: nutze "
 "'optimize'"
-
-msgid "use \"Brent\" or optimize() directly"
-msgstr ""
-
-msgid "method = \"Brent\" is only available for one-dimensional optimization"
-msgstr ""
-
-#, fuzzy
-msgid "'lower' and 'upper' must be finite values"
-msgstr "'k' und 'h' muss ein Skalar sein"
 
 msgid "Pooling of SD is incompatible with paired tests"
 msgstr "Poolen der SD passt nicht mit paarweisen Tests zusammen"
@@ -2052,10 +2031,6 @@ msgstr "falsche Endregel"
 
 msgid "invalid 'control.spar'"
 msgstr "unzulässiges 'control.spar'"
-
-#, fuzzy
-msgid "missing or infinite values in inputs are not allowed"
-msgstr "fehlende oder negative Gewichte nicht erlaubt"
 
 msgid "lengths of 'x' and 'w' must match"
 msgstr "Längen von 'x' und 'w' müssen übereinstimmen"
@@ -2457,9 +2432,6 @@ msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "Parameter %s kommt in der Modellgleichung nicht vor"
 msgstr[1] "Parameter %s kommen in der Modellgleichung nicht vor"
-
-#~ msgid "cannot compute correct p-values with ties"
-#~ msgstr "kann bei Bindungen nicht die korrekten p-Werte berechnen"
 
 #~ msgid "'FUN' must always return a scalar"
 #~ msgstr "'FUN' muss immer einen Skalar zurückgeben"

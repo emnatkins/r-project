@@ -5,25 +5,25 @@
 if(tools:::.OStype() == "windows") {
     useDynLib(grDevices, R_chull,
               PicTeX, PostScript, XFig, PDF,
-              Cdevga=devga, CsavePlot=savePlot, devCairo,
+              Cdevga=devga, CsavePlot=savePlot,
               Type1FontInUse, CIDFontInUse, R_GD_nullDevice)
 } else {
     useDynLib(grDevices, R_chull,
-              PicTeX, PostScript, XFig, PDF, CQuartz = Quartz, devCairo,
+              PicTeX, PostScript, XFig, PDF, CQuartz = Quartz,
               Type1FontInUse, CIDFontInUse, R_GD_nullDevice)
 }
 
-export(Hershey, adjustcolor, as.graphicsAnnot, as.raster, blues9,
-       boxplot.stats, check.options, chull, CIDFont, col2rgb, colors,
-       colours, cm, colorRamp, colorRampPalette, contourLines,
-       convertColor, colorConverter, colorspaces, cm.colors, densCols,
-       devAskNewPage, dev.capabilities, dev.control, dev.copy,
-       dev.copy2eps, dev.copy2pdf, dev.cur, dev.hold, dev.flush,
-       dev.interactive, dev.list, dev.new, dev.next, dev.off,
-       dev.prev, dev.print, dev.set, dev.size, dev2bitmap,
-       deviceIsInteractive, embedFonts, extendrange, getGraphicsEvent,
-       getGraphicsEventEnv, graphics.off, gray, grey, gray.colors,
-       grey.colors, heat.colors, hsv, hcl, is.raster, make.rgb,
+export(Hershey, adjustcolor, as.graphicsAnnot, as.raster,
+       blues9, boxplot.stats, check.options, chull,
+       CIDFont, col2rgb, colors, colours, cm, colorRamp,
+       colorRampPalette, contourLines, convertColor, colorConverter,
+       colorspaces, cm.colors, densCols, devAskNewPage, dev.control,
+       dev.copy, dev.copy2eps, dev.copy2pdf, dev.cur, dev.interactive,
+       dev.list, dev.new, dev.next, dev.off, dev.prev, dev.print,
+       dev.set, dev.size, dev2bitmap, deviceIsInteractive, embedFonts,
+       extendrange, getGraphicsEvent, getGraphicsEventEnv,
+       graphics.off, gray, grey,
+       gray.colors, grey.colors, heat.colors, hsv, hcl, is.raster, make.rgb,
        n2mfrow, nclass.Sturges, nclass.FD, nclass.scott, palette, pdf,
        pdf.options, pdfFonts, pictex, postscript, postscriptFont,
        postscriptFonts, ps.options, rainbow, recordGraphics,
@@ -53,7 +53,6 @@ S3method("as.raster", "matrix")
 S3method("as.raster", "array")
 
 S3method("as.matrix", "raster")
-S3method("is.na", "raster")
 S3method("[", "raster")
 S3method("[<-", "raster")
 S3method("Ops", "raster")
@@ -67,7 +66,6 @@ S3method(pretty, POSIXt)
 if(tools:::.OStype() == "windows") {
     export(bringToTop, msgWindow, win.graph, win.metafile, win.print,
            windows, windows.options, windowsFont, windowsFonts)
-    export(cairo_pdf, cairo_ps, svg)
 
     S3method("[", SavedPlots)
     S3method(print, SavedPlots)

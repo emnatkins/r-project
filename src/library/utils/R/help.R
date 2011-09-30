@@ -20,38 +20,18 @@ function(topic, package = NULL, lib.loc = NULL,
          try.all.packages = getOption("help.try.all.packages"),
          help_type = getOption("help_type"))
 {
-    types <- c("text", "html", "postscript", "ps", "pdf")
     if(!missing(package))
         if(is.name(y <- substitute(package)))
             package <- as.character(y)
 
     ## If no topic was given ...
     if(missing(topic)) {
-        if(!missing(package)) {         # "Help" on package.
-            help_type <- if(!length(help_type)) "text"
-            else match.arg(tolower(help_type), types)
-            ## Carter Butts and others misuse 'help(package=)' in startup
-            if (interactive() && help_type == "html") {
-                if (tools:::httpdPort == 0L) tools::startDynamicHelp()
-                if (tools:::httpdPort <= 0L) # fallback to text help
-                    return(library(help = package, lib.loc = lib.loc,
-                                   character.only = TRUE))
-                browser <- if (.Platform$GUI == "AQUA") {
-                    function(x, ...) {
-                        .Internal(aqua.custom.print("help-files", x))
-                        return(invisible(x))
-                    }
-                } else getOption("browser")
- 		browseURL(paste("http://127.0.0.1:", tools:::httpdPort,
-                                "/library/", package, "/html/00Index.html",
-                                sep = ""), browser)
-                return(invisible())
-            } else return(library(help = package, lib.loc = lib.loc,
-                                  character.only = TRUE))
-        }
-        if(!missing(lib.loc))           # text "Help" on library.
+        if(!missing(package))           # "Help" on package.
+            return(library(help = package, lib.loc = lib.loc,
+                           character.only = TRUE))
+        if(!missing(lib.loc))           # "Help" on library.
             return(library(lib.loc = lib.loc))
-        ## ultimate default is to give help on help()
+        ## ultimate default is to give help on help
         topic <- "help"; package <- "utils"; lib.loc <- .Library
     }
 
@@ -71,7 +51,8 @@ function(topic, package = NULL, lib.loc = NULL,
     }
 
     help_type <- if(!length(help_type)) "text"
-    else match.arg(tolower(help_type), types)
+    else match.arg(tolower(help_type),
+                   c("text", "html", "postscript", "ps", "pdf"))
     if (help_type %in% c("postscript", "ps"))
         warning("Postscript offline help is deprecated",
                 call. = FALSE, immediate. = TRUE)
@@ -114,10 +95,10 @@ function(x, ...)
     }
     paths <- as.character(x)
     if(!length(paths)) {
-        writeLines(c(gettextf("No documentation for %s in specified packages and libraries:",
-                              sQuote(topic)),
-                     gettextf("you could try %s",
-                              sQuote(paste("??", topic, sep = "")))))
+        writeLines(c(gettextf("No documentation for '%s' in specified packages and libraries:",
+                              topic),
+                     gettextf("you could try '??%s'",
+                              topic)))
         return(invisible(x))
     }
 
@@ -126,8 +107,8 @@ function(x, ...)
 
     if(attr(x, "tried_all_packages")) {
         paths <- unique(dirname(dirname(paths)))
-        msg <- gettextf("Help for topic %s is not in any loaded package but can be found in the following packages:",
-                        sQuote(topic))
+        msg <- gettextf("Help for topic '%s' is not in any loaded package but can be found in the following packages:",
+                        topic)
         if (type == "html" && tools:::httpdPort > 0L) {
             path <- file.path(tempdir(), ".R/doc/html")
             dir.create(path, recursive = TRUE, showWarnings = FALSE)
@@ -168,8 +149,8 @@ function(x, ...)
 	    }
             file <- paths[1L]
             p <- paths
-            msg <- gettextf("Help on topic %s was found in the following packages:",
-                            sQuote(topic))
+            msg <- gettextf("Help on topic '%s' was found in the following packages:",
+                            topic)
             paths <- dirname(dirname(paths))
             txt <- formatDL(c("Package", basename(paths)),
                             c("Library", dirname(paths)),
@@ -219,16 +200,13 @@ function(x, ...)
             pkgname <- basename(dirname(dirname(file)))
             temp <- tools::Rd2txt(.getHelpFile(file), out = tempfile("Rtxt"),
                                   package = pkgname)
-            file.show(temp, title = gettextf("R Help on %s", sQuote(topic)),
+            file.show(temp, title = gettextf("R Help on '%s'", topic),
                       delete.file = TRUE)
         }
         else if(type %in% c("ps", "postscript", "pdf")) {
-            path <- dirname(file)
-            dirpath <- dirname(path)
-            texinputs <- file.path(dirpath, "help", "figures")
             tf2 <- tempfile("Rlatex")
             tools::Rd2latex(.getHelpFile(file), tf2)
-            .show_help_on_topic_offline(tf2, topic, type, texinputs)
+            .show_help_on_topic_offline(tf2, topic, type)
             unlink(tf2)
         }
     }
@@ -236,8 +214,7 @@ function(x, ...)
     invisible(x)
 }
 
-.show_help_on_topic_offline <-
-    function(file, topic, type = "pdf", texinputs = NULL)
+.show_help_on_topic_offline <- function(file, topic, type = "postscript")
 {
     encoding <-""
     lines <- readLines(file)
@@ -247,17 +224,15 @@ function(x, ...)
                         perl = TRUE, useBytes = TRUE)
     texfile <- paste(topic, ".tex", sep = "")
     on.exit(unlink(texfile)) ## ? leave to helper
-    opt <- if(tolower(type) == "pdf") {
-        if(nzchar(opt <- Sys.getenv("R_RD4PDF"))) opt else "times,inconsolata"
+    opt <- if(type == "PDF") {
+        if(nzchar(opt <- Sys.getenv("R_RD4PDF"))) opt else "times"
     } else {
         if(nzchar(opt <- Sys.getenv("R_RD4DVI"))) opt else "ae"
     }
-    has_figure <- any(grepl("\\Figure", lines))
     cat("\\documentclass[", getOption("papersize"), "paper]{article}\n",
         "\\usepackage[", opt, "]{Rd}\n",
         if(nzchar(encoding)) sprintf("\\usepackage[%s]{inputenc}\n", encoding),
         "\\InputIfFileExists{Rhelp.cfg}{}{}\n",
-        "\\usepackage{graphicx}\n",
         "\\begin{document}\n",
         file = texfile, sep = "")
     file.append(texfile, file)
@@ -265,8 +240,7 @@ function(x, ...)
     helper <- if (exists("offline_help_helper", envir = .GlobalEnv))
         get("offline_help_helper", envir = .GlobalEnv)
     else utils:::offline_help_helper
-    if (has_figure) helper(texfile, type, texinputs)
-    else helper(texfile, type)
+    helper(texfile, type)
     invisible()
 }
 
@@ -276,36 +250,10 @@ function(x, ...)
     path <- dirname(file)
     dirpath <- dirname(path)
     if(!file.exists(dirpath))
-        stop(gettextf("invalid %s argument", sQuote("file")), domain = NA)
+        stop(gettextf("invalid '%s' argument", "file"), domain = NA)
     pkgname <- basename(dirpath)
     RdDB <- file.path(path, pkgname)
     if(!file.exists(paste(RdDB, "rdx", sep=".")))
-        stop(gettextf("package %s exists but was not installed under R >= 2.10.0 so help cannot be accessed", sQuote(pkgname)), domain = NA)
+                stop(gettextf("package %s exists but was not installed under R >= 2.10.0 so help cannot be accessed", sQuote(pkgname)), domain = NA)
     tools:::fetchRdDB(RdDB, basename(file))
 }
-
-
-offline_help_helper <- function(texfile, type = "postscript", texinputs = NULL)
-{
-    PDF <- type == "pdf"
-    tools::texi2dvi(texfile, pdf = PDF, clean = TRUE, texinputs = texinputs)
-    ofile <- sub("tex$", if(PDF) "pdf" else "ps", texfile)
-    if(!PDF) {
-        dfile <- sub("tex$", "dvi", texfile)
-        on.exit(unlink(dfile))
-        dvips <- getOption("dvipscmd", default = "dvips")
-        res <- system2(dvips, dfile, stdout = FALSE, stderr = FALSE)
-        if(res)
-            stop(gettextf("running %s failed", sQuote(dvips)), domain = NA)
-        if(!file.exists(ofile)) {
-            message(gettextf("%s produced no output file: sent to printer?",
-                             sQuote(dvips)), domain = NA)
-            return(invisible())
-        }
-    } else if(!file.exists(ofile))
-        stop(gettextf("creation of %s failed", sQuote(ofile)), domain = NA)
-    if(ofile != basename(ofile)) file.copy(ofile, basename(ofile))
-    message("Saving help page to ", sQuote(basename(ofile)))
-    invisible()
-}
-

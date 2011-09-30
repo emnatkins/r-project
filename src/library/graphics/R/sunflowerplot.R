@@ -14,9 +14,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-sunflowerplot <- function(x, ...) UseMethod("sunflowerplot")
-
-sunflowerplot.default <-
+sunflowerplot <-
     function(x, y = NULL, number, log = "", digits = 6,
              xlab = NULL, ylab = NULL, xlim = NULL, ylim = NULL,
              add = FALSE, rotate = FALSE,
@@ -55,7 +53,6 @@ sunflowerplot.default <-
         number <- number[np]
     }
     n <- length(x)
-    dev.hold(); on.exit(dev.flush())
     if(!add)
         plot(x, y, xlab = xlab, ylab = ylab,
              xlim=xlim, ylim=ylim, log=log, type = "n", ...)
@@ -82,25 +79,4 @@ sunflowerplot.default <-
                  col=seg.col, lwd = seg.lwd)
     }
     invisible(list(x=x, y=y, number=number))
-}
-
-sunflowerplot.formula <-
-    function(formula, data = NULL, xlab = NULL, ylab = NULL, ...,
-             subset, na.action = NULL)
-{
-    if(missing(formula) || (length(formula) != 3L))
-	stop("formula missing or incorrect")
-    m <- match.call(expand.dots = FALSE)
-    if(is.matrix(eval(m$data, parent.frame())))
-	m$data <- as.data.frame(data)
-    m$... <- NULL
-    m$na.action <- na.action # force use of default for this method
-    require(stats, quietly = TRUE)
-    m[[1L]] <- as.name("model.frame")
-    mf <- eval(m, parent.frame())
-    if(NCOL(mf) != 2L)
-        stop("'formula' should specify exactly two variables")
-    if(is.null(xlab)) xlab <- names(mf)[2L]
-    if(is.null(ylab)) ylab <- names(mf)[1L]
-    sunflowerplot(mf[[2L]], mf[[1L]], xlab = xlab, ylab = ylab, ...)
 }

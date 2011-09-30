@@ -329,9 +329,10 @@ function(f, out = "") {
  }
 
 Rd2HTML_NEWS_in_Rd <-
-function(f, out, ...) {
+function(f, out) {
     if (grepl("[.]rds$", f)) f <- readRDS(f)
-    Rd2HTML(f, out, stages = c("install", "render"), ...)
+    Rd2HTML(f, out,
+            stages = c("install", "render"))
 }
 
 Rd2pdf_NEWS_in_Rd <-
@@ -346,10 +347,6 @@ function(f, pdf_file) {
     cat("\\documentclass[", Sys.getenv("R_PAPERSIZE"), "paper]{book}\n",
         "\\usepackage[ae,hyper]{Rd}\n",
         "\\usepackage[utf8]{inputenc}\n",
-        "\\usepackage{graphicx}\n",
-        "\\setkeys{Gin}{width=0.7\\textwidth}\n",
-        "\\graphicspath{{", normalizePath(file.path(R.home("doc"), "html"), "/"),
-                            "/}}\n",
         "\\hypersetup{pdfpagemode=None,pdfstartview=FitH}\n",
         "\\begin{document}\n",
         "\\chapter*{}\\sloppy\n",
@@ -362,7 +359,7 @@ function(f, pdf_file) {
     close(out)
     od <- setwd(tempdir())
     on.exit(setwd(od))
-    texi2pdf("NEWS.tex", quiet = TRUE)
+    texi2dvi("NEWS.tex", pdf=TRUE, quiet = TRUE)
     setwd(od); on.exit()
     invisible(file.copy(file.path(tempdir(), "NEWS.pdf"),
                         pdf_file, overwrite = TRUE))
@@ -567,30 +564,14 @@ function(file)
 function(x)
 {
     .get_Rd_section_names <- function(x)
-        sapply(x, function(e) .Rd_get_text(e[[1L]]))
+        sapply(x, function(e) .Rd_deparse(e[[1L]]))
 
     do_chunk <- function(x) {
-        ## Currently, chunks should consist of a single \itemize list
-        ## containing the news items.  Notify if there is more than one
-        ## such list, and stop if there is none.
-
-        pos <- which(RdTags(x) == "\\itemize")
-        if(!length(pos)) {
-            stop(gettextf("Malformed NEWS.Rd file:\nChunk starting\n  %s\ncontains no \\itemize.",
-                          substring(sub("^[[:space:]]*", "",
-                                        .Rd_deparse(x)),
-                                    1L, 60L)),
-                 domain = NA)
-        } else if(length(pos) > 1L) {
-            warning(gettextf("Malformed NEWS.Rd file:\nChunk starting\n  %s\ncontains more than one \\itemize.\nUsing the first one.",
-                             substring(sub("^[[:space:]]*", "",
-                                           .Rd_deparse(x)),
-                                       1L, 60L)),
-                    domain = NA)
-            pos <- pos[1L]
-        }
-        x <- x[pos]
-        
+        ## <FIXME>
+        ## This assumes that the chunk in essence is one \itemize list.
+        ## Should be safe to assume this for base R NEWS in Rd: for add
+        ## on packages we need to check ...
+        ## </FIXME>
         out <- NULL
         zz <- textConnection("out", "w", local = TRUE)
         on.exit(close(zz))
@@ -598,25 +579,13 @@ function(x)
                options =
                c(Rd2txt_NEWS_in_Rd_options,
                  list(itemBullet = "\036  ")))
-        
-        ## Try to find the column offset of the top-level bullets.
-        pat <- "^( *)\036.*"
-        off <- min(nchar(sub(pat, "\\1", out[grepl(pat, out)])))
-        pat <- sprintf("^%s\036 ",
-                       paste(rep.int(" ", off), collapse = ""))
-        s <- sub(pat, "\036", out)
-        ## Try to remove some indent for nested material.
-        pat <- sprintf("^%s",
-                       paste(rep.int(" ", off + 2L), collapse = ""))
-        s <- sub(pat, "", s)
-
+        s <- gsub("^    ", "", out)
+        # Number of blanks is system dependent
+        s <- gsub("^ *\036 ", "\036", s)
         s <- paste(s, collapse = "\n")
         s <- sub("^[[:space:]]*\036", "", s)
         s <- sub("[[:space:]]*$", "", s)
-        ## <FIXME>
-        ## Could be more fancy and use \u2022 "if possible".
-        gsub("\036", "*", unlist(strsplit(s, "\n\036", fixed = TRUE)))
-        ## </FIXME>
+        unlist(strsplit(s, "\n\036", fixed = TRUE))
     }
 
     y <- x[RdTags(x) == "\\section"]
@@ -636,7 +605,11 @@ function(x)
                                                   function(e)
                                                   do_chunk(e[[2L]]))))
                            } else {
-                               cbind(NA_character_, do_chunk(z))
+                               pos <- which(RdTags(z) == "\\itemize")[1L]
+                               if(is.na(pos))
+                                   stop("Malformed NEWS.Rd file.")
+                               cbind(NA_character_,
+                                     do_chunk(z[pos]))
                            }
                        })))
 

@@ -44,10 +44,11 @@ static Rboolean sock_open(Rconnection con)
 {
     Rsockconn this = (Rsockconn)con->private;
     int sock, sock1, mlen;
-    int timeout = this->timeout;
+    int timeout = asInteger(GetOption1(install("timeout")));
     char buf[256];
 
     if(timeout == NA_INTEGER || timeout <= 0) timeout = 60;
+    R_SockTimeout(timeout);
     this->pend = this->pstart = this->inbuf;
 
     if(this->server) {
@@ -64,7 +65,7 @@ static Rboolean sock_open(Rconnection con)
 			 R_BaseEnv, R_NilValue, R_NilValue);
 	    cntxt.cend = &listencleanup;
 	    cntxt.cenddata = &sock1;
-	    sock = R_SockListen(sock1, buf, 256, timeout);
+	    sock = R_SockListen(sock1, buf, 256);
 	    endcontext(&cntxt);
 	}
 	if(sock < 0) {
@@ -77,7 +78,7 @@ static Rboolean sock_open(Rconnection con)
 	sprintf(con->description, "<-%s:%d", buf, this->port);
 	R_SockClose(sock1);
     } else {
-	sock = R_SockConnect(this->port, con->description, timeout);
+	sock = R_SockConnect(this->port, con->description);
 	if(sock < 0) {
 	    warning("%s:%d cannot be opened", con->description, this->port);
 	    return FALSE;
@@ -114,8 +115,7 @@ static int sock_read_helper(Rconnection con, void *ptr, size_t size)
 	if (size > 0 && this->pstart == this->pend) {
 	    this->pstart = this->pend = this->inbuf;
 	    do
-		res = R_SockRead(this->fd, this->inbuf, 4096, 
-				 con->blocking, this->timeout);
+		res = R_SockRead(this->fd, this->inbuf, 4096, con->blocking);
 	    while (-res == EINTR);
 	    if (! con->blocking && -res == EAGAIN) {
 		con->incomplete = TRUE;
@@ -164,11 +164,11 @@ static size_t sock_write(const void *ptr, size_t size, size_t nitems,
 {
     Rsockconn this = (Rsockconn)con->private;
 
-    return R_SockWrite(this->fd, ptr, size * nitems, this->timeout)/size;
+    return R_SockWrite(this->fd, ptr, size * nitems)/size;
 }
 
 Rconnection in_R_newsock(const char *host, int port, int server,
-			 const char * const mode, int timeout)
+			 const char * const mode)
 {
     Rconnection new;
 
@@ -200,7 +200,6 @@ Rconnection in_R_newsock(const char *host, int port, int server,
     }
     ((Rsockconn)new->private)-> port = port;
     ((Rsockconn)new->private)-> server = server;
-    ((Rsockconn)new->private)-> timeout = timeout;
     return new;
 }
 
