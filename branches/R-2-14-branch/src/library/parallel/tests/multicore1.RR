@@ -1,0 +1,10 @@
+library(parallel)
+
+p <- mcfork()
+if (inherits(p, "masterProcess")) {
+    cat("I'm a child! ", Sys.getpid(), "\n")
+    mcexit(,"I was a child")
+}
+cat("I'm the master\n")
+unserialize(readChildren(1.5))
+## don't do anything here as stdin is eaten.
