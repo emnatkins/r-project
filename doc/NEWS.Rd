@@ -5,128 +5,6 @@
 \title{ R News}
 \encoding{UTF-8}
 
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item Environment variable \env{RD2DVI_INPUTENC} has been renamed
-      to \env{RD2PDF_INPUTENC}.
-
-      \item \code{.Deprecated()} becomes a bit more flexible, getting an
-      \code{old} argument.
-
-      \item Even data-only packages without \R code need a namespace and
-      so may need to be installed under \R 2.14.0 or later.
-    
-      \item Package \pkg{parallel} now allows a default cluster to be
-      registered by \code{setDefaultCluster()}: this will be used by
-      default in functions such as \code{parLapply()}.
-      
-      It has a new function \code{mcmapply()}, a parallel version of
-      \code{mapply()}, and a wrapper \code{mcMap()}, a parallel version
-      of \code{Map()}.
-
-      \code{clusterMap()} has a new argument \code{.scheduling} to allow
-      the use of load-balancing.
-
-      There are new load-balancing versions \code{parLapplyLB} and
-      \code{parSapplyLB}.
-      
-      \item \code{assignInNamespace()} has further restrictions on use
-      apart from at top-level, as its help page has warned.
-      Expect it to be disabled from programmatic use in the future.
-      
-      \item \code{system()} and \code{system2()} when capturing output
-      report a non-zero status in the new \code{"status"} attribute.
-      
-      \item \code{kronecker()} now has an S4 generic in package
-      \pkg{methods} on which packages can set methods.  It will be
-      invoked by \code{X \%x\% Y} if either \code{X} or \code{Y} is an S4
-      object.
-    }
-  }
-  
-  \subsection{PACKAGE INSTALLATION}{
-    \itemize{
-      \item \code{R CMD INSTALL} will now do a test load for all
-      sub-architectures for which code was compiled (rather than just
-      the primary sub-architecture).
-      
-      \item Code in packages is now compiled with \code{-NDEBUG} to
-      mitigate against \code{assert} being called in production use.
-      Developers can turn this off during package development with
-      \code{PKG_CPPFLAGS = -UNDEBUG}.
-    }
-  }
-
-  \subsection{UTILITIES}{
-    \itemize{
-       \item \command{R CMD check} now gives a warning rather than a
-       note if it finds inefficiently compressed datasets.  With
-       \command{bzip2} and \command{xz} compression having been
-       available since \R 2.10.0, there is no excuse for not using them.
-     }
-   }
-
-  \subsection{DEPRECATED AND DEFUNCT}{
-   \itemize{
-      \item \command{R CMD Rd2dvi} is now defunct: use \command{R CMD Rd2pdf}.
-
-      \item Options such as \code{--max-nsize} and the function
-      \code{mem.limits()} are now defunct.
-
-      \item Use of \code{library.dynam()} without specifying all the
-      first three arguments is now disallowed.
-
-      Use of \code{chname} in \code{library.dynam()} with the extension
-      \file{.so} or \code{.dll} (which was never allowed according
-      to the help page) is defunct.  This also applies to
-      \code{library.dynam.unload()} and to \code{useDynLib} directives
-      in \code{NAMESPACE} files.
-
-      \item The internal functions \code{.readRDS()} and
-      \code{.saveRDS()} are now defunct.
-
-      \item The off-line \code{help()} types \samp{"postscript"} and
-      \samp{"ps"} are defunct.
-    }
-  }
-  
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{stack()} now gives an error if no vector column is
-      selected, rather than returning a 1-column data frame (contrary to
-      its documentation).
-
-      \item \code{str(x, width)} now obeys its \code{width}
-      argument also for function headers and other objects \code{x}
-      where \code{deparse()} is applied.
-    }
-  }
-}
-
-\section{\Rlogo CHANGES IN R VERSION 2.14.0 patched}{
-  \subsection{INSTALLATION}{
-    \itemize{
-      \item On 64-bit Linux systems, \command{configure} now only sets
-      \samp{LIBnn} to \code{lib64} if \file{/usr/lib64} exists.  This
-      may obviate setting \samp{LIBnn} explicitly on Debian-derived
-      systems.
-
-      It is still necessary to set \samp{LIBnn = lib} for 32-bit builds
-      of \R on 64-bit OS on those Linux distributions capable for
-      supporting that concept.
-    }
-  }
-  
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{summary.mlm()} did not handle objects where the
-      formula had been specified by an expression.  (Reported by
-      Helios de Rosario Martinez).
-    }
-  }
-}
-
 \section{\Rlogo CHANGES IN R VERSION 2.14.0}{
   \subsection{SIGNIFICANT USER-VISIBLE CHANGES}{
     \itemize{
@@ -798,11 +676,11 @@
       \item \command{R CMD check} now uses a \code{pdf()} device when
       checking examples (rather than \code{postscript()}).
 
-      \item \command{R CMD check} now checks line-endings of makefiles
-      and C/C++/Fortran sources in subdirectories of \file{src} as well
-      as in \file{src} itself.
+       \item \command{R CMD check} now checks line-endings of makefiles
+       and C/C++/Fortran sources in subdirectories of \file{src} as well
+       as in \file{src} itself.
        
-      \item \command{R CMD check} now reports as a NOTE what look like
+       \item \command{R CMD check} now reports as a NOTE what look like
       methods documented with their full names even if there is a
       namespace and they are exported.  In almost all cases they are
       intended to be used only as methods and should use the

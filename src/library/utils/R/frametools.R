@@ -24,11 +24,7 @@ stack.data.frame <- function(x, select, ...)
 	vars <- eval(substitute(select),nl, parent.frame())
         x <- x[, vars, drop=FALSE]
     }
-    keep <- unlist(lapply(x, is.vector))
-    if(!sum(keep)) stop("no vector columns were selected")
-    if(!all(keep))
-        warning("non-vector columns will be ignored")
-    x <- x[, keep, drop = FALSE]
+    x <- x[, unlist(lapply(x, is.vector)), drop = FALSE]
     ## need to avoid promotion to factors
     data.frame(values = unlist(unname(x)),
                ind = factor(rep.int(names(x), lapply(x, length))),
@@ -38,10 +34,7 @@ stack.data.frame <- function(x, select, ...)
 stack.default <- function(x, ...)
 {
     x <- as.list(x)
-    keep <- unlist(lapply(x, is.vector))
-    if(!sum(keep)) stop("at least one vector element is required")
-    if(!all(keep)) warning("non-vector elements will be ignored")
-    x <- x[keep]
+    x <- x[unlist(lapply(x, is.vector))]
     data.frame(values = unlist(unname(x)),
                ind = factor(rep.int(names(x), lapply(x, length))),
                stringsAsFactors = FALSE)

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R-2.14.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2011-10-25 07:54+0100\n"
+"POT-Creation-Date: 2011-10-23 14:54+0100\n"
 "PO-Revision-Date: 2011-10-10 12:29+0200\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R-core <R-core@r-project.org>\n"
@@ -583,28 +583,43 @@ msgstr "Objekt des Typs '%s' ist nicht indizierbar"
 msgid "no R-to-C converter found corresponding to identifier"
 msgstr "kein R-to-C Konvertierer gefunden, der zum Bezeichner passt"
 
-#: src/main/CommandLineArgs.c:170
+#: src/main/CommandLineArgs.c:172
 msgid "WARNING: no value given for --encoding"
 msgstr "Warnung: kein Wert für --encoding gegeben"
 
-#: src/main/CommandLineArgs.c:197
+#: src/main/CommandLineArgs.c:195
 #, c-format
 msgid "WARNING: option '%s' no longer supported"
 msgstr "Warnung: Option '%s' wird nicht mehr unterstützt"
 
-#: src/main/CommandLineArgs.c:205
+#: src/main/CommandLineArgs.c:212
+#, c-format
+msgid "WARNING: no value given for '%s'"
+msgstr "Warnung: kein Wert für '%s' gegeben"
+
+#: src/main/CommandLineArgs.c:220
+#, c-format
+msgid "WARNING: '%s' value is invalid: ignored"
+msgstr "Warnung: '%s' Wert ist ungültig: wird ignoriert"
+
+#: src/main/CommandLineArgs.c:224
+#, c-format
+msgid "WARNING: %s: too large and ignored"
+msgstr "Warnung: %s: zu groß und wird ignoriert"
+
+#: src/main/CommandLineArgs.c:240
 msgid "WARNING: no value given for '--max-ppsize'"
 msgstr "Warnung: kein Wert für '--max-ppsize' angegeben"
 
-#: src/main/CommandLineArgs.c:210
+#: src/main/CommandLineArgs.c:245
 msgid "WARNING: '--max-ppsize' value is negative: ignored"
 msgstr "Warnung: '--max-ppsize' ist negativ: wird ignoriert"
 
-#: src/main/CommandLineArgs.c:212
+#: src/main/CommandLineArgs.c:247
 msgid "WARNING: '--max-ppsize' value is too small: ignored"
 msgstr "Warnung: '--max-ppsize' ist zu klein: wird ignoriert"
 
-#: src/main/CommandLineArgs.c:215
+#: src/main/CommandLineArgs.c:250
 msgid "WARNING: '--max-ppsize' value is too large: ignored"
 msgstr "Warnung: '--max-ppsize' ist zu groß: wird ignoriert"
 
@@ -8282,15 +8297,6 @@ msgstr "X11 Modul kann nicht geladen werden"
 #: src/unix/X11.c:177 src/unix/X11.c:183 src/unix/X11.c:189
 msgid "X11 is not available"
 msgstr "X11 nicht verfügbar"
-
-#~ msgid "WARNING: no value given for '%s'"
-#~ msgstr "Warnung: kein Wert für '%s' gegeben"
-
-#~ msgid "WARNING: '%s' value is invalid: ignored"
-#~ msgstr "Warnung: '%s' Wert ist ungültig: wird ignoriert"
-
-#~ msgid "WARNING: %s: too large and ignored"
-#~ msgstr "Warnung: %s: zu groß und wird ignoriert"
 
 #~ msgid "string marked as \"bytes\" found, so using useBytes = TRUE"
 #~ msgstr ""

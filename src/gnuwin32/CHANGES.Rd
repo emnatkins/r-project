@@ -4,25 +4,6 @@
 \title{Windows-specific changes to R}
 \encoding{UTF-8}
 
-\section{CHANGES IN R-devel}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \command{R CMD INSTALL} for a package with compiled code
-      will fail if compilation fails for any of the installed
-      sub-architectures: use \option{--no-multiarch} to override this.
-    }
-  }
-}
-
-\section{CHANGES IN R VERSION 2.14.0 patched}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item The \code{Save as} menu item on the script
-      editor appends \file{.R} to a file name without an extension.
-    }
-  }
-}
-
 \section{CHANGES IN R VERSION 2.14.0}{
   \subsection{NEW FEATURES}{
     \itemize{

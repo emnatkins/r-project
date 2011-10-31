@@ -49,7 +49,6 @@
     rarch <- Sys.getenv("R_ARCH") # unix only
     if (WINDOWS && nzchar(.Platform$r_arch))
         rarch <- paste0("/", .Platform$r_arch)
-    test_archs <- rarch
 
     SHLIB_EXT <- if (WINDOWS) ".dll" else {
         ## can we do better?
@@ -65,7 +64,9 @@
         ## These might be needed for configure.win and Make{file,vars}.win
         ## Some people have *assumed* that R_HOME uses /
         Sys.setenv(R_HOME = rhome)
-        if (nzchar(rarch)) Sys.setenv(R_ARCH = rarch, R_ARCH_BIN = rarch)
+        if (nzchar(rarch)) {
+            Sys.setenv(R_ARCH = rarch, R_ARCH_BIN = rarch)
+        }
     }
 
     Usage <- function() {
@@ -688,7 +689,6 @@
                         has_error <- run_shlib(pkg_name, srcs, instdir, rarch)
                     else {
                         setwd(owd)
-                        test_archs <- archs
                         for(arch in archs) {
                             message("", domain = NA) # a blank line
                             starsmsg("***", "arch - ", arch)
@@ -698,12 +698,15 @@
                             ## avoid read-only files/dir such as nested .svn
                             .Internal(dirchmod(ss))
                             setwd(ss)
-
                             ra <- paste0("/", arch)
                             Sys.setenv(R_ARCH = ra, R_ARCH_BIN = ra)
-                            has_error <- run_shlib(pkg_name, srcs, instdir, ra)
+                            has_error0 <- run_shlib(pkg_name, srcs, instdir, ra)
                             setwd(owd)
-                            if (has_error) break
+                            ## allow archs other than the current one to fail.
+                            if (has_error0 && ra == rarch) {
+                                has_error <- TRUE
+                                break
+                            }
                         }
                     }
                 }
@@ -750,7 +753,6 @@
                             has_error <- run_shlib(pkg_name, srcs, instdir, rarch)
                         } else {
                             setwd(owd)
-                            test_archs <- archs
                             for(arch in archs) {
                                 if (arch == "R") {
                                     ## top-level, so one arch without subdirs
@@ -980,10 +982,12 @@
 
 	## LazyLoading
 	value <- parse_description_field(desc, "LazyLoad", default = TRUE)
-        if(!value)
+        if(!value) {
+            value <- TRUE
             warning("LazyLoad != TRUE is deprecated and ignored",
                     call. = FALSE, domain = NA)
-	if (install_R && dir.exists("R") && length(dir("R"))) {
+        }
+	if (install_R && dir.exists("R") && length(dir("R")) && value) {
             BC <- parse_description_field(desc, "ByteCompile",
                                           default = byte_compile)
             rcp <- as.numeric(Sys.getenv("R_COMPILE_PKGS"))
@@ -1065,37 +1069,23 @@
         if (clean) run_clean()
 
         if (test_load) {
-            ## Do this in a separate R process, in case it crashes R.
+            ## As from R 2.13.0 do this in a separate R process, in case
+            ## it brings down the R process running .install.packages()
+            ## and so do_exit_on_error() is not called.
 	    starsmsg(stars, "testing if installed package can be loaded")
-            ## FIXME: maybe the quoting as 'lib' is not quite good enough
+            ## FIXME: maybe 'lib' is not quite good enough
             ## On a Unix-alike this calls system(input=)
             ## and that uses a temporary file and redirection.
             cmd <- paste("tools:::.test_load_package('", pkg_name, "', '", lib, "')",
                          sep = "")
             ## R_LIBS was set already.  R_runR is in check.R
-            if (length(test_archs) > 1L) {
-                msgs <- character()
-                for (arch in test_archs) {
-                    starsmsg("***", "arch - ", arch)
-                    res <- R_runR(cmd, "--no-save --slave",
-                                  stdout = "", stderr = "", arch = arch)
-                    if (res) msgs <- c(msgs, arch)
-                }
-                if (length(msgs)) {
-                    msg <- paste("loading failed for",
-                                 paste(sQuote(msgs), collapse = ", "))
-                    errmsg(msg) # does not return
-                }
-            } else {
-                res <- R_runR(cmd, "--no-save --slave",
-                              stdout = "", stderr = "")
-                if (res) errmsg("loading failed") # does not return
-            }
+            res <- R_runR(cmd, "--no-save --slave", stdout = "", stderr = "")
+            if (res) errmsg("loading failed")
         }
     }
 
     options(showErrorCalls=FALSE)
-    pkgs <- character()
+    pkgs <- character(0)
     if (is.null(args)) {
         args <- commandArgs(TRUE)
         ## it seems that splits on spaces, so try harder.
@@ -1117,8 +1107,8 @@
     build_example <- FALSE
     use_configure <- TRUE
     auto_zip <- FALSE
-    configure_args <- character()
-    configure_vars <- character()
+    configure_args <- character(0)
+    configure_vars <- character(0)
     fake <- FALSE
     lazy <- TRUE
     lazy_data <- FALSE
@@ -1128,7 +1118,7 @@
     pkglock <- FALSE  # set for per-package locking
     libs_only <- FALSE
     tar_up <- zip_up <- FALSE
-    shargs <- character()
+    shargs <- character(0)
     multiarch <- TRUE
     force_biarch <- FALSE
     test_load <- TRUE
@@ -1452,7 +1442,7 @@
 	install_inst <- FALSE
     }
 
-    build_help_types <- character()
+    build_help_types <- character(0)
     if (build_html) build_help_types <- c(build_help_types, "html")
     if (build_latex) build_help_types <- c(build_help_types, "latex")
     if (build_example) build_help_types <- c(build_help_types, "example")

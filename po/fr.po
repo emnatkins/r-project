@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R-2.12.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2011-10-25 07:54+0100\n"
+"POT-Creation-Date: 2011-10-23 14:54+0100\n"
 "PO-Revision-Date: 2011-10-15 14:49+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -593,28 +593,43 @@ msgid "no R-to-C converter found corresponding to identifier"
 msgstr ""
 "aucun convertisseur R-vers-C disponible correspondant à cet identifiant"
 
-#: src/main/CommandLineArgs.c:170
+#: src/main/CommandLineArgs.c:172
 msgid "WARNING: no value given for --encoding"
 msgstr "AVIS : aucune valeur donnée pour --encoding"
 
-#: src/main/CommandLineArgs.c:197
+#: src/main/CommandLineArgs.c:195
 #, c-format
 msgid "WARNING: option '%s' no longer supported"
 msgstr "AVIS : l'option '%s' n'est plus disponible"
 
-#: src/main/CommandLineArgs.c:205
+#: src/main/CommandLineArgs.c:212
+#, c-format
+msgid "WARNING: no value given for '%s'"
+msgstr "AVIS : aucune valeur donnée pour '%s'"
+
+#: src/main/CommandLineArgs.c:220
+#, c-format
+msgid "WARNING: '%s' value is invalid: ignored"
+msgstr "AVIS : valeur '%s' incorrecte : ignorée"
+
+#: src/main/CommandLineArgs.c:224
+#, c-format
+msgid "WARNING: %s: too large and ignored"
+msgstr "AVIS : %s : trop grand et ignoré"
+
+#: src/main/CommandLineArgs.c:240
 msgid "WARNING: no value given for '--max-ppsize'"
 msgstr "AVIS : aucune valeur donnée pour '--max-ppsize'"
 
-#: src/main/CommandLineArgs.c:210
+#: src/main/CommandLineArgs.c:245
 msgid "WARNING: '--max-ppsize' value is negative: ignored"
 msgstr "AVIS : valeur de '--max-ppsize' strictement négative : ignorée"
 
-#: src/main/CommandLineArgs.c:212
+#: src/main/CommandLineArgs.c:247
 msgid "WARNING: '--max-ppsize' value is too small: ignored"
 msgstr "AVIS : valeur de '--max-ppsize' trop petite : ignorée"
 
-#: src/main/CommandLineArgs.c:215
+#: src/main/CommandLineArgs.c:250
 msgid "WARNING: '--max-ppsize' value is too large: ignored"
 msgstr "AVIS : valeur de '--max-ppsize' trop grande : ignorée"
 
@@ -8442,15 +8457,6 @@ msgstr "impossible de charger le module X11"
 #: src/unix/X11.c:177 src/unix/X11.c:183 src/unix/X11.c:189
 msgid "X11 is not available"
 msgstr "X11 indisponible"
-
-#~ msgid "WARNING: no value given for '%s'"
-#~ msgstr "AVIS : aucune valeur donnée pour '%s'"
-
-#~ msgid "WARNING: '%s' value is invalid: ignored"
-#~ msgstr "AVIS : valeur '%s' incorrecte : ignorée"
-
-#~ msgid "WARNING: %s: too large and ignored"
-#~ msgstr "AVIS : %s : trop grand et ignoré"
 
 #~ msgid "string marked as \"bytes\" found, so using useBytes = TRUE"
 #~ msgstr ""

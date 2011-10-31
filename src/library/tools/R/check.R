@@ -40,9 +40,9 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             ## In principle this should escape \
             Rin <- tempfile("Rin"); on.exit(unlink(Rin)); writeLines(cmd, Rin)
         } else Rin <- stdin
-        suppressWarnings(system2(if(nzchar(arch)) file.path(R.home(), "bin", arch, "Rterm.exe")
-                                 else file.path(R.home("bin"), "Rterm.exe"),
-                                 c(Ropts, paste("-f", Rin)), stdout, stderr, env = env))
+        system2(if(nzchar(arch)) file.path(R.home(), "bin", arch, "Rterm.exe")
+                else file.path(R.home("bin"), "Rterm.exe"),
+                c(Ropts, paste("-f", Rin)), stdout, stderr, env = env)
     } else {
         suppressWarnings(system2(file.path(R.home("bin"), "R"),
                                  c(if(nzchar(arch)) paste("--arch=", arch, sep = ""), Ropts),
@@ -555,14 +555,22 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         }
 
         ## Several packages had leftover Rd2dvi build directories in
-        ## their sources/
-        ind <- grepl("^\\.Rd2(dvi|pdf)", basename(all_dirs))
+        ## their sources, e.g.
+        ## ./catmap/man/.Rd2dvi
+        ## ./Rdsm/man/.Rd2dvi7366
+        ## ./depmix/man/.Rd2dvi1150
+        ## ./beadarrayMSV/man/.Rd2dvi2933
+        ## ./qgraph/man/.Rd2dvi4352
+        ## ./qgraph/man/.Rd2dvi1532
+        ## ./qgraph/man/.Rd2dvi2032
+        ## ./qgraph/man/.Rd2dvi6032
+        ind <- grepl("^\\.Rd2dvi", basename(all_dirs))
         if(any(ind)) {
             if(!any) warnLog()
             any <- TRUE
             printLog(Log,
                      "Found the following directory(s) with ",
-                     "names of Rd2pdf build directories:\n",
+                     "names of Rd2dvi build directories:\n",
                      .format_lines_with_indent(all_dirs[ind]),
                      "\n",
                      "Most likely, these were included erroneously.\n")
@@ -1192,12 +1200,14 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         ## Check for ASCII and uncompressed/unoptimized saves in 'data'
         if (!is_base_pkg && R_check_compact_data && dir.exists("data")) {
             checkingLog(Log, "data for ASCII and uncompressed saves")
-            out <- R_runR("tools:::.check_package_compact_datasets('.', TRUE)",
+            out <- R_runR(paste("tools:::.check_package_compact_datasets('.',",
+                                R_check_compact_data2, ")"),
                           R_opts2)
             out <- grep("Warning: changing locked binding", out,
                         invert = TRUE, value = TRUE, fixed = TRUE)
             if (length(out)) {
-                warnLog()
+                bad <- grep("^Warning:", out)
+                if (length(bad)) warnLog() else noteLog(Log)
                 printLog0(Log, .format_lines_with_indent(out), "\n")
             } else resultLog(Log, "OK")
         }
@@ -1206,7 +1216,8 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         ## no base package has this
         if (R_check_compact_data && file.exists(file.path("R", "sysdata.rda"))) {
             checkingLog(Log, "R/sysdata.rda")
-            out <- R_runR("tools:::.check_package_compact_sysdata('.', TRUE)",
+            out <- R_runR(paste("tools:::.check_package_compact_sysdata('.',",
+                                R_check_compact_data2, ")"),
                           R_opts2)
             if (length(out)) {
                 bad <- grep("^Warning:", out)
@@ -1365,15 +1376,6 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         env <- "R_DEFAULT_PACKAGES=NULL"
         env1 <- if(nzchar(arch)) env0 else character()
         out <- R_runR(Rcmd, opts, env1, arch = arch)
-        if(length(st <- attr(out, "status"))) {
-            errorLog(Log)
-            wrapLog("Loading this package had a fatal error",
-                    "status code ", st,  "\n")
-            if(length(out))
-                printLog(Log, paste(c("Loading log:", out, ""),
-                                    collapse = "\n"))
-            do_exit()
-        }
         if (any(grepl("^Error", out))) {
             errorLog(Log)
             printLog(Log, paste(c(out, ""), collapse = "\n"))
@@ -1385,10 +1387,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
 
         checkingLog(Log, "whether the package can be loaded with stated dependencies")
         out <- R_runR(Rcmd, opts, c(env, env1), arch = arch)
-        if(length(st <- attr(out, "status"))) {
-            stop("error status ", st)
-        }
-        if (any(grepl("^Error", out)) || length(attr(out, "status"))) {
+        if (any(grepl("^Error", out))) {
             warnLog()
             printLog(Log, paste(c(out, ""), collapse = "\n"))
             wrapLog("\nIt looks like this package",
@@ -1402,8 +1401,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
         checkingLog(Log, "whether the package can be unloaded cleanly")
         Rcmd <- sprintf("suppressMessages(library(%s)); cat('\n---- unloading\n'); detach(\"package:%s\")", pkgname, pkgname)
         out <- R_runR(Rcmd, opts, c(env, env1), arch = arch)
-        if (any(grepl("^(Error|\\.Last\\.lib failed)", out)) ||
-            length(attr(out, "status"))) {
+        if (any(grepl("^(Error|\\.Last\\.lib failed)", out))) {
             warnLog()
             ll <- grep("---- unloading", out)
             if(length(ll)) {
@@ -1419,7 +1417,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             checkingLog(Log, "whether the namespace can be loaded with stated dependencies")
             Rcmd <- sprintf("loadNamespace(\"%s\")", pkgname)
             out <- R_runR(Rcmd, opts, c(env, env1), arch = arch)
-            if (any(grepl("^Error", out)) || length(attr(out, "status"))) {
+            if (any(grepl("^Error", out))) {
                 warnLog()
                 printLog(Log, paste(c(out, ""), collapse = "\n"))
                 wrapLog("\nA namespace must be able to be loaded",
@@ -1438,8 +1436,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             out <- if (is_base_pkg && pkgname != "stats4")
                 R_runR(Rcmd, opts, "R_DEFAULT_PACKAGES=NULL", arch = arch)
             else R_runR(Rcmd, opts, env1)
-            if (any(grepl("^(Error|\\.onUnload failed)", out)) ||
-                length(attr(out, "status"))) {
+            if (any(grepl("^(Error|\\.onUnload failed)", out))) {
                 warnLog()
                 ll <- grep("---- unloading", out)
                 if(length(ll)) {
@@ -1943,7 +1940,7 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
             latex_log <- file.path(build_dir, "Rd2.log")
             if (file.exists(latex_log))
                 file.copy(latex_log, paste(pkgname, "-manual.log", sep=""))
-            if (res == 11) { ## return code from Rd2pdf
+            if (res == 11) { ## return code from Rd2dvi
                 errorLog(Log, "Rd conversion errors:")
                 lines <- readLines("Rdlatex.log", warn = FALSE)
                 lines <- grep("^(Hmm|Execution)", lines,
@@ -2782,7 +2779,9 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
     	config_val_to_logical(Sys.getenv("_R_CHECK_ASCII_CODE_", "TRUE"))
     R_check_ascii_data <-
     	config_val_to_logical(Sys.getenv("_R_CHECK_ASCII_DATA_", "TRUE"))
-     R_check_compact_data <-
+    R_check_compact_data2 <-
+    	config_val_to_logical(Sys.getenv("_R_CHECK_COMPACT_DATA2_", "TRUE"))
+    R_check_compact_data <- R_check_compact_data2 ||
     	config_val_to_logical(Sys.getenv("_R_CHECK_COMPACT_DATA_", "TRUE"))
     R_check_vc_dirs <-
     	config_val_to_logical(Sys.getenv("_R_CHECK_VC_DIRS_", "FALSE"))
@@ -2813,7 +2812,8 @@ R_runR <- function(cmd = NULL, Ropts = "", env = "",
                 R_check_executables <- R_check_permissions <-
                     R_check_dot_internal <- R_check_ascii_code <-
                     	R_check_ascii_data <- R_check_compact_data <-
-                            R_check_pkg_sizes <- R_check_doc_sizes <- FALSE
+                            R_check_compact_data2 <-
+                                R_check_pkg_sizes <- R_check_doc_sizes <- FALSE
 
     startdir <- getwd()
     if (is.null(startdir))

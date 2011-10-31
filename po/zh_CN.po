@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2011-10-25 07:54+0100\n"
+"POT-Creation-Date: 2011-10-23 14:54+0100\n"
 "PO-Revision-Date: 2005-05-20 18:26+0800\n"
 "Last-Translator: ronggui\n"
 "Language-Team: Chinese\n"
@@ -582,28 +582,43 @@ msgstr "类别为'%s'的对象不可以取子集"
 msgid "no R-to-C converter found corresponding to identifier"
 msgstr "找不到与标识符相应的R-to-C转换器"
 
-#: src/main/CommandLineArgs.c:170
+#: src/main/CommandLineArgs.c:172
 msgid "WARNING: no value given for --encoding"
 msgstr "警告: 没有设定--enconding的值"
 
-#: src/main/CommandLineArgs.c:197
+#: src/main/CommandLineArgs.c:195
 #, c-format
 msgid "WARNING: option '%s' no longer supported"
 msgstr "警告: 本版本不再支持'%s'这一选项"
 
-#: src/main/CommandLineArgs.c:205
+#: src/main/CommandLineArgs.c:212
+#, c-format
+msgid "WARNING: no value given for '%s'"
+msgstr "警告: 没有设定'%s'的值"
+
+#: src/main/CommandLineArgs.c:220
+#, c-format
+msgid "WARNING: '%s' value is invalid: ignored"
+msgstr "警告: '%s'的值不对: 略过不用"
+
+#: src/main/CommandLineArgs.c:224
+#, c-format
+msgid "WARNING: %s: too large and ignored"
+msgstr "警告: %s: 太大，略过不用"
+
+#: src/main/CommandLineArgs.c:240
 msgid "WARNING: no value given for '--max-ppsize'"
 msgstr "警告: 没有设定'--max-ppsize'的值"
 
-#: src/main/CommandLineArgs.c:210
+#: src/main/CommandLineArgs.c:245
 msgid "WARNING: '--max-ppsize' value is negative: ignored"
 msgstr "警告: '--max-ppsize'的值是负数: 略过不用"
 
-#: src/main/CommandLineArgs.c:212
+#: src/main/CommandLineArgs.c:247
 msgid "WARNING: '--max-ppsize' value is too small: ignored"
 msgstr "警告: '--max-ppsize'的值太小: 略过不用"
 
-#: src/main/CommandLineArgs.c:215
+#: src/main/CommandLineArgs.c:250
 msgid "WARNING: '--max-ppsize' value is too large: ignored"
 msgstr "警告: '--max-ppsize'的值太大: 略过不用"
 
@@ -8115,15 +8130,6 @@ msgstr "无法载入X11模块"
 #: src/unix/X11.c:177 src/unix/X11.c:183 src/unix/X11.c:189
 msgid "X11 is not available"
 msgstr "没有X11平台这一功能"
-
-#~ msgid "WARNING: no value given for '%s'"
-#~ msgstr "警告: 没有设定'%s'的值"
-
-#~ msgid "WARNING: '%s' value is invalid: ignored"
-#~ msgstr "警告: '%s'的值不对: 略过不用"
-
-#~ msgid "WARNING: %s: too large and ignored"
-#~ msgstr "警告: %s: 太大，略过不用"
 
 #~ msgid "no locator capability in device driver"
 #~ msgstr "设备驱动程序没有定位器功能"

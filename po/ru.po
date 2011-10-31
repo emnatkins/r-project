@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2011-10-25 07:54+0100\n"
+"POT-Creation-Date: 2011-10-23 14:54+0100\n"
 "PO-Revision-Date: 2011-10-18 19:12-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -591,28 +591,43 @@ msgstr "объект типа '%s' не делится на подгруппы"
 msgid "no R-to-C converter found corresponding to identifier"
 msgstr "не найдено конвертера R-в-C, соответствующего идентификатору"
 
-#: src/main/CommandLineArgs.c:170
+#: src/main/CommandLineArgs.c:172
 msgid "WARNING: no value given for --encoding"
 msgstr "ВНИМАНИЕ: для данной --encoding нет значения"
 
-#: src/main/CommandLineArgs.c:197
+#: src/main/CommandLineArgs.c:195
 #, c-format
 msgid "WARNING: option '%s' no longer supported"
 msgstr "ВНИМАНИЕ: параметр '%s' больше не поддерживается"
 
-#: src/main/CommandLineArgs.c:205
+#: src/main/CommandLineArgs.c:212
+#, c-format
+msgid "WARNING: no value given for '%s'"
+msgstr "ВНИМАНИЕ: не задано значение '%s'"
+
+#: src/main/CommandLineArgs.c:220
+#, c-format
+msgid "WARNING: '%s' value is invalid: ignored"
+msgstr "ВНИМАНИЕ: '%s' значение неправильное: пропущено"
+
+#: src/main/CommandLineArgs.c:224
+#, c-format
+msgid "WARNING: %s: too large and ignored"
+msgstr "ВНИМАНИЕ: %s: слишком велико и пропущено"
+
+#: src/main/CommandLineArgs.c:240
 msgid "WARNING: no value given for '--max-ppsize'"
 msgstr "ВНИМАНИЕ: не задано значение '--max-ppsize'"
 
-#: src/main/CommandLineArgs.c:210
+#: src/main/CommandLineArgs.c:245
 msgid "WARNING: '--max-ppsize' value is negative: ignored"
 msgstr "ВНИМАНИЕ: значение '--max-ppsize' отрицательное: пропущено"
 
-#: src/main/CommandLineArgs.c:212
+#: src/main/CommandLineArgs.c:247
 msgid "WARNING: '--max-ppsize' value is too small: ignored"
 msgstr "ВНИМАНИЕ: значение '--max-ppsize' слишком мало: пропущено"
 
-#: src/main/CommandLineArgs.c:215
+#: src/main/CommandLineArgs.c:250
 msgid "WARNING: '--max-ppsize' value is too large: ignored"
 msgstr "ВНИМАНИЕ: значение '--max-ppsize' слишком велико: пропущено"
 
@@ -8252,15 +8267,6 @@ msgstr "модуль X11 нельзя загрузить"
 #: src/unix/X11.c:177 src/unix/X11.c:183 src/unix/X11.c:189
 msgid "X11 is not available"
 msgstr "X11 недоступен"
-
-#~ msgid "WARNING: no value given for '%s'"
-#~ msgstr "ВНИМАНИЕ: не задано значение '%s'"
-
-#~ msgid "WARNING: '%s' value is invalid: ignored"
-#~ msgstr "ВНИМАНИЕ: '%s' значение неправильное: пропущено"
-
-#~ msgid "WARNING: %s: too large and ignored"
-#~ msgstr "ВНИМАНИЕ: %s: слишком велико и пропущено"
 
 #~ msgid "string marked as \"bytes\" found, so using useBytes = TRUE"
 #~ msgstr ""

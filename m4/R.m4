@@ -129,10 +129,8 @@ fi
 ## ------------
 AC_DEFUN([R_PROG_TEXMF],
 [
-## PDFTEX PDFLATEX MAKEINDEX TEXI2DVI are used to make manuals
-## PDFLATEX and MAKEINDEX in the emulation mode of tools::texi2dvi
+## TEX PDFTEX LATEX PDFLATEX MAKEINDEX TEXI2DVI are used to make manuals
 ## TEXI2DVICMD sets default for R_TEXI2DVICMD, used for options('texi2dvi')
-## TEX AND LATEX are no longer used
 AC_PATH_PROGS(TEX, [${TEX} tex], )
 AC_PATH_PROGS(PDFTEX, [${PDFTEX} pdftex], )
 if test -z "${ac_cv_path_PDFTEX}" ; then
@@ -141,7 +139,7 @@ if test -z "${ac_cv_path_PDFTEX}" ; then
 fi
 AC_PATH_PROGS(PDFLATEX, [${PDFLATEX} pdflatex], )
 if test -z "${ac_cv_path_PDFLATEX}" ; then
-  warn_pdf2="you cannot build PDF versions of vignettes and help pages"
+  warn_pdf2="you cannot build PDF versions of all the help pages"
   AC_MSG_WARN([${warn_pdf2}])
 fi
 AC_PATH_PROGS(MAKEINDEX, [${MAKEINDEX} makeindex], )
@@ -152,6 +150,8 @@ if test -z "${TEXI2DVICMD}"; then
   TEXI2DVICMD=texi2dvi
 fi
 AC_SUBST(TEXI2DVICMD)
+: ${R_RD4DVI="ae"}
+AC_SUBST(R_RD4DVI)
 : ${R_RD4PDF="times,inconsolata,hyper"}
 AC_SUBST(R_RD4PDF)
 ])# R_PROG_TEXMF
@@ -2050,7 +2050,6 @@ AC_EGREP_CPP([yes],
 ## otherwise.
 ## /opt/csw/lib and /usr/sfw/lib are for Solaris (blastwave and sunfreeware
 ## respectively).
-## /opt/freeware/lib is for 'IBM AIX Toolbox for Linux Applications'
 ## We want to look in LIBnn only here.
 AC_DEFUN([_R_PATH_TCL_CONFIG],
 [AC_MSG_CHECKING([for tclConfig.sh in library (sub)directories])

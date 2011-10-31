@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.15.0\n"
+"Project-Id-Version: R 2.14.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-10-19 07:24\n"
+"POT-Creation-Date: 2011-10-03 18:49\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -452,9 +452,6 @@ msgstr ""
 msgid "No help on %s found in RdDB %s"
 msgstr ""
 
-msgid "more than one \\examples section, using the first"
-msgstr ""
-
 msgid "Converting Rd files to LaTeX ..."
 msgstr ""
 
@@ -482,7 +479,13 @@ msgstr ""
 msgid "no inputs"
 msgstr ""
 
-msgid "Error in running tools::texi2pdf"
+msgid "DVI output from Rd2dvi is deprecated"
+msgstr ""
+
+msgid "Error in running tools::texi2dvi"
+msgstr ""
+
+msgid "more than one \\examples section, using the first"
 msgstr ""
 
 msgid "invalid value for '%s' : %s"

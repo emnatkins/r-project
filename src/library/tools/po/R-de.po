@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.14.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-10-19 07:24\n"
+"POT-Creation-Date: 2011-10-03 18:49\n"
 "PO-Revision-Date: 2011-10-13 15:53+0200\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R Core <r-core@r-project.org>\n"
@@ -325,8 +325,7 @@ msgid "Cannot extract Maintainer field from Authors@R field:"
 msgstr "Kann kein Maintainer Feld aus dem Authors@R Feld extrahieren:"
 
 msgid "Authors@R field gives no person with maintainer role and email address."
-msgstr ""
-"Das Authors@R Feld enthält keine Person als Maintainer mit email Adresse."
+msgstr "Das Authors@R Feld enthält keine Person als Maintainer mit email Adresse."
 
 msgid "Encoding '%s' is not portable"
 msgstr "Kodierung '%s' ist nicht portabel"
@@ -410,8 +409,7 @@ msgid "Package startup functions should not change the search path."
 msgstr "Startfunktionen des Pakets sollten den Suchpfad nicht ändern."
 
 msgid "Package startup functions should use %s to generate messages."
-msgstr ""
-"Startfunktionen des Pakets sollten %s nutzen, um Nachrichten zu generieren."
+msgstr "Startfunktionen des Pakets sollten %s nutzen, um Nachrichten zu generieren."
 
 msgid "packageStartupMessage"
 msgstr "packageStartupMessage"
@@ -508,9 +506,6 @@ msgstr "fehlendes bzw. leeres \\name Feld in Rd Datei(en)"
 msgid "No help on %s found in RdDB %s"
 msgstr "Keine Hilfe zu %s in RdDB %s gefunden"
 
-msgid "more than one \\examples section, using the first"
-msgstr "mehr als eine \\examples section, benutze die erste"
-
 msgid "Converting Rd files to LaTeX ..."
 msgstr "Konvertiere RD Dateien nach LaTeX"
 
@@ -538,9 +533,14 @@ msgstr "das aktuelle ARbeitsverzeichnis kann nicht bestimmt werden"
 msgid "no inputs"
 msgstr "keine Eingaben"
 
-#, fuzzy
-msgid "Error in running tools::texi2pdf"
+msgid "DVI output from Rd2dvi is deprecated"
+msgstr "DVI Ausgabe mit Rd2dvi ist veraltet"
+
+msgid "Error in running tools::texi2dvi"
 msgstr "Fehler bei der Ausführung von tools::texi2dvi"
+
+msgid "more than one \\examples section, using the first"
+msgstr "mehr als eine \\examples section, benutze die erste"
 
 msgid "invalid value for '%s' : %s"
 msgstr "Ungültiger Wert für '%s' : %s"
@@ -715,9 +715,7 @@ msgstr "Keine Dokumente zu Paket %s gefunden"
 
 msgid ""
 "Only help files, %s, %s and files under %s and %s in a package can be viewed"
-msgstr ""
-"Nur Hilfeseiten, %s, %s und Dateien unter %s und %s in einem Paket können "
-"angeschaut werden"
+msgstr "Nur Hilfeseiten, %s, %s und Dateien unter %s und %s in einem Paket können angeschaut werden"
 
 msgid "NEWS"
 msgstr "Neuigkeiten"
@@ -782,9 +780,7 @@ msgstr "als"
 msgid ""
 "'cleanup' exists but is not executable -- see the 'R Installation and "
 "Administration Manual'"
-msgstr ""
-"'cleanup' existiert, ist aber nicht ausführbar -- bitte im 'R Installation "
-"and Administration Manual' nachlesen"
+msgstr "'cleanup' existiert, ist aber nicht ausführbar -- bitte im 'R Installation and Administration Manual' nachlesen"
 
 msgid "installing via 'install.libs.R' to"
 msgstr "installiere mittels 'install.libs.R' nach"
@@ -1293,9 +1289,6 @@ msgid "object %s is created by more than one data call"
 msgid_plural "objects %s are created by more than one data call"
 msgstr[0] "Objekt %s wird durch mehr als einen Datenaufruf erzeugt"
 msgstr[1] "Objekt(e) %s werden durch mehr als einen Datenaufruf erzeugt"
-
-#~ msgid "DVI output from Rd2dvi is deprecated"
-#~ msgstr "DVI Ausgabe mit Rd2dvi ist veraltet"
 
 #, fuzzy
 #~ msgid ""

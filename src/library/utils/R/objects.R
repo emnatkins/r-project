@@ -246,30 +246,26 @@ getFromNamespace <- function(x, ns, pos = -1, envir = as.environment(pos))
 assignInNamespace <-
     function(x, value, ns, pos = -1, envir = as.environment(pos))
 {
-    nf <- sys.nframe()
     if(missing(ns)) {
         nm <- attr(envir, "name", exact = TRUE)
         if(is.null(nm) || substring(nm, 1L, 8L) != "package:")
             stop("environment specified is not a package")
         ns <- asNamespace(substring(nm, 9L))
     } else ns <- asNamespace(ns)
-    allowed <- c("%x%", "..Old.._x_", ".M.classEnv")
-    if (! x %in% allowed && nf > 1L) {
-        if(getNamespaceName(ns) %in% tools:::.get_standard_package_names()$base)
-            stop("locked binding of ", sQuote(x), " cannot be changed",
-                 domain = NA)
+    protected <- c("as.Date.numeric", "sample")
+    if (x %in% protected && getNamespaceName(ns) == "base") {
+        warning("locked binding of ", sQuote(x), " will not be changed",
+                call. = FALSE, domain = NA, immediate. = TRUE)
+        return(invisible(NULL))
     }
     if(bindingIsLocked(x, ns)) {
         in_load <- Sys.getenv("_R_NS_LOAD_")
         if (nzchar(in_load)) {
             ns_name <- getNamespaceName(ns)
-            if(in_load != ns_name) {
-                msg <-
-                    gettextf("changing locked binding for %s in %s whilst loading %s",
-                             sQuote(x), sQuote(ns_name), sQuote(in_load))
-                if (! in_load %in% c("Matrix", "SparseM"))
-                    warning(msg, call. = FALSE, domain = NA, immediate. = TRUE)
-            }
+            if(!in_load %in% c("Matrix", "SparseM") && in_load != ns_name)
+                warning(gettextf("changing locked binding for %s in %s whilst loading %s",
+                                 sQuote(x), sQuote(ns_name), sQuote(in_load)),
+                        call. = FALSE, domain = NA, immediate. = TRUE)
         } else if (nzchar(Sys.getenv("_R_WARN_ON_LOCKED_BINDINGS_"))) {
             ns_name <- getNamespaceName(ns)
             warning(gettextf("changing locked binding for %s in %s",

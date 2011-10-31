@@ -244,7 +244,7 @@
                   NULL
               })
 
-    setGeneric("cbind2", function(x, y, ...) standardGeneric("cbind2"),
+    setGeneric("cbind2", function(x, y) standardGeneric("cbind2"),
 	       where = envir)
     ## and its default methods:
     setMethod("cbind2", signature(x = "ANY", y = "ANY"),
@@ -252,18 +252,13 @@
     setMethod("cbind2", signature(x = "ANY", y = "missing"),
 	      function(x,y) .Internal(cbind(deparse.level = 0, x)))
 
-    setGeneric("rbind2", function(x, y, ...) standardGeneric("rbind2"),
+    setGeneric("rbind2", function(x, y) standardGeneric("rbind2"),
 	       where = envir)
     ## and its default methods:
     setMethod("rbind2", signature(x = "ANY", y = "ANY"),
 	      function(x,y) .Internal(rbind(deparse.level = 0, x, y)))
     setMethod("rbind2", signature(x = "ANY", y = "missing"),
 	      function(x,y) .Internal(rbind(deparse.level = 0, x)))
-
-    setMethod("kronecker", signature(X = "ANY", Y = "ANY"),
-	      function(X, Y, FUN = "*", make.dimnames = FALSE, ...)
-              .kronecker(X, Y, FUN = FUN, make.dimnames = make.dimnames, ...))
-
     .InitStructureMethods(envir)
 ### Uncomment next line if we want special initialize methods for basic classes
     .InitBasicClassMethods(envir)
