@@ -24,7 +24,6 @@
 #endif
 
 #define __R_Names__ /* used in Defn.h for extern on R_FunTab */
-#define R_USE_SIGNALS 1
 #include <Defn.h>
 #include <Print.h>
 #include "arithmetic.h" /* for do_math[1234], do_cmathfuns */
@@ -493,7 +492,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 
 {"as.vector",	do_asvector,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"paste",	do_paste,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
-{"paste0",	do_paste,	1,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"file.path",	do_filepath,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"format",	do_format,	0,	11,	8,	{PP_FUNCALL, PREC_FN,	0}},
 {"format.info",	do_formatinfo,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},

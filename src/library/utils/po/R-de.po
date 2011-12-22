@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.14.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-11-23 13:46\n"
+"POT-Creation-Date: 2011-10-17 10:14\n"
 "PO-Revision-Date: 2011-10-13 16:25+0200\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R Core <r-core@r-project.org>\n"
@@ -78,9 +78,6 @@ msgstr "Pfad zu %s enthält Leerstellen."
 
 msgid "this may cause problems when running LaTeX"
 msgstr "Das kann Schwierigkeiten mit LaTeX machen"
-
-msgid "the output file '%s' has disappeared"
-msgstr ""
 
 msgid "invalid value for %s : %s"
 msgstr "unzulässiger Wert für %s : %s"
@@ -349,20 +346,6 @@ msgstr "zu viele Listenpunke (höchstens 26!)"
 msgid "too many list items (at most up to number 3899)"
 msgstr "zu viele Listenelemente (höchstens 3899!)"
 
-#, fuzzy
-msgid "no vector columns were selected"
-msgstr "keine Ereignisse aufgezeichnet"
-
-msgid "non-vector columns will be ignored"
-msgstr ""
-
-#, fuzzy
-msgid "at least one vector element is required"
-msgstr "mindestens ein feld muss angegeben werden"
-
-msgid "non-vector elements will be ignored"
-msgstr ""
-
 msgid "'form' must be a two-sided formula"
 msgstr "'form' muss eine zweiseitige Formel sein"
 
@@ -374,6 +357,9 @@ msgid "'topic' should be a name, length-one character vector or reserved word"
 msgstr ""
 "'topic' sollte ein Name, ein Zeichenkettenvektor der Länge 1 oder ein "
 "reserviertes Word sein"
+
+msgid "Postscript offline help is deprecated"
+msgstr "Postscript Offlinehilfe ist veraltet"
 
 msgid "No documentation for %s in specified packages and libraries:"
 msgstr "Keine Dokumentation für %s in angegebenen Paketen und Bibliotheken:"
@@ -421,6 +407,12 @@ msgid ""
 msgstr ""
 "Paket %s exisitiert, wurde aber nicht unter R >= 2.10.0 installiert, weshalb "
 "die Hilfe nicht genutzt werden kann"
+
+msgid "running %s failed"
+msgstr "Ausführen von %s fehlgeschlagen"
+
+msgid "%s produced no output file: sent to printer?"
+msgstr "%s hat keine Datei erzeugt: an den Drucker geschickt?"
 
 msgid "creation of %s failed"
 msgstr "Erzeugung von %s fehlgeschlagen"
@@ -525,9 +517,7 @@ msgstr "Metadaten für Paket '%s' sind korrumpiert"
 msgid "DESCRIPTION file of package '%s' is corrupt"
 msgstr "DESCRIPTION von Paket '%s' ist korrumpiert"
 
-#, fuzzy
-msgid ""
-"'DESCRIPTION' file has an 'Encoding' field and re-encoding is not possible"
+msgid "'DESCRIPTION' file has 'Encoding' field and re-encoding is not possible"
 msgstr "'DESCRIPTION' hat Feld 'Encoding' und rekodieren ist nicht möglich"
 
 msgid "DESCRIPTION file of package '%s' is missing or broken"
@@ -837,9 +827,8 @@ msgid "no documentation of type %s and topic %s (or error in processing help)"
 msgstr ""
 "keine Doku des Typs %s zum Thema %s (oder Fehler in der Hilfeverarbeitung)"
 
-#, fuzzy
 msgid ""
-"the object of class %s in the function call %s could not be used as a "
+"the object of class \"%s\" in the function call %s could not be used as a "
 "documentation topic"
 msgstr ""
 "das Objekt der Klasse \"%s\" im Funktionsaufruf %s konnte nicht als Doku-"
@@ -1226,15 +1215,6 @@ msgid "package %s is in use and will not be installed"
 msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "Paket %s wird gerade benutzt und deshab nicht installiert"
 msgstr[1] "Pakete %s werden gerade bennutzt und deshalb nicht installiert"
-
-#~ msgid "running %s failed"
-#~ msgstr "Ausführen von %s fehlgeschlagen"
-
-#~ msgid "%s produced no output file: sent to printer?"
-#~ msgstr "%s hat keine Datei erzeugt: an den Drucker geschickt?"
-
-#~ msgid "Postscript offline help is deprecated"
-#~ msgstr "Postscript Offlinehilfe ist veraltet"
 
 #~ msgid "Use either 'given' or 'first'/'middle' but not both."
 #~ msgstr "Benutze entweder 'given' oder 'first'/'middle' aber nicht beide."

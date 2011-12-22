@@ -28,9 +28,7 @@ dev2bitmap <- function(file, type="png16m", height = 7, width = 7, res = 72,
     gsexe <- Sys.getenv("R_GSCMD")
     if(!nzchar(gsexe)) gsexe <- Sys.getenv("GSC")
     if(is.null(gsexe) || !nzchar(gsexe)) {
-        poss <- Sys.which(c("gswin64c.exe", "gswin32c.exe"))
-        poss <- poss[nzchar(poss)]
-        gsexe <- if(length(poss)) poss else "gswin32c.exe"
+        gsexe <- "gswin32c.exe"
     } else if(length(grep(" ", gsexe, fixed=TRUE))> 0)
         gsexe <- shortPathName(gsexe)
     gshelp <- system(paste(gsexe, "-help"), intern=TRUE, invisible=TRUE)
@@ -90,9 +88,7 @@ bitmap <- function(file, type="png16m", height = 7, width = 7, res = 72,
     gsexe <- Sys.getenv("R_GSCMD")
     if(!nzchar(gsexe)) gsexe <- Sys.getenv("GSC")
     if(is.null(gsexe) || !nzchar(gsexe)) {
-        poss <- Sys.which(c("gswin64c.exe", "gswin32c.exe"))
-        poss <- poss[nzchar(poss)]
-        gsexe <- if(length(poss)) poss else "gswin32c.exe"
+        gsexe <- "gswin32c.exe"
     } else if(length(grep(" ", gsexe, fixed=TRUE))> 0)
         gsexe <- shortPathName(gsexe)
     gshelp <- system(paste(gsexe, "-help"), intern=TRUE, invisible=TRUE)

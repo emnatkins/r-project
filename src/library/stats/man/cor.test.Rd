@@ -3,8 +3,6 @@
 % Copyright 1995-2009 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{cor.test}
 \alias{cor.test}
 \alias{cor.test.default}
@@ -130,13 +128,12 @@ cor.test(x, \dots)
 }
 
 \seealso{
-  \code{\link[Kendall:Kendall]{Kendall}} in package \CRANpkg{Kendall}.
+  \code{\link[Kendall:Kendall]{Kendall}} in package \pkg{Kendall}.
 
   \code{\link[SuppDists:Kendall]{pKendall}} and
-  \code{\link[SuppDists:Spearman]{pSpearman}} in package
-  \CRANpkg{SuppDists},
+  \code{\link[SuppDists:Spearman]{pSpearman}} in package \pkg{SuppDists},
   \code{\link[pspearman:spearman.test]{spearman.test}} in package
-  \CRANpkg{pspearman}, 
+  \code{pspearman}, 
   which supply different (and often more accurate) approximations.
 }
 

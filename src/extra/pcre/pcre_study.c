@@ -66,20 +66,21 @@ string of that length that matches. In UTF8 mode, the result is in characters
 rather than bytes.
 
 Arguments:
-  code            pointer to start of group (the bracket)
-  startcode       pointer to start of the whole pattern
-  options         the compiling options
-  int             RECURSE depth
+  code        pointer to start of group (the bracket)
+  startcode   pointer to start of the whole pattern
+  options     the compiling options
+  had_accept  pointer to flag for (*ACCEPT) encountered
+  int         RECURSE depth
 
 Returns:   the minimum length
-           -1 if \C in UTF-8 mode or (*ACCEPT) was encountered
+           -1 if \C was encountered
            -2 internal error (missing capturing bracket)
            -3 internal error (opcode not listed)
 */
 
 static int
 find_minlength(const uschar *code, const uschar *startcode, int options,
-  int recurse_depth)
+  BOOL *had_accept_ptr, int recurse_depth)
 {
 int length = -1;
 BOOL utf8 = (options & PCRE_UTF8) != 0;
@@ -127,26 +128,24 @@ for (;;)
     case OP_BRAPOS:
     case OP_SBRAPOS:
     case OP_ONCE:
-    case OP_ONCE_NC:
-    d = find_minlength(cc, startcode, options, recurse_depth);
+    d = find_minlength(cc, startcode, options, had_accept_ptr, recurse_depth);
     if (d < 0) return d;
     branchlength += d;
+    if (*had_accept_ptr) return branchlength;
     do cc += GET(cc, 1); while (*cc == OP_ALT);
     cc += 1 + LINK_SIZE;
     break;
 
-    /* ACCEPT makes things far too complicated; we have to give up. */
+    /* Reached end of a branch; if it's a ket it is the end of a nested
+    call. If it's ALT it is an alternation in a nested call. If it is END it's
+    the end of the outer call. All can be handled by the same code. If it is
+    ACCEPT, it is essentially the same as END, but we set a flag so that
+    counting stops. */
 
     case OP_ACCEPT:
     case OP_ASSERT_ACCEPT:
-    return -1;
-
-    /* Reached end of a branch; if it's a ket it is the end of a nested
-    call. If it's ALT it is an alternation in a nested call. If it is END it's
-    the end of the outer call. All can be handled by the same code. If an
-    ACCEPT was previously encountered, use the length that was in force at that
-    time, and pass back the shortest ACCEPT length. */
-
+    *had_accept_ptr = TRUE;
+    /* Fall through */
     case OP_ALT:
     case OP_KET:
     case OP_KETRMAX:
@@ -380,7 +379,9 @@ for (;;)
         }
       else
         {
-        d = find_minlength(cs, startcode, options, recurse_depth);
+        d = find_minlength(cs, startcode, options, had_accept_ptr,
+          recurse_depth);
+        *had_accept_ptr = FALSE;
         }
       }
     else d = 0;
@@ -423,12 +424,15 @@ for (;;)
 
     case OP_RECURSE:
     cs = ce = (uschar *)startcode + GET(cc, 1);
+    if (cs == NULL) return -2;
     do ce += GET(ce, 1); while (*ce == OP_ALT);
     if ((cc > cs && cc < ce) || recurse_depth > 10)
       had_recurse = TRUE;
     else
       {
-      branchlength += find_minlength(cs, startcode, options, recurse_depth + 1);
+      branchlength += find_minlength(cs, startcode, options, had_accept_ptr,
+        recurse_depth + 1);
+      *had_accept_ptr = FALSE;
       }
     cc += 1 + LINK_SIZE;
     break;
@@ -491,8 +495,11 @@ for (;;)
     case OP_MARK:
     case OP_PRUNE_ARG:
     case OP_SKIP_ARG:
-    case OP_THEN_ARG:
     cc += _pcre_OP_lengths[op] + cc[1];
+    break;
+
+    case OP_THEN_ARG:
+    cc += _pcre_OP_lengths[op] + cc[1+LINK_SIZE];
     break;
 
     /* The remaining opcodes are just skipped over. */
@@ -807,7 +814,6 @@ do
       case OP_CBRAPOS:
       case OP_SCBRAPOS:
       case OP_ONCE:
-      case OP_ONCE_NC:
       case OP_ASSERT:
       rc = set_start_bits(tcode, start_bits, utf8, cd);
       if (rc == SSB_FAIL || rc == SSB_UNKNOWN) return rc;
@@ -1222,8 +1228,9 @@ pcre_study(const pcre *external_re, int options, const char **errorptr)
 {
 int min;
 BOOL bits_set = FALSE;
+BOOL had_accept = FALSE;
 uschar start_bits[32];
-pcre_extra *extra = NULL;
+pcre_extra *extra;
 pcre_study_data *study;
 const uschar *tables;
 uschar *code;
@@ -1274,108 +1281,58 @@ if ((re->options & PCRE_ANCHORED) == 0 &&
   rc = set_start_bits(code, start_bits, (re->options & PCRE_UTF8) != 0,
     &compile_block);
   bits_set = rc == SSB_DONE;
-  if (rc == SSB_UNKNOWN)
-    {
-    *errorptr = "internal error: opcode not recognized";
-    return NULL;
-    }
+  if (rc == SSB_UNKNOWN) *errorptr = "internal error: opcode not recognized";
   }
 
 /* Find the minimum length of subject string. */
 
-switch(min = find_minlength(code, code, re->options, 0))
+switch(min = find_minlength(code, code, re->options, &had_accept, 0))
   {
-  case -2: *errorptr = "internal error: missing capturing bracket"; return NULL;
-  case -3: *errorptr = "internal error: opcode not recognized"; return NULL;
+  case -2: *errorptr = "internal error: missing capturing bracket"; break;
+  case -3: *errorptr = "internal error: opcode not recognized"; break;
   default: break;
   }
 
-/* If a set of starting bytes has been identified, or if the minimum length is
-greater than zero, or if JIT optimization has been requested, get a pcre_extra
-block and a pcre_study_data block. The study data is put in the latter, which
-is pointed to by the former, which may also get additional data set later by
-the calling program. At the moment, the size of pcre_study_data is fixed. We
-nevertheless save it in a field for returning via the pcre_fullinfo() function
-so that if it becomes variable in the future, we don't have to change that
-code. */
+/* Return NULL if there's been an error or if no optimization is possible. */
 
-if (bits_set || min > 0
-#ifdef SUPPORT_JIT
-    || (options & PCRE_STUDY_JIT_COMPILE) != 0
-#endif
-  )
+if (*errorptr != NULL || (!bits_set && min < 0)) return NULL;
+
+/* Get a pcre_extra block and a pcre_study_data block. The study data is put in
+the latter, which is pointed to by the former, which may also get additional
+data set later by the calling program. At the moment, the size of
+pcre_study_data is fixed. We nevertheless save it in a field for returning via
+the pcre_fullinfo() function so that if it becomes variable in the future, we
+don't have to change that code. */
+
+extra = (pcre_extra *)(pcre_malloc)
+  (sizeof(pcre_extra) + sizeof(pcre_study_data));
+
+if (extra == NULL)
   {
-  extra = (pcre_extra *)(pcre_malloc)
-    (sizeof(pcre_extra) + sizeof(pcre_study_data));
-  if (extra == NULL)
-    {
-    *errorptr = "failed to get memory";
-    return NULL;
-    }
+  *errorptr = "failed to get memory";
+  return NULL;
+  }
 
-  study = (pcre_study_data *)((char *)extra + sizeof(pcre_extra));
-  extra->flags = PCRE_EXTRA_STUDY_DATA;
-  extra->study_data = study;
+study = (pcre_study_data *)((char *)extra + sizeof(pcre_extra));
+extra->flags = PCRE_EXTRA_STUDY_DATA;
+extra->study_data = study;
 
-  study->size = sizeof(pcre_study_data);
-  study->flags = 0;
+study->size = sizeof(pcre_study_data);
+study->flags = 0;
 
-  if (bits_set)
-    {
-    study->flags |= PCRE_STUDY_MAPPED;
-    memcpy(study->start_bits, start_bits, sizeof(start_bits));
-    }
+if (bits_set)
+  {
+  study->flags |= PCRE_STUDY_MAPPED;
+  memcpy(study->start_bits, start_bits, sizeof(start_bits));
+  }
 
-  /* Always set the minlength value in the block, because the JIT compiler
-  makes use of it. However, don't set the bit unless the length is greater than
-  zero - the interpretive pcre_exec() and pcre_dfa_exec() needn't waste time
-  checking the zero case. */
-
-  if (min > 0)
-    {
-    study->flags |= PCRE_STUDY_MINLEN;
-    study->minlength = min;
-    }
-  else study->minlength = 0;
-
-  /* If JIT support was compiled and requested, attempt the JIT compilation.
-  If no starting bytes were found, and the minimum length is zero, and JIT
-  compilation fails, abandon the extra block and return NULL. */
-
-#ifdef SUPPORT_JIT
-  extra->executable_jit = NULL;
-  if ((options & PCRE_STUDY_JIT_COMPILE) != 0) _pcre_jit_compile(re, extra);
-  if (study->flags == 0 && (extra->flags & PCRE_EXTRA_EXECUTABLE_JIT) == 0)
-    {
-    pcre_free_study(extra);
-    extra = NULL;
-    }
-#endif
+if (min >= 0)
+  {
+  study->flags |= PCRE_STUDY_MINLEN;
+  study->minlength = min;
   }
 
 return extra;
-}
-
-
-/*************************************************
-*          Free the study data                   *
-*************************************************/
-
-/* This function frees the memory that was obtained by pcre_study().
-
-Argument:   a pointer to the pcre_extra block
-Returns:    nothing
-*/
-
-PCRE_EXP_DEFN void
-pcre_free_study(pcre_extra *extra)
-{
-#ifdef SUPPORT_JIT
-if ((extra->flags & PCRE_EXTRA_EXECUTABLE_JIT) != 0 &&
-     extra->executable_jit != NULL)
-  _pcre_jit_free(extra->executable_jit);
-#endif
-pcre_free(extra);
 }
 
 /* End of pcre_study.c */

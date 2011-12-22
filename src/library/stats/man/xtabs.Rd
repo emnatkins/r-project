@@ -3,8 +3,6 @@
 % Copyright 1995-2009 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{xtabs}
 \alias{xtabs}
 \alias{print.xtabs}
@@ -67,7 +65,7 @@ xtabs(formula = ~., data = parent.frame(), subset, sparse = FALSE,
   When \code{sparse=TRUE}, a sparse numeric matrix, specifically an
   object of S4 class %\linkS4class{dgTMatrix}
   \code{\link[Matrix:dgTMatrix-class]{dgTMatrix}} from package
-  \CRANpkg{Matrix}.
+  \pkg{Matrix}.
 }
 \seealso{
   \code{\link{table}} for traditional cross-tabulation, and
@@ -75,7 +73,7 @@ xtabs(formula = ~., data = parent.frame(), subset, sparse = FALSE,
   \code{xtabs} (see the \code{DF} example below).
 
   \code{\link[Matrix:sparseMatrix-class]{sparseMatrix}} on sparse
-  matrices in package \CRANpkg{Matrix}.
+  matrices in package \pkg{Matrix}.
 }
 \examples{
 ## 'esoph' has the frequencies of cases and controls for all levels of

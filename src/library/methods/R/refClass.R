@@ -630,6 +630,7 @@ accessors = function(...) {
 )
 
 .makeCall <- function(name, x) {
+    paste0 <- function(...)paste(..., sep = "")
     n <- length(argls <- formals(x))
     noDeflt <- if(n > 0) sapply(argls,function(x)  !is.name(x) || nzchar(as.character(x)))
     if (n) {
@@ -664,7 +665,7 @@ accessors = function(...) {
 }
 
 .bindingMetaName <- function(fieldName)
-    paste0(".->", fieldName)
+    paste(".->", fieldName, sep="")
 
 .makeActiveBinding <- function(thisField) {
     if(is(thisField, "activeBindingFunction"))
@@ -737,7 +738,7 @@ refClassInformation <- function(Class, contains, fields, refMethods, where) {
         missingDefs <- sapply(superClassDefs, is.null)
         if(any(missingDefs))
             stop(gettextf("No definition found for inherited class: %s",
-                          paste0('"',contains[missingDefs], '"', collapse = ", ")),
+                          paste('"',contains[missingDefs], '"', sep = "", collapse = ", ")),
                  domain = NA)
         superClasses <- unlist(lapply(superClassDefs,
                           function(def) def@className), FALSE)
@@ -989,7 +990,7 @@ showClassMethod <- function(object) {
         cat("\n",header,"\n    ")
     else
         cat(header,": ",sep="")
-    cat(paste0('"', names, '"'), sep = ", ", fill = TRUE)
+    cat(paste('"', names, '"', sep = ""), sep = ", ", fill = TRUE)
     cat("\n")
     }
 
@@ -1019,7 +1020,7 @@ firstCap <- function(names) {
     firstChars <- substr(names, 1,1)
     modChars <- toupper(firstChars)
     substr(names, 1, 1) <- modChars
-    list(get = paste0("get", names), set = paste0("set", names))
+    list(get = paste("get", names, sep = ""), set = paste("set", names, sep = ""))
 }
 
 
@@ -1089,10 +1090,10 @@ all.equal.environment <- function(target, current, ...) {
 .checkFieldsInMethod <- function(methodDef, fieldNames, methodNames) {
     if(!.hasCodeTools())
         return(NA)
-    p0q <- function(x) paste0('"', x, '"', collapse = "; ")
+    paste0 <- function(x) paste('"', x, '"', sep = "", collapse = "; ")
     if(is(methodDef, "refMethodDef")) {
-        methodName <- p0q(methodDef@name)
-        className <- p0q(methodDef@refClassName)
+        methodName <- paste0(methodDef@name)
+        className <- paste0(methodDef@refClassName)
     }
     else {
         methodName <- className <- ""

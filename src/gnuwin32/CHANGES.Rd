@@ -4,46 +4,6 @@
 \title{Windows-specific changes to R}
 \encoding{UTF-8}
 
-\section{CHANGES IN R-devel}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item \command{R CMD INSTALL} for a package with compiled code
-      will fail if compilation fails for any of the installed
-      sub-architectures: use \option{--no-multiarch} to override this.
-
-      \item \code{postscript(file = "|cmd")} now works on Windows.
-      
-      \item \code{bitmap()} and \code{dev2bitmap()} look for
-      \command{gswin64c.exe} (as used by 64-bit GhostScript), in
-      preference to \command{gswin32c.exe}.
-    }
-  }
-  
-  \subsection{PACKAGE INSTALLATION}{
-    \itemize{
-      \item The supported toolchain has changed since the one used for
-      \R 2.12.0 to 2.14.x: see the\sQuote{R Installation and Administration
-	manual}.  Compiled code (except DLLs) may be incompatible with
-      previous toolchains (and compiled C++ code almost certainly will
-      be).
-
-      This is a \sQuote{multilib} toolchain: there is a single set of
-      tools in the \file{bin} directory and which sub-architecture is
-      selected by a flag: in most cases \option{-m32} \emph{vs}
-      \option{-m64}.
-
-      \item Optimization level \option{-O3} is now used by default on
-      64-bit builds as well as 32-bit ones.
-
-      \item There is a new macro (aka make variable)
-      \samp{SHLIB_PTHREAD_FLAGS}.  This is set to
-      \option{-pthread} on builds which support it, and should be
-      included in both \samp{PKG_CPPFLAGS} (or the Fortran or F9x
-      equivalents) and \samp{PKG_LIBS}.
-    }
-  }
-}
-
 \section{CHANGES IN R VERSION 2.14.0 patched}{
   \subsection{NEW FEATURES}{
     \itemize{

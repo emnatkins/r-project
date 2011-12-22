@@ -16,8 +16,10 @@
 
 paste <- function (..., sep = " ", collapse = NULL)
     .Internal(paste(list(...), sep, collapse))
-paste0 <- function(..., collapse = NULL)
-    .Internal(paste0(list(...), collapse))
+
+
+##=== Could we consider a  .Primitive  *fast*
+##  paste2 <- function(x,y)  paste(x,y, sep='')
 
 ##=== Could we extend  paste(.) to (optionally) accept a
 ##    2-vector for collapse ?	 With the following functionality

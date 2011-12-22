@@ -36,7 +36,7 @@ prcomp.default <-
         }
     }
     dimnames(s$v) <-
-        list(colnames(x), paste0("PC", seq_len(ncol(s$v))))
+        list(colnames(x), paste("PC", seq_len(ncol(s$v)), sep = ""))
     r <- list(sdev = s$d, rotation = s$v,
               center = if(is.null(cen)) FALSE else cen,
               scale = if(is.null(sc)) FALSE else sc)

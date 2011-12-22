@@ -3,14 +3,11 @@
 % Copyright 2003-11 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{makeCluster}
 \alias{makeCluster}
 \alias{makePSOCKcluster}
 \alias{makeForkCluster}
 \alias{stopCluster}
-\alias{setDefaultCluster}
 \title{
   Create a Parallel Socket Cluster
 }
@@ -23,9 +20,7 @@ makeCluster(spec, type, ...)
 makePSOCKcluster(names, ...)
 makeForkCluster(nnodes = getOption("mc.cores", 2L), ...)
 
-stopCluster(cl = NULL)
-
-setDefaultCluster(cl = NULL)
+stopCluster(cl)
 }
 \arguments{
   \item{spec}{A specification appropriate to the type of cluster.}
@@ -42,10 +37,10 @@ setDefaultCluster(cl = NULL)
   \code{makeCluster} creates a cluster of one of the supported types.
   The default type, \code{"PSOCK"}, calls \code{makePSOCKcluster}.  Type
   \code{"FORK"}calls \code{makeForkCluster}.  Other types are passed to
-  package \CRANpkg{snow}.
+  package \pkg{snow}.
   
   \code{makePSOCKcluster} is very similar to \code{makeSOCKcluster} in
-  package \CRANpkg{snow}.  It runs \command{Rscript} on the specified
+  package \pkg{snow}.  It runs \command{Rscript} on the specified
   host(s) to set up a worker process which listens on a socket for
   expressions to evaluate, and returns the results (as serialized
   objects).
@@ -106,10 +101,6 @@ setDefaultCluster(cl = NULL)
   themselves once the socket on which they are listening for commands
   becomes unavailable, which it should if the master \R session is
   completed (or its process dies).
-  
-  Function \code{setDefaultCluster} registers a cluster as the default one
-  for the current session.  Using \code{setDefaultCluster(NULL)} removes
-  the registered cluster, as does stopping that cluster.
 }
 
 \value{
@@ -119,5 +110,5 @@ setDefaultCluster(cl = NULL)
 \author{
   Luke Tierney and R Core.
 
-  Derived from the \CRANpkg{snow} package.
+  Derived from the \pkg{snow} package.
 }

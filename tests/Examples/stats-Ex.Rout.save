@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2011-12-05 r57815)
+R version 2.14.0 Patched (2011-12-05 r57815)
 Copyright (C) 2011 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-apple-darwin9.8.0/x86_64 (64-bit)
@@ -3701,7 +3701,7 @@ detaching ‘package:cluster’
 > 
 > asOneSidedFormula("age")
 ~age
-<environment: 0x3ca0368>
+<environment: 0x45f6b68>
 > asOneSidedFormula(~ age)
 ~age
 > 
@@ -4762,7 +4762,7 @@ function (V)
     r[cbind(1L:p, 1L:p)] <- 1
     r
 }
-<bytecode: 0x65b7fa8>
+<bytecode: 0x3a40d90>
 <environment: namespace:stats>
 > stopifnot(all.equal(Cl, cov2cor(cov(longley))),
 +           all.equal(cor(longley, method="kendall"),
@@ -6723,7 +6723,7 @@ List of 11
  $ dev.resids:function (y, mu, wt)  
  $ aic       :function (y, n, mu, wt, dev)  
  $ mu.eta    :function (eta)  
- $ initialize:  expression({     n <- rep.int(1, nobs)     if (is.null(etastart) && is.null(start) && is.null(mustart) && ((family$link ==          "inverse" && any(y == 0)) || (family$link == "log" && any(y <=          0))))          stop("cannot find valid starting values: please specify some")     mustart <- y })
+ $ initialize:  expression({     n <- rep.int(1, nobs)     if (is.null(etastart) && is.null(start) && is.null(mustart) &&          ((family$link == "inverse" && any(y == 0)) || (family$link ==              "log" && any(y <= 0))))          stop("cannot find valid starting values: please specify some")     mustart <- y })
  $ validmu   :function (mu)  
  $ valideta  :function (eta)  
  - attr(*, "class")= chr "family"
@@ -6752,8 +6752,8 @@ List of 12
 > gf$linkinv
 function (eta) 
 1/eta
-<bytecode: 0x3db5718>
-<environment: 0x8146bb0>
+<bytecode: 0x2af7688>
+<environment: 0x8151c30>
 > gf$variance(-3:4) #- == (.)^2
 [1]  9  4  1  0  1  4  9 16
 > 
@@ -7155,7 +7155,7 @@ attr(,".Environment")
 > environment(as.formula("y ~ x"))
 <environment: R_GlobalEnv>
 > environment(as.formula("y ~ x", env=new.env()))
-<environment: 0xa37e4f0>
+<environment: 0x9cf60e0>
 > 
 > 
 > ## Create a formula for a model with a large number of variables:
@@ -11532,26 +11532,26 @@ attr(,"degree")
 $linkfun
 function (mu) 
 mu
-<bytecode: 0x3dbc8f0>
-<environment: 0x7240398>
+<bytecode: 0x2b4bc78>
+<environment: 0x7e36170>
 
 $linkinv
 function (eta) 
 eta
-<bytecode: 0x3dbc960>
-<environment: 0x7240398>
+<bytecode: 0x2b4bce8>
+<environment: 0x7e36170>
 
 $mu.eta
 function (eta) 
 rep.int(1, length(eta))
-<bytecode: 0x3dbc9d0>
-<environment: 0x7240398>
+<bytecode: 0x2b4bd58>
+<environment: 0x7e36170>
 
 $valideta
 function (eta) 
 TRUE
-<bytecode: 0x3dbcc70>
-<environment: 0x7240398>
+<bytecode: 0x2b4bf18>
+<environment: 0x7e36170>
 
 $name
 [1] "identity"
@@ -11562,14 +11562,14 @@ attr(,"class")
 $linkfun
 function (mu) 
 mu^lambda
-<bytecode: 0x72428b8>
-<environment: 0x71cb110>
+<bytecode: 0x7e37128>
+<environment: 0x7e2ddb0>
 
 $linkinv
 function (eta) 
 pmax(eta^(1/lambda), .Machine$double.eps)
-<bytecode: 0x7241aa0>
-<environment: 0x71cb110>
+<bytecode: 0x7e37240>
+<environment: 0x7e2ddb0>
 
 > 
 > 
@@ -15226,8 +15226,8 @@ function (v)
     xout = as.double(v), as.integer(length(v)), as.integer(method), 
     as.double(yleft), as.double(yright), as.double(f), NAOK = TRUE, 
     PACKAGE = "stats")$xout
-<bytecode: 0x43d9488>
-<environment: 0x878c018>
+<bytecode: 0x3fd01c8>
+<environment: 0x8d5f7a8>
 attr(,"call")
 stepfun(1:3, y0, f = 0)
 > ls(envir = environment(sfun0))
@@ -15272,13 +15272,13 @@ f.f1c  1.0 1.00    1 2.00  2.0 2.00    2 4.00  4.0  4.00     4  3.00   3.0
  stl(x = log(co2), s.window = 21)
 
  Time.series components:
-    seasonal                trend            remainder            
- Min.   :-0.009939103   Min.   :5.753541   Min.   :-0.0022554051  
- 1st Qu.:-0.004536535   1st Qu.:5.778556   1st Qu.:-0.0004586796  
- Median : 0.000877761   Median :5.815125   Median :-0.0000088674  
- Mean   :-0.000001304   Mean   :5.819267   Mean   :-0.0000019655  
- 3rd Qu.: 0.004997747   3rd Qu.:5.859806   3rd Qu.: 0.0004023465  
- Max.   : 0.009114691   Max.   :5.898750   Max.   : 0.0019396260  
+    seasonal                 trend            remainder            
+ Min.   :-9.939103e-03   Min.   :5.753541   Min.   :-2.255405e-03  
+ 1st Qu.:-4.536535e-03   1st Qu.:5.778556   1st Qu.:-4.586796e-04  
+ Median : 8.777611e-04   Median :5.815125   Median :-8.867395e-06  
+ Mean   :-1.304469e-06   Mean   :5.819267   Mean   :-1.965549e-06  
+ 3rd Qu.: 4.997747e-03   3rd Qu.:5.859806   3rd Qu.: 4.023465e-04  
+ Max.   : 9.114691e-03   Max.   :5.898750   Max.   : 1.939626e-03  
  IQR:
      STL.seasonal STL.trend STL.remainder data    
      0.009534     0.081250  0.000861      0.079370
@@ -15302,13 +15302,13 @@ f.f1c  1.0 1.00    1 2.00  2.0 2.00    2 4.00  4.0  4.00     4  3.00   3.0
  stl(x = mdeaths, s.window = "per", robust = TRUE)
 
  Time.series components:
-    seasonal             trend            remainder        
- Min.   :-446.8302   Min.   :1318.650   Min.   :-314.5835  
- 1st Qu.:-301.5726   1st Qu.:1432.208   1st Qu.: -32.5392  
- Median : -79.0561   Median :1448.891   Median :   5.7943  
- Mean   :   0.0000   Mean   :1472.880   Mean   :  23.0646  
- 3rd Qu.: 304.5673   3rd Qu.:1548.974   3rd Qu.:  47.5134  
- Max.   : 544.7904   Max.   :1615.535   Max.   : 872.1992  
+    seasonal                 trend            remainder          
+ Min.   :-4.468302e+02   Min.   :1318.650   Min.   :-314.583544  
+ 1st Qu.:-3.015726e+02   1st Qu.:1432.208   1st Qu.: -32.539250  
+ Median :-7.905613e+01   Median :1448.891   Median :   5.794267  
+ Mean   :-2.497770e-06   Mean   :1472.880   Mean   :  23.064626  
+ 3rd Qu.: 3.045673e+02   3rd Qu.:1548.974   3rd Qu.:  47.513361  
+ Max.   : 5.447904e+02   Max.   :1615.535   Max.   : 872.199161  
  IQR:
      STL.seasonal STL.trend STL.remainder data  
      606.14       116.77     80.05        707.75
@@ -17450,7 +17450,7 @@ Number of Fisher Scoring iterations: 6
 > ### * <FOOTER>
 > ###
 > cat("Time elapsed: ", proc.time() - get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  12.037 0.364 12.56 0 0 
+Time elapsed:  12.179 0.339 12.589 0 0 
 > grDevices::dev.off()
 null device 
           1 

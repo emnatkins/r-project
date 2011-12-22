@@ -32,7 +32,6 @@
 #include <wchar.h>
 #include <R_ext/rlocale.h>
 
-#define R_USE_SIGNALS 1
 #include "Defn.h"
 #include "Print.h"
 #include <Rinternals.h>

@@ -31,7 +31,7 @@ arrayInd <- function(ind, .dim, .dimnames = NULL, useNames = FALSE) {
 		  dimnames = if(useNames)
 		  list(.dimnames[[1L]][ind],
 		       if(rank == 2L) c("row", "col") # for matrices
-		       else paste0("dim", seq_len(rank))))
+		       else paste("dim", seq_len(rank), sep="")))
     if(rank >= 2L) {
 	denom <- 1L
 	for (i in 2L:rank) {

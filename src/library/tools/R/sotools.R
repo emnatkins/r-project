@@ -1,12 +1,13 @@
 if(.Platform$OS.type == "windows") {
-    read_symbols_from_dll <- function(f, rarch)
-    {
-        ff <- file.path(R.home("etc"), rarch, "Makeconf")
-        if(!file.exists(ff)) return()
-        etc <- readLines(ff)
+    DLL_nm <- local({
+        etc <- readLines(paste(R.home("etc"), Sys.getenv("R_ARCH"),
+                               "/Makeconf", sep = ""))
         bp <- grep("^BINPREF", etc, value = TRUE)
         bp <- sub("^BINPREF = +", "", bp)
-        DLL_nm <- paste0(bp, "objdump.exe")
+        paste(bp, "objdump.exe", sep = "")
+    })
+    read_symbols_from_dll <- function(f)
+    {
         if(!nzchar(Sys.which(DLL_nm))) return()
         f <- file_path_as_absolute(f)
         s0 <- system2(DLL_nm, c("-x", shQuote(f)), stdout = TRUE, stderr=TRUE)
@@ -22,7 +23,6 @@ if(.Platform$OS.type == "windows") {
     {
         if(!nzchar(nm <- Sys.which("nm"))) return()
         f <- file_path_as_absolute(f)
-        if(!(file.info(f)$size)) return()
         s <- strsplit(system(sprintf("%s -Pg %s", shQuote(nm), shQuote(f)),
                              intern = TRUE),
                       " +")
@@ -157,10 +157,10 @@ function(x)
 }
 
 check_so_symbols <- if(.Platform$OS.type == "windows") {
-    function(so, rarch)
+    function(so)
     {
         if(!length(system_ABI)) return()
-        nms <- read_symbols_from_dll(so, rarch)
+        nms <- read_symbols_from_dll(so)
         ind <- so_symbol_names_table[, "osname"] %in% nms
         tab <- so_symbol_names_table[ind, , drop = FALSE]
         attr(tab, "file") <- so
@@ -214,25 +214,12 @@ function(dir)
     ## Check compiled code in the shared objects of an installed
     ## package.
     r_arch <- .Platform$r_arch
-    if(.Platform$OS.type == "windows") {
-        so_files <-
-            Sys.glob(file.path(dir, "libs/i386",
-                               sprintf("*%s", .Platform$dynlib.ext)))
-        bad <- Filter(length, lapply(so_files, check_so_symbols, rarch="i386"))
-        so_files <-
-            Sys.glob(file.path(dir, "libs/x64",
-                               sprintf("*%s", .Platform$dynlib.ext)))
-        bad <- rbind(bad, Filter(length, lapply(so_files, check_so_symbols,
-                                                rarch = "x64")))
-    } else {
-        so_files <- if(nzchar(r_arch))
-            Sys.glob(file.path(dir, "libs", r_arch,
-                               sprintf("*%s", .Platform$dynlib.ext)))
-        else
-            Sys.glob(file.path(dir, "libs",
-                               sprintf("*%s", .Platform$dynlib.ext)))
-        bad <- Filter(length, lapply(so_files, check_so_symbols))
-    }
+    so_files <- if(nzchar(r_arch))
+        Sys.glob(file.path(dir, "libs", r_arch,
+                           sprintf("*%s", .Platform$dynlib.ext)))
+    else
+        Sys.glob(file.path(dir, "libs", sprintf("*%s", .Platform$dynlib.ext)))
+    bad <- Filter(length, lapply(so_files, check_so_symbols))
     class(bad) <- "check_compiled_code"
     bad
 }

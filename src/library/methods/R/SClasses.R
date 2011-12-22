@@ -15,7 +15,7 @@
 #  http://www.r-project.org/Licenses/
 
 setClass <-
-    ## Define Class to be an S4 class.
+    ## Define Class to be an S-style class.
     function(Class, representation = list(), prototype = NULL,
              contains = character(), validity = NULL, access = list(),
              where = topenv(parent.frame()), version = .newExternalptr(),
@@ -98,7 +98,7 @@ setClass <-
     if(S3methods)
       classDef <- .setS3MethodsOn(classDef)
     assignClassDef(Class, classDef, where)
-    invisible(classGeneratorFunction(classDef, where))
+     Class
 }
 
 representation <-
@@ -397,7 +397,7 @@ getClasses <-
   ## libraries, but have not yet been used in the session).
   function(where = .externalCallerEnv(), inherits = missing(where))
 {
-    pat <- paste0("^",classMetaName(""))
+    pat <- paste("^",classMetaName(""), sep="")
     if(inherits) {
         evList <- .parentEnvList(where)
         clNames <- character()
@@ -427,10 +427,7 @@ validObject <- function(object, test = FALSE, complete = FALSE)
     attrNames <- c(".Data", ".S3Class", names(attributes(object)))
     if(any(is.na(match(slotNames, attrNames)))) {
         badSlots <- is.na(match(slotNames, attrNames))
-	errors <-
-	    c(errors,
-	      paste("slots in class definition but not in object:",
-		    paste0('"', slotNames[badSlots], '"', collapse = ", ")))
+        errors <- c(errors, paste("slots in class definition but not in object:", paste('"', slotNames[badSlots], '"', sep="", collapse = ", ")))
         slotTypes <- slotTypes[!badSlots]
         slotNames <- slotNames[!badSlots]
     }
@@ -438,9 +435,8 @@ validObject <- function(object, test = FALSE, complete = FALSE)
 	classi <- slotTypes[[i]]
 	classDefi <- getClassDef(classi, where = where)
 	if(is.null(classDefi)) {
-	    errors <- c(errors,
-			paste0("undefined class for slot \"", slotNames[[i]],
-			       "\" (\"", classi, "\")"))
+	    errors <- c(errors, paste("undefined class for slot \"", slotNames[[i]],
+				      "\" (\"", classi, "\")", sep=""))
 	    next
 	}
         namei <- slotNames[[i]]
@@ -458,18 +454,20 @@ validObject <- function(object, test = FALSE, complete = FALSE)
 	ok <- possibleExtends(class(sloti), classi, ClassDef2 = classDefi)
 	if(identical(ok, FALSE)) {
 	    errors <- c(errors,
-			paste0("invalid object for slot \"", slotNames[[i]],
-			       "\" in class \"", Class,
-			       "\": got class \"", class(sloti),
-			       "\", should be or extend class \"", classi, "\""))
+			paste("invalid object for slot \"", slotNames[[i]],
+			      "\" in class \"", Class,
+			      "\": got class \"", class(sloti),
+			      "\", should be or extend class \"", classi, "\"",
+			      sep = ""))
 	    next
 	}
 	if(!complete)
           next
         errori <- anyStrings(Recall(sloti, TRUE, TRUE))
         if(length(errori)) {
-	    errori <- paste0("In slot \"", slotNames[[i]],
-			     "\" of class \"", class(sloti), "\": ", errori)
+            errori <- paste("In slot \"", slotNames[[i]],
+                            "\" of class \"", class(sloti), "\": ",
+                            errori, sep = "")
             errors <- c(errors, errori)
         }
     }
@@ -482,8 +480,9 @@ validObject <- function(object, test = FALSE, complete = FALSE)
 	superDef <- getClassDef(superClass, where = where)
 	if(is.null(superDef)) {
 	    errors <- c(errors,
-			paste0("superclass \"", superClass,
-			       "\" not defined in the environment of the object's class"))
+			paste("superclass \"", superClass,
+			      "\" not defined in the environment of the object's class",
+			      sep=""))
 	    break
 	}
 	validityMethod <- superDef@validity
@@ -769,7 +768,7 @@ sealClass <- function(Class, where = topenv(parent.frame())) {
 .AbnormalTypes <- c("environment", "name", "externalptr",  "NULL")
 
 
-.indirectAbnormalClasses <- paste0(".", .AbnormalTypes)
+.indirectAbnormalClasses <- paste(".", .AbnormalTypes, sep="")
 names(.indirectAbnormalClasses) <- .AbnormalTypes
 
 ## the types not supported by indirect classes (yet)
@@ -782,8 +781,7 @@ names(.indirectAbnormalClasses) <- .AbnormalTypes
   if(length(type) == 0)
     return(classes)
   if(length(type) > 1)
-    stop(gettextf("Class definition cannot extend more than one of these data types: %s",
-		  paste0('"',type, '"', collapse = ", ")),
+    stop(gettextf("Class definition cannot extend more than one of these data types: %s", paste('"',type, '"', sep="", collapse = ", ")),
          domain = NA)
   class <- .indirectAbnormalClasses[type]
   if(is.na(class))
@@ -894,35 +892,4 @@ className <- function(class, package) {
             package <- class@package
     }
     new("className", .Data = className, package = package)
-}
-
-## bootstrap version before the class is defined
-classGeneratorFunction <- function(classDef, env = topenv(parent.frame())) {
-    fun <- function(...)NULL
-    ## put the class name with package attribute into new()
-    body(fun) <- substitute(new(CLASS, ...),
-                            list(CLASS = classDef@className))
-    environment(fun) <- env
-    fun
-}
-
-.classGeneratorFunction <- function(classDef, env = topenv(parent.frame())) {
-    if(is(classDef, "classRepresentation")) {}
-    else if(is(classDef, "character")) {
-        if(is.null(packageSlot(classDef)))
-            classDef <- getClass(classDef, where = env)
-        else
-            classDef <- getClass(classDef)
-    }
-    else
-        stop("argument classDef must be a class definition or the name of a class")
-    fun <- function(...)NULL
-    ## put the class name with package attribute into new()
-    body(fun) <- substitute(new(CLASS, ...),
-                            list(CLASS = classDef@className))
-    environment(fun) <- env
-    fun <- as(fun, "classGeneratorFunction")
-    fun@className <- classDef@className
-    fun@package <- classDef@package
-    fun
 }

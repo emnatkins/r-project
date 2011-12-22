@@ -22,7 +22,7 @@
 kernel <- function (coef, m = 2, r, name="unknown")
 {
     mkName <- function(name, args)
-        paste0(name,"(", paste(args, collapse=","), ")")
+        paste(name,"(", paste(args, collapse=","), ")", sep="")
 
     modified.daniell.kernel <- function (m)
     {
@@ -106,7 +106,7 @@ print.tskernel <- function (x, digits = max(3,getOption("digits")-3), ...)
     m <- x$m
     y <- x[i <- -m:m]
     cat(attr(x, "name"), "\n")
-    cat(paste0("coef[", format(i), "] = ", format(y, digits = digits)),
+    cat(paste("coef[", format(i), "] = ", format(y, digits = digits), sep = ""),
         sep = "\n")
     invisible(x)
 }

@@ -297,7 +297,7 @@ setAs <-
 		     dimnames(value) <- dn
 		 }
 		 value
-	     }, list(AS = as.name(paste0("as.", what)))),
+	     }, list(AS = as.name(paste("as.", what, sep="")))),
 	     ##
 	     ts = body(method, envir = environment(method)) <- quote({
 		 value <- as.ts(from)
@@ -314,7 +314,7 @@ setAs <-
 		 if(strict)
 		     attributes(value) <- NULL
 		 value
-	     }, list(AS = as.name(paste0("as.", what))))
+	     }, list(AS = as.name(paste("as.", what, sep=""))))
 	     )
       setMethod("coerce", c("ANY", what), method, where = where)
   }

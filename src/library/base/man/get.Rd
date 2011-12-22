@@ -16,7 +16,7 @@ get(x, pos = -1, envir = as.environment(pos), mode = "any",
 
 mget(x, envir, mode = "any",
      ifnotfound = list(function(x)
-         stop(paste0("value for '", x, "' not found"),
+         stop(paste("value for '", x, "' not found", sep = ""),
               call. = FALSE)),
      inherits = FALSE)
 }

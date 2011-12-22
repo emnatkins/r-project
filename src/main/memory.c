@@ -75,7 +75,6 @@
 #define VALGRIND_LEVEL 0
 #endif
 
-#define R_USE_SIGNALS 1
 #include <Defn.h>
 #include <R_ext/GraphicsEngine.h> /* GEDevDesc, GEgetDevice */
 #include <R_ext/Rdynload.h>
@@ -2459,18 +2458,17 @@ SEXP allocVector(SEXPTYPE type, R_len_t length)
 #endif
 	CHAR_RW(s)[length] = 0;
     }
+    else if (type == REALSXP) {
 #if VALGRIND_LEVEL > 0
-    else if (type == REALSXP)
 	VALGRIND_MAKE_WRITABLE(REAL(s), actual_size);
-    else if (type == INTSXP)
-	VALGRIND_MAKE_WRITABLE(INTEGER(s), actual_size);
-    else if (type == LGLSXP)
-	VALGRIND_MAKE_WRITABLE(LOGICAL(s), actual_size);
-    else if (type == CPLXSXP)
-	VALGRIND_MAKE_WRITABLE(COMPLEX(s), actual_size);
-    else if (type == RAWSXP)
-	VALGRIND_MAKE_WRITABLE(RAW(s), actual_size);
 #endif
+    }
+    else if (type == INTSXP) {
+#if VALGRIND_LEVEL > 0
+	VALGRIND_MAKE_WRITABLE(INTEGER(s), actual_size);
+#endif
+    }
+    /* <FIXME> why not valgrindify LGLSXP, CPLXSXP and RAWSXP? */
     return s;
 }
 
@@ -2552,10 +2550,7 @@ static void gc_end_timing(void)
 	R_getProcTime(times);
 	delta = R_getClockIncrement();
 
-	/* add delta to compensate for timer resolution:
-	   NB: as all current Unix-alike systems use getrusage, 
-	   this may over-compensate.
-	 */
+	/* add delta to compensate for timer resolution */
 	gctimes[0] += times[0] - gcstarttimes[0] + delta;
 	gctimes[1] += times[1] - gcstarttimes[1] + delta;
 	gctimes[2] += times[2] - gcstarttimes[2];

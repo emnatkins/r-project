@@ -18,14 +18,14 @@ toBibtex <- function(object, ...) UseMethod("toBibtex")
 
 print.Bibtex <- function(x, prefix="", ...)
 {
-    writeLines(paste0(prefix, unclass(x)))
+    writeLines(paste(prefix, unclass(x), sep=""))
     invisible(x)
 }
 
 toLatex <- function(object, ...) UseMethod("toLatex")
-
+    
 print.Latex <- function(x, prefix="", ...)
 {
-    writeLines(paste0(prefix, unclass(x)))
+    writeLines(paste(prefix, unclass(x), sep=""))
     invisible(x)
 }

@@ -3,8 +3,6 @@
 % Copyright 1995-2011 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{connections}
 \alias{connections}
 \alias{connection}
@@ -237,7 +235,7 @@ isIncomplete(con)
   notation for sites requiring authentication is also accepted.
 #endif
 
-  Contributed package \CRANpkg{RCurl} provides more comprehensive facilities
+  Contributed package \pkg{RCurl} provides more comprehensive facilities
   to download from URLs.
 }
 
@@ -610,11 +608,7 @@ close(con1)
 con2 <- socketConnection(Sys.info()["nodename"], port = 6011)
 # as non-blocking, may need to loop for input
 readLines(con2)
-while(isIncomplete(con2)) {
-   Sys.sleep(1)
-   z <- readLines(con2)
-   if(length(z)) print(z)
-}
+while(isIncomplete(con2)) {Sys.sleep(1); readLines(con2)}
 close(con2)
 
 ## examples of use of encodings

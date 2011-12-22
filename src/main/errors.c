@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2011  The R Development Core Team.
+ *  Copyright (C) 1997--2010  The R Development Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 #include <config.h>
 #endif
 
-#define R_USE_SIGNALS 1
 #include <Defn.h>
 /* -> Errormsg.h */
 #include <Startup.h> /* rather cleanup ..*/
@@ -201,8 +200,8 @@ RETSIGTYPE attribute_hidden onsigusr2(int dummy)
 
 static void setupwarnings(void)
 {
-    R_Warnings = allocVector(VECSXP, R_nwarnings);
-    setAttrib(R_Warnings, R_NamesSymbol, allocVector(STRSXP, R_nwarnings));
+    R_Warnings = allocVector(VECSXP, 50);
+    setAttrib(R_Warnings, R_NamesSymbol, allocVector(STRSXP, 50));
 }
 
 /* Rvsnprintf: like vsnprintf, but guaranteed to null-terminate. */
@@ -332,7 +331,7 @@ static void vwarningcall_dflt(SEXP call, const char *format, va_list ap)
     else if(w == 0) {	/* collect them */
 	char *tr; int nc;
 	if(!R_CollectWarnings) setupwarnings();
-	if(R_CollectWarnings < R_nwarnings) {
+	if(R_CollectWarnings < 50) {
 	    SET_VECTOR_ELT(R_Warnings, R_CollectWarnings, call);
 	    Rvsnprintf(buf, min(BUFSIZE, R_WarnLength+1), format, ap);
 	    if(R_WarnLength < BUFSIZE - 20 && strlen(buf) == R_WarnLength)
@@ -470,11 +469,11 @@ void PrintWarnings(void)
 	    }
 	}
     } else {
-	if (R_CollectWarnings < R_nwarnings)
+	if (R_CollectWarnings < 50)
 	    REprintf(_("There were %d warnings (use warnings() to see them)\n"),
 		     R_CollectWarnings);
 	else
-	    REprintf(_("There were %d or more warnings (use warnings() to see the first %d)\n"), R_nwarnings, R_nwarnings);
+	    REprintf(_("There were 50 or more warnings (use warnings() to see the first 50)\n"));
     }
     /* now truncate and install last.warning */
     PROTECT(s = allocVector(VECSXP, R_CollectWarnings));

@@ -654,8 +654,8 @@
     possible <- attr(cond, "candidates")
     message(gettextf('Note: Method with signature "%s" chosen for function "%s",\n target signature "%s".\n %s would also be valid',
                      selected, attr(cond, "generic"), attr(cond, "target"),
-		     paste0('"', possible[is.na(match(possible, selected))], '"',
-			    collapse=", ")),
+                     paste('"', possible[is.na(match(possible, selected))], '"',
+                           sep="", collapse=", ")),
             domain = NA)
   }
 }
@@ -725,8 +725,8 @@
   if(length(methods) == 1L)
     return(methods[[1L]]) # the method
   else if(length(methods) == 0L) {
-    cnames <- paste0("\"", sapply(classes, as.character), "\"",
-		     collapse = ", ")
+    cnames <- paste("\"", sapply(classes, as.character), "\"",
+                    sep = "", collapse = ", ")
     stop("unable to find an inherited method for function \"", fdef@generic,
          "\", for signature ", cnames)
   }
@@ -999,9 +999,9 @@
                               classes = NULL, showEmpty = TRUE, printTo = stdout())
 {
     cf <- function(...) cat(file = printTo, sep = "", ...)
-    sigString <- function(sig)
-	paste0(names(sig), "=\"", as.character(sig), "\"", collapse = ", ")
-    qs <- function(what) paste0('"', what, '"', collapse = ", ")
+    sigString <- function(sig) paste(names(sig), "=\"", as.character(sig), "\"",
+				     sep = "", collapse = ", ")
+    qs <- function(what) paste('"', what, '"', collapse = ", ", sep = "")
     doFun <- function(func, pkg) cf("Function: ", func, " (package ", pkg, ")\n")
     env <- environment(generic)
     signature <- generic@signature
@@ -1234,7 +1234,7 @@ outerLabels <- function(labels, new) {
 # regexp for matching table names; semi-general but assumes the
 # meta pattern starts with "." and has no other special characters
 .TableMetaPattern <- function()
-    paste0("^[.]",substring(methodsPackageMetaName("T",""),2))
+    paste("^[.]",substring(methodsPackageMetaName("T",""),2), sep = "")
 
 .addToMetaTable <- function(fdef, signature, definition, where, nSig) {
   return()
@@ -1534,7 +1534,7 @@ testInheritedMethods <- function(f, signatures, test = TRUE,  virtual = FALSE,
       }
 
       if(length(.undefClasses)) {
-        warning("Undefined classes (", paste0('"',unique(.undefClasses),'"', collapse=", "),
+        warning("Undefined classes (", paste('"',unique(.undefClasses),'"', sep="", collapse=", "),
                 ") will be ignored, for argument ", colnames(sigs)[[j]])
         .undefClasses <- character()
       }
@@ -1581,7 +1581,7 @@ testInheritedMethods <- function(f, signatures, test = TRUE,  virtual = FALSE,
     }
     signatures <- lapply(signatures, doSelect)
   }
-  signatures <- sapply(signatures, paste0, collapse = "#")
+  signatures <- sapply(signatures, function(x)paste(x, collapse = "#"))
   names(signatures) <- sigLabels
 
   new("MethodSelectionReport", generic = fname, allSelections = signatures,

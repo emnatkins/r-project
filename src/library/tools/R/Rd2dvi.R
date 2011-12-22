@@ -1,4 +1,4 @@
-#  File src/library/tools/R/Rd2pdf.R
+#  File src/library/tools/R/Rd2dvi.R
 #  Part of the R package, http://www.R-project.org
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -14,7 +14,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-#### R based engine for  R CMD Rdconv|Rd2pdf
+#### R based engine for  R CMD Rdconv Rd2dvi
 ####
 
 ##' @param args
@@ -45,7 +45,7 @@
         if(f == "Authors@R") next
         text <- desc[f]
         ## munge 'text' appropriately (\\, {, }, "...")
-        ## not sure why just these: copied from Perl Rd2dvi, then added to.
+        ## not sure why just these: copied from Rd2dvi, then added to.
         ## KH: the LaTeX special characters are
         ##   # $ % & _ ^ ~ { } \
         ## \Rd@AsIs@dospecials in Rd.sty handles the first seven, so
@@ -67,7 +67,7 @@
             text <- gsub("(http://|ftp://)([^[:space:]]+)",
                          "}\\\\url{\\1\\2}\\\\AsIs{",
                          text, useBytes = TRUE)
-        text <- paste0("\\AsIs{", text, "}")
+        text <- paste("\\AsIs{", text, "}", sep = "")
         ## Not entirely safe: in theory, tags could contain \ ~ ^.
         cat("\\item[", gsub("([#$%&_{}])", "\\\\\\1", f),
             "]", paste(text, collapse = "\n\n"),  "\n", sep = "", file=out)
@@ -75,7 +75,7 @@
     cat("\\end{description}\n", file = out)
 }
 
-## workhorse of .Rd2pdf
+## workhorse of .Rd2dvi
 .Rdfiles2tex <-
     function(files, outfile, encoding = "unknown", outputEncoding = "UTF-8",
              append = FALSE, extraDirs = NULL, internals = FALSE,
@@ -139,7 +139,7 @@
 
     options(warn = 1)
     if (missing(outfile))
-        outfile <- paste0(basename(pkgdir), "-pkg.tex")
+        outfile <- paste(basename(pkgdir), "-pkg.tex", sep="")
 
     latexEncodings <- character() # Record any encodings used in the output
     hasFigures <- FALSE           # and whether graphics is used
@@ -397,7 +397,7 @@
         ## choose 'out' from filename
         bf <- sub("\\.[Rr]d$", "", file)
         exts <- c(txt=".txt", html=".html", latex=".tex", exmaple=".R")
-        out <- paste0(bf,  exts[type])
+        out <- paste(bf,  exts[type], sep = "")
     } else if (is.null(out)) out <- ""
     if (!nzchar(os)) os <- .Platform$OS.type
     switch(type,
@@ -426,9 +426,9 @@
     invisible()
 }
 
-### * .Rd2pdf
+### * .Rd2dvi
 
-.Rd2pdf <-
+.Rd2dvi <-
 function(pkgdir, outfile, title, batch = FALSE,
          description = TRUE, only_meta = FALSE,
          enc = "unknown", outputEncoding = "UTF-8", files_or_dir, OSdir,
@@ -455,10 +455,10 @@ function(pkgdir, outfile, title, batch = FALSE,
     ## Rd2.tex part 1: header
     if (batch) writeLines("\\nonstopmode{}", out)
     cat("\\documentclass[", Sys.getenv("R_PAPERSIZE"), "paper]{book}\n",
-        "\\usepackage[", Sys.getenv("R_RD4PDF", "times,inconsolata,hyper"), "]{Rd}\n",
+        "\\usepackage[", Sys.getenv("R_RD4DVI", "ae"), "]{Rd}\n",
         sep = "", file = out)
     if (index) writeLines("\\usepackage{makeidx}", out)
-    inputenc <- Sys.getenv("RD2PDF_INPUTENC", "inputenc")
+    inputenc <- Sys.getenv("RD2DVI_INPUTENC", "inputenc")
     ## this needs to be canonical, e.g. 'utf8'
     ## trailer is for detection if we want to edit it later.
     setEncoding <-
@@ -472,17 +472,17 @@ function(pkgdir, outfile, title, batch = FALSE,
                  "\\begin{document}"), out)
     if (!nzchar(title)) {
         if (is.character(desc))
-            title <- paste0("Package `", desc["Package"], "'")
+            title <- paste("Package `", desc["Package"], "'", sep = "")
         else if (file.exists(f <- file.path(pkgdir, "DESCRIPTION.in"))) {
             desc <- read.dcf(f)[1,]
-            title <- paste0("Package `", desc["Package"], "'")
+            title <- paste("Package `", desc["Package"], "'", sep = "")
         } else {
             if (file_test("-d", pkgdir)) {
-                subj <- paste0("all in \\file{", pkgdir, "}")
+                subj <- paste("all in \\file{", pkgdir, "}", sep ="")
             } else {
                 files <- strsplit(files_or_dir, "[[:space:]]+")[[1L]]
                 subj1 <- if (length(files) > 1L) " etc." else ""
-                subj <- paste0("\\file{", pkgdir, "}", subj1)
+                subj <- paste("\\file{", pkgdir, "}", subj1, sep = "")
             }
             subj <- gsub("([_$])", "\\\\\\1", subj)
             title <- paste("\\R{} documentation}} \\par\\bigskip{{\\Large of", subj)
@@ -548,7 +548,7 @@ function(pkgdir, outfile, title, batch = FALSE,
 
 	if (!cyrillic) {
 	    lines[lines == setEncoding] <-
-		paste0("\\usepackage[", encs, "]{", inputenc, "}")
+		paste("\\usepackage[", encs, "]{", inputenc, "}", sep = "")
 	} else {
 	    lines[lines == setEncoding] <-
 		paste(
@@ -601,12 +601,12 @@ function(pkgdir, outfile, title, batch = FALSE,
     1L
 }
 
-### * ..Rd2pdf
+### * ..Rd2dvi
 
-## Driver called from R CMD Rd2pdf
+## Driver called from R CMD Rd2dvi
 ## See the comments in install.R as to how this can be called directly.
 
-..Rd2pdf <- function(args = NULL, quit = TRUE)
+..Rd2dvi <- function(args = NULL, quit = TRUE)
 {
     dir.exists <- function(x) !is.na(isdir <- file.info(x)$isdir) & isdir
 
@@ -620,9 +620,9 @@ function(pkgdir, outfile, title, batch = FALSE,
     }
 
     Usage <- function() {
-        cat("Usage: R CMD Rd2pdf [options] files",
+        cat("Usage: R CMD Rd2dvi [options] files",
             "",
-            "Generate PDF output from the Rd sources specified by files, by",
+            "Generate PDF (or DVI) output from the Rd sources specified by files, by",
             "either giving the paths to the files, or the path to a directory with",
             "the sources of a package, or an installed package.",
             "",
@@ -643,13 +643,14 @@ function(pkgdir, outfile, title, batch = FALSE,
             "  -v, --version		print version info and exit",
             "      --batch		no interaction",
             "      --no-clean	do not remove created temporary files",
-            "      --no-preview	do not preview generated PDF file",
+            "      --no-preview	do not preview generated DVI/PDF file",
             "      --encoding=enc    use 'enc' as the default input encoding",
             "      --outputEncoding=outenc",
             "                        use 'outenc' as the default output encoding",
             "      --os=NAME		use OS subdir 'NAME' (unix or windows)",
             "      --OS=NAME		the same as '--os'",
             "  -o, --output=FILE	write output to FILE",
+            "      --pdf		generate PDF output",
             "      --force		overwrite output file if it exists",
             "      --title=NAME	use NAME as the title of the document",
             "      --no-index	don't index output",
@@ -658,6 +659,7 @@ function(pkgdir, outfile, title, batch = FALSE,
             "",
             "The output papersize is set by the environment variable R_PAPERSIZE.",
             "The PDF previewer is set by the environment variable R_PDFVIEWER.",
+            "The DVI previewer is set by the environment variable xdvi.",
             "",
             "Report bugs to <r-bugs@r-project.org>.",
             sep = "\n")
@@ -674,12 +676,12 @@ function(pkgdir, outfile, title, batch = FALSE,
     startdir <- getwd()
     if (is.null(startdir))
         stop("current working directory cannot be ascertained")
-    build_dir <- paste0(".Rd2pdf", Sys.getpid())
+    build_dir <- paste(".Rd2dvi", Sys.getpid(), sep = "")
     title <- ""
     batch <- FALSE
     clean <- TRUE
     only_meta <- FALSE
-    out_ext <- "pdf"
+    out_ext <- "dvi"
     output <- ""
     enc <- "unknown"
     outenc <- "latin1"
@@ -692,8 +694,13 @@ function(pkgdir, outfile, title, batch = FALSE,
 
     WINDOWS <- .Platform$OS.type == "windows"
 
-    preview <- Sys.getenv("R_PDFVIEWER", if(WINDOWS) "open" else "false")
-    OSdir <- if (WINDOWS) "windows" else "unix"
+    if (WINDOWS) {
+        OSdir <- "windows"
+        preview <- Sys.getenv("xdvi", "open")
+    } else {
+        OSdir <- "unix"
+        preview <- Sys.getenv("xdvi", "xdvi")
+    }
 
     while(length(args)) {
         a <- args[1L]
@@ -701,7 +708,7 @@ function(pkgdir, outfile, title, batch = FALSE,
             Usage()
             q("no", runLast = FALSE)
         } else if (a %in% c("-v", "--version")) {
-            cat("Rd2pdf: ",
+            cat("Rd2dvi: ",
                 R.version[["major"]], ".",  R.version[["minor"]],
                 " (r", R.version[["svn rev"]], ")\n", sep = "")
             cat("",
@@ -717,7 +724,11 @@ function(pkgdir, outfile, title, batch = FALSE,
         } else if (a == "--no-preview") {
             preview <- "false"
         } else if (a == "--pdf") {
-            # ignore for back-compatibility
+            out_ext <-  "pdf";
+            ## allow for --no-preview --pdf
+            if (preview != "false")
+                preview <- Sys.getenv("R_PDFVIEWER", if(WINDOWS) "open" else "false")
+            Sys.setenv(R_RD4DVI = Sys.getenv("R_RD4PDF", "times,inconsolata,hyper"))
         } else if (substr(a, 1, 8) == "--title=") {
             title <- substr(a, 9, 1000)
         } else if (a == "-o") {
@@ -753,6 +764,9 @@ function(pkgdir, outfile, title, batch = FALSE,
         message("no inputs")
         q("no", status = 1L, runLast = FALSE)
     }
+
+    if (out_ext != "pdf")
+        warning("DVI output from Rd2dvi is deprecated", call. = FALSE)
 
     ## Windows does not allow .../man/, say, for a directory
     if(WINDOWS) files[1L] <- sub("[\\/]$", "", files[1L])
@@ -793,7 +807,7 @@ function(pkgdir, outfile, title, batch = FALSE,
     }
 
     res <-
-        try(.Rd2pdf(files[1L], file.path(build_dir, "Rd2.tex"),
+        try(.Rd2dvi(files[1L], file.path(build_dir, "Rd2.tex"),
                     title, batch, description, only_meta,
                     enc, outenc, dir, OSdir, internals, index))
     if (inherits(res, "try-error"))
@@ -802,9 +816,10 @@ function(pkgdir, outfile, title, batch = FALSE,
     if (!batch)  cat("Creating", out_ext, "output from LaTeX ...\n")
     setwd(build_dir)
 
-    res <- try(texi2pdf('Rd2.tex', quiet = FALSE, index = index))
+    res <- try(texi2dvi('Rd2.tex', pdf = (out_ext == "pdf"),
+                        quiet = FALSE, index = index))
     if (inherits(res, "try-error")) {
-        message("Error in running tools::texi2pdf")
+        message("Error in running tools::texi2dvi")
         do_cleanup()
         q("no", status = 1L, runLast = FALSE)
     }

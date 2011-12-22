@@ -23,7 +23,6 @@
 #include <config.h>
 #endif
 
-#define R_USE_SIGNALS 1
 #include <Defn.h>
 #include <ctype.h>		/* for isspace */
 

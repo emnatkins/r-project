@@ -3,8 +3,6 @@
 % Copyright 1995-2011 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{write.table}
 \alias{write.table}
 \alias{write.csv}
@@ -163,7 +161,7 @@ write.csv2(\dots)
 
   \code{\link{read.table}}, \code{\link{write}}.
 
-  \code{\link[MASS]{write.matrix}} in package \CRANpkg{MASS}.
+  \code{\link[MASS]{write.matrix}} in package \pkg{MASS}.
 }
 
 \examples{

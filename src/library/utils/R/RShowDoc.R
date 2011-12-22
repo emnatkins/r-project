@@ -32,7 +32,7 @@ RShowDoc <- function(what, type=c("pdf", "html", "txt"), package)
         browser <- getOption("browser")
         if(is.null(browser) && .Platform$OS.type == "windows")
             shell.exec(chartr("/", "\\", path))
-        else browseURL(paste0("file://", URLencode(path)))
+        else browseURL(paste("file://", URLencode(path), sep=""))
     }
 
     type <- match.arg(type)

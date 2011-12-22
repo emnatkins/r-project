@@ -1028,8 +1028,8 @@ is included in the @file{src} subdirectory and discussed elsewhere in
 this document.
 
 Subdirectory @file{exec} could be used for scripts for interpreters such
-as the shell (e.g.@: @CRANpkg{arulesSequences}), BUGS, Java, JavaScript,
-Matlab, Perl (@CRANpkg{FEST}), php (@CRANpkg{amap}), Python or Tcl, or even
+as the shell (e.g.@: @pkg{arulesSequences}), BUGS, Java, JavaScript,
+Matlab, Perl (@pkg{FEST}), php (@pkg{amap}), Python or Tcl, or even
 @R{}.  However, it seems more common to use the @file{inst} directory,
 for example @file{AMA/inst/java}, @file{WriteXLS/inst/Perl},
 @file{Amelia/inst/tklibs}, @file{CGIwithR/inst/cgi-bin},
@@ -1243,7 +1243,7 @@ One of the more tricky tasks can be to find the headers and libraries of
 external software.  One tool which is increasingly available on
 Unix-alikes (but not Mac OS X) to do this is @command{pkg-config}.  The
 @file{configure} script will need to test for the presence of the
-command itself (see for example package @CRANpkg{Cairo}), and if present it
+command itself (see for example package @pkg{Cairo}), and if present it
 can be asked if the software is installed, of a suitable version and for
 compilation/linking flags by e.g.@:
 
@@ -1387,7 +1387,7 @@ included before the default makefile and @command{make} will call the
 first target, intended to be @code{all} in the default makefile.  If you
 really need to circumvent that, use a suitable (phony) target @code{all}
 before any actual targets in @file{Makevars.[win]}: for example package
-@CRANpkg{fastICA} has
+@pkg{fastICA} has
 
 @smallexample
 PKG_LIBS = @@BLAS_LIBS@@
@@ -1544,14 +1544,15 @@ SHLIB_OPENMP_FFLAGS
 @end example
 
 @noindent
-are available for use in @file{src/Makevars} or
-@file{src/Makevars.win}.  Include the appropriate macro in
-@code{PKG_CFLAGS}, @code{PKG_CPPFLAGS} and so on, and also in
-@code{PKG_LIBS}.  C/C++ code that needs to be conditioned on the use of
-OpenMP can be used inside @code{#ifdef SUPPORT_OPENMP}, a macro defined
-in the header @file{Rconfig.h} (@pxref{Platform and version
-information}): however the use of OpenMP is most often indicated by
-@samp{#pragma} statements.
+are available for use in @file{src/Makevars}.@footnote{They could also
+be used with @file{src/Makevars.win}, but until @R{} 2.15.x the
+compilers used for @R{} on Windows do not support pthreads nor OpenMP.}
+Include the appropriate macro in @code{PKG_CFLAGS}, @code{PKG_CPPFLAGS}
+and so on, and also in @code{PKG_LIBS}.  C/C++ code that needs to be
+conditioned on the use of OpenMP can be used inside @code{#ifdef
+SUPPORT_OPENMP}, a macro defined in the header @file{Rconfig.h}
+(@pxref{Platform and version information}): however the use of OpenMP is
+most often indicated by @samp{#pragma} statements.
 
 For example, a package with C code written for OpenMP should have in
 @file{src/Makevars} the lines
@@ -1567,11 +1568,6 @@ note that Mac OS X binaries are built for 10.5 using compilers which
 support version 2.5), but portable packages cannot assume that end users
 have recent versions (there are some years-old versions of Linux in
 use), and it may be safest to assume version 2.5.
-
-Note that whereas OpenMP support is expected to be available on Windows
-in the toolchain used for @R{} 2.15.0, @R{} may not be built on Windows
-with OpenMP support and these @command{make} macros will be empty unless
-it is so built.
 
 The performance of OpenMP varies substantially between platforms.  Both
 the Mac OS X and Windows implementations have substantial overheads and
@@ -1621,15 +1617,10 @@ licensed under LGPL which requires source code to be made available.
 The toolchains used to compile @R{} prior to version 2.15.0 do not
 contain @code{pthreads}, although in some cases @code{pthreads-w32}
 could be retro-fitted.  It is expected that the toolchain used for @R{}
-2.15.0 will support @code{pthreads}. As from @R{} 2.15.0 there is
-@command{make} variable @code{SHLIB_PTHREAD_FLAGS} available: this
-should be included in both @code{PKG_CPPFLAGS} (or the Fortran or F9x
-equivalents) and @code{PKG_LIBS}.
-
-The presence of a working @code{pthreads} implementation cannot be
-unambiguously determined without testing for yourself: however, that
-@samp{_REENTRANT} is defined@footnote{some Windows toolchains have the
-typo @samp{_REENTRANCE} instead.} in C/C++ code is a good indication.
+2.15.0 will support @code{pthreads}: however as it is not used by @R{}
+itself, the DLLs are not distributed with @R{}, and a package using
+@code{pthreads} would need to arrange to ship the relevant DLLs (and
+meet the license conditions).
 
 See also the comments on performance under OpenMP: on all known @R{}
 platforms OpenMP is implemented @emph{via} @code{pthreads}.
@@ -1639,7 +1630,7 @@ platforms OpenMP is implemented @emph{via} @code{pthreads}.
 
 It may be helpful to give an extended example of using a
 @file{configure} script to create a @file{src/Makevars} file: this is
-based on that in the @CRANpkg{RODBC} package.
+based on that in the @pkg{RODBC} package.
 
 The @file{configure.ac} file follows: @file{configure} is created from
 this by running @command{autoconf} in the top-level package directory
@@ -1922,7 +1913,7 @@ The @R{} files are checked for correct calls to @code{library.dynam}.
 Package startup functions are checked for correct argument lists and
 (incorrect) calls to functions which modify the search path or
 inappropriately generate messages.  The @R{} code is checked for
-possible problems using @CRANpkg{codetools}.  In addition, it is checked
+possible problems using @pkg{codetools}.  In addition, it is checked
 whether methods have all arguments of the corresponding generic, and
 whether the final argument of replacement functions is called
 @samp{value}.  All foreign function calls (@code{.C}, @code{.Fortran},
@@ -2446,7 +2437,7 @@ figures and not PNG etc.  The PDF figures will contain declarations for
 their encoding, but the Sweave option @code{pdf.encoding} may need to be
 set appropriately: see the help for the @code{pdf()} graphics device.
 
-As a real example of the complexities, consider the @CRANpkg{fortunes}
+As a real example of the complexities, consider the @pkg{fortunes}
 package version @samp{1.4-0}.  That package did not have a declared
 encoding, and its vignette was in ASCII.  However, the data it displays
 are read from a UTF-8 CSV file and will be assumed to be in the current
@@ -2531,7 +2522,7 @@ POSIX-compliant @command{du} program is found on the system: it is
 possible that some other @command{du} programs will incorrectly report
 double the actual size.  This can be disabled by setting
 @env{_R_CHECK_PKG_SIZE_} to a false value.} on installed packages of
-more than 5Mb, detailing directories of more than 1Mb.  It warns about
+more than 5Mb, detailing directories of more than 1Mb.  It notes
 inefficient compression of data: @command{R CMD build --resave-data}
 will compact data as best it can.  Watch out for unnecessary files in
 @file{inst/doc}.  As a general rule, @file{doc} directories should not
@@ -2546,8 +2537,11 @@ See below for ways to reduce the size of PDF files such as vignettes.
 Ensure that checking the package takes no more time than is needed (the
 CRAN check farm is a resource shared between several thousand packages).
 
-See below for ways to find out where your package checks are taking
-significant time.
+If you want to look at the timings for examples, use option
+@option{--timings} to @command{R CMD check}.  This generates a file
+called @file{@var{mypkg}.Rcheck/@var{mypkg}-Ex.timings} containing
+timings for each help files (as given by @code{system.time()}).  It is a
+tab-delimited file which can be read into @R{} for further analysis.
 @end enumerate
 
 @noindent
@@ -2583,11 +2577,10 @@ subdirectory of their package.
 
 @menu
 * PDF size::                    
-* Package timing::              
 * Windows external software::   
 @end menu
 
-@node PDF size, Package timing, Submitting a package to CRAN, Submitting a package to CRAN
+@node PDF size, Windows external software, Submitting a package to CRAN, Submitting a package to CRAN
 @subsection PDF size
 
 There are a several tools available to reduce the size of PDF files,
@@ -2642,34 +2635,7 @@ preamble of an Sweave or @LaTeX{} file: see how this is done for the
 @R{} reference manual at
 @uref{https://svn.r-project.org/R/trunk/doc/manual/refman.top}.
 
-@node Package timing, Windows external software, PDF size, Submitting a package to CRAN
-@subsection Package timing
-
-There are several ways to find out where time is being spent in the
-check process.  Start by setting the environment variable
-@env{_R_CHECK_TIMINGS_} to @samp{0}.  This will report the total CPU
-times (not Windows) and elapsed times for installation and running
-examples, tests and vignettes, under each sub-architecture if
-appropriate.  For tests and vignettes, it reports the time for each as
-well as the total.
-
-Setting @env{_R_CHECK_TIMINGS_} to a non-zero value sets a threshold (in
-seconds) for reporting timings.
-
-If you need to look in more detail at the timings for examples, use
-option @option{--timings} to @command{R CMD check}.  This generates a
-file called @file{@var{mypkg}.Rcheck/@var{mypkg}-Ex.timings}
-containing timings for each help files (as given by
-@code{system.time()}).  It is a tab-delimited file which can be read
-into @R{} for further analysis.
-
-Timings for the tests and vignette runs are given at the bottom of the
-corresponding log file: note that log files for successful vignette runs
-are only retained if @env{_R_CHECK_ALWAYS_LOG_VIGNETTE_OUTPUT_} is set
-to a true value.
-
-
-@node Windows external software,  , Package timing, Submitting a package to CRAN
+@node Windows external software,  , PDF size, Submitting a package to CRAN
 @subsection Windows external software
 
 Note that @acronym{CRAN} does not accept submissions of precompiled
@@ -2679,12 +2645,12 @@ Windows binaries of their packages on @acronym{CRAN} have three options
 @enumerate
 @item
 To arrange for installation of the package to download the
-additional software from a URL, as e.g.@: package @CRANpkg{Cairo} does.
+additional software from a URL, as e.g.@: package @pkg{Cairo} does.
 
 @item
 To negotiate with Uwe Ligges to host the additional components on
 WinBuilder, and write a @file{configure.win} file to install them.
-There are used to be many examples, e.g.@: package @CRANpkg{rgdal} (however
+There are used to be many examples, e.g.@: package @pkg{rgdal} (however
 nowadays CRAN prefers to use a uniform cross-compilation approach for
 software such as GDAL).
 
@@ -2700,7 +2666,7 @@ will if your package has a GPL-like license).
 
 Also be aware that there are both 32- and 64-bit builds of @R{} for
 Windows with a combined distribution of binary packages, so the
-@acronym{CRAN} team will be unwilling to support a package that works
+@acronym{CRAN} team will be reluctant to support a package that works
 under just one of the architectures.
 
 
@@ -3067,7 +3033,7 @@ R_version <- function()
 
 Using argument @code{.fixes} allows an automatic prefix to be added to
 the registered symbols, which can be useful when working with an
-existing package.  For example, package @CRANpkg{KernSmooth} has
+existing package.  For example, package @pkg{KernSmooth} has
 
 @example
 useDynLib(KernSmooth, .registration = TRUE, .fixes = "F_")
@@ -3390,13 +3356,10 @@ in C on all @R{} platforms.
 Under no circumstances should your compiled code ever call @code{abort}
 or @code{exit}: these terminate the user's @R{} process, quite possibly
 including all his unsaved work.  One usage that could call @code{abort}
-is the @code{assert} macro in C or C++ functions, which should never be
-active in production code.  The normal way to ensure that is to define
-the macro @code{NDEBUG}, and as from @R{} 2.15.0 @command{R CMD INSTALL}
-does so as part of the compilation flags.  If you wish to use
-@code{assert} during development. you can include @code{-UNDEBUG} in
-@code{PKG_CPPFLAGS}.  Note that your own @file{src/Makefile} or
-makefiles in sub-directories may also need to define @code{NDEBUG}.
+is the @code{assert} macro in C or C++ functions: if you use
+@code{assert} during development, make doubly sure that @code{NDEBUG} is
+defined in the released package (maybe by adding it to
+@code{PKG_CPPFLAGS}).
 
 This applies not only to your own code but to any external software you
 compile in or link to.  Such code may contain references
@@ -3867,15 +3830,15 @@ declared encoding, or in ASCII if none is declared).  If no such file is
 present, @code{citation} auto-generates citation information from the
 package @file{DESCRIPTION} metadata, and an example of what that would
 look like as a @file{CITATION} file can be seen in recommended package
-@CRANpkg{nlme} (see below): recommended packages @CRANpkg{boot},
-@CRANpkg{cluster} and @CRANpkg{mgcv} have further examples.
+@pkg{nlme} (see below): recommended packages @pkg{boot}, @pkg{cluster}
+and @pkg{mgcv} have further examples.
 
 A @file{CITATION} file will contain calls to function @code{bibentry}
 (new style, only works with @R{} 2.12.0 or later), or to the functions
 @code{citHeader}, @code{citEntry} and (optionally) @code{citFooter} (old
 style).
 
-Here is that for @CRANpkg{nlme}, re-formatted:
+Here is that for @pkg{nlme}, re-formatted:
 
 @example
 citHeader("To cite package 'nlme' in publications use:")
@@ -5407,12 +5370,15 @@ other formats, or extract the executable examples for run-time testing.
 The currently supported conversions are to plain text, @HTML{} and
 @LaTeX{} as well as extraction of the examples.
 
+@findex R CMD Rd2dvi
 @findex R CMD Rd2pdf
-@code{R CMD Rd2pdf} generates PDF output from documentation in @file{Rd}
-files, which can be specified either explicitly or by the path to a
-directory with the sources of a package.  In the latter case, a
-reference manual for all documented objects in the package is created,
-including the information in the @file{DESCRIPTION} files.
+@code{R CMD Rd2dvi} generates DVI (or, if option @option{--pdf} is
+given, or it is invoked as @code{R CMD Rd2pdf}, PDF) output from
+documentation in @file{Rd} files, which can be specified either
+explicitly or by the path to a directory with the sources of a package.
+In the latter case, a reference manual for all documented objects in the
+package is created, including the information in the @file{DESCRIPTION}
+files.  Use for DVI output was deprecated in @R{} 2.14.0.
 
 @findex R CMD Sweave
 @findex R CMD Stangle
@@ -5645,8 +5611,8 @@ useful to compare profiling code immediately after a call to @code{gc()}
 with a profiling run without a preceding call to @code{gc}.
 
 More detailed analysis of the output can be achieved by the tools in the
-@acronym{CRAN} packages @CRANpkg{proftools} and @CRANpkg{profr}: in
-particular these allow call graphs to be studied.
+@acronym{CRAN} packages @pkg{proftools} and @pkg{profr}: in particular
+these allow call graphs to be studied.
 
 @node Profiling R code for memory use, Profiling compiled code, Profiling R code for speed, Tidying and profiling R code
 @section Profiling R code for memory use
@@ -5928,8 +5894,8 @@ which is a GUI version) and @command{Shark} (see
 This chapter covers the debugging of @R{} extensions, starting with the
 ways to get useful error information and moving on to how to deal with
 errors that crash @R{}.  For those who prefer other styles there are
-contributed packages such as @CRANpkg{debug} on @acronym{CRAN}
-(described in an article in
+contributed packages such as @pkg{debug} on @acronym{CRAN} (described in
+an article in
 @uref{http://cran.r-project.org/@/doc/@/Rnews/@/Rnews_2003-3.pdf, R-News
 3/3}).  (There are notes from 2002 provided by Roger Peng at
 @uref{http://www.biostat.jhsph.edu/@/~rpeng/@/docs/@/R-debug-tools.pdf}
@@ -6481,7 +6447,7 @@ An example of @code{valgrind} output is
 @end smallexample
 @noindent
 This example is from an instrumented version of @R{}, while tracking
-down a bug in the @CRANpkg{Matrix} package in January, 2006.  The first line
+down a bug in the @pkg{Matrix} package in January, 2006.  The first line
 indicates that @R{} has tried to read 4 bytes from a memory address that
 it does not have access to. This is followed by a C stack trace showing
 where the error occurred. Next is a description of the memory that was
@@ -6518,9 +6484,8 @@ can usually be done with the @command{valgrind} option
 @option{--dysmutil=yes} to ask for the symbols to be dumped when the
 @file{.so} file is loaded.  This will not work where packages are
 installed into a system area (such as the @file{R.framework}) and can be
-slow.  Installing packages with @command{R CMD INSTALL --dsym} installs
-the dumped symbols.  (This can also be done by setting environment
-variable @env{PKG_MAKE_DSYM} to a non-empty value.)
+slow.  Installing packages with environment variable @env{PKG_MAKE_DSYM}
+set to a non-empty value installs the dumped sybols.
 
 
 @node Debugging compiled code,  , Using gctorture and valgrind, Debugging
@@ -7334,7 +7299,7 @@ This then arranges that the @file{include} directories in the installed
 linked-to packages are added to the include paths for C and C++ code.
 
 A @acronym{CRAN} example of the use of this mechanism is package
-@CRANpkg{lme4}, which links to @CRANpkg{Matrix}.
+@pkg{lme4}, which links to @pkg{Matrix}.
 
 @node Creating shared objects, Interfacing C++ code, Registering native routines, System and foreign language interfaces
 @section Creating shared objects
@@ -7439,7 +7404,7 @@ file @samp{README.packages} and
 @file{@var{dllname}-win.def}: otherwise all entry points in objects (but
 not libraries) supplied to @code{R CMD SHLIB} will be exported from the
 DLL.  An example is @file{stats-win.def} for the @pkg{stats} package: a
-@acronym{CRAN} example in package @CRANpkg{fastICA}.
+@acronym{CRAN} example in package @pkg{fastICA}.
 
 If you feel tempted to read the source code and subvert these
 mechanisms, please resist.  Far too much developer time has been wasted
@@ -9390,7 +9355,7 @@ encountered at @R{} level, but are created in C code.
 @cindex external pointer
 External pointer @code{SEXP}s are intended to handle references to C
 structures such as `handles', and are used for this purpose in package
-@CRANpkg{RODBC} for example.  They are unusual in their copying semantics in
+@pkg{RODBC} for example.  They are unusual in their copying semantics in
 that when an @R{} object is copied, the external pointer object is not
 duplicated.  (For this reason external pointers should only be used as
 part of an object with normal semantics, for example an attribute or an
@@ -9503,7 +9468,7 @@ Bioconductor package uses weak references.
 @node An external pointer example,  , External pointers and weak references, External pointers and weak references
 @subsection An example
 
-Package @CRANpkg{RODBC} uses external pointers to maintain its
+Package @pkg{RODBC} uses external pointers to maintain its
 @emph{channels}, connections to databases.  There can be several
 connections open at once, and the status information for each is stored
 in a C structure (pointed to by @code{this_handle}) in the code extract
@@ -10894,7 +10859,7 @@ The C99 keyword @code{inline} should be recognized by all compilers now
 used to build @R{}.  Portable code which might be used with earlier
 versions of @R{} can be written using the macro @code{R_INLINE} (defined
 in file @file{Rconfig.h} included by @file{R.h}), as for example from
-package @CRANpkg{cluster}
+package @pkg{cluster}
 
 @example
 #include <R.h>
@@ -11273,10 +11238,10 @@ There are a number of ways to build front-ends to @R{}: we take this to
 mean a GUI or other application that has the ability to submit commands
 to @R{} and perhaps to receive results back (not necessarily in a text
 format).  There are other routes besides those described here, for
-example the package @CRANpkg{Rserve} (from @acronym{CRAN}, see also
+example the package @pkg{Rserve} (from @acronym{CRAN}, see also
 @uref{http://www.rforge.net/@/Rserve/}) and connections to Java in
 @samp{SJava} (see @uref{http://www.omegahat.org/@/RSJava/} and @samp{JRI},
-part of the @CRANpkg{rJava} package on @acronym{CRAN}).
+part of the @pkg{rJava} package on @acronym{CRAN}).
 
 @menu
 * Embedding R under Unix-alikes::  
@@ -11822,9 +11787,9 @@ There is a (D)COM server called @code{StatConnector} written by Thomas
 Baier available via
 @uref{http://cran.r-project.org/@/other-software.html} or
 @uref{http://sunsite.univie.ac.at/rcom/}, which works with package
-@CRANpkg{rscproxy} to support transfer of data to and from @R{} and remote
+@pkg{rscproxy} to support transfer of data to and from @R{} and remote
 execution of R commands, as well as embedding of an @R{} graphics
-window.  The @CRANpkg{rcom} package on @acronym{CRAN} provides a (D)COM
+window.  The @pkg{rcom} package on @acronym{CRAN} provides a (D)COM
 server in a running @R{} session.
 
 @item

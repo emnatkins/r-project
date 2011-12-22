@@ -16,11 +16,10 @@
 
 ###----- NOTE:	../man/base-deprecated.Rd   must be synchronized with this file!
 ###		-------------------------
-.Deprecated <- function(new, package = NULL, msg,
-			old = as.character(sys.call(sys.parent()))[1L])
-{
+.Deprecated <- function(new, package = NULL, msg) {
     msg <- if( missing(msg) ) {
-	msg <- gettextf("'%s' is deprecated.\n", old)
+	msg <- gettextf("'%s' is deprecated.\n",
+			as.character(sys.call(sys.parent()))[1L] )
 	if(!missing(new))
 	    msg <- c(msg, gettextf("Use '%s' instead.\n", new))
 	c(msg,
@@ -37,12 +36,24 @@
 
 ## <entry>
 ## Deprecated in 2.5.0
-## Sys.putenv <- function(...) {
-##     .Deprecated("Sys.setenv")
-##     Sys.setenv(...)
-## }
+Sys.putenv <- function(...) {
+    .Deprecated("Sys.setenv")
+    Sys.setenv(...)
+}
 ## </entry>
 
+
+## <entry>
+## Deprecated in 2.14.0
+.readRDS <- function(...) {
+    .Deprecated("readRDS")
+    readRDS(...)
+}
+.saveRDS <- function(...) {
+    .Deprecated("saveRDS")
+    saveRDS(...)
+}
+## </entry>
 
 ## Allow for future deprecation/defunct
 .find.package <- function(...) find.package(...)

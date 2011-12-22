@@ -1,245 +1,9 @@
 \newcommand{\PR}{\Sexpr[results=rd]{tools:::Rd_expr_PR(#1)}}
 \newcommand{\Rlogo}{\if{html}{\figure{../../html/logo.jpg}}\if{latex}{\figure{logo.jpg}{options: width=0.5in}}}
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
 
 \name{NEWS}
 \title{ R News}
 \encoding{UTF-8}
-
-\section{\Rlogo CHANGES IN R-devel}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item Environment variable \env{RD2DVI_INPUTENC} has been renamed
-      to \env{RD2PDF_INPUTENC}.
-
-      \item \code{.Deprecated()} becomes a bit more flexible, getting an
-      \code{old} argument.
-
-      \item Even data-only packages without \R code need a namespace and
-      so may need to be installed under \R 2.14.0 or later.
-
-      \item \code{assignInNamespace()} has further restrictions on use
-      apart from at top-level, as its help page has warned.
-      Expect it to be disabled from programmatic use in the future.
-
-      \item \code{system()} and \code{system2()} when capturing output
-      report a non-zero status in the new \code{"status"} attribute.
-
-      \item \code{kronecker()} now has an S4 generic in package
-      \pkg{methods} on which packages can set methods.  It will be
-      invoked by \code{X \%x\% Y} if either \code{X} or \code{Y} is an S4
-      object.
-
-      \item \code{pdf()} accepts forms like \code{file = "|lpr"} in the
-      same way as \code{postscript()}.
-
-      \item \code{pdf()} accepts \code{file = NULL}.
-      This means that the device does NOT create a PDF file
-      (but it can still be queried, e.g., for font metric info).
-
-      \item \code{format()} (and hence \code{print()}) on
-      \code{"bibentry"} objects now uses \code{options("width")} to
-      set the output width.
-
-      \item PCRE has been upgraded to version 8.20 with bug fixes and
-      greater Perl compatibility.  This adds a JIT pattern compiler,
-      about which PCRE's news says \sQuote{large performance benefits
-      can be had in many situations}.  (It is supported on most but not
-      all platforms that run R.)
-
-      \item \code{legend()} gains a \code{text.font} argument. (Suggested
-      by Tim Paine, \PR{14719}.)
-
-      \item \code{nchar()} and \code{nzchar()} no longer accept factors
-      (as integer vectors).  (Wish of \PR{6899}.)
-
-      \item \code{summary()} behaves slightly differently (or more
-      precisely, its \code{print()} method does).  For numeric inputs, the
-      number of NAs is printed as an integer and not a real.  For dates
-      and datetimes, the number of NAs is included in the printed output
-      (the latter being the wish of \PR{14720}).
-
-      The \code{"data.frame"} method is more consistent with the default
-      method: in particular it now applies \code{zapsmall()} to
-      numeric/complex summaries.
-
-      \item The number of items retained with \code{options(warn = 0)}
-      can be set by \code{options(nwarnings=)}.
-
-      \item There is a new function \code{assignInMyNamespace()} which
-      uses the namespace of the function it is called from.
-
-      \item \code{attach()} allows the default name for an attached file
-      to be overridden.
-
-      \item \code{bxp()}, the work horse of \code{boxplot()}, now uses a
-      more sensible default \code{xlim} in the case where \code{at} is
-      specified differently from \code{1:n}, see the discussion on R-devel,
-      \url{https://stat.ethz.ch/pipermail/r-devel/2011-November/062586.html}.
-
-      \item new function \code{paste0()}, an efficient version of
-      \code{paste(*, sep="")}, to be used in many places for more
-      concise (and slightly more efficient) code.
-
-      \item Function \code{setClass()} in package \pkg{methods} now
-      returns, invisibly, a generator function for the new class,
-      slightly preferred to calling \code{new()}, as explained on the
-      \code{setClass} help page.
-
-      \item Function \code{compactPDF()} in package \pkg{tools} now
-      takes the default for argument \code{gs_quality} from enironment
-      variable \env{GS_QUALITY}: there is a new value \code{"none"}, the
-      ultimate default, which prevents GhostScript being used in
-      preference to \command{qpdf} even if environment variable
-      \env{R_GSCMD} is set.
-      
-      \item The internal \code{untar()} (as used by default by
-      \command{R CMD INSTALL}) now knows about some \command{pax}
-      headers which \command{bsdtar} incorrectly includes in
-      \command{tar} files, and will skip them with a warning. 
-    }
-  }
-
-  \subsection{PACKAGE parallel}{
-    \itemize{
-      \item There is a new function \code{mcmapply()}, a parallel version
-      of \code{mapply()}, and a wrapper \code{mcMap()}, a parallel
-      version of \code{Map()}.
-
-      \item A default cluster can be registered by the new function
-      \code{setDefaultCluster()}: this will be used by default in
-      functions such as \code{parLapply()}.
-
-      \item \code{clusterMap()} has a new argument \code{.scheduling} to
-      allow the use of load-balancing.
-
-      \item There are new load-balancing functions \code{parLapplyLB()}
-      and \code{parSapplyLB()}.
-    }
-  }
-
-  \subsection{PACKAGE INSTALLATION}{
-    \itemize{
-      \item Non-ASCII vignettes without a declared encoding are no
-      longer accepted.
-
-      \item C/C++ code in packages is now compiled with \code{-NDEBUG}
-      to mitigate against the C/C++ function \code{assert} being called
-      in production use.  Developers can turn this off during package
-      development with \code{PKG_CPPFLAGS = -UNDEBUG}.
-
-      \item \command{R CMD INSTALL} has a new option \option{--dsym}
-      which on Mac OS X (Darwin) dumps the symbols alongside the
-      \file{.so} file: this is helpful when debugging with
-      \command{valgrind} (and especially when installing packages into
-      \file{R.framework}).  [This can also be enabled by setting the
-      undocumented environment variable \env{PKG_NAKE_DSYM}, since \R
-      2.12.0.]
-
-      \item \command{R CMD INSTALL} will test loading under all installed
-      sub-architectures even for packages without compiled code, unless
-      the flag \option{--no-multiarch} is used.  (Pure \R packages can
-      do things which are architecture-dependent: in the case which
-      prompted this, looking for an icon in a Windows \R executable.)
-      
-      \item There is a new option \code{install.packages(type = "both")}
-      which tries source packages if binary packages are not available,
-      on those platforms where the latter is the default.
-
-      \item The meaning of \code{install.packages(dependencies = TRUE)}
-      has changed: it now means to install the essential dependencies of
-      the named packages plus the \samp{Suggests}, but only the
-      essential dependencies of dependencies.  To get the previous
-      behaviour, specify \code{dependencies} as a character vector.
-    }
-  }
-
-  \subsection{UTILITIES}{
-    \itemize{
-       \item \command{R CMD check} now gives a warning rather than a
-       note if it finds inefficiently compressed datasets.  With
-       \command{bzip2} and \command{xz} compression having been
-       available since \R 2.10.0, there is no excuse for not using them.
-
-       \item Where multiple sub-architectures are to be tested,
-       \command{R CMD check} now runs the examples and tests for all the
-       sub-architectures even if one fails.
-
-       \item \command{R CMD check} can optionally report timings on
-       various parts of the check: this is controlled by environment
-       variable \env{_R_CHECK_TIMINGS_} documented in \sQuote{Writing R
-	 Extensions}.  Timings (in the style of \command{R CMD BATCH} are
-       given at the foot of the output file from running each test and
-       the \R code in each vignette.
-     }
-   }
-
-  \subsection{DEPRECATED AND DEFUNCT}{
-   \itemize{
-      \item \command{R CMD Rd2dvi} is now defunct: use \command{R CMD Rd2pdf}.
-
-      \item Options such as \code{--max-nsize} and the function
-      \code{mem.limits()} are now defunct.
-
-      \item Use of \code{library.dynam()} without specifying all the
-      first three arguments is now disallowed.
-
-      Use of an argument \code{chname} in \code{library.dynam()}
-      including the extension \file{.so} or \code{.dll} (which was never
-      allowed according to the help page) is defunct.  This also applies
-      to \code{library.dynam.unload()} and to \code{useDynLib}
-      directives in \code{NAMESPACE} files.
-
-      \item The internal functions (but still used by some packages)
-      \code{.readRDS()} and \code{.saveRDS()} are now defunct.
-
-      \item The off-line \code{help()} types \samp{"postscript"} and
-      \samp{"ps"} are defunct.
-
-      \item \code{Sys.putenv()}, replaced and deprecated in \R 2.5.0, is
-      finally removed.
-
-      \item Some functions/objects which have been defunct for five or
-      more years have been removed completely.  These include
-      \code{.Alias()}, \code{La.chol()}, \code{La.chol2inv()},
-      \code{La.eigen()}, \code{Machine()}, \code{Platform()},
-      \code{Version}, \code{codes()}, \code{delay()},
-      \code{format.char()}, \code{getenv()}, \code{httpclient()},
-      \code{loadURL()}, \code{machine()}, \code{parse.dcf()},
-      \code{printNoClass()}, \code{provide()}, \code{read.table.url()},
-      \code{restart()}, \code{scan.url()}, \code{symbol.C()},
-      \code{symbol.For()} and \code{unix()}.
-    }
-  }
-
-  \subsection{INSTALLATION}{
-    \itemize{
-      \item Building wih a positive value of
-      \option{--with-valgrind-instrumentation} now  also instruments logical,
-      complex and raw vectors.
-      
-      \item There is experimental support for \emph{link-time
-	optimization} with \command{gcc} 4.5.0 or later on platforms
-	which support it.
-    }
-  }
-
-  \subsection{BUG FIXES}{
-    \itemize{
-      \item \code{str(x, width)} now obeys its \code{width}
-      argument also for function headers and other objects \code{x}
-      where \code{deparse()} is applied.
-      
-      \item The convention for \code{x \%/\% 0L} for integer-mode \code{x}
-      has been changed from \code{0L} to \code{NA_integer_}.
-      (\PR{14754})
-
-      \item R configured with \code{--disable-openmp} would mistakenly
-      set \code{HAVE_OPENMP} (internal) and \code{SUPPORT_OPENMP} (in
-      \file{Rconfig.h}) even though no OpenMP flags were populated.
-    }
-  }
-}
 
 \section{\Rlogo CHANGES IN R VERSION 2.14.0 patched}{
   \subsection{NEW FEATURES}{
@@ -251,7 +15,7 @@
       remains \code{detectCores(logical = TRUE)} on that platform.
 
       \item Reference classes now keep a record of which fields are
-      locked.  \code{$lock()} with no arguments returns the names % $ 
+      locked.  \code{$lock()} with no arguments returns the names
       of the locked fields.
 
       \item \code{HoltWinters()} reports a warning rather than an error
@@ -263,22 +27,22 @@
 
       \item \code{parallel::clusterExport()} now allows specification of
       an environment from which to export.
-
+      
       \item The \code{quartz()} device now does tilde expansion on its
       \code{file} argument.
-
+      
       \item \code{tempfile()} on a Unix-alike now takes the process ID
-      into account.  This is needed with \CRANpkg{multicore} (and as part of
+      into account.  This is needed with \pkg{multicore} (and as part of
       \pkg{parallel}) because the parent and all the children share a
       session temporary directory, and they can share the C random
       number stream used to produce the uniaue part.  Further, two
       children can call \code{tempfile()} simultaneously.
-
+      
       \item Option \code{print} in Sweave's \code{RweaveLatex()} driver
       now emulates auto-printing rather than printing (which can differ
       for an S4 object by calling \code{show()} rather than
       \code{print()}).
-
+      
       \item \code{filled.contour()} now accepts infinite values:
       previously it might have generated invalid graphics files
       (e.g. containing NaN values).
@@ -319,7 +83,7 @@
       expect their examples to be run in a clean directory \dots{}.
      }
    }
-
+   
    \subsection{BUG FIXES}{
     \itemize{
       \item \code{stack()} now gives an error if no vector column is
@@ -363,13 +127,13 @@
       on some platforms this included \code{\\xa0} (non-breaking space)
       which is the trailing byte of a UTF-8 character.  It now only
       considers ASCII space and tab to be \sQuote{blank}.
-
+      
       \item There was a sign error in part of the calculations for the
       variance returned by \code{KalmanSmooth()}.  (\PR{14738})
-
+      
       \item \code{pbinom(10, 1e6, 0.01, log.p = TRUE)} was \code{NaN}
       thanks to the buggy fix to \PR{14320} in \R 2.11.0.  (\PR{14739})
-
+      
       \item \code{RweaveLatex()} now emulates auto-printing rather than
       printing, by calling \code{methods::show()} when auto-printing
       would.
@@ -431,17 +195,17 @@
       \item There is a new package \pkg{parallel}.
 
       It incorporates (slightly revised) copies of packages
-      \CRANpkg{multicore} and \CRANpkg{snow} (excluding MPI, PVM and NWS
+      \pkg{multicore} and \pkg{snow} (excluding MPI, PVM and NWS
       clusters).  Code written to use the higher-level API functions in
       those packages should work unchanged (apart from changing any
       references to their namespaces to a reference to \pkg{parallel},
-      and links explicitly to \CRANpkg{multicore} or \CRANpkg{snow} on help
+      and links explicitly to \pkg{multicore} or \pkg{snow} on help
       pages).
 
       It also contains support for multiple RNG streams following
       L'Ecuyer \emph{et al} (2002), with support for both
-      \code{mclapply} and \CRANpkg{snow} clusters.  This replaces functions
-      like \code{clusterSetupRNG()} from \CRANpkg{snow} (which are not in
+      \code{mclapply} and \pkg{snow} clusters.  This replaces functions
+      like \code{clusterSetupRNG()} from \pkg{snow} (which are not in
       \pkg{parallel}).
 
       The version released for \R 2.14.0 contains base functionality:
@@ -739,7 +503,7 @@
       of help pages, vignettes and demos.
 
       \item \code{socketConnection()} now has a \code{timeout} argument.
-      It is now documented that large values (package \CRANpkg{snow} used a
+      It is now documented that large values (package \pkg{snow} used a
       year) do not work on some OSes.
 
       \item The initialization of the random-number generator now uses
@@ -1610,7 +1374,7 @@
   \subsection{LICENCE}{
     \itemize{
       \item No parts of \R are now licensed solely under GPL-2.  The
-      licences for packages \CRANpkg{rpart} and \CRANpkg{survival} have been
+      licences for packages \pkg{rpart} and \pkg{survival} have been
       changed, which means that the licence terms for \R as distributed
       are GPL-2 | GPL-3.
     }
@@ -2647,7 +2411,7 @@
     \itemize{
       \item The \samp{zlib} sources in the distribution are now built
       with all symbols remapped: this is intended to avoid problems seen
-      with packages such as \CRANpkg{XML} and \CRANpkg{rggobi} which link to
+      with packages such as \pkg{XML} and \pkg{rggobi} which link to
       \file{zlib.so.1} on systems using \samp{zlib 1.2.5}.
 
       \item The default for \env{FFLAGS} and \env{FCFLAGS} with
@@ -2665,7 +2429,7 @@
 
       \item Files \file{R/sysdata.rda} of more than 1Mb are now stored
       in the lazyload database using \command{xz} compression: this for
-      example halves the installed size of package \CRANpkg{Imap}.
+      example halves the installed size of package \pkg{Imap}.
 
       \item \command{R CMD INSTALL} now ensures that directories
       installed from \file{inst} have search permission for everyone.
@@ -2791,7 +2555,7 @@
       resetting the methods tables for the members of the group (patch
       contributed by Martin Morgan).
 
-      \item In some circumstances (including for package \CRANpkg{XML}),
+      \item In some circumstances (including for package \pkg{XML}),
       \command{R CMD INSTALL} installed version-control directories from
       source packages.
 
@@ -3032,7 +2796,7 @@
        objects now insert linebreaks in long calls in the same way that
        the \code{print()} methods for \code{"summary.[g]lm"} objects
        have long done.  This does change the layout of the examples for
-       a number of packages, e.g. \CRANpkg{MASS}.  (\PR{14250})
+       a number of packages, e.g. \pkg{MASS}.  (\PR{14250})
 
       \item \code{constrOptim()} can now be used with method
       \code{"SANN"}.  (\PR{14245})
@@ -5093,7 +4857,7 @@
        \code{aspell()} or other spell checkers.
 
       \item \code{xtabs()} with the new argument \code{sparse = TRUE}
-       now returns a sparse Matrix, using package \CRANpkg{Matrix}.
+       now returns a sparse Matrix, using package \pkg{Matrix}.
 
       \item \code{contr.sum()} etc gain an argument \code{sparse}
        which allows sparse matrices to be returned.
@@ -5465,7 +5229,7 @@
        \option{--data-compress=xz}, often giving even better compression
        on large datasets at the expense of much longer installation
        times.  (The latter is used for the recommended packages: it is
-       particularly effective for \CRANpkg{survival}.)
+       particularly effective for \pkg{survival}.)
 
       \item \code{file()} for open = \code{""}, \code{"r"} or
        \code{"rt"} will automagically detect compressed files (from

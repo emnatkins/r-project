@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-11-23 13:46\n"
+"POT-Creation-Date: 2011-10-17 10:14\n"
 "PO-Revision-Date: 2011-03-26 08:57-0300\n"
 "Last-Translator: Fernando Henrique <pessoal@fernandohrosa.com.br>\n"
 "Language-Team: http://www.feferraz.net/br/P/Projeto_Traducao_R_Portugues\n"
@@ -78,9 +78,6 @@ msgid "path to %s contains spaces,"
 msgstr ""
 
 msgid "this may cause problems when running LaTeX"
-msgstr ""
-
-msgid "the output file '%s' has disappeared"
 msgstr ""
 
 msgid "invalid value for %s : %s"
@@ -334,18 +331,6 @@ msgstr ""
 msgid "too many list items (at most up to number 3899)"
 msgstr ""
 
-msgid "no vector columns were selected"
-msgstr ""
-
-msgid "non-vector columns will be ignored"
-msgstr ""
-
-msgid "at least one vector element is required"
-msgstr ""
-
-msgid "non-vector elements will be ignored"
-msgstr ""
-
 msgid "'form' must be a two-sided formula"
 msgstr ""
 
@@ -353,6 +338,9 @@ msgid "'form' must be a two-sided formula with one term on each side"
 msgstr ""
 
 msgid "'topic' should be a name, length-one character vector or reserved word"
+msgstr ""
+
+msgid "Postscript offline help is deprecated"
 msgstr ""
 
 #, fuzzy
@@ -397,6 +385,12 @@ msgstr ""
 msgid ""
 "package %s exists but was not installed under R >= 2.10.0 so help cannot be "
 "accessed"
+msgstr ""
+
+msgid "running %s failed"
+msgstr ""
+
+msgid "%s produced no output file: sent to printer?"
 msgstr ""
 
 msgid "creation of %s failed"
@@ -499,8 +493,7 @@ msgstr ""
 msgid "DESCRIPTION file of package '%s' is corrupt"
 msgstr ""
 
-msgid ""
-"'DESCRIPTION' file has an 'Encoding' field and re-encoding is not possible"
+msgid "'DESCRIPTION' file has 'Encoding' field and re-encoding is not possible"
 msgstr ""
 
 msgid "DESCRIPTION file of package '%s' is missing or broken"
@@ -786,7 +779,7 @@ msgid "no documentation of type %s and topic %s (or error in processing help)"
 msgstr ""
 
 msgid ""
-"the object of class %s in the function call %s could not be used as a "
+"the object of class \"%s\" in the function call %s could not be used as a "
 "documentation topic"
 msgstr ""
 

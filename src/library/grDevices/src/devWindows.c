@@ -28,7 +28,6 @@
 #include <config.h>
 #endif
 
-#define R_USE_SIGNALS 1
 #include <Defn.h>
 #define R_USE_PROTOTYPES 1
 #include <R_ext/GraphicsEngine.h>
@@ -3074,7 +3073,7 @@ static Rboolean GA_Locator(double *x, double *y, pDevDesc dd)
 		 R_NilValue, R_NilValue);
     cntxt.cend = &donelocator;
     cntxt.cenddata = xd;
-    xd->cntxt = (void *) &cntxt;
+    xd->cntxt = &cntxt;
 
     /* and an exit handler in case the window gets closed */
     dd->onExit = GA_onExit;
@@ -3672,7 +3671,7 @@ static void GA_onExit(pDevDesc dd)
     xd->confirmation = FALSE;
     dd->gettingEvent = FALSE;
 
-    if (xd->cntxt) endcontext((RCNTXT *)xd->cntxt);
+    if (xd->cntxt) endcontext(xd->cntxt);
     if (xd->locator) donelocator((void *)xd);
 
     addto(xd->gawin);

@@ -212,7 +212,7 @@ transformMethod <- function(i, blocks, Rdfile) {
 
 	if (generic != "!") {
 	    findComma(j)
-	    chars[char] <- paste0(" ", generic, " ")
+	    chars[char] <- paste(" ", generic, " ", sep="")
 	    # Delete blanks after the comma
 	    deleteBlanks()
 	    blocks <- rewriteBlocks()
@@ -225,7 +225,7 @@ transformMethod <- function(i, blocks, Rdfile) {
 	methodtype <- ""
     } else {
         findOpen(i)
-	chars[char] <- paste0(generic, "(")
+	chars[char] <- paste(generic, "(", sep="")
 	blocks <- rewriteBlocks()
 	findClose(j)
 	methodtype <- if (grepl("<-", blocks[[j]])) "replacement " else ""
@@ -233,19 +233,19 @@ transformMethod <- function(i, blocks, Rdfile) {
 
     if (blocktag == "\\S4method")
     	blocks <- c( blocks[seq_len(i-1)],
-		     list(structure(paste0("## S4 ", methodtype, "method for signature '"),
+		     list(structure(paste("## S4 ", methodtype, "method for signature '", sep=""),
 			   Rd_tag="RCODE", srcref=srcref)),
 		     class,
 		     list(structure("'\n", Rd_tag="RCODE", srcref=srcref)),
 		     blocks[-seq_len(i)] )
     else if (default)
     	blocks <- c( blocks[seq_len(i-1)],
-    		     list(structure(paste0("## Default S3 ", methodtype, "method:\n"),
+    		     list(structure(paste("## Default S3 ", methodtype, "method:\n", sep=""),
     		     	       Rd_tag="RCODE", srcref=srcref)),
     		     blocks[-seq_len(i)] )
     else
     	blocks <- c( blocks[seq_len(i-1)],
-		     list(structure(paste0("## S3 ", methodtype, "method for class '"),
+		     list(structure(paste("## S3 ", methodtype, "method for class '", sep=""),
 			   Rd_tag="RCODE", srcref=srcref)),
 		     class,
 		     list(structure("'\n", Rd_tag="RCODE", srcref=srcref)),
@@ -358,7 +358,7 @@ Rd2txt <-
     putf <- function(...)  { wrap(FALSE); put(...) }
 
     put <- function(...) {
-        txt <- paste0(..., collapse="")
+        txt <- paste(..., collapse="", sep="")
         trail <- grepl("\n$", txt)
         # Convert newlines
         txt <- strsplit(txt, "\n", fixed = TRUE)[[1L]]
@@ -373,7 +373,7 @@ Rd2txt <-
         if (linestart) buffer <<- c(buffer, txt)
         else if (length(buffer)) {
             buffer[length(buffer)] <<-
-                paste0(buffer[length(buffer)], txt[1L])
+                paste(buffer[length(buffer)], txt[1L], sep="")
             buffer <<- c(buffer, txt[-1L])
         }
         else buffer <<- txt
@@ -418,10 +418,10 @@ Rd2txt <-
 	} else {  # Not wrapping
 	    if (keepFirstIndent) {
 		if (length(buffer) > 1L)
-		    buffer[-1L] <<- paste0(blanks(indent), buffer[-1L])
+		    buffer[-1L] <<- paste(blanks(indent), buffer[-1L], sep="")
 		keepFirstIndent <- FALSE
 	    } else
-		buffer <<- paste0(blanks(indent), buffer)
+		buffer <<- paste(blanks(indent), buffer, sep="")
 	}
 
     	if (length(buffer)) WriteLines(buffer, con, outputEncoding)
@@ -471,7 +471,7 @@ Rd2txt <-
         if (opts$underline_titles) {
             letters <- strsplit(header, "", fixed = TRUE)[[1L]]
             isaln <- grep("[[:alnum:]]", letters)
-            letters[isaln] <- paste0("_\b", letters[isaln])
+            letters[isaln] <- paste("_\b", letters[isaln], sep="")
             paste(letters, collapse = "")
         } else header
     }
@@ -770,7 +770,7 @@ Rd2txt <-
         indent0 <- indent
         indent <<- indent + 1L
         for (i in seq_len(nrow(result))) {
-            putf(paste0(" ", result[i,], " ", collapse=""))
+            putf(paste(" ", result[i,], " ", sep = "", collapse=""))
 # This version stripped leading blanks on the first line
 #            for (j in seq_len(cols))
 #            	putf(" ", result[i,j], " ")
@@ -841,7 +841,7 @@ Rd2txt <-
                                                  indent + opts$extraIndent)
                                   keepFirstIndent <<- TRUE
                                   putw(paste(rep(" ", indent0), collapse=""),
-                                       frmt(paste0(DLlab),
+                                       frmt(paste(DLlab,  sep=""),
                                             justify="left", width=indent),
                                        " ")
                                   writeContent(block[[2L]], tag)
@@ -859,7 +859,7 @@ Rd2txt <-
                                   opts <- Rd2txt_options()
                                   indent <<- max(opts$minIndent, indent + opts$extraIndent)
                                   keepFirstIndent <<- TRUE
-                                  putw(frmt(paste0(DLlab, ": "),
+                                  putw(frmt(paste(DLlab, ": ", sep=""),
                                               justify="right", width=indent))
                                   writeContent(block[[2L]], tag)
 			  	  blankLine(0L)
@@ -966,15 +966,15 @@ Rd2txt <-
 
 	if(nzchar(package)) {
 	    left <- name
-	    mid <- if(nzchar(package)) paste0("package:", package) else ""
+	    mid <- if(nzchar(package)) paste("package:", package, sep = "") else ""
 	    right <- "R Documentation"
 	    if(encoding != "unknown")
-		right <- paste0(right, "(", encoding, ")")
+		right <- paste(right, "(", encoding, ")", sep="")
 	    pad <- max(HDR_WIDTH - nchar(left, "w") - nchar(mid, "w") - nchar(right, "w"), 0)
 	    pad0 <- pad %/% 2L
 	    pad1 <- paste(rep.int(" ", pad0), collapse = "")
 	    pad2 <- paste(rep.int(" ", pad - pad0), collapse = "")
-	    putf(paste0(left, pad1, mid, pad2, right, "\n\n"))
+	    putf(paste(left, pad1, mid, pad2, right, "\n\n", sep=""))
 	}
 
 	putf(txt_header(title))

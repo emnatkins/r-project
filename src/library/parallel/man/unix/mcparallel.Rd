@@ -3,8 +3,6 @@
 % Copyright 2009-11 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{mcparallel}
 \alias{mccollect}
 \alias{mcparallel}
@@ -103,9 +101,9 @@ mccollect(jobs, wait = TRUE, timeout = 0, intermediate = FALSE)
 }
 
 \note{
-  Package \CRANpkg{multicore} also exported functions \code{collect} and
+  Package \pkg{multicore} also exported functions \code{collect} and
   \code{parallel}.  These names are easily masked (for example package
-  \CRANpkg{lattice} also has a function \code{parallel}) and they are not
+  \pkg{lattice} also has a function \code{parallel}) and they are not
   supplied in this package.
 }
 
@@ -113,8 +111,8 @@ mccollect(jobs, wait = TRUE, timeout = 0, intermediate = FALSE)
 \author{
   Simon Urbanek and R Core.
   
-  Derived from the \CRANpkg{multicore} package (but with different
-  handling of the RNG stream).
+  Derived from the \pkg{multicore} package (but with different handling
+  of the RNG stream).
 }
 \seealso{
   \code{\link{pvec}}, \code{\link{mclapply}}

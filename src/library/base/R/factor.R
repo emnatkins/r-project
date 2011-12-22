@@ -39,7 +39,7 @@ factor <- function(x = character(), levels, labels=levels,
 	     domain = NA)
     levels(f) <- ## nl == nL or 1
 	if (nl == nL) as.character(labels)
-	else paste0(labels, seq_along(levels))
+	else paste(labels, seq_along(levels), sep="")
     class(f) <- c(if(ordered)"ordered", "factor")
     f
 }

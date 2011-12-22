@@ -324,21 +324,6 @@ AC_ARG_ENABLE([prebuilt-html],
 AM_CONDITIONAL(BUILD_HTML, [test "x${want_prebuilt_html}" = xyes])
 
 
-AC_ARG_ENABLE([lto],
-[AS_HELP_STRING([--enable-lto],[enable link-time optimization @<:@no@:>@])],
-[want_lto="${enableval}"], [want_lto=no])
-## FIXME: add a test for gcc >= 4.5.0
-if test "x${want_lto}" != xno; then
-  LTO=-flto
-fi
-if test "x${want_lto}" == xyes; then
-  LTOALL=-flto
-fi
-AC_SUBST(LTO)
-AC_SUBST(LTOALL)
-AM_CONDITIONAL(BUILD_LTO, [test "x${want_lto}" != xno])
-
-
 ### ** Optional packages.
 
 ## BLAS.
@@ -797,8 +782,6 @@ R_HEADER_GLIBC2
 ### * Checks for types.
 
 AC_TYPE_SIGNAL
-## xz needs uint64_t
-AC_TYPE_UINT64_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 R_SIZE_MAX
@@ -1685,8 +1668,7 @@ AC_SUBST(FW_VERSION)
 
 if test "x${main_ld_was_given}" = xno -a "${MAIN_LD}" = "${CC}" -a \
         "x${dylib_ld_was_given}" = xno -a "${DYLIB_LD}" = "${CC}" -a \
-        "x${ac_cv_prog_c_openmp}" != "xunsupported" -a \
-        "x${ac_cv_prog_c_openmp}" != "x"; then
+        "x${ac_cv_prog_c_openmp}" != "xunsupported"; then
   R_OPENMP_CFLAGS="${OPENMP_CFLAGS}"
   R_OPENMP_FFLAGS="${OPENMP_FFLAGS}"
   R_SH_VAR_ADD(MAIN_LDFLAGS, [${OPENMP_CFLAGS}])
@@ -2253,7 +2235,6 @@ AC_SUBST(FCLIBS)
 if test "x${shlib_ld_was_given}" = xno -a \
         "${SHLIB_LD}" = "${CC}" -a \
         "x${ac_cv_prog_c_openmp}" != "xunsupported" -a \
-        "x${ac_cv_prog_c_openmp}" != "x" -a \
         "x${shlib_cxxld_was_given}" = xno -a \
         "${SHLIB_CXXLD}" = "${CXX}" -a \
         "x${ac_cv_prog_cxx_openmp}" != "xunsupported" -a \
@@ -2759,6 +2740,12 @@ if test -n "${warn_fcpicflags}"; then
 fi
 if test -n "${warn_tcltk_version}"; then
   AC_MSG_WARN([${warn_tcltk_version}])
+fi
+if test -n "${warn_dvi1}"; then
+  AC_MSG_WARN([${warn_dvi1}])
+fi
+if test -n "${warn_dvi2}"; then
+  AC_MSG_WARN([${warn_dvi2}])
 fi
 if test -n "${warn_info}"; then
   AC_MSG_WARN([${warn_info}])

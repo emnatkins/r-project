@@ -3,8 +3,6 @@
 % Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{step}
 \alias{step}
 \title{
@@ -113,7 +111,7 @@ step(object, scope, scale = 0,
   number of approximations and does not in general compute the correct AIC.
 
   This is a minimal implementation.  Use \code{\link[MASS]{stepAIC}}
-  in package \CRANpkg{MASS} for a wider range of object classes.
+  in package \pkg{MASS} for a wider range of object classes.
 }
 \section{Warning}{
   The model fitting must apply the models to the same dataset. This
@@ -125,7 +123,7 @@ step(object, scope, scale = 0,
   number of observations involved in the fitting process remains unchanged.
 }
 \seealso{
-  \code{\link[MASS]{stepAIC}} in \CRANpkg{MASS}, \code{\link{add1}},
+  \code{\link[MASS]{stepAIC}} in \pkg{MASS}, \code{\link{add1}},
   \code{\link{drop1}}
 }
 \references{
@@ -140,7 +138,7 @@ step(object, scope, scale = 0,
 }
 \author{
   B. D. Ripley: \code{step} is a slightly simplified version of
-  \code{\link[MASS]{stepAIC}} in package \CRANpkg{MASS} (Venables &
+  \code{\link[MASS]{stepAIC}} in package \pkg{MASS} (Venables &
   Ripley, 2002 and earlier editions).
 
   The idea of a \code{step} function follows that described in Hastie &

@@ -1,17 +1,16 @@
 \documentclass[a4paper]{article}
 
-\usepackage{Rd}
-
-% \VignetteIndexEntry{Introduction to grid}
-% \VignettePackage{grid}
-% \VignetteDepends{lattice}
+%\VignetteIndexEntry{Introduction to grid}
+%\VignettePackage{grid}
+%\VignetteDepends{lattice}
 
 % Definitions
+\newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\slan}{{\sffamily S}}
 \newcommand{\rlan}{{\sffamily R}}
+\newcommand{\pkg}[1]{{\normalfont\fontseries{b}\selectfont #1}}
 \newcommand{\grid}{\pkg{grid}}
-\newcommand{\lattice}{\CRANpkg{lattice}}
-
+\newcommand{\lattice}{\pkg{lattice}}
 \setlength{\parindent}{0in}
 \setlength{\parskip}{.1in}
 \setlength{\textwidth}{140mm}
@@ -36,11 +35,11 @@ options(width = 60)
 of control and flexibility in the appearance and arrangement of
 graphical output.  \grid{} does not provide high-level functions which
 create complete plots.  What it does provide is a basis for developing
-such high-level functions (e.g., the \lattice{} and \CRANpkg{ggplot2}
+such high-level functions (e.g., the \lattice{} and \pkg{ggplot2}
 packages), the facilities for customising and manipulating \lattice{}
 output, the ability to produce high-level plots or non-statistical
 images from scratch, and the ability to add sophisticated annotations
-to the output from base graphics functions (see the \CRANpkg{gridBase}
+to the output from base graphics functions (see the \pkg{gridBase}
 package).
 
 This document provides an introduction to the fundamental concepts
@@ -84,10 +83,9 @@ grid.show.viewport(viewport(x = 0.5, y = 0.5, width = 0.5, height = 0.25,
 \includegraphics[width=3.5in, height=3.5in]{grid-viewport}
 }
 \end{center}
-\caption{
-  \label{figure:viewport}
-  A diagram of a simple \grid{} viewport (produced using the
-  \protect\code{grid.show.viewport()} function.}
+\caption{\label{figure:viewport}
+        A diagram of a simple \grid{} viewport (produced using the
+\code{grid.show.viewport() } function.}
 \end{figure}
 
 The object returned by the \code{viewport()} function is only a
@@ -524,7 +522,7 @@ popViewport(2)
 }
 \end{center}
 \caption{\label{figure:simpleplot}
-        The grid equivalent of \protect\code{plot(1:10)}.}
+        The grid equivalent of \code{plot(1:10)}.}
 \end{figure}
 
 Now consider a more complex example, where we create a barplot

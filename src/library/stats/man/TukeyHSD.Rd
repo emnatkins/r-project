@@ -3,8 +3,6 @@
 % Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{TukeyHSD}
 \alias{TukeyHSD}
 \alias{TukeyHSD.aov}
@@ -80,7 +78,7 @@ TukeyHSD(x, which, ordered = FALSE, conf.level = 0.95, \dots)
 }
 \seealso{
   \code{\link{aov}}, \code{\link{qtukey}}, \code{\link{model.tables}},
-  \code{\link[multcomp]{glht}} in package \CRANpkg{multcomp}.
+  \code{\link[multcomp]{glht}} in package \pkg{multcomp}.
 }
 \examples{
 require(graphics)

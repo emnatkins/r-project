@@ -3,8 +3,6 @@
 % Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{confint}
 \alias{confint}
 \alias{confint.default}
@@ -40,12 +38,12 @@ confint(object, parm, level = 0.95, \dots)
   values are used.
 
   There are stub methods for classes \code{"glm"} and \code{"nls"} which
-  invoke those in package \CRANpkg{MASS} which are based on profile
+  invoke those in package \pkg{MASS} which are based on profile
   likelihoods.
 }
 \seealso{
   \code{\link[MASS:confint]{confint.glm}} and
-  \code{\link[MASS:confint]{confint.nls}} in package \CRANpkg{MASS}.
+  \code{\link[MASS:confint]{confint.nls}} in package \pkg{MASS}.
 }
 \examples{
 fit <- lm(100/mpg ~ disp + hp + wt + am, data=mtcars)

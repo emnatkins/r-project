@@ -3,8 +3,6 @@
 % Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{grid.locator}
 \alias{grid.locator}
 \title{ Capture a Mouse Click }
@@ -39,8 +37,7 @@ grid.locator(unit = "native")
 \seealso{ \code{\link{viewport}}, \code{\link{unit}},
   \code{locator} in package \pkg{graphics}, and for an application
   see \code{\link[lattice:interaction]{trellis.focus}} and
-  \code{\link[lattice:interaction]{panel.identify}} in package
-  \CRANpkg{lattice}.
+  \code{\link[lattice:interaction]{panel.identify}} in package \pkg{lattice}.
 }
 \examples{
 if (interactive()) {

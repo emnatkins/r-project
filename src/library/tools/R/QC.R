@@ -220,7 +220,7 @@ function(package, dir, lib.loc = NULL)
             mlist <- .get_S4_methods_list(g, code_env)
             sigs <- .make_siglist(mlist) #  s/#/,/g
             if(length(sigs))
-                paste0(g, ",", sigs)
+                paste(g, ",", sigs, sep = "")
             else
                 character()
         }
@@ -794,7 +794,7 @@ function(x, ...)
         if(!length(s))
             "function()"
         else if(has_only_names)
-	    paste0("function(", paste(s, collapse = ", "), ")")
+            paste("function(", paste(s, collapse = ", "), ")", sep = "")
         else {
             s <- paste(deparse(s), collapse = "")
             s <- gsub(" = ([,\\)])", "\\1", s)
@@ -1384,7 +1384,7 @@ function(package, dir, lib.loc = NULL)
             }
             bad <- sapply(arg_names_in_arg_list_missing_in_usage,
                           function(x)
-			  !grepl(paste0("\\b", x, "\\b"),
+                          !grepl(paste("\\b", x, "\\b", sep = ""),
                                  usage_text))
             arg_names_in_arg_list_missing_in_usage <-
                 c(bad_args,
@@ -1633,7 +1633,7 @@ function(package, dir, lib.loc = NULL)
         ## for internal generics and group generics.)
         ## Matching via grep() is tricky with e.g. a '$' in the name of
         ## the generic function ... hence substr().
-        name <- paste0(g, ".")
+        name <- paste(g, ".", sep = "")
         methods <-
             functions_in_code[substr(functions_in_code, 1L,
                                      nchar(name, type="c")) == name]
@@ -2162,7 +2162,7 @@ function(package, dir, lib.loc = NULL)
         ## needed for internal generics and group generics.)
         ## Matching via grep() is tricky with e.g. a '$' in the name
         ## of the generic function ... hence substr().
-        name <- paste0(g, ".")
+        name <- paste(g, ".", sep = "")
         methods <-
             functions_in_code[substr(functions_in_code, 1L,
                                      nchar(name, type="c")) == name]
@@ -2189,12 +2189,12 @@ format.checkS3methods <-
 function(x, ...)
 {
     format_args <- function(s)
-        paste0("function(", paste(s, collapse = ", "), ")")
+        paste("function(", paste(s, collapse = ", "), ")", sep = "")
 
     .fmt <- function(entry) {
-        c(paste0(names(entry)[1L], ":"),
+        c(paste(names(entry)[1L], ":", sep = ""),
           strwrap(format_args(entry[[1L]]), indent = 2L, exdent = 11L),
-          paste0(names(entry)[2L], ":"),
+          paste(names(entry)[2L], ":", sep = ""),
           strwrap(format_args(entry[[2L]]), indent = 2L, exdent = 11L),
           "")
     }
@@ -2522,7 +2522,6 @@ function(dir, force_suggests = TRUE)
     }
     ldepends <-  .get_requires_with_version_from_package_db(db, "Depends")
     limports <-  .get_requires_with_version_from_package_db(db, "Imports")
-    llinks <-  .get_requires_with_version_from_package_db(db, "LinkingTo")
     lsuggests <- .get_requires_with_version_from_package_db(db, "Suggests")
     ## NB: no one checks version for 'Enhances'.
     lenhances <- .get_requires_with_version_from_package_db(db, "Enhances")
@@ -2535,8 +2534,9 @@ function(dir, force_suggests = TRUE)
 
     bad_depends <- list()
 
-    ## Are all packages listed in Depends/Suggests/Imports/LinkingTo installed?
-    lreqs <- c(ldepends, limports, llinks,
+    ## Are all packages listed in Depends/Suggests/Imports installed?
+    lreqs <- c(ldepends,
+               limports,
                if(force_suggests) lsuggests)
     lreqs2 <- c(if(!force_suggests) lsuggests, lenhances)
     if(length(c(lreqs, lreqs2))) {
@@ -2553,15 +2553,8 @@ function(dir, force_suggests = TRUE)
             reqs <- unique(sapply(lreqs, `[[`, 1L))
             reqs <- reqs %w/o% installed
             m <- reqs %in% standard_package_names$stubs
-            if(length(reqs[!m])) {
-                bad <- reqs[!m]
-                bad1 <-  bad[! bad %in% suggests]
-                if(length(bad1))
-                    bad_depends$required_but_not_installed <- bad1
-                bad2 <-  bad[bad %in% suggests]
-                if(length(bad2))
-                    bad_depends$suggested_but_not_installed <- bad2
-            }
+            if(length(reqs[!m]))
+                bad_depends$required_but_not_installed <- reqs[!m]
             if(length(reqs[m]))
                 bad_depends$required_but_stub <- reqs[m]
             ## now check versions
@@ -2638,60 +2631,63 @@ function(x, ...)
 {
     c(character(),
       if(length(bad <- x$required_but_not_installed) > 1L) {
-          c("Packages required but not available:", .pretty_format(bad), "")
-      } else if(length(bad)) {
-          c(sprintf("Package required but not available: %s", sQuote(bad)), "")
-      },
-      if(length(bad <- x$suggested_but_not_installed) > 1L) {
-          c("Packages suggested but not available:", .pretty_format(bad), "")
-      } else if(length(bad)) {
-          c(sprintf("Package suggested but not available: %s", sQuote(bad)), "")
-      },
-      if(length(bad <- x$required_but_obsolete) > 1L) {
-          c("Packages required and available but unsuitable versions:",
+          c(gettext("Packages required but not available:"),
             .pretty_format(bad),
             "")
       } else if(length(bad)) {
-          c(sprintf("Package required and available but unsuitable version: %s", sQuote(bad)),
+          c(gettextf("Package required but not available: %s", sQuote(bad)),
+            "")
+      },
+      if(length(bad <- x$required_but_obsolete) > 1L) {
+          c(gettext("Packages required and available but unsuitable versions:"),
+            .pretty_format(bad),
+            "")
+      } else if(length(bad)) {
+          c(gettextf("Package required and available but unsuitable version: %s", sQuote(bad)),
             "")
       },
       if(length(bad <- x$required_but_stub) > 1L) {
-          c("Former standard packages required but now defunct:",
+          c(gettext("Former standard packages required but now defunct:"),
             .pretty_format(bad),
             "")
       } else if(length(bad)) {
-          c(sprintf("Former standard package required but now defunct: %s", sQuote(bad)), "")
+          c(gettextf("Package required but not available: %s", sQuote(bad)),
+            "")
       },
       if(length(bad <- x$suggests_but_not_installed) > 1L) {
-          c("Packages suggested but not available for checking:",
+          c(gettext("Packages suggested but not available for checking:"),
             .pretty_format(bad),
             "")
       } else if(length(bad)) {
-          c(sprintf("Package suggested but not available for checking: %s",
+          c(gettextf("Package suggested but not available for checking: %s",
                      sQuote(bad)),
             "")
       },
       if(length(bad <- x$enhances_but_not_installed) > 1L) {
-          c("Packages which this enhances but not available for checking:",
+          c(gettext("Packages which this enhances but not available for checking:"),
             .pretty_format(bad),
             "")
       } else if(length(bad)) {
-          c(sprintf("Package which this enhances but not available for checking: %s", sQuote(bad)),
+          c(gettextf("Package which this enhances but not available for checking: %s", sQuote(bad)),
             "")
       },
       if(length(bad <- x$missing_vignette_depends)) {
           c(if(length(bad) > 1L) {
-                c("Vignette dependencies not required:", .pretty_format(bad))
+                c(gettext("Vignette dependencies not required:"),
+                  .pretty_format(bad))
             } else {
-                sprintf("Vignette dependencies not required: %s", sQuote(bad))
+                gettextf("Vignette dependencies not required: %s", sQuote(bad))
             },
             strwrap(gettext("Vignette dependencies (\\VignetteDepends{} entries) must be contained in the DESCRIPTION Depends/Suggests/Imports entries.")),
             "")
       },
       if(length(bad <- x$missing_namespace_depends) > 1L) {
-          c("Namespace dependencies not required:", .pretty_format(bad), "")
+          c(gettext("Namespace dependencies not required:"),
+            .pretty_format(bad),
+            "")
       } else if(length(bad)) {
-          c(sprintf("Namespace dependency not required: %s", sQuote(bad)), "")
+          c(gettextf("Namespace dependency not required: %s", sQuote(bad)),
+            "")
       }
       )
 }
@@ -2817,7 +2813,7 @@ function(dfile)
         bad_dep_entry <- bad_dep_op <- bad_dep_version <- character()
         dep_regexp <-
             paste("^[[:space:]]*",
-                  paste0("(R|", valid_package_name_regexp, ")"),
+                  paste("(R|", valid_package_name_regexp, ")", sep = ""),
                   "([[:space:]]*\\(([^) ]+)[[:space:]]+([^) ]+)\\))?",
                   "[[:space:]]*$",
                   sep = "")
@@ -3493,7 +3489,7 @@ function(package, dir, lib.loc = NULL)
     db <- cbind(db, bad = FALSE, report = db[, 1L])
     have_anchor <- nzchar(anchor <- db[, 2L])
     db[have_anchor, "report"] <-
-        paste0("[", db[have_anchor, 2L], "]{", db[have_anchor, 1L], "}")
+        paste("[", db[have_anchor, 2L], "]{", db[have_anchor, 1L], "}", sep = "")
 
     ## Check the targets from the non-anchored xrefs.
     db[!have_anchor, "bad"] <- !( db[!have_anchor, 1L] %in% unlist(aliases))
@@ -3650,7 +3646,7 @@ format.check_package_datasets <-
 function(x, ...)
 {
     ## not sQuote as we have mucked about with locales.
-    iconv0 <- function(x, ...) paste0("'", iconv(x, ...), "'")
+    iconv0 <- function(x, ...) paste("'", iconv(x, ...), "'", sep="")
 
     c(character(),
       if(n <- x$latin1) {
@@ -3731,7 +3727,7 @@ print.check_package_compact_datasets <-
 function(x, ...)
 {
     reformat <- function(x) {
-        xx <- paste0(x, "b")
+        xx <- paste(x, "b", sep = "")
         ind1 <- (x >= 1024)
         xx[ind1] <- sprintf("%.0fKb", x[ind1]/1024)
         ind2 <- x >= 1024^2
@@ -4229,10 +4225,12 @@ function(x, ...)
                        f, sQuote(paste(bad, collapse = ", ")))
           },
           if(length(bad <- e[["bad_calls"]])) {
-	      c(gettextf("  %s calls:", f),
-		paste0("    ",
-		       unlist(lapply(bad[["calls"]], function(e)
-				     paste(deparse(e), collapse = "")))))
+              c(gettextf("  %s calls:", f),
+                paste("    ",
+                      unlist(lapply(bad[["calls"]],
+                                    function(e) paste(deparse(e),
+                                                      collapse = ""))),
+                      sep = ""))
           })
     }
 
@@ -4334,68 +4332,6 @@ function(e)
 .call_names <-
 function(x)
     as.character(sapply(x, function(e) deparse(e[[1L]])))
-
-### * .check_package_code_tampers
-
-.check_package_code_tampers <-
-function(dir)
-{
-    dfile <- file.path(dir, "..", "DESCRIPTION")
-    enc <- if(file.exists(dfile))
-        .read_description(dfile)["Encoding"] else NA
-    pkgname <- if(file.exists(dfile)) .read_description(dfile)["Package"] else ""
-
-    ## Workhorse function.
-    filter <- function(file) {
-        exprs <- if(!is.na(enc) &&
-                    !(Sys.getlocale("LC_CTYPE") %in% c("C", "POSIX"))) {
-            lines <- iconv(readLines(file, warn = FALSE), from = enc, to = "",
-                           sub = "byte")
-	    parse(text = lines)
-	} else parse(file)
-        check_fun <- function(e)
-        {
-            if(length(e) <= 1L) return(FALSE)
-            if(as.character(e[[1L]])[1L] %in% "unlockBinding") {
-                e3 <- as.character(e[[3L]])
-                if (e3[[1L]] == "asNamespace") e3 <- as.character(e[[3L]][[2L]])
-                return(e3 != pkgname)
-            }
-            if((as.character(e[[1L]])[1L] %in% ".Internal") &&
-               as.character(e[[2L]][[1L]]) == "unlockBinding") return(TRUE)
-            if(as.character(e[[1L]])[1L] %in% "assignInNamespace") {
-                e3 <- as.character(e[[4L]])
-                if (e3 == "asNamespace") e3 <- as.character(e[[4L]][[2L]])
-                return(e3 != pkgname)
-            }
-            FALSE
-        }
-        .find_calls(exprs, check_fun, recursive = TRUE)
-    }
-
-    code_files <-
-        list_files_with_type(dir, "code",
-                             OS_subdirs = c("unix", "windows"))
-    x <- lapply(code_files, filter)
-    names(x) <- code_files
-    x <- x[sapply(x, length) > 0L]
-
-    ## Because we really only need this for calling from R CMD check, we
-    ## produce output here in case we found something.
-    for(fname in names(x)) {
-        writeLines(gettextf("File '%s':", fname))
-        xfname <- x[[fname]]
-        for(i in seq_along(xfname)) {
-            writeLines(strwrap(gettextf("found %s",
-                                        paste(deparse(xfname[[i]]),
-                                              collapse = "")),
-                               indent = 2L, exdent = 4L))
-        }
-    }
-
-    invisible(x)
-}
-
 
 ### * .check_packages_used
 
@@ -5225,7 +5161,7 @@ function(dir)
     ## Watch out for maintainer changes.
     ## Note that we cannot get the maintainer info from the PACKAGES
     ## files.
-    con <- gzcon(url(sprintf("%s/web/packages/packages.rds", CRAN), "rb"))
+    con <- url(sprintf("%s/web/packages/packages.rds", urls[1L]), "rb")
     db <- tryCatch(readRDS(con), error = identity)
     close(con)
     if(inherits(db, "error")) return(out)
@@ -5547,7 +5483,7 @@ function(txt, re)
                        substring(txt, 1L, ipos - 1L), str)
         txt <- substring(txt, epos + 1L)
     }
-    paste0(out, txt)
+    paste(out, txt, sep = "")
 }
 
 ### ** .functions_to_be_ignored_from_usage
@@ -5610,8 +5546,8 @@ function(env, verbose = getOption("verbose"))
 		    " where hasMethods(g, env) errors: ",
 		    paste(sQuote(rErr), collapse = ", "),
 		    "\nMay need something like\n\n",
-		    paste0("  importFrom(", paste(dq(pkgs), dq(rErr), sep=", "),
-                          ")\n"),
+		    paste("  importFrom(", paste(dq(pkgs), dq(rErr), sep=", "),
+                          ")\n", sep=''),
 		    "\nin NAMESPACE.")
 	    hasM <- hasM[!hasErr]
 	}

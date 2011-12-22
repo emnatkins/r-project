@@ -31,10 +31,10 @@
 
 
 #include <stdio.h>
-#include <time.h>
 #include "Defn.h"
 #include "Fileio.h"
 #include <direct.h>
+#include <time.h>
 #include "graphapp/ga.h"
 #ifndef _WIN32_WINNT
 # define _WIN32_WINNT 0x0502 /* for GetLongPathName, KEY_WOW64_64KEY */

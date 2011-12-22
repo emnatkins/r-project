@@ -36,6 +36,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 {
     if (!missing(keep.source))
         warning("'keep.source' is deprecated and will be ignored")
+    paste0 <- function(...) paste(..., sep="")
     testRversion <- function(pkgInfo, pkgname, pkgpath)
     {
         if(is.null(built <- pkgInfo$Built))
@@ -290,41 +291,67 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
             .getRequiredPackages2(pkgInfo, quietly = quietly)
             deps <- unique(names(pkgInfo$Depends))
 
-            ## If the namespace mechanism is available and the package
-            ## has a namespace, then the namespace loading mechanism
-            ## takes over.
-            if (packageHasNamespace(package, which.lib.loc)) {
-                tt <- try({
-                    ns <- loadNamespace(package, c(which.lib.loc, lib.loc))
-                    dataPath <- file.path(which.lib.loc, package, "data")
-                    env <- attachNamespace(ns, pos = pos,
-                                           dataPath = dataPath, deps)
-                })
-                if (inherits(tt, "try-error"))
-                    if (logical.return)
-                        return(FALSE)
-                    else stop(gettextf("package/namespace load failed for %s",
-                                       sQuote(package)),
-                              call. = FALSE, domain = NA)
-                else {
-                    on.exit(detach(pos = pos))
-                    ## If there are S4 generics then the package should
-                    ## depend on methods
-                    nogenerics <-
-                        !.isMethodsDispatchOn() || checkNoGenerics(env, package)
-                    if(warn.conflicts &&
-                       !exists(".conflicts.OK", envir = env, inherits = FALSE))
-                        checkConflicts(package, pkgname, pkgpath,
-                                       nogenerics, ns)
-                    on.exit()
-                    if (logical.return)
-                        return(TRUE)
-                    else
-                        return(invisible(.packages()))
-                }
-            } else
-            stop(gettextf("package %s does not have a NAMESPACE and should be re-installed",
-                          sQuote(package)), domain = NA)
+            dir.exists <- function(x)
+                !is.na(isdir <- file.info(x)$isdir) & isdir
+            if (package != "datasets" &&
+                dir.exists(file.path(pkgpath, "R"))) {
+                ## Check is package specified keep.source: only
+                ## relevant if not lazy-loaded (and hence installed < R 2.14.0)
+                if (!is.na(value <- pkgInfo$DESCRIPTION["KeepSource"]))
+                    keep.source <-
+                        switch(value,
+                               "yes"=, "Yes" =, "true" =, "True" =, "TRUE" = TRUE,
+                               "no" =, "No" =, "false" =, "False" =, "FALSE" = FALSE,
+                               keep.source)
+
+                ## If the namespace mechanism is available and the package
+                ## has a namespace, then the namespace loading mechanism
+                ## takes over.
+                if (packageHasNamespace(package, which.lib.loc)) {
+                    tt <- try({
+                        ns <- loadNamespace(package, c(which.lib.loc, lib.loc))
+                        dataPath <- file.path(which.lib.loc, package, "data")
+                        env <- attachNamespace(ns, pos = pos,
+                                               dataPath = dataPath, deps)
+                    })
+                    if (inherits(tt, "try-error"))
+                        if (logical.return)
+                            return(FALSE)
+                        else stop(gettextf("package/namespace load failed for %s",
+                                           sQuote(package)),
+                                  call. = FALSE, domain = NA)
+                    else {
+                        on.exit(detach(pos = pos))
+                        ## If there are S4 generics then the package should
+                        ## depend on methods
+                        nogenerics <-
+                            !.isMethodsDispatchOn() || checkNoGenerics(env, package)
+                        if(warn.conflicts &&
+                           !exists(".conflicts.OK", envir = env, inherits = FALSE))
+                            checkConflicts(package, pkgname, pkgpath,
+                                           nogenerics, ns)
+                        on.exit()
+                        if (logical.return)
+                            return(TRUE)
+                        else
+                            return(invisible(.packages()))
+                    }
+                } else
+                    stop(gettextf("package %s does not have a NAMESPACE and should be re-installed",
+                                  sQuote(package)), domain = NA)
+
+            }  else { # no R code
+                env <- attach(NULL, pos = pos, name = pkgname)
+                attr(env, "path") <- file.path(which.lib.loc, package)
+                assign(".packageName", package, envir = env)
+                if(length(deps)) assign(".Depends", deps, envir = env)
+                ## lazy-load data sets if required
+                dbbase <- file.path(which.lib.loc, package, "data", "Rdata")
+                if(file.exists(paste0(dbbase, ".rdb"))) lazyLoad(dbbase, env)
+                ## lazy-load a sysdata database if present
+                dbbase <- file.path(which.lib.loc, package, "R", "sysdata")
+                if(file.exists(paste0(dbbase, ".rdb"))) lazyLoad(dbbase, env)
+            }
 	}
 	if (verbose && !newpackage)
             warning(gettextf("package %s already present in search()",
@@ -474,19 +501,30 @@ function(x, ...)
 }
 
 library.dynam <-
-function(chname, package, lib.loc, verbose = getOption("verbose"),
+function(chname, package = NULL, lib.loc = NULL,
+         verbose = getOption("verbose"),
          file.ext = .Platform$dynlib.ext, ...)
 {
     dll_list <- .dynLibs()
 
-    if(missing(chname) || !nzchar(chname)) return(dll_list)
+    if(missing(chname) || (nc_chname <- nchar(chname, "c")) == 0L)
+        return(dll_list)
 
-    ## For better error messages, force these to be evaluated.
-    package
-    lib.loc
+    if(missing(package) || missing(lib.loc))
+        warning("use of library.dynam() without specifying both 'package' and 'lib.loc' is deprecated", immediate. = TRUE, domain = NA)
+    ## Be defensive about possible system-specific extension for shared
+    ## objects, although the docs clearly say they should not be
+    ## added.
+    chname0 <- chname
+    nc_file_ext <- nchar(file.ext, "c")
+    if(substr(chname, nc_chname - nc_file_ext + 1L, nc_chname) == file.ext)
+        chname <- substr(chname, 1L, nc_chname - nc_file_ext)
+    if (chname != chname0)
+        warning("use of 'chname' with an extension is deprecated",
+                domain = NA)
 
     r_arch <- .Platform$r_arch
-    chname1 <- paste0(chname, file.ext)
+    chname1 <- paste(chname, file.ext, sep = "")
     ## it is not clear we should allow this, rather require a single
     ## package and library.
     for(pkg in find.package(package, lib.loc, verbose = verbose)) {
@@ -548,10 +586,22 @@ function(chname, libpath, verbose = getOption("verbose"),
         else
             stop("no shared object was specified")
 
+    ## Be defensive about possible system-specific extension for shared
+    ## objects, although the docs clearly say they should not be
+    ## added.
+    chname0 <- chname
+    nc_file_ext <- nchar(file.ext, "c")
+    if(substr(chname, nc_chname - nc_file_ext + 1L, nc_chname)
+       == file.ext)
+        chname <- substr(chname, 1L, nc_chname - nc_file_ext)
+    if (chname != chname0)
+        warning("use of 'chname' with an extension is deprecated",
+                domain = NA)
+
     ## We need an absolute path here, and separators consistent with
     ## library.dynam
     libpath <- normalizePath(libpath, "/", TRUE)
-    chname1 <- paste0(chname, file.ext)
+    chname1 <- paste(chname, file.ext, sep = "")
     file <- if(nzchar(.Platform$r_arch))
              file.path(libpath, "libs", .Platform$r_arch, chname1)
      else    file.path(libpath, "libs", chname1)
@@ -693,7 +743,7 @@ function(package = NULL, lib.loc = NULL, quiet = FALSE,
         paths <- character()
         for(lib in lib.loc) {
             dirs <- list.files(lib,
-                               pattern = paste0("^", pkg, "$"),
+                               pattern = paste("^", pkg, "$", sep = ""),
                                full.names = TRUE)
             ## Note that we cannot use tools::file_test() here, as
             ## cyclic namespace dependencies are not supported.  Argh.
@@ -703,7 +753,7 @@ function(package = NULL, lib.loc = NULL, quiet = FALSE,
                                                   "DESCRIPTION"))])
         }
         if(use_attached
-           && length(pos <- grep(paste0("^package:", pkg, "$"),
+           && length(pos <- grep(paste("^package:", pkg, "$", sep = ""),
                                  search()))) {
             dirs <- sapply(pos, function(i) {
                 if(identical(env <- as.environment(i), baseenv()))
@@ -893,7 +943,7 @@ function(x)
     v <- paste(R.version[c("major", "minor")], collapse = ".")
 
     expand <- function(x, spec, expansion)
-        gsub(paste0("(^|[^%])(%%)*%", spec),
+        gsub(paste("(^|[^%])(%%)*%", spec, sep = ""),
              sprintf("\\1\\2%s", expansion), x)
 
     ## %V => version x.y.z

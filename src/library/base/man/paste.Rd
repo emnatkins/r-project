@@ -7,11 +7,9 @@
 \title{Concatenate Strings}
 \concept{combine strings}
 \usage{
-paste (\dots, sep = " ", collapse = NULL)
-paste0(\dots, collapse = NULL)
+paste(\dots, sep = " ", collapse = NULL)
 }
 \alias{paste}
-\alias{paste0}
 \arguments{
   \item{\dots}{one or more \R objects, to be converted to character vectors.}
   \item{sep}{a character string to separate the terms.  Not
@@ -35,9 +33,6 @@ paste0(\dots, collapse = NULL)
   undesirable, e.g., when pasting two character vectors, or very
   desirable, e.g. in \code{paste("the value of p is ", p)}.
 
-  \code{paste0(\dots, collapse)} is equivalent to
-  \code{paste(\dots, sep = "", collapse)}, slightly more efficiently.
-
   If a value is specified for \code{collapse}, the values in the result
   are then concatenated into a single string, with the elements being
   separated by the value of \code{collapse}.
@@ -46,7 +41,7 @@ paste0(\dots, collapse = NULL)
   A character vector of the concatenated values.  This will be of length
   zero if all the objects are, unless \code{collapse} is non-NULL in
   which case it is a single empty string.
-
+  
   If any input into an element of the result is in UTF-8 (and none are
   declared with encoding \code{"bytes"}), that element will be in UTF-8,
   otherwise in the current encoding in which case the encoding of the
@@ -78,8 +73,6 @@ paste0(\dots, collapse = NULL)
 \examples{
 paste(1:12) # same as as.character(1:12)
 paste("A", 1:6, sep = "")
-stopifnot(identical(paste ("A", 1:6, sep = ""),
-		    paste0("A", 1:6)))
 \donttest{paste("Today is", date())}
 }
 \keyword{character}

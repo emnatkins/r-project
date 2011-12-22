@@ -38,10 +38,6 @@ seq.default <-
         }
 	length.out <- ceiling(length.out)
     }
-    if(length(list(...)))
-	warning(gettextf("extra argument(s) %s will be disregarded",
-			 paste(sQuote(names(list(...))), collapse = ", ")),
-		domain = NA)
     if(is.null(length.out))
 	if(missing(by))
 	    from:to

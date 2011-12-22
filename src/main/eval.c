@@ -24,8 +24,6 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-
-#define R_USE_SIGNALS 1
 #include <Defn.h>
 #include <Rinterface.h>
 #include <Fileio.h>

@@ -61,7 +61,7 @@ resultLog <- function(Log, text) printLog(Log, " ", text, "\n")
 errorLog <- function(Log, ...)
 {
     resultLog(Log, "ERROR")
-    text <- paste0(...)
+    text <- paste(..., sep="")
     if (length(text) && nzchar(text)) printLog(Log, ..., "\n")
 }
 
@@ -406,7 +406,7 @@ get_exclude_patterns <- function()
                     }
                     ## Also cleanup possible Unix leftovers ...
                     unlink(c(Sys.glob(c("*.o", "*.sl", "*.so", "*.dylib")),
-                             paste0(pkgname, c(".a", ".dll", ".def"))))
+                             paste(pkgname, c(".a", ".dll", ".def"), sep="")))
                     if (dir.exists(".libs")) unlink(".libs", recursive = TRUE)
                     if (dir.exists("_libs")) unlink("_libs", recursive = TRUE)
                 }
@@ -429,7 +429,7 @@ get_exclude_patterns <- function()
                     }
                     ## Also cleanup possible Windows leftovers ...
                     unlink(c(Sys.glob(c("*.o", "*.sl", "*.so", "*.dylib")),
-                             paste0(pkgname, c(".a", ".dll", ".def"))))
+                             paste(pkgname, c(".a", ".dll", ".def"), sep="")))
                     if (dir.exists(".libs")) unlink(".libs", recursive = TRUE)
                     if (dir.exists("_libs")) unlink("_libs", recursive = TRUE)
                 }
@@ -530,37 +530,37 @@ get_exclude_patterns <- function()
 	    messageLog(Log, "building the PDF package manual")
 	    dir.create("build", showWarnings = FALSE)
 	    refman <- file.path(pkgdir, "build",
-                                paste0(basename(pkgdir), ".pdf"))
-	    ..Rd2pdf(c("--force", "--no-preview",
-	               paste0("--output=", refman),
+                                paste(basename(pkgdir), ".pdf", sep = ""))
+	    ..Rd2dvi(c("--pdf", "--force", "--no-preview",
+	               paste("--output=", refman, sep=""),
 	               pkgdir), quit = FALSE)
         }
 	return(TRUE)
     }
 
-    ## also fixes up missing final NL
-    fix_nonLF_in_files <- function(pkgname, dirPattern, Log)
+    ## These also fix up missing final NL
+    fix_nonLF_in_source_files <- function(pkgname, Log)
     {
-	if(dir.exists(sDir <- file.path(pkgname, "src"))) {
-            files <- dir(sDir, pattern = dirPattern,
-                         full.names = TRUE, recursive = TRUE)
-            ## FIXME: This "destroys" all timestamps
-            for (ff in files) {
-                lines <- readLines(ff, warn = FALSE)
-                writeLinesNL(lines, ff)
-            }
+        if (!dir.exists(file.path(pkgname, "src"))) return()
+        src_files <- dir(file.path(pkgname, "src"),
+                         pattern = "\\.([cfh]|cc|cpp)$",
+                         full.names=TRUE, recursive = TRUE)
+        for (ff in src_files) {
+            lines <- readLines(ff, warn = FALSE)
+            writeLinesNL(lines, ff)
         }
     }
 
-    fix_nonLF_in_source_files <- function(pkgname, Log) {
-        fix_nonLF_in_files(pkgname, dirPattern = "\\.([cfh]|cc|cpp)$", Log)
-    }
-    fix_nonLF_in_make_files <- function(pkgname, Log) {
-        fix_nonLF_in_files(pkgname,
-                           paste("^",c("Makefile", "Makefile.in", "Makefile.win",
-                                       "Makevars", "Makevars.in", "Makevars.win"),
-                                 "$", sep=""), Log)
-    }
+    fix_nonLF_in_make_files <- function(pkgname, Log)
+    {
+        if (!dir.exists(file.path(pkgname, "src"))) return()
+         for (f in c("Makefile", "Makefile.in", "Makefile.win",
+                     "Makevars", "Makevars.in", "Makevars.win")) {
+             if (!file.exists(ff <- file.path(pkgname, "src", f))) next
+             lines <- readLines(ff, warn = FALSE)
+             writeLinesNL(lines, ff)
+         }
+     }
 
     find_empty_dirs <- function(d)
     {
@@ -601,7 +601,7 @@ get_exclude_patterns <- function()
 
         flatten <- function(x) {
             if(length(x) == 3L)
-                paste0(x$name, " (", x$op, " ", x$version, ")")
+                paste(x$name, " (", x$op, " ", x$version, ")", sep = "")
             else x[[1L]]
         }
         deps <- desc["Depends"]
@@ -823,7 +823,7 @@ get_exclude_patterns <- function()
         intname <- desc["Package"]
         ## make a copy, cd to parent of copy
         setwd(dirname(pkgdir))
-        filename <- paste0(intname, "_", desc["Version"], ".tar")
+        filename <- paste(intname, "_", desc["Version"], ".tar", sep="")
         filepath <- file.path(startdir, filename)
         Tdir <- tempfile("Rbuild")
         dir.create(Tdir, mode = "0755")
@@ -888,7 +888,7 @@ get_exclude_patterns <- function()
         ## Mac resource forks
         exclude <- exclude | grepl("^\\._", bases)
 	## Windows DLL resource file
-        exclude <- exclude | (bases == paste0("src/", pkgname, "_res.rc"))
+        exclude <- exclude | (bases == paste("src/", pkgname, "_res.rc", sep=""))
         unlink(allfiles[exclude], recursive = TRUE, force = TRUE)
         setwd(owd)
 
@@ -953,7 +953,7 @@ get_exclude_patterns <- function()
 	}
 
         ## Finalize
-        filename <- paste0(pkgname, "_", desc["Version"], ".tar.gz")
+        filename <- paste(pkgname, "_", desc["Version"], ".tar.gz", sep="")
         filepath <- file.path(startdir, filename)
         ## NB: naughty reg-packages.R relies on this exact format!
         messageLog(Log, "building ", sQuote(filename))

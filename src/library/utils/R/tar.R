@@ -49,7 +49,7 @@ untar <- function(tarfile, files = NULL, list = FALSE, exdir = ".",
     if (!gzOK ) {
         ## version info may be sent to stdout or stderr
         tf <- tempfile()
-        cmd <- paste0(TAR, " -", cflag, "tf ", shQuote(tarfile))
+        cmd <- paste(TAR, " -", cflag, "tf ", shQuote(tarfile), sep = "")
         system(paste(TAR, "--version >", tf, "2>&1"))
         if (file.exists(tf)) {
             gzOK <- any(grepl("GNU", readLines(tf), fixed = TRUE))
@@ -73,12 +73,12 @@ untar <- function(tarfile, files = NULL, list = FALSE, exdir = ".",
         cflag <- ""
     }
     if (list) {
-        cmd <- paste0(TAR, " -", cflag, "tf ", shQuote(tarfile))
+        cmd <- paste(TAR, " -", cflag, "tf ", shQuote(tarfile), sep = "")
         if (length(extras)) cmd <- paste(cmd, extras, collapse = " ")
         if (verbose) message("untar: using cmd = ", sQuote(cmd), domain = NA)
         system(cmd, intern = TRUE)
     } else {
-        cmd <- paste0(TAR, " -", cflag, "xf ", shQuote(tarfile))
+        cmd <- paste(TAR, " -", cflag, "xf ", shQuote(tarfile), sep = "")
         if (!missing(exdir)) {
             if (!file_test("-d", exdir)) {
                 if(!dir.create(exdir, showWarnings = TRUE, recursive = TRUE))
@@ -257,10 +257,6 @@ untar2 <- function(tarfile, files = NULL, list = FALSE, exdir = ".")
                 lname <- rawToChar(block[seq_len(ns)])
             else
                 llink <- rawToChar(block[seq_len(ns)])
-        } else if(ctype %in% c("x", "g") && grepl("^PaxHeader", name)) {
-            ## pax headers misused by bsdtar.
-            warn1 <- c(warn1, "skipping mis-used pax headers")
-            readBin(con, "raw", n = 512L*ceiling(size/512L))
         } else stop("unsupported entry type ", sQuote(ctype))
     }
     if(length(warn1)) {
@@ -317,7 +313,7 @@ tar <- function(tarfile, files = NULL,
         }
         header <- raw(512L)
         ## add trailing / to dirs.
-        if(info$isdir && !grepl("/$", f)) f <- paste0(f, "/")
+        if(info$isdir && !grepl("/$", f)) f <- paste(f, "/", sep = "")
         name <- charToRaw(f)
         if(length(name) > 100L) {
             if(length(name) > 255L) stop("file path is too long")

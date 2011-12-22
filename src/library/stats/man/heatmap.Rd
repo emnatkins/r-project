@@ -3,8 +3,6 @@
 % Copyright 1995-2011 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{heatmap}
 \alias{heatmap}
 \title{ Draw a Heat Map }
@@ -104,7 +102,8 @@ heatmap(x, Rowv=NULL, Colv=if(symm)"Rowv" else NULL,
   from genomic plotting that this is useful.
 
   The default colors are not pretty.  Consider using enhancements such
-  as the \CRANpkg{RColorBrewer} package.
+  as the \pkg{RColorBrewer} package,
+  \url{http://cran.r-project.org/package=RColorBrewer}.
 }
 \note{
   Unless \code{Rowv = NA} (or \code{Colw = NA}), the original rows and

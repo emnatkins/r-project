@@ -43,7 +43,7 @@
 #include <Fileio.h>
 #include <R_ext/Applic.h>		/* machar */
 #include <ctype.h>			/* toupper */
-#include <time.h>			/* for ctime */
+#include <time.h>
 
 # include <errno.h>
 

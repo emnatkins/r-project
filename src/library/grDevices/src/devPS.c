@@ -1591,8 +1591,7 @@ static SEXP getFont(const char *family, const char *fontdbname) {
 	}
     }
     if (!found)
-	warning(_("font family '%s' not found in PostScript font database"),
-		family);
+	warning(_("font family not found in PostScript font database"));
     UNPROTECT(1);
     return result;
 }
@@ -1626,8 +1625,7 @@ fontMetricsFileName(const char *family, int faceIndex,
 	}
     }
     if (!found)
-	warning(_("font family '%s' not found in PostScript font database"),
-		family);
+	warning(_("font family not found in PostScript font database"));
     UNPROTECT(1);
     return result;
 }
@@ -1698,8 +1696,7 @@ static const char *getFontEncoding(const char *family, const char *fontdbname)
 	}
     }
     if (!found)
-	warning(_("font encoding for family '%s' not found in font database"),
-		family);
+	warning(_("font encoding not found in font database"));
     UNPROTECT(1);
     return result;
 }
@@ -1725,8 +1722,7 @@ static const char *getFontName(const char *family, const char *fontdbname)
 	}
     }
     if (!found)
-	warning(_("font CMap for family '%s' not found in font database"),
-		family);
+	warning(_("font CMap not found in font database"));
     UNPROTECT(1);
     return result;
 }
@@ -1752,8 +1748,7 @@ static const char *getFontCMap(const char *family, const char *fontdbname)
 	}
     }
     if (!found)
-	warning(_("font CMap for family '%s' not found in font database"),
-		family);
+	warning(_("font CMap not found in font database"));
     UNPROTECT(1);
     return result;
 }
@@ -1780,8 +1775,7 @@ getCIDFontEncoding(const char *family, const char *fontdbname)
 	}
     }
     if (!found)
-	warning(_("font encoding for family '%s' not found in font database"),
-		family);
+	warning(_("font encoding not found in font database"));
     UNPROTECT(1);
     return result;
 }
@@ -1807,8 +1801,7 @@ static const char *getCIDFontPDFResource(const char *family)
 	}
     }
     if (!found)
-	warning(_("font encoding for family '%s' not found in font database"),
-		family);
+	warning(_("font encoding not found in font database"));
     UNPROTECT(1);
     return result;
 }
@@ -3531,6 +3524,11 @@ static void SetFont(int font, int size, pDevDesc dd)
     }
 }
 
+#ifdef Win32
+/* exists, but does not work on GUI processes */
+# undef HAVE_POPEN
+#endif
+
 static void PS_cleanup(int stage, pDevDesc dd, PostScriptDesc *pd)
 {
     switch (stage) {
@@ -3551,6 +3549,11 @@ static Rboolean PS_Open(pDevDesc dd, PostScriptDesc *pd)
     char buf[512];
 
     if (strlen(pd->filename) == 0) {
+#ifdef Win32
+	PS_cleanup(4, dd, pd);
+	error(_("printing via file = \"\" is not implemented in this version"));
+	return FALSE;
+#else
 	if(strlen(pd->command) == 0) return FALSE;
 	errno = 0;
 	pd->psfp = R_popen(pd->command, "w");
@@ -3560,7 +3563,13 @@ static Rboolean PS_Open(pDevDesc dd, PostScriptDesc *pd)
 	    error(_("cannot open 'postscript' pipe to '%s'"), pd->command);
 	    return FALSE;
 	}
+#endif
     } else if (pd->filename[0] == '|') {
+#ifdef Win32
+	PS_cleanup(4, dd, pd);
+	error(_("file = \"|cmd\" is not implemented in this version"));
+	return FALSE;
+#else
 	errno = 0;
 	pd->psfp = R_popen(pd->filename + 1, "w");
 	pd->open_type = 1;
@@ -3570,6 +3579,7 @@ static Rboolean PS_Open(pDevDesc dd, PostScriptDesc *pd)
 		    pd->filename + 1);
 	    return FALSE;
 	}
+#endif
     } else {
 	snprintf(buf, 512, pd->filename, pd->fileno + 1); /* file 1 to start */
 	pd->psfp = R_fopen(R_ExpandFileName(buf), "w");
@@ -5354,8 +5364,6 @@ typedef struct {
 
 typedef struct {
     char filename[PATH_MAX];
-    int open_type;
-    char cmd[PATH_MAX];
 
     char papername[64];	/* paper name */
     int paperwidth;	/* paper width in big points (1/72 in) */
@@ -5374,7 +5382,6 @@ typedef struct {
 
     FILE *pdffp;        /* output file */
     FILE *mainfp;
-    FILE *pipefp;
 
     /* This group of variables track the current device status.
      * They should only be set by routines that emit PDF. */
@@ -5447,15 +5454,8 @@ typedef struct {
     /* Soft masks for raster images */
     int *masks;
     int numMasks;
-
-    /* Is the device "offline" (does not write out to a file) */
-    Rboolean offline;
 }
 PDFDesc;
-
-/* Macro for driver actions to check for "offline" device and bail out */
-
-#define PDF_checkOffline() if (pd->offline) return
 
 /* Device Driver Actions */
 
@@ -5469,10 +5469,10 @@ static void PDF_Close(pDevDesc dd);
 static void PDF_Line(double x1, double y1, double x2, double y2,
 		     const pGEcontext gc,
 		     pDevDesc dd);
-void PDF_MetricInfo(int c,
-                    const pGEcontext gc,
-                    double* ascent, double* descent,
-                    double* width, pDevDesc dd);
+static void PDF_MetricInfo(int c,
+			   const pGEcontext gc,
+			   double* ascent, double* descent,
+			   double* width, pDevDesc dd);
 static void PDF_NewPage(const pGEcontext gc, pDevDesc dd);
 static void PDF_Polygon(int n, double *x, double *y,
 			const pGEcontext gc,
@@ -5495,9 +5495,9 @@ static void PDF_Raster(unsigned int *raster, int w, int h,
 static void PDF_Size(double *left, double *right,
 		     double *bottom, double *top,
 		     pDevDesc dd);
-double PDF_StrWidth(const char *str,
-                    const pGEcontext gc,
-                    pDevDesc dd);
+static double PDF_StrWidth(const char *str,
+			   const pGEcontext gc,
+			   pDevDesc dd);
 static void PDF_Text(double x, double y, const char *str,
 		     double rot, double hadj,
 		     const pGEcontext gc,
@@ -5821,8 +5821,7 @@ PDFDeviceDriver(pDevDesc dd, const char *file, const char *paper,
 
     /* Check and extract the device parameters */
 
-    /* 'file' could be NULL */
-    if(file && strlen(file) > PATH_MAX - 1) {
+    if(strlen(file) > PATH_MAX - 1) {
 	/* not yet created PDFcleanup(0, pd); */
 	free(dd);
 	error(_("filename too long in %s()"), "pdf");
@@ -5861,11 +5860,7 @@ PDFDeviceDriver(pDevDesc dd, const char *file, const char *paper,
 
 
     /* initialize PDF device description */
-    /* 'file' could be NULL */
-    if (file) 
-        strcpy(pd->filename, file);
-    else 
-        strcpy(pd->filename, "nullPDF");
+    strcpy(pd->filename, file);
     strcpy(pd->papername, paper);
     strncpy(pd->title, title, 1024);
     memset(pd->fontUsed, 0, 100*sizeof(Rboolean));
@@ -5882,11 +5877,6 @@ PDFDeviceDriver(pDevDesc dd, const char *file, const char *paper,
 
     pd->width = width;
     pd->height = height;
-
-    if (file)
-        pd->offline = FALSE;
-    else 
-        pd->offline = TRUE;
 
     if(strlen(encoding) > PATH_MAX - 1) {
 	PDFcleanup(3, pd);
@@ -6650,16 +6640,6 @@ static int isSans(const char *name)
 }
 
 #define boldslant(x) ((x==3)?",BoldItalic":((x==2)?",Italic":((x==1)?",Bold":"")))
-
-#if defined(BUFSIZ) && (BUFSIZ > 512)
-/* OS's buffer size in stdio.h, probably.
-   Windows has 512, Solaris 1024, glibc 8192
- */
-# define APPENDBUFSIZE BUFSIZ
-#else
-# define APPENDBUFSIZE 512
-#endif
-
 static void PDF_endfile(PDFDesc *pd)
 {
     int i, startxref, tempnobj, nenc, nfonts, cidnfonts, firstencobj;
@@ -7007,18 +6987,6 @@ static void PDF_endfile(PDFDesc *pd)
     rewind(pd->pdffp);
     fprintf(pd->pdffp, "%%PDF-%i.%i\n", pd->versionMajor, pd->versionMinor);
     fclose(pd->pdffp);
-    if (pd->open_type == 1) {
-	char buf[APPENDBUFSIZE];
-	int nc;
-	pd->pdffp = R_fopen(pd->filename, "rb"); 
-	while((nc = fread(buf, 1, APPENDBUFSIZE, pd->pdffp))) {
-	    fwrite(buf, 1, nc, pd->pipefp);
-	    if (nc < APPENDBUFSIZE) break;
-	}
-	fclose(pd->pdffp);
-	pclose(pd->pipefp);
-	unlink(pd->filename);
-    }
 }
 
 
@@ -7026,30 +6994,10 @@ static Rboolean PDF_Open(pDevDesc dd, PDFDesc *pd)
 {
     char buf[512];
 
-    if (pd->offline)
-        return TRUE;
-    
-    if (pd->filename[0] == '|') {
-	strncpy(pd->cmd, pd->filename + 1, PATH_MAX);
-	char *tmp = R_tmpnam("Rpdf", R_TempDir);
-	strncpy(pd->filename, tmp, PATH_MAX);
-	free(tmp);
-	errno = 0;
-	pd->pipefp = R_popen(pd->cmd, "w");
-	if (!pd->pipefp || errno != 0) {
-	    PDFcleanup(6, pd);
-	    error(_("cannot open 'pdf' pipe to '%s'"), pd->cmd);
-	    return FALSE;
-	}
-	pd->open_type = 1;
-	if (!pd->onefile) {
-	    pd->onefile = TRUE;
-	    warning(_("file = \"|cmd\" implies 'onefile = TRUE'"));
-	}
-    } else pd->open_type = 0;
-    snprintf(buf, 512, pd->filename, pd->fileno + 1); /* file 1 to start */
     /* NB: this must be binary to get tell positions and line endings right,
        as well as allowing binary streams */
+
+    snprintf(buf, 512, pd->filename, pd->fileno + 1); /* file 1 to start */
     pd->mainfp = R_fopen(R_ExpandFileName(buf), "wb");
     if (!pd->mainfp) {
 	PDFcleanup(6, pd);
@@ -7073,8 +7021,6 @@ static void pdfClip(double x0, double x1, double y0, double y1, PDFDesc *pd)
 static void PDF_Clip(double x0, double x1, double y0, double y1, pDevDesc dd)
 {
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
-
-    PDF_checkOffline();
 
     if(pd->inText) textoff(pd);
     pdfClip(x0, x1, y0, y1, pd);
@@ -7159,8 +7105,6 @@ static void PDF_NewPage(const pGEcontext gc,
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
     char buf[512];
 
-    PDF_checkOffline();
-
     if(pd->pageno >= pd->pagemax) {
 	void * tmp = realloc(pd->pageobj, 2*pd->pagemax * sizeof(int));
 	if(!tmp)
@@ -7234,12 +7178,10 @@ static void PDF_Close(pDevDesc dd)
 {
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
 
-    if (!pd->offline) {
-        if(pd->pageno > 0) PDF_endpage(pd);
-        PDF_endfile(pd);
-        /* may no longer be needed */
-        killRasterArray(pd->rasters, pd->maxRasters);
-    }
+    if(pd->pageno > 0) PDF_endpage(pd);
+    PDF_endfile(pd);
+    /* may no longer be needed */
+    killRasterArray(pd->rasters, pd->maxRasters);
     PDFcleanup(6, pd); /* which frees masks and rasters */
 }
 
@@ -7249,8 +7191,6 @@ static void PDF_Rect(double x0, double y0, double x1, double y1,
 {
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
     int code;
-
-    PDF_checkOffline();
 
     code = 2 * (R_VIS(gc->fill)) + (R_VIS(gc->col));
     if (code) {
@@ -7284,8 +7224,6 @@ static void PDF_Raster(unsigned int *raster,
 {
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
     double angle, cosa, sina;
-
-    PDF_checkOffline();
 
     /* This takes the simple approach of creating an inline
      * image.  This is not recommended for larger images
@@ -7343,8 +7281,6 @@ static void PDF_Raster(unsigned int *raster,
     double angle, cosa, sina;
     int alpha;
 
-    PDF_checkOffline();
-
     /* Record the raster so can write it out when page is finished */
     alpha = addRaster(raster, w, h, interpolate, pd);
 
@@ -7384,8 +7320,6 @@ static void PDF_Circle(double x, double y, double r,
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
     int code, tr;
     double xx, yy, a;
-
-    PDF_checkOffline();
 
     code = 2 * (R_VIS(gc->fill)) + (R_VIS(gc->col));
     if (code) {
@@ -7451,8 +7385,6 @@ static void PDF_Line(double x1, double y1, double x2, double y2,
 {
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
 
-    PDF_checkOffline();
-
     if(!R_VIS(gc->col)) return;
 
     PDF_SetLineColor(gc->col, dd);
@@ -7468,8 +7400,6 @@ static void PDF_Polygon(int n, double *x, double *y,
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
     double xx, yy;
     int i, code;
-
-    PDF_checkOffline();
 
     code = 2 * (R_VIS(gc->fill)) + (R_VIS(gc->col));
     if (code) {
@@ -7513,8 +7443,6 @@ static void PDF_Path(double *x, double *y,
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
     double xx, yy;
     int i, j, index, code;
-
-    PDF_checkOffline();
 
     code = 2 * (R_VIS(gc->fill)) + (R_VIS(gc->col));
     if (code) {
@@ -7563,8 +7491,6 @@ static void PDF_Polyline(int n, double *x, double *y,
     PDFDesc *pd = (PDFDesc*) dd->deviceSpecific;
     double xx, yy;
     int i;
-
-    PDF_checkOffline();
 
     if(pd->inText) textoff(pd);
     if(R_VIS(gc->col)) {
@@ -7736,7 +7662,7 @@ static void PDFSimpleText(double x, double y, const char *str,
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
     int size = (int)floor(gc->cex * gc->ps + 0.5);
     int face = gc->fontface;
-    double a, b, bm, rot1;
+    double a, b, rot1;
 
     if(!R_VIS(gc->col)) return;
 
@@ -7747,15 +7673,14 @@ static void PDFSimpleText(double x, double y, const char *str,
     rot1 = rot * DEG2RAD;
     a = size * cos(rot1);
     b = size * sin(rot1);
-    bm = -b;
     /* avoid printing -0.00 on rotated text */
     if(fabs(a) < 0.01) a = 0.0;
-    if(fabs(b) < 0.01) {b = 0.0; bm = 0.0;}
+    if(fabs(b) < 0.01) b = 0.0;
     if(!pd->inText) texton(pd);
     PDF_SetFill(gc->col, dd);
     fprintf(pd->pdffp, "/F%d 1 Tf %.2f %.2f %.2f %.2f %.2f %.2f Tm ",
 	    font,
-	    a, b, -bm, a, x, y);
+	    a, b, -b, a, x, y);
     if (pd->useKern &&
 	isType1Font(gc->fontfamily, PDFFonts, pd->defaultFont)) {
 	PDFWriteT1KerningString(pd->pdffp, str,
@@ -7777,11 +7702,9 @@ static void PDF_Text0(double x, double y, const char *str, int enc,
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
     int size = (int) floor(gc->cex * gc->ps + 0.5);
     int face = gc->fontface;
-    double a, b, bm, rot1;
+    double a, b, rot1;
     char *buff;
     const char *str1;
-
-    PDF_checkOffline();
 
     if(!R_VIS(gc->col)) return;
 
@@ -7799,10 +7722,9 @@ static void PDF_Text0(double x, double y, const char *str, int enc,
     rot1 = rot * DEG2RAD;
     a = size * cos(rot1);
     b = size * sin(rot1);
-    bm = -b;
     /* avoid printing -0.00 on rotated text */
     if(fabs(a) < 0.01) a = 0.0;
-    if(fabs(b) < 0.01) {b = 0.0; bm = 0.0;}
+    if(fabs(b) < 0.01) b = 0.0;
     if(!pd->inText) texton(pd);
 
     if(isCIDFont(gc->fontfamily, PDFFonts, pd->defaultCIDFont) && face != 5) {
@@ -7837,7 +7759,7 @@ static void PDF_Text0(double x, double y, const char *str, int enc,
 	    fprintf(pd->pdffp,
 		    "/F%d 1 Tf %.2f %.2f %.2f %.2f %.2f %.2f Tm ",
 		    PDFfontNumber(gc->fontfamily, face, pd),
-		    a, b, bm, a, x, y);
+		    a, b, -b, a, x, y);
 
 	    fprintf(pd->pdffp, "<");
 	    p = (unsigned char *) str;
@@ -7884,7 +7806,7 @@ static void PDF_Text0(double x, double y, const char *str, int enc,
 		fprintf(pd->pdffp,
 			"/F%d 1 Tf %.2f %.2f %.2f %.2f %.2f %.2f Tm <",
 			PDFfontNumber(gc->fontfamily, face, pd),
-			a, b, bm, a, x, y);
+			a, b, -b, a, x, y);
 		for(i = 0, p = buf; i < nb - o_len; i++)
 		    fprintf(pd->pdffp, "%02x", *p++);
 		fprintf(pd->pdffp, "> Tj\n");
@@ -7899,7 +7821,7 @@ static void PDF_Text0(double x, double y, const char *str, int enc,
     PDF_SetFill(gc->col, dd);
     fprintf(pd->pdffp, "/F%d 1 Tf %.2f %.2f %.2f %.2f %.2f %.2f Tm ",
 	    PDFfontNumber(gc->fontfamily, face, pd),
-	    a, b, bm, a, x, y);
+	    a, b, -b, a, x, y);
     if((enc == CE_UTF8 || mbcslocale) && !strIsASCII(str) && face < 5) {
 	/* face 5 handled above */
 	buff = alloca(strlen(str)+1); /* Output string cannot be longer */
@@ -8060,9 +7982,9 @@ static char
     return result;
 }
 
-double PDF_StrWidth(const char *str,
-                    const pGEcontext gc,
-                    pDevDesc dd)
+static double PDF_StrWidth(const char *str,
+			   const pGEcontext gc,
+			   pDevDesc dd)
 {
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
 
@@ -8119,10 +8041,10 @@ static double PDF_StrWidthUTF8(const char *str,
     }
 }
 
-void PDF_MetricInfo(int c,
-                    const pGEcontext gc,
-                    double* ascent, double* descent,
-                    double* width, pDevDesc dd)
+static void PDF_MetricInfo(int c,
+			   const pGEcontext gc,
+			   double* ascent, double* descent,
+			   double* width, pDevDesc dd)
 {
     PDFDesc *pd = (PDFDesc *) dd->deviceSpecific;
     int face = gc->fontface;
@@ -8349,10 +8271,7 @@ SEXP PDF(SEXP args)
 
     vmax = vmaxget();
     args = CDR(args); /* skip entry point name */
-    if (isNull(CAR(args)))
-        file = NULL;
-    else 
-        file = translateChar(asChar(CAR(args)));  args = CDR(args);
+    file = translateChar(asChar(CAR(args)));  args = CDR(args);
     paper = CHAR(asChar(CAR(args))); args = CDR(args);
     fam = CAR(args); args = CDR(args);
     if(length(fam) == 1)

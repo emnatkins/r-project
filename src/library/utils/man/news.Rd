@@ -10,7 +10,7 @@
   Build and query the news for R or add-on packages.
 }
 \usage{
-news(query, package = "R", lib.loc = NULL, format = NULL,
+news(query, package = "R", lib.loc = NULL, format = NULL, 
      reader = NULL, db = NULL)
 }
 \arguments{
@@ -95,15 +95,13 @@ news(query, package = "R", lib.loc = NULL, format = NULL,
   be employed.
 }
 
-\examples{
-\donttest{% <- is not sensibly diff-ed against previous versions
+% This is not sensibly diff-ed against previous versions
+\examples{\donttest{
 ## Build a db of all R news entries.
 db <- news()
 ## Bug fixes with PR number in 2.11.0.
 news(Version == "2.11.0" & grepl("^BUG", Category) & grepl("PR#", Text),
      db = db)
-## Which categories have been in use? % R-core maybe should standardize a bit more
-sort(table(db[,"Category"]), decreasing=TRUE)
 ## Entries with version >= 2.10.1 (including "2.10.1 patched"):
 table(news(Version >= "2.10.1", db = db)$Version)
 }}

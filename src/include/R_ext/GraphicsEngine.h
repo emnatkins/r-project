@@ -409,9 +409,6 @@ double GEStrWidth(const char *str, cetype_t enc,
 		  const pGEcontext gc, pGEDevDesc dd);
 double GEStrHeight(const char *str, cetype_t enc,
 		  const pGEcontext gc, pGEDevDesc dd);
-void GEStrMetric(const char *str, cetype_t enc, const pGEcontext gc,
-                 double *ascent, double *descent, double *width,
-                 pGEDevDesc dd);
 int GEstring_to_pch(SEXP pch);
 
 /*-------------------------------------------------------------------
@@ -450,9 +447,6 @@ double GEExpressionWidth(SEXP expr,
 			 const pGEcontext gc, pGEDevDesc dd);
 double GEExpressionHeight(SEXP expr,
 			  const pGEcontext gc, pGEDevDesc dd);
-void GEExpressionMetric(SEXP expr, const pGEcontext gc,
-                        double *ascent, double *descent, double *width,
-                        pGEDevDesc dd);
 void GEMathText(double x, double y, SEXP expr,
 		double xc, double yc, double rot,
 		const pGEcontext gc, pGEDevDesc dd);

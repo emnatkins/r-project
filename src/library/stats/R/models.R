@@ -555,7 +555,7 @@ model.extract <- function (frame, component)
     rval <- switch(component,
 		   response = model.response(frame),
 		   offset = model.offset(frame),
-                   frame[[paste0("(", component, ")")]]
+                   frame[[paste("(", component, ")", sep = "")]]
                    )
     if(!is.null(rval)){
 	if (length(rval) == nrow(frame))

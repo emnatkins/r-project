@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2011-11-23 13:46\n"
+"POT-Creation-Date: 2011-10-17 10:14\n"
 "PO-Revision-Date: 2011-01-18 13:55+0000\n"
 "Last-Translator: Korean <uiami@hanmail.com>\n"
 "Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
@@ -81,9 +81,6 @@ msgstr "'%s'에서 패스(path)는 space를 포함하고 있습니다"
 
 msgid "this may cause problems when running LaTeX"
 msgstr "LaxTeX를 실행하는경우, 이것은 문제를 일으킬지도 모릅니다"
-
-msgid "the output file '%s' has disappeared"
-msgstr ""
 
 #, fuzzy
 msgid "invalid value for %s : %s"
@@ -368,19 +365,6 @@ msgstr ""
 msgid "too many list items (at most up to number 3899)"
 msgstr ""
 
-#, fuzzy
-msgid "no vector columns were selected"
-msgstr "events는 기록되지 않았습니다"
-
-msgid "non-vector columns will be ignored"
-msgstr ""
-
-msgid "at least one vector element is required"
-msgstr ""
-
-msgid "non-vector elements will be ignored"
-msgstr ""
-
 msgid "'form' must be a two-sided formula"
 msgstr ""
 
@@ -390,6 +374,10 @@ msgstr ""
 #, fuzzy
 msgid "'topic' should be a name, length-one character vector or reserved word"
 msgstr "'package'는 문자열이나 NULL이어야만 합니다"
+
+#, fuzzy
+msgid "Postscript offline help is deprecated"
+msgstr "인수 'help.db'는 반대합니다"
 
 #, fuzzy
 msgid "No documentation for %s in specified packages and libraries:"
@@ -443,6 +431,13 @@ msgstr "무효의 'data' 인수입니다"
 msgid ""
 "package %s exists but was not installed under R >= 2.10.0 so help cannot be "
 "accessed"
+msgstr ""
+
+#, fuzzy
+msgid "running %s failed"
+msgstr "패키지 '%s'의 다운로드는 실패했습니다"
+
+msgid "%s produced no output file: sent to printer?"
 msgstr ""
 
 #, fuzzy
@@ -559,9 +554,7 @@ msgstr "패키지 '%s'의 DESCRIPTION 파일은 잘못되어지거나 파손되�
 msgid "DESCRIPTION file of package '%s' is corrupt"
 msgstr "패키지 '%s'의 DESCRIPTION 파일은 잘못되어지거나 파손되었습니다"
 
-#, fuzzy
-msgid ""
-"'DESCRIPTION' file has an 'Encoding' field and re-encoding is not possible"
+msgid "'DESCRIPTION' file has 'Encoding' field and re-encoding is not possible"
 msgstr ""
 "'DESCRPTION' 파일은 'Encoding' 필드를 가지고 있습니다. 그리고 re-coding는 가"
 "능하지 않습니다"
@@ -898,7 +891,7 @@ msgstr ""
 
 #, fuzzy
 msgid ""
-"the object of class %s in the function call %s could not be used as a "
+"the object of class \"%s\" in the function call %s could not be used as a "
 "documentation topic"
 msgstr ""
 "documentation topic으로서 함수 호출 \"%s\"로 클래스 '%s'의 오브젝트를 사용하"
@@ -1323,14 +1316,6 @@ msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] ""
 "package '%s'는 사용되고 있어 인스톨 되지 않을 것입니다\n"
 "packages '%s'는 사용되고 있어 인스톨 되지 않을 것입니다"
-
-#, fuzzy
-#~ msgid "running %s failed"
-#~ msgstr "패키지 '%s'의 다운로드는 실패했습니다"
-
-#, fuzzy
-#~ msgid "Postscript offline help is deprecated"
-#~ msgstr "인수 'help.db'는 반대합니다"
 
 #, fuzzy
 #~ msgid "'namespace' must be a single logical"

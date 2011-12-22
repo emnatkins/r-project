@@ -1,18 +1,18 @@
 ## Namespace for package 'parallel'
 useDynLib("parallel", .registration = TRUE, .fixes = "C_")
 
-export(nextRNGStream, nextRNGSubStream, clusterSetRNGStream)
+export(nextRNGStream, nextRNGSubStream, clusterSetRNGStream, detectCores)
 
 if(tools:::.OStype() == "unix") {
     export(mccollect, mcparallel, mc.reset.stream)
 }
 
 export(clusterApply, clusterApplyLB, clusterCall, clusterEvalQ,
-       clusterExport, clusterMap, clusterSplit, detectCores,
-       makeCluster, makeForkCluster, makePSOCKcluster, mclapply,
-       mcmapply, parApply, parCapply, parLapply, parLapplyLB,
-       parRapply, parSapply, parSapplyLB, pvec, setDefaultCluster,
-       splitIndices, stopCluster)
+       clusterExport, clusterMap, clusterSplit, makeCluster,
+       makeForkCluster, makePSOCKcluster, mclapply, parApply,
+       parCapply, parLapply, parRapply, parSapply, pvec,
+       splitIndices, # used by e.g. spdep
+       stopCluster)
 
 S3method(print, SOCKcluster)
 S3method(print, SOCKnode)

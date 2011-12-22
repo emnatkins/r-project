@@ -104,8 +104,8 @@ reg-plot.Rout: reg-plot.R
 	@$(R) < $< > $@ 2>&1 || (mv $@ $@.fail && exit 1)
 	@$(ECHO) "$(ECHO_T) OK"
 	@$(ECHO) $(ECHO_N) \
-	  "  comparing 'reg-plot.pdf' to '$(srcdir)/reg-plot.pdf.save' ...$(ECHO_C)"
-	@$(RDIFF) reg-plot.pdf $(srcdir)/reg-plot.pdf.save
+	  "  comparing 'reg-plot.ps' to '$(srcdir)/reg-plot.ps.save' ...$(ECHO_C)"
+	@$(RDIFF) reg-plot.ps $(srcdir)/reg-plot.ps.save
 	@$(ECHO) "$(ECHO_T) OK"
 
 ## allow this to fail, as it may if the locale does not support Latin-1 chars
@@ -120,8 +120,8 @@ reg-plot-latin1.Rout: reg-plot-latin1.R
 	else \
 	  $(ECHO) "$(ECHO_T) OK"; \
 	  $(ECHO) $(ECHO_N) \
-	  "  comparing 'reg-plot-latin1.pdf' to '$(srcdir)/reg-plot-latin1.pdf.save' ...$(ECHO_C)"; \
-	  $(RDIFF) reg-plot-latin1.pdf $(srcdir)/reg-plot-latin1.pdf.save; \
+	  "  comparing 'reg-plot-latin1.ps' to '$(srcdir)/reg-plot-latin1.ps.save' ...$(ECHO_C)"; \
+	  $(RDIFF) reg-plot-latin1.ps $(srcdir)/reg-plot-latin1.ps.save; \
 	  $(ECHO) "$(ECHO_T) OK"; \
 	fi
 
@@ -360,7 +360,7 @@ INSTFILES = README \
 	$(test-src-reg) $(test-src-reg3) \
 	  reg-S4.Rout.save \
 	  reg-IO.Rout.save reg-IO2.Rout.save reg-plot.Rout.save \
-	  reg-plot.pdf.save reg-tests-2.Rout.save reg-tests-3.Rout.save \
-	  reg-plot-latin1.pdf.save \
+	  reg-plot.ps.save reg-tests-2.Rout.save reg-tests-3.Rout.save \
+	  reg-plot-latin1.ps.save \
 	  encodings.R utf8-regex.R \
 	  nanbug.rda WinUnicode.dat

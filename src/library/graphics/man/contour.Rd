@@ -3,8 +3,6 @@
 % Copyright 1995-2007 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{contour}
 \alias{contour}
 \alias{contour.default}
@@ -91,7 +89,7 @@ contour(x, \dots)
   layout.
 
   Alternatively, use \code{\link[lattice:levelplot]{contourplot}} from the
-  \CRANpkg{lattice} package where the \code{\link{formula}} notation allows
+  \pkg{lattice} package where the \code{\link{formula}} notation allows
   to use vectors \code{x,y,z} of the same length.
 
   There is limited control over the axes and frame as arguments
@@ -111,7 +109,7 @@ contour(x, \dots)
   \code{\link{contourLines}}, \code{\link{filled.contour}}
   for color-filled contours,
   \code{\link[lattice:levelplot]{contourplot}} (and
-  \code{\link[lattice]{levelplot}}) from package \CRANpkg{lattice}.
+  \code{\link[lattice]{levelplot}}) from package \pkg{lattice}.
   Further, \code{\link{image}} and the graphics demo which can be
   invoked as \code{demo(graphics)}.
 }

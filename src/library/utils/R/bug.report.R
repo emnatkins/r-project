@@ -16,14 +16,14 @@
 
 bug.report.info <- function()
     c("R Version:",
-      paste0(" ", names(R.version), " = ", R.version),
+      paste(" ", names(R.version), " = ", R.version,  sep=""),
       if (nzchar(Sys.getenv("R_GUI_APP_VERSION")))
           c("", "GUI:",
-            paste0(" R-GUI ", Sys.getenv("R_GUI_APP_VERSION"),
-                   " (", Sys.getenv("R_GUI_APP_REVISION"),")")),
+            paste(" R-GUI ", Sys.getenv("R_GUI_APP_VERSION"),
+                  " (", Sys.getenv("R_GUI_APP_REVISION"),")", sep='')),
       if (.Platform$OS.type == "windows") c("", win.version()),
       "",
-      "Locale:", paste0(" ", Sys.getlocale()),
+      "Locale:", paste(" ", Sys.getlocale(), sep = ""),
       "",
       "Search Path:",
       strwrap(paste(search(), collapse=", "), indent = 1, exdent = 1),
@@ -54,9 +54,10 @@ bug.report <- function(subject = "", address,
     if (!inherits(DESC, "packageDescription"))
         stop(gettextf("Package %s: DESCRIPTION not found",
                       sQuote(package)), domain = NA)
-    info <- paste0(c("Package", " Version", " Maintainer", " Built"),
-		   ": ",
-		   c(DESC$Package, DESC$Version, DESC$Maintainer, DESC$Built))
+    info <- paste(c("Package", " Version", " Maintainer", " Built"),
+                  ": ",
+                  c(DESC$Package, DESC$Version, DESC$Maintainer, DESC$Built),
+                  sep  = "")
     info <- c(info, "", bug.report.info())
     if(identical(DESC$Priority, "base")) return(baseR())
 

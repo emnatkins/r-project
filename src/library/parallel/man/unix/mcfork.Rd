@@ -3,8 +3,6 @@
 % Copyright 2009-11 R Core Development Team
 % Distributed under GPL 2 or later
 
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-
 \name{mcfork}
 \alias{mcfork}
 \alias{mcexit}
@@ -84,7 +82,7 @@ mcexit(exit.code = 0L, send = NULL)
 \author{
   Simon Urbanek and R Core.
 
-  Derived from the \CRANpkg{multicore} package.
+  Derived from the \pkg{multicore} package.
 }
 \section{Warning}{
   This is a very low-level API for expert use only. 
