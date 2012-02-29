@@ -117,13 +117,8 @@ print.Date <- function(x, ...)
 
 summary.Date <- function(object, digits = 12, ...)
 {
-    x <- summary.default(unclass(object), digits = digits, ...)
-    if(m <- match("NA's", names(x), 0)) {
-        NAs <- as.integer(x[m])
-        x <- x[-m]
-        attr(x, "NAs") <- NAs
-    }
-    class(x) <- c("summaryDefault", "table", oldClass(object))
+    x <- summary.default(unclass(object), digits = digits, ...)[1L:6L]# not NA's
+    class(x) <- oldClass(object)
     x
 }
 
@@ -411,7 +406,7 @@ months.Date <- function(x, abbreviate = FALSE)
 quarters.Date <- function(x, ...)
 {
     x <- (as.POSIXlt(x)$mon) %/% 3L
-    paste0("Q", x+1L)
+    paste("Q", x+1L, sep = "")
 }
 
 ## These only make sense for negative digits, but still ...

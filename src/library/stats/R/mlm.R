@@ -27,11 +27,11 @@ summary.mlm <- function(object, ...)
 	lhs <- object$terms[[2L]]
 	if(mode(lhs) == "call" && lhs[[1L]] == "cbind")
 	    ynames <- as.character(lhs)[-1L]
-	else ynames <- paste0("Y", seq_len(ny))
+	else ynames <- paste("Y", seq_len(ny), sep = "")
     }
     ## we need to ensure that _all_ responses are named
     ind <- ynames == ""
-    if(any(ind)) ynames[ind] <-  paste0("Y", seq_len(ny))[ind]
+    if(any(ind)) ynames[ind] <-  paste("Y", seq_len(ny), sep = "")[ind]
 
     value <- vector("list", ny)
     names(value) <- paste("Response", ynames)

@@ -57,12 +57,7 @@ list.dirs(path = ".", full.names = TRUE, recursive = TRUE)
 \author{Ross Ihaka, Brian Ripley}
 \note{
   File naming conventions are platform dependent.  The pattern matching
-  works with the case of file names as returned by the OS.
-#ifdef unix
-
-  On a POSIX filesystem recursive listings will follow symbolic links to
-  directories.
-#endif
+  works with the case of file names as returned by the OS
 #ifdef windows
 
   \code{path} must specify paths which can be represented in the current

@@ -123,18 +123,18 @@ as.character.condition <- function(x, ...) {
     call <- conditionCall(x)
     cl <- class(x)[1L]
     if (! is.null(call))
-        paste0(cl, " in ", deparse(call)[1L], ": ", msg, "\n")
+        paste(cl, " in ", deparse(call)[1L], ": ", msg, "\n", sep="")
     else
-        paste0(cl, ": ", msg, "\n")
+        paste(cl, ": ", msg, "\n", sep="")
 }
 
 as.character.error <- function(x, ...) {
     msg <- conditionMessage(x)
     call <- conditionCall(x)
     if (! is.null(call))
-        paste0("Error in ", deparse(call)[1L], ": ", msg, "\n")
+        paste("Error in ", deparse(call)[1L], ": ", msg, "\n", sep="")
     else
-        paste0("Error: ", msg, "\n")
+        paste("Error: ", msg, "\n", sep="")
 }
 
 signalCondition <- function(cond) {
@@ -218,7 +218,7 @@ invokeRestartInteractively <- function(r) {
 		    args <- c(args, eval(parse(prompt = prompt)))
 		}
 		else {
-		    prompt <- paste0(p, ": ")
+		    prompt <- paste(p, ": ", sep="")
 		    args <- c(args, list(eval(parse(prompt = prompt))))
 		}
 	    }

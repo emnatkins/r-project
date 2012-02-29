@@ -16,8 +16,7 @@
 
 promptClass <-
 function (clName, filename = NULL, type = "class",
-	  keywords = "classes", where = topenv(parent.frame()),
-          generatorName = clName)
+	  keywords = "classes", where = topenv(parent.frame()))
 {
     classInSig <- function(g, where, cl) {
         ## given a generic g, is class cl in one of the method
@@ -63,23 +62,13 @@ function (clName, filename = NULL, type = "class",
 	    allslots[names(slotsi)] <- paste0("\"", as.character(slotsi),"\"")
 	allslots
     }
-    cleanPrompt <- function(object, name) {
-        ## get the prompt() result and clean out the junk
-        ## lines that prompt() creates
-        value <- prompt(object, name = name, filename = NA)
-        for(i in seq_along(value)) {
-            item <- value[[i]]
-            bad <- grepl("^ *%", item)
-            if(any(bad))
-                value[[i]] <- item[!bad]
-        }
-        value
-    }
+    paste0 <- function(...) paste(..., sep = "")
     pastePar <- function(x) {
         xn <- names(x)
 	x <- as.character(x)
 	xn <- if(length(xn) == length(x)) paste(xn, "= ") else ""
-	paste0("(", paste0(xn, "\"", x, "\"", collapse = ", "), ")")
+	paste("(", paste(xn, "\"", x, "\"", sep = "", collapse = ", "),
+	")", sep = "")
     }
     escape <- function(txt) gsub("%", "\\\\%", txt)
 
@@ -123,35 +112,20 @@ function (clName, filename = NULL, type = "class",
     slotnames <- names(slotclasses)
     slotclasses <- as.character(slotclasses)
     nslots <- length(slotclasses)
-    clNameQ <- paste0('"', clName, '"')
     .usage <- "\\section{Objects from the Class}"
-    virtualClass <- isVirtualClass(clName)
-    if(virtualClass) {
+    clNameQ <- paste0('"', clName, '"')
+    if(isVirtualClass(clName)) {
 	.usage <- paste0(.usage, "{A virtual Class: No objects may be created from it.}")
-        generator <- NULL # regardless of what exists
     }
     else {
-        if(exists(generatorName, where, inherits = FALSE))
-            generator <- get(generatorName, where, inherits = FALSE)
-        else
-            generator <- NULL
-        if(is(generator, "classGeneratorFunction")) {
-            promptGenerator <- cleanPrompt(generator, generatorName)
-            callString <- .makeCallString(generator, generatorName)
-            .alias <- c(.alias, promptGenerator$aliases)
-            ## the rest of the promptGenerator will be added later
-        }
-        else {
-            initMethod <- unRematchDefinition(selectMethod("initialize", clName))
-            argNames <- formalArgs(initMethod)
-            ## but for new() the first argument is the class name
-            argNames[[1L]] <- clNameQ
-            callString <- .makeCallString(initMethod, "new", argNames)
-        }
+	initMethod <- unRematchDefinition(selectMethod("initialize", clName))
+	argNames <- formalArgs(initMethod)
+	## but for new() the first argument is the class name
+	argNames[[1L]] <- clNameQ
 	.usage <-
             c(paste0(.usage,"{"),
               paste0("Objects can be created by calls of the form \\code{",
-                     callString,
+                     .makeCallString(initMethod, "new", argNames),
                      "}."),
               "%%  ~~ describe objects here ~~ ",
               "}")
@@ -252,12 +226,6 @@ function (clName, filename = NULL, type = "class",
 
     if(is(clDef, "refClassRepresentation"))
         Rdtxt <- refClassPrompt(clDef, Rdtxt, nmeths, nslots, .meths.head)
-    else if(is(generator, "classGeneratorFunction")) {
-        ## add in the actual usage, arguments sections, mostly to make
-        ## CMD check happy
-        what <-  c("usage", "arguments")
-        Rdtxt[what] <- promptGenerator[what]
-    }
 
     if(is.na(filename)) return(Rdtxt)
 
@@ -284,7 +252,7 @@ function (clName, filename = NULL, type = "class",
 refClassPrompt <- function(clDef, Rdtxt, nmeths, nslots, .meths.head) {
     ## exclude some sections that are usually irrelevant
     sections <- names(Rdtxt)
-    envRefX <- paste0("{",extends("envRefClass"), "}")
+    envRefX <- paste("{",extends("envRefClass"), "}", sep="")
     exclude <- grep("Objects from the Class", sections)
     if(nmeths < 1)
         exclude <- c(exclude, grep("Methods", sections))
@@ -301,6 +269,7 @@ refClassPrompt <- function(clDef, Rdtxt, nmeths, nslots, .meths.head) {
     extds <- extds[!drop]
     extds <- append(extds, "\nAll reference classes extend and inherit methods from \\code{\"\\linkS4class{envRefClass}\"}.\n", length(extds)-1)
     Rdtxt[[extdsthead]] <- extds
+    paste0 <- function(...) paste(..., sep = "")
     fieldClasses <- refClassFields(clDef)
     nfields <- length(fieldClasses)
     .fields <- if (nfields > 0) {
@@ -330,9 +299,9 @@ refClassPrompt <- function(clDef, Rdtxt, nmeths, nslots, .meths.head) {
 }
 
 .refMethodDescription <- function(methodDefs, fieldnames, otherMethods) {
+    paste0 <- function(...) paste(..., sep = "")
     methodnames <- names(methodDefs)
-    methodargs <- sapply(methodDefs, function(x)
-			 paste0("(", paste(formalArgs(x), collapse=", "), ")"))
+    methodargs <- sapply(methodDefs, function(x)paste("(", paste(formalArgs(x), collapse=", "), ")", sep=""))
     if(length(methodnames) > 0) {
         .methods.head <- "  \\describe{"
         .methods.body <-
@@ -372,6 +341,6 @@ refClassPrompt <- function(clDef, Rdtxt, nmeths, nslots, .meths.head) {
 	def <- getFunction(def)
     }
     if (is(def, "function"))
-	paste0(name, "(", paste(args, collapse = ", "), ")")
+	paste(name, "(", paste(args, collapse = ", "), ")", sep = "")
     else ""
 }

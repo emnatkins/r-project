@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.14.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-02-19 08:56\n"
+"POT-Creation-Date: 2012-02-19 15:08\n"
 "PO-Revision-Date: 2011-10-18 22:11-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian <ru@li.org>\n"
@@ -36,9 +36,6 @@ msgstr "'X' должен иметь именованные dimnames"
 
 msgid "not all elements of 'MARGIN' are names of dimensions"
 msgstr "не все элементы 'MARGIN' -- имена измерений"
-
-msgid "no cluster supplied and none is registered"
-msgstr ""
 
 msgid "not a valid cluster"
 msgstr "неправильный кластер"
@@ -104,7 +101,6 @@ msgstr "разветвленные кластеры под винды не поддерживаются"
 msgid "'mc.cores' > 1 is not supported on Windows"
 msgstr "'mc.cores' > 1 не поддерживается под Windows"
 
-#, fuzzy
 msgid ""
 "scheduled core %s encountered error in user code, all values of the job will "
 "be affected"

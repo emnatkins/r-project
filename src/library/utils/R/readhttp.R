@@ -30,7 +30,7 @@ defaultUserAgent <- function()
     Rver <- paste(R.version$major, R.version$minor, sep=".")
     Rdetails <- paste(Rver, R.version$platform, R.version$arch,
                       R.version$os)
-    paste0("R (", Rdetails, ")")
+    paste("R (", Rdetails, ")", sep="")
 }
 
 
@@ -43,7 +43,7 @@ makeUserAgent <- function(format = TRUE) {
       stop(sQuote("HTTPUserAgent"),
            " option must be a length one character vector or NULL")
     if (format)
-      paste0("User-Agent: ", agent[1L], "\r\n")
+      paste("User-Agent: ", agent[1L], "\r\n", sep = "")
     else
       agent[1L]
 }

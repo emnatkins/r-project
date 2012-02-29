@@ -107,8 +107,8 @@
 #include <config.h>
 #endif
 
-#define R_USE_SIGNALS 1
-#include <Defn.h>
+#include "Defn.h"
+
 
 /* R_run_onexits - runs the conexit/cend code for all contexts from
    R_GlobalContext down to but not including the argument context.
@@ -177,9 +177,11 @@ void attribute_hidden R_restore_globals(RCNTXT *cptr)
     /* Need to reset R_Expressions in case we are jumping after
        handling a stack overflow. */
     R_Expressions = R_Expressions_keep;
+#ifdef BYTECODE
     R_BCNodeStackTop = cptr->nodestack;
-#ifdef BC_INT_STACK
+# ifdef BC_INT_STACK
     R_BCIntStackTop = cptr->intstack;
+# endif
 #endif
     R_Srcref = cptr->srcref;
 }
@@ -236,9 +238,11 @@ void begincontext(RCNTXT * cptr, int flags,
     cptr->handlerstack = R_HandlerStack;
     cptr->restartstack = R_RestartStack;
     cptr->prstack = R_PendingPromises;
+#ifdef BYTECODE
     cptr->nodestack = R_BCNodeStackTop;
-#ifdef BC_INT_STACK
+# ifdef BC_INT_STACK
     cptr->intstack = R_BCIntStackTop;
+# endif
 #endif
     cptr->srcref = R_Srcref;
     R_GlobalContext = cptr;

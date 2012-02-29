@@ -19,8 +19,7 @@
 \alias{parLapply}
 \alias{parRapply}
 \alias{parSapply}
-\alias{parLapplyLB}
-\alias{parSapplyLB}
+\alias{parlapply}
 
 \title{Apply Operations using Clusters}
 \description{
@@ -28,28 +27,24 @@
   a cluster.
 }
 \usage{
-clusterCall(cl = NULL, fun, ...)
-clusterApply(cl = NULL, x, fun, ...)
-clusterApplyLB(cl = NULL, x, fun, ...)
-clusterEvalQ(cl = NULL, expr)
-clusterExport(cl = NULL, varlist, envir = .GlobalEnv)
-clusterMap(cl = NULL, fun, ..., MoreArgs = NULL, RECYCLE = TRUE,
-           SIMPLIFY = FALSE, USE.NAMES = TRUE,
-           .scheduling = c("static", "dynamic"))
-clusterSplit(cl = NULL, seq)
+clusterCall(cl, fun, ...)
+clusterApply(cl, x, fun, ...)
+clusterApplyLB(cl, x, fun, ...)
+clusterEvalQ(cl, expr)
+clusterExport(cl, varlist, envir = .GlobalEnv)
+clusterMap(cl, fun, ..., MoreArgs = NULL, RECYCLE = TRUE,
+           SIMPLIFY = FALSE, USE.NAMES = TRUE)
+clusterSplit(cl, seq)
 
-parLapply(cl = NULL, X, fun, ...)
-parSapply(cl = NULL, X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE) 
-parApply(cl = NULL, X, MARGIN, FUN, ...)
-parRapply(cl = NULL, x, FUN, ...)
-parCapply(cl = NULL, x, FUN, ...)
-
-parLapplyLB(cl = NULL, X, fun, ...)
-parSapplyLB(cl = NULL, X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE) 
+parLapply(cl, X, fun, ...)
+parSapply(cl, X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE) 
+parApply(cl, X, MARGIN, FUN, ...)
+parRapply(cl, x, FUN, ...)
+parCapply(cl, x, FUN, ...)
 }
 \arguments{
   \item{cl}{a cluster object, created by this package or by package
-    \CRANpkg{snow}.  If \code{NULL}, use the registered default cluster.}
+    \CRANpkg{snow}.}
   \item{fun, FUN}{function or character string naming a function.}
   \item{expr}{expression to evaluate.}
   \item{seq}{vector to split.}
@@ -66,8 +61,6 @@ parSapplyLB(cl = NULL, X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE)
   \item{MARGIN}{vector specifying the dimensions to use.}
   \item{simplify, USE.NAMES}{logical; see \code{\link{sapply}}.}
   \item{SIMPLIFY}{logical; see \code{\link{mapply}}.}
-  \item{.scheduling}{should tasks be statically allocated to nodes or
-    dynamic load-balancing used?}
 }
 \details{
   \code{clusterCall} calls a function \code{fun} with identical
@@ -114,10 +107,6 @@ parSapplyLB(cl = NULL, X, FUN, ..., simplify = TRUE, USE.NAMES = TRUE)
   
   \code{parLapply}, \code{parSapply}, and \code{parApply} are parallel
   versions of \code{lapply}, \code{sapply} and \code{apply}.
-  \code{parLapplyLB}, \code{parSapplyLB} are load-balancing versions,
-  intended for use when applying \code{FUN} to different elements of
-  \code{X} takes quite variable amounts of time, and either the function
-  is deterministic or reproducible results are not required.
 
   \code{parRapply} and \code{parCapply} are parallel row and column
   \code{apply} functions for a matrix \code{x}; they may be slightly
@@ -170,8 +159,10 @@ clusterMap(cl, function(x,y) seq_len(x) + y,
 
 
 parSapply(cl, 1:20, get("+"), 3)
+stopCluster(cl)
 
 ## A bootstrapping example, which can be done in many ways:
+cl <- makeCluster(getOption("cl.cores", 2))
 clusterEvalQ(cl, {
   ## set up each worker.  Could also use clusterExport()
   library(boot)

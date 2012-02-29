@@ -175,7 +175,7 @@ format.POSIXlt <- function(x, format = "", usetz = FALSE, ...)
                 }
         format <- if(all(times[!is.na(times)] == 0)) "%Y-%m-%d"
         else if(np == 0L) "%Y-%m-%d %H:%M:%S"
-        else paste0("%Y-%m-%d %H:%M:%OS", np)
+        else paste("%Y-%m-%d %H:%M:%OS", np, sep="")
     }
     ## <FIXME>
     ## Move names handling to C code eventually ...
@@ -234,13 +234,8 @@ print.POSIXlt <- function(x, ...)
 
 summary.POSIXct <- function(object, digits = 15, ...)
 {
-    x <- summary.default(unclass(object), digits = digits, ...)
-    if(m <- match("NA's", names(x), 0)) {
-        NAs <- as.integer(x[m])
-        x <- x[-m]
-        attr(x, "NAs") <- NAs
-    }
-    class(x) <- c("summaryDefault", "table", oldClass(object))
+    x <- summary.default(unclass(object), digits=digits, ...)[1L:6L]# no NA's
+    class(x) <- oldClass(object)
     attr(x, "tzone") <- attr(object, "tzone")
     x
 }
@@ -868,7 +863,7 @@ quarters <- function(x, abbreviate) UseMethod("quarters")
 quarters.POSIXt <- function(x, ...)
 {
     x <- (as.POSIXlt(x)$mon)%/%3
-    paste0("Q", x+1)
+    paste("Q", x+1, sep = "")
 }
 
 trunc.POSIXt <- function(x, units=c("secs", "mins", "hours", "days"), ...)

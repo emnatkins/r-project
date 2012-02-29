@@ -33,9 +33,8 @@ OBJECTS = $(SOURCES_C:.c=.o) $(SOURCES_F:.f=.o) ../../../gnuwin32/dllversion.o
 SHLIB = $(pkg).dll
 RESFLAGS = -I $(R_HOME)/include
 
-# OpenMP is too slow to be useful.
-PKG_CPPFLAGS = -DHAVE_CONFIG_H -I$(R_HOME)/src/include
-PKG_LIBS = $(BLAS_LIBS) $(FLIBS)
+PKG_CPPFLAGS=-DHAVE_CONFIG_H -I$(R_HOME)/src/include
+PKG_LIBS=$(BLAS_LIBS) $(FLIBS)
 
 all: makeMakedeps shlib
 

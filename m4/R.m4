@@ -129,10 +129,8 @@ fi
 ## ------------
 AC_DEFUN([R_PROG_TEXMF],
 [
-## PDFTEX PDFLATEX MAKEINDEX TEXI2DVI are used to make manuals
-## PDFLATEX and MAKEINDEX in the emulation mode of tools::texi2dvi
+## TEX PDFTEX LATEX PDFLATEX MAKEINDEX TEXI2DVI are used to make manuals
 ## TEXI2DVICMD sets default for R_TEXI2DVICMD, used for options('texi2dvi')
-## TEX AND LATEX are no longer used
 AC_PATH_PROGS(TEX, [${TEX} tex], )
 AC_PATH_PROGS(PDFTEX, [${PDFTEX} pdftex], )
 if test -z "${ac_cv_path_PDFTEX}" ; then
@@ -152,6 +150,8 @@ if test -z "${TEXI2DVICMD}"; then
   TEXI2DVICMD=texi2dvi
 fi
 AC_SUBST(TEXI2DVICMD)
+: ${R_RD4DVI="ae"}
+AC_SUBST(R_RD4DVI)
 AC_PATH_PROGS(KPSEWHICH, [${KPSEWHICH} kpsewhich], "")
 r_rd4pdf="times,inconsolata,hyper"
 if test -n "${KPSEWHICH}"; then

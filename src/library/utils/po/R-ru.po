@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-02-12 08:59\n"
+"POT-Creation-Date: 2012-01-23 08:19\n"
 "PO-Revision-Date: 2011-10-18 23:02-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -84,9 +84,6 @@ msgstr "путь у %s содержит пробелы,"
 
 msgid "this may cause problems when running LaTeX"
 msgstr "это может привести к проблемам с LaTeX"
-
-msgid "the output file '%s' has disappeared"
-msgstr ""
 
 msgid "invalid value for %s : %s"
 msgstr "неправильное значение %s: %s"
@@ -371,6 +368,9 @@ msgstr ""
 "'topic' должен быть именем, текстовой строкой единичной длины или "
 "зарезервированным словом"
 
+msgid "Postscript offline help is deprecated"
+msgstr "Локальная помощь Postscript устарела"
+
 msgid "No documentation for %s in specified packages and libraries:"
 msgstr "В указанных пакетах и библиотеках нет документации для %s:"
 
@@ -417,6 +417,12 @@ msgid ""
 msgstr ""
 "пакет %s существует, но не установлен под R >= 2.10.0, поэтому помощь "
 "недоступна"
+
+msgid "running %s failed"
+msgstr "запуск %s не удался"
+
+msgid "%s produced no output file: sent to printer?"
+msgstr "%s не дал выходного файла: послан на принтер?"
 
 msgid "creation of %s failed"
 msgstr "создание %s не удалось"
@@ -768,17 +774,6 @@ msgstr "не могу установить пакеты"
 msgid "unable to create"
 msgstr "не удалось создать"
 
-msgid ""
-"type == \"both\" can only be used on Windows or a CRAN build for Mac OS X"
-msgstr ""
-
-msgid ""
-"type == \"both\" cannot be used if 'available' or 'contriburl' is specified"
-msgstr ""
-
-msgid "type == \"both\" cannot be used with 'repos = NULL'"
-msgstr ""
-
 msgid "inferring 'repos = NULL' from the file name"
 msgstr "выставляю 'repos = NULL' на основе имени файла"
 
@@ -811,9 +806,8 @@ msgstr ""
 "установка одного (или более) пакетов завершилась с ошибкой,\n"
 "  возможно %s"
 
-#, fuzzy
 msgid ""
-"The downloaded source packages are in\n"
+"The downloaded packages are in\n"
 "\t%s"
 msgstr ""
 "Скачанные пакеты находятся в\n"
@@ -843,9 +837,8 @@ msgstr "Редактируется файл и перемещается в положенную папку."
 msgid "no documentation of type %s and topic %s (or error in processing help)"
 msgstr "нет документации на тип %s и раздел %s (или ошибка в обработке помощи)"
 
-#, fuzzy
 msgid ""
-"the object of class %s in the function call %s could not be used as a "
+"the object of class \"%s\" in the function call %s could not be used as a "
 "documentation topic"
 msgstr ""
 "объект класса \"%s\" в вызове функции %s нельзя использовать как раздел "
@@ -1024,10 +1017,6 @@ msgstr "профиль не содержит информации о памяти"
 msgid "no events were recorded"
 msgstr "события не записаны"
 
-#, fuzzy
-msgid "invalid 'tarfile' argument"
-msgstr "неправильный аргумент 'data'"
-
 msgid "'compressed' must be logical or character"
 msgstr "'compressed' должен быть логическим или текстовым вектором"
 
@@ -1170,14 +1159,6 @@ msgstr "не могу перенести временную установку из %s в %s"
 msgid "cannot remove prior installation of package"
 msgstr "не могу удалить прежнюю установку пакета"
 
-#, fuzzy
-msgid ""
-"The downloaded binary packages are in\n"
-"\t%s"
-msgstr ""
-"Скачанные пакеты находятся в\n"
-"\t%s"
-
 msgid "'memory.size()' is Windows-specific"
 msgstr "'memory.size()' -- Windows-специфичный"
 
@@ -1251,27 +1232,11 @@ msgstr[0] "'lib' элемент '%s' -- папка не для записи"
 msgstr[1] "'lib' элементы '%s' -- папки не для записи"
 msgstr[2] "'lib' элементы '%s' -- папки не для записи"
 
-#, fuzzy
-msgid "installing the source package %s"
-msgid_plural "installing the source packages %s"
-msgstr[0] "устанавливаю также зависимость"
-msgstr[1] "устанавливаю также зависимости"
-msgstr[2] "устанавливаю также зависимости"
-
 msgid "package %s is in use and will not be installed"
 msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "пакет '%s' сейчас используется и не будет установлен"
 msgstr[1] "пакеты '%s' сейчас используются и не будут установлены"
 msgstr[2] "пакеты '%s' сейчас используются и не будут установлены"
-
-#~ msgid "Postscript offline help is deprecated"
-#~ msgstr "Локальная помощь Postscript устарела"
-
-#~ msgid "running %s failed"
-#~ msgstr "запуск %s не удался"
-
-#~ msgid "%s produced no output file: sent to printer?"
-#~ msgstr "%s не дал выходного файла: послан на принтер?"
 
 #~ msgid "Use either 'given' or 'first'/'middle' but not both."
 #~ msgstr "Используйте либо 'given' или 'first'/'middle', но не оба сразу."

@@ -6,8 +6,6 @@
 \name{stringWidth}
 \alias{stringWidth}
 \alias{stringHeight}
-\alias{stringAscent}
-\alias{stringDescent}
 \title{Create a Unit Describing the Width and Height of a String or Math
   Expression}
 \description{
@@ -17,8 +15,6 @@
 \usage{
 stringWidth(string)
 stringHeight(string)
-stringAscent(string)
-stringDescent(string)
 }
 \arguments{
   \item{string}{A character vector or a language object (as used for

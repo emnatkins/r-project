@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-02-12 08:59\n"
+"POT-Creation-Date: 2012-01-23 08:19\n"
 "PO-Revision-Date: 2011-10-15 15:37+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -81,9 +81,6 @@ msgstr "le chemin vers %s contient des espaces,"
 
 msgid "this may cause problems when running LaTeX"
 msgstr "cela peut provoquer des problèmes dans l'utilisation de LaTeX"
-
-msgid "the output file '%s' has disappeared"
-msgstr ""
 
 msgid "invalid value for %s : %s"
 msgstr "valeur incorrecte pour %s : %s"
@@ -385,6 +382,9 @@ msgstr ""
 "'topic' doit être un nom, une chaîne de caractères de longueur unitaire, ou "
 "un mot réservé"
 
+msgid "Postscript offline help is deprecated"
+msgstr "Les fichiers d'aide postscript hors ligne sont obsolète"
+
 msgid "No documentation for %s in specified packages and libraries:"
 msgstr ""
 "Aucune documentation pour %s n'a été trouvée dans les packages et les "
@@ -433,6 +433,12 @@ msgid ""
 msgstr ""
 "le package %s existe, mais il n'a pas été installé sous R >= 2.10.0 et donc "
 "l'aide n'est pas accessible"
+
+msgid "running %s failed"
+msgstr "l'exécution de %s a échoué"
+
+msgid "%s produced no output file: sent to printer?"
+msgstr "%s n'a produit aucun fichier en sortie : envoyer vers l'imprimante ?"
 
 msgid "creation of %s failed"
 msgstr "la création de %s a échoué"
@@ -791,17 +797,6 @@ msgstr "impossible d'installer les packages"
 msgid "unable to create"
 msgstr "impossible de créer"
 
-msgid ""
-"type == \"both\" can only be used on Windows or a CRAN build for Mac OS X"
-msgstr ""
-
-msgid ""
-"type == \"both\" cannot be used if 'available' or 'contriburl' is specified"
-msgstr ""
-
-msgid "type == \"both\" cannot be used with 'repos = NULL'"
-msgstr ""
-
 msgid "inferring 'repos = NULL' from the file name"
 msgstr "supposition de 'repos = NULL' à partir du nom de fichier"
 
@@ -836,9 +831,8 @@ msgstr ""
 "l'installation de un package ou plus a échoué,\n"
 " probablement %s"
 
-#, fuzzy
 msgid ""
-"The downloaded source packages are in\n"
+"The downloaded packages are in\n"
 "\t%s"
 msgstr ""
 "Les packages téléchargés sont dans\n"
@@ -870,9 +864,8 @@ msgstr ""
 "pas de documentation de type %s et de thème %s (ou erreur de traitement de "
 "l'aide)"
 
-#, fuzzy
 msgid ""
-"the object of class %s in the function call %s could not be used as a "
+"the object of class \"%s\" in the function call %s could not be used as a "
 "documentation topic"
 msgstr ""
 "l'objet de la classe \"%s\" dans l'appel de fonction %s n'a pas pu être "
@@ -1055,10 +1048,6 @@ msgstr "'profile' ne contient pas d'information sur la mémoire"
 msgid "no events were recorded"
 msgstr "aucun événement à enregistrer"
 
-#, fuzzy
-msgid "invalid 'tarfile' argument"
-msgstr "argument 'data' incorrect"
-
 msgid "'compressed' must be logical or character"
 msgstr ""
 "'compressed' devrait être un vecteur de type caractère ou booléen (logical)"
@@ -1204,14 +1193,6 @@ msgstr "impossible de déplacer l'installation temporaire %s vers %s"
 msgid "cannot remove prior installation of package"
 msgstr "impossible de supprimer l'installation précédente du package"
 
-#, fuzzy
-msgid ""
-"The downloaded binary packages are in\n"
-"\t%s"
-msgstr ""
-"Les packages téléchargés sont dans\n"
-"\t%s"
-
 msgid "'memory.size()' is Windows-specific"
 msgstr "'memory.size()' est spécifique à Windows"
 
@@ -1280,24 +1261,11 @@ msgstr[0] "l'élément %s de 'lib' n'est pas un répertoire ouvrable en écriture"
 msgstr[1] ""
 "les éléments %s de 'lib' ne sont pas des répertoires ouvrables en écriture"
 
-#, fuzzy
-msgid "installing the source package %s"
-msgid_plural "installing the source packages %s"
-msgstr[0] "installation de la dépendance %s"
-msgstr[1] "installation des dépendances %s"
-
 msgid "package %s is in use and will not be installed"
 msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "le package %s est en cours d'utilisation et ne sera pas installé"
 msgstr[1] ""
 "les packages %s sont en cours d'utilisation et ne seront pas installés"
-
-#~ msgid "running %s failed"
-#~ msgstr "l'exécution de %s a échoué"
-
-#~ msgid "%s produced no output file: sent to printer?"
-#~ msgstr ""
-#~ "%s n'a produit aucun fichier en sortie : envoyer vers l'imprimante ?"
 
 #~ msgid "Use either 'given' or 'first'/'middle' but not both."
 #~ msgstr ""
@@ -1320,9 +1288,6 @@ msgstr[1] ""
 
 #~ msgid "method is just applicable to 'bibentry' objects"
 #~ msgstr "la méthode est seulement applicable à des objets 'bibentry'"
-
-#~ msgid "Postscript offline help is deprecated"
-#~ msgstr "Les fichiers d'aide postscript hors ligne sont obsolète"
 
 #, fuzzy
 #~ msgid "Enhanced authors specification provides no authors."

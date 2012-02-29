@@ -43,6 +43,8 @@
     on.exit(do_exit_on_error())
     WINDOWS <- .Platform$OS.type == "windows"
 
+    paste0 <- function(...) paste(..., sep="")
+
     MAKE <- Sys.getenv("MAKE")
     rarch <- Sys.getenv("R_ARCH") # unix only
     if (WINDOWS && nzchar(.Platform$r_arch))
@@ -119,12 +121,10 @@
             "			set arguments for the configure scripts (if any)",
             "      --configure-vars=VARS",
             "			set variables for the configure scripts (if any)",
-            "      --dsym               (Mac OS X only) generate dSYM directory",
             "\nand on Windows only",
             "      --force-biarch	attempt to build both architectures",
             "			even if there is a non-empty configure.win",
             "      --merge-multiarch	bi-arch by merging from a tarball",
-            "      --compile-both	compile both architectures on 32-bit Windows",
             "",
             "Which of --html or --no-html is the default depends on the build of R:",
             paste0("for this one it is ",
@@ -191,7 +191,7 @@
         full
     }
 
-    ## used for LazyData, KeepSource, ByteCompile
+    ## used for LazyData, LazyLoad, KeepSource, ByteCompile
     parse_description_field <- function(desc, field, default=TRUE)
     {
         tmp <- desc[field]
@@ -432,22 +432,14 @@
                 file.copy(files, dest, overwrite = TRUE)
                 ## not clear if this is still necessary, but sh version did so
                 if (!WINDOWS) Sys.chmod(file.path(dest, files), "755")
-		## OS X does not keep debugging symbols in binaries
-		## anymore so optionally we can create dSYMs. This is
-		## important since we will blow away .o files so there
-		## is no way to create it later.
-
-		if (dsym && length(grep("^darwin", R.version$os)) ) {
+		## OS X does not keep debugging symbols in binaries anymore so
+		## optionally we can create dSYMs. This is important since we
+		## will blow away .o files so there is no way to create it later.
+		if (nzchar(Sys.getenv("PKG_MAKE_DSYM")) && length(grep("^darwin", R.version$os))) {
 		    message('generating debug symbols (dSYM)')
 		    dylib <- Sys.glob(paste0(dest, "/*", SHLIB_EXT))
-                    for (file in dylib) system(paste0("dsymutil ", file))
+		    if (length(dylib)) for (file in dylib) system(paste0("dsymutil ", file))
 		}
-
-                if(config_val_to_logical(Sys.getenv("_R_SHLIB_BUILD_OBJECTS_SYMBOL_TABLES_",
-                                                    "FALSE"))
-                   && file_test("-f", "symbols.rds")) {
-                    file.copy("symbols.rds", dest)
-                }
             }
         }
 
@@ -665,25 +657,18 @@
                 } else { ## no src/Makefile.win
                     srcs <- dir(pattern = "\\.([cfmM]|cc|cpp|f90|f95|mm)$",
                                 all.files = TRUE)
-                    archs <- if (!force_both && !grepl(" x64 ", win.version()))
-                        "i386"
-                    else {
-                        ## see what is installed
-                        ## NB, not R.home("bin")
-                        f  <- dir(file.path(R.home(), "bin"))
-                        f[f %in% c("i386", "x64")]
-                    }
+                    ## NB, not R.home("bin")
+                    f  <- dir(file.path(R.home(), "bin"))
+                    archs <- f[f %in% c("i386", "x64")]
                     one_only <- !multiarch
                     if(!one_only && file.exists("../configure.win")) {
                         ## for now, hardcode some exceptions
                         ## These are packages which have arch-independent
                         ## code in configure.win
                         if(!pkg_name %in% c("AnalyzeFMRI", "CORElearn",
-                                            "PearsonDS", "RGtk2",
+                                            "PearsonDS", "RBGL", "RGtk2",
                                             "RNetCDF", "RODBC", "Rcpp",
-                                            "Runuran", "XML",
-                                            "arulesSequences",
-                                            "cairoDevice",
+                                            "Runuran", "XML", "cairoDevice",
                                             "diversitree", "foreign",
                                             "fastICA", "glmnet", "gstat",
                                             "igraph", "jpeg", "png", "proj4",
@@ -803,24 +788,7 @@
                              )
                 writeLines(newdesc, descfile, useBytes = TRUE)
             }
-        } else if (multiarch) {   # end of src dir
-            if (WINDOWS) {
-                wd2 <- setwd(file.path(R.home(), "bin")) # not R.home("bin")
-                archs <- Sys.glob("*")
-                setwd(wd2)
-                test_archs <- archs[archs %in% c("i386", "x64")]
-            } else {
-                wd2 <- setwd(file.path(R.home("bin"), "exec"))
-                test_archs <- Sys.glob("*")
-                setwd(wd2)
-            }
-        }
-        if (WINDOWS && "x64" %in% test_archs) {
-            ## we cannot actually test x64 unless this is 64-bit
-            ## Windows, even if it is installed.
-            if (!grepl(" x64 ", win.version())) test_archs <- "i386"
-        }
-
+        }                               # end of src dir
 
         ## R files must start with a letter
 	if (install_R && dir.exists("R") && length(dir("R"))) {
@@ -1015,6 +983,9 @@
 	}
 
 	## LazyLoading/Compiling
+	value <- parse_description_field(desc, "LazyLoad", default = TRUE)
+        if(!value)
+            message("Note: LazyLoad != TRUE is deprecated and ignored", domain = NA)
 	if (install_R && dir.exists("R") && length(dir("R"))) {
             BC <- parse_description_field(desc, "ByteCompile",
                                           default = byte_compile)
@@ -1079,18 +1050,12 @@
 
 	## pkg indices: this also tangles the vignettes (if installed)
 	if (install_inst || install_demo || install_help) {
-	    starsmsg(stars, "building package indices")
-	    res <- try(.install_package_indices(".", instdir))
+	    starsmsg(stars, "building package indices ...")
+            enc <- desc["Encoding"]
+            if (is.na(enc)) enc <- ""
+	    res <- try(.install_package_indices(".", instdir, enc))
 	    if (inherits(res, "try-error"))
 		errmsg("installing package indices failed")
-            if(file_test("-d", "vignettes") || file_test("-d", "inst/doc")) {
-                starsmsg(stars, "installing vignettes")
-                enc <- desc["Encoding"]
-                if (is.na(enc)) enc <- ""
-                res <- try(.install_package_vignettes2(".", instdir, enc))
-	    if (inherits(res, "try-error"))
-		errmsg("installing vignettes failed")
-            }
 	}
 
 	## Install a dump of the parsed NAMESPACE file
@@ -1111,14 +1076,11 @@
             cmd <- paste("tools:::.test_load_package('", pkg_name, "', '", lib, "')",
                          sep = "")
             ## R_LIBS was set already.  R_runR is in check.R
-            env <- if(!WINDOWS &&
-               config_val_to_logical(Sys.getenv("_R_CHECK_INSTALL_DEPENDS_", "FALSE")))
-                setRlibs(lib0) else ""
             if (length(test_archs) > 1L) {
                 msgs <- character()
                 for (arch in test_archs) {
                     starsmsg("***", "arch - ", arch)
-                    res <- R_runR(cmd, "--no-save --slave", env = env,
+                    res <- R_runR(cmd, "--no-save --slave",
                                   stdout = "", stderr = "", arch = arch)
                     if (res) msgs <- c(msgs, arch)
                 }
@@ -1172,11 +1134,9 @@
     shargs <- character()
     multiarch <- TRUE
     force_biarch <- FALSE
-    force_both <- FALSE
     test_load <- TRUE
     clean_on_error <- TRUE
     merge <- FALSE
-    dsym <- nzchar(Sys.getenv("PKG_MAKE_DSYM"))
 
     get_user_libPaths <- FALSE
     data_compress <- TRUE # FALSE (none), TRUE (gzip), 2 (bzip2), 3 (xz)
@@ -1260,8 +1220,6 @@
             multiarch <- FALSE
         } else if (a == "--force-biarch") {
             force_biarch <- TRUE
-        } else if (a == "--compile-both") {
-            force_both <- TRUE
         } else if (a == "--maybe-get-user-libPaths") {
             get_user_libPaths <- TRUE
         } else if (a == "--build") {
@@ -1307,8 +1265,6 @@
             keep.source <- FALSE
         } else if (a == "--byte-compile") {
             byte_compile <- TRUE
-        } else if (a == "--dsym") {
-            dsym <- TRUE
         } else if (substr(a, 1, 1) == "-") {
             message("Warning: unknown option ", sQuote(a))
         } else pkgs <- c(pkgs, a)
@@ -1556,13 +1512,14 @@
             "Report bugs to <r-bugs@r-project.org>.",
             sep="\n")
 
+    p0 <- function(...) paste(..., sep="")
     ## FIXME shQuote here?
     p1 <- function(...) paste(..., collapse=" ")
 
     WINDOWS <- .Platform$OS.type == "windows"
     if (!WINDOWS) {
         mconf <- readLines(file.path(R.home(),
-                                     paste0("etc", Sys.getenv("R_ARCH")),
+                                     p0("etc", Sys.getenv("R_ARCH")),
                                      "Makeconf"))
         SHLIB_EXT <- sub(".*= ", "", grep("^SHLIB_EXT", mconf, value = TRUE))
         SHLIB_LIBADD <- sub(".*= ", "", grep("^SHLIB_LIBADD", mconf, value = TRUE))
@@ -1578,7 +1535,7 @@
         rarch <- Sys.getenv("R_ARCH", NA)
         if(is.na(rarch)) {
             if (nzchar(.Platform$r_arch)) {
-                rarch <- paste0("/", .Platform$r_arch)
+                rarch <- p0("/", .Platform$r_arch)
                 Sys.setenv(R_ARCH = rarch)
             } else rarch <- ""
         }
@@ -1588,9 +1545,9 @@
 
     objs <- character()
     shlib <- ""
-    site <- file.path(paste0(R.home("etc"), rarch), "Makevars.site")
+    site <- file.path(p0(R.home("etc"), rarch), "Makevars.site")
     makefiles <-
-        c(file.path(paste0(R.home("etc"), rarch), "Makeconf"),
+        c(file.path(p0(R.home("etc"), rarch), "Makeconf"),
           if(file.exists(site)) site,
           file.path(R.home("share"), "make",
                     if (WINDOWS) "winshlib.mk" else "shlib.mk"))
@@ -1637,7 +1594,7 @@
         } else {
             ## a source file or something like -Ldir -lfoo
             base <- sub("\\.[[:alnum:]]*$", "", a)
-            ext <- sub(paste0(base, "."),  "", a, fixed = TRUE)
+            ext <- sub(p0(base, "."),  "", a, fixed = TRUE)
             nobj <- ""
             if (nzchar(ext)) {
                 if (ext %in% c("cc", "cpp")) {
@@ -1663,7 +1620,7 @@
                     nobj <- base
                 }
                 if (nzchar(nobj) && !nzchar(shlib))
-                    shlib <- paste0(nobj, SHLIB_EXT)
+                    shlib <- p0(nobj, SHLIB_EXT)
             }
             if (nzchar(nobj)) objs <- c(objs, nobj)
             else pkg_libs <- c(pkg_libs, a)
@@ -1671,7 +1628,7 @@
         args <- args[-1L]
     }
 
-    if (length(objs)) objs <- paste0(objs, OBJ_EXT, collapse=" ")
+    if (length(objs)) objs <- p0(objs, OBJ_EXT, collapse=" ")
 
     if (WINDOWS) {
         if (rarch == "/x64" &&
@@ -1690,7 +1647,7 @@
             makefiles <- c(makefiles, f)
     }
 
-    makeobjs <- paste0("OBJECTS=", shQuote(objs))
+    makeobjs <- p0("OBJECTS=", shQuote(objs))
     if (WINDOWS && file.exists("Makevars.win")) {
         makefiles <- c("Makevars.win", makefiles)
         lines <- readLines("Makevars.win", warn = FALSE)
@@ -1703,7 +1660,7 @@
             makeobjs <- ""
     }
 
-    makeargs <- paste0("SHLIB=", shQuote(shlib))
+    makeargs <- p0("SHLIB=", shQuote(shlib))
     if (with_f9x) {
         makeargs <- c("SHLIB_LDFLAGS='$(SHLIB_FCLDFLAGS)'",
                       "SHLIB_LD='$(SHLIB_FCLD)'", makeargs)
@@ -1717,18 +1674,14 @@
 
     if (length(pkg_libs))
         makeargs <- c(makeargs,
-                      paste0("PKG_LIBS='", p1(pkg_libs), "'"))
+                      p0("PKG_LIBS='", p1(pkg_libs), "'"))
     if (length(shlib_libadd))
         makeargs <- c(makeargs,
-                      paste0("SHLIB_LIBADD='", p1(shlib_libadd), "'"))
+                      p0("SHLIB_LIBADD='", p1(shlib_libadd), "'"))
 
     if (WINDOWS && debug) makeargs <- c(makeargs, "DEBUG=T")
     ## TCLBIN is needed for tkrplot and tcltk2
     if (WINDOWS && rarch == "/x64") makeargs <- c(makeargs, "WIN=64 TCLBIN=64")
-
-    build_objects_symbol_tables <-
-        config_val_to_logical(Sys.getenv("_R_SHLIB_BUILD_OBJECTS_SYMBOL_TABLES_",
-                                         "FALSE"))
 
     cmd <- paste(MAKE, p1(paste("-f", shQuote(makefiles))), p1(makeargs),
                  p1(makeobjs))
@@ -1739,10 +1692,6 @@
     } else {
         if (preclean) system(paste(cmd, "shlib-clean"))
         res <- system(cmd)
-        if(build_objects_symbol_tables) {
-            ## Should only do this if the previous one went ok.
-            system(paste(cmd, "symbols.rds"))
-        }
         if (clean) system(paste(cmd, "shlib-clean"))
     }
     res # probably a multiple of 256
@@ -1907,24 +1856,28 @@
         if (m) nm <- c(" ", nm[-m])
         m <- match("misc", nm, 0L) # force last in all locales.
         if (m) nm <- c(nm[-m], "misc")
-	writeLines(c("<p align=\"center\">",
-		     paste0("<a href=\"#", nm, "\">", nm, "</a>"),
-		     "</p>\n"), outcon)
+        writeLines("<p align=\"center\">", outcon)
+        writeLines(paste("<a href=\"#", nm, "\">", nm, "</a>", sep = ""),
+                   outcon)
+        writeLines("</p>\n", outcon)
+
         for (f in nm) {
             MM <- M[first == f, ]
             if (f != " ")
                 cat("\n<h2><a name=\"", f, "\">-- ", f, " --</a></h2>\n\n",
                     sep = "", file = outcon)
-	    writeLines(c('<table width="100%">',
-			 paste0('<tr><td width="25%"><a href="', MM[, 2L], '.html">',
-				MM$HTopic, '</a></td>\n<td>', MM[, 3L],'</td></tr>'),
-			 "</table>"), outcon)
+            writeLines('<table width="100%">', outcon)
+            writeLines(paste('<tr><td width="25%"><a href="', MM[, 2L], '.html">',
+                             MM$HTopic, '</a></td>\n<td>', MM[, 3L],'</td></tr>',
+                             sep = ''), outcon)
+            writeLines("</table>", outcon)
        }
     } else if (nrow(M)) {
-	writeLines(c('<table width="100%">',
-		     paste0('<tr><td width="25%"><a href="', M[, 2L], '.html">',
-			    M$HTopic, '</a></td>\n<td>', M[, 3L],'</td></tr>'),
-		     "</table>"), outcon)
+        writeLines('<table width="100%">', outcon)
+        writeLines(paste('<tr><td width="25%"><a href="', M[, 2L], '.html">',
+                         M$HTopic, '</a></td>\n<td>', M[, 3L],'</td></tr>',
+                         sep = ''), outcon)
+        writeLines("</table>", outcon)
     } else { # no rows
          writeLines("There are no help pages in this package", outcon)
     }
@@ -2017,7 +1970,7 @@
         if ("html" %in% types) {
             type <- "html"
             ff <- file.path(outDir, dirname[type],
-                            paste0(bf, ext[type]))
+                            paste(bf, ext[type], sep = ""))
             if (!file_test("-f", ff) || file_test("-nt", f, ff)) {
                 showtype(type)
                 ## assume prepare_Rd was run when dumping the .rds
@@ -2030,7 +1983,7 @@
         if ("latex" %in% types) {
             type <- "latex"
             ff <- file.path(outDir, dirname[type],
-                            paste0(bf, ext[type]))
+                            paste(bf, ext[type], sep = ""))
             if (!file_test("-f", ff) || file_test("-nt", f, ff)) {
                 showtype(type)
                 .convert(Rd2latex(Rd, ff, defines = NULL,
@@ -2040,7 +1993,7 @@
         if ("example" %in% types) {
             type <- "example"
             ff <- file.path(outDir, dirname[type],
-                            paste0(bf, ext[type]))
+                            paste(bf, ext[type], sep = ""))
             if (!file_test("-f", ff) || file_test("-nt", f, ff)) {
                 .convert(Rd2ex(Rd, ff, defines = NULL))
                 if (file_test("-f", ff)) showtype(type)

@@ -324,21 +324,6 @@ AC_ARG_ENABLE([prebuilt-html],
 AM_CONDITIONAL(BUILD_HTML, [test "x${want_prebuilt_html}" = xyes])
 
 
-AC_ARG_ENABLE([lto],
-[AS_HELP_STRING([--enable-lto],[enable link-time optimization @<:@no@:>@])],
-[want_lto="${enableval}"], [want_lto=no])
-## FIXME: add a test for gcc >= 4.5.0
-if test "x${want_lto}" != xno; then
-  LTO=-flto
-fi
-if test "x${want_lto}" == xyes; then
-  LTOALL=-flto
-fi
-AC_SUBST(LTO)
-AC_SUBST(LTOALL)
-AM_CONDITIONAL(BUILD_LTO, [test "x${want_lto}" != xno])
-
-
 ### ** Optional packages.
 
 ## BLAS.
@@ -1798,8 +1783,7 @@ R_CHECK_FUNCS([utime], [#include <utime.h>])
 ## clock_gettime is POSIX 1993, but not on MacOS X
 ## Some OSes need -lrt: Linux, Solaris, not FreeBSD.
 ## Unsurprising, as POSIX 2008 moved it from its timers section to base.
-## timespec_get is C11.
-R_CHECK_FUNCS([clock_gettime timespec_get], [#include <time.h>])
+R_CHECK_FUNCS([clock_gettime], [#include <time.h>])
 if test "${ac_cv_have_decl_clock_gettime}" = "yes"; then
 AC_CHECK_LIB(rt, clock_gettime)
 fi
@@ -2764,6 +2748,12 @@ if test -n "${warn_fcpicflags}"; then
 fi
 if test -n "${warn_tcltk_version}"; then
   AC_MSG_WARN([${warn_tcltk_version}])
+fi
+if test -n "${warn_dvi1}"; then
+  AC_MSG_WARN([${warn_dvi1}])
+fi
+if test -n "${warn_dvi2}"; then
+  AC_MSG_WARN([${warn_dvi2}])
 fi
 if test -n "${warn_info}"; then
   AC_MSG_WARN([${warn_info}])

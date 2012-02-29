@@ -188,24 +188,18 @@ function(pkgs, dependencies = c("Depends", "Imports", "LinkingTo"),
          installed = installed.packages(lib.loc, fields = "Enhances"))
 {
     if(identical(dependencies, "all"))
-        dependencies <-
-            c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")
-    else if(identical(dependencies, "most"))
-        dependencies <-
-            c("Depends", "Imports", "LinkingTo", "Suggests")
-    
+        dependencies <- c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")
     av <- installed[, dependencies, drop = FALSE]
-    rn <- row.names(installed)
     need <- apply(av, 1L, function(x)
                   any(pkgs %in% utils:::.clean_up_dependencies(x)) )
-    uses <- rn[need]
+    uses <- rownames(installed)[need]
     if(recursive) {
         p <- pkgs
         repeat {
             p <- unique(c(p, uses))
             need <- apply(av, 1L, function(x)
                           any(p %in% utils:::.clean_up_dependencies(x)) )
-            uses <- unique(c(p, rn[need]))
+            uses <- unique(c(p, rownames(installed)[need]))
             if(length(uses) <= length(p)) break
         }
     }
@@ -237,7 +231,7 @@ function(ap)
     if(length(stale_dups)) ap[-stale_dups, , drop = FALSE] else ap
 }
 
-package_dependencies <-
+.package_dependencies <-
 function(packages = NULL, db,
          which = c("Depends", "Imports", "LinkingTo"),
          recursive = FALSE, reverse = FALSE)
@@ -262,13 +256,6 @@ function(packages = NULL, db,
         }
     }
 
-    if(identical(which, "all"))
-        which <-
-            c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")
-    else if(identical(which, "most"))
-        which <-
-            c("Depends", "Imports", "LinkingTo", "Suggests")
-
     depends <-
         do.call(Map,
                 c(list("c"),
@@ -282,8 +269,6 @@ function(packages = NULL, db,
                                          .extract_dependency_package_names)
                          }),
                   list(USE.NAMES = FALSE)))
-
-    depends <- lapply(depends, unique)
 
     if(!recursive && !reverse) {
         names(depends) <- db[, "Package"]
@@ -380,16 +365,6 @@ function(packages = NULL, db,
                         names = out_of_db_packages))
     }
     depends
-}
-
-
-.package_dependencies <- function(packages = NULL, db,
-         which = c("Depends", "Imports", "LinkingTo"),
-         recursive = FALSE, reverse = FALSE)
-{
-    .Deprecated("package_dependencies")
-    package_dependencies(packages = packages, db = db,
-         which = which, recursive = recursive, reverse = reverse)
 }
 
 .extract_dependency_package_names <-

@@ -32,7 +32,6 @@ newPSOCKnode <- function(machine = "localhost", ...,
     manual <- getClusterOption("manual", options)
     timeout <- getClusterOption("timeout", options)
     methods <- getClusterOption("methods", options)
-    useXDR <- getClusterOption("useXDR", options)
 
     ## build the local command for starting the worker
     env <- paste("MASTER=", master,
@@ -40,7 +39,6 @@ newPSOCKnode <- function(machine = "localhost", ...,
                  " OUT=", outfile,
                  " TIMEOUT=", timeout,
                  " METHODS=", methods,
-                 " XDR=", useXDR,
                  sep="")
     arg <- "parallel:::.slaveRSOCK()"
     rscript <- if (getClusterOption("homogeneous", options)) {
@@ -72,7 +70,6 @@ newPSOCKnode <- function(machine = "localhost", ...,
         }
 
         if (.Platform$OS.type == "windows") {
-            ## snow said:
             ## On Windows using input = something seems needed to
             ## disconnect standard input of an ssh process when run
             ## from Rterm (at least using putty's plink).  In
@@ -89,16 +86,14 @@ newPSOCKnode <- function(machine = "localhost", ...,
 
     con <- socketConnection("localhost", port = port, server = TRUE,
                             blocking = TRUE, open = "a+b", timeout = timeout)
-    structure(list(con = con, host = machine, rank = rank),
-              class = if(useXDR) "SOCKnode" else "SOCK0node")
+    structure(list(con = con, host = machine, rank = rank), class = "SOCKnode")
 }
 
-closeNode.SOCKnode <- closeNode.SOCK0node <- function(node) close(node$con)
+closeNode.SOCKnode <- function(node) close(node$con)
 
 sendData.SOCKnode <- function(node, data) serialize(data, node$con)
-sendData.SOCK0node <- function(node, data) serialize(data, node$con, xdr = FALSE)
 
-recvData.SOCKnode <- recvData.SOCK0node <- function(node) unserialize(node$con)
+recvData.SOCKnode <- function(node) unserialize(node$con)
 
 recvOneData.SOCKcluster <- function(cl)
 {
@@ -135,7 +130,7 @@ print.SOCKcluster <- function(x, ...)
     invisible(x)
 }
 
-print.SOCKnode <- print.SOCK0node <- function(x, ...)
+print.SOCKnode <- function(x, ...)
 {
     sendCall(x, eval, list(quote(Sys.getpid())))
     pid <- recvResult(x)
@@ -146,16 +141,16 @@ print.SOCKnode <- print.SOCK0node <- function(x, ...)
     invisible(x)
 }
 
+## formerly in RSOCKnode.R
 .slaveRSOCK <- function()
 {
-    makeSOCKmaster <- function(master, port, timeout, useXDR)
+    makeSOCKmaster <- function(master, port, timeout)
     {
         port <- as.integer(port)
         ## maybe use `try' and sleep/retry if first time fails?
         con <- socketConnection(master, port = port, blocking = TRUE,
                                 open = "a+b", timeout = timeout)
-        structure(list(con = con),
-                  class = if(useXDR) "SOCKnode" else "SOCK0node")
+        structure(list(con = con), class = "SOCKnode")
     }
 
     ## set defaults in case run manually without args.
@@ -163,7 +158,6 @@ print.SOCKnode <- print.SOCK0node <- function(x, ...)
     port <- 10187 # no point in getting option on worker.
     outfile <- Sys.getenv("R_SNOW_OUTFILE") # defaults to ""
     methods <- TRUE
-    useXDR <- TRUE
 
     for (a in commandArgs(TRUE)) {
         ## Or use strsplit?
@@ -175,8 +169,7 @@ print.SOCKnode <- print.SOCK0node <- function(x, ...)
                PORT = {port <- value},
                OUT = {outfile <- value},
                TIMEOUT = {timeout <- value},
-               METHODS = {methods <- value},
-               XDR = {useXDR <- as.logical(value)})
+               METHODS = {methods <- value})
     }
 
     if(as.logical(methods)) library("methods") ## because Rscript does not load methods by default
@@ -187,5 +180,5 @@ print.SOCKnode <- print.SOCK0node <- function(x, ...)
                    Sys.getpid(), paste(master, port, sep = ":"),
                    format(Sys.time(), "%H:%M:%OS3"))
     cat(msg)
-    slaveLoop(makeSOCKmaster(master, port, timeout, useXDR))
+    slaveLoop(makeSOCKmaster(master, port, timeout))
 }

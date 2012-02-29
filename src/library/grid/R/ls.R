@@ -349,7 +349,7 @@ gridList.vpPath <- function(x, grobs=TRUE, viewports=FALSE,
         # but that redesign is a bit of an undertaking
         if (depth(x) == 1) {
             if (fullNames) {
-                result <- paste0("downViewport[", x$name, "]")
+                result <- paste("downViewport[", x$name, "]", sep="")
             } else {
                 result <- x$name
             }
@@ -400,7 +400,7 @@ gridList.pop <- function(x, grobs=TRUE, viewports=FALSE,
     if (viewports) {
         result <- as.character(x)
         if (fullNames) {
-            result <- paste0("popViewport[", result, "]")
+            result <- paste("popViewport[", result, "]", sep="")
         }
         class(result) <- c("vpPopListing", "gridVectorListing", "gridListing")
     } else {
@@ -416,7 +416,7 @@ gridList.up <- function(x, grobs=TRUE, viewports=FALSE,
     if (viewports) {
         result <- as.character(x)
         if (fullNames) {
-            result <- paste0("upViewport[", result, "]")
+            result <- paste("upViewport[", result, "]", sep="")
         }
         class(result) <- c("vpUpListing", "gridVectorListing", "gridListing")
     } else {
@@ -497,10 +497,10 @@ decrPath <- function(oldpath, x) {
     n <- as.numeric(gsub("^.+\\[", "",
                          gsub("\\]$", "",
                               as.character(x))))
-    if ((m <- (length(bits) - n)) == 0L) {
+    if ((length(bits) - n) == 0L) {
         ""
     } else {
-	paste(bits[seq_len(m)], collapse=.grid.pathSep)
+        paste(bits[1L:(length(bits) - n)], collapse=.grid.pathSep)
     }
 }
 
@@ -683,11 +683,11 @@ pathListing <- function(x, gvpSep=" | ", gAlign=TRUE) {
     padPrefix <- function(path, maxLen) {
         numSpaces <- maxLen - nchar(path)
         if (length(path) == 1L) {
-            paste0(path, paste(rep.int(" ", numSpaces), collapse=""))
+            paste(path, paste(rep(" ", numSpaces), collapse=""), sep="")
         } else {
             padding <- rep(" ", length(path))
-            padding <- mapply(rep.int, padding, numSpaces)
-            paste0(path, sapply(padding, paste, collapse=""))
+            padding <- mapply(rep, padding, numSpaces)
+            paste(path, sapply(padding, paste, collapse=""), sep="")
         }
     }
 
@@ -695,6 +695,7 @@ pathListing <- function(x, gvpSep=" | ", gAlign=TRUE) {
         stop("Invalid listing")
     vpListings <- seq_along(x$name) %in% grep("^vp", x$type)
     paths <- x$vpPath
+    maxLen <- max(nchar(paths))
     # Only if viewport listings
     if (sum(vpListings) > 0) {
         paths[vpListings] <- appendToPrefix(paths[vpListings],
@@ -702,18 +703,16 @@ pathListing <- function(x, gvpSep=" | ", gAlign=TRUE) {
         # If viewports are shown, then allow extra space before grobs
         maxLen <- max(nchar(paths[vpListings]))
     }
-    else
-	maxLen <- max(nchar(paths))
-
     # Only if grob listings
     if (sum(!vpListings) > 0) {
         if (gAlign) {
             paths[!vpListings] <- padPrefix(paths[!vpListings], maxLen)
         }
-        paths[!vpListings] <- paste0(paths[!vpListings],
-				     gvpSep,
-				     appendToPrefix(x$gPath[!vpListings],
-						    x$name[!vpListings]))
+        paths[!vpListings] <- paste(paths[!vpListings],
+                                    gvpSep,
+                                    appendToPrefix(x$gPath[!vpListings],
+                                                   x$name[!vpListings]),
+                                    sep="")
     }
     cat(paths, sep="\n")
 }

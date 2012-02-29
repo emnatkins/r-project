@@ -29,11 +29,11 @@ help.start <-
         if (tools:::httpdPort == 0L) tools::startDynamicHelp()
         if (tools:::httpdPort > 0L) {
             if (update) make.packages.html(temp = TRUE)
-            paste0("http://127.0.0.1:", tools:::httpdPort)
+            paste("http://127.0.0.1:", tools:::httpdPort, sep = "")
         } else stop("help.start() requires the HTTP server to be running",
                     call. = FALSE)
     } else remote
-    url <- paste0(home, "/doc/html/index.html")
+    url <- paste(home, "/doc/html/index.html", sep = "")
 
     ## FIXME: maybe these should use message()?
     if (WINDOWS) {
@@ -79,7 +79,7 @@ browseURL <- function(url, browser = getOption("browser"), encodeIfNeeded=FALSE)
     ## delimit the URL.  We need to escape $, but "`\ do not occur in
     ## valid URLs (RFC 2396, on the W3C site).
     .shQuote <- function(string)
-        paste0('"', gsub("\\$", "\\\\$", string), '"')
+        paste('"', gsub("\\$", "\\\\$", string), '"', sep="")
     quotedUrl <- .shQuote(if(encodeIfNeeded) URLencode(url) else url)
     remoteCmd <- if (isLocal)
         switch(basename(browser),

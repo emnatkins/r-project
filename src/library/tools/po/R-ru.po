@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-01-23 08:16\n"
+"POT-Creation-Date: 2012-01-23 08:19\n"
 "PO-Revision-Date: 2011-10-18 22:43-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -179,12 +179,52 @@ msgstr ""
 "похоже, что имя пакета '%s' неправильное; вместо него использую имя папки "
 "'%s'"
 
+msgid "Packages required but not available:"
+msgstr "Пакет требуется, но недоступен:"
+
+msgid "Package required but not available: %s"
+msgstr "Пакет требуется, но недоступен: %s"
+
+msgid "Packages required and available but unsuitable versions:"
+msgstr "Пакет требуется и доступен, но неподходящих версий:"
+
+msgid "Package required and available but unsuitable version: %s"
+msgstr "Пакет требуется и доступен, но неподходящей версии:"
+
+msgid "Former standard packages required but now defunct:"
+msgstr ""
+"Бывший стандартный пакет требуется, который сейчас вышел из употребления:"
+
+msgid "Packages suggested but not available for checking:"
+msgstr "Пакет требуется, но недоступен для выдачи:"
+
+msgid "Package suggested but not available for checking: %s"
+msgstr "Пакет требуется, но недоступен  для выдачи:"
+
+msgid "Packages which this enhances but not available for checking:"
+msgstr "Пакет, который это усиливает, недоступен для выдачи:"
+
+msgid "Package which this enhances but not available for checking: %s"
+msgstr "Пакет, который это усиливает, недоступен для выдачи: %s"
+
+msgid "Vignette dependencies not required:"
+msgstr "Зависимости очерка не требуются:"
+
+msgid "Vignette dependencies not required: %s"
+msgstr "Зависимости очерка не требуются: %s"
+
 msgid ""
 "Vignette dependencies (\\VignetteDepends{} entries) must be contained in the "
 "DESCRIPTION Depends/Suggests/Imports entries."
 msgstr ""
 "Зависимости очерка (элементы \\VignetteDepends{}) должны содержаться в "
 "пунктах 'Depends/Suggests/Imports' файла DESCRIPTION."
+
+msgid "Namespace dependencies not required:"
+msgstr "Определения пространства имен не требуются:"
+
+msgid "Namespace dependency not required: %s"
+msgstr "Определения зависимости имен не требуется: %s"
 
 msgid "Malformed package name"
 msgstr "Плохое имя пакета"
@@ -475,9 +515,6 @@ msgstr "пропущенное/пустое поле \\имя Rd-файлы"
 msgid "No help on %s found in RdDB %s"
 msgstr "Не найдено помощи %s в RdDB %s"
 
-msgid "more than one \\examples section, using the first"
-msgstr "более чем одна \\секция примеров, использую первую"
-
 msgid "Converting Rd files to LaTeX ..."
 msgstr "Конвертирую  Rd файлы в LaTeX ..."
 
@@ -505,9 +542,14 @@ msgstr "невозможно перейти в текущий рабочий каталог"
 msgid "no inputs"
 msgstr "нет вводов"
 
-#, fuzzy
-msgid "Error in running tools::texi2pdf"
+msgid "DVI output from Rd2dvi is deprecated"
+msgstr "Вывод DVI из Rd2dvi не рекомендуется"
+
+msgid "Error in running tools::texi2dvi"
 msgstr "Ошибка запуска tools::texi2dvi"
+
+msgid "more than one \\examples section, using the first"
+msgstr "более чем одна \\секция примеров, использую первую"
 
 msgid "invalid value for '%s' : %s"
 msgstr "неправильное значение '%s' : %s"
@@ -573,6 +615,13 @@ msgstr "не могу перекодировать '%s' строк(и) %s"
 msgid "unable to copy INDEX to '%s'"
 msgstr "не могу скопировать 'INDEX' в '%s'"
 
+msgid ""
+"running Stangle on vignette '%s' failed with message:\n"
+"%s"
+msgstr ""
+"выполнение Stangle в очерке '%s' не удалось с диагностикой:\n"
+"%s"
+
 msgid "cannot create directory '%s'"
 msgstr "Не могу создать папку '%s'"
 
@@ -609,9 +658,6 @@ msgstr "Изменения требуют определенного 'style'"
 
 msgid "The default JSS style may not be modified."
 msgstr "Исходную библиотеку стиля JSS нельзя изменять. "
-
-msgid "invalid value for --compact-vignettes, assuming \"qpdf\""
-msgstr ""
 
 msgid "Error: cannot rename directory to"
 msgstr "Ошибка: не могу переименовать папку в"
@@ -1258,58 +1304,8 @@ msgstr[0] "объект %s создан больше чем за один вызов данных"
 msgstr[1] "объекты %s созданы больше чем за один вызов данных"
 msgstr[2] "объекты %s созданы больше чем за один вызов данных"
 
-#~ msgid ""
-#~ "running Stangle on vignette '%s' failed with message:\n"
-#~ "%s"
-#~ msgstr ""
-#~ "выполнение Stangle в очерке '%s' не удалось с диагностикой:\n"
-#~ "%s"
-
-#~ msgid "Packages required but not available:"
-#~ msgstr "Пакет требуется, но недоступен:"
-
-#~ msgid "Package required but not available: %s"
-#~ msgstr "Пакет требуется, но недоступен: %s"
-
-#~ msgid "Packages required and available but unsuitable versions:"
-#~ msgstr "Пакет требуется и доступен, но неподходящих версий:"
-
-#~ msgid "Package required and available but unsuitable version: %s"
-#~ msgstr "Пакет требуется и доступен, но неподходящей версии:"
-
-#~ msgid "Former standard packages required but now defunct:"
-#~ msgstr ""
-#~ "Бывший стандартный пакет требуется, который сейчас вышел из употребления:"
-
-#~ msgid "Packages suggested but not available for checking:"
-#~ msgstr "Пакет требуется, но недоступен для выдачи:"
-
-#~ msgid "Package suggested but not available for checking: %s"
-#~ msgstr "Пакет требуется, но недоступен  для выдачи:"
-
-#~ msgid "Packages which this enhances but not available for checking:"
-#~ msgstr "Пакет, который это усиливает, недоступен для выдачи:"
-
-#~ msgid "Package which this enhances but not available for checking: %s"
-#~ msgstr "Пакет, который это усиливает, недоступен для выдачи: %s"
-
-#~ msgid "Vignette dependencies not required:"
-#~ msgstr "Зависимости очерка не требуются:"
-
-#~ msgid "Vignette dependencies not required: %s"
-#~ msgstr "Зависимости очерка не требуются: %s"
-
-#~ msgid "Namespace dependencies not required:"
-#~ msgstr "Определения пространства имен не требуются:"
-
-#~ msgid "Namespace dependency not required: %s"
-#~ msgstr "Определения зависимости имен не требуется: %s"
-
 #~ msgid "Package name and namespace differ."
 #~ msgstr "Имена пакета и пространства имен различаются."
-
-#~ msgid "DVI output from Rd2dvi is deprecated"
-#~ msgstr "Вывод DVI из Rd2dvi не рекомендуется"
 
 #, fuzzy
 #~ msgid ""

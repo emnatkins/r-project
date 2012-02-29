@@ -30,7 +30,7 @@ massageExamples <-
         on.exit(close(out))
     } else out <- outFile
 
-    lines <- c(paste0('pkgname <- "', pkg, '"'),
+    lines <- c(paste('pkgname <- "', pkg, '"', sep =""),
                'source(file.path(R.home("share"), "R", "examples-header.R"))',
                if (use_gct) "gctorture(TRUE)",
                "options(warn = 1)")
@@ -237,7 +237,7 @@ testInstalledPackage <-
         message("Testing examples for package ", sQuote(pkg))
         Rfile <- .createExdotR(pkg, pkgdir, silent = TRUE)
         if (length(Rfile)) {
-            outfile <- paste0(pkg, "-Ex.Rout")
+            outfile <- paste(pkg, "-Ex.Rout", sep = "")
             failfile <- paste(outfile, "fail", sep = "." )
             savefile <- paste(outfile, "prev", sep = "." )
             if (file.exists(outfile)) file.rename(outfile, savefile)
@@ -293,7 +293,7 @@ testInstalledPackage <-
         Rfiles <- dir(".", pattern="\\.R$")
         for(f in Rfiles) {
             message("  Running ", sQuote(f))
-            outfile <- paste0(f, "out")
+            outfile <- paste(f, "out", sep = "")
             cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                          "CMD BATCH --vanilla --no-timing", Ropts,
                          shQuote(f), shQuote(outfile))
@@ -337,45 +337,22 @@ testInstalledPackage <-
 .runPackageTests <- function(use_gct = FALSE, use_valgrind = FALSE, Log = NULL)
 {
     if (!is.null(Log)) Log <- file(Log, "wt")
-    WINDOWS <- .Platform$OS.type == "windows"
-    td0 <- as.numeric(Sys.getenv("_R_CHECK_TIMINGS_"))
-    if (is.na(td0)) td0 <- Inf
-    print_time <- function(t1, t2, Log)
-    {
-        td <- t2 - t1
-        if(td[3L] < td0) td2 <- ""
-        else {
-            td2 <- if (td[3L] > 600) {
-                td <- td/60
-                if(WINDOWS) sprintf(" [%dm]", round(td[3L]))
-                else sprintf(" [%dm/%dm]", round(sum(td[-3L])), round(td[3L]))
-            } else {
-                if(WINDOWS) sprintf(" [%ds]", round(td[3L]))
-                else sprintf(" [%ds/%ds]", round(sum(td[-3L])), round(td[3L]))
-            }
-        }
-        message(td2)
-        if (!is.null(Log)) cat(td2, "\n", sep = "",  file = Log)
-    }
     runone <- function(f)
     {
-        message("  Running ", sQuote(f),  appendLF = FALSE)
+        message("  Running ", sQuote(f))
         if(!is.null(Log))
-            cat("  Running ", sQuote(f), sep = "", file = Log)
-        outfile <- paste0(f, "out")
+            cat("  Running ", sQuote(f), "\n", sep = "", file = Log)
+        outfile <- paste(f, "out", sep = "")
         cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
-                     "CMD BATCH --vanilla",
+                     "CMD BATCH --vanilla --no-timing",
                      if(use_valgrind) "--debugger=valgrind",
                      shQuote(f), shQuote(outfile))
-        if (WINDOWS) {
+        if (.Platform$OS.type == "windows") {
             Sys.setenv(LANGUAGE="C")
             Sys.setenv(R_TESTS="startup.Rs")
         } else
             cmd <- paste("LANGUAGE=C", "R_TESTS=startup.Rs", cmd)
-        t1 <- proc.time()
         res <- system(cmd)
-        t2 <- proc.time()
-        print_time(t1, t2, Log)
         if (res) {
             file.rename(outfile, paste(outfile, "fail", sep="."))
             return(1L)
@@ -433,7 +410,7 @@ testInstalledPackage <-
 .createExdotR <-
     function(pkg, pkgdir, silent = FALSE, use_gct = FALSE, addTiming = FALSE)
 {
-    Rfile <- paste0(pkg, "-Ex.R")
+    Rfile <- paste(pkg, "-Ex.R", sep = "")
     ## might be zipped:
     exdir <- file.path(pkgdir, "R-ex")
 
@@ -484,7 +461,7 @@ testInstalledBasic <- function(scope = c("basic", "devel", "both"))
     {
         f <- paste(f, "R", sep = ".")
         if (!file.exists(f)) {
-            if (!file.exists(fin <- paste0(f, "in")))
+            if (!file.exists(fin <- paste(f, "in", sep = "")))
                 stop("file ", sQuote(f), " not found", domain = NA)
             message("creating ", sQuote(f))
             cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
@@ -494,7 +471,7 @@ testInstalledBasic <- function(scope = c("basic", "devel", "both"))
             on.exit(unlink(f))
         }
         message("  running code in ", sQuote(f))
-        outfile <- paste0(f, "out")
+        outfile <- paste(f, "out", sep = "")
         cmd <- paste(shQuote(file.path(R.home("bin"), "R")),
                      "CMD BATCH --vanilla --no-timing",
                      shQuote(f), shQuote(outfile))
@@ -669,7 +646,7 @@ detachPackages <- function(pkgs, verbose = TRUE)
 
     left <- args[1L]
     if(left == "-") left <- "stdin"
-    status <- Rdiff(left, args[2L], useDiff = TRUE)
+    status <- tools::Rdiff(left, args[2L], useDiff = TRUE)
     if(status) status <- exitstatus
     do_exit(status)
 }

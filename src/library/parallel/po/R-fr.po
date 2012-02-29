@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.14.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-02-19 08:56\n"
+"POT-Creation-Date: 2012-02-19 15:08\n"
 "PO-Revision-Date: 2011-10-15 18:14+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -35,9 +35,6 @@ msgstr "'X' doit avoir des dimnames nommés"
 
 msgid "not all elements of 'MARGIN' are names of dimensions"
 msgstr "les éléments de 'MARGIN' ne sont pas tous des noms de dimensions"
-
-msgid "no cluster supplied and none is registered"
-msgstr ""
 
 msgid "not a valid cluster"
 msgstr "groupe de processus invalide"
@@ -110,7 +107,6 @@ msgstr ""
 "la création de nouvelles branches de groupes de processus n'est pas supporté "
 "sous Windows"
 
-#, fuzzy
 msgid ""
 "scheduled core %s encountered error in user code, all values of the job will "
 "be affected"

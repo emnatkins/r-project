@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.14.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-01-13 11:23\n"
+"POT-Creation-Date: 2012-01-23 08:18\n"
 "PO-Revision-Date: 2011-10-07 15:33+0200\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R-core <r-core@r-project.org>\n"
@@ -28,6 +28,12 @@ msgstr "Siehe help(\"Defunct\") und help(\"%s-defunct\")."
 
 msgid "See help(\"Defunct\")"
 msgstr "Siehe help(\"Defunct\")"
+
+msgid "'symbol.C' is not needed: please remove it"
+msgstr "'symbol.C' ist unnötig: bitte entfernen"
+
+msgid "'symbol.For' is not needed: please remove it"
+msgstr "'symbol.For' ist unnötig: bitte entfernen"
 
 msgid "'%s' is deprecated."
 msgstr "'%s' ist veraltet."
@@ -981,9 +987,6 @@ msgstr "'file' muss angegeben werden"
 msgid "Use of save versions prior to 2 is deprecated"
 msgstr "Sicherungen älter als Version 2 sind veraltet"
 
-msgid "nothing specified to be save()d"
-msgstr ""
-
 msgid "'file' must be non-empty string"
 msgstr "'file' muss nicht-leere Zeichenkette sein"
 
@@ -1153,14 +1156,6 @@ msgid "in package %s classes %s were specified for export but not defined"
 msgstr ""
 "in Paket %s sind Klassen %s für den Export vorgesehen, aber nicht definiert"
 
-msgid "No function found corresponding to methods exports from %s for: %s"
-msgstr ""
-
-msgid ""
-"Functions for exporting methods must have been made generic, explicitly or "
-"implicitly; not true when loading %s for %s"
-msgstr ""
-
 msgid "in %s methods for export not found: %s"
 msgstr "in %s Methoden für den Export nicht gefunden: %s"
 
@@ -1214,16 +1209,8 @@ msgstr ""
 "Methoden gefunden für den Import für Funktion %s, aber nicht die Generische "
 "selbst"
 
-msgid "No methods found in \"%s\" for requests: %s"
-msgstr ""
-
 msgid "requested methods not found in environment/package %s: %s"
 msgstr "verlangte Methoden nicht gefunden in Umgebung/Paket %s: %s"
-
-msgid ""
-"No generic function found corresponding to requested imported methods for "
-"\"%s\" from package \"%s\" (malformed exports?)"
-msgstr ""
 
 msgid "cannot add to exports of a sealed namespace"
 msgstr "kann keine Exporte zu versiegeltem Namensraum hinzufügen"
@@ -1353,10 +1340,6 @@ msgstr "Argument 'length.out' muss Länge 1 haben"
 
 msgid "first element used of 'length.out' argument"
 msgstr "erstes Element von 'length.out' Argument benutzt"
-
-#, fuzzy
-msgid "extra argument(s) %s will be disregarded"
-msgstr "drop Argument wird ignoriert"
 
 msgid "invalid (to - from)/by in seq(.)"
 msgstr "ungültiges (to - from)/by in seq(.)"
@@ -1634,17 +1617,6 @@ msgstr "'stderr' muss Länge 1 haben"
 msgid "'which' was not found on this platform"
 msgstr "'which' auf dieser Plattform nicht gefunden"
 
-#, fuzzy
-msgid "fewer 'from' files than 'to' files"
-msgstr "mehr 'from' Dateien als 'to' Dateien"
-
-msgid "link '%s' already exists"
-msgstr ""
-
-#, fuzzy
-msgid "failed to create directory for link '%s"
-msgstr "Konnte Metadatenobjekt für \"%s\" nicht finden"
-
 msgid "'show.output.on.console' must be TRUE or FALSE"
 msgstr "'show.output.on.console' muss TRUE oder FALSE sein"
 
@@ -1740,12 +1712,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Warnmeldung:\n"
 msgstr[1] "Warnmeldungen:\n"
-
-#~ msgid "'symbol.C' is not needed: please remove it"
-#~ msgstr "'symbol.C' ist unnötig: bitte entfernen"
-
-#~ msgid "'symbol.For' is not needed: please remove it"
-#~ msgstr "'symbol.For' ist unnötig: bitte entfernen"
 
 #~ msgid "'pattern' must be a non-empty character string"
 #~ msgstr "'pattern' muss nichtleere Zeichenkette sein"

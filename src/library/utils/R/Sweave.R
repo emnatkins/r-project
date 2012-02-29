@@ -90,17 +90,11 @@ Sweave <- function(file, driver = RweaveLatex(),
 
     namedchunks <- list()
     prevfilenum <- 0L
-    prevlinediff <- 0L
+    prevlinediff <- 0L    
     for (linenum in seq_along(text)) {
     	line <- text[linenum]
     	filenum <- srcFilenum[linenum]
     	linediff <- srcLinenum[linenum] - linenum
-	if(nzchar(Sys.getenv("R_DEBUG_Sweave"))) {
-	    ## Extensive logging for debugging, needs 'ls' (unix-like or Rtools):
-	    cat(sprintf("l.%3d: %30s -'%4s'- ", linenum, substr(line,1,30), mode))
-	    cat(sprintf("%16s\n", system(paste("ls -s",
-				   summary(drobj$output)$description), intern=TRUE)))
-	}
         if (length(grep(syntax$doc, line))) { # start new documentation chunk
             if (mode == "doc") {
                 if (!is.null(chunk)) drobj <- driver$writedoc(drobj, chunk)
@@ -128,7 +122,7 @@ Sweave <- function(file, driver = RweaveLatex(),
                                             driver$checkopts)
             ## these #line directives are used for error messages when parsing
             file <- srcFilenames[filenum]
-            chunk <- paste0("#line ", linenum+linediff+1L, ' "', basename(file), '"')
+            chunk <- paste("#line ", linenum+linediff+1L, ' "', basename(file), '"', sep="")
             attr(chunk, "srclines") <- linenum + linediff
             attr(chunk, "srcFilenum") <- filenum
             chunknr <- chunknr + 1L  # this is really 'code chunk number'
@@ -147,17 +141,17 @@ Sweave <- function(file, driver = RweaveLatex(),
                     ## when parsing
                     file <- srcFilenames[filenum]
                     line <- c(namedchunks[[chunkref]],
-			      paste0("#line ", linenum+linediff+1L,
-				     ' "', basename(file), '"'))
+                              paste("#line ", linenum+linediff+1L, ' "',
+                                    basename(file), '"', sep=""))
                 }
             }
-            if (mode == "code" &&
+            if (mode == "code" && 
                 (prevfilenum != filenum ||
                  prevlinediff != linediff)) {
                 file <- srcFilenames[filenum]
-                line <- c(paste0("#line ", linenum+linediff, ' "', basename(file), '"'),
+                line <- c(paste("#line ", linenum+linediff, ' "', basename(file), '"', sep=""),
                           line)
-            }
+            }             
             srclines <- c(attr(chunk, "srclines"), rep(linenum+linediff, length(line)))
             srcfilenum <- c(attr(chunk, "srcFilenum"), rep(filenum, length(line)))
 	    chunk <- c(chunk, line)
@@ -190,7 +184,7 @@ SweaveReadFile <- function(file, syntax, encoding = "")
     df <- dirname(f)
     if (!file.exists(f)) {
         f <- list.files(df, full.names = TRUE,
-                        pattern = paste0(bf, syntax$extension))
+                        pattern = paste(bf, syntax$extension, sep = ""))
 
         if (length(f) == 0L)
             stop(gettextf("no Sweave file with name %s found",
@@ -213,9 +207,10 @@ SweaveReadFile <- function(file, syntax, encoding = "")
             enc <- if (nzchar(encoding)) {
                 encoding
             } else {
-                stop(sQuote(basename(file)),
-                        " is not ASCII and does not declare an encoding",
+                warning(sQuote(basename(file)),
+                        " has unknown encoding: assuming Latin-1",
                         domain = NA, call. = FALSE)
+                "latin1"
             }
         } else if (enc == "unknown") {
             stop(sQuote(basename(file)),
@@ -233,11 +228,11 @@ SweaveReadFile <- function(file, syntax, encoding = "")
     if (length(pos) > 0L) {
         sname <- sub(syntax$syntaxname, "\\1", text[pos[1L]])
         syntax <- get(sname, mode = "list")
-        if (!identical(class(syntax), "SweaveSyntax"))
+        if (class(syntax) != "SweaveSyntax")
             stop(gettextf("object %s does not have class \"SweaveSyntax\"",
                           sQuote(sname)), domain = NA)
         text <- text[-pos]
-        srcLinenum <- srcLinenum[-pos]
+        srcLinenum <- srcLinenum[-pos]       
     }
     srcFilenum <- rep(1, length(srcLinenum))
 
@@ -257,7 +252,7 @@ SweaveReadFile <- function(file, syntax, encoding = "")
 	    pre <- seq_len(pos-1L)
 	    post <- seq_len(length(text) - pos) + pos
 	    text <- c(text[pre], itext, text[post])
-
+	    
 	    srcLinenum <- c(srcLinenum[pre], attr(itext, "srcLinenum"),
 	    		    srcLinenum[post])
 	    srcFilenum <- c(srcFilenum[pre], attr(itext, "srcFilenum")+length(f),
@@ -270,7 +265,7 @@ SweaveReadFile <- function(file, syntax, encoding = "")
     attr(text, "files") <- f
     attr(text, "encoding") <- enc
     attr(text, "srcLinenum") <- srcLinenum
-    attr(text, "srcFilenum") <- srcFilenum
+    attr(text, "srcFilenum") <- srcFilenum    
     text
 }
 
@@ -317,7 +312,7 @@ SweaveGetSyntax <- function(file)
     synt <- apropos("SweaveSyntax", mode = "list")
     for (sname in synt) {
         s <- get(sname, mode = "list")
-        if (!identical(class(s), "SweaveSyntax")) next
+        if (class(s) != "SweaveSyntax") next
         if (length(grep(s$extension, file))) return(s)
     }
     SweaveSyntaxNoweb
@@ -328,8 +323,9 @@ SweaveSyntConv <- function(file, syntax, output=NULL)
 {
     if (is.character(syntax)) syntax <- get(syntax)
 
-    if (!identical(class(syntax), "SweaveSyntax"))
+    if (class(syntax) != "SweaveSyntax")
         stop("target syntax not of class \"SweaveSyntax\"")
+
     if (is.null(syntax$trans))
         stop("target syntax contains no translation table")
 
@@ -378,7 +374,7 @@ SweaveParseOptions <- function(text, defaults = list(), check = NULL)
     ## This is undocumented
     if (!is.null(options[["label"]]) && !is.null(options[["engine"]]))
         options[["label"]] <-
-            sub(paste0("\\.", options[["engine"]], "$"),
+            sub(paste("\\.", options[["engine"]], "$", sep=""),
                 "", options[["label"]])
 
     if (!is.null(check)) check(options) else options

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-02-12 08:59\n"
+"POT-Creation-Date: 2012-01-23 08:19\n"
 "PO-Revision-Date: 2011-01-18 13:56+0000\n"
 "Last-Translator: 陈斐 <FeiChen@FairIsaac.com>\n"
 "Language-Team: Chinese\n"
@@ -76,9 +76,6 @@ msgstr "指向%s的路径里不能有空格,"
 
 msgid "this may cause problems when running LaTeX"
 msgstr "这可能会对运行LaTeX里产生问题"
-
-msgid "the output file '%s' has disappeared"
-msgstr ""
 
 msgid "invalid value for %s : %s"
 msgstr "%s的值不对: %s"
@@ -357,6 +354,9 @@ msgstr "'form'必需是双边公式，每一边至少带一项"
 msgid "'topic' should be a name, length-one character vector or reserved word"
 msgstr "'topic'的值必需是名字，长度为一的字符串或保留文字"
 
+msgid "Postscript offline help is deprecated"
+msgstr "Postscript offline 脱机帮助已经不再用了"
+
 msgid "No documentation for %s in specified packages and libraries:"
 msgstr "在指定的程序包和图书馆里没有与%s有关的说明书:"
 
@@ -399,6 +399,12 @@ msgid ""
 "package %s exists but was not installed under R >= 2.10.0 so help cannot be "
 "accessed"
 msgstr "有%s这样一个程序包但没有在R >= 2.10.0下安装，因此不能用它的帮助文件"
+
+msgid "running %s failed"
+msgstr "执行%s失败"
+
+msgid "%s produced no output file: sent to printer?"
+msgstr "%s没有产生文件：是不是还要送到打印机？"
 
 msgid "creation of %s failed"
 msgstr "制造%s时出了问题"
@@ -741,17 +747,6 @@ msgstr "无法安装程序包"
 msgid "unable to create"
 msgstr "无法建立"
 
-msgid ""
-"type == \"both\" can only be used on Windows or a CRAN build for Mac OS X"
-msgstr ""
-
-msgid ""
-"type == \"both\" cannot be used if 'available' or 'contriburl' is specified"
-msgstr ""
-
-msgid "type == \"both\" cannot be used with 'repos = NULL'"
-msgstr ""
-
 msgid "inferring 'repos = NULL' from the file name"
 msgstr "从文件名字推断'repos = NULL'"
 
@@ -784,9 +779,8 @@ msgstr ""
 "安装程序包时出了错，\n"
 "  可能原因%s"
 
-#, fuzzy
 msgid ""
-"The downloaded source packages are in\n"
+"The downloaded packages are in\n"
 "\t%s"
 msgstr ""
 "下载的程序包在\n"
@@ -816,9 +810,8 @@ msgstr "修改文件再把它放到合适的目录中去。"
 msgid "no documentation of type %s and topic %s (or error in processing help)"
 msgstr "没有种类为%s和題目为%s的文件(或是在处理帮助文件时发生了错误)"
 
-#, fuzzy
 msgid ""
-"the object of class %s in the function call %s could not be used as a "
+"the object of class \"%s\" in the function call %s could not be used as a "
 "documentation topic"
 msgstr "函数調用%2$s里类别为\"%1$s\"的对象不能用作帮助文件題目"
 
@@ -990,10 +983,6 @@ msgstr "程序资料不包含内存信息"
 msgid "no events were recorded"
 msgstr "没有记录下任何事件"
 
-#, fuzzy
-msgid "invalid 'tarfile' argument"
-msgstr "'data'参数不对"
-
 msgid "'compressed' must be logical or character"
 msgstr "'compressed'必需是字符向量"
 
@@ -1130,14 +1119,6 @@ msgstr "无法将临时安装%s搬到%s"
 msgid "cannot remove prior installation of package"
 msgstr "无法拆除原来安装的程序包"
 
-#, fuzzy
-msgid ""
-"The downloaded binary packages are in\n"
-"\t%s"
-msgstr ""
-"下载的程序包在\n"
-"\t%s里"
-
 msgid "'memory.size()' is Windows-specific"
 msgstr "'memory.size()'只在Windows上有用"
 
@@ -1197,23 +1178,9 @@ msgid "'lib' element %s is not a writable directory"
 msgid_plural "'lib' elements %s are not writable directories"
 msgstr[0] "'lib'元素%s不是可写目录"
 
-#, fuzzy
-msgid "installing the source package %s"
-msgid_plural "installing the source packages %s"
-msgstr[0] "还安装相依关系%s"
-
 msgid "package %s is in use and will not be installed"
 msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "正在使用%s这个程序包，因此不会被安装"
-
-#~ msgid "Postscript offline help is deprecated"
-#~ msgstr "Postscript offline 脱机帮助已经不再用了"
-
-#~ msgid "running %s failed"
-#~ msgstr "执行%s失败"
-
-#~ msgid "%s produced no output file: sent to printer?"
-#~ msgstr "%s没有产生文件：是不是还要送到打印机？"
 
 #~ msgid "Use either 'given' or 'first'/'middle' but not both."
 #~ msgstr "要么用'given'，要么用'first'/'middle'，但不能两者都用"

@@ -28,6 +28,10 @@
 \alias{.POSIXlt}
 \alias{.difftime}
 \alias{.cache_class}
+%% moved from readRDS.Rd in 2.13.0
+% These were introduced in R 1.7.0, post version 2
+\alias{.readRDS}
+\alias{.saveRDS}
 \alias{.Firstlib_as_onLoad}
 \alias{.methodsNamespace} % created by the methods package ....
 
@@ -72,6 +76,9 @@ lazyLoadDBfetch(key, file, compressed, hook)
 .difftime(xx, units)
 
 .cache_class(class, extends)
+
+.saveRDS(\dots)
+.readRDS(\dots)
 
 .find.package(\dots)
 .path.package(\dots)
@@ -185,9 +192,12 @@ lazyLoadDBfetch(key, file, compressed, hook)
   S3 method dispatch.  With \code{NULL} second argument, returns the
   cached inheritance, for diagnostic use.
 
-  \code{.find.package} and \code{.path.package} are internal-only
-  versions (and the only versions available prior to \R 2.13.0) of
-  \code{\link{.find.package}} and \code{\link{.path.package}}.
+  \code{.readRDS}, \code{.saveRDS}, \code{.find.package} and
+  \code{.path.package} are internal-only versions (and the only versions
+  available prior to \R 2.13.0) of \code{\link{.readRDS}},
+  \code{\link{.saveRDS}}, \code{\link{.find.package}} and
+  \code{\link{.path.package}}.  \code{.readRDS} and \code{.saveRDS} were
+  deprecated in \R 2.14.0.
 }
 \value{
   \code{.getRequiredPackages} and \code{.getRequiredPackages2}

@@ -152,9 +152,8 @@ points(x, \dots)
   Unicode points that do not exist or which it does not have a glyph.
   
   What happens for very small or zero values of \code{cex} is
-  device-dependent: symbols or characters may become invisible or
-  they may be plotted at a fixed minimum size.   As
-  from \R 2.15.0, circles of zero radius will not be plotted.
+  device-dependendent: symbols or characters may become invisible or
+  they may be plotted at a fixed minimum size.
 }
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)

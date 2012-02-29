@@ -94,12 +94,12 @@ make.packages.html <-
                 ## perhaps other site libraries
                 if (is.na(pmatch(rh, lib))) {
                     lib0 <- if(substring(lib, 2L, 2L) != ":")
-                        paste0(drive, lib) else lib
-                    lib0 <- paste0("file:///", URLencode(lib0))
+                        paste(drive, lib, sep="") else lib
+                    lib0 <- paste("file:///", URLencode(lib0), sep="")
                 }
             } else {
                 if (lib != .Library)
-                    lib0 <- paste0("file:///", URLencode(lib))
+                    lib0 <- paste("file:///", URLencode(lib), sep="")
             }
         }
         pg <- pkgs[[lib]]

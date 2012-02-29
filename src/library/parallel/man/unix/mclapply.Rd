@@ -7,10 +7,7 @@
 
 \name{mclapply}
 \alias{mclapply}
-\alias{mcmapply}
-\alias{mcMap}
-
-\title{Parallel Versions of \code{lapply} and \code{mapply} using Forking}
+\title{Parallel Version of \code{lapply} using Forking}
 \description{
   \code{mclapply} is a parallelized version of \code{\link{lapply}},
   it returns a list of the same length as \code{X}, each element of
@@ -19,33 +16,18 @@
 
   It relies on forking and hence is not available on Windows unless
   \code{mc.cores = 1}.
-  
-  \code{mcmapply} is a parallelized version of \code{\link{mapply}}, and
-  \code{mcMap} corresponds to \code{\link{Map}}.
 }
 \usage{
 mclapply(X, FUN, ..., mc.preschedule = TRUE, mc.set.seed = TRUE,
          mc.silent = FALSE, mc.cores = getOption("mc.cores", 2L),
          mc.cleanup = TRUE, mc.allow.recursive = TRUE)
-
-mcmapply(FUN, ..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE,
-        mc.preschedule = TRUE, mc.set.seed = TRUE,
-        mc.silent = FALSE, mc.cores = getOption("mc.cores", 2L),
-        mc.cleanup = TRUE)
-
-mcMap(f, ...)
 }
 \arguments{
   \item{X}{a vector (atomic or list) or an expressions vector.  Other
     objects (including classed objects) will be coerced by
     \code{\link{as.list}}.}
-  \item{FUN}{the function to be applied to (\code{mclapply}) each
-    element of \code{X} or (\code{mcmapply}) in parallel to \code{\dots}.}
-  \item{f}{the function to be applied in parallel to \code{\dots}.}
-  \item{...}{For \code{mclapply}, optional arguments to \code{FUN}.
-    For \code{mcmapply} and \code{mcMap}, vector or list inputs: see
-    \code{\link{mapply}}.}
-  \item{MoreArgs, SIMPLIFY, USE.NAMES}{see \code{\link{mapply}}.}
+  \item{FUN}{the function to be applied to each element of \code{X}}
+  \item{...}{optional arguments to \code{FUN}}
   \item{mc.preschedule}{if set to \code{TRUE} then the computation is
     first divided to (at most) as many jobs are there are cores and then
     the jobs are started, each job possibly covering more than one
@@ -107,21 +89,15 @@ mcMap(f, ...)
 }
 
 \value{
-  For \code{mclapply}, a list of the same length as \code{X} and named
-  by \code{X}.
-
-  For \code{mcmapply}, a list, vector or array: see
-  \code{\link{mapply}}.
-
-  For \code{mcMap}, a list.
+  A list of the same length as \code{X} and named by \code{X}.
 
   Each forked process runs its job inside \code{try(..., silent = TRUE)}
   so if errors occur they will be stored as class \code{"try-error"}
-  objects in the return value and a warning will be given.
+  objects in the list and a warning will be given.
 }
 
 \section{Warning}{
-  It is \emph{strongly discouraged} to use these functions in GUI or
+  It is \emph{strongly discouraged} to use \code{mclapply} in GUI or
   embedded environments, because it leads to several processes sharing
   the same GUI which will likely cause chaos (and possibly
   crashes).  Child processes should never use on-screen graphics
@@ -138,8 +114,7 @@ mcMap(f, ...)
   Derived from the \CRANpkg{multicore} package.
 }
 \seealso{
-  \code{\link{mcparallel}}, \code{\link{pvec}},
-  \code{\link{parLapply}}, \code{\link{clusterMap}}.
+  \code{\link{mcparallel}}, \code{\link{pvec}}
   
   \code{\link{simplify2array}} for results like \code{\link{sapply}}.
 }

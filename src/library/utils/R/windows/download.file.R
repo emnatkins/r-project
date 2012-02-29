@@ -20,7 +20,9 @@ download.file <-
 {
     destfile # check supplied
     method <- if (missing(method))
-	getOption("download.file.method", default = "auto")
+        ifelse(!is.null(getOption("download.file.method")),
+               getOption("download.file.method"),
+               "auto")
     else
         match.arg(method, c("auto", "internal", "wget", "curl", "lynx"))
 

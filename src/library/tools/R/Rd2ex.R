@@ -35,7 +35,7 @@ Rd2ex <-
     dropNewline <- FALSE # drop next char if newline
 
     of0 <- function(...)
-        of1(paste0(...))
+        of1(paste(..., sep=""))
     of1 <- function(text) {
         if (dropNewline && length(text)) {
             text[1L] <- psub("^\n", "", text[1L])
@@ -44,7 +44,8 @@ Rd2ex <-
         WriteLines(text, con, outputEncoding, sep = "")
     }
     wr <- function(x)
-	paste0("###", strwrap(remap(x), 73L, indent=1L, exdent=3L), collapse="\n")
+        paste("###", strwrap(remap(x), 73L, indent=1L, exdent=3L),
+              sep="", collapse="\n")
 
     remap <- function(x) {
         if(!length(x)) return(x)
@@ -163,13 +164,13 @@ Rd2ex <-
         title <- .Rd_format_title(.Rd_get_title(Rd))
         if (!length(title))
             title <- "No title found"
-        of0(wr(paste0("Title: ", title)), "\n")
+        of0(wr(paste("Title: ", title, sep='')), "\n")
         aliasblks <- sections == "\\alias"
         if (any(aliasblks)) {
             aliases <- unlist(Rd[aliasblks])
             sp <- grep(" ", aliases, fixed = TRUE)
-            aliases[sp] <- paste0("'", aliases[sp], "'")
-            of0(wr(paste0("Aliases: ", paste(aliases, collapse=" "))),
+            aliases[sp] <- paste("'", aliases[sp], "'", sep = "")
+            of0(wr(paste("Aliases: ", paste(aliases, collapse=" "), sep="")),
                 "\n")
         }
         keyblks <- sections == "\\keyword"
@@ -179,7 +180,7 @@ Rd2ex <-
             if(length(keys)) {
                 keys <- psub("^\\s+", "", keys)
                 of0(wr(paste("Keywords: ",
-                             paste0(keys, collapse=" "))), "\n")
+                             paste(keys, collapse=" "), sep="")), "\n")
             }
         }
         writeLines(c("", "### ** Examples"), con)

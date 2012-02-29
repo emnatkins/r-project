@@ -277,14 +277,14 @@
                 ""
             else {
                 if(nameSpaceCase)
-                    paste0(" in environment <namespace:",  pname, ">")
+                    paste(" in environment <namespace:",  pname, ">", sep="")
                 else
-                    paste0(" ", tracingWhere, " \"",  pname, "\"")
+                    paste(" ", tracingWhere, " \"",  pname, "\"", sep="")
             }
         }
-        else paste0(" as seen from package \"", fromPackage, "\"")
+        else paste(" as seen from package \"", fromPackage, "\"", sep="")
         object <- if(refCase) "reference method" else if(is.null(signature)) "function" else "specified method for function"
-        object <- paste0(" ", object, " \"", what, "\" ")
+        object <- paste(" ", object, " \"", what, "\" ", sep="")
         .message(action, object, location)
         if(nameSpaceCase && !untrace && exists(what, envir = .GlobalEnv)) {
             untcall<- paste("untrace(\"", what, "\", where = getNamespace(\"",
@@ -466,7 +466,7 @@ setCacheOnAssign <- function(env, onOff = cacheOnAssign(env))
 }
 
 .traceClassName <- function(className) {
-    className[] <- paste0(className, "WithTrace")
+    className[] <- paste(className, "WithTrace", sep="")
     className
 }
 
@@ -685,7 +685,7 @@ insertSource <- function(source, package = "",
     MPattern <- .TableMetaPattern()
     CPattern <- .ClassMetaPattern()
     allPlainObjects <- function()
-        allObjects[!(grepl(MPattern, allObjects) | grepl(CPattern, allObjects) | ".cacheOnAssign" == allObjects)]
+        allObjects[!(grepl(MPattern, allObjects) | grepl(CPattern, allObjects))]
     allMethodTables <- function()
         allObjects[grepl(MPattern, allObjects)]
     allClassDefs <- function()
@@ -711,7 +711,7 @@ insertSource <- function(source, package = "",
         if(identical(package, ".GlobalEnv"))
             envns <- NULL
         else {
-            pname <- paste0("package:", package)
+            pname <- paste("package:", package, sep="")
             envp <- tryCatch(as.environment(pname), error = function(cond)NULL)
             if(is.null(envp)) {
                 envp <- tryCatch(as.environment(pname), error = function(cond)NULL)

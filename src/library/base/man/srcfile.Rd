@@ -31,7 +31,7 @@ These functions are for working with source files.
 }
 \usage{
 srcfile(filename, encoding = getOption("encoding"), Enc = "unknown")
-srcfilecopy(filename, lines, timestamp = Sys.time(), isFile = FALSE)
+srcfilecopy(filename, lines, timestamp = Sys.time())
 srcfilealias(filename, srcfile)
 getSrcLines(srcfile, first, last)
 srcref(srcfile, lloc)
@@ -52,7 +52,6 @@ srcref(srcfile, lloc)
   \item{lines}{ A character vector of source lines.  Other \R objects
     will be coerced to character. }
   \item{timestamp}{ The timestamp to use on a copy of a file. }
-  \item{isFile}{ Is this \code{srcfilecopy} known to come from a file system file? }
   \item{srcfile}{ A \code{srcfile} object. }
   \item{first, last, line}{ Line numbers. }
   \item{lloc}{ A vector of four, six or eight values giving a source location; see
@@ -74,9 +73,7 @@ srcref(srcfile, lloc)
 
   The \code{srcfilecopy} function produces an object of the descendant
   class \code{srcfilecopy}, which saves the source lines in a character
-  vector.  It copies the value of the \code{isFile} argument, to help
-  debuggers identify whether this text comes from a real file in the
-  file system.
+  vector.
 
   The \code{srcfilealias} function produces an object of the descendant
   class \code{srcfilealias}, which gives an alternate name to another 

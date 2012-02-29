@@ -301,8 +301,8 @@ doPrimitiveMethod <-
 .renderSignature <- function(f, signature)
 {
     nm <- names(signature)
-    nm[nzchar(nm)] <- paste0(nm[nzchar(nm)], "=")
-    msig <- paste0(nm, '"', as.vector(signature), '"')
+    nm[nzchar(nm)] <- paste(nm[nzchar(nm)], "=", sep = "")
+    msig <- paste(nm, '"', as.vector(signature), '"', sep = "")
     msig <- paste(msig, collapse = ",")
     gettextf("in method for %s with signature %s: ", sQuote(f), sQuote(msig))
 }
@@ -336,7 +336,7 @@ conformMethod <- function(signature, mnames, fnames,
       return(signature)
     if(any(is.na(match(signature[omittedSig], c("ANY", "missing"))))) {
         bad <- omittedSig & is.na(match(signature[omittedSig], c("ANY", "missing")))
-        bad2 <- paste0(fnames[bad], " = \"", signature[bad], "\"", collapse = ", ")
+        bad2 <- paste(fnames[bad], " = \"", signature[bad], "\"", sep = "", collapse = ", ")
         stop(.renderSignature(f, sig0),
              gettextf("formal arguments (%s) omitted in the method definition cannot be in the signature", bad2),
              call. = TRUE, domain = NA)
@@ -637,7 +637,7 @@ getGeneric <-
     if(is.null(fdef)) {
 	penv <- tryCatch(getNamespace(pkg), error = function(e)e)
 	if(!isNamespace(penv))	{      # no namespace--should be rare!
-	    pname <- paste0("package:", pkg)
+	    pname <- paste("package:", pkg, sep="")
 	    penv <- if(pname %in% search()) as.environment(pname) else env
 	}
         fdef <- getFunction(name, TRUE, FALSE, penv)
@@ -1116,7 +1116,7 @@ methodSignatureMatrix <- function(object, sigSlots = c("target", "defined"))
         def <- getFunction(def)
     }
     if(is(def, "function"))
-        paste0(name, "(", paste(args, collapse=", "), ")")
+        paste(name, "(", paste(args, collapse=", "), ")", sep="")
     else
         ""
 }
@@ -1157,7 +1157,7 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
     if(searchForm) {
         global <- grep(".GlobalEnv", value)
         if(length(global)) {
-            pkg[-global] <- paste0("package", pkg[-global])
+            pkg[-global] <- paste("package", pkg[-global], sep="")
             pkg[global] <- substring(pkg[global], 2L)
         }
     }
@@ -1201,10 +1201,13 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
 {
     if(identical(body, stdBody))
         FALSE
-    else if(.recursiveCallTest(body, fname))
+    else {
+        if(!.recursiveCallTest(body, fname))
+            warning("the supplied generic function definition for ",
+                    sQuote(fname),
+                    " does not seem to call 'standardGeneric'; no methods will be dispatched!")
         TRUE
-    else
-        NA
+    }
 }
 
 .GenericInPrimitiveMethods <- function(mlist, f)
@@ -1244,7 +1247,7 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
     }
     else
         signature <- as.character(signature)
-    paste(paste0(snames, "=\"", signature, "\""), collapse = ", ")
+    paste(paste(snames, "=\"", signature, "\"", sep=""), collapse = ", ")
 }
 
 .ChangeFormals <- function(def, defForArgs, msg = "<unidentified context>")
@@ -1261,13 +1264,13 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
     new <- formalArgs(defForArgs)
     if(length(old) < length(new))
         stop(gettextf("trying to change the formal arguments in %s, but the number of existing arguments is less than the number of new arguments: (%s) vs (%s)",
-                      msg, paste0("\"", old, "\"", collapse=", "),
-                      paste0("\"", new, "\"", collapse=", ")),
+                      msg, paste("\"", old, "\"", sep ="", collapse=", "),
+                      paste("\"", new, "\"", sep ="", collapse=", ")),
              domain = NA)
     if(length(old) > length(new))
         warning(gettextf("trying to change the formal arguments in %s, but the number of existing arguments is greater than the number of new arguments (the extra arguments won't be used): (%s) vs (%s)",
-                         msg, paste0("\"", old, "\"", collapse=", "),
-                         paste0("\"", new, "\"", collapse=", ")),
+                         msg, paste("\"", old, "\"", sep ="", collapse=", "),
+                         paste("\"", new, "\"", sep ="", collapse=", ")),
                 domain = NA)
     if(identical(old, new))           # including the case of 0 length
         return(def)
@@ -1280,9 +1283,7 @@ metaNameUndo <- function(strings, prefix, searchForm = FALSE)
     dnames <- names(dlist)
     whereNames <- match(old, dnames)
     if(any(is.na(whereNames)))
-	stop(gettextf("in changing formal arguments in %s, some of the old names are not in fact arguments: %s",
-		      msg, paste0("\"", old[is.na(match(old, names(dlist)))], "\"", collapse=", ")),
-	     domain = NA)
+        stop(gettextf("in changing formal arguments in %s, some of the old names are not in fact arguments: %s", msg, paste("\"", old[is.na(match(old, names(dlist)))], "\"", sep ="", collapse=", ")), domain = NA)
     dnames[whereNames] <- new
     names(vlist) <- dnames
     as.function(vlist, envir = environment(def))
@@ -1539,7 +1540,7 @@ getGroupMembers <- function(group, recursive = FALSE, character = TRUE)
         else if(where %in% search())
             value <- as.environment(where)
         else {
-            where <- paste0("package:", where)
+            where <- paste("package:", where, sep="")
             if(where %in% search())
                 value <- as.environment(where)
         }
@@ -1603,7 +1604,7 @@ getGroupMembers <- function(group, recursive = FALSE, character = TRUE)
 
 .selectDotsMethod <- function(classes, mtable, allmtable)
 {
-    .pasteC <- function(names) paste0('"', names, '"', collapse = ", ")
+    .pasteC <- function(names) paste('"', names, '"', sep="", collapse = ", ")
     found <- character()
     distances <- numeric()
     methods <- objects(mtable, all.names = TRUE)

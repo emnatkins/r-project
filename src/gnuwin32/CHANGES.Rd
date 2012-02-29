@@ -4,60 +4,6 @@
 \title{Windows-specific changes to R}
 \encoding{UTF-8}
 
-\section{CHANGES IN R-devel}{
-  \subsection{NEW FEATURES}{
-    \itemize{
-      \item The 32-bit and 64-bit builds are now treated equally, as it
-      is anticipated that 64-bit R will soon be (if not already) the
-      more commonly used.  This entails:
-      
-      The \command{Rterm} or \command{Rgui} title mentions 32-bit as
-      well as 64-bit.
-      
-      The desktop icons are labelled \code{R i386} and \code{R x64}.
-
-      \command{R CMD INSTALL} for a package with compiled code will fail
-      if compilation fails for any of the installed sub-architectures:
-      use \option{--no-multiarch} to override this.
-
-      \item \code{postscript(file = "|cmd")} now works on Windows.
-      
-      \item \code{file.symlink()} is now implemented on NTFS file
-      systems on Vista or later, for accounts which have suitable
-      permissions (and most will not).  It can link existing
-      directories, and existing-or-not files.
-
-      \item The behaviour of \code{unlink()} for reparse points
-      (including junctions and symbolic links) has changed.  It no
-      longer follow links (deleting the contents of the link target
-      rather than the link), and it is able to delete the link itself
-      (given sufficient permissions).
-
-      \item There is a new function \code{Sys.junction()} to create
-      junction points on NTFS file systems.
-    }
-  }
-  
-  \subsection{INSTALLER}{
-    \itemize{
-      \item The installer has many fewer options with more files always
-      being installed, as file space is nowadays no longer an issue.
-
-      \item It is now possible to select \sQuote{64-bit Files}
-      from the standard installer even on a 32-bit version of Windows.
-    }
-  }
-  
-  \subsection{PACKAGE INSTALLATION}{
-    \itemize{
-      \item As the current toolchain uses only 32-bit executables, it is
-      possible to compile a package for both architectures on 32-bit
-      Windows provided both architectures of \R have been installed: use
-      \command{R CMD INSTALL --compile-both}.
-    }
-  }
-}
-
 \section{CHANGES IN R VERSION 2.14.2}{
   \subsection{NEW FEATURES}{
     \itemize{

@@ -36,10 +36,10 @@ try <- function(expr, silent = FALSE) {
             if(is.na(w))
                 w <-  14L + nchar(dcall, type="b") + nchar(sm[1L], type="b")
             if (w > LONG)
-                prefix <- paste0(prefix, "\n  ")
+                prefix <- paste(prefix, "\n  ", sep = "")
         }
         else prefix <- "Error : "
-        msg <- paste0(prefix, conditionMessage(e), "\n")
+        msg <- paste(prefix, conditionMessage(e), "\n", sep="")
         ## Store the error message for legacy uses of try() with
         ## geterrmessage().
         .Internal(seterrmessage(msg[1L]))
@@ -159,6 +159,12 @@ is.unsorted <- function(x, na.rm = FALSE, strictly = FALSE)
     if(na.rm && any(ii <- is.na(x)))
 	x <- x[!ii]
     .Internal(is.unsorted(x, strictly))
+}
+
+mem.limits <- function(nsize=NA, vsize=NA)
+{
+    .Deprecated("gc")
+    structure(.Internal(mem.limits(nsize, vsize)), names = c("nsize", "vsize"))
 }
 
 nchar <- function(x, type = "chars", allowNA = FALSE)

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.5.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-01-23 08:16\n"
+"POT-Creation-Date: 2012-01-23 08:18\n"
 "PO-Revision-Date: 2011-10-23 22:33+0900 \n"
 "Last-Translator: Shigeru Mase <maseshigeru@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -152,10 +152,9 @@ msgstr ""
 " %s はプリミティブな関数です；メソッドを定義できますが、総称的関数は隠匿され"
 "ており、変更できません "
 
-#, fuzzy
 msgid ""
 "if the 'def' argument is supplied, it must be a function that calls "
-"standardGeneric(\"%s\") or is the default"
+"standardGeneric(\"%s\") to dispatch methods"
 msgstr ""
 " もし `def' 引数が与えられるなら、それはメソッドを割り当てる standardGeneric"
 "(\"%s\") を呼び出す関数である必要があります "
@@ -594,10 +593,6 @@ msgstr " %d: ターゲット \"%s\": 選択 \"%s\" (その他: %s) "
 msgid "Notes: %s."
 msgstr " 注意：%s "
 
-#, fuzzy
-msgid "Class generator function for class \"%s\" from package \"%s\""
-msgstr " %s に対する総称関数をパッケージ %s (%s 中にある)から作成します "
-
 msgid "the names in signature for method (%s) do not match %s's arguments (%s)"
 msgstr ""
 " メソッド (%s) に対するシグナチャ中の名前が %s の引数 (%s) にマッチしません "
@@ -980,6 +975,14 @@ msgstr ""
 " \"%s\" に対する総称的関数の本体は異なった名前 ('%s') を割り当てるため "
 "'standardGeneric' を呼び出しています! "
 
+msgid "the supplied generic function definition for"
+msgstr " 以下に対する提供された総称的関数定義 "
+
+msgid "does not seem to call 'standardGeneric'; no methods will be dispatched!"
+msgstr ""
+" 'standardGeneric' を呼び出すようには見えません；如何なるメソッドも割り当てら"
+"れません！ "
+
 msgid ""
 "internal error: Bad methods list object in fixing methods for primitive "
 "function %s"
@@ -1207,12 +1210,6 @@ msgstr " 新しい総称関数 %s を %s 中に生成します "
 
 msgid "No package name supplied and no class definition found for %s"
 msgstr " %s に対する関数定義はありません "
-
-#, fuzzy
-msgid "argument classDef must be a class definition or the name of a class"
-msgstr ""
-" 引数 S4Class はクラス定義でなければなりません: クラス %s のオブジェクトが与"
-"えられました "
 
 msgid ""
 "'traceOn' is deprecated: use the function 'trace' in the 'methods' package "
@@ -1693,12 +1690,23 @@ msgstr ""
 " トピック \"%s\" はクラス \"%s\" 中のメソッド名ではありません \n"
 " クラス定義が続きます "
 
+msgid "Arguments must all be character string names of fields"
+msgstr " 引数はすべてフィールド名の文字列でなければなりません "
+
 msgid ""
 "The definition of class %s in package %s is locked, fields may not be "
 "modified"
 msgstr ""
 " クラス%s（パッケージ%s）の定義はロックされていて、フィールドは再定義できませ"
 "ん。 "
+
+msgid "Field \"%s\" is already locked"
+msgstr ""
+
+msgid "Field \"%s\" of class %s has a non-default binding and cannot be locked"
+msgstr ""
+" フィールド \"%s\" （クラス \"%s\"）は既定の結合を持たないためロックできませ"
+"ん "
 
 msgid ""
 "The overriding class(\"%s\") of field \"%s\" is not a subclass of the "
@@ -1809,17 +1817,6 @@ msgstr ""
 " メソッド名への非局所的な付値は許されません \n"
 "    %s \n"
 " (メソッド %s 中のクラス %s にたいするもの) "
-
-msgid "Arguments must all be character string names of fields"
-msgstr " 引数はすべてフィールド名の文字列でなければなりません "
-
-msgid "Field \"%s\" is already locked"
-msgstr ""
-
-msgid "Field \"%s\" of class %s has a non-default binding and cannot be locked"
-msgstr ""
-" フィールド \"%s\" （クラス \"%s\"）は既定の結合を持たないためロックできませ"
-"ん "
 
 msgid ""
 "invalid ignore= argument; should be a class definition or a character "
@@ -2009,15 +2006,6 @@ msgstr " ファイルを移動するか、クラスまたはメソッドを削�
 msgid "no definition for class %s"
 msgid_plural "no definition for classes %s"
 msgstr[0] " クラス %s に対する定義はありません "
-
-#~ msgid "the supplied generic function definition for"
-#~ msgstr " 以下に対する提供された総称的関数定義 "
-
-#~ msgid ""
-#~ "does not seem to call 'standardGeneric'; no methods will be dispatched!"
-#~ msgstr ""
-#~ " 'standardGeneric' を呼び出すようには見えません；如何なるメソッドも割り当"
-#~ "てられません！ "
 
 #~ msgid "no generic function \"'%s\" found"
 #~ msgstr " 総称的関数 '%s' が見つかりません "

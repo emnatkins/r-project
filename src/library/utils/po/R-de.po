@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.14.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-02-12 08:59\n"
+"POT-Creation-Date: 2012-01-23 08:19\n"
 "PO-Revision-Date: 2011-10-13 16:25+0200\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R Core <r-core@r-project.org>\n"
@@ -78,9 +78,6 @@ msgstr "Pfad zu %s enthält Leerstellen."
 
 msgid "this may cause problems when running LaTeX"
 msgstr "Das kann Schwierigkeiten mit LaTeX machen"
-
-msgid "the output file '%s' has disappeared"
-msgstr ""
 
 msgid "invalid value for %s : %s"
 msgstr "unzulässiger Wert für %s : %s"
@@ -375,6 +372,9 @@ msgstr ""
 "'topic' sollte ein Name, ein Zeichenkettenvektor der Länge 1 oder ein "
 "reserviertes Word sein"
 
+msgid "Postscript offline help is deprecated"
+msgstr "Postscript Offlinehilfe ist veraltet"
+
 msgid "No documentation for %s in specified packages and libraries:"
 msgstr "Keine Dokumentation für %s in angegebenen Paketen und Bibliotheken:"
 
@@ -421,6 +421,12 @@ msgid ""
 msgstr ""
 "Paket %s exisitiert, wurde aber nicht unter R >= 2.10.0 installiert, weshalb "
 "die Hilfe nicht genutzt werden kann"
+
+msgid "running %s failed"
+msgstr "Ausführen von %s fehlgeschlagen"
+
+msgid "%s produced no output file: sent to printer?"
+msgstr "%s hat keine Datei erzeugt: an den Drucker geschickt?"
 
 msgid "creation of %s failed"
 msgstr "Erzeugung von %s fehlgeschlagen"
@@ -773,17 +779,6 @@ msgstr "kann keinee Pakete installieren"
 msgid "unable to create"
 msgstr "kann nicht erzeugen"
 
-msgid ""
-"type == \"both\" can only be used on Windows or a CRAN build for Mac OS X"
-msgstr ""
-
-msgid ""
-"type == \"both\" cannot be used if 'available' or 'contriburl' is specified"
-msgstr ""
-
-msgid "type == \"both\" cannot be used with 'repos = NULL'"
-msgstr ""
-
 msgid "inferring 'repos = NULL' from the file name"
 msgstr "leite 'repos = NULL' aus dem Dateinamen ab"
 
@@ -816,9 +811,8 @@ msgstr ""
 "Installation eines oder mehrer Pakete schlug fehl,\n"
 " vermutlich %s"
 
-#, fuzzy
 msgid ""
-"The downloaded source packages are in\n"
+"The downloaded packages are in\n"
 "\t%s"
 msgstr ""
 "Die heruntergeladenen Pakete sind in \n"
@@ -849,9 +843,8 @@ msgid "no documentation of type %s and topic %s (or error in processing help)"
 msgstr ""
 "keine Doku des Typs %s zum Thema %s (oder Fehler in der Hilfeverarbeitung)"
 
-#, fuzzy
 msgid ""
-"the object of class %s in the function call %s could not be used as a "
+"the object of class \"%s\" in the function call %s could not be used as a "
 "documentation topic"
 msgstr ""
 "das Objekt der Klasse \"%s\" im Funktionsaufruf %s konnte nicht als Doku-"
@@ -1028,10 +1021,6 @@ msgstr "Profil einthält keine Speicherinformation"
 msgid "no events were recorded"
 msgstr "keine Ereignisse aufgezeichnet"
 
-#, fuzzy
-msgid "invalid 'tarfile' argument"
-msgstr "unzulässiges 'data' Argument"
-
 msgid "'compressed' must be logical or character"
 msgstr "'commpressed' muss Boole'sch oder ein Charakter sein"
 
@@ -1173,14 +1162,6 @@ msgstr "kann temporäre Installation %s nicht nach %s verschieben"
 msgid "cannot remove prior installation of package"
 msgstr "kann alte Installation des Pakets nicht entfernen"
 
-#, fuzzy
-msgid ""
-"The downloaded binary packages are in\n"
-"\t%s"
-msgstr ""
-"Die heruntergeladenen Pakete sind in \n"
-"\t%s"
-
 msgid "'memory.size()' is Windows-specific"
 msgstr "'memory.size()' ist spezifisch für Windows"
 
@@ -1246,25 +1227,10 @@ msgid_plural "'lib' elements %s are not writable directories"
 msgstr[0] "'lib' Element %s ist keine schreibbares Verzeichnis"
 msgstr[1] "'lib' Elemente %s sind keine schreibbaren Verzeichnisse"
 
-#, fuzzy
-msgid "installing the source package %s"
-msgid_plural "installing the source packages %s"
-msgstr[0] "installiere auch Abhängigkeit %s"
-msgstr[1] "installiere auch Abhängigkeiten %s"
-
 msgid "package %s is in use and will not be installed"
 msgid_plural "packages %s are in use and will not be installed"
 msgstr[0] "Paket %s wird gerade benutzt und deshab nicht installiert"
 msgstr[1] "Pakete %s werden gerade bennutzt und deshalb nicht installiert"
-
-#~ msgid "running %s failed"
-#~ msgstr "Ausführen von %s fehlgeschlagen"
-
-#~ msgid "%s produced no output file: sent to printer?"
-#~ msgstr "%s hat keine Datei erzeugt: an den Drucker geschickt?"
-
-#~ msgid "Postscript offline help is deprecated"
-#~ msgstr "Postscript Offlinehilfe ist veraltet"
 
 #~ msgid "Use either 'given' or 'first'/'middle' but not both."
 #~ msgstr "Benutze entweder 'given' oder 'first'/'middle' aber nicht beide."

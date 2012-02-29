@@ -18,10 +18,7 @@
  */
 
 /* For AttachConsole: seems the MinGW headers are wrong and that
-   requires XP or later, not 2000 or later.
-   Mingw-w64 has it included unconditionally.
-*/
-/* Mingw-w64 defines this to be 0x0502 */
+   requires XP or later, not 2000 or later. */
 #define _WIN32_WINNT 0x0501
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>

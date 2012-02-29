@@ -24,11 +24,7 @@
 \DefineVerbatimEnvironment{Soutput}{Verbatim}{}
 \DefineVerbatimEnvironment{Scode}{Verbatim}{fontshape=sl}
 
-\ifdefined\Schunk%
-  \message{\string Environment Schunk is already defined, stay with former definition}%
-\else
-  \newenvironment{Schunk}{}{}%
-\fi
+\newenvironment{Schunk}{}{}
 
 \newcommand{\Sconcordance}[1]{%
   \ifx\pdfoutput\undefined%

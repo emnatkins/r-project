@@ -105,18 +105,11 @@ setGeneric <-
         body(fdef, envir = as.environment(where)) <- stdGenericBody
     if(!is.null(def)) {
         if(is.primitive(def) || !is.function(def))
-            stop(gettextf("if the 'def' argument is supplied, it must be a function that calls standardGeneric(\"%s\") or is the default",
+            stop(gettextf("if the 'def' argument is supplied, it must be a function that calls standardGeneric(\"%s\") to dispatch methods",
                           name), domain = NA)
-        nonstandardCase <- .NonstandardGenericTest(body(def), name, stdGenericBody)
-        if(is.na(nonstandardCase)) {
-            if(is.null(useAsDefault)) {# take this as the default
-                useAsDefault <- def
-            }
-            body(def, envir = as.environment(where)) <- stdGenericBody
-            nonstandardCase <- FALSE
-        }
         fdef <- def
-        if(is.null(genericFunction) && nonstandardCase)
+        if(is.null(genericFunction) &&
+           .NonstandardGenericTest(body(fdef), name, stdGenericBody))
             genericFunction <- new("nonstandardGenericFunction") # force this class for fdef
     }
     thisPackage <- getPackageName(where)
@@ -852,8 +845,7 @@ selectMethod <-
     ## generic 'f' with arguments corresponding to the specified signature.
     function(f, signature, optional = FALSE, useInherited = TRUE,
 	     mlist = if(!is.null(fdef)) getMethodsForDispatch(fdef),
-	     fdef = getGeneric(f, !optional), verbose = FALSE, doCache = FALSE,
-             returnAll = FALSE)
+	     fdef = getGeneric(f, !optional), verbose = FALSE, doCache = FALSE)
 {
     if(is.environment(mlist))  {# using methods tables
         fenv <- environment(fdef)
@@ -887,7 +879,6 @@ selectMethod <-
 		    .findInheritedMethods(signature, fdef,
 					  mtable = allmethods, table = mlist,
 					  useInherited = useInherited,
-					  returnAll = returnAll,
                                           verbose = verbose,
                                           doCache = doCache)
 		    ##MM: TODO? allow 'excluded' to be passed
@@ -1018,7 +1009,7 @@ showMethods <-
 	}
     }
     else { ## f of length 1 --- the "workhorse" :
-        out <- paste0("\nFunction \"", f, "\":\n")
+        out <- paste("\nFunction \"", f, "\":\n", sep="")
         if(!is(fdef, "genericFunction"))
             cat(file = con, out, "<not an S4 generic function>\n")
         else
@@ -1138,7 +1129,7 @@ resetGeneric <- function(f, fdef = getGeneric(f, where = where),
 
 setReplaceMethod <-
   function(f, ..., where = topenv(parent.frame()))
-  setMethod(paste0(f, "<-"), ..., where = where)
+  setMethod(paste(f, "<-", sep=""), ..., where = where)
 
 setGroupGeneric <-
     ## create a group generic function for this name.
@@ -1537,8 +1528,8 @@ findMethods <- function(f, where, classes = character(), inherited = FALSE, pack
     }
     objNames <- objects(table, all.names = TRUE)
     if(length(classes)) {
-        classesPattern <- paste0("#", classes, "#", collapse = "|")
-        which <- grep(classesPattern, paste0("#",objNames,"#"))
+        classesPattern <- paste("#", classes, "#", sep="", collapse = "|")
+        which <- grep(classesPattern, paste("#",objNames,"#", sep=""))
         objNames <- objNames[which]
     }
     object@.Data <- lapply(objNames, function(x)get(x, envir = table))
@@ -1629,6 +1620,7 @@ hasMethods <- function(f, where, package = "")
 ## returns TRUE if the argument is a non-empty character vector of length 1
 ## otherwise, returns a diagnostic character string reporting the non-conformance
 .isSingleName <- function(x) {
+    paste0 <- function(...)paste(..., sep="")
     if(!is.character(x))
       return(paste0('required to be a character vector, got an object of class "', class(x)[[1L]], '"'))
     if(length(x) != 1)

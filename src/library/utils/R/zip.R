@@ -85,8 +85,6 @@ zip <- function(zipfile, files, flags = "-r9X", extras = "",
         stop("'files' must a character vector specifying one or more filepaths")
     args <- c(flags, shQuote(path.expand(zipfile)),
               shQuote(files), extras)
-    if (.Platform$OS.type == "windows")
-        invisible(system2(zip, args, invisible = TRUE))
-    else invisible(system2(zip, args))
+    invisible(system2(zip, args, invisible = TRUE))
 }
 

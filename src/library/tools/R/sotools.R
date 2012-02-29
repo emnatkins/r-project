@@ -1,14 +1,16 @@
 if(.Platform$OS.type == "windows") {
-    read_symbols_from_dll <- function(f, rarch)
+    DLL_nm <- local({
+        etc <- readLines(paste(R.home("etc"), Sys.getenv("R_ARCH"),
+                               "/Makeconf", sep = ""))
+        bp <- grep("^BINPREF", etc, value = TRUE)
+        bp <- sub("^BINPREF = +", "", bp)
+        paste(bp, "objdump.exe", sep = "")
+    })
+    read_symbols_from_dll <- function(f)
     {
-        ## reasonable to assume this on the path
-        DLL_nm <- "objdump.exe"
         if(!nzchar(Sys.which(DLL_nm))) return()
         f <- file_path_as_absolute(f)
-        s0 <- suppressWarnings(system2(DLL_nm, c("-x", shQuote(f)),
-                                       stdout = TRUE, stderr = TRUE))
-        status <- attr(s0, "status")
-        if (length(status) && status != 0) return()
+        s0 <- system2(DLL_nm, c("-x", shQuote(f)), stdout = TRUE, stderr=TRUE)
         l1 <- grep("^\tDLL Name:", s0)
         l2 <- grep("^The Export Tables", s0)
         if (!length(l1) || !length(l2)) return()
@@ -16,27 +18,27 @@ if(.Platform$OS.type == "windows") {
         s2 <- grep("\t[0-9a-f]+\t +[0-9]+", s1, value = TRUE)
         sub(".* ([_A-Za-z0-9]+)$", "\\1", s2)
     }
-}
+} else {
+    read_symbols_from_object_file <- function(f)
+    {
+        if(!nzchar(nm <- Sys.which("nm"))) return()
+        f <- file_path_as_absolute(f)
+        s <- strsplit(system(sprintf("%s -Pg %s", shQuote(nm), shQuote(f)),
+                             intern = TRUE),
+                      " +")
+        ## Cannot simply rbind() this because elements may have 2-4
+        ## entries.
+        n <- length(s)
+        tab <- matrix("", nrow = n, ncol = 4L)
+        colnames(tab) <- c("name", "type", "value", "size")
+        ## Compute desired i and j positions in tab.
+        i <- rep.int(seq_len(n), sapply(s, length))
+        j <- unlist(lapply(s, seq_along))
 
-read_symbols_from_object_file <- function(f)
-{
-    ## reasonable to assume this on the path
-    if(!nzchar(nm <- Sys.which("nm"))) return()
-    f <- file_path_as_absolute(f)
-    if(!(file.info(f)$size)) return()
-    s <- strsplit(system(sprintf("%s -Pg %s", shQuote(nm), shQuote(f)),
-                         intern = TRUE),
-                  " +")
-    ## Cannot simply rbind() this because elements may have 2-4
-    ## entries.
-    n <- length(s)
-    tab <- matrix("", nrow = n, ncol = 4L)
-    colnames(tab) <- c("name", "type", "value", "size")
-    ## Compute desired i and j positions in tab.
-    i <- rep.int(seq_len(n), sapply(s, length))
-    j <- unlist(lapply(s, seq_along))
-    tab[n * (j - 1L) + i] <- unlist(s)
-    tab
+        tab[n * (j - 1L) + i] <- unlist(s)
+
+        tab
+    }
 }
 
 get_system_ABI <- if(.Platform$OS.type == "windows") {
@@ -105,25 +107,14 @@ so_symbol_names_table <-
       "solaris, Fortran, solf95, print, __f90_eslw",
       "solaris, Fortran, solf95, print, __f90_slw_ch",
       "solaris, Fortran, solf95, print, __f90_sslw",
-
       "solaris, Fortran, solf95, write, __f90_eslw",
       "solaris, Fortran, solf95, write, __f90_slw_ch",
       "solaris, Fortran, solf95, write, __f90_sslw",
-
-      "solaris, Fortran, solf95, print, __f90_esfw",
-      "solaris, Fortran, solf95, print, __f90_sfw_ch",
-      "solaris, Fortran, solf95, print, __f90_ssfw",
-
-      "solaris, Fortran, solf95, write, __f90_esfw",
-      "solaris, Fortran, solf95, write, __f90_sfw_ch",
-      "solaris, Fortran, solf95, write, __f90_ssfw",
-
       "solaris, Fortran, solf95, stop, _f90_stop_int",
       "solaris, Fortran, solf95, stop, _f90_stop_char",
-      "solaris, Fortran, solf95, runtime, abort",
 
       ## Windows statically links libstdc++, libgfortran
-      "windows, C, gcc, abort, abort",  # lots of false positives
+      # "windows, C, gcc, abort, abort",  # lots of false positives
       "windows, C, gcc, assert, _assert",
       "windows, C, gcc, exit, exit",
       "windows, C, gcc, printf, printf",
@@ -166,10 +157,10 @@ function(x)
 }
 
 check_so_symbols <- if(.Platform$OS.type == "windows") {
-    function(so, rarch)
+    function(so)
     {
         if(!length(system_ABI)) return()
-        nms <- read_symbols_from_dll(so, rarch)
+        nms <- read_symbols_from_dll(so)
         ind <- so_symbol_names_table[, "osname"] %in% nms
         tab <- so_symbol_names_table[ind, , drop = FALSE]
         attr(tab, "file") <- so
@@ -198,29 +189,16 @@ function(x, ...)
 {
     if(!length(x)) return(character())
     entries <- split.data.frame(x, x[, "osname"])
-    objects <- vector("list", length(entries))
-    names(objects) <- names(entries)
-    if(length(objs <- attr(x, "objects")))
-        objects[names(objs)] <- objs
     c(gettextf("File %s:", sQuote(attr(x, "file"))),
-      unlist(Map(function(u, v, w)
-                 c(strwrap(gettextf("Found %s, possibly from %s",
-                                    sQuote(v),
-                                    paste(sprintf("%s (%s)",
-                                                  sQuote(u[, "ssname"]),
-                                                  u[, "language"]),
-                                          collapse = ", ")),
-                           indent = 2L, exdent = 4L),
-                   if(length(w) > 1L) {
-                       strwrap(sprintf("Objects: %s",
-                                       paste(sQuote(w), collapse =
-                                             ", ")),
-                               indent = 4L, exdent = 6L)
-                   } else if(length(w)) {
-                       strwrap(sprintf("Object: %s", sQuote(w)),
-                               indent = 4L, exdent = 6L)
-                   }),
-                 entries, names(entries), objects)))
+      unlist(Map(function(u, v)
+                 strwrap(gettextf("Found %s, possibly from %s",
+                                  sQuote(v),
+                                  paste(sprintf("%s (%s)",
+                                                sQuote(u[, "ssname"]),
+                                                u[, "language"]),
+                                        collapse = ", ")),
+                         indent = 2L, exdent = 4L),
+                 entries, names(entries))))
 }
 
 print.check_so_symbols <-
@@ -233,73 +211,15 @@ function(x, ...)
 check_compiled_code <-
 function(dir)
 {
-    ## Check compiled code in the shared objects of an installed package.
-
+    ## Check compiled code in the shared objects of an installed
+    ## package.
     r_arch <- .Platform$r_arch
-
-    compare <- function(x, strip_ = FALSE) {
-        ## Compare symbols in the so and in objects:
-        symbols <-
-            Filter(length,
-                   lapply(tables,
-                          function(tab) {
-                              nm <- tab[, "name"]
-                              if (strip_) nm <- sub("^_", "", nm)
-                              intersect(x[, "osname"], nm)
-                          }))
-        if(FALSE) {
-        ## Drop the so symbols not in any object.
-        so <- attr(x, "file")
-        ## (Alternatively, provide a subscript method
-        ## for class "check_so_symbols".)
-        osnames_in_objects <- unique(as.character(unlist(symbols)))
-        x <- x[!is.na(match(x[, "osname"], osnames_in_objects)), , drop = FALSE]
-        attr(x, "file") <- so
-        }
-        attr(x, "objects") <-
-            split(rep.int(names(symbols), sapply(symbols, length)),
-                  unlist(symbols))
-        class(x) <- "check_so_symbols"
-        x
-    }
-
-    if(.Platform$OS.type == "windows") {
-        so_files <-
-            Sys.glob(file.path(dir, "libs/i386",
-                               sprintf("*%s", .Platform$dynlib.ext)))
-        bad <- Filter(length, lapply(so_files, check_so_symbols, rarch="i386"))
-        objects_symbol_tables_file <- file.path(dir, "libs/i386", "symbols.rds")
-        if(file_test("-f", objects_symbol_tables_file)) {
-            tables <- readRDS(objects_symbol_tables_file)
-            bad <- Filter(length, lapply(bad, compare, strip_ = TRUE))
-        }
-
-        so_files <-
-            Sys.glob(file.path(dir, "libs/x64",
-                               sprintf("*%s", .Platform$dynlib.ext)))
-        bad2 <- Filter(length, lapply(so_files, check_so_symbols, rarch="x64"))
-        objects_symbol_tables_file <- file.path(dir, "libs/x64", "symbols.rds")
-        if(file_test("-f", objects_symbol_tables_file)) {
-            tables <- readRDS(objects_symbol_tables_file)
-            bad2 <- Filter(length, lapply(bad2, compare))
-        }
-        bad <- rbind(bad, bad2)
-    } else {
-        so_files <- if(nzchar(r_arch))
-            Sys.glob(file.path(dir, "libs", r_arch,
-                               sprintf("*%s", .Platform$dynlib.ext)))
-        else
-            Sys.glob(file.path(dir, "libs",
-                               sprintf("*%s", .Platform$dynlib.ext)))
-        bad <- Filter(length, lapply(so_files, check_so_symbols))
-        objects_symbol_tables_file <- if(nzchar(r_arch))
-            file.path(dir, "libs", r_arch, "symbols.rds")
-        else file.path(dir, "libs", "symbols.rds")
-        if(file_test("-f", objects_symbol_tables_file)) {
-            tables <- readRDS(objects_symbol_tables_file)
-            bad <- Filter(length, lapply(bad, compare))
-        }
-    }
+    so_files <- if(nzchar(r_arch))
+        Sys.glob(file.path(dir, "libs", r_arch,
+                           sprintf("*%s", .Platform$dynlib.ext)))
+    else
+        Sys.glob(file.path(dir, "libs", sprintf("*%s", .Platform$dynlib.ext)))
+    bad <- Filter(length, lapply(so_files, check_so_symbols))
     class(bad) <- "check_compiled_code"
     bad
 }
@@ -318,13 +238,4 @@ function(x, ...)
 {
     writeLines(format(x))
     invisible(x)
-}
-
-.shlib_objects_symbol_tables <-
-function(file = "symbols.rds")
-{
-    objects <- commandArgs(trailingOnly = TRUE)
-    tables <- lapply(objects, read_symbols_from_object_file)
-    names(tables) <- objects
-    saveRDS(tables, file = file)
 }

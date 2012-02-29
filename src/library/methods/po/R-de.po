@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.14.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-01-23 08:16\n"
+"POT-Creation-Date: 2012-01-23 08:18\n"
 "PO-Revision-Date: 2011-10-12 13:29+0200\n"
 "Last-Translator: Detlef Steuer <detlef.steuer@hsu-hh.de>\n"
 "Language-Team: R-core <R-core@r-project.org>\n"
@@ -153,10 +153,9 @@ msgstr ""
 "\"%s\" ist eine primitive Funktion; es können Methoden definiert werden, die "
 "generische Funktion ist jedoch implizit und kann nicht geändert werden"
 
-#, fuzzy
 msgid ""
 "if the 'def' argument is supplied, it must be a function that calls "
-"standardGeneric(\"%s\") or is the default"
+"standardGeneric(\"%s\") to dispatch methods"
 msgstr ""
 "wenn das 'def' Argument angegeben wird, muss es eine Funktion sein, die "
 "standardGeneric(\"%s\") für den Methodendispatch aufruft"
@@ -601,10 +600,6 @@ msgstr "%d: Ziel \"%s\": gewählt \"%s\" (andere: %s)"
 msgid "Notes: %s."
 msgstr "Bemerkung: %s."
 
-#, fuzzy
-msgid "Class generator function for class \"%s\" from package \"%s\""
-msgstr "Erzeuge generische Funktion für %s aus Paket %s in %s"
-
 msgid "the names in signature for method (%s) do not match %s's arguments (%s)"
 msgstr ""
 "die Namen in der Signatur für die Methode (%s) passen nicht zu den "
@@ -1007,6 +1002,12 @@ msgstr ""
 "Der Funktionsbody der generischen Funktion für \"%s\" ruft "
 "'standardGeneric', um in einen anderen Namen (\"%s\") zu dispatchen"
 
+msgid "the supplied generic function definition for"
+msgstr "die angegebene Definition der generischen Funktion für"
+
+msgid "does not seem to call 'standardGeneric'; no methods will be dispatched!"
+msgstr "scheint 'standardGenerich' nicht aufzurufen; kein Methodendispatch"
+
 msgid ""
 "internal error: Bad methods list object in fixing methods for primitive "
 "function %s"
@@ -1240,12 +1241,6 @@ msgstr ""
 
 msgid "No package name supplied and no class definition found for %s"
 msgstr "Kein Name angegeben und keine Klassendefinition für %s gefunden"
-
-#, fuzzy
-msgid "argument classDef must be a class definition or the name of a class"
-msgstr ""
-"Argument S4Class muss eine Klassendefinition sein; bekam ein Objekt aus "
-"Klasse %s"
 
 msgid ""
 "'traceOn' is deprecated: use the function 'trace' in the 'methods' package "
@@ -1728,12 +1723,23 @@ msgstr ""
 "Punkt \"%s\" ist kein Methodenname in der Klasse %s.\n"
 "Die Klassendefinition folgt."
 
+msgid "Arguments must all be character string names of fields"
+msgstr "Die Argumente müssen alle Feldnamen als Zeichenketten sein"
+
 msgid ""
 "The definition of class %s in package %s is locked, fields may not be "
 "modified"
 msgstr ""
 "Die Definition von Klasse %s in Paket %s ist abgeschlossen, Felder dürfen "
 "nicht modifiziert werden"
+
+msgid "Field \"%s\" is already locked"
+msgstr ""
+
+msgid "Field \"%s\" of class %s has a non-default binding and cannot be locked"
+msgstr ""
+"Feld \"%s\" der Klasse %s hat eine nicht-standard Bindung und kann\n"
+"nicht abgeschlossen werden."
 
 msgid ""
 "The overriding class(\"%s\") of field \"%s\" is not a subclass of the "
@@ -1849,17 +1855,6 @@ msgstr ""
 "Nicht-lokale Zuweisung an Methodennamen nicht zulässig\n"
 "    %s\n"
 "(in Methode %s für Klasse %s)"
-
-msgid "Arguments must all be character string names of fields"
-msgstr "Die Argumente müssen alle Feldnamen als Zeichenketten sein"
-
-msgid "Field \"%s\" is already locked"
-msgstr ""
-
-msgid "Field \"%s\" of class %s has a non-default binding and cannot be locked"
-msgstr ""
-"Feld \"%s\" der Klasse %s hat eine nicht-standard Bindung und kann\n"
-"nicht abgeschlossen werden."
 
 msgid ""
 "invalid ignore= argument; should be a class definition or a character "
@@ -2054,13 +2049,6 @@ msgid "no definition for class %s"
 msgid_plural "no definition for classes %s"
 msgstr[0] "keine Definition der Klasse %s"
 msgstr[1] "keine Definition der Klassen %s"
-
-#~ msgid "the supplied generic function definition for"
-#~ msgstr "die angegebene Definition der generischen Funktion für"
-
-#~ msgid ""
-#~ "does not seem to call 'standardGeneric'; no methods will be dispatched!"
-#~ msgstr "scheint 'standardGenerich' nicht aufzurufen; kein Methodendispatch"
 
 #~ msgid "no generic function \"'%s\" found"
 #~ msgstr "keine generische Funktion \"%s\" gefunden"

@@ -161,7 +161,7 @@ as.data.frame.list <-
     m <- match(c("row.names", "check.rows", "check.names", "stringsAsFactors"),
                cn, 0L)
     if(any(m)) {
-        cn[m] <- paste0("..adfl.", cn[m])
+        cn[m] <- paste("..adfl.", cn[m], sep="")
         names(x) <- cn
     }
     x <- eval(as.call(c(expression(data.frame), x, check.names = !optional,
@@ -244,7 +244,7 @@ as.data.frame.matrix <- function(x, row.names = NULL, optional = FALSE, ...,
     if(is.null(row.names)) row.names <- dn[[1L]]
     collabs <- dn[[2L]]
     if(any(empty <- !nzchar(collabs)))
-	collabs[empty] <- paste0("V", ic)[empty]
+	collabs[empty] <- paste("V", ic, sep = "")[empty]
     value <- vector("list", ncols)
     if(mode(x) == "character" && stringsAsFactors) {
 	for(i in ic)
@@ -258,7 +258,7 @@ as.data.frame.matrix <- function(x, row.names = NULL, optional = FALSE, ...,
     if(length(collabs) == ncols)
 	names(value) <- collabs
     else if(!optional)
-	names(value) <- paste0("V", ic)
+	names(value) <- paste("V", ic, sep="")
     attr(value, "row.names") <- row.names
     class(value) <- "data.frame"
     value
@@ -964,7 +964,7 @@ data.frame <-
         ## added in 1.8.0 -- make sure there is a name
         if(length(x) > nc) {
             nc <- length(x)
-            if(names(x)[nc] == "") names(x)[nc] <- paste0("V", nc)
+            if(names(x)[nc] == "") names(x)[nc] <- paste("V", nc, sep="")
             names(x) <- make.unique(names(x))
         }
 	class(x) <- cl

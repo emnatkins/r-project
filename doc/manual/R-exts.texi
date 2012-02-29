@@ -1680,7 +1680,7 @@ external software to which this is an @R{} interface.
 
 One simple way is simply to set @code{OBJECTS} to be all the objects
 that need to be compiled, including in sub-directories.  For example,
-CRAN package @CRANpkg{RSiena} has
+CRAN package @pkg{RSiena} has
 
 @example
 SOURCES = $(wildcard data/*.cpp network/*.cpp utils/*.cpp model/*.cpp model/*/*.cpp model/*/*/*.cpp)
@@ -2161,8 +2161,7 @@ setting environment variables @w{@env{_R_CHECK_*_}:}, as described in
 `R Internals':
 @end ifclear
 a set of these customizations similar to those used by
-@acronym{CRAN} can be selected by the option @option{--as-cran} (which
-works best if Internet access is available).
+@acronym{CRAN} can be selected by the option @option{--as-cran}.
 
 You do need to ensure that the package is checked in a suitable locale
 if it contains non-@acronym{ASCII} characters.  Such packages are likely
@@ -2660,14 +2659,10 @@ POSIX-compliant @command{du} program is found on the system: it is
 possible that some other @command{du} programs will incorrectly report
 double the actual size.  This can be disabled by setting
 @env{_R_CHECK_PKG_SIZE_} to a false value.} on installed packages of
-more than 5Mb, detailing directories of more than 1Mb.  It warns about
+more than 5Mb, detailing directories of more than 1Mb.  It notes
 inefficient compression of data: @command{R CMD build --resave-data}
-will compact data as best it can.  
-
-Watch out for unnecessary files in @file{inst/doc}: @command{R CMD
-check} will note files of types that probably should be installed, but
-it cannot distinguish PDF figures from PDF documents.  If files need to
-be in @file{inst/doc} but not installed, use a @file{.Rinstignore} file.
+will compact data as best it can.  Watch out for unnecessary files in
+@file{inst/doc}.  
 
 The CRAN policy is that @file{doc} directories should not exceed 5Mb,
 and where @file{data} directories need to be more than 5--10Mb,
@@ -2681,8 +2676,11 @@ See below for ways to reduce the size of PDF files such as vignettes.
 Ensure that checking the package takes no more time than is needed (the
 CRAN check farm is a resource shared between several thousand packages).
 
-See below for ways to find out where your package checks are taking
-significant time.
+If you want to look at the timings for examples, use option
+@option{--timings} to @command{R CMD check}.  This generates a file
+called @file{@var{mypkg}.Rcheck/@var{mypkg}-Ex.timings} containing
+timings for each help files (as given by @code{system.time()}).  It is a
+tab-delimited file which can be read into @R{} for further analysis.
 @end enumerate
 
 @noindent
@@ -2728,11 +2726,10 @@ layout, @file{inst/doc}) subdirectory of their package.
 
 @menu
 * PDF size::                    
-* Package timing::              
 * Windows external software::   
 @end menu
 
-@node PDF size, Package timing, Submitting a package to CRAN, Submitting a package to CRAN
+@node PDF size, Windows external software, Submitting a package to CRAN, Submitting a package to CRAN
 @subsection PDF size
 
 There are a several tools available to reduce the size of PDF files,
@@ -2770,13 +2767,12 @@ the @acronym{CRAN} Mac OS X distribution of @R{}), there is an option
 @command{qpdf} over PDF files under @file{inst/doc} and replace them if
 at least 10Kb and 10% is saved.  The full path to the @command{qpdf}
 command can be supplied as environment variable @env{R_QPDF} (and is on
-the CRAN binary of @R{} for Mac OS X).  This option can take values
-@samp{qpdf} (the default) as well as @samp{gs} or @samp{both} to try
-harder to reduce the size.  These should definitely be tried before
+the CRAN binary of @R{} for Mac OS X).  This is done @emph{via} the
+function @code{tools::compactPDF} which has other options including
+running Ghostscript.  These should definitely be tried before
 submission to CRAN for packages with more than 250Kb of PDF files: as
 @samp{gs} may make lossy changes such as downsampling bitmap images, do
-examine the results and if necessary use @command{ps2pdf} or
-@code{tools::compactPDF} directly.
+examine the results and if necessary use @command{ps2pdf} directly.
 
 Most of the large PDFs we have encountered have been large because of
 the inclusion of figures, for example complex figures from @R{} (where
@@ -2791,34 +2787,7 @@ preamble of an Sweave or @LaTeX{} file: see how this is done for the
 @R{} reference manual at
 @uref{https://svn.r-project.org/R/trunk/doc/manual/refman.top}.
 
-@node Package timing, Windows external software, PDF size, Submitting a package to CRAN
-@subsection Package timing
-
-There are several ways to find out where time is being spent in the
-check process.  Start by setting the environment variable
-@env{_R_CHECK_TIMINGS_} to @samp{0}.  This will report the total CPU
-times (not Windows) and elapsed times for installation and running
-examples, tests and vignettes, under each sub-architecture if
-appropriate.  For tests and vignettes, it reports the time for each as
-well as the total.
-
-Setting @env{_R_CHECK_TIMINGS_} to a non-zero value sets a threshold (in
-seconds elapsed time) for reporting timings.
-
-If you need to look in more detail at the timings for examples, use
-option @option{--timings} to @command{R CMD check}.  This generates a
-file called @file{@var{mypkg}.Rcheck/@var{mypkg}-Ex.timings}
-containing timings for each help files (as given by
-@code{system.time()}).  It is a tab-delimited file which can be read
-into @R{} for further analysis.
-
-Timings for the tests and vignette runs are given at the bottom of the
-corresponding log file: note that log files for successful vignette runs
-are only retained if @env{_R_CHECK_ALWAYS_LOG_VIGNETTE_OUTPUT_} is set
-to a true value.
-
-
-@node Windows external software,  , Package timing, Submitting a package to CRAN
+@node Windows external software,  , PDF size, Submitting a package to CRAN
 @subsection Windows external software
 
 Note that @acronym{CRAN} does not accept submissions of precompiled
@@ -3374,36 +3343,24 @@ All S4 classes to be used outside the package need to be listed in an
 using @code{exportClassPattern}.@footnote{As from @R{} 2.13.0 this
 defaults to the same pattern as @code{exportPattern}: use something like
 @code{exportClassPattern("^$")} to override this.} in the same style as
-for @code{exportPattern}.
-To export methods for generics from other packages an
-@code{exportMethods} directive can be used.
+for @code{exportPattern} Generics for which S4 methods are defined need
+to be declared in an @code{exportMethods} directive, and where the
+generics are formed by taking over existing functions, those functions
+need to be imported (explicitly unless they are defined in the
+@code{base} namespace).
 
 Note that exporting methods on a generic in the namespace will also
 export the generic, and exporting a generic in the namespace will also
-export its methods.  If the generic function is not local to this
-package, either because it was imported as a generic function or because
-the non-generic version has been made generic
-solely to add S4 methods to it (as for functions such as @code{plot} in
-the example above), it can be declared @emph{via} either or
-both of @code{export} or @code{exportMethods}, but the latter is
-clearer (and is used in the @pkg{stats4} example above).
-In particular, for primitive functions there is no generic function, so
-@code{export} would export the primitive, which makes no sense.  On the other
-hand, if the generic is local to this package, it is more natural to
-export the function itself using @code{export()}, and this @emph{must} be
-done if an implicit generic
-is created without setting any
-methods for it (as is the case for @code{AIC} in @pkg{stats4}).
+export its methods.  Where a generic has been created in the package
+solely to add S4 methods to it, it can be declared @emph{via} either or
+both of @code{exports} or @code{exportMethods}, but the latter seems
+clearer (and is used in the @pkg{stats4} example above).  On the other
+hand, where a generic is created in a package without setting any
+methods for it (such as @code{AIC} in @pkg{stats4}), @code{exports} must
+be used.
 
-A non-local generic function is only exported to ensure that calls to
-the function will dispatch the methods from this package (and that is
-not done or required when the methods are for primitive functions).  For
-this reason, you do not need to document such implicitly created generic
-functions, and @code{undoc} in package @pkg{tools} will not report them.
-
-If a package uses S4 classes and methods exported from another
-package, but does not import the entire namespace of the other package,
-it needs to import the classes and methods explicitly, with directives
+Further, a package using S4 classes and methods defined in another
+package needs to import them, with directives
 
 @findex importClassesFrom
 @findex importMethodsFrom
@@ -3450,13 +3407,19 @@ respectively.
 Note that @code{importMethodsFrom} will also import any generics defined
 in the namespace on those methods.
 
-It is important if you export S4 methods that the corresponding
-generics are available: the requirementa on this are stricter as from @R{}
+If your package imports the whole of a namespace, it will automatically
+import the classes from that namespace.  It will also import methods,
+but it is best to do so explicitly, especially where there are methods
+being imported from more than one namespace.
+
+It is important that if you export S4 methods that the corresponding
+generic is available: the requirementa on this are stricter as from @R{}
 2.15.0.  You may for example need to import @code{plot} from
 @pkg{graphics} to make visible a function to be converted into its
 implicit generic.  But it is better practice to make use of the generics
 exported by @pkg{stats4} as this enables multiple packages to
 unambiguously set methods on those generics.
+
 
 @node Writing portable packages, Diagnostic messages, Package namespaces, Creating R packages
 @section Writing portable packages
@@ -3558,13 +3521,10 @@ in C on all @R{} platforms.
 Under no circumstances should your compiled code ever call @code{abort}
 or @code{exit}: these terminate the user's @R{} process, quite possibly
 including all his unsaved work.  One usage that could call @code{abort}
-is the @code{assert} macro in C or C++ functions, which should never be
-active in production code.  The normal way to ensure that is to define
-the macro @code{NDEBUG}, and as from @R{} 2.15.0 @command{R CMD INSTALL}
-does so as part of the compilation flags.  If you wish to use
-@code{assert} during development. you can include @code{-UNDEBUG} in
-@code{PKG_CPPFLAGS}.  Note that your own @file{src/Makefile} or
-makefiles in sub-directories may also need to define @code{NDEBUG}.
+is the @code{assert} macro in C or C++ functions: if you use
+@code{assert} during development, make doubly sure that @code{NDEBUG} is
+defined in the released package (maybe by adding it to
+@code{PKG_CPPFLAGS}).
 
 This applies not only to your own code but to any external software you
 compile in or link to.  Such code may contain references
@@ -5573,12 +5533,15 @@ other formats, or extract the executable examples for run-time testing.
 The currently supported conversions are to plain text, @HTML{} and
 @LaTeX{} as well as extraction of the examples.
 
+@findex R CMD Rd2dvi
 @findex R CMD Rd2pdf
-@code{R CMD Rd2pdf} generates PDF output from documentation in @file{Rd}
-files, which can be specified either explicitly or by the path to a
-directory with the sources of a package.  In the latter case, a
-reference manual for all documented objects in the package is created,
-including the information in the @file{DESCRIPTION} files.
+@code{R CMD Rd2dvi} generates DVI (or, if option @option{--pdf} is
+given, or it is invoked as @code{R CMD Rd2pdf}, PDF) output from
+documentation in @file{Rd} files, which can be specified either
+explicitly or by the path to a directory with the sources of a package.
+In the latter case, a reference manual for all documented objects in the
+package is created, including the information in the @file{DESCRIPTION}
+files.  Use for DVI output was deprecated in @R{} 2.14.0.
 
 @findex R CMD Sweave
 @findex R CMD Stangle
@@ -6684,9 +6647,8 @@ can usually be done with the @command{valgrind} option
 @option{--dysmutil=yes} to ask for the symbols to be dumped when the
 @file{.so} file is loaded.  This will not work where packages are
 installed into a system area (such as the @file{R.framework}) and can be
-slow.  Installing packages with @command{R CMD INSTALL --dsym} installs
-the dumped symbols.  (This can also be done by setting environment
-variable @env{PKG_MAKE_DSYM} to a non-empty value.)
+slow.  Installing packages with environment variable @env{PKG_MAKE_DSYM}
+set to a non-empty value installs the dumped sybols.
 
 
 @node Debugging compiled code,  , Using gctorture and valgrind, Debugging
@@ -7256,11 +7218,10 @@ which is defined in the @file{Rdynload.h} file in the @file{R_ext}
 directory.
 
 Note that there are some implicit restrictions on this mechanism as the
-basename of the DLL needs to be both a valid file name and valid as part
-of a C entry point (e.g.@: it cannot contain @samp{.}): for portable
-code it is best to confine DLL names to be ASCII alphanumeric plus
-underscore.  As from @R{} 2.15.0, if entry point @code{R_init_@var{lib}}
-is not found it is also looked for with @samp{.} replaced by @samp{_}.
+basename of the DLL needs to be both a valid file name and valid as
+part of a C entry point (e.g.@: it cannot contain @samp{.}): for
+portable code it is best to confine DLL names to be ASCII alphanumeric
+plus underscore.
 
 
 The following example shows templates for the initialization and

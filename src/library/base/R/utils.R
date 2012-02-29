@@ -18,22 +18,22 @@ shQuote <- function(string, type = c("sh", "csh", "cmd"))
 {
     cshquote <- function(x) {
         xx <- strsplit(x, "'", fixed = TRUE)[[1L]]
-        paste(paste0("'", xx, "'"), collapse="\"'\"")
+        paste(paste("'", xx, "'", sep = ""), collapse="\"'\"")
     }
     if(missing(type) && .Platform$OS.type == "windows") type <- "cmd"
     type <- match.arg(type)
     if(type == "cmd") {
-        paste0('"', gsub('"', '\\\\"', string), '"')
+        paste('"', gsub('"', '\\\\"', string), '"', sep = "")
     } else {
         if(!length(string)) return("")
         has_single_quote <- grep("'", string)
         if(!length(has_single_quote))
-            return(paste0("'", string, "'"))
+            return(paste("'", string, "'", sep = ""))
         if(type == "sh")
-            paste0('"', gsub('(["$`\\])', "\\\\\\1", string), '"')
+            paste('"', gsub('(["$`\\])', "\\\\\\1", string), '"', sep="")
         else {
             if(!length(grep("([$`])", string))) {
-                paste0('"', gsub('(["!\\])', "\\\\\\1", string), '"')
+                paste('"', gsub('(["!\\])', "\\\\\\1", string), '"', sep="")
             } else vapply(string, cshquote, "")
         }
     }

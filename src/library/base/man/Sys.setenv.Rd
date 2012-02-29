@@ -46,13 +46,13 @@ Sys.unsetenv(x)
 }
 % http://support.microsoft.com/kb/830473
 
-#ifdef unix
 \note{
+#ifdef unix
   If \code{Sys.unsetenv} is not supported, it will at least try to
   set the value of the environment variable to \code{""}, with a 
   warning.
-}
 #endif
+}
 \seealso{
   \code{\link{Sys.getenv}}, \link{Startup} for ways to set environment
   variables for the \R session.

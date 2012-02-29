@@ -23,7 +23,6 @@
 #include <config.h>
 #endif
 
-#define R_USE_SIGNALS 1
 #include <Defn.h>
 #include <Parse.h>
 #define STRICT_R_HEADERS
@@ -1237,27 +1236,16 @@ static void yyerror(const char *s)
     	if (expecting) *expecting = '\0';
     	for (i = 0; yytname_translations[i]; i += 2) {
     	    if (!strcmp(s + sizeof yyunexpected - 1, yytname_translations[i])) {
-    	    	if (yychar < 256)
-    	    	    sprintf(ParseErrorMsg, _(yyshortunexpected), 
+    	        sprintf(ParseErrorMsg, yychar < 256 ? _(yyshortunexpected): _(yylongunexpected), 
     	    	        i/2 < YYENGLISH ? _(yytname_translations[i+1])
-    	    	                        : yytname_translations[i+1]);
-    	    	else
-    	    	    sprintf(ParseErrorMsg, _(yylongunexpected), 
-    	    	        i/2 < YYENGLISH ? _(yytname_translations[i+1])
-    	    	                        : yytname_translations[i+1], 
-    	    	        CHAR(STRING_ELT(yylval, 0)));
+    	    	                    : yytname_translations[i+1], CHAR(STRING_ELT(yylval, 0)));
     	    	translated = TRUE;
     	    	break;
     	    }
     	}
-    	if (!translated) {
-    	    if (yychar < 256) 
-    		sprintf(ParseErrorMsg, _(yyshortunexpected),
-    	            s + sizeof yyunexpected - 1);
-    	    else
-    	    	sprintf(ParseErrorMsg, _(yylongunexpected),
-    	            s + sizeof yyunexpected - 1, CHAR(STRING_ELT(yylval, 0)));
-	}
+    	if (!translated)
+    	    sprintf(ParseErrorMsg, yychar < 256 ? _(yyshortunexpected) : _(yylongunexpected),
+    	                             s + sizeof yyunexpected - 1, CHAR(STRING_ELT(yylval, 0)));
     	if (expecting) {
  	    translated = FALSE;
     	    for (i = 0; yytname_translations[i]; i += 2) {

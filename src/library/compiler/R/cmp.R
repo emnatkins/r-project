@@ -2,7 +2,7 @@
 #
 #  File src/library/compiler/R/cmp.R
 #  Part of the R package, http://www.R-project.org
-#  Copyright (C) 2001-2012 Luke Tierney
+#  Copyright (C) 2001-2011 Luke Tierney
 #
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -761,7 +761,7 @@ make.codeBuf <- function(expr) {
         .Internal(getconst(constBuf, constCount))
     idx <- 0
     labels <- vector("list")
-    makelabel <- function() { idx <<- idx + 1; paste0("L", idx) }
+    makelabel <- function() { idx <<- idx + 1; paste("L", idx, sep="") }
     putlabel <- function(name) labels[[name]] <<- codeCount
     patchlabels <- function() {
         offset <- function(lbl) {
@@ -1530,14 +1530,14 @@ cmpSetterCall <- function(place, vexpr, cb, cntxt) {
 
 getAssignFun <- function(fun) {
     if (typeof(fun) == "symbol")
-        as.name(paste0(fun, "<-"))
+        as.name(paste(fun, "<-", sep=""))
     else {
         ## check for and handle foo::bar(x) <- y assignments here
         if (typeof(fun) == "language" && length(fun) == 3 &&
             (as.character(fun[[1]]) %in% c("::", ":::")) &&
             typeof(fun[[2]]) == "symbol" && typeof(fun[[3]]) == "symbol") {
             afun <- fun
-            afun[[3]] <- as.name(paste0(fun[[3]],"<-"))
+            afun[[3]] <- as.name(paste(fun[[3]],"<-", sep=""))
             afun
         }
         else NULL
@@ -2613,7 +2613,7 @@ cmplib <- function(package, file) {
     pkgname <- paste("package", package, sep = ":")
     pos <- match(pkgname, search());
     if (missing(file))
-        file <- paste0(package,".Rc")
+        file <- paste(package,".Rc",sep="")
     if (is.na(pos)) {
         library(package, character.only = TRUE)
         pos <- match(pkgname, search());
@@ -2628,7 +2628,7 @@ cmpfile <- function(infile, outfile, ascii = FALSE, env = .GlobalEnv,
         stop("'env' must be a top level environment")
     if (missing(outfile)) {
         basename <- sub("\\.[a-zA-Z0-9]$", "", infile)
-        outfile <- paste0(basename, ".Rc")
+        outfile <- paste(basename, ".Rc", sep="")
     }
     if (infile == outfile)
         stop("input and output file names are the same")
@@ -2650,7 +2650,7 @@ cmpfile <- function(infile, outfile, ascii = FALSE, env = .GlobalEnv,
             if (verbose) {
                 if (typeof(e) == "language" && e[[1]] == "<-" &&
                     typeof(e[[3]]) == "language" && e[[3]][[1]] == "function")
-                    cat(paste0("compiling function \"", e[[2]], "\"\n"))
+                    cat(paste("compiling function \"", e[[2]], "\"\n", sep=""))
                 else
                     cat(paste("compiling expression", deparse(e, 20)[1],
                               "...\n"))

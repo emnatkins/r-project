@@ -33,8 +33,7 @@ parse <- function(file = "", n = NULL, text = NULL, prompt = "?",
             	text <- readLines(file)
             	close(file)
             	file <- stdin()
-        	srcfile <- srcfilecopy(filename, text, file.info(filename)[1,"mtime"],
-        	                       isFile = TRUE)
+        	srcfile <- srcfilecopy(filename, text, file.info(filename)[1,"mtime"])
             } else 	
                 on.exit(close(file))
         }

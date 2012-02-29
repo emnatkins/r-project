@@ -89,7 +89,6 @@
 #include <config.h>
 #endif
 
-#define R_USE_SIGNALS 1
 #include <Defn.h>
 #include <float.h> /* for DBL_DIG */
 #include <Print.h>
@@ -1153,10 +1152,12 @@ static void deparse2buff(SEXP s, LocalParseData *d)
 	print2buff(tpb, d);
     }
 	break;
+#ifdef BYTECODE
     case BCODESXP:
 	d->sourceable = FALSE;
 	print2buff("<bytecode>", d);
 	break;
+#endif
     case WEAKREFSXP:
 	d->sourceable = FALSE;
 	print2buff("<weak reference>", d);
