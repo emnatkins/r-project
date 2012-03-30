@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2012-03-05 r58590)
+R version 2.15.0 alpha (2012-03-07 r58625)
 Copyright (C) 2012 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-unknown-linux-gnu (64-bit)
@@ -1506,5 +1506,5 @@ sm     3    3    3    3    4    4    4    4    2     2     2
 > par(op)
 > 
 > cat("Time elapsed: ", proc.time() - .ptime, "\n")
-Time elapsed:  1.905 0.043 1.958 0 0 
+Time elapsed:  1.908 0.04 1.958 0 0 
 > 

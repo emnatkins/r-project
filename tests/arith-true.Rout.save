@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2012-03-05 r58592)
+R version 2.15.0 alpha (2012-03-02 r58556)
 Copyright (C) 2012 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-unknown-linux-gnu (64-bit)
@@ -315,5 +315,5 @@ Warning messages:
 > 
 > ## Last Line:
 > cat('Time elapsed: ', proc.time() - .proctime00,'\n')
-Time elapsed:  0.373 0.001 0.377 0 0 
+Time elapsed:  0.37 0.004 0.376 0 0 
 > 

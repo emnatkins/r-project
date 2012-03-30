@@ -152,7 +152,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"Recall",	do_recall,	0,	210,	-1,	{PP_FUNCALL, PREC_FN,	  0}},
 {"delayedAssign",do_delayed,	0,	111,	4,	{PP_FUNCALL, PREC_FN,	  0}},
 {"makeLazy",	do_makelazy,	0,	111,	5,	{PP_FUNCALL, PREC_FN,	  0}},
-{"identical",	do_identical,	0,	11,	7,	{PP_FUNCALL, PREC_FN,	  0}},
+{"identical",	do_identical,	0,	11,	6,	{PP_FUNCALL, PREC_FN,	  0}},
 
 
 /* Binary Operators, all primitives */
@@ -706,6 +706,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"ls",		do_ls,		1,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"typeof",	do_typeof,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"eval",	do_eval,	0,	211,	3,	{PP_FUNCALL, PREC_FN,	0}},
+{"eval.with.vis",do_eval,	1,	211,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"sys.parent",	do_sys,		1,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"sys.call",	do_sys,		2,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"sys.frame",	do_sys,		3,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},

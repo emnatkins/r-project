@@ -12,11 +12,10 @@
 \title{ Get or Test for the Definition of a Method }
 \description{
   Functions to look for a method corresponding to a given generic function and signature.
-  The functions \code{getMethod} and \code{selectMethod} return the method; the functions
-  \code{existsMethod} and \code{hasMethod} test for its existence.  In both
+  The functions \code{getMethod} and \code{selectMethod} return the method; the functions \code{existsMethod}
+  and \code{hasMethod} test for its existence.  In both
   cases the first function only gets direct definitions and the second
-  uses inheritance.  In all cases, the search is in the generic function itself or in
-  the package/environment specified by argument \code{where}.
+  uses inheritance.  In all cases, the search is in the generic function itself or in the package/environment specified by argument \code{where}.
 
   The function \code{findMethod} returns the package(s) in the search
   list (or in the packages specified by the \code{where} argument) that
@@ -31,7 +30,7 @@ existsMethod(f, signature = character(), where)
 findMethod(f, signature, where)
 
 selectMethod(f, signature, optional = FALSE, useInherited =,
-             mlist = , fdef = , verbose = , doCache = )
+             mlist = , fdef = , verbose = , doCache = , returnAll =)
 
 hasMethod(f, signature=character(), where)
 
@@ -48,7 +47,7 @@ hasMethod(f, signature=character(), where)
   \item{optional}{If the selection in \code{selectMethod} does not find a valid method
     an error is generated, unless this argument is \code{TRUE}.  In that
     case, the value returned is \code{NULL} if no method matches.}
-  \item{mlist, fdef, useInherited, verbose, doCache}{Optional
+  \item{mlist, fdef, useInherited, verbose, doCache, returnAll}{Optional
       arguments  to  \code{getMethod} and \code{selectMethod} for
       internal use.  Avoid
       these: some will work as expected and others will not, and none of them is required for normal use of the functions.

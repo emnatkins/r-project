@@ -35,7 +35,9 @@
     using this argument that no other package can override their external
     symbols, and also speeds up the search (see \sQuote{Note}).}
   
-  \item{ENCODING}{For back-compatibility, accepted but ignored.}
+  \item{ENCODING}{optional name for an encoding to be assumed for
+    character vectors.  Allowed but ignored for \code{.Fortran},
+    deprecated for \code{.C}.  See \sQuote{Details}.}
 }
 
 \details{
@@ -129,7 +131,7 @@
   functions and environments are now deprecated.
 
   If you need to return \R objects created within the C routine, use the
-  \code{\link{.Call}} interface.
+  \code{.Call} interface.
 }
 %%-- This note by Thomas Lumley, (minimally edited by MM,
 %%      edited by BDR for 1.2.0's non-moving garbage collector):
@@ -146,7 +148,7 @@
   be able to change not only the local variable but the variable one
   level up.  This will be very hard to trace.
 
-  Character vectors cannot be used with \code{DUP = FALSE}.
+  Character vectors and lists cannot be used with \code{DUP = FALSE}.
 
   It is safe and useful to set \code{DUP = FALSE} if you do not change any
   of the variables that might be affected, e.g.,
@@ -157,14 +159,10 @@
   so it cannot cause trouble.  If the \code{input} variable is not
   changed in the C code of \code{Cfunction} you are safe.
 
-  Note that if \code{DUP = TRUE} there are up to two copies involved.
-  There may be one when the data from the argument is copied and the
-  pointer to the copied data passed to the compiled code.  However,
-  non-atomic-vector objects are not copied, and as from \R 2.15.1 nor
-  are such objects which are not otherwise used in the calling code
-  (such as \code{output} in the example above).  For atomic vectors
-  there is another copy when the return value is prepared from the data
-  accessed by the compiled code.
+  Note that if \code{DUP = TRUE} there are two copies involved, one when
+  the data from the argument is copied and the pointer to the copied data
+  passed to the compiled code, and one when the return value is prepared
+  from the data accessed by the compiled code.
 }
 
 \section{Fortran symbol names}{

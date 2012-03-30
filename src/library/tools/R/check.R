@@ -874,14 +874,14 @@ setRlibs <- function(lib0 = "", pkgdir = ".", suggests = FALSE,
         out <- R_runR("tools:::.check_package_ASCII_code('.')",
                       R_opts2, "R_DEFAULT_PACKAGES=NULL")
         if (length(out)) {
-            warningLog(Log)
+            if (!is.na(desc["Encoding"])) noteLog(Log)
+            else warningLog(Log)
             wrapLog("Found the following files with",
                     "non-ASCII characters:\n")
             printLog(Log, .format_lines_with_indent(out), "\n")
             wrapLog("Portable packages must use only ASCII",
                     "characters in their R code,\n",
-                    "except perhaps in comments.\n",
-                    "Use \\uxxxx escapes for other characters.\n")
+                    "except perhaps in comments.\n")
         } else resultLog(Log, "OK")
 
         checkingLog(Log, "R files for syntax errors")
@@ -989,6 +989,7 @@ setRlibs <- function(lib0 = "", pkgdir = ".", suggests = FALSE,
     check_R_files <- function(is_rec_pkg)
     {
         checkingLog(Log, "R code for possible problems")
+        any <- FALSE
         if (!is_base_pkg) {
             Rcmd <- "options(warn=1);tools:::.check_package_code_shlib(\"R\")"
             out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
@@ -1007,13 +1008,22 @@ setRlibs <- function(lib0 = "", pkgdir = ".", suggests = FALSE,
         Rcmd <- paste("options(warn=1)\n",
                       sprintf("tools:::.check_package_code_startup_functions(dir = \"%s\")\n",
                               pkgdir))
-        out1 <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=")
-
-        out2 <- out3 <- out4 <- NULL
+        out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=")
+        if(length(out)) {
+            if(!any) noteLog(Log)
+            any <- TRUE
+            printLog0(Log, paste(c(out, ""), collapse = "\n"))
+        }
 
         if (!is_base_pkg && R_check_unsafe_calls) {
             Rcmd <- "options(warn=1);tools:::.check_package_code_tampers(\"R\")"
-            out2 <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            out <- R_runR(Rcmd, R_opts2, "R_DEFAULT_PACKAGES=NULL")
+            if (length(out)) {
+            if(!any) noteLog(Log)
+            any <- TRUE
+            printLog0(Log, paste(c("Found the following possibly unsafe calls:", out, ""),
+                                 collapse = "\n"))
+            }
         }
 
 
@@ -1021,7 +1031,12 @@ setRlibs <- function(lib0 = "", pkgdir = ".", suggests = FALSE,
             Rcmd <-
                 paste("options(warn=1)\n",
                       sprintf("tools:::.check_code_usage_in_package(package = \"%s\")\n", pkgname))
-            out3 <- R_runR2(Rcmd, "R_DEFAULT_PACKAGES=")
+            out <- R_runR2(Rcmd, "R_DEFAULT_PACKAGES=")
+            if (length(out)) {
+                if (!any) noteLog(Log)
+                any <- TRUE
+                printLog0(Log, paste(c(out, ""), collapse = "\n"))
+            }
         }
 
         if(!(is_base_pkg || is_rec_pkg) &&
@@ -1029,34 +1044,24 @@ setRlibs <- function(lib0 = "", pkgdir = ".", suggests = FALSE,
             details <- pkgname != "relax" # has .Internal in a 10,000 line fun
             Rcmd <- paste("options(warn=1)\n",
                           if (do_install)
-                              sprintf("tools:::.check_dotInternal(package = \"%s\",details=%s)\n", pkgname, details)
+                          sprintf("tools:::.check_dotInternal(package = \"%s\",details=%s)\n", pkgname, details)
                           else
-                              sprintf("tools:::.check_dotInternal(dir = \"%s\",details=%s)\n", pkgdir, details))
-            out4 <- R_runR2(Rcmd, "R_DEFAULT_PACKAGES=")
+                          sprintf("tools:::.check_dotInternal(dir = \"%s\",details=%s)\n", pkgdir, details))
+            out <- R_runR2(Rcmd, "R_DEFAULT_PACKAGES=")
             ## Hmisc, gooJSON, quantmod give spurious output
-            if (!any(grepl("^Found .Internal call", out4))) out4 <- NULL
-        }
-
-        if (length(out1) || length(out2) || length(out3) || length(out4)) {
-            if (length(out4)) warningLog(Log) else noteLog(Log)
-            if (length(out1))
-                printLog0(Log, paste(c(out1, ""), collapse = "\n"))
-            if (length(out2))
-                printLog0(Log,
-                          paste(c("Found the following possibly unsafe calls:",
-                                  out2, ""), collapse = "\n"))
-            if (length(out3))
-                printLog0(Log, paste(c(out3, ""), collapse = "\n"))
-            if (length(out4)) {
-                first <- grep("^Found .Internal call", out4)[1L]
-                if(first > 1L) out4 <- out4[-seq_len(first-1)]
-                printLog0(Log, paste(c(out4, "", ""), collapse = "\n"))
+            if (length(out) && any(grepl("^Found .Internal call", out))) {
+                first <- grep("^Found .Internal call", out)[1L]
+                if(first > 1L) out <- out[-seq_len(first-1)]
+                if (!any) noteLog(Log)
+                any <- TRUE
+                printLog0(Log, paste(c(out, "", ""), collapse = "\n"))
                 wrapLog(c("Packages should not call .Internal():",
-                          "it is not part of the API,",
-                          "for use only by R itself",
+                          "it is not part of the API, for use only by R itself",
                           "and subject to change without notice."))
             }
-        } else resultLog(Log, "OK")
+        }
+
+        if (!any) resultLog(Log, "OK")
     }
 
     check_Rd_files <- function(haveR)
@@ -1614,15 +1619,9 @@ setRlibs <- function(lib0 = "", pkgdir = ".", suggests = FALSE,
                 printLog0(Log, c(out, "\n"))
             } else resultLog(Log, "OK")
         } else if(length(out)) {
-            ## If we have named objects then we have symbols.rds and
-            ## will not be picking up symbols just in system libraries.
-            haveObjs <- any(grepl("^ *Object", out))
-            if(haveObjs && any(grepl("(abort|assert|exit)", out)) &&
-               !pkgname %in% c("multicore", "parallel")) # need to call exit
-                warningLog(Log)
-            else noteLog(Log)
+            noteLog(Log)
             printLog0(Log, paste(c(out, ""), collapse = "\n"))
-            if(haveObjs)
+            if(any(grepl("^ *Object", out)))
                 wrapLog("\nCompiled code should not call functions which",
                         "might terminate R nor write to stdout/stderr instead",
                         "of to the console.\n" ,
@@ -1632,9 +1631,9 @@ setRlibs <- function(lib0 = "", pkgdir = ".", suggests = FALSE,
             else
                 wrapLog("\nCompiled code should not call functions which",
                         "might terminate R nor write to stdout/stderr instead",
-                        "of to the console.  The detected symbols are linked",
-                        "into the code but might come from libraries",
-                        "and not actually be called.\n",
+                        "of to the console.  The detected symbols are linked into the",
+                        "code but might come from libraries and not actually",
+                        "be called.\n",
                         "\n",
                         "See 'Writing portable packages'",
                         "in the 'Writing R Extensions' manual.\n")
@@ -3403,7 +3402,7 @@ setRlibs <- function(lib0 = "", pkgdir = ".", suggests = FALSE,
             if (file.exists(file.path(pkgdir, "NAMESPACE")))
                 resultLog(Log, "OK")
             else {
-                warningLog(Log)
+                noteLog(Log)
                 wrapLog("As from R 2.14.0 all packages need a namespace.\n",
                         "One will be generated on installation,",
                         "but it is better to handcraft a NAMESPACE file:",

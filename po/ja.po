@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.5.0 \n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2012-03-17 05:23+0000\n"
+"POT-Creation-Date: 2012-03-16 06:19+0000\n"
 "PO-Revision-Date: 2012-02-26 14:21+0200 \n"
 "Last-Translator: Shigeru Mase <maseshigeru@gmail.com> \n"
 "Language-Team: R-core <R-core@R-project.org> \n"
@@ -163,8 +163,8 @@ msgstr " '%ls'の表示に問題があります "
 #: src/main/context.c:606 src/main/datetime.c:739 src/main/datetime.c:819
 #: src/main/datetime.c:821 src/main/datetime.c:825 src/main/datetime.c:988
 #: src/main/datetime.c:990 src/main/datetime.c:1154 src/main/debug.c:224
-#: src/main/deparse.c:386 src/main/devices.c:583 src/main/dotcode.c:653
-#: src/main/dotcode.c:657 src/main/dotcode.c:662 src/main/dounzip.c:320
+#: src/main/deparse.c:386 src/main/devices.c:583 src/main/dotcode.c:715
+#: src/main/dotcode.c:719 src/main/dotcode.c:724 src/main/dounzip.c:320
 #: src/main/dounzip.c:327 src/main/dounzip.c:337 src/main/dounzip.c:342
 #: src/main/dounzip.c:346 src/main/dounzip.c:350 src/main/envir.c:1544
 #: src/main/envir.c:1547 src/main/envir.c:1666 src/main/envir.c:1671
@@ -288,11 +288,11 @@ msgstr " タイムスタンプが不正です "
 #: src/gnuwin32/extra.c:2057 src/main/character.c:586 src/main/colors.c:358
 #: src/main/connections.c:3283 src/main/context.c:639 src/main/context.c:658
 #: src/main/datetime.c:671 src/main/datetime.c:741 src/main/datetime.c:992
-#: src/main/dotcode.c:194 src/main/errors.c:850 src/main/errors.c:881
+#: src/main/dotcode.c:193 src/main/errors.c:850 src/main/errors.c:881
 #: src/main/errors.c:982 src/main/errors.c:1007 src/main/errors.c:1012
 #: src/main/errors.c:1284 src/main/optimize.c:95 src/main/optimize.c:102
-#: src/main/optimize.c:111 src/main/optimize.c:186 src/main/optimize.c:192
-#: src/main/optimize.c:201 src/main/plot.c:262 src/main/plot.c:277
+#: src/main/optimize.c:111 src/main/optimize.c:184 src/main/optimize.c:190
+#: src/main/optimize.c:199 src/main/plot.c:262 src/main/plot.c:277
 #: src/main/plot.c:471 src/main/plot.c:476 src/main/plot.c:2292
 #: src/main/plot.c:2299 src/main/plot.c:3331 src/main/plot.c:3333
 #: src/main/plot.c:3335 src/main/plot.c:3493 src/main/plot3d.c:1382
@@ -755,7 +755,7 @@ msgstr ""
 msgid "must pass package name or DllInfo reference"
 msgstr " パッケージ名か DllInfo の参照を渡すべきです "
 
-#: src/main/Rdynload.c:1216 src/main/dotcode.c:125
+#: src/main/Rdynload.c:1216 src/main/dotcode.c:124
 #, c-format
 msgid "Unimplemented type %d in createRSymbolObject"
 msgstr " createRSymbolObject には型 %d は未実装です "
@@ -2686,36 +2686,36 @@ msgstr " (GEcreateDevDesc内で)デバイス割り当てに十分なメモリが
 msgid "Hit <Return> to see next plot: "
 msgstr " 次の図を見るためには<Return>キーを押して下さい:  "
 
-#: src/main/dotcode.c:104 src/main/dotcode.c:134
+#: src/main/dotcode.c:103 src/main/dotcode.c:133
 msgid "NULL value passed as symbol address"
 msgstr " シンボルのアドレスに対して NULL 値が渡されました "
 
-#: src/main/dotcode.c:139 src/main/dotcode.c:209
+#: src/main/dotcode.c:138 src/main/dotcode.c:208
 #, c-format
 msgid "symbol '%s' is too long"
 msgstr " シンボル '%s' が長すぎます "
 
-#: src/main/dotcode.c:157
+#: src/main/dotcode.c:156
 msgid "'name' must be a string (of length 1) or native symbol reference"
 msgstr ""
 " 'name' は（長さ1の）文字列またはネイティブなシンボル参照でなければなりませ"
 "ん "
 
-#: src/main/dotcode.c:196 src/main/dotcode.c:739
+#: src/main/dotcode.c:195 src/main/dotcode.c:801
 msgid "too many arguments in foreign function call"
 msgstr " 外部関数の呼び出しで引数が多すぎます "
 
-#: src/main/dotcode.c:238
+#: src/main/dotcode.c:237
 #, c-format
 msgid "%s symbol name \"%s\" not in DLL for package \"%s\""
 msgstr " %s シンボル名 \"%s\" はパッケージ \"%s\" の DLL の中にありません "
 
-#: src/main/dotcode.c:242
+#: src/main/dotcode.c:241
 #, c-format
 msgid "%s symbol name \"%s\" not in load table"
 msgstr " %s シンボル名 \"%s\" は load table にありません "
 
-#: src/main/dotcode.c:290
+#: src/main/dotcode.c:289
 #, c-format
 msgid ""
 "explicit request not to duplicate arguments in call to '%s', but argument %d "
@@ -2724,129 +2724,143 @@ msgstr ""
 " '%s' への呼出しで、引数を複製しないという明示的な要求ですが、引数 %d は誤っ"
 "たタイプです  (%d != %d)  "
 
-#: src/main/dotcode.c:321
+#: src/main/dotcode.c:320
 #, c-format
 msgid "NAs in foreign function call (arg %d)"
 msgstr " 外部関数呼出しの引数 %d が NA です "
 
-#: src/main/dotcode.c:334
+#: src/main/dotcode.c:333
 #, c-format
 msgid "NA/NaN/Inf in foreign function call (arg %d)"
 msgstr " 外部関数の呼び出し(引数 %d) 中に NA/NaN/Inf があります "
 
-#: src/main/dotcode.c:351
+#: src/main/dotcode.c:350
 #, c-format
 msgid "complex NA/NaN/Inf in foreign function call (arg %d)"
 msgstr " 外部関数呼出し (引数 %d) 中に複素数の NA/NaN/Inf 値があります "
 
-#: src/main/dotcode.c:360
+#: src/main/dotcode.c:359
 msgid "character variables must be duplicated in .C/.Fortran"
 msgstr " .C/.Fortran 中に文字列変数は重複していなければなりません "
 
-#: src/main/dotcode.c:365
+#: src/main/dotcode.c:364
 msgid "only first string in char vector used in .Fortran"
 msgstr " .Fortran に対する文字ベクトルとして，最初の文字列だけを使いました "
 
-#: src/main/dotcode.c:380
+#: src/main/dotcode.c:376 src/main/dotcode.c:505
+#, c-format
+msgid "unsupported encoding '%s'"
+msgstr " '%s' というエンコーディングはサポートされていません "
+
+#: src/main/dotcode.c:392
+#, c-format
+msgid "conversion problem in re-encoding to '%s'"
+msgstr " '%s' への再エンコーディング中に変換問題が生じました "
+
+#: src/main/dotcode.c:408
 #, c-format
 msgid "invalid mode to pass to Fortran (arg %d)"
 msgstr " Fortran に渡された引数 %d のモードが不正です "
 
-#: src/main/dotcode.c:382
+#: src/main/dotcode.c:410
 msgid "lists must be duplicated in .C"
 msgstr " .C 中ではリストは重複していなければなりません "
 
-#: src/main/dotcode.c:392 src/main/dotcode.c:406
+#: src/main/dotcode.c:420 src/main/dotcode.c:428
 #, fuzzy, c-format
 msgid "invalid mode (%s) to pass to Fortran (arg %d)"
 msgstr " Fortran に渡された引数 %d のモードが不正です "
 
-#: src/main/dotcode.c:398
-#, fuzzy, c-format
-msgid "invalid mode (%s) to pass to C or Fortran (arg %d)"
-msgstr " Fortran に渡された引数 %d のモードが不正です "
+#: src/main/dotcode.c:520
+#, c-format
+msgid "conversion problem in re-encoding from '%s'"
+msgstr " '%s' からの再エンコーディング中に変換問題が生じました "
 
-#: src/main/dotcode.c:411
-msgid "pairlists are passed as SEXP as from R 2.15.0"
-msgstr ""
-
-#: src/main/dotcode.c:530
+#: src/main/dotcode.c:580
 msgid "NAOK used more than once"
 msgstr " NAOK が二回以上使われました "
 
-#: src/main/dotcode.c:534
+#: src/main/dotcode.c:584
 msgid "DUP used more than once"
 msgstr " DUP が二回以上使われました "
 
-#: src/main/dotcode.c:540
+#: src/main/dotcode.c:590
 msgid "DLL name is too long"
 msgstr " DLL の名前が長すぎます "
 
-#: src/main/dotcode.c:543 src/main/dotcode.c:603 src/main/dotcode.c:609
+#: src/main/dotcode.c:593 src/main/dotcode.c:653 src/main/dotcode.c:659
 msgid "PACKAGE used more than once"
 msgstr " PACKAGE が二回以上使われました "
 
-#: src/main/dotcode.c:582
+#: src/main/dotcode.c:632
 msgid "PACKAGE argument must be a single character string"
 msgstr " PACKAGE 引数は単一の文字列でなければなりません "
 
-#: src/main/dotcode.c:588
+#: src/main/dotcode.c:638
 msgid "PACKAGE argument is too long"
 msgstr " PACKAGE 引数が長すぎます "
 
-#: src/main/dotcode.c:649
+#: src/main/dotcode.c:682 src/main/dotcode.c:691
+msgid "ENCODING used more than once"
+msgstr " ENCODING が二回以上使われました "
+
+#: src/main/dotcode.c:684 src/main/dotcode.c:693
+msgid "ENCODING argument must be a single character string"
+msgstr " ENCODING 引数は単一の文字列でなければなりません "
+
+#: src/main/dotcode.c:711
 msgid "no arguments supplied"
 msgstr " 引数が与えられていません "
 
-#: src/main/dotcode.c:650 src/main/seq.c:642
+#: src/main/dotcode.c:712 src/main/seq.c:642
 msgid "too many arguments"
 msgstr " 引数の数が多すぎます "
 
-#: src/main/dotcode.c:687 src/main/dotcode.c:730 src/main/dotcode.c:1564
+#: src/main/dotcode.c:749 src/main/dotcode.c:792 src/main/dotcode.c:1615
 #, fuzzy
 msgid "'.NAME' is missing"
 msgstr " 'EXPR' がありません "
 
-#: src/main/dotcode.c:703 src/main/dotcode.c:746 src/main/dotcode.c:1585
+#: src/main/dotcode.c:765 src/main/dotcode.c:808 src/main/dotcode.c:1636
 #, c-format
 msgid "Incorrect number of arguments (%d), expecting %d for '%s'"
 msgstr " 引数の数(%1$d)が不正です。%3$s に対しては %2$d 個の引数が必要です "
 
-#: src/main/dotcode.c:1403 src/main/dotcode.c:2216
+#: src/main/dotcode.c:1465 src/main/dotcode.c:2268
 msgid "too many arguments, sorry"
 msgstr " 引数が多すぎます（すみません…） "
 
-#: src/main/dotcode.c:1435 src/main/dotcode.c:1452
+#: src/main/dotcode.c:1497 src/main/dotcode.c:1514
 msgid "Invalid graphics state"
 msgstr " 無効なグラフィックス状態です "
 
-#: src/main/dotcode.c:1525
+#: src/main/dotcode.c:1587
 msgid "NULL value for DLLInfoReference when looking for DLL"
 msgstr " DLL を探している際に，DLLInfoReference に NULL 値が見つかりました "
 
-#: src/main/dotcode.c:1610
+#: src/main/dotcode.c:1661
 #, c-format
 msgid "Wrong type for argument %d in call to %s"
 msgstr " %d 引数の型が不正です（%s の呼び出しにおいて） "
 
-#: src/main/dotcode.c:2307
+#: src/main/dotcode.c:2359
 #, c-format
 msgid "type \"%s\" not supported in interlanguage calls"
 msgstr " 言語間の関数呼び出しにおいて \"%s\" 型はサポートされていません "
 
-#: src/main/dotcode.c:2376
+#: src/main/dotcode.c:2371
 msgid "invalid function in call_R"
 msgstr " call_R 中の関数が不正です "
 
-#: src/main/dotcode.c:2378
+#: src/main/dotcode.c:2373
 msgid "invalid argument count in call_R"
 msgstr " call_R の引数の個数が不正です "
 
-#: src/main/dotcode.c:2380
+#: src/main/dotcode.c:2375
 msgid "invalid return value count in call_R"
 msgstr " call_R の戻り値の個数が不正です "
 
-#: src/main/dotcode.c:2414
+#: src/main/dotcode.c:2409
 #, c-format
 msgid "mode '%s' is not supported in call_R"
 msgstr " call_R では \"%s\" というモードはサポートされていません "
@@ -4909,11 +4923,11 @@ msgstr " L-BFGS-B は有限な fn の値を必要とします "
 msgid "trace, REPORT must be >= 0 (method = \"SANN\")"
 msgstr " REPORT は正の値でなければなりません (method = \"SANN\") "
 
-#: src/main/optimize.c:53 src/main/optimize.c:138 src/main/optimize.c:392
+#: src/main/optimize.c:53 src/main/optimize.c:136 src/main/optimize.c:390
 msgid "NA replaced by maximum positive value"
 msgstr " NA は正の最大値で置き換えられました "
 
-#: src/main/optimize.c:61 src/main/optimize.c:150 src/main/optimize.c:400
+#: src/main/optimize.c:61 src/main/optimize.c:148 src/main/optimize.c:398
 msgid "NA/Inf replaced by maximum positive value"
 msgstr " NA/Inf は正の最大値で置き換えられました "
 
@@ -4921,104 +4935,104 @@ msgstr " NA/Inf は正の最大値で置き換えられました "
 msgid "invalid function value in 'optimize'"
 msgstr " 'optimize' における関数値が不正です "
 
-#: src/main/optimize.c:88 src/main/optimize.c:180 src/main/optimize.c:593
+#: src/main/optimize.c:88 src/main/optimize.c:178 src/main/optimize.c:591
 msgid "attempt to minimize non-function"
 msgstr " 関数でないものを最小化しようとしました "
 
-#: src/main/optimize.c:104 src/main/optimize.c:194
+#: src/main/optimize.c:104 src/main/optimize.c:192
 msgid "'xmin' not less than 'xmax'"
 msgstr " 'xmin' が 'xmax' より大きいか等しいです "
 
-#: src/main/optimize.c:147
+#: src/main/optimize.c:145
 msgid "-Inf replaced by maximally negative value"
 msgstr " -Inf は負の最大値で置き換えられました "
 
-#: src/main/optimize.c:160
+#: src/main/optimize.c:158
 msgid "invalid function value in 'zeroin'"
 msgstr " 'zeroin' における関数値が不正です "
 
-#: src/main/optimize.c:207
+#: src/main/optimize.c:205
 msgid "'maxiter' must be positive"
 msgstr " 'maxiter' は正数でなくてはなりません "
 
-#: src/main/optimize.c:235 src/main/optimize.c:241
+#: src/main/optimize.c:233 src/main/optimize.c:239
 #, c-format
 msgid "NA value for '%s' is not allowed"
 msgstr " '%s' に対してNAは認められません "
 
-#: src/main/optimize.c:384
+#: src/main/optimize.c:382
 msgid "non-finite value supplied by 'nlm'"
 msgstr " 'nlm' により有限でない値が与えられました "
 
-#: src/main/optimize.c:419
+#: src/main/optimize.c:417
 msgid "invalid function value in 'nlm' optimizer"
 msgstr " 'nlm' 最適化における関数値が不正です "
 
-#: src/main/optimize.c:430 src/main/optimize.c:445
+#: src/main/optimize.c:428 src/main/optimize.c:443
 msgid "function value caching for optimization is seriously confused"
 msgstr " 最適化用にキャッシュされた関数値がひどく混乱しています "
 
-#: src/main/optimize.c:460
+#: src/main/optimize.c:458
 msgid "numeric parameter expected"
 msgstr " 数値パラメータが期待されています "
 
-#: src/main/optimize.c:464
+#: src/main/optimize.c:462
 msgid "conflicting parameter lengths"
 msgstr " パラメータの長さが矛盾しています "
 
-#: src/main/optimize.c:468
+#: src/main/optimize.c:466
 msgid "invalid parameter length"
 msgstr " パラメータの長さが不正です "
 
-#: src/main/optimize.c:478 src/main/optimize.c:485
+#: src/main/optimize.c:476 src/main/optimize.c:483
 msgid "missing value in parameter"
 msgstr " パラメータに欠損値があります "
 
-#: src/main/optimize.c:490
+#: src/main/optimize.c:488
 msgid "invalid parameter type"
 msgstr " パラメータのタイプが不正です "
 
-#: src/main/optimize.c:498
+#: src/main/optimize.c:496
 msgid "invalid NA value in parameter"
 msgstr " パラメータ中に不正な NA 値があります "
 
-#: src/main/optimize.c:508
+#: src/main/optimize.c:506
 msgid "non-positive number of parameters in nlm"
 msgstr " nlm のパラメータが正の値ではありません "
 
-#: src/main/optimize.c:510
+#: src/main/optimize.c:508
 msgid "nlm is inefficient for 1-d problems"
 msgstr " nlm は一次元問題には効率的ではありません "
 
-#: src/main/optimize.c:512
+#: src/main/optimize.c:510
 msgid "invalid gradient tolerance in nlm"
 msgstr " nlm における勾配の許容値が不正です "
 
-#: src/main/optimize.c:514
+#: src/main/optimize.c:512
 msgid "invalid iteration limit in nlm"
 msgstr " nlm の繰り返し回数の限界値が不正です "
 
-#: src/main/optimize.c:516
+#: src/main/optimize.c:514
 msgid "minimization function has no good digits in nlm"
 msgstr " nlm 中で最小化関数は十分な桁数をもちません "
 
-#: src/main/optimize.c:518
+#: src/main/optimize.c:516
 msgid "no analytic gradient to check in nlm!"
 msgstr " nlm 中でチェックされる勾配の解析的な式がありません！ "
 
-#: src/main/optimize.c:520
+#: src/main/optimize.c:518
 msgid "no analytic Hessian to check in nlm!"
 msgstr " nlm 中でチェックすべき解析的なヘッセ行列がありません "
 
-#: src/main/optimize.c:522
+#: src/main/optimize.c:520
 msgid "probable coding error in analytic gradient"
 msgstr " 解析的な勾配式中にコーディングの間違いの可能性 "
 
-#: src/main/optimize.c:524
+#: src/main/optimize.c:522
 msgid "probable coding error in analytic Hessian"
 msgstr " 解析的なヘッセ行列式中にコーディングの間違いの可能性があります "
 
-#: src/main/optimize.c:526
+#: src/main/optimize.c:524
 #, c-format
 msgid ""
 "*** unknown error message (msg = %d) in nlm()\n"
@@ -5027,24 +5041,24 @@ msgstr ""
 " *** nlm 関数から未知のエラーメッセージ (msg = %d)  \n"
 " *** これはあり得ないことです！ "
 
-#: src/main/optimize.c:537
+#: src/main/optimize.c:535
 msgid "Relative gradient close to zero.\n"
 msgstr " 相対勾配が0に近くなっています \n"
 
-#: src/main/optimize.c:538 src/main/optimize.c:542
+#: src/main/optimize.c:536 src/main/optimize.c:540
 msgid "Current iterate is probably solution.\n"
 msgstr " 現在の繰り返しでおそらく解が得られたでしょう \n"
 
-#: src/main/optimize.c:541
+#: src/main/optimize.c:539
 msgid "Successive iterates within tolerance.\n"
 msgstr " 連続した繰り返しが許容範囲内です \n"
 
-#: src/main/optimize.c:545
+#: src/main/optimize.c:543
 msgid "Last global step failed to locate a point lower than x.\n"
 msgstr ""
 " 最終の大局的ステップは x よりも小さな点を見つけることが出来ませんでした \n"
 
-#: src/main/optimize.c:546
+#: src/main/optimize.c:544
 msgid ""
 "Either x is an approximate local minimum of the function,\n"
 "the function is too non-linear for this algorithm,\n"
@@ -5054,11 +5068,11 @@ msgstr ""
 " 関数がこのアルゴリズムには非線形的すぎるか、 \n"
 " steptol が大きすぎます \n"
 
-#: src/main/optimize.c:551
+#: src/main/optimize.c:549
 msgid "Iteration limit exceeded.  Algorithm failed.\n"
 msgstr " 繰り返し数が上限を超えました．アルゴリズムは破綻しました \n"
 
-#: src/main/optimize.c:554
+#: src/main/optimize.c:552
 msgid ""
 "Maximum step size exceeded 5 consecutive times.\n"
 "Either the function is unbounded below,\n"
@@ -5071,11 +5085,11 @@ msgstr ""
 " ある方向で上から漸近的に有限値に近づいているか、 \n"
 " または stepmx が小さすぎるか、です \n"
 
-#: src/main/optimize.c:673
+#: src/main/optimize.c:671
 msgid "hessian supplied is of the wrong length or mode, so ignored"
 msgstr " 提供されたヘッセ行列は不正な長さかモードであったため無視されました "
 
-#: src/main/optimize.c:677
+#: src/main/optimize.c:675
 msgid "gradient supplied is of the wrong length or mode, so ignored"
 msgstr " 提供された勾配は不正な長さかモードであったので無視されました "
 
@@ -8301,21 +8315,6 @@ msgstr " X11 モジュールをロードできません "
 #: src/unix/X11.c:177 src/unix/X11.c:183 src/unix/X11.c:189
 msgid "X11 is not available"
 msgstr " X11 が利用できません "
-
-#~ msgid "unsupported encoding '%s'"
-#~ msgstr " '%s' というエンコーディングはサポートされていません "
-
-#~ msgid "conversion problem in re-encoding to '%s'"
-#~ msgstr " '%s' への再エンコーディング中に変換問題が生じました "
-
-#~ msgid "conversion problem in re-encoding from '%s'"
-#~ msgstr " '%s' からの再エンコーディング中に変換問題が生じました "
-
-#~ msgid "ENCODING used more than once"
-#~ msgstr " ENCODING が二回以上使われました "
-
-#~ msgid "ENCODING argument must be a single character string"
-#~ msgstr " ENCODING 引数は単一の文字列でなければなりません "
 
 #~ msgid "this version of R cannot write byte code objects"
 #~ msgstr ""

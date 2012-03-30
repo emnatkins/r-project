@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nn\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2012-03-17 05:23+0000\n"
+"POT-Creation-Date: 2012-03-16 06:19+0000\n"
 "PO-Revision-Date: 2011-02-18 09:09+0100\n"
 "Last-Translator: Karl Ove Hufthammer <karl@huftis.org>\n"
 "Language-Team: Norwegian Nynorsk <i18n-nn@lister.ping.uio.no>\n"
@@ -161,8 +161,8 @@ msgstr "feil ved vising av «%ls»"
 #: src/main/context.c:606 src/main/datetime.c:739 src/main/datetime.c:819
 #: src/main/datetime.c:821 src/main/datetime.c:825 src/main/datetime.c:988
 #: src/main/datetime.c:990 src/main/datetime.c:1154 src/main/debug.c:224
-#: src/main/deparse.c:386 src/main/devices.c:583 src/main/dotcode.c:653
-#: src/main/dotcode.c:657 src/main/dotcode.c:662 src/main/dounzip.c:320
+#: src/main/deparse.c:386 src/main/devices.c:583 src/main/dotcode.c:715
+#: src/main/dotcode.c:719 src/main/dotcode.c:724 src/main/dounzip.c:320
 #: src/main/dounzip.c:327 src/main/dounzip.c:337 src/main/dounzip.c:342
 #: src/main/dounzip.c:346 src/main/dounzip.c:350 src/main/envir.c:1544
 #: src/main/envir.c:1547 src/main/envir.c:1666 src/main/envir.c:1671
@@ -286,11 +286,11 @@ msgstr "ugyldig tidsstempel"
 #: src/gnuwin32/extra.c:2057 src/main/character.c:586 src/main/colors.c:358
 #: src/main/connections.c:3283 src/main/context.c:639 src/main/context.c:658
 #: src/main/datetime.c:671 src/main/datetime.c:741 src/main/datetime.c:992
-#: src/main/dotcode.c:194 src/main/errors.c:850 src/main/errors.c:881
+#: src/main/dotcode.c:193 src/main/errors.c:850 src/main/errors.c:881
 #: src/main/errors.c:982 src/main/errors.c:1007 src/main/errors.c:1012
 #: src/main/errors.c:1284 src/main/optimize.c:95 src/main/optimize.c:102
-#: src/main/optimize.c:111 src/main/optimize.c:186 src/main/optimize.c:192
-#: src/main/optimize.c:201 src/main/plot.c:262 src/main/plot.c:277
+#: src/main/optimize.c:111 src/main/optimize.c:184 src/main/optimize.c:190
+#: src/main/optimize.c:199 src/main/plot.c:262 src/main/plot.c:277
 #: src/main/plot.c:471 src/main/plot.c:476 src/main/plot.c:2292
 #: src/main/plot.c:2299 src/main/plot.c:3331 src/main/plot.c:3333
 #: src/main/plot.c:3335 src/main/plot.c:3493 src/main/plot3d.c:1382
@@ -757,7 +757,7 @@ msgstr "klarte ikkje setja av minne til registrert innebygd symbol (%d byte)"
 msgid "must pass package name or DllInfo reference"
 msgstr "må senda med pakkenamn eller DllInfo-referanse"
 
-#: src/main/Rdynload.c:1216 src/main/dotcode.c:125
+#: src/main/Rdynload.c:1216 src/main/dotcode.c:124
 #, c-format
 msgid "Unimplemented type %d in createRSymbolObject"
 msgstr "Ikkje-implementert type «%d» i createRSymbolObject"
@@ -2684,34 +2684,34 @@ msgstr "ikkje nok minne å tildela eininga (i GEcreateDevDesc)"
 msgid "Hit <Return> to see next plot: "
 msgstr "Trykk «Enter» for å sjå det neste plottet: "
 
-#: src/main/dotcode.c:104 src/main/dotcode.c:134
+#: src/main/dotcode.c:103 src/main/dotcode.c:133
 msgid "NULL value passed as symbol address"
 msgstr "NULL-verdi send som symboladresse"
 
-#: src/main/dotcode.c:139 src/main/dotcode.c:209
+#: src/main/dotcode.c:138 src/main/dotcode.c:208
 #, c-format
 msgid "symbol '%s' is too long"
 msgstr "symbolet «%s» er for langt"
 
-#: src/main/dotcode.c:157
+#: src/main/dotcode.c:156
 msgid "'name' must be a string (of length 1) or native symbol reference"
 msgstr "«name» må vera ein streng (av lengd 1) eller ein symbolreferanse"
 
-#: src/main/dotcode.c:196 src/main/dotcode.c:739
+#: src/main/dotcode.c:195 src/main/dotcode.c:801
 msgid "too many arguments in foreign function call"
 msgstr "for mange argument i eksternt funksjonskall"
 
-#: src/main/dotcode.c:238
+#: src/main/dotcode.c:237
 #, c-format
 msgid "%s symbol name \"%s\" not in DLL for package \"%s\""
 msgstr "%s symbolnamnet «%s» finst ikkje i DLL-fila for pakken «%s»"
 
-#: src/main/dotcode.c:242
+#: src/main/dotcode.c:241
 #, c-format
 msgid "%s symbol name \"%s\" not in load table"
 msgstr "%s symbolnamnet «%s» finst ikkje i lastetabellen"
 
-#: src/main/dotcode.c:290
+#: src/main/dotcode.c:289
 #, c-format
 msgid ""
 "explicit request not to duplicate arguments in call to '%s', but argument %d "
@@ -2720,129 +2720,143 @@ msgstr ""
 "direkte førespurnad om å ikkje duplisera argument i kall til «%s», men "
 "argumentet %d har feil type (%d != %d)"
 
-#: src/main/dotcode.c:321
+#: src/main/dotcode.c:320
 #, c-format
 msgid "NAs in foreign function call (arg %d)"
 msgstr "NA-verdiar i kall av ekstern funksjon (argument %d)"
 
-#: src/main/dotcode.c:334
+#: src/main/dotcode.c:333
 #, c-format
 msgid "NA/NaN/Inf in foreign function call (arg %d)"
 msgstr "NA-/NaN/Inf-verdiar i kall av ekstern funksjon (argument %d)"
 
-#: src/main/dotcode.c:351
+#: src/main/dotcode.c:350
 #, c-format
 msgid "complex NA/NaN/Inf in foreign function call (arg %d)"
 msgstr "komplekse NA-/NaN/Inf-verdiar i kall av ekstern funksjon (argument %d)"
 
-#: src/main/dotcode.c:360
+#: src/main/dotcode.c:359
 msgid "character variables must be duplicated in .C/.Fortran"
 msgstr "teiknvariablar må dupliserast i .C/.Fortran"
 
-#: src/main/dotcode.c:365
+#: src/main/dotcode.c:364
 msgid "only first string in char vector used in .Fortran"
 msgstr "berre den første strengen i ein teiknvektor vert brukt i .Fortran"
 
-#: src/main/dotcode.c:380
+#: src/main/dotcode.c:376 src/main/dotcode.c:505
+#, c-format
+msgid "unsupported encoding '%s'"
+msgstr "ikkje-støtta koding «%s»"
+
+#: src/main/dotcode.c:392
+#, c-format
+msgid "conversion problem in re-encoding to '%s'"
+msgstr "feil ved omkoding til «%s»"
+
+#: src/main/dotcode.c:408
 #, c-format
 msgid "invalid mode to pass to Fortran (arg %d)"
 msgstr "ugyldig modus å senda til Fortran (argument %d)"
 
-#: src/main/dotcode.c:382
+#: src/main/dotcode.c:410
 msgid "lists must be duplicated in .C"
 msgstr "lister må dupliserast i .C"
 
-#: src/main/dotcode.c:392 src/main/dotcode.c:406
+#: src/main/dotcode.c:420 src/main/dotcode.c:428
 #, fuzzy, c-format
 msgid "invalid mode (%s) to pass to Fortran (arg %d)"
 msgstr "ugyldig modus å senda til Fortran (argument %d)"
 
-#: src/main/dotcode.c:398
-#, fuzzy, c-format
-msgid "invalid mode (%s) to pass to C or Fortran (arg %d)"
-msgstr "ugyldig modus å senda til Fortran (argument %d)"
+#: src/main/dotcode.c:520
+#, c-format
+msgid "conversion problem in re-encoding from '%s'"
+msgstr "feil ved omkoding frå «%s»"
 
-#: src/main/dotcode.c:411
-msgid "pairlists are passed as SEXP as from R 2.15.0"
-msgstr ""
-
-#: src/main/dotcode.c:530
+#: src/main/dotcode.c:580
 msgid "NAOK used more than once"
 msgstr "NAOK brukt meir enn éin gong"
 
-#: src/main/dotcode.c:534
+#: src/main/dotcode.c:584
 msgid "DUP used more than once"
 msgstr "DUP brukt meir enn éin gong"
 
-#: src/main/dotcode.c:540
+#: src/main/dotcode.c:590
 msgid "DLL name is too long"
 msgstr "DLL-namnet er for langt"
 
-#: src/main/dotcode.c:543 src/main/dotcode.c:603 src/main/dotcode.c:609
+#: src/main/dotcode.c:593 src/main/dotcode.c:653 src/main/dotcode.c:659
 msgid "PACKAGE used more than once"
 msgstr "PACKAGE brukt meir enn éin gong"
 
-#: src/main/dotcode.c:582
+#: src/main/dotcode.c:632
 msgid "PACKAGE argument must be a single character string"
 msgstr "PACKAGE-argumentet må vera ein einskild tekststreng"
 
-#: src/main/dotcode.c:588
+#: src/main/dotcode.c:638
 msgid "PACKAGE argument is too long"
 msgstr "PACKAGE-argumentet er for langt"
 
-#: src/main/dotcode.c:649
+#: src/main/dotcode.c:682 src/main/dotcode.c:691
+msgid "ENCODING used more than once"
+msgstr "ENCODING er brukt meir enn éin gong"
+
+#: src/main/dotcode.c:684 src/main/dotcode.c:693
+msgid "ENCODING argument must be a single character string"
+msgstr "ENCODING-argumentet må vera ein einskild tekststreng"
+
+#: src/main/dotcode.c:711
 msgid "no arguments supplied"
 msgstr "ingen argument oppgjevne"
 
-#: src/main/dotcode.c:650 src/main/seq.c:642
+#: src/main/dotcode.c:712 src/main/seq.c:642
 msgid "too many arguments"
 msgstr "for mange argument"
 
-#: src/main/dotcode.c:687 src/main/dotcode.c:730 src/main/dotcode.c:1564
+#: src/main/dotcode.c:749 src/main/dotcode.c:792 src/main/dotcode.c:1615
 #, fuzzy
 msgid "'.NAME' is missing"
 msgstr "«EXPR» manglar"
 
-#: src/main/dotcode.c:703 src/main/dotcode.c:746 src/main/dotcode.c:1585
+#: src/main/dotcode.c:765 src/main/dotcode.c:808 src/main/dotcode.c:1636
 #, fuzzy, c-format
 msgid "Incorrect number of arguments (%d), expecting %d for '%s'"
 msgstr "Feil tal på argument (%d). Venta %d for %s."
 
-#: src/main/dotcode.c:1403 src/main/dotcode.c:2216
+#: src/main/dotcode.c:1465 src/main/dotcode.c:2268
 msgid "too many arguments, sorry"
 msgstr "for mange argument"
 
-#: src/main/dotcode.c:1435 src/main/dotcode.c:1452
+#: src/main/dotcode.c:1497 src/main/dotcode.c:1514
 msgid "Invalid graphics state"
 msgstr "Ugyldig grafikktilstand"
 
-#: src/main/dotcode.c:1525
+#: src/main/dotcode.c:1587
 msgid "NULL value for DLLInfoReference when looking for DLL"
 msgstr "NULL-verdi for DLLInfoReference ved opning av DLL"
 
-#: src/main/dotcode.c:1610
+#: src/main/dotcode.c:1661
 #, c-format
 msgid "Wrong type for argument %d in call to %s"
 msgstr "Feil type for argument %d i kall til %s"
 
-#: src/main/dotcode.c:2307
+#: src/main/dotcode.c:2359
 #, c-format
 msgid "type \"%s\" not supported in interlanguage calls"
 msgstr "typen «%s» er ikkje støtta i kall på tvers av språk"
 
-#: src/main/dotcode.c:2376
+#: src/main/dotcode.c:2371
 msgid "invalid function in call_R"
 msgstr "ugyldig funksjon i call_R"
 
-#: src/main/dotcode.c:2378
+#: src/main/dotcode.c:2373
 msgid "invalid argument count in call_R"
 msgstr "ugyldig argumenttal i call_R"
 
-#: src/main/dotcode.c:2380
+#: src/main/dotcode.c:2375
 msgid "invalid return value count in call_R"
 msgstr "ugyldig returverdi i call_R"
 
-#: src/main/dotcode.c:2414
+#: src/main/dotcode.c:2409
 #, c-format
 msgid "mode '%s' is not supported in call_R"
 msgstr "modusen «%s» er ikkje støtta i call_R"
@@ -4909,11 +4923,11 @@ msgstr "L-BFGS-B krev endelege verdiar av «fn»"
 msgid "trace, REPORT must be >= 0 (method = \"SANN\")"
 msgstr "trace, REPORT må vera størren enn 0 (method = \"SANN\")"
 
-#: src/main/optimize.c:53 src/main/optimize.c:138 src/main/optimize.c:392
+#: src/main/optimize.c:53 src/main/optimize.c:136 src/main/optimize.c:390
 msgid "NA replaced by maximum positive value"
 msgstr "NA bytt ut med den største positive verdien"
 
-#: src/main/optimize.c:61 src/main/optimize.c:150 src/main/optimize.c:400
+#: src/main/optimize.c:61 src/main/optimize.c:148 src/main/optimize.c:398
 msgid "NA/Inf replaced by maximum positive value"
 msgstr "NA/Inf bytte ut med den største positive verdien"
 
@@ -4921,105 +4935,105 @@ msgstr "NA/Inf bytte ut med den største positive verdien"
 msgid "invalid function value in 'optimize'"
 msgstr "ugyldig funksjonsverdi i «optimize»"
 
-#: src/main/optimize.c:88 src/main/optimize.c:180 src/main/optimize.c:593
+#: src/main/optimize.c:88 src/main/optimize.c:178 src/main/optimize.c:591
 msgid "attempt to minimize non-function"
 msgstr "prøvde å minimera ein ikkje-funksjon"
 
-#: src/main/optimize.c:104 src/main/optimize.c:194
+#: src/main/optimize.c:104 src/main/optimize.c:192
 msgid "'xmin' not less than 'xmax'"
 msgstr "«xmin» er ikkje mindre enn «xmax»"
 
-#: src/main/optimize.c:147
+#: src/main/optimize.c:145
 #, fuzzy
 msgid "-Inf replaced by maximally negative value"
 msgstr "NA/Inf bytte ut med den største positive verdien"
 
-#: src/main/optimize.c:160
+#: src/main/optimize.c:158
 msgid "invalid function value in 'zeroin'"
 msgstr "ugyldig funksjonsverdi i «zeroin»"
 
-#: src/main/optimize.c:207
+#: src/main/optimize.c:205
 msgid "'maxiter' must be positive"
 msgstr "«maxiter» må vera positiv"
 
-#: src/main/optimize.c:235 src/main/optimize.c:241
+#: src/main/optimize.c:233 src/main/optimize.c:239
 #, c-format
 msgid "NA value for '%s' is not allowed"
 msgstr "kan ikkje ha NA-verdi for «%s»"
 
-#: src/main/optimize.c:384
+#: src/main/optimize.c:382
 msgid "non-finite value supplied by 'nlm'"
 msgstr "ikkje-endeleg verdi gjeven til «nlm»"
 
-#: src/main/optimize.c:419
+#: src/main/optimize.c:417
 msgid "invalid function value in 'nlm' optimizer"
 msgstr "ugyldig funksjonsverdi i «nlm»-optimisator"
 
-#: src/main/optimize.c:430 src/main/optimize.c:445
+#: src/main/optimize.c:428 src/main/optimize.c:443
 msgid "function value caching for optimization is seriously confused"
 msgstr "funksjonsverdi-caching for optimering er veldig forvirra"
 
-#: src/main/optimize.c:460
+#: src/main/optimize.c:458
 msgid "numeric parameter expected"
 msgstr "venta numerisk parameter"
 
-#: src/main/optimize.c:464
+#: src/main/optimize.c:462
 msgid "conflicting parameter lengths"
 msgstr "parameterverdiar i konflikt"
 
-#: src/main/optimize.c:468
+#: src/main/optimize.c:466
 msgid "invalid parameter length"
 msgstr "ugyldig parameterlengd"
 
-#: src/main/optimize.c:478 src/main/optimize.c:485
+#: src/main/optimize.c:476 src/main/optimize.c:483
 msgid "missing value in parameter"
 msgstr "manglar verdi i parameter"
 
-#: src/main/optimize.c:490
+#: src/main/optimize.c:488
 msgid "invalid parameter type"
 msgstr "ugyldig parametertype"
 
-#: src/main/optimize.c:498
+#: src/main/optimize.c:496
 msgid "invalid NA value in parameter"
 msgstr "ugyldig NA-verdi i parameter"
 
-#: src/main/optimize.c:508
+#: src/main/optimize.c:506
 msgid "non-positive number of parameters in nlm"
 msgstr "ikkje-positivt tal på parametrar i nlm"
 
-#: src/main/optimize.c:510
+#: src/main/optimize.c:508
 msgid "nlm is inefficient for 1-d problems"
 msgstr "nlm er ikkje effektiv for 1D-problem"
 
-#: src/main/optimize.c:512
+#: src/main/optimize.c:510
 msgid "invalid gradient tolerance in nlm"
 msgstr "ugyldig gradienttoleranse i nlm"
 
-#: src/main/optimize.c:514
+#: src/main/optimize.c:512
 msgid "invalid iteration limit in nlm"
 msgstr "ugyldig iterasjonsgrense i nlm"
 
-#: src/main/optimize.c:516
+#: src/main/optimize.c:514
 msgid "minimization function has no good digits in nlm"
 msgstr "minimeringsfunksjonen har ingen gyldige siffer i nlm"
 
-#: src/main/optimize.c:518
+#: src/main/optimize.c:516
 msgid "no analytic gradient to check in nlm!"
 msgstr "ingen analytisk gradient å sjekka i nlm"
 
-#: src/main/optimize.c:520
+#: src/main/optimize.c:518
 msgid "no analytic Hessian to check in nlm!"
 msgstr "inga analytisk Hess-matrise å sjekka i nlm"
 
-#: src/main/optimize.c:522
+#: src/main/optimize.c:520
 msgid "probable coding error in analytic gradient"
 msgstr "truleg kodefeil i den analytiske gradienten"
 
-#: src/main/optimize.c:524
+#: src/main/optimize.c:522
 msgid "probable coding error in analytic Hessian"
 msgstr "truleg kodefeil i den analytiske Hess-matrisa"
 
-#: src/main/optimize.c:526
+#: src/main/optimize.c:524
 #, c-format
 msgid ""
 "*** unknown error message (msg = %d) in nlm()\n"
@@ -5028,23 +5042,23 @@ msgstr ""
 "*** Ukjend feilmelding (msg = %d) i nlm().\n"
 "*** Skal ikkje kunna skje!"
 
-#: src/main/optimize.c:537
+#: src/main/optimize.c:535
 msgid "Relative gradient close to zero.\n"
 msgstr "Relativ gradient nær null.\n"
 
-#: src/main/optimize.c:538 src/main/optimize.c:542
+#: src/main/optimize.c:536 src/main/optimize.c:540
 msgid "Current iterate is probably solution.\n"
 msgstr "Gjeldande iterasjon er truleg ei løysing.\n"
 
-#: src/main/optimize.c:541
+#: src/main/optimize.c:539
 msgid "Successive iterates within tolerance.\n"
 msgstr "Etterfølgjande iterasjonar innan toleransenivå.\n"
 
-#: src/main/optimize.c:545
+#: src/main/optimize.c:543
 msgid "Last global step failed to locate a point lower than x.\n"
 msgstr "Det siste globale steg klarte ikkje finna eit punkt lågare enn x.\n"
 
-#: src/main/optimize.c:546
+#: src/main/optimize.c:544
 msgid ""
 "Either x is an approximate local minimum of the function,\n"
 "the function is too non-linear for this algorithm,\n"
@@ -5054,11 +5068,11 @@ msgstr ""
 "eller så er funksjonen for ikkje-lineær for denne\n"
 "algoritmen, eller så er «steptol» for stor.\n"
 
-#: src/main/optimize.c:551
+#: src/main/optimize.c:549
 msgid "Iteration limit exceeded.  Algorithm failed.\n"
 msgstr "Nådde iterasjonsgrensa. Algoritmen var mislukka.\n"
 
-#: src/main/optimize.c:554
+#: src/main/optimize.c:552
 msgid ""
 "Maximum step size exceeded 5 consecutive times.\n"
 "Either the function is unbounded below,\n"
@@ -5071,12 +5085,12 @@ msgstr ""
 "han vert asymptotisk ein endeleg verdi ovanfrå\n"
 "i éin retning, eller så er «stepmx» for liten.\n"
 
-#: src/main/optimize.c:673
+#: src/main/optimize.c:671
 msgid "hessian supplied is of the wrong length or mode, so ignored"
 msgstr ""
 "den oppgjevne Hess-matrisa har feil lengd eller modus (og vert ikkje brukt)"
 
-#: src/main/optimize.c:677
+#: src/main/optimize.c:675
 msgid "gradient supplied is of the wrong length or mode, so ignored"
 msgstr ""
 "den oppgjevne gradienten har feil lengd eller modus (og vert ikkje brukt)"
@@ -8301,21 +8315,6 @@ msgstr "X11-modulen kan ikkje lastast"
 #: src/unix/X11.c:177 src/unix/X11.c:183 src/unix/X11.c:189
 msgid "X11 is not available"
 msgstr "X11 er ikkje tilgjengeleg"
-
-#~ msgid "unsupported encoding '%s'"
-#~ msgstr "ikkje-støtta koding «%s»"
-
-#~ msgid "conversion problem in re-encoding to '%s'"
-#~ msgstr "feil ved omkoding til «%s»"
-
-#~ msgid "conversion problem in re-encoding from '%s'"
-#~ msgstr "feil ved omkoding frå «%s»"
-
-#~ msgid "ENCODING used more than once"
-#~ msgstr "ENCODING er brukt meir enn éin gong"
-
-#~ msgid "ENCODING argument must be a single character string"
-#~ msgstr "ENCODING-argumentet må vera ein einskild tekststreng"
 
 #~ msgid "this version of R cannot write byte code objects"
 #~ msgstr "denne versjonen av R kan ikkje skriva bytekode-objekt"
