@@ -43,7 +43,8 @@ TukeyHSD.aov <-
         tabs <- tabs[!nn_na]
         nn <- nn[!nn_na]
     }
-    out <- setNames(vector("list", length(tabs)), names(tabs))
+    out <- vector("list", length(tabs))
+    names(out) <- names(tabs)
     MSE <- sum(resid(x)^2)/x$df.residual
     for (nm in names(tabs)) {
         tab <- tabs[[nm]]

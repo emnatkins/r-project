@@ -24,5 +24,7 @@ r2dtable <- function(n, r, c)
 	stop("invalid argument 'c'")
     if(sum(r) != sum(c))
 	stop("arguments 'r' and 'c' must have the same sums")
-    .Call(C_r2dtable, as.integer(n), as.integer(r), as.integer(c))
+    .Call("R_r2dtable",
+	  as.integer(n), as.integer(r), as.integer(c),
+          PACKAGE = "base")
 }

@@ -26,9 +26,6 @@
 ## As from 2.5.0 c(NA, n > 0) indicates deliberately assigned row names,
 ## and c(NA, n < 0) automatic row names.
 
-## We cannot allow long vectors as elements until we can handle
-## duplication of row names.
-
 .row_names_info <- function(x, type = 1L)
     .Call("R_shortRowNames", x, type, PACKAGE = "base")
 
@@ -55,7 +52,7 @@ row.names.default <- function(x) if(!is.null(dim(x))) rownames(x)# else NULL
     if(n == 0L) {
         ## we have to be careful here.  This could be a
         ## 0-row data frame or an invalid one being constructed.
-        if(!is.null(attr(x, "row.names")) && xlength(value) > 0L)
+        if(!is.null(attr(x, "row.names")) && length(value) > 0L)
            stop("invalid 'row.names' length")
     }
     else if (length(value) != n)
@@ -698,23 +695,7 @@ data.frame <-
             if(is.null(value)) return(x[logical()])
         } else { # case df[ind]
             ## really ambiguous, but follow common use as if list
-            ## except for two column numeric matrix or full-sized logical matrix
-            if(is.numeric(i) && is.matrix(i) && ncol(i) == 2) {
-                # Rewrite i as a logical index
-                index <- rep(FALSE, prod(dim(x)))
-                dim(index) <- dim(x)
-                tryCatch(index[i] <- TRUE, 
-                         error = function(e) stop(conditionMessage(e), call.=FALSE))
-                # Put values in the right order
-                o <- order(i[,2], i[,1])
-                N <- length(value)
-                if (length(o) %% N != 0L)
-                    warning("number of items to replace is not a multiple of replacement length")
-                if (N < length(o))
-                    value <- rep(value, length.out=length(o))
-                value <- value[o]    
-                i <- index
-            }
+            ## except for a full-sized logical matrix
             if(is.logical(i) && is.matrix(i) && all(dim(i) == dim(x))) {
                 nreplace <- sum(i, na.rm=TRUE)
                 if(!nreplace) return(x) # nothing to replace
@@ -723,7 +704,7 @@ data.frame <-
                 if(N > 1L && N < nreplace && (nreplace %% N) == 0L)
                     value <- rep(value, length.out = nreplace)
                 if(N > 1L && (length(value) != nreplace))
-                    stop("rhs is the wrong length")
+                    stop("rhs is the wrong length for indexing by a logical matrix")
                 n <- 0L
                 nv <- nrow(x)
                 for(v in seq_len(dim(i)[2L])) {
@@ -740,7 +721,7 @@ data.frame <-
                 return(x)
             }  # end of logical matrix
             if(is.matrix(i))
-                stop("illegal matrix index in replacement")
+                stop("only logical matrix subscripts are allowed in replacement")
             j <- i
             i <- NULL
             has.i <- FALSE

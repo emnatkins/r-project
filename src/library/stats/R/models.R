@@ -185,8 +185,6 @@ drop.terms <- function(termobj, dropx = NULL, keep.response = FALSE)
 }
 
 
-## Arguments abb and neg.out are a legacy from S
-## simplify=TRUE was the default in R < 1.7.0
 terms.formula <- function(x, specials = NULL, abb = NULL, data = NULL,
 			  neg.out = TRUE, keep.order = FALSE,
                           simplify = FALSE, ..., allowDotAsName = FALSE)
@@ -199,7 +197,7 @@ terms.formula <- function(x, specials = NULL, abb = NULL, data = NULL,
         if(length(ind)) tmp[ind] <- paste("(", tmp[ind], ")")
         ## need to add back any offsets
         if(length(ind <- attr(Terms, "offset"))) {
-            ## can't look at rownames of factors, as not there for y ~ offset(x)
+            ## can't look at rownames of factors, as not there y ~ offset(x)
             tmp2 <- as.character(attr(Terms, "variables"))[-1L]
             tmp <- c(tmp, tmp2[ind])
         }
@@ -213,9 +211,9 @@ terms.formula <- function(x, specials = NULL, abb = NULL, data = NULL,
     }
 
     if (!is.null(data) && !is.environment(data) && !is.data.frame(data))
-	data <- as.data.frame(data, optional = TRUE)
-    terms <-
-        .External(C_termsform, x, specials, data, keep.order, allowDotAsName)
+	data <- as.data.frame(data, optional=TRUE)
+    terms <- .Internal(terms.formula(x, specials, data, keep.order,
+                                     allowDotAsName))
     if (simplify) {
         a <- attributes(terms)
         terms <- fixFormulaObject(terms)
@@ -278,7 +276,7 @@ offset <- function(object) object
 .checkMFClasses <- function(cl, m, ordNotOK = FALSE)
 {
     ## when called from predict.nls, vars not match.
-    new <- vapply(m, .MFclass, "")
+    new <- sapply(m, .MFclass)
     new <- new[names(new) %in% names(cl)]
      if(length(new) == 0L) return()
     old <- cl[names(new)]
@@ -410,8 +408,8 @@ model.frame.default <-
     extranames <- names(extras[-1L])
     extras <- eval(extras, data, env)
     subset <- eval(substitute(subset), data, env)
-    data <- .External2(C_modelframe, formula, rownames, variables, varnames,
-                       extras, extranames, subset, na.action)
+    data <- .Internal(model.frame(formula, rownames, variables, varnames,
+				  extras, extranames, subset, na.action))
     ## fix up the levels
     if(length(xlev)) {
 	for(nm in names(xlev))
@@ -443,7 +441,7 @@ model.frame.default <-
 		data[[nm]] <- data[[nm]][, drop = TRUE]
 	}
     }
-    attr(formula, "dataClasses") <- vapply(data, .MFclass, "")
+    attr(formula, "dataClasses") <- sapply(data, .MFclass)
     attr(data, "terms") <- formula
     data
 }
@@ -494,9 +492,9 @@ model.matrix.default <- function(object, data = environment(object),
                 warning(gettextf("variable '%s' converted to a factor", i),
                         domain = NA)
             }
-        isF <- vapply(data, function(x) is.factor(x) || is.logical(x), NA)
+        isF <- sapply(data, function(x) is.factor(x) || is.logical(x) )
         isF[int] <- FALSE
-        isOF <- vapply(data, is.ordered, NA)
+        isOF <- sapply(data, is.ordered)
         for(nn in namD[isF])            # drop response
             if(is.null(attr(data[[nn]], "contrasts")))
                 contrasts(data[[nn]]) <- contr.funs[1 + isOF[nn]]
@@ -520,9 +518,10 @@ model.matrix.default <- function(object, data = environment(object),
         isF <-  FALSE
         data <- list(x=rep(0, nrow(data)))
     }
-    ans <- .External2(C_modelmatrix, t, data)
+    ans <- .Internal(model.matrix(t, data))
     cons <- if(any(isF))
-	lapply(data[isF], attr, "contrasts") ## else NULL
+	lapply(data[isF], function(x) attr(x,  "contrasts"))
+    else NULL
     attr(ans, "contrasts") <- cons
     ans
 }
@@ -566,7 +565,7 @@ model.extract <- function (frame, component)
 	    dimnames(rval) <- list(attr(frame, "row.names"), t1[[2L]])
 	}
     }
-    rval
+    return(rval)
 }
 
 preplot <- function(object, ...) UseMethod("preplot")
@@ -594,7 +593,7 @@ makepredictcall.default  <- function(var, call)
     if((yvar <- attr(Terms, "response")) > 0) xvars <- xvars[-yvar]
     if(length(xvars)) {
         xlev <- lapply(m[xvars], function(x) if(is.factor(x)) levels(x) else NULL)
-        xlev[!vapply(xlev, is.null, NA)]
+        xlev[!sapply(xlev, is.null)]
     } else NULL
 }
 
@@ -635,8 +634,8 @@ get_all_vars <- function(formula, data = NULL, ...)
     extras <- substitute(list(...))
     extranames <- names(extras[-1L])
     extras <- eval(extras, data, env)
-    x <- setNames(as.data.frame(c(variables, extras), optional=TRUE),
-		  c(varnames, extranames))
+    x <- as.data.frame(c(variables, extras), optional=TRUE)
+    names(x) <- c(varnames, extranames)
     if (!is.null(rownames))
 	attr(x, "row.names") <- rownames # might be short form
     x

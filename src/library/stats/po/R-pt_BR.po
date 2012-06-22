@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-05-21 13:03\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: 2011-03-26 08:57-0300\n"
 "Last-Translator: Fernando Henrique <pessoal@fernandohrosa.com.br>\n"
 "Language-Team: http://www.feferraz.net/br/P/Projeto_Traducao_R_Portugues\n"
@@ -705,9 +705,6 @@ msgstr "argumento 'x ' deve ser numérico"
 msgid "'x' contains missing values"
 msgstr "'x' contém valores ausentes"
 
-msgid "invalid value of length(x)"
-msgstr ""
-
 msgid "'x' and 'weights' have unequal length"
 msgstr "'x' e 'weights'  têm comprimento desigual"
 
@@ -1311,6 +1308,9 @@ msgid ""
 msgstr ""
 "y numérico deve ser fornecido.\n"
 "Para estimar a densidade use density()"
+
+msgid "invalid value of length(x)"
+msgstr ""
 
 msgid "'k' is not an integer"
 msgstr "'k' não é inteiro"
@@ -1944,6 +1944,9 @@ msgstr ""
 msgid "'newdata' does not have the correct number of columns"
 msgstr ""
 
+msgid "wrong number of predictors"
+msgstr ""
+
 msgid "both 'x' and 'covmat' were supplied: 'x' will be ignored"
 msgstr ""
 
@@ -2117,10 +2120,6 @@ msgstr ""
 #, fuzzy
 msgid "missing or infinite values in inputs are not allowed"
 msgstr "pesos faltando ou negativos não são permitidos"
-
-#, fuzzy
-msgid "invalid number of points"
-msgstr "argumento 'omit' inválido"
 
 #, fuzzy
 msgid "lengths of 'x' and 'w' must match"
@@ -2513,10 +2512,6 @@ msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] ""
 msgstr[1] ""
-
-#, fuzzy
-#~ msgid "invalid value oflength(x)"
-#~ msgstr "método de agrupamento inválido"
 
 #~ msgid "extra arguments"
 #~ msgstr "argumentos adicionais"

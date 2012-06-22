@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.1.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-06-07 15:27\n"
+"POT-Creation-Date: 2012-05-21 13:00\n"
 "PO-Revision-Date: 2012-02-26 14:23+0200 \n"
 "Last-Translator: Shigeru Mase <maseshigeru@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -67,10 +67,6 @@ msgid "Warning: unknown option"
 msgstr " 警告：　未知のオプション "
 
 msgid "Created PDF document"
-msgstr "PDF 文章を作成 "
-
-#, fuzzy
-msgid "Compacting PDF document"
 msgstr "PDF 文章を作成 "
 
 msgid "path to %s contains spaces,"
@@ -755,23 +751,11 @@ msgstr ""
 "れていません \n"
 " もし RPM からインストールされたのなら R-devel RPM が必要でしょう "
 
-msgid "system (cmd0):"
-msgstr ""
-
 msgid "installation of package %s had non-zero exit status"
 msgstr " パッケージ '%s' のインストールは、ゼロでない終了値をもちました "
 
-msgid "%d): succeeded '%s'"
-msgstr ""
-
 msgid "unable to create temporary directory %s"
 msgstr " 一時的ディレクトリ '%s' を作ることが出来ません "
-
-msgid "foundpkgs:"
-msgstr ""
-
-msgid "files:"
-msgstr ""
 
 msgid ""
 "installation of one of more packages failed,\n"
@@ -989,12 +973,11 @@ msgstr " 不正な options('str') -- 代わりに既定値を使います "
 msgid "invalid components in options('str'):"
 msgstr " options('str')の中に不正な要素があります "
 
-#, fuzzy
-msgid "'str.default': 'le' is NA, so taken as 0"
-msgstr " 'str.default': 'le' が NA です "
-
 msgid "'object' does not have valid levels()"
 msgstr " 'object' は有効な levels() を持ちません "
+
+msgid "'str.default': 'le' is NA"
+msgstr " 'str.default': 'le' が NA です "
 
 msgid "'digits' and 'digits.d' are both specified and the latter is not used"
 msgstr ""

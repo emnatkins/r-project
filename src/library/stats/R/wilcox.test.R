@@ -68,7 +68,8 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
         if(is.null(exact))
             exact <- (n < 50)
         r <- rank(abs(x))
-        STATISTIC <- setNames(sum(r[x > 0]), "V")
+        STATISTIC <- sum(r[x > 0])
+        names(STATISTIC) <- "V"
         TIES <- length(r) != length(unique(r))
 
         if(exact && !TIES && !ZEROES) {
@@ -117,7 +118,8 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                     conf.level<- 1 - signif(achieved.alpha, 2)
                 }
                 attr(cint, "conf.level") <- conf.level
-		ESTIMATE <- c("(pseudo)median" = median(diffs))
+                ESTIMATE <- median(diffs)
+                names(ESTIMATE) <- "(pseudo)median"
             }
         } else { ## not exact, maybe ties or zeroes
             NTIES <- table(r)
@@ -223,9 +225,9 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                 })
                 attr(cint, "conf.level") <- conf.level
 		correct <- FALSE # no continuity correction for estimate
-		ESTIMATE <- c("(pseudo)median" =
-			      uniroot(wdiff, c(mumin, mumax), tol=1e-4,
-				      zq = 0)$root)
+                ESTIMATE <- uniroot(wdiff, c(mumin, mumax), tol=1e-4,
+                                    zq = 0)$root
+		names(ESTIMATE) <- "(pseudo)median"
             }
 
             if(exact && TIES) {
@@ -249,7 +251,8 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
         n.y <- as.double(length(y))
         if(is.null(exact))
             exact <- (n.x < 50) && (n.y < 50)
-        STATISTIC <- c("W" = sum(r[seq_along(x)]) - n.x * (n.x + 1) / 2)
+        STATISTIC <- sum(r[seq_along(x)]) - n.x * (n.x + 1) / 2
+        names(STATISTIC) <- "W"
         TIES <- (length(r) != length(unique(r)))
         if(exact && !TIES) {
             PVAL <-
@@ -298,7 +301,8 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                     conf.level <- 1 - achieved.alpha
                 }
                 attr(cint, "conf.level") <- conf.level
-                ESTIMATE <- c("difference in location" = median(diffs))
+                ESTIMATE <- median(diffs)
+                names(ESTIMATE) <- "difference in location"
             }
         }
         else {
@@ -375,9 +379,9 @@ function(x, y = NULL, alternative = c("two.sided", "less", "greater"),
                 })
                 attr(cint, "conf.level") <- conf.level
 		correct <- FALSE # no continuity correction for estimate
-		ESTIMATE <- c("difference in location" =
-			      uniroot(wdiff, c(mumin, mumax), tol=1e-4,
-				      zq=0)$root)
+                ESTIMATE <- uniroot(wdiff, c(mumin, mumax), tol=1e-4,
+                                    zq=0)$root
+                names(ESTIMATE) <- "difference in location"
             }
 
             if(exact && TIES) {
@@ -423,8 +427,8 @@ function(formula, data, subset, na.action, ...)
     g <- factor(mf[[-response]])
     if(nlevels(g) != 2L)
         stop("grouping factor must have exactly 2 levels")
-    DATA <- setNames(split(mf[[response]], g),
-		     c("x", "y"))
+    DATA <- split(mf[[response]], g)
+    names(DATA) <- c("x", "y")
     y <- do.call("wilcox.test", c(DATA, list(...)))
     y$data.name <- DNAME
     y

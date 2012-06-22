@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-06-07 15:27\n"
+"POT-Creation-Date: 2012-05-21 13:00\n"
 "PO-Revision-Date: 2011-03-26 08:57-0300\n"
 "Last-Translator: Fernando Henrique <pessoal@fernandohrosa.com.br>\n"
 "Language-Team: http://www.feferraz.net/br/P/Projeto_Traducao_R_Portugues\n"
@@ -72,9 +72,6 @@ msgid "Warning: unknown option"
 msgstr ""
 
 msgid "Created PDF document"
-msgstr ""
-
-msgid "Compacting PDF document"
 msgstr ""
 
 msgid "path to %s contains spaces,"
@@ -711,22 +708,10 @@ msgid ""
 "If it was installed from an RPM, you may need the R-devel RPM"
 msgstr ""
 
-msgid "system (cmd0):"
-msgstr ""
-
 msgid "installation of package %s had non-zero exit status"
 msgstr ""
 
-msgid "%d): succeeded '%s'"
-msgstr ""
-
 msgid "unable to create temporary directory %s"
-msgstr ""
-
-msgid "foundpkgs:"
-msgstr ""
-
-msgid "files:"
 msgstr ""
 
 msgid ""
@@ -923,10 +908,10 @@ msgstr ""
 msgid "invalid components in options('str'):"
 msgstr ""
 
-msgid "'str.default': 'le' is NA, so taken as 0"
+msgid "'object' does not have valid levels()"
 msgstr ""
 
-msgid "'object' does not have valid levels()"
+msgid "'str.default': 'le' is NA"
 msgstr ""
 
 msgid "'digits' and 'digits.d' are both specified and the latter is not used"

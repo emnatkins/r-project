@@ -31,10 +31,10 @@
 
 #include <Rmath.h>
 
-#ifdef SUPPORT_CONVERTERS
-#include <R_ext/RConverters.h>
-#endif
+#include <R_ext/GraphicsEngine.h> /* needed for GEDevDesc in do_Externalgr */
 
+#include <R_ext/RConverters.h>
+#include <R_ext/Riconv.h>
 
 #ifndef max
 #define max(a, b) ((a > b)?(a):(b))
@@ -209,7 +209,7 @@ resolveNativeRoutine(SEXP args, DL_FUNC *fun,
 	    error(_("symbol '%s' is too long"), p);
 	q = buf;
 	while ((*q = *p) != '\0') {
-	    if(symbol->type == R_FORTRAN_SYM) *q = (char) tolower(*q);
+	    if(symbol->type == R_FORTRAN_SYM) *q = tolower(*q);
 	    p++;
 	    q++;
 	}
@@ -384,21 +384,33 @@ static SEXP pkgtrim(SEXP args, DllReference *dll)
     return args;
 }
 
-static SEXP enctrim(SEXP args)
+static SEXP enctrim(SEXP args, char *name, int len)
 {
-    SEXP s, ss;
+    SEXP s, ss, sx;
+    int pkgused = 0;
 
+    strcpy(name, "");
     for(s = args ; s != R_NilValue;) {
 	ss = CDR(s);
 	/* Look for ENCODING=. We look at the next arg, unless
 	   this is the last one (which will only happen for one arg),
 	   and remove it */
 	if(ss == R_NilValue && TAG(s) == EncSymbol) {
-	    warning("ENCODING is defunct and will be ignored");
+	    sx = CAR(s);
+	    if(pkgused++ == 1) warning(_("ENCODING used more than once"));
+	    if(TYPEOF(sx) != STRSXP || length(sx) != 1)
+		error(_("ENCODING argument must be a single character string"));
+	    strncpy(name, translateChar(STRING_ELT(sx, 0)), len);
+	    warning("ENCODING is deprecated");
 	    return R_NilValue;
 	}
 	if(TAG(ss) == EncSymbol) {
-	    warning("ENCODING is defunct and will be ignored");
+	    sx = CAR(ss);
+	    if(pkgused++ == 1) warning(_("ENCODING used more than once"));
+	    if(TYPEOF(sx) != STRSXP || length(sx) != 1)
+		error(_("ENCODING argument must be a single character string"));
+	    strncpy(name, translateChar(STRING_ELT(sx, 0)), len);
+	    warning("ENCODING is deprecated");
 	    SETCDR(s, CDR(ss));
 	}
 	s = CDR(s);
@@ -442,11 +454,11 @@ SEXP attribute_hidden do_isloaded(SEXP call, SEXP op, SEXP args, SEXP env)
      Original code by Jean Meloche <jean@stat.ubc.ca> */
 
 typedef SEXP (*R_ExternalRoutine)(SEXP);
-typedef SEXP (*R_ExternalRoutine2)(SEXP, SEXP, SEXP, SEXP);
 
 SEXP attribute_hidden do_External(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     DL_FUNC ofun = NULL;
+    R_ExternalRoutine fun = NULL;
     SEXP retval;
     R_RegisteredNativeSymbol symbol = {R_EXTERNAL_SYM, {NULL}, NULL};
     const void *vmax = vmaxget();
@@ -456,14 +468,24 @@ SEXP attribute_hidden do_External(SEXP call, SEXP op, SEXP args, SEXP env)
     check1arg(args, call, "name");
     args = resolveNativeRoutine(args, &ofun, &symbol, buf, NULL, NULL,
 				NULL, call);
+    fun = (R_ExternalRoutine) ofun;
 
-    if (PRIMVAL(op) == 1) {
-	R_ExternalRoutine2 fun = (R_ExternalRoutine2) ofun;
-	retval = fun(call, op, args, env);
-    } else {
-	R_ExternalRoutine fun = (R_ExternalRoutine) ofun;
-	retval = fun(args);
+    /* Some external symbols that are registered may have 0 as the
+       expected number of arguments.  We may want a warning
+       here. However, the number of values may vary across calls and
+       that is why people use the .External() mechanism.  So perhaps
+       we should just kill this check.
+    */
+#ifdef CHECK_EXTERNAL_ARG_COUNT         /* Off by default. */
+    if(symbol.symbol.external && symbol.symbol.external->numArgs > -1) {
+	if(symbol.symbol.external->numArgs != length(args))
+	    errorcall(call,
+		      _("Incorrect number of arguments (%d), expecting %d for '%s'"),
+		      length(args), symbol.symbol.external->numArgs, buf);
     }
+#endif
+
+    retval = (SEXP)fun(args);
     vmaxset(vmax);
     return retval;
 }
@@ -1165,7 +1187,7 @@ SEXP attribute_hidden do_dotcall(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 
 /*  Call dynamically loaded "internal" graphics functions
-    .External.graphics (used in graphics) and  .Call.graphics (used in grid).
+    .External.graphics (unused) and  .Call.graphics (used in grid).
 
     If there is an error or user-interrupt in the above
     evaluation, dd->recordGraphics is set to TRUE
@@ -1179,8 +1201,6 @@ SEXP attribute_hidden do_dotcall(SEXP call, SEXP op, SEXP args, SEXP env)
     while in the ROOT viewport) which will reset dd->recordGraphics
     to TRUE as per the comment above.
 */
-
-#include <R_ext/GraphicsEngine.h>
 
 SEXP attribute_hidden do_Externalgr(SEXP call, SEXP op, SEXP args, SEXP env)
 {
@@ -1305,15 +1325,14 @@ R_FindNativeSymbolFromDLL(char *name, DllReference *dll,
    RecordLinkage and locfit pass lists.
 */
 
-/* pattern and number of guard bytes */
-#define FILL 0xee
-#define NG 64
+/* Will be defunct in 2.16.0 */
+#define SUPPORT_CONVERTERS 1
 
 SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    void **cargs, **cargs0 = NULL /* -Wall */;
+    void **cargs;
     int dup, naok, na, nargs, Fort;
-    Rboolean havenames, copy = R_CBoundsCheck; /* options(CboundsCheck) */
+    Rboolean havenames;
     DL_FUNC ofun = NULL;
     VarFun fun = NULL;
     SEXP ans, pa, s;
@@ -1325,7 +1344,7 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
     R_NativePrimitiveArgType *checkTypes = NULL;
     R_NativeArgStyle *argStyles = NULL;
     void *vmax;
-    char symName[MaxSymbolBytes];
+    char symName[MaxSymbolBytes], encname[101];
 
     if (length(args) < 1) errorcall(call, _("'.NAME' is missing"));
     check1arg(args, call, "name");
@@ -1340,7 +1359,7 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
     Fort = PRIMVAL(op);
     if(Fort) symbol.type = R_FORTRAN_SYM;
 
-    args = enctrim(args);
+    args = enctrim(args, encname, 100);
     args = resolveNativeRoutine(args, &ofun, &symbol, symName, &nargs,
 				&naok, &dup, call);
     fun = (VarFun) ofun;
@@ -1379,7 +1398,6 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 
     /* Convert the arguments for use in foreign function calls. */
     cargs = (void**) R_alloc(nargs, sizeof(void*));
-    if (copy) cargs0 = (void**) R_alloc(nargs, sizeof(void*));
     for(na = 0, pa = args ; pa != R_NilValue; pa = CDR(pa), na++) {
 	if(checkTypes &&
 	   !comparePrimitiveTypes(checkTypes[na], CAR(pa), dup)) {
@@ -1391,8 +1409,8 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 	    errorcall(call, _("Wrong type for argument %d in call to %s"),
 		      na+1, symName);
 	}
-	int nprotect = 0, targetType =  checkTypes ? checkTypes[na] : 0;
-	R_xlen_t n;
+	int n, nprotect = 0,
+	    targetType =  checkTypes ? checkTypes[na] : 0;
 	s = CAR(pa);
 	/* start with return value a copy of the inputs, as that is
 	   what is needed for DUP = FALSE and for non-atomic-vector inputs */
@@ -1447,15 +1465,8 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 	SEXPTYPE t = TYPEOF(s);
 	switch(t) {
 	case RAWSXP:
-	    if (copy && dup) {
-		n = XLENGTH(s);
-		char *ptr = R_alloc(n * sizeof(Rbyte) + 2 * NG, 1);
-		memset(ptr, FILL, n * sizeof(Rbyte) + 2 * NG);
-		ptr += NG;
-		memcpy(ptr, RAW(s), n);
-		cargs[na] = (void *) ptr;
-	    } else if (dup && NAMED(s)) {
-		n = XLENGTH(s);
+	    if (dup && NAMED(s)) {
+		n = LENGTH(s);
 		SEXP ss = allocVector(t, n);
 		memcpy(RAW(ss), RAW(s), n * sizeof(Rbyte));
 		SET_VECTOR_ELT(ans, na, ss);
@@ -1467,19 +1478,13 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 	    break;
 	case LGLSXP:
 	case INTSXP:
-	    n = XLENGTH(s);
+	    n = LENGTH(s);
 	    int *iptr = INTEGER(s);
 	    if (!naok)
-		for (R_xlen_t i = 0 ; i < n ; i++)
+		for (int i = 0 ; i < n ; i++)
 		    if(iptr[i] == NA_INTEGER)
 			error(_("NAs in foreign function call (arg %d)"), na + 1);
-	    if (copy && dup) {
-		char *ptr = R_alloc(n * sizeof(int) + 2 * NG, 1);
-		memset(ptr, FILL, n * sizeof(int) + 2 * NG);
-		ptr += NG;
-		memcpy(ptr, INTEGER(s), n * sizeof(int));
-		cargs[na] = (void*) ptr;
-	    } else if (dup && NAMED(s)) {
+	    if (dup && NAMED(s)) {
 		SEXP ss = allocVector(t, n);
 		memcpy(INTEGER(ss), INTEGER(s), n * sizeof(int));
 		SET_VECTOR_ELT(ans, na, ss);
@@ -1490,25 +1495,19 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 	    } else cargs[na] = (void*) iptr;
 	    break;
 	case REALSXP:
-	    n = XLENGTH(s);
+	    n = LENGTH(s);
 	    double *rptr = REAL(s);
 	    if (!naok)
-		for (R_xlen_t i = 0 ; i < n ; i++)
+		for (int i = 0 ; i < n ; i++)
 		    if(!R_FINITE(rptr[i]))
 			error(_("NA/NaN/Inf in foreign function call (arg %d)"), na + 1);
 	    if (asLogical(getAttrib(s, CSingSymbol)) == 1) {
 		float *sptr = (float*) R_alloc(n, sizeof(float));
-		for (R_xlen_t i = 0 ; i < n ; i++) sptr[i] = (float) REAL(s)[i];
+		for (int i = 0 ; i < n ; i++) sptr[i] = (float) REAL(s)[i];
 		cargs[na] = (void*) sptr;
 #ifdef R_MEMORY_PROFILING
 		if (RTRACE(s)) memtrace_report(s, sptr);
 #endif
-	    } else if (copy && dup) {
-		char *ptr = R_alloc(n * sizeof(double) + 2 * NG, 1);
-		memset(ptr, FILL, n * sizeof(double) + 2 * NG);
-		ptr += NG;
-		memcpy(ptr, REAL(s), n * sizeof(double));
-		cargs[na] = (void*) ptr;
 	    } else if (dup && NAMED(s)) {
 		SEXP ss  = allocVector(t, n);
 		memcpy(REAL(ss), REAL(s), n * sizeof(double));
@@ -1520,19 +1519,13 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 	    } else cargs[na] = (void*) rptr;
 	    break;
 	case CPLXSXP:
-	    n = XLENGTH(s);
+	    n = LENGTH(s);
 	    Rcomplex *zptr = COMPLEX(s);
 	    if (!naok)
-		for (R_xlen_t i = 0 ; i < n ; i++)
+		for (int i = 0 ; i < n ; i++)
 		    if(!R_FINITE(zptr[i].r) || !R_FINITE(zptr[i].i))
 			error(_("complex NA/NaN/Inf in foreign function call (arg %d)"), na + 1);
-	    if (copy && dup) {
-		char *ptr = R_alloc(n * sizeof(Rcomplex) + 2 * NG, 1);
-		memset(ptr, FILL, n * sizeof(Rcomplex) + 2 * NG);
-		ptr += NG;
-		memcpy(ptr, COMPLEX(s), n * sizeof(Rcomplex));
-		cargs[na] = (void*) ptr;
-	    } else if (dup && NAMED(s)) {
+	    if (dup && NAMED(s)) {
 		SEXP ss = allocVector(t, n);
 		memcpy(COMPLEX(ss), COMPLEX(s), n * sizeof(Rcomplex));
 		SET_VECTOR_ELT(ans, na, ss);
@@ -1545,7 +1538,7 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 	case STRSXP:
 	    if (!dup)
 		error(_("character variables must be duplicated in .C/.Fortran"));
-	    n = XLENGTH(s);
+	    n = LENGTH(s);
 	    if (Fort) {
 		const char *ss = translateChar(STRING_ELT(s, 0));
 		if (n > 1)
@@ -1553,36 +1546,49 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 		char *fptr = (char*) R_alloc(max(255, strlen(ss)) + 1, sizeof(char));
 		strcpy(fptr, ss);
 		cargs[na] =  (void*) fptr;
-	    } else if (copy) {
-		char **cptr = (char**) R_alloc(n, sizeof(char*)),
-		    **cptr0 = (char**) R_alloc(n, sizeof(char*));
-		for (R_xlen_t i = 0 ; i < n ; i++) {
-		    const char *ss = translateChar(STRING_ELT(s, i));
-		    size_t nn = strlen(ss) + 1 + 2 * NG;
-		    char *ptr = (char*) R_alloc(nn, sizeof(char));
-		    memset(ptr, FILL, nn);
-		    cptr[i] = cptr0[i] = ptr + NG;
-		    strcpy(cptr[i], ss);
-		}
-		cargs[na] = (void*) cptr;
-		cargs0[na] = (void*) cptr0;
-#ifdef R_MEMORY_PROFILING
-		if (RTRACE(s)) memtrace_report(s, cargs[na]);
-#endif
 	    } else {
 		char **cptr = (char**) R_alloc(n, sizeof(char*));
-		for (R_xlen_t i = 0 ; i < n ; i++) {
-		    const char *ss = translateChar(STRING_ELT(s, i));
-		    size_t nn = strlen(ss) + 1;
-		    if(nn > 1) {
-			cptr[i] = (char*) R_alloc(nn, sizeof(char));
-			strcpy(cptr[i], ss);
-		    } else {
-			/* Protect ourselves against those who like to
-			   extend "", maybe using strncpy */
-			nn = 128;
-			cptr[i] = (char*) R_alloc(nn, sizeof(char));
-			memset(cptr[i], 0, nn);
+		if (strlen(encname)) {
+		    char *outbuf;
+		    const char *inbuf;
+		    size_t inb, outb, outb0, res;
+		    void *obj = Riconv_open("", encname); /* (to, from) */
+		    if (obj == (void *)-1)
+			error(_("unsupported encoding '%s'"), encname);
+		    for (int i = 0 ; i < n ; i++) {
+			inbuf = CHAR(STRING_ELT(s, i));
+			inb = strlen(inbuf);
+			outb0 = 3*inb;
+		    restart_in:
+			cptr[i] = outbuf = (char*) R_alloc(outb0 + 1, sizeof(char));
+			outb = 3*inb;
+			Riconv(obj, NULL, NULL, &outbuf, &outb);
+			errno = 0; /* precaution */
+			res = Riconv(obj, &inbuf , &inb, &outbuf, &outb);
+			if(res == -1 && errno == E2BIG) {
+			    outb0 *= 3;
+			    goto restart_in;
+			}
+			if(res == -1)
+			    error(_("conversion problem in re-encoding to '%s'"),
+				  encname);
+			*outbuf = '\0';
+		    }
+		    Riconv_close(obj);
+		} else {
+		    for (int i = 0 ; i < n ; i++) {
+			const char *ss = translateChar(STRING_ELT(s, i));
+			int nn = strlen(ss) + 1;
+			if(nn > 1) {
+			    cptr[i] = (char*) R_alloc(nn, sizeof(char));
+			    strcpy(cptr[i], ss);
+			} else {
+			    /* Protect ourselves against those who like to
+			       extend "", maybe using strncpy */
+			    nn = 128;
+			    cptr[i] = (char*) R_alloc(nn, sizeof(char));
+			    memset(cptr[i], 0, nn);
+			}
 		    }
 		}
 		cargs[na] = (void*) cptr;
@@ -1597,9 +1603,9 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 #ifdef USE_RINTERNALS
 	    cargs[na] = (void*) DATAPTR(s);
 #else
-	    n = XLENGTH(s);
+	    n = length(s);
 	    SEXP *lptr = (SEXP *) R_alloc(n, sizeof(SEXP));
-	    for (R_xlen_t i = 0 ; i < n ; i++) lptr[i] = VECTOR_ELT(s, i);
+	    for (int i = 0 ; i < n ; i++) lptr[i] = VECTOR_ELT(s, i);
 	    cargs[na] = (void*) lptr;
 #endif
 	    break;
@@ -1611,13 +1617,6 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 			    type2char(TYPEOF(s)), na + 1);
 	    cargs[na] =  (void*) s;
 	    break;
-/*
-	case NILSXP:
-	    error(_("invalid mode (%s) to pass to C or Fortran (arg %d)"), 
-		  type2char(t), na + 1);
-	    cargs[na] =  (void*) s;
-	    break;
-*/
 	default:
 	    /* Includes pairlists from R 2.15.0 */
 	    if (Fort) error(_("invalid mode (%s) to pass to Fortran (arg %d)"), 
@@ -1631,6 +1630,7 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 	}
 	if (nprotect) UNPROTECT(nprotect);
     }
+
 
     switch (nargs) {
     case 0:
@@ -2261,126 +2261,25 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 		s = VECTOR_ELT(ans, na);
 		R_NativePrimitiveArgType type =
 		    checkTypes ? checkTypes[na] : TYPEOF(arg);
-	        R_xlen_t n = xlength(arg);
+	        int n = length(arg);
 
 		switch(type) {
-		case RAWSXP:
-		    if (copy) {
-			s = allocVector(type, n);
-			unsigned char *ptr = (unsigned char *) p;
-			memcpy(RAW(s), ptr, n * sizeof(Rbyte));
-			ptr += n * sizeof(Rbyte);
-			for (int i = 0; i < NG; i++)
-			    if(*ptr++ != FILL)
-				error("array over-run in %s(\"%s\") in %s argument %d\n", 
-				      Fort ? ".Fortran" : ".C",
-				      symName, type2char(type), na+1);
-			ptr = (unsigned char *) p;
-			for (int i = 0; i < NG; i++)
-			    if(*--ptr != FILL)
-				error("array under-run in %s(\"%s\") in %s argument %d\n", 
-				      Fort ? ".Fortran" : ".C",
-				      symName, type2char(type), na+1);
-		    }
-		    break;
-		case INTSXP:
-		    if (copy) {
-			s = allocVector(type, n);
-			unsigned char *ptr = (unsigned char *) p;
-			memcpy(INTEGER(s), ptr, n * sizeof(int));
-			ptr += n * sizeof(int);
-			for (int i = 0; i < NG; i++)
-			    if(*ptr++ != FILL)
-				error("array over-run in %s(\"%s\") in %s argument %d\n", 
-				      Fort ? ".Fortran" : ".C",
-				      symName, type2char(type), na+1);
-			ptr = (unsigned char *) p;
-			for (int i = 0; i < NG; i++)
-			    if(*--ptr != FILL)
-				error("array under-run in %s(\"%s\") in %s argument %d\n", 
-				      Fort ? ".Fortran" : ".C",
-				      symName, type2char(type), na+1);
-		    }
-		    break;
 		case LGLSXP:
-		    if (copy) {
-			s = allocVector(type, n);
-			unsigned char *ptr = (unsigned char *) p;
-			int *iptr = (int*) ptr, tmp;
-			for (R_xlen_t i = 0 ; i < n ; i++) {
-			    tmp =  iptr[i];
-			    LOGICAL(s)[i] = (tmp == NA_INTEGER || tmp == 0) ? tmp : 1;
-			}
-			ptr += n * sizeof(int);
-			for (int i = 0; i < NG;  i++)
-			    if(*ptr++ != FILL)
-				error("array over-run in %s(\"%s\") in %s argument %d\n", 
-				      Fort ? ".Fortran" : ".C",
-				      symName, type2char(type), na+1);
-			ptr = (unsigned char *) p;
-			for (int i = 0; i < NG; i++)
-			    if(*--ptr != FILL)
-				error("array under-run in %s(\"%s\") in %s argument %d\n", 
-				      Fort ? ".Fortran" : ".C",
-				      symName, type2char(type), na+1);
-		    } else {
-			int *iptr = INTEGER(arg), tmp;
-			for (R_xlen_t i = 0 ; i < n ; i++) {
-			    tmp =  iptr[i];
-			    iptr[i] = (tmp == NA_INTEGER || tmp == 0) ? tmp : 1;
-			}
+		{
+		    int *iptr = INTEGER(arg), tmp;
+		    for (int i = 0 ; i < n ; i++) {
+			tmp =  iptr[i];
+			iptr[i] = (tmp == NA_INTEGER || tmp == 0) ? tmp : 1;
 		    }
 		    break;
+		}
 		case REALSXP:
 		case SINGLESXP:
-		    if (copy) {
+		    if (type == SINGLESXP || asLogical(getAttrib(arg, CSingSymbol)) == 1) {
 			s = allocVector(REALSXP, n);
-			if (type == SINGLESXP || asLogical(getAttrib(arg, CSingSymbol)) == 1) {
-			    float *sptr = (float*) p;
-			    for(R_xlen_t i = 0 ; i < n ; i++) 
-				REAL(s)[i] = (double) sptr[i];
-			} else {
-			    unsigned char *ptr = (unsigned char *) p;
-			    memcpy(REAL(s), ptr, n * sizeof(double));
-			    ptr += n * sizeof(double);
-			    for (int i = 0; i < NG; i++)
-				if(*ptr++ != FILL)
-				    error("array over-run in %s(\"%s\") in %s argument %d\n", 
-					  Fort ? ".Fortran" : ".C",
-					  symName, type2char(type), na+1);
-			    ptr = (unsigned char *) p;
-			    for (int i = 0; i < NG; i++)
-				if(*--ptr != FILL)
-				    error("array under-run in %s(\"%s\") in %s argument %d\n", 
-					  Fort ? ".Fortran" : ".C",
-					  symName, type2char(type), na+1);
-			}
-		    } else {
-			if (type == SINGLESXP || asLogical(getAttrib(arg, CSingSymbol)) == 1) {
-			    s = allocVector(REALSXP, n);
-			    float *sptr = (float*) p;
-			    for(int i = 0 ; i < n ; i++) 
-				REAL(s)[i] = (double) sptr[i];
-			}
-		    }
-		    break;			
-		case CPLXSXP:
-		    if (copy) {
-			s = allocVector(type, n);
-			unsigned char *ptr = (unsigned char *) p;
-			memcpy(COMPLEX(s), p, n * sizeof(Rcomplex));
-			ptr += n * sizeof(Rcomplex);
-			for (int i = 0; i < NG;  i++) 
-			    if(*ptr++ != FILL)
-				error("array over-run in %s(\"%s\") in %s argument %d\n", 
-				      Fort ? ".Fortran" : ".C",
-				      symName, type2char(type), na+1);
-			ptr = (unsigned char *) p;
-			for (int i = 0; i < NG; i++)
-			    if(*--ptr != FILL)
-				error("array under-run in %s(\"%s\") in %s argument %d\n", 
-				      Fort ? ".Fortran" : ".C",
-				      symName, type2char(type), na+1);
+			float *sptr = (float*) p;
+			for(int i = 0 ; i < n ; i++) 
+			    REAL(s)[i] = (double) sptr[i];
 		    }
 		    break;
 		case STRSXP:
@@ -2392,38 +2291,10 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
 			PROTECT(s = allocVector(type, 1));
 			SET_STRING_ELT(s, 0, mkChar(buf));
 			UNPROTECT(1);
-		    } else if (copy) {
-			SEXP ss = arg;
-			PROTECT(s = allocVector(type, n));
-			char **cptr = (char**) p, **cptr0 = (char**) cargs0[na];
-			for (R_xlen_t i = 0 ; i < n ; i++) {
-			    unsigned char *ptr = (unsigned char *) cptr[i];
-			    SET_STRING_ELT(s, i, mkChar(cptr[i]));
-			    if (cptr[i] == cptr0[i]) {
-				    const char *z = translateChar(STRING_ELT(ss, i));
-				for (int j = 0; j < NG; j++)
-				    if(*--ptr != FILL)
-					error("array under-run in .C(\"%s\") in character argument %d, element %d", 
-					      symName, na+1, (int)(i+1));
-				ptr = (unsigned char *) cptr[i];
-				ptr += strlen(z) + 1;
-				for (int j = 0; j < NG;  j++) 
-				    if(*ptr++ != FILL) {
-					 // force termination
-					unsigned char *p = ptr;
-					for (int k = 1; k < NG - j; k++, p++)
-					    if (*p == FILL) *p = '\0';
-					error("array over-run in .C(\"%s\") in character argument %d, element %d\n'%s'->'%s'\n", 
-					      symName, na+1, (int)(i+1), 
-					      z, cptr[i]);
-				    }
-			    }
-			}
-			UNPROTECT(1);
 		    } else {
 			PROTECT(s = allocVector(type, n));
 			char **cptr = (char**) p;
-			for (R_xlen_t i = 0 ; i < n ; i++)
+			for (int i = 0 ; i < n ; i++)
 			    SET_STRING_ELT(s, i, mkChar(cptr[i]));
 			UNPROTECT(1);
 		    }
@@ -2445,7 +2316,6 @@ SEXP attribute_hidden do_dotCode(SEXP call, SEXP op, SEXP args, SEXP env)
     return ans;
 }
 
-#ifndef NO_CALL_R
 static const struct {
     const char *name;
     const SEXPTYPE type;
@@ -2541,7 +2411,7 @@ void call_R(char *func, long nargs, void **arguments, char **modes,
 	error(_("invalid argument count in call_R"));
     if (nres < 0)
 	error(_("invalid return value count in call_R"));
-    PROTECT(pcall = call = allocList((int) nargs + 1));
+    PROTECT(pcall = call = allocList(nargs + 1));
     SET_TYPEOF(call, LANGSXP);
     SETCAR(pcall, (SEXP)func);
     s = R_NilValue;		/* -Wall */
@@ -2551,22 +2421,22 @@ void call_R(char *func, long nargs, void **arguments, char **modes,
 	switch(type) {
 	case LGLSXP:
 	case INTSXP:
-	    n = (int) lengths[i];
+	    n = lengths[i];
 	    SETCAR(pcall, allocVector(type, n));
 	    memcpy(INTEGER(CAR(pcall)), arguments[i], n * sizeof(int));
 	    break;
 	case REALSXP:
-	    n = (int) lengths[i];
+	    n = lengths[i];
 	    SETCAR(pcall, allocVector(REALSXP, n));
 	    memcpy(REAL(CAR(pcall)), arguments[i], n * sizeof(double));
 	    break;
 	case CPLXSXP:
-	    n = (int) lengths[i];
+	    n = lengths[i];
 	    SETCAR(pcall, allocVector(CPLXSXP, n));
 	    memcpy(REAL(CAR(pcall)), arguments[i], n * sizeof(Rcomplex));
 	    break;
 	case STRSXP:
-	    n = (int) lengths[i];
+	    n = lengths[i];
 	    SETCAR(pcall, allocVector(STRSXP, n));
 	    for (j = 0 ; j < n ; j++) {
 		char *str = (char*)(arguments[i]);
@@ -2592,13 +2462,13 @@ void call_R(char *func, long nargs, void **arguments, char **modes,
 	break;
     case VECSXP:
 	n = length(s);
-	if (nres < n) n = (int) nres;
+	if (nres < n) n = nres;
 	for (i = 0 ; i < n ; i++)
 	    results[i] = (char *) RObjToCPtr2(VECTOR_ELT(s, i));
 	break;
     case LISTSXP:
 	n = length(s);
-	if(nres < n) n = (int) nres;
+	if(nres < n) n = nres;
 	for(i = 0 ; i < n ; i++) {
 	    results[i] = (char *) RObjToCPtr2(s);
 	    s = CDR(s);
@@ -2614,4 +2484,3 @@ void call_S(char *func, long nargs, void **arguments, char **modes,
 {
     call_R(func, nargs, arguments, modes, lengths, names, nres, results);
 }
-#endif

@@ -108,8 +108,7 @@ install.packages <-
              configure.args = getOption("configure.args"),
              configure.vars = getOption("configure.vars"),
              clean = FALSE, Ncpus = getOption("Ncpus", 1L),
-	     verbose = getOption("verbose"),
-             libs_only = FALSE, INSTALL_opts, quiet = FALSE, ...)
+             libs_only = FALSE, INSTALL_opts, ...)
 {
     if (is.logical(clean) && clean)
         clean <- "--clean"
@@ -201,7 +200,7 @@ install.packages <-
 
     if(missing(lib) || is.null(lib)) {
         lib <- .libPaths()[1L]
-	if(!quiet && length(.libPaths()) > 1L)
+	if(length(.libPaths()) > 1L)
 	    message(gettextf("Installing package(s) into %s\n(as %s is unspecified)",
 			     sQuote(lib), sQuote("lib")), domain = NA)
     }
@@ -304,7 +303,8 @@ install.packages <-
                                      "installing the source packages %s"),
                         paste(sQuote(pkgs), collapse=", ")),
                 "\n", domain = NA)
-	flush.console()
+            flush.console()
+
     }
 
     ## check if we should infer repos=NULL
@@ -328,7 +328,7 @@ install.packages <-
                                method = method, available = available,
                                destdir = destdir,
                                dependencies = dependencies,
-                               libs_only = libs_only, quiet = quiet,  ...)
+                               libs_only = libs_only, ...)
             return(invisible())
         }
         ## Avoid problems with spaces in pathnames.
@@ -350,7 +350,7 @@ install.packages <-
             .install.macbinary(pkgs = pkgs, lib = lib, contriburl = contriburl,
                                method = method, available = available,
                                destdir = destdir,
-                               dependencies = dependencies, quiet = quiet, ...)
+                               dependencies = dependencies, ...)
             return(invisible())
         }
 
@@ -369,7 +369,6 @@ install.packages <-
     libpath <- libpath[! libpath %in% .Library]
     if(length(libpath)) libpath <- paste(libpath, collapse=.Platform$path.sep)
     cmd0 <- paste(file.path(R.home("bin"),"R"), "CMD INSTALL")
-    ## INSTALL ~= ../../../scripts/INSTALL --> ../../tools/R/
     if(length(libpath))
         if(.Platform$OS.type == "windows") {
             ## We don't have a way to set an environment variable for
@@ -387,7 +386,6 @@ install.packages <-
     if (!missing(INSTALL_opts))
         cmd0 <- paste(cmd0, paste(INSTALL_opts, collapse = " "))
 
-    if(verbose) message("system (cmd0): ", cmd0)
     if(is.null(repos) & missing(contriburl)) {
         ## install from local source tarball(s)
         update <- cbind(path.expand(pkgs), lib) # for side-effect of recycling to same length
@@ -397,12 +395,11 @@ install.packages <-
                          getConfigureArgs(update[i, 1L]),
                          getConfigureVars(update[i, 1L]),
                          shQuote(update[i, 1L]))
-           if(system(cmd, ignore.stdout = quiet, ignore.stderr = quiet) > 0L)
+            if(system(cmd) > 0L)
                 warning(gettextf(
                  "installation of package %s had non-zero exit status",
                                 sQuote(update[i, 1L])),
                         domain = NA)
-	    else if(verbose) message(sprintf("%d): succeeded '%s'", i, cmd))
         }
         return(invisible())
     }
@@ -424,17 +421,15 @@ install.packages <-
 
     foundpkgs <- download.packages(pkgs, destdir = tmpd, available = available,
                                    contriburl = contriburl, method = method,
-                                   type = "source", quiet = quiet, ...)
+                                   type = "source", ...)
 
     ## at this point 'pkgs' may contain duplicates,
     ## the same pkg in different libs
     if(length(foundpkgs)) {
-	if(verbose) message("foundpkgs: ", paste(foundpkgs, collapse=", "))
         update <- unique(cbind(pkgs, lib))
         colnames(update) <- c("Package", "LibPath")
         found <- pkgs %in% foundpkgs[, 1L]
         files <- foundpkgs[match(pkgs[found], foundpkgs[, 1L]), 2L]
-	if(verbose) message("files: ", paste(files, collapse=", \n\t"))
         update <- cbind(update[found, , drop=FALSE], file = files)
         if(nrow(update) > 1L) {
             upkgs <- unique(pkgs <- update[, 1L])
@@ -483,8 +478,7 @@ install.packages <-
             cwd <- setwd(tmpd)
             on.exit(setwd(cwd))
             ## MAKE will be set by sourcing Renviron
-            cmd <- paste(Sys.getenv("MAKE", "make"), "-k -j", Ncpus)
-            status <- system(cmd, ignore.stdout = quiet, ignore.stderr = quiet)
+            status <- system(paste(Sys.getenv("MAKE", "make"), "-k -j", Ncpus))
             if(status > 0L) {
                 ## Try to figure out which
                 pkgs <- update[, 1L]
@@ -503,15 +497,13 @@ install.packages <-
                              getConfigureArgs(update[i, 3L]),
                              getConfigureVars(update[i, 3L]),
                              update[i, 3L])
-                status <- system(cmd, ignore.stdout = quiet,
-                                 ignore.stderr = quiet)
+                status <- system(cmd)
                 if(status > 0L)
                     warning(gettextf("installation of package %s had non-zero exit status",
                                      sQuote(update[i, 1L])), domain = NA)
-		else if(verbose) message(sprintf("%d): succeeded '%s'", i, cmd))
             }
         }
-        if(!quiet && nonlocalrepos && !is.null(tmpd) && is.null(destdir))
+        if(nonlocalrepos && !is.null(tmpd) && is.null(destdir))
             cat("\n", gettextf("The downloaded source packages are in\n\t%s",
                                sQuote(normalizePath(tmpd, mustWork = FALSE))),
                 "\n", sep = "")

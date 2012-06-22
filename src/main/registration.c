@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2002-2012	The R Core Team.
+ *  Copyright (C) 2002-2011	The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -203,6 +203,10 @@ static R_CallMethodDef callMethods [] = {
     /* mapply */
     CALLDEF(do_mapply, 4),
 
+    /* in ../main/random.c to generate 'sequences' of random 2-d tables
+     * using Patefield's algorithm.
+     */
+    CALLDEF(R_r2dtable, 3),
     CALLDEF(R_shortRowNames, 2),
     CALLDEF(R_copyDFattr, 2),
 
@@ -231,6 +235,9 @@ static R_CallMethodDef callMethods [] = {
     CALLDEF(R_startbcprof, 0),
     CALLDEF(R_stopbcprof, 0),
 
+    /* base graphics */
+    CALLDEF(Rg_contourDef, 0),
+
     CALLDEF(bitwiseNot, 1),
     CALLDEF(bitwiseAnd, 2),
     CALLDEF(bitwiseOr,  2),
@@ -238,6 +245,15 @@ static R_CallMethodDef callMethods [] = {
 
     CALLDEF(crc64ToString, 1),
 
+    {NULL, NULL, 0}
+};
+
+
+#define EXTDEF(name, n)  {#name, (DL_FUNC) &name, n}
+
+static R_ExternalMethodDef externalMethods [] = {
+    EXTDEF(call_dqags, 7),
+    EXTDEF(call_dqagi, 7),
     {NULL, NULL, 0}
 };
 
@@ -278,6 +294,7 @@ static R_FortranMethodDef fortranMethods[] = {
 void attribute_hidden
 R_init_base(DllInfo *dll)
 {
-    R_registerRoutines(dll, cMethods, callMethods, fortranMethods, NULL);
+    R_registerRoutines(dll, cMethods, callMethods,
+		       fortranMethods, externalMethods);
     R_useDynamicSymbols(dll, FALSE);
 }

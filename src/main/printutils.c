@@ -88,11 +88,11 @@ R_size_t R_Decode2Long(char *p, int *ierr)
 	REprintf("R_Decode2Long(): v=%ld\n", v);
     if(p[0] == 'G') {
 	if((Giga * (double)v) > R_SIZE_T_MAX) { *ierr = 4; return(v); }
-	return (R_size_t) Giga * v;
+	return (Giga*v);
     }
     else if(p[0] == 'M') {
 	if((Mega * (double)v) > R_SIZE_T_MAX) { *ierr = 1; return(v); }
-	return (R_size_t) Mega * v;
+	return (Mega*v);
     }
     else if(p[0] == 'K') {
 	if((1024 * (double)v) > R_SIZE_T_MAX) { *ierr = 2; return(v); }
@@ -302,8 +302,8 @@ int Rstrwid(const char *str, int slen, cetype_t ienc, int quote)
 
 	if(ienc != CE_UTF8)  mbs_init(&mb_st);
 	for (i = 0; i < slen; i++) {
-	    res = (ienc == CE_UTF8) ? (int) utf8toucs(&wc, p):
-		(int) mbrtowc(&wc, p, MB_CUR_MAX, NULL);
+	    res = (ienc == CE_UTF8) ? utf8toucs(&wc, p):
+		mbrtowc(&wc, p, MB_CUR_MAX, NULL);
 	    if(res >= 0) {
 		k = wc;
 		if(0x20 <= k && k < 0x7f && iswprint(wc)) {
@@ -424,8 +424,8 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 
     if (s == NA_STRING) {
 	p = quote ? CHAR(R_print.na_string) : CHAR(R_print.na_string_noquote);
-	cnt = i = (int)(quote ? strlen(CHAR(R_print.na_string)) :
-			strlen(CHAR(R_print.na_string_noquote)));
+	cnt = i = quote ? strlen(CHAR(R_print.na_string)) :
+	    strlen(CHAR(R_print.na_string_noquote));
 	quote = 0;
     } else {
 #ifdef Win32
@@ -451,7 +451,7 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 	{
 	    if(IS_BYTES(s)) {
 		p = CHAR(s);
-		cnt = (int) strlen(p);
+		cnt = strlen(p);
 		const char *q;
 		char *pp = R_alloc(4*cnt+1, 1), *qq = pp, buf[5];
 		for (q = p; *q; q++) {
@@ -474,7 +474,7 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 		    i = Rstrlen(s, quote);
 		    cnt = LENGTH(s);
 		} else {
-		    cnt = (int) strlen(p);
+		    cnt = strlen(p);
 		    i = Rstrwid(p, cnt, CE_NATIVE, quote);
 		}
 	    }
@@ -499,7 +499,7 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 	for(i = 0 ; i < b0 ; i++) *q++ = ' ';
 	b -= b0;
     }
-    if(quote) *q++ = (char) quote;
+    if(quote) *q++ = quote;
     if(mbcslocale || ienc == CE_UTF8) {
 	int j, res;
 	mbstate_t mb_st;
@@ -513,8 +513,8 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 	else if(WinUTF8out) { memcpy(q, UTF8in, 3); q += 3; }
 #endif
 	for (i = 0; i < cnt; i++) {
-	    res = (int)((ienc == CE_UTF8) ? utf8toucs(&wc, p):
-			mbrtowc(&wc, p, MB_CUR_MAX, NULL));
+	    res = (ienc == CE_UTF8) ? utf8toucs(&wc, p):
+		mbrtowc(&wc, p, MB_CUR_MAX, NULL);
 	    if(res >= 0) { /* res = 0 is a terminator */
 		k = wc;
 		/* To be portable, treat \0 explicitly */
@@ -567,8 +567,7 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 			else
 #endif
 			    snprintf(buf, 11, "\\u%04x", k);
-			j = (int) strlen(buf);
-			memcpy(q, buf, j);
+			memcpy(q, buf, j = strlen(buf));
 			q += j;
 			p += res;
 		    }
@@ -633,7 +632,7 @@ const char *EncodeString(SEXP s, int w, int quote, Rprt_adj justify)
 #ifdef Win32
     if(WinUTF8out && ienc == CE_UTF8)  { memcpy(q, UTF8out, 3); q += 3; }
 #endif
-    if(quote) *q++ = (char) quote;
+    if(quote) *q++ = quote;
     if(b > 0 && justify != Rprt_adj_right) {
 	for(i = 0 ; i < b ; i++) *q++ = ' ';
     }
@@ -744,7 +743,7 @@ void Rcons_vprintf(const char *format, va_list arg)
 	}
     }
 #endif /* HAVE_VASPRINTF */
-    R_WriteConsole(p, (int) strlen(p));
+    R_WriteConsole(p, strlen(p));
     if(usedRalloc) vmaxset(vmax);
     if(usedVasprintf) free(p);
 }
@@ -811,7 +810,7 @@ void REvprintf(const char *format, va_list arg)
 
 	vsnprintf(buf, BUFSIZE, format, arg);
 	buf[BUFSIZE-1] = '\0';
-	R_WriteConsoleEx(buf, (int) strlen(buf), 1);
+	R_WriteConsoleEx(buf, strlen(buf), 1);
     }
 }
 

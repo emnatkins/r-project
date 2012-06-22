@@ -14,33 +14,33 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-D <- function(expr, name) .External(C_doD, expr, name)
+D <- function(expr, name) .Internal(D(expr, name))
 
 deriv <- function(expr, ...) UseMethod("deriv")
 
-deriv.formula <- function(expr, namevec, function.arg = NULL, tag = ".expr",
+deriv.formula <- function(expr, namevec, function.arg=NULL, tag=".expr",
                           hessian = FALSE, ...)
 {
     if((le <- length(expr)) > 1L)
-	.External(C_deriv, expr[[le]], namevec, function.arg, tag, hessian)
+	.Internal(deriv.default(expr[[le]], namevec, function.arg, tag, hessian))
     else stop("invalid formula in deriv")
 }
 
-deriv.default <- function(expr, namevec, function.arg = NULL, tag = ".expr",
+deriv.default <- function(expr, namevec, function.arg=NULL, tag=".expr",
                           hessian = FALSE, ...)
-    .External(C_deriv, expr, namevec, function.arg, tag, hessian)
+    .Internal(deriv.default(expr, namevec, function.arg, tag, hessian))
 
 deriv3 <- function(expr, ...) UseMethod("deriv3")
 
-deriv3.formula <- function(expr, namevec, function.arg = NULL, tag = ".expr",
+deriv3.formula <- function(expr, namevec, function.arg=NULL, tag=".expr",
                           hessian = TRUE, ...)
 {
     if((le <- length(expr)) > 1L)
-	.External(C_deriv, expr[[le]], namevec, function.arg, tag, hessian)
+	.Internal(deriv.default(expr[[le]], namevec, function.arg, tag, hessian))
     else stop("invalid formula in deriv")
 }
 
-deriv3.default <- function(expr, namevec, function.arg = NULL, tag = ".expr",
+deriv3.default <- function(expr, namevec, function.arg=NULL, tag=".expr",
                           hessian = TRUE, ...)
-    .External(C_deriv, expr, namevec, function.arg, tag, hessian)
+    .Internal(deriv.default(expr, namevec, function.arg, tag, hessian))
 

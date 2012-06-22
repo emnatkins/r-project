@@ -32,7 +32,7 @@ static SEXP cumsum(SEXP x, SEXP s)
     for (i = 0 ; i < length(x) ; i++) {
 	if (ISNAN(rx[i])) break;
 	sum += rx[i];
-	rs[i] = (double) sum;
+	rs[i] = sum;
     }
     return s;
 }
@@ -49,7 +49,7 @@ static SEXP icumsum(SEXP x, SEXP s)
 	    warning(_("Integer overflow in 'cumsum'; use 'cumsum(as.numeric(.))'"));
 	    break;
 	}
-	is[i] = (int) sum;
+	is[i] = sum;
     }
     return s;
 }
@@ -77,7 +77,7 @@ static SEXP cumprod(SEXP x, SEXP s)
     prod = 1.0;
     for (i = 0 ; i < length(x) ; i++) {
 	prod *= rx[i];
-	rs[i] = (double) prod;
+	rs[i] = prod;
     }
     return s;
 }

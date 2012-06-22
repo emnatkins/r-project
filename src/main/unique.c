@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2012  The R Core Team
+ *  Copyright (C) 1997--2010  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
  *  http://www.r-project.org/Licenses/
  */
 
-/* This is currently restricted to vectors of length < 2^30 */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -136,9 +135,9 @@ static int chash(SEXP x, int indx, HashData *d)
 static int cshash(SEXP x, int indx, HashData *d)
 {
     intptr_t z = (intptr_t) STRING_ELT(x, indx);
-    unsigned int z1 = (unsigned int)(z & 0xffffffff), z2 = 0;
+    unsigned int z1 = z & 0xffffffff, z2 = 0;
 #if SIZEOF_LONG == 8
-    z2 = (unsigned int)(z/0x100000000L);
+    z2 = z/0x100000000L;
 #endif
     return scatter(z1 ^ z2, d);
 }
@@ -818,9 +817,6 @@ SEXP attribute_hidden do_match(SEXP call, SEXP op, SEXP args, SEXP env)
     else
 	return matchE(CADR(args), CAR(args), nomatch, env);
 }
-
-/* pmatch and charmatch return integer positions, so cannot be used
-   for long vectors (in general) */
 
 /* Partial Matching of Strings */
 /* Fully S Compatible version. */

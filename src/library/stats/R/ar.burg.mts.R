@@ -55,7 +55,8 @@ function (x, aic = TRUE, order.max = NULL, na.action = na.fail,
     partialacf <- aperm(array(z$pacf, dim = c(nser, nser, order.max +
         1L)), 3:1)[-1L, , , drop = FALSE]
     var.pred <- aperm(array(z$var, dim = c(nser, nser, order.max + 1L)), 3:1)
-    xaic <- setNames(z$aic - min(z$aic), 0:order.max)
+    xaic <- z$aic - min(z$aic)
+    names(xaic) <- 0:order.max
     order <- z$order
     ar <- if (order)
         -aperm(array(z$coefs, dim = c(nser, nser, order.max + 1L)),

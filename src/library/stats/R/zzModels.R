@@ -81,8 +81,9 @@ SSasymp <- # selfStart(~ Asym + (R0 - Asym) * exp(-exp(lrc) * input),
                   }
               }
               names(pars) <- NULL
-	      setNames(list(pars[2L], pars[3L], pars[1L]),
-		       mCall[c("Asym", "R0", "lrc")])
+              val <- list(pars[2L], pars[3L], pars[1L])
+              names(val) <- mCall[c("Asym", "R0", "lrc")]
+              val
           },
               parameters = c("Asym", "R0", "lrc"))
 
@@ -122,10 +123,9 @@ SSasympOff <- # selfStart(~ Asym *( 1 - exp(-exp(lrc) * (input - c0) ) ),
               pars <- as.vector(coef(nls(y ~ cbind(1, exp(- exp(lrc) * x)),
                                          data = xy, algorithm = "plinear",
                                          start = list(lrc = lrc))))
-
-	      setNames(list(pars[2L], pars[1L],
-			    exp(-pars[1L]) * log(-pars[3L]/pars[2L])),
-		       mCall[c("Asym", "lrc", "c0")])
+              val <- list(pars[2L], pars[1L], exp(-pars[1L]) * log(-pars[3L]/pars[2L]))
+              names(val) <- mCall[c("Asym", "lrc", "c0")]
+              val
           }, parameters = c("Asym", "lrc", "c0"))
 
 ##*## SSasympOrig - exponential curve through the origin to an asymptote
@@ -165,8 +165,9 @@ SSasympOrig <- # selfStart(~ Asym * (1 - exp(-exp(lrc) * input)),
                                          data = xy,
                                          start = list(lrc = lrc),
                                          algorithm = "plinear")))
-	      setNames(pars[c(2L, 1L)],
-		       mCall[c("Asym", "lrc")])
+              value <- c(pars[2L], pars[1L])
+              names(value) <- mCall[c("Asym", "lrc")]
+              value
           }, parameters = c("Asym", "lrc"))
 
 ##*## SSbiexp - linear combination of two exponentials
@@ -213,8 +214,9 @@ SSbiexp <- # selfStart(~ A1 * exp(-exp(lrc1)*input) + A2 * exp(-exp(lrc2) * inpu
                                data = xy,
                                start = list(lrc1 = lrc1, lrc2 = lrc2),
                                algorithm = "plinear"))
-	      setNames(pars[c(3L, 1L, 4L, 2L)],
-		       mCall[c("A1", "lrc1", "A2", "lrc2")])
+              value <- c(pars[3L], pars[1L], pars[4L], pars[2L])
+              names(value) <- mCall[c("A1", "lrc1", "A2", "lrc2")]
+              value
           }, parameters = c("A1", "lrc1", "A2", "lrc2"))
 
 ##*## SSfol - first order compartment model with the log of the rates
@@ -501,11 +503,12 @@ SSweibull <- # selfStart( ~ Asym - Drop * exp(-exp(lrc)*x^pwr),
               Lasym <- NLSstLfAsymptote(xy)
               pars <- coef(lm(log(-log((Rasym - y)/(Rasym - Lasym))) ~ log(x),
                              data = xy, subset = x > 0))
-	      setNames(coef(nls(y ~ cbind(1, -exp(-exp(lrc)*x^pwr)),
-				data = xy,
-				algorithm = "plinear",
-				start = c(lrc = pars[[1L]], pwr = pars[[2L]]))
-			    )[c(3,4,1,2)],
-		       mCall[c("Asym", "Drop", "lrc", "pwr")])
+              val <- coef(nls(y ~ cbind(1, -exp(-exp(lrc)*x^pwr)),
+                               data = xy,
+                               algorithm = "plinear",
+			       start = c(lrc = pars[[1L]], pwr = pars[[2L]]))
+			  )[c(3,4,1,2)]
+              names(val) <- mCall[c("Asym", "Drop", "lrc", "pwr")]
+              val
           },
               c("Asym", "Drop", "lrc", "pwr"))

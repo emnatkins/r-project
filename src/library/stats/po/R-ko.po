@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-05-21 13:03\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: 2005-05-26 15:05+0900\n"
 "Last-Translator: Chel Hee Lee <chl948@mail.usask.ca>\n"
 "Language-Team: The Korean R Translation Council <gnustats@gmail.com>\n"
@@ -717,9 +717,6 @@ msgstr "인수 'x'는 수치가 아니면 되지 않습니다"
 msgid "'x' contains missing values"
 msgstr "'x'는 결측치를 포함하고 있습니다"
 
-msgid "invalid value of length(x)"
-msgstr ""
-
 #, fuzzy
 msgid "'x' and 'weights' have unequal length"
 msgstr "'x'와 'g'는 동일 길이를 가지지 않으면 되지 않습니다"
@@ -1350,6 +1347,9 @@ msgid ""
 msgstr ""
 "y를 제공하지 않으면 되지 않습니다. \n"
 "밀도의 추정에는 density()를 사용합시다"
+
+msgid "invalid value of length(x)"
+msgstr ""
 
 msgid "'k' is not an integer"
 msgstr "'k'는 정수가 아닙니다"
@@ -2019,6 +2019,9 @@ msgstr ""
 msgid "'newdata' does not have the correct number of columns"
 msgstr "'coef'의 길이가 적절하지 않습니다"
 
+msgid "wrong number of predictors"
+msgstr "예측자의 수가 잘못되어 있습니다"
+
 msgid "both 'x' and 'covmat' were supplied: 'x' will be ignored"
 msgstr "'x'와 'covmat'의 쌍방이 주어졌습니다. 'x'는 무시됩니다"
 
@@ -2195,10 +2198,6 @@ msgstr "무효인 'control.spar'입니다"
 #, fuzzy
 msgid "missing or infinite values in inputs are not allowed"
 msgstr "결손 또는 negative의 중량감은 허용되지 않습니다"
-
-#, fuzzy
-msgid "invalid number of points"
-msgstr "예측자의 수가 잘못되어 있습니다"
 
 msgid "lengths of 'x' and 'w' must match"
 msgstr "'x'와 'w'의 길이는 일치하지 않으면 되지 않습니다"
@@ -2600,13 +2599,6 @@ msgstr[0] ""
 msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "모델식에서 파라미터 %s가 없습니다\n"
-
-#~ msgid "wrong number of predictors"
-#~ msgstr "예측자의 수가 잘못되어 있습니다"
-
-#, fuzzy
-#~ msgid "invalid value oflength(x)"
-#~ msgstr "무효인 clustering 메소드입니다"
 
 #~ msgid "extra arguments"
 #~ msgstr "여분의 인수"

@@ -342,8 +342,7 @@ SEXP attribute_hidden do_arith(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 {
     SEXP klass, dims, tsp, xnames, ynames, val;
-    R_xlen_t nx, ny, mismatch = 0;
-    int xarray, yarray, xts, yts, xS4 = 0, yS4 = 0;
+    int mismatch = 0, nx, ny, xarray, yarray, xts, yts, xS4 = 0, yS4 = 0;
     int xattr, yattr;
     SEXP lcall = call;
     PROTECT_INDEX xpi, ypi;
@@ -357,7 +356,7 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
     FIXUP_NULL_AND_CHECK_TYPES(x, xpi);
     FIXUP_NULL_AND_CHECK_TYPES(y, ypi);
 
-    nx = XLENGTH(x);
+    nx = LENGTH(x);
     if (ATTRIB(x) != R_NilValue) {
 	xattr = TRUE;
 	xarray = isArray(x);
@@ -365,7 +364,7 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 	xS4 = isS4(x);
     }
     else xarray = xts = xattr = FALSE;
-    ny = XLENGTH(y);
+    ny = LENGTH(y);
     if (ATTRIB(y) != R_NilValue) {
 	yattr = TRUE;
 	yarray = isArray(y);
@@ -504,9 +503,9 @@ SEXP attribute_hidden R_binary(SEXP call, SEXP op, SEXP x, SEXP y)
 	}
     }
     else {
-	if (xlength(val) == xlength(xnames))
+	if (length(val) == length(xnames))
 	    setAttrib(val, R_NamesSymbol, xnames);
-	else if (xlength(val) == xlength(ynames))
+	else if (length(val) == length(ynames))
 	    setAttrib(val, R_NamesSymbol, ynames);
     }
 
@@ -541,8 +540,7 @@ SEXP attribute_hidden R_unary(SEXP call, SEXP op, SEXP s1)
 
 static SEXP integer_unary(ARITHOP_TYPE code, SEXP s1, SEXP call)
 {
-    R_xlen_t i, n;
-    int x;
+    int i, n, x;
     SEXP ans;
 
     switch (code) {
@@ -551,7 +549,7 @@ static SEXP integer_unary(ARITHOP_TYPE code, SEXP s1, SEXP call)
     case MINUSOP:
 	ans = duplicate(s1);
 	SET_TYPEOF(ans, INTSXP);
-	n = XLENGTH(s1);
+	n = LENGTH(s1);
 	for (i = 0; i < n; i++) {
 	    x = INTEGER(s1)[i];
 	    INTEGER(ans)[i] = (x == NA_INTEGER) ?
@@ -566,14 +564,14 @@ static SEXP integer_unary(ARITHOP_TYPE code, SEXP s1, SEXP call)
 
 static SEXP real_unary(ARITHOP_TYPE code, SEXP s1, SEXP lcall)
 {
-    R_xlen_t i, n;
+    int i, n;
     SEXP ans;
 
     switch (code) {
     case PLUSOP: return s1;
     case MINUSOP:
 	ans = duplicate(s1);
-	n = XLENGTH(s1);
+	n = LENGTH(s1);
 	for (i = 0; i < n; i++)
 	    REAL(ans)[i] = -REAL(s1)[i];
 	return ans;
@@ -630,13 +628,13 @@ static SEXP real_unary(ARITHOP_TYPE code, SEXP s1, SEXP lcall)
 
 static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 {
-    R_xlen_t i, i1, i2, n, n1, n2;
+    int i, i1, i2, n, n1, n2;
     int x1, x2;
     SEXP ans;
     Rboolean naflag = FALSE;
 
-    n1 = XLENGTH(s1);
-    n2 = XLENGTH(s2);
+    n1 = LENGTH(s1);
+    n2 = LENGTH(s2);
     /* S4-compatibility change: if n1 or n2 is 0, result is of length 0 */
     if (n1 == 0 || n2 == 0) n = 0; else n = (n1 > n2) ? n1 : n2;
 
@@ -747,7 +745,7 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 	    if (x1 == NA_INTEGER || x2 == NA_INTEGER || x2 == 0)
 		INTEGER(ans)[i] = NA_INTEGER;
 	    else
-		INTEGER(ans)[i] = (int) floor((double)x1 / (double)x2);
+		INTEGER(ans)[i] = floor((double)x1 / (double)x2);
 	}
 	break;
     }
@@ -775,12 +773,12 @@ static SEXP integer_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2, SEXP lcall)
 
 static SEXP real_binary(ARITHOP_TYPE code, SEXP s1, SEXP s2)
 {
-    R_xlen_t i, i1, i2, n, n1, n2;
+    int i, i1, i2, n, n1, n2;
     SEXP ans;
 
     /* Note: "s1" and "s2" are protected above. */
-    n1 = XLENGTH(s1);
-    n2 = XLENGTH(s2);
+    n1 = LENGTH(s1);
+    n2 = LENGTH(s2);
 
     /* S4-compatibility change: if n1 or n2 is 0, result is of length 0 */
     if (n1 == 0 || n2 == 0) return(allocVector(REALSXP, 0));
@@ -990,13 +988,13 @@ static SEXP math1(SEXP sa, double(*f)(double), SEXP lcall)
 {
     SEXP sy;
     double *y, *a;
-    R_xlen_t i, n;
+    int i, n;
     int naflag;
 
     if (!isNumeric(sa))
 	errorcall(lcall, R_MSG_NONNUM_MATH);
 
-    n = xlength(sa);
+    n = length(sa);
     /* coercion can lose the object bit */
     PROTECT(sa = coerceVector(sa, REALSXP));
     PROTECT(sy = allocVector(REALSXP, n));
@@ -1108,13 +1106,13 @@ SEXP attribute_hidden do_abs(SEXP call, SEXP op, SEXP args, SEXP env)
     if (isInteger(x) || isLogical(x)) {
 	/* integer or logical ==> return integer,
 	   factor was covered by Math.factor. */
-	R_xlen_t i, n = xlength(x);
+	int i, n = length(x);
 	PROTECT(s = allocVector(INTSXP, n));
 	/* Note: relying on INTEGER(.) === LOGICAL(.) : */
 	for(i = 0 ; i < n ; i++)
 	    INTEGER(s)[i] = abs(INTEGER(x)[i]);
     } else if (TYPEOF(x) == REALSXP) {
-	R_xlen_t i, n = xlength(x);
+	int i, n = length(x);
 	PROTECT(s = allocVector(REALSXP, n));
 	for(i = 0 ; i < n ; i++)
 	    REAL(s)[i] = fabs(REAL(x)[i]);
@@ -1129,10 +1127,6 @@ SEXP attribute_hidden do_abs(SEXP call, SEXP op, SEXP args, SEXP env)
 
 /* Mathematical Functions of Two Numeric Arguments (plus 1 int) */
 
-/* math2_1 and math2_2 and related can be removed  once the byte
-  compiler knows how to optimize to .External rather than
-  .Internal */
-
 #define if_NA_Math2_set(y,a,b)				\
 	if      (ISNA (a) || ISNA (b)) y = NA_REAL;	\
 	else if (ISNAN(a) || ISNAN(b)) y = R_NaN;
@@ -1141,7 +1135,7 @@ static SEXP math2(SEXP sa, SEXP sb, double (*f)(double, double),
 		  SEXP lcall)
 {
     SEXP sy;
-    R_xlen_t i, ia, ib, n, na, nb;
+    int i, ia, ib, n, na, nb;
     double ai, bi, *a, *b, *y;
     int naflag;
 
@@ -1151,8 +1145,8 @@ static SEXP math2(SEXP sa, SEXP sb, double (*f)(double, double),
     /* for 0-length a we want the attributes of a, not those of b
        as no recycling will occur */
 #define SETUP_Math2				\
-    na = XLENGTH(sa);				\
-    nb = XLENGTH(sb);				\
+    na = LENGTH(sa);				\
+    nb = LENGTH(sb);				\
     if ((na == 0) || (nb == 0))	{		\
 	PROTECT(sy = allocVector(REALSXP, 0));	\
 	if (na == 0) DUPLICATE_ATTRIB(sy, sa);	\
@@ -1195,7 +1189,7 @@ static SEXP math2_1(SEXP sa, SEXP sb, SEXP sI,
 		    double (*f)(double, double, int), SEXP lcall)
 {
     SEXP sy;
-    R_xlen_t i, ia, ib, n, na, nb;
+    int i, ia, ib, n, na, nb;
     double ai, bi, *a, *b, *y;
     int m_opt;
     int naflag;
@@ -1223,7 +1217,7 @@ static SEXP math2_2(SEXP sa, SEXP sb, SEXP sI1, SEXP sI2,
 		    double (*f)(double, double, int, int), SEXP lcall)
 {
     SEXP sy;
-    R_xlen_t i, ia, ib, n, na, nb;
+    int i, ia, ib, n, na, nb;
     double ai, bi, *a, *b, *y;
     int i_1, i_2;
     int naflag;
@@ -1251,7 +1245,7 @@ static SEXP math2B(SEXP sa, SEXP sb, double (*f)(double, double, double *),
 		   SEXP lcall)
 {
     SEXP sy;
-    R_xlen_t i, ia, ib, n, na, nb;
+    int i, ia, ib, n, na, nb;
     double ai, bi, *a, *b, *y;
     int naflag;
     double amax, *work;
@@ -1482,11 +1476,6 @@ SEXP attribute_hidden do_log(SEXP call, SEXP op, SEXP args, SEXP env)
 
 /* Mathematical Functions of Three (Real) Arguments */
 
-/* math3_1 and math3_2 and related can be removed once the byte
-  compiler knows how to optimize to .External rather than
-  .Internal */
-
-
 #define if_NA_Math3_set(y,a,b,c)			        \
 	if      (ISNA (a) || ISNA (b)|| ISNA (c)) y = NA_REAL;	\
 	else if (ISNAN(a) || ISNAN(b)|| ISNAN(c)) y = R_NaN;
@@ -1501,9 +1490,9 @@ SEXP attribute_hidden do_log(SEXP call, SEXP op, SEXP args, SEXP env)
     if (!isNumeric(sa) || !isNumeric(sb) || !isNumeric(sc))	\
 	errorcall(lcall, R_MSG_NONNUM_MATH);			\
 								\
-    na = XLENGTH(sa);						\
-    nb = XLENGTH(sb);						\
-    nc = XLENGTH(sc);						\
+    na = LENGTH(sa);						\
+    nb = LENGTH(sb);						\
+    nc = LENGTH(sc);						\
     if ((na == 0) || (nb == 0) || (nc == 0))			\
 	return(allocVector(REALSXP, 0));			\
     n = na;							\
@@ -1531,7 +1520,7 @@ static SEXP math3_1(SEXP sa, SEXP sb, SEXP sc, SEXP sI,
 		    double (*f)(double, double, double, int), SEXP lcall)
 {
     SEXP sy;
-    R_xlen_t i, ia, ib, ic, n, na, nb, nc;
+    int i, ia, ib, ic, n, na, nb, nc;
     double ai, bi, ci, *a, *b, *c, *y;
     int i_1;
     int naflag;
@@ -1558,7 +1547,7 @@ static SEXP math3_2(SEXP sa, SEXP sb, SEXP sc, SEXP sI, SEXP sJ,
 		    double (*f)(double, double, double, int, int), SEXP lcall)
 {
     SEXP sy;
-    R_xlen_t i, ia, ib, ic, n, na, nb, nc;
+    int i, ia, ib, ic, n, na, nb, nc;
     double ai, bi, ci, *a, *b, *c, *y;
     int i_1,i_2;
     int naflag;
@@ -1586,7 +1575,7 @@ static SEXP math3B(SEXP sa, SEXP sb, SEXP sc,
 		   double (*f)(double, double, double, double *), SEXP lcall)
 {
     SEXP sy;
-    R_xlen_t i, ia, ib, ic, n, na, nb, nc;
+    int i, ia, ib, ic, n, na, nb, nc;
     double ai, bi, ci, *a, *b, *c, *y;
     int naflag;
     double amax, *work;
@@ -1702,9 +1691,6 @@ SEXP attribute_hidden do_math3(SEXP call, SEXP op, SEXP args, SEXP env)
 
 /* Mathematical Functions of Four (Real) Arguments */
 
-/* This can be removed completely once the byte compiler knows how to
-  optimize to .External rather than .Internal */
-
 #define if_NA_Math4_set(y,a,b,c,d)				\
 	if      (ISNA (a)|| ISNA (b)|| ISNA (c)|| ISNA (d)) y = NA_REAL;\
 	else if (ISNAN(a)|| ISNAN(b)|| ISNAN(c)|| ISNAN(d)) y = R_NaN;
@@ -1720,7 +1706,7 @@ static SEXP math4(SEXP sa, SEXP sb, SEXP sc, SEXP sd,
 		  double (*f)(double, double, double, double), SEXP lcall)
 {
     SEXP sy;
-    R_xlen_t i, ia, ib, ic, id, n, na, nb, nc, nd;
+    int i, ia, ib, ic, id, n, na, nb, nc, nd;
     double ai, bi, ci, di, *a, *b, *c, *d, *y;
     int naflag;
 
@@ -1728,10 +1714,10 @@ static SEXP math4(SEXP sa, SEXP sb, SEXP sc, SEXP sd,
     if(!isNumeric(sa)|| !isNumeric(sb)|| !isNumeric(sc)|| !isNumeric(sd))\
 	errorcall(lcall, R_MSG_NONNUM_MATH);				\
 									\
-    na = XLENGTH(sa);							\
-    nb = XLENGTH(sb);							\
-    nc = XLENGTH(sc);							\
-    nd = XLENGTH(sd);							\
+    na = LENGTH(sa);							\
+    nb = LENGTH(sb);							\
+    nc = LENGTH(sc);							\
+    nd = LENGTH(sd);							\
     if ((na == 0) || (nb == 0) || (nc == 0) || (nd == 0))		\
 	return(allocVector(REALSXP, 0));				\
     n = na;								\
@@ -1781,7 +1767,7 @@ static SEXP math4(SEXP sa, SEXP sb, SEXP sc, SEXP sd,
 static SEXP math4_1(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP sI, double (*f)(double, double, double, double, int), SEXP lcall)
 {
     SEXP sy;
-    R_xlen_t i, ia, ib, ic, id, n, na, nb, nc, nd;
+    int i, ia, ib, ic, id, n, na, nb, nc, nd;
     double ai, bi, ci, di, *a, *b, *c, *d, *y;
     int i_1;
     int naflag;
@@ -1808,7 +1794,7 @@ static SEXP math4_2(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP sI, SEXP sJ,
 		    double (*f)(double, double, double, double, int, int), SEXP lcall)
 {
     SEXP sy;
-    R_xlen_t i, ia, ib, ic, id, n, na, nb, nc, nd;
+    int i, ia, ib, ic, id, n, na, nb, nc, nd;
     double ai, bi, ci, di, *a, *b, *c, *d, *y;
     int i_1, i_2;
     int naflag;
@@ -1899,7 +1885,7 @@ SEXP attribute_hidden do_math4(SEXP call, SEXP op, SEXP args, SEXP env)
 static SEXP math5(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP se, double (*f)())
 {
     SEXP sy;
-    R_xlen_t i, ia, ib, ic, id, ie, n, na, nb, nc, nd, ne;
+    int i, ia, ib, ic, id, ie, n, na, nb, nc, nd, ne;
     double ai, bi, ci, di, ei, *a, *b, *c, *d, *e, *y;
 
 #define SETUP_Math5							\
@@ -1907,11 +1893,11 @@ static SEXP math5(SEXP sa, SEXP sb, SEXP sc, SEXP sd, SEXP se, double (*f)())
 	!isNumeric(sd) || !isNumeric(se))				\
 	errorcall(lcall, R_MSG_NONNUM_MATH);				\
 									\
-    na = XLENGTH(sa);							\
-    nb = XLENGTH(sb);							\
-    nc = XLENGTH(sc);							\
-    nd = XLENGTH(sd);							\
-    ne = XLENGTH(se);							\
+    na = LENGTH(sa);							\
+    nb = LENGTH(sb);							\
+    nc = LENGTH(sc);							\
+    nd = LENGTH(sd);							\
+    ne = LENGTH(se);							\
     if ((na == 0) || (nb == 0) || (nc == 0) || (nd == 0) || (ne == 0))	\
 	return(allocVector(REALSXP, 0));				\
     n = na;								\

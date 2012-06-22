@@ -505,20 +505,6 @@ SEXP RTcl_ObjAsRawVector(SEXP args)
     return ans;
 }
 
-SEXP RTcl_ObjFromRawVector(SEXP args)
-{
-    int count;
-    Tcl_Obj *tclobj; 
-    SEXP val; 
-
-    val = CADR(args);
-
-    count = length(val);
-    tclobj = Tcl_NewByteArrayObj(RAW(val), count);
-
-    return makeRTclObject(tclobj);
-}
-
 
 SEXP RTcl_GetArrayElem(SEXP args)
 {

@@ -20,8 +20,6 @@ aov <- function(formula, data = NULL, projections = FALSE, qr = TRUE,
     Terms <- if(missing(data)) terms(formula, "Error")
     else terms(formula, "Error", data = data)
     indError <- attr(Terms, "specials")$Error
-    ## NB: this is only used for n > 1, so singular form makes no sense
-    ## in English.  But some languages have multiple plurals.
     if(length(indError) > 1L)
         stop(sprintf(ngettext(length(indError),
                               "there are %d Error terms: only 1 is allowed",
@@ -78,12 +76,12 @@ aov <- function(formula, data = NULL, projections = FALSE, qr = TRUE,
         ## we want this to label the rows of qtx, not cols of x.
         maxasgn <- length(nmstrata) - 1L
         nobs <- NROW(qty)
-	len <- if(nobs > rank.e) {
-	    asgn.e[(rank.e+1):nobs] <- maxasgn + 1L
-	    nmstrata <- c(nmstrata, "Within")
-	    maxasgn + 2L
-	} else maxasgn + 1L
-        result <- setNames(vector("list", len), nmstrata)
+        if(nobs > rank.e) {
+            result <- vector("list", maxasgn + 2L)
+            asgn.e[(rank.e+1):nobs] <- maxasgn + 1L
+            nmstrata <- c(nmstrata, "Within")
+        } else result <- vector("list", maxasgn + 1L)
+        names(result) <- nmstrata
         lmcall$formula <- form <-
             update(formula, paste(". ~ .-", deparse(errorterm, width.cutoff = 500L, backtick = TRUE)))
         Terms <- terms(form)
@@ -92,10 +90,10 @@ aov <- function(formula, data = NULL, projections = FALSE, qr = TRUE,
         xvars <- as.character(attr(Terms, "variables"))[-1L]
         if ((yvar <- attr(Terms, "response")) > 0L)
             xvars <- xvars[-yvar]
-	xlev <- if (length(xvars)) {
+        if (length(xvars)) {
             xlev <- lapply(mf[xvars], levels)
-	    xlev[!vapply(xlev, is.null, NA)]
-	} ## else NULL
+            xlev <- xlev[!sapply(xlev, is.null)]
+        } else xlev <- NULL
         resp <- model.response(mf)
         qtx <- model.matrix(Terms, mf, contrasts)
         cons <- attr(qtx, "contrasts")
@@ -259,15 +257,16 @@ summary.aov <- function(object, intercept = FALSE, split,
             if(any(sp)) {              # some marginal terms are split
                 if(sum(sp) > 1) {
                     old <- split[ f[sp] ]
-		    nn <- setNames(nm = f[sp])
+                    nn <- f[sp]
+                    names(nn) <- nn
                     marg <- lapply(nn, function(x)
                                    df.names[asgn == (match(x, names) - 1L)])
                     term.coefs <- strsplit(df.names[asgn == i], ":", fixed=TRUE)
                     ttc <- sapply(term.coefs, function(x) x[sp])
                     rownames(ttc) <- nn
-		    splitnames <-
-			setNames(nm = apply(expand.grid(lapply(old, names)), 1L,
-				 function(x) paste(x, collapse=".")))
+                    splitnames <- apply(expand.grid(lapply(old, names)), 1L,
+                                        function(x) paste(x, collapse="."))
+                    names(splitnames) <- splitnames
                     tmp <- sapply(nn, function(i)
                                   names(old[[i]])[match(ttc[i, ], marg[[i]])] )
                     tmp <- apply(tmp, 1L, function(x) paste(x, collapse="."))
@@ -500,8 +499,8 @@ summary.aovlist <- function(object, ...)
         strata <- strata[-1L]
         object <- object[-1L]
     }
-    x <- setNames(vector(length = length(strata), mode = "list"),
-		  paste("Error:", strata))
+    x <- vector(length = length(strata), mode = "list")
+    names(x) <- paste("Error:", strata)
     for(i in seq_along(strata))
         x[[i]] <- do.call("summary", c(list(object = object[[i]]), dots))
     class(x) <- "summary.aovlist"
@@ -520,7 +519,8 @@ print.summary.aovlist <- function(x, ...)
 
 coef.listof <- function(object, ...)
 {
-    val <- setNames(vector("list", length(object)), names(object))
+    val <- vector("list", length(object))
+    names(val) <- names(object)
     for(i in seq_along(object)) val[[i]] <- coef(object[[i]])
     class(val) <- "listof"
     val
@@ -604,7 +604,8 @@ se.contrast.aovlist <-
         n.object <- length(object)
         e.assign <- c(e.assign,
                       rep.int(n.object - 1L, nrow(c.qr) - length(e.assign)))
-	res <- setNames(vector("list", n.object), names(object))
+        res <- vector(length = n.object, mode = "list")
+        names(res) <- names(object)
         for(j in seq_along(names(object))) {
             strata <- object[[j]]
             if(is.qr(strata$qr)) {

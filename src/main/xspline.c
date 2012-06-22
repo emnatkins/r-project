@@ -219,17 +219,17 @@ point_computing(double *A_blend,
   *y = EQN_NUMERATOR(py) / (weights_sum);
 }
 
-static double
+static float
 step_computing(int k,
 	       double *px, double *py,
 	       double s1, double s2,
-	       double precision,
+	       float precision,
                pGEDevDesc dd)
 {
   double A_blend[4];
   double xstart, ystart, xend, yend, xmid, ymid, xlength, ylength;
   double start_to_end_dist, devWidth, devHeight, devDiag, number_of_steps;
-  double  step, angle_cos, scal_prod, xv1, xv2, yv1, yv2, sides_length_prod;
+  float  step, angle_cos, scal_prod, xv1, xv2, yv1, yv2, sides_length_prod;
 
   /* This function computes the step used to draw the segment (p1, p2)
      (xv1, yv1) : coordinates of the vector from middle to origin
@@ -340,7 +340,7 @@ step_computing(int k,
 }
 
 static void
-spline_segment_computing(double step, int k,
+spline_segment_computing(float step, int k,
 			 double *px, double *py,
 			 double s1, double s2,
 			 pGEDevDesc dd)
@@ -387,7 +387,7 @@ spline_segment_computing(double step, int k,
  * (i.e., can't just connect to last control point)
  */
 static void
-spline_last_segment_computing(double step, int k,
+spline_last_segment_computing(float step, int k,
 			      double *px, double *py,
 			      double s1, double s2,
 			      pGEDevDesc dd)
@@ -452,11 +452,11 @@ spline_last_segment_computing(double step, int k,
 static Rboolean
 compute_open_spline(int n, double *x, double *y, double *s,
 		    Rboolean repEnds,
-		    double precision,
+		    float precision,
 		    pGEDevDesc dd)
 {
   int       k;
-  double     step = 0.0 /* -Wall */;
+  float     step = 0.0 /* -Wall */;
   double px[4];
   double py[4];
   double ps[4]={0.,0.,0.,0.};
@@ -514,11 +514,11 @@ compute_open_spline(int n, double *x, double *y, double *s,
 
 static Rboolean
 compute_closed_spline(int n, double *x, double *y, double *s,
-		      double precision,
+		      float precision,
 		      pGEDevDesc dd)
 {
   int k;
-  double step;
+  float     step;
   double px[4];
   double py[4];
   double ps[4];

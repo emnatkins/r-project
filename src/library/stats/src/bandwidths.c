@@ -112,9 +112,9 @@ band_den_bin(int *n, int *nb, double *d, double *x, int *cnt)
     rang = (xmax - xmin) * 1.01;
     *d = dd = rang / (*nb);
     for (i = 1; i < nn; i++) {
-	ii = (int)(x[i] / dd);
+	ii = x[i] / dd;
 	for (j = 0; j < i; j++) {
-	    jj = (int)(x[j] / dd);
+	    jj = x[j] / dd;
 	    iij = abs9((ii - jj));
 	    cnt[iij]++;
 	}

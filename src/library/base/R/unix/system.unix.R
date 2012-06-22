@@ -112,9 +112,10 @@ Sys.which <- function(names)
         return(res)
     }
     for(i in names) {
-        ## Quoting was added in 2.16.0
-        ans <- suppressWarnings(system(paste(which, shQuote(i)),
-                                       intern = TRUE, ignore.stderr = TRUE))
+        ## NB: this does not quote names, so user has to.
+        ## This is documented as from R 2.15.1
+        ans <- suppressWarnings(system(paste(which, i), intern=TRUE,
+                                       ignore.stderr=TRUE))
         ## Solaris' which gives 'no foo in ...' message on stdout,
         ## GNU which does it on stderr
         if(grepl("solaris", R.version$os)) {

@@ -214,7 +214,8 @@ factanal.fit.mle <-
                              paste0("Factor", 1L:factors))
     p <- ncol(cmat)
     dof <- 0.5 * ((p - factors)^2 - p - factors)
-    un <- setNames(res$par, colnames(cmat))
+    un <- res$par
+    names(un) <- colnames(cmat)
     class(Lambda) <- "loadings"
     ans <- list(converged = res$convergence == 0,
                 loadings = Lambda, uniquenesses = un,
@@ -237,7 +238,8 @@ print.loadings <- function(x, digits = 3, cutoff = 0.1, sort = FALSE, ...)
         Lambda <- Lambda[order(mx, 1L:p),]
     }
     cat("\nLoadings:\n")
-    fx <- setNames(format(round(Lambda, digits)), NULL)
+    fx <- format(round(Lambda, digits))
+    names(fx) <- NULL
     nc <- nchar(fx[1L], type="c")
     fx[abs(Lambda) < cutoff] <- paste(rep(" ", nc), collapse = "")
     print(fx, quote = FALSE, ...)

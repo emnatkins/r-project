@@ -14,18 +14,16 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-ifelse <- function (test, yes, no)
+ifelse <-
+    function (test, yes, no)
 {
-    if(is.atomic(test))# do not lose attributes
-	storage.mode(test) <- "logical"
-    else ## typically a "class"; storage.mode<-() typically fails
-	test <- if(isS4(test)) as(test, "logical") else as.logical(test)
+    storage.mode(test) <- "logical"
     ans <- test
-    ok <- !(nas <- is.na(test))
-    if (any(test[ok]))
-        ans[test & ok] <- rep(yes, length.out = xlength(ans))[test & ok]
-    if (any(!test[ok]))
-        ans[!test & ok] <- rep(no, length.out = xlength(ans))[!test & ok]
+    nas <- is.na(test)
+    if (any(test[!nas]))
+        ans[test & !nas] <- rep(yes, length.out = length(ans))[test & !nas]
+    if (any(!test[!nas]))
+        ans[!test & !nas] <- rep(no, length.out = length(ans))[!test & !nas]
     ans[nas] <- NA
     ans
 }

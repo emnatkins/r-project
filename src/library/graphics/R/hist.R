@@ -31,8 +31,6 @@ hist.default <-
 	stop("'x' must be numeric")
     xname <- paste(deparse(substitute(x), 500), collapse="\n")
     n <- length(x <- x[is.finite(x)])
-    n <- as.integer(n)
-    if(is.na(n)) stop("invalid length(x)")
     use.br <- !missing(breaks)
     if(use.br) {
 	if(!missing(nclass))
@@ -68,8 +66,6 @@ hist.default <-
 	if(nB <= 1) ##-- Impossible !
 	    stop("hist.default: pretty() error, breaks=", format(breaks))
     }
-    nB <- as.integer(nB)
-    if(is.na(nB)) stop("invalid length(breaks)")
 
     ## Do this *before* adding fuzz or logic breaks down...
 
@@ -104,7 +100,11 @@ hist.default <-
     ## With the fuzz adjustment above, the "right" and "include"
     ## arguments are often irrelevant (not with integer data!)
     counts <- .C("bincount",
-		 x, n, fuzzybreaks, nB, counts = integer(nB - 1),
+		 x,
+		 as.integer(n),
+		 fuzzybreaks,
+		 as.integer(nB),
+		 counts = integer(nB - 1),
 		 right = as.logical(right),
 		 include= as.logical(include.lowest), naok = FALSE,
 		 NAOK = FALSE, DUP = FALSE, PACKAGE = "base") $counts

@@ -32,14 +32,9 @@ plot.function <-
 	if(missing(to))	to <- xlim[2L]
     }
     if (is.null(ylab)) {
-        sx <- substitute(x)
-        ylab <- if(mode(x) != "name")
-            deparse(sx)[1L]
-        else {
-            xname <- list(...)[["xname"]]
-            if (is.null(xname)) xname <- "x"
-            paste0(sx, "(", xname, ")")
-        }
+        xname <- list(...)[["xname"]]
+        if (is.null(xname)) xname <- "x"
+       ylab <- paste0(substitute(x), "(", xname, ")")
     }
     ## name args to avoid partial matches from ...
     curve(expr = x, from = from, to = to, xlim = xlim, ylab = ylab, ...)
@@ -334,7 +329,7 @@ text.formula <- function(formula, data = parent.frame(), ..., subset)
 plot.xy <- function(xy, type, pch = par("pch"), lty = par("lty"),
                     col = par("col"), bg = NA, cex = 1, lwd = par("lwd"),
                     ...)
-    invisible(.External.graphics(C_plotXY, xy, type, pch, lty, col, bg, cex, lwd, ...))
+    .Internal(plot.xy(xy, type, pch, lty, col, bg, cex, lwd, ...))
 
 
 plot.new <- function()
@@ -344,7 +339,7 @@ plot.new <- function()
         if (is.character(fun)) fun <- get(fun)
         try(fun())
     }
-    .External2(C_plot_new)
+    .Internal(plot.new())
     for(fun in getHook("plot.new")) {
         if(is.character(fun)) fun <- get(fun)
         try(fun())
@@ -355,10 +350,7 @@ plot.new <- function()
 frame <- plot.new
 
 plot.window <- function(xlim, ylim, log = "", asp = NA, ...)
-{
-    .External.graphics(C_plot_window, xlim, ylim, log, asp, ...)
-    invisible()
-}
+    .Internal(plot.window(xlim, ylim, log, asp, ...))
 
 plot.data.frame <- function (x, ...)
 {
@@ -398,21 +390,12 @@ grconvertX <- function(x, from = "user", to = "user")
 {
     from <- pmatch(from, .units)
     to <- pmatch(to, .units)
-    .External(C_convertX, as.double(x), from, to)
+    .Internal(grconvertX(as.double(x), from, to))
 }
 
 grconvertY <- function(y, from = "user", to = "user")
 {
     from <- pmatch(from, .units)
     to <- pmatch(to, .units)
-    .External(C_convertY, as.double(y), from, to)
+    .Internal(grconvertY(as.double(y), from, to))
 }
-
-## unexported helper for stats::plot.hclust
-plotHclust <-
-    function (n, merge, height, order, hang, labels, ...)
-{
-    .External.graphics(C_dendwindow, n, merge, height, hang, labels, ...)
-    .External.graphics(C_dend, n, merge, height, order, hang, labels, ...)
-}
-

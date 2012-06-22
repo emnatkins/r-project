@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2002--2012  The R Core Team
+ *  Copyright (C) 2002--2011  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Pulic License as published by
@@ -94,8 +94,7 @@ SEXP attribute_hidden do_agrep(SEXP call, SEXP op, SEXP args, SEXP env)
     SEXP pat, vec, ind, ans;
     SEXP opt_costs, opt_bounds;
     int opt_icase, opt_value, opt_fixed, useBytes;
-    R_xlen_t i, j, n;
-    int nmatches, patlen;
+    int i, j, n, nmatches, patlen;
     Rboolean useWC = FALSE;
     const void *vmax = NULL;
 
@@ -131,7 +130,7 @@ SEXP attribute_hidden do_agrep(SEXP call, SEXP op, SEXP args, SEXP env)
 
     if(opt_icase) cflags |= REG_ICASE;
 
-    n = XLENGTH(vec);
+    n = LENGTH(vec);
     if(!useBytes) {
 	Rboolean haveBytes = IS_BYTES(STRING_ELT(pat, 0));
 	if(!haveBytes)
@@ -240,8 +239,10 @@ SEXP attribute_hidden do_agrep(SEXP call, SEXP op, SEXP args, SEXP env)
     }
     tre_regfree(&reg);
 
+    PROTECT(ans = opt_value
+	    ? allocVector(STRSXP, nmatches)
+	    : allocVector(INTSXP, nmatches));
     if(opt_value) {
-	PROTECT(ans = allocVector(STRSXP, nmatches));
 	SEXP nmold = getAttrib(vec, R_NamesSymbol), nm;
 	for (j = i = 0 ; i < n ; i++) {
 	    if(LOGICAL(ind)[i])
@@ -255,20 +256,10 @@ SEXP attribute_hidden do_agrep(SEXP call, SEXP op, SEXP args, SEXP env)
 		    SET_STRING_ELT(nm, j++, STRING_ELT(nmold, i));
 	    setAttrib(ans, R_NamesSymbol, nm);
 	}
-    }
-#ifdef LONG_VECTOR_SUPPORT
-    else if (n > INT_MAX) {
-	PROTECT(ans = allocVector(REALSXP, nmatches));
+    } else {
 	for (j = i = 0 ; i < n ; i++)
 	    if(LOGICAL(ind)[i] == 1)
-		REAL(ans)[j++] = (double)(i + 1);
-    }
-#endif
-    else {
-	PROTECT(ans = allocVector(INTSXP, nmatches));
-	for (j = i = 0 ; i < n ; i++)
-	    if(LOGICAL(ind)[i] == 1)
-		INTEGER(ans)[j++] = (int)(i + 1);
+		INTEGER(ans)[j++] = i + 1;
     }
 
     UNPROTECT(2);

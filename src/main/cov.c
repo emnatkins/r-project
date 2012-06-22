@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995-2012	The R Core Team
+ *  Copyright (C) 1995-2011	The R Core Team
  *  Copyright (C) 2003		The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -25,21 +25,6 @@
 #include <Defn.h>
 #include <Rmath.h>
 
-#include "statsR.h"
-
-static SEXP corcov(SEXP x, SEXP y, SEXP na_method, SEXP kendall, Rboolean cor);
-
-
-SEXP cor(SEXP x, SEXP y, SEXP na_method, SEXP kendall)
-{
-    return corcov(x, y, na_method, kendall, TRUE);
-}
-SEXP cov(SEXP x, SEXP y, SEXP na_method, SEXP kendall)
-{
-    return corcov(x, y, na_method, kendall, FALSE);
-}
-
-
 
 #define COV_SUM_UPDATE				\
 		    sum += xm * ym;		\
@@ -58,7 +43,7 @@ SEXP cov(SEXP x, SEXP y, SEXP na_method, SEXP kendall)
 /** Compute   Cov(xx[], yy[])  or  Cor(.,.)  with n = length(xx)
  */
 #define COV_PAIRWISE_BODY						\
-	long double sum, xmean = 0., ymean = 0., xsd, ysd, xm, ym;	\
+	long double sum, xmean =0., ymean =0., xsd, ysd, xm, ym;		\
         int k, nobs, n1 = -1;	/* -Wall initializing */		\
 									\
 	    nobs = 0;							\
@@ -113,14 +98,14 @@ SEXP cov(SEXP x, SEXP y, SEXP na_method, SEXP kendall)
 			    ysd /= n1;					\
 			    sum /= n1;					\
 			}						\
-			sum /= (sqrtl(xsd) * sqrtl(ysd));	       	\
+			sum /= (sqrt(xsd) * sqrt(ysd));			\
 			if(sum > 1.) sum = 1.;				\
 		    }							\
 		}							\
 		else if(!kendall)					\
 		    sum /= n1;						\
 									\
-		ANS(i,j) = (double) sum;       				\
+		ANS(i,j) = sum;						\
 	    }								\
 	    else							\
 		ANS(i,j) = NA_REAL
@@ -206,7 +191,7 @@ static void cov_pairwise2(int n, int ncx, int ncy, double *x, double *y,
 		    sum += (xx[k] - tmp);	\
 	     tmp = tmp + sum / nobs;		\
 	}					\
-	_X_##m [i] = (double)tmp;		\
+	_X_##m [i] = tmp;			\
     }
 
 /* This uses two passes for better accuracy */
@@ -228,7 +213,7 @@ static void cov_pairwise2(int n, int ncx, int ncy, double *x, double *y,
 		tmp = tmp + sum / n;		\
 	    }					\
 	}					\
-	_X_##m [i] = (double)tmp;		\
+	_X_##m [i] = tmp;			\
     }
 
 
@@ -255,7 +240,7 @@ cov_complete1(int n, int ncx, double *x, double *xm,
 		for (k = 0 ; k < n ; k++)
 		    if (ind[k] != 0)
 			sum += (xx[k] - xxm) * (yy[k] - yym);
-		ANS(j,i) = ANS(i,j) = (double)(sum / n1);
+		ANS(j,i) = ANS(i,j) = sum / n1;
 	    }
 	}
 	else { /* Kendall's tau */
@@ -268,7 +253,7 @@ cov_complete1(int n, int ncx, double *x, double *xm,
 			    if (ind[n1] != 0)
 				sum += sign(xx[k] - xx[n1])
 				     * sign(yy[k] - yy[n1]);
-		ANS(j,i) = ANS(i,j) = (double)sum;
+		ANS(j,i) = ANS(i,j) = sum;
 	    }
 	}
     }
@@ -285,7 +270,7 @@ cov_complete1(int n, int ncx, double *x, double *xm,
 		else {
 		    sum = ANS(i,j) / (xm[i] * xm[j]);
 		    if(sum > 1.) sum = 1.;
-		    ANS(j,i) = ANS(i,j) = (double)sum;
+		    ANS(j,i) = ANS(i,j) = sum;
 		}
 	    }
 	    ANS(i,i) = 1.0;
@@ -324,7 +309,7 @@ cov_na_1(int n, int ncx, double *x, double *xm,
 			sum = 0.;
 			for (k = 0 ; k < n ; k++)
 			    sum += (xx[k] - xxm) * (yy[k] - yym);
-			ANS(j,i) = ANS(i,j) = (double)(sum / n1);
+			ANS(j,i) = ANS(i,j) = sum / n1;
 		    }
 	    }
 	    else { /* Kendall's tau */
@@ -337,7 +322,7 @@ cov_na_1(int n, int ncx, double *x, double *xm,
 			for (k = 0 ; k < n ; k++)
 			    for (n1 = 0 ; n1 < n ; n1++)
 				sum += sign(xx[k] - xx[n1]) * sign(yy[k] - yy[n1]);
-			ANS(j,i) = ANS(i,j) = (double)sum;
+			ANS(j,i) = ANS(i,j) = sum;
 		    }
 	    }
 	}
@@ -355,7 +340,7 @@ cov_na_1(int n, int ncx, double *x, double *xm,
 		else {
 		    sum = ANS(i,j) / (xm[i] * xm[j]);
 		    if(sum > 1.) sum = 1.;
-		    ANS(j,i) = ANS(i,j) = (double)sum;
+		    ANS(j,i) = ANS(i,j) = sum;
 		}
 	    }
 	    ANS(i,i) = 1.0;
@@ -386,7 +371,7 @@ cov_complete2(int n, int ncx, int ncy, double *x, double *y,
 		for (k = 0 ; k < n ; k++)
 		    if (ind[k] != 0)
 			sum += (xx[k] - xxm) * (yy[k] - yym);
-		ANS(i,j) = (double)(sum / n1);
+		ANS(i,j) = sum / n1;
 	    }
 	}
 	else { /* Kendall's tau */
@@ -399,7 +384,7 @@ cov_complete2(int n, int ncx, int ncy, double *x, double *y,
 			    if (ind[n1] != 0)
 				sum += sign(xx[k] - xx[n1])
  				    * sign(yy[k] - yy[n1]);
-		ANS(i,j) = (double)sum;
+		ANS(i,j) = sum;
 	    }
 	}
     }
@@ -424,7 +409,7 @@ cov_complete2(int n, int ncx, int ncy, double *x, double *y,
 			    if (ind[n1] != 0 &&	 xx[k] != xx[n1])	\
 				sum ++; /* = sign(. - .)^2 */		\
 	    }								\
-	    _X_##m [i] = (double)sqrtl(sum);				\
+	    _X_##m [i] = sqrt(sum);					\
 	}
 
 	COV_SDEV(x); /* -> xm[.] */
@@ -475,7 +460,7 @@ cov_na_2(int n, int ncx, int ncy, double *x, double *y,
 			sum = 0.;
 			for (k = 0 ; k < n ; k++)
 			    sum += (xx[k] - xxm) * (yy[k] - yym);
-			ANS(i,j) = (double)(sum / n1);
+			ANS(i,j) = sum / n1;
 		    }
 	    }
 	    else { /* Kendall's tau */
@@ -488,7 +473,7 @@ cov_na_2(int n, int ncx, int ncy, double *x, double *y,
 			for (k = 0 ; k < n ; k++)
 			    for (n1 = 0 ; n1 < n ; n1++)
 				sum += sign(xx[k] - xx[n1]) * sign(yy[k] - yy[n1]);
-			ANS(i,j) = (double)sum;
+			ANS(i,j) = sum;
 		    }
 	    }
 	}
@@ -513,7 +498,7 @@ cov_na_2(int n, int ncx, int ncy, double *x, double *y,
 			    if (xx[k] != xx[n1])			\
 				sum ++; /* = sign(. - .)^2 */		\
 		}							\
-		_X_##m [i] = (double) sqrtl(sum);			\
+		_X_##m [i] = sqrt(sum);					\
 	    }
 
 	COV_SDEV(x); /* -> xm[.] */
@@ -620,17 +605,23 @@ find_na_2(int n, int ncx, int ncy, double *x, double *y, int *has_na_x, int *has
   "all.obs", "complete.obs", "pairwise.complete", "everything", "na.or.complete"
 	  kendall = TRUE/FALSE)
 */
-static SEXP corcov(SEXP x, SEXP y, SEXP na_method, SEXP skendall, Rboolean cor)
+SEXP attribute_hidden do_cov(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP ans, xm, ym, ind;
-    Rboolean ansmat, kendall, pair, na_fail, everything, sd_0, empty_err;
-    int i, method, n, ncx, ncy, nprotect = 2;
+    SEXP x, y, ans, xm, ym, ind;
+    Rboolean cor, ansmat, kendall, pair, na_fail, everything, sd_0, empty_err;
+    int i, method, n, ncx, ncy;
+
+    checkArity(op, args);
+
+    /* compute correlations if PRIMVAL(op) == 0,
+	       covariances  if PRIMVAL(op) != 0 */
+    cor = PRIMVAL(op);
 
     /* Arg.1: x */
-    if(isNull(x)) /* never allowed */
+    if(isNull(CAR(args))) /* never allowed */
 	error(_("'x' is NULL"));
     /* length check of x -- only if(empty_err) --> below */
-    x = PROTECT(coerceVector(x, REALSXP));
+    x = SETCAR(args, coerceVector(CAR(args), REALSXP));
     if ((ansmat = isMatrix(x))) {
 	n = nrows(x);
 	ncx = ncols(x);
@@ -639,12 +630,14 @@ static SEXP corcov(SEXP x, SEXP y, SEXP na_method, SEXP skendall, Rboolean cor)
 	n = length(x);
 	ncx = 1;
     }
+    args = CDR(args);
     /* Arg.2: y */
-    if (isNull(y)) {/* y = x  : var() */
+    if (isNull(CAR(args))) {/* y = x  : var() */
+	y = R_NilValue;
 	ncy = ncx;
-    } else {
-	y = PROTECT(coerceVector(y, REALSXP));
-	nprotect++;
+    }
+    else {
+	y = SETCAR(args, coerceVector(CAR(args), REALSXP));
 	if (isMatrix(y)) {
 	    if (nrows(y) != n)
 		error(_("incompatible dimensions"));
@@ -657,11 +650,13 @@ static SEXP corcov(SEXP x, SEXP y, SEXP na_method, SEXP skendall, Rboolean cor)
 	    ncy = 1;
 	}
     }
+    args = CDR(args);
     /* Arg.3:  method */
-    method = asInteger(na_method);
+    method = asInteger(CAR(args));
 
+    args = CDR(args);
     /* Arg.4:  kendall */
-    kendall = asLogical(skendall);
+    kendall = asLogical(CAR(args));
 
     /* "default: complete" (easier for -Wall) */
     na_fail = FALSE; everything = FALSE; empty_err = TRUE;
@@ -783,6 +778,6 @@ static SEXP corcov(SEXP x, SEXP y, SEXP na_method, SEXP skendall, Rboolean cor)
     }
     if(sd_0)/* only in cor() */
 	warning(_("the standard deviation is zero"));
-    UNPROTECT(nprotect);
+    UNPROTECT(1);
     return ans;
 }

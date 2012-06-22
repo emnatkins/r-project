@@ -1,7 +1,7 @@
  /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996	Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2012	The R Core Team.
+ *  Copyright (C) 1998--2011	The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -213,7 +213,7 @@ static void R_InitProfiling(SEXP filename, int append, double dinterval, int mem
 #endif
     int interval;
 
-    interval = (int)(1e6 * dinterval + 0.5);
+    interval = 1e6 * dinterval + 0.5;
     if(R_ProfileOutfile != NULL) R_EndProfiling();
     R_ProfileOutfile = RC_fopen(filename, append ? "a" : "w", TRUE);
     if (R_ProfileOutfile == NULL)
@@ -2008,8 +2008,8 @@ static SEXP VectorToPairListNamed(SEXP x)
 
 #define simple_as_environment(arg) (IS_S4_OBJECT(arg) && (TYPEOF(arg) == S4SXP) ? R_getS4DataSlot(arg, ENVSXP) : R_NilValue)
 
-/* "eval": Evaluate the first argument
-   in the environment specified by the second argument. */
+/* "eval" and "eval.with.vis" : Evaluate the first argument */
+/* in the environment specified by the second argument. */
 
 SEXP attribute_hidden do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
@@ -2020,6 +2020,10 @@ SEXP attribute_hidden do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
     RCNTXT cntxt;
 
     checkArity(op, args);
+
+    if (PRIMVAL(op)) {
+	warning(".Internal(eval.with.vis) should not be used and will be removed soon");
+    }
     expr = CAR(args);
     env = CADR(args);
     encl = CADDR(args);
@@ -2109,6 +2113,18 @@ SEXP attribute_hidden do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
     else if( TYPEOF(expr) == PROMSXP ) {
 	expr = eval(expr, rho);
     } /* else expr is returned unchanged */
+    if (PRIMVAL(op)) { /* eval.with.vis(*) : */
+	PROTECT(expr);
+	PROTECT(env = allocVector(VECSXP, 2));
+	PROTECT(encl = allocVector(STRSXP, 2));
+	SET_STRING_ELT(encl, 0, mkChar("value"));
+	SET_STRING_ELT(encl, 1, mkChar("visible"));
+	SET_VECTOR_ELT(env, 0, expr);
+	SET_VECTOR_ELT(env, 1, ScalarLogical(R_Visible));
+	setAttrib(env, R_NamesSymbol, encl);
+	expr = env;
+	UNPROTECT(3);
+    }
     UNPROTECT(1);
     return expr;
 }
@@ -3665,7 +3681,7 @@ static R_INLINE int bcStackIndex(R_bcstack_t *s)
 	if (LENGTH(idx) == 1) {
 	    double val = REAL(idx)[0];
 	    if (! ISNAN(val) && val <= INT_MAX && val > INT_MIN)
-		return (int) val;
+		return val;
 	    else return -1;
 	}
 	else return -1;

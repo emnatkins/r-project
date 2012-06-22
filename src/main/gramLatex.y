@@ -3,7 +3,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996, 1997  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2012  The R Core Team
+ *  Copyright (C) 1997--2010  The R Core Team
  *  Copyright (C) 2010 Duncan Murdoch
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -352,7 +352,7 @@ static int xxgetc(void)
     if (c == EOF) return R_EOF;
     
     R_ParseContextLast = (R_ParseContextLast + 1) % PARSE_CONTEXT_SIZE;
-    R_ParseContext[R_ParseContextLast] = (char) c;
+    R_ParseContext[R_ParseContextLast] = c;
     
     if (c == '\n') {
     	xxlineno += 1;
@@ -406,13 +406,13 @@ static SEXP makeSrcref(YYLTYPE *lloc, SEXP srcfile)
     return val;
 }
 
-static SEXP mkString2(const char *s, size_t len)
+static SEXP mkString2(const char *s, int len)
 {
     SEXP t;
     cetype_t enc = CE_UTF8;
 
     PROTECT(t = allocVector(STRSXP, 1));
-    SET_STRING_ELT(t, 0, mkCharLenCE(s, (int) len, enc));
+    SET_STRING_ELT(t, 0, mkCharLenCE(s, len, enc));
     UNPROTECT(1);
     return t;
 }
@@ -643,7 +643,7 @@ static void yyerror(const char *s)
 }
 
 #define TEXT_PUSH(c) do {                  \
-	size_t nc = bp - stext;       \
+	unsigned int nc = bp - stext;       \
 	if (nc >= nstext - 1) {             \
 	    char *old = stext;              \
             nstext *= 2;                    \
@@ -652,7 +652,7 @@ static void yyerror(const char *s)
 	    memmove(stext, old, nc);        \
 	    if(old != st0) free(old);	    \
 	    bp = stext+nc; }		    \
-	*bp++ = ((char)c);		    \
+	*bp++ = (c);                        \
 } while(0)
 
 static void setfirstloc(void)

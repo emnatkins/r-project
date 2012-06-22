@@ -253,7 +253,8 @@ print.acf <- function(x, digits=3, ...)
     nser <- ncol(x$lag)
     if(type != 2) x$acf <- round(x$acf, digits)
     if(nser == 1) {
-        acfs <- setNames(drop(x$acf), format(drop(x$lag), digits=3))
+        acfs <- drop(x$acf)
+        names(acfs) <- format(drop(x$lag), digits=3)
         print(acfs, digits = digits, ...)
     } else {
         acfs <- format(x$acf, ...)

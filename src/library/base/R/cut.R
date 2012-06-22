@@ -56,7 +56,7 @@ cut.default <-
     if(!is.double(x)) storage.mode(x) <- "double"
     if(!is.double(breaks)) storage.mode(breaks) <- "double"
     nx <- as.integer(length(x))
-    if (is.na(nx)) stop("invalid value of length(x)") # no long vectors
+    if (is.na(nx)) stop("invalid value of length(x)")
     code <- .C("bincode", x = x, n = nx, breaks = breaks,
                as.integer(nb), code = integer(nx), right = as.logical(right),
 	       include = as.logical(include.lowest), naok = TRUE,

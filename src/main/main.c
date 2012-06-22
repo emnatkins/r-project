@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2012   The R Core Team
+ *  Copyright (C) 1998-2011  The R Core Team
  *  Copyright (C) 2002-2005  The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -122,8 +122,8 @@ static void R_ReplFile(FILE *fp, SEXP rho)
 static int prompt_type;
 static char BrowsePrompt[20];
 
-/* This is in no header, so non-API */
-const char *R_PromptString(int browselevel, int type)
+
+char *R_PromptString(int browselevel, int type)
 {
     if (R_Slave) {
 	BrowsePrompt[0] = '\0';
@@ -135,10 +135,10 @@ const char *R_PromptString(int browselevel, int type)
 		sprintf(BrowsePrompt, "Browse[%d]> ", browselevel);
 		return BrowsePrompt;
 	    }
-	    return CHAR(STRING_ELT(GetOption1(install("prompt")), 0));
+	    return (char *)CHAR(STRING_ELT(GetOption1(install("prompt")), 0));
 	}
 	else {
-	    return CHAR(STRING_ELT(GetOption1(install("continue")), 0));
+	    return (char *)CHAR(STRING_ELT(GetOption1(install("continue")), 0));
 	}
     }
 }

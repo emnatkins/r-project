@@ -392,9 +392,7 @@ par(\dots, no.readonly = FALSE)
       (See the help on the device for details of the interpretation.)
 
       Functions such as \code{\link{lines}} and \code{\link{segments}}
-      accept a vector of values which are recycled: in such uses lines
-      corresponding to values \code{NA} or \code{NaN} are omitted.  The
-      interpretation of \code{0} is device-specific.
+      accept a vector of values which are recycled.
     }
     \item{\code{mai}}{A numerical vector of the form \code{c(bottom,
         left, top, right)} which gives the margin size specified in
@@ -708,24 +706,8 @@ ex <- function() {
    invisible() #-- now,  par(old.par)  will be executed
 }
 ex()
+}
 
-## Line types
-showLty <- function(ltys, xoff = 0, ...) {
-   stopifnot((n <- length(ltys)) >= 1)
-   op <- par(mar = rep(.5,4)); on.exit(par(op))
-   plot(0:1,0:1, type = "n", axes=FALSE, ann=FALSE)
-   y <- (n:1)/(n+1)
-   clty <- as.character(ltys)
-   mytext <- function(x,y, txt) text(x, y, txt, adj = c(0, -.3), cex = 0.8, ...)
-   abline(h = y, lty = ltys, ...); mytext(xoff, y, clty)
-   y <- y - 1/(3*(n+1))
-   abline(h = y, lty = ltys, lwd = 2, ...); mytext(1/8+xoff, y, paste(clty," lwd = 2"))
-}
-showLty(c("solid", "dashed", "dotted", "dotdash", "longdash", "twodash"))
-par(new=TRUE)## the same:
-showLty(c("solid", "44", "13", "1343", "73", "2262"), xoff= .2, col=2)
-showLty(c("11", "22", "33", "44",   "12", "13", "14",   "21", "31"))
-}
 \keyword{iplot}
 \keyword{dplot}
 \keyword{environment}

@@ -173,8 +173,6 @@ int rcmdfn (int cmdarg, int argc, char **argv)
 		strcat(cmd, "\"");
 	    } else strcat(cmd, argv[i]);
 	}
-	/* R.exe should ignore Ctrl-C, and let Rterm.exe handle it */
-	SetConsoleCtrlHandler(NULL, TRUE);
 	return system(cmd);
     }
 

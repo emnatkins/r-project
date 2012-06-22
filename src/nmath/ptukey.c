@@ -102,9 +102,9 @@ static double wprob(double w, double rr, double cc)
 	0.233492536538354808760849898925,
 	0.249147045813402785000562436043
     };
-    double a, ac, pr_w, b, binc, c, cc1,
+    double a, ac, pr_w, b, binc, blb, c, cc1,
 	pminus, pplus, qexpo, qsqz, rinsum, wi, wincr, xx;
-    long double blb, bub, einsum, elsum;
+    long double bub, einsum, elsum;
     int j, jj;
 
 
@@ -152,11 +152,11 @@ static double wprob(double w, double rr, double cc)
     cc1 = cc - 1.0;
     for (wi = 1; wi <= wincr; wi++) {
 	elsum = 0.0;
-	a = (double)(0.5 * (bub + blb));
+	a = 0.5 * (bub + blb);
 
 	/* legendre quadrature with order = nleg */
 
-	b = (double)(0.5 * (bub - blb));
+	b = 0.5 * (bub - blb);
 
 	for (jj = 1; jj <= nleg; jj++) {
 	    if (ihalf < jj) {
@@ -195,7 +195,7 @@ static double wprob(double w, double rr, double cc)
     }
 
     /* if pr_w ^ rr < 9e-14, then return 0 */
-    pr_w += (double) einsum;
+    pr_w = einsum + pr_w;
     if (pr_w <= exp(C1 / rr))
 	return 0.;
 

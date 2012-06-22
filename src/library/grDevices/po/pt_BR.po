@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2012-06-07 15:26+0100\n"
+"POT-Creation-Date: 2012-06-07 15:52+0100\n"
 "PO-Revision-Date: 2011-03-26 08:54-0300\n"
 "Last-Translator: Fernando Henrique <pessoal@fernandohrosa.com.br>\n"
 "Language-Team: http://www.feferraz.net/br/P/Projeto_Traducao_R_Portugues\n"
@@ -43,8 +43,8 @@ msgstr "CharInfo não pode ser analisado"
 msgid "unknown AFM entity encountered"
 msgstr "entidade AFM desconhecida encontrada"
 
-#: devPS.c:739 devPS.c:742 devPS.c:4417 devPS.c:7898 devPicTeX.c:487
-#: devPicTeX.c:489
+#: devPS.c:739 devPS.c:742 devPS.c:4417 devPS.c:7898 devPicTeX.c:486
+#: devPicTeX.c:488
 #, c-format
 msgid "invalid string in '%s'"
 msgstr "cadeia de caracteres inválida em '%s'"
@@ -446,7 +446,7 @@ msgstr ""
 msgid "invalid value of '%s'"
 msgstr ""
 
-#: devPS.c:8242 devPS.c:8309 devPS.c:8408 devPicTeX.c:742 devWindows.c:3722
+#: devPS.c:8242 devPS.c:8309 devPS.c:8408 devPicTeX.c:741 devWindows.c:3722
 #, c-format
 msgid "unable to start %s() device"
 msgstr "não é possível iniciar dispositivo %s()"
@@ -627,14 +627,6 @@ msgstr ""
 
 #: devWindows.c:3840
 msgid "Unable to load winCairo.dll: was it built?"
-msgstr ""
-
-#: devices.c:43
-msgid "argument must have positive length"
-msgstr ""
-
-#: devices.c:52
-msgid "invalid argument"
 msgstr ""
 
 #: qdBitmap.c:79

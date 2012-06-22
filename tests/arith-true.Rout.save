@@ -1,8 +1,8 @@
 
-R Under development (unstable) (2012-05-26 r59449) -- "Unsuffered Consequences"
+R version 2.15.0 Patched (2012-05-24 r59442) -- "Easter Beagle"
 Copyright (C) 2012 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
-Platform: x86_64-unknown-linux-gnu (64-bit)
+Platform: x86_64-apple-darwin9.8.0/x86_64 (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -324,5 +324,5 @@ Warning messages:
 > 
 > ## Last Line:
 > cat('Time elapsed: ', proc.time() - .proctime00,'\n')
-Time elapsed:  0.488 0.004 0.505 0 0 
+Time elapsed:  0.333 0.003 0.336 0 0 
 > 

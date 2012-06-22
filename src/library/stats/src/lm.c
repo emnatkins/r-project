@@ -21,8 +21,6 @@
 #include <Rinternals.h>
 #include <R_ext/Applic.h>
 
-#include "statsR.h"
-
 /* A wrapper to replace
 
     z <- .Fortran("dqrls",
@@ -61,11 +59,11 @@ SEXP Cdqrls(SEXP x, SEXP y, SEXP tol)
     }
 
     double *rptr = REAL(x);
-    for (R_xlen_t i = 0 ; i < XLENGTH(x) ; i++)
+    for (int i = 0 ; i < LENGTH(x) ; i++)
 	if(!R_FINITE(rptr[i])) error("NA/NaN/Inf in 'x'");
     
     rptr = REAL(y);
-    for (R_xlen_t i = 0 ; i < XLENGTH(y) ; i++)
+    for (int i = 0 ; i < LENGTH(y) ; i++)
 	if(!R_FINITE(rptr[i])) error("NA/NaN/Inf in 'y'");
 
     PROTECT(ans = allocVector(VECSXP, 9));

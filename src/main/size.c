@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2000-12  The R Core Team
+ *  Copyright (C) 2000-6  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -74,21 +74,21 @@ static R_size_t objectsize(SEXP s)
 	break;
     case LGLSXP:
     case INTSXP:
-	vcnt = INT2VEC(xlength(s));
+	vcnt = INT2VEC(length(s));
 	isVec = TRUE;
 	break;
     case REALSXP:
-	vcnt = FLOAT2VEC(xlength(s));
+	vcnt = FLOAT2VEC(length(s));
 	isVec = TRUE;
 	break;
     case CPLXSXP:
-	vcnt = COMPLEX2VEC(xlength(s));
+	vcnt = COMPLEX2VEC(length(s));
 	isVec = TRUE;
 	break;
     case STRSXP:
-	vcnt = PTR2VEC(xlength(s));
+	vcnt = PTR2VEC(length(s));
 	dup = csduplicated(s);
-	for (i = 0; i < xlength(s); i++) {
+	for (i = 0; i < length(s); i++) {
 	    tmp = STRING_ELT(s, i);
 	    if(tmp != NA_STRING && !LOGICAL(dup)[i])
 		cnt += objectsize(tmp);
@@ -103,8 +103,8 @@ static R_size_t objectsize(SEXP s)
     case EXPRSXP:
     case WEAKREFSXP:
 	/* Generic Vector Objects */
-	vcnt = PTR2VEC(xlength(s));
-	for (i = 0; i < xlength(s); i++)
+	vcnt = PTR2VEC(length(s));
+	for (i = 0; i < length(s); i++)
 	    cnt += objectsize(VECTOR_ELT(s, i));
 	isVec = TRUE;
 	break;
@@ -114,7 +114,7 @@ static R_size_t objectsize(SEXP s)
 	cnt += objectsize(EXTPTR_TAG(s));
 	break;
     case RAWSXP:
-	vcnt = BYTE2VEC(xlength(s));
+	vcnt = BYTE2VEC(length(s));
 	isVec = TRUE;
 	break;
     case S4SXP:

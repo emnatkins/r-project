@@ -14,9 +14,7 @@
   The response is the speed of light measurement, suitably coded
   (km/sec, with \code{299000} subtracted).
 }
-\usage{
-morley
-}
+\usage{morley}
 \format{
   A data frame contains the following components:
   \describe{
@@ -52,12 +50,13 @@ morley
 }
 \examples{
 require(stats); require(graphics)
-michelson <- transform(morley,
-                       Expt = factor(Expt), Run = factor(Run))
-xtabs(~ Expt + Run, data = michelson)# 5 x 20 balanced (two-way)
-plot(Speed ~ Expt, data = michelson,
+morley$Expt <- factor(morley$Expt)
+morley$Run <- factor(morley$Run)
+
+xtabs(~ Expt + Run, data = morley)# 5 x 20 balanced (two-way)
+plot(Speed ~ Expt, data = morley,
      main = "Speed of Light Data", xlab = "Experiment No.")
-fm <- aov(Speed ~ Run + Expt, data = michelson)
+fm <- aov(Speed ~ Run + Expt, data = morley)
 summary(fm)
 fm0 <- update(fm, . ~ . - Run)
 anova(fm0, fm)

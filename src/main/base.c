@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-12   The R Core Team.
+ *  Copyright (C) 2001-8   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,12 +30,9 @@
 #include <Colors.h>
 #include <GraphicsBase.h>
 
-/* From src/main/devices.c */
-extern int baseRegisterIndex;
+int attribute_hidden baseRegisterIndex = -1;
 
 static R_INLINE GPar* dpSavedptr(pGEDevDesc dd) {
-    if (baseRegisterIndex == -1)
-	error(_("no base graphics system is registered"));
     baseSystemState *bss = dd->gesd[baseRegisterIndex]->systemSpecific;
     return &(bss->dpSaved);
 }
@@ -303,38 +300,34 @@ static SEXP baseCallback(GEevent task, pGEDevDesc dd, SEXP data)
 
 /* (un)Register the base graphics system with the graphics engine
  */
-void
+void attribute_hidden
 registerBase(void) {
     GEregisterSystem(baseCallback, &baseRegisterIndex);
 }
 
-void
+void attribute_hidden
 unregisterBase(void) {
     GEunregisterSystem(baseRegisterIndex);
-    baseRegisterIndex = -1;   
 }
+
 
 /* FIXME: Make this a macro to avoid function call overhead?
    Inline it if you really think it matters.
  */
+attribute_hidden
 GPar* gpptr(pGEDevDesc dd) {
-    if (baseRegisterIndex == -1)
-	error(_("the base graphics system is not registered"));
     baseSystemState *bss = dd->gesd[baseRegisterIndex]->systemSpecific;
     return &(bss->gp);
 }
 
+attribute_hidden
 GPar* dpptr(pGEDevDesc dd) {
-    if (baseRegisterIndex == -1)
-	error(_("the base graphics system is not registered"));
     baseSystemState *bss = dd->gesd[baseRegisterIndex]->systemSpecific;
     return &(bss->dp);
 }
 
-/* called in GNewPlot to mark device as 'dirty' */
+attribute_hidden /* used in GNewPlot */
 void Rf_setBaseDevice(Rboolean val, pGEDevDesc dd) {
-    if (baseRegisterIndex == -1)
-	error(_("the base graphics system is not registered"));
     baseSystemState *bss = dd->gesd[baseRegisterIndex]->systemSpecific;
     bss->baseDevice = val;
 }

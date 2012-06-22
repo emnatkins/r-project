@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995-1998  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1999-2012  The R Core Team.
+ *  Copyright (C) 1999-2011  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 #include <Fileio.h>
 #include <Rconnections.h>
 
-static R_xlen_t asVecSize(SEXP x)
+static R_len_t asVecSize(SEXP x)
 {
     if (isVectorAtomic(x) && LENGTH(x) >= 1) {
 	switch (TYPEOF(x)) {
@@ -45,7 +45,7 @@ static R_xlen_t asVecSize(SEXP x)
 	    if(ISNAN(d)) error(_("vector size cannot be NA/NaN"));
 	    if(!R_FINITE(d)) error(_("vector size cannot be infinite"));
 	    if(d < 0) error(_("vector size cannot be negative"));
-	    if(d > R_XLEN_T_MAX) error(_("vector size specified is too large"));
+	    if(d > R_LEN_T_MAX) error(_("vector size specified is too large"));
 	    return (R_size_t) d;
 	}
 	}
@@ -91,7 +91,7 @@ SEXP attribute_hidden do_delayed(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP attribute_hidden do_makelazy(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP names, values, val, expr, eenv, aenv, expr0;
-    R_xlen_t i;
+    int i;
 
     checkArity(op, args);
     names = CAR(args); args = CDR(args);
@@ -104,7 +104,7 @@ SEXP attribute_hidden do_makelazy(SEXP call, SEXP op, SEXP args, SEXP rho)
     aenv = CAR(args);
     if (!isEnvironment(aenv)) error(_("invalid '%s' argument"), "assign.env");
 
-    for(i = 0; i < XLENGTH(names); i++) {
+    for(i = 0; i < LENGTH(names); i++) {
 	SEXP name = install(CHAR(STRING_ELT(names, i)));
 	PROTECT(val = eval(VECTOR_ELT(values, i), eenv));
 	PROTECT(expr0 = duplicate(expr));
@@ -488,7 +488,7 @@ SEXP attribute_hidden do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
     int ifile;
     Rconnection con;
     int append;
-    int i, iobj, n, nobjs, pwidth, width, sepw, lablen, ntot, nlsep, nlines;
+    int w, i, iobj, n, nobjs, pwidth, width, sepw, lablen, ntot, nlsep, nlines;
     char buf[512];
     const char *p = "";
 
@@ -604,7 +604,7 @@ SEXP attribute_hidden do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 			  _("argument %d (type '%s') cannot be handled by 'cat'"),
 			  1+iobj, type2char(TYPEOF(s)));
 	    /* FIXME : cat(...) should handle ANYTHING */
-	    size_t w = strlen(p);
+	    w = strlen(p);
 	    cat_sepwidth(sepr, &sepw, ntot);
 	    if ((iobj > 0) && (width + w + sepw > pwidth)) {
 		cat_newline(labs, &width, lablen, nlines);
@@ -612,7 +612,7 @@ SEXP attribute_hidden do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    }
 	    for (i = 0; i < n; i++, ntot++) {
 		Rprintf("%s", p);
-		width += (int)(w + sepw);
+		width += w + sepw;
 		if (i < (n - 1)) {
 		    cat_printsep(sepr, ntot);
 		    if (isString(s))
@@ -622,7 +622,7 @@ SEXP attribute_hidden do_cat(SEXP call, SEXP op, SEXP args, SEXP rho)
 			strncpy(buf, p, 512); buf[511] = '\0';
 			p = buf;
 		    }
-		    w = (int) strlen(p);
+		    w = strlen(p);
 		    cat_sepwidth(sepr, &sepw, ntot);
 		    /* This is inconsistent with the version above.
 		       As from R 2.3.0, fill <= 0 is ignored. */
@@ -712,7 +712,7 @@ SEXP attribute_hidden do_expression(SEXP call, SEXP op, SEXP args, SEXP rho)
 /* vector(mode="logical", length=0) */
 SEXP attribute_hidden do_makevector(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
-    R_xlen_t len;
+    R_len_t len;
     SEXP s;
     SEXPTYPE mode;
     checkArity(op, args);
@@ -736,8 +736,7 @@ SEXP attribute_hidden do_makevector(SEXP call, SEXP op, SEXP args, SEXP rho)
 	s = allocVector(mode, len);
 	break;
     case LISTSXP:
-	if (len > INT_MAX) error("too long for a pairlist");
-	s = allocList((int) len);
+	s = allocList(len);
 	break;
     default:
 	error(_("vector: cannot make a vector of mode '%s'."),
@@ -760,14 +759,13 @@ SEXP attribute_hidden do_makevector(SEXP call, SEXP op, SEXP args, SEXP rho)
 /* (if it is vectorizable). We could probably be fairly */
 /* clever with memory here if we wanted to. */
 
-/* used in connections.c */
-SEXP xlengthgets(SEXP x, R_xlen_t len)
+SEXP lengthgets(SEXP x, R_len_t len)
 {
-    R_xlen_t lenx, i;
+    R_len_t lenx, i;
     SEXP rval, names, xnames, t;
     if (!isVector(x) && !isVectorizable(x))
 	error(_("cannot set length of non-vector"));
-    lenx = xlength(x);
+    lenx = length(x);
     if (lenx == len)
 	return (x);
     PROTECT(rval = allocVector(TYPEOF(x), len));
@@ -853,47 +851,28 @@ SEXP xlengthgets(SEXP x, R_xlen_t len)
     return rval;
 }
 
-/* public older version */
-SEXP lengthgets(SEXP x, R_len_t len)
-{
-    return xlengthgets(x, (R_xlen_t) len);
-}
-
 
 SEXP attribute_hidden do_lengthgets(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
+    R_len_t len;
     SEXP x, ans;
 
     checkArity(op, args);
     check1arg(args, call, "x");
 
     x = CAR(args);
-
-    if (PRIMVAL(op)) { /* xlength<- */
-	if(isObject(x) && DispatchOrEval(call, op, "xlength<-", args,
-					 rho, &ans, 0, 1))
-	    return(ans);
-	if(isObject(x) && DispatchOrEval(call, op, "length<-", args,
-					 rho, &ans, 0, 1))
-	    return(ans);
-	if (!isVector(x) && !isVectorizable(x))
-	    error(_("invalid argument"));
-	if (length(CADR(args)) != 1)
-	    error(_("invalid value"));
-	R_xlen_t len = asVecSize(CADR(args));
-	return xlengthgets(x, len);
-    }
     if(isObject(x) && DispatchOrEval(call, op, "length<-", args,
 				     rho, &ans, 0, 1))
 	return(ans);
     if (!isVector(x) && !isVectorizable(x))
-	error(_("invalid argument"));
+       error(_("invalid argument"));
     if (length(CADR(args)) != 1)
-	error(_("invalid value"));
-    R_xlen_t len = asVecSize(CADR(args));
+       error(_("invalid value"));
+    len = asVecSize(CADR(args));
+    if (len == NA_INTEGER)
+       error(_("missing value for 'length'"));
     if (len < 0) error(_("invalid value"));
-    if (len > R_LEN_T_MAX) error(_("vector size specified is too large"));
-    return lengthgets(x, (R_len_t) len);
+    return lengthgets(x, len);
 }
 
 /* Expand dots in args, but do not evaluate */

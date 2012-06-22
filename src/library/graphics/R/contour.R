@@ -58,16 +58,15 @@ function (x = seq(0, 1, length.out = nrow(z)),
     if (!is.double(z)) storage.mode(z) <- "double"
     method <- pmatch(method[1L], c("simple", "edge", "flattest"))
     if (missing(vfont))
-       vfont <- if(.Call(C_contourDef)) NULL else c("sans serif", "plain")
+       vfont <- if(.Call("Rg_contourDef", PACKAGE="base")) NULL else c("sans serif", "plain")
     if (!is.null(vfont))
         vfont <- c(typeface = pmatch(vfont[1L], Hershey$typeface),
                    fontindex= pmatch(vfont[2L], Hershey$fontindex))
     if (!is.null(labels))
         labels <- as.character(labels)
-    .External.graphics(C_contour, as.double(x), as.double(y), z,
-                       as.double(levels),
-                       labels, labcex, drawlabels, method, vfont,
-                       col, lty, lwd)
+    .Internal(contour(as.double(x), as.double(y), z, as.double(levels),
+		      labels, labcex, drawlabels, method, vfont,
+		      col = col, lty = lty, lwd = lwd))
     if(!add) {
         ## at least col, lty, lwd are not needed,
         ## but easiest to be consistent with plot.default

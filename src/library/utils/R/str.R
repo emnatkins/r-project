@@ -44,7 +44,7 @@ str.data.frame <- function(object, ...)
 str.Date <- str.POSIXt <- function(object, ...) {
     cl <- oldClass(object)
     ## be careful to be fast for large object:
-    n <- length(object) # FIXME, could be NA
+    n <- length(object)
     if(n == 0L) return(str.default(object))
     if(n > 1000L) object <- object[seq_len(1000L)]
 
@@ -61,7 +61,7 @@ str.Date <- str.POSIXt <- function(object, ...) {
 	    larg <- larg[ - iGiveHead ]
 	if(is.numeric(larg[["nest.lev"]]) &&
 	   is.numeric(v.len <- larg[["vec.len"]])) # typical call from data.frame
-	    ## reduce length for typical call:
+	    ## diminuish length for typical call:
 	    larg[["vec.len"]] <-
 		min(larg[["vec.len"]],
 		    (larg[["width"]]- nchar(larg[["indent.str"]]) -31)%/% 19)
@@ -128,30 +128,15 @@ str.default <-
 	    ss <- strwrap(ss, width = width, exdent = nind)
 					# wraps at white space (only)
 	}
-	if(any(iLong <- nchar(ss) > width)) { ## cut hard
-	    sL <- ss[iLong]
-	    k <- as.integer(width-2)
-	    if(any(i <- grepl("\"", substr(sL, k +1L, nchar(sL))))) {
-		## care *not* to cut off the closing   "  at end of
-		## string that's already truncated {-> maybe_truncate()} :
-		ss[iLong[ i]] <- paste0(substr(sL[ i], 1, k-1L), "\"..")
-		ss[iLong[!i]] <- paste0(substr(sL[!i], 1, k), "..")
-	    } else {
-		ss[iLong] <- paste0(substr(sL, 1, k),"..")
-	    }
-	}
+	if(any(iLong <- nchar(ss) > width))
+	    ss[iLong] <- sub(sprintf("^(.{1,%d}).*", width-2), "\\1..",
+			     ss[iLong])
 	cat(ss, sep="\n")
 	return(invisible())
     }
 
     oo <- options(digits = digits.d); on.exit(options(oo))
-    le <- xlength(object)
-    if(is.na(le)) {
-        warning("'str.default': 'le' is NA, so taken as 0", immediate. = TRUE)
-        le <- 0
-        vec.len <- 0
-    }
-
+    le <- length(object)
     maybe_truncate <- function(x, e.x = x, Sep = "\"", ch = "| __truncated__")
     {
 	trimmed <- strtrim(e.x, nchar.max)
@@ -270,10 +255,10 @@ str.default <-
 							 inherits= TRUE))))) {
 		## str.default is a 'NextMethod' : omit the 'List of ..'
 		std.attr <- c(std.attr, "class", if(is.d.f) "row.names")
-	    } else { # need as.character here for double xlengths.
+	    } else {
 		cat(if(i.pl) "Dotted pair list" else
 		    if(irregCl) paste(pClass(cl), "hidden list") else "List",
-		    " of ", as.character(le), "\n", sep="")
+		    " of ", le, "\n", sep="")
 	    }
 	    if (is.na(max.level) || nest.lev < max.level) {
 		nam.ob <-
@@ -515,6 +500,9 @@ str.default <-
 	    format.fun <- formatNum
 	}
 
+	## Not sure, this is ever triggered:
+	if(is.na(le)) { warning("'str.default': 'le' is NA"); le <- 0}
+
 	if(char.like) {
 	    ## if object is very long, drop the rest which won't be used anyway:
 	    max.len <- max(100, width %/% 3 + 1, if(!missing(vec.len)) vec.len)
@@ -554,7 +542,8 @@ str.default <-
 	    if (all(nam[i] != std.attr)) {# only `non-standard' attributes:
 		cat(indent.str, paste0('- attr(*, "',nam[i],'")='),sep="")
 		strSub(a[[i]], give.length=give.length,
-		       indent.str= paste(indent.str,".."), nest.lev= nest.lev+1)
+                       indent.str= paste(indent.str,".."), nest.lev= nest.lev+1,
+                       vec.len = if(nam[i] == "source") 1 else vec.len)
 	    }
     }
     invisible()	 ## invisible(object)#-- is SLOOOOW on large objects

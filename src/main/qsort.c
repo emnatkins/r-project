@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2002-2012   The R Core Team.
+ *  Copyright (C) 2002   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@
 SEXP attribute_hidden do_qsort(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP x, sx;
-    int indx_ret;
+    int indx_ret, n;
     double *vx = NULL;
     int *ivx = NULL;
     Rboolean x_real, x_int;
@@ -57,25 +57,23 @@ SEXP attribute_hidden do_qsort(SEXP call, SEXP op, SEXP args, SEXP rho)
        if (!isNull(getAttrib(sx, R_NamesSymbol)))
 	   setAttrib(sx, R_NamesSymbol, R_NilValue); */
     indx_ret = asLogical(CADR(args));
-    R_xlen_t n = XLENGTH(x);
+    n = LENGTH(x);
     if(x_int) ivx = INTEGER(sx); else vx = REAL(sx);
     if(indx_ret) {
-	if (n > INT_MAX) 
-	    error(_("long vectors are not supported for index.return"));
 	SEXP ans, ansnames, indx;
-	int i, *ix, nn = (int) n;
+	int i, *ix;
 	/* answer will have x = sorted x , ix = index :*/
 	PROTECT(ans      = allocVector(VECSXP, 2));
 	PROTECT(ansnames = allocVector(STRSXP, 2));
 	PROTECT(indx = allocVector(INTSXP, n));
 	ix = INTEGER(indx);
-	for(i = 0; i < nn; i++)
+	for(i = 0; i < n; i++)
 	    ix[i] = i+1;
 
 	if(x_int)
-	    R_qsort_int_I(ivx, ix, 1, nn);
+	    R_qsort_int_I(ivx, ix, 1, n);
 	else
-	    R_qsort_I(vx, ix, 1, nn);
+	    R_qsort_I(vx, ix, 1, n);
 
 	SET_VECTOR_ELT(ans, 0, sx);
 	SET_VECTOR_ELT(ans, 1, indx);
@@ -110,6 +108,7 @@ void F77_SUB(qsort3)(double *v, int *ii, int *jj)
     R_qsort(v, *ii, *jj);
 }
 
+
 #define qsort_Index
 #define NUMERIC double
 void R_qsort_I(double *v, int *I, int i, int j)
@@ -124,11 +123,11 @@ void R_qsort_int_I(int *v, int *I, int i, int j)
 #undef qsort_Index
 
 #define NUMERIC double
-void R_qsort(double *v, size_t i, size_t j)
+void R_qsort(double *v, int i, int j)
 #include "qsort-body.c"
 #undef NUMERIC
 
 #define NUMERIC int
-void R_qsort_int(int *v, size_t i, size_t j)
+void R_qsort_int(int *v, int i, int j)
 #include "qsort-body.c"
 #undef NUMERIC

@@ -36,9 +36,8 @@ rect <-
                 density = density, angle = angle, ...)
     }
     else
-        .External.graphics(C_rect, as.double(xleft), as.double(ybottom),
-                           as.double(xright), as.double(ytop),
-                           col = col, border = border,
-                           lty = lty, lwd = lwd, ...)
-    invisible()
+        .Internal(rect(as.double(xleft), as.double(ybottom),
+                       as.double(xright), as.double(ytop),
+                       col = col, border = border,
+                       lty = lty, lwd = lwd, ...))
 }

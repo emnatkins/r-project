@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2012-05-28 r59470) -- "Unsuffered Consequences"
+R version 2.15.0 Patched (2012-04-10 r58965) -- "Easter Beagle"
 Copyright (C) 2012 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-unknown-linux-gnu (64-bit)
@@ -1878,89 +1878,20 @@ Coefficients:
 > 
 > 
 > ## quantile extremes, MM 13 Apr 2000 and PR#1852
-> (qq <- sapply(0:5, function(k) {
-+     x <- c(rep(-Inf,k+1), 0:k, rep(Inf, k))
-+     sapply(1:9, function(typ)
-+            quantile(x, pr=(2:10)/10, type=typ))
-+ }, simplify="array"))
-, , 1
-
-     [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9]
-20%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf
-30%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf
-40%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf
-50%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf
-60%     0    0 -Inf -Inf -Inf -Inf -Inf -Inf -Inf
-70%     0    0 -Inf -Inf -Inf    0 -Inf -Inf -Inf
-80%     0    0    0 -Inf    0    0 -Inf    0    0
-90%     0    0    0 -Inf    0    0 -Inf    0    0
-100%    0    0    0    0    0    0    0    0    0
-
-, , 2
-
-     [,1] [,2] [,3] [,4] [,5] [,6] [,7]      [,8]  [,9]
-20%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf      -Inf  -Inf
-30%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf      -Inf  -Inf
-40%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf      -Inf  -Inf
-50%     0  0.0 -Inf -Inf  0.0  0.0  0.0 0.0000000 0.000
-60%     0  0.5    0  0.0  0.5  0.6  0.4 0.5333333 0.525
-70%     1  1.0    1  0.5  1.0  Inf  0.8       Inf   Inf
-80%     1  Inf    1  1.0  Inf  Inf  Inf       Inf   Inf
-90%   Inf  Inf    1  Inf  Inf  Inf  Inf       Inf   Inf
-100%  Inf  Inf  Inf  Inf  Inf  Inf  Inf       Inf   Inf
-
-, , 3
-
-     [,1] [,2] [,3] [,4] [,5] [,6] [,7]     [,8]  [,9]
-20%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf     -Inf  -Inf
-30%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf     -Inf  -Inf
-40%     0  0.0 -Inf -Inf -Inf -Inf -Inf     -Inf  -Inf
-50%     0  0.5    0  0.0  0.5  0.5  0.5 0.500000 0.500
-60%     1  1.0    1  0.8  1.3  1.4  1.2 1.333333 1.325
-70%     2  2.0    2  1.6  Inf  Inf  1.9      Inf   Inf
-80%   Inf  Inf    2  Inf  Inf  Inf  Inf      Inf   Inf
-90%   Inf  Inf  Inf  Inf  Inf  Inf  Inf      Inf   Inf
-100%  Inf  Inf  Inf  Inf  Inf  Inf  Inf      Inf   Inf
-
-, , 4
-
-     [,1] [,2] [,3] [,4] [,5] [,6] [,7]     [,8]  [,9]
-20%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf     -Inf  -Inf
-30%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf     -Inf  -Inf
-40%     0    0 -Inf -Inf -Inf -Inf    0     -Inf  -Inf
-50%     1    1    1  0.5  1.0  1.0    1 1.000000 1.000
-60%     2    2    2  1.6  2.1  2.2    2 2.133333 2.125
-70%     3    3    3  2.7  Inf  Inf    3      Inf   Inf
-80%   Inf  Inf  Inf  Inf  Inf  Inf  Inf      Inf   Inf
-90%   Inf  Inf  Inf  Inf  Inf  Inf  Inf      Inf   Inf
-100%  Inf  Inf  Inf  Inf  Inf  Inf  Inf      Inf   Inf
-
-, , 5
-
-     [,1] [,2] [,3] [,4] [,5] [,6] [,7]       [,8]  [,9]
-20%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf       -Inf  -Inf
-30%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf       -Inf  -Inf
-40%     0  0.0    0 -Inf  0.1  0.0  0.2 0.06666667 0.075
-50%     1  1.5    1  1.0  1.5  1.5  1.5 1.50000000 1.500
-60%     3  3.0    2  2.4  2.9  3.0  2.8 2.93333333 2.925
-70%     4  4.0    4  3.8  Inf  Inf  Inf        Inf   Inf
-80%   Inf  Inf  Inf  Inf  Inf  Inf  Inf        Inf   Inf
-90%   Inf  Inf  Inf  Inf  Inf  Inf  Inf        Inf   Inf
-100%  Inf  Inf  Inf  Inf  Inf  Inf  Inf        Inf   Inf
-
-, , 6
-
-     [,1] [,2] [,3] [,4] [,5] [,6] [,7]      [,8]  [,9]
-20%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf      -Inf  -Inf
-30%  -Inf -Inf -Inf -Inf -Inf -Inf -Inf      -Inf  -Inf
-40%     0    0    0 -Inf  0.3  0.2  0.4 0.2666667 0.275
-50%     2    2    1  1.5  2.0  2.0  2.0 2.0000000 2.000
-60%     4    4    3  3.2  3.7  3.8  3.6 3.7333333 3.725
-70%     5    5    5  4.9  Inf  Inf  Inf       Inf   Inf
-80%   Inf  Inf  Inf  Inf  Inf  Inf  Inf       Inf   Inf
-90%   Inf  Inf  Inf  Inf  Inf  Inf  Inf       Inf   Inf
-100%  Inf  Inf  Inf  Inf  Inf  Inf  Inf       Inf   Inf
-
+> for(k in 0:5)
++     print(quantile(c(rep(-Inf,k+1), 0:k, rep(Inf, k)), pr=seq(0,1, .1)))
+  0%  10%  20%  30%  40%  50%  60%  70%  80%  90% 100% 
+-Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf -Inf    0 
+  0%  10%  20%  30%  40%  50%  60%  70%  80%  90% 100% 
+-Inf -Inf -Inf -Inf -Inf  0.0  0.4  0.8  Inf  Inf  Inf 
+  0%  10%  20%  30%  40%  50%  60%  70%  80%  90% 100% 
+-Inf -Inf -Inf -Inf -Inf  0.5  1.2  1.9  Inf  Inf  Inf 
+  0%  10%  20%  30%  40%  50%  60%  70%  80%  90% 100% 
+-Inf -Inf -Inf -Inf    0    1    2    3  Inf  Inf  Inf 
+  0%  10%  20%  30%  40%  50%  60%  70%  80%  90% 100% 
+-Inf -Inf -Inf -Inf  0.2  1.5  2.8  Inf  Inf  Inf  Inf 
+  0%  10%  20%  30%  40%  50%  60%  70%  80%  90% 100% 
+-Inf -Inf -Inf -Inf  0.4  2.0  3.6  Inf  Inf  Inf  Inf 
 > x <- c(-Inf, -Inf, Inf, Inf)
 > median(x)
 [1] NaN
@@ -3721,6 +3652,26 @@ sample estimates:
 probability of success 
              0.9876543 
 
+> 
+> 
+> ## Misleading error messages on integer overflow
+> ## Uwe Ligges, R-devel, 2004-02-19
+> ## (modified to make printed result the same whether numeric() is
+> ##  compiled or interpreted)
+> ## try(numeric(2^31))
+> tryCatch(numeric(2^31),
++          error = function(e) paste("Error:", conditionMessage(e)))
+[1] "Error: vector size specified is too large"
+> try(matrix( , 2^31, 1))
+Error in matrix(, 2^31, 1) : invalid 'nrow' value (too large or NA)
+In addition: Warning message:
+In matrix(, 2^31, 1) : NAs introduced by coercion
+> try(matrix( , 2^31/10, 100))
+Error in matrix(, 2^31/10, 100) : too many elements specified
+> try(array(dim=c(2^31/10, 100)))
+Error in array(dim = c(2^31/10, 100)) : 
+  'dim' specifies too large an array
+> ## reported negative values (really integer NA) for R < 1.9.0
 > 
 > 
 > ## aov with a singular error model
@@ -6420,15 +6371,15 @@ function ()
 > print.function
 function (x, ...)  
  - attr(*, "srcref")=Class 'srcref'  atomic [1:8] 1 19 1 63 19 63 1 1
-  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x4baf208> 
+  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x2c92e80> 
 > f
 function ()  
  - attr(*, "srcref")=Class 'srcref'  atomic [1:8] 1 17 1 28 17 28 1 1
-  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x4b9f088> 
+  .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x2cb4a80> 
  - attr(*, "note")= chr "just a note"
  - attr(*, "yada")=function ()  
   ..- attr(*, "srcref")=Class 'srcref'  atomic [1:8] 2 24 2 48 24 48 2 2
-  .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x4b9f088> 
+  .. .. ..- attr(*, "srcfile")=Classes 'srcfilecopy', 'srcfile' <environment: 0x2cb4a80> 
 > rm(print.function)
 > ## auto-printing and printing differed up to R 2.9.x
 > 
@@ -6902,30 +6853,5 @@ Multiple R-squared: 0.9986,	Adjusted R-squared: 0.9984
 F-statistic:  4412 on 1 and 6 DF,  p-value: 7.834e-10 
 
 > ## issue is how the 5-number summary is labelled
-> ## (also seen in example(case.names))
-> 
-> 
-> ## is.unsorted got it backwards for dataframes of more than one column
-> ## it is supposed to look for violations of x[2] > x[1], x[3] > x[2], etc.
-> is.unsorted(data.frame(x=2:1))
-[1] FALSE
-> is.unsorted(data.frame(x=1:2, y=3:4))
-[1] FALSE
-> is.unsorted(data.frame(x=3:4, y=1:2))
-[1] TRUE
-> ## R < 2.15.1 got these as FALSE, TRUE, FALSE.
-> 
-> ## Error in constructing the error message
-> assertErrorPrint <- function(expr) {
-+     stopifnot(inherits(e <- tryCatch(expr, error=function(e)e), "error"))
-+     cat("Asserted Error:", e[["message"]],"\n")
-+ }
-> library("methods")# (not needed here)
-> assertErrorPrint( getMethod(ls, "bar", fdef=ls) )
-Asserted Error: No generic function found for "ls" 
-> assertErrorPrint( getMethod(show, "bar") )
-Asserted Error: No method found for function "show" and signature bar 
-> ## R < 2.15.1 gave
-> ##   cannot coerce type 'closure' to vector of type 'character'
-> 
+> ## (also seem in example(case.names))
 > 

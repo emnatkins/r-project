@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-05-21 13:03\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: 2005-04-14 18:07+0200\n"
 "Last-Translator: stefano iacus <>\n"
 "Language-Team: Italian <it@li.org>\n"
@@ -721,9 +721,6 @@ msgstr "l'argomento 'x' deve essere numerico"
 msgid "'x' contains missing values"
 msgstr "'x' contiene valori mancanti"
 
-msgid "invalid value of length(x)"
-msgstr ""
-
 #, fuzzy
 msgid "'x' and 'weights' have unequal length"
 msgstr "'x' e 'g' devono avere la stessa lunghezza"
@@ -1349,6 +1346,9 @@ msgid ""
 msgstr ""
 "si deve specificare y.\n"
 "Per la stima di densità usare density()"
+
+msgid "invalid value of length(x)"
+msgstr ""
 
 msgid "'k' is not an integer"
 msgstr "'k' non è intero"
@@ -2007,6 +2007,9 @@ msgstr ""
 msgid "'newdata' does not have the correct number of columns"
 msgstr "'newdata' ha un numero di colonne non corretto"
 
+msgid "wrong number of predictors"
+msgstr "numero di predittori sbagliato"
+
 msgid "both 'x' and 'covmat' were supplied: 'x' will be ignored"
 msgstr "specificati sia 'x' che 'covmat': 'x' verrà ignorata"
 
@@ -2185,10 +2188,6 @@ msgstr "'control.spar' non valido"
 #, fuzzy
 msgid "missing or infinite values in inputs are not allowed"
 msgstr "non sono ammessi pesi negativi o mancanti"
-
-#, fuzzy
-msgid "invalid number of points"
-msgstr "numero di predittori sbagliato"
 
 msgid "lengths of 'x' and 'w' must match"
 msgstr "le lunghezze di 'x' e 'w' devono coincidere"
@@ -2608,13 +2607,6 @@ msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] ""
 msgstr[1] ""
-
-#~ msgid "wrong number of predictors"
-#~ msgstr "numero di predittori sbagliato"
-
-#, fuzzy
-#~ msgid "invalid value oflength(x)"
-#~ msgstr "metodo di cluster non valido"
 
 #~ msgid "extra arguments"
 #~ msgstr "argomenti extra"

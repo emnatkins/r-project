@@ -52,7 +52,6 @@ smooth.spline <-
     if(!all(is.finite(c(x, y))))
         stop("missing or infinite values in inputs are not allowed")
     n <- length(x)
-    if(is.na(n)) stop("invalid number of points")
     w <-
 	if(is.null(w)) rep(1, n)
 	else {
@@ -136,8 +135,8 @@ smooth.spline <-
 	    dofoff <- df
 	} else warning("you must supply 1 < df <= n,  n = #{unique x} = ", nx)
     }
-    iparms <- setNames(as.integer(c(icrit,ispar, contr.sp$maxit)),
-		       c("icrit", "ispar", "iter"))
+    iparms <- as.integer(c(icrit,ispar, contr.sp$maxit))
+    names(iparms) <- c("icrit", "ispar", "iter")
 
     keep.stuff <- FALSE ## << to become an argument in the future
     ans.names <- c("coef","ty","lev","spar","parms","crit","iparms","ier",

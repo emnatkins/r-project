@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.15.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-05-21 13:03\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: 2012-03-06 09:25+0100\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R Core <r-core@r-project.org>\n"
@@ -693,9 +693,6 @@ msgstr "Argument 'x' muss numerisch sein"
 msgid "'x' contains missing values"
 msgstr "'x' enthält fehlende Werte"
 
-msgid "invalid value of length(x)"
-msgstr ""
-
 msgid "'x' and 'weights' have unequal length"
 msgstr "'x' und 'weights' sind nicht gleich lang"
 
@@ -1299,6 +1296,9 @@ msgid ""
 msgstr ""
 "numerisches y muss angegeben werden.\n"
 "Zur Dichteschätzung bitte density() nutzen"
+
+msgid "invalid value of length(x)"
+msgstr ""
 
 msgid "'k' is not an integer"
 msgstr "'k' ist keine ganze Zahl"
@@ -1928,6 +1928,9 @@ msgstr ""
 msgid "'newdata' does not have the correct number of columns"
 msgstr "'newdata' hat falsche Anzahl von Spalten"
 
+msgid "wrong number of predictors"
+msgstr "falsche Anzahl Prediktoren"
+
 msgid "both 'x' and 'covmat' were supplied: 'x' will be ignored"
 msgstr "sowohl 'x' als auch 'covmat' sind angegeben: 'x' wird ignoriert"
 
@@ -2092,10 +2095,6 @@ msgstr "unzulässiges 'control.spar'"
 
 msgid "missing or infinite values in inputs are not allowed"
 msgstr "fehlende oder unendliche Werte sind als Eingaben nicht zugelassen"
-
-#, fuzzy
-msgid "invalid number of points"
-msgstr "falsche Anzahl Prediktoren"
 
 msgid "lengths of 'x' and 'w' must match"
 msgstr "Längen von 'x' und 'w' müssen übereinstimmen"
@@ -2500,13 +2499,6 @@ msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "Parameter %s kommt in der Modellgleichung nicht vor"
 msgstr[1] "Parameter %s kommen in der Modellgleichung nicht vor"
-
-#~ msgid "wrong number of predictors"
-#~ msgstr "falsche Anzahl Prediktoren"
-
-#, fuzzy
-#~ msgid "invalid value oflength(x)"
-#~ msgstr "unzulässige Clustring-Methode"
 
 #~ msgid "extra arguments"
 #~ msgstr "zusätzliche Argumente"

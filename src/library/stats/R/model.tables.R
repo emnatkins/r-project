@@ -27,9 +27,9 @@ model.tables.aov <- function(x, type = "effects", se = FALSE, cterms, ...)
     if(is.null(x$call)) stop("this fit does not inherit from \"lm\"")
     mf <- model.frame(x)
     factors <- attr(prjs, "factors")
-    nf <- names(factors)
-    dn.proj <- setNames(as.list(nf), nf)
+    dn.proj <- as.list(names(factors))
     m.factors <- factors
+    names(m.factors) <- names(dn.proj) <- names(factors)
     t.factor <- attr(prjs, "t.factor")
     vars <- colnames(t.factor)
     which <- match(vars, names(dn.proj))
@@ -107,7 +107,7 @@ model.tables.aovlist <- function(x, type = "effects", se = FALSE, ...)
     factors <- lapply(prjs, attr, "factors")
     dn.proj <- unlist(lapply(factors, names), recursive = FALSE)
     m.factors <- unlist(factors, recursive = FALSE)
-    dn.strata <- rep.int(names(factors), vapply(factors, length, 1L))
+    dn.strata <- rep.int(names(factors), unlist(lapply(factors, length)))
     names(dn.strata) <- names(m.factors) <- names(dn.proj) <- unlist(dn.proj)
     t.factor <- attr(prjs, "t.factor")
     efficiency <- FALSE
@@ -202,7 +202,8 @@ se.aovlist <- function(object, dn.proj, dn.strata, factors, mf, efficiency, n,
 make.tables.aovproj <-
     function(proj.cols, mf.cols, prjs, mf, fun = "mean", prt = FALSE, ...)
 {
-    tables <- setNames(vector("list", length(proj.cols)), names(proj.cols))
+    tables <- vector(mode = "list", length = length(proj.cols))
+    names(tables) <- names(proj.cols)
     for(i in seq_along(tables)) {
 	terms <- proj.cols[[i]]
         terms <- terms[terms %in% colnames(prjs)]
@@ -222,7 +223,8 @@ make.tables.aovprojlist <-
     function(proj.cols, strata.cols, model.cols, projections, model, eff,
 	     fun = "mean", prt = FALSE, ...)
 {
-    tables <- setNames(vector("list", length(proj.cols)), names(proj.cols))
+    tables <- vector(mode = "list", length = length(proj.cols))
+    names(tables) <- names(proj.cols)
     if(!missing(eff)) {
 	for(i in seq_along(tables)) {
 	    terms <- proj.cols[[i]]
@@ -308,7 +310,8 @@ replications <- function(formula, data = NULL, na.action)
     data <- na.action(data)
     class(data) <- NULL
     n <- length(o)
-    z <- setNames(vector("list", n), labels)
+    z <- vector("list", n)
+    names(z) <- labels
     dummy <- numeric(.row_names_info(data, 2L))
     notfactor <- !sapply(data, function(x) inherits(x, "factor"))
     balance <- TRUE

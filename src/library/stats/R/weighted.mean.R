@@ -18,12 +18,9 @@ weighted.mean <- function(x, w, ...) UseMethod("weighted.mean")
 
 weighted.mean.default <- function(x, w, ..., na.rm = FALSE)
 {
-    if(missing(w)) {
-        ## avoid creating weights vector
-        if (na.rm) x <- x[!is.na(x)]
-        return(sum(x)/xlength(x))
-    }
-    if (xlength(w) != xlength(x))
+    if(missing(w))
+        w <- rep.int(1, length(x))
+    else if (length(w) != length(x))
         stop("'x' and 'w' must have the same length")
     w <- as.double(w) # avoid overflow in sum for integer weights.
     if (na.rm) { i <- !is.na(x); w <- w[i]; x <- x[i] }

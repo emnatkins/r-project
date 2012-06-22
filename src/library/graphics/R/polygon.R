@@ -241,9 +241,9 @@ polygon <-
             if (end > start) {
                 den <- density[i]
                 if(is.na(den) || den < 0)
-                    .External.graphics(C_polygon, xy$x[start:(end - 1)],
-                                       xy$y[start:(end - 1)],
-                                       col[i], NA, lty[i], ...)
+                    .Internal(polygon(xy$x[start:(end - 1)],
+                                      xy$y[start:(end - 1)],
+                                      col[i], NA, lty[i], ...))
                 else if (den > 0) {
 
                         ## note: if col[i]==NA, "segments" will fill with par("fg")
@@ -256,22 +256,21 @@ polygon <-
                                           ..debug.hatch = ..debug.hatch, ...)
                     }
 
-                ## compatible with C_polygon:
+                ## compatible with .Internal(polygon)
                 ## only cycle through col, lty, etc. on non-empty polygons
                 i <- i + 1
             }
             start <- end + 1
         }
-        .External.graphics(C_polygon, xy$x, xy$y, NA, border, lty, ...)
+        .Internal(polygon(xy$x, xy$y, NA, border, lty, ...))
     }
     else {
         if (is.logical(border)) {
             if (!is.na(border) && border) border <- par("fg")
             else border <- NA
         }
-        .External.graphics(C_polygon, xy$x, xy$y, col, border, lty, ...)
+        .Internal(polygon(xy$x, xy$y, col, border, lty, ...))
     }
-    invisible()
 }
 
 xspline <-
@@ -281,12 +280,11 @@ xspline <-
     xy <- xy.coords(x, y)
     s <- rep.int(shape, length(xy$x))
     if(open) s[1L] <- s[length(x)] <- 0
-    invisible(.External.graphics(C_xspline, xy$x, xy$y, s, open, repEnds,
-                                 draw, col, border, ...))
+    .Internal(xspline(xy$x, xy$y, s, open, repEnds, draw, col, border, ...))
 }
 
 polypath <-
-  function(x, y = NULL,
+  function(x, y = NULL, 
            border = NULL, col = NA, lty = par("lty"),
            rule = "winding", ...)
 {
@@ -301,18 +299,17 @@ polypath <-
     # Determine path components
     breaks <- which(is.na(xy$x) | is.na(xy$y))
     if (length(breaks) == 0) { # Only one path
-        .External.graphics(C_path, xy$x, xy$y,
-                           as.integer(length(xy$x)), as.integer(rule),
-                           col, border, lty, ...)
+        .Internal(path(xy$x, xy$y,
+                       as.integer(length(xy$x)), as.integer(rule),
+                       col, border, lty, ...))
     } else {
         nb <- length(breaks)
         lengths <- c(breaks[1] - 1,
                      diff(breaks) - 1,
                      length(xy$x) - breaks[nb])
-        .External.graphics(C_path, xy$x[-breaks], xy$y[-breaks],
-                           as.integer(lengths), as.integer(rule),
-                           col, border, lty, ...)
+        .Internal(path(xy$x[-breaks], xy$y[-breaks],
+                       as.integer(lengths), as.integer(rule),
+                       col, border, lty, ...))
     }
-    invisible()
 }
 

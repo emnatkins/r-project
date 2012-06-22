@@ -612,7 +612,6 @@ extern0 int	R_BrowseLines	INI_as(0);	/* lines/per call in browser */
 extern0 int	R_Expressions	INI_as(5000);	/* options(expressions) */
 extern0 int	R_Expressions_keep INI_as(5000);	/* options(expressions) */
 extern0 Rboolean R_KeepSource	INI_as(FALSE);	/* options(keep.source) */
-extern0 Rboolean R_CBoundsCheck	INI_as(FALSE);	/* options(CBoundsCheck) */
 extern0 int	R_WarnLength	INI_as(1000);	/* Error/warning max length */
 extern0 int	R_nwarnings	INI_as(50);
 extern uintptr_t R_CStackLimit	INI_as((uintptr_t)-1);	/* C stack limit */
@@ -681,7 +680,7 @@ extern0   Rboolean WinUTF8out  INI_as(FALSE);  /* Use UTF-8 for output */
 extern0   void WinCheckUTF8(void);
 #endif
 
-extern char OutDec	INI_as('.');  /* decimal point used for output */
+extern0 char OutDec	INI_as('.');  /* decimal point used for output */
 extern0 Rboolean R_DisableNLinBrowser	INI_as(FALSE);
 
 /* Initialization of the R environment when it is embedded */
@@ -740,10 +739,10 @@ typedef struct {
 
 LibExtern AccuracyInfo R_AccuracyInfo;
 
-extern unsigned int max_contour_segments INI_as(25000);
+extern0 unsigned int max_contour_segments INI_as(25000);
 
-extern Rboolean known_to_be_latin1 INI_as(FALSE);
-extern Rboolean known_to_be_utf8 INI_as(FALSE);
+extern0 Rboolean known_to_be_latin1 INI_as(FALSE);
+extern0 Rboolean known_to_be_utf8 INI_as(FALSE);
 
 #ifdef __MAIN__
 # undef extern
@@ -882,6 +881,7 @@ extern Rboolean known_to_be_utf8 INI_as(FALSE);
 # define utf8toucs		Rf_utf8toucs
 # define utf8towcs		Rf_utf8towcs
 # define vectorIndex		Rf_vectorIndex
+# define vectorSubscript	Rf_vectorSubscript
 # define warningcall		Rf_warningcall
 # define WarningMessage		Rf_WarningMessage
 # define wcstoutf8		Rf_wcstoutf8
@@ -983,7 +983,7 @@ void findcontext(int, SEXP, SEXP);
 SEXP findVar1(SEXP, SEXP, SEXPTYPE, int);
 void FrameClassFix(SEXP);
 SEXP frameSubscript(int, SEXP, SEXP);
-R_xlen_t get1index(SEXP, SEXP, R_xlen_t, int, int, SEXP);
+int get1index(SEXP, SEXP, int, int, int, SEXP);
 SEXP getVar(SEXP, SEXP);
 SEXP getVarInFrame(SEXP, SEXP);
 void InitArithmetic(void);
@@ -1012,7 +1012,7 @@ void jump_to_toplevel(void);
 void KillAllDevices(void);
 SEXP levelsgets(SEXP, SEXP);
 void mainloop(void);
-SEXP makeSubscript(SEXP, SEXP, R_xlen_t *, SEXP);
+SEXP makeSubscript(SEXP, SEXP, int *, SEXP);
 SEXP markKnown(const char *, SEXP);
 SEXP mat2indsub(SEXP, SEXP, SEXP);
 SEXP matchArg(SEXP, SEXP*);
@@ -1031,7 +1031,7 @@ SEXP NewEnvironment(SEXP, SEXP, SEXP);
 void onintr(void);
 RETSIGTYPE onsigusr1(int);
 RETSIGTYPE onsigusr2(int);
-R_xlen_t OneIndex(SEXP, SEXP, R_xlen_t, int, SEXP*, int, SEXP);
+int OneIndex(SEXP, SEXP, int, int, SEXP*, int, SEXP);
 SEXP parse(FILE*, int);
 void PrintDefaults(void);
 void PrintGreeting(void);
@@ -1082,6 +1082,8 @@ void unmarkPhase(void);
 SEXP R_LookupMethod(SEXP, SEXP, SEXP, SEXP);
 int usemethod(const char *, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP*);
 SEXP vectorIndex(SEXP, SEXP, int, int, int, SEXP);
+SEXP Rf_vectorSubscript(int, SEXP, int*, SEXP (*)(SEXP,SEXP),
+                        SEXP (*)(SEXP, int), SEXP, SEXP);
 
 #ifdef R_USE_SIGNALS
 void begincontext(RCNTXT*, int, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1199,7 +1201,7 @@ double R_atof(const char *str);
 void set_rl_word_breaks(const char *str);
 
 /* From localecharset.c */
-extern const char *locale2charset(const char *);
+extern char *locale2charset(const char *);
 
 /* Localization */
 

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2012  The R Core Team.
+ *  Copyright (C) 1997--2010  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,7 +45,6 @@
 #include <Defn.h>
 #include <Rmath.h>
 #include <Graphics.h>		/* "GPar" structure + COMMENTS */
-
 
 typedef struct {
     char *name;
@@ -159,10 +158,11 @@ static void par_error(const char *what)
 }
 
 
-static void lengthCheck(const char *what, SEXP v, int n)
+static void lengthCheck(const char *what, SEXP v, int n, SEXP call)
 {
     if (length(v) != n)
-	error(_("graphical parameter \"%s\" has the wrong length"), what);
+	error(_("graphical parameter \"%s\" has the wrong length"),
+		  what);
 }
 
 
@@ -229,7 +229,7 @@ static void BoundsCheck(double x, double a, double b, const char *s)
      "R_DEV_2(\\1)" nil nil nil)
 */
 
-static void Specify(const char *what, SEXP value, pGEDevDesc dd)
+static void Specify(const char *what, SEXP value, pGEDevDesc dd, SEXP call)
 {
 /* If you ADD a NEW par, then do NOT forget to update the code in
  *			 ../library/base/R/par.R
@@ -252,7 +252,6 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
  */
     double x;
     int ix = 0;
-    char cx = '\0';
 
     /* If we get here, Query has already checked that 'what' is valid */
 
@@ -260,25 +259,40 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
 	warning(_("graphical parameter \"%s\" cannot be set"), what);
 	return;
     }
-#define FOR_PAR
 #include "par-common.c"
-#undef FOR_PAR
-/*	  ------------ */
+/*	  ------------
+ *--- now, these are *different* from  "Specify2() use" : */
     else if (streql(what, "bg")) {
-	lengthCheck(what, value, 1);
+	lengthCheck(what, value, 1, call);
 	ix = RGBpar3(value, 0, dpptr(dd)->bg);
 	/*	naIntCheck(ix, what); */
 	R_DEV__(bg) = ix;
 	R_DEV__(new) = FALSE;
     }
+    else if (streql(what, "cex")) {
+	lengthCheck(what, value, 1, call);	x = asReal(value);
+	posRealCheck(x, what);
+	R_DEV__(cex) = 1.0; /* ! (highlevel par, i.e.  Specify2(), set x ! */
+	R_DEV__(cexbase) = x;
+    }
+
+    else if (streql(what, "fg")) {
+	/* par(fg=) sets BOTH "fg" and "col" */
+	lengthCheck(what, value, 1, call);
+	ix = RGBpar3(value, 0, dpptr(dd)->bg);
+	/*	naIntCheck(ix, what); */
+	R_DEV__(col) = R_DEV__(fg) = ix;
+    }
+
+
 /*--- and these are "Specify() only" {i.e. par(nam = val)} : */
     else if (streql(what, "ask")) {
-	lengthCheck(what, value, 1);	ix = asLogical(value);
+	lengthCheck(what, value, 1, call);	ix = asLogical(value);
 	dd->ask = (ix == 1);/* NA |-> FALSE */
     }
     else if (streql(what, "fig")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4);
+	lengthCheck(what, value, 4, call);
 	if (0.0 <= REAL(value)[0] && REAL(value)[0] < REAL(value)[1] &&
 	    REAL(value)[1] <= 1.0 &&
 	    0.0 <= REAL(value)[2] && REAL(value)[2] < REAL(value)[3] &&
@@ -304,9 +318,19 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
 	}
 	else par_error(what);
     }
+    else if (streql(what, "family")) {
+	const char *ss;
+	value = coerceVector(value, STRSXP);
+	lengthCheck(what, value, 1, call);
+	ss = translateChar(STRING_ELT(value, 0));
+	if(strlen(ss) > 200)
+	    error(_("graphical parameter 'family' has a maximum length of 200 bytes"));
+	strncpy(dpptr(dd)->family, ss, 201);
+	strncpy(gpptr(dd)->family, ss, 201);
+    }
     else if (streql(what, "fin")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 2);
+	lengthCheck(what, value, 2, call);
 	R_DEV_2(defaultFigure) = 0;
 	R_DEV_2(fUnits) = INCHES;
 	R_DEV_2(numrows) = 1;
@@ -325,14 +349,14 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
     }
     /* -- */
     else if (streql(what, "lheight")) {
-	lengthCheck(what, value, 1);
+	lengthCheck(what, value, 1, call);
 	x = asReal(value);
 	posRealCheck(x, what);
 	R_DEV__(lheight) = x;
     }
     else if (streql(what, "mai")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4);
+	lengthCheck(what, value, 4, call);
 	nonnegRealCheck(REAL(value)[0], what);
 	nonnegRealCheck(REAL(value)[1], what);
 	nonnegRealCheck(REAL(value)[2], what);
@@ -347,7 +371,7 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
     }
     else if (streql(what, "mar")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4);
+	lengthCheck(what, value, 4, call);
 	nonnegRealCheck(REAL(value)[0], what);
 	nonnegRealCheck(REAL(value)[1], what);
 	nonnegRealCheck(REAL(value)[2], what);
@@ -361,7 +385,7 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
 	GReset(dd);
     }
     else if (streql(what, "mex")) {
-	lengthCheck(what, value, 1);	x = asReal(value);
+	lengthCheck(what, value, 1, call);	x = asReal(value);
 	posRealCheck(x, what);
 	R_DEV__(mex) = x;
 	GReset(dd);
@@ -369,7 +393,7 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
     else if (streql(what, "mfrow")) {
 	int nrow, ncol;
 	value = coerceVector(value, INTSXP);
-	lengthCheck(what, value, 2);
+	lengthCheck(what, value, 2, call);
 	posIntCheck(INTEGER(value)[0], what);
 	posIntCheck(INTEGER(value)[1], what);
 	nrow = INTEGER(value)[0];
@@ -398,7 +422,7 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
     else if (streql(what, "mfcol")) {
 	int nrow, ncol;
 	value = coerceVector(value, INTSXP);
-	lengthCheck(what, value, 2);
+	lengthCheck(what, value, 2, call);
 	posIntCheck(INTEGER(value)[0], what);
 	posIntCheck(INTEGER(value)[1], what);
 	nrow = INTEGER(value)[0];
@@ -468,7 +492,7 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
     } /* mfg */
 
     else if (streql(what, "new")) {
-	lengthCheck(what, value, 1);
+	lengthCheck(what, value, 1, call);
 	ix = asLogical(value);
 	if(!gpptr(dd)->state) {
 	    /* no need to warn with new=FALSE and no plot */
@@ -479,7 +503,7 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
 
     else if (streql(what, "oma")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4);
+	lengthCheck(what, value, 4, call);
 	nonnegRealCheck(REAL(value)[0], what);
 	nonnegRealCheck(REAL(value)[1], what);
 	nonnegRealCheck(REAL(value)[2], what);
@@ -495,7 +519,7 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
     }
     else if (streql(what, "omd")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4);
+	lengthCheck(what, value, 4, call);
 	BoundsCheck(REAL(value)[0], 0.0, 1.0, what);
 	BoundsCheck(REAL(value)[1], 0.0, 1.0, what);
 	BoundsCheck(REAL(value)[2], 0.0, 1.0, what);
@@ -511,7 +535,7 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
     }
     else if (streql(what, "omi")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4);
+	lengthCheck(what, value, 4, call);
 	nonnegRealCheck(REAL(value)[0], what);
 	nonnegRealCheck(REAL(value)[1], what);
 	nonnegRealCheck(REAL(value)[2], what);
@@ -529,7 +553,7 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
 
     else if (streql(what, "pin")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 2);
+	lengthCheck(what, value, 2, call);
 	nonnegRealCheck(REAL(value)[0], what);
 	nonnegRealCheck(REAL(value)[1], what);
 	R_DEV__(pin[0]) = REAL(value)[0];
@@ -540,7 +564,7 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
     }
     else if (streql(what, "plt")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4);
+	lengthCheck(what, value, 4, call);
 	nonnegRealCheck(REAL(value)[0], what);
 	nonnegRealCheck(REAL(value)[1], what);
 	nonnegRealCheck(REAL(value)[2], what);
@@ -554,16 +578,16 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
 	GReset(dd);
     }
     else if (streql(what, "ps")) {
-	lengthCheck(what, value, 1);	ix = asInteger(value);
+	lengthCheck(what, value, 1, call);	ix = asInteger(value);
 	nonnegIntCheck(ix, what);
 	R_DEV__(ps) = ix;
     }
     else if (streql(what, "pty")) {
 	if (!isString(value) || LENGTH(value) < 1)
 	    par_error(what);
-	cx = CHAR(STRING_ELT(value, 0))[0];
-	if (cx == 'm' || cx == 's') {
-	    R_DEV__(pty) = cx;
+	ix = CHAR(STRING_ELT(value, 0))[0];
+	if (ix == 'm' || ix == 's') {
+	    R_DEV__(pty) = ix;
 	    R_DEV__(defaultPlot) = TRUE;
 	}
 	else par_error(what);
@@ -571,7 +595,7 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
     /* -- */
     else if (streql(what, "usr")) {
 	value = coerceVector(value, REALSXP);
-	lengthCheck(what, value, 4);
+	lengthCheck(what, value, 4, call);
 	naRealCheck(REAL(value)[0], what);
 	naRealCheck(REAL(value)[1], what);
 	naRealCheck(REAL(value)[2], what);
@@ -610,19 +634,19 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
     }/* usr */
 
     else if (streql(what, "xlog")) {
-	lengthCheck(what, value, 1);	ix = asLogical(value);
+	lengthCheck(what, value, 1, call);	ix = asLogical(value);
 	if (ix == NA_LOGICAL)
 	    par_error(what);
 	R_DEV__(xlog) = (ix != 0);
     }
     else if (streql(what, "ylog")) {
-	lengthCheck(what, value, 1);	ix = asLogical(value);
+	lengthCheck(what, value, 1, call);	ix = asLogical(value);
 	if (ix == NA_LOGICAL)
 	    par_error(what);
 	R_DEV__(ylog) = (ix != 0);
     }
     else if (streql(what, "ylbias")) {
-	lengthCheck(what, value, 1);
+	lengthCheck(what, value, 1, call);
 	dd->dev->yLineBias = asReal(value);
     }
     /* We do not need these as Query will already have warned.
@@ -646,11 +670,10 @@ static void Specify(const char *what, SEXP value, pGEDevDesc dd)
 /* Now defined differently in Specify2() : */
 #define R_DEV__(_P_) gpptr(dd)->_P_
 
-static void Specify2(const char *what, SEXP value, pGEDevDesc dd)
+static void Specify2(const char *what, SEXP value, pGEDevDesc dd, SEXP call)
 {
     double x;
     int ix = 0, ptype = ParCode(what);
-    char cx = '\0';
 
     if (ptype == 1 || ptype == -3) {
 	/* 1: these are valid, but not settable inline
@@ -672,6 +695,39 @@ static void Specify2(const char *what, SEXP value, pGEDevDesc dd)
     }
 
 #include "par-common.c"
+/*	  ------------
+ *  these are *different* from Specify() , i.e., par(<NAM> = .) use : */
+    else if (streql(what, "bg")) {
+	/* bg can be a vector of length > 1, so pick off first value
+	   (as e.g. pch always did) */
+	if (!isVector(value) || LENGTH(value) < 1)
+	    par_error(what);
+	R_DEV__(bg) = RGBpar3(value, 0, dpptr(dd)->bg);
+    }
+    else if (streql(what, "cex")) {
+	/* cex can be a vector of length > 1, so pick off first value
+	   (as e.g. pch always did) */
+	x = asReal(value);
+	posRealCheck(x, what);
+	R_DEV__(cex) = x;
+	/* not setting cexbase here (but in Specify()) */
+    }
+    else if (streql(what, "family")) {
+	const char *ss;
+	value = coerceVector(value, STRSXP);
+	lengthCheck(what, value, 1, call);
+	ss = translateChar(STRING_ELT(value, 0));
+	if(strlen(ss) > 200)
+	    error(_("graphical parameter 'family' has a maximum length of 200 bytes"));
+	strncpy(gpptr(dd)->family, ss, 201);
+    }
+    else if (streql(what, "fg")) {
+	/* highlevel arg `fg = ' does *not* set `col' (as par(fg=.) does!*/
+	lengthCheck(what, value, 1, call);
+	ix = RGBpar3(value, 0, dpptr(dd)->bg);
+	/*	naIntCheck(ix, what); */
+	R_DEV__(fg) = ix;
+    }
 } /* Specify2 */
 
 
@@ -921,7 +977,7 @@ static SEXP Query(const char *what, pGEDevDesc dd)
 	if (known_to_be_latin1 && val <= -32 && val >= -255) val = -val;
 	if(val >= ' ' && val <= (mbcslocale ? 127 : 255)) {
 	    char buf[2];
-	    buf[0] = (char) val;
+	    buf[0] = val;
 	    buf[1] = '\0';
 	    value = mkString(buf);
 	} else {
@@ -944,7 +1000,7 @@ static SEXP Query(const char *what, pGEDevDesc dd)
     else if (streql(what, "ps")) {
 	value = allocVector(INTSXP, 1);
 	/* was reporting unscaled prior to 2.7.0 */
-	INTEGER(value)[0] = (int)(dpptr(dd)->ps * dpptr(dd)->scale);
+	INTEGER(value)[0] = dpptr(dd)->ps * dpptr(dd)->scale;
     }
     else if (streql(what, "pty")) {
 	char buf[2];
@@ -1053,14 +1109,14 @@ static SEXP Query(const char *what, pGEDevDesc dd)
     return value;
 }
 
-SEXP C_par(SEXP call, SEXP op, SEXP args)
+SEXP attribute_hidden do_par(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP value;
     SEXP originalArgs = args;
     pGEDevDesc dd;
     int new_spec, nargs;
 
-    args = CDR(args);
+    checkArity(op, args);
 
     dd = GEcurrentDevice();
     new_spec = 0;
@@ -1083,7 +1139,7 @@ SEXP C_par(SEXP call, SEXP op, SEXP args)
 		new_spec = 1;
 		SET_VECTOR_ELT(value, i, Query(CHAR(tag), dd));
 		SET_STRING_ELT(newnames, i, tag);
-		Specify(CHAR(tag), val, dd);
+		Specify(CHAR(tag), val, dd, call);
 	    }
 	    else if (isString(val) && length(val) > 0) {
 		tag = STRING_ELT(val, 0);
@@ -1131,12 +1187,13 @@ SEXP C_par(SEXP call, SEXP op, SEXP args)
  *  )
  */
 
-SEXP C_layout(SEXP args)
+SEXP attribute_hidden do_layout(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     int i, j, nrow, ncol, ncmrow, ncmcol;
+    SEXP originalArgs = args;
     pGEDevDesc dd;
 
-    args = CDR(args);
+    checkArity(op, args);
 
     dd = GEcurrentDevice();
 
@@ -1157,7 +1214,7 @@ SEXP C_layout(SEXP args)
     /* mat[i,j] == order[i+j*nrow] : */
     for (i = 0; i < nrow * ncol; i++)
 	dpptr(dd)->order[i] = gpptr(dd)->order[i] =
-	    (unsigned short) INTEGER(CAR(args))[i];
+	    INTEGER(CAR(args))[i];
     args = CDR(args);
 
     /* num.figures: */
@@ -1201,7 +1258,7 @@ SEXP C_layout(SEXP args)
     /* respect.mat */
     for (i = 0; i < nrow * ncol; i++)
 	dpptr(dd)->respect[i] = gpptr(dd)->respect[i]
-	    = (unsigned char)INTEGER(CAR(args))[i];
+		= INTEGER(CAR(args))[i];
 
     /*------------------------------------------------------*/
 
@@ -1223,6 +1280,8 @@ SEXP C_layout(SEXP args)
 
     GReset(dd);
 
+    if (GRecording(call, dd))
+	GErecordGraphicOperation(op, originalArgs, dd);
     return R_NilValue;
 }
 
@@ -1230,14 +1289,15 @@ SEXP C_layout(SEXP args)
 /* ProcessInLinePars handles inline par specifications
    in graphics functions. */
 
-void ProcessInlinePars(SEXP s, pGEDevDesc dd)
+attribute_hidden
+void ProcessInlinePars(SEXP s, pGEDevDesc dd, SEXP call)
 {
     if (isList(s)) {
 	while (s != R_NilValue) {
 	    if (isList(CAR(s)))
-		ProcessInlinePars(CAR(s), dd);
+		ProcessInlinePars(CAR(s), dd, call);
 	    else if (TAG(s) != R_NilValue)
-		Specify2(CHAR(PRINTNAME(TAG(s))), CAR(s), dd);
+		Specify2(CHAR(PRINTNAME(TAG(s))), CAR(s), dd, call);
 	    s = CDR(s);
 	}
     }

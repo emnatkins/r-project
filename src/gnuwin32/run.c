@@ -2,7 +2,7 @@
  *  R : A Computer Language for Statistical Data Analysis
  *  file run.c: a simple 'reading' pipe (and a command executor)
  *  Copyright  (C) 1999-2001  Guido Masarotto  and Brian Ripley
- *             (C) 2007-12    The R Core Team
+ *             (C) 2007-10    The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,13 +39,11 @@ extern UImode  CharacterMode;
 
 static char RunError[501] = "";
 
-/* This might be given a command line (whole = 0) or just the
-   executable (whole = 0).  In the later case the path may or may not
-   be quoted */
-static char *expandcmd(const char *cmd, int whole)
+
+static char *expandcmd(const char *cmd)
 {
-    char c = '\0';
-    char *s, *p, *q = NULL, *f, *dest, *src;
+    char  c;
+    char *s, *p, *q, *f, *dest, *src;
     int   d, ext, len = strlen(cmd)+1;
     char buf[len], fl[len], fn[len];
 
@@ -59,18 +57,14 @@ static char *expandcmd(const char *cmd, int whole)
     /* skip leading spaces */
     for (p = buf; *p && isspace(*p); p++);
     /* find the command itself, possibly double-quoted */
-    if (whole) {
-	d = 0;
-    } else {
-	for (q = p, d = 0; *q && ( d || !isspace(*q) ); q++)
-	    if (*q == '\"') d = d ? 0 : 1;
-	if (d) {
-	    strcpy(RunError, "A \" is missing (expandcmd)");
-	    return NULL;
-	}
-	c = *q; /* character after the command, normally a space */
-	*q = '\0';
+    for (q = p, d = 0; *q && ( d || !isspace(*q) ); q++)
+	if (*q == '\"') d = d ? 0 : 1;
+    if (d) {
+	strcpy(RunError, "A \" is missing (expandcmd)");
+	return NULL;
     }
+    c = *q; /* character after the command, normally a space */
+    *q = '\0';
 
     /*
      * Guido resorted to this since SearchPath returned FOUND also
@@ -104,7 +98,7 @@ static char *expandcmd(const char *cmd, int whole)
     if (!d) {
 	free(s);
 	snprintf(RunError, 500, "'%s' not found", p);
-	if(!whole) *q = c;
+	*q = c;
 	return NULL;
     }
     /*
@@ -115,10 +109,8 @@ static char *expandcmd(const char *cmd, int whole)
       SearchPath seems dislikes them
     */
     GetShortPathName(fn, s, MAX_PATH);
-    if (!whole) {
-	*q = c;
-	strcat(s, q);
-    }
+    *q = c;
+    strcat(s, q);
     return s;
 }
 
@@ -152,7 +144,7 @@ static void pcreate(const char* cmd, cetype_t enc,
     sa.bInheritHandle = TRUE;
 
     /* FIXME: this might need to be done in wchar_t */
-    if (!(ecmd = expandcmd(cmd, 0))) return; /* error message already set */
+    if (!(ecmd = expandcmd(cmd))) return; /* error message already set */
 
     inpipe = (hIN != INVALID_HANDLE_VALUE)
 	|| (hOUT != INVALID_HANDLE_VALUE)
@@ -791,7 +783,7 @@ SEXP do_syswhich(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(ans = allocVector(STRSXP, n));
     for(i = 0; i < n; i++) {
 	const char *this = CHAR(STRING_ELT(nm, i));
-	char *that = expandcmd(this, 1);
+	char *that = expandcmd(this);
 	SET_STRING_ELT(ans, i, mkChar(that ? that : ""));
 	free(that);
     }

@@ -400,7 +400,7 @@ static SEXP R_HashResize(SEXP table)
     /* hash_grow = HASHSIZE(table); */
 
     /* Allocate the new hash table */
-    new_table = R_NewHashTable((int)(HASHSIZE(table) * HASHTABLEGROWTHRATE));
+    new_table = R_NewHashTable(HASHSIZE(table) * HASHTABLEGROWTHRATE);
     for (counter = 0; counter < length(table); counter++) {
 	chain = VECTOR_ELT(table, counter);
 	while (!ISNULL(chain)) {
@@ -1202,7 +1202,7 @@ static int ddVal(SEXP symbol)
     buf = CHAR(PRINTNAME(symbol));
     if( !strncmp(buf,"..",2) && strlen(buf) > 2 ) {
 	buf += 2;
-	rval = (int) strtol(buf, &endp, 10);
+	rval = strtol(buf, &endp, 10);
 	if( *endp != '\0')
 	    return 0;
 	else
@@ -3114,7 +3114,7 @@ Rboolean R_IsPackageEnv(SEXP rho)
     if (TYPEOF(rho) == ENVSXP) {
 	SEXP name = getAttrib(rho, R_NameSymbol);
 	char *packprefix = "package:";
-	size_t pplen = strlen(packprefix);
+	int pplen = strlen(packprefix);
 	if(isString(name) && length(name) > 0 &&
 	   ! strncmp(packprefix, CHAR(STRING_ELT(name, 0)), pplen)) /* ASCII */
 	    return TRUE;
@@ -3130,7 +3130,7 @@ SEXP R_PackageEnvName(SEXP rho)
     if (TYPEOF(rho) == ENVSXP) {
 	SEXP name = getAttrib(rho, R_NameSymbol);
 	char *packprefix = "package:";
-	size_t pplen = strlen(packprefix);
+	int pplen = strlen(packprefix);
 	if(isString(name) && length(name) > 0 &&
 	   ! strncmp(packprefix, CHAR(STRING_ELT(name, 0)), pplen)) /* ASCII */
 	    return name;
@@ -3485,6 +3485,8 @@ static void R_StringHash_resize(unsigned int newsize)
    a new CHARSXP is created, added to the cache and then returned. */
 
 
+/* Because allocCharsxp allocates len+1 bytes and zeros the last,
+   this will always zero-terminate */
 SEXP mkCharLenCE(const char *name, int len, cetype_t enc)
 {
     SEXP cval, chain;
@@ -3586,7 +3588,6 @@ SEXP mkCharLenCE(const char *name, int len, cetype_t enc)
 	/* resize the hash table if necessary with the new entry still
 	   protected.
 	   Maximum possible power of two is 2^30 for a VECSXP.
-	   FIXME: this has changed with long vectors.
 	*/
 	if (R_HashSizeCheck(R_StringHash)
 	    && char_hash_size < 1073741824 /* 2^30 */)

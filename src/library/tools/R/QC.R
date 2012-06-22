@@ -5239,7 +5239,6 @@ function(dir)
 
     meta <- .get_package_metadata(dir, FALSE)
     foss <- analyze_license(meta["License"])$is_verified
-    out$Maintainer <- meta["Maintainer"]
 
     urls <- .get_standard_repository_URLs()
     ## We do not want to use utils::available.packages() for now, as
@@ -5313,16 +5312,8 @@ function(dir)
     ## This drops packages in version-specific subdirectories.
     ## It also does not know about archived versions.
     if(!NROW(db)) {
-        if(package %in% packages_in_CRAN_archive) {
+        if(package %in% packages_in_CRAN_archive)
             out$CRAN_archive <- TRUE
-            v_m <- package_version(meta["Version"])
-            v_a <- sub("^.*_(.*)\\.tar.gz$", "\\1",
-                       basename(rownames(CRAN_archive_db[[package]])))
-            v_a <- max(package_version(v_a, strict = FALSE),
-                       na.rm = TRUE)
-            if(v_m <= v_a)
-                out$bad_version <- list(v_m, v_a)
-        }
         if(!foss)
             out$bad_license <- meta["License"]
         return(out)
@@ -5387,9 +5378,6 @@ format.check_package_CRAN_incoming <-
 function(x, ...)
 {
     c(character(),
-      if(length(x$Maintainer))
-          sprintf("Maintainer: %s", sQuote(paste(x$Maintainer, collapse = " ")))
-      else "No maintainer field in DESCRIPTION file",
       if(length(x$new_submission))
           "New submission",
       if(length(y <- x$bad_package))

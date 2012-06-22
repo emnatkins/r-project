@@ -152,7 +152,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"Recall",	do_recall,	0,	210,	-1,	{PP_FUNCALL, PREC_FN,	  0}},
 {"delayedAssign",do_delayed,	0,	111,	4,	{PP_FUNCALL, PREC_FN,	  0}},
 {"makeLazy",	do_makelazy,	0,	111,	5,	{PP_FUNCALL, PREC_FN,	  0}},
-{"identical",	do_identical,	0,	11,	7,	{PP_FUNCALL, PREC_FN,	  0}},
+{"identical",	do_identical,	0,	11,	6,	{PP_FUNCALL, PREC_FN,	  0}},
 
 
 /* Binary Operators, all primitives */
@@ -195,9 +195,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 /* Primitives */
 
 {"length",	do_length,	0,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
-{"xlength",	do_length,	1,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"length<-",	do_lengthgets,	0,	1,	2,	{PP_FUNCALL, PREC_LEFT,	1}},
-{"xlength<-",	do_lengthgets,	1,	1,	2,	{PP_FUNCALL, PREC_LEFT,	1}},
 {"c",/* bind.c:*/do_c,		0,	1,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"oldClass",	do_class,	0,	1,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"oldClass<-",	do_classgets,	0,	1,	2,	{PP_FUNCALL, PREC_LEFT, 1}},
@@ -249,6 +247,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"pmatch",	do_pmatch,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 {"charmatch",	do_charmatch,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"match.call",	do_matchcall,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
+{"complete.cases",do_compcases,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"crossprod",	do_matprod,	1,	11,	2,	{PP_FUNCALL, PREC_FN,	  0}},
 {"tcrossprod",	do_matprod,	2,	11,	2,	{PP_FUNCALL, PREC_FN,	  0}},
 
@@ -305,12 +304,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"lchoose",	do_math2,	4,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"choose",	do_math2,	5,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 
-/*
-  Can remove all the [dpqr]xxx once the compiler knows how to optimize
-  to .External.
-
-  This is most of the do_math[23], and all of the do_math4, do_random[123]
-*/
 {"dchisq",	do_math2,	6,	11,	2+1,	{PP_FUNCALL, PREC_FN,	0}},
 {"pchisq",	do_math2,	7,	11,	2+2,	{PP_FUNCALL, PREC_FN,	0}},
 {"qchisq",	do_math2,	8,	11,	2+2,	{PP_FUNCALL, PREC_FN,	0}},
@@ -461,6 +454,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 
 {"rhyper",	do_random3,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 
+{"rmultinom",	do_rmultinom,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"sample",	do_sample,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 
 {"RNGkind",	do_RNGkind,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
@@ -475,6 +469,8 @@ attribute_hidden FUNTAB R_FunTab[] =
 
 {"mean",	do_summary,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"range",	do_range,	0,	1,	-1,	{PP_FUNCALL, PREC_FN,	0}},
+{"cov",		do_cov,		0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
+{"cor",		do_cov,		1,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
 
 /* Note that the number of arguments in this group only applies
    to the default method */
@@ -530,7 +526,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"toupper",	do_tolower,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"chartr",	do_chartr,	1,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"sprintf",	do_sprintf,	1,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
-{"getfmts",	do_getfmts,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"make.unique",	do_makeunique,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"charToRaw",	do_charToRaw,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"rawToChar",	do_rawToChar,	1,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
@@ -618,7 +613,6 @@ attribute_hidden FUNTAB R_FunTab[] =
 {".C",		do_dotCode,	0,	1,	-1,	{PP_FOREIGN, PREC_FN,	0}},
 {".Fortran",	do_dotCode,	1,	1,	-1,	{PP_FOREIGN, PREC_FN,	0}},
 {".External",   do_External,    0,      1,      -1,     {PP_FOREIGN, PREC_FN,	0}},
-{".External2",   do_External,   1,      1,      -1,     {PP_FOREIGN, PREC_FN,	0}},
 {".Call",       do_dotcall,     0,      1,      -1,     {PP_FOREIGN, PREC_FN,	0}},
 {".External.graphics", do_Externalgr, 0, 1,	-1,	{PP_FOREIGN, PREC_FN,	0}},
 {".Call.graphics", do_dotcallgr, 0,	1,	-1,	{PP_FOREIGN, PREC_FN,	0}},
@@ -712,6 +706,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"ls",		do_ls,		1,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"typeof",	do_typeof,	1,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"eval",	do_eval,	0,	211,	3,	{PP_FUNCALL, PREC_FN,	0}},
+{"eval.with.vis",do_eval,	1,	211,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"sys.parent",	do_sys,		1,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"sys.call",	do_sys,		2,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"sys.frame",	do_sys,		3,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -732,7 +727,7 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"qsort",	do_qsort,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"radixsort",	do_radixsort,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"order",	do_order,	0,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
-{"rank",	do_rank,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
+{"rank",	do_rank,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"scan",	do_scan,	0,	11,	18,	{PP_FUNCALL, PREC_FN,	0}},
 {"count.fields",do_countfields,	0,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
 {"readTableHead",do_readtablehead,0,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
@@ -824,6 +819,9 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"unlink",	do_unlink,	0,	111,	3,	{PP_FUNCALL, PREC_FN,	0}},
 
 /* Complex Valued Functions */
+{"fft",		do_fft,		0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"mvfft",	do_mvfft,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"nextn",	do_nextn,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
 {"polyroot",	do_polyroot,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 
 /* Device Drivers */
@@ -835,14 +833,14 @@ attribute_hidden FUNTAB R_FunTab[] =
 
 /* Graphics */
 
-//{"dev.control",	do_devcontrol,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
-//{"dev.displaylist",do_devcontrol,1,	111,	0,	{PP_FUNCALL, PREC_FN,	0}},
-//{"dev.copy",	do_devcopy,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
-//{"dev.cur",	do_devcur,	0,	111,	0,	{PP_FUNCALL, PREC_FN,	0}},
-//{"dev.next",	do_devnext,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
-//{"dev.off",	do_devoff,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
-//{"dev.prev",	do_devprev,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
-//{"dev.set",	do_devset,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"dev.control",	do_devcontrol,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"dev.displaylist",do_devcontrol,1,	111,	0,	{PP_FUNCALL, PREC_FN,	0}},
+{"dev.copy",	do_devcopy,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"dev.cur",	do_devcur,	0,	111,	0,	{PP_FUNCALL, PREC_FN,	0}},
+{"dev.next",	do_devnext,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"dev.off",	do_devoff,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"dev.prev",	do_devprev,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"dev.set",	do_devset,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"rgb",		do_rgb,		0,	11,	6,	{PP_FUNCALL, PREC_FN,	0}},
 {"rgb256",	do_rgb,		1,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"rgb2hsv",	do_RGB2hsv,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -852,23 +850,72 @@ attribute_hidden FUNTAB R_FunTab[] =
 {"colors",	do_colors,	0,	11,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"col2rgb",	do_col2RGB,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
 {"palette",	do_palette,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"plot.new",	do_plot_new,	0,	111,	0,	{PP_FUNCALL, PREC_FN,	0}},
+{"plot.window",	do_plot_window,	0,	111,	3,	{PP_FUNCALL, PREC_FN,	0}},
+{"axis",	do_axis,	0,	111,   13,	{PP_FUNCALL, PREC_FN,	0}},
+{"plot.xy",	do_plot_xy,	0,	111,	7,	{PP_FUNCALL, PREC_FN,	0}},
+{"text",	do_text,	0,	111,	-1,	{PP_FUNCALL, PREC_FN,	0}},
+{"mtext",	do_mtext,	0,	111,	5,	{PP_FUNCALL, PREC_FN,	0}},
+{"title",	do_title,	0,	111,	4,	{PP_FUNCALL, PREC_FN,	0}},
+{"abline",	do_abline,	0,	111,	6,	{PP_FUNCALL, PREC_FN,	0}},
+{"box",		do_box,		0,	111,	3,	{PP_FUNCALL, PREC_FN,	0}},
+{"rect",	do_rect,	0,	111,	6,	{PP_FUNCALL, PREC_FN,	0}},
+{"path",	do_path,	0,	111,	7,	{PP_FUNCALL, PREC_FN,	0}},
+{"raster",	do_raster,	0,	111,	7,	{PP_FUNCALL, PREC_FN,	0}},
+{"polygon",	do_polygon,	0,	111,	5,	{PP_FUNCALL, PREC_FN,	0}},
+{"xspline",	do_xspline,	0,	111,	-1,	{PP_FUNCALL, PREC_FN,	0}},
+{"par",		do_par,		0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"segments",	do_segments,	0,	111,	-1,	{PP_FUNCALL, PREC_FN,	0}},
+{"arrows",	do_arrows,	0,	111,	-1,	{PP_FUNCALL, PREC_FN,	0}},
+{"layout",	do_layout,	0,	111,	10,	{PP_FUNCALL, PREC_FN,	0}},
+{"locator",	do_locator,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"identify",	do_identify,	0,	211,	8,	{PP_FUNCALL, PREC_FN,	0}},
+{"strheight",	do_strheight,	0,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
+{"strwidth",	do_strwidth,	0,	11,	-1,	{PP_FUNCALL, PREC_FN,	0}},
+{"contour",	do_contour,	0,	11,	12,	{PP_FUNCALL, PREC_FN,	0}},
 {"contourLines",do_contourLines,0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
+{"image",	do_image,	0,	111,	4,	{PP_FUNCALL, PREC_FN,	0}},
+{"dend",	do_dend,	0,	111,	6,	{PP_FUNCALL, PREC_FN,	0}},
+{"dend.window",	do_dendwindow,	0,	111,	5,	{PP_FUNCALL, PREC_FN,	0}},
+{"erase",	do_erase,	0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"persp",	do_persp,	0,	111,	4,	{PP_FUNCALL, PREC_FN,	0}},
+{"filledcontour",do_filledcontour,0,	111,	5,	{PP_FUNCALL, PREC_FN,	0}},
 {"getSnapshot",	do_getSnapshot,	0,	111,	0,	{PP_FUNCALL, PREC_FN,	0}},
 {"playSnapshot",do_playSnapshot,0,	111,	1,	{PP_FUNCALL, PREC_FN,	0}},
+{"symbols",	do_symbols,	0,	111,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"getGraphicsEvent",do_getGraphicsEvent,0,  11, 1,      {PP_FUNCALL, PREC_FN,   0}},
 {"getGraphicsEventEnv",do_getGraphicsEventEnv,0,11,1,{PP_FUNCALL, PREC_FN, 0}},
 {"setGraphicsEventEnv",do_setGraphicsEventEnv,0,11,2,{PP_FUNCALL, PREC_FN, 0}},
 {"devAskNewPage",do_devAskNewPage,0,	211,	1,      {PP_FUNCALL, PREC_FN,   0}},
-//{"dev.size",	do_devsize,	0,	11,	0,      {PP_FUNCALL, PREC_FN,   0}},
-//{"devHoldFlush",do_devholdflush,0,	111,	1,      {PP_FUNCALL, PREC_FN,   0}},
-//{"dev.capabilities", do_devcap,	0,	11,	0,      {PP_FUNCALL, PREC_FN,   0}},
-//{"devCapture"  , do_devcapture,	0,	111,	1,      {PP_FUNCALL, PREC_FN,   0}},
+{"dev.size",	do_devsize,	0,	11,	0,      {PP_FUNCALL, PREC_FN,   0}},
+{"clip",	do_clip,	0,	111,	4,      {PP_FUNCALL, PREC_FN,   0}},
+{"grconvertX",	do_convertXY,	0,	11,	3,      {PP_FUNCALL, PREC_FN,   0}},
+{"grconvertY",	do_convertXY,	1,	11,	3,      {PP_FUNCALL, PREC_FN,   0}},
+{"devHoldFlush",do_devholdflush,0,	111,	1,      {PP_FUNCALL, PREC_FN,   0}},
+{"dev.capabilities", do_devcap,	0,	11,	0,      {PP_FUNCALL, PREC_FN,   0}},
+{"devCapture"  , do_devcapture,	0,	111,	1,      {PP_FUNCALL, PREC_FN,   0}},
 
 /* Objects */
 {"inherits",	do_inherits,	0,	11,	3,	{PP_FUNCALL, PREC_FN,	0}},
 {"UseMethod",	do_usemethod,	0,     200,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"NextMethod",	do_nextmethod,	0,     210,	-1,	{PP_FUNCALL, PREC_FN,	0}},
 {"standardGeneric",do_standardGeneric,0, 201,	-1,	{PP_FUNCALL, PREC_FN,	0}},
+
+/* Modelling Functionality */
+
+{"nlm",		do_nlm,		0,	11,	11,	{PP_FUNCALL, PREC_FN,	0}},
+{"fmin",	do_fmin,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
+{"zeroin",	do_zeroin,	0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
+{"zeroin2",	do_zeroin2,	0,	11,	7,	{PP_FUNCALL, PREC_FN,	0}},
+{"optim",	do_optim,	0,	11,	7,	{PP_FUNCALL, PREC_FN,	0}},
+{"optimhess",	do_optimhess,	0,	11,	4,	{PP_FUNCALL, PREC_FN,	0}},
+{"terms.formula",do_termsform,	0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
+{"update.formula",do_updateform,0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"model.frame",	do_modelframe,	0,	11,	8,	{PP_FUNCALL, PREC_FN,	0}},
+{"model.matrix",do_modelmatrix,	0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+
+{"D",		do_D,		0,	11,	2,	{PP_FUNCALL, PREC_FN,	0}},
+{"deriv.default",do_deriv,	0,	11,	5,	{PP_FUNCALL, PREC_FN,	0}},
 
 /* History manipulation */
 {"loadhistory", do_loadhistory,	0,	11,	1,	{PP_FUNCALL, PREC_FN,	0}},
@@ -1079,6 +1126,8 @@ static void SymbolShortcuts(void)
     R_dot_GenericDefEnv = install(".GenericDefEnv");
 }
 
+extern SEXP framenames; /* from model.c */
+
 /* initialize the symbol table */
 void InitNames()
 {
@@ -1118,6 +1167,7 @@ void InitNames()
     SymbolShortcuts();
     /*  Builtin Functions */
     for (int i = 0; R_FunTab[i].name; i++) installFunTab(i);
+    framenames = R_NilValue;
 
     R_initialize_bcode();
 }
@@ -1185,7 +1235,7 @@ SEXP attribute_hidden do_internal(SEXP call, SEXP op, SEXP args, SEXP env)
 	if(strcmp(nm, "eval") && strcmp(nm, "options") && strcmp(nm, "Recall")
 	   && strcmp(nm, "do.call") && strcmp(nm, "switch")
 	   && strcmp(nm, "recordGraphics") && strcmp(nm, "writeBin")
-	   && strcmp(nm, "NextMethod"))
+	   && strcmp(nm, "NextMethod") && strcmp(nm, "eval.with.vis"))
 	    printf("vis: internal %s\n", nm);
     }
 #endif
@@ -1195,20 +1245,3 @@ SEXP attribute_hidden do_internal(SEXP call, SEXP op, SEXP args, SEXP env)
     return (ans);
 }
 #undef __R_Names__
-
-	/* Internal code for the ~ operator */
-
-SEXP attribute_hidden do_tilde(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    if (isObject(call))
-	return duplicate(call);
-    else {
-	SEXP klass;
-	PROTECT(call = duplicate(call));
-	PROTECT(klass = mkString("formula"));
-	setAttrib(call, R_ClassSymbol, klass);
-	setAttrib(call, R_DotEnvSymbol, rho);
-	UNPROTECT(2);
-	return call;
-    }
-}

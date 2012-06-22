@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1997-2012  The R Core Team
+ *  Copyright (C) 1997-2009  The R Core Team
  *  Copyright (C) 2003	     The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -96,7 +96,7 @@ SEXP attribute_hidden do_hsv(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP c, h, s, v, a;
     double hh, ss, vv, aa, r=0., g=0., b=0.; /* -Wall */
-    R_xlen_t i, max, nh, ns, nv, na;
+    int i, max, nh, ns, nv, na;
 
     checkArity(op, args);
 
@@ -105,10 +105,10 @@ SEXP attribute_hidden do_hsv(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(v = coerceVector(CAR(args),REALSXP)); args = CDR(args);
     PROTECT(a = coerceVector(CAR(args),REALSXP)); args = CDR(args);
 
-    nh = XLENGTH(h);
-    ns = XLENGTH(s);
-    nv = XLENGTH(v);
-    na = XLENGTH(a);
+    nh = LENGTH(h);
+    ns = LENGTH(s);
+    nv = LENGTH(v);
+    na = LENGTH(a);
     if (nh <= 0 || ns <= 0 || nv <= 0 || na <= 0) {
 	UNPROTECT(4);
 	return(allocVector(STRSXP, 0));
@@ -205,7 +205,7 @@ SEXP attribute_hidden do_hcl(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP h, c, l, a, ans;
     double H, C, L, A, r, g, b;
-    R_xlen_t nh, nc, nl, na, max, i;
+    int nh, nc, nl, na, max, i;
     int ir, ig, ib;
     int fixup;
 
@@ -216,10 +216,10 @@ SEXP attribute_hidden do_hcl(SEXP call, SEXP op, SEXP args, SEXP env)
     PROTECT(l = coerceVector(CAR(args),REALSXP)); args = CDR(args);
     PROTECT(a = coerceVector(CAR(args),REALSXP)); args = CDR(args);
     fixup = asLogical(CAR(args));
-    nh = XLENGTH(h);
-    nc = XLENGTH(c);
-    nl = XLENGTH(l);
-    na = XLENGTH(a);
+    nh = LENGTH(h);
+    nc = LENGTH(c);
+    nl = LENGTH(l);
+    na = LENGTH(a);
     if (nh <= 0 || nc <= 0 || nl <= 0 || na <= 0) {
 	UNPROTECT(4);
 	return(allocVector(STRSXP, 0));
@@ -238,9 +238,9 @@ SEXP attribute_hidden do_hcl(SEXP call, SEXP op, SEXP args, SEXP env)
 	if (L < 0 || L > WHITE_Y || C < 0 || A < 0 || A > 1)
 	    error(_("invalid hcl color"));
 	hcl2rgb(H, C, L, &r, &g, &b);
-	ir = (int) (255 * r + .5);
-	ig = (int) (255 * g + .5);
-	ib = (int) (255 * b + .5);
+	ir = 255 * r + .5;
+	ig = 255 * g + .5;
+	ib = 255 * b + .5;
 	if (FixupColor(&ir, &ig, &ib) && !fixup)
 	    SET_STRING_ELT(ans, i, NA_STRING);
 	else
@@ -254,8 +254,7 @@ SEXP attribute_hidden do_hcl(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP attribute_hidden do_rgb(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP c, r, g, b, a, nam;
-    int OP;
-    R_xlen_t i, l_max, nr, ng, nb, na;
+    int OP, i, l_max, nr, ng, nb, na;
     Rboolean max_1 = FALSE;
     double mV = 0.0; /* -Wall */
 
@@ -276,7 +275,7 @@ SEXP attribute_hidden do_rgb(SEXP call, SEXP op, SEXP args, SEXP env)
 	max_1 = (mV == 1.);
     }
 
-    nr = XLENGTH(r); ng = XLENGTH(g); nb = XLENGTH(b); na = XLENGTH(a);
+    nr = LENGTH(r); ng = LENGTH(g); nb = LENGTH(b); na = LENGTH(a);
     if (nr <= 0 || ng <= 0 || nb <= 0 || na <= 0) {
 	UNPROTECT(4);
 	return(allocVector(STRSXP, 0));
@@ -334,15 +333,13 @@ SEXP attribute_hidden do_gray(SEXP call, SEXP op, SEXP args, SEXP env)
 	level = REAL(lev)[i];
 	if (ISNAN(level) || level < 0 || level > 1)
 	    error(_("invalid gray level, must be in [0,1]."));
-	ilevel = (int)(255 * level + 0.5);
+	ilevel = 255 * level + 0.5;
 	SET_STRING_ELT(ans, i, mkChar(RGB2rgb(ilevel, ilevel, ilevel)));
     }
     UNPROTECT(2);
     return ans;
 }
 
-/* This is in package grDevices, but mixes up the base graphics concept
-   of a background colour */
 SEXP attribute_hidden do_col2RGB(SEXP call, SEXP op, SEXP args, SEXP env)
 {
 /* colorname, "#rrggbb" or "col.number" to (r,g,b) conversion */
@@ -390,7 +387,7 @@ SEXP attribute_hidden do_col2RGB(SEXP call, SEXP op, SEXP args, SEXP env)
 	    col = str2col(CHAR(STRING_ELT(colors, i)), bg);
 	    if (col == BG_NEEDED)
 	    	col = bg = dpptr(GEcurrentDevice())->bg;
-	    icol = (unsigned int) col;
+	    icol = (unsigned int)col;
 	    INTEGER(ans)[i4 +0] = R_RED(icol);
 	    INTEGER(ans)[i4 +1] = R_GREEN(icol);
 	    INTEGER(ans)[i4 +2] = R_BLUE(icol);
@@ -400,11 +397,11 @@ SEXP attribute_hidden do_col2RGB(SEXP call, SEXP op, SEXP args, SEXP env)
 	for(i = i4 = 0; i < n; i++, i4 += 4) {
 	    col = INTEGER(colors)[i];
 	    if      (col == NA_INTEGER) col = R_TRANWHITE;
-	    else if (col == 0) col = bg;
-	    else col = R_ColorTable[(unsigned int)(col-1) % R_ColorTableSize];
+	    else if (col == 0)          col = bg;
+	    else 		        col = R_ColorTable[(unsigned int)(col-1) % R_ColorTableSize];
 	    if (col == BG_NEEDED)
 	    	col = bg = dpptr(GEcurrentDevice())->bg;
-	    icol = (unsigned int) col;
+	    icol = (unsigned int)col;
 	    INTEGER(ans)[i4 +0] = R_RED(icol);
 	    INTEGER(ans)[i4 +1] = R_GREEN(icol);
 	    INTEGER(ans)[i4 +2] = R_BLUE(icol);
@@ -1342,7 +1339,6 @@ static unsigned int rgb2col(const char *rgb)
 
 /* External Color Name to Internal Color Code */
 
-/* in GraphicsEngine.h */
 unsigned int attribute_hidden name2col(const char *nm)
 {
     int i;
@@ -1374,7 +1370,7 @@ static double number2col(const char *nm, double bg)
 {
     int indx;
     char *ptr;
-    indx = (int) strtod(nm, &ptr);
+    indx = strtod(nm, &ptr);
     if(*ptr) error(_("invalid color specification '%s'"), nm);
     if(indx == 0) return bg;
     else return R_ColorTable[(indx-1) % R_ColorTableSize];
@@ -1419,7 +1415,6 @@ char *RGBA2rgb(unsigned int r, unsigned int g, unsigned int b, unsigned int a)
 /* If this fails, create an #RRGGBB string */
 
 /* used in grid */
-/* in GraphicsEngine.h */
 const char *col2name(unsigned int col)
 {
     int i;
@@ -1466,8 +1461,7 @@ static double str2col(const char *s, double bg)
     else return name2col(s);
 }
 
-/* used in grDevices */
-/* in GraphicsEngine.h */
+/* used in grDevices, public */
 unsigned int R_GE_str2col(const char *s)
 {
     return (unsigned int)str2col(s, R_TRANWHITE);
@@ -1477,7 +1471,6 @@ unsigned int R_GE_str2col(const char *s)
 /* We Assume that Checks Have Been Done */
 
 /* used in grid/src/gpar.c */
-/* in GraphicsEngine.h */
 unsigned int RGBpar3(SEXP x, int i, unsigned int bg)
 {
     int indx;
@@ -1495,7 +1488,7 @@ unsigned int RGBpar3(SEXP x, int i, unsigned int bg)
 	break;
     case REALSXP:
 	if(!R_FINITE(REAL(x)[i])) return R_TRANWHITE;
-	indx = (int) REAL(x)[i];
+	indx = REAL(x)[i];
 	break;
 	   default:
 	   warning(_("supplied color is not numeric nor character"));
@@ -1505,7 +1498,6 @@ unsigned int RGBpar3(SEXP x, int i, unsigned int bg)
     else return R_ColorTable[(indx-1) % R_ColorTableSize];
 }
 
-/* in GraphicsEngine.h */
 unsigned int RGBpar(SEXP x, int i)
 {
     return RGBpar3(x, i, R_TRANWHITE);
@@ -1515,7 +1507,7 @@ unsigned int RGBpar(SEXP x, int i)
 /*
  * Is element i of a colour object NA (or NULL)?
  */
-Rboolean isNAcol(SEXP col, int index, int ncol)
+Rboolean attribute_hidden isNAcol(SEXP col, int index, int ncol)
 {
     Rboolean result = TRUE; /* -Wall */
 

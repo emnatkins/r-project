@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-05-21 13:03\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: 2012-03-06 21:48+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -718,9 +718,6 @@ msgstr "l'argument 'x' doit être numérique"
 msgid "'x' contains missing values"
 msgstr "'x' contient une valeur manquante"
 
-msgid "invalid value of length(x)"
-msgstr ""
-
 msgid "'x' and 'weights' have unequal length"
 msgstr "'x' et 'weights' n'ont pas la même longueur"
 
@@ -1339,6 +1336,9 @@ msgid ""
 msgstr ""
 "y doit être fourni.\n"
 "Pour l'estimation de la densité, utilisez density()"
+
+msgid "invalid value of length(x)"
+msgstr ""
 
 msgid "'k' is not an integer"
 msgstr "'k' n'est pas un entier"
@@ -1993,6 +1993,9 @@ msgstr ""
 msgid "'newdata' does not have the correct number of columns"
 msgstr "'newdata' n'a pas le bon nombre de colonnes"
 
+msgid "wrong number of predictors"
+msgstr "nombre de prédicteurs incorrect"
+
 msgid "both 'x' and 'covmat' were supplied: 'x' will be ignored"
 msgstr "'x' et 'covmat' fournis tous les deux : 'x' sera ignoré"
 
@@ -2167,10 +2170,6 @@ msgstr "'control.spar' incorrect"
 msgid "missing or infinite values in inputs are not allowed"
 msgstr ""
 "les valeurs manquantes ou infinies ne sont pas autorisées dans les entrées"
-
-#, fuzzy
-msgid "invalid number of points"
-msgstr "nombre de prédicteurs incorrect"
 
 msgid "lengths of 'x' and 'w' must match"
 msgstr "les longueurs de 'x' et de 'w' doivent correspondre"
@@ -2593,13 +2592,6 @@ msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "le paramètre %s n'apparaît pas dans la formule du modèle"
 msgstr[1] "les paramètres %s n'apparaîssent pas dans la formule du modèle"
-
-#~ msgid "wrong number of predictors"
-#~ msgstr "nombre de prédicteurs incorrect"
-
-#, fuzzy
-#~ msgid "invalid value oflength(x)"
-#~ msgstr "méthode de classification incorrecte"
 
 #~ msgid "extra arguments"
 #~ msgstr "les arguments surnuméraires"

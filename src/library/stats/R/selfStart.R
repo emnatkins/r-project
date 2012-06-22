@@ -50,7 +50,8 @@ selfStart.formula <-
         }
         template <- function() {}
         argNams <- c( nm[ is.na( match(nm, parameters) ) ], parameters )
-	args <- setNames(rep(alist(a = ), length(argNams)), argNams)
+	args <- rep(alist(a = ), length(argNams))
+        names(args) <- argNams
         formals(template) <- args
     }
     value <- structure(deriv(model, parameters, template),
@@ -221,11 +222,17 @@ NLSstAsymptotic.sortedXyData <-
 {
     xy$rt <- NLSstRtAsymptote(xy)
     ## Initial estimate of log(rate constant) from a linear regression
-    setNames(coef(nls(y ~ cbind(1, 1 - exp(-exp(lrc) * x)),
-		      data = xy,
-		      start = list(lrc =
-		      as.vector(log(-coef(lm(log(abs(y - rt)) ~ x,
-					     data = xy))[2L]))),
-		      algorithm = "plinear"))[c(2, 3, 1)],
-	     c("b0", "b1", "lrc"))
+    value <- coef(nls(y ~ cbind(1, 1 - exp(-exp(lrc) * x)),
+                      data = xy,
+                      start = list(lrc =
+                      as.vector(log(-coef(lm(log(abs(y - rt)) ~ x,
+                                             data = xy))[2L]))),
+                      algorithm = "plinear"))[c(2, 3, 1)]
+    names(value) <- c("b0", "b1", "lrc")
+    value
 }
+
+### Local variables:
+### mode: S
+### End:
+

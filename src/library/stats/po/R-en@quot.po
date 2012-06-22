@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.16.0\n"
+"Project-Id-Version: R 2.15.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-05-21 13:03\n"
-"PO-Revision-Date: 2012-05-21 13:03\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
+"PO-Revision-Date: 2012-06-07 15:52\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -697,9 +697,6 @@ msgstr "argument ‘x’ must be numeric"
 msgid "'x' contains missing values"
 msgstr "‘x’ contains missing values"
 
-msgid "invalid value of length(x)"
-msgstr "invalid value of length(x)"
-
 msgid "'x' and 'weights' have unequal length"
 msgstr "‘x’ and ‘weights’ have unequal length"
 
@@ -1282,6 +1279,9 @@ msgid ""
 msgstr ""
 "numeric y must be supplied.\n"
 "For density estimation use density()"
+
+msgid "invalid value of length(x)"
+msgstr "invalid value of length(x)"
 
 msgid "'k' is not an integer"
 msgstr "‘k’ is not an integer"
@@ -1896,6 +1896,9 @@ msgstr ""
 msgid "'newdata' does not have the correct number of columns"
 msgstr "‘newdata’ does not have the correct number of columns"
 
+msgid "wrong number of predictors"
+msgstr "wrong number of predictors"
+
 msgid "both 'x' and 'covmat' were supplied: 'x' will be ignored"
 msgstr "both ‘x’ and ‘covmat’ were supplied: ‘x’ will be ignored"
 
@@ -2061,9 +2064,6 @@ msgstr "invalid ‘control.spar’"
 
 msgid "missing or infinite values in inputs are not allowed"
 msgstr "missing or infinite values in inputs are not allowed"
-
-msgid "invalid number of points"
-msgstr "invalid number of points"
 
 msgid "lengths of 'x' and 'w' must match"
 msgstr "lengths of ‘x’ and ‘w’ must match"

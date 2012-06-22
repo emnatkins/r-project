@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2003-12   The R Core Team
+ *  Copyright (C) 2003-11   The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,24 +28,23 @@ SEXP attribute_hidden
 do_mapply(SEXP f, SEXP varyingArgs, SEXP constantArgs, SEXP rho)
 {
 
-    int i, j, m, named, zero = 0;
-    R_xlen_t *lengths, *counters, longest = 0;
+    int i, j, m, *lengths, *counters, named, longest = 0, zero = 0;
     SEXP vnames, fcall = R_NilValue,  mindex, nindex, tmp1, tmp2, ans;
 
     m = length(varyingArgs);
     vnames = PROTECT(getAttrib(varyingArgs, R_NamesSymbol));
     named = vnames != R_NilValue;
 
-    lengths = (R_xlen_t *)  R_alloc(m, sizeof(R_xlen_t));
+    lengths = (int *)  R_alloc(m, sizeof(int));
     for(i = 0; i < m; i++){
-	lengths[i] = xlength(VECTOR_ELT(varyingArgs, i));
+	lengths[i] = length(VECTOR_ELT(varyingArgs, i));
 	if(lengths[i] == 0) zero++;
 	if (lengths[i] > longest) longest = lengths[i];
     }
     if (zero && longest)
 	error(_("Zero-length inputs cannot be mixed with those of non-zero length"));
 
-    counters = (R_xlen_t *) R_alloc(m, sizeof(R_xlen_t));
+    counters = (int *) R_alloc(m, sizeof(int));
     for(i = 0; i < m; counters[i++] = 0);
 
     mindex = PROTECT(allocVector(VECSXP, m));
@@ -62,10 +61,9 @@ do_mapply(SEXP f, SEXP varyingArgs, SEXP constantArgs, SEXP rho)
     else
 	error(_("argument 'MoreArgs' of 'mapply' is not a list"));
 
-    Rboolean realIndx = longest > INT_MAX;
     for(j = m - 1; j >= 0; j--) {
 	SET_VECTOR_ELT(mindex, j, ScalarInteger(j + 1));
-	SET_VECTOR_ELT(nindex, j, allocVector(realIndx ? REALSXP : INTSXP, 1));
+	SET_VECTOR_ELT(nindex, j, allocVector(INTSXP, 1));
 	PROTECT(tmp1 = lang3(R_Bracket2Symbol,
 			     install("dots"),
 			     VECTOR_ELT(mindex, j)));
@@ -86,10 +84,7 @@ do_mapply(SEXP f, SEXP varyingArgs, SEXP constantArgs, SEXP rho)
     for(i = 0; i < longest; i++) {
 	for(j = 0; j < m; j++) {
 	    counters[j] = (++counters[j] > lengths[j]) ? 1 : counters[j];
-	    if (realIndx) 
-		REAL(VECTOR_ELT(nindex, j))[0] = (double) counters[j];
-	    else
-		INTEGER(VECTOR_ELT(nindex, j))[0] = (int) counters[j];
+	    INTEGER(VECTOR_ELT(nindex, j))[0] = counters[j];
 	}
 	SET_VECTOR_ELT(ans, i, eval(fcall, rho));
     }

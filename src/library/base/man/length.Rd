@@ -7,8 +7,6 @@
 \alias{length}
 \alias{length<-}
 \alias{length<-.factor}
-\alias{xlength}
-\alias{xlength<-}
 \title{Length of an Object}
 \description{
   Get or set the length of vectors (including lists) and factors, and of
@@ -17,42 +15,15 @@
 \usage{
 length(x)
 length(x) <- value
-
-xlength(x)
-xlength(x) <- value
 }
 \arguments{
   \item{x}{an \R object.  For replacement, a vector or factor.}
-  \item{value}{a non-negative integer or double (which will be rounded down).}
-}
-\details{
-  \code{length} and \code{xlength} differ only in the way they handle
-  the long vectors introduced for 64-bit builds in \R 2.16.0.
-  
-  All are generic: you can write methods to handle specific
-  classes of objects, see \link{InternalMethods}.  \code{length<-} has a
-  \code{"factor"} method.  The \code{xlength} versions will first try a
-  method for \code{xlength} then one of \code{length}.
-
-  The replacement form can be used to reset the length of a vector.  If
-  a vector is shortened, extra values are discarded and when a vector is
-  lengthened, it is padded out to its new length with \code{\link{NA}}s
-  (\code{nul} for raw vectors).
-  
-  All are \link{primitive} functions.
+  \item{value}{an integer: double values will be coerced to integer.}
 }
 \value{
-  The default method for \code{length} currently returns an
-  \code{\link{integer}} of length 1.  Since this may change in the
-  future and may differ for other methods, programmers should not rely
-  on it.  It gives an error for long vectors: the default method will
-  only return a non-negative integer (and never \code{NA}), but
-  see section \sQuote{Warning}.
-
-  On the other hand, the default method for \code{xlength} will return a
-  double value for vectors of more than \eqn{2^{31}-1}{2^31 - 1}
-  elements, and the default replacement method can set the length of
-  atomic vectors and list to such a length if \code{value} is double.
+  The default method currently returns an \code{\link{integer}} of
+  length 1.  Since this may change in the future and may
+  differ for other methods, programmers should not rely on it.
 
   For vectors (including lists) and factors the length is the number of
   elements.  For an environment it is the number of objects in the
@@ -61,17 +32,30 @@ xlength(x) <- value
   of the pairlist chain.  All other objects (including functions) have
   length one: note that for functions this differs from S.
 
-  The replacement forms remove all the attributes of \code{x} except its
+  The replacement form removes all the attributes of \code{x} except its
   names.
 }
+
+\details{
+  Both functions are generic: you can write methods to handle specific
+  classes of objects, see \link{InternalMethods}.  \code{length<-} has a
+  \code{"factor"} method.
+
+  The replacement form can be used to reset the length of a vector.  If
+  a vector is shortened, extra values are discarded and when a vector is
+  lengthened, it is padded out to its new length with \code{\link{NA}}s
+  (\code{nul} for raw vectors).
+  
+  Both are \link{primitive} functions.
+}
+
 \section{Warning}{
   Package authors have written methods that return a result of
   length other than one (\pkg{Formula}) and that return a vector type
   \code{\link{double}} (\pkg{Matrix}), even with non-integer values
-  (\pkg{sets}).  As from \R 2.16.0, where a single double value is
-  returned that can be represented as an integer, it is returned as a
-  length-one integer vector.
+  (\pkg{sets}).
 }
+
 \seealso{\code{nchar} for counting the number of characters in
   character vectors.
 }

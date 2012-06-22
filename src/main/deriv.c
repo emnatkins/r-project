@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998-2012   The R Core Team.
+ *  Copyright (C) 1998-2011   The R Core Team.
  *  Copyright (C) 2004-5        The R Foundation
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -59,7 +59,7 @@ static Rboolean Initialized = FALSE;
 
 static void InitDerivSymbols(void)
 {
-    /* Called from doD() and deriv() */
+    /* Called from do_D() and do_deriv() */
     if(Initialized) return;
     ParenSymbol = install("(");
     PlusSymbol = install("+");
@@ -622,10 +622,10 @@ static SEXP AddParens(SEXP expr)
     return expr;
 }
 
-SEXP doD(SEXP args)
+SEXP attribute_hidden do_D(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP expr, var;
-    args = CDR(args);
+    checkArity(op, args);
     if (isExpression(CAR(args))) expr = VECTOR_ELT(CAR(args), 0);
     else expr = CAR(args);
     var = CADR(args);
@@ -902,15 +902,14 @@ static SEXP Prune(SEXP lst)
     else return lst ;
 }
 
-SEXP deriv(SEXP args)
+SEXP attribute_hidden do_deriv(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-/* deriv(expr, namevec, function.arg, tag, hessian) */
+/* deriv.default(expr, namevec, function.arg, tag, hessian) */
     SEXP ans, ans2, expr, funarg, names, s;
     int f_index, *d_index, *d2_index;
     int i, j, k, nexpr, nderiv=0, hessian;
     SEXP exprlist, tag;
-
-    args = CDR(args);
+    checkArity(op, args);
     InitDerivSymbols();
     PROTECT(exprlist = LCONS(install("{"), R_NilValue));
     /* expr: */

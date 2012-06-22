@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2012-04-12 r58988) -- "Unsuffered Consequences"
+R version 2.15.0 alpha (2012-03-02 r58556)
 Copyright (C) 2012 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-unknown-linux-gnu (64-bit)
@@ -2583,9 +2583,10 @@ F-statistic: 330.3 on 6 and 9 DF,  p-value: 4.984e-10
 > ### ** Examples
 > 
 > require(stats); require(graphics)
-> michelson <- transform(morley,
-+                        Expt = factor(Expt), Run = factor(Run))
-> xtabs(~ Expt + Run, data = michelson)# 5 x 20 balanced (two-way)
+> morley$Expt <- factor(morley$Expt)
+> morley$Run <- factor(morley$Run)
+> 
+> xtabs(~ Expt + Run, data = morley)# 5 x 20 balanced (two-way)
     Run
 Expt 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
    1 1 1 1 1 1 1 1 1 1  1  1  1  1  1  1  1  1  1  1  1
@@ -2593,9 +2594,9 @@ Expt 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
    3 1 1 1 1 1 1 1 1 1  1  1  1  1  1  1  1  1  1  1  1
    4 1 1 1 1 1 1 1 1 1  1  1  1  1  1  1  1  1  1  1  1
    5 1 1 1 1 1 1 1 1 1  1  1  1  1  1  1  1  1  1  1  1
-> plot(Speed ~ Expt, data = michelson,
+> plot(Speed ~ Expt, data = morley,
 +      main = "Speed of Light Data", xlab = "Experiment No.")
-> fm <- aov(Speed ~ Run + Expt, data = michelson)
+> fm <- aov(Speed ~ Run + Expt, data = morley)
 > summary(fm)
             Df Sum Sq Mean Sq F value  Pr(>F)   
 Run         19 113344    5965   1.105 0.36321   
@@ -3426,7 +3427,7 @@ c0   -5.14
 > ### * <FOOTER>
 > ###
 > cat("Time elapsed: ", proc.time() - get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  2.735 0.087 3.006 0 0 
+Time elapsed:  2.698 0.06 2.773 0 0 
 > grDevices::dev.off()
 null device 
           1 

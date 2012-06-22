@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0 \n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-05-21 13:03\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: 2012-02-26 14:13+0200 \n"
 "Last-Translator: Shigeru Mase <maseshigeru@gmail.com> \n"
 "Language-Team: RjpWiki Message Translation Team <mokada@md.tsukuba.ac.jp> \n"
@@ -690,9 +690,6 @@ msgstr " 引数 'x' は数値でなければなりません "
 msgid "'x' contains missing values"
 msgstr " 'x' は欠測値を含んでいます "
 
-msgid "invalid value of length(x)"
-msgstr ""
-
 msgid "'x' and 'weights' have unequal length"
 msgstr " 'x' と 'weights' は同じ長さを持たねばなりません "
 
@@ -1292,6 +1289,9 @@ msgid ""
 msgstr ""
 " 数値の y を与えなければなりません。 \n"
 " 密度の推定には density() を使いましょう "
+
+msgid "invalid value of length(x)"
+msgstr ""
 
 msgid "'k' is not an integer"
 msgstr " 'k' は整数でありません "
@@ -1912,6 +1912,9 @@ msgstr " 'newdata' は、元の列の一つ以上とマッチする名前つき�
 msgid "'newdata' does not have the correct number of columns"
 msgstr " 'newdata' は正しい列数を持ちません "
 
+msgid "wrong number of predictors"
+msgstr " 予測子の数が間違っています "
+
 msgid "both 'x' and 'covmat' were supplied: 'x' will be ignored"
 msgstr " 'x' と 'covmat' の双方が与えられました。'x' は無視されます "
 
@@ -2077,10 +2080,6 @@ msgstr " 無効な 'control.spar' です "
 
 msgid "missing or infinite values in inputs are not allowed"
 msgstr " 入力中に欠損値、無限の値は許されません "
-
-#, fuzzy
-msgid "invalid number of points"
-msgstr " 予測子の数が間違っています "
 
 msgid "lengths of 'x' and 'w' must match"
 msgstr " 'x' と 'w' の長さは一致しなければなりません "
@@ -2470,13 +2469,6 @@ msgstr[0] " 欠損値のせいで %d 個の観測値が取り除かれました 
 msgid "parameter %s does not occur in the model formula"
 msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] " モデル式中にパラメータ %s がありません "
-
-#~ msgid "wrong number of predictors"
-#~ msgstr " 予測子の数が間違っています "
-
-#, fuzzy
-#~ msgid "invalid value oflength(x)"
-#~ msgstr " 無効なクラスタリング法です "
 
 #~ msgid "extra arguments"
 #~ msgstr " 余分な引数 "

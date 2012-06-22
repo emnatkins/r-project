@@ -28,6 +28,10 @@ Sys.which(names)
   
   On a Unix-alike the full path to \code{which} (usually
   \file{/usr/bin/which}) is found when \R is installed.
+
+  Arguments containing spaces or other metacharacters need to be escaped
+  as they would be for a shell: for example Windows paths containing
+  spaces need to be enclosed in double quotes.
 }
 \value{
   A character vector of the same length as \code{names}, named by
@@ -44,11 +48,6 @@ Sys.which(names)
   that is not part of e.g. the POSIX standards, exactly what it does is
   OS-dependent.  It will usually do tilde-expansion and it may make use
   of \command{csh} aliases.
-
-  Prior to \R 2.16.0, arguments containing spaces or other
-  metacharacters needed to be escaped as they would be for a shell: for
-  example Windows paths containing spaces needed to be enclosed in double
-  quotes. 
 }
 \examples{
 ## the first two are likely to exist everywhere

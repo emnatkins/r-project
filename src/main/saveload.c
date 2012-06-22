@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2012  The R Core Team
+ *  Copyright (C) 1997--2011  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -279,7 +279,7 @@ static char *AsciiInString(FILE *fp, SaveLoadData *d)
 	    default:  break;
 	    }
 	}
-	*bufp++ = (char) c;
+	*bufp++ = c;
     }
     *bufp = '\0';
     return d->buffer.data;
@@ -356,7 +356,7 @@ static Rcomplex XdrInComplex(FILE * fp, SaveLoadData *d)
 static char *XdrInString(FILE *fp, SaveLoadData *d)
 {
     char *bufp = d->buffer.data;
-    if (!xdr_string(&d->xdrs, &bufp, (unsigned int)d->buffer.bufsize)) {
+    if (!xdr_string(&d->xdrs, &bufp, d->buffer.bufsize)) {
 	xdr_destroy(&d->xdrs);
 	error(_("a S read error occurred"));
     }
@@ -407,7 +407,7 @@ static char *BinaryInString(FILE *fp, SaveLoadData *d)
 {
     char *bufp = d->buffer.data;
     do {
-	*bufp = (char) R_fgetc(fp);
+	*bufp = R_fgetc(fp);
     }
     while (*bufp++);
     return d->buffer.data;
@@ -814,7 +814,7 @@ static SEXP NewLoadSpecialHook (SEXPTYPE type)
 
 #define HASHSIZE 1099
 
-#define PTRHASH(obj) (((R_size_t) (obj)) >> 2)
+#define PTRHASH(obj) (((uintptr_t) (obj)) >> 2)
 
 #define HASH_TABLE_KEYS_LIST(ht) CAR(ht)
 #define SET_HASH_TABLE_KEYS_LIST(ht, v) SETCAR(ht, v)
@@ -846,7 +846,7 @@ static void FixHashEntries(SEXP ht)
 
 static void HashAdd(SEXP obj, SEXP ht)
 {
-    R_size_t pos = PTRHASH(obj) % HASH_TABLE_SIZE(ht);
+    int pos = PTRHASH(obj) % HASH_TABLE_SIZE(ht);
     int count = HASH_TABLE_COUNT(ht) + 1;
     SEXP val = ScalarInteger(count);
     SEXP cell = CONS(val, HASH_BUCKET(ht, pos));
@@ -860,7 +860,7 @@ static void HashAdd(SEXP obj, SEXP ht)
 
 static int HashGet(SEXP item, SEXP ht)
 {
-    R_size_t pos = PTRHASH(item) % HASH_TABLE_SIZE(ht);
+    int pos = PTRHASH(item) % HASH_TABLE_SIZE(ht);
     SEXP cell;
     for (cell = HASH_BUCKET(ht, pos); cell != R_NilValue; cell = CDR(cell))
 	if (item == TAG(cell))
@@ -1162,7 +1162,7 @@ static SEXP InCHARSXP (FILE *fp, InputRoutines *m, SaveLoadData *d)
 {
     SEXP s;
     char *tmp;
-    size_t len;
+    int len;
 
     /* FIXME: rather than use strlen, use actual length of string when
      * sized strings get implemented in R's save/load code.  */
@@ -1276,7 +1276,7 @@ static SEXP NewReadItem (SEXP sym_table, SEXP env_table, FILE *fp,
     default:
 	error(_("NewReadItem: unknown type %i"), type);
     }
-    SETLEVELS(s, (unsigned short) levs);
+    SETLEVELS(s, levs);
     SET_OBJECT(s, objf);
     SET_ATTRIB(s, NewReadItem(sym_table, env_table, fp, m, d));
     UNPROTECT(1); /* s */
@@ -1379,9 +1379,9 @@ static int InIntegerAscii(FILE *fp, SaveLoadData *unused)
 
 static void OutStringAscii(FILE *fp, const char *x, SaveLoadData *unused)
 {
-    size_t i, nbytes;
+    int i, nbytes;
     nbytes = strlen(x);
-    fprintf(fp, "%d ", (int) nbytes);
+    fprintf(fp, "%d ", nbytes);
     for (i = 0; i < nbytes; i++) {
 	switch(x[i]) {
 	case '\n': fprintf(fp, "\\n");  break;
@@ -1455,13 +1455,13 @@ static char *InStringAscii(FILE *fp, SaveLoadData *unused)
 		    c = fgetc(fp);
 		    j++;
 		}
-		buf[i] = (char) d;
+		buf[i] = d;
 		ungetc(c, fp);
 		break;
-	    default  : buf[i] = (char) c;
+	    default  : buf[i] = c;
 	    }
 	}
-	else buf[i] = (char) c;
+	else buf[i] = c;
     }
     buf[i] = '\0';
     return buf;
@@ -1644,7 +1644,7 @@ static int InIntegerXdr(FILE *fp, SaveLoadData *d)
 
 static void OutStringXdr(FILE *fp, const char *s, SaveLoadData *d)
 {
-    unsigned int n = (unsigned int) strlen(s);
+    unsigned int n = strlen(s);
     char *t = CallocCharBuf(n);
     bool_t res;
     /* This copy may not be needed, will xdr_bytes ever modify 2nd arg? */
@@ -1762,10 +1762,10 @@ static void R_WriteMagic(FILE *fp, int number)
 	strcpy((char*)buf, "RDX2");
 	break;
     default:
-	buf[0] = (unsigned char)((number/1000) % 10 + '0');
-	buf[1] = (unsigned char)((number/100) % 10 + '0');
-	buf[2] = (unsigned char)((number/10) % 10 + '0');
-	buf[3] = (unsigned char)(number % 10 + '0');
+	buf[0] = (number/1000) % 10 + '0';
+	buf[1] = (number/100) % 10 + '0';
+	buf[2] = (number/10) % 10 + '0';
+	buf[3] = number % 10 + '0';
     }
     buf[4] = '\n';
     res = fwrite((char*)buf, sizeof(char), 5, fp);
@@ -1775,8 +1775,7 @@ static void R_WriteMagic(FILE *fp, int number)
 static int R_ReadMagic(FILE *fp)
 {
     unsigned char buf[6];
-    int d1, d2, d3, d4;
-    size_t count;
+    int d1, d2, d3, d4, count;
 
     count = fread((char*)buf, sizeof(char), 5, fp);
     if (count != 5) {
@@ -2279,7 +2278,7 @@ SEXP attribute_hidden do_saveToConn(SEXP call, SEXP op, SEXP args, SEXP env)
     if (con->text)
 	Rconn_printf(con, "%s", magic);
     else {
-	size_t len = strlen(magic);
+	int len = strlen(magic);
 	if (len != con->write(magic, 1, len, con))
 	    error(_("error writing to connection"));
     }
@@ -2320,7 +2319,7 @@ SEXP attribute_hidden do_loadFromConn2(SEXP call, SEXP op, SEXP args, SEXP env)
     Rconnection con;
     SEXP aenv, res = R_NilValue;
     unsigned char buf[6];
-    size_t count;
+    int count;
     Rboolean wasopen;
     RCNTXT cntxt;
 

@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2012  The R Core Team
+ *  Copyright (C) 1997--2010  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -46,21 +46,21 @@ SEXP attribute_hidden do_relop(SEXP call, SEXP op, SEXP args, SEXP env)
 SEXP attribute_hidden do_relop_dflt(SEXP call, SEXP op, SEXP x, SEXP y)
 {
     SEXP klass = R_NilValue, dims, tsp=R_NilValue, xnames, ynames;
-    R_xlen_t nx, ny;
-    int xarray, yarray, xts, yts;
+    int nx, ny, xarray, yarray, xts, yts;
     Rboolean mismatch = FALSE, iS;
     PROTECT_INDEX xpi, ypi;
 
     PROTECT_WITH_INDEX(x, &xpi);
     PROTECT_WITH_INDEX(y, &ypi);
-    nx = xlength(x);
-    ny = xlength(y);
+    nx = length(x);
+    ny = length(y);
 
     /* pre-test to handle the most common case quickly.
        Used to skip warning too ....
      */
     if (ATTRIB(x) == R_NilValue && ATTRIB(y) == R_NilValue &&
-	TYPEOF(x) == REALSXP && TYPEOF(y) == REALSXP && nx > 0 && ny > 0) {
+	TYPEOF(x) == REALSXP && TYPEOF(y) == REALSXP &&
+	LENGTH(x) > 0 && LENGTH(y) > 0) {
 	SEXP ans = real_relop((RELOP_TYPE) PRIMVAL(op), x, y);
 	if (nx > 0 && ny > 0)
 	    mismatch = ((nx > ny) ? nx % ny : ny % nx) != 0;
@@ -107,9 +107,9 @@ SEXP attribute_hidden do_relop_dflt(SEXP call, SEXP op, SEXP x, SEXP y)
 
     /* ELSE :  x and y are both atomic or list */
 
-    if (XLENGTH(x) <= 0 || XLENGTH(y) <= 0) {
+    if (LENGTH(x) <= 0 || LENGTH(y) <= 0) {
 	UNPROTECT(2);
-	return allocVector(LGLSXP, 0);
+	return allocVector(LGLSXP,0);
     }
 
     mismatch = FALSE;
@@ -148,13 +148,13 @@ SEXP attribute_hidden do_relop_dflt(SEXP call, SEXP op, SEXP x, SEXP y)
 	    PROTECT(klass = getAttrib(x, R_ClassSymbol));
 	}
 	else if (xts) {
-	    if (xlength(x) < xlength(y))
+	    if (length(x) < length(y))
 		ErrorMessage(call, ERROR_TSVEC_MISMATCH);
 	    PROTECT(tsp = getAttrib(x, R_TspSymbol));
 	    PROTECT(klass = getAttrib(x, R_ClassSymbol));
 	}
 	else /*(yts)*/ {
-	    if (xlength(y) < xlength(x))
+	    if (length(y) < length(x))
 		ErrorMessage(call, ERROR_TSVEC_MISMATCH);
 	    PROTECT(tsp = getAttrib(y, R_TspSymbol));
 	    PROTECT(klass = getAttrib(y, R_ClassSymbol));
@@ -204,9 +204,9 @@ SEXP attribute_hidden do_relop_dflt(SEXP call, SEXP op, SEXP x, SEXP y)
 	    setAttrib(x, R_DimNamesSymbol, ynames);
     }
     else {
-	if (xlength(x) == xlength(xnames))
+	if (length(x) == length(xnames))
 	    setAttrib(x, R_NamesSymbol, xnames);
-	else if (xlength(x) == xlength(ynames))
+	else if (length(x) == length(ynames))
 	    setAttrib(x, R_NamesSymbol, ynames);
     }
     if (xts || yts) {
@@ -230,12 +230,12 @@ SEXP attribute_hidden do_relop_dflt(SEXP call, SEXP op, SEXP x, SEXP y)
 
 static SEXP integer_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 {
-    R_xlen_t i, i1, i2, n, n1, n2;
+    int i, i1, i2, n, n1, n2;
     int x1, x2;
     SEXP ans;
 
-    n1 = XLENGTH(s1);
-    n2 = XLENGTH(s2);
+    n1 = LENGTH(s1);
+    n2 = LENGTH(s2);
     n = (n1 > n2) ? n1 : n2;
     PROTECT(s1);
     PROTECT(s2);
@@ -309,12 +309,12 @@ static SEXP integer_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 
 static SEXP real_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 {
-    R_xlen_t i, i1, i2, n, n1, n2;
+    int i, i1, i2, n, n1, n2;
     double x1, x2;
     SEXP ans;
 
-    n1 = XLENGTH(s1);
-    n2 = XLENGTH(s2);
+    n1 = LENGTH(s1);
+    n2 = LENGTH(s2);
     n = (n1 > n2) ? n1 : n2;
     PROTECT(s1);
     PROTECT(s2);
@@ -388,7 +388,7 @@ static SEXP real_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 
 static SEXP complex_relop(RELOP_TYPE code, SEXP s1, SEXP s2, SEXP call)
 {
-    R_xlen_t i, i1, i2, n, n1, n2;
+    int i, i1, i2, n, n1, n2;
     Rcomplex x1, x2;
     SEXP ans;
 
@@ -396,8 +396,8 @@ static SEXP complex_relop(RELOP_TYPE code, SEXP s1, SEXP s2, SEXP call)
 	errorcall(call, _("invalid comparison with complex values"));
     }
 
-    n1 = XLENGTH(s1);
-    n2 = XLENGTH(s2);
+    n1 = LENGTH(s1);
+    n2 = LENGTH(s2);
     n = (n1 > n2) ? n1 : n2;
     PROTECT(s1);
     PROTECT(s2);
@@ -439,11 +439,11 @@ static SEXP complex_relop(RELOP_TYPE code, SEXP s1, SEXP s2, SEXP call)
    outside the collation domain. */
 static SEXP string_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 {
-    R_xlen_t i, n, n1, n2, res;
+    int i, n, n1, n2, res;
     SEXP ans, c1, c2;
 
-    n1 = XLENGTH(s1);
-    n2 = XLENGTH(s2);
+    n1 = LENGTH(s1);
+    n2 = LENGTH(s2);
     n = (n1 > n2) ? n1 : n2;
     PROTECT(s1);
     PROTECT(s2);
@@ -549,12 +549,12 @@ static SEXP string_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 
 static SEXP raw_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 {
-    R_xlen_t i, i1, i2, n, n1, n2;
+    int i, i1, i2, n, n1, n2;
     Rbyte x1, x2;
     SEXP ans;
 
-    n1 = XLENGTH(s1);
-    n2 = XLENGTH(s2);
+    n1 = LENGTH(s1);
+    n2 = LENGTH(s2);
     n = (n1 > n2) ? n1 : n2;
     PROTECT(s1);
     PROTECT(s2);
@@ -611,36 +611,35 @@ static SEXP raw_relop(RELOP_TYPE code, SEXP s1, SEXP s2)
 
 SEXP bitwiseNot(SEXP a)
 {
-    R_xlen_t  i, m = XLENGTH(a);
+    int  m = LENGTH(a);
     SEXP ans = allocVector(INTSXP, m);
-    for(i = 0; i < m; i++) INTEGER(ans)[i] =  ~INTEGER(a)[i];
+    for(int i = 0; i < m; i++) INTEGER(ans)[i] =  ~INTEGER(a)[i];
     return ans;
 }
 
-#define mymax(x, y) ((x >= y) ? x : y)
 SEXP bitwiseAnd(SEXP a, SEXP b)
 {
-    R_xlen_t  i, m = XLENGTH(a), n = XLENGTH(b), mn = (m && n) ? mymax(m, n) : 0;
+    int  m = LENGTH(a), n = LENGTH(b), mn = (m && n) ? fmax2(m, n) : 0;
     SEXP ans = allocVector(INTSXP, mn);
-    for(i = 0; i < mn; i++)
+    for(int i = 0; i < mn; i++)
 	INTEGER(ans)[i] = INTEGER(a)[i%m] & INTEGER(b)[i%n];
     return ans;
 }
 
 SEXP bitwiseOr(SEXP a, SEXP b)
 {
-    R_xlen_t  i, m = XLENGTH(a), n = XLENGTH(b), mn = (m && n) ? mymax(m, n) : 0;
+    int  m = LENGTH(a), n = LENGTH(b), mn = (m && n) ? fmax2(m, n) : 0;
     SEXP ans = allocVector(INTSXP, mn);
-    for(i = 0; i < mn; i++)
+    for(int i = 0; i < mn; i++)
 	INTEGER(ans)[i] = INTEGER(a)[i%m] | INTEGER(b)[i%n];
     return ans;
 }
 
 SEXP bitwiseXor(SEXP a, SEXP b)
 {
-    R_xlen_t i,  m = XLENGTH(a), n = XLENGTH(b), mn = (m && n) ? mymax(m, n) : 0;
+    int  m = LENGTH(a), n = LENGTH(b), mn = (m && n) ? fmax2(m, n) : 0;
     SEXP ans = allocVector(INTSXP, mn);
-    for(i = 0; i < mn; i++)
+    for(int i = 0; i < mn; i++)
 	INTEGER(ans)[i] = INTEGER(a)[i%m] ^ INTEGER(b)[i%n];
     return ans;
 }

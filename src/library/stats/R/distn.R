@@ -14,93 +14,89 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-
-dexp <- function(x, rate=1, log = FALSE) .External(C_dexp, x, 1/rate, log)
+dexp <- function(x, rate=1, log = FALSE) .Internal(dexp(x, 1/rate, log))
 pexp <- function(q, rate=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_pexp, q, 1/rate, lower.tail, log.p)
+    .Internal(pexp(q, 1/rate, lower.tail, log.p))
 qexp <- function(p, rate=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_qexp, p, 1/rate, lower.tail, log.p)
-rexp <- function(n, rate=1) .External(C_rexp, n, 1/rate)
+    .Internal(qexp(p, 1/rate, lower.tail, log.p))
+rexp <- function(n, rate=1) .Internal(rexp(n, 1/rate))
 
 dunif <- function(x, min=0, max=1, log = FALSE)
-    .External(C_dunif, x, min, max, log)
+    .Internal(dunif(x, min, max, log))
 punif <- function(q, min=0, max=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_punif, q, min, max, lower.tail, log.p)
+    .Internal(punif(q, min, max, lower.tail, log.p))
 qunif <- function(p, min=0, max=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_qunif, p, min, max, lower.tail, log.p)
-runif <- function(n, min=0, max=1) .External(C_runif, n, min, max)
+    .Internal(qunif(p, min, max, lower.tail, log.p))
+runif <- function(n, min=0, max=1) .Internal(runif(n, min, max))
 
-dnorm <- function(x, mean=0, sd=1, log=FALSE)
-    .External(C_dnorm, x, mean, sd, log)
+dnorm <- function(x, mean=0, sd=1, log=FALSE) .Internal(dnorm(x, mean, sd, log))
 pnorm <- function(q, mean=0, sd=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_pnorm, q, mean, sd, lower.tail, log.p)
+    .Internal(pnorm(q, mean, sd, lower.tail, log.p))
 qnorm <- function(p, mean=0, sd=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_qnorm, p, mean, sd, lower.tail, log.p)
-rnorm <- function(n, mean=0, sd=1) .External(C_rnorm, n, mean, sd)
+    .Internal(qnorm(p, mean, sd, lower.tail, log.p))
+rnorm <- function(n, mean=0, sd=1) .Internal(rnorm(n, mean, sd))
 
 dcauchy <- function(x, location=0, scale=1, log = FALSE)
-    .External(C_dcauchy, x, location, scale, log)
+    .Internal(dcauchy(x, location, scale, log))
 pcauchy <-
     function(q, location=0, scale=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_pcauchy, q, location, scale, lower.tail, log.p)
+    .Internal(pcauchy(q, location, scale, lower.tail, log.p))
 qcauchy <-
     function(p, location=0, scale=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_qcauchy, p, location, scale, lower.tail, log.p)
+    .Internal(qcauchy(p, location, scale, lower.tail, log.p))
 rcauchy <-
-    function(n, location=0, scale=1) .External(C_rcauchy, n, location, scale)
+    function(n, location=0, scale=1) .Internal(rcauchy(n, location, scale))
 
 dgamma <- function(x, shape, rate = 1, scale = 1/rate, log = FALSE)
-    .External(C_dgamma, x, shape, scale, log)
+    .Internal(dgamma(x, shape, scale, log))
 pgamma <- function(q, shape, rate = 1, scale = 1/rate,
                    lower.tail = TRUE, log.p = FALSE)
-    .External(C_pgamma, q, shape, scale, lower.tail, log.p)
+    .Internal(pgamma(q, shape, scale, lower.tail, log.p))
 
 qgamma <- function(p, shape, rate = 1, scale = 1/rate,
                    lower.tail = TRUE, log.p = FALSE)
-    .External(C_qgamma, p, shape, scale, lower.tail, log.p)
+    .Internal(qgamma(p, shape, scale, lower.tail, log.p))
 rgamma <- function(n, shape, rate = 1, scale = 1/rate)
-    .External(C_rgamma, n, shape, scale)
+    .Internal(rgamma(n, shape, scale))
 
 dlnorm <- function(x, meanlog=0, sdlog=1, log=FALSE)
-    .External(C_dlnorm, x, meanlog, sdlog, log)
+    .Internal(dlnorm(x, meanlog, sdlog, log))
 plnorm <- function(q, meanlog=0, sdlog=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_plnorm, q, meanlog, sdlog, lower.tail, log.p)
+    .Internal(plnorm(q, meanlog, sdlog, lower.tail, log.p))
 qlnorm <- function(p, meanlog=0, sdlog=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_qlnorm, p, meanlog, sdlog, lower.tail, log.p)
-rlnorm <- function(n, meanlog=0, sdlog=1)
-    .External(C_rlnorm, n, meanlog, sdlog)
+    .Internal(qlnorm(p, meanlog, sdlog, lower.tail, log.p))
+rlnorm <- function(n, meanlog=0, sdlog=1) .Internal(rlnorm(n, meanlog, sdlog))
 
 dlogis <- function(x, location=0, scale=1, log = FALSE)
-    .External(C_dlogis, x, location, scale, log)
+    .Internal(dlogis(x, location, scale, log))
 plogis <- function(q, location=0, scale=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_plogis, q, location, scale, lower.tail, log.p)
+    .Internal(plogis(q, location, scale, lower.tail, log.p))
 qlogis <- function(p, location=0, scale=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_qlogis, p, location, scale, lower.tail, log.p)
-rlogis <- function(n, location=0, scale=1)
-    .External(C_rlogis, n, location, scale)
+    .Internal(qlogis(p, location, scale, lower.tail, log.p))
+rlogis <- function(n, location=0, scale=1) .Internal(rlogis(n, location, scale))
 
 dweibull <- function(x, shape, scale=1, log = FALSE)
-    .External(C_dweibull, x, shape, scale, log)
+    .Internal(dweibull(x, shape, scale, log))
 pweibull <- function(q, shape, scale=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_pweibull, q, shape, scale, lower.tail, log.p)
+    .Internal(pweibull(q, shape, scale, lower.tail, log.p))
 qweibull <- function(p, shape, scale=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_qweibull, p, shape, scale, lower.tail, log.p)
-rweibull <- function(n, shape, scale=1) .External(C_rweibull, n, shape, scale)
+    .Internal(qweibull(p, shape, scale, lower.tail, log.p))
+rweibull <- function(n, shape, scale=1) .Internal(rweibull(n, shape, scale))
 
 dbeta <- function(x, shape1, shape2, ncp=0, log = FALSE) {
-    if(missing(ncp)) .External(C_dbeta, x, shape1, shape2, log)
-    else .External(C_dnbeta, x, shape1, shape2, ncp, log)
+    if(missing(ncp)) .Internal(dbeta(x, shape1, shape2, log))
+    else .Internal(dnbeta(x, shape1, shape2, ncp, log))
 }
 pbeta <- function(q, shape1, shape2, ncp=0, lower.tail = TRUE, log.p = FALSE) {
-    if(missing(ncp)) .External(C_pbeta, q, shape1, shape2, lower.tail, log.p)
-    else .External(C_pnbeta, q, shape1, shape2, ncp, lower.tail, log.p)
+    if(missing(ncp)) .Internal(pbeta(q, shape1, shape2, lower.tail, log.p))
+    else .Internal(pnbeta(q, shape1, shape2, ncp, lower.tail, log.p))
 }
 qbeta <- function(p, shape1, shape2, ncp=0, lower.tail = TRUE, log.p = FALSE) {
-    if(missing(ncp)) .External(C_qbeta, p, shape1, shape2, lower.tail, log.p)
-    else .External(C_qnbeta, p, shape1, shape2, ncp, lower.tail, log.p)
+    if(missing(ncp)) .Internal(qbeta(p, shape1, shape2, lower.tail, log.p))
+    else .Internal(qnbeta(p, shape1, shape2, ncp, lower.tail, log.p))
 }
 rbeta <- function(n, shape1, shape2, ncp = 0) {
-    if(ncp == 0) .External(C_rbeta, n, shape1, shape2)
+    if(ncp == 0) .Internal(rbeta(n, shape1, shape2))
     else {
         X <- rchisq(n, 2*shape1, ncp =ncp)
         X/(X + rchisq(n, 2*shape2))
@@ -108,12 +104,12 @@ rbeta <- function(n, shape1, shape2, ncp = 0) {
 }
 
 dbinom <- function(x, size, prob, log = FALSE)
-    .External(C_dbinom, x, size, prob, log)
+    .Internal(dbinom(x, size, prob, log))
 pbinom <- function(q, size, prob, lower.tail = TRUE, log.p = FALSE)
-    .External(C_pbinom, q, size, prob, lower.tail, log.p)
+    .Internal(pbinom(q, size, prob, lower.tail, log.p))
 qbinom <- function(p, size, prob, lower.tail = TRUE, log.p = FALSE)
-    .External(C_qbinom, p, size, prob, lower.tail, log.p)
-rbinom <- function(n, size, prob) .External(C_rbinom, n, size, prob)
+    .Internal(qbinom(p, size, prob, lower.tail, log.p))
+rbinom <- function(n, size, prob) .Internal(rbinom(n, size, prob))
 
 ## Multivariate: that's why there's no C interface (yet) for d...():
 dmultinom <- function(x, size=NULL, prob, log = FALSE)
@@ -144,152 +140,153 @@ dmultinom <- function(x, size=NULL, prob, log = FALSE)
     r <- lgamma(size+1) + sum(x*log(prob) - lgamma(x+1))
     if(log) r else exp(r)
 }
-rmultinom <- function(n, size, prob) .External(C_rmultinom, n, size, prob)
+rmultinom <- function(n, size, prob) .Internal(rmultinom(n, size, prob))
 
 dchisq <- function(x, df, ncp=0, log = FALSE) {
-    if(missing(ncp)) .External(C_dchisq, x, df, log)
-    else .External(C_dnchisq, x, df, ncp, log)
+    if(missing(ncp)) .Internal(dchisq(x, df, log))
+    else .Internal(dnchisq(x, df, ncp, log))
 }
 pchisq <- function(q, df, ncp=0, lower.tail = TRUE, log.p = FALSE) {
-    if(missing(ncp)) .External(C_pchisq, q, df, lower.tail, log.p)
-    else .External(C_pnchisq, q, df, ncp, lower.tail, log.p)
+    if(missing(ncp)) .Internal(pchisq(q, df, lower.tail, log.p))
+    else .Internal(pnchisq(q, df, ncp, lower.tail, log.p))
 }
 qchisq <- function(p, df, ncp=0, lower.tail = TRUE, log.p = FALSE) {
-    if(missing(ncp)) .External(C_qchisq, p, df, lower.tail, log.p)
-    else .External(C_qnchisq, p, df, ncp, lower.tail, log.p)
+    if(missing(ncp)) .Internal(qchisq(p, df, lower.tail, log.p))
+    else .Internal(qnchisq(p, df, ncp, lower.tail, log.p))
 }
 rchisq <- function(n, df, ncp=0) {
-    if(missing(ncp)) .External(C_rchisq, n, df)
-    else .External(C_rnchisq, n, df, ncp)
+    if(missing(ncp)) .Internal(rchisq(n, df))
+    else .Internal(rnchisq(n, df, ncp))
 }
 
 df <- function(x, df1, df2, ncp, log = FALSE) {
-    if(missing(ncp)) .External(C_df, x, df1, df2, log)
-    else .External(C_dnf, x, df1, df2, ncp, log)
+    if(missing(ncp)) .Internal(df(x, df1, df2, log))
+    else .Internal(dnf(x, df1, df2, ncp, log))
 }
 pf <- function(q, df1, df2, ncp, lower.tail = TRUE, log.p = FALSE) {
-    if(missing(ncp)) .External(C_pf, q, df1, df2, lower.tail, log.p)
-    else .External(C_pnf, q, df1, df2, ncp, lower.tail, log.p)
+    if(missing(ncp)) .Internal(pf(q, df1, df2, lower.tail, log.p))
+    else .Internal(pnf(q, df1, df2, ncp, lower.tail, log.p))
 }
 qf <- function(p, df1, df2, ncp, lower.tail = TRUE, log.p = FALSE) {
-    if(missing(ncp)) .External(C_qf, p, df1, df2, lower.tail, log.p)
-    else .External(C_qnf, p, df1, df2, ncp, lower.tail, log.p)
+    if(missing(ncp)) .Internal(qf(p, df1, df2, lower.tail, log.p))
+    else .Internal(qnf(p, df1, df2, ncp, lower.tail, log.p))
 }
 rf <- function(n, df1, df2, ncp)
 {
-    if(missing(ncp)) .External(C_rf, n, df1, df2)
+    if(missing(ncp)) .Internal(rf(n, df1, df2))
     else (rchisq(n, df1, ncp=ncp)/df1)/(rchisq(n, df2)/df2)
 }
 
-dgeom <- function(x, prob, log = FALSE) .External(C_dgeom, x, prob, log)
+dgeom <- function(x, prob, log = FALSE) .Internal(dgeom(x, prob, log))
 pgeom <- function(q, prob, lower.tail = TRUE, log.p = FALSE)
-    .External(C_pgeom, q, prob, lower.tail, log.p)
+    .Internal(pgeom(q, prob, lower.tail, log.p))
 qgeom <- function(p, prob, lower.tail = TRUE, log.p = FALSE)
-    .External(C_qgeom, p, prob, lower.tail, log.p)
-rgeom <- function(n, prob) .External(C_rgeom, n, prob)
+    .Internal(qgeom(p, prob, lower.tail, log.p))
+rgeom <- function(n, prob) .Internal(rgeom(n, prob))
 
-dhyper <- function(x, m, n, k, log = FALSE)
-    .External(C_dhyper, x, m, n, k, log)
+dhyper <- function(x, m, n, k, log = FALSE) .Internal(dhyper(x, m, n, k, log))
 phyper <- function(q, m, n, k, lower.tail = TRUE, log.p = FALSE)
-    .External(C_phyper, q, m, n, k, lower.tail, log.p)
+    .Internal(phyper(q, m, n, k, lower.tail, log.p))
 qhyper <- function(p, m, n, k, lower.tail = TRUE, log.p = FALSE)
-    .External(C_qhyper, p, m, n, k, lower.tail, log.p)
-rhyper <- function(nn, m, n, k) .External(C_rhyper, nn, m, n, k)
+    .Internal(qhyper(p, m, n, k, lower.tail, log.p))
+rhyper <- function(nn, m, n, k) .Internal(rhyper(nn, m, n, k))
 
 dnbinom <- function(x, size, prob, mu, log = FALSE)
 {
     if (!missing(mu)) {
 	if (!missing(prob)) stop("'prob' and 'mu' both specified")
-	.External(C_dnbinom_mu, x, size, mu, log)
+	.Internal(dnbinom_mu(x, size, mu, log))
     }
     else
-	.External(C_dnbinom, x, size, prob, log)
+	.Internal(dnbinom (x, size, prob, log))
 }
 pnbinom <- function(q, size, prob, mu, lower.tail = TRUE, log.p = FALSE)
 {
     if (!missing(mu)) {
 	if (!missing(prob)) stop("'prob' and 'mu' both specified")
-	.External(C_pnbinom_mu, q, size, mu, lower.tail, log.p)
+	.Internal(pnbinom_mu(q, size, mu, lower.tail, log.p))
     }
     else
-	.External(C_pnbinom, q, size, prob, lower.tail, log.p)
+	.Internal(pnbinom (q, size, prob, lower.tail, log.p))
 }
 qnbinom <- function(p, size, prob, mu, lower.tail = TRUE, log.p = FALSE)
 {
     if (!missing(mu)) {
 	if (!missing(prob)) stop("'prob' and 'mu' both specified")
-### FIXME: implement qnbinom_mu(...) properly
+### FIXME: implement qnbinom_mu(...)
 	prob <- size/(size + mu)
     }
-    .External(C_qnbinom, p, size, prob, lower.tail, log.p)
+    .Internal(qnbinom(p, size, prob, lower.tail, log.p))
 }
 rnbinom <- function(n, size, prob, mu)
 {
     if (!missing(mu)) {
         if (!missing(prob)) stop("'prob' and 'mu' both specified")
-        .External(C_rnbinom_mu, n, size, mu)
-    } else .External(C_rnbinom, n, size, prob)
+        .Internal(rnbinom_mu(n, size, mu))
+    }
+    else
+        .Internal(rnbinom(n, size, prob))
 }
 
-dpois <- function(x, lambda, log = FALSE) .External(C_dpois, x, lambda, log)
+dpois <- function(x, lambda, log = FALSE) .Internal(dpois(x, lambda, log))
 ppois <- function(q, lambda, lower.tail = TRUE, log.p = FALSE)
-    .External(C_ppois, q, lambda, lower.tail, log.p)
+    .Internal(ppois(q, lambda, lower.tail, log.p))
 qpois <- function(p, lambda, lower.tail = TRUE, log.p = FALSE)
-    .External(C_qpois, p, lambda, lower.tail, log.p)
-rpois <- function(n, lambda) .External(C_rpois, n, lambda)
+    .Internal(qpois(p, lambda, lower.tail, log.p))
+rpois <- function(n, lambda) .Internal(rpois(n, lambda))
 
 dt <- function(x, df, ncp, log = FALSE) {
-    if(missing(ncp)) .External(C_dt, x, df, log)
-    else .External(C_dnt, x, df, ncp, log)
+    if(missing(ncp)) .Internal(dt(x, df, log))
+    else .Internal(dnt(x, df, ncp, log))
 }
 pt <- function(q, df, ncp, lower.tail = TRUE, log.p = FALSE) {
-    if(missing(ncp)) .External(C_pt, q, df, lower.tail, log.p)
-    else .External(C_pnt, q, df, ncp, lower.tail, log.p)
+    if(missing(ncp)) .Internal(pt(q, df, lower.tail, log.p))
+    else .Internal(pnt(q, df, ncp, lower.tail, log.p))
 }
 qt <- function(p, df, ncp, lower.tail = TRUE, log.p = FALSE) {
-    if(missing(ncp)) .External(C_qt, p, df, lower.tail, log.p)
-    else .External(C_qnt,p, df, ncp, lower.tail, log.p)
+    if(missing(ncp)) .Internal(qt(p, df, lower.tail, log.p))
+    else .Internal(qnt(p, df, ncp, lower.tail, log.p))
 }
 rt <- function(n, df, ncp) {
-    if(missing(ncp)) .External(C_rt, n, df)
+    if(missing(ncp)) .Internal(rt(n, df))
     else rnorm(n, ncp)/sqrt(rchisq(n, df)/df)
 }
 
 ptukey <- function(q, nmeans, df, nranges=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_ptukey, q, nranges, nmeans, df, lower.tail, log.p)
+    .Internal(ptukey(q, nranges, nmeans, df, lower.tail, log.p))
 qtukey <- function(p, nmeans, df, nranges=1, lower.tail = TRUE, log.p = FALSE)
-    .External(C_qtukey, p, nranges, nmeans, df, lower.tail, log.p)
+    .Internal(qtukey(p, nranges, nmeans, df, lower.tail, log.p))
 
 dwilcox <- function(x, m, n, log = FALSE)
 {
     on.exit(.C("wilcox_free", PACKAGE = "base"))
-    .External(C_dwilcox, x, m, n, log)
+    .Internal(dwilcox(x, m, n, log))
 }
 pwilcox <- function(q, m, n, lower.tail = TRUE, log.p = FALSE)
 {
     on.exit(.C("wilcox_free", PACKAGE = "base"))
-    .External(C_pwilcox, q, m, n, lower.tail, log.p)
+    .Internal(pwilcox(q, m, n, lower.tail, log.p))
 }
 qwilcox <- function(p, m, n, lower.tail = TRUE, log.p = FALSE)
 {
     on.exit(.C("wilcox_free", PACKAGE = "base"))
-    .External(C_qwilcox, p, m, n, lower.tail, log.p)
+    .Internal(qwilcox(p, m, n, lower.tail, log.p))
 }
-rwilcox <- function(nn, m, n) .External(C_rwilcox, nn, m, n)
+rwilcox <- function(nn, m, n) .Internal(rwilcox(nn, m, n))
 
 dsignrank <- function(x, n, log = FALSE)
 {
     on.exit(.C("signrank_free", PACKAGE = "base"))
-    .External(C_dsignrank, x, n, log)
+    .Internal(dsignrank(x, n, log))
 }
 psignrank <- function(q, n, lower.tail = TRUE, log.p = FALSE)
 {
     on.exit(.C("signrank_free", PACKAGE = "base"))
-    .External(C_psignrank, q, n, lower.tail, log.p)
+    .Internal(psignrank(q, n, lower.tail, log.p))
 }
 qsignrank <- function(p, n, lower.tail = TRUE, log.p = FALSE)
 {
     on.exit(.C("signrank_free", PACKAGE = "base"))
-    .External(C_qsignrank, p, n, lower.tail, log.p)
+    .Internal(qsignrank(p, n, lower.tail, log.p))
 }
-rsignrank <- function(nn, n) .External(C_rsignrank, nn, n)
+rsignrank <- function(nn, n) .Internal(rsignrank(nn, n))

@@ -421,9 +421,6 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
             "  --encoding=enc  default encoding 'enc' for file",
             "  --options=      comma-separated list of Sweave options",
             "  --pdf           convert to PDF document",
-            "  --compact=      try to compact PDF document:",
-            '                  "no" (default), "qpdf", "gs", "gs+qpdf", "both"',
-            "  --compact       same as --compact=qpdf",
             "",
             "Report bugs at bugs.r-project.org .",
             sep = "\n")
@@ -438,7 +435,6 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
     file <- character()
     driver <- encoding <- options <- ""
     toPDF <- FALSE
-    compact <- Sys.getenv("_R_SWEAVE_COMPACT_PDF_", "no")
     while(length(args)) {
         a <- args[1L]
         if (a %in% c("-h", "--help")) {
@@ -463,10 +459,6 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
             options <- substr(a, 11, 1000)
         } else if (a == "--pdf") {
             toPDF <- TRUE
-        } else if (substr(a, 1, 10) == "--compact=") {
-            compact <- substr(a, 11, 1000)
-        } else if (a == "--compact") {
-            compact <- "qpdf"
         } else if (substr(a, 1, 1) == "-") {
             message("Warning: unknown option ", sQuote(a))
         } else file <- c(file, a)
@@ -485,32 +477,10 @@ SweaveHooks <- function(options, run = FALSE, envir = .GlobalEnv)
     }
     do.call(Sweave, args)
     if (toPDF) {
-        texfile <- basename(sub("\\.[rsRS][[:alpha:]]+$", ".tex", file))
+        texfile <- sub("\\.[rsRS][[:alpha:]]+$", ".tex", file)
         tools::texi2pdf(texfile, clean = TRUE)
         ofile <- sub("\\.tex$", ".pdf", texfile)
-        message("Created PDF document ", sQuote(ofile))
-        if(compact != "no") {
-            ## <NOTE>
-            ## Same code as used for --compact-vignettes in
-            ## .build_packages() ...
-            message("Compacting PDF document")
-            if(compact %in% c("gs", "gs+qpdf", "both")) {
-                gs_cmd <- tools:::find_gs_cmd(Sys.getenv("R_GSCMD", ""))
-                gs_quality <- "ebook"
-            } else {
-                gs_cmd <- ""
-                gs_quality <- "none"
-            }
-            qpdf <- if(compact %in% c("qpdf", "gs+qpdf", "both"))
-                Sys.which(Sys.getenv("R_QPDF", "qpdf"))
-            else ""
-            res <- tools::compactPDF(ofile, qpdf = qpdf,
-                                     gs_cmd = gs_cmd,
-                                     gs_quality = gs_quality)
-            res <- format(res, diff = 1e5)
-            if(length(res))
-                message(paste(format(res), collapse = "\n"))
-        }
+        message("Created PDF document ", sQuote(basename(ofile)))
     }
     do_exit()
 }

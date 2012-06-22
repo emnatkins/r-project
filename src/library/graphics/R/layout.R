@@ -17,8 +17,8 @@
 lcm <- function(x) paste(x, "cm")#-> 3 characters (used in layout!)
 
 layout <-
-    function(mat, widths = rep.int(1, ncol(mat)),
-	     heights = rep.int(1, nrow(mat)), respect = FALSE)
+    function(mat, widths = rep(1, ncol(mat)),
+	     heights = rep(1, nrow(mat)), respect = FALSE)
 {
     storage.mode(mat) <- "integer"
     mat <- as.matrix(mat) # or barf
@@ -61,16 +61,15 @@ layout <-
     } else {# respect: logical	|--> 0 or 1
 	respect.mat <- matrix(0L, num.rows, num.cols)
     }
-    .External.graphics(C_layout,
-                       num.rows, num.cols,
-                       mat,# integer
-                       as.integer(num.figures),
-                       col.widths = widths,
-                       row.heights = heights,
-                       cm.widths,
-                       cm.heights,
-                       respect = as.integer(respect),
-                       respect.mat)
+    .Internal(layout(num.rows, num.cols,
+		     mat,# integer
+		     as.integer(num.figures),
+		     col.widths = widths,
+		     row.heights = heights,
+		     cm.widths,
+		     cm.heights,
+		     respect = as.integer(respect),
+		     respect.mat))
     invisible(num.figures)
 }
 

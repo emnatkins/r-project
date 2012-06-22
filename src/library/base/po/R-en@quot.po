@@ -22,10 +22,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.16.0\n"
+"Project-Id-Version: R 2.15.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-06-07 15:26\n"
-"PO-Revision-Date: 2012-06-07 15:26\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
+"PO-Revision-Date: 2012-06-07 15:52\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
@@ -331,14 +331,11 @@ msgstr "named arguments other than ‘exact’ are discouraged"
 msgid "named arguments are discouraged"
 msgstr "named arguments are discouraged"
 
-msgid "number of items to replace is not a multiple of replacement length"
-msgstr "number of items to replace is not a multiple of replacement length"
+msgid "rhs is the wrong length for indexing by a logical matrix"
+msgstr "rhs is the wrong length for indexing by a logical matrix"
 
-msgid "rhs is the wrong length"
-msgstr "rhs is the wrong length"
-
-msgid "illegal matrix index in replacement"
-msgstr "illegal matrix index in replacement"
+msgid "only logical matrix subscripts are allowed in replacement"
+msgstr "only logical matrix subscripts are allowed in replacement"
 
 msgid "need 0, 1, or 2 subscripts"
 msgstr "need 0, 1, or 2 subscripts"
@@ -1276,9 +1273,6 @@ msgstr "‘x’ cannot be coerced to ‘octmode’"
 
 msgid "'x' cannot be coerced to hexmode"
 msgstr "‘x’ cannot be coerced to hexmode"
-
-msgid "using ... with FUN = \"*\" is an error"
-msgstr "using ... with FUN = “*” is an error"
 
 msgid "no arguments"
 msgstr "no arguments"

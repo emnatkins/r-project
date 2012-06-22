@@ -274,7 +274,7 @@ void copyMostAttrib(SEXP inp, SEXP ans)
 }
 
 /* version that does not preserve ts information, for subsetting */
-void copyMostAttribNoTs(SEXP inp, SEXP ans)
+void attribute_hidden copyMostAttribNoTs(SEXP inp, SEXP ans)
 {
     SEXP s;
 
@@ -318,27 +318,31 @@ void copyMostAttribNoTs(SEXP inp, SEXP ans)
     UNPROTECT(2);
 }
 
-/* Tweaks here based in part on PR#14934 */
 static SEXP installAttrib(SEXP vec, SEXP name, SEXP val)
 {
-    SEXP t = R_NilValue; /* -Wall */
+    SEXP s, t;
 
     if(TYPEOF(vec) == CHARSXP)
 	error("cannot set attribute on a CHARSXP");
-    /* this does no allocation */
-    for (SEXP s = ATTRIB(vec); s != R_NilValue; s = CDR(s)) {
+    PROTECT(vec);
+    PROTECT(name);
+    PROTECT(val);
+    for (s = ATTRIB(vec); s != R_NilValue; s = CDR(s)) {
 	if (TAG(s) == name) {
 	    SETCAR(s, val);
+	    UNPROTECT(3);
 	    return val;
 	}
-	t = s; // record last attribute, if any
     }
-    /* The usual convention is that the caller protects, 
-       so this is historical over-cautiousness */
-    PROTECT(vec); PROTECT(name); PROTECT(val);
-    SEXP s = CONS(val, R_NilValue);
+    s = allocList(1);
+    SETCAR(s, val);
     SET_TAG(s, name);
-    if (ATTRIB(vec) == R_NilValue) SET_ATTRIB(vec, s); else SETCDR(t, s);
+    if (ATTRIB(vec) == R_NilValue)
+	SET_ATTRIB(vec, s);
+    else {
+	t = nthcdr(ATTRIB(vec), length(ATTRIB(vec)) - 1);
+	SETCDR(t, s);
+    }
     UNPROTECT(3);
     return val;
 }
@@ -369,7 +373,7 @@ static void checkNames(SEXP x, SEXP s)
 	if (!isVector(s) && !isList(s))
 	    error(_("invalid type (%s) for 'names': must be vector"),
 		  type2char(TYPEOF(s)));
-	if (xlength(x) != xlength(s))
+	if (length(x) != length(s))
 	    error(_("'names' attribute [%d] must be the same length as the vector [%d]"), length(s), length(x));
     }
     else if(IS_S4_OBJECT(x)) {
@@ -816,8 +820,8 @@ SEXP namesgets(SEXP vec, SEXP val)
 
     /* Check that the lengths and types are compatible */
 
-    if (xlength(val) < xlength(vec)) {
-	val = xlengthgets(val, xlength(vec));
+    if (length(val) < length(vec)) {
+	val = lengthgets(val, length(vec));
 	UNPROTECT(1);
 	PROTECT(val);
     }
@@ -1019,7 +1023,7 @@ SEXP attribute_hidden do_dimgets(SEXP call, SEXP op, SEXP args, SEXP env)
 	if (s == R_NilValue) return x;
     }
     PROTECT(args = ans);
-    if (NAMED(x) > 1) SETCAR(args, x = duplicate(x));
+    if (NAMED(x) > 1) { SETCAR(args, duplicate(x)); x = CAR(args); }
     setAttrib(x, R_DimSymbol, CADR(args));
     setAttrib(x, R_NamesSymbol, R_NilValue);
     UNPROTECT(1);
@@ -1029,8 +1033,7 @@ SEXP attribute_hidden do_dimgets(SEXP call, SEXP op, SEXP args, SEXP env)
 
 SEXP dimgets(SEXP vec, SEXP val)
 {
-    int i, ndim;
-    R_xlen_t len, total;
+    int len, ndim, i, total;
     PROTECT(vec);
     PROTECT(val);
     if ((!isVector(vec) && !isList(vec)))
@@ -1042,7 +1045,7 @@ SEXP dimgets(SEXP vec, SEXP val)
     UNPROTECT(1);
     PROTECT(val);
 
-    len = xlength(vec);
+    len = length(vec);
     ndim = length(val);
     if (ndim == 0)
 	error(_("length-0 dimension vector is invalid"));
@@ -1055,12 +1058,8 @@ SEXP dimgets(SEXP vec, SEXP val)
 	    error(_("the dims contain negative values"));
 	total *= INTEGER(val)[i];
     }
-    if (total != len) {
-	if (total > INT_MAX || len > INT_MAX)
-	    error(_("dims do not match the length of object"), total, len);
-	else
-	    error(_("dims [product %d] do not match the length of object [%d]"), total, len);
-    }
+    if (total != len)
+	error(_("dims [product %d] do not match the length of object [%d]"), total, len);
     removeAttrib(vec, R_DimNamesSymbol);
     installAttrib(vec, R_DimSymbol, val);
     UNPROTECT(2);
@@ -1247,6 +1246,7 @@ SEXP attribute_hidden do_attr(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ap, argList, s, t, tag = R_NilValue, alist, ans;
     const char *str;
+    size_t n;
     int nargs = length(args), exact = 0;
     enum { NONE, PARTIAL, PARTIAL2, FULL } match = NONE;
 
@@ -1279,7 +1279,7 @@ SEXP attribute_hidden do_attr(SEXP call, SEXP op, SEXP args, SEXP env)
 	return R_NilValue;
     }
     str = translateChar(STRING_ELT(t, 0));
-    size_t n = strlen(str);
+    n = strlen(str);
 
     /* try to find a match among the attributes list */
     for (alist = ATTRIB(s); alist != R_NilValue; alist = CDR(alist)) {

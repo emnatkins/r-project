@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-05-21 13:03\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: 2012-03-15 11:59-0500\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -705,9 +705,6 @@ msgstr "аргумент 'x' должен быть числовым"
 msgid "'x' contains missing values"
 msgstr "'x' содержит пропущенные значения"
 
-msgid "invalid value of length(x)"
-msgstr ""
-
 msgid "'x' and 'weights' have unequal length"
 msgstr "'x' и 'weights' имеют неравную длину"
 
@@ -1305,6 +1302,9 @@ msgid ""
 msgstr ""
 "надо указать числовой y.\n"
 "Для определения плотности пользуйтесь density()"
+
+msgid "invalid value of length(x)"
+msgstr ""
 
 msgid "'k' is not an integer"
 msgstr "'k' не является целым числом"
@@ -1931,6 +1931,9 @@ msgstr ""
 msgid "'newdata' does not have the correct number of columns"
 msgstr "'newdata' не имеет правильного количества колонок"
 
+msgid "wrong number of predictors"
+msgstr "неправильное число предикторов"
+
 msgid "both 'x' and 'covmat' were supplied: 'x' will be ignored"
 msgstr "указаны и 'x', и 'covmat': 'x' будет пропущено"
 
@@ -2098,10 +2101,6 @@ msgstr "неправильный 'control.spar'"
 
 msgid "missing or infinite values in inputs are not allowed"
 msgstr "пропущенные или бесконечные значения не разрешены во вводе"
-
-#, fuzzy
-msgid "invalid number of points"
-msgstr "неправильное число предикторов"
 
 msgid "lengths of 'x' and 'w' must match"
 msgstr "длины 'x' и 'w' должны соответствовать"
@@ -2512,13 +2511,6 @@ msgid_plural "parameters %s do not occur in the model formula"
 msgstr[0] "параметр %s не встречается в формуле модели"
 msgstr[1] "параметры %s не встречаются в формуле модели"
 msgstr[2] "параметры %s не встречаются в формуле модели"
-
-#~ msgid "wrong number of predictors"
-#~ msgstr "неправильное число предикторов"
-
-#, fuzzy
-#~ msgid "invalid value oflength(x)"
-#~ msgstr "неправильный метод кластеризации"
 
 #~ msgid "extra arguments"
 #~ msgstr "дополнительные аргументы"

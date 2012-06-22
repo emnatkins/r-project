@@ -63,17 +63,22 @@ proj.lm <- function(object, onedf = FALSE, unweighted.scale = FALSE, ...)
 	result <- result/sqrt(wt)
     use.wt <- !is.null(wt) && !unweighted.scale
     if(object$df.residual > 0) {
-        res <- if(use.wt) object$residuals * sqrt(wt) else object$residuals
 	if(!is.matrix(result)) {
-	    result <- matrix(res, length(res), 1L,
-			     dimnames = list(names(res), "Residuals"))
+	    if(use.wt) result <- object$residuals * sqrt(wt)
+	    else result <- object$residuals
+	    result <- matrix(result, length(result), 1L, dimnames
+			     = list(names(result), "Residuals"))
 	} else {
 	    dn <- dimnames(result)
 	    d <- dim(result)
-	    result <- setNames(c(result, res), NULL)
+	    result <- c(result, if(use.wt) object$residuals * sqrt(wt)
+			else object$residuals)
 	    dim(result) <- d + c(0, 1)
-	    dimnames(result) <- list(names(res), c(dn[[2L]], "Residuals"))
-        }
+	    dn[[1L]] <- names(object$residuals)
+	    names(result) <- NULL
+	    dn[[2L]] <- c(dn[[2L]], "Residuals")
+	    dimnames(result) <- dn
+	}
 	df <- c(df, object$df.residual)
     }
     names(df) <- colnames(result)
@@ -92,9 +97,9 @@ proj.aov <- function(object, onedf = FALSE, unweighted.scale = FALSE, ...)
     {
 	if(!is.na(int <- match("(Intercept)", pnames)))
 	    pnames <- pnames[ - int]
-	tnames <- setNames(lapply(colnames(tfactor), function(x, mat)
-				  rownames(mat)[mat[, x] > 0], tfactor),
-			   colnames(tfactor))
+	tnames <- lapply(colnames(tfactor), function(x, mat)
+			 rownames(mat)[mat[, x] > 0], tfactor)
+	names(tnames) <- colnames(tfactor)
 	if(!is.na(match("Residuals", pnames))) {
 	    enames <- c(rownames(tfactor)
 			[as.logical(tfactor %*% rep.int(1, ncol(tfactor)))],
@@ -167,7 +172,8 @@ proj.aovlist <- function(object, onedf = FALSE, unweighted.scale = FALSE, ...)
     e.factor <- attr(terms(formula(error)), "factors")
     n <- nrow(err.qr$qr)
     n.object <- length(object)
-    result <- setNames(vector("list", n.object), names(object))
+    result <- vector("list", n.object)
+    names(result) <- names(object)
     D1 <- seq_len(NROW(err.qr$qr))
     if(unweighted.scale) wt <- attr(object, "weights")
     for(i in names(object)) {

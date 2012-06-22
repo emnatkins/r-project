@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995-1996   Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997-2012   The R Core Team
+ *  Copyright (C) 1997-2011   The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -82,7 +82,7 @@ double attribute_hidden R_FileMtime(const char *path)
     struct stat sb;
     if (stat(R_ExpandFileName(path), &sb) != 0)
 	error(_("cannot determine file modification time of '%s'"), path);
-    return (double) sb.st_mtime;
+    return sb.st_mtime;
 }
 #endif
 
@@ -561,6 +561,7 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, x = CAR(args), si;
     void * obj;
+    int i, j, nout;
     const char *inbuf;
     char *outbuf;
     const char *sub;
@@ -640,7 +641,7 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 		PROTECT(ans = duplicate(x));
 	}
 	R_AllocStringBuffer(0, &cbuff);  /* 0 -> default */
-	for(R_xlen_t i = 0; i < XLENGTH(x); i++) {
+	for(i = 0; i < LENGTH(x); i++) {
 	    if (isRawlist) {
 		si = VECTOR_ELT(x, i);
 		if (TYPEOF(si) == NILSXP) {
@@ -681,7 +682,6 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 		    snprintf(outbuf, 5, "<%02x>", (unsigned char)*inbuf);
 		    outbuf += 4; outb -= 4;
 		} else {
-		    size_t j;
 		    if(outb < strlen(sub)) {
 			R_AllocStringBuffer(2*cbuff.bufsize, &cbuff);
 			goto top_of_loop;
@@ -696,7 +696,7 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 
 	    if(toRaw) {
 		if(res != -1 && inb == 0) {
-		    size_t nout = cbuff.bufsize - 1 - outb;
+		    nout = cbuff.bufsize - 1 - outb;
 		    SEXP el = allocVector(RAWSXP, nout);
 		    memcpy(RAW(el), cbuff.data, nout);
 		    SET_VECTOR_ELT(ans, i, el);
@@ -705,13 +705,12 @@ SEXP attribute_hidden do_iconv(SEXP call, SEXP op, SEXP args, SEXP env)
 		if(res != -1 && inb == 0) {
 		    cetype_t ienc = CE_NATIVE;
 		    
-		    size_t nout = cbuff.bufsize - 1 - outb;
+		    nout = cbuff.bufsize - 1 - outb;
 		    if(mark) {
 			if(isLatin1) ienc = CE_LATIN1;
 			else if(isUTF8) ienc = CE_UTF8;
 		    }
-		    SET_STRING_ELT(ans, i, 
-				   mkCharLenCE(cbuff.data, (int) nout, ienc));
+		    SET_STRING_ELT(ans, i, mkCharLenCE(cbuff.data, nout, ienc));
 		} else SET_STRING_ELT(ans, i, NA_STRING);
 	    }
 	}
@@ -848,7 +847,7 @@ next_char:
 	if (ienc == CE_UTF8) {
 	    /* if starting in UTF-8, use \uxxxx */
 	    /* This must be the first byte */
-	    size_t clen;
+	    int clen;
 	    wchar_t wc;
 	    clen = utf8toucs(&wc, inbuf);
 	    if(clen > 0 && inb >= clen) {
@@ -1047,7 +1046,7 @@ next_char:
 }
 
 
-extern void *Rf_AdobeSymbol2utf8(char* work, const char *c0, size_t nwork); /* from util.c */
+extern void *Rf_AdobeSymbol2utf8(char* work, const char *c0, int nwork); /* from util.c */
 
 const char *reEnc(const char *x, cetype_t ce_in, cetype_t ce_out, int subst)
 {
@@ -1066,7 +1065,7 @@ const char *reEnc(const char *x, cetype_t ce_in, cetype_t ce_out, int subst)
        ce_in == CE_ANY || ce_out == CE_ANY) return x;
     if(ce_in == CE_SYMBOL) {
 	if(ce_out == CE_UTF8) {
-	    size_t nc = 3*strlen(x)+1; /* all in BMP */
+	    int nc = 3*strlen(x)+1; /* all in BMP */
 	    p = R_alloc(nc, 1);
 	    Rf_AdobeSymbol2utf8(p, x, nc);
 	    return p;
@@ -1383,6 +1382,7 @@ extern char * mkdtemp (char *template);
 void attribute_hidden InitTempDir()
 {
     char *tmp, *tm, tmp1[PATH_MAX+11], *p;
+    int len;
 #ifdef Win32
     char tmp2[PATH_MAX];
     int hasspace = 0;
@@ -1437,7 +1437,7 @@ void attribute_hidden InitTempDir()
 #endif
     }
 
-    size_t len = strlen(tmp) + 1;
+    len = strlen(tmp) + 1;
     p = (char *) malloc(len);
     if(!p)
 	R_Suicide(_("cannot allocate R_TempDir"));
@@ -1606,8 +1606,7 @@ do_setSessionTimeLimit(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP attribute_hidden do_glob(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP x, ans;
-    R_xlen_t i, n; 
-    int res, dirmark;
+    int i, n, res, dirmark;
     glob_t globbuf;
 #ifdef Win32
     R_StringBuffer cbuff = {NULL, 0, MAXELTSIZE};
@@ -1616,7 +1615,7 @@ SEXP attribute_hidden do_glob(SEXP call, SEXP op, SEXP args, SEXP env)
     checkArity(op, args);
     if (!isString(x = CAR(args)))
 	error(_("invalid '%s' argument"), "paths");
-    if (!XLENGTH(x)) return allocVector(STRSXP, 0);
+    if (!LENGTH(x)) return allocVector(STRSXP, 0);
     dirmark = asLogical(CADR(args));
     if (dirmark == NA_LOGICAL)
 	error(_("invalid '%s' argument"), "dirmark");
@@ -1625,7 +1624,7 @@ SEXP attribute_hidden do_glob(SEXP call, SEXP op, SEXP args, SEXP env)
 	error(_("'dirmark = TRUE' is not supported on this platform"));
 #endif
 
-    for (i = 0; i < XLENGTH(x); i++) {
+    for (i = 0; i < LENGTH(x); i++) {
 	SEXP el = STRING_ELT(x, i);
 	if (el == NA_STRING) continue;
 #ifdef Win32

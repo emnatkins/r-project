@@ -2,7 +2,7 @@
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  *            (C) 2004  The R Foundation
- *  Copyright (C) 1998-2012 The R Core Team.
+ *  Copyright (C) 1998-2009 The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,17 +40,22 @@
 
 /* This macro pulls out the common code in copying an atomic vector.
    The special handling of the scalar case (__n__ == 1) seems to make
-   a small but measurable difference, at least for some cases 
-   and when (as prior to 2.16.0) a for() loop was used.
+   a small but measurable difference, at least for some cases.
+   <FIXME>: surely memcpy would be faster here?
 */
-#define DUPLICATE_ATOMIC_VECTOR(type, fun, to, from) do { \
-  R_xlen_t __n__ = XLENGTH(from); \
+#define DUPLICATE_ATOMIC_VECTOR(type, fun, to, from) do {\
+  int __n__ = LENGTH(from);\
   PROTECT(from); \
   PROTECT(to = allocVector(TYPEOF(from), __n__)); \
   if (__n__ == 1) fun(to)[0] = fun(from)[0]; \
-  else memcpy(fun(to), fun(from), __n__ * sizeof(type)); \
-  DUPLICATE_ATTRIB(to, from); \
-  SET_TRUELENGTH(to, XTRUELENGTH(from)); \
+  else { \
+    int __i__; \
+    type *__fp__ = fun(from), *__tp__ = fun(to); \
+    for (__i__ = 0; __i__ < __n__; __i__++) \
+      __tp__[__i__] = __fp__[__i__]; \
+  } \
+  DUPLICATE_ATTRIB(to, from);		\
+  SET_TRUELENGTH(to, TRUELENGTH(from)); \
   UNPROTECT(2); \
 } while (0)
 
@@ -124,7 +129,7 @@ SEXP duplicate(SEXP s){
 static SEXP duplicate1(SEXP s)
 {
     SEXP h, t,  sp;
-    R_xlen_t i, n;
+    int i, n;
 
     switch (TYPEOF(s)) {
     case NILSXP:
@@ -201,7 +206,7 @@ static SEXP duplicate1(SEXP s)
 	break;
     case EXPRSXP:
     case VECSXP:
-	n = XLENGTH(s);
+	n = LENGTH(s);
 	PROTECT(s);
 	PROTECT(t = allocVector(TYPEOF(s), n));
 	for(i = 0 ; i < n ; i++)
@@ -243,10 +248,10 @@ static SEXP duplicate1(SEXP s)
 
 void copyVector(SEXP s, SEXP t)
 {
-    R_xlen_t i, ns, nt;
+    int i, ns, nt;
 
-    nt = XLENGTH(t);
-    ns = XLENGTH(s);
+    nt = LENGTH(t);
+    ns = LENGTH(s);
     switch (TYPEOF(s)) {
     case STRSXP:
 	for (i = 0; i < ns; i++)
@@ -288,19 +293,17 @@ void copyVector(SEXP s, SEXP t)
 void attribute_hidden copyListMatrix(SEXP s, SEXP t, Rboolean byrow)
 {
     SEXP pt, tmp;
-    int i, j, nr, nc;
-    R_xlen_t ns;
+    int i, j, nr, nc, ns;
 
     nr = nrows(s);
     nc = ncols(s);
-    ns = ((R_xlen_t) nr) * nc;
+    ns = nr*nc;
     pt = t;
     if(byrow) {
-	R_xlen_t NR = nr;
-	PROTECT(tmp = allocVector(STRSXP, ns));
+	PROTECT(tmp = allocVector(STRSXP, nr*nc));
 	for (i = 0; i < nr; i++)
 	    for (j = 0; j < nc; j++) {
-		SET_STRING_ELT(tmp, i + j * NR, duplicate(CAR(pt)));
+		SET_STRING_ELT(tmp, i + j * nr, duplicate(CAR(pt)));
 		pt = CDR(pt);
 		if(pt == R_NilValue) pt = t;
 	    }
@@ -322,51 +325,49 @@ void attribute_hidden copyListMatrix(SEXP s, SEXP t, Rboolean byrow)
 
 void copyMatrix(SEXP s, SEXP t, Rboolean byrow)
 {
-    int i, j, nr, nc;
-    R_xlen_t k, nt;
+    int i, j, k, nr, nc, nt;
 
     nr = nrows(s);
     nc = ncols(s);
-    nt = XLENGTH(t);
+    nt = LENGTH(t);
     k = 0;
 
     if (byrow) {
-	R_xlen_t NR = nr;
 	switch (TYPEOF(s)) {
 	case STRSXP:
 	    for (i = 0; i < nr; i++)
 		for (j = 0; j < nc; j++)
-		    SET_STRING_ELT(s, i + j * NR, STRING_ELT(t, k++ % nt));
+		    SET_STRING_ELT(s, i + j * nr, STRING_ELT(t, k++ % nt));
 	    break;
 	case LGLSXP:
 	    for (i = 0; i < nr; i++)
 		for (j = 0; j < nc; j++)
-		    LOGICAL(s)[i + j * NR] = LOGICAL(t)[k++ % nt];
+		    LOGICAL(s)[i + j * nr] = LOGICAL(t)[k++ % nt];
 	    break;
 	case INTSXP:
 	    for (i = 0; i < nr; i++)
 		for (j = 0; j < nc; j++)
-		    INTEGER(s)[i + j * NR] = INTEGER(t)[k++ % nt];
+		    INTEGER(s)[i + j * nr] = INTEGER(t)[k++ % nt];
 	    break;
 	case REALSXP:
 	    for (i = 0; i < nr; i++)
 		for (j = 0; j < nc; j++)
-		    REAL(s)[i + j * NR] = REAL(t)[k++ % nt];
+		    REAL(s)[i + j * nr] = REAL(t)[k++ % nt];
 	    break;
 	case CPLXSXP:
 	    for (i = 0; i < nr; i++)
 		for (j = 0; j < nc; j++)
-		    COMPLEX(s)[i + j * NR] = COMPLEX(t)[k++ % nt];
+		    COMPLEX(s)[i + j * nr] = COMPLEX(t)[k++ % nt];
 	    break;
 	case VECSXP:
 	    for (i = 0; i < nr; i++)
 		for (j = 0; j < nc; j++)
-		    SET_VECTOR_ELT(s, i + j * NR, VECTOR_ELT(t, k++ % nt));
+		    SET_VECTOR_ELT(s, i + j * nr, VECTOR_ELT(t, k++ % nt));
 	    break;
 	case RAWSXP:
 	    for (i = 0; i < nr; i++)
 		for (j = 0; j < nc; j++)
-		    RAW(s)[i + j * NR] = RAW(t)[k++ % nt];
+		    RAW(s)[i + j * nr] = RAW(t)[k++ % nt];
 	    break;
 	default:
 	    UNIMPLEMENTED_TYPE("copyMatrix", s);

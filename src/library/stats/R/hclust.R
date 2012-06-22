@@ -132,7 +132,8 @@ plot.hclust <-
 
     dev.hold(); on.exit(dev.flush())
     plot.new()
-    graphics:::plotHclust(n, merge, height, order(x$order), hang, labels, ...)
+    .Internal(dend.window(n, merge, height,                 hang, labels, ...))
+    .Internal(dend       (n, merge, height, order(x$order), hang, labels, ...))
     if(axes)
         axis(2, at=pretty(range(height)), ...)
     if (frame.plot)

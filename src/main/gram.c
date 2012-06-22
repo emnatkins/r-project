@@ -72,7 +72,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996, 1997  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2012  The R Core Team
+ *  Copyright (C) 1997--2010  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -200,7 +200,7 @@ static int mbcs_get_next(int c, wchar_t *wc)
     int i, res, clen = 1; char s[9];
     mbstate_t mb_st;
 
-    s[0] = (char) c;
+    s[0] = c;
     /* This assumes (probably OK) that all MBCS embed ASCII as single-byte
        lead bytes, including control chars */
     if((unsigned int) c < 0x80) {
@@ -208,26 +208,26 @@ static int mbcs_get_next(int c, wchar_t *wc)
 	return 1;
     }
     if(utf8locale) {
-	clen = utf8clen((char) c);
+	clen = utf8clen(c);
 	for(i = 1; i < clen; i++) {
-	    s[i] = (char) xxgetc();
+	    s[i] = xxgetc();
 	    if(s[i] == R_EOF) error(_("EOF whilst reading MBCS char at line %d"), ParseState.xxlineno);
 	}
 	s[clen] ='\0'; /* x86 Solaris requires this */
-	res = (int) mbrtowc(wc, s, clen, NULL);
+	res = mbrtowc(wc, s, clen, NULL);
 	if(res == -1) error(_("invalid multibyte character in parser at line %d"), ParseState.xxlineno);
     } else {
 	/* This is not necessarily correct for stateful MBCS */
 	while(clen <= MB_CUR_MAX) {
 	    mbs_init(&mb_st);
-	    res = (int) mbrtowc(wc, s, clen, &mb_st);
+	    res = mbrtowc(wc, s, clen, &mb_st);
 	    if(res >= 0) break;
 	    if(res == -1)
 		error(_("invalid multibyte character in parser at line %d"), ParseState.xxlineno);
 	    /* so res == -2 */
 	    c = xxgetc();
 	    if(c == R_EOF) error(_("EOF whilst reading MBCS char at line %d"), ParseState.xxlineno);
-	    s[clen++] = (char) c;
+	    s[clen++] = c;
 	} /* we've tried enough, so must be complete or invalid by now */
     }
     for(i = clen - 1; i > 0; i--) xxungetc(s[i]);
@@ -2761,7 +2761,7 @@ static int xxgetc(void)
 	return R_EOF;
     }
     R_ParseContextLast = (R_ParseContextLast + 1) % PARSE_CONTEXT_SIZE;
-    R_ParseContext[R_ParseContextLast] = (char) c;
+    R_ParseContext[R_ParseContextLast] = c;
 
     if (c == '\n') {
 	ParseState.xxlineno += 1;
@@ -3177,7 +3177,7 @@ static SEXP xxfuncall(SEXP expr, SEXP args)
     return ans;
 }
 
-static SEXP mkString2(const char *s, size_t len, Rboolean escaped)
+static SEXP mkString2(const char *s, int len, Rboolean escaped)
 {
     SEXP t;
     cetype_t enc = CE_NATIVE;
@@ -3186,7 +3186,7 @@ static SEXP mkString2(const char *s, size_t len, Rboolean escaped)
     else if(!escaped && known_to_be_utf8) enc = CE_UTF8;
 
     PROTECT(t = allocVector(STRSXP, 1));
-    SET_STRING_ELT(t, 0, mkCharLenCE(s, (int) len, enc));
+    SET_STRING_ELT(t, 0, mkCharLenCE(s, len, enc));
     UNPROTECT(1);
     return t;
 }
@@ -3569,7 +3569,7 @@ SEXP R_Parse1Buffer(IoBuffer *buffer, int gencode, ParseStatus *status)
    	    SEXP class;
    	    R_IoBufferReadReset(buffer);
    	    for (int i=0; i<buflen; i++)
-   	    	buf[i] = (char) R_IoBufferGetc(buffer);
+   	    	buf[i] = R_IoBufferGetc(buffer);
 
    	    buf[buflen] = 0;
     	    defineVar(install("filename"), ScalarString(mkChar("")), ParseState.Original);
@@ -4118,7 +4118,7 @@ static char yytext[MAXELTSIZE];
 #define YYTEXT_PUSH(c, bp) do { \
     if ((bp) - yytext >= sizeof(yytext) - 1) \
 	error(_("input buffer overflow at line %d"), ParseState.xxlineno); \
-    *(bp)++ = ((char)c);						\
+	*(bp)++ = (c); \
 } while(0)
 
 static int SkipSpace(void)
@@ -4308,7 +4308,7 @@ static int NumericValue(int c)
 
 
 #define STEXT_PUSH(c) do {                  \
-	size_t nc = bp - stext;       \
+	unsigned int nc = bp - stext;       \
 	if (nc >= nstext - 1) {             \
 	    char *old = stext;              \
 	    nstext *= 2;                    \
@@ -4317,7 +4317,7 @@ static int NumericValue(int c)
 	    memmove(stext, old, nc);        \
 	    if(old != st0) free(old);	    \
 	    bp = stext+nc; }		    \
-	*bp++ = ((char) c);		    \
+	*bp++ = (c);                        \
 } while(0)
 
 
@@ -4408,7 +4408,7 @@ static SEXP mkStringUTF8(const ucs_t *wcs, int cnt)
 
 #define CTEXT_PUSH(c) do { \
 	if (ct - currtext >= 1000) {memmove(currtext, currtext+100, 901); memmove(currtext, "... ", 4); ct -= 100;} \
-	*ct++ = ((char) c);  \
+	*ct++ = (c); \
 } while(0)
 #define CTEXT_POP() ct--
 
@@ -4608,12 +4608,12 @@ static int StringValue(int c, Rboolean forSymbol)
 #ifdef WC_NOT_UNICODE
 	    ucs_t wc;
 	    char s[2] = " ";
-	    s[0] = (char) c;
+	    s[0] = c;
 	    mbtoucs(&wc, s, 2);
 #else
 	    wchar_t wc;
 	    char s[2] = " ";
-	    s[0] = (char) c;
+	    s[0] = c;
 	    mbrtowc(&wc, s, 2, NULL);
 #endif
 	    WTEXT_PUSH(wc);
@@ -4672,7 +4672,7 @@ int isValidName(const char *name)
     if(mbcslocale) {
 	/* the only way to establish which chars are alpha etc is to
 	   use the wchar variants */
-	size_t n = strlen(name), used;
+	int n = strlen(name), used;
 	wchar_t wc;
 	used = Mbrtowc(&wc, p, n, NULL); p += used; n -= used;
 	if(used == 0) return 0;
@@ -4968,7 +4968,7 @@ static int token(void)
 	   presumably it was for compatibility with S. */
 	if (nextchar('*'))
 	    c='^';
-	yytext[0] = (char) c;
+	yytext[0] = c;
 	yytext[1] = '\0';
 	yylval = install(yytext);
 	return c;
@@ -4978,7 +4978,7 @@ static int token(void)
     case '~':
     case '$':
     case '@':
-	yytext[0] = (char) c;
+	yytext[0] = c;
 	yytext[1] = '\0';
 	yylval = install(yytext);
 	return c;
@@ -5174,20 +5174,20 @@ static int yylex(void)
     case '[':
 	if(contextp - contextstack >= CONTEXTSTACK_SIZE)
 	    error(_("contextstack overflow at line %d"), ParseState.xxlineno);
-	*++contextp = (char) tok;
+	*++contextp = tok;
 	break;
 
     case LBRACE:
 	if(contextp - contextstack >= CONTEXTSTACK_SIZE)
 	    error(_("contextstack overflow at line %d"), ParseState.xxlineno);
-	*++contextp = (char) tok;
+	*++contextp = tok;
 	EatLines = 1;
 	break;
 
     case '(':
 	if(contextp - contextstack >= CONTEXTSTACK_SIZE)
 	    error(_("contextstack overflow at line %d"), ParseState.xxlineno);
-	*++contextp = (char) tok;
+	*++contextp = tok;
 	break;
 
     case ']':

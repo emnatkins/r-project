@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.15.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-06-07 15:26\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: 2012-03-05 16:41+0100\n"
 "Last-Translator: Detlef Steuer <steuer@hsu-hh.de>\n"
 "Language-Team: R-core <r-core@r-project.org>\n"
@@ -322,15 +322,11 @@ msgstr "benannte Argumente außer 'exact' sollten nicht benutzt werden"
 msgid "named arguments are discouraged"
 msgstr "benannte Argumente sollten nicht benutzt werden"
 
-msgid "number of items to replace is not a multiple of replacement length"
+msgid "rhs is the wrong length for indexing by a logical matrix"
 msgstr ""
+"rechte Seite hat die falsche Länge für Indizierung mit einer logischen Matrix"
 
-#, fuzzy
-msgid "rhs is the wrong length"
-msgstr "angegebene Zeilennamen haben falsche Länge"
-
-#, fuzzy
-msgid "illegal matrix index in replacement"
+msgid "only logical matrix subscripts are allowed in replacement"
 msgstr "in Ersetzungen sind nur logische Matrizen als Teilmengen erlaubt"
 
 msgid "need 0, 1, or 2 subscripts"
@@ -720,11 +716,11 @@ msgstr "'vec' muss nicht-abfallend sortiert werden"
 
 #, fuzzy
 msgid "invalid length(x)"
-msgstr "ungültiger Wert"
+msgstr "ungültiger Name"
 
 #, fuzzy
 msgid "invalid length(vec)"
-msgstr "ungültiger Wert"
+msgstr "ungültiger Name"
 
 msgid "using the first element of 'value' of type expression"
 msgstr "nutze das erste Element von 'value' vom Typ Ausdruck"
@@ -1300,9 +1296,6 @@ msgstr "'x' kann nicht in 'octmode' umgewandelt werden"
 msgid "'x' cannot be coerced to hexmode"
 msgstr "'x' kann nicht in hexmode umgewandelt werden"
 
-msgid "using ... with FUN = \"*\" is an error"
-msgstr ""
-
 msgid "no arguments"
 msgstr "keine Argumente"
 
@@ -1803,11 +1796,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Warnmeldung:\n"
 msgstr[1] "Warnmeldungen:\n"
-
-#~ msgid "rhs is the wrong length for indexing by a logical matrix"
-#~ msgstr ""
-#~ "rechte Seite hat die falsche Länge für Indizierung mit einer logischen "
-#~ "Matrix"
 
 #~ msgid ""
 #~ "Functions for exporting methods must have been made generic, explicitly "

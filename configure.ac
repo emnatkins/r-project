@@ -778,9 +778,8 @@ AC_HEADER_SYS_WAIT
 ## (It is probably only used for fpsetmask on FreeBSD).
 ## fpu_control.h is only used on Linux, for the obsolete __setfpucw.
 ## sys/param.h is one way to get PATH_MAX.
-## sched.h is POSIX, but we use it for Linux-specific features (affinity)
 AC_CHECK_HEADERS(arpa/inet.h dl.h dlfcn.h elf.h fcntl.h floatingpoint.h \
-  fpu_control.h glob.h grp.h netdb.h netinet/in.h pwd.h sched.h strings.h \
+  fpu_control.h glob.h grp.h netdb.h netinet/in.h pwd.h strings.h \
   sys/param.h sys/resource.h sys/select.h sys/socket.h \
   sys/stat.h sys/time.h sys/times.h sys/utsname.h unistd.h utime.h)
 ## </NOTE>
@@ -1764,13 +1763,12 @@ AC_CHECK_DECLS([alloca], , ,
 ## C99 functions: 
 ## not all C99 runtimes are complete,
 ## but we have substitutes for expm1 hypot log1p and (internally) nearbyint[l]
-## FreeBSD 10 still lacks log1pl
 ## FreeBSD 8.2 lacks log2
 ## FreeBSD 7.3 lacks nearbyintl/rintl (nearbyint appeared in 5.2)
 ## Apparently rint was once broken on HP-UX: undefine HAVE_RINT for such platforms
 ## Cygwin and FreeBSD lack powl
 ## Cygwin has rintl but not nearbyintl
-R_CHECK_FUNCS([expm1 hypot log1p log1pl log2 log10 nearbyint nearbyintl powl rint rintl], [#include <math.h>])
+R_CHECK_FUNCS([expm1 hypot log1p log2 log10 nearbyint nearbyintl powl rint rintl], [#include <math.h>])
 ## va_copy is C99: required as from R 2.13.0
 R_CHECK_FUNCS([va_copy], [#include <stdarg.h>])
 if test "${ac_cv_have_decl_va_copy}" = "no"; then
@@ -1805,8 +1803,6 @@ R_CHECK_FUNCS([access chdir execv ftruncate getcwd geteuid getuid link readlink 
 [#ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif])
-## Linux-specific feature allowing us to fix CPU affinity for parallel
-R_CHECK_FUNCS([sched_setaffinity sched_getaffinity], [#include <sched.h>])
 ## utime was declared obsolescent in POSIX 2008 (use utimes instead)
 R_CHECK_FUNCS([utime], [#include <utime.h>])
 ## clock_gettime is POSIX 1993, but not on MacOS X
@@ -2572,7 +2568,6 @@ AC_CONFIG_FILES(
   src/library/datasets/Makefile
   src/library/graphics/DESCRIPTION
   src/library/graphics/Makefile
-  src/library/graphics/src/Makefile
   src/library/grDevices/DESCRIPTION
   src/library/grDevices/Makefile
   src/library/grDevices/src/Makefile

@@ -226,6 +226,8 @@ static void R_ReportAllocation(R_size_t);
 static void R_ReportNewPage();
 #endif
 
+extern SEXP framenames;
+
 #define GC_PROT(X) do { \
     int __wait__ = gc_force_wait; \
     int __gap__ = gc_force_gap;			   \
@@ -362,7 +364,7 @@ void attribute_hidden R_SetMaxNSize(R_size_t size)
 
 void R_SetPPSize(R_size_t size)
 {
-    R_PPStackSize = (int) size;
+    R_PPStackSize = size;
 }
 
 /* Miscellaneous Globals. */
@@ -777,7 +779,7 @@ static void GetNewPage(int node_class)
     SEXP s, base;
     char *data;
     PAGE_HEADER *page;
-    int node_size, page_count, i;  // FIXME: longer type?
+    int node_size, page_count, i;
 
     node_size = NODE_SIZE(node_class);
     page_count = (R_PAGE_SIZE - sizeof(PAGE_HEADER)) / node_size;
@@ -901,25 +903,25 @@ static R_INLINE R_size_t getVecSizeInVEC(SEXP s)
     R_size_t size;
     switch (TYPEOF(s)) {	/* get size in bytes */
     case CHARSXP:
-	size = XLENGTH(s) + 1;
+	size = LENGTH(s) + 1;
 	break;
     case RAWSXP:
-	size = XLENGTH(s);
+	size = LENGTH(s);
 	break;
     case LGLSXP:
     case INTSXP:
-	size = XLENGTH(s) * sizeof(int);
+	size = LENGTH(s) * sizeof(int);
 	break;
     case REALSXP:
-	size = XLENGTH(s) * sizeof(double);
+	size = LENGTH(s) * sizeof(double);
 	break;
     case CPLXSXP:
-	size = XLENGTH(s) * sizeof(Rcomplex);
+	size = LENGTH(s) * sizeof(Rcomplex);
 	break;
     case STRSXP:
     case EXPRSXP:
     case VECSXP:
-	size = XLENGTH(s) * sizeof(SEXP);
+	size = LENGTH(s) * sizeof(SEXP);
 	break;
     default:
 	register_bad_sexp_type(s, __LINE__);
@@ -937,7 +939,7 @@ static void ReleaseLargeFreeVectors(void)
 	    R_size_t size;
 #ifdef PROTECTCHECK
 	    if (TYPEOF(s) == FREESXP)
-		size = XLENGTH(s);
+		size = LENGTH(s);
 	    else
 		/* should not get here -- arrange for a warning/error? */
 		size = getVecSizeInVEC(s);
@@ -947,14 +949,7 @@ static void ReleaseLargeFreeVectors(void)
 	    UNSNAP_NODE(s);
 	    R_LargeVallocSize -= size;
 	    R_GenHeap[LARGE_NODE_CLASS].AllocCount--;
-#ifdef LONG_VECTOR_SUPPORT
-	    if (IS_LONG_VEC(s))
-		free(((char *) s) - sizeof(R_long_vec_hdr_t));
-	    else
-		free(s);
-#else
 	    free(s);
-#endif
 	}
 	s = next;
     }
@@ -965,8 +960,8 @@ static void ReleaseLargeFreeVectors(void)
 
 static void AdjustHeapSize(R_size_t size_needed)
 {
-    R_size_t R_MinNFree = (R_size_t)(orig_R_NSize * R_MinFreeFrac);
-    R_size_t R_MinVFree = (R_size_t)(orig_R_VSize * R_MinFreeFrac);
+    R_size_t R_MinNFree = orig_R_NSize * R_MinFreeFrac;
+    R_size_t R_MinVFree = orig_R_VSize * R_MinFreeFrac;
     R_size_t NNeeded = R_NodesInUse + R_MinNFree;
     R_size_t VNeeded = R_SmallVallocSize + R_LargeVallocSize
 	+ size_needed + R_MinVFree;
@@ -974,7 +969,7 @@ static void AdjustHeapSize(R_size_t size_needed)
     double vect_occup =	((double) VNeeded) / R_VSize;
 
     if (node_occup > R_NGrowFrac) {
-	R_size_t change = (R_size_t)(R_NGrowIncrMin + R_NGrowIncrFrac * R_NSize);
+	R_size_t change = R_NGrowIncrMin + R_NGrowIncrFrac * R_NSize;
 	if (R_MaxNSize >= R_NSize + change)
 	    R_NSize += change;
     }
@@ -989,7 +984,7 @@ static void AdjustHeapSize(R_size_t size_needed)
     if (vect_occup > 1.0 && VNeeded < R_MaxVSize)
 	R_VSize = VNeeded;
     if (vect_occup > R_VGrowFrac) {
-	R_size_t change = (R_size_t)(R_VGrowIncrMin + R_VGrowIncrFrac * R_VSize);
+	R_size_t change = R_VGrowIncrMin + R_VGrowIncrFrac * R_VSize;
 	if (R_MaxVSize - R_VSize >= change)
 	    R_VSize += change;
     }
@@ -1498,6 +1493,9 @@ static void RunGenCollect(R_size_t size_needed)
 	FORWARD_NODE(ctxt->srcref);	   /* the current source reference */
     }
 
+    FORWARD_NODE(framenames);		   /* used for interprocedure
+					      communication in model.c */
+
     FORWARD_NODE(R_PreciousList);
 
     for (i = 0; i < R_PPStackTop; i++)	   /* Protected pointers */
@@ -1601,7 +1599,7 @@ static void RunGenCollect(R_size_t size_needed)
 		      calculating size */
 		if (CHAR(s) != NULL) {
 		    R_size_t size = getVecSizeInVEC(s);
-		    SETLENGTH(s, size);
+		    LENGTH(s) = size;
 		}
 		SETOLDTYPE(s, TYPEOF(s));
 		TYPEOF(s) = FREESXP;
@@ -1855,7 +1853,7 @@ static void mem_err_malloc(R_size_t size)
 /* This includes: stack space, node space and vector space */
 
 #define PP_REDZONE_SIZE 1000L
-static int R_StandardPPStackSize, R_RealPPStackSize;
+static R_size_t R_StandardPPStackSize, R_RealPPStackSize;
 
 void attribute_hidden InitMemory()
 {
@@ -1963,27 +1961,31 @@ void vmaxset(const void *ovmax)
 char *R_alloc(size_t nelem, int eltsize)
 {
     R_size_t size = nelem * eltsize;
-    /* doubles are a precaution against integer overflow on 32-bit */
-    double dsize = (double) nelem * eltsize;
-    if (dsize > 0) {
+    double dsize = (double)nelem * eltsize;
+    if (dsize > 0) { /* precaution against integer overflow on 32-bit*/
 	SEXP s;
-#ifdef LONG_VECTOR_SUPPORT
-	/* 64-bit platform: previous version used REALSXPs */
-	if(dsize > R_XLEN_T_MAX)  /* currently 4096 TB */
-	    error(_("cannot allocate memory block of size %0.f Tb"),
-		  dsize/pow(1024.0, 4.0));
-	s = allocVector(RAWSXP, size + 1);
+#if SIZEOF_SIZE_T > 4
+	/* In this case by allocating larger units we can get up to
+	   size(double) * (2^31 - 1) bytes, approx 16Gb */
+	if(dsize < R_LEN_T_MAX)
+	    s = allocVector(RAWSXP, size + 1);
+	else if(dsize < sizeof(double) * (R_LEN_T_MAX - 1))
+	    s = allocVector(REALSXP, (int)(0.99+dsize/sizeof(double)));
+	else {
+	    error(_("cannot allocate memory block of size %0.1f Gb"),
+		  dsize/1024.0/1024.0/1024.0);
+	    s = R_NilValue; /* -Wall */
+	}
 #else
 	if(dsize > R_LEN_T_MAX) /* must be in the Gb range */
 	    error(_("cannot allocate memory block of size %0.1f Gb"),
-		  dsize/pow(1024.0, 3.0));
+		  dsize/1024.0/1024.0/1024.0);
 	s = allocVector(RAWSXP, size + 1);
 #endif
 	ATTRIB(s) = R_VStack;
 	R_VStack = s;
 	return (char *) DATAPTR(s);
     }
-    /* One programmer has relied on this, but it is undocumented! */
     else return NULL;
 }
 
@@ -2186,7 +2188,7 @@ SEXP attribute_hidden mkPROMISE(SEXP expr, SEXP rho)
 */
 #define intCHARSXP 73
 
-SEXP allocVector(SEXPTYPE type, R_xlen_t length)
+SEXP allocVector(SEXPTYPE type, R_len_t length)
 {
     SEXP s;     /* For the generational collector it would be safer to
 		   work in terms of a VECSEXP here, but that would
@@ -2232,17 +2234,14 @@ SEXP allocVector(SEXPTYPE type, R_xlen_t length)
 	    R_SmallVallocSize += alloc_size;
 	    ATTRIB(s) = R_NilValue;
 	    TYPEOF(s) = type;
-	    SET_SHORT_VEC_LENGTH(s, (R_len_t) length); // is 1
-	    SET_SHORT_VEC_TRUELENGTH(s, 0);
+	    LENGTH(s) = length;
+	    TRUELENGTH(s) = 0;
 	    NAMED(s) = 0;
 	    return(s);
 	}
     }
 
-    if (length > R_XLEN_T_MAX)
-	errorcall(R_GlobalContext->call,
-		  _("vector is too large")); /**** put length into message */
-    else if (length < 0 )
+    if (length < 0 )
 	errorcall(R_GlobalContext->call,
 		  _("negative length vectors are not allowed"));
     /* number of vector cells to allocate */
@@ -2320,17 +2319,11 @@ SEXP allocVector(SEXPTYPE type, R_xlen_t length)
 	break;
     case LANGSXP:
 	if(length == 0) return R_NilValue;
-#ifdef LONG_VECTOR_SUPPORT
-	if (length > R_SHORT_LEN_MAX) error("invalid length for pairlist");
-#endif
-	s = allocList((int) length);
+	s = allocList(length);
 	TYPEOF(s) = LANGSXP;
 	return s;
     case LISTSXP:
-#ifdef LONG_VECTOR_SUPPORT
-	if (length > R_SHORT_LEN_MAX) error("invalid length for pairlist");
-#endif
-	return allocList((int) length);
+	return allocList(length);
     default:
 	error(_("invalid type/length (%s/%d) in vector allocation"),
 	      type2char(type), length);
@@ -2377,48 +2370,24 @@ SEXP allocVector(SEXPTYPE type, R_xlen_t length)
 	    s->sxpinfo = UnmarkedNodeTemplate.sxpinfo;
 	    SET_NODE_CLASS(s, node_class);
 	    R_SmallVallocSize += alloc_size;
-	    SET_SHORT_VEC_LENGTH(s, (R_len_t) length);
 	}
 	else {
 	    Rboolean success = FALSE;
-	    R_size_t hdrsize = sizeof(SEXPREC_ALIGN);
-#ifdef LONG_VECTOR_SUPPORT
-	    if (length > R_SHORT_LEN_MAX)
-		hdrsize = sizeof(SEXPREC_ALIGN) + sizeof(R_long_vec_hdr_t);
-#endif
-	    void *mem = NULL; /* initialize to suppress warning */
-	    if (size < (R_SIZE_T_MAX / sizeof(VECREC)) - hdrsize) { /*** not sure this test is quite right -- why subtract the header? LT */
-		mem = malloc(hdrsize + size * sizeof(VECREC));
-		if (mem == NULL) {
+	    s = NULL; /* initialize to suppress warning */
+	    if (size < (R_SIZE_T_MAX / sizeof(VECREC)) - sizeof(SEXPREC_ALIGN)) {
+		s = malloc(sizeof(SEXPREC_ALIGN) + size * sizeof(VECREC));
+		if (s == NULL) {
 		    /* If we are near the address space limit, we
 		       might be short of address space.  So return
 		       all unused objects to malloc and try again. */
 		    R_gc_full(alloc_size);
-		    mem = malloc(hdrsize + size * sizeof(VECREC));
+		    s = malloc(sizeof(SEXPREC_ALIGN) + size * sizeof(VECREC));
 		}
-		if (mem != NULL) {
-#ifdef LONG_VECTOR_SUPPORT
-		    if (length > R_SHORT_LEN_MAX) {
-			s = (SEXP) (((char *) mem) + sizeof(R_long_vec_hdr_t));
-			SET_SHORT_VEC_LENGTH(s, R_LONG_VEC_TOKEN);
-			SET_LONG_VEC_LENGTH(s, length);
-			SET_LONG_VEC_TRUELENGTH(s, 0);
-		    }
-		    else {
-			s = mem;
-			SET_SHORT_VEC_LENGTH(s, (R_len_t) length);
-		    }
-#else
-		    s = mem;
-		    SETLENGTH(s, length);
-#endif
-		    success = TRUE;
-		}
-		else s = NULL;
+		if (s != NULL) success = TRUE;
 #ifdef R_MEMORY_PROFILING
-		R_ReportAllocation(hdrsize + size * sizeof(VECREC));
+		R_ReportAllocation(sizeof(SEXPREC_ALIGN) + size * sizeof(VECREC));
 #endif
-	    } else s = NULL; /* suppress warning */
+	    }
 	    if (! success) {
 		double dsize = (double)size * sizeof(VECREC)/1024.0;
 		/* reset the vector heap limit */
@@ -2448,9 +2417,9 @@ SEXP allocVector(SEXPTYPE type, R_xlen_t length)
     }
     else {
 	GC_PROT(s = allocSExpNonCons(type));
-	SET_SHORT_VEC_LENGTH(s, (R_len_t) length);
     }
-    SET_SHORT_VEC_TRUELENGTH(s, 0);
+    LENGTH(s) = length;
+    TRUELENGTH(s) = 0;
     NAMED(s) = 0;
 
     /* The following prevents disaster in the case */
@@ -2749,7 +2718,7 @@ SEXP attribute_hidden do_memoryprofile(SEXP call, SEXP op, SEXP args, SEXP env)
 
 static void reset_pp_stack(void *data)
 {
-    int *poldpps = data;
+    R_size_t *poldpps = data;
     R_PPStackSize =  *poldpps;
 }
 
@@ -2757,7 +2726,7 @@ SEXP protect(SEXP s)
 {
     if (R_PPStackTop >= R_PPStackSize) {
 	RCNTXT cntxt;
-	int oldpps = R_PPStackSize;
+	R_size_t oldpps = R_PPStackSize;
 
 	begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
 		     R_NilValue, R_NilValue);
@@ -2824,7 +2793,7 @@ void R_Reprotect(SEXP s, PROTECT_INDEX i)
 SEXP R_CollectFromIndex(PROTECT_INDEX i)
 {
     SEXP res;
-    int top = R_PPStackTop, j = 0;
+    R_size_t top = R_PPStackTop, j = 0;
     if (i > top) i = top;
     res = protect(allocVector(VECSXP, top - i));
     while (i < top)
@@ -3017,9 +2986,6 @@ int (LENGTH)(SEXP x) { return LENGTH(CHK(x)); }
 int (TRUELENGTH)(SEXP x) { return TRUELENGTH(CHK(x)); }
 void (SETLENGTH)(SEXP x, int v) { SETLENGTH(CHK(x), v); }
 void (SET_TRUELENGTH)(SEXP x, int v) { SET_TRUELENGTH(CHK(x), v); }
-R_xlen_t (XLENGTH)(SEXP x) { return XLENGTH(CHK(x)); }
-R_xlen_t (XTRUELENGTH)(SEXP x) { return XTRUELENGTH(CHK(x)); }
-int  (IS_LONG_VEC)(SEXP x) { return IS_LONG_VEC(CHK(x)); }
 
 const char *(R_CHAR)(SEXP x) {
     if(TYPEOF(x) != CHARSXP)
@@ -3028,14 +2994,14 @@ const char *(R_CHAR)(SEXP x) {
     return (const char *)CHAR(x);
 }
 
-SEXP (STRING_ELT)(SEXP x, R_xlen_t i) {
+SEXP (STRING_ELT)(SEXP x, int i) {
     if(TYPEOF(x) != STRSXP)
 	error("%s() can only be applied to a '%s', not a '%s'",
 	      "STRING_ELT", "character vector", type2char(TYPEOF(x)));
     return CHK(STRING_ELT(x, i));
 }
 
-SEXP (VECTOR_ELT)(SEXP x, R_xlen_t i) {
+SEXP (VECTOR_ELT)(SEXP x, int i) {
     /* We need to allow vector-like types here */
     if(TYPEOF(x) != VECSXP &&
        TYPEOF(x) != EXPRSXP &&
@@ -3089,7 +3055,7 @@ SEXP *(VECTOR_PTR)(SEXP x)
   return NULL;
 }
 
-void (SET_STRING_ELT)(SEXP x, R_xlen_t i, SEXP v) {
+void (SET_STRING_ELT)(SEXP x, int i, SEXP v) {
     if(TYPEOF(x) != STRSXP)
 	error("%s() can only be applied to a '%s', not a '%s'",
 	      "SET_STRING_ELT", "character vector", type2char(TYPEOF(x)));
@@ -3100,7 +3066,7 @@ void (SET_STRING_ELT)(SEXP x, R_xlen_t i, SEXP v) {
     STRING_ELT(x, i) = v;
 }
 
-SEXP (SET_VECTOR_ELT)(SEXP x, R_xlen_t i, SEXP v) {
+SEXP (SET_VECTOR_ELT)(SEXP x, int i, SEXP v) {
     /*  we need to allow vector-like types here */
     if(TYPEOF(x) != VECSXP &&
        TYPEOF(x) != EXPRSXP &&
@@ -3496,10 +3462,3 @@ int Seql(SEXP a, SEXP b)
 }
 
 
-#ifdef LONG_VECTOR_SUPPORT
-R_len_t R_BadLongVector(SEXP x, const char *file, int line)
-{
-    error(_("long vectors not supported yet: %s:%d"), file, line);
-    return 0; /* not reached */
-}
-#endif

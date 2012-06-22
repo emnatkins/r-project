@@ -707,11 +707,8 @@ options(oldcon)
 
 
 ## quantile extremes, MM 13 Apr 2000 and PR#1852
-(qq <- sapply(0:5, function(k) {
-    x <- c(rep(-Inf,k+1), 0:k, rep(Inf, k))
-    sapply(1:9, function(typ)
-           quantile(x, pr=(2:10)/10, type=typ))
-}, simplify="array"))
+for(k in 0:5)
+    print(quantile(c(rep(-Inf,k+1), 0:k, rep(Inf, k)), pr=seq(0,1, .1)))
 x <- c(-Inf, -Inf, Inf, Inf)
 median(x)
 quantile(x)
@@ -1149,6 +1146,19 @@ aov(y ~ a + b - 1 + Error(c), data=test.df)
 ## Note this is unbalanced and not a good example
 
 binom.test(c(800,10))# p-value < epsilon
+
+
+## Misleading error messages on integer overflow
+## Uwe Ligges, R-devel, 2004-02-19
+## (modified to make printed result the same whether numeric() is
+##  compiled or interpreted)
+## try(numeric(2^31))
+tryCatch(numeric(2^31),
+         error = function(e) paste("Error:", conditionMessage(e)))
+try(matrix( , 2^31, 1))
+try(matrix( , 2^31/10, 100))
+try(array(dim=c(2^31/10, 100)))
+## reported negative values (really integer NA) for R < 1.9.0
 
 
 ## aov with a singular error model
@@ -2610,24 +2620,4 @@ d <- data.frame(x = 1:9,
 fit <- lm(y ~ x, data=d, weights=w)
 summary(fit)
 ## issue is how the 5-number summary is labelled
-## (also seen in example(case.names))
-
-
-## is.unsorted got it backwards for dataframes of more than one column
-## it is supposed to look for violations of x[2] > x[1], x[3] > x[2], etc.
-is.unsorted(data.frame(x=2:1))
-is.unsorted(data.frame(x=1:2, y=3:4))
-is.unsorted(data.frame(x=3:4, y=1:2))
-## R < 2.15.1 got these as FALSE, TRUE, FALSE.
-
-## Error in constructing the error message
-assertErrorPrint <- function(expr) {
-    stopifnot(inherits(e <- tryCatch(expr, error=function(e)e), "error"))
-    cat("Asserted Error:", e[["message"]],"\n")
-}
-library("methods")# (not needed here)
-assertErrorPrint( getMethod(ls, "bar", fdef=ls) )
-assertErrorPrint( getMethod(show, "bar") )
-## R < 2.15.1 gave
-##   cannot coerce type 'closure' to vector of type 'character'
-
+## (also seem in example(case.names))

@@ -246,13 +246,7 @@ getFromNamespace <- function(x, ns, pos = -1, envir = as.environment(pos))
 
 assignInMyNamespace <- function(x, value)
 {
-    f <- sys.function(-1)
-    ns <- environment(f)
-    ## deal with subclasses of "function"
-    ## that may insert an environment in front of the namespace
-    if(isS4(f))
-        while(!isNamespace(ns))
-            ns <- parent.env(ns)
+    ns <- environment(sys.function(-1))
     if(bindingIsLocked(x, ns)) {
         unlockBinding(x, ns)
         assign(x, value, envir = ns, inherits = FALSE)
@@ -409,11 +403,14 @@ getAnywhere <- function(x)
     # now check for duplicates
     ln <- length(objs)
     dups <- rep.int(FALSE, ln)
+    objs2 <- lapply(objs, function(x) {
+        if(is.function(x)) environment(x) <- baseenv()
+        x
+    })
     if(ln > 1L)
         for(i in 2L:ln)
             for(j in 1L:(i-1L))
-                if(identical(objs[[i]], objs[[j]],
-                             ignore.environment = TRUE)) {
+                if(identical(objs2[[i]], objs2[[j]])) {
                     dups[i] <- TRUE
                     break
                 }

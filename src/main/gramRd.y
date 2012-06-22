@@ -2,7 +2,7 @@
 /*
  *  R : A Computer Langage for Statistical Data Analysis
  *  Copyright (C) 1995, 1996, 1997  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2012  The R Core Team
+ *  Copyright (C) 1997--2011  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -585,7 +585,9 @@ static SEXP xxusermacro(SEXP macro, SEXP args, YYLTYPE *lloc)
     	if (c > start + 1 && *(c-2) == '#' && isdigit(*(c-1))) {
     	    int which = *(c-1) - '0';
     	    const char *arg = CHAR(STRING_ELT(ans, which));
-    	    for (size_t ii = strlen(arg); ii > 0; ii--) xxungetc(arg[ii-1]);
+    	    for (i = strlen(arg); i > 0; i--) {
+    	    	xxungetc(arg[i-1]);
+    	    }
     	    c--;
     	} else {
     	    xxungetc(*(c-1));
@@ -794,7 +796,7 @@ static int xxgetc(void)
 	if (c == EOF) return R_EOF;
 
 	R_ParseContextLast = (R_ParseContextLast + 1) % PARSE_CONTEXT_SIZE;
-	R_ParseContext[R_ParseContextLast] = (char) c;
+	R_ParseContext[R_ParseContextLast] = c;
 
 	if (c == '\n') {
 	    xxlineno += 1;
@@ -853,13 +855,13 @@ static SEXP makeSrcref(YYLTYPE *lloc, SEXP srcfile)
     return val;
 }
 
-static SEXP mkString2(const char *s, size_t len)
+static SEXP mkString2(const char *s, int len)
 {
     SEXP t;
     cetype_t enc = CE_UTF8;
 
     PROTECT(t = allocVector(STRSXP, 1));
-    SET_STRING_ELT(t, 0, mkCharLenCE(s, (int) len, enc));
+    SET_STRING_ELT(t, 0, mkCharLenCE(s, len, enc));
     UNPROTECT(1);
     return t;
 }
@@ -1300,7 +1302,7 @@ static void yyerror(const char *s)
 }
 
 #define TEXT_PUSH(c) do {                  \
-	size_t nc = bp - stext;       \
+	unsigned int nc = bp - stext;       \
 	if (nc >= nstext - 1) {             \
 	    char *old = stext;              \
             nstext *= 2;                    \
@@ -1309,7 +1311,7 @@ static void yyerror(const char *s)
 	    memmove(stext, old, nc);        \
 	    if(old != st0) free(old);	    \
 	    bp = stext+nc; }		    \
-	*bp++ = ((char) c);		    \
+	*bp++ = (c);                        \
 } while(0)
 
 static void setfirstloc(void)
@@ -1411,7 +1413,7 @@ static int mkText(int c)
     while(1) {
     	switch (c) {
     	case '\\': 
-    	    lookahead = (char) xxgetc();
+    	    lookahead = xxgetc();
     	    if (lookahead == LBRACE || lookahead == RBRACE ||
     	        lookahead == '%' || lookahead == '\\') {
     	    	c = lookahead;
@@ -1434,7 +1436,7 @@ static int mkText(int c)
     };
 stop:
     if (c != '\n') xxungetc(c); /* newline causes a break, but we keep it */
-    PROTECT(yylval = mkString2(stext, bp - stext));
+    PROTECT(yylval = mkString2(stext,  bp - stext));
     if(stext != st0) free(stext);
     return TEXT;
 }
@@ -1450,7 +1452,7 @@ static int mkComment(int c)
     
     xxungetc(c);
     
-    PROTECT(yylval = mkString2(stext, bp - stext));
+    PROTECT(yylval = mkString2(stext,  bp - stext));
     if(stext != st0) free(stext);    
     return COMMENT;
 }
@@ -1552,7 +1554,7 @@ static int mkCode(int c)
     	c = xxgetc();
     }
     if (c != '\n') xxungetc(c);
-    PROTECT(yylval = mkString2(stext, bp - stext));
+    PROTECT(yylval = mkString2(stext,  bp - stext));
     if(stext != st0) free(stext);
     return RCODE; 
 }
@@ -1591,7 +1593,7 @@ static int mkMarkup(int c)
     	    }
         }
     }
-    PROTECT(yylval = mkString2(stext, bp - stext - 1));
+    PROTECT(yylval = mkString2(stext,  bp - stext - 1));
     if(stext != st0) free(stext);
     xxungetc(c);
     return retval;
@@ -1674,7 +1676,7 @@ static int mkVerb(int c)
     	c = xxgetc();
     };
     if (c != '\n') xxungetc(c);
-    PROTECT(yylval = mkString2(stext, bp - stext));
+    PROTECT(yylval = mkString2(stext,  bp - stext));
     if(stext != st0) free(stext);
     return VERB;  
 }

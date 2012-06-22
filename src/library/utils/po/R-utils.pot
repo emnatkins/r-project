@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: R 2.16.0\n"
+"Project-Id-Version: R 2.15.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-06-07 15:27\n"
+"POT-Creation-Date: 2012-05-21 13:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,9 +57,6 @@ msgid "Warning: unknown option"
 msgstr ""
 
 msgid "Created PDF document"
-msgstr ""
-
-msgid "Compacting PDF document"
 msgstr ""
 
 msgid "path to %s contains spaces,"
@@ -662,22 +659,10 @@ msgstr ""
 msgid "This version of R is not set up to install source packages\nIf it was installed from an RPM, you may need the R-devel RPM"
 msgstr ""
 
-msgid "system (cmd0):"
-msgstr ""
-
 msgid "installation of package %s had non-zero exit status"
 msgstr ""
 
-msgid "%d): succeeded '%s'"
-msgstr ""
-
 msgid "unable to create temporary directory %s"
-msgstr ""
-
-msgid "foundpkgs:"
-msgstr ""
-
-msgid "files:"
 msgstr ""
 
 msgid "installation of one of more packages failed,\n  probably %s"
@@ -863,10 +848,10 @@ msgstr ""
 msgid "invalid components in options('str'):"
 msgstr ""
 
-msgid "'str.default': 'le' is NA, so taken as 0"
+msgid "'object' does not have valid levels()"
 msgstr ""
 
-msgid "'object' does not have valid levels()"
+msgid "'str.default': 'le' is NA"
 msgstr ""
 
 msgid "'digits' and 'digits.d' are both specified and the latter is not used"

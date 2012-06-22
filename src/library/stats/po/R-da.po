@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-05-21 13:03\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: 2012-01-28 01:18+0200\n"
 "Last-Translator: Joe <joedalton2@yahoo.dk>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -674,9 +674,6 @@ msgstr ""
 msgid "'x' contains missing values"
 msgstr ""
 
-msgid "invalid value of length(x)"
-msgstr ""
-
 msgid "'x' and 'weights' have unequal length"
 msgstr ""
 
@@ -1247,6 +1244,9 @@ msgstr ""
 msgid ""
 "numeric y must be supplied.\n"
 "For density estimation use density()"
+msgstr ""
+
+msgid "invalid value of length(x)"
 msgstr ""
 
 msgid "'k' is not an integer"
@@ -1846,6 +1846,9 @@ msgstr ""
 msgid "'newdata' does not have the correct number of columns"
 msgstr ""
 
+msgid "wrong number of predictors"
+msgstr ""
+
 msgid "both 'x' and 'covmat' were supplied: 'x' will be ignored"
 msgstr ""
 
@@ -2008,9 +2011,6 @@ msgid "invalid 'control.spar'"
 msgstr ""
 
 msgid "missing or infinite values in inputs are not allowed"
-msgstr ""
-
-msgid "invalid number of points"
 msgstr ""
 
 msgid "lengths of 'x' and 'w' must match"

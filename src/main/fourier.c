@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996, 1997  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1998--2012  The R Core Team
+ *  Copyright (C) 1998--2000  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,19 +25,21 @@
 #include <config.h>
 #endif
 
-#include <Defn.h>
+#include "Defn.h"
 #include <R_ext/Applic.h>
-
-#include "statsR.h"
 
 /* Fourier Transform for Univariate Spatial and Time Series */
 
-SEXP fft(SEXP z, SEXP inverse)
+SEXP attribute_hidden do_fft(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP d;
+    SEXP z, d;
     int i, inv, maxf, maxmaxf, maxmaxp, maxp, n, ndims, nseg, nspn;
     double *work;
     int *iwork;
+
+    checkArity(op, args);
+
+    z = CAR(args);
 
     switch (TYPEOF(z)) {
     case INTSXP:
@@ -56,7 +58,7 @@ SEXP fft(SEXP z, SEXP inverse)
     /* -2 for forward transform, complex values */
     /* +2 for backward transform, complex values */
 
-    inv = asLogical(inverse);
+    inv = asLogical(CADR(args));
     if (inv == NA_INTEGER || inv == 0)
 	inv = -2;
     else
@@ -113,12 +115,16 @@ SEXP fft(SEXP z, SEXP inverse)
 /* Fourier Transform for Vector-Valued ("multivariate") Series */
 /* Not to be confused with the spatial case (in do_fft). */
 
-SEXP mvfft(SEXP z, SEXP inverse)
+SEXP attribute_hidden do_mvfft(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP d;
+    SEXP z, d;
     int i, inv, maxf, maxp, n, p;
     double *work;
     int *iwork;
+
+    checkArity(op, args);
+
+    z = CAR(args);
 
     d = getAttrib(z, R_DimSymbol);
     if (d == R_NilValue || length(d) > 2)
@@ -143,7 +149,7 @@ SEXP mvfft(SEXP z, SEXP inverse)
     /* -2 for forward  transform, complex values */
     /* +2 for backward transform, complex values */
 
-    inv = asLogical(inverse);
+    inv = asLogical(CADR(args));
     if (inv == NA_INTEGER || inv == 0) inv = -2;
     else inv = 2;
 
@@ -175,21 +181,20 @@ static Rboolean ok_n(int n, int *f, int nf)
     return n == 1;
 }
 
-static int nextn0(int n, int *f, int nf)
+static int nextn(int n, int *f, int nf)
 {
     while(!ok_n(n, f, nf))
 	n++;
     return n;
 }
 
-
-SEXP nextn(SEXP n, SEXP factors)
+SEXP attribute_hidden do_nextn(SEXP call, SEXP op, SEXP args, SEXP env)
 {
-    SEXP f, ans;
+    SEXP n, f, ans;
     int i, nn, nf;
-
-    PROTECT(n = coerceVector(n, INTSXP));
-    PROTECT(f = coerceVector(factors, INTSXP));
+    checkArity(op, args);
+    PROTECT(n = coerceVector(CAR(args), INTSXP));
+    PROTECT(f = coerceVector(CADR(args), INTSXP));
     nn = LENGTH(n);
     nf = LENGTH(f);
 
@@ -207,7 +212,7 @@ SEXP nextn(SEXP n, SEXP factors)
 	else if (INTEGER(n)[i] <= 1)
 	    INTEGER(ans)[i] = 1;
 	else
-	    INTEGER(ans)[i] = nextn0(INTEGER(n)[i], INTEGER(f), nf);
+	    INTEGER(ans)[i] = nextn(INTEGER(n)[i], INTEGER(f), nf);
     }
     UNPROTECT(2);
     return ans;

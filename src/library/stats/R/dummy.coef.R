@@ -28,12 +28,14 @@ dummy.coef.lm <- function(object, use.na=FALSE, ...)
     if(!length(xl)) {			# no factors in model
 	return(as.list(coef(object)))
     }
-    nxl <- setNames(rep.int(1, length(vars)), vars)
-    tmp <- unlist(lapply(xl, length)) ## ?? vapply(xl, length, 1L)
+    nxl <- rep.int(1, length(vars))
+    names(nxl) <- vars
+    tmp <- unlist(lapply(xl, length))
     nxl[names(tmp)] <- tmp
     lterms <- apply(facs, 2L, function(x) prod(nxl[x > 0]))
     nl <- sum(lterms)
-    args <- setNames(vector("list", length(vars)), vars)
+    args <- vector("list", length(vars))
+    names(args) <- vars
     for(i in vars)
 	args[[i]] <- if(nxl[[i]] == 1) rep.int(1, nl)
 	else factor(rep.int(xl[[i]][1L], nl), levels = xl[[i]])
@@ -68,15 +70,17 @@ dummy.coef.lm <- function(object, use.na=FALSE, ...)
     coef <- object$coefficients
     if(!use.na) coef[is.na(coef)] <- 0
     asgn <- attr(mm,"assign")
-    res <- setNames(vector("list", length(tl)), tl)
+    res <- vector("list", length(tl))
+    names(res) <- tl
     for(j in seq_along(tl)) {
 	keep <- asgn == j
-	ij <- rn == tl[j]
-	res[[j]] <-
-	    setNames(drop(mm[ij, keep, drop=FALSE] %*% coef[keep]), rnn[ij])
+	ans <- drop(mm[rn == tl[j], keep, drop=FALSE] %*% coef[keep])
+	names(ans) <- rnn[rn == tl[j]]
+	res[[j]] <- ans
     }
     if(int > 0) {
-	res <- c(list("(Intercept)" = coef[int]), res)
+	res <- c(list(coef[int]), res)
+	names(res)[1L] <- "(Intercept)"
     }
     class(res) <- "dummy_coef"
     res
@@ -94,12 +98,14 @@ dummy.coef.aovlist <- function(object, use.na = FALSE, ...)
     if(!length(xl)) {			# no factors in model
 	return(as.list(coef(object)))
     }
-    nxl <- setNames(rep.int(1, length(vars)), vars)
+    nxl <- rep.int(1, length(vars))
+    names(nxl) <- vars
     tmp <- unlist(lapply(xl, length))
     nxl[names(tmp)] <- tmp
     lterms <- apply(facs, 2L, function(x) prod(nxl[x > 0]))
     nl <- sum(lterms)
-    args <- setNames(vector("list", length(vars)), vars)
+    args <- vector("list", length(vars))
+    names(args) <- vars
     for(i in vars)
 	args[[i]] <- if(nxl[[i]] == 1) rep.int(1, nl)
 	else factor(rep.int(xl[[i]][1L], nl), levels = xl[[i]])
@@ -127,8 +133,9 @@ dummy.coef.aovlist <- function(object, use.na = FALSE, ...)
     if (!int) form <- paste(form, "- 1")
     mm <- model.matrix(terms(formula(form)), dummy,
 		       attr(object, "contrasts"), xl)
+    res <- vector("list", length(object))
+    names(res) <- names(object)
     tl <- c("(Intercept)", tl)
-    res <- setNames(vector("list", length(object)), names(object))
     allasgn <- attr(mm, "assign")
     for(i in names(object)) {
 	coef <- object[[i]]$coefficients
@@ -136,17 +143,17 @@ dummy.coef.aovlist <- function(object, use.na = FALSE, ...)
 	asgn <- object[[i]]$assign
 	uasgn <- unique(asgn)
 	tll <- tl[1 + uasgn]
-	mod <- setNames(vector("list", length(tll)), tll)
+	mod <- vector("list", length(tll))
+	names(mod) <- tll
 	for(j in uasgn) {
-	    mod[[tl[1+j]]] <-
-		if(j == 0) {
-		    structure(coef[asgn == j], names="(Intercept)")
-		} else {
-		    ij <- rn == tl[1+j]
-		    setNames(drop(mm[ij, allasgn == j, drop=FALSE] %*%
-				  coef[asgn == j]),
-			     rnn[ij])
-		}
+	    if(j == 0) {
+		ans <- structure(coef[asgn == j], names="(Intercept)")
+	    } else {
+		ans <- drop(mm[rn == tl[1+j], allasgn == j, drop=FALSE] %*%
+			    coef[asgn == j])
+		names(ans) <- rnn[rn == tl[1+j]]
+	    }
+	    mod[[tl[1+j]]] <- ans
 	}
 	res[[i]] <- mod
     }
@@ -158,11 +165,11 @@ print.dummy_coef <- function(x, ..., title)
 {
     terms <- names(x)
     n <- length(x)
-    nm <- max(vapply(x, length, 1L))
+    nm <- max(sapply(x, length))
     ans <- matrix("", 2L*n, nm)
     rn <- rep.int("", 2L*n)
     line <- 0
-    for (j in seq_len(n)) {
+    for (j in seq(n)) {
 	this <- x[[j]]
 	n1 <- length(this)
 	if(n1 > 1) {

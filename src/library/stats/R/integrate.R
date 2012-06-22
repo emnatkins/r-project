@@ -14,7 +14,7 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-integrate<- function(f, lower, upper, ..., subdivisions = 100L,
+integrate<- function(f, lower, upper, ..., subdivisions=100,
 		     rel.tol = .Machine$double.eps^.25,
 		     abs.tol = rel.tol, stop.on.error = TRUE,
 		     keep.xy = FALSE, aux = NULL)
@@ -22,15 +22,16 @@ integrate<- function(f, lower, upper, ..., subdivisions = 100L,
     f <- match.fun(f)
     ff <- function(x) f(x, ...)
     limit <- as.integer(subdivisions)
-    if (limit < 1L || (abs.tol <= 0 &&
+    if (limit < 1 || (abs.tol <= 0 &&
 	rel.tol < max(50*.Machine$double.eps, 0.5e-28)))
 	stop("invalid parameter values")
     if(is.finite(lower) && is.finite(upper)) {
-	wk <- .External(C_call_dqags,
+	wk <- .External("call_dqags",
 			ff, rho = environment(),
 			as.double(lower), as.double(upper),
 			as.double(abs.tol), as.double(rel.tol),
-			limit = limit)
+			limit = limit,
+			PACKAGE = "base")
     } else { # indefinite integral
 	if(is.na(lower) || is.na(upper)) stop("a limit is missing")
 	if (is.finite(lower)) {
@@ -43,15 +44,16 @@ integrate<- function(f, lower, upper, ..., subdivisions = 100L,
 	    inf <- 2
 	    bound <- 0.0
 	}
-	wk <- .External(C_call_dqagi,
+	wk <- .External("call_dqagi",
 			ff, rho = environment(),
 			as.double(bound), as.integer(inf),
 			as.double(abs.tol), as.double(rel.tol),
-			limit = limit)
+			limit = limit,
+			PACKAGE = "base")
     }
     res <- wk[c("value", "abs.error", "subdivisions")]
     res$message <-
-	switch(wk$ierr + 1L,
+	switch(wk$ierr + 1,
 	       "OK",
 	       "maximum number of subdivisions reached",
 	       "roundoff error was detected",
@@ -59,7 +61,7 @@ integrate<- function(f, lower, upper, ..., subdivisions = 100L,
 	       "roundoff error is detected in the extrapolation table",
 	       "the integral is probably divergent",
 	       "the input is invalid")
-    if(wk$ierr == 6L || (wk$ierr > 0L && stop.on.error)) stop(res$message)
+    if(wk$ierr == 6 || (wk$ierr > 0 && stop.on.error)) stop(res$message)
     res$call <- match.call()
     class(res) <- "integrate"
     res

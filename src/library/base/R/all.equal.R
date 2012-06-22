@@ -53,8 +53,8 @@ all.equal.numeric <-
 	return(msg)
     }
 
-    lt <- xlength(target)
-    lc <- xlength(current)
+    lt <- length(target)
+    lc <- length(current)
     cplx <- is.complex(target) # and so current must be too.
     if(lt != lc) {
 	## *replace* the 'Lengths' msg[] from attr.all.equal():
@@ -108,8 +108,8 @@ all.equal.character <-
 			    data.class(current), sep = ""))
 	return(msg)
     }
-    lt <- xlength(target)
-    lc <- xlength(current)
+    lt <- length(target)
+    lc <- length(current)
     if(lt != lc) {
 	if(!is.null(msg)) msg <- msg[- grep("\\bLengths\\b", msg)]
 	msg <- c(msg, paste("Lengths (", lt, ", ", lc,
@@ -148,8 +148,6 @@ all.equal.factor <- function(target, current, check.attributes = TRUE, ...)
 
 all.equal.formula <- function(target, current, ...)
 {
-    ## NB: this assumes the default method for class formula, not
-    ## the misquided one in package Formula
     if(length(target) != length(current))
 	return(paste("target, current differ in having response: ",
 		     length(target) == 3L, ", ",
@@ -188,15 +186,32 @@ all.equal.language <- function(target, current, ...)
 all.equal.list <- function(target, current, check.attributes = TRUE, ...)
 {
     msg <- if(check.attributes) attr.all.equal(target, current, ...)
-    ## Unclass to ensure we get the low-level components
+##    nt <- names(target)
+##    nc <- names(current)
+    ## Unclass to ensure we get the low-level components (see the
+    ## comment below).
     target <- unclass(target)
     current <- unclass(current)
     iseq <-
-	if(xlength(target) == xlength(current)) {
+	## <FIXME>
+	## Commenting this eliminates PR#674, and assumes that lists are
+	## regarded as generic vectors, so that they are equal iff they
+	## have identical names attributes and all components are equal.
+	## if(length(nt) && length(nc)) {
+	##     if(any(not.in <- (c.in.t <- match(nc, nt, 0L)) == 0L))
+	##	msg <- c(msg, paste("Components not in target:",
+	##			    paste(nc[not.in], collapse = ", ")))
+	##     if(any(not.in <- match(nt, nc, 0L) == 0L))
+	##	msg <- c(msg, paste("Components not in current:",
+	##			    paste(nt[not.in], collapse = ", ")))
+	##     nt[c.in.t]
+	## } else
+	## </FIXME>
+	if(length(target) == length(current)) {
 	    seq_along(target)
 	} else {
             if(!is.null(msg)) msg <- msg[- grep("\\bLengths\\b", msg)]
-	    nc <- min(xlength(target), xlength(current))
+	    nc <- min(length(target), length(current))
 	    msg <- c(msg, paste("Length mismatch: comparison on first",
 				nc, "components"))
 	    seq_len(nc)
@@ -219,8 +234,8 @@ all.equal.raw <-
 			    data.class(current), sep = ""))
 	return(msg)
     }
-    lt <- xlength(target)
-    lc <- xlength(current)
+    lt <- length(target)
+    lc <- length(current)
     if(lt != lc) {
 	if(!is.null(msg)) msg <- msg[- grep("\\bLengths\\b", msg)]
 	msg <- c(msg, paste("Lengths (", lt, ", ", lc,
@@ -245,7 +260,6 @@ all.equal.raw <-
 }
 
 
-## attributes are a pairlist, so never 'long'
 attr.all.equal <- function(target, current,
                            check.attributes = TRUE, check.names = TRUE, ...)
 {

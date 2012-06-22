@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2012  The R Core Team
+ *  Copyright (C) 1997--2011  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -108,7 +108,7 @@ typedef R_StringBuffer DeparseBuffer;
 
 typedef struct {
     int linenumber;
-    int len; // FIXME: size_t
+    int len;
     int incurly;
     int inlist;
     Rboolean startline; /* = TRUE; */
@@ -259,14 +259,13 @@ SEXP deparse1line(SEXP call, Rboolean abbrev)
 			     SIMPLEDEPARSE, -1));
     if ((lines = length(temp)) > 1) {
 	char *buf;
-	int i;
-	size_t len;
+	int i, len;
 	const void *vmax;
 	cetype_t enc = CE_NATIVE;
-	for (len = 0, i = 0; i < length(temp); i++) {
+	for (len=0, i = 0; i < length(temp); i++) {
 	    SEXP s = STRING_ELT(temp, i);
 	    cetype_t thisenc = getCharCE(s);
-	    len += strlen(CHAR(s));  // FIXME: check for overflow?
+	    len += strlen(CHAR(s));
 	    if (thisenc != CE_NATIVE) 
 	    	enc = thisenc; /* assume only one non-native encoding */ 
 	}    
@@ -1183,7 +1182,7 @@ static void print2buff(const char *strng, LocalParseData *d)
     bufflen = strlen(d->buffer.data);
     R_AllocStringBuffer(bufflen + tlen, &(d->buffer));
     strcat(d->buffer.data, strng);
-    d->len += (int) tlen;
+    d->len += tlen;
 }
 
 static void vector2buff(SEXP vector, LocalParseData *d)

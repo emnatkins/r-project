@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-05-21 13:03\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: 2011-04-02 \n"
 "Last-Translator: Murat Alkan <muratalk@gmail.com>\n"
 "Language-Team: Turkish <muratalk@gmail.com>\n"
@@ -684,9 +684,6 @@ msgstr "'x' argümanı nümerik olmalı"
 msgid "'x' contains missing values"
 msgstr "'x' eksik değerler içeriyor"
 
-msgid "invalid value of length(x)"
-msgstr ""
-
 msgid "'x' and 'weights' have unequal length"
 msgstr "'x' ve 'weights' eşit olmayan uzunluklara sahip"
 
@@ -1273,6 +1270,9 @@ msgstr ""
 msgid ""
 "numeric y must be supplied.\n"
 "For density estimation use density()"
+msgstr ""
+
+msgid "invalid value of length(x)"
 msgstr ""
 
 msgid "'k' is not an integer"
@@ -1884,6 +1884,9 @@ msgstr ""
 msgid "'newdata' does not have the correct number of columns"
 msgstr ""
 
+msgid "wrong number of predictors"
+msgstr ""
+
 msgid "both 'x' and 'covmat' were supplied: 'x' will be ignored"
 msgstr ""
 
@@ -2049,10 +2052,6 @@ msgstr "geçersiz 'control.spar'"
 #, fuzzy
 msgid "missing or infinite values in inputs are not allowed"
 msgstr "eksik veya negatif sıklıklara izin verilmiyor"
-
-#, fuzzy
-msgid "invalid number of points"
-msgstr "geçersiz argüman 'omit'"
 
 msgid "lengths of 'x' and 'w' must match"
 msgstr "'x' ve 'w' uzunlukları eşleşmeli"

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.15.0\n"
 "Report-Msgid-Bugs-To: bugs@R-project.org\n"
-"POT-Creation-Date: 2012-06-07 15:26+0100\n"
+"POT-Creation-Date: 2012-06-07 15:52+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -43,8 +43,8 @@ msgstr "'CharInfo' nie mógl zostać przetworzony"
 msgid "unknown AFM entity encountered"
 msgstr "napotkano nieznany obiekt AFM"
 
-#: devPS.c:739 devPS.c:742 devPS.c:4417 devPS.c:7898 devPicTeX.c:487
-#: devPicTeX.c:489
+#: devPS.c:739 devPS.c:742 devPS.c:4417 devPS.c:7898 devPicTeX.c:486
+#: devPicTeX.c:488
 #, c-format
 msgid "invalid string in '%s'"
 msgstr "niepoprawny ciąg w '%s'"
@@ -452,7 +452,7 @@ msgstr "niepoprawny parametr 'fonts' w %s"
 msgid "invalid value of '%s'"
 msgstr "niepoprawna wartość '%s'"
 
-#: devPS.c:8242 devPS.c:8309 devPS.c:8408 devPicTeX.c:742 devWindows.c:3722
+#: devPS.c:8242 devPS.c:8309 devPS.c:8408 devPicTeX.c:741 devWindows.c:3722
 #, c-format
 msgid "unable to start %s() device"
 msgstr "nie można uruchomić urządzenia '%s()'"
@@ -638,15 +638,6 @@ msgstr "niepoprawna wartość 'width' lub 'height'"
 #: devWindows.c:3840
 msgid "Unable to load winCairo.dll: was it built?"
 msgstr "Nie można załadować winCairo.dll: czy został zbudowany?"
-
-#: devices.c:43
-msgid "argument must have positive length"
-msgstr ""
-
-#: devices.c:52
-#, fuzzy
-msgid "invalid argument"
-msgstr "błędny argument 'file'"
 
 #: qdBitmap.c:79
 #, c-format

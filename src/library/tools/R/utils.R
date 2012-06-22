@@ -439,27 +439,24 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 ### ** .BioC_version_associated_with_R_version
 
 .BioC_version_associated_with_R_version <-
-    numeric_version("2.11")
+    numeric_version("2.10")
 ## (Could also use something programmatically mapping (R) 2.10.x to
 ## (BioC) 2.5, 2.9.x to 2.4, ..., 2.1.x to 1.6, but what if R 3.0.0
 ## comes out? Also, pre-2.12.0 is out weeks before all of BioC 2.7)
 ## E.g. pre-2.13.0 was out ca Sept 20, BioC 2.8 was ready Nov 17.
-## Things are more complicated from R-2.15.0 with still two BioC
-## releases a year
 
 ### ** .vc_dir_names
 
 ## Version control directory names: CVS, .svn (Subversion), .arch-ids
 ## (arch), .bzr, .git, .hg (mercurial) and _darcs (Darcs)
-## And it seems .metadata (eclipse) is in the same category.
 
 .vc_dir_names <-
-    c("CVS", ".svn", ".arch-ids", ".bzr", ".git", ".hg", "_darcs", ".metadata")
+    c("CVS", ".svn", ".arch-ids", ".bzr", ".git", ".hg", "_darcs")
 
 ## and RE version (beware of the need for escapes if amending)
 
 .vc_dir_names_re <-
-    "/(CVS|\\.svn|\\.arch-ids|\\.bzr|\\.git|\\.hg|_darcs|\\.metadata)(/|$)"
+    "/(CVS|\\.svn|\\.arch-ids|\\.bzr|\\.git|\\.hg|_darcs)(/|$)"
 
 ### * Internal utility functions.
 
@@ -1236,7 +1233,7 @@ function(txt)
 ### ** .read_description
 
 .keep_white_description_fields <-
-    c("Description", "Authors@R", "Author", "Built", "Packaged")
+    c("Description", "Author", "Built", "Packaged")
 
 .read_description <-
 function(dfile)
@@ -1292,7 +1289,7 @@ function(x, dfile)
     }
     ## Avoid declared encodings when writing out.
     Encoding(x) <- "unknown"
-    ## Avoid folding for fields where we keep whitespace when reading.
+    ## Avoid folding for Description, Author, Built, and Packaged.
     write.dcf(rbind(x), dfile,
               keep.white = .keep_white_description_fields)
 }

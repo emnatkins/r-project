@@ -12,19 +12,20 @@ CSOURCES=\
 	CConverters.c CommandLineArgs.c \
 	Rdynload.c Renviron.c RNG.c \
 	agrep.c apply.c arithmetic.c array.c attrib.c \
-	bind.c builtin.c \
-	character.c coerce.c colors.c complex.c connections.c context.c cum.c \
-	dcf.c datetime.c debug.c deparse.c devices.c \
+	base.c bind.c builtin.c \
+	character.c coerce.c colors.c complex.c connections.c context.c \
+	cov.c cum.c \
+	dcf.c datetime.c debug.c deparse.c deriv.c devices.c \
 	dotcode.c dounzip.c dstruct.c duplicate.c \
 	engine.c envir.c errors.c eval.c \
-	format.c \
+	format.c fourier.c \
 	gevents.c gram.c gram-ex.c gramLatex.c gramRd.c graphics.c grep.c \
 	identical.c inlined.c inspect.c internet.c iosupport.c \
 	lapack.c list.c localecharset.c logic.c \
-	main.c mapply.c match.c memory.c mkdtemp.c \
+	main.c mapply.c match.c memory.c mkdtemp.c model.c \
 	names.c \
-	objects.c options.c \
-	paste.c platform.c plot.c plot3d.c plotmath.c \
+	objects.c optim.c optimize.c options.c \
+	par.c paste.c platform.c plot.c plot3d.c plotmath.c \
 	print.c printarray.c printvector.c printutils.c qsort.c \
 	random.c raw.c registration.c relop.c rlocale.c \
 	saveload.c scan.c seq.c serialize.c size.c sort.c source.c split.c \

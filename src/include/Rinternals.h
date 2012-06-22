@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1999-2012   The R Core Team.
+ *  Copyright (C) 1999-2010   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -48,19 +48,6 @@ typedef unsigned char Rbyte;
 /* type for length of vectors etc */
 typedef int R_len_t; /* will be long later, LONG64 or ssize_t on Win64 */
 #define R_LEN_T_MAX INT_MAX
-#if ( SIZEOF_SIZE_T > 4 )
-# define LONG_VECTOR_SUPPORT
-#endif
-#ifdef LONG_VECTOR_SUPPORT
-    typedef ptrdiff_t R_xlen_t;
-    typedef struct { R_xlen_t lv_length, lv_truelength; } R_long_vec_hdr_t;
-# define R_XLEN_T_MAX 4503599627370496
-# define R_SHORT_LEN_MAX 2147483647
-# define R_LONG_VEC_TOKEN -1
-#else
-    typedef int R_xlen_t;
-# define R_XLEN_T_MAX R_LEN_T_MAX
-#endif
 
 /* Fundamental Data Types:  These are largely Lisp
  * influenced structures, with the exception of LGLSXP,
@@ -268,54 +255,19 @@ typedef union { VECTOR_SEXPREC s; double align; } SEXPREC_ALIGN;
 #define SET_TYPEOF(x,v)	(((x)->sxpinfo.type)=(v))
 #define SET_NAMED(x,v)	(((x)->sxpinfo.named)=(v))
 #define SET_RTRACE(x,v)	(((x)->sxpinfo.trace)=(v))
-#define SETLEVELS(x,v)	(((x)->sxpinfo.gp)=((unsigned short)v))
+#define SETLEVELS(x,v)	(((x)->sxpinfo.gp)=(v))
 
 /* S4 object bit, set by R_do_new_object for all new() calls */
-#define S4_OBJECT_MASK ((unsigned short)(1<<4))
+#define S4_OBJECT_MASK (1<<4)
 #define IS_S4_OBJECT(x) ((x)->sxpinfo.gp & S4_OBJECT_MASK)
 #define SET_S4_OBJECT(x) (((x)->sxpinfo.gp) |= S4_OBJECT_MASK)
 #define UNSET_S4_OBJECT(x) (((x)->sxpinfo.gp) &= ~S4_OBJECT_MASK)
 
 /* Vector Access Macros */
-#ifdef LONG_VECTOR_SUPPORT
-    R_len_t R_BadLongVector(SEXP, const char *, int);
-# define IS_LONG_VEC(x) (SHORT_VEC_LENGTH(x) == R_LONG_VEC_TOKEN)
-# define SHORT_VEC_LENGTH(x) (((VECSEXP) (x))->vecsxp.length)
-# define SHORT_VEC_TRUELENGTH(x) (((VECSEXP) (x))->vecsxp.truelength)
-# define LONG_VEC_LENGTH(x) ((R_long_vec_hdr_t *) (x))[-1].lv_length
-# define LONG_VEC_TRUELENGTH(x) ((R_long_vec_hdr_t *) (x))[-1].lv_truelength
-# define XLENGTH(x) (IS_LONG_VEC(x) ? LONG_VEC_LENGTH(x) : SHORT_VEC_LENGTH(x))
-# define XTRUELENGTH(x)	(IS_LONG_VEC(x) ? LONG_VEC_TRUELENGTH(x) : SHORT_VEC_TRUELENGTH(x))
-# define LENGTH(x) (IS_LONG_VEC(x) ? R_BadLongVector(x, __FILE__, __LINE__) : SHORT_VEC_LENGTH(x))
-# define TRUELENGTH(x) (IS_LONG_VEC(x) ? R_BadLongVector(x, __FILE__, __LINE__) : SHORT_VEC_TRUELENGTH(x))
-# define SET_SHORT_VEC_LENGTH(x,v) (SHORT_VEC_LENGTH(x) = (v))
-# define SET_SHORT_VEC_TRUELENGTH(x,v) (SHORT_VEC_TRUELENGTH(x) = (v))
-# define SET_LONG_VEC_LENGTH(x,v) (LONG_VEC_LENGTH(x) = (v))
-# define SET_LONG_VEC_TRUELENGTH(x,v) (LONG_VEC_TRUELENGTH(x) = (v))
-# define SETLENGTH(x,v) do { \
-      SEXP sl__x__ = (x); \
-      R_xlen_t sl__v__ = (v); \
-      if (IS_LONG_VEC(sl__x__)) \
-	  SET_LONG_VEC_LENGTH(sl__x__,  sl__v__); \
-      else SET_SHORT_VEC_LENGTH(sl__x__, (R_len_t) sl__v__); \
-  } while (0)
-# define SET_TRUELENGTH(x,v) do { \
-      SEXP sl__x__ = (x); \
-      R_xlen_t sl__v__ = (v); \
-      if (IS_LONG_VEC(sl__x__)) \
-	  SET_LONG_VEC_TRUELENGTH(sl__x__, sl__v__); \
-      else SET_SHORT_VEC_TRUELENGTH(sl__x__, (R_len_t) sl__v__); \
-  } while (0)
-#else
-# define LENGTH(x)	(((VECSEXP) (x))->vecsxp.length)
-# define TRUELENGTH(x)	(((VECSEXP) (x))->vecsxp.truelength)
-# define XLENGTH(x) LENGTH(x)
-# define XTRUELENGTH(x) TRUELENGTH(x)
-# define SETLENGTH(x,v)		((((VECSEXP) (x))->vecsxp.length)=(v))
-# define SET_TRUELENGTH(x,v)	((((VECSEXP) (x))->vecsxp.truelength)=(v))
-# define SET_SHORT_VEC_LENGTH SETLENGTH
-# define SET_SHORT_VEC_TRUELENGTH SET_TRUELENGTH
-#endif
+#define LENGTH(x)	(((VECSEXP) (x))->vecsxp.length)
+#define TRUELENGTH(x)	(((VECSEXP) (x))->vecsxp.truelength)
+#define SETLENGTH(x,v)		((((VECSEXP) (x))->vecsxp.length)=(v))
+#define SET_TRUELENGTH(x,v)	((((VECSEXP) (x))->vecsxp.truelength)=(v))
 
 /* Under the generational allocator the data for vector nodes comes
    immediately after the node structure, so the data address is a
@@ -428,9 +380,6 @@ int  (LENGTH)(SEXP x);
 int  (TRUELENGTH)(SEXP x);
 void (SETLENGTH)(SEXP x, int v);
 void (SET_TRUELENGTH)(SEXP x, int v);
-R_xlen_t  (XLENGTH)(SEXP x);
-R_xlen_t  (XTRUELENGTH)(SEXP x);
-int  (IS_LONG_VEC)(SEXP x);
 int  (LEVELS)(SEXP x);
 int  (SETLEVELS)(SEXP x, int v);
 
@@ -439,10 +388,10 @@ int  *(INTEGER)(SEXP x);
 Rbyte *(RAW)(SEXP x);
 double *(REAL)(SEXP x);
 Rcomplex *(COMPLEX)(SEXP x);
-SEXP (STRING_ELT)(SEXP x, R_xlen_t i);
-SEXP (VECTOR_ELT)(SEXP x, R_xlen_t i);
-void SET_STRING_ELT(SEXP x, R_xlen_t i, SEXP v);
-SEXP SET_VECTOR_ELT(SEXP x, R_xlen_t i, SEXP v);
+SEXP (STRING_ELT)(SEXP x, int i);
+SEXP (VECTOR_ELT)(SEXP x, int i);
+void SET_STRING_ELT(SEXP x, int i, SEXP v);
+SEXP SET_VECTOR_ELT(SEXP x, int i, SEXP v);
 SEXP *(STRING_PTR)(SEXP x);
 SEXP *(VECTOR_PTR)(SEXP x);
 
@@ -632,7 +581,7 @@ SEXP Rf_allocMatrix(SEXPTYPE, int, int);
 SEXP Rf_allocList(int);
 SEXP Rf_allocS4Object(void);
 SEXP Rf_allocSExp(SEXPTYPE);
-SEXP Rf_allocVector(SEXPTYPE, R_xlen_t);
+SEXP Rf_allocVector(SEXPTYPE, R_len_t);
 int  Rf_any_duplicated(SEXP x, Rboolean from_last);
 int  Rf_any_duplicated3(SEXP x, SEXP incomp, Rboolean from_last);
 SEXP Rf_applyClosure(SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -672,7 +621,6 @@ Rboolean Rf_isOrdered(SEXP);
 Rboolean Rf_isUnordered(SEXP);
 Rboolean Rf_isUnsorted(SEXP, Rboolean);
 SEXP Rf_lengthgets(SEXP, R_len_t);
-SEXP Rf_xlengthgets(SEXP, R_xlen_t);
 SEXP R_lsInternal(SEXP, Rboolean);
 SEXP Rf_match(SEXP, SEXP, int);
 SEXP Rf_matchE(SEXP, SEXP, int, SEXP);
@@ -908,10 +856,6 @@ int R_system(const char *);
 */
 Rboolean R_compute_identical(SEXP, SEXP, int);
 
-/* C version of R's  indx <- order(..., na.last, decreasing) :
-   e.g.  arglist = Rf_lang2(x,y)  or  Rf_lang3(x,y,z) */
-void R_orderVector(int *indx, int n, SEXP arglist, Rboolean nalast, Rboolean decreasing);
-
 #ifndef R_NO_REMAP
 #define acopy_string		Rf_acopy_string
 #define alloc3DArray            Rf_alloc3DArray
@@ -1063,8 +1007,6 @@ void R_orderVector(int *indx, int n, SEXP arglist, Rboolean nalast, Rboolean dec
 #define VectorToPairList	Rf_VectorToPairList
 #define warningcall		Rf_warningcall
 #define warningcall_immediate	Rf_warningcall_immediate
-#define xlength(x)		Rf_xlength(x)
-#define xlengthgets		Rf_xlengthgets
 
 #endif
 
@@ -1126,7 +1068,6 @@ SEXP	 Rf_ScalarLogical(int);
 SEXP	 Rf_ScalarRaw(Rbyte);
 SEXP	 Rf_ScalarReal(double);
 SEXP	 Rf_ScalarString(SEXP);
-R_xlen_t  Rf_xlength(SEXP);
 #endif
 
 #ifdef USE_RINTERNALS

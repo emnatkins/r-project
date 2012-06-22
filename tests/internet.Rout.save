@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2012-03-30 r58888) -- "Unsuffered Consequences"
+R version 2.15.1 RC (2012-06-16 r59569) -- "Roasted Marshmallows"
 Copyright (C) 2012 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-unknown-linux-gnu (64-bit)
@@ -310,7 +310,8 @@ In url("http://foo.bar", "r") : unable to resolve 'foo.bar'
 +     strsplit(data, "\n")[[1]]
 + }
 > 
-> if(nzchar(Sys.getenv("http_proxy")) || nzchar(Sys.getenv("HTTP_PROXY"))) {
+> if(nchar(Sys.getenv("http_proxy")) > 0
++    || nchar(Sys.getenv("HTTP_PROXY")) > 0) {
 +     cat("http proxy is set, so skip test of http over sockets\n")
 + } else {
 +     httpget("http://www.stats.ox.ac.uk/pub/datasets/csb/ch11b.dat")

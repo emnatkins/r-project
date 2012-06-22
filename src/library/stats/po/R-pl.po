@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.15.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-05-21 13:03\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -710,9 +710,6 @@ msgstr "argument 'x' musi być liczbą"
 msgid "'x' contains missing values"
 msgstr "'x' zawiera brakujące wartości"
 
-msgid "invalid value of length(x)"
-msgstr ""
-
 msgid "'x' and 'weights' have unequal length"
 msgstr "'x' oraz 'weights' mają nierówne długości"
 
@@ -1315,6 +1312,9 @@ msgid ""
 msgstr ""
 "liczbowe wartości 'y' muszą zostać dostarczone.\n"
 "Dla estymacji gęstości użyj 'density()'"
+
+msgid "invalid value of length(x)"
+msgstr ""
 
 msgid "'k' is not an integer"
 msgstr "'k' nie jest liczbą całkowitą"
@@ -1952,6 +1952,9 @@ msgstr ""
 msgid "'newdata' does not have the correct number of columns"
 msgstr "'newdata' nie ma poprawnej liczby kolumn"
 
+msgid "wrong number of predictors"
+msgstr "niepoprawna liczba predyktorów"
+
 msgid "both 'x' and 'covmat' were supplied: 'x' will be ignored"
 msgstr "dostarczono jednocześnie 'x' oraz 'covmat': 'x' będzie zignorowany"
 
@@ -2119,10 +2122,6 @@ msgstr "niepoprawny 'control.spar'"
 
 msgid "missing or infinite values in inputs are not allowed"
 msgstr "wartości brakujące lub nieskończone nie są dozwolone na wejściach"
-
-#, fuzzy
-msgid "invalid number of points"
-msgstr "niepoprawna liczba predyktorów"
 
 msgid "lengths of 'x' and 'w' must match"
 msgstr "długości 'x' oraz 'w' muszą się zgadzać"

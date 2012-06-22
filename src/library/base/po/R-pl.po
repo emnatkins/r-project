@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.15.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-06-07 15:26\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
 "Language-Team: Łukasz Daniel <lukasz.daniel@gmail.com>\n"
@@ -321,15 +321,11 @@ msgstr "nazwane argumenty inne, niż 'exact' są odrzucone"
 msgid "named arguments are discouraged"
 msgstr "nazwane argumenty są odrzucane"
 
-msgid "number of items to replace is not a multiple of replacement length"
+msgid "rhs is the wrong length for indexing by a logical matrix"
 msgstr ""
+"prawa strona ma niepoprawną długość dla indeksownia przez macierz logiczną"
 
-#, fuzzy
-msgid "rhs is the wrong length"
-msgstr "dostarczone nazwy wierszy są niepoprawnej długości"
-
-#, fuzzy
-msgid "illegal matrix index in replacement"
+msgid "only logical matrix subscripts are allowed in replacement"
 msgstr "tylko indeksy macierzy logicznej są dozwolone w zamianie"
 
 msgid "need 0, 1, or 2 subscripts"
@@ -1301,9 +1297,6 @@ msgstr "'x' nie może zostać zamienione na system ósemkowy"
 msgid "'x' cannot be coerced to hexmode"
 msgstr "'x' nie może zostać zamienione na system szesnastkowy 'hexmode'"
 
-msgid "using ... with FUN = \"*\" is an error"
-msgstr ""
-
 msgid "no arguments"
 msgstr "brak argumentów"
 
@@ -1825,7 +1818,3 @@ msgid_plural "Warning messages:\n"
 msgstr[0] "Komunikat ostrzegawczy:\n"
 msgstr[1] "Komunikaty ostrzegawcze:\n"
 msgstr[2] "Komunikaty ostrzegawcze:\n"
-
-#~ msgid "rhs is the wrong length for indexing by a logical matrix"
-#~ msgstr ""
-#~ "prawa strona ma niepoprawną długość dla indeksownia przez macierz logiczną"

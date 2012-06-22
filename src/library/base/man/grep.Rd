@@ -1,6 +1,6 @@
 % File src/library/base/man/grep.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2012 R Core Team
+% Copyright 1995-2011 R Core Team
 % Distributed under GPL 2 or later
 
 \name{grep}
@@ -116,8 +116,7 @@ regexec(pattern, text, ignore.case = FALSE,
   \code{useBytes = TRUE}.
 
   As from \R 2.14.0, \code{regexpr} and \code{gregexpr} with \code{perl
-    = TRUE} allow Python-style named captures, but not for \emph{long
-    vector} inputs.
+    = TRUE} allow Python-style named captures.
 }
 
 \note{
@@ -130,10 +129,9 @@ regexec(pattern, text, ignore.case = FALSE,
 }
 
 \value{
-  \code{grep(value = FALSE)} returns a vector of the indices
+  \code{grep(value = FALSE)} returns an integer vector of the indices
   of the elements of \code{x} that yielded a match (or not, for
-  \code{invert = TRUE}.  This will be an integer vector unless the input
-  is a \emph{long vector}, when it will be a double vector.
+  \code{invert = TRUE}.
 
   \code{grep(value = TRUE)} returns a character vector containing the
   selected elements of \code{x} (after coercion, preserving names but no
@@ -169,7 +167,7 @@ regexec(pattern, text, ignore.case = FALSE,
   element of which is either \eqn{-1} if there is no match, or a
   sequence of integers with the starting positions of the match and all
   substrings corresponding to parenthesized subexpressions of
-  \code{pattern}, with attribute \code{"match.length"} a vector
+  \code{pattern}, with attribute \code{"match.length"} an integer vector
   giving the lengths of the matches (or \eqn{-1} for no match).
 }
 

@@ -39,9 +39,11 @@
  ConsoleAcceptCmd
  DebugMenuitem
  DefaultPalette
+ DialogSelectFile
  ENC_KNOWN
  EhiWakeUp
  EncodeReal2
+ GRecording
  IS_ACTIVE_BINDING
  IS_ASCII
  IS_BYTES
@@ -71,6 +73,7 @@
  MDIset
  MDIsize
  MainThread
+ OutDec
  PRIMOFFSET
  PrintUsage
  ProfileEvent
@@ -80,12 +83,12 @@
  R_BCNodeStackTop
  R_BrowseLevel
  R_BrowseLines
- R_CBoundsCheck
  R_CStackDir
  R_ChooseFile
  R_ClearerrConsole
  R_CollectWarnings
  R_Collected
+ R_CommentSxp
  R_CommentSymbol
  R_ConnIdSymbol
  R_ConsoleIob
@@ -189,6 +192,7 @@
  R_VSize
  R_Verbose
  R_Visible
+ R_WarnEscapes
  R_WarnLength
  R_Warnings
  R_WholeSrcrefSymbol
@@ -251,6 +255,7 @@
  R_num_math_threads
  R_osDynSymbol
  R_possible_dispatch
+ R_print
  R_restore_globals
  R_run_onexits
  R_seemsOldStyleS4Object
@@ -281,6 +286,10 @@
  Rf_DispatchGroup
  Rf_DispatchOrEval
  Rf_EnsureString
+ Rf_FixupCol
+ Rf_FixupLty
+ Rf_FixupLwd
+ Rf_FixupVFont
  Rf_GInit
  Rf_IndexWidth
  Rf_InitArithmetic
@@ -305,12 +314,14 @@
  Rf_LogicalFromReal
  Rf_LogicalFromString
  Rf_OneIndex
+ Rf_PrintDefaults
  Rf_PrintGreeting
  Rf_PrintValueEnv
  Rf_PrintValueRec
  Rf_PrintVersion
  Rf_PrintVersionString
  Rf_PrintVersion_part_1
+ Rf_ProcessInlinePars
  Rf_RealFromComplex
  Rf_RealFromInteger
  Rf_RealFromLogical
@@ -330,8 +341,10 @@
  Rf_con_pushback
  Rf_convertToC
  Rf_copyListMatrix
+ Rf_copyMostAttribNoTs
  Rf_d1mach
  Rf_deparse1s
+ Rf_dpptr
  Rf_evalList
  Rf_evalListKeepMissing
  Rf_findVar1
@@ -340,7 +353,11 @@
  Rf_gamma_cody
  Rf_gammalims
  Rf_get1index
+ Rf_gpptr
  Rf_i1mach
+ Rf_internalTypeCheck
+ Rf_isNAcol
+ Rf_labelformat
  Rf_lfastchoose
  Rf_lgammacor
  Rf_lookupCachedSymbol
@@ -366,6 +383,7 @@
  Rf_regerror
  Rf_regexec
  Rf_regfree
+ Rf_setBaseDevice
  Rf_setIVector
  Rf_setRVector
  Rf_ssort
@@ -375,11 +393,13 @@
  Rf_ucstomb
  Rf_unbindVar
  Rf_utf8toucs
+ Rf_vectorSubscript
  Rf_wcstoutf8
  Rf_yychar
  Rf_yylval
  Rf_yynerrs
  Rf_yyparse
+ Rg_contourDef
  RgetMDIsize
  RguiCommonHelp
  RguiPackageMenu
@@ -436,17 +456,14 @@
  _pcre_default_tables
  _pcre_find_bracket
  _pcre_is_newline
- _pcre_jit_compile
- _pcre_jit_exec
- _pcre_jit_free
- _pcre_jit_get_size
- _pcre_jit_get_target
- _pcre_ord2utf
+ _pcre_ord2utf8
+ _pcre_try_flipped
  _pcre_ucd_records
  _pcre_ucd_stage1
  _pcre_ucd_stage2
+ _pcre_ucp_findprop
  _pcre_ucp_gentype
- _pcre_ucp_typerange
+ _pcre_ucp_othercase
  _pcre_utf8_table1
  _pcre_utf8_table1_size
  _pcre_utf8_table2
@@ -455,12 +472,22 @@
  _pcre_utt
  _pcre_utt_names
  _pcre_utt_size
- _pcre_valid_utf
+ _pcre_valid_utf8
  _pcre_was_newline
  _pcre_xclass
  _vsnprintf
+ any_duplicated
+ any_duplicated3
  applyGUI
+ apse_create
+ apse_destroy
+ apse_match
+ apse_set_caseignore_slice
+ apse_set_deletions
+ apse_set_insertions
+ apse_set_substitutions
  bakslv
+ baseRegisterIndex
  bincode
  bincount
  bratio
@@ -529,6 +556,7 @@
  det_ge_real
  do_AT
  do_Cstack_info
+ do_D
  do_D2POSIXlt
  do_External
  do_Externalgr
@@ -541,6 +569,7 @@
  do_Rprof
  do_Rprofmem
  do_abbrev
+ do_abline
  do_abs
  do_addCondHands
  do_addRestart
@@ -554,6 +583,7 @@
  do_args
  do_arith
  do_arrangeWindows
+ do_arrows
  do_asPOSIXct
  do_asPOSIXlt
  do_as_environment
@@ -562,11 +592,13 @@
  do_asfunction
  do_assign
  do_asvector
+ do_atan
  do_attach
  do_attr
  do_attrgets
  do_attributes
  do_attributesgets
+ do_axis
  do_baseenv
  do_basename
  do_bcclose
@@ -578,10 +610,12 @@
  do_bndIsLocked
  do_body
  do_bodyCode
+ do_box
  do_break
  do_bringtotop
  do_browser
  do_builtins
+ do_bzfile
  do_c
  do_c_dflt
  do_call
@@ -596,6 +630,7 @@
  do_class
  do_classgets
  do_clearpushback
+ do_clip
  do_close
  do_closewinprogressbar
  do_cmathfuns
@@ -606,20 +641,37 @@
  do_commandArgs
  do_comment
  do_commentgets
+ do_compcases
  do_compilepkgs
  do_complex
+ do_contour
  do_contourLines
+ do_convertXY
  do_countfields
+ do_cov
  do_cum
  do_dataentry
  do_dataviewer
  do_date
  do_debug
  do_delayed
+ do_dend
+ do_dendwindow
  do_deparse
  do_deparseRd
+ do_deriv
  do_detach
  do_devAskNewPage
+ do_devcap
+ do_devcapture
+ do_devcontrol
+ do_devcopy
+ do_devcur
+ do_devholdflush
+ do_devnext
+ do_devoff
+ do_devprev
+ do_devset
  do_devsize
  do_dfltStop
  do_dfltWarn
@@ -656,6 +708,7 @@
  do_envirName
  do_envirgets
  do_envprofile
+ do_erase
  do_eval
  do_expression
  do_fft
@@ -674,9 +727,11 @@
  do_filerename
  do_fileshow
  do_filesymlink
+ do_filledcontour
  do_first_min
  do_flush
  do_flushconsole
+ do_fmin
  do_for
  do_formals
  do_format
@@ -708,13 +763,14 @@
  do_getconst
  do_getenv
  do_geterrmessage
- do_getfmts
  do_getlocale
  do_gettext
  do_getwd
  do_glob
  do_globalenv
+ do_gpregexpr
  do_gray
+ do_gregexpr
  do_grep
  do_grepraw
  do_growconst
@@ -725,12 +781,16 @@
  do_hsv
  do_iconv
  do_identical
+ do_identify
  do_if
+ do_image
  do_importIntoEnv
+ do_indexsearch
  do_inherits
  do_inspect
  do_intToBits
  do_intToUtf8
+ do_int_unzip
  do_interactive
  do_internal
  do_interruptsSuspended
@@ -753,10 +813,12 @@
  do_isvector
  do_l10n_info
  do_lapply
+ do_layout
  do_lazyLoadDBfetch
  do_length
  do_lengthgets
  do_levelsgets
+ do_libfixup
  do_list2env
  do_listdirs
  do_listfiles
@@ -766,6 +828,7 @@
  do_loadfile
  do_loadhistory
  do_localeconv
+ do_locator
  do_lockBnd
  do_lockEnv
  do_log
@@ -793,7 +856,10 @@
  do_memDecompress
  do_memlimits
  do_memoryprofile
+ do_memretrace
  do_memsize
+ do_memtrace
+ do_memuntrace
  do_menu
  do_merge
  do_mget
@@ -801,10 +867,10 @@
  do_mkActiveBnd
  do_mkUnbound
  do_mkcode
- do_mkjunction
  do_modelframe
  do_modelmatrix
  do_msgwindow
+ do_mtext
  do_mvfft
  do_names
  do_namesgets
@@ -814,16 +880,20 @@
  do_nextmethod
  do_nextn
  do_ngettext
+ do_nlm
  do_normalizepath
  do_nsl
  do_nzchar
  do_objectsize
  do_onexit
  do_open
+ do_optim
+ do_optimhess
  do_options
  do_order
  do_packBits
  do_palette
+ do_par
  do_paren
  do_parentenv
  do_parentenvgets
@@ -832,11 +902,18 @@
  do_parseLatex
  do_parseRd
  do_paste
+ do_path
  do_pathexpand
+ do_persp
+ do_pgsub
  do_pipe
  do_playSnapshot
+ do_plot_new
+ do_plot_window
+ do_plot_xy
  do_pmatch
  do_pmin
+ do_polygon
  do_polyroot
  do_pos2env
  do_primitive
@@ -859,6 +936,7 @@
  do_range
  do_rank
  do_rapply
+ do_raster
  do_rawShift
  do_rawToBits
  do_rawToChar
@@ -876,6 +954,7 @@
  do_readtablehead
  do_recall
  do_recordGraphics
+ do_rect
  do_regFinaliz
  do_regNS
  do_regexec
@@ -891,6 +970,7 @@
  do_retracemem
  do_return
  do_rgb
+ do_rmultinom
  do_rowscols
  do_sample
  do_save
@@ -900,6 +980,7 @@
  do_scan
  do_search
  do_seek
+ do_segments
  do_selectlist
  do_seq
  do_seq_along
@@ -940,10 +1021,12 @@
  do_stop
  do_stopHTTPD
  do_storage_mode
+ do_strheight
  do_strptime
  do_strsplit
  do_strtoi
  do_strtrim
+ do_strwidth
  do_subassign
  do_subassign2
  do_subassign2_dflt
@@ -960,6 +1043,7 @@
  do_sumconnection
  do_summary
  do_switch
+ do_symbols
  do_sys
  do_sysbrowser
  do_syschmod
@@ -972,12 +1056,14 @@
  do_syswhich
  do_tempdir
  do_tempfile
+ do_termsform
+ do_text
  do_textconnection
  do_textconvalue
  do_tilde
+ do_title
  do_tolower
  do_trace
- do_traceback
  do_tracemem
  do_transpose
  do_trunc
@@ -1016,7 +1102,10 @@
  do_writechar
  do_writelines
  do_writetable
+ do_xspline
  do_xtfrm
+ do_zeroin
+ do_zeroin2
  dos_wglob
  dos_wglobfree
  dpois_raw
@@ -1035,6 +1124,7 @@
  framenames
  freeConsoleData
  freemenuitems
+ gcontextFromGP
  getActive
  getActiveSink
  getAttrib0
@@ -1044,6 +1134,7 @@
  getGraphMenu
  getIdentification
  getParseContext
+ getParseFilename
  getTZinfo
  getWindowTitle
  get_current_mem
@@ -1069,6 +1160,8 @@
  intpr0_
  invalidate_cached_recodings
  isMethodsDispatchOn
+ known_to_be_latin1
+ known_to_be_utf8
  latin1locale
  libintl_bind_textdomain_codeset
  libintl_bindtextdomain
@@ -1111,6 +1204,7 @@
  lzma_check_is_supported
  lzma_check_size
  lzma_check_update
+ lzma_chunk_size
  lzma_code
  lzma_crc32
  lzma_crc32_table
@@ -1146,11 +1240,13 @@
  lzma_index_buffer_encode
  lzma_index_cat
  lzma_index_checks
+ lzma_index_count
  lzma_index_decoder
  lzma_index_dup
  lzma_index_encoder
  lzma_index_encoder_init
  lzma_index_end
+ lzma_index_equal
  lzma_index_file_size
  lzma_index_hash_append
  lzma_index_hash_decode
@@ -1159,13 +1255,20 @@
  lzma_index_hash_size
  lzma_index_init
  lzma_index_iter_init
+ lzma_index_iter_init
+ lzma_index_iter_locate
  lzma_index_iter_locate
  lzma_index_iter_next
+ lzma_index_iter_next
  lzma_index_iter_rewind
+ lzma_index_iter_rewind
+ lzma_index_locate
  lzma_index_memusage
  lzma_index_memused
  lzma_index_padding_size
  lzma_index_prealloc
+ lzma_index_read
+ lzma_index_rewind
  lzma_index_size
  lzma_index_stream_count
  lzma_index_stream_flags
@@ -1265,13 +1368,17 @@
  lzma_stream_header_decode
  lzma_stream_header_encode
  lzma_strm_init
+ lzma_subblock_decoder_helper_init
+ lzma_subblock_decoder_init
  lzma_version_number
  lzma_version_string
  lzma_vli_decode
  lzma_vli_encode
  lzma_vli_size
  mallinfo
+ max_contour_segments
  mb_char_len
+ memtrace_report
  menuclear
  menuconfig
  menueditornew
@@ -1295,7 +1402,6 @@
  pagerrow
  parseError
  pause
- pcre_assign_jit_stack
  pcre_callout
  pcre_compile
  pcre_compile2
@@ -1304,7 +1410,6 @@
  pcre_copy_substring
  pcre_exec
  pcre_free
- pcre_free_study
  pcre_free_substring
  pcre_free_substring_list
  pcre_fullinfo
@@ -1313,8 +1418,7 @@
  pcre_get_stringtable_entries
  pcre_get_substring
  pcre_get_substring_list
- pcre_jit_stack_alloc
- pcre_jit_stack_free
+ pcre_info
  pcre_maketables
  pcre_malloc
  pcre_refcount
@@ -1337,7 +1441,20 @@
  qr_qy_real
  raise
  realp0_
+ regaexec
+ regaexecb
+ reganexec
+ regaparams_default
+ regawexec
+ regawnexec
  registerBase
+ regncomp
+ regnexec
+ reguexec
+ regwcomp
+ regwexec
+ regwncomp
+ regwnexec
  resetICUcollator
  resetTimeLimits
  reset_duplicate_counter
@@ -1370,6 +1487,40 @@
  sigrelse
  sigsetmask
  sigsuspend
+ sljit_alloc_memory
+ sljit_allocate_stack
+ sljit_create_compiler
+ sljit_emit_cmp
+ sljit_emit_cond_value
+ sljit_emit_const
+ sljit_emit_enter
+ sljit_emit_fast_enter
+ sljit_emit_fast_return
+ sljit_emit_fop1
+ sljit_emit_fop2
+ sljit_emit_ijump
+ sljit_emit_jump
+ sljit_emit_label
+ sljit_emit_op0
+ sljit_emit_op1
+ sljit_emit_op2
+ sljit_emit_return
+ sljit_fake_enter
+ sljit_free_code
+ sljit_free_compiler
+ sljit_free_exec
+ sljit_free_stack
+ sljit_generate_code
+ sljit_get_platform_name
+ sljit_grab_lock
+ sljit_is_fpu_available
+ sljit_malloc_exec
+ sljit_release_lock
+ sljit_set_const
+ sljit_set_jump_addr
+ sljit_set_label
+ sljit_set_target
+ sljit_stack_resize
  stemleaf
  str_signif
  switch_stdout

@@ -236,7 +236,7 @@ get_exclude_patterns <- function()
             "  --resave-data         same as --resave-data=best",
             "  --no-resave-data      same as --resave-data=no",
             "  --compact-vignettes=  try to compact PDF files under inst/doc:",
-            '                        "no" (default), "qpdf", "gs", "gs+qpdf", "both"',
+            '                        "no" (default), "qpdf", "gs", "gs+pdf", "both"',
             "  --compact-vignettes   same as --compact-vignettes=qpdf",
             "  --md5                 add MD5 sums",
            "",
@@ -403,7 +403,7 @@ get_exclude_patterns <- function()
             length(pdfs <- dir(doc_dir, pattern = "\\.pdf", recursive = TRUE,
                                full.names = TRUE))) {
             messageLog(Log, "compacting vignettes and other PDF files")
-            if(compact_vignettes %in% c("gs", "gs+qpdf", "both")) {
+            if(compact_vignettes %in% c("gs", "gs+pdf", "both")) {
                 gs_cmd <- find_gs_cmd(Sys.getenv("R_GSCMD", ""))
                 gs_quality <- "ebook"
             } else {
@@ -411,7 +411,7 @@ get_exclude_patterns <- function()
                 gs_quality <- "none"
             }
             qpdf <-
-                ifelse(compact_vignettes %in% c("qpdf", "gs+qpdf", "both"),
+                ifelse(compact_vignettes %in% c("qpdf", "gs+pdf", "both"),
                        Sys.which(Sys.getenv("R_QPDF", "qpdf")), "")
             res <- compactPDF(pdfs, qpdf = qpdf,
                               gs_cmd = gs_cmd, gs_quality = gs_quality)
@@ -759,21 +759,12 @@ get_exclude_patterns <- function()
     pkgs <- character()
     options(showErrorCalls = FALSE, warn = 1)
 
-    ## Read in build environment file.
-    Renv <- Sys.getenv("R_BUILD_ENVIRON", unset = NA)
-    if(!is.na(Renv)) {
-        ## Do not read any build environment file if R_BUILD_ENVIRON is
-        ## set to empty of something non-existent.
-        if(nzchar(Renv) && file.exists(Renv)) readRenviron(Renv)
-    } else {
-        ## Read in ~/.R/build.Renviron[.rarch] (if existent).
-        rarch <- .Platform$r_arch
-        if (nzchar(rarch) &&
-            file.exists(Renv <- paste("~/.R/build.Renviron", rarch, sep = ".")))
-            readRenviron(Renv)
-        else if (file.exists(Renv <- "~/.R/build.Renviron"))
-            readRenviron(Renv)
-    }
+    ## read in ~/.R/build.Renviron[.rarch]
+    rarch <- .Platform$r_arch
+    if (nzchar(rarch) &&
+        file.exists(Renv <- paste("~/.R/build.Renviron", rarch, sep = ".")))
+        readRenviron(Renv)
+    else if (file.exists(Renv <- "~/.R/build.Renviron")) readRenviron(Renv)
 
     ## Configurable variables.
     compact_vignettes <- Sys.getenv("_R_BUILD_COMPACT_VIGNETTES_", "no")
@@ -831,7 +822,7 @@ get_exclude_patterns <- function()
         args <- args[-1L]
     }
 
-    if(!compact_vignettes %in% c("no", "qpdf", "gs", "gs+qpdf", "both")) {
+    if(!compact_vignettes %in% c("no", "qpdf", "gs", "gs+pdf", "both")) {
         warning('invalid value for --compact-vignettes, assuming "qpdf"')
         compact_vignettes <-"qpdf"
     }

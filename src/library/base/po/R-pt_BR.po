@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.3.0\n"
 "Report-Msgid-Bugs-To: bugs@r-project.org\n"
-"POT-Creation-Date: 2012-06-07 15:26\n"
+"POT-Creation-Date: 2012-06-07 15:52\n"
 "PO-Revision-Date: 2011-03-26 08:54-0300\n"
 "Last-Translator: Fernando Henrique <pessoal@fernandohrosa.com.br>\n"
 "Language-Team: http://www.feferraz.net/br/P/Projeto_Traducao_R_Portugues\n"
@@ -321,15 +321,12 @@ msgstr "argumentos nomeados tirando 'exact' são desencorajados"
 msgid "named arguments are discouraged"
 msgstr "argumentos nomeados são desencorajados"
 
-msgid "number of items to replace is not a multiple of replacement length"
+msgid "rhs is the wrong length for indexing by a logical matrix"
 msgstr ""
+"o lado direito da expressão tem o comprimento errado para indexação através "
+"de uma matriz lógica"
 
-#, fuzzy
-msgid "rhs is the wrong length"
-msgstr "nomes de linhas especificado com comprimento errado"
-
-#, fuzzy
-msgid "illegal matrix index in replacement"
+msgid "only logical matrix subscripts are allowed in replacement"
 msgstr "somente subscritos lógicos matriciais são permitidos na substituição"
 
 msgid "need 0, 1, or 2 subscripts"
@@ -1346,9 +1343,6 @@ msgstr "'x' não é coercível para 'octmode'"
 msgid "'x' cannot be coerced to hexmode"
 msgstr "'x' não é coercível para hexmode"
 
-msgid "using ... with FUN = \"*\" is an error"
-msgstr ""
-
 msgid "no arguments"
 msgstr "sem argumentos"
 
@@ -1855,11 +1849,6 @@ msgid "Warning message:\n"
 msgid_plural "Warning messages:\n"
 msgstr[0] "Mensagem de aviso:\n"
 msgstr[1] "Mensagens de aviso:\n"
-
-#~ msgid "rhs is the wrong length for indexing by a logical matrix"
-#~ msgstr ""
-#~ "o lado direito da expressão tem o comprimento errado para indexação "
-#~ "através de uma matriz lógica"
 
 #~ msgid "'symbol.C' is not needed: please remove it"
 #~ msgstr "'symbol.C' não é necesário: por favor remova"

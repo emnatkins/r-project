@@ -24,7 +24,3 @@ piechart <- function(x, labels = names(x), edges = 200, radius = 0.8,
 
 
 .noGenerics <- TRUE
-
-# not yet
-# .onUnload <- function(libpath) .C(unregisterBase);
-
