@@ -39,33 +39,33 @@ valid.viewport <- function(x, y, width, height, just,
       length(width) > 1 || length(height) > 1)
     stop("'x', 'y', 'width', and 'height' must all be units of length 1")
   if (!is.gpar(gp))
-    stop("invalid 'gp' value")
+    stop("Invalid graphics parameters")
   if (!is.logical(clip))
     clip <- switch(as.character(clip),
                    on=TRUE,
                    off=NA,
                    inherit=FALSE,
-                   stop("invalid 'clip' value"))
+                   stop("Invalid 'clip' value"))
   if (!is.numeric(xscale) || length(xscale) != 2 ||
       any(!is.finite(xscale)))
-    stop("invalid 'xscale' in viewport")
+    stop("Invalid 'xscale' in viewport")
   if (!is.numeric(yscale) || length(yscale) != 2 ||
       any(!is.finite(yscale)))
-    stop("invalid 'yscale' in viewport")
+    stop("Invalid 'yscale' in viewport")
   if (!is.numeric(angle) || length(angle) != 1 ||
       !is.finite(angle))
-    stop("invalid 'angle' in viewport")
+    stop("Invalid 'angle' in viewport")
   if (!(is.null(layout) || is.layout(layout)))
-    stop("invalid 'layout' in viewport")
+    stop("Invalid 'layout' in viewport")
   if (!is.null(layout.pos.row)) {
     layout.pos.row <- as.integer(range(layout.pos.row))
     if (any(!is.finite(layout.pos.row)))
-      stop("invalid 'layout.pos.row' in viewport")
+      stop("Invalid 'layout.pos.row' in viewport")
   }
   if (!is.null(layout.pos.col)) {
     layout.pos.col <- as.integer(range(layout.pos.col))
     if (any(!is.finite(layout.pos.col)))
-      stop("invalid 'layout.pos.col' in viewport")
+      stop("Invalid 'layout.pos.col' in viewport")
   }
   # If name is NULL then we give it a default
   # Otherwise it should be a valid R name
@@ -246,16 +246,12 @@ is.viewport <- function(vp) {
 # Some classes derived from viewport
 #############
 
-viewportorpath <- function(x) {
-    is.viewport(x) || inherits(x, "vpPath")
-}
-
 vpListFromList <- function(vps) {
-  if (all(sapply(vps, viewportorpath, simplify=TRUE))) {
+  if (all(sapply(vps, is.viewport, simplify=TRUE))) {
     class(vps) <- c("vpList", "viewport")
     vps
   } else {
-    stop("only viewports allowed in 'vpList'")
+    stop("Only viewports allowed in 'vpList'")
   }
 }
 
@@ -268,17 +264,17 @@ vpList <- function(...) {
 # Viewports will be pushed in series
 vpStack <- function(...) {
   vps <- list(...)
-  if (all(sapply(vps, viewportorpath, simplify=TRUE))) {
+  if (all(sapply(vps, is.viewport, simplify=TRUE))) {
     class(vps) <- c("vpStack", "viewport")
     vps
   } else {
-    stop("only viewports allowed in 'vpStack'")
+    stop("Only viewports allowed in 'vpStack'")
   }
 }
 
 # Viewports will be pushed as a tree
 vpTree <- function(parent, children) {
-  if (viewportorpath(parent) && inherits(children, "vpList")) {
+  if (is.viewport(parent) && inherits(children, "vpList")) {
     tree <- list(parent=parent, children=children)
     class(tree) <- c("vpTree", "viewport")
     tree
@@ -319,12 +315,9 @@ setvpgpar.vpTree <- function(vp) {
 vpPathFromVector <- function(names) {
   n <- length(names)
   if (n < 1)
-    stop("a viewport path must contain at least one viewport name")
-  if (any(bad <- !is.character(names)))
-      stop(ngettext(sum(bad),
-                    "invalid viewport name",
-                    "invalid viewport names"),
-           domain = NA)
+    stop("A viewport path must contain at least one viewport name")
+  if (!all(is.character(names)))
+    stop("Invalid viewport name(s)")
   path <- list(path=if (n==1) NULL else
                paste(names[seq_len(n-1L)], collapse=.grid.pathSep),
                name=names[n],
@@ -391,12 +384,12 @@ dataViewport <- function(xData = NULL, yData = NULL,
     extension <- rep(extension, length.out = 2)
     if (is.null(xscale)) {
         if (is.null(xData))
-            stop("must specify at least one of 'x' or 'xscale'")
+            stop("Must specify at least one of 'x' or 'xscale'")
         xscale <- extendrange(xData, f = extension[1L])
     }
     if (is.null(yscale)) {
         if (is.null(yData))
-            stop("must specify at least one of 'y' or 'yscale'")
+            stop("Must specify at least one of 'y' or 'yscale'")
         yscale <- extendrange(yData, f = extension[2L])
     }
     viewport(xscale = xscale, yscale = yscale, ...)

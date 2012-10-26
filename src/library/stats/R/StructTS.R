@@ -114,8 +114,8 @@ StructTS <- function(x, type = c("level", "trend", "BSM"),
                  lower = rep(0, np+1L), upper = rep(Inf, np+1L),
                  control = optim.control)
         if(res$convergence > 0)
-            warning(gettextf("possible convergence problem: 'optim' gave code = %d and message %s",
-                             res$convergence, sQuote(res$message)), domain = NA)
+            warning("possible convergence problem: optim gave code=",
+                    res$convergence, " ", res$message)
     coef <- cf
     coef[mask] <- res$par
     Z$V[cbind(1L:np, 1L:np)] <- coef[1L:np]*vx
@@ -143,9 +143,8 @@ StructTS <- function(x, type = c("level", "trend", "BSM"),
                           "trend" = c("level", "slope", "epsilon"),
                           "BSM" = c("level", "slope", "seas", "epsilon")
                           )
-    loglik <- -length(y) * res$value - 0.5 * sum(!is.na(y)) * log(2 * pi)
-    loglik0 <- -length(y) * res$value + length(y) * log(2 * pi)
-    res <- list(coef = coef, loglik = loglik, loglik0 = loglik0, data = y,
+    loglik <- -length(y) * res$value + length(y) * log(2 * pi)
+    res <- list(coef = coef, loglik = loglik, data = y,
                 residuals = resid, fitted = states,
                 call = match.call(), series = series,
                 code = res$convergence, model = Z, model0 = Z0, xtsp = xtsp)
@@ -161,7 +160,7 @@ print.StructTS <- function(x, digits = max(3, getOption("digits") - 3), ...)
     invisible(x)
 }
 
-predict.StructTS <- function(object, n.ahead = 1L, se.fit = TRUE, ...)
+predict.StructTS <- function(object, n.ahead = 1, se.fit = TRUE, ...)
 {
     xtsp <- object$xtsp
     z <- KalmanForecast(n.ahead, object$model)

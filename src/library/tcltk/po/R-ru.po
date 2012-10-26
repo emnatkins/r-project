@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.9.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2012-09-10 11:13\n"
+"POT-Creation-Date: 2012-07-12 13:10\n"
 "PO-Revision-Date: 2011-10-18 22:22-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -97,8 +97,7 @@ msgstr "Да"
 msgid "Cancel"
 msgstr "Отменить"
 
-#, fuzzy
-msgid "'pb' is not from class %s"
+msgid "'pb' is not from class \"tkProgressBar\""
 msgstr "'pb' не из класса \"tkProgressBar\""
 
 msgid "'filters' must be a 2-column character matrix"

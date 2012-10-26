@@ -36,6 +36,8 @@ isSymmetric.matrix <- function(object, tol = 100*.Machine$double.eps, ...)
 eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 {
     x <- as.matrix(x)
+    if(!is.null(dimnames(x)))
+        dimnames(x) <- list(NULL, NULL)  # or they appear on eigenvectors
     n <- nrow(x)
     if (!n) stop("0 x 0 matrix")
     if (n != ncol(x)) stop("non-square matrix in 'eigen'")
@@ -43,18 +45,24 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
     if(is.na(n)) stop("invalid nrow(x)")
 
     complex.x <- is.complex(x)
+    if(!complex.x && !is.double(x))
+	storage.mode(x) <- "double"
     if (!all(is.finite(x))) stop("infinite or missing values in 'x'")
 
     if(missing(symmetric)) symmetric <- isSymmetric.matrix(x)
 
     if (!EISPACK) {
         if (symmetric) {
-            z <- if(!complex.x) .Internal(La_rs(x, only.values))
-            else .Internal(La_rs_cmplx(x, only.values))
+            z <- if(!complex.x)
+                .Call("La_rs", x, only.values, PACKAGE = "base")
+            else
+                .Call("La_rs_cmplx", x, only.values, PACKAGE = "base")
             ord <- rev(seq_along(z$values))
         } else {
-            z <- if(!complex.x) .Internal(La_rg(x, only.values))
-            else .Internal(La_rg_cmplx(x, only.values))
+            z <- if(!complex.x)
+                .Call("La_rg", x, only.values, PACKAGE = "base")
+            else
+                .Call("La_rg_cmplx", x, only.values, PACKAGE = "base")
             ord <- sort.list(Mod(z$values), decreasing = TRUE)
         }
         return(list(values = z$values[ord],
@@ -62,14 +70,11 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
     }
 
     warning("EISPACK = TRUE is deprecated", domain = NA)
-    if(n > 46340) stop("too large a matrix for EISPACK")
     if(!complex.x && !is.double(x)) storage.mode(x) <- "double"
     dbl.n <- double(n)
-    if(!is.null(dimnames(x)))
-        dimnames(x) <- list(NULL, NULL)  # or they appear on eigenvectors
     if(symmetric) {##--> real values
 	if(complex.x) {
-	    z <- .Fortran(.F_ch,
+	    z <- .Fortran("ch",
 			  n,
 			  n,
 			  Re(x),
@@ -81,16 +86,17 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 			  dbl.n,
 			  dbl.n,
 			  double(2*n),
-			  ierr = integer(1L))
+			  ierr = integer(1L),
+                          PACKAGE="base")
 	    if (z$ierr)
-		stop(gettextf("'%s' returned code %d in 'eigen'", "ch", z$ierr),
+		stop(gettextf("'ch' returned code %d in 'eigen'", z$ierr),
                      domain = NA)
 	    if(!only.values)
 		z$vectors <- matrix(complex(real=z$vectors,
 					    imaginary=z$ivectors), ncol=n)
 	}
 	else {
-	    z <- .Fortran(.F_rs,
+	    z <- .Fortran("rs",
 			  n,
 			  n,
 			  x,
@@ -99,9 +105,10 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 			  vectors = x,
 			  dbl.n,
 			  dbl.n,
-			  ierr = integer(1L))
+			  ierr = integer(1L),
+                          PACKAGE="base")
 	    if (z$ierr)
-		stop(gettextf("'%s' returned code %d in 'eigen'", "rs", z$ierr),
+		stop(gettextf("'rs' returned code %d in 'eigen'", z$ierr),
                      domain = NA)
 	}
 	ord <- sort.list(z$values, decreasing = TRUE)
@@ -110,7 +117,7 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 	if(complex.x) {
 	    xr <- Re(x)
 	    xi <- Im(x)
-	    z <- .Fortran(.F_cg,
+	    z <- .Fortran("cg",
 			  n,
 			  n,
 			  xr,
@@ -123,9 +130,10 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 			  dbl.n,
 			  dbl.n,
 			  dbl.n,
-			  ierr = integer(1L))
+			  ierr = integer(1L),
+                          PACKAGE="base")
 	    if (z$ierr)
-		stop(gettextf("'%s' returned code %d in 'eigen'", "cg", z$ierr),
+		stop(gettextf("'cg' returned code %d in 'eigen'", z$ierr),
                      domain = NA)
 	    z$values <- complex(real=z$values,imaginary=z$ivalues)
 	    if(!only.values)
@@ -133,7 +141,7 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 					    imaginary=z$ivectors), ncol=n)
 	}
 	else {
-	    z <- .Fortran(.F_rg,
+	    z <- .Fortran("rg",
 			  n,
 			  n,
 			  x,
@@ -143,9 +151,10 @@ eigen <- function(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 			  vectors = x,
 			  integer(n),
 			  dbl.n,
-			  ierr = integer(1L))
+			  ierr = integer(1L),
+                          PACKAGE="base")
 	    if (z$ierr)
-		stop(gettextf("'%s' returned code %d in 'eigen'", "rg", z$ierr),
+		stop(gettextf("'rg' returned code %d in 'eigen'", z$ierr),
                      domain = NA)
 	    ind <- z$ivalues > 0L
 	    if(any(ind)) {#- have complex (conjugated) values

@@ -66,6 +66,9 @@ is.array(x)
   length zero, \code{NA} of an appropriate type is used for atomic
   vectors (\code{0} for raw vectors) and \code{NULL} for lists.
 
+  In the deprecated case that \code{dims} has length 0, the result will
+  be a vector of length 1 and a warning will be given.
+
   Unlike \code{\link{matrix}}, \code{array} does not currently remove
   any attributes left by \code{as.vector} from a classed list
   \code{data}, so can return a list array with a class attribute.
@@ -83,9 +86,6 @@ is.array(x)
 }
 \note{
   \code{is.array} is a \link{primitive} function.
-
-  Versions of \R prior to 2.16.0 allowed (although documented not to) a
-  zero-length \code{dim} argument, and returned a vector of length one.
 }
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)

@@ -21,9 +21,8 @@
 #ifndef PRINT_H_
 #define PRINT_H_
 
-#include "Defn.h"
 #include <R_ext/PrtUtil.h>
-#include <R_ext/Print.h>
+#include "Defn.h"
 
 #define formatRaw           Rf_formatRaw
 #define formatString        Rf_formatString
@@ -51,8 +50,8 @@ typedef struct {
 extern R_print_par_t R_print;
 
 /* Computation of printing formats */
-void formatRaw(Rbyte *, R_xlen_t, int *);
-void formatString(SEXP*, R_xlen_t, int*, int);
+void formatRaw(Rbyte *, int, int *);
+void formatString(SEXP*, int, int*, int);
 
 /* Formating of values */
 const char *EncodeElement(SEXP, int, int, char);

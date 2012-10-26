@@ -38,7 +38,7 @@ utils::globalVariables(c(".possibleExtends", ".makeGeneric",
     initMethodDispatch(where)
     ## temporary empty reference to the package's own namespace
     assign(".methodsNamespace", new.env(), envir = where)
-    .Call(C_R_set_method_dispatch, TRUE)
+    .Call("R_set_method_dispatch", TRUE, PACKAGE = "methods")
     saved <- (if(exists(".saveImage", envir = where, inherits = FALSE))
               get(".saveImage", envir = where)
               else
@@ -53,7 +53,7 @@ utils::globalVariables(c(".possibleExtends", ".makeGeneric",
         on.exit(assign(".saveImage", NA, envir = where))
         ## set up default prototype (uses .Call so has be at load time)
         assign(".defaultPrototype",
-               .Call(C_Rf_allocS4Object),
+                .Call("Rf_allocS4Object",PACKAGE="methods"),
                envir = where)
         assign(".SealedClasses", character(), envir = where)
         .InitClassDefinition(where)
@@ -96,7 +96,7 @@ utils::globalVariables(c(".possibleExtends", ".makeGeneric",
         assign(".methodPackageSlots", ..methodPackageSlots, envir = where)
         ## unlock some bindings that must be modifiable
         unlockBinding(".BasicFunsList", where)
-        assign(".saveImage", TRUE, envir = where)
+         assign(".saveImage", TRUE, envir = where)
         on.exit()
         cat("done\n")
     }
@@ -123,10 +123,7 @@ utils::globalVariables(c(".possibleExtends", ".makeGeneric",
     if(doSave) {
         dbbase <- file.path(libname, pkgname, "R", pkgname)
         ns <- asNamespace(pkgname)
-        vars <- ls(envir = ns, all.names = TRUE)
-        ## we need to exclude the registration vars
-        vars <- grep("^C_", vars, invert = TRUE, value = TRUE)
-        tools:::makeLazyLoadDB(ns, dbbase, variables = vars)
+        tools:::makeLazyLoadDB(ns, dbbase)
     }
     if(Sys.getenv("R_S4_BIND") == "active")
         methods:::bind_activation(TRUE)

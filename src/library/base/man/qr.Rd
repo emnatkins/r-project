@@ -32,8 +32,7 @@ is.qr(x)
 as.qr(x)
 }
 \arguments{
-  \item{x}{a numeric or complex matrix whose QR decomposition is to be
-    computed.  Logical matrices are coerced to numeric.}
+  \item{x}{a matrix whose QR decomposition is to be computed.}
   \item{tol}{the tolerance for detecting linear dependencies in the
     columns of \code{x}. Only used if \code{LAPACK} is false and
     \code{x} is real.}
@@ -78,9 +77,6 @@ as.qr(x)
 
   It is not possible to coerce objects to mode \code{"qr"}.  Objects
   either are QR decompositions or they are not.
-
-  The LINPACK interface is restricted to matrices \code{x} with less
-  than \eqn{2^{31}}{2^31} elements.
 
   \code{qr.fitted} and \code{qr.resid} only support the LINPACK interface.
 }

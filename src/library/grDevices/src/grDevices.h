@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2004-12   The R Core Team.
+ *  Copyright (C) 2004-11   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,6 +29,10 @@
 #define _(String) (String)
 #endif
 
+void R_chull(int *n, double *x, int *m, int *in,
+	   int *ia, int *ib,
+	   int *ih, int *nh, int *il);
+
 SEXP R_CreateAtVector(SEXP axp, SEXP usr, SEXP nint, SEXP is_log);
 SEXP R_GAxisPars(SEXP usr, SEXP is_log, SEXP nintLog);
 
@@ -40,13 +44,10 @@ SEXP PDF(SEXP);
 SEXP Type1FontInUse(SEXP, SEXP);
 SEXP CIDFontInUse(SEXP, SEXP);
 
-#ifndef WIN32
 SEXP Quartz(SEXP);
 SEXP makeQuartzDefault();
 
-SEXP X11(SEXP call, SEXP op, SEXP args, SEXP rho);
-SEXP savePlot(SEXP call, SEXP op, SEXP args, SEXP rho);
-#endif
+SEXP R_GD_nullDevice();
 
 SEXP devCairo(SEXP);
 
@@ -66,41 +67,5 @@ PDFDeviceDriver(pDevDesc, const char *, const char *, const char *,
 #ifdef WIN32
 SEXP devga(SEXP);
 SEXP savePlot(SEXP);
-SEXP bringToTop(SEXP, SEXP);
-SEXP msgWindow(SEXP, SEXP);
-#endif
-
-SEXP devcap(SEXP args);
-SEXP devcapture(SEXP args);
-SEXP devcontrol(SEXP args);
-SEXP devcopy(SEXP args);
-SEXP devcur(SEXP args);
-SEXP devdisplaylist(SEXP args);
-SEXP devholdflush(SEXP args);
-SEXP devnext(SEXP args);
-SEXP devoff(SEXP args);
-SEXP devprev(SEXP args);
-SEXP devset(SEXP args);
-SEXP devsize(SEXP args);
-
-SEXP chull(SEXP x);
-
-SEXP contourLines(SEXP call, SEXP op, SEXP args, SEXP rho);
-SEXP getSnapshot(SEXP call, SEXP op, SEXP args, SEXP rho);
-SEXP playSnapshot(SEXP call, SEXP op, SEXP args, SEXP rho);
-SEXP getGraphicsEvent(SEXP call, SEXP op, SEXP args, SEXP rho);
-SEXP getGraphicsEventEnv(SEXP call, SEXP op, SEXP args, SEXP rho);
-SEXP setGraphicsEventEnv(SEXP call, SEXP op, SEXP args, SEXP rho);
-SEXP devAskNewPage(SEXP call, SEXP op, SEXP args, SEXP env);
-
-#ifndef DEVWINDOWS
-SEXP rgb(SEXP call, SEXP op, SEXP args, SEXP env);
-SEXP hsv(SEXP call, SEXP op, SEXP args, SEXP env);
-SEXP hcl(SEXP call, SEXP op, SEXP args, SEXP env);
-SEXP gray(SEXP call, SEXP op, SEXP args, SEXP env);
-SEXP colors(SEXP call, SEXP op, SEXP args, SEXP env);
-SEXP col2rgb(SEXP call, SEXP op, SEXP args, SEXP env);
-SEXP palette(SEXP call, SEXP op, SEXP args, SEXP env);
-SEXP RGB2hsv(SEXP call, SEXP op, SEXP args, SEXP env);
 #endif
 

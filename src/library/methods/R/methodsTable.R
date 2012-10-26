@@ -86,7 +86,7 @@
            sig <- anySig
     }
     else
-      stop(gettextf("invalid object in meta table of methods for %s, label %s, had class %s",
+      stop(gettextf("Invalid object in meta table of methods for %s, label %s, had class %s",
                     sQuote(generic@generic),
                     sQuote(what),
                     dQuote(class(obj))),
@@ -266,11 +266,10 @@
       Recall(table, sig, el, i1, add, fenv)
     }
     else
-      stop(gettextf("invalid mlist element for signature %s at level %d (should be methods list or method, had class %s)",
-                    sQuote(classes[[j]]),
-                    i,
-                    dQuote(class(el))),
-           domain = NA)
+      stop("Invalid mlist element for signature \"", classes[[j]],
+	   "\" at level ", i,
+           "( should be methods list or method, had class \"",
+           class(el), "\")")
   }
   table
 }
@@ -425,11 +424,9 @@
             .resetTable(method, n, signames)
         }
         else
-            stop(gettextf("invalid object in methods table (%s), expected a method, got an object of class %s",
-                          sQuote(what),
-                          dQuote(class(method))),
-                 domain = NA)
-
+            stop("Invalid object in methods table (\"", what,
+                 "\"), expected a method, got an object of class \"",
+                 class(method), "\"")
         if(is(method, "MethodDefinition")) {
             pkgs <- packageSlot(newSig)
             newSig <- as(ifelse(seqN > length(newSig), anyLabel, newSig), "signature")
@@ -458,6 +455,7 @@
     function(classes, fdef, mtable = NULL,
              table = get(".MTable", envir = environment(fdef)),
              excluded = NULL, useInherited,
+             returnAll = !(doCache || doExcluded),
              simpleOnly = .simpleInheritanceGeneric(fdef), verbose = FALSE,
              doCache = is.environment(mtable))
 {
@@ -468,10 +466,10 @@
     ## signature, with "missing" for missing args
     if(!is.environment(table)) {
         if(is(fdef, "standardGeneric"))
-          stop("invalid or unset methods table in generic function \"",
-               fdef@generic,"\"", damain = NA)
+          stop("Invalid or unset methods table in generic function \"",
+               fdef@generic,"\"")
         else
-          stop("trying to find a methods table in a non-generic function")
+          stop("Trying to find a methods table in a non-generic function")
     }
     hasGroup <- length(fdef@group) > 0L
     if(hasGroup)
@@ -525,7 +523,8 @@
             supersList <- c(supersList, list(allLabels))
         }
     }
-    labels <- labels[-1L] # drop exact match
+    if(!returnAll)
+      labels <- labels[-1L] # drop exact match
     labels <- unique(labels)# only needed while contains slot can have duplicates(!)
     if(verbose) {
 	cat(" .fI> length(unique(method labels)) = ", length(labels))
@@ -550,6 +549,15 @@
     }
     else
       fromGroup <- rep(FALSE, length(methods))
+    ## remove default (ANY,..,ANY) if its not the only method:
+    if(length(methods) > 1L && !returnAll) {
+        defaultLabel <- paste(rep.int("ANY", nargs), collapse = "#")
+        i <- match(defaultLabel, names(methods), 0L)
+        if(i > 0L) {
+            methods <- methods[-i]
+            fromGroup <- fromGroup[-i]
+        }
+    }
     ## resolve any duplicate-class ambiguities
     if(.duplicateClassesExist()) {
         found <- integer()
@@ -568,16 +576,7 @@
     }
     if(doExcluded)
       methods <- methods[is.na(match(names(methods), as.character(excluded)))]
-    ## remove default (ANY,..,ANY) if its not the only method:
-    if(length(methods) > 1L) {
-        defaultLabel <- paste(rep.int("ANY", nargs), collapse = "#")
-        i <- match(defaultLabel, names(methods), 0L)
-        if(i > 0L) {
-            methods <- methods[-i]
-            fromGroup <- fromGroup[-i]
-        }
-    }
-    if(length(methods) > 1L) {
+    if(length(methods) > 1L && !returnAll) {
         if(verbose) cat(" .fI> length(methods) = ", length(methods),
                         " --> ambiguity\n")
         ## have ambiguity to resolve
@@ -591,7 +590,7 @@
             if(is.null(condAction))
               condAction <- .ambiguousMethodMessage
             else if(!is(condAction, "function"))
-              stop(gettextf("the \"ambiguousMethodSelection\" option should be a function to be called as the condition action; got an object of class %s",
+              stop(gettextf("The \"ambiguousMethodSelection\" option should be a function to be called as the condition action; got an object of class %s",
                             dQuote(class(condAction))),
                    domain = NA)
 
@@ -604,9 +603,8 @@
         methods <- methods[select]
     }
     if(simpleOnly && length(methods) == 0L) {
-	## Seems to be *unused* [below, 'simpleOnly' argument was missing for years!]
-	methods <- Recall(classes, fdef, mtable, table, excluded, useInherited,
-			  simpleOnly, verbose, FALSE)
+        methods <- Recall(classes, fdef, mtable, table, excluded, useInherited,
+                          verbose, returnAll, FALSE)
         if(length(methods) > 0L)
           message(gettextf("No simply inherited methods found for function %s; using non-simple method",
                            sQuote(fdef@generic)),
@@ -667,7 +665,7 @@
   }
   else {
     possible <- attr(cond, "candidates")
-    message(gettextf("Note: method with signature %s chosen for function %s,\n target signature %s.\n %s would also be valid",
+    message(gettextf("Note: Method with signature %s chosen for function %s,\n target signature %s.\n %s would also be valid",
                      sQuote(selected),
                      sQuote(attr(cond, "generic")),
                      sQuote(attr(cond, "target")),
@@ -712,33 +710,28 @@
             package = pkgs ))
  }
 
-.findNextFromTable <- function(method, f, optional, envir, prev = character())
-{
-    fdef <- getGeneric(f)
-    env <- environment(fdef)
-    target <- method@target
-    n <- get(".SigLength", envir = env)
-    defined <- method@defined
-    m <- length(defined)
-    if(m > n)
-        length(defined) <- n
+.findNextFromTable <- function(method, f, optional, envir, prev = character()) {
+  fdef <- getGeneric(f)
+  env <- environment(fdef)
+  target <- method@target
+  n <- get(".SigLength", envir = env)
+  defined <- method@defined
+  m <- length(defined)
+  if(m > n)
+    length(defined) <- n
   else if(n > m)
-      ## will only really need this to be a signature when the elements
-      ## have package attribute--see .sigLabel
-      defined <-  new("signature", fdef, c(defined@.Data, rep("ANY", n-m)))
-    excluded <- c(prev, .sigLabel(defined))
-    methods <- .findInheritedMethods(defined, fdef, mtable = NULL, excluded = excluded)
-    if(length(methods) == 0L) # use default method, maybe recursively.
-        methods <- list(finalDefaultMethod(fdef@default)) #todo: put a label on it?
-    if(length(methods) > 1L)
-        warning(sprintf(ngettext(length(methods),
-                                 "found %d equally good next method",
-                                 "found %d equally good next methods"),
-                        length(methods)),
-                domain = NA)
-    ## excluded slot is a list, but with methods tables, elements are just labels
-    new("MethodWithNext", method, nextMethod = methods[[1L]],
-        excluded = as.list(excluded))
+    ## will only really need this to be a signature when the elements
+    ## have package attribute--see .sigLabel
+    defined <-  new("signature", fdef, c(defined@.Data, rep("ANY", n-m)))
+  excluded <- c(prev, .sigLabel(defined))
+  methods <- .findInheritedMethods(defined, fdef, mtable = NULL, excluded = excluded)
+  if(length(methods) == 0L) # use default method, maybe recursively.
+    methods <- list(finalDefaultMethod(fdef@default)) #todo: put a label on it?
+  if(length(methods) > 1L)
+    warning("found ", length(methods), " equally good next methods") #todo: better message
+  ## excluded slot is a list, but with methods tables, elements are just labels
+  new("MethodWithNext", method, nextMethod = methods[[1L]],
+      excluded = as.list(excluded))
 }
 
 
@@ -757,7 +750,7 @@
          domain = NA)
   }
   else
-    stop("Internal error in finding inherited methods; didn't return a unique method", domain = NA)
+    stop("Internal error in finding inherited methods; didn't return a unique method")
 }
 
 .findMethodInTable <- function(signature, table, fdef = NULL)
@@ -885,19 +878,13 @@
   which2 <- .leastMethodDistance(candidates, supersList, classDefs,
                                  fromGroup[which])
   if(length(which2) < length(which)) {
-    note <- c(sprintf(ngettext(which2,
-                               "Selecting %d method of minimum distance",
-                               "Selecting %d methods of minimum distance"),
-                      which2))
+    note <- c(note, gettextf("Selecting %d methods of min. distance", which2))
     which <- which[which2]
   }
   ## if some are group methods, eliminate those
   if(length(which) > 1 && any(fromGroup[which]) && !all(fromGroup[which])) {
     which <- which[!fromGroup]
-    note <- c(note,  sprintf(ngettext(length(which),
-                                      "Selecting %d non-group method",
-                                      "Selecting %d non-group methods"),
-                             length(which)))
+    note <- c(note, gettextf("Selecting %d non-group methods", length(which)))
   }
   ## prefer partially direct methods
   if(length(which) > 1) {
@@ -906,10 +893,8 @@
                      target = target)
     if(any(direct) && !all(direct)) {
       which <- which[direct]
-      note <- c(note, sprintf(ngettext(length(which),
-                                       "Selecting %d partially exact-matching method",
-                                       "Selecting %d partially exact-matching methods"),
-                              length(which)))
+      note <- c(note, gettextf("Selecting %d partially exact-matching method(s)",
+                               length(which)))
     }
   }
   which <- which[[1L]]
@@ -917,10 +902,8 @@
       return(which) # as() computations not currently consistent w. selection (R 2.15.2)
   selected <- names(methods)[[which]]
   ## FIXME (?): This is not shown to the user
-  msg <- sprintf(ngettext(length(candidates),
-                          "Choosing method %s from %d ambiguous possibility",
-                          "Choosing method %s from %d ambiguous possibilities"),
-                 sQuote(selected), length(candidates))
+  msg <- gettextf("Choosing method %s from %d ambiguous possibilities",
+                      selected, length(candidates))
   condObject <- simpleCondition(msg)
   ## would be nice to use an S4 class eventually
   class(condObject) <- c("ambiguousMethodSelection", class(condObject))
@@ -1097,7 +1080,7 @@
 
 ## temporary switch for tables
 useMTable <- function(onOff = NA)
-  .Call(C_R_set_method_dispatch, as.logical(onOff))
+  .Call("R_set_method_dispatch", as.logical(onOff), PACKAGE = "methods")
 
 ## get all the group generic functions, in breadth-first order since
 ## direct group inheritance is closer than indirect (all existing
@@ -1111,7 +1094,7 @@ useMTable <- function(onOff = NA)
                            function(what) {
                              f <- getGeneric(what)
                              if(!is.function(f))
-                               stop("failed to find expected group generic function: ",
+                               stop("Failed to find expected group generic function: ",
                                     what)
                              f
                            }))
@@ -1132,9 +1115,8 @@ useMTable <- function(onOff = NA)
   for(i in seq_along(generics)) {
     gen <- generics[[i]]
     if(!is(gen,"genericFunction"))
-      stop(gettextf("invalid group generic function in search for inherited method (class %s)",
-                    dQuote(class(gen))),
-           domain = NA)
+      stop("Invalid group generic function in search for inherited method (class \"",
+           class(gen), "\"")
     table <- .getMethodsTable(gen)
     allMethods <- objects(envir=table, all.names = TRUE)
     ## TODO:  possible for .SigLength to differ between group &
@@ -1155,7 +1137,7 @@ useMTable <- function(onOff = NA)
     if(check && !exists(name, envir = env, inherits = FALSE)) {
 	.setupMethodsTables(fdef, initialize = TRUE)
 	if(!exists(name, envir = env, inherits = FALSE))
-	    stop("invalid methods table request")
+	    stop("Invalid methods table request")
     }
     get(name, envir = env)
 }
@@ -1175,8 +1157,8 @@ useMTable <- function(onOff = NA)
     what <- gnames[[i]]
     fdef <- generics[[i]]
     if(!is(fdef, "groupGenericFunction")) {
-      warning(gettextf("trying to check signature length of group generic '%s', but it is not a group generic", what),
-              domain = NA)
+      warning("Trying to check signature length of group generic \"",
+              what, "\", but it is not a group generic")
       next
     }
     if(length(fdef@group))  {# push up the check one level
@@ -1201,10 +1183,11 @@ useMTable <- function(onOff = NA)
     if(is.null(fdef))
       next # getGroupMembers returns NULL if  member is not defined
     if(!is(fdef, "genericFunction"))
-      warning(gettextf("trying to check signature length of generic '%s', but it is not a generic function: i = %d, funs = %s, gnames = %s",
-                       what,  i, paste(unlist(funs), collapse = ", "),
-                       paste(as.character(gnames), collapse = ", ")),
-              domain = NA)
+      warning("Trying to check signature length of generic \"",
+              what, "\", but it is not a  generic function: i = ", i,
+              ", funs = ", paste(unlist(funs), collapse = ", "),
+              "; gnames = ",
+              paste(as.character(gnames), collapse = ", "))
     else {
       ev <- environment(fdef)
       if(!exists(".SigLength", envir = ev, inherits = FALSE))
@@ -1237,24 +1220,19 @@ outerLabels <- function(labels, new) {
 .matchSigLength <- function(sig, fdef, fenv, reset = FALSE) {
   nargs <- .getGenericSigLength(fdef, fenv, TRUE)
   n <- length(sig)
-  pkgs <- packageSlot(sig)
-  if(n < nargs) {
-      more <- nargs - n
-      pkgs <- c(pkgs, rep("methods", more))
-      sig <- c(as.character(sig), rep("ANY", more))
-  }
+  if(n < nargs)
+    sig <- c(as.character(sig), rep("ANY", nargs - n))
   else if(n > nargs) { #reset table?
     if(all(sig[(nargs+1):n] == "ANY"))
-      length(sig) <- length(pkgs) <- nargs
+      length(sig) <- nargs
     else {
       while(sig[[n]] == "ANY")
         n <- n-1
       if(reset)
         .resetSigLength(fdef, n)
-      length(sig) <- length(pkgs) <- n
+      length(sig) <- n
     }
   }
-  packageSlot(sig) <- pkgs
   sig
 }
 
@@ -1433,8 +1411,7 @@ listFromMethods <- function(generic, where, table) {
     ## USES THE PATTERN OF class#class#.... in the methods tables
     nargs <- nchar(unique(gsub("[^#]","", allNames)))+1
     if(length(nargs) > 1L) {
-        warning("something weird:  inconsistent number of args in methods table strings:", paste(nargs,collapse = ", ")," (using the largest value)",
-                domain = NA)
+        warning("Something weird:  inconsistent number of args in methods table strings:", paste(nargs,collapse = ", ")," (using the largest value)")
         nargs <- max(nargs)
     }
     length(argNames) <- nargs # the number of args used
@@ -1460,7 +1437,7 @@ listFromMethods <- function(generic, where, table) {
     else if(optional)
       NULL
     else
-      stop(gettextf("no methods table for generic %s from package %s in package %s",
+      stop(gettextf("No methods table for generic %s from package %s in package %s",
                     sQuote(generic@generic),
                     sQuote(generic@package),
                     sQuote(getPackageName(where))),
@@ -1578,9 +1555,8 @@ testInheritedMethods <- function(f, signatures, test = TRUE,  virtual = FALSE,
       }
 
       if(length(.undefClasses)) {
-        warning(gettextf("undefined classes (%s) will be ignored for argument '%s'",
-                         paste0('"',unique(.undefClasses),'"', collapse=", "),
-                         colnames(sigs)[[j]]), domain = NA)
+        warning("Undefined classes (", paste0('"',unique(.undefClasses),'"', collapse=", "),
+                ") will be ignored, for argument ", colnames(sigs)[[j]])
         .undefClasses <- character()
       }
     } ## loop on j
@@ -1595,7 +1571,7 @@ testInheritedMethods <- function(f, signatures, test = TRUE,  virtual = FALSE,
         siglist[[i]] <- signatures[i,]
       signatures <- siglist
   }
-  else stop("argument 'signatures' must be a character matrix whose rows are method signatures")
+  else stop('Argument "signatures" must be a character matrix whose rows are method signatures')
   ambig_target <- character()
   ambig_candidates <- list()
   ambig_selected <- character()

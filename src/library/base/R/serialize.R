@@ -59,10 +59,12 @@ serialize <-
         if (missing(ascii)) ascii <- summary(connection)$text == "text"
     }
     if (!ascii && inherits(connection, "sockconn"))
-        .Internal(serializeb(object, connection, xdr, version, refhook))
+        .Call("R_serializeb", object, connection, xdr, version, refhook,
+              PACKAGE="base")
     else {
         if (!isTRUE(ascii) && !xdr) ascii <- NA
-        .Internal(serialize(object, connection, ascii, version, refhook))
+        .Call("R_serialize", object, connection, ascii, version, refhook,
+              PACKAGE="base")
     }
 }
 
@@ -72,5 +74,5 @@ unserialize <- function(connection, refhook = NULL)
         !is.character(connection) &&
         !inherits(connection, "connection"))
         stop("'connection' must be a connection")
-    .Internal(unserialize(connection, refhook))
+    .Call("R_unserialize", connection, refhook, PACKAGE="base")
 }

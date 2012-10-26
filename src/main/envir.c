@@ -87,8 +87,7 @@
 #endif
 
 #define R_USE_SIGNALS 1
-#include <Defn.h>
-#include <Internal.h>
+#include "Defn.h"
 #include <R_ext/Callbacks.h>
 
 #define IS_USER_DATABASE(rho)  OBJECT((rho)) && inherits((rho), "UserDefinedDatabase")
@@ -1245,7 +1244,7 @@ SEXP ddfindVar(SEXP symbol, SEXP rho)
 	    return(CAR(vl));
 	}
 	else
-	    error(_("the ... list does not contain %d elements"), i);
+	    error(_("The ... list does not contain %d elements"), i);
     }
     else error(_("..%d used in an incorrect context, no ... to look in"), i);
 
@@ -3486,6 +3485,8 @@ static void R_StringHash_resize(unsigned int newsize)
    a new CHARSXP is created, added to the cache and then returned. */
 
 
+/* Because allocCharsxp allocates len+1 bytes and zeros the last,
+   this will always zero-terminate */
 SEXP mkCharLenCE(const char *name, int len, cetype_t enc)
 {
     SEXP cval, chain;
@@ -3587,7 +3588,6 @@ SEXP mkCharLenCE(const char *name, int len, cetype_t enc)
 	/* resize the hash table if necessary with the new entry still
 	   protected.
 	   Maximum possible power of two is 2^30 for a VECSXP.
-	   FIXME: this has changed with long vectors.
 	*/
 	if (R_HashSizeCheck(R_StringHash)
 	    && char_hash_size < 1073741824 /* 2^30 */)

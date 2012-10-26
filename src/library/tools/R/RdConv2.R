@@ -296,9 +296,7 @@ processRdChunk <- function(code, stage, options, env, Rdfile)
 	    	    res <- tagged(res, "LIST")
 	    	else {
 	    	    if (sum(is_section) > 1)
-	    		stop(gettextf("Only one Rd section per %s is supported.",
-                                      "\\Sexpr"),
-                             domain = NA)
+	    		stop("Only one Rd section per \\Sexpr is supported.")
 	    	    res <- res[[which(is_section)]]
 	    	}
 	    } else if (length(res) == 1) res <- res[[1]]

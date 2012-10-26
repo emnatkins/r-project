@@ -71,10 +71,8 @@ as.Date.default <- function(x, ...)
     if(inherits(x, "Date")) return(x)
     if(is.logical(x) && all(is.na(x)))
         return(structure(as.numeric(x), class = "Date"))
-    stop(gettextf("do not know how to convert '%s' to class %s",
-                  deparse(substitute(x)),
-                  dQuote("Date")),
-         domain = NA)
+    stop(gettextf("do not know how to convert '%s' to class \"Date\"",
+                  deparse(substitute(x))))
 }
 
 ## convert from package date
@@ -142,7 +140,7 @@ summary.Date <- function(object, digits = 12, ...)
     if (nargs() == 1) return(e1)
     # only valid if one of e1 and e2 is a scalar.
     if(inherits(e1, "Date") && inherits(e2, "Date"))
-        stop("binary + is not defined for \"Date\" objects")
+        stop("binary + is not defined for Date objects")
     if (inherits(e1, "difftime")) e1 <- coerceTimeUnit(e1)
     if (inherits(e2, "difftime")) e2 <- coerceTimeUnit(e2)
     structure(unclass(e1) + unclass(e2), class = "Date")
@@ -155,26 +153,23 @@ summary.Date <- function(object, digits = 12, ...)
                                secs = x/86400, mins = x/1440, hours = x/24,
                                days = x, weeks = 7*x)))
     if(!inherits(e1, "Date"))
-        stop("can only subtract from \"Date\" objects")
-    if (nargs() == 1) stop("unary - is not defined for \"Date\" objects")
+        stop("Can only subtract from Date objects")
+    if (nargs() == 1) stop("unary - is not defined for Date objects")
     if(inherits(e2, "Date")) return(difftime(e1, e2, units="days"))
     if (inherits(e2, "difftime")) e2 <- coerceTimeUnit(e2)
     if(!is.null(attr(e2, "class")))
-        stop("can only subtract numbers from \"Date\" objects")
+        stop("can only subtract numbers from Date objects")
     structure(unclass(as.Date(e1)) - e2, class = "Date")
 }
 
 Ops.Date <- function(e1, e2)
 {
     if (nargs() == 1)
-        stop(gettextf("unary %s not defined for \"Date\" objects", .Generic),
-             domain = NA)
+        stop("unary ", .Generic, " not defined for Date objects")
     boolean <- switch(.Generic, "<" =, ">" =, "==" =,
                       "!=" =, "<=" =, ">=" = TRUE,
                       FALSE)
-    if (!boolean)
-        stop(gettextf("%s not defined for \"Date\" objects", .Generic),
-             domain = NA)
+    if (!boolean) stop(.Generic, " not defined for Date objects")
     ## allow character args to be coerced to dates
     if (is.character(e1)) e1 <- as.Date(e1)
     if (is.character(e2)) e2 <- as.Date(e2)
@@ -182,15 +177,13 @@ Ops.Date <- function(e1, e2)
 }
 
 Math.Date <- function (x, ...)
-    stop(gettextf("%s not defined for \"Date\" objects", .Generic),
-         domain = NA)
+    stop(.Generic, " not defined for Date objects")
 
 Summary.Date <- function (..., na.rm)
 {
     ok <- switch(.Generic, max = , min = , range = TRUE, FALSE)
-    if (!ok) stop(gettextf("%s not defined for \"Date\" objects", .Generic),
-                  domain = NA)
-   val <- NextMethod(.Generic)
+    if (!ok) stop(.Generic, " not defined for Date objects")
+    val <- NextMethod(.Generic)
     class(val) <- oldClass(list(...)[[1L]])
     val
 }
@@ -240,10 +233,10 @@ mean.Date <- function (x, ...)
 seq.Date <- function(from, to, by, length.out=NULL, along.with=NULL, ...)
 {
     if (missing(from)) stop("'from' must be specified")
-    if (!inherits(from, "Date")) stop("'from' must be a \"Date\" object")
+    if (!inherits(from, "Date")) stop("'from' must be a Date object")
         if(length(as.Date(from)) != 1L) stop("'from' must be of length 1")
     if (!missing(to)) {
-        if (!inherits(to, "Date")) stop("'to' must be a \"Date\" object")
+        if (!inherits(to, "Date")) stop("'to' must be a Date object")
         if (length(as.Date(to)) != 1L) stop("'to' must be of length 1")
     }
     if (!missing(along.with)) {

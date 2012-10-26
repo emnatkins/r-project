@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2001-12   The R Core Team.
+ *  Copyright (C) 2001-4   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,8 +22,6 @@
 #endif
 
 #include <Defn.h>
-#include <Internal.h>
-
 #include <Rconnections.h>
 #include <Rdynpriv.h>
 #include <R_ext/R-ftp-http.h>
@@ -33,7 +31,7 @@ static R_InternetRoutines routines, *ptr = &routines;
 
 
 /*
-SEXP Rdownload(SEXP call, SEXP op, SEXP args, SEXP env);
+SEXP do_download(SEXP call, SEXP op, SEXP args, SEXP env);
 Rconnection R_newurl(char *description, char *mode);
 Rconnection R_newsock(char *host, int port, int server, char *mode, int timeout);
 
@@ -94,11 +92,12 @@ static void internet_Init(void)
     return;
 }
 
-SEXP Rdownload(SEXP args)
+
+SEXP attribute_hidden do_download(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     if(!initialized) internet_Init();
     if(initialized > 0)
-	return (*ptr->download)(args);
+	return (*ptr->download)(call, op, args, env);
     else {
 	error(_("internet routines cannot be loaded"));
 	return R_NilValue;
@@ -218,7 +217,8 @@ void  R_FTPClose(void *ctx)
 	error(_("internet routines cannot be loaded"));
 }
 
-int extR_HTTPDCreate(const char *ip, int port)
+attribute_hidden
+int   R_HTTPDCreate(const char *ip, int port)
 {
     if(!initialized) internet_Init();
     if(initialized > 0)
@@ -228,7 +228,8 @@ int extR_HTTPDCreate(const char *ip, int port)
     return -1;
 }
 
-void extR_HTTPDStop(void)
+attribute_hidden
+void R_HTTPDStop(void)
 {
     if(!initialized) internet_Init();
     if(initialized > 0)
@@ -237,97 +238,86 @@ void extR_HTTPDStop(void)
 	error(_("internet routines cannot be loaded"));
 }
 
-
-SEXP Rsockconnect(SEXP sport, SEXP shost)
+SEXP attribute_hidden do_startHTTPD(SEXP call, SEXP op, SEXP args, SEXP env) 
 {
-    if (length(sport) != 1) error("invalid 'socket' argument");
-    int port = asInteger(sport);
-    char *host[1];
-    host[0] = (char *) translateChar(STRING_ELT(shost, 0));
-    if(!initialized) internet_Init();
-    if(initialized > 0)
-	(*ptr->sockconnect)(&port, host);
-    else
-	error(_("socket routines cannot be loaded"));
-    return ScalarInteger(port); // The socket number
+    const char *ip = 0;
+    SEXP sIP, sPort;
+    checkArity(op, args);
+    sIP = CAR(args);
+    sPort = CADR(args);
+    if (sIP != R_NilValue && (TYPEOF(sIP) != STRSXP || LENGTH(sIP) != 1))
+	error(_("invalid bind address specification"));
+    if (sIP != R_NilValue)
+	ip = CHAR(STRING_ELT(sIP, 0));
+    return ScalarInteger(R_HTTPDCreate(ip, asInteger(sPort)));
 }
 
-SEXP Rsockread(SEXP ssock, SEXP smaxlen)
+SEXP attribute_hidden do_stopHTTPD(SEXP call, SEXP op, SEXP args, SEXP env) 
 {
-    if (length(ssock) != 1) error("invalid 'socket' argument");
-    int sock = asInteger(ssock), maxlen = asInteger(smaxlen);
-    char buf[maxlen+1], *abuf[1];
-    abuf[0] = buf;
-    if(!initialized) internet_Init();
-    if(initialized > 0)
-	(*ptr->sockread)(&sock, abuf, &maxlen);
-    else
-	error(_("socket routines cannot be loaded"));
-    SEXP ans = PROTECT(allocVector(STRSXP, 1));
-    SET_STRING_ELT(ans, 0, mkCharLen(buf, maxlen));
-    UNPROTECT(1);
-    return ans;
-		       
+    checkArity(op, args);
+    R_HTTPDStop();
+    return R_NilValue;
 }
 
-SEXP Rsockclose(SEXP ssock)
+attribute_hidden
+void Rsockopen(int *port)
 {
-    if (length(ssock) != 1) error("invalid 'socket' argument");
-    int sock = asInteger(ssock);
     if(!initialized) internet_Init();
     if(initialized > 0)
-	(*ptr->sockclose)(&sock);
+	(*ptr->sockopen)(port);
     else
 	error(_("socket routines cannot be loaded"));
-    return ScalarLogical(sock);
 }
 
-SEXP Rsockopen(SEXP sport)
+attribute_hidden
+void Rsocklisten(int *sockp, char **buf, int *len)
 {
-    if (length(sport) != 1) error("invalid 'port' argument");
-    int port = asInteger(sport);
     if(!initialized) internet_Init();
     if(initialized > 0)
-	(*ptr->sockopen)(&port);
+	(*ptr->socklisten)(sockp, buf, len);
     else
 	error(_("socket routines cannot be loaded"));
-    return ScalarInteger(port); // The socket number
 }
 
-SEXP Rsocklisten(SEXP ssock)
+attribute_hidden
+void Rsockconnect(int *port, char **host)
 {
-    if (length(ssock) != 1) error("invalid 'socket' argument");
-    int sock = asInteger(ssock), len = 256;
-    char buf[257], *abuf[1];
-    abuf[0] = buf;
     if(!initialized) internet_Init();
     if(initialized > 0)
-	(*ptr->socklisten)(&sock, abuf, &len);
+	(*ptr->sockconnect)(port, host);
     else
 	error(_("socket routines cannot be loaded"));
-    SEXP ans = PROTECT(ScalarInteger(sock)); // The socket being listened on
-    SEXP host = PROTECT(allocVector(STRSXP, 1));
-    SET_STRING_ELT(host, 0, mkChar(buf));
-    setAttrib(ans, install("host"), host);
-    UNPROTECT(2);
-    return ans;
 }
 
-SEXP Rsockwrite(SEXP ssock, SEXP sstring)
+attribute_hidden
+void Rsockclose(int *sockp)
 {
-    if (length(ssock) != 1) error("invalid 'socket' argument");
-    int sock = asInteger(ssock), start = 0, end, len;
-    char *buf = (char *) translateChar(STRING_ELT(sstring, 0)), *abuf[1];
-    end = len = (int) strlen(buf);
-    abuf[0] = buf;
     if(!initialized) internet_Init();
     if(initialized > 0)
-	(*ptr->sockwrite)(&sock, abuf, &start, &end, &len);
+	(*ptr->sockclose)(sockp);
     else
 	error(_("socket routines cannot be loaded"));
-    return ScalarInteger(len);
 }
 
+attribute_hidden
+void Rsockread(int *sockp, char **buf, int *maxlen)
+{
+    if(!initialized) internet_Init();
+    if(initialized > 0)
+	(*ptr->sockread)(sockp, buf, maxlen);
+    else
+	error(_("socket routines cannot be loaded"));
+}
+
+attribute_hidden
+void Rsockwrite(int *sockp, char **buf, int *start, int *end, int *len)
+{
+    if(!initialized) internet_Init();
+    if(initialized > 0)
+	(*ptr->sockwrite)(sockp, buf, start, end, len);
+    else
+	error(_("socket routines cannot be loaded"));
+}
 
 attribute_hidden
 int Rsockselect(int nsock, int *insockfd, int *ready, int *write,

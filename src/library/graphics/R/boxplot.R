@@ -27,8 +27,10 @@ function(x, ..., range = 1.5, width = NULL, varwidth = FALSE,
 {
     args <- list(x, ...)
     namedargs <-
-	if(!is.null(attributes(args)$names)) attributes(args)$names != ""
-	else rep_len(FALSE, length(args))
+	if(!is.null(attributes(args)$names))
+	    attributes(args)$names != ""
+	else
+	    rep(FALSE, length.out = length(args))
     ## pars <- c(args[namedargs], pars)
     groups <- if(is.list(x)) x else args[!namedargs]
     if(0L == (n <- length(groups)))
@@ -187,8 +189,7 @@ bxp <- function(z, notch=FALSE, width=NULL, varwidth=FALSE, outline = TRUE,
     if(is.null(at))
 	at <- 1L:n
     else if(length(at) != n)
-        stop(gettextf("'at' must have same length as 'z$n', i.e. %d", n),
-             domain = NA)
+	stop("'at' must have same length as 'z$n', i.e. ", n)
     ## just for compatibility with S
     if(is.null(z$out))
 	z$out <- numeric()

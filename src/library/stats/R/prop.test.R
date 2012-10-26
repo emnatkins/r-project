@@ -77,8 +77,8 @@ function(x, n, p = NULL, alternative = c("two.sided", "less", "greater"),
 
     correct <- as.logical(correct)
 
-    ESTIMATE <- setNames(x/n,
-			 if (k == 1) "p" else paste("prop", 1L:l)[OK])
+    ESTIMATE <- x/n
+    names(ESTIMATE) <- if (k == 1) "p" else paste("prop", 1L:l)[OK]
     NVAL <- p
     CINT <- NULL
     YATES <- if(correct && (k <= 2)) .5 else 0

@@ -158,12 +158,8 @@ makeRweaveLatexCodeRunner <- function(evalFunc = RweaveEvalWithOpt)
                     if (!is.null(options$grdevice)) cat("", options$grdevice)
                 }
             }
-            cat(" (")
             if (!is.null(options$label))
-                cat("label = ", options$label, ", ", sep = "")
-            filenum <- attr(chunk, "srcFilenum")[1]
-            filename <- attr(chunk, "srcFilenames")[filenum]
-            cat(basename(filename), ":", attr(chunk, "srclines")[1], ")", sep="")
+                cat(" (label = ", options$label, ")", sep = "")
             cat("\n")
         }
 

@@ -18,13 +18,14 @@
 
 La.svd <- function(x, nu = min(n, p), nv = min(n, p))
 {
-    if(!is.logical(x) && !is.numeric(x) && !is.complex(x))
+    if(!is.numeric(x) && !is.complex(x))
 	stop("argument to 'La.svd' must be numeric or complex")
     if (any(!is.finite(x))) stop("infinite or missing values in 'x'")
     x <- as.matrix(x)
+    if (is.numeric(x)) storage.mode(x) <- "double"
     n <- nrow(x)
     p <- ncol(x)
-    if(!n || !p) stop("a dimension is zero")
+    if(!n || !p) stop("0 extent dimensions")
 
     if(is.complex(x)) {
         if(nu == 0L) {
@@ -56,7 +57,8 @@ La.svd <- function(x, nu = min(n, p), nv = min(n, p))
         }
         else
             stop("'nv' must be 0, nrow(x) or ncol(x)")
-        res <- .Internal(La_svd_cmplx(jobu, jobv, x, double(min(n, p)), u, v))
+        res <- .Call("La_svd_cmplx", jobu, jobv, x, double(min(n, p)),
+                     u, v, PACKAGE = "base")
         return(res[c("d", if(nu) "u", if(nv) "vt")])
     } else {
         if(nu || nv) {
@@ -64,25 +66,24 @@ La.svd <- function(x, nu = min(n, p), nv = min(n, p))
             if(nu <= np && nv <= np) {
                 jobu <- "S"
                 u <- matrix(0, n, np)
-                vt <- matrix(0, np, p)
-                nu0 <- nv0 <- np
+                v <- matrix(0, np, p)
             } else {
                 jobu <- "A"
                 u <- matrix(0, n, n)
-                vt <- matrix(0, p, p)
-                nu0 <- n; nv0 <- p
+                v <- matrix(0, p, p)
             }
         } else {
             jobu <- "N"
             # these dimensions _are_ checked, but unused
             u <- matrix(0, 1L, 1L)
-            vt <- matrix(0, 1L, 1L)
+            v <- matrix(0, 1L, 1L)
         }
-        ## type is now coerced internally
-        res <- .Internal(La_svd(jobu, x, double(min(n,p)), u, vt))
+        jobv <- ""
+        res <- .Call("La_svd", jobu, jobv, x, double(min(n,p)), u, v,
+                     "dgsedd", PACKAGE = "base")
         res <- res[c("d", if(nu) "u", if(nv) "vt")]
-        if(nu && nu < nu0) res$u <- res$u[, 1L:min(n, nu), drop = FALSE]
-        if(nv && nv < nv0) res$vt <- res$vt[1L:min(p, nv), , drop = FALSE]
+        if(nu) res$u <- res$u[, 1L:min(n, nu), drop = FALSE]
+        if(nv) res$vt <- res$vt[1L:min(p, nv), , drop = FALSE]
         return(res)
     }
     ## not reached

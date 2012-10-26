@@ -10,27 +10,24 @@
 \alias{rep.POSIXct}
 \alias{rep.POSIXlt}
 \alias{rep.Date}
-\alias{rep_len}
 
 \title{Replicate Elements of Vectors and Lists}
 \description{
   \code{rep} replicates the values in \code{x}.  It is a generic
   function, and the (internal) default method is described here.
 
-  \code{rep.int} and \code{rep_len} are faster simplified versions for
-  two common cases.
+  \code{rep.int} is a faster simplified version for the most common case.
 }
 \usage{
 rep(x, \dots)
 
 rep.int(x, times)
-
-rep_len(x, length.out)
 }
 \arguments{
-  \item{x}{a vector (of any mode including a list) or a factor or (for
-    \code{rep} only) a \code{POSIXct} or \code{POSIXlt} or \code{Date}
-    object; or an S4 object containing such an object.}
+  \item{x}{a vector (of any mode including a list) or a factor or
+    (except for \code{rep.int}) a \code{POSIXct} or \code{POSIXlt} or
+    \code{date} object; or also, an S4 object containing a vector of the
+    above kind.}
   \item{\dots}{further arguments to be passed to or from other methods.
     For the internal default method these can include:
     \describe{
@@ -48,8 +45,6 @@ rep_len(x, length.out)
     }
   }
   \item{times}{see \code{\dots}.}
-  \item{length.out}{non-negative integer: the desired length of the
-    output vector.}
 }
 
 \details{
@@ -82,8 +77,8 @@ rep_len(x, length.out)
 \value{
   An object of the same type as \code{x}.
 
-  \code{rep.int} and \code{rep_len} return no attributes (except the
-  class if returning a factor).
+  \code{rep.int} returns no attributes (except the class if returning a
+  factor).
 
   The default method of \code{rep} gives the result names (which will
   almost always contain duplicates) if \code{x} had names, but retains
@@ -100,11 +95,6 @@ rep_len(x, length.out)
 
   For historical reasons \code{rep} works on \code{NULL}: the result is
   always \code{NULL} even when \code{length.out} is positive.
-
-  Although it has never been documented, these functions have always
-  worked on \link{expression} vectors.  Versions prior to \R 2.16.0
-  accepted pairlists and some other objects (although the results were
-  rarely what their users intended).
 }
 \references{
   Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988)
@@ -139,9 +129,8 @@ rep(as.POSIXlt(x), rep(2, 3))
 x <- factor(LETTERS[1:4]); names(x) <- letters[1:4]
 x
 rep(x, 2)
-rep(x, each = 2)
+rep(x, each=2)
 rep.int(x, 2)  # no names
-rep_len(x, 10)
 }
 \keyword{manip}
 \keyword{chron}

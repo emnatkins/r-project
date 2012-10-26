@@ -46,14 +46,14 @@ pie <-
               "lavender", "cornsilk")
         else par("fg")
     if(!is.null(col))
-        col <- rep_len(col, nx)
+        col <- rep(col, length.out = nx)
     if(!is.null(border))
-        border <- rep_len(border, nx)
+        border <- rep(border, length.out = nx)
     if(!is.null(lty))
-        lty <- rep_len(lty, nx)
-    angle <- rep(angle, nx)
+        lty <- rep(lty, length.out = nx)
+    angle <- rep(angle, length.out = nx)
     if(!is.null(density))
-        density <- rep_len(density, nx)
+        density <- rep(density, length.out = nx)
     twopi <- if(clockwise) -2*pi else 2*pi
     t2xy <- function(t) {
         t2p <- twopi*t + init.angle * pi/180

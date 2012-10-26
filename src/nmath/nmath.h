@@ -25,13 +25,6 @@
 #  include <config.h>
 #endif
 
-/* Required by C99 but might be slow */
-#ifdef HAVE_LONG_DOUBLE
-#  define LDOUBLE long double
-#else
-#  define LDOUBLE double
-#endif
-
 #include <math.h>
 #include <float.h> /* DBL_MIN etc */
 
@@ -194,7 +187,7 @@ double  attribute_hidden pnchisq_raw(double, double, double, double, double, int
 double  attribute_hidden pgamma_raw(double, double, int, int);
 double	attribute_hidden pbeta_raw(double, double, double, int, int);
 double  attribute_hidden qchisq_appr(double, double, double, int, int, double tol);
-LDOUBLE attribute_hidden pnbeta_raw(double, double, double, double, double);
+long double attribute_hidden pnbeta_raw(double, double, double, double, double);
 double	attribute_hidden pnbeta2(double, double, double, double, double, int, int);
 
 int	Rf_i1mach(int);

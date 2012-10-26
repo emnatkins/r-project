@@ -18,11 +18,11 @@
 
 ave <- function (x, ..., FUN = mean)
 {
-    if(missing(...))
-	x[] <- FUN(x)
-    else {
+    n <- length(list(...))
+    if (n) {
 	g <- interaction(...)
 	split(x,g) <- lapply(split(x, g), FUN)
-    }
+    } else
+        x[] <- FUN(x)
     x
 }

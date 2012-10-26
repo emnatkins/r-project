@@ -184,7 +184,7 @@ setIs <-
             if(classDef@virtual)
                 classDef2@prototype <- classDef@prototype
             else # new(), but without intialize(), which may require an arg.
-                classDef2@prototype <- .Call(C_new_object, classDef)
+                classDef2@prototype <- .Call("R_do_new_object", classDef, PACKAGE = "base")
         }
     }
     assignClassDef(class2, classDef2, where2, TRUE)
@@ -206,7 +206,7 @@ setIs <-
     if(length(whereIs))
       whereIs[[1L]]
     else {
-        warning(gettextf("class %s is defined (with package slot %s) but no metadata object found to revise %s information---not exported?  Making a copy in package %s",
+        warning(gettextf("Class %s is defined (with package slot %s) but no metadata object found to revise %s information---not exported?  Making a copy in package %s",
                          .dQ(class), sQuote(classDef@package), purpose,
                          sQuote(getPackageName(where, FALSE))),
                 call. = FALSE, domain = NA)
@@ -223,7 +223,7 @@ setIs <-
     if((is.null(classDef1) || is.null(classDef2)) &&
        !(isVirtualClass(class1) && isVirtualClass(class2)))
         return(c(.msg(class1, class2), ": ",
-             gettext("both classes must be defined")))
+             gettext("Both classes must be defined")))
     if(slotTests) {
         slots2 <- classDef2@slots
         if(length(slots2)) {
@@ -232,24 +232,20 @@ setIs <-
             n1 <- names(slots1)
             if(any(is.na(match(n2, n1))))
                 return(c(.msg(class1, class2), ": ",
-                         sprintf(ngettext(sum(is.na(match(n2, n1))),
-                                          "class %s is missing slot from class %s (%s), and no coerce method was supplied",
-                                          "class %s is missing slots from class %s (%s), and no coerce method was supplied"),
-                                 dQuote(class1),
-                                 dQuote(class2),
-                                 paste(n2[is.na(match(n2, n1))], collapse = ", "))))
+                     gettextf("class %s is missing slots from class %s (%s), and no coerce method was supplied",
+                              dQuote(class1),
+                              dQuote(class2),
+                              paste(n2[is.na(match(n2, n1))], collapse = ", "))))
             bad <- character()
             for(what in n2)
                 if(!extends(elNamed(slots1, what), elNamed(slots2, what)))
                     bad <- c(bad, what)
             if(length(bad))
                 return(c(.msg(class1, class2), ": ",
-                         sprintf(ngettext(length(bad),
-                                          "slot in class %s must extend corresponding slot in class %s: fails for %s",
-                                          "slots in class %s must extend corresponding slots in class %s: fails for %s"),
-                                 dQuote(class1),
-                                 dQuote(class2),
-                                 paste(bad, collapse = ", "))))
+                     gettextf("slots in class %s must extend corresponding slots in class %s: fails for %s",
+                              dQuote(class1),
+                              dQuote(class2),
+                              paste(bad, collapse = ", "))))
         }
     }
     TRUE

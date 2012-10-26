@@ -121,8 +121,7 @@ make.link <- function (link)
                valideta <- function(eta) all(eta!=0)
            },
            ## else :
-           stop(gettextf("%s link not recognised", sQuote(link)),
-                domain = NA)
+           stop(sQuote(link), " link not recognised")
            )# end switch(.)
     structure(list(linkfun = linkfun, linkinv = linkinv,
                    mu.eta = mu.eta, valideta = valideta, name = link),
@@ -157,7 +156,7 @@ poisson <- function (link = "log")
     aic <- function(y, n, mu, wt, dev) -2*sum(dpois(y, mu, log=TRUE)*wt)
     initialize <- expression({
 	if (any(y < 0))
-	    stop("negative values not allowed for the 'Poisson' family")
+	    stop("negative values not allowed for the Poisson family")
 	n <- rep.int(1, nobs)
 	mustart <- y + 0.1
     })
@@ -213,7 +212,7 @@ quasipoisson <- function (link = "log")
     aic <- function(y, n, mu, wt, dev) NA
     initialize <- expression({
 	if (any(y < 0))
-	    stop("negative values not allowed for the 'quasiPoisson' family")
+	    stop("negative values not allowed for the quasiPoisson family")
 	n <- rep.int(1, nobs)
 	mustart <- y + 0.1
     })
@@ -330,7 +329,8 @@ binomial <- function (link = "logit")
 	    weights <- weights * n
             mustart <- (n * y + 0.5)/(n + 1)
 	}
-	else stop("for the 'binomial' family, y must be a vector of 0 and 1\'s\nor a 2 column matrix where col 1 is no. successes and col 2 is no. failures")
+	else stop("for the binomial family, y must be a vector of 0 and 1\'s\n",
+                  "or a 2 column matrix where col 1 is no. successes and col 2 is no. failures")
     })
     simfun <- function(object, nsim) {
         ftd <- fitted(object)
@@ -417,7 +417,8 @@ quasibinomial <- function (link = "logit")
 	    weights <- weights * n
             mustart <- (n * y + 0.5)/(n + 1)
 	}
-	else stop("for the 'quasibinomial' family, y must be a vector of 0 and 1\'s\nor a 2 column matrix where col 1 is no. successes and col 2 is no. failures")
+	else stop("for the quasibinomial family, y must be a vector of 0 and 1\'s\n",
+                  "or a 2 column matrix where col 1 is no. successes and col 2 is no. failures")
     })
     structure(list(family = "quasibinomial",
 		   link = linktemp,
@@ -463,7 +464,7 @@ Gamma <- function (link = "inverse")
     }
     initialize <- expression({
 	if (any(y <= 0))
-	    stop("non-positive values not allowed for the 'gamma' family")
+	    stop("non-positive values not allowed for the gamma family")
 	n <- rep.int(1, nobs)
 	mustart <- y
     })
@@ -516,7 +517,7 @@ inverse.gaussian <- function(link = "1/mu^2")
 	sum(wt)*(log(dev/sum(wt)*2*pi)+1)+3*sum(log(y)*wt)+2
     initialize <- expression({
 	if(any(y <= 0))
-	    stop("positive values only are allowed for the 'inverse.gaussian' family")
+	    stop("positive values only allowed for the inverse.gaussian family")
 	n <- rep.int(1, nobs)
 	mustart <- y
     })
@@ -524,7 +525,7 @@ inverse.gaussian <- function(link = "1/mu^2")
     simfun <- function(object, nsim) {
         if(is.null(tryCatch(loadNamespace("SuppDists"),
                             error = function(e) NULL)))
-            stop("need CRAN package 'SuppDists' for the 'inverse.gaussian' family")
+            stop("Need CRAN package 'SuppDists' for 'inverse.gaussian' family")
         wts <- object$prior.weights
         if (any(wts != 1)) message("using weights as inverse variances")
         ftd <- fitted(object)

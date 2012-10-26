@@ -1,6 +1,6 @@
 /*  R : A Computer Language for Statistical Data Analysis
  *
- *  Copyright (C) 1999-2012	The R Core Team
+ *  Copyright (C) 1999-2002	The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,44 +45,31 @@ static void dotrans(Starma G, double *raw, double *new, int trans);
 
 
 /* cor is the autocorrelations starting from 0 lag*/
-static void uni_pacf(double *cor, double *p, int nlag)
+void uni_pacf(double *cor, double *p, int *pnlag)
 {
+    int nlag = *pnlag;
+    int i, ll;
     double a, b, c, *v, *w;
 
     v = (double*) R_alloc(nlag, sizeof(double));
     w = (double*) R_alloc(nlag, sizeof(double));
     w[0] = p[0] = cor[1];
-    for(int ll = 1; ll < nlag; ll++) {
+    for(ll = 1; ll < nlag; ll++) {
 	a = cor[ll+1];
 	b = 1.0;
-	for(int i = 0; i < ll; i++) {
+	for(i = 0; i < ll; i++) {
 	    a -= w[i] * cor[ll - i];
 	    b -= w[i] * cor[i + 1];
 	}
 	p[ll] = c = a/b;
 	if(ll+1 == nlag) break;
 	w[ll] = c;
-	for(int i = 0; i < ll; i++)
+	for(i = 0; i < ll; i++)
 	    v[ll-i-1] = w[i];
-	for(int i = 0; i < ll; i++)
+	for(i = 0; i < ll; i++)
 	    w[i] -= c*v[i];
     }
 }
-
-SEXP pacf1(SEXP acf, SEXP lmax)
-{
-    int lagmax = asInteger(lmax);
-    acf = PROTECT(coerceVector(acf, REALSXP));
-    SEXP ans = PROTECT(allocVector(REALSXP, lagmax));
-    uni_pacf(REAL(acf), REAL(ans), lagmax);
-    SEXP d = PROTECT(allocVector(INTSXP, 3));
-    INTEGER(d)[0] = lagmax;
-    INTEGER(d)[1] = INTEGER(d)[2] = 1;
-    setAttrib(ans, R_DimSymbol, d);
-    UNPROTECT(3);
-    return ans;
-}
-
 
 /* Use an external reference to store the structure we keep allocated
    memory in */
@@ -302,25 +289,14 @@ SEXP arma0_kfore(SEXP pG, SEXP pd, SEXP psd, SEXP nahead)
     return res;
 }
 
-static void artoma(int p, double *phi, double *psi, int npsi)
+void artoma(int *pp, double *phi, double *psi, int *npsi)
 {
-    int i, j;
+    int i, j, p = *pp;
 
     for(i = 0; i < p; i++) psi[i] = phi[i];
-    for(i = p; i < npsi; i++) psi[i] = 0.0;
-    for(i = 0; i < npsi - p - 1; i++)
+    for(i = p; i < *npsi; i++) psi[i] = 0.0;
+    for(i = 0; i < *npsi - p - 1; i++)
 	for(j = 0; j < p; j++) psi[i + j + 1] += phi[j]*psi[i];
-}
-
-SEXP ar2ma(SEXP ar, SEXP npsi)
-{
-    ar = PROTECT(coerceVector(ar, REALSXP));
-    int p = LENGTH(ar), ns = asInteger(npsi), ns1 = ns + p + 1;
-    SEXP psi = PROTECT(allocVector(REALSXP, ns1));
-    artoma(p, REAL(ar), REAL(psi), ns1);
-    SEXP ans = lengthgets(psi, ns);
-    UNPROTECT(2);
-    return ans;
 }
 
 static void partrans(int p, double *raw, double *new)

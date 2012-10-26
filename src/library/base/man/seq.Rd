@@ -111,8 +111,7 @@ seq(length.out= )
   arguments return a vector of type \code{"integer"} or \code{"double"}:
   programmers should not rely on which.
 
-  \code{seq_along} and \code{seq_len} return an integer vector, unless
-  it is a \emph{long vector} when it will be double.
+  \code{seq_along} and \code{seq_len} always return an integer vector.
 }
 
 \references{

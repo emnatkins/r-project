@@ -26,7 +26,8 @@ density.default <-
 	     give.Rkern = FALSE,
 	     n = 512, from, to, cut = 3, na.rm = FALSE, ...)
 {
-    if(!missing(...)) warning("non-matched further arguments are disregarded")
+    if(length(list(...)))
+	warning("non-matched further arguments are disregarded")
     if(!missing(window) && missing(kernel))
 	kernel <- window
     kernel <- match.arg(kernel)
@@ -51,8 +52,7 @@ density.default <-
         if (na.rm) x <- x[!x.na]
         else stop("'x' contains missing values")
     }
-    N <- nx <- as.integer(length(x))
-    if(is.na(N)) stop("invalid value of length(x)")
+    N <- nx <- length(x)
     x.finite <- is.finite(x)
     if(any(!x.finite)) {
         x <- x[x.finite]

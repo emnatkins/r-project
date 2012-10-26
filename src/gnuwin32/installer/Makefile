@@ -35,7 +35,7 @@ endif
 
 FULLVERSION=`cat ../../../VERSION`
 RPREFIX = $(shell ../../../bin$(R_ARCH)/Rscript ../fixed/rwver.R)
-LIBFILES = $(foreach i, $(R_PKGS_BASE) $(R_PKGS_RECOMMENDED) translations $(EXTRA_PKGS), $(R_HOME)/library/$i)
+LIBFILES = $(foreach i, $(R_PKGS_BASE) $(R_PKGS_RECOMMENDED) $(EXTRA_PKGS), $(R_HOME)/library/$i)
 
 INFO_FILES = COPYING NEWS README
 DOC_INFO_FILES = AUTHORS COPYING FAQ RESOURCES THANKS CHANGES
@@ -45,7 +45,7 @@ ETC_FILES = Rprofile.site Rconsole Rdevga rgb.txt repositories Rcmd_environ
 
 
 # we don't want share/{Makefile.in,java,sh} installed
-SHARE_DIRS = R encodings licenses make texmf zoneinfo
+SHARE_DIRS = R encodings licenses locale make texmf zoneinfo
 
 all: $(RPREFIX)-win.exe
 msi: $(RPREFIX)-$(SUFF).msi

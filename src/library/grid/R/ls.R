@@ -61,7 +61,7 @@ grid.ls <- function(x=NULL, grobs=TRUE, viewports=FALSE, fullNames=FALSE,
     } else if (is.function(print)) {
         print(listing, ...)
     } else {
-        stop("invalid 'print' argument")
+        stop("Invalid 'print' argument")
     }
     invisible(listing)
 }
@@ -89,7 +89,7 @@ gridList.default <- function(x, grobs=TRUE, viewports=FALSE,
         result <- character()
         class(result) <- "gridListing"
     } else {
-        stop("invalid object in 'listing'")
+        stop("Invalid object in listing")
     }
     result
 }
@@ -158,9 +158,9 @@ gridList.gTree <- function(x, grobs=TRUE, viewports=FALSE,
     class(name) <- c("grobListing", "gridVectorListing", "gridListing")
     if (recursive) {
         # Allow for grobs=FALSE but viewports=TRUE
-        result <- gridList(x$children[x$childrenOrder],
-                           grobs=grobs, viewports=viewports,
-                           fullNames=fullNames, recursive=recursive)
+        result <- gridList(x$children,
+                          grobs=grobs, viewports=viewports,
+                          fullNames=fullNames, recursive=recursive)
         if (viewports && !is.null(x$childrenvp)) {
             # Bit dodgy this bit
             # Emulates an "upViewport" on the DL
@@ -544,7 +544,7 @@ updateVPPath.vpPopListing <- function(x, vppath) {
 
 updateVPPath.vpTreeListing <- function(x, vppath) {
     incPath(vppath,
-            paste(updateVPPath(x$parent, ""), .grid.pathSep,
+            paste(x$parent, .grid.pathSep,
                   updateVPPath(x$children, ""), sep=""))
 }
 
@@ -584,7 +584,7 @@ flatListing.gTreeListing <- function(x, gDepth=0, vpDepth=0,
          type=c(class(x)[1L], flatChildren$type))
 }
 
-OLDflatListing.vpTreeListing <- function(x, gDepth=0, vpDepth=0,
+flatListing.vpTreeListing <- function(x, gDepth=0, vpDepth=0,
                                       gPath="", vpPath="") {
     # Increase vpDepth and vpPath
     flatChildren <- flatListing(x$children, gDepth, incDepth(vpDepth, 1),
@@ -595,25 +595,6 @@ OLDflatListing.vpTreeListing <- function(x, gDepth=0, vpDepth=0,
          gPath=c(gPath, flatChildren$gPath),
          vpPath=c(vpPath, flatChildren$vpPath),
          type=c(class(x)[1L], flatChildren$type))
-}
-
-flatListing.vpTreeListing <- function(x, gDepth=0, vpDepth=0,
-                                      gPath="", vpPath="") {
-    flatParent <- flatListing(x$parent, gDepth, vpDepth,
-                              gPath, vpPath)
-    depth <- attr(x$parent, "depth")
-    if (is.null(depth)) {
-        depth <- 1
-    }
-    # Increase vpDepth and vpPath
-    flatChildren <- flatListing(x$children, gDepth, incDepth(vpDepth, depth),
-                                gPath, updateVPPath(x$parent, vpPath))
-    list(name=c(flatParent$name, flatChildren$name),
-         gDepth=c(flatParent$gDepth, flatChildren$gDepth),
-         vpDepth=c(flatParent$vpDepth, flatChildren$vpDepth),
-         gPath=c(flatParent$gPath, flatChildren$gPath),
-         vpPath=c(flatParent$vpPath, flatChildren$vpPath),
-         type=c(flatParent$type, flatChildren$type))
 }
 
 flatListing.vpNameTreeListing <- function(x, gDepth=0, vpDepth=0,
@@ -685,7 +666,7 @@ nestedListing <- function(x, gindent="  ", vpindent=gindent) {
     }
 
     if (!inherits(x, "flatGridListing"))
-        stop("invalid listing")
+        stop("Invalid listing")
     cat(paste(makePrefix(gindent, x$gDepth),
               makePrefix(vpindent, x$vpDepth),
               x$name, sep=""),
@@ -713,7 +694,7 @@ pathListing <- function(x, gvpSep=" | ", gAlign=TRUE) {
     }
 
     if (!inherits(x, "flatGridListing"))
-        stop("invalid 'listing'")
+        stop("Invalid listing")
     vpListings <- seq_along(x$name) %in% grep("^vp", x$type)
     paths <- x$vpPath
     # Only if viewport listings

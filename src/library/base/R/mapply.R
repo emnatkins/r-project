@@ -21,7 +21,8 @@ mapply <- function(FUN,..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE)
     FUN <- match.fun(FUN)
     dots <- list(...)
 
-    answer <- .Internal(mapply(FUN, dots, MoreArgs))
+    answer <- .Call("do_mapply", FUN, dots, MoreArgs, environment(),
+                    PACKAGE = "base")
 
     if (USE.NAMES && length(dots)) {
 	if (is.null(names1 <- names(dots[[1L]])) && is.character(dots[[1L]]))
@@ -33,9 +34,6 @@ mapply <- function(FUN,..., MoreArgs = NULL, SIMPLIFY = TRUE, USE.NAMES = TRUE)
 	simplify2array(answer, higher = (SIMPLIFY == "array"))
     else answer
 }
-
-.mapply <- function(FUN, dots, MoreArgs)
-    .Internal(mapply(FUN, dots, MoreArgs))
 
 Vectorize <- function(FUN, vectorize.args = arg.names, SIMPLIFY = TRUE,
                       USE.NAMES = TRUE)
@@ -49,7 +47,7 @@ Vectorize <- function(FUN, vectorize.args = arg.names, SIMPLIFY = TRUE,
     if (!length(vectorize.args)) return(FUN)
 
     if (!all(vectorize.args %in% arg.names))
-    	stop("must specify names of formal arguments for 'vectorize'")
+    	stop("must specify formal argument names to vectorize")
 
     FUNV <- function() { ## will set the formals below
         args <- lapply(as.list(match.call())[-1L], eval, parent.frame())

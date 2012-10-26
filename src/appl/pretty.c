@@ -1,6 +1,8 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1995-2012  The R Core Team
+ *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
+ *  Copyright (C) 1998	      Robert Gentleman, Ross Ihaka and the
+ *                            R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -60,13 +62,6 @@
 # include <R_ext/Print.h>
 #endif
 
-#ifdef HAVE_VISIBILITY_ATTRIBUTE
-# define attribute_hidden __attribute__ ((visibility ("hidden")))
-#else
-# define attribute_hidden
-#endif
-
-/* non-API, used by rgl */
 double R_pretty0(double *lo, double *up, int *ndiv, int min_n,
 	       double shrink_sml, double high_u_fact[],
 	       int eps_correction, int return_bounds)
@@ -193,7 +188,6 @@ double R_pretty0(double *lo, double *up, int *ndiv, int min_n,
 #undef h5
 }
 
-attribute_hidden
 void R_pretty(double *lo, double *up, int *ndiv, int *min_n,
 	      double *shrink_sml, double *high_u_fact, int *eps_correction)
 {

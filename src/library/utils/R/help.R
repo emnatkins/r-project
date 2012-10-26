@@ -39,7 +39,10 @@ function(topic, package = NULL, lib.loc = NULL,
                     return(library(help = package, lib.loc = lib.loc,
                                    character.only = TRUE))
                 browser <- if (.Platform$GUI == "AQUA") {
-                    get("aqua.browser", envir = as.environment("tools:RGUI"))
+                    function(x, ...) {
+                        .Internal(aqua.custom.print("help-files", x))
+                        return(invisible(x))
+                    }
                 } else getOption("browser")
  		browseURL(paste("http://127.0.0.1:", tools:::httpdPort,
                                 "/library/", package, "/html/00Index.html",
@@ -101,8 +104,12 @@ print.help_files_with_topic <- function(x, ...)
     browser <- getOption("browser")
     topic <- attr(x, "topic")
     type <- attr(x, "type")
-    if (.Platform$GUI == "AQUA" && type == "html")
-        browser <- get("aqua.browser", envir = as.environment("tools:RGUI"))
+    if (.Platform$GUI == "AQUA" && type == "html") {
+        browser <- function(x, ...) {
+            .Internal(aqua.custom.print("help-files", x))
+    	    return(invisible(x))
+        }
+    }
     paths <- as.character(x)
     if(!length(paths)) {
         writeLines(c(gettextf("No documentation for %s in specified packages and libraries:",
@@ -284,10 +291,9 @@ offline_help_helper <- function(texfile, type, texinputs = NULL)
         stop(gettextf("creation of %s failed", sQuote(ofile2)), domain = NA)
     if(file.copy(ofile, ofile2, overwrite = TRUE)) {
         unlink(ofile)
-        message(gettextf("Saving help page to %s", sQuote(basename(ofile2))),
-                domain = NA)
+        message("Saving help page to ", sQuote(basename(ofile2)))
     } else {
-        message(gettextf("Saving help page to %s", sQuote(ofile)), domain = NA)
+        message("Saving help page to ", sQuote(ofile))
     }
     invisible()
 }

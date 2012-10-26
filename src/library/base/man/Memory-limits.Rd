@@ -39,12 +39,14 @@
   there may well be enough free memory available, but not a large enough
   contiguous block of address space into which to map it.
 
-  There are also limits on individual objects. The storage space
+  There are also limits on individual objects.  On all builds of \R,
+  the maximum length (number of elements) of a vector is
+  \eqn{2^{31} - 1 \approx 2\thinspace 10^9}{2^31 - 1 ~ 2*10^9}, as
+  lengths are stored as signed integers.  In addition, the storage space
   cannot exceed the address limit, and if you try to exceed that limit,
   the error message begins \code{cannot allocate vector of length}.
-  The number of bytes in a character string is limited to 
-  \eqn{2^{31} - 1 \approx 2\thinspace 10^9}{2^31 - 1 ~ 2*10^9},
-  which is also the limit on each dimension of an array.
+  The number of bytes in a character string is limited to
+  \eqn{2^{31} - 1 \approx 2\thinspace 10^9}{2^31 - 1 ~ 2*10^9}.
 }
 \section{Unix}{
   The address-space limit is system-specific: 32-bit OSes

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.11.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2012-09-30 14:26\n"
+"POT-Creation-Date: 2012-07-12 13:10\n"
 "PO-Revision-Date: 2011-10-18 19:29-0600\n"
 "Last-Translator: Alexey Shipunov <dactylorhiza@gmail.com>\n"
 "Language-Team: Russian\n"
@@ -57,36 +57,28 @@ msgstr "'start' и 'end' должны быть различными и в пределах [0, 1]."
 msgid "'gamma' must be a scalar or 'sRGB'"
 msgstr "'gamma' должна быть скаляром или 'sRGB'"
 
-#, fuzzy
-msgid "Color space converter: %s"
+msgid "Color space converter:"
 msgstr "Конвертер цветового пространства:"
 
-#, fuzzy
-msgid "Reference white: %s"
+msgid "Reference white:"
 msgstr "Стандартный белый:"
 
-#, fuzzy
-msgid "display gamma = %s"
+msgid "display gamma"
 msgstr "отразить гамму"
 
-#, fuzzy
-msgid "'from' must be a \"colorConverter\" object or a string"
+msgid "'from' must be a colorConverter or string"
 msgstr "'from' должен быть colorConverter или строкой"
 
-#, fuzzy
-msgid "'to' must be a \"colorConverter\" object or a string"
+msgid "'to' must be a colorConverter or string"
 msgstr "'to' должен быть colorConverter или строкой"
 
-#, fuzzy
-msgid "'from.ref.white' disagrees with definition of %s"
+msgid "'from.ref.white' disagrees with definition of"
 msgstr "'from.ref.white' не согласуется с определением"
 
-#, fuzzy
-msgid "'to.ref.white' disagrees with definition of %s"
+msgid "'to.ref.white' disagrees with definition of"
 msgstr "'to.ref.white' не согласуется с определением"
 
-#, fuzzy
-msgid "color spaces use different reference whites"
+msgid "color spaces use different reference whites."
 msgstr "цветовые пространства используют разные стандарты белого."
 
 msgid "'name' must be a character vector"
@@ -113,11 +105,14 @@ msgstr "'устройство' должно быть функцией"
 msgid "no device to print from"
 msgstr "нет устройства, с которого печатать"
 
-msgid "can only print from a screen device"
+msgid "can only print from screen device"
 msgstr "могу печатать только с экранного устройства"
 
 msgid "need to specify one of 'width' and 'height'"
 msgstr "надо указать либо 'width', либо 'height'"
+
+msgid "can only print from a screen device"
+msgstr "могу печатать только с экранного устройства"
 
 msgid "dev.control() called without an open graphics device"
 msgstr "dev.control() вызван без открытия графического устройства"
@@ -158,8 +153,7 @@ msgstr "не могу перегрузить несуществующий '%s'"
 msgid "invalid options in '%s'"
 msgstr "неправильные опции в '%s'"
 
-#, fuzzy
-msgid "NOT changing %s"
+msgid "NOT changing"
 msgstr "НЕ изменяется"
 
 msgid "argument 'append' is for back-compatibility and will be ignored"
@@ -174,6 +168,9 @@ msgstr "неправильный аргумент 'family'"
 
 msgid "invalid 'file'"
 msgstr "неправильный 'file'"
+
+msgid "'maxRasters' is no longer needed, and will be ignored"
+msgstr "'maxRasters' больше не нужны и будут пропущены"
 
 msgid "invalid PDF version"
 msgstr "неправильная версия PDF"
@@ -226,8 +223,7 @@ msgstr "Неправильный формат вывода"
 msgid "status %d in running command '%s'"
 msgstr "статус %d выполняющейся команды '%s'"
 
-#, fuzzy
-msgid "range too small for 'min.n'"
+msgid "range too small for min.n"
 msgstr "размах слишком мал для min.m"
 
 msgid "A raster matrix must be character, or numeric, or logical"
@@ -259,8 +255,7 @@ msgstr "Оператор не имеет смысла для объектов растра"
 msgid "no current device to record from"
 msgstr "нет устройства, которое надо записывать"
 
-#, fuzzy
-msgid "argument is not of class %s"
+msgid "argument is not of class \"recordedplot\""
 msgstr "аргумент не принадлежит к классу \"recordedplot\""
 
 msgid "loading snapshot from pre-2.0.0 R version"
@@ -326,12 +321,10 @@ msgstr "неправильный 'title'"
 msgid "invalid Quartz font:  must be 4 strings"
 msgstr "неправильный шрифт Quartz:  должно быть 4 строки"
 
-#, fuzzy
-msgid "invalid arguments in 'quartzFonts' (must be font names)"
+msgid "invalid arguments in quartzFonts (must be font names)"
 msgstr "неправильные аргументы в quartzFonts (должен быть имена шрифтов)"
 
-#, fuzzy
-msgid "invalid arguments in 'quartzFonts' (need named args)"
+msgid "invalid arguments in quartzFonts (need named args)"
 msgstr "неправильные аргументы в quartzFonts (нужны именованные аргументы)"
 
 msgid "cairo-based types are not supported on this build - using \"Xlib\""
@@ -344,14 +337,6 @@ msgstr "неизвестное семейство X11(type = \"XLib\")"
 
 msgid "invalid X11 font specification:"
 msgstr "неправильное указание шрифта X11:"
-
-#, fuzzy
-msgid "invalid arguments in 'X11Fonts' (must be font names)"
-msgstr "неправильные аргументы в '%s' (должны быть имена шрифтов)"
-
-#, fuzzy
-msgid "invalid arguments in 'X11Fonts' (need named args)"
-msgstr "неправильные аргументы в '%s' (нужны именованные аргументы)"
 
 msgid "no such device"
 msgstr "нет такого устройства"
@@ -415,12 +400,6 @@ msgid_plural "%d z values <= 0 omitted from logarithmic plot"
 msgstr[0] "%d значение z <= 0 пропущено на логарифмическом графике"
 msgstr[1] "%d значения z <= 0 пропущены на логарифмическом графике"
 msgstr[2] "%d значения z <= 0 пропущены на логарифмическом графике"
-
-#~ msgid "can only print from screen device"
-#~ msgstr "могу печатать только с экранного устройства"
-
-#~ msgid "'maxRasters' is no longer needed, and will be ignored"
-#~ msgstr "'maxRasters' больше не нужны и будут пропущены"
 
 #~ msgid "The 'gamma' argument is deprecated and has no effect"
 #~ msgstr "Аргумент 'gamma' устарел и не возымеем никакого эффекта"

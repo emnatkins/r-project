@@ -1,23 +1,20 @@
 % File src/library/base/man/svd.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2012 R Core Team
+% Copyright 1995-2009 R Core Team
 % Distributed under GPL 2 or later
 
 \name{svd}
 \alias{svd}
 \alias{La.svd}
 \title{Singular Value Decomposition of a Matrix}
-\description{
-  Compute the singular-value decomposition of a rectangular matrix.
-}
 \usage{
 svd(x, nu = min(n, p), nv = min(n, p), LINPACK = FALSE)
 
 La.svd(x, nu = min(n, p), nv = min(n, p))
 }
 \arguments{
-  \item{x}{a numeric or complex matrix whose SVD decomposition
-    is to be computed.  Logical matrices are coerced to numeric.}
+  \item{x}{a numeric, logical or complex matrix whose SVD decomposition
+    is to be computed.}
   \item{nu}{the number of left  singular vectors to be computed.
     This must between \code{0} and \code{n = nrow(x)}.}
   \item{nv}{the number of right singular vectors to be computed.
@@ -25,6 +22,9 @@ La.svd(x, nu = min(n, p), nv = min(n, p))
   \item{LINPACK}{logical.  Should LINPACK be used (for compatibility with
     \R < 1.7.0)?  In this case \code{nu} must be \code{0},
     \code{nrow(x)} or \code{ncol(x)}.}
+}
+\description{
+  Compute the singular-value decomposition of a rectangular matrix.
 }
 \details{
   The singular value decomposition plays an important role in many
@@ -39,9 +39,6 @@ La.svd(x, nu = min(n, p), nv = min(n, p))
   error giving a positive error code (most often \code{1}): these can
   only be interpreted by detailed study of the FORTRAN code but mean
   that the algorithm failed to converge.
-
-  The LINPACK interface is restricted to matrices \code{x} with less
-  than \eqn{2^{31}}{2^31} elements.
 }
 \value{
   The SVD decomposition of the matrix as computed by LAPACK/LINPACK,

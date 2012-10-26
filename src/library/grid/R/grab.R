@@ -60,19 +60,13 @@ vpExists.vpTree <- function(vp) {
   vpExists(vp$parent)
 }
 
-# Handle vpPaths in a vpStack or vpTree
-# Not a problem to downViewport() to a viewport that already exists
-vpExists.vpPath <- function(vp) {
-    FALSE
-}
-
 wrap <- function(x) {
   UseMethod("wrap")
 }
 
 wrap.default <- function(x) {
   if (!is.null(x))
-    stop("invalid display list element")
+    stop("Invalid display list element")
   NULL
 }
 
@@ -113,7 +107,7 @@ grabDL <- function(warn, wrap, ...) {
       names <- getNames()
       # Check for overwriting existing grob
       if (length(unique(names)) != length(names))
-        warning("one of more grobs overwritten (grab WILL not be faithful; try 'wrap = TRUE')")
+        warning("grob(s) overwritten (grab WILL not be faithful; try 'wrap=TRUE')")
     }
     grid.newpage(recording=FALSE)
     # Start at 2 because first element is viewport[ROOT]
@@ -211,13 +205,14 @@ grid.grab <- function(warn=2, wrap=FALSE, ...) {
 }
 
 grid.grabExpr <- function(expr, warn=2, wrap=FALSE, ...) {
-    ## Start an "offline" PDF device for this function
+  # Start an "offline" PDF device for this function
+    # .Call("R_GD_nullDevice", PACKAGE = "grDevices")
     pdf(file=NULL)
     on.exit(dev.off())
-    ## Run the graphics code in expr
-    ## Rely on lazy evaluation for correct "timing"
+    # Run the graphics code in expr
+    # Rely on lazy evaluation for correct "timing"
     eval(expr)
-    ## Grab the DL on the new device
+    # Grab the DL on the new device
     grabDL(warn, wrap, ...)
 }
 

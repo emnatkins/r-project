@@ -90,7 +90,12 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
                     exact <- (n < 50)
                 if(exact && !TIES) {
                     q <- round((r + 1) * n * (n - 1) / 4)
-                    pkendall <- function(q, n) .Call(C_pKendall, q, n)
+                    pkendall <- function(q, n) {
+                        .C(C_pkendall,
+                           length(q),
+                           p = as.double(q),
+                           as.integer(n))$p
+                    }
                     PVAL <-
                         switch(alternative,
                                "two.sided" = {
@@ -147,12 +152,17 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
                 ## In the case of no ties, S = (1-rho) * (n^3-n)/6.
                 pspearman <- function(q, n, lower.tail = TRUE) {
                     if(n <= 1290 && exact) # n*(n^2 - 1) does not overflow
-                        .Call(C_pRho, round(q) + 2*lower.tail, n, lower.tail)
+                        .C(C_prho,
+                           as.integer(n),
+                           as.double(round(q) + 2*lower.tail),
+                           p = double(1L),
+                           integer(1L),
+                           as.logical(lower.tail))$p
 		    else { # for large n: asymptotic t_{n-2}
                         den <- (n*(n^2-1))/6 # careful for overflow
                         ## Kendall et all (1939) p. 260
                         if (continuity) den <- den + 1
-			r <- 1 - q/den
+			r <- 1 - q / den
 			pt(r / sqrt((1 - r^2)/(n-2)), df = n-2,
 			   lower.tail= !lower.tail)
 		    }
@@ -161,7 +171,7 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
                 STATISTIC <- c(S = q)
                 if(TIES && exact){
                     exact <- FALSE
-                    warning("Cannot compute exact p-value with ties")
+                    warning("Cannot compute exact p-values with ties")
                 }
                 PVAL <-
                     switch(alternative,

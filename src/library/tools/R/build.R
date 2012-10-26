@@ -763,21 +763,12 @@ get_exclude_patterns <- function()
     pkgs <- character()
     options(showErrorCalls = FALSE, warn = 1)
 
-    ## Read in build environment file.
-    Renv <- Sys.getenv("R_BUILD_ENVIRON", unset = NA)
-    if(!is.na(Renv)) {
-        ## Do not read any build environment file if R_BUILD_ENVIRON is
-        ## set to empty of something non-existent.
-        if(nzchar(Renv) && file.exists(Renv)) readRenviron(Renv)
-    } else {
-        ## Read in ~/.R/build.Renviron[.rarch] (if existent).
-        rarch <- .Platform$r_arch
-        if (nzchar(rarch) &&
-            file.exists(Renv <- paste("~/.R/build.Renviron", rarch, sep = ".")))
-            readRenviron(Renv)
-        else if (file.exists(Renv <- "~/.R/build.Renviron"))
-            readRenviron(Renv)
-    }
+    ## read in ~/.R/build.Renviron[.rarch]
+    rarch <- .Platform$r_arch
+    if (nzchar(rarch) &&
+        file.exists(Renv <- paste("~/.R/build.Renviron", rarch, sep = ".")))
+        readRenviron(Renv)
+    else if (file.exists(Renv <- "~/.R/build.Renviron")) readRenviron(Renv)
 
     ## Configurable variables.
     compact_vignettes <- Sys.getenv("_R_BUILD_COMPACT_VIGNETTES_", "no")
@@ -836,9 +827,7 @@ get_exclude_patterns <- function()
     }
 
     if(!compact_vignettes %in% c("no", "qpdf", "gs", "gs+qpdf", "both")) {
-        warning(gettextf("invalid value for '--compact-vignettes', assuming %s",
-                         "\"qpdf\""),
-                domain = NA)
+        warning('invalid value for --compact-vignettes, assuming "qpdf"')
         compact_vignettes <-"qpdf"
     }
 
@@ -915,8 +904,7 @@ get_exclude_patterns <- function()
         ## Now correct the package name (PR#9266)
         if (pkgname != intname) {
             if (!file.rename(pkgname, intname)) {
-                message(gettextf("Error: cannot rename directory to %s",
-                                 sQuote(intname)), domain = NA)
+                message("Error: cannot rename directory to ", sQuote(intname))
                 do_exit(1L)
             }
             pkgname <- intname
@@ -974,7 +962,7 @@ get_exclude_patterns <- function()
         setwd(Tdir)
         ## Fix permissions for all files to be at least 644, and dirs 755
         ## Not restricted by umask.
-        if (!WINDOWS) .Call(dirchmod, pkgname)
+        if (!WINDOWS) .Internal(dirchmod(pkgname))
         ## Add build stamp to the DESCRIPTION file.
         add_build_stamp_to_description_file(file.path(pkgname,
                                                       "DESCRIPTION"))

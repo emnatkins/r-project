@@ -41,10 +41,8 @@ stopifnot <- function(...)
 	if(!(is.logical(r <- ll[[i]]) && !any(is.na(r)) && all(r))) {
 	    ch <- deparse(mc[[i+1]], width.cutoff = 60L)
 	    if(length(ch) > 1L) ch <- paste(ch[1L], "....")
-            stop(sprintf(ngettext(length(r),
-                                  "%s is not TRUE",
-                                  "%s are not all TRUE"),
-                         ch), call. = FALSE, domain = NA)
+	    stop(paste0(ch, " is not ", if(length(r) > 1L)"all ", "TRUE"),
+		 call.= FALSE)
 	}
     invisible()
 }

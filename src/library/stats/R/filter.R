@@ -21,29 +21,32 @@ filter <- function(x, filter, method = c("convolution", "recursive"),
 {
     method <- match.arg(method)
     x <- as.ts(x)
-    storage.mode(x) <- "double"
     xtsp <- tsp(x)
-    n <- as.integer(NROW(x))
+    x <- as.matrix(x)
+    n <- as.integer(nrow(x))
     if (is.na(n)) stop("invalid value of nrow(x)", domain = NA)
-    nser <- NCOL(x)
-    filter <- as.double(filter)
+    nser <- ncol(x)
     nfilt <- as.integer(length(filter))
     if (is.na(n)) stop("invalid value of length(filter)", domain = NA)
-    if(any(is.na(filter))) stop("missing values in 'filter'")
-
+   if(any(is.na(filter))) stop("missing values in 'filter'")
+    y <- matrix(NA, n, nser)
     if(method == "convolution") {
         if(nfilt > n) stop("'filter' is longer than time series")
         sides <- as.integer(sides)
-        if(is.na(sides) || (sides != 1L && sides != 2L))
+        if(is.na(sides) ||( sides != 1 && sides != 2))
             stop("argument 'sides' must be 1 or 2")
         circular <- as.logical(circular)
         if (is.na(circular)) stop("'circular' must be logical and not NA")
-        if (is.matrix(x)) {
-            y <- matrix(NA, n, nser)
-            for (i in seq_len(nser))
-                y[, i] <- .Call(C_cfilter, x[, i], filter, sides, circular)
-        } else
-            y <- .Call(C_cfilter, x, filter, sides, circular)
+        for (i in 1L:nser)
+            y[, i] <- .C(C_filter1,
+                         as.double(x[,i]),
+                         n,
+                         as.double(filter),
+                         nfilt,
+                         sides,
+                         circular,
+                         out = double(n), NAOK = TRUE,
+                         PACKAGE = "stats")$out
     } else {
         if(missing(init)) {
             init <- matrix(0, nfilt, nser)
@@ -51,30 +54,24 @@ filter <- function(x, filter, method = c("convolution", "recursive"),
             ni <- NROW(init)
             if(ni != nfilt)
                 stop("length of 'init' must equal length of 'filter'")
-            if(NCOL(init) != 1L && NCOL(init) != nser)
-                stop(sprintf(ngettext(nser,
-                                      "'init' must have 1 column",
-                                      "'init' must have 1 or %d columns"),
-                             nser), domain = NA)
-            if(!is.matrix(init)) dim(init) <- c(nfilt, nser)
+            if(NCOL(init) != 1 && NCOL(init) != nser)
+                stop(gettextf("'init'; must have 1 or %d cols", nser),
+                     domain = NA)
+            if(!is.matrix(init)) init <- matrix(init, nfilt, nser)
         }
-        ind <- seq_len(nfilt)
-        ## NB: this .Call alters its third argument
-        if (is.matrix(x)) {
-            y <- matrix(NA, n, nser)
-            for (i in seq_len(nser))
-                y[, i] <-
-                    .Call(C_rfilter, x[, i], filter,
-                          c(rev(init[, i]), double(n)))[-ind]
-        } else
-                y <-
-                    .Call(C_rfilter, x, filter,
-                          c(rev(init[, 1L]), double(n)))[-ind]
-
+        for (i in 1L:nser)
+            y[, i] <- .C(C_filter2,
+                         as.double(x[,i]),
+                         n,
+                         as.double(filter),
+                         nfilt,
+                         out = as.double(c(rev(init[, i]), double(n))),
+                         NAOK = TRUE,
+                         PACKAGE = "stats")$out[-(1L:nfilt)]
     }
-#    y <- drop(y)
+    y <- drop(y)
     tsp(y) <- xtsp
-    class(y) <- if(nser > 1L) c("mts", "ts") else "ts"
+    class(y) <- if(nser > 1) c("mts", "ts") else "ts"
     y
 }
 

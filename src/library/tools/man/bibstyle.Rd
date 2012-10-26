@@ -5,7 +5,6 @@
 
 \name{bibstyle}
 \alias{bibstyle}
-\alias{getBibstyle}
 \title{
 Select or define a bibliography style.
 }
@@ -14,8 +13,7 @@ This function defines and registers styles for rendering \code{\link{bibentry}} 
 into Rd format, for later conversion to text, HTML, etc.
 }
 \usage{
-bibstyle(style, envir, ..., .init = FALSE, .default = TRUE)
-getBibstyle(all = FALSE)
+bibstyle(style, envir, ..., .init = FALSE, .default = FALSE)
 }
 \arguments{
   \item{style}{
@@ -33,9 +31,6 @@ Whether to initialize the environment from the default style \code{"JSS"}.
   \item{.default}{
 Whether to set the specified style as the default style.
 }
-  \item{all}{
-Whether to return the names of all registered styles.
-}
 }
 \details{
 Rendering of \code{\link{bibentry}} objects may be done using routines
@@ -49,19 +44,17 @@ is modelled after the \file{jss.bst} style used by the \emph{Journal
 of Statistical Software}.)  Alternatively, the \code{envir} argument 
 can be used to specify a completely new style environment.
 
-To find the name of the default style, use \code{getBibstyle()}. To
-retrieve an existing style without setting it as the default, use 
-\code{bibstyle(style, .default=FALSE)}.  To modify an existing style,
-specify \code{style} and some named entries via \code{...}.
-(Modifying the default \code{"JSS"} style is discouraged.)  Setting
-\code{style} to \code{NULL} or leaving it missing will retrieve the
-default style, but modifications will not be allowed.
+To simply retrieve an existing style, specify \code{style}
+and no other arguments.  To modify an existing style, specify \code{style}
+and some named entries via \code{...}.  (Modifying the default
+\code{"JSS"} style is discouraged.)  Setting \code{style} to \code{NULL}
+or leaving it missing will retrieve the default style, but modifications
+will not be allowed.
 
 At a minimum, the environment should contain routines to render each
 of the 12 types of bibliographic entry supported by
-\code{\link{bibentry}} as well as several other routines 
-described below.
-The former must be named \code{formatArticle},
+\code{\link{bibentry}} as well as a routine to produce a sort key to
+sort the entries.  The former must be named \code{formatArticle},
 \code{formatBook}, \code{formatInbook}, \code{formatIncollection},
 \code{formatInProceedings}, \code{formatManual},
 \code{formatMastersthesis}, \code{formatMisc}, \code{formatPhdthesis},
@@ -69,29 +62,13 @@ The former must be named \code{formatArticle},
 \code{formatUnpublished}.  Each of these takes one argument, a single
 \code{\link{unclass}}'ed entry from the \code{\link{bibentry}} vector
 passed to the renderer, and should produce a single element character
-vector (possibly containing newlines).  
-
-The other routines are as follows.  \code{sortKeys}, a function to
-produce a sort key to sort the entries, is passed the original
-\code{\link{bibentry}} vector and should produce a sortable vector of
-the same length to define the sort order.  Finally,
-the optional function \code{cite} should have the same argument list
-as \code{utils::\link{cite}}, and should produce a citation to be used
-in text.
-
-The \code{\link{format}} method for \code{"bibentry"} objects adds a
-field named \code{".index"} to each entry after sorting and before
-formatting.  This is a 1-based index within the complete object that
-can be used in styles that require numbering.  Although the
-\code{"JSS"} style doesn't use numbers, it includes a
-\code{fmtPrefix()} stub function that may be used to display them.
-See the example below.
+vector (possibly containing newlines).  The sort keys are produced
+by a function named \code{sortKeys}.  It is passed the original 
+\code{\link{bibentry}} vector and should produce a sortable vector of 
+the same length to define the sort order.
 }
 \value{
-\code{bibstyle} returns the environment which has been selected or created.
-
-\code{getBibstyle} returns the name of the default style, or all
-style names.
+The environment which has been selected or created.
 }
 \author{
 Duncan Murdoch
@@ -107,7 +84,7 @@ c(bibentry(bibtype = "manual",
     author = person("R Core Team"),
     organization = "R Foundation for Statistical Computing",
     address = "Vienna, Austria",
-    year = 2012,
+    year = 2010,
     isbn = "3-900051-07-0",
     url = "http://www.R-project.org"),  
   bibentry(bibtype = "article",
@@ -118,9 +95,7 @@ c(bibentry(bibtype = "manual",
     journal = "Journal of the Royal Statistical Society, Series B",
     volume = 26,
     pages = "211-252"))
-    
 bibstyle("unsorted", sortKeys = function(refs) seq_along(refs),
-    fmtPrefix = function(paper) paste0("[", paper$.index, "]"),
        .init = TRUE)
 print(refs, .bibstyle = "unsorted")    
 }

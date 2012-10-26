@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.12.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2012-09-30 14:26\n"
+"POT-Creation-Date: 2012-07-12 13:10\n"
 "PO-Revision-Date: 2011-10-15 15:14+0100\n"
 "Last-Translator: Philippe Grosjean <phgrosjean@sciviews.org>\n"
 "Language-Team: French <R-core@r-project.org>\n"
@@ -54,36 +54,28 @@ msgstr "'start' et 'end' doivent être différents et dans [0, 1]."
 msgid "'gamma' must be a scalar or 'sRGB'"
 msgstr "'gamma' doit être une valeur simple ou 'sRGB'"
 
-#, fuzzy
-msgid "Color space converter: %s"
+msgid "Color space converter:"
 msgstr "Convertisseur de l'espace des couleurs :"
 
-#, fuzzy
-msgid "Reference white: %s"
+msgid "Reference white:"
 msgstr "Blanc de référence :"
 
-#, fuzzy
-msgid "display gamma = %s"
+msgid "display gamma"
 msgstr "gamma d'affichage"
 
-#, fuzzy
-msgid "'from' must be a \"colorConverter\" object or a string"
+msgid "'from' must be a colorConverter or string"
 msgstr "'from' doit être un colorConverter ou une chaîne de caractères"
 
-#, fuzzy
-msgid "'to' must be a \"colorConverter\" object or a string"
+msgid "'to' must be a colorConverter or string"
 msgstr "'to' doit être un colorConverter ou une chaîne de caractères"
 
-#, fuzzy
-msgid "'from.ref.white' disagrees with definition of %s"
+msgid "'from.ref.white' disagrees with definition of"
 msgstr "'from.ref.white' en désaccord avec la définition de"
 
-#, fuzzy
-msgid "'to.ref.white' disagrees with definition of %s"
+msgid "'to.ref.white' disagrees with definition of"
 msgstr "'to.ref.white' en désaccord avec la définition de"
 
-#, fuzzy
-msgid "color spaces use different reference whites"
+msgid "color spaces use different reference whites."
 msgstr "les espaces de couleurs utilisent différents blancs de référence."
 
 msgid "'name' must be a character vector"
@@ -110,11 +102,14 @@ msgstr "'device' doit être une fonction"
 msgid "no device to print from"
 msgstr "aucun périphérique d'où imprimer"
 
-msgid "can only print from a screen device"
+msgid "can only print from screen device"
 msgstr "seul un périphérique écran peut être imprimé"
 
 msgid "need to specify one of 'width' and 'height'"
 msgstr "il faut spécifier 'width' ou 'height'"
+
+msgid "can only print from a screen device"
+msgstr "seul un périphérique écran peut être imprimé"
 
 msgid "dev.control() called without an open graphics device"
 msgstr "dev.control() appelé sans périphérique graphique ouvert"
@@ -156,8 +151,7 @@ msgstr "impossible de réinitialiser '%s' car il n'existe pas"
 msgid "invalid options in '%s'"
 msgstr "options incorrectes dans '%s'"
 
-#, fuzzy
-msgid "NOT changing %s"
+msgid "NOT changing"
 msgstr "NE change(nt) PAS"
 
 msgid "argument 'append' is for back-compatibility and will be ignored"
@@ -173,6 +167,9 @@ msgstr "argument 'family' incorrect"
 
 msgid "invalid 'file'"
 msgstr "argument 'file' incorrect"
+
+msgid "'maxRasters' is no longer needed, and will be ignored"
+msgstr "'maxRasters' n'est plus nécessaire, et il sera ignoré"
 
 msgid "invalid PDF version"
 msgstr "version de PDF incorrecte"
@@ -225,8 +222,7 @@ msgstr "Format de sortie incorrect"
 msgid "status %d in running command '%s'"
 msgstr "statut %d dans la commande en cours d'exécution '%s'"
 
-#, fuzzy
-msgid "range too small for 'min.n'"
+msgid "range too small for min.n"
 msgstr "étendue des valeurs trop petite pour min.n"
 
 msgid "A raster matrix must be character, or numeric, or logical"
@@ -258,8 +254,7 @@ msgstr "Opérateur incohérent pour des objets de type 'raster'"
 msgid "no current device to record from"
 msgstr "aucun périphérique à partir duquel enregistrer"
 
-#, fuzzy
-msgid "argument is not of class %s"
+msgid "argument is not of class \"recordedplot\""
 msgstr "l'argument n'est pas de classe \"recordedplot\""
 
 msgid "loading snapshot from pre-2.0.0 R version"
@@ -327,12 +322,10 @@ msgstr "'title' incorrect"
 msgid "invalid Quartz font:  must be 4 strings"
 msgstr "police Quartz incorrecte : doit être 4 chaînes de caractères"
 
-#, fuzzy
-msgid "invalid arguments in 'quartzFonts' (must be font names)"
+msgid "invalid arguments in quartzFonts (must be font names)"
 msgstr "arguments incorrects dans quartzFonts (il faut des noms de police)"
 
-#, fuzzy
-msgid "invalid arguments in 'quartzFonts' (need named args)"
+msgid "invalid arguments in quartzFonts (need named args)"
 msgstr ""
 "arguments incorrects dans quartzFonts (les arguments doivent être nommés)"
 
@@ -346,14 +339,6 @@ msgstr "famille inconnue pour X11(type = \"Xlib\")"
 
 msgid "invalid X11 font specification:"
 msgstr "spécification de police X11 incorrecte :"
-
-#, fuzzy
-msgid "invalid arguments in 'X11Fonts' (must be font names)"
-msgstr "arguments incorrects dans '%s' (il faut des noms de police)"
-
-#, fuzzy
-msgid "invalid arguments in 'X11Fonts' (need named args)"
-msgstr "arguments incorrects dans '%s' (les arguments doivent être nommés)"
 
 msgid "no such device"
 msgstr "aucun périphérique ne correspond"
@@ -417,12 +402,6 @@ msgid "%d z value <= 0 omitted from logarithmic plot"
 msgid_plural "%d z values <= 0 omitted from logarithmic plot"
 msgstr[0] "%d valeur z <= 0 est ignorée pour le graphe logarithmique"
 msgstr[1] "%d valeurs z <= 0 sont ignorées pour le graphe logarithmique"
-
-#~ msgid "can only print from screen device"
-#~ msgstr "seul un périphérique écran peut être imprimé"
-
-#~ msgid "'maxRasters' is no longer needed, and will be ignored"
-#~ msgstr "'maxRasters' n'est plus nécessaire, et il sera ignoré"
 
 #~ msgid "The 'gamma' argument is deprecated and has no effect"
 #~ msgstr "L'argument 'gamma' est obsolète et n'a aucun effet"

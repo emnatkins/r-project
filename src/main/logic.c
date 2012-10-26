@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1999--2012  The R Core Team.
+ *  Copyright (C) 1999--2010  The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,11 +22,7 @@
 #include <config.h>
 #endif
 
-#include <Defn.h>
-#include <Internal.h>
-
-/* interval at which to check interrupts, a guess */
-#define NINTERRUPT 10000000
+#include "Defn.h"
 
 
 static SEXP lunary(SEXP, SEXP, SEXP);
@@ -58,8 +54,7 @@ static SEXP lbinary(SEXP call, SEXP op, SEXP args)
 {
 /* logical binary : "&" or "|" */
     SEXP x, y, dims, tsp, klass, xnames, ynames;
-    R_xlen_t mismatch, nx, ny;
-    int xarray, yarray, xts, yts;
+    int mismatch, nx, ny, xarray, yarray, xts, yts;
     mismatch = 0;
     x = CAR(args);
     y = CADR(args);
@@ -94,8 +89,8 @@ static SEXP lbinary(SEXP call, SEXP op, SEXP args)
 	PROTECT(xnames = getAttrib(x, R_NamesSymbol));
 	PROTECT(ynames = getAttrib(y, R_NamesSymbol));
     }
-    nx = XLENGTH(x);
-    ny = XLENGTH(y);
+    nx = length(x);
+    ny = length(y);
     if(nx > 0 && ny > 0) {
 	if(nx > ny) mismatch = nx % ny;
 	else mismatch = ny % nx;
@@ -108,13 +103,13 @@ static SEXP lbinary(SEXP call, SEXP op, SEXP args)
 	    PROTECT(klass = getAttrib(x, R_ClassSymbol));
 	}
 	else if (xts) {
-	    if (XLENGTH(x) < XLENGTH(y))
+	    if (length(x) < length(y))
 		ErrorMessage(call, ERROR_TSVEC_MISMATCH);
 	    PROTECT(tsp = getAttrib(x, R_TspSymbol));
 	    PROTECT(klass = getAttrib(x, R_ClassSymbol));
 	}
 	else /*(yts)*/ {
-	    if (XLENGTH(y) < XLENGTH(x))
+	    if (length(y) < length(x))
 		ErrorMessage(call, ERROR_TSVEC_MISMATCH);
 	    PROTECT(tsp = getAttrib(y, R_TspSymbol));
 	    PROTECT(klass = getAttrib(y, R_ClassSymbol));
@@ -144,9 +139,9 @@ static SEXP lbinary(SEXP call, SEXP op, SEXP args)
 	    setAttrib(x, R_DimNamesSymbol, ynames);
     }
     else {
-	if(XLENGTH(x) == XLENGTH(xnames))
+	if(length(x) == length(xnames))
 	    setAttrib(x, R_NamesSymbol, xnames);
-	else if(XLENGTH(x) == XLENGTH(ynames))
+	else if(length(x) == length(ynames))
 	    setAttrib(x, R_NamesSymbol, ynames);
     }
 
@@ -162,9 +157,9 @@ static SEXP lbinary(SEXP call, SEXP op, SEXP args)
 static SEXP lunary(SEXP call, SEXP op, SEXP arg)
 {
     SEXP x, dim, dimnames, names;
-    R_xlen_t i, len;
+    int i, len;
 
-    len = XLENGTH(arg);
+    len = LENGTH(arg);
     if (!isLogical(arg) && !isNumber(arg) && !isRaw(arg)) {
 	/* For back-compatibility */
 	if (!len) return allocVector(LGLSXP, 0);
@@ -176,38 +171,28 @@ static SEXP lunary(SEXP call, SEXP op, SEXP arg)
     PROTECT(x = allocVector(isRaw(arg) ? RAWSXP : LGLSXP, len));
     switch(TYPEOF(arg)) {
     case LGLSXP:
-	for (i = 0; i < len; i++) {
-//	    if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
+	for (i = 0; i < len; i++)
 	    LOGICAL(x)[i] = (LOGICAL(arg)[i] == NA_LOGICAL) ?
 		NA_LOGICAL : LOGICAL(arg)[i] == 0;
-	}
 	break;
     case INTSXP:
-	for (i = 0; i < len; i++) {
-//	    if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
+	for (i = 0; i < len; i++)
 	    LOGICAL(x)[i] = (INTEGER(arg)[i] == NA_INTEGER) ?
 		NA_LOGICAL : INTEGER(arg)[i] == 0;
-	}
 	break;
     case REALSXP:
-	for (i = 0; i < len; i++){
-//	    if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
+	for (i = 0; i < len; i++)
 	    LOGICAL(x)[i] = ISNAN(REAL(arg)[i]) ?
 		NA_LOGICAL : REAL(arg)[i] == 0;
-	}
 	break;
     case CPLXSXP:
-	for (i = 0; i < len; i++) {
-//	    if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
+	for (i = 0; i < len; i++)
 	    LOGICAL(x)[i] = (ISNAN(COMPLEX(arg)[i].r) || ISNAN(COMPLEX(arg)[i].i))
 		? NA_LOGICAL : (COMPLEX(arg)[i].r == 0. && COMPLEX(arg)[i].i == 0.);
-	}
 	break;
     case RAWSXP:
-	for (i = 0; i < len; i++) {
-//	    if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
+	for (i = 0; i < len; i++)
 	    RAW(x)[i] = 0xFF ^ RAW(arg)[i];
-	}
 	break;
     default:
 	UNIMPLEMENTED_TYPE("lunary", arg);
@@ -276,12 +261,12 @@ SEXP attribute_hidden do_logic2(SEXP call, SEXP op, SEXP args, SEXP env)
 
 static SEXP binaryLogic(int code, SEXP s1, SEXP s2)
 {
-    R_xlen_t i, n, n1, n2;
+    int i, n, n1, n2;
     int x1, x2;
     SEXP ans;
 
-    n1 = XLENGTH(s1);
-    n2 = XLENGTH(s2);
+    n1 = LENGTH(s1);
+    n2 = LENGTH(s2);
     n = (n1 > n2) ? n1 : n2;
     if (n1 == 0 || n2 == 0) {
 	ans = allocVector(LGLSXP, 0);
@@ -292,7 +277,6 @@ static SEXP binaryLogic(int code, SEXP s1, SEXP s2)
     switch (code) {
     case 1:		/* & : AND */
 	for (i = 0; i < n; i++) {
-//	    if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	    x1 = LOGICAL(s1)[i % n1];
 	    x2 = LOGICAL(s2)[i % n2];
 	    if (x1 == 0 || x2 == 0)
@@ -305,7 +289,6 @@ static SEXP binaryLogic(int code, SEXP s1, SEXP s2)
 	break;
     case 2:		/* | : OR */
 	for (i = 0; i < n; i++) {
-//	    if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	    x1 = LOGICAL(s1)[i % n1];
 	    x2 = LOGICAL(s2)[i % n2];
 	    if ((x1 != NA_LOGICAL && x1) || (x2 != NA_LOGICAL && x2))
@@ -325,12 +308,12 @@ static SEXP binaryLogic(int code, SEXP s1, SEXP s2)
 
 static SEXP binaryLogic2(int code, SEXP s1, SEXP s2)
 {
-    R_xlen_t i, n, n1, n2;
-    Rbyte x1, x2;
+    int i, n, n1, n2;
+    int x1, x2;
     SEXP ans;
 
-    n1 = XLENGTH(s1);
-    n2 = XLENGTH(s2);
+    n1 = LENGTH(s1);
+    n2 = LENGTH(s2);
     n = (n1 > n2) ? n1 : n2;
     if (n1 == 0 || n2 == 0) {
 	ans = allocVector(RAWSXP, 0);
@@ -341,7 +324,6 @@ static SEXP binaryLogic2(int code, SEXP s1, SEXP s2)
     switch (code) {
     case 1:		/* & : AND */
 	for (i = 0; i < n; i++) {
-//	    if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	    x1 = RAW(s1)[i % n1];
 	    x2 = RAW(s2)[i % n2];
 	    RAW(ans)[i] = x1 & x2;
@@ -349,7 +331,6 @@ static SEXP binaryLogic2(int code, SEXP s1, SEXP s2)
 	break;
     case 2:		/* | : OR */
 	for (i = 0; i < n; i++) {
-//	    if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
 	    x1 = RAW(s1)[i % n1];
 	    x2 = RAW(s2)[i % n2];
 	    RAW(ans)[i] = x1 | x2;
@@ -362,12 +343,11 @@ static SEXP binaryLogic2(int code, SEXP s1, SEXP s2)
 #define _OP_ALL 1
 #define _OP_ANY 2
 
-static int checkValues(int op, int na_rm, int *x, R_xlen_t n)
+static int checkValues(int op, int na_rm, int * x, int n)
 {
-    R_xlen_t i;
+    int i;
     int has_na = 0;
     for (i = 0; i < n; i++) {
-//	if ((i+1) % NINTERRUPT == 0) R_CheckUserInterrupt();
         if (!na_rm && x[i] == NA_LOGICAL) has_na = 1;
         else {
             if (x[i] == TRUE && op == _OP_ANY) return TRUE;
@@ -414,7 +394,7 @@ SEXP attribute_hidden do_logic3(SEXP call, SEXP op, SEXP args, SEXP env)
 	t = CAR(s);
 	/* Avoid memory waste from coercing empty inputs, and also
 	   avoid warnings with empty lists coming from sapply */
-	if(xlength(t) == 0) continue;
+	if(length(t) == 0) continue;
 	/* coerceVector protects its argument so this actually works
 	   just fine */
 	if (TYPEOF(t) != LGLSXP) {
@@ -428,7 +408,7 @@ SEXP attribute_hidden do_logic3(SEXP call, SEXP op, SEXP args, SEXP env)
 			    type2char(TYPEOF(t)));
 	    t = coerceVector(t, LGLSXP);
 	}
-	val = checkValues(PRIMVAL(op), narm, LOGICAL(t), XLENGTH(t));
+	val = checkValues(PRIMVAL(op), narm, LOGICAL(t), LENGTH(t));
         if (val != NA_LOGICAL) {
             if ((PRIMVAL(op) == _OP_ANY && val)
                 || (PRIMVAL(op) == _OP_ALL && !val)) {

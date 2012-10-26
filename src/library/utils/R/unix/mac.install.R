@@ -22,8 +22,8 @@ if(substr(R.version$os, 1L, 6L) != "darwin") {
     function(pkgs, lib, repos = getOption("repos"),
              contriburl = contrib.url(repos, type="mac.binary"),
              method, available = NULL, destdir = NULL,
+             lock = getOption("install.lock", FALSE),
              dependencies = FALSE,
-             lock = getOption("install.lock", FALSE), quiet = FALSE,
              ...)
     {}
 } else {
@@ -34,7 +34,7 @@ if(substr(R.version$os, 1L, 6L) != "darwin") {
              contriburl = contrib.url(repos, type="mac.binary"),
              method, available = NULL, destdir = NULL,
              dependencies = FALSE,
-             lock = getOption("install.lock", FALSE), quiet = FALSE,
+             lock = getOption("install.lock", FALSE),
              ...)
 {
     untar <- function(what, where)
@@ -77,7 +77,7 @@ if(substr(R.version$os, 1L, 6L) != "darwin") {
                  domain = NA, call. = FALSE)
 
         res <- tools::checkMD5sums(pkgname, file.path(tmpDir, pkgname))
-        if(!quiet && !is.na(res) && res) {
+        if(!is.na(res) && res) {
             cat(gettextf("package %s successfully unpacked and MD5 sums checked\n",
                          sQuote(pkgname)))
             flush.console()
@@ -89,13 +89,12 @@ if(substr(R.version$os, 1L, 6L) != "darwin") {
                 file.path(lib, paste("00LOCK", pkgname, sep="-"))
             else file.path(lib, "00LOCK")
 	    if (file.exists(lockdir)) {
-                stop(gettextf("ERROR: failed to lock directory %s for modifying\nTry removing %s",
-                              sQuote(lib), sQuote(lockdir)), domain = NA)
+		stop("ERROR: failed to lock directory ", sQuote(lib),
+			" for modifying\nTry removing ", sQuote(lockdir))
 	    }
 	    dir.create(lockdir, recursive = TRUE)
 	    if (!dir.exists(lockdir))
-                stop(gettextf("ERROR: failed to create lock directory %s",
-                              sQuote(lockdir)), domain = NA)
+		stop("ERROR: failed to create lock directory ", sQuote(lockdir))
             ## Back up a previous version
             if (file.exists(instPath)) {
                 file.copy(instPath, lockdir, recursive = TRUE)
@@ -127,8 +126,8 @@ if(substr(R.version$os, 1L, 6L) != "darwin") {
                 restorePrevious <- TRUE # Might not be used
             }
         } else
-        stop(gettextf("cannot remove prior installation of package %s",
-                      sQuote(pkgname)), call. = FALSE, domain = NA)
+            stop("cannot remove prior installation of package ",
+                 sQuote(pkgname), call. = FALSE)
         setwd(cDir)
         unlink(tmpDir, recursive=TRUE)
     }
@@ -164,7 +163,7 @@ if(substr(R.version$os, 1L, 6L) != "darwin") {
 
     foundpkgs <- download.packages(pkgs, destdir = tmpd, available = available,
                                    contriburl = contriburl, method = method,
-                                   type = "mac.binary", quiet = quiet, ...)
+                                   type = "mac.binary", ...)
 
     if(length(foundpkgs)) {
         update <- unique(cbind(pkgs, lib))
@@ -179,7 +178,7 @@ if(substr(R.version$os, 1L, 6L) != "darwin") {
                               lock = lock)
             }
         }
-        if(!quiet && !is.null(tmpd) && is.null(destdir))
+        if(!is.null(tmpd) && is.null(destdir))
             cat("\n", gettextf("The downloaded binary packages are in\n\t%s", tmpd),
                 "\n", sep = "")
     } else if(!is.null(tmpd) && is.null(destdir)) unlink(tmpd, recursive = TRUE)

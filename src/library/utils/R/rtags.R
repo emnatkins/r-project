@@ -150,7 +150,7 @@ rtags.file <-
     tokens <- lapply(elist, expr2token)
     startlines <- sapply(attr(elist, "srcref"), "[", 1L)
     if (length(tokens) != length(startlines))
-        stop("length mismatch: bug in code!", domain = NA)
+        stop("length mismatch: bug in code!")
     keep <- sapply(tokens, length) == 1L
     if (!any(keep)) return(invisible())
     tokens <- unlist(tokens[keep])
@@ -185,8 +185,8 @@ rtags <-
         src <- grep(keep.re, src, value = TRUE)
     for (s in src)
     {
-        if (verbose) message(gettextf("Processing file %s", s), domain = NA)
-       tryCatch(
+        if (verbose) message("Processing file ", s)
+        tryCatch(
                  rtags.file(s, ofile = ofile, append = TRUE),
                  error = function(e) NULL)
     }

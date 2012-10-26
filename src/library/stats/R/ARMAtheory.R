@@ -56,7 +56,9 @@ ARMAacf <- function(ar = numeric(), ma = numeric(), lag.max = r,
         Acf <- Acf/Acf[1L]
     }
     names(Acf) <- 0:lag.max
-    if(pacf) drop(.Call(C_pacf1, Acf, lag.max)) else Acf
+    if(pacf) .C(C_uni_pacf, as.double(Acf), pacf = double(lag.max),
+                as.integer(lag.max))$pacf
+    else Acf
 }
 
 acf2AR <- function(acf)

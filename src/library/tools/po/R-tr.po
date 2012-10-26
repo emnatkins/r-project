@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: R 2.13.0\n"
 "Report-Msgid-Bugs-To: bugs.r-project.org\n"
-"POT-Creation-Date: 2012-09-30 13:34\n"
+"POT-Creation-Date: 2012-09-01 09:38\n"
 "PO-Revision-Date: 2011-04-02 \n"
 "Last-Translator: Murat Alkan <muratalk@gmail.com>\n"
 "Language-Team: Turkish <muratalk@gmail.com>\n"
@@ -55,10 +55,10 @@ msgid "directory '%s' does not contain Rd objects"
 msgstr ""
 
 msgid ""
-"Functions or methods with usage in documentation object '%s' but not in code:"
+"Functions/methods with usage in documentation object '%s' but not in code:"
 msgstr ""
 
-msgid "Data with usage in documentation object '%s' but not in code:"
+msgid "Data sets with usage in documentation object '%s' but not in code:"
 msgstr ""
 
 msgid "Argument names in code not in docs:"
@@ -94,10 +94,19 @@ msgstr ""
 msgid "Slots for class '%s'"
 msgstr ""
 
+msgid "name"
+msgstr ""
+
 msgid "Data codoc mismatches from documentation object '%s':"
 msgstr ""
 
 msgid "Variables in data frame '%s'"
+msgstr ""
+
+msgid "code"
+msgstr ""
+
+msgid "docs"
 msgstr ""
 
 msgid "Undocumented arguments in documentation object '%s'"
@@ -121,6 +130,12 @@ msgstr ""
 msgid "S3 methods shown with full name in documentation object '%s':"
 msgstr ""
 
+msgid "unable to create"
+msgstr ""
+
+msgid "unable to write code files"
+msgstr ""
+
 msgid "you must specify 'package', 'dir' or 'file'"
 msgstr ""
 
@@ -130,6 +145,9 @@ msgstr ""
 msgid ""
 "parse error in file '%s':\n"
 "%s"
+msgstr ""
+
+msgid "Foreign function calls without 'PACKAGE' argument:"
 msgstr ""
 
 msgid "declared S3 method '%s' not found"
@@ -154,11 +172,20 @@ msgid "package name '%s' seems invalid; using directory name '%s' instead"
 msgstr ""
 
 msgid ""
-"Vignette dependencies (%s entries) must be contained in the DESCRIPTION "
-"Depends/Suggests/Imports entries."
+"Vignette dependencies (\\VignetteDepends{} entries) must be contained in the "
+"DESCRIPTION Depends/Suggests/Imports entries."
 msgstr ""
 
 msgid "Malformed package name"
+msgstr ""
+
+msgid "Invalid package name."
+msgstr ""
+
+msgid "This is the name of a base package."
+msgstr ""
+
+msgid "This name was used for a base package and is remapped by library()."
 msgstr ""
 
 msgid "Unknown encoding"
@@ -259,12 +286,24 @@ msgstr ""
 msgid "Non-portable flags in variable '%s':"
 msgstr ""
 
+msgid "package must be loaded"
+msgstr ""
+
 msgid ""
 "package %s exists but was not installed under R >= 2.10.0 so xrefs cannot be "
 "checked"
 msgstr ""
 
-msgid "Missing link or links in documentation object '%s':"
+msgid "Obsolete package(s) %s in Rd xrefs"
+msgstr ""
+
+msgid "Package(s) unavailable to check Rd xrefs: %s"
+msgstr ""
+
+msgid "Unknown package(s) %s in Rd xrefs"
+msgstr ""
+
+msgid "Missing link(s) in documentation object '%s':"
 msgstr ""
 
 msgid ""
@@ -281,6 +320,9 @@ msgstr ""
 msgid "%s has wrong argument list %s"
 msgstr ""
 
+msgid ","
+msgstr ""
+
 msgid "%s calls:"
 msgstr ""
 
@@ -289,22 +331,31 @@ msgid ""
 "%s and %s, respectively."
 msgstr ""
 
+msgid "lib"
+msgstr ""
+
+msgid "pkg"
+msgstr ""
+
 msgid "Package startup functions should not change the search path."
 msgstr ""
 
 msgid "Package startup functions should use %s to generate messages."
 msgstr ""
 
+msgid "packageStartupMessage"
+msgstr ""
+
 msgid "Package startup functions should not call %s."
 msgstr ""
 
-msgid "See section %s in '%s'."
+msgid "installed.packages"
 msgstr ""
 
-msgid "unable to create"
+msgid "See section %s in ?.onAttach."
 msgstr ""
 
-msgid "unable to write code files"
+msgid "Good practice"
 msgstr ""
 
 msgid "package 'methods' is used but not declared"
@@ -343,21 +394,37 @@ msgstr ""
 msgid "Auto-generated content requiring editing in Rd object '%s':"
 msgstr ""
 
-msgid ""
-"Generics 'g' in 'env' %s where '%s' errors: %s\n"
-"May need something like\n"
-"\n"
-"%s\n"
-"in NAMESPACE."
+msgid "Generics g in env ="
+msgstr ""
+
+msgid "where hasMethods(g, env) errors:"
+msgstr ""
+
+msgid "May need something like"
+msgstr ""
+
+msgid "importFrom("
+msgstr ""
+
+msgid ")"
+msgstr ""
+
+msgid "in NAMESPACE."
+msgstr ""
+
+msgid "Generics without methods in"
+msgstr ""
+
+msgid ":"
 msgstr ""
 
 msgid "argument 'file' must be a character string or connection"
 msgstr ""
 
-msgid "missing/empty %s field in '%s'"
+msgid "missing/empty \\name field in '%s'"
 msgstr ""
 
-msgid "Rd files must have a non-empty %s."
+msgid "Rd files must have a non-empty \\name."
 msgstr ""
 
 msgid "See chapter 'Writing R documentation' in manual 'Writing R Extensions'."
@@ -376,6 +443,9 @@ msgid "you must specify 'dir' or 'files'"
 msgstr ""
 
 msgid "cannot deal with Rd objects with missing/empty names"
+msgstr ""
+
+msgid "missing/empty \\name field in Rd file(s)"
 msgstr ""
 
 msgid "No help on %s found in RdDB %s"
@@ -411,16 +481,16 @@ msgstr ""
 msgid "no inputs"
 msgstr ""
 
-msgid "Error in running tools::texi2pdf()"
+msgid "Error in running tools::texi2pdf"
 msgstr ""
 
 msgid "invalid value for '%s' : %s"
 msgstr ""
 
-msgid "Only one Rd section per %s is supported."
+msgid "Only one Rd section per \\Sexpr is supported."
 msgstr ""
 
-msgid "unable to create temp directory %s"
+msgid "unable to create temp directory"
 msgstr ""
 
 msgid ""
@@ -468,13 +538,16 @@ msgstr ""
 msgid "unable to create '%s'"
 msgstr ""
 
+msgid "unable to re-encode '%s' line(s) %s"
+msgstr ""
+
 msgid "unable to copy INDEX to '%s'"
 msgstr ""
 
 msgid "cannot create directory '%s'"
 msgstr ""
 
-msgid "processing %s"
+msgid "processing"
 msgstr ""
 
 msgid ""
@@ -506,13 +579,13 @@ msgstr ""
 msgid "The default JSS style may not be modified."
 msgstr ""
 
-msgid "invalid value for '--compact-vignettes', assuming %s"
+msgid "invalid value for --compact-vignettes, assuming \"qpdf\""
 msgstr ""
 
-msgid "Error: cannot rename directory to %s"
+msgid "Error: cannot rename directory to"
 msgstr ""
 
-msgid "cannot link from %s"
+msgid "cannot link from"
 msgstr ""
 
 msgid "-l option without value"
@@ -524,7 +597,7 @@ msgstr ""
 msgid "'--multiarch' specified with only one usable sub-architecture"
 msgstr ""
 
-msgid "'--as-cran' turns off '--extra-arch'"
+msgid "--as-cran turns off --extra-arch"
 msgstr ""
 
 msgid "Error: no packages were specified"
@@ -533,13 +606,19 @@ msgstr ""
 msgid "ERROR: cannot create check dir %s"
 msgstr ""
 
-msgid "package directory %s does not exist"
+msgid "package dir"
+msgstr ""
+
+msgid "does not exist"
 msgstr ""
 
 msgid "non-ASCII input in a CITATION file without a declared encoding"
 msgstr ""
 
 msgid "No files in this directory"
+msgstr ""
+
+msgid "Unrecognized search field:"
 msgstr ""
 
 msgid "No results found"
@@ -555,6 +634,9 @@ msgid "Help pages:"
 msgstr ""
 
 msgid "No help found for topic %s in any package."
+msgstr ""
+
+msgid "Help on topic '%s' was found in the following packages:"
 msgstr ""
 
 msgid "No package index found for package %s"
@@ -574,6 +656,18 @@ msgstr ""
 
 msgid ""
 "Only help files, %s, %s and files under %s and %s in a package can be viewed"
+msgstr ""
+
+msgid "NEWS"
+msgstr ""
+
+msgid "DESCRIPTION"
+msgstr ""
+
+msgid "doc/"
+msgstr ""
+
+msgid "demo/"
 msgstr ""
 
 msgid "unsupported URL %s"
@@ -606,10 +700,22 @@ msgstr ""
 msgid "cannot read index information in file '%s'"
 msgstr ""
 
+msgid "ERROR:"
+msgstr ""
+
 msgid "error reading file '%s'"
 msgstr ""
 
 msgid "this seems to be a bundle -- and they are defunct"
+msgstr ""
+
+msgid "running 'zip' failed"
+msgstr ""
+
+msgid "packaged installation of"
+msgstr ""
+
+msgid "as"
 msgstr ""
 
 msgid ""
@@ -617,7 +723,13 @@ msgid ""
 "Administration Manual'"
 msgstr ""
 
-msgid "generating debug symbols (%s)"
+msgid "installing via 'install.libs.R' to"
+msgstr ""
+
+msgid "installing to"
+msgstr ""
+
+msgid "generating debug symbols (dSYM)"
 msgstr ""
 
 msgid "package %s successfully unpacked and MD5 sums checked"
@@ -626,6 +738,9 @@ msgstr ""
 msgid ""
 "R include directory is empty -- perhaps need to install R-devel.rpm or "
 "similar"
+msgstr ""
+
+msgid "running src/Makefile.win ..."
 msgstr ""
 
 msgid "no source files found"
@@ -637,7 +752,10 @@ msgstr ""
 msgid "cannot create temporary directory"
 msgstr ""
 
-msgid "ERROR: '--merge-multiarch' applies only to a single tarball"
+msgid "ERROR: --merge-multiarch applies only to a single tarball"
+msgstr ""
+
+msgid "only one architecture so ignoring '--merge-multiarch'"
 msgstr ""
 
 msgid "invalid package"
@@ -646,13 +764,30 @@ msgstr ""
 msgid "ERROR: no packages specified"
 msgstr ""
 
-msgid "ERROR: cannot cd to directory %s"
+msgid "ERROR: cannot cd to directory"
 msgstr ""
 
 msgid "ERROR: no permission to install to directory"
 msgstr ""
 
+msgid "ERROR: failed to lock directory"
+msgstr ""
+
+msgid ""
+"for modifying\n"
+"Try removing"
+msgstr ""
+
+msgid "ERROR: failed to create lock directory"
+msgstr ""
+
 msgid "building a fake installation is disallowed"
+msgstr ""
+
+msgid "finding HTML links ..."
+msgstr ""
+
+msgid "finding level-2 HTML links ..."
 msgstr ""
 
 msgid "there is no package called '%s'"
@@ -728,6 +863,36 @@ msgstr ""
 msgid "Processing packages:"
 msgstr ""
 
+msgid "Internal error, no tag"
+msgstr ""
+
+msgid "Argument for"
+msgstr ""
+
+msgid "not found."
+msgstr ""
+
+msgid "Internal error:  NULL tag"
+msgstr ""
+
+msgid "internal error"
+msgstr ""
+
+msgid "Inconsistent arg count for"
+msgstr ""
+
+msgid "Entry for"
+msgstr ""
+
+msgid "="
+msgstr ""
+
+msgid "already defined to be"
+msgstr ""
+
+msgid "found encoding"
+msgstr ""
+
 msgid "%s must be a character string or a file/raw connection"
 msgstr ""
 
@@ -737,7 +902,7 @@ msgstr ""
 msgid "EOF marker not found"
 msgstr ""
 
-msgid "cannot find 'startxref' keyword"
+msgid "cannot find startxref"
 msgstr ""
 
 msgid "cannot find xref table"
@@ -794,13 +959,16 @@ msgstr ""
 msgid "invalid index in object stream lookup"
 msgstr ""
 
+msgid "processing %s"
+msgstr ""
+
 msgid "expanding %s"
 msgstr ""
 
 msgid "unsupported filter %s"
 msgstr ""
 
-msgid "unsupported %s predictor %d"
+msgid "unsupported flatedecode predictor %d"
 msgstr ""
 
 msgid "unsupported PNG filter %d"
@@ -827,16 +995,37 @@ msgstr ""
 msgid "unimplemented encoding"
 msgstr ""
 
+msgid "file"
+msgstr ""
+
 msgid "Found %s, possibly from %s"
+msgstr ""
+
+msgid "%s (%s)"
+msgstr ""
+
+msgid "ssname"
+msgstr ""
+
+msgid "language"
+msgstr ""
+
+msgid "cannot be opened"
 msgstr ""
 
 msgid "testing '%s' failed"
 msgstr ""
 
-msgid "Testing examples for package %s"
+msgid "Testing examples for package"
 msgstr ""
 
-msgid "comparing %s to %s ..."
+msgid "comparing"
+msgstr ""
+
+msgid "to"
+msgstr ""
+
+msgid "..."
 msgstr ""
 
 msgid "OK"
@@ -848,28 +1037,70 @@ msgstr ""
 msgid "no examples found for package %s"
 msgstr ""
 
-msgid "Running specific tests for package %s"
+msgid "Running specific tests for package"
 msgstr ""
 
-msgid "Running %s"
+msgid "Running"
 msgstr ""
 
-msgid "Running vignettes for package %s"
+msgid "Running vignettes for package"
 msgstr ""
 
-msgid "Comparing %s to %s ..."
+msgid "Comparing"
+msgstr ""
+
+msgid "creation of"
+msgstr ""
+
+msgid "failed"
 msgstr ""
 
 msgid "no parsed files found"
 msgstr ""
 
+msgid "creating"
+msgstr ""
+
+msgid "running code in"
+msgstr ""
+
 msgid "FAILED"
+msgstr ""
+
+msgid "running strict specific tests"
+msgstr ""
+
+msgid "running sloppy specific tests"
+msgstr ""
+
+msgid "running regression tests"
+msgstr ""
+
+msgid "comparing 'reg-plot.ps' to 'reg-plot.ps.save' ..."
+msgstr ""
+
+msgid "running tests of plotting Latin-1"
+msgstr ""
+
+msgid "expect failure or some differences if not in a Latin or UTF-8 locale"
+msgstr ""
+
+msgid "comparing 'reg-plot-latin1.ps' to 'reg-plot-latin1.ps.save' ..."
+msgstr ""
+
+msgid "running tests of consistency of as/is.*"
 msgstr ""
 
 msgid "running tests of random deviate generation -- fails occasionally"
 msgstr ""
 
-msgid "R CMD build failed"
+msgid "running tests of primitives"
+msgstr ""
+
+msgid "running regexp regression tests"
+msgstr ""
+
+msgid "running tests to possibly trigger segfaults"
 msgstr ""
 
 msgid "'x' must be a single character string"
@@ -932,21 +1163,6 @@ msgstr ""
 msgid "parsing '%s'"
 msgstr ""
 
-msgid "Obsolete package %s in Rd xrefs"
-msgid_plural "Obsolete packages %s in Rd xrefs"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Package unavailable to check Rd xrefs: %s"
-msgid_plural "Packages unavailable to check Rd xrefs: %s"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Unknown package %s in Rd xrefs"
-msgid_plural "Unknown packages %s in Rd xrefs"
-msgstr[0] ""
-msgstr[1] ""
-
 msgid "Note: found %d marked Latin-1 string"
 msgid_plural "Note: found %d marked Latin-1 strings"
 msgstr[0] ""
@@ -972,45 +1188,14 @@ msgid_plural "Found possibly global 'T' or 'F' in the following functions:"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid ""
-"Found possibly global 'T' or 'F' in the examples of the following Rd file:"
+msgid "Found possibly global 'T' or 'F' in the following Rd example file:"
 msgid_plural ""
-"Found possibly global 'T' or 'F' in the examples of the following Rd files:"
+"Found possibly global 'T' or 'F' in the following Rd example files:"
 msgstr[0] ""
 msgstr[1] ""
 
-msgid "Found a .Internal call in the following function:"
+msgid "Found .Internal call in the following function:"
 msgid_plural "Found .Internal calls in the following functions:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Found a.Internal call in methods for the following S4 generic:"
-msgid_plural "Found .Internal calls in methods for the following S4 generics:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Found a .Internal call in methods for the following reference class:"
-msgid_plural ""
-"Found .Internal calls in methods for the following reference classes:"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "Generic without any methods in %s: %s"
-msgid_plural "Generics without any methods in %s: %s"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid ""
-"missing/empty \\name field in Rd file\n"
-"%s"
-msgid_plural ""
-"missing/empty \\name field in Rd files\n"
-"%s"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "unable to re-encode %s line %s"
-msgid_plural "unable to re-encode %s lines %s"
 msgstr[0] ""
 msgstr[1] ""
 

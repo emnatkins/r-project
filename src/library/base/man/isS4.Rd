@@ -42,8 +42,6 @@ asS3(object, flag = TRUE, complete = TRUE)
   \code{\link{S3Part}}).  This includes classes extending the
   pseudo-classes \code{array} and \code{matrix}: such objects will have
   their class attribute set to \code{NULL}.
-
-  \code{isS4} is \link{primitive}.
 }
 
 \value{

@@ -18,7 +18,7 @@ length(x) <- value
 }
 \arguments{
   \item{x}{an \R object.  For replacement, a vector or factor.}
-  \item{value}{a non-negative integer or double (which will be rounded down).}
+  \item{value}{an integer: double values will be coerced to integer.}
 }
 \details{
   Both functions are generic: you can write methods to handle specific
@@ -34,9 +34,9 @@ length(x) <- value
 }
 
 \value{
-  The default method for \code{length} currently returns a non-negative
-  \code{\link{integer}} of length 1, except for vectors of more than
-  \eqn{2^{31}-1}{2^31 - 1} elements, when it returns a double.
+  The default method currently returns an \code{\link{integer}} of
+  length 1.  Since this will change in the future and may
+  differ for other methods, programmers should not rely on it.
 
   For vectors (including lists) and factors the length is the number of
   elements.  For an environment it is the number of objects in the
@@ -56,8 +56,6 @@ length(x) <- value
   (earlier versions of \pkg{sets}).  As from \R 2.15.2, where a single
   double value is returned that can be represented as an integer it is
   returned as a length-one integer vector.
-
-  As from \R 2.16.0, lengths can be returned as double in base \R.
 }
 
 \seealso{\code{nchar} for counting the number of characters in

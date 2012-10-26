@@ -98,11 +98,11 @@ R_size_t R_Decode2Long(char *p, int *ierr)
 	REprintf("R_Decode2Long(): v=%ld\n", v);
     if(p[0] == 'G') {
 	if((Giga * (double)v) > R_SIZE_T_MAX) { *ierr = 4; return(v); }
-	return (R_size_t) Giga * v;
+	return (Giga*v);
     }
     else if(p[0] == 'M') {
 	if((Mega * (double)v) > R_SIZE_T_MAX) { *ierr = 1; return(v); }
-	return (R_size_t) Mega * v;
+	return (Mega*v);
     }
     else if(p[0] == 'K') {
 	if((1024 * (double)v) > R_SIZE_T_MAX) { *ierr = 2; return(v); }
@@ -287,7 +287,7 @@ const char
    which Western versions at least do not.).
 */
 
-#include <rlocale.h> /* redefines isw* functions */
+#include <R_ext/rlocale.h> /* redefines isw* functions */
 
 #ifdef Win32
 #include "rgui_UTF8.h"
@@ -825,12 +825,12 @@ void REvprintf(const char *format, va_list arg)
     }
 }
 
-int attribute_hidden IndexWidth(R_xlen_t n)
+int attribute_hidden IndexWidth(int n)
 {
     return (int) (log10(n + 0.5) + 1);
 }
 
-void attribute_hidden VectorIndex(R_xlen_t i, int w)
+void attribute_hidden VectorIndex(int i, int w)
 {
 /* print index label "[`i']" , using total width `w' (left filling blanks) */
     Rprintf("%*s[%ld]", w-IndexWidth(i)-2, "", i);

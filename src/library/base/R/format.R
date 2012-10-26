@@ -116,8 +116,8 @@ formatC <- function (x, digits = NULL, width = NULL,
 	format.default(x, width=width,
 		       justify = if(flag=="-") "left" else "right")
     }
-     blank.chars <- function(no)
- 	vapply(no+1L, function(n) paste(character(n), collapse=" "), "")
+    blank.chars <- function(no)
+	vapply(no+1L, function(n) paste(character(n), collapse=" "), "")
 
     if (!(n <- length(x))) return("")
     if (is.null(mode))	  mode <- storage.mode(x)
@@ -160,15 +160,14 @@ formatC <- function (x, digits = NULL, width = NULL,
     else {
 	maxDigits <- if(format != "f") 50L else ceiling(-(.Machine$double.neg.ulp.digits + .Machine$double.min.exp) / log2(10))
 	if (digits > maxDigits) {
-            warning(gettextf("'digits' reduced to %d", maxDigits),
-                    domain = NA)
+	    warning("'digits' reduced to ", maxDigits)
 	    digits <- maxDigits
 	}
     }
     if(is.null(width))	width <- digits + 1L
     else if (width == 0L) width <- digits
     i.strlen <-
-	pmax(abs(as.integer(width)),
+	pmax(abs(width),
 	     if(format == "fg" || format == "f") {
 		 xEx <- as.integer(floor(log10(abs(x+ifelse(x==0,1,0)))))
 		 as.integer(x < 0 | flag!="") + digits +
@@ -190,10 +189,18 @@ formatC <- function (x, digits = NULL, width = NULL,
 	digits <- -digits # C-code will notice "do not drop trailing zeros"
 
     attr(x, "Csingle") <- NULL	# avoid interpreting as.single
-    r <- .Internal(formatC(x, as.character(mode), width, digits,
-                           as.character(format), as.character(flag),
-                           i.strlen))
-    if (some.special) r[!Ok] <- format.char(rQ, width = width, flag = flag)
+    r <- .C("str_signif",
+	    x = x,
+	    n = n,
+	    mode   = as.character(mode),
+	    width  = as.integer(width),
+	    digits = as.integer(digits),
+	    format = as.character(format),
+	    flag   = as.character(flag),
+	    result = blank.chars(i.strlen + 2L), # used to overrun
+	    PACKAGE = "base")$result
+    if (some.special)
+	r[!Ok] <- format.char(rQ, width=width, flag=flag)
 
     if(big.mark != "" || small.mark != "" || decimal.mark != "." ||
        !is.null(zero.print) || drop0trailing)

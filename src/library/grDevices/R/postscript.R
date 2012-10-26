@@ -73,9 +73,9 @@ check.options <-
                                      "differ between new and previous"),
                             if(any(do.keep)) {
                                 paste("\n\t ==> ",
-                                      gettextf("NOT changing %s",
-                                              paste(sQuote(names(prev[do.keep])),
-                                                    collapse=" & ")),
+                                      gettext("NOT changing "),
+                                      paste(sQuote(names(prev[do.keep])),
+                                            collapse=" & "),
                                       sep = "")} else "",
                             domain = NA, call. = FALSE)
 		}
@@ -262,7 +262,7 @@ postscript <- function(file = ifelse(onefile, "Rplots.ps", "Rplot%03d.ps"),
 
     onefile <- old$onefile # for 'file'
     if(!checkIntFormat(file)) stop("invalid 'file'")
-    .External(C_PostScript,
+    .External(PostScript,
               file, old$paper, old$family, old$encoding, old$bg, old$fg,
               old$width, old$height, old$horizontal, old$pointsize,
               onefile, old$pagecentre, old$print.it, old$command,
@@ -284,7 +284,7 @@ xfig <- function (file = ifelse(onefile,"Rplots.fig", "Rplot%03d.fig"),
     initPSandPDFfonts()
 
     if(!checkIntFormat(file)) stop("invalid 'file'")
-    .External(C_XFig, file, paper, family, bg, fg,
+    .External(XFig, file, paper, family, bg, fg,
               width, height, horizontal, pointsize,
               onefile, pagecentre, defaultfont, textspecial, encoding)
     invisible()
@@ -318,8 +318,7 @@ pdf <- function(file = ifelse(onefile, "Rplots.pdf", "Rplot%03d.pdf"),
     if(!missing(useKerning)) new$useKerning <- useKerning
     if(!missing(fillOddEven)) new$fillOddEven <- fillOddEven
     if(!missing(maxRasters))
-        warning("'maxRasters' is no longer needed, and will be ignored",
-                domain = NA)
+        warning("'maxRasters' is no longer needed, and will be ignored")
     if(!missing(compress)) new$compress <- compress
 
     old <- check.options(new, name.opt = ".PDF.Options", envir = .PSenv)
@@ -366,7 +365,7 @@ pdf <- function(file = ifelse(onefile, "Rplots.pdf", "Rplot%03d.pdf"),
 
     onefile <- old$onefile # needed to set 'file'
     if(!checkIntFormat(file)) stop("invalid 'file'")
-    .External(C_PDF,
+    .External(PDF,
               file, old$paper, old$family, old$encoding, old$bg, old$fg,
               old$width, old$height, old$pointsize, onefile, old$pagecentre,
               old$title, old$fonts, version[1L], version[2L],
@@ -485,8 +484,8 @@ isPDF <- function(fontDBname) {
 
 checkFontInUse <- function(names, fontDBname) {
     for (i in names)
-        if (.Call(C_Type1FontInUse, i, isPDF(fontDBname))
-            || .Call(C_CIDFontInUse, i, isPDF(fontDBname)))
+        if (.Call(Type1FontInUse, i, isPDF(fontDBname))
+            || .Call(CIDFontInUse, i, isPDF(fontDBname)))
             stop(gettextf("font %s already in use", i), domain = NA)
     invisible()
 }

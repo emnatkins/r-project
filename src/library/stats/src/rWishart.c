@@ -26,8 +26,8 @@
 #include <Rmath.h>
 #include <R_ext/Lapack.h>        /* for Lapack (dpotrf, etc.) and BLAS */
 
-#include "stats.h" // for _()
-#include "statsR.h"
+#include "mva.h"
+#include "stats.h"
 
 
 /**
@@ -73,7 +73,7 @@ static double
  * @return
  */
 SEXP
-rWishart(SEXP ns, SEXP nuP, SEXP scal)
+R_rWishart(SEXP ns, SEXP nuP, SEXP scal)
 {
     SEXP ans;
     int *dims = INTEGER(getAttrib(scal, R_DimSymbol)), info,

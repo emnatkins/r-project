@@ -1,5 +1,5 @@
 
-R Under development (unstable) (2012-05-24 r59432) -- "Unsuffered Consequences"
+R version 2.15.0 Patched (2012-05-24 r59442) -- "Easter Beagle"
 Copyright (C) 2012 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-apple-darwin9.8.0/x86_64 (64-bit)
@@ -1294,5 +1294,5 @@ Warning messages:
 > 
 > 
 > cat("Time elapsed: ", proc.time() - .ptime,"\n")
-Time elapsed:  1.025 0.02 1.045 0 0 
+Time elapsed:  1.003 0.02 1.024 0 0 
 > 

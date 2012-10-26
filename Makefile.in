@@ -17,8 +17,8 @@ DISTFILES = $(INSTFILES) \
 	ChangeLog INSTALL ONEWS OONEWS README VERSION VERSION-NICK \
 	Makeconf.in Makefile.in Makefile.fw \
 	config.site configure configure.ac
-SUBDIRS = m4 tools doc etc share src tests
-SUBDIRS_WITH_NO_BUILD = po
+SUBDIRS = m4 tools doc etc share src tests @USE_NLS_TRUE@ po
+SUBDIRS_WITH_NO_BUILD = @USE_NLS_FALSE@ po
 
 all: Makefile Makeconf R docs recommended vignettes
 recommended: @USE_RECOMMENDED_PACKAGES_TRUE@ stamp-recommended
@@ -137,7 +137,6 @@ clean:
 distclean: clean
 	@(for d in $(SUBDIRS); do rsd="$${d} $${rsd}"; done; \
 	  for d in $${rsd}; do (cd $${d} && $(MAKE) $@); done)
-	@rm -f po/Makefile
 	-@rm -rf bin include lib library modules gnome
 	@if test -f non-tarball ; then \
 	  rm -f $(NON_SVN_INSTFILES) NEWS NEWS.pdf non-tarball doc/FAQ doc/RESOURCES doc/html/resources.html doc/html/NEWS.html; \

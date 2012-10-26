@@ -1,28 +1,3 @@
-Changes from grid_2.15.0 to grid_2.16.0:
---------------------------------------
-
-1.  Bug fix for showViewport() when the viewport is a
-    "vpStack" and one of the components of the stack
-    is NOT just a simple viewport (e.g., when one of
-    the components of the "vpStack" is a "vpStack").
-
-2.  Bug fix for grid.ls(viewports=TRUE) when listing a
-    "vpStack" and one of the components of the stack
-    is NOT just a simple viewport (e.g., when one of
-    the components of the "vpStack" is a "vpStack").
-
-3.  Added support for "vpPaths" within a "vpStack",
-    "vpList", or "vpTree" (i.e., mixing of viewports
-    and "vpPaths").
-
-4.  New functions grid.reorder() and reorderGrob() to  
-    modify the order in which the children of a gTree 
-    are drawn.
-
-5.  Bug fix for grid.ls() to report children of a gTree
-    in the correct order.
-
-
 Changes from grid_2.14.0 to grid_2.15.0:
 --------------------------------------
 

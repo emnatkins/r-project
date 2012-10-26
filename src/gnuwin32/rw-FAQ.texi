@@ -222,7 +222,7 @@ set the default installation directory
 set the default Start-menu group name
 @item /COMPONENTS="comma separated list of component names"
 set the initial list of components: Components are named @samp{main},
-@samp{i386}, @samp{x64} and @samp{translations}.
+@samp{i386} and @samp{x64} (there were many more before R 2.15.0).
 @end table
 
 @noindent
@@ -305,8 +305,8 @@ versions around if you wish.
 For those with a personal library (folder @file{R\win-library\@var{x.y}}
 of your home directory, @file{R\win64-library\@var{x.y}} on 64-bit
 builds), you will need to update that too when the minor version of R
-changes (e.g.@: from 2.15.2 to 2.16.0).  A simple way to do so is to
-copy (say) @file{R\win-library\2.15} to @file{R\win-library\2.16} before
+changes (e.g.@: from 2.14.2 to 2.15.0).  A simple way to do so is to
+copy (say) @file{R\win-library\2.14} to @file{R\win-library\2.15} before
 running @code{update.packages(checkBuilt=TRUE, ask=FALSE)}.
 
 
@@ -888,7 +888,7 @@ edit the @env{PATH}.
 The element you want to add to the path is something like
 
 @example
-c:\Program Files\R\R-2.16.0\bin\x64
+c:\Program Files\R\R-2.15.2\bin\x64
 @end example
 
 @noindent
@@ -1125,10 +1125,10 @@ CRAN or from a local @code{.zip} file by using @code{install.packages}:
 see its help page.  There are menu items on the @code{Packages} menu to
 provide a point-and-click interface to package installation.  The
 packages for each minor (2.x) version will be stored in a separate area,
-so for R 2.16.? the files are in @file{bin/windows/contrib/2.16}.
+so for R 2.15.? the files are in @file{bin/windows/contrib/2.15}.
 
 Note that the binary versions on CRAN are unsupported: see
-@uref{http://cran.r-project.org/@/bin/@/windows/@/contrib/@/2.16/@/ReadMe},
+@uref{http://cran.r-project.org/@/bin/@/windows/@/contrib/@/2.15/@/ReadMe},
 which also gives the locations of a few other binary packages.
 
 If there is no binary package or that is not up-to-date or you prefer
@@ -1226,7 +1226,7 @@ You can tell the version the package was compiled for by looking at the
 For a small number of binary packages you need to install additional
 software and have its DLLs in your @code{PATH}.  Windows will normally
 give an informative message about a certain DLL not being found.  See
-@uref{http://cran.r-project.org/@/bin/@/windows/@/contrib/@/2.16/@/ReadMe} for a
+@uref{http://cran.r-project.org/@/bin/@/windows/@/contrib/@/2.15/@/ReadMe} for a
 listing of some of these packages (notably @code{RGtk2},
 @code{cairoDevice}, @code{rggobi}, @code{rJava}, @code{rjags} and some
 of the packages connecting to databases).
@@ -1379,8 +1379,8 @@ than the one you are using.  You can check on the package's HTML page on
 CRAN, and update your R if needed.
 
 Your R might be too old.  Binary packages for the 2.x series are built
-(if possible) whilst 2.(x+1) is current, e.g.@: once 2.16.0 is released,
-binary packages for 2.14.x will be frozen.  You can always try
+(if possible) whilst 2.(x+1) is current, e.g.@: once 2.15.0 is released,
+binary packages for 2.13.x will be frozen.  You can always try
 installing from the sources.
 
 @node No binary packages appear to be available for my version of R, How do I build my package for both 32- and 64-bit R?, Package xxx is out of date for Windows, Packages

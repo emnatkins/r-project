@@ -52,7 +52,8 @@ as.data.frame.logLik <- function (x, ...)
 ## log-likelihood for glm objects
 logLik.glm <- function(object, ...)
 {
-    if(!missing(...)) warning("extra arguments discarded")
+    if(length(list(...)))
+        warning("extra arguments discarded")
     fam <- family(object)$family
     p <- object$rank
     ## allow for estimated dispersion
@@ -69,7 +70,7 @@ logLik.glm <- function(object, ...)
 logLik.lm <- function(object, REML = FALSE, ...)
 {
     if(inherits(object, "mlm"))
-        stop("'logLik.lm' does not support multiple responses")
+        stop("logLik.lm only handles single responses")
     res <- object$residuals # not resid(object) because of NA methods
     p <- object$rank
     N <- length(res)

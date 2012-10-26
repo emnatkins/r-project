@@ -86,13 +86,10 @@ image.default <- function (x = seq(0, 1, length.out = nrow(z)),
 	if (length(breaks) != length(col) + 1)
 	    stop("must have one more break than colour")
 	if (any(!is.finite(breaks)))
-	    stop("'breaks' must all be finite")
-        if (is.unsorted(breaks)) {
-            warning("unsorted 'breaks' will be sorted before use")
-            breaks <- sort(breaks)
-        }
-        ## spatstat passes a factor matrix here, but .bincode converts to double
-        zi <- .bincode(z, breaks, TRUE, TRUE) - 1L
+	    stop("breaks must all be finite")
+        ## spatstat passes a factor matrix here.
+        z1 <- if (!is.double(z)) as.double(z) else z
+        zi <- .bincode(z1, breaks, TRUE, TRUE) - 1L
     }
     if (!add)
 	plot(NA, NA, xlim = xlim, ylim = ylim, type = "n", xaxs = xaxs,
@@ -118,14 +115,13 @@ image.default <- function (x = seq(0, 1, length.out = nrow(z)),
            useRaster <- FALSE
            ras <- dev.capabilities("raster")
            if(identical(ras, "yes")) useRaster <- TRUE
-           if(identical(ras, "non-missing")) useRaster <- all(!is.na(zi))
+           if(identical(ras, "non-missing"))
+               useRaster <- all(!is.na(zi))
        }
     }
     if (useRaster) {
          if(check_irregular(x,y))
-            stop(gettextf("%s can only be used with a regular grid",
-                          sQuote("useRaster = TRUE")),
-                 domain = NA)
+            stop("useRaster=TRUE can only be used with a regular grid")
         # this should be mostly equivalent to RGBpar3 with bg=NA
         if (!is.character(col)) {
             p <- palette()
@@ -136,10 +132,9 @@ image.default <- function (x = seq(0, 1, length.out = nrow(z)),
         }
         zc <- col[zi + 1L]
         dim(zc) <- dim(z)
-        zc <- t(zc)[ncol(zc):1L,, drop = FALSE]
+        zc <- t(zc)[ncol(zc):1L,, drop=FALSE]
         rasterImage(as.raster(zc),
                     min(x), min(y), max(x), max(y),
-                    interpolate = FALSE)
-     } else .External.graphics(C_image, x, y, zi, col)
-    invisible()
+                    interpolate=FALSE)
+    } else .Internal(image(as.double(x), as.double(y), as.integer(zi), col))
 }

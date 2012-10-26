@@ -1,4 +1,4 @@
-useDynLib(methods, .registration = TRUE, .fixes = "C_")
+useDynLib(methods) #>> fails for now : .registration = TRUE
 
 importFrom(utils, find)
 
@@ -174,6 +174,7 @@ export(resetGeneric)
 export(sealClass)
 export(selectMethod)
 export(seemsS4Object)
+export(sessionData)
 export(setAs)
 export(setClass)
 export(setClassUnion)

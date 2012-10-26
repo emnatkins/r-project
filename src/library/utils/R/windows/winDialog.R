@@ -22,7 +22,7 @@ winDialog <- function(type = c("ok", "okcancel", "yesno", "yesnocancel"),
     if (!interactive())
         stop("winDialog() cannot be used non-interactively")
     type <- match.arg(type)
-    res <- .External2(C_winDialog, type, message)
+    res <- .Internal(winDialog(type, message))
     if(res == 10L) return(invisible(NULL))
     c("NO", "CANCEL", "YES", "OK")[res+2L]
 }
@@ -31,59 +31,54 @@ winDialogString <- function(message, default)
 {
     if (!interactive())
         stop("winDialogString() cannot be used non-interactively")
-    .External2(C_winDialogString, message, default)
+    .Internal(winDialogString(message, default))
 }
 
 winMenuDel <- function(menuname)
-    invisible(.External2(C_winMenuDel, menuname, NULL))
+    invisible(.Internal(winMenuDel(menuname, NULL)))
 
 winMenuDelItem <- function(menuname, itemname)
-    invisible(.External2(C_winMenuDel, menuname, itemname))
+    invisible(.Internal(winMenuDel(menuname, itemname)))
 
 winMenuAdd <- function(menuname)
-    invisible(.External2(C_winMenuAdd, menuname, NULL, NULL))
+    invisible(.Internal(winMenuAdd(menuname, NULL, NULL)))
 
 winMenuAddItem <- function(menuname, itemname, action) {
     ## If specified menu does not exist, add it
     if (! menuname %in% winMenuNames()) winMenuAdd(menuname)
 
-    invisible(.External2(C_winMenuAdd, menuname, itemname, action))
+    invisible(.Internal(winMenuAdd(menuname, itemname, action)))
 }
 
-winMenuNames <- function() .External2(C_winMenuNames)
+winMenuNames <- function() .Internal(winMenuNames())
 
-winMenuItems <- function(menuname) .External2(C_winMenuItems, menuname)
+winMenuItems <- function(menuname) .Internal(winMenuItems(menuname))
 
 ## There is internal coercion, but using as.xxx here allows method dispatch
 winProgressBar <- function(title = "R progress bar", label = "",
                            min = 0, max = 1, initial = 0, width = 300L)
 {
-    res <- .External2(C_winProgressBar, as.integer(width), as.character(title),
-                      as.character(label), as.double(min),
-                      as.double(max), as.double(initial))
+    res <- .Internal(winProgressBar(as.integer(width), as.character(title),
+                                    as.character(label), as.double(min),
+                                    as.double(max), as.double(initial)))
     structure(list(pb=res), class = "winProgressBar")
 }
 
 close.winProgressBar <- function(con, ...)
-    .External2(C_closeWinProgressBar, con$pb)
+    .Internal(closeWinProgressBar(con$pb))
 
 setWinProgressBar <- function(pb, value, title=NULL, label=NULL)
 {
     if(!inherits(pb, "winProgressBar"))
-       stop(gettextf("'pb' is not from class %s",
-                     dQuote("winProgressBar")),
-            domain = NA)
+       stop("'pb' is not from class \"winProgressBar\"")
     if(!is.null(title)) title <- as.character(title)
     if(!is.null(label)) label <- as.character(label)
-    invisible(.External2(C_setWinProgressBar, pb$pb, as.double(value),
-                         title, label))
+    invisible(.Internal(setWinProgressBar(pb$pb, as.double(value), title, label)))
 }
 
 getWinProgressBar <- function(pb)
 {
     if(!inherits(pb, "winProgressBar"))
-        stop(gettextf("'pb' is not from class %s",
-                      dQuote("winProgressBar")),
-             domain = NA)
-    .External2(C_setWinProgressBar, pb$pb, NULL, NULL, NULL)
+       stop("'pb' is not from class \"winProgressBar\"")
+    .Internal(setWinProgressBar(pb$pb, NULL, NULL, NULL))
 }

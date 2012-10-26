@@ -110,8 +110,7 @@ install.packages <-
              configure.args = getOption("configure.args"),
              configure.vars = getOption("configure.vars"),
              clean = FALSE, Ncpus = getOption("Ncpus", 1L),
-	     verbose = getOption("verbose"),
-             libs_only = FALSE, INSTALL_opts, quiet = FALSE, ...)
+             libs_only = FALSE, INSTALL_opts, ...)
 {
     if (is.logical(clean) && clean)
         clean <- "--clean"
@@ -203,11 +202,9 @@ install.packages <-
 
     if(missing(lib) || is.null(lib)) {
         lib <- .libPaths()[1L]
-	if(!quiet && length(.libPaths()) > 1L)
-	    message(sprintf(ngettext(length(pkgs),
-                                     "Installing package into %s\n(as %s is unspecified)",
-                                     "Installing packages into %s\n(as %s is unspecified)"),
-                            sQuote(lib), sQuote("lib")), domain = NA)
+	if(length(.libPaths()) > 1L)
+	    message(gettextf("Installing package(s) into %s\n(as %s is unspecified)",
+			     sQuote(lib), sQuote("lib")), domain = NA)
     }
 
     ## check for writability by user
@@ -254,8 +251,7 @@ install.packages <-
 		ans <- ask.yes.no("Would you like to create a personal library\n%s\nto install packages into?")
 		if(identical(ans, "no")) stop("unable to install packages")
 		if(!dir.create(userdir, recursive = TRUE))
-                    stop(gettextf("unable to create %s", sQuote(userdir)),
-                         domain = NA)
+		    stop("unable to create ", sQuote(userdir))
 		.libPaths(c(userdir, .libPaths()))
 	    }
 	} else stop("unable to install packages")
@@ -273,7 +269,6 @@ install.packages <-
         }
     }
 
-# for testing .Platform$pkgType <- "mac.binary.leopard"
     ## Look at type == "both"
     if (type == "both") {
         ## NB it is only safe to use binary packages with a Mac OS X
@@ -319,11 +314,7 @@ install.packages <-
             print(out)
             cat("\n")
             if(interactive() && any(later & hasSrc)) {
-                msg <-
-                    ngettext(sum(later & hasSrc),
-                             "Do you want to install from sources the package which need compilation?",
-                             "Do you want to install from sources the packages which need compilation?")
-                message(msg, domain = NA)
+                message("Do you want to attempt to install from sources the package(s) which need compilation?")
                 res <- readline("y/n: ")
                 if(res != "y") later <- later & !hasSrc
             }
@@ -331,14 +322,11 @@ install.packages <-
         bins <- bins[!later]
 
         if(interactive() && length(srcOnly)) {
-            nc <- !( available[srcOnly, "NeedsCompilation"] %in% "no" )
+            nc <- !( available[srcOnly, "NeedsCompilation"] %in% "no")
             s2 <- srcOnly[nc]
             if(length(s2)) {
-                msg <-
-                    ngettext(length(s2),
-                             "Package which are only available in source form, and may need compilation of C/C++/Fortran",
-                             "Packages which are only available in source form, and may need compilation of C/C++/Fortran")
-                msg <- c(paste0(msg, ": "), sQuote(s2))
+                msg <- c("Package(s) which are only available in source form, and may need compilation of C/C++/Fortran: ",
+                         sQuote(s2))
                 msg <- strwrap(paste(msg, collapse = " "), exdent = 2)
                 message(paste(msg, collapse = "\n"), domain = NA)
                 message("Do you want to attempt to install these from sources?")
@@ -424,7 +412,7 @@ install.packages <-
                                method = method, available = available,
                                destdir = destdir,
                                dependencies = dependencies,
-                               libs_only = libs_only, quiet = quiet,  ...)
+                               libs_only = libs_only, ...)
             return(invisible())
         }
         ## Avoid problems with spaces in pathnames.
@@ -446,7 +434,7 @@ install.packages <-
             .install.macbinary(pkgs = pkgs, lib = lib, contriburl = contriburl,
                                method = method, available = available,
                                destdir = destdir,
-                               dependencies = dependencies, quiet = quiet, ...)
+                               dependencies = dependencies, ...)
             return(invisible())
         }
 
@@ -465,7 +453,6 @@ install.packages <-
     libpath <- libpath[! libpath %in% .Library]
     if(length(libpath)) libpath <- paste(libpath, collapse=.Platform$path.sep)
     cmd0 <- paste(file.path(R.home("bin"),"R"), "CMD INSTALL")
-    ## INSTALL ~= ../../../scripts/INSTALL --> ../../tools/R/
     if(length(libpath))
         if(.Platform$OS.type == "windows") {
             ## We don't have a way to set an environment variable for
@@ -483,8 +470,6 @@ install.packages <-
     if (!missing(INSTALL_opts))
         cmd0 <- paste(cmd0, paste(INSTALL_opts, collapse = " "))
 
-    if(verbose) message(gettextf("system (cmd0): %s", cmd0), domain = NA)
-
     if(is.null(repos) & missing(contriburl)) {
         ## install from local source tarball(s)
         update <- cbind(path.expand(pkgs), lib) # for side-effect of recycling to same length
@@ -494,12 +479,11 @@ install.packages <-
                          getConfigureArgs(update[i, 1L]),
                          getConfigureVars(update[i, 1L]),
                          shQuote(update[i, 1L]))
-           if(system(cmd, ignore.stdout = quiet, ignore.stderr = quiet) > 0L)
+            if(system(cmd) > 0L)
                 warning(gettextf(
                  "installation of package %s had non-zero exit status",
                                 sQuote(update[i, 1L])),
                         domain = NA)
-	    else if(verbose) message(sprintf("%d): succeeded '%s'", i, cmd))
         }
         return(invisible())
     }
@@ -521,21 +505,15 @@ install.packages <-
 
     foundpkgs <- download.packages(pkgs, destdir = tmpd, available = available,
                                    contriburl = contriburl, method = method,
-                                   type = "source", quiet = quiet, ...)
+                                   type = "source", ...)
 
     ## at this point 'pkgs' may contain duplicates,
     ## the same pkg in different libs
     if(length(foundpkgs)) {
-	if(verbose) message(gettextf("foundpkgs: %s",
-                                     paste(foundpkgs, collapse=", ")),
-                            domain = NA)
         update <- unique(cbind(pkgs, lib))
         colnames(update) <- c("Package", "LibPath")
         found <- pkgs %in% foundpkgs[, 1L]
         files <- foundpkgs[match(pkgs[found], foundpkgs[, 1L]), 2L]
-	if(verbose) message(gettextf("files: %s",
-                                     paste(files, collapse=", \n\t")),
-                            domain = NA)
         update <- cbind(update[found, , drop=FALSE], file = files)
         if(nrow(update) > 1L) {
             upkgs <- unique(pkgs <- update[, 1L])
@@ -584,8 +562,7 @@ install.packages <-
             cwd <- setwd(tmpd)
             on.exit(setwd(cwd))
             ## MAKE will be set by sourcing Renviron
-            cmd <- paste(Sys.getenv("MAKE", "make"), "-k -j", Ncpus)
-            status <- system(cmd, ignore.stdout = quiet, ignore.stderr = quiet)
+            status <- system(paste(Sys.getenv("MAKE", "make"), "-k -j", Ncpus))
             if(status > 0L) {
                 ## Try to figure out which
                 pkgs <- update[, 1L]
@@ -604,15 +581,13 @@ install.packages <-
                              getConfigureArgs(update[i, 3L]),
                              getConfigureVars(update[i, 3L]),
                              update[i, 3L])
-                status <- system(cmd, ignore.stdout = quiet,
-                                 ignore.stderr = quiet)
+                status <- system(cmd)
                 if(status > 0L)
                     warning(gettextf("installation of package %s had non-zero exit status",
                                      sQuote(update[i, 1L])), domain = NA)
-		else if(verbose) message(sprintf("%d): succeeded '%s'", i, cmd))
             }
         }
-        if(!quiet && nonlocalrepos && !is.null(tmpd) && is.null(destdir))
+        if(nonlocalrepos && !is.null(tmpd) && is.null(destdir))
             cat("\n", gettextf("The downloaded source packages are in\n\t%s",
                                sQuote(normalizePath(tmpd, mustWork = FALSE))),
                 "\n", sep = "")

@@ -42,14 +42,16 @@ function(x, y = NULL, legend, fill = NULL, col = par("col"), border="black",
         par(xpd=xpd)
     }
     title <- as.graphicsAnnot(title)
-    if(length(title) > 1) stop("invalid 'title'")
+    if(length(title) > 1) stop("invalid title")
     legend <- as.graphicsAnnot(legend)
     n.leg <- if(is.call(legend)) 1 else length(legend)
     if(n.leg == 0) stop("'legend' is of length 0")
     auto <-
 	if (is.character(x))
-	    match.arg(x, c("bottomright", "bottom", "bottomleft", "left",
-			   "topleft", "top", "topright", "right", "center"))
+	    match.arg(x, c("bottomright", "bottom", "bottomleft",
+			   "left",
+			   "topleft", "top", "topright",
+			   "right", "center"))
 	else NA
 
     if (is.na(auto)) {
@@ -121,8 +123,9 @@ function(x, y = NULL, legend, fill = NULL, col = par("col"), border="black",
     n.legpercol <-
 	if(horiz) {
 	    if(ncol != 1)
-                warning(gettextf("horizontal specification overrides: Number of columns := %d",
-                                 n.leg), domain = NA)
+		warning(
+		    "horizontal specification overrides: Number of columns := ",
+			n.leg)
 	    ncol <- n.leg
 	    1
 	} else ceiling(n.leg / ncol)
@@ -186,7 +189,7 @@ function(x, y = NULL, legend, fill = NULL, col = par("col"), border="black",
 	    top	 <- y + (1 - yjust) * h
 	} else {
 	    usr <- par("usr")
-	    inset <- rep_len(inset, 2)
+	    inset <- rep(inset, length.out = 2)
 	    insetx <- inset[1L]*(usr[2L] - usr[1L])
 	    left <- switch(auto, "bottomright"=,
 			   "topright"=, "right" = usr[2L] - w - insetx,
@@ -215,7 +218,7 @@ function(x, y = NULL, legend, fill = NULL, col = par("col"), border="black",
 
     if (mfill) {		#- draw filled boxes -------------
 	if(plot) {
-	    if(!is.null(fill)) fill <- rep_len(fill, n.leg)
+	    if(!is.null(fill)) fill <- rep(fill, length.out = n.leg)
 	    rect2(left = xt, top=yt+ybox/2, dx = xbox, dy = ybox,
 		  col = fill,
 		  density = density, angle = angle, border = border)
@@ -223,16 +226,14 @@ function(x, y = NULL, legend, fill = NULL, col = par("col"), border="black",
 	xt <- xt + dx.fill
     }
     if(plot && (has.pch || do.lines))
-	col <- rep_len(col, n.leg)
+	col <- rep(col, length.out = n.leg)
 
-    ## NULL is not documented but people use it.
-    if(missing(lwd) || is.null(lwd))
+    if(missing(lwd))
 	lwd <- par("lwd") # = default for pt.lwd
     if (do.lines) {			#- draw lines ---------------------
-        ## NULL is not documented
-	if(missing(lty) || is.null(lty)) lty <- 1
-	lty <- rep_len(lty, n.leg)
-	lwd <- rep_len(lwd, n.leg)
+	if(missing(lty)) lty <- 1
+	lty <- rep(lty, length.out = n.leg)
+	lwd <- rep(lwd, length.out = n.leg)
 	ok.l <- !is.na(lty) & (is.character(lty) | lty > 0) & !is.na(lwd)
 	if(trace)
 	    catn("  segments2(",xt[ok.l] + x.off*xchar, ",", yt[ok.l],
@@ -244,10 +245,10 @@ function(x, y = NULL, legend, fill = NULL, col = par("col"), border="black",
 	xt <- xt + (seg.len+x.off) * xchar
     }
     if (has.pch) {			#- draw points -------------------
-	pch   <- rep_len(pch, n.leg)
-	pt.bg <- rep_len(pt.bg, n.leg)
-	pt.cex<- rep_len(pt.cex, n.leg)
-	pt.lwd<- rep_len(pt.lwd, n.leg)
+	pch   <- rep(pch, length.out = n.leg)
+	pt.bg <- rep(pt.bg, length.out = n.leg)
+	pt.cex<- rep(pt.cex, length.out = n.leg)
+	pt.lwd<- rep(pt.lwd, length.out = n.leg)
 	ok <- !is.na(pch) & (is.character(pch) | pch >= 0)
 	x1 <- (if(merge && do.lines) xt-(seg.len/2)*xchar else xt)[ok]
 	y1 <- yt[ok]

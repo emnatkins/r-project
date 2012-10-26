@@ -98,7 +98,7 @@ ftable.formula <- function(formula, data = NULL, subset, na.action, ...)
     rhs.has.dot <- any(rvars == ".")
     lhs.has.dot <- any(cvars == ".")
     if(lhs.has.dot && rhs.has.dot)
-        stop("'formula' has '.' in both left and right hand sides")
+        stop("'formula' has '.' in both left and right hand side")
     m <- match.call(expand.dots = FALSE)
     edata <- eval(m$data, parent.frame())
     if(inherits(edata, "ftable")
@@ -189,7 +189,8 @@ format.ftable <- function(x, quote = TRUE, digits = getOption("digits"), ...)
     }
     makeNames <- function(x) {
         nmx <- names(x)
-        if(is.null(nmx)) nmx <- rep_len("", length(x))
+        if(is.null(nmx))
+            nmx <- rep("", length.out = length(x))
         nmx
     }
 
@@ -267,9 +268,9 @@ read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
             col.vars[[k]] <- s[-1L]
             names(col.vars)[k] <- s[1L]
         }
-	row.vars <- setNames(vector("list", length = n.row.vars),
-			     scan(file, what = "", sep = sep, quote = quote,
-				  nlines = 1, quiet = TRUE))
+        row.vars <- vector("list", length = n.row.vars)
+        names(row.vars) <- scan(file, what = "", sep = sep, quote =
+                                quote, nlines = 1, quiet = TRUE)
         z <- z[-(1 : (n.col.vars + 1))]
     }
     else {
@@ -303,8 +304,8 @@ read.ftable <- function(file, sep = "", quote = "\"", row.var.names,
                 stop("'row.var.names' missing")
             }
             n.row.vars <- length(row.var.names)
-	    row.vars <- setNames(vector("list", length = n.row.vars),
-				 as.character(row.var.names))
+            row.vars <- vector("list", length = n.row.vars)
+            names(row.vars) <- as.character(row.var.names)
             if(missing(col.vars) || !is.list(col.vars)) {
                 ## 'col.vars' should be a list.
                 stop("'col.vars' missing or incorrect")

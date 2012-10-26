@@ -1,7 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
  *  Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
- *  Copyright (C) 1997--2012  The R Core Team
+ *  Copyright (C) 1997--2011  The R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -91,7 +91,6 @@
 
 #define R_USE_SIGNALS 1
 #include <Defn.h>
-#include <Internal.h>
 #include <float.h> /* for DBL_DIG */
 #include <Print.h>
 #include <Fileio.h>
@@ -109,7 +108,7 @@ typedef R_StringBuffer DeparseBuffer;
 
 typedef struct {
     int linenumber;
-    int len; // FIXME: size_t
+    int len;
     int incurly;
     int inlist;
     Rboolean startline; /* = TRUE; */
@@ -156,7 +155,7 @@ SEXP attribute_hidden do_deparse(SEXP call, SEXP op, SEXP args, SEXP rho)
     if(!isNull(CAR(args))) {
 	cut0 = asInteger(CAR(args));
 	if(cut0 == NA_INTEGER|| cut0 < MIN_Cutoff || cut0 > MAX_Cutoff) {
-	    warning(_("invalid 'cutoff' value for 'deparse', using default"));
+	    warning(_("invalid 'cutoff' for deparse, using default"));
 	    cut0 = DEFAULT_Cutoff;
 	}
     }
@@ -260,14 +259,13 @@ SEXP deparse1line(SEXP call, Rboolean abbrev)
 			     SIMPLEDEPARSE, -1));
     if ((lines = length(temp)) > 1) {
 	char *buf;
-	int i;
-	size_t len;
+	int i, len;
 	const void *vmax;
 	cetype_t enc = CE_NATIVE;
-	for (len = 0, i = 0; i < length(temp); i++) {
+	for (len=0, i = 0; i < length(temp); i++) {
 	    SEXP s = STRING_ELT(temp, i);
 	    cetype_t thisenc = getCharCE(s);
-	    len += strlen(CHAR(s));  // FIXME: check for overflow?
+	    len += strlen(CHAR(s));
 	    if (thisenc != CE_NATIVE) 
 	    	enc = thisenc; /* assume only one non-native encoding */ 
 	}    
@@ -382,7 +380,7 @@ SEXP attribute_hidden do_dump(SEXP call, SEXP op, SEXP args, SEXP rho)
 	error( _("character arguments expected"));
     nobjs = length(names);
     if(nobjs < 1 || length(file) < 1)
-	error(_("zero-length argument"));
+	error(_("zero length argument"));
     source = CADDR(args);
     if (source != R_NilValue && TYPEOF(source) != ENVSXP)
 	error(_("invalid '%s' argument"), "envir");
@@ -1184,7 +1182,7 @@ static void print2buff(const char *strng, LocalParseData *d)
     bufflen = strlen(d->buffer.data);
     R_AllocStringBuffer(bufflen + tlen, &(d->buffer));
     strcat(d->buffer.data, strng);
-    d->len += (int) tlen;
+    d->len += tlen;
 }
 
 static void vector2buff(SEXP vector, LocalParseData *d)

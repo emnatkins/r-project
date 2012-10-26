@@ -68,7 +68,7 @@ hclust <- function(d, method="complete", members=NULL)
     else if(length(members) != n)
         stop("invalid length of members")
 
-    storage.mode(d) <- "double"
+    if (!is.double(d)) storage.mode(d) <- "double"
     hcl <- .Fortran(C_hclust,
 		    n = n,
 		    len = len,
@@ -134,7 +134,8 @@ plot.hclust <-
 
     dev.hold(); on.exit(dev.flush())
     plot.new()
-    graphics:::plotHclust(n, merge, height, order(x$order), hang, labels, ...)
+    .Internal(dend.window(n, merge, height,                 hang, labels, ...))
+    .Internal(dend       (n, merge, height, order(x$order), hang, labels, ...))
     if(axes)
         axis(2, at=pretty(range(height)), ...)
     if (frame.plot)
@@ -173,12 +174,10 @@ as.hclust <- function(x, ...) UseMethod("as.hclust")
 as.hclust.default <- function(x, ...) {
     if(inherits(x, "hclust")) x
     else
-	stop(gettextf("argument 'x' cannot be coerced to class %s",
-                      dQuote("hclust")),
+	stop(gettext("argument 'x' cannot be coerced to class \"hclust\""),
              if(!is.null(oldClass(x)))
              gettextf("\n Consider providing an as.hclust.%s() method",
-                      oldClass(x)[1L]),
-             domain = NA)
+                      oldClass(x)[1L]), domain = NA)
 }
 
 as.hclust.twins <- function(x, ...)

@@ -35,7 +35,9 @@
     using this argument that no other package can override their external
     symbols, and also speeds up the search (see \sQuote{Note}).}
   
-  \item{ENCODING}{For back-compatibility, accepted but ignored.}
+  \item{ENCODING}{optional name for an encoding to be assumed for
+    character vectors.  Allowed but ignored for \code{.Fortran},
+    deprecated for \code{.C}.  See \sQuote{Details}.}
 }
 
 \details{
@@ -43,9 +45,17 @@
   code.  Later interfaces are \code{\link{.Call}} and
   \code{\link{.External}} which are more flexible and have better
   performance.
+
+  Character strings will be translated from the value of \code{ENCODING}
+  or any declared encoding (see \code{\link{Encoding}}) to the current
+  locale before being passed to the compiled C code.  They will be
+  returned encoded in the current locale unless \code{ENCODING} was
+  specified, when the output strings are translated to the specified
+  encoding.  This is deprecated: convert code to use \code{\link{iconv}}.
   
-  These functions are both \link{primitive}, and \code{.NAME} is always
-  matched to the first argument supplied (which should not be named).
+  These functions are \link{primitive}, and \code{.NAME} is always
+  matched to the first argument supplied (which should not be named and
+  there will be a warning if it is---and an error in future.).
   The other named arguments follow \code{\dots} and so cannot be
   abbreviated.  For clarity, should avoid using names in the arguments
   passed to \code{\dots} that match or partially match \code{.NAME}.
@@ -73,12 +83,12 @@
     other \tab SEXP\tab not allowed\cr
   }
 
-  Numeric vectors in \R will be passed as type \code{double *} to C
-  (and as \code{double precision} to Fortran) unless the argument has
-  attribute \code{Csingle} set to \code{TRUE} (use
-  \code{\link{as.single}} or \code{\link{single}}).  This mechanism is
-  only intended to be used to facilitate the interfacing of existing C
-  and Fortran code.
+  Numeric vectors in \R will be passed as type \code{double *} to C (and
+  as \code{double precision} to Fortran) unless (i) \code{DUP} is true
+  and (ii) the argument has attribute \code{Csingle} set to \code{TRUE}
+  (use \code{\link{as.single}} or \code{\link{single}}).  This mechanism
+  is only intended to be used to facilitate the interfacing of existing
+  C and Fortran code.
 
   The C type \code{Rcomplex} is defined in \file{Complex.h} as a
   \code{typedef struct {double r; double i;}}.  It may or may not be
@@ -133,8 +143,7 @@
   be able to change not only the local variable but the variable one
   level up.  This will be very hard to trace.
 
-  With \code{DUP = FALSE}, character vectors cannot be used, and single
-  precision values will not be returned.
+  Character vectors cannot be used with \code{DUP = FALSE}.
 
   It is safe and useful to set \code{DUP = FALSE} if you do not change any
   of the variables that might be affected, e.g.,
@@ -145,6 +154,15 @@
   so it cannot cause trouble (but as from \R 2.15.1 it is not copied
   even with \code{DUP = TRUE}).  If the \code{input} variable is not
   changed in the C code of \code{Cfunction} you are safe.
+
+  Note that if \code{DUP = TRUE} there are up to two copies involved.
+  Prior to \R 2.15.1 this was always the case for vectors (one before
+  calling the compiled code and one to collect the results), and this is
+  still the case for character vectors.  For other atomic vectors, the
+  argument is not copied before calling the compiled code if it is not
+  otherwise used in the calling code (such as \code{output} in the
+  example above).  Non-atomic-vector objects are read-only to the C code
+  and are never copied.
 }
 
 \section{Fortran symbol names}{
@@ -166,27 +184,6 @@
   \code{.C} and do any necessary symbol-name translation yourself.
 }
 
-\section{Copying of arguments}{
-  If \code{DUP = TRUE} there are up to two copies made of each argument
-  in \code{\dots}.
-
-  Prior to \R 2.15.1 there were always two for vectors (one before
-  calling the compiled code and one to collect the results), and this is
-  still the case for character vectors.  For other atomic vectors, the
-  argument is not copied before calling the compiled code if it is not
-  otherwise used in the calling code (such as \code{output} in the
-  example above).  Non-atomic-vector objects are read-only to the C code
-  and are never copied.
-
-  This behaviour can be changed by setting
-  \code{\link{options}(CBoundsCheck = TRUE)}.  In that case raw,
-  logical, integer, double and complex vector arguments are copied both
-  before and after calling the compiled code.  The first copy made is
-  extended at each end by guard bytes, and on return it is checked that
-  these are unaltered.  For \code{.C}, each element of a character
-  vector uses guard bytes.
-}
-
 \note{
   If one of these functions is to be used frequently, do specify
   \code{PACKAGE} (to confine the search to a single DLL) or pass
@@ -197,8 +194,7 @@
   not use this in your own code: such symbols are not part of the API
   and may be changed without warning.
   
-  \code{PACKAGE = ""} used to be accepted (but was undocumented): it is
-  now an error.
+  \code{PACKAGE = ""} is accepted, but will become an error in \R 2.16.0.
   
   The way \link{pairlist}s were passed by \code{.C} prior to \R 2.15.0
   was not as documented.  This has been corrected, but the

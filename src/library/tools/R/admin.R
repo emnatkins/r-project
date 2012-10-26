@@ -86,10 +86,6 @@ function(dir, outDir)
             .expand_package_description_db_R_fields(db),
             Built = Built)
 
-    ## This cannot be done in a MBCS: write.dcf fails
-    ctype <- Sys.getlocale("LC_CTYPE")
-    Sys.setlocale("LC_CTYPE", "C")
-    on.exit(Sys.setlocale("LC_CTYPE", ctype))
     .write_description(db, file.path(outDir, "DESCRIPTION"))
 
     outMetaDir <- file.path(outDir, "Meta")
@@ -301,14 +297,11 @@ function(dir, outDir)
         for(f in codeFiles) {
             tmp <- iconv(readLines(f, warn = FALSE), from = enc, to = "")
             if(length(bad <- which(is.na(tmp)))) {
-                warning(sprintf(ngettext(length(bad),
-                                         "unable to re-encode %s line %s",
-                                         "unable to re-encode %s lines %s"),
-                                sQuote(basename(f)),
-                                paste(bad, collapse = ", ")),
-                        domain = NA, call. = FALSE)
-                tmp <- iconv(readLines(f, warn = FALSE), from = enc, to = "",
-                             sub = "byte")
+               warning(gettextf("unable to re-encode '%s' line(s) %s",
+                                basename(f), paste(bad, collapse=",")),
+                    domain = NA, call. = FALSE)
+               tmp <- iconv(readLines(f, warn = FALSE), from = enc, to = "",
+                            sub = "byte")
             }
             writeLines(paste0("#line 1 \"", f, "\""), con)
             writeLines(tmp, con)
@@ -611,8 +604,7 @@ function(dir, outDir, keep.source = TRUE)
 
     for(srcfile in vigns$docs[!upToDate]) {
         base <- basename(file_path_sans_ext(srcfile))
-        message(gettextf("processing %s", sQuote(basename(srcfile))),
-                domain = NA)
+        message("processing ", sQuote(basename(srcfile)))
         texfile <- paste0(base, ".tex")
         tryCatch(utils::Sweave(srcfile, pdf = TRUE, eps = FALSE,
                                quiet = TRUE, keep.source = keep.source,

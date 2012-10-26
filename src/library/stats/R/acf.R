@@ -36,26 +36,28 @@ acf <-
         stop("'x' must be numeric")
     sampleT <- as.integer(nrow(x))
     nser <- as.integer(ncol(x))
-    if(is.na(sampleT) || is.na(nser))
-        stop("'sampleT' and 'nser' must be integer")
+    if(is.na(sampleT) || is.na(nser)) stop("sampleT and nser must be ints",
+                                           domain = NA)
     if (is.null(lag.max))
         lag.max <- floor(10 * (log10(sampleT) - log10(nser)))
     lag.max <- as.integer(min(lag.max, sampleT - 1L))
-    if (is.na(lag.max) || lag.max < 0)
-        stop("'lag.max' must be at least 0")
+    if (is.na(lag.max) || lag.max < 0) stop("'lag.max' must be at least 0")
     if(demean)
 	x <- sweep(x, 2, colMeans(x, na.rm = TRUE), check.margin=FALSE)
     lag <- matrix(1, nser, nser)
     lag[lower.tri(lag)] <- -1
-    acf <- .Call(C_acf, x, lag.max, type == "correlation")
+    acf <- array(.C(C_acf, as.double(x), sampleT, nser, lag.max,
+                    as.integer(type == "correlation"),
+                    acf = double((lag.max+1L) * nser * nser), NAOK = TRUE
+                    )$acf, c(lag.max + 1L, nser, nser))
     lag <- outer(0:lag.max, lag/x.freq)
-    acf.out <- structure(list(acf = acf, type = type, n.used = sampleT,
-                              lag = lag, series = series, snames = colnames(x)),
-                         class = "acf")
+    acf.out <- structure(.Data = list(acf = acf, type = type,
+        n.used = sampleT, lag = lag, series = series, snames = colnames(x)),
+        class = "acf")
     if (plot) {
         plot.acf(acf.out, ...)
-        invisible(acf.out)
-    } else acf.out
+        return(invisible(acf.out))
+    } else return(acf.out)
 }
 
 pacf <- function(x, lag.max, plot, na.action, ...) UseMethod("pacf")
@@ -87,7 +89,11 @@ pacf.default <- function(x, lag.max = NULL, plot = TRUE,
         x <- scale(x, TRUE, FALSE)
         acf <- drop(acf(x, lag.max = lag.max, plot = FALSE,
                         na.action = na.action)$acf)
-        pacf <- .Call(C_pacf1, acf, lag.max)
+        pacf <- array(.C(C_uni_pacf,
+                         as.double(acf),
+                         pacf = double(lag.max),
+                         as.integer(lag.max))$pacf,
+                      dim=c(lag.max,1L,1L))
         lag <- array((1L:lag.max)/x.freq, dim=c(lag.max,1L,1L))
         snames <- NULL
     }
@@ -250,7 +256,8 @@ print.acf <- function(x, digits=3, ...)
     nser <- ncol(x$lag)
     if(type != 2) x$acf <- round(x$acf, digits)
     if(nser == 1) {
-        acfs <- setNames(drop(x$acf), format(drop(x$lag), digits=3))
+        acfs <- drop(x$acf)
+        names(acfs) <- format(drop(x$lag), digits=3)
         print(acfs, digits = digits, ...)
     } else {
         acfs <- format(x$acf, ...)

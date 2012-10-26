@@ -48,7 +48,8 @@
   variable number of arguments.
   
   These functions are \link{primitive}, and \code{.NAME} is always
-  matched to the first argument supplied (which should not be named).
+  matched to the first argument supplied (which should not be named and
+  there will be a warning if it is---and an error in future.).
   For clarity, avoid using names in the arguments passed to \code{\dots}
   that match or partially match \code{.NAME}.
 }
@@ -73,8 +74,7 @@
   not use this in your own code: such symbols are not part of the API
   and may be changed without warning.
   
-  \code{PACKAGE = ""} used to be accepted (but was undocumented): it is
-  now an error.
+  \code{PACKAGE = ""} is accepted, but will become an error in \R 2.16.0.
 }
 
 \references{

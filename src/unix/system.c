@@ -91,11 +91,11 @@ void R_setStartTime(void); /* in sys-unix.c */
 
 
 #ifdef HAVE_AQUA
-/*  used here and in main/sysutils.c (for system). */
+/*  this should be a global variable as it used in unix/aqua.c
+    and main/sysutils.c (for system).
+*/
 Rboolean useaqua = FALSE;
-
 // This should have been fixed a long time ago ....
-// Finally in Sep 2012 R.app sets ptr_R_FlushConsole
 #include <R_ext/Rdynload.h>
 DL_FUNC ptr_do_flushconsole;
 void R_FlushConsole(void) {
@@ -114,7 +114,7 @@ void R_setupHistory()
 	R_HistoryFile = ".Rhistory";
     R_HistorySize = 512;
     if ((p = getenv("R_HISTSIZE"))) {
-	value = (int) R_Decode2Long(p, &ierr);
+	value = R_Decode2Long(p, &ierr);
 	if (ierr != 0 || value < 0)
 	    R_ShowMessage("WARNING: invalid R_HISTSIZE ignored;");
 	else
@@ -140,8 +140,6 @@ extern void * __libc_stack_end;
 
 int R_running_as_main_program = 0;
 
-extern void BindDomain(char *R_Home);
-
 /* In src/main/main.c, to avoid inlining */
 extern uintptr_t dummy_ii(void);
 
@@ -154,6 +152,9 @@ int Rf_initialize_R(int ac, char **av)
     Rstart Rp = &rstart;
     Rboolean force_interactive = FALSE;
 
+#ifdef ENABLE_NLS
+    char localedir[PATH_MAX+20];
+#endif
 
 #if defined(HAVE_SYS_RESOURCE_H) && defined(HAVE_GETRLIMIT)
 {
@@ -219,7 +220,21 @@ int Rf_initialize_R(int ac, char **av)
 
     if((R_Home = R_HomeDir()) == NULL)
 	R_Suicide("R home directory is not defined");
-    BindDomain(R_Home);
+#ifdef ENABLE_NLS
+    setlocale(LC_MESSAGES,"");
+    textdomain(PACKAGE);
+    {
+	char *p = getenv("R_SHARE_DIR");
+	if(p) {
+	    strcpy(localedir, p);
+	    strcat(localedir, "/locale");
+	} else {
+	    strcpy(localedir, R_Home);
+	    strcat(localedir, "/share/locale");
+	}
+    }
+    bindtextdomain(PACKAGE, localedir);
+#endif
 
     process_system_Renviron();
 
@@ -250,9 +265,13 @@ int Rf_initialize_R(int ac, char **av)
 	    }
 	    if(!strcmp(p, "none"))
 		useX11 = FALSE; // not allowed from R.sh
+	    else if(!strcmp(p, "gnome") || !strcmp(p, "GNOME"))
+		; // not allowed from R.sh
 #ifdef HAVE_AQUA
-	    else if(!strcmp(p, "aqua"))
-		useaqua = TRUE; // not allowed from R.sh but used by R.app
+	    else if(!strcmp(p, "aqua") || !strcmp(p, "AQUA"))
+		useaqua = TRUE; // not allowed from R.sh
+	    else if(!strcmp(p, "cocoa") || !strcmp(p, "Cocoa"))
+		useaqua = TRUE; // but 'cocaa' is used by R.app
 #endif
 	    else if(!strcmp(p, "X11") || !strcmp(p, "x11"))
 		useX11 = TRUE;
@@ -279,15 +298,15 @@ int Rf_initialize_R(int ac, char **av)
 #ifdef HAVE_X11
     if(useX11) R_GUIType = "X11";
 #endif /* HAVE_X11 */
-
 #ifdef HAVE_AQUA
-    if(useaqua) R_GUIType = "AQUA";
+    if(useaqua)
+	R_GUIType = "AQUA";
 #endif
-
 #ifdef HAVE_TCLTK
-    if(useTk) R_GUIType = "Tk";
+    if(useTk) {
+	R_GUIType = "Tk";
+    }
 #endif
-
     R_common_command_line(&ac, av, Rp);
     while (--ac) {
 	if (**++av == '-') {
@@ -358,8 +377,9 @@ int Rf_initialize_R(int ac, char **av)
 		break;
 	    } else {
 #ifdef HAVE_AQUA
-		// r27492: in 2003 launching from 'Finder OSX' passed this
-		if(!strncmp(*av, "-psn", 4)) break; else
+		if(!strncmp(*av, "-psn", 4))
+		    break;
+		else
 #endif
 		snprintf(msg, 1024, _("WARNING: unknown option '%s'\n"), *av);
 		R_ShowMessage(msg);
@@ -402,8 +422,7 @@ int Rf_initialize_R(int ac, char **av)
 #ifdef HAVE_AQUA
     /* for Aqua and non-dumb terminal use callbacks instead of connections
        and pretty-print warnings/errors (ESS = dumb terminal) */
-    if(useaqua || 
-       (R_Interactive && getenv("TERM") && strcmp(getenv("TERM"), "dumb"))) {
+    if(useaqua || (R_Interactive && getenv("TERM") && strcmp(getenv("TERM"),"dumb"))) {
 	R_Outputfile = NULL;
 	R_Consolefile = NULL;
 	ptr_R_WriteConsoleEx = Rstd_WriteConsoleEx;
@@ -450,15 +469,20 @@ int R_EditFiles(int nfile, const char **file, const char **title,
 		const char *editor)
 {
     char  buf[1024];
-
-    if (ptr_R_EditFiles) return(ptr_R_EditFiles(nfile, file, title, editor));
+#if defined(HAVE_AQUA)
+    if (useaqua) return(ptr_R_EditFiles(nfile, file, title, editor));
+#endif
 
     if (nfile > 0) {
 	if (nfile > 1)
 	    R_ShowMessage(_("WARNING: Only editing the first in the list of files"));
 
-	if (ptr_R_EditFile) ptr_R_EditFile((char *) file[0]);
-	else {
+#if defined(HAVE_AQUA)
+	if (ptr_R_EditFile)
+	    ptr_R_EditFile((char *) file[0]);
+	else
+#endif
+	{
 	    /* Quote path if necessary */
 	    if (editor[0] != '"' && Rf_strchr(editor, ' '))
 		snprintf(buf, 1024, "\"%s\" \"%s\"", editor, file[0]);

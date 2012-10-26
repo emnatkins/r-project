@@ -23,8 +23,8 @@ get <-
 
 mget <- function(x, envir, mode = "any",
                  ifnotfound= list(function(x)
-                 stop(gettextf("value for %s not found", sQuote(x)),
-                      call. = FALSE, domain = NA)),
+				stop(paste0("value for '", x, "' not found"),
+				     call.=FALSE)),
           inherits = FALSE)
      .Internal(mget(x, envir, mode, ifnotfound, inherits))
 

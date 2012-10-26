@@ -23,7 +23,7 @@ method.skeleton <- function (generic, signature, file, external = FALSE,
     if (is.null(fdef)) {
         fdef <- implicitGeneric(generic, where = where)
         if(is.null(fdef))
-            stop(gettextf("no function definition found for %s",
+            stop(gettextf("No function definition found for %s",
                           sQuote(generic)),
                  domain = NA)
     }
@@ -39,7 +39,7 @@ method.skeleton <- function (generic, signature, file, external = FALSE,
     }
     formals(method) <- formals(fdef)
     body(method) <- quote({
-        stop("need a definition for the method here")
+        stop("Need a definition for the method here")
     })
     methodName <- paste(c(generic, signature), collapse = "_")
     if (missing(file))
@@ -57,8 +57,7 @@ method.skeleton <- function (generic, signature, file, external = FALSE,
         output <- c(method, "", output, paste0("  `", methodName, "`)"))
     }
     writeLines(output, file)
-    message(gettextf("Skeleton of method written to %s",
-                     if (is.character(file)) file else "connection"),
-            domain = NA)
+    message("Skeleton of method written to ",
+	    if (is.character(file)) file else "connection")
     invisible(file)
 }

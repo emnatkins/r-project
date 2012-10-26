@@ -88,9 +88,7 @@ contrasts <- function (x, contrasts = TRUE, sparse = FALSE)
     dn <- list(nms, nms)
     if(sparse) {
 	if(is.null(tryCatch(loadNamespace("Matrix"), error= function(e)NULL)))
-	    stop(gettextf("%s needs package 'Matrix' correctly installed",
-                          "contr*(.., sparse=TRUE)"),
-                 domain = NA)
+	    stop("contr*(.., sparse=TRUE) needs package \"Matrix\" correctly installed")
 	new("ddiMatrix", diag = "U", Dim = d, Dimnames = dn)
     } else
 	array(c(rep.int(c(1, numeric(n)), n-1L), 1), d, dn)
@@ -99,9 +97,7 @@ contrasts <- function (x, contrasts = TRUE, sparse = FALSE)
 .asSparse <- function(m) {
     ## ensure helpful error message when Matrix is missing:
     if(is.null(tryCatch(loadNamespace("Matrix"), error= function(e)NULL)))
-	stop(gettextf("%s needs package 'Matrix' correctly installed",
-                      "contr*(.., sparse=TRUE)"),
-             domain = NA)
+	stop("contr*(.., sparse=TRUE) needs package \"Matrix\" correctly installed")
     as(m, "sparseMatrix")
 }
 

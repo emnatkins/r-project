@@ -39,7 +39,6 @@
 #endif
 
 #include <Defn.h>
-#include <Internal.h>
 #include <Rinterface.h>
 #include <Fileio.h>
 #include <R_ext/Applic.h>		/* machar */
@@ -120,11 +119,7 @@ static void Init_R_Machine(SEXP rho)
     SET_VECTOR_ELT(ans, 15, ScalarInteger(SIZEOF_LONG_LONG));
 
     SET_STRING_ELT(nms, 16, mkChar("sizeof.longdouble"));
-#ifdef HAVE_LONG_DOUBLE
     SET_VECTOR_ELT(ans, 16, ScalarInteger(SIZEOF_LONG_DOUBLE));
-#else
-    SET_VECTOR_ELT(ans, 16, ScalarInteger(0));
-#endif
 
     SET_STRING_ELT(nms, 17, mkChar("sizeof.pointer"));
     SET_VECTOR_ELT(ans, 17, ScalarInteger(sizeof(SEXP)));
@@ -336,10 +331,74 @@ SEXP attribute_hidden do_fileshow(SEXP call, SEXP op, SEXP args, SEXP rho)
     return R_NilValue;
 }
 
+/*  file.edit
+ *
+ *  Open a file in a text editor. The function calls
+ *  "R_EditFiles" which is a platform dependent hook that invokes
+ *  the given editor.
+ *
+ */
+
+
+SEXP attribute_hidden do_fileedit(SEXP call, SEXP op, SEXP args, SEXP rho)
+{
+    SEXP fn, ti, ed;
+    const char **f, **title, *editor;
+    int i, n;
+
+    checkArity(op, args);
+    fn = CAR(args); args = CDR(args);
+    ti = CAR(args); args = CDR(args);
+    ed = CAR(args);
+
+    n = length(fn);
+    if (!isString(ed) || length(ed) != 1)
+	error(_("invalid '%s' specification"), "editor");
+    if (n > 0) {
+	if (!isString(fn))
+	    error(_("invalid '%s' specification"), "filename");
+	f = (const char**) R_alloc(n, sizeof(char*));
+	title = (const char**) R_alloc(n, sizeof(char*));
+	/* FIXME convert to UTF-8 on Windows */
+	for (i = 0; i < n; i++) {
+	    SEXP el = STRING_ELT(fn, 0);
+	    if (!isNull(el))
+#ifdef Win32
+		f[i] = acopy_string(reEnc(CHAR(el), getCharCE(el), CE_UTF8, 1));
+#else
+		f[i] = acopy_string(translateChar(el));
+#endif
+	    else
+		f[i] = "";
+	    if (!isNull(STRING_ELT(ti, i)))
+		title[i] = acopy_string(translateChar(STRING_ELT(ti, i)));
+	    else
+		title[i] = "";
+	}
+    }
+    else {  /* open a new file for editing */
+	n = 1;
+	f = (const char**) R_alloc(1, sizeof(char*));
+	f[0] = "";
+	title = (const char**) R_alloc(1, sizeof(char*));
+	title[0] = "";
+    }
+    SEXP ed0 = STRING_ELT(ed, 0);
+#ifdef Win32
+    editor = acopy_string(reEnc(CHAR(ed0), getCharCE(ed0), CE_UTF8, 1));
+#else
+    editor = acopy_string(translateChar(ed0));
+#endif
+    R_EditFiles(n, f, title, editor);
+    return R_NilValue;
+}
+
+
 /*  file.append
  *
- *  Given two vectors of file names as arguments and arranges for
- *  the second set of files to be appended to the first.
+ *  Given two file names as arguments and arranges for
+ *  the second file to be appended to the second.
+ *  op = 1 is codeFiles.append, used in tools:::.file_append_ensuring_LFs
  */
 
 #if defined(BUFSIZ) && (BUFSIZ > 512)
@@ -357,17 +416,24 @@ static int R_AppendFile(SEXP file1, SEXP file2)
     char buf[APPENDBUFSIZE];
     size_t nchar;
     int status = 0;
-    if ((fp1 = RC_fopen(file1, "ab", TRUE)) == NULL) return 0;
+    if ((fp1 = RC_fopen(file1, "ab", TRUE)) == NULL) {
+	return 0;
+    }
     if ((fp2 = RC_fopen(file2, "rb", TRUE)) == NULL) {
 	fclose(fp1);
 	return 0;
     }
     while ((nchar = fread(buf, 1, APPENDBUFSIZE, fp2)) == APPENDBUFSIZE)
-	if (fwrite(buf, 1, APPENDBUFSIZE, fp1) != APPENDBUFSIZE) goto append_error;
-    if (fwrite(buf, 1, nchar, fp1) != nchar) goto append_error;
+	if (fwrite(buf, 1, APPENDBUFSIZE, fp1) != APPENDBUFSIZE) {
+	    goto append_error;
+	}
+    if (fwrite(buf, 1, nchar, fp1) != nchar) {
+	goto append_error;
+    }
     status = 1;
  append_error:
-    if (status == 0) warning(_("write error during file append"));
+    if (status == 0)
+	warning(_("write error during file append"));
     fclose(fp1);
     fclose(fp2);
     return status;
@@ -376,8 +442,7 @@ static int R_AppendFile(SEXP file1, SEXP file2)
 SEXP attribute_hidden do_fileappend(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP f1, f2, ans;
-    int n, n1, n2;
-
+    int i, n, n1, n2;
     checkArity(op, args);
     f1 = CAR(args); n1 = length(f1);
     f2 = CADR(args); n2 = length(f2);
@@ -387,11 +452,13 @@ SEXP attribute_hidden do_fileappend(SEXP call, SEXP op, SEXP args, SEXP rho)
 	error(_("invalid '%s' argument"), "file2");
     if (n1 < 1)
 	error(_("nothing to append to"));
+    if (PRIMVAL(op) > 0 && n1 > 1)
+	error(_("'outFile' must be a single file"));
     if (n2 < 1)
 	return allocVector(LGLSXP, 0);
     n = (n1 > n2) ? n1 : n2;
     PROTECT(ans = allocVector(LGLSXP, n));
-    for (int i = 0; i < n; i++) LOGICAL(ans)[i] = 0;  /* all FALSE */
+    for (i = 0; i < n; i++) LOGICAL(ans)[i] = 0;  /* all FALSE */
     if (n1 == 1) { /* common case */
 	FILE *fp1, *fp2;
 	char buf[APPENDBUFSIZE];
@@ -400,14 +467,24 @@ SEXP attribute_hidden do_fileappend(SEXP call, SEXP op, SEXP args, SEXP rho)
 	if (STRING_ELT(f1, 0) == NA_STRING ||
 	    !(fp1 = RC_fopen(STRING_ELT(f1, 0), "ab", TRUE)))
 	   goto done;
-	for (int i = 0; i < n; i++) {
+	for (i = 0; i < n; i++) {
 	    status = 0;
 	    if (STRING_ELT(f2, i) == NA_STRING ||
 	       !(fp2 = RC_fopen(STRING_ELT(f2, i), "rb", TRUE))) continue;
+	    if (PRIMVAL(op) == 1) { /* codeFiles.append */
+	    	snprintf(buf, APPENDBUFSIZE, "#line 1 \"%s\"\n",
+			 CHAR(STRING_ELT(f2, i)));
+	    	if(fwrite(buf, 1, strlen(buf), fp1) != strlen(buf))
+		    goto append_error;
+	    }
 	    while ((nchar = fread(buf, 1, APPENDBUFSIZE, fp2)) == APPENDBUFSIZE)
 		if (fwrite(buf, 1, APPENDBUFSIZE, fp1) != APPENDBUFSIZE)
 		    goto append_error;
 	    if (fwrite(buf, 1, nchar, fp1) != nchar) goto append_error;
+	    if (PRIMVAL(op) == 1 && buf[nchar - 1] != '\n') {
+		if (fwrite("\n", 1, 1, fp1) != 1) goto append_error;
+	    }
+
 	    status = 1;
 	append_error:
 	    if (status == 0)
@@ -417,7 +494,7 @@ SEXP attribute_hidden do_fileappend(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	fclose(fp1);
     } else {
-	for (int i = 0; i < n; i++) {
+	for (i = 0; i < n; i++) {
 	    if (STRING_ELT(f1, i%n1) == R_NilValue ||
 		STRING_ELT(f2, i%n2) == R_NilValue)
 		LOGICAL(ans)[i] = 0;
@@ -597,7 +674,7 @@ SEXP attribute_hidden do_filesymlink(SEXP call, SEXP op, SEXP args, SEXP rho)
     UNPROTECT(1);
     return ans;
 #else
-    warning(_("symbolic links are not supported on this platform"));
+    warning(_("symlinks are not supported on this platform"));
     return allocVector(LGLSXP, n);
 #endif
 }
@@ -1568,7 +1645,6 @@ SEXP attribute_hidden do_unlink(SEXP call, SEXP op, SEXP args, SEXP env)
 }
 #endif
 
-#if 0
 static void chmod_one(const char *name)
 {
     DIR *dir;
@@ -1628,7 +1704,6 @@ SEXP attribute_hidden do_dirchmod(SEXP call, SEXP op, SEXP args, SEXP env)
 
     return R_NilValue;
 }
-#endif
 
 
 SEXP attribute_hidden do_getlocale(SEXP call, SEXP op, SEXP args, SEXP rho)
@@ -2064,7 +2139,7 @@ SEXP attribute_hidden do_nsl(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    memcpy(&in.s_addr, *(hp->h_addr_list), sizeof (in.s_addr));
 	    strcpy(ip, inet_ntoa(in));
 	} else {
-	    warning(_("unknown format returned by C function 'gethostbyname'"));
+	    warning(_("unknown format returned by gethostbyname"));
 	}
 	ans = mkString(ip);
     }
@@ -2722,12 +2797,10 @@ static int winSetFileTime(const char *fn, time_t ftime)
 # endif
 #endif
 
-SEXP attribute_hidden 
-do_setFileTime(SEXP call, SEXP op, SEXP args, SEXP rho)
+SEXP attribute_hidden R_setFileTime(SEXP name, SEXP time)
 {
-    checkArity(op, args);
-    const char *fn = translateChar(STRING_ELT(CAR(args), 0));
-    int ftime = asInteger(CADR(args)), res;
+    const char *fn = translateChar(STRING_ELT(name, 0));
+    int ftime = asInteger(time), res;
 
 #ifdef Win32
     res  = winSetFileTime(fn, (time_t)ftime);

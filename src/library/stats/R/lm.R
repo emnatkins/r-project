@@ -478,9 +478,7 @@ simulate.lm <- function(object, nsim = 1, seed = NULL, ...)
                   },
                   if(!is.null(object$family$simulate))
                       object$family$simulate(object, nsim)
-                  else stop(gettextf("family '%s' not implemented", fam),
-                            domain = NA)
-                  )
+                  else stop("family '", fam, "' not implemented"))
 
     if(!is.list(val)) {
         dim(val) <- c(n, nsim)
@@ -592,9 +590,9 @@ anova.lmlist <- function (object, ..., scale = 0, test = "F")
     sameresp <- responses == responses[1L]
     if (!all(sameresp)) {
 	objects <- objects[sameresp]
-        warning(gettextf("models with response %s removed because response differs from model 1",
-                         sQuote(deparse(responses[!sameresp]))),
-                domain = NA)
+	warning("models with response ",
+                deparse(responses[!sameresp]),
+                " removed because response differs from ", "model 1")
     }
 
     ns <- sapply(objects, function(x) length(x$residuals))
@@ -683,12 +681,13 @@ predict.lm <-
     interval <- match.arg(interval)
     if (interval == "prediction") {
         if (missing(newdata))
-            warning("predictions on current data refer to _future_ responses\n")
-        if (missing(newdata) && missing(weights)) {
+            warning("Predictions on current data refer to _future_ responses\n")
+        if (missing(newdata) && missing(weights))
+        {
             w <-  weights.default(object)
             if (!is.null(w)) {
                 weights <- w
-                warning("assuming prediction variance inversely proportional to weights used for fitting\n")
+                warning("Assuming prediction variance inversely proportional to weights used for fitting\n")
             }
         }
         if (!missing(newdata) && missing(weights) && !is.null(object$weights) && missing(pred.var))

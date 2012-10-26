@@ -1,6 +1,6 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 2004-12   The R Core Team.
+ *  Copyright (C) 2004-11   The R Core Team.
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -54,13 +54,17 @@ static SEXP cairoProps(SEXP in)
 #endif
 
 
+static R_NativePrimitiveArgType R_chull_t[] = {INTSXP, REALSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP};
+
 #ifndef WIN32
 void *getQuartzAPI();
 #endif
 
+#define CDEF(name)  {#name, (DL_FUNC) &name, sizeof(name ## _t)/sizeof(name ## _t[0]), name ##_t}
+
 static R_CMethodDef CEntries [] = {
+    CDEF(R_chull),
 #ifndef WIN32
-    // This is used by src/unix/aqua.c, as a symbol to be looked up
     {"getQuartzAPI", (DL_FUNC) getQuartzAPI, 0},
 #endif
     {NULL, NULL, 0}
@@ -74,19 +78,10 @@ static const R_CallMethodDef CallEntries[] = {
     CALLDEF(CIDFontInUse, 2),
     CALLDEF(R_CreateAtVector, 4),
     CALLDEF(R_GAxisPars, 3),
-    CALLDEF(chull, 1),
-    CALLDEF(gray, 2),
-    CALLDEF(RGB2hsv, 1),
-    CALLDEF(rgb, 6),
-    CALLDEF(hsv, 4),
-    CALLDEF(hcl, 5),
-
+    {"R_GD_nullDevice", (DL_FUNC) &R_GD_nullDevice, 0},
 #ifndef WIN32
     CALLDEF(makeQuartzDefault, 0),
     CALLDEF(cairoProps, 1),
-#else
-    CALLDEF(bringToTop, 2),
-    CALLDEF(msgWindow, 2),
 #endif
     {NULL, NULL, 0}
 };
@@ -99,35 +94,11 @@ static const R_ExternalMethodDef ExtEntries[] = {
     EXTDEF(XFig, 11),
     EXTDEF(PDF, 16),
     EXTDEF(devCairo, 10),
-    EXTDEF(devcap, 1),
-    EXTDEF(devcapture, 1),
-    EXTDEF(devcontrol, 1),
-    EXTDEF(devcopy, 1),
-    EXTDEF(devcur, 0),
-    EXTDEF(devdisplaylist, 0),
-    EXTDEF(devholdflush, 1),
-    EXTDEF(devnext, 1),
-    EXTDEF(devoff, 1),
-    EXTDEF(devprev, 1),
-    EXTDEF(devset, 1),
-    EXTDEF(devsize, 0),
-    EXTDEF(savePlot, 3),
-    EXTDEF(contourLines, 5),
-    EXTDEF(getSnapshot, 0),
-    EXTDEF(playSnapshot, 1),
-    EXTDEF(getGraphicsEvent, 1),
-    EXTDEF(getGraphicsEventEnv, 1),
-    EXTDEF(setGraphicsEventEnv, 2),
-    EXTDEF(colors, 0),
-    EXTDEF(col2rgb, 1),
-    EXTDEF(palette, 1),
-    EXTDEF(devAskNewPage, 1),
-
 #ifdef WIN32
     EXTDEF(devga, 19),
+    EXTDEF(savePlot, 3),
 #else
     EXTDEF(Quartz, 12),
-    EXTDEF(X11, 17),
 #endif
     {NULL, NULL, 0}
 };
@@ -136,6 +107,4 @@ void R_init_grDevices(DllInfo *dll)
 {
     R_registerRoutines(dll, CEntries, CallEntries, NULL, ExtEntries);
     R_useDynamicSymbols(dll, FALSE);
-// Uh, oh, R.app looks up symbols ....
-//    R_forceSymbols(dll, TRUE);
 }

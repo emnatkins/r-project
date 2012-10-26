@@ -1733,7 +1733,7 @@ binary containing either or both architectures.
 
 A few of the binary packages need other software to be installed on your
 system: see for example
-@uref{http://CRAN.R-project.org/@/bin/@/windows/@/contrib/@/2.16/@/@@ReadMe}.
+@uref{http://CRAN.R-project.org/@/bin/@/windows/@/contrib/@/2.15/@/@@ReadMe}.
 For 64-bit builds, packages using Gtk+ (@CRANpkg{Cairo}, @CRANpkg{RGtk2},
 @CRANpkg{cairoDevice} and those that depend on them) need the @file{bin}
 directory of a bundled distribution from
@@ -2358,8 +2358,11 @@ both and install them in the same place: @xref{Sub-architectures}.
 
 Even on 64-bit builds of @R{} there are limits on the size of @R{}
 objects (see @code{help("Memory-limits")}, some of which stem from the
-use of 32-bit integers (especially in FORTRAN code).  For example, the
-dimensions of an array are limited to @math{2^{31} - 1}.
+use of 32-bit integers (especially in FORTRAN code).  On all builds of
+@R{}, the maximum length (number of elements) of a vector is
+@math{2^{31}-1}, about 2 billion, and on 64-bit builds the size of a
+block of memory allocated is limited to @math{2^{35}-16} bytes (8GB).
+These will be raised in @R{} 2.16.0.
 
 @node The standalone Rmath library, Essential and useful other programs under a Unix-alike, Choosing between 32- and 64-bit builds, Top
 @chapter The standalone Rmath library
@@ -3301,10 +3304,6 @@ LAPACK routines assume that input matrices do not contain IEEE 754
 special values such as INF or NaN values. Using these special values may
 cause LAPACK to return unexpected results or become unstable.
 @end quotation
-
-As from @R{} 2.16.0 we rely on limited support in LAPACK for matrices
-with @math{2^{31}} or more elements: it is quite possible that an
-external LAPACK will not have that support.
 
 @node Caveats,  , LAPACK, Linear algebra
 @subsection Caveats
@@ -4355,13 +4354,6 @@ and without declaring it as @samp{SystemRequirements} in the
 Some people have reported that the Solaris @code{libintl} needs to be
 avoided, for example by using @option{--disable-nls} or
 @option{--with-included-gettext} or using @code{libintl} from OpenCSW.
-
-The support for the C99 @code{long double} type on Sparc hardware uses
-quad-precision arithmetic, and this is usually slow because it is done
-by software emulation.  On such systems @command{configure} option
-@option{--disable-long-double} can be used for faster but less accurate
-computations.
-
 
 When using the Oracle compilers@footnote{including @command{gcc} for
 Sparc from Oracle.} do @emph{not} specify @option{-fast}, as this

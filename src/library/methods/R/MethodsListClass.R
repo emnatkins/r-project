@@ -161,7 +161,7 @@
                         return(value)
                 }
                 else
-                    stop(gettextf("'initialize' method returned an object of class %s instead of the required class %s",
+                    stop(gettextf("initialize method returned an object of class %s instead of the required class %s",
                                   paste(dQuote(class(value)), collapse=", "),
                                   dQuote(class(.Object))),
                          domain = NA)
@@ -230,10 +230,8 @@
     setMethod("show", "MethodSelectionReport", where = envir,
               function(object) {
                   nreport <- length(object@target)
-                  cat(sprintf(ngettext(nreport,
-                                       "Reported %d ambiguous selection out of %d for function %s\n",
-                                       "Reported %d ambiguous selections out of %d for function %s\n"),
-                              nreport, length(object@allSelections), object@generic))
+                  cat(gettextf("Reported %d ambiguous selections out of %d for function %s\n",nreport,
+			       length(object@allSelections), object@generic))
                   target <- object@target; selected = object@selected
                   candidates <- object@candidates; note <- object@note
                   for(i in seq_len(nreport)) {
@@ -251,7 +249,7 @@
               })
     setMethod("show", "classGeneratorFunction", where = envir,
               function(object) {
-                  cat(gettextf("class generator function for class %s from package %s\n",
+                  cat(gettextf("Class generator function for class %s from package %s\n",
                                dQuote(object@className),
                                sQuote(object@package)))
                   show(as(object, "function"))
@@ -261,17 +259,17 @@
 	       where = envir)
     ## and its default methods:
     setMethod("cbind2", signature(x = "ANY", y = "ANY"),
-	      function(x,y) .__H__.cbind(deparse.level = 0, x, y) )
+	      function(x,y) .Internal(cbind(deparse.level = 0, x, y)))
     setMethod("cbind2", signature(x = "ANY", y = "missing"),
-	      function(x,y) .__H__.cbind(deparse.level = 0, x) )
+	      function(x,y) .Internal(cbind(deparse.level = 0, x)))
 
     setGeneric("rbind2", function(x, y, ...) standardGeneric("rbind2"),
 	       where = envir)
     ## and its default methods:
     setMethod("rbind2", signature(x = "ANY", y = "ANY"),
-	      function(x,y) .__H__.rbind(deparse.level = 0, x, y) )
+	      function(x,y) .Internal(rbind(deparse.level = 0, x, y)))
     setMethod("rbind2", signature(x = "ANY", y = "missing"),
-	      function(x,y) .__H__.rbind(deparse.level = 0, x) )
+	      function(x,y) .Internal(rbind(deparse.level = 0, x)))
 
     setGeneric("kronecker", where = envir)
 

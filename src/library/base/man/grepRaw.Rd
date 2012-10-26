@@ -20,8 +20,7 @@ grepRaw(pattern, x, offset = 1L, ignore.case = FALSE,
     given raw vector.  Coerced by \code{\link{charToRaw}} to a character
     string if possible.}
   \item{x}{a raw vector where matches are sought, or an object which can
-    be coerced by \code{charToRaw} to a raw vector.  \link{Long vectors}
-    are not supported.}
+    be coerced by \code{charToRaw} to a raw vector.}
   \item{ignore.case}{if \code{FALSE}, the pattern matching is \emph{case
       sensitive} and if \code{TRUE}, case is ignored during matching.}
   \item{offset}{An integer specifying the offset from

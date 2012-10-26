@@ -1,8 +1,8 @@
 
-R Under development (unstable) (2012-06-23 r59615) -- "Unsuffered Consequences"
+R version 2.15.1 Patched (2012-07-17 r59869) -- "Roasted Marshmallows"
 Copyright (C) 2012 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
-Platform: x86_64-apple-darwin11.4.0/x86_64 (64-bit)
+Platform: x86_64-apple-darwin9.8.0/x86_64 (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -101,7 +101,7 @@ $itemBullet
 $enumFormat
 function (n) 
 sprintf("%d. ", n)
-<environment: 0x7f9f23545778>
+<environment: 0x7ffd23f7db80>
 
 $showURLs
 [1] FALSE
@@ -135,7 +135,7 @@ $itemBullet
 $enumFormat
 function (n) 
 sprintf("%d. ", n)
-<environment: 0x7f9f23545778>
+<environment: 0x7ffd23f7db80>
 
 $showURLs
 [1] FALSE
@@ -169,7 +169,7 @@ $itemBullet
 $enumFormat
 function (n) 
 sprintf("%d. ", n)
-<environment: 0x7f9f23545778>
+<environment: 0x7ffd23f7db80>
 
 $showURLs
 [1] FALSE
@@ -205,7 +205,7 @@ $underline_titles
 > 
 > ### Name: bibstyle
 > ### Title: Select or define a bibliography style.
-> ### Aliases: bibstyle getBibstyle
+> ### Aliases: bibstyle
 > ### Keywords: utilties documentation
 > 
 > ### ** Examples
@@ -219,7 +219,7 @@ $underline_titles
 +     author = person("R Core Team"),
 +     organization = "R Foundation for Statistical Computing",
 +     address = "Vienna, Austria",
-+     year = 2012,
++     year = 2010,
 +     isbn = "3-900051-07-0",
 +     url = "http://www.R-project.org"),  
 +   bibentry(bibtype = "article",
@@ -230,19 +230,16 @@ $underline_titles
 +     journal = "Journal of the Royal Statistical Society, Series B",
 +     volume = 26,
 +     pages = "211-252"))
->     
 > bibstyle("unsorted", sortKeys = function(refs) seq_along(refs),
-+     fmtPrefix = function(paper) paste0("[", paper$.index, "]"),
 +        .init = TRUE)
-<environment: 0x7f9f237e7358>
+<environment: 0x7ffd245c4d90>
 > print(refs, .bibstyle = "unsorted")    
-[1] R Core Team (2012). _R: A Language and Environment for Statistical
+R Core Team (2010). _R: A Language and Environment for Statistical
 Computing_. R Foundation for Statistical Computing, Vienna, Austria.
 ISBN 3-900051-07-0, <URL: http://www.R-project.org>.
 
-[2] Box GEP and Cox DR (1964). "An Analysis of Transformations."
-_Journal of the Royal Statistical Society, Series B_, *26*, pp.
-211-252.
+Box GEP and Cox DR (1964). "An Analysis of Transformations." _Journal
+of the Royal Statistical Society, Series B_, *26*, pp. 211-252.
 > 
 > 
 > 
@@ -914,7 +911,7 @@ attr(,"class")
 > ### * <FOOTER>
 > ###
 > cat("Time elapsed: ", proc.time() - get("ptime", pos = 'CheckExEnv'),"\n")
-Time elapsed:  0.377 0.012 0.39 0 0 
+Time elapsed:  0.4 0.013 0.413 0 0 
 > grDevices::dev.off()
 null device 
           1 

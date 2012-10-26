@@ -1,6 +1,6 @@
 % File src/library/base/man/eigen.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2012 R Core Team
+% Copyright 1995-2009 R Core Team
 % Distributed under GPL 2 or later
 
 \name{eigen}
@@ -8,16 +8,11 @@
 \concept{eigen vector}
 \concept{eigen value}
 \title{Spectral Decomposition of a Matrix}
-\description{
-  Computes eigenvalues and eigenvectors of numeric (double, integer,
-  logical) or complex matrices.
-}
 \usage{
 eigen(x, symmetric, only.values = FALSE, EISPACK = FALSE)
 }
 \arguments{
-  \item{x}{a numeric or complex matrix whose spectral decomposition is to
-    be computed.  Logical matrices are coerced to numeric.}
+  \item{x}{a matrix whose spectral decomposition is to be computed.}
   \item{symmetric}{if \code{TRUE}, the matrix is assumed to be symmetric
     (or Hermitian if complex) and only its lower triangle (diagonal
     included) is used.  If \code{symmetric} is not specified, the matrix
@@ -27,6 +22,10 @@ eigen(x, symmetric, only.values = FALSE, EISPACK = FALSE)
     returned.}
   \item{EISPACK}{logical.  Should EISPACK be used (for compatibility with
     \R < 1.7.0)?}
+}
+\description{
+  Computes eigenvalues and eigenvectors of real (double, integer,
+  logical) or complex matrices.
 }
 \details{
   If \code{symmetric} is unspecified, the code attempts to
@@ -47,9 +46,6 @@ eigen(x, symmetric, only.values = FALSE, EISPACK = FALSE)
   algebraic solution with repeated real eigenvalues, the computed
   solution may be of a similar matrix with complex conjugate pairs of
   eigenvalues.
-
-  The EISPACK interface is restricted to matrices \code{x} with less
-  than \eqn{2^{31}}{2^31} elements.
 }
 \value{
   The spectral decomposition of \code{x} is returned as components of a

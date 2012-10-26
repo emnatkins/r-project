@@ -23,7 +23,7 @@
 
 numericDeriv <- function(expr, theta, rho = parent.frame(), dir=1.0)
 {
-    dir <- rep_len(dir, length(theta))
+    dir <- rep(dir, length.out = length(theta))
     val <- .Call(C_numeric_deriv, expr, theta, rho, dir)
     valDim <- dim(val)
     if (!is.null(valDim)) {
@@ -55,7 +55,7 @@ nlsModel.plinear <- function(form, data, start, wts)
     rhs <- eval(form[[3L]], envir = env)
     storage.mode(rhs) <- "double"
     .swts <- if(!missing(wts) && length(wts))
-        sqrt(wts) else rep_len(1, NROW(rhs))
+        sqrt(wts) else rep(1, length.out=NROW(rhs))
     assign(".swts", .swts, envir = env)
     p1 <- if(is.matrix(rhs)) ncol(rhs) else 1
     p <- p1 + p2
@@ -238,12 +238,12 @@ nlsModel <- function(form, data, start, wts, upper=NULL)
     getPars <- getPars.noVarying
     internalPars <- getPars()
 
-    if(!is.null(upper)) upper <- rep_len(upper, parLength)
+    if(!is.null(upper)) upper <- rep(upper, length.out = parLength)
     useParams <- rep(TRUE, parLength)
     lhs <- eval(form[[2L]], envir = env)
     rhs <- eval(form[[3L]], envir = env)
     .swts <- if(!missing(wts) && length(wts))
-        sqrt(wts) else rep_len(1, length(rhs))
+        sqrt(wts) else rep(1, length.out=length(rhs))
     assign(".swts", .swts, envir = env)
     resid <- .swts * (lhs - rhs)
     dev <- sum(resid^2)
@@ -390,18 +390,16 @@ nls_port_fit <- function(m, start, lower, upper, control, trace, give.v=FALSE)
     .Call(C_port_ivset, 1, iv, v)
     if (length(control)) {
 	if (!is.list(control) || is.null(nms <- names(control)))
-	    stop("'control' argument must be a named list")
+	    stop("control argument must be a named list")
 	## remove those components that do not apply here
 	for(noN in intersect(nms, c("tol", "minFactor", "warnOnly", "printEval")))
 	    control[[noN]] <- NULL
 	nms <- names(control)
 	pos <- pmatch(nms, names(port_cpos))
 	if (any(nap <- is.na(pos))) {
-            warning(sprintf(ngettext(length(nap),
-                                     "unrecognized control element named %s ignored",
-                                     "unrecognized control elements named %s ignored"),
-                            paste(nms[nap], collapse = ", ")),
-                    domain = NA)
+	    warning(paste("unrecognized control element(s) named `",
+			  paste(nms[nap], collapse = ", "),
+			  "' ignored", sep = ""))
 	    pos <- pos[!nap]
 	    control <- control[!nap]
 	}
@@ -416,8 +414,8 @@ nls_port_fit <- function(m, start, lower, upper, control, trace, give.v=FALSE)
     scale <- 1
     low <- upp <- NULL
     if (any(lower != -Inf) || any(upper != Inf)) {
-        low <- rep_len(as.double(lower), length(par))
-        upp <- rep_len(as.double(upper), length(par))
+        low <- rep(as.double(lower), length.out = length(par))
+        upp <- rep(as.double(upper), length.out = length(par))
         if(any(unlist(start) < low) ||any( unlist(start) > upp)) {
             iv[1L] <- 300
 	    return(if(give.v) list(iv = iv, v = v[seq_len(18L)]) else iv)
@@ -426,7 +424,7 @@ nls_port_fit <- function(m, start, lower, upper, control, trace, give.v=FALSE)
     if(p > 0) {
         ## driver routine port_nlsb() in ../src/port.c -- modifies m & iv
         .Call(C_port_nlsb, m,
-              d = rep_len(as.double(scale), length(par)),
+              d = rep(as.double(scale), length.out = length(par)),
               df = m$gradient(), iv, v, low, upp)
     } else iv[1L] <- 6
 
@@ -496,30 +494,29 @@ nls <-
             if(missing(start)) {
                 if(algorithm == "plinear")
                     ## TODO: only specify values for the non-lin. parameters
-                    stop("no starting values specified")
+                    stop("No starting values specified")
                 ## Provide some starting values instead of erroring out later;
                 ## '1' seems slightly better than 0 (which is often invalid):
                 warning("No starting values specified for some parameters.\n",
                         "Initializing ", paste(sQuote(nnn), collapse=", "),
                         " to '1.'.\n",
                         "Consider specifying 'start' or using a selfStart model", domain = NA)
-		start <- setNames(as.list(rep(1., length(nnn))), nnn)
+                start <- as.list(rep(1., length(nnn)))
+                names(start) <- nnn
                 varNames <- varNames[i <- is.na(match(varNames, nnn))]
                 n <- n[i]
             }
             else                        # has 'start' but forgot some
-                stop(gettextf("parameters without starting value in 'data': %s",
-                              paste(nnn, collapse=", ")), domain = NA)
+                stop("parameters without starting value in 'data': ",
+                     paste(nnn, collapse=", "))
         }
     }
     else { ## length(varNames) == 0
 	if(length(pnames) && any((np <- sapply(pnames, lenVar)) == -1)) {
             ## Can fit a model with pnames even if no varNames
-            message(sprintf(ngettext(sum(np == -1),
-                                     "fitting parameter %s without any variables",
-                                     "fitting parameters %s without any variables"),
-                            paste(sQuote(pnames[np == -1]), collapse=", ")),
-                    domain = NA)
+	    message("fitting parameters ",
+		    paste(sQuote(pnames[np == -1]), collapse=", "),
+		    " without any variables")
             n <- integer()
         }
 	else
@@ -594,7 +591,7 @@ nls <-
     ## Iterate
     if (algorithm != "port") {
 	if (!missing(lower) || !missing(upper))
-	    warning('upper and lower bounds ignored unless algorithm = "port"')
+	    warning('Upper or lower bounds ignored unless algorithm = "port"')
         convInfo <- .Call(C_nls_iter, m, ctrl, trace)
 	nls.out <- list(m = m, convInfo = convInfo,
 			data = substitute(data), call = match.call())
@@ -846,9 +843,9 @@ anovalist.nls <- function (object, ..., test = NULL)
     sameresp <- responses == responses[1L]
     if (!all(sameresp)) {
 	objects <- objects[sameresp]
-        warning(gettextf("models with response %s removed because response differs from model 1",
-                         sQuote(deparse(responses[!sameresp]))),
-                domain = NA)
+	warning("models with response ",
+                deparse(responses[!sameresp]),
+                " removed because response differs from model 1")
     }
     ## calculate the number of models
     nmodels <- length(objects)

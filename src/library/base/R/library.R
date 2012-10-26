@@ -103,7 +103,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
         if(nzchar(r_arch)
            && file.exists(file.path(pkgpath, "libs"))
            && !file.exists(file.path(pkgpath, "libs", r_arch)))
-            stop(gettextf("package %s is not installed for 'arch = %s'",
+            stop(gettextf("package %s is not installed for 'arch=%s'",
                           sQuote(pkgname), r_arch),
                  call. = FALSE, domain = NA)
     }
@@ -125,7 +125,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
             lfiles <- file.path(pkgpath, c("LICENSE", "LICENCE"))
             lfiles <- lfiles[file.exists(lfiles)]
             if(length(lfiles)) {
-                message(gettextf("package %s has a license that you need to accept after viewing", sQuote(pkg)), domain = NA)
+                message(gettextf("Package %s has a license that you need to accept after viewing", sQuote(pkg)), domain = NA)
                 readline("press RETURN to view license")
                 encoding <- pkgInfo$DESCRIPTION["Encoding"]
                 if(is.na(encoding)) encoding <- ""
@@ -133,13 +133,13 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
                 if(encoding == "latin1") encoding <- "cp1252"
                 file.show(lfiles[1L], encoding = encoding)
             } else {
-                message(gettextf("package %s has a license that you need to accept:\naccording to the DESCRIPTION file it is", sQuote(pkg)), domain = NA)
-                message(pkgInfo$DESCRIPTION["License"], domain = NA)
+                message(gettextf("Package %s has a license that you need to accept:\naccording to the DESCRIPTION file it is", sQuote(pkg)), domain = NA)
+                message(pkgInfo$DESCRIPTION["License"])
             }
             choice <- menu(c("accept", "decline"),
                            title = paste("License for", sQuote(pkg)))
             if(choice != 1)
-                stop(gettextf("license for package %s not accepted",
+                stop(gettextf("License for package %s not accepted",
                               sQuote(package)), domain = NA, call. = FALSE)
             dir.create(dirname(personal_file), showWarnings=FALSE)
             writeLines(c(agreed, pkg), personal_file)
@@ -175,7 +175,8 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
             ## from another package.  A better test would be to move this
             ## down into the loop and test against specific other package name
             ## but subtle conflicts like that are likely to be found elsewhere
-	    these <- ob[substr(ob, 1L, 6L) == ".__T__"]
+            these <- objects(lib.pos, all.names = TRUE)
+            these <- these[substr(these, 1L, 6L) == ".__T__"]
             gen <- gsub(".__T__(.*):([^:]+)", "\\1", these)
             from <- gsub(".__T__(.*):([^:]+)", "\\2", these)
             gen <- gen[from != package]
@@ -197,17 +198,17 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 		    vapply(same, exists, NA,
                            where = where, mode = "function", inherits = FALSE)
 		same <- same[same.isFn(i) == same.isFn(lib.pos)]
-		## if a package imports and re-exports, there's no problem
-		not.Ident <- function(ch, TRAFO=identity, ...)
-		    vapply(ch, function(.)
-                           !identical(TRAFO(get(., i)),
-                                      TRAFO(get(., lib.pos)), ...),
-                           NA)
+		## if a package imports, and re-exports, there's no problem
+		not.Ident <- function(ch, TRAFO=identity)
+		    vapply(ch, function(.) !identical(TRAFO(get(., i)),
+						      TRAFO(get(., lib.pos))), NA)
 		if(length(same)) same <- same[not.Ident(same)]
 		## if the package is 'base' it cannot be imported and re-exported,
 		## allow a "copy":
-		if(length(same) && identical(sp[i], "package:base"))
-		    same <- same[not.Ident(same, ignore.environment = TRUE)]
+		if(length(same) && identical(sp[i], "package:base")) {
+		    unenv <- function(x) { environment(x) <- emptyenv(); x }
+		    same <- same[not.Ident(same, TRAFO = unenv)]
+		}
                 if(length(same)) {
                     if (fst) {
                         fst <- FALSE
@@ -218,15 +219,21 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
 
                     objs <- strwrap(paste(same, collapse=", "), indent=4,
                                     exdent=4)
-                    msg <- sprintf(ngettext(length(objs),
-                                            "The following object is masked %s %s:\n\n%s\n",
-                                            "The following objects are masked %s %s:\n\n%s\n"),
+                    msg <- sprintf("The following object(s) are masked %s %s:\n\n%s\n",
                                    if (i < lib.pos) "_by_" else "from",
                                    sQuote(sp[i]), paste(objs, collapse="\n"))
 		    packageStartupMessage(msg)
                 }
             }
         }
+    }
+
+    bindTranslations <- function(pkgname, pkgpath)
+    {
+        popath <- file.path(pkgpath, "po")
+        if(!file.exists(popath)) return()
+        bindtextdomain(pkgname, popath)
+        bindtextdomain(paste("R", pkgname, sep="-"), popath)
     }
 
     if(verbose && quietly)
@@ -304,7 +311,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
                 if (inherits(tt, "try-error"))
                     if (logical.return)
                         return(FALSE)
-                    else stop(gettextf("package or namespace load failed for %s",
+                    else stop(gettextf("package/namespace load failed for %s",
                                        sQuote(package)),
                               call. = FALSE, domain = NA)
                 else {
@@ -324,7 +331,7 @@ function(package, help, pos = 2, lib.loc = NULL, character.only = FALSE,
                         return(invisible(.packages()))
                 }
             } else
-            stop(gettextf("package %s does not have a namespace and should be re-installed",
+            stop(gettextf("package %s does not have a NAMESPACE and should be re-installed",
                           sQuote(package)), domain = NA)
 	}
 	if (verbose && !newpackage)

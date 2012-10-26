@@ -23,11 +23,13 @@ svd <- function(x, nu = min(n,p), nv = min(n,p), LINPACK = FALSE)
     dx <- dim(x)
     n <- dx[1L]
     p <- dx[2L]
-    if(!n || !p) stop("a dimension is zero")
+    if(!n || !p) stop("0 extent dimensions")
     if (is.complex(x)) {
         res <- La.svd(x, nu, nv)
         return(list(d = res$d, u = if(nu) res$u, v = if(nv) Conj(t(res$vt))))
     }
+    if(!is.double(x))
+	storage.mode(x) <- "double"
     if (!LINPACK) {
         res <- La.svd(x, nu, nv)
         return(list(d = res$d, u = if(nu) res$u, v = if(nv) t(res$vt)))
@@ -35,12 +37,10 @@ svd <- function(x, nu = min(n,p), nv = min(n,p), LINPACK = FALSE)
 
     ## LINPACK only from here on.
     warning("LINPACK = TRUE is deprecated", domain = NA)
-    storage.mode(x) <- "double"
     n <- as.integer(n)
     if(is.na(n)) stop("invalid nrow(x)")
     p <- as.integer(p)
     if(is.na(p)) stop("invalid ncol(x)")
-    if(1.0 * n * p > 2147483647) stop("too large a matrix for LINPACK")
 
     if(nu == 0L) {
 	job <- 0L
@@ -64,7 +64,7 @@ svd <- function(x, nu = min(n,p), nv = min(n,p), LINPACK = FALSE)
     v <- if(job == 0L) double() else matrix(0, p, p)
 
     mm <- min(n+1L,p)
-    z <- .Fortran(.F_dsvdc,
+    z <- .Fortran("dsvdc",
 		  x, # did storage.mode above
 		  n,
 		  n,
@@ -78,10 +78,9 @@ svd <- function(x, nu = min(n,p), nv = min(n,p), LINPACK = FALSE)
 		  double(n),
 		  as.integer(job),
 		  info = integer(1L),
-		  DUP = FALSE)[c("d","u","v","info")]
+		  DUP = FALSE, PACKAGE = "base")[c("d","u","v","info")]
     if(z$info)
-	stop(gettextf("error %d in LINPACK subroutine 'dsvdc'", z$info),
-             domain = NA)
+	stop(gettextf("error %d in 'dsvdc'", z$info), domain = NA)
     z$d <- z$d[seq_len(min(n, p))]
     if(nv && nv < p) z$v <- z$v[, 1L:nv, drop = FALSE]
     z[c("d", if(nu) "u", if(nv) "v")]

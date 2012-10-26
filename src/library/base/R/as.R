@@ -78,4 +78,5 @@ as.symbol <- function(x) .Internal(as.vector(x, "symbol"))
 as.name <- as.symbol
 ## would work too: as.name <- function(x) .Internal(as.vector(x, "name"))
 
-as.qr <- function(x) stop("you cannot be serious", domain = NA)
+## as.call <- function(x) stop("type call cannot be assigned")
+as.qr <- function(x) stop("you cannot be serious")

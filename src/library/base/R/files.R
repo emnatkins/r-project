@@ -117,7 +117,7 @@ file.copy <- function(from, to,
     } else if (nf > nt) stop("more 'from' files than 'to' files")
     else if (recursive)
         warning("'recursive' will be ignored as 'to' is not a single existing directory")
-    if(nt > nf) from <- rep_len(from, length.out = nt)
+    if(nt > nf) from <- rep(from, length.out = nt)
     okay <- file.exists(from)
     if (!overwrite) okay[file.exists(to)] <- FALSE
     if (any(from[okay] %in% to[okay]))
@@ -230,5 +230,5 @@ Sys.setFileTime <- function(path, time)
         stop("invalid 'path' argument")
     time <- as.POSIXct(time)
     if (is.na(time))  stop("invalid 'time' argument")
-    .Internal(setFileTime(path, time))
+    invisible(.Call("R_setFileTime", path, time, PACKAGE = "base"))
 }

@@ -27,16 +27,14 @@ diffinv.vector <- function (x, lag = 1L, differences = 1L, xi, ...)
     lag <- as.integer(lag); difference <- as.integer(differences)
     if (lag < 1L || differences < 1L) stop ("bad value for 'lag' or 'differences'")
     if(missing(xi)) xi <- rep(0., lag*differences)
-    if (length(xi) != lag*differences)
-        stop("'xi' does not have the right length")
+    if (length(xi) != lag*differences) stop ("'xi' has not the right length")
     if (differences == 1L) {
         x <- as.double(x)
         xi <- as.double(xi)
         n <- as.integer(length(x))
         if (is.na(n)) stop ("invalid value of length(x)")
-#        y <- c(xi[1L:lag], double(n))
-#        z <- .C(C_R_intgrt_vec, x, y = y, as.integer(lag), n)$y
-        .Call(C_intgrt_vec, x, xi, lag)
+        y <- c(xi[1L:lag], double(n))
+        .C(C_R_intgrt_vec, x, y = y, lag, n)$y
     }
     else
         diffinv.vector(diffinv.vector(x, lag, differences-1,
@@ -76,14 +74,10 @@ diffinv.ts <- function (x, lag = 1, differences = 1, xi, ...)
 toeplitz <- function (x, ...)
 {
     if(!is.vector(x)) stop("'x' is not a vector")
-    if(!missing(...)) {
-        na <- length(list(...))
-        warning(sprintf(ngettext(na,
-                                 "extra argument %s will be disregarded",
-                                 "extra arguments %s will be disregarded"),
-                        paste(sQuote(names(list(...))), collapse = ", ")),
+    if(!missing(...))
+	warning(gettextf("extra argument(s) %s will be disregarded",
+			 paste(sQuote(names(list(...))), collapse = ", ")),
 		domain = NA)
-    }
     n <- length(x)
     A <- matrix(raw(), n, n)
     matrix(x[abs(col(A) - row(A)) + 1L], n, n)

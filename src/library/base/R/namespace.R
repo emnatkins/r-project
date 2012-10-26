@@ -306,7 +306,7 @@ loadNamespace <- function (package, lib.loc = NULL,
                environmentIsLocked(ns)
             ns <- asNamespace(ns, base.OK = FALSE)
             if (namespaceIsSealed(ns))
-                stop(gettextf("namespace %s is already sealed in 'loadNamespace'",
+                stop(gettextf("namespace %s is already sealed in loadNamespace",
                               sQuote(getNamespaceName(ns))),
                      call. = FALSE, domain = NA)
             lockEnvironment(ns, TRUE)
@@ -319,66 +319,70 @@ loadNamespace <- function (package, lib.loc = NULL,
 
         bindTranslations <- function(pkgname, pkgpath)
         {
-            ## standard packages are treated differently
-            std <- c("compiler", "foreign", "grDevices", "graphics", "grid",
-                     "methods", "parallel", "splines", "stats", "stats4",
-                     "tcltk", "tools", "utils")
-            popath <- if (pkgname %in% std) .popath else file.path(pkgpath, "po")
+            popath <- file.path(pkgpath, "po")
             if(!file.exists(popath)) return()
             bindtextdomain(pkgname, popath)
             bindtextdomain(paste("R", pkgname, sep = "-"), popath)
         }
 
         assignNativeRoutines <- function(dll, lib, env, nativeRoutines) {
-            if(length(nativeRoutines) == 0L) return(NULL)
+            if(length(nativeRoutines) == 0L)
+                 return(NULL)
 
             if(nativeRoutines$useRegistration) {
-                ## Use the registration information to register ALL the symbols
-                fixes <- nativeRoutines$registrationFixes
-                routines <- getDLLRegisteredRoutines.DLLInfo(dll, addNames = FALSE)
-                lapply(routines,
-                       function(type) {
-                           lapply(type,
-                                  function(sym) {
-                                      varName <- paste0(fixes[1L], sym$name, fixes[2L])
-                                      if(exists(varName, envir = env))
-                                          warning(gettextf("failed to assign RegisteredNativeSymbol for %s to %s since %s is already defined in the %s namespace",
-                                                           sym$name, varName, varName, sQuote(package)),
-                                                  domain = NA)
-                                      else
-                                          assign(varName, sym, envir = env)
-                                  })
-                       })
+               ## Use the registration information to register ALL the symbols
+               fixes <- nativeRoutines$registrationFixes
+               routines <- getDLLRegisteredRoutines.DLLInfo(dll, addNames = FALSE)
+               lapply(routines,
+                      function(type) {
+                          lapply(type,
+                                 function(sym) {
+                                     varName <- paste0(fixes[1L], sym$name, fixes[2L])
+                                     if(exists(varName, envir = env))
+                                       warning("failed to assign RegisteredNativeSymbol for ",
+                                               sym$name,
+                                               paste(" to", varName),
+                                               " since ", varName,
+                                               " is already defined in the ", package,
+                                               " namespace")
+                                     else
+                                       assign(varName, sym, envir = env)
+                                 })
+                      })
 
-            }
+             }
 
             symNames <- nativeRoutines$symbolNames
-            if(length(symNames) == 0L) return(NULL)
+            if(length(symNames) == 0L)
+              return(NULL)
 
             symbols <- getNativeSymbolInfo(symNames, dll, unlist = FALSE,
-                                           withRegistrationInfo = TRUE)
+                                               withRegistrationInfo = TRUE)
             lapply(seq_along(symNames),
-                   function(i) {
-                       ## could vectorize this outside of the loop
-                       ## and assign to different variable to
-                       ## maintain the original names.
-                       varName <- names(symNames)[i]
-                       origVarName <- symNames[i]
-                       if(exists(varName, envir = env))
-                           if(origVarName != varName)
-                               warning(gettextf("failed to assign NativeSymbolInfo for %s to %s since %s is already defined in the %s namespace",
-                                                origVarName, varName, varName, sQuote(package)),
-                                       domain = NA)
+                    function(i) {
+                        ## could vectorize this outside of the loop
+                        ## and assign to different variable to
+                        ## maintain the original names.
+                        varName <- names(symNames)[i]
+                        origVarName <- symNames[i]
+                        if(exists(varName, envir = env))
+                           warning("failed to assign NativeSymbolInfo for ",
+                                   origVarName,
+                                   ifelse(origVarName != varName,
+                                              paste(" to", varName), ""),
+                                   " since ", varName,
+                                   " is already defined in the ", package,
+                                   " namespace")
                            else
-                               warning(gettextf("failed to assign NativeSymbolInfo for %s since %s is already defined in the %s namespace",
-                                                origVarName, varName, sQuote(package)),
-                                       domain = NA)
-                       else
-                           assign(varName, symbols[[origVarName]], envir = env)
+                              assign(varName, symbols[[origVarName]],
+                                     envir = env)
 
-                   })
+                    })
+
+
+
             symbols
-        }
+          }
 
         ## find package and check it has a namespace
         pkgpath <- find.package(package, lib.loc, quiet = TRUE)
@@ -494,8 +498,8 @@ loadNamespace <- function (package, lib.loc = NULL,
         for (i in seq_along(dynLibs)) {
             lib <- dynLibs[i]
             dlls[[lib]]  <- library.dynam(lib, package, package.lib)
-            assignNativeRoutines(dlls[[lib]], lib, env,
-                                 nsInfo$nativeRoutines[[lib]])
+               assignNativeRoutines(dlls[[lib]], lib, env,
+                                    nsInfo$nativeRoutines[[lib]])
 
             ## If the DLL has a name as in useDynLib(alias = foo),
             ## then assign DLL reference to alias.  Check if
@@ -510,7 +514,6 @@ loadNamespace <- function (package, lib.loc = NULL,
         addNamespaceDynLibs(env, nsInfo$dynlibs)
 
 
-        ## used in e.g. utils::assignInNamespace
         Sys.setenv("_R_NS_LOAD_" = package)
         on.exit(Sys.unsetenv("_R_NS_LOAD_"), add = TRUE)
         ## run the load hook
@@ -550,7 +553,7 @@ loadNamespace <- function (package, lib.loc = NULL,
             if( length(pClasses) ) {
                 good <- vapply(pClasses, methods:::isClass, NA, where = ns)
                 if( !any(good) && length(nsInfo$exportClassPatterns))
-                    warning(gettextf("'exportClassPattern' specified in 'NAMESPACE' but no matching classes in package %s", sQuote(package)),
+                    warning(gettextf("exportClassPattern specified in NAMESPACE but no matching classes in package %s", sQuote(package)),
                             call. = FALSE, domain = NA)
                 expClasses <- c(expClasses, pClasses[good])
             }
@@ -576,7 +579,7 @@ loadNamespace <- function (package, lib.loc = NULL,
             if(length(addGenerics)) {
                 nowhere <- sapply(addGenerics, function(what) !exists(what, mode = "function", envir = ns))
                 if(any(nowhere)) {
-                    warning(gettextf("no function found corresponding to methods exports from %s for: %s",
+                    warning(gettextf("No function found corresponding to methods exports from %s for: %s",
                                      sQuote(package),
                                      paste(sQuote(sort(unique(addGenerics[nowhere]))), collapse = ", ")),
                          domain = NA, call. = FALSE)
@@ -714,10 +717,7 @@ requireNamespace <- function (package, ..., quietly = FALSE)
 }
 
 loadingNamespaceInfo <- function() {
-    dynGet <- function(name,
-                       notFound = stop(gettextf("%s not found", sQuote(name)),
-                       domain = NA))
-    {
+    dynGet <- function(name, notFound = stop(name, " not found")) {
         n <- sys.nframe()
         while (n > 1) {
             n <- n - 1
@@ -781,7 +781,9 @@ unloadNamespace <- function(ns)
     .Internal(unregisterNamespace(nsname))
     if(.isMethodsDispatchOn() && methods:::.hasS4MetaData(ns))
         methods:::cacheMetaData(ns, FALSE, ns)
-    .Internal(lazyLoadDBflush(paste0(nspath, "/R/", nsname, ".rdb")))
+    .Call("R_lazyLoadDBflush",
+          paste0(nspath, "/R/", nsname, ".rdb"),
+          PACKAGE="base")
     invisible()
 }
 
@@ -852,9 +854,8 @@ namespaceImportFrom <- function(self, ns, vars, generics, packages)
     impvars <- makeImportExportNames(impvars)
     impnames <- names(impvars)
     if (anyDuplicated(impnames)) {
-        stop(gettextf("duplicate import names %s",
-                      paste(impnames[duplicated(impnames)], collapse = ", ")),
-             domain = NA)
+        stop("duplicate import names ",
+             paste(impnames[duplicated(impnames)], collapse = ", "))
     }
     if (isNamespace(self) && isBaseNamespace(self)) {
         impenv <- self
@@ -1058,7 +1059,7 @@ namespaceExport <- function(ns, vars) {
         undef <- undef[! vapply(undef, exists, NA, envir = ns)]
         if (length(undef)) {
             undef <- do.call("paste", as.list(c(undef, sep = ", ")))
-            stop(gettextf("undefined exports: %s", undef), domain = NA)
+            stop("undefined exports: ", undef)
         }
         if(.isMethodsDispatchOn()) .mergeExportMethods(new, ns)
         addExports(ns, new)
@@ -1131,10 +1132,10 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE)
                           ! Sys.getlocale("LC_CTYPE") %in% c("C", "POSIX")) {
 	    con <- file(nsFile, encoding=enc)
             on.exit(close(con))
-	    parse(con, srcfile=NULL)
-        } else parse(nsFile, srcfile=NULL)
+	    parse(con)
+        } else parse(nsFile)
     else if (mustExist)
-        stop(gettextf("package %s has no 'NAMESPACE' file", sQuote(package)),
+        stop(gettextf("package %s has no NAMESPACE file", sQuote(package)),
              domain = NA)
     else directives <- NULL
     exports <- character()
@@ -1154,7 +1155,7 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE)
 	asChar <- function(cc) {
 	    r <- as.character(cc)
 	    if(any(r == ""))
-		stop(gettextf("empty name in directive '%s' in 'NAMESPACE' file",
+		stop(gettextf("empty name in directive '%s' in NAMESPACE file",
 			      as.character(e[[1L]])),
 		     domain = NA)
 	    r
@@ -1256,7 +1257,7 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE)
 
                        dup <- duplicated(names(symNames))
                        if (any(dup))
-                           warning(gettextf("duplicated symbol names %s in useDynLib(\"%s\")", paste(names(symNames)[dup], collapse = ", "), dyl),
+                           warning(gettextf("duplicated symbol names %s in useDynlib(\"%s\")", paste(names(symNames)[dup], collapse = ", "), dyl),
                                    domain = NA)
 
                        symNames <- symNames[!dup]
@@ -1269,7 +1270,7 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE)
                            ## e.g. c("pre", "post") or a regular name
                            ## as the prefix.
                            if(symNames[idx] != "") {
-                               e <- parse(text = symNames[idx], srcfile=NULL)[[1L]]
+                               e <- parse(text = symNames[idx])[[1L]]
                                if(is.call(e))
                                    val <- eval(e)
                                else
@@ -1320,7 +1321,7 @@ parseNamespaceFile <- function(package, package.lib, mustExist = TRUE)
         parseDirective(e)
 
        # need to preserve the names on dynlibs, so unique() is not appropriate.
-    dynlibs <- dynlibs[!duplicated(dynlibs)]
+    dynlibs <- dynlibs[!duplicated(dynlibs)]  
     list(imports = imports, exports = exports, exportPatterns = exportPatterns,
          importClasses = importClasses, importMethods = importMethods,
          exportClasses = exportClasses,  exportMethods = exportMethods,

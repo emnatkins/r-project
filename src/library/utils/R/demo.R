@@ -19,8 +19,7 @@
 demo <-
 function(topic, package = NULL, lib.loc = NULL,
 	 character.only = FALSE, verbose = getOption("verbose"),
-	 echo = TRUE, ask = getOption("demo.ask"),
-         encoding = getOption("encoding"))
+	 echo = TRUE, ask = getOption("demo.ask"))
 {
     paths <- find.package(package, lib.loc, verbose = verbose)
 
@@ -68,10 +67,10 @@ function(topic, package = NULL, lib.loc = NULL,
     	if (is.call(topic) && (topic[[1L]] == "::" || topic[[1L]] == ":::")) {
 	    package <- as.character(topic[[2L]])
 	    topic <- as.character(topic[[3L]])
-	} else
+	} else 
 	    topic <- as.character(topic)
     }
-
+    
     available <- character()
     paths <- file.path(paths, "demo")
     for(p in paths) {
@@ -87,16 +86,6 @@ function(topic, package = NULL, lib.loc = NULL,
 	available <- available[1L]
 	warning(gettextf("Demo for topic %s' found more than once,\nusing the one found in %s",
                 sQuote(topic), sQuote(dirname(available[1L]))), domain = NA)
-    }
-
-    ## now figure out if the package has an encoding
-    pkgpath <- dirname(dirname(available))
-    if (file.exists(file <- file.path(pkgpath, "Meta", "package.rds"))) {
-        desc <- readRDS(file)$DESCRIPTION
-        if (length(desc) == 1L) {
-            enc <- as.list(desc)[["Encoding"]]
-            !if(!is.null(enc)) encoding <- enc
-        }
     }
 
     if(ask == "default")
@@ -118,6 +107,5 @@ function(topic, package = NULL, lib.loc = NULL,
 	if(ask && interactive())
 	    readline("\nType  <Return>	 to start : ")
     }
-    source(available, echo = echo, max.deparse.length = Inf,
-           keep.source = TRUE, encoding = encoding)
+    source(available, echo = echo, max.deparse.length = Inf, keep.source=TRUE)
 }

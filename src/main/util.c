@@ -25,8 +25,6 @@
 
 #define R_USE_SIGNALS 1
 #include <Defn.h>
-#include <Internal.h>
-#include <R_ext/Print.h>
 #include <ctype.h>		/* for isspace */
 
 #undef COMPILING_R
@@ -108,7 +106,7 @@ int ncols(SEXP s)
 const static char type_msg[] = "invalid type passed to internal function\n";
 
 
-void internalTypeCheck(SEXP call, SEXP s, SEXPTYPE type)
+void attribute_hidden internalTypeCheck(SEXP call, SEXP s, SEXPTYPE type)
 {
     if (TYPEOF(s) != type) {
 	if (call)
@@ -136,7 +134,7 @@ const static char * const falsenames[] = {
 
 SEXP asChar(SEXP x)
 {
-    if (XLENGTH(x) >= 1) {
+    if (LENGTH(x) >= 1) {
 	if (isVectorAtomic(x)) {
 	    int w, d, e, wi, di, ei;
 	    char buf[MAXELTSIZE];  /* probably 100 would suffice */
@@ -479,23 +477,27 @@ SEXP attribute_hidden do_nargs(SEXP call, SEXP op, SEXP args, SEXP rho)
 }
 
 
-/* formerly used in subscript.c, in Utils.h */
 void attribute_hidden setIVector(int * vec, int len, int val)
 {
-    for (int i = 0; i < len; i++) vec[i] = val;
+    int i;
+    for (i = 0; i < len; i++)
+	vec[i] = val;
 }
 
 
-/* unused in R, in Utils.h, apparently used in Rcpp  */
 void attribute_hidden setRVector(double * vec, int len, double val)
 {
-    for (int i = 0; i < len; i++) vec[i] = val;
+    int i;
+    for (i = 0; i < len; i++)
+	vec[i] = val;
 }
 
 /* unused in R, in Rinternals.h */
 void setSVector(SEXP * vec, int len, SEXP val)
 {
-    for (int i = 0; i < len; i++) vec[i] = val;
+    int i;
+    for (i = 0; i < len; i++)
+	vec[i] = val;
 }
 
 
@@ -938,8 +940,7 @@ SEXP attribute_hidden do_normalizepath(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP attribute_hidden do_encodeString(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans, x, s;
-    R_xlen_t i, len;
-    int w, quote = 0, justify, na;
+    int i, len, w, quote = 0, justify, na;
     const char *cs;
     Rboolean findWidth;
 
@@ -967,7 +968,7 @@ SEXP attribute_hidden do_encodeString(SEXP call, SEXP op, SEXP args, SEXP rho)
     na = asLogical(CAD4R(args));
     if(na == NA_LOGICAL) error(_("invalid '%s' value"), "na.encode");
 
-    len = XLENGTH(x);
+    len = LENGTH(x);
     if(findWidth && justify < 3) {
 	w  = 0;
 	for(i = 0; i < len; i++) {
@@ -990,13 +991,13 @@ SEXP attribute_hidden do_encodeString(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP attribute_hidden do_encoding(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP ans, x;
-    R_xlen_t i, n;
+    int i, n;
     char *tmp;
 
     checkArity(op, args);
     if (TYPEOF(x = CAR(args)) != STRSXP)
 	error(_("a character vector argument expected"));
-    n = XLENGTH(x);
+    n = LENGTH(x);
     PROTECT(ans = allocVector(STRSXP, n));
     for (i = 0; i < n; i++) {
 	if(IS_BYTES(STRING_ELT(x, i))) tmp = "bytes";
@@ -1012,8 +1013,7 @@ SEXP attribute_hidden do_encoding(SEXP call, SEXP op, SEXP args, SEXP rho)
 SEXP attribute_hidden do_setencoding(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP x, enc, tmp;
-    int m;
-    R_xlen_t i, n;
+    int i, m, n;
     const char *this;
 
     checkArity(op, args);
@@ -1026,7 +1026,7 @@ SEXP attribute_hidden do_setencoding(SEXP call, SEXP op, SEXP args, SEXP rho)
 	error(_("'value' must be of positive length"));
     if(NAMED(x)) x = duplicate(x);
     PROTECT(x);
-    n = XLENGTH(x);
+    n = LENGTH(x);
     for(i = 0; i < n; i++) {
 	cetype_t ienc = CE_NATIVE;
 	this = CHAR(STRING_ELT(enc, i % m)); /* ASCII */
@@ -1226,9 +1226,9 @@ size_t Mbrtowc(wchar_t *wc, const char *s, size_t n, mbstate_t *ps)
 	/* This gets called from the menu setup in RGui */
 	if (!R_Is_Running) return (size_t)-1;
 	/* let's try to print out a readable version */
-	R_CheckStack2(4*strlen(s) + 10);
 	char err[4*strlen(s) + 1], *q;
 	const char *p;
+	R_CheckStack();
 	for(p = s, q = err; *p; ) {
 	    /* don't do the first to keep ps state straight */
 	    if(p > s) used = mbrtowc(NULL, p, n, ps);
@@ -1429,7 +1429,7 @@ static int s2u[224] = {
     0xF8F8, 0xF8F9, 0xF8FA, 0xF8FB, 0xF8FC, 0xF8FD, 0xF8FE, 0x0020
 };
 
-void *Rf_AdobeSymbol2utf8(char *work, const char *c0, size_t nwork)
+void *Rf_AdobeSymbol2utf8(char *work, const char *c0, int nwork)
 {
     const unsigned char *c = (unsigned char *) c0;
     unsigned char *t = (unsigned char *) work;
@@ -1462,7 +1462,7 @@ int attribute_hidden Rf_AdobeSymbol2ucs2(int n)
 
 double R_strtod4(const char *str, char **endptr, char dec, Rboolean NA)
 {
-    LDOUBLE ans = 0.0, p10 = 10.0, fac = 1.0;
+    long double ans = 0.0, p10 = 10.0, fac = 1.0;
     int n, expn = 0, sign = 1, ndigits = 0, exph = -1;
     const char *p = str;
 
@@ -1593,7 +1593,7 @@ double R_atof(const char *str)
 SEXP attribute_hidden do_enc2(SEXP call, SEXP op, SEXP args, SEXP env)
 {
     SEXP ans, el;
-    R_xlen_t i;
+    int i;
     Rboolean duped = FALSE;
 
     checkArity(op, args);
@@ -1602,7 +1602,7 @@ SEXP attribute_hidden do_enc2(SEXP call, SEXP op, SEXP args, SEXP env)
     if (!isString(CAR(args)))
 	errorcall(call, "argumemt is not a character vector");
     ans = CAR(args);
-    for (i = 0; i < XLENGTH(ans); i++) {
+    for (i = 0; i < LENGTH(ans); i++) {
 	el = STRING_ELT(ans, i);
 	if(PRIMVAL(op) && !known_to_be_utf8) { /* enc2utf8 */
 	    if(!IS_UTF8(el) && !IS_ASCII(el)) {
@@ -1795,7 +1795,7 @@ int Scollate(SEXP a, SEXP b)
     UErrorCode  status = U_ZERO_ERROR;
     UCharIterator aIter, bIter;
     const char *as = translateCharUTF8(a), *bs = translateCharUTF8(b);
-    int len1 = (int) strlen(as), len2 = (int) strlen(bs);
+    size_t len1 = strlen(as), len2 = strlen(bs);
 
     if (collator == NULL && strcmp("C", setlocale(LC_COLLATE, NULL)) ) {
 	/* do better later */
@@ -1829,8 +1829,8 @@ void attribute_hidden resetICUcollator(void) {}
 
 static int Rstrcoll(const char *s1, const char *s2)
 {
-    R_CheckStack2(sizeof(wchar_t) * (2 + strlen(s1) + strlen(s2)));
     wchar_t w1[strlen(s1)+1], w2[strlen(s2)+1];
+    R_CheckStack();
     utf8towcs(w1, s1, strlen(s1));
     utf8towcs(w2, s2, strlen(s2));
     return wcscoll(w1, w2);
@@ -1855,120 +1855,105 @@ int Scollate(SEXP a, SEXP b)
 
 #include <lzma.h>
 
-SEXP attribute_hidden do_crc64(SEXP call, SEXP op, SEXP args, SEXP rho)
+SEXP crc64ToString(SEXP in)
 {
-    checkArity(op, args);
-    SEXP in = CAR(args);
     uint64_t crc = 0;
     char ans[17];
     if (!isString(in)) error("input must be a character string");
     const char *str = CHAR(STRING_ELT(in, 0));
 
-    /* Seems this is really 64-bit only on 64-bit platforms */
+    /* Seems this is realy 64-bit only on 64-bit platforms */
     crc = lzma_crc64((uint8_t *)str, strlen(str), crc);
     snprintf(ans, 17, "%lx", (long unsigned int) crc);
     return mkString(ans);
 }
 
+
+/* Formerly a version in src/appl/binning.c */
 static void 
-bincode(double *x, R_xlen_t n, double *breaks, int nb,
-	int *code, int right, int include_border)
+C_bincount(double *x, int n, double *breaks, int nb, int *count,
+	   int right, int include_border)
 {
-    int lo, hi, nb1 = nb - 1, new;
-    int lft = !right;
+    int i, lo, hi, nb1 = nb - 1, new, lft = !right;
 
-    /* This relies on breaks being sorted, so wise to check that */
-    for(int i = 1; i < nb; i++)
-	if(breaks[i-1] > breaks[i]) error(_("'breaks' is not sorted"));
-
-    for(R_xlen_t i = 0; i < n; i++) {
-	code[i] = NA_INTEGER;
-	if(!ISNAN(x[i])) {
+    for(i = 0; i < nb1; i++) count[i] = 0;
+    for(i = 0 ; i < n ; i++)
+	if(R_FINITE(x[i])) { // left in as a precaution
 	    lo = 0;
 	    hi = nb1;
-	    if(x[i] <  breaks[lo] || breaks[hi] < x[i] ||
-	       (x[i] == breaks[lft ? hi : lo] && ! include_border)) ;
-	    else {
-		while(hi - lo >= 2) {
-		    new = (hi + lo)/2;
+	    if(breaks[lo] <= x[i] &&
+	       (x[i] < breaks[hi] || (x[i] == breaks[hi] && include_border))) {
+		while(hi-lo >= 2) {
+		    new = (hi+lo)/2;
 		    if(x[i] > breaks[new] || (lft && x[i] == breaks[new]))
 			lo = new;
 		    else
 			hi = new;
 		}
-		code[i] = lo + 1;
+		count[lo] += 1;
 	    }
 	}
-    }
 }
 
-/* 'breaks' cannot be a long vector as the return codes are integer. */
-SEXP attribute_hidden do_bincode(SEXP call, SEXP op, SEXP args, SEXP rho)
+/* The R wrapper removed non-finite values and set the storage.mode */
+SEXP BinCount(SEXP x, SEXP breaks, SEXP right, SEXP lowest)
 {
-    checkArity(op, args);
-    SEXP x, breaks, right, lowest;
-    x = CAR(args); args = CDR(args);
-    breaks = CAR(args); args = CDR(args);
-    right = CAR(args); args = CDR(args);
-    lowest = CAR(args);
-#ifdef LONG_VECTOR_SUPPORT
-    if (IS_LONG_VEC(breaks))
-	error(_("long vector '%s' is not supported"), "breaks");
-#endif
-    PROTECT(x = coerceVector(x, REALSXP));
-    PROTECT(breaks = coerceVector(breaks, REALSXP));
-    R_xlen_t n = XLENGTH(x);
-    int nB = LENGTH(breaks), sr = asLogical(right), sl = asLogical(lowest);
-    if (nB == NA_INTEGER) error(_("invalid '%s' argument"), "breaks");
-    if (sr == NA_INTEGER) error(_("invalid '%s' argument"), "right");
-    if (sl == NA_INTEGER) error(_("invalid '%s' argument"), "include.lowest");
+    if(TYPEOF(x) != REALSXP || TYPEOF(breaks) != REALSXP) 
+	error("invalid input");
+    int n = LENGTH(x), nB = LENGTH(breaks);
+    if (n == NA_INTEGER || nB == NA_INTEGER) error("invalid input");
+    int sr = asLogical(right), sl = asLogical(lowest);
+    if (sr == NA_INTEGER || sl == NA_INTEGER) error("invalid input");
+    SEXP counts;
+    PROTECT(counts = allocVector(INTSXP, nB - 1));
+    C_bincount(REAL(x), n, REAL(breaks), nB, INTEGER(counts), sr, sl);
+    UNPROTECT(1);
+    return counts;
+}
+
+#include <R_ext/Applic.h>
+
+/* The R wrapper set the storage.mode */
+SEXP BinCode(SEXP x, SEXP breaks, SEXP right, SEXP lowest)
+{
+    if(TYPEOF(x) != REALSXP || TYPEOF(breaks) != REALSXP) 
+	error("invalid input");
+    int n = LENGTH(x), nB = LENGTH(breaks);
+    if (n == NA_INTEGER || nB == NA_INTEGER) error("invalid input");
+    int sr = asLogical(right), sl = asLogical(lowest);
+    if (sr == NA_INTEGER || sl == NA_INTEGER) error("invalid input");
     SEXP codes;
     PROTECT(codes = allocVector(INTSXP, n));
-    bincode(REAL(x), n, REAL(breaks), nB, INTEGER(codes), sr, sl);
-    UNPROTECT(3);
+    int naok = 1;
+    bincode(REAL(x), &n, REAL(breaks), &nB, INTEGER(codes), &sr, &sl, &naok);
+    UNPROTECT(1);
     return codes;
 }
 
-SEXP attribute_hidden do_tabulate(SEXP call, SEXP op, SEXP args, SEXP rho)
+SEXP R_Tabulate(SEXP in, SEXP nbin)
 {
-    checkArity(op, args);
-    SEXP in = CAR(args), nbin = CADR(args);
-    if (TYPEOF(in) != INTSXP)  error("invalid input");
-    R_xlen_t n = XLENGTH(in);
-    /* FIXME: could in principle be a long vector */
+    if(TYPEOF(in) != INTSXP)  error("invalid input");
+    int n = LENGTH(in);
+    if (n == NA_INTEGER) error("invalid input");
     int nb = asInteger(nbin);
-    if (nb == NA_INTEGER || nb < 0) 
-	error(_("invalid '%s' argument"), "nbin");
+    if (nb == NA_INTEGER || nb < 0) error("invalid input");
     SEXP ans = allocVector(INTSXP, nb);
     int *x = INTEGER(in), *y = INTEGER(ans);
     memset(y, 0, nb * sizeof(int));
-    for(R_xlen_t i = 0 ; i < n ; i++)
+    for(int i = 0 ; i < n ; i++)
 	if (x[i] != NA_INTEGER && x[i] > 0 && x[i] <= nb) y[x[i] - 1]++;
     return ans;
 }
 
-/* x can be a long vector but xt cannot since the result is integer */
-SEXP attribute_hidden do_findinterval(SEXP call, SEXP op, SEXP args, SEXP rho)
+SEXP FindIntervVec(SEXP xt, SEXP x, SEXP right, SEXP inside)
 {
-    checkArity(op, args);
-    SEXP xt, x, right, inside;
-    xt = CAR(args); args = CDR(args);
-    x = CAR(args); args = CDR(args);
-    right = CAR(args); args = CDR(args);
-    inside = CAR(args);
     if(TYPEOF(xt) != REALSXP || TYPEOF(x) != REALSXP) error("invalid input");
-#ifdef LONG_VECTOR_SUPPORT
-    if (IS_LONG_VEC(xt))
-	error(_("long vector '%s' is not supported"), "vec");
-#endif
     int n = LENGTH(xt);
-    if (n == NA_INTEGER) error(_("invalid '%s' argument"), "vec");
-    R_xlen_t nx = XLENGTH(x);
+    if (n == NA_INTEGER) error("invalid input");
+    int nx = LENGTH(x);
     int sr = asLogical(right), si = asLogical(inside);
-    if (sr == NA_INTEGER) 
-	error(_("invalid '%s' argument"), "rightmost.closed");
-    if (si == NA_INTEGER)
-	error(_("invalid '%s' argument"), "all.inside");
+    if (sr == NA_INTEGER) error("invalid 'rightmost.closed' argument");
+    if (si == NA_INTEGER) error("invalid 'all.inside' argument");
     SEXP ans = allocVector(INTSXP, nx);
     double *rxt = REAL(xt), *rx = REAL(x);
     int ii = 1;
@@ -1980,90 +1965,5 @@ SEXP attribute_hidden do_findinterval(SEXP call, SEXP op, SEXP args, SEXP rho)
 	}
 	INTEGER(ans)[i] = ii;
     }
-    return ans;
-}
-
-#ifdef Win32
-// this includes RS.h
-# undef ERROR
-#endif
-#include <R_ext/Applic.h>
-SEXP attribute_hidden do_pretty(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    checkArity(op, args);
-    SEXP ans, nm, hi;
-    double l = asReal(CAR(args)); args = CDR(args);
-    if (!R_FINITE(l)) error(_("invalid '%s' argument"), "l");
-    double u = asReal(CAR(args)); args = CDR(args);
-    if (!R_FINITE(u)) error(_("invalid '%s' argument"), "u");
-    int n = asInteger(CAR(args)); args = CDR(args);
-    if (n == NA_INTEGER || n < 0) error(_("invalid '%s' argument"), "n");
-    int min_n = asInteger(CAR(args)); args = CDR(args);
-    if (min_n == NA_INTEGER || min_n < 0 || min_n > n) 
-	error(_("invalid '%s' argument"), "min.n");
-    double shrink = asReal(CAR(args)); args = CDR(args);
-    if (!R_FINITE(shrink) || shrink <= 0.) 
-	error(_("invalid '%s' argument"), "shrink.sml");
-    PROTECT(hi = coerceVector(CAR(args), REALSXP)); args = CDR(args);
-    double z;
-    if (!R_FINITE(z = REAL(hi)[0]) || z < 0.)
-	error(_("invalid '%s' argument"), "high.u.bias");
-    if (!R_FINITE(z = REAL(hi)[1]) || z < 0.)
-	error(_("invalid '%s' argument"), "u5.bias");
-    int eps = asInteger(CAR(args)); /* eps.correct */
-    if (eps == NA_INTEGER || eps < 0 || eps > 2) 
-	error(_("'eps.correct' must be 0, 1, or 2"));
-    R_pretty(&l, &u, &n, &min_n, &shrink, REAL(hi), &eps);
-    PROTECT(ans = allocVector(VECSXP, 3));
-    SET_VECTOR_ELT(ans, 0, ScalarReal(l));
-    SET_VECTOR_ELT(ans, 1, ScalarReal(u));
-    SET_VECTOR_ELT(ans, 2, ScalarInteger(n));
-    nm = allocVector(STRSXP, 3);
-    setAttrib(ans, R_NamesSymbol, nm);
-    SET_STRING_ELT(nm, 0, mkChar("l"));
-    SET_STRING_ELT(nm, 1, mkChar("u"));
-    SET_STRING_ELT(nm, 2, mkChar("n"));
-    UNPROTECT(2);
-    return ans;
-}
-
-/*
-    r <- .C("str_signif", x = x, n = n, mode = as.character(mode), 
-        width = as.integer(width), digits = as.integer(digits), 
-        format = as.character(format), flag = as.character(flag), 
-        result = blank.chars(i.strlen + 2L), PACKAGE = "base")$result
-*/
-
-SEXP attribute_hidden do_formatC(SEXP call, SEXP op, SEXP args, SEXP rho)
-{
-    checkArity(op, args);
-    SEXP x = CAR(args); args = CDR(args);
-    int n = length(x);
-    const char *type = CHAR(STRING_ELT(CAR(args), 0)); args = CDR(args);
-    int width = asInteger(CAR(args)); args = CDR(args);
-    int digits = asInteger(CAR(args)); args = CDR(args);
-    const char *fmt = CHAR(STRING_ELT(CAR(args), 0)); args = CDR(args);
-    const char *flag = CHAR(STRING_ELT(CAR(args), 0)); args = CDR(args);
-    SEXP i_strlen = CAR(args);
-    PROTECT(i_strlen = coerceVector(i_strlen, INTSXP));
-    char **cptr = (char**) R_alloc(n, sizeof(char*));
-    for (int i = 0; i < n; i++) {
-	int ix = INTEGER(i_strlen)[i] + 2;
-	cptr[i] = (char *) R_alloc(ix + 1, sizeof(char));
-	memset(cptr[i], ' ', ix);
-	cptr[i][ix] = 0;
-    }
-    // px = DATAPTR(x) will not work with write-barrier enabled
-    void *px = NULL /* -Wall */;
-    switch(TYPEOF(x)) {
-    case INTSXP: px = INTEGER(x); break;
-    case REALSXP: px = REAL(x); break;
-    default: error("unsupported type ");
-    }
-    str_signif(px, &n, &type, &width, &digits, &fmt, &flag, cptr);
-    SEXP ans;
-    PROTECT(ans = allocVector(STRSXP, n));
-    for (int i = 0; i < n; i++) SET_STRING_ELT(ans, i, mkChar(cptr[i]));
-    UNPROTECT(2);
     return ans;
 }

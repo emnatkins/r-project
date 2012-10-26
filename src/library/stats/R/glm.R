@@ -111,7 +111,7 @@ glm <- function(formula, family = gaussian, data, weights,
                       control = control, intercept = TRUE))
         ## That fit might not have converged ....
         if(!fit2$converged)
-            warning("fitting to calculate the null deviance did not converge -- increase 'maxit'?")
+            warning("fitting to calculate the null deviance did not converge -- increase maxit?")
         fit$null.deviance <- fit2$deviance
     }
     if(model) fit$model <- mf
@@ -231,8 +231,7 @@ glm.fit <-
 
             if (all(!good)) {
                 conv <- FALSE
-                warning(gettextf("no observations informative at iteration %d",
-                                 iter), domain = NA)
+                warning("no observations informative at iteration ", iter)
                 break
             }
             z <- (eta - offset)[good] + (y - mu)[good]/mu.eta.val[good]
@@ -248,10 +247,8 @@ glm.fit <-
             }
             ## stop if not enough parameters
             if (nobs < fit$rank)
-                stop(sprintf(ngettext(nobs,
-                                      "X matrix has rank %d, but only %d observation",
-                                      "X matrix has rank %d, but only %d observations"),
-                             fit$rank, nobs), domain = NA)
+                stop(gettextf("X matrix has rank %d, but only %d observations",
+                              fit$rank, nobs), domain = NA)
             ## calculate updated values of eta and mu with the new coef:
             start[fit$pivot] <- fit$coefficients
             eta <- drop(x %*% start)
@@ -528,7 +525,7 @@ anova.glm <- function(object, ..., dispersion=NULL, test=NULL)
         if(test == "F" && df.dispersion == Inf) {
             fam <- object$family$family
             if(fam == "binomial" || fam == "poisson")
-                warning(gettextf("using F test with a '%s' family is inappropriate",
+                warning(gettextf("using F test with a %s family is inappropriate",
                                  fam),
                         domain = NA)
             else
@@ -554,9 +551,8 @@ anova.glmlist <- function(object, ..., dispersion=NULL, test=NULL)
     sameresp <- responses==responses[1L]
     if(!all(sameresp)) {
 	object <- object[sameresp]
-        warning(gettextf("models with response %s removed because response differs from model 1",
-                         sQuote(deparse(responses[!sameresp]))),
-                domain = NA)
+	warning("models with response ", deparse(responses[!sameresp]),
+		" removed because response differs from model 1")
     }
 
     ns <- sapply(object, function(x) length(x$residuals))
@@ -728,8 +724,8 @@ print.summary.glm <-
 	paste(deparse(x$call), sep="\n", collapse = "\n"), "\n\n", sep="")
     cat("Deviance Residuals: \n")
     if(x$df.residual > 5) {
-	x$deviance.resid <- setNames(quantile(x$deviance.resid,na.rm=TRUE),
-				     c("Min", "1Q", "Median", "3Q", "Max"))
+	x$deviance.resid <- quantile(x$deviance.resid,na.rm=TRUE)
+	names(x$deviance.resid) <- c("Min", "1Q", "Median", "3Q", "Max")
     }
     xx <- zapsmall(x$deviance.resid, digits + 1)
     print.default(xx, digits=digits, na.print = "", print.gap = 2)

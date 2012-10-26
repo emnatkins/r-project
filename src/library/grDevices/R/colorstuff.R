@@ -16,60 +16,91 @@
 #  A copy of the GNU General Public License is available at
 #  http://www.r-project.org/Licenses/
 
-colors <- function() .External2(C_colors)
+colors <- function() .Internal(colors())
 colours <- colors
 col2rgb <- function(col, alpha=FALSE) {
-  result <- .External2(C_col2rgb, col)
+  result <- .Internal(col2rgb(col))
   if (!alpha)
     result <- result[1L:3,, drop=FALSE]
   result
 }
 
-gray <- function(level, alpha = NULL) .Call(C_gray, level, alpha)
+## FIXME: gray() should also allow alpha; ditto for gray.colors() below
+gray <- function(level) .Internal(gray(level))
 grey <- gray
 
 rgb <- function(red, green, blue, alpha, names = NULL, maxColorValue = 1)
 {
-    ## Only red given
+    alphaspec <- !missing(alpha)
+    if(!alphaspec)
+	alpha <- maxColorValue
+
+    ## Only red
     if(missing(green) && missing(blue)) {
 	if(is.matrix(red) || is.data.frame(red)) {
 	    red <- data.matrix(red)
-	    if(ncol(red) < 3L) stop("at least 3 columns needed")
-	    green <- red[,2L]; blue <- red[,3L]; red <- red[,1L]
+	    if(ncol(red) < 3) stop("at least 3 columns needed")
+	    green <- red[,2]
+	    blue <- red[,3]
+	    red <- red[,1]
 	}
     }
 
-    .Call(C_rgb, red, green, blue, if (missing(alpha)) NULL else alpha,
-          maxColorValue, names)
+    ## in the first case, (r,g,b) are (coerced to) integer, otherwise
+    ## double :
+    if(maxColorValue == 255)
+        result <- .Internal(rgb256(red, green, blue, alpha, names))
+    else
+        result <- .Internal(rgb(red, green, blue, alpha, maxColorValue, names))
+    ## If alpha not specified only return #RRGGBB
+    if (!alphaspec)
+        structure(substr(result, 1L, 7L), names=names(result))
+    else result
 }
 
-hsv <- function(h = 1, s = 1, v = 1, alpha = 1)
-    .Call(C_hsv, h, s, v, if(missing(alpha)) NULL else alpha)
+hsv <- function(h=1, s=1, v=1, alpha = 1)
+{
+    alphaspec <- !missing(alpha)
+    result <- .Internal(hsv(h, s, v, alpha))
+    ## If alpha not specified only return #RRGGBB
+    if (!alphaspec)
+        structure(substr(result, 1L, 7L), names=names(result))
+    else result
+}
 
-hcl <- function (h = 0, c = 35, l = 85, alpha = 1, fixup = TRUE)
-    .Call(C_hcl, h, c, l, if(missing(alpha)) NULL else alpha, fixup)
-
+hcl <-
+function (h = 0, c = 35, l = 85, alpha = 1, fixup = TRUE)
+{
+    alphaspec <- !missing(alpha)
+    result <- .Internal(hcl(h, c, l, alpha, fixup))
+    if (!alphaspec)
+        structure(substr(result, 1L, 7L), names=names(result))
+    else result
+}
 
 rgb2hsv <- function(r, g = NULL, b = NULL, maxColorValue = 255)
 {
-    rgb <- if(is.null(g) && is.null(b)) as.matrix(r) else rbind(r, g, b)
+    rgb <-
+        if(is.null(g) && is.null(b)) as.matrix(r)
+        else rbind(r,g,b)
     if(!is.numeric(rgb)) stop("rgb matrix must be numeric")
     d <- dim(rgb)
     if(d[1L] != 3) stop("rgb matrix must have 3 rows")
     n <- d[2L]
-    if(n == 0L) return(cbind(c(h = 1, s = 1, v = 1))[, 0L])
+    if(n == 0L)
+        return(cbind(c(h = 1, s = 1, v = 1))[, 0L])
     ## else:
     rgb <- rgb/maxColorValue
     if(any(0 > rgb) || any(rgb > 1))
         stop("rgb values must be in [0, maxColorValue]")
 
-    .Call(C_RGB2hsv, rgb)
+    .Internal(rgb2hsv(rgb))
 }
 
 palette <- function(value)
 {
-    if(missing(value)) .External2(C_palette, character())
-    else invisible(.External2(C_palette, value))
+    if(missing(value)) .Internal(palette(character()))
+    else invisible(.Internal(palette(value)))
 }
 
 ## A quick little ''rainbow'' function -- improved by MM
@@ -142,7 +173,7 @@ cm.colors <- function (n, alpha = 1)
     } else character()
 }
 
-gray.colors <- function(n, start = 0.3, end = 0.9, gamma = 2.2, alpha = NULL)
-    gray(seq.int(from = start^gamma, to = end^gamma, length.out = n)^(1/gamma),
-         alpha)
+gray.colors <- ## FIXME: add 'alpha = 1'
+function(n, start = 0.3, end = 0.9, gamma = 2.2)
+    gray(seq.int(from = start^gamma, to = end^gamma, length.out = n)^(1/gamma))
 grey.colors <- gray.colors

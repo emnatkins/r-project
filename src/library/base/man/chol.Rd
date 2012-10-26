@@ -14,17 +14,15 @@
 \usage{
 chol(x, \dots)
 
-\method{chol}{default}(x, pivot = FALSE,  LINPACK = pivot, tol = -1, \dots)
+\method{chol}{default}(x, pivot = FALSE,  LINPACK = pivot, \dots)
 }
 \arguments{
   \item{x}{an object for which a method exists.  The default method
-    applies to numeric (or logical) symmetric, positive-definite matrices.}
+    applies to real symmetric, positive-definite matrices.}
   \item{\dots}{arguments to be based to or from methods.}
   \item{pivot}{Should pivoting be used?}
   \item{LINPACK}{logical.  Should LINPACK be used? (For compatibility
     with \R < 1.7.0 in the non-pivoting case.)}
-  \item{tol}{A numeric tolerance for use with \code{pivot = TRUE,
-      LINPACK = FALSE)}.}
 }
 \value{
   The upper triangular factor of the Choleski decomposition, i.e., the
@@ -52,16 +50,7 @@ chol(x, \dots)
   \code{pivot <- attr(Q, "pivot")} and \code{oo <- order(pivot)}, it
   is true that \code{t(Q[, oo]) \%*\% Q[, oo]} equals \code{x},
   or, alternatively, \code{t(Q) \%*\% Q} equals \code{x[pivot,
-    pivot]}.  See the examples.
-
-  Pivoting with LAPACK requires LAPACK >= 3.2 and was added in \R
-  2.16.0.  The value of \code{tol} is passed to LAPACK, with negative
-  values selecting the default tolerance of (usually) \code{nrow(x) *
-  .Machine$double.neg.eps * max(diag(x)}.  The algorithm terminates once
-  the pivot is less than \code{tol}.
-
-  The LINPACK interface is restricted to matrices \code{x} with less
-  than \eqn{2^{31}}{2^31} elements.
+  pivot]}.  See the examples.
 }
 
 \section{Warning}{

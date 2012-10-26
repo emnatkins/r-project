@@ -45,7 +45,7 @@ splinefun <-
         m <- c(Sx[1L], (Sx[-1L] + Sx[-n1])/2, Sx[n1]) ## 1.
 
         ## use C, as we need to "serially" progress from left to right:
-        m <- .Call(C_monoFC_m, m, Sx)
+        m <- .Call(C_R_monoFC_m, m, Sx)
 
         ## Hermite spline with (x,y,m) :
         return(splinefunH0(x = x, y = y, m = m, dx = dx))
@@ -58,9 +58,18 @@ splinefun <-
         if(!(all(dy >= 0) || all(dy <= 0)))
             stop("'y' must be increasing or decreasing")
     }
-    z <- .Call(C_SplineCoef, min(3L, iMeth), x, y)
+    z <- .C(C_spline_coef,
+	    method=as.integer(min(3L, iMeth)),
+	    n=nx,
+	    x=x,
+	    y=y,
+	    b=double(nx),
+	    c=double(nx),
+	    d=double(nx),
+	    e=double(if(iMeth == 1) nx else 0))
     if(iMeth == 5L) z <- spl_coef_conv(hyman_filter(z))
     rm(x, y, nx, method, iMeth, ties)
+    z$e <- NULL
     function(x, deriv = 0L) {
 	deriv <- as.integer(deriv)
 	if (deriv < 0L || deriv > 3L)
@@ -80,8 +89,17 @@ splinefun <-
         ##           where dx := (u[j]-x[i]); i such that x[i] <= u[j] <= x[i+1},
         ##                u[j]:= xout[j] (unless sometimes for periodic spl.)
         ##           and  d_i := d[i] unless for natural splines at left
-        res <- .splinefun(x, z)
-
+	res <- .C(C_spline_eval,
+                  z$method,
+                  as.integer(length(x)),
+                  x=as.double(x),
+                  y=double(length(x)),
+                  z$n,
+                  z$x,
+                  z$y,
+                  z$b,
+                  z$c,
+                  z$d)$y
 
         ## deal with points to the left of first knot if natural
         ## splines are used  (Bug PR#13132)
@@ -91,9 +109,6 @@ splinefun <-
         res
     }
 }
-
-## avoid capturing internal calls
-.splinefun <- function(x, z) .Call(C_SplineEval, x, z)
 
 ## hidden : The exported user function is splinefunH()
 splinefunH0 <- function(x, y, m, dx = x[-1L] - x[-length(x)])

@@ -68,14 +68,10 @@ xtabs <- function(formula = ~., data = parent.frame(), subset, sparse = FALSE,
 
     } else { ## sparse
 	if (length(by) != 2L)
-	    stop(gettextf("%s applies only to two-way tables",
-                          "xtabs(*, sparse=TRUE)"),
-                 domain = NA)
+	    stop("xtabs(*, sparse=TRUE) applies only to two-way tables")
         ## loadNamespace(.) is very quick, once it *is* loaded:
 	if(is.null(tryCatch(loadNamespace("Matrix"), error= function(e)NULL)))
-            stop(gettextf("%s needs package 'Matrix' correctly installed",
-                          "xtabs(*, sparse=TRUE)"),
-                 domain = NA)
+            stop("xtabs(*, sparse=TRUE) needs package \"Matrix\" correctly installed")
         if(length(i.ex <- unique(unlist(lapply(by,function(f) which(is.na(f)))))))
             by <- lapply(by, `[`, -i.ex)
 	rows <- by[[1L]]

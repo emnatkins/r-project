@@ -102,7 +102,7 @@ int trio_sprintf(char *buffer, const char *format, ...);
    use the argument type matching
  */
 attribute_hidden
-void str_signif(void *x, int *n, const char **type, int *width, int *digits,
+void str_signif(char *x, int *n, const char **type, int *width, int *digits,
 		const char **format, const char **flag, char **result)
 {
     int wid = *width;
@@ -111,8 +111,7 @@ void str_signif(void *x, int *n, const char **type, int *width, int *digits,
     Rboolean rm_trailing_0 = (*digits) >= 0;
     Rboolean do_fg = !strcmp("fg",*format);/* TRUE  iff  format == "fg" */
     double xx;
-    int iex;
-    size_t j, len_flag = strlen(*flag);
+    int iex, j, len_flag = strlen(*flag);
 
     char *f0  =	 R_alloc((size_t) do_fg ? 1+1+len_flag+3 : 1, sizeof(char));
     char *form = R_alloc((size_t) 1+1+len_flag+3 + strlen(*format),

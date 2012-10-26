@@ -31,7 +31,6 @@
 #include <config.h>
 #endif
 
-#include "Rinternals.h"
 #include "Print.h"
 
 #define DO_first_lab			\
@@ -53,15 +52,15 @@
     else				\
 	width = 0
 
-void printLogicalVector(int *x, R_xlen_t n, int indx)
+void printLogicalVector(int *x, int n, int indx)
 {
-    int w, labwidth=0, width;
+    int i, w, labwidth=0, width;
 
     DO_first_lab;
     formatLogical(x, n, &w);
     w += R_print.gap;
 
-    for (R_xlen_t i = 0; i < n; i++) {
+    for (i = 0; i < n; i++) {
 	if (i > 0 && width + w > R_print.width) {
 	    DO_newline;
 	}
@@ -71,15 +70,15 @@ void printLogicalVector(int *x, R_xlen_t n, int indx)
     Rprintf("\n");
 }
 
-void printIntegerVector(int *x, R_xlen_t n, int indx)
+void printIntegerVector(int *x, int n, int indx)
 {
-    int w, labwidth=0, width;
+    int i, w, labwidth=0, width;
 
     DO_first_lab;
     formatInteger(x, n, &w);
     w += R_print.gap;
 
-    for (R_xlen_t i = 0; i < n; i++) {
+    for (i = 0; i < n; i++) {
 	if (i > 0 && width + w > R_print.width) {
 	    DO_newline;
 	}
@@ -89,15 +88,15 @@ void printIntegerVector(int *x, R_xlen_t n, int indx)
     Rprintf("\n");
 }
 
-void printRealVector(double *x, R_xlen_t n, int indx)
+void printRealVector(double *x, int n, int indx)
 {
-    int w, d, e, labwidth=0, width;
+    int i, w, d, e, labwidth=0, width;
 
     DO_first_lab;
     formatReal(x, n, &w, &d, &e, 0);
     w += R_print.gap;
 
-    for (R_xlen_t i = 0; i < n; i++) {
+    for (i = 0; i < n; i++) {
 	if (i > 0 && width + w > R_print.width) {
 	    DO_newline;
 	}
@@ -107,9 +106,9 @@ void printRealVector(double *x, R_xlen_t n, int indx)
     Rprintf("\n");
 }
 
-void printComplexVector(Rcomplex *x, R_xlen_t n, int indx)
+void printComplexVector(Rcomplex *x, int n, int indx)
 {
-    int w, wr, dr, er, wi, di, ei, labwidth=0, width;
+    int i, w, wr, dr, er, wi, di, ei, labwidth=0, width;
 
     DO_first_lab;
     formatComplex(x, n, &wr, &dr, &er, &wi, &di, &ei, 0);
@@ -117,7 +116,7 @@ void printComplexVector(Rcomplex *x, R_xlen_t n, int indx)
     w = wr + wi + 2;	/* +2 for "+" and "i" */
     w += R_print.gap;
 
-    for (R_xlen_t i = 0; i < n; i++) {
+    for (i = 0; i < n; i++) {
 	if (i > 0 && width + w > R_print.width) {
 	    DO_newline;
 	}
@@ -131,14 +130,14 @@ void printComplexVector(Rcomplex *x, R_xlen_t n, int indx)
     Rprintf("\n");
 }
 
-static void printStringVector(SEXP *x, R_xlen_t n, int quote, int indx)
+static void printStringVector(SEXP * x, int n, int quote, int indx)
 {
-    int w, labwidth=0, width;
+    int i, w, labwidth=0, width;
 
     DO_first_lab;
     formatString(x, n, &w, quote);
 
-    for (R_xlen_t i = 0; i < n; i++) {
+    for (i = 0; i < n; i++) {
 	if (i > 0 && width + w + R_print.gap > R_print.width) {
 	    DO_newline;
 	}
@@ -149,15 +148,15 @@ static void printStringVector(SEXP *x, R_xlen_t n, int quote, int indx)
     Rprintf("\n");
 }
 
-void printRawVector(Rbyte *x, R_xlen_t n, int indx)
+void printRawVector(Rbyte *x, int n, int indx)
 {
-    int w, labwidth=0, width;
+    int i, w, labwidth=0, width;
 
     DO_first_lab;
     formatRaw(x, n, &w);
     w += R_print.gap;
 
-    for (R_xlen_t i = 0; i < n; i++) {
+    for (i = 0; i < n; i++) {
 	if (i > 0 && width + w > R_print.width) {
 	    DO_newline;
 	}
@@ -170,10 +169,10 @@ void printRawVector(Rbyte *x, R_xlen_t n, int indx)
 void printVector(SEXP x, int indx, int quote)
 {
 /* print R vector x[];	if(indx) print indices; if(quote) quote strings */
-    R_xlen_t n;
+    int n;
 
-    if ((n = XLENGTH(x)) != 0) {
-	R_xlen_t n_pr = (n <= R_print.max +1) ? n : R_print.max;
+    if ((n = LENGTH(x)) != 0) {
+	int n_pr = (n <= R_print.max +1) ? n : R_print.max;
 	/* '...max +1'  ==> will omit at least 2 ==> plural in msg below */
 	switch (TYPEOF(x)) {
 	case LGLSXP:

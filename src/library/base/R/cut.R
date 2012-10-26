@@ -54,7 +54,7 @@ cut.default <-
     } else if (is.logical(labels) && !labels)
         codes.only <- TRUE
     else if (length(labels) != nb - 1L)
-        stop("lengths of 'breaks' and 'labels' differ")
+        stop("labels/breaks length conflict")
     code <- .bincode(x, breaks, right, include.lowest)
     if(codes.only) code
     else factor(code, seq_along(labels), labels, ordered = ordered_result)
@@ -62,5 +62,8 @@ cut.default <-
 
 ## called from image.default and for use in packages.
 .bincode <- function(x, breaks, right = TRUE, include.lowest = FALSE)
-    .Internal(bincode(x, breaks, right, include.lowest))
-
+{
+    if(!is.double(x)) storage.mode(x) <- "double"
+    if(!is.double(breaks)) storage.mode(breaks) <- "double"
+    .Call("BinCode", x, breaks, right, include.lowest, PACKAGE = "base")
+}

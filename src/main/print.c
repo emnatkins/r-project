@@ -62,7 +62,6 @@
 #endif
 
 #include "Defn.h"
-#include <Internal.h>
 #include "Print.h"
 #include "Fileio.h"
 #include "Rconnections.h"
@@ -70,7 +69,7 @@
 
 
 /* Global print parameter struct: */
-R_print_par_t R_print;
+attribute_hidden R_print_par_t R_print;
 
 static void printAttributes(SEXP, SEXP, Rboolean);
 static void PrintSpecial(SEXP);
@@ -1011,7 +1010,7 @@ int F77_NAME(dblep0) (const char *label, int *nchar, double *data, int *ndata)
 
     if(nc < 0) nc = (int) strlen(label);
     if(nc > 255) {
-	warning(_("invalid character length in 'dblepr'"));
+	warning(_("invalid character length in dblepr"));
 	nc = 0;
     } else if(nc > 0) {
 	for (k = 0; k < nc; k++)
@@ -1029,7 +1028,7 @@ int F77_NAME(intpr0) (const char *label, int *nchar, int *data, int *ndata)
 
     if(nc < 0) nc = (int) strlen(label);
     if(nc > 255) {
-	warning(_("invalid character length in 'intpr'"));
+	warning(_("invalid character length in intpr"));
 	nc = 0;
     } else if(nc > 0) {
 	for (k = 0; k < nc; k++)
@@ -1048,7 +1047,7 @@ int F77_NAME(realp0) (const char *label, int *nchar, float *data, int *ndata)
 
     if(nc < 0) nc = (int) strlen(label);
     if(nc > 255) {
-	warning(_("invalid character length in 'realpr'"));
+	warning(_("invalid character length in realpr"));
 	nc = 0;
     }
     else if(nc > 0) {
@@ -1058,7 +1057,7 @@ int F77_NAME(realp0) (const char *label, int *nchar, float *data, int *ndata)
     }
     if(nd > 0) {
 	ddata = (double *) malloc(nd*sizeof(double));
-	if(!ddata) error(_("memory allocation error in 'realpr'"));
+	if(!ddata) error(_("memory allocation error in realpr"));
 	for (k = 0; k < nd; k++) ddata[k] = (double) data[k];
 	printRealVector(ddata, nd, 1);
 	free(ddata);

@@ -51,7 +51,7 @@ function(query, package = "R", lib.loc = NULL,
     ## Manipulate fields for querying (but return the original ones).
     db1 <- db
     ## Canonicalize version entries which *start* with a valid numeric
-    ## version, i.e., drop things like " patched".
+    ## version.
     version <- db$Version
     pos <- regexpr(sprintf("^%s",
                            .standard_regexps()$valid_numeric_version),

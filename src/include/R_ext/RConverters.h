@@ -20,8 +20,7 @@
  */
 
 /*
-  Not part of the API, concerns .C() converters which are by default
-  not compiled into R.
+  Not part of the API, concerns .C() converters which are deprecated.
  */
 
 #ifndef R_CCONVERTERS_H

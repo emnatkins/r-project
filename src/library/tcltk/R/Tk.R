@@ -20,12 +20,14 @@
 
 
 .Tcl <- function(...)
-    structure(.External(.C_dotTcl, ...), class="tclObj")
+    structure(.External("dotTcl", ..., PACKAGE = "tcltk"),
+              class="tclObj")
 .Tcl.objv <- function(objv)
-    structure(.External(.C_dotTclObjv, objv), class="tclObj")
+    structure(.External("dotTclObjv", objv, PACKAGE = "tcltk"),
+              class="tclObj")
 
 .Tcl.callback <- function(...)
-    .External(.C_dotTclcallback, ...)
+    .External("dotTclcallback", ..., PACKAGE = "tcltk")
 
 .Tcl.args <- function(...) {
     ## Eek! (See .Tcl.args.objv for explanation)
@@ -212,14 +214,14 @@ tclObj <- function(x) UseMethod("tclObj")
 "tclObj<-" <- function(x, value) UseMethod("tclObj<-")
 
 tclObj.tclVar <- function(x){
-    z <- .External(.C_RTcl_ObjFromVar, ls(x$env))
+    z <- .External("RTcl_ObjFromVar", ls(x$env), PACKAGE="tcltk")
     class(z) <- "tclObj"
     z
 }
 
 "tclObj<-.tclVar" <- function(x, value){
     value <- as.tclObj(value)
-    .External(.C_RTcl_AssignObjToVar, ls(x$env), value)
+    .External("RTcl_AssignObjToVar", ls(x$env), value, PACKAGE="tcltk")
     x
 }
 
@@ -227,7 +229,8 @@ tclvalue <- function(x) UseMethod("tclvalue")
 "tclvalue<-" <- function(x, value) UseMethod("tclvalue<-")
 
 tclvalue.tclVar <- function(x) tclvalue(tclObj(x))
-tclvalue.tclObj <- function(x) .External(.C_RTcl_StringFromObj, x)
+tclvalue.tclObj <- function(x) .External("RTcl_StringFromObj", x,
+                                         PACKAGE="tcltk")
 print.tclObj <- function(x,...) {
     z <- tclvalue(x)
     if (length(z)) cat("<Tcl>", z, "\n")
@@ -251,26 +254,31 @@ tclvalue.default <- function(x) tclvalue(tcl("set", as.character(x)))
 as.character.tclVar <- function(x, ...) ls(unclass(x)$env)
 
 as.character.tclObj <- function(x, ...)
-    .External(.C_RTcl_ObjAsCharVector, x)
+    .External("RTcl_ObjAsCharVector", x, PACKAGE="tcltk")
 as.double.tclObj <- function(x, ...)
-    .External(.C_RTcl_ObjAsDoubleVector, x)
+    .External("RTcl_ObjAsDoubleVector", x, PACKAGE="tcltk")
 as.integer.tclObj <- function(x, ...)
-    .External(.C_RTcl_ObjAsIntVector, x)
+    .External("RTcl_ObjAsIntVector", x, PACKAGE="tcltk")
 as.logical.tclObj <- function(x, ...)
-    as.logical(.External(.C_RTcl_ObjAsIntVector, x))
+    as.logical(.External("RTcl_ObjAsIntVector",
+                         x, PACKAGE="tcltk"))
 as.raw.tclObj <- function(x, ...)
-    .External(.C_RTcl_ObjAsRawVector, x)
+    .External("RTcl_ObjAsRawVector", x, PACKAGE="tcltk")
 
 is.tclObj <- function(x) inherits(x, "tclObj")
 
 as.tclObj <- function(x, drop=FALSE) {
     if (is.tclObj(x)) return(x)
     z <- switch(storage.mode(x),
-                character = .External(.C_RTcl_ObjFromCharVector, x, drop),
-                double = .External(.C_RTcl_ObjFromDoubleVector, x,drop),
-                integer = .External(.C_RTcl_ObjFromIntVector, x, drop),
-                logical = .External(.C_RTcl_ObjFromIntVector, as.integer(x), drop),
-                raw = .External(.C_RTcl_ObjFromRawVector, x),
+                character =
+                .External("RTcl_ObjFromCharVector", x, drop, PACKAGE="tcltk"),
+                double =
+                .External("RTcl_ObjFromDoubleVector", x,drop,PACKAGE="tcltk"),
+                integer =
+                .External("RTcl_ObjFromIntVector", x, drop, PACKAGE="tcltk"),
+                logical =
+                .External("RTcl_ObjFromIntVector", as.integer(x), drop,
+                          PACKAGE="tcltk"),
                 stop(gettextf("cannot handle object of mode '%s'",
                               storage.mode(x)), domain = NA)
                 )
@@ -280,8 +288,7 @@ as.tclObj <- function(x, drop=FALSE) {
 # Actually makes .default and .tclVar methods equivalent, the latter
 # just saves a level of function dispatching
 
-tclServiceMode <- function(on = NULL)
-    .External(.C_RTcl_ServiceMode, as.logical(on))
+tclServiceMode <- function(on = NULL) .External("RTcl_ServiceMode", as.logical(on), PACKAGE="tcltk")
 
 #----
 

@@ -141,7 +141,8 @@ function(file, local = FALSE, echo = verbose, print.eval = echo,
 	## odd-number-of-str.del needed, when truncating below
 	sd <- "\""
 	nos <- "[^\"]*"
-	oddsd <- paste0("^", nos, sd, "(", nos, sd, nos, sd, ")*", nos, "$")
+	oddsd <- paste("^", nos, sd, "(", nos, sd, nos, sd, ")*",
+		       nos, "$", sep = "")
         ## A helper function for echoing source.  This is simpler than the
         ## same-named one in Sweave
 	trySrcLines <- function(srcfile, showfrom, showto) {
@@ -161,24 +162,29 @@ function(file, local = FALSE, echo = verbose, print.eval = echo,
 	    ei <- exprs[i]
 	}
 	if (echo) {
+	    srcref <- NULL
 	    nd <- 0
-	    srcref <- if(tail) attr(exprs, "wholeSrcref") else
-		if(i <= length(srcrefs)) srcrefs[[i]] # else NULL
+	    if (tail)
+	    	srcref <- attr(exprs, "wholeSrcref")
+	    else if (i <= length(srcrefs))
+	    	srcref <- srcrefs[[i]]
  	    if (!is.null(srcref)) {
 	    	if (i == 1) lastshown <- min(skip.echo, srcref[3L]-1)
 	    	if (lastshown < srcref[3L]) {
 	    	    srcfile <- attr(srcref, "srcfile")
 	    	    dep <- trySrcLines(srcfile, lastshown+1, srcref[3L])
 	    	    if (length(dep)) {
-			leading <- if(tail) length(dep) else srcref[1L]-lastshown
+			if (tail)
+			    leading <- length(dep)
+			else
+			    leading <- srcref[1L]-lastshown
 			lastshown <- srcref[3L]
 			while (length(dep) && length(grep("^[[:blank:]]*$", dep[1L]))) {
 			    dep <- dep[-1L]
 			    leading <- leading - 1L
 			}
-			dep <- paste0(rep.int(c(prompt.echo, continue.echo),
-					      c(leading, length(dep)-leading)),
-				      dep, collapse="\n")
+			dep <- paste(rep.int(c(prompt.echo, continue.echo), c(leading, length(dep)-leading)),
+				    dep, sep="", collapse="\n")
 			nd <- nchar(dep, "c")
 		    } else
 		    	srcref <- NULL  # Give up and deparse
@@ -248,7 +254,7 @@ function(file, envir = baseenv(), chdir = FALSE,
     	srcfile <- srcfilecopy(file, lines, file.info(file)[1,"mtime"], isFile = TRUE)
     	exprs <- parse(text = lines, srcfile = srcfile)
     } else
-    	exprs <- parse(n = -1, file = file, srcfile = NULL)
+    	exprs <- parse(n = -1, file = file)
     if (length(exprs) == 0L)
 	return(invisible())
     if (chdir && (path <- dirname(file)) != ".") {

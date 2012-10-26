@@ -50,7 +50,9 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
         exact <- ((m < 50L) && (n < 50L))
 
     if(exact && !TIES) {
-        pansari <- function(q, m, n) .Call(C_pAnsari, q, m, n)
+        pansari <- function(q, m, n) {
+            .C(C_pansari, as.integer(length(q)), p = as.double(q), m, n)$p
+        }
         PVAL <-
             switch(alternative,
                    two.sided = {
@@ -64,7 +66,9 @@ function(x, y, alternative = c("two.sided", "less", "greater"),
                    less = 1 - pansari(STATISTIC - 1, m, n),
                    greater = pansari(STATISTIC, m, n))
         if (conf.int) {
-            qansari <- function(p, m, n) .Call(C_qAnsari, p, m, n)
+            qansari <- function(p, m, n) {
+                .C(C_qansari, as.integer(length(p)), q = as.double(p), m, n)$q
+            }
             alpha <- 1 - conf.level
             x <- sort(x)
             y <- sort(y)
@@ -269,7 +273,8 @@ function(formula, data, subset, na.action, ...)
     g <- factor(mf[[-response]])
     if(nlevels(g) != 2L)
         stop("grouping factor must have exactly 2 levels")
-    DATA <- setNames(split(mf[[response]], g), c("x", "y"))
+    DATA <- split(mf[[response]], g)
+    names(DATA) <- c("x", "y")
     y <- do.call("ansari.test", c(DATA, list(...)))
     y$data.name <- DNAME
     y

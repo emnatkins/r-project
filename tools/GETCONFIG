@@ -8,7 +8,6 @@ echo "#ifndef R_CONFIG_H"
 echo
 line=`grep "HAVE_F77_UNDERSCORE" config.h`
 echo "${line}"
-echo "/* all R platforms have this */"
 line=`grep "IEEE_754" config.h`
 echo "${line}"
 line=`grep "WORDS_BIGENDIAN" config.h`
@@ -17,7 +16,6 @@ line=`grep "R_INLINE" config.h`
 echo "${line}"
 line=`grep "HAVE_VISIBILITY_ATTRIBUTE" config.h`
 echo "${line}"
-echo "/* all R platforms have the next two */"
 echo "#define SUPPORT_UTF8 1"
 echo "#define SUPPORT_MBCS 1"
 line=`grep "ENABLE_NLS" config.h`
@@ -25,8 +23,6 @@ echo "${line}"
 line=`grep "HAVE_AQUA" config.h`
 echo "${line}"
 line=`grep "SUPPORT_OPENMP" config.h`
-echo "${line}"
-line=`grep "SIZEOF_SIZE_T" config.h`
 echo "${line}"
 echo
 echo "#endif /* not R_CONFIG_H */"

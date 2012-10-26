@@ -86,3 +86,5 @@ create.post <- function(instructions = character(),
 
     invisible()
 }
+
+win.version <- function() .Internal(win.version())

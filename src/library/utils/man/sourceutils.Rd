@@ -62,7 +62,7 @@ getSrcLocation(x, which = c("line", "column", "byte", "parse"),
   of locations.
 }
 \seealso{
-\code{\link{srcref}}, \code{\link{getParseData}}
+\code{\link{srcref}}
 }
 \examples{
 fn <- function(x) {

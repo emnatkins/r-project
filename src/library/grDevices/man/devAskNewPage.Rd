@@ -1,6 +1,6 @@
 % File src/library/grDevices/man/devAskNewPage.Rd
 % Part of the R package, http://www.R-project.org
-% Copyright 1995-2008 R Core Team
+% Copyright 1995-2012 R Core Team
 % Distributed under GPL 2 or later
 
 \name{devAskNewPage}
@@ -34,7 +34,6 @@ devAskNewPage(ask = NULL)
 }
 \value{
   The current prompt setting \emph{before} any new setting is applied.
-  Invisibly if \code{ask} is logical.
 }
 
 \seealso{

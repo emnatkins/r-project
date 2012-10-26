@@ -30,36 +30,10 @@
 \alias{.cache_class}
 \alias{.Firstlib_as_onLoad}
 \alias{.methodsNamespace} % created by the methods package ....
-\alias{.popath}
-\alias{.mapply}
-\alias{.detach}
-
-\alias{.C_R_addTaskCallback}
-\alias{.C_R_getTaskCallbackNames}
-\alias{.C_R_removeTaskCallback}
-\alias{.F_cg}
-\alias{.F_ch}
-\alias{.F_ch2inv}
-\alias{.F_chol}
-\alias{.F_dchdc}
-\alias{.F_dqrcf}
-\alias{.F_dqrdc2}
-\alias{.F_dqrqty}
-\alias{.F_dqrqy}
-\alias{.F_dqrrsd}
-\alias{.F_dqrxb}
-\alias{.F_dsvdc}
-\alias{.F_dtrco}
-\alias{.F_rg}
-\alias{.F_rs}
-% These are compiled in conditionally
-\alias{.C_R_getbcprofcounts}
-\alias{.C_R_startbcprof}
-\alias{.C_R_stopbcprof}
 
 \title{Internal Objects in Package \pkg{base}}
 \description{
-  Internal objects in the base package which are only user-visible
+  Internal objects in the base package, which are only user-visible
   because of the special nature of the base namespace.
 }
 \usage{
@@ -101,12 +75,6 @@ lazyLoadDBfetch(key, file, compressed, hook)
 
 .find.package(\dots)
 .path.package(\dots)
-
-.popath
-
-.mapply(FUN, dots, MoreArgs)
-
-.detach(pos)
 }
 \arguments{
   \item{x}{object from which to extract elements.}
@@ -143,11 +111,6 @@ lazyLoadDBfetch(key, file, compressed, hook)
   \item{tz}{an optional timezone.}
   \item{units}{see \code{\link{difftime}}.}
   \item{\dots}{Arguments passed to non-dot name versions.}
-    \item{FUN}{function to apply, found via \code{\link{match.fun}}.}
-  \item{dots}{list of arguments to vectorize over (vectors or lists of
-    strictly positive length, or all of zero length).}
-  \item{MoreArgs}{a list of other arguments to \code{FUN}.}
-  \item{pos}{an integer.}
 }
 \details{
   The functions \code{.subset} and \code{.subset2} are essentially
@@ -227,12 +190,6 @@ lazyLoadDBfetch(key, file, compressed, hook)
 
   \code{.popath} is a variable created at startup which records where
   the \pkg{translations} package in use is.
-  
-  \code{.mapply} and \code{.detach} are \sQuote{bare-bones} versions for
-  use in other \R packages.
-  
-  Objects starting \code{.C_} and \code{.F_} are references to
-  registered C and Fortran entry points.
 }
 \value{
   \code{.getRequiredPackages} and \code{.getRequiredPackages2}

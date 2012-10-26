@@ -189,8 +189,7 @@ arima0 <- function(x, order = c(0, 0, 0),
     res <- optim(init[mask], arma0f, method = "BFGS",
                  hessian = TRUE, control = optim.control)
     if((code <- res$convergence) > 0)
-        warning(gettextf("possible convergence problem: optim gave code = %d",
-                         code), domain = NA)
+        warning("possible convergence problem: optim gave code=", code)
     coef <- res$par
 
     if(transform.pars) {
@@ -269,7 +268,7 @@ print.arima0 <- function(x, digits = max(3, getOption("digits") - 3),
 }
 
 predict.arima0 <-
-    function(object, n.ahead = 1L, newxreg = NULL, se.fit=TRUE, ...)
+    function(object, n.ahead = 1, newxreg = NULL, se.fit=TRUE, ...)
 {
     myNCOL <- function(x) if(is.null(x)) 0 else NCOL(x)
     data <- eval.parent(parse(text = object$series))

@@ -69,9 +69,7 @@ attach <- function(what, pos = 2, name = deparse(substitute(what)),
                         } else {
                             sp[i]
                         }
-                    msg <- sprintf(ngettext(length(objs),
-                                            "The following object is masked %s %s:\n\n%s\n",
-                                            "The following objects are masked %s %s:\n\n%s\n"),
+                    msg <- sprintf("The following object(s) are masked %s '%s':\n\n%s\n",
                                    if (i < db.pos) "_by_" else "from",
                                    pkg, paste(objs, collapse="\n"))
                     cat(msg)
@@ -121,8 +119,10 @@ detach <- function(name, pos = 2, unload = FALSE, character.only = FALSE,
 
     ## we need to treat packages differently from other objects, so get those
     ## out of the way now
-    if (! grepl("^package:", packageName) )
-        return(invisible(.Internal(detach(pos))))
+    if (! grepl("^package:", packageName) ) {
+        res <- .Internal(detach(pos))
+        return(invisible(res))
+    }
 
     pkgname <- sub("^package:", "", packageName)
     for(pkg in search()[-1L]) {
@@ -163,20 +163,19 @@ detach <- function(name, pos = 2, unload = FALSE, character.only = FALSE,
         if(unload) {
             tryCatch(unloadNamespace(pkgname),
                      error = function(e)
-                     warning(gettextf("%s namespace cannot be unloaded:\n  ",
-                                      sQuote(pkgname)),
-                             conditionMessage(e),
-                             call. = FALSE, domain = NA))
+                     warning(sQuote(pkgname),
+                             " namespace cannot be unloaded:\n  ",
+                             conditionMessage(e), call. = FALSE))
         }
     } else {
         if(.isMethodsDispatchOn() && methods:::.hasS4MetaData(env))
             methods:::cacheMetaData(env, FALSE)
-        .Internal(lazyLoadDBflush(paste0(libpath, "/R/", pkgname, ".rdb")))
+        .Call("R_lazyLoadDBflush",
+              paste0(libpath, "/R/", pkgname, ".rdb"),
+              PACKAGE="base")
     }
     invisible()
 }
-
-.detach <- function(pos) .Internal(detach(pos))
 
 ls <- objects <-
     function (name, pos = -1, envir = as.environment(pos), all.names = FALSE,
@@ -188,8 +187,7 @@ ls <- objects <-
             name <- substitute(name)
             if (!is.character(name))
                 name <- deparse(name)
-            warning(gettextf("%s converted to character string", sQuote(name)),
-                    domain = NA)
+            warning(sQuote(name), " converted to character string")
             pos <- name
         }
         else

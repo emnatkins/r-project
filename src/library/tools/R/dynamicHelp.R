@@ -91,9 +91,7 @@ httpd <- function(path, query, ...)
             		types = args$types <- strsplit(query[i], ";")[[1L]],
             		package = args$package <- strsplit(query[i], ";")[[1L]],
             		lib.loc = args$lib.loc <- strsplit(query[i], ";")[[1L]],
-            		warning("Unrecognized search field: ", names(query)[i],
-                                domain = NA)
-                       )
+            		warning("Unrecognized search field: ", names(query)[i]))
             args$fields <- fields
             args$use_UTF8 <- TRUE
             do.call(help.search, args)
@@ -276,11 +274,7 @@ httpd <- function(path, query, ...)
 
             return(list(payload =
                         paste("<p>",
-                              ## for languages with multiple plurals ....
-                              sprintf(ngettext(length(packages):
-                                               "Help on topic '%s' was found in the following package:",
-                                               "Help on topic '%s' was found in the following packages:"
-                                               ), topic),
+                              gettextf("Help on topic '%s' was found in the following packages:", topic),
                               "</p><dl>\n",
                               packages, "</dl>", sep="", collapse="\n")
                         ))
@@ -504,7 +498,7 @@ startDynamicHelp <- function(start=TRUE)
         for(i in seq_along(ports)) {
             ## the next can throw an R-level error,
             ## so do not assign port unless it succeeds.
-	    status <- .Call(startHTTPD, "127.0.0.1", ports[i])
+	    status <- .Internal(startHTTPD("127.0.0.1", ports[i]))
 	    if (status == 0L) {
                 OK <- TRUE
                 httpdPort <<- ports[i]
@@ -524,7 +518,7 @@ startDynamicHelp <- function(start=TRUE)
         }
     } else {
         ## Not really tested
-        .Call(stopHTTPD)
+        .Internal(stopHTTPD())
     	httpdPort <<- 0L
     }
     lockBinding("httpdPort", env)

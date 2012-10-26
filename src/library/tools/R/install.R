@@ -153,12 +153,12 @@
         setwd(startdir)
         if (dir.exists(tmpdir)) unlink(tmpdir, recursive=TRUE)
     }
-
+    
     # Check whether dir is a subdirectory of parent,
     # to protect against malicious package names like ".." below
     # Assumes that both directories exist
-
-    is_subdir <- function(dir, parent)
+    
+    is_subdir <- function(dir, parent) 
         normalizePath(parent) == normalizePath(file.path(dir, ".."))
 
     do_exit_on_error <- function()
@@ -176,10 +176,11 @@
             if (nzchar(lockdir) &&
                 dir.exists(lp <- file.path(lockdir, curPkg)) &&
                 is_subdir(lp, lockdir)) {
-                starsmsg(stars, "restoring previous ", sQuote(pkgdir))
+                starsmsg(stars, "restoring previous ", sQuote(pkgdir)) 
                 if (WINDOWS) {
                     file.copy(lp, dirname(pkgdir), recursive = TRUE)
-                    Sys.setFileTime(pkgdir, file.info(lp)$mtime)
+                    .Call("R_setFileTime", pkgdir, file.info(lp)$mtime,
+                          PACKAGE = "base")
                     unlink(lp, recursive = TRUE)
                 } else {
                     ## some shells require that they be run in a known dir
@@ -215,11 +216,11 @@
     }
 
     starsmsg <- function(stars, ...)
-        message(stars, " ", ..., domain = NA)
+        message(stars, " ", ..., domain=NA)
 
     errmsg <- function(...)
     {
-        message("ERROR: ", ..., domain = NA)
+        message("ERROR: ", ...)
         do_exit_on_error()
     }
 
@@ -267,9 +268,9 @@
             message("ERROR: unable to create ", sQuote(instdir), domain = NA)
             do_exit_on_error()
         }
-
+        
         if (!is_subdir(instdir, lib)) {
-            message("ERROR: ", sQuote(pkg_name), " is not a legal package name",
+            message("ERROR: ", sQuote(pkg_name), " is not a legal package name", 
                     domain = NA)
             do_exit_on_error()
         }
@@ -290,7 +291,7 @@
             do_install_binary(pkg_name, instdir, desc)
 
         ## Add read permission to all, write permission to owner
-        .Call(dirchmod, instdir)
+        .Internal(dirchmod(instdir))
         is_first_package <<- FALSE
 
         if (tar_up) { # Unix only
@@ -336,13 +337,13 @@
                                 paste(curPkg, collapse = " ")))
             setwd(owd)
             if (res)
-                message("running 'zip' failed", domain = NA)
+                message("running 'zip' failed")
             else
                 message("packaged installation of ",
-                        sQuote(pkg_name), " as ", filename, domain = NA)
+                        sQuote(pkg_name), " as ", filename)
         }
         if (Sys.getenv("_R_INSTALL_NO_DONE_") != "yes") {
-            message("", domain = NA)  # ensure next starts on a new line, for R CMD check
+            message("")  # ensure next starts on a new line, for R CMD check
             starsmsg(stars, "DONE (", pkg_name, ")")
         }
 
@@ -388,7 +389,7 @@
                 for(arch in archs) {
                     ss <- paste("src", arch, sep = "-")
                     ## it seems fixing permissions is sometimes needed
-                    .Call(dirchmod, ss)
+                    .Internal(dirchmod(ss))
                     unlink(ss, recursive = TRUE)
                 }
 
@@ -424,8 +425,7 @@
         {
             ## install.lib.R allows customization of the libs installation process
             if (file.exists("install.libs.R")) {
-                message("installing via 'install.libs.R' to ", instdir,
-                        domain = NA)
+                message("installing via 'install.libs.R' to ", instdir)
                 ## the following variables are defined to be available,
                 ## and to prevent abuse we don't expose anything else
                 local.env <- local({ SHLIB_EXT <- SHLIB_EXT
@@ -444,7 +444,7 @@
             if (length(files)) {
                 libarch <- if (nzchar(arch)) paste0("libs", arch) else "libs"
                 dest <- file.path(instdir, libarch)
-                message('installing to ', dest, domain = NA)
+                message('installing to ', dest)
                 dir.create(dest, recursive = TRUE, showWarnings = FALSE)
                 file.copy(files, dest, overwrite = TRUE)
                 ## not clear if this is still necessary, but sh version did so
@@ -455,9 +455,7 @@
 		## is no way to create it later.
 
 		if (dsym && length(grep("^darwin", R.version$os)) ) {
-		    message(gettextf("generating debug symbols (%s)",
-                                     "dSYM"),
-                            domain = NA)
+		    message('generating debug symbols (dSYM)')
 		    dylib <- Sys.glob(paste0(dest, "/*", SHLIB_EXT))
                     for (file in dylib) system(paste0("dsymutil ", file))
 		}
@@ -525,8 +523,20 @@
             return()
         }
 
-        if (!is.na(Type) && Type == "Translation")
-            errmsg("'Translation' packages are defunct")
+        if (!is.na(Type) && Type == "Translation") {
+            starsmsg(stars, "installing *Translation* package ", sQuote(pkg_name), " ...")
+            warning("'Translation' packages are deprecated",
+                    immediate. = TRUE, call. = TRUE, domain = NA)
+            if (dir.exists("share")) {
+                files <- Sys.glob("share/*")
+                if (length(files)) file.copy(files, R.home("share"), TRUE)
+            }
+            if (dir.exists("library")) {
+                ## FIXME use file.copy
+                system(paste("cp -r ./library", R.home()))
+            }
+            return()
+        }
 
         OS_type <- desc["OS_type"]
         if (WINDOWS) {
@@ -577,8 +587,8 @@
                 if (debug) starsmsg(stars, "backing up earlier installation")
                 if(WINDOWS) {
                     file.copy(instdir, lockdir, recursive = TRUE)
-                    Sys.setFileTime(file.path(lockdir, pkg_name),
-                                    file.info(instdir)$mtime)
+                    .Call("R_setFileTime", file.path(lockdir, pkg_name),
+                          file.info(instdir)$mtime, PACKAGE = "base")
                     if (more_than_libs) unlink(instdir, recursive = TRUE)
                 } else if (more_than_libs)
                     system(paste("mv", shQuote(instdir),
@@ -625,7 +635,11 @@
                     Sys.chmod(file.path(instdir, f), "644")
                 }
 
+            ## This cannot be done in a MBCS: write.dcf fails
+            ctype <- Sys.getlocale("LC_CTYPE")
+            Sys.setlocale("LC_CTYPE", "C")
             res <- try(.install_package_description('.', instdir))
+            Sys.setlocale("LC_CTYPE", ctype)
             if (inherits(res, "try-error"))
                 pkgerrmsg("installing package DESCRIPTION failed", pkg_name)
             if (!file.exists(namespace <- file.path(instdir, "NAMESPACE")) ) {
@@ -662,7 +676,7 @@
                     makefiles <- f
                 if (file.exists("Makefile.win")) {
                     makefiles <- c("Makefile.win", makefiles)
-                    message("  running 'src/Makefile.win' ...", domain = NA)
+                    message("  running src/Makefile.win ...")
                     res <- system(paste("make --no-print-directory",
                                         paste("-f", shQuote(makefiles), collapse = " ")))
                     if (res == 0) shlib_install(instdir, rarch)
@@ -711,7 +725,7 @@
                             dir.create(ss, showWarnings = FALSE)
                             file.copy(Sys.glob("src/*"), ss, recursive = TRUE)
                             ## avoid read-only files/dir such as nested .svn
-                            .Call(dirchmod, ss)
+                            .Internal(dirchmod(ss))
                             setwd(ss)
 
                             ra <- paste0("/", arch)
@@ -866,7 +880,7 @@
 		    ## to work ...
 
 		    ## encoding issues ... so need useBytes = TRUE
-		    ## FIXME: some packages have useDynLib()
+		    ## FIXME: some packages have useDynlib()
 		    ## spread over several lines.
 		    writeLines(sub("useDynLib.*", 'useDynLib("")',
 				   readLines("NAMESPACE", warn = FALSE),
@@ -907,8 +921,8 @@
 		}
 		Sys.chmod(Sys.glob(file.path(instdir, "data", "*")), "644")
 		if (thislazy) {
-		    starsmsg(paste0(stars, "*"),
-                             "moving datasets to lazyload DB")
+		    ## This also had an extra space in the sh version
+		    starsmsg(stars, " moving datasets to lazyload DB")
 		    ## 'it is possible that data in a package will
 		    ## make use of the code in the package, so ensure
 		    ## the package we have just installed is on the
@@ -963,7 +977,7 @@
             i_dirs <- grep(.vc_dir_names_re, i_dirs,
                            invert = TRUE, value = TRUE)
             ## This ignores any restrictive permissions in the source
-            ## tree, since the later .Call(dirchmod) call will
+            ## tree, since the later .Internal(dirchmod()) call will
             ## fix the permissions.
 
             ## handle .Rinstignore:
@@ -1324,7 +1338,7 @@
         } else if (a == "--dsym") {
             dsym <- TRUE
         } else if (substr(a, 1, 1) == "-") {
-            message("Warning: unknown option ", sQuote(a), domain = NA)
+            message("Warning: unknown option ", sQuote(a))
         } else pkgs <- c(pkgs, a)
         args <- args[-1L]
     }
@@ -1335,7 +1349,7 @@
 
     if (merge) {
         if (length(pkgs) != 1L || !file_test("-f", pkgs))
-            stop("ERROR: '--merge-multiarch' applies only to a single tarball",
+            stop("ERROR: --merge-multiarch applies only to a single tarball",
                  call. = FALSE)
         if (WINDOWS) {
             f  <- dir(file.path(R.home(), "bin"))
@@ -1392,8 +1406,7 @@
             on.exit()
             return(invisible())
         }
-        message("only one architecture so ignoring '--merge-multiarch'",
-                domain = NA)
+        message("only one architecture so ignoring '--merge-multiarch'")
     }
 
     ## now unpack tarballs and do some basic checks
@@ -1466,8 +1479,7 @@
         ## lib is allowed to be a relative path.
         ## should be OK below, but be sure.
         cwd <- tryCatch(setwd(lib), error = function(e)
-                        stop(gettextf("ERROR: cannot cd to directory %s", sQuote(lib)),
-                             call. = FALSE, domain = NA))
+                        stop("ERROR: cannot cd to directory ", sQuote(lib), call. = FALSE))
         lib <- getwd()
         setwd(cwd)
     }
@@ -1503,15 +1515,13 @@
     {
         if (file.exists(lockdir)) {
             message("ERROR: failed to lock directory ", sQuote(lib),
-                    " for modifying\nTry removing ", sQuote(lockdir),
-                    domain = NA)
+                    " for modifying\nTry removing ", sQuote(lockdir))
             do_cleanup_tmpdir()
             q("no", status = 3, runLast = FALSE)
         }
         dir.create(lockdir, recursive = TRUE)
         if (!dir.exists(lockdir)) {
-            message("ERROR: failed to create lock directory ", sQuote(lockdir),
-                    domain = NA)
+            message("ERROR: failed to create lock directory ", sQuote(lockdir))
             do_cleanup_tmpdir()
             q("no", status = 3, runLast = FALSE)
         }
@@ -2012,13 +2022,13 @@
     ## FIXME: add this lib to lib.loc?
     if ("html" %in% types) {
         ## may be slow, so add a message
-        if (!silent) message("    finding HTML links ...", appendLF = FALSE, domain = NA)
+        if (!silent) message("    finding HTML links ...", appendLF = FALSE)
         Links <- findHTMLlinks(outDir, level = 0:1)
         if (!silent) message(" done")
         .Links2 <- function() {
-            message("\n    finding level-2 HTML links ...", appendLF = FALSE, domain = NA)
+            message("\n    finding level-2 HTML links ...", appendLF = FALSE)
             Links2 <- findHTMLlinks(level = 2)
-            message(" done", domain = NA)
+            message(" done")
             Links2
         }
         delayedAssign("Links2", .Links2())
@@ -2040,7 +2050,7 @@
         invokeRestart("muffleWarning")
     }
     .ehandler <- function(e) {
-        message("", domain = NA) # force newline
+        message("") # force newline
         unlink(ff)
         stop(conditionMessage(e), domain = NA, call. = FALSE)
     }

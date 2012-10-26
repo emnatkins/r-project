@@ -45,8 +45,7 @@ debugger <- function(dump = last.dump)
         browser()
     }
     if (class(dump) != "dump.frames") {
-        cat(gettextf("'dump' is not an object of class %s\n",
-                     dQuote("dump.frames")))
+        cat(gettext("'dump' is not an object of class 'dump.frames'\n"))
         return(invisible())
     }
     err.action <- getOption("error")
@@ -60,7 +59,7 @@ debugger <- function(dump = last.dump)
         cat(paste0(1L:n, ": ", calls), sep="\n")
         cat(gettext("\nEnter an environment number, or 0 to exit  "))
         repeat {
-            ind <- .Call(C_menu, as.character(calls))
+            ind <- .Internal(menu(as.character(calls)))
             if(ind <= n) break
         }
         if(ind == 0L) return(invisible())

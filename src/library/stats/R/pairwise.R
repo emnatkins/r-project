@@ -21,7 +21,7 @@ function(x, g, p.adjust.method = p.adjust.methods, pool.sd = !paired,
          paired = FALSE, alternative = c("two.sided", "less", "greater"), ...)
 {
     if (paired & pool.sd)
-        stop("pooling of SD is incompatible with paired tests")
+        stop("Pooling of SD is incompatible with paired tests")
     DNAME <- paste(deparse(substitute(x)), "and", deparse(substitute(g)))
     g <- factor(g)
     p.adjust.method <- match.arg(p.adjust.method)
@@ -120,7 +120,8 @@ function (x, n, p.adjust.method = p.adjust.methods, ...)
 pairwise.table <-
 function(compare.levels, level.names, p.adjust.method)
 {
-    ix <- setNames(seq_along(level.names), level.names)
+    ix <- seq_along(level.names)
+    names(ix) <- level.names
     pp <- outer(ix[-1L], ix[-length(ix)],function(ivec, jvec)
           sapply(seq_along(ivec), function(k) {
               i<-ivec[k]

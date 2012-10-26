@@ -7,6 +7,7 @@ importFrom(grDevices, dev.interactive, palette, extendrange, xy.coords)
 importFrom(utils, str)
 
 
+# exportPattern("^[^\\.]")
 export(.checkMFClasses, .getXlevels, .MFclass)
 
 export(add.scope, add1, addmargins, aggregate, aggregate.data.frame,
@@ -77,7 +78,7 @@ export(median.default)
 export(mauchley.test)
 
 # defunct
-export(reshapeWide, reshapeLong, anovalist.lm, lm.fit.null,
+export(reshapeWide, reshapeLong, print.coefmat, anovalist.lm, lm.fit.null,
        lm.wfit.null, glm.fit.null)
 
 ## register all the methods for generics elsewhere in case namespace is

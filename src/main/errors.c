@@ -23,7 +23,6 @@
 
 #define R_USE_SIGNALS 1
 #include <Defn.h>
-#include <Internal.h>
 /* -> Errormsg.h */
 #include <Startup.h> /* rather cleanup ..*/
 #include <Rconnections.h>
@@ -85,32 +84,7 @@ void R_CheckStack(void)
 	   so temporarily raise the limit.
 	 */
 	RCNTXT cntxt;
-	uintptr_t stacklimit = R_CStackLimit;
-	R_CStackLimit += 0.05*R_CStackLimit;
-	begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
-		     R_NilValue, R_NilValue);
-	cntxt.cend = &reset_stack_limit;
-	cntxt.cenddata = &stacklimit;
-
-	errorcall(R_NilValue, "C stack usage is too close to the limit");
-	/* Do not translate this, to save stack space */
-    }
-}
-
-void R_CheckStack2(size_t extra)
-{
-    int dummy;
-    intptr_t usage = R_CStackDir * (R_CStackStart - (uintptr_t)&dummy);
-
-    /* do it this way, as some compilers do usage + extra 
-       in unsigned arithmetic */
-    usage += extra;
-    if(R_CStackLimit != -1 && usage > 0.95 * R_CStackLimit) {
-	/* We do need some stack space to process error recovery,
-	   so temporarily raise the limit.
-	 */
-	RCNTXT cntxt;
-	uintptr_t stacklimit = R_CStackLimit;
+	unsigned int stacklimit = R_CStackLimit;
 	R_CStackLimit += 0.05*R_CStackLimit;
 	begincontext(&cntxt, CTXT_CCODE, R_NilValue, R_BaseEnv, R_BaseEnv,
 		     R_NilValue, R_NilValue);
@@ -285,7 +259,7 @@ static void reset_inWarning(void *data)
     inWarning = 0;
 }
 
-#include <rlocale.h>
+#include <R_ext/rlocale.h>
 
 static int wd(const char * buf)
 {
@@ -947,14 +921,13 @@ SEXP attribute_hidden do_gettext(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    rho = CDR(rho);
 	}
 	if(strlen(domain)) {
-	    R_CheckStack2(strlen(domain)+3);
 	    buf = (char *) alloca(strlen(domain)+3);
+	    R_CheckStack();
 	    sprintf(buf, "R-%s", domain);
 	    domain = buf;
 	}
     } else if(isString(CAR(args)))
 	domain = translateChar(STRING_ELT(CAR(args),0));
-    else if(isLogical(CAR(args)) && LENGTH(CAR(args)) == 1 && LOGICAL(CAR(args))[0] == NA_LOGICAL) ;
     else errorcall(call, _("invalid '%s' value"), "domain");
 
     if(strlen(domain)) {
@@ -963,8 +936,8 @@ SEXP attribute_hidden do_gettext(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    int ihead = 0, itail = 0;
 	    const char * This = translateChar(STRING_ELT(string, i));
 	    char *tmp, *head = NULL, *tail = NULL, *p, *tr;
-	    R_CheckStack2(strlen(This) + 1);
 	    tmp = (char *) alloca(strlen(This) + 1);
+	    R_CheckStack();
 	    strcpy(tmp, This);
 	    /* strip leading and trailing white spaces and
 	       add back after translation */
@@ -972,8 +945,8 @@ SEXP attribute_hidden do_gettext(SEXP call, SEXP op, SEXP args, SEXP rho)
 		*p && (*p == ' ' || *p == '\t' || *p == '\n');
 		p++, ihead++) ;
 	    if(ihead > 0) {
-		R_CheckStack2(ihead + 1);
 		head = (char *) alloca(ihead + 1);
+		R_CheckStack();
 		strncpy(head, tmp, ihead);
 		head[ihead] = '\0';
 		tmp += ihead;
@@ -983,18 +956,18 @@ SEXP attribute_hidden do_gettext(SEXP call, SEXP op, SEXP args, SEXP rho)
 		    p >= tmp && (*p == ' ' || *p == '\t' || *p == '\n');
 		    p--, itail++) ;
 	    if(itail > 0) {
-		R_CheckStack2(itail + 1);
 		tail = (char *) alloca(itail + 1);
+		R_CheckStack();
 		strcpy(tail, tmp+strlen(tmp)-itail);
 		tmp[strlen(tmp)-itail] = '\0';
-	    }
+		}
 	    if(strlen(tmp)) {
 #ifdef DEBUG_GETTEXT
 		REprintf("translating '%s' in domain '%s'\n", tmp, domain);
 #endif
 		tr = dgettext(domain, tmp);
-		R_CheckStack2(strlen(tr) + ihead + itail + 1);
 		tmp = (char *) alloca(strlen(tr) + ihead + itail + 1);
+		R_CheckStack();
 		tmp[0] ='\0';
 		if(ihead > 0) strcat(tmp, head);
 		strcat(tmp, tr);
@@ -1049,14 +1022,13 @@ SEXP attribute_hidden do_ngettext(SEXP call, SEXP op, SEXP args, SEXP rho)
 	    rho = CDR(rho);
 	}
 	if(strlen(domain)) {
-	    R_CheckStack2(strlen(domain)+3);
 	    buf = (char *) alloca(strlen(domain)+3);
+	    R_CheckStack();
 	    sprintf(buf, "R-%s", domain);
 	    domain = buf;
 	}
     } else if(isString(sdom))
 	domain = CHAR(STRING_ELT(sdom,0));
-    else if(isLogical(sdom) && LENGTH(sdom) == 1 && LOGICAL(sdom)[0] == NA_LOGICAL) ;
     else errorcall(call, _("invalid '%s' value"), "domain");
 
     /* libintl seems to malfunction if given a message of "" */

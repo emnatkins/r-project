@@ -25,7 +25,7 @@ recordPlot <- function()
 {
     if(dev.cur() == 1)
         stop("no current device to record from")
-    res <- .External2(C_getSnapshot)
+    res <- .Internal(getSnapshot())
     attr(res, "version") <- rversion()
     class(res) <- "recordedplot"
     res
@@ -34,9 +34,7 @@ recordPlot <- function()
 replayPlot <- function(x)
 {
     if(class(x) != "recordedplot")
-        stop(gettextf("argument is not of class %s",
-                      dQuote("recordedplot")),
-             domain = NA)
+        stop("argument is not of class \"recordedplot\"")
     nm <- names(x)
     version <- attr(x, "version")
     if (is.null(version))
@@ -44,7 +42,7 @@ replayPlot <- function(x)
     else if (version != rversion())
         warning(gettext("loading snapshot from different R version"),
                 " (", version, ")", domain = NA)
-    invisible(.External2(C_playSnapshot, x))
+    .Internal(playSnapshot(x))
 }
 
 print.recordedplot <- function(x, ...)

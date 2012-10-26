@@ -27,7 +27,6 @@
 
 #define R_USE_SIGNALS 1
 #include <Defn.h>
-#include <Internal.h>
 #include <Rinterface.h>
 #include <Fileio.h>
 #include <R_ext/Print.h>
@@ -253,7 +252,7 @@ static void R_InitProfiling(SEXP filename, int append, double dinterval, int mem
     R_Profiling = 1;
 }
 
-SEXP do_Rprof(SEXP args)
+SEXP attribute_hidden do_Rprof(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     SEXP filename;
     int append_mode, mem_profiling;
@@ -261,10 +260,11 @@ SEXP do_Rprof(SEXP args)
 
 #ifdef BC_PROFILING
     if (bc_profiling) {
-	warning("cannot use R profiling while byte code profiling");
+	warning(_("can't use R profiling while byte code profiling"));
 	return R_NilValue;
     }
 #endif
+    checkArity(op, args);
     if (!isString(CAR(args)) || (LENGTH(CAR(args))) != 1)
 	error(_("invalid '%s' argument"), "filename");
     append_mode = asLogical(CADR(args));
@@ -278,7 +278,7 @@ SEXP do_Rprof(SEXP args)
     return R_NilValue;
 }
 #else /* not R_PROFILING */
-SEXP do_Rprof(SEXP args)
+SEXP attribute_hidden do_Rprof(SEXP call, SEXP op, SEXP args, SEXP rho)
 {
     error(_("R profiling is not available on this system"));
     return R_NilValue;		/* -Wall */
@@ -2022,6 +2022,10 @@ SEXP attribute_hidden do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
     RCNTXT cntxt;
 
     checkArity(op, args);
+
+    if (PRIMVAL(op)) {
+	warning(".Internal(eval.with.vis) should not be used and will be removed soon");
+    }
     expr = CAR(args);
     env = CADR(args);
     encl = CADDR(args);
@@ -2111,6 +2115,18 @@ SEXP attribute_hidden do_eval(SEXP call, SEXP op, SEXP args, SEXP rho)
     else if( TYPEOF(expr) == PROMSXP ) {
 	expr = eval(expr, rho);
     } /* else expr is returned unchanged */
+    if (PRIMVAL(op)) { /* eval.with.vis(*) : */
+	PROTECT(expr);
+	PROTECT(env = allocVector(VECSXP, 2));
+	PROTECT(encl = allocVector(STRSXP, 2));
+	SET_STRING_ELT(encl, 0, mkChar("value"));
+	SET_STRING_ELT(encl, 1, mkChar("visible"));
+	SET_VECTOR_ELT(env, 0, expr);
+	SET_VECTOR_ELT(env, 1, ScalarLogical(R_Visible));
+	setAttrib(env, R_NamesSymbol, encl);
+	expr = env;
+	UNPROTECT(3);
+    }
     UNPROTECT(1);
     return expr;
 }
@@ -3167,7 +3183,7 @@ typedef int BCODE;
 #else
 #define BEGIN_MACHINE  loop: switch(*pc++)
 #endif
-#define LASTOP  default: error(_("bad opcode"))
+#define LASTOP  default: error(_("Bad opcode"))
 #define INITIALIZE_MACHINE()
 
 #define NEXT() goto loop
@@ -4797,11 +4813,12 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
        if (TYPEOF(value) == STRSXP) {
 	   int i, n, which;
 	   if (names == R_NilValue)
-	       errorcall(call, _("numeric EXPR required for 'switch' without named alternatives"));
+	       errorcall(call, _("numeric EXPR required for switch() "
+				 "without named alternatives"));
 	   if (TYPEOF(coffsets) != INTSXP)
-	       errorcall(call, "bad character 'switch' offsets");
+	       errorcall(call, _("bad character switch offsets"));
 	   if (TYPEOF(names) != STRSXP || LENGTH(names) != LENGTH(coffsets))
-	       errorcall(call, "bad 'switch' names");
+	       errorcall(call, _("bad switch names"));
 	   n = LENGTH(names);
 	   which = n - 1;
 	   for (i = 0; i < n - 1; i++)
@@ -4815,7 +4832,7 @@ static SEXP bcEval(SEXP body, SEXP rho, Rboolean useCache)
        else {
 	   int which = asInteger(value) - 1;
 	   if (TYPEOF(ioffsets) != INTSXP)
-	       errorcall(call, "bad numeric 'switch' offsets");
+	       errorcall(call, _("bad numeric switch offsets"));
 	   if (which < 0 || which >= LENGTH(ioffsets))
 	       which = LENGTH(ioffsets) - 1;
 	   pc = codebase + INTEGER(ioffsets)[which];
@@ -5146,11 +5163,11 @@ SEXP attribute_hidden do_putconst(SEXP call, SEXP op, SEXP args, SEXP env)
 
     constBuf = CAR(args);
     if (TYPEOF(constBuf) != VECSXP)
-	error(_("constant buffer must be a generic vector"));
+	error(_("constBuf must be a generic vector"));
 
     constCount = asInteger(CADR(args));
     if (constCount < 0 || constCount >= LENGTH(constBuf))
-	error("bad constCount value");
+	error(_("bad constCount value"));
 
     x = CADDR(args);
 
@@ -5264,6 +5281,10 @@ SEXP R_stopbcprof()
 
     return R_NilValue;
 }
+//#else
+//SEXP R_getbcprofcounts() { return R_NilValue; }
+//SEXP R_startbcprof() { return R_NilValue; }
+//SEXP R_stopbcprof() { return R_NilValue; }
 #endif
 
 /* end of byte code section */

@@ -441,7 +441,7 @@ function(file, pdf = FALSE, clean = FALSE, quiet = TRUE,
 ### ** .BioC_version_associated_with_R_version
 
 .BioC_version_associated_with_R_version <-
-    numeric_version("2.12")
+    numeric_version("2.11")
 ## Things are more complicated from R-2.15.x with still two BioC
 ## releases a year, so we do need to set this manually.
 
@@ -578,7 +578,7 @@ function(file1, file2)
 {
     ## Use a fast version of file.append() that ensures LF between
     ## files.
-    .Call(codeFilesAppend, file1, file2)
+    .Internal(codeFiles.append(file1, file2))
 }
 
 ### ** .find_calls
@@ -1252,7 +1252,7 @@ function(txt)
 ### ** .read_description
 
 .keep_white_description_fields <-
-    c("Description", "Authors@R", "Author", "Built", "Packaged")
+    c("Description", "Author", "Built", "Packaged")
 
 .read_description <-
 function(dfile)
@@ -1344,16 +1344,12 @@ function(x)
 .expand_package_description_db_R_fields <-
 function(x)
 {
-    enc <- x["Encoding"]
     y <- character()
     if(!is.na(aar <- x["Authors@R"])) {
         aar <- utils:::.read_authors_at_R_field(aar)
-        if(is.na(x["Author"])) {
-            tmp <- utils:::.format_authors_at_R_field_for_author(aar)
-            ## uses strwrap, so will be in current locale
-            if(!is.na(enc)) tmp <- iconv(tmp, "", enc)
-            y["Author"] <- tmp
-        }
+        if(is.na(x["Author"]))
+            y["Author"] <-
+                utils:::.format_authors_at_R_field_for_author(aar)
         if(is.na(x["Maintainer"]))
             y["Maintainer"] <-
                 utils:::.format_authors_at_R_field_for_maintainer(aar)

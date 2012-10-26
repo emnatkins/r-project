@@ -26,7 +26,7 @@ export(
        "grid.plot.and.legend",
        "grid.pretty",
        "grid.prompt",
-       "grid.refresh", 
+       "grid.refresh",
        "grid.show.layout", "grid.show.viewport",
 
        "unit",
@@ -66,7 +66,6 @@ export(
        "getGrob", "setGrob", "addGrob", "removeGrob", "editGrob",
        "gEdit", "gEditList", "applyEdit", "applyEdits",
        "grid.grab", "grid.grabExpr",
-       "grid.reorder", "reorderGrob",
        "grid.cap",
        "setChildren",
        "showGrob",
@@ -337,14 +336,12 @@ S3method("drawVP", "viewport")
 S3method("drawVP", "vpList")
 S3method("drawVP", "vpStack")
 S3method("drawVP", "vpTree")
-S3method("drawVP", "vpPath")
 S3method("labelGrob", "grob")
 S3method("labelGrob", "gTree")
 S3method("leafPaths", "viewport")
 S3method("leafPaths", "vpList")
 S3method("leafPaths", "vpStack")
 S3method("leafPaths", "vpTree")
-S3method("leafPaths", "vpPath")
 S3method("pushgrobvp", "viewport")
 S3method("pushgrobvp", "vpPath")
 S3method("popgrobvp", "viewport")
@@ -358,7 +355,6 @@ S3method("push.vp", "viewport")
 S3method("push.vp", "vpList")
 S3method("push.vp", "vpStack")
 S3method("push.vp", "vpTree")
-S3method("push.vp", "vpPath")
 
 # S3 method for generic dim (in base)
 S3method("dim", "layout")

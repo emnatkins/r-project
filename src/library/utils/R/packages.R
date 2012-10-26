@@ -136,7 +136,7 @@ function(contriburl = contrib.url(getOption("repos"), type), method,
             f <- available_packages_filters_db[[f[1L]]]
         }
         if(!is.function(f))
-            stop("invalid 'filters' argument.")
+            stop("Invalid 'filters' argument.")
         res <- f(res)
     }
 
@@ -385,7 +385,7 @@ old.packages <- function(lib.loc = NULL, repos = getOption("repos"),
     if(!missing(instPkgs)) {
         ## actually we need rather more than this
         if(!is.matrix(instPkgs) || !is.character(instPkgs[, "Package"]))
-            stop("ill-formed 'instPkgs' matrix")
+            stop("illformed 'instPkgs' matrix")
     }
     if(NROW(instPkgs) == 0L) return(NULL)
 
@@ -549,10 +549,12 @@ installed.packages <-
             ## Previously used URLencode for e.g. Windows paths with drives
             ## This version works for very long file names.
             base <- paste(c(lib, fields), collapse = ",")
-            ## add length and 64-bit CRC in hex (in theory, seems
-            ## it is actually 32-bit on some systems)
-            enc <- sprintf("%d_%s", nchar(base), .Call(C_crc64, base))
-            dest <- file.path(tempdir(), paste0("libloc_", enc, ".rds"))
+            enc <- sprintf("%d_%s", nchar(base),
+                           ## add 64-bit CRC in hex (in theory, seems
+                           ## it is actually 32-bit on some systems)
+                           .Call("crc64ToString", base, PACKAGE = "base"))
+            dest <- file.path(tempdir(),
+                              paste0("libloc_", enc, ".rds"))
             if(file.exists(dest) &&
                file.info(dest)$mtime > file.info(lib)$mtime &&
                (val <- readRDS(dest))$base == base)
@@ -615,10 +617,8 @@ remove.packages <- function(pkgs, lib)
 
     if(missing(lib) || is.null(lib)) {
         lib <- .libPaths()[1L]
-	message(sprintf(ngettext(length(pkgs),
-                                 "Removing package from %s\n(as %s is unspecified)",
-                                 "Removing packages from %s\n(as %s is unspecified)"),
-                        sQuote(lib), sQuote("lib")), domain = NA)
+	message(gettextf("Removing package(s) from %s\n(as %s is unspecified)",
+			 sQuote(lib), sQuote("lib")), domain = NA)
     }
 
     paths <- find.package(pkgs, lib)

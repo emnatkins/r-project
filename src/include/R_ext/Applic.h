@@ -1,6 +1,7 @@
 /*
  *  R : A Computer Language for Statistical Data Analysis
- *  Copyright (C) 1998-2012   The R Core Team
+ *  Copyright (C) 1998-2012   Robert Gentleman, Ross Ihaka
+ *                             and the R Core Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -80,30 +81,42 @@ void lbfgsb(int n, int m, double *x, double *l, double *u, int *nbd,
 void samin(int n, double *pb, double *yb, optimfn fn, int maxit,
 	   int tmax, double ti, int trace, void *ex);
 
-/* appl/interv.c: Also in Utils.h, used in package eco */
-int findInterval(double *xt, int n, double x,
-		 Rboolean rightmost_closed,  Rboolean all_inside, int ilo,
-		 int *mflag);
 
-
-/* ------------------ Entry points NOT in the R API --------------- */
 
-/* The following are registered for use in .C/.Fortran */
+/* Entry points NOT in the R API */
 
-/* appl/pretty.c: hidden  */
-void R_pretty(double *lo, double *up, int *ndiv, int *min_n,
-	      double *shrink_sml, double *high_u_fact,
-	      int *eps_correction);
+/* appl/bakslv.c : hidden */
+void bakslv(double *, int *, int *,
+	    double *, int *, int *,
+	    double *, int *, int *);
 
-/* appl/strsignif.c: hidden */
-void str_signif(void *x, int *n, const char **type, int *width, int *digits,
-		const char **format, const char **flag, char **result);
+/* appl/binning.c : hidden */
+void bincode (double *x, int *n, double *breaks, int *nb,
+	      int *code, int *right, int *include_border, int *naok);
+void bincount(double *x, int *n, double *breaks, int *nb, int *count,
+	      int *right, int *include_border, int *naok);
 
 /* appl/ch2inv.f */
 void F77_NAME(ch2inv)(double *x, int *ldx, int *n, double *v, int *info);
 
-/* appl/chol.f: used in package nlme */
+/* appl/chol.f Used in nlme */
 void F77_NAME(chol)(double *a, int *lda, int *n, double *v, int *info);
+
+/* appl/cpoly.c : hidden */
+void R_cpolyroot(double *opr, double *opi, int *degree,
+		 double *zeror, double *zeroi, Rboolean *fail);
+/* More `Complex Polynomial Utilities' could be exported:
+
+   polyev(...)
+   errev(...)
+   cpoly_cauchy(...)
+   cpoly_scale(...)
+   cdivid(...)
+*/
+
+
+/* appl/cumsum.c : non-API, used in package DCluster */
+void R_cumsum(double *, int *, double *, double *);
 
 /* appl/eigen.f */
 int F77_NAME(cg)(int *nm, int *n, double *ar, double *ai,
@@ -114,9 +127,140 @@ int F77_NAME(ch)(int *nm, int *n, double *ar, double *ai,
 		 double *fv1, double *fv2, double *fm1, int *ierr);
 int F77_NAME(rg)(int *nm, int *n, double *a, double *wr, double *wi,
 		 int *matz, double *z, int *iv1, double *fv1, int *ierr);
-/* used in package nlme */
+/* used in nlme */
 int F77_NAME(rs)(int *nm, int *n, double *a, double *w,
 		 int *matz, double *z, double *fv1, double *fv2, int *ierr);
+
+/* appl/fft.c */
+/* NOTE:  The following functions use GLOBAL (static) variables !!
+ * ----   some of R-core think that this should be changed,
+ *        which will INEVITABLY extend the argument lists ...!
+ */
+/* non-API, but used by package RandomFields */
+void fft_factor(int n, int *pmaxf, int *pmaxp);
+Rboolean fft_work(double *a, double *b, int nseg, int n, int nspn,
+/* TRUE: success */ int isn, double *work, int *iwork);
+
+/* appl/fmin.c : */
+double Brent_fmin(double ax, double bx, double (*f)(double, void *),
+		  void *info, double tol);
+
+/* appl/interv.c: also in Utils.h */
+/* used in packages gam and mda */
+int F77_SUB(interv)(double *xt, int *n, double *x,
+		    Rboolean *rightmost_closed, Rboolean *all_inside,
+		    int *ilo, int *mflag);
+/* Non-API No longer used */
+void find_interv_vec(double *xt, int *n, double *x, int *nx,
+		     int *rightmost_closed, int *all_inside, int *indx);
+/* API, used in package eco */
+int findInterval(double *xt, int n, double x,
+		 Rboolean rightmost_closed,  Rboolean all_inside, int ilo,
+		 int *mflag);
+
+/* appl/lbfgsb.c */
+void setulb(int n, int m, double *x, double *l, double *u, int *nbd,
+	    double *f, double *g, double factr, double *pgtol,
+	    double *wa, int * iwa, char *task, int iprint,
+	    int *lsave, int *isave, double *dsave);
+
+/* appl/machar.c */
+void machar(int *ibeta, int *it, int *irnd, int *ngrd, int *machep,
+	    int *negep, int *iexp, int *minexp, int *maxexp,
+	    double *eps, double *epsneg, double *xmin, double *xmax);
+
+/* appl/maxcol.c: also in Utils.h  Used in package MNP */
+void R_max_col(double *matrix, int *nr, int *nc, int *maxes, int *ties_meth);
+
+
+/* appl/pretty.c */
+double R_pretty0(double *lo, double *up, int *ndiv, int min_n,
+		 double shrink_sml, double high_u_fact[],
+		 int eps_correction, int return_bounds);
+void R_pretty(double *lo, double *up, int *ndiv, int *min_n,
+	      double *shrink_sml, double *high_u_fact,
+	      int *eps_correction);
+
+/* appl/rcont.c: API prior to R 2.15.2 */
+void rcont2(int *nrow, int *ncol, int *nrowt, int *ncolt, int *ntotal,
+	    double *fact, int *jwork, int *matrix);
+
+/* appl/rowsum.c */
+void R_rowsum(int *dim, double *na_x, double *x, double *group);
+
+/* appl/stem.c */
+Rboolean stemleaf(double *x, int *n, double *scale, int *width, double *atom);
+
+/* appl/strsignif.c */
+void str_signif(char *x, int *n, const char **type, int *width, int *digits,
+		const char **format, const char **flag, char **result);
+
+/* appl/tabulate.c : non-API, used in package ape, phangorn, pcaPA */
+void R_tabulate(int *x, int *n, int *nbin, int *ans);
+
+/* appl/uncmin.c : */
+
+/* type of pointer to the target and gradient functions */
+typedef void (*fcn_p)(int, double *, double *, void *);
+
+/* type of pointer to the hessian functions */
+typedef void (*d2fcn_p)(int, int, double *, double *, void *);
+
+void fdhess(int n, double *x, double fval, fcn_p fun, void *state,
+	    double *h, int nfd, double *step, double *f, int ndigit,
+	    double *typx);
+
+/* used in nlme */
+void optif9(int nr, int n, double *x,
+	    fcn_p fcn, fcn_p d1fcn, d2fcn_p d2fcn,
+	    void *state, double *typsiz, double fscale, int method,
+	    int iexp, int *msg, int ndigit, int itnlim, int iagflg,
+	    int iahflg, double dlt, double gradtl, double stepmx,
+	    double steptl, double *xpls, double *fpls, double *gpls,
+	    int *itrmcd, double *a, double *wrk, int *itncnt);
+
+void optif0(int nr, int n, double *x, fcn_p fcn, void *state,
+	    double *xpls, double *fpls, double *gpls, int *itrmcd,
+	    double *a, double *wrk);
+
+/* appl/zeroin.c : non API, but used in package qtl */
+double R_zeroin(double ax, double bx, double (*f)(double, void *), void *info,
+		double *Tol, int *Maxit);
+/* R_zeroin2() is faster for "expensive" f(), in those typical cases where
+ *             f(ax) and f(bx) are available anyway : */
+double R_zeroin2(double ax, double bx, double fa, double fb,
+		 double (*f)(double, void *), void *info, double *Tol, int *Maxit);
+
+
+/* ALL appl/<foobar>.f	[semi-automatically by
+ *				 f2c -A -P *.f; cat *.P > all.h	 and editing]
+ */
+
+/* This is not in the applications but in the BLAS, and defined in Lapack.h
+extern int F77_NAME(lsame)(const char *, const char *);
+*/
+
+/* LINPACK routines also declared in Linpack.h
+void F77_NAME(dpoco)(double *a, int *lda, int *n, double *rcond,
+		     double *z__, int *info);
+void F77_NAME(dpodi)(double *a, int *lda, int *n, double *det, int *job);
+void F77_NAME(dpofa)(double *a, int *lda, int *n, int *info);
+void F77_NAME(dposl)(double *a, int *lda, int *n, double *b);
+void F77_NAME(dqrdc)(double *x, int *ldx, int *n, int *p,
+		     double *qraux, int *jpvt, double *work, int *job);
+void F77_NAME(dqrsl)(double *x, int *ldx, int *n, int *k,
+		     double *qraux, double *y,
+		     double *qy, double *qty, double *b,
+		     double *rsd, double *xb, int *job, int *info);
+void F77_NAME(dsvdc)(double *x, int *ldx, int *n, int *p,
+		     double *s, double *e,
+		     double *u, int *ldu, double *v, int *ldv,
+		     double *work, int *job, int *info);
+void F77_NAME(dtrco)(double *t, int *ldt, int *n, double *rcond,
+		     double *z__, int *job);
+void F77_NAME(dtrsl)(double *t, int *ldt, int *n, double *b, int *job,
+		     int *info);
+*/
 
 /* find qr decomposition, dqrdc2() is basis of R's qr(), also used by nlme */
 void F77_NAME(dqrdc2)(double *x, int *ldx, int *n, int *p,
@@ -139,70 +283,6 @@ void F77_NAME(dqrrsd)(double *x, int *n, int *k, double *qraux,
 void F77_NAME(dqrxb)(double *x, int *n, int *k, double *qraux,
 		     double *y, int *ny, double *xb);
 
-/* end of registered */
-
-/* hidden, for use in R.bin/R.dll/libR.so */
-
-/* appl/cpoly.c : for use in complex.c */
-void R_cpolyroot(double *opr, double *opi, int *degree,
-		 double *zeror, double *zeroi, Rboolean *fail);
-
-/* appl/machar.c: for use in platform.c */
-void machar(int *ibeta, int *it, int *irnd, int *ngrd, int *machep,
-	    int *negep, int *iexp, int *minexp, int *maxexp,
-	    double *eps, double *epsneg, double *xmin, double *xmax);
-
-
-
-/* For use in package stats */
-
-/* appl/fft.c */
-/* NOTE:  The following functions use GLOBAL (static) variables !!
- * ----   some of R-core think that this should be changed,
- *        which will INEVITABLY extend the argument lists ...!
- */
-/* non-API, but used by package RandomFields */
-void fft_factor(int n, int *pmaxf, int *pmaxp);
-Rboolean fft_work(double *a, double *b, int nseg, int n, int nspn,
-/* TRUE: success */ int isn, double *work, int *iwork);
-
-/* appl/fmin.c: used by package pcaPA */
-double Brent_fmin(double ax, double bx, double (*f)(double, void *),
-		  void *info, double tol);
-
-/* appl/uncmin.c : */
-
-/* type of pointer to the target and gradient functions */
-typedef void (*fcn_p)(int, double *, double *, void *);
-
-/* type of pointer to the hessian functions */
-typedef void (*d2fcn_p)(int, int, double *, double *, void *);
-
-void fdhess(int n, double *x, double fval, fcn_p fun, void *state,
-	    double *h, int nfd, double *step, double *f, int ndigit,
-	    double *typx);
-
-/* used in packages nlme, pcaPP */
-void optif9(int nr, int n, double *x,
-	    fcn_p fcn, fcn_p d1fcn, d2fcn_p d2fcn,
-	    void *state, double *typsiz, double fscale, int method,
-	    int iexp, int *msg, int ndigit, int itnlim, int iagflg,
-	    int iahflg, double dlt, double gradtl, double stepmx,
-	    double steptl, double *xpls, double *fpls, double *gpls,
-	    int *itrmcd, double *a, double *wrk, int *itncnt);
-
-
-/* Others */
-
-/* appl/pretty.c non-API but used by engine.c, rgl and formerly GWAtoolbox */
-double R_pretty0(double *lo, double *up, int *ndiv, int min_n,
-		 double shrink_sml, double high_u_fact[],
-		 int eps_correction, int return_bounds);
-
-/* appl/uncmin.c : used in packages nlme, pcaPP */
-void optif0(int nr, int n, double *x, fcn_p fcn, void *state,
-	    double *xpls, double *fpls, double *gpls, int *itrmcd,
-	    double *a, double *wrk);
 
 #ifdef  __cplusplus
 }

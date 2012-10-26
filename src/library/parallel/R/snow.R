@@ -24,7 +24,7 @@ assign("default", NULL, envir = .reg)
 defaultCluster <- function(cl = NULL)
 {
     if(is.null(cl)) cl <- get("default", envir = .reg)
-    if(is.null(cl)) stop("no cluster 'cl' supplied and none is registered")
+    if(is.null(cl)) stop("no cluster supplied and none is registered")
     checkCluster(cl)
     cl
 }
@@ -134,6 +134,7 @@ makeCluster <-
            PSOCK = makePSOCKcluster(spec, ...),
            FORK = makeForkCluster(spec, ...),
            SOCK = snow::makeSOCKcluster(spec, ...),
+           PVM = snow::makePVMcluster(spec, ...),
            MPI = snow::makeMPIcluster(spec, ...),
            NWS = snow::makeNWScluster(spec, ...),
            stop("unknown cluster type"))
@@ -232,12 +233,15 @@ closeNode.NWSnode <- function(node) snow::closeNode.NWSnode(node)
 
 recvData.MPInode <- function(node) snow::recvData.MPInode(node)
 recvData.NWSnode <- function(node) snow::recvData.NWSnode(node)
+recvData.PVMnode <- function(node) snow::recvData.PVMnode(node)
 
 recvOneData.MPIcluster <- function(cl) snow::recvOneData.MPIcluster(cl)
 recvOneData.NWScluster <- function(cl) snow::recvOneData.NWScluster(cl)
+recvOneData.PVMcluster <- function(cl) snow::recvOneData.PVMcluster(cl)
 
 sendData.MPInode <- function(node, data) snow::sendData.MPInode(node, data)
 sendData.NWSnode <- function(node, data) snow::sendData.NWSnode(node, data)
+sendData.PVMnode <- function(node, data) snow::sendData.PVMnode(node, data)
 
 ## these use NextMethod() so need copies.
 stopCluster.MPIcluster <- function(cl) {

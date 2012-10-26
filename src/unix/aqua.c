@@ -21,10 +21,7 @@
 #include <config.h>
 #endif
 
-/* This file provides support for R.app, the OS X front end */
-
 #include <Defn.h>
-#include <Internal.h>
 
 #include "Runix.h"
 #include <sys/types.h>
@@ -39,23 +36,22 @@
 #include <R_ext/Rdynload.h>
 #include <R_ext/QuartzDevice.h>
 
-/* These are in no header.  Their definitions are in
-   Mac-GUI/REngine/Rinit.m, which sets them to functions in
-   Mac-GUI/REngine/Rcallbacks.m
+extern Rboolean useaqua; /* from src/unix/system.c */
 
-   So this is a essentially a private hook arrangement for R.app
 
-   There's another one in src/main/systutils.c, ptr_CocoaSystem .
-*/
+DL_FUNC ptr_do_wsbrowser, ptr_GetQuartzParameters,
+    ptr_do_dataentry, ptr_do_browsepkgs, ptr_do_datamanger,
+    ptr_do_packagemanger, ptr_do_hsbrowser, ptr_do_selectlist;
 
-DL_FUNC ptr_GetQuartzParameters;
+// R.app used to set this, so keep it for now in case it does.
+DL_FUNC ptr_do_flushconsole;
+
+/* And from Rinterface.h: */
+extern void (*ptr_R_FlushConsole)(void);
 
 
 /* called from Mac-GUI/RController.m, before packages are loaded.
    If this fails, it hangs R.app */
-
-/* FIXME: this should not be allowed: we were requiring symbols in
-   grDevices.dll */
 QuartzFunctions_t *getQuartzFunctions(void) 
 {
     /* presumably this was intended to cache the result.
@@ -77,5 +73,78 @@ QuartzFunctions_t *getQuartzFunctions(void)
 	if (!fn) error("unable to get QuartzAPI");
     }
     return fn();
+}
+
+
+SEXP do_wsbrowser(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    return(ptr_do_wsbrowser(call, op, args, env));
+}
+
+#if defined(HAVE_X11)
+extern SEXP X11_do_dataentry(SEXP call, SEXP op, SEXP args, SEXP rho); /* from src/unix/X11.c */
+#endif
+
+SEXP do_dataentry(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    if(useaqua)
+	return(ptr_do_dataentry(call, op, args, env));
+#if defined(HAVE_X11)
+    else
+	return(X11_do_dataentry(call, op, args, env));
+#endif
+}
+
+SEXP do_browsepkgs(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    return ptr_do_browsepkgs(call, op, args, env);
+}
+
+
+SEXP do_datamanger(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    return ptr_do_datamanger(call, op, args, env);
+}
+
+
+SEXP do_hsbrowser(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    return ptr_do_hsbrowser(call, op, args, env);
+}
+
+SEXP do_packagemanger(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    return ptr_do_packagemanger(call, op, args, env);
+}
+
+SEXP do_flushconsole(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    if(ptr_R_FlushConsole) ptr_R_FlushConsole();
+    else if(ptr_do_flushconsole) // but the args are unused in R.app.
+	ptr_do_flushconsole(call, op, args, env);
+    return R_NilValue;
+}
+
+SEXP do_selectlist(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    return(ptr_do_selectlist(call, op, args, env));
+}
+
+// to be set by R.app
+int (*ptr_Raqua_CustomPrint)(const char *, SEXP);
+
+SEXP do_aqua_custom_print(SEXP call, SEXP op, SEXP args, SEXP env)
+{
+    if (!ptr_Raqua_CustomPrint) return R_NilValue;
+
+    checkArity(op, args);
+    SEXP objType = CAR(args), obj = CADR(args);
+
+    if (!isString(objType) || LENGTH(objType) < 1)
+	errorcall(call, "invalid arguments");
+    const char *ct = CHAR(STRING_ELT(objType, 0));
+    int cpr = ptr_Raqua_CustomPrint(ct, obj);
+
+    return ScalarInteger(cpr);
 }
 

@@ -28,11 +28,12 @@ integrate<- function(f, lower, upper, ..., subdivisions = 100L,
 	rel.tol < max(50*.Machine$double.eps, 0.5e-28)))
 	stop("invalid parameter values")
     if(is.finite(lower) && is.finite(upper)) {
-	wk <- .External(C_call_dqags,
+	wk <- .External("call_dqags",
 			ff, rho = environment(),
 			as.double(lower), as.double(upper),
 			as.double(abs.tol), as.double(rel.tol),
-			limit = limit)
+			limit = limit,
+			PACKAGE = "base")
     } else { # indefinite integral
 	if(is.na(lower) || is.na(upper)) stop("a limit is missing")
 	if (is.finite(lower)) {
@@ -45,11 +46,12 @@ integrate<- function(f, lower, upper, ..., subdivisions = 100L,
 	    inf <- 2
 	    bound <- 0.0
 	}
-	wk <- .External(C_call_dqagi,
+	wk <- .External("call_dqagi",
 			ff, rho = environment(),
 			as.double(bound), as.integer(inf),
 			as.double(abs.tol), as.double(rel.tol),
-			limit = limit)
+			limit = limit,
+			PACKAGE = "base")
     }
     res <- wk[c("value", "abs.error", "subdivisions")]
     res$message <-

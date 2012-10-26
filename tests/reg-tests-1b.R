@@ -1321,6 +1321,18 @@ try( do.call(function(x) NextMethod('foo'),list()) )
 ## segfaulted <= 2.11.1
 
 
+## identical() returned FALSE on external ptr with
+## identical addresses <= 2.11.1
+stopifnot(identical(
+                    getNativeSymbolInfo("R_getSymbolInfo", "base"),
+                    getNativeSymbolInfo("R_getSymbolInfo", "base")
+                    ))
+stopifnot(!identical(
+                     getNativeSymbolInfo("R_getSymbolInfo", "base"),
+                     getNativeSymbolInfo("R_getRegisteredRoutines", "base")
+                     ))
+
+
 ## getNamespaceVersion() etc
 stopifnot(getNamespaceVersion("stats") == getRversion())
 ## failed in R 2.11.x
@@ -1808,12 +1820,7 @@ hc <- hclust(d, method = "median")
 stopifnot(all.equal(hc$height[5:11],
                     c(1.69805, 1.75134375, 1.34036875, 1.47646406,
                       3.21380039, 2.9653438476, 6.1418258), tol = 1e-9))
-## Also ensure that hclust() remains fast:
-set.seed(1); nn <- 2000
-tm0 <- system.time(dst <- as.dist(matrix(runif(n = nn^2, min = 0, max = 1), nn, nn)))
-(tm <- system.time(hc <- hclust(dst, method="average")))
-stopifnot(tm[1] < tm0[1])
-## was slow  from R 1.9.0 up to R 2.15.0
+##
 
 
 ## 'infinity' partially matched 'inf'
@@ -1831,28 +1838,6 @@ by(a, a["ppg.id"], function(x){
     data.frame(ppg.id=id, predVolSum=vol.sum)
 })
 ## failed in 2.15.0
-
-
-## model.frame.lm could be fooled if factor levels were re-ordered
-A <- warpbreaks
-fm1 <- lm(breaks ~ wool*tension, data = A, model = TRUE)
-fm2 <- lm(breaks ~ wool*tension, data = A, model = FALSE)
-A$tension <- factor(warpbreaks$tension, levels = c("H", "M", "L"))
-stopifnot(identical(model.frame(fm1), model.frame(fm2)))
-stopifnot(identical(model.frame(fm1), model.frame(fm1, data = A)))
-stopifnot(identical(model.matrix(fm1), model.matrix(fm2)))
-## not true before 2.16.0
-
-
-## model.frame.lm did not make use of predvars
-library(splines)
-fm <- lm(weight ~ ns(height, 3), data = women)
-m1 <- model.frame(fm)[1:3, ]
-m2 <- model.frame(fm, data = women[1:3, ])
-# attributes will differ
-stopifnot(identical(as.vector(m1[,2]), as.vector(m2[,2])))
-## differed in R < 2.16.0
-
 
 ## JMC's version of class<- did not work as documented. (PR#14942)
 x <- 1:10
@@ -1880,16 +1865,6 @@ sunflowerplot( Sepal.Length ~ Sepal.Width, data = iris, xlab = "A")
 ## failed in 2.15.1
 
 
-## misuse of alloca
-for(n in c(200, 722, 1000)) x <- rWishart(1, n, diag(n))
-## failed in various ways in R <= 2.15.1
-
-
-## undocumented used of rep(NULL), from matplot()
-stopifnot(identical(rep(NULL, length.out = 4), NULL))
-## now gives a warning.
-
-
 ## PR14974
 a.factor <- as.factor(rep(letters[1:2], 2))
 b.factor <- as.factor(rep(c(1:2), each = 2))
@@ -1904,62 +1879,12 @@ stopifnot(is.na(ans[["y"]][4,]))
 ## only set the first column of ans[["y"]] to NA.
 
 
-## PR14967
-stopifnot(qgeom(1e-20, prob = 0.1) >= 0)
-## was -1 in R 2.15.1
-
-
-## Regression test for r60116:7
-(p1 <- parse(text="exp(-0.5*u**2)", srcfile=NULL))
-(p2 <- parse(text="exp(-0.5*u^2)",  srcfile=NULL))
-stopifnot(identical(p1, p2))
-## p1 was expression(exp((-0.5 * u)^2))
-
-
 ## backsolve with k < nrows(rhs)
 r <- rbind(c(1,2,3),c(0,1,1),c(0,0,2))
 b <- c(8,4,2,1)
 x <- backsolve(r, cbind(b,b))
 stopifnot(identical(x[,1], x[,2]))
-## 2.15.1 used elements (4,1), (2,1), (2,2) for second column.
-
-
-## Matrix oddly assumes that solve() drops NULL dimanmes
-A <- diag(3)
-dimnames(A) <- list(NULL, NULL)
-sA <- solve(A)
-stopifnot(is.null(dimnames(sA)))
-# and expm inverts a logical matrix, even though this is not as documented.
-Q <- matrix(c(FALSE, TRUE, TRUE, FALSE), 2, 2)
-is.numeric(Q) # FALSE
-solve(Q)
-## failed in pre-2.16.0, which interpreted 'numeric' correctly.
-
-
-## tests of rowsum() with names and for factor groups
-set.seed(123)
-x <- matrix(runif(100), ncol=5)
-group <- sample(1:8, 20, TRUE)
-(xsum <- rowsum(x, group))
-colnames(x) <- letters[16:20]
-(xsum <- rowsum(x, group))
-rowsum(as.data.frame(x), group)
-group <- factor(group)
-(xsum <- rowsum(x, group))
-stopifnot(sapply(dimnames(xsum), is.character))
-rowsum(as.data.frame(x), group)
-## one version had factor row names.
-
-
-## Rather pointless usage in PR#15044
-set.seed(42)
-n <- 10
-y <- rnorm(n)
-x <- rnorm(n)
-w <- rep(0, n)
-lm.wfit(cbind(1, x), y, w)
-## segfaulted in 2.15.1, only
-
+## used elements (4,1), (2,1), (2,2) for second column.
 
 ## as.data.frame() methods should preferably not barf on an 'nm' arg
 ## reported by Bill Dunlap
@@ -1970,45 +1895,10 @@ as.data.frame(LETTERS[1:10])
 ## second failed in 2.15.1.
 
 
-## Test of stack direction (related to PR#15011)
-f <- function(depth) if(depth < 20) f(depth+1) else Cstack_info()
-(z <- f(0))
-z10 <- f(10)
-if(is.na(z[2]) || is.na(z10[2])) {
-    message("current stack size is not available")
-} else stopifnot(z[2] > z10[2])
-## Previous test ould be defeated by compiler optimization.
-
-
-##
-options(max.print=.Machine$integer.max)
-1 ## segfaulted because of integer overflow
-stopifnot(identical(.Machine$integer.max, getOption("max.print")))
-##
-
-## corner cases for arima.sim(), in part PR#15068
-stopifnot(length(arima.sim(list(order = c(0,0,0)), n = 10)) == 10)
-stopifnot(inherits(try(arima.sim(list(order = c(1,0,0), ar = 0.7), n = 0)),
-                   "try-error"))
-## one too long in R < 2.15.2
-
-
 ## maintainer()
 maintainer('stats')
 maintainer("impossible_package_name")
 ## gave an error in R < 2.15.2
-
-
-## PR#15075 and more
-stopifnot(is.finite(c(beta(0.01, 171), beta(171, 0.01), beta(1e-200, 1e-200))))
-## each overflowed to +Inf during calculations in R <= 2.15.2
-
-
-## PR#15077
-default <- 1; z <- eval(bquote(function(y = .(default)) y))
-zz <- function(y = 1) y
-stopifnot(identical(args(z), args(zz))) # zz has attributes
-## was not substituted in R <= 2.15.2
 
 
 proc.time()

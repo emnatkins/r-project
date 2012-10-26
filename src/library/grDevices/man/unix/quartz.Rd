@@ -18,8 +18,6 @@ quartz(title, width, height, pointsize, family, fontsmooth,
        antialias, type, file = NULL, bg, canvas, dpi)
 
 quartz.options(\dots, reset = FALSE)
-
-quartz.save(file, type = "png", device = dev.cur(), dpi = 100, ...)
 }
 \arguments{
   \item{title}{title for the Quartz window (applies to on-screen output
@@ -50,7 +48,6 @@ quartz.save(file, type = "png", device = dev.cur(), dpi = 100, ...)
     the main screen, and to 72 dpi otherwise.  See \sQuote{Details}.}
   \item{\dots}{Any of the arguments to \code{quartz} except \code{file}.}
   \item{reset}{logical: should the defaults be reset to their defaults?}
-  \item{device}{device number to copy from.}
 }
 \details{
   The defaults for all but one of the arguments of \code{quartz} are set
@@ -70,9 +67,9 @@ quartz.save(file, type = "png", device = dev.cur(), dpi = 100, ...)
   bitmap), \code{"sgi"} and \code{"pict"}.  (The availability of some
   formats is OS-version-dependent.)
 
-%   To reproduce the default of older Quartz devices on-screen, set
-%   \code{dpi = 72} (for a permanent solution set
-%   \code{quartz.options(dpi = 72)}).
+  To reproduce the default of older Quartz devices on-screen, set
+  \code{dpi = 72} (for a permanent solution set
+  \code{quartz.options(dpi = 72)}).
 
   The \code{file} argument is used for off-screen drawing.  The actual
   file is only created when the device is closed (e.g. using
@@ -115,10 +112,6 @@ quartz.save(file, type = "png", device = dev.cur(), dpi = 100, ...)
   non-Western-European languages something other than the default of
   \code{"Helvetica"} is likely to be needed---one choice for Chinese is
   \code{"MingLiU"}.
-  
-  \code{quartz.save} is a modified version of \code{\link{dev.copy2pdf}}
-  to copy the plot from the current screen device to a \code{quartz}
-  device, by default to a PNG file.
 }
 \section{Conventions}{
   This section describes the implementation of the conventions for

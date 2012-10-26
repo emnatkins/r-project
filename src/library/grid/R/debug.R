@@ -209,31 +209,26 @@ drawVP.viewport <- function(vp, curDepth, depth, col, fill, label) {
     }
 }
 
-drawVP.vpPath <- function(vp, curDepth, depth, col, fill, label) {
-    if (is.null(depth) || curDepth %in% depth) {
-        downViewport(vp)
-        colIndex <- (curDepth - 1) %% length(col) + 1
-        fillIndex <- (curDepth - 1) %% length(fill) + 1
-        grid.rect(gp=gpar(col=col[colIndex], fill=fill[fillIndex]))
-        if (label)
-            labelVP(vp, col[colIndex])
-        upViewport(depth(vp))
-    }
-}
-
 drawVP.vpList <- function(vp, curDepth, depth, col, fill, label) {
     lapply(vp, drawVP, curDepth, depth, col, fill, label)
 }
 
+drawVPStack <- function(vp, curDepth, depth, col, fill, label) {
+    pushViewport(vp)
+    if (is.null(depth) || curDepth %in% depth) {
+        colIndex <- (curDepth - 1) %% length(col) + 1
+        fillIndex <- (curDepth - 1) %% length(fill) + 1
+        grid.rect(gp=gpar(col=col[colIndex], fill=fill[fillIndex]))
+    }
+}
+
 drawVP.vpStack <- function(vp, curDepth, depth, col, fill, label) {
     d <- depth(vp)
-    for (i in 1:length(vp)) {
-        this <- vp[[i]]
-        drawVP(this, curDepth, depth, col, fill, label)
-        curDepth <- curDepth + depth(this)
-        pushViewport(this)
-    }
-    upViewport(d)
+    mapply(drawVPStack, vp, curDepth + 1:d - 1,
+           MoreArgs=list(depth, col, fill, label))
+    if (label && curDepth + d - 1 %in% depth)
+        labelVP(vp[[d]], col[(curDepth + d - 2) %% length(col) + 1])
+    upViewport(depth(vp))
 }
 
 drawVP.vpTree <- function(vp, curDepth, depth, col, fill, label) {
@@ -261,17 +256,17 @@ drawVP.vpTree <- function(vp, curDepth, depth, col, fill, label) {
 # Draw all viewports in same viewport
 showVP <- function(vp, newpage, cvpt, depth, col, fill,
                    label) {
-    # If we've started a new page, we'll need the old
-    # viewport tree to navigate within
-    if (newpage) {
-        pushViewport(cvpt)
-        # "-1" for "ROOT"
-        upViewport(depth(cvpt) - 1)
-    }
     # Work off a vpTree, so convert vp if it's a vpPath
     showingPath <- inherits(vp, "vpPath")
     if (showingPath) {
         path <- vp
+        # If we've started a new page, we'll need the old
+        # viewport tree to navigate within
+        if (newpage) {
+            pushViewport(cvpt)
+            # "-1" for "ROOT"
+            upViewport(depth(cvpt) - 1)
+        }
         downViewport(path)
         vp <- current.vpTree(all=FALSE)
         upViewport(1)
@@ -301,14 +296,8 @@ leafPaths.vpList <- function(vp) {
 
 leafPaths.vpStack <- function(vp) {
     pathList <- lapply(vp, leafPaths)
-    for (i in 1:length(pathList)) {
-        if (i > 1) {
-            pathList[[i]] <- paste(pathList[[i - 1]],
-                                   pathList[[i]],
-                                   sep=.grid.pathSep)
-        }
-    }
-    unlist(pathList)
+    paste(unlist(pathList),
+          sep=.grid.pathSep)
 }
 
 leafPaths.vpTree <- function(vp) {
@@ -327,10 +316,6 @@ leafPaths.vpTree <- function(vp) {
                   sep=.grid.pathSep)
         }
     }
-}
-
-leafPaths.vpPath <- function(vp) {
-    as.character(vp)
 }
 
 # Draw a vpPath
@@ -366,7 +351,7 @@ showVPmatrix <- function(vp, cvpt, depth, col, fill,
         paths <- leafPaths(vp)
     } else {
         # Should not happen
-        stop("how did we get here?")
+        stop("How did we get here?")
     }
     firstPath <- 0
     while (length(paths) - firstPath > 0) {
@@ -381,20 +366,9 @@ showVPmatrix <- function(vp, cvpt, depth, col, fill,
                     pushViewport(viewport(layout.pos.row=i,
                                           layout.pos.col=j))
                     grid.rect(gp=gpar(col="grey80"))
-                    # We may need the old vpTree to navigate within
-                    # if 'vp' is a vpStack, or something similar, that
-                    # contains a vpPath
-                    if (!is.null(cvpt$children)) {
-                        pushViewport(cvpt$children)
-                        upViewport(depth(cvpt) - 1)
-                    }
-                    # Now push the viewport we are showing
                     pushViewport(vp)
                     upViewport(depth(vp))
-                    # Now go to the particular viewport we
-                    # are going to show
                     drawPath(thePath, depth, col, fill, label)
-                    # Pop our placement within the layout
                     popViewport()
                 }
             }
@@ -412,7 +386,7 @@ showViewport <- function(vp=NULL, recurse=TRUE, depth=NULL,
     if (is.null(vp))
         vp <- cvpt
     if (newpage == FALSE && leaves == TRUE)
-        stop("must start new page if showing leaves separately")
+        stop("Must start new page if showing leaves separately")
     if (newpage) {
         grid.newpage()
     }

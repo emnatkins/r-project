@@ -25,7 +25,7 @@ push.vp <- function(vp, recording) {
 }
 
 push.vp.default <- function(vp, recording) {
-  stop("only valid to push viewports")
+  stop("Only valid to push viewports")
 }
 
 push.vp.viewport <- function(vp, recording) {
@@ -82,11 +82,6 @@ push.vp.vpTree <- function(vp, recording) {
   push.vp(vp$children, recording)
 }
 
-# "push"ing a vpPath is just a downViewport(..., strict=TRUE)
-push.vp.vpPath <- function(vp, recording) {
-    downViewport(vp, strict=TRUE, recording)
-}
-
 push.viewport <- function(..., recording=TRUE) {
   .Deprecated("pushViewport")
   pushViewport(..., recording=recording)
@@ -94,7 +89,7 @@ push.viewport <- function(..., recording=TRUE) {
 
 pushViewport <- function(..., recording=TRUE) {
   if (missing(...))
-    stop("must specify at least one viewport")
+    stop("Must specify at least one viewport")
   else {
     vps <- list(...)
     lapply(vps, push.vp, recording)
@@ -190,7 +185,7 @@ pop.viewport <- function(n=1, recording=TRUE) {
 
 popViewport <- function(n=1, recording=TRUE) {
   if (n < 0)
-    stop("must pop at least one viewport")
+    stop("Must pop at least one viewport")
   if (n == 0)
     n <- vpDepth()
   if (n > 0) {
@@ -208,7 +203,7 @@ popViewport <- function(n=1, recording=TRUE) {
 # simply navigate up, leaving pushed viewports in place.
 upViewport <- function(n=1, recording=TRUE) {
   if (n < 0)
-    stop("must navigate up at least one viewport")
+    stop("Must navigate up at least one viewport")
   if (n == 0) {
     n <- vpDepth()
     upPath <- current.vpPath()
@@ -247,7 +242,7 @@ current.viewport <- function(vp=NULL) {
     # ever see normal viewports, so convert.
     vpFromPushedvp(grid.Call(L_currentViewport))
   else {
-    warning("the 'vp' argument is deprecated")
+    warning("The vp argument is deprecated")
     vp
   }
 }
@@ -301,7 +296,7 @@ grid.prompt <- function(ask) {
     .Deprecated("devAskNewPage")
     if(!missing(ask)) {
         if (!is.logical(ask))
-            stop("invalid 'ask' value")
+            stop("Invalid 'ask' value")
         grDevices::devAskNewPage(ask)
     } else grDevices::devAskNewPage()
 }
@@ -380,7 +375,7 @@ record <- function(x) {
 # gets put on the display list
 record.default <- function(x) {
   if (!is.numeric(x))
-    stop("invalid object inserted on the display list")
+    stop("Invalid object inserted on the display list")
   grid.Call(L_setDLelt, x)
   inc.display.list()
 }
@@ -430,7 +425,7 @@ grid.DLapply <- function(FUN, ...) {
         elt <- grid.Call(L_getDLelt, i)
         newElt <- FUN(elt, ...)
         if (!(is.null(newElt) || inherits(newElt, class(elt))))
-            stop("invalid modification of the display list")
+            stop("Invalid modification of the display list")
         newDL[[i]] <- newElt
     }
     for (i in 1:(gridDLindex - 1)) {

@@ -93,10 +93,8 @@ as.POSIXlt.default <- function(x, tz = "", ...)
     if(inherits(x, "POSIXlt")) return(x)
     if(is.logical(x) && all(is.na(x)))
         return(as.POSIXlt(as.POSIXct.default(x), tz=tz))
-    stop(gettextf("do not know how to convert '%s' to class %s",
-                  deparse(substitute(x)),
-                  dQuote("POSIXlt")),
-         domain = NA)
+    stop(gettextf("do not know how to convert '%s' to class \"POSIXlt\"",
+                  deparse(substitute(x))))
 }
 
 as.POSIXct <- function(x, tz = "", ...) UseMethod("as.POSIXct")
@@ -152,10 +150,8 @@ as.POSIXct.default <- function(x, tz = "", ...)
 	return(as.POSIXct(as.POSIXlt(x, tz, ...), tz, ...))
     if(is.logical(x) && all(is.na(x)))
         return(.POSIXct(as.numeric(x)))
-    stop(gettextf("do not know how to convert '%s' to class %s",
-                  deparse(substitute(x)),
-                  dQuote("POSIXct")),
-         domain = NA)
+    stop(gettextf("do not know how to convert '%s' to class \"POSIXct\"",
+                  deparse(substitute(x))))
 }
 
 as.double.POSIXlt <- function(x, ...) as.double(as.POSIXct(x))
@@ -282,12 +278,12 @@ summary.POSIXlt <- function(object, digits = 15, ...)
                          secs = x, mins = 60*x, hours = 60*60*x,
                          days = 60*60*24*x, weeks = 60*60*24*7*x))
     if(!inherits(e1, "POSIXt"))
-        stop("can only subtract from \"POSIXt\" objects")
+        stop("Can only subtract from POSIXt objects")
     if (nargs() == 1) stop("unary '-' is not defined for \"POSIXt\" objects")
     if(inherits(e2, "POSIXt")) return(difftime(e1, e2))
     if (inherits(e2, "difftime")) e2 <- coerceTimeUnit(e2)
     if(!is.null(attr(e2, "class")))
-        stop("can only subtract numbers from \"POSIXt\" objects")
+        stop("can only subtract numbers from POSIXt objects")
     e1 <- as.POSIXct(e1)
     .POSIXct(unclass(e1) - e2, attr(e1, "tzone"))
 }
@@ -413,10 +409,10 @@ c.POSIXlt <- function(..., recursive=FALSE)
     as.POSIXlt(do.call("c", lapply(list(...), as.POSIXct)))
 
 ## force absolute comparisons
-all.equal.POSIXct <- function(target, current, ..., tolerance = 1e-3, scale=1)
+all.equal.POSIXct <- function(target, current, ..., scale=1)
 {
     check_tzones(target, current)
-    NextMethod("all.equal", tolerance = tolerance, scale = scale)
+    NextMethod("all.equal")
 }
 
 
@@ -669,12 +665,12 @@ seq.POSIXt <-
     function(from, to, by, length.out = NULL, along.with = NULL, ...)
 {
     if (missing(from)) stop("'from' must be specified")
-    if (!inherits(from, "POSIXt")) stop("'from' must be a \"POSIXt\" object")
+    if (!inherits(from, "POSIXt")) stop("'from' must be a POSIXt object")
     cfrom <- as.POSIXct(from)
     if(length(cfrom) != 1L) stop("'from' must be of length 1")
     tz <- attr(cfrom , "tzone")
     if (!missing(to)) {
-        if (!inherits(to, "POSIXt")) stop("'to' must be a \"POSIXt\" object")
+        if (!inherits(to, "POSIXt")) stop("'to' must be a POSIXt object")
         if (length(as.POSIXct(to)) != 1) stop("'to' must be of length 1")
     }
     if (!missing(along.with)) {
@@ -720,7 +716,7 @@ seq.POSIXt <-
     if(valid <= 5L) { # secs, mins, hours, days, weeks
         from <- unclass(as.POSIXct(from))
         if(!is.null(length.out))
-            res <- seq.int(from, by = by, length.out = length.out)
+            res <- seq.int(from, by=by, length.out=length.out)
         else {
             to0 <- unclass(as.POSIXct(to))
             ## defeat test in seq.default

@@ -42,7 +42,8 @@ function(formula, data, weights, subset, na.action, model = FALSE,
     if(any(sapply(x, is.factor))) stop("predictors must all be numeric")
     x <- as.matrix(x)
     D <- ncol(x)
-    nmx <- setNames(nm = colnames(x))
+    nmx <- colnames(x)
+    names(nmx) <- nmx
     drop.square <- match(nmx, nmx[drop.square], 0L) > 0L
     parametric <- match(nmx, nmx[parametric], 0L) > 0L
     if(!match(degree, 0L:2L, 0L)) stop("'degree' must be 0, 1 or 2")
@@ -170,8 +171,8 @@ simpleLoess <-
     }
     if(surface == "interpolate")
     {
-	pars <- setNames(z$parameter,
-			 c("d", "n", "vc", "nc", "nv", "liv", "lv"))
+	pars <- z$parameter
+	names(pars) <- c("d", "n", "vc", "nc", "nv", "liv", "lv")
 	enough <- (D + 1L) * pars["nv"]
 	fit.kd <- list(parameter=pars, a=z$a[1L:pars[4L]], xi=z$xi[1L:pars[4L]],
 		       vert=z$vert, vval=z$vval[1L:enough])
@@ -240,11 +241,12 @@ predict.loess <-
         as.matrix(model.frame(delete.response(terms(object)), newdata,
                               na.action = na.action))
     else as.matrix(newdata) # this case is undocumented
-    res <-
-        with(object, predLoess(y, x, newx, s, weights, pars$robust,
-                               pars$span, pars$degree, pars$normalize,
-                               pars$parametric, pars$drop.square, pars$surface,
-                               pars$cell, pars$family, kd, divisor, se = se))
+    res <- predLoess(object$y, object$x, newx, object$s, object$weights,
+		     object$pars$robust, object$pars$span, object$pars$degree,
+		     object$pars$normalize, object$pars$parametric,
+		     object$pars$drop.square, object$pars$surface,
+		     object$pars$cell, object$pars$family,
+		     object$kd, object$divisor, se=se)
     if(!is.null(out.attrs <- attr(newdata, "out.attrs"))) { # expand.grid used
         if(se) {
             res$fit <- array(res$fit, out.attrs$dim, out.attrs$dimnames)
@@ -428,8 +430,8 @@ scatter.smooth <-
     function(x, y = NULL, span = 2/3, degree = 1,
 	     family = c("symmetric", "gaussian"),
 	     xlab = NULL, ylab = NULL,
-	     ylim = range(y, pred$y, na.rm = TRUE),
-             evaluation = 50, ..., lpars = list())
+	     ylim = range(y, prediction$y, na.rm = TRUE),
+             evaluation = 50, ...)
 {
     xlabel <- if (!missing(x)) deparse(substitute(x))
     ylabel <- if (!missing(y)) deparse(substitute(y))
@@ -438,9 +440,9 @@ scatter.smooth <-
     y <- xy$y
     xlab <- if (is.null(xlab)) xy$xlab else xlab
     ylab <- if (is.null(ylab)) xy$ylab else ylab
-    pred <- loess.smooth(x, y, span, degree, family, evaluation)
+    prediction <- loess.smooth(x, y, span, degree, family, evaluation)
     plot(x, y, ylim = ylim, xlab = xlab, ylab = ylab, ...)
-    do.call(lines, c(list(pred), lpars))
+    lines(prediction)
     invisible()
 }
 
@@ -479,9 +481,9 @@ anova.loess <- function(object, ...)
     ## calculate the number of models
     if (!all(sameresp)) {
 	objects <- objects[sameresp]
-        warning(gettextf("models with response %s removed because response differs from model 1",
-                         sQuote(deparse(responses[!sameresp]))),
-                domain = NA)
+	warning("models with response ",
+                sQuote(deparse(responses[!sameresp])),
+                "removed because response differs from model 1")
     }
     nmodels <- length(objects)
     if(nmodels <= 1L) stop("no models to compare")
